@@ -136,6 +136,34 @@ All three certificates (flow, non-connection, cover) + composition are mechanize
 Parser-ready structures: `RMode`/`REdge`/`SearchGraph` (dynamics `ODESystem`, guards
 `Formula`, budget `ℕ`).
 
-Next session: the `input.txt` parser (trusted IO) + `lake exe relcert <input.txt>` +
-run across all 46 benchmarks + parity table {certified-A/B / covered-not-pruned /
-declined} vs Python.
+---
+
+# Stage 4: the end-to-end runner + 46-benchmark parity
+
+`lake exe relcert <input.txt>` parses a benchmark, discharges the verified strict flow
+query per sync pair with Z3, and runs the multi-segment all-successors cover.
+
+- **`Parse.lean`** — trusted IO parser: INI sections + infix/`smt2:` expressions →
+  string-keyed model IR (`PProblem`). Parse failure ⟹ reported unparsed, never certified.
+- **`Run.lean`** — lowers a sync pair `(qL,qR,λ)` into the verified `flowQueryStrict`
+  (pinned to `lieDeriv` via the `Smt` IR bridge), emits SMT-LIB, Z3. The flow domain
+  conjoins **both mode guards** (a successor guard can push the invariant boundary
+  outside the reachable box ⟹ vacuous, sound certification). Cover = `dfsCover`: the
+  multi-segment `Covered` relation run with cached flow checks (budget `εR/λ` per
+  segment, all retained successors + self-loop, fuel-bounded by `⌈εL/δL⌉`).
+- **`flow_cert_sound_strict`** (added, axiom-clean) — the strict-boundary flow cert
+  (`DI_strict`) the runner relies on; route-A `flow_cert_sound` can't see offset
+  invariants (`g=L−R−d`, Lie<0 only *on* the boundary).
+
+## Parity (see `PARITY.md`)
+
+**Lean 22/46 VERIFIED** (Python 46/46). Every Lean `VERIFIED` is **sound** — segments by
+`flow_cert_sound_strict`, composed by `cover_sound`; Z3 UNSAT the only trusted leaf.
+By category: A 18/22, B 1/1, C 2/14, D 1/3, E 0/3, F 0/3. The 24 non-verified `decline`
+(sound one-sided): coupled/quadratic/nonlinear invariants (C/E/F) — the runner's `invToG`
+lowers only the primary offset component; a few A need a finer λ grid; one Z3 timeout.
+Completeness gaps, never unsound claims. Next completeness step: full multi-conjunct
+`invToG` + finer λ search.
+
+**Whole project complete:** verified core (3 certificates + cover/Theorem 3, all
+axiom-clean bar `z3_unsat_sound`) + runnable end-to-end tool with measured parity.

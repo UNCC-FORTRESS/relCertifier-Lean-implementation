@@ -12,6 +12,7 @@ reports certified / not. `unsat` is the only trusted verdict:
 -/
 import RelCertifier.Smt
 import RelCertifier.Oracle
+import RelCertifier.Run
 
 open RelCertifier DL
 
@@ -65,7 +66,7 @@ def runObligation (name : String) (g : ITerm 2) (fL fR : Fin 2 → ITerm 2)
   IO.println s!"      {tag}"
   pure (v == expect)
 
-def main : IO Unit := do
+def demoStage1 : IO Unit := do
   IO.println "relCertifier-lean — Stage 1: verified flow certificate"
   IO.println "  invariant component g = L_px − R_px − 2   (g ≤ 0)"
   IO.println "  soundness: flow_certified = z3_unsat_sound + flow_cert_sound (dL-lean DI_nonstrict_domain)"
@@ -84,3 +85,8 @@ def main : IO Unit := do
   else do
     IO.println "✗ verdict mismatch"
     IO.Process.exit 1
+
+/-- Stage-4 entry: with `input.txt` path args, run the end-to-end cover on each;
+otherwise print the Stage-1 flow-certificate demo. -/
+def main (args : List String) : IO Unit := do
+  if args.isEmpty then demoStage1 else args.forM RelCertifier.Run.runFile

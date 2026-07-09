@@ -265,4 +265,26 @@ theorem flow_cert_sound {n : ℕ} (o : FlowObligation n) {ν : State (Var n)}
   rw [not_le] at hpos
   exact hunsat x ⟨hx, by simpa [flowQuery, Formula.sat, CompOp.interp, Term.eval] using hpos⟩
 
+/-- **Flow certificate soundness (strict boundary form).** If the strict boundary query
+`domain ∧ g = 0 ∧ ġ ≥ 0` is unsatisfiable, then `g ≤ 0` is preserved along the
+λ-stretched co-evolution on `domain`.
+
+Cites dL-lean `DI_strict`: UNSAT gives `ġ < 0` on `{g=0} ∩ domain` (via
+`lieDeriv_correct`), the strict boundary hypothesis. This is the route that certifies
+offset invariants (`g = L_x − R_x − d`), whose Lie is negative only *on* the boundary —
+the domain-wide `flow_cert_sound` cannot see them. Same soundness discipline: strict, no
+new axiom, matches the design's "strictly away". -/
+theorem flow_cert_sound_strict {n : ℕ} (o : FlowObligation n) {ν : State (Var n)}
+    (hunsat : ∀ σ, ¬ Formula.sat (flowQueryStrict o) σ)
+    (hinit : Term.eval o.g ν ≤ 0) :
+    BoxLe (Program.ode (jointSys o.fL o.fR o.lam) o.domain)
+      (fun ω => Term.eval o.g ω) ν := by
+  refine DI_strict (jointSys_wellFormed o.fL o.fR o.lam)
+    (term_differentiable o.g) ?_ hinit
+  intro x hx hg0
+  rw [← lieDeriv_correct]
+  by_contra hpos
+  rw [not_lt] at hpos
+  exact hunsat x ⟨hx, hg0, by simpa [Formula.sat, CompOp.interp, Term.eval] using hpos⟩
+
 end RelCertifier

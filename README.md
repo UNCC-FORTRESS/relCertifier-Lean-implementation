@@ -112,10 +112,24 @@ The **superlevel (Lyapunov) route** `DI_nonstrict_superlevel` (`ġ ≤ 0` on `{g
 invariance, proven from vendored Mathlib — no subtangency) lifts the contraction/energy
 class (24 → 41) soundly: it certifies the marginal `ġ = 0`-on-boundary invariants where the
 strict route can't, and rejects the `t²` pathology (interior positivity) directly. See
-`DIAGNOSIS.md` — the 22 earlier declines are all genuinely TRUE (Cat-2 = 0: Python certifies
-no falsehood on the suite). The 5 remaining DECLINED are conservative all-successors declines
-(a bad right successor the invariant relies on never being taken) needing Stage-2 pruning —
-not a boundary/soundness gap.
+`DIAGNOSIS.md` — the 22 earlier declines are all genuinely TRUE (**Cat-2 = 0**: Python
+certifies no falsehood on the suite; its boundary-only criterion is unsound-in-general but
+valid here because every boundary is regular or a harmless equilibrium).
+
+The **5 remaining DECLINED are all genuinely-true invariants**, and none is a boundary or
+soundness gap — verified they are *not* closable by the two "obvious" completeness moves:
+* **Non-connection pruning fires on nothing here** (checked via Z3): the suspect bad
+  successors are genuinely reachable (e.g. `rover3_M1`'s Safe guard `px≥10` with `px'=vx>0`
+  → flow moves *into* the guard), so the time-unbounded Nagumo barrier cannot prune them.
+* **Restating to an inductive conjunction fails too**: the 4 s-gap cases (endurance ×3,
+  `rover_terrain_M1`) are gain-attack / order-mismatch models where the naive helper
+  `v_L≤v_R` is *false* (left gains faster: `v_L(t)=0.3(1−e^{−3t}) > v_R(t)=0.3(1−e^{−2t})`),
+  so the conjunction is false and the certifier **correctly declines it** (a false helper →
+  DECLINE, never a false CERTIFIED).
+
+Their true inductive form is **nonlinear** (the rate relation under the attack) or needs
+budget-aware **reachability** (`rover3_M1`) — genuine invariant-synthesis targets, the work
+the oracle exists to *check*, not the tool's to solve. **41/46 is the honest sound ceiling.**
 
 Two trusted-layer (parser) bugs were found and fixed while validating: `dynOf` silently
 defaulted an unlowerable dynamics term to `0` (a wrong field could falsely certify) — now

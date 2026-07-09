@@ -24,6 +24,11 @@ namespace RelCertifier
 structure Z3Config where
   binary    : String
   timeoutMs : Nat := 10000
+  /-- Deterministic solver work-unit bound (machine-independent, unlike a wall timeout):
+  a hard NRA query hits it and returns `unknown` at the SAME point on every machine, so
+  the verdict is reproducible. This is what actually bounds pathological queries `z3`'s
+  `:timeout` may ignore in preprocessing. `0` disables it. -/
+  rlimit    : Nat := 8000000
   deriving Repr
 
 /-- Three-valued solver verdict. `error` is carried by `Except`, never conflated here. -/
@@ -36,13 +41,14 @@ spawn (not re-resolved through PATH). -/
 def Z3Config.discover : IO (Except String Z3Config) := do
   -- optional deterministic per-query timeout override (ms)
   let t := (← IO.getEnv "RELCERT_Z3_TIMEOUT").bind String.toNat? |>.getD 10000
+  let rl := (← IO.getEnv "RELCERT_Z3_RLIMIT").bind String.toNat? |>.getD 8000000
   match ← IO.getEnv "RELCERT_Z3" with
   | some p =>
-      if ← System.FilePath.pathExists p then return .ok { binary := p, timeoutMs := t }
+      if ← System.FilePath.pathExists p then return .ok { binary := p, timeoutMs := t, rlimit := rl }
       else return .error s!"RELCERT_Z3 set but not found: {p}"
   | none =>
       for p in ["/opt/homebrew/bin/z3", "/usr/local/bin/z3", "/usr/bin/z3"] do
-        if ← System.FilePath.pathExists p then return .ok { binary := p, timeoutMs := t }
+        if ← System.FilePath.pathExists p then return .ok { binary := p, timeoutMs := t, rlimit := rl }
       return .error "z3 not found (set RELCERT_Z3 to an absolute path)"
 
 /-- A live persistent solver process. -/
@@ -88,7 +94,8 @@ verdict, or EOF ⟹ `Except.error` (never a verdict). -/
 def Z3Session.check (s : Z3Session) (smt : String) : IO (Except String Z3Verdict) := do
   try
     let stdin := s.child.stdin
-    stdin.putStr s!"(reset)\n(set-option :timeout {s.cfg.timeoutMs})\n{smt}\n(check-sat)\n(echo \"{sentinel}\")\n"
+    let rl := if s.cfg.rlimit == 0 then "" else s!"(set-option :rlimit {s.cfg.rlimit})\n"
+    stdin.putStr s!"(reset)\n(set-option :timeout {s.cfg.timeoutMs})\n{rl}{smt}\n(check-sat)\n(echo \"{sentinel}\")\n"
     stdin.flush
     let (v?, sawErr, sawEnd) ← drainToSentinel s.child.stdout 256 none false
     if !sawEnd then return .error "z3 produced no sentinel (crash/EOF)"

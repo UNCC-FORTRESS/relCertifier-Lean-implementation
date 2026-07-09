@@ -1,12 +1,12 @@
 # Parity — Lean oracle vs Python relCertifier (46 benchmarks)
 
-Three-way, hermetic, deterministic warm-session run: **23 CERTIFIED / 22 DECLINED / 0 ERROR**
-(cross-run verdict diff = 0). Every `CERTIFIED` is **sound** (verified core,
-`flow_cert_sound_strict` composed by `cover_sound`); `ERROR` is a distinct outcome for any
-harness/solver failure and can never masquerade as a verdict. Python VERIFIES all 46 via its
-boundary-only criterion, so Lean ⊆ Python; the `DECLINED` set is exactly the
-boundary-only-unsound gap the oracle correctly refuses. `rover3tier_rung12` is a slow
-multi-tier DECLINE (thousands of solver calls) — the one benchmark wanting a query budget.
+Three-way, hermetic, deterministic warm-session run: **24 CERTIFIED / 22 DECLINED / 0 ERROR**
+(cross-run verdict diff = 0; all 46 in ~2–3 s). Every `CERTIFIED` is **sound** (verified
+core, `flow_cert_sound_strict` composed by `cover_sound`); `ERROR` is a distinct outcome for
+any harness/solver failure and can never masquerade as a verdict. Python VERIFIES all 46 via
+its boundary-only criterion, so Lean ⊆ Python; the `DECLINED` set is exactly the
+boundary-only-unsound gap the oracle correctly refuses — moving synthesis to this oracle is a
+soundness upgrade.
 
 ## By category (CERT / DECL / ERR of total)
 
@@ -16,14 +16,15 @@ multi-tier DECLINE (thousands of solver calls) — the one benchmark wanting a q
 | **B** | mode-scoped | 1 | 0 | 0 | 1 |
 | **C** | partial/coupled | 3 | 11 | 0 | 14 |
 | **D** | pair-scoped | 1 | 2 | 0 | 3 |
-| **E** | quadratic/energy | 0 | 2 | 0 | 3 |
+| **E** | quadratic/energy | 1 | 2 | 0 | 3 |
 | **F** | nonlinear product | 0 | 3 | 0 | 3 |
-| **all** | | **23** | **22** | **0** | 46 |
+| **all** | | **24** | **22** | **0** | 46 |
 
 ## Timing (warm, in-process)
 
-45 fast benchmarks on one warm session: **~3 s total; per-call mean 68 ms, median 32 ms,
-p90 167 ms, max 230 ms** — dominated by the Z3 solve, not process spawn.
+All 46 on one warm session, **~2–3 s total; per-call mean 49 ms, median 26 ms, p90 101 ms,
+max 199 ms** — dominated by the Z3 solve. The cover is memoized on `(mode, fuel)` so a large
+time-stretch (tiny budget step) can't blow up the pure search.
 
 ## Per benchmark (Lean vs Python)
 
@@ -70,15 +71,17 @@ p90 167 ms, max 230 ms** — dominated by the Z3 solve, not process spawn.
 | story1_attdist_rung_a_6to8 | D | DECLINED | VERIFIED |
 | story1_attdist_rung_b_12dof | D | DECLINED | VERIFIED |
 | refinement_ladder_rover_rung3_6to8 | E | DECLINED | VERIFIED |
-| rover3tier_rung12 | E | SLOW (pending) | VERIFIED |
+| rover3tier_rung12 | E | CERTIFIED | VERIFIED |
 | rover_attitude_cone_12dof | E | DECLINED | VERIFIED |
 | story3_rollover_base_12dof | F | DECLINED | VERIFIED |
 | story3_rollover_ladder_rung_a | F | DECLINED | VERIFIED |
 | story3_rollover_ladder_rung_b | F | DECLINED | VERIFIED |
 
-## Determinism / soundness note
+## Determinism / soundness notes
 
-A pre-sentinel run reported 29 CERTIFIED; that was **inflated by a pipe-desync bug** (a stale
-`unsat` read for a query that was actually `sat`). The `(echo)` sentinel makes reads
-deterministic; the reproducible count is the one above. The determinism test caught this
-over-certification — the anti-flakiness guarantee the synthesis loop depends on.
+- A pre-sentinel run reported 29 CERTIFIED; that was **inflated by a pipe-desync bug** (a stale
+  `unsat` read). The `(echo)` sentinel makes reads deterministic. A separate cover-DFS fuel
+  explosion (Lean, not Z3) both hung one benchmark and corrupted its verdict; memoizing the
+  cover fixed it. The determinism test surfaced both — the anti-flakiness guarantee at work.
+- Reliability bounds (all deterministic): query-count budget, SMT-size guard, wall deadline, and
+  Z3 `:rlimit` (machine-independent) — every call terminates with a definite outcome.

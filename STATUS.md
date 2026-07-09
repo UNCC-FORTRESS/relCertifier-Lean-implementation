@@ -194,15 +194,18 @@ determinism test caught. Cross-run + same-session verdicts are stable.
 
 `RelCertifier.Oracle.certify : Z3Session → PProblem → IO Outcome` — the in-process entry
 synthesis links directly (no per-call `lake exe` spawn). One warm session serves all
-queries. **Measured warm per-call (45 fast benchmarks): mean 68 ms, median 32 ms,
-p90 167 ms, max 230 ms** — dominated by the Z3 solve, not process/plumbing (all 45 in
-~3 s total on one warm session). `certifyFile : Z3Config → String → IO Outcome` and the
-CLI keep the file path. Timeout is `RELCERT_Z3_TIMEOUT` (default 10 s).
+queries. **Measured warm per-call (all 46): mean 49 ms, median 26 ms, p90 101 ms,
+max 199 ms** — dominated by the Z3 solve, not process/plumbing (all 46 in ~2–3 s on one
+warm session). `certifyFile : Z3Config → String → IO Outcome` and the CLI keep the file
+path.
 
-One pathological outlier, `rover3tier_rung12` (a large multi-tier DECLINE), issues
-thousands of solver calls in the exhaustive all-successors search and takes minutes — the
-one benchmark that would want a deterministic query-budget bound (future; the caller can
-lower `RELCERT_Z3_TIMEOUT` or cap query count).
+**Reliability bounds (all deterministic) — every call terminates with a definite outcome:**
+the cover DFS is memoized on `(mode, fuel)` (a large time-stretch gives a tiny budget step
+⟹ huge fuel ⟹ `(M+1)^fuel` blowup *in Lean*, not Z3 — memoization makes it `modes × fuel`);
+plus a query-count budget (`RELCERT_MAX_QUERIES`), an SMT-size guard (`RELCERT_MAX_SMT`), a
+wall deadline (`RELCERT_TIME_BUDGET_MS`), a `:timeout` (`RELCERT_Z3_TIMEOUT`), and Z3
+`:rlimit` (`RELCERT_Z3_RLIMIT`, machine-independent). The memoization also fixed the one
+benchmark (`rover3tier_rung12`) that previously hung and whose verdict was corrupted.
 
 ## P3 — broadened `invComponents` (multi-conjunct / quadratic / product)
 
@@ -222,15 +225,15 @@ parser (fixtures per construct, malformed→none), lowering (each shape→compon
 outcome-integrity (missing Z3 / unparsed / unreadable → ERROR), determinism +
 oracle-consistency (same candidate ×8 on a warm session → identical verdict). All pass.
 
-## Parity (`PARITY.md`) — deterministic, trustworthy
+## Parity (`PARITY.md`) — deterministic, trustworthy, all fast
 
-**23 CERTIFIED / 22 DECLINED / 0 ERROR across the 45 fast benchmarks** (cross-run diff = 0),
-plus `rover3tier_rung12` (slow outlier). Every CERTIFIED is sound; DECLINED = the
-boundary-only-unsound gap Python accepts and the oracle refuses. Quadratic/product/
-multi-conjunct coverage now flows through the unchanged core (E/F benchmarks certify).
+**24 CERTIFIED / 22 DECLINED / 0 ERROR across all 46** (cross-run diff = 0; ~2–3 s total).
+Every CERTIFIED is sound; DECLINED = the boundary-only-unsound gap Python accepts and the
+oracle refuses. Quadratic/product/multi-conjunct coverage now flows through the unchanged
+core (E/F benchmarks certify).
 
-**Key correction from the determinism test:** a pre-sentinel run reported 29 CERTIFIED —
-that count was *inflated by the pipe-desync bug* (a stale `unsat` read for a query that was
-actually `sat`). The `(echo)` sentinel fix makes reads deterministic; the honest,
-reproducible count is 23. The determinism test caught a real over-certification — exactly
-the anti-flakiness guarantee synthesis needs.
+**Two real bugs the determinism work caught:** (1) a pre-sentinel run reported 29 CERTIFIED
+— inflated by a pipe-desync (stale `unsat` read); the `(echo)` sentinel fixed it. (2) a
+cover-DFS fuel explosion (in Lean, not Z3) both hung one benchmark and corrupted its
+verdict; memoizing the cover fixed it. The honest, reproducible count is 24 — the
+anti-flakiness guarantee synthesis depends on, doing its job.

@@ -82,9 +82,11 @@ def loop (s : Z3Session) (cands : List PProblem) : IO (List Outcome) :=
 
 Hermetic + deterministic: Z3 is a **pinned** absolute path (`RELCERT_Z3`, never
 PATH-resolved), a **persistent** `z3 -in` process (warm), with `(reset)` + a per-query
-`:timeout` + an `(echo)` **sentinel** that keeps the pipe in sync so the same query always
-gives the same verdict. **Warm per-call: mean 68 ms, median 32 ms, p90 167 ms** —
-dominated by the Z3 solve.
+`:timeout` + a machine-independent `:rlimit` + an `(echo)` **sentinel** that keeps the pipe
+in sync so the same query always gives the same verdict. The cover DFS is memoized so a
+large time-stretch can't blow up the pure search. **Warm per-call: mean 49 ms, median
+26 ms, p90 101 ms, max 199 ms** (all 46 in ~2–3 s) — dominated by the Z3 solve. Every call
+terminates (query / SMT-size / wall / rlimit bounds, all deterministic).
 
 ## Running it
 
@@ -102,9 +104,8 @@ standard absolute path), and `dL-rel` at `../dL-rel` (transitively provides dL-l
 ## Benchmark parity (`PARITY.md`)
 
 Three-way, hermetic warm run over the 46 Python `relCertifier` benchmarks:
-**23 CERTIFIED / 22 DECLINED / 0 ERROR** across the 45 fast benchmarks (cross-run diff = 0,
-deterministic), plus `rover3tier_rung12` (a slow multi-tier DECLINE, thousands of solver
-calls). **Every `CERTIFIED` is sound** (`flow_cert_sound_strict` composed by `cover_sound`);
+**24 CERTIFIED / 22 DECLINED / 0 ERROR** (cross-run diff = 0, deterministic; all 46 in
+~2–3 s). **Every `CERTIFIED` is sound** (`flow_cert_sound_strict` composed by `cover_sound`);
 Python VERIFIES all 46 via its boundary-only criterion, so Lean ⊆ Python and the `DECLINED`
 set is exactly the boundary-only-unsound gap the oracle correctly refuses — switching
 synthesis to this oracle is a soundness upgrade. Quadratic / energy / product invariants now

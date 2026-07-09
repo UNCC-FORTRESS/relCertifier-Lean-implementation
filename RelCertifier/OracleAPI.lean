@@ -22,6 +22,7 @@ it, the outcome is `error`, not `declined`. `certified` is only ever produced by
 -/
 import RelCertifier.Run
 import RelCertifier.Z3
+import Std.Data.HashMap
 
 namespace RelCertifier.Oracle
 
@@ -75,42 +76,63 @@ inductive Cov3 | cov | nocov | incon
 /-- Check one segment `(qL=mL, qR=mR, λ)`: `pass` iff EVERY component's strict flow query
 is Z3-`unsat`; `fail` iff some component is definitively `sat`; `incon` on any Z3
 error/`unknown` or unbuildable query. -/
-def checkSeg (s : Z3Session) (vars : List String) (n : ℕ) (coord : Fin n → String)
+def checkSeg (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
+    (vars : List String) (n : ℕ) (coord : Fin n → String)
     (comps : List (ITerm n)) (mL mR : PMode) (lam : ℚ) : IO Seg := do
   let mut allPass := true
   for g in comps do
     match flowQueryIR vars n g mL mR lam with
     | none => return Seg.incon                     -- couldn't build the query
     | some q =>
-        match ← s.check (q.toScript coord) with
+        -- query-count budget + wall-clock deadline: exceeding either aborts to ERROR,
+        -- guaranteeing every call terminates (a pathological candidate never hangs)
+        cnt.modify (· + 1)
+        if (← cnt.get) > maxQ then throw (IO.userError "query budget exceeded")
+        if (← IO.monoMsNow) > deadline then throw (IO.userError "time budget exceeded")
+        let script := q.toScript coord
+        -- deterministic SMT-size guard: a huge lieDeriv term (product-rule blowup on a
+        -- high-DOF product invariant) would make Z3 block on parse. Skip it as inconclusive
+        -- (⟹ ERROR), never send it — bounds each query's cost by construction.
+        if script.length > maxSmt then return Seg.incon
+        match ← s.check script with
         | .error _ => return Seg.incon
         | .ok .unknown => return Seg.incon
         | .ok .sat => allPass := false             -- definitive fail on this component
         | .ok .unsat => pure ()
   return (if allPass then Seg.pass else Seg.fail)
 
-/-- The multi-segment all-successors cover, three-valued. `seg qR` is the precomputed
-status of residing in `qR`. `nocov` dominates `incon` (a definitely-uncovered successor
-fails all-successors regardless of inconclusive siblings). -/
-partial def dfsCov3 (seg : String → Seg) (succ : String → List String) (deltaL : ℚ)
-    (f : Nat) (qR : String) (B : ℚ) : Cov3 :=
-  if B ≤ 0 then .cov
-  else if f == 0 then .nocov
-  else match seg qR with
-    | .fail => .nocov
-    | .incon => .incon
-    | .pass =>
-        let B' := B - deltaL
-        if B' ≤ 0 then .cov
-        else
-          let rs := (qR :: succ qR).map (fun q' => dfsCov3 seg succ deltaL (f-1) q' B')
-          if rs.any (· == Cov3.nocov) then .nocov
-          else if rs.any (· == Cov3.incon) then .incon
-          else .cov
+/-- The multi-segment all-successors cover, three-valued, **memoized** on `(qR, f)` (the
+budget `B` is a function of `f`, so the state is finite: `modes × fuel`). Without the memo
+this is `(M+1)^fuel` pure recursion — the fuel can be huge when `δL` is tiny (large λ),
+which hangs Lean (not Z3). `seg qR` is the precomputed segment status; `nocov` dominates
+`incon` (a definitely-uncovered successor fails all-successors regardless of siblings). -/
+partial def dfsCov3 (memo : IO.Ref (Std.HashMap (String × Nat) Cov3))
+    (seg : String → Seg) (succ : String → List String) (deltaL : ℚ)
+    (f : Nat) (qR : String) (B : ℚ) : IO Cov3 := do
+  if B ≤ 0 then return .cov
+  if f == 0 then return .nocov
+  match (← memo.get)[(qR, f)]? with
+  | some r => return r
+  | none =>
+    let r ← (match seg qR with
+      | .fail => pure .nocov
+      | .incon => pure .incon
+      | .pass => do
+          let B' := B - deltaL
+          if B' ≤ 0 then pure .cov
+          else do
+            let mut rs : List Cov3 := []
+            for q' in (qR :: succ qR) do
+              rs := rs ++ [← dfsCov3 memo seg succ deltaL (f - 1) q' B']
+            pure (if rs.any (· == Cov3.nocov) then .nocov
+                  else if rs.any (· == Cov3.incon) then .incon else .cov))
+    memo.modify (·.insert (qR, f) r)
+    return r
 
 /-- Cover a single left mode: `cov` if some (start,λ) closes definitively; `incon` if none
 close but a route was inconclusive; `nocov` if all routes are definitive fails. -/
-def coverMode (s : Z3Session) (p : PProblem) (vars : List String) (n : ℕ)
+def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p : PProblem)
+    (vars : List String) (n : ℕ)
     (coord : Fin n → String) (comps : List (ITerm n))
     (epsL epsR lmin lmax : ℚ) (mL : PMode) : IO Cov3 := do
   let mut sawIncon := false
@@ -120,18 +142,20 @@ def coverMode (s : Z3Session) (p : PProblem) (vars : List String) (n : ℕ)
     -- precompute per-right-mode segment status at this λ
     let mut segMap : List (String × Seg) := []
     for mR in p.R.modes do
-      segMap := segMap ++ [(mR.name, ← checkSeg s vars n coord comps mL mR lam)]
+      segMap := segMap ++ [(mR.name, ← checkSeg s cnt maxQ maxSmt deadline vars n coord comps mL mR lam)]
     let seg := fun q => (segMap.find? (·.1 == q)).map (·.2) |>.getD Seg.incon
-    let fuel := (epsL / deltaL).ceil.toNat + 2
+    -- fuel = segments to fill εL, capped (a real cover uses few); memoized ⟹ bounded work
+    let fuel := min ((epsL / deltaL).ceil.toNat + 2) 128
+    let memo ← IO.mkRef (Std.HashMap.emptyWithCapacity : Std.HashMap (String × Nat) Cov3)
     for mR in p.R.modes do
-      match dfsCov3 seg (succOf p) deltaL fuel mR.name epsL with
+      match ← dfsCov3 memo seg (succOf p) deltaL fuel mR.name epsL with
       | .cov => return .cov
       | .incon => sawIncon := true
       | .nocov => pure ()
   return (if sawIncon then .incon else .nocov)
 
-/-- **In-process oracle entry.** Certify problem `p` on a warm session `s`. No shelling. -/
-def certify (s : Z3Session) (p : PProblem) : IO Outcome := do
+/-- Core cover, parameterized by a query counter/budget (`throw`s on overrun). -/
+def certifyCore (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p : PProblem) : IO Outcome := do
   let vars := p.L.stateVars
   let n := vars.length
   let coord := fun (i : Fin n) => vars.getD i.val "v"
@@ -150,12 +174,25 @@ def certify (s : Z3Session) (p : PProblem) : IO Outcome := do
         match invComponents vars n f with
         | none => return .error s!"unlowerable invariant for mode {mL.name}"
         | some comps =>
-            match ← coverMode s p vars n coord comps epsL epsR lmin lmax mL with
+            match ← coverMode s cnt maxQ maxSmt deadline p vars n coord comps epsL epsR lmin lmax mL with
             | .cov => pure ()
             | .incon => sawIncon := true
             | .nocov => return .declined   -- definitive uncovered ⟹ sound DECLINE
   if sawIncon then return .error "inconclusive Z3 verdict on a candidate route"
   else return .certified
+
+/-- **In-process oracle entry.** Certify problem `p` on a warm session `s`. No shelling.
+A deterministic query budget (`RELCERT_MAX_QUERIES`, default 1500) bounds every call: a
+candidate whose exhaustive search exceeds it ⟹ `error "query budget exceeded"` (never a
+verdict, never a hang) — the same input always hits the same count. -/
+def certify (s : Z3Session) (p : PProblem) : IO Outcome := do
+  let cnt ← IO.mkRef 0
+  let maxQ := (← IO.getEnv "RELCERT_MAX_QUERIES").bind String.toNat? |>.getD 5000
+  let budgetMs := (← IO.getEnv "RELCERT_TIME_BUDGET_MS").bind String.toNat? |>.getD 20000
+  let maxSmt := (← IO.getEnv "RELCERT_MAX_SMT").bind String.toNat? |>.getD 200000
+  let deadline := (← IO.monoMsNow) + budgetMs
+  try certifyCore s cnt maxQ maxSmt deadline p
+  catch e => return .error s!"budget exceeded ({e})"
 
 /-- File entry: parse + certify on a fresh warm session (for the CLI / batch). Parse
 failure ⟹ `error` (unparsed), never a verdict. -/

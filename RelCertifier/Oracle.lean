@@ -1,0 +1,52 @@
+/-
+Copyright (c) 2026 relCertifier-lean contributors.
+Released under Apache 2.0 license.
+
+# The trusted SMT leaf + top-level `flow_certified`
+
+The IO boundary. The single trusted assumption of the whole tool lives here and
+nowhere else: Z3's `unsat` verdict is sound.
+
+* `z3solve` is `opaque` (its real behaviour is the Z3 process in `Main`; opaque so
+  the pure core never depends on it, and it is not itself an axiom).
+* `z3_unsat_sound` is the one axiom.
+
+`#print axioms flow_certified` shows the standard three + `z3_unsat_sound`, plus
+proof-dependency edges to `flow_cert_sound` (⟶ dL-lean `DI_nonstrict_domain`).
+-/
+import RelCertifier.FlowCert
+
+namespace RelCertifier
+
+open DL
+
+/-- SMT solver verdict. -/
+inductive Verdict where
+  | unsat | sat | unknown
+  deriving DecidableEq, Repr, Inhabited
+
+/-- The SMT oracle as an opaque constant. Operationally realized by the Z3 process
+in `Main`; kept opaque so the pure core is independent of it. -/
+opaque z3solve {n : ℕ} : Formula (Var n) → Verdict
+
+/-- **THE SINGLE TRUSTED LEAF.** An `unsat` verdict is sound: the queried formula is
+satisfied by no joint state. This is the only assumed fact beyond the kernel, and it
+lives at the IO boundary, outside the pure core. -/
+axiom z3_unsat_sound {n : ℕ} {q : Formula (Var n)} :
+    z3solve q = Verdict.unsat → ∀ σ, ¬ Formula.sat q σ
+
+/-- **`flow_certified`** — top-level composition. If Z3 reports `unsat` on the flow
+query, and `g ≤ 0` initially, then the invariant component `g ≤ 0` is preserved along
+the λ-stretched co-evolution on `domain`.
+
+Pure assembly: `z3_unsat_sound` supplies unsatisfiability; `flow_cert_sound`
+(⟶ dL-lean `DI_nonstrict_domain`, via `lieDeriv_correct`/`tderiv_correct`) turns that
+into the invariance. No new mathematics. -/
+theorem flow_certified {n : ℕ} (o : FlowObligation n) {ν : State (Var n)}
+    (hz3 : z3solve (flowQuery o) = Verdict.unsat)
+    (hinit : Term.eval o.g ν ≤ 0) :
+    BoxLe (Program.ode (jointSys o.fL o.fR o.lam) o.domain)
+      (fun ω => Term.eval o.g ω) ν :=
+  flow_cert_sound o (z3_unsat_sound hz3) hinit
+
+end RelCertifier

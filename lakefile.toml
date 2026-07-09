@@ -1,0 +1,19 @@
+name = "relCertifier-lean-implementation"
+version = "0.1.0"
+defaultTargets = ["RelCertifier"]
+
+[leanOptions]
+pp.unicode.fun = true
+relaxedAutoImplicit = false
+maxSynthPendingDepth = 3
+
+[[require]]
+name = "dL-lean"
+path = "../dL-lean"
+
+[[lean_lib]]
+name = "RelCertifier"
+
+[[lean_exe]]
+name = "relcert"
+root = "Main"

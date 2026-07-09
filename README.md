@@ -104,32 +104,34 @@ standard absolute path), and `dL-rel` at `../dL-rel` (transitively provides dL-l
 ## Benchmark parity (`PARITY.md`)
 
 Three-way, hermetic warm run over the 46 Python `relCertifier` benchmarks:
-**41 CERTIFIED / 5 DECLINED / 0 ERROR** (3× identical, deterministic; all 46 in ~11 s).
+**45 CERTIFIED / 1 DECLINED / 0 ERROR** (deterministic; ~11 s). 4 gain-attack benchmarks are restated to their inductive conserved-certificate form (`CONSERVED.md`); the lone decline, `rover3_M1`, needs budget-aware reachability.
 **Every `CERTIFIED` is sound** (`flow_cert_sound` / `_strict` / `_superlevel` composed by
 `cover_sound`); Python VERIFIES all 46 via its boundary-only criterion, so Lean ⊆ Python.
 
 The **superlevel (Lyapunov) route** `DI_nonstrict_superlevel` (`ġ ≤ 0` on `{g ≥ 0}` ⟹
 invariance, proven from vendored Mathlib — no subtangency) lifts the contraction/energy
-class (24 → 41) soundly: it certifies the marginal `ġ = 0`-on-boundary invariants where the
+class (24 → 41) soundly, and a conserved-certificate restatement of 4 gain-attack benchmarks (24 → 45): it certifies the marginal `ġ = 0`-on-boundary invariants where the
 strict route can't, and rejects the `t²` pathology (interior positivity) directly. See
 `DIAGNOSIS.md` — the 22 earlier declines are all genuinely TRUE (**Cat-2 = 0**: Python
 certifies no falsehood on the suite; its boundary-only criterion is unsound-in-general but
 valid here because every boundary is regular or a harmless equilibrium).
 
-The **5 remaining DECLINED are all genuinely-true invariants**, and none is a boundary or
-soundness gap — verified they are *not* closable by the two "obvious" completeness moves:
-* **Non-connection pruning fires on nothing here** (checked via Z3): the suspect bad
-  successors are genuinely reachable (e.g. `rover3_M1`'s Safe guard `px≥10` with `px'=vx>0`
-  → flow moves *into* the guard), so the time-unbounded Nagumo barrier cannot prune them.
-* **Restating to an inductive conjunction fails too**: the 4 s-gap cases (endurance ×3,
-  `rover_terrain_M1`) are gain-attack / order-mismatch models where the naive helper
-  `v_L≤v_R` is *false* (left gains faster: `v_L(t)=0.3(1−e^{−3t}) > v_R(t)=0.3(1−e^{−2t})`),
-  so the conjunction is false and the certifier **correctly declines it** (a false helper →
-  DECLINE, never a false CERTIFIED).
+The earlier 5 declines were all genuinely-true invariants, and none was a boundary or
+soundness gap. Two "obvious" completeness moves were ruled out with evidence:
+**non-connection pruning fires on nothing here** (checked via Z3 — the suspect bad
+successors are genuinely reachable, so the time-unbounded Nagumo barrier can't prune them),
+and a **naive `∧ v_L≤v_R` restatement is false** for the 4 gain-attack models (left gains
+faster: `v_L(t)=0.3(1−e^{−3t}) > v_R(t)=0.3(1−e^{−2t})`) — the certifier *correctly declines*
+that false conjunction (a false helper → DECLINE, never a false CERTIFIED).
 
-Their true inductive form is **nonlinear** (the rate relation under the attack) or needs
-budget-aware **reachability** (`rover3_M1`) — genuine invariant-synthesis targets, the work
-the oracle exists to *check*, not the tool's to solve. **41/46 is the honest sound ceiling.**
+The 4 are instead closed by their **inductive conserved-certificate form** (`CONSERVED.md`):
+each has a conserved quantity `I` (`İ≤0`) whose sublevel `I≤I₀` flow-certifies and implies a
+**finite, tight, derived safety bound** `s_L−s_R ≤ c` (each `c` Z3-`maximize`d from the
+domains — not fitted, and *smaller* than the original stated bound). Restating the benchmark
+to `{I≤I₀ ∧ s_L−s_R≤c}` certifies via the unchanged certifier → **24 → 45**. The lone
+remaining decline, `rover3_M1`, has a genuinely-reachable bad successor and needs budget-aware
+**reachability** (Strategy 2), out of scope. **45/46 is the honest ceiling; the 4 restatements
+are benchmark-input changes, the certifier is untouched.**
 
 Two trusted-layer (parser) bugs were found and fixed while validating: `dynOf` silently
 defaulted an unlowerable dynamics term to `0` (a wrong field could falsely certify) — now

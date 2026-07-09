@@ -2,7 +2,7 @@
 
 Hermetic warm three-way run (`lake exe relcert <inputs…>`), deterministic (3× identical), 0 ERROR.
 
-**41 CERTIFIED / 5 DECLINED / 0 ERROR** (Python: 46/46 via its boundary-only criterion).
+**45 CERTIFIED / 1 DECLINED / 0 ERROR** (4 gain-attack benchmarks restated to their inductive conserved-certificate form — see `CONSERVED.md`) (Python: 46/46 via its boundary-only criterion).
 Every `CERTIFIED` is sound — backed by `flow_cert_sound` / `_strict` / `_superlevel` composed by `cover_sound`.
 
 | category | CERTIFIED | DECLINED |

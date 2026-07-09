@@ -1,0 +1,50 @@
+# ENDURANCE cross-tier rung 2 (Option A): L = M3 FINE (deployed/onboard, [v,s,a,j]),
+# R = M2 COARSE (reasoning/ground-plan, lifted to [v,s,a,j], j as off-H slack j'=0).
+# forall-exists: every fine M3 onboard execution has an admissible M2 coarse response keeping
+# s_onboard <= s_ground + d. Same gain k=3. This is the JERK frontier (oscillatory top-of-chain).
+[problem]
+name = endurance_orderlift_2to3
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 2.0
+[Lsys]
+state_vars = [v, s, a, j]
+epsilon = 1.0
+[Lsys.mode.STEEP]
+ode = v' = a; s' = v; a' = j; j' = smt2:(- (- (- 14.40 (* 48 v)) (* 16 a)) (* 4 j));
+guard = v >= 0.0 and v < 0.40
+evolve = v >= 0.0 and v <= 0.40 and s >= 0.0 and s <= 1000.0 and a >= -0.6 and a <= 0.6 and j >= -1.6 and j <= 1.3
+next = [MODER, STEEP]
+[Lsys.mode.MODER]
+ode = v' = a; s' = v; a' = j; j' = smt2:(- (- (- 24.00 (* 48 v)) (* 16 a)) (* 4 j));
+guard = v >= 0.40 and v < 0.575
+evolve = v >= 0.0 and v <= 0.575 and s >= 0.0 and s <= 1000.0 and a >= -0.6 and a <= 0.6 and j >= -1.6 and j <= 1.3
+next = [STEEP, FLAT, MODER]
+[Lsys.mode.FLAT]
+ode = v' = a; s' = v; a' = j; j' = smt2:(- (- (- 31.20 (* 48 v)) (* 16 a)) (* 4 j));
+guard = v >= 0.575
+evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and s <= 1000.0 and a >= -0.6 and a <= 0.6 and j >= -1.6 and j <= 1.3
+next = [MODER, FLAT]
+[Rsys]
+state_vars = [v, s, a, j]
+epsilon = 0.5
+[Rsys.mode.STEEP]
+ode = v' = a; s' = v; a' = smt2:(- (- 4.80 (* 16.0 v)) (* 8 a)); j' = smt2:0;
+guard = v >= 0.0 and v < 0.40
+evolve = v >= 0.0 and v <= 0.50 and s >= 0.0 and s <= 1000.0 and a >= -0.6 and a <= 0.6 and j >= -1.6 and j <= 1.3
+next = [MODER, STEEP]
+[Rsys.mode.MODER]
+ode = v' = a; s' = v; a' = smt2:(- (- 8.00 (* 16.0 v)) (* 8 a)); j' = smt2:0;
+guard = v >= 0.40 and v < 0.575
+evolve = v >= 0.0 and v <= 0.65 and s >= 0.0 and s <= 1000.0 and a >= -0.6 and a <= 0.6 and j >= -1.6 and j <= 1.3
+next = [STEEP, FLAT, MODER]
+[Rsys.mode.FLAT]
+ode = v' = a; s' = v; a' = smt2:(- (- 10.40 (* 16.0 v)) (* 8 a)); j' = smt2:0;
+guard = v >= 0.575
+evolve = v >= 0.0 and v <= 0.85 and s >= 0.0 and s <= 1000.0 and a >= -0.6 and a <= 0.6 and j >= -1.6 and j <= 1.3
+next = [MODER, FLAT]
+[relational_invariant]
+STEEP = 48*s[l] - 48*s[r] + 16*v[l] - 24*v[r] + 4*a[l] - 3*a[r] + j[l] <= 1.9 and s[l] <= s[r] + 0.411
+MODER = 48*s[l] - 48*s[r] + 16*v[l] - 24*v[r] + 4*a[l] - 3*a[r] + j[l] <= 1.9 and s[l] <= s[r] + 0.411
+FLAT = 48*s[l] - 48*s[r] + 16*v[l] - 24*v[r] + 4*a[l] - 3*a[r] + j[l] <= 1.9 and s[l] <= s[r] + 0.411

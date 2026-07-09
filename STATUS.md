@@ -43,5 +43,48 @@ alternatives; A was chosen.)
 | λ=4 | `vx∈[0.3,1]` | **unsat** | CERTIFIED | PASS ✓ |
 | λ=1 | `vx∈[0,1]` | sat | not certified | FAIL ✓ |
 
-Not in this stage: non-connection barrier (Stage 2); cover/composition + Theorem 3 +
-`encoding_correct` (Stage 3).
+---
+
+# Stage 2: the verified non-connection certificate (Nagumo barrier)
+
+Prunes a declared right transition `qR → qR'` by proving its scalar successor guard
+`x OP c` unreachable. Left-independent (right flow only). Verified core in
+`NonConn.lean`.
+
+## What is verified (pure core — axioms: standard three only)
+
+| Function | Correctness theorem | Anchor |
+|---|---|---|
+| `lieAlong g sys` (Lie along any `ODESystem`) | `lieAlong_correct` : `⟦lieAlong g sys⟧ = Lie sys ⟦g⟧` | Stage-1 `tderiv_fderiv` |
+| `sourceCheck o` = `source ∧ guard` | (check a) UNSAT ⟹ starts strictly safe | — |
+| `barrierCheck o` = `domain ∧ g=0 ∧ ẋ≥0` | (check b) UNSAT ⟹ `ẋ<0` on threshold | — |
+| — | `nonconn_sound` : both UNSAT ⟹ `∀ reachable ω, ¬ sat guard ω` | **dL-lean `DI_strict`** |
+| `scalarUpper/Lower x c …` | `scalar{Upper,Lower}_link` : `guard ⟺ {g>0}` | — |
+
+## Trust boundary
+
+`nonconn_certified` (IO boundary) axioms: standard three **+ `z3_unsat_sound`** — the
+same single leaf as Stage 1 (oracle now generic over `V`). **No subtangency axiom.**
+
+## Soundness finding (Stage-2 analogue of Stage 1)
+
+Python's check (b) is `evolve ∧ x=c ∧ ẋ>0` UNSAT ⟹ `ẋ≤0` on `{x=c}` **only** =
+boundary-only non-strict (Stage-1 unsound pattern; the design doc says "strictly
+away"). Scalar guard ⟹ regular boundary (∇=eₓ≠0), so *mathematically* sound, but
+dL-lean can't cite it without the missing subtangency lemma. **Verified version takes
+route B (strict):** `barrierCheck` uses `ẋ≥0` UNSAT ⟹ `ẋ<0` ⟹ `DI_strict`. Boundary-
+shaped like Python, strict like the doc, sound, no axiom. Declines only `ẋ=0`-exactly-
+on-threshold.
+
+## Scope (incompleteness, not unsoundness)
+
+Prunes **strict** guards `x>c` / `x<c` (`{g>0}`, sound via `DI_strict`'s `g≤0`
+conclusion). Closed guards `x≥c` need boundary exclusion (strict invariant `g<0`, not in
+dL-lean's `≤`-DI) — conservatively retained. Non-scalar guards retained. Structures
+(`NonConnObligation`: guard/domain/source `Formula`, dynamics `ODESystem`) shaped so a
+Stage-3 parser can populate them.
+
+---
+
+Not in these stages: cover/composition + Theorem 3 + `encoding_correct` (Stage 3);
+end-to-end benchmark runner + 46-case parity (post-Stage-3).

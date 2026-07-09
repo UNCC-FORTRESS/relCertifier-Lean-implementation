@@ -13,6 +13,7 @@ dL-lean (v0.1.0-DI): `Term`, `Formula`, `Term.eval`, `Formula.sat`, and the
 semantic differential-invariant theorems `DI_strict` / `DI_nonstrict_domain`.
 -/
 import DLLean
+import RelCertifier.DISuperlevel
 
 open DL
 
@@ -286,5 +287,35 @@ theorem flow_cert_sound_strict {n : ℕ} (o : FlowObligation n) {ν : State (Var
   by_contra hpos
   rw [not_lt] at hpos
   exact hunsat x ⟨hx, hg0, by simpa [Formula.sat, CompOp.interp, Term.eval] using hpos⟩
+
+/-- Superlevel (Lyapunov) query: `domain ∧ g ≥ 0 ∧ ġ > 0`. UNSAT ⟹ `ġ ≤ 0` on the
+superlevel side `{g ≥ 0} ∩ domain` — the hypothesis of `DI_nonstrict_superlevel`. -/
+def flowQuerySuperlevel {n : ℕ} (o : FlowObligation n) : Formula (Var n) :=
+  Formula.and o.domain
+    (Formula.and (Formula.cmp .ge o.g (Term.const 0))
+      (Formula.cmp .gt (lieDeriv o.g o.fL o.fR o.lam) (Term.const 0)))
+
+/-- **Flow certificate soundness (superlevel / Lyapunov form).** If `domain ∧ g ≥ 0 ∧ ġ > 0`
+is unsatisfiable, then `g ≤ 0` is preserved along the λ-stretched co-evolution.
+
+Cites `DI_nonstrict_superlevel`: UNSAT gives `ġ ≤ 0` on `{g ≥ 0} ∩ domain` (via
+`lieDeriv_correct`), the Lyapunov-barrier hypothesis. This is the route that certifies the
+marginal contraction/energy class (`ġ = −c·g ≤ 0` on `{g ≥ 0}`, `ġ = 0` on the boundary)
+where both `flow_cert_sound` (domain-wide, fails on `{g<0}`) and `flow_cert_sound_strict`
+(needs `ġ < 0`) decline. Sound with no regularity hypothesis; rejects the `t²` pathology
+(interior positivity of `ġ`). No new axiom. -/
+theorem flow_cert_sound_superlevel {n : ℕ} (o : FlowObligation n) {ν : State (Var n)}
+    (hunsat : ∀ σ, ¬ Formula.sat (flowQuerySuperlevel o) σ)
+    (hinit : Term.eval o.g ν ≤ 0) :
+    BoxLe (Program.ode (jointSys o.fL o.fR o.lam) o.domain)
+      (fun ω => Term.eval o.g ω) ν := by
+  refine DI_nonstrict_superlevel (jointSys_wellFormed o.fL o.fR o.lam)
+    (term_differentiable o.g) ?_ hinit
+  intro x hx hge
+  rw [← lieDeriv_correct]
+  by_contra hpos
+  rw [not_le] at hpos
+  refine hunsat x ⟨hx, ?_, by simpa [Formula.sat, CompOp.interp, Term.eval] using hpos⟩
+  simpa [Formula.sat, CompOp.interp, Term.eval] using hge
 
 end RelCertifier

@@ -74,17 +74,39 @@ def normVar (t : String) : String :=
   else if t.endsWith "[right]" then "R_" ++ (drr t 7)
   else t
 
-/-- Tokenize: separate parens and the multiplicative operators `* /` (so tightly-packed
-infix like `1.125*e[l]*e[l]` and `v[l]*r[l]` — quadratic/product invariants — tokenize),
-then split on whitespace. `[l]`/`[r]` brackets stay attached to their variable. -/
-def tokenize (s : String) : List String :=
-  let s := s.replace "(" " ( " |>.replace ")" " ) "
-    |>.replace "*" " * " |>.replace "/" " / " |>.replace "+" " + " |>.replace "-" " - "
-  (s.splitOn " ").filterMap (fun t => let t := tr t; if t.isEmpty then none else some t)
-
 def isNumTok (t : String) : Bool :=
   (t.data.headD 'a').isDigit || ((t.data.headD 'a') == '.') ||
   (t.startsWith "-" && ((t.data.getD 1 'a').isDigit || (t.data.getD 1 'a') == '.'))
+
+/-- After splitting operators, `-`/`+` in **operand** position (following an operator or
+comparator, or at the start) glued to a following number is a signed literal — merge them
+back. NOT after `(` (the smt operator slot, where `(- a b)` is binary minus) nor after a
+value (binary). Fixes `(* -1 psi)` → `-1` while keeping `(- 0.30 v)` as binary. -/
+def signMergePos (prev : Option String) : Bool :=
+  match prev with
+  | none   => true
+  | some p => ["*", "/", "+", "-", "<=", ">=", "<", ">", "="].contains p
+
+partial def mergeSigns : Option String → List String → List String
+  | _, [] => []
+  | prev, a :: rest =>
+      if (a == "-" || a == "+") && signMergePos prev then
+        match rest with
+        | b :: rest2 =>
+            if isNumTok b && !b.startsWith "-" then
+              let m := if a == "-" then "-" ++ b else b
+              m :: mergeSigns (some m) rest2
+            else a :: mergeSigns (some a) rest
+        | [] => [a]
+      else a :: mergeSigns (some a) rest
+
+/-- Tokenize: separate parens and operators (so tightly-packed infix like
+`1.125*e[l]*e[l]` — quadratic/product invariants — tokenizes), split on whitespace, then
+re-merge signed numeric literals (`mergeSigns`). `[l]`/`[r]` brackets stay attached. -/
+def tokenize (s : String) : List String :=
+  let s := s.replace "(" " ( " |>.replace ")" " ) "
+    |>.replace "*" " * " |>.replace "/" " / " |>.replace "+" " + " |>.replace "-" " - "
+  mergeSigns none ((s.splitOn " ").filterMap (fun t => let t := tr t; if t.isEmpty then none else some t))
 
 def atom (t : String) : PExpr :=
   if isNumTok t then PExpr.num t else PExpr.var (normVar t)

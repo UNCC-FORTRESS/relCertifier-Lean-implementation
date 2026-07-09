@@ -18,7 +18,7 @@ then a runnable front-end.
 
 | Stage | File | Function(s) | Correctness theorem | Cites |
 |---|---|---|---|---|
-| **1. Flow certificate** | `FlowCert.lean` | `tderiv`, `lieDeriv`, `flowQuery` | `flow_cert_sound` / `flow_cert_sound_strict` | dL-lean `DI_nonstrict_domain` / `DI_strict` |
+| **1. Flow certificate** | `FlowCert.lean` | `tderiv`, `lieDeriv`, `flowQuery` | `flow_cert_sound` / `_strict` / `_superlevel` | `DI_nonstrict_domain` / `DI_strict` / `DI_nonstrict_superlevel` |
 | **2. Non-connection** | `NonConn.lean` | `lieAlong`, `sourceCheck`, `barrierCheck` | `nonconn_sound` | dL-lean `DI_strict` (Nagumo barrier) |
 | **3. Cover / Theorem 3** | `Cover.lean`, `Cover/Encoding.lean` | `Covered`, `RightReach`, `cover_sound` | `cover_sound`, `theorem3_encoded` | flow + nonconn + dL-rel `encoding_correct` |
 | **4. Runner** | `Parse.lean`, `Run.lean`, `Main.lean` | parser + Z3-driven cover | — (trusted IO) | uses the verified queries |
@@ -104,12 +104,24 @@ standard absolute path), and `dL-rel` at `../dL-rel` (transitively provides dL-l
 ## Benchmark parity (`PARITY.md`)
 
 Three-way, hermetic warm run over the 46 Python `relCertifier` benchmarks:
-**24 CERTIFIED / 22 DECLINED / 0 ERROR** (cross-run diff = 0, deterministic; all 46 in
-~2–3 s). **Every `CERTIFIED` is sound** (`flow_cert_sound_strict` composed by `cover_sound`);
-Python VERIFIES all 46 via its boundary-only criterion, so Lean ⊆ Python and the `DECLINED`
-set is exactly the boundary-only-unsound gap the oracle correctly refuses — switching
-synthesis to this oracle is a soundness upgrade. Quadratic / energy / product invariants now
-flow through the unchanged verified core.
+**41 CERTIFIED / 5 DECLINED / 0 ERROR** (3× identical, deterministic; all 46 in ~11 s).
+**Every `CERTIFIED` is sound** (`flow_cert_sound` / `_strict` / `_superlevel` composed by
+`cover_sound`); Python VERIFIES all 46 via its boundary-only criterion, so Lean ⊆ Python.
+
+The **superlevel (Lyapunov) route** `DI_nonstrict_superlevel` (`ġ ≤ 0` on `{g ≥ 0}` ⟹
+invariance, proven from vendored Mathlib — no subtangency) lifts the contraction/energy
+class (24 → 41) soundly: it certifies the marginal `ġ = 0`-on-boundary invariants where the
+strict route can't, and rejects the `t²` pathology (interior positivity) directly. See
+`DIAGNOSIS.md` — the 22 earlier declines are all genuinely TRUE (Cat-2 = 0: Python certifies
+no falsehood on the suite). The 5 remaining DECLINED are conservative all-successors declines
+(a bad right successor the invariant relies on never being taken) needing Stage-2 pruning —
+not a boundary/soundness gap.
+
+Two trusted-layer (parser) bugs were found and fixed while validating: `dynOf` silently
+defaulted an unlowerable dynamics term to `0` (a wrong field could falsely certify) — now
+propagates to ERROR; and the tokenizer split `-` inside negative literals (`(* -1 psi)`
+mis-parsed), corrupting damped dynamics — now `mergeSigns` re-glues signed literals. Neither
+had produced a wrong CERTIFIED (re-run shows no benchmark flipped to ERROR).
 
 The trusted layer is tested (`relcert-test`): determinism / oracle-consistency, outcome-
 integrity (missing Z3 / unparsed / crash → ERROR), parser, lowering, and Z3-layer verdicts.

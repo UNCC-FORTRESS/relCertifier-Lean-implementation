@@ -105,13 +105,17 @@ def invToG (vars : List String) (n : ℕ) : PForm → Option (ITerm n)
   | .and x _ => invToG vars n x   -- primary component
   | _ => none
 
-/-- Dynamics of a mode as `Fin n → ITerm n` (missing vars ↦ derivative 0). -/
-def dynOf (vars : List String) (n : ℕ) (side : Side) (m : PMode) : Fin n → ITerm n :=
-  fun i =>
-    let vname := vars.getD i.val ""
-    match (m.odes.find? (fun p => p.1 == vname)) with
-    | some (_, e) => (lowerE vars n side e).getD (.rat 0)
-    | none => .rat 0
+/-- Dynamics of a mode as `Fin n → ITerm n`. **Total-or-fail**: a variable with NO ode
+entry has derivative `0` (correct — it is held fixed), but a variable whose ode is PRESENT
+yet fails to lower returns `none` — never a silent `0`. A silent zero would build the Lie
+derivative of the WRONG field and could falsely certify; propagating `none` makes the
+segment inconclusive ⟹ ERROR, never a verdict. -/
+def dynOf (vars : List String) (n : ℕ) (side : Side) (m : PMode) : Option (Fin n → ITerm n) := do
+  let terms ← (List.finRange n).mapM (fun i =>
+    match m.odes.find? (fun p => p.1 == vars.getD i.val "") with
+    | some (_, e) => lowerE vars n side e        -- present ode must lower, else fail
+    | none => some (ITerm.rat 0))                -- absent ⟹ derivative 0 (held fixed)
+  some (fun i => terms.getD i.val (.rat 0))
 
 /-- The strict flow query `domain ∧ g = 0 ∧ ġ ≥ 0` for pair `(mL, mR)` at stretch `lam`. -/
 def flowQueryIR (vars : List String) (n : ℕ) (g : ITerm n) (mL mR : PMode) (lam : ℚ) :
@@ -122,12 +126,35 @@ def flowQueryIR (vars : List String) (n : ℕ) (g : ITerm n) (mL mR : PMode) (la
   let domR  ← lowerF vars n Side.R mR.evolve
   let grdL  ← lowerF vars n Side.L mL.guard
   let grdR  ← lowerF vars n Side.R mR.guard
-  let fL := dynOf vars n Side.L mL
-  let fR := dynOf vars n Side.R mR
+  let fL ← dynOf vars n Side.L mL
+  let fR ← dynOf vars n Side.R mR
   let gdot := ilieDeriv g fL fR (.rat lam)
   let domain := IForm.and (IForm.and domL domR) (IForm.and grdL grdR)
   some (IForm.and domain
     (IForm.and (IForm.cmp .eq g (.rat 0)) (IForm.cmp .ge gdot (.rat 0))))
+
+/-- Segment domain (evolves ∧ guards, both sides) and the syntactic `ġ` for component `g`
+along `(mL, mR)` at stretch `lam`. Returns `none` if any part fails to lower. -/
+def segParts (vars : List String) (n : ℕ) (g : ITerm n) (mL mR : PMode) (lam : ℚ) :
+    Option (IForm n × ITerm n) := do
+  let domL  ← lowerF vars n Side.L mL.evolve
+  let domR  ← lowerF vars n Side.R mR.evolve
+  let grdL  ← lowerF vars n Side.L mL.guard
+  let grdR  ← lowerF vars n Side.R mR.guard
+  let fL ← dynOf vars n Side.L mL
+  let fR ← dynOf vars n Side.R mR
+  let gdot := ilieDeriv g fL fR (.rat lam)
+  some (IForm.and (IForm.and domL domR) (IForm.and grdL grdR), gdot)
+
+/-- The three **sound** flow queries for `(domain, g, ġ)` — UNSAT of ANY certifies the
+segment, each backed by a verified theorem:
+* A `domain ∧ ġ>0`        — `flow_cert_sound` (`DI_nonstrict_domain`);
+* B `domain ∧ g=0 ∧ ġ≥0`  — `flow_cert_sound_strict` (`DI_strict`);
+* C `domain ∧ g≥0 ∧ ġ>0`  — `flow_cert_sound_superlevel` (`DI_nonstrict_superlevel`). -/
+def routeQueries {n : ℕ} (domain : IForm n) (g gdot : ITerm n) : List (IForm n) :=
+  [ IForm.and domain (IForm.cmp .gt gdot (.rat 0)),
+    IForm.and domain (IForm.and (IForm.cmp .eq g (.rat 0)) (IForm.cmp .ge gdot (.rat 0))),
+    IForm.and domain (IForm.and (IForm.cmp .ge g (.rat 0)) (IForm.cmp .gt gdot (.rat 0))) ]
 
 /-! ## Z3 -/
 
@@ -143,7 +170,11 @@ def z3Unsat (script : String) : IO Bool := do
 clamped to `[λmin, λmax]`. -/
 def lambdaCandidates (lmin lmax epsL epsR : ℚ) : List ℚ :=
   let cover := if epsL == 0 then lmax else epsR / epsL
-  ([lmin, cover, lmax]).filterMap (fun l => if lmin ≤ l ∧ l ≤ lmax then some l else none)
+  let step := (lmax - lmin) / 4
+  -- denser deterministic grid: single-sync λ (`cover`, `λmin`) + interior + `λmax`, so
+  -- marginal invariants needing a specific stretch (e.g. rung3 needs λ≥2.16) are covered.
+  ([lmin, cover, lmin + step, lmin + 2*step, lmin + 3*step, lmax]).filterMap
+    (fun l => if lmin ≤ l ∧ l ≤ lmax then some l else none) |>.eraseDups
 
 /-- Declared right successors of `qR` (mode names). -/
 def succOf (p : PProblem) (qR : String) : List String :=

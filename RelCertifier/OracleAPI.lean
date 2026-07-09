@@ -79,27 +79,43 @@ error/`unknown` or unbuildable query. -/
 def checkSeg (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     (vars : List String) (n : ℕ) (coord : Fin n → String)
     (comps : List (ITerm n)) (mL mR : PMode) (lam : ℚ) : IO Seg := do
-  let mut allPass := true
-  for g in comps do
-    match flowQueryIR vars n g mL mR lam with
-    | none => return Seg.incon                     -- couldn't build the query
-    | some q =>
-        -- query-count budget + wall-clock deadline: exceeding either aborts to ERROR,
-        -- guaranteeing every call terminates (a pathological candidate never hangs)
-        cnt.modify (· + 1)
-        if (← cnt.get) > maxQ then throw (IO.userError "query budget exceeded")
-        if (← IO.monoMsNow) > deadline then throw (IO.userError "time budget exceeded")
-        let script := q.toScript coord
-        -- deterministic SMT-size guard: a huge lieDeriv term (product-rule blowup on a
-        -- high-DOF product invariant) would make Z3 block on parse. Skip it as inconclusive
-        -- (⟹ ERROR), never send it — bounds each query's cost by construction.
-        if script.length > maxSmt then return Seg.incon
-        match ← s.check script with
-        | .error _ => return Seg.incon
-        | .ok .unknown => return Seg.incon
-        | .ok .sat => allPass := false             -- definitive fail on this component
-        | .ok .unsat => pure ()
-  return (if allPass then Seg.pass else Seg.fail)
+  -- Each component certifies via ANY of the 3 sound routes (A domain / B strict /
+  -- C superlevel); the OTHER components restrict the domain (multi-barrier coupling).
+  -- Segment status: fail if some component definitively fails all routes; else incon if
+  -- some component is inconclusive; else pass (fail dominates incon).
+  let mut sawFail := false
+  let mut sawIncon := false
+  for i in List.range comps.length do
+    match comps[i]? with
+    | none => pure ()
+    | some g =>
+      match segParts vars n g mL mR lam with
+      | none => sawIncon := true                     -- couldn't build the query
+      | some (baseDom, gdot) =>
+          let others := (List.range comps.length).filterMap
+            (fun j => if j == i then none else comps[j]?)
+          let dom := others.foldl (fun d gj => IForm.and d (IForm.cmp .le gj (.rat 0))) baseDom
+          let mut compPass := false
+          let mut compIncon := false
+          for q in routeQueries dom g gdot do
+            if compPass then pure () else do
+              cnt.modify (· + 1)
+              if (← cnt.get) > maxQ then throw (IO.userError "query budget exceeded")
+              if (← IO.monoMsNow) > deadline then throw (IO.userError "time budget exceeded")
+              let script := q.toScript coord
+              if script.length > maxSmt then compIncon := true
+              else match ← s.check script with
+                | .error _ => compIncon := true
+                | .ok .unknown => compIncon := true
+                | .ok .unsat => compPass := true
+                | .ok .sat => pure ()
+          if compPass then pure ()
+          else if compIncon then sawIncon := true
+          else do
+            sawFail := true
+            if (← IO.getEnv "RELCERT_DBGC").isSome then
+              IO.eprintln s!"      FAIL comp#{i} @ {mL.name}->{mR.name} λ={lam}"
+  return (if sawFail then Seg.fail else if sawIncon then Seg.incon else Seg.pass)
 
 /-- The multi-segment all-successors cover, three-valued, **memoized** on `(qR, f)` (the
 budget `B` is a function of `f`, so the state is finite: `modes × fuel`). Without the memo
@@ -144,6 +160,9 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     for mR in p.R.modes do
       segMap := segMap ++ [(mR.name, ← checkSeg s cnt maxQ maxSmt deadline vars n coord comps mL mR lam)]
     let seg := fun q => (segMap.find? (·.1 == q)).map (·.2) |>.getD Seg.incon
+    if (← IO.getEnv "RELCERT_DEBUG").isSome then
+      IO.eprintln (s!"  [{mL.name}_L λ={lam} #comps={comps.length}] " ++
+        String.intercalate " " (segMap.map (fun p => s!"{p.1}={repr p.2}")))
     -- fuel = segments to fill εL, capped (a real cover uses few); memoized ⟹ bounded work
     let fuel := min ((epsL / deltaL).ceil.toNat + 2) 128
     let memo ← IO.mkRef (Std.HashMap.emptyWithCapacity : Std.HashMap (String × Nat) Cov3)

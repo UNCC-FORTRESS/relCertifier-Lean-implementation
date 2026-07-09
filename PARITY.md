@@ -1,87 +1,78 @@
-# Parity — Lean oracle vs Python relCertifier (46 benchmarks)
+# Parity table — 46 Python `relCertifier` benchmarks
 
-Three-way, hermetic, deterministic warm-session run: **24 CERTIFIED / 22 DECLINED / 0 ERROR**
-(cross-run verdict diff = 0; all 46 in ~2–3 s). Every `CERTIFIED` is **sound** (verified
-core, `flow_cert_sound_strict` composed by `cover_sound`); `ERROR` is a distinct outcome for
-any harness/solver failure and can never masquerade as a verdict. Python VERIFIES all 46 via
-its boundary-only criterion, so Lean ⊆ Python; the `DECLINED` set is exactly the
-boundary-only-unsound gap the oracle correctly refuses — moving synthesis to this oracle is a
-soundness upgrade.
+Hermetic warm three-way run (`lake exe relcert <inputs…>`), deterministic (3× identical), 0 ERROR.
 
-## By category (CERT / DECL / ERR of total)
+**41 CERTIFIED / 5 DECLINED / 0 ERROR** (Python: 46/46 via its boundary-only criterion).
+Every `CERTIFIED` is sound — backed by `flow_cert_sound` / `_strict` / `_superlevel` composed by `cover_sound`.
 
-| cat | | CERT | DECL | ERR | total |
-|---|---|---|---|---|---|
-| **A** | offset/ordering | 18 | 4 | 0 | 22 |
-| **B** | mode-scoped | 1 | 0 | 0 | 1 |
-| **C** | partial/coupled | 3 | 11 | 0 | 14 |
-| **D** | pair-scoped | 1 | 2 | 0 | 3 |
-| **E** | quadratic/energy | 1 | 2 | 0 | 3 |
-| **F** | nonlinear product | 0 | 3 | 0 | 3 |
-| **all** | | **24** | **22** | **0** | 46 |
+| category | CERTIFIED | DECLINED |
+|---|---|---|
+| A | 18 | 4 |
+| B | 1 | 0 |
+| C | 13 | 1 |
+| D | 3 | 0 |
+| E | 3 | 0 |
+| F | 3 | 0 |
+| **total** | **41** | **5** |
 
-## Timing (warm, in-process)
+The 5 DECLINED (all genuinely TRUE invariants — see `DIAGNOSIS.md`) are conservative
+all-successors declines needing Stage-2 non-connection pruning (a bad right successor
+the invariant relies on never being taken), NOT a boundary/soundness gap:
 
-All 46 on one warm session, **~2–3 s total; per-call mean 49 ms, median 26 ms, p90 101 ms,
-max 199 ms** — dominated by the Z3 solve. The cover is memoized on `(mode, fuel)` so a large
-time-stretch (tiny budget step) can't blow up the pure search.
-
-## Per benchmark (Lean vs Python)
-
-| benchmark | cat | Lean | Python |
+| benchmark | cat | verdict | why |
 |---|---|---|---|
-| arm_chain_rung1 | A | CERTIFIED | VERIFIED |
-| arm_chain_rung2 | A | CERTIFIED | VERIFIED |
-| arm_chain_rung3 | A | CERTIFIED | VERIFIED |
-| arm_fidelity_high | A | CERTIFIED | VERIFIED |
-| arm_fidelity_low | A | CERTIFIED | VERIFIED |
-| arm_fidelity_mid | A | CERTIFIED | VERIFIED |
-| arm_refinement | A | CERTIFIED | VERIFIED |
-| endurance_gain_M1 | A | DECLINED | VERIFIED |
-| endurance_orderlift_1to2 | A | DECLINED | VERIFIED |
-| endurance_orderlift_2to3 | A | DECLINED | VERIFIED |
-| match_multi_eps | A | CERTIFIED | VERIFIED |
-| match_multi_rate | A | CERTIFIED | VERIFIED |
-| plant_fan_high | A | CERTIFIED | VERIFIED |
-| plant_fan_low | A | CERTIFIED | VERIFIED |
-| plant_fan_mid | A | CERTIFIED | VERIFIED |
-| robot_braking | A | CERTIFIED | VERIFIED |
-| rover3tier_M1 | A | CERTIFIED | VERIFIED |
-| rover_4d_box | A | CERTIFIED | VERIFIED |
-| rover_drag | A | CERTIFIED | VERIFIED |
-| rover_terrain_M1 | A | DECLINED | VERIFIED |
-| rover_tier_r1 | A | CERTIFIED | VERIFIED |
-| watertank | A | CERTIFIED | VERIFIED |
-| rover_position | B | CERTIFIED | VERIFIED |
-| attitude_rate | C | CERTIFIED | VERIFIED |
-| refinement_ladder_rover_rung1_2to3 | C | DECLINED | VERIFIED |
-| refinement_ladder_rover_rung2_3to6 | C | DECLINED | VERIFIED |
-| refinement_ladder_rover_rung2_6dof | C | CERTIFIED | VERIFIED |
-| refinement_ladder_rover_rung2b_6dof | C | CERTIFIED | VERIFIED |
-| refinement_ladder_rover_rung2c_6dof | C | DECLINED | VERIFIED |
-| refinement_ladder_rover_rung4_8to12 | C | DECLINED | VERIFIED |
-| rover3_M1 | C | DECLINED | VERIFIED |
-| rover_dof_terrain_rung1 | C | DECLINED | VERIFIED |
-| rover_dof_terrain_rung2 | C | DECLINED | VERIFIED |
-| rover_dof_terrain_rung3 | C | DECLINED | VERIFIED |
-| rover_dof_terrain_rung3_8d | C | DECLINED | VERIFIED |
-| story2_lateral_rung_a_8dof | C | DECLINED | VERIFIED |
-| story2_lateral_rung_b_12dof | C | DECLINED | VERIFIED |
-| rover_coupled | D | CERTIFIED | VERIFIED |
-| story1_attdist_rung_a_6to8 | D | DECLINED | VERIFIED |
-| story1_attdist_rung_b_12dof | D | DECLINED | VERIFIED |
-| refinement_ladder_rover_rung3_6to8 | E | DECLINED | VERIFIED |
-| rover3tier_rung12 | E | CERTIFIED | VERIFIED |
-| rover_attitude_cone_12dof | E | DECLINED | VERIFIED |
-| story3_rollover_base_12dof | F | DECLINED | VERIFIED |
-| story3_rollover_ladder_rung_a | F | DECLINED | VERIFIED |
-| story3_rollover_ladder_rung_b | F | DECLINED | VERIFIED |
+| endurance_gain_M1 | A | DECLINED | pure-gap invariant; all-successors needs pruning |
+| endurance_orderlift_1to2 | A | DECLINED | pure-gap invariant; all-successors needs pruning |
+| endurance_orderlift_2to3 | A | DECLINED | pure-gap invariant; all-successors needs pruning |
+| rover3_M1 | C | DECLINED | pure-gap invariant; all-successors needs pruning |
+| rover_terrain_M1 | A | DECLINED | pure-gap invariant; all-successors needs pruning |
 
-## Determinism / soundness notes
-
-- A pre-sentinel run reported 29 CERTIFIED; that was **inflated by a pipe-desync bug** (a stale
-  `unsat` read). The `(echo)` sentinel makes reads deterministic. A separate cover-DFS fuel
-  explosion (Lean, not Z3) both hung one benchmark and corrupted its verdict; memoizing the
-  cover fixed it. The determinism test surfaced both — the anti-flakiness guarantee at work.
-- Reliability bounds (all deterministic): query-count budget, SMT-size guard, wall deadline, and
-  Z3 `:rlimit` (machine-independent) — every call terminates with a definite outcome.
+## Full
+| benchmark | cat | verdict |
+|---|---|---|
+| arm_chain_rung1 | A | CERTIFIED |
+| arm_chain_rung2 | A | CERTIFIED |
+| arm_chain_rung3 | A | CERTIFIED |
+| arm_fidelity_high | A | CERTIFIED |
+| arm_fidelity_low | A | CERTIFIED |
+| arm_fidelity_mid | A | CERTIFIED |
+| arm_refinement | A | CERTIFIED |
+| attitude_rate | C | CERTIFIED |
+| endurance_gain_M1 | A | DECLINED |
+| endurance_orderlift_1to2 | A | DECLINED |
+| endurance_orderlift_2to3 | A | DECLINED |
+| match_multi_eps | A | CERTIFIED |
+| match_multi_rate | A | CERTIFIED |
+| plant_fan_high | A | CERTIFIED |
+| plant_fan_low | A | CERTIFIED |
+| plant_fan_mid | A | CERTIFIED |
+| refinement_ladder_rover_rung1_2to3 | C | CERTIFIED |
+| refinement_ladder_rover_rung2_3to6 | C | CERTIFIED |
+| refinement_ladder_rover_rung2_6dof | C | CERTIFIED |
+| refinement_ladder_rover_rung2b_6dof | C | CERTIFIED |
+| refinement_ladder_rover_rung2c_6dof | C | CERTIFIED |
+| refinement_ladder_rover_rung3_6to8 | E | CERTIFIED |
+| refinement_ladder_rover_rung4_8to12 | C | CERTIFIED |
+| robot_braking | A | CERTIFIED |
+| rover3_M1 | C | DECLINED |
+| rover3tier_M1 | A | CERTIFIED |
+| rover3tier_rung12 | E | CERTIFIED |
+| rover_4d_box | A | CERTIFIED |
+| rover_attitude_cone_12dof | E | CERTIFIED |
+| rover_coupled | D | CERTIFIED |
+| rover_dof_terrain_rung1 | C | CERTIFIED |
+| rover_dof_terrain_rung2 | C | CERTIFIED |
+| rover_dof_terrain_rung3 | C | CERTIFIED |
+| rover_dof_terrain_rung3_8d | C | CERTIFIED |
+| rover_drag | A | CERTIFIED |
+| rover_position | B | CERTIFIED |
+| rover_terrain_M1 | A | DECLINED |
+| rover_tier_r1 | A | CERTIFIED |
+| story1_attdist_rung_a_6to8 | D | CERTIFIED |
+| story1_attdist_rung_b_12dof | D | CERTIFIED |
+| story2_lateral_rung_a_8dof | C | CERTIFIED |
+| story2_lateral_rung_b_12dof | C | CERTIFIED |
+| story3_rollover_base_12dof | F | CERTIFIED |
+| story3_rollover_ladder_rung_a | F | CERTIFIED |
+| story3_rollover_ladder_rung_b | F | CERTIFIED |
+| watertank | A | CERTIFIED |

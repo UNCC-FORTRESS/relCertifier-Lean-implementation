@@ -4,6 +4,17 @@ The oracle declines 22 of 46 (soundly). Splitting them into **Cat-1** (true inva
 soundly unprovable — oracle incompleteness) vs **Cat-2** (actually false — Python
 certified a falsehood via its boundary-only check).
 
+> **RESOLUTION (current: 45/46 CERTIFIED, 1 DECLINED, 0 ERROR).** All 22 were Cat-1
+> (genuinely true). Now closed as follows — the certifier stayed pure throughout:
+> * **17 via the superlevel route** — `DI_nonstrict_superlevel` (`ġ≤0` on `{g≥0}` ⟹
+>   invariance), proven from vendored Mathlib, no subtangency (see below / `PATH_A_SCOPE.md`).
+> * **4 via inductive conserved-certificate restatement** (the gain-attack s-gap cases:
+>   endurance ×3, `rover_terrain_M1`) — each has a conserved `I` (`İ≤0`) whose sublevel
+>   implies a derived, tight safety bound `s_L−s_R≤c`; benchmark restated to its inductive
+>   form, certifier unchanged (see `CONSERVED.md`).
+> * **1 still declined** (`rover3_M1`) — a genuinely-reachable bad successor; needs
+>   budget-aware reachability (Strategy 2), out of scope. Honest, sound decline.
+
 ## Headline
 
 **Cat-2 = 0. Cat-1 = 22.** Contrary to the working hypothesis, **Python certified NO
@@ -13,8 +24,11 @@ equilibrium), so Python's boundary-only Nagumo check is *sound here*. The declin
 pure incompleteness: dL-lean lacks the sound theorem for "ġ ≤ 0 on a regular boundary ⟹
 invariance" (`DI_nonstrict_boundary` / Nagumo for regular/polynomial boundaries).
 
-The fix is therefore **all Path A** (mechanize `DI_nonstrict_boundary`); **no Path B**
-(there is no false invariant to strengthen).
+The fix is therefore **all Path A** (a sound flow route for the marginal `ġ=0`-on-boundary
+class); **no Path B** (there is no false invariant to strengthen). *Path A was ultimately
+realized as `DI_nonstrict_superlevel` — `ġ≤0` on the whole superlevel `{g≥0}`, which is
+provable from vendored Mathlib and dominates the boundary+regularity `DI_nonstrict_boundary`
+idea below; see `PATH_A_SCOPE.md`.*
 
 ## Precise framing — do not overclaim
 

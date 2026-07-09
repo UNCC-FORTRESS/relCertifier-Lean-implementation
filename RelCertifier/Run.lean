@@ -63,7 +63,12 @@ partial def lowerE (vars : List String) (n : ℕ) (defSide : Side) : PExpr → O
       | "+" => some (ITerm.bin .add ea eb)
       | "-" => some (ITerm.bin .sub ea eb)
       | "*" => some (ITerm.bin .mul ea eb)
-      | _   => none   -- division unsupported (AOp is +,-,*)
+      | "/" =>
+          -- AOp has no division; fold a constant `c₁/c₂` into a rational literal
+          match ea, eb with
+          | .rat x, .rat y => if y == 0 then none else some (.rat (x / y))
+          | _, _ => none
+      | _   => none
 
 /-- Lower a formula to the Smt IR (conjunctions only; comparisons kept as-is). -/
 partial def lowerF (vars : List String) (n : ℕ) (defSide : Side) : PForm → Option (IForm n)

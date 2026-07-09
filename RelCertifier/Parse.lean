@@ -74,9 +74,12 @@ def normVar (t : String) : String :=
   else if t.endsWith "[right]" then "R_" ++ (drr t 7)
   else t
 
-/-- Tokenize: separate parens, split on whitespace. -/
+/-- Tokenize: separate parens and the multiplicative operators `* /` (so tightly-packed
+infix like `1.125*e[l]*e[l]` and `v[l]*r[l]` — quadratic/product invariants — tokenize),
+then split on whitespace. `[l]`/`[r]` brackets stay attached to their variable. -/
 def tokenize (s : String) : List String :=
   let s := s.replace "(" " ( " |>.replace ")" " ) "
+    |>.replace "*" " * " |>.replace "/" " / " |>.replace "+" " + " |>.replace "-" " - "
   (s.splitOn " ").filterMap (fun t => let t := tr t; if t.isEmpty then none else some t)
 
 def isNumTok (t : String) : Bool :=

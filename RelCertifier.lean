@@ -6,3 +6,5 @@ import RelCertifier.Cover
 import RelCertifier.Cover.Encoding
 import RelCertifier.Parse
 import RelCertifier.Run
+import RelCertifier.Z3
+import RelCertifier.OracleAPI

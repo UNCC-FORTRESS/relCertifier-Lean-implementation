@@ -167,3 +167,70 @@ Completeness gaps, never unsound claims. Next completeness step: full multi-conj
 
 **Whole project complete:** verified core (3 certificates + cover/Theorem 3, all
 axiom-clean bar `z3_unsat_sound`) + runnable end-to-end tool with measured parity.
+
+---
+
+# Stage 5: hardened oracle (honesty boundary, determinism, in-process API, coverage, tests)
+
+Turns the tool into foundational oracle tooling for invariant synthesis. **No verified-core
+proof changes** — `#print axioms` on the core is byte-identical before/after (checked).
+
+## P1 — honesty boundary + determinism (`Z3.lean`, `OracleAPI.lean`)
+
+Three never-conflated outcomes: `CERTIFIED` (verified core UNSAT via a sound route),
+`DECLINED` (all queries definitive `sat`/`unsat`, no cover — sound incompleteness),
+`ERROR` (any harness/solver/env failure — unlowerable invariant, Z3 missing/crash/EOF,
+malformed SMT, `unknown`/timeout). `error` can never masquerade as a verdict:
+`certified` is only ever produced by real `unsat`; an `unknown`/process failure taints
+only routes it touches and surfaces as `error` when a covering route needed it.
+
+Hermetic + deterministic: Z3 binary is **pinned** (`RELCERT_Z3` or fixed absolute paths,
+never PATH-resolved at spawn); a **persistent `z3 -in`** session with `(reset)` +
+per-query `:timeout` + an `(echo)` **sentinel** that resynchronizes the pipe each call.
+The sentinel fixed a real non-determinism bug (pipe desync shifting verdicts) the
+determinism test caught. Cross-run + same-session verdicts are stable.
+
+## P2 — oracle API + warm Z3
+
+`RelCertifier.Oracle.certify : Z3Session → PProblem → IO Outcome` — the in-process entry
+synthesis links directly (no per-call `lake exe` spawn). One warm session serves all
+queries. **Measured warm per-call (45 fast benchmarks): mean 68 ms, median 32 ms,
+p90 167 ms, max 230 ms** — dominated by the Z3 solve, not process/plumbing (all 45 in
+~3 s total on one warm session). `certifyFile : Z3Config → String → IO Outcome` and the
+CLI keep the file path. Timeout is `RELCERT_Z3_TIMEOUT` (default 10 s).
+
+One pathological outlier, `rover3tier_rung12` (a large multi-tier DECLINE), issues
+thousands of solver calls in the exhaustive all-successors search and takes minutes — the
+one benchmark that would want a deterministic query-budget bound (future; the caller can
+lower `RELCERT_Z3_TIMEOUT` or cap query count).
+
+## P3 — broadened `invComponents` (multi-conjunct / quadratic / product)
+
+Each `≤/<` atom ↦ `g = lhs − rhs ≤ 0`; conjunctions lower **every** component
+(per-component flow certificates, same domain — sound, core-backed by
+`flow_cert_sound_strict`; coupled components correctly decline). `lowerE` handles `+ − ×`
+and folds constant `/`, so quadratic (`x*x`), energy (`(L−R)²`) and product/bilinear
+(`v*r`) invariants lower into `Term` and **flow through the unchanged `lieDeriv`/
+`flowQueryStrict`** (confirmed: E/F benchmarks now certify). Parser tokenizes tightly-
+packed operators so `1.125*e*e` / `v[l]-v[r]` parse. Unlowerable shapes (var/var division,
+disjunction) ⟹ `error`, never a silent decline.
+
+## P4 — trusted-layer tests (`relcert-test`, `Test.lean`)
+
+Z3-layer (known SAT/UNSAT, malformed→error, closed session→error, missing binary→error),
+parser (fixtures per construct, malformed→none), lowering (each shape→component count),
+outcome-integrity (missing Z3 / unparsed / unreadable → ERROR), determinism +
+oracle-consistency (same candidate ×8 on a warm session → identical verdict). All pass.
+
+## Parity (`PARITY.md`) — deterministic, trustworthy
+
+**23 CERTIFIED / 22 DECLINED / 0 ERROR across the 45 fast benchmarks** (cross-run diff = 0),
+plus `rover3tier_rung12` (slow outlier). Every CERTIFIED is sound; DECLINED = the
+boundary-only-unsound gap Python accepts and the oracle refuses. Quadratic/product/
+multi-conjunct coverage now flows through the unchanged core (E/F benchmarks certify).
+
+**Key correction from the determinism test:** a pre-sentinel run reported 29 CERTIFIED —
+that count was *inflated by the pipe-desync bug* (a stale `unsat` read for a query that was
+actually `sat`). The `(echo)` sentinel fix makes reads deterministic; the honest,
+reproducible count is 23. The determinism test caught a real over-certification — exactly
+the anti-flakiness guarantee synthesis needs.

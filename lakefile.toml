@@ -20,3 +20,7 @@ name = "RelCertifier"
 [[lean_exe]]
 name = "relcert"
 root = "Main"
+
+[[lean_exe]]
+name = "relcert-test"
+root = "Test"

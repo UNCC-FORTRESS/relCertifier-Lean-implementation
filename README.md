@@ -57,29 +57,61 @@ route (`DI_strict`), never the unsound one — declining where only the unsound 
 succeed. Pruning is one-sided: an edge is dropped only on a trusted UNSAT; failing to
 prune is safe by default.
 
+## The oracle (for invariant-synthesis search)
+
+Built to be called thousands of times in a synthesis loop. Three **distinct, never-
+conflated** outcomes — the honesty boundary a search depends on:
+
+| outcome | meaning | synthesis reads it as |
+|---|---|---|
+| `CERTIFIED` | verified core produced UNSAT via a sound route | a real, sound YES |
+| `DECLINED` | all queries definitive `sat`/`unsat`, no cover closes | a real, sound NO |
+| `ERROR msg` | any harness/solver/env failure (missing Z3, crash, malformed, `unknown`/timeout, unlowerable) | retry / abort — never learn from it |
+
+An `ERROR` can never masquerade as a verdict: `CERTIFIED` is only ever produced by actual
+`unsat`; an inconclusive/failed query surfaces as `ERROR` when a covering route needed it.
+
+**In-process API** (link the pipeline directly — no per-call process spawn):
+
+```lean
+open RelCertifier RelCertifier.Oracle
+-- one warm, persistent Z3 session serves thousands of calls:
+def loop (s : Z3Session) (cands : List PProblem) : IO (List Outcome) :=
+  cands.mapM (certify s)          -- certify : Z3Session → PProblem → IO Outcome
+```
+
+Hermetic + deterministic: Z3 is a **pinned** absolute path (`RELCERT_Z3`, never
+PATH-resolved), a **persistent** `z3 -in` process (warm), with `(reset)` + a per-query
+`:timeout` + an `(echo)` **sentinel** that keeps the pipe in sync so the same query always
+gives the same verdict. **Warm per-call: mean 68 ms, median 32 ms, p90 167 ms** —
+dominated by the Z3 solve.
+
 ## Running it
 
 ```sh
-lake build              # builds the verified library + the `relcert` executable
-lake exe relcert <input.txt>     # certify a benchmark end-to-end (parse → Z3 → cover)
-lake exe relcert                 # no args: the Stage-1 flow-certificate demo
+lake build                      # verified library + `relcert` + `relcert-test`
+lake exe relcert <input.txt> …  # oracle over each file on one warm session (3-way verdict + ms)
+lake exe relcert                # no args: the Stage-1 flow-certificate demo
+BENCH_PATHS=<name-tab-path-file> lake exe relcert-test   # trusted-layer test suite
 ```
 
-Requires Lean 4 (`leanprover/lean4:v4.31.0`, pinned in `lean-toolchain`), Z3 on `PATH`,
-and the `dL-rel` dependency available at `../dL-rel` (which transitively provides dL-lean
-`v0.1.0-DI` and the encoding bridge).
+Requires Lean 4 (`leanprover/lean4:v4.31.0`, pinned), a pinned Z3 (`RELCERT_Z3` or a
+standard absolute path), and `dL-rel` at `../dL-rel` (transitively provides dL-lean
+`v0.1.0-DI` and the encoding bridge). Env: `RELCERT_Z3_TIMEOUT` (ms, default 10000).
 
-## Benchmark parity
+## Benchmark parity (`PARITY.md`)
 
-Run over the 46 Python `relCertifier` benchmarks (`PARITY.md` for the full table):
+Three-way, hermetic warm run over the 46 Python `relCertifier` benchmarks:
+**23 CERTIFIED / 22 DECLINED / 0 ERROR** across the 45 fast benchmarks (cross-run diff = 0,
+deterministic), plus `rover3tier_rung12` (a slow multi-tier DECLINE, thousands of solver
+calls). **Every `CERTIFIED` is sound** (`flow_cert_sound_strict` composed by `cover_sound`);
+Python VERIFIES all 46 via its boundary-only criterion, so Lean ⊆ Python and the `DECLINED`
+set is exactly the boundary-only-unsound gap the oracle correctly refuses — switching
+synthesis to this oracle is a soundness upgrade. Quadratic / energy / product invariants now
+flow through the unchanged verified core.
 
-**Lean 22 / 46 VERIFIED** (Python 46 / 46), and **every Lean `VERIFIED` is sound** —
-backed by `flow_cert_sound_strict` composed by `cover_sound`. By category: A (offset)
-18/22, B (mode-scoped) 1/1, C (coupled) 2/14, D (pair-scoped) 1/3, E (quadratic) 0/3,
-F (nonlinear) 0/3. The remainder `decline` (sound, one-sided): the runner's `invToG`
-currently lowers only the primary offset component of a relational invariant, so coupled /
-quadratic / nonlinear invariants are not yet certified — a completeness gap, never an
-unsound claim.
+The trusted layer is tested (`relcert-test`): determinism / oracle-consistency, outcome-
+integrity (missing Z3 / unparsed / crash → ERROR), parser, lowering, and Z3-layer verdicts.
 
 ## Layout
 

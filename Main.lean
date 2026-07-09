@@ -13,6 +13,8 @@ reports certified / not. `unsat` is the only trusted verdict:
 import RelCertifier.Smt
 import RelCertifier.Oracle
 import RelCertifier.Run
+import RelCertifier.Z3
+import RelCertifier.OracleAPI
 
 open RelCertifier DL
 
@@ -86,7 +88,35 @@ def demoStage1 : IO Unit := do
     IO.println "✗ verdict mismatch"
     IO.Process.exit 1
 
-/-- Stage-4 entry: with `input.txt` path args, run the end-to-end cover on each;
-otherwise print the Stage-1 flow-certificate demo. -/
+open RelCertifier.Oracle in
+/-- Run the oracle over `paths` on ONE warm Z3 session; print `path: TAG (Δms)` per file
+and an ERROR count. Exits non-zero if any ERROR (a trustworthy run has zero). -/
+def runBatch (paths : List String) : IO Unit := do
+  match ← Z3Config.discover with
+  | .error e => IO.eprintln s!"ERROR: {e}"; IO.Process.exit 2
+  | .ok cfg =>
+    IO.println s!"z3 = {cfg.binary}  (warm persistent session)"
+    match ← Z3Session.start cfg with
+    | .error e => IO.eprintln s!"ERROR: z3 session: {e}"; IO.Process.exit 2
+    | .ok s =>
+      let mut errs := 0
+      for path in paths do
+        let t0 ← IO.monoMsNow
+        let oc ← try
+            match RelCertifier.Parse.parseProblem (← IO.FS.readFile path) with
+            | none => pure (Outcome.error "unparsed input")
+            | some p => certify s p
+          catch e => pure (Outcome.error s!"io: {e}")
+        let dt := (← IO.monoMsNow) - t0
+        let name := (path.splitOn "/").reverse.getD 1 path
+        match oc with
+        | .certified => IO.println s!"{name}: CERTIFIED ({dt}ms)"
+        | .declined  => IO.println s!"{name}: DECLINED ({dt}ms)"
+        | .error m   => errs := errs + 1; IO.println s!"{name}: ERROR [{m}] ({dt}ms)"
+      s.close
+      IO.println s!"errors={errs}"
+      if errs > 0 then IO.Process.exit 1
+
+/-- Entry: no args → Stage-1 demo; else run the oracle on each `input.txt` (warm). -/
 def main (args : List String) : IO Unit := do
-  if args.isEmpty then demoStage1 else args.forM RelCertifier.Run.runFile
+  if args.isEmpty then demoStage1 else runBatch args

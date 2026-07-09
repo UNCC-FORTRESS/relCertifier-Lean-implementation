@@ -104,34 +104,38 @@ standard absolute path), and `dL-rel` at `../dL-rel` (transitively provides dL-l
 ## Benchmark parity (`PARITY.md`)
 
 Three-way, hermetic warm run over the 46 Python `relCertifier` benchmarks:
-**45 CERTIFIED / 1 DECLINED / 0 ERROR** (deterministic; ~11 s). 4 gain-attack benchmarks are restated to their inductive conserved-certificate form (`CONSERVED.md`); the lone decline, `rover3_M1`, needs budget-aware reachability.
-**Every `CERTIFIED` is sound** (`flow_cert_sound` / `_strict` / `_superlevel` composed by
-`cover_sound`); Python VERIFIES all 46 via its boundary-only criterion, so Lean ⊆ Python.
+**38 CERTIFIED / 8 DECLINED / 0 ERROR** (deterministic; ~11 s).
+**Every `CERTIFIED` is sound**: the flow-certificate domain is the **evolution domain** (holds
+throughout the segment), never the mode *guard*; certificates are `flow_cert_sound` /
+`_strict` / `_superlevel` composed by `cover_sound`. Python VERIFIES all 46 via its
+boundary-only criterion, so Lean ⊆ Python.
 
-The **superlevel (Lyapunov) route** `DI_nonstrict_superlevel` (`ġ ≤ 0` on `{g ≥ 0}` ⟹
-invariance, proven from vendored Mathlib — no subtangency) lifts the contraction/energy
-class (24 → 41) soundly, and a conserved-certificate restatement of 4 gain-attack benchmarks (24 → 45): it certifies the marginal `ġ = 0`-on-boundary invariants where the
-strict route can't, and rejects the `t²` pathology (interior positivity) directly. See
-`DIAGNOSIS.md` — the 22 earlier declines are all genuinely TRUE (**Cat-2 = 0**: Python
-certifies no falsehood on the suite; its boundary-only criterion is unsound-in-general but
-valid here because every boundary is regular or a harmless equilibrium).
+> **Soundness fix (this revision — a real bug caught).** An earlier version conjoined the
+> mode **guards** into the flow-certificate domain (to make some benchmarks certify). That
+> was **unsound**: a guard is the *entry/transition* condition, not the throughout-domain, so
+> conjoining it narrowed the certificate to a sliver the real flow leaves — e.g. a Return mode
+> entered at `θ≥0.7` flows to `θ<0.7`, and with `θ_R≥0.7` conjoined the invariant boundary
+> `θ_L=θ_R+0.4≥1.1` fell outside `θ≤1`, so the query was *vacuously* UNSAT (falsely certified),
+> while on the real flow `ġ=0.7>0` — genuinely non-inductive. Using the **evolution domain
+> only**, **7 previously-"CERTIFIED" benchmarks correctly move to DECLINED** (`arm_chain_rung1`,
+> `arm_chain_rung2`, `arm_fidelity_low`, `arm_refinement`, `match_multi_eps`, `plant_fan_low`,
+> `rover3tier_M1`): their guard-narrowed certificates never proved invariance on the actual
+> flow. **45 → 38, now sound.** Only `Run.lean` (the trusted runner) changed — the verified
+> core is untouched, `#print axioms` identical.
 
-The earlier 5 declines were all genuinely-true invariants, and none was a boundary or
-soundness gap. Two "obvious" completeness moves were ruled out with evidence:
-**non-connection pruning fires on nothing here** (checked via Z3 — the suspect bad
-successors are genuinely reachable, so the time-unbounded Nagumo barrier can't prune them),
-and a **naive `∧ v_L≤v_R` restatement is false** for the 4 gain-attack models (left gains
-faster: `v_L(t)=0.3(1−e^{−3t}) > v_R(t)=0.3(1−e^{−2t})`) — the certifier *correctly declines*
-that false conjunction (a false helper → DECLINE, never a false CERTIFIED).
+The sound routes that build the 38: the strict / domain / **superlevel** flow certificates
+(the last, `DI_nonstrict_superlevel`, proven from vendored Mathlib — no subtangency — closes
+the marginal `ġ=0`-on-boundary contraction/energy class and rejects the `t²` pathology), plus
+a **conserved-certificate restatement** of 4 gain-attack benchmarks (`CONSERVED.md`): each has
+a conserved `I` (`İ≤0`) whose sublevel `I≤I₀` flow-certifies and implies a finite, tight,
+Z3-derived safety bound `s_L−s_R≤c` (smaller than the original stated bound, not fitted).
 
-The 4 are instead closed by their **inductive conserved-certificate form** (`CONSERVED.md`):
-each has a conserved quantity `I` (`İ≤0`) whose sublevel `I≤I₀` flow-certifies and implies a
-**finite, tight, derived safety bound** `s_L−s_R ≤ c` (each `c` Z3-`maximize`d from the
-domains — not fitted, and *smaller* than the original stated bound). Restating the benchmark
-to `{I≤I₀ ∧ s_L−s_R≤c}` certifies via the unchanged certifier → **24 → 45**. The lone
-remaining decline, `rover3_M1`, has a genuinely-reachable bad successor and needs budget-aware
-**reachability** (Strategy 2), out of scope. **45/46 is the honest ceiling; the 4 restatements
-are benchmark-input changes, the certifier is untouched.**
+See `DIAGNOSIS.md` — the earlier declines that were genuinely true are all **Cat-2 = 0**
+(Python's boundary-only criterion is unsound-in-general but produces no falsehood on this
+suite, where every boundary is regular or a harmless equilibrium). The current 8 DECLINED are
+sound: some are genuinely non-inductive as all-successors sync edges (`arm_chain`'s Return_R,
+verified `ġ>0` on the reachable flow), and `rover3_M1` needs budget-aware reachability
+(Strategy 2, out of scope). None is a false CERTIFIED.
 
 Two trusted-layer (parser) bugs were found and fixed while validating: `dynOf` silently
 defaulted an unlowerable dynamics term to `0` (a wrong field could falsely certify) — now

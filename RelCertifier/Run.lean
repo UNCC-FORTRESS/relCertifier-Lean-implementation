@@ -120,16 +120,15 @@ def dynOf (vars : List String) (n : ℕ) (side : Side) (m : PMode) : Option (Fin
 /-- The strict flow query `domain ∧ g = 0 ∧ ġ ≥ 0` for pair `(mL, mR)` at stretch `lam`. -/
 def flowQueryIR (vars : List String) (n : ℕ) (g : ITerm n) (mL mR : PMode) (lam : ℚ) :
     Option (IForm n) := do
-  -- the segment runs where BOTH programs' guards and evolution domains hold; the guard
-  -- can push the invariant boundary outside the reachable box (vacuous certification).
+  -- SOUND domain = the EVOLUTION domains only (hold throughout the ODE segment). NOT the
+  -- mode guards: a guard is the entry/transition condition, which need not hold throughout
+  -- the residence, so conjoining it narrows the flow certificate below the reachable flow.
   let domL  ← lowerF vars n Side.L mL.evolve
   let domR  ← lowerF vars n Side.R mR.evolve
-  let grdL  ← lowerF vars n Side.L mL.guard
-  let grdR  ← lowerF vars n Side.R mR.guard
   let fL ← dynOf vars n Side.L mL
   let fR ← dynOf vars n Side.R mR
   let gdot := ilieDeriv g fL fR (.rat lam)
-  let domain := IForm.and (IForm.and domL domR) (IForm.and grdL grdR)
+  let domain := IForm.and domL domR
   some (IForm.and domain
     (IForm.and (IForm.cmp .eq g (.rat 0)) (IForm.cmp .ge gdot (.rat 0))))
 
@@ -137,14 +136,16 @@ def flowQueryIR (vars : List String) (n : ℕ) (g : ITerm n) (mL mR : PMode) (la
 along `(mL, mR)` at stretch `lam`. Returns `none` if any part fails to lower. -/
 def segParts (vars : List String) (n : ℕ) (g : ITerm n) (mL mR : PMode) (lam : ℚ) :
     Option (IForm n × ITerm n) := do
+  -- SOUND domain: the EVOLUTION domains (hold throughout the ODE segment), NOT the mode
+  -- guards. A guard is the ENTRY/transition condition — it need not hold throughout the
+  -- residence (e.g. a Return mode entered at θ≥0.7 flows to θ<0.7), so conjoining it would
+  -- narrow the flow certificate below the reachable flow and could FALSELY certify.
   let domL  ← lowerF vars n Side.L mL.evolve
   let domR  ← lowerF vars n Side.R mR.evolve
-  let grdL  ← lowerF vars n Side.L mL.guard
-  let grdR  ← lowerF vars n Side.R mR.guard
   let fL ← dynOf vars n Side.L mL
   let fR ← dynOf vars n Side.R mR
   let gdot := ilieDeriv g fL fR (.rat lam)
-  some (IForm.and (IForm.and domL domR) (IForm.and grdL grdR), gdot)
+  some (IForm.and domL domR, gdot)
 
 /-- The three **sound** flow queries for `(domain, g, ġ)` — UNSAT of ANY certifies the
 segment, each backed by a verified theorem:

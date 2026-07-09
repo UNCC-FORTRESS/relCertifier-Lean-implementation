@@ -7,9 +7,12 @@ pp.unicode.fun = true
 relaxedAutoImplicit = false
 maxSynthPendingDepth = 3
 
+# dL-rel (path) transitively provides dL-lean v0.1.0-DI (Stages 1-2: Term/Formula/DI)
+# AND the Stage-3 global ∀∃ encoding bridge (RFormula.encoding_correct). One require
+# avoids a double dL-lean; matches the old dL-relcertifier wiring.
 [[require]]
-name = "dL-lean"
-path = "../dL-lean"
+name = "dL-rel"
+path = "../dL-rel"
 
 [[lean_lib]]
 name = "RelCertifier"

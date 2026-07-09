@@ -16,6 +16,7 @@ proof-dependency edges to `flow_cert_sound` (⟶ dL-lean `DI_nonstrict_domain`).
 -/
 import RelCertifier.FlowCert
 import RelCertifier.NonConn
+import RelCertifier.Cover
 
 namespace RelCertifier
 
@@ -62,5 +63,27 @@ theorem nonconn_certified {V : Type*} [Fintype V] [DecidableEq V]
     (hbar : z3solve (barrierCheck o) = Verdict.unsat) :
     ∀ ω, Program.sem (Program.ode o.sysR o.domain) ν ω → ¬ Formula.sat o.guard ω :=
   nonconn_sound o hwf hlink hν (z3_unsat_sound hsrc) (z3_unsat_sound hbar)
+
+/-! ## Stage-3 IO boundary — z3 UNSAT discharges the cover's certificate fields -/
+
+/-- A `SegPreserves` field of `CoverCert`, discharged by a trusted Z3 UNSAT on the
+mode's flow query (⟶ Stage-1 `flow_cert_sound`). -/
+theorem segPreserves_certified {n : ℕ} (o : FlowObligation n) (m : RMode (Var n))
+    (hsys : m.sys = jointSys o.fL o.fR o.lam) (hdom : m.dom = o.domain)
+    (hz3 : z3solve (flowQuery o) = Verdict.unsat) :
+    SegPreserves o.g m :=
+  segPreserves_of_flow o m hsys hdom (z3_unsat_sound hz3)
+
+/-- A pruned edge's unreachable-guard obligation, discharged by trusted Z3 UNSATs on
+the two non-connection checks (⟶ Stage-2 `nonconn_sound`). -/
+theorem prune_certified {V : Type*} [Fintype V] [DecidableEq V]
+    (o : NonConnObligation V) (m : RMode V)
+    (hsys : m.sys = o.sysR) (hdom : m.dom = o.domain)
+    (hwf : o.sysR.WellFormed) (hlink : ∀ ω, Formula.sat o.guard ω ↔ 0 < Term.eval o.g ω)
+    {ν : State V} (hν : Formula.sat o.source ν)
+    (hsrc : z3solve (sourceCheck o) = Verdict.unsat)
+    (hbar : z3solve (barrierCheck o) = Verdict.unsat) :
+    ∀ μ, Program.sem (Program.ode m.sys m.dom) ν μ → ¬ Formula.sat o.guard μ :=
+  prune_of_nonconn o m hsys hdom hwf hlink hν (z3_unsat_sound hsrc) (z3_unsat_sound hbar)
 
 end RelCertifier

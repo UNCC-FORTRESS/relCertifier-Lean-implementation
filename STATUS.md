@@ -86,5 +86,56 @@ Stage-3 parser can populate them.
 
 ---
 
-Not in these stages: cover/composition + Theorem 3 + `encoding_correct` (Stage 3);
-end-to-end benchmark runner + 46-case parity (post-Stage-3).
+---
+
+# Stage 3: the verified cover (composition) + Theorem 3 + global ∀∃ encoding
+
+Composes the local certificates into the paper's Theorem 3
+`ϕ_inv → [|(L*, R*)⟩⟩ ϕ_inv`. Verified core in `Cover.lean` + `Cover/Encoding.lean`.
+Dependency switched to **dL-rel** (path), which transitively provides dL-lean
+v0.1.0-DI (Stages 1-2) AND `RFormula.encoding_correct` (Stage 3 bridge).
+
+## What is verified (pure core — axioms: standard three only)
+
+| Piece | Theorem | Cites |
+|---|---|---|
+| Search graph / `Config` / `Covered` (all-successors, budget-indexed) | (structures) | — |
+| Right-response reachability | `RightReach` (evolve / jump) | — |
+| **Finiteness** (budget-neutral-cycle rejection) | `cover_budget_decreases` : every step `B−weight < B` (needs `0 < weight`) | `Nat.sub_lt` |
+| **Composition = Theorem 3 core** | `cover_sound` : Covered ∧ cert ⟹ invariant preserved on every right response | **`flow_cert_sound`** (evolve, via `segPres`/`BoxLe`) + **`nonconn_sound`** (jump, via `pruneSound`) |
+| flow field ⟹ cert | `segPreserves_of_flow` | `flow_cert_sound` |
+| prune field ⟹ cert | `prune_of_nonconn` | `nonconn_sound` |
+| **Global ∀∃ encoding** | `theorem3_encoded` : Z3 UNSAT on encoded `¬(ϕ_inv→[|L*,R*⟩⟩ϕ_inv)` ⟹ `rvalid` | **dL-rel `encoding_correct_exists`** |
+
+`cover_sound` proof: induction on `RightReach`. `evolve` preserves `g≤0` by the flow
+`BoxLe` (time-unbounded — matches "forward invariance is time-unbounded"); `jump` on an
+enabled edge can't be pruned (`nonconn_sound`: pruned guard unreachable), so its target
+is a retained successor `Covered.cover` guarantees is covered; strictly smaller budget.
+All-successors ⟹ existential = the paper's ∀∃.
+
+## Trust boundary
+
+`cover_sound` / `theorem3_encoded` / finiteness: **standard three only** (pure verified
+logic — no new leaf). IO connectors `segPreserves_certified` / `prune_certified`:
+standard three **+ `z3_unsat_sound`** — the whole trust story: local certificates
+(Z3-backed, DI-cited) composed by a proven, finite cover into the global ∀∃ invariant
+(`encoding_correct`-bridged). No subtangency axiom.
+
+## Soundness discipline carried forward
+
+Segments certify via Stage-1 route A / Stage-2 route B (sound). The Stage-2 closed-guard
+retention shifts work here: where the barrier couldn't prune a closed `x≥c` edge, the
+cover must **cover** that retained successor (sound, different route) — `RightReach.jump`
+follows every enabled edge, and `cover_sound` requires all retained successors covered.
+A benchmark needing closed-guard *pruning* that the cover can't absorb would signal a
+dL-lean strict/open-DI extension (`g<0` preserved) — flagged, not pre-built.
+
+## Verified core complete
+
+All three certificates (flow, non-connection, cover) + composition are mechanized.
+Parser-ready structures: `RMode`/`REdge`/`SearchGraph` (dynamics `ODESystem`, guards
+`Formula`, budget `ℕ`).
+
+Next session: the `input.txt` parser (trusted IO) + `lake exe relcert <input.txt>` +
+run across all 46 benchmarks + parity table {certified-A/B / covered-not-pruned /
+declined} vs Python.

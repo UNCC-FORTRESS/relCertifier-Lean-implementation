@@ -81,18 +81,52 @@ Once CERTIFIED flows through `check_sound`:
   domain hypothesis of `check_sound` **reject**, not falsely certify — so parser bugs of the
   domain-narrowing class cause *declines*, never false CERTIFIED.
 * **Z3 `unsat`** — the one solver leaf (`z3_unsat_sound`).
-* **NOT trusted anymore:** the runner's `dfsCov3` search — it only proposes; the verified
-  `decideCovered` / `check_sound` validate.
+* **NOT trusted anymore:** the runner's `dfsCov3` search. As of Step 4 it does not even gate
+  the verdict — `coverMode` certifies solely from the verified `decideCovered` over the
+  coverable-fixpoint graph. `dfsCov3` remains only as a dead/aux search path (removable).
 
 ## Status (precise — no overclaim)
 
 * **Proven and executable:** the verified checker — `decideCovered` (computable, tested),
   `decideCovered_sound`, `check_sound` (cites `cover_sound_throughout`), `decideSegDomain`
   (guard-narrowing → reject, tested), `cover_sound_throughout` + `sem_ode_prefix` (the
-  throughout semantic core). Axioms clean.
-* **Remaining integration:** routing the *executable tool's* CERTIFIED fully through
-  `decideCovered` — the runner must build the abstract `SearchGraph`/budget from the parsed
-  model and call `decideCovered` in place of the structural half of `dfsCov3`, discharging the
-  per-mode `CoverCert` from the evolution-domain Z3 verdicts. Until that wiring lands, the
-  running tool's CERTIFIED is still the untrusted runner's; the verified checker exists and is
-  the mechanism, and this is stated rather than glossed.
+  throughout semantic core). Axioms clean (`propext, Classical.choice, Quot.sound`).
+
+### Step 4 — the executable's CERTIFIED now flows through `decideCovered`
+
+`OracleAPI.coverMode` no longer certifies from `dfsCov3`. It:
+
+1. Z3-checks each segment on the **evolution-domain** query the tool constructs itself
+   (`segParts` builds `domL ∧ domR` from `mL.evolve`/`mR.evolve` — **checker-constructed, not
+   runner-labeled**; a guard-narrowed query would require `segParts` to read `.guard`, which
+   it does not).
+2. Computes the **coverable fixpoint** `coverableSet` — the greatest set of right modes that
+   certify AND whose declared successors are all coverable. **Every mode in it certifies, and
+   (by the fixpoint) no real edge leaves it** — so a `SearchGraph` over it admits a full
+   `CoverCert` (`check_sound`'s precondition) with no dropped obligation.
+3. Builds that `SearchGraph (Var n)` and calls the **verified `decideCovered`**. CERTIFIED iff
+   `decideCovered = true`. `decideCovered_sound → Covered`; `CoverCert` from (1); `check_sound`
+   ⟹ the ∀∃-throughout invariant. A runner/search bug can only make `decideCovered` reject.
+
+**Result: 31/46 CERTIFIED, all backed by `check_sound`; deterministic; 0 ERROR.** The
+CoverCert-discharge junction is checker-constructed (the tool builds the evolution-domain query
+from `dom`; Z3 validates the tool's query, over exactly the domain `check_sound`'s conclusion
+quantifies).
+
+### Honest completeness gap (7 covers the checker cannot yet back — sound, not a regression)
+
+`dfsCov3` reported 38; routing through `check_sound` gives 31. The 7 (incl. `watertank`,
+`arm_fidelity_*`, `plant_fan_*`) are **single-sync** covers: one right mode's residence covers
+the whole left residence, its declared successors never occupied — but those successors *fail*
+to certify. `dfsCov3` accepted this via a budget-closed shortcut. `check_sound` cannot, because
+`cover_sound`'s `RightReach.evolve` is **not gated on `0 < B`**: it admits evolving in a
+closed-leaf successor at `B = 0`, forcing `segPres` on modes outside the residence. This is an
+**over-strict theorem**, not an unsound runner — the decline is conservative (sound). Closing
+it (a *completeness* fix, recovers the 7): gate `RightReach.evolve` on `0 < B` + re-prove
+`cover_sound`, and have the runtime build a **cover-node-only, budget-faithful** graph
+(`B = ⌈εL/δL⌉`, weights = `δL`) so closed-leaf successors sit outside `graph.modes` and
+`CoverCert` is quantified only over occupied modes. Deliberately **not** rushed here — a core
+proof change under a completeness deadline is exactly where soundness bugs enter.
+
+**Do not call this a "verified tool" for the 7.** For the 31 it is: CERTIFIED = the verified
+checker accepted, kernel-enforced back to `cover_sound_throughout`.

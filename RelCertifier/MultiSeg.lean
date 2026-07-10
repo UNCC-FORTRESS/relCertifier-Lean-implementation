@@ -146,4 +146,105 @@ theorem hstep_multiseg (leftSys : ODESystem (Var n)) (leftDom : Formula (Var n))
   exact faModal_loopN (Equiv.refl (Var n)) (Program.ode leftSys leftDom) rightStep φinv ω
     ⟨B' + 1, hc⟩
 
+/-! ## Heterogeneous multi-segment — genuine mode-switching (the real B>1 content)
+
+`multiseg` is homogeneous (same right step per segment). The B>1 benchmarks switch right modes
+mid-residence (`visited ≥ 2`), so the right response is a sequence of **different** modes.
+`multiseg_het` composes such a sequence via the same `faModal_seq` + `faModal_MR`, but each
+segment carries its **own** right mode with its **own** coupling (its own evolution-domain
+`pair_faModal`). This is where the fixed-branch `bigChoiceR` was insufficient. -/
+
+/-- Sequential composition over a list of programs (the right's mode-switch sequence). -/
+def bigSeq : List (Program V) → Program V
+  | []      => Program.test Formula.tt
+  | Q :: qs => Program.seq Q (bigSeq qs)
+
+/-- **Heterogeneous multi-segment lockstep composition.** Each segment couples the left factor
+with its **own** right mode `Q ∈ rights` (its own `pair_faModal`), so the right genuinely
+switches modes across the sequence. The left is `piter leftOde (length rights)` (same residence,
+split into `|rights|` pieces). Induction on `rights` via `faModal_seq` + `faModal_MR`. -/
+theorem multiseg_het (leftOde : Program (Var n)) (φinv : Formula (Var n)) :
+    ∀ (rights : List (Program (Var n))),
+      (∀ Q ∈ rights, Disjoint (Program.vars (Q.rename (Equiv.refl (Var n))))
+          (Program.vars leftOde)) →
+      (∀ Q ∈ rights, ∀ σ, Formula.sat φinv σ →
+          Formula.sat (faModal (Equiv.refl (Var n)) leftOde Q φinv) σ) →
+      ∀ ω, Formula.sat φinv ω →
+        Formula.sat (faModal (Equiv.refl (Var n)) (piter leftOde rights.length)
+          (bigSeq rights) φinv) ω := by
+  intro rights
+  induction rights with
+  | nil =>
+      intro _ _ ω hω
+      simp only [List.length_nil, piter, bigSeq]
+      rw [faModal_sat]
+      intro ν hν
+      rw [sem_test] at hν
+      obtain ⟨rfl, _⟩ := hν
+      exact ⟨ω, by rw [rename_test, sem_test]; exact ⟨rfl, trivial⟩, hω⟩
+  | cons Q qs ih =>
+      intro hdis hcouple ω hω
+      simp only [List.length_cons, piter, bigSeq]
+      refine faModal_seq (Equiv.refl (Var n)) leftOde (piter leftOde qs.length) Q
+        (bigSeq qs) φinv ω ?_ ?_
+      · exact Set.disjoint_of_subset_right (vars_piter_subset leftOde qs.length)
+          (hdis Q (List.mem_cons_self ..))
+      · refine faModal_MR (Equiv.refl (Var n)) leftOde Q φinv _ ω
+          (hcouple Q (List.mem_cons_self ..) ω hω) ?_
+        intro μ hμ
+        exact ih (fun R hR => hdis R (List.mem_cons_of_mem Q hR))
+          (fun R hR => hcouple R (List.mem_cons_of_mem Q hR)) μ hμ
+
+/-- A `bigSeq` run (the mode-switch sequence) is a `star` run of the right automaton, provided
+each segment `Q ∈ rights` is a step of `rightBody` (`sem Q ⊆ sem rightBody`). -/
+theorem sem_bigSeq_sub_star (rightBody : Program (Var n)) :
+    ∀ (rights : List (Program (Var n))),
+      (∀ Q ∈ rights, ∀ ν μ, Program.sem Q ν μ → Program.sem rightBody ν μ) →
+      ∀ ν μ, Program.sem (bigSeq rights) ν μ → Program.sem (Program.star rightBody) ν μ := by
+  intro rights
+  induction rights with
+  | nil =>
+      intro _ ν μ h
+      simp only [bigSeq] at h; rw [sem_test] at h
+      obtain ⟨rfl, _⟩ := h
+      exact Relation.ReflTransGen.refl
+  | cons Q qs ih =>
+      intro hsub ν μ h
+      simp only [bigSeq] at h
+      obtain ⟨κ, hQ, hrest⟩ := h
+      exact Relation.ReflTransGen.head (hsub Q (List.mem_cons_self ..) ν κ hQ)
+        (ih (fun R hR => hsub R (List.mem_cons_of_mem Q hR)) κ μ hrest)
+
+/-- **The B>1 core, with genuine mode-switching.** Given the actual right mode-switch sequence
+`rights` (each `Q` a step of `rightBody`, its own evolution-domain coupling), the left mode
+coupled with the **right star** preserves `φinv`. `multiseg_het` (heterogeneous compose) →
+`faModal_left_collapse` (left `piter` → one residence) → `bigSeq → star` (the mode sequence is a
+right-automaton run). Clock-free, concat-free; the right genuinely switches modes. -/
+theorem hstep_multiseg_het (leftSys : ODESystem (Var n)) (leftDom : Formula (Var n))
+    (rightBody : Program (Var n)) (rights : List (Program (Var n))) (φinv : Formula (Var n))
+    (ω : State (Var n)) (hne : rights ≠ [])
+    (hstepR : ∀ Q ∈ rights, ∀ ν μ, Program.sem Q ν μ → Program.sem rightBody ν μ)
+    (hdis : ∀ Q ∈ rights, Disjoint (Program.vars (Q.rename (Equiv.refl (Var n))))
+        (Program.vars (Program.ode leftSys leftDom)))
+    (hcouple : ∀ Q ∈ rights, ∀ σ, Formula.sat φinv σ →
+        Formula.sat (faModal (Equiv.refl (Var n)) (Program.ode leftSys leftDom) Q φinv) σ)
+    (hσ : Formula.sat φinv ω) :
+    Formula.sat (faModal (Equiv.refl (Var n)) (Program.ode leftSys leftDom)
+      (Program.star rightBody) φinv) ω := by
+  -- rights = R :: rs, so its length is B'+1 ≥ 1 (for faModal_left_collapse)
+  obtain ⟨R, rs, rfl⟩ : ∃ R rs, rights = R :: rs := by
+    cases rights with
+    | nil => exact absurd rfl hne
+    | cons R rs => exact ⟨R, rs, rfl⟩
+  have hm := multiseg_het (Program.ode leftSys leftDom) φinv (R :: rs) hdis hcouple ω hσ
+  rw [List.length_cons] at hm
+  have hc := faModal_left_collapse leftSys leftDom (bigSeq (R :: rs)) φinv rs.length ω hm
+  -- convert the right `bigSeq` to `star rightBody`
+  rw [faModal_sat] at hc ⊢
+  intro ν hν
+  obtain ⟨μ, hμ, hφ⟩ := hc ν hν
+  refine ⟨μ, ?_, hφ⟩
+  rw [Program.rename_refl] at hμ ⊢
+  exact sem_bigSeq_sub_star rightBody (R :: rs) hstepR ν μ hμ
+
 end RelCertifier

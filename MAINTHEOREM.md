@@ -267,9 +267,12 @@ Classical.choice, Quot.sound` (standard three) — **no new axiom, no subtangenc
    Lipschitz ⟹ existence/chaining/packaging already work) but *higher-order*: `v'=a`, so the v-face Lie
    `=a` is unsigned and single-coordinate strict inflow fails. Its invariance is the coupled `(v,a)`
    linear subsystem's stability — a Lyapunov/change-of-basis face, genuinely analytic, bounded, standard.
-3. **Nonlinear compactness-subcover uniform `r₀`** — a real analytic gap *in general* (only locally
-   Lipschitz ⟹ finite cover of compact `domR`, `min r₀`), but **exercised by 0/4** of the mechanized
-   benchmarks (all affine). Applies only to the paper's non-affine tail, not mechanized here.
+3. **Nonlinear compactness-subcover uniform `r₀`** — a real analytic gap, **on the critical path**.
+   CORRECTION: an earlier grep claimed 0 nonlinear; a recursive degree parser over the full 46-suite
+   finds **13/46 have nonlinear right-fields** (`s'=v(1−0.5ψ²−0.3θ²)`, `vx²` drag) — NOT globally
+   Lipschitz, so `picard_isPL_of`'s global route fails; the subcover lemma (finite cover of compact
+   `domR`, `min r₀`; fields are locally Lipschitz on the compact) is **needed by 13 benchmarks**.
+   Invariance/chaining/packaging still work for these (`s'≤v_max`), only existence-Lipschitz changes.
 
 The invariance/chaining/packaging pipeline is field-general; residual 2 changes only the face lemma,
 residual 3 changes only `picard_isPL_of`'s global-`K` input.

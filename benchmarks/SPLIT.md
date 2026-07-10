@@ -6,7 +6,30 @@ Loaded from `relCertifier-src/relCertifier.v1/examples/` — **46 benchmarks** (
 `[relational_invariant]` section** (restated/strengthened for Lean certification — per-benchmark
 work, separate from the field-shape classification below, which uses the ODEs only).
 
-## Classification by Rsys field shape (ODEs are affine throughout)
+## ⚠️ CORRECTION — earlier "0 nonlinear" was a FALSE NEGATIVE
+
+An earlier grep-based classifier missed **nested** products (`(* psi psi)` doubly-nested inside
+`(* v (- 1 (* 0.5 (* psi psi))))`). A recursive s-expr **degree parser** finds the truth:
+
+**13/46 benchmarks have NONLINEAR right-fields** — `s'=v(1−0.5ψ²−0.3θ²)` (degree-3 `v·ψ²`),
+`vx'=0.05−0.3·vx²` (drag). These are **NOT globally Lipschitz**, so `picard_isPL_of`'s global route
+**fails** for them — the **compactness-subcover uniform-`r₀` lemma is on the critical path** (needed
+by 13, not 0). The nonlinear-existence analytic piece **exists**.
+
+Nonlinear-R (13): refinement_ladder_rover_rung2_3to6, rung2c_6dof, rung3_6to8, rung4_8to12,
+rover_attitude_cone_12dof, rover_drag, story1_attdist_rung_a_6to8, story1_attdist_rung_b_12dof,
+story2_lateral_rung_a_8dof, story2_lateral_rung_b_12dof, story3_rollover_base_12dof,
+story3_rollover_ladder_rung_a, story3_rollover_ladder_rung_b.
+
+**Corrected split: 33/46 affine-R, 13/46 nonlinear-R.** (In many of the 13, the nonlinearity is only
+on the LEFT — but in these 13 it is on the RIGHT, which is what `hExist` constructs.)
+
+Note: the nonlinear fields ARE locally Lipschitz on the compact domain (polynomial, smooth) — so the
+subcover lemma (finite cover of compact `domR`, min `r₀`) discharges their existence; and the
+INVARIANCE still works (`s'=v(1−0.5ψ²−…)≤v≤v_max`, so `growth_bound_raw` with `M=v_max` still bounds
+`s`; `ψ,θ,v` asymptotic via linear parts). **Only the existence-Lipschitz step changes for nonlinear.**
+
+## Classification by Rsys field shape (STALE — assumed affine; see correction above)
 
 | class | count | face lemma | status |
 |---|---|---|---|

@@ -136,4 +136,81 @@ theorem sem_ode_exists_local (sys : ODESystem V) (domR : Formula V) (hwf : sys.W
       linarith [ht.2]
     exact hδsub htdist
 
+/-! ## Raw-curve strict positive-invariance (un-gated — the piece dL-lean leaves `sem`-gated)
+
+`DI_strict` proves `g ≤ 0` along the flow but consumes a `sem` run — domain-membership *given*.
+To *construct* a domain-staying witness (`hExist`), we need the same conclusion for a **raw** Picard
+integral curve, before it is known to be a `sem` run. With a **global** strict-inflow hypothesis
+(`g x = 0 → Lie < 0`, sound: strict avoids the `nonstrict_boundary_insufficient` t² trap), the
+argument is `DI_strict`'s first-exit (`sSup` of the sublevel set) verbatim, minus the one `hdom`
+step. Reuses the un-gated `hasDeriv_g_along_flow`. This is the v-face invariance the box needs. -/
+theorem strict_inv_endpoint {sys : ODESystem V} {g : State V → ℝ}
+    (hwf : sys.WellFormed) (hg : Differentiable ℝ g)
+    (hbnd : ∀ x, g x = 0 → Lie sys g x < 0)
+    {r : ℝ} {Φ : ℝ → State V} (hr : 0 ≤ r)
+    (hcurve : IsIntegralCurveOn Φ (fun _ => odeField sys) (Set.Icc 0 r))
+    (hinit : g (Φ 0) ≤ 0) : g (Φ r) ≤ 0 := by
+  have hderiv : ∀ t ∈ Set.Icc (0:ℝ) r,
+      HasDerivWithinAt (fun s => g (Φ s)) (Lie sys g (Φ t)) (Set.Icc 0 r) t :=
+    fun t ht => hasDeriv_g_along_flow hwf hg hcurve ht
+  have hcont : ContinuousOn (fun s => g (Φ s)) (Set.Icc 0 r) :=
+    fun t ht => (hderiv t ht).continuousWithinAt
+  by_contra hcon
+  rw [not_le] at hcon
+  set S : Set ℝ := Set.Icc 0 r ∩ (fun s => g (Φ s)) ⁻¹' Set.Iic 0 with hSdef
+  have hSclosed : IsClosed S :=
+    hcont.preimage_isClosed_of_isClosed isClosed_Icc isClosed_Iic
+  have h0S : (0:ℝ) ∈ S :=
+    ⟨Set.left_mem_Icc.mpr hr, by simp only [Set.mem_preimage, Set.mem_Iic]; exact hinit⟩
+  have hSbdd : BddAbove S := ⟨r, fun t ht => ht.1.2⟩
+  set s := sSup S with hsdef
+  have hsS : s ∈ S := hSclosed.csSup_mem ⟨0, h0S⟩ hSbdd
+  have hsIcc : s ∈ Set.Icc 0 r := hsS.1
+  have hsle0 : g (Φ s) ≤ 0 := hsS.2
+  have hs_ub : ∀ t ∈ S, t ≤ s := fun t htS => le_csSup hSbdd htS
+  clear_value s
+  have hsr : s < r :=
+    lt_of_le_of_ne hsIcc.2 (by rintro rfl; exact absurd hsle0 (not_le.mpr hcon))
+  have hpos : ∀ t ∈ Set.Ioc s r, 0 < g (Φ t) := by
+    intro t ht
+    have htIcc : t ∈ Set.Icc 0 r := ⟨le_trans hsIcc.1 (le_of_lt ht.1), ht.2⟩
+    have htnS : t ∉ S := fun htS => absurd (hs_ub t htS) (not_le.mpr ht.1)
+    exact not_le.mp (fun h => htnS ⟨htIcc, h⟩)
+  have hmem : s ∈ closure (Set.Ioc s r) := by
+    rw [closure_Ioc (ne_of_lt hsr)]; exact Set.left_mem_Icc.mpr (le_of_lt hsr)
+  haveI hneBot : (nhdsWithin s (Set.Ioc s r)).NeBot := mem_closure_iff_nhdsWithin_neBot.mp hmem
+  have hIocIcc : Set.Ioc s r ⊆ Set.Icc 0 r :=
+    fun t ht => ⟨le_trans hsIcc.1 (le_of_lt ht.1), ht.2⟩
+  have hge0 : 0 ≤ g (Φ s) := by
+    have htend := (hcont s hsIcc).mono_left (nhdsWithin_mono s hIocIcc)
+    exact ge_of_tendsto htend
+      (Filter.eventually_of_mem self_mem_nhdsWithin (fun t ht => le_of_lt (hpos t ht)))
+  have hgeq0 : g (Φ s) = 0 := le_antisymm hsle0 hge0
+  have hLie : Lie sys g (Φ s) < 0 := hbnd (Φ s) hgeq0
+  have hslope := (hasDerivWithinAt_iff_tendsto_slope.mp (hderiv s hsIcc)).mono_left
+    (nhdsWithin_mono s (fun t ht => ⟨hIocIcc ht, ne_of_gt ht.1⟩))
+  have hslopepos : ∀ᶠ t in nhdsWithin s (Set.Ioc s r),
+      0 < slope (fun t => g (Φ t)) s t := by
+    filter_upwards [self_mem_nhdsWithin] with t ht
+    rw [slope_def_field]
+    exact div_pos (by rw [hgeq0]; simpa using hpos t ht) (by linarith [ht.1])
+  exact absurd (ge_of_tendsto hslope (hslopepos.mono fun t h => le_of_lt h)) (not_le.mpr hLie)
+
+/-- **Raw-curve strict invariance, all times.** Under global strict inflow, a raw integral curve
+starting in `{g ≤ 0}` stays in `{g ≤ 0}` over the whole `Icc 0 r` — applying `strict_inv_endpoint`
+to every sub-interval `[0,t]`. This is the un-gated positive-invariance `hExist` needs (v-face). -/
+theorem strict_invariance_raw {sys : ODESystem V} {g : State V → ℝ}
+    (hwf : sys.WellFormed) (hg : Differentiable ℝ g)
+    (hbnd : ∀ x, g x = 0 → Lie sys g x < 0)
+    {r : ℝ} {Φ : ℝ → State V}
+    (hcurve : IsIntegralCurveOn Φ (fun _ => odeField sys) (Set.Icc 0 r))
+    (hinit : g (Φ 0) ≤ 0) :
+    ∀ t ∈ Set.Icc (0:ℝ) r, g (Φ t) ≤ 0 := by
+  intro t ht
+  have hsub : IsIntegralCurveOn Φ (fun _ => odeField sys) (Set.Icc 0 t) :=
+    fun u hu => (hcurve u ⟨hu.1, le_trans hu.2 ht.2⟩).mono (Set.Icc_subset_Icc_right ht.2)
+  exact strict_inv_endpoint hwf hg hbnd ht.1 hsub hinit
+
+
 end RelCertifier
+

@@ -89,22 +89,37 @@ axioms-clean, for the single-sync fragment. `(⨆modes)*` is the flat over-appro
 real automaton) ⟹ the box claim is stronger than, and implies, the paper's transition-restricted
 `[|(L*,R*)⟩⟩ϕ`.
 
-## Remaining — the parser/IO connection only (existing trust boundary)
+## Tool-level connection — DONE (`ToolLevel.lean`)
 
-The verified CSF-side chain is complete (`reified_relational` is the top). What remains is **not
-new verified content**: lower `PProblem → leftProgs/rightProgs/pairing` (the existing trusted
-parser) and discharge `reified_relational`'s hypotheses from the tool's data —
-* `hpair` from the runtime's per-mode **Z3 unsat verdicts** (`flow_cert_sound → BoxLe →
-  segment_faModal`), gated by `decideCovered = true` (B=1);
-* `Bridges`/disjointness from `exists_bridge` + the `Side` product (structural);
-* `hinv` = the initial invariant (`g ≤ 0`).
+* **`pair_faModal`** (the trust-critical Step-2 junction) — a Z3 UNSAT on the **evolution-domain**
+  flow query `flowQuery o` (`o.domain = domL∧domR`, `hdom`) ⟹ the per-segment `faModal`. Via
+  `flow_certified` (`z3_unsat_sound` + `flow_cert_sound`) then `segment_faModal`. **The query the
+  proof consumes is literally `flowQuery o` — the same one Z3 checks**; `hdom` pins it to the
+  evolution domain (a guard-narrowed domain is a *different* `o.domain`, breaking `hdom` — the
+  guard-bug class is a mismatch, not a false discharge). No runtime-labeling gap.
+* **`CertSeg` + `certified_relational`** — from a list of single-sync certified segments (each an
+  evolution-domain Z3 UNSAT) + `encode id ψ = invLe g` + `Bridges`, the paper's ∀∃ modality
+  `[|((⨆L)*, (⨆R)*)⟩⟩ ψ` holds. `#print axioms`: `propext, Classical.choice, Quot.sound,
+  z3_unsat_sound` — **standard three + the single Z3 leaf**.
+
+**`certified_relational` is the tool-level theorem: the tool's `CERTIFIED` (on a fully-single-sync
+benchmark) provably equals the paper's ∀∃ relational invariant.** Residual TCB: **parser + Z3
+only**. `hExist'` is CSF's explicit duration-existence side-condition (true for the bounded
+domains).
+
+## Remaining — purely the executable parser emit (existing trust, no verified content)
+
+`certified_relational` takes `CertSeg` values. Producing them from a parsed benchmark
+(`PProblem → List CertSeg`: dynamics `fL`/`fR`, domains from `evolve`, the Z3 verdicts, the
+single-sync pairing) is an **IO/parser function** — existing trusted-parser territory, not new
+proof. The theorem is complete; instantiating it on a concrete benchmark is parser plumbing.
 
 ## Honest status line
 
-**The entire CSF-side chain is mechanized and axioms-clean** — flow certificate ⟹ per-pair
-`faModal` (`segment_faModal`, `faModal_ODE_G'`) ⟹ paper's `[|(L,R)⟩⟩ψ` (`faModal_to_faShape`)
-⟹ the **looped** `[|(L*,R*)⟩⟩ψ` (`reified_relational` via `faModal_LOCK`), for the single-sync
-(B=1) fragment, with `hExist'` carried as CSF's own duration-existence side-condition. What is
-left is the **parser/IO connection** (lowering `PProblem` + wiring the Z3 verdicts through
-`segment_faModal`) — the existing trust boundary, not new proof. So: the tool's `CERTIFIED ⟹`
-paper's ∀∃ is proven modulo the parser lowering; residual TCB stays parser + Z3.
+**The full chain — Z3 verdict ⟹ paper's looped ∀∃ `[|(L*,R*)⟩⟩ψ` — is mechanized and
+axioms-clean (standard three + `z3_unsat_sound`), for the single-sync (B=1) fragment.** The
+tool's `CERTIFIED` provably equals the paper's ∀∃ relational invariant **for the 21 fully-
+single-sync benchmarks**, modulo the executable parser emit (`PProblem → CertSeg`, existing
+trust). Residual TCB: parser + Z3. The 17 B>1 benchmarks await the clocked `plantT_split`
+extension (separately gated). This is **not** "the tool is verified" — it is **21/38 verified
+end-to-end to the paper's modality, parser + Z3 trusted**.

@@ -148,6 +148,28 @@ hidden-mismatch surface never appears. The de-risking is the headline: the scary
   `faModal_bigChoiceR`) — a **mechanical mirror of B=1's `reified_relational`**,
   proving-through-proven-rules. Then all 38.
 
+## B>1 outer assembly + `hExist` resolution (the last honesty item)
+
+* **`relational_loop_multi`** (`EncodingBridge.lean`, proven, axioms `propext, Classical.choice,
+  Quot.sound`) — the B>1 outer assembly: `faModal_MULTI` (right runs `Q*` per left cycle) +
+  `faModal_to_faShape`. The `faModal_MULTI` analog of B=1's `relational_loop`. **Mechanical — no
+  new lemma needed** at the outer level (the real content is inside `hstep_multiseg_het`).
+* **`hExist` is CARRIED, not discharged (resolved honestly).** `hExist` has two parts: (a) a right
+  ODE run *exists*; (b) it *stays in `domR`*. The flow certificate's domain `domL∧domR` gives (b)
+  structurally (the (ii-b) argument). But (a) — existence — is **not** given by the flow cert;
+  it is the CSF **duration-existence** obligation, **open in dL-caltiming** (finite-escape
+  countermodel `ξy'=ξy²`). Discharging it needs Mathlib Picard–Lindelöf on the compact `domR`
+  (heavy, separate). So `hExist` is **carried as an explicit per-segment CSF side-condition** —
+  true for the cover's bounded polynomial domains, but *assumed, not proven*.
+
+## Final TCB (precise — do not overclaim)
+
+**Residual trusted base = parser + Z3 (`z3_unsat_sound`) + `hExist` (per-segment
+duration-existence, CSF side-condition).** The `hExist` clause is the one place the claim is
+larger than "parser + Z3": it is assumed (true for bounded domains; Picard-mechanization deferred),
+not discharged. `#print axioms` across the chain: standard three + `z3_unsat_sound` — **no new
+axiom** (`hExist` is a hypothesis, not an axiom).
+
 ## Honest status line
 
 **The full chain — Z3 verdict ⟹ paper's looped ∀∃ `[|(L*,R*)⟩⟩ψ` — is mechanized and

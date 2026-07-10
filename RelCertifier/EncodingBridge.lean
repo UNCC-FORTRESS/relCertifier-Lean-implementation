@@ -108,4 +108,26 @@ theorem relational_loop {n : ℕ} (leftBody rightBody : Program (Var n))
   exact faModal_LOCK (Equiv.refl (Var n)) leftBody rightBody
     (encode (Equiv.refl (Var n)) ψ) (encode (Equiv.refl (Var n)) ψ) ν hd hinv hstep (fun _ h => h)
 
+/-- **Looped relational guarantee, MULTI (B>1 mode-switching).** As `relational_loop`, but the
+per-left-cycle hypothesis couples the left mode with the **right star** (multiple right modes per
+left cycle — discharged by `hstep_multiseg_het`), via the proven `faModal_MULTI`. Same
+`faModal_to_faShape` close. -/
+theorem relational_loop_multi {n : ℕ} (leftBody rightBody : Program (Var n))
+    (ψ : RFormula (Var n)) (ν : State (Var n)) (bs : BiState (Var n))
+    (hd : Disjoint (Program.vars leftBody) (Program.vars (rightBody.rename (Equiv.refl (Var n)))))
+    (hinv : Formula.sat (encode (Equiv.refl (Var n)) ψ) ν)
+    (hstep : ∀ σ, Formula.sat (encode (Equiv.refl (Var n)) ψ) σ →
+        Formula.sat (faModal (Equiv.refl (Var n)) leftBody (Program.star rightBody)
+          (encode (Equiv.refl (Var n)) ψ)) σ)
+    (hdd : Disjoint (faShape (Program.star leftBody) (Program.star rightBody) ψ).varsL
+        (Equiv.refl (Var n) '' (faShape (Program.star leftBody) (Program.star rightBody) ψ).varsR))
+    (hb : Bridges (Equiv.refl (Var n))
+        (faShape (Program.star leftBody) (Program.star rightBody) ψ).varsL
+        (faShape (Program.star leftBody) (Program.star rightBody) ψ).varsR bs ν) :
+    RFormula.sat (faShape (Program.star leftBody) (Program.star rightBody) ψ) bs := by
+  refine faModal_to_faShape (Equiv.refl (Var n)) (Program.star leftBody)
+    (Program.star rightBody) ψ ν bs hdd hb ?_
+  exact faModal_MULTI (Equiv.refl (Var n)) leftBody rightBody
+    (encode (Equiv.refl (Var n)) ψ) (encode (Equiv.refl (Var n)) ψ) ν hd hinv hstep (fun _ h => h)
+
 end RelCertifier

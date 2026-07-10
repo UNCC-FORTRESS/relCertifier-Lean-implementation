@@ -735,7 +735,103 @@ theorem hstep_rover {sys : ODESystem V} {dom : Formula V} (hwf : sys.WellFormed)
     (Set.right_mem_Icc.mpr hr₀.le)
   exact ⟨Φ r₀, hslab, hrun⟩
 
+/-! ## hExist packaging — `RunFor` ⟹ the `segment_relational` hExist conclusion shape -/
+
+/-- **`RunFor` ⟹ hExist conclusion shape.** A duration-`s` run unpacks into the exact shape
+`segment_relational`'s `hExist` demands of the right witness `ΦR`: per-equation derivatives on the
+block, masking of non-bound coordinates, and domain-membership — all on `Icc 0 s`. The masking is
+recovered from the field being `0` off the bound set (derivative `0` ⟹ constant), mirroring
+`sem_ode_iff_integralCurve`. This is the reification of the chained curve into the witness. -/
+theorem RunFor_unpack {sys : ODESystem V} {dom : Formula V} (hwf : sys.WellFormed)
+    {s : ℝ} {ω ν' : State V} (h : RunFor sys dom s ω ν') :
+    ∃ ΦR : ℝ → State V, ΦR 0 = ω ∧
+      (∀ t ∈ Set.Icc (0:ℝ) s, ∀ p ∈ sys,
+          HasDerivWithinAt (fun u => ΦR u p.1) (p.2.eval (ΦR t)) (Set.Icc 0 s) t) ∧
+      (∀ t ∈ Set.Icc (0:ℝ) s, ∀ x, x ∉ sys.bound → ΦR t x = ω x) ∧
+      (∀ t ∈ Set.Icc (0:ℝ) s, Formula.sat dom (ΦR t)) := by
+  obtain ⟨hs, Φ, hΦ0, _, hcurve, hdom⟩ := h
+  refine ⟨Φ, hΦ0, ?_, ?_, fun t ht => hdom t ht⟩
+  · intro t ht p hp
+    have hi : p.1 ∈ sys.bound := List.mem_map_of_mem hp
+    have hpi := (hasDerivWithinAt_pi.mp (hcurve t ht)) p.1
+    simp only [odeField, if_pos hi, ODESystem.rhs_eq_of_mem hwf hp] at hpi
+    exact hpi
+  · intro t ht x hx
+    have hcx : ∀ s' ∈ Set.Icc (0:ℝ) s,
+        HasDerivWithinAt (fun u => Φ u x) 0 (Set.Icc 0 s) s' := by
+      intro s' hs'
+      have hpi := (hasDerivWithinAt_pi.mp (hcurve s' hs')) x
+      simpa only [odeField, if_neg hx] using hpi
+    have hconst : ∀ s' ∈ Set.Icc (0:ℝ) s, Φ s' x = Φ 0 x := by
+      have hdiffOn : DifferentiableOn ℝ (fun u => Φ u x) (Set.Icc 0 s) :=
+        fun s' hs' => (hcx s' hs').differentiableWithinAt
+      have hd0 : ∀ s' ∈ Set.Ico (0:ℝ) s,
+          derivWithin (fun u => Φ u x) (Set.Icc 0 s) s' = 0 := by
+        intro s' hs'
+        have hlt : (0:ℝ) < s := lt_of_le_of_lt hs'.1 hs'.2
+        have hud : UniqueDiffWithinAt ℝ (Set.Icc 0 s) s' :=
+          (uniqueDiffOn_Icc hlt) s' ⟨hs'.1, le_of_lt hs'.2⟩
+        exact (hcx s' ⟨hs'.1, le_of_lt hs'.2⟩).derivWithin hud
+      exact constant_of_derivWithin_zero hdiffOn hd0
+    rw [hconst t ht, hΦ0]
+
+/-- **hExist discharged (rover shape).** From a slab-start `ω` and the Z3 growth bound
+`ω si + v_max·s ≤ S_max`, a right witness `ΦR` exists over the full duration `[0,s]`, staying in the
+full box domain `domR` — the exact shape `segment_relational`'s `hExist` demands. Assembles:
+`chainN` + `hstep_rover` (reach `[0,s]` via uniform steps) → `slab_invariance_rover` (v,s-lower) +
+`growth_bound_raw` + Z3 bound (s-upper) → full box → `hdomsat` → `domR` → `RunFor_unpack`. This is the
+carried CSF side-condition, now **discharged** by explicit witness construction. -/
+theorem hExist_rover {sys : ODESystem V} {domR : Formula V} (hwf : sys.WellFormed)
+    (vi si : V) (k c vmax smax a : ℝ)
+    (hfv : ∀ x : State V, odeField sys x vi = k * (c - x vi))
+    (hfs : ∀ x : State V, odeField sys x si = x vi)
+    (hother : ∀ (x : State V) i, i ≠ vi → i ≠ si → odeField sys x i = 0)
+    (hk : 0 < k) (hc0 : 0 < c) (hcv : c < vmax) (ha : 0 < a)
+    (hdomsat : ∀ x : State V, 0 ≤ x vi → x vi ≤ vmax → 0 ≤ x si → x si ≤ smax → Formula.sat domR x)
+    (r₀ : ℝ) (hr₀ : 0 < r₀)
+    (hr₀le : max (k * (|c| + vmax + a)) (vmax + a) * r₀ ≤ a)
+    (ω : State V) (hωv0 : 0 ≤ ω vi) (hωvv : ω vi ≤ vmax) (hωs0 : 0 ≤ ω si)
+    (s : ℝ) (hs0 : 0 ≤ s) (hZ3 : ω si + vmax * s ≤ smax) :
+    ∃ ΦR : ℝ → State V, ΦR 0 = ω ∧
+      (∀ t ∈ Set.Icc (0:ℝ) s, ∀ p ∈ sys,
+          HasDerivWithinAt (fun u => ΦR u p.1) (p.2.eval (ΦR t)) (Set.Icc 0 s) t) ∧
+      (∀ t ∈ Set.Icc (0:ℝ) s, ∀ x, x ∉ sys.bound → ΦR t x = ω x) ∧
+      (∀ t ∈ Set.Icc (0:ℝ) s, Formula.sat domR (ΦR t)) := by
+  have hvmax0 : (0:ℝ) ≤ vmax := le_of_lt (lt_trans hc0 hcv)
+  -- reach RunFor over [0,s] via chainN (domain ⊤ during chaining; geometry re-derived after)
+  set P : State V → Prop := fun ν => 0 ≤ ν vi ∧ ν vi ≤ vmax ∧ 0 ≤ ν si with hP
+  have hstep : ∀ ν, P ν → ∃ ν', P ν' ∧ RunFor sys Formula.tt r₀ ν ν' :=
+    hstep_rover (dom := Formula.tt) hwf vi si k c vmax a hfv hfs hother hk hc0 hcv ha
+      (fun _ _ _ _ => trivial) r₀ hr₀ hr₀le
+  have hP0 : ∀ ν, P ν → Formula.sat Formula.tt ν := fun _ _ => trivial
+  set n : ℕ := Nat.ceil (s / r₀) with hn
+  have hsn : s ≤ (n : ℝ) * r₀ := by
+    rw [hn]
+    calc s = s / r₀ * r₀ := (div_mul_cancel₀ s (ne_of_gt hr₀)).symm
+      _ ≤ (Nat.ceil (s / r₀) : ℝ) * r₀ :=
+          mul_le_mul_of_nonneg_right (Nat.le_ceil _) (le_of_lt hr₀)
+  obtain ⟨ν', hrun⟩ := chainN hr₀ P hstep hP0 n s hs0 hsn ω ⟨hωv0, hωvv, hωs0⟩
+  obtain ⟨hs_, Φ, hΦ0, hΦs, hcurve, _⟩ := hrun
+  -- geometric slab bounds on the curve
+  have hslab := slab_invariance_rover hwf vi si k c vmax hcurve hfv hfs hk hc0 hcv
+    (by rw [hΦ0]; exact hωv0) (by rw [hΦ0]; exact hωvv) (by rw [hΦ0]; exact hωs0)
+  -- s-upper via growth bound + Z3
+  have hgrow := growth_bound_raw (sys := sys) si vmax hcurve
+    (fun t ht => by rw [hfs (Φ t)]; exact (hslab t ht).2.1)
+  have hshi : ∀ t ∈ Set.Icc (0:ℝ) s, Φ t si ≤ smax := by
+    intro t ht
+    have h1 := hgrow t ht
+    have h2 : vmax * t ≤ vmax * s := mul_le_mul_of_nonneg_left ht.2 hvmax0
+    rw [hΦ0] at h1
+    linarith [h1, h2, hZ3]
+  -- build RunFor over domR and unpack
+  have hrunR : RunFor sys domR s ω ν' :=
+    ⟨hs_, Φ, hΦ0, hΦs, hcurve, fun t ht =>
+      hdomsat (Φ t) (hslab t ht).1 (hslab t ht).2.1 (hslab t ht).2.2 (hshi t ht)⟩
+  exact RunFor_unpack hwf hrunR
+
 end RelCertifier
+
 
 
 

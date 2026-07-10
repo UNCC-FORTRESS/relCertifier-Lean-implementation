@@ -413,7 +413,130 @@ theorem sem_ode_glue {sys : ODESystem V} {dom : Formula V} (hwf : sys.WellFormed
     · rw [hΘle t hta]; exact hdΦ t ⟨ht.1, hta⟩
     · rw [hΘeqΨ t hat]; exact hdΨ (t - a) ⟨by linarith, by linarith [ht.2]⟩
 
+/-- **Duration-explicit run.** `RunFor sys dom d ν ν'`: an integral curve of `odeField sys` of
+duration **exactly** `d`, from `ν` to `ν'`, staying in `dom`. Exposes the duration (which `sem`
+hides) so chaining can count steps. `RunFor → sem` and it composes additively. -/
+def RunFor (sys : ODESystem V) (dom : Formula V) (d : ℝ) (ν ν' : State V) : Prop :=
+  0 ≤ d ∧ ∃ Φ : ℝ → State V, Φ 0 = ν ∧ Φ d = ν' ∧
+    IsIntegralCurveOn Φ (fun _ => odeField sys) (Set.Icc 0 d) ∧
+    (∀ t ∈ Set.Icc (0:ℝ) d, Formula.sat dom (Φ t))
+
+theorem RunFor.toSem {sys : ODESystem V} {dom : Formula V} (hwf : sys.WellFormed)
+    {d : ℝ} {ν ν' : State V} (h : RunFor sys dom d ν ν') :
+    Program.sem (.ode sys dom) ν ν' := by
+  obtain ⟨hd, Φ, h0, hd', hc, hdom⟩ := h
+  exact (sem_ode_iff_integralCurve hwf).mpr ⟨d, Φ, hd, h0, hd', hc, hdom⟩
+
+/-- **Zero run.** `RunFor 0 ν ν` (the constant curve on the singleton `{0}`). -/
+theorem RunFor.zero {sys : ODESystem V} {dom : Formula V} {ν : State V}
+    (hν : Formula.sat dom ν) : RunFor sys dom 0 ν ν := by
+  refine ⟨le_rfl, fun _ => ν, rfl, rfl, ?_, ?_⟩
+  · intro t ht
+    have ht0 : t = 0 := le_antisymm ht.2 ht.1
+    subst ht0
+    rw [hasDerivWithinAt_iff_tendsto_slope]
+    have : (Set.Icc (0:ℝ) 0) \ {0} = (∅ : Set ℝ) := by
+      simp [Set.Icc_self]
+    rw [this, nhdsWithin_empty]
+    exact Filter.tendsto_bot
+  · intro t ht
+    have ht0 : t = 0 := le_antisymm ht.2 ht.1
+    subst ht0; exact hν
+
+/-- **Shorten.** A run of duration `d` restricts to any shorter duration `d' ≤ d`. -/
+theorem RunFor.shorten {sys : ODESystem V} {dom : Formula V} {d d' : ℝ} {ν ν' : State V}
+    (h : RunFor sys dom d ν ν') (hd' : 0 ≤ d') (hle : d' ≤ d) :
+    ∃ ν'', RunFor sys dom d' ν ν'' := by
+  obtain ⟨_, Φ, h0, _, hc, hdom⟩ := h
+  refine ⟨Φ d', hd', Φ, h0, rfl, hc.mono (Set.Icc_subset_Icc_right hle), ?_⟩
+  intro t ht; exact hdom t ⟨ht.1, le_trans ht.2 hle⟩
+
+/-- **Additive gluing (duration-explicit).** `RunFor d₁ ν ν' → RunFor d₂ ν' ν'' → RunFor (d₁+d₂)`.
+Same concatenation as `sem_ode_glue`, keeping the summed duration. -/
+theorem RunFor.glue {sys : ODESystem V} {dom : Formula V} {a b : ℝ} {ω ν μ : State V}
+    (h1 : RunFor sys dom a ω ν) (h2 : RunFor sys dom b ν μ) :
+    RunFor sys dom (a + b) ω μ := by
+  obtain ⟨ha, Φ, hΦ0, hΦa, hcΦ, hdΦ⟩ := h1
+  obtain ⟨hb, Ψ, hΨ0, hΨb, hcΨ, hdΨ⟩ := h2
+  set Θ : ℝ → State V := fun t => if t ≤ a then Φ t else Ψ (t - a) with hΘ
+  have hΘle : ∀ t, t ≤ a → Θ t = Φ t := fun t ht => by simp only [hΘ, if_pos ht]
+  have hΘa : Θ a = ν := by rw [hΘle a le_rfl]; exact hΦa
+  have hΘeqΨ : ∀ t, a ≤ t → Θ t = Ψ (t - a) := by
+    intro t ht
+    rcases eq_or_lt_of_le ht with rfl | hlt
+    · rw [hΘa, ← hΨ0]; simp
+    · simp only [hΘ, if_neg (not_le.mpr hlt)]
+  refine ⟨by linarith, Θ, by rw [hΘle 0 ha]; exact hΦ0,
+    by rw [hΘeqΨ (a + b) (by linarith)]; simpa using hΨb, ?_, ?_⟩
+  · intro t ht
+    have hLeft : t ≤ a → HasDerivWithinAt Θ (odeField sys (Θ t)) (Set.Icc 0 a) t := by
+      intro hta
+      have hc := (hcΦ t ⟨ht.1, hta⟩)
+      rw [hΘle t hta]
+      exact hc.congr (fun u hu => hΘle u hu.2) (hΘle t hta)
+    have hRight : a ≤ t → HasDerivWithinAt Θ (odeField sys (Θ t)) (Set.Icc a (a + b)) t := by
+      intro hat
+      have htb : t - a ∈ Set.Icc (0:ℝ) b := ⟨by linarith, by linarith [ht.2]⟩
+      have hΨt := hcΨ (t - a) htb
+      have hshift : HasDerivWithinAt (fun u : ℝ => u - a) (1 : ℝ) (Set.Icc a (a + b)) t :=
+        (hasDerivWithinAt_id t _).sub_const a
+      have hmaps : Set.MapsTo (fun u : ℝ => u - a) (Set.Icc a (a + b)) (Set.Icc 0 b) :=
+        fun u hu => ⟨by linarith [hu.1], by linarith [hu.2]⟩
+      have hcomp := HasDerivWithinAt.scomp t hΨt hshift hmaps
+      rw [one_smul] at hcomp
+      rw [hΘeqΨ t hat]
+      exact hcomp.congr (fun u hu => hΘeqΨ u hu.1) (hΘeqΨ t hat)
+    rcases le_total t a with hta | hat
+    · rcases eq_or_lt_of_le hta with rfl | hlt
+      · have hu := (hLeft le_rfl).union (hRight le_rfl)
+        rwa [Set.Icc_union_Icc_eq_Icc ha (by linarith)] at hu
+      · exact (hLeft hta).mono_of_mem_nhdsWithin
+          (mem_nhdsWithin.mpr ⟨Set.Iio a, isOpen_Iio, hlt, fun u hu => ⟨hu.2.1, le_of_lt hu.1⟩⟩)
+    · rcases eq_or_lt_of_le hat with rfl | hlt
+      · have hu := (hLeft le_rfl).union (hRight le_rfl)
+        rwa [Set.Icc_union_Icc_eq_Icc ha (by linarith)] at hu
+      · exact (hRight hat).mono_of_mem_nhdsWithin
+          (mem_nhdsWithin.mpr ⟨Set.Ioi a, isOpen_Ioi, hlt, fun u hu => ⟨le_of_lt hu.1, hu.2.2⟩⟩)
+  · intro t ht
+    rcases le_total t a with hta | hat
+    · rw [hΘle t hta]; exact hdΦ t ⟨ht.1, hta⟩
+    · rw [hΘeqΨ t hat]; exact hdΨ (t - a) ⟨by linarith, by linarith [ht.2]⟩
+
+/-- **Chaining terminates (uniform step ⟹ any duration).** Given a uniform positive step `r₀` and a
+step lemma (`hstep`: from any `P`-point a `RunFor r₀` run lands at another `P`-point — supplied by
+Picard + `box_invariance_rover`), every duration `T ≤ n·r₀` is reachable from a `P`-point in `n`
+steps. `⌈T/r₀⌉` steps cover `[0,T]` — the uniform `r₀` guarantees finitely many steps, not a
+shrinking `ε`. This is the termination the chaining needs. -/
+theorem chainN {sys : ODESystem V} {dom : Formula V} {r₀ : ℝ} (hr₀ : 0 < r₀)
+    (P : State V → Prop)
+    (hstep : ∀ ν, P ν → ∃ ν', P ν' ∧ RunFor sys dom r₀ ν ν')
+    (hP0 : ∀ ν, P ν → Formula.sat dom ν) :
+    ∀ n : ℕ, ∀ T : ℝ, 0 ≤ T → T ≤ n * r₀ → ∀ ν, P ν → ∃ ν', RunFor sys dom T ν ν' := by
+  intro n
+  induction n with
+  | zero =>
+    intro T hT0 hTle ν hν
+    have : T = 0 := le_antisymm (by simpa using hTle) hT0
+    subst this
+    exact ⟨ν, RunFor.zero (hP0 ν hν)⟩
+  | succ m ih =>
+    intro T hT0 hTle ν hν
+    by_cases hTr : T ≤ r₀
+    · obtain ⟨ν', _, hrun⟩ := hstep ν hν
+      exact hrun.shorten hT0 hTr
+    · push_neg at hTr
+      obtain ⟨ν₁, hP1, hrun1⟩ := hstep ν hν
+      have hTm : T - r₀ ≤ (m : ℝ) * r₀ := by
+        have h2 : ((m : ℝ) + 1) * r₀ = (m : ℝ) * r₀ + r₀ := by ring
+        have h3 : T ≤ ((m : ℝ) + 1) * r₀ := by exact_mod_cast hTle
+        linarith [h2, h3]
+      obtain ⟨ν', hrun2⟩ := ih (T - r₀) (by linarith) hTm ν₁ hP1
+      refine ⟨ν', ?_⟩
+      have := hrun1.glue hrun2
+      rwa [add_sub_cancel] at this
+
 end RelCertifier
+
 
 
 

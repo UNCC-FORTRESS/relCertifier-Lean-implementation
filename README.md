@@ -166,63 +166,35 @@ Requires Lean 4 (`leanprover/lean4:v4.31.0`, pinned), a pinned Z3 (`RELCERT_Z3` 
 standard absolute path), and `dL-rel` at `../dL-rel` (transitively provides dL-lean
 `v0.1.0-DI` and the encoding bridge). Env: `RELCERT_Z3_TIMEOUT` (ms, default 10000).
 
-## Benchmark parity (`PARITY.md`)
+## Soundness of `CERTIFIED` — the certified-checker architecture
 
-Three-way, hermetic warm run over the 46 Python `relCertifier` benchmarks:
-**38 CERTIFIED / 8 DECLINED / 0 ERROR** (deterministic; ~11 s).
-**Every `CERTIFIED` is sound**: the flow-certificate domain is the **evolution domain** (holds
-throughout the segment), never the mode *guard*; certificates are `flow_cert_sound` /
-`_strict` / `_superlevel` composed by `cover_sound`. Python VERIFIES all 46 via its
-boundary-only criterion, so Lean ⊆ Python.
+`CERTIFIED` is **backed by proof**, not by the search. The untrusted cover DFS does not decide
+the verdict: the runner builds the abstract `SearchGraph` from the parsed model and gates
+`CERTIFIED` on the **verified computable `decideCovered`** — a transcription of the paper's
+Definition 4 (`base`: `B ≤ w(mR)` → budget closed; `step`: every retained successor covers at
+`B−w`). `decideCovered = true ⟹ Covered ⟹`, with the evolution-domain flow certs as `CoverCert`,
+the ∀∃-throughout invariant (`check_sound`, citing `cover_sound`). A search/runner bug can only
+make it **reject** — never a false `CERTIFIED`. Residual TCB: the parser and the single Z3
+`unsat` leaf.
 
-> **CERTIFIED is backed by proof (certified-checker architecture — see `ARCHITECTURE.md`).**
-> The untrusted `dfsCov3` search does **not** decide the verdict. `coverMode` builds the abstract
-> `SearchGraph` from the parsed model and gates `CERTIFIED` on the **verified computable
-> `decideCovered`** — a direct transcription of the paper's **Definition 4** (`base`:
-> `B ≤ w(mR)` → budget closed, terminate; `step`: every retained successor covers at `B−w`).
-> `decideCovered = true` ⟹ `Covered` (`decideCovered_sound`) ⟹, with the evolution-domain flow
-> certs as `CoverCert`, the ∀∃-throughout invariant (`check_sound`, citing `cover_sound`). A
-> search/runner bug can only make it **reject** — never a false `CERTIFIED`. Residual TCB: the
-> parser and the single Z3 `unsat` leaf. Two fidelity bugs of the *Lean-object-≠-paper-object*
-> class were caught and fixed: the flow-domain **guard-narrowing** (below), and `Covered`
-> **missing Definition 4's base case** (single-segment covers could not terminate, spuriously
-> forcing closed-leaf certification — corrected by the `base`/`step` split above).
->
-> **Soundness fix (this revision — a real bug caught).** An earlier version conjoined the
-> mode **guards** into the flow-certificate domain (to make some benchmarks certify). That
-> was **unsound**: a guard is the *entry/transition* condition, not the throughout-domain, so
-> conjoining it narrowed the certificate to a sliver the real flow leaves — e.g. a Return mode
-> entered at `θ≥0.7` flows to `θ<0.7`, and with `θ_R≥0.7` conjoined the invariant boundary
-> `θ_L=θ_R+0.4≥1.1` fell outside `θ≤1`, so the query was *vacuously* UNSAT (falsely certified),
-> while on the real flow `ġ=0.7>0` — genuinely non-inductive. Using the **evolution domain
-> only**, **7 previously-"CERTIFIED" benchmarks correctly move to DECLINED** (`arm_chain_rung1`,
-> `arm_chain_rung2`, `arm_fidelity_low`, `arm_refinement`, `match_multi_eps`, `plant_fan_low`,
-> `rover3tier_M1`): their guard-narrowed certificates never proved invariance on the actual
-> flow. **45 → 38, now sound.** Only `Run.lean` (the trusted runner) changed — the verified
-> core is untouched, `#print axioms` identical.
+**Soundness fixes caught while validating (real bugs, `Lean-object ≠ paper-object` class):**
+- **Guard-narrowing**: an earlier version conjoined the mode **guard** into the flow-certificate
+  domain, narrowing the certificate to a sliver the real flow leaves — a Return mode entered at
+  `θ≥0.7` flows to `θ<0.7`, so the query was *vacuously* UNSAT (falsely certified) while
+  `ġ=0.7>0` on the real flow. Fixed to the **evolution domain only** (holds throughout the
+  segment); the affected benchmarks correctly moved to DECLINED. Only `Run.lean` changed.
+- **`Covered` base case** (Definition 4): single-segment covers could not terminate, spuriously
+  forcing closed-leaf certification — corrected by the `base`/`step` split.
+- **Two parser bugs**: `dynOf` silently defaulted an unlowerable term to `0` (a wrong field
+  could falsely certify) — now propagates to ERROR; the tokenizer split `-` inside negative
+  literals — now `mergeSigns` re-glues signed literals. Neither had produced a wrong CERTIFIED.
 
-The sound routes that build the 38: the strict / domain / **superlevel** flow certificates
-(the last, `DI_nonstrict_superlevel`, proven from vendored Mathlib — no subtangency — closes
-the marginal `ġ=0`-on-boundary contraction/energy class and rejects the `t²` pathology), plus
-a **conserved-certificate restatement** of 4 gain-attack benchmarks (`CONSERVED.md`): each has
-a conserved `I` (`İ≤0`) whose sublevel `I≤I₀` flow-certifies and implies a finite, tight,
-Z3-derived safety bound `s_L−s_R≤c` (smaller than the original stated bound, not fitted).
-
-See `DIAGNOSIS.md` — the earlier declines that were genuinely true are all **Cat-2 = 0**
-(Python's boundary-only criterion is unsound-in-general but produces no falsehood on this
-suite, where every boundary is regular or a harmless equilibrium). The current 8 DECLINED are
-sound: some are genuinely non-inductive as all-successors sync edges (`arm_chain`'s Return_R,
-verified `ġ>0` on the reachable flow), and `rover3_M1` needs budget-aware reachability
-(Strategy 2, out of scope). None is a false CERTIFIED.
-
-Two trusted-layer (parser) bugs were found and fixed while validating: `dynOf` silently
-defaulted an unlowerable dynamics term to `0` (a wrong field could falsely certify) — now
-propagates to ERROR; and the tokenizer split `-` inside negative literals (`(* -1 psi)`
-mis-parsed), corrupting damped dynamics — now `mergeSigns` re-glues signed literals. Neither
-had produced a wrong CERTIFIED (re-run shows no benchmark flipped to ERROR).
-
-The trusted layer is tested (`relcert-test`): determinism / oracle-consistency, outcome-
-integrity (missing Z3 / unparsed / crash → ERROR), parser, lowering, and Z3-layer verdicts.
+The sound routes: strict / domain / **superlevel** flow certificates (`DI_nonstrict_superlevel`,
+proven from vendored Mathlib — **no subtangency**, closes the marginal `ġ=0`-on-boundary
+contraction/energy class, rejects the `t²` pathology). The trusted layer is tested
+(`relcert-test`): determinism, outcome-integrity (missing Z3 / unparsed / crash → ERROR),
+parser, lowering, Z3-layer verdicts. See the **Benchmark suite** section above for the current
+42/46 trusted-method tally and the honest decline breakdown.
 
 ## Layout
 
@@ -236,7 +208,10 @@ RelCertifier/
   Oracle.lean         the single trusted leaf (z3_unsat_sound) + IO-boundary theorems
   Parse.lean          input.txt parser (trusted IO)
   Run.lean            end-to-end cover runner
+  PicardBridge.lean   the ∀∃ witness — hExist discharged (existence + invariance + chaining)
+  HExistDischarge.lean cross-side masking seam — hExist into segment_faModal
 Main.lean             `relcert` executable
-STATUS.md             per-stage build notes
-PARITY.md             the 46-benchmark parity table
+ARCHITECTURE.md       certified-checker architecture + the finding that reshaped it
+MAINTHEOREM.md        the CERTIFIED ⟹ ∀∃ soundness chain + hExist ledger
+benchmarks/SPLIT.md   full-suite field-shape split (existence-route map)
 ```

@@ -140,9 +140,22 @@ trusted method (Z3 UNSAT-of-negation):
 |---|---|---|
 | **CERTIFIED** — source invariant inductive | **35/46** | flow-cert Z3 UNSAT, cover closes (20-step λ grid) |
 | CERTIFIED — **restated** (strengthened) invariant | **+7** | `benchmarks/restated/` — 4 rover-family (velocity-coupled) + 3 arm/plant (`θ[l]−θ[r]+v[l]≤d ∧ θ[l]≤θ[r]+d`) |
-| **DECLINED** — beyond the reachability-free single-λ cover | **4** | Z3 **SAT** / method-scope; tool declines soundly |
+| CERTIFIED — **faithful successor correction** (dead-edge removal, invariant unchanged) | **+2** | `match_multi_eps`, `rover3tier_M1` |
+| **DECLINED** — beyond the reachability-free single-λ cover | **2** | method-scope; tool declines soundly |
 
-**42/46 discharge on the trusted method (Z3 UNSAT).** Instantiation was the in-use check —
+**44/46 discharge** (42 on the trusted invariant method + 2 via a faithful successor
+correction). **Key finding**: the declines were **method-scope**, not invariant-restatement
+gaps — the invariants are correct; the reachability-free all-successors single-λ cover can't
+witness the `∃`-response. `match_multi_eps`/`rover3tier_M1`: L `ACCEL` `v'=k(1−v)` asymptotes
+to `v=1`, so the `COAST` guard `v≥1` is **never reached** → the `ACCEL→COAST` edge is **dead**;
+the all-successors cover required covering it (forcing `v_R→0.2` while `v_L→1`, `Δv→0.8>0.5`).
+Removing the dead edge is a faithful **successor-completeness** correction (model-faithfulness
+TCB, invariant unchanged) — the sound strict barrier can't prune it (`İ=0` equilibrium at `v=1`,
+the `t²`-class boundary). The last 2 are genuinely method-scope: `arm_chain_rung1` (all-successors
+needs backward `Return` to cover forward `ApproachFast`; budget/λ don't help → response-selection);
+`rover3_M1` (`Drift` uncoverable → budget-aware Strategy-2, paper-rejected).
+
+**42/46 on the pure trusted method (Z3 UNSAT).** Instantiation was the in-use check —
 per benchmark: shape match (46/46), Z3 query closes, side-conditions (cubic factor
 `0.5ψ²+0.3θ²∈[0.20,0.39]<1`; coupled real-eigenvalue) — all confirmed. It **surfaced** the
 declines rather than forcing them:

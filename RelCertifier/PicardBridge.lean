@@ -1504,7 +1504,59 @@ theorem coupled_eigen_invariance {sys : ODESystem V} {r : ℝ} {Φ : ℝ → Sta
   intro t ht
   exact ⟨hlo_inv t ht, hhi_inv t ht⟩
 
+/-- **Driven-asymptotic bound (defective companion's second eigencoord).** For the critically-damped
+companions (double real eigenvalue — confirmed, NO complex/oscillatory anywhere in the suite, so NO
+Lyapunov needed), one eigencoord is asymptotic (`coupled_eigen_invariance`); the generalized coord is
+**driven** (`v'=u−λv`, `u` bounded). If along the curve `odeField si ≤ M − λ·si` (from the eigencoord
+bound + Z3) with `λ>0` and `M ≤ λ·C`, then `si ≤ C` — via `(si−C)·e^{λt}` being antitone
+(`g'≤−λg`). Bounded, standard, non-oscillatory; not a Lyapunov function. -/
+theorem driven_bound_raw {sys : ODESystem V} {r : ℝ} {Φ : ℝ → State V} (si : V) (lam M C : ℝ)
+    (hlam : 0 < lam) (hC : M ≤ lam * C)
+    (hcurve : IsIntegralCurveOn Φ (fun _ => odeField sys) (Set.Icc 0 r))
+    (hdrive : ∀ t ∈ Set.Icc (0:ℝ) r, odeField sys (Φ t) si ≤ M - lam * (Φ t si))
+    (h0 : Φ 0 si ≤ C) :
+    ∀ t ∈ Set.Icc (0:ℝ) r, Φ t si ≤ C := by
+  set g : ℝ → ℝ := fun t => (Φ t si - C) * Real.exp (lam * t) with hg
+  have hgd : ∀ t ∈ Set.Icc (0:ℝ) r,
+      HasDerivWithinAt g ((odeField sys (Φ t) si + lam * (Φ t si - C)) * Real.exp (lam * t))
+        (Set.Icc 0 r) t := by
+    intro t ht
+    have h1 : HasDerivWithinAt (fun u => Φ u si - C) (odeField sys (Φ t) si) (Set.Icc 0 r) t :=
+      ((hasDerivWithinAt_pi.mp (hcurve t ht)) si).sub_const C
+    have h2 : HasDerivWithinAt (fun u => Real.exp (lam * u)) (lam * Real.exp (lam * t))
+        (Set.Icc 0 r) t := by
+      have := (((hasDerivWithinAt_id t (Set.Icc 0 r)).const_mul lam).exp)
+      simpa [mul_comm] using this
+    have hm := h1.mul h2
+    have heq : odeField sys (Φ t) si * Real.exp (lam * t)
+        + (Φ t si - C) * (lam * Real.exp (lam * t))
+        = (odeField sys (Φ t) si + lam * (Φ t si - C)) * Real.exp (lam * t) := by ring
+    rw [← heq]; exact hm
+  have hcont : ContinuousOn g (Set.Icc 0 r) := fun t ht => (hgd t ht).continuousWithinAt
+  have hanti : AntitoneOn g (Set.Icc 0 r) := by
+    refine antitoneOn_of_deriv_nonpos (convex_Icc 0 r) hcont (fun x hx => ?_) (fun x hx => ?_)
+    · rw [interior_Icc] at hx
+      exact ((hgd x (Set.Ioo_subset_Icc_self hx)).hasDerivAt
+        (Icc_mem_nhds hx.1 hx.2)).differentiableAt.differentiableWithinAt
+    · rw [interior_Icc] at hx
+      have hxIcc := Set.Ioo_subset_Icc_self hx
+      rw [((hgd x hxIcc).hasDerivAt (Icc_mem_nhds hx.1 hx.2)).deriv]
+      have hexp : 0 < Real.exp (lam * x) := Real.exp_pos _
+      have hdr := hdrive x hxIcc
+      have : odeField sys (Φ x) si + lam * (Φ x si - C) ≤ 0 := by nlinarith [hdr, hC]
+      exact mul_nonpos_of_nonpos_of_nonneg this (le_of_lt hexp)
+  intro t ht
+  have hle := hanti (Set.left_mem_Icc.mpr (le_trans ht.1 ht.2)) ht ht.1
+  simp only [hg, mul_zero, Real.exp_zero, mul_one] at hle
+  have hexp : 0 < Real.exp (lam * t) := Real.exp_pos _
+  have hle0 : (Φ t si - C) * Real.exp (lam * t) ≤ 0 := le_trans hle (by linarith [h0])
+  have hneg : Φ t si - C ≤ 0 := by
+    by_contra h; push_neg at h
+    nlinarith [mul_pos h hexp, hle0]
+  linarith [hneg]
+
 end RelCertifier
+
 
 
 

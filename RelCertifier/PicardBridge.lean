@@ -1555,7 +1555,31 @@ theorem driven_bound_raw {sys : ODESystem V} {r : ℝ} {Φ : ℝ → State V} (s
     nlinarith [mul_pos h hexp, hle0]
   linarith [hneg]
 
+/-! ## hsmax — the left-domain → right-growth Z3 coupling (analytic core = `left_duration_bound`) -/
+
+/-- **hsmax as a Z3 check.** The growth coupling `ν si + v_max·s ≤ S_max` is `left_duration_bound`
+(analytic — the left growing coord `s'=v ≥ v_min` in `domL` bounds the duration `s ≤ (S_max^L−s₀)/v_min`)
+COMPOSED with the **Z3-checkable arithmetic** `ν si + v_max·(S_max^L−s₀)/v_min ≤ S_max` (a polynomial
+inequality on the parsed bounds — polynomial-NRA, in the trusted Z3 boundary). No new analytic
+obligation: the analytic part is `left_duration_bound` (proven); hsmax is the Z3 wiring. -/
+theorem hsmax_of_left_duration {sys : ODESystem V} {ΦL : ℝ → State V}
+    (viL siL : V) (vminL smaxL : ℝ) (hvmin : 0 < vminL)
+    {s : ℝ} (hs0 : 0 ≤ s)
+    (hcurve : IsIntegralCurveOn ΦL (fun _ => odeField sys) (Set.Icc 0 s))
+    (hfsL : ∀ x : State V, odeField sys x siL = x viL)
+    (hvlo : ∀ t ∈ Set.Icc (0:ℝ) s, vminL ≤ ΦL t viL)
+    (hdomL : ∀ t ∈ Set.Icc (0:ℝ) s, ΦL t siL ≤ smaxL)
+    (nu_si vmaxR smaxR : ℝ) (hvmaxR : 0 ≤ vmaxR)
+    (hZ3 : nu_si + vmaxR * ((smaxL - ΦL 0 siL) / vminL) ≤ smaxR) :
+    nu_si + vmaxR * s ≤ smaxR := by
+  have hTmax : s ≤ (smaxL - ΦL 0 siL) / vminL :=
+    left_duration_bound viL siL vminL smaxL hvmin hs0 hcurve hfsL hvlo hdomL
+  have hmul : vmaxR * s ≤ vmaxR * ((smaxL - ΦL 0 siL) / vminL) :=
+    mul_le_mul_of_nonneg_left hTmax hvmaxR
+  linarith [hZ3, hmul]
+
 end RelCertifier
+
 
 
 

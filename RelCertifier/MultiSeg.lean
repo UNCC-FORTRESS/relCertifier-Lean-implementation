@@ -247,4 +247,75 @@ theorem hstep_multiseg_het (leftSys : ODESystem (Var n)) (leftDom : Formula (Var
   rw [Program.rename_refl] at hμ ⊢
   exact sem_bigSeq_sub_star rightBody (R :: rs) hstepR ν μ hμ
 
+/-! ## Tool-level B>1 threading — `reified_relational_multi`
+
+Mirror of B=1's `reified_relational`, over the heterogeneous mode-switching core. Per left mode:
+its right mode-switch sequence + per-mode couplings feed `hstep_multiseg_het`; `faModal_bigChoiceL`
+composes over left modes; `relational_loop_multi` (`faModal_MULTI`) closes the loop to
+`[|(L*,R*)⟩⟩ψ`. The one non-B=1 datum is the per-left-mode **sequence** `rights` (which modes,
+in order) — supplied by the cover; each mode's coupling is its own evolution-domain `pair_faModal`. -/
+
+/-- A right mode is a branch of the right automaton `bigChoice rightProgs`. -/
+theorem sem_mem_bigChoice (Q : Program (Var n)) {ν μ : State (Var n)}
+    (h : Program.sem Q ν μ) :
+    ∀ (Qs : List (Program (Var n))), Q ∈ Qs → Program.sem (bigChoice Qs) ν μ
+  | [], hm => absurd hm (by simp)
+  | q :: qs, hm => by
+      rw [List.mem_cons] at hm
+      rcases hm with rfl | hm
+      · exact Or.inl h
+      · exact Or.inr (sem_mem_bigChoice Q h qs hm)
+
+/-- Per-left-mode B>1 data: the left mode, its right **mode-switch sequence**, and the
+per-mode structural + coupling facts (each coupling an evolution-domain `pair_faModal`). -/
+structure MultiLeft (n : ℕ) (rightProgs : List (Program (Var n))) (φinv : Formula (Var n)) where
+  leftSys : ODESystem (Var n)
+  leftDom : Formula (Var n)
+  rights : List (Program (Var n))
+  hne : rights ≠ []
+  hmem : ∀ Q ∈ rights, Q ∈ rightProgs
+  hdis : ∀ Q ∈ rights, Disjoint (Program.vars (Q.rename (Equiv.refl (Var n))))
+      (Program.vars (Program.ode leftSys leftDom))
+  hcouple : ∀ Q ∈ rights, ∀ σ, Formula.sat φinv σ →
+      Formula.sat (faModal (Equiv.refl (Var n)) (Program.ode leftSys leftDom) Q φinv) σ
+
+/-- The left program of a `MultiLeft` bundle. -/
+def MultiLeft.leftProg {n : ℕ} {rightProgs : List (Program (Var n))} {φinv : Formula (Var n)}
+    (d : MultiLeft n rightProgs φinv) : Program (Var n) :=
+  Program.ode d.leftSys d.leftDom
+
+/-- **Tool-level B>1 (all-17 form).** Given per-left-mode mode-switch data and the structural
+`Bridges`/disjointness, the paper's ∀∃ relational modality over the looped choice-automata holds
+— with genuine multi-segment mode-switching witnesses. Mirror of `reified_relational` via
+`faModal_bigChoiceL` + `hstep_multiseg_het` + `relational_loop_multi`. `φinv = encode id ψ`. -/
+theorem reified_relational_multi {n : ℕ}
+    (rightProgs : List (Program (Var n))) (ψ : RFormula (Var n))
+    (leftData : List (MultiLeft n rightProgs (encode (Equiv.refl (Var n)) ψ)))
+    (ν : State (Var n)) (bs : BiState (Var n))
+    (hd : Disjoint (Program.vars (bigChoice (leftData.map MultiLeft.leftProg)))
+        (Program.vars ((bigChoice rightProgs).rename (Equiv.refl (Var n)))))
+    (hinv : Formula.sat (encode (Equiv.refl (Var n)) ψ) ν)
+    (hdd : Disjoint (faShape (Program.star (bigChoice (leftData.map MultiLeft.leftProg)))
+          (Program.star (bigChoice rightProgs)) ψ).varsL
+        (Equiv.refl (Var n) '' (faShape (Program.star (bigChoice (leftData.map MultiLeft.leftProg)))
+          (Program.star (bigChoice rightProgs)) ψ).varsR))
+    (hb : Bridges (Equiv.refl (Var n))
+        (faShape (Program.star (bigChoice (leftData.map MultiLeft.leftProg)))
+          (Program.star (bigChoice rightProgs)) ψ).varsL
+        (faShape (Program.star (bigChoice (leftData.map MultiLeft.leftProg)))
+          (Program.star (bigChoice rightProgs)) ψ).varsR bs ν) :
+    RFormula.sat (faShape (Program.star (bigChoice (leftData.map MultiLeft.leftProg)))
+      (Program.star (bigChoice rightProgs)) ψ) bs := by
+  refine relational_loop_multi (bigChoice (leftData.map MultiLeft.leftProg))
+    (bigChoice rightProgs) ψ ν bs hd hinv ?_ hdd hb
+  intro σ hσ
+  refine faModal_bigChoiceL (Equiv.refl (Var n)) (Program.star (bigChoice rightProgs))
+    (encode (Equiv.refl (Var n)) ψ) σ (leftData.map MultiLeft.leftProg) ?_
+  intro P hP
+  obtain ⟨d, _, rfl⟩ := List.mem_map.mp hP
+  exact hstep_multiseg_het d.leftSys d.leftDom (bigChoice rightProgs) d.rights
+    (encode (Equiv.refl (Var n)) ψ) σ d.hne
+    (fun Q hQ a b hsem => sem_mem_bigChoice Q hsem rightProgs (d.hmem Q hQ))
+    d.hdis d.hcouple hσ
+
 end RelCertifier

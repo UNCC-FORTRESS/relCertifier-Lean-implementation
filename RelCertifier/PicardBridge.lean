@@ -535,7 +535,32 @@ theorem chainN {sys : ODESystem V} {dom : Formula V} {r₀ : ℝ} (hr₀ : 0 < r
       have := hrun1.glue hrun2
       rwa [add_sub_cancel] at this
 
+/-! ## `hstep` — uniform-step existence (Picard ⟹ `RunFor`) -/
+
+/-- **Picard ⟹ a `RunFor` curve.** Given `IsPicardLindelof` data for `odeField sys` at `ν` over
+`[0,r₀]` (the `r = 0` differential form) and domain-membership for the resulting curve (supplied by
+`box_invariance_rover`), a length-`r₀` integral curve from `ν` exists, staying in `dom`. Isolates the
+`IsPicardLindelof → RunFor` mechanism; the uniform-constants construction of the `IsPicardLindelof`
+data (from the field bound, uniform over the box since `v'=k(c−v)`,`s'=v` are `s`-independent) is the
+remaining input. -/
+theorem picard_to_RunFor {sys : ODESystem V} {dom : Formula V}
+    (ν : State V) {a L K : NNReal} {r₀ : ℝ} (hr₀ : 0 < r₀)
+    (hpl : IsPicardLindelof (fun _ : ℝ => odeField sys) (tmin := 0) (tmax := r₀)
+      ⟨0, Set.left_mem_Icc.mpr hr₀.le⟩ ν a 0 L K)
+    (hdom : ∀ Φ : ℝ → State V, Φ 0 = ν →
+      IsIntegralCurveOn Φ (fun _ => odeField sys) (Set.Icc 0 r₀) →
+      ∀ t ∈ Set.Icc (0:ℝ) r₀, Formula.sat dom (Φ t)) :
+    ∃ Φ : ℝ → State V, Φ 0 = ν ∧
+      IsIntegralCurveOn Φ (fun _ => odeField sys) (Set.Icc 0 r₀) ∧
+      RunFor sys dom r₀ ν (Φ r₀) := by
+  obtain ⟨α, hα0, hαderiv⟩ := hpl.exists_eq_forall_mem_Icc_hasDerivWithinAt₀
+  have hα00 : α 0 = ν := by simpa using hα0
+  have hcurve : IsIntegralCurveOn α (fun _ => odeField sys) (Set.Icc 0 r₀) :=
+    fun t ht => hαderiv t ht
+  exact ⟨α, hα00, hcurve, hr₀.le, α, hα00, rfl, hcurve, hdom α hα00 hcurve⟩
+
 end RelCertifier
+
 
 
 

@@ -170,10 +170,27 @@ larger than "parser + Z3": it is assumed (true for bounded domains; Picard-mecha
 not discharged. `#print axioms` across the chain: standard three + `z3_unsat_sound` — **no new
 axiom** (`hExist` is a hypothesis, not an axiom).
 
+## All 38 — both fragments reach the paper's ∀∃ (theorem-level)
+
+* **B=1 (21):** `certified_relational` — `List CertSeg` (per-pair evolution-domain Z3 verdicts)
+  ⟹ `[|(L*,R*)⟩⟩ψ`.
+* **B>1 (17):** `reified_relational_multi` — `List (MultiLeft …)` (per-left-mode right mode-switch
+  sequence + per-mode evolution-domain couplings) ⟹ `[|(L*,R*)⟩⟩ψ`, **with genuine multi-segment
+  mode-switching witnesses**. The mechanical mirror of `certified_relational` over the proven
+  `hstep_multiseg_het` core; only helper `sem_mem_bigChoice`. `MultiLeft.hcouple` discharged by
+  `pair_faModal` (evolution-domain Z3, same boundary/query-fidelity as B=1), gated by
+  `decideCovered = true`.
+
+Both are **theorems** taking per-benchmark data + the boundary proofs (`hz3`/`hcouple` via
+`z3_unsat_sound`, `hExist`, `Bridges`). The executable `PProblem → CertSeg`/`MultiLeft` emit is
+the existing trusted-parser pattern (`lowerSeg` for B=1; the B>1 emit mirrors it — pure data, same
+boundary). `#print axioms` on both: standard three + `z3_unsat_sound` **at the `pair_faModal`
+discharge** (the top theorems themselves are standard three — the couplings are hypotheses).
+
 ## Honest status line
 
 **The full chain — Z3 verdict ⟹ paper's looped ∀∃ `[|(L*,R*)⟩⟩ψ` — is mechanized and
-axioms-clean (standard three + `z3_unsat_sound`), for the single-sync (B=1) fragment.** The
+axioms-clean (standard three + `z3_unsat_sound`), for BOTH fragments (all 38).** The
 tool's `CERTIFIED` provably equals the paper's ∀∃ relational invariant **for the 21 fully-
 single-sync benchmarks**, modulo the executable parser emit (`PProblem → CertSeg`, existing
 trust). Residual TCB: parser + Z3. The **17 B>1 benchmarks are structurally complete and

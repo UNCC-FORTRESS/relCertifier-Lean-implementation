@@ -1067,7 +1067,25 @@ theorem growth_lower_bound_raw {sys : ODESystem V} {r : ℝ} {Φ : ℝ → State
   simp only [mul_zero, sub_zero] at this
   linarith [this]
 
+/-- **Left duration bound (hsmax-discharge core).** If the left's growing coord `siL` (`s'=v`) grows at
+rate `≥ v_min > 0` yet stays `≤ S_max^L` (the left evolution domain), the segment duration is bounded:
+`r ≤ (S_max^L − s₀)/v_min`. Combined with the Z3 domain-relation `ν si + v_max·(S_max^L−s₀)/v_min ≤
+S_max`, this discharges the `hsmax` coupling (`hExist_from_rover`). The left `v ≥ v_min` premise comes
+from `asymptotic_invariance_raw` on the left curve; `growth_lower_bound_raw` gives the growth. -/
+theorem left_duration_bound {sys : ODESystem V} {r : ℝ} {ΦL : ℝ → State V}
+    (viL siL : V) (vmin smaxL : ℝ) (hvmin : 0 < vmin) (hr : 0 ≤ r)
+    (hcurve : IsIntegralCurveOn ΦL (fun _ => odeField sys) (Set.Icc 0 r))
+    (hfsL : ∀ x : State V, odeField sys x siL = x viL)
+    (hvlo : ∀ t ∈ Set.Icc (0:ℝ) r, vmin ≤ ΦL t viL)
+    (hdomL : ∀ t ∈ Set.Icc (0:ℝ) r, ΦL t siL ≤ smaxL) :
+    r ≤ (smaxL - ΦL 0 siL) / vmin := by
+  have hgl := growth_lower_bound_raw (sys := sys) siL vmin hcurve
+    (fun t ht => by rw [hfsL (ΦL t)]; exact hvlo t ht) r (Set.right_mem_Icc.mpr hr)
+  have hle := hdomL r (Set.right_mem_Icc.mpr hr)
+  rw [le_div_iff₀ hvmin]; nlinarith [hgl, hle]
+
 end RelCertifier
+
 
 
 

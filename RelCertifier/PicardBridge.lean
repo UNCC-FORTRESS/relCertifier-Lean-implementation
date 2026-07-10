@@ -590,6 +590,42 @@ theorem odeField_lipschitz_rover {sys : ODESystem V} (vi si : V) (k c : ℝ) (hk
     · rw [hother x i hvi hsi, hother y i hvi hsi, dist_self]
       positivity
 
+/-- **Uniform field bound on the step ball.** For `ν` with `ν vi ∈ [0,v_max]`, on `closedBall ν a`
+the affine rover field is bounded by `L = max(k(|c|+v_max+a), v_max+a)` — **uniform** over such `ν`
+(the bound uses only `ν vi ∈ [0,v_max]`, not `ν si`, since the field is `s`-independent). Gives the
+`IsPicardLindelof` `norm_le` field with a `ν`-independent `L`. -/
+theorem odeField_bound_rover {sys : ODESystem V} (vi si : V) (k c vmax a : ℝ)
+    (hfv : ∀ x : State V, odeField sys x vi = k * (c - x vi))
+    (hfs : ∀ x : State V, odeField sys x si = x vi)
+    (hother : ∀ (x : State V) i, i ≠ vi → i ≠ si → odeField sys x i = 0)
+    (hk : 0 ≤ k) (ha : 0 ≤ a) (hvmax : 0 ≤ vmax)
+    (ν : State V) (hν0 : 0 ≤ ν vi) (hνv : ν vi ≤ vmax) :
+    ∀ x ∈ Metric.closedBall ν a, ‖odeField sys x‖ ≤ max (k * (|c| + vmax + a)) (vmax + a) := by
+  intro x hx
+  have hRnn : (0:ℝ) ≤ max (k * (|c| + vmax + a)) (vmax + a) :=
+    le_trans (by positivity) (le_max_right _ _)
+  have hdist : dist x ν ≤ a := by rwa [Metric.mem_closedBall] at hx
+  have hxvi : |x vi - ν vi| ≤ a :=
+    le_trans (by rw [← Real.dist_eq]; exact dist_le_pi_dist x ν vi) hdist
+  have hxvi' := abs_le.mp hxvi
+  have hxvbound : |x vi| ≤ vmax + a := by
+    rw [abs_le]; constructor <;> linarith [hxvi'.1, hxvi'.2, hν0, hνv]
+  rw [pi_norm_le_iff_of_nonneg hRnn]
+  intro i
+  rw [Real.norm_eq_abs]
+  by_cases hvi : i = vi
+  · rw [hvi, hfv, abs_mul, abs_of_nonneg hk]
+    have hxvb' := abs_le.mp hxvbound
+    have hcx : |c - x vi| ≤ |c| + vmax + a := by
+      rw [abs_le]; constructor
+      · linarith [neg_abs_le c, hxvb'.1, hxvb'.2]
+      · linarith [le_abs_self c, hxvb'.1, hxvb'.2]
+    have : k * |c - x vi| ≤ k * (|c| + vmax + a) := by nlinarith [abs_nonneg (c - x vi)]
+    exact le_trans this (le_max_left _ _)
+  · by_cases hsi : i = si
+    · rw [hsi, hfs]; exact le_trans hxvbound (le_max_right _ _)
+    · rw [hother x i hvi hsi, abs_zero]; exact hRnn
+
 end RelCertifier
 
 

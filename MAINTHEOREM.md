@@ -78,20 +78,33 @@ missed `DLCalTiming.Commute.lean`, which already proves:
 `faModal_to_faShape`: given the per-iteration single-sync step + `Side.L`/`Side.R` disjointness +
 `Bridges`, it concludes `[|(leftBody*, rightBody*)⟩⟩ ψ` — **the looped relational guarantee**.
 
-## Remaining for the full B=1 theorem — two pieces
+## Reification — DONE (`reified_relational`, `Reification.lean`)
 
-1. **Discharge `hstep`** (the per-iteration single-sync step) — from `φinv`, `faModal id
-   (⨆leftModes) (⨆rightModes) φinv`, via `faModal_unionL` (left choice) + `segment_faModal` (per
-   pair) + `faModal_unionR` (right choice). Proving-through-proven-rules.
-2. **Reification** — connect `SearchGraph`/`decideCovered` to the concrete `leftBody`/`rightBody`
-   programs (the deferred structural "third-instance" bridge).
+`bigChoice` + `faModal_bigChoiceL`/`faModal_bigChoiceR` (choice folds via `faModal_unionL`/`unionR`)
++ `reified_relational`: from per-left-mode single-sync pairings (each left mode ↦ one matching
+right mode with a per-pair `faModal` preserving `ψ`) + `Side.L`/`Side.R` disjointness + `Bridges`,
+concludes `[|((⨆leftProgs)*, (⨆rightProgs)*)⟩⟩ ψ`. **This completes the CSF-side assembly** — the
+entire chain from flow certificate to the paper's *looped* ∀∃ relational modality is mechanized,
+axioms-clean, for the single-sync fragment. `(⨆modes)*` is the flat over-approximation (⊇ the
+real automaton) ⟹ the box claim is stronger than, and implies, the paper's transition-restricted
+`[|(L*,R*)⟩⟩ϕ`.
+
+## Remaining — the parser/IO connection only (existing trust boundary)
+
+The verified CSF-side chain is complete (`reified_relational` is the top). What remains is **not
+new verified content**: lower `PProblem → leftProgs/rightProgs/pairing` (the existing trusted
+parser) and discharge `reified_relational`'s hypotheses from the tool's data —
+* `hpair` from the runtime's per-mode **Z3 unsat verdicts** (`flow_cert_sound → BoxLe →
+  segment_faModal`), gated by `decideCovered = true` (B=1);
+* `Bridges`/disjointness from `exists_bridge` + the `Side` product (structural);
+* `hinv` = the initial invariant (`g ≤ 0`).
 
 ## Honest status line
 
-The two hardest junctions (domain-restricted base rule, encoding bridge), the **atomic
-single-sync relational guarantee end-to-end** (`flow-cert ⟹ paper-∀∃` for one segment pair), and
-the **loop layer** (`relational_loop` via the proven `faModal_LOCK`) are all mechanized and
-axioms-clean. This is **not yet** "the tool's `CERTIFIED` = the paper's ∀∃ for the 21 benchmarks"
-— that waits on the per-iteration `hstep` discharge (proving-through-rules) + the reification.
-Stated at true scope: the chain's endpoints, base rule, and loop layer are proven; the
-per-iteration discharge + reification are the remaining assembly.
+**The entire CSF-side chain is mechanized and axioms-clean** — flow certificate ⟹ per-pair
+`faModal` (`segment_faModal`, `faModal_ODE_G'`) ⟹ paper's `[|(L,R)⟩⟩ψ` (`faModal_to_faShape`)
+⟹ the **looped** `[|(L*,R*)⟩⟩ψ` (`reified_relational` via `faModal_LOCK`), for the single-sync
+(B=1) fragment, with `hExist'` carried as CSF's own duration-existence side-condition. What is
+left is the **parser/IO connection** (lowering `PProblem` + wiring the Z3 verdicts through
+`segment_faModal`) — the existing trust boundary, not new proof. So: the tool's `CERTIFIED ⟹`
+paper's ∀∃ is proven modulo the parser lowering; residual TCB stays parser + Z3.

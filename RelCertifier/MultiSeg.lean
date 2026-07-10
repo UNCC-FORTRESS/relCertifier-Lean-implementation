@@ -20,7 +20,7 @@ import RelCertifier.ToolLevel
 
 namespace RelCertifier
 
-open DL DLCalTiming DLRel Set
+open DL DLCalTiming DLRel Set RelCertifier.Parse RelCertifier.Run
 
 variable {n : ℕ}
 
@@ -317,5 +317,52 @@ theorem reified_relational_multi {n : ℕ}
     (encode (Equiv.refl (Var n)) ψ) σ d.hne
     (fun Q hQ a b hsem => sem_mem_bigChoice Q hsem rightProgs (d.hmem Q hQ))
     d.hdis d.hcouple hσ
+
+/-! ## Parser emit — `PProblem → MultiLeft` (B>1), same boundary as B=1
+
+Mirror of B=1's `lowerSeg`/`SegData.toCertSeg`. `lowerMultiLeft` lowers a left mode + its right
+**mode-switch sequence** (from the cover) to **pure data** (`leftSys`/`leftDom` via `dynOf`/
+`lowerF` on the **evolve** fields — guard-bug barred; each right segment `ode (rightBlock …) domR`).
+The `MultiLeft` proofs (`hcouple` per segment via `pair_faModal`/`z3_unsat_sound`, `hmem`, `hdis`,
+`hne`) enter at the smart constructor — the same Z3 trust boundary. A complete pure emit is
+impossible for the same reason as B=1 (`hcouple`/`hz3` mention the opaque `z3solve`). -/
+
+/-- Pure lowered **data** of a B>1 left cell: the left mode + its right mode-switch sequence. -/
+structure MLData (n : ℕ) where
+  leftSys : ODESystem (Var n)
+  leftDom : Formula (Var n)
+  rights : List (Program (Var n))
+
+/-- **The B>1 parser emit (data).** Lower a left mode `mL` and its right mode-switch sequence
+`rightSeq` (each `(rightMode, λ)`, from the cover) to `MLData` — `leftSys = leftBlock (fL of mL)`,
+`leftDom` from `mL.evolve`, each right segment `ode (rightBlock (fR) λ) (evolveR)` (the **evolution**
+domains, guards removed). `none` if unlowerable (→ the tool's `ERROR`). Pure, computable. -/
+def lowerMultiLeft (vars : List String) (n : ℕ) (mL : PMode)
+    (rightSeq : List (PMode × ℚ)) : Option (MLData n) := do
+  let fLi ← dynOf vars n Side.L mL
+  let domLi ← lowerF vars n Side.L mL.evolve
+  let rights ← rightSeq.mapM (fun p => do
+    let fRi ← dynOf vars n Side.R p.1
+    let domRi ← lowerF vars n Side.R p.1.evolve
+    some (Program.ode (rightBlock (fun i => (fRi i).toHost) (Term.const (p.2 : ℝ)))
+      domRi.toHost))
+  some { leftSys := leftBlock (fun i => (fLi i).toHost),
+         leftDom := domLi.toHost, rights := rights }
+
+/-- Smart constructor completing `MLData` to a `MultiLeft` by supplying the boundary proofs —
+`hne`/`hmem`/`hdis` (structural/parser-level) and `hcouple` (per-segment `pair_faModal`, the
+evolution-domain Z3 verdict via `z3_unsat_sound`). Makes the trust boundary explicit: data pure,
+proofs here. -/
+def MLData.toMultiLeft {n : ℕ} (d : MLData n) (rightProgs : List (Program (Var n)))
+    (φinv : Formula (Var n))
+    (hne : d.rights ≠ [])
+    (hmem : ∀ Q ∈ d.rights, Q ∈ rightProgs)
+    (hdis : ∀ Q ∈ d.rights, Disjoint (Program.vars (Q.rename (Equiv.refl (Var n))))
+        (Program.vars (Program.ode d.leftSys d.leftDom)))
+    (hcouple : ∀ Q ∈ d.rights, ∀ σ, Formula.sat φinv σ →
+        Formula.sat (faModal (Equiv.refl (Var n)) (Program.ode d.leftSys d.leftDom) Q φinv) σ) :
+    MultiLeft n rightProgs φinv :=
+  { leftSys := d.leftSys, leftDom := d.leftDom, rights := d.rights,
+    hne := hne, hmem := hmem, hdis := hdis, hcouple := hcouple }
 
 end RelCertifier

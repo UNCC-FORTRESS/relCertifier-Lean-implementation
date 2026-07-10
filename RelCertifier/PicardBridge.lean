@@ -1127,12 +1127,12 @@ theorem uniform_local_existence_on_compact (sys : ODESystem V) {K : Set (State V
     have hKe : K ⊆ (∅ : Set (State V)) := by simpa using hT
     exact absurd (hKe hν) (by simp)
 
+omit [Fintype V] [DecidableEq V] in
 /-- **Closed box is compact** (discharges the `IsCompact` hypothesis of the subcover). A box
 `{x | ∀ i, lo i ≤ x i ≤ hi i}` is `Set.univ.pi (fun i => Icc (lo i) (hi i))` — compact by
 `isCompact_univ_pi` (finite product of compact `Icc`s). Every nonlinear-R benchmark's `domR` is such
 a box (evolve = `v∈[0,v_max] ∧ s∈[0,S_max] ∧ ψ∈[lo,hi] ∧ …`), so its compactness is **proven**, not
 assumed — the per-benchmark `{x | sat domR x} = box` step is reification (mechanical). -/
-omit [Fintype V] [DecidableEq V] in
 theorem box_compact (lo hi : V → ℝ) :
     IsCompact {x : State V | ∀ i, lo i ≤ x i ∧ x i ≤ hi i} := by
   have heq : {x : State V | ∀ i, lo i ≤ x i ∧ x i ≤ hi i}

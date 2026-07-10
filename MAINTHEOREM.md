@@ -114,12 +114,35 @@ domains).
 single-sync pairing) is an **IO/parser function** — existing trusted-parser territory, not new
 proof. The theorem is complete; instantiating it on a concrete benchmark is parser plumbing.
 
+## B>1 phase — clock-free, composition proven, one analytic lemma left
+
+The non-trivial ∀∃ case (right switches modes mid-residence to respond to the left). **Gate 0
+result: B>1 is CLOCK-FREE** — the `plantT_split`/`tg`-clock/`ExtVar` re-mechanization I feared
+was a red herring. The left-split is **`sem_ode_prefix`** (proven), so the `tg ↔ switch-time`
+hidden-mismatch surface never appears. The de-risking is the headline: the scary part isn't hard.
+
+* **`multiseg`** (`MultiSeg.lean`, proven, axioms `propext, Classical.choice, Quot.sound` — no
+  Z3): the multi-segment lockstep composition. `B` per-segment couplings ⟹ a `B`-fold `faModal`
+  over `piter leftOde B` / `piter rightStep B`, by induction on `B` via the proven `faModal_seq`
+  (both-sides sequential) + `faModal_MR`. Plus `vars_piter_subset`.
+* **Couplings** `pair_faModal` (Z3 boundary), **loop/lift** `faModal_loopN` + `faModal_MULTI`
+  (right runs `Q*` per left cycle), **encoding** `faModal_to_faShape` — all proven.
+* **`unionR` confirmed sound** — `∃-single` is the existential right's own choice, over-supplied
+  by `Covered.step`'s `∀-all-successors` (not the rover3_M1 problem).
+* **Single remaining gap:** `ode` self-concatenation `sem (piter (ode sys ϕ) B) = sem (ode sys ϕ)`
+  (B≥1) — the left doesn't multiply (one residence split into B pieces; only the right multiplies
+  across modes). Mirrors `plantT_glue` minus the clock. `⊇` via `sem_ode_prefix` + padding; `⊆`
+  via the `plantT_glue`-style junction-differentiability argument. Bounded ODE analysis,
+  template-available. When it lands: `faModal_MULTI` + `faModal_to_faShape` close the 17.
+
 ## Honest status line
 
 **The full chain — Z3 verdict ⟹ paper's looped ∀∃ `[|(L*,R*)⟩⟩ψ` — is mechanized and
 axioms-clean (standard three + `z3_unsat_sound`), for the single-sync (B=1) fragment.** The
 tool's `CERTIFIED` provably equals the paper's ∀∃ relational invariant **for the 21 fully-
 single-sync benchmarks**, modulo the executable parser emit (`PProblem → CertSeg`, existing
-trust). Residual TCB: parser + Z3. The 17 B>1 benchmarks await the clocked `plantT_split`
-extension (separately gated). This is **not** "the tool is verified" — it is **21/38 verified
-end-to-end to the paper's modality, parser + Z3 trusted**.
+trust). Residual TCB: parser + Z3. The **17 B>1 benchmarks are structurally complete and
+clock-free** (Gate 0 + `multiseg` + the proven loop/couplings/encoding), **one analytic lemma**
+(`ode` self-concatenation) from closing → all 38, including the non-trivial multi-segment
+witnesses. This is **not** "the tool is verified" — it is **21/38 verified end-to-end now, the
+other 17 one bounded ODE lemma away**, parser + Z3 trusted.

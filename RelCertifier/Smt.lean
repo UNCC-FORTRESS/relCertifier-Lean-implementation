@@ -26,7 +26,7 @@ inductive ITerm (n : ℕ) where
   | var : Var n → ITerm n
   | rat : ℚ → ITerm n
   | bin : AOp → ITerm n → ITerm n → ITerm n
-  deriving Repr
+  deriving Repr, DecidableEq
 
 /-- Computable box-free formula IR. -/
 inductive IForm (n : ℕ) where
@@ -34,7 +34,7 @@ inductive IForm (n : ℕ) where
   | cmp : CompOp → ITerm n → ITerm n → IForm n
   | neg : IForm n → IForm n
   | and : IForm n → IForm n → IForm n
-  deriving Repr
+  deriving Repr, DecidableEq
 
 /-! ## Denotation into verified host syntax -/
 

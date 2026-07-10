@@ -35,47 +35,47 @@ variable {V : Type*} [Fintype V] [DecidableEq V]
 
 /-! ## The computable cover checker (re-validates the runner's untrusted search) -/
 
-/-- **Computable** re-validation of a `Covered` derivation, fuel-bounded (the fuel is the
-runner-supplied derivation height; `decideCovered_sound` needs only that it suffices). A
-node is accepted iff its budget is closed (`B = 0`), or its mode exists with `0 < weight`
-and **every** retained successor validates at the decremented budget. No `noncomputable`,
-no classical choice — this function *runs* on the runner's proposed certificate. -/
+/-- **Computable** re-validation of a `Covered` derivation — the two cases of the paper's
+**Definition 4**, made executable and fuel-bounded (the fuel is the runner-supplied
+derivation height; `decideCovered_sound` needs only that it suffices):
+
+* **base** — `B ≤ m.weight`: the certified mode's single residence closes the budget →
+  accept, **without** examining successors (Definition 4's terminating base case).
+* **step** — otherwise (`m.weight < B`): accept iff **every** retained successor validates
+  at the decremented budget.
+
+No `noncomputable`, no classical choice — this function *runs* on the runner's certificate. -/
 def decideCovered (G : SearchGraph V) : ℕ → Config → Bool
-  | _,        ⟨_, 0⟩     => true
-  | 0,        ⟨_, _ + 1⟩ => false
-  | fuel + 1, ⟨q, B + 1⟩ =>
+  | 0,        _      => false
+  | fuel + 1, ⟨q, B⟩ =>
       match G.modeAt q with
       | none   => false
-      | some m => decide (0 < m.weight) &&
-          (G.retainedSucc q).all (fun q' => decideCovered G fuel ⟨q', (B + 1) - m.weight⟩)
+      | some m =>
+          if B ≤ m.weight then true                                    -- base (Def 4)
+          else (G.retainedSucc q).all                                  -- step (Def 4)
+            (fun q' => decideCovered G fuel ⟨q', B - m.weight⟩)
 
 /-- **Soundness of the checker's structural half.** If `decideCovered` accepts, the
 proof-level `Covered` relation holds — so the runner's (untrusted) search result is
-re-validated into a real derivation. -/
+re-validated into a real Definition-4 derivation (base or step). -/
 theorem decideCovered_sound (G : SearchGraph V) :
     ∀ (fuel : ℕ) (cfg : Config), decideCovered G fuel cfg = true → Covered G cfg := by
   intro fuel
   induction fuel with
-  | zero =>
-      rintro ⟨q, B⟩ h
-      cases B with
-      | zero => exact Covered.closed
-      | succ B' => simp [decideCovered] at h
+  | zero => intro cfg h; simp [decideCovered] at h
   | succ f ih =>
       rintro ⟨q, B⟩ h
-      cases B with
-      | zero => exact Covered.closed
-      | succ B' =>
-          simp only [decideCovered] at h
-          cases hm : G.modeAt q with
-          | none => rw [hm] at h; simp at h
-          | some m =>
-              rw [hm] at h
-              rw [Bool.and_eq_true] at h
-              obtain ⟨hw, hall⟩ := h
-              refine Covered.cover m hm (Nat.succ_pos B') (by simpa using hw) ?_
+      simp only [decideCovered] at h
+      cases hm : G.modeAt q with
+      | none => rw [hm] at h; simp at h
+      | some m =>
+          simp only [hm] at h
+          split at h
+          · next hle => exact Covered.base m hm hle
+          · next hle =>
+              refine Covered.step m hm (Nat.lt_of_not_le hle) ?_
               intro q' hq'
-              exact ih _ (List.all_eq_true.mp hall q' hq')
+              exact ih _ (List.all_eq_true.mp h q' hq')
 
 /-! ## `check_sound` — CERTIFIED provably implies the ∀∃-throughout invariant -/
 

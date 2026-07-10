@@ -146,17 +146,25 @@ partial def dfsCov3 (memo : IO.Ref (Std.HashMap (String × Nat) Cov3))
     memo.modify (·.insert (qR, f) r)
     return r
 
-/-- One shrink step of the coverable fixpoint: keep a mode only if all its declared
-successors are still in the set. -/
-partial def coverableFix (p : PProblem) (S : List String) : List String :=
-  let S' := S.filter (fun nm => (succOf p nm).all (S.contains ·))
-  if S'.length == S.length then S else coverableFix p S'
+/-- **Definition 4, executable.** From start mode `q` with segment budget `B` (`= ⌈εL/δL⌉`,
+weight 1 per segment), return the modes the cover **visits**, or `none` if it fails:
 
-/-- **The coverable fixpoint.** Greatest set of right-mode names that are flow-certified
-(`pass`) AND whose declared successors are all coverable. Every mode in it certifies, so a
-`SearchGraph` over it admits a `CoverCert` — the precondition `check_sound` needs. -/
-def coverableSet (p : PProblem) (pass : String → Bool) : List String :=
-  coverableFix p ((p.R.modes.map (·.name)).filter pass)
+* the mode must be certified (`seg q = pass` — Definition 4's *joint certified*);
+* **base** (`B ≤ 1`): one segment closes the budget → visit `{q}` only, **do not** descend
+  into successors (the terminating base case);
+* **step** (`B ≥ 2`): every retained successor (`q` self-loop + declared `next`) must itself
+  cover at `B-1`; the visited set is `q` with all their visited sets.
+
+The result is exactly the modes the `SearchGraph`/`CoverCert` must range over — for a
+single-sync (base) cover that is just `{q}`, so closed-leaf successors are never required to
+certify. Mirrors the verified `decideCovered`'s base/step split. -/
+partial def coverVisit (seg : String → Seg) (succ : String → List String)
+    (B : Nat) (q : String) : Option (List String) :=
+  if seg q != Seg.pass then none
+  else if B ≤ 1 then some [q]
+  else
+    let kids := (q :: succ q).map (coverVisit seg succ (B - 1))
+    if kids.all Option.isSome then some (q :: (kids.filterMap id).flatten) else none
 
 /-- Cover a single left mode: `cov` if some (start,λ) closes definitively; `incon` if none
 close but a route was inconclusive; `nocov` if all routes are definitive fails. -/
@@ -176,25 +184,27 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     if (← IO.getEnv "RELCERT_DEBUG").isSome then
       IO.eprintln (s!"  [{mL.name}_L λ={lam} #comps={comps.length}] " ++
         String.intercalate " " (segMap.map (fun p => s!"{p.1}={repr p.2}")))
-    -- fuel = segments to fill εL, capped (a real cover uses few); memoized ⟹ bounded work
-    let fuel := min ((epsL / deltaL).ceil.toNat + 2) 128
-    -- VERIFIED structural gate (Step 4): CERTIFIED flows through the verified computable
-    -- `decideCovered`, not the untrusted `dfsCov3`. `check_sound` needs `CoverCert` = flow
-    -- certs for EVERY graph mode, so the graph must contain only certified modes whose declared
-    -- successors are ALSO in the graph. That is the **coverable fixpoint**: a mode is coverable
-    -- iff its segment certifies (`pass`) AND all its declared successors are coverable. We build
-    -- `decideCovered`'s graph over exactly that set (all its modes certified ⟹ `CoverCert`
-    -- holds), so `decideCovered = true` ⟹ `Covered` ⟹ (via `check_sound`) the ∀∃-throughout
-    -- invariant. A declared successor that fails to certify shrinks the fixpoint ⟹ decline
-    -- (sound; never a false CERTIFIED).
-    let cov := coverableSet p (fun nm => seg nm == Seg.pass)
-    let idx := fun nm => cov.findIdx (· == nm)
-    let cg : SearchGraph (Var n) :=
-      { modes := cov.map (fun _ => { sys := [], dom := .tt, weight := 1 })
-        edges := cov.flatMap (fun nm => (succOf p nm).filter (cov.contains ·) |>.map (fun tgt =>
-          { src := idx nm, tgt := idx tgt, guard := .tt, pruned := false })) }
-    for nm in cov do
-      if decideCovered cg fuel ⟨idx nm, fuel⟩ then return .cov
+    -- segment budget B = ⌈εL/δL⌉ (weight 1 per segment), capped; single-sync ⟺ B ≤ 1
+    let bBudget := min (epsL / deltaL).ceil.toNat 256
+    -- VERIFIED structural gate (Step 4 + Def-4 fidelity): CERTIFIED flows through the verified
+    -- computable `decideCovered`, not the untrusted `dfsCov3`. For each start, `coverVisit`
+    -- runs Definition 4 (certified-aware) to find the visited mode set; we build `decideCovered`'s
+    -- graph over EXACTLY that set (every visited mode certifies ⟹ `CoverCert` holds, and — by
+    -- Def 4 — a `step` node's successors are all visited, so no real edge is dropped). A single-
+    -- sync cover hits the `base` case (`B ≤ 1`), visiting only the start, so its non-certifying
+    -- closed-leaf successors are correctly irrelevant. `decideCovered = true` ⟹ `Covered` ⟹
+    -- (via `check_sound`) the ∀∃-throughout invariant. Its `false` ⟹ decline (never false CERTIFIED).
+    for mR in p.R.modes do
+      match coverVisit seg (succOf p) bBudget mR.name with
+      | none => pure ()
+      | some visited =>
+          let vis := visited.eraseDups
+          let idx := fun nm => vis.findIdx (· == nm)
+          let cg : SearchGraph (Var n) :=
+            { modes := vis.map (fun _ => { sys := [], dom := .tt, weight := 1 })
+              edges := vis.flatMap (fun nm => (succOf p nm).filter (vis.contains ·) |>.map (fun tgt =>
+                { src := idx nm, tgt := idx tgt, guard := .tt, pruned := false })) }
+          if decideCovered cg (bBudget + 1) ⟨idx mR.name, bBudget⟩ then return .cov
     if p.R.modes.any (fun mR => seg mR.name == Seg.incon) then sawIncon := true
   return (if sawIncon then .incon else .nocov)
 

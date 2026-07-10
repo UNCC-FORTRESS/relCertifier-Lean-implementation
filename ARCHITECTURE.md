@@ -108,25 +108,46 @@ Once CERTIFIED flows through `check_sound`:
    `decideCovered = true`. `decideCovered_sound → Covered`; `CoverCert` from (1); `check_sound`
    ⟹ the ∀∃-throughout invariant. A runner/search bug can only make `decideCovered` reject.
 
-**Result: 31/46 CERTIFIED, all backed by `check_sound`; deterministic; 0 ERROR.** The
+**Result: 38/46 CERTIFIED, all backed by `check_sound`; deterministic; 0 ERROR.** The
 CoverCert-discharge junction is checker-constructed (the tool builds the evolution-domain query
 from `dom`; Z3 validates the tool's query, over exactly the domain `check_sound`'s conclusion
 quantifies).
 
-### Honest completeness gap (7 covers the checker cannot yet back — sound, not a regression)
+### The second fidelity bug: `Covered` did not implement Definition 4's base case
 
-`dfsCov3` reported 38; routing through `check_sound` gives 31. The 7 (incl. `watertank`,
-`arm_fidelity_*`, `plant_fan_*`) are **single-sync** covers: one right mode's residence covers
-the whole left residence, its declared successors never occupied — but those successors *fail*
-to certify. `dfsCov3` accepted this via a budget-closed shortcut. `check_sound` cannot, because
-`cover_sound`'s `RightReach.evolve` is **not gated on `0 < B`**: it admits evolving in a
-closed-leaf successor at `B = 0`, forcing `segPres` on modes outside the residence. This is an
-**over-strict theorem**, not an unsound runner — the decline is conservative (sound). Closing
-it (a *completeness* fix, recovers the 7): gate `RightReach.evolve` on `0 < B` + re-prove
-`cover_sound`, and have the runtime build a **cover-node-only, budget-faithful** graph
-(`B = ⌈εL/δL⌉`, weights = `δL`) so closed-leaf successors sit outside `graph.modes` and
-`CoverCert` is quantified only over occupied modes. Deliberately **not** rushed here — a core
-proof change under a completeness deadline is exactly where soundness bugs enter.
+A first wiring of Step 4 gave 31/46, not 38 — seven **single-sync** covers (`watertank`,
+`arm_fidelity_*`, `plant_fan_*`, `arm_chain_rung3`, `refinement_ladder_rover_rung2c_6dof`) were
+declined. Root cause: the mechanized `Covered`/`RightReach` **did not match the paper's
+Definition 4** — the same *Lean-object-≠-paper-object* class as the guard bug, not a
+completeness knob.
 
-**Do not call this a "verified tool" for the 7.** For the 31 it is: CERTIFIED = the verified
-checker accepted, kernel-enforced back to `cover_sound_throughout`.
+Definition 4 has two cases: a **base case** (joint certified ∧ `B ≤ w(mR)` → the single
+residence closes the budget, **terminate — do not recurse into successors**) and a **successor
+case**. The old `Covered` had only `closed : Covered ⟨q,0⟩` (base at `B = 0`) and
+`RightReach.jump` gated on `0 < B`. So a single-segment cover could not terminate at
+`B ≤ w`; instead `RightReach.evolve` (ungated) kept evolving into a closed-leaf successor the
+base case should have excluded, forcing `segPres` on modes outside the residence. The missing
+`0 < B`/`B ≤ w` termination *was* Definition 4's base case, absent from the mechanization.
+
+**The correction (make Lean `Covered` = paper `Covered`):**
+
+* `Covered.base m hm (hle : B ≤ m.weight)` — budget closed, terminate; **no** successor
+  obligation. `Covered.step m hm (hlt : m.weight < B) (∀ retained succ, covered at B - w)`.
+* `RightReach.jump` gated on `m.weight < B` (Def-4 step condition), so a `base` config admits
+  no jump — its right response is a *prefix of the one certified segment* (`evolve`/`refl`),
+  never entering a successor. `cover_sound` re-proven on this structure (the jump case shows
+  the config must be `step`, `base` contradicting the gate).
+* `decideCovered` is now literally Def 4's two-case function: `if B ≤ m.weight then true` (base)
+  `else (retainedSucc).all (decideCovered … (B - m.weight))` (step). `decideCovered_sound`
+  re-proven.
+* Runtime: `B = ⌈εL/δL⌉` segments, weight 1; `coverVisit` runs Def 4 (certified-aware) to get
+  the visited set; the `SearchGraph` is built over exactly it. A base cover visits only the
+  start ⟹ `CoverCert` ranges over `{start}` ⟹ closed-leaf successors need not certify. By Def 4
+  a `step` node's successors are all visited ⟹ no real edge dropped.
+
+`#eval`: `decideCovered` accepts a base config (`B ≤ weight`) **without** examining an
+uncertified successor; the 7 recover; all 38 flow through `check_sound`; axioms unchanged
+(`propext, Classical.choice, Quot.sound`); guard-narrowing still `decideSegDomain = false`.
+
+**This is a fidelity correction, documented as such — not "optional completeness."** The Lean
+`Covered` now transcribes Definition 4 directly, base case included.

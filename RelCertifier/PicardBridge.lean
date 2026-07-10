@@ -1313,7 +1313,42 @@ theorem odeField_sindep {sys : ODESystem V} (sidx : V)
     rw [Function.update_of_ne hne]
   · rw [if_neg hi, if_neg hi]
 
+/-- **Nonlinear slab invariance (reuses existing inequality-form lemmas).** For the cubic shape —
+`v` asymptotic (`v'=k(c−v)`), `ψ` asymptotic-to-0 (`ψ'=−ψ`, symmetric box), `s` growing with the
+nonlinear `s'=v(1−0.5ψ²−…)` — the slab invariance needs **no new lemma**: `asymptotic_invariance_raw`
+handles `v`,`ψ` (their dynamics are affine, `s`-independent), and `s≥0` is `nonstrict_antitone_raw` on
+`−s` fed the **field-value bound** `0 ≤ odeField si` (`=v·factor≥0`, factor∈[0.6,1] + `v≥0`,
+Z3-checkable). The nonlinearity enters only as an inequality on `odeField si`, never a new face. -/
+theorem slab_invariance_cubic {sys : ODESystem V} {r : ℝ} {Φ : ℝ → State V}
+    (hwf : sys.WellFormed) (vi psii si : V) (k c vmax lo hi : ℝ)
+    (hcurve : IsIntegralCurveOn Φ (fun _ => odeField sys) (Set.Icc 0 r))
+    (hfv : ∀ x : State V, odeField sys x vi = k * (c - x vi))
+    (hfpsi : ∀ x : State V, odeField sys x psii = 1 * (0 - x psii))
+    (hsge : ∀ t ∈ Set.Icc (0:ℝ) r, 0 ≤ odeField sys (Φ t) si)
+    (hk : 0 < k) (hc0 : 0 < c) (hcv : c < vmax) (hlo : lo < 0) (hhi : 0 < hi)
+    (hv0lo : 0 ≤ Φ 0 vi) (hv0hi : Φ 0 vi ≤ vmax)
+    (hpsi0lo : lo ≤ Φ 0 psii) (hpsi0hi : Φ 0 psii ≤ hi) (hs0lo : 0 ≤ Φ 0 si) :
+    ∀ t ∈ Set.Icc (0:ℝ) r,
+      (0 ≤ Φ t vi ∧ Φ t vi ≤ vmax) ∧ (lo ≤ Φ t psii ∧ Φ t psii ≤ hi) ∧ 0 ≤ Φ t si := by
+  have hvinv := asymptotic_invariance_raw hwf vi k c 0 vmax hcurve hfv hk hc0 hcv hv0lo hv0hi
+  have hpsiinv := asymptotic_invariance_raw hwf psii 1 0 lo hi hcurve hfpsi one_pos hlo hhi
+    hpsi0lo hpsi0hi
+  have hsinv : ∀ t ∈ Set.Icc (0:ℝ) r, 0 ≤ Φ t si := by
+    have hna := nonstrict_antitone_raw (g := fun y => -(y si)) hwf (by fun_prop) hcurve
+      (fun t ht => by
+        have hlie : Lie sys (fun y => -(y si)) (Φ t) = - odeField sys (Φ t) si := by
+          have heq : (fun y : State V => -(y si)) = (fun y => (-1:ℝ) * y si + 0) := by
+            funext y; ring
+          rw [heq]; simpa using lie_affine_coord sys hwf si (-1) 0 (Φ t)
+        rw [hlie]; simpa using hsge t ht)
+    intro t ht
+    have h2 : -(Φ t si) ≤ -(Φ 0 si) := by simpa using hna t ht
+    linarith [h2, hs0lo]
+  intro t ht
+  exact ⟨⟨(hvinv t ht).1, (hvinv t ht).2⟩, ⟨(hpsiinv t ht).1, (hpsiinv t ht).2⟩, hsinv t ht⟩
+
 end RelCertifier
+
 
 
 

@@ -97,6 +97,60 @@ lake exe relcert                # no args: the Stage-1 flow-certificate demo
 BENCH_PATHS=<name-tab-path-file> lake exe relcert-test   # trusted-layer test suite
 ```
 
+## The ∀∃ witness — `hExist` discharged (`PicardBridge.lean`)
+
+The paper's ∀∃ relational modality `[|(L*,R*)⟩⟩ψ` carries a **duration-existence
+side-condition** (`hExist`, from dL-caltiming): for every left run there must **exist** a
+right run of the matching duration, staying in the right evolution domain. This is the
+existential witness of the ∀∃ — carrying it makes the result a ∀-conditional, not a ∀∃.
+`PicardBridge.lean` **discharges it by explicit witness construction**, standard three
+axioms throughout, **no new axiom, no subtangency, no clock, no `sem`-gating**.
+
+- **Existence** (Mathlib Picard → dL-lean `sem`): `term_contDiff`/`odeField_contDiff`
+  (fields are `ContDiff`), `odeField_lipschitzOnWith` (Lipschitz-on-compact),
+  `sem_of_integralCurveOn` (the reification seam: a Mathlib integral curve **is** a dL-lean
+  `sem` run, via the proven `sem_ode_iff_integralCurve`). Three routes, K/L **proven**:
+  `picard_isPL_of` (global-Lipschitz, affine fields), `uniform_local_existence_on_compact`
+  + `box_compact` (compactness-subcover), `picard_isPL_of_local` + the s-independence
+  establishment (`odeField_sindep` → compact cross-section → uniform K/L) for the nonlinear
+  (cubic, degree-3 `v·ψ²`) fields.
+- **Invariance** — un-gated raw-curve positive invariance (the piece dL-lean leaves
+  `sem`-gated): `strict_invariance_raw` (first-exit, strict), `nonstrict_antitone_raw`,
+  `growth_bound_raw`/`_lower`, `asymptotic_invariance_raw` (general-box asymptotic, covers
+  attitude `ψ'=−ψ`), and the coupled faces `lie_two_coord` + `coupled_eigen_invariance`
+  (eigencoord decoupling — **every coupled subsystem has real eigenvalues, no Lyapunov**) +
+  `driven_bound_raw` (defective/critically-damped companions, via `(v−C)e^{λt}` antitone).
+- **Chaining** to the full parser duration: `sem_ode_glue`, `RunFor` + algebra, `chainN`
+  (uniform step ⟹ finite steps cover `[0,Tᵢ]`).
+- **Packaging + relational wiring**: `RunFor_unpack` → the witness shape;
+  `hExist_from_rover`/`hExist_from_cubic` thread it into `segment_faModal` through the
+  **field-independent cross-side masking seam** (`Rv_not_mem_leftBlock_bound`, `Side.R≠Side.L`:
+  the left run freezes the right's coords ⟹ right starts in-slab).
+
+`hsmax_of_left_duration` closes the timing coupling (left domain bounds duration →
+`ν si + v_max·s ≤ S_max`) as `left_duration_bound` (analytic, proven) + a Z3-checkable
+arithmetic inequality.
+
+## Benchmark suite — instantiation results
+
+The full 46-benchmark suite (from `relCertifier-src`, under `benchmarks/suite/`) run on the
+trusted method (Z3 UNSAT-of-negation):
+
+| | count | |
+|---|---|---|
+| **CERTIFIED** (source invariant inductive) | **34/46** | flow-cert Z3 UNSAT, cover closes |
+| CERTIFIED with **restated** (strengthened) invariant | **+4** | `benchmarks/restated/` |
+| **DECLINED** (source invariant not inductive) | **8** | Z3 **SAT** on some flow query — tool correctly declines, no false-certify |
+
+**38/46 discharge on the trusted method.** The 8 DECLINE because Z3 returns **SAT** (a real
+boundary counterexample: the parsed invariant is not inductive on some successor pair) — a
+**restatement gap**, not runner-incompleteness (the runner does multi-segment `dfsCover`;
+multi-segment cannot rescue a SAT segment) and not simulation (Z3-SAT is the trusted
+counter-signal). `rover3_M1` is **genuinely declined** — its `Drift` mode is uncoverable by
+any right mode (needs budget-aware Strategy-2 reachability, which the paper's universal
+all-successors cover rejects). Field shapes (46/46) and side-conditions (cubic factor
+`0.5ψ²+0.3θ²∈[0.20,0.39]<1`; coupled real-eigenvalue) all confirmed.
+
 Requires Lean 4 (`leanprover/lean4:v4.31.0`, pinned), a pinned Z3 (`RELCERT_Z3` or a
 standard absolute path), and `dL-rel` at `../dL-rel` (transitively provides dL-lean
 `v0.1.0-DI` and the encoding bridge). Env: `RELCERT_Z3_TIMEOUT` (ms, default 10000).

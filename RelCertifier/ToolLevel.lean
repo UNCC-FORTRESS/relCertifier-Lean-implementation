@@ -23,10 +23,11 @@ consumes, with no runtime-labeling gap.
 -/
 import RelCertifier.Reification
 import RelCertifier.Oracle
+import RelCertifier.Run
 
 namespace RelCertifier
 
-open DL DLCalTiming DLRel
+open DL DLCalTiming DLRel RelCertifier.Parse RelCertifier.Run
 
 /-- **Step 2 — the `hpair` discharge (the trust-critical junction).** From a Z3 UNSAT on the
 **evolution-domain** flow query `flowQuery o` (with `o.domain = domL ∧ domR`, `hdom`), the CSF
@@ -131,5 +132,62 @@ theorem certified_relational {n : ℕ} (g : Term (Var n)) (segs : List (CertSeg 
   rw [hψ] at hσ ⊢
   exact pair_faModal ⟨g, s.fL, s.fR, s.lam, Formula.and s.domL s.domR⟩ s.domL s.domR rfl
     s.hdisj s.hφL s.hφR s.hz3 s.hExist σ hσ
+
+/-! ## Parser emit — `PProblem → CertSeg`, and its irreducible trust boundary
+
+A **complete pure** `PProblem → CertSeg` is impossible by design: `CertSeg.hz3 : z3solve … = unsat`
+mentions the **opaque** `z3solve` (realized by the Z3 process in IO — kept opaque so the pure
+kernel never depends on Z3), so its truth is not a kernel value. `hExist` is the CSF analytic
+side-condition. So the emit splits: the **data** (`fL/fR/lam/domL/domR`) is a pure lowering of the
+parsed model; the **proofs** (`hz3` at the Z3 boundary, `hExist` the side-condition, `hdisj` the
+per-benchmark independence) enter through the smart constructor. This is the correct structure —
+the same `z3_unsat_sound` boundary the whole tool rests on. -/
+
+/-- Pure lowered **data** of one single-sync segment (no proofs). -/
+structure SegData (n : ℕ) where
+  fL : Fin n → Term (Var n)
+  fR : Fin n → Term (Var n)
+  lam : Term (Var n)
+  domL : Formula (Var n)
+  domR : Formula (Var n)
+
+/-- **The parser emit (data).** Lower a `(leftMode, rightMode, λ)` triple of the parsed model to
+`SegData` — dynamics via `dynOf`, evolution domains via `lowerF` (the **evolve** fields, guards
+removed — guard-bug class barred), IR→host via `toHost`. `none` if any component is unlowerable
+(→ the tool's `ERROR`, never a silent certify). This is the actual `PProblem`-level lowering; the
+`CertSeg` proofs are supplied separately (below). -/
+def lowerSeg (vars : List String) (n : ℕ) (mL mR : PMode) (lam : ℚ) : Option (SegData n) := do
+  let fLi ← dynOf vars n Side.L mL
+  let fRi ← dynOf vars n Side.R mR
+  let domLi ← lowerF vars n Side.L mL.evolve
+  let domRi ← lowerF vars n Side.R mR.evolve
+  some { fL := fun i => (fLi i).toHost, fR := fun i => (fRi i).toHost,
+         lam := Term.const (lam : ℝ), domL := domLi.toHost, domR := domRi.toHost }
+
+/-- **Smart constructor completing the data to a `CertSeg`.** Takes the lowered `SegData` plus the
+irreducible boundary inputs — `hz3` (the Z3 verdict on the **evolution-domain** query
+`flowQuery ⟨g, d.fL, d.fR, d.lam, domL∧domR⟩`, realized by the Z3 process via `z3_unsat_sound`),
+`hExist` (the CSF duration-existence side-condition), and the structural `hdisj`/`hφL`/`hφR` (the
+per-benchmark independence + support, checkable from the lowering). Makes the trust boundary
+explicit: data is pure, proofs enter here. -/
+def SegData.toCertSeg {n : ℕ} (d : SegData n) (g : Term (Var n))
+    (hdisj : Disjoint ((leftBlock d.fL).boundSet ∪ (leftBlock d.fL).readVars)
+                      ((rightBlock d.fR d.lam).boundSet ∪ (rightBlock d.fR d.lam).readVars))
+    (hφL : d.domL.fv ⊆ (leftBlock d.fL).boundSet ∪ (leftBlock d.fL).readVars)
+    (hφR : d.domR.fv ⊆ (rightBlock d.fR d.lam).boundSet ∪ (rightBlock d.fR d.lam).readVars)
+    (hz3 : z3solve (flowQuery ⟨g, d.fL, d.fR, d.lam, Formula.and d.domL d.domR⟩) = Verdict.unsat)
+    (hExist : ∀ (ν : State (Var n)), ∀ (s : ℝ) (ΦL : ℝ → State (Var n)), 0 ≤ s → ΦL 0 = ν →
+        (∀ t ∈ Set.Icc (0 : ℝ) s, ∀ p ∈ leftBlock d.fL,
+            HasDerivWithinAt (fun u => ΦL u p.1) (p.2.eval (ΦL t)) (Set.Icc 0 s) t) →
+        (∀ t ∈ Set.Icc (0 : ℝ) s, ∀ x, x ∉ (leftBlock d.fL).bound → ΦL t x = ν x) →
+        (∀ t ∈ Set.Icc (0 : ℝ) s, Formula.sat d.domL (ΦL t)) →
+        ∃ ΦR : ℝ → State (Var n), ΦR 0 = ΦL s ∧
+          (∀ t ∈ Set.Icc (0 : ℝ) s, ∀ p ∈ rightBlock d.fR d.lam,
+              HasDerivWithinAt (fun u => ΦR u p.1) (p.2.eval (ΦR t)) (Set.Icc 0 s) t) ∧
+          (∀ t ∈ Set.Icc (0 : ℝ) s, ∀ x, x ∉ (rightBlock d.fR d.lam).bound → ΦR t x = ΦL s x) ∧
+          (∀ t ∈ Set.Icc (0 : ℝ) s, Formula.sat d.domR (ΦR t))) :
+    CertSeg n g :=
+  { fL := d.fL, fR := d.fR, lam := d.lam, domL := d.domL, domR := d.domR,
+    hdisj := hdisj, hφL := hφL, hφR := hφR, hz3 := hz3, hExist := hExist }
 
 end RelCertifier

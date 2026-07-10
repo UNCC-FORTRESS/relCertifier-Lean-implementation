@@ -1142,7 +1142,29 @@ theorem box_compact (lo hi : V → ℝ) :
   rw [heq]
   exact isCompact_univ_pi (fun i => isCompact_Icc)
 
+/-- **Subcover step (subcover ⟹ `RunFor`, validates it in-use).** Threads the subcover's uniform
+existence through the invariance into `chainN`'s step premise: from any point of the compact
+invariant `K`, a `RunFor r₀` run lands back in `K`, staying in `dom`. The invariance `hinv` (curve
+stays in `K` and `dom`) is discharged by the box invariances (`asymptotic_invariance_raw` +
+`growth_bound_raw` inequality form) — for nonlinear-R fields these still hold (`s'=v(1−…)∈[0,v_max]`).
+This is where a subtle subcover bug would surface (threading through `RunFor`/`chainN`). -/
+theorem subcover_hstep {sys : ODESystem V} {dom : Formula V} (hwf : sys.WellFormed)
+    {K : Set (State V)} (hK : IsCompact K)
+    (hinv : ∀ (Φ : ℝ → State V) (r : ℝ), Φ 0 ∈ K →
+        IsIntegralCurveOn Φ (fun _ => odeField sys) (Set.Icc 0 r) →
+        ∀ t ∈ Set.Icc (0:ℝ) r, Φ t ∈ K ∧ Formula.sat dom (Φ t)) :
+    ∃ r₀ > (0:ℝ), ∀ ν ∈ K, ∃ ν', ν' ∈ K ∧ RunFor sys dom r₀ ν ν' := by
+  obtain ⟨r₀, hr₀, Hex⟩ := uniform_local_existence_on_compact sys hK
+  refine ⟨r₀, hr₀, fun ν hν => ?_⟩
+  obtain ⟨α, hα0, hαderiv⟩ := Hex ν hν
+  have hcurve : IsIntegralCurveOn α (fun _ => odeField sys) (Set.Icc 0 r₀) := fun t ht => hαderiv t ht
+  have hinvα := hinv α r₀ (by rw [hα0]; exact hν) hcurve
+  exact ⟨α r₀, (hinvα r₀ (Set.right_mem_Icc.mpr hr₀.le)).1,
+    hr₀.le, α, hα0, rfl, hcurve, fun t ht => (hinvα t ht).2⟩
+
 end RelCertifier
+
+
 
 
 

@@ -27,7 +27,17 @@ left run is *given* to `hExist`, not constructed); the cubic L enters only the j
 handled by **Z3-NRA** (nonlinear-polynomial), not by `picard_isPL_of`. So **no mis-discharge**: the
 degree that governs picard soundness (R) is confirmed affine for the 7.
 
-**Net for the existence lemma**: the compactness-subcover uniform-`r₀` lemma is needed by the
+**Net for the existence lemma (CORRECTED after threading `subcover_hstep`)**: the subcover discharges
+existence only for **compact, step-invariant** domains. `rover_drag` (single var `vx∈[0,1.4]`, both
+faces strict inflow, no growing coord) — **discharged by the subcover** (1). The **12 cubic**
+(`s'=v(1−0.5ψ²−…)`, with a **growing `s`**) — the subcover does NOT compose: the `s≤S_max` face is not
+step-invariant (a step from near `S_max` leaves the box), and the step-invariant *slab* (drop
+`s`-upper) is NOT compact. Their existence needs **slab-Lipschitz Picard**: the nonlinear field is
+*uniformly Lipschitz on slab-balls* (nonlinearity `v·ψ²`,`v·θ²` lives in the BOUNDED non-`s` coords,
+`s`-independent), so `picard_isPL_of`'s structure applies over the slab (like the affine `hExist_rover`
+route), NOT the subcover. So: subcover discharges 1 (rover_drag); 12 cubic need slab-Lipschitz Picard.
+
+Original (superseded): the compactness-subcover uniform-`r₀` lemma is needed by the
 **13 nonlinear-R** benchmarks (`rover_drag` + the 12 cubic-R: `rung2_3to6`, `rung2c_6dof`,
 `rung3_6to8`, `rung4_8to12`, `rover_attitude_cone_12dof`, `story1_a/b`, `story2_a/b`,
 `story3_base/a/b`). `picard_isPL_of` is sound for the 33 affine-R (including the 7 cubic-L). Neither 0

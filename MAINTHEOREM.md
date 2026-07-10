@@ -129,11 +129,24 @@ hidden-mismatch surface never appears. The de-risking is the headline: the scary
   (right runs `Q*` per left cycle), **encoding** `faModal_to_faShape` — all proven.
 * **`unionR` confirmed sound** — `∃-single` is the existential right's own choice, over-supplied
   by `Covered.step`'s `∀-all-successors` (not the rover3_M1 problem).
-* **Single remaining gap:** `ode` self-concatenation `sem (piter (ode sys ϕ) B) = sem (ode sys ϕ)`
-  (B≥1) — the left doesn't multiply (one residence split into B pieces; only the right multiplies
-  across modes). Mirrors `plantT_glue` minus the clock. `⊇` via `sem_ode_prefix` + padding; `⊆`
-  via the `plantT_glue`-style junction-differentiability argument. Bounded ODE analysis,
-  template-available. When it lands: `faModal_MULTI` + `faModal_to_faShape` close the 17.
+* **The "final analytic lemma" was a second red herring — no junction concat needed.** For
+  `multiseg → hstep` only the **split** direction `sem leftOde ⊆ sem (piter leftOde B)` is needed
+  (it collapses the box `[piter leftOde B]` to `[leftOde]`). The split is just **zero-run
+  padding**, not concatenation:
+  * `sem_ode_zero` — a zero-duration ODE run (in-domain state to itself); the `HasDerivWithinAt`
+    on `[0,0]={0}` is trivial (`s\{x}=∅`, filter `⊥`, `tendsto_bot`).
+  * `sem_ode_sub_piter` — one ODE run realized as a `(B+1)`-fold `piter` run (full run in the last
+    factor, zero-runs padding the rest).
+  * `faModal_left_collapse` — `box (piter leftOde (B+1)) ⟹ box leftOde`.
+  The `plantT_glue`-style junction differentiability I expected is **not used**. B>1 is fully
+  clock-free AND concat-free.
+* **`hstep_multiseg` proven** (the B>1 core): one left mode ↔ **right star** (`multiseg` →
+  `faModal_left_collapse` → `faModal_loopN`) — `faModal_MULTI`'s per-left-cycle hypothesis. The
+  non-trivial ∀∃ multi-segment witness (the paper's actual contribution) is mechanized.
+* **Remaining for full B>1 tool-level:** the outer assembly (`faModal_bigChoiceL` over left modes
+  + `hstep_multiseg` + `faModal_MULTI` + `faModal_to_faShape`; `hcouple` from `pair_faModal` +
+  `faModal_bigChoiceR`) — a **mechanical mirror of B=1's `reified_relational`**,
+  proving-through-proven-rules. Then all 38.
 
 ## Honest status line
 

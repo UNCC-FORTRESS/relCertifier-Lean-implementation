@@ -1432,7 +1432,80 @@ theorem hExist_cubic {sys : ODESystem V} {domR : Formula V} (hwf : sys.WellForme
        (hPcurve t ht).2.2.2.2, hshi t ht⟩⟩
   exact RunFor_unpack hwf hrunR
 
+/-! ## Coupled-affine faces — nested-growth (chains) + eigencoord decoupling (cross-coupled) -/
+
+/-- **Lie of a two-coordinate affine function.** `Lie sys (a·yᵢ + b·yⱼ + d) x = a·fieldᵢ + b·fieldⱼ`.
+The building block for eigencoord decoupling: a cross-coupled `(p,q)` subsystem becomes asymptotic in
+`u=p+q`, `w=p−q`, whose `Lie` is the weighted field sum. -/
+theorem lie_two_coord (sys : ODESystem V) (hwf : sys.WellFormed) (i j : V) (a b d : ℝ)
+    (x : State V) :
+    Lie sys (fun y => a * y i + b * y j + d) x
+      = a * odeField sys x i + b * odeField sys x j := by
+  rw [← Lie_eq_fderiv hwf]
+  have hpi : HasFDerivAt (fun y : State V => y i) (ContinuousLinearMap.proj i) x :=
+    hasFDerivAt_apply (𝕜 := ℝ) (F' := fun _ : V => ℝ) i x
+  have hpj : HasFDerivAt (fun y : State V => y j) (ContinuousLinearMap.proj j) x :=
+    hasFDerivAt_apply (𝕜 := ℝ) (F' := fun _ : V => ℝ) j x
+  have h1 : HasFDerivAt (fun y : State V => a * y i + b * y j + d) _ x :=
+    ((hpi.const_mul a).add (hpj.const_mul b)).add_const d
+  rw [h1.fderiv]
+  simp [ContinuousLinearMap.proj_apply]
+
+/-- **Nested-growth (chains/integrators): no new lemma, just `growth_bound_raw` composed.** A chain
+`px'=vx` where `vx` is bounded by `Vmax` on `[0,r]` (from its own `growth_bound_raw`) gives
+`px ≤ px₀ + Vmax·t`. The double-integrator's "time-varying" bound is discharged by using the interval
+sup `Vmax` as the constant field bound of `px` — `growth_bound_raw` with `odeField px = vx ≤ Vmax`. -/
+theorem nested_growth_raw {sys : ODESystem V} {r : ℝ} {Φ : ℝ → State V} (pxi vxi : V) (Vmax : ℝ)
+    (hcurve : IsIntegralCurveOn Φ (fun _ => odeField sys) (Set.Icc 0 r))
+    (hfpx : ∀ x : State V, odeField sys x pxi = x vxi)
+    (hvxbound : ∀ t ∈ Set.Icc (0:ℝ) r, Φ t vxi ≤ Vmax) :
+    ∀ t ∈ Set.Icc (0:ℝ) r, Φ t pxi ≤ Φ 0 pxi + Vmax * t :=
+  growth_bound_raw (sys := sys) pxi Vmax hcurve
+    (fun t ht => by rw [hfpx (Φ t)]; exact hvxbound t ht)
+
+/-- **Cross-coupled invariance via eigencoord (no new invariance lemma).** For a coupled `(p,q)`
+subsystem whose eigencoord `u=p+q` is asymptotic (`u'=κ(γ−u)`, given as `hfu`), the box
+`u ∈ [ulo,uhi]` with `γ` interior is invariant — strict inflow at both eigencoord faces, discharged by
+`strict_invariance_raw` (field-agnostic) with the 2-coord linear `g` and `lie_two_coord` for its
+`Lie`. This is the Lyapunov/decoupling face: a stable coupled linear subsystem, in eigencoords, is
+just asymptotic. `w=p−q` handled identically. -/
+theorem coupled_eigen_invariance {sys : ODESystem V} {r : ℝ} {Φ : ℝ → State V}
+    (hwf : sys.WellFormed) (pp qq : V) (kappa gamma ulo uhi : ℝ)
+    (hcurve : IsIntegralCurveOn Φ (fun _ => odeField sys) (Set.Icc 0 r))
+    (hfu : ∀ x : State V, odeField sys x pp + odeField sys x qq
+        = kappa * (gamma - (x pp + x qq)))
+    (hkappa : 0 < kappa) (hlo : ulo < gamma) (hhi : gamma < uhi)
+    (hu0lo : ulo ≤ Φ 0 pp + Φ 0 qq) (hu0hi : Φ 0 pp + Φ 0 qq ≤ uhi) :
+    ∀ t ∈ Set.Icc (0:ℝ) r, ulo ≤ Φ t pp + Φ t qq ∧ Φ t pp + Φ t qq ≤ uhi := by
+  have hhi_inv : ∀ t ∈ Set.Icc (0:ℝ) r, Φ t pp + Φ t qq ≤ uhi := by
+    have hmain := strict_invariance_raw (g := fun y => (y pp + y qq) - uhi) hwf (by fun_prop)
+      (hbnd := ?_) hcurve (by simpa using hu0hi)
+    · intro t ht; simpa using hmain t ht
+    · intro x hx0
+      have hxu : x pp + x qq = uhi := by linarith [hx0]
+      have hlie : Lie sys (fun y => (y pp + y qq) - uhi) x
+          = odeField sys x pp + odeField sys x qq := by
+        have heq : (fun y : State V => (y pp + y qq) - uhi)
+            = (fun y => (1:ℝ) * y pp + (1:ℝ) * y qq + (-uhi)) := by funext y; ring
+        rw [heq, lie_two_coord sys hwf pp qq 1 1 (-uhi) x]; ring
+      rw [hlie, hfu x, hxu]; nlinarith [hkappa, hhi]
+  have hlo_inv : ∀ t ∈ Set.Icc (0:ℝ) r, ulo ≤ Φ t pp + Φ t qq := by
+    have hmain := strict_invariance_raw (g := fun y => ulo - (y pp + y qq)) hwf (by fun_prop)
+      (hbnd := ?_) hcurve (by simpa using hu0lo)
+    · intro t ht; have h := hmain t ht; simpa using h
+    · intro x hx0
+      have hxu : x pp + x qq = ulo := by linarith [hx0]
+      have hlie : Lie sys (fun y => ulo - (y pp + y qq)) x
+          = -(odeField sys x pp + odeField sys x qq) := by
+        have heq : (fun y : State V => ulo - (y pp + y qq))
+            = (fun y => (-1:ℝ) * y pp + (-1:ℝ) * y qq + ulo) := by funext y; ring
+        rw [heq, lie_two_coord sys hwf pp qq (-1) (-1) ulo x]; ring
+      rw [hlie, hfu x, hxu]; nlinarith [hkappa, hlo]
+  intro t ht
+  exact ⟨hlo_inv t ht, hhi_inv t ht⟩
+
 end RelCertifier
+
 
 
 

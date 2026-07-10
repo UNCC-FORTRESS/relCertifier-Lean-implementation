@@ -913,7 +913,88 @@ theorem odeField_bound_of_perCoord {sys : ODESystem V} (L : ℝ) (hL : 0 ≤ L)
   rw [Real.norm_eq_abs]
   exact hcoord i x hx
 
+/-! ## Higher-dof end-to-end — `hstep_multi` + `hExist_multi` -/
+
+/-- **Uniform step (higher-dof).** As `hstep_rover` but for a family of coord pairs, via
+`picard_isPL_of` (field-agnostic Picard from `K`,`L`) + `slab_invariance_multi`. From any product-slab
+point, a `RunFor r₀` run lands at another product-slab point. -/
+theorem hstep_multi {sys : ODESystem V} {dom : Formula V} (hwf : sys.WellFormed) {ι : Type*}
+    (vc sc : ι → V) (kk cc vm : ι → ℝ)
+    (hfv : ∀ (j : ι) (x : State V), odeField sys x (vc j) = kk j * (cc j - x (vc j)))
+    (hfs : ∀ (j : ι) (x : State V), odeField sys x (sc j) = x (vc j))
+    (hk : ∀ j, 0 < kk j) (hc0 : ∀ j, 0 < cc j) (hcv : ∀ j, cc j < vm j)
+    (K L : NNReal) (a : ℝ) (ha : 0 < a)
+    (hLip : LipschitzWith K (odeField sys))
+    (hdomsat : ∀ x : State V,
+        (∀ j, 0 ≤ x (vc j) ∧ x (vc j) ≤ vm j ∧ 0 ≤ x (sc j)) → Formula.sat dom x)
+    (hbnd : ∀ ν : State V, (∀ j, 0 ≤ ν (vc j) ∧ ν (vc j) ≤ vm j ∧ 0 ≤ ν (sc j)) →
+        ∀ x ∈ Metric.closedBall ν a, ‖odeField sys x‖ ≤ (L : ℝ))
+    (r₀ : ℝ) (hr₀ : 0 < r₀) (hr₀le : (L : ℝ) * r₀ ≤ a) :
+    ∀ ν : State V, (∀ j, 0 ≤ ν (vc j) ∧ ν (vc j) ≤ vm j ∧ 0 ≤ ν (sc j)) →
+      ∃ ν', (∀ j, 0 ≤ ν' (vc j) ∧ ν' (vc j) ≤ vm j ∧ 0 ≤ ν' (sc j)) ∧ RunFor sys dom r₀ ν ν' := by
+  intro ν hP
+  have hpl := picard_isPL_of K L ν a ha.le hLip (hbnd ν hP) r₀ hr₀ hr₀le
+  have hdomC : ∀ Φ : ℝ → State V, Φ 0 = ν →
+      IsIntegralCurveOn Φ (fun _ => odeField sys) (Set.Icc 0 r₀) →
+      ∀ t ∈ Set.Icc (0:ℝ) r₀, Formula.sat dom (Φ t) := by
+    intro Φ hΦ0 hcurve t ht
+    have hslab := slab_invariance_multi hwf vc sc kk cc vm hcurve hfv hfs hk hc0 hcv
+      (fun j => by rw [hΦ0]; exact (hP j).1) (fun j => by rw [hΦ0]; exact (hP j).2.1)
+      (fun j => by rw [hΦ0]; exact (hP j).2.2) t ht
+    exact hdomsat (Φ t) hslab
+  obtain ⟨Φ, hΦ0, hcurve, hrun⟩ := picard_to_RunFor ν hr₀ hpl hdomC
+  have hend := slab_invariance_multi hwf vc sc kk cc vm hcurve hfv hfs hk hc0 hcv
+    (fun j => by rw [hΦ0]; exact (hP j).1) (fun j => by rw [hΦ0]; exact (hP j).2.1)
+    (fun j => by rw [hΦ0]; exact (hP j).2.2) r₀ (Set.right_mem_Icc.mpr hr₀.le)
+  exact ⟨Φ r₀, hend, hrun⟩
+
+/-- **hExist discharged (higher-dof).** As `hExist_rover` but for a family of coord pairs: `chainN` +
+`hstep_multi` reach `[0,s]`; `box_invariance_multi` (with the per-coord Z3 growth bounds) gives full
+product-box `domR` membership; `RunFor_unpack` yields the witness shape. Discharges hExist for the
+12-dof rover-family. -/
+theorem hExist_multi {sys : ODESystem V} {domR : Formula V} (hwf : sys.WellFormed) {ι : Type*}
+    (vc sc : ι → V) (kk cc vm sm : ι → ℝ)
+    (hfv : ∀ (j : ι) (x : State V), odeField sys x (vc j) = kk j * (cc j - x (vc j)))
+    (hfs : ∀ (j : ι) (x : State V), odeField sys x (sc j) = x (vc j))
+    (hk : ∀ j, 0 < kk j) (hc0 : ∀ j, 0 < cc j) (hcv : ∀ j, cc j < vm j)
+    (K L : NNReal) (a : ℝ) (ha : 0 < a)
+    (hLip : LipschitzWith K (odeField sys))
+    (hdomsat : ∀ x : State V,
+        (∀ j, 0 ≤ x (vc j) ∧ x (vc j) ≤ vm j ∧ 0 ≤ x (sc j) ∧ x (sc j) ≤ sm j) →
+        Formula.sat domR x)
+    (hbnd : ∀ ν : State V, (∀ j, 0 ≤ ν (vc j) ∧ ν (vc j) ≤ vm j ∧ 0 ≤ ν (sc j)) →
+        ∀ x ∈ Metric.closedBall ν a, ‖odeField sys x‖ ≤ (L : ℝ))
+    (r₀ : ℝ) (hr₀ : 0 < r₀) (hr₀le : (L : ℝ) * r₀ ≤ a)
+    (ω : State V) (hωP : ∀ j, 0 ≤ ω (vc j) ∧ ω (vc j) ≤ vm j ∧ 0 ≤ ω (sc j))
+    (s : ℝ) (hs0 : 0 ≤ s) (hZ3 : ∀ j, ω (sc j) + vm j * s ≤ sm j) :
+    ∃ ΦR : ℝ → State V, ΦR 0 = ω ∧
+      (∀ t ∈ Set.Icc (0:ℝ) s, ∀ p ∈ sys,
+          HasDerivWithinAt (fun u => ΦR u p.1) (p.2.eval (ΦR t)) (Set.Icc 0 s) t) ∧
+      (∀ t ∈ Set.Icc (0:ℝ) s, ∀ x, x ∉ sys.bound → ΦR t x = ω x) ∧
+      (∀ t ∈ Set.Icc (0:ℝ) s, Formula.sat domR (ΦR t)) := by
+  set P : State V → Prop := fun ν => ∀ j, 0 ≤ ν (vc j) ∧ ν (vc j) ≤ vm j ∧ 0 ≤ ν (sc j) with hPdef
+  have hstep : ∀ ν, P ν → ∃ ν', P ν' ∧ RunFor sys Formula.tt r₀ ν ν' :=
+    hstep_multi (dom := Formula.tt) hwf vc sc kk cc vm hfv hfs hk hc0 hcv K L a ha hLip
+      (fun _ _ => trivial) hbnd r₀ hr₀ hr₀le
+  have hP0 : ∀ ν, P ν → Formula.sat Formula.tt ν := fun _ _ => trivial
+  set n : ℕ := Nat.ceil (s / r₀) with hn
+  have hsn : s ≤ (n : ℝ) * r₀ := by
+    rw [hn]
+    calc s = s / r₀ * r₀ := (div_mul_cancel₀ s (ne_of_gt hr₀)).symm
+      _ ≤ (Nat.ceil (s / r₀) : ℝ) * r₀ :=
+          mul_le_mul_of_nonneg_right (Nat.le_ceil _) (le_of_lt hr₀)
+  obtain ⟨ν', hrun⟩ := chainN hr₀ P hstep hP0 n s hs0 hsn ω hωP
+  obtain ⟨hs_, Φ, hΦ0, hΦs, hcurve, _⟩ := hrun
+  have hbox := box_invariance_multi hwf vc sc kk cc vm sm hcurve hfv hfs hk hc0 hcv
+    (fun j => by rw [hΦ0]; exact (hωP j).1) (fun j => by rw [hΦ0]; exact (hωP j).2.1)
+    (fun j => by rw [hΦ0]; exact (hωP j).2.2)
+    (fun j => by rw [hΦ0]; exact hZ3 j)
+  have hrunR : RunFor sys domR s ω ν' :=
+    ⟨hs_, Φ, hΦ0, hΦs, hcurve, fun t ht => hdomsat (Φ t) (fun j => hbox t ht j)⟩
+  exact RunFor_unpack hwf hrunR
+
 end RelCertifier
+
 
 
 

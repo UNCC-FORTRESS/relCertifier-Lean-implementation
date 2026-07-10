@@ -1,0 +1,52 @@
+# ENDURANCE cross-tier rung 1 (Option A): L = M2 FINE (deployed/onboard, [v,s,a]),
+# R = M1 COARSE (reasoning/ground-plan, lifted to [v,s,a], a as off-H slack a'=0).
+# forall-exists: every fine onboard execution has an admissible coarse ground-plan response
+# keeping the shared-projection safety invariant s_onboard <= s_ground + d.
+# Same gain k=3 both sides (this axis is FIDELITY, not degradation). ka=8.
+# 3 slope-class modes. Invariant one-sided on shared {v,s}: s[l] <= s[r] + d, plus v-coupling.
+[problem]
+name = endurance_orderlift_1to2
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 2.0
+[Lsys]
+state_vars = [v, s, a]
+epsilon = 1.0
+[Lsys.mode.STEEP]
+ode = v' = a; s' = v; a' = smt2:(- (- 7.20 (* 24.0 v)) (* 8 a));
+guard = v >= 0.0 and v < 0.40
+evolve = v >= 0.0 and v <= 0.40 and s >= 0.0 and s <= 1000.0 and a >= -0.5 and a <= 0.6
+next = [MODER, STEEP]
+[Lsys.mode.MODER]
+ode = v' = a; s' = v; a' = smt2:(- (- 12.00 (* 24.0 v)) (* 8 a));
+guard = v >= 0.40 and v < 0.575
+evolve = v >= 0.0 and v <= 0.575 and s >= 0.0 and s <= 1000.0 and a >= -0.5 and a <= 0.6
+next = [STEEP, FLAT, MODER]
+[Lsys.mode.FLAT]
+ode = v' = a; s' = v; a' = smt2:(- (- 15.60 (* 24.0 v)) (* 8 a));
+guard = v >= 0.575
+evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and s <= 1000.0 and a >= -0.5 and a <= 0.6
+next = [MODER, FLAT]
+[Rsys]
+state_vars = [v, s, a]
+epsilon = 0.5
+[Rsys.mode.STEEP]
+ode = v' = smt2:(* 3 (- 0.30 v)); s' = v; a' = smt2:0;
+guard = v >= 0.0 and v < 0.40
+evolve = v >= 0.0 and v <= 0.50 and s >= 0.0 and s <= 1000.0 and a >= -0.5 and a <= 0.6
+next = [MODER, STEEP]
+[Rsys.mode.MODER]
+ode = v' = smt2:(* 3 (- 0.50 v)); s' = v; a' = smt2:0;
+guard = v >= 0.40 and v < 0.575
+evolve = v >= 0.0 and v <= 0.65 and s >= 0.0 and s <= 1000.0 and a >= -0.5 and a <= 0.6
+next = [STEEP, FLAT, MODER]
+[Rsys.mode.FLAT]
+ode = v' = smt2:(* 3 (- 0.65 v)); s' = v; a' = smt2:0;
+guard = v >= 0.575
+evolve = v >= 0.0 and v <= 0.85 and s >= 0.0 and s <= 1000.0 and a >= -0.5 and a <= 0.6
+next = [MODER, FLAT]
+[relational_invariant]
+STEEP = s[l] <= s[r] + 0.5
+MODER = s[l] <= s[r] + 0.5
+FLAT = s[l] <= s[r] + 0.5

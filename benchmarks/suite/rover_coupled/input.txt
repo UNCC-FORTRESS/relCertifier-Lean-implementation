@@ -1,0 +1,51 @@
+# 2D Rover Benchmark — Pair-Scoped Coupled Position-Velocity Invariant
+[problem]
+name = rover_coupled
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 5.0
+bound_T = 2.0
+[Lsys]
+state_vars = [px, py, vx, vy]
+epsilon = 1.0
+[Lsys.mode.Drive]
+ode = px' = vx; py' = vy; vx' = 0.2; vy' = 0;
+guard = px >= 0.0 and px <= 5.0
+evolve = px >= 0.0 and px <= 5.0 and vx >= 0.0 and vx <= 1.0 and py >= -2.0 and py <= 2.0 and vy >= -1.0 and vy <= 1.0
+next = [Drift, Drive]
+[Lsys.mode.Drift]
+ode = px' = vx; py' = vy; vx' = 0.1; vy' = 0.1;
+guard = px >= 5.0 and px <= 10.0
+evolve = px >= 0.0 and px <= 10.0 and vx >= 0.0 and vx <= 1.0 and py >= -2.0 and py <= 2.0 and vy >= -1.0 and vy <= 1.0
+next = [Stop, Drift]
+[Lsys.mode.Stop]
+ode = px' = vx; py' = vy; vx' = smt2:(* -0.5 vx); vy' = smt2:(* -0.5 vy);
+guard = px >= 10.0
+evolve = px >= 0.0 and px <= 12.0 and vx >= 0.0 and vx <= 1.0 and py >= -2.0 and py <= 2.0 and vy >= -1.0 and vy <= 1.0
+next = [Stop]
+[Rsys]
+state_vars = [px, py, vx, vy]
+epsilon = 1.0
+[Rsys.mode.Recover]
+ode = px' = vx; py' = vy; vx' = 0.4; vy' = 0;
+guard = vx >= 0.0 and vx <= 0.3
+evolve = px >= 0.0 and px <= 15.0 and vx >= 0.0 and vx <= 1.0 and py >= -2.0 and py <= 2.0 and vy >= -1.0 and vy <= 1.0
+next = [Drive, Recover]
+[Rsys.mode.Drive]
+ode = px' = vx; py' = vy; vx' = 0.2; vy' = 0;
+guard = vx >= 0.3
+evolve = px >= 0.0 and px <= 15.0 and vx >= 0.3 and vx <= 1.0 and py >= -2.0 and py <= 2.0 and vy >= -1.0 and vy <= 1.0
+next = [Safe, Drive]
+[Rsys.mode.Safe]
+ode = px' = vx; py' = vy; vx' = 0; vy' = 0;
+guard = px >= 10.0
+evolve = px >= 0.0 and px <= 15.0 and vx >= 0.3 and vx <= 1.0 and py >= -2.0 and py <= 2.0 and vy >= -1.0 and vy <= 1.0
+next = [Safe]
+[relational_invariant]
+Stop = px[l] <= px[r] + 2.0
+Drive/Recover = px[l] <= px[r] + 0.5 and smt2:(<= (- L_vx R_vx) (* 0.1 (+ (- R_px L_px) 0.5)))
+Drive/Drive   = px[l] <= px[r] + 0.5 and smt2:(<= (- L_vx R_vx) (* 0.1 (+ (- R_px L_px) 0.5)))
+Drive/Safe    = px[l] <= px[r] + 0.5
+Drift/Recover = px[l] <= px[r] + 1.0 and smt2:(<= (- L_vx R_vx) (* 0.1 (+ (- R_px L_px) 1.0)))
+Drift/Drive   = px[l] <= px[r] + 1.0 and smt2:(<= (- L_vx R_vx) (* 0.1 (+ (- R_px L_px) 1.0)))
+Drift/Safe    = px[l] <= px[r] + 1.0

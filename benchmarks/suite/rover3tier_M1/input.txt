@@ -1,0 +1,59 @@
+# Rover Patrol -- Act 1: speed envelope (mode-scoped, speed-only)
+#
+# 2D patrolling rover, state [v, s]: v = speed (oscillates ACCEL<->COAST around
+# the v=0.6 setpoint), s = distance travelled along the route, with s' = v
+# (distance integrates speed -- the natural state-dependent coupling). The
+# deployed rover has a SLUGGISH brake (weak COAST gain), so it overspeeds during
+# slow-down and rides ahead of the nominal model.
+#
+# This first configuration tracks SPEED ONLY: v_L <= v_R + d. It is the clean
+# safety envelope -- it bounds the speed deviation and lets distance ride along
+# uncoupled. Multi-cycle coverage: eps_R=0.3 < eps_L=1.0, so each synchronized
+# segment covers delta_L=0.3 and the full residence needs ~4 laps of the cycle.
+#
+# Act 2 (rover_patrol_global) adds a tight global distance bound and fails
+# meaningfully; Act 3 (rover_patrol_paired) couples distance to speed only where
+# the dynamics make it inductive and verifies.
+
+[problem]
+name = rover_patrol_simple
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 2.0
+
+[Lsys]
+state_vars = [v, s]
+epsilon = 1.0
+
+[Lsys.mode.ACCEL]
+ode = v' = smt2:(* 2 (- 1.0 v)); s' = v;
+guard = v >= 0.3 and v < 1.0
+evolve = v >= 0.0 and v <= 1.0 and s >= 0.0 and s <= 100.0
+next = [COAST, ACCEL]
+
+[Lsys.mode.COAST]
+ode = v' = smt2:(* 1.5 (- 0.2 v)); s' = v;
+guard = v >= 1.0
+evolve = v >= 0.0 and v <= 1.5 and s >= 0.0 and s <= 100.0
+next = [ACCEL, COAST]
+
+[Rsys]
+state_vars = [v, s]
+epsilon = 0.3
+
+[Rsys.mode.ACCEL]
+ode = v' = smt2:(* 2 (- 1.0 v)); s' = v;
+guard = v >= 0.3 and v < 0.6
+evolve = v >= 0.0 and v <= 2.0 and s >= 0.0 and s <= 100.0
+next = [COAST, ACCEL]
+
+[Rsys.mode.COAST]
+ode = v' = smt2:(* 2 (- 0.2 v)); s' = v;
+guard = v >= 0.6
+evolve = v >= 0.0 and v <= 2.0 and s >= 0.0 and s <= 100.0
+next = [ACCEL, COAST]
+
+[relational_invariant]
+ACCEL = v[l] <= v[r] + 0.5
+COAST = v[l] <= v[r] + 0.5

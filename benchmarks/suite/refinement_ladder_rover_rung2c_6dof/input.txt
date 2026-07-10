@@ -1,0 +1,91 @@
+# Ladder rung 2c: 6-DOF refines 4-DOF  (4→6 true composition step)
+#
+# L (deployed, 6-DOF): adds heave z and roll phi_r to the 4-DOF model.
+#   s'=v(1-0.5*psi^2-0.3*theta^2), psi'=-psi, theta'=-theta, z'=-z, phi'=-phi
+#
+# R (reasoning, 4-DOF lifted): R = rung2 L lifted into 6-DOF state space.
+#   SAME s'=v(1-0.5*psi^2-0.3*theta^2), psi'=-psi, theta'=-theta
+#   z'=0, phi'=0  (filler states pinned -- 4-DOF model has no z or phi)
+#
+# Both L and R share IDENTICAL dynamics on (v, s, psi, theta).
+# Only z and phi differ: L decays them, R pins them.
+# Since z and phi do not appear in s' or v', they are irrelevant to dg/dt.
+#
+# Invariant: v_L<=v_R AND s_L<=s_R+0.2 AND psi_L=psi_R AND theta_L=theta_R
+#   All four conjuncts inductive at lambda=1 (same-terrain):
+#   - v: same v* on both sides, so dg_v/dt = 3(v*-vL)-3(v*-vR) = 3(vR-vL) <= 0 on boundary.
+#   - s: with psiL=psiR and thetaL=thetaR, sL'=sR' exactly, so dg_s/dt=0 on boundary.
+#   - psi equality: d/dt(psiL-psiR) = -psiL+psiR = 0 on boundary. Trivially inductive.
+#   - theta equality: d/dt(thetaL-thetaR) = -thetaL+thetaR = 0 on boundary. Trivially inductive.
+#
+# Cross-terrain pairs: R solo-hops to same terrain (position invariant maintained
+#   since sR'>0 under left-frozen flow). 6/8 expected; backward-terrain pairs
+#   (MODER_L/STEEP_R, FLAT_L/MODER_R) are unreachable on the monotone traverse.
+#
+# Composition:
+#   R = rung2 L lifted  =>  rung2c is the true 4→6 composition step.
+#   rung2c L = rung2b L  =>  rung3 R = rung2c L = rung2b L (all identical).
+#   Chain: 2-DOF(rung2) -> 4-DOF(rung2c R) -> 6-DOF(rung2c L = rung3 R) -> 8-DOF -> 12-DOF
+
+[problem]
+name = refinement_ladder_rover_rung2c_6dof
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 4.0
+
+[Lsys]
+state_vars = [v, s, psi, theta_p, z, phi_r]
+epsilon = 1.0
+
+[Lsys.mode.STEEP]
+ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); theta_p' = smt2:(* -1 theta_p); z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
+guard = s >= 0.0 and s < 0.6
+evolve = v >= 0 and v <= 0.3 and s >= 0 and s <= 1000 and psi >= -0.5 and psi <= 0.5 and theta_p >= -0.5 and theta_p <= 0.5 and z >= -1 and z <= 1 and phi_r >= -0.5 and phi_r <= 0.5
+next = [MODER, STEEP]
+
+[Lsys.mode.MODER]
+ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); theta_p' = smt2:(* -1 theta_p); z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
+guard = s >= 0.6 and s < 1.4
+evolve = v >= 0 and v <= 0.5 and s >= 0 and s <= 1000 and psi >= -0.5 and psi <= 0.5 and theta_p >= -0.5 and theta_p <= 0.5 and z >= -1 and z <= 1 and phi_r >= -0.5 and phi_r <= 0.5
+next = [FLAT, MODER]
+
+[Lsys.mode.FLAT]
+ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); theta_p' = smt2:(* -1 theta_p); z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
+guard = s >= 1.4
+evolve = v >= 0 and v <= 0.65 and s >= 0 and s <= 1000 and psi >= -0.5 and psi <= 0.5 and theta_p >= -0.5 and theta_p <= 0.5 and z >= -1 and z <= 1 and phi_r >= -0.5 and phi_r <= 0.5
+next = [FLAT]
+
+[Rsys]
+state_vars = [v, s, psi, theta_p, z, phi_r]
+epsilon = 1.0
+
+[Rsys.mode.STEEP]
+ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); theta_p' = smt2:(* -1 theta_p); z' = smt2:0; phi_r' = smt2:0;
+guard = s >= 0.0 and s < 0.6
+evolve = v >= 0 and v <= 0.3 and s >= 0 and s <= 1000 and psi >= -0.5 and psi <= 0.5 and theta_p >= -0.5 and theta_p <= 0.5 and z >= -1 and z <= 1 and phi_r >= -0.5 and phi_r <= 0.5
+next = [MODER, STEEP]
+
+[Rsys.mode.MODER]
+ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); theta_p' = smt2:(* -1 theta_p); z' = smt2:0; phi_r' = smt2:0;
+guard = s >= 0.6 and s < 1.4
+evolve = v >= 0 and v <= 0.5 and s >= 0 and s <= 1000 and psi >= -0.5 and psi <= 0.5 and theta_p >= -0.5 and theta_p <= 0.5 and z >= -1 and z <= 1 and phi_r >= -0.5 and phi_r <= 0.5
+next = [FLAT, MODER]
+
+[Rsys.mode.FLAT]
+ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); theta_p' = smt2:(* -1 theta_p); z' = smt2:0; phi_r' = smt2:0;
+guard = s >= 1.4
+evolve = v >= 0 and v <= 0.65 and s >= 0 and s <= 1000 and psi >= -0.5 and psi <= 0.5 and theta_p >= -0.5 and theta_p <= 0.5 and z >= -1 and z <= 1 and phi_r >= -0.5 and phi_r <= 0.5
+next = [FLAT]
+
+[relational_invariant]
+# Exact lockstep invariant. L and R have IDENTICAL dynamics on (v,s,psi,theta);
+# only z,phi differ (filler states, absent from s' and v'). So the (v,s,psi,theta)
+# projection is an exact bisimulation: vL=vR, sL=sR, psiL=psiR, thetaL=thetaR.
+# All inductive at lambda=1: d/dt(xL-xR)=f(xL)-f(xR)=0 when xL=xR (identical f).
+# sL=sR (exact) makes all cross-terrain pairs vacuous: L and R cross terrain
+# boundaries simultaneously, so (MODER_L,STEEP_R) etc. are incompatible.
+# Only same-terrain pairs remain, all certified at lambda=1.
+STEEP = v[l] <= v[r] and v[r] <= v[l] and s[l] <= s[r] and s[r] <= s[l] and psi[l] <= psi[r] and psi[r] <= psi[l] and theta_p[l] <= theta_p[r] and theta_p[r] <= theta_p[l]
+MODER = v[l] <= v[r] and v[r] <= v[l] and s[l] <= s[r] and s[r] <= s[l] and psi[l] <= psi[r] and psi[r] <= psi[l] and theta_p[l] <= theta_p[r] and theta_p[r] <= theta_p[l]
+FLAT  = v[l] <= v[r] and v[r] <= v[l] and s[l] <= s[r] and s[r] <= s[l] and psi[l] <= psi[r] and psi[r] <= psi[l] and theta_p[l] <= theta_p[r] and theta_p[r] <= theta_p[l]

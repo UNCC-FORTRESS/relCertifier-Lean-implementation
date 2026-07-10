@@ -1,0 +1,63 @@
+# Plant-Justified Fidelity Fan -- Tier 1 of 3: LOW (single constant rate)
+#
+# A re-derivation of the arm fidelity fan where every reasoning-model rate is
+# JUSTIFIED by the deployed plant's measured velocity envelope, rather than chosen
+# by hand. The plant (left) is the same critically/over-damped PD arm used in the
+# core fidelity study: theta' = v, v' = -(theta - 0.5) - 2 v, which makes a
+# monotone, non-overshooting approach to theta = 0.5. Its velocity peaks early
+# (max ~0.184 near theta in [0.1,0.2]) and decays smoothly to 0 as theta -> 0.5.
+#
+# The reasoning model (right) is a position-only constant-rate envelope. To
+# over-approximate the plant, each band's rate must exceed the plant's MAX velocity
+# in that band. LOW uses a single constant rate 0.20 over the whole approach, which
+# exceeds the global velocity peak 0.184. Because one flat rate must clear the
+# global peak everywhere, it sits well above the plant late in the approach (where
+# the plant has slowed to <0.08), so the certified tolerance is the loosest of the
+# fan. MID and HIGH drop the rate band-by-band to hug the decaying velocity, for
+# progressively tighter tolerances.
+#
+# Exploratory: rates are derived from the plant profile; tolerances are to be
+# certified by the tool, not asserted here.
+
+[problem]
+name = plant_fan_low
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 4.0
+
+[Lsys]
+state_vars = [theta, v]
+epsilon = 1.0
+
+[Lsys.mode.Accelerate]
+ode = theta' = v; v' = smt2:(+ (* -1 (- theta 0.5)) (* -2 v));
+guard = theta >= 0.0 and theta < 0.5 and v >= 0.0
+evolve = theta >= 0.0 and theta <= 1.0 and v >= 0.0 and v <= 1.0
+next = [Brake, Accelerate]
+
+[Lsys.mode.Brake]
+ode = theta' = v; v' = smt2:(+ (* -1 (- theta 0.5)) (* -2 v));
+guard = theta >= 0.5 and theta <= 1.0 and v <= 0.0
+evolve = theta >= 0.0 and theta <= 1.0 and v >= -1.0 and v <= 0.0
+next = [Accelerate, Brake]
+
+[Rsys]
+state_vars = [theta]
+epsilon = 1.0
+
+[Rsys.mode.Approach]
+ode = theta' = 0.2;
+guard = theta >= 0.0 and theta <= 0.7
+evolve = theta >= 0.0 and theta <= 1.0
+next = [Return, Approach]
+
+[Rsys.mode.Return]
+ode = theta' = smt2:(- 0 0.2);
+guard = theta >= 0.70
+evolve = theta >= 0.0 and theta <= 1.0
+next = [Approach, Return]
+
+[relational_invariant]
+Accelerate = theta[l] <= theta[r] + 0.4
+Brake      = theta[l] <= theta[r] + 0.4

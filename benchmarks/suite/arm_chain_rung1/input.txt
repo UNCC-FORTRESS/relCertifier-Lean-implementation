@@ -1,0 +1,46 @@
+# Arm fidelity chain -- Rung 1:  L = A2 (3-mode envelope, finer)
+#                                R = A1 (2-mode envelope, coarser)
+# Certifies [[L,R>>: every behavior of the finer 3-mode model is covered by the
+# coarser 2-mode model within tolerance d1. This is the top rung of the safety-
+# transfer chain (coarsest A1 carries the safety margin).
+[problem]
+name = arm_chain_rung1
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 4.0
+[Lsys]
+state_vars = [theta]
+# L = A2, the finer 3-mode piecewise-rate envelope (fast 0.5 / slow 0.3 / return).
+[Lsys.mode.ApproachFast]
+ode = theta' = 0.5;
+guard = theta >= 0.0 and theta <= 0.35
+evolve = theta >= 0 and theta <= 1
+next = [ApproachSlow, ApproachFast]
+[Lsys.mode.ApproachSlow]
+ode = theta' = 0.3;
+guard = theta >= 0.35 and theta <= 0.7
+evolve = theta >= 0 and theta <= 1
+next = [Return, ApproachSlow]
+[Lsys.mode.Return]
+ode = theta' = smt2:(- 0 0.2);
+guard = theta >= 0.70
+evolve = theta >= 0 and theta <= 1
+next = [ApproachFast, Return]
+[Rsys]
+state_vars = [theta]
+# R = A1, the coarser 2-mode constant-rate envelope.
+[Rsys.mode.Approach]
+ode = theta' = 0.2;
+guard = theta >= 0.0 and theta <= 0.7
+evolve = theta >= 0 and theta <= 1
+next = [Return, Approach]
+[Rsys.mode.Return]
+ode = theta' = smt2:(- 0 0.2);
+guard = theta >= 0.70
+evolve = theta >= 0 and theta <= 1
+next = [Approach, Return]
+[relational_invariant]
+ApproachFast = theta[l] <= theta[r] + 0.4
+ApproachSlow = theta[l] <= theta[r] + 0.4
+Return       = theta[l] <= theta[r] + 0.4

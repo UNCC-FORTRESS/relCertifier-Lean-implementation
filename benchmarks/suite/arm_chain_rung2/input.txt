@@ -1,0 +1,56 @@
+# Arm fidelity chain -- Rung 2:  L = A3 (4-mode envelope, finer)
+#                                R = A2 (3-mode envelope, coarser)
+# Certifies [[L,R>>: every behavior of the finer 4-mode model is covered by the
+# 3-mode model within tolerance d2.
+[problem]
+name = arm_chain_rung2
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 4.0
+[Lsys]
+state_vars = [theta]
+# L = A3, the finer 4-mode piecewise-rate envelope (0.6 / 0.4 / 0.25 / return).
+[Lsys.mode.ApproachA]
+ode = theta' = 0.6;
+guard = theta >= 0.0 and theta <= 0.25
+evolve = theta >= 0 and theta <= 1
+next = [ApproachB, ApproachA]
+[Lsys.mode.ApproachB]
+ode = theta' = 0.4;
+guard = theta >= 0.25 and theta <= 0.45
+evolve = theta >= 0 and theta <= 1
+next = [ApproachC, ApproachB]
+[Lsys.mode.ApproachC]
+ode = theta' = 0.25;
+guard = theta >= 0.45 and theta <= 0.7
+evolve = theta >= 0 and theta <= 1
+next = [Return, ApproachC]
+[Lsys.mode.Return]
+ode = theta' = smt2:(- 0 0.2);
+guard = theta >= 0.70
+evolve = theta >= 0 and theta <= 1
+next = [ApproachA, Return]
+[Rsys]
+state_vars = [theta]
+# R = A2, the coarser 3-mode envelope (0.5 / 0.3 / return).
+[Rsys.mode.ApproachFast]
+ode = theta' = 0.5;
+guard = theta >= 0.0 and theta <= 0.35
+evolve = theta >= 0 and theta <= 1
+next = [ApproachSlow, ApproachFast]
+[Rsys.mode.ApproachSlow]
+ode = theta' = 0.3;
+guard = theta >= 0.35 and theta <= 0.7
+evolve = theta >= 0 and theta <= 1
+next = [Return, ApproachSlow]
+[Rsys.mode.Return]
+ode = theta' = smt2:(- 0 0.2);
+guard = theta >= 0.70
+evolve = theta >= 0 and theta <= 1
+next = [ApproachSlow, Return]
+[relational_invariant]
+ApproachA = theta[l] <= theta[r] + 0.25
+ApproachB = theta[l] <= theta[r] + 0.25
+ApproachC = theta[l] <= theta[r] + 0.25
+Return    = theta[l] <= theta[r] + 0.25

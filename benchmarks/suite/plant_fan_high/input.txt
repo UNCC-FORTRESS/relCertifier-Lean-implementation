@@ -1,0 +1,63 @@
+# plant_fan_high (REDESIGNED): underdamped arm + leading-reference envelope
+# Deployed: underdamped PD arm to 0.5 (c=1), genuine overshoot+brake (peak ~0.58).
+#   Original was critically damped (c=2, no overshoot) making Brake unreachable.
+# Reasoning: coarse leading reference rising (fast->slow) to a plateau >= arm peak,
+#   then HOLDS (no retreat). Sound envelope the arm tracks from below. The original
+#   Return mode retreated and diverged from any deployed arm (uncertifiable); removed.
+# Tolerance theta_L <= theta_R + 0.15.
+
+[problem]
+name = plant_fan_high
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 4.0
+
+[Lsys]
+state_vars = [theta, v]
+epsilon = 1.0
+
+[Lsys.mode.Accelerate]
+ode = theta' = v; v' = smt2:(+ (* -1 (- theta 0.5)) (* -1.0 v));
+guard = theta >= 0.0 and theta < 0.5 and v >= 0.0
+evolve = theta >= 0 and theta <= 0.65 and v >= -0.45 and v <= 0.45
+next = [Brake, Accelerate]
+
+[Lsys.mode.Brake]
+ode = theta' = v; v' = smt2:(+ (* -1 (- theta 0.5)) (* -1.0 v));
+guard = theta >= 0.5 and theta <= 0.65 and v <= 0.0
+evolve = theta >= 0 and theta <= 0.65 and v >= -0.45 and v <= 0.45
+next = [Accelerate, Brake]
+
+[Rsys]
+state_vars = [theta]
+epsilon = 1.0
+
+[Rsys.mode.ApproachA]
+ode = theta' = smt2:0.5;
+guard = theta >= 0.0 and theta <= 0.35
+evolve = theta >= 0 and theta <= 1
+next = [ApproachB, ApproachA]
+
+[Rsys.mode.ApproachB]
+ode = theta' = smt2:0.35;
+guard = theta >= 0.35 and theta <= 0.5
+evolve = theta >= 0 and theta <= 1
+next = [ApproachC, ApproachB]
+
+[Rsys.mode.ApproachC]
+ode = theta' = smt2:0.2;
+guard = theta >= 0.5 and theta <= 0.6
+evolve = theta >= 0 and theta <= 1
+next = [Hold, ApproachC]
+
+[Rsys.mode.Hold]
+ode = theta' = smt2:0;
+guard = theta >= 0.6
+evolve = theta >= 0 and theta <= 1
+next = [Hold]
+
+[relational_invariant]
+# theta_L <= theta_R + 0.15. Reference leads to plateau >= arm peak, then holds.
+Accelerate = theta[l] <= theta[r] + 0.15
+Brake      = theta[l] <= theta[r] + 0.15

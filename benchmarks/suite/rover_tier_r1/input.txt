@@ -1,0 +1,30 @@
+# Rover three-tier chain, Rung 1: M1 (coarse) -> M2 (fine).  L = M2 (finer), R = M1 (coarser).
+# M1 lifted into (s,v,a) with a pinned at its coarse-implied value so the same-dimension engine applies.
+# M1 coarse: s'=v, v'=2(1-v).  Lift: a_R := 2(1-v) is the coarse accel; but to keep it a clean
+# autonomous pin we hold a_R at the cruise accel. For a faithful first cut, pin a_R small constant.
+# M2 fine:  s'=v, v'=a, a'=3(acmd - a). Cruising, v stays in [0.3,1.4].
+# H = {s}. First test: position invariant s_L <= s_R + d.
+[problem]
+name = rover_tier_r1
+max_depth = 4
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 1.0
+[Lsys]
+state_vars = [s, v, a]
+epsilon = 1.0
+[Lsys.mode.Cruise]
+ode = s' = v; v' = a; a' = smt2:(* 3 (- 0.4 a));
+guard = v >= 0.3 and v <= 1.4
+evolve = s >= 0.0 and s <= 100.0 and v >= 0.3 and v <= 1.4 and a >= 0.0 and a <= 0.6
+next = [Cruise]
+[Rsys]
+state_vars = [s, v, a]
+epsilon = 1.0
+[Rsys.mode.Cruise]
+ode = s' = v; v' = a; a' = smt2:(- 0 0);
+guard = v >= 0.3 and v <= 1.0
+evolve = s >= 0.0 and s <= 100.0 and v >= 0.3 and v <= 1.0 and a >= 0.3 and a <= 0.5
+next = [Cruise]
+[relational_invariant]
+Cruise = s[l] <= s[r] + 0.5

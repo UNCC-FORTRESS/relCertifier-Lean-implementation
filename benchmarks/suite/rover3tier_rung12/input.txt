@@ -1,0 +1,40 @@
+# Three-tier rover, Rung M1->M2. L = M2 (finer, v,s,a), R = M1 (coarser, lifted to v,s,a).
+# Patrol cycle ACCEL<->COAST preserved on both. M2: v'=a, a'=3(acmd-a). M1 lifted: v'=a, a'=0 (a pinned
+# at the M1 commanded accel per mode). Safety H={s}; also velocity envelope v_L<=v_R+d.
+[problem]
+name = rover3tier_rung12
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 2.0
+[Lsys]
+state_vars = [v, s, a]
+epsilon = 1.0
+[Lsys.mode.ACCEL]
+ode = v' = a; s' = v; a' = smt2:(* 3 (- 0.8 a));
+guard = v >= 0.3 and v < 1.0
+evolve = v >= 0.0 and v <= 1.0 and s >= 0.0 and s <= 100.0 and a >= 0.0 and a <= 0.8
+next = [COAST, ACCEL]
+[Lsys.mode.COAST]
+ode = v' = a; s' = v; a' = smt2:(* 3 (- -0.3 a));
+guard = v >= 1.0
+evolve = v >= 0.0 and v <= 1.5 and s >= 0.0 and s <= 100.0 and a >= -0.3 and a <= 0.8
+next = [ACCEL, COAST]
+[Rsys]
+state_vars = [v, s, a]
+epsilon = 0.3
+[Rsys.mode.ACCEL]
+ode = v' = a; s' = v; a' = smt2:(- 0 0);
+guard = v >= 0.3 and v < 0.6
+evolve = v >= 0.0 and v <= 2.0 and s >= 0.0 and s <= 100.0 and a >= 0.5 and a <= 0.9
+next = [COAST, ACCEL]
+[Rsys.mode.COAST]
+ode = v' = a; s' = v; a' = smt2:(- 0 0);
+guard = v >= 0.6
+evolve = v >= 0.0 and v <= 2.0 and s >= 0.0 and s <= 100.0 and a >= 0.5 and a <= 0.9
+next = [ACCEL, COAST]
+[relational_invariant]
+ACCEL/ACCEL = v[l] <= v[r] + 0.5 and a[l] <= a[r] + 0.8
+ACCEL/COAST = v[l] <= v[r] + 0.5 and a[l] <= a[r] + 0.8
+COAST/ACCEL = smt2:(<= (+ (* 3 L_v) L_a) (+ (* 3 R_v) 1.2))
+COAST/COAST = smt2:(<= (+ (* 3 L_v) L_a) (+ (* 3 R_v) 1.2))

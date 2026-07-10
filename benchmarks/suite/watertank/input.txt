@@ -1,0 +1,111 @@
+# Watertank: Sensor Offset + Fill-Speedup Attack
+#
+# NOTE: This header describes the model below. The model (ODEs, guards,
+# invariant) is authoritative; if they ever diverge, trust the model.
+#
+# Nominal system (right):
+#   Low:  guard x in [0, 35),  x' = 3*(0.5 - x/100)   eq 50,  slow fill
+#   Mid:  guard x in [35, 40), x' = 3*(1.0 - x/100)   eq 100, fast fill
+#   High: guard x >= 40,       x' = 3*(0.1 - x/100)   eq 10,  drain
+#
+# Deployed (left, attacked) system, two coordinated effects:
+#   1. Sensor offset -3 (x_measured = x - 3): controller switches at shifted
+#      thresholds, so left guards are nominal + 3:
+#         Low [0, 38),  Mid [38, 43),  High x >= 43.
+#   2. Fill speedup in Low: deployed Low fills at c=1.0 (eq 100) versus the
+#      nominal slow-fill c=0.5 (eq 50), i.e. 2x the nominal low-level fill rate.
+#      Mid and High dynamics are unchanged (Mid c=1.0, High c=0.1 both sides);
+#      the attack disappears in High (both drain identically), exploiting fill
+#      control rather than drain control.
+#
+# Behavioral alignment (a consequence of the attack, derived from the model):
+#   Deployed Low (c=1.0) fills at the same rate as nominal Mid (c=1.0), so the
+#   deployed low-level phase aligns with the nominal fast-fill phase. Low_L
+#   therefore synchronizes cleanly with Mid_R at lambda = 1 (identical dynamics,
+#   the +3 invariant gap is preserved since dg/dt = f_L - f_R = -0.09 < 0).
+#   Low_L also synchronizes with the slow nominal Low_R, but only with a large
+#   time-stretch (lambda ~ 4.1), since the deployed system fills twice as fast.
+#
+# Relational invariant: x_L <= x_R + 3 (all mode pairs). The bound 3 is the
+#   sensor offset: the deployed level may lead the nominal level by at most the
+#   offset. With Low_L and Mid_R sharing dynamics, this offset is preserved
+#   without growth, so d = 3 suffices.
+#
+# Per-pair sync (lambda_min, derived from the model on the invariant boundary):
+#   Low_L/Low_R:   ~4.13   left fills 2x faster, large stretch needed
+#   Low_L/Mid_R:   ~1.00   identical dynamics, exact rate match
+#   Mid_L/Mid_R:   ~1.00   identical dynamics
+#   Mid_L/High_R:    -     left fills while right drains: no valid stretch
+#   High_L/Mid_R:    -     (right fills, left drains)
+#   High_L/Low_R:  ~1.00
+#   High_L/High_R: ~1.00   identical drain dynamics
+#   lambda_max = 10 admits the Low_L/Low_R stretch (~4.1); it is an admissible
+#   time-stretch budget, not a value tuned to force any single edge.
+#
+# Connection (boundary) obligation:
+#   The High_R -> Mid_R re-entry presync edges do NOT satisfy the connection
+#   check at d = 3 (a deployed state near the top of Mid can sit at x_L up to
+#   the physical range while x_R = 40, so x_L <= x_R + 3 can fail at that
+#   crossing). The cover does not depend on those edges: Low_L covers its full
+#   budget in a single Low_L/Mid_R sync (lambda = 1), so the rejected re-entries
+#   are off the critical path. The boundary check correctly rejects them.
+#
+# Evolution domains are PHYSICAL limits only: every mode uses x in [0, 100]
+#   (the tank's physical range), identical on both systems. No evolve bound is
+#   set to a guard or invariant value to assist verification.
+
+[problem]
+name = watertank
+max_depth = 6
+lambda_min = 1.0
+lambda_max = 10.0
+bound_T = 40.0
+
+[Lsys]
+state_vars = [x]
+epsilon = 1.0
+
+[Lsys.mode.Low]
+ode = x' = smt2:(* 3 (- 1.0 (* x 0.01)));
+guard = x >= 0.0 and x < 38.0
+evolve = x >= 0 and x <= 100
+next = [Mid, Low]
+
+[Lsys.mode.Mid]
+ode = x' = smt2:(* 3 (- 1.0 (* x 0.01)));
+guard = x >= 38.0 and x < 43.0
+evolve = x >= 0 and x <= 100
+next = [High, Mid]
+
+[Lsys.mode.High]
+ode = x' = smt2:(* 3 (- 0.1 (* x 0.01)));
+guard = x >= 43.0
+evolve = x >= 0 and x <= 100
+next = [Mid, High]
+
+[Rsys]
+state_vars = [x]
+epsilon = 1.0
+
+[Rsys.mode.Low]
+ode = x' = smt2:(* 3 (- 0.5 (* x 0.01)));
+guard = x >= 0.0 and x < 35.0
+evolve = x >= 0 and x <= 100
+next = [Mid, Low]
+
+[Rsys.mode.Mid]
+ode = x' = smt2:(* 3 (- 1.0 (* x 0.01)));
+guard = x >= 35.0 and x < 40.0
+evolve = x >= 0 and x <= 100
+next = [High, Mid]
+
+[Rsys.mode.High]
+ode = x' = smt2:(* 3 (- 0.1 (* x 0.01)));
+guard = x >= 40.0
+evolve = x >= 0 and x <= 100
+next = [Mid, High]
+
+[relational_invariant]
+Low  = x[l] <= x[r] + 3
+Mid  = x[l] <= x[r] + 3
+High = x[l] <= x[r] + 3

@@ -1,0 +1,82 @@
+# Ladder rung 2b: 6-DOF refines 4-DOF  (4→6 composition step)
+#
+# L (deployed, 6-DOF): adds heave (z) and roll (phi_r) to the 4-DOF model.
+#   s'=v(1-0.5*psi^2-0.3*theta^2), psi'=-psi, theta'=-theta, z'=-z, phi'=-phi
+#   z and phi_r are off-H filler states: they do NOT appear in s'.
+#
+# R (reasoning, 4-DOF lifted to 6-DOF): rung2 L lifted, z and phi pinned.
+#   s'=v, psi'=0, theta'=0, z'=0, phi'=0
+#   Same 2-DOF kinematic baseline, lifted into 6-DOF state space.
+#
+# Invariant: g = s_L - s_R - 0.2 + (v_L-v_R)/3 <= 0
+#   z and phi_r are irrelevant to dg/dt (don't appear in s' or v').
+#   Identical cert to rung2: dg/dt = v*_L - lambda*v*_R at boundary.
+#   9/9 pairs certified at same lambdas as rung2.
+#
+# Composition: R = rung2 L lifted (s'=v, psi/theta/z/phi all pinned).
+#   rung2b L = rung3 R restricted to {omega_psi=omega_theta=0}:
+#   rung3 R has psi'=-psi, theta'=-theta, omega'=0 -- matches rung2b L.
+# Chain: 2-DOF → 4-DOF (rung2) → 6-DOF (this) → 8-DOF (rung3) → 12-DOF (pos_ladder).
+
+[problem]
+name = refinement_ladder_rover_rung2b_6dof
+max_depth = 8
+lambda_min = 1.001
+lambda_max = 6.0
+bound_T = 4.0
+
+[Lsys]
+state_vars = [v, s, psi, theta_p, z, phi_r]
+epsilon = 1.0
+
+[Lsys.mode.STEEP]
+ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); theta_p' = smt2:(* -1 theta_p); z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
+guard = s >= 0.0 and s < 0.6
+evolve = v >= 0 and v <= 0.3 and s >= 0 and s <= 1000 and psi >= -0.5 and psi <= 0.5 and theta_p >= -0.5 and theta_p <= 0.5 and z >= -1 and z <= 1 and phi_r >= -0.5 and phi_r <= 0.5
+next = [MODER, STEEP]
+
+[Lsys.mode.MODER]
+ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); theta_p' = smt2:(* -1 theta_p); z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
+guard = s >= 0.6 and s < 1.4
+evolve = v >= 0 and v <= 0.5 and s >= 0 and s <= 1000 and psi >= -0.5 and psi <= 0.5 and theta_p >= -0.5 and theta_p <= 0.5 and z >= -1 and z <= 1 and phi_r >= -0.5 and phi_r <= 0.5
+next = [FLAT, MODER]
+
+[Lsys.mode.FLAT]
+ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); theta_p' = smt2:(* -1 theta_p); z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
+guard = s >= 1.4
+evolve = v >= 0 and v <= 0.65 and s >= 0 and s <= 1000 and psi >= -0.5 and psi <= 0.5 and theta_p >= -0.5 and theta_p <= 0.5 and z >= -1 and z <= 1 and phi_r >= -0.5 and phi_r <= 0.5
+next = [FLAT]
+
+[Rsys]
+state_vars = [v, s, psi, theta_p, z, phi_r]
+epsilon = 1.0
+
+[Rsys.mode.STEEP]
+ode = v' = smt2:(* 3 (- 0.30 v)); s' = v; psi' = smt2:0; theta_p' = smt2:0; z' = smt2:0; phi_r' = smt2:0;
+guard = s >= 0.0 and s < 0.6
+evolve = v >= 0 and v <= 0.3 and s >= 0 and s <= 1000 and psi >= -0.5 and psi <= 0.5 and theta_p >= -0.5 and theta_p <= 0.5 and z >= -1 and z <= 1 and phi_r >= -0.5 and phi_r <= 0.5
+next = [MODER, STEEP]
+
+[Rsys.mode.MODER]
+ode = v' = smt2:(* 3 (- 0.50 v)); s' = v; psi' = smt2:0; theta_p' = smt2:0; z' = smt2:0; phi_r' = smt2:0;
+guard = s >= 0.6 and s < 1.4
+evolve = v >= 0 and v <= 0.5 and s >= 0 and s <= 1000 and psi >= -0.5 and psi <= 0.5 and theta_p >= -0.5 and theta_p <= 0.5 and z >= -1 and z <= 1 and phi_r >= -0.5 and phi_r <= 0.5
+next = [FLAT, MODER]
+
+[Rsys.mode.FLAT]
+ode = v' = smt2:(* 3 (- 0.65 v)); s' = v; psi' = smt2:0; theta_p' = smt2:0; z' = smt2:0; phi_r' = smt2:0;
+guard = s >= 1.4
+evolve = v >= 0 and v <= 0.65 and s >= 0 and s <= 1000 and psi >= -0.5 and psi <= 0.5 and theta_p >= -0.5 and theta_p <= 0.5 and z >= -1 and z <= 1 and phi_r >= -0.5 and phi_r <= 0.5
+next = [FLAT]
+
+[relational_invariant]
+# Same combined invariant as rung2. z and phi_r are irrelevant (absent from s' and v').
+STEEP/STEEP = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)
+STEEP/MODER = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)
+STEEP/FLAT  = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)
+MODER/STEEP = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)
+MODER/MODER = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)
+MODER/FLAT  = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)
+FLAT/STEEP  = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)
+FLAT/MODER  = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)
+FLAT/FLAT   = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)

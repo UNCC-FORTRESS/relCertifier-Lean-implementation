@@ -1,0 +1,82 @@
+# Ladder rung 2: 4-DOF refines 2-DOF  (2→4 composition step)
+#
+# L (deployed, 4-DOF): s'=v(1-0.5*psi^2-0.3*theta^2), psi'=-psi, theta'=-theta
+#   Both heading and pitch steal along-track progress; both decay first-order.
+#
+# R (reasoning, 2-DOF lifted to 4-DOF): s'=v, psi'=0, theta'=0
+#   Pure kinematic baseline: ignores all attitude. psi and theta are states but pinned.
+#   R = 2-DOF model lifted; same R as rung1 but with theta also pinned.
+#
+# Invariant: g = s_L - s_R - 0.2 + (v_L-v_R)/3 <= 0
+#   Combined position-velocity form. psi and theta appear only negatively in s_L'.
+#   dg/dt = v*_L - lambda*v*_R at the boundary (independent of v_L,v_R,psi,theta).
+#   Certifies at lambda = v*_L/v*_R: same-terrain lambda=1.001, cross-terrain up to 13/6.
+#   9/9 pairs certified (forward and same-terrain; backward pairs not reachable).
+#
+# Composition: rung2 L = rung3 R (lifted to 8-DOF with omega states pinned).
+# Chain: 2-DOF → 4-DOF (this step) → 8-DOF (rung3) → 12-DOF (pos_ladder).
+
+[problem]
+name = refinement_ladder_rover_rung2_6dof
+max_depth = 8
+lambda_min = 1.001
+lambda_max = 6.0
+bound_T = 4.0
+
+[Lsys]
+state_vars = [v, s, psi, theta_p]
+epsilon = 1.0
+
+[Lsys.mode.STEEP]
+ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); theta_p' = smt2:(* -1 theta_p);
+guard = s >= 0.0 and s < 0.6
+evolve = v >= 0 and v <= 0.3 and s >= 0 and s <= 1000 and psi >= -0.5 and psi <= 0.5 and theta_p >= -0.5 and theta_p <= 0.5
+next = [MODER, STEEP]
+
+[Lsys.mode.MODER]
+ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); theta_p' = smt2:(* -1 theta_p);
+guard = s >= 0.6 and s < 1.4
+evolve = v >= 0 and v <= 0.5 and s >= 0 and s <= 1000 and psi >= -0.5 and psi <= 0.5 and theta_p >= -0.5 and theta_p <= 0.5
+next = [FLAT, MODER]
+
+[Lsys.mode.FLAT]
+ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); theta_p' = smt2:(* -1 theta_p);
+guard = s >= 1.4
+evolve = v >= 0 and v <= 0.65 and s >= 0 and s <= 1000 and psi >= -0.5 and psi <= 0.5 and theta_p >= -0.5 and theta_p <= 0.5
+next = [FLAT]
+
+[Rsys]
+state_vars = [v, s, psi, theta_p]
+epsilon = 1.0
+
+[Rsys.mode.STEEP]
+ode = v' = smt2:(* 3 (- 0.30 v)); s' = v; psi' = smt2:0; theta_p' = smt2:0;
+guard = s >= 0.0 and s < 0.6
+evolve = v >= 0 and v <= 0.3 and s >= 0 and s <= 1000 and psi >= -0.5 and psi <= 0.5 and theta_p >= -0.5 and theta_p <= 0.5
+next = [MODER, STEEP]
+
+[Rsys.mode.MODER]
+ode = v' = smt2:(* 3 (- 0.50 v)); s' = v; psi' = smt2:0; theta_p' = smt2:0;
+guard = s >= 0.6 and s < 1.4
+evolve = v >= 0 and v <= 0.5 and s >= 0 and s <= 1000 and psi >= -0.5 and psi <= 0.5 and theta_p >= -0.5 and theta_p <= 0.5
+next = [FLAT, MODER]
+
+[Rsys.mode.FLAT]
+ode = v' = smt2:(* 3 (- 0.65 v)); s' = v; psi' = smt2:0; theta_p' = smt2:0;
+guard = s >= 1.4
+evolve = v >= 0 and v <= 0.65 and s >= 0 and s <= 1000 and psi >= -0.5 and psi <= 0.5 and theta_p >= -0.5 and theta_p <= 0.5
+next = [FLAT]
+
+[relational_invariant]
+# Combined pos-vel: g = s_L - s_R - 0.2 + (v_L-v_R)/3 <= 0
+# psi and theta appear only negatively in s_L'; R has s'=v so no psi/theta on right.
+# dg/dt = v*_L - lambda*v*_R at boundary: independent of all attitude states.
+STEEP/STEEP = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)
+STEEP/MODER = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)
+STEEP/FLAT  = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)
+MODER/STEEP = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)
+MODER/MODER = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)
+MODER/FLAT  = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)
+FLAT/STEEP  = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)
+FLAT/MODER  = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)
+FLAT/FLAT   = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)

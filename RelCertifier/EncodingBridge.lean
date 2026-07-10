@@ -16,6 +16,7 @@ Composing: a CSF `faModal ρ L* R* (encode ρ ϕ)` at the join state `σ` gives 
 mechanized relational logic — not a bespoke object.
 -/
 import RelCertifier.CSFBridge
+import RelCertifier.Reify
 import DLRel
 
 namespace RelCertifier
@@ -35,5 +36,46 @@ theorem faModal_to_faShape (ρ : V ≃ V) (α β : Program V) (ψ : RFormula V)
     RFormula.sat (faShape α β ψ) bs := by
   rw [RFormula.encoding_correct ρ (faShape α β ψ) hd bs σ hb, sat_encode_faShape]
   exact h
+
+/-- **Atomic single-sync relational guarantee (end-to-end, one segment pair).** From the flow
+certificate (`hcert`, a `BoxLe` on the joint evolution domain — discharged by `flow_cert_sound`)
+and the CSF duration-existence side-condition `hExist` (`= faModal_ODE_G'`'s `hExist'`; carried
+explicitly exactly as dL-caltiming ships it — it holds for the cover's bounded polynomial
+domains, no finite escape), the paper's ∀∃ **relational** modality
+`[|(ode leftBlock domL, ode rightBlock domR)⟩⟩ ψ` holds at the bi-state `bs`, where `ψ` is the
+relational invariant whose (identity-)encoding is `g ≤ 0` (`hψ`). `ρ = id` throughout. -/
+theorem segment_relational {n : ℕ}
+    (g : Term (Var n)) (fL fR : Fin n → Term (Var n)) (lam : Term (Var n))
+    (domL domR : Formula (Var n)) (ν : State (Var n)) (bs : BiState (Var n))
+    (ψ : RFormula (Var n))
+    (hdisj : Disjoint ((leftBlock fL).boundSet ∪ (leftBlock fL).readVars)
+                      ((rightBlock fR lam).boundSet ∪ (rightBlock fR lam).readVars))
+    (hφL : domL.fv ⊆ (leftBlock fL).boundSet ∪ (leftBlock fL).readVars)
+    (hφR : domR.fv ⊆ (rightBlock fR lam).boundSet ∪ (rightBlock fR lam).readVars)
+    (hcert : BoxLe (Program.ode (jointSys fL fR lam) (Formula.and domL domR))
+        (fun ω => Term.eval g ω) ν)
+    (hExist : ∀ (s : ℝ) (ΦL : ℝ → State (Var n)), 0 ≤ s → ΦL 0 = ν →
+        (∀ t ∈ Set.Icc (0 : ℝ) s, ∀ p ∈ leftBlock fL,
+            HasDerivWithinAt (fun u => ΦL u p.1) (p.2.eval (ΦL t)) (Set.Icc 0 s) t) →
+        (∀ t ∈ Set.Icc (0 : ℝ) s, ∀ x, x ∉ (leftBlock fL).bound → ΦL t x = ν x) →
+        (∀ t ∈ Set.Icc (0 : ℝ) s, Formula.sat domL (ΦL t)) →
+        ∃ ΦR : ℝ → State (Var n), ΦR 0 = ΦL s ∧
+          (∀ t ∈ Set.Icc (0 : ℝ) s, ∀ p ∈ rightBlock fR lam,
+              HasDerivWithinAt (fun u => ΦR u p.1) (p.2.eval (ΦR t)) (Set.Icc 0 s) t) ∧
+          (∀ t ∈ Set.Icc (0 : ℝ) s, ∀ x, x ∉ (rightBlock fR lam).bound → ΦR t x = ΦL s x) ∧
+          (∀ t ∈ Set.Icc (0 : ℝ) s, Formula.sat domR (ΦR t)))
+    (hψ : encode (Equiv.refl (Var n)) ψ = invLe g)
+    (hd : Disjoint (faShape (Program.ode (leftBlock fL) domL) (Program.ode (rightBlock fR lam) domR) ψ).varsL
+        (Equiv.refl (Var n) '' (faShape (Program.ode (leftBlock fL) domL)
+          (Program.ode (rightBlock fR lam) domR) ψ).varsR))
+    (hb : Bridges (Equiv.refl (Var n))
+        (faShape (Program.ode (leftBlock fL) domL) (Program.ode (rightBlock fR lam) domR) ψ).varsL
+        (faShape (Program.ode (leftBlock fL) domL) (Program.ode (rightBlock fR lam) domR) ψ).varsR bs ν) :
+    RFormula.sat (faShape (Program.ode (leftBlock fL) domL)
+      (Program.ode (rightBlock fR lam) domR) ψ) bs := by
+  refine faModal_to_faShape (Equiv.refl (Var n)) (Program.ode (leftBlock fL) domL)
+    (Program.ode (rightBlock fR lam) domR) ψ ν bs hd hb ?_
+  rw [hψ]
+  exact segment_faModal g fL fR lam domL domR ν hdisj hφL hφR hcert hExist
 
 end RelCertifier

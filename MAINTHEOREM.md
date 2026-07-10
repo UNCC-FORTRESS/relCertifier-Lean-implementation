@@ -63,20 +63,35 @@ decideCovered = true → Covered → CoexecInvThroughout            [proven, Cov
   That is the separately-gated **clocked extension** (`tg↔δL↔B` correspondence pinned as the
   hidden-mismatch surface).
 
-## Remaining for the full B=1 theorem — two real constructions (each gate-first)
+## The loop layer — PROVEN (`faModal_LOCK`, was mis-scoped as a new construction)
 
-1. **Lockstep ∀∃ loop invariant** `[L*]⟨R*⟩ϕ`. No library rule (`faModal_loopStar/N` are
-   right-only; `sat_box_star_of_inv` is single-program). `seqL`/`seqR` advance the two sides
-   *separately*; coupling them into lockstep (`[L^k]⟨R^k⟩ϕ`, then star-lift) is the construction,
-   where a left/right iteration-count desync would hide. **Design the statement first.**
-2. **Reification** `SearchGraph`/`decideCovered` → concrete `L*`/`R*` programs — the deferred
-   structural bridge (the "third-instance" abstract-object surface).
+An earlier note here claimed the lockstep loop needed a new lemma. **That was wrong** — it
+missed `DLCalTiming.Commute.lean`, which already proves:
+* **`faModal_LOCK`** — the lockstep ∀∃ loop invariant `[P*]⟨Q*⟩ψ` from a per-iteration step
+  `[P]⟨Q⟩φinv` + variable-disjointness. The all-left-then-all-right ↔ interleaved commutation is
+  handled internally by `sem_commute` + `lock_acc`'s induction. Exactly the single-sync loop.
+* **`faModal_MULTI`** — the right runs *multiple* cycles per left cycle (`[P]⟨Q*⟩φinv` per step).
+  The loop-level shape of the `B>1` multi-segment case (the per-step ODE-coupling still needs the
+  clock, but the loop composition itself is available).
+
+`relational_loop` (`EncodingBridge.lean`, proven, axioms clean) wraps `faModal_LOCK` +
+`faModal_to_faShape`: given the per-iteration single-sync step + `Side.L`/`Side.R` disjointness +
+`Bridges`, it concludes `[|(leftBody*, rightBody*)⟩⟩ ψ` — **the looped relational guarantee**.
+
+## Remaining for the full B=1 theorem — two pieces
+
+1. **Discharge `hstep`** (the per-iteration single-sync step) — from `φinv`, `faModal id
+   (⨆leftModes) (⨆rightModes) φinv`, via `faModal_unionL` (left choice) + `segment_faModal` (per
+   pair) + `faModal_unionR` (right choice). Proving-through-proven-rules.
+2. **Reification** — connect `SearchGraph`/`decideCovered` to the concrete `leftBody`/`rightBody`
+   programs (the deferred structural "third-instance" bridge).
 
 ## Honest status line
 
-The two hardest junctions of the paper-∀∃ chain are mechanized and axioms-clean (the
-domain-restricted base rule and the encoding bridge), and the **atomic single-sync relational
-guarantee is proven end-to-end** (`flow-cert ⟹ paper-∀∃` for one segment pair). This is **not
-yet** "the tool's `CERTIFIED` = the paper's ∀∃ for the 21 benchmarks" — that waits on the
-lockstep loop + the reification. Stated at its true scope: the chain's endpoints and base rule
-are proven; the single-sync automaton assembly is the remaining phase.
+The two hardest junctions (domain-restricted base rule, encoding bridge), the **atomic
+single-sync relational guarantee end-to-end** (`flow-cert ⟹ paper-∀∃` for one segment pair), and
+the **loop layer** (`relational_loop` via the proven `faModal_LOCK`) are all mechanized and
+axioms-clean. This is **not yet** "the tool's `CERTIFIED` = the paper's ∀∃ for the 21 benchmarks"
+— that waits on the per-iteration `hstep` discharge (proving-through-rules) + the reification.
+Stated at true scope: the chain's endpoints, base rule, and loop layer are proven; the
+per-iteration discharge + reification are the remaining assembly.

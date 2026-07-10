@@ -78,4 +78,34 @@ theorem segment_relational {n : ℕ}
   rw [hψ]
   exact segment_faModal g fL fR lam domL domR ν hdisj hφL hφR hcert hExist
 
+/-- **Looped single-sync relational guarantee (the loop composition).** Given the per-iteration
+single-sync step (`hstep` : from a state where the invariant `ψ` holds, one `(leftBody,rightBody)`
+cycle re-establishes it — discharged per left mode by `segment_faModal` + the choice rules) and
+left/right variable disjointness (`hd`, the `Side.L`/`Side.R` independence the lockstep needs to
+commute the all-left-then-all-right ordering), the NFM'25 ∀∃ relational modality over the **looped**
+automata `[|(leftBody*, rightBody*)⟩⟩ ψ` holds at the bi-state `bs`.
+
+Composition of two proven theorems: `DLCalTiming.faModal_LOCK` (the lockstep loop invariant —
+`lock_acc` + `sem_commute` handle the commutation internally) and `faModal_to_faShape` (Step 2).
+`ρ = id`. This is the loop layer of the single-sync end-to-end chain; only the per-iteration
+`hstep` (atomic, from `segment_faModal`) and the reification of `leftBody`/`rightBody` from the
+model remain. -/
+theorem relational_loop {n : ℕ} (leftBody rightBody : Program (Var n))
+    (ψ : RFormula (Var n)) (ν : State (Var n)) (bs : BiState (Var n))
+    (hd : Disjoint (Program.vars leftBody) (Program.vars (rightBody.rename (Equiv.refl (Var n)))))
+    (hinv : Formula.sat (encode (Equiv.refl (Var n)) ψ) ν)
+    (hstep : ∀ σ, Formula.sat (encode (Equiv.refl (Var n)) ψ) σ →
+        Formula.sat (faModal (Equiv.refl (Var n)) leftBody rightBody
+          (encode (Equiv.refl (Var n)) ψ)) σ)
+    (hdd : Disjoint (faShape (Program.star leftBody) (Program.star rightBody) ψ).varsL
+        (Equiv.refl (Var n) '' (faShape (Program.star leftBody) (Program.star rightBody) ψ).varsR))
+    (hb : Bridges (Equiv.refl (Var n))
+        (faShape (Program.star leftBody) (Program.star rightBody) ψ).varsL
+        (faShape (Program.star leftBody) (Program.star rightBody) ψ).varsR bs ν) :
+    RFormula.sat (faShape (Program.star leftBody) (Program.star rightBody) ψ) bs := by
+  refine faModal_to_faShape (Equiv.refl (Var n)) (Program.star leftBody)
+    (Program.star rightBody) ψ ν bs hdd hb ?_
+  exact faModal_LOCK (Equiv.refl (Var n)) leftBody rightBody
+    (encode (Equiv.refl (Var n)) ψ) (encode (Equiv.refl (Var n)) ψ) ν hd hinv hstep (fun _ h => h)
+
 end RelCertifier

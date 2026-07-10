@@ -1032,7 +1032,43 @@ theorem asymptotic_invariance_raw {sys : ODESystem V} {r : ℝ} {Φ : ℝ → St
   intro t ht
   exact ⟨hloInv t ht, hhiInv t ht⟩
 
+/-! ## Piece 4 — lower growth bound (bounds the duration, toward the `hsmax` coupling) -/
+
+/-- **Raw-curve lower growth bound.** A coordinate whose field value stays `≥ M` along the curve
+satisfies `Φ t sx ≥ Φ 0 sx + M·t` (monotone of `t ↦ Φ t sx − M·t`). Symmetric to `growth_bound_raw`.
+Used to bound the segment **duration** from the left staying in a bounded domain: if the left's growing
+coord grows at rate `≥ v_min > 0` yet stays `≤ S_max^L`, then `s ≤ (S_max^L − s₀)/v_min` — the
+duration bound underlying the `hsmax` coupling. -/
+theorem growth_lower_bound_raw {sys : ODESystem V} {r : ℝ} {Φ : ℝ → State V} (sx : V) (M : ℝ)
+    (hcurve : IsIntegralCurveOn Φ (fun _ => odeField sys) (Set.Icc 0 r))
+    (hbound : ∀ t ∈ Set.Icc (0:ℝ) r, M ≤ odeField sys (Φ t) sx) :
+    ∀ t ∈ Set.Icc (0:ℝ) r, Φ 0 sx + M * t ≤ Φ t sx := by
+  have hsx : ∀ t ∈ Set.Icc (0:ℝ) r,
+      HasDerivWithinAt (fun u => Φ u sx - M * u) (odeField sys (Φ t) sx - M) (Set.Icc 0 r) t := by
+    intro t ht
+    have h1 : HasDerivWithinAt (fun u => Φ u sx) (odeField sys (Φ t) sx) (Set.Icc 0 r) t :=
+      (hasDerivWithinAt_pi.mp (hcurve t ht)) sx
+    have h2 : HasDerivWithinAt (fun u => M * u) M (Set.Icc 0 r) t := by
+      simpa using (hasDerivWithinAt_id t (Set.Icc 0 r)).const_mul M
+    exact h1.sub h2
+  have hcont : ContinuousOn (fun u => Φ u sx - M * u) (Set.Icc 0 r) :=
+    fun t ht => (hsx t ht).continuousWithinAt
+  have hmono : MonotoneOn (fun u => Φ u sx - M * u) (Set.Icc 0 r) := by
+    refine monotoneOn_of_deriv_nonneg (convex_Icc 0 r) hcont (fun x hx => ?_) (fun x hx => ?_)
+    · rw [interior_Icc] at hx
+      have hxIcc : x ∈ Set.Icc 0 r := Set.Ioo_subset_Icc_self hx
+      exact ((hsx x hxIcc).hasDerivAt (Icc_mem_nhds hx.1 hx.2)).differentiableAt.differentiableWithinAt
+    · rw [interior_Icc] at hx
+      have hxIcc : x ∈ Set.Icc 0 r := Set.Ioo_subset_Icc_self hx
+      rw [((hsx x hxIcc).hasDerivAt (Icc_mem_nhds hx.1 hx.2)).deriv]
+      linarith [hbound x hxIcc]
+  intro t ht
+  have := hmono ⟨le_refl 0, le_trans ht.1 ht.2⟩ ht ht.1
+  simp only [mul_zero, sub_zero] at this
+  linarith [this]
+
 end RelCertifier
+
 
 
 

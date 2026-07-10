@@ -559,7 +559,39 @@ theorem picard_to_RunFor {sys : ODESystem V} {dom : Formula V}
     fun t ht => hαderiv t ht
   exact ⟨α, hα00, hcurve, hr₀.le, α, hα00, rfl, hcurve, hdom α hα00 hcurve⟩
 
+/-- **Global Lipschitz for the affine rover field.** `v'=k(c−v)`, `s'=v` is affine, hence globally
+`max(k,1)`-Lipschitz (per-coordinate: the v-equation is `k`-Lipschitz in `v`, the s-equation is
+`1`-Lipschitz in `v`). Uniform `K` for the `IsPicardLindelof` construction — no compactness needed. -/
+theorem odeField_lipschitz_rover {sys : ODESystem V} (vi si : V) (k c : ℝ) (hk : 0 ≤ k)
+    (hfv : ∀ x : State V, odeField sys x vi = k * (c - x vi))
+    (hfs : ∀ x : State V, odeField sys x si = x vi)
+    (hother : ∀ (x : State V) i, i ≠ vi → i ≠ si → odeField sys x i = 0) :
+    LipschitzWith (Real.toNNReal (max k 1)) (odeField sys) := by
+  have hKnn : (0:ℝ) ≤ max k 1 := le_trans hk (le_max_left _ _)
+  have hcoe : ((Real.toNNReal (max k 1) : NNReal) : ℝ) = max k 1 := Real.coe_toNNReal _ hKnn
+  apply LipschitzWith.of_dist_le_mul
+  intro x y
+  rw [dist_pi_le_iff (by positivity)]
+  intro i
+  rw [hcoe]
+  have hdxy : (0:ℝ) ≤ dist x y := dist_nonneg
+  by_cases hvi : i = vi
+  · rw [hvi, hfv, hfv, Real.dist_eq]
+    have heq : k * (c - x vi) - k * (c - y vi) = k * (y vi - x vi) := by ring
+    rw [heq, abs_mul, abs_of_nonneg hk]
+    have h1 : |y vi - x vi| ≤ dist x y := by
+      rw [← Real.dist_eq, dist_comm]; exact dist_le_pi_dist x y vi
+    have h2 : k * |y vi - x vi| ≤ k * dist x y := by nlinarith [abs_nonneg (y vi - x vi)]
+    nlinarith [le_max_left k 1, mul_le_mul_of_nonneg_right (le_max_left k 1) hdxy]
+  · by_cases hsi : i = si
+    · rw [hsi, hfs, hfs, Real.dist_eq]
+      have h1 : |x vi - y vi| ≤ dist x y := by rw [← Real.dist_eq]; exact dist_le_pi_dist x y vi
+      nlinarith [mul_le_mul_of_nonneg_right (le_max_right k 1) hdxy, h1]
+    · rw [hother x i hvi hsi, hother y i hvi hsi, dist_self]
+      positivity
+
 end RelCertifier
+
 
 
 

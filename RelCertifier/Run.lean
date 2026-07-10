@@ -171,10 +171,9 @@ def z3Unsat (script : String) : IO Bool := do
 clamped to `[λmin, λmax]`. -/
 def lambdaCandidates (lmin lmax epsL epsR : ℚ) : List ℚ :=
   let cover := if epsL == 0 then lmax else epsR / epsL
-  let step := (lmax - lmin) / 4
-  -- denser deterministic grid: single-sync λ (`cover`, `λmin`) + interior + `λmax`, so
-  -- marginal invariants needing a specific stretch (e.g. rung3 needs λ≥2.16) are covered.
-  ([lmin, cover, lmin + step, lmin + 2*step, lmin + 3*step, lmax]).filterMap
+  let step := (lmax - lmin) / 20
+  -- DENSE deterministic grid (20 steps) to test whether declines are a lambda-search limit.
+  (cover :: (List.range 21).map (fun i => lmin + (i : ℚ) * step)).filterMap
     (fun l => if lmin ≤ l ∧ l ≤ lmax then some l else none) |>.eraseDups
 
 /-- Declared right successors of `qR` (mode names). -/

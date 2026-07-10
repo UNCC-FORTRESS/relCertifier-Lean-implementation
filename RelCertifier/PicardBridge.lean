@@ -351,6 +351,69 @@ theorem box_invariance_rover {sys : ODESystem V} {r : ℝ} {Φ : ℝ → State V
   intro t ht
   exact ⟨hvlo t ht, hvhi t ht, hslo t ht, hshi t ht⟩
 
+/-! ## Chaining — concatenating `sem` runs to reach the full parser duration `[0,Tᵢ]` -/
+
+/-- **Gluing (`sem`-ode transitivity).** Two consecutive `sem` runs of `ode sys dom` compose into one
+of the summed duration. Concatenate the integral curves `Φ` (on `[0,a]`) and `Ψ` (on `[0,b]`) into
+`Θ t = if t ≤ a then Φ t else Ψ (t−a)`; the junction derivative matches via `HasDerivWithinAt.union`
+(both sides evaluate the field at `ν = Φ a = Ψ 0`), interior points transfer by `nhdsWithin`
+equality. Domain holds piecewise. This is the reusable core of the chaining that reaches `[0,Tᵢ]`. -/
+theorem sem_ode_glue {sys : ODESystem V} {dom : Formula V} (hwf : sys.WellFormed)
+    {ω ν μ : State V} (h1 : Program.sem (.ode sys dom) ω ν)
+    (h2 : Program.sem (.ode sys dom) ν μ) :
+    Program.sem (.ode sys dom) ω μ := by
+  obtain ⟨a, Φ, ha, hΦ0, hΦa, hcΦ, hdΦ⟩ := (sem_ode_iff_integralCurve hwf).mp h1
+  obtain ⟨b, Ψ, hb, hΨ0, hΨb, hcΨ, hdΨ⟩ := (sem_ode_iff_integralCurve hwf).mp h2
+  set Θ : ℝ → State V := fun t => if t ≤ a then Φ t else Ψ (t - a) with hΘ
+  have hΘle : ∀ t, t ≤ a → Θ t = Φ t := fun t ht => by simp only [hΘ, if_pos ht]
+  have hΘa : Θ a = ν := by rw [hΘle a le_rfl]; exact hΦa
+  have hΘeqΨ : ∀ t, a ≤ t → Θ t = Ψ (t - a) := by
+    intro t ht
+    rcases eq_or_lt_of_le ht with rfl | hlt
+    · rw [hΘa, ← hΨ0]; simp
+    · simp only [hΘ, if_neg (not_le.mpr hlt)]
+  refine (sem_ode_iff_integralCurve hwf).mpr ⟨a + b, Θ, by linarith, ?_, ?_, ?_, ?_⟩
+  · rw [hΘle 0 ha]; exact hΦ0
+  · rw [hΘeqΨ (a + b) (by linarith)]; simpa using hΨb
+  · -- integral curve on Icc 0 (a+b)
+    intro t ht
+    have hLeft : t ≤ a → HasDerivWithinAt Θ (odeField sys (Θ t)) (Set.Icc 0 a) t := by
+      intro hta
+      have hc := (hcΦ t ⟨ht.1, hta⟩)
+      rw [hΘle t hta]
+      exact hc.congr (fun u hu => hΘle u hu.2) (hΘle t hta)
+    have hRight : a ≤ t → HasDerivWithinAt Θ (odeField sys (Θ t)) (Set.Icc a (a + b)) t := by
+      intro hat
+      have htb : t - a ∈ Set.Icc (0:ℝ) b := ⟨by linarith, by linarith [ht.2]⟩
+      have hΨt := hcΨ (t - a) htb
+      have hshift : HasDerivWithinAt (fun u : ℝ => u - a) (1 : ℝ) (Set.Icc a (a + b)) t :=
+        (hasDerivWithinAt_id t _).sub_const a
+      have hmaps : Set.MapsTo (fun u : ℝ => u - a) (Set.Icc a (a + b)) (Set.Icc 0 b) :=
+        fun u hu => ⟨by linarith [hu.1], by linarith [hu.2]⟩
+      have hcomp := HasDerivWithinAt.scomp t hΨt hshift hmaps
+      rw [one_smul] at hcomp
+      rw [hΘeqΨ t hat]
+      exact hcomp.congr (fun u hu => hΘeqΨ u hu.1) (hΘeqΨ t hat)
+    rcases le_total t a with hta | hat
+    · rcases eq_or_lt_of_le hta with rfl | hlt
+      · have hu := (hLeft le_rfl).union (hRight le_rfl)
+        rwa [Set.Icc_union_Icc_eq_Icc ha (by linarith)] at hu
+      · refine (hLeft hta).mono_of_mem_nhdsWithin ?_
+        exact mem_nhdsWithin.mpr ⟨Set.Iio a, isOpen_Iio, hlt,
+          fun u hu => ⟨hu.2.1, le_of_lt hu.1⟩⟩
+    · rcases eq_or_lt_of_le hat with rfl | hlt
+      · have hu := (hLeft le_rfl).union (hRight le_rfl)
+        rwa [Set.Icc_union_Icc_eq_Icc ha (by linarith)] at hu
+      · refine (hRight hat).mono_of_mem_nhdsWithin ?_
+        exact mem_nhdsWithin.mpr ⟨Set.Ioi a, isOpen_Ioi, hlt,
+          fun u hu => ⟨le_of_lt hu.1, hu.2.2⟩⟩
+  · -- domain holds on Icc 0 (a+b)
+    intro t ht
+    rcases le_total t a with hta | hat
+    · rw [hΘle t hta]; exact hdΦ t ⟨ht.1, hta⟩
+    · rw [hΘeqΨ t hat]; exact hdΨ (t - a) ⟨by linarith, by linarith [ht.2]⟩
+
 end RelCertifier
+
 
 

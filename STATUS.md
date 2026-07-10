@@ -237,3 +237,74 @@ core (E/F benchmarks certify).
 cover-DFS fuel explosion (in Lean, not Z3) both hung one benchmark and corrupted its
 verdict; memoizing the cover fixed it. The honest, reproducible count is 24 — the
 anti-flakiness guarantee synthesis depends on, doing its job.
+
+---
+
+# Stage 6: two soundness/fidelity fixes + CERTIFIED backed by proof (certified checker)
+
+Two bugs of the same class — a *Lean object that did not match the paper object* — caught
+and fixed, and the executable's `CERTIFIED` routed through a **verified computable checker**
+so the proofs govern the output. See `ARCHITECTURE.md`.
+
+## Fidelity bug #1 — flow domain conjoined the mode **guards** (unsound)
+
+`Run.lean`'s `segParts` conjoined mode **guards** into the flow-certificate domain. A guard is
+the *entry/transition* condition, not the throughout evolution domain, so conjoining it
+narrowed the certificate to a sliver the real flow leaves ⟹ vacuous UNSAT ⟹ **false
+CERTIFIED**. Fix: domain = **evolution domain only** (`mL.evolve ∧ mR.evolve`). 7 benchmarks
+correctly move to DECLINED (**45 → 38, now sound**); confirmed on `arm_chain` Return_R (guard
+`θ_R≥0.7` → vacuous UNSAT; evolve-only → SAT, `ġ=0.7>0`, genuinely non-inductive). Runner only;
+core axioms identical.
+
+## The certified-checker architecture (runner proposes, verified checker validates)
+
+The proofs (`cover_sound`) were real but *beside* an untrusted runner (`dfsCov3`) that
+re-implemented the cover and decided the verdict — `CERTIFIED` was **not** backed by proof
+(the guard bug lived exactly in that gap, with `#print axioms` clean the whole time).
+
+* **`Checker.lean` — `decideCovered : ℕ → Config → Bool`** (computable, no `noncomputable`, no
+  choice): re-validates a cover derivation. `decideCovered_sound : decideCovered … = true →
+  Covered`. **`check_sound`** := `cover_sound_throughout ∘ decideCovered_sound` (kernel-enforced
+  dependency) ⟹ accepting implies the semantic ∀∃-throughout invariant `CoexecInvThroughout`.
+* **`Cover/Coexec.lean`** — `cover_sound_throughout` + `sem_ode_prefix` (ODE semantics
+  prefix-closed ⟹ the endpoint quantifier *is* "throughout"): the missing time-coupled,
+  throughout ∀∃ modality dL-rel's endpoint-only `faShape` cannot express.
+* **`decideSegDomain`** (over the decidable `ℚ` IR) — the guard-bug class is a **rejection**:
+  `decideSegDomain (evolve ∧ guard) evolve = false`.
+* **Runtime (`OracleAPI.coverMode`)** — builds the `SearchGraph` from the parsed model and gates
+  `CERTIFIED` on `decideCovered`; each segment's `CoverCert` is discharged by the
+  tool-constructed **evolution-domain** Z3 query (checker-constructed, not runner-labeled).
+  `dfsCov3` no longer decides the verdict. Residual TCB: parser + Z3 `unsat`.
+
+## Fidelity bug #2 — `Covered` was missing Definition 4's base case
+
+Routing through `check_sound` first gave 31/46: 7 **single-sync** covers (one segment closes
+the whole left residence) were declined. Root cause: the mechanized `Covered`/`RightReach` did
+**not** implement Definition 4. Def 4 has a **base case** (joint certified ∧ `B ≤ w(mR)` →
+budget closed, terminate, *no* successor recursion) and a **step case**. The old relation had
+only `closed : Covered ⟨q,0⟩` (base at `B=0`) with `RightReach.jump` gated on `0 < B`, so a
+single-segment cover could not terminate at `B ≤ w` — `RightReach.evolve` (ungated) kept
+evolving into a closed-leaf successor the base case should have excluded, forcing `segPres`
+outside the residence.
+
+**Correction (Lean `Covered` = paper `Covered`) — supersedes the Stage-3 `Covered`/`RightReach`:**
+
+| piece | Definition-4 transcription |
+|---|---|
+| `Covered.base m hm (B ≤ m.weight)` | budget closed, **no** successor obligation |
+| `Covered.step m hm (m.weight < B) (∀ retained succ, covered at B−w)` | budget remains |
+| `RightReach.jump` gated `m.weight < B` | a `base` config admits no jump — right response is a prefix of the one certified segment, never entering a successor |
+| `decideCovered` | `if B ≤ m.weight then true else (retainedSucc).all (… B − m.weight)` — Def 4's two cases, literally |
+| runtime | `B = ⌈εL/δL⌉` segments (weight 1); `coverVisit` runs Def 4 to get the visited set; graph built over exactly it ⟹ a base cover ranges `CoverCert` over `{start}` only |
+
+`cover_sound` and `decideCovered_sound` re-proven on the new structure; `check_sound`
+unchanged (still `cover_sound_throughout ∘ decideCovered_sound`). Axioms:
+`propext, Classical.choice, Quot.sound` (no `sorry`, no `z3` in the checker).
+
+## Parity — every CERTIFIED backed by proof
+
+**38 CERTIFIED / 8 DECLINED / 0 ERROR across all 46** (deterministic; ~11 s). Every CERTIFIED
+= the verified `decideCovered` accepted ⟹ `check_sound` ⟹ the ∀∃-throughout invariant, each
+segment a sound-route (`_strict` / `_domain` / `_superlevel`) evolution-domain UNSAT. The 7
+single-sync covers recover via the base case; the 8 DECLINED are genuine (sound one-sided —
+budget-aware reachability out of scope). No false CERTIFIED; `dfsCov3` outside the TCB.

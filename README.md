@@ -64,7 +64,7 @@ conflated** outcomes — the honesty boundary a search depends on:
 
 | outcome | meaning | synthesis reads it as |
 |---|---|---|
-| `CERTIFIED` | verified core produced UNSAT via a sound route | a real, sound YES |
+| `CERTIFIED` | the **verified** `decideCovered` accepted the cover (⟹ `check_sound` ⟹ the ∀∃-throughout invariant), every segment discharged by a sound-route UNSAT | a real, sound YES |
 | `DECLINED` | all queries definitive `sat`/`unsat`, no cover closes | a real, sound NO |
 | `ERROR msg` | any harness/solver/env failure (missing Z3, crash, malformed, `unknown`/timeout, unlowerable) | retry / abort — never learn from it |
 
@@ -110,6 +110,19 @@ throughout the segment), never the mode *guard*; certificates are `flow_cert_sou
 `_strict` / `_superlevel` composed by `cover_sound`. Python VERIFIES all 46 via its
 boundary-only criterion, so Lean ⊆ Python.
 
+> **CERTIFIED is backed by proof (certified-checker architecture — see `ARCHITECTURE.md`).**
+> The untrusted `dfsCov3` search does **not** decide the verdict. `coverMode` builds the abstract
+> `SearchGraph` from the parsed model and gates `CERTIFIED` on the **verified computable
+> `decideCovered`** — a direct transcription of the paper's **Definition 4** (`base`:
+> `B ≤ w(mR)` → budget closed, terminate; `step`: every retained successor covers at `B−w`).
+> `decideCovered = true` ⟹ `Covered` (`decideCovered_sound`) ⟹, with the evolution-domain flow
+> certs as `CoverCert`, the ∀∃-throughout invariant (`check_sound`, citing `cover_sound`). A
+> search/runner bug can only make it **reject** — never a false `CERTIFIED`. Residual TCB: the
+> parser and the single Z3 `unsat` leaf. Two fidelity bugs of the *Lean-object-≠-paper-object*
+> class were caught and fixed: the flow-domain **guard-narrowing** (below), and `Covered`
+> **missing Definition 4's base case** (single-segment covers could not terminate, spuriously
+> forcing closed-leaf certification — corrected by the `base`/`step` split above).
+>
 > **Soundness fix (this revision — a real bug caught).** An earlier version conjoined the
 > mode **guards** into the flow-certificate domain (to make some benchmarks certify). That
 > was **unsound**: a guard is the *entry/transition* condition, not the throughout-domain, so

@@ -626,7 +626,117 @@ theorem odeField_bound_rover {sys : ODESystem V} (vi si : V) (k c vmax a : ℝ)
     · rw [hsi, hfs]; exact le_trans hxvbound (le_max_right _ _)
     · rw [hother x i hvi hsi, abs_zero]; exact hRnn
 
+/-- **`IsPicardLindelof` for the rover field.** Assembles the uniform constants (`K = max(k,1)` from
+`odeField_lipschitz_rover`, `L` from `odeField_bound_rover`) into Mathlib's Picard data over `[0,r₀]`,
+under the Z3-checkable step condition `L·r₀ ≤ a`. Uniform over all `ν` with `ν vi ∈ [0,v_max]`. -/
+theorem rover_isPicardLindelof {sys : ODESystem V} (vi si : V) (k c vmax a : ℝ)
+    (hfv : ∀ x : State V, odeField sys x vi = k * (c - x vi))
+    (hfs : ∀ x : State V, odeField sys x si = x vi)
+    (hother : ∀ (x : State V) i, i ≠ vi → i ≠ si → odeField sys x i = 0)
+    (hk : 0 ≤ k) (ha : 0 ≤ a) (hvmax : 0 ≤ vmax)
+    (ν : State V) (hν0 : 0 ≤ ν vi) (hνv : ν vi ≤ vmax)
+    (r₀ : ℝ) (hr₀ : 0 < r₀)
+    (hr₀le : max (k * (|c| + vmax + a)) (vmax + a) * r₀ ≤ a) :
+    IsPicardLindelof (fun _ : ℝ => odeField sys) (tmin := 0) (tmax := r₀)
+      ⟨0, Set.left_mem_Icc.mpr hr₀.le⟩ ν (Real.toNNReal a) 0
+      (Real.toNNReal (max (k * (|c| + vmax + a)) (vmax + a))) (Real.toNNReal (max k 1)) := by
+  have hLnn : (0:ℝ) ≤ max (k * (|c| + vmax + a)) (vmax + a) :=
+    le_trans (by positivity) (le_max_right _ _)
+  have hacoe : ((Real.toNNReal a : NNReal) : ℝ) = a := Real.coe_toNNReal a ha
+  have hLcoe : ((Real.toNNReal (max (k * (|c| + vmax + a)) (vmax + a)) : NNReal) : ℝ)
+      = max (k * (|c| + vmax + a)) (vmax + a) := Real.coe_toNNReal _ hLnn
+  refine ⟨fun t _ => ?_, fun x _ => continuousOn_const, fun t _ x hx => ?_, ?_⟩
+  · exact (odeField_lipschitz_rover vi si k c hk hfv hfs hother).lipschitzOnWith
+  · rw [hLcoe]
+    have hxb : x ∈ Metric.closedBall ν a := by
+      rw [Metric.mem_closedBall] at hx ⊢; rwa [hacoe] at hx
+    exact odeField_bound_rover vi si k c vmax a hfv hfs hother hk ha hvmax ν hν0 hνv x hxb
+  · have hval : ((⟨0, Set.left_mem_Icc.mpr hr₀.le⟩ : Set.Icc (0:ℝ) r₀) : ℝ) = 0 := rfl
+    rw [hLcoe, hacoe, hval]
+    simp only [sub_zero, NNReal.coe_zero]
+    rwa [max_eq_left hr₀.le]
+
+/-- **Slab invariance (the step-invariant faces).** Like `box_invariance_rover` but only the three
+faces preserved by every step: `v ∈ [0,v_max]` (strict inflow) and `s ≥ 0` (s increasing). Omits the
+`s ≤ S_max` upper face (not step-invariant — added post-hoc on the full `[0,Tᵢ]` curve via
+`growth_bound_raw`). This is the domain `chainN` carries. -/
+theorem slab_invariance_rover {sys : ODESystem V} {r : ℝ} {Φ : ℝ → State V}
+    (hwf : sys.WellFormed) (vi si : V) (k c vmax : ℝ)
+    (hcurve : IsIntegralCurveOn Φ (fun _ => odeField sys) (Set.Icc 0 r))
+    (hfv : ∀ x : State V, odeField sys x vi = k * (c - x vi))
+    (hfs : ∀ x : State V, odeField sys x si = x vi)
+    (hk : 0 < k) (hc0 : 0 < c) (hcv : c < vmax)
+    (hv0lo : 0 ≤ Φ 0 vi) (hv0hi : Φ 0 vi ≤ vmax) (hs0lo : 0 ≤ Φ 0 si) :
+    ∀ t ∈ Set.Icc (0:ℝ) r, 0 ≤ Φ t vi ∧ Φ t vi ≤ vmax ∧ 0 ≤ Φ t si := by
+  have hvhi : ∀ t ∈ Set.Icc (0:ℝ) r, Φ t vi ≤ vmax := by
+    have hmain := strict_invariance_raw (g := fun y => y vi - vmax) hwf (by fun_prop)
+      (hbnd := ?_) hcurve (by simpa using hv0hi)
+    · intro t ht; simpa using hmain t ht
+    · intro x hx0
+      have hxv : x vi = vmax := by linarith [hx0]
+      have hlie : Lie sys (fun y => y vi - vmax) x = odeField sys x vi := by
+        have heq : (fun y : State V => y vi - vmax) = (fun y => (1:ℝ) * y vi + (-vmax)) := by
+          funext y; ring
+        rw [heq]; simpa using lie_affine_coord sys hwf vi 1 (-vmax) x
+      rw [hlie, hfv x, hxv]; nlinarith [hk, hcv]
+  have hvlo : ∀ t ∈ Set.Icc (0:ℝ) r, 0 ≤ Φ t vi := by
+    have hmain := strict_invariance_raw (g := fun y => -(y vi)) hwf (by fun_prop)
+      (hbnd := ?_) hcurve (by simpa using hv0lo)
+    · intro t ht; have h := hmain t ht; simpa using h
+    · intro x hx0
+      have hxv : x vi = 0 := by simpa using hx0
+      have hlie : Lie sys (fun y => -(y vi)) x = - odeField sys x vi := by
+        have heq : (fun y : State V => -(y vi)) = (fun y => (-1:ℝ) * y vi + 0) := by
+          funext y; ring
+        rw [heq]; simpa using lie_affine_coord sys hwf vi (-1) 0 x
+      rw [hlie, hfv x, hxv]; nlinarith [hk, hc0]
+  have hslo : ∀ t ∈ Set.Icc (0:ℝ) r, 0 ≤ Φ t si := by
+    have := nonstrict_antitone_raw (g := fun y => -(y si)) hwf (by fun_prop) hcurve
+      (fun t ht => by
+        have hlie : Lie sys (fun y => -(y si)) (Φ t) = - odeField sys (Φ t) si := by
+          have heq : (fun y : State V => -(y si)) = (fun y => (-1:ℝ) * y si + 0) := by
+            funext y; ring
+          rw [heq]; simpa using lie_affine_coord sys hwf si (-1) 0 (Φ t)
+        rw [hlie, hfs (Φ t)]; simpa using hvlo t ht)
+    intro t ht
+    have h2 : -(Φ t si) ≤ -(Φ 0 si) := by simpa using this t ht
+    linarith [h2, hs0lo]
+  intro t ht
+  exact ⟨hvlo t ht, hvhi t ht, hslo t ht⟩
+
+/-- **`hstep` for the rover shape.** From any slab-point `ν` (`ν vi ∈ [0,v_max]`, `ν si ≥ 0`), a
+length-`r₀` `RunFor` run lands at another slab-point. Combines `rover_isPicardLindelof` (existence) +
+`picard_to_RunFor` (curve) + `slab_invariance_rover` (stays in slab → endpoint in slab, domain via
+`hdomsat`). This is the uniform-step lemma `chainN` consumes; with it, `chainN` reaches any `[0,Tᵢ]`. -/
+theorem hstep_rover {sys : ODESystem V} {dom : Formula V} (hwf : sys.WellFormed)
+    (vi si : V) (k c vmax a : ℝ)
+    (hfv : ∀ x : State V, odeField sys x vi = k * (c - x vi))
+    (hfs : ∀ x : State V, odeField sys x si = x vi)
+    (hother : ∀ (x : State V) i, i ≠ vi → i ≠ si → odeField sys x i = 0)
+    (hk : 0 < k) (hc0 : 0 < c) (hcv : c < vmax) (ha : 0 < a)
+    (hdomsat : ∀ x : State V, 0 ≤ x vi → x vi ≤ vmax → 0 ≤ x si → Formula.sat dom x)
+    (r₀ : ℝ) (hr₀ : 0 < r₀)
+    (hr₀le : max (k * (|c| + vmax + a)) (vmax + a) * r₀ ≤ a) :
+    ∀ ν : State V, (0 ≤ ν vi ∧ ν vi ≤ vmax ∧ 0 ≤ ν si) →
+      ∃ ν', (0 ≤ ν' vi ∧ ν' vi ≤ vmax ∧ 0 ≤ ν' si) ∧ RunFor sys dom r₀ ν ν' := by
+  rintro ν ⟨hv0, hvv, hs0⟩
+  have hpl := rover_isPicardLindelof vi si k c vmax a hfv hfs hother (le_of_lt hk) (le_of_lt ha)
+    (le_of_lt (lt_trans hc0 hcv)) ν hv0 hvv r₀ hr₀ hr₀le
+  have hdom : ∀ Φ : ℝ → State V, Φ 0 = ν →
+      IsIntegralCurveOn Φ (fun _ => odeField sys) (Set.Icc 0 r₀) →
+      ∀ t ∈ Set.Icc (0:ℝ) r₀, Formula.sat dom (Φ t) := by
+    intro Φ hΦ0 hcurve t ht
+    have hslab := slab_invariance_rover hwf vi si k c vmax hcurve hfv hfs hk hc0 hcv
+      (by rw [hΦ0]; exact hv0) (by rw [hΦ0]; exact hvv) (by rw [hΦ0]; exact hs0) t ht
+    exact hdomsat (Φ t) hslab.1 hslab.2.1 hslab.2.2
+  obtain ⟨Φ, hΦ0, hcurve, hrun⟩ := picard_to_RunFor ν hr₀ hpl hdom
+  have hslab := slab_invariance_rover hwf vi si k c vmax hcurve hfv hfs hk hc0 hcv
+    (by rw [hΦ0]; exact hv0) (by rw [hΦ0]; exact hvv) (by rw [hΦ0]; exact hs0) r₀
+    (Set.right_mem_Icc.mpr hr₀.le)
+  exact ⟨Φ r₀, hslab, hrun⟩
+
 end RelCertifier
+
 
 
 

@@ -1347,7 +1347,93 @@ theorem slab_invariance_cubic {sys : ODESystem V} {r : ℝ} {Φ : ℝ → State 
   intro t ht
   exact ⟨⟨(hvinv t ht).1, (hvinv t ht).2⟩, ⟨(hpsiinv t ht).1, (hpsiinv t ht).2⟩, hsinv t ht⟩
 
+/-- **hExist_cubic capstone.** Threads the proven pieces into the `∃ΦR` shape for the cubic (nonlinear-R,
+`s`-independent) fields: existence via `hstep_slab_lipschitz` (K/L discharged by the establishment
+`odeField_slab_lipschitz`/`_bound` from `odeField_sindep`), chaining via `chainN` (unchanged),
+invariance via `asymptotic_invariance_raw` (v,ψ) + `nonstrict_antitone_raw`/`growth_bound_raw` on the
+Z3 field-value bounds (`hsge_box`,`hsle_box`), packaging via `RunFor_unpack`. Same assembly as
+`hExist_multi`, only the existence route differs. The Z3 box conditions `hsge_box`/`hsle_box` are the
+factor bounds (`odeField si = v·factor ∈ [0,v_max]`, factor∈[0.6,1] verified) — in the Z3 boundary,
+not analytic carried hypotheses. -/
+theorem hExist_cubic {sys : ODESystem V} {domR : Formula V} (hwf : sys.WellFormed)
+    (vi psii si : V) (k c vmax lo hi smax : ℝ)
+    (hfv : ∀ x : State V, odeField sys x vi = k * (c - x vi))
+    (hfpsi : ∀ x : State V, odeField sys x psii = 1 * (0 - x psii))
+    (hsge_box : ∀ x : State V, (0 ≤ x vi ∧ x vi ≤ vmax ∧ lo ≤ x psii ∧ x psii ≤ hi) →
+        0 ≤ odeField sys x si)
+    (hsle_box : ∀ x : State V, (0 ≤ x vi ∧ x vi ≤ vmax ∧ lo ≤ x psii ∧ x psii ≤ hi) →
+        odeField sys x si ≤ vmax)
+    (hk : 0 < k) (hc0 : 0 < c) (hcv : c < vmax) (hlo : lo < 0) (hhi : 0 < hi)
+    -- establishment (K/L proven uniform via s-independence + cross-section):
+    (K L : NNReal) (c₀ : State V) (R a : ℝ) (ha : 0 < a)
+    (hsindep : ∀ x : State V, odeField sys x = odeField sys (Function.update x si 0))
+    (hKcross : LipschitzOnWith K (odeField sys) (Metric.closedBall c₀ R))
+    (hLcross : ∀ x ∈ Metric.closedBall c₀ R, ‖odeField sys x‖ ≤ (L : ℝ))
+    (hsub : ∀ ν : State V, (0 ≤ ν vi ∧ ν vi ≤ vmax ∧ lo ≤ ν psii ∧ ν psii ≤ hi ∧ 0 ≤ ν si) →
+        Metric.closedBall (Function.update ν si 0) a ⊆ Metric.closedBall c₀ R)
+    (r₀ : ℝ) (hr₀ : 0 < r₀) (hr₀le : (L : ℝ) * r₀ ≤ a)
+    (hdomsat : ∀ x : State V,
+        (0 ≤ x vi ∧ x vi ≤ vmax ∧ lo ≤ x psii ∧ x psii ≤ hi ∧ 0 ≤ x si ∧ x si ≤ smax) →
+        Formula.sat domR x)
+    (ω : State V) (hωv0 : 0 ≤ ω vi) (hωvv : ω vi ≤ vmax) (hωpl : lo ≤ ω psii) (hωph : ω psii ≤ hi)
+    (hωs0 : 0 ≤ ω si)
+    (s : ℝ) (hs0 : 0 ≤ s) (hZ3 : ω si + vmax * s ≤ smax) :
+    ∃ ΦR : ℝ → State V, ΦR 0 = ω ∧
+      (∀ t ∈ Set.Icc (0:ℝ) s, ∀ p ∈ sys,
+          HasDerivWithinAt (fun u => ΦR u p.1) (p.2.eval (ΦR t)) (Set.Icc 0 s) t) ∧
+      (∀ t ∈ Set.Icc (0:ℝ) s, ∀ x, x ∉ sys.bound → ΦR t x = ω x) ∧
+      (∀ t ∈ Set.Icc (0:ℝ) s, Formula.sat domR (ΦR t)) := by
+  set P : State V → Prop :=
+    fun ν => 0 ≤ ν vi ∧ ν vi ≤ vmax ∧ lo ≤ ν psii ∧ ν psii ≤ hi ∧ 0 ≤ ν si with hPdef
+  -- slab invariance for any curve from a P-start (derives s≥0 from the Z3 box bound + v,ψ bounds)
+  have hslab : ∀ (Φ : ℝ → State V) (r : ℝ), Φ 0 ∈ setOf P →
+      IsIntegralCurveOn Φ (fun _ => odeField sys) (Set.Icc 0 r) →
+      ∀ t ∈ Set.Icc (0:ℝ) r, P (Φ t) := by
+    intro Φ r hΦ0 hcurve
+    obtain ⟨hv0l, hv0h, hp0l, hp0h, hs0l⟩ := hΦ0
+    have hvinv := asymptotic_invariance_raw hwf vi k c 0 vmax hcurve hfv hk hc0 hcv hv0l hv0h
+    have hpinv := asymptotic_invariance_raw hwf psii 1 0 lo hi hcurve hfpsi one_pos hlo hhi hp0l hp0h
+    have hsge_c : ∀ t ∈ Set.Icc (0:ℝ) r, 0 ≤ odeField sys (Φ t) si :=
+      fun t ht => hsge_box (Φ t) ⟨(hvinv t ht).1, (hvinv t ht).2, (hpinv t ht).1, (hpinv t ht).2⟩
+    have hsc := slab_invariance_cubic hwf vi psii si k c vmax lo hi hcurve hfv hfpsi hsge_c
+      hk hc0 hcv hlo hhi hv0l hv0h hp0l hp0h hs0l
+    intro t ht
+    exact ⟨(hsc t ht).1.1, (hsc t ht).1.2, (hsc t ht).2.1.1, (hsc t ht).2.1.2, (hsc t ht).2.2⟩
+  -- chainN via the slab-Lipschitz step (K/L discharged)
+  have hstep : ∀ ν, P ν → ∃ ν', P ν' ∧ RunFor sys Formula.tt r₀ ν ν' := by
+    apply hstep_slab_lipschitz K L a ha r₀ hr₀ hr₀le P
+      (fun ν hν => odeField_slab_lipschitz si K c₀ R a hsindep hKcross (hsub ν hν))
+      (fun ν hν => odeField_slab_bound si L c₀ R a hsindep hLcross (hsub ν hν))
+    intro Φ ν hν hΦ0 hcurve t ht
+    exact ⟨hslab Φ r₀ (by rw [Set.mem_setOf_eq, hΦ0]; exact hν) hcurve t ht, trivial⟩
+  set n : ℕ := Nat.ceil (s / r₀) with hn
+  have hsn : s ≤ (n : ℝ) * r₀ := by
+    rw [hn]
+    calc s = s / r₀ * r₀ := (div_mul_cancel₀ s (ne_of_gt hr₀)).symm
+      _ ≤ (Nat.ceil (s / r₀) : ℝ) * r₀ := mul_le_mul_of_nonneg_right (Nat.le_ceil _) (le_of_lt hr₀)
+  obtain ⟨ν', hrun⟩ := chainN hr₀ P hstep (fun _ _ => trivial) n s hs0 hsn ω
+    ⟨hωv0, hωvv, hωpl, hωph, hωs0⟩
+  obtain ⟨hs_, Φ, hΦ0, hΦs, hcurve, _⟩ := hrun
+  -- geometric bounds on the full curve + s ≤ smax via growth bound
+  have hPcurve : ∀ t ∈ Set.Icc (0:ℝ) s, P (Φ t) :=
+    hslab Φ s (by rw [Set.mem_setOf_eq, hΦ0]; exact ⟨hωv0, hωvv, hωpl, hωph, hωs0⟩) hcurve
+  have hgrow := growth_bound_raw (sys := sys) si vmax hcurve
+    (fun t ht => hsle_box (Φ t) ⟨(hPcurve t ht).1, (hPcurve t ht).2.1,
+      (hPcurve t ht).2.2.1, (hPcurve t ht).2.2.2.1⟩)
+  have hshi : ∀ t ∈ Set.Icc (0:ℝ) s, Φ t si ≤ smax := by
+    intro t ht
+    have h1 := hgrow t ht
+    have h2 : vmax * t ≤ vmax * s :=
+      mul_le_mul_of_nonneg_left ht.2 (le_of_lt (lt_trans hc0 hcv))
+    rw [hΦ0] at h1; linarith [h1, h2, hZ3]
+  have hrunR : RunFor sys domR s ω ν' :=
+    ⟨hs_, Φ, hΦ0, hΦs, hcurve, fun t ht => hdomsat (Φ t)
+      ⟨(hPcurve t ht).1, (hPcurve t ht).2.1, (hPcurve t ht).2.2.1, (hPcurve t ht).2.2.2.1,
+       (hPcurve t ht).2.2.2.2, hshi t ht⟩⟩
+  exact RunFor_unpack hwf hrunR
+
 end RelCertifier
+
 
 
 

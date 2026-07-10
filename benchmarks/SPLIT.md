@@ -6,6 +6,33 @@ Loaded from `relCertifier-src/relCertifier.v1/examples/` — **46 benchmarks** (
 `[relational_invariant]` section** (restated/strengthened for Lean certification — per-benchmark
 work, separate from the field-shape classification below, which uses the ODEs only).
 
+## RESOLVED — two metrics, both correct (adjudicated by inspection)
+
+Python (degree over the **whole system**, L+R) and the Lean-side classifier (degree over **R only**)
+disagreed by 7. Resolved: they measure different things, both right.
+
+| metric | nonlinear count | breakdown |
+|---|---|---|
+| **whole-system** max degree (L,R) | **20** | 2 const + 24 linear + 1 quadratic (`rover_drag`) + 19 cubic |
+| **R-only** degree (what `hExist`/`picard_isPL_of` sees) | **13** | 10 const + 23 linear + 1 quad + 12 cubic |
+
+**The 7-benchmark gap = cubic-L, affine-R** (eyeball-confirmed): `refinement_ladder_rover_rung1_2to3`,
+`rung2_6dof`, `rung2b_6dof`, `rover_dof_terrain_rung1`, `rung2`, `rung3`, `rung3_8d`. Each: L (deployed)
+`s'=v(1−0.5ψ²−…)` CUBIC; R (reasoning, lifted) `s'=v` AFFINE.
+
+**Adjudication for build order**: `hExist` constructs the **right** witness ⟹ the **R-field** is the
+metric governing `picard_isPL_of` soundness. For these 7, R is genuinely affine ⟹ `picard_isPL_of`
+(global Lipschitz) is **SOUND**. The left being cubic is irrelevant to right-witness existence (the
+left run is *given* to `hExist`, not constructed); the cubic L enters only the joint flow-cert Lie,
+handled by **Z3-NRA** (nonlinear-polynomial), not by `picard_isPL_of`. So **no mis-discharge**: the
+degree that governs picard soundness (R) is confirmed affine for the 7.
+
+**Net for the existence lemma**: the compactness-subcover uniform-`r₀` lemma is needed by the
+**13 nonlinear-R** benchmarks (`rover_drag` + the 12 cubic-R: `rung2_3to6`, `rung2c_6dof`,
+`rung3_6to8`, `rung4_8to12`, `rover_attitude_cone_12dof`, `story1_a/b`, `story2_a/b`,
+`story3_base/a/b`). `picard_isPL_of` is sound for the 33 affine-R (including the 7 cubic-L). Neither 0
+nor 20 — **13**.
+
 ## ⚠️ CORRECTION — earlier "0 nonlinear" was a FALSE NEGATIVE
 
 An earlier grep-based classifier missed **nested** products (`(* psi psi)` doubly-nested inside

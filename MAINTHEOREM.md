@@ -198,3 +198,64 @@ clock-free** (Gate 0 + `multiseg` + the proven loop/couplings/encoding), **one a
 (`ode` self-concatenation) from closing → all 38, including the non-trivial multi-segment
 witnesses. This is **not** "the tool is verified" — it is **21/38 verified end-to-end now, the
 other 17 one bounded ODE lemma away**, parser + Z3 trusted.
+
+---
+
+# hExist DISCHARGED — the Picard bridge (final state)
+
+The CSF duration-existence side-condition `hExist` — the existential witness of the ∀∃ relational
+modality — is no longer **carried**. It is **discharged** by explicit witness construction, for the
+`{asymptotic-v, growing-s}` affine field shape at any dof. All lemmas: axioms `propext,
+Classical.choice, Quot.sound` (standard three) — **no new axiom, no subtangency, no clock, no
+`sem`-gating**.
+
+## The discharge pipeline (`RelCertifier/PicardBridge.lean`)
+
+**Existence (Mathlib Picard → dL-lean `sem`).**
+- `term_contDiff`, `odeField_contDiff` — the polynomial field is `ContDiff ⊤` (strengthens the proven
+  `term_differentiable`).
+- `odeField_lipschitzOnWith` — Lipschitz-on-compact (fderiv continuous → bounded on the ball).
+- `sem_of_integralCurveOn` — **the reification seam**: a Mathlib integral curve *is* a dL-lean `sem`
+  run (via the proven `sem_ode_iff_integralCurve`). No abstract-vs-concrete gap.
+- `sem_ode_exists_local` — local existence from the C¹ theorem.
+- `picard_isPL_of` — **field-agnostic** `IsPicardLindelof` from global Lipschitz `K` + ball-bound `L`;
+  `odeField_lipschitz_rover`/`odeField_bound_rover` (affine, rover) and
+  `odeField_lipschitz_of_perCoord`/`odeField_bound_of_perCoord` (per-coordinate reduction) supply them.
+
+**Invariance — un-gated raw-curve positive invariance (the piece dL-lean left `sem`-gated, DI.lean:163–166).**
+- `strict_invariance_raw` — `DI_strict`'s first-exit (`sSup`) for a *raw* curve, global strict inflow
+  (sound — avoids the `nonstrict_boundary_insufficient` t² trap).
+- `nonstrict_antitone_raw` — `DI_nonstrict`'s antitone body, along-curve `Lie ≤ 0`.
+- `growth_bound_raw` / `growth_lower_bound_raw` — clock-free growing-coord bounds `s₀+M·t` (both signs).
+- `asymptotic_invariance_raw` — general-box asymptotic coord (`lo<c<hi`, strict both faces) — covers
+  the rover v-coord *and* attitude `ψ'=−ψ`.
+- `box_invariance_rover`/`slab_invariance_rover` (n=2) and `box_invariance_multi`/`slab_invariance_multi`
+  (higher-dof, **product of independent per-coordinate faces**).
+
+**Chaining to the full parser duration `[0,Tᵢ]`.**
+- `sem_ode_glue` — concatenate `sem` runs (junction via `HasDerivWithinAt.union`).
+- `RunFor` + `toSem`/`zero`/`shorten`/`glue` — duration-explicit run algebra.
+- `chainN` — **termination**: uniform step `r₀` ⟹ `⌈Tᵢ/r₀⌉` finite steps cover `[0,Tᵢ]` (not a shrinking ε).
+- `hstep_rover` / `hstep_multi` — the uniform step (`picard_isPL_of` + slab invariance).
+
+**Packaging + relational wiring.**
+- `RunFor_unpack` — a `RunFor` → the `segment_faModal` hExist conclusion shape (masking mirrors
+  `sem_ode_iff_integralCurve`).
+- `hExist_rover` / `hExist_multi` — full witness for n=2 / higher-dof.
+- `hExist_from_rover` (`RelCertifier/HExistDischarge.lean`) — threads it into `segment_faModal`'s hExist,
+  via the **cross-side masking seam**: `Rv_not_mem_leftBlock_bound` (`Side.R≠Side.L`) ⟹ the left run
+  freezes the right's coords ⟹ right starts in-slab. Both halves proven.
+- `left_duration_bound` — bounds the segment duration from the left staying in `domL` (the `hsmax`
+  coupling core).
+
+## Coverage
+- **Discharged**: `{asymptotic-v, growing-s}` affine shape — n=2 (`hExist_from_rover`) and higher-dof
+  (`hExist_multi`). Attitude asymptotic coords via `asymptotic_invariance_raw`.
+- **Residual (mechanical, no analytic content)**: (1) per-benchmark instantiation — supply
+  `hfv`/`hfs`/`K`/`L`/params from the parser; (2) the `hsmax` Z3 domain-relation arithmetic wired onto
+  `left_duration_bound`; (3) nonlinear (non-affine) fields need the compactness-subcover uniform `r₀`
+  (the `picard_isPL_of` route needs global Lipschitz, which affine gives but nonlinear does not).
+
+## TCB (unchanged)
+Z3 (`z3_unsat_sound`, IO boundary) + parser + model-faithfulness (successor-completeness). **No new
+axiom** anywhere in the discharge.

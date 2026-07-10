@@ -248,13 +248,31 @@ Classical.choice, Quot.sound` (standard three) — **no new axiom, no subtangenc
 - `left_duration_bound` — bounds the segment duration from the left staying in `domL` (the `hsmax`
   coupling core).
 
-## Coverage
-- **Discharged**: `{asymptotic-v, growing-s}` affine shape — n=2 (`hExist_from_rover`) and higher-dof
-  (`hExist_multi`). Attitude asymptotic coords via `asymptotic_invariance_raw`.
-- **Residual (mechanical, no analytic content)**: (1) per-benchmark instantiation — supply
-  `hfv`/`hfs`/`K`/`L`/params from the parser; (2) the `hsmax` Z3 domain-relation arithmetic wired onto
-  `left_duration_bound`; (3) nonlinear (non-affine) fields need the compactness-subcover uniform `r₀`
-  (the `picard_isPL_of` route needs global Lipschitz, which affine gives but nonlinear does not).
+## Coverage — the mechanized set (`benchmarks/restated/`, 4 benchmarks; all AFFINE)
+
+| benchmark | R-field | shape | status |
+|---|---|---|---|
+| `rover_terrain_M1`        | `v'=2(0.4−v), s'=v`                        | rover (asymptotic-v + growing-s) | **discharged** |
+| `endurance_gain_M1`       | `v'=2(0.3−v), s'=v`                        | rover                            | **discharged** |
+| `endurance_orderlift_1to2`| `v'=3(0.3−v), s'=v, a'=0`                  | rover + const coord              | **discharged** (a'=0 trivial) |
+| `endurance_orderlift_2to3`| `v'=a, s'=v, a'=4.8−16v−8a, j'=0`          | higher-order affine (coupled v–a)| **pending** (Lyapunov face) |
+
+**Discharged now: 3/4** — the `{asymptotic-v, growing-s}` shape, any dof (`hExist_rover`, `hExist_multi`).
+
+**Three distinct residual classes (correctly separated):**
+1. **Mechanical** (no analytic content) — for the 3 discharged benchmarks: per-benchmark instantiation
+   (supply `hfv`/`hfs`/`K`/`L`/params from the parser) + the `hsmax` Z3 domain-relation arithmetic wired
+   onto `left_duration_bound`.
+2. **One coupled-affine (Lyapunov) face lemma** — `endurance_orderlift_2to3` is affine (so global
+   Lipschitz ⟹ existence/chaining/packaging already work) but *higher-order*: `v'=a`, so the v-face Lie
+   `=a` is unsigned and single-coordinate strict inflow fails. Its invariance is the coupled `(v,a)`
+   linear subsystem's stability — a Lyapunov/change-of-basis face, genuinely analytic, bounded, standard.
+3. **Nonlinear compactness-subcover uniform `r₀`** — a real analytic gap *in general* (only locally
+   Lipschitz ⟹ finite cover of compact `domR`, `min r₀`), but **exercised by 0/4** of the mechanized
+   benchmarks (all affine). Applies only to the paper's non-affine tail, not mechanized here.
+
+The invariance/chaining/packaging pipeline is field-general; residual 2 changes only the face lemma,
+residual 3 changes only `picard_isPL_of`'s global-`K` input.
 
 ## TCB (unchanged)
 Z3 (`z3_unsat_sound`, IO boundary) + parser + model-faithfulness (successor-completeness). **No new

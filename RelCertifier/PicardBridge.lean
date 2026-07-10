@@ -212,5 +212,145 @@ theorem strict_invariance_raw {sys : ODESystem V} {g : State V → ℝ}
   exact strict_inv_endpoint hwf hg hbnd ht.1 hsub hinit
 
 
+/-- **Raw-curve non-strict antitone invariance (un-gated).** If `Lie g ≤ 0` holds *along the curve*
+(at every visited point), `g∘Φ` is non-increasing: `g (Φ t) ≤ g (Φ 0)`. This is `DI_nonstrict_domain`'s
+`AntitoneOn` body, un-gated — sound because the hypothesis is `Lie ≤ 0` **along the curve**, not the
+unsound boundary-only check (`nonstrict_boundary_insufficient`). The along-curve premise is supplied
+by another invariant (e.g. the v-bound feeds the s growth-bound). -/
+theorem nonstrict_antitone_raw {sys : ODESystem V} {g : State V → ℝ}
+    (hwf : sys.WellFormed) (hg : Differentiable ℝ g)
+    {r : ℝ} {Φ : ℝ → State V}
+    (hcurve : IsIntegralCurveOn Φ (fun _ => odeField sys) (Set.Icc 0 r))
+    (hlie : ∀ t ∈ Set.Icc (0:ℝ) r, Lie sys g (Φ t) ≤ 0) :
+    ∀ t ∈ Set.Icc (0:ℝ) r, g (Φ t) ≤ g (Φ 0) := by
+  have hderiv : ∀ t ∈ Set.Icc (0:ℝ) r,
+      HasDerivWithinAt (fun s => g (Φ s)) (Lie sys g (Φ t)) (Set.Icc 0 r) t :=
+    fun t ht => hasDeriv_g_along_flow hwf hg hcurve ht
+  have hcont : ContinuousOn (fun s => g (Φ s)) (Set.Icc 0 r) :=
+    fun t ht => (hderiv t ht).continuousWithinAt
+  have hanti : AntitoneOn (fun s => g (Φ s)) (Set.Icc 0 r) := by
+    refine antitoneOn_of_deriv_nonpos (convex_Icc 0 r) hcont (fun x hx => ?_) (fun x hx => ?_)
+    · rw [interior_Icc] at hx
+      have hxIcc : x ∈ Set.Icc 0 r := Set.Ioo_subset_Icc_self hx
+      exact ((hderiv x hxIcc).hasDerivAt
+        (Icc_mem_nhds hx.1 hx.2)).differentiableAt.differentiableWithinAt
+    · rw [interior_Icc] at hx
+      have hxIcc : x ∈ Set.Icc 0 r := Set.Ioo_subset_Icc_self hx
+      rw [((hderiv x hxIcc).hasDerivAt (Icc_mem_nhds hx.1 hx.2)).deriv]
+      exact hlie x hxIcc
+  intro t ht
+  exact hanti ⟨le_refl 0, le_trans ht.1 ht.2⟩ ht ht.1
+
+/-- **Raw-curve linear growth bound (un-gated, clock-free).** A coordinate `sx` whose field value
+stays `≤ M` along the curve satisfies the loose bound `Φ t sx ≤ Φ 0 sx + M·t`. Proof: `t ↦ Φ t sx − M·t`
+has derivative `(odeField sys (Φ t) sx) − M ≤ 0`, so it is antitone. This is the growing-var (`s`-face)
+bound — no clock: the time-dependent bound `s ≤ s₀ + v_max·t` is obtained directly, with `M = v_max`
+the field-value bound from the v-invariance. Combined with the Z3 check `s₀ + v_max·Tᵢ ≤ S_max` it
+gives `s ≤ S_max` over `[0,Tᵢ]`. -/
+theorem growth_bound_raw {sys : ODESystem V} {r : ℝ} {Φ : ℝ → State V} (sx : V) (M : ℝ)
+    (hcurve : IsIntegralCurveOn Φ (fun _ => odeField sys) (Set.Icc 0 r))
+    (hbound : ∀ t ∈ Set.Icc (0:ℝ) r, odeField sys (Φ t) sx ≤ M) :
+    ∀ t ∈ Set.Icc (0:ℝ) r, Φ t sx ≤ Φ 0 sx + M * t := by
+  have hsx : ∀ t ∈ Set.Icc (0:ℝ) r,
+      HasDerivWithinAt (fun u => Φ u sx - M * u) (odeField sys (Φ t) sx - M) (Set.Icc 0 r) t := by
+    intro t ht
+    have h1 : HasDerivWithinAt (fun u => Φ u sx) (odeField sys (Φ t) sx) (Set.Icc 0 r) t :=
+      (hasDerivWithinAt_pi.mp (hcurve t ht)) sx
+    have h2 : HasDerivWithinAt (fun u => M * u) M (Set.Icc 0 r) t := by
+      simpa using (hasDerivWithinAt_id t (Set.Icc 0 r)).const_mul M
+    exact h1.sub h2
+  have hcont : ContinuousOn (fun u => Φ u sx - M * u) (Set.Icc 0 r) :=
+    fun t ht => (hsx t ht).continuousWithinAt
+  have hanti : AntitoneOn (fun u => Φ u sx - M * u) (Set.Icc 0 r) := by
+    refine antitoneOn_of_deriv_nonpos (convex_Icc 0 r) hcont (fun x hx => ?_) (fun x hx => ?_)
+    · rw [interior_Icc] at hx
+      have hxIcc : x ∈ Set.Icc 0 r := Set.Ioo_subset_Icc_self hx
+      exact ((hsx x hxIcc).hasDerivAt (Icc_mem_nhds hx.1 hx.2)).differentiableAt.differentiableWithinAt
+    · rw [interior_Icc] at hx
+      have hxIcc : x ∈ Set.Icc 0 r := Set.Ioo_subset_Icc_self hx
+      rw [((hsx x hxIcc).hasDerivAt (Icc_mem_nhds hx.1 hx.2)).deriv]
+      linarith [hbound x hxIcc]
+  intro t ht
+  have := hanti ⟨le_refl 0, le_trans ht.1 ht.2⟩ ht ht.1
+  simp only [mul_zero, sub_zero] at this
+  linarith [this]
+
+
+/-! ## Box composition — assembling the per-face raw invariances into `stays in domR` -/
+
+/-- **Lie of an affine-in-one-coordinate function.** `Lie sys (fun y => a·yᵢ + b) x = a · (field)ᵢ`.
+The `fderiv` of an affine coordinate map is `a • proj i`; `Lie_eq_fderiv` evaluates it on the field. -/
+theorem lie_affine_coord (sys : ODESystem V) (hwf : sys.WellFormed) (i : V) (a b : ℝ)
+    (x : State V) :
+    Lie sys (fun y => a * y i + b) x = a * odeField sys x i := by
+  rw [← Lie_eq_fderiv hwf]
+  have hp : HasFDerivAt (fun y : State V => y i) (ContinuousLinearMap.proj i) x :=
+    hasFDerivAt_apply (𝕜 := ℝ) (F' := fun _ : V => ℝ) i x
+  have h1 := (hp.const_mul a).add_const b
+  rw [h1.fderiv]
+  simp [ContinuousLinearMap.proj_apply]
+
+/-- **Box positive-invariance (rover shape, un-gated).** For a raw integral curve of a system whose
+field has the asymptotic/growing shape `v' = k(c−v)`, `s' = v` (field-value hypotheses `hfv`,`hfs`),
+starting in the box `{0 ≤ v ≤ v_max, 0 ≤ s ≤ S_max}`, under the Z3-checkable parameter conditions
+(`0<k`, `0<c<v_max`) and the Z3 growth bound (`s₀ + v_max·r ≤ S_max`), the curve **stays in the box**
+over `[0,r]`. Assembles: `strict_invariance_raw` (both v-faces, strict inflow) + `growth_bound_raw`
+(s upper, loose bound + Z3) + `nonstrict_antitone_raw` (s lower). The domain-staying half of
+`hExist`, discharged — no subtangency, no `sem`-gating, no clock. -/
+theorem box_invariance_rover {sys : ODESystem V} {r : ℝ} {Φ : ℝ → State V}
+    (hwf : sys.WellFormed) (vi si : V) (k c vmax smax : ℝ)
+    (hcurve : IsIntegralCurveOn Φ (fun _ => odeField sys) (Set.Icc 0 r))
+    (hfv : ∀ x : State V, odeField sys x vi = k * (c - x vi))
+    (hfs : ∀ x : State V, odeField sys x si = x vi)
+    (hk : 0 < k) (hc0 : 0 < c) (hcv : c < vmax)
+    (hv0lo : 0 ≤ Φ 0 vi) (hv0hi : Φ 0 vi ≤ vmax) (hs0lo : 0 ≤ Φ 0 si)
+    (hZ3 : Φ 0 si + vmax * r ≤ smax) :
+    ∀ t ∈ Set.Icc (0:ℝ) r,
+      0 ≤ Φ t vi ∧ Φ t vi ≤ vmax ∧ 0 ≤ Φ t si ∧ Φ t si ≤ smax := by
+  have hvmax0 : (0:ℝ) < vmax := lt_trans hc0 hcv
+  have hvhi : ∀ t ∈ Set.Icc (0:ℝ) r, Φ t vi ≤ vmax := by
+    have hmain := strict_invariance_raw (g := fun y => y vi - vmax) hwf (by fun_prop)
+      (hbnd := ?_) hcurve (by simpa using hv0hi)
+    · intro t ht; simpa using hmain t ht
+    · intro x hx0
+      have hxv : x vi = vmax := by linarith [hx0]
+      have hlie : Lie sys (fun y => y vi - vmax) x = odeField sys x vi := by
+        have heq : (fun y : State V => y vi - vmax) = (fun y => (1:ℝ) * y vi + (-vmax)) := by
+          funext y; ring
+        rw [heq]; simpa using lie_affine_coord sys hwf vi 1 (-vmax) x
+      rw [hlie, hfv x, hxv]; nlinarith [hk, hcv]
+  have hvlo : ∀ t ∈ Set.Icc (0:ℝ) r, 0 ≤ Φ t vi := by
+    have hmain := strict_invariance_raw (g := fun y => -(y vi)) hwf (by fun_prop)
+      (hbnd := ?_) hcurve (by simpa using hv0lo)
+    · intro t ht; have h := hmain t ht; simpa using h
+    · intro x hx0
+      have hxv : x vi = 0 := by simpa using hx0
+      have hlie : Lie sys (fun y => -(y vi)) x = - odeField sys x vi := by
+        have heq : (fun y : State V => -(y vi)) = (fun y => (-1:ℝ) * y vi + 0) := by
+          funext y; ring
+        rw [heq]; simpa using lie_affine_coord sys hwf vi (-1) 0 x
+      rw [hlie, hfv x, hxv]; nlinarith [hk, hc0]
+  have hshi : ∀ t ∈ Set.Icc (0:ℝ) r, Φ t si ≤ smax := by
+    have hgb := growth_bound_raw (sys := sys) si vmax hcurve
+      (fun t ht => by rw [hfs (Φ t)]; exact hvhi t ht)
+    intro t ht
+    have hmono : vmax * t ≤ vmax * r := mul_le_mul_of_nonneg_left ht.2 (le_of_lt hvmax0)
+    linarith [hgb t ht, hmono, hZ3]
+  have hslo : ∀ t ∈ Set.Icc (0:ℝ) r, 0 ≤ Φ t si := by
+    have hmain := nonstrict_antitone_raw (g := fun y => -(y si)) hwf (by fun_prop) hcurve
+      (fun t ht => by
+        have hlie : Lie sys (fun y => -(y si)) (Φ t) = - odeField sys (Φ t) si := by
+          have heq : (fun y : State V => -(y si)) = (fun y => (-1:ℝ) * y si + 0) := by
+            funext y; ring
+          rw [heq]; simpa using lie_affine_coord sys hwf si (-1) 0 (Φ t)
+        rw [hlie, hfs (Φ t)]; simpa using hvlo t ht)
+    intro t ht
+    have h := hmain t ht
+    have h2 : -(Φ t si) ≤ -(Φ 0 si) := by simpa using h
+    linarith [h2, hs0lo]
+  intro t ht
+  exact ⟨hvlo t ht, hvhi t ht, hslo t ht, hshi t ht⟩
+
 end RelCertifier
+
 

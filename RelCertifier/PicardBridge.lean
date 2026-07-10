@@ -993,7 +993,47 @@ theorem hExist_multi {sys : ODESystem V} {domR : Formula V} (hwf : sys.WellForme
     ⟨hs_, Φ, hΦ0, hΦs, hcurve, fun t ht => hdomsat (Φ t) (fun j => hbox t ht j)⟩
   exact RunFor_unpack hwf hrunR
 
+/-! ## Piece 3 — general-box asymptotic invariance (covers attitude `ψ'=−ψ`, etc.) -/
+
+/-- **Asymptotic coordinate in a general box `[lo,hi]`.** For `v' = k(c−v)` with the asymptote `c`
+strictly *interior* (`lo < c < hi`), a coordinate starting in `[lo,hi]` stays there — strict inflow at
+*both* faces (`v=hi ⟹ v'=k(c−hi)<0`; `v=lo ⟹ v'=k(c−lo)>0`). Generalises the rover v-face (`[0,v_max]`,
+`c∈(0,v_max)`) to the attitude case (`ψ'=−ψ`: `k=1, c=0`, box `[lo,hi]` with `lo<0<hi`). Same
+`strict_invariance_raw` machinery, no equilibrium/decay-boundary subtlety. -/
+theorem asymptotic_invariance_raw {sys : ODESystem V} {r : ℝ} {Φ : ℝ → State V}
+    (hwf : sys.WellFormed) (vi : V) (k c lo hi : ℝ)
+    (hcurve : IsIntegralCurveOn Φ (fun _ => odeField sys) (Set.Icc 0 r))
+    (hfv : ∀ x : State V, odeField sys x vi = k * (c - x vi))
+    (hk : 0 < k) (hlo : lo < c) (hhi : c < hi)
+    (hv0lo : lo ≤ Φ 0 vi) (hv0hi : Φ 0 vi ≤ hi) :
+    ∀ t ∈ Set.Icc (0:ℝ) r, lo ≤ Φ t vi ∧ Φ t vi ≤ hi := by
+  have hhiInv : ∀ t ∈ Set.Icc (0:ℝ) r, Φ t vi ≤ hi := by
+    have hmain := strict_invariance_raw (g := fun y => y vi - hi) hwf (by fun_prop)
+      (hbnd := ?_) hcurve (by simpa using hv0hi)
+    · intro t ht; simpa using hmain t ht
+    · intro x hx0
+      have hxv : x vi = hi := by linarith [hx0]
+      have hlie : Lie sys (fun y => y vi - hi) x = odeField sys x vi := by
+        have heq : (fun y : State V => y vi - hi) = (fun y => (1:ℝ) * y vi + (-hi)) := by
+          funext y; ring
+        rw [heq]; simpa using lie_affine_coord sys hwf vi 1 (-hi) x
+      rw [hlie, hfv x, hxv]; nlinarith [hk, hhi]
+  have hloInv : ∀ t ∈ Set.Icc (0:ℝ) r, lo ≤ Φ t vi := by
+    have hmain := strict_invariance_raw (g := fun y => lo - y vi) hwf (by fun_prop)
+      (hbnd := ?_) hcurve (by simpa using hv0lo)
+    · intro t ht; have h := hmain t ht; simpa using h
+    · intro x hx0
+      have hxv : x vi = lo := by linarith [hx0]
+      have hlie : Lie sys (fun y => lo - y vi) x = - odeField sys x vi := by
+        have heq : (fun y : State V => lo - y vi) = (fun y => (-1:ℝ) * y vi + lo) := by
+          funext y; ring
+        rw [heq]; simpa using lie_affine_coord sys hwf vi (-1) lo x
+      rw [hlie, hfv x, hxv]; nlinarith [hk, hlo]
+  intro t ht
+  exact ⟨hloInv t ht, hhiInv t ht⟩
+
 end RelCertifier
+
 
 
 

@@ -1162,7 +1162,73 @@ theorem subcover_hstep {sys : ODESystem V} {dom : Formula V} (hwf : sys.WellForm
   exact ⟨α r₀, (hinvα r₀ (Set.right_mem_Icc.mpr hr₀.le)).1,
     hr₀.le, α, hα0, rfl, hcurve, fun t ht => (hinvα t ht).2⟩
 
+/-! ## Slab-Lipschitz Picard (the 12 cubic — nonlinear-R with growing s) -/
+
+/-- **`IsPicardLindelof` from LOCAL (on-ball) Lipschitz.** Same as `picard_isPL_of` but takes
+`LipschitzOnWith K (odeField sys) (closedBall ν a)` — Lipschitz only **on the ball**, which the
+nonlinear (polynomial) fields satisfy (`odeField_lipschitzOnWith`), unlike the global Lipschitz that
+`picard_isPL_of` needs. For the 12 cubic the on-ball `K`,`L` are **uniform over the slab**: the RHS is
+`s`-independent (confirmed) and the nonlinearity (`v·ψ²`,`v·θ²`) lives in the bounded non-`s` coords,
+so `K`,`L` are the bounded-coord constants, free of the unbounded `s`. -/
+theorem picard_isPL_of_local {sys : ODESystem V} (K L : NNReal) (ν : State V) (a : ℝ) (ha : 0 ≤ a)
+    (hLipOn : LipschitzOnWith K (odeField sys) (Metric.closedBall ν a))
+    (hbound : ∀ x ∈ Metric.closedBall ν a, ‖odeField sys x‖ ≤ (L : ℝ))
+    (r₀ : ℝ) (hr₀ : 0 < r₀) (hr₀le : (L : ℝ) * r₀ ≤ a) :
+    IsPicardLindelof (fun _ : ℝ => odeField sys) (tmin := 0) (tmax := r₀)
+      ⟨0, Set.left_mem_Icc.mpr hr₀.le⟩ ν (Real.toNNReal a) 0 L K := by
+  have hacoe : ((Real.toNNReal a : NNReal) : ℝ) = a := Real.coe_toNNReal a ha
+  refine ⟨fun t _ => ?_, fun x _ => continuousOn_const, fun t _ x hx => ?_, ?_⟩
+  · -- lipschitzOnWith on closedBall ν ↑(toNNReal a) = closedBall ν a
+    rw [hacoe]  -- fails? the ball uses ↑(toNNReal a); rewrite
+    exact hLipOn
+  · apply hbound
+    rw [Metric.mem_closedBall] at hx ⊢; rwa [hacoe] at hx
+  · have hval : ((⟨0, Set.left_mem_Icc.mpr hr₀.le⟩ : Set.Icc (0:ℝ) r₀) : ℝ) = 0 := rfl
+    rw [hacoe, hval]
+    simp only [sub_zero, NNReal.coe_zero]
+    rwa [max_eq_left hr₀.le]
+
+/-- **Slab-Lipschitz step (the 12 cubic).** Identical to `hstep_multi` EXCEPT the existence route:
+`picard_isPL_of_local` (on-ball Lipschitz, uniform `K`,`L` over the slab by `s`-independence) instead
+of `picard_isPL_of` (global Lipschitz). Everything downstream — `picard_to_RunFor`, and the `chainN`
+this feeds — is the **same rover/multi machinery, unchanged**. `hinv` (curve stays in the slab `P` and
+`dom`) is the asymptotic v/ψ/θ faces + `growth_bound_raw` inequality form (`s'=v(1−…)≤v_max`,
+`≥0` since factor ∈[0.6,1] verified). -/
+theorem hstep_slab_lipschitz {sys : ODESystem V} {dom : Formula V}
+    (K L : NNReal) (a : ℝ) (ha : 0 < a) (r₀ : ℝ) (hr₀ : 0 < r₀) (hr₀le : (L : ℝ) * r₀ ≤ a)
+    (P : State V → Prop)
+    (hLipOn : ∀ ν, P ν → LipschitzOnWith K (odeField sys) (Metric.closedBall ν a))
+    (hbound : ∀ ν, P ν → ∀ x ∈ Metric.closedBall ν a, ‖odeField sys x‖ ≤ (L : ℝ))
+    (hinv : ∀ (Φ : ℝ → State V) (ν : State V), P ν → Φ 0 = ν →
+        IsIntegralCurveOn Φ (fun _ => odeField sys) (Set.Icc 0 r₀) →
+        ∀ t ∈ Set.Icc (0:ℝ) r₀, P (Φ t) ∧ Formula.sat dom (Φ t)) :
+    ∀ ν, P ν → ∃ ν', P ν' ∧ RunFor sys dom r₀ ν ν' := by
+  intro ν hν
+  have hpl := picard_isPL_of_local K L ν a ha.le (hLipOn ν hν) (hbound ν hν) r₀ hr₀ hr₀le
+  obtain ⟨Φ, hΦ0, hcurve, hrun⟩ := picard_to_RunFor ν hr₀ hpl
+    (fun Φ hΦ0 hcurve t ht => (hinv Φ ν hν hΦ0 hcurve t ht).2)
+  exact ⟨Φ r₀, (hinv Φ ν hν hΦ0 hcurve r₀ (Set.right_mem_Icc.mpr hr₀.le)).1, hrun⟩
+
+/-- **Chaining reuse confirmed (slab-Lipschitz = same `chainN`).** `chainN` applied directly to
+`hstep_slab_lipschitz` — a one-liner. It type-checks precisely because `hstep_slab_lipschitz`'s output
+`∀ ν, P ν → ∃ ν', P ν' ∧ RunFor sys dom r₀ ν ν'` is EXACTLY `chainN`'s step premise. So the 12 cubic's
+chaining is **literally the rover/multi machinery, unchanged** — only the existence lemma
+(`picard_isPL_of_local` vs `picard_isPL_of`) differs. Reaches any duration `s ≤ n·r₀`. -/
+theorem slab_chain_reuse {sys : ODESystem V} {dom : Formula V}
+    (K L : NNReal) (a : ℝ) (ha : 0 < a) (r₀ : ℝ) (hr₀ : 0 < r₀) (hr₀le : (L : ℝ) * r₀ ≤ a)
+    (P : State V → Prop)
+    (hLipOn : ∀ ν, P ν → LipschitzOnWith K (odeField sys) (Metric.closedBall ν a))
+    (hbound : ∀ ν, P ν → ∀ x ∈ Metric.closedBall ν a, ‖odeField sys x‖ ≤ (L : ℝ))
+    (hinv : ∀ (Φ : ℝ → State V) (ν : State V), P ν → Φ 0 = ν →
+        IsIntegralCurveOn Φ (fun _ => odeField sys) (Set.Icc 0 r₀) →
+        ∀ t ∈ Set.Icc (0:ℝ) r₀, P (Φ t) ∧ Formula.sat dom (Φ t))
+    (hP0 : ∀ ν, P ν → Formula.sat dom ν)
+    (n : ℕ) (ω : State V) (hωP : P ω) (s : ℝ) (hs0 : 0 ≤ s) (hsn : s ≤ (n : ℝ) * r₀) :
+    ∃ ν', RunFor sys dom s ω ν' :=
+  chainN hr₀ P (hstep_slab_lipschitz K L a ha r₀ hr₀ hr₀le P hLipOn hbound hinv) hP0 n s hs0 hsn ω hωP
+
 end RelCertifier
+
 
 
 

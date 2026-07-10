@@ -12,3 +12,4 @@ import RelCertifier.DISuperlevel
 import RelCertifier.Cover.Coexec
 import RelCertifier.Checker
 import RelCertifier.PicardBridge
+import RelCertifier.HExistDischarge

@@ -136,20 +136,31 @@ arithmetic inequality.
 The full 46-benchmark suite (from `relCertifier-src`, under `benchmarks/suite/`) run on the
 trusted method (Z3 UNSAT-of-negation):
 
-| | count | |
+| | count | route |
 |---|---|---|
-| **CERTIFIED** (source invariant inductive) | **34/46** | flow-cert Z3 UNSAT, cover closes |
-| CERTIFIED with **restated** (strengthened) invariant | **+4** | `benchmarks/restated/` |
-| **DECLINED** (source invariant not inductive) | **8** | Z3 **SAT** on some flow query — tool correctly declines, no false-certify |
+| **CERTIFIED** — source invariant inductive | **35/46** | flow-cert Z3 UNSAT, cover closes (20-step λ grid) |
+| CERTIFIED — **restated** (strengthened) invariant | **+7** | `benchmarks/restated/` — 4 rover-family (velocity-coupled) + 3 arm/plant (`θ[l]−θ[r]+v[l]≤d ∧ θ[l]≤θ[r]+d`) |
+| **DECLINED** — beyond the reachability-free single-λ cover | **4** | Z3 **SAT** / method-scope; tool declines soundly |
 
-**38/46 discharge on the trusted method.** The 8 DECLINE because Z3 returns **SAT** (a real
-boundary counterexample: the parsed invariant is not inductive on some successor pair) — a
-**restatement gap**, not runner-incompleteness (the runner does multi-segment `dfsCover`;
-multi-segment cannot rescue a SAT segment) and not simulation (Z3-SAT is the trusted
-counter-signal). `rover3_M1` is **genuinely declined** — its `Drift` mode is uncoverable by
-any right mode (needs budget-aware Strategy-2 reachability, which the paper's universal
-all-successors cover rejects). Field shapes (46/46) and side-conditions (cubic factor
-`0.5ψ²+0.3θ²∈[0.20,0.39]<1`; coupled real-eigenvalue) all confirmed.
+**42/46 discharge on the trusted method (Z3 UNSAT).** Instantiation was the in-use check —
+per benchmark: shape match (46/46), Z3 query closes, side-conditions (cubic factor
+`0.5ψ²+0.3θ²∈[0.20,0.39]<1`; coupled real-eigenvalue) — all confirmed. It **surfaced** the
+declines rather than forcing them:
+
+- **`arm_chain_rung2`** was a **λ-search limit** (invariant inductive at a λ the sparse
+  4-step grid missed) — the denser 20-step grid certifies it. Runner fix, invariant fine.
+- **`arm_refinement`, `arm_fidelity_low`, `plant_fan_low`** were **restatement gaps** — the
+  source position invariant isn't inductive on the 2nd-order left; the velocity-coupled
+  conjunction (proven to imply the safety property) certifies via Z3 UNSAT.
+- **4 remain DECLINED**, correctly, beyond the universal reachability-free single-λ cover:
+  `rover3_M1` (`Drift` uncoverable by any right mode → budget-aware Strategy-2, paper-rejected);
+  `match_multi_eps`, `rover3tier_M1` (safety `v_L≤v_R+0.5` not certifiable worst-case — L
+  overspeeds; a `+0.8` invariant certifies but *weakens* the property, so invalid — needs
+  reachability); `arm_chain_rung1` (fast left mode needs a high λ the single-λ-per-residence
+  all-successors cover can't assemble across successors — a multi-λ/cover-structure limit).
+
+The DECLINEs are **method-scope** (the paper's reachability-free universal cover), not
+unsoundness — the tool never false-certifies (Z3-SAT, not simulation, is the trusted signal).
 
 Requires Lean 4 (`leanprover/lean4:v4.31.0`, pinned), a pinned Z3 (`RELCERT_Z3` or a
 standard absolute path), and `dL-rel` at `../dL-rel` (transitively provides dL-lean

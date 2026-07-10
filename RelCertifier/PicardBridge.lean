@@ -830,7 +830,91 @@ theorem hExist_rover {sys : ODESystem V} {domR : Formula V} (hwf : sys.WellForme
       hdomsat (Φ t) (hslab t ht).1 (hslab t ht).2.1 (hslab t ht).2.2 (hshi t ht)⟩
   exact RunFor_unpack hwf hrunR
 
+/-! ## Higher-dof — product invariance (per-coordinate, independent faces) -/
+
+/-- **Product box invariance (higher-dof).** For a family of `(velocity, position)` coordinate pairs
+`(vc j, sc j)` each with its own asymptotic/growing dynamics, the raw curve stays in the **product
+box** `⋀ⱼ {0≤vⱼ≤v_maxⱼ, 0≤sⱼ≤S_maxⱼ}`. Each coordinate's invariance is independent — a per-index
+application of `box_invariance_rover` (which uses only that coordinate's dynamics, no `hother`). This
+covers the 12-dof rover-family benchmarks (multiple v-asymptotic + s-growing coords). -/
+theorem box_invariance_multi {sys : ODESystem V} {r : ℝ} {Φ : ℝ → State V}
+    (hwf : sys.WellFormed) {ι : Type*}
+    (vc sc : ι → V) (kk cc vm sm : ι → ℝ)
+    (hcurve : IsIntegralCurveOn Φ (fun _ => odeField sys) (Set.Icc 0 r))
+    (hfv : ∀ (j : ι) (x : State V), odeField sys x (vc j) = kk j * (cc j - x (vc j)))
+    (hfs : ∀ (j : ι) (x : State V), odeField sys x (sc j) = x (vc j))
+    (hk : ∀ j, 0 < kk j) (hc0 : ∀ j, 0 < cc j) (hcv : ∀ j, cc j < vm j)
+    (hv0lo : ∀ j, 0 ≤ Φ 0 (vc j)) (hv0hi : ∀ j, Φ 0 (vc j) ≤ vm j)
+    (hs0lo : ∀ j, 0 ≤ Φ 0 (sc j)) (hZ3 : ∀ j, Φ 0 (sc j) + vm j * r ≤ sm j) :
+    ∀ t ∈ Set.Icc (0:ℝ) r, ∀ j : ι,
+      0 ≤ Φ t (vc j) ∧ Φ t (vc j) ≤ vm j ∧ 0 ≤ Φ t (sc j) ∧ Φ t (sc j) ≤ sm j := by
+  intro t ht j
+  exact box_invariance_rover hwf (vc j) (sc j) (kk j) (cc j) (vm j) (sm j) hcurve
+    (hfv j) (hfs j) (hk j) (hc0 j) (hcv j) (hv0lo j) (hv0hi j) (hs0lo j) (hZ3 j) t ht
+
+/-- **Product slab invariance (higher-dof, step-invariant faces).** Per-index `slab_invariance_rover`:
+`⋀ⱼ {0≤vⱼ≤v_maxⱼ, 0≤sⱼ}` — what the multi-dof chaining carries. -/
+theorem slab_invariance_multi {sys : ODESystem V} {r : ℝ} {Φ : ℝ → State V}
+    (hwf : sys.WellFormed) {ι : Type*}
+    (vc sc : ι → V) (kk cc vm : ι → ℝ)
+    (hcurve : IsIntegralCurveOn Φ (fun _ => odeField sys) (Set.Icc 0 r))
+    (hfv : ∀ (j : ι) (x : State V), odeField sys x (vc j) = kk j * (cc j - x (vc j)))
+    (hfs : ∀ (j : ι) (x : State V), odeField sys x (sc j) = x (vc j))
+    (hk : ∀ j, 0 < kk j) (hc0 : ∀ j, 0 < cc j) (hcv : ∀ j, cc j < vm j)
+    (hv0lo : ∀ j, 0 ≤ Φ 0 (vc j)) (hv0hi : ∀ j, Φ 0 (vc j) ≤ vm j) (hs0lo : ∀ j, 0 ≤ Φ 0 (sc j)) :
+    ∀ t ∈ Set.Icc (0:ℝ) r, ∀ j : ι,
+      0 ≤ Φ t (vc j) ∧ Φ t (vc j) ≤ vm j ∧ 0 ≤ Φ t (sc j) := by
+  intro t ht j
+  exact slab_invariance_rover hwf (vc j) (sc j) (kk j) (cc j) (vm j) hcurve
+    (hfv j) (hfs j) (hk j) (hc0 j) (hcv j) (hv0lo j) (hv0hi j) (hs0lo j) t ht
+
+/-- **`IsPicardLindelof` from field bounds (field-agnostic).** Generalises `rover_isPicardLindelof`:
+any field that is globally `K`-Lipschitz and bounded by `L` on `closedBall ν a` gives Picard data over
+`[0,r₀]` under `L·r₀ ≤ a`. The multi-dof and other affine families supply their own `K`,`L`. -/
+theorem picard_isPL_of {sys : ODESystem V} (K L : NNReal) (ν : State V) (a : ℝ) (ha : 0 ≤ a)
+    (hLip : LipschitzWith K (odeField sys))
+    (hbound : ∀ x ∈ Metric.closedBall ν a, ‖odeField sys x‖ ≤ (L : ℝ))
+    (r₀ : ℝ) (hr₀ : 0 < r₀) (hr₀le : (L : ℝ) * r₀ ≤ a) :
+    IsPicardLindelof (fun _ : ℝ => odeField sys) (tmin := 0) (tmax := r₀)
+      ⟨0, Set.left_mem_Icc.mpr hr₀.le⟩ ν (Real.toNNReal a) 0 L K := by
+  have hacoe : ((Real.toNNReal a : NNReal) : ℝ) = a := Real.coe_toNNReal a ha
+  refine ⟨fun t _ => hLip.lipschitzOnWith, fun x _ => continuousOn_const, fun t _ x hx => ?_, ?_⟩
+  · apply hbound
+    rw [Metric.mem_closedBall] at hx ⊢; rwa [hacoe] at hx
+  · have hval : ((⟨0, Set.left_mem_Icc.mpr hr₀.le⟩ : Set.Icc (0:ℝ) r₀) : ℝ) = 0 := rfl
+    rw [hacoe, hval]
+    simp only [sub_zero, NNReal.coe_zero]
+    rwa [max_eq_left hr₀.le]
+
+/-- **Global Lipschitz from per-coordinate Lipschitz.** If every coordinate of the field is
+`K`-Lipschitz, the field (sup norm) is `K`-Lipschitz. Reduces the multi-dof/other-family global
+Lipschitz to the trivial per-coordinate bounds (each `v`-coord `k`-Lipschitz, each `s`-coord
+`1`-Lipschitz, others `0`). -/
+theorem odeField_lipschitz_of_perCoord {sys : ODESystem V} (K : ℝ) (hK : 0 ≤ K)
+    (hcoord : ∀ (i : V) (x y : State V),
+        |odeField sys x i - odeField sys y i| ≤ K * dist x y) :
+    LipschitzWith (Real.toNNReal K) (odeField sys) := by
+  apply LipschitzWith.of_dist_le_mul
+  intro x y
+  rw [dist_pi_le_iff (by positivity)]
+  intro i
+  rw [Real.coe_toNNReal K hK, Real.dist_eq]
+  exact hcoord i x y
+
+/-- **Field bound from per-coordinate bounds.** If every coordinate is `≤ L` on the ball, the field
+(sup norm) is `≤ L`. Reduces the multi-dof field bound to per-coordinate bounds. -/
+theorem odeField_bound_of_perCoord {sys : ODESystem V} (L : ℝ) (hL : 0 ≤ L)
+    (ν : State V) (a : ℝ)
+    (hcoord : ∀ (i : V) (x : State V), x ∈ Metric.closedBall ν a → |odeField sys x i| ≤ L) :
+    ∀ x ∈ Metric.closedBall ν a, ‖odeField sys x‖ ≤ L := by
+  intro x hx
+  rw [pi_norm_le_iff_of_nonneg hL]
+  intro i
+  rw [Real.norm_eq_abs]
+  exact hcoord i x hx
+
 end RelCertifier
+
 
 
 

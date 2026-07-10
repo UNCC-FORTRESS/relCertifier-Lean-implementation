@@ -1227,7 +1227,95 @@ theorem slab_chain_reuse {sys : ODESystem V} {dom : Formula V}
     ∃ ν', RunFor sys dom s ω ν' :=
   chainN hr₀ P (hstep_slab_lipschitz K L a ha r₀ hr₀ hr₀le P hLipOn hbound hinv) hP0 n s hs0 hsn ω hωP
 
+/-! ### Discharging the slab-uniform Lipschitz from s-independence (not carried) -/
+
+/-- The coordinate reset `x ↦ update x sidx 0` is `1`-Lipschitz (it only zeroes one coordinate). -/
+theorem update_lipschitz (sidx : V) (c : ℝ) :
+    LipschitzWith 1 (fun x : State V => Function.update x sidx c) := by
+  apply LipschitzWith.of_dist_le_mul
+  intro x y
+  simp only [NNReal.coe_one, one_mul]
+  rw [dist_pi_le_iff dist_nonneg]
+  intro i
+  by_cases h : i = sidx
+  · subst h; simp only [Function.update_self, dist_self]; exact dist_nonneg
+  · rw [Function.update_of_ne h, Function.update_of_ne h]; exact dist_le_pi_dist x y i
+
+/-- **Slab-uniform Lipschitz (discharged from s-independence).** If the field is `s`-independent
+(`odeField x = odeField (update x sidx 0)` — holds for the 12 cubic, no RHS reads `s`) and Lipschitz
+with `K` on a big cross-section ball `closedBall c₀ R` (from `odeField_lipschitzOnWith`), then it is
+Lipschitz with the **same `K`** on every ball `closedBall ν a` whose `s`-reset image sits inside that
+big ball — uniformly, regardless of `ν`'s (unbounded) `s`. The unbounded slab collapses to the compact
+cross-section for Lipschitz purposes. `K` is **proven uniform**, not carried. -/
+theorem odeField_slab_lipschitz {sys : ODESystem V} (sidx : V) (K : NNReal)
+    (c₀ : State V) (R a : ℝ)
+    (hsindep : ∀ x : State V, odeField sys x = odeField sys (Function.update x sidx 0))
+    (hK : LipschitzOnWith K (odeField sys) (Metric.closedBall c₀ R))
+    {ν : State V}
+    (hsub : Metric.closedBall (Function.update ν sidx 0) a ⊆ Metric.closedBall c₀ R) :
+    LipschitzOnWith K (odeField sys) (Metric.closedBall ν a) := by
+  intro x hx y hy
+  have hPx : Function.update x sidx 0 ∈ Metric.closedBall c₀ R := by
+    apply hsub
+    rw [Metric.mem_closedBall] at hx ⊢
+    calc dist (Function.update x sidx 0) (Function.update ν sidx 0)
+        ≤ 1 * dist x ν := (update_lipschitz sidx 0).dist_le_mul x ν
+      _ ≤ a := by rw [one_mul]; exact hx
+  have hPy : Function.update y sidx 0 ∈ Metric.closedBall c₀ R := by
+    apply hsub
+    rw [Metric.mem_closedBall] at hy ⊢
+    calc dist (Function.update y sidx 0) (Function.update ν sidx 0)
+        ≤ 1 * dist y ν := (update_lipschitz sidx 0).dist_le_mul y ν
+      _ ≤ a := by rw [one_mul]; exact hy
+  calc edist (odeField sys x) (odeField sys y)
+      = edist (odeField sys (Function.update x sidx 0)) (odeField sys (Function.update y sidx 0)) := by
+        rw [hsindep x, hsindep y]
+    _ ≤ K * edist (Function.update x sidx 0) (Function.update y sidx 0) := hK hPx hPy
+    _ ≤ K * edist x y := by
+        apply mul_le_mul_left'
+        calc edist (Function.update x sidx 0) (Function.update y sidx 0)
+            ≤ 1 * edist x y := (update_lipschitz sidx 0).edist_le_mul x y
+          _ = edist x y := by rw [one_mul]
+
+/-- **Slab-uniform bound (discharged from s-independence).** As `odeField_slab_lipschitz` but for the
+field bound: `s`-independence + a bound `L` on the big cross-section ball gives the **same `L`** on
+every slab-ball, uniformly over `s`. `L` proven uniform, not carried. -/
+theorem odeField_slab_bound {sys : ODESystem V} (sidx : V) (L : ℝ)
+    (c₀ : State V) (R a : ℝ)
+    (hsindep : ∀ x : State V, odeField sys x = odeField sys (Function.update x sidx 0))
+    (hL : ∀ x ∈ Metric.closedBall c₀ R, ‖odeField sys x‖ ≤ L)
+    {ν : State V}
+    (hsub : Metric.closedBall (Function.update ν sidx 0) a ⊆ Metric.closedBall c₀ R) :
+    ∀ x ∈ Metric.closedBall ν a, ‖odeField sys x‖ ≤ L := by
+  intro x hx
+  rw [hsindep x]
+  apply hL
+  apply hsub
+  rw [Metric.mem_closedBall] at hx ⊢
+  calc dist (Function.update x sidx 0) (Function.update ν sidx 0)
+      ≤ 1 * dist x ν := (update_lipschitz sidx 0).dist_le_mul x ν
+    _ ≤ a := by rw [one_mul]; exact hx
+
+/-- **s-independence equation, discharged from `sidx ∉ RHS free vars`.** If no equation's RHS reads
+`sidx`, then `odeField x = odeField (update x sidx 0)` — the load-bearing factoring equation. For the
+12 cubic `sidx` is the growing coord `s`, and no RHS reads `s` (confirmed) ⟹ this holds. Promotes
+"we checked the dynamics" to the Lean field equation the establishment discharges `K`/`L` from. -/
+theorem odeField_sindep {sys : ODESystem V} (sidx : V)
+    (hread : ∀ i, sidx ∉ (sys.rhs i).fv) (x : State V) :
+    odeField sys x = odeField sys (Function.update x sidx 0) := by
+  funext i
+  simp only [odeField]
+  by_cases hi : i ∈ sys.bound
+  · rw [if_pos hi, if_pos hi]
+    apply Term.coincidence
+    intro y hy
+    have hne : y ≠ sidx := fun h => hread i (h ▸ hy)
+    rw [Function.update_of_ne hne]
+  · rw [if_neg hi, if_neg hi]
+
 end RelCertifier
+
+
 
 
 

@@ -1084,7 +1084,51 @@ theorem left_duration_bound {sys : ODESystem V} {r : ℝ} {ΦL : ℝ → State V
   have hle := hdomL r (Set.right_mem_Icc.mpr hr)
   rw [le_div_iff₀ hvmin]; nlinarith [hgl, hle]
 
+/-! ## Compactness-subcover uniform step (nonlinear-R existence — the critical-path lemma)
+
+For nonlinear (polynomial, only *locally* Lipschitz) right-fields, `picard_isPL_of`'s global route
+fails. But `odeField` is `ContDiff`, so it is locally Lipschitz, and Mathlib's C¹ flow theorem gives a
+UNIFORM existence radius `ε` over each ball. Covering the **compact** `domR` (a closed box — confirmed
+for all 13 nonlinear-R benchmarks) by finitely many such balls and taking `min ε` yields a **uniform
+step `r₀ > 0`** from any point of `domR` — feeding the existing `chainN` unchanged. Compactness of
+`domR` is the load-bearing hypothesis (finite subcover). -/
+theorem uniform_local_existence_on_compact (sys : ODESystem V) {K : Set (State V)}
+    (hK : IsCompact K) :
+    ∃ r₀ > (0 : ℝ), ∀ ν ∈ K, ∃ α : ℝ → State V, α 0 = ν ∧
+      ∀ t ∈ Set.Icc (0 : ℝ) r₀,
+        HasDerivWithinAt α (odeField sys (α t)) (Set.Icc 0 r₀) t := by
+  have hpt : ∀ ν : State V, ∃ r > (0 : ℝ), ∃ ε > (0 : ℝ),
+      ∀ x ∈ Metric.closedBall ν r, ∃ α : ℝ → State V, α 0 = x ∧
+        ∀ t ∈ Set.Ioo (-ε) ε, HasDerivAt α (odeField sys (α t)) t := by
+    intro ν
+    have h := (((odeField_contDiff sys).contDiffAt (x := ν)).of_le (by exact_mod_cast le_top)).exists_forall_mem_closedBall_exists_eq_forall_mem_Ioo_hasDerivAt 0
+    simpa using h
+  choose r hr ε hε H using hpt
+  have hcover : K ⊆ ⋃ ν, Metric.ball ν (r ν) :=
+    fun x _ => Set.mem_iUnion.mpr ⟨x, Metric.mem_ball_self (hr x)⟩
+  obtain ⟨T, hT⟩ := hK.elim_finite_subcover (fun ν => Metric.ball ν (r ν))
+    (fun ν => Metric.isOpen_ball) hcover
+  by_cases hTe : T.Nonempty
+  · refine ⟨T.inf' hTe (fun ν => ε ν) / 2, by
+      apply div_pos _ (by norm_num); rw [Finset.lt_inf'_iff]; exact fun ν _ => hε ν, ?_⟩
+    intro ν hν
+    obtain ⟨i, hiT, hνi⟩ := Set.mem_iUnion₂.mp (hT hν)
+    obtain ⟨α, hα0, hαderiv⟩ := H i ν (Metric.ball_subset_closedBall hνi)
+    refine ⟨α, hα0, fun t ht => ?_⟩
+    have hεi_le : T.inf' hTe (fun ν => ε ν) ≤ ε i := Finset.inf'_le _ hiT
+    have htioo : t ∈ Set.Ioo (-ε i) (ε i) := by
+      refine ⟨by linarith [ht.1, hε i], ?_⟩
+      have h1 : t ≤ T.inf' hTe (fun ν => ε ν) / 2 := ht.2
+      linarith [hεi_le, hε i]
+    exact (hαderiv t htioo).hasDerivWithinAt
+  · rw [Finset.not_nonempty_iff_eq_empty] at hTe
+    subst hTe
+    refine ⟨1, one_pos, fun ν hν => ?_⟩
+    have hKe : K ⊆ (∅ : Set (State V)) := by simpa using hT
+    exact absurd (hKe hν) (by simp)
+
 end RelCertifier
+
 
 
 

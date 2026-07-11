@@ -118,6 +118,82 @@ def checkSeg (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
               IO.eprintln s!"      FAIL comp#{i} @ {mL.name}->{mR.name} λ={lam}"
   return (if sawFail then Seg.fail else if sawIncon then Seg.incon else Seg.pass)
 
+/-- **REPOSITION region-invariant check** over a supplied `region`. `true` ⟺ `rel_inv` holds
+everywhere in `region`: `¬rel_inv ∧ region` UNSAT iff **for every component** `gᵢ`,
+`UNSAT(region ∧ gᵢ > 0)`. STATIC — no ODE, no Lie, no `t²`. Used twice: with the **pre-j** region
+`guardL ∧ guardR ∧ evolveL ∧ evolveR` (obligation 1) and the **post-j** region
+`guardR ∧ evolveL ∧ evolveR` (obligation 2, no guardL — stronger).
+
+Discipline (soundness): returns `true` ONLY when **every** component is a definitive Z3 `unsat`;
+any `sat`/`unknown`/`error`/over-long → `false` (withhold reposition). A query bug can only
+withhold reposition (over-decline), never wrongly offer it. -/
+def regionUnsat {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
+    (coord : Fin n → String) (comps : List (ITerm n)) (region : IForm n) : IO Bool := do
+  let mut allUnsat := true
+  for g in comps do
+    if allUnsat then
+      let q := IForm.and region (IForm.cmp .gt g (.rat 0))     -- region ∧ (gᵢ > 0) = ¬rel_inv part
+      let script := q.toScript coord
+      if script.length > maxSmt then allUnsat := false
+      else do
+        cnt.modify (· + 1)
+        if (← cnt.get) > maxQ then throw (IO.userError "query budget exceeded")
+        if (← IO.monoMsNow) > deadline then throw (IO.userError "time budget exceeded")
+        match ← s.check script with
+        | .ok .unsat => pure ()
+        | _          => allUnsat := false
+  pure allUnsat
+
+/-- Build the (pre-j, post-j) reposition region `IForm`s for `(mL, mR)`:
+* pre-j: `guardL(mL) ∧ guardR(mR) ∧ evolveL(mL) ∧ evolveR(mR)` (obligation 1, left in guard);
+* post-j: `guardR(mR) ∧ evolveL(mL) ∧ evolveR(mR)` (obligation 2, NO guardL — false post-joint,
+  left carried by `evolveL`). Both include the evolve domains. -/
+def repoRegions (vars : List String) (n : ℕ) (mL mR : PMode) :
+    Option (IForm n × IForm n) := do
+  let gL ← lowerF vars n Side.L mL.guard
+  let gR ← lowerF vars n Side.R mR.guard
+  let eL ← lowerF vars n Side.L mL.evolve
+  let eR ← lowerF vars n Side.R mR.evolve
+  let ev := IForm.and eL eR
+  pure (IForm.and (IForm.and gL gR) ev, IForm.and gR ev)
+
+/-- **DYNAMIC REPOSITION check (certificate 3)** — the right-only FLOW cert via the **whole-domain**
+`DI_nonstrict_domain` route (route A: `UNSAT(ġ > 0 ∧ domain)`), left FROZEN (`fL=0`, `ġ` via
+`segPartsRO`). `withGuardL` selects σ: pre-j domain `guardL ∧ evolveL ∧ evolveR`, post-j
+`evolveL ∧ evolveR`. **Whole-domain, NOT boundary** (`g=0 ∧ ġ≥0`) — that is the `t²` guard and the
+reason the right-only flow segment is sound this time. Per component, the OTHER components restrict
+the domain (multi-barrier). `true` iff every component's route-A query is definitive Z3 `unsat`;
+any sat/unknown/error → `false` (withhold — drop-only-on-UNSAT). -/
+def checkDynRepo (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
+    (vars : List String) (n : ℕ) (coord : Fin n → String)
+    (comps : List (ITerm n)) (mL mR : PMode) (withGuardL : Bool) : IO Bool := do
+  let gLform : IForm n := (if withGuardL then lowerF vars n Side.L mL.guard else some IForm.tt).getD IForm.tt
+  let mut allUnsat := true
+  for i in List.range comps.length do
+    if allUnsat then
+      match comps[i]? with
+      | none => pure ()
+      | some g =>
+        match segPartsRO vars n g mL mR with        -- (evolveL∧evolveR, ġ) with fL=0, λ=1
+        | none => allUnsat := false
+        | some (baseDom, gdot) =>
+            let others := (List.range comps.length).filterMap
+              (fun j => if j == i then none else comps[j]?)
+            let dom0 := others.foldl (fun d gj => IForm.and d (IForm.cmp .le gj (.rat 0))) baseDom
+            let dom := IForm.and dom0 gLform            -- σ-matched: add guardL iff pre-j
+            -- route A (DI_nonstrict_domain, WHOLE-DOMAIN): domain ∧ ġ>0 UNSAT
+            let q := IForm.and dom (IForm.cmp .gt gdot (.rat 0))
+            let script := q.toScript coord
+            if script.length > maxSmt then allUnsat := false
+            else do
+              cnt.modify (· + 1)
+              if (← cnt.get) > maxQ then throw (IO.userError "query budget exceeded")
+              if (← IO.monoMsNow) > deadline then throw (IO.userError "time budget exceeded")
+              match ← s.check script with
+              | .ok .unsat => pure ()
+              | _          => allUnsat := false
+  pure allUnsat
+
 /-- The multi-segment all-successors cover, three-valued, **memoized** on `(qR, f)` (the
 budget `B` is a function of `f`, so the state is finite: `modes × fuel`). Without the memo
 this is `(M+1)^fuel` pure recursion — the fuel can be huge when `δL` is tiny (large λ),
@@ -166,13 +242,142 @@ partial def coverVisit (seg : String → Seg) (succ : String → List String)
     let kids := (q :: succ q).map (coverVisit seg succ (B - 1))
     if kids.all Option.isSome then some (q :: (kids.filterMap id).flatten) else none
 
+/-- **Precise admissibility** (FIX 1, soundness-critical — *drop only on UNSAT*). Right start
+mode `mR` is admissible for left mode `mL` iff some invariant-satisfying initial pair exists:
+`guardL(mL) ∧ guardR(mR) ∧ ⋀ᵢ (gᵢ ≤ 0)` is SAT (`gᵢ ≤ 0` = the relational invariant `ϕ_rel`).
+Returns `true` = **required** (admissible), `false` = **droppable** (definitively inadmissible).
+
+Soundness discipline: we return `false` (drop `mR` from the required-start set) ONLY on a
+definitive Z3 `unsat` — the same trusted oracle the flow certificates use. On `sat`, `unknown`,
+`error`, an over-long script, or a query we cannot even build, we return `true` (keep it
+required). Over-requiring is sound (it can only make the cover decline more); the *only* way a
+required start could be wrongly dropped is a spurious `unsat`, so `unsat` is the sole drop
+trigger. The query reuses the trusted `lowerF` encoding (same as the flow queries) with `guardL`
+on the L-side and `guardR` on the R-side. -/
+def admissible (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
+    (vars : List String) (n : ℕ) (coord : Fin n → String)
+    (comps : List (ITerm n)) (mL mR : PMode) : IO Bool := do
+  match (do
+      let gL ← lowerF vars n Side.L mL.guard
+      let gR ← lowerF vars n Side.R mR.guard
+      pure (comps.foldl (fun d g => IForm.and d (IForm.cmp .le g (.rat 0)))
+              (IForm.and gL gR)) : Option (IForm n)) with
+  | none => pure true                                 -- can't build ⟹ can't prove inadmissible ⟹ require
+  | some q =>
+      let script := q.toScript coord
+      if script.length > maxSmt then pure true         -- can't check ⟹ require
+      else do
+        cnt.modify (· + 1)
+        if (← cnt.get) > maxQ then throw (IO.userError "query budget exceeded")
+        if (← IO.monoMsNow) > deadline then throw (IO.userError "time budget exceeded")
+        match ← s.check script with
+        | .ok .unsat => pure false                     -- DEFINITIVELY no initial pair ⟹ droppable
+        | _          => pure true                      -- sat / unknown / error ⟹ keep required
+
+/-- **Def-3 non-connection pruning** (FIX 3, soundness-critical — *prune only on UNSAT*). For a
+declared right edge `mR → mSuc`, the successor is unreachable along `mR`'s right flow exactly when
+the two `nonconn_sound` checks both hold: `sourceCheck = source ∧ {g>0}` UNSAT (entry strictly
+safe, `g ≤ 0` at entry) and `barrierCheck = domain ∧ g=0 ∧ (Lie g sysR) ≥ 0` UNSAT (strict
+flow-away on the threshold, `DI_strict`). Here `g` is the successor guard's safe-side term with
+`guard = {g > 0}` (so `hlink` holds by construction), and `sysR`/`domain`/`source` are `mR`'s
+right flow / evolution domain / entry region (`guard ∧ evolve`). `Lie g sysR` is the right-only
+Lie `ilieDeriv g 0 fR 1` (`fL = 0`, `λ = 1`; `g` has no L-vars, so this is exactly `Σ ∂g/∂Rᵢ·fRᵢ`).
+
+Returns `true` = **prune** (drop the edge from `retainedSucc`), `false` = **keep required**. We
+prune ONLY when BOTH checks are definitive `unsat` (`| .ok .unsat, .ok .unsat => true`); every
+other pair (`sat`/`unknown`/`error`), an over-long script, or an unbuildable / non-strict-scalar
+guard keeps the edge (`| _, _ => false`). A query bug can then only fail to prune (over-decline),
+never wrongly prune (false-certify). The drop's soundness is the proven `nonconn_sound`; here we
+supply its two UNSAT hypotheses. Only STRICT scalar successor guards (`a > b` / `a < b`) are
+prunable — a CLOSED guard (`≥`/`≤`) has a boundary the strict barrier cannot exclude, so it is
+kept (scope, not unsoundness). -/
+def nonConnPrune (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
+    (vars : List String) (n : ℕ) (coord : Fin n → String) (mR mSuc : PMode) : IO Bool := do
+  -- safe-side term `g` with successor `guard = {g > 0}`; STRICT scalar comparisons only.
+  let gOpt : Option (ITerm n) :=
+    match mSuc.guard with
+    | PForm.cmp ">" a b =>
+        (lowerE vars n Side.R a).bind fun ea =>
+          (lowerE vars n Side.R b).map fun eb => ITerm.bin .sub ea eb    -- {a>b} = {a−b>0}
+    | PForm.cmp "<" a b =>
+        (lowerE vars n Side.R a).bind fun ea =>
+          (lowerE vars n Side.R b).map fun eb => ITerm.bin .sub eb ea    -- {a<b} = {b−a>0}
+    | _ => none                                                          -- closed / non-atomic ⟹ keep
+  match gOpt with
+  | none => pure false
+  | some g =>
+    match (do
+        let domR ← lowerF vars n Side.R mR.evolve
+        let srcR ← lowerF vars n Side.R (PForm.and mR.guard mR.evolve)
+        let fR   ← dynOf vars n Side.R mR
+        let lie  := ilieDeriv g (fun _ => ITerm.rat 0) fR (ITerm.rat 1)  -- right-only Lie
+        let gPos := IForm.cmp .gt g (ITerm.rat 0)
+        pure (IForm.and srcR gPos,                                       -- sourceCheck = source ∧ {g>0}
+              IForm.and domR (IForm.and (IForm.cmp .eq g (ITerm.rat 0))
+                (IForm.cmp .ge lie (ITerm.rat 0)))) )                    -- barrierCheck = dom ∧ g=0 ∧ ġ≥0
+      with
+    | none => pure false
+    | some (srcCheck, barCheck) =>
+      let s1 := srcCheck.toScript coord
+      let s2 := barCheck.toScript coord
+      if s1.length > maxSmt || s2.length > maxSmt then pure false        -- can't check ⟹ keep
+      else do
+        cnt.modify (· + 2)
+        if (← cnt.get) > maxQ then throw (IO.userError "query budget exceeded")
+        if (← IO.monoMsNow) > deadline then throw (IO.userError "time budget exceeded")
+        let r1 ← s.check s1
+        let r2 ← s.check s2
+        match r1, r2 with
+        | .ok .unsat, .ok .unsat => pure true    -- BOTH UNSAT ⟹ Def-3 non-connection ⟹ PRUNE
+        | _, _                   => pure false   -- anything else ⟹ keep the edge required
+
 /-- Cover a single left mode: `cov` if some (start,λ) closes definitively; `incon` if none
 close but a route was inconclusive; `nocov` if all routes are definitive fails. -/
 def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p : PProblem)
     (vars : List String) (n : ℕ)
     (coord : Fin n → String) (comps : List (ITerm n))
+    (prunedOf : String → String → Bool)
     (epsL epsR lmin lmax : ℚ) (mL : PMode) : IO Cov3 := do
   let mut sawIncon := false
+  -- FIX 1 (precise admissibility): the admissible initial right modes for `mL` — those with an
+  -- invariant-satisfying initial pair. λ-independent (guards + `ϕ_rel` only), so computed ONCE.
+  -- `.cov` will require every admissible start to cover (the ∀ over initial pairs); an
+  -- inadmissible mode (no `guardL ∧ guardR ∧ ϕ_rel` pair, proven by Z3 `unsat`) is dropped.
+  let mut admMods : List PMode := []
+  for mR in p.R.modes do
+    if ← admissible s cnt maxQ maxSmt deadline vars n coord comps mL mR then
+      admMods := admMods ++ [mR]
+  -- REPOSITION: BOTH source-setting region-invariants per right mode (left `mL` frozen).
+  -- λ-independent (guards + invariant only), computed ONCE. `repoPreOK` uses the pre-j region
+  -- (with guardL), `repoPostOK` the stronger post-j region (without guardL). σ selects between
+  -- them in the cover. For watertank `(Mid_L, High_R)`: pre-j PASSES (enables the initial-pair
+  -- reposition `High_R → Mid_R`).
+  let mut repoMap : List (String × Bool × Bool) := []   -- (name, preOK, postOK)
+  for mR in p.R.modes do
+    let (pre, post) ← (match repoRegions vars n mL mR with
+      | none => pure (false, false)                       -- unbuildable ⟹ no reposition
+      | some (rPre, rPost) => do
+          let pre  ← regionUnsat s cnt maxQ maxSmt deadline coord comps rPre
+          let post ← regionUnsat s cnt maxQ maxSmt deadline coord comps rPost
+          pure (pre, post))
+    repoMap := repoMap ++ [(mR.name, pre, post)]
+  let repoPreOK  := fun (nm : String) => (repoMap.find? (·.1 == nm)).map (·.2.1) |>.getD false
+  let repoPostOK := fun (nm : String) => (repoMap.find? (·.1 == nm)).map (·.2.2) |>.getD false
+  -- DYNAMIC reposition (certificate 3): right-only whole-domain flow cert (route A), σ-matched.
+  -- λ-independent (fL=0, λ=1; sign λ-invariant), computed ONCE. For the rover cross-terrain hop,
+  -- `ġ_s=−v_R≤0` and `ġ_v` on the terrain's v-evolve-cap ⟹ route-A UNSAT ⟹ the advancing reposition.
+  let mut dynMap : List (String × Bool × Bool) := []
+  for mR in p.R.modes do
+    let pre  ← checkDynRepo s cnt maxQ maxSmt deadline vars n coord comps mL mR true
+    let post ← checkDynRepo s cnt maxQ maxSmt deadline vars n coord comps mL mR false
+    dynMap := dynMap ++ [(mR.name, pre, post)]
+  let repoDynPreOK  := fun (nm : String) => (dynMap.find? (·.1 == nm)).map (·.2.1) |>.getD false
+  let repoDynPostOK := fun (nm : String) => (dynMap.find? (·.1 == nm)).map (·.2.2) |>.getD false
+  if (← IO.getEnv "RELCERT_DEBUG").isSome then
+    let preL := repoMap.filterMap (fun p => if p.2.1 then some p.1 else none)
+    let postL := repoMap.filterMap (fun p => if p.2.2 then some p.1 else none)
+    let dpreL := dynMap.filterMap (fun p => if p.2.1 then some p.1 else none)
+    IO.eprintln s!"  [repo-pre] {mL.name}_L: {preL} [repo-post]: {postL} [repo-dyn-pre]: {dpreL}"
   for lam in lambdaCandidates lmin lmax epsL epsR do
     let deltaL := if lam == 0 then epsR else epsR / lam
     if deltaL ≤ 0 then continue
@@ -194,18 +399,56 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     -- sync cover hits the `base` case (`B ≤ 1`), visiting only the start, so its non-certifying
     -- closed-leaf successors are correctly irrelevant. `decideCovered = true` ⟹ `Covered` ⟹
     -- (via `check_sound`) the ∀∃-throughout invariant. Its `false` ⟹ decline (never false CERTIFIED).
-    for mR in p.R.modes do
-      match coverVisit seg (succOf p) bBudget mR.name with
-      | none => pure ()
-      | some visited =>
-          let vis := visited.eraseDups
-          let idx := fun nm => vis.findIdx (· == nm)
-          let cg : SearchGraph (Var n) :=
-            { modes := vis.map (fun _ => { sys := [], dom := .tt, weight := 1 })
-              edges := vis.flatMap (fun nm => (succOf p nm).filter (vis.contains ·) |>.map (fun tgt =>
-                { src := idx nm, tgt := idx tgt, guard := .tt, pruned := false })) }
-          if decideCovered cg (bBudget + 1) ⟨idx mR.name, bBudget⟩ then return .cov
-    if p.R.modes.any (fun mR => seg mR.name == Seg.incon) then sawIncon := true
+    -- FIX 1 (soundness): the initial right mode is NOT a free ∃-pick. Def 4 / the ∀∃ property
+    -- quantify over EVERY admissible initial pair `(mL, mR0)`; the right's start mode is
+    -- determined by `s_R`. So `.cov` requires that EVERY admissible initial mode (`admMods`,
+    -- computed once above via `admissible`) covers — not that some start does.
+    -- FIX 2 (soundness): run the VERIFIED `decideCovered` on the REAL declared-successor graph,
+    -- NOT the `coverVisit` visited set (which the checker would merely rubber-stamp). Nodes =
+    -- the certified (`seg = pass`) right modes; EDGES = ALL declared edges. An edge whose target
+    -- is UNCERTIFIED points to an out-of-range sentinel index `k`, so `decideCovered`'s
+    -- ∀-over-`retainedSucc` hits `modeAt = none` there and fails — an uncertified declared
+    -- successor cannot be silently stripped from the ∀. Weight 1 / budget `⌈εL/δL⌉` is the
+    -- faithful ℕ-discretization of `(B = εL, w = εR/λ)`: base fires at `B ≤ 1 ⟺ εL ≤ εR/λ`
+    -- (one segment closes the residence), matching the paper's real-valued base condition.
+    -- REPOSITION: NODES = modes joint-certified OR reposition-certified (pre-j OR post-j). Each
+    -- node carries `jointOK`, `repoPreOK`, `repoPostOK`; `decideCovered` offers base/joint-step
+    -- where `jointOK`, and the zero-budget reposition step σ-matched (pre-j → `repoPreOK`, post-j
+    -- → `repoPostOK`). `region`/`regionPost` are structural placeholders (`decideCovered` is
+    -- structural; the real `repoPresPre/Post` are the Z3-established region-invariants).
+    -- a mode is a node iff joint-certified OR reposition-certified by ANY of the 3 kinds
+    -- (static pre/post OR dynamic pre/post).
+    let repoOK := fun nm => repoPreOK nm || repoPostOK nm || repoDynPreOK nm || repoDynPostOK nm
+    let nodeMods := p.R.modes.filter (fun m => seg m.name == Seg.pass || repoOK m.name)
+    let kSentinel := nodeMods.length
+    let idxOf := fun (nm : String) => (nodeMods.findIdx? (·.name == nm)).getD kSentinel
+    let cgReal : SearchGraph (Var n) :=
+      { modes := nodeMods.map (fun m =>
+          { sys := [], dom := .tt, weight := 1,
+            jointOK := seg m.name == Seg.pass,
+            region := .tt, repoPreOK := repoPreOK m.name,
+            regionPost := .tt, repoPostOK := repoPostOK m.name,
+            dynSys := [], dynDomPre := .tt, dynDomPost := .tt,
+            repoDynPreOK := repoDynPreOK m.name, repoDynPostOK := repoDynPostOK m.name })
+        edges := nodeMods.flatMap (fun m => (succOf p m.name).map (fun tgt =>
+          -- FIX 3: `pruned` set by the Def-3 non-connection certificate (`prunedOf`).
+          { src := idxOf m.name, tgt := idxOf tgt, guard := .tt, pruned := prunedOf m.name tgt })) }
+    -- fuel bounds `decideCovered`'s depth: joint steps decrease budget (≤ `bBudget`), reposition
+    -- steps keep budget but recurse only through repo-OK nodes' non-self exits. A budget-decrement
+    -- can be interleaved with a zero-budget reposition through EACH node (Approach→Return→Approach
+    -- alternation at high λ ⟹ high `bBudget`), so the worst-case depth is `bBudget·(nodeMods+1)`, not
+    -- `bBudget + nodeMods`. Fuel only bounds the checker's search depth — larger is always sound
+    -- (`decideCovered_sound` is fuel-generic); too-small merely over-declines.
+    let fuel := bBudget * (nodeMods.length + 1) + 1
+    let startCovers := fun (mR : PMode) =>
+      -- a start is usable iff it is a node; the verified checker decides base / joint-step /
+      -- reposition-step on the real graph. Initial source setting σ = **preJ** (no joint yet).
+      (seg mR.name == Seg.pass || repoOK mR.name) &&
+        decideCovered cgReal fuel ⟨idxOf mR.name, bBudget, SrcSetting.preJ⟩
+    -- `.cov` for this λ iff every admissible initial mode covers. Empty `admMods` ⟹ do NOT
+    -- certify (safe: a possibly-buggy all-drop cannot vacuously certify; over-decline instead).
+    if !admMods.isEmpty && admMods.all startCovers then return .cov
+    if admMods.any (fun mR => seg mR.name == Seg.incon) then sawIncon := true
   return (if sawIncon then .incon else .nocov)
 
 /-- Core cover, parameterized by a query counter/budget (`throw`s on overrun). -/
@@ -217,6 +460,20 @@ def certifyCore (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) 
   let epsR := (parseRat p.R.epsilon).getD 1
   let lmin := (parseRat p.lambdaMin).getD 1
   let lmax := (parseRat p.lambdaMax).getD 1
+  -- FIX 3: Def-3 non-connection pruning. mL- AND λ-independent (right flow + right guards only),
+  -- so computed ONCE for the whole problem. Edge `mR → tgt` pruned iff BOTH nonconn checks are
+  -- definitive Z3 UNSAT (`nonConnPrune`); any other verdict keeps it. Drop-only-on-UNSAT ⟹ sound.
+  let mut prunedPairs : List (String × String) := []
+  for mR in p.R.modes do
+    for tgt in mR.next do
+      match p.R.modes.find? (·.name == tgt) with
+      | none => pure ()
+      | some mSuc =>
+          if ← nonConnPrune s cnt maxQ maxSmt deadline vars n coord mR mSuc then
+            prunedPairs := prunedPairs ++ [(mR.name, tgt)]
+  if (← IO.getEnv "RELCERT_DEBUG").isSome then
+    IO.eprintln s!"  [prune] {p.name}: {prunedPairs.map (fun e => s!"{e.1}->{e.2}")}"
+  let prunedOf := fun (src tgt : String) => prunedPairs.contains (src, tgt)
   let mut sawIncon := false
   for mL in p.L.modes do
     -- invariant for this left mode (key = mode name, else first)
@@ -228,7 +485,7 @@ def certifyCore (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) 
         match invComponents vars n f with
         | none => return .error s!"unlowerable invariant for mode {mL.name}"
         | some comps =>
-            match ← coverMode s cnt maxQ maxSmt deadline p vars n coord comps epsL epsR lmin lmax mL with
+            match ← coverMode s cnt maxQ maxSmt deadline p vars n coord comps prunedOf epsL epsR lmin lmax mL with
             | .cov => pure ()
             | .incon => sawIncon := true
             | .nocov => return .declined   -- definitive uncovered ⟹ sound DECLINE

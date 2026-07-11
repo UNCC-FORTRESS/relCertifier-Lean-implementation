@@ -147,6 +147,18 @@ def segParts (vars : List String) (n : ℕ) (g : ITerm n) (mL mR : PMode) (lam :
   let gdot := ilieDeriv g fL fR (.rat lam)
   some (IForm.and domL domR, gdot)
 
+/-- **FIX 4: right-only segment parts** (`(ρ_L,ρ_R)=(0,1)`). Same domain as `segParts`
+(`evolveL ∧ evolveR`), but the Lie derivative freezes the left (`fL = 0`) and leaves the right
+unstretched (`λ = 1`): `ġ = Σ ∂g/∂Rᵢ · fRᵢ`. UNSAT of a `routeQueries` certifies that the
+invariant is preserved while the left is frozen and only the right evolves. -/
+def segPartsRO (vars : List String) (n : ℕ) (g : ITerm n) (mL mR : PMode) :
+    Option (IForm n × ITerm n) := do
+  let domL  ← lowerF vars n Side.L mL.evolve
+  let domR  ← lowerF vars n Side.R mR.evolve
+  let fR ← dynOf vars n Side.R mR
+  let gdot := ilieDeriv g (fun _ => ITerm.rat 0) fR (.rat 1)
+  some (IForm.and domL domR, gdot)
+
 /-- The three **sound** flow queries for `(domain, g, ġ)` — UNSAT of ANY certifies the
 segment, each backed by a verified theorem:
 * A `domain ∧ ġ>0`        — `flow_cert_sound` (`DI_nonstrict_domain`);

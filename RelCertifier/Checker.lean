@@ -47,13 +47,28 @@ derivation height; `decideCovered_sound` needs only that it suffices):
 No `noncomputable`, no classical choice — this function *runs* on the runner's certificate. -/
 def decideCovered (G : SearchGraph V) : ℕ → Config → Bool
   | 0,        _      => false
-  | fuel + 1, ⟨q, B⟩ =>
+  | fuel + 1, ⟨q, B, σ⟩ =>
       match G.modeAt q with
       | none   => false
       | some m =>
-          if B ≤ m.weight then true                                    -- base (Def 4)
-          else (G.retainedSucc q).all                                  -- step (Def 4)
-            (fun q' => decideCovered G fuel ⟨q', B - m.weight⟩)
+          -- base (Def 4, joint): joint-supported and one residence closes the budget
+          (m.jointOK && decide (B ≤ m.weight))
+          -- joint step (Def 4): budget remains, all successors cover at B−weight, σ flips to postJ
+          || (m.jointOK && decide (m.weight < B) &&
+                (G.retainedSucc q).all (fun q' =>
+                   decideCovered G fuel ⟨q', B - m.weight, SrcSetting.postJ⟩))
+          -- reposition step (REPOSITION CERTIFICATE), **σ-matched**: pre-j uses `repoPreOK`
+          -- (obligation with guardL), post-j uses `repoPostOK` (stronger, without guardL). Zero
+          -- budget, `exitSucc` non-empty (no vacuous dead-end cover), all non-self exits cover at
+          -- the SAME budget `B` and SAME `σ` (reposition doesn't evolve the left, so σ is preserved).
+          || ((match σ with | .preJ => m.repoPreOK | .postJ => m.repoPostOK)
+                && decide (0 < B) && !(G.exitSucc q).isEmpty &&
+                (G.exitSucc q).all (fun q' => decideCovered G fuel ⟨q', B, σ⟩))
+          -- DYNAMIC reposition step (certificate 3), σ-matched (`repoDynPreOK`/`repoDynPostOK`).
+          -- Same structural gate; availability is the whole-domain flow cert, not the static region.
+          || ((match σ with | .preJ => m.repoDynPreOK | .postJ => m.repoDynPostOK)
+                && decide (0 < B) && !(G.exitSucc q).isEmpty &&
+                (G.exitSucc q).all (fun q' => decideCovered G fuel ⟨q', B, σ⟩))
 
 /-- **Soundness of the checker's structural half.** If `decideCovered` accepts, the
 proof-level `Covered` relation holds — so the runner's (untrusted) search result is
@@ -64,18 +79,36 @@ theorem decideCovered_sound (G : SearchGraph V) :
   induction fuel with
   | zero => intro cfg h; simp [decideCovered] at h
   | succ f ih =>
-      rintro ⟨q, B⟩ h
+      rintro ⟨q, B, σ⟩ h
       simp only [decideCovered] at h
       cases hm : G.modeAt q with
       | none => rw [hm] at h; simp at h
       | some m =>
-          simp only [hm] at h
-          split at h
-          · next hle => exact Covered.base m hm hle
-          · next hle =>
-              refine Covered.step m hm (Nat.lt_of_not_le hle) ?_
-              intro q' hq'
-              exact ih _ (List.all_eq_true.mp h q' hq')
+          rw [hm] at h
+          simp only [Bool.or_eq_true, Bool.and_eq_true, decide_eq_true_eq] at h
+          rcases h with ((⟨hj, hle⟩ | ⟨⟨hj, hlt⟩, hall⟩) | ⟨⟨⟨hrepo, hB⟩, hne'⟩, hall⟩)
+                        | ⟨⟨⟨hrepo, hB⟩, hne'⟩, hall⟩
+          · exact Covered.base m hm hj hle                              -- base (joint)
+          · refine Covered.step m hm hj hlt ?_                          -- joint step (successors postJ)
+            intro q' hq'; exact ih _ (List.all_eq_true.mp hall q' hq')
+          · -- STATIC reposition step, σ-matched
+            have hne : G.exitSucc q ≠ [] := by intro hnil; rw [hnil] at hne'; simp at hne'
+            cases σ with
+            | preJ =>
+                refine Covered.stepRepositionPre m hm hrepo hB hne ?_
+                intro q' hq'; exact ih _ (List.all_eq_true.mp hall q' hq')
+            | postJ =>
+                refine Covered.stepRepositionPost m hm hrepo hB hne ?_
+                intro q' hq'; exact ih _ (List.all_eq_true.mp hall q' hq')
+          · -- DYNAMIC reposition step (certificate 3), σ-matched
+            have hne : G.exitSucc q ≠ [] := by intro hnil; rw [hnil] at hne'; simp at hne'
+            cases σ with
+            | preJ =>
+                refine Covered.stepRepositionDynPre m hm hrepo hB hne ?_
+                intro q' hq'; exact ih _ (List.all_eq_true.mp hall q' hq')
+            | postJ =>
+                refine Covered.stepRepositionDynPost m hm hrepo hB hne ?_
+                intro q' hq'; exact ih _ (List.all_eq_true.mp hall q' hq')
 
 /-! ## `check_sound` — CERTIFIED provably implies the ∀∃-throughout invariant -/
 

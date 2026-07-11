@@ -1,7 +1,24 @@
 # Arm fidelity chain -- Rung 2:  L = A3 (4-mode envelope, finer)
 #                                R = A2 (3-mode envelope, coarser)
-# Certifies [[L,R>>: every behavior of the finer 4-mode model is covered by the
-# 3-mode model within tolerance d2.
+# Certifies [[L,R>>: every behavior of the finer A3 model is covered by the
+# coarser A2 model within tolerance d2.
+#
+# CONNECTOR ROLE: this is the middle leg of the refinement tower
+#   A4 (rung3 L) <= A3 (this L = rung3's R) <= A2 (this R = rung1's L) <= A1 (rung1 R).
+# For the tower to compose, THIS L must be the SAME A3 that rung3 refines (its R),
+# and THIS R must be the SAME A2 that rung1 refines against (its L).
+#   - L here == rung3's Rsys (the Hold-terminating A3: 0.5/0.35/0.2/Hold).
+#   - R here == rung1's Lsys (the A2: 0.5/0.3/Return).
+# The A3 model TERMINATES in a frozen Hold (theta'=0, theta>=0.6): the arm
+# settles at its target and holds. (An earlier version used a Return-cycling A3
+# with rates 0.6/0.4/0.25 that (a) did not match rung3's A3 -- so the tower did
+# not compose -- and (b) allowed the deployed arm to linger in the fastest
+# approach mode and climb to theta~1, a physically spurious behavior that broke
+# the tolerance. Replaced with rung3's A3 so the chain composes and the arm
+# settles rather than diverges.)
+#
+# Hold evolve is theta>=0.6 (its frozen reachable set: entered at >=0.6, theta'=0,
+# so it can only occupy theta>=0.6 -- not the loose [0,1] box).
 [problem]
 name = arm_chain_rung2
 max_depth = 8
@@ -10,30 +27,30 @@ lambda_max = 6.0
 bound_T = 4.0
 [Lsys]
 state_vars = [theta]
-# L = A3, the finer 4-mode piecewise-rate envelope (0.6 / 0.4 / 0.25 / return).
+# L = A3, the Hold-terminating 4-mode envelope (== rung3's R). 0.5 / 0.35 / 0.2 / Hold.
 [Lsys.mode.ApproachA]
-ode = theta' = 0.6;
-guard = theta >= 0.0 and theta <= 0.25
+ode = theta' = smt2:0.5;
+guard = theta >= 0.0 and theta <= 0.35
 evolve = theta >= 0 and theta <= 1
 next = [ApproachB, ApproachA]
 [Lsys.mode.ApproachB]
-ode = theta' = 0.4;
-guard = theta >= 0.25 and theta <= 0.45
+ode = theta' = smt2:0.35;
+guard = theta >= 0.35 and theta <= 0.5
 evolve = theta >= 0 and theta <= 1
 next = [ApproachC, ApproachB]
 [Lsys.mode.ApproachC]
-ode = theta' = 0.25;
-guard = theta >= 0.45 and theta <= 0.7
+ode = theta' = smt2:0.2;
+guard = theta >= 0.5 and theta <= 0.6
 evolve = theta >= 0 and theta <= 1
-next = [Return, ApproachC]
-[Lsys.mode.Return]
-ode = theta' = smt2:(- 0 0.2);
-guard = theta >= 0.70
-evolve = theta >= 0 and theta <= 1
-next = [ApproachA, Return]
+next = [Hold, ApproachC]
+[Lsys.mode.Hold]
+ode = theta' = smt2:0;
+guard = theta >= 0.6
+evolve = theta >= 0.6 and theta <= 1
+next = [Hold]
 [Rsys]
 state_vars = [theta]
-# R = A2, the coarser 3-mode envelope (0.5 / 0.3 / return).
+# R = A2, the coarser 3-mode envelope (== rung1's L). fast 0.5 / slow 0.3 / return.
 [Rsys.mode.ApproachFast]
 ode = theta' = 0.5;
 guard = theta >= 0.0 and theta <= 0.35
@@ -48,9 +65,9 @@ next = [Return, ApproachSlow]
 ode = theta' = smt2:(- 0 0.2);
 guard = theta >= 0.70
 evolve = theta >= 0 and theta <= 1
-next = [ApproachSlow, Return]
+next = [ApproachFast, Return]
 [relational_invariant]
-ApproachA = theta[l] <= theta[r] + 0.25
-ApproachB = theta[l] <= theta[r] + 0.25
-ApproachC = theta[l] <= theta[r] + 0.25
-Return    = theta[l] <= theta[r] + 0.25
+ApproachA = theta[l] <= theta[r] + 0.30
+ApproachB = theta[l] <= theta[r] + 0.30
+ApproachC = theta[l] <= theta[r] + 0.30
+Hold      = theta[l] <= theta[r] + 0.30

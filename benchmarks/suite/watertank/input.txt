@@ -3,56 +3,65 @@
 # NOTE: This header describes the model below. The model (ODEs, guards,
 # invariant) is authoritative; if they ever diverge, trust the model.
 #
+# The tank is level-CONTROLLED: each mode is a proportional controller that
+# throttles inflow/outflow toward a setpoint, x' = 3*(a - x/25) = 0.12*(25a - x),
+# a first-order relaxation with time constant tau = 25/3 to the setpoint 25*a.
+# (Reading x as percent-of-range and time in minutes gives fill rates of order
+# 1.5-1.8 %/min and ~25 min settling, a physically reasonable controlled tank.)
+#
 # Nominal system (right):
-#   Low:  guard x in [0, 35),  x' = 3*(0.5 - x/100)   eq 50,  slow fill
-#   Mid:  guard x in [35, 40), x' = 3*(1.0 - x/100)   eq 100, fast fill
-#   High: guard x >= 40,       x' = 3*(0.1 - x/100)   eq 10,  drain
+#   Low:  guard x in [0, 10),  x' = 3*(0.5 - x/25)   eq 12.5, slow fill
+#   Mid:  guard x in [10, 17), x' = 3*(1.0 - x/25)   eq 25,   fast fill
+#   High: guard x >= 17,       x' = 3*(0.1 - x/25)   eq 2.5,  drain
 #
 # Deployed (left, attacked) system, two coordinated effects:
-#   1. Sensor offset -3 (x_measured = x - 3): controller switches at shifted
+#   1. Sensor offset -3 (x_measured = x - 3): the controller switches at shifted
 #      thresholds, so left guards are nominal + 3:
-#         Low [0, 38),  Mid [38, 43),  High x >= 43.
-#   2. Fill speedup in Low: deployed Low fills at c=1.0 (eq 100) versus the
-#      nominal slow-fill c=0.5 (eq 50), i.e. 2x the nominal low-level fill rate.
-#      Mid and High dynamics are unchanged (Mid c=1.0, High c=0.1 both sides);
+#         Low [0, 13),  Mid [13, 20),  High x >= 20.
+#   2. Fill speedup in Low: deployed Low fills at a=0.6 (eq 15) versus the
+#      nominal slow-fill a=0.5 (eq 12.5), i.e. a modest 0.5 -> 0.6 increase in
+#      the low-level fill setpoint (a 20% higher setpoint, ~20% faster initial
+#      fill). This is NOT a 2x speedup; it is a small, plausible fill-rate drift.
+#      Mid and High dynamics are unchanged (Mid a=1.0, High a=0.1 both sides);
 #      the attack disappears in High (both drain identically), exploiting fill
 #      control rather than drain control.
 #
 # Behavioral alignment (a consequence of the attack, derived from the model):
-#   Deployed Low (c=1.0) fills at the same rate as nominal Mid (c=1.0), so the
-#   deployed low-level phase aligns with the nominal fast-fill phase. Low_L
-#   therefore synchronizes cleanly with Mid_R at lambda = 1 (identical dynamics,
-#   the +3 invariant gap is preserved since dg/dt = f_L - f_R = -0.09 < 0).
-#   Low_L also synchronizes with the slow nominal Low_R, but only with a large
-#   time-stretch (lambda ~ 4.1), since the deployed system fills twice as fast.
+#   The deployed low-level fill setpoint (15) exceeds the nominal one (12.5) by
+#   2.5, within the sensor offset of 3. Because the setpoint gap stays under the
+#   invariant bound, the deployed level leads the nominal level by less than the
+#   offset while both remain in Low, and Low_L/Low_R synchronizes at lambda = 1.
+#   On the invariant boundary x_L = x_R + 3:
+#     dg/dt = 3*(0.6 - 0.5) - (3/25)*(x_L - x_R) = 0.3 - 0.12*3 = -0.06 < 0,
+#   so the +3 gap contracts and the pair certifies with margin. Low_L also
+#   synchronizes cleanly with the nominal fast-fill Mid_R at lambda = 1.
 #
 # Relational invariant: x_L <= x_R + 3 (all mode pairs). The bound 3 is the
 #   sensor offset: the deployed level may lead the nominal level by at most the
-#   offset. With Low_L and Mid_R sharing dynamics, this offset is preserved
-#   without growth, so d = 3 suffices.
+#   offset. The 0.5 -> 0.6 fill setpoint gap raises the deployed steady low-level
+#   by 2.5 (15 vs 12.5), which the offset absorbs, so d = 3 suffices.
 #
 # Per-pair sync (lambda_min, derived from the model on the invariant boundary):
-#   Low_L/Low_R:   ~4.13   left fills 2x faster, large stretch needed
-#   Low_L/Mid_R:   ~1.00   identical dynamics, exact rate match
+#   Low_L/Low_R:   ~1.00   0.6 vs 0.5 fill; setpoint gap 2.5 < offset 3
+#   Low_L/Mid_R:   ~1.00   deployed Low aligns with nominal fast-fill Mid
 #   Mid_L/Mid_R:   ~1.00   identical dynamics
 #   Mid_L/High_R:    -     left fills while right drains: no valid stretch
 #   High_L/Mid_R:    -     (right fills, left drains)
 #   High_L/Low_R:  ~1.00
 #   High_L/High_R: ~1.00   identical drain dynamics
-#   lambda_max = 10 admits the Low_L/Low_R stretch (~4.1); it is an admissible
-#   time-stretch budget, not a value tuned to force any single edge.
 #
-# Connection (boundary) obligation:
-#   The High_R -> Mid_R re-entry presync edges do NOT satisfy the connection
-#   check at d = 3 (a deployed state near the top of Mid can sit at x_L up to
-#   the physical range while x_R = 40, so x_L <= x_R + 3 can fail at that
-#   crossing). The cover does not depend on those edges: Low_L covers its full
-#   budget in a single Low_L/Mid_R sync (lambda = 1), so the rejected re-entries
-#   are off the critical path. The boundary check correctly rejects them.
+# Filling-left / draining-right pairs (Low_L/High_R, Mid_L/High_R) have no flow
+#   certificate on the physical evolve domain, but they are off the critical
+#   path: they are only reachable with the nominal level far ahead of the
+#   deployed level (x_R - x_L >= 4), where the invariant holds with wide margin.
+#   Low_L and Mid_L each cover their full budget through a single certifying
+#   sync (Low_L via Low_R or Mid_R, Mid_L via Mid_R, all at lambda = 1), so the
+#   cover does not depend on these edges.
 #
-# Evolution domains are PHYSICAL limits only: every mode uses x in [0, 100]
-#   (the tank's physical range), identical on both systems. No evolve bound is
-#   set to a guard or invariant value to assist verification.
+# Evolution domains are PHYSICAL limits only: every mode uses x in [0, 25]
+#   (the tank's physical range under this setpoint scale), identical on both
+#   systems. No evolve bound is set to a guard or invariant value to assist
+#   verification.
 
 [problem]
 name = watertank
@@ -66,21 +75,21 @@ state_vars = [x]
 epsilon = 1.0
 
 [Lsys.mode.Low]
-ode = x' = smt2:(* 3 (- 1.0 (* x 0.01)));
-guard = x >= 0.0 and x < 38.0
-evolve = x >= 0 and x <= 100
+ode = x' = smt2:(* 3 (- 0.6 (* x 0.04)));
+guard = x >= 0.0 and x < 13.0
+evolve = x >= 0 and x <= 25
 next = [Mid, Low]
 
 [Lsys.mode.Mid]
-ode = x' = smt2:(* 3 (- 1.0 (* x 0.01)));
-guard = x >= 38.0 and x < 43.0
-evolve = x >= 0 and x <= 100
+ode = x' = smt2:(* 3 (- 1.0 (* x 0.04)));
+guard = x >= 13.0 and x < 20.0
+evolve = x >= 0 and x <= 25
 next = [High, Mid]
 
 [Lsys.mode.High]
-ode = x' = smt2:(* 3 (- 0.1 (* x 0.01)));
-guard = x >= 43.0
-evolve = x >= 0 and x <= 100
+ode = x' = smt2:(* 3 (- 0.1 (* x 0.04)));
+guard = x >= 20.0
+evolve = x >= 0 and x <= 25
 next = [Mid, High]
 
 [Rsys]
@@ -88,21 +97,21 @@ state_vars = [x]
 epsilon = 1.0
 
 [Rsys.mode.Low]
-ode = x' = smt2:(* 3 (- 0.5 (* x 0.01)));
-guard = x >= 0.0 and x < 35.0
-evolve = x >= 0 and x <= 100
+ode = x' = smt2:(* 3 (- 0.5 (* x 0.04)));
+guard = x >= 0.0 and x < 10.0
+evolve = x >= 0 and x <= 25
 next = [Mid, Low]
 
 [Rsys.mode.Mid]
-ode = x' = smt2:(* 3 (- 1.0 (* x 0.01)));
-guard = x >= 35.0 and x < 40.0
-evolve = x >= 0 and x <= 100
+ode = x' = smt2:(* 3 (- 1.0 (* x 0.04)));
+guard = x >= 10.0 and x < 17.0
+evolve = x >= 0 and x <= 25
 next = [High, Mid]
 
 [Rsys.mode.High]
-ode = x' = smt2:(* 3 (- 0.1 (* x 0.01)));
-guard = x >= 40.0
-evolve = x >= 0 and x <= 100
+ode = x' = smt2:(* 3 (- 0.1 (* x 0.04)));
+guard = x >= 17.0
+evolve = x >= 0 and x <= 25
 next = [Mid, High]
 
 [relational_invariant]

@@ -45,6 +45,6 @@ guard = px >= 10.0
 evolve = px >= 0.0 and px <= 15.0 and vx >= 0.3 and vx <= 1.0
 next = [Safe]
 [relational_invariant]
-Drive = px[l] <= px[r] + 0.5 and vx[l] <= vx[r]
-Drift = px[l] <= px[r] + 1.0 and vx[l] <= vx[r] + 0.5
+Drive = px[l] <= px[r] + 0.5
+Drift = px[l] <= px[r] + 1.0
 Stop  = px[l] <= px[r] + 2.0

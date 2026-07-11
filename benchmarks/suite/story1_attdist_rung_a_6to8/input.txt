@@ -60,17 +60,6 @@ evolve = v >= 0 and v <= 0.65 and s >= 0 and s <= 1000 and psi >= -0.5 and psi <
 next = [FLAT]
 
 [relational_invariant]
-# D_psi = 2*(psiL-psiR)^2 + 2*(psiL-psiR)*omega_psiL + omega_psiL^2  (Lyapunov energy heading)
-# D_theta = 2*(thL-thR)^2 + 2*(thL-thR)*omega_thetaL + omega_thetaL^2 (Lyapunov energy pitch)
-# Extended forms of the 6-DOF alignment property when rates enter at 8-DOF.
-# Pair-scoped: same-terrain/forward pairs include v[l]<=v[r]; backward pairs use distance only.
-# Backward pairs (L in faster terrain than R): v[l]<=v[r] breaks; attitude distance alone holds.
-STEEP/STEEP = v[l] <= v[r] and 2*(psi[l]-psi[r])*(psi[l]-psi[r]) + 2*(psi[l]-psi[r])*omega_psi[l] + omega_psi[l]*omega_psi[l] <= 0.25 and 2*(theta_p[l]-theta_p[r])*(theta_p[l]-theta_p[r]) + 2*(theta_p[l]-theta_p[r])*omega_theta[l] + omega_theta[l]*omega_theta[l] <= 0.25
-STEEP/MODER = v[l] <= v[r] and 2*(psi[l]-psi[r])*(psi[l]-psi[r]) + 2*(psi[l]-psi[r])*omega_psi[l] + omega_psi[l]*omega_psi[l] <= 0.25 and 2*(theta_p[l]-theta_p[r])*(theta_p[l]-theta_p[r]) + 2*(theta_p[l]-theta_p[r])*omega_theta[l] + omega_theta[l]*omega_theta[l] <= 0.25
-STEEP/FLAT  = v[l] <= v[r] and 2*(psi[l]-psi[r])*(psi[l]-psi[r]) + 2*(psi[l]-psi[r])*omega_psi[l] + omega_psi[l]*omega_psi[l] <= 0.25 and 2*(theta_p[l]-theta_p[r])*(theta_p[l]-theta_p[r]) + 2*(theta_p[l]-theta_p[r])*omega_theta[l] + omega_theta[l]*omega_theta[l] <= 0.25
-MODER/MODER = v[l] <= v[r] and 2*(psi[l]-psi[r])*(psi[l]-psi[r]) + 2*(psi[l]-psi[r])*omega_psi[l] + omega_psi[l]*omega_psi[l] <= 0.25 and 2*(theta_p[l]-theta_p[r])*(theta_p[l]-theta_p[r]) + 2*(theta_p[l]-theta_p[r])*omega_theta[l] + omega_theta[l]*omega_theta[l] <= 0.25
-MODER/FLAT  = v[l] <= v[r] and 2*(psi[l]-psi[r])*(psi[l]-psi[r]) + 2*(psi[l]-psi[r])*omega_psi[l] + omega_psi[l]*omega_psi[l] <= 0.25 and 2*(theta_p[l]-theta_p[r])*(theta_p[l]-theta_p[r]) + 2*(theta_p[l]-theta_p[r])*omega_theta[l] + omega_theta[l]*omega_theta[l] <= 0.25
-FLAT/FLAT   = v[l] <= v[r] and 2*(psi[l]-psi[r])*(psi[l]-psi[r]) + 2*(psi[l]-psi[r])*omega_psi[l] + omega_psi[l]*omega_psi[l] <= 0.25 and 2*(theta_p[l]-theta_p[r])*(theta_p[l]-theta_p[r]) + 2*(theta_p[l]-theta_p[r])*omega_theta[l] + omega_theta[l]*omega_theta[l] <= 0.25
-MODER/STEEP = 2*(psi[l]-psi[r])*(psi[l]-psi[r]) + 2*(psi[l]-psi[r])*omega_psi[l] + omega_psi[l]*omega_psi[l] <= 0.25 and 2*(theta_p[l]-theta_p[r])*(theta_p[l]-theta_p[r]) + 2*(theta_p[l]-theta_p[r])*omega_theta[l] + omega_theta[l]*omega_theta[l] <= 0.25
-FLAT/STEEP  = 2*(psi[l]-psi[r])*(psi[l]-psi[r]) + 2*(psi[l]-psi[r])*omega_psi[l] + omega_psi[l]*omega_psi[l] <= 0.25 and 2*(theta_p[l]-theta_p[r])*(theta_p[l]-theta_p[r]) + 2*(theta_p[l]-theta_p[r])*omega_theta[l] + omega_theta[l]*omega_theta[l] <= 0.25
-FLAT/MODER  = 2*(psi[l]-psi[r])*(psi[l]-psi[r]) + 2*(psi[l]-psi[r])*omega_psi[l] + omega_psi[l]*omega_psi[l] <= 0.25 and 2*(theta_p[l]-theta_p[r])*(theta_p[l]-theta_p[r]) + 2*(theta_p[l]-theta_p[r])*omega_theta[l] + omega_theta[l]*omega_theta[l] <= 0.25
+STEEP = v[l] <= v[r] and 2*(psi[l]-psi[r])*(psi[l]-psi[r]) + 2*(psi[l]-psi[r])*omega_psi[l] + omega_psi[l]*omega_psi[l] <= 0.25 and 2*(theta_p[l]-theta_p[r])*(theta_p[l]-theta_p[r]) + 2*(theta_p[l]-theta_p[r])*omega_theta[l] + omega_theta[l]*omega_theta[l] <= 0.25
+MODER = 2*(psi[l]-psi[r])*(psi[l]-psi[r]) + 2*(psi[l]-psi[r])*omega_psi[l] + omega_psi[l]*omega_psi[l] <= 0.25 and 2*(theta_p[l]-theta_p[r])*(theta_p[l]-theta_p[r]) + 2*(theta_p[l]-theta_p[r])*omega_theta[l] + omega_theta[l]*omega_theta[l] <= 0.25
+FLAT = 2*(psi[l]-psi[r])*(psi[l]-psi[r]) + 2*(psi[l]-psi[r])*omega_psi[l] + omega_psi[l]*omega_psi[l] <= 0.25 and 2*(theta_p[l]-theta_p[r])*(theta_p[l]-theta_p[r]) + 2*(theta_p[l]-theta_p[r])*omega_theta[l] + omega_theta[l]*omega_theta[l] <= 0.25

@@ -11,6 +11,23 @@ correct**, each proof citing a mechanized theorem of the imported theory. The si
 trusted assumption of the whole tool is that Z3's `unsat` verdict is sound
 (`z3_unsat_sound`); everything else is kernel-checked.
 
+## Imported theories — the four repos it builds on
+
+relCertifier-lean proves nothing about differential dynamic logic from scratch; it **composes
+already-mechanized theories**. Every soundness-critical lemma cites a theorem from one of these:
+
+| Repo | Pin | What it provides | Key theorems used here |
+|---|---|---|---|
+| **[dL-lean](https://github.com/UNCC-FORTRESS)** | `v0.1.0-DI` | Core dL: syntax `Term`/`Formula`/`Program`, semantics `Term.eval`/`Formula.sat`/`Program.sem`, and the **differential-invariant** calculus | `DI_strict`, `DI_nonstrict_domain`, `Lie`, `Lie_eq_fderiv`, `hasDeriv_g_along_flow`, `sem_ode_iff_integralCurve`, `nonstrict_boundary_insufficient` (the `t²` soundness countermodel) |
+| **[dL-rel](https://github.com/UNCC-FORTRESS)** (NFM'25) | path-req | The **relational (bi-state) extension** of dL and its host **encoding** | `RFormula`, `encode`, `faShape` (the ∀∃ relational modality `[|(α,β)⟩⟩ψ`), `encoding_correct` / `encoding_correct_exists` (**Theorem 2**) |
+| **dL-caltiming** (CSF'25) | `v0.1.0-CSF25` | The **∀∃ endpoint modality** `faModal` and its ODE / composition rules (the timed relational calculus) | `faModal`, `faModal_ODE_G`, `faModal_LOCK`, `faModal_MULTI`, `faModal_seq`, `plantT` |
+| **Mathlib** | (bundled) | Real analysis + ODE existence | `IsPicardLindelof` (Picard–Lindelöf), `ContDiff`, `isCompact_univ_pi`, `IsCompact.elim_finite_subcover`, `Convex.lipschitzOnWith_of_nnnorm_fderiv_le` |
+
+The dependency flow: **Mathlib** (analysis) → **dL-lean** (dL + `DI`) → **dL-rel** (bi-state
+encoding) and **dL-caltiming** (∀∃ modality) → **relCertifier-lean** (this repo: certifier + witness).
+dL-rel and dL-caltiming are consumed offline via a `path`-require into `../dL-rel/.lake/packages`;
+dL-lean is pinned transitively through dL-rel.
+
 ## What is verified
 
 The tool is built bottom-up as three verified local certificates plus their composition,
@@ -33,6 +50,81 @@ on the assembled right response, each segment preserves the invariant (`flow_cer
 a time-unbounded `BoxLe`), a jump cannot follow a pruned edge (`nonconn_sound`), and the
 budget strictly decreases each step (`cover_budget_decreases` — the mechanized rejection
 of budget-neutral cycles, the load-bearing finiteness argument).
+
+## Lean files → paper results
+
+Every source file, its job, the paper result it mechanizes, and the imported theorem it rests on.
+
+| File | Purpose | Paper result | Rests on |
+|---|---|---|---|
+| `FlowCert.lean` | `tderiv`/`lieDeriv`/`flowQuery` + `flow_cert_sound`/`_strict` | per-segment sync (Lie) obligation | dL-lean `DI_nonstrict_domain`, `DI_strict` |
+| `DISuperlevel.lean` | `flow_cert_sound_superlevel` | marginal `ġ=0`-on-boundary energy/contraction class | dL-lean `DI_nonstrict_superlevel` (no subtangency) |
+| `NonConn.lean` | `sourceCheck`/`barrierCheck` + `nonconn_sound` | Guard-Boundary-Crossing / edge pruning | dL-lean `DI_strict` (Nagumo barrier) |
+| `Cover.lean` | `Covered` (Def. 4), `RightReach`, **`cover_sound`** | **Theorem 3** `ϕ_inv → [|(L*,R*)⟩⟩ϕ_inv` | flow + nonconn certs |
+| `Cover/Encoding.lean` | `theorem3_encoded`, `rvalid_of_encoded_unsat` | global ∀∃ validity from Z3 UNSAT | dL-rel `encoding_correct` (**Theorem 2**) |
+| `Cover/Coexec.lean` | `CoexecInvThroughout`, `cover_sound_throughout` | cover ⟹ co-execution invariant throughout | `cover_sound` |
+| `Checker.lean` | `decideCovered`, **`check_sound`** | `CERTIFIED` ⟹ the ∀∃-throughout invariant | `cover_sound_throughout` |
+| `CSFBridge.lean` | `faModal_ODE_G'` | domain-restricted ∀∃-ODE base rule | dL-caltiming `faModal_ODE_G` |
+| `Reify.lean` | `segment_faModal`, `segment_relational` | one cover segment ⟹ a CSF ∀∃-ODE guarantee | `faModal_ODE_G'` |
+| `Reification.lean` | mode-list ⟹ choice/star programs | assemble `(L*, R*)` from the parsed automata | `faModal` choice/seq rules |
+| `MultiSeg.lean` | `multiseg_het`, `hstep_multiseg_het` | B>1 multi-segment mode-switching witness | dL-caltiming `faModal_MULTI`, `plantT` |
+| `ClockReduce.lean` | `clockReduce` | the timing clock is an eliminable proof device | dL-lean `sem`, `Term.coincidence` |
+| `EncodingBridge.lean` | `faModal_to_faShape`, `relational_loop` | CSF `faModal` ⟹ NFM'25 `faShape` = `[|(L,R)⟩⟩ψ` | dL-rel `sat_encode_faShape`, `encoding_correct` |
+| `PicardBridge.lean` | the `hExist` witness (existence + invariance + chaining) | discharges the ∀∃ duration-existence side-condition | Mathlib `IsPicardLindelof`; dL-lean `sem_ode_iff_integralCurve` |
+| `HExistDischarge.lean` | `hExist_from_rover`/`_cubic` | thread the witness into `segment_faModal` (masking seam) | `PicardBridge`, `Reify` |
+| `ToolLevel.lean` | `certified_relational`, `pair_faModal` | tool-level: a Z3 verdict ⟹ the paper's ∀∃ modality | Encoding + Reify + `z3_unsat_sound` |
+| `Oracle.lean` | `z3_unsat_sound` (the one axiom) + `flow_certified` | the trusted SMT leaf | — (axiom) |
+| `Smt.lean` / `Z3.lean` / `Parse.lean` / `Run.lean` / `Main.lean` | computable IR + SMT printer, Z3 session, parser, runner, `relcert` exe | trusted IO shell | uses the verified queries |
+
+## The main soundness result — the cover (Theorem 3)
+
+The whole tool exists to discharge one theorem. Here it is, verbatim (`Cover.lean`):
+
+```lean
+theorem cover_sound (G : SearchGraph V) (g : Term V) (cert : CoverCert G g) :
+    ∀ cfg ν ω, Covered G cfg → RightReach G cfg ν ω → InvHolds g ν → InvHolds g ω
+```
+
+**In words.** Fix a relational invariant component `g ≤ 0` (`InvHolds g`). `Covered G cfg` is the
+paper's **Definition 4** — a purely combinatorial fact about the mode graph `G`: from configuration
+`cfg = (right mode q, budget B)`, either the budget is closed in this residence (`base`), or **every
+retained successor** covers the decremented budget (`step`). `RightReach G cfg ν ω` is the actual
+∀∃ **right response**: starting at `ν`, the right system stays put, flows within a mode (time-unbounded —
+the flow certificate is a *forward* invariant, not a bounded check), or jumps along a declared successor
+whose guard the evolved state enables. `cover_sound` says: **if the graph is covered and the invariant
+holds at the start `ν`, it holds at every reachable right-response endpoint `ω`.** That is exactly the
+paper's Theorem 3 conclusion — *for every left execution there exists an admissible right response that
+keeps the relational invariant within tolerance, throughout*.
+
+The proof is an induction on `RightReach`: the `evolve` case is discharged by `cert.segPres` (the
+per-segment flow certificate `flow_cert_sound`, itself citing dL-lean's `DI`); the `jump` case uses that
+the jump's budget gate `m.weight < B` matches `Covered`'s `step`, so the target config is still covered,
+and that a pruned edge (via `nonconn_sound`) is never taken. **Budget strictly decreases each residence**
+(`cover_budget_decreases`) — the finiteness argument that rejects budget-neutral cycles, the reason the
+star `(L*, R*)` terminates.
+
+**From the local theorem to the global ∀∃ claim — the encoding.** `cover_sound` is a statement about
+one host-dL invariant `g` along right responses. The paper's actual guarantee is a **relational
+(bi-state)** formula `ϕ_inv → [|(L*, R*)⟩⟩ ϕ_inv`, a sentence of dL-rel about *pairs* of states. Two
+mechanized bridges connect them:
+
+1. `faModal_to_faShape` (`EncodingBridge.lean`) lifts the CSF endpoint modality `faModal` (what a
+   covered segment yields) to dL-rel's **`faShape α β ψ = [|(α,β)⟩⟩ψ`** — the NFM'25 ∀∃ relational
+   modality — via the proven `sat_encode_faShape` (with the identity renaming `ρ = id`, since the joint
+   system already binds disjoint `Side.L`/`Side.R` coordinates).
+2. `theorem3_encoded` (`Cover/Encoding.lean`) closes the loop to Z3: a **single `unsat`** of the encoded
+   negation `encode ρ (¬ theorem3Form L R ϕ_inv)` implies `RFormula.rvalid (theorem3Form …)` — the
+   bi-state validity of the global claim — by dL-rel's **`encoding_correct` (Theorem 2)**, which states
+   that bi-state truth of a relational formula equals host-dL truth of its encoding at a bridged join
+   state. So the tool's `CERTIFIED` (`check_sound` ⟹ `cover_sound_throughout` ⟹, with the encoding,
+   `rvalid`) **provably implies the paper's ∀∃ relational invariant on the mechanized relational logic** —
+   not a bespoke re-statement.
+
+**Where dL-rel does the load-bearing work.** dL-rel is not a convenience import; it is what makes the
+∀∃ fragment expressible and the encoding sound. `faShape`/`encode` were built for exactly this modality,
+and `encoding_correct` is the one theorem that turns "Z3 said `unsat`" into "the relational sentence is
+valid." The single trusted assumption remains `z3_unsat_sound`; the bridge itself is a proven dL-rel
+theorem.
 
 ### Trust boundary
 
@@ -151,29 +243,36 @@ to `v=1`, so the `COAST` guard `v≥1` is **never reached** → the `ACCEL→COA
 the all-successors cover required covering it (forcing `v_R→0.2` while `v_L→1`, `Δv→0.8>0.5`).
 Removing the dead edge is a faithful **successor-completeness** correction (model-faithfulness
 TCB, invariant unchanged) — the sound strict barrier can't prune it (`İ=0` equilibrium at `v=1`,
-the `t²`-class boundary). The last 2 are genuinely method-scope: `arm_chain_rung1` (all-successors
-needs backward `Return` to cover forward `ApproachFast`; budget/λ don't help → response-selection);
-`rover3_M1` (`Drift` uncoverable → budget-aware Strategy-2, paper-rejected).
+the `t²`-class boundary).
 
-**42/46 on the pure trusted method (Z3 UNSAT).** Instantiation was the in-use check —
-per benchmark: shape match (46/46), Z3 query closes, side-conditions (cubic factor
-`0.5ψ²+0.3θ²∈[0.20,0.39]<1`; coupled real-eigenvalue) — all confirmed. It **surfaced** the
-declines rather than forcing them:
+**The 2 remaining declines are honest, distinct scope boundaries of the paper's Definition-4 cover —
+not invariant gaps and not the same failure.** The invariants are correct; the tool declines soundly.
 
-- **`arm_chain_rung2`** was a **λ-search limit** (invariant inductive at a λ the sparse
-  4-step grid missed) — the denser 20-step grid certifies it. Runner fix, invariant fine.
-- **`arm_refinement`, `arm_fidelity_low`, `plant_fan_low`** were **restatement gaps** — the
-  source position invariant isn't inductive on the 2nd-order left; the velocity-coupled
-  conjunction (proven to imply the safety property) certifies via Z3 UNSAT.
-- **4 remain DECLINED**, correctly, beyond the universal reachability-free single-λ cover:
-  `rover3_M1` (`Drift` uncoverable by any right mode → budget-aware Strategy-2, paper-rejected);
-  `match_multi_eps`, `rover3tier_M1` (safety `v_L≤v_R+0.5` not certifiable worst-case — L
-  overspeeds; a `+0.8` invariant certifies but *weakens* the property, so invalid — needs
-  reachability); `arm_chain_rung1` (fast left mode needs a high λ the single-λ-per-residence
-  all-successors cover can't assemble across successors — a multi-λ/cover-structure limit).
+- **`arm_chain_rung1` — the all-successors *conservatism*.** A safe `∃`-response exists (the right
+  `Approach` can evolve past its guard, staying alongside the forward-moving left `ApproachFast`). But
+  Definition 4 (`Covered.step`) requires **every retained successor** to cover, and the right's
+  `Approach→Return` edge is enabled (its guard `θ≥0.7` is genuinely reached), so it is retained — and
+  `Return` (θ decreasing) cannot cover the still-forward left. The `∀∃` semantics needs *one* right
+  response; the paper's cover proves *all* retained responses safe (sufficient, but stronger). Recovering
+  this benchmark would require a **tighter cover** that certifies "some response works" — a *method
+  extension* with its own soundness proof, **not** a bug-fix and not the paper's Definition 4.
+- **`rover3_M1` — no safe response exists at all.** Its `Drift` mode is uncoverable by **every** right
+  mode (all Z3-SAT), so there is no `∃`-response in the reachability-free setting. It needs **budget-aware
+  Strategy-2 reachability**, which the universal all-successors cover rejects by design — genuinely out of
+  scope. (Not reopened on simulation; Z3-SAT is the trusted signal.)
 
-The DECLINEs are **method-scope** (the paper's reachability-free universal cover), not
-unsoundness — the tool never false-certifies (Z3-SAT, not simulation, is the trusted signal).
+So the two boundaries are different in kind: one is the *conservatism* of all-successors (a response
+exists but the cover over-requires); the other is a *true absence* of any response (needs reachability).
+Both are correct declines — the tool **never false-certifies** (Z3-SAT, not simulation, is trusted).
+
+**42/46 on the pure trusted method (Z3 UNSAT).** Instantiation was the in-use check — per benchmark:
+shape match (46/46), Z3 query closes, side-conditions (cubic factor `0.5ψ²+0.3θ²∈[0.20,0.39]<1`; coupled
+real-eigenvalue) — all confirmed. It **surfaced** the declines rather than forcing them: `arm_chain_rung2`
+was a **λ-search limit** (denser 20-step grid certifies it, invariant fine); `arm_refinement`,
+`arm_fidelity_low`, `plant_fan_low` were **restatement gaps** (velocity-coupled conjunction, proven to
+imply the safety property, certifies via Z3 UNSAT); `match_multi_eps`, `rover3tier_M1` were **dead-edge**
+(faithful successor correction). We do **not** force the last two — a `+0.8` invariant on match/rover3tier
+certifies but *weakens* the safety property (`v_L≤v_R+0.5`), so it is invalid.
 
 Requires Lean 4 (`leanprover/lean4:v4.31.0`, pinned), a pinned Z3 (`RELCERT_Z3` or a
 standard absolute path), and `dL-rel` at `../dL-rel` (transitively provides dL-lean

@@ -1,3 +1,21 @@
+/-
+Copyright (c) 2026 relCertifier-lean contributors.
+Released under Apache 2.0 license.
+
+# `RelCertifier` — library root
+
+Re-exports the whole verified certifier. Import this to get the pipeline in one module.
+
+Reading order (bottom-up, matching the paper's stages):
+* `FlowCert` / `DISuperlevel` — Stage 1, the per-segment flow certificate (Lie derivative ⟹ `DI`).
+* `NonConn` — Stage 2, the non-connection (Nagumo barrier) edge-pruning certificate.
+* `Cover` / `Cover.Encoding` / `Cover.Coexec` — Stage 3, the cover (Definition 4) ⟹ Theorem 3,
+  and its dL-rel ∀∃ encoding.
+* `Checker` — the verified `decideCovered` that gates a sound `CERTIFIED`.
+* `PicardBridge` / `HExistDischarge` / `CSFBridge` / `EncodingBridge` / `Reify` / `Reification`
+  / `MultiSeg` / `ClockReduce` — the ∀∃ witness (`hExist`) and the CSF→NFM'25 modality chain.
+* `Smt` / `Oracle` / `Z3` / `OracleAPI` / `Parse` / `Run` — the trusted IO shell + runnable tool.
+-/
 import RelCertifier.FlowCert
 import RelCertifier.Smt
 import RelCertifier.Oracle

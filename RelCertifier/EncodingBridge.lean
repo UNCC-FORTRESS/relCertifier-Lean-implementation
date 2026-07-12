@@ -14,6 +14,12 @@ The last arrow of the main chain, built from two **proven** theorems:
 Composing: a CSF `faModal ρ L* R* (encode ρ ϕ)` at the join state `σ` gives the **bi-state**
 ∀∃ relational invariant `[|(L*,R*)⟩⟩ϕ`. This is the paper's Theorem-3 conclusion, on the
 mechanized relational logic — not a bespoke object.
+
+NOTE. `relational_loop` here hardcodes the loop invariant = postcondition = `encode ψ` (its
+`faModal_LOCK` call passes `hpost := fun _ h => h`). The transition-faithful assembly needs a
+*strengthened* loop invariant `invLe g ∧ mvValid` (mode-validity), so it inlines `faModal_LOCK` +
+`faModal_to_faShape` directly in `BridgeUnit3.relational_loop_faithful` rather than reusing this
+wrapper. `faModal_to_faShape` itself is reused unchanged.
 -/
 import RelCertifier.CSFBridge
 import RelCertifier.Reify

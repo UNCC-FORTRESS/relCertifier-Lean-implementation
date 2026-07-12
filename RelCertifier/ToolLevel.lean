@@ -4,6 +4,13 @@ Released under Apache 2.0 license.
 
 # Tool-level connection — Z3 verdict ⟹ the paper's ∀∃ (single-sync fragment)
 
+NOTE (transition-faithful variant). `certified_relational` here proves the ∀∃ modality over the
+**flat** right choice-star `(⨆ right modes)*` — a valid but *weaker* over-approximation of the
+paper's automaton (its ∃-right ranges over any mode sequence, not only declared transitions). The
+**transition-faithful** landing is `BridgeFinish.theorem3_faithful`, whose right program is
+`R_real = star(rightAutomatonBody)` (jumps only along declared edges). Both rest on the same
+`z3_unsat_sound` leaf; `theorem3_faithful` is the one that pins the ∃-right to the real automaton.
+
 Wires the running tool's inputs into the proven CSF-side chain (`reified_relational`). The one
 junction needing care is `pair_faModal` (Step 2): the per-segment `faModal` is discharged from a
 **Z3 UNSAT on the evolution-domain flow query** — the *same* query the tool checks and the proof

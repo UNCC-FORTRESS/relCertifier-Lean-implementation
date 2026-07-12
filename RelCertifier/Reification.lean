@@ -4,6 +4,11 @@ Released under Apache 2.0 license.
 
 # Reification — assemble the mode-list into choice-star programs, apply the proven rules
 
+NOTE (flat vs transition-faithful). `reified_relational` closes the loop with BOTH sides as flat
+choice-stars; the right `(⨆ modes)*` is a weaker over-approximation of the declared automaton. The
+transition-faithful right side (`R_real`, jumps only along declared edges) is assembled instead in
+`BridgeUnit1-3`/`BridgeFinish` (`theorem3_faithful`), reusing `faModal_bigChoiceL`/`faModal_LOCK`.
+
 The final CSF-side assembly of the single-sync (B=1) chain. Builds `leftBody`/`rightBody` as the
 nondeterministic **choice** over the parsed modes (`bigChoice`), discharges the per-iteration
 lockstep step `hstep` from the per-pair `faModal`s (via `faModal_unionL`/`faModal_unionR`), and

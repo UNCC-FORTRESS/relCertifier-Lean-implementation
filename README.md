@@ -14,11 +14,74 @@ trusted assumption of the whole tool is that Z3's `unsat` verdict is sound
 The headline guarantee is **`decideCovered_implies_theorem3_faithful`** (`BridgeDischarge.lean`): the
 checker's positive verdict provably implies the paper's ∀∃ refinement modality over the **real reasoning
 automaton** — the right ∃-response jumps only along *declared* transitions (`R_real = star(rightAutomatonBody)`),
-not the weaker flat choice-star. It puts `decideCovered = true` in the hypotheses and
-`rvalid(theorem3Form … R_real …)` in the conclusion, one signature, `hstep` **discharged from `cert`**
-(the cover certificate — no `z3solve = unsat` re-assumed). See
-*The transition-faithful ∀∃* below. On the 47-benchmark suite the tool reports **46 CERTIFIED / 47** (1
-inconclusive-Z3 ERROR, never a false verdict).
+not the weaker flat choice-star — **for the joint-flow, single-left-mode fragment** (exact scope stated
+plainly in the next section; it is *not* "the whole tool on every benchmark"). Separately, on the
+47-benchmark suite the tool runs and reports **46 CERTIFIED / 47** (1 inconclusive-Z3 ERROR, never a false
+verdict) — that is *tool behavior*, a distinct and weaker claim than the Lean theorem. The two are kept
+distinct throughout.
+
+## What "end-to-end verified" means — and its exact scope
+
+**(a) What the tool does.** relCertifier checks a ∀∃ *relational* property between two hybrid systems —
+a deployed system (left) and a reference / reasoning model (right): *for every deployed behavior, the
+reference has a matching behavior that keeps the two within a stated tolerance.* It is a **certifier** —
+it validates a supplied relational invariant via Z3 (UNSAT-of-negation is the only trusted verdict) and
+reports `CERTIFIED` / `DECLINED` / `ERROR`.
+
+**(b) What "end-to-end verified" means — intuitively.** The tool has two layers: a **checker** that
+outputs `CERTIFIED`, and the **mathematical property** from the paper (the ∀∃ refinement modality of
+differential dynamic logic — Theorem 3). It is easy for these to drift apart: the checker could say YES
+while nobody has proven that YES actually *means* the property holds. We closed that gap with a
+machine-checked proof in Lean. **When the checker's certificate validates — bottoming out at a Z3 UNSAT —
+the paper's ∀∃ property provably holds, for the reference automaton's *actual declared transitions*, not
+a permissive over-approximation.** The chain runs unbroken from the running checker's certificate → the
+paper's Theorem 3 → the dL semantics, with a single trusted axiom: Z3's `unsat` is sound
+(`z3_unsat_sound`). The verdict is not *asserted* to mean the property — it is *proven* to.
+
+**(c) The exact scope — stated plainly.** The end-to-end theorem
+`decideCovered_implies_theorem3_faithful` (`BridgeDischarge.lean`) covers the **joint-flow,
+single-left-mode** fragment:
+
+- **joint fragment** — the synchronized co-execution segments (the *flow* segments), not the reposition
+  (discrete-jump) segments;
+- **single left mode** — one deployed-system mode per certificate; the full deployed automaton is a
+  *family* of such certificates;
+- **flow modes** — the certified right modes each carry a *flow* certificate; reposition modes (which
+  carry a static certificate) are the extension.
+
+Within that fragment, the checker's `CERTIFIED` (its cover certificate, bottoming at Z3 UNSAT) provably
+entails the paper's ∀∃ modality over the real automaton.
+
+**(d) What's not yet covered — the roadmap.**
+1. **The full left-mode family** — composing the per-left-mode certificates into the whole deployed
+   automaton.
+2. **The reposition modes** — the static-`repoPres` → discrete-jump bridge (Phase 2b). The run-level
+   projection lemmas (`rightReach_project`, `ode_project_right`, the witness `rightReach_is_R_real_run`)
+   are proven and reserved for exactly this.
+3. **The benchmark suite is separately validated.** The tool runs and certifies **46/47** — that is
+   *tool behavior* (it runs, Z3 closes the queries), a distinct and weaker claim than the Lean end-to-end
+   theorem, which currently covers the fragment in (c), **not** every benchmark's full cover.
+
+> **Two claims, kept distinct.** "The tool certifies 46/47 benchmarks" is *tool behavior*. "The checker's
+> certificate is proven to entail the paper's ∀∃ property" is the *Lean guarantee*, and it holds for the
+> joint-flow-single-left-mode fragment. Neither implies the other, and this README does not conflate them.
+
+**Trusted:** Z3's `unsat` verdicts — one axiom, `z3_unsat_sound`. Everything else (the cover, the ∀∃
+bridge, the encoding) is proven in Lean on the three standard axioms. Reproduce:
+`lake env lean RelCertifier/AxiomCheck.lean`. *(Mechanism, one line: the ∀∃ modality rests on every mode
+being **certified** — the flow certificates — which is why the guarantee is about the certificate; the
+coverage check `decideCovered` is what makes the co-execution invariant hold throughout.)*
+
+### Verification status
+
+| Link | Status |
+|---|---|
+| Checker → co-execution invariant (`check_sound`) | **proven** |
+| Certificate → ∀∃ modality, joint-flow-single-left-mode (`decideCovered_implies_theorem3_faithful`) | **proven** |
+| Modality → paper Theorem 3 / dL-rel (`faModal_to_faShape`, `encoding_correct`) | **proven** |
+| Full left-mode family | *extension (roadmap)* |
+| Reposition modes | *extension (roadmap)* |
+| Trust boundary | Z3 UNSAT (`z3_unsat_sound`, 1 axiom) |
 
 ## Imported theories — the four repos it builds on
 
@@ -136,9 +199,11 @@ mechanized bridges connect them:
    negation `encode ρ (¬ theorem3Form L R ϕ_inv)` implies `RFormula.rvalid (theorem3Form …)` — the
    bi-state validity of the global claim — by dL-rel's **`encoding_correct` (Theorem 2)**, which states
    that bi-state truth of a relational formula equals host-dL truth of its encoding at a bridged join
-   state. So the tool's `CERTIFIED` (`check_sound` ⟹ `cover_sound_throughout` ⟹, with the encoding,
-   `rvalid`) **provably implies the paper's ∀∃ relational invariant on the mechanized relational logic** —
-   not a bespoke re-statement.
+   state. `theorem3_encoded` proves `rvalid` for the **flat** `theorem3Form` from a single Z3 UNSAT — a
+   valid but weaker over-approximation. The **transition-faithful** `CERTIFIED ⟹ rvalid` (real automaton,
+   `hstep` discharged from the cover certificate) is `decideCovered_implies_theorem3_faithful`, and it
+   holds for the **joint-flow-single-left-mode fragment** (see *What "end-to-end verified" means* above) —
+   not the whole tool on every benchmark.
 
 **Where dL-rel does the load-bearing work.** dL-rel is not a convenience import; it is what makes the
 ∀∃ fragment expressible and the encoding sound. `faShape`/`encode` were built for exactly this modality,

@@ -21,7 +21,7 @@ def RvSet (n : ℕ) : Set (Var n) := {v | ∃ j : Fin n, v = Rv j}
 
 /-- Freeze the left coordinates at `ν`, keep the right coordinates from `s`. -/
 def freezeL (ν s : State (Var n)) : State (Var n) :=
-  fun v => match v.1 with | Side.L => ν v | Side.R => s v
+  fun v => match v.1 with | Side.L => ν v | Side.R => s v | Side.Aux => ν v
 
 @[simp] theorem freezeL_R (ν s : State (Var n)) (j : Fin n) : freezeL ν s (Rv j) = s (Rv j) := rfl
 @[simp] theorem freezeL_L (ν s : State (Var n)) (j : Fin n) : freezeL ν s (Lv j) = ν (Lv j) := rfl
@@ -71,6 +71,7 @@ theorem ode_project_right (fL fR : Fin n → Term (Var n)) (lam : Term (Var n))
     intro t ht x hx
     rcases x with ⟨sd, i⟩; cases sd with
     | L => show freezeL cL (Φ t) (Side.L, i) = freezeL cL ν (Side.L, i); rfl
+    | Aux => show freezeL cL (Φ t) (Side.Aux, i) = freezeL cL ν (Side.Aux, i); rfl
     | R => exact absurd (List.mem_map.mpr ⟨(Rv i, Term.binop AOp.mul lam (fR i)),
         List.mem_map.mpr ⟨i, List.mem_finRange i, rfl⟩, rfl⟩) hx
   · -- domain: domR holds along the frozen curve (domR reads only Rv)

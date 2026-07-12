@@ -76,4 +76,41 @@ theorem rover_mv_fresh_satisfiable :
       (by simp [Term.fv]) (by intro i; fin_cases i <;> simp [roverFR, Term.fv, Rv]) hv
     exact absurd this (by simp [roverMv, Lv])
 
+/-- **The clock lives in the auxiliary slot `Av 0`** — a coordinate outside `Lv ∪ Rv`. -/
+def roverTg : Var 3 := Av 0
+
+/-- **`tg`-freshness is satisfiable** for `tg := Av 0` (the auxiliary clock coordinate). It is
+`Side.Aux`, so it is disjoint from the left block (`Side.L`), the right block (`Side.R`), and the
+invariant (which reads only physical `Lv`/`Rv`). So the clock ticks in its own coordinate, outside
+all physical blocks — the `tg`-room the multi-flow theorem (`tooling_sound`) needs. -/
+theorem rover_tg_fresh_satisfiable :
+    roverTg ∉ (leftBlock roverFL).bound ∧
+    roverTg ∉ (rightBlock roverFR (Term.const 1)).boundSet ∪
+              (rightBlock roverFR (Term.const 1)).readVars ∧
+    roverTg ∉ roverG.fv := by
+  refine ⟨?_, ?_, ?_⟩
+  · -- Av 0 (Side.Aux) ∉ leftBlock.bound (all Side.L)
+    intro hv
+    have hL : roverTg.1 = Side.L := by
+      simp only [leftBlock, ODESystem.bound, List.map_map, List.mem_map, Function.comp] at hv
+      obtain ⟨i, -, hi⟩ := hv; rw [← hi]
+    exact absurd hL (by simp [roverTg, Av])
+  · -- Av 0 (Side.Aux) ∉ right block (all Side.R)
+    intro hv
+    have hR : roverTg.1 = Side.R := rightBlock_side_R roverFR (Term.const 1)
+      (by simp [Term.fv]) (by intro i; fin_cases i <;> simp [roverFR, Term.fv, Rv]) hv
+    exact absurd hR (by simp [roverTg, Av])
+  · simp only [roverTg, roverG, Term.fv, Set.mem_union, Set.mem_singleton_iff, Av, Lv, Rv]; decide
+
+/-- **Both the mode variable and the clock are satisfiable, disjointly.** `mv = Lv 2` (frozen mode
+coord, `Side.L`) and `tg = Av 0` (clock, `Side.Aux`) are distinct real coordinates, each meeting its
+freshness — so the end-to-end theorem's freshness precondition (`mv` frozen, `tg` roomed) holds at
+concrete data. The instantiation is **non-vacuous on both `mv` and `tg`**. -/
+theorem rover_freshness_nonvacuous :
+    MvFrozen roverFL roverMv ∧ roverMv ≠ roverTg ∧
+    roverTg ∉ (leftBlock roverFL).bound := by
+  refine ⟨⟨2, rfl, rfl⟩, ?_, rover_tg_fresh_satisfiable.1⟩
+  intro h
+  exact absurd (congrArg Prod.fst h) (by simp [roverMv, roverTg, Lv, Av])
+
 end RelCertifier

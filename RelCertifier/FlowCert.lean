@@ -21,10 +21,10 @@ namespace RelCertifier
 /-! ## (1) Representation — joint variable space, invariant, dynamics -/
 
 /-- The two sides of the relational pair: `L`eft program, `R`ight program. -/
-inductive Side | L | R
+inductive Side | L | R | Aux
   deriving DecidableEq, Repr
 
-instance : Fintype Side := ⟨{Side.L, Side.R}, fun s => by cases s <;> simp⟩
+instance : Fintype Side := ⟨{Side.L, Side.R, Side.Aux}, fun s => by cases s <;> simp⟩
 
 /-- Joint variable space over `n` per-side coordinates: `Var n = Side × Fin n`.
 `(L, i)` is the left copy of coordinate `i`, `(R, i)` the right copy. A concrete
@@ -35,6 +35,8 @@ abbrev Var (n : ℕ) := Side × Fin n
 abbrev Lv {n : ℕ} (i : Fin n) : Var n := (Side.L, i)
 /-- Right coordinate `Rᵢ` as a dL variable/term. -/
 abbrev Rv {n : ℕ} (i : Fin n) : Var n := (Side.R, i)
+/-- Auxiliary coordinate `Aᵢ` (outside `Lv`/`Rv`) — the clock/control slot. -/
+abbrev Av {n : ℕ} (i : Fin n) : Var n := (Side.Aux, i)
 
 /-- Data of a single relational flow obligation.
 * `g`      — the invariant component; the invariant is `g ≤ 0`.

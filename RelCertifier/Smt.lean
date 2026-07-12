@@ -125,6 +125,7 @@ def ratToSmt (q : ℚ) : String :=
 def varName {n : ℕ} (coord : Fin n → String) : Var n → String
   | (Side.L, i) => "L_" ++ coord i
   | (Side.R, i) => "R_" ++ coord i
+  | (Side.Aux, i) => "A_" ++ coord i
 
 def ITerm.toSmt {n : ℕ} (coord : Fin n → String) : ITerm n → String
   | .var v      => varName coord v

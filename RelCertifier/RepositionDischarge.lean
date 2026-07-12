@@ -10,6 +10,7 @@ This file lifts the certificate across the clock — `sem_ode_perm` (semantics i
 not re-assumed.
 -/
 import RelCertifier.BridgeReposition
+import RelCertifier.BridgeDischarge
 import RelCertifier.ClockReduce
 
 namespace RelCertifier
@@ -97,7 +98,96 @@ theorem multi_faModal_from_couplings (leftSys : ODESystem (Var n)) (domL : Formu
   exact clockLift_collapse leftSys domL (bigSeq rights) (invLe g) tg dt k htgb htgr htgd hdt htgR
     htgφ hbudget hmc
 
-/-! ## Cert-sourcing — the per-segment bounded coupling from `cert.segPres` -/
+/-! ## hExist clock-adaptation — project the deterministic clock coordinate -/
+
+/-- **The bounded hExist over the clocked left, from the cover's unclocked `HExistSeg`.**
+`faModal_ODE_G'_bounded` evolves the left under `clk tg leftBlock`; `HExistSeg` is over `leftBlock`.
+The adaptation is a pure clock-coordinate projection: drop `tg` from the left curve
+(`ΦL' = update (ΦL·) tg 0`) — the **physical trajectory is unchanged** (`tg ∉ leftBlock.read`),
+`HExistSeg` responds, then restore `tg` on the right witness (`ΦR' = update (ΦR·) tg (ΦL s tg)`).
+The right never reads `tg` (`tg ∉ rightBlock`), so its response is identical — the tg-invisibility
+mechanism applied to the run construction. `update x tg (x tg) = x` makes `ΦR' 0 = ΦL s` exact. -/
+theorem hExist_clocked_of_HExistSeg (fL fR : Fin n → Term (Var n)) (lam : Term (Var n))
+    (domL domR : Formula (Var n)) (tg : Var n) (dt : ℝ)
+    (htgLb : tg ∉ (leftBlock fL).bound) (htgLr : tg ∉ (leftBlock fL).readVars)
+    (htgRb : tg ∉ (rightBlock fR lam).bound) (htgRr : tg ∉ (rightBlock fR lam).readVars)
+    (htgdL : tg ∉ domL.fv) (htgdR : tg ∉ domR.fv) {σ : State (Var n)}
+    (hES : HExistSeg fL fR lam domL domR (Function.update σ tg 0)) :
+    ∀ (s : ℝ) (ΦL : ℝ → State (Var n)), 0 ≤ s → s ≤ dt → ΦL 0 = Function.update σ tg 0 →
+      (∀ t ∈ Icc (0 : ℝ) s, ∀ p ∈ clk tg (leftBlock fL),
+          HasDerivWithinAt (fun u => ΦL u p.1) (p.2.eval (ΦL t)) (Icc 0 s) t) →
+      (∀ t ∈ Icc (0 : ℝ) s, ∀ x, x ∉ (clk tg (leftBlock fL)).bound →
+          ΦL t x = Function.update σ tg 0 x) →
+      (∀ t ∈ Icc (0 : ℝ) s, Formula.sat domL (ΦL t)) →
+      ∃ ΦR : ℝ → State (Var n), ΦR 0 = ΦL s ∧
+        (∀ t ∈ Icc (0 : ℝ) s, ∀ p ∈ rightBlock fR lam,
+            HasDerivWithinAt (fun u => ΦR u p.1) (p.2.eval (ΦR t)) (Icc 0 s) t) ∧
+        (∀ t ∈ Icc (0 : ℝ) s, ∀ x, x ∉ (rightBlock fR lam).bound → ΦR t x = ΦL s x) ∧
+        (∀ t ∈ Icc (0 : ℝ) s, Formula.sat domR (ΦR t)) := by
+  intro s ΦL hs0 _ hΦL0 hclkder hclkmask hdomL
+  set ν := Function.update σ tg 0 with hν
+  have hνtg : ν tg = 0 := Function.update_self tg 0 σ
+  have htgclkb : tg ∈ (clk tg (leftBlock fL)).bound := by
+    simp only [clk, ODESystem.bound, List.map_append, List.map_cons, List.map_nil]
+    exact List.mem_append_right _ (List.mem_singleton.mpr rfl)
+  -- projected (declocked) left curve
+  set ΦL' : ℝ → State (Var n) := fun t => Function.update (ΦL t) tg (ν tg) with hΦL'
+  have hL'phys : ∀ t x, x ≠ tg → ΦL' t x = ΦL t x := fun t x hx => Function.update_of_ne hx _ _
+  have hΦL'0 : ΦL' 0 = ν := by
+    funext x; by_cases hx : x = tg
+    · subst hx; simp only [hΦL', Function.update_self, hνtg]
+    · rw [hL'phys 0 x hx, hΦL0]
+  have hder' : ∀ t ∈ Icc (0 : ℝ) s, ∀ p ∈ leftBlock fL,
+      HasDerivWithinAt (fun u => ΦL' u p.1) (p.2.eval (ΦL' t)) (Icc 0 s) t := by
+    intro t ht p hp
+    have hp1 : p.1 ≠ tg := fun hc => htgLb (by rw [← hc]; exact List.mem_map.mpr ⟨p, hp, rfl⟩)
+    have hfun : (fun u => ΦL' u p.1) = fun u => ΦL u p.1 := by funext u; exact hL'phys u p.1 hp1
+    rw [hfun]
+    have hev : p.2.eval (ΦL' t) = p.2.eval (ΦL t) :=
+      Term.coincidence p.2 (fun y hy => hL'phys t y
+        (fun hc => htgLr (by rw [← hc]; exact ⟨p, hp, hy⟩)))
+    rw [hev]
+    exact hclkder t ht p (List.mem_append_left _ hp)
+  have hmask' : ∀ t ∈ Icc (0 : ℝ) s, ∀ x, x ∉ (leftBlock fL).bound → ΦL' t x = ν x := by
+    intro t ht x hx
+    by_cases hxtg : x = tg
+    · subst hxtg; simp only [hΦL', Function.update_self]
+    · rw [hL'phys t x hxtg]
+      refine hclkmask t ht x (fun hc => ?_)
+      simp only [clk, ODESystem.bound, List.map_append, List.map_cons, List.map_nil,
+        List.mem_append, List.mem_singleton] at hc
+      exact hc.elim (fun h => hx h) (fun h => hxtg h)
+  have hdomL' : ∀ t ∈ Icc (0 : ℝ) s, Formula.sat domL (ΦL' t) := by
+    intro t ht
+    exact (Formula.coincidence domL (fun y hy => (hL'phys t y
+      (fun hc => htgdL (by rw [← hc]; exact hy))).symm)).mp (hdomL t ht)
+  obtain ⟨ΦR, hΦR0, hRder, hRmask, hRdom⟩ := hES s ΦL' hs0 hΦL'0 hder' hmask' hdomL'
+  -- restore the clock coordinate on the right witness
+  set ΦR' : ℝ → State (Var n) := fun t => Function.update (ΦR t) tg (ΦL s tg) with hΦR'
+  have hR'phys : ∀ t x, x ≠ tg → ΦR' t x = ΦR t x := fun t x hx => Function.update_of_ne hx _ _
+  have hΦLs' : ΦL' s = Function.update (ΦL s) tg (ν tg) := rfl
+  refine ⟨ΦR', ?_, ?_, ?_, ?_⟩
+  · -- ΦR' 0 = ΦL s
+    show Function.update (ΦR 0) tg (ΦL s tg) = ΦL s
+    rw [hΦR0, hΦLs']
+    funext x; by_cases hx : x = tg
+    · subst hx; simp only [Function.update_self]
+    · rw [Function.update_of_ne hx, Function.update_of_ne hx]
+  · intro t ht p hp
+    have hp1 : p.1 ≠ tg := fun hc => htgRb (by rw [← hc]; exact List.mem_map.mpr ⟨p, hp, rfl⟩)
+    have hfun : (fun u => ΦR' u p.1) = fun u => ΦR u p.1 := by funext u; exact hR'phys u p.1 hp1
+    rw [hfun]
+    have hev : p.2.eval (ΦR' t) = p.2.eval (ΦR t) :=
+      Term.coincidence p.2 (fun y hy => hR'phys t y
+        (fun hc => htgRr (by rw [← hc]; exact ⟨p, hp, hy⟩)))
+    rw [hev]; exact hRder t ht p hp
+  · intro t ht x hx
+    by_cases hxtg : x = tg
+    · subst hxtg; simp only [hΦR', Function.update_self]
+    · rw [hR'phys t x hxtg, hRmask t ht x hx, hL'phys s x hxtg]
+  · intro t ht
+    exact (Formula.coincidence domR (fun y hy => (hR'phys t y
+      (fun hc => htgdR (by rw [← hc]; exact hy))).symm)).mp (hRdom t ht)
 
 /-- **The joint certificate box, clock-lifted to the coupling's shape.** An unclocked joint `invLe g`
 box at `σ` (as `cert.segPres` supplies via `sat_box`/`sat_invLe`) becomes the box at the reset state
@@ -139,5 +229,74 @@ theorem box_joint_to_clocked (g : Term (Var n)) (A B : ODESystem (Var n)) (dom :
   -- step 2: clock-lift; step 3: perm the tail clock to mid-position
   exact box_ode_perm (List.Perm.symm (clk_mid_perm A B tg)) dom (invLe g)
     (boxLe_clock_lift (A ++ B) dom g tg htgABb htgABr htgd htgg hstart)
+
+/-! ## Cert-sourcing — the per-segment bounded coupling from `cert.segPres` -/
+
+/-- The clock adds `tg` to the bound set, nothing to read vars (`(tg,1)` reads nothing). -/
+theorem clk_boundSet (sys : ODESystem (Var n)) (tg : Var n) :
+    (clk tg sys).boundSet = sys.boundSet ∪ {tg} := by
+  ext x
+  simp only [clk, ODESystem.boundSet, ODESystem.bound, List.map_append, List.map_cons,
+    List.map_nil, Set.mem_setOf_eq, List.mem_append, List.mem_singleton, Set.mem_union]
+  tauto
+
+theorem clk_readVars (sys : ODESystem (Var n)) (tg : Var n) :
+    (clk tg sys).readVars = sys.readVars := by
+  ext x
+  simp only [clk, ODESystem.readVars, Set.mem_setOf_eq, List.mem_append, List.mem_singleton]
+  constructor
+  · rintro ⟨p, hp | hp, hpx⟩
+    · exact ⟨p, hp, hpx⟩
+    · subst hp; simp only [Term.fv, Set.mem_empty_iff_false] at hpx
+  · rintro ⟨p, hp, hpx⟩; exact ⟨p, Or.inl hp, hpx⟩
+
+/-- **The per-segment bounded coupling, cert-sourced.** `faModal_ODE_G'_bounded` fed by
+`box_joint_to_clocked` (the flow certificate from `cert.segPres`, clock-lifted) and
+`hExist_clocked_of_HExistSeg` (the cover's `HExistSeg`, clock-adapted). NO assumed segment `faModal`:
+the box `hbox` is `cert.segPres`'s. -/
+theorem segment_faModalB_from_cert (g : Term (Var n)) (fL fR : Fin n → Term (Var n))
+    (lam : Term (Var n)) (domL domR : Formula (Var n)) (tg : Var n) (dt : ℝ)
+    (hdisj0 : Disjoint ((leftBlock fL).boundSet ∪ (leftBlock fL).readVars)
+                       ((rightBlock fR lam).boundSet ∪ (rightBlock fR lam).readVars))
+    (hφL : domL.fv ⊆ (leftBlock fL).boundSet ∪ (leftBlock fL).readVars)
+    (hφR : domR.fv ⊆ (rightBlock fR lam).boundSet ∪ (rightBlock fR lam).readVars)
+    (htgLb : tg ∉ (leftBlock fL).bound) (htgLr : tg ∉ (leftBlock fL).readVars)
+    (htgRb : tg ∉ (rightBlock fR lam).bound) (htgRr : tg ∉ (rightBlock fR lam).readVars)
+    (htgRbs : tg ∉ (rightBlock fR lam).boundSet)
+    (htgdL : tg ∉ domL.fv) (htgdR : tg ∉ domR.fv) (htgg : tg ∉ g.fv)
+    {σ : State (Var n)}
+    (hbox : Formula.sat (Formula.box (Program.ode (leftBlock fL ++ rightBlock fR lam)
+        (Formula.and domL domR)) (invLe g)) σ)
+    (hES : HExistSeg fL fR lam domL domR (Function.update σ tg 0)) :
+    faModalB (Equiv.refl (Var n)) (Program.ode (clk tg (leftBlock fL)) domL)
+      (Program.ode (rightBlock fR lam) domR) (invLe g) tg dt (Function.update σ tg 0) := by
+  have hrv := clk_readVars (leftBlock fL) tg
+  have hbs := clk_boundSet (leftBlock fL) tg
+  refine faModal_ODE_G'_bounded (Equiv.refl (Var n)) (clk tg (leftBlock fL)) (rightBlock fR lam)
+    domL domR (invLe g) tg dt (Function.update σ tg 0) ?_ ?_ ?_ ?_ ?_ ?_
+  · exact List.mem_append_right _ (List.mem_singleton.mpr rfl)
+  · -- hdisj: (clocked-left vars) ⊥ (right vars)
+    rw [ODESystem.rename_refl, hbs, hrv]
+    have hset : (leftBlock fL).boundSet ∪ {tg} ∪ (leftBlock fL).readVars
+        = ((leftBlock fL).boundSet ∪ (leftBlock fL).readVars) ∪ {tg} := by
+      ext y; simp only [Set.mem_union, Set.mem_singleton_iff]; tauto
+    rw [hset]
+    refine Set.disjoint_union_left.mpr ⟨hdisj0, ?_⟩
+    rw [Set.disjoint_singleton_left, Set.mem_union]
+    exact fun hc => hc.elim htgRbs htgRr
+  · -- hφx
+    rw [hbs, hrv]
+    exact hφL.trans (Set.union_subset_union_left _ Set.subset_union_left)
+  · rw [Formula.rename_refl, ODESystem.rename_refl]; exact hφR
+  · -- hP2 from cert box, clock-lifted
+    rw [ODESystem.rename_refl, Formula.rename_refl]
+    have htgdom : tg ∉ (Formula.and domL domR).fv := by
+      simp only [Formula.fv, Set.mem_union, not_or]; exact ⟨htgdL, htgdR⟩
+    exact box_joint_to_clocked g (leftBlock fL) (rightBlock fR lam) (Formula.and domL domR) tg
+      htgLb htgRb htgLr htgRr htgdom htgg hbox
+  · -- hExist, clock-adapted from HExistSeg
+    simp only [ODESystem.rename_refl, Formula.rename_refl]
+    exact hExist_clocked_of_HExistSeg fL fR lam domL domR tg dt htgLb htgLr htgRb htgRr htgdL htgdR
+      hES
 
 end RelCertifier

@@ -39,4 +39,5 @@ import RelCertifier.BridgeUnit2
 import RelCertifier.BridgeUnit3
 import RelCertifier.BridgeFinish
 import RelCertifier.BridgeDischarge
+import RelCertifier.BridgeReposition
 import RelCertifier.AxiomCheck

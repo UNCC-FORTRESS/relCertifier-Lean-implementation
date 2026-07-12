@@ -13,7 +13,7 @@ import RelCertifier.JointBridge
 import RelCertifier.Reify
 
 namespace RelCertifier
-open DL Function
+open DL DLCalTiming Function Set
 
 variable {n : ℕ}
 
@@ -65,5 +65,37 @@ theorem reposition_step_pres (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m
       exact hg (by simpa only [invLe, Formula.fv, Term.fv, Set.union_empty] using hx)
     exact (hasgn.2 x hxne).symm
   exact (Formula.coincidence (invLe g) heq).mp hinv
+
+/-- **(B) — dynamic reposition = flow machinery with `fL = 0`.** The dynamic reposition's right
+segment evolves under the frozen-left field `m.dynSys = jointSys (0) fR lam` (`ṡ_L = 0`); its cert
+`repoDynPresPre : SegPreservesOn g m.dynSys m.dynDomPre` is exactly the joint `BoxLe` that
+`segment_faModal` consumes with `fL := 0`. So its modality image is the SAME `⟨ode rightBlock⟩`
+diamond as the flow case — genuine reuse, NOT a new lemma. This wrapper makes the instantiation
+explicit and confirms `fL = 0` presents no obstruction (the `hdisj`/footprint side-conditions hold:
+`leftBlock 0` reads nothing, so it is disjoint from the right block). -/
+theorem dynreposition_faModal (g : Term (Var n)) (fR : Fin n → Term (Var n)) (lam : Term (Var n))
+    (domL domR : Formula (Var n)) (ν : State (Var n))
+    (hdisj : Disjoint ((leftBlock (fun _ => Term.const 0)).boundSet ∪
+                        (leftBlock (fun _ => Term.const 0)).readVars)
+                      ((rightBlock fR lam).boundSet ∪ (rightBlock fR lam).readVars))
+    (hφL : domL.fv ⊆ (leftBlock (fun _ => Term.const 0)).boundSet ∪
+             (leftBlock (fun _ => Term.const 0)).readVars)
+    (hφR : domR.fv ⊆ (rightBlock fR lam).boundSet ∪ (rightBlock fR lam).readVars)
+    (hcert : BoxLe (Program.ode (jointSys (fun _ => Term.const 0) fR lam) (Formula.and domL domR))
+        (fun ω => Term.eval g ω) ν)
+    (hExist : ∀ (s : ℝ) (ΦL : ℝ → State (Var n)), 0 ≤ s → ΦL 0 = ν →
+        (∀ t ∈ Icc (0 : ℝ) s, ∀ p ∈ leftBlock (fun _ => Term.const 0),
+            HasDerivWithinAt (fun u => ΦL u p.1) (p.2.eval (ΦL t)) (Icc 0 s) t) →
+        (∀ t ∈ Icc (0 : ℝ) s, ∀ x, x ∉ (leftBlock (fun _ => Term.const 0)).bound → ΦL t x = ν x) →
+        (∀ t ∈ Icc (0 : ℝ) s, Formula.sat domL (ΦL t)) →
+        ∃ ΦR : ℝ → State (Var n), ΦR 0 = ΦL s ∧
+          (∀ t ∈ Icc (0 : ℝ) s, ∀ p ∈ rightBlock fR lam,
+              HasDerivWithinAt (fun u => ΦR u p.1) (p.2.eval (ΦR t)) (Icc 0 s) t) ∧
+          (∀ t ∈ Icc (0 : ℝ) s, ∀ x, x ∉ (rightBlock fR lam).bound → ΦR t x = ΦL s x) ∧
+          (∀ t ∈ Icc (0 : ℝ) s, Formula.sat domR (ΦR t))) :
+    Formula.sat (faModal (Equiv.refl (Var n))
+      (Program.ode (leftBlock (fun _ => Term.const 0)) domL)
+      (Program.ode (rightBlock fR lam) domR) (invLe g)) ν :=
+  segment_faModal g (fun _ => Term.const 0) fR lam domL domR ν hdisj hφL hφR hcert hExist
 
 end RelCertifier

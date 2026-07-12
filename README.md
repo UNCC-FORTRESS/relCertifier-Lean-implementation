@@ -365,6 +365,11 @@ RelCertifier/
   NonConn.lean        Stage 2 — Nagumo non-connection barrier
   Cover.lean          Stage 3 — cover relation, finiteness, cover_sound (Theorem 3)
   Cover/Encoding.lean Stage 3 — global ∀∃ encoding bridge (encoding_correct)
+  JointBridge.lean    Stage 4 — R_real (transition-faithful automaton) + right-response witness
+  OdeProject.lean     Stage 4 — joint-ODE projection onto the right block
+  RightReachProject.lean Stage 4 — run-level projection of the co-execution
+  BridgeUnit1/2/3.lean Stage 4 — segment-wrap, loop-step assembly, faModal_LOCK close
+  BridgeFinish.lean   Stage 4 — theorem3_faithful (∀∃ over R_real, rvalid form)
   Smt.lean            computable IR + SMT-LIB printer (pinned to lieDeriv by bridge lemmas)
   Oracle.lean         the single trusted leaf (z3_unsat_sound) + IO-boundary theorems
   Parse.lean          input.txt parser (trusted IO)
@@ -373,6 +378,4 @@ RelCertifier/
   HExistDischarge.lean cross-side masking seam — hExist into segment_faModal
 Main.lean             `relcert` executable
 ARCHITECTURE.md       certified-checker architecture + the finding that reshaped it
-MAINTHEOREM.md        the CERTIFIED ⟹ ∀∃ soundness chain + hExist ledger
-benchmarks/SPLIT.md   full-suite field-shape split (existence-route map)
 ```

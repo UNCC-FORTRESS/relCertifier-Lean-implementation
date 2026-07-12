@@ -108,10 +108,11 @@ Once CERTIFIED flows through `check_sound`:
    `decideCovered = true`. `decideCovered_sound → Covered`; `CoverCert` from (1); `check_sound`
    ⟹ the ∀∃-throughout invariant. A runner/search bug can only make `decideCovered` reject.
 
-**Result: 38/46 CERTIFIED, all backed by `check_sound`; deterministic; 0 ERROR.** The
-CoverCert-discharge junction is checker-constructed (the tool builds the evolution-domain query
-from `dom`; Z3 validates the tool's query, over exactly the domain `check_sound`'s conclusion
-quantifies).
+**Result (this Step-4 checkpoint): 38/46 CERTIFIED, all backed by `check_sound`; deterministic.**
+(Current suite: **46/47 CERTIFIED**, 1 inconclusive-Z3 ERROR — see README; the recovery to 46 was
+sound spec/cover work, not an architecture change.) The CoverCert-discharge junction is
+checker-constructed (the tool builds the evolution-domain query from `dom`; Z3 validates the tool's
+query, over exactly the domain `check_sound`'s conclusion quantifies).
 
 ### The second fidelity bug: `Covered` did not implement Definition 4's base case
 

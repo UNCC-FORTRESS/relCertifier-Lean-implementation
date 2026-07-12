@@ -109,7 +109,12 @@ segments (each backed by an evolution-domain Z3 UNSAT), the relational invariant
 `encode id ψ = invLe g`), and the structural `Bridges`/disjointness, the paper's ∀∃ relational
 modality over the looped choice-automata holds at the bi-state. This is what the tool's
 `CERTIFIED` (on a fully-single-sync benchmark, `decideCovered = true`) provably produces —
-`[|(L*,R*)⟩⟩ ψ`, the paper's Theorem-3 conclusion.
+`[|(L*,R*)⟩⟩ ψ`, the paper's Theorem-3 conclusion (**flat** `R*`).
+
+The `decideCovered = true ⟹` connection is no longer comment-only: for the **transition-faithful**
+`R_real`, `BridgeDischarge.decideCovered_implies_theorem3_faithful` proves it as a theorem
+(`decideCovered = true` in the hypotheses, `rvalid(theorem3Form … faithful)` in the conclusion,
+`hstep` discharged from the per-segment Z3 flow certs, axioms + `z3_unsat_sound`).
 
 Residual TCB: the parser (lowering `PProblem → CertSeg`s) and Z3 `unsat` (`z3_unsat_sound`);
 `hExist` is CSF's explicit duration-existence side-condition (true for the bounded domains). -/

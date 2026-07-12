@@ -11,6 +11,7 @@ the flow case: the target is a declared `G`-edge (`e ∈ edgesFrom q`).
 -/
 import RelCertifier.JointBridge
 import RelCertifier.Reify
+import RelCertifier.PicardBridge
 
 namespace RelCertifier
 open DL DLCalTiming Function Set
@@ -97,5 +98,38 @@ theorem dynreposition_faModal (g : Term (Var n)) (fR : Fin n → Term (Var n)) (
       (Program.ode (leftBlock (fun _ => Term.const 0)) domL)
       (Program.ode (rightBlock fR lam) domR) (invLe g)) ν :=
   segment_faModal g (fun _ => Term.const 0) fR lam domL domR ν hdisj hφL hφR hcert hExist
+
+/-- **Piece 1 core — the ODE-semigroup split.** A single left flow splits at any interior time `t`
+into two runs (`ν → Φt`, `Φt → μ`). Reverse of the banked `sem_ode_glue`; proven by restricting the
+integral curve to `[0,t]` and shifting it to `[t,r]`. This is the general form; the zero-padding
+`sem_ode_sub_piter` (one real factor) is its `t = 0` / `t = r` degenerate case. Flow segments split
+off a `t > 0` piece; reposition segments are the `t = 0` (zero-duration) case. -/
+theorem sem_ode_split {sys : ODESystem (Var n)} {dom : Formula (Var n)} (hwf : sys.WellFormed)
+    {ν μ : State (Var n)} (h : Program.sem (Program.ode sys dom) ν μ) :
+    ∀ {r : ℝ} {Φ : ℝ → State (Var n)}, 0 ≤ r → Φ 0 = ν → Φ r = μ →
+      (∀ t ∈ Icc (0:ℝ) r, HasDerivWithinAt (fun s => Φ s) (odeField sys (Φ t)) (Icc 0 r) t) →
+      (∀ t ∈ Icc (0:ℝ) r, Formula.sat dom (Φ t)) →
+      ∀ t, t ∈ Icc (0:ℝ) r →
+        Program.sem (Program.ode sys dom) ν (Φ t) ∧
+        Program.sem (Program.ode sys dom) (Φ t) μ := by
+  intro r Φ hr hΦ0 hΦr hcΦ hdΦ t ht
+  constructor
+  · -- first piece [0,t]: restrict Φ
+    refine (sem_ode_iff_integralCurve hwf).mpr ⟨t, Φ, ht.1, hΦ0, rfl, ?_, ?_⟩
+    · intro s hs
+      exact (hcΦ s ⟨hs.1, hs.2.trans ht.2⟩).mono (Set.Icc_subset_Icc (le_refl 0) ht.2)
+    · intro s hs; exact hdΦ s ⟨hs.1, hs.2.trans ht.2⟩
+  · -- second piece [t,r]: shift Φ by t
+    refine (sem_ode_iff_integralCurve hwf).mpr ⟨r - t, fun s => Φ (t + s), by linarith [ht.2],
+      by simp, by simp [hΦr], ?_, ?_⟩
+    · intro s hs
+      have hts : t + s ∈ Icc (0:ℝ) r := ⟨by linarith [ht.1, hs.1], by linarith [hs.2]⟩
+      have hcomp : HasDerivWithinAt (fun u : ℝ => t + u) (1 : ℝ) (Icc 0 (r - t)) s :=
+        (hasDerivWithinAt_id s (Icc 0 (r - t))).const_add t
+      have hmaps : Set.MapsTo (fun u : ℝ => t + u) (Icc 0 (r - t)) (Icc 0 r) :=
+        fun u hu => ⟨by linarith [ht.1, hu.1], by linarith [hu.2]⟩
+      have := (hcΦ (t + s) hts).scomp s hcomp hmaps
+      rwa [one_smul] at this
+    · intro s hs; exact hdΦ (t + s) ⟨by linarith [ht.1, hs.1], by linarith [hs.2]⟩
 
 end RelCertifier

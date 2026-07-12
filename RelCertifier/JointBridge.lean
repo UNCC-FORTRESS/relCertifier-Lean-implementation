@@ -1,5 +1,5 @@
 /-
-Phase 2a-ii — the JOINT bridge (Link 2, joint fragment): definitions + witness lemma.
+The transition-faithful right automaton (`rightAutomatonBody`/`R_real`) — definitions + the
 Transition-faithful right automaton (mode variable) so the ∃-right diamond is a real G-run.
 -/
 import RelCertifier.Cover

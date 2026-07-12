@@ -1,5 +1,5 @@
 /-
-Part B unit 2 — assemble the per-left-mode `hstep_single`s into the loop step for the flat
+Assemble the per-left-mode `hstep_single`s into the loop step (single-flow bridge, unit 2) for the flat
 left body `bigChoice leftProgs` against the fixed right automaton `rightAutomatonBody G mv`.
 
 `faModal_bigChoiceL` composes over the left modes; the right mode `q` is *read off* the state

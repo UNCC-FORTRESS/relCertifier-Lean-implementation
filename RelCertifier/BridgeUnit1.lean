@@ -1,5 +1,5 @@
 /-
-Part B unit 1 (core) — the right-wrapping: turn the bare ⟨ode rightBlock⟩ φinv that
+The right-wrapping (single-flow bridge, unit 1): turn the bare ⟨ode rightBlock⟩ φinv that
 segment_faModal produces into ⟨rightAutomatonBody⟩ φinv (the mv-decorated transition body
 faModal_LOCK loops). The mv test/jump/assign are invisible to the host invariant φinv
 (mv ∉ φinv.fv), and the mode-q branch is selected by the state's mv value.

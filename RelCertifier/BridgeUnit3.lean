@@ -1,5 +1,5 @@
 /-
-Part B units 3+4 — the transition-faithful loop close.
+The transition-faithful loop close (single-flow bridge, units 3+4).
 
 `relational_loop` (EncodingBridge) hardcodes `φinv = ψ = encode ψ` (its `faModal_LOCK` call
 passes `(fun _ h => h)` as `hpost`), so it CANNOT carry the strengthened loop invariant

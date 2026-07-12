@@ -1,5 +1,5 @@
 /-
-Part B unit 5 — the finish: `rvalid` lift to the transition-faithful Theorem 3.
+The single-flow transition-faithful Theorem 3 (`rvalid` form) — the base case GAP 1-3 lift.
 
 `rvalid` quantifies over ALL bi-states, including ones whose fresh mode variable `mv` holds an
 undeclared index. The relational invariant `ϕinv` never mentions `mv`, so at such a bi-state the

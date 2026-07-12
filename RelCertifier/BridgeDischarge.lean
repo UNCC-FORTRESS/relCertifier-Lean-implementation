@@ -1,5 +1,5 @@
 /-
-Part B — the missing Link 2: discharge `hstep`/`Hpair` from the cover, closing the two islands.
+The single-flow end-to-end seam: discharge `hstep`/`Hpair` from the cover certificate, closing the
 
 `theorem3_faithful` (Island B) took `hstep` as a hypothesis; `hstep_assembled` reduces it to the
 per-pair certificate family `Hpair`. Nothing discharged `Hpair` from the checker — the seam

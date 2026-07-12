@@ -1,5 +1,5 @@
 /-
-Part A keystone — the per-segment ODE decoupling.
+The per-segment ODE decoupling (run-level projection route, reserved).
 A jointSys run projects to a rightBlock (right-only) run: freeze Lv, keep Rv.
 The derivative decoupling rests on RightAutonomous (fR/lam/domR read only Rv).
 

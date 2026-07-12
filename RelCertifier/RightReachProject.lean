@@ -1,5 +1,5 @@
 /-
-Part A — run-level projection: the cover's jointSys RightReach projects to a right-only
+Run-level projection (reserved route): the cover's jointSys RightReach projects to a right-only
 RightReach over the rightBlock-projected graph, threading freezeL at a global cL.
 Assembles ode_project_right along the run by structural induction.
 

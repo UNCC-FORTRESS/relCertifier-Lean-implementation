@@ -10,6 +10,11 @@ truth, so a Z3 UNSAT on the encoded negation certifies the bi-state validity of 
 global claim. This is the old dL-relcertifier bridge in its correct home: the ∀∃
 fragment is exactly what dL-rel's `faShape` / `encode` were built for.
 
+`theorem3_encoded` here proves `rvalid` of the **flat** `theorem3Form L R ϕ_inv` (right side
+`R*` the flat choice-star) via one Z3 UNSAT — a valid but weaker over-approximation. The
+**transition-faithful** landing (right side `R_real`, declared transitions only) is the
+independent `BridgeFinish.theorem3_faithful`; both routes rest on the same `z3_unsat_sound` leaf.
+
 Trust boundary unchanged: the only assumed fact is Z3 UNSAT (`z3_unsat_sound`); the
 bridge itself is a proven theorem of dL-rel.
 -/

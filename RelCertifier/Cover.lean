@@ -10,6 +10,12 @@ never taken) into the paper's **Theorem 3**: `ϕ_inv → [|(L*, R*)⟩⟩ ϕ_inv
 left execution an assembled right response preserves the relational invariant
 throughout. The global ∀∃ claim is bridged into dL by dL-rel `encoding_correct`.
 
+Here `[|(L*, R*)⟩⟩` is written with the flat choice-star `R*`. The **transition-faithful**
+right side — jumping only along declared edges (`R_real = star(rightAutomatonBody)`) — is
+`BridgeFinish.theorem3_faithful`; `cover_sound`/`RightReach` below already model that faithful
+response (the `jump` case follows a declared successor), and the witness
+`JointBridge.rightReach_is_R_real_run` shows the two coincide.
+
 Functionality target: the Python cover search (`run_universal.py`, §IV budget walk +
 §V.A cover). A configuration `(qR, B)` is covered when a joint segment closes the
 remaining budget, or every retained (non-pruned) successor covers the decremented

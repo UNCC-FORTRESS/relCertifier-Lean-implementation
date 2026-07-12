@@ -327,6 +327,26 @@ theorem dynreposition_faModalB_from_cert (g : Term (Var n)) (fR : Fin n → Term
   segment_faModalB_from_cert g (fun _ => Term.const 0) fR lam domL domR tg dt hdisj0 hφL hφR
     htgLb htgLr htgRb htgRr htgRbs htgdL htgdR htgg hbox hES
 
+/-- **The dynamic-reposition R-projection alignment.** Mirror of `RightProjAlign` for **frozen**
+(reposition) modes: each `Gr` mode is the R-projection of a `Gj` mode certified by `repoDynPreOK`
+(`cert.repoDynPresPre`), with the **frozen-left** joint system `mj.dynSys = jointSys 0 fR lam` and the
+dynamic domain `mj.dynDomPre = domL0 ∧ domR`. Cert-linked (each seg ties to a certified `Gj`
+reposition mode), no Z3 obligation. `fL0` is fixed to the zero field. -/
+def RightProjAlign_dyn (Gj Gr : SearchGraph (Var n)) (g : Term (Var n)) (mv : Var n)
+    (domL0 : Formula (Var n)) (lam : Term (Var n)) : Prop :=
+  ∀ (q : ℕ) (m' : RMode (Var n)), Gr.modeAt q = some m' →
+    ∃ (fR : Fin n → Term (Var n)) (domR : Formula (Var n)) (e : REdge (Var n)) (mj : RMode (Var n)),
+      m'.sys = rightBlock fR lam ∧ m'.dom = domR ∧
+      e ∈ Gr.edgesFrom q ∧ e.guard = Formula.tt ∧ e.tgt < Gr.modes.length ∧
+      Disjoint ((leftBlock (fun _ => Term.const 0)).boundSet ∪
+                (leftBlock (fun _ => Term.const 0)).readVars)
+               ((rightBlock fR lam).boundSet ∪ (rightBlock fR lam).readVars) ∧
+      domR.fv ⊆ (rightBlock fR lam).boundSet ∪ (rightBlock fR lam).readVars ∧
+      Gj.modeAt q = some mj ∧ mj.repoDynPreOK = true ∧
+      mj.dynSys = jointSys (fun _ => Term.const 0) fR lam ∧
+      mj.dynDomPre = Formula.and domL0 domR ∧
+      (∀ ν, HExistSeg (fun _ => Term.const 0) fR lam domL0 domR ν)
+
 /-! ## The structural emit — the `Hmulti` discharge -/
 
 /-- **The multi-flow emit (structural, cert-linked).** Per current right mode `q` and invariant
@@ -402,6 +422,60 @@ theorem Hmulti_from_cover (Gj Gr : SearchGraph (Var n)) (g : Term (Var n)) (mv :
     rw [hmjsys, hmjdom] at hBL
     exact hBL ω (by rw [← jointSys_split] at hω; exact hω)
   exact segment_faModalB_from_cert g fL0 fR lam domL0 domR tg dt hdisj0 hφL0 hφR
+    htgLb htgLr htgRb htgRr htgRbs htgdL0 htgdR htgg hbox (hES (Function.update σ' tg 0))
+
+/-- **The `Hmulti` discharge for a frozen (dynamic-reposition) mode.** Mirror of `Hmulti_from_cover`
+at the **frozen left** (`fL0 := 0`), each segment's `faModal` drawn from **`cert.repoDynPresPre`** (the
+dynamic-reposition certificate over the frozen-left field `dynSys`) — not assumed. Reuses
+`multi_faModal_from_couplings` + `segment_faModalB_from_cert` (via `dynreposition_faModalB_from_cert`,
+`fL0=0`). This is the response for a reposition residence; the loop's `bigChoice [flowP, frozenP]`
+interleaves it with flow residences. -/
+theorem Hmulti_from_cover_dyn (Gj Gr : SearchGraph (Var n)) (g : Term (Var n)) (mv : Var n)
+    (domL0 : Formula (Var n)) (lam : Term (Var n)) (tg : Var n) (dt : ℝ)
+    (cert : CoverCert Gj g) (hdt : 0 ≤ dt)
+    (hmvL0 : mv ∉ (leftBlock (fun _ => Term.const 0)).bound) (hg : mv ∉ g.fv)
+    (hφL0 : domL0.fv ⊆ (leftBlock (fun _ => Term.const 0)).boundSet ∪
+              (leftBlock (fun _ => Term.const 0)).readVars)
+    (htgLb : tg ∉ (leftBlock (fun _ => Term.const 0)).bound)
+    (htgLr : tg ∉ (leftBlock (fun _ => Term.const 0)).readVars)
+    (htgdL0 : tg ∉ domL0.fv) (htgg : tg ∉ g.fv)
+    (htgRight : ∀ q m, Gr.modeAt q = some m →
+      tg ∉ m.sys.bound ∧ tg ∉ m.sys.readVars ∧ tg ∉ m.sys.boundSet ∧ tg ∉ m.dom.fv)
+    (hRPA : RightProjAlign_dyn Gj Gr g mv domL0 lam)
+    (hemit : EmitSegs Gr g mv (fun _ => Term.const 0) domL0 tg dt) :
+    ∀ P ∈ [Program.ode (leftBlock (fun _ => Term.const 0)) domL0], ∀ (q : ℕ), q < Gr.modes.length →
+      ∀ σ, σ mv = (q : ℝ) → Formula.sat (invLe g) σ →
+      ∃ (fL : Fin n → Term (Var n)) (domL : Formula (Var n))
+        (segs : List (ℕ × RMode (Var n) × REdge (Var n))),
+        P = Program.ode (leftBlock fL) domL ∧ mv ∉ (leftBlock fL).bound ∧
+        (∀ s ∈ segs, Gr.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ Gr.edgesFrom s.1) ∧
+        List.IsChain (fun a b => a.2.2.tgt = b.1) segs ∧
+        (∀ s, segs.head? = some s → s.1 = q) ∧
+        Formula.sat (faModal (Equiv.refl (Var n)) (Program.ode (leftBlock fL) domL)
+          (bigSeq (segs.map (fun s => Program.ode s.2.1.sys s.2.1.dom))) (invLe g)) σ := by
+  intro P hP q hqlt σ hmvq hσ
+  simp only [List.mem_singleton] at hP; subst hP
+  obtain ⟨segs, halign, hchain, hhead, hbudget, htgRbig, hdis⟩ := hemit q hqlt σ hmvq hσ
+  refine ⟨(fun _ => Term.const 0), domL0, segs, rfl, hmvL0, halign, hchain, hhead, ?_⟩
+  refine multi_faModal_from_couplings (leftBlock (fun _ => Term.const 0)) domL0 g tg dt segs.length
+    htgLb htgLr htgdL0 htgg hdt _ (List.length_map ..) htgRbig hdis ?_ hσ hbudget
+  intro Q hQ σ' hσ'
+  obtain ⟨s, hs, rfl⟩ := List.mem_map.mp hQ
+  obtain ⟨hmodeAt, _⟩ := halign s hs
+  obtain ⟨fR, domR, e, mj, hsys, hdom, _, _, _, hdisj0, hφR, hmj, hdynOK, hmjsys, hmjdom, hES⟩ :=
+    hRPA s.1 s.2.1 hmodeAt
+  obtain ⟨htgRb, htgRr, htgRbs, htgdR⟩ := htgRight s.1 s.2.1 hmodeAt
+  rw [hsys] at htgRb htgRr htgRbs
+  rw [hdom] at htgdR
+  rw [hsys, hdom]
+  -- the joint box at σ' from cert.repoDynPresPre (frozen-left dynSys)
+  have hbox : Formula.sat (Formula.box (Program.ode (leftBlock (fun _ => Term.const 0) ++
+      rightBlock fR lam) (Formula.and domL0 domR)) (invLe g)) σ' := by
+    rw [sat_box]; intro ω hω; rw [sat_invLe]
+    have hBL := cert.repoDynPresPre s.1 mj hmj hdynOK σ' ((sat_invLe g σ').mp hσ')
+    rw [hmjsys, hmjdom] at hBL
+    exact hBL ω (by rw [← jointSys_split] at hω; exact hω)
+  exact dynreposition_faModalB_from_cert g fR lam domL0 domR tg dt hdisj0 hφL0 hφR
     htgLb htgLr htgRb htgRr htgRbs htgdL0 htgdR htgg hbox (hES (Function.update σ' tg 0))
 
 end RelCertifier

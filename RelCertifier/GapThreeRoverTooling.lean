@@ -18,13 +18,19 @@ import RelCertifier.GapThreeRoverDemo
 namespace RelCertifier
 open DL DLCalTiming DLRel Function
 
-/-- Concrete single-mode left automaton (rover flow mode; trivial evolution domain). -/
-noncomputable def roverL : HybridAut 3 :=
-  { modes := [{ dyn := roverFL, dom := Formula.tt, guard := Formula.tt, next := [0] }] }
+/-- The single left mode (rover flow mode; trivial evolution domain, `⊤`-guarded self-loop). -/
+noncomputable def roverLm : HybridMode 3 :=
+  { dyn := roverFL, dom := Formula.tt, guard := Formula.tt, next := [0] }
+
+/-- The single right mode. -/
+noncomputable def roverRm : HybridMode 3 :=
+  { dyn := roverFR, dom := Formula.tt, guard := Formula.tt, next := [0] }
+
+/-- Concrete single-mode left automaton. -/
+noncomputable def roverL : HybridAut 3 := { modes := [roverLm] }
 
 /-- Concrete single-mode right automaton. -/
-noncomputable def roverR : HybridAut 3 :=
-  { modes := [{ dyn := roverFR, dom := Formula.tt, guard := Formula.tt, next := [0] }] }
+noncomputable def roverR : HybridAut 3 := { modes := [roverRm] }
 
 /-- The right coupling scale `λ = 1`. -/
 def roverLam : Term (Var 3) := Term.const 1
@@ -134,7 +140,7 @@ theorem vars_test (ϕ : Formula (Var 3)) : Program.vars (Program.test ϕ) = ϕ.f
 /-- The concrete right graph's edges: one `⊤`-guarded self-loop at mode `0`. -/
 theorem roverGr_edges :
     roverGr.edges = [{ src := 0, tgt := 0, guard := Formula.tt, pruned := false }] := by
-  simp [roverGr, graphOf_Gr, roverR, HybridAut.edgesOf]
+  simp [roverGr, graphOf_Gr, roverR, roverRm, HybridAut.edgesOf]
 
 /-- The concrete right edge program list: one `?⊤ ; mv := 0`. -/
 theorem roverGr_edgeProgs :
@@ -298,5 +304,142 @@ theorem rover_hddF :
         have : v ∈ (mvValid roverMv roverGr.modes.length).fv := hmvR
         simpa only [Set.mem_singleton_iff] using mvValid_fv roverMv _ this
       rw [hvmv] at hvL; exact absurd hvL (by simp [roverMv, Av])
+
+/-! ## Remaining concrete side-conditions -/
+
+/-- Any auxiliary coordinate is outside any left block's bound set (all `Side.L`). -/
+theorem av_notin_leftBlock_bound (f : Fin 3 → Term (Var 3)) (i : Fin 3) :
+    (Av i) ∉ (leftBlock f).bound := by
+  intro hv
+  have hL : (Av i).1 = Side.L := by
+    simp only [leftBlock, ODESystem.bound, List.map_map, List.mem_map, Function.comp] at hv
+    obtain ⟨j, -, hj⟩ := hv; rw [← hj]
+  exact absurd hL (by simp [Av])
+
+/-- An auxiliary coordinate is outside any left block's read set, when the fields are left-sided. -/
+theorem av_notin_leftBlock_readVars (f : Fin 3 → Term (Var 3))
+    (hf : ∀ i, (f i).fv ⊆ {x : Var 3 | x.1 = Side.L}) (i : Fin 3) :
+    (Av i) ∉ (leftBlock f).readVars := by
+  intro hv
+  simp only [ODESystem.readVars, leftBlock, Set.mem_setOf_eq, List.mem_map] at hv
+  obtain ⟨p, ⟨j, -, rfl⟩, hx⟩ := hv
+  exact absurd (hf j hx) (by simp [Av])
+
+/-- Every variable read/written by a left block (left-sided fields) is on the left side. -/
+theorem leftBlock_side_L (f : Fin 3 → Term (Var 3))
+    (hf : ∀ i, (f i).fv ⊆ {x : Var 3 | x.1 = Side.L})
+    {v : Var 3} (hv : v ∈ (leftBlock f).boundSet ∪ (leftBlock f).readVars) : v.1 = Side.L := by
+  rcases hv with hb | hr
+  · simp only [ODESystem.boundSet, leftBlock, ODESystem.bound, List.map_map, Set.mem_setOf_eq,
+      List.mem_map, Function.comp] at hb
+    obtain ⟨i, -, rfl⟩ := hb; rfl
+  · simp only [ODESystem.readVars, leftBlock, Set.mem_setOf_eq, List.mem_map] at hr
+    obtain ⟨p, ⟨i, -, rfl⟩, hx⟩ := hr
+    exact hf i hx
+
+/-- Any auxiliary coordinate is outside any right block's read/write set (all `Side.R`). -/
+theorem av_notin_rightBlock (f : Fin 3 → Term (Var 3))
+    (hf : ∀ i, (f i).fv ⊆ {x : Var 3 | x.1 = Side.R}) (i : Fin 3) :
+    (Av i) ∉ (rightBlock f roverLam).boundSet ∪ (rightBlock f roverLam).readVars := by
+  intro hv
+  exact absurd (rightBlock_side_R f roverLam (by simp [roverLam, Term.fv]) hf hv) (by simp [Av])
+
+/-- `roverFR`'s fields read only right-side coordinates. -/
+theorem roverFR_side_R : ∀ i, (roverFR i).fv ⊆ {x : Var 3 | x.1 = Side.R} := by
+  intro i; fin_cases i <;> simp [roverFR, Term.fv, Rv, Set.subset_def]
+
+/-- Left/right footprint disjointness (the CSF `hdisj`). -/
+theorem rover_LR_disjoint :
+    Disjoint ((leftBlock roverFL).boundSet ∪ (leftBlock roverFL).readVars)
+             ((rightBlock roverFR roverLam).boundSet ∪ (rightBlock roverFR roverLam).readVars) := by
+  rw [Set.disjoint_left]
+  intro v hL hR
+  have h1 := leftBlock_side_L roverFL roverFL_side_L hL
+  have h2 := rightBlock_side_R roverFR roverLam (by simp [roverLam, Term.fv]) roverFR_side_R hR
+  rw [h1] at h2; exact absurd h2 (by decide)
+
+/-- The right mode's `tg`-freshness bundle (`tg = Av i` outside the right block and trivial domain). -/
+theorem av_notin_rightMode (i : Fin 3) :
+    (Av i) ∉ (rightBlock roverFR roverLam).bound ∧
+    (Av i) ∉ (rightBlock roverFR roverLam).readVars ∧
+    (Av i) ∉ (rightBlock roverFR roverLam).boundSet ∧
+    (Av i) ∉ (Formula.tt : Formula (Var 3)).fv := by
+  have hb := av_notin_rightBlock roverFR roverFR_side_R i
+  exact ⟨fun h => hb (Or.inl h), fun h => hb (Or.inr h), fun h => hb (Or.inl h), by simp [Formula.fv]⟩
+
+/-- **The full `tooling_sound` instantiation at concrete rover data — non-vacuous.** Everything
+structural is discharged concretely: `graphOf`, `RightProjAlign` (derived, Task 2), the freshness
+(`mv = Av 1`, `tg = Av 0`, both `Aux`), and the `∀∃` disjointness `hd`/`hddF` (side split). The Z3-leaf
+`cert`/`cert_repo`, the emit `EmitSegs` (`hemit`/`hemit'`), the field-shape `HExistSeg` (`hHExist`,
+carried), and the reposition `Gj_repo`/`hRPA_dyn` remain PARAMETRIC — the established honest boundaries.
+The antecedents are jointly satisfiable (freshness discharged, `hd` holds — contrast
+`ProbeMvHd.probe_hd_false`), so this is a genuine, non-vacuous certification of the end-to-end theorem
+at real benchmark-shaped data. `#print axioms = [propext, Classical.choice, Quot.sound]`. -/
+theorem rover_tooling_sound (dt : ℝ) (hdt : 0 ≤ dt)
+    (cert : CoverCert (graphOf_Gj roverL roverR roverLam roverLm) roverG)
+    (hHExist : ∀ ν, HExistSeg roverFL roverFR roverLam Formula.tt Formula.tt ν)
+    (hemit : EmitSegs roverGr roverG roverMv roverFL Formula.tt roverTg dt)
+    (Gj_repo : SearchGraph (Var 3)) (cert_repo : CoverCert Gj_repo roverG)
+    (hRPA_dyn : RightProjAlign_dyn Gj_repo roverGr roverG roverMv Formula.tt roverLam)
+    (hemit' : EmitSegs roverGr roverG roverMv (fun _ => Term.const 0) Formula.tt roverTg dt) :
+    RFormula.rvalid (theorem3Form
+      (bigChoice (roverL.leftProgs ++ [Program.ode (leftBlock (fun _ => Term.const 0)) Formula.tt]))
+      (rightAutomatonBody roverGr roverMv)
+      (RFormula.and roverInv (mvValidR roverMv roverGr.modes.length))) := by
+  have hg : roverMv ∉ roverG.fv := rover_mv_fresh_satisfiable.2.1
+  -- the per-mode CSF side-conditions (structural + carried HExistSeg)
+  have hside : graphOfSide roverL roverR roverLam roverLm := by
+    intro q mR hmR
+    rcases q with _ | q
+    · -- q = 0: mR = roverRm
+      simp only [roverR, List.getElem?_cons_zero, Option.some.injEq] at hmR
+      subst hmR
+      refine ⟨rover_LR_disjoint, by simp [roverRm, Formula.fv], hHExist, by simp [roverRm], ?_⟩
+      intro tgt htgt
+      simp only [roverRm, List.mem_singleton] at htgt; subst htgt; simp [roverR]
+    · simp [roverR] at hmR
+  -- freshness (mv, tg in Aux; trivial domain)
+  have hfr : graphOfFresh roverMv roverTg roverLm := by
+    refine ⟨av_notin_leftBlock_bound roverFL 1, by simp [roverLm, Formula.fv],
+      av_notin_leftBlock_bound roverFL 0, av_notin_leftBlock_readVars roverFL roverFL_side_L 0,
+      by simp [roverLm, Formula.fv]⟩
+  -- assemble the single flow mode, apply the family theorem via tooling_sound
+  refine tooling_sound roverL roverR roverG roverMv roverLam roverTg dt roverInv hdt hg rover_hψ
+    [graphOfFlowMode roverL roverR roverG roverMv roverLam roverTg dt roverLm cert hg hside hfr hemit]
+    rfl Gj_repo cert_repo Formula.tt
+    (av_notin_leftBlock_bound _ 1) (by simp [Formula.fv])
+    (av_notin_leftBlock_bound _ 0) (av_notin_leftBlock_readVars _ const0_side_L 0)
+    (by simp [Formula.fv]) hRPA_dyn hemit'
+    rover_tg_fresh_satisfiable.2.2 ?_ ?_ ?_ ?_ rover_hd_holds rover_hddF
+  · -- htgRight : tg = Av 0 outside every right mode's block/domain
+    intro q m hm
+    rcases q with _ | q
+    · simp only [SearchGraph.modeAt, roverGr, graphOf_Gr, roverR, List.map_cons, List.map_nil,
+        List.getElem?_cons_zero, Option.some.injEq] at hm
+      subst hm; exact av_notin_rightMode 0
+    · simp [SearchGraph.modeAt, roverGr, graphOf_Gr, roverR] at hm
+  · -- hfresh : mv = Av 1 not read by any right mode ODE
+    intro q m hm
+    rcases q with _ | q
+    · simp only [SearchGraph.modeAt, roverGr, graphOf_Gr, roverR, List.map_cons, List.map_nil,
+        List.getElem?_cons_zero, Option.some.injEq] at hm
+      subst hm
+      intro hv
+      simp only [roverRm, Program.fv, Formula.fv, Set.union_empty, Set.mem_union] at hv
+      exact (av_notin_rightBlock roverFR roverFR_side_R 1) hv
+    · simp [SearchGraph.modeAt, roverGr, graphOf_Gr, roverR] at hm
+  · -- htt : every declared edge is ⊤-guarded
+    intro q e he
+    rw [SearchGraph.edgesFrom, show (graphOf_Gr roverR roverLam).edges = _ from roverGr_edges,
+      List.mem_filter] at he
+    obtain ⟨hmem, -⟩ := he
+    rw [List.mem_singleton] at hmem; subst hmem; rfl
+  · -- hlt : every edge target is in range
+    intro q e he
+    rw [SearchGraph.edgesFrom, show (graphOf_Gr roverR roverLam).edges = _ from roverGr_edges,
+      List.mem_filter] at he
+    obtain ⟨hmem, -⟩ := he
+    rw [List.mem_singleton] at hmem; subst hmem
+    simp [roverGr, graphOf_Gr, roverR]
 
 end RelCertifier

@@ -83,7 +83,7 @@ theorem theorem3_faithful_multi_of_emit (G : SearchGraph (Var n)) (mv : Var n) (
       Formula.sat (invLe g) σ →
       ∃ (fL : Fin n → Term (Var n)) (domL : Formula (Var n))
         (segs : List (ℕ × RMode (Var n) × REdge (Var n))),
-        P = Program.ode (leftBlock fL) domL ∧ mv ∉ (leftBlock fL).bound ∧
+        P = Program.ode (leftBlock fL) domL ∧ MvFrozen fL mv ∧
         (∀ s ∈ segs, G.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ G.edgesFrom s.1) ∧
         List.IsChain (fun a b => a.2.2.tgt = b.1) segs ∧
         (∀ s, segs.head? = some s → s.1 = q) ∧

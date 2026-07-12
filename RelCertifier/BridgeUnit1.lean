@@ -110,12 +110,33 @@ theorem diamond_right_wrap (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m :
   · rw [hm]; rfl
 
 
-/-- `mv` is unchanged by a left-block ODE run (it is not a bound variable). -/
+/-- `mv` is a **frozen** left coordinate: `mv = Lv j` for a `j` whose left field `fL j` is the
+constant `0`. Its ODE equation is `(Lv j)' = 0`, so the flow holds it constant — even though it IS a
+bound variable. This is the auxiliary mode-variable slot: a physical-left coordinate the dynamics
+freeze, carrying the right automaton's mode index. Replaces the earlier `mv ∉ leftBlock.bound` route,
+which is unsatisfiable for a concrete `Var n` (`leftBlock`/`rightBlock` span every coordinate — no
+`mv` avoids both). The frozen form is satisfiable: `mv` is a real coordinate the dynamics don't move. -/
+def MvFrozen (fL : Fin n → Term (Var n)) (mv : Var n) : Prop :=
+  ∃ j : Fin n, mv = Lv j ∧ fL j = Term.const 0
+
+/-- A frozen coordinate is unchanged by a left-block ODE run: its derivative is `0`, so it is
+constant (mean-value inequality with `C = 0`). Replaces the masking route (`mv ∉ bound`). -/
 theorem leftBlock_frames_mv (fL : Fin n → Term (Var n)) (domL : Formula (Var n)) (mv : Var n)
-    (hmv : mv ∉ (leftBlock fL).bound) {σ ν : State (Var n)}
+    (hmv : MvFrozen fL mv) {σ ν : State (Var n)}
     (h : Program.sem (Program.ode (leftBlock fL) domL) σ ν) : ν mv = σ mv := by
-  obtain ⟨r, Φ, hr, hΦ0, hΦr, _, hmask, _⟩ := h
-  rw [← hΦr, hmask r ⟨hr, le_refl r⟩ mv hmv]
+  obtain ⟨j, rfl, hfLj⟩ := hmv
+  obtain ⟨r, Φ, hr, hΦ0, hΦr, hder, _, _⟩ := h
+  have hp : (Lv j, fL j) ∈ leftBlock fL := List.mem_map.mpr ⟨j, List.mem_finRange j, rfl⟩
+  have hd0 : ∀ t ∈ Set.Icc (0:ℝ) r, HasDerivWithinAt (fun u => Φ u (Lv j)) 0 (Set.Icc 0 r) t := by
+    intro t ht
+    have hd := hder t ht (Lv j, fL j) hp
+    rwa [hfLj, show (Term.const 0).eval (Φ t) = (0:ℝ) from rfl] at hd
+  have hconv : Convex ℝ (Set.Icc (0:ℝ) r) := convex_Icc 0 r
+  have hle := hconv.norm_image_sub_le_of_norm_hasDerivWithin_le (C := 0)
+    hd0 (fun u _ => by simp) ⟨le_refl 0, hr⟩ ⟨hr, le_refl r⟩
+  have heq : Φ r (Lv j) = Φ 0 (Lv j) := by
+    simp only [zero_mul, norm_le_zero_iff, sub_eq_zero] at hle; exact hle
+  rw [← hΦr, ← hΦ0]; exact heq
 
 /-- **Unit 1-finish — the box wrapping.** From `segment_faModal`'s bare
 `faModal (ode leftBlock) (ode rightBlock) (invLe g)` at `σ` (with `σ mv = q`), derive
@@ -125,7 +146,7 @@ the left-block box (`mv ∉ leftBlock.bound`), so `ν mv = q` at each post-left 
 theorem hstep_single (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m : RMode (Var n))
     (g : Term (Var n)) (fL fR : Fin n → Term (Var n)) (lam : Term (Var n))
     (domL domR : Formula (Var n))
-    (hg : mv ∉ g.fv) (hmvL : mv ∉ (leftBlock fL).bound)
+    (hg : mv ∉ g.fv) (hmvL : MvFrozen fL mv)
     (hm : G.modeAt q = some m) (hsys : m.sys = rightBlock fR lam) (hdom : m.dom = domR)
     {e : REdge (Var n)} (hef : e ∈ G.edgesFrom q) (hetg : e.guard = Formula.tt)
     (hetv : e.tgt < G.modes.length)

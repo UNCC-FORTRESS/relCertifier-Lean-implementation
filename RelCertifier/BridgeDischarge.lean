@@ -98,14 +98,14 @@ theorem hpair_from_cover
     (Gj Gr : SearchGraph (Var n)) (g : Term (Var n)) (mv : Var n)
     (fL0 : Fin n → Term (Var n)) (domL0 : Formula (Var n)) (lam : Term (Var n))
     (cert : CoverCert Gj g)
-    (hmvL0 : mv ∉ (leftBlock fL0).bound)
+    (hmvL0 : MvFrozen fL0 mv)
     (hφL0 : domL0.fv ⊆ (leftBlock fL0).boundSet ∪ (leftBlock fL0).readVars)
     (hproj : RightProjAlign Gj Gr g mv fL0 domL0 lam) :
     ∀ P ∈ [Program.ode (leftBlock fL0) domL0], ∀ (q : ℕ) (m : RMode (Var n)),
       Gr.modeAt q = some m →
       ∃ (fL fR : Fin n → Term (Var n)) (lam' : Term (Var n)) (domL domR : Formula (Var n))
         (e : REdge (Var n)),
-        P = Program.ode (leftBlock fL) domL ∧ mv ∉ (leftBlock fL).bound ∧
+        P = Program.ode (leftBlock fL) domL ∧ MvFrozen fL mv ∧
         m.sys = rightBlock fR lam' ∧ m.dom = domR ∧
         e ∈ Gr.edgesFrom q ∧ e.guard = Formula.tt ∧ e.tgt < Gr.modes.length ∧
         (∀ s, Formula.sat (invLe g) s → Formula.sat (faModal (Equiv.refl (Var n))
@@ -134,7 +134,7 @@ theorem rvalid_from_cert
     (ϕinv : RFormula (Var n))
     (cert : CoverCert Gj g)
     (hg : mv ∉ g.fv)
-    (hmvL0 : mv ∉ (leftBlock fL0).bound)
+    (hmvL0 : MvFrozen fL0 mv)
     (hφL0 : domL0.fv ⊆ (leftBlock fL0).boundSet ∪ (leftBlock fL0).readVars)
     (hproj : RightProjAlign Gj Gr g mv fL0 domL0 lam)
     (hψ : encode (Equiv.refl (Var n)) ϕinv = invLe g)
@@ -180,7 +180,7 @@ theorem decideCovered_implies_theorem3_faithful
     (hchk : decideCovered Gj fuel cfg = true)
     (cert : CoverCert Gj g)
     (hg : mv ∉ g.fv)
-    (hmvL0 : mv ∉ (leftBlock fL0).bound)
+    (hmvL0 : MvFrozen fL0 mv)
     (hφL0 : domL0.fv ⊆ (leftBlock fL0).boundSet ∪ (leftBlock fL0).readVars)
     (hproj : RightProjAlign Gj Gr g mv fL0 domL0 lam)
     (hψ : encode (Equiv.refl (Var n)) ϕinv = invLe g)

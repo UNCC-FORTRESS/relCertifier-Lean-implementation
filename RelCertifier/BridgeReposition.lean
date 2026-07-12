@@ -12,6 +12,7 @@ the flow case: the target is a declared `G`-edge (`e ∈ edgesFrom q`).
 import RelCertifier.JointBridge
 import RelCertifier.Reify
 import RelCertifier.PicardBridge
+import RelCertifier.MultiSeg
 
 namespace RelCertifier
 open DL DLCalTiming Function Set
@@ -131,5 +132,59 @@ theorem sem_ode_split {sys : ODESystem (Var n)} {dom : Formula (Var n)} (hwf : s
       have := (hcΦ (t + s) hts).scomp s hcomp hmaps
       rwa [one_smul] at this
     · intro s hs; exact hdΦ (t + s) ⟨by linarith [ht.1, hs.1], by linarith [hs.2]⟩
+
+/-- Disjointness lifts over `bigSeq`: disjoint from every piece ⟹ disjoint from the sequence. -/
+theorem disjoint_vars_bigSeq {A : Set (Var n)} :
+    ∀ {L : List (Program (Var n))}, (∀ q ∈ L, Disjoint A (Program.vars q)) →
+      Disjoint A (Program.vars (bigSeq L))
+  | [], _ => by simp [bigSeq, Program.vars, Program.fv, Program.bv, Formula.fv]
+  | q :: qs, h => by
+      have htail := disjoint_vars_bigSeq (fun r hr => h r (List.mem_cons_of_mem q hr))
+      have hsub : Program.vars (bigSeq (q :: qs)) ⊆
+          Program.vars q ∪ Program.vars (bigSeq qs) := by
+        intro x hx
+        simp only [bigSeq, Program.vars, Program.fv, Program.bv, Set.mem_union, Set.mem_diff] at hx ⊢
+        tauto
+      exact (Set.disjoint_union_right.mpr ⟨h q (List.mem_cons_self ..), htail⟩).mono_right hsub
+
+/-- **Piece 1 — the general MULTI composition.** A single left flow couples with a right segment
+sequence `bigSeq (map snd pairs)`, where each segment couples with its OWN left factor `p.1`
+(`p.1 = ode leftBlock` for a flow segment, `test ⊤` for a zero-time reposition). Composed
+segment-by-segment via `faModal_seq` — the per-segment coupling, replacing `multiseg_het`'s
+over-restrictive uniform hypothesis. Flow and reposition are the two `p.1` shapes; no class split. -/
+theorem multiseg_gen (φinv : Formula (Var n)) :
+    ∀ (pairs : List (Program (Var n) × Program (Var n))),
+      (∀ p ∈ pairs, ∀ q ∈ pairs,
+          Disjoint (Program.vars (p.2.rename (Equiv.refl (Var n)))) (Program.vars q.1)) →
+      (∀ p ∈ pairs, ∀ σ, Formula.sat φinv σ →
+          Formula.sat (faModal (Equiv.refl (Var n)) p.1 p.2 φinv) σ) →
+      ∀ ω, Formula.sat φinv ω →
+        Formula.sat (faModal (Equiv.refl (Var n)) (bigSeq (pairs.map Prod.fst))
+          (bigSeq (pairs.map Prod.snd)) φinv) ω := by
+  intro pairs
+  induction pairs with
+  | nil =>
+      intro _ _ ω hω
+      simp only [List.map_nil, bigSeq]
+      rw [faModal_sat]
+      intro ν hν
+      rw [sem_test] at hν
+      obtain ⟨rfl, _⟩ := hν
+      exact ⟨ω, by rw [rename_test, sem_test]; exact ⟨rfl, trivial⟩, hω⟩
+  | cons p rest ih =>
+      intro hdis hcouple ω hω
+      simp only [List.map_cons, bigSeq]
+      refine faModal_seq (Equiv.refl (Var n)) p.1 (bigSeq (rest.map Prod.fst)) p.2
+        (bigSeq (rest.map Prod.snd)) φinv ω ?_ ?_
+      · -- Disjoint (vars (p.2.rename id)) (vars (bigSeq (rest.map fst)))
+        refine disjoint_vars_bigSeq ?_
+        intro r hr
+        obtain ⟨q, hq, rfl⟩ := List.mem_map.mp hr
+        exact hdis p (List.mem_cons_self ..) q (List.mem_cons_of_mem p hq)
+      · refine faModal_MR (Equiv.refl (Var n)) p.1 p.2 φinv _ ω
+          (hcouple p (List.mem_cons_self ..) ω hω) ?_
+        intro μ hμ
+        exact ih (fun a ha b hb => hdis a (List.mem_cons_of_mem p ha) b (List.mem_cons_of_mem p hb))
+          (fun a ha => hcouple a (List.mem_cons_of_mem p ha)) μ hμ
 
 end RelCertifier

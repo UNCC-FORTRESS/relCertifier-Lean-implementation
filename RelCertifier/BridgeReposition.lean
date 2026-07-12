@@ -211,4 +211,48 @@ theorem single_seg_R_real (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m : 
     · rw [hm]; rfl
   exact Relation.ReflTransGen.head hbody Relation.ReflTransGen.refl
 
+/-- **The faithful multiseg-to-R_real bridge.** The emitted right mode-switch sequence `segs` (each
+`(q, m, e)` a declared mode + declared ⊤-edge, consecutively chained `e.tgt = next.q`) lifts a
+`bigSeq`-of-flows run into a `star (rightAutomatonBody G mv)` run, threading `mv` through the mode
+sequence. **Every switch is a real `G`-edge** (`single_seg_R_real`, `EdgeTargetsValid`) — the ∃-right
+faithfulness beyond flat `reified_relational_multi`, preserved end-to-end because the fold
+(`ReflTransGen.trans`) concatenates per-step-faithful automaton steps. -/
+theorem faithful_rights_bridge (G : SearchGraph (Var n)) (mv : Var n)
+    (hfresh : ∀ q m, G.modeAt q = some m → mv ∉ (Program.ode m.sys m.dom).fv)
+    (htt : ∀ q, ∀ e ∈ G.edgesFrom q, e.guard = Formula.tt)
+    (hlt : ∀ q, ∀ e ∈ G.edgesFrom q, e.tgt < G.modes.length) :
+    ∀ (segs : List (ℕ × RMode (Var n) × REdge (Var n))),
+      (∀ s ∈ segs, G.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ G.edgesFrom s.1) →
+      List.IsChain (fun a b => a.2.2.tgt = b.1) segs →
+      ∀ (q0 : ℕ) {ν μ : State (Var n)},
+        (∀ s, segs.head? = some s → s.1 = q0) →
+        Program.sem (bigSeq (segs.map (fun s => Program.ode s.2.1.sys s.2.1.dom))) ν μ →
+        ∃ qf, Program.sem (Program.star (rightAutomatonBody G mv))
+          (Function.update ν mv (q0 : ℝ)) (Function.update μ mv (qf : ℝ)) := by
+  intro segs
+  induction segs with
+  | nil =>
+      intro _ _ q0 _ _ _ hrun
+      rw [List.map_nil, bigSeq, sem_test] at hrun
+      obtain ⟨rfl, _⟩ := hrun
+      exact ⟨q0, Relation.ReflTransGen.refl⟩
+  | cons s rest ih =>
+      intro halign hchain q0 _ _ hstart hrun
+      have hq0 : s.1 = q0 := hstart s rfl
+      subst hq0
+      simp only [List.map_cons, bigSeq] at hrun
+      obtain ⟨κ, hflow, hrest⟩ := hrun
+      obtain ⟨hm, he⟩ := halign s (List.mem_cons_self ..)
+      have hfirst := single_seg_R_real G mv s.1 s.2.1 (hfresh s.1 s.2.1 hm) hm he
+        (htt s.1 s.2.2 he) (hlt s.1 s.2.2 he) hflow
+      have htailstart : ∀ t, rest.head? = some t → t.1 = s.2.2.tgt := by
+        intro t ht
+        rcases rest with _ | ⟨r, rs⟩
+        · exact absurd ht (by simp)
+        · simp only [List.head?_cons, Option.some.injEq] at ht
+          subst ht; exact hchain.rel.symm
+      obtain ⟨qf, htail⟩ := ih (fun t ht => halign t (List.mem_cons_of_mem s ht))
+        hchain.of_cons s.2.2.tgt htailstart hrest
+      exact ⟨qf, Relation.ReflTransGen.trans hfirst htail⟩
+
 end RelCertifier

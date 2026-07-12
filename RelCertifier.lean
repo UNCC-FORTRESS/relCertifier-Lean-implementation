@@ -44,4 +44,5 @@ import RelCertifier.RepositionFinish
 import RelCertifier.RepositionDischarge
 import RelCertifier.RepositionEndToEnd
 import RelCertifier.GapTwo
+import RelCertifier.GapThreeFoundation
 import RelCertifier.AxiomCheck

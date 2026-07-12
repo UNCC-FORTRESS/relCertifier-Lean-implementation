@@ -66,4 +66,42 @@ theorem diamond_right_wrap (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m :
       exact (List.getElem?_eq_some_iff.mp this).1)
   · rw [hm]; rfl
 
+
+/-- `mv` is unchanged by a left-block ODE run (it is not a bound variable). -/
+theorem leftBlock_frames_mv (fL : Fin n → Term (Var n)) (domL : Formula (Var n)) (mv : Var n)
+    (hmv : mv ∉ (leftBlock fL).bound) {σ ν : State (Var n)}
+    (h : Program.sem (Program.ode (leftBlock fL) domL) σ ν) : ν mv = σ mv := by
+  obtain ⟨r, Φ, hr, hΦ0, hΦr, _, hmask, _⟩ := h
+  rw [← hΦr, hmask r ⟨hr, le_refl r⟩ mv hmv]
+
+/-- **Unit 1-finish — the box wrapping.** From `segment_faModal`'s bare
+`faModal (ode leftBlock) (ode rightBlock) (invLe g)` at `σ` (with `σ mv = q`), derive
+`faModal (ode leftBlock) (rightAutomatonBody G mv) (invLe g)`. The mode variable survives
+the left-block box (`mv ∉ leftBlock.bound`), so `ν mv = q` at each post-left state and
+`diamond_right_wrap` applies. -/
+theorem hstep_single (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m : RMode (Var n))
+    (g : Term (Var n)) (fL fR : Fin n → Term (Var n)) (lam : Term (Var n))
+    (domL domR : Formula (Var n))
+    (hg : mv ∉ g.fv) (hmvL : mv ∉ (leftBlock fL).bound)
+    (hm : G.modeAt q = some m) (hsys : m.sys = rightBlock fR lam) (hdom : m.dom = domR)
+    {e : REdge (Var n)} (hef : e ∈ G.edgesFrom q) (hetg : e.guard = Formula.tt)
+    {σ : State (Var n)} (hmvq : σ mv = (q : ℝ))
+    (hseg : Formula.sat (faModal (Equiv.refl (Var n))
+      (Program.ode (leftBlock fL) domL) (Program.ode (rightBlock fR lam) domR) (invLe g)) σ) :
+    Formula.sat (faModal (Equiv.refl (Var n))
+      (Program.ode (leftBlock fL) domL) (rightAutomatonBody G mv) (invLe g)) σ := by
+  rw [faModal_sat] at hseg ⊢
+  intro ν hsemν
+  have hmvν : ν mv = (q : ℝ) := by rw [leftBlock_frames_mv fL domL mv hmvL hsemν]; exact hmvq
+  have hdia : Formula.sat (Formula.diamond (Program.ode (rightBlock fR lam) domR) (invLe g)) ν := by
+    rw [diamond_sem]
+    obtain ⟨μ, hRμ, hφμ⟩ := hseg ν hsemν
+    simp only [Program.rename_refl] at hRμ
+    exact ⟨μ, hRμ, hφμ⟩
+  have := diamond_right_wrap G mv q m g fR lam domR hg hm hsys hdom hef hetg hmvν hdia
+  rw [diamond_sem] at this
+  obtain ⟨μ', hsem', hφ'⟩ := this
+  exact ⟨μ', by simpa only [Program.rename_refl] using hsem', hφ'⟩
+
+
 end RelCertifier

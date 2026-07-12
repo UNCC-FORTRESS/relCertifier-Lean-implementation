@@ -47,4 +47,5 @@ import RelCertifier.GapTwo
 import RelCertifier.GapThreeFoundation
 import RelCertifier.GapThreeTask2
 import RelCertifier.GapThreeTask3
+import RelCertifier.GapThreeRoverDemo
 import RelCertifier.AxiomCheck

@@ -367,6 +367,84 @@ theorem av_notin_rightMode (i : Fin 3) :
   have hb := av_notin_rightBlock roverFR roverFR_side_R i
   exact ⟨fun h => hb (Or.inl h), fun h => hb (Or.inr h), fun h => hb (Or.inl h), by simp [Formula.fv]⟩
 
+/-! ## `HExistSeg` discharged via global existence (trivial `domR`, affine right field) -/
+
+/-- The explicit right witness for the affine rover field, started at `base = ΦL s`: the `Rv`
+coordinates follow the affine solution (`px` quadratic, `vx` linear, mode constant), every other
+coordinate frozen to `base`. This is the global solution of `rightBlock roverFR roverLam` — no bounded
+region to escape (`domR = ⊤`), so it discharges `HExistSeg` for EVERY `ν` (the field shape only needs
+to be globally solvable; the banked region lemmas `hExist_from_rover` are for bounded `domR`). -/
+noncomputable def roverΦR (base : State (Var 3)) (t : ℝ) : State (Var 3) :=
+  fun x => if x = Rv 0 then base (Rv 0) + base (Rv 1) * t + (2 / 10) * t ^ 2
+           else if x = Rv 1 then base (Rv 1) + (4 / 10) * t
+           else base x
+
+@[simp] theorem roverΦR_Rv0 (base : State (Var 3)) (t : ℝ) :
+    roverΦR base t (Rv 0) = base (Rv 0) + base (Rv 1) * t + (2 / 10) * t ^ 2 := rfl
+
+@[simp] theorem roverΦR_Rv1 (base : State (Var 3)) (t : ℝ) :
+    roverΦR base t (Rv 1) = base (Rv 1) + (4 / 10) * t := by
+  show (if (Rv 1 : Var 3) = Rv 0 then _ else if (Rv 1 : Var 3) = Rv 1 then _ else _) = _
+  rw [if_neg (by decide), if_pos rfl]
+
+@[simp] theorem roverΦR_other (base : State (Var 3)) (t : ℝ) {x : Var 3}
+    (h0 : x ≠ Rv 0) (h1 : x ≠ Rv 1) : roverΦR base t x = base x := by
+  simp only [roverΦR]; rw [if_neg h0, if_neg h1]
+
+/-- **`∀ν HExistSeg` discharged for the affine rover field at trivial `domR`.** The global polynomial
+solution `roverΦR` witnesses the right run for every `ν` — removing `HExistSeg` from the carried
+boundary (it holds because `domR = ⊤` has no region to escape; contrast the bounded-`domR` case where
+`∀ν HExistSeg` is false). -/
+theorem hExistSeg_affine_tt (ν : State (Var 3)) :
+    HExistSeg roverFL roverFR roverLam Formula.tt Formula.tt ν := by
+  intro s ΦL hs0 hΦL0 _ hmaskL _
+  refine ⟨roverΦR (ΦL s), ?_, ?_, ?_, fun t _ => by trivial⟩
+  · -- ΦR 0 = ΦL s
+    funext x
+    by_cases h0 : x = Rv 0
+    · subst h0; simp
+    · by_cases h1 : x = Rv 1
+      · subst h1; simp
+      · rw [roverΦR_other _ _ h0 h1]
+  · -- right derivatives
+    intro t _ p hp
+    have hlist : rightBlock roverFR roverLam
+        = [(Rv 0, Term.binop AOp.mul roverLam (Term.var (Rv 1))),
+           (Rv 1, Term.binop AOp.mul roverLam (Term.const (4 / 10))),
+           (Rv 2, Term.binop AOp.mul roverLam (Term.const 0))] := rfl
+    rw [hlist, List.mem_cons, List.mem_cons, List.mem_singleton] at hp
+    rcases hp with rfl | rfl | rfl
+    · -- Rv 0: px' = vx  (deriv of the quadratic = vx(t))
+      have hval : (Term.binop AOp.mul roverLam (Term.var (Rv 1))).eval (roverΦR (ΦL s) t)
+          = ΦL s (Rv 1) + (4 / 10) * t := by simp [roverLam, Term.eval, AOp.interp]
+      have hfun : (fun u => roverΦR (ΦL s) u (Rv 0, Term.binop AOp.mul roverLam (Term.var (Rv 1))).1)
+          = fun u => ΦL s (Rv 0) + ΦL s (Rv 1) * u + (2 / 10) * u ^ 2 := by funext u; simp
+      rw [hfun, hval]
+      exact ((((hasDerivAt_const t (ΦL s (Rv 0))).add
+        ((hasDerivAt_id t).const_mul (ΦL s (Rv 1)))).add
+        ((hasDerivAt_pow 2 t).const_mul (2 / 10))).congr_deriv (by push_cast; ring)).hasDerivWithinAt
+    · -- Rv 1: vx' = 0.4
+      have hval : (Term.binop AOp.mul roverLam (Term.const (4 / 10))).eval (roverΦR (ΦL s) t)
+          = 4 / 10 := by simp [roverLam, Term.eval, AOp.interp]
+      have hfun : (fun u => roverΦR (ΦL s) u (Rv 1, Term.binop AOp.mul roverLam (Term.const (4/10))).1)
+          = fun u => ΦL s (Rv 1) + (4 / 10) * u := by funext u; simp
+      rw [hfun, hval]
+      exact (((hasDerivAt_const t (ΦL s (Rv 1))).add
+        ((hasDerivAt_id t).const_mul (4 / 10))).congr_deriv (by ring)).hasDerivWithinAt
+    · -- Rv 2: mode' = 0
+      have hval : (Term.binop AOp.mul roverLam (Term.const 0)).eval (roverΦR (ΦL s) t) = 0 := by
+        simp [roverLam, Term.eval, AOp.interp]
+      have hfun : (fun u => roverΦR (ΦL s) u (Rv 2, Term.binop AOp.mul roverLam (Term.const 0)).1)
+          = fun _ => ΦL s (Rv 2) := by
+        funext u; exact roverΦR_other _ _ (by decide) (by decide)
+      rw [hfun, hval]
+      exact (hasDerivAt_const t (ΦL s (Rv 2))).hasDerivWithinAt
+  · -- right mask: coords outside the right block are frozen to ΦL s
+    intro t _ x hx
+    have h0 : x ≠ Rv 0 := by rintro rfl; exact hx (by simp [rightBlock, ODESystem.bound, Rv])
+    have h1 : x ≠ Rv 1 := by rintro rfl; exact hx (by simp [rightBlock, ODESystem.bound, Rv])
+    exact roverΦR_other _ _ h0 h1
+
 /-- **The full `tooling_sound` instantiation at concrete rover data — non-vacuous.** Everything
 structural is discharged concretely: `graphOf`, `RightProjAlign` (derived, Task 2), the freshness
 (`mv = Av 1`, `tg = Av 0`, both `Aux`), and the `∀∃` disjointness `hd`/`hddF` (side split). The Z3-leaf
@@ -441,5 +519,25 @@ theorem rover_tooling_sound (dt : ℝ) (hdt : 0 ≤ dt)
     obtain ⟨hmem, -⟩ := he
     rw [List.mem_singleton] at hmem; subst hmem
     simp [roverGr, graphOf_Gr, roverR]
+
+/-- **The fuller representative — `tooling_sound` with `HExistSeg` ALSO discharged.** Same concrete
+rover instantiation as `rover_tooling_sound`, but the field-shape side-condition `HExistSeg` is
+discharged concretely (`hExistSeg_affine_tt`, global existence at trivial `domR`) instead of carried.
+So this instantiation carries ONLY the two irreducible boundaries — the Z3 leaf (`cert`/`cert_repo`,
+`z3_unsat_sound` at construction) and the emit `EmitSegs` — plus the reposition cover; freshness,
+disjointness, `graphOf`, `RightProjAlign`, AND `HExistSeg` are all concrete. The cleanest non-vacuous
+certification of the end-to-end theorem at rover data. `#print axioms` picks up `z3_unsat_sound` only
+through the supplied `cert`s. -/
+theorem rover_tooling_sound_full (dt : ℝ) (hdt : 0 ≤ dt)
+    (cert : CoverCert (graphOf_Gj roverL roverR roverLam roverLm) roverG)
+    (hemit : EmitSegs roverGr roverG roverMv roverFL Formula.tt roverTg dt)
+    (Gj_repo : SearchGraph (Var 3)) (cert_repo : CoverCert Gj_repo roverG)
+    (hRPA_dyn : RightProjAlign_dyn Gj_repo roverGr roverG roverMv Formula.tt roverLam)
+    (hemit' : EmitSegs roverGr roverG roverMv (fun _ => Term.const 0) Formula.tt roverTg dt) :
+    RFormula.rvalid (theorem3Form
+      (bigChoice (roverL.leftProgs ++ [Program.ode (leftBlock (fun _ => Term.const 0)) Formula.tt]))
+      (rightAutomatonBody roverGr roverMv)
+      (RFormula.and roverInv (mvValidR roverMv roverGr.modes.length))) :=
+  rover_tooling_sound dt hdt cert hExistSeg_affine_tt hemit Gj_repo cert_repo hRPA_dyn hemit'
 
 end RelCertifier

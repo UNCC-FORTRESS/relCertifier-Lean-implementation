@@ -299,6 +299,34 @@ theorem segment_faModalB_from_cert (g : Term (Var n)) (fL fR : Fin n → Term (V
     exact hExist_clocked_of_HExistSeg fL fR lam domL domR tg dt htgLb htgLr htgRb htgRr htgdL htgdR
       hES
 
+/-- **Dynamic reposition coupling, cert-sourced — a direct instantiation at `fL0 = 0`.** The
+dynamic reposition's right segment evolves under the frozen-left field (`m.dynSys = jointSys 0 fR lam`);
+its cert `repoDynPresPre/Post` (`SegPreservesOn g m.dynSys m.dynDomPre`) is the joint box at the frozen
+left. So the bounded coupling is `segment_faModalB_from_cert` with `fL0 := (fun _ => Term.const 0)` and
+the box from **`cert.repoDynPres`** — NO new lemma, NO assumed reposition fact. Confirms the reposition
+coupling is cert-sourced the same way the flow coupling is. -/
+theorem dynreposition_faModalB_from_cert (g : Term (Var n)) (fR : Fin n → Term (Var n))
+    (lam : Term (Var n)) (domL domR : Formula (Var n)) (tg : Var n) (dt : ℝ)
+    (hdisj0 : Disjoint ((leftBlock (fun _ => Term.const 0)).boundSet ∪
+                        (leftBlock (fun _ => Term.const 0)).readVars)
+                       ((rightBlock fR lam).boundSet ∪ (rightBlock fR lam).readVars))
+    (hφL : domL.fv ⊆ (leftBlock (fun _ => Term.const 0)).boundSet ∪
+             (leftBlock (fun _ => Term.const 0)).readVars)
+    (hφR : domR.fv ⊆ (rightBlock fR lam).boundSet ∪ (rightBlock fR lam).readVars)
+    (htgLb : tg ∉ (leftBlock (fun _ => Term.const 0)).bound)
+    (htgLr : tg ∉ (leftBlock (fun _ => Term.const 0)).readVars)
+    (htgRb : tg ∉ (rightBlock fR lam).bound) (htgRr : tg ∉ (rightBlock fR lam).readVars)
+    (htgRbs : tg ∉ (rightBlock fR lam).boundSet)
+    (htgdL : tg ∉ domL.fv) (htgdR : tg ∉ domR.fv) (htgg : tg ∉ g.fv)
+    {σ : State (Var n)}
+    (hbox : Formula.sat (Formula.box (Program.ode (leftBlock (fun _ => Term.const 0) ++
+        rightBlock fR lam) (Formula.and domL domR)) (invLe g)) σ)
+    (hES : HExistSeg (fun _ => Term.const 0) fR lam domL domR (Function.update σ tg 0)) :
+    faModalB (Equiv.refl (Var n)) (Program.ode (clk tg (leftBlock (fun _ => Term.const 0))) domL)
+      (Program.ode (rightBlock fR lam) domR) (invLe g) tg dt (Function.update σ tg 0) :=
+  segment_faModalB_from_cert g (fun _ => Term.const 0) fR lam domL domR tg dt hdisj0 hφL hφR
+    htgLb htgLr htgRb htgRr htgRbs htgdL htgdR htgg hbox hES
+
 /-! ## The structural emit — the `Hmulti` discharge -/
 
 /-- **The multi-flow emit (structural, cert-linked).** Per current right mode `q` and invariant

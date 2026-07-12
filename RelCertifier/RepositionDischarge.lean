@@ -66,4 +66,35 @@ theorem clk_mid_perm (A B : ODESystem (Var n)) (tg : Var n) :
   rw [List.append_assoc, List.append_assoc]
   exact (List.perm_append_comm.append_left A)
 
+/-! ## Assembly — the genuine-multi-flow `faModal` from per-segment bounded couplings -/
+
+/-- **The Hmulti `faModal`, assembled.** Given the per-segment bounded couplings (`faModalB`, each
+one right mode over the clocked left, sourced from `cert.segPres` via `boxLe_clock_lift` +
+`faModal_ODE_G'_bounded`) and the carried budget bound `r ≤ k·dt`, produce the genuine-multi-flow
+`faModal (ode leftSys domL) (bigSeq rights) (invLe g)` — a **single physical left** residence against
+the mode-switch sequence. `multiseg_clocked` composes the couplings; `clockLift_collapse` collapses
+the `k`-fold clocked left to the physical one (`k` the carried budget count). -/
+theorem multi_faModal_from_couplings (leftSys : ODESystem (Var n)) (domL : Formula (Var n))
+    (g : Term (Var n)) (tg : Var n) (dt : ℝ) (k : ℕ)
+    (htgb : tg ∉ leftSys.bound) (htgr : tg ∉ leftSys.readVars) (htgd : tg ∉ domL.fv)
+    (htgg : tg ∉ g.fv) (hdt : 0 ≤ dt)
+    (rights : List (Program (Var n))) (hklen : rights.length = k)
+    (htgR : tg ∉ ((bigSeq rights).rename (Equiv.refl (Var n))).fv)
+    (hdis : ∀ Q ∈ rights, Disjoint (Program.vars (Q.rename (Equiv.refl (Var n))))
+        (Program.vars (clockedSeg leftSys domL tg dt)))
+    (hcouple : ∀ Q ∈ rights, ∀ σ', Formula.sat (invLe g) σ' →
+        faModalB (Equiv.refl (Var n)) (Program.ode (clk tg leftSys) domL) Q (invLe g) tg dt
+          (Function.update σ' tg 0))
+    {σ : State (Var n)} (hσ : Formula.sat (invLe g) σ)
+    (hbudget : ∀ {r : ℝ} {Φ : ℝ → State (Var n)}, ODESol leftSys domL σ r Φ → r ≤ (k : ℝ) * dt) :
+    Formula.sat (faModal (Equiv.refl (Var n)) (Program.ode leftSys domL) (bigSeq rights)
+      (invLe g)) σ := by
+  have hmc := multiseg_clocked (invLe g) leftSys domL tg dt rights hdis hcouple σ hσ
+  rw [List.map_const', hklen] at hmc
+  have htgφ : tg ∉ (invLe g).fv := by
+    simp only [invLe, Formula.fv, Term.fv, Set.mem_union, Set.mem_empty_iff_false, or_false]
+    exact htgg
+  exact clockLift_collapse leftSys domL (bigSeq rights) (invLe g) tg dt k htgb htgr htgd hdt htgR
+    htgφ hbudget hmc
+
 end RelCertifier

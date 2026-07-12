@@ -41,4 +41,5 @@ import RelCertifier.BridgeFinish
 import RelCertifier.BridgeDischarge
 import RelCertifier.BridgeReposition
 import RelCertifier.RepositionFinish
+import RelCertifier.RepositionDischarge
 import RelCertifier.AxiomCheck

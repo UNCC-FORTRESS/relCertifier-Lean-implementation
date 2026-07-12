@@ -4,9 +4,10 @@ Transition-faithful right automaton (mode variable) so the ∃-right diamond is 
 -/
 import RelCertifier.Cover
 import RelCertifier.Cover.Coexec
+import DLRel
 
 namespace RelCertifier
-open DL Function
+open DL DLRel Function
 
 variable {V : Type*} [Fintype V] [DecidableEq V]
 
@@ -164,6 +165,75 @@ theorem rightReach_is_R_real_run (G : SearchGraph V) (mv : V)
       exact absurd hrepo (by rw [(hnorepo q m hm).2.2.1]; simp)
   | @repositionDynPost q B ν μ ω m hm hrepo _ _ _ _ _ _ ih =>
       exact absurd hrepo (by rw [(hnorepo q m hm).2.2.2]; simp)
+
+
+/-! ## Piece 1 — the mode variable is invisible to the invariant (framing from freshness) -/
+
+/-- Modality-free relational formulas — the fragment the invariant `ϕinv` lives in. -/
+def noRbox {V : Type*} : RFormula V → Prop
+  | .cmp _ _ _ => True
+  | .neg ϕ     => noRbox ϕ
+  | .and ϕ ψ   => noRbox ϕ ∧ noRbox ψ
+  | .rbox _ _  => False
+  | .proj _ _  => True
+
+/-- Bi-state term coincidence: an `RTerm`'s value depends only on `.1` through `varsL`
+and `.2` through `varsR`. -/
+theorem rterm_coincidence (t : RTerm V) {ω ω' : BiState V}
+    (hL : Set.EqOn ω.1 ω'.1 t.varsL) (hR : Set.EqOn ω.2 ω'.2 t.varsR) :
+    RTerm.eval t ω = RTerm.eval t ω' := by
+  induction t with
+  | proj sd θ =>
+      cases sd with
+      | L => simpa only [RTerm.eval] using Term.coincidence θ hL
+      | R => simpa only [RTerm.eval] using Term.coincidence θ hR
+  | binop op a b iha ihb =>
+      simp only [RTerm.eval]
+      rw [iha (hL.mono Set.subset_union_left) (hR.mono Set.subset_union_left),
+          ihb (hL.mono Set.subset_union_right) (hR.mono Set.subset_union_right)]
+
+/-- Bi-state formula coincidence (modality-free), by structural recursion on the formula. -/
+theorem rformula_coincidence : ∀ (ϕ : RFormula V), noRbox ϕ →
+    ∀ (ω ω' : BiState V), Set.EqOn ω.1 ω'.1 ϕ.varsL → Set.EqOn ω.2 ω'.2 ϕ.varsR →
+    (RFormula.sat ϕ ω ↔ RFormula.sat ϕ ω')
+  | .cmp op a b, _, ω, ω', hL, hR => by
+      simp only [RFormula.sat,
+        rterm_coincidence a (hL.mono Set.subset_union_left) (hR.mono Set.subset_union_left),
+        rterm_coincidence b (hL.mono Set.subset_union_right) (hR.mono Set.subset_union_right)]
+  | .neg ϕ, hnb, ω, ω', hL, hR => by
+      simp only [RFormula.sat, rformula_coincidence ϕ hnb ω ω' hL hR]
+  | .and ϕ ψ, hnb, ω, ω', hL, hR => by
+      simp only [RFormula.sat,
+        rformula_coincidence ϕ hnb.1 ω ω' (hL.mono Set.subset_union_left) (hR.mono Set.subset_union_left),
+        rformula_coincidence ψ hnb.2 ω ω' (hL.mono Set.subset_union_right) (hR.mono Set.subset_union_right)]
+  | .rbox _ _, hnb, _, _, _, _ => absurd hnb (by simp [noRbox])
+  | .proj sd ϕ, _, ω, ω', hL, hR => by
+      cases sd with
+      | L => simpa only [RFormula.sat] using Formula.coincidence ϕ hL
+      | R => simpa only [RFormula.sat] using Formula.coincidence ϕ hR
+
+/-- **(b) ψ ignores the mode variable** — proven from freshness (`mv ∉ ψ.varsL ∪ ψ.varsR`):
+updating `mv` on either bi-state component leaves the invariant's truth unchanged. -/
+theorem psi_ignores_mv (mv : V) (ϕ : RFormula V) (hnb : noRbox ϕ)
+    (hL : mv ∉ ϕ.varsL) (hR : mv ∉ ϕ.varsR) {ωL ωR : State V} (a b : ℝ) :
+    RFormula.sat ϕ (update ωL mv a, update ωR mv b) ↔ RFormula.sat ϕ (ωL, ωR) :=
+  rformula_coincidence ϕ hnb (update ωL mv a, update ωR mv b) (ωL, ωR)
+    (fun x hx => update_of_ne (by intro h; subst h; exact hL hx) a ωL)
+    (fun x hx => update_of_ne (by intro h; subst h; exact hR hx) b ωR)
+
+/-- **Piece 1 — the projection/commutation lemma.** The witness run is the diamond's `.2`
+run, and the invariant at its endpoint reduces to the cover's observable endpoint `ω`
+(the mode variable, threaded on `.2`, is invisible to `ψ`). Built on the verified witness. -/
+theorem witness_endpoint_obs (G : SearchGraph V) (mv : V)
+    (hnorepo : NoRepoModes G) (hfresh : MVFresh G mv) (hself : SelfEdges G)
+    (ϕ : RFormula V) (hnb : noRbox ϕ) (hRϕ : mv ∉ ϕ.varsR)
+    {cfg : Config} {ν ω : State V} (hreach : RightReach G cfg ν ω) (νL : State V) :
+    ∃ μR, Program.sem (R_real G mv) (update ν mv (cfg.q : ℝ)) μR ∧
+      (RFormula.sat ϕ (νL, μR) ↔ RFormula.sat ϕ (νL, ω)) := by
+  obtain ⟨qf, hrun⟩ := rightReach_is_R_real_run G mv hnorepo hfresh hself hreach
+  refine ⟨update ω mv (qf : ℝ), hrun, ?_⟩
+  exact rformula_coincidence ϕ hnb (νL, update ω mv (qf:ℝ)) (νL, ω) (Set.eqOn_refl _ _)
+    (fun x hx => update_of_ne (by intro h; subst h; exact hRϕ hx) (qf:ℝ) ω)
 
 
 end RelCertifier

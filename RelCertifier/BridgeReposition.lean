@@ -459,6 +459,212 @@ theorem multiseg_clocked (φinv : Formula (Var n)) (leftSys : ODESystem (Var n))
     ω hω
   simpa [List.map_map, Function.comp] using hmg
 
+/-! ### Piece 3 — the clock-lift collapse
+
+The box contravariance: a **physical** left run realizes a `k`-fold `clockedSeg` run, so the clocked
+`faModal` collapses to the physical `faModal`. Two confirmations, both the recurring patterns:
+
+* **(i) `tg`-freshness carries the diamond transfer.** `clockLift_one` reverses `clockReduce`
+  (`Φ'(t) = update (Φ t) tg t`, clock derivative `1`); the physical vars evolve identically because
+  `tg ∉ sys.bound`/`readVars`/`ϕ.fv` (carried explicitly as hypotheses, not assumed). The diamond
+  transfer back to the physical endpoint (`clockLift_collapse`) is `Formula.coincidence` on the
+  fresh `tg` — the SAME `mv`-invisibility that discharges the reposition step (piece 1's
+  `mv ∉ g.fv`). `R`, `φinv` are `tg`-free ⟹ they cannot see the clocked/physical difference.
+* **(ii) `k` is the carried budget count.** The piece count is `k = |rights| = B` (the budget), and
+  the cuts are the fixed `dt`-boundaries — `plantT_split_iter` (banked, tiling-verified), NOT a
+  trajectory computation. `r ≤ k·dt` is the carried budget-boundary fact from the trigger
+  resolution. `clockLift_chain` peels one fixed-`dt` piece per budget unit. -/
+
+/-- **One clocked segment from a physical run (reverse of `clockReduce`).** A physical ODE run of
+duration `r ≤ dt` lifts to a `clockedSeg` run: reset `tg`, run the clocked curve `Φ'(t) = Φ(t)` with
+`tg ↦ t`, pass the test `tg ≤ dt`. Physical vars evolve identically (`tg` fresh); the endpoint is
+`Φ r` with `tg = r`. -/
+theorem clockLift_one (sys : ODESystem (Var n)) (ϕ : Formula (Var n)) (tg : Var n) (dt : ℝ)
+    (htgb : tg ∉ sys.bound) (htgr : tg ∉ sys.readVars) (htgϕ : tg ∉ ϕ.fv)
+    {ω : State (Var n)} {r : ℝ} {Φ : ℝ → State (Var n)}
+    (H : ODESol sys ϕ ω r Φ) (hrdt : r ≤ dt) :
+    Program.sem (clockedSeg sys ϕ tg dt) ω (Function.update (Φ r) tg r) := by
+  refine ⟨Function.update ω tg 0,
+    ⟨Function.update_self tg 0 ω, fun y hy => Function.update_of_ne hy 0 ω⟩,
+    Function.update (Φ r) tg r, ?_, rfl, ?_⟩
+  · -- clocked ODE run: curve `Φ'(t) = update (Φ t) tg t`
+    refine ⟨r, fun t => Function.update (Φ t) tg t, H.hr, ?_, ?_, ?_, ?_, ?_⟩
+    · -- start: update (Φ 0) tg 0 = update ω tg 0
+      funext x; by_cases hx : x = tg
+      · subst hx; simp only [Function.update_self]
+      · simp only [Function.update_of_ne hx]; rw [H.hΦ0]
+    · -- end: update (Φ r) tg r = update (Φ r) tg r
+      rfl
+    · -- derivatives over `clk tg sys = sys ++ [(tg,1)]`
+      intro t ht p hp
+      rcases List.mem_append.mp hp with hpsys | hptg
+      · -- physical eq: `tg` update invisible to `p.1 ≠ tg` and to `p.2.eval`
+        have hp1 : p.1 ≠ tg := fun hc => htgb (by rw [← hc]; exact List.mem_map.mpr ⟨p, hpsys, rfl⟩)
+        have hfun : (fun u => Function.update (Φ u) tg u p.1) = fun u => Φ u p.1 := by
+          funext u; exact Function.update_of_ne hp1 _ _
+        rw [hfun]
+        have hev : p.2.eval (Function.update (Φ t) tg t) = p.2.eval (Φ t) :=
+          Term.coincidence p.2 (fun y hy => Function.update_of_ne
+            (fun hc => htgr (by rw [← hc]; exact ⟨p, hpsys, hy⟩)) _ _)
+        rw [hev]; exact H.hder t ht p hpsys
+      · -- the clock equation `(tg, const 1)`: derivative of `t ↦ t` is `1`
+        simp only [List.mem_singleton] at hptg; subst hptg
+        simp only [Function.update_self, Term.eval]
+        exact (hasDerivWithinAt_id t (Icc 0 r))
+    · -- mask: `x ∉ (clk tg sys).bound` ⟹ held at `update ω tg 0`
+      intro t ht x hx
+      have htg_mem : tg ∈ (clk tg sys).bound := by
+        simp only [clk, ODESystem.bound, List.map_append, List.map_cons, List.map_nil]
+        exact List.mem_append_right _ (List.mem_singleton.mpr rfl)
+      have hxtg : x ≠ tg := fun hc => hx (hc ▸ htg_mem)
+      have hxsys : x ∉ sys.bound := fun hc => hx (by
+        simp only [clk, ODESystem.bound, List.map_append]
+        exact List.mem_append_left _ hc)
+      show Function.update (Φ t) tg t x = Function.update ω tg 0 x
+      rw [Function.update_of_ne hxtg t (Φ t), Function.update_of_ne hxtg 0 ω]
+      exact H.hmask t ht x hxsys
+    · -- domain `ϕ` (clock-free) holds along `Φ'`
+      intro t ht
+      exact (Formula.coincidence ϕ (fun y hy => (Function.update_of_ne
+        (fun hc => htgϕ (by rw [← hc]; exact hy)) _ _))).mpr (H.hdom t ht)
+  · -- the clock test `?(tg ≤ dt)` at the endpoint: `tg = r ≤ dt`
+    rw [sat_clkGuard, Function.update_self]; exact hrdt
+
+/-- **Reset absorption.** `clockedSeg` opens with `tg := 0`, so its runs are blind to the input's
+`tg` value — inputs agreeing off `tg` give the same runs. -/
+theorem clockedSeg_reset_input (sys : ODESystem (Var n)) (ϕ : Formula (Var n)) (tg : Var n)
+    (dt c : ℝ) {s ν' : State (Var n)}
+    (h : Program.sem (clockedSeg sys ϕ tg dt) s ν') :
+    Program.sem (clockedSeg sys ϕ tg dt) (Function.update s tg c) ν' := by
+  obtain ⟨μ, ⟨hμtg, hμrest⟩, hrest⟩ := h
+  refine ⟨μ, ⟨?_, ?_⟩, hrest⟩
+  · rw [hμtg]; simp [Term.eval]
+  · intro y hy
+    rw [hμrest y hy, Function.update_of_ne hy c s]
+
+/-- Restrict an `ODESol` to `[0, s]` (`s ≤ r`). -/
+theorem ODESol_restrict {sys : ODESystem (Var n)} {ϕ : Formula (Var n)} {ω : State (Var n)}
+    {r s : ℝ} {Φ : ℝ → State (Var n)} (H : ODESol sys ϕ ω r Φ) (hs : 0 ≤ s) (hsr : s ≤ r) :
+    ODESol sys ϕ ω s Φ where
+  hr := hs
+  hΦ0 := H.hΦ0
+  hder := fun t ht p hp =>
+    (H.hder t ⟨ht.1, ht.2.trans hsr⟩ p hp).mono (Set.Icc_subset_Icc le_rfl hsr)
+  hmask := fun t ht => H.hmask t ⟨ht.1, ht.2.trans hsr⟩
+  hdom := fun t ht => H.hdom t ⟨ht.1, ht.2.trans hsr⟩
+
+/-- Shift an `ODESol` to start at `Φ s` (`s ≤ r`), duration `r − s`. -/
+theorem ODESol_shift {sys : ODESystem (Var n)} {ϕ : Formula (Var n)} {ω : State (Var n)}
+    {r s : ℝ} {Φ : ℝ → State (Var n)} (H : ODESol sys ϕ ω r Φ) (hs : 0 ≤ s) (hsr : s ≤ r) :
+    ODESol sys ϕ (Φ s) (r - s) (fun u => Φ (s + u)) where
+  hr := by linarith
+  hΦ0 := by simp
+  hder := by
+    intro t ht p hp
+    have hmem : s + t ∈ Icc (0 : ℝ) r := ⟨by linarith [ht.1], by linarith [ht.2]⟩
+    have hc : HasDerivWithinAt (fun u : ℝ => s + u) 1 (Icc 0 (r - s)) t :=
+      (hasDerivWithinAt_id t (Icc 0 (r - s))).const_add s
+    have hmaps : Set.MapsTo (fun u : ℝ => s + u) (Icc 0 (r - s)) (Icc 0 r) :=
+      fun u hu => ⟨by linarith [hu.1], by linarith [hu.2]⟩
+    have hcomp := (H.hder (s + t) hmem p hp).comp t hc hmaps
+    rw [mul_one] at hcomp; exact hcomp
+  hmask := by
+    intro t ht x hx
+    have hmem : s + t ∈ Icc (0 : ℝ) r := ⟨by linarith [ht.1], by linarith [ht.2]⟩
+    have hsmem : s ∈ Icc (0 : ℝ) r := ⟨hs, hsr⟩
+    show Φ (s + t) x = Φ s x
+    rw [H.hmask (s + t) hmem x hx, H.hmask s hsmem x hx]
+  hdom := by
+    intro t ht
+    have hmem : s + t ∈ Icc (0 : ℝ) r := ⟨by linarith [ht.1], by linarith [ht.2]⟩
+    exact H.hdom (s + t) hmem
+
+/-- **The clock-lift chain.** A physical run of duration `r ≤ k·dt` realizes a `k`-fold `clockedSeg`
+run (from any start agreeing with `ω` off the fresh `tg`), reaching a state agreeing with the
+physical endpoint `Φ r` off `tg`. `k` is the **carried budget count**; cuts are the fixed
+`dt`-boundaries (`dt' = min dt r` per peel), never a trajectory computation. -/
+theorem clockLift_chain (sys : ODESystem (Var n)) (ϕ : Formula (Var n)) (tg : Var n) (dt : ℝ)
+    (htgb : tg ∉ sys.bound) (htgr : tg ∉ sys.readVars) (htgϕ : tg ∉ ϕ.fv) (hdt : 0 ≤ dt) :
+    ∀ (k : ℕ) {ω ω' : State (Var n)} {r : ℝ} {Φ : ℝ → State (Var n)},
+      (∀ x, x ≠ tg → ω' x = ω x) → ODESol sys ϕ ω r Φ → r ≤ (k : ℝ) * dt →
+      ∃ ν', Program.sem (bigSeq (List.replicate k (clockedSeg sys ϕ tg dt))) ω' ν' ∧
+        ∀ x, x ≠ tg → ν' x = Φ r x := by
+  intro k
+  induction k with
+  | zero =>
+      intro ω ω' r Φ hω' H hr0
+      simp only [Nat.cast_zero, zero_mul] at hr0
+      have hr : r = 0 := le_antisymm hr0 H.hr
+      refine ⟨ω', ⟨rfl, trivial⟩, ?_⟩
+      intro x hx
+      rw [hω' x hx, ← H.hΦ0]; congr 1; rw [hr]
+  | succ k ih =>
+      intro ω ω' r Φ hω' H hr1
+      set dt' := min dt r with hdt'
+      have hdt'0 : 0 ≤ dt' := le_min hdt H.hr
+      have hdt'dt : dt' ≤ dt := min_le_left dt r
+      have hdt'r : dt' ≤ r := min_le_right dt r
+      -- first piece: physical run [0, dt'] lifts to one clockedSeg
+      have Hpiece := ODESol_restrict H hdt'0 hdt'r
+      have hfirst := clockLift_one sys ϕ tg dt htgb htgr htgϕ Hpiece hdt'dt
+      -- reposition the first run to start at `ω'` (agrees with ω off tg)
+      have hω'eq : ω' = Function.update ω tg (ω' tg) := by
+        funext y; by_cases hy : y = tg
+        · subst hy; rw [Function.update_self]
+        · rw [Function.update_of_ne hy, hω' y hy]
+      have hfirst' : Program.sem (clockedSeg sys ϕ tg dt) ω' (Function.update (Φ dt') tg dt') := by
+        rw [hω'eq]; exact clockedSeg_reset_input sys ϕ tg dt (ω' tg) hfirst
+      -- rest: shifted run [dt', r], duration `r - dt' ≤ k·dt`
+      have Hshift := ODESol_shift H hdt'0 hdt'r
+      have hrest_bound : r - dt' ≤ (k : ℝ) * dt := by
+        rcases le_or_gt r dt with h | h
+        · rw [hdt', min_eq_right h]; simp; positivity
+        · rw [hdt', min_eq_left (le_of_lt h)]
+          have : r ≤ ((k : ℝ) + 1) * dt := by push_cast at hr1; linarith
+          nlinarith [this]
+      have hstart' : ∀ x, x ≠ tg → Function.update (Φ dt') tg dt' x = Φ dt' x :=
+        fun x hx => Function.update_of_ne hx dt' (Φ dt')
+      obtain ⟨ν', hrun, hν'⟩ := ih hstart' Hshift hrest_bound
+      -- chain: clockedSeg then the k-fold rest
+      refine ⟨ν', ⟨Function.update (Φ dt') tg dt', hfirst', hrun⟩, ?_⟩
+      intro x hx
+      rw [hν' x hx]
+      show Φ (dt' + (r - dt')) x = Φ r x
+      congr 1; ring
+
+/-- **The clock-lift collapse (box contravariance).** The clocked `k`-fold `clockedSeg` `faModal`
+collapses to the **physical** `faModal id (ode leftSys domL) R φ`. A physical left run lifts to the
+`k`-fold clocked run (`clockLift_chain`); the clocked faModal responds; the response transfers back
+to the physical endpoint by `tg`-freshness — `R`, `φ` are `tg`-free, so `Program.coincidence`
+(`tg`-invisibility, the recurring `mv ∉ g.fv` pattern) moves the run and preserves `φ`. `hbudget`
+is the carried budget bound `r ≤ k·dt`. -/
+theorem clockLift_collapse (leftSys : ODESystem (Var n)) (domL : Formula (Var n))
+    (R : Program (Var n)) (φ : Formula (Var n)) (tg : Var n) (dt : ℝ) (k : ℕ)
+    (htgb : tg ∉ leftSys.bound) (htgr : tg ∉ leftSys.readVars) (htgϕ : tg ∉ domL.fv)
+    (hdt : 0 ≤ dt) (htgR : tg ∉ (R.rename (Equiv.refl (Var n))).fv) (htgφ : tg ∉ φ.fv)
+    {ω : State (Var n)}
+    (hbudget : ∀ {r : ℝ} {Φ : ℝ → State (Var n)}, ODESol leftSys domL ω r Φ → r ≤ (k : ℝ) * dt)
+    (h : Formula.sat (faModal (Equiv.refl (Var n))
+      (bigSeq (List.replicate k (clockedSeg leftSys domL tg dt))) R φ) ω) :
+    Formula.sat (faModal (Equiv.refl (Var n)) (Program.ode leftSys domL) R φ) ω := by
+  rw [faModal_sat] at h ⊢
+  intro ν hν
+  obtain ⟨r, Φ, hr, hΦ0, hΦr, hder, hmask, hdom⟩ := hν
+  have H : ODESol leftSys domL ω r Φ := ⟨hr, hΦ0, hder, hmask, hdom⟩
+  obtain ⟨ν', hrun, hν'⟩ :=
+    clockLift_chain leftSys domL tg dt htgb htgr htgϕ hdt k (fun _ _ => rfl) H (hbudget H)
+  -- ν' agrees with the physical endpoint ν = Φ r off the fresh clock
+  have hν'ν : Set.EqOn ν' ν {x | x ≠ tg} :=
+    fun x hx => (hν' x hx).trans (congrFun hΦr x)
+  obtain ⟨μ, hRrun, hφμ⟩ := h ν' hrun
+  -- transfer the right run back to ν by tg-freshness (Program.coincidence)
+  have hWR : (R.rename (Equiv.refl (Var n))).fv ⊆ {x | x ≠ tg} :=
+    fun x hx (hc : x = tg) => htgR (hc ▸ hx)
+  obtain ⟨μ₂, hRrun₂, hμμ₂⟩ := Program.coincidence (R.rename (Equiv.refl (Var n))) hWR hν'ν hRrun
+  refine ⟨μ₂, hRrun₂, ?_⟩
+  have hWφ : φ.fv ⊆ {x | x ≠ tg} := fun x hx (hc : x = tg) => htgφ (hc ▸ hx)
+  exact (Formula.coincidence φ (hμμ₂.mono (hWφ.trans Set.subset_union_left))).mp hφμ
+
 /-- **The per-switch faithful lift** — the real content beyond the flat `reified_relational_multi`.
 One right-mode flow at a **declared** mode `q`, followed by a **declared** ⊤-guarded edge `e`
 (`e ∈ edgesFrom q`, `e.tgt < modes.length` — `EdgeTargetsValid`, the flat-`R*` guardrail), becomes

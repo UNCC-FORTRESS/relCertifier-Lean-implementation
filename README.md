@@ -11,14 +11,14 @@ correct**, each proof citing a mechanized theorem of the imported theory. The si
 trusted assumption of the whole tool is that Z3's `unsat` verdict is sound
 (`z3_unsat_sound`); everything else is kernel-checked.
 
-The headline guarantee is **`decideCovered_implies_theorem3_faithful`** (`BridgeDischarge.lean`): the
-checker's positive verdict provably implies the paper's ∀∃ refinement modality over the **real reasoning
-automaton** — the right ∃-response jumps only along *declared* transitions (`R_real = star(rightAutomatonBody)`),
-not the weaker flat choice-star — **for the joint-flow, single-left-mode fragment** (exact scope stated
-plainly in the next section; it is *not* "the whole tool on every benchmark"). Separately, on the
-47-benchmark suite the tool runs and reports **46 CERTIFIED / 47** (1 inconclusive-Z3 ERROR, never a false
-verdict) — that is *tool behavior*, a distinct and weaker claim than the Lean theorem. The two are kept
-distinct throughout.
+The headline guarantee is **`tooling_sound`** (`GapThreeTask3.lean`): given hybrid automata `L` and `R`
+and an invariant candidate, if the tooling's cover succeeds, the paper's ∀∃ refinement modality holds
+over the programs **derived from the actual `L` and `R`** — the right ∃-response jumps only along
+*declared* transitions (`R_real = star(rightAutomatonBody)`), not the weaker flat choice-star. It covers
+**genuine multi-flow** (the right switches modes mid-residence), **repositions** (static and dynamic),
+and the **whole left automaton** (all left modes). Separately, on the 47-benchmark suite the tool runs
+and reports **46 CERTIFIED / 47** (1 inconclusive-Z3 ERROR, never a false verdict) — that is *tool
+behavior*, a distinct and weaker claim than the Lean theorem. The two are kept distinct throughout.
 
 ## What "end-to-end verified" means — and its exact scope
 
@@ -31,56 +31,53 @@ reports `CERTIFIED` / `DECLINED` / `ERROR`.
 **(b) What "end-to-end verified" means — intuitively.** The tool has two layers: a **checker** that
 outputs `CERTIFIED`, and the **mathematical property** from the paper (the ∀∃ refinement modality of
 differential dynamic logic — Theorem 3). It is easy for these to drift apart: the checker could say YES
-while nobody has proven that YES actually *means* the property holds. We closed that gap with a
-machine-checked proof in Lean. **When the checker's certificate validates — bottoming out at a Z3 UNSAT —
-the paper's ∀∃ property provably holds, for the reference automaton's *actual declared transitions*, not
-a permissive over-approximation.** The chain runs unbroken from the running checker's certificate → the
-paper's Theorem 3 → the dL semantics, with a single trusted axiom: Z3's `unsat` is sound
-(`z3_unsat_sound`). The verdict is not *asserted* to mean the property — it is *proven* to.
+while nobody has proven that YES actually *means* the property holds — and worse, it could prove
+something about *a* graph unrelated to the input programs. We closed both gaps with a machine-checked
+proof in Lean. **When the tooling's cover succeeds — bottoming out at Z3 UNSAT obligations on `L,R`'s
+actual dynamics — the paper's ∀∃ property provably holds, for the reference automaton's *actual declared
+transitions*, over the programs the graph is *built from*.** The chain runs unbroken from the tooling's
+certificate → the paper's Theorem 3 → the dL semantics of the actual `L, R`, with a single trusted axiom:
+Z3's `unsat` is sound (`z3_unsat_sound`). The verdict is not *asserted* to mean the property — it is
+*proven* to, and about *your* `L` and `R`.
 
-**(c) The exact scope — stated plainly.** The end-to-end theorem
-`decideCovered_implies_theorem3_faithful` (`BridgeDischarge.lean`) covers the **joint-flow,
-single-left-mode** fragment:
+**(c) The exact scope — stated plainly.** The end-to-end theorem `tooling_sound` (`GapThreeTask3.lean`)
+covers:
 
-- **joint fragment** — the synchronized co-execution segments (the *flow* segments), not the reposition
-  (discrete-jump) segments;
-- **single left mode** — one deployed-system mode per certificate; the full deployed automaton is a
-  *family* of such certificates;
-- **flow modes** — the certified right modes each carry a *flow* certificate; reposition modes (which
-  carry a static certificate) are the extension.
+- **genuine multi-flow** — one left residence during which the right switches modes several times, each
+  segment coupled by a duration-bounded ∀∃ certificate (GAP 1);
+- **repositions** — both *static* (state-preserving mode switch) and *dynamic* (frozen-left right flow),
+  modeled as atomic modes the loop interleaves (GAP 1);
+- **the whole left automaton** — every left mode contributes its own per-mode cover; the family is
+  composed by `faModal_bigChoiceL` with the right's mode carried in the state (GAP 2);
+- **cover of the actual programs** — the graphs are `graphOf(L, R)`, built from `L,R`'s real
+  dynamics/transitions; the graph↔program alignment is *derived*, not assumed (GAP 3).
 
-Within that fragment, the checker's `CERTIFIED` (its cover certificate, bottoming at Z3 UNSAT) provably
-entails the paper's ∀∃ modality over the real automaton.
+**Honest boundaries** (stated up front, not buried — see the walkthrough for detail): the model is
+**automaton-shaped** programs (mode lists, the fragment the tool handles); edges are **⊤-guarded** (the
+⊤-edge model, guard-reaching folded into the model, as in the runtime graph); the left is
+**over-approximated** on the ∀-side (free mode-choice ⊇ the guarded automaton, so `[[L>>R]]inv` follows
+soundly); and the **emit boundary** — the Z3 UNSAT witnesses and the cover's mode sequences enter as
+emitted per-obligation facts, `z3_unsat_sound` at the leaf, exactly the boundary certificate-based
+verification standardly uses.
 
-**(d) What's not yet covered — the roadmap.**
-1. **The full left-mode family** — composing the per-left-mode certificates into the whole deployed
-   automaton.
-2. **The reposition modes** — the static-`repoPres` → discrete-jump bridge (Phase 2b). The run-level
-   projection lemmas (`rightReach_project`, `ode_project_right`, the witness `rightReach_is_R_real_run`)
-   are proven and reserved for exactly this.
-3. **The benchmark suite is separately validated.** The tool runs and certifies **46/47** — that is
-   *tool behavior* (it runs, Z3 closes the queries), a distinct and weaker claim than the Lean end-to-end
-   theorem, which currently covers the fragment in (c), **not** every benchmark's full cover.
-
-> **Two claims, kept distinct.** "The tool certifies 46/47 benchmarks" is *tool behavior*. "The checker's
-> certificate is proven to entail the paper's ∀∃ property" is the *Lean guarantee*, and it holds for the
-> joint-flow-single-left-mode fragment. Neither implies the other, and this README does not conflate them.
+> **Two claims, kept distinct.** "The tool certifies 46/47 benchmarks" is *tool behavior*. "The tooling's
+> cover is proven to entail the paper's ∀∃ property over the actual `L, R`" is the *Lean guarantee*.
+> Neither implies the other, and this README does not conflate them.
 
 **Trusted:** Z3's `unsat` verdicts — one axiom, `z3_unsat_sound`. Everything else (the cover, the ∀∃
-bridge, the encoding) is proven in Lean on the three standard axioms. Reproduce:
-`lake env lean RelCertifier/AxiomCheck.lean`. *(Mechanism, one line: the ∀∃ modality rests on every mode
-being **certified** — the flow certificates — which is why the guarantee is about the certificate; the
-coverage check `decideCovered` is what makes the co-execution invariant hold throughout.)*
+bridge, the multi-flow/reposition machinery, the family composition, the `graphOf` tie) is proven in Lean
+on the three standard axioms. Reproduce: `lake env lean RelCertifier/AxiomCheck.lean`.
 
 ### Verification status
 
 | Link | Status |
 |---|---|
 | Checker → co-execution invariant (`check_sound`) | **proven** |
-| Certificate → ∀∃ modality, joint-flow-single-left-mode (`decideCovered_implies_theorem3_faithful`) | **proven** |
+| Cover → ∀∃ modality, transition-faithful (`decideCovered_implies_theorem3_faithful`) | **proven** |
+| Genuine multi-flow + reposition (GAP 1, `theorem3_faithful_multi_reposition`) | **proven** |
+| Whole left-mode family (GAP 2, `theorem3_faithful_family`) | **proven** |
+| Cover of the actual programs `L,R` (GAP 3, `tooling_sound`) | **proven** |
 | Modality → paper Theorem 3 / dL-rel (`faModal_to_faShape`, `encoding_correct`) | **proven** |
-| Full left-mode family | *extension (roadmap)* |
-| Reposition modes | *extension (roadmap)* |
 | Trust boundary | Z3 UNSAT (`z3_unsat_sound`, 1 axiom) |
 
 ## Imported theories — the four repos it builds on
@@ -100,11 +97,140 @@ encoding) and **dL-caltiming** (∀∃ modality) → **relCertifier-lean** (this
 dL-rel is required from GitHub (`NFM25-relDL-Lean`, pinned to tag `v0.1.0-NFM25`); dL-caltiming and
 dL-lean are pinned transitively through dL-rel (no sibling checkout needed).
 
+## The end-to-end theorem, in depth
+
+This is the centerpiece: what `tooling_sound` proves and how the proof composes. A reader who knows
+differential dynamic logic and hybrid systems, but not this codebase, should be able to follow it. Read
+it as a chain — each step says *why* it is needed and *what* it establishes.
+
+### 0. The trust boundary — where the foundation sits
+
+One thing is trusted: **Z3's `unsat` verdict is sound** (`z3_unsat_sound`, `Oracle.lean`). `z3solve` is
+an *opaque* Lean constant; the axiom says that when it returns `unsat` for a query, that query really is
+unsatisfiable. Everything else — the cover, the ∀∃ bridge, the multi-flow and reposition machinery, the
+family composition, the graph↔program tie — is proven in the Lean kernel on the three standard axioms
+(`propext`, `Classical.choice`, `Quot.sound`). The Z3 leaf enters only where a per-obligation
+`z3solve … = unsat` is turned into a flow certificate. So the top theorem is **parametric in the
+certificate** (3 axioms in its own `#print axioms`), and the 4th axiom (`z3_unsat_sound`) appears when
+the certificate is *constructed*, per obligation. This is the standard certificate-based-verification
+boundary: the checker is verified, the SMT `unsat` is trusted.
+
+### 1. The checker side — the cover keeps the invariant (`Cover.lean`, `Checker.lean`)
+
+`decideCovered` is a *verified, computable* transcription of the paper's **Definition 4**: from a
+configuration (right mode `q`, budget `B`), either one residence closes the budget (`base`), or every
+retained successor covers the decremented budget (`step`), plus σ-matched reposition steps. `cover_sound`
+proves that a `Covered` graph, with each mode's flow certificate, preserves the invariant along **every**
+right response (`RightReach`): if it holds at the start, it holds at every reachable endpoint. Budget
+strictly decreases each residence (`cover_budget_decreases`), the finiteness argument that rejects
+budget-neutral cycles. **Intuition:** the cover search finds a way for the *reasoning* right program to
+respond to every *deployed* left behavior while keeping the two within the stated tolerance, forever.
+
+### 2. The ∃-right faithfulness — the heart (`JointBridge.lean`, `BridgeFinish.lean`)
+
+The ∀∃ modality is `∀ left run, ∃ right run, invariant preserved`. The *right* run must be something the
+**actual reference automaton can do** — a run that follows *declared* transitions — not a permissive
+over-approximation. The naive encoding uses the **flat** choice-star `(⨆ right modes)*`: any sequence of
+modes, in any order. Because the ∃ quantifies over runs of that flat program, it is *easier* to satisfy
+than "there exists a run that follows the automaton's declared edges" — so the flat statement is *valid
+but weaker than intended*. `theorem3_faithful` replaces it with `R_real G mv = star(rightAutomatonBody G
+mv)`, where a mode variable `mv` names the current mode and a jump fires **only** along a declared edge
+`e ∈ edgesFrom q`. **Intuition:** the existential witness has to be something the real automaton can
+actually do, or the guarantee is hollow. (A companion soundness finding: the invariant must carry
+`mvValid` — that `mv` holds a *declared* mode index — or `rvalid` is false at bi-states whose fresh mode
+variable is undeclared. See "Soundness findings".)
+
+### 3. Genuine multi-flow — bounded coupling, clock, collapse (`BridgeReposition.lean`)
+
+Within one left residence, the right may switch modes several times (the right runs "faster" than the
+left). Each such segment is coupled by a **duration-bounded** ∀∃ certificate: the left flows for at most
+a budget unit `dt`, the right responds staying in its domain. The subtle question — *where do the segment
+boundaries come from?* — is answered by the **cover code, not by analysis**: the switch is
+**budget-triggered** (`decideCovered`'s `B`-recursion, one clock unit `dt = ε_r/λ` per segment), a
+**fixed** cut, not a run-dependent first-passage (solving where a trajectory exits a domain). A transient
+**clock** `tg` states the fixed-duration segment (`plantT_split`) and is then eliminated (`clockReduce`);
+`plantT_split_iter` tiles the residence into `k` fixed-`dt` pieces (verified arithmetic, `Σ = k·dt`, not
+assumed). The duration bound is carried as a **predicate on the run** (`plantT`: this run has duration
+≤ `dt`), *not* as a narrowing of the domain — the mode's real evolution domain stays intact
+(`faModalB`, `faModal_ODE_G'_bounded`). The `k` segments compose (`multiseg_clocked`), and a **clock-lift
+collapse** (`clockLift_collapse`) reduces the `k`-fold clocked left back to the single physical left
+flow, the transfer riding on `tg`-invisibility (the right never reads the clock). **Intuition:** the
+segment boundaries are the certificate's *budget* units — fixed, not discovered — and the right's
+mode-switch response is a real declared-edge star run (`faithful_rights_bridge`, threading each switch
+through a declared `G`-edge and carrying mode-validity across the whole fold).
+
+### 4. Repositions — pause and re-aim (`BridgeReposition.lean`, `RepositionDischarge.lean`)
+
+Between flow segments the right can **reposition**: switch modes while the left is paused. Two kinds:
+*static* (state-preserving — the right jumps to a new mode, nothing evolves, preserved by
+`reposition_step_pres` via zero-motion + mode-variable-invisibility) and *dynamic* (the right *flows*
+under a **frozen-left** field, `dynSys = jointSys 0 fR λ`, its certificate `cert.repoDynPres`). The key
+structural move: a reposition is modeled as a **separate atomic (frozen) left mode**, and the loop
+`star (bigChoice [flow, frozen])` **interleaves** flow and frozen modes. This is sound (the star covers
+the cover's mixed run as one interleaving) and dissolves a piecewise-left problem. The dynamic reposition
+then *reuses* the multi-flow coupling at `fL := 0`, sourced from `cert.repoDynPres` — no new machinery.
+**Intuition:** the right can "pause and re-aim" between flow segments; each pause-and-aim is just an extra
+loop iteration with a frozen left.
+
+### 5. The family — all left modes (`GapTwo.lean`)
+
+The whole deployed automaton is a *family* of covers: each left mode has its **own** cover graph `Gj` and
+certificate (the tool's `certifyCore` runs a separate cover `for mL in L.modes`). `theorem3_faithful_family`
+composes them via `faModal_bigChoiceL` over the left choice, with each left mode's hstep from GAP 1.
+A left-mode switch `mL → mL'` is **per-iteration loop re-entry**: the loop invariant `invLe g ∧ mvValid`
+is preserved across iterations, the right's current mode is carried in `mv`, and each iteration reads
+`mv` and dispatches. **`mv` is the sync**, carried in the state — no cross-mode argument. (Each mode
+carries its own `Gj`/certificate; a shared `Gj` would be vacuous, since `RightProjAlign Gj … fL` forces
+`Gj`'s joint modes to `jointSys fL fR`, injective in `fL`.) **Intuition:** each left mode has its own
+cover; the loop composes them, tracking the right's current mode in the state across the switch.
+
+### 6. The tooling-soundness tie — cover of the *actual* programs (`GapThreeFoundation.lean`, `GapThreeTask2.lean`, `GapThreeTask3.lean`)
+
+Steps 1–5 prove `cover ⟹ ∀∃` for a graph `G`. But nothing yet forces `G` to be the graph *of the input
+programs* `L, R` — the theorem could be about a graph unrelated to your input. GAP 3 closes that. A
+`HybridAut` is the mode-list representation of `L, R`; `⟦·⟧` (`leftEncode`/`rightEncode`) encodes it to
+the dL programs the modality is about (`⟦R⟧ = R_real (graphOf_Gr R)`, exactly the theorem's right);
+`graphOf(L, R)` builds the semantic search graphs from `L,R`'s *real* dynamics (`jointSys mL.dyn mR.dyn`,
+`mL.dom ∧ mR.dom`) and transitions. The graph↔program alignment (`RightProjAlign`) — previously an
+*assumption* — is now **derived** from the `graphOf` construction (`RightProjAlign_from_graphOf`): both
+the right graph `Gr` and the joint graph `Gj(mL)` are built per-`mR` from the same `R.modes`, so the
+per-mode alignment holds by `rfl`/unfolding. **Intuition:** the theorem would be hollow if it proved
+something about *a* graph; this step makes it about *your* `L` and `R`, and the fact that the graph is a
+faithful picture of the programs is *proven from how the graph is built*, not assumed.
+
+### 7. The composition — and the honest boundaries
+
+`tooling_sound` assembles steps 1–6 into: *given hybrid automata `L, R`, per left mode its emitted
+certificate + cover sequences + the framework side-conditions, if the cover succeeds then*
+`inv → [[⟦L⟧ >> ⟦R⟧]]inv` — the ∀∃ refinement modality over the programs derived from `L, R`. The honest
+boundaries, stated plainly:
+
+- **⊤-edge model** — declared edges are ⊤-guarded; the guard-reaching condition is folded into the model
+  (as the runtime graph does). Shared throughout.
+- **∀-left over-approximation** — the left is modeled as free mode-choice (guards dropped on the ∀-side).
+  This *over*-approximates the guarded `L` (more left runs), so `[[⟦L⟧ >> ⟦R⟧]]inv` follows *soundly* (∀
+  over more ⟹ ∀ over fewer); it is stronger, not a gap. The reposition-pause frozen mode likewise
+  over-approximates the left (a stay option).
+- **the emit boundary** — the Z3 `unsat` witnesses (the flow/reposition certificates) and the cover's
+  mode-switch **sequences** (`EmitSegs`) enter as *emitted* per-obligation facts. The Z3 witness is a
+  fact about the *opaque* `z3solve`, provided at certificate construction with `z3_unsat_sound` at the
+  leaf — the *same* boundary `certified_relational` and every certificate-based verification use. The
+  cover sequences are the search's output (which modes the right visits, in what order), a dynamic fact,
+  not derivable from the static graph.
+- **automaton-shaped scope** — the programs are mode-list hybrid automata (`isLeftAut`/`isRightAut`), the
+  fragment the tool handles. The theorem's conclusion is about general dL programs; the scope predicate
+  names where it applies.
+
+A reader should come away understanding both *what is proven* (the tooling's cover ⟹ the paper's ∀∃ over
+the actual programs, transition-faithful, multi-flow, reposition, all left modes) and *where the trust
+sits* (Z3 `unsat` at the leaf; the ⊤-edge model; the ∀-left over-approximation; automaton-shaped
+programs) — without overclaiming.
+
 ## What is verified
 
 The tool is built bottom-up as three verified local certificates, their composition into the
-cover (Theorem 3), the transition-faithful ∀∃ bridge over the real automaton, then a runnable
-front-end.
+cover (Theorem 3), the transition-faithful ∀∃ bridge over the real automaton, the multi-flow /
+reposition / family lift, the tie to the actual programs, then a runnable front-end.
 
 | Stage | File | Function(s) | Correctness theorem | Cites |
 |---|---|---|---|---|
@@ -155,7 +281,15 @@ Every source file, its job, the paper result it mechanizes, and the imported the
 | `BridgeUnit2.lean` | `hstep_assembled` | assemble per-left-mode wraps into the loop step (`faModal_bigChoiceL`, mode dispatched from `mvValid`) | dL-caltiming `faModal_bigChoiceL` |
 | `BridgeUnit3.lean` | `relational_loop_faithful` | close the `faModal_LOCK` loop over `R_real` and lift to bi-state `faShape` | `faModal_LOCK`, `faModal_to_faShape` |
 | `BridgeFinish.lean` | **`theorem3_faithful`**, `mvValidR` | **Theorem 3 over the *real* automaton**, `rvalid` form (mode-validity in `ϕ_inv`) | units 1-4 + `exists_bridge` + `encoding_correct` |
-| `BridgeDischarge.lean` | **`decideCovered_implies_theorem3_faithful`**, `hpair_from_cover`, `rvalid_from_cert` | **end-to-end**: `decideCovered = true ⟹` the ∀∃ over `R_real` (`hstep` discharged from `cert.segPres`, no assumed Z3) | `check_sound` + `cert.segPres` + `theorem3_faithful` |
+| `BridgeDischarge.lean` | **`decideCovered_implies_theorem3_faithful`**, `hpair_from_cover`, `rvalid_from_cert` | **single-flow end-to-end**: `decideCovered = true ⟹` the ∀∃ over `R_real` (`hstep` discharged from `cert.segPres`, no assumed Z3) | `check_sound` + `cert.segPres` + `theorem3_faithful` |
+| `BridgeReposition.lean` | GAP 1 core: `faModalB`/`faModal_ODE_G'_bounded` (bounded coupling), `plantT_split_iter` (fixed-cut tiling), `faModalB_clockedSeg_iff` (clock bridge), `clockLift_collapse`, `hstep_single_multi`/`hstep_assembled_multi` (mv-lift + star hstep), reposition step-lemmas (A)/(B), `faithful_rights_bridge` | **mechanization infrastructure** (budget-fixed multi-flow coupling; ⊤-model/clock, no direct paper analog) — one left residence, right switching modes mid-residence, coupled per fixed-`dt` segment | dL-caltiming `plantT`/`plantT_split`; `segment_faModal`; `ClockReduce` |
+| `RepositionFinish.lean` | `theorem3_faithful_multi` (star-right loop via `relational_loop_multi`), `theorem3_faithful_multi_of_emit` | the reposition-inclusive multi Theorem 3 (`rvalid`), modulo the cover emit | dL-caltiming `faModal_MULTI` (`relational_loop_multi`) |
+| `RepositionDischarge.lean` | GAP 1 discharge: `boxLe_clock_lift`/`sem_ode_perm` (clock-lift the cert box), `hExist_clocked_of_HExistSeg`, `segment_faModalB_from_cert`, `multi_faModal_from_couplings`, `Hmulti_from_cover`/`_dyn`, `dynreposition_faModalB_from_cert` | **mechanization infrastructure** — assemble the emitted Z3 certs + cover topology into the per-residence multi-flow `faModal`, flow from `cert.segPres`, dynamic reposition from `cert.repoDynPres` | `segment_faModal`; `clockReduce`; `cert.segPres`/`repoDynPres` |
+| `RepositionEndToEnd.lean` | `decideCovered_implies_theorem3_faithful_multi` | GAP 1 end-to-end (genuine multi-flow, per left mode): `decideCovered`/`cert ⟹ Theorem 3` | `RepositionFinish` + `RepositionDischarge` + `check_sound` |
+| `GapTwo.lean` | **`theorem3_faithful_family`**, `FlowModeData` (per-mode `Gj`/`cert`) | **GAP 2**: the whole left automaton — `faModal_bigChoiceL` over per-left-mode covers, `mv` carrying the sync | dL-caltiming `faModal_bigChoiceL`; GAP 1 |
+| `GapThreeFoundation.lean` | GAP 3 Task 1: `HybridMode`/`HybridAut`, `leftEncode`/`rightEncode` (`⟦·⟧`), `isLeftAut`/`isRightAut`, `graphOf_Gr`/`graphOf_Gj` | **mechanization infrastructure** — the hybrid-program representation and the `graphOf` construction (ties the graph to `L,R`'s dL semantics; no direct paper analog) | `rightBlock`/`jointSys`/`R_real` |
+| `GapThreeTask2.lean` | **`RightProjAlign_from_graphOf`** | **GAP 3**: the graph↔program alignment **derived** from `graphOf` (assumed → derived), leaving only the CSF framework side-conditions | `graphOf` (Task 1) |
+| `GapThreeTask3.lean` | **`tooling_sound`**, `graphOfFlowMode` | **GAP 3 — the tooling-soundness theorem**: cover of the *actual* `L, R`, modality over `⟦L⟧ >> ⟦R⟧` | `theorem3_faithful_family` + `RightProjAlign_from_graphOf` |
 | `Oracle.lean` | `z3_unsat_sound` (the one axiom) + `flow_certified` | the trusted SMT leaf | — (axiom) |
 | `Smt.lean` / `Z3.lean` / `Parse.lean` / `Run.lean` / `Main.lean` | computable IR + SMT printer, Z3 session, parser, runner, `relcert` exe | trusted IO shell | uses the verified queries |
 
@@ -202,8 +336,9 @@ mechanized bridges connect them:
    state. `theorem3_encoded` proves `rvalid` for the **flat** `theorem3Form` from a single Z3 UNSAT — a
    valid but weaker over-approximation. The **transition-faithful** `CERTIFIED ⟹ rvalid` (real automaton,
    `hstep` discharged from the cover certificate) is `decideCovered_implies_theorem3_faithful`, and it
-   holds for the **joint-flow-single-left-mode fragment** (see *What "end-to-end verified" means* above) —
-   not the whole tool on every benchmark.
+   and its lifts — `theorem3_faithful_multi_reposition` (genuine multi-flow + reposition),
+   `theorem3_faithful_family` (all left modes), and `tooling_sound` (a cover of the actual `L, R`). See
+   *The end-to-end theorem, in depth* above.
 
 **Where dL-rel does the load-bearing work.** dL-rel is not a convenience import; it is what makes the
 ∀∃ fragment expressible and the encoding sound. `faShape`/`encode` were built for exactly this modality,
@@ -274,8 +409,11 @@ the cover to *close*. `decideCovered` is load-bearing for the throughput conjunc
 have both no-`z3solve`-hypothesis and `z3_unsat_sound`-in-axioms — a `Prop` `CoverCert` cannot apply the
 axiom (3 axioms); the leaf enters at `cert` construction. The per-pair certificate is also
 invariant-**conditional** (`∀ s, invLe g s → faModal …`) — a segment preserves `g ≤ 0`, cannot restore a
-violated one. **Scope:** one fixed left mode per `CoverCert` (the full left automaton is a family of covers) and
-all-`jointOK` (flow) modes — reposition modes carry a static `repoPres`, not a flow `faModal`.
+violated one. **Scope of this single-flow theorem:** one fixed left mode, all-`jointOK` (flow) modes. The
+genuine multi-flow (right switching modes mid-residence), the repositions, and the whole left-mode family
+are the GAP 1–3 lifts (`theorem3_faithful_multi_reposition`, `theorem3_faithful_family`, `tooling_sound`)
+— see *The end-to-end theorem, in depth*. This section documents the single-flow base case that those
+build on.
 
 **The mode-validity precondition — a real soundness finding.** `rvalid` quantifies over **all**
 bi-states, including ones whose fresh mode variable `mv` holds an **undeclared** index. A bare relational

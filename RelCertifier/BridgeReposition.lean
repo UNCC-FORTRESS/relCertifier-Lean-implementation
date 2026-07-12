@@ -1,13 +1,33 @@
 /-
-GAP 1 (A) — the static-reposition step-lemma.
+GAP 1 core — genuine multi-flow, budget-fixed cuts. The construction machinery for one left residence
+during which the right switches modes several times (the right runs "faster" than the left).
 
-A static-reposition mode carries `m.sys = []` (zero motion): its `modeStep` is
-`test(mode=q); ode [] dom; test e.guard; assign mv := e.tgt` — a state-preserving discrete mode
-switch along a DECLARED edge. It preserves `invLe g` by two banked/trivial facts: the empty ODE is
-the identity on the continuous state, and the `mv`-assign is invisible to `invLe g` (`mv ∉ g.fv`).
-No `RegionInvOn`, no analysis (see the C.2 resolution: `region` references the left guard, is not a
-right-automaton transition, and drops out post-tightening). ∃-right jump-faithfulness is the same as
-the flow case: the target is a declared `G`-edge (`e ∈ edgesFrom q`).
+The load-bearing idea: the segment boundaries are **budget-triggered**, at a FIXED clock duration
+`dt = ε_r/λ` per segment, NOT a run-dependent first-passage (see the trigger analysis — the cover's
+`decideCovered` recurses on the budget, so the cut is the certificate's budget unit, not where a
+trajectory exits a domain). Contents, in composition order:
+
+* Fixed-cut tiling — `plantSteps`, `plantT_zero`, `plantT_split_iter`: a single clocked left run of
+  duration `k·dt` splits into exactly `k` fixed-`dt` segments (verified arithmetic `Σ = k·dt`).
+* Piece 1, the bounded coupling — `faModalB` (∀∃ over left runs of clocked duration ≤ `dt`) and
+  `faModal_ODE_G'_bounded`: the `dt`-bound is a PREDICATE on the run (`plantT`), NOT a narrowing of the
+  domain — the mode's real evolution domain stays intact.
+* Piece 2, the clock bridge — `clkGuard`/`clockedSeg`, `faModalB_clockedSeg_iff` (the fresh-clock test
+  `?(tg ≤ dt)` ≡ the plantT predicate), `multiseg_clocked` (compose `k` couplings via banked
+  `faModal_seq`).
+* Piece 3, the clock-lift collapse — `clockLift_one`/`clockLift_chain`/`clockLift_collapse`: reduce the
+  `k`-fold clocked left back to the single physical left flow, the transfer riding on `tg`-invisibility
+  (the right never reads the clock).
+* The mv-lift — `hstep_single_multi`, `hstep_assembled_multi`: lift `bigSeq rights` → the faithful
+  `star (rightAutomatonBody G mv)` (each switch a declared `G`-edge, mode-validity `mvValid` riding the
+  whole fold via `faithful_rights_bridge`), and compose over left modes with `faModal_bigChoiceL` into
+  the star-right hstep that `relational_loop_multi` consumes.
+* Repositions — `reposition_step_pres` (static: zero-motion + `mv`-invisibility) and
+  `dynreposition_faModal` (dynamic: `segment_faModal` at `fL = 0`, the frozen-left flow).
+
+⊤-edge model / clock are mechanization devices with no direct paper analog; the soundness lines
+(`plantT`-predicate not domain-narrowing, `tg`/`mv`-invisibility, declared-edge faithfulness) are
+load-bearing and called out at each lemma.
 -/
 import RelCertifier.JointBridge
 import RelCertifier.Reify

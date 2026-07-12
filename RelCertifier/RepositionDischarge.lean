@@ -299,4 +299,81 @@ theorem segment_faModalB_from_cert (g : Term (Var n)) (fL fR : Fin n → Term (V
     exact hExist_clocked_of_HExistSeg fL fR lam domL domR tg dt htgLb htgLr htgRb htgRr htgdL htgdR
       hES
 
+/-! ## The structural emit — the `Hmulti` discharge -/
+
+/-- **The multi-flow emit (structural, cert-linked).** Per current right mode `q` and invariant
+state `σ`, the cover emits the right's mode-switch **sequence** `segs` for one left residence, with:
+the sequence aligned to `Gr` (`halign`) and a **declared-edge chain** (`hchain`: `a.2.2.tgt = b.1`
+with each `s.2.2 ∈ edgesFrom s.1` — a real `star (rightAutomatonBody)` path, not an arbitrary
+sequence), starting at `q` (`hhead`); the carried budget bound `r ≤ |segs|·dt` (`hbudget`); and the
+`tg`-freshness/disjointness the coupling assembly needs. No Z3 obligation — the flow certificates come
+from `cert` through `RightProjAlign` per seg. -/
+def EmitSegs (Gr : SearchGraph (Var n)) (g : Term (Var n)) (mv : Var n)
+    (fL0 : Fin n → Term (Var n)) (domL0 : Formula (Var n)) (tg : Var n) (dt : ℝ) : Prop :=
+  ∀ (q : ℕ), q < Gr.modes.length → ∀ σ, σ mv = (q : ℝ) → Formula.sat (invLe g) σ →
+    ∃ segs : List (ℕ × RMode (Var n) × REdge (Var n)),
+      (∀ s ∈ segs, Gr.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ Gr.edgesFrom s.1) ∧
+      List.IsChain (fun a b => a.2.2.tgt = b.1) segs ∧
+      (∀ s, segs.head? = some s → s.1 = q) ∧
+      (∀ {r : ℝ} {Φ : ℝ → State (Var n)},
+        ODESol (leftBlock fL0) domL0 σ r Φ → r ≤ (segs.length : ℝ) * dt) ∧
+      tg ∉ ((bigSeq (segs.map (fun s => Program.ode s.2.1.sys s.2.1.dom))).rename
+        (Equiv.refl (Var n))).fv ∧
+      (∀ Q ∈ segs.map (fun s => Program.ode s.2.1.sys s.2.1.dom),
+        Disjoint (Program.vars (Q.rename (Equiv.refl (Var n))))
+          (Program.vars (clockedSeg (leftBlock fL0) domL0 tg dt)))
+
+/-- **The `Hmulti` discharge (flow segments).** Produces the emit `Hmulti` that
+`theorem3_faithful_multi_of_emit` consumes, with each segment's `faModal` drawn from **`cert.segPres`**
+(via `segment_faModalB_from_cert`) — not assumed. The per-seg alignment (`fR`/`domR`/`mj`/`HExistSeg`)
+is the reused single-flow `RightProjAlign`; the sequence structure is `EmitSegs`. `cert` is
+load-bearing: delete it and the box (hence each `faModalB`, hence the `faModal`) is gone. -/
+theorem Hmulti_from_cover (Gj Gr : SearchGraph (Var n)) (g : Term (Var n)) (mv : Var n)
+    (fL0 : Fin n → Term (Var n)) (domL0 : Formula (Var n)) (lam : Term (Var n)) (tg : Var n) (dt : ℝ)
+    (cert : CoverCert Gj g) (hdt : 0 ≤ dt)
+    (hmvL0 : mv ∉ (leftBlock fL0).bound) (hg : mv ∉ g.fv)
+    (hφL0 : domL0.fv ⊆ (leftBlock fL0).boundSet ∪ (leftBlock fL0).readVars)
+    (htgLb : tg ∉ (leftBlock fL0).bound) (htgLr : tg ∉ (leftBlock fL0).readVars)
+    (htgdL0 : tg ∉ domL0.fv) (htgg : tg ∉ g.fv)
+    (htgRight : ∀ q m, Gr.modeAt q = some m →
+      tg ∉ m.sys.bound ∧ tg ∉ m.sys.readVars ∧ tg ∉ m.sys.boundSet ∧ tg ∉ m.dom.fv)
+    (hRPA : RightProjAlign Gj Gr g mv fL0 domL0 lam)
+    (hemit : EmitSegs Gr g mv fL0 domL0 tg dt) :
+    ∀ P ∈ [Program.ode (leftBlock fL0) domL0], ∀ (q : ℕ), q < Gr.modes.length → ∀ σ, σ mv = (q : ℝ) →
+      Formula.sat (invLe g) σ →
+      ∃ (fL : Fin n → Term (Var n)) (domL : Formula (Var n))
+        (segs : List (ℕ × RMode (Var n) × REdge (Var n))),
+        P = Program.ode (leftBlock fL) domL ∧ mv ∉ (leftBlock fL).bound ∧
+        (∀ s ∈ segs, Gr.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ Gr.edgesFrom s.1) ∧
+        List.IsChain (fun a b => a.2.2.tgt = b.1) segs ∧
+        (∀ s, segs.head? = some s → s.1 = q) ∧
+        Formula.sat (faModal (Equiv.refl (Var n)) (Program.ode (leftBlock fL) domL)
+          (bigSeq (segs.map (fun s => Program.ode s.2.1.sys s.2.1.dom))) (invLe g)) σ := by
+  intro P hP q hqlt σ hmvq hσ
+  simp only [List.mem_singleton] at hP; subst hP
+  obtain ⟨segs, halign, hchain, hhead, hbudget, htgRbig, hdis⟩ := hemit q hqlt σ hmvq hσ
+  refine ⟨fL0, domL0, segs, rfl, hmvL0, halign, hchain, hhead, ?_⟩
+  -- assemble the genuine-multi-flow faModal from per-segment cert-sourced couplings
+  refine multi_faModal_from_couplings (leftBlock fL0) domL0 g tg dt segs.length htgLb htgLr htgdL0
+    htgg hdt _ (List.length_map ..) htgRbig hdis ?_ hσ hbudget
+  -- hcouple: each right segment's bounded coupling from cert.segPres
+  intro Q hQ σ' hσ'
+  obtain ⟨s, hs, rfl⟩ := List.mem_map.mp hQ
+  obtain ⟨hmodeAt, _⟩ := halign s hs
+  obtain ⟨fR, domR, e, mj, hsys, hdom, _, _, _, hdisj0, hφR, hmj, hjOK, hmjsys, hmjdom, hES⟩ :=
+    hRPA s.1 s.2.1 hmodeAt
+  obtain ⟨htgRb, htgRr, htgRbs, htgdR⟩ := htgRight s.1 s.2.1 hmodeAt
+  rw [hsys] at htgRb htgRr htgRbs
+  rw [hdom] at htgdR
+  rw [hsys, hdom]
+  -- the joint box at σ' from cert.segPres
+  have hbox : Formula.sat (Formula.box (Program.ode (leftBlock fL0 ++ rightBlock fR lam)
+      (Formula.and domL0 domR)) (invLe g)) σ' := by
+    rw [sat_box]; intro ω hω; rw [sat_invLe]
+    have hBL := cert.segPres s.1 mj hmj hjOK σ' ((sat_invLe g σ').mp hσ')
+    rw [hmjsys, hmjdom] at hBL
+    exact hBL ω (by rw [← jointSys_split] at hω; exact hω)
+  exact segment_faModalB_from_cert g fL0 fR lam domL0 domR tg dt hdisj0 hφL0 hφR
+    htgLb htgLr htgRb htgRr htgRbs htgdL0 htgdR htgg hbox (hES (Function.update σ' tg 0))
+
 end RelCertifier

@@ -15,8 +15,8 @@ The headline guarantee is **`decideCovered_implies_theorem3_faithful`** (`Bridge
 checker's positive verdict provably implies the paper's ∀∃ refinement modality over the **real reasoning
 automaton** — the right ∃-response jumps only along *declared* transitions (`R_real = star(rightAutomatonBody)`),
 not the weaker flat choice-star. It puts `decideCovered = true` in the hypotheses and
-`rvalid(theorem3Form … R_real …)` in the conclusion, one signature, `hstep` discharged from the per-segment
-Z3 flow certificates (`#print axioms = [propext, Classical.choice, Quot.sound, z3_unsat_sound]`). See
+`rvalid(theorem3Form … R_real …)` in the conclusion, one signature, `hstep` **discharged from `cert`**
+(the cover certificate — no `z3solve = unsat` re-assumed). See
 *The transition-faithful ∀∃* below. On the 47-benchmark suite the tool reports **46 CERTIFIED / 47** (1
 inconclusive-Z3 ERROR, never a false verdict).
 
@@ -49,7 +49,7 @@ front-end.
 | **2. Non-connection** | `NonConn.lean` | `lieAlong`, `sourceCheck`, `barrierCheck` | `nonconn_sound` | dL-lean `DI_strict` (Nagumo barrier) |
 | **3. Cover / Theorem 3** | `Cover.lean`, `Cover/Encoding.lean` | `Covered`, `RightReach`, `cover_sound` | `cover_sound`, `theorem3_encoded` | flow + nonconn + dL-rel `encoding_correct` |
 | **4. Transition-faithful ∀∃** | `JointBridge.lean` … `BridgeFinish.lean` | `R_real`, the 5-unit bridge | **`theorem3_faithful`** | `faModal_LOCK` + `faModal_to_faShape` + `encoding_correct` |
-| **5. End-to-end seam** | `BridgeDischarge.lean` | discharge `hstep` from the cover | **`decideCovered_implies_theorem3_faithful`** | `check_sound` + `flow_certified` + Stage-4 |
+| **5. End-to-end seam** | `BridgeDischarge.lean` | discharge `hstep` from `cert.segPres` | **`decideCovered_implies_theorem3_faithful`** | `check_sound` + `cert.segPres` + Stage-4 |
 | **6. Runner** | `Parse.lean`, `Run.lean`, `Main.lean` | parser + Z3-driven cover | — (trusted IO) | uses the verified queries |
 
 The load-bearing new proof is **`tderiv_correct`**: the syntactic partial derivative of a
@@ -92,7 +92,7 @@ Every source file, its job, the paper result it mechanizes, and the imported the
 | `BridgeUnit2.lean` | `hstep_assembled` | assemble per-left-mode wraps into the loop step (`faModal_bigChoiceL`, mode dispatched from `mvValid`) | dL-caltiming `faModal_bigChoiceL` |
 | `BridgeUnit3.lean` | `relational_loop_faithful` | close the `faModal_LOCK` loop over `R_real` and lift to bi-state `faShape` | `faModal_LOCK`, `faModal_to_faShape` |
 | `BridgeFinish.lean` | **`theorem3_faithful`**, `mvValidR` | **Theorem 3 over the *real* automaton**, `rvalid` form (mode-validity in `ϕ_inv`) | units 1-4 + `exists_bridge` + `encoding_correct` |
-| `BridgeDischarge.lean` | **`decideCovered_implies_theorem3_faithful`**, `hpair_from_cover`, `segPres_from_flowCert` | **end-to-end**: `decideCovered = true ⟹` the ∀∃ over `R_real` (`hstep` discharged from Z3 flow certs) | `check_sound` + `flow_certified` + `theorem3_faithful` |
+| `BridgeDischarge.lean` | **`decideCovered_implies_theorem3_faithful`**, `hpair_from_cover`, `rvalid_from_cert` | **end-to-end**: `decideCovered = true ⟹` the ∀∃ over `R_real` (`hstep` discharged from `cert.segPres`, no assumed Z3) | `check_sound` + `cert.segPres` + `theorem3_faithful` |
 | `Oracle.lean` | `z3_unsat_sound` (the one axiom) + `flow_certified` | the trusted SMT leaf | — (axiom) |
 | `Smt.lean` / `Z3.lean` / `Parse.lean` / `Run.lean` / `Main.lean` | computable IR + SMT printer, Z3 session, parser, runner, `relcert` exe | trusted IO shell | uses the verified queries |
 
@@ -176,32 +176,40 @@ The proof is a five-unit assembly (each banked sorry-free, axioms `[propext, Cla
 | 2 | `BridgeUnit2` | `hstep_assembled` | ∀ left mode (`faModal_bigChoiceL`), right mode **dispatched from the state's `mv`** |
 | 3+4 | `BridgeUnit3` | `relational_loop_faithful` | `faModal_LOCK` loop over `R_real` + `faModal_to_faShape` lift |
 | 5 | `BridgeFinish` | **`theorem3_faithful`** | `rvalid` lift over every bi-state (`exists_bridge` canonical join) |
-| discharge | `BridgeDischarge` | **`decideCovered_implies_theorem3_faithful`** | discharge `hstep` from the cover's Z3 flow certs; the two islands in one signature |
+| discharge | `BridgeDischarge` | **`decideCovered_implies_theorem3_faithful`** | discharge `hstep` from `cert.segPres` (no assumed Z3); the two islands in one signature |
 
 **The end-to-end theorem — the two islands in one signature (`BridgeDischarge.lean`).** Units 1–5 leave
 `theorem3_faithful` taking the per-iteration step `hstep` as a *hypothesis*; on its own that is a proven
 Island B (`hstep ⟹ rvalid`), not yet connected to the checker's Island A (`decideCovered ⟹`
 `CoexecInvThroughout`, `check_sound`). `decideCovered_implies_theorem3_faithful` closes that seam —
-`hstep` is **discharged** (`hpair_from_cover`: each per-pair `faModal` comes from a per-segment Z3 flow
-certificate `z3solve (flowQuery …) = unsat` via `flow_certified`/`segment_faModal`), not assumed:
+`hstep` is **discharged from `cert`** (`hpair_from_cover`: each per-pair `faModal` comes from
+`cert.segPres` — the cover certificate the checker validates on `Gj` — carried to the R-projected mode by
+the *structural* `RightProjAlign`, then decoupled by `segment_faModal`). **There is no `z3solve = unsat`
+hypothesis**; the flow certificate is `cert`, and `cert` is load-bearing (delete it → no `faModal`):
 
 ```
-decideCovered Gj fuel cfg = true   (+ CoverCert, reification alignment, per-segment Z3 flow certs,
-                                     hExist, structural facts)
-⟹  rvalid (theorem3Form L_flat R_real (ϕ_inv ∧ ⌊mvValid⌋_R))
-    ∧ (∀ ν, InvHolds g ν → CoexecInvThroughout Gj g cfg ν)
+decideCovered Gj fuel cfg = true  ∧  cert : CoverCert Gj g
+   (+ RightProjAlign Gj Gr — structural, no Z3 — hExist, disjointness, Bridges)
+⟹  rvalid (theorem3Form L_flat R_real (ϕ_inv ∧ ⌊mvValid⌋_R))          -- from cert
+    ∧ (∀ ν, InvHolds g ν → CoexecInvThroughout Gj g cfg ν)            -- from decideCovered + cert
 
 #print axioms decideCovered_implies_theorem3_faithful
-  = [propext, Classical.choice, Quot.sound, z3_unsat_sound]
+  = [propext, Classical.choice, Quot.sound]      -- parametric in cert; the Z3 leaf enters at
+                                                 -- cert construction (segPres_from_flowCert, +z3_unsat_sound)
 ```
 
-`decideCovered = true` in the hypotheses, `rvalid(theorem3Form … faithful)` in the conclusion, bottoming
-out at the single Z3 leaf — the tool's verdict provably implies the paper's ∀∃ over the *real* automaton.
-Two design facts surfaced in the discharge: the cover graph `Gj` (modes `m.sys = jointSys`) and the R_real
-graph `Gr` (modes `m'.sys = rightBlock`) are **distinct**, bridged by `segment_faModal`'s joint→right
-decoupling; and the per-pair certificate is invariant-**conditional** (`∀ s, invLe g s → faModal …`) — a
-segment preserves `g ≤ 0`, it cannot restore a violated one, so the unconditional form was unsound to
-assume. **Scope:** one fixed left mode per `CoverCert` (the full left automaton is a family of covers) and
+`decideCovered = true` in the hypotheses, `rvalid(theorem3Form … faithful)` in the conclusion. Three
+findings surfaced closing this (reported, not papered over): **(1)** the cover graph `Gj` (modes
+`m.sys = jointSys`) and the R_real graph `Gr` (modes `m'.sys = rightBlock`) are **distinct**, linked by
+the structural `RightProjAlign` (= `rightReach_project.hmode`) and bridged by `segment_faModal`'s
+joint→right decoupling; **(2)** `decideCovered` is **not** load-bearing for `rvalid` — proven by
+`rvalid_from_cert`, which discharges the ∀∃ with no `hchk`/`fuel`/`cfg`: the `faModal_LOCK` loop preserves
+the invariant over any iteration count, so the modality needs every mode *certified* (`cert.segPres`), not
+the cover to *close*. `decideCovered` is load-bearing for the throughput conjunct only. **(3)** you cannot
+have both no-`z3solve`-hypothesis and `z3_unsat_sound`-in-axioms — a `Prop` `CoverCert` cannot apply the
+axiom (3 axioms); the leaf enters at `cert` construction. The per-pair certificate is also
+invariant-**conditional** (`∀ s, invLe g s → faModal …`) — a segment preserves `g ≤ 0`, cannot restore a
+violated one. **Scope:** one fixed left mode per `CoverCert` (the full left automaton is a family of covers) and
 all-`jointOK` (flow) modes — reposition modes carry a static `repoPres`, not a flow `faModal`.
 
 **The mode-validity precondition — a real soundness finding.** `rvalid` quantifies over **all**

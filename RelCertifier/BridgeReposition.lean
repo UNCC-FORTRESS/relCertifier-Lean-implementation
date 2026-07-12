@@ -187,4 +187,28 @@ theorem multiseg_gen (φinv : Formula (Var n)) :
         exact ih (fun a ha b hb => hdis a (List.mem_cons_of_mem p ha) b (List.mem_cons_of_mem p hb))
           (fun a ha => hcouple a (List.mem_cons_of_mem p ha)) μ hμ
 
+/-- **The per-switch faithful lift** — the real content beyond the flat `reified_relational_multi`.
+One right-mode flow at a **declared** mode `q`, followed by a **declared** ⊤-guarded edge `e`
+(`e ∈ edgesFrom q`, `e.tgt < modes.length` — `EdgeTargetsValid`, the flat-`R*` guardrail), becomes
+one `star (rightAutomatonBody G mv)` step, threading the mode variable `q → e.tgt`. This is the
+∃-right faithfulness the emitted `rights` switch must respect: it maps to a real `G`-edge, not a
+flat memoryless choice. Mirrors the witness lemma's `jump` case, per segment. -/
+theorem single_seg_R_real (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m : RMode (Var n))
+    (hfv : mv ∉ (Program.ode m.sys m.dom).fv)
+    {e : REdge (Var n)} (hm : G.modeAt q = some m) (he : e ∈ G.edgesFrom q)
+    (htt : e.guard = Formula.tt) (hlt : e.tgt < G.modes.length)
+    {ν μ : State (Var n)} (hflow : Program.sem (Program.ode m.sys m.dom) ν μ) :
+    Program.sem (Program.star (rightAutomatonBody G mv))
+      (Function.update ν mv (q : ℝ)) (Function.update μ mv (e.tgt : ℝ)) := by
+  have hg : Formula.sat e.guard (Function.update μ mv (q : ℝ)) := by rw [htt]; trivial
+  have hstep := modeStep_sem G mv q m hfv he hflow hg
+  have hbody : Program.sem (rightAutomatonBody G mv)
+      (Function.update ν mv (q : ℝ)) (Function.update μ mv (e.tgt : ℝ)) := by
+    refine bigChoiceP_sem_of_mem (List.mem_filterMap.mpr ⟨q, ?_, ?_⟩) hstep
+    · exact List.mem_range.mpr (by
+        have := hm; simp only [SearchGraph.modeAt] at this
+        exact List.getElem?_eq_some_iff.mp this |>.1)
+    · rw [hm]; rfl
+  exact Relation.ReflTransGen.head hbody Relation.ReflTransGen.refl
+
 end RelCertifier

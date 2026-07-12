@@ -24,35 +24,36 @@ open DL DLCalTiming DLRel Function
 variable {n : ℕ}
 
 /-- **Units 3+4 — transition-faithful loop close.** From the assembled loop step (unit 2,
-carrying `φinv' = invLe g ∧ mvValid`), close the `faModal_LOCK` loop against the real right
-automaton `star (rightAutomatonBody G mv) = R_real G mv` and lift to the bi-state `faShape`.
-The strengthened invariant projects to `invLe g = encode id ψ` at the exit (`hpost := .1`). -/
+carrying `φinv' = phiInv = invLe g ∧ mvValid`), close the `faModal_LOCK` loop against the real
+right automaton `star (rightAutomatonBody G mv) = R_real G mv` and lift to the bi-state `faShape`.
+The postcondition `ψpost` encodes to the *full* strengthened invariant (`encode id ψpost = phiInv`,
+via `hψp`), so `mvValid` is carried to the exit and `hpost` is the identity — matching a
+`theorem3Form` whose `ϕinv` itself carries the mode-validity conjunct. -/
 theorem relational_loop_faithful (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n))
-    (leftProgs : List (Program (Var n))) (ψ : RFormula (Var n))
+    (leftProgs : List (Program (Var n))) (ψpost : RFormula (Var n))
     (ν : State (Var n)) (bs : BiState (Var n))
-    (hψ : encode (Equiv.refl (Var n)) ψ = invLe g)
+    (hψp : encode (Equiv.refl (Var n)) ψpost = phiInv g mv G.modes.length)
     (hd : Disjoint (Program.vars (bigChoice leftProgs))
         (Program.vars ((rightAutomatonBody G mv).rename (Equiv.refl (Var n)))))
-    (hinv : Formula.sat (invLe g) ν)
-    (hmvν : Formula.sat (mvValid mv G.modes.length) ν)
+    (hinv : Formula.sat (phiInv g mv G.modes.length) ν)
     (hstep : ∀ σ, Formula.sat (phiInv g mv G.modes.length) σ →
       Formula.sat (faModal (Equiv.refl (Var n)) (bigChoice leftProgs) (rightAutomatonBody G mv)
         (phiInv g mv G.modes.length)) σ)
     (hdd : Disjoint (faShape (Program.star (bigChoice leftProgs))
-          (Program.star (rightAutomatonBody G mv)) ψ).varsL
+          (Program.star (rightAutomatonBody G mv)) ψpost).varsL
         (Equiv.refl (Var n) '' (faShape (Program.star (bigChoice leftProgs))
-          (Program.star (rightAutomatonBody G mv)) ψ).varsR))
+          (Program.star (rightAutomatonBody G mv)) ψpost).varsR))
     (hb : Bridges (Equiv.refl (Var n))
         (faShape (Program.star (bigChoice leftProgs))
-          (Program.star (rightAutomatonBody G mv)) ψ).varsL
+          (Program.star (rightAutomatonBody G mv)) ψpost).varsL
         (faShape (Program.star (bigChoice leftProgs))
-          (Program.star (rightAutomatonBody G mv)) ψ).varsR bs ν) :
+          (Program.star (rightAutomatonBody G mv)) ψpost).varsR bs ν) :
     RFormula.sat (faShape (Program.star (bigChoice leftProgs))
-      (Program.star (rightAutomatonBody G mv)) ψ) bs := by
+      (Program.star (rightAutomatonBody G mv)) ψpost) bs := by
   refine faModal_to_faShape (Equiv.refl (Var n)) (Program.star (bigChoice leftProgs))
-    (Program.star (rightAutomatonBody G mv)) ψ ν bs hdd hb ?_
-  rw [hψ]
+    (Program.star (rightAutomatonBody G mv)) ψpost ν bs hdd hb ?_
+  rw [hψp]
   exact faModal_LOCK (Equiv.refl (Var n)) (bigChoice leftProgs) (rightAutomatonBody G mv)
-    (phiInv g mv G.modes.length) (invLe g) ν hd ⟨hinv, hmvν⟩ hstep (fun _ h => h.1)
+    (phiInv g mv G.modes.length) (phiInv g mv G.modes.length) ν hd hinv hstep (fun _ h => h)
 
 end RelCertifier

@@ -29,7 +29,7 @@ theorem hstep_assembled (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n)
     (Hpair : ∀ P ∈ leftProgs, ∀ (q : ℕ) (m : RMode (Var n)), G.modeAt q = some m →
       ∃ (fL fR : Fin n → Term (Var n)) (lam : Term (Var n)) (domL domR : Formula (Var n))
         (e : REdge (Var n)),
-        P = Program.ode (leftBlock fL) domL ∧ MvFrozen fL mv ∧
+        P = Program.ode (leftBlock fL) domL ∧ mv ∉ (leftBlock fL).bound ∧
         m.sys = rightBlock fR lam ∧ m.dom = domR ∧
         e ∈ G.edgesFrom q ∧ e.guard = Formula.tt ∧ e.tgt < G.modes.length ∧
         -- invariant-CONDITIONAL: `segment_faModal`/`SegPreserves` supply the per-pair faModal only

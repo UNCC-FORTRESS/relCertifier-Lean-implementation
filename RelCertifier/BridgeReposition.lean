@@ -767,7 +767,7 @@ mechanisms carry it:
   step of the fold, not just the last), so `mvValid` holds at the witness. -/
 theorem hstep_single_multi (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ)
     (g : Term (Var n)) (fL : Fin n → Term (Var n)) (domL : Formula (Var n))
-    (hg : mv ∉ g.fv) (hmvL : MvFrozen fL mv) (hqlt : q < G.modes.length)
+    (hg : mv ∉ g.fv) (hmvL : mv ∉ (leftBlock fL).bound) (hqlt : q < G.modes.length)
     (hfresh : ∀ q m, G.modeAt q = some m → mv ∉ (Program.ode m.sys m.dom).fv)
     (htt : ∀ q, ∀ e ∈ G.edgesFrom q, e.guard = Formula.tt)
     (hlt : ∀ q, ∀ e ∈ G.edgesFrom q, e.tgt < G.modes.length)
@@ -817,7 +817,7 @@ theorem hstep_assembled_multi (G : SearchGraph (Var n)) (mv : Var n) (g : Term (
       Formula.sat (invLe g) σ →
       ∃ (fL : Fin n → Term (Var n)) (domL : Formula (Var n))
         (segs : List (ℕ × RMode (Var n) × REdge (Var n))),
-        P = Program.ode (leftBlock fL) domL ∧ MvFrozen fL mv ∧
+        P = Program.ode (leftBlock fL) domL ∧ mv ∉ (leftBlock fL).bound ∧
         (∀ s ∈ segs, G.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ G.edgesFrom s.1) ∧
         List.IsChain (fun a b => a.2.2.tgt = b.1) segs ∧
         (∀ s, segs.head? = some s → s.1 = q) ∧

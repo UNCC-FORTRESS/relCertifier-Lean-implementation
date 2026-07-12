@@ -379,7 +379,7 @@ load-bearing: delete it and the box (hence each `faModalB`, hence the `faModal`)
 theorem Hmulti_from_cover (Gj Gr : SearchGraph (Var n)) (g : Term (Var n)) (mv : Var n)
     (fL0 : Fin n → Term (Var n)) (domL0 : Formula (Var n)) (lam : Term (Var n)) (tg : Var n) (dt : ℝ)
     (cert : CoverCert Gj g) (hdt : 0 ≤ dt)
-    (hmvL0 : MvFrozen fL0 mv) (hg : mv ∉ g.fv)
+    (hmvL0 : mv ∉ (leftBlock fL0).bound) (hg : mv ∉ g.fv)
     (hφL0 : domL0.fv ⊆ (leftBlock fL0).boundSet ∪ (leftBlock fL0).readVars)
     (htgLb : tg ∉ (leftBlock fL0).bound) (htgLr : tg ∉ (leftBlock fL0).readVars)
     (htgdL0 : tg ∉ domL0.fv) (htgg : tg ∉ g.fv)
@@ -391,7 +391,7 @@ theorem Hmulti_from_cover (Gj Gr : SearchGraph (Var n)) (g : Term (Var n)) (mv :
       Formula.sat (invLe g) σ →
       ∃ (fL : Fin n → Term (Var n)) (domL : Formula (Var n))
         (segs : List (ℕ × RMode (Var n) × REdge (Var n))),
-        P = Program.ode (leftBlock fL) domL ∧ MvFrozen fL mv ∧
+        P = Program.ode (leftBlock fL) domL ∧ mv ∉ (leftBlock fL).bound ∧
         (∀ s ∈ segs, Gr.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ Gr.edgesFrom s.1) ∧
         List.IsChain (fun a b => a.2.2.tgt = b.1) segs ∧
         (∀ s, segs.head? = some s → s.1 = q) ∧
@@ -433,7 +433,7 @@ interleaves it with flow residences. -/
 theorem Hmulti_from_cover_dyn (Gj Gr : SearchGraph (Var n)) (g : Term (Var n)) (mv : Var n)
     (domL0 : Formula (Var n)) (lam : Term (Var n)) (tg : Var n) (dt : ℝ)
     (cert : CoverCert Gj g) (hdt : 0 ≤ dt)
-    (hmvL0 : MvFrozen (fun _ => Term.const 0) mv) (hg : mv ∉ g.fv)
+    (hmvL0 : mv ∉ (leftBlock (fun _ => Term.const 0)).bound) (hg : mv ∉ g.fv)
     (hφL0 : domL0.fv ⊆ (leftBlock (fun _ => Term.const 0)).boundSet ∪
               (leftBlock (fun _ => Term.const 0)).readVars)
     (htgLb : tg ∉ (leftBlock (fun _ => Term.const 0)).bound)
@@ -447,7 +447,7 @@ theorem Hmulti_from_cover_dyn (Gj Gr : SearchGraph (Var n)) (g : Term (Var n)) (
       ∀ σ, σ mv = (q : ℝ) → Formula.sat (invLe g) σ →
       ∃ (fL : Fin n → Term (Var n)) (domL : Formula (Var n))
         (segs : List (ℕ × RMode (Var n) × REdge (Var n))),
-        P = Program.ode (leftBlock fL) domL ∧ MvFrozen fL mv ∧
+        P = Program.ode (leftBlock fL) domL ∧ mv ∉ (leftBlock fL).bound ∧
         (∀ s ∈ segs, Gr.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ Gr.edgesFrom s.1) ∧
         List.IsChain (fun a b => a.2.2.tgt = b.1) segs ∧
         (∀ s, segs.head? = some s → s.1 = q) ∧

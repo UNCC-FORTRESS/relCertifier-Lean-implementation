@@ -34,7 +34,7 @@ structure FlowModeData (Gr : SearchGraph (Var n)) (g : Term (Var n)) (mv : Var n
   cert  : CoverCert Gj g
   fL    : Fin n → Term (Var n)
   domL  : Formula (Var n)
-  hmvL  : MvFrozen fL mv
+  hmvL  : mv ∉ (leftBlock fL).bound
   hφL   : domL.fv ⊆ (leftBlock fL).boundSet ∪ (leftBlock fL).readVars
   htgLb : tg ∉ (leftBlock fL).bound
   htgLr : tg ∉ (leftBlock fL).readVars
@@ -63,7 +63,7 @@ theorem theorem3_faithful_family
     -- frozen reposition mode (fL = 0), its own Gj_repo/cert_repo
     (Gj_repo : SearchGraph (Var n)) (cert_repo : CoverCert Gj_repo g)
     (domRepo : Formula (Var n))
-    (hmvL0' : MvFrozen (fun _ => Term.const 0) mv)
+    (hmvL0' : mv ∉ (leftBlock (fun _ => Term.const 0)).bound)
     (hφL0' : domRepo.fv ⊆ (leftBlock (fun _ => Term.const 0)).boundSet ∪
               (leftBlock (fun _ => Term.const 0)).readVars)
     (htgLb' : tg ∉ (leftBlock (fun _ => Term.const 0)).bound)

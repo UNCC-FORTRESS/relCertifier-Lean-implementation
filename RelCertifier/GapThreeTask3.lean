@@ -36,7 +36,7 @@ def graphOfSide (L R : HybridAut n) (lam : Term (Var n)) (mL : HybridMode n) : P
 
 /-- The per-left-mode freshness (`mv`/`tg` disjoint from the left block/domain). -/
 def graphOfFresh (mv tg : Var n) (mL : HybridMode n) : Prop :=
-  MvFrozen mL.dyn mv ∧
+  mv ∉ (leftBlock mL.dyn).bound ∧
   mL.dom.fv ⊆ (leftBlock mL.dyn).boundSet ∪ (leftBlock mL.dyn).readVars ∧
   tg ∉ (leftBlock mL.dyn).bound ∧ tg ∉ (leftBlock mL.dyn).readVars ∧ tg ∉ mL.dom.fv
 
@@ -67,7 +67,7 @@ theorem tooling_sound (L R : HybridAut n) (g : Term (Var n)) (mv : Var n) (lam :
     (hflow : flowModes.map FlowModeData.prog = L.leftProgs)
     -- frozen reposition mode: its own emitted cert/alignment
     (Gj_repo : SearchGraph (Var n)) (cert_repo : CoverCert Gj_repo g) (domRepo : Formula (Var n))
-    (hmvL0' : MvFrozen (fun _ => Term.const 0) mv)
+    (hmvL0' : mv ∉ (leftBlock (fun _ => Term.const 0)).bound)
     (hφL0' : domRepo.fv ⊆ (leftBlock (fun _ => Term.const 0)).boundSet ∪
               (leftBlock (fun _ => Term.const 0)).readVars)
     (htgLb' : tg ∉ (leftBlock (fun _ => Term.const 0)).bound)

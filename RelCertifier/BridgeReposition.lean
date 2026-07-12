@@ -429,6 +429,36 @@ theorem multiseg_gen (φinv : Formula (Var n)) :
         exact ih (fun a ha b hb => hdis a (List.mem_cons_of_mem p ha) b (List.mem_cons_of_mem p hb))
           (fun a ha => hcouple a (List.mem_cons_of_mem p ha)) μ hμ
 
+/-- **Composition of the bridged bounded couplings.** Feeds the per-segment bounded couplings
+(`faModalB`, one right mode each) through the bridge (`faModalB_clockedSeg_iff`) into the banked
+lockstep `multiseg_gen` (`faModal_seq`). Result: the `k = |rights|`-fold `clockedSeg` left, paired
+with the right mode-switch sequence `bigSeq rights`, preserves `φinv`. Each left factor is one
+`clockedSeg` (reset-evolve-test at duration `dt`); the right genuinely switches modes across the
+sequence. `domR` untouched (the couplings carry it). -/
+theorem multiseg_clocked (φinv : Formula (Var n)) (leftSys : ODESystem (Var n))
+    (domL : Formula (Var n)) (tg : Var n) (dt : ℝ) (rights : List (Program (Var n)))
+    (hdis : ∀ Q ∈ rights, Disjoint (Program.vars (Q.rename (Equiv.refl (Var n))))
+        (Program.vars (clockedSeg leftSys domL tg dt)))
+    (hcouple : ∀ Q ∈ rights, ∀ σ, Formula.sat φinv σ →
+        faModalB (Equiv.refl (Var n)) (Program.ode (clk tg leftSys) domL) Q φinv tg dt
+          (Function.update σ tg 0))
+    (ω : State (Var n)) (hω : Formula.sat φinv ω) :
+    Formula.sat (faModal (Equiv.refl (Var n))
+      (bigSeq (rights.map (fun _ => clockedSeg leftSys domL tg dt)))
+      (bigSeq rights) φinv) ω := by
+  have hmg := multiseg_gen φinv (rights.map (fun Q => (clockedSeg leftSys domL tg dt, Q)))
+    (by
+      intro p hp q hq
+      obtain ⟨Qp, hQp, rfl⟩ := List.mem_map.mp hp
+      obtain ⟨Qq, hQq, rfl⟩ := List.mem_map.mp hq
+      exact hdis Qp hQp)
+    (by
+      intro p hp σ hσ
+      obtain ⟨Q, hQ, rfl⟩ := List.mem_map.mp hp
+      exact (faModalB_clockedSeg_iff leftSys domL Q φinv tg dt σ).mpr (hcouple Q hQ σ hσ))
+    ω hω
+  simpa [List.map_map, Function.comp] using hmg
+
 /-- **The per-switch faithful lift** — the real content beyond the flat `reified_relational_multi`.
 One right-mode flow at a **declared** mode `q`, followed by a **declared** ⊤-guarded edge `e`
 (`e ∈ edgesFrom q`, `e.tgt < modes.length` — `EdgeTargetsValid`, the flat-`R*` guardrail), becomes

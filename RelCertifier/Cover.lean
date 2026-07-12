@@ -247,15 +247,20 @@ inductive RightReach (G : SearchGraph V) : Config → State V → State V → Pr
   -- out of `mR` into a declared successor at the SAME budget `B`, `σ` unchanged. `InvHolds μ` comes
   -- from the σ-matched region-invariant (`repoPresPre` on `region`, `repoPresPost` on `regionPost`),
   -- not from any derivative. Successor-completeness (exit via a declared successor) is the TCB.
-  | repositionPre {q B ν μ ω} (m : RMode V) (hm : G.modeAt q = some m) (hrepo : m.repoPreOK = true)
+  -- STATE-PRESERVING (the real reposition semantics): the continuous state is unchanged (`μ = ν`);
+  -- only the mode advances (`q → e.tgt`, via the config). The region is checked at the current
+  -- state `ν`. (Earlier this bound an arbitrary region-satisfying `μ` — a teleport, sound but
+  -- conservative for preservation; tightened here so the step is a real state-preserving transition,
+  -- as the `faModal_MULTI` reposition bridge requires.)
+  | repositionPre {q B ν ω} (m : RMode V) (hm : G.modeAt q = some m) (hrepo : m.repoPreOK = true)
       (e : REdge V) (he : e ∈ G.edges) (hsrc : e.src = q) (hB : 0 < B) :
-      Formula.sat m.region μ →
-      RightReach G ⟨e.tgt, B, SrcSetting.preJ⟩ μ ω →
+      Formula.sat m.region ν →
+      RightReach G ⟨e.tgt, B, SrcSetting.preJ⟩ ν ω →
       RightReach G ⟨q, B, SrcSetting.preJ⟩ ν ω
-  | repositionPost {q B ν μ ω} (m : RMode V) (hm : G.modeAt q = some m) (hrepo : m.repoPostOK = true)
+  | repositionPost {q B ν ω} (m : RMode V) (hm : G.modeAt q = some m) (hrepo : m.repoPostOK = true)
       (e : REdge V) (he : e ∈ G.edges) (hsrc : e.src = q) (hB : 0 < B) :
-      Formula.sat m.regionPost μ →
-      RightReach G ⟨e.tgt, B, SrcSetting.postJ⟩ μ ω →
+      Formula.sat m.regionPost ν →
+      RightReach G ⟨e.tgt, B, SrcSetting.postJ⟩ ν ω →
       RightReach G ⟨q, B, SrcSetting.postJ⟩ ν ω
   -- **DYNAMIC REPOSITION response** (certificate 3), σ-matched. Unlike the static ones, the right
   -- genuinely EVOLVES under the frozen-left field `dynSys` (`Program.sem`, a flow segment), and

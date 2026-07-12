@@ -157,9 +157,9 @@ theorem rightReach_is_R_real_run (G : SearchGraph V) (mv : V)
             exact List.getElem?_eq_some_iff.mp this |>.1)
         · rw [hm]; rfl
       exact ⟨qf, Relation.ReflTransGen.head hbody ihrun⟩
-  | @repositionPre q B ν μ ω m hm hrepo _ _ _ _ _ _ ih =>
+  | @repositionPre q B ν ω m hm hrepo _ _ _ _ _ _ ih =>
       exact absurd hrepo (by rw [(hnorepo q m hm).1]; simp)
-  | @repositionPost q B ν μ ω m hm hrepo _ _ _ _ _ _ ih =>
+  | @repositionPost q B ν ω m hm hrepo _ _ _ _ _ _ ih =>
       exact absurd hrepo (by rw [(hnorepo q m hm).2.1]; simp)
   | @repositionDynPre q B ν μ ω m hm hrepo _ _ _ _ _ _ ih =>
       exact absurd hrepo (by rw [(hnorepo q m hm).2.2.1]; simp)

@@ -97,4 +97,47 @@ theorem multi_faModal_from_couplings (leftSys : ODESystem (Var n)) (domL : Formu
   exact clockLift_collapse leftSys domL (bigSeq rights) (invLe g) tg dt k htgb htgr htgd hdt htgR
     htgφ hbudget hmc
 
+/-! ## Cert-sourcing — the per-segment bounded coupling from `cert.segPres` -/
+
+/-- **The joint certificate box, clock-lifted to the coupling's shape.** An unclocked joint `invLe g`
+box at `σ` (as `cert.segPres` supplies via `sat_box`/`sat_invLe`) becomes the box at the reset state
+`σ[tg↦0]` over the clocked joint `(clk tg A) ++ B` that `faModal_ODE_G'_bounded` consumes. Start-change
+`σ → σ[tg↦0]` is `Program.coincidence` (the joint ignores the fresh `tg` entirely); then
+`boxLe_clock_lift` (+ `clk_mid_perm`). -/
+theorem box_joint_to_clocked (g : Term (Var n)) (A B : ODESystem (Var n)) (dom : Formula (Var n))
+    (tg : Var n)
+    (htgAb : tg ∉ A.bound) (htgBb : tg ∉ B.bound)
+    (htgAr : tg ∉ A.readVars) (htgBr : tg ∉ B.readVars)
+    (htgd : tg ∉ dom.fv) (htgg : tg ∉ g.fv) {σ : State (Var n)}
+    (h : Formula.sat (Formula.box (Program.ode (A ++ B) dom) (invLe g)) σ) :
+    Formula.sat (Formula.box (Program.ode ((clk tg A) ++ B) dom) (invLe g))
+      (Function.update σ tg 0) := by
+  have htgABb : tg ∉ (A ++ B).bound := by
+    simp only [ODESystem.bound, List.map_append, List.mem_append]
+    exact fun hc => hc.elim htgAb htgBb
+  have htgABr : tg ∉ (A ++ B).readVars := by
+    simp only [ODESystem.readVars, Set.mem_setOf_eq]
+    rintro ⟨p, hp, hpx⟩
+    exact (List.mem_append.mp hp).elim (fun ha => htgAr ⟨p, ha, hpx⟩) (fun hb => htgBr ⟨p, hb, hpx⟩)
+  have hgfv : g.fv ⊆ {x | x ≠ tg} := fun y hy hc => htgg (hc ▸ hy)
+  -- step 1: start-change σ → σ[tg↦0] over the unclocked joint
+  have hstart : Formula.sat (Formula.box (Program.ode (A ++ B) dom) (invLe g))
+      (Function.update σ tg 0) := by
+    rw [sat_box] at h ⊢
+    intro ν hν
+    have hWsub : (Program.ode (A ++ B) dom).fv ⊆ {x | x ≠ tg} := by
+      refine Set.union_subset (Set.union_subset ?_ ?_) ?_
+      · intro x hx hc; exact htgABb (hc ▸ hx)
+      · intro x hx hc; exact htgABr (hc ▸ hx)
+      · intro x hx hc; exact htgd (hc ▸ hx)
+    have hag : Set.EqOn (Function.update σ tg 0) σ {x | x ≠ tg} :=
+      fun x hx => Function.update_of_ne hx 0 σ
+    obtain ⟨ω2, hrun2, heq⟩ := Program.coincidence (Program.ode (A ++ B) dom) hWsub hag hν
+    have hinv := h ω2 hrun2
+    rw [sat_invLe] at hinv ⊢
+    rw [Term.coincidence g (heq.mono (hgfv.trans Set.subset_union_left))]; exact hinv
+  -- step 2: clock-lift; step 3: perm the tail clock to mid-position
+  exact box_ode_perm (List.Perm.symm (clk_mid_perm A B tg)) dom (invLe g)
+    (boxLe_clock_lift (A ++ B) dom g tg htgABb htgABr htgd htgg hstart)
+
 end RelCertifier

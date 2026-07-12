@@ -2,7 +2,7 @@
 
 A **formally verified** relational-invariant certifier for pairs of hybrid programs,
 mechanized in Lean 4 on top of [dL-lean](https://github.com/UNCC-FORTRESS/dL-formalization-Lean)
-(`v0.1.0-DI`) and [dL-rel](https://github.com/UNCC-FORTRESS) (NFM'25 encoding).
+(`v0.1.0-DI`) and [dL-rel](https://github.com/UNCC-FORTRESS/NFM25-relDL-Lean) (`v0.1.0-NFM25`, NFM'25 encoding).
 
 It matches the functionality of the Python `relCertifier` prototype — certify a supplied
 relational invariant between a left (deployed) and right (reasoning) hybrid system via
@@ -25,14 +25,14 @@ already-mechanized theories**. Every soundness-critical lemma cites a theorem fr
 | Repo | Pin | What it provides | Key theorems used here |
 |---|---|---|---|
 | **[dL-lean](https://github.com/UNCC-FORTRESS)** | `v0.1.0-DI` | Core dL: syntax `Term`/`Formula`/`Program`, semantics `Term.eval`/`Formula.sat`/`Program.sem`, and the **differential-invariant** calculus | `DI_strict`, `DI_nonstrict_domain`, `Lie`, `Lie_eq_fderiv`, `hasDeriv_g_along_flow`, `sem_ode_iff_integralCurve`, `nonstrict_boundary_insufficient` (the `t²` soundness countermodel) |
-| **[dL-rel](https://github.com/UNCC-FORTRESS)** (NFM'25) | path-req | The **relational (bi-state) extension** of dL and its host **encoding** | `RFormula`, `encode`, `faShape` (the ∀∃ relational modality `[|(α,β)⟩⟩ψ`), `encoding_correct` / `encoding_correct_exists` (**Theorem 2**) |
+| **[dL-rel](https://github.com/UNCC-FORTRESS/NFM25-relDL-Lean)** (NFM'25) | `v0.1.0-NFM25` | The **relational (bi-state) extension** of dL and its host **encoding** | `RFormula`, `encode`, `faShape` (the ∀∃ relational modality `[|(α,β)⟩⟩ψ`), `encoding_correct` / `encoding_correct_exists` (**Theorem 2**), `Bridges` / `exists_bridge` |
 | **dL-caltiming** (CSF'25) | `v0.1.0-CSF25` | The **∀∃ endpoint modality** `faModal` and its ODE / composition rules (the timed relational calculus) | `faModal`, `faModal_ODE_G`, `faModal_LOCK`, `faModal_MULTI`, `faModal_seq`, `plantT` |
 | **Mathlib** | (bundled) | Real analysis + ODE existence | `IsPicardLindelof` (Picard–Lindelöf), `ContDiff`, `isCompact_univ_pi`, `IsCompact.elim_finite_subcover`, `Convex.lipschitzOnWith_of_nnnorm_fderiv_le` |
 
 The dependency flow: **Mathlib** (analysis) → **dL-lean** (dL + `DI`) → **dL-rel** (bi-state
 encoding) and **dL-caltiming** (∀∃ modality) → **relCertifier-lean** (this repo: certifier + witness).
-dL-rel and dL-caltiming are consumed offline via a `path`-require into `../dL-rel/.lake/packages`;
-dL-lean is pinned transitively through dL-rel.
+dL-rel is required from GitHub (`NFM25-relDL-Lean`, pinned to tag `v0.1.0-NFM25`); dL-caltiming and
+dL-lean are pinned transitively through dL-rel (no sibling checkout needed).
 
 ## What is verified
 
@@ -323,9 +323,10 @@ silently raised), Hold-mode reachable-set tightening (`arm`/`plant`), coupled co
 from the former `benchmarks/restated/`), position-only invariants (`rover3_M1`), single-mode attitude
 keys (`story`), and the watertank fill-drift redesign — each reverted-and-retested, each a sound spec fix.
 
-Requires Lean 4 (`leanprover/lean4:v4.31.0`, pinned), a pinned Z3 (`RELCERT_Z3` or a
-standard absolute path), and `dL-rel` at `../dL-rel` (transitively provides dL-lean
-`v0.1.0-DI` and the encoding bridge). Env: `RELCERT_Z3_TIMEOUT` (ms, default 10000).
+Requires Lean 4 (`leanprover/lean4:v4.31.0`, pinned) and a pinned Z3 (`RELCERT_Z3` or a
+standard absolute path). `dL-rel` is fetched from GitHub at tag `v0.1.0-NFM25` (transitively
+provides dL-lean `v0.1.0-DI` and the encoding bridge) — `lake build` resolves it, no sibling
+checkout. Env: `RELCERT_Z3_TIMEOUT` (ms, default 10000).
 
 ## Soundness of `CERTIFIED` — the certified-checker architecture
 

@@ -4,8 +4,7 @@ Released under Apache 2.0 license.
 
 Stage 2 — the verified non-connection certificate (Nagumo forward-invariance barrier).
 
-Functionality target: the Python relCertifier.v1 non-connection pruning
-(`test_two_edge_graph/barrier_reach.py`, paper §V.A). A declared right transition
+The non-connection pruning (paper §V.A). A declared right transition
 `qR → qR'` is pruned when its successor guard `x OP c` is scalar and two Z3 checks
 both pass:
   (a) source-side: no valid source state already satisfies the guard;
@@ -16,7 +15,7 @@ edge cannot fire ⟹ prune. One-sided: pruned only when both UNSAT.
 
 ## Soundness route (the Stage-2 analogue of the Stage-1 finding)
 
-Python's check (b) asserts `evolve ∧ x=c ∧ ẋ>0` UNSAT, i.e. `ẋ ≤ 0` on the threshold
+The naive check (b) asserts `evolve ∧ x=c ∧ ẋ>0` UNSAT, i.e. `ẋ ≤ 0` on the threshold
 `{x = c}` **only** — a boundary-only non-strict check, the same shape dL-lean proves
 unsound in general (`nonstrict_boundary_insufficient`, the `t²` counterexample). A
 scalar-threshold guard has regular boundary (`∇(x−c) = eₓ ≠ 0`), so the pruning is
@@ -24,9 +23,9 @@ scalar-threshold guard has regular boundary (`∇(x−c) = eₓ ≠ 0`), so the 
 lemma. The design doc itself says "strictly away".
 
 So the verified barrier takes the **strict route**: `barrierCheck = domain ∧ g=0 ∧
-ẋ≥0` UNSAT ⟹ `ẋ < 0` on the threshold ⟹ dL-lean `DI_strict`. Boundary-shaped like
-Python, strict like the design doc, sound, no new axiom. It declines only the
-measure-zero case `ẋ = 0` exactly on the threshold, where Python's non-strict check
+ẋ≥0` UNSAT ⟹ `ẋ < 0` on the threshold ⟹ dL-lean `DI_strict`. Boundary-shaped,
+strict like the design doc, sound, no new axiom. It declines only the
+measure-zero case `ẋ = 0` exactly on the threshold, where the naive non-strict check
 would (unsoundly, in general) prune.
 
 Scope: scalar-threshold guards only; non-scalar guards conservatively retained

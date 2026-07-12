@@ -4,8 +4,7 @@ Released under Apache 2.0 license.
 
 Stage 1 — the verified flow certificate (the Lie-derivative heart).
 
-Functionality target: the Python relCertifier.v1 `src/lie_checker.py`
-`lie_derivative`:  ġ = Σ_v [∂g/∂L_v · f_L(v) + ∂g/∂R_v · λ · f_R(v)]
+The Lie-derivative check:  ġ = Σ_v [∂g/∂L_v · f_L(v) + ∂g/∂R_v · λ · f_R(v)]
 and the flow obligation `g = 0 ∧ ġ > 0` UNSAT.
 
 We verify what that tool trusts. Every soundness-critical lemma is anchored to
@@ -169,7 +168,7 @@ theorem sum_map_add {α : Type*} (l : List α) (f g : α → ℝ) :
 
 /-- The λ-stretched joint ODE system consumed by dL-lean's `DI`:
 `Lᵢ' = fL i`,  `Rᵢ' = λ · fR i`, assembled as one `ODESystem (Var n)`.
-`Lie` of `g` along this field is exactly the Python `lie_derivative`. -/
+`Lie` of `g` along this field is exactly the computed Lie derivative (`lieDeriv`). -/
 def jointSys {n : ℕ} (fL fR : Fin n → Term (Var n)) (lam : Term (Var n)) :
     ODESystem (Var n) :=
   (List.finRange n).map (fun i => (Lv i, fL i)) ++
@@ -225,7 +224,7 @@ theorem jointSys_wellFormed {n : ℕ} (fL fR : Fin n → Term (Var n))
 `domain ∧ ġ > 0`. UNSAT ⟹ `ġ ≤ 0` on all of `domain` — precisely the hypothesis
 of dL-lean's `DI_nonstrict_domain`.
 
-NOTE (soundness, see gate report): the Python tool's literal query is
+NOTE (soundness, see gate report): the naive literal query is
 `domain ∧ g = 0 ∧ ġ > 0` (boundary-only). That form is **unsound** without a
 regular-boundary hypothesis — dL-lean's `nonstrict_boundary_insufficient` is the
 `t²` counterexample. `flowQueryStrict` below is the boundary form that *is* sound

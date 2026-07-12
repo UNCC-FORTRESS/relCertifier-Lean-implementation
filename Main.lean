@@ -4,7 +4,7 @@ Released under Apache 2.0 license.
 
 # Runnable Stage-1 tool
 
-Builds a relational flow obligation (from the Python `rover_position` benchmark),
+Builds a relational flow obligation (the `rover_position` benchmark),
 computes the verified `lieDeriv` (via the IR mirror, pinned to it by
 `ilieDeriv_toHost`), emits SMT-LIB for the flow query `domain ∧ ġ > 0`, calls Z3, and
 reports certified / not. `unsat` is the only trusted verdict:
@@ -75,15 +75,15 @@ def demoStage1 : IO Unit := do
   IO.println "  UNSAT of  domain ∧ ġ>0  is the only trusted verdict"
   IO.println ""
   IO.println "rover_position  Stop_L / Safe_R :"
-  -- λ=4: ġ = L_vx − 4·R_vx, vx∈[0.3,1] ⇒ ġ ≤ −0.2 < 0 ⇒ unsat (Python: PASS)
+  -- λ=4: ġ = L_vx − 4·R_vx, vx∈[0.3,1] ⇒ ġ ≤ −0.2 < 0 ⇒ unsat (PASS)
   let r1 ← runObligation "stop_safe_lam4" gRover fL_stop fR_safe (.rat 4)
               (domainBox (3/10) 1) Verdict.unsat
-  -- λ=1: ġ = L_vx − R_vx, vx∈[0,1] ⇒ ġ can be +1 ⇒ sat (Python: FAIL, rate gap)
+  -- λ=1: ġ = L_vx − R_vx, vx∈[0,1] ⇒ ġ can be +1 ⇒ sat (FAIL, rate gap)
   let r2 ← runObligation "stop_safe_lam1" gRover fL_stop fR_safe (.rat 1)
               (domainBox 0 1) Verdict.sat
   IO.println ""
   if r1 && r2 then
-    IO.println "✓ both verdicts match the Python relCertifier flow-certificate results"
+    IO.println "✓ both verdicts match the expected flow-certificate results"
   else do
     IO.println "✗ verdict mismatch"
     IO.Process.exit 1

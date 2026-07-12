@@ -4,9 +4,8 @@ A **formally verified** relational-invariant certifier for pairs of hybrid progr
 mechanized in Lean 4 on top of [dL-lean](https://github.com/UNCC-FORTRESS/dL-formalization-Lean)
 (`v0.1.0-DI`) and [dL-rel](https://github.com/UNCC-FORTRESS/NFM25-relDL-Lean) (`v0.1.0-NFM25`, NFM'25 encoding).
 
-It matches the functionality of the Python `relCertifier` prototype — certify a supplied
-relational invariant between a left (deployed) and right (reasoning) hybrid system via
-UNSAT-of-negation with Z3-NRA — but **every soundness-critical function is proven
+It certifies a supplied relational invariant between a left (deployed) and right (reasoning)
+hybrid system via UNSAT-of-negation with Z3-NRA, with **every soundness-critical function proven
 correct**, each proof citing a mechanized theorem of the imported theory. The single
 trusted assumption of the whole tool is that Z3's `unsat` verdict is sound
 (`z3_unsat_sound`); everything else is kernel-checked.
@@ -449,7 +448,7 @@ same three Lean axioms. `theorem3_faithful` is the one that pins the ∃-right t
 
 The pure core depends only on the three standard Lean axioms. The IO-boundary theorems add
 exactly one leaf, `z3_unsat_sound` (an `unsat` verdict from the opaque `z3solve` is sound),
-isolated in `Oracle.lean`. **No subtangency axiom** — where the Python tool's boundary-only
+isolated in `Oracle.lean`. **No subtangency axiom** — where a boundary-only
 non-strict flow check is unsound (dL-lean's `nonstrict_boundary_insufficient`, the `t²`
 counterexample), the verified version takes the sound strict route (`DI_strict`).
 

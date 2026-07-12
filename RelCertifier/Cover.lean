@@ -16,8 +16,7 @@ right side — jumping only along declared edges (`R_real = star(rightAutomatonB
 response (the `jump` case follows a declared successor), and the witness
 `JointBridge.rightReach_is_R_real_run` shows the two coincide.
 
-Functionality target: the Python cover search (`run_universal.py`, §IV budget walk +
-§V.A cover). A configuration `(qR, B)` is covered when a joint segment closes the
+The cover search (§IV budget walk + §V.A cover). A configuration `(qR, B)` is covered when a joint segment closes the
 remaining budget, or every retained (non-pruned) successor covers the decremented
 budget (all-successors). Budget-neutral cycles are rejected — each covering step
 strictly consumes budget (`0 < weight`) — which is the load-bearing finiteness piece.

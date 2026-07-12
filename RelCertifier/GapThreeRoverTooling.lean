@@ -200,4 +200,103 @@ theorem rover_hd_holds :
   · rw [hvL] at hvR; exact absurd hvR (by decide)
   · rw [hvmv] at hvL; exact absurd hvL (by simp [roverMv, Av])
 
+/-! ## The relational invariant `ϕinv` -/
+
+/-- The rel-formula invariant: `⌊px_L⌋_L + ⌊px_R⌋_R ≤ 0`. Encodes (`ρ = id`) to `invLe roverG`, with
+`varsL = {Lv 0}` (left-sided) and `varsR = {Rv 0}` (right-sided). -/
+def roverInv : RFormula (Var 3) :=
+  RFormula.cmp CompOp.le
+    (RTerm.binop AOp.add (RTerm.proj DLRel.Side.L (Term.var (Lv 0)))
+      (RTerm.proj DLRel.Side.R (Term.var (Rv 0))))
+    (RTerm.proj DLRel.Side.L (Term.const 0))
+
+/-- `roverInv` encodes to `invLe roverG` (the `hψ` obligation). -/
+theorem rover_hψ : encode (Equiv.refl (Var 3)) roverInv = invLe roverG := rfl
+
+/-- `roverInv`'s left variables are `{Lv 0}` — left-sided. -/
+theorem roverInv_varsL_side_L {v : Var 3} (hv : v ∈ roverInv.varsL) : v.1 = Side.L := by
+  simp only [roverInv, RFormula.varsL, RTerm.varsL, Term.fv, Set.union_empty, Set.mem_union,
+    Set.mem_empty_iff_false, or_false, Set.mem_singleton_iff] at hv
+  subst hv; rfl
+
+/-- `roverInv`'s right variables are `{Rv 0}` — right-sided. -/
+theorem roverInv_varsR_side_R {v : Var 3} (hv : v ∈ roverInv.varsR) : v.1 = Side.R := by
+  simp only [roverInv, RFormula.varsR, RTerm.varsR, Term.fv, Set.empty_union, Set.union_empty,
+    Set.mem_union, Set.mem_empty_iff_false, false_or, Set.mem_singleton_iff] at hv
+  subst hv; rfl
+
+/-! ## The `∀∃` disjointness `hddF` (twin of `hd`, over `faShape`) -/
+
+/-- `varsL (faShape α β ψ) = pvars α ∪ ψ.varsL`. -/
+theorem faShape_varsL (α β : Program (Var 3)) (ψ : RFormula (Var 3)) :
+    (faShape α β ψ).varsL = pvars α ∪ ψ.varsL := by
+  simp only [faShape, RFormula.rdiamond, RFormula.varsL, RProgram.varsL, pvars, Program.fv,
+    Program.bv, Formula.fv, Set.union_empty, Set.empty_union]
+
+/-- `varsR (faShape α β ψ) = pvars β ∪ ψ.varsR`. -/
+theorem faShape_varsR (α β : Program (Var 3)) (ψ : RFormula (Var 3)) :
+    (faShape α β ψ).varsR = pvars β ∪ ψ.varsR := by
+  simp only [faShape, RFormula.rdiamond, RFormula.varsR, RProgram.varsR, pvars, Program.fv,
+    Program.bv, Formula.fv, Set.union_empty, Set.empty_union]
+
+/-- `pvars (star P) = Program.vars P`. -/
+theorem pvars_star (P : Program (Var 3)) : pvars (Program.star P) = Program.vars P := rfl
+
+/-- `mvValidR`'s left variables are empty (it is a right projection). -/
+theorem mvValidR_varsL (mv : Var 3) (k : ℕ) : (mvValidR mv k).varsL = (∅ : Set (Var 3)) := rfl
+
+/-- `bigOr`'s free variables are bounded by any set bounding each disjunct's. -/
+theorem bigOr_fv_subset {fs : List (Formula (Var 3))} {S : Set (Var 3)}
+    (h : ∀ f ∈ fs, f.fv ⊆ S) : (bigOr fs).fv ⊆ S := by
+  induction fs with
+  | nil => intro v hv; exact absurd hv (by simp [bigOr, Formula.fv])
+  | cons a as ih =>
+      intro v hv
+      simp only [bigOr, Formula.fv, Set.mem_union] at hv
+      rcases hv with ha | hrest
+      · exact h a (List.mem_cons.mpr (Or.inl rfl)) ha
+      · exact ih (fun f hf => h f (List.mem_cons.mpr (Or.inr hf))) hrest
+
+/-- `mvValid mv k` reads only `mv`. -/
+theorem mvValid_fv (mv : Var 3) (k : ℕ) : (mvValid mv k).fv ⊆ {mv} := by
+  refine bigOr_fv_subset ?_
+  intro f hf
+  simp only [List.mem_map, List.mem_range] at hf
+  obtain ⟨q, -, rfl⟩ := hf
+  intro v hv
+  simpa only [modeIs, Formula.fv, Term.fv, Set.union_empty] using hv
+
+/-- **`hddF` holds at concrete rover data.** The `faShape` left variables (all `Lv`) are disjoint from
+its right variables (all `Rv`, plus the auxiliary mode variable `mv`) — the same side split as `hd`. -/
+theorem rover_hddF :
+    Disjoint (faShape (Program.star (bigChoice (roverL.leftProgs ++
+          [Program.ode (leftBlock (fun _ => Term.const 0)) Formula.tt])))
+        (Program.star (rightAutomatonBody roverGr roverMv))
+        (RFormula.and roverInv (mvValidR roverMv roverGr.modes.length))).varsL
+      ((Equiv.refl (Var 3)) '' (faShape (Program.star (bigChoice (roverL.leftProgs ++
+          [Program.ode (leftBlock (fun _ => Term.const 0)) Formula.tt])))
+        (Program.star (rightAutomatonBody roverGr roverMv))
+        (RFormula.and roverInv (mvValidR roverMv roverGr.modes.length))).varsR) := by
+  rw [Equiv.coe_refl, Set.image_id, Set.disjoint_left]
+  intro v hL hR
+  -- left side: v is Side.L
+  rw [faShape_varsL, pvars_star, RFormula.varsL, mvValidR_varsL, Set.union_empty] at hL
+  have hvL : v.1 = Side.L := by
+    rcases hL with hα | hψ
+    · exact rover_left_side_L hα
+    · exact roverInv_varsL_side_L hψ
+  -- right side: v is Side.R or v = mv
+  rw [faShape_varsR, pvars_star, RFormula.varsR] at hR
+  rcases hR with hβ | hψR
+  · rcases rover_right_side_R_or_mv hβ with h | h
+    · rw [hvL] at h; exact absurd h (by decide)
+    · rw [h] at hvL; exact absurd hvL (by simp [roverMv, Av])
+  · rcases hψR with hinv | hmvR
+    · rw [roverInv_varsR_side_R hinv] at hvL; exact absurd hvL (by decide)
+    · -- v ∈ (mvValidR roverMv k).varsR = (mvValid roverMv k).fv ⊆ {roverMv}
+      have hvmv : v = roverMv := by
+        have : v ∈ (mvValid roverMv roverGr.modes.length).fv := hmvR
+        simpa only [Set.mem_singleton_iff] using mvValid_fv roverMv _ this
+      rw [hvmv] at hvL; exact absurd hvL (by simp [roverMv, Av])
+
 end RelCertifier

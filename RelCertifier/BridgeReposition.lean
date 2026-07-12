@@ -13,11 +13,79 @@ import RelCertifier.JointBridge
 import RelCertifier.Reify
 import RelCertifier.PicardBridge
 import RelCertifier.MultiSeg
+import DLCalTiming.PlantT
 
 namespace RelCertifier
 open DL DLCalTiming Function Set
 
 variable {n : ℕ}
+
+/-! ## The collapse — fixed budget-unit cuts (the tiling is VERIFIED, not assumed)
+
+**Resolved from the cover code (the gate):** the segment switch is **budget/clock-triggered**,
+not a `domR`-exit first-passage.
+
+* `Checker.decideCovered` recurses on the budget `B`, decrementing by `m.weight`; the base case is
+  `B ≤ m.weight` (one residence closes the budget). The switch is at the budget boundary.
+* `Cover`'s `weight : ℕ` is a joint-residence budget unit (`weightPos`), *not* a domain-exit time.
+* `ClockReduce`/`plantT`: a clock `tg` (`tg' = 1`) **states** the duration-bounded segment; `plantT`
+  bounds `ν tg − ω tg ≤ T`. The segment's duration is fixed by the clock budget, then the clock is
+  eliminated (`clockReduce`).
+* `HExistDischarge`: `hExist` supplies the right witness for **any** `s` where the left stays in
+  `domL` over `[0,s]`, with the right guaranteed in `domR` over the same `[0,s]` (the `hsmax` growth
+  bound). So the right never needs a `domR`-exit first-passage — it stays in `domR` for the whole
+  fixed-budget segment.
+
+Hence the collapse cuts the left flow at the **fixed** clock times `dt = ε_r/λ`. `plantT_split`
+(dL-caltiming, Prop 10) is the banked fixed-cut split: it cuts a `plantT⟨T1+T2⟩` run at the clock
+value `T1` (a *fixed* budget quantity, the same for every run — `min r T1` in its proof). Iterating
+it tiles `[0, k·dt]` into `k` pieces each of duration `dt`, and the tiling is **fixed arithmetic**
+(`(k+1)·dt = dt + k·dt`), **not** an assumed or run-dependent decomposition. -/
+
+/-- `k` consecutive `R`-steps from `ω` to `ν` (exactly `k`, unlike `ReflTransGen`). The collapse's
+tiling record: each step is one fixed-duration budget segment. -/
+def plantSteps (R : State (Var n) → State (Var n) → Prop) :
+    ℕ → State (Var n) → State (Var n) → Prop
+  | 0,     ω, ν => ω = ν
+  | k + 1, ω, ν => ∃ μ, R ω μ ∧ plantSteps R k μ ν
+
+/-- A zero-budget clocked run is the identity: `tg' = 1` forces the duration `r = ν tg − ω tg ≤ 0`
+with `r ≥ 0`, hence `r = 0`, hence `ω = ν`. The base of the fixed-cut tiling. -/
+theorem plantT_zero (sys : ODESystem (Var n)) (ϕ : Formula (Var n)) (tg : Var n)
+    (htg : (tg, Term.const 1) ∈ sys) {ω ν : State (Var n)}
+    (h : plantT (Program.ode sys ϕ) tg 0 ω ν) : ω = ν := by
+  obtain ⟨⟨r, Φ, hr, hΦ0, hΦr, hder, hmask, hdom⟩, hle⟩ := h
+  have H : ODESol sys ϕ ω r Φ := ⟨hr, hΦ0, hder, hmask, hdom⟩
+  have haff := tg_track H htg
+  have hrmem : r ∈ Icc (0 : ℝ) r := right_mem_Icc.mpr hr
+  have hΦ0tg : Φ 0 tg = ω tg := congrFun hΦ0 tg
+  have hνtg : ν tg = ω tg + r := by rw [← hΦr, haff r hrmem, hΦ0tg]
+  have hr0 : r = 0 := le_antisymm (by rw [hνtg] at hle; linarith) hr
+  rw [← hΦ0, ← hΦr, hr0]
+
+/-- **The iterated fixed-cut split (the collapse's heart).** A single clocked left run of duration
+`k·dt` splits into **exactly `k`** consecutive segments each of the **fixed** budget duration `dt`.
+Every cut is at a fixed clock value (`plantT_split`, Prop 10); the tiling `k·dt = dt + ⋯ + dt` is
+verified by arithmetic in the induction, never assumed. This is the budget-triggered collapse: no
+`domR`-exit first-passage, no run-dependent cut. -/
+theorem plantT_split_iter (sys : ODESystem (Var n)) (ϕ : Formula (Var n)) (tg : Var n) (dt : ℝ)
+    (hdt : 0 ≤ dt) (htg : (tg, Term.const 1) ∈ sys) :
+    ∀ (k : ℕ) {ω ν : State (Var n)},
+      plantT (Program.ode sys ϕ) tg ((k : ℝ) * dt) ω ν →
+      plantSteps (fun a b => plantT (Program.ode sys ϕ) tg dt a b) k ω ν := by
+  intro k
+  induction k with
+  | zero =>
+      intro ω ν h
+      simp only [Nat.cast_zero, zero_mul] at h
+      exact plantT_zero sys ϕ tg htg h
+  | succ k ih =>
+      intro ω ν h
+      have hsplit : plantT (Program.ode sys ϕ) tg (dt + (k : ℝ) * dt) ω ν := by
+        rwa [show dt + (k : ℝ) * dt = ((k + 1 : ℕ) : ℝ) * dt by push_cast; ring]
+      obtain ⟨μ, hfirst, hrest⟩ :=
+        plantT_split sys ϕ tg dt ((k : ℝ) * dt) hdt (by positivity) htg ω ν hsplit
+      exact ⟨μ, hfirst, ih hrest⟩
 
 /-- Forward direction: a `bigChoiceP` run is a run of one of its branches (the dispatch used to
 case a `rightAutomatonBody` step onto its firing mode). -/

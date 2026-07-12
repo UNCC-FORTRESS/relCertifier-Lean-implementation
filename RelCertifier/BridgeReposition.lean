@@ -781,4 +781,40 @@ theorem hstep_single_multi (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ)
   · rw [sat_mvValid]
     exact ⟨qf, hqfvalid, Function.update_self mv (qf : ℝ) μ⟩
 
+/-- **The assembled faithful multi loop-step.** Composes the per-left-mode multi lifts
+(`hstep_single_multi`) over the flat left body `bigChoice leftProgs` via `faModal_bigChoiceL`. The
+current right mode `q` is read off the state (`mvValid`); each left mode's genuine-multi-flow
+response (`Hmulti`: the emitted `segs` + the `bigSeq`-flow `faModal` over `invLe g`, from
+`multiseg_clocked`/`clockLift_collapse`) lifts to one `star (rightAutomatonBody G mv)` response.
+This is the **star-right** hstep `relational_loop_multi` consumes — one left residence ↔ a
+mode-switching star, the genuine multi-flow the single-body `hstep_assembled` cannot express. -/
+theorem hstep_assembled_multi (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n))
+    (leftProgs : List (Program (Var n))) (hg : mv ∉ g.fv)
+    (hfresh : ∀ q m, G.modeAt q = some m → mv ∉ (Program.ode m.sys m.dom).fv)
+    (htt : ∀ q, ∀ e ∈ G.edgesFrom q, e.guard = Formula.tt)
+    (hlt : ∀ q, ∀ e ∈ G.edgesFrom q, e.tgt < G.modes.length)
+    (Hmulti : ∀ P ∈ leftProgs, ∀ (q : ℕ), q < G.modes.length → ∀ σ, σ mv = (q : ℝ) →
+      Formula.sat (invLe g) σ →
+      ∃ (fL : Fin n → Term (Var n)) (domL : Formula (Var n))
+        (segs : List (ℕ × RMode (Var n) × REdge (Var n))),
+        P = Program.ode (leftBlock fL) domL ∧ mv ∉ (leftBlock fL).bound ∧
+        (∀ s ∈ segs, G.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ G.edgesFrom s.1) ∧
+        List.IsChain (fun a b => a.2.2.tgt = b.1) segs ∧
+        (∀ s, segs.head? = some s → s.1 = q) ∧
+        Formula.sat (faModal (Equiv.refl (Var n)) (Program.ode (leftBlock fL) domL)
+          (bigSeq (segs.map (fun s => Program.ode s.2.1.sys s.2.1.dom))) (invLe g)) σ) :
+    ∀ σ, Formula.sat (phiInv g mv G.modes.length) σ →
+      Formula.sat (faModal (Equiv.refl (Var n)) (bigChoice leftProgs)
+        (Program.star (rightAutomatonBody G mv)) (phiInv g mv G.modes.length)) σ := by
+  intro σ hφ'
+  obtain ⟨q, hqlt, hmvq⟩ := sat_mvValid.mp hφ'.2
+  refine faModal_bigChoiceL (Equiv.refl (Var n)) (Program.star (rightAutomatonBody G mv))
+    (phiInv g mv G.modes.length) σ leftProgs ?_
+  intro P hP
+  obtain ⟨fL, domL, segs, hPeq, hmvL, halign, hchain, hhead, hfaModal⟩ :=
+    Hmulti P hP q hqlt σ hmvq hφ'.1
+  rw [hPeq]
+  exact hstep_single_multi G mv q g fL domL hg hmvL hqlt hfresh htt hlt segs halign hchain hhead
+    hmvq hfaModal
+
 end RelCertifier

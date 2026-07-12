@@ -300,24 +300,19 @@ the trusted method (Z3 UNSAT-of-negation), reproduced by
 
 | | count | meaning |
 |---|---|---|
-| **CERTIFIED** | **45/47** | verified `decideCovered` accepted the cover; every segment a sound-route Z3 `unsat` |
-| **DECLINED** | **1** (`endurance_orderlift_2to3`) | all queries definitive, no cover closes — a sound NO, method-scope |
+| **CERTIFIED** | **46/47** | verified `decideCovered` accepted the cover; every segment a sound-route Z3 `unsat` |
 | **ERROR** | **1** (`shield_unreachable`) | inconclusive Z3 verdict on a candidate route — surfaced as ERROR, never a false verdict |
 
-The two non-CERTIFIED entries are **honest, distinct** boundaries, not invariant bugs and never a
+The one non-CERTIFIED entry is an **honest** boundary, not an invariant bug and never a
 false-certify (`CERTIFIED` is only ever produced by an actual `unsat`):
 
-- **`endurance_orderlift_2to3` — DECLINED (method-scope).** The reachability-free all-successors
-  single-λ cover cannot witness the `∃`-response for this asymmetric-gain order-lift pairing. The
-  invariant is fine; the cover over-requires (`Covered.step` needs *every* retained successor to cover,
-  the `∀∃` semantics needs only *one*). Recovering it needs a tighter "some response works" cover — a
-  method extension with its own soundness proof, not a bug-fix.
 - **`shield_unreachable` — ERROR (inconclusive).** A candidate route returned a non-definitive Z3
   verdict (`unknown`/timeout class); the tool refuses to guess and reports ERROR rather than certify.
 
-Getting to 45/47 was **spec/cover work, never a soundness loosening**: fuel/λ-grid bumps (reported, not
+Getting to 46/47 was **spec/cover work, never a soundness loosening**: fuel/λ-grid bumps (reported, not
 silently raised), Hold-mode reachable-set tightening (`arm`/`plant`), coupled conserved-lead invariants
-(`endurance`/`rover_terrain`/`orderlift`), position-only invariants (`rover3_M1`), single-mode attitude
+(`endurance`/`rover_terrain`/`orderlift`, including the strengthened `endurance_orderlift_2to3` folded in
+from the former `benchmarks/restated/`), position-only invariants (`rover3_M1`), single-mode attitude
 keys (`story`), and the watertank fill-drift redesign — each reverted-and-retested, each a sound spec fix.
 
 Requires Lean 4 (`leanprover/lean4:v4.31.0`, pinned), a pinned Z3 (`RELCERT_Z3` or a
@@ -352,7 +347,7 @@ proven from vendored Mathlib — **no subtangency**, closes the marginal `ġ=0`-
 contraction/energy class, rejects the `t²` pathology). The trusted layer is tested
 (`relcert-test`): determinism, outcome-integrity (missing Z3 / unparsed / crash → ERROR),
 parser, lowering, Z3-layer verdicts. See the **Benchmark suite** section above for the current
-45/47 trusted-method tally and the honest DECLINED/ERROR breakdown.
+46/47 trusted-method tally and the honest ERROR breakdown.
 
 ## Layout
 

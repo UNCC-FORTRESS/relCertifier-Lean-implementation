@@ -72,7 +72,14 @@ Every source file, its job, the paper result it mechanizes, and the imported the
 | `EncodingBridge.lean` | `faModal_to_faShape`, `relational_loop` | CSF `faModal` ⟹ NFM'25 `faShape` = `[|(L,R)⟩⟩ψ` | dL-rel `sat_encode_faShape`, `encoding_correct` |
 | `PicardBridge.lean` | the `hExist` witness (existence + invariance + chaining) | discharges the ∀∃ duration-existence side-condition | Mathlib `IsPicardLindelof`; dL-lean `sem_ode_iff_integralCurve` |
 | `HExistDischarge.lean` | `hExist_from_rover`/`_cubic` | thread the witness into `segment_faModal` (masking seam) | `PicardBridge`, `Reify` |
-| `ToolLevel.lean` | `certified_relational`, `pair_faModal` | tool-level: a Z3 verdict ⟹ the paper's ∀∃ modality | Encoding + Reify + `z3_unsat_sound` |
+| `ToolLevel.lean` | `certified_relational`, `pair_faModal` | tool-level (**flat** `R*`): a Z3 verdict ⟹ a valid ∀∃ modality over the flat choice-star | Encoding + Reify + `z3_unsat_sound` |
+| `JointBridge.lean` | `rightAutomatonBody`, `R_real`, the transition witness (`rightReach_is_R_real_run`), `psi_ignores_mv` | the **transition-faithful** right automaton: `R_real = star(rightAutomatonBody)` jumps only along *declared* edges | dL-lean `Program.sem`/`coincidence` |
+| `OdeProject.lean` | `ode_project_right` | decouple the joint ODE onto the right block (freeze `Lv`) — `RightAutonomous` | dL-lean `Term.coincidence` |
+| `RightReachProject.lean` | `rightReach_project` | run-level projection of a joint co-execution onto the right automaton | `ode_project_right`, `Formula.coincidence` |
+| `BridgeUnit1.lean` | `diamond_right_wrap`, `hstep_single`, `mvValid`/`EdgeTargetsValid` | wrap a bare right-flow segment into one `rightAutomatonBody` transition; carry mode-validity | `bigChoiceP`, `Formula.coincidence` |
+| `BridgeUnit2.lean` | `hstep_assembled` | assemble per-left-mode wraps into the loop step (`faModal_bigChoiceL`, mode dispatched from `mvValid`) | dL-caltiming `faModal_bigChoiceL` |
+| `BridgeUnit3.lean` | `relational_loop_faithful` | close the `faModal_LOCK` loop over `R_real` and lift to bi-state `faShape` | `faModal_LOCK`, `faModal_to_faShape` |
+| `BridgeFinish.lean` | **`theorem3_faithful`**, `mvValidR` | **Theorem 3 over the *real* automaton**, `rvalid` form (mode-validity in `ϕ_inv`) | units 1-4 + `exists_bridge` + `encoding_correct` |
 | `Oracle.lean` | `z3_unsat_sound` (the one axiom) + `flow_certified` | the trusted SMT leaf | — (axiom) |
 | `Smt.lean` / `Z3.lean` / `Parse.lean` / `Run.lean` / `Main.lean` | computable IR + SMT printer, Z3 session, parser, runner, `relcert` exe | trusted IO shell | uses the verified queries |
 
@@ -126,6 +133,61 @@ and `encoding_correct` is the one theorem that turns "Z3 said `unsat`" into "the
 valid." The single trusted assumption remains `z3_unsat_sound`; the bridge itself is a proven dL-rel
 theorem.
 
+## The transition-faithful ∀∃ — `theorem3_faithful` (`BridgeFinish.lean`)
+
+The assembly above (`certified_relational`, `ToolLevel.lean`) proves a ∀∃ modality whose **right**
+program is the **flat** choice-star `(⨆ right modes)*` — *any* sequence of right modes, in any order.
+Because the ∃-right quantifies over runs of that flat program, it is an **over-approximation of the real
+reasoning automaton**: it is *easier* to satisfy than "there exists a run **that follows the automaton's
+declared transitions**." So the flat statement is *valid but weaker than intended* — the paper's Theorem 3
+is about the ∃ right response of the **actual** automaton, jumping only along declared edges.
+
+`BridgeFinish.theorem3_faithful` closes that gap. It proves the ∀∃ modality over the **transition-faithful**
+right automaton
+
+```
+R_real G mv = star (rightAutomatonBody G mv)
+```
+
+where `rightAutomatonBody` is `⨆_q (test(mode = q) ; ode(mode q) ; ⨆_{e ∈ edgesFrom q} (test e.guard ; mv := e.tgt))`
+— a mode variable `mv` names the current mode, and a jump is possible **only** along a declared edge
+`e ∈ edgesFrom q`. The right-response witness (`JointBridge.rightReach_is_R_real_run`) shows every
+`RightReach` co-execution IS such a run, so `R_real` neither adds nor drops transitions.
+
+The proof is a five-unit assembly (each banked sorry-free, axioms `[propext, Classical.choice, Quot.sound]`):
+
+| Unit | File | Lemma | Job |
+|---|---|---|---|
+| projection | `OdeProject`, `RightReachProject` | `ode_project_right`, `rightReach_project` | project the joint co-execution onto the right block (`RightAutonomous`, freeze `Lv`) |
+| 1 | `BridgeUnit1` | `diamond_right_wrap`, `hstep_single` | one bare right-flow segment ⟹ one `rightAutomatonBody` transition |
+| 2 | `BridgeUnit2` | `hstep_assembled` | ∀ left mode (`faModal_bigChoiceL`), right mode **dispatched from the state's `mv`** |
+| 3+4 | `BridgeUnit3` | `relational_loop_faithful` | `faModal_LOCK` loop over `R_real` + `faModal_to_faShape` lift |
+| 5 | `BridgeFinish` | **`theorem3_faithful`** | `rvalid` lift over every bi-state (`exists_bridge` canonical join) |
+
+**The mode-validity precondition — a real soundness finding.** `rvalid` quantifies over **all**
+bi-states, including ones whose fresh mode variable `mv` holds an **undeclared** index. A bare relational
+invariant `ϕ_inv` never constrains `mv`, so at such a state the automaton's first `test(mode = q)` matches
+nothing, the ∃-right can only take the empty run, and a `ϕ_inv`-breaking left move goes unmatched —
+`faShape` false while `ϕ_inv` true. **So `rvalid(theorem3Form L_flat R_real ϕ_inv)` with a bare `ϕ_inv` is
+false.** The sound statement carries mode-validity in the invariant:
+
+```
+rvalid (theorem3Form L_flat R_real (ϕ_inv ∧ ⌊mvValid⌋_R))
+```
+
+read: *for initial states where the reasoning automaton is in a declared mode, the finer (left) system
+refines the coarser (right) within tolerance.* `mvValid := ⋁_{q < #modes} (mv = q)` is a genuine loop
+invariant — entry-valid, preserved by each `mv := e.tgt` (declared target, `EdgeTargetsValid`), and it
+`encode`s to itself on the right (`⌊·⌋_R`), so the encoded precondition is exactly the loop invariant
+`invLe g ∧ mvValid`. This is a well-formedness assumption on the reference system's initial control state,
+not a soundness dodge; it was caught **in the assembly** (the loop step `hstep` is underivable without it)
+and resolved by strengthening the invariant, leaving `faModal_LOCK` untouched.
+
+**Two routes, one trust boundary.** The *encoding* route (`theorem3_encoded`, a single Z3 `unsat` of the
+negation) and the *transition-faithful assembly* route (`theorem3_faithful`, per-segment certs composed
+through `R_real`) are independent soundness arguments; both rest on the same `z3_unsat_sound` leaf and the
+same three Lean axioms. `theorem3_faithful` is the one that pins the ∃-right to the **declared** automaton.
+
 ### Trust boundary
 
 ```
@@ -148,6 +210,13 @@ either the domain-wide non-strict route (`DI_nonstrict_domain`) or the strict-bo
 route (`DI_strict`), never the unsound one — declining where only the unsound route would
 succeed. Pruning is one-sided: an edge is dropped only on a trusted UNSAT; failing to
 prune is safe by default.
+
+Two further findings surfaced building the transition-faithful bridge (both resolved, see the
+section above): (1) the **flat `R*` over-approximation** is a *weaker* ∀∃ than the paper's
+automaton claim — the ∃-right must follow **declared** transitions, which `theorem3_faithful`
+(`R_real`) enforces; (2) `rvalid` over a **bare** relational invariant is **false** at bi-states
+whose fresh mode variable is undeclared — the sound statement carries `⌊mvValid⌋_R` in `ϕ_inv`
+(the reasoning automaton starts in a declared mode).
 
 ## The oracle (for invariant-synthesis search)
 
@@ -177,7 +246,7 @@ PATH-resolved), a **persistent** `z3 -in` process (warm), with `(reset)` + a per
 `:timeout` + a machine-independent `:rlimit` + an `(echo)` **sentinel** that keeps the pipe
 in sync so the same query always gives the same verdict. The cover DFS is memoized so a
 large time-stretch can't blow up the pure search. **Warm per-call: mean 49 ms, median
-26 ms, p90 101 ms, max 199 ms** (all 46 in ~2–3 s) — dominated by the Z3 solve. Every call
+26 ms, p90 101 ms, max 199 ms** (all 47 in ~2–3 s) — dominated by the Z3 solve. Every call
 terminates (query / SMT-size / wall / rlimit bounds, all deterministic).
 
 ## Running it
@@ -223,56 +292,33 @@ axioms throughout, **no new axiom, no subtangency, no clock, no `sem`-gating**.
 `ν si + v_max·s ≤ S_max`) as `left_duration_bound` (analytic, proven) + a Z3-checkable
 arithmetic inequality.
 
-## Benchmark suite — instantiation results
+## Benchmark suite — results
 
-The full 46-benchmark suite (from `relCertifier-src`, under `benchmarks/suite/`) run on the
-trusted method (Z3 UNSAT-of-negation):
+The full **47**-benchmark suite (under `benchmarks/suite/`, each a directory with `input.txt`) run on
+the trusted method (Z3 UNSAT-of-negation), reproduced by
+`lake exe relcert benchmarks/suite/*/input.txt`:
 
-| | count | route |
+| | count | meaning |
 |---|---|---|
-| **CERTIFIED** — source invariant inductive | **35/46** | flow-cert Z3 UNSAT, cover closes (20-step λ grid) |
-| CERTIFIED — **restated** (strengthened) invariant | **+7** | `benchmarks/restated/` — 4 rover-family (velocity-coupled) + 3 arm/plant (`θ[l]−θ[r]+v[l]≤d ∧ θ[l]≤θ[r]+d`) |
-| CERTIFIED — **faithful successor correction** (dead-edge removal, invariant unchanged) | **+2** | `match_multi_eps`, `rover3tier_M1` |
-| **DECLINED** — beyond the reachability-free single-λ cover | **2** | method-scope; tool declines soundly |
+| **CERTIFIED** | **45/47** | verified `decideCovered` accepted the cover; every segment a sound-route Z3 `unsat` |
+| **DECLINED** | **1** (`endurance_orderlift_2to3`) | all queries definitive, no cover closes — a sound NO, method-scope |
+| **ERROR** | **1** (`shield_unreachable`) | inconclusive Z3 verdict on a candidate route — surfaced as ERROR, never a false verdict |
 
-**44/46 discharge** (42 on the trusted invariant method + 2 via a faithful successor
-correction). **Key finding**: the declines were **method-scope**, not invariant-restatement
-gaps — the invariants are correct; the reachability-free all-successors single-λ cover can't
-witness the `∃`-response. `match_multi_eps`/`rover3tier_M1`: L `ACCEL` `v'=k(1−v)` asymptotes
-to `v=1`, so the `COAST` guard `v≥1` is **never reached** → the `ACCEL→COAST` edge is **dead**;
-the all-successors cover required covering it (forcing `v_R→0.2` while `v_L→1`, `Δv→0.8>0.5`).
-Removing the dead edge is a faithful **successor-completeness** correction (model-faithfulness
-TCB, invariant unchanged) — the sound strict barrier can't prune it (`İ=0` equilibrium at `v=1`,
-the `t²`-class boundary).
+The two non-CERTIFIED entries are **honest, distinct** boundaries, not invariant bugs and never a
+false-certify (`CERTIFIED` is only ever produced by an actual `unsat`):
 
-**The 2 remaining declines are honest, distinct scope boundaries of the paper's Definition-4 cover —
-not invariant gaps and not the same failure.** The invariants are correct; the tool declines soundly.
+- **`endurance_orderlift_2to3` — DECLINED (method-scope).** The reachability-free all-successors
+  single-λ cover cannot witness the `∃`-response for this asymmetric-gain order-lift pairing. The
+  invariant is fine; the cover over-requires (`Covered.step` needs *every* retained successor to cover,
+  the `∀∃` semantics needs only *one*). Recovering it needs a tighter "some response works" cover — a
+  method extension with its own soundness proof, not a bug-fix.
+- **`shield_unreachable` — ERROR (inconclusive).** A candidate route returned a non-definitive Z3
+  verdict (`unknown`/timeout class); the tool refuses to guess and reports ERROR rather than certify.
 
-- **`arm_chain_rung1` — the all-successors *conservatism*.** A safe `∃`-response exists (the right
-  `Approach` can evolve past its guard, staying alongside the forward-moving left `ApproachFast`). But
-  Definition 4 (`Covered.step`) requires **every retained successor** to cover, and the right's
-  `Approach→Return` edge is enabled (its guard `θ≥0.7` is genuinely reached), so it is retained — and
-  `Return` (θ decreasing) cannot cover the still-forward left. The `∀∃` semantics needs *one* right
-  response; the paper's cover proves *all* retained responses safe (sufficient, but stronger). Recovering
-  this benchmark would require a **tighter cover** that certifies "some response works" — a *method
-  extension* with its own soundness proof, **not** a bug-fix and not the paper's Definition 4.
-- **`rover3_M1` — no safe response exists at all.** Its `Drift` mode is uncoverable by **every** right
-  mode (all Z3-SAT), so there is no `∃`-response in the reachability-free setting. It needs **budget-aware
-  Strategy-2 reachability**, which the universal all-successors cover rejects by design — genuinely out of
-  scope. (Not reopened on simulation; Z3-SAT is the trusted signal.)
-
-So the two boundaries are different in kind: one is the *conservatism* of all-successors (a response
-exists but the cover over-requires); the other is a *true absence* of any response (needs reachability).
-Both are correct declines — the tool **never false-certifies** (Z3-SAT, not simulation, is trusted).
-
-**42/46 on the pure trusted method (Z3 UNSAT).** Instantiation was the in-use check — per benchmark:
-shape match (46/46), Z3 query closes, side-conditions (cubic factor `0.5ψ²+0.3θ²∈[0.20,0.39]<1`; coupled
-real-eigenvalue) — all confirmed. It **surfaced** the declines rather than forcing them: `arm_chain_rung2`
-was a **λ-search limit** (denser 20-step grid certifies it, invariant fine); `arm_refinement`,
-`arm_fidelity_low`, `plant_fan_low` were **restatement gaps** (velocity-coupled conjunction, proven to
-imply the safety property, certifies via Z3 UNSAT); `match_multi_eps`, `rover3tier_M1` were **dead-edge**
-(faithful successor correction). We do **not** force the last two — a `+0.8` invariant on match/rover3tier
-certifies but *weakens* the safety property (`v_L≤v_R+0.5`), so it is invalid.
+Getting to 45/47 was **spec/cover work, never a soundness loosening**: fuel/λ-grid bumps (reported, not
+silently raised), Hold-mode reachable-set tightening (`arm`/`plant`), coupled conserved-lead invariants
+(`endurance`/`rover_terrain`/`orderlift`), position-only invariants (`rover3_M1`), single-mode attitude
+keys (`story`), and the watertank fill-drift redesign — each reverted-and-retested, each a sound spec fix.
 
 Requires Lean 4 (`leanprover/lean4:v4.31.0`, pinned), a pinned Z3 (`RELCERT_Z3` or a
 standard absolute path), and `dL-rel` at `../dL-rel` (transitively provides dL-lean
@@ -306,7 +352,7 @@ proven from vendored Mathlib — **no subtangency**, closes the marginal `ġ=0`-
 contraction/energy class, rejects the `t²` pathology). The trusted layer is tested
 (`relcert-test`): determinism, outcome-integrity (missing Z3 / unparsed / crash → ERROR),
 parser, lowering, Z3-layer verdicts. See the **Benchmark suite** section above for the current
-42/46 trusted-method tally and the honest decline breakdown.
+45/47 trusted-method tally and the honest DECLINED/ERROR breakdown.
 
 ## Layout
 

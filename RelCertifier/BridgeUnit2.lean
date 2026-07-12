@@ -32,7 +32,11 @@ theorem hstep_assembled (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n)
         P = Program.ode (leftBlock fL) domL ∧ mv ∉ (leftBlock fL).bound ∧
         m.sys = rightBlock fR lam ∧ m.dom = domR ∧
         e ∈ G.edgesFrom q ∧ e.guard = Formula.tt ∧ e.tgt < G.modes.length ∧
-        (∀ s, Formula.sat (faModal (Equiv.refl (Var n))
+        -- invariant-CONDITIONAL: `segment_faModal`/`SegPreserves` supply the per-pair faModal only
+        -- at invariant states (a segment preserves `g ≤ 0`, it cannot restore a violated one). This
+        -- is exactly the state `hstep` is invoked at (`φinv' ⊢ invLe g`), so conditioning loses
+        -- nothing — and the unconditional form was unsound to assume.
+        (∀ s, Formula.sat (invLe g) s → Formula.sat (faModal (Equiv.refl (Var n))
           (Program.ode (leftBlock fL) domL) (Program.ode (rightBlock fR lam) domR) (invLe g)) s)) :
     ∀ σ, Formula.sat (phiInv g mv G.modes.length) σ →
       Formula.sat (faModal (Equiv.refl (Var n)) (bigChoice leftProgs) (rightAutomatonBody G mv)
@@ -51,6 +55,6 @@ theorem hstep_assembled (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n)
     Hpair P hP q m hm
   rw [hPeq]
   exact hstep_single G mv q m g fL fR lam domL domR hg hmvL hm hsys hdom hef hetg hetv hmvq
-    (hcert σ)
+    (hcert σ hφ'.1)
 
 end RelCertifier

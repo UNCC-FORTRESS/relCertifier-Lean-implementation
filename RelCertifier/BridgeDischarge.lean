@@ -1,7 +1,7 @@
 /-
 The single-flow end-to-end seam: discharge `hstep`/`Hpair` from the cover certificate, closing the
 
-`theorem3_faithful` (Island B) took `hstep` as a hypothesis; `hstep_assembled` reduces it to the
+`theorem3_faithful` took `hstep` as a hypothesis (the modality half); `hstep_assembled` reduces it to the
 per-pair certificate family `Hpair`. Nothing discharged `Hpair` from the checker — the seam
 `check_sound`'s cover ⟹ `hstep` was a comment (Phase-1 Link 2). This file writes it.
 
@@ -156,7 +156,7 @@ theorem rvalid_from_cert
 verdict on the joint cover graph (`decideCovered Gj = true`), its cover certificate (`cert`, where
 the Z3 leaf lives), and the **structural** R-projection alignment `RightProjAlign` (no Z3 obligation),
 the paper's ∀∃ refinement modality over the *real* automaton holds at every bi-state — AND the
-co-execution invariant holds throughout (Island A). `hstep`/`Hpair` are DISCHARGED from **`cert`**
+co-execution invariant holds throughout (the throughput half). `hstep`/`Hpair` are DISCHARGED from **`cert`**
 (`hpair_from_cover` draws each per-pair `faModal` from `cert.segPres`, the cover certificate the
 checker validates), NOT assumed — there is no `z3solve = unsat` hypothesis.
 

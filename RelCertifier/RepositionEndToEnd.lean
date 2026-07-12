@@ -18,7 +18,7 @@ variable {n : ℕ}
 lives), the structural R-projection alignment (`RightProjAlign`, no Z3), and the multi-flow emit
 (`EmitSegs`, the declared-edge mode-switch sequences), the transition-faithful ∀∃ refinement modality
 over the real automaton `R_real Gr mv` holds at every bi-state — for **genuine multi-flow** covers
-(the right switches modes within one left residence). AND (Island A) the co-execution invariant holds
+(the right switches modes within one left residence). AND the co-execution invariant holds
 throughout, from `decideCovered Gj = true` via `check_sound`.
 
 Each per-segment `faModal` is drawn from **`cert.segPres`** (`Hmulti_from_cover` ← `box_joint_to_clocked`

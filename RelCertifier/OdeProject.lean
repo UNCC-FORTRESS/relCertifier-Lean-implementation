@@ -33,15 +33,15 @@ theorem ode_project_right (fL fR : Fin n → Term (Var n)) (lam : Term (Var n))
     (domL domR : Formula (Var n))
     (hfR : ∀ i, (fR i).fv ⊆ RvSet n) (hlam : lam.fv ⊆ RvSet n)
     (hdomR : Formula.fv domR ⊆ RvSet n)
-    {ν μ : State (Var n)}
+    (cL : State (Var n)) {ν μ : State (Var n)}
     (h : Program.sem (Program.ode (jointSys fL fR lam) (Formula.and domL domR)) ν μ) :
-    Program.sem (Program.ode (rightBlock fR lam) domR) ν (freezeL ν μ) := by
+    Program.sem (Program.ode (rightBlock fR lam) domR) (freezeL cL ν) (freezeL cL μ) := by
   obtain ⟨r, Φ, hr, hΦ0, hΦr, hderiv, hmask, hdom⟩ := h
-  refine ⟨r, fun t => freezeL ν (Φ t), hr, ?_, ?_, ?_, ?_, ?_⟩
-  · -- Φ 0 initial: freezeL ν (Φ 0) = ν  (Φ 0 = ν, and freezeL fixes L to ν)
-    funext v; rcases v with ⟨s, i⟩; cases s <;> simp [freezeL, hΦ0]
-  · -- endpoint: freezeL ν (Φ r) = freezeL ν μ
-    show freezeL ν (Φ r) = freezeL ν μ; rw [hΦr]
+  refine ⟨r, fun t => freezeL cL (Φ t), hr, ?_, ?_, ?_, ?_, ?_⟩
+  · -- Φ 0 initial: freezeL cL (Φ 0) = freezeL cL ν
+    show freezeL cL (Φ 0) = freezeL cL ν; rw [hΦ0]
+  · -- endpoint: freezeL cL (Φ r) = freezeL cL μ
+    show freezeL cL (Φ r) = freezeL cL μ; rw [hΦr]
   · -- derivatives: each right equation, value decoupled from Lv via RightAutonomous
     intro t ht p hp
     -- p ∈ rightBlock ⟹ p = (Rv i, lam * fR i); the L-frozen curve's Rv-component is Φ's
@@ -53,24 +53,24 @@ theorem ode_project_right (fL fR : Fin n → Term (Var n)) (lam : Term (Var n))
     have hd := hderiv t ht _ hpj
     -- value at Φ t equals value at freezeL ν (Φ t): lam, fR i read only Rv
     have hval : (Term.binop AOp.mul lam (fR i)).eval (Φ t)
-        = (Term.binop AOp.mul lam (fR i)).eval (freezeL ν (Φ t)) := by
+        = (Term.binop AOp.mul lam (fR i)).eval (freezeL cL (Φ t)) := by
       simp only [Term.eval]
-      rw [Term.coincidence lam ((eqOn_Rv ν (Φ t)).mono hlam),
-          Term.coincidence (fR i) ((eqOn_Rv ν (Φ t)).mono (hfR i))]
-    have hfun : (fun s => (freezeL ν (Φ s)) (Rv i)) = (fun s => Φ s (Rv i)) := by
+      rw [Term.coincidence lam ((eqOn_Rv cL (Φ t)).mono hlam),
+          Term.coincidence (fR i) ((eqOn_Rv cL (Φ t)).mono (hfR i))]
+    have hfun : (fun s => (freezeL cL (Φ s)) (Rv i)) = (fun s => Φ s (Rv i)) := by
       funext s; rfl
-    show HasDerivWithinAt (fun s => (freezeL ν (Φ s)) (Rv i))
-      ((Term.binop AOp.mul lam (fR i)).eval (freezeL ν (Φ t))) (Set.Icc 0 r) t
+    show HasDerivWithinAt (fun s => (freezeL cL (Φ s)) (Rv i))
+      ((Term.binop AOp.mul lam (fR i)).eval (freezeL cL (Φ t))) (Set.Icc 0 r) t
     rw [hfun, ← hval]; exact hd
   · -- masking: non-right vars held at ν
     intro t ht x hx
     rcases x with ⟨sd, i⟩; cases sd with
-    | L => rfl
+    | L => show freezeL cL (Φ t) (Side.L, i) = freezeL cL ν (Side.L, i); rfl
     | R => exact absurd (List.mem_map.mpr ⟨(Rv i, Term.binop AOp.mul lam (fR i)),
         List.mem_map.mpr ⟨i, List.mem_finRange i, rfl⟩, rfl⟩) hx
   · -- domain: domR holds along the frozen curve (domR reads only Rv)
     intro t ht
     have := (hdom t ht).2
-    exact (Formula.coincidence domR ((eqOn_Rv ν (Φ t)).mono hdomR)).mp this
+    exact (Formula.coincidence domR ((eqOn_Rv cL (Φ t)).mono hdomR)).mp this
 
 end RelCertifier

@@ -2,6 +2,12 @@
 Part A — run-level projection: the cover's jointSys RightReach projects to a right-only
 RightReach over the rightBlock-projected graph, threading freezeL at a global cL.
 Assembles ode_project_right along the run by structural induction.
+
+STATUS: proven; RESERVED for the run-level route. `rightReach_project`'s per-mode alignment
+hypothesis (`hmode`) is the SAME joint↔right relation the end-to-end discharge carries as the
+structural `RightProjAlign` (`BridgeDischarge`) — but that discharge is CERTIFICATE-level
+(`cert.segPres` → `segment_faModal`) and does not run the projection. Kept for the reposition
+extension (Phase 2b) / a run-level soundness argument. Not dead code.
 -/
 import RelCertifier.JointBridge
 import RelCertifier.OdeProject

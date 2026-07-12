@@ -2,6 +2,11 @@
 Part A keystone — the per-segment ODE decoupling.
 A jointSys run projects to a rightBlock (right-only) run: freeze Lv, keep Rv.
 The derivative decoupling rests on RightAutonomous (fR/lam/domR read only Rv).
+
+STATUS: proven; RESERVED for the run-level projection route (feeds `rightReach_project`). The
+end-to-end certificate discharge (`BridgeDischarge`) does NOT use it — that path decouples at the
+CERTIFICATE level via `segment_faModal`. Kept for the reposition extension (Phase 2b) and any
+run-level soundness argument.
 -/
 import RelCertifier.Reify
 import RelCertifier.FlowCert

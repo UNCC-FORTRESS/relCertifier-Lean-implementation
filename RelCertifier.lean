@@ -51,4 +51,5 @@ import RelCertifier.GapThreeRoverDemo
 import RelCertifier.ProbeMvHd
 import RelCertifier.GapThreeRoverTooling
 import RelCertifier.GuardLegality
+import RelCertifier.WellFormedFlow
 import RelCertifier.AxiomCheck

@@ -11,6 +11,12 @@ correct**, each proof citing a mechanized theorem of the imported theory. The si
 trusted assumption of the whole tool is that Z3's `unsat` verdict is sound
 (`z3_unsat_sound`); everything else is kernel-checked.
 
+The headline guarantee is **`theorem3_faithful`** (`BridgeFinish.lean`): a positive checker verdict
+implies the paper's ∀∃ refinement modality over the **real reasoning automaton** — the right ∃-response
+jumps only along *declared* transitions (`R_real = star(rightAutomatonBody)`), not the weaker flat
+choice-star. See *The transition-faithful ∀∃* below. On the 47-benchmark suite the tool reports
+**46 CERTIFIED / 47** (1 inconclusive-Z3 ERROR, never a false verdict).
+
 ## Imported theories — the four repos it builds on
 
 relCertifier-lean proves nothing about differential dynamic logic from scratch; it **composes
@@ -30,15 +36,17 @@ dL-lean is pinned transitively through dL-rel.
 
 ## What is verified
 
-The tool is built bottom-up as three verified local certificates plus their composition,
-then a runnable front-end.
+The tool is built bottom-up as three verified local certificates, their composition into the
+cover (Theorem 3), the transition-faithful ∀∃ bridge over the real automaton, then a runnable
+front-end.
 
 | Stage | File | Function(s) | Correctness theorem | Cites |
 |---|---|---|---|---|
 | **1. Flow certificate** | `FlowCert.lean` | `tderiv`, `lieDeriv`, `flowQuery` | `flow_cert_sound` / `_strict` / `_superlevel` | `DI_nonstrict_domain` / `DI_strict` / `DI_nonstrict_superlevel` |
 | **2. Non-connection** | `NonConn.lean` | `lieAlong`, `sourceCheck`, `barrierCheck` | `nonconn_sound` | dL-lean `DI_strict` (Nagumo barrier) |
 | **3. Cover / Theorem 3** | `Cover.lean`, `Cover/Encoding.lean` | `Covered`, `RightReach`, `cover_sound` | `cover_sound`, `theorem3_encoded` | flow + nonconn + dL-rel `encoding_correct` |
-| **4. Runner** | `Parse.lean`, `Run.lean`, `Main.lean` | parser + Z3-driven cover | — (trusted IO) | uses the verified queries |
+| **4. Transition-faithful ∀∃** | `JointBridge.lean` … `BridgeFinish.lean` | `R_real`, the 5-unit bridge | **`theorem3_faithful`** | `faModal_LOCK` + `faModal_to_faShape` + `encoding_correct` |
+| **5. Runner** | `Parse.lean`, `Run.lean`, `Main.lean` | parser + Z3-driven cover | — (trusted IO) | uses the verified queries |
 
 The load-bearing new proof is **`tderiv_correct`**: the syntactic partial derivative of a
 term denotes its analytic partial derivative (`HasDerivAt`, by induction on `Term`,

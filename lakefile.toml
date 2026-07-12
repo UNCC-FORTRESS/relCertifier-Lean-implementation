@@ -9,12 +9,12 @@ maxSynthPendingDepth = 3
 
 # dL-rel (NFM'25 relational dL) transitively provides dL-lean v0.1.0-DI (Stages 1-2:
 # Term/Formula/DI) AND the Stage-3 global ∀∃ encoding bridge (RFormula.encoding_correct,
-# faShape, Bridges/exists_bridge). One require avoids a double dL-lean. Pinned to a commit
-# for reproducibility; move the rev forward deliberately (re-run `lake update dL-rel`).
+# faShape, Bridges/exists_bridge). One require avoids a double dL-lean. Pinned to the
+# release tag; bump deliberately (re-run `lake update dL-rel`).
 [[require]]
 name = "dL-rel"
 git = "https://github.com/UNCC-FORTRESS/NFM25-relDL-Lean.git"
-rev = "2df2e0588c2b3f780c553b819d72d3d834737573"
+rev = "v0.1.0-NFM25"
 
 [[lean_lib]]
 name = "RelCertifier"

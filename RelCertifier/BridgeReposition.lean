@@ -13,6 +13,7 @@ import RelCertifier.JointBridge
 import RelCertifier.Reify
 import RelCertifier.PicardBridge
 import RelCertifier.MultiSeg
+import RelCertifier.BridgeUnit2
 import DLCalTiming.PlantT
 
 namespace RelCertifier
@@ -702,20 +703,20 @@ theorem faithful_rights_bridge (G : SearchGraph (Var n)) (mv : Var n)
     ∀ (segs : List (ℕ × RMode (Var n) × REdge (Var n))),
       (∀ s ∈ segs, G.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ G.edgesFrom s.1) →
       List.IsChain (fun a b => a.2.2.tgt = b.1) segs →
-      ∀ (q0 : ℕ) {ν μ : State (Var n)},
+      ∀ (q0 : ℕ), q0 < G.modes.length → ∀ {ν μ : State (Var n)},
         (∀ s, segs.head? = some s → s.1 = q0) →
         Program.sem (bigSeq (segs.map (fun s => Program.ode s.2.1.sys s.2.1.dom))) ν μ →
-        ∃ qf, Program.sem (Program.star (rightAutomatonBody G mv))
+        ∃ qf, qf < G.modes.length ∧ Program.sem (Program.star (rightAutomatonBody G mv))
           (Function.update ν mv (q0 : ℝ)) (Function.update μ mv (qf : ℝ)) := by
   intro segs
   induction segs with
   | nil =>
-      intro _ _ q0 _ _ _ hrun
+      intro _ _ q0 hq0valid _ _ _ hrun
       rw [List.map_nil, bigSeq, sem_test] at hrun
       obtain ⟨rfl, _⟩ := hrun
-      exact ⟨q0, Relation.ReflTransGen.refl⟩
+      exact ⟨q0, hq0valid, Relation.ReflTransGen.refl⟩
   | cons s rest ih =>
-      intro halign hchain q0 _ _ hstart hrun
+      intro halign hchain q0 _ _ _ hstart hrun
       have hq0 : s.1 = q0 := hstart s rfl
       subst hq0
       simp only [List.map_cons, bigSeq] at hrun
@@ -729,8 +730,55 @@ theorem faithful_rights_bridge (G : SearchGraph (Var n)) (mv : Var n)
         · exact absurd ht (by simp)
         · simp only [List.head?_cons, Option.some.injEq] at ht
           subst ht; exact hchain.rel.symm
-      obtain ⟨qf, htail⟩ := ih (fun t ht => halign t (List.mem_cons_of_mem s ht))
-        hchain.of_cons s.2.2.tgt htailstart hrest
-      exact ⟨qf, Relation.ReflTransGen.trans hfirst htail⟩
+      -- the next mode `s.2.2.tgt` is a declared valid target (EdgeTargetsValid) — mvValid rides the fold
+      obtain ⟨qf, hqfvalid, htail⟩ := ih (fun t ht => halign t (List.mem_cons_of_mem s ht))
+        hchain.of_cons s.2.2.tgt (hlt s.1 s.2.2 he) htailstart hrest
+      exact ⟨qf, hqfvalid, Relation.ReflTransGen.trans hfirst htail⟩
+
+/-- **The bigSeq→star faithful mv-lift (per left mode).** Upgrades the genuine-multi-flow
+`faModal … (bigSeq rights) (invLe g)` (from `multiseg_clocked` + `clockLift_collapse`) to the
+faithful loop step `faModal … (star (rightAutomatonBody G mv)) (phiInv g mv k)`. Two banked
+mechanisms carry it:
+* **mv-invisibility** — `mv ∉ leftBlock.bound` (`leftBlock_frames_mv`) ⟹ `ν mv = σ mv = q`, so
+  `update ν mv q = ν` (start aligns); `mv ∉ g.fv` (`Term.coincidence`) ⟹ `invLe g` transfers from
+  `μ` to the mv-updated witness. The same `mv`-invisibility as the flow fragment.
+* **mvValid-preservation** — the star endpoint's mode `qf` is a declared valid target
+  (`qf < modes.length`, from `faithful_rights_bridge` threading `EdgeTargetsValid` at **every**
+  step of the fold, not just the last), so `mvValid` holds at the witness. -/
+theorem hstep_single_multi (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ)
+    (g : Term (Var n)) (fL : Fin n → Term (Var n)) (domL : Formula (Var n))
+    (hg : mv ∉ g.fv) (hmvL : mv ∉ (leftBlock fL).bound) (hqlt : q < G.modes.length)
+    (hfresh : ∀ q m, G.modeAt q = some m → mv ∉ (Program.ode m.sys m.dom).fv)
+    (htt : ∀ q, ∀ e ∈ G.edgesFrom q, e.guard = Formula.tt)
+    (hlt : ∀ q, ∀ e ∈ G.edgesFrom q, e.tgt < G.modes.length)
+    (segs : List (ℕ × RMode (Var n) × REdge (Var n)))
+    (halign : ∀ s ∈ segs, G.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ G.edgesFrom s.1)
+    (hchain : List.IsChain (fun a b => a.2.2.tgt = b.1) segs)
+    (hhead : ∀ s, segs.head? = some s → s.1 = q)
+    {σ : State (Var n)} (hmvq : σ mv = (q : ℝ))
+    (hfaModal : Formula.sat (faModal (Equiv.refl (Var n)) (Program.ode (leftBlock fL) domL)
+        (bigSeq (segs.map (fun s => Program.ode s.2.1.sys s.2.1.dom))) (invLe g)) σ) :
+    Formula.sat (faModal (Equiv.refl (Var n)) (Program.ode (leftBlock fL) domL)
+      (Program.star (rightAutomatonBody G mv)) (phiInv g mv G.modes.length)) σ := by
+  rw [faModal_sat] at hfaModal ⊢
+  intro ν hleft
+  obtain ⟨μ, hbigSeq, hinvμ⟩ := hfaModal ν hleft
+  have hνmv : ν mv = (q : ℝ) := (leftBlock_frames_mv fL domL mv hmvL hleft).trans hmvq
+  rw [Program.rename_refl] at hbigSeq
+  obtain ⟨qf, hqfvalid, hstar⟩ :=
+    faithful_rights_bridge G mv hfresh htt hlt segs halign hchain q hqlt hhead hbigSeq
+  have hupdν : Function.update ν mv (q : ℝ) = ν := by
+    funext x; by_cases hx : x = mv
+    · subst hx; rw [Function.update_self, hνmv]
+    · rw [Function.update_of_ne hx]
+  rw [hupdν] at hstar
+  refine ⟨Function.update μ mv (qf : ℝ), by rw [Program.rename_refl]; exact hstar, ?_⟩
+  rw [phiInv, sat_and]
+  refine ⟨?_, ?_⟩
+  · rw [sat_invLe] at hinvμ ⊢
+    rwa [Term.coincidence g (fun y hy =>
+      Function.update_of_ne (fun hc => hg (by rw [← hc]; exact hy)) _ _)]
+  · rw [sat_mvValid]
+    exact ⟨qf, hqfvalid, Function.update_self mv (qf : ℝ) μ⟩
 
 end RelCertifier

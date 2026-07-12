@@ -190,6 +190,77 @@ theorem faModal_ODE_G'_bounded (ρ : Var n ≃ Var n) (sysX sysY : ODESystem (Va
       exact ⟨hφxΦ t ht, hξyΦ t ht⟩
     exact hP2 (Φ s) hfull
 
+/-! ### Piece 2 — the `faModalB ⟺ clockedSeg` bridge (the last soundness obligation)
+
+`clockedSeg` runs the left mode under a fresh clock `tg` (reset to `0`, `tg' = 1`) followed by a
+**test on the clock** `?(tg ≤ dt)`. The bridge shows this equals the bounded coupling `faModalB`:
+
+* **(i) the guard is on the clock, ≡ the plantT predicate.** The post-reset test `?(tg ≤ dt)` fires
+  iff `ν tg ≤ dt`; with `tg` reset to `0` at segment start, `ν tg = ν tg − σ₀ tg`, so the test is
+  **exactly** the plantT duration bound `plantT (ode …) tg dt σ₀ ν`. Proven as an `↔` below — the
+  test and the predicate are interderivable, not merely one-directional.
+* **(ii) `domR` unnarrowed.** The right factor `Q` is **unchanged** across the bridge (same `Q` in
+  `faModalB` and in `clockedSeg`'s diamond). `Q = ode (rightBlock …) domR` keeps the mode's real
+  evolution domain. The clock touches only `tg`: `clk tg leftSys` appends `(tg, 1)` to the **left**
+  system, and the guard reads only `tg` — with `tg` fresh (`tg ∉ φy.fv`, `tg ∉` physical vars) the
+  guard is provably distinct from any narrowing of `domR`. That freshness is what makes "guard on
+  the clock" ≠ "narrow the domain."
+
+`clkGuard tg dt = ?(tg ≤ dt)`; `clockedSeg = (tg := 0); ode (clk tg leftSys) domL; ?(tg ≤ dt)`. -/
+
+/-- The fresh-clock duration guard `?(tg ≤ dt)`. -/
+def clkGuard (tg : Var n) (dt : ℝ) : Formula (Var n) :=
+  Formula.cmp CompOp.le (Term.var tg) (Term.const dt)
+
+@[simp] theorem sat_clkGuard (tg : Var n) (dt : ℝ) (ν : State (Var n)) :
+    Formula.sat (clkGuard tg dt) ν ↔ ν tg ≤ dt := by
+  simp only [clkGuard, Formula.sat, Term.eval, CompOp.interp]
+
+/-- One clocked segment: reset the fresh clock, evolve the left under it, test the clock ≤ `dt`. -/
+def clockedSeg (leftSys : ODESystem (Var n)) (domL : Formula (Var n)) (tg : Var n) (dt : ℝ) :
+    Program (Var n) :=
+  Program.seq (Program.assign tg (Term.const 0))
+    (Program.seq (Program.ode (clk tg leftSys) domL) (Program.test (clkGuard tg dt)))
+
+/-- **The bridge (`↔`).** The `clockedSeg` faModal at `σ` equals the bounded coupling `faModalB` at
+the reset state `σ[tg ↦ 0]`. The post-reset clock test `?(tg ≤ dt)` and the plantT duration
+predicate are **interderivable** — confirming (i). `Q` (hence `domR`) is untouched — confirming
+(ii). No freshness needed for the equivalence itself (pure unfolding); freshness is the *semantic*
+distinctness of the clock guard, carried explicitly downstream (clk-disjointness). -/
+theorem faModalB_clockedSeg_iff (leftSys : ODESystem (Var n)) (domL : Formula (Var n))
+    (Q : Program (Var n)) (φ : Formula (Var n)) (tg : Var n) (dt : ℝ) (σ : State (Var n)) :
+    Formula.sat (faModal (Equiv.refl (Var n)) (clockedSeg leftSys domL tg dt) Q φ) σ ↔
+      faModalB (Equiv.refl (Var n)) (Program.ode (clk tg leftSys) domL) Q φ tg dt
+        (Function.update σ tg 0) := by
+  have hσ0tg : Function.update σ tg (0 : ℝ) tg = 0 := Function.update_self tg 0 σ
+  rw [faModal_sat]
+  constructor
+  · -- faModal clockedSeg → faModalB
+    intro h ν hplant
+    obtain ⟨hsem, hbound⟩ := hplant
+    -- build the clockedSeg run σ → ν and read off the diamond
+    have hrun : Program.sem (clockedSeg leftSys domL tg dt) σ ν := by
+      refine ⟨Function.update σ tg 0, ⟨hσ0tg, fun y hy => Function.update_of_ne hy 0 σ⟩, ν, hsem, ?_⟩
+      refine ⟨rfl, ?_⟩
+      rw [sat_clkGuard]
+      have : ν tg - Function.update σ tg (0 : ℝ) tg ≤ dt := hbound
+      rw [hσ0tg] at this; linarith
+    exact h ν hrun
+  · -- faModalB → faModal clockedSeg
+    intro h ν hrun
+    obtain ⟨σ0, ⟨hσ0, hσ0rest⟩, ν0, hode, hν0eq, hguard⟩ := hrun
+    -- the assign fixes σ0 = σ[tg ↦ 0]
+    have hσ0eq : σ0 = Function.update σ tg 0 := by
+      funext y
+      by_cases hy : y = tg
+      · subst hy; rw [hσ0, hσ0tg]; simp [Term.eval]
+      · rw [hσ0rest y hy, Function.update_of_ne hy 0 σ]
+    subst hν0eq
+    rw [sat_clkGuard] at hguard
+    -- reconstruct the plantT predicate and apply faModalB
+    refine h ν0 ⟨by rw [hσ0eq] at hode; exact hode, ?_⟩
+    rw [hσ0tg]; linarith
+
 /-- Forward direction: a `bigChoiceP` run is a run of one of its branches (the dispatch used to
 case a `rightAutomatonBody` step onto its firing mode). -/
 theorem bigChoiceP_sem_forward {ps : List (Program (Var n))} {ν μ : State (Var n)}

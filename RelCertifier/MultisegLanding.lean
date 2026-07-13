@@ -58,4 +58,35 @@ theorem segment_landing (g : Term (Var n)) (fL fR : Fin n → Term (Var n)) (lam
   segment_faModal g fL fR lam domL domR ν hdisj hφL hφR hcert
     (hExistSeg_of_wellFormedFlow fL fR lam domL domR ν hwff hfrz hνdom)
 
+/-- **The overlap gate (checked per benchmark).** Two mode domains overlap non-trivially: some state
+satisfies both. This is the load-bearing condition that makes the landing switch an INTERIOR point
+(no first-passage) — the flow reaches a state in both `domCur` and `domSucc`, where the switch fires.
+Verified for the whole suite (shared/nested evolve-domains). Stated as a checkable hypothesis, not a
+hidden assumption. -/
+def SuccDomOverlap (domCur domSucc : Formula (Var n)) : Prop :=
+  ∃ μ : State (Var n), Formula.sat domCur μ ∧ Formula.sat domSucc μ
+
+/-- **Clause 2 by construction — the discharge is a CHECK at the constructed endpoint, not an
+assumption over all states.** The next segment's in-domain entry `hνdom : sat domSucc μ_R` is verified
+at the SPECIFIC `μ_R` the current segment's right run landed at (a decidable membership at a concrete
+state), then fed to `segment_landing`. Contrast the `∀ν HExistSeg` / `WFBoundary` clause 2, which
+assumed the guard at every state: here it is *decided* at the one landing state. So `HExistSeg` for the
+next segment discharges from a per-endpoint check — no guard premise, no first-passage, no `∀ν`. This
+lemma is `segment_landing` at the landed state `μ_R`, making explicit that its `hνdom` is the
+by-construction landing check. -/
+theorem segment_landing_at (g : Term (Var n)) (fL fR : Fin n → Term (Var n)) (lam : Term (Var n))
+    (domL domR : Formula (Var n)) (μ_R : State (Var n))
+    (hdisj : Disjoint ((leftBlock fL).boundSet ∪ (leftBlock fL).readVars)
+                      ((rightBlock fR lam).boundSet ∪ (rightBlock fR lam).readVars))
+    (hφL : domL.fv ⊆ (leftBlock fL).boundSet ∪ (leftBlock fL).readVars)
+    (hφR : domR.fv ⊆ (rightBlock fR lam).boundSet ∪ (rightBlock fR lam).readVars)
+    (hcert : BoxLe (Program.ode (jointSys fL fR lam) (Formula.and domL domR))
+        (fun ω => Term.eval g ω) μ_R)
+    (hwff : WellFormedFlow fR lam domR)
+    (hfrz : ∀ x ∈ domR.fv, x ∉ (leftBlock fL).bound)
+    (hland : Formula.sat domR μ_R) :   -- CHECKED at the constructed landing endpoint (clause 2 by construction)
+    Formula.sat (faModal (Equiv.refl (Var n))
+      (Program.ode (leftBlock fL) domL) (Program.ode (rightBlock fR lam) domR) (invLe g)) μ_R :=
+  segment_landing g fL fR lam domL domR μ_R hdisj hφL hφR hcert hwff hfrz hland
+
 end RelCertifier

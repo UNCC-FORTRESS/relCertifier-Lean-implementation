@@ -53,4 +53,5 @@ import RelCertifier.GapThreeRoverTooling
 import RelCertifier.GuardLegality
 import RelCertifier.WellFormedFlow
 import RelCertifier.WFBoundary
+import RelCertifier.MultisegLanding
 import RelCertifier.AxiomCheck

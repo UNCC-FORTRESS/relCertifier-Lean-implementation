@@ -62,8 +62,6 @@ theorem rover_px_at_switch_le_15 (base : State (Var 3))
   set v := base (Rv 1)
   have ht0 : 0 ≤ (3/10 - v) / (4/10) := by
     apply div_nonneg; linarith; norm_num
-  have htle : (3/10 - v) / (4/10) ≤ 3/4 := by
-    rw [div_le_iff (by norm_num)]; linarith
   constructor
   · have : 0 ≤ v * ((3/10 - v) / (4/10)) := mul_nonneg hvx0 ht0
     have h2 : 0 ≤ (2/10) * ((3/10 - v) / (4/10)) ^ 2 := by positivity
@@ -76,7 +74,7 @@ theorem rover_px_at_switch_le_15 (base : State (Var 3))
     linarith
 
 /-- Drive's evolve domain (`vx` coordinate `Rv 1`, `px` coordinate `Rv 0`), as a `Formula`. -/
-def driveDomF : Formula (Var 3) :=
+noncomputable def driveDomF : Formula (Var 3) :=
   Formula.and
     (Formula.and (Formula.cmp CompOp.le (Term.const 0) (Term.var (Rv 0)))
                  (Formula.cmp CompOp.le (Term.var (Rv 0)) (Term.const 15)))

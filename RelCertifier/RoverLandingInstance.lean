@@ -15,9 +15,10 @@ domain FAILS at the `px`-boundary (the flow leaves `px∈[0,15]` before `vx` rea
 `SuccReach` does not close narrowing unconditionally at real rover data; it holds with `px`-room.
 -/
 import RelCertifier.GapThreeRoverTooling
+import RelCertifier.WellFormedFlow
 
 namespace RelCertifier
-open DL DLCalTiming Function
+open DL DLCalTiming Function Set
 
 /-- The switch time: when the Recover flow's `vx = base + 0.4·t` reaches `0.3`. -/
 noncomputable def tSwitch (base : State (Var 3)) : ℝ := (3/10 - base (Rv 1)) / (4/10)
@@ -72,6 +73,73 @@ theorem rover_px_at_switch_le_15 (base : State (Var 3))
       rw [hq]
       nlinarith [sq_nonneg (3/10 - v), hvx0, hvxle, mul_nonneg hvx0 (by linarith : (0:ℝ) ≤ 3/10 - v)]
     linarith
+
+/-! ## The BROADER finding — `WellFormedFlow`'s domain-invariance is NOT free for rover
+
+Jian's concern: the `px`-growth that broke `SuccReach` for narrowing may ALSO break `WellFormedFlow`'s
+domain-invariance, which the widening/shared "free by construction" discharge silently depends on.
+Verified: `WellFormedFlow` requires the flow to stay in `domR` for EVERY duration `s` (`∀ s ≥ 0`, clause
+`∀ t ∈ [0,s], sat domR (ΦR t)`). For rover, the `vx`-coordinate has constant derivative `0.4`, so
+`vx(t) = vx₀ + 0.4t` grows unboundedly and EXITS the evolve bound `vx ≤ 1` at `t = (1−vx₀)/0.4 ≤ 2.5`.
+So `WellFormedFlow` (∀s) is FALSE for any rover mode with a `vx`-bounded domain — domain-invariance is
+duration-bounded, NOT free. This is a WHOLE-rover-family issue (affects widening too), not narrowing-only. -/
+
+/-- Constant derivative `0.4` on `[0,s]` forces the affine value — the coordinate grows linearly. -/
+theorem const_deriv_affine (g : ℝ → ℝ) (s : ℝ) (hs : 0 ≤ s)
+    (hd : ∀ t ∈ Set.Icc (0 : ℝ) s, HasDerivWithinAt g (4/10) (Set.Icc 0 s) t) :
+    g s = g 0 + (4/10) * s := by
+  have hconv : Convex ℝ (Set.Icc (0 : ℝ) s) := convex_Icc 0 s
+  set h : ℝ → ℝ := fun t => g t - (4/10) * t with hh
+  have hhd : ∀ t ∈ Set.Icc (0 : ℝ) s, HasDerivWithinAt h 0 (Set.Icc 0 s) t := by
+    intro t ht
+    have h2 := (hd t ht).sub ((hasDerivWithinAt_id t (Set.Icc 0 s)).const_mul (4/10))
+    have he : (4/10 : ℝ) - 4/10 * 1 = 0 := by norm_num
+    rw [he] at h2; exact h2
+  have key := hconv.norm_image_sub_le_of_norm_hasDerivWithin_le hhd
+    (fun t _ => by simp : ∀ t ∈ Set.Icc (0 : ℝ) s, ‖(0 : ℝ)‖ ≤ 0)
+    (left_mem_Icc.mpr hs) (right_mem_Icc.mpr hs)
+  rw [zero_mul, norm_le_zero_iff, sub_eq_zero] at key
+  have hkey : g s - (4/10) * s = g 0 - (4/10) * 0 := key
+  linarith
+
+/-- The `vx`-only Recover domain (`vx ∈ [0,1]`), the coordinate that exits. -/
+noncomputable def recoverDomVx : Formula (Var 3) :=
+  Formula.and (Formula.cmp CompOp.le (Term.const 0) (Term.var (Rv 1)))
+              (Formula.cmp CompOp.le (Term.var (Rv 1)) (Term.const 1))
+
+/-- **THE BROADER FINDING (mechanized): `WellFormedFlow` is FALSE for the rover field.** Its ∀s
+domain-invariance clause demands the flow stay in `vx ≤ 1` for EVERY duration; but the `vx`-derivative is
+the constant `0.4`, so at `s = 3` the forced value `vx(3) = 0 + 0.4·3 = 1.2 > 1` violates the domain.
+Hence NO witness `ΦR` satisfies `WellFormedFlow roverFR roverLam recoverDomVx`. Domain-invariance is
+duration-bounded (holds only for `s ≤ 2.5`), NOT free — the `px`/growth problem is broader than narrowing:
+it undermines the "free by construction" widening discharge for the whole rover family too. -/
+theorem WellFormedFlow_rover_false :
+    ¬ WellFormedFlow roverFR roverLam recoverDomVx := by
+  intro hwff
+  obtain ⟨ΦR, hΦR0, hder, _, hdom⟩ :=
+    hwff (fun _ => 0) (by simp [recoverDomVx, Formula.sat, CompOp.interp, Term.eval]) 3 (by norm_num)
+  -- the vx-coordinate has constant derivative 0.4 on [0,3]
+  have hvxder : ∀ t ∈ Set.Icc (0 : ℝ) 3, HasDerivWithinAt (fun u => ΦR u (Rv 1)) (4/10) (Set.Icc 0 3) t := by
+    intro t ht
+    have hp : (Rv 1, Term.binop AOp.mul roverLam (Term.const (4/10)))
+        ∈ rightBlock roverFR roverLam := by
+      show _ ∈ [(Rv 0, Term.binop AOp.mul roverLam (Term.var (Rv 1))),
+                (Rv 1, Term.binop AOp.mul roverLam (Term.const (4/10))),
+                (Rv 2, Term.binop AOp.mul roverLam (Term.const 0))]
+      simp
+    have hev := hder t ht _ hp
+    have : (Term.binop AOp.mul roverLam (Term.const (4/10))).eval (ΦR t) = 4/10 := by
+      simp [roverLam, Term.eval, AOp.interp]
+    rwa [this] at hev
+  -- forced: vx(3) = vx(0) + 0.4·3 = 1.2
+  have hvx3 : ΦR 3 (Rv 1) = 6/5 := by
+    have := const_deriv_affine (fun u => ΦR u (Rv 1)) 3 (by norm_num) hvxder
+    rw [hΦR0] at this; simp only at this; rw [this]; norm_num
+  -- but the domain clause forces vx(3) ≤ 1
+  have hdom3 := hdom 3 (right_mem_Icc.mpr (by norm_num))
+  simp only [recoverDomVx, Formula.sat, CompOp.interp, Term.eval] at hdom3
+  rw [hvx3] at hdom3
+  norm_num at hdom3
 
 /-- Drive's evolve domain (`vx` coordinate `Rv 1`, `px` coordinate `Rv 0`), as a `Formula`. -/
 noncomputable def driveDomF : Formula (Var 3) :=

@@ -21,7 +21,7 @@ import RelCertifier.Reify
 import RelCertifier.WFBoundary
 
 namespace RelCertifier
-open DL DLCalTiming Set
+open DL DLCalTiming Set Function
 
 variable {n : ℕ}
 
@@ -171,5 +171,83 @@ theorem landing_two_step (body : Program (Var n)) (φ : Formula (Var n)) (ν : S
   obtain ⟨μ2, hbody2, hφ⟩ := hinner
   rw [diamond_sem]
   exact ⟨μ2, Relation.ReflTransGen.head hbody1 (Relation.ReflTransGen.single hbody2), hφ⟩
+
+/-! ## The threaded star invariant — `invLe g ∧ mvValid ∧ in-current-mode-domain
+
+The star recursion must thread MORE than the postcondition `landing_body_step` carries (`invLe g ∧
+mvValid`): to re-enter the next body-step it needs the landing state to be IN a mode's domain (the
+`hν : sat domR` premise of `landing_body_step`). `StarInv` bundles that — coupling `invLe g`, a valid
+mode index `mvValid`, and membership in the current mode's declared domain (`StarInModeDom`). The
+inductive step `starStep_wrap` shows one body-step PRESERVES `StarInv`, landing the endpoint in the
+TARGET mode's domain — clause 2 by construction, discharged from the strengthened flow-diamond (the
+right run ends in the target domain) via the overlap gate, never assumed over all states. -/
+
+/-- The landing state sits in some declared mode's domain, with `mv` naming that mode. This is the
+extra fact the star recursion threads (beyond `invLe g ∧ mvValid`) so the next `landing_body_step`'s
+in-domain premise is met by construction. -/
+def StarInModeDom (G : SearchGraph (Var n)) (mv : Var n) (μ : State (Var n)) : Prop :=
+  ∃ (q' : ℕ) (m' : RMode (Var n)),
+    μ mv = (q' : ℝ) ∧ G.modeAt q' = some m' ∧ Formula.sat m'.dom μ
+
+/-- **The threaded star invariant.** Coupling `invLe g`, a valid mode index (`mvValid`), and current-mode
+domain-membership (`StarInModeDom`). Preserved by every landing body-step (`starStep_wrap`); its
+`invLe g` conjunct is what the terminal `⟨star body⟩(invLe g)` reads off. -/
+def StarInv (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n)) (μ : State (Var n)) : Prop :=
+  Formula.sat (invLe g) μ ∧ Formula.sat (mvValid mv G.modes.length) μ ∧ StarInModeDom G mv μ
+
+/-- **The inductive step — one landing body-step preserves `StarInv` (clause 2 by construction).** From a
+strengthened flow-diamond `hstep` — the frozen-left right run from `μ` ends at some `μ'` with `invLe g μ'`
+AND `μ' ∈ dom(e.tgt)` (the TARGET mode's domain; this is where the overlap gate lands the run, not assumed
+∀-state) — one `rightAutomatonBody` step reaches `ω = update μ' mv e.tgt` with `StarInv G mv g ω`:
+`invLe g` survives the `mv`-assign (`mv ∉ g.fv`), `mvValid` holds (`e.tgt < len`), and `StarInModeDom`
+holds with `q' = e.tgt` (the endpoint's `mv` names the target mode, whose domain contains `μ'` by `hstep`,
+mv-frozen). This is `diamond_right_wrap`'s core re-derived to CARRY the endpoint domain — the fact the
+naked wrap drops — so the recursion can re-enter. -/
+theorem starStep_wrap (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m : RMode (Var n))
+    (g : Term (Var n)) (fR : Fin n → Term (Var n)) (lam : Term (Var n)) (domR : Formula (Var n))
+    (μ : State (Var n))
+    (hg : mv ∉ g.fv) (hm : G.modeAt q = some m) (hsys : m.sys = rightBlock fR lam) (hdom : m.dom = domR)
+    {e : REdge (Var n)} (hef : e ∈ G.edgesFrom q) (hetg : e.guard = Formula.tt)
+    (hetv : e.tgt < G.modes.length) (hmvq : μ mv = (q : ℝ))
+    {m' : RMode (Var n)} (het' : G.modeAt e.tgt = some m') (hmvdom' : mv ∉ m'.dom.fv)
+    (hstep : ∃ μ', Program.sem (Program.ode (rightBlock fR lam) domR) μ μ' ∧
+        Formula.sat (invLe g) μ' ∧ Formula.sat m'.dom μ') :
+    ∃ ω, Program.sem (rightAutomatonBody G mv) μ ω ∧ StarInv G mv g ω := by
+  obtain ⟨μ', hode, hinv, hdom'⟩ := hstep
+  refine ⟨update μ' mv (e.tgt : ℝ), ?_, ?_, ?_, ?_⟩
+  · -- the mode-q body-step: test(mv=q) ; ode ; (test e.guard ; mv := e.tgt)
+    have hjump : Program.sem
+        (bigChoiceP ((G.edgesFrom q).map (fun e =>
+          Program.seq (Program.test e.guard) (Program.assign mv (Term.const (e.tgt : ℝ))))))
+        μ' (update μ' mv (e.tgt : ℝ)) := by
+      refine bigChoiceP_sem_of_mem (List.mem_map_of_mem hef) ?_
+      exact ⟨μ', ⟨rfl, by rw [hetg]; trivial⟩,
+        ⟨by simp only [Term.eval, Function.update_self], fun y hy => update_of_ne hy _ _⟩⟩
+    have hstep' : Program.sem (modeStep G mv q m) μ (update μ' mv (e.tgt : ℝ)) := by
+      refine ⟨μ, ⟨rfl, ?_⟩, μ', ?_, ?_⟩
+      · simp only [modeIs, Formula.sat, CompOp.interp, Term.eval, hmvq]
+      · rw [hsys, hdom]; exact hode
+      · exact hjump
+    refine bigChoiceP_sem_of_mem (List.mem_filterMap.mpr ⟨q, ?_, ?_⟩) hstep'
+    · exact List.mem_range.mpr (by
+        have := hm; simp only [SearchGraph.modeAt] at this
+        exact (List.getElem?_eq_some_iff.mp this).1)
+    · rw [hm]; rfl
+  · -- invLe g survives the mv-assign (mv ∉ g.fv)
+    have : Set.EqOn μ' (update μ' mv (e.tgt : ℝ)) (invLe g).fv := by
+      intro x hx
+      have hxg : x ≠ mv := by
+        intro hxmv; subst hxmv
+        exact hg (by simpa only [invLe, Formula.fv, Term.fv, Set.union_empty] using hx)
+      exact (update_of_ne hxg _ _).symm
+    exact (Formula.coincidence (invLe g) this).mp hinv
+  · -- mvValid : e.tgt is a valid mode index
+    rw [sat_mvValid]; exact ⟨e.tgt, hetv, by simp only [Function.update_self]⟩
+  · -- StarInModeDom : endpoint mv = e.tgt, mode m' at e.tgt, μ' ∈ m'.dom (mv-frozen)
+    refine ⟨e.tgt, m', by simp only [Function.update_self], het', ?_⟩
+    have : Set.EqOn μ' (update μ' mv (e.tgt : ℝ)) m'.dom.fv := by
+      intro x hx
+      exact (update_of_ne (by rintro rfl; exact hmvdom' hx) _ _).symm
+    exact (Formula.coincidence m'.dom this).mp hdom'
 
 end RelCertifier

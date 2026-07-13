@@ -106,4 +106,23 @@ theorem wff_to_diamond (g : Term (Var n)) (fR : Fin n → Term (Var n)) (lam : T
   rw [diamond_sem]
   exact ⟨ΦR 1, hsem, by rw [sat_invLe]; exact hg _ hsem⟩
 
+/-- **One `R_real` body-step, landing-selected (the star's unit).** Composes `wff_to_diamond` (the
+flow-diamond, banked) with `diamond_right_wrap` (banked): from the frozen-left right flow's existence
+(`WellFormedFlow`) + `g`-preservation (`hgbox`) + the mode/edge structure (`hm`/`hsys`/`hdom`/`hef` —
+the `⊤`-guarded declared edge, so the switch is free), one `rightAutomatonBody` diamond step holds,
+carrying `invLe g ∧ mvValid` to the next state. The mode `q` is the landing-selected one (`hm` picks it);
+`e.guard = tt` (`⊤`-switch, no guard premise). This is the per-segment unit the star assembly iterates. -/
+theorem landing_body_step (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m : RMode (Var n))
+    (g : Term (Var n)) (fR : Fin n → Term (Var n)) (lam : Term (Var n)) (domR : Formula (Var n))
+    (ν : State (Var n))
+    (hg : mv ∉ g.fv) (hm : G.modeAt q = some m) (hsys : m.sys = rightBlock fR lam) (hdom : m.dom = domR)
+    {e : REdge (Var n)} (hef : e ∈ G.edgesFrom q) (hetg : e.guard = Formula.tt)
+    (hetv : e.tgt < G.modes.length) (hmvq : ν mv = (q : ℝ))
+    (hwff : WellFormedFlow fR lam domR) (hν : Formula.sat domR ν)
+    (hgbox : BoxLe (Program.ode (rightBlock fR lam) domR) (fun ω => Term.eval g ω) ν) :
+    Formula.sat (Formula.diamond (rightAutomatonBody G mv)
+      (Formula.and (invLe g) (mvValid mv G.modes.length))) ν :=
+  diamond_right_wrap G mv q m g fR lam domR hg hm hsys hdom hef hetg hetv hmvq
+    (wff_to_diamond g fR lam domR ν hwff hν hgbox)
+
 end RelCertifier

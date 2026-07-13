@@ -89,4 +89,21 @@ theorem segment_landing_at (g : Term (Var n)) (fL fR : Fin n → Term (Var n)) (
       (Program.ode (leftBlock fL) domL) (Program.ode (rightBlock fR lam) domR) (invLe g)) μ_R :=
   segment_landing g fL fR lam domL domR μ_R hdisj hφL hφR hcert hwff hfrz hland
 
+/-- **The flow-diamond — the input to `diamond_right_wrap` for the star step.** From `WellFormedFlow`
+(the frozen-left right run exists in `domR` — existence, banked), an in-domain start `hν`, and the
+frozen-left flow's `g`-preservation `hg` (`BoxLe`, from `cert.repoDynPres`/`DI_nonstrict`), the right
+flow's diamond holds: `⟨ode rightBlock domR⟩(invLe g)`. This is the per-segment `∃`-right run with
+`g≤0` at its endpoint — `diamond_right_wrap` then wraps it into one `rightAutomatonBody` body-step
+(the star's unit), with the mode landing-selected. -/
+theorem wff_to_diamond (g : Term (Var n)) (fR : Fin n → Term (Var n)) (lam : Term (Var n))
+    (domR : Formula (Var n)) (ν : State (Var n))
+    (hwff : WellFormedFlow fR lam domR) (hν : Formula.sat domR ν)
+    (hg : BoxLe (Program.ode (rightBlock fR lam) domR) (fun ω => Term.eval g ω) ν) :
+    Formula.sat (Formula.diamond (Program.ode (rightBlock fR lam) domR) (invLe g)) ν := by
+  obtain ⟨ΦR, hΦR0, hder, hmask, hdom⟩ := hwff ν hν 1 (by norm_num)
+  have hsem : Program.sem (Program.ode (rightBlock fR lam) domR) ν (ΦR 1) :=
+    ⟨1, ΦR, by norm_num, hΦR0, rfl, hder, hmask, hdom⟩
+  rw [diamond_sem]
+  exact ⟨ΦR 1, hsem, by rw [sat_invLe]; exact hg _ hsem⟩
+
 end RelCertifier

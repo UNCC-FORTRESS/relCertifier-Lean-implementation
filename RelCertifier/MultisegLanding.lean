@@ -365,6 +365,27 @@ def SuccReach (fR : Fin n → Term (Var n)) (lam : Term (Var n)) (domR domSucc :
   ∀ μ : State (Var n), Formula.sat domR μ →
     ∃ μ', Program.sem (Program.ode (rightBlock fR lam) domR) μ μ' ∧ Formula.sat domSucc μ'
 
+/-- **`SuccReachB` — bounded-`dt`, CROSSING-SEGMENT-scoped reaching (the clocked-consistent narrowing
+condition).** A per-STATE predicate at the *crossing* state `μ` (the one the self-loop staging brought to
+be crossing-ready): from `μ`, a **single `≤ dt` right segment** stays in the source domain `domR` and
+reaches the successor domain `domSucc` at its end. This is the honest bounded analog of `SuccReach`:
+- it is the **crossing segment only** — the PRIOR segments self-loop in `domR` (bounded-`dt` staying, handled
+  by `WellFormedFlowB`), NOT a blanket "reach from anywhere within `dt`";
+- the reaching run has duration `s ≤ dt` (bounded — no `∀s`/unbounded existence, uniform with widening);
+- it stays in `domR` throughout `[0,s]` (source-mode evolve) and lands in `domSucc` at `s` (so the endpoint
+  is in `domR ∩ domSucc`, the overlap — clause-2-by-construction: `μ' ∈ dom(tgt)`).
+Applied at the landing-selected crossing state; composes with self-loop staying (self-loop in `domR` until
+crossing-ready, land-select the successor at this segment). Eliminates the last unbounded (`∀s`-shaped)
+existence claim — narrowing is now uniformly bounded-`dt` like widening. -/
+def SuccReachB (fR : Fin n → Term (Var n)) (lam : Term (Var n)) (domR domSucc : Formula (Var n))
+    (dt : ℝ) (μ : State (Var n)) : Prop :=
+  ∃ (s : ℝ) (ΦR : ℝ → State (Var n)), 0 ≤ s ∧ s ≤ dt ∧ ΦR 0 = μ ∧
+    (∀ t ∈ Icc (0 : ℝ) s, ∀ p ∈ rightBlock fR lam,
+        HasDerivWithinAt (fun u => ΦR u p.1) (p.2.eval (ΦR t)) (Icc 0 s) t) ∧
+    (∀ t ∈ Icc (0 : ℝ) s, ∀ x, x ∉ (rightBlock fR lam).bound → ΦR t x = μ x) ∧
+    (∀ t ∈ Icc (0 : ℝ) s, Formula.sat domR (ΦR t)) ∧
+    Formula.sat domSucc (ΦR s)
+
 /-- **The PER-POINT / disjunctive version — the WFExec collapse (stated to contrast, NOT used).** "Some
 execution lands in `domR` OR `domSucc`". This is VACUOUS: the zero-duration self-run (`μ' = μ`) satisfies
 the left disjunct (`μ ∈ domR`), so it holds trivially WITHOUT ever reaching `domSucc`. It does NOT imply
@@ -388,6 +409,22 @@ theorem hstep_of_SuccReach (g : Term (Var n)) (fR : Fin n → Term (Var n)) (lam
         Formula.sat (invLe g) μ' ∧ Formula.sat domSucc μ' := by
   obtain ⟨μ', hsem, hdom'⟩ := hwf μ hμ
   exact ⟨μ', hsem, by rw [sat_invLe]; exact hgbox μ' hsem, hdom'⟩
+
+/-- **`SuccReachB → hstep` (bounded, crossing-segment).** The bounded-`dt` analog of `hstep_of_SuccReach`:
+`SuccReachB … μ` supplies the `≤ dt` crossing run `μ → ΦR s` staying in `domR`, landing at `ΦR s ∈ domSucc`;
+`BoxLe` supplies `invLe g` at that endpoint. Together they give `starStep_wrap`'s `hstep` — the same shape as
+the widening/unbounded versions, but with the reaching run **bounded to `≤ dt`** (no `∀s`). This is the
+clocked-consistent narrowing discharge. -/
+theorem hstep_of_SuccReachB (g : Term (Var n)) (fR : Fin n → Term (Var n)) (lam : Term (Var n))
+    (domR domSucc : Formula (Var n)) (dt : ℝ) (μ : State (Var n))
+    (hsr : SuccReachB fR lam domR domSucc dt μ)
+    (hgbox : BoxLe (Program.ode (rightBlock fR lam) domR) (fun ω => Term.eval g ω) μ) :
+    ∃ μ', Program.sem (Program.ode (rightBlock fR lam) domR) μ μ' ∧
+        Formula.sat (invLe g) μ' ∧ Formula.sat domSucc μ' := by
+  obtain ⟨s, ΦR, hs, _, hΦ0, hder, hmask, hdom, hsucc⟩ := hsr
+  have hsem : Program.sem (Program.ode (rightBlock fR lam) domR) μ (ΦR s) :=
+    ⟨s, ΦR, hs, hΦ0, rfl, hder, hmask, hdom⟩
+  exact ⟨ΦR s, hsem, by rw [sat_invLe]; exact hgbox (ΦR s) hsem, hsucc⟩
 
 /-- `SuccReach` is at least as strong as the disjunctive version (reaching-to-successor ⟹ lands-in-union).
 The converse FAILS (`SuccReachUnion` is vacuous via the zero-duration stay), which is why only `SuccReach`
@@ -415,22 +452,24 @@ theorem SuccReachUnion_vacuous (fR : Fin n → Term (Var n)) (lam : Term (Var n)
   · intro t _ x _; rfl
   · intro t _; exact hμ
 
-/-- **One full `StarInv`-preserving landing step for a NARROWING switch (the analog of `starStep_widening`).**
-Identical wrap, but the target-domain endpoint is sourced from `SuccReach` (the reachability hypothesis) via
-`hstep_of_SuccReach` instead of `hsub` (widening). So narrowing switches discharge through the SAME
-`starStep_wrap` machinery — clause 2 by construction — with `SuccReach` supplying the one reaching fact. -/
+/-- **One full `StarInv`-preserving landing step for a NARROWING switch (the analog of `starStep_widening`),
+BOUNDED-`dt`.** Identical wrap, but the target-domain endpoint is sourced from the crossing-segment condition
+`SuccReachB … μ` (the `≤ dt` reaching at the crossing state) via `hstep_of_SuccReachB` instead of `hsub`
+(widening) or the unbounded `SuccReach`. So narrowing switches discharge through the SAME `starStep_wrap`
+machinery — clause 2 by construction — with `SuccReachB` supplying the one **bounded** reaching fact. Uniform
+with widening (both bounded-`dt`); no `∀s`/unbounded existence. -/
 theorem starStep_narrowing (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m : RMode (Var n))
     (g : Term (Var n)) (fR : Fin n → Term (Var n)) (lam : Term (Var n)) (domR : Formula (Var n))
-    (μ : State (Var n))
+    (dt : ℝ) (μ : State (Var n))
     (hg : mv ∉ g.fv) (hm : G.modeAt q = some m) (hsys : m.sys = rightBlock fR lam) (hdom : m.dom = domR)
     {e : REdge (Var n)} (hef : e ∈ G.edgesFrom q) (hetg : e.guard = Formula.tt)
     (hetv : e.tgt < G.modes.length) (hmvq : μ mv = (q : ℝ))
     {m' : RMode (Var n)} (het' : G.modeAt e.tgt = some m') (hmvdom' : mv ∉ m'.dom.fv)
-    (hsr : SuccReach fR lam domR m'.dom) (hν : Formula.sat domR μ)
+    (hsr : SuccReachB fR lam domR m'.dom dt μ)
     (hgbox : BoxLe (Program.ode (rightBlock fR lam) domR) (fun ω => Term.eval g ω) μ) :
     ∃ ω, Program.sem (rightAutomatonBody G mv) μ ω ∧ StarInv G mv g ω :=
   starStep_wrap G mv q m g fR lam domR μ hg hm hsys hdom hef hetg hetv hmvq het' hmvdom'
-    (hstep_of_SuccReach g fR lam domR m'.dom μ hsr hν hgbox)
+    (hstep_of_SuccReachB g fR lam domR m'.dom dt μ hsr hgbox)
 
 /-! ## The strengthened segment lemma — one segment preserves `starInvF` (the threaded `φinv`)
 
@@ -531,22 +570,23 @@ theorem landing_step_faModal (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m
       ⟨μ, hRμ, hstarμ.1, hsub μ hμdomR⟩
   exact ⟨ω, by simpa only [Program.rename_refl] using hsemω, sat_starInvF.mpr hstarω⟩
 
-/-- **The capstone per-step for a NARROWING switch — the analog of `landing_step_faModal`, sourcing the
-right response from `SuccReach` instead of a segment.** At each post-left state `ν` (mode `q`, in `domR`
-since the left flow freezes the right coords `hfrz` and `σ ∈ domR`), `SuccReach` supplies a right run
-reaching the target domain `m'.dom` and the per-start `BoxLe` cert (`hgboxAll`) supplies `invLe g` along
-it; `starStep_narrowing` wraps flow+switch into one `rightAutomatonBody` step preserving `starInvF`. Unlike
-`landing_step_faModal` (which reads the endpoint off a widening segment), this constructs the reaching
-response directly from the one `SuccReach` reachability hypothesis — no `hsub`, no per-edge reach fact. -/
+/-- **The capstone per-step for a NARROWING switch — the analog of `landing_step_faModal`, BOUNDED-`dt`.**
+At each post-left state `ν` (mode `q`, in `domR` since the left flow freezes the right coords `hfrz` and
+`σ ∈ domR`), the crossing-segment condition `SuccReachB … dt ν` supplies a **`≤ dt`** right run reaching the
+target domain `m'.dom`, and the per-start `BoxLe` cert (`hgboxAll`) supplies `invLe g` along it;
+`starStep_narrowing` wraps flow+switch into one `rightAutomatonBody` step preserving `starInvF`. `hsr` is
+carried at each in-domain box-left endpoint (the crossing-ready hypothesis) — in the clocked composition it is
+invoked only at the one crossing segment; the prior self-loops discharge via `WellFormedFlowB`. Bounded-`dt`,
+uniform with widening; no `∀s`/unbounded reach. -/
 theorem landing_step_narrowing (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m : RMode (Var n))
     (g : Term (Var n)) (fL fR : Fin n → Term (Var n)) (lam : Term (Var n))
-    (domL domR : Formula (Var n))
+    (domL domR : Formula (Var n)) (dt : ℝ)
     (hg : mv ∉ g.fv) (hmvL : mv ∉ (leftBlock fL).bound)
     (hm : G.modeAt q = some m) (hsys : m.sys = rightBlock fR lam) (hdom : m.dom = domR)
     {e : REdge (Var n)} (hef : e ∈ G.edgesFrom q) (hetg : e.guard = Formula.tt)
     (hetv : e.tgt < G.modes.length)
     {m' : RMode (Var n)} (het' : G.modeAt e.tgt = some m') (hmvdom' : mv ∉ m'.dom.fv)
-    (hsr : SuccReach fR lam domR m'.dom)
+    (hsr : ∀ ν, Formula.sat domR ν → SuccReachB fR lam domR m'.dom dt ν)
     (hgboxAll : ∀ ν, Formula.sat domR ν →
         BoxLe (Program.ode (rightBlock fR lam) domR) (fun ω => Term.eval g ω) ν)
     (hfrz : ∀ x ∈ domR.fv, x ∉ (leftBlock fL).bound)
@@ -563,8 +603,8 @@ theorem landing_step_narrowing (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) 
       rw [← hΦs]; exact (hmask s (right_mem_Icc.mpr hs) x (hfrz x hx)).symm
     exact (Formula.coincidence domR heqon).mp hσdom
   obtain ⟨ω, hsemω, hstarω⟩ :=
-    starStep_narrowing G mv q m g fR lam domR ν hg hm hsys hdom hef hetg hetv hmvν het' hmvdom'
-      hsr hνdom (hgboxAll ν hνdom)
+    starStep_narrowing G mv q m g fR lam domR dt ν hg hm hsys hdom hef hetg hetv hmvν het' hmvdom'
+      (hsr ν hνdom) (hgboxAll ν hνdom)
   exact ⟨ω, by simpa only [Program.rename_refl] using hsemω, sat_starInvF.mpr hstarω⟩
 
 /-- **Single-body faModal lifts to star-body faModal** — `faModal ρ P Q φ ⟹ faModal ρ P (Q*) φ`. The
@@ -601,18 +641,18 @@ theorem landing_step_star (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m : 
       hef hetg hetv het' hmvdom' hsub hmvq hseg)
 
 /-- **The narrowing per-step in `faModal_MULTI` form** — `landing_step_narrowing` composed with
-`faModal_star_lift`. One narrowing mode's contribution to the `hstep`/`hdispatch` obligation, sourced from
-the single `SuccReach` reachability hypothesis. Feeds the `faModal_MULTI` wrap exactly like `landing_step_
-star` does for widening; the dispatch picks this branch for narrowing edges. -/
+`faModal_star_lift`, BOUNDED-`dt`. One narrowing mode's contribution to the `hstep`/`hdispatch` obligation,
+sourced from the bounded crossing-segment condition `SuccReachB`. Feeds the `faModal_MULTI` wrap exactly like
+`landing_step_star` (widening); the dispatch picks this branch for narrowing edges. Uniform bounded-`dt`. -/
 theorem landing_step_star_narrowing (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m : RMode (Var n))
     (g : Term (Var n)) (fL fR : Fin n → Term (Var n)) (lam : Term (Var n))
-    (domL domR : Formula (Var n))
+    (domL domR : Formula (Var n)) (dt : ℝ)
     (hg : mv ∉ g.fv) (hmvL : mv ∉ (leftBlock fL).bound)
     (hm : G.modeAt q = some m) (hsys : m.sys = rightBlock fR lam) (hdom : m.dom = domR)
     {e : REdge (Var n)} (hef : e ∈ G.edgesFrom q) (hetg : e.guard = Formula.tt)
     (hetv : e.tgt < G.modes.length)
     {m' : RMode (Var n)} (het' : G.modeAt e.tgt = some m') (hmvdom' : mv ∉ m'.dom.fv)
-    (hsr : SuccReach fR lam domR m'.dom)
+    (hsr : ∀ ν, Formula.sat domR ν → SuccReachB fR lam domR m'.dom dt ν)
     (hgboxAll : ∀ ν, Formula.sat domR ν →
         BoxLe (Program.ode (rightBlock fR lam) domR) (fun ω => Term.eval g ω) ν)
     (hfrz : ∀ x ∈ domR.fv, x ∉ (leftBlock fL).bound)
@@ -620,7 +660,7 @@ theorem landing_step_star_narrowing (G : SearchGraph (Var n)) (mv : Var n) (q : 
     Formula.sat (faModal (Equiv.refl (Var n))
       (Program.ode (leftBlock fL) domL) (Program.star (rightAutomatonBody G mv)) (starInvF G mv g)) σ :=
   faModal_star_lift (Equiv.refl (Var n)) _ _ _ σ
-    (landing_step_narrowing G mv q m g fL fR lam domL domR hg hmvL hm hsys hdom
+    (landing_step_narrowing G mv q m g fL fR lam domL domR dt hg hmvL hm hsys hdom
       hef hetg hetv het' hmvdom' hsr hgboxAll hfrz hmvq hσdom)
 
 /-- **`multiseg_landing` — the capstone.** The full relational modality `faModal (leftBody*)

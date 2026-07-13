@@ -645,4 +645,47 @@ theorem multiseg_landing (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n
   faModal_MULTI (Equiv.refl (Var n)) leftBody (rightAutomatonBody G mv)
     (starInvF G mv g) (starInvF G mv g) σ hd hσ hdispatch (fun _ h => h)
 
+/-- **The dispatch skeleton — factor `hdispatch` through the state's mode.** `starInvF σ'` pins `σ'` to a
+declared mode `q` (`StarInModeDom`: `σ' mv = q`, `modeAt q = some m`, `σ' ∈ m.dom`); the per-mode response
+`hresp` (widening → `landing_step_star`, narrowing → `landing_step_star_narrowing`) then supplies the
+landing star-step. This is the enumeration hinge: it reduces the universal `hdispatch` to a per-mode
+obligation, so the concrete dispatch only has to route each declared mode to its widening/narrowing
+branch. `rightAutomatonBody` self-dispatches on `mv`, so no `∀σ` mode-mismatch. -/
+theorem hdispatch_of_modeResp (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n))
+    (leftBody : Program (Var n))
+    (hresp : ∀ σ', StarInv G mv g σ' → ∀ q m, G.modeAt q = some m → σ' mv = (q : ℝ) →
+        Formula.sat m.dom σ' →
+        Formula.sat (faModal (Equiv.refl (Var n)) leftBody
+          (Program.star (rightAutomatonBody G mv)) (starInvF G mv g)) σ') :
+    ∀ σ', Formula.sat (starInvF G mv g) σ' →
+      Formula.sat (faModal (Equiv.refl (Var n)) leftBody
+        (Program.star (rightAutomatonBody G mv)) (starInvF G mv g)) σ' := by
+  intro σ' hσ'
+  have hstar : StarInv G mv g σ' := sat_starInvF.mp hσ'
+  obtain ⟨q, m, hqmv, hmode, hmdom⟩ := hstar.2.2
+  exact hresp σ' hstar q m hmode hqmv hmdom
+
+/-- **`tooling_sound_landing` — the capstone at the `faModal`/`sat` layer, carrying the per-mode dispatch.**
+The full ∀∃ relational modality `faModal (leftBody*) (rightAutomatonBody*) starInvF` over the starred
+automata, from `multiseg_landing` ∘ `hdispatch_of_modeResp`. The per-mode response `hresp` is where each
+declared mode routes to its branch: WIDENING modes discharge by construction (`landing_step_star`, no
+`SuccReach`); NARROWING modes carry `SuccReach` (`landing_step_star_narrowing`). So `SuccReach` is scoped to
+narrowing edges only — the enumeration fills `hresp` per mode. The all-widening instantiation recovers the
+banked `multiseg_het` behaviour (no reachability hypothesis anywhere). This is non-breaking: the encoded-
+layer `tooling_sound` (rvalid/theorem3Form, `EmitSegs`) and `multiseg_het` are untouched; bridging this
+`sat`-modality to the `rvalid` form is the reification integration (separate, layered on the existing
+`relational_loop_faithful` machinery). -/
+theorem tooling_sound_landing (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n))
+    (leftBody : Program (Var n)) (σ : State (Var n))
+    (hd : Disjoint (Program.vars leftBody)
+      (Program.vars ((rightAutomatonBody G mv).rename (Equiv.refl (Var n)))))
+    (hσ : Formula.sat (starInvF G mv g) σ)
+    (hresp : ∀ σ', StarInv G mv g σ' → ∀ q m, G.modeAt q = some m → σ' mv = (q : ℝ) →
+        Formula.sat m.dom σ' →
+        Formula.sat (faModal (Equiv.refl (Var n)) leftBody
+          (Program.star (rightAutomatonBody G mv)) (starInvF G mv g)) σ') :
+    Formula.sat (faModal (Equiv.refl (Var n)) (Program.star leftBody)
+      (Program.star (rightAutomatonBody G mv)) (starInvF G mv g)) σ :=
+  multiseg_landing G mv g leftBody σ hd hσ (hdispatch_of_modeResp G mv g leftBody hresp)
+
 end RelCertifier

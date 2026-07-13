@@ -125,4 +125,51 @@ theorem landing_body_step (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m : 
   diamond_right_wrap G mv q m g fR lam domR hg hm hsys hdom hef hetg hetv hmvq
     (wff_to_diamond g fR lam domR ν hwff hν hgbox)
 
+/-! ## Star-composition primitives — thread the CONCRETE endpoint (no `∀σ'`)
+
+The RIGHT response `R_real = star body`. A run of `star body` is `ReflTransGen (sem body)` (Loop.lean
+`sem_star`), so body-runs compose by *prepending* — each `landing_body_step` produces one body-step to a
+concrete endpoint, and the star assembly chains them via `ReflTransGen.head` at that endpoint. Because the
+next step is applied at the DESTRUCTURED endpoint `μ` (the `∃`-witness the prior step produced), never over
+all states, the `∀σ'` quantification that reverted clause 2 to `∀ν` (the `faModal_MR` seam) never appears. -/
+
+/-- **Base — one body-step is a star run.** `⟨body⟩φ ⟹ ⟨star body⟩φ` (a single-step `ReflTransGen`). The
+terminal unit of the landing walk: the last `landing_body_step`'s diamond is already the `R_real` diamond. -/
+theorem diamond_star_single (body : Program (Var n)) (φ : Formula (Var n)) (ν : State (Var n))
+    (h : Formula.sat (Formula.diamond body φ) ν) :
+    Formula.sat (Formula.diamond (Program.star body) φ) ν := by
+  rw [diamond_sem] at h ⊢
+  obtain ⟨μ, hbody, hφ⟩ := h
+  exact ⟨μ, Relation.ReflTransGen.single hbody, hφ⟩
+
+/-- **Step — prepend one body-step to a star run (the landing walk's inductive step).** From
+`⟨body⟩⟨star body⟩φ` at `ν` conclude `⟨star body⟩φ` at `ν`. The inner `⟨star body⟩φ` is evaluated at the
+CONCRETE endpoint `μ` that the outer `body` step lands at (destructured from the `∃`), so the recursion
+threads the actual landing state — `ReflTransGen.head` glues `ν →body μ` onto `μ →star* ω`. This is the
+star-diamond backward-unfolding specialized to prepend; no `∀`-over-states obligation is introduced. -/
+theorem diamond_body_star (body : Program (Var n)) (φ : Formula (Var n)) (ν : State (Var n))
+    (h : Formula.sat (Formula.diamond body (Formula.diamond (Program.star body) φ)) ν) :
+    Formula.sat (Formula.diamond (Program.star body) φ) ν := by
+  rw [diamond_sem] at h ⊢
+  obtain ⟨μ, hbody, hstar⟩ := h
+  rw [diamond_sem] at hstar
+  obtain ⟨ω, hstarrun, hφ⟩ := hstar
+  exact ⟨ω, Relation.ReflTransGen.head hbody hstarrun, hφ⟩
+
+/-- **Two-segment landing composition (the induction's base doubling).** From two nested body-diamonds
+`⟨body⟩⟨body⟩φ` — the second evaluated at the CONCRETE endpoint `μ1` the first lands at — conclude the
+`R_real` diamond `⟨star body⟩φ`. Confirms the endpoint-threading composes: the two landing steps chain
+through `ReflTransGen.head`/`.single` on the actual witnesses (`ν →body μ1 →body μ2`), with the second
+step applied only at the destructured `μ1`, never over all states. This is the shape the general
+`Covered`-budget induction iterates — each round prepends one `landing_body_step` at the prior landing. -/
+theorem landing_two_step (body : Program (Var n)) (φ : Formula (Var n)) (ν : State (Var n))
+    (h : Formula.sat (Formula.diamond body (Formula.diamond body φ)) ν) :
+    Formula.sat (Formula.diamond (Program.star body) φ) ν := by
+  rw [diamond_sem] at h
+  obtain ⟨μ1, hbody1, hinner⟩ := h
+  rw [diamond_sem] at hinner
+  obtain ⟨μ2, hbody2, hφ⟩ := hinner
+  rw [diamond_sem]
+  exact ⟨μ2, Relation.ReflTransGen.head hbody1 (Relation.ReflTransGen.single hbody2), hφ⟩
+
 end RelCertifier

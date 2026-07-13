@@ -440,4 +440,59 @@ theorem landing_step_faModal (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m
       ⟨μ, hRμ, hstarμ.1, hsub μ hμdomR⟩
   exact ⟨ω, by simpa only [Program.rename_refl] using hsemω, sat_starInvF.mpr hstarω⟩
 
+/-- **Single-body faModal lifts to star-body faModal** — `faModal ρ P Q φ ⟹ faModal ρ P (Q*) φ`. The
+right's one-body response IS a `star`-run (`ReflTransGen.single`), so a diamond over `Q` is a diamond
+over `Q*`. This is the lift `faModal_MULTI`'s `hstep` needs (it wants `faModal P (star Q) φinv`). -/
+theorem faModal_star_lift (ρ : Var n ≃ Var n) (P Q : Program (Var n)) (φ : Formula (Var n))
+    (ω : State (Var n)) (h : Formula.sat (faModal ρ P Q φ) ω) :
+    Formula.sat (faModal ρ P (Program.star Q) φ) ω := by
+  rw [faModal_sat] at h ⊢
+  intro ν hν
+  obtain ⟨μ, hQμ, hφ⟩ := h ν hν
+  rw [rename_star]
+  exact ⟨μ, Relation.ReflTransGen.single hQμ, hφ⟩
+
+/-- **The capstone per-step in `faModal_MULTI` form** — `landing_step_faModal` composed with
+`faModal_star_lift`: one mode's contribution to the `hstep` obligation, `faModal P (star
+rightAutomatonBody) starInvF`. The `faModal_MULTI` wrap dispatches these per mode over the left star. -/
+theorem landing_step_star (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m : RMode (Var n))
+    (g : Term (Var n)) (fL fR : Fin n → Term (Var n)) (lam : Term (Var n))
+    (domL domR : Formula (Var n))
+    (hg : mv ∉ g.fv) (hmvL : mv ∉ (leftBlock fL).bound) (hmvR : mv ∉ (rightBlock fR lam).bound)
+    (hm : G.modeAt q = some m) (hsys : m.sys = rightBlock fR lam) (hdom : m.dom = domR)
+    {e : REdge (Var n)} (hef : e ∈ G.edgesFrom q) (hetg : e.guard = Formula.tt)
+    (hetv : e.tgt < G.modes.length)
+    {m' : RMode (Var n)} (het' : G.modeAt e.tgt = some m') (hmvdom' : mv ∉ m'.dom.fv)
+    (hsub : ∀ ρ, Formula.sat domR ρ → Formula.sat m'.dom ρ)
+    {σ : State (Var n)} (hmvq : σ mv = (q : ℝ))
+    (hseg : Formula.sat (faModal (Equiv.refl (Var n))
+      (Program.ode (leftBlock fL) domL) (Program.ode (rightBlock fR lam) domR) (starInvF G mv g)) σ) :
+    Formula.sat (faModal (Equiv.refl (Var n))
+      (Program.ode (leftBlock fL) domL) (Program.star (rightAutomatonBody G mv)) (starInvF G mv g)) σ :=
+  faModal_star_lift (Equiv.refl (Var n)) _ _ _ σ
+    (landing_step_faModal G mv q m g fL fR lam domL domR hg hmvL hmvR hm hsys hdom
+      hef hetg hetv het' hmvdom' hsub hmvq hseg)
+
+/-- **`multiseg_landing` — the capstone.** The full relational modality `faModal (leftBody*)
+(rightAutomatonBody*) starInvF` over the STARRED left and right automata, assembled from the per-step
+landing responses via `faModal_MULTI`. The `hdispatch` obligation — one landing star-step from every
+`starInvF`-state — is discharged (per mode) by `landing_step_star`, dispatching on the state's mode
+(`rightAutomatonBody` self-dispatches on `mv`); it is carried here as the parametric input exactly as the
+existing multi-flow chain carries `EmitSegs`/`cert`. The threaded invariant is `starInvF` throughout, so
+`HExistSeg` is discharged IN-DOMAIN at every iteration (`WellFormedFlow`, not the `∀ν EmitSegs` boundary),
+clause 2 holds by construction (`starStep_wrap`), and the narrowing residual is confined to whether a
+switch is widening (`hsub`) — no guard, no first-passage anywhere in the assembly. -/
+theorem multiseg_landing (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n))
+    (leftBody : Program (Var n)) (σ : State (Var n))
+    (hd : Disjoint (Program.vars leftBody)
+      (Program.vars ((rightAutomatonBody G mv).rename (Equiv.refl (Var n)))))
+    (hσ : Formula.sat (starInvF G mv g) σ)
+    (hdispatch : ∀ σ', Formula.sat (starInvF G mv g) σ' →
+        Formula.sat (faModal (Equiv.refl (Var n)) leftBody
+          (Program.star (rightAutomatonBody G mv)) (starInvF G mv g)) σ') :
+    Formula.sat (faModal (Equiv.refl (Var n)) (Program.star leftBody)
+      (Program.star (rightAutomatonBody G mv)) (starInvF G mv g)) σ :=
+  faModal_MULTI (Equiv.refl (Var n)) leftBody (rightAutomatonBody G mv)
+    (starInvF G mv g) (starInvF G mv g) σ hd hσ hdispatch (fun _ h => h)
+
 end RelCertifier

@@ -250,4 +250,46 @@ theorem starStep_wrap (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m : RMod
       exact (update_of_ne (by rintro rfl; exact hmvdom' hx) _ _).symm
     exact (Formula.coincidence m'.dom this).mp hdom'
 
+/-- **The strengthened flow-diamond for a widening/shared switch — `hstep` for `starStep_wrap`, target
+domain FREE.** For a switch into a target mode whose domain CONTAINS the current one (`hsub : domR ⊆
+m'dom` — the shared/widening shape, a static per-edge check like `WellFormedGuards`), every domR-staying
+right-flow endpoint is automatically in the target domain. So `WellFormedFlow` (the run exists in `domR`)
++ `BoxLe` (`g`-preservation along it) directly give the endpoint `μ'` with `invLe g μ'` AND `m'dom μ'` —
+no first-passage, no reaching. This is the `hstep` premise of `starStep_wrap` for the widening/shared
+benchmarks (the plurality); the narrowing case (`m'dom ⊊ domR`) needs the flow to REACH the narrower
+domain, the residual overlap-reaching content. -/
+theorem flowDiamond_widening (g : Term (Var n)) (fR : Fin n → Term (Var n)) (lam : Term (Var n))
+    (domR m'dom : Formula (Var n)) (ν : State (Var n))
+    (hwff : WellFormedFlow fR lam domR) (hν : Formula.sat domR ν)
+    (hgbox : BoxLe (Program.ode (rightBlock fR lam) domR) (fun ω => Term.eval g ω) ν)
+    (hsub : ∀ μ, Formula.sat domR μ → Formula.sat m'dom μ) :
+    ∃ μ', Program.sem (Program.ode (rightBlock fR lam) domR) ν μ' ∧
+        Formula.sat (invLe g) μ' ∧ Formula.sat m'dom μ' := by
+  obtain ⟨ΦR, hΦR0, hder, hmask, hdom⟩ := hwff ν hν 1 (by norm_num)
+  have hsem : Program.sem (Program.ode (rightBlock fR lam) domR) ν (ΦR 1) :=
+    ⟨1, ΦR, by norm_num, hΦR0, rfl, hder, hmask, hdom⟩
+  have hΦ1dom : Formula.sat domR (ΦR 1) := hdom 1 (by norm_num [Set.mem_Icc])
+  exact ⟨ΦR 1, hsem, by rw [sat_invLe]; exact hgbox _ hsem, hsub _ hΦ1dom⟩
+
+/-- **One full `StarInv`-preserving landing step for a widening/shared switch.** Composes
+`flowDiamond_widening` (`hstep`, target domain free) with `starStep_wrap` (the wrap that carries the
+endpoint domain): from `StarInv`-compatible data at `μ` (mode `q`, `WellFormedFlow`, `BoxLe`) and a
+declared `⊤`-edge to a target mode `m'` whose domain contains `domR` (`hsub`), one `rightAutomatonBody`
+step reaches an `ω` with `StarInv G mv g ω`. This is the complete inductive step the `Covered`-budget
+recursion iterates for the widening/shared benchmarks — clause 2 by construction, no guard, no
+first-passage. -/
+theorem starStep_widening (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m : RMode (Var n))
+    (g : Term (Var n)) (fR : Fin n → Term (Var n)) (lam : Term (Var n)) (domR : Formula (Var n))
+    (μ : State (Var n))
+    (hg : mv ∉ g.fv) (hm : G.modeAt q = some m) (hsys : m.sys = rightBlock fR lam) (hdom : m.dom = domR)
+    {e : REdge (Var n)} (hef : e ∈ G.edgesFrom q) (hetg : e.guard = Formula.tt)
+    (hetv : e.tgt < G.modes.length) (hmvq : μ mv = (q : ℝ))
+    {m' : RMode (Var n)} (het' : G.modeAt e.tgt = some m') (hmvdom' : mv ∉ m'.dom.fv)
+    (hwff : WellFormedFlow fR lam domR) (hν : Formula.sat domR μ)
+    (hgbox : BoxLe (Program.ode (rightBlock fR lam) domR) (fun ω => Term.eval g ω) μ)
+    (hsub : ∀ ρ, Formula.sat domR ρ → Formula.sat m'.dom ρ) :
+    ∃ ω, Program.sem (rightAutomatonBody G mv) μ ω ∧ StarInv G mv g ω :=
+  starStep_wrap G mv q m g fR lam domR μ hg hm hsys hdom hef hetg hetv hmvq het' hmvdom'
+    (flowDiamond_widening g fR lam domR m'.dom μ hwff hν hgbox hsub)
+
 end RelCertifier

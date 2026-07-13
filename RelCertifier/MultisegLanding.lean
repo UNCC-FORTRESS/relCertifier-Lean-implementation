@@ -394,4 +394,50 @@ theorem segment_landing_full (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m
   · rw [ODESystem.rename_refl, Formula.rename_refl]
     exact hExistSeg_of_wellFormedFlow fL fR lam domL domR σ hwff hfrz hνdom
 
+/-- **The capstone per-step — the self-dispatching landing step (mirrors `hstep_single`, carrying
+`starInvF`).** From the strengthened segment faModal `hseg` (`segment_landing_full`: one segment maps
+`starInvF → starInvF`, mode `q`) derive the SAME faModal with the right program lifted to the
+self-dispatching `rightAutomatonBody`. At each post-left state `ν` (mode `q`, since `mv` survives the
+left box), the segment's right-flow endpoint `μ` is in `domR` (read off `starInvF μ` + `μ mv = q`); the
+widening edge `hsub : domR ⊆ m'.dom` lands it in the TARGET domain, so `starStep_wrap` wraps the flow +
+switch into one `rightAutomatonBody` step preserving `starInvF` (clause 2 by construction). This is the
+`hcouple` obligation `multiseg_het`/`faModal_MULTI` consumes — dischargeable at EVERY `starInvF`-state
+because `rightAutomatonBody` self-dispatches on `mv`, so no `∀σ` mode-mismatch and no `∀ν HExistSeg`. -/
+theorem landing_step_faModal (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m : RMode (Var n))
+    (g : Term (Var n)) (fL fR : Fin n → Term (Var n)) (lam : Term (Var n))
+    (domL domR : Formula (Var n))
+    (hg : mv ∉ g.fv) (hmvL : mv ∉ (leftBlock fL).bound) (hmvR : mv ∉ (rightBlock fR lam).bound)
+    (hm : G.modeAt q = some m) (hsys : m.sys = rightBlock fR lam) (hdom : m.dom = domR)
+    {e : REdge (Var n)} (hef : e ∈ G.edgesFrom q) (hetg : e.guard = Formula.tt)
+    (hetv : e.tgt < G.modes.length)
+    {m' : RMode (Var n)} (het' : G.modeAt e.tgt = some m') (hmvdom' : mv ∉ m'.dom.fv)
+    (hsub : ∀ ρ, Formula.sat domR ρ → Formula.sat m'.dom ρ)
+    {σ : State (Var n)} (hmvq : σ mv = (q : ℝ))
+    (hseg : Formula.sat (faModal (Equiv.refl (Var n))
+      (Program.ode (leftBlock fL) domL) (Program.ode (rightBlock fR lam) domR) (starInvF G mv g)) σ) :
+    Formula.sat (faModal (Equiv.refl (Var n))
+      (Program.ode (leftBlock fL) domL) (rightAutomatonBody G mv) (starInvF G mv g)) σ := by
+  rw [faModal_sat] at hseg ⊢
+  intro ν hsemν
+  have hmvν : ν mv = (q : ℝ) := (leftBlock_frames_mv fL domL mv hmvL hsemν).trans hmvq
+  obtain ⟨μ, hRμ, hφμ⟩ := hseg ν hsemν
+  simp only [Program.rename_refl] at hRμ
+  -- μ mv = ν mv (right ode freezes mv)
+  have hμq : μ mv = (q : ℝ) := by
+    obtain ⟨s, Φ, hs, hΦ0, hΦs, _, hmask, _⟩ := hRμ
+    rw [← hΦs, hmask s (right_mem_Icc.mpr hs) mv hmvR]; exact hmvν
+  -- μ ∈ domR : read off starInvF μ's inModeDomF at mode q
+  have hstarμ : StarInv G mv g μ := sat_starInvF.mp hφμ
+  have hμdomR : Formula.sat domR μ := by
+    obtain ⟨q', m'', hq'mv, hmode'', hdom''⟩ := hstarμ.2.2
+    have hqq : q' = q := Nat.cast_inj.mp (hq'mv.symm.trans hμq)
+    subst hqq
+    have hmm : m'' = m := by injection hmode''.symm.trans hm
+    subst hmm; rw [hdom] at hdom''; exact hdom''
+  -- wrap flow + switch into one rightAutomatonBody step preserving starInvF
+  obtain ⟨ω, hsemω, hstarω⟩ :=
+    starStep_wrap G mv q m g fR lam domR ν hg hm hsys hdom hef hetg hetv hmvν het' hmvdom'
+      ⟨μ, hRμ, hstarμ.1, hsub μ hμdomR⟩
+  exact ⟨ω, by simpa only [Program.rename_refl] using hsemω, sat_starInvF.mpr hstarω⟩
+
 end RelCertifier

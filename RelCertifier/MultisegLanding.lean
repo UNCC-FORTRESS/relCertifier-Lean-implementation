@@ -471,6 +471,64 @@ theorem starStep_narrowing (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m :
   starStep_wrap G mv q m g fR lam domR μ hg hm hsys hdom hef hetg hetv hmvq het' hmvdom'
     (hstep_of_SuccReachB g fR lam domR m'.dom dt μ hsr hgbox)
 
+/-! ## The H + landing-selection step — MEMBERSHIP + invariance, no reaching (the general fix)
+
+The unified landing step: run one `≤ dt` right segment (`WellFormedFlowB` — bounded staying, TRUE), then
+CASE-SPLIT `LandingH`'s disjunction on the endpoint (`μ_end ∈` current mode's domain OR a cover-successor's
+domain) and DISPATCH via `starStep_wrap` into the mode `μ_end` landed in. No `SuccReach`/`SuccReachB`
+reaching — the endpoint lands wherever the bounded flow put it (in `domR` by `WellFormedFlowB`), and the
+successor branch fires only where the endpoint is *also* in a successor's domain (a decidable membership at
+the endpoint). `LandingH`'s successors are `retainedSucc` = self-loop + declared non-pruned edges, matching
+`starStep_wrap`'s `edgesFrom` dispatch. Overlap-tolerant (pick any true disjunct). Pure membership +
+invariance, first-passage-free — subsumes both widening (current/self disjunct) and narrowing (successor
+disjunct at an overlap). -/
+
+/-- The bounded flow endpoint: one `≤ dt` right run stays in `domR` and preserves `invLe g` (no reaching,
+no `hsub`). The input to the `LandingH` case-split. -/
+theorem flowDiamondB (g : Term (Var n)) (fR : Fin n → Term (Var n)) (lam : Term (Var n))
+    (domR : Formula (Var n)) (dt : ℝ) (μ : State (Var n))
+    (hwff : WellFormedFlowB fR lam domR dt) (hν : Formula.sat domR μ) (hdt : 0 ≤ dt)
+    (hgbox : BoxLe (Program.ode (rightBlock fR lam) domR) (fun ω => Term.eval g ω) μ) :
+    ∃ μ', Program.sem (Program.ode (rightBlock fR lam) domR) μ μ' ∧
+        Formula.sat (invLe g) μ' ∧ Formula.sat domR μ' := by
+  obtain ⟨ΦR, hΦ0, hder, hmask, hdom⟩ := hwff μ hν dt hdt (le_refl dt)
+  have hsem : Program.sem (Program.ode (rightBlock fR lam) domR) μ (ΦR dt) :=
+    ⟨dt, ΦR, hdt, hΦ0, rfl, hder, hmask, hdom⟩
+  exact ⟨ΦR dt, hsem, by rw [sat_invLe]; exact hgbox (ΦR dt) hsem, hdom dt (right_mem_Icc.mpr hdt)⟩
+
+/-- **The unified H + landing-selection step (MEMBERSHIP, no reaching).** Run one `≤ dt` segment
+(`flowDiamondB`), case-split `LandingH` at the endpoint, dispatch via `starStep_wrap` into the landed mode
+(self-edge for the current disjunct, the declared edge for a successor disjunct). Discharges the landing
+step for BOTH widening and narrowing uniformly, via membership + `WellFormedFlowB` invariance — no
+`SuccReach`/`SuccReachB`, no first-passage. `hedgeSelf`/`hedgeSucc` supply the (⊤-guarded, valid-target)
+edges `retainedSucc` names; `hmvdomAll` the mode-var freshness for any landed mode. -/
+theorem starStep_landingH (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m : RMode (Var n))
+    (g : Term (Var n)) (fR : Fin n → Term (Var n)) (lam : Term (Var n)) (domR : Formula (Var n))
+    (dt : ℝ) (μ : State (Var n))
+    (hg : mv ∉ g.fv) (hm : G.modeAt q = some m) (hsys : m.sys = rightBlock fR lam) (hdom : m.dom = domR)
+    (hmvq : μ mv = (q : ℝ)) (hqlen : q < G.modes.length) (hdt : 0 ≤ dt)
+    (hwff : WellFormedFlowB fR lam domR dt) (hν : Formula.sat domR μ)
+    (hgbox : BoxLe (Program.ode (rightBlock fR lam) domR) (fun ω => Term.eval g ω) μ)
+    (hH : LandingH G)
+    (hmvdomAll : ∀ q' m', G.modeAt q' = some m' → mv ∉ m'.dom.fv)
+    (hedgeSelf : ∃ e ∈ G.edgesFrom q, e.tgt = q ∧ e.guard = Formula.tt)
+    (hedgeSucc : ∀ q', q' ∈ G.retainedSucc q →
+        ∃ e ∈ G.edgesFrom q, e.tgt = q' ∧ e.guard = Formula.tt ∧ e.tgt < G.modes.length) :
+    ∃ ω, Program.sem (rightAutomatonBody G mv) μ ω ∧ StarInv G mv g ω := by
+  obtain ⟨μ', hsem, hinv, hdomend⟩ := flowDiamondB g fR lam domR dt μ hwff hν hdt hgbox
+  have hHμ := hH q m hm μ' (by rw [hdom]; exact hdomend)
+  rcases hHμ with hcur | ⟨q', hq'mem, m', hmode', hdom'⟩
+  · -- current disjunct: self-edge, μ' ∈ m.dom
+    obtain ⟨e, hef, hetgt, hetg⟩ := hedgeSelf
+    refine starStep_wrap G mv q m g fR lam domR μ hg hm hsys hdom hef hetg
+      (by rw [hetgt]; exact hqlen) hmvq (by rw [hetgt]; exact hm) (hmvdomAll q m hm) ?_
+    exact ⟨μ', hsem, hinv, hcur⟩
+  · -- successor disjunct: declared edge to q', μ' ∈ m'.dom
+    obtain ⟨e, hef, hetgt, hetg, hetv⟩ := hedgeSucc q' hq'mem
+    refine starStep_wrap G mv q m g fR lam domR μ hg hm hsys hdom hef hetg hetv hmvq
+      (by rw [hetgt]; exact hmode') (hmvdomAll q' m' hmode') ?_
+    exact ⟨μ', hsem, hinv, hdom'⟩
+
 /-! ## The strengthened segment lemma — one segment preserves `starInvF` (the threaded `φinv`)
 
 The path-A capstone: reuse `multiseg_het`'s box-left induction, but with the STRENGTHENED invariant
@@ -662,6 +720,65 @@ theorem landing_step_star_narrowing (G : SearchGraph (Var n)) (mv : Var n) (q : 
   faModal_star_lift (Equiv.refl (Var n)) _ _ _ σ
     (landing_step_narrowing G mv q m g fL fR lam domL domR dt hg hmvL hm hsys hdom
       hef hetg hetv het' hmvdom' hsr hgboxAll hfrz hmvq hσdom)
+
+/-- **The UNIFIED landing per-step via H + landing-selection (membership, no reaching).** At each post-left
+state `ν` (mode `q`, in `domR` from `hfrz` + `σ ∈ domR`), `starStep_landingH` runs one `≤ dt` segment and
+dispatches by `LandingH`'s membership disjunction — subsuming BOTH widening (current/self disjunct) and
+narrowing (successor disjunct at an overlap) in ONE step. No `hsub`, no `SuccReach`/`SuccReachB` — pure
+`WellFormedFlowB` invariance + endpoint membership. First-passage-free. -/
+theorem landing_step_landingH (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m : RMode (Var n))
+    (g : Term (Var n)) (fL fR : Fin n → Term (Var n)) (lam : Term (Var n))
+    (domL domR : Formula (Var n)) (dt : ℝ)
+    (hg : mv ∉ g.fv) (hmvL : mv ∉ (leftBlock fL).bound)
+    (hm : G.modeAt q = some m) (hsys : m.sys = rightBlock fR lam) (hdom : m.dom = domR)
+    (hqlen : q < G.modes.length) (hdt : 0 ≤ dt)
+    (hwff : WellFormedFlowB fR lam domR dt)
+    (hgboxAll : ∀ ν, Formula.sat domR ν →
+        BoxLe (Program.ode (rightBlock fR lam) domR) (fun ω => Term.eval g ω) ν)
+    (hfrz : ∀ x ∈ domR.fv, x ∉ (leftBlock fL).bound)
+    (hH : LandingH G) (hmvdomAll : ∀ q' m', G.modeAt q' = some m' → mv ∉ m'.dom.fv)
+    (hedgeSelf : ∃ e ∈ G.edgesFrom q, e.tgt = q ∧ e.guard = Formula.tt)
+    (hedgeSucc : ∀ q', q' ∈ G.retainedSucc q →
+        ∃ e ∈ G.edgesFrom q, e.tgt = q' ∧ e.guard = Formula.tt ∧ e.tgt < G.modes.length)
+    {σ : State (Var n)} (hmvq : σ mv = (q : ℝ)) (hσdom : Formula.sat domR σ) :
+    Formula.sat (faModal (Equiv.refl (Var n))
+      (Program.ode (leftBlock fL) domL) (rightAutomatonBody G mv) (starInvF G mv g)) σ := by
+  rw [faModal_sat]
+  intro ν hsemν
+  have hmvν : ν mv = (q : ℝ) := (leftBlock_frames_mv fL domL mv hmvL hsemν).trans hmvq
+  have hνdom : Formula.sat domR ν := by
+    obtain ⟨s, Φ, hs, hΦ0, hΦs, _, hmask, _⟩ := hsemν
+    have heqon : Set.EqOn σ ν domR.fv := by
+      intro x hx
+      rw [← hΦs]; exact (hmask s (right_mem_Icc.mpr hs) x (hfrz x hx)).symm
+    exact (Formula.coincidence domR heqon).mp hσdom
+  obtain ⟨ω, hsemω, hstarω⟩ :=
+    starStep_landingH G mv q m g fR lam domR dt ν hg hm hsys hdom hmvν hqlen hdt hwff hνdom
+      (hgboxAll ν hνdom) hH hmvdomAll hedgeSelf hedgeSucc
+  exact ⟨ω, by simpa only [Program.rename_refl] using hsemω, sat_starInvF.mpr hstarω⟩
+
+/-- **The unified H landing step, `faModal_MULTI` form** — `landing_step_landingH` star-lifted. One mode's
+contribution to `hdispatch`, membership-dispatched (widening ∪ narrowing), first-passage-free. -/
+theorem landing_step_star_landingH (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m : RMode (Var n))
+    (g : Term (Var n)) (fL fR : Fin n → Term (Var n)) (lam : Term (Var n))
+    (domL domR : Formula (Var n)) (dt : ℝ)
+    (hg : mv ∉ g.fv) (hmvL : mv ∉ (leftBlock fL).bound)
+    (hm : G.modeAt q = some m) (hsys : m.sys = rightBlock fR lam) (hdom : m.dom = domR)
+    (hqlen : q < G.modes.length) (hdt : 0 ≤ dt)
+    (hwff : WellFormedFlowB fR lam domR dt)
+    (hgboxAll : ∀ ν, Formula.sat domR ν →
+        BoxLe (Program.ode (rightBlock fR lam) domR) (fun ω => Term.eval g ω) ν)
+    (hfrz : ∀ x ∈ domR.fv, x ∉ (leftBlock fL).bound)
+    (hH : LandingH G) (hmvdomAll : ∀ q' m', G.modeAt q' = some m' → mv ∉ m'.dom.fv)
+    (hedgeSelf : ∃ e ∈ G.edgesFrom q, e.tgt = q ∧ e.guard = Formula.tt)
+    (hedgeSucc : ∀ q', q' ∈ G.retainedSucc q →
+        ∃ e ∈ G.edgesFrom q, e.tgt = q' ∧ e.guard = Formula.tt ∧ e.tgt < G.modes.length)
+    {σ : State (Var n)} (hmvq : σ mv = (q : ℝ)) (hσdom : Formula.sat domR σ) :
+    Formula.sat (faModal (Equiv.refl (Var n))
+      (Program.ode (leftBlock fL) domL) (Program.star (rightAutomatonBody G mv)) (starInvF G mv g)) σ :=
+  faModal_star_lift (Equiv.refl (Var n)) _ _ _ σ
+    (landing_step_landingH G mv q m g fL fR lam domL domR dt hg hmvL hm hsys hdom hqlen hdt
+      hwff hgboxAll hfrz hH hmvdomAll hedgeSelf hedgeSucc hmvq hσdom)
 
 /-- **`multiseg_landing` — the capstone.** The full relational modality `faModal (leftBody*)
 (rightAutomatonBody*) starInvF` over the STARRED left and right automata, assembled from the per-step

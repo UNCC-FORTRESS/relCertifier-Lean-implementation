@@ -218,4 +218,83 @@ theorem tooling_sound_landing_family (G : SearchGraph (Var n)) (mv : Var n) (g :
   theorem3_faithful_landing G mv g leftProgs ϕinv hψ hd
     (hstep_landing_family G mv g leftProgs hresp) hddF
 
+/-! ## WRAP 3 — re-point the shipped `rvalid` theorem at the CLOCKED H-combiner (checkpoint b)
+
+The clocked physical modality `multiseg_landing_clocked_physical` already produces `faModal (star (ode
+leftBlock))(star R) starInvF` — the star is built (no `faModal_LOCK` needed). So the reification is just
+`faModal_to_faShape` (lift the pre-starred `faModal` to the bi-state `faShape`) + the bridge machinery.
+`theorem3_faithful_landing_clocked` routes it to the shipped `rvalid(theorem3Form …)` on the honest
+bounded/clocked/membership foundation: `LandingH`-membership + `WellFormedFlowB` `≤dt` invariance, no `∀s`,
+no first-passage. -/
+
+/-- The pre-starred bridge: lift `faModal (star L)(star R) starInvF` to `faShape (star L)(star R) ψpost`
+(reification, `tg`/encoding-free — skips `faModal_LOCK` since the star is already present). -/
+theorem faShape_of_faModal_landing (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n))
+    (L : Program (Var n)) (ψpost : RFormula (Var n)) (ν : State (Var n)) (bs : BiState (Var n))
+    (hψp : encode (Equiv.refl (Var n)) ψpost = starInvF G mv g)
+    (hdd : Disjoint (faShape (Program.star L) (Program.star (rightAutomatonBody G mv)) ψpost).varsL
+        (Equiv.refl (Var n) '' (faShape (Program.star L)
+          (Program.star (rightAutomatonBody G mv)) ψpost).varsR))
+    (hb : Bridges (Equiv.refl (Var n))
+        (faShape (Program.star L) (Program.star (rightAutomatonBody G mv)) ψpost).varsL
+        (faShape (Program.star L) (Program.star (rightAutomatonBody G mv)) ψpost).varsR bs ν)
+    (hphys : Formula.sat (faModal (Equiv.refl (Var n)) (Program.star L)
+        (Program.star (rightAutomatonBody G mv)) (starInvF G mv g)) ν) :
+    RFormula.sat (faShape (Program.star L) (Program.star (rightAutomatonBody G mv)) ψpost) bs := by
+  refine faModal_to_faShape (Equiv.refl (Var n)) (Program.star L)
+    (Program.star (rightAutomatonBody G mv)) ψpost ν bs hdd hb ?_
+  rw [hψp]; exact hphys
+
+/-- **WRAP 3 (checkpoint b) — the shipped `rvalid` theorem on the CLOCKED H-foundation.** The encoded
+soundness `rvalid(theorem3Form (ode leftBlock fL domL) (rightAutomatonBody G mv) ψpostL)`, produced from
+`multiseg_landing_clocked_physical` (the collapsed physical modality) via `faModal_to_faShape` + the bridge.
+Honest hypotheses: `hHcouple` = the clocked H dispatch (`LandingH` membership + `WellFormedFlowB` `≤dt`,
+first-passage-free), `hbudgetAll` = the cover's per-residence budget `r ≤ k·dt`. NOT `SuccReachB`, NOT `∀s`.
+
+Honest statement note: this is sound HOWEVER the flow dispatches — it dispatches correctly wherever the flow
+lands (membership + bounded invariance). It does NOT assert narrowing switches FIRE; switch-firing is
+benchmark-satisfaction (does the endpoint land in a successor's overlap), out of the machinery. -/
+theorem theorem3_faithful_landing_clocked (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n))
+    (fL : Fin n → Term (Var n)) (domL : Formula (Var n)) (tg : Var n) (dt : ℝ) (k : ℕ)
+    (ϕinv : RFormula (Var n)) (hψ : encode (Equiv.refl (Var n)) ϕinv = invLe g)
+    (htgb : tg ∉ (leftBlock fL).bound) (htgr : tg ∉ (leftBlock fL).readVars) (htgϕ : tg ∉ domL.fv)
+    (hdt : 0 ≤ dt)
+    (htgR : tg ∉ ((rightAutomatonBody G mv).rename (Equiv.refl (Var n))).fv)
+    (htgφ : tg ∉ (starInvF G mv g).fv)
+    (hHcouple : ∀ σ', Formula.sat (starInvF G mv g) σ' →
+      faModalB (Equiv.refl (Var n)) (Program.ode (DLCalTiming.clk tg (leftBlock fL)) domL)
+        (rightAutomatonBody G mv) (starInvF G mv g) tg dt (Function.update σ' tg 0))
+    (hdis : Disjoint (Program.vars ((rightAutomatonBody G mv).rename (Equiv.refl (Var n))))
+        (Program.vars (clockedSeg (leftBlock fL) domL tg dt)))
+    (hdMULTI : Disjoint (Program.vars (Program.ode (leftBlock fL) domL))
+        (Program.vars ((rightAutomatonBody G mv).rename (Equiv.refl (Var n)))))
+    (hbudgetAll : ∀ (σ' : State (Var n)), ∀ {r : ℝ} {Φ : ℝ → State (Var n)},
+        ODESol (leftBlock fL) domL σ' r Φ → r ≤ (k : ℝ) * dt)
+    (hddF : Disjoint (faShape (Program.star (Program.ode (leftBlock fL) domL))
+          (Program.star (rightAutomatonBody G mv)) (ψpostL G mv ϕinv)).varsL
+        (Equiv.refl (Var n) '' (faShape (Program.star (Program.ode (leftBlock fL) domL))
+          (Program.star (rightAutomatonBody G mv)) (ψpostL G mv ϕinv)).varsR)) :
+    RFormula.rvalid (theorem3Form (Program.ode (leftBlock fL) domL)
+      (rightAutomatonBody G mv) (ψpostL G mv ϕinv)) := by
+  set ψpost := ψpostL G mv ϕinv with hψpost
+  set Lp := Program.star (Program.ode (leftBlock fL) domL)
+  set Rp := Program.star (rightAutomatonBody G mv)
+  have hencψ : encode (Equiv.refl (Var n)) ψpost = starInvF G mv g := encode_ψpostL G mv g ϕinv hψ
+  intro bs
+  rw [theorem3Form]
+  refine (RFormula_sat_imp _ _ bs).mpr ?_
+  intro hpre
+  obtain ⟨ν, hbdg⟩ := exists_bridge (Equiv.refl (Var n))
+    (faShape Lp Rp ψpost).varsL (faShape Lp Rp ψpost).varsR hddF bs
+  have hbψ : Bridges (Equiv.refl (Var n)) ψpost.varsL ψpost.varsR bs ν :=
+    hbdg.mono (varsL_subset_faShape Lp Rp ψpost) (varsR_subset_faShape Lp Rp ψpost)
+  have hdψ : Disjoint ψpost.varsL (Equiv.refl (Var n) '' ψpost.varsR) :=
+    hddF.mono (varsL_subset_faShape Lp Rp ψpost)
+      (Set.image_mono (varsR_subset_faShape Lp Rp ψpost))
+  have hInvν : Formula.sat (starInvF G mv g) ν := by
+    rw [← hencψ]; exact (RFormula.encoding_correct (Equiv.refl (Var n)) ψpost hdψ bs ν hbψ).mp hpre
+  have hphys := multiseg_landing_clocked_physical G mv g fL domL tg dt k htgb htgr htgϕ hdt htgR htgφ
+    hHcouple hdis hdMULTI hbudgetAll hInvν
+  exact faShape_of_faModal_landing G mv g (Program.ode (leftBlock fL) domL) ψpost ν bs hencψ hddF hbdg hphys
+
 end RelCertifier

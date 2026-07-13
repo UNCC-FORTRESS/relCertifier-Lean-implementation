@@ -297,4 +297,33 @@ theorem theorem3_faithful_landing_clocked (G : SearchGraph (Var n)) (mv : Var n)
     hHcouple hdis hdMULTI hbudgetAll hInvν
   exact faShape_of_faModal_landing G mv g (Program.ode (leftBlock fL) domL) ψpost ν bs hencψ hddF hbdg hphys
 
+/-- **PART 1 re-point — the shipped `rvalid` theorem on the UNIVERSAL well-formedness `LandingWellFormed`.**
+`theorem3_faithful_landing_clocked` with the opaque `hHcouple` dispatch bundle replaced by the single
+model-level `LandingWellFormed` (uniform `∀modes`: bounded-`dt` staying + `LandingH` membership over each
+mode's `retainedSucc`). `hHcouple` is derived (`hHcouple_of_LandingWellFormed`); the remaining hypotheses
+(`tg`-freshness for the collapse/reification, per-residence budget, disjointness) are the clocking/bridge
+plumbing, not landing content. This is the clean entry point: `LandingWellFormed` is what a benchmark
+discharges (Part 2). -/
+theorem theorem3_faithful_landing_clocked_wf (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n))
+    (fL : Fin n → Term (Var n)) (domL : Formula (Var n)) (tg : Var n) (dt : ℝ) (k : ℕ)
+    (lam : Term (Var n)) (ϕinv : RFormula (Var n)) (hψ : encode (Equiv.refl (Var n)) ϕinv = invLe g)
+    (hlwf : LandingWellFormed G mv g lam tg dt fL domL)
+    (htgb : tg ∉ (leftBlock fL).bound) (htgr : tg ∉ (leftBlock fL).readVars) (htgϕ : tg ∉ domL.fv)
+    (htgR : tg ∉ ((rightAutomatonBody G mv).rename (Equiv.refl (Var n))).fv)
+    (htgφ : tg ∉ (starInvF G mv g).fv)
+    (hdis : Disjoint (Program.vars ((rightAutomatonBody G mv).rename (Equiv.refl (Var n))))
+        (Program.vars (clockedSeg (leftBlock fL) domL tg dt)))
+    (hdMULTI : Disjoint (Program.vars (Program.ode (leftBlock fL) domL))
+        (Program.vars ((rightAutomatonBody G mv).rename (Equiv.refl (Var n)))))
+    (hbudgetAll : ∀ (σ' : State (Var n)), ∀ {r : ℝ} {Φ : ℝ → State (Var n)},
+        ODESol (leftBlock fL) domL σ' r Φ → r ≤ (k : ℝ) * dt)
+    (hddF : Disjoint (faShape (Program.star (Program.ode (leftBlock fL) domL))
+          (Program.star (rightAutomatonBody G mv)) (ψpostL G mv ϕinv)).varsL
+        (Equiv.refl (Var n) '' (faShape (Program.star (Program.ode (leftBlock fL) domL))
+          (Program.star (rightAutomatonBody G mv)) (ψpostL G mv ϕinv)).varsR)) :
+    RFormula.rvalid (theorem3Form (Program.ode (leftBlock fL) domL)
+      (rightAutomatonBody G mv) (ψpostL G mv ϕinv)) :=
+  theorem3_faithful_landing_clocked G mv g fL domL tg dt k ϕinv hψ htgb htgr htgϕ hlwf.1 htgR htgφ
+    (hHcouple_of_LandingWellFormed G mv g lam tg dt fL domL hlwf) hdis hdMULTI hbudgetAll hddF
+
 end RelCertifier

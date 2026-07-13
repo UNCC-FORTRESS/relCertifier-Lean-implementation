@@ -1071,4 +1071,48 @@ theorem multiseg_landing_clocked_physical (G : SearchGraph (Var n)) (mv : Var n)
     (fun σ' hσ' => clocked_H_residence_physical G mv g fL domL tg dt k htgb htgr htgϕ hdt htgR htgφ
       hHcouple hdis hσ' (hbudgetAll σ')) (fun _ h => h)
 
+/-! ## PART 1 — `hHcouple` as ONE universal `∀modes` well-formedness (`LandingWellFormed`)
+
+Replace the opaque per-mode dispatch bundle with a single model-level property: the automaton is well-formed
+in the bounded-landing sense — uniformly for every mode, its `≤dt` executions preserve the evolution domain
+(`WellFormedFlowB`, Z3-checkable) and land in a dispatchable (current-or-cover-successor) domain (`LandingH`
+over that mode's `retainedSucc`). Membership + bounded invariance, no `∀s`, no reaching. `hHcouple_of_
+LandingWellFormed` derives the clocked `hHcouple` from it — same dispatch, cleaner statement. -/
+
+/-- **The universal bounded-landing well-formedness** (one hypothesis, `∀modes`). -/
+def LandingWellFormed (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n)) (lam : Term (Var n))
+    (tg : Var n) (dt : ℝ) (fL : Fin n → Term (Var n)) (domL : Formula (Var n)) : Prop :=
+  0 ≤ dt ∧ LandingH G ∧ mv ∉ g.fv ∧ mv ∉ (DLCalTiming.clk tg (leftBlock fL)).bound ∧ mv ≠ tg ∧
+  (∀ q' m', G.modeAt q' = some m' → mv ∉ m'.dom.fv) ∧
+  (∀ q m, G.modeAt q = some m → ∃ (fR : Fin n → Term (Var n)) (domR : Formula (Var n)),
+    m.sys = rightBlock fR lam ∧ m.dom = domR ∧ q < G.modes.length ∧ tg ∉ domR.fv ∧
+    WellFormedFlowB fR lam domR dt ∧
+    (∀ ν, Formula.sat domR ν → BoxLe (Program.ode (rightBlock fR lam) domR) (fun ω => Term.eval g ω) ν) ∧
+    (∀ x ∈ domR.fv, x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound) ∧
+    (∃ e ∈ G.edgesFrom q, e.tgt = q ∧ e.guard = Formula.tt) ∧
+    (∀ q', q' ∈ G.retainedSucc q →
+      ∃ e ∈ G.edgesFrom q, e.tgt = q' ∧ e.guard = Formula.tt ∧ e.tgt < G.modes.length))
+
+/-- **`LandingWellFormed → hHcouple`** — the universal well-formedness derives the clocked H dispatch
+(dispatch on the state's mode via `StarInModeDom`, apply `landing_step_landingH_clocked`). Same strength as
+the per-mode bundle for the theorem; the `retainedSucc q` binding is intact (per-mode `hsucc`). -/
+theorem hHcouple_of_LandingWellFormed (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n))
+    (lam : Term (Var n)) (tg : Var n) (dt : ℝ) (fL : Fin n → Term (Var n)) (domL : Formula (Var n))
+    (hlwf : LandingWellFormed G mv g lam tg dt fL domL) :
+    ∀ σ', Formula.sat (starInvF G mv g) σ' →
+      faModalB (Equiv.refl (Var n)) (Program.ode (DLCalTiming.clk tg (leftBlock fL)) domL)
+        (rightAutomatonBody G mv) (starInvF G mv g) tg dt (Function.update σ' tg 0) := by
+  obtain ⟨hdt, hH, hg, hmvLclk, hmvtg, hmvdomAll, hmodes⟩ := hlwf
+  intro σ' hσ'
+  obtain ⟨q, m, hqmv, hmode, hmdom⟩ := (sat_starInvF.mp hσ').2.2
+  obtain ⟨fR, domR, hsys, hdom, hqlen, htgdR, hwff, hgbox, hfrz, hself, hsucc⟩ := hmodes q m hmode
+  have hωmv : (Function.update σ' tg 0) mv = (q : ℝ) := by rw [Function.update_of_ne hmvtg]; exact hqmv
+  have hσ'domR : Formula.sat domR σ' := by rw [← hdom]; exact hmdom
+  have hωdom : Formula.sat domR (Function.update σ' tg 0) := by
+    have heq : Set.EqOn σ' (Function.update σ' tg 0) domR.fv :=
+      fun x hx => (Function.update_of_ne (by rintro rfl; exact htgdR hx) _ _).symm
+    exact (Formula.coincidence domR heq).mp hσ'domR
+  exact landing_step_landingH_clocked G mv q m g fL fR lam domL domR tg dt (Function.update σ' tg 0)
+    hg hmvLclk hmode hsys hdom hqlen hdt hwff hgbox hfrz hH hmvdomAll hself hsucc hωmv hωdom
+
 end RelCertifier

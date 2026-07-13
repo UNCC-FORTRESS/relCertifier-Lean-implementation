@@ -341,6 +341,73 @@ theorem starStep_widening (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m : 
   starStep_wrap G mv q m g fR lam domR μ hg hm hsys hdom hef hetg hetv hmvq het' hmvdom'
     (flowDiamond_widening g fR lam domR m'.dom μ hwff hν hgbox hsub)
 
+/-! ## Narrowing — one model-level well-formedness hypothesis `WFLand` (STATEMENT-FIRST)
+
+For a narrowing switch (`domSucc ⊊ domR`, e.g. rover Recover→Drive with `domR = vx∈[0,1]`,
+`domSucc = vx∈[0.3,1]`) the widening discharge `flowDiamond_widening`/`hsub` is UNAVAILABLE — `domR ⊆
+domSucc` is false. `starStep_wrap`'s `hstep` demands a RUN ENDPOINT in `domSucc`, so from a start below the
+threshold the flow must REACH `domSucc` (first-passage). `WFLand` names that reaching as ONE model-level
+property, replacing scattered per-edge reach facts.
+
+**`WFLand` (the REACHING version — non-vacuous):** from every in-domain start, the mode's ODE reaches an
+endpoint IN THE SUCCESSOR DOMAIN. This quantifies over EXECUTIONS reaching a landing (`∃ μ'` an
+ODE-endpoint `sem (ode …) μ μ'`) that is in `domSucc` — the terminal/reaching event. It implies `hreach`
+directly. It is a property of the MODEL (the mode's field + successor domain), with NO reference to the
+fold/junctions/faModal — purely about the automaton's executions and domains. -/
+def WFLand (fR : Fin n → Term (Var n)) (lam : Term (Var n)) (domR domSucc : Formula (Var n)) : Prop :=
+  ∀ μ : State (Var n), Formula.sat domR μ →
+    ∃ μ', Program.sem (Program.ode (rightBlock fR lam) domR) μ μ' ∧ Formula.sat domSucc μ'
+
+/-- **The PER-POINT / disjunctive version — the WFExec collapse (stated to contrast, NOT used).** "Some
+execution lands in `domR` OR `domSucc`". This is VACUOUS: the zero-duration self-run (`μ' = μ`) satisfies
+the left disjunct (`μ ∈ domR`), so it holds trivially WITHOUT ever reaching `domSucc`. It does NOT imply
+`hreach`. `WFLand` (reaching-to-successor) is strictly stronger — it forces the successor landing. The
+anti-collapse check: use `WFLand`, never `WFLandUnion`. -/
+def WFLandUnion (fR : Fin n → Term (Var n)) (lam : Term (Var n)) (domR domSucc : Formula (Var n)) : Prop :=
+  ∀ μ : State (Var n), Formula.sat domR μ →
+    ∃ μ', Program.sem (Program.ode (rightBlock fR lam) domR) μ μ' ∧
+      (Formula.sat domR μ' ∨ Formula.sat domSucc μ')
+
+/-- **`WFLand → hreach`/`hstep` (the narrowing analog of `flowDiamond_widening`).** `WFLand` supplies the
+reached endpoint `μ'` in `domSucc`; the flow's `BoxLe` `g`-preservation supplies `invLe g μ'` at that same
+endpoint (it is a `sem`-endpoint). Together they give `starStep_wrap`'s `hstep` — with `domSucc = m'.dom`
+this is exactly the missing narrowing discharge, now sourced from the one model-level `WFLand` instead of
+`hsub`. The reaching in `WFLand` IS the reaching in `hreach`; the implication is `μ' := WFLand`'s witness. -/
+theorem hstep_of_WFLand (g : Term (Var n)) (fR : Fin n → Term (Var n)) (lam : Term (Var n))
+    (domR domSucc : Formula (Var n)) (μ : State (Var n))
+    (hwf : WFLand fR lam domR domSucc) (hμ : Formula.sat domR μ)
+    (hgbox : BoxLe (Program.ode (rightBlock fR lam) domR) (fun ω => Term.eval g ω) μ) :
+    ∃ μ', Program.sem (Program.ode (rightBlock fR lam) domR) μ μ' ∧
+        Formula.sat (invLe g) μ' ∧ Formula.sat domSucc μ' := by
+  obtain ⟨μ', hsem, hdom'⟩ := hwf μ hμ
+  exact ⟨μ', hsem, by rw [sat_invLe]; exact hgbox μ' hsem, hdom'⟩
+
+/-- `WFLand` is at least as strong as the disjunctive version (reaching-to-successor ⟹ lands-in-union).
+The converse FAILS (`WFLandUnion` is vacuous via the zero-duration stay), which is why only `WFLand`
+implies `hreach`. -/
+theorem WFLand_imp_WFLandUnion (fR : Fin n → Term (Var n)) (lam : Term (Var n))
+    (domR domSucc : Formula (Var n)) (hwf : WFLand fR lam domR domSucc) :
+    WFLandUnion fR lam domR domSucc := by
+  intro μ hμ; obtain ⟨μ', hsem, hdom'⟩ := hwf μ hμ; exact ⟨μ', hsem, Or.inr hdom'⟩
+
+/-- **The anti-collapse, MECHANIZED: `WFLandUnion` is unconditionally TRUE (hence useless).** The
+zero-duration self-run (`s = 0`, `Φ ≡ μ`) is a legal ODE execution — on the singleton time-interval
+`Icc 0 0 = {0}` the derivative condition is vacuous — landing at `μ' = μ ∈ domR`, the left disjunct. So
+`WFLandUnion` holds for ANY field/domains WITHOUT reaching `domSucc`. This proves the disjunctive/per-point
+phrasing cannot imply `hreach`; only the reaching-to-successor `WFLand` (which the converse `WFLand_imp_
+WFLandUnion` shows is strictly stronger) does. This is the load-bearing anti-collapse check. -/
+theorem WFLandUnion_vacuous (fR : Fin n → Term (Var n)) (lam : Term (Var n))
+    (domR domSucc : Formula (Var n)) : WFLandUnion fR lam domR domSucc := by
+  intro μ hμ
+  refine ⟨μ, ⟨0, fun _ => μ, le_refl 0, rfl, rfl, ?_, ?_, ?_⟩, Or.inl hμ⟩
+  · intro t ht p _
+    have ht0 : t = 0 := le_antisymm ht.2 ht.1
+    subst ht0
+    have h : Icc (0 : ℝ) 0 = {0} := by simp
+    rw [h]; simp [hasDerivWithinAt_iff_tendsto_slope]
+  · intro t _ x _; rfl
+  · intro t _; exact hμ
+
 /-! ## The strengthened segment lemma — one segment preserves `starInvF` (the threaded `φinv`)
 
 The path-A capstone: reuse `multiseg_het`'s box-left induction, but with the STRENGTHENED invariant

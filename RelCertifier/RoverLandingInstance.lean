@@ -141,6 +141,41 @@ theorem WellFormedFlow_rover_false :
   rw [hvx3] at hdom3
   norm_num at hdom3
 
+/-! ## STEP 1 truth check — bounded-`dt` domain-invariance HOLDS for rover (where `∀s` failed)
+
+Recover's FULL evolve domain (`px∈[0,15] ∧ vx∈[0,1]`). The bounded-`dt` flow stays in it over `[0,dt]`
+whenever the start has `dt`-room (`vx₀ + 0.4·dt ≤ 1`, `px₀ + vx₀·dt + 0.2·dt² ≤ 15`) — TRUE by monotone
+growth, contrast `WellFormedFlow_rover_false` (the `∀s` form). The room condition is exactly what the
+cover's Z3 `SegPreserves` verifies per reachable segment; on loose domains (`px≤15` vs reachable travel
+`≤ bound_T·v_max = 2`) reachable starts have ample room. -/
+
+/-- Recover's full evolve domain (`0 ≤ px ≤ 15 ∧ 0 ≤ vx ≤ 1`). -/
+noncomputable def recoverDomFull : Formula (Var 3) :=
+  Formula.and
+    (Formula.and (Formula.cmp CompOp.le (Term.const 0) (Term.var (Rv 0)))
+                 (Formula.cmp CompOp.le (Term.var (Rv 0)) (Term.const 15)))
+    (Formula.and (Formula.cmp CompOp.le (Term.const 0) (Term.var (Rv 1)))
+                 (Formula.cmp CompOp.le (Term.var (Rv 1)) (Term.const 1)))
+
+/-- **THE TRUTH CHECK (mechanized): the rover flow STAYS in Recover's domain over `[0,dt]` with `dt`-room.**
+Monotone growth (`px' = vx ≥ 0`, `vx' = 0.4`) keeps `px ∈ [px₀, px(dt)]` and `vx ∈ [vx₀, vx(dt)]`; the
+room hypotheses bound the endpoints inside the domain. So bounded-`dt` domain-invariance is TRUE for the
+growing-bounded rover field — the honest replacement for the false `∀s` idealization. -/
+theorem rover_flow_stays_bounded (base : State (Var 3)) (dt t : ℝ)
+    (hpx0 : 0 ≤ base (Rv 0)) (hvx0 : 0 ≤ base (Rv 1))
+    (hvxroom : base (Rv 1) + (4/10) * dt ≤ 1)
+    (hpxroom : base (Rv 0) + base (Rv 1) * dt + (2/10) * dt ^ 2 ≤ 15)
+    (ht0 : 0 ≤ t) (htdt : t ≤ dt) :
+    Formula.sat recoverDomFull (roverΦR base t) := by
+  have hdt : 0 ≤ dt := le_trans ht0 htdt
+  simp only [recoverDomFull, Formula.sat, CompOp.interp, Term.eval, roverΦR_Rv0, roverΦR_Rv1]
+  refine ⟨⟨?_, ?_⟩, ?_, ?_⟩
+  · nlinarith [mul_nonneg hvx0 ht0, sq_nonneg t]
+  · nlinarith [mul_nonneg hvx0 (sub_nonneg.mpr htdt), sq_nonneg t, sq_nonneg dt,
+      mul_nonneg hvx0 ht0, sub_nonneg.mpr htdt]
+  · nlinarith
+  · nlinarith
+
 /-- Drive's evolve domain (`vx` coordinate `Rv 1`, `px` coordinate `Rv 0`), as a `Formula`. -/
 noncomputable def driveDomF : Formula (Var 3) :=
   Formula.and

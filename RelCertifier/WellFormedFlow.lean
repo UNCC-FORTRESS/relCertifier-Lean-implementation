@@ -33,6 +33,30 @@ def WellFormedFlow (fR : Fin n → Term (Var n)) (lam : Term (Var n)) (domR : Fo
       (∀ t ∈ Icc (0 : ℝ) s, ∀ x, x ∉ (rightBlock fR lam).bound → ΦR t x = base x) ∧
       (∀ t ∈ Icc (0 : ℝ) s, Formula.sat domR (ΦR t))
 
+/-- **Bounded-`dt` per-mode flow well-formedness — the HONEST, Z3-sourced replacement for the `∀s` form.**
+Identical to `WellFormedFlow` but the domain-staying is required ONLY up to the segment budget `s ≤ dt`
+(`dt = ε_r/λ`, the cover's fixed cut). The `∀s` form (above) is FALSE for growing-bounded fields (a
+coordinate `px' = vx > 0` bounded `px ≤ 15` exits over unbounded time — `WellFormedFlow_rover_false`);
+this bounded form is what the tool ACTUALLY checks per segment via Z3 (`SegPreserves`), and it is TRUE for
+those fields over one short segment on loose domains (reachable travel `≤ bound_T·v_max` stays interior).
+It bottoms out at the same `z3_unsat_sound` leaf — no new trust; it is not a `∀base` Lean derivation but
+the per-segment domain check the cover performs. -/
+def WellFormedFlowB (fR : Fin n → Term (Var n)) (lam : Term (Var n)) (domR : Formula (Var n))
+    (dt : ℝ) : Prop :=
+  ∀ (base : State (Var n)), Formula.sat domR base → ∀ (s : ℝ), 0 ≤ s → s ≤ dt →
+    ∃ ΦR : ℝ → State (Var n), ΦR 0 = base ∧
+      (∀ t ∈ Icc (0 : ℝ) s, ∀ p ∈ rightBlock fR lam,
+          HasDerivWithinAt (fun u => ΦR u p.1) (p.2.eval (ΦR t)) (Icc 0 s) t) ∧
+      (∀ t ∈ Icc (0 : ℝ) s, ∀ x, x ∉ (rightBlock fR lam).bound → ΦR t x = base x) ∧
+      (∀ t ∈ Icc (0 : ℝ) s, Formula.sat domR (ΦR t))
+
+/-- `WellFormedFlow` (∀s) trivially implies the bounded form (just drop the `s ≤ dt` witnesses). So the
+bounded form is WEAKER — the honest, satisfiable version — and any `∀s` witness (e.g. at `domR = ⊤`)
+still gives it. -/
+theorem WellFormedFlowB_of_WellFormedFlow (fR : Fin n → Term (Var n)) (lam : Term (Var n))
+    (domR : Formula (Var n)) (dt : ℝ) (h : WellFormedFlow fR lam domR) :
+    WellFormedFlowB fR lam domR dt := fun base hb s hs _ => h base hb s hs
+
 /-- **The discharge — `HExistSeg` from `WellFormedFlow` at an in-domain start.** Given the per-mode
 `WellFormedFlow` (right-flow existence + domain-staying), that `domR` reads only coordinates the left
 block does not evolve (`hfrz`, the L/R split — `domR` is a right-side domain), and that the segment

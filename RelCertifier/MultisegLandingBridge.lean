@@ -166,4 +166,56 @@ theorem tooling_sound_landing_rvalid (G : SearchGraph (Var n)) (mv : Var n) (g :
   theorem3_faithful_landing G mv g [Program.ode (leftBlock fL) domL] ϕinv hψ hd
     (hstep_landing_single G mv g fL domL hresp) hddF
 
+/-! ## LIFT 2 Phase B — full family (the goal)
+
+`leftBody = bigChoice leftProgs` over the WHOLE left automaton (multiple left modes). `hstep` folds via
+`faModal_bigChoiceL` over `leftProgs`: for each left mode `P`, the right dispatches on `σ`'s mode
+(`StarInModeDom`) and responds (widening → `landing_step_faModal`, narrowing → `landing_step_narrowing`).
+`hresp` is the per-(left-mode × right-mode) response bundle — the family analog of the existing chain's
+`Hmulti`, with `SuccReach` living inside its narrowing responses. This is what a real benchmark automaton
+instantiates. -/
+
+/-- `hstep` for the full left family, from the per-(left-mode × right-mode) dispatch `hresp`. -/
+theorem hstep_landing_family (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n))
+    (leftProgs : List (Program (Var n)))
+    (hresp : ∀ P ∈ leftProgs, ∀ σ', StarInv G mv g σ' → ∀ q m, G.modeAt q = some m → σ' mv = (q : ℝ) →
+        Formula.sat m.dom σ' →
+        Formula.sat (faModal (Equiv.refl (Var n)) P (rightAutomatonBody G mv) (starInvF G mv g)) σ') :
+    ∀ σ, Formula.sat (starInvF G mv g) σ →
+      Formula.sat (faModal (Equiv.refl (Var n)) (bigChoice leftProgs)
+        (rightAutomatonBody G mv) (starInvF G mv g)) σ := by
+  intro σ hσ
+  refine faModal_bigChoiceL (Equiv.refl (Var n)) (rightAutomatonBody G mv) (starInvF G mv g) σ
+    leftProgs ?_
+  intro P hP
+  have hstar := sat_starInvF.mp hσ
+  obtain ⟨q, m, hqmv, hmode, hmdom⟩ := hstar.2.2
+  exact hresp P hP σ hstar q m hmode hqmv hmdom
+
+/-- **LIFT 2 Phase B — the full-family end-to-end (the goal).** The shipped encoded soundness conclusion
+`rvalid(theorem3Form (bigChoice leftProgs) (rightAutomatonBody G mv) ψpostL)` over the WHOLE left×right
+automaton, produced from the landing-selected proof: `hstep_landing_family` (per-(left×right) dispatch,
+folded by `faModal_bigChoiceL`) → `theorem3_faithful_landing` (`faModal_LOCK` + reification bridge) →
+`rvalid`. Narrowing edges discharge under `SuccReach` (inside `hresp`'s narrowing branch), shared/widening
+by construction. This is `relCertifier`'s soundness theorem re-pointed at landing-selection for the full
+family — no `∀ν HExistSeg`, no `WFBoundary` assumption; the only carried reachability is `SuccReach`, scoped
+to narrowing edges. Non-breaking: the encoded `tooling_sound` and `multiseg_het` remain as the trivial
+(all-widening / `EmitSegs`) special cases. -/
+theorem tooling_sound_landing_family (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n))
+    (leftProgs : List (Program (Var n))) (ϕinv : RFormula (Var n))
+    (hψ : encode (Equiv.refl (Var n)) ϕinv = invLe g)
+    (hd : Disjoint (Program.vars (bigChoice leftProgs))
+        (Program.vars ((rightAutomatonBody G mv).rename (Equiv.refl (Var n)))))
+    (hresp : ∀ P ∈ leftProgs, ∀ σ', StarInv G mv g σ' → ∀ q m, G.modeAt q = some m → σ' mv = (q : ℝ) →
+        Formula.sat m.dom σ' →
+        Formula.sat (faModal (Equiv.refl (Var n)) P (rightAutomatonBody G mv) (starInvF G mv g)) σ')
+    (hddF : Disjoint (faShape (Program.star (bigChoice leftProgs))
+          (Program.star (rightAutomatonBody G mv)) (ψpostL G mv ϕinv)).varsL
+        (Equiv.refl (Var n) '' (faShape (Program.star (bigChoice leftProgs))
+          (Program.star (rightAutomatonBody G mv)) (ψpostL G mv ϕinv)).varsR)) :
+    RFormula.rvalid (theorem3Form (bigChoice leftProgs)
+      (rightAutomatonBody G mv) (ψpostL G mv ϕinv)) :=
+  theorem3_faithful_landing G mv g leftProgs ϕinv hψ hd
+    (hstep_landing_family G mv g leftProgs hresp) hddF
+
 end RelCertifier

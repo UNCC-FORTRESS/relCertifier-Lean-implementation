@@ -937,4 +937,53 @@ theorem tooling_sound_landing (G : SearchGraph (Var n)) (mv : Var n) (g : Term (
       (Program.star (rightAutomatonBody G mv)) (starInvF G mv g)) σ :=
   multiseg_landing G mv g leftBody σ hd hσ (hdispatch_of_modeResp G mv g leftBody hresp)
 
+/-! ## Right-widen — `bigSeq k R ⊆ star R` (WRAP 2: residence `bigSeq k` right → `star R` before collapse)
+
+The residence-level clocked H-combiner (option ii) composes `k` clocked H-pieces via the shipped
+`multiseg_clocked` (per-piece `faModal_seq` — landing-selection stays per-`≤dt`-piece), giving a right side
+`bigSeq (replicate k rightAutomatonBody)`. These lemmas widen that finite `k`-fold to `star rightAutomatonBody`
+(a `k`-step star run), so `clockLift_collapse` (which takes any right `R`, here `star rightAutomatonBody`)
+applies. Pure sem inclusion (`bigSeq k R` runs are `k`-step `ReflTransGen`), no dispatch change — the
+per-piece membership dispatch is untouched. -/
+
+/-- A `k`-fold `bigSeq` run is a `star` run (`ReflTransGen`). -/
+theorem sem_bigSeq_replicate_subset_star (R : Program (Var n)) :
+    ∀ (k : ℕ) {ν μ : State (Var n)},
+      Program.sem (bigSeq (List.replicate k R)) ν μ → Program.sem (Program.star R) ν μ := by
+  intro k
+  induction k with
+  | zero => intro ν μ h; rw [List.replicate_zero, bigSeq, sem_test] at h
+            obtain ⟨rfl, _⟩ := h; exact Relation.ReflTransGen.refl
+  | succ k ih =>
+      intro ν μ h
+      rw [List.replicate_succ] at h
+      obtain ⟨κ, hR, hrest⟩ := h
+      exact Relation.ReflTransGen.head hR (ih hrest)
+
+/-- Renaming distributes over `bigSeq (replicate k R)`. -/
+theorem rename_bigSeq_replicate (ρ : Var n ≃ Var n) (R : Program (Var n)) (k : ℕ) :
+    (bigSeq (List.replicate k R)).rename ρ = bigSeq (List.replicate k (R.rename ρ)) := by
+  induction k with
+  | zero => rfl
+  | succ k ihk =>
+      rw [List.replicate_succ, List.replicate_succ]
+      show (Program.seq R (bigSeq (List.replicate k R))).rename ρ
+        = Program.seq (R.rename ρ) (bigSeq (List.replicate k (R.rename ρ)))
+      rw [rename_seq, ihk]
+
+/-- **Right-widen: `faModal P (bigSeq k R) φ ⟹ faModal P (star R) φ`.** The residence's finite `k`-fold
+right response is a `star R` run, so the finite-right faModal weakens to the star-right faModal — the form
+`clockLift_collapse` consumes. Dispatch is unchanged (sem inclusion only). -/
+theorem faModal_bigSeq_replicate_to_star (ρ : Var n ≃ Var n) (P R : Program (Var n))
+    (φ : Formula (Var n)) (ω : State (Var n)) (k : ℕ)
+    (h : Formula.sat (faModal ρ P (bigSeq (List.replicate k R)) φ) ω) :
+    Formula.sat (faModal ρ P (Program.star R) φ) ω := by
+  rw [faModal_sat] at h ⊢
+  intro ν hν
+  obtain ⟨μ, hRun, hφ⟩ := h ν hν
+  refine ⟨μ, ?_, hφ⟩
+  rw [rename_star]
+  rw [rename_bigSeq_replicate] at hRun
+  exact sem_bigSeq_replicate_subset_star (R.rename ρ) k hRun
+
 end RelCertifier

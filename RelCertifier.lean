@@ -55,4 +55,5 @@ import RelCertifier.WellFormedFlow
 import RelCertifier.WFBoundary
 import RelCertifier.MultisegLanding
 import RelCertifier.MultisegLandingBridge
+import RelCertifier.RoverLandingInstance
 import RelCertifier.AxiomCheck

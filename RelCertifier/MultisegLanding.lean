@@ -341,63 +341,70 @@ theorem starStep_widening (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m : 
   starStep_wrap G mv q m g fR lam domR μ hg hm hsys hdom hef hetg hetv hmvq het' hmvdom'
     (flowDiamond_widening g fR lam domR m'.dom μ hwff hν hgbox hsub)
 
-/-! ## Narrowing — one model-level well-formedness hypothesis `WFLand` (STATEMENT-FIRST)
+/-! ## Narrowing — one model-level REACHABILITY (liveness) hypothesis `SuccReach` (STATEMENT-FIRST)
 
 For a narrowing switch (`domSucc ⊊ domR`, e.g. rover Recover→Drive with `domR = vx∈[0,1]`,
 `domSucc = vx∈[0.3,1]`) the widening discharge `flowDiamond_widening`/`hsub` is UNAVAILABLE — `domR ⊆
 domSucc` is false. `starStep_wrap`'s `hstep` demands a RUN ENDPOINT in `domSucc`, so from a start below the
-threshold the flow must REACH `domSucc` (first-passage). `WFLand` names that reaching as ONE model-level
+threshold the flow must REACH `domSucc` (first-passage). `SuccReach` names that reaching as ONE model-level
 property, replacing scattered per-edge reach facts.
 
-**`WFLand` (the REACHING version — non-vacuous):** from every in-domain start, the mode's ODE reaches an
-endpoint IN THE SUCCESSOR DOMAIN. This quantifies over EXECUTIONS reaching a landing (`∃ μ'` an
+**`SuccReach` (the REACHING / liveness version — non-vacuous):** from every in-domain start, the mode's ODE
+reaches an endpoint IN THE SUCCESSOR DOMAIN. This quantifies over EXECUTIONS reaching a landing (`∃ μ'` an
 ODE-endpoint `sem (ode …) μ μ'`) that is in `domSucc` — the terminal/reaching event. It implies `hreach`
 directly. It is a property of the MODEL (the mode's field + successor domain), with NO reference to the
-fold/junctions/faModal — purely about the automaton's executions and domains. -/
-def WFLand (fR : Fin n → Term (Var n)) (lam : Term (Var n)) (domR domSucc : Formula (Var n)) : Prop :=
+fold/junctions/faModal — purely about the automaton's executions and domains.
+
+**Honestly labeled: this is a REACHABILITY (liveness) condition, NOT non-blocking.** `SuccReach` is exactly
+first-passage universally quantified over start states, named once — it *asserts* the flow reaches the
+successor domain. It is strictly stronger than the safety/non-blocking property `SuccReachUnion` (lands in
+`domR`-or-`domSucc`), which `SuccReachUnion_vacuous` PROVES is unconditionally true and hence useless. So we
+do not dress first-passage as something milder: `SuccReach` is a named, true, checkable, model-level
+reachability well-formedness, provable per-field via monotonicity+IVT (scoped future work). -/
+def SuccReach (fR : Fin n → Term (Var n)) (lam : Term (Var n)) (domR domSucc : Formula (Var n)) : Prop :=
   ∀ μ : State (Var n), Formula.sat domR μ →
     ∃ μ', Program.sem (Program.ode (rightBlock fR lam) domR) μ μ' ∧ Formula.sat domSucc μ'
 
 /-- **The PER-POINT / disjunctive version — the WFExec collapse (stated to contrast, NOT used).** "Some
 execution lands in `domR` OR `domSucc`". This is VACUOUS: the zero-duration self-run (`μ' = μ`) satisfies
 the left disjunct (`μ ∈ domR`), so it holds trivially WITHOUT ever reaching `domSucc`. It does NOT imply
-`hreach`. `WFLand` (reaching-to-successor) is strictly stronger — it forces the successor landing. The
-anti-collapse check: use `WFLand`, never `WFLandUnion`. -/
-def WFLandUnion (fR : Fin n → Term (Var n)) (lam : Term (Var n)) (domR domSucc : Formula (Var n)) : Prop :=
+`hreach`. `SuccReach` (reaching-to-successor) is strictly stronger — it forces the successor landing. The
+anti-collapse check: use `SuccReach`, never `SuccReachUnion`. -/
+def SuccReachUnion (fR : Fin n → Term (Var n)) (lam : Term (Var n)) (domR domSucc : Formula (Var n)) : Prop :=
   ∀ μ : State (Var n), Formula.sat domR μ →
     ∃ μ', Program.sem (Program.ode (rightBlock fR lam) domR) μ μ' ∧
       (Formula.sat domR μ' ∨ Formula.sat domSucc μ')
 
-/-- **`WFLand → hreach`/`hstep` (the narrowing analog of `flowDiamond_widening`).** `WFLand` supplies the
+/-- **`SuccReach → hreach`/`hstep` (the narrowing analog of `flowDiamond_widening`).** `SuccReach` supplies the
 reached endpoint `μ'` in `domSucc`; the flow's `BoxLe` `g`-preservation supplies `invLe g μ'` at that same
 endpoint (it is a `sem`-endpoint). Together they give `starStep_wrap`'s `hstep` — with `domSucc = m'.dom`
-this is exactly the missing narrowing discharge, now sourced from the one model-level `WFLand` instead of
-`hsub`. The reaching in `WFLand` IS the reaching in `hreach`; the implication is `μ' := WFLand`'s witness. -/
-theorem hstep_of_WFLand (g : Term (Var n)) (fR : Fin n → Term (Var n)) (lam : Term (Var n))
+this is exactly the missing narrowing discharge, now sourced from the one model-level `SuccReach` instead of
+`hsub`. The reaching in `SuccReach` IS the reaching in `hreach`; the implication is `μ' := SuccReach`'s witness. -/
+theorem hstep_of_SuccReach (g : Term (Var n)) (fR : Fin n → Term (Var n)) (lam : Term (Var n))
     (domR domSucc : Formula (Var n)) (μ : State (Var n))
-    (hwf : WFLand fR lam domR domSucc) (hμ : Formula.sat domR μ)
+    (hwf : SuccReach fR lam domR domSucc) (hμ : Formula.sat domR μ)
     (hgbox : BoxLe (Program.ode (rightBlock fR lam) domR) (fun ω => Term.eval g ω) μ) :
     ∃ μ', Program.sem (Program.ode (rightBlock fR lam) domR) μ μ' ∧
         Formula.sat (invLe g) μ' ∧ Formula.sat domSucc μ' := by
   obtain ⟨μ', hsem, hdom'⟩ := hwf μ hμ
   exact ⟨μ', hsem, by rw [sat_invLe]; exact hgbox μ' hsem, hdom'⟩
 
-/-- `WFLand` is at least as strong as the disjunctive version (reaching-to-successor ⟹ lands-in-union).
-The converse FAILS (`WFLandUnion` is vacuous via the zero-duration stay), which is why only `WFLand`
+/-- `SuccReach` is at least as strong as the disjunctive version (reaching-to-successor ⟹ lands-in-union).
+The converse FAILS (`SuccReachUnion` is vacuous via the zero-duration stay), which is why only `SuccReach`
 implies `hreach`. -/
-theorem WFLand_imp_WFLandUnion (fR : Fin n → Term (Var n)) (lam : Term (Var n))
-    (domR domSucc : Formula (Var n)) (hwf : WFLand fR lam domR domSucc) :
-    WFLandUnion fR lam domR domSucc := by
+theorem SuccReach_imp_SuccReachUnion (fR : Fin n → Term (Var n)) (lam : Term (Var n))
+    (domR domSucc : Formula (Var n)) (hwf : SuccReach fR lam domR domSucc) :
+    SuccReachUnion fR lam domR domSucc := by
   intro μ hμ; obtain ⟨μ', hsem, hdom'⟩ := hwf μ hμ; exact ⟨μ', hsem, Or.inr hdom'⟩
 
-/-- **The anti-collapse, MECHANIZED: `WFLandUnion` is unconditionally TRUE (hence useless).** The
+/-- **The anti-collapse, MECHANIZED: `SuccReachUnion` is unconditionally TRUE (hence useless).** The
 zero-duration self-run (`s = 0`, `Φ ≡ μ`) is a legal ODE execution — on the singleton time-interval
 `Icc 0 0 = {0}` the derivative condition is vacuous — landing at `μ' = μ ∈ domR`, the left disjunct. So
-`WFLandUnion` holds for ANY field/domains WITHOUT reaching `domSucc`. This proves the disjunctive/per-point
-phrasing cannot imply `hreach`; only the reaching-to-successor `WFLand` (which the converse `WFLand_imp_
-WFLandUnion` shows is strictly stronger) does. This is the load-bearing anti-collapse check. -/
-theorem WFLandUnion_vacuous (fR : Fin n → Term (Var n)) (lam : Term (Var n))
-    (domR domSucc : Formula (Var n)) : WFLandUnion fR lam domR domSucc := by
+`SuccReachUnion` holds for ANY field/domains WITHOUT reaching `domSucc`. This proves the disjunctive/per-point
+phrasing cannot imply `hreach`; only the reaching-to-successor `SuccReach` (which the converse `SuccReach_imp_
+SuccReachUnion` shows is strictly stronger) does. This is the load-bearing anti-collapse check. -/
+theorem SuccReachUnion_vacuous (fR : Fin n → Term (Var n)) (lam : Term (Var n))
+    (domR domSucc : Formula (Var n)) : SuccReachUnion fR lam domR domSucc := by
   intro μ hμ
   refine ⟨μ, ⟨0, fun _ => μ, le_refl 0, rfl, rfl, ?_, ?_, ?_⟩, Or.inl hμ⟩
   · intro t ht p _
@@ -407,6 +414,23 @@ theorem WFLandUnion_vacuous (fR : Fin n → Term (Var n)) (lam : Term (Var n))
     rw [h]; simp [hasDerivWithinAt_iff_tendsto_slope]
   · intro t _ x _; rfl
   · intro t _; exact hμ
+
+/-- **One full `StarInv`-preserving landing step for a NARROWING switch (the analog of `starStep_widening`).**
+Identical wrap, but the target-domain endpoint is sourced from `SuccReach` (the reachability hypothesis) via
+`hstep_of_SuccReach` instead of `hsub` (widening). So narrowing switches discharge through the SAME
+`starStep_wrap` machinery — clause 2 by construction — with `SuccReach` supplying the one reaching fact. -/
+theorem starStep_narrowing (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m : RMode (Var n))
+    (g : Term (Var n)) (fR : Fin n → Term (Var n)) (lam : Term (Var n)) (domR : Formula (Var n))
+    (μ : State (Var n))
+    (hg : mv ∉ g.fv) (hm : G.modeAt q = some m) (hsys : m.sys = rightBlock fR lam) (hdom : m.dom = domR)
+    {e : REdge (Var n)} (hef : e ∈ G.edgesFrom q) (hetg : e.guard = Formula.tt)
+    (hetv : e.tgt < G.modes.length) (hmvq : μ mv = (q : ℝ))
+    {m' : RMode (Var n)} (het' : G.modeAt e.tgt = some m') (hmvdom' : mv ∉ m'.dom.fv)
+    (hsr : SuccReach fR lam domR m'.dom) (hν : Formula.sat domR μ)
+    (hgbox : BoxLe (Program.ode (rightBlock fR lam) domR) (fun ω => Term.eval g ω) μ) :
+    ∃ ω, Program.sem (rightAutomatonBody G mv) μ ω ∧ StarInv G mv g ω :=
+  starStep_wrap G mv q m g fR lam domR μ hg hm hsys hdom hef hetg hetv hmvq het' hmvdom'
+    (hstep_of_SuccReach g fR lam domR m'.dom μ hsr hν hgbox)
 
 /-! ## The strengthened segment lemma — one segment preserves `starInvF` (the threaded `φinv`)
 
@@ -507,6 +531,42 @@ theorem landing_step_faModal (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m
       ⟨μ, hRμ, hstarμ.1, hsub μ hμdomR⟩
   exact ⟨ω, by simpa only [Program.rename_refl] using hsemω, sat_starInvF.mpr hstarω⟩
 
+/-- **The capstone per-step for a NARROWING switch — the analog of `landing_step_faModal`, sourcing the
+right response from `SuccReach` instead of a segment.** At each post-left state `ν` (mode `q`, in `domR`
+since the left flow freezes the right coords `hfrz` and `σ ∈ domR`), `SuccReach` supplies a right run
+reaching the target domain `m'.dom` and the per-start `BoxLe` cert (`hgboxAll`) supplies `invLe g` along
+it; `starStep_narrowing` wraps flow+switch into one `rightAutomatonBody` step preserving `starInvF`. Unlike
+`landing_step_faModal` (which reads the endpoint off a widening segment), this constructs the reaching
+response directly from the one `SuccReach` reachability hypothesis — no `hsub`, no per-edge reach fact. -/
+theorem landing_step_narrowing (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m : RMode (Var n))
+    (g : Term (Var n)) (fL fR : Fin n → Term (Var n)) (lam : Term (Var n))
+    (domL domR : Formula (Var n))
+    (hg : mv ∉ g.fv) (hmvL : mv ∉ (leftBlock fL).bound)
+    (hm : G.modeAt q = some m) (hsys : m.sys = rightBlock fR lam) (hdom : m.dom = domR)
+    {e : REdge (Var n)} (hef : e ∈ G.edgesFrom q) (hetg : e.guard = Formula.tt)
+    (hetv : e.tgt < G.modes.length)
+    {m' : RMode (Var n)} (het' : G.modeAt e.tgt = some m') (hmvdom' : mv ∉ m'.dom.fv)
+    (hsr : SuccReach fR lam domR m'.dom)
+    (hgboxAll : ∀ ν, Formula.sat domR ν →
+        BoxLe (Program.ode (rightBlock fR lam) domR) (fun ω => Term.eval g ω) ν)
+    (hfrz : ∀ x ∈ domR.fv, x ∉ (leftBlock fL).bound)
+    {σ : State (Var n)} (hmvq : σ mv = (q : ℝ)) (hσdom : Formula.sat domR σ) :
+    Formula.sat (faModal (Equiv.refl (Var n))
+      (Program.ode (leftBlock fL) domL) (rightAutomatonBody G mv) (starInvF G mv g)) σ := by
+  rw [faModal_sat]
+  intro ν hsemν
+  have hmvν : ν mv = (q : ℝ) := (leftBlock_frames_mv fL domL mv hmvL hsemν).trans hmvq
+  have hνdom : Formula.sat domR ν := by
+    obtain ⟨s, Φ, hs, hΦ0, hΦs, _, hmask, _⟩ := hsemν
+    have heqon : Set.EqOn σ ν domR.fv := by
+      intro x hx
+      rw [← hΦs]; exact (hmask s (right_mem_Icc.mpr hs) x (hfrz x hx)).symm
+    exact (Formula.coincidence domR heqon).mp hσdom
+  obtain ⟨ω, hsemω, hstarω⟩ :=
+    starStep_narrowing G mv q m g fR lam domR ν hg hm hsys hdom hef hetg hetv hmvν het' hmvdom'
+      hsr hνdom (hgboxAll ν hνdom)
+  exact ⟨ω, by simpa only [Program.rename_refl] using hsemω, sat_starInvF.mpr hstarω⟩
+
 /-- **Single-body faModal lifts to star-body faModal** — `faModal ρ P Q φ ⟹ faModal ρ P (Q*) φ`. The
 right's one-body response IS a `star`-run (`ReflTransGen.single`), so a diamond over `Q` is a diamond
 over `Q*`. This is the lift `faModal_MULTI`'s `hstep` needs (it wants `faModal P (star Q) φinv`). -/
@@ -539,6 +599,29 @@ theorem landing_step_star (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m : 
   faModal_star_lift (Equiv.refl (Var n)) _ _ _ σ
     (landing_step_faModal G mv q m g fL fR lam domL domR hg hmvL hmvR hm hsys hdom
       hef hetg hetv het' hmvdom' hsub hmvq hseg)
+
+/-- **The narrowing per-step in `faModal_MULTI` form** — `landing_step_narrowing` composed with
+`faModal_star_lift`. One narrowing mode's contribution to the `hstep`/`hdispatch` obligation, sourced from
+the single `SuccReach` reachability hypothesis. Feeds the `faModal_MULTI` wrap exactly like `landing_step_
+star` does for widening; the dispatch picks this branch for narrowing edges. -/
+theorem landing_step_star_narrowing (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m : RMode (Var n))
+    (g : Term (Var n)) (fL fR : Fin n → Term (Var n)) (lam : Term (Var n))
+    (domL domR : Formula (Var n))
+    (hg : mv ∉ g.fv) (hmvL : mv ∉ (leftBlock fL).bound)
+    (hm : G.modeAt q = some m) (hsys : m.sys = rightBlock fR lam) (hdom : m.dom = domR)
+    {e : REdge (Var n)} (hef : e ∈ G.edgesFrom q) (hetg : e.guard = Formula.tt)
+    (hetv : e.tgt < G.modes.length)
+    {m' : RMode (Var n)} (het' : G.modeAt e.tgt = some m') (hmvdom' : mv ∉ m'.dom.fv)
+    (hsr : SuccReach fR lam domR m'.dom)
+    (hgboxAll : ∀ ν, Formula.sat domR ν →
+        BoxLe (Program.ode (rightBlock fR lam) domR) (fun ω => Term.eval g ω) ν)
+    (hfrz : ∀ x ∈ domR.fv, x ∉ (leftBlock fL).bound)
+    {σ : State (Var n)} (hmvq : σ mv = (q : ℝ)) (hσdom : Formula.sat domR σ) :
+    Formula.sat (faModal (Equiv.refl (Var n))
+      (Program.ode (leftBlock fL) domL) (Program.star (rightAutomatonBody G mv)) (starInvF G mv g)) σ :=
+  faModal_star_lift (Equiv.refl (Var n)) _ _ _ σ
+    (landing_step_narrowing G mv q m g fL fR lam domL domR hg hmvL hm hsys hdom
+      hef hetg hetv het' hmvdom' hsr hgboxAll hfrz hmvq hσdom)
 
 /-- **`multiseg_landing` — the capstone.** The full relational modality `faModal (leftBody*)
 (rightAutomatonBody*) starInvF` over the STARRED left and right automata, assembled from the per-step

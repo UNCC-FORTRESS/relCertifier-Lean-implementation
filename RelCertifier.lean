@@ -54,4 +54,5 @@ import RelCertifier.GuardLegality
 import RelCertifier.WellFormedFlow
 import RelCertifier.WFBoundary
 import RelCertifier.MultisegLanding
+import RelCertifier.MultisegLandingBridge
 import RelCertifier.AxiomCheck

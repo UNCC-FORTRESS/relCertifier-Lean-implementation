@@ -189,11 +189,60 @@ def StarInModeDom (G : SearchGraph (Var n)) (mv : Var n) (μ : State (Var n)) : 
   ∃ (q' : ℕ) (m' : RMode (Var n)),
     μ mv = (q' : ℝ) ∧ G.modeAt q' = some m' ∧ Formula.sat m'.dom μ
 
+/-- **`StarInModeDom` as a FORMULA** — the finite disjunction, over declared modes `q`, of "`mv` names
+`q` and the state is in mode `q`'s domain". Mirrors `rightAutomatonBody`'s `filterMap` shape, so it is a
+genuine `Formula` (usable as a threaded `φinv` conjunct where the invariant must be first-order, e.g. to
+feed `multiseg_het`), and `sat_inModeDomF` shows it reflects the `Prop` `StarInModeDom` exactly. -/
+def inModeDomF (G : SearchGraph (Var n)) (mv : Var n) : Formula (Var n) :=
+  bigOr ((List.range G.modes.length).filterMap (fun q =>
+    (G.modeAt q).map (fun m => Formula.and (modeIs mv q) m.dom)))
+
+/-- **The reflection: `sat inModeDomF ↔ StarInModeDom`.** The `Formula` `inModeDomF` and the `Prop`
+`StarInModeDom` are interchangeable — so the star recursion can carry domain-membership either as a
+semantic side-fact (`StarInv`) or folded into a first-order `φinv`. -/
+theorem sat_inModeDomF {G : SearchGraph (Var n)} {mv : Var n} {μ : State (Var n)} :
+    Formula.sat (inModeDomF G mv) μ ↔ StarInModeDom G mv μ := by
+  rw [inModeDomF, sat_bigOr]
+  constructor
+  · rintro ⟨f, hf, hsat⟩
+    rw [List.mem_filterMap] at hf
+    obtain ⟨q, _, hmap⟩ := hf
+    rcases hopt : G.modeAt q with _ | m
+    · rw [hopt] at hmap; simp at hmap
+    · rw [hopt] at hmap
+      simp only [Option.map_some, Option.some.injEq] at hmap
+      subst hmap
+      obtain ⟨hmode, hdom⟩ := hsat
+      refine ⟨q, m, ?_, hopt, hdom⟩
+      simpa only [modeIs, Formula.sat, CompOp.interp, Term.eval] using hmode
+  · rintro ⟨q, m, hmv, hmode, hdom⟩
+    refine ⟨Formula.and (modeIs mv q) m.dom, ?_, ?_, hdom⟩
+    · rw [List.mem_filterMap]
+      exact ⟨q, List.mem_range.mpr (by
+        have := hmode; simp only [SearchGraph.modeAt] at this
+        exact (List.getElem?_eq_some_iff.mp this).1), by rw [hmode]; rfl⟩
+    · simpa only [modeIs, Formula.sat, CompOp.interp, Term.eval] using hmv
+
 /-- **The threaded star invariant.** Coupling `invLe g`, a valid mode index (`mvValid`), and current-mode
 domain-membership (`StarInModeDom`). Preserved by every landing body-step (`starStep_wrap`); its
 `invLe g` conjunct is what the terminal `⟨star body⟩(invLe g)` reads off. -/
 def StarInv (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n)) (μ : State (Var n)) : Prop :=
   Formula.sat (invLe g) μ ∧ Formula.sat (mvValid mv G.modes.length) μ ∧ StarInModeDom G mv μ
+
+/-- **`StarInv` as a threaded `φinv` Formula** — `invLe g ∧ mvValid ∧ inModeDomF`, all first-order. The
+form usable as `multiseg_het`'s shared invariant: strengthening the weak `invLe g ∧ mvValid` with the
+domain conjunct is what makes `multiseg_het`'s `∀σ` coupling range only over IN-DOMAIN states (every
+box-left endpoint is in-domain — left flow freezes the right coords, start in `domR`), so the per-segment
+discharge `segment_landing` (which needs the in-domain entry) applies without the `∀ν`-over-all-states
+seam. `sat_starInvF` shows this Formula reflects the `StarInv` Prop. -/
+def starInvF (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n)) : Formula (Var n) :=
+  Formula.and (invLe g) (Formula.and (mvValid mv G.modes.length) (inModeDomF G mv))
+
+/-- The `starInvF` Formula reflects the `StarInv` Prop. -/
+theorem sat_starInvF {G : SearchGraph (Var n)} {mv : Var n} {g : Term (Var n)} {μ : State (Var n)} :
+    Formula.sat (starInvF G mv g) μ ↔ StarInv G mv g μ := by
+  rw [starInvF, StarInv]
+  simp only [Formula.sat, sat_inModeDomF]
 
 /-- **The inductive step — one landing body-step preserves `StarInv` (clause 2 by construction).** From a
 strengthened flow-diamond `hstep` — the frozen-left right run from `μ` ends at some `μ'` with `invLe g μ'`
@@ -291,5 +340,58 @@ theorem starStep_widening (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m : 
     ∃ ω, Program.sem (rightAutomatonBody G mv) μ ω ∧ StarInv G mv g ω :=
   starStep_wrap G mv q m g fR lam domR μ hg hm hsys hdom hef hetg hetv hmvq het' hmvdom'
     (flowDiamond_widening g fR lam domR m'.dom μ hwff hν hgbox hsub)
+
+/-! ## The strengthened segment lemma — one segment preserves `starInvF` (the threaded `φinv`)
+
+The path-A capstone: reuse `multiseg_het`'s box-left induction, but with the STRENGTHENED invariant
+`φinv := starInvF` (`invLe g ∧ mvValid ∧ inModeDomF`). The strengthening dissolves `multiseg_het`'s `∀σ`
+seam — because every box-left endpoint is IN-DOMAIN (left flow freezes the right coords, start in `domR`),
+`∀σ` there ranges only over in-domain states, exactly where the per-segment discharge applies. This lemma
+is the per-segment obligation: one right segment (mode `q`, `ode rightBlock domR`) maps `starInvF → starInvF`.
+`faModal_ODE_G'` is postcondition-generic, so we instantiate it at `ψ := starInvF` and supply the joint box
+`hP2` establishing `starInvF` at every joint-flow endpoint: `invLe g` from the cert, `mvValid`+`inModeDomF`
+from `mv`-frozen (`mv ∉ jointSys.bound`) + entry mode `σ mv = q` + the joint domain endpoint `∈ domR`. No
+guard, no first-passage — just the entry mode and the flow staying in `domR`. -/
+theorem segment_landing_full (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m : RMode (Var n))
+    (g : Term (Var n)) (fL fR : Fin n → Term (Var n)) (lam : Term (Var n))
+    (domL domR : Formula (Var n)) (σ : State (Var n))
+    (hdisj : Disjoint ((leftBlock fL).boundSet ∪ (leftBlock fL).readVars)
+                      ((rightBlock fR lam).boundSet ∪ (rightBlock fR lam).readVars))
+    (hφL : domL.fv ⊆ (leftBlock fL).boundSet ∪ (leftBlock fL).readVars)
+    (hφR : domR.fv ⊆ (rightBlock fR lam).boundSet ∪ (rightBlock fR lam).readVars)
+    (hcert : BoxLe (Program.ode (jointSys fL fR lam) (Formula.and domL domR))
+        (fun ω => Term.eval g ω) σ)
+    (hwff : WellFormedFlow fR lam domR) (hfrz : ∀ x ∈ domR.fv, x ∉ (leftBlock fL).bound)
+    (hνdom : Formula.sat domR σ)
+    (hm : G.modeAt q = some m) (hdom : m.dom = domR)
+    (hmvj : mv ∉ (jointSys fL fR lam).bound) (hσq : σ mv = (q : ℝ))
+    (hqlen : q < G.modes.length) :
+    Formula.sat (faModal (Equiv.refl (Var n))
+      (Program.ode (leftBlock fL) domL) (Program.ode (rightBlock fR lam) domR)
+      (starInvF G mv g)) σ := by
+  have hjoint : jointSys fL fR lam = leftBlock fL ++ (rightBlock fR lam).rename (Equiv.refl _) := by
+    rw [ODESystem.rename_refl]; exact jointSys_split fL fR lam
+  refine faModal_ODE_G' (Equiv.refl (Var n)) (leftBlock fL) (rightBlock fR lam)
+    domL domR (starInvF G mv g) σ ?_ ?_ ?_ ?_ ?_
+  · rw [ODESystem.rename_refl]; exact hdisj
+  · exact hφL
+  · rw [Formula.rename_refl, ODESystem.rename_refl]; exact hφR
+  · -- hP2 : the joint flow preserves `starInvF`
+    rw [ODESystem.rename_refl, Formula.rename_refl, ← jointSys_split]
+    rw [sat_box]
+    intro ω hω
+    obtain ⟨s, Φ, hs, hΦ0, hΦs, _, hmask, hdomrun⟩ := hω
+    have hsmem : s ∈ Icc (0 : ℝ) s := right_mem_Icc.mpr hs
+    have hωmv : ω mv = (q : ℝ) := by rw [← hΦs, hmask s hsmem mv hmvj, hσq]
+    have hωdomR : Formula.sat domR ω := by rw [← hΦs]; exact (hdomrun s hsmem).2
+    refine ⟨?_, ?_, ?_⟩
+    · -- invLe g
+      rw [sat_invLe]; exact hcert ω ⟨s, Φ, hs, hΦ0, hΦs, ‹_›, hmask, hdomrun⟩
+    · -- mvValid
+      rw [sat_mvValid]; exact ⟨q, hqlen, hωmv⟩
+    · -- inModeDomF
+      rw [sat_inModeDomF]; exact ⟨q, m, hωmv, hm, hdom ▸ hωdomR⟩
+  · rw [ODESystem.rename_refl, Formula.rename_refl]
+    exact hExistSeg_of_wellFormedFlow fL fR lam domL domR σ hwff hfrz hνdom
 
 end RelCertifier

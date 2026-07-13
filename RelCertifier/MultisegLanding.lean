@@ -986,4 +986,89 @@ theorem faModal_bigSeq_replicate_to_star (ρ : Var n ≃ Var n) (P R : Program (
   rw [rename_bigSeq_replicate] at hRun
   exact sem_bigSeq_replicate_subset_star (R.rename ρ) k hRun
 
+/-! ## WRAP 2 (option ii) — the residence-level clocked H-combiner → physical collapse
+
+`clocked_H_residence`: compose `k` clocked H-pieces via the shipped `multiseg_clocked` (rights = `replicate
+k rightAutomatonBody`, each dispatched per-piece by the clocked H-step `hHcouple`), then widen the finite
+right response to `star R`. `clocked_H_residence_physical`: `clockLift_collapse` (direct shipped reuse) →
+one physical `ode leftBlock` residence. `multiseg_landing_clocked_physical`: `faModal_MULTI` outer → the
+physical `faModal (star (ode leftBlock))(star R) starInvF`. Per-`≤dt`-piece landing-selection survives
+end-to-end (`multiseg_clocked` composes per-piece; right-widen/collapse/MULTI don't touch dispatch). -/
+
+/-- Compose `k` clocked H-pieces (`multiseg_clocked`) + right-widen to `star R`. Each of the `k` `≤dt`
+pieces dispatches its own `rightAutomatonBody` step via the H-coupling `hHcouple` — per-piece dispatch. -/
+theorem clocked_H_residence (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n))
+    (fL : Fin n → Term (Var n)) (domL : Formula (Var n)) (tg : Var n) (dt : ℝ) (k : ℕ)
+    (hHcouple : ∀ σ', Formula.sat (starInvF G mv g) σ' →
+      faModalB (Equiv.refl (Var n)) (Program.ode (DLCalTiming.clk tg (leftBlock fL)) domL)
+        (rightAutomatonBody G mv) (starInvF G mv g) tg dt (Function.update σ' tg 0))
+    (hdis : Disjoint (Program.vars ((rightAutomatonBody G mv).rename (Equiv.refl (Var n))))
+        (Program.vars (clockedSeg (leftBlock fL) domL tg dt)))
+    {σ : State (Var n)} (hσ : Formula.sat (starInvF G mv g) σ) :
+    Formula.sat (faModal (Equiv.refl (Var n))
+      (bigSeq (List.replicate k (clockedSeg (leftBlock fL) domL tg dt)))
+      (Program.star (rightAutomatonBody G mv)) (starInvF G mv g)) σ := by
+  have hmc := multiseg_clocked (starInvF G mv g) (leftBlock fL) domL tg dt
+    (List.replicate k (rightAutomatonBody G mv))
+    (fun Q hQ => by rw [List.eq_of_mem_replicate hQ]; exact hdis)
+    (fun Q hQ σ' hσ' => by rw [List.eq_of_mem_replicate hQ]; exact hHcouple σ' hσ')
+    σ hσ
+  rw [List.map_replicate] at hmc
+  exact faModal_bigSeq_replicate_to_star (Equiv.refl (Var n)) _ (rightAutomatonBody G mv)
+    (starInvF G mv g) σ k hmc
+
+/-- Collapse the clocked residence to a physical `ode leftBlock` residence via `clockLift_collapse`
+(direct shipped reuse). The `≤dt` obligations were discharged in the clocked layer; the physical residence
+is any-duration `≤ k·dt` (`hbudget`), matching the tool's physical model. -/
+theorem clocked_H_residence_physical (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n))
+    (fL : Fin n → Term (Var n)) (domL : Formula (Var n)) (tg : Var n) (dt : ℝ) (k : ℕ)
+    (htgb : tg ∉ (leftBlock fL).bound) (htgr : tg ∉ (leftBlock fL).readVars) (htgϕ : tg ∉ domL.fv)
+    (hdt : 0 ≤ dt)
+    (htgR : tg ∉ ((rightAutomatonBody G mv).rename (Equiv.refl (Var n))).fv)
+    (htgφ : tg ∉ (starInvF G mv g).fv)
+    (hHcouple : ∀ σ', Formula.sat (starInvF G mv g) σ' →
+      faModalB (Equiv.refl (Var n)) (Program.ode (DLCalTiming.clk tg (leftBlock fL)) domL)
+        (rightAutomatonBody G mv) (starInvF G mv g) tg dt (Function.update σ' tg 0))
+    (hdis : Disjoint (Program.vars ((rightAutomatonBody G mv).rename (Equiv.refl (Var n))))
+        (Program.vars (clockedSeg (leftBlock fL) domL tg dt)))
+    {σ : State (Var n)} (hσ : Formula.sat (starInvF G mv g) σ)
+    (hbudget : ∀ {r : ℝ} {Φ : ℝ → State (Var n)},
+        ODESol (leftBlock fL) domL σ r Φ → r ≤ (k : ℝ) * dt) :
+    Formula.sat (faModal (Equiv.refl (Var n)) (Program.ode (leftBlock fL) domL)
+      (Program.star (rightAutomatonBody G mv)) (starInvF G mv g)) σ := by
+  have hres := clocked_H_residence G mv g fL domL tg dt k hHcouple hdis hσ
+  have htgRstar : tg ∉ ((Program.star (rightAutomatonBody G mv)).rename (Equiv.refl (Var n))).fv := by
+    rw [rename_star]; simpa [Program.fv] using htgR
+  exact clockLift_collapse (leftBlock fL) domL (Program.star (rightAutomatonBody G mv))
+    (starInvF G mv g) tg dt k htgb htgr htgϕ hdt htgRstar htgφ hbudget hres
+
+/-- **CHECKPOINT (a) — the collapsed PHYSICAL modality.** `faModal (star (ode leftBlock))(star
+rightAutomatonBody) starInvF` — the physical model the tool runs, from the clocked H-combiner via
+`clockLift_collapse` + `faModal_MULTI`. Per-`≤dt`-piece membership dispatch, `WellFormedFlowB` `≤dt`
+invariance, first-passage-free — the honest bounded/clocked/membership foundation, now on the physical
+form. `hbudget` per residence (`r ≤ k·dt`) is the cover's fixed budget `k`; `hHcouple` the clocked H
+dispatch (WRAP 1). -/
+theorem multiseg_landing_clocked_physical (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n))
+    (fL : Fin n → Term (Var n)) (domL : Formula (Var n)) (tg : Var n) (dt : ℝ) (k : ℕ)
+    (htgb : tg ∉ (leftBlock fL).bound) (htgr : tg ∉ (leftBlock fL).readVars) (htgϕ : tg ∉ domL.fv)
+    (hdt : 0 ≤ dt)
+    (htgR : tg ∉ ((rightAutomatonBody G mv).rename (Equiv.refl (Var n))).fv)
+    (htgφ : tg ∉ (starInvF G mv g).fv)
+    (hHcouple : ∀ σ', Formula.sat (starInvF G mv g) σ' →
+      faModalB (Equiv.refl (Var n)) (Program.ode (DLCalTiming.clk tg (leftBlock fL)) domL)
+        (rightAutomatonBody G mv) (starInvF G mv g) tg dt (Function.update σ' tg 0))
+    (hdis : Disjoint (Program.vars ((rightAutomatonBody G mv).rename (Equiv.refl (Var n))))
+        (Program.vars (clockedSeg (leftBlock fL) domL tg dt)))
+    (hdMULTI : Disjoint (Program.vars (Program.ode (leftBlock fL) domL))
+        (Program.vars ((rightAutomatonBody G mv).rename (Equiv.refl (Var n)))))
+    (hbudgetAll : ∀ (σ' : State (Var n)), ∀ {r : ℝ} {Φ : ℝ → State (Var n)},
+        ODESol (leftBlock fL) domL σ' r Φ → r ≤ (k : ℝ) * dt)
+    {σ : State (Var n)} (hσ : Formula.sat (starInvF G mv g) σ) :
+    Formula.sat (faModal (Equiv.refl (Var n)) (Program.star (Program.ode (leftBlock fL) domL))
+      (Program.star (rightAutomatonBody G mv)) (starInvF G mv g)) σ :=
+  faModal_MULTI (Equiv.refl (Var n)) (Program.ode (leftBlock fL) domL) (rightAutomatonBody G mv)
+    (starInvF G mv g) (starInvF G mv g) σ hdMULTI hσ
+    (fun σ' hσ' => clocked_H_residence_physical G mv g fL domL tg dt k htgb htgr htgϕ hdt htgR htgφ
+      hHcouple hdis hσ' (hbudgetAll σ')) (fun _ h => h)
+
 end RelCertifier

@@ -19,6 +19,7 @@ threading `invLe g`) is the remaining build; its per-node step is `segment_landi
 -/
 import RelCertifier.Reify
 import RelCertifier.WFBoundary
+import RelCertifier.BridgeReposition
 
 namespace RelCertifier
 open DL DLCalTiming Set Function
@@ -780,6 +781,45 @@ theorem landing_step_star_landingH (G : SearchGraph (Var n)) (mv : Var n) (q : �
     (landing_step_landingH G mv q m g fL fR lam domL domR dt hg hmvL hm hsys hdom hqlen hdt
       hwff hgboxAll hfrz hH hmvdomAll hedgeSelf hedgeSucc hmvq hσdom)
 
+/-- **The CLOCKED unified H landing step (`faModalB` form) — folds the H-path onto the clocked substrate.**
+Same membership-dispatch as `landing_step_landingH`, but the left box is a **clocked `≤ dt`** run (`plantT`
+over `clk tg leftBlock`) instead of a raw (unbounded) left ode. So the `≤ dt` left piece MATCHES the `≤ dt`
+right segment — the `WellFormedFlowB`/`BoxLe` obligations are genuinely bounded, and the left residence
+cannot outrun the right response (the raw-left `∀s` gap the clocking closes). The `≤ dt` bound is read off
+the `plantT` clock; `mv`/`domR` survive the clocked left (`hmvLclk`/`hfrzClk`, `tg` fresh). Slots directly
+into `faModal_MULTI` (via `faModalB_clockedSeg_iff`) as the clocked `multiseg_landing` hstep. -/
+theorem landing_step_landingH_clocked (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m : RMode (Var n))
+    (g : Term (Var n)) (fL fR : Fin n → Term (Var n)) (lam : Term (Var n))
+    (domL domR : Formula (Var n)) (tg : Var n) (dt : ℝ) (ω : State (Var n))
+    (hg : mv ∉ g.fv) (hmvLclk : mv ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
+    (hm : G.modeAt q = some m) (hsys : m.sys = rightBlock fR lam) (hdom : m.dom = domR)
+    (hqlen : q < G.modes.length) (hdt : 0 ≤ dt)
+    (hwff : WellFormedFlowB fR lam domR dt)
+    (hgboxAll : ∀ ν, Formula.sat domR ν →
+        BoxLe (Program.ode (rightBlock fR lam) domR) (fun ω => Term.eval g ω) ν)
+    (hfrzClk : ∀ x ∈ domR.fv, x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
+    (hH : LandingH G) (hmvdomAll : ∀ q' m', G.modeAt q' = some m' → mv ∉ m'.dom.fv)
+    (hedgeSelf : ∃ e ∈ G.edgesFrom q, e.tgt = q ∧ e.guard = Formula.tt)
+    (hedgeSucc : ∀ q', q' ∈ G.retainedSucc q →
+        ∃ e ∈ G.edgesFrom q, e.tgt = q' ∧ e.guard = Formula.tt ∧ e.tgt < G.modes.length)
+    (hωmv : ω mv = (q : ℝ)) (hωdom : Formula.sat domR ω) :
+    faModalB (Equiv.refl (Var n)) (Program.ode (DLCalTiming.clk tg (leftBlock fL)) domL)
+      (rightAutomatonBody G mv) (starInvF G mv g) tg dt ω := by
+  intro ν hplant
+  obtain ⟨hsemL, _⟩ := hplant
+  obtain ⟨s, Φ, hs, hΦ0, hΦs, _, hmask, _⟩ := hsemL
+  have hmvν : ν mv = (q : ℝ) := by
+    rw [← hΦs, hmask s (right_mem_Icc.mpr hs) mv hmvLclk]; exact hωmv
+  have hνdom : Formula.sat domR ν := by
+    have heqon : Set.EqOn ω ν domR.fv := by
+      intro x hx
+      rw [← hΦs]; exact (hmask s (right_mem_Icc.mpr hs) x (hfrzClk x hx)).symm
+    exact (Formula.coincidence domR heqon).mp hωdom
+  obtain ⟨o, hsemω, hstarω⟩ :=
+    starStep_landingH G mv q m g fR lam domR dt ν hg hm hsys hdom hmvν hqlen hdt hwff hνdom
+      (hgboxAll ν hνdom) hH hmvdomAll hedgeSelf hedgeSucc
+  exact ⟨o, by simpa only [Program.rename_refl] using hsemω, sat_starInvF.mpr hstarω⟩
+
 /-- **`multiseg_landing` — the capstone.** The full relational modality `faModal (leftBody*)
 (rightAutomatonBody*) starInvF` over the STARRED left and right automata, assembled from the per-step
 landing responses via `faModal_MULTI`. The `hdispatch` obligation — one landing star-step from every
@@ -800,6 +840,58 @@ theorem multiseg_landing (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n
     Formula.sat (faModal (Equiv.refl (Var n)) (Program.star leftBody)
       (Program.star (rightAutomatonBody G mv)) (starInvF G mv g)) σ :=
   faModal_MULTI (Equiv.refl (Var n)) leftBody (rightAutomatonBody G mv)
+    (starInvF G mv g) (starInvF G mv g) σ hd hσ hdispatch (fun _ h => h)
+
+/-- **The clocked unified H hstep — one mode's `faModal_MULTI` contribution over the CLOCKED left.**
+`landing_step_landingH_clocked` (faModalB) bridged to the `clockedSeg`-program `faModal` via
+`faModalB_clockedSeg_iff`, then star-lifted. The left is a `≤ dt` `clockedSeg` (matching the `≤ dt` right
+segment); dispatch is `LandingH` membership (widening ∪ narrowing), first-passage-free. This is the hstep
+`multiseg_landing_clocked` iterates. -/
+theorem landing_step_star_landingH_clocked (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ)
+    (m : RMode (Var n)) (g : Term (Var n)) (fL fR : Fin n → Term (Var n)) (lam : Term (Var n))
+    (domL domR : Formula (Var n)) (tg : Var n) (dt : ℝ)
+    (hg : mv ∉ g.fv) (hmvLclk : mv ∉ (DLCalTiming.clk tg (leftBlock fL)).bound) (hmvtg : mv ≠ tg)
+    (hm : G.modeAt q = some m) (hsys : m.sys = rightBlock fR lam) (hdom : m.dom = domR)
+    (hqlen : q < G.modes.length) (hdt : 0 ≤ dt) (htgdR : tg ∉ domR.fv)
+    (hwff : WellFormedFlowB fR lam domR dt)
+    (hgboxAll : ∀ ν, Formula.sat domR ν →
+        BoxLe (Program.ode (rightBlock fR lam) domR) (fun ω => Term.eval g ω) ν)
+    (hfrzClk : ∀ x ∈ domR.fv, x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
+    (hH : LandingH G) (hmvdomAll : ∀ q' m', G.modeAt q' = some m' → mv ∉ m'.dom.fv)
+    (hedgeSelf : ∃ e ∈ G.edgesFrom q, e.tgt = q ∧ e.guard = Formula.tt)
+    (hedgeSucc : ∀ q', q' ∈ G.retainedSucc q →
+        ∃ e ∈ G.edgesFrom q, e.tgt = q' ∧ e.guard = Formula.tt ∧ e.tgt < G.modes.length)
+    {σ : State (Var n)} (hmvq : σ mv = (q : ℝ)) (hσdom : Formula.sat domR σ) :
+    Formula.sat (faModal (Equiv.refl (Var n))
+      (clockedSeg (leftBlock fL) domL tg dt) (Program.star (rightAutomatonBody G mv))
+      (starInvF G mv g)) σ := by
+  refine faModal_star_lift (Equiv.refl (Var n)) _ _ _ σ ?_
+  rw [faModalB_clockedSeg_iff]
+  refine landing_step_landingH_clocked G mv q m g fL fR lam domL domR tg dt (Function.update σ tg 0)
+    hg hmvLclk hm hsys hdom hqlen hdt hwff hgboxAll hfrzClk hH hmvdomAll hedgeSelf hedgeSucc ?_ ?_
+  · rw [Function.update_of_ne hmvtg]; exact hmvq
+  · have heqon : Set.EqOn σ (Function.update σ tg 0) domR.fv := fun x hx =>
+      (Function.update_of_ne (by rintro rfl; exact htgdR hx) _ _).symm
+    exact (Formula.coincidence domR heqon).mp hσdom
+
+/-- **`multiseg_landing_clocked` — the H-path folded onto the clocked substrate.** The full relational
+modality over the STARRED CLOCKED left and the right automaton, from the clocked per-mode H hsteps
+(`landing_step_star_landingH_clocked`) via `faModal_MULTI`. Each left iteration is a `≤ dt` `clockedSeg`
+(so the right `≤ dt` segment matches — no raw-left `∀s` gap); dispatch is `LandingH` membership
+(first-passage-free). `hdispatch` carried parametrically (discharged per mode by the clocked H hstep, as in
+the raw `multiseg_landing`). The physical collapse `star clockedSeg → star (ode leftBlock)` is the shipped
+`clockLift` (a further wrap). -/
+theorem multiseg_landing_clocked (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n))
+    (fL : Fin n → Term (Var n)) (domL : Formula (Var n)) (tg : Var n) (dt : ℝ) (σ : State (Var n))
+    (hd : Disjoint (Program.vars (clockedSeg (leftBlock fL) domL tg dt))
+      (Program.vars ((rightAutomatonBody G mv).rename (Equiv.refl (Var n)))))
+    (hσ : Formula.sat (starInvF G mv g) σ)
+    (hdispatch : ∀ σ', Formula.sat (starInvF G mv g) σ' →
+        Formula.sat (faModal (Equiv.refl (Var n)) (clockedSeg (leftBlock fL) domL tg dt)
+          (Program.star (rightAutomatonBody G mv)) (starInvF G mv g)) σ') :
+    Formula.sat (faModal (Equiv.refl (Var n)) (Program.star (clockedSeg (leftBlock fL) domL tg dt))
+      (Program.star (rightAutomatonBody G mv)) (starInvF G mv g)) σ :=
+  faModal_MULTI (Equiv.refl (Var n)) (clockedSeg (leftBlock fL) domL tg dt) (rightAutomatonBody G mv)
     (starInvF G mv g) (starInvF G mv g) σ hd hσ hdispatch (fun _ h => h)
 
 /-- **The dispatch skeleton — factor `hdispatch` through the state's mode.** `starInvF σ'` pins `σ'` to a

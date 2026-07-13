@@ -141,6 +141,42 @@ theorem WellFormedFlow_rover_false :
   rw [hvx3] at hdom3
   norm_num at hdom3
 
+/-- **PART 2 finding (mechanized): `WellFormedFlowB` fails at the DOMAIN BOUNDARY for the growing-bounded
+rover mode — even bounded-`dt`.** `WellFormedFlowB` demands staying for EVERY base ∈ `domR` (incl. the
+boundary `vx = 1`) over every `s ≤ dt`. At the boundary base `vx = 1`, the constant derivative `0.4` forces
+`vx(dt) = 1 + 0.4·dt > 1` for any `dt > 0` — the flow exits `vx ≤ 1` immediately. So `WellFormedFlowB`
+(∀base) is FALSE for growing-bounded modes: `LandingWellFormed` does NOT discharge for the growing-bounded
+family (33/47) as stated — the `∀base` quantifier is too strong at the boundary; it needs the
+reachable-base scoping the cover's Z3 actually checks (reachable bases have `dt`-room, `rover_flow_stays_
+bounded`; the boundary base is a switch point, not a stay point). Machinery-statement finding, not a
+per-benchmark dynamical flaw. -/
+theorem WellFormedFlowB_rover_boundary_false (dt : ℝ) (hdt : 0 < dt) :
+    ¬ WellFormedFlowB roverFR roverLam recoverDomVx dt := by
+  intro hwff
+  obtain ⟨ΦR, hΦR0, hder, _, hdom⟩ :=
+    hwff (Function.update (fun _ => 0) (Rv 1) 1)
+      (by simp [recoverDomVx, Formula.sat, CompOp.interp, Term.eval, Function.update_self]) dt hdt.le (le_refl dt)
+  have hvxder : ∀ t ∈ Set.Icc (0 : ℝ) dt,
+      HasDerivWithinAt (fun u => ΦR u (Rv 1)) (4/10) (Set.Icc 0 dt) t := by
+    intro t ht
+    have hp : (Rv 1, Term.binop AOp.mul roverLam (Term.const (4/10)))
+        ∈ rightBlock roverFR roverLam := by
+      show _ ∈ [(Rv 0, Term.binop AOp.mul roverLam (Term.var (Rv 1))),
+                (Rv 1, Term.binop AOp.mul roverLam (Term.const (4/10))),
+                (Rv 2, Term.binop AOp.mul roverLam (Term.const 0))]
+      simp
+    have hev := hder t ht _ hp
+    have : (Term.binop AOp.mul roverLam (Term.const (4/10))).eval (ΦR t) = 4/10 := by
+      simp [roverLam, Term.eval, AOp.interp]
+    rwa [this] at hev
+  have hvxdt : ΦR dt (Rv 1) = 1 + (4/10) * dt := by
+    have := const_deriv_affine (fun u => ΦR u (Rv 1)) dt hdt.le hvxder
+    rw [hΦR0] at this; simp only [Function.update_self] at this; rw [this]
+  have hdomdt := hdom dt (right_mem_Icc.mpr hdt.le)
+  simp only [recoverDomVx, Formula.sat, CompOp.interp, Term.eval] at hdomdt
+  rw [hvxdt] at hdomdt
+  nlinarith [hdomdt.2, hdt]
+
 /-! ## STEP 1 truth check — bounded-`dt` domain-invariance HOLDS for rover (where `∀s` failed)
 
 Recover's FULL evolve domain (`px∈[0,15] ∧ vx∈[0,1]`). The bounded-`dt` flow stays in it over `[0,dt]`

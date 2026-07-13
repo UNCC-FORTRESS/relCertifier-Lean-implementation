@@ -176,6 +176,27 @@ theorem rover_flow_stays_bounded (base : State (Var 3)) (dt t : ℝ)
   · nlinarith
   · nlinarith
 
+/-! ## STEP 4 — the `px`-corner is UNREACHABLE; one room-fact discharges BOTH widening and narrowing
+
+The `px`-corner (`px≈15`) that broke `SuccReach` and bounded-invariance is an `∀`-full-domain artifact: on
+the reachable set the growing `px` never approaches `15` — reachable travel is `≤ bound_T·v_max = 2·1 = 2`,
+so reachable `px ≤ 2 ≪ 15`. This one fact gives the `px`-room BOTH the widening bounded-invariance
+(`rover_flow_stays_bounded`) AND the narrowing `SuccReach` (`rover_px_at_switch_le_15`) require — unifying
+them on the same loose-domain/reachable-set foundation. (The `vx`-corner `vx≈1` IS reachable and needs `dt`
+below the boundary-hitting time — the cover's `dt = ε_r/λ` shrinks with `λ`, Z3-verified per segment.) -/
+
+/-- **The `px`-room holds for reachable states (both discharges at once).** A reachable rover state
+(`px ≤ 2` on the loose `px ≤ 15` domain) satisfies BOTH the widening bounded-invariance room
+(`px + vx·dt + 0.2·dt² ≤ 15`) and the narrowing `SuccReach` room (`px + 0.12 ≤ 15`), for any short segment
+`dt ≤ 1`. So the `px`-corner obstruction is unreachable, and the same reachable-travel bound discharges
+widening and narrowing together. -/
+theorem rover_px_room_reachable (base : State (Var 3)) (dt : ℝ)
+    (hpx : base (Rv 0) ≤ 2) (hpx0 : 0 ≤ base (Rv 0))
+    (hvx : base (Rv 1) ≤ 1) (hvx0 : 0 ≤ base (Rv 1)) (hdt0 : 0 ≤ dt) (hdt1 : dt ≤ 1) :
+    base (Rv 0) + base (Rv 1) * dt + (2/10) * dt ^ 2 ≤ 15 ∧ base (Rv 0) + 12/100 ≤ 15 := by
+  refine ⟨?_, by linarith⟩
+  nlinarith [mul_nonneg hvx0 hdt0, sq_nonneg dt, mul_le_one₀ hvx hdt0 hdt1]
+
 /-- Drive's evolve domain (`vx` coordinate `Rv 1`, `px` coordinate `Rv 0`), as a `Formula`. -/
 noncomputable def driveDomF : Formula (Var 3) :=
   Formula.and

@@ -81,4 +81,43 @@ theorem hExistSeg_of_wellFormedFlow (fL fR : Fin n → Term (Var n)) (lam : Term
   obtain ⟨ΦR, hΦR0, hRder, hRmask, hRdom⟩ := hwf (ΦL s) hΦLs_dom s hs0
   exact ⟨ΦR, hΦR0, hRder, hRmask, hRdom⟩
 
+/-- **Bounded-`dt` within-segment `∃`-witness** — `HExistSeg` restricted to segment durations `s ≤ dt`.
+The landing/cover segments are duration-bounded (fixed cut `dt = ε_r/λ`), so this is exactly the
+within-segment existence the proof needs — and, unlike the `∀s` `HExistSeg`, it is dischargeable from the
+HONEST bounded-`dt` domain-invariance `WellFormedFlowB` (which is Z3-checked and TRUE for growing-bounded
+fields, vs the false `∀s` `WellFormedFlow`). -/
+def HExistSegB (fL fR : Fin n → Term (Var n)) (lam : Term (Var n)) (domL domR : Formula (Var n))
+    (dt : ℝ) (ν : State (Var n)) : Prop :=
+  ∀ (s : ℝ) (ΦL : ℝ → State (Var n)), 0 ≤ s → s ≤ dt → ΦL 0 = ν →
+    (∀ t ∈ Icc (0 : ℝ) s, ∀ p ∈ leftBlock fL,
+        HasDerivWithinAt (fun u => ΦL u p.1) (p.2.eval (ΦL t)) (Icc 0 s) t) →
+    (∀ t ∈ Icc (0 : ℝ) s, ∀ x, x ∉ (leftBlock fL).bound → ΦL t x = ν x) →
+    (∀ t ∈ Icc (0 : ℝ) s, Formula.sat domL (ΦL t)) →
+    ∃ ΦR : ℝ → State (Var n), ΦR 0 = ΦL s ∧
+      (∀ t ∈ Icc (0 : ℝ) s, ∀ p ∈ rightBlock fR lam,
+          HasDerivWithinAt (fun u => ΦR u p.1) (p.2.eval (ΦR t)) (Icc 0 s) t) ∧
+      (∀ t ∈ Icc (0 : ℝ) s, ∀ x, x ∉ (rightBlock fR lam).bound → ΦR t x = ΦL s x) ∧
+      (∀ t ∈ Icc (0 : ℝ) s, Formula.sat domR (ΦR t))
+
+/-- **The bounded discharge — `HExistSegB` from `WellFormedFlowB`.** Same masking/coincidence argument as
+`hExistSeg_of_wellFormedFlow`, but sourced from the HONEST bounded-`dt` domain-invariance: for a segment of
+duration `s ≤ dt`, the left run masks the right coordinates (so `ΦL s ∈ domR`), and `WellFormedFlowB` at
+`base = ΦL s` (also bounded by `s ≤ dt`) supplies the domain-staying right witness. This replaces the
+`∀s` discharge (`hExistSeg_of_wellFormedFlow`, which needed the false `∀s` `WellFormedFlow`) with one that
+rests only on what the tool actually Z3-checks. -/
+theorem hExistSegB_of_wellFormedFlowB (fL fR : Fin n → Term (Var n)) (lam : Term (Var n))
+    (domL domR : Formula (Var n)) (dt : ℝ) (ν : State (Var n))
+    (hwf : WellFormedFlowB fR lam domR dt)
+    (hfrz : ∀ x ∈ domR.fv, x ∉ (leftBlock fL).bound)
+    (hνdom : Formula.sat domR ν) :
+    HExistSegB fL fR lam domL domR dt ν := by
+  intro s ΦL hs0 hsdt hΦL0 _ hmaskL _
+  have hΦLs_dom : Formula.sat domR (ΦL s) := by
+    have heqon : Set.EqOn ν (ΦL s) domR.fv := by
+      intro x hx
+      exact (hmaskL s (right_mem_Icc.mpr hs0) x (hfrz x hx)).symm
+    exact (Formula.coincidence domR heqon).mp hνdom
+  obtain ⟨ΦR, hΦR0, hRder, hRmask, hRdom⟩ := hwf (ΦL s) hΦLs_dom s hs0 hsdt
+  exact ⟨ΦR, hΦR0, hRder, hRmask, hRdom⟩
+
 end RelCertifier

@@ -56,4 +56,5 @@ import RelCertifier.WFBoundary
 import RelCertifier.MultisegLanding
 import RelCertifier.MultisegLandingBridge
 import RelCertifier.RoverLandingInstance
+import RelCertifier.DecayDischarge
 import RelCertifier.AxiomCheck

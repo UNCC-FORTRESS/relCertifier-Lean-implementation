@@ -614,57 +614,32 @@ axioms throughout, **no new axiom, no subtangency, no clock, no `sem`-gating**.
 `ν si + v_max·s ≤ S_max`) as `left_duration_bound` (analytic, proven) + a Z3-checkable
 arithmetic inequality.
 
-## Benchmark suites — results
+## Benchmark suite — results
 
-There are TWO suites over the same 47 systems, aligned with DIFFERENT theorems and carrying
-DIFFERENT trust levels:
-
-* **`benchmarks/suite_uniform/` — the canonical suite.** Aligned with the uniform-evol proof
-  stack (`theorem3_faithful_landing_clocked_uniform`, the guard-threaded settling chain, the
-  checked-cut channel): every mode's evolve is the literal shared physical envelope, mode-specific
-  restrictions live in guards and are RE-DERIVED by the certifier before use, and the staying
-  well-formedness is discharged or checkably annotated. Its CERTIFIED verdict does not rest on
-  any unchecked domain declaration. Use this suite.
-* **`benchmarks/suite/` — the legacy suite (ablation baseline).** The pre-discipline form of
-  the same benchmarks, free-form per-mode evolve domains. Aligned with the OLDER general
-  theorems (`tooling_sound`, `theorem3_faithful`, the `LandingWellFormed` landing path), whose
-  per-mode staying well-formedness is a CARRIED hypothesis: a per-mode evolve may encode
-  reachability facts nothing checks (e.g. a mode's `v ≤ eq` cap with no guard enforcing entry
-  below it), and for growing modes the ∀-base staying is in fact false. Its CERTIFIED therefore
-  means: the cover's Z3 obligations pass over the domains AS DECLARED — soundness conditional on
-  the declared domains being honest. Kept ONLY as the ablation baseline for the comparison
-  below; the paper's benchmark set is `suite_uniform`. Not an entry point.
-
-Both certify **46/47** (`shield_unreachable` ERROR in both) — the same ceiling, so the
-disciplined form costs nothing. The comparison is the point: same systems, same score, but one
-suite's verdict rests on unchecked domain declarations and the other's does not.
-
-### The legacy suite (`benchmarks/suite/`, ablation baseline)
-
-The full **47**-benchmark suite (each a directory with `input.txt`) run on
-the trusted method (Z3 UNSAT-of-negation), reproduced by
-`lake exe relcert benchmarks/suite/*/input.txt`:
+The benchmark suite is **`benchmarks/suite_uniform/`** (47 systems, each a directory with
+`input.txt`) — aligned with the uniform-evol proof stack
+(`theorem3_faithful_landing_clocked_uniform`, the guard-threaded settling chain, the checked-cut
+channel). Every mode's evolve is the literal shared physical envelope, mode-specific restrictions
+live in guards and are RE-DERIVED by the certifier before use, and the staying well-formedness is
+discharged or checkably annotated — the CERTIFIED verdict rests on no unchecked domain
+declaration.
 
 | | count | meaning |
 |---|---|---|
-| **CERTIFIED** | **46/47** | verified `decideCovered` accepted the cover; every segment a sound-route Z3 `unsat` |
+| **CERTIFIED** | **46/47** | verified `decideCovered` accepted the cover; every obligation a sound-route Z3 `unsat`; cuts re-derived (O1/O2) before use |
 | **ERROR** | **1** (`shield_unreachable`) | inconclusive Z3 verdict on a candidate route — surfaced as ERROR, never a false verdict |
 
 The one non-CERTIFIED entry is an **honest** boundary, not an invariant bug and never a
-false-certify (`CERTIFIED` is only ever produced by an actual `unsat`):
+false-certify (`CERTIFIED` is only ever produced by an actual `unsat`): a candidate route returns
+a non-definitive Z3 verdict (`unknown`/timeout class); the tool refuses to guess.
 
-- **`shield_unreachable` — ERROR (inconclusive).** A candidate route returned a non-definitive Z3
-  verdict (`unknown`/timeout class); the tool refuses to guess and reports ERROR rather than certify.
+(A pre-discipline form of the suite — free-form per-mode evolve domains, the carried-H trust
+level — certified the same 46/47, so the discipline costs nothing; it was removed once the
+paper's benchmark set became this suite. History: `git log -- benchmarks/suite`.)
 
-Getting to 46/47 was **spec/cover work, never a soundness loosening**: fuel/λ-grid bumps (reported, not
-silently raised), Hold-mode reachable-set tightening (`arm`/`plant`), coupled conserved-lead invariants
-(`endurance`/`rover_terrain`/`orderlift`, including the strengthened `endurance_orderlift_2to3` folded in
-from the former `benchmarks/restated/`), position-only invariants (`rover3_M1`), single-mode attitude
-keys (`story`), and the watertank fill-drift redesign — each reverted-and-retested, each a sound spec fix.
+### The uniform-evolution settling design
 
-### The canonical uniform-evolution settling suite (`benchmarks/suite_uniform/`)
-
-The recommended suite: each benchmark rewritten to the **uniform-evol + settling design** that
+Each benchmark instantiates the **uniform-evol + settling design** that
 the landing-chain theorem (`theorem3_faithful_landing_clocked_uniform`) rests on.
 Two disciplines are enforced per benchmark (script-checked, not eyeballed):
 
@@ -676,7 +651,7 @@ Two disciplines are enforced per benchmark (script-checked, not eyeballed):
    mode is contractive with its equilibrium strictly inside the envelope. This is exactly the
    geometry `staying_from_margin` / `WellFormedFlowB_contract` consume.
 
-Run: `lake exe relcert benchmarks/suite_uniform/*/input.txt`
+Reproduce: `lake exe relcert benchmarks/suite_uniform/*/input.txt`
 
 | | count | classes |
 |---|---|---|
@@ -709,9 +684,7 @@ narrowed certificate lifts back to the uniform-domain obligation the landing cha
 
 So the design lands fully honest: **one shared physical envelope; mode-dependent physics enters
 through the guards; anything tighter than the envelope is re-derived by the certifier, never
-asserted**. `benchmarks/suite_uniform/` is the paper's benchmark set; the legacy
-`benchmarks/suite/` certifies the same systems at the same **46/47** ceiling with free-form
-per-mode domains — the ablation showing the disciplined form costs nothing.
+asserted**.
 
 Requires Lean 4 (`leanprover/lean4:v4.31.0`, pinned) and a pinned Z3 (`RELCERT_Z3` or a
 standard absolute path). `dL-rel` is fetched from GitHub at tag `v0.1.0-NFM25` (transitively
@@ -775,6 +748,5 @@ RelCertifier/
   GuardThreaded.lean  Tier B guard-threaded discharge: staying from guard bases, by construction
 Main.lean             `relcert` executable
 ARCHITECTURE.md       certified-checker architecture + the finding that reshaped it
-benchmarks/suite_uniform/  CANONICAL: uniform-evol settling suite (shared envelopes, checked cuts)
-benchmarks/suite/          LEGACY ablation baseline (free-form per-mode domains, carried H)
+benchmarks/suite_uniform/  the benchmark suite (shared envelopes, guard physics, checked cuts)
 ```

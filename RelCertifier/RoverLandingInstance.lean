@@ -1,7 +1,7 @@
 /-
 Instantiating the landing-selected narrowing discharge at concrete `rover_position` data.
 
-`rover_position` R-side (from benchmarks/suite/rover_position/input.txt), 3-coord model
+`rover_position` R-side (from the rover_position benchmark (pre-discipline form; see git history)), 3-coord model
 (`Rv 0 = px`, `Rv 1 = vx`, `Rv 2 = mode`, banked `roverFR`: `px' = vx`, `vx' = 0.4`, `mode' = 0`):
   * Recover : evolve `px∈[0,15] ∧ vx∈[0,1]`, guard `vx∈[0,0.3]`, next `[Drive, Recover]`
   * Drive   : evolve `px∈[0,15] ∧ vx∈[0.3,1]`, guard `vx≥0.3`

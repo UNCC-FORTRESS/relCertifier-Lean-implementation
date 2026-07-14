@@ -245,12 +245,25 @@ carry closed kernel `rfl` certificates**.
   The terrain v-band also generalized from cap-at-equilibrium to equilibrium-inside-band
   (`glo ≤ c ≤ ghi`, image rate bounded by `ghi`), admitting the s-only-guarded variants.
   9 more kernel certificates (refinement/story/attitude-cone rungs, 2–12 coordinates).
-- Remaining roadmap (the linear-coupled closed-form class + two singletons):
-  rung4_8to12/story1_b (second-order dampers `ψ'' = −ψ − 2ψ'`, critically damped
-  `(A + Bt)e^{−t}`), story3_b (coupled `(e, r)` pair), attitude_rate (symmetric `(p,q)` block,
-  diagonalizes to rational-rate contracts), endurance_orderlift_2to3 (critically damped),
-  rover_tier_r1/rung12/rung2_6dof/rung2b_6dof (driven-active `v' = a`, affine witness),
-  rover_drag (Riccati — the one true Picard box-inflow candidate, or a `tanh` closed form).
+- **EXT 2b (the affine checker), built.** The driven-active pair (`v' = a`, `a` frozen
+  nonneg) reuses the phase-B quadratic witness with a base-dependent rate (`drivenVal` with
+  `cR := base(a)`); an `AffineModel` adds per-mode OPTIONAL guard-band tops (the terminal
+  bands are unbounded), and landing case-splits at the top into self or a topless declared
+  successor — no rate arithmetic in the checker. A transcription-fidelity pass landed with
+  it: time-scaled data terms store the contract gain in scaled time (`k/den(dt)`, `contractQ`
+  when fractional) — the earlier `k·den(dt)` convention was sign-only-safe (every certificate
+  remained valid) but documented a time-warped system; all gains corrected, all certificates
+  re-verified. rung2_6dof/rung2b_6dof turned out to be PLAIN terrain under the generalized
+  grammar (stale driven-active classification) and closed via the generator at λ = 3.
+- Remaining (5 certifiable + the intentional outlier), each a well-scoped build:
+  **critically-damped second order** (rung4_8to12, story1_b, endurance_orderlift_2to3 —
+  `(A + Bt)e^{−kt}` witnesses; needs `∫ tⁱe^{−mu}` helpers and the rational bound
+  `t·e^{−t} ≤ 1/2` from `e^t ≥ 1 + t + t²/2`); **coupled hulls** (attitude_rate's symmetric
+  `(p,q)` block — diagonalizes by `u = p ± q` to rational-rate contracts, but the hull bound
+  on `p = (u + w)/2` needs a genuine 2-D invariance argument, the natural home for the cut
+  channel's Z3 route; story3_b's `(e, r)` pair is the 1-frozen-offset special case);
+  **rover_drag** (Riccati — the one true Picard box-inflow candidate, or a hyperbolic-Möbius
+  closed form). Ceiling: 46/47.
 
 ## Current state
 

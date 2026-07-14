@@ -380,6 +380,8 @@ Every source file, its job, the paper result it mechanizes, and the imported the
 | `SettlingInstances.lean` | 21 benchmark `SettlingModel` data terms; kernel `rfl` certificates | the checker-accepted instances (**all 22 in-grammar terms carry closed certificates** after EXT 4 union covers, per-instance `dt = ε_R/λ` selection, the rational-gain `contractQ` extension, and the EXT 4b extended flex grammar; the rest of the suite maps to the named grammar extensions) | `WellFormedChecker` |
 | `TerrainChecker.lean` | **`decideWellFormedT`**, **`wellformed_sound_terrain`**, `TerrainModel`, `settling_terrain(_damp)` | **EXT 3/3b — the terrain checker**: box guards (velocity band × terrain segment) over a DRIVEN position coordinate; a `TerrainModel` wraps a `SettlingModel` so the graph/envelope stack is reused. EXT 3b adds the nonlinear-s' family — `s' = v(1 − Σ a·ψ²)` with contract-to-0 dampers integrates in closed form into `expInt` terms, and the image bounds come from monotonicity on the integrand (`0 ≤ s' ≤ ghi`, the per-damper budget `a·B²·L ≤ 1` keeping the damping factor in `[0, 1]`) | `WellFormedChecker` (core reused) |
 | `TerrainInstances.lean` | 14 terrain `TerrainModel` data terms; kernel `rfl` certificates | the s-guarded terrain family: linear `s' = v` (5) and nonlinear damped `s'` (9 — refinement/story/attitude-cone rungs); second-order-damper and coupled-pair variants remain (the linear-coupled closed-form class) | `TerrainChecker` |
+| `AffineChecker.lean` | **`decideWellFormedA`**, **`wellformed_sound_affine`**, `AffineModel`, `settling_affine` | **EXT 2b — the affine checker**: driven-active velocity under a frozen nonneg acceleration (`v' = a`); the witness is the phase-B quadratic stack with the base-dependent rate (`drivenVal` with `cR := base(a)`), guard bands carry OPTIONAL tops (terminal bands unbounded), and landing is a case-split at the top into itself or a topless declared successor — no rate arithmetic | `WellFormedChecker` (witness + core reused) |
+| `AffineInstances.lean` | 2 affine data terms; kernel `rfl` certificates | rover_tier_r1, rover3tier_rung12 | `AffineChecker` |
 | `Oracle.lean` | `z3_unsat_sound` (the one axiom) + `flow_certified` | the trusted SMT leaf | — (axiom) |
 | `Smt.lean` / `Z3.lean` / `Parse.lean` / `Run.lean` / `Main.lean` | computable IR + SMT printer, Z3 session, parser, runner, `relcert` exe | trusted IO shell | uses the verified queries |
 
@@ -769,8 +771,10 @@ RelCertifier/
   CutChannel.lean     checked-cut tie: cut-narrowed certificate lifts to the uniform-domain BoxLe
   WellFormedChecker.lean  verified decidable well-formedness checker (wellformed_sound)
   SettlingInstances.lean  benchmark SettlingModel data terms + kernel certificates
-  TerrainChecker.lean     EXT 3 terrain checker: box guards, driven position (wellformed_sound_terrain)
+  TerrainChecker.lean     EXT 3/3b terrain checker: box guards, driven/damped position (wellformed_sound_terrain)
   TerrainInstances.lean   terrain TerrainModel data terms + kernel certificates
+  AffineChecker.lean      EXT 2b affine checker: driven-active velocity (wellformed_sound_affine)
+  AffineInstances.lean    affine AffineModel data terms + kernel certificates
 Main.lean             `relcert` executable
 ARCHITECTURE.md       certified-checker architecture + the finding that reshaped it
 docs/DEVELOPMENT-ARC.md    the three development arcs, mechanized findings, converged design

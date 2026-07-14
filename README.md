@@ -15,9 +15,14 @@ and an invariant candidate, if the tooling's cover succeeds, the paper's ∀∃ 
 over the programs **derived from the actual `L` and `R`** — the right ∃-response jumps only along
 *declared* transitions (`R_real = star(rightAutomatonBody)`), not the weaker flat choice-star. It covers
 **genuine multi-flow** (the right switches modes mid-residence), **repositions** (static and dynamic),
-and the **whole left automaton** (all left modes). Separately, on the 47-benchmark suite the tool runs
+and the **whole left automaton** (all left modes). A second end-to-end theorem,
+**`theorem3_faithful_landing_clocked_uniform`** (`UniformEvol.lean`, with the guard-threaded
+`theorem3_faithful_settling` and the checked-cut tie `boxLe_cut_lift`), certifies the more demanding
+**automaton-right star** shape — the right switching modes under a star, junction trivial under one
+shared evolution domain, and the staying well-formedness discharged by construction for the settling
+classes (see "The landing chain, intuitively"). Separately, on the 47-benchmark suite the tool runs
 and reports **46 CERTIFIED / 47** (1 inconclusive-Z3 ERROR, never a false verdict) — that is *tool
-behavior*, a distinct and weaker claim than the Lean theorem. The two are kept distinct throughout.
+behavior*, a distinct and weaker claim than the Lean theorems. The two are kept distinct throughout.
 
 ## What "end-to-end verified" means — and its exact scope
 
@@ -77,6 +82,8 @@ on the three standard axioms. Reproduce: `lake env lean RelCertifier/AxiomCheck.
 | Whole left-mode family (GAP 2, `theorem3_faithful_family`) | **proven** |
 | Cover of the actual programs `L,R` (GAP 3, `tooling_sound`) | **proven** |
 | Modality → paper Theorem 3 / dL-rel (`faModal_to_faShape`, `encoding_correct`) | **proven** |
+| Automaton-right star, uniform-evol (`theorem3_faithful_landing_clocked_uniform`) | **proven** |
+| Guard-threaded settling discharge (`theorem3_faithful_settling`) + checked-cut tie (`boxLe_cut_lift`) | **proven** |
 | Trust boundary | Z3 UNSAT (`z3_unsat_sound`, 1 axiom) |
 
 ## Imported theories — the four repos it builds on
@@ -277,12 +284,18 @@ NFM'25 encoding gives `rvalid`.
    "the state is in its current mode's *guard* region" (where the system actually lives, by the
    settling design), and `theorem3_faithful_settling` re-derives the same `rvalid` conclusion with
    the staying obligation quantified only over guard-region bases — discharged by construction via
-   `GuardSettlingB_of_margin_const_two` (affine witness: a flow with rate `c` from a guard band
+   `GuardSettlingB_of_margin_const` (affine witness: a flow with rate `c` from a guard band
    `[a, cap]` stays inside the envelope when `cap + c·dt ≤ hi`, and lands in the self-or-successor
    guard band — the exact geometry the settling discipline enforces) and
    `GuardSettlingB_of_contract` (exponential witness, self-landing). For benchmarks outside these
    shapes (coupled fields; positions without guard caps) the hypothesis is carried explicitly and
    discharged per-benchmark.
+
+Mode-specific facts (a terrain speed limit, a hold floor) enter through the **checked-cut
+channel**: the certifier re-derives each such fact from the mode's guard and dynamics (entry +
+invariance, `OracleAPI.checkedCut`) before narrowing any query with it, and `CutChannel.lean`
+(`boxLe_cut_lift`) proves the narrowed certificate lifts back to the uniform-domain obligation
+the chain consumes — so nothing tighter than the shared envelope is ever assumed, only re-derived.
 
 So, intuitively: **if the modes share one honest physical envelope, the guards enforce settling
 (switch away from the envelope boundary with margin), and Z3 certifies per-mode invariant
@@ -360,7 +373,8 @@ Every source file, its job, the paper result it mechanizes, and the imported the
 | `MultisegLandingBridge.lean` | `theorem3_faithful_landing_clocked` / `_wf`, `ψpostL`/`encode_ψpostL` | the landing chain's `rvalid` re-point (shipped encoded soundness over `star rightAutomatonBody`) | `MultisegLanding` + reification bridge |
 | `RoverLandingInstance.lean` / `DecayDischarge.lean` | rover instance + falsification lemmas; `decay_stays` (worked ∀-base staying discharge, `v' = −v`) | grounding: which H clauses hold/fail on the rover; the stabilizing-class discharge pattern | `MultisegLanding` |
 | `UniformEvol.lean` | **`theorem3_faithful_landing_clocked_uniform`**, `UniformEvol`/`UniformStayingH`, `staying_from_margin`, `WellFormedFlowB_contract` | **the uniform-evol deployment**: junction trivial (narrowing retired), staying-only H, margin + contraction discharge (see "The landing chain, intuitively" above) | `MultisegLandingBridge` |
-| `GuardThreaded.lean` | **`theorem3_faithful_settling`**, `starInvGF`/`GuardSettlingB`, `GuardSettlingB_of_margin_const`/`_two`/`_of_contract` | **Tier B — the guard-threaded discharge**: star invariant tracks the current mode's guard region, so the staying obligation quantifies only over guard bases and is discharged by construction from the settling-guard geometry (margin/contraction witnesses) | `UniformEvol` + the φinv-generic clocked chain |
+| `GuardThreaded.lean` | **`theorem3_faithful_settling`**, `starInvGF`/`GuardSettlingB`, `GuardSettlingB_of_margin_const`/`_of_contract` | **Tier B — the guard-threaded discharge**: star invariant tracks the current mode's guard region, so the staying obligation quantifies only over guard bases and is discharged by construction from the settling-guard geometry (margin/contraction witnesses) | `UniformEvol` + the φinv-generic clocked chain |
+| `CutChannel.lean` | `sem_ode_and_of_stays`, **`boxLe_cut_lift`** | **the checked-cut tie**: a certificate over a cut-narrowed domain + cut invariance (the certifier's O2) lifts to the uniform-domain `BoxLe` the settling chain consumes — run inclusion, no per-mode domain in the model | `GuardThreaded` |
 | `Oracle.lean` | `z3_unsat_sound` (the one axiom) + `flow_certified` | the trusted SMT leaf | — (axiom) |
 | `Smt.lean` / `Z3.lean` / `Parse.lean` / `Run.lean` / `Main.lean` | computable IR + SMT printer, Z3 session, parser, runner, `relcert` exe | trusted IO shell | uses the verified queries |
 
@@ -406,8 +420,8 @@ mechanized bridges connect them:
    that bi-state truth of a relational formula equals host-dL truth of its encoding at a bridged join
    state. `theorem3_encoded` proves `rvalid` for the **flat** `theorem3Form` from a single Z3 UNSAT — a
    valid but weaker over-approximation. The **transition-faithful** `CERTIFIED ⟹ rvalid` (real automaton,
-   `hstep` discharged from the cover certificate) is `decideCovered_implies_theorem3_faithful`, and it
-   and its lifts — `theorem3_faithful_multi_reposition` (genuine multi-flow + reposition),
+   `hstep` discharged from the cover certificate) is `decideCovered_implies_theorem3_faithful`, with its
+   lifts `theorem3_faithful_multi_reposition` (genuine multi-flow + reposition),
    `theorem3_faithful_family` (all left modes), and `tooling_sound` (a cover of the actual `L, R`). See
    *The end-to-end theorem, in depth* above.
 
@@ -641,7 +655,8 @@ paper's benchmark set became this suite. History: `git log -- benchmarks/suite`.
 
 Each benchmark instantiates the **uniform-evol + settling design** that
 the landing-chain theorem (`theorem3_faithful_landing_clocked_uniform`) rests on.
-Two disciplines are enforced per benchmark (script-checked, not eyeballed):
+Two disciplines are enforced per benchmark (checked mechanically during suite construction, and
+the cut obligations re-checked by the certifier on every run):
 
 1. **One shared evolution domain, strictly wider than every guard** — the envelope is the honest
    physical limit; guards, not the envelope boundary, control all switching. This is what makes
@@ -656,7 +671,7 @@ Reproduce: `lake exe relcert benchmarks/suite_uniform/*/input.txt`
 | | count | classes |
 |---|---|---|
 | **CERTIFIED** | **46/47** | 17 already-settling (contractive, strictified only) · 10 margin-guard-fixed · 6 restructured (vx-triggered hold modes; `Hold` made contract-to-setpoint) · 3 guard-derived `Hold` invariants (arm/plant high) · 10 per-mode terrain speed guards |
-| **ERROR** | 1 (`shield_unreachable`) | pre-existing inconclusive-Z3 boundary, as in the original suite |
+| **ERROR** | 1 (`shield_unreachable`) | pre-existing inconclusive-Z3 boundary |
 
 The last 13 were diagnosed by per-variable bisection: each flips on a SINGLE right-side
 variable — the arm/plant `Hold` mode's `theta ≥ 0.6` evolve floor, and the terrain family's
@@ -746,6 +761,7 @@ RelCertifier/
   RoverLandingInstance.lean / DecayDischarge.lean    grounding instances + stabilizing discharge
   UniformEvol.lean    uniform-evol deployment: junction trivial, margin/contraction discharge
   GuardThreaded.lean  Tier B guard-threaded discharge: staying from guard bases, by construction
+  CutChannel.lean     checked-cut tie: cut-narrowed certificate lifts to the uniform-domain BoxLe
 Main.lean             `relcert` executable
 ARCHITECTURE.md       certified-checker architecture + the finding that reshaped it
 benchmarks/suite_uniform/  the benchmark suite (shared envelopes, guard physics, checked cuts)

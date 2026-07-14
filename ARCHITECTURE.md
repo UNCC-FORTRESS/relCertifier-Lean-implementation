@@ -98,8 +98,7 @@ Once CERTIFIED flows through `check_sound`:
 
 1. Z3-checks each segment on the **evolution-domain** query the tool constructs itself
    (`segParts` builds `domL ∧ domR` from `mL.evolve`/`mR.evolve` — **checker-constructed, not
-   runner-labeled**; a guard-narrowed query would require `segParts` to read `.guard`, which
-   it does not).
+   runner-labeled**; `segParts` itself never reads `.guard`).
 2. Computes the **coverable fixpoint** `coverableSet` — the greatest set of right modes that
    certify AND whose declared successors are all coverable. **Every mode in it certifies, and
    (by the fixpoint) no real edge leaves it** — so a `SearchGraph` over it admits a full
@@ -152,3 +151,24 @@ uncertified successor; the 7 recover; all 38 flow through `check_sound`; axioms 
 
 **This is a fidelity correction, documented as such — not "optional completeness."** The Lean
 `Covered` now transcribes Definition 4 directly, base case included.
+
+### The checked-cut channel — justified narrowing vs. the guard-bug class
+
+A later extension (`OracleAPI.checkedCut`, see README "checked-cut channel") does narrow query
+domains using guard-derived facts — which is exactly the *shape* of the original guard bug, so
+the distinction must be stated precisely. The guard bug was **unjustified** narrowing: the
+runner conjoined the guard into the flow-certificate domain with nothing establishing that the
+flow stays inside it, making the query vacuous on the region the real flow visits. The cut
+channel narrows **only after the certifier itself re-derives two obligations per conjunct**:
+entry (the guard implies it — trivial for guard conjuncts) and invariance (the conjunct is
+flow-invariant along the mode's own field, checked by the same trusted DI routes as the main
+certificates, or a tangent-capable contract-shape check). A conjunct failing either check is
+silently dropped — the query falls back to the bare evolution domain, so a wrong candidate
+costs completeness, never soundness. The Lean tie (`CutChannel.boxLe_cut_lift`) proves the
+narrowed certificate lifts back to the bare-evolution-domain obligation the proofs consume:
+an invariant cut means every flow from a cut state *is* a cut-domain flow, so nothing the
+narrowed query skipped is reachable from the states the proof quantifies over. The evolution
+domains themselves are never modified. In short: the bug class was *narrowing asserted*; the
+cut channel is *narrowing proven* — and `strict`-conjunct candidates are excluded outright
+(a strict atom in its own invariance domain vacuously passes the boundary route — caught and
+sealed during the build).

@@ -1,8 +1,20 @@
 # Benchmark instantiability against the end-to-end theorem
 
 This catalogs how each suite benchmark relates to the **`tooling_sound`** meta-theorem (GAP 3 — the
-∀∃ refinement modality over the *actual* programs `L, R`, via `graphOf`). It is the per-benchmark
-companion to the two concrete demonstrations:
+∀∃ refinement modality over the *actual* programs `L, R`, via `graphOf`). The suite is
+`benchmarks/suite_uniform/` (the uniform-evolution settling form — see README); the table below
+applies unchanged, since the uniform restructuring altered only guards and evolution domains,
+never the dynamics, the mode structure, or the verdicts (46/47 in both forms).
+
+Scope note: this document addresses the **`tooling_sound`** chain and its `HExistSeg` boundary.
+The newer landing/uniform chain (`theorem3_faithful_landing_clocked_uniform`,
+`theorem3_faithful_settling` — README "The landing chain, intuitively";
+`docs/DEVELOPMENT-ARC.md`) replaces that side-condition entirely: its per-segment obligation is
+duration-bounded staying (`WellFormedFlowB` / `GuardSettlingB`), discharged by construction for
+the settling classes — so the `∀ν HExistSeg` wall below is a boundary of the older chain, not of
+the current canonical one.
+
+It is the per-benchmark companion to the two concrete demonstrations:
 
 | representative (`RelCertifier/GapThreeRoverTooling.lean`) | `HExistSeg` | carried boundaries |
 |---|---|---|
@@ -115,4 +127,6 @@ endurance_orderlift_2to3, rover_drag). `shield_unreachable` is decay-shaped but 
   soundness gap.
 
 There is no DECLINED benchmark in the current suite: `endurance_orderlift_2to3` (formerly method-scope
-DECLINED) was strengthened and folded in as CERTIFIED.
+DECLINED) was strengthened and folded in as CERTIFIED. (Verdicts re-verified on
+`benchmarks/suite_uniform/` after the uniform-evolution restructuring: identical — 46 CERTIFIED,
+`shield_unreachable` ERROR.)

@@ -57,19 +57,19 @@ epsilon = 1.0
 [Rsys.mode.STEEP]
 ode = v' = smt2:(* 3 (- 0.30 v)); s' = v; psi' = smt2:(* -1 psi); z' = smt2:0; theta_p' = smt2:0; phi_r' = smt2:0;
 guard = s >= 0.0 and s < 0.6 and v <= 0.3
-evolve = phi_r >= -0.5 and phi_r <= 0.6 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.6 and v >= 0.0 and v <= 0.3 and z >= -1.0 and z <= 1.1
+evolve = phi_r >= -0.5 and phi_r <= 0.6 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.6 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 1.1
 next = [MODER, STEEP]
 
 [Rsys.mode.MODER]
 ode = v' = smt2:(* 3 (- 0.50 v)); s' = v; psi' = smt2:(* -1 psi); z' = smt2:0; theta_p' = smt2:0; phi_r' = smt2:0;
 guard = s >= 0.6 and s < 1.4 and v <= 0.5
-evolve = phi_r >= -0.5 and phi_r <= 0.6 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.6 and v >= 0.0 and v <= 0.5 and z >= -1.0 and z <= 1.1
+evolve = phi_r >= -0.5 and phi_r <= 0.6 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.6 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 1.1
 next = [FLAT, MODER]
 
 [Rsys.mode.FLAT]
 ode = v' = smt2:(* 3 (- 0.65 v)); s' = v; psi' = smt2:(* -1 psi); z' = smt2:0; theta_p' = smt2:0; phi_r' = smt2:0;
 guard = s >= 1.4 and s < 899.95 and v <= 0.65
-evolve = phi_r >= -0.5 and phi_r <= 0.6 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.6 and v >= 0.0 and v <= 0.65 and z >= -1.0 and z <= 1.1
+evolve = phi_r >= -0.5 and phi_r <= 0.6 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.6 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 1.1
 next = [FLAT]
 
 [relational_invariant]

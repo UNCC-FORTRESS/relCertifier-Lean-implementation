@@ -45,6 +45,11 @@ structure PMode where
   guard  : PForm
   evolve : PForm
   next   : List String
+  /-- Optional CANDIDATE strengthening (checked-cut channel): a formula the certifier may use
+  to narrow this mode's flow-query domain — but ONLY after re-deriving it itself (entry: the
+  guard implies it; invariance: flow-invariant along this mode's field). Unchecked or
+  uncheckable candidates are silently ignored (completeness-only). `evolve` stays physics. -/
+  strengthen : Option PForm := none
   deriving Repr, Inhabited
 
 structure PSystem where
@@ -285,7 +290,8 @@ def parseMode (name : String) (kvs : List (String × String)) : Option PMode := 
   let guard ← parseFormula ((secGet kvs "guard").getD "")
   let evolve ← parseFormula ((secGet kvs "evolve").getD "")
   some { name := name, odes := odes, guard := guard, evolve := evolve,
-         next := parseList ((secGet kvs "next").getD "[]") }
+         next := parseList ((secGet kvs "next").getD "[]"),
+         strengthen := (secGet kvs "strengthen").bind parseFormula }
 
 /-- Assemble the full problem from sections. -/
 def assemble (secs : List (String × List (String × String))) : Option PProblem := do

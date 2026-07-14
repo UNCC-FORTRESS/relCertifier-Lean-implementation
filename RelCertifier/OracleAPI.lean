@@ -74,12 +74,174 @@ inductive Seg | pass | fail | incon
 inductive Cov3 | cov | nocov | incon
   deriving DecidableEq, Repr, BEq, Inhabited
 
+/-! ## The checked-cut channel (differential cuts with re-derived justification)
+
+A mode's flow-query domain may be narrowed by a CUT `S` — but only after the certifier
+itself re-derives BOTH obligations, per atomic conjunct:
+
+* **O1 (entry)**: the mode's guard implies the conjunct. Free for guard conjuncts (the
+  default candidates); a Z3 `UNSAT(guard ∧ ¬c)` for `strengthen` conjuncts.
+* **O2 (invariance)**: the conjunct is flow-invariant along THIS mode's own field, checked
+  by the same trusted routes as the main certificates — route B (`DI_strict` boundary:
+  `dom ∧ g=0 ∧ ġ≥0` UNSAT), route A (`DI_nonstrict_domain` whole-domain: `dom ∧ ġ>0`
+  UNSAT), or the CONTRACT-SHAPE route for the tangent case DI cannot see (`v ≤ κ` with
+  field `k(c−v)`, `k ≥ 0`, `c ≤ κ` — rational comparison, no Z3; Lean backing
+  `contract_stays`/`WellFormedFlowB_contract`, the explicit exponential witness).
+
+Candidates supporting each other are handled by a greatest-fixpoint filter (check each
+with ALL current candidates in the O2 domain; drop failures; repeat). Discipline: a cut
+conjunct is USED only on a definitive pass — anything else silently drops it, so a wrong
+or unprovable candidate costs completeness (DECLINE), never soundness. `evolve` itself is
+NEVER modified: the model (and the Lean proof structure, which requires the uniform shared
+envelope as every mode's domain) sees only `evolve`; cuts narrow the queries alone. -/
+
+/-- Atomic NON-STRICT (`≤`/`≥`) conjuncts of a `PForm` (candidate cuts). Strict atoms are
+NOT candidates: a strict guard conjunct is typically the mode's EXIT face (not invariant),
+and a strict candidate would vacuously pass the boundary route (its own strictness excludes
+the boundary from the domain) — a closed-set discipline keeps O2 meaningful and DI-shaped. -/
+def cutAtoms : PForm → List PForm
+  | .and a b => cutAtoms a ++ cutAtoms b
+  | .cmp op a b =>
+      if op == "<=" || op == ">=" then [.cmp op a b] else []
+  | _ => []
+
+/-- Safe-side term of an atom `c` (`c = {g ≤ 0}`), lowered at `side`. -/
+def cutAtomG (vars : List String) (n : ℕ) (side : Side) : PForm → Option (ITerm n)
+  | .cmp op a b =>
+      if op == "<=" || op == "<" then do
+        let ea ← lowerE vars n side a; let eb ← lowerE vars n side b
+        some (ITerm.bin .sub ea eb)
+      else if op == ">=" || op == ">" then do
+        let ea ← lowerE vars n side a; let eb ← lowerE vars n side b
+        some (ITerm.bin .sub eb ea)
+      else none
+  | _ => none
+
+/-- Variables of a `PExpr`. -/
+partial def pexprVars : PExpr → List String
+  | .var v => [v]
+  | .num _ => []
+  | .neg e => pexprVars e
+  | .bin _ a b => pexprVars a ++ pexprVars b
+
+/-- Variables of a `PForm` atom. -/
+def atomVars : PForm → List String
+  | .cmp _ a b => pexprVars a ++ pexprVars b
+  | _ => []
+
+/-- The mode's field for `v` is syntactically zero (absent ode, or a literal 0). -/
+def frozenIn (m : PMode) (v : String) : Bool :=
+  match m.odes.find? (·.1 == v) with
+  | none => true
+  | some (_, .num s) => (parseRat s).getD 1 == 0
+  | some _ => false
+
+/-- CONTRACT-SHAPE O2 (the tangent case): atom `v ≤ κ` (or `v ≥ κ`) with the mode's field
+for `v` of the form `k·(c − v)` (`k ≥ 0`) and equilibrium on the safe side (`c ≤ κ` resp.
+`c ≥ κ`). Every solution from the safe side stays there (monotone toward the interior
+equilibrium — `contract_stays`); rational comparison only, no Z3. Recognized field shapes:
+`(* k (- c v))`, `(- c v)`, `(* k v)` with `k ≤ 0` (decay, `c = 0`). -/
+def contractShapeOK (m : PMode) : PForm → Bool
+  | .cmp op (.var v) (.num κs) =>
+      let le := op == "<=" || op == "<"
+      let ge := op == ">=" || op == ">"
+      if !(le || ge) then false else
+      match parseRat κs, m.odes.find? (·.1 == v) with
+      | some κ, some (_, f) =>
+          let eq? : Option (ℚ × ℚ) :=      -- (k, c)
+            match f with
+            | .bin "*" (.num ks) (.bin "-" (.num cs) (.var w)) =>
+                if w == v then do
+                  let k ← parseRat ks; let c ← parseRat cs; pure (k, c)
+                else none
+            | .bin "-" (.num cs) (.var w) =>
+                if w == v then (parseRat cs).map (fun c => ((1 : ℚ), c)) else none
+            | .bin "*" (.num ks) (.var w) =>
+                if w == v then (parseRat ks).map (fun k => (-k, (0 : ℚ))) else none
+            | _ => none
+          match eq? with
+          | some (k, c) => 0 ≤ k && (if le then c ≤ κ else κ ≤ c)
+          | none => false
+      | _, _ => false
+  | _ => false
+
+/-- One Z3 UNSAT probe (budget-counted); `true` ⟺ definitive `unsat`. -/
+def probeUnsat {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
+    (coord : Fin n → String) (q : IForm n) : IO Bool := do
+  let script := q.toScript coord
+  if script.length > maxSmt then pure false
+  else do
+    cnt.modify (· + 1)
+    if (← cnt.get) > maxQ then throw (IO.userError "query budget exceeded")
+    if (← IO.monoMsNow) > deadline then throw (IO.userError "time budget exceeded")
+    match ← s.check script with
+    | .ok .unsat => pure true
+    | _ => pure false
+
+/-- **The checked cut of a mode** (one side): greatest fixpoint of the O1/O2 filter over
+the candidate atoms (guard conjuncts + `strengthen` conjuncts), returned as the conjoined
+`IForm` to add to this mode's flow-query domains, plus the kept atoms (debug). -/
+def checkedCut (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
+    (vars : List String) (n : ℕ) (coord : Fin n → String) (side : Side) (m : PMode) :
+    IO (IForm n × Nat) := do
+  -- own-side field (the other side frozen, λ irrelevant for a one-sided Lie)
+  let fOwn := dynOf vars n side m
+  let zeroF : Fin n → ITerm n := fun _ => ITerm.rat 0
+  let evolveI := (lowerF vars n side m.evolve).getD IForm.tt
+  let guardI  := (lowerF vars n side m.guard).getD IForm.tt
+  -- candidates: (atom, IForm, g-term, from-strengthen?)
+  let mkCand (fromS : Bool) (a : PForm) : Option (PForm × IForm n × ITerm n × Bool) := do
+    let fI ← lowerF vars n side a
+    let g  ← cutAtomG vars n side a
+    pure (a, fI, g, fromS)
+  let gCands := (cutAtoms m.guard).filterMap (mkCand false)
+  let sCands := (match m.strengthen with
+    | some f => cutAtoms f | none => []).filterMap (mkCand true)
+  -- O1 for strengthen candidates: UNSAT(guard ∧ g > 0) (guard conjuncts: O1 free)
+  let mut cands := gCands
+  for (a, fI, g, _) in sCands do
+    if ← probeUnsat s cnt maxQ maxSmt deadline coord
+        (IForm.and guardI (IForm.cmp .gt g (.rat 0))) then
+      cands := cands ++ [(a, fI, g, true)]
+  -- O2 greatest fixpoint: drop candidates that fail all routes, with the survivors in the domain
+  let mut changed := true
+  let mut rounds := 0
+  while changed && rounds ≤ cands.length + 1 do
+    changed := false
+    rounds := rounds + 1
+    let mut keep := []
+    for (a, fI, g, fS) in cands do
+      -- O2 domain: evolve ∧ the OTHER candidates (never the candidate itself — a candidate
+      -- must not narrow its own invariance obligation)
+      let dom := cands.foldl (fun d c => if c.2.2.1 == g then d else IForm.and d c.2.1) evolveI
+      -- contract-shape (tangent-capable, no Z3) / frozen atom
+      let shapeOK := contractShapeOK m a || (atomVars a).all (frozenIn m)
+      let ok ← (if shapeOK then pure true else do
+        match fOwn with
+        | none => pure false
+        | some f =>
+          let gdot := match side with
+            | Side.L => ilieDeriv g f zeroF (ITerm.rat 1)
+            | _      => ilieDeriv g zeroF f (ITerm.rat 1)
+          -- route B (DI_strict boundary), then route A (DI_nonstrict_domain whole-domain)
+          let rB := IForm.and dom (IForm.and (IForm.cmp .eq g (.rat 0))
+            (IForm.cmp .ge gdot (.rat 0)))
+          if ← probeUnsat s cnt maxQ maxSmt deadline coord rB then pure true
+          else
+            probeUnsat s cnt maxQ maxSmt deadline coord
+              (IForm.and dom (IForm.cmp .gt gdot (.rat 0))))
+      if ok then keep := keep ++ [(a, fI, g, fS)]
+      else changed := true
+    cands := keep
+  let cut := cands.foldl (fun d c => IForm.and d c.2.1) IForm.tt
+  pure (cut, cands.length)
+
 /-- Check one segment `(qL=mL, qR=mR, λ)`: `pass` iff EVERY component's strict flow query
 is Z3-`unsat`; `fail` iff some component is definitively `sat`; `incon` on any Z3
 error/`unknown` or unbuildable query. -/
 def checkSeg (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     (vars : List String) (n : ℕ) (coord : Fin n → String)
-    (comps : List (ITerm n)) (mL mR : PMode) (lam : ℚ) : IO Seg := do
+    (comps : List (ITerm n)) (cutL cutR : IForm n) (mL mR : PMode) (lam : ℚ) : IO Seg := do
   -- Each component certifies via ANY of the 3 sound routes (A domain / B strict /
   -- C superlevel); the OTHER components restrict the domain (multi-barrier coupling).
   -- Segment status: fail if some component definitively fails all routes; else incon if
@@ -95,6 +257,8 @@ def checkSeg (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
       | some (baseDom, gdot) =>
           let others := (List.range comps.length).filterMap
             (fun j => if j == i then none else comps[j]?)
+          -- CHECKED-CUT domains: narrow by the modes' re-derived cuts (O1/O2 above)
+          let baseDom := IForm.and (IForm.and baseDom cutL) cutR
           let dom := others.foldl (fun d gj => IForm.and d (IForm.cmp .le gj (.rat 0))) baseDom
           let mut compPass := false
           let mut compIncon := false
@@ -148,13 +312,15 @@ def regionUnsat {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadli
 * pre-j: `guardL(mL) ∧ guardR(mR) ∧ evolveL(mL) ∧ evolveR(mR)` (obligation 1, left in guard);
 * post-j: `guardR(mR) ∧ evolveL(mL) ∧ evolveR(mR)` (obligation 2, NO guardL — false post-joint,
   left carried by `evolveL`). Both include the evolve domains. -/
-def repoRegions (vars : List String) (n : ℕ) (mL mR : PMode) :
+def repoRegions (vars : List String) (n : ℕ) (cutL cutR : IForm n) (mL mR : PMode) :
     Option (IForm n × IForm n) := do
   let gL ← lowerF vars n Side.L mL.guard
   let gR ← lowerF vars n Side.R mR.guard
   let eL ← lowerF vars n Side.L mL.evolve
   let eR ← lowerF vars n Side.R mR.evolve
-  let ev := IForm.and eL eR
+  -- CHECKED CUTS narrow the regions: every reachable σ-state satisfies the checked cuts
+  -- (entry by O1, invariance by O2), so the region-invariant obligation may assume them.
+  let ev := IForm.and (IForm.and (IForm.and eL eR) cutL) cutR
   pure (IForm.and (IForm.and gL gR) ev, IForm.and gR ev)
 
 /-- **DYNAMIC REPOSITION check (certificate 3)** — the right-only FLOW cert via the **whole-domain**
@@ -166,7 +332,7 @@ the domain (multi-barrier). `true` iff every component's route-A query is defini
 any sat/unknown/error → `false` (withhold — drop-only-on-UNSAT). -/
 def checkDynRepo (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     (vars : List String) (n : ℕ) (coord : Fin n → String)
-    (comps : List (ITerm n)) (mL mR : PMode) (withGuardL : Bool) : IO Bool := do
+    (comps : List (ITerm n)) (cutL cutR : IForm n) (mL mR : PMode) (withGuardL : Bool) : IO Bool := do
   let gLform : IForm n := (if withGuardL then lowerF vars n Side.L mL.guard else some IForm.tt).getD IForm.tt
   let mut allUnsat := true
   for i in List.range comps.length do
@@ -177,6 +343,7 @@ def checkDynRepo (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
         match segPartsRO vars n g mL mR with        -- (evolveL∧evolveR, ġ) with fL=0, λ=1
         | none => allUnsat := false
         | some (baseDom, gdot) =>
+            let baseDom := IForm.and (IForm.and baseDom cutL) cutR   -- checked-cut narrowing
             let others := (List.range comps.length).filterMap
               (fun j => if j == i then none else comps[j]?)
             let dom0 := others.foldl (fun d gj => IForm.and d (IForm.cmp .le gj (.rat 0))) baseDom
@@ -292,7 +459,8 @@ supply its two UNSAT hypotheses. Only STRICT scalar successor guards (`a > b` / 
 prunable — a CLOSED guard (`≥`/`≤`) has a boundary the strict barrier cannot exclude, so it is
 kept (scope, not unsoundness). -/
 def nonConnPrune (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
-    (vars : List String) (n : ℕ) (coord : Fin n → String) (mR mSuc : PMode) : IO Bool := do
+    (vars : List String) (n : ℕ) (coord : Fin n → String) (cutR : IForm n)
+    (mR mSuc : PMode) : IO Bool := do
   -- safe-side term `g` with successor `guard = {g > 0}`; STRICT scalar comparisons only.
   let gOpt : Option (ITerm n) :=
     match mSuc.guard with
@@ -307,8 +475,10 @@ def nonConnPrune (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
   | none => pure false
   | some g =>
     match (do
-        let domR ← lowerF vars n Side.R mR.evolve
-        let srcR ← lowerF vars n Side.R (PForm.and mR.guard mR.evolve)
+        let domR0 ← lowerF vars n Side.R mR.evolve
+        let domR := IForm.and domR0 cutR                             -- checked-cut narrowing
+        let srcR0 ← lowerF vars n Side.R (PForm.and mR.guard mR.evolve)
+        let srcR := IForm.and srcR0 cutR
         let fR   ← dynOf vars n Side.R mR
         let lie  := ilieDeriv g (fun _ => ITerm.rat 0) fR (ITerm.rat 1)  -- right-only Lie
         let gPos := IForm.cmp .gt g (ITerm.rat 0)
@@ -337,6 +507,7 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     (vars : List String) (n : ℕ)
     (coord : Fin n → String) (comps : List (ITerm n))
     (prunedOf : String → String → Bool)
+    (cutL : IForm n) (cutOfR : String → IForm n)
     (epsL epsR lmin lmax : ℚ) (mL : PMode) : IO Cov3 := do
   let mut sawIncon := false
   -- FIX 1 (precise admissibility): the admissible initial right modes for `mL` — those with an
@@ -354,7 +525,7 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
   -- reposition `High_R → Mid_R`).
   let mut repoMap : List (String × Bool × Bool) := []   -- (name, preOK, postOK)
   for mR in p.R.modes do
-    let (pre, post) ← (match repoRegions vars n mL mR with
+    let (pre, post) ← (match repoRegions vars n cutL (cutOfR mR.name) mL mR with
       | none => pure (false, false)                       -- unbuildable ⟹ no reposition
       | some (rPre, rPost) => do
           let pre  ← regionUnsat s cnt maxQ maxSmt deadline coord comps rPre
@@ -368,8 +539,8 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
   -- `ġ_s=−v_R≤0` and `ġ_v` on the terrain's v-evolve-cap ⟹ route-A UNSAT ⟹ the advancing reposition.
   let mut dynMap : List (String × Bool × Bool) := []
   for mR in p.R.modes do
-    let pre  ← checkDynRepo s cnt maxQ maxSmt deadline vars n coord comps mL mR true
-    let post ← checkDynRepo s cnt maxQ maxSmt deadline vars n coord comps mL mR false
+    let pre  ← checkDynRepo s cnt maxQ maxSmt deadline vars n coord comps cutL (cutOfR mR.name) mL mR true
+    let post ← checkDynRepo s cnt maxQ maxSmt deadline vars n coord comps cutL (cutOfR mR.name) mL mR false
     dynMap := dynMap ++ [(mR.name, pre, post)]
   let repoDynPreOK  := fun (nm : String) => (dynMap.find? (·.1 == nm)).map (·.2.1) |>.getD false
   let repoDynPostOK := fun (nm : String) => (dynMap.find? (·.1 == nm)).map (·.2.2) |>.getD false
@@ -384,7 +555,8 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     -- precompute per-right-mode segment status at this λ
     let mut segMap : List (String × Seg) := []
     for mR in p.R.modes do
-      segMap := segMap ++ [(mR.name, ← checkSeg s cnt maxQ maxSmt deadline vars n coord comps mL mR lam)]
+      segMap := segMap ++ [(mR.name,
+        ← checkSeg s cnt maxQ maxSmt deadline vars n coord comps cutL (cutOfR mR.name) mL mR lam)]
     let seg := fun q => (segMap.find? (·.1 == q)).map (·.2) |>.getD Seg.incon
     if (← IO.getEnv "RELCERT_DEBUG").isSome then
       IO.eprintln (s!"  [{mL.name}_L λ={lam} #comps={comps.length}] " ++
@@ -460,6 +632,22 @@ def certifyCore (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) 
   let epsR := (parseRat p.R.epsilon).getD 1
   let lmin := (parseRat p.lambdaMin).getD 1
   let lmax := (parseRat p.lambdaMax).getD 1
+  -- CHECKED CUTS (λ- and pair-independent: each mode's own guard/strengthen + own field),
+  -- computed ONCE per mode per side. Used ONLY to narrow query domains (never the model).
+  let mut cutMapL : List (String × IForm n) := []
+  for mM in p.L.modes do
+    let (c, kept) ← checkedCut s cnt maxQ maxSmt deadline vars n coord Side.L mM
+    if (← IO.getEnv "RELCERT_DEBUG").isSome then
+      IO.eprintln s!"  [cut] L.{mM.name}: {kept} conjunct(s)"
+    cutMapL := cutMapL ++ [(mM.name, c)]
+  let mut cutMapR : List (String × IForm n) := []
+  for mM in p.R.modes do
+    let (c, kept) ← checkedCut s cnt maxQ maxSmt deadline vars n coord Side.R mM
+    if (← IO.getEnv "RELCERT_DEBUG").isSome then
+      IO.eprintln s!"  [cut] R.{mM.name}: {kept} conjunct(s)"
+    cutMapR := cutMapR ++ [(mM.name, c)]
+  let cutOfL := fun (nm : String) => (cutMapL.find? (·.1 == nm)).map (·.2) |>.getD IForm.tt
+  let cutOfR := fun (nm : String) => (cutMapR.find? (·.1 == nm)).map (·.2) |>.getD IForm.tt
   -- FIX 3: Def-3 non-connection pruning. mL- AND λ-independent (right flow + right guards only),
   -- so computed ONCE for the whole problem. Edge `mR → tgt` pruned iff BOTH nonconn checks are
   -- definitive Z3 UNSAT (`nonConnPrune`); any other verdict keeps it. Drop-only-on-UNSAT ⟹ sound.
@@ -469,7 +657,7 @@ def certifyCore (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) 
       match p.R.modes.find? (·.name == tgt) with
       | none => pure ()
       | some mSuc =>
-          if ← nonConnPrune s cnt maxQ maxSmt deadline vars n coord mR mSuc then
+          if ← nonConnPrune s cnt maxQ maxSmt deadline vars n coord (cutOfR mR.name) mR mSuc then
             prunedPairs := prunedPairs ++ [(mR.name, tgt)]
   if (← IO.getEnv "RELCERT_DEBUG").isSome then
     IO.eprintln s!"  [prune] {p.name}: {prunedPairs.map (fun e => s!"{e.1}->{e.2}")}"
@@ -485,7 +673,8 @@ def certifyCore (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) 
         match invComponents vars n f with
         | none => return .error s!"unlowerable invariant for mode {mL.name}"
         | some comps =>
-            match ← coverMode s cnt maxQ maxSmt deadline p vars n coord comps prunedOf epsL epsR lmin lmax mL with
+            match ← coverMode s cnt maxQ maxSmt deadline p vars n coord comps prunedOf
+                (cutOfL mL.name) cutOfR epsL epsR lmin lmax mL with
             | .cov => pure ()
             | .incon => sawIncon := true
             | .nocov => return .declined   -- definitive uncovered ⟹ sound DECLINE

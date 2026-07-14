@@ -36,19 +36,19 @@ epsilon = 1.0
 [Rsys.mode.STEEP]
 ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); omega_psi' = smt2:0; theta_p' = smt2:(* -1 theta_p); omega_theta' = smt2:0; z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
 guard = s >= 0.0 and s < 0.6 and v <= 0.3
-evolve = omega_psi >= -0.5 and omega_psi <= 0.6 and omega_theta >= -0.5 and omega_theta <= 0.6 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.3 and z >= -1.0 and z <= 0.15
+evolve = omega_psi >= -0.5 and omega_psi <= 0.6 and omega_theta >= -0.5 and omega_theta <= 0.6 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 0.15
 next = [MODER, STEEP]
 
 [Rsys.mode.MODER]
 ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); omega_psi' = smt2:0; theta_p' = smt2:(* -1 theta_p); omega_theta' = smt2:0; z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
 guard = s >= 0.6 and s < 1.4 and v <= 0.5
-evolve = omega_psi >= -0.5 and omega_psi <= 0.6 and omega_theta >= -0.5 and omega_theta <= 0.6 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.5 and z >= -1.0 and z <= 0.15
+evolve = omega_psi >= -0.5 and omega_psi <= 0.6 and omega_theta >= -0.5 and omega_theta <= 0.6 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 0.15
 next = [FLAT, MODER]
 
 [Rsys.mode.FLAT]
 ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); omega_psi' = smt2:0; theta_p' = smt2:(* -1 theta_p); omega_theta' = smt2:0; z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
 guard = s >= 1.4 and s < 899.95 and v <= 0.65
-evolve = omega_psi >= -0.5 and omega_psi <= 0.6 and omega_theta >= -0.5 and omega_theta <= 0.6 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.65 and z >= -1.0 and z <= 0.15
+evolve = omega_psi >= -0.5 and omega_psi <= 0.6 and omega_theta >= -0.5 and omega_theta <= 0.6 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 0.15
 next = [FLAT]
 
 [relational_invariant]

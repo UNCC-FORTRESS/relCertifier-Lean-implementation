@@ -40,19 +40,19 @@ epsilon = 1.0
 [Rsys.mode.STEEP]
 ode = v' = smt2:(* 3 (- 0.30 v)); s' = v;
 guard = s >= 0.0 and s < 0.6 and v <= 0.3
-evolve = s >= 0.0 and s <= 1000.0 and v >= 0.0 and v <= 0.3
+evolve = s >= 0.0 and s <= 1000.0 and v >= 0.0 and v <= 0.8
 next = [MODER, STEEP]
 
 [Rsys.mode.MODER]
 ode = v' = smt2:(* 3 (- 0.50 v)); s' = v;
 guard = s >= 0.6 and s < 1.4 and v <= 0.5
-evolve = s >= 0.0 and s <= 1000.0 and v >= 0.0 and v <= 0.5
+evolve = s >= 0.0 and s <= 1000.0 and v >= 0.0 and v <= 0.8
 next = [FLAT, MODER]
 
 [Rsys.mode.FLAT]
 ode = v' = smt2:(* 3 (- 0.65 v)); s' = v;
 guard = s >= 1.4 and s < 899.95 and v <= 0.65
-evolve = s >= 0.0 and s <= 1000.0 and v >= 0.0 and v <= 0.65
+evolve = s >= 0.0 and s <= 1000.0 and v >= 0.0 and v <= 0.8
 next = [FLAT]
 
 [relational_invariant]

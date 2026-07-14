@@ -775,6 +775,6 @@ RelCertifier/
   GuardThreaded.lean  Tier B guard-threaded discharge: staying from guard bases, by construction
 Main.lean             `relcert` executable
 ARCHITECTURE.md       certified-checker architecture + the finding that reshaped it
-benchmarks/suite/          the original 47-benchmark suite (per-mode domains)
-benchmarks/suite_uniform/  the uniform-evol settling suite (shared envelopes, margin guards)
+benchmarks/suite_uniform/  CANONICAL: uniform-evol settling suite (shared envelopes, checked cuts)
+benchmarks/suite/          LEGACY: the paper's original suite (free-form per-mode domains, carried H)
 ```

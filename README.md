@@ -664,22 +664,29 @@ per-mode `v ≤ terrain-equilibrium` caps. Both are *mode-invariants*; the legit
 make them **guard-derivable** rather than silently asserted:
 
 - **arm/plant `Hold`** (3): `theta ≥ 0.6` follows from the entry guard (`theta ≥ 0.6`) plus the
-  hold dynamics (`theta' = 0`) — restored as a *checked annotation*, exactly the shape
-  `GuardSettlingB_of_contract` discharges.
+  hold dynamics (`theta' = 0`).
 - **terrain family** (10): each right mode's guard gains a `v ≤ eq_terrain` conjunct — a real
   structural change (the automaton cannot enter steeper terrain above its speed limit; physically,
-  slowing down before the grade). The per-mode evolve cap `v ≤ eq` is then provable from
-  entry-below + contraction-to-equilibrium (tangent non-exit at the cap, `v' = 0` there — again
-  the Tier B contract shape). Not the reachability-in-evolve cheat: every per-mode evolve conjunct
-  is derivable from (guard entry + dynamics), checkable.
+  slowing down before the grade). `v ≤ eq` is then invariant by entry-below +
+  contraction-to-equilibrium (tangent non-exit at the cap).
 
-So the design generalizes honestly: **one shared physical envelope, plus per-mode refinements only
-where guard + dynamics prove them** — mode-dependent physics (terrain) enters through the guards,
-where it is checkable, not through bare evolve assertions. The original suite is untouched;
-`benchmarks/suite/` covers the paper's set with free-form per-mode domains,
-`benchmarks/suite_uniform/` certifies the same systems (**46/47 — the same ceiling**) under the
-disciplined form where the landing theorem's well-formedness is discharged or checkably annotated
-rather than assumed.
+These mode-invariants are consumed through the **checked-cut channel**
+(`OracleAPI.checkedCut`): every mode's evolve is the LITERAL shared envelope — one evolve string
+per side on all 47 benchmarks — and the certifier itself re-derives each cut before using it.
+Candidate cuts are the guard's non-strict atomic conjuncts (the default proposer; an optional
+per-mode `strengthen =` field supplies extras), and a candidate narrows the query domains only
+after BOTH obligations certify: **O1 (entry)** — the guard implies it; **O2 (invariance)** —
+flow-invariant along the mode's own field (the same DI routes as the main certificates, or the
+tangent-capable contract-shape check backed by `contract_stays`). Failing candidates are silently
+dropped (completeness-only, never soundness), and `evolve` is never modified — the model matches
+the uniform-evol proof structure exactly, and `CutChannel.lean` (`boxLe_cut_lift`) proves the
+narrowed certificate lifts back to the uniform-domain obligation the landing chain consumes.
+
+So the design lands fully honest: **one shared physical envelope; mode-dependent physics enters
+through the guards; anything tighter than the envelope is re-derived by the certifier, never
+asserted**. The original suite is untouched; `benchmarks/suite/` covers the paper's set with
+free-form per-mode domains, `benchmarks/suite_uniform/` certifies the same systems
+(**46/47 — the same ceiling**) under the disciplined form.
 
 Requires Lean 4 (`leanprover/lean4:v4.31.0`, pinned) and a pinned Z3 (`RELCERT_Z3` or a
 standard absolute path). `dL-rel` is fetched from GitHub at tag `v0.1.0-NFM25` (transitively

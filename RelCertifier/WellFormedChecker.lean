@@ -1,5 +1,5 @@
 /-
-# `decideWellFormed` — the decidable well-formedness checker (statements + checker, phase A)
+# `decideWellFormed` — the decidable well-formedness checker (phases A′/B/C + EXT 1/2 PROVEN)
 
 The reduction this file mechanizes: for the SETTLING model class, per-benchmark soundness
 reduces to (a) this decidable checker passing on the model data, plus (b) the per-run Z3
@@ -18,9 +18,17 @@ WHAT THE CHECKER DECIDES (all integer arithmetic / structural — no ODE solving
     self-or-declared-successor guard band covering the one-step image
     (`[a + c·dt, cap + c·dt]`);
   - `frozen` (`x' = 0`) — holds anywhere it starts;
-* (phase-A fragment) every NON-guarded coordinate of a mode is `frozen` — the single-active-
-  coordinate class; driven coordinates (`x' = y`) are phase B/C (see the plan);
+* non-guarded coordinates are `frozen`, DRIVEN by the active coordinate (`x' = x_active`,
+  phases B/C: quadratic / exp-integral witnesses), or driven by a non-active frozen
+  coordinate when envelope-free (EXT 2); const rates may be NEGATIVE (EXT 1, lower-side
+  margin — the Return modes);
 * declared successors are valid mode indices.
+
+STATUS: `wellformed_sound` is PROVEN for this whole grammar. The known completeness gaps, in
+build order: EXT 4 — UNION landing covers for transit modes (a mode whose one-step image spans
+its own band AND a successor's; design in `SettlingInstances.lean` and the project memory);
+EXT 3 — multi-band guards + driven-active coordinates (the s-guarded terrain family);
+phase D — coupled fields (flow existence via `PicardBridge`).
 
 THE BASE-SET CORRECTION (found while stating this): `GuardSettlingB` quantifies over the guard
 region, so for multi-coordinate models the guard map must be `GdOf M q := envelope ∧ guard-band`

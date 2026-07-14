@@ -84,6 +84,7 @@ on the three standard axioms. Reproduce: `lake env lean RelCertifier/AxiomCheck.
 | Modality → paper Theorem 3 / dL-rel (`faModal_to_faShape`, `encoding_correct`) | **proven** |
 | Automaton-right star, uniform-evol (`theorem3_faithful_landing_clocked_uniform`) | **proven** |
 | Guard-threaded settling discharge (`theorem3_faithful_settling`) + checked-cut tie (`boxLe_cut_lift`) | **proven** |
+| Well-formedness checker soundness (`wellformed_sound`: checker + Z3 certs ⟹ `GuardSettlingH`) | **proven** |
 | Trust boundary | Z3 UNSAT (`z3_unsat_sound`, 1 axiom) |
 
 ## Imported theories — the four repos it builds on
@@ -375,6 +376,8 @@ Every source file, its job, the paper result it mechanizes, and the imported the
 | `UniformEvol.lean` | **`theorem3_faithful_landing_clocked_uniform`**, `UniformEvol`/`UniformStayingH`, `staying_from_margin`, `WellFormedFlowB_contract` | **the uniform-evol deployment**: junction trivial (narrowing retired), staying-only H, margin + contraction discharge (see "The landing chain, intuitively" above) | `MultisegLandingBridge` |
 | `GuardThreaded.lean` | **`theorem3_faithful_settling`**, `starInvGF`/`GuardSettlingB`, `GuardSettlingB_of_margin_const`/`_of_contract` | **Tier B — the guard-threaded discharge**: star invariant tracks the current mode's guard region, so the staying obligation quantifies only over guard bases and is discharged by construction from the settling-guard geometry (margin/contraction witnesses) | `UniformEvol` + the φinv-generic clocked chain |
 | `CutChannel.lean` | `sem_ode_and_of_stays`, **`boxLe_cut_lift`** | **the checked-cut tie**: a certificate over a cut-narrowed domain + cut invariance (the certifier's O2) lifts to the uniform-domain `BoxLe` the settling chain consumes — run inclusion, no per-mode domain in the model | `GuardThreaded` |
+| `WellFormedChecker.lean` | **`decideWellFormed`**, **`wellformed_sound`**, `SettlingModel`, the per-shape discharges (`settling_frozen`/`_const(_neg/_driven)`/`_contract(_driven)`) | **the verified well-formedness checker**: decidable integer arithmetic on the model data; passing it (plus the per-run Z3 certs) provably yields `GuardSettlingH` — per-benchmark soundness with no per-benchmark proof (the `decideCovered`/`check_sound` pattern applied to the settling hypothesis) | `GuardThreaded` + explicit witnesses |
+| `SettlingInstances.lean` | 21 benchmark `SettlingModel` data terms; kernel `rfl` certificates | the checker-accepted instances (3 closed certificates; 18 await the EXT 4 union landing cover — transit modes; the rest of the suite maps to the named grammar extensions) | `WellFormedChecker` |
 | `Oracle.lean` | `z3_unsat_sound` (the one axiom) + `flow_certified` | the trusted SMT leaf | — (axiom) |
 | `Smt.lean` / `Z3.lean` / `Parse.lean` / `Run.lean` / `Main.lean` | computable IR + SMT printer, Z3 session, parser, runner, `relcert` exe | trusted IO shell | uses the verified queries |
 
@@ -762,6 +765,8 @@ RelCertifier/
   UniformEvol.lean    uniform-evol deployment: junction trivial, margin/contraction discharge
   GuardThreaded.lean  Tier B guard-threaded discharge: staying from guard bases, by construction
   CutChannel.lean     checked-cut tie: cut-narrowed certificate lifts to the uniform-domain BoxLe
+  WellFormedChecker.lean  verified decidable well-formedness checker (wellformed_sound)
+  SettlingInstances.lean  benchmark SettlingModel data terms + kernel certificates
 Main.lean             `relcert` executable
 ARCHITECTURE.md       certified-checker architecture + the finding that reshaped it
 docs/DEVELOPMENT-ARC.md    the three development arcs, mechanized findings, converged design

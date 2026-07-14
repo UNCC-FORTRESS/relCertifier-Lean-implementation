@@ -137,12 +137,41 @@ bug (unjustified query narrowing), reachability-in-evolve (unjustified domain ti
 ∀-duration and ∀-base staying overclaims (asserting staying the dynamics don't provide). The
 final stack makes each of these either impossible by construction or a checked obligation.
 
+## Arc 4 — the verified well-formedness checker (the reduction, mechanized)
+
+**Goal.** Turn per-benchmark soundness into a computation: prove ONCE that a decidable check on
+the model data implies the settling hypothesis, so a benchmark verifies by running two programs
+(the checker + the certifier) with no bespoke proof.
+
+**Path.** `SettlingModel` (integer model data — `Rat` arithmetic does not kernel-reduce, an
+early forced design fix), `decideWellFormed` (pure integer/structural checks: envelope ⊋ guard
+bands, per-mode settling by shape, successor validity), and **`wellformed_sound`**: checker
+passes + per-run Z3 certificates ⟹ `GuardSettlingH` ⟹ `rvalid`. Built in proven increments,
+each an explicit-witness discharge lemma: single-active-coordinate (constant/affine/exponential
+witnesses), driven-by-const integrators (quadratic — the rover class), driven-by-contract
+integrators (exp-integral — the terrain-dynamics class), signed rates (the Return modes), and
+frozen-driver coordinates. 21 of 47 benchmark data terms are in-grammar; 3 carry closed kernel
+`rfl` certificates.
+
+**Findings (the honest ones).**
+- The guard map must be envelope-intersected (`GdOf = envF ∧ band`) or the hypothesis is
+  vacuously false for every multi-coordinate model — caught at statement time.
+- An unverified claim died the right way: 18 instances were reported as certificate-pending on
+  a "kernel-reduction quirk" — `#reduce` showed the checker genuinely REJECTS them, i.e. the
+  kernel had been refusing a false proposition all along. Root cause is one completeness gap:
+  the landing rule demands a single band contain the one-step image, but TRANSIT modes cross
+  from their own band into a successor's — the union-cover extension (EXT 4, designed) closes
+  it. The episode is the architecture's argument in miniature: the untrusted layer asserted,
+  the kernel refused, the record was corrected.
+- Remaining roadmap: EXT 4 (union covers), EXT 3 (multi-band guards + driven-active, the
+  s-guarded terrain family), phase D (coupled fields — existence via `PicardBridge`).
+
 ## Current state
 
 - **Suite**: `benchmarks/suite_uniform/` (canonical, the paper's benchmark set) — 46/47
   CERTIFIED, 1 inconclusive-Z3 ERROR (`shield_unreachable`), literal shared evolution domains on
   all 47, mode physics in guards, cuts re-checked on every run.
 - **Theorems**: `tooling_sound` (Arc 1), `theorem3_faithful_landing_clocked_uniform` +
-  `theorem3_faithful_settling` + `boxLe_cut_lift` (Arcs 2–3); all axioms-clean, the Z3 leaf only
-  at certificate construction.
+  `theorem3_faithful_settling` + `boxLe_cut_lift` (Arcs 2–3), `wellformed_sound` (Arc 4);
+  all axioms-clean, the Z3 leaf only at certificate construction.
 - **Trust boundary**: unchanged throughout — `z3_unsat_sound`, the parser, and nothing else.

@@ -23,17 +23,16 @@ A frozen ACTIVE coordinate with non-frozen (driven) others is transcribed as
 `CoordShape.constRate 0` — the identical field (`Term.const 0`) — because the constRate branch
 carries the flex-others grammar and lands in its own band by `c = 0`.
 
-COVERAGE (21/47 data terms, generated from the benchmark files; 17 checker-ACCEPTED with
-closed `rfl` certificates below). The remaining benchmarks map to named extension classes,
+COVERAGE (21/47 data terms, generated from the benchmark files; ALL 21 checker-ACCEPTED with
+closed `rfl` certificates). The remaining benchmarks map to named extension classes,
 each a precise next step, none a gap in what is proven:
 
 * **exp-bound transit contracts** (watertank, match_multi_eps, rover3tier_M1,
-  robot_braking — the 4 parked data terms at the end of this file) — a contract mode whose
-  equilibrium lies beyond the adjacent successor band, so the sound landing cap is the sharper
-  `ghi + (c − ghi)·(1 − e^{−k·dt})`, not `c`. Deciding it needs a rational bound on
-  `1 − e^{−k·dt}` with FRACTIONAL `k·dt` — the integer `SettlingModel` cannot express
-  `k·dt < 1` (both factors are integers), so this class needs a rational-gain field
-  (e.g. `contract kNum kDen c`) plus a `1 − e^{−x} ≤ x` discharge lemma. Designed, not built.
+  robot_braking) — CLOSED by the rational-gain extension: `CoordShape.contractQ kn kd c`
+  carries the fractional gain exactly, the checker's transit cover uses the finite-dt cap
+  `ghi·kd + (c − ghi)·kn·dt ≤ ghi'·kd` (cross-multiplied to ℤ), and
+  `settling_contractQ_above/_below` discharge it via `1 − e^{−x} ≤ x`
+  (`Real.add_one_le_exp`). Their certificates are at the end of this file.
 * **driven-active / multi-coordinate guards** (the s-guarded terrain/story/refinement family,
   ~14) — guards on the integrator coordinate (plus the `v ≤ eq` cut conjunct), so the active
   coordinate is `driven` and guards span two coordinates; needs banded-rate landing
@@ -316,72 +315,72 @@ def match_multi_rateM : SettlingModel 2 :=
 
 example : decideWellFormed match_multi_rateM = true := rfl
 
-/-! ### Parked data terms — the exp-bound transit-contract class (see header)
+/-! ### The rational-gain (`contractQ`) instances — the former exp-bound parked class
 
-Checker-REJECTED, correctly: each has a contract mode whose equilibrium lies beyond the
-adjacent successor band, and the integer checker cannot express the sharper finite-dt landing
-cap. The numeric audit found NO H-counterexample for these four (each passes at some legal λ),
-so the hypothesis is believed true and only the decidability is missing. The data terms
-document the models for the rational-gain extension. -/
+Each has a transit-contract mode whose equilibrium lies beyond the adjacent successor band, so
+the landing needs the sharper finite-dt cap `ghi + (c − ghi)·(kn/kd)·dt` (sound by
+`1 − e^{−x} ≤ x`); the integer `contract` shape cannot express the fractional gain, and
+`CoordShape.contractQ kn kd c` can. Gains are stored exactly (`kn/kd` = the benchmark's gain
+in scaled time), so these are faithful transcriptions, not sign-only approximations. -/
 
-/-- `match_multi_eps` (R side; units: values ×1000, time ×10). -/
+/-- `match_multi_eps` (R side; units: values ×1000, time ×50; dt = ε_R/λ at λ = 5;
+gain 2/s = 1/25 per time unit). -/
 def match_multi_epsM : SettlingModel 2 :=
   { modes :=
     [
-      { shapes := ![CoordShape.contract 20 1000, CoordShape.driven 0], gcoord := 0,
+      { shapes := ![CoordShape.contractQ 1 25 1000, CoordShape.driven 0], gcoord := 0,
         glo := 300, ghi := 600, succs := [1] },
-      { shapes := ![CoordShape.contract 20 200, CoordShape.driven 0], gcoord := 0,
+      { shapes := ![CoordShape.contractQ 1 25 200, CoordShape.driven 0], gcoord := 0,
         glo := 600, ghi := 650, succs := [0] } ]
     env := ![{ lo := some 0, hi := some 1150 }, { lo := some 0, hi := none }]
     dtQ := 3 }
 
--- checker-rejected pending the rational-gain (exp-bound) extension (see header):
--- example : decideWellFormed match_multi_epsM = true := rfl
+example : decideWellFormed match_multi_epsM = true := rfl
 
-/-- `robot_braking` (R side; units: values ×1000, time ×1). -/
+/-- `robot_braking` (R side; units: values ×1000, time ×1; dt = ε_R/λ at λ = 2;
+gain 1/2). -/
 def robot_brakingM : SettlingModel 1 :=
   { modes :=
     [
-      { shapes := ![CoordShape.contract 1 0], gcoord := 0,
+      { shapes := ![CoordShape.contractQ 1 2 0], gcoord := 0,
         glo := 3500, ghi := 3550, succs := [1] },
-      { shapes := ![CoordShape.contract 1 0], gcoord := 0,
+      { shapes := ![CoordShape.contractQ 1 2 0], gcoord := 0,
         glo := 1500, ghi := 3500, succs := [2] },
-      { shapes := ![CoordShape.contract 1 1000], gcoord := 0,
+      { shapes := ![CoordShape.contractQ 1 2 1000], gcoord := 0,
         glo := 0, ghi := 1500, succs := [] } ]
     env := ![{ lo := some 0, hi := some 3650 }]
-    dtQ := 2 }
+    dtQ := 1 }
 
--- checker-rejected pending the rational-gain (exp-bound) extension (see header):
--- example : decideWellFormed robot_brakingM = true := rfl
+example : decideWellFormed robot_brakingM = true := rfl
 
-/-- `rover3tier_M1` (R side; units: values ×1000, time ×10). -/
+/-- `rover3tier_M1` (R side; units: values ×1000, time ×50; dt = ε_R/λ at λ = 5;
+gain 2/s = 1/25 per time unit). -/
 def rover3tier_M1M : SettlingModel 2 :=
   { modes :=
     [
-      { shapes := ![CoordShape.contract 20 1000, CoordShape.driven 0], gcoord := 0,
+      { shapes := ![CoordShape.contractQ 1 25 1000, CoordShape.driven 0], gcoord := 0,
         glo := 300, ghi := 600, succs := [1] },
-      { shapes := ![CoordShape.contract 20 200, CoordShape.driven 0], gcoord := 0,
+      { shapes := ![CoordShape.contractQ 1 25 200, CoordShape.driven 0], gcoord := 0,
         glo := 600, ghi := 650, succs := [0] } ]
     env := ![{ lo := some 0, hi := some 1150 }, { lo := some 0, hi := none }]
     dtQ := 3 }
 
--- checker-rejected pending the rational-gain (exp-bound) extension (see header):
--- example : decideWellFormed rover3tier_M1M = true := rfl
+example : decideWellFormed rover3tier_M1M = true := rfl
 
-/-- `watertank` (R side; units: values ×1000, time ×1). -/
+/-- `watertank` (R side; units: values ×1000, time ×1; dt = ε_R/λ at λ = 1;
+gain 0.12 = 3/25). -/
 def watertankSuiteM : SettlingModel 1 :=
   { modes :=
     [
-      { shapes := ![CoordShape.contract 3 12500], gcoord := 0,
+      { shapes := ![CoordShape.contractQ 3 25 12500], gcoord := 0,
         glo := 0, ghi := 10000, succs := [1] },
-      { shapes := ![CoordShape.contract 3 25000], gcoord := 0,
+      { shapes := ![CoordShape.contractQ 3 25 25000], gcoord := 0,
         glo := 10000, ghi := 17000, succs := [2] },
-      { shapes := ![CoordShape.contract 3 2500], gcoord := 0,
+      { shapes := ![CoordShape.contractQ 3 25 2500], gcoord := 0,
         glo := 17000, ghi := 22450, succs := [1] } ]
     env := ![{ lo := some (-50 : ℤ), hi := some 25000 }]
     dtQ := 1 }
 
--- checker-rejected pending the rational-gain (exp-bound) extension (see header):
--- example : decideWellFormed watertankSuiteM = true := rfl
+example : decideWellFormed watertankSuiteM = true := rfl
 
 end RelCertifier

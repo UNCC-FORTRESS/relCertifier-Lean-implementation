@@ -193,12 +193,20 @@ carry closed kernel `rfl` certificates**.
   lesson repeated the arc's theme: the first audit run flagged spurious witnesses because the
   sampler ignored `Gd = envelope ∧ band`; verify the counterexample before correcting the
   record.
-- Remaining roadmap: the rational-gain (exp-bound) class — 4 parked transit contracts whose
-  equilibrium lies beyond the adjacent successor band need the sharper finite-dt landing cap
-  `cap + (c − cap)(1 − e^{−k·dt})`, inexpressible with integer `k·dt` (needs
-  `contract kNum kDen c` + a `1 − e^{−x} ≤ x` lemma); EXT 3 (multi-band guards +
-  driven-active, the s-guarded terrain family — AFTER the terminal-band modeling fix above);
-  phase D (coupled fields — existence via `PicardBridge`).
+- **The rational-gain extension (`contractQ`), closing the exp-bound class.** A new
+  non-breaking shape `CoordShape.contractQ kn kd c` stores fractional gains exactly; the
+  checker's transit cover uses the finite-dt landing cap `ghi + (c − ghi)·(kn/kd)·dt`,
+  cross-multiplied by `kd > 0` so it kernel-reduces in ℤ, and
+  `settling_contractQ_above/_below` discharge it from `1 − e^{−x} ≤ x`
+  (`Real.add_one_le_exp`) — the flow can't cover more than an `x`-fraction of its remaining
+  gap in `x` time-constants. The linear cap sufficed for all four parked benchmarks (checked
+  numerically first, then by kernel `rfl`): watertank (gain 3/25, λ = 1), match_multi_eps and
+  rover3tier_M1 (gain 1/25 in scaled time, λ = 5 — the ACCEL cap lands with 2‰ of band to
+  spare: 0.648 ≤ 0.65), robot_braking (gain 1/2, λ = 2). **All 21 in-grammar data terms now
+  carry closed kernel certificates.**
+- Remaining roadmap: EXT 3 (multi-band guards + driven-active, the s-guarded terrain family —
+  AFTER the terminal-band modeling fix above); phase D (coupled fields — existence via
+  `PicardBridge`).
 
 ## Current state
 

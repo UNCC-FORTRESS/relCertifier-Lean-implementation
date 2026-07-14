@@ -272,11 +272,17 @@ NFM'25 encoding gives `rvalid`.
    state, the mode's flow exists and stays in the envelope for one segment). It is **discharged by
    construction** for the *stabilizing* class — `WellFormedFlowB_contract` proves it outright for a
    contractive coordinate `v' = k(c − v)` whose equilibrium lies inside the envelope (the envelope
-   is forward-invariant; explicit exponential witness) — and the geometric content for the
-   *guard-capped growing* class is proven as `staying_from_margin` (a flow with rate ≤ `r` starting
-   at the guard cap cannot cross a margin wider than `r·dt` in one segment; mean value theorem).
-   For benchmarks outside these shapes the hypothesis is carried explicitly and discharged
-   per-benchmark.
+   is forward-invariant; explicit exponential witness) — and for the *guard-capped growing* class
+   by the **guard-threaded chain** (`GuardThreaded.lean`): the star invariant is strengthened to
+   "the state is in its current mode's *guard* region" (where the system actually lives, by the
+   settling design), and `theorem3_faithful_settling` re-derives the same `rvalid` conclusion with
+   the staying obligation quantified only over guard-region bases — discharged by construction via
+   `GuardSettlingB_of_margin_const_two` (affine witness: a flow with rate `c` from a guard band
+   `[a, cap]` stays inside the envelope when `cap + c·dt ≤ hi`, and lands in the self-or-successor
+   guard band — the exact geometry the settling discipline enforces) and
+   `GuardSettlingB_of_contract` (exponential witness, self-landing). For benchmarks outside these
+   shapes (coupled fields; positions without guard caps) the hypothesis is carried explicitly and
+   discharged per-benchmark.
 
 So, intuitively: **if the modes share one honest physical envelope, the guards enforce settling
 (switch away from the envelope boundary with margin), and Z3 certifies per-mode invariant
@@ -354,6 +360,7 @@ Every source file, its job, the paper result it mechanizes, and the imported the
 | `MultisegLandingBridge.lean` | `theorem3_faithful_landing_clocked` / `_wf`, `ψpostL`/`encode_ψpostL` | the landing chain's `rvalid` re-point (shipped encoded soundness over `star rightAutomatonBody`) | `MultisegLanding` + reification bridge |
 | `RoverLandingInstance.lean` / `DecayDischarge.lean` | rover instance + falsification lemmas; `decay_stays` (worked ∀-base staying discharge, `v' = −v`) | grounding: which H clauses hold/fail on the rover; the stabilizing-class discharge pattern | `MultisegLanding` |
 | `UniformEvol.lean` | **`theorem3_faithful_landing_clocked_uniform`**, `UniformEvol`/`UniformStayingH`, `staying_from_margin`, `WellFormedFlowB_contract` | **the uniform-evol deployment**: junction trivial (narrowing retired), staying-only H, margin + contraction discharge (see "The landing chain, intuitively" above) | `MultisegLandingBridge` |
+| `GuardThreaded.lean` | **`theorem3_faithful_settling`**, `starInvGF`/`GuardSettlingB`, `GuardSettlingB_of_margin_const`/`_two`/`_of_contract` | **Tier B — the guard-threaded discharge**: star invariant tracks the current mode's guard region, so the staying obligation quantifies only over guard bases and is discharged by construction from the settling-guard geometry (margin/contraction witnesses) | `UniformEvol` + the φinv-generic clocked chain |
 | `Oracle.lean` | `z3_unsat_sound` (the one axiom) + `flow_certified` | the trusted SMT leaf | — (axiom) |
 | `Smt.lean` / `Z3.lean` / `Parse.lean` / `Run.lean` / `Main.lean` | computable IR + SMT printer, Z3 session, parser, runner, `relcert` exe | trusted IO shell | uses the verified queries |
 
@@ -718,6 +725,7 @@ RelCertifier/
   MultisegLanding.lean / MultisegLandingBridge.lean  automaton-right landing chain → rvalid
   RoverLandingInstance.lean / DecayDischarge.lean    grounding instances + stabilizing discharge
   UniformEvol.lean    uniform-evol deployment: junction trivial, margin/contraction discharge
+  GuardThreaded.lean  Tier B guard-threaded discharge: staying from guard bases, by construction
 Main.lean             `relcert` executable
 ARCHITECTURE.md       certified-checker architecture + the finding that reshaped it
 benchmarks/suite/          the original 47-benchmark suite (per-mode domains)

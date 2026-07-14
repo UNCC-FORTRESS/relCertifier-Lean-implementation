@@ -175,12 +175,30 @@ carry closed kernel `rfl` certificates**.
   under partitioned guards (the drain cannot cross the intermediate band in one step) — the
   cover analysis exposed it, the edge was corrected to the actual landing successor, and the
   benchmark still certifies.
-- Remaining roadmap: the rational-gain (exp-bound) class — 5 parked transit contracts whose
+- **The H-falsification audit** (`scripts/h_audit.py`): the settling hypothesis's landing
+  geometry is decidable arithmetic even where the PROOF grammar can't express its discharge —
+  so its *falsity* is hunt-able by numeric simulation (RK4 per sampled guard base, every legal
+  integer λ) without any Lean. Run over the out-of-grammar benchmarks it split "unknown" into
+  two honest classes. (a) NO counterexample at some legal λ: attitude_rate,
+  endurance_orderlift_2to3, rover_4d_box, rover_drag, and the four parked exp-bound terms —
+  hypothesis believed true, only decidability/grammar missing. (b) Genuinely FALSE as modeled,
+  one witness shape — **terminal-band overflow**: the last mode's band is capped with positive
+  drift toward or through the cap and no successor beyond it (the terrain/story/refinement
+  family's final `s`-segment `s < 899.95` under `evolve s ≤ 1000`; rover3tier_rung12,
+  rover_tier_r1; match_multi_rate's `v ≤ 0.95` under an equilibrium at `1.0`). These need a
+  modeling decision before any checker extension helps — unbounded terminal segment (the
+  honest-envelope principle applied to `s`) or a band reaching the equilibrium.
+  match_multi_rate was fixed on the spot (band cap 0.95 → the equilibrium 1.0, DRIVE becomes
+  contract-inside): it re-certifies and its `rfl` certificate closes — 17 of 21. An audit
+  lesson repeated the arc's theme: the first audit run flagged spurious witnesses because the
+  sampler ignored `Gd = envelope ∧ band`; verify the counterexample before correcting the
+  record.
+- Remaining roadmap: the rational-gain (exp-bound) class — 4 parked transit contracts whose
   equilibrium lies beyond the adjacent successor band need the sharper finite-dt landing cap
   `cap + (c − cap)(1 − e^{−k·dt})`, inexpressible with integer `k·dt` (needs
   `contract kNum kDen c` + a `1 − e^{−x} ≤ x` lemma); EXT 3 (multi-band guards +
-  driven-active, the s-guarded terrain family); phase D (coupled fields — existence via
-  `PicardBridge`).
+  driven-active, the s-guarded terrain family — AFTER the terminal-band modeling fix above);
+  phase D (coupled fields — existence via `PicardBridge`).
 
 ## Current state
 

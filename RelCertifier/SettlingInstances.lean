@@ -23,12 +23,12 @@ A frozen ACTIVE coordinate with non-frozen (driven) others is transcribed as
 `CoordShape.constRate 0` — the identical field (`Term.const 0`) — because the constRate branch
 carries the flex-others grammar and lands in its own band by `c = 0`.
 
-COVERAGE (21/47 data terms, generated from the benchmark files; 16 checker-ACCEPTED with
+COVERAGE (21/47 data terms, generated from the benchmark files; 17 checker-ACCEPTED with
 closed `rfl` certificates below). The remaining benchmarks map to named extension classes,
 each a precise next step, none a gap in what is proven:
 
-* **exp-bound transit contracts** (watertank, match_multi_eps, match_multi_rate, rover3tier_M1,
-  robot_braking — the 5 parked data terms at the end of this file) — a contract mode whose
+* **exp-bound transit contracts** (watertank, match_multi_eps, rover3tier_M1,
+  robot_braking — the 4 parked data terms at the end of this file) — a contract mode whose
   equilibrium lies beyond the adjacent successor band, so the sound landing cap is the sharper
   `ghi + (c − ghi)·(1 − e^{−k·dt})`, not `c`. Deciding it needs a rational bound on
   `1 − e^{−k·dt}` with FRACTIONAL `k·dt` — the integer `SettlingModel` cannot express
@@ -37,7 +37,14 @@ each a precise next step, none a gap in what is proven:
 * **driven-active / multi-coordinate guards** (the s-guarded terrain/story/refinement family,
   ~14) — guards on the integrator coordinate (plus the `v ≤ eq` cut conjunct), so the active
   coordinate is `driven` and guards span two coordinates; needs banded-rate landing
-  (`[a + v_lo·dt, cap + v_hi·dt]` covers) and multi-band guards (EXT 3).
+  (`[a + v_lo·dt, cap + v_hi·dt]` covers) and multi-band guards (EXT 3). WARNING (from the
+  numeric H-falsification audit, `scripts/h_audit.py`): as currently modeled these have a
+  TERMINAL-BAND OVERFLOW — the last terrain segment's `s`-band is capped (`s < 899.95` under
+  `evolve s ≤ 1000`) with positive drift and no successor beyond, so the settling hypothesis
+  is genuinely FALSE at every dt, not merely undecided. EXT 3 must be preceded by a modeling
+  decision (unbounded terminal segment, per the honest-envelope principle for positions, or a
+  park mode); same overflow shape in rover3tier_rung12 / rover_tier_r1 (`match_multi_rate`
+  had it too and is FIXED above — band extended to its equilibrium).
 * **coupled / higher-order / non-polynomial-shape** (attitude_rate, endurance_orderlift_2to3,
   rover_tier_r1, rover3tier_rung12, rover_drag, rover_4d_box's contract-driven `py`, the
   cubic-`s'` rungs) — phase D: the invariance half can ride the cut channel's Z3 route; flow
@@ -294,11 +301,28 @@ def rover_terrain_M1M : SettlingModel 2 :=
 
 example : decideWellFormed rover_terrain_M1M = true := rfl
 
+/-- `match_multi_rate` (R side; units: values ×1000, time ×10; dt = ε_R/λ at λ = 1).
+The guard cap was 0.95 with the equilibrium at 1.0 and no successor — the settling hypothesis
+was FALSE as originally modeled (H-falsification audit witness: base v = 0.95 exits the band at
+every dt); the band now reaches the equilibrium (contract-inside, self-settling) and the
+benchmark re-certifies. -/
+def match_multi_rateM : SettlingModel 2 :=
+  { modes :=
+    [
+      { shapes := ![CoordShape.contract 10 1000, CoordShape.driven 0], gcoord := 0,
+        glo := 200, ghi := 1000, succs := [] } ]
+    env := ![{ lo := some 0, hi := some 1150 }, { lo := some 0, hi := none }]
+    dtQ := 3 }
+
+example : decideWellFormed match_multi_rateM = true := rfl
+
 /-! ### Parked data terms — the exp-bound transit-contract class (see header)
 
 Checker-REJECTED, correctly: each has a contract mode whose equilibrium lies beyond the
 adjacent successor band, and the integer checker cannot express the sharper finite-dt landing
-cap. The data terms document the models for the rational-gain extension. -/
+cap. The numeric audit found NO H-counterexample for these four (each passes at some legal λ),
+so the hypothesis is believed true and only the decidability is missing. The data terms
+document the models for the rational-gain extension. -/
 
 /-- `match_multi_eps` (R side; units: values ×1000, time ×10). -/
 def match_multi_epsM : SettlingModel 2 :=
@@ -313,18 +337,6 @@ def match_multi_epsM : SettlingModel 2 :=
 
 -- checker-rejected pending the rational-gain (exp-bound) extension (see header):
 -- example : decideWellFormed match_multi_epsM = true := rfl
-
-/-- `match_multi_rate` (R side; units: values ×1000, time ×10). -/
-def match_multi_rateM : SettlingModel 2 :=
-  { modes :=
-    [
-      { shapes := ![CoordShape.contract 10 1000, CoordShape.driven 0], gcoord := 0,
-        glo := 200, ghi := 950, succs := [] } ]
-    env := ![{ lo := some 0, hi := some 1150 }, { lo := some 0, hi := none }]
-    dtQ := 3 }
-
--- checker-rejected pending the rational-gain (exp-bound) extension (see header):
--- example : decideWellFormed match_multi_rateM = true := rfl
 
 /-- `robot_braking` (R side; units: values ×1000, time ×1). -/
 def robot_brakingM : SettlingModel 1 :=

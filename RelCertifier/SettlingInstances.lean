@@ -219,6 +219,28 @@ def endurance_orderlift_1to2M : SettlingModel 3 :=
 
 example : decideWellFormed endurance_orderlift_1to2M = true := rfl
 
+/-- `endurance_orderlift_2to3` (R side; units: values ×1000, time ×2 — dt = ε_R/λ = 0.5 at
+λ = 1 stored as 1). The order-2 intermediate model rides in its eigen-cascade chart
+(EXT G): the guard coordinate `v` is `chase w 2` against the driver slot `w := u/2 =
+(a + 4v)/2` (contract-to-`w* = u*/2` at the same rate — the ×2 value scale keeps the chase
+field's unit driver coefficient under the ×2 time scale), `s` the driven integrator, `j`
+frozen slack. Landing runs the pair covers: FLAT's thrust-cut dip crosses MODER into STEEP
+(the three-band chain), STEEP's overshoot lands in MODER by the single-corner discriminant
+`62500 ≤ 385000`. -/
+def endurance_orderlift_2to3M : SettlingModel 4 :=
+  { modes :=
+    [
+      { shapes := ![CoordShape.chase 2 2, CoordShape.driven 0, CoordShape.contract 2 600, CoordShape.frozen], gcoord := 0,
+        glo := 0, ghi := 400, succs := [1] },
+      { shapes := ![CoordShape.chase 2 2, CoordShape.driven 0, CoordShape.contract 2 1000, CoordShape.frozen], gcoord := 0,
+        glo := 400, ghi := 575, succs := [0, 2] },
+      { shapes := ![CoordShape.chase 2 2, CoordShape.driven 0, CoordShape.contract 2 1300, CoordShape.frozen], gcoord := 0,
+        glo := 575, ghi := 750, succs := [1, 0] } ]
+    env := ![{ lo := some 0, hi := some 850 }, { lo := some 0, hi := none }, { lo := some 0, hi := some 1400 }, { lo := some (-1600 : ℤ), hi := some 1400 }]
+    dtQ := 1 }
+
+example : decideWellFormed endurance_orderlift_2to3M = true := rfl
+
 /-- `plant_fan_high` (R side; units: values ×1000, time ×5; dt = ε_R/λ at λ = 5). -/
 def plant_fan_highM : SettlingModel 2 :=
   { modes :=

@@ -270,7 +270,46 @@ def checkMode (M : SettlingModel n) (q : ℕ) (m : SettlingMode n) : Bool :=
          | none => false))
    | .driven _ => false
    | .drivenDamp _ _ => false
-   | .chase _ _ => false
+   | .chase j k =>
+       -- EXT G: chase GUARD coordinate — the driver contracts to `c` at the same rate;
+       -- staying by `polyExp_le` (single-corner discriminants), landing through the pair
+       -- covers (a far band per side holding the staying bound, a near band bridging it
+       -- to the own band; self-pairing degenerates to the single-band case)
+       !decide (j = m.gcoord) && decide (0 < k) && othersFlexC &&
+       (match m.shapes j, (M.env j).lo, (M.env j).hi with
+        | CoordShape.contract k2 c, some ulo, some uhi =>
+            decide (k2 = k) &&
+            ((q :: m.succs).any fun q1 =>
+              match M.modes[q1]? with
+              | some m1 =>
+                  decide (m1.gcoord = m.gcoord) && decide (m1.glo ≤ m.glo) &&
+                  decide (0 ≤ m1.glo) && decide (k * m1.glo ≤ c) &&
+                  ((M.env m.gcoord).lo.all fun lo => decide (lo ≤ m1.glo)) &&
+                  (decide (k * m1.glo ≤ ulo) ||
+                   decide ((ulo - k * m1.glo)^2
+                     ≤ 2 * (c - k * m1.glo) * (k * m.glo - k * m1.glo))) &&
+                  ((q :: m.succs).any fun q2 =>
+                    match M.modes[q2]? with
+                    | some m2 => decide (m2.gcoord = m.gcoord) &&
+                        decide (m2.glo ≤ m1.ghi) && decide (m.glo ≤ m2.ghi)
+                    | none => false)
+              | none => false) &&
+            ((q :: m.succs).any fun q3 =>
+              match M.modes[q3]? with
+              | some m3 =>
+                  decide (m3.gcoord = m.gcoord) && decide (m.ghi ≤ m3.ghi) &&
+                  decide (c ≤ k * m3.ghi) &&
+                  ((M.env m.gcoord).hi.all fun hi => decide (m3.ghi ≤ hi)) &&
+                  (decide (uhi ≤ k * m3.ghi) ||
+                   decide ((k * m3.ghi - uhi)^2
+                     ≤ 2 * (k * m3.ghi - c) * (k * m3.ghi - k * m.ghi))) &&
+                  ((q :: m.succs).any fun q4 =>
+                    match M.modes[q4]? with
+                    | some m4 => decide (m4.gcoord = m.gcoord) &&
+                        decide (m4.glo ≤ m.ghi) && decide (m3.glo ≤ m4.ghi)
+                    | none => false)
+              | none => false)
+        | _, _, _ => false)
    | .pairSym j c h =>
        -- weakly coupled symmetric pair (EXT P): the partner mirrors the shape; the eleven
        -- rational conditions of `PairConds` bound both members' two-exponentials against
@@ -3126,6 +3165,605 @@ theorem polyExp_le (a b g T t : ℝ) (hg : 0 < g) (ht : 0 ≤ t) (hT : 0 ≤ T) 
   rw [hrw, div_le_iff₀ he]
   linarith [key]
 
+/-! ## Poly-exponential antiderivatives (EXT 4c dampers)
+
+Closed forms of `∫₀ᵗ uⁱ e^{−mu} du` for `i = 1, 2` (nonzero rate `m`): the cascade
+damper's square `((p + w·u)e^{−gu})²` expands into `uⁱ e^{−2gu}` and `uⁱ e^{−(k+2g)u}`
+terms, so the damped position still integrates in closed form. -/
+
+/-- `∫₀ᵗ u·e^{−mu} du` for `m ≠ 0`. -/
+noncomputable def polyExpInt₁ (m t : ℝ) : ℝ :=
+  (1 - (1 + m * t) * Real.exp (-(m * t))) / m ^ 2
+
+/-- `∫₀ᵗ u²·e^{−mu} du` for `m ≠ 0`. -/
+noncomputable def polyExpInt₂ (m t : ℝ) : ℝ :=
+  (2 - (2 + 2 * m * t + m ^ 2 * t ^ 2) * Real.exp (-(m * t))) / m ^ 3
+
+theorem expNeg_hasDeriv (m t : ℝ) :
+    HasDerivAt (fun u : ℝ => Real.exp (-(m * u))) (-m * Real.exp (-(m * t))) t := by
+  have hinner : HasDerivAt (fun u : ℝ => -(m * u)) (-m) t := by
+    have h := (hasDerivAt_id t).const_mul (-m)
+    simp only [id, mul_one, neg_mul] at h
+    exact h
+  have h := (Real.hasDerivAt_exp (-(m * t))).comp t hinner
+  simp only [Function.comp_def] at h
+  rw [mul_comm (Real.exp (-(m * t))) (-m)] at h
+  exact h
+
+theorem polyExpInt₁_hasDeriv {m : ℝ} (hm : m ≠ 0) (t : ℝ) :
+    HasDerivAt (fun u => polyExpInt₁ m u) (t * Real.exp (-(m * t))) t := by
+  unfold polyExpInt₁
+  have hpoly : HasDerivAt (fun u : ℝ => 1 + m * u) m t := by
+    simpa using ((hasDerivAt_id t).const_mul m).const_add 1
+  have h := ((hpoly.mul (expNeg_hasDeriv m t)).const_sub 1).div_const (m ^ 2)
+  have heq : -(m * Real.exp (-(m * t)) + (1 + m * t) * (-m * Real.exp (-(m * t)))) / m ^ 2
+      = t * Real.exp (-(m * t)) := by
+    field_simp
+    ring
+  rw [← heq]
+  exact h
+
+theorem polyExpInt₂_hasDeriv {m : ℝ} (hm : m ≠ 0) (t : ℝ) :
+    HasDerivAt (fun u => polyExpInt₂ m u) (t ^ 2 * Real.exp (-(m * t))) t := by
+  unfold polyExpInt₂
+  have hpoly : HasDerivAt (fun u : ℝ => 2 + 2 * m * u + m ^ 2 * u ^ 2)
+      (2 * m + m ^ 2 * (2 * t)) t := by
+    have h1 : HasDerivAt (fun u : ℝ => 2 + 2 * m * u) (2 * m) t := by
+      simpa using ((hasDerivAt_id t).const_mul (2 * m)).const_add 2
+    have h2 : HasDerivAt (fun u : ℝ => m ^ 2 * u ^ 2) (m ^ 2 * (2 * t)) t := by
+      have hp := (hasDerivAt_pow 2 t).const_mul (m ^ 2)
+      have hc : ((2 : ℕ) : ℝ) * t ^ (2 - 1) = 2 * t := by push_cast; ring
+      rw [hc] at hp
+      exact hp
+    exact h1.add h2
+  have h := ((hpoly.mul (expNeg_hasDeriv m t)).const_sub 2).div_const (m ^ 3)
+  have heq : -((2 * m + m ^ 2 * (2 * t)) * Real.exp (-(m * t))
+        + (2 + 2 * m * t + m ^ 2 * t ^ 2) * (-m * Real.exp (-(m * t)))) / m ^ 3
+      = t ^ 2 * Real.exp (-(m * t)) := by
+    field_simp
+    ring
+  rw [← heq]
+  exact h
+
+@[simp] theorem polyExpInt₁_zero (m : ℝ) : polyExpInt₁ m 0 = 0 := by
+  simp [polyExpInt₁]
+
+@[simp] theorem polyExpInt₂_zero (m : ℝ) : polyExpInt₂ m 0 = 0 := by
+  simp [polyExpInt₂]
+
+/-! ## EXT G — the chase GUARD coordinate (critically damped guard blocks)
+
+`x_g' = x_j − k·x_g` with the driver `x_j` a contract-to-`c` coordinate at the SAME rate:
+the eigen-cascade chart of a critically damped `(λ+k)²` block whose position carries the
+guard bands (endurance_orderlift_2to3's order-2 intermediate model). Value
+`v* + (A + B·t)e^{−kt}` with `v* = c/k`, `A = v₀ − v*`, `B = u₀ − c` — non-monotone (a dip
+below the band or an overshoot above it), so the mode's one-step image is bounded by
+`polyExp_le` on both sides and lands in a CHAIN of up to two bands per side (the pair
+cover: a far band holding the staying bound, a near band bridging it to the own band). -/
+
+/-- Per-coordinate value of the chase-guard witness: chase active (`v* + (A + Bt)e^{−kt}`),
+integrators driven by it pick up the `polyExpInt₁` term, other shapes as in `flexVal`. -/
+noncomputable def chaseGVal (m : SettlingMode n) (jd : Fin n) (kR cR : ℝ)
+    (base : State (Var n)) (t : ℝ) (i : Fin n) : ℝ :=
+  if i = m.gcoord then
+    cR / kR + (base (Rv i) - cR / kR + (base (Rv jd) - cR) * t) * Real.exp (-(kR * t))
+  else match m.shapes i with
+    | CoordShape.driven j =>
+        if j = m.gcoord then
+          base (Rv i) + (cR / kR) * t + (base (Rv m.gcoord) - cR / kR) * expInt kR t
+            + (base (Rv jd) - cR) * polyExpInt₁ kR t
+        else match m.shapes j with
+          | CoordShape.contract kj cj =>
+              base (Rv i) + (cj : ℝ) * t + (base (Rv j) - (cj : ℝ)) * expInt (kj : ℝ) t
+          | _ => base (Rv i) + base (Rv j) * t
+    | CoordShape.contract k' c' =>
+        (c' : ℝ) + (base (Rv i) - (c' : ℝ)) * Real.exp (-((k' : ℝ) * t))
+    | _ => base (Rv i)
+
+/-- The chase-guard witness flow. -/
+noncomputable def chaseGΦ (m : SettlingMode n) (jd : Fin n) (kR cR : ℝ)
+    (base : State (Var n)) (t : ℝ) : State (Var n) :=
+  fun x => match x with
+    | (Side.R, i) => chaseGVal m jd kR cR base t i
+    | _ => base x
+
+@[simp] theorem chaseGΦ_Rv (m : SettlingMode n) (jd : Fin n) (kR cR : ℝ)
+    (base : State (Var n)) (t : ℝ) (i : Fin n) :
+    chaseGΦ m jd kR cR base t (Rv i) = chaseGVal m jd kR cR base t i := rfl
+
+theorem chaseGΦ_nonR (m : SettlingMode n) (jd : Fin n) (kR cR : ℝ) (base : State (Var n))
+    (t : ℝ) {x : Var n} (hx : ∀ i : Fin n, x ≠ Rv i) : chaseGΦ m jd kR cR base t x = base x := by
+  obtain ⟨sd, ix⟩ := x
+  cases sd with
+  | R => exact absurd rfl (hx ix)
+  | L => rfl
+  | Aux => rfl
+
+theorem chaseGVal_g {m : SettlingMode n} {jd : Fin n} {kR cR : ℝ} {base : State (Var n)}
+    {t : ℝ} :
+    chaseGVal m jd kR cR base t m.gcoord
+      = cR / kR + (base (Rv m.gcoord) - cR / kR + (base (Rv jd) - cR) * t)
+          * Real.exp (-(kR * t)) := by
+  simp [chaseGVal]
+
+theorem chaseGVal_frozen {m : SettlingMode n} {jd : Fin n} {kR cR : ℝ}
+    {base : State (Var n)} {t : ℝ} {i : Fin n} (hig : i ≠ m.gcoord)
+    (hfz : m.shapes i = CoordShape.frozen) :
+    chaseGVal m jd kR cR base t i = base (Rv i) := by
+  simp [chaseGVal, hig, hfz]
+
+theorem chaseGVal_dactive {m : SettlingMode n} {jd : Fin n} {kR cR : ℝ}
+    {base : State (Var n)} {t : ℝ} {i : Fin n} (hig : i ≠ m.gcoord)
+    (hdr : m.shapes i = CoordShape.driven m.gcoord) :
+    chaseGVal m jd kR cR base t i
+      = base (Rv i) + (cR / kR) * t + (base (Rv m.gcoord) - cR / kR) * expInt kR t
+          + (base (Rv jd) - cR) * polyExpInt₁ kR t := by
+  simp [chaseGVal, hig, hdr]
+
+theorem chaseGVal_dfrozen {m : SettlingMode n} {jd : Fin n} {kR cR : ℝ}
+    {base : State (Var n)} {t : ℝ} {i j : Fin n} (hig : i ≠ m.gcoord)
+    (hdr : m.shapes i = CoordShape.driven j) (hjne : j ≠ m.gcoord)
+    (hjfz : m.shapes j = CoordShape.frozen) :
+    chaseGVal m jd kR cR base t i = base (Rv i) + base (Rv j) * t := by
+  simp [chaseGVal, hig, hdr, hjne, hjfz]
+
+theorem chaseGVal_dcontract {m : SettlingMode n} {jd : Fin n} {kR cR : ℝ}
+    {base : State (Var n)} {t : ℝ} {i j : Fin n} {kj cj : ℤ} (hig : i ≠ m.gcoord)
+    (hdr : m.shapes i = CoordShape.driven j) (hjne : j ≠ m.gcoord)
+    (hjc : m.shapes j = CoordShape.contract kj cj) :
+    chaseGVal m jd kR cR base t i
+      = base (Rv i) + (cj : ℝ) * t + (base (Rv j) - (cj : ℝ)) * expInt (kj : ℝ) t := by
+  simp [chaseGVal, hig, hdr, hjne, hjc]
+
+theorem chaseGVal_contract {m : SettlingMode n} {jd : Fin n} {kR cR : ℝ}
+    {base : State (Var n)} {t : ℝ} {i : Fin n} {k' c' : ℤ} (hig : i ≠ m.gcoord)
+    (hshc : m.shapes i = CoordShape.contract k' c') :
+    chaseGVal m jd kR cR base t i
+      = (c' : ℝ) + (base (Rv i) - (c' : ℝ)) * Real.exp (-((k' : ℝ) * t)) := by
+  simp [chaseGVal, hig, hshc]
+
+/-- One-sided staying bound for the chase value from CORNER data: the `A`-corner enters the
+discriminant monotonically, and a `B` beyond the linear-dominance threshold is squeezed
+between the threshold and its corner, so ONE corner discriminant suffices. -/
+theorem chaseG_stay_upper {A Ah B Bh kR T : ℝ} (hk : 0 < kR) {t : ℝ} (ht : 0 ≤ t)
+    (hT : 0 ≤ T) (hA : A ≤ Ah) (hAh : Ah ≤ T) (hBh : B ≤ Bh)
+    (hbr : Bh ≤ kR * T ∨ (kR * T - Bh) ^ 2 ≤ 2 * T * kR ^ 2 * (T - Ah)) :
+    (A + B * t) * Real.exp (-(kR * t)) ≤ T := by
+  apply polyExp_le A B kR T t hk ht hT (le_trans hA hAh)
+  rcases le_or_gt B (kR * T) with hbb | hbb
+  · exact Or.inl hbb
+  · refine Or.inr ?_
+    rcases hbr with h1 | h2
+    · exact absurd (le_trans hBh h1) (not_le.mpr hbb)
+    · have h1' : -(Bh - kR * T) ≤ kR * T - B := by linarith
+      have h2' : kR * T - B ≤ Bh - kR * T := by linarith
+      have hx2 : (kR * T - B) ^ 2 ≤ (Bh - kR * T) ^ 2 := sq_le_sq' h1' h2'
+      have hflip : (Bh - kR * T) ^ 2 = (kR * T - Bh) ^ 2 := by ring
+      have h2T : (0 : ℝ) ≤ 2 * T * kR ^ 2 := by positivity
+      have hDA : 2 * T * kR ^ 2 * (T - Ah) ≤ 2 * T * kR ^ 2 * (T - A) :=
+        mul_le_mul_of_nonneg_left (by linarith) h2T
+      calc (kR * T - B) ^ 2 ≤ (kR * T - Bh) ^ 2 := by rw [← hflip]; exact hx2
+        _ ≤ 2 * T * kR ^ 2 * (T - Ah) := h2
+        _ ≤ 2 * T * kR ^ 2 * (T - A) := hDA
+
+/-- EXT G discharge: CHASE guard coordinate (`x_g' = x_j − k·x_g`, driver contract-to-`c`
+at the same rate), others over the extended flex grammar. The value dips/overshoots, so
+staying is `polyExp_le` on both sides against the PAIR covers' far bands, and landing
+case-splits the endpoint through the near bands. -/
+theorem settling_chaseG (M : SettlingModel n) {q : ℕ} {m : SettlingMode n}
+    (hq : M.modes[q]? = some m) {j : Fin n} {k c : ℤ}
+    (hsh : m.shapes m.gcoord = CoordShape.chase j k)
+    (hjg : j ≠ m.gcoord)
+    (hjsh : m.shapes j = CoordShape.contract k c)
+    (hk : 0 < k)
+    (hflex : FlexOthersC M m)
+    {ulo uhi : ℤ}
+    (hjlo : (M.env j).lo = some ulo) (hjhi : (M.env j).hi = some uhi)
+    (hcovLo : ∃ q1 ∈ q :: m.succs, ∃ m1, M.modes[q1]? = some m1 ∧ m1.gcoord = m.gcoord ∧
+        m1.glo ≤ m.glo ∧ 0 ≤ m1.glo ∧ k * m1.glo ≤ c ∧
+        (∀ l', (M.env m.gcoord).lo = some l' → l' ≤ m1.glo) ∧
+        (k * m1.glo ≤ ulo ∨
+          (ulo - k * m1.glo) ^ 2 ≤ 2 * (c - k * m1.glo) * (k * m.glo - k * m1.glo)) ∧
+        ∃ q2 ∈ q :: m.succs, ∃ m2, M.modes[q2]? = some m2 ∧ m2.gcoord = m.gcoord ∧
+          m2.glo ≤ m1.ghi ∧ m.glo ≤ m2.ghi)
+    (hcovHi : ∃ q3 ∈ q :: m.succs, ∃ m3, M.modes[q3]? = some m3 ∧ m3.gcoord = m.gcoord ∧
+        m.ghi ≤ m3.ghi ∧ c ≤ k * m3.ghi ∧
+        (∀ h', (M.env m.gcoord).hi = some h' → m3.ghi ≤ h') ∧
+        (uhi ≤ k * m3.ghi ∨
+          (k * m3.ghi - uhi) ^ 2 ≤ 2 * (k * m3.ghi - c) * (k * m3.ghi - k * m.ghi)) ∧
+        ∃ q4 ∈ q :: m.succs, ∃ m4, M.modes[q4]? = some m4 ∧ m4.gcoord = m.gcoord ∧
+          m4.glo ≤ m.ghi ∧ m3.glo ≤ m4.ghi)
+    (hdt : (0 : ℝ) ≤ (M.dt : ℝ)) :
+    GuardSettlingB M.graph M.GdOf m.fieldOf (Term.const 1) M.envF ((M.dt : ℝ)) q := by
+  intro base hb
+  obtain ⟨henv, hblo, hbhi⟩ := (sat_GdOf hq).mp hb
+  obtain ⟨q1, hq1mem, m1, hm1, hgc1, h1glo, h1nn, h1kc, hEnvLo1, hbr1,
+    q2, hq2mem, m2, hm2, hgc2, h2a, h2b⟩ := hcovLo
+  obtain ⟨q3, hq3mem, m3, hm3, hgc3, h3ghi, h3kc, hEnvHi3, hbr3,
+    q4, hq4mem, m4, hm4, hgc4, h4a, h4b⟩ := hcovHi
+  have hkR : (0 : ℝ) < (k : ℝ) := by exact_mod_cast hk
+  have hk0 : (k : ℝ) ≠ 0 := ne_of_gt hkR
+  have hkc : (k : ℝ) * ((c : ℝ) / (k : ℝ)) = (c : ℝ) := mul_div_cancel₀ _ hk0
+  -- the driver's base sits in its envelope band
+  have hbj := (sat_envF.mp henv) j
+  unfold Band.memR at hbj
+  rw [hjlo, hjhi] at hbj
+  obtain ⟨hbjl, hbjh⟩ := hbj
+  have h1gloR : (m1.glo : ℝ) ≤ (m.glo : ℝ) := by exact_mod_cast h1glo
+  have h1nnR : (0 : ℝ) ≤ (m1.glo : ℝ) := by exact_mod_cast h1nn
+  have h3ghiR : (m.ghi : ℝ) ≤ (m3.ghi : ℝ) := by exact_mod_cast h3ghi
+  -- the active value's closed form and its staying corridor [m1.glo, m3.ghi]
+  have hband : ∀ t, 0 ≤ t →
+      (m1.glo : ℝ) ≤ chaseGVal m j (k : ℝ) (c : ℝ) base t m.gcoord
+      ∧ chaseGVal m j (k : ℝ) (c : ℝ) base t m.gcoord ≤ (m3.ghi : ℝ) := by
+    intro t ht
+    rw [chaseGVal_g]
+    constructor
+    · -- lower side: `polyExp_le` on the negated data, far band m1
+      have h := chaseG_stay_upper (A := (c : ℝ) / (k : ℝ) - base (Rv m.gcoord))
+          (Ah := (c : ℝ) / (k : ℝ) - (m.glo : ℝ)) (B := (c : ℝ) - base (Rv j))
+          (Bh := (c : ℝ) - (ulo : ℝ)) (kR := (k : ℝ))
+          (T := (c : ℝ) / (k : ℝ) - (m1.glo : ℝ)) hkR ht ?_ (by linarith) ?_ (by linarith) ?_
+      · have hre : ((c : ℝ) / (k : ℝ) - base (Rv m.gcoord) + ((c : ℝ) - base (Rv j)) * t)
+            * Real.exp (-((k : ℝ) * t))
+            = -((base (Rv m.gcoord) - (c : ℝ) / (k : ℝ) + (base (Rv j) - (c : ℝ)) * t)
+                * Real.exp (-((k : ℝ) * t))) := by ring
+        rw [hre] at h
+        linarith
+      · rw [sub_nonneg, le_div_iff₀ hkR]
+        have : (k : ℝ) * (m1.glo : ℝ) ≤ (c : ℝ) := by exact_mod_cast h1kc
+        linarith
+      · linarith
+      · rcases hbr1 with h1 | h2
+        · refine Or.inl ?_
+          rw [show (k : ℝ) * ((c : ℝ) / (k : ℝ) - (m1.glo : ℝ))
+              = (c : ℝ) - (k : ℝ) * (m1.glo : ℝ) by rw [mul_sub, hkc]]
+          have : (k : ℝ) * (m1.glo : ℝ) ≤ (ulo : ℝ) := by exact_mod_cast h1
+          linarith
+        · refine Or.inr ?_
+          have h2R : ((ulo : ℝ) - (k : ℝ) * (m1.glo : ℝ)) ^ 2
+              ≤ 2 * ((c : ℝ) - (k : ℝ) * (m1.glo : ℝ))
+                  * ((k : ℝ) * (m.glo : ℝ) - (k : ℝ) * (m1.glo : ℝ)) := by exact_mod_cast h2
+          have hL : ((k : ℝ) * ((c : ℝ) / (k : ℝ) - (m1.glo : ℝ)) - ((c : ℝ) - (ulo : ℝ))) ^ 2
+              = ((ulo : ℝ) - (k : ℝ) * (m1.glo : ℝ)) ^ 2 := by
+            rw [mul_sub, hkc]; ring
+          have hR : 2 * ((c : ℝ) / (k : ℝ) - (m1.glo : ℝ)) * (k : ℝ) ^ 2
+                * (((c : ℝ) / (k : ℝ) - (m1.glo : ℝ)) - ((c : ℝ) / (k : ℝ) - (m.glo : ℝ)))
+              = 2 * ((c : ℝ) - (k : ℝ) * (m1.glo : ℝ))
+                  * ((k : ℝ) * (m.glo : ℝ) - (k : ℝ) * (m1.glo : ℝ)) := by
+            field_simp
+            ring
+          rw [hL, hR]
+          exact h2R
+    · -- upper side: far band m3
+      have h := chaseG_stay_upper (A := base (Rv m.gcoord) - (c : ℝ) / (k : ℝ))
+          (Ah := (m.ghi : ℝ) - (c : ℝ) / (k : ℝ)) (B := base (Rv j) - (c : ℝ))
+          (Bh := (uhi : ℝ) - (c : ℝ)) (kR := (k : ℝ))
+          (T := (m3.ghi : ℝ) - (c : ℝ) / (k : ℝ)) hkR ht ?_ (by linarith) ?_ (by linarith) ?_
+      · linarith
+      · rw [sub_nonneg, div_le_iff₀ hkR]
+        have : (c : ℝ) ≤ (k : ℝ) * (m3.ghi : ℝ) := by exact_mod_cast h3kc
+        linarith
+      · linarith
+      · rcases hbr3 with h1 | h2
+        · refine Or.inl ?_
+          rw [show (k : ℝ) * ((m3.ghi : ℝ) - (c : ℝ) / (k : ℝ))
+              = (k : ℝ) * (m3.ghi : ℝ) - (c : ℝ) by rw [mul_sub, hkc]]
+          have : (uhi : ℝ) ≤ (k : ℝ) * (m3.ghi : ℝ) := by exact_mod_cast h1
+          linarith
+        · refine Or.inr ?_
+          have h2R : ((k : ℝ) * (m3.ghi : ℝ) - (uhi : ℝ)) ^ 2
+              ≤ 2 * ((k : ℝ) * (m3.ghi : ℝ) - (c : ℝ))
+                  * ((k : ℝ) * (m3.ghi : ℝ) - (k : ℝ) * (m.ghi : ℝ)) := by exact_mod_cast h2
+          have hL : ((k : ℝ) * ((m3.ghi : ℝ) - (c : ℝ) / (k : ℝ)) - ((uhi : ℝ) - (c : ℝ))) ^ 2
+              = ((k : ℝ) * (m3.ghi : ℝ) - (uhi : ℝ)) ^ 2 := by
+            rw [mul_sub, hkc]; ring
+          have hR : 2 * ((m3.ghi : ℝ) - (c : ℝ) / (k : ℝ)) * (k : ℝ) ^ 2
+                * (((m3.ghi : ℝ) - (c : ℝ) / (k : ℝ)) - ((m.ghi : ℝ) - (c : ℝ) / (k : ℝ)))
+              = 2 * ((k : ℝ) * (m3.ghi : ℝ) - (c : ℝ))
+                  * ((k : ℝ) * (m3.ghi : ℝ) - (k : ℝ) * (m.ghi : ℝ)) := by
+            field_simp
+            ring
+          rw [hL, hR]
+          exact h2R
+  -- the integral of the active value (for driven integrators), with its derivative
+  have hSder : ∀ u : ℝ, HasDerivAt (fun w => (c : ℝ) / (k : ℝ) * w
+      + (base (Rv m.gcoord) - (c : ℝ) / (k : ℝ)) * expInt (k : ℝ) w
+      + (base (Rv j) - (c : ℝ)) * polyExpInt₁ (k : ℝ) w)
+      ((c : ℝ) / (k : ℝ) + (base (Rv m.gcoord) - (c : ℝ) / (k : ℝ)
+        + (base (Rv j) - (c : ℝ)) * u) * Real.exp (-((k : ℝ) * u))) u := by
+    intro u
+    have h1 : HasDerivAt (fun w : ℝ => (c : ℝ) / (k : ℝ) * w) ((c : ℝ) / (k : ℝ)) u := by
+      simpa using (hasDerivAt_id u).const_mul ((c : ℝ) / (k : ℝ))
+    have h2 := (expInt_hasDeriv (k : ℝ) u).const_mul (base (Rv m.gcoord) - (c : ℝ) / (k : ℝ))
+    have h3 := (polyExpInt₁_hasDeriv hk0 u).const_mul (base (Rv j) - (c : ℝ))
+    have h := (h1.add h2).add h3
+    have heq : (c : ℝ) / (k : ℝ)
+        + (base (Rv m.gcoord) - (c : ℝ) / (k : ℝ)) * Real.exp (-((k : ℝ) * u))
+        + (base (Rv j) - (c : ℝ)) * (u * Real.exp (-((k : ℝ) * u)))
+        = (c : ℝ) / (k : ℝ) + (base (Rv m.gcoord) - (c : ℝ) / (k : ℝ)
+            + (base (Rv j) - (c : ℝ)) * u) * Real.exp (-((k : ℝ) * u)) := by ring
+    rw [← heq]
+    exact h
+  -- the integral is nonneg (the integrand sits above m1.glo ≥ 0)
+  have hSint : ∀ t, 0 ≤ t → 0 ≤ (c : ℝ) / (k : ℝ) * t
+      + (base (Rv m.gcoord) - (c : ℝ) / (k : ℝ)) * expInt (k : ℝ) t
+      + (base (Rv j) - (c : ℝ)) * polyExpInt₁ (k : ℝ) t := by
+    intro t ht
+    have hmono : MonotoneOn (fun w => (c : ℝ) / (k : ℝ) * w
+        + (base (Rv m.gcoord) - (c : ℝ) / (k : ℝ)) * expInt (k : ℝ) w
+        + (base (Rv j) - (c : ℝ)) * polyExpInt₁ (k : ℝ) w) (Icc 0 t) := by
+      apply monotoneOn_of_deriv_nonneg (convex_Icc 0 t)
+      · exact fun u _ => (hSder u).continuousAt.continuousWithinAt
+      · exact fun u _ => (hSder u).differentiableAt.differentiableWithinAt
+      · intro u hu
+        rw [interior_Icc] at hu
+        rw [(hSder u).deriv]
+        have hv := (hband u (le_of_lt hu.1)).1
+        rw [chaseGVal_g] at hv
+        linarith
+    have h0m : (0 : ℝ) ∈ Icc (0 : ℝ) t := ⟨le_refl _, ht⟩
+    have htm : t ∈ Icc (0 : ℝ) t := ⟨ht, le_refl _⟩
+    have := hmono h0m htm ht
+    simpa [expInt] using this
+  -- staying in the envelope
+  have hstayEnv : ∀ t, 0 ≤ t →
+      Formula.sat M.envF (chaseGΦ m j (k : ℝ) (c : ℝ) base t) := by
+    intro t ht
+    rw [sat_envF]
+    intro i
+    rw [chaseGΦ_Rv]
+    by_cases hig : i = m.gcoord
+    · rw [hig]
+      obtain ⟨h1, h2⟩ := hband t ht
+      unfold Band.memR
+      constructor
+      · cases hcase : (M.env m.gcoord).lo with
+        | none => trivial
+        | some l =>
+            have hlG : (l : ℝ) ≤ (m1.glo : ℝ) := by exact_mod_cast hEnvLo1 l hcase
+            linarith
+      · cases hcase : (M.env m.gcoord).hi with
+        | none => trivial
+        | some h =>
+            have hhG : (m3.ghi : ℝ) ≤ (h : ℝ) := by exact_mod_cast hEnvHi3 h hcase
+            linarith
+    · rcases hflex i hig with hfz | ⟨hdr, hhi⟩ | ⟨j2, hdr, hjne, hjfz, hlo, hhi⟩
+        | ⟨k', c', hshc, hk', hloC, hhiC⟩ | ⟨j2, kj, cj, hdr, hjne, hjc, hlo, hhi⟩
+      · rw [chaseGVal_frozen hig hfz]
+        exact (sat_envF.mp henv) i
+      · rw [chaseGVal_dactive hig hdr]
+        have hbe := (sat_envF.mp henv) i
+        unfold Band.memR at hbe ⊢
+        rcases hbe with ⟨hbl, hbh⟩
+        have hint := hSint t ht
+        constructor
+        · cases hcase : (M.env i).lo with
+          | none => trivial
+          | some l =>
+              rw [hcase] at hbl
+              show (l : ℝ) ≤ base (Rv i) + (c : ℝ) / (k : ℝ) * t
+                + (base (Rv m.gcoord) - (c : ℝ) / (k : ℝ)) * expInt (k : ℝ) t
+                + (base (Rv j) - (c : ℝ)) * polyExpInt₁ (k : ℝ) t
+              linarith
+        · rw [hhi]; trivial
+      · rw [chaseGVal_dfrozen hig hdr hjne hjfz]
+        unfold Band.memR
+        rw [hlo, hhi]
+        exact ⟨trivial, trivial⟩
+      · have hk'R : (0 : ℝ) ≤ (k' : ℝ) := by exact_mod_cast hk'
+        have hθpos : 0 < Real.exp (-((k' : ℝ) * t)) := Real.exp_pos _
+        have hθle : Real.exp (-((k' : ℝ) * t)) ≤ 1 := by
+          rw [Real.exp_le_one_iff]; nlinarith
+        rw [chaseGVal_contract hig hshc]
+        have hbe := (sat_envF.mp henv) i
+        unfold Band.memR at hbe ⊢
+        rcases hbe with ⟨hbl, hbh⟩
+        constructor
+        · cases hcase : (M.env i).lo with
+          | none => trivial
+          | some l =>
+              rw [hcase] at hbl
+              have hlc : (l : ℝ) ≤ (c' : ℝ) := by exact_mod_cast hloC l hcase
+              nlinarith
+        · cases hcase : (M.env i).hi with
+          | none => trivial
+          | some h =>
+              rw [hcase] at hbh
+              have hhc : (c' : ℝ) ≤ (h : ℝ) := by exact_mod_cast hhiC h hcase
+              nlinarith
+      · rw [chaseGVal_dcontract hig hdr hjne hjc]
+        unfold Band.memR
+        rw [hlo, hhi]
+        exact ⟨trivial, trivial⟩
+  -- landing: endpoint case-split through the pair covers
+  have hmem : ∀ q' ∈ q :: m.succs, q' ∈ q :: M.graph.retainedSucc q := by
+    intro q' hq'
+    rcases List.mem_cons.mp hq' with rfl | hmem'
+    · exact List.mem_cons_self ..
+    · exact List.mem_cons_of_mem _ (succ_mem_retained M hq hmem')
+  have hpick : ∃ q5 ∈ q :: M.graph.retainedSucc q, ∃ m5, M.modes[q5]? = some m5 ∧
+      m5.gcoord = m.gcoord ∧
+      (m5.glo : ℝ) ≤ chaseGVal m j (k : ℝ) (c : ℝ) base (M.dt : ℝ) m.gcoord ∧
+      chaseGVal m j (k : ℝ) (c : ℝ) base (M.dt : ℝ) m.gcoord ≤ (m5.ghi : ℝ) := by
+    obtain ⟨hd1, hd2⟩ := hband (M.dt : ℝ) hdt
+    rcases le_or_gt (chaseGVal m j (k : ℝ) (c : ℝ) base (M.dt : ℝ) m.gcoord) ((m.ghi : ℝ))
+      with hup | hup
+    · rcases le_or_gt ((m.glo : ℝ)) (chaseGVal m j (k : ℝ) (c : ℝ) base (M.dt : ℝ) m.gcoord)
+        with hlo | hlo
+      · exact ⟨q, List.mem_cons_self .., m, hq, rfl, hlo, hup⟩
+      · rcases le_or_gt ((m2.glo : ℝ)) (chaseGVal m j (k : ℝ) (c : ℝ) base (M.dt : ℝ) m.gcoord)
+          with h2c | h2c
+        · have : (m.glo : ℝ) ≤ (m2.ghi : ℝ) := by exact_mod_cast h2b
+          exact ⟨q2, hmem q2 hq2mem, m2, hm2, hgc2, h2c, by linarith⟩
+        · have : (m2.glo : ℝ) ≤ (m1.ghi : ℝ) := by exact_mod_cast h2a
+          exact ⟨q1, hmem q1 hq1mem, m1, hm1, hgc1, hd1, by linarith⟩
+    · rcases le_or_gt (chaseGVal m j (k : ℝ) (c : ℝ) base (M.dt : ℝ) m.gcoord) ((m4.ghi : ℝ))
+        with h4c | h4c
+      · have : (m4.glo : ℝ) ≤ (m.ghi : ℝ) := by exact_mod_cast h4a
+        exact ⟨q4, hmem q4 hq4mem, m4, hm4, hgc4, by linarith, h4c⟩
+      · have : (m3.glo : ℝ) ≤ (m4.ghi : ℝ) := by exact_mod_cast h4b
+        exact ⟨q3, hmem q3 hq3mem, m3, hm3, hgc3, by linarith, hd2⟩
+  obtain ⟨q5, hq5ret, m5, hm5, hgc5, hl1, hl2⟩ := hpick
+  refine ⟨chaseGΦ m j (k : ℝ) (c : ℝ) base, ?_, ?_, ?_,
+    fun t ht => hstayEnv t ht.1, q5, hq5ret, ?_⟩
+  · -- t = 0 recovers the base
+    funext x
+    obtain ⟨sd, ix⟩ := x
+    cases sd with
+    | R =>
+        show chaseGVal m j (k : ℝ) (c : ℝ) base 0 ix = base (Rv ix)
+        unfold chaseGVal
+        by_cases hig : ix = m.gcoord
+        · rw [if_pos hig]
+          subst hig
+          simp
+        · rw [if_neg hig]
+          rcases hshx : m.shapes ix with _ | _ | _ | _ | j2 | _ | _ | _ | _
+          · simp
+          · simp
+          · simp
+          · simp
+          · by_cases hj2 : j2 = m.gcoord
+            · simp [hj2, expInt]
+            · rcases hshj : m.shapes j2 with _ | _ | _ | _ | _ | _ | _ | _ | _ <;>
+                simp [hj2, expInt] <;> (try rfl) <;> split <;> rfl
+          · simp
+          · simp
+          · simp
+          · simp
+    | L => rfl
+    | Aux => rfl
+  · -- derivatives
+    intro t ht p hp
+    simp only [rightBlock, List.mem_map, List.mem_finRange] at hp
+    obtain ⟨i, -, rfl⟩ := hp
+    by_cases hig : i = m.gcoord
+    · rw [hig]
+      have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf m.gcoord))
+          (chaseGΦ m j (k : ℝ) (c : ℝ) base t)
+          = chaseGVal m j (k : ℝ) (c : ℝ) base t j
+            - (k : ℝ) * chaseGVal m j (k : ℝ) (c : ℝ) base t m.gcoord := by
+        simp [SettlingMode.fieldOf, hsh, CoordShape.field, Term.eval, AOp.interp]
+      rw [heval]
+      have hcurve : (fun u => chaseGΦ m j (k : ℝ) (c : ℝ) base u (Rv m.gcoord))
+          = fun u => (c : ℝ) / (k : ℝ) + (base (Rv m.gcoord) - (c : ℝ) / (k : ℝ)
+              + (base (Rv j) - (c : ℝ)) * u) * Real.exp (-((k : ℝ) * u)) := by
+        funext u; rw [chaseGΦ_Rv, chaseGVal_g]
+      rw [hcurve]
+      have hlin : HasDerivAt (fun u : ℝ => base (Rv m.gcoord) - (c : ℝ) / (k : ℝ)
+          + (base (Rv j) - (c : ℝ)) * u) (base (Rv j) - (c : ℝ)) t := by
+        simpa using ((hasDerivAt_id t).const_mul (base (Rv j) - (c : ℝ))).const_add
+          (base (Rv m.gcoord) - (c : ℝ) / (k : ℝ))
+      have hexp := expNeg_hasDeriv (k : ℝ) t
+      have h1 := (hlin.mul hexp).const_add ((c : ℝ) / (k : ℝ))
+      have heq : (base (Rv j) - (c : ℝ)) * Real.exp (-((k : ℝ) * t))
+          + (base (Rv m.gcoord) - (c : ℝ) / (k : ℝ) + (base (Rv j) - (c : ℝ)) * t)
+            * (-(k : ℝ) * Real.exp (-((k : ℝ) * t)))
+          = chaseGVal m j (k : ℝ) (c : ℝ) base t j
+            - (k : ℝ) * chaseGVal m j (k : ℝ) (c : ℝ) base t m.gcoord := by
+        rw [chaseGVal_g, chaseGVal_contract hjg hjsh]
+        field_simp
+        ring
+      rw [← heq]
+      exact h1.hasDerivWithinAt
+    · rcases hflex i hig with hfz | ⟨hdr, -⟩ | ⟨j2, hdr, hjne, hjfz, -, -⟩
+        | ⟨k', c', hshc, -, -, -⟩ | ⟨j2, kj, cj, hdr, hjne, hjc, -, -⟩
+      · have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf i))
+            (chaseGΦ m j (k : ℝ) (c : ℝ) base t) = 0 := by
+          simp [SettlingMode.fieldOf, hfz, CoordShape.field, Term.eval, AOp.interp]
+        rw [heval]
+        have hcurve : (fun u => chaseGΦ m j (k : ℝ) (c : ℝ) base u (Rv i))
+            = fun _ => base (Rv i) := by
+          funext u; rw [chaseGΦ_Rv, chaseGVal_frozen hig hfz]
+        rw [hcurve]
+        exact hasDerivWithinAt_const t _ _
+      · -- driven by the chase active: derivative = its current value
+        have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf i))
+            (chaseGΦ m j (k : ℝ) (c : ℝ) base t)
+            = (c : ℝ) / (k : ℝ) + (base (Rv m.gcoord) - (c : ℝ) / (k : ℝ)
+                + (base (Rv j) - (c : ℝ)) * t) * Real.exp (-((k : ℝ) * t)) := by
+          simp [SettlingMode.fieldOf, hdr, CoordShape.field, Term.eval, AOp.interp,
+            chaseGΦ_Rv, chaseGVal_g]
+        rw [heval]
+        have hcurve : (fun u => chaseGΦ m j (k : ℝ) (c : ℝ) base u (Rv i))
+            = fun u => base (Rv i) + ((c : ℝ) / (k : ℝ) * u
+                + (base (Rv m.gcoord) - (c : ℝ) / (k : ℝ)) * expInt (k : ℝ) u
+                + (base (Rv j) - (c : ℝ)) * polyExpInt₁ (k : ℝ) u) := by
+          funext u
+          rw [chaseGΦ_Rv, chaseGVal_dactive hig hdr]
+          ring
+        rw [hcurve]
+        exact ((hSder t).const_add (base (Rv i))).hasDerivWithinAt
+      · have hvalj : chaseGΦ m j (k : ℝ) (c : ℝ) base t (Rv j2) = base (Rv j2) := by
+          rw [chaseGΦ_Rv, chaseGVal_frozen hjne hjfz]
+        have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf i))
+            (chaseGΦ m j (k : ℝ) (c : ℝ) base t) = base (Rv j2) := by
+          simp only [SettlingMode.fieldOf, hdr, CoordShape.field, Term.eval, AOp.interp]
+          rw [hvalj]; ring
+        rw [heval]
+        have hcurve : (fun u => chaseGΦ m j (k : ℝ) (c : ℝ) base u (Rv i))
+            = fun u => base (Rv i) + base (Rv j2) * u := by
+          funext u; rw [chaseGΦ_Rv, chaseGVal_dfrozen hig hdr hjne hjfz]
+        rw [hcurve]
+        have h := ((hasDerivAt_id t).const_mul (base (Rv j2))).const_add (base (Rv i))
+        simp only [id, mul_one] at h
+        exact h.hasDerivWithinAt
+      · have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf i))
+            (chaseGΦ m j (k : ℝ) (c : ℝ) base t)
+            = (k' : ℝ) * ((c' : ℝ) - chaseGVal m j (k : ℝ) (c : ℝ) base t i) := by
+          simp [SettlingMode.fieldOf, hshc, CoordShape.field, Term.eval, AOp.interp]
+        rw [heval]
+        have hcurve : (fun u => chaseGΦ m j (k : ℝ) (c : ℝ) base u (Rv i))
+            = fun u => (c' : ℝ) + (base (Rv i) - (c' : ℝ)) * Real.exp (-((k' : ℝ) * u)) := by
+          funext u; rw [chaseGΦ_Rv, chaseGVal_contract hig hshc]
+        rw [hcurve]
+        have hexp := expNeg_hasDeriv (k' : ℝ) t
+        have h1 : HasDerivAt
+            (fun u => (c' : ℝ) + (base (Rv i) - (c' : ℝ)) * Real.exp (-((k' : ℝ) * u)))
+            ((base (Rv i) - (c' : ℝ)) * (-(k' : ℝ) * Real.exp (-((k' : ℝ) * t)))) t :=
+          (hexp.const_mul (base (Rv i) - (c' : ℝ))).const_add (c' : ℝ)
+        have heq : (base (Rv i) - (c' : ℝ)) * (-(k' : ℝ) * Real.exp (-((k' : ℝ) * t)))
+            = (k' : ℝ) * ((c' : ℝ) - chaseGVal m j (k : ℝ) (c : ℝ) base t i) := by
+          rw [chaseGVal_contract hig hshc]; ring
+        rw [← heq]
+        exact h1.hasDerivWithinAt
+      · have hvalj : chaseGΦ m j (k : ℝ) (c : ℝ) base t (Rv j2)
+            = (cj : ℝ) + (base (Rv j2) - (cj : ℝ)) * Real.exp (-((kj : ℝ) * t)) := by
+          rw [chaseGΦ_Rv, chaseGVal_contract hjne hjc]
+        have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf i))
+            (chaseGΦ m j (k : ℝ) (c : ℝ) base t)
+            = (cj : ℝ) + (base (Rv j2) - (cj : ℝ)) * Real.exp (-((kj : ℝ) * t)) := by
+          simp only [SettlingMode.fieldOf, hdr, CoordShape.field, Term.eval, AOp.interp]
+          rw [hvalj]; ring
+        rw [heval]
+        have hcurve : (fun u => chaseGΦ m j (k : ℝ) (c : ℝ) base u (Rv i))
+            = fun u => base (Rv i) + (cj : ℝ) * u
+                + (base (Rv j2) - (cj : ℝ)) * expInt (kj : ℝ) u := by
+          funext u; rw [chaseGΦ_Rv, chaseGVal_dcontract hig hdr hjne hjc]
+        rw [hcurve]
+        have h1 : HasDerivAt (fun u : ℝ => base (Rv i) + (cj : ℝ) * u) (cj : ℝ) t := by
+          have h := ((hasDerivAt_id t).const_mul (cj : ℝ)).const_add (base (Rv i))
+          simpa using h
+        have h2 : HasDerivAt
+            (fun u : ℝ => (base (Rv j2) - (cj : ℝ)) * expInt (kj : ℝ) u)
+            ((base (Rv j2) - (cj : ℝ)) * Real.exp (-((kj : ℝ) * t))) t :=
+          (expInt_hasDeriv (kj : ℝ) t).const_mul (base (Rv j2) - (cj : ℝ))
+        exact (h1.add h2).hasDerivWithinAt
+  · -- mask
+    intro t ht x hx
+    refine chaseGΦ_nonR m j (k : ℝ) (c : ℝ) base t ?_
+    intro i hxi
+    exact hx (by
+      rw [hxi]
+      simp only [rightBlock, ODESystem.bound, List.map_map]
+      exact List.mem_map.mpr ⟨i, List.mem_finRange i, rfl⟩)
+  · -- landing in the picked band
+    rw [sat_GdOf hm5]
+    refine ⟨hstayEnv _ hdt, ?_, ?_⟩
+    · rw [hgc5, chaseGΦ_Rv]; exact hl1
+    · rw [hgc5, chaseGΦ_Rv]; exact hl2
+
 /-- The two-exponential bound: `p* + A·e^{−r₁t} + B·e^{−r₂t} ≤ T` for `t ≥ 0`, given
 `0 < r₁ ≤ r₂ ≤ 2r₁` and the three rational facts. -/
 theorem twoExp_le (pstar A B r1 r2 T t : ℝ)
@@ -4105,7 +4743,24 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
                  m.glo ≤ m'.ghi ∧ m'.glo ≤ m.glo + c * M.dt))))
      | CoordShape.driven _ => False
      | CoordShape.drivenDamp _ _ => False
-     | CoordShape.chase _ _ => False
+     | CoordShape.chase j k =>
+         j ≠ m.gcoord ∧ 0 < k ∧ 0 ≤ m.glo ∧ FlexOthersC M m ∧
+         ∃ c ulo uhi, m.shapes j = CoordShape.contract k c ∧
+           (M.env j).lo = some ulo ∧ (M.env j).hi = some uhi ∧
+           (∃ q1 ∈ q :: m.succs, ∃ m1, M.modes[q1]? = some m1 ∧ m1.gcoord = m.gcoord ∧
+             m1.glo ≤ m.glo ∧ 0 ≤ m1.glo ∧ k * m1.glo ≤ c ∧
+             (∀ l', (M.env m.gcoord).lo = some l' → l' ≤ m1.glo) ∧
+             (k * m1.glo ≤ ulo ∨
+               (ulo - k * m1.glo) ^ 2 ≤ 2 * (c - k * m1.glo) * (k * m.glo - k * m1.glo)) ∧
+             ∃ q2 ∈ q :: m.succs, ∃ m2, M.modes[q2]? = some m2 ∧ m2.gcoord = m.gcoord ∧
+               m2.glo ≤ m1.ghi ∧ m.glo ≤ m2.ghi) ∧
+           (∃ q3 ∈ q :: m.succs, ∃ m3, M.modes[q3]? = some m3 ∧ m3.gcoord = m.gcoord ∧
+             m.ghi ≤ m3.ghi ∧ c ≤ k * m3.ghi ∧
+             (∀ h', (M.env m.gcoord).hi = some h' → m3.ghi ≤ h') ∧
+             (uhi ≤ k * m3.ghi ∨
+               (k * m3.ghi - uhi) ^ 2 ≤ 2 * (k * m3.ghi - c) * (k * m3.ghi - k * m.ghi)) ∧
+             ∃ q4 ∈ q :: m.succs, ∃ m4, M.modes[q4]? = some m4 ∧ m4.gcoord = m.gcoord ∧
+               m4.glo ≤ m.ghi ∧ m3.glo ≤ m4.ghi)
      | CoordShape.pairSym j c h =>
          j ≠ m.gcoord ∧ m.shapes j = CoordShape.pairSym m.gcoord c h ∧
          0 < h ∧ 3 * h ≤ 1000 ∧ 0 ≤ m.glo ∧
@@ -4500,7 +5155,68 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
             simp only [Bool.and_eq_true, decide_eq_true_eq] at hq'
             exact Or.inr ⟨q', hq'mem, m', hm', hq'.1.1, hq'.1.2,
               pairCondsB_true hq'.2⟩
-  · simp at hshape
+  · -- chase (EXT G)
+    simp only [Bool.and_eq_true, Bool.not_eq_true', decide_eq_true_eq,
+      decide_eq_false_iff_not] at hshape
+    obtain ⟨⟨⟨hjne, hkpos⟩, hflexCB⟩, hmatch⟩ := hshape
+    obtain ⟨hglo0C, hflexC⟩ := decodeFlexC _ rfl (by
+      rw [Bool.and_eq_true, decide_eq_true_eq]
+      exact ⟨hflexCB.1, hflexCB.2⟩)
+    rcases hjs : m.shapes j with _ | _ | ⟨k2, c⟩ | _ | _ | _ | _ | _ | _
+    all_goals rw [hjs] at hmatch
+    · simp at hmatch
+    · simp at hmatch
+    · rcases hulo : (M.env j).lo with _ | ulo <;> rcases huhi : (M.env j).hi with _ | uhi
+      all_goals rw [hulo, huhi] at hmatch
+      · simp at hmatch
+      · simp at hmatch
+      · simp at hmatch
+      · simp only [Bool.and_eq_true, decide_eq_true_eq] at hmatch
+        obtain ⟨⟨hk2, hanyLo⟩, hanyHi⟩ := hmatch
+        subst hk2
+        refine ⟨hjne, hkpos, hglo0C, hflexC, c, ulo, uhi, hjs, hulo, huhi, ?_, ?_⟩
+        · rw [List.any_eq_true] at hanyLo
+          obtain ⟨q1, hq1mem, hq1⟩ := hanyLo
+          rcases hm1 : M.modes[q1]? with _ | m1
+          · rw [hm1] at hq1; simp at hq1
+          · rw [hm1] at hq1
+            simp only [Bool.and_eq_true, Bool.or_eq_true, decide_eq_true_eq] at hq1
+            obtain ⟨⟨⟨⟨⟨⟨hgc1, h1glo⟩, h1nn⟩, h1kc⟩, hloB⟩, hbr⟩, hany2⟩ := hq1
+            refine ⟨q1, hq1mem, m1, hm1, hgc1, h1glo, h1nn, h1kc, ?_, hbr, ?_⟩
+            · intro l' hl'
+              rw [hl'] at hloB
+              simpa using hloB
+            · rw [List.any_eq_true] at hany2
+              obtain ⟨q2, hq2mem, hq2⟩ := hany2
+              rcases hm2 : M.modes[q2]? with _ | m2
+              · rw [hm2] at hq2; simp at hq2
+              · rw [hm2] at hq2
+                simp only [Bool.and_eq_true, decide_eq_true_eq] at hq2
+                exact ⟨q2, hq2mem, m2, hm2, hq2.1.1, hq2.1.2, hq2.2⟩
+        · rw [List.any_eq_true] at hanyHi
+          obtain ⟨q3, hq3mem, hq3⟩ := hanyHi
+          rcases hm3 : M.modes[q3]? with _ | m3
+          · rw [hm3] at hq3; simp at hq3
+          · rw [hm3] at hq3
+            simp only [Bool.and_eq_true, Bool.or_eq_true, decide_eq_true_eq] at hq3
+            obtain ⟨⟨⟨⟨⟨hgc3, h3ghi⟩, h3kc⟩, hhiB⟩, hbr⟩, hany4⟩ := hq3
+            refine ⟨q3, hq3mem, m3, hm3, hgc3, h3ghi, h3kc, ?_, hbr, ?_⟩
+            · intro h' hh'
+              rw [hh'] at hhiB
+              simpa using hhiB
+            · rw [List.any_eq_true] at hany4
+              obtain ⟨q4, hq4mem, hq4⟩ := hany4
+              rcases hm4 : M.modes[q4]? with _ | m4
+              · rw [hm4] at hq4; simp at hq4
+              · rw [hm4] at hq4
+                simp only [Bool.and_eq_true, decide_eq_true_eq] at hq4
+                exact ⟨q4, hq4mem, m4, hm4, hq4.1.1, hq4.1.2, hq4.2⟩
+    · simp at hmatch
+    · simp at hmatch
+    · simp at hmatch
+    · simp at hmatch
+    · simp at hmatch
+    · simp at hmatch
 
 /-! ### The assembly: `wellformed_sound` -/
 
@@ -4559,7 +5275,8 @@ theorem wellformed_sound (M : SettlingModel n) (mv tg : Var n) (g : Term (Var n)
         hqlo0, hOth, hcov⟩ := hshape
       exact settling_pair M hSM hsh hjne hjsh hh0 hh3 hglo0 hplo hphi hqloE hqhiE hqlo0
         hOth hcov hdt
-    · exact absurd hshape not_false
+    · obtain ⟨hjne, hkpos, -, hflexC, c, ulo, uhi, hjshC, hjlo, hjhi, hcovLo, hcovHi⟩ := hshape
+      exact settling_chaseG M hSM hsh hjne hjshC hkpos hflexC hjlo hjhi hcovLo hcovHi hdt
   · intro ν hν
     exact hcert q (SM.toRMode M) hmodeAt ν hν
   · exact ⟨_, self_edge_mem M hSM, rfl, rfl⟩

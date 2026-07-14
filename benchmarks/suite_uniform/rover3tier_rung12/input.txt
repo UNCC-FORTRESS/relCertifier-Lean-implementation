@@ -26,12 +26,17 @@ epsilon = 0.3
 [Rsys.mode.ACCEL]
 ode = v' = a; s' = v; a' = smt2:(- 0 0);
 guard = v >= 0.3 and v < 0.6
-evolve = a >= 0.5 and a <= 1.0 and s >= 0.0 and s <= 100.0 and v >= 0.0 and v <= 2.0
+# (evolve cap on the drifting coordinate removed with it: nothing in the dynamics
+# enforces it — the reachability-in-evolve defect class.)
+evolve = a >= 0.5 and a <= 1.0 and s >= 0.0 and v >= 0.0
 next = [COAST, ACCEL]
 [Rsys.mode.COAST]
 ode = v' = a; s' = v; a' = smt2:(- 0 0);
-guard = v >= 0.6 and v < 1.75
-evolve = a >= 0.5 and a <= 1.0 and s >= 0.0 and s <= 100.0 and v >= 0.0 and v <= 2.0
+# terminal segment: the upper cap made the settling hypothesis false (one-step image
+# escapes with no successor beyond — the H-falsification audit's terminal-band overflow);
+# the band is now unbounded above, per the honest-envelope principle for positions.
+guard = v >= 0.6
+evolve = a >= 0.5 and a <= 1.0 and s >= 0.0 and v >= 0.0
 next = [ACCEL, COAST]
 [relational_invariant]
 ACCEL/ACCEL = v[l] <= v[r] + 0.5 and a[l] <= a[r] + 0.8

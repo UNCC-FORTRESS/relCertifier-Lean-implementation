@@ -204,9 +204,20 @@ carry closed kernel `rfl` certificates**.
   rover3tier_M1 (gain 1/25 in scaled time, λ = 5 — the ACCEL cap lands with 2‰ of band to
   spare: 0.648 ≤ 0.65), robot_braking (gain 1/2, λ = 2). **All 21 in-grammar data terms now
   carry closed kernel certificates.**
+- **The terminal-band fix (the audit's H-false class, resolved).** All 21 flagged benchmarks
+  carried an unenforced upper cap on the drifting coordinate — the final terrain segment's
+  `s < 899.95` under `evolve s ≤ 1000`, or a velocity cap under constant positive
+  acceleration — i.e. the reachability-in-evolve defect class again, this time in the guards.
+  Fix per the honest-envelope principle: the terminal band is unbounded above and the
+  unenforced evolve caps are gone (nothing in the dynamics ever enforced them). All 21
+  re-certify, and the audit finds NO H-counterexample on any of them afterwards. Status after
+  this pass: **every certified benchmark is either H-PROVEN (the 21 in-grammar kernel
+  certificates) or audit-clean** (no counterexample at some legal λ, awaiting the EXT 3 /
+  phase D grammars); shield_unreachable (no guard band, inconclusive-Z3) remains the one
+  intentional outlier.
 - Remaining roadmap: EXT 3 (multi-band guards + driven-active, the s-guarded terrain family —
-  AFTER the terminal-band modeling fix above); phase D (coupled fields — existence via
-  `PicardBridge`).
+  optional band sides in `SettlingModel`, banded-rate landing); phase D (coupled fields —
+  existence via `PicardBridge`).
 
 ## Current state
 

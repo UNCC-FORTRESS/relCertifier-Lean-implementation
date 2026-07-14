@@ -70,11 +70,12 @@ budget data (`dt = epsR / lamMin`). -/
 structure SettlingModel (n : ℕ) where
   modes  : List (SettlingMode n)
   env    : Fin n → Band
-  epsR   : ℚ
-  lamMin : ℚ
+  /-- The control-step budget `εR / λmin` — stored pre-divided so the checker kernel-reduces
+  (`Rat` division does not). -/
+  dtQ    : ℚ
 
 /-- The control-step budget. -/
-def SettlingModel.dt (M : SettlingModel n) : ℚ := M.epsR / M.lamMin
+def SettlingModel.dt (M : SettlingModel n) : ℚ := M.dtQ
 
 /-! ## The checker (computable, ℚ arithmetic) -/
 
@@ -109,7 +110,7 @@ def checkMode (M : SettlingModel n) (q : ℕ) (m : SettlingMode n) : Bool :=
   (match m.shapes m.gcoord with
    | .frozen => othersFrozen                               -- holds; self-lands
    | .contract k c =>
-       othersFrozen &&
+       othersFlex &&
        decide (0 ≤ k) && decide (m.glo ≤ c) && decide (c ≤ m.ghi)   -- eq inside own band
    | .constRate c =>
        othersFlex &&
@@ -127,7 +128,7 @@ def checkMode (M : SettlingModel n) (q : ℕ) (m : SettlingMode n) : Bool :=
 
 /-- **The well-formedness checker.** Decidable; no Z3, no ODE reasoning. -/
 def decideWellFormed (M : SettlingModel n) : Bool :=
-  decide (0 < M.lamMin) && decide (0 ≤ M.epsR) &&
+  decide (0 ≤ M.dtQ) &&
   ((List.finRange n).all fun i => bandOrdered (M.env i)) &&
   (List.range M.modes.length).all (fun q =>
     match M.modes[q]? with
@@ -209,7 +210,19 @@ def WellFormedSound (M : SettlingModel n) (mv tg : Var n) (g : Term (Var n))
       BoxLe (Program.ode m.sys M.envF) (fun ω => Term.eval g ω) ν) →
   GuardSettlingH M.graph M.GdOf mv g (Term.const 1) tg (M.dt : ℝ) fL M.envF
 
-/-! ## The phased proof plan (targets the statement above; each phase lands sorry-free)
+/-! ## The phased proof plan — phases A′/B/C PROVEN below; D scoped
+
+STATUS: `wellformed_sound` is PROVEN for shapes {frozen, constRate, contract, driven-by-active}
+— i.e. phases A′ (single-active-coordinate), B (driven-by-const integrators, the rover class)
+and C (driven-by-contract integrators, the terrain/endurance class) are complete, with the
+watertank-shaped instance checker-accepted by kernel `rfl` at the bottom. Phase D (coupled
+fields, e.g. attitude_rate's `p' = 1 − p + 0.05q`) is scoped but NOT built: its invariance half
+can ride the cut channel's Z3 route, but `GuardSettlingB` also demands flow EXISTENCE, which for
+coupled shapes has no closed-form witness — it needs the `PicardBridge` machinery generalized,
+a genuinely separate build. Until then coupled modes fail the checker and their hypothesis is
+carried (honest classification, not a gap).
+
+Original plan (kept for the record):
 
 * **Phase A' (bookkeeping + single-active-coordinate discharge).** Prove `WellFormedSound`
   for the phase-A fragment the checker currently accepts (single guarded coordinate, others
@@ -807,6 +820,268 @@ theorem settling_const_driven (M : SettlingModel n) {q : ℕ} {m : SettlingMode 
     · rw [hgc', drivenΦ_Rv, hval_g]
       linarith
 
+/-! ### Phase C — the driven-by-contract integrator witness -/
+
+/-- The integrated exponential `∫₀ᵗ e^{−ku} du` — `(1 − e^{−kt})/k`, degenerating to `t`. -/
+noncomputable def expInt (k t : ℝ) : ℝ :=
+  if k = 0 then t else (1 - Real.exp (-(k * t))) / k
+
+theorem expInt_hasDeriv (k t : ℝ) :
+    HasDerivAt (fun u => expInt k u) (Real.exp (-(k * t))) t := by
+  unfold expInt
+  by_cases hk : k = 0
+  · simp only [hk, if_true, zero_mul, neg_zero, Real.exp_zero]
+    exact hasDerivAt_id t
+  · simp only [hk, if_false]
+    have hinner : HasDerivAt (fun u : ℝ => -(k * u)) (-k) t := by
+      have h := (hasDerivAt_id t).const_mul (-k)
+      simp only [id, mul_one, neg_mul] at h
+      exact h
+    have hexp : HasDerivAt (fun u : ℝ => Real.exp (-(k * u))) (-k * Real.exp (-(k * t))) t := by
+      have h := (Real.hasDerivAt_exp (-(k * t))).comp t hinner
+      simp only [Function.comp_def] at h
+      rw [mul_comm (Real.exp (-(k * t))) (-k)] at h
+      exact h
+    have hsub : HasDerivAt (fun u : ℝ => 1 - Real.exp (-(k * u)))
+        (k * Real.exp (-(k * t))) t := by
+      have h := hexp.const_sub 1
+      simpa using h
+    have h := hsub.div_const k
+    rwa [mul_comm k (Real.exp (-(k * t))), mul_div_assoc, div_self hk, mul_one] at h
+
+theorem expInt_nonneg {k t : ℝ} (hk : 0 ≤ k) (ht : 0 ≤ t) : 0 ≤ expInt k t := by
+  unfold expInt
+  by_cases hk0 : k = 0
+  · simpa [hk0]
+  · rw [if_neg hk0]
+    have hkpos : 0 < k := lt_of_le_of_ne hk (Ne.symm hk0)
+    have : Real.exp (-(k * t)) ≤ 1 := by
+      rw [Real.exp_le_one_iff]
+      nlinarith
+    positivity
+
+theorem expInt_le {k t : ℝ} (hk : 0 ≤ k) (ht : 0 ≤ t) : expInt k t ≤ t := by
+  unfold expInt
+  by_cases hk0 : k = 0
+  · simp [hk0]
+  · rw [if_neg hk0]
+    have hkpos : 0 < k := lt_of_le_of_ne hk (Ne.symm hk0)
+    rw [div_le_iff₀ hkpos]
+    have h := Real.add_one_le_exp (-(k * t))
+    have hle : 1 - k * t ≤ Real.exp (-(k * t)) := by linarith
+    nlinarith [hle]
+
+/-- Per-coordinate value of the phase-C witness: the active coordinate contracts, a driven
+coordinate integrates it, everything else frozen. -/
+noncomputable def drivenValC (m : SettlingMode n) (kR cR : ℝ) (base : State (Var n)) (t : ℝ)
+    (i : Fin n) : ℝ :=
+  if i = m.gcoord then cR + (base (Rv i) - cR) * Real.exp (-(kR * t))
+  else match m.shapes i with
+    | CoordShape.driven _ =>
+        base (Rv i) + cR * t + (base (Rv m.gcoord) - cR) * expInt kR t
+    | _ => base (Rv i)
+
+/-- The phase-C witness flow. -/
+noncomputable def drivenΦC (m : SettlingMode n) (kR cR : ℝ) (base : State (Var n)) (t : ℝ) :
+    State (Var n) :=
+  fun x => match x with
+    | (Side.R, i) => drivenValC m kR cR base t i
+    | _ => base x
+
+@[simp] theorem drivenΦC_Rv (m : SettlingMode n) (kR cR : ℝ) (base : State (Var n)) (t : ℝ)
+    (i : Fin n) : drivenΦC m kR cR base t (Rv i) = drivenValC m kR cR base t i := rfl
+
+theorem drivenΦC_nonR (m : SettlingMode n) (kR cR : ℝ) (base : State (Var n)) (t : ℝ)
+    {x : Var n} (hx : ∀ i : Fin n, x ≠ Rv i) : drivenΦC m kR cR base t x = base x := by
+  obtain ⟨sd, ix⟩ := x
+  cases sd with
+  | R => exact absurd rfl (hx ix)
+  | L => rfl
+  | Aux => rfl
+
+/-- CONTRACT active coordinate (equilibrium in its own band), others frozen OR driven by it
+(integrators with no upper envelope wall, nonneg band): the exponential/exp-integral witness. -/
+theorem settling_contract_driven (M : SettlingModel n) {q : ℕ} {m : SettlingMode n}
+    (hq : M.modes[q]? = some m) {k c : ℚ}
+    (hsh : m.shapes m.gcoord = CoordShape.contract k c)
+    (hflex : ∀ i, i ≠ m.gcoord → m.shapes i = CoordShape.frozen ∨
+        (m.shapes i = CoordShape.driven m.gcoord ∧ (M.env i).hi = none))
+    (hglo0 : 0 ≤ m.glo)
+    (hk : 0 ≤ k) (hcl : m.glo ≤ c) (hch : c ≤ m.ghi)
+    (hloIn : ∀ l', (M.env m.gcoord).lo = some l' → l' ≤ m.glo)
+    (hhiIn : ∀ h', (M.env m.gcoord).hi = some h' → m.ghi ≤ h')
+    (hdt : (0 : ℝ) ≤ (M.dt : ℝ)) :
+    GuardSettlingB M.graph M.GdOf m.fieldOf (Term.const 1) M.envF ((M.dt : ℝ)) q := by
+  intro base hb
+  obtain ⟨henv, hblo, hbhi⟩ := (sat_GdOf hq).mp hb
+  have hkR0 : (0 : ℝ) ≤ (k : ℝ) := by exact_mod_cast hk
+  have hclR : (m.glo : ℝ) ≤ (c : ℝ) := by exact_mod_cast hcl
+  have hchR : (c : ℝ) ≤ (m.ghi : ℝ) := by exact_mod_cast hch
+  have hglo0R : (0 : ℝ) ≤ (m.glo : ℝ) := by exact_mod_cast hglo0
+  -- the active coordinate's value and its band, for all t ≥ 0
+  have hval_g : ∀ t, drivenValC m (k : ℝ) (c : ℝ) base t m.gcoord
+      = (c : ℝ) + (base (Rv m.gcoord) - (c : ℝ)) * Real.exp (-((k : ℝ) * t)) := by
+    intro t; unfold drivenValC; rw [if_pos rfl]
+  have hband : ∀ t, 0 ≤ t →
+      (m.glo : ℝ) ≤ drivenValC m (k : ℝ) (c : ℝ) base t m.gcoord
+      ∧ drivenValC m (k : ℝ) (c : ℝ) base t m.gcoord ≤ (m.ghi : ℝ) := by
+    intro t ht
+    have hθpos : 0 < Real.exp (-((k : ℝ) * t)) := Real.exp_pos _
+    have hθle : Real.exp (-((k : ℝ) * t)) ≤ 1 := by
+      rw [Real.exp_le_one_iff]; nlinarith
+    rw [hval_g]
+    constructor
+    · rcases le_or_gt (c : ℝ) (base (Rv m.gcoord)) with hbc | hbc
+      · nlinarith
+      · nlinarith
+    · rcases le_or_gt (c : ℝ) (base (Rv m.gcoord)) with hbc | hbc
+      · nlinarith
+      · nlinarith
+  -- staying in the envelope
+  have hstayEnv : ∀ t, 0 ≤ t → Formula.sat M.envF (drivenΦC m (k : ℝ) (c : ℝ) base t) := by
+    intro t ht
+    rw [sat_envF]
+    intro i
+    rw [drivenΦC_Rv]
+    by_cases hig : i = m.gcoord
+    · rw [hig]
+      obtain ⟨h1, h2⟩ := hband t ht
+      unfold Band.memR
+      constructor
+      · cases hcase : (M.env m.gcoord).lo with
+        | none => trivial
+        | some l =>
+            have hlG : (l : ℝ) ≤ (m.glo : ℝ) := by exact_mod_cast hloIn l hcase
+            linarith
+      · cases hcase : (M.env m.gcoord).hi with
+        | none => trivial
+        | some h =>
+            have hhG : (m.ghi : ℝ) ≤ (h : ℝ) := by exact_mod_cast hhiIn h hcase
+            linarith
+    · rcases hflex i hig with hfz | ⟨hdr, hhi⟩
+      · unfold drivenValC
+        rw [if_neg hig, hfz]
+        exact (sat_envF.mp henv) i
+      · unfold drivenValC
+        rw [if_neg hig, hdr]
+        have hbe := (sat_envF.mp henv) i
+        unfold Band.memR at hbe ⊢
+        rcases hbe with ⟨hbl, hbh⟩
+        -- the integral of the (nonneg) active value is nonneg:
+        -- c·t + (b_g − c)·expInt ≥ min(b_g, c)·t ≥ glo·t ≥ 0
+        have hEI0 : 0 ≤ expInt (k : ℝ) t := expInt_nonneg hkR0 ht
+        have hEIt : expInt (k : ℝ) t ≤ t := expInt_le hkR0 ht
+        have hint : 0 ≤ (c : ℝ) * t + (base (Rv m.gcoord) - (c : ℝ)) * expInt (k : ℝ) t := by
+          rcases le_or_gt (c : ℝ) (base (Rv m.gcoord)) with hbc | hbc
+          · nlinarith
+          · nlinarith
+        constructor
+        · cases hcase : (M.env i).lo with
+          | none => trivial
+          | some l =>
+              rw [hcase] at hbl
+              show (l : ℝ) ≤ base (Rv i) + (c : ℝ) * t
+                + (base (Rv m.gcoord) - (c : ℝ)) * expInt (k : ℝ) t
+              linarith
+        · rw [hhi]; trivial
+  have hstayGd : ∀ t, 0 ≤ t →
+      Formula.sat (M.GdOf q) (drivenΦC m (k : ℝ) (c : ℝ) base t) := by
+    intro t ht
+    rw [sat_GdOf hq]
+    obtain ⟨h1, h2⟩ := hband t ht
+    exact ⟨hstayEnv t ht, by rw [drivenΦC_Rv]; exact h1, by rw [drivenΦC_Rv]; exact h2⟩
+  refine ⟨drivenΦC m (k : ℝ) (c : ℝ) base, ?_, ?_, ?_,
+    fun t ht => hstayEnv t ht.1, q, List.mem_cons_self .., hstayGd _ hdt⟩
+  · -- t = 0 recovers the base
+    funext x
+    obtain ⟨sd, ix⟩ := x
+    cases sd with
+    | R =>
+        show drivenValC m (k : ℝ) (c : ℝ) base 0 ix = base (Rv ix)
+        unfold drivenValC
+        by_cases hig : ix = m.gcoord
+        · rw [if_pos hig]
+          subst hig
+          simp
+        · rw [if_neg hig]
+          rcases hshx : m.shapes ix with _ | _ | _ | _ <;> simp [expInt]
+    | L => rfl
+    | Aux => rfl
+  · -- derivatives
+    intro t ht p hp
+    simp only [rightBlock, List.mem_map, List.mem_finRange] at hp
+    obtain ⟨i, -, rfl⟩ := hp
+    by_cases hig : i = m.gcoord
+    · rw [hig]
+      have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf m.gcoord))
+          (drivenΦC m (k : ℝ) (c : ℝ) base t)
+          = (k : ℝ) * ((c : ℝ) - drivenValC m (k : ℝ) (c : ℝ) base t m.gcoord) := by
+        simp [SettlingMode.fieldOf, hsh, CoordShape.field, Term.eval, AOp.interp]
+      rw [heval]
+      have hcurve : (fun u => drivenΦC m (k : ℝ) (c : ℝ) base u (Rv m.gcoord))
+          = fun u => (c : ℝ) + (base (Rv m.gcoord) - (c : ℝ)) * Real.exp (-((k : ℝ) * u)) := by
+        funext u; rw [drivenΦC_Rv, hval_g]
+      rw [hcurve]
+      -- derivative of the contract closed form (the banked pattern)
+      have hexp : HasDerivAt (fun u : ℝ => Real.exp (-((k : ℝ) * u)))
+          (-(k : ℝ) * Real.exp (-((k : ℝ) * t))) t := by
+        have hinner : HasDerivAt (fun u : ℝ => -((k : ℝ) * u)) (-(k : ℝ)) t := by
+          have h := (hasDerivAt_id t).const_mul (-(k : ℝ))
+          simp only [id, mul_one, neg_mul] at h
+          exact h
+        have h := (Real.hasDerivAt_exp (-((k : ℝ) * t))).comp t hinner
+        simp only [Function.comp_def] at h
+        rw [mul_comm (Real.exp (-((k : ℝ) * t))) (-(k : ℝ))] at h
+        exact h
+      have h1 : HasDerivAt
+          (fun u => (c : ℝ) + (base (Rv m.gcoord) - (c : ℝ)) * Real.exp (-((k : ℝ) * u)))
+          ((base (Rv m.gcoord) - (c : ℝ)) * (-(k : ℝ) * Real.exp (-((k : ℝ) * t)))) t :=
+        (hexp.const_mul (base (Rv m.gcoord) - (c : ℝ))).const_add (c : ℝ)
+      have heq : (base (Rv m.gcoord) - (c : ℝ)) * (-(k : ℝ) * Real.exp (-((k : ℝ) * t)))
+          = (k : ℝ) * ((c : ℝ) - drivenValC m (k : ℝ) (c : ℝ) base t m.gcoord) := by
+        rw [hval_g]; ring
+      rw [← heq]
+      exact h1.hasDerivWithinAt
+    · rcases hflex i hig with hfz | ⟨hdr, -⟩
+      · have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf i))
+            (drivenΦC m (k : ℝ) (c : ℝ) base t) = 0 := by
+          simp [SettlingMode.fieldOf, hfz, CoordShape.field, Term.eval, AOp.interp]
+        rw [heval]
+        have hcurve : (fun u => drivenΦC m (k : ℝ) (c : ℝ) base u (Rv i))
+            = fun _ => base (Rv i) := by
+          funext u; rw [drivenΦC_Rv]; unfold drivenValC; rw [if_neg hig, hfz]
+        rw [hcurve]
+        exact hasDerivWithinAt_const t _ _
+      · -- driven: derivative = the CURRENT value of the active coordinate
+        have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf i))
+            (drivenΦC m (k : ℝ) (c : ℝ) base t)
+            = (c : ℝ) + (base (Rv m.gcoord) - (c : ℝ)) * Real.exp (-((k : ℝ) * t)) := by
+          simp [SettlingMode.fieldOf, hdr, CoordShape.field, Term.eval, AOp.interp,
+            drivenΦC_Rv, hval_g]
+        rw [heval]
+        have hcurve : (fun u => drivenΦC m (k : ℝ) (c : ℝ) base u (Rv i))
+            = fun u => base (Rv i) + (c : ℝ) * u
+                + (base (Rv m.gcoord) - (c : ℝ)) * expInt (k : ℝ) u := by
+          funext u; rw [drivenΦC_Rv]; unfold drivenValC; rw [if_neg hig, hdr]
+        rw [hcurve]
+        have h1 : HasDerivAt (fun u : ℝ => base (Rv i) + (c : ℝ) * u) (c : ℝ) t := by
+          have h := ((hasDerivAt_id t).const_mul (c : ℝ)).const_add (base (Rv i))
+          simpa using h
+        have h2 : HasDerivAt
+            (fun u : ℝ => (base (Rv m.gcoord) - (c : ℝ)) * expInt (k : ℝ) u)
+            ((base (Rv m.gcoord) - (c : ℝ)) * Real.exp (-((k : ℝ) * t))) t :=
+          (expInt_hasDeriv (k : ℝ) t).const_mul (base (Rv m.gcoord) - (c : ℝ))
+        have h := h1.add h2
+        exact h.hasDerivWithinAt
+  · -- mask
+    intro t ht x hx
+    refine drivenΦC_nonR m (k : ℝ) (c : ℝ) base t ?_
+    intro i hxi
+    exact hx (by
+      rw [hxi]
+      simp only [rightBlock, ODESystem.bound, List.map_map]
+      exact List.mem_map.mpr ⟨i, List.mem_finRange i, rfl⟩)
+
 /-! ### Extraction: the checker's Bool facts as Props -/
 
 theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
@@ -818,8 +1093,9 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
     (match m.shapes m.gcoord with
      | CoordShape.frozen => ∀ i, i ≠ m.gcoord → m.shapes i = CoordShape.frozen
      | CoordShape.contract k c =>
-         (∀ i, i ≠ m.gcoord → m.shapes i = CoordShape.frozen) ∧
-         0 ≤ k ∧ m.glo ≤ c ∧ c ≤ m.ghi
+         (∀ i, i ≠ m.gcoord → m.shapes i = CoordShape.frozen ∨
+           (m.shapes i = CoordShape.driven m.gcoord ∧ (M.env i).hi = none)) ∧
+         0 ≤ m.glo ∧ 0 ≤ k ∧ m.glo ≤ c ∧ c ≤ m.ghi
      | CoordShape.constRate c =>
          (∀ i, i ≠ m.gcoord → m.shapes i = CoordShape.frozen ∨
            (m.shapes i = CoordShape.driven m.gcoord ∧ (M.env i).hi = none)) ∧
@@ -878,13 +1154,18 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
         simp only [Bool.and_eq_true, decide_eq_true_eq] at hq'
         exact ⟨q', hq'mem, m', hm', hq'.1.1, hq'.1.2, hq'.2⟩
   · -- contract
-    simp only [Bool.and_eq_true, Bool.or_eq_true, decide_eq_true_eq, List.all_eq_true] at hshape
-    obtain ⟨⟨⟨hfroz, hk⟩, hcl⟩, hch⟩ := hshape
-    refine ⟨?_, hk, hcl, hch⟩
+    simp only [Bool.and_eq_true, decide_eq_true_eq] at hshape
+    obtain ⟨⟨⟨hflex, hk⟩, hcl⟩, hch⟩ := hshape
+    obtain ⟨hglo0, hothers⟩ := hflex
+    rw [List.all_eq_true] at hothers
+    refine ⟨?_, hglo0, hk, hcl, hch⟩
     intro i hi
-    rcases hfroz i (List.mem_finRange i) with h1 | h2
+    have := hothers i (List.mem_finRange i)
+    simp only [Bool.or_eq_true, Bool.and_eq_true, decide_eq_true_eq] at this
+    rcases this with (h1 | h2) | h3
     · exact absurd h1 hi
-    · exact h2
+    · exact Or.inl h2
+    · exact Or.inr h3
   · -- driven active: checker returns false
     simp at hshape
 
@@ -898,7 +1179,7 @@ theorem wellformed_sound (M : SettlingModel n) (mv tg : Var n) (g : Term (Var n)
   intro hwf hdt hg hmvclk hmvtg hmvGd htgGd hfrzGd hcert
   unfold decideWellFormed at hwf
   simp only [Bool.and_eq_true, decide_eq_true_eq, List.all_eq_true] at hwf
-  obtain ⟨⟨⟨-, -⟩, -⟩, hall⟩ := hwf
+  obtain ⟨⟨-, -⟩, hall⟩ := hwf
   have hcheck : ∀ q (m : SettlingMode n), M.modes[q]? = some m → checkMode M q m = true := by
     intro q m hqm
     have hqlt : q < M.modes.length := (List.getElem?_eq_some_iff.mp hqm).1
@@ -922,8 +1203,8 @@ theorem wellformed_sound (M : SettlingModel n) (mv tg : Var n) (g : Term (Var n)
     · exact settling_frozen M hSM hsh hshape hdt
     · obtain ⟨hflex, hglo0, hc, hmar, hland⟩ := hshape
       exact settling_const_driven M hSM hsh hflex hglo0 hc hloIn hmar hland hdt
-    · obtain ⟨hfr, hk, hcl, hch⟩ := hshape
-      exact settling_contract M hSM hsh hfr hk hcl hch hloIn hhiIn hdt
+    · obtain ⟨hflex, hglo0, hk, hcl, hch⟩ := hshape
+      exact settling_contract_driven M hSM hsh hflex hglo0 hk hcl hch hloIn hhiIn hdt
     · exact absurd hshape not_false
   · intro ν hν
     exact hcert q (SM.toRMode M) hmodeAt ν hν
@@ -931,5 +1212,28 @@ theorem wellformed_sound (M : SettlingModel n) (mv tg : Var n) (g : Term (Var n)
   · exact retainedSucc_edges M hSM hsucclen
   · intro q' _ hq'
     exact graph_modeAll M q' hq'
+
+/-! ### A concrete instance — watertank's settling model, checker-accepted by `decide`
+
+`x' = 3(cᵢ − 0.12 x)`-style tanks normalize to the contract shape `k(c − x)`; the three modes
+below use the equilibria/bands of the (normalized) watertank right side. The point is the
+DECIDABILITY: `decideWellFormed` evaluates by `decide` — kernel-checked rational arithmetic,
+no `native_decide` — so a benchmark's well-formedness certificate is one `rfl`-class fact,
+and `wellformed_sound` turns it plus the per-run Z3 certificates into `GuardSettlingH`. -/
+
+/-- Watertank-shaped settling model (1 coordinate, 3 contract modes, bands inside `[-1, 30]`). -/
+def watertankM : SettlingModel 1 :=
+  { modes :=
+      [ { shapes := fun _ => CoordShape.contract 3 12, gcoord := 0,
+          glo := 0, ghi := 13, succs := [1] }
+      , { shapes := fun _ => CoordShape.contract 3 20, gcoord := 0,
+          glo := 13, ghi := 20, succs := [2] }
+      , { shapes := fun _ => CoordShape.contract 3 3, gcoord := 0,
+          glo := 3, ghi := 28, succs := [0] } ]
+    env := fun _ => { lo := some (-1), hi := some 30 }
+    dtQ := 1 }
+
+/-- The checker accepts it — by kernel computation. -/
+example : decideWellFormed watertankM = true := rfl
 
 end RelCertifier

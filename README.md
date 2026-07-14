@@ -614,9 +614,34 @@ axioms throughout, **no new axiom, no subtangency, no clock, no `sem`-gating**.
 `ν si + v_max·s ≤ S_max`) as `left_duration_bound` (analytic, proven) + a Z3-checkable
 arithmetic inequality.
 
-## Benchmark suite — results
+## Benchmark suites — results
 
-The full **47**-benchmark suite (under `benchmarks/suite/`, each a directory with `input.txt`) run on
+There are TWO suites over the same 47 systems, aligned with DIFFERENT theorems and carrying
+DIFFERENT trust levels:
+
+* **`benchmarks/suite_uniform/` — the canonical suite.** Aligned with the uniform-evol proof
+  stack (`theorem3_faithful_landing_clocked_uniform`, the guard-threaded settling chain, the
+  checked-cut channel): every mode's evolve is the literal shared physical envelope, mode-specific
+  restrictions live in guards and are RE-DERIVED by the certifier before use, and the staying
+  well-formedness is discharged or checkably annotated. Its CERTIFIED verdict does not rest on
+  any unchecked domain declaration. Use this suite.
+* **`benchmarks/suite/` — the legacy paper suite.** The paper's original benchmark set,
+  free-form per-mode evolve domains. Aligned with the OLDER general theorems (`tooling_sound`,
+  `theorem3_faithful`, the `LandingWellFormed` landing path), whose per-mode staying
+  well-formedness is a CARRIED hypothesis: a per-mode evolve may encode reachability facts
+  nothing checks (e.g. a mode's `v ≤ eq` cap with no guard enforcing entry below it), and for
+  growing modes the ∀-base staying is in fact false. Its CERTIFIED therefore means: the cover's
+  Z3 obligations pass over the domains AS DECLARED — soundness conditional on the declared
+  domains being honest. Kept for paper reproducibility and as the baseline documenting the
+  difference; not the recommended entry point.
+
+Both certify **46/47** (`shield_unreachable` ERROR in both) — the same ceiling, so the
+disciplined form costs nothing. The comparison is the point: same systems, same score, but one
+suite's verdict rests on unchecked domain declarations and the other's does not.
+
+### The legacy paper suite (`benchmarks/suite/`)
+
+The full **47**-benchmark suite (each a directory with `input.txt`) run on
 the trusted method (Z3 UNSAT-of-negation), reproduced by
 `lake exe relcert benchmarks/suite/*/input.txt`:
 
@@ -637,10 +662,10 @@ silently raised), Hold-mode reachable-set tightening (`arm`/`plant`), coupled co
 from the former `benchmarks/restated/`), position-only invariants (`rover3_M1`), single-mode attitude
 keys (`story`), and the watertank fill-drift redesign — each reverted-and-retested, each a sound spec fix.
 
-### The uniform-evolution settling suite (`benchmarks/suite_uniform/`)
+### The canonical uniform-evolution settling suite (`benchmarks/suite_uniform/`)
 
-A second, parallel 47-benchmark suite: each original rewritten to the **uniform-evol + settling
-design** that the landing-chain theorem (`theorem3_faithful_landing_clocked_uniform`) rests on.
+The recommended suite: each benchmark rewritten to the **uniform-evol + settling design** that
+the landing-chain theorem (`theorem3_faithful_landing_clocked_uniform`) rests on.
 Two disciplines are enforced per benchmark (script-checked, not eyeballed):
 
 1. **One shared evolution domain, strictly wider than every guard** — the envelope is the honest

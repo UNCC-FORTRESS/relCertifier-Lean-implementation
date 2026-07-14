@@ -54,7 +54,7 @@ next = [Hold, ApproachC]
 [Rsys.mode.Hold]
 ode = theta' = smt2:0;
 guard = theta >= 0.6 and theta < 1.15
-evolve = theta >= 0.0 and theta <= 1.2
+evolve = theta >= 0.6 and theta <= 1.2
 next = [Hold]
 
 [relational_invariant]

@@ -625,21 +625,21 @@ DIFFERENT trust levels:
   restrictions live in guards and are RE-DERIVED by the certifier before use, and the staying
   well-formedness is discharged or checkably annotated. Its CERTIFIED verdict does not rest on
   any unchecked domain declaration. Use this suite.
-* **`benchmarks/suite/` — the legacy paper suite.** The paper's original benchmark set,
-  free-form per-mode evolve domains. Aligned with the OLDER general theorems (`tooling_sound`,
-  `theorem3_faithful`, the `LandingWellFormed` landing path), whose per-mode staying
-  well-formedness is a CARRIED hypothesis: a per-mode evolve may encode reachability facts
-  nothing checks (e.g. a mode's `v ≤ eq` cap with no guard enforcing entry below it), and for
-  growing modes the ∀-base staying is in fact false. Its CERTIFIED therefore means: the cover's
-  Z3 obligations pass over the domains AS DECLARED — soundness conditional on the declared
-  domains being honest. Kept for paper reproducibility and as the baseline documenting the
-  difference; not the recommended entry point.
+* **`benchmarks/suite/` — the legacy suite (ablation baseline).** The pre-discipline form of
+  the same benchmarks, free-form per-mode evolve domains. Aligned with the OLDER general
+  theorems (`tooling_sound`, `theorem3_faithful`, the `LandingWellFormed` landing path), whose
+  per-mode staying well-formedness is a CARRIED hypothesis: a per-mode evolve may encode
+  reachability facts nothing checks (e.g. a mode's `v ≤ eq` cap with no guard enforcing entry
+  below it), and for growing modes the ∀-base staying is in fact false. Its CERTIFIED therefore
+  means: the cover's Z3 obligations pass over the domains AS DECLARED — soundness conditional on
+  the declared domains being honest. Kept ONLY as the ablation baseline for the comparison
+  below; the paper's benchmark set is `suite_uniform`. Not an entry point.
 
 Both certify **46/47** (`shield_unreachable` ERROR in both) — the same ceiling, so the
 disciplined form costs nothing. The comparison is the point: same systems, same score, but one
 suite's verdict rests on unchecked domain declarations and the other's does not.
 
-### The legacy paper suite (`benchmarks/suite/`)
+### The legacy suite (`benchmarks/suite/`, ablation baseline)
 
 The full **47**-benchmark suite (each a directory with `input.txt`) run on
 the trusted method (Z3 UNSAT-of-negation), reproduced by
@@ -709,9 +709,9 @@ narrowed certificate lifts back to the uniform-domain obligation the landing cha
 
 So the design lands fully honest: **one shared physical envelope; mode-dependent physics enters
 through the guards; anything tighter than the envelope is re-derived by the certifier, never
-asserted**. The original suite is untouched; `benchmarks/suite/` covers the paper's set with
-free-form per-mode domains, `benchmarks/suite_uniform/` certifies the same systems
-(**46/47 — the same ceiling**) under the disciplined form.
+asserted**. `benchmarks/suite_uniform/` is the paper's benchmark set; the legacy
+`benchmarks/suite/` certifies the same systems at the same **46/47** ceiling with free-form
+per-mode domains — the ablation showing the disciplined form costs nothing.
 
 Requires Lean 4 (`leanprover/lean4:v4.31.0`, pinned) and a pinned Z3 (`RELCERT_Z3` or a
 standard absolute path). `dL-rel` is fetched from GitHub at tag `v0.1.0-NFM25` (transitively
@@ -776,5 +776,5 @@ RelCertifier/
 Main.lean             `relcert` executable
 ARCHITECTURE.md       certified-checker architecture + the finding that reshaped it
 benchmarks/suite_uniform/  CANONICAL: uniform-evol settling suite (shared envelopes, checked cuts)
-benchmarks/suite/          LEGACY: the paper's original suite (free-form per-mode domains, carried H)
+benchmarks/suite/          LEGACY ablation baseline (free-form per-mode domains, carried H)
 ```

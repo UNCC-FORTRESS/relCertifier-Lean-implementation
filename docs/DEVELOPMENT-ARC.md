@@ -316,11 +316,23 @@ carry closed kernel `rfl` certificates**.
   `s' = v(1 − Σ a·ψ²)` with `ψ(u) = (p + w·u)e^{−gu}` in closed form through
   `polyExpInt₁/₂` (`∫ uⁱe^{−mu}`), bounding the damping factor pointwise by
   `chase_val_band` under the unchanged per-damper budget. **Coverage: 45/47
-  kernel-certified.** The two remaining are genuinely outside: shield_unreachable (no guard
-  band; certifier-inconclusive too) and endurance_orderlift_2to3 (the certifier's
-  v-tolerance flow queries need the tight `(v, a)` chart while H needs the cascade chart —
-  the two are incompatible, a mechanized chart-tension result; its own honest fixes are in
-  and it stays CERTIFIED).
+  kernel-certified.**
+- **EXT G: the chase GUARD coordinate — orderlift_2to3 returns (46/47).** The "chart
+  tension" verdict was wrong for the right formulation: repurposing the `a`-slot itself as
+  the cascade coordinate `u := a + 4v` (the rung4/story1_b pattern — `u' = c − 4u`,
+  `v' = u − 4v`, v and s untouched, the invariant re-expressed exactly) keeps the ladder's
+  s-tolerance interface and the certifier CERTIFIED (241 ms, faster than the original
+  chart), and with `u ≥ 0` the dip below `v = 0` vanishes — the escape-chase divergence was
+  a chart artifact here too, so the `v ≥ 0`/`s ≥ 0` floors return honestly. The new Lean
+  content is the guard coordinate being itself non-monotone: `CoordShape.chase` as GCOORD
+  (`settling_chaseG`), staying by `polyExp_le` on both sides from single-corner integer
+  discriminants (the `A`-corner enters monotonically; a `B` beyond the linear-dominance
+  threshold is squeezed against its corner), landing through PAIR covers — a far band per
+  side holding the staying bound plus a near band bridging to the own band, so FLAT's
+  thrust-cut dip crosses MODER into STEEP (the three-band chain) with no exp evaluation at
+  `dt`. **Coverage: 46/47 kernel-certified (25 settling + 19 terrain + 2 affine).** The one
+  remaining, shield_unreachable, has no guard band and is the certifier's own inconclusive
+  case — outside by construction, not by grammar.
 
 ## Current state
 
@@ -330,6 +342,7 @@ carry closed kernel `rfl` certificates**.
 - **Theorems**: `tooling_sound` (Arc 1), `theorem3_faithful_landing_clocked_uniform` +
   `theorem3_faithful_settling` + `boxLe_cut_lift` (Arcs 2–3), `wellformed_sound` +
   `wellformed_sound_terrain` + `wellformed_sound_affine` (Arc 4, through EXT 4c);
-  all axioms-clean, the Z3 leaf only at certificate construction. 45/47 benchmarks carry
-  kernel `rfl` well-formedness certificates (24 settling + 19 terrain + 2 affine).
+  all axioms-clean, the Z3 leaf only at certificate construction. 46/47 benchmarks carry
+  kernel `rfl` well-formedness certificates (25 settling + 19 terrain + 2 affine; the one
+  out, shield_unreachable, is the certifier's own inconclusive case).
 - **Trust boundary**: unchanged throughout — `z3_unsat_sound`, the parser, and nothing else.

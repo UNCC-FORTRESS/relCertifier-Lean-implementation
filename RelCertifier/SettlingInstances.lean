@@ -12,35 +12,59 @@ reduce `Rat` division/normalization, so all literals must be integers. The check
 inequalities are scale-invariant (margins and covers compare value×time products uniformly),
 and the contract gain `k` — sign-only in the checker — is scaled to an integer independently.
 
-COVERAGE (14/47, generated from the benchmark files). The remaining benchmarks map to named
+COVERAGE (21/47, generated from the benchmark files). The remaining benchmarks map to named
 extension classes, each a precise next step, none a gap in what is proven:
 
-* **signed-const** (`θ' = −0.2`: arm_chain_rung1/2, arm_fidelity_low, arm_refinement,
-  plant_fan_low) — the checker's const-rate branch takes `0 ≤ c`; the mirrored (lo-side
-  margin/cover) case is a small symmetric extension of `settling_const_driven`.
-* **frozen-driver** (`py' = vy` with `vy` frozen, env-free `py`: rover_position, rover_coupled,
-  rover_4d_box) — a coordinate driven by a NON-active frozen coordinate; linear witness,
-  needs `driven j` generalized beyond the active driver.
 * **driven-active / multi-coordinate guards** (the s-guarded terrain/story/refinement family,
   ~14) — guards on the integrator coordinate (plus the `v ≤ eq` cut conjunct), so the active
   coordinate is `driven` and guards span two coordinates; needs banded-rate landing
   (`[a + v_lo·dt, cap + v_hi·dt]` covers) and multi-band guards.
 * **coupled / higher-order / non-polynomial-shape** (attitude_rate, endurance_orderlift_2to3,
-  rover_tier_r1, rover3tier_rung12, rover_drag, the cubic-`s'` rungs) — phase D: the
+  rover_tier_r1, rover3tier_rung12, rover_drag, rover_4d_box's contract-driven `py`, the
+  cubic-`s'` rungs) — phase D: the
   invariance half can ride the cut channel's Z3 route; flow existence needs `PicardBridge`
   generalized.
 * shield_unreachable — the pre-existing inconclusive-Z3 ERROR benchmark (no guard band).
 
-CERTIFICATE STATUS: all 14 data terms are checker-VALID (compiled evaluation accepts each);
+CERTIFICATE STATUS: all 21 data terms are checker-VALID (compiled evaluation accepts each);
 the kernel `rfl` certificate currently closes for 3 (rover_terrain_M1, endurance_gain_M1,
-endurance_orderlift_1to2 — contract-active with driven integrators) and is blocked for
-the other 11 by a defeq-reduction quirk in the const-rate branch (the same computation
+endurance_orderlift_1to2) and is blocked for the other 18 by a defeq-reduction quirk in the const-rate branch (the same computation
 reduces in compiled evaluation; the checker and `wellformed_sound` are unaffected). Pinning
 the reduction is a small engineering follow-up, not a proof gap.
 -/
 import RelCertifier.WellFormedChecker
 
 namespace RelCertifier
+
+/-- `arm_chain_rung1` (R side; units: values ×1000, time ×1). -/
+def arm_chain_rung1M : SettlingModel 1 :=
+  { modes :=
+    [
+      { shapes := ![CoordShape.constRate 200], gcoord := 0,
+        glo := 0, ghi := 700, succs := [1] },
+      { shapes := ![CoordShape.constRate (-200 : ℤ)], gcoord := 0,
+        glo := 700, ghi := 850, succs := [0] } ]
+    env := ![{ lo := some 0, hi := some 1000 }]
+    dtQ := 1 }
+
+-- kernel-reduction pending (see header):
+-- example : decideWellFormed arm_chain_rung1M = true := rfl
+
+/-- `arm_chain_rung2` (R side; units: values ×1000, time ×1). -/
+def arm_chain_rung2M : SettlingModel 1 :=
+  { modes :=
+    [
+      { shapes := ![CoordShape.constRate 500], gcoord := 0,
+        glo := 0, ghi := 350, succs := [1] },
+      { shapes := ![CoordShape.constRate 300], gcoord := 0,
+        glo := 350, ghi := 700, succs := [2] },
+      { shapes := ![CoordShape.constRate (-200 : ℤ)], gcoord := 0,
+        glo := 700, ghi := 850, succs := [0] } ]
+    env := ![{ lo := some 0, hi := some 1000 }]
+    dtQ := 1 }
+
+-- kernel-reduction pending (see header):
+-- example : decideWellFormed arm_chain_rung2M = true := rfl
 
 /-- `arm_chain_rung3` (R side; units: values ×1000, time ×1). -/
 def arm_chain_rung3M : SettlingModel 2 :=
@@ -57,9 +81,7 @@ def arm_chain_rung3M : SettlingModel 2 :=
     env := ![{ lo := some 0, hi := some 1200 }, { lo := none, hi := none }]
     dtQ := 1 }
 
--- kernel-reduction pending (see header): the checker accepts this instance by
--- compiled evaluation; the `rfl` certificate is blocked on a defeq-reduction
--- quirk in the const-rate branch under investigation.
+-- kernel-reduction pending (see header):
 -- example : decideWellFormed arm_chain_rung3M = true := rfl
 
 /-- `arm_fidelity_high` (R side; units: values ×1000, time ×1). -/
@@ -77,10 +99,22 @@ def arm_fidelity_highM : SettlingModel 2 :=
     env := ![{ lo := some 0, hi := some 1200 }, { lo := none, hi := none }]
     dtQ := 1 }
 
--- kernel-reduction pending (see header): the checker accepts this instance by
--- compiled evaluation; the `rfl` certificate is blocked on a defeq-reduction
--- quirk in the const-rate branch under investigation.
+-- kernel-reduction pending (see header):
 -- example : decideWellFormed arm_fidelity_highM = true := rfl
+
+/-- `arm_fidelity_low` (R side; units: values ×1000, time ×1). -/
+def arm_fidelity_lowM : SettlingModel 2 :=
+  { modes :=
+    [
+      { shapes := ![CoordShape.constRate 200, CoordShape.frozen], gcoord := 0,
+        glo := 0, ghi := 700, succs := [1] },
+      { shapes := ![CoordShape.constRate (-200 : ℤ), CoordShape.frozen], gcoord := 0,
+        glo := 700, ghi := 850, succs := [0] } ]
+    env := ![{ lo := some 0, hi := some 1000 }, { lo := none, hi := none }]
+    dtQ := 1 }
+
+-- kernel-reduction pending (see header):
+-- example : decideWellFormed arm_fidelity_lowM = true := rfl
 
 /-- `arm_fidelity_mid` (R side; units: values ×1000, time ×1). -/
 def arm_fidelity_midM : SettlingModel 2 :=
@@ -95,10 +129,22 @@ def arm_fidelity_midM : SettlingModel 2 :=
     env := ![{ lo := some 0, hi := some 1200 }, { lo := none, hi := none }]
     dtQ := 1 }
 
--- kernel-reduction pending (see header): the checker accepts this instance by
--- compiled evaluation; the `rfl` certificate is blocked on a defeq-reduction
--- quirk in the const-rate branch under investigation.
+-- kernel-reduction pending (see header):
 -- example : decideWellFormed arm_fidelity_midM = true := rfl
+
+/-- `arm_refinement` (R side; units: values ×1000, time ×1). -/
+def arm_refinementM : SettlingModel 2 :=
+  { modes :=
+    [
+      { shapes := ![CoordShape.constRate 200, CoordShape.frozen], gcoord := 0,
+        glo := 0, ghi := 700, succs := [1] },
+      { shapes := ![CoordShape.constRate (-200 : ℤ), CoordShape.frozen], gcoord := 0,
+        glo := 700, ghi := 850, succs := [0] } ]
+    env := ![{ lo := some 0, hi := some 1000 }, { lo := none, hi := none }]
+    dtQ := 1 }
+
+-- kernel-reduction pending (see header):
+-- example : decideWellFormed arm_refinementM = true := rfl
 
 /-- `endurance_gain_M1` (R side; units: values ×1000, time ×2). -/
 def endurance_gain_M1M : SettlingModel 2 :=
@@ -141,9 +187,7 @@ def match_multi_epsM : SettlingModel 2 :=
     env := ![{ lo := some 0, hi := some 1150 }, { lo := some 0, hi := none }]
     dtQ := 3 }
 
--- kernel-reduction pending (see header): the checker accepts this instance by
--- compiled evaluation; the `rfl` certificate is blocked on a defeq-reduction
--- quirk in the const-rate branch under investigation.
+-- kernel-reduction pending (see header):
 -- example : decideWellFormed match_multi_epsM = true := rfl
 
 /-- `match_multi_rate` (R side; units: values ×1000, time ×10). -/
@@ -155,9 +199,7 @@ def match_multi_rateM : SettlingModel 2 :=
     env := ![{ lo := some 0, hi := some 1150 }, { lo := some 0, hi := none }]
     dtQ := 3 }
 
--- kernel-reduction pending (see header): the checker accepts this instance by
--- compiled evaluation; the `rfl` certificate is blocked on a defeq-reduction
--- quirk in the const-rate branch under investigation.
+-- kernel-reduction pending (see header):
 -- example : decideWellFormed match_multi_rateM = true := rfl
 
 /-- `plant_fan_high` (R side; units: values ×1000, time ×1). -/
@@ -175,10 +217,22 @@ def plant_fan_highM : SettlingModel 2 :=
     env := ![{ lo := some 0, hi := some 1200 }, { lo := none, hi := none }]
     dtQ := 1 }
 
--- kernel-reduction pending (see header): the checker accepts this instance by
--- compiled evaluation; the `rfl` certificate is blocked on a defeq-reduction
--- quirk in the const-rate branch under investigation.
+-- kernel-reduction pending (see header):
 -- example : decideWellFormed plant_fan_highM = true := rfl
+
+/-- `plant_fan_low` (R side; units: values ×1000, time ×1). -/
+def plant_fan_lowM : SettlingModel 2 :=
+  { modes :=
+    [
+      { shapes := ![CoordShape.constRate 200, CoordShape.frozen], gcoord := 0,
+        glo := 0, ghi := 700, succs := [1] },
+      { shapes := ![CoordShape.constRate (-200 : ℤ), CoordShape.frozen], gcoord := 0,
+        glo := 700, ghi := 850, succs := [0] } ]
+    env := ![{ lo := some 0, hi := some 1000 }, { lo := none, hi := none }]
+    dtQ := 1 }
+
+-- kernel-reduction pending (see header):
+-- example : decideWellFormed plant_fan_lowM = true := rfl
 
 /-- `plant_fan_mid` (R side; units: values ×1000, time ×1). -/
 def plant_fan_midM : SettlingModel 2 :=
@@ -193,9 +247,7 @@ def plant_fan_midM : SettlingModel 2 :=
     env := ![{ lo := some 0, hi := some 1200 }, { lo := none, hi := none }]
     dtQ := 1 }
 
--- kernel-reduction pending (see header): the checker accepts this instance by
--- compiled evaluation; the `rfl` certificate is blocked on a defeq-reduction
--- quirk in the const-rate branch under investigation.
+-- kernel-reduction pending (see header):
 -- example : decideWellFormed plant_fan_midM = true := rfl
 
 /-- `robot_braking` (R side; units: values ×1000, time ×1). -/
@@ -211,9 +263,7 @@ def robot_brakingM : SettlingModel 1 :=
     env := ![{ lo := some 0, hi := some 3650 }]
     dtQ := 2 }
 
--- kernel-reduction pending (see header): the checker accepts this instance by
--- compiled evaluation; the `rfl` certificate is blocked on a defeq-reduction
--- quirk in the const-rate branch under investigation.
+-- kernel-reduction pending (see header):
 -- example : decideWellFormed robot_brakingM = true := rfl
 
 /-- `rover3_M1` (R side; units: values ×1000, time ×1). -/
@@ -229,9 +279,7 @@ def rover3_M1M : SettlingModel 2 :=
     env := ![{ lo := some (-50 : ℤ), hi := none }, { lo := some 250, hi := some 1100 }]
     dtQ := 1 }
 
--- kernel-reduction pending (see header): the checker accepts this instance by
--- compiled evaluation; the `rfl` certificate is blocked on a defeq-reduction
--- quirk in the const-rate branch under investigation.
+-- kernel-reduction pending (see header):
 -- example : decideWellFormed rover3_M1M = true := rfl
 
 /-- `rover3tier_M1` (R side; units: values ×1000, time ×10). -/
@@ -245,10 +293,40 @@ def rover3tier_M1M : SettlingModel 2 :=
     env := ![{ lo := some 0, hi := some 1150 }, { lo := some 0, hi := none }]
     dtQ := 3 }
 
--- kernel-reduction pending (see header): the checker accepts this instance by
--- compiled evaluation; the `rfl` certificate is blocked on a defeq-reduction
--- quirk in the const-rate branch under investigation.
+-- kernel-reduction pending (see header):
 -- example : decideWellFormed rover3tier_M1M = true := rfl
+
+/-- `rover_coupled` (R side; units: values ×1000, time ×1). -/
+def rover_coupledM : SettlingModel 4 :=
+  { modes :=
+    [
+      { shapes := ![CoordShape.driven 2, CoordShape.driven 3, CoordShape.constRate 400, CoordShape.frozen], gcoord := 2,
+        glo := 250, ghi := 300, succs := [1] },
+      { shapes := ![CoordShape.driven 2, CoordShape.driven 3, CoordShape.constRate 200, CoordShape.frozen], gcoord := 2,
+        glo := 300, ghi := 750, succs := [2] },
+      { shapes := ![CoordShape.driven 2, CoordShape.driven 3, CoordShape.frozen, CoordShape.frozen], gcoord := 2,
+        glo := 750, ghi := 1000, succs := [] } ]
+    env := ![{ lo := some (-50 : ℤ), hi := none }, { lo := none, hi := none }, { lo := some 250, hi := some 1100 }, { lo := some (-1000 : ℤ), hi := some 1100 }]
+    dtQ := 1 }
+
+-- kernel-reduction pending (see header):
+-- example : decideWellFormed rover_coupledM = true := rfl
+
+/-- `rover_position` (R side; units: values ×1000, time ×1). -/
+def rover_positionM : SettlingModel 4 :=
+  { modes :=
+    [
+      { shapes := ![CoordShape.driven 2, CoordShape.driven 3, CoordShape.constRate 400, CoordShape.frozen], gcoord := 2,
+        glo := 250, ghi := 300, succs := [1] },
+      { shapes := ![CoordShape.driven 2, CoordShape.driven 3, CoordShape.constRate 200, CoordShape.frozen], gcoord := 2,
+        glo := 300, ghi := 750, succs := [2] },
+      { shapes := ![CoordShape.driven 2, CoordShape.driven 3, CoordShape.frozen, CoordShape.frozen], gcoord := 2,
+        glo := 750, ghi := 1000, succs := [] } ]
+    env := ![{ lo := some (-50 : ℤ), hi := none }, { lo := none, hi := none }, { lo := some 250, hi := some 1100 }, { lo := some (-1000 : ℤ), hi := some 1100 }]
+    dtQ := 1 }
+
+-- kernel-reduction pending (see header):
+-- example : decideWellFormed rover_positionM = true := rfl
 
 /-- `rover_terrain_M1` (R side; units: values ×1000, time ×2). -/
 def rover_terrain_M1M : SettlingModel 2 :=

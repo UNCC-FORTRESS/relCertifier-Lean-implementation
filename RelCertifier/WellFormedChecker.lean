@@ -103,7 +103,13 @@ def checkMode (M : SettlingModel n) (q : ℕ) (m : SettlingMode n) : Bool :=
     ((List.finRange n).all fun i =>
       decide (i = m.gcoord) || decide (m.shapes i = CoordShape.frozen) ||
       (decide (m.shapes i = CoordShape.driven m.gcoord) &&
-        decide ((M.env i).hi = none)))
+        decide ((M.env i).hi = none)) ||
+      -- EXT 2: driven by a non-active FROZEN coordinate, itself envelope-free
+      (match m.shapes i with
+       | CoordShape.driven j =>
+           !decide (j = m.gcoord) && decide (m.shapes j = CoordShape.frozen) &&
+           decide ((M.env i).lo = none) && decide ((M.env i).hi = none)
+       | _ => false))
   decide (m.glo ≤ m.ghi) &&
   bandInside m.glo m.ghi (M.env m.gcoord) &&
   m.succs.all (fun q' => decide (q' < M.modes.length)) &&
@@ -113,10 +119,12 @@ def checkMode (M : SettlingModel n) (q : ℕ) (m : SettlingMode n) : Bool :=
        othersFlex &&
        decide (0 ≤ k) && decide (m.glo ≤ c) && decide (c ≤ m.ghi)   -- eq inside own band
    | .constRate c =>
-       othersFlex &&
-       decide (0 ≤ c) &&
-       -- margin: one step cannot cross the envelope
-       ((M.env m.gcoord).hi.all fun hi => decide (m.ghi + c * dt ≤ hi)) &&
+       -- EXT 1: signed rates — nonneg rates take the flex path with an upper margin;
+       -- negative rates (a Return mode) take the frozen path with a LOWER margin
+       ((decide (0 ≤ c) && othersFlex &&
+         ((M.env m.gcoord).hi.all fun hi => decide (m.ghi + c * dt ≤ hi))) ||
+        (decide (c < 0) && othersFrozen &&
+         ((M.env m.gcoord).lo.all fun lo => decide (lo ≤ m.glo + c * dt)))) &&
        -- landing: some self-or-successor band covers the one-step image
        ((q :: m.succs).any fun q' =>
          match M.modes[q']? with
@@ -644,7 +652,9 @@ noncomputable def drivenVal (m : SettlingMode n) (cR : ℝ) (base : State (Var n
     (i : Fin n) : ℝ :=
   if i = m.gcoord then base (Rv i) + cR * t
   else match m.shapes i with
-    | CoordShape.driven _ => base (Rv i) + base (Rv m.gcoord) * t + cR / 2 * t ^ 2
+    | CoordShape.driven j =>
+        if j = m.gcoord then base (Rv i) + base (Rv m.gcoord) * t + cR / 2 * t ^ 2
+        else base (Rv i) + base (Rv j) * t
     | _ => base (Rv i)
 
 /-- The phase-B witness flow. -/
@@ -665,13 +675,36 @@ theorem drivenΦ_nonR (m : SettlingMode n) (cR : ℝ) (base : State (Var n)) (t 
   | L => rfl
   | Aux => rfl
 
+theorem drivenVal_frozen {m : SettlingMode n} {cR : ℝ} {base : State (Var n)} {t : ℝ}
+    {i : Fin n} (hig : i ≠ m.gcoord) (hfz : m.shapes i = CoordShape.frozen) :
+    drivenVal m cR base t i = base (Rv i) := by
+  simp [drivenVal, hig, hfz]
+
+theorem drivenVal_dactive {m : SettlingMode n} {cR : ℝ} {base : State (Var n)} {t : ℝ}
+    {i : Fin n} (hig : i ≠ m.gcoord) (hdr : m.shapes i = CoordShape.driven m.gcoord) :
+    drivenVal m cR base t i = base (Rv i) + base (Rv m.gcoord) * t + cR / 2 * t ^ 2 := by
+  simp [drivenVal, hig, hdr]
+
+theorem drivenVal_dfrozen {m : SettlingMode n} {cR : ℝ} {base : State (Var n)} {t : ℝ}
+    {i j : Fin n} (hig : i ≠ m.gcoord) (hdr : m.shapes i = CoordShape.driven j)
+    (hjne : j ≠ m.gcoord) :
+    drivenVal m cR base t i = base (Rv i) + base (Rv j) * t := by
+  simp [drivenVal, hig, hdr, hjne]
+
+/-- The flexible non-active-coordinate condition (EXT 2 included): frozen, driven by the
+active coordinate (no upper wall), or driven by a non-active FROZEN coordinate (envelope-free). -/
+def FlexOthers (M : SettlingModel n) (m : SettlingMode n) : Prop :=
+  ∀ i, i ≠ m.gcoord → m.shapes i = CoordShape.frozen ∨
+    (m.shapes i = CoordShape.driven m.gcoord ∧ (M.env i).hi = none) ∨
+    (∃ j, m.shapes i = CoordShape.driven j ∧ j ≠ m.gcoord ∧
+      m.shapes j = CoordShape.frozen ∧ (M.env i).lo = none ∧ (M.env i).hi = none)
+
 /-- CONST-RATE active coordinate, others frozen OR driven by it (integrators with no upper
 envelope wall and a nonneg driving band): the affine/quadratic product witness. -/
 theorem settling_const_driven (M : SettlingModel n) {q : ℕ} {m : SettlingMode n}
     (hq : M.modes[q]? = some m) {c : ℤ}
     (hsh : m.shapes m.gcoord = CoordShape.constRate c)
-    (hflex : ∀ i, i ≠ m.gcoord → m.shapes i = CoordShape.frozen ∨
-        (m.shapes i = CoordShape.driven m.gcoord ∧ (M.env i).hi = none))
+    (hflex : FlexOthers M m)
     (hglo0 : 0 ≤ m.glo) (hc : 0 ≤ c)
     (hloIn : ∀ l', (M.env m.gcoord).lo = some l' → l' ≤ m.glo)
     (hmargin : ∀ h', (M.env m.gcoord).hi = some h' → m.ghi + c * M.dt ≤ h')
@@ -713,12 +746,10 @@ theorem settling_const_driven (M : SettlingModel n) {q : ℕ} {m : SettlingMode 
             have hmR : (m.ghi : ℝ) + (c : ℝ) * (M.dt : ℝ) ≤ (h : ℝ) := by
               exact_mod_cast hmargin h hcase
             linarith
-    · rcases hflex i hig with hfz | ⟨hdr, hhi⟩
-      · unfold drivenVal
-        rw [if_neg hig, hfz]
+    · rcases hflex i hig with hfz | ⟨hdr, hhi⟩ | ⟨j, hdr, hjne, -, hlo, hhi⟩
+      · rw [drivenVal_frozen hig hfz]
         exact (sat_envF.mp henv) i
-      · unfold drivenVal
-        rw [if_neg hig, hdr]
+      · rw [drivenVal_dactive hig hdr]
         have hbe := (sat_envF.mp henv) i
         unfold Band.memR at hbe ⊢
         rcases hbe with ⟨hbl, hbh⟩
@@ -732,6 +763,10 @@ theorem settling_const_driven (M : SettlingModel n) {q : ℕ} {m : SettlingMode 
               show (l : ℝ) ≤ base (Rv i) + base (Rv m.gcoord) * t + (c : ℝ) / 2 * t ^ 2
               linarith
         · rw [hhi]; trivial
+      · -- EXT 2: envelope-free coordinate — membership trivial
+        unfold Band.memR
+        rw [hlo, hhi]
+        exact ⟨trivial, trivial⟩
   obtain ⟨q', hq'mem, m', hm', hgc', hcov1, hcov2⟩ := hland
   have hcov1R : (m'.glo : ℝ) ≤ (m.glo : ℝ) + (c : ℝ) * (M.dt : ℝ) := by exact_mod_cast hcov1
   have hcov2R : (m.ghi : ℝ) + (c : ℝ) * (M.dt : ℝ) ≤ (m'.ghi : ℝ) := by exact_mod_cast hcov2
@@ -771,17 +806,17 @@ theorem settling_const_driven (M : SettlingModel n) {q : ℕ} {m : SettlingMode 
       have h := ((hasDerivAt_id t).const_mul (c : ℝ)).const_add (base (Rv m.gcoord))
       simp only [id, mul_one] at h
       exact h.hasDerivWithinAt
-    · rcases hflex i hig with hfz | ⟨hdr, -⟩
+    · rcases hflex i hig with hfz | ⟨hdr, -⟩ | ⟨j, hdr, hjne, hjfz, -, -⟩
       · have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf i))
             (drivenΦ m (c : ℝ) base t) = 0 := by
           simp [SettlingMode.fieldOf, hfz, CoordShape.field, Term.eval, AOp.interp]
         rw [heval]
         have hcurve : (fun u => drivenΦ m (c : ℝ) base u (Rv i))
             = fun _ => base (Rv i) := by
-          funext u; rw [drivenΦ_Rv]; unfold drivenVal; rw [if_neg hig, hfz]
+          funext u; rw [drivenΦ_Rv, drivenVal_frozen hig hfz]
         rw [hcurve]
         exact hasDerivWithinAt_const t _ _
-      · -- driven: the derivative is the CURRENT value of the active coordinate
+      · -- driven by the ACTIVE coordinate: quadratic curve
         have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf i))
             (drivenΦ m (c : ℝ) base t)
             = base (Rv m.gcoord) + (c : ℝ) * t := by
@@ -790,7 +825,7 @@ theorem settling_const_driven (M : SettlingModel n) {q : ℕ} {m : SettlingMode 
         rw [heval]
         have hcurve : (fun u => drivenΦ m (c : ℝ) base u (Rv i))
             = fun u => base (Rv i) + base (Rv m.gcoord) * u + (c : ℝ) / 2 * u ^ 2 := by
-          funext u; rw [drivenΦ_Rv]; unfold drivenVal; rw [if_neg hig, hdr]
+          funext u; rw [drivenΦ_Rv, drivenVal_dactive hig hdr]
         rw [hcurve]
         have h1 : HasDerivAt (fun u : ℝ => base (Rv i) + base (Rv m.gcoord) * u)
             (base (Rv m.gcoord)) t := by
@@ -802,6 +837,21 @@ theorem settling_const_driven (M : SettlingModel n) {q : ℕ} {m : SettlingMode 
             push_cast; ring
           rwa [he] at h
         have h := h1.add h2
+        exact h.hasDerivWithinAt
+      · -- EXT 2: driven by a frozen non-active coordinate — linear curve, constant driver
+        have hvalj : drivenΦ m (c : ℝ) base t (Rv j) = base (Rv j) := by
+          rw [drivenΦ_Rv, drivenVal_frozen hjne hjfz]
+        have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf i))
+            (drivenΦ m (c : ℝ) base t) = base (Rv j) := by
+          simp only [SettlingMode.fieldOf, hdr, CoordShape.field, Term.eval, AOp.interp]
+          rw [hvalj]; ring
+        rw [heval]
+        have hcurve : (fun u => drivenΦ m (c : ℝ) base u (Rv i))
+            = fun u => base (Rv i) + base (Rv j) * u := by
+          funext u; rw [drivenΦ_Rv, drivenVal_dfrozen hig hdr hjne]
+        rw [hcurve]
+        have h := ((hasDerivAt_id t).const_mul (base (Rv j))).const_add (base (Rv i))
+        simp only [id, mul_one] at h
         exact h.hasDerivWithinAt
   · -- mask
     intro t ht x hx
@@ -877,8 +927,9 @@ noncomputable def drivenValC (m : SettlingMode n) (kR cR : ℝ) (base : State (V
     (i : Fin n) : ℝ :=
   if i = m.gcoord then cR + (base (Rv i) - cR) * Real.exp (-(kR * t))
   else match m.shapes i with
-    | CoordShape.driven _ =>
-        base (Rv i) + cR * t + (base (Rv m.gcoord) - cR) * expInt kR t
+    | CoordShape.driven j =>
+        if j = m.gcoord then base (Rv i) + cR * t + (base (Rv m.gcoord) - cR) * expInt kR t
+        else base (Rv i) + base (Rv j) * t
     | _ => base (Rv i)
 
 /-- The phase-C witness flow. -/
@@ -899,13 +950,29 @@ theorem drivenΦC_nonR (m : SettlingMode n) (kR cR : ℝ) (base : State (Var n))
   | L => rfl
   | Aux => rfl
 
+theorem drivenValC_frozen {m : SettlingMode n} {kR cR : ℝ} {base : State (Var n)} {t : ℝ}
+    {i : Fin n} (hig : i ≠ m.gcoord) (hfz : m.shapes i = CoordShape.frozen) :
+    drivenValC m kR cR base t i = base (Rv i) := by
+  simp [drivenValC, hig, hfz]
+
+theorem drivenValC_dactive {m : SettlingMode n} {kR cR : ℝ} {base : State (Var n)} {t : ℝ}
+    {i : Fin n} (hig : i ≠ m.gcoord) (hdr : m.shapes i = CoordShape.driven m.gcoord) :
+    drivenValC m kR cR base t i
+      = base (Rv i) + cR * t + (base (Rv m.gcoord) - cR) * expInt kR t := by
+  simp [drivenValC, hig, hdr]
+
+theorem drivenValC_dfrozen {m : SettlingMode n} {kR cR : ℝ} {base : State (Var n)} {t : ℝ}
+    {i j : Fin n} (hig : i ≠ m.gcoord) (hdr : m.shapes i = CoordShape.driven j)
+    (hjne : j ≠ m.gcoord) :
+    drivenValC m kR cR base t i = base (Rv i) + base (Rv j) * t := by
+  simp [drivenValC, hig, hdr, hjne]
+
 /-- CONTRACT active coordinate (equilibrium in its own band), others frozen OR driven by it
 (integrators with no upper envelope wall, nonneg band): the exponential/exp-integral witness. -/
 theorem settling_contract_driven (M : SettlingModel n) {q : ℕ} {m : SettlingMode n}
     (hq : M.modes[q]? = some m) {k c : ℤ}
     (hsh : m.shapes m.gcoord = CoordShape.contract k c)
-    (hflex : ∀ i, i ≠ m.gcoord → m.shapes i = CoordShape.frozen ∨
-        (m.shapes i = CoordShape.driven m.gcoord ∧ (M.env i).hi = none))
+    (hflex : FlexOthers M m)
     (hglo0 : 0 ≤ m.glo)
     (hk : 0 ≤ k) (hcl : m.glo ≤ c) (hch : c ≤ m.ghi)
     (hloIn : ∀ l', (M.env m.gcoord).lo = some l' → l' ≤ m.glo)
@@ -958,12 +1025,10 @@ theorem settling_contract_driven (M : SettlingModel n) {q : ℕ} {m : SettlingMo
         | some h =>
             have hhG : (m.ghi : ℝ) ≤ (h : ℝ) := by exact_mod_cast hhiIn h hcase
             linarith
-    · rcases hflex i hig with hfz | ⟨hdr, hhi⟩
-      · unfold drivenValC
-        rw [if_neg hig, hfz]
+    · rcases hflex i hig with hfz | ⟨hdr, hhi⟩ | ⟨j, hdr, hjne, -, hlo, hhi⟩
+      · rw [drivenValC_frozen hig hfz]
         exact (sat_envF.mp henv) i
-      · unfold drivenValC
-        rw [if_neg hig, hdr]
+      · rw [drivenValC_dactive hig hdr]
         have hbe := (sat_envF.mp henv) i
         unfold Band.memR at hbe ⊢
         rcases hbe with ⟨hbl, hbh⟩
@@ -984,6 +1049,11 @@ theorem settling_contract_driven (M : SettlingModel n) {q : ℕ} {m : SettlingMo
                 + (base (Rv m.gcoord) - (c : ℝ)) * expInt (k : ℝ) t
               linarith
         · rw [hhi]; trivial
+      · -- EXT 2: envelope-free coordinate
+        rw [drivenValC_dfrozen hig hdr hjne]
+        unfold Band.memR
+        rw [hlo, hhi]
+        exact ⟨trivial, trivial⟩
   have hstayGd : ∀ t, 0 ≤ t →
       Formula.sat (M.GdOf q) (drivenΦC m (k : ℝ) (c : ℝ) base t) := by
     intro t ht
@@ -1042,14 +1112,14 @@ theorem settling_contract_driven (M : SettlingModel n) {q : ℕ} {m : SettlingMo
         rw [hval_g]; ring
       rw [← heq]
       exact h1.hasDerivWithinAt
-    · rcases hflex i hig with hfz | ⟨hdr, -⟩
+    · rcases hflex i hig with hfz | ⟨hdr, -⟩ | ⟨j, hdr, hjne, hjfz, -, -⟩
       · have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf i))
             (drivenΦC m (k : ℝ) (c : ℝ) base t) = 0 := by
           simp [SettlingMode.fieldOf, hfz, CoordShape.field, Term.eval, AOp.interp]
         rw [heval]
         have hcurve : (fun u => drivenΦC m (k : ℝ) (c : ℝ) base u (Rv i))
             = fun _ => base (Rv i) := by
-          funext u; rw [drivenΦC_Rv]; unfold drivenValC; rw [if_neg hig, hfz]
+          funext u; rw [drivenΦC_Rv, drivenValC_frozen hig hfz]
         rw [hcurve]
         exact hasDerivWithinAt_const t _ _
       · -- driven: derivative = the CURRENT value of the active coordinate
@@ -1062,7 +1132,7 @@ theorem settling_contract_driven (M : SettlingModel n) {q : ℕ} {m : SettlingMo
         have hcurve : (fun u => drivenΦC m (k : ℝ) (c : ℝ) base u (Rv i))
             = fun u => base (Rv i) + (c : ℝ) * u
                 + (base (Rv m.gcoord) - (c : ℝ)) * expInt (k : ℝ) u := by
-          funext u; rw [drivenΦC_Rv]; unfold drivenValC; rw [if_neg hig, hdr]
+          funext u; rw [drivenΦC_Rv, drivenValC_dactive hig hdr]
         rw [hcurve]
         have h1 : HasDerivAt (fun u : ℝ => base (Rv i) + (c : ℝ) * u) (c : ℝ) t := by
           have h := ((hasDerivAt_id t).const_mul (c : ℝ)).const_add (base (Rv i))
@@ -1073,6 +1143,21 @@ theorem settling_contract_driven (M : SettlingModel n) {q : ℕ} {m : SettlingMo
           (expInt_hasDeriv (k : ℝ) t).const_mul (base (Rv m.gcoord) - (c : ℝ))
         have h := h1.add h2
         exact h.hasDerivWithinAt
+      · -- EXT 2: driven by a frozen non-active coordinate — linear curve, constant driver
+        have hvalj : drivenΦC m (k : ℝ) (c : ℝ) base t (Rv j) = base (Rv j) := by
+          rw [drivenΦC_Rv, drivenValC_frozen hjne hjfz]
+        have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf i))
+            (drivenΦC m (k : ℝ) (c : ℝ) base t) = base (Rv j) := by
+          simp only [SettlingMode.fieldOf, hdr, CoordShape.field, Term.eval, AOp.interp]
+          rw [hvalj]; ring
+        rw [heval]
+        have hcurve : (fun u => drivenΦC m (k : ℝ) (c : ℝ) base u (Rv i))
+            = fun u => base (Rv i) + base (Rv j) * u := by
+          funext u; rw [drivenΦC_Rv, drivenValC_dfrozen hig hdr hjne]
+        rw [hcurve]
+        have h := ((hasDerivAt_id t).const_mul (base (Rv j))).const_add (base (Rv i))
+        simp only [id, mul_one] at h
+        exact h.hasDerivWithinAt
   · -- mask
     intro t ht x hx
     refine drivenΦC_nonR m (k : ℝ) (c : ℝ) base t ?_
@@ -1081,6 +1166,104 @@ theorem settling_contract_driven (M : SettlingModel n) {q : ℕ} {m : SettlingMo
       rw [hxi]
       simp only [rightBlock, ODESystem.bound, List.map_map]
       exact List.mem_map.mpr ⟨i, List.mem_finRange i, rfl⟩)
+
+/-- CONST-RATE active coordinate with a NEGATIVE rate (EXT 1 — a Return mode), others frozen:
+the affine witness, lower-side margin, landing in the covering band. -/
+theorem settling_const_neg (M : SettlingModel n) {q : ℕ} {m : SettlingMode n}
+    (hq : M.modes[q]? = some m) {c : ℤ}
+    (hsh : m.shapes m.gcoord = CoordShape.constRate c)
+    (hfr : ∀ i, i ≠ m.gcoord → m.shapes i = CoordShape.frozen)
+    (hc : c < 0)
+    (hloMargin : ∀ l', (M.env m.gcoord).lo = some l' → l' ≤ m.glo + c * M.dt)
+    (hhiIn : ∀ h', (M.env m.gcoord).hi = some h' → m.ghi ≤ h')
+    (hland : ∃ q' ∈ q :: m.succs, ∃ m', M.modes[q']? = some m' ∧ m'.gcoord = m.gcoord ∧
+        m'.glo ≤ m.glo + c * M.dt ∧ m.ghi + c * M.dt ≤ m'.ghi)
+    (hdt : (0 : ℝ) ≤ (M.dt : ℝ)) :
+    GuardSettlingB M.graph M.GdOf m.fieldOf (Term.const 1) M.envF ((M.dt : ℝ)) q := by
+  intro base hb
+  obtain ⟨henv, hblo, hbhi⟩ := (sat_GdOf hq).mp hb
+  have hcR : ((c : ℤ) : ℝ) < 0 := by exact_mod_cast hc
+  have hstayEnv : ∀ t, 0 ≤ t → t ≤ (M.dt : ℝ) →
+      Formula.sat M.envF (affineΦ m.gcoord (c : ℝ) base t) := by
+    intro t ht htd
+    have hct0 : (c : ℝ) * t ≤ 0 := mul_nonpos_of_nonpos_of_nonneg (le_of_lt hcR) ht
+    have hctd : (c : ℝ) * (M.dt : ℝ) ≤ (c : ℝ) * t := by nlinarith
+    refine envF_update henv (fun x hx => affineΦ_other m.gcoord (c : ℝ) base t hx) ?_
+    unfold Band.memR
+    constructor
+    · cases hcase : (M.env m.gcoord).lo with
+      | none => trivial
+      | some l =>
+          have hlG : (l : ℝ) ≤ (m.glo : ℝ) + (c : ℝ) * (M.dt : ℝ) := by
+            exact_mod_cast hloMargin l hcase
+          show (l : ℝ) ≤ affineΦ m.gcoord (c : ℝ) base t (Rv m.gcoord)
+          simp [affineΦ]
+          linarith
+    · cases hcase : (M.env m.gcoord).hi with
+      | none => trivial
+      | some h =>
+          have hhG : (m.ghi : ℝ) ≤ (h : ℝ) := by exact_mod_cast hhiIn h hcase
+          show affineΦ m.gcoord (c : ℝ) base t (Rv m.gcoord) ≤ (h : ℝ)
+          simp [affineΦ]
+          linarith
+  obtain ⟨q', hq'mem, m', hm', hgc', hcov1, hcov2⟩ := hland
+  have hcov1R : (m'.glo : ℝ) ≤ (m.glo : ℝ) + (c : ℝ) * (M.dt : ℝ) := by exact_mod_cast hcov1
+  have hcov2R : (m.ghi : ℝ) + (c : ℝ) * (M.dt : ℝ) ≤ (m'.ghi : ℝ) := by exact_mod_cast hcov2
+  have hq'ret : q' ∈ q :: M.graph.retainedSucc q := by
+    rcases List.mem_cons.mp hq'mem with rfl | h
+    · exact List.mem_cons_self ..
+    · exact List.mem_cons_of_mem _ (succ_mem_retained M hq h)
+  refine ⟨affineΦ m.gcoord (c : ℝ) base, ?_, ?_, ?_,
+    fun t ht => hstayEnv t ht.1 ht.2, q', hq'ret, ?_⟩
+  · funext x
+    by_cases hx : x = Rv m.gcoord
+    · subst hx; simp [affineΦ]
+    · exact affineΦ_other m.gcoord (c : ℝ) base 0 hx
+  · intro t ht p hp
+    simp only [rightBlock, List.mem_map, List.mem_finRange] at hp
+    obtain ⟨i, -, rfl⟩ := hp
+    by_cases hij : i = m.gcoord
+    · rw [hij]
+      have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf m.gcoord))
+          (affineΦ m.gcoord (c : ℝ) base t) = (c : ℝ) := by
+        simp [SettlingMode.fieldOf, hsh, CoordShape.field, Term.eval, AOp.interp]
+      rw [heval]
+      have hcurve : (fun u => affineΦ m.gcoord (c : ℝ) base u (Rv m.gcoord))
+          = fun u => base (Rv m.gcoord) + (c : ℝ) * u := by
+        funext u; simp [affineΦ]
+      rw [hcurve]
+      have h := ((hasDerivAt_id t).const_mul (c : ℝ)).const_add (base (Rv m.gcoord))
+      simp only [id, mul_one] at h
+      exact h.hasDerivWithinAt
+    · have hfz : m.shapes i = CoordShape.frozen := hfr i hij
+      have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf i))
+          (affineΦ m.gcoord (c : ℝ) base t) = 0 := by
+        simp [SettlingMode.fieldOf, hfz, CoordShape.field, Term.eval, AOp.interp]
+      rw [heval]
+      have hcurve : (fun u => affineΦ m.gcoord (c : ℝ) base u (Rv i))
+          = fun _ => base (Rv i) := by
+        funext u
+        exact affineΦ_other m.gcoord (c : ℝ) base u
+          (fun hc' => hij (by simpa [Rv, Prod.ext_iff] using hc'))
+      rw [hcurve]
+      exact hasDerivWithinAt_const t _ _
+  · intro t ht x hx
+    have hxj : x ≠ Rv m.gcoord := by
+      intro hcx; subst hcx
+      exact hx (by
+        simp only [rightBlock, ODESystem.bound, List.map_map]
+        exact List.mem_map.mpr ⟨m.gcoord, List.mem_finRange m.gcoord, rfl⟩)
+    exact affineΦ_other m.gcoord (c : ℝ) base t hxj
+  · rw [sat_GdOf hm']
+    refine ⟨hstayEnv _ hdt le_rfl, ?_, ?_⟩
+    · rw [hgc']
+      show (m'.glo : ℝ) ≤ affineΦ m.gcoord (c : ℝ) base (M.dt : ℝ) (Rv m.gcoord)
+      simp [affineΦ]
+      linarith
+    · rw [hgc']
+      show affineΦ m.gcoord (c : ℝ) base (M.dt : ℝ) (Rv m.gcoord) ≤ (m'.ghi : ℝ)
+      simp [affineΦ]
+      linarith
 
 /-! ### Extraction: the checker's Bool facts as Props -/
 
@@ -1093,14 +1276,12 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
     (match m.shapes m.gcoord with
      | CoordShape.frozen => ∀ i, i ≠ m.gcoord → m.shapes i = CoordShape.frozen
      | CoordShape.contract k c =>
-         (∀ i, i ≠ m.gcoord → m.shapes i = CoordShape.frozen ∨
-           (m.shapes i = CoordShape.driven m.gcoord ∧ (M.env i).hi = none)) ∧
-         0 ≤ m.glo ∧ 0 ≤ k ∧ m.glo ≤ c ∧ c ≤ m.ghi
+         FlexOthers M m ∧ 0 ≤ m.glo ∧ 0 ≤ k ∧ m.glo ≤ c ∧ c ≤ m.ghi
      | CoordShape.constRate c =>
-         (∀ i, i ≠ m.gcoord → m.shapes i = CoordShape.frozen ∨
-           (m.shapes i = CoordShape.driven m.gcoord ∧ (M.env i).hi = none)) ∧
-         0 ≤ m.glo ∧ 0 ≤ c ∧
-         (∀ h', (M.env m.gcoord).hi = some h' → m.ghi + c * M.dt ≤ h') ∧
+         ((0 ≤ c ∧ FlexOthers M m ∧ 0 ≤ m.glo ∧
+             (∀ h', (M.env m.gcoord).hi = some h' → m.ghi + c * M.dt ≤ h')) ∨
+          (c < 0 ∧ (∀ i, i ≠ m.gcoord → m.shapes i = CoordShape.frozen) ∧
+             (∀ l', (M.env m.gcoord).lo = some l' → l' ≤ m.glo + c * M.dt))) ∧
          (∃ q' ∈ q :: m.succs, ∃ m', M.modes[q']? = some m' ∧ m'.gcoord = m.gcoord ∧
            m'.glo ≤ m.glo + c * M.dt ∧ m.ghi + c * M.dt ≤ m'.ghi)
      | CoordShape.driven _ => False) := by
@@ -1121,31 +1302,69 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
     have := hinside.2
     rw [hh'] at this
     simpa using this
+  -- the two others-conditions, decoded once
+  have decodeFrozen : ∀ (b : Bool), b = ((List.finRange n).all fun i =>
+      decide (i = m.gcoord) || decide (m.shapes i = CoordShape.frozen)) → b = true →
+      ∀ i, i ≠ m.gcoord → m.shapes i = CoordShape.frozen := by
+    intro b hbdef hb i hi
+    rw [hbdef, List.all_eq_true] at hb
+    have := hb i (List.mem_finRange i)
+    simp only [Bool.or_eq_true, decide_eq_true_eq] at this
+    rcases this with h1 | h2
+    · exact absurd h1 hi
+    · exact h2
+  have decodeFlex : ∀ (b : Bool), b = (decide (0 ≤ m.glo) &&
+      ((List.finRange n).all fun i =>
+        decide (i = m.gcoord) || decide (m.shapes i = CoordShape.frozen) ||
+        (decide (m.shapes i = CoordShape.driven m.gcoord) &&
+          decide ((M.env i).hi = none)) ||
+        (match m.shapes i with
+         | CoordShape.driven j =>
+             !decide (j = m.gcoord) && decide (m.shapes j = CoordShape.frozen) &&
+             decide ((M.env i).lo = none) && decide ((M.env i).hi = none)
+         | _ => false))) → b = true → 0 ≤ m.glo ∧ FlexOthers M m := by
+    intro b hbdef hb
+    rw [hbdef, Bool.and_eq_true, decide_eq_true_eq] at hb
+    obtain ⟨hglo0, hall⟩ := hb
+    rw [List.all_eq_true] at hall
+    refine ⟨hglo0, ?_⟩
+    intro i hi
+    have := hall i (List.mem_finRange i)
+    simp only [Bool.or_eq_true, Bool.and_eq_true, decide_eq_true_eq] at this
+    rcases this with ((h1 | h2) | h3) | h4
+    · exact absurd h1 hi
+    · exact Or.inl h2
+    · exact Or.inr (Or.inl h3)
+    · rcases hshx : m.shapes i with _ | _ | _ | j
+      all_goals rw [hshx] at h4
+      · simp at h4
+      · simp at h4
+      · simp at h4
+      · simp only [Bool.and_eq_true, Bool.not_eq_true', decide_eq_true_eq,
+          decide_eq_false_iff_not] at h4
+        exact Or.inr (Or.inr ⟨j, rfl, h4.1.1.1, h4.1.1.2, h4.1.2, h4.2⟩)
   refine ⟨hord, hloIn, hhiIn, hsucc, ?_⟩
   rcases hsh : m.shapes m.gcoord with _ | c | ⟨k, c⟩ | j
   all_goals rw [hsh] at hshape
-  · -- frozen: hshape = othersFrozen
-    simp only [Bool.or_eq_true, decide_eq_true_eq, List.all_eq_true] at hshape
-    intro i hi
-    rcases hshape i (List.mem_finRange i) with h1 | h2
-    · exact absurd h1 hi
-    · exact h2
-  · -- constRate
-    simp only [Bool.and_eq_true, decide_eq_true_eq] at hshape
-    obtain ⟨⟨⟨hflex, hc⟩, hmar⟩, hany⟩ := hshape
-    obtain ⟨hglo0, hothers⟩ := hflex
-    rw [List.all_eq_true] at hothers
-    refine ⟨?_, hglo0, hc, ?_, ?_⟩
-    · intro i hi
-      have := hothers i (List.mem_finRange i)
-      simp only [Bool.or_eq_true, Bool.and_eq_true, decide_eq_true_eq] at this
-      rcases this with (h1 | h2) | h3
-      · exact absurd h1 hi
-      · exact Or.inl h2
-      · exact Or.inr h3
-    · intro h' hh'
-      rw [hh'] at hmar
-      simpa using hmar
+  · -- frozen
+    exact decodeFrozen _ rfl hshape
+  · -- constRate: signed split
+    simp only [Bool.and_eq_true, Bool.or_eq_true, decide_eq_true_eq] at hshape
+    obtain ⟨hbranch, hany⟩ := hshape
+    constructor
+    · rcases hbranch with ⟨⟨hc, hflexB⟩, hmarB⟩ | ⟨⟨hcneg, hfrB⟩, hloB⟩
+      · -- rebuild the Bool from the simp'd pieces is awkward; decode directly
+        obtain ⟨hglo0, hflex⟩ := decodeFlex _ rfl (by
+          rw [Bool.and_eq_true, decide_eq_true_eq]
+          exact ⟨hflexB.1, hflexB.2⟩)
+        refine Or.inl ⟨hc, hflex, hglo0, ?_⟩
+        intro h' hh'
+        rw [hh'] at hmarB
+        simpa using hmarB
+      · refine Or.inr ⟨hcneg, decodeFrozen _ rfl hfrB, ?_⟩
+        intro l' hl'
+        rw [hl'] at hloB
+        simpa using hloB
     · rw [List.any_eq_true] at hany
       obtain ⟨q', hq'mem, hq'⟩ := hany
       rcases hm' : M.modes[q']? with _ | m'
@@ -1155,19 +1374,12 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
         exact ⟨q', hq'mem, m', hm', hq'.1.1, hq'.1.2, hq'.2⟩
   · -- contract
     simp only [Bool.and_eq_true, decide_eq_true_eq] at hshape
-    obtain ⟨⟨⟨hflex, hk⟩, hcl⟩, hch⟩ := hshape
-    obtain ⟨hglo0, hothers⟩ := hflex
-    rw [List.all_eq_true] at hothers
-    refine ⟨?_, hglo0, hk, hcl, hch⟩
-    intro i hi
-    have := hothers i (List.mem_finRange i)
-    simp only [Bool.or_eq_true, Bool.and_eq_true, decide_eq_true_eq] at this
-    rcases this with (h1 | h2) | h3
-    · exact absurd h1 hi
-    · exact Or.inl h2
-    · exact Or.inr h3
-  · -- driven active: checker returns false
-    simp at hshape
+    obtain ⟨⟨⟨hflexB, hk⟩, hcl⟩, hch⟩ := hshape
+    obtain ⟨hglo0, hflex⟩ := decodeFlex _ rfl (by
+      rw [Bool.and_eq_true, decide_eq_true_eq]
+      exact ⟨hflexB.1, hflexB.2⟩)
+    exact ⟨hflex, hglo0, hk, hcl, hch⟩
+  · simp at hshape
 
 /-! ### The assembly: `wellformed_sound` -/
 
@@ -1201,8 +1413,10 @@ theorem wellformed_sound (M : SettlingModel n) (mv tg : Var n) (g : Term (Var n)
     rcases hsh : SM.shapes SM.gcoord with _ | c | ⟨k, c⟩ | j
     all_goals rw [hsh] at hshape
     · exact settling_frozen M hSM hsh hshape hdt
-    · obtain ⟨hflex, hglo0, hc, hmar, hland⟩ := hshape
-      exact settling_const_driven M hSM hsh hflex hglo0 hc hloIn hmar hland hdt
+    · obtain ⟨hbranch, hland⟩ := hshape
+      rcases hbranch with ⟨hc, hflex, hglo0, hmar⟩ | ⟨hcneg, hfr, hlomar⟩
+      · exact settling_const_driven M hSM hsh hflex hglo0 hc hloIn hmar hland hdt
+      · exact settling_const_neg M hSM hsh hfr hcneg hlomar hhiIn hland hdt
     · obtain ⟨hflex, hglo0, hk, hcl, hch⟩ := hshape
       exact settling_contract_driven M hSM hsh hflex hglo0 hk hcl hch hloIn hhiIn hdt
     · exact absurd hshape not_false

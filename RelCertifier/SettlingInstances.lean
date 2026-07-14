@@ -23,8 +23,8 @@ A frozen ACTIVE coordinate with non-frozen (driven) others is transcribed as
 `CoordShape.constRate 0` — the identical field (`Term.const 0`) — because the constRate branch
 carries the flex-others grammar and lands in its own band by `c = 0`.
 
-COVERAGE (21/47 data terms, generated from the benchmark files; ALL 21 checker-ACCEPTED with
-closed `rfl` certificates). The remaining benchmarks map to named extension classes,
+COVERAGE (22/47 data terms; ALL 22 checker-ACCEPTED with closed `rfl` certificates —
+rover_4d_box joined via the EXT 4b extended flex grammar). The remaining benchmarks map to named extension classes,
 each a precise next step, none a gap in what is proven:
 
 * **exp-bound transit contracts** (watertank, match_multi_eps, rover3tier_M1,
@@ -45,9 +45,9 @@ each a precise next step, none a gap in what is proven:
   park mode); same overflow shape in rover3tier_rung12 / rover_tier_r1 (`match_multi_rate`
   had it too and is FIXED above — band extended to its equilibrium).
 * **coupled / higher-order / non-polynomial-shape** (attitude_rate, endurance_orderlift_2to3,
-  rover_tier_r1, rover3tier_rung12, rover_drag, rover_4d_box's contract-driven `py`, the
-  cubic-`s'` rungs) — phase D: the invariance half can ride the cut channel's Z3 route; flow
-  existence needs `PicardBridge` generalized.
+  rover_tier_r1, rover3tier_rung12, rover_drag, the nonlinear-`s'` rungs) — phase D: the
+  invariance half can ride the cut channel's Z3 route; flow existence needs `PicardBridge`
+  generalized (linear-coupled members have closed forms — see the roadmap).
 * shield_unreachable — the pre-existing inconclusive-Z3 ERROR benchmark (no guard band).
 
 HISTORY. Under the pre-EXT 4 single-band landing rule only 3 of these terms were accepted; the
@@ -254,6 +254,26 @@ def rover3_M1M : SettlingModel 2 :=
     dtQ := 1 }
 
 example : decideWellFormed rover3_M1M = true := rfl
+
+/-- `rover_4d_box` (R side; units: values ×1000, time ×1; dt = ε_R/λ at λ = 1).
+APPROACH is a contract-below transit (`vx` toward 0.65 under the band [0.7, 1.5]) whose
+non-guarded block needs the EXT 4b extended flex grammar: `py' = vy` with `vy` contracting
+to 0 — a contract other (equilibrium inside `vy`'s envelope band) driving the envelope-free
+`py`. SETTLE's frozen active is transcribed as `constRate 0` per the standing convention. -/
+def rover_4d_boxM : SettlingModel 4 :=
+  { modes :=
+    [
+      { shapes := ![CoordShape.driven 2, CoordShape.driven 3,
+          CoordShape.contract 1 650, CoordShape.contract 1 0], gcoord := 2,
+        glo := 700, ghi := 1500, succs := [1] },
+      { shapes := ![CoordShape.driven 2, CoordShape.driven 3,
+          CoordShape.constRate 0, CoordShape.frozen], gcoord := 2,
+        glo := 500, ghi := 700, succs := [] } ]
+    env := ![{ lo := none, hi := none }, { lo := none, hi := none },
+      { lo := some 500, hi := some 1500 }, { lo := some (-1000 : ℤ), hi := some 1000 }]
+    dtQ := 1 }
+
+example : decideWellFormed rover_4d_boxM = true := rfl
 
 /-- `rover_coupled` (R side; units: values ×1000, time ×1; dt = ε_R/λ at λ = 1). -/
 def rover_coupledM : SettlingModel 4 :=

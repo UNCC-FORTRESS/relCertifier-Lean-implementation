@@ -226,9 +226,23 @@ carry closed kernel `rfl` certificates**.
   others stay in the hull of base and equilibrium. 5 terrain benchmarks carry closed kernel
   certificates (refinement rung1, dof-terrain rungs); the nonlinear-`s'` variants
   (`s' = v(1 − 0.5ψ² − 0.3θ²)`, cubic rungs) remain phase D.
+- **EXT 4b (the extended flex grammar), built.** rover_4d_box's non-guarded block (`py' = vy`
+  with `vy` contracting to 0) needed two new flex arms: a CONTRACT other staying in the hull
+  of its base and its equilibrium (equilibrium inside its envelope band — interval convexity),
+  and an envelope-free integrator DRIVEN BY such a contract other (exp-integral witness).
+  `FlexOthersC` + the `flexVal` witness + `settling_contract_below_flex` wire into the
+  checker's contract-below branch only (a strict superset of the old grammar — every
+  previously accepted instance still passes); the inside/above branches stay on the base
+  grammar. 22/47 settling + 5/47 terrain = **27/47 closed kernel certificates**.
 - Remaining roadmap: phase D (coupled/nonlinear fields — attitude_rate,
-  endurance_orderlift_2to3, rover_drag, rover_4d_box, the nonlinear-`s'` terrain/story
-  variants; existence via `PicardBridge`).
+  endurance_orderlift_2to3, rover_drag's Riccati, rover_tier_r1/rung12's driven-active, the
+  nonlinear-`s'` terrain/story variants). The plan of record: linear-coupled members have
+  closed forms (attitude's symmetric `(p,q)` block diagonalizes to two contracts with
+  rational rates; orderlift is critically damped, `(A + Bt)e^{−4t}`); the genuinely
+  nonlinear rest goes through the Picard box-inflow theorem (strictly-inflowing compact
+  guard box + polynomial field ⟹ exists/stays/self-lands, from `PicardBridge`'s banked
+  local existence + gluing + invariance) and, for the nonlinear-`s'` family, a differential
+  sandwich on `s` (`growth_bound_raw` is the upper half).
 
 ## Current state
 

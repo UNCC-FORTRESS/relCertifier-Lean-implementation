@@ -7,7 +7,7 @@ certificates — tied together by ONE theorem (`WellFormedSound`, stated below; 
 phased build described at the bottom). This is the `decideCovered`/`check_sound` pattern
 applied to the settling hypothesis: untrusted construction, verified checkable acceptance.
 
-WHAT THE CHECKER DECIDES (all rational arithmetic / structural — no ODE solving, no Z3):
+WHAT THE CHECKER DECIDES (all integer arithmetic / structural — no ODE solving, no Z3):
 
 * the shared envelope's bands are well-ordered, and every mode's guard band sits inside the
   envelope band of its guarded coordinate;
@@ -31,7 +31,7 @@ exactly what entry (landing in a successor's `GdOf`) re-establishes: envelope me
 the staying clause, band membership from the landing clause.
 
 TRUST/AXIOMS: this file is definitions plus decidable functions (no `native_decide` anywhere —
-evaluation is `decide`/`#eval`-class ℚ arithmetic, per project discipline).
+evaluation is `decide`/`#eval`-class ℤ arithmetic, per project discipline).
 -/
 import RelCertifier.GuardThreaded
 
@@ -40,20 +40,20 @@ open DL Function Set
 
 variable {n : ℕ}
 
-/-! ## The settling model (rational data) -/
+/-! ## The settling model (integer data) -/
 
 /-- Per-coordinate field shape of a mode (phase-A shapes; `driven` is phase B/C). -/
 inductive CoordShape (n : ℕ) where
   | frozen                          -- x' = 0
-  | constRate (c : ℚ)               -- x' = c
-  | contract (k c : ℚ)              -- x' = k (c − x)
+  | constRate (c : ℤ)               -- x' = c
+  | contract (k c : ℤ)              -- x' = k (c − x)
   | driven (j : Fin n)              -- x' = x_j (integrator; phase B)
   deriving Repr, DecidableEq
 
 /-- An optional band `[lo, hi]` (either side may be absent = unbounded). -/
 structure Band where
-  lo : Option ℚ := none
-  hi : Option ℚ := none
+  lo : Option ℤ := none
+  hi : Option ℤ := none
   deriving Repr, DecidableEq
 
 /-- One right mode of a settling model: its per-coordinate shapes, the single guarded
@@ -61,8 +61,8 @@ coordinate and its band, and the declared successor indices. -/
 structure SettlingMode (n : ℕ) where
   shapes : Fin n → CoordShape n
   gcoord : Fin n
-  glo    : ℚ
-  ghi    : ℚ
+  glo    : ℤ
+  ghi    : ℤ
   succs  : List ℕ
 
 /-- A settling model: the right modes, the shared envelope (per-coordinate bands), and the
@@ -72,12 +72,12 @@ structure SettlingModel (n : ℕ) where
   env    : Fin n → Band
   /-- The control-step budget `εR / λmin` — stored pre-divided so the checker kernel-reduces
   (`Rat` division does not). -/
-  dtQ    : ℚ
+  dtQ    : ℤ
 
 /-- The control-step budget. -/
-def SettlingModel.dt (M : SettlingModel n) : ℚ := M.dtQ
+def SettlingModel.dt (M : SettlingModel n) : ℤ := M.dtQ
 
-/-! ## The checker (computable, ℚ arithmetic) -/
+/-! ## The checker (computable, ℤ arithmetic) -/
 
 def bandOrdered (b : Band) : Bool :=
   match b.lo, b.hi with
@@ -85,7 +85,7 @@ def bandOrdered (b : Band) : Bool :=
   | _, _ => true
 
 /-- `[lo₁, hi₁] ⊆ b` (absent outer side = no constraint). -/
-def bandInside (lo hi : ℚ) (b : Band) : Bool :=
+def bandInside (lo hi : ℤ) (b : Band) : Bool :=
   (b.lo.all fun bl => decide (bl ≤ lo)) && (b.hi.all fun bh => decide (hi ≤ bh))
 
 /-- One mode's settling check (see the header). `q` is the mode's own index (for the
@@ -448,7 +448,7 @@ theorem settling_frozen (M : SettlingModel n) {q : ℕ} {m : SettlingMode n}
 /-- CONTRACT active coordinate with the equilibrium inside the mode's own band: the
 exponential witness — stays between base and equilibrium, self-lands (tangent included). -/
 theorem settling_contract (M : SettlingModel n) {q : ℕ} {m : SettlingMode n}
-    (hq : M.modes[q]? = some m) {k c : ℚ}
+    (hq : M.modes[q]? = some m) {k c : ℤ}
     (hsh : m.shapes m.gcoord = CoordShape.contract k c)
     (hfr : ∀ i, i ≠ m.gcoord → m.shapes i = CoordShape.frozen)
     (hk : 0 ≤ k) (hcl : m.glo ≤ c) (hch : c ≤ m.ghi)
@@ -540,7 +540,7 @@ theorem settling_contract (M : SettlingModel n) {q : ℕ} {m : SettlingMode n}
 /-- CONST-RATE active coordinate with margin and a covering self-or-successor band: the
 affine witness — stays by the margin, lands in the covering band. -/
 theorem settling_const (M : SettlingModel n) {q : ℕ} {m : SettlingMode n}
-    (hq : M.modes[q]? = some m) {c : ℚ}
+    (hq : M.modes[q]? = some m) {c : ℤ}
     (hsh : m.shapes m.gcoord = CoordShape.constRate c)
     (hfr : ∀ i, i ≠ m.gcoord → m.shapes i = CoordShape.frozen)
     (hc : 0 ≤ c)
@@ -668,7 +668,7 @@ theorem drivenΦ_nonR (m : SettlingMode n) (cR : ℝ) (base : State (Var n)) (t 
 /-- CONST-RATE active coordinate, others frozen OR driven by it (integrators with no upper
 envelope wall and a nonneg driving band): the affine/quadratic product witness. -/
 theorem settling_const_driven (M : SettlingModel n) {q : ℕ} {m : SettlingMode n}
-    (hq : M.modes[q]? = some m) {c : ℚ}
+    (hq : M.modes[q]? = some m) {c : ℤ}
     (hsh : m.shapes m.gcoord = CoordShape.constRate c)
     (hflex : ∀ i, i ≠ m.gcoord → m.shapes i = CoordShape.frozen ∨
         (m.shapes i = CoordShape.driven m.gcoord ∧ (M.env i).hi = none))
@@ -902,7 +902,7 @@ theorem drivenΦC_nonR (m : SettlingMode n) (kR cR : ℝ) (base : State (Var n))
 /-- CONTRACT active coordinate (equilibrium in its own band), others frozen OR driven by it
 (integrators with no upper envelope wall, nonneg band): the exponential/exp-integral witness. -/
 theorem settling_contract_driven (M : SettlingModel n) {q : ℕ} {m : SettlingMode n}
-    (hq : M.modes[q]? = some m) {k c : ℚ}
+    (hq : M.modes[q]? = some m) {k c : ℤ}
     (hsh : m.shapes m.gcoord = CoordShape.contract k c)
     (hflex : ∀ i, i ≠ m.gcoord → m.shapes i = CoordShape.frozen ∨
         (m.shapes i = CoordShape.driven m.gcoord ∧ (M.env i).hi = none))
@@ -1217,7 +1217,7 @@ theorem wellformed_sound (M : SettlingModel n) (mv tg : Var n) (g : Term (Var n)
 
 `x' = 3(cᵢ − 0.12 x)`-style tanks normalize to the contract shape `k(c − x)`; the three modes
 below use the equilibria/bands of the (normalized) watertank right side. The point is the
-DECIDABILITY: `decideWellFormed` evaluates by `decide` — kernel-checked rational arithmetic,
+DECIDABILITY: `decideWellFormed` evaluates by `decide` — kernel-checked integer arithmetic,
 no `native_decide` — so a benchmark's well-formedness certificate is one `rfl`-class fact,
 and `wellformed_sound` turns it plus the per-run Z3 certificates into `GuardSettlingH`. -/
 

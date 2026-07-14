@@ -16,17 +16,17 @@ epsilon = 1.0
 [Lsys.mode.STEEP]
 ode = v' = a; s' = v; a' = smt2:(- (- 7.20 (* 24.0 v)) (* 8 a));
 guard = v >= 0.0 and v < 0.40
-evolve = a >= -0.5 and a <= 0.6 and s >= 0.0 and s <= 1000.0 and v >= -0.05 and v <= 0.8
+evolve = a >= -0.5 and a <= 0.6 and s >= 0.0 and v >= -0.05 and v <= 0.8
 next = [MODER, STEEP]
 [Lsys.mode.MODER]
 ode = v' = a; s' = v; a' = smt2:(- (- 12.00 (* 24.0 v)) (* 8 a));
 guard = v >= 0.40 and v < 0.575
-evolve = a >= -0.5 and a <= 0.6 and s >= 0.0 and s <= 1000.0 and v >= -0.05 and v <= 0.8
+evolve = a >= -0.5 and a <= 0.6 and s >= 0.0 and v >= -0.05 and v <= 0.8
 next = [STEEP, FLAT, MODER]
 [Lsys.mode.FLAT]
 ode = v' = a; s' = v; a' = smt2:(- (- 15.60 (* 24.0 v)) (* 8 a));
 guard = v >= 0.575 and v < 0.67
-evolve = a >= -0.5 and a <= 0.6 and s >= 0.0 and s <= 1000.0 and v >= -0.05 and v <= 0.8
+evolve = a >= -0.5 and a <= 0.6 and s >= 0.0 and v >= -0.05 and v <= 0.8
 next = [MODER, FLAT]
 [Rsys]
 state_vars = [v, s, a]
@@ -34,17 +34,17 @@ epsilon = 0.5
 [Rsys.mode.STEEP]
 ode = v' = smt2:(* 3 (- 0.30 v)); s' = v; a' = smt2:0;
 guard = v >= 0.0 and v < 0.40
-evolve = a >= -0.5 and a <= 0.7 and s >= 0.0 and s <= 1000.0 and v >= 0.0 and v <= 0.8
+evolve = a >= -0.5 and a <= 0.7 and s >= 0.0 and v >= 0.0 and v <= 0.8
 next = [MODER, STEEP]
 [Rsys.mode.MODER]
 ode = v' = smt2:(* 3 (- 0.50 v)); s' = v; a' = smt2:0;
 guard = v >= 0.40 and v < 0.575
-evolve = a >= -0.5 and a <= 0.7 and s >= 0.0 and s <= 1000.0 and v >= 0.0 and v <= 0.8
+evolve = a >= -0.5 and a <= 0.7 and s >= 0.0 and v >= 0.0 and v <= 0.8
 next = [STEEP, FLAT, MODER]
 [Rsys.mode.FLAT]
 ode = v' = smt2:(* 3 (- 0.65 v)); s' = v; a' = smt2:0;
 guard = v >= 0.575 and v < 0.7
-evolve = a >= -0.5 and a <= 0.7 and s >= 0.0 and s <= 1000.0 and v >= 0.0 and v <= 0.8
+evolve = a >= -0.5 and a <= 0.7 and s >= 0.0 and v >= 0.0 and v <= 0.8
 next = [MODER, FLAT]
 [relational_invariant]
 STEEP = 6*s[l] + 2*v[l] <= 6*s[r] + 2*v[r] + 1.3

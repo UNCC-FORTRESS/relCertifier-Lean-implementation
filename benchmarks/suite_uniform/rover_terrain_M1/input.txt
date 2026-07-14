@@ -15,17 +15,17 @@ epsilon = 1.0
 [Lsys.mode.ROUGH]
 ode = v' = smt2:(* 3 (- 0.4 v)); s' = v;
 guard = v >= 0.0 and v < 0.6
-evolve = s >= 0.0 and s <= 100.0 and v >= 0.0 and v <= 1.35
+evolve = s >= 0.0 and v >= 0.0 and v <= 1.35
 next = [FLAT, ROUGH]
 [Lsys.mode.FLAT]
 ode = v' = smt2:(* 3 (- 0.8 v)); s' = v;
 guard = v >= 0.6 and v < 1.0
-evolve = s >= 0.0 and s <= 100.0 and v >= 0.0 and v <= 1.35
+evolve = s >= 0.0 and v >= 0.0 and v <= 1.35
 next = [ROUGH, SMOOTH, FLAT]
 [Lsys.mode.SMOOTH]
 ode = v' = smt2:(* 3 (- 1.2 v)); s' = v;
 guard = v >= 1.0 and v < 1.25
-evolve = s >= 0.0 and s <= 100.0 and v >= 0.0 and v <= 1.35
+evolve = s >= 0.0 and v >= 0.0 and v <= 1.35
 next = [FLAT, SMOOTH]
 [Rsys]
 state_vars = [v, s]
@@ -33,17 +33,17 @@ epsilon = 0.5
 [Rsys.mode.ROUGH]
 ode = v' = smt2:(* 2 (- 0.4 v)); s' = v;
 guard = v >= 0.0 and v < 0.6
-evolve = s >= 0.0 and s <= 100.0 and v >= 0.0 and v <= 1.35
+evolve = s >= 0.0 and v >= 0.0 and v <= 1.35
 next = [FLAT, ROUGH]
 [Rsys.mode.FLAT]
 ode = v' = smt2:(* 2 (- 0.8 v)); s' = v;
 guard = v >= 0.6 and v < 1.0
-evolve = s >= 0.0 and s <= 100.0 and v >= 0.0 and v <= 1.35
+evolve = s >= 0.0 and v >= 0.0 and v <= 1.35
 next = [ROUGH, SMOOTH, FLAT]
 [Rsys.mode.SMOOTH]
 ode = v' = smt2:(* 2 (- 1.2 v)); s' = v;
 guard = v >= 1.0 and v < 1.25
-evolve = s >= 0.0 and s <= 100.0 and v >= 0.0 and v <= 1.35
+evolve = s >= 0.0 and v >= 0.0 and v <= 1.35
 next = [FLAT, SMOOTH]
 [relational_invariant]
 ROUGH = 6*s[l] + 2*v[l] <= 6*s[r] + 3*v[r] + 1.2

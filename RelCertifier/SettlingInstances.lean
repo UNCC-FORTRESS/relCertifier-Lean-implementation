@@ -26,11 +26,20 @@ extension classes, each a precise next step, none a gap in what is proven:
   generalized.
 * shield_unreachable — the pre-existing inconclusive-Z3 ERROR benchmark (no guard band).
 
-CERTIFICATE STATUS: all 21 data terms are checker-VALID (compiled evaluation accepts each);
-the kernel `rfl` certificate currently closes for 3 (rover_terrain_M1, endurance_gain_M1,
-endurance_orderlift_1to2) and is blocked for the other 18 by a defeq-reduction quirk in the const-rate branch (the same computation
-reduces in compiled evaluation; the checker and `wellformed_sound` are unaffected). Pinning
-the reduction is a small engineering follow-up, not a proof gap.
+CERTIFICATE STATUS (corrected). 3 data terms are checker-ACCEPTED with closed `rfl`
+certificates (rover_terrain_M1, endurance_gain_M1, endurance_orderlift_1to2). The other 18 are
+checker-REJECTED — verified by `#eval`/`#reduce`; the earlier "kernel-reduction quirk" reading
+was wrong: the kernel was correctly refusing a false proposition. The rejections share ONE
+cause: the landing cover demands a SINGLE self-or-successor band containing the one-step image,
+but these are TRANSIT modes — the flow crosses from its own band into the successor's
+(watertank Low fills [0,12.5] against bands [0,10]∪[10,17]; arm Approach's image [0.2,0.9]
+against Approach∪Return; rover Drive's [0.5,0.95] against Drive∪Safe; contract modes with the
+equilibrium OUTSIDE their own band, e.g. match ACCEL toward 1 from [0.3,0.6]). The fix is
+EXT 4: a UNION landing cover (self plus one contiguous successor band covering the image / the
+[band, equilibrium] hull), landing discharged by an endpoint case-split, plus contract-exit
+staying (the flow stays in the hull of band and equilibrium). Until EXT 4 these 18 data terms
+document the models; their `example`s are commented out because they are genuinely false under
+the current (too-strict) cover rule.
 -/
 import RelCertifier.WellFormedChecker
 
@@ -47,7 +56,7 @@ def arm_chain_rung1M : SettlingModel 1 :=
     env := ![{ lo := some 0, hi := some 1000 }]
     dtQ := 1 }
 
--- kernel-reduction pending (see header):
+-- checker-rejected pending EXT 4 union-cover (see header):
 -- example : decideWellFormed arm_chain_rung1M = true := rfl
 
 /-- `arm_chain_rung2` (R side; units: values ×1000, time ×1). -/
@@ -63,7 +72,7 @@ def arm_chain_rung2M : SettlingModel 1 :=
     env := ![{ lo := some 0, hi := some 1000 }]
     dtQ := 1 }
 
--- kernel-reduction pending (see header):
+-- checker-rejected pending EXT 4 union-cover (see header):
 -- example : decideWellFormed arm_chain_rung2M = true := rfl
 
 /-- `arm_chain_rung3` (R side; units: values ×1000, time ×1). -/
@@ -81,7 +90,7 @@ def arm_chain_rung3M : SettlingModel 2 :=
     env := ![{ lo := some 0, hi := some 1200 }, { lo := none, hi := none }]
     dtQ := 1 }
 
--- kernel-reduction pending (see header):
+-- checker-rejected pending EXT 4 union-cover (see header):
 -- example : decideWellFormed arm_chain_rung3M = true := rfl
 
 /-- `arm_fidelity_high` (R side; units: values ×1000, time ×1). -/
@@ -99,7 +108,7 @@ def arm_fidelity_highM : SettlingModel 2 :=
     env := ![{ lo := some 0, hi := some 1200 }, { lo := none, hi := none }]
     dtQ := 1 }
 
--- kernel-reduction pending (see header):
+-- checker-rejected pending EXT 4 union-cover (see header):
 -- example : decideWellFormed arm_fidelity_highM = true := rfl
 
 /-- `arm_fidelity_low` (R side; units: values ×1000, time ×1). -/
@@ -113,7 +122,7 @@ def arm_fidelity_lowM : SettlingModel 2 :=
     env := ![{ lo := some 0, hi := some 1000 }, { lo := none, hi := none }]
     dtQ := 1 }
 
--- kernel-reduction pending (see header):
+-- checker-rejected pending EXT 4 union-cover (see header):
 -- example : decideWellFormed arm_fidelity_lowM = true := rfl
 
 /-- `arm_fidelity_mid` (R side; units: values ×1000, time ×1). -/
@@ -129,7 +138,7 @@ def arm_fidelity_midM : SettlingModel 2 :=
     env := ![{ lo := some 0, hi := some 1200 }, { lo := none, hi := none }]
     dtQ := 1 }
 
--- kernel-reduction pending (see header):
+-- checker-rejected pending EXT 4 union-cover (see header):
 -- example : decideWellFormed arm_fidelity_midM = true := rfl
 
 /-- `arm_refinement` (R side; units: values ×1000, time ×1). -/
@@ -143,7 +152,7 @@ def arm_refinementM : SettlingModel 2 :=
     env := ![{ lo := some 0, hi := some 1000 }, { lo := none, hi := none }]
     dtQ := 1 }
 
--- kernel-reduction pending (see header):
+-- checker-rejected pending EXT 4 union-cover (see header):
 -- example : decideWellFormed arm_refinementM = true := rfl
 
 /-- `endurance_gain_M1` (R side; units: values ×1000, time ×2). -/
@@ -187,7 +196,7 @@ def match_multi_epsM : SettlingModel 2 :=
     env := ![{ lo := some 0, hi := some 1150 }, { lo := some 0, hi := none }]
     dtQ := 3 }
 
--- kernel-reduction pending (see header):
+-- checker-rejected pending EXT 4 union-cover (see header):
 -- example : decideWellFormed match_multi_epsM = true := rfl
 
 /-- `match_multi_rate` (R side; units: values ×1000, time ×10). -/
@@ -199,7 +208,7 @@ def match_multi_rateM : SettlingModel 2 :=
     env := ![{ lo := some 0, hi := some 1150 }, { lo := some 0, hi := none }]
     dtQ := 3 }
 
--- kernel-reduction pending (see header):
+-- checker-rejected pending EXT 4 union-cover (see header):
 -- example : decideWellFormed match_multi_rateM = true := rfl
 
 /-- `plant_fan_high` (R side; units: values ×1000, time ×1). -/
@@ -217,7 +226,7 @@ def plant_fan_highM : SettlingModel 2 :=
     env := ![{ lo := some 0, hi := some 1200 }, { lo := none, hi := none }]
     dtQ := 1 }
 
--- kernel-reduction pending (see header):
+-- checker-rejected pending EXT 4 union-cover (see header):
 -- example : decideWellFormed plant_fan_highM = true := rfl
 
 /-- `plant_fan_low` (R side; units: values ×1000, time ×1). -/
@@ -231,7 +240,7 @@ def plant_fan_lowM : SettlingModel 2 :=
     env := ![{ lo := some 0, hi := some 1000 }, { lo := none, hi := none }]
     dtQ := 1 }
 
--- kernel-reduction pending (see header):
+-- checker-rejected pending EXT 4 union-cover (see header):
 -- example : decideWellFormed plant_fan_lowM = true := rfl
 
 /-- `plant_fan_mid` (R side; units: values ×1000, time ×1). -/
@@ -247,7 +256,7 @@ def plant_fan_midM : SettlingModel 2 :=
     env := ![{ lo := some 0, hi := some 1200 }, { lo := none, hi := none }]
     dtQ := 1 }
 
--- kernel-reduction pending (see header):
+-- checker-rejected pending EXT 4 union-cover (see header):
 -- example : decideWellFormed plant_fan_midM = true := rfl
 
 /-- `robot_braking` (R side; units: values ×1000, time ×1). -/
@@ -263,7 +272,7 @@ def robot_brakingM : SettlingModel 1 :=
     env := ![{ lo := some 0, hi := some 3650 }]
     dtQ := 2 }
 
--- kernel-reduction pending (see header):
+-- checker-rejected pending EXT 4 union-cover (see header):
 -- example : decideWellFormed robot_brakingM = true := rfl
 
 /-- `rover3_M1` (R side; units: values ×1000, time ×1). -/
@@ -279,7 +288,7 @@ def rover3_M1M : SettlingModel 2 :=
     env := ![{ lo := some (-50 : ℤ), hi := none }, { lo := some 250, hi := some 1100 }]
     dtQ := 1 }
 
--- kernel-reduction pending (see header):
+-- checker-rejected pending EXT 4 union-cover (see header):
 -- example : decideWellFormed rover3_M1M = true := rfl
 
 /-- `rover3tier_M1` (R side; units: values ×1000, time ×10). -/
@@ -293,7 +302,7 @@ def rover3tier_M1M : SettlingModel 2 :=
     env := ![{ lo := some 0, hi := some 1150 }, { lo := some 0, hi := none }]
     dtQ := 3 }
 
--- kernel-reduction pending (see header):
+-- checker-rejected pending EXT 4 union-cover (see header):
 -- example : decideWellFormed rover3tier_M1M = true := rfl
 
 /-- `rover_coupled` (R side; units: values ×1000, time ×1). -/
@@ -309,7 +318,7 @@ def rover_coupledM : SettlingModel 4 :=
     env := ![{ lo := some (-50 : ℤ), hi := none }, { lo := none, hi := none }, { lo := some 250, hi := some 1100 }, { lo := some (-1000 : ℤ), hi := some 1100 }]
     dtQ := 1 }
 
--- kernel-reduction pending (see header):
+-- checker-rejected pending EXT 4 union-cover (see header):
 -- example : decideWellFormed rover_coupledM = true := rfl
 
 /-- `rover_position` (R side; units: values ×1000, time ×1). -/
@@ -325,7 +334,7 @@ def rover_positionM : SettlingModel 4 :=
     env := ![{ lo := some (-50 : ℤ), hi := none }, { lo := none, hi := none }, { lo := some 250, hi := some 1100 }, { lo := some (-1000 : ℤ), hi := some 1100 }]
     dtQ := 1 }
 
--- kernel-reduction pending (see header):
+-- checker-rejected pending EXT 4 union-cover (see header):
 -- example : decideWellFormed rover_positionM = true := rfl
 
 /-- `rover_terrain_M1` (R side; units: values ×1000, time ×2). -/
@@ -356,7 +365,7 @@ def watertankSuiteM : SettlingModel 1 :=
     env := ![{ lo := some (-50 : ℤ), hi := some 25000 }]
     dtQ := 1 }
 
--- kernel-reduction pending (see header):
+-- checker-rejected pending EXT 4 union-cover (see header):
 -- example : decideWellFormed watertankSuiteM = true := rfl
 
 end RelCertifier

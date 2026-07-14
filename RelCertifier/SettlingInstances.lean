@@ -10,7 +10,9 @@ per-benchmark proof.
 UNITS. Values are stored ×1000 and time ×den(dt) (noted per instance): kernel `rfl` cannot
 reduce `Rat` division/normalization, so all literals must be integers. The checker's
 inequalities are scale-invariant (margins and covers compare value×time products uniformly),
-and the contract gain `k` — sign-only in the checker — is scaled to an integer independently.
+and the contract gain is stored in SCALED TIME — `k/den(dt)`, as `contractQ` when fractional
+— so every data term is the exact time-scaled benchmark (a driven integrator's own scale is
+`1000·den(dt)`, invisible here because the integrator coordinates carry no finite bounds).
 
 THE SEGMENT BUDGET dt. `theorem3_faithful_settling` takes `dt` as a free parameter constrained
 only by `hbudgetAll` (every left-run duration fits in `k·dt` segments for a free `k : ℕ`), so
@@ -145,7 +147,7 @@ def arm_fidelity_midM : SettlingModel 2 :=
         glo := 0, ghi := 350, succs := [1] },
       { shapes := ![CoordShape.constRate 150, CoordShape.frozen], gcoord := 0,
         glo := 350, ghi := 600, succs := [2] },
-      { shapes := ![CoordShape.contract 1 600, CoordShape.frozen], gcoord := 0,
+      { shapes := ![CoordShape.contractQ 1 4 600, CoordShape.frozen], gcoord := 0,
         glo := 600, ghi := 1150, succs := [] } ]
     env := ![{ lo := some 0, hi := some 1200 }, { lo := none, hi := none }]
     dtQ := 1 }
@@ -169,11 +171,11 @@ example : decideWellFormed arm_refinementM = true := rfl
 def endurance_gain_M1M : SettlingModel 2 :=
   { modes :=
     [
-      { shapes := ![CoordShape.contract 4 300, CoordShape.driven 0], gcoord := 0,
+      { shapes := ![CoordShape.contract 1 300, CoordShape.driven 0], gcoord := 0,
         glo := 0, ghi := 400, succs := [1] },
-      { shapes := ![CoordShape.contract 4 500, CoordShape.driven 0], gcoord := 0,
+      { shapes := ![CoordShape.contract 1 500, CoordShape.driven 0], gcoord := 0,
         glo := 400, ghi := 575, succs := [0, 2] },
-      { shapes := ![CoordShape.contract 4 650, CoordShape.driven 0], gcoord := 0,
+      { shapes := ![CoordShape.contract 1 650, CoordShape.driven 0], gcoord := 0,
         glo := 575, ghi := 700, succs := [1] } ]
     env := ![{ lo := some 0, hi := some 800 }, { lo := some 0, hi := none }]
     dtQ := 1 }
@@ -184,11 +186,11 @@ example : decideWellFormed endurance_gain_M1M = true := rfl
 def endurance_orderlift_1to2M : SettlingModel 3 :=
   { modes :=
     [
-      { shapes := ![CoordShape.contract 6 300, CoordShape.driven 0, CoordShape.frozen], gcoord := 0,
+      { shapes := ![CoordShape.contractQ 3 2 300, CoordShape.driven 0, CoordShape.frozen], gcoord := 0,
         glo := 0, ghi := 400, succs := [1] },
-      { shapes := ![CoordShape.contract 6 500, CoordShape.driven 0, CoordShape.frozen], gcoord := 0,
+      { shapes := ![CoordShape.contractQ 3 2 500, CoordShape.driven 0, CoordShape.frozen], gcoord := 0,
         glo := 400, ghi := 575, succs := [0, 2] },
-      { shapes := ![CoordShape.contract 6 650, CoordShape.driven 0, CoordShape.frozen], gcoord := 0,
+      { shapes := ![CoordShape.contractQ 3 2 650, CoordShape.driven 0, CoordShape.frozen], gcoord := 0,
         glo := 575, ghi := 700, succs := [1] } ]
     env := ![{ lo := some 0, hi := some 800 }, { lo := some 0, hi := none }, { lo := some (-500 : ℤ), hi := some 700 }]
     dtQ := 1 }
@@ -233,7 +235,7 @@ def plant_fan_midM : SettlingModel 2 :=
         glo := 0, ghi := 350, succs := [1] },
       { shapes := ![CoordShape.constRate 150, CoordShape.frozen], gcoord := 0,
         glo := 350, ghi := 600, succs := [2] },
-      { shapes := ![CoordShape.contract 1 600, CoordShape.frozen], gcoord := 0,
+      { shapes := ![CoordShape.contractQ 1 4 600, CoordShape.frozen], gcoord := 0,
         glo := 600, ghi := 1150, succs := [] } ]
     env := ![{ lo := some 0, hi := some 1200 }, { lo := none, hi := none }]
     dtQ := 1 }
@@ -309,11 +311,11 @@ example : decideWellFormed rover_positionM = true := rfl
 def rover_terrain_M1M : SettlingModel 2 :=
   { modes :=
     [
-      { shapes := ![CoordShape.contract 4 400, CoordShape.driven 0], gcoord := 0,
+      { shapes := ![CoordShape.contract 1 400, CoordShape.driven 0], gcoord := 0,
         glo := 0, ghi := 600, succs := [1] },
-      { shapes := ![CoordShape.contract 4 800, CoordShape.driven 0], gcoord := 0,
+      { shapes := ![CoordShape.contract 1 800, CoordShape.driven 0], gcoord := 0,
         glo := 600, ghi := 1000, succs := [0, 2] },
-      { shapes := ![CoordShape.contract 4 1200, CoordShape.driven 0], gcoord := 0,
+      { shapes := ![CoordShape.contract 1 1200, CoordShape.driven 0], gcoord := 0,
         glo := 1000, ghi := 1250, succs := [1] } ]
     env := ![{ lo := some 0, hi := some 1350 }, { lo := some 0, hi := none }]
     dtQ := 1 }
@@ -328,7 +330,7 @@ benchmark re-certifies. -/
 def match_multi_rateM : SettlingModel 2 :=
   { modes :=
     [
-      { shapes := ![CoordShape.contract 10 1000, CoordShape.driven 0], gcoord := 0,
+      { shapes := ![CoordShape.contractQ 1 10 1000, CoordShape.driven 0], gcoord := 0,
         glo := 200, ghi := 1000, succs := [] } ]
     env := ![{ lo := some 0, hi := some 1150 }, { lo := some 0, hi := none }]
     dtQ := 3 }

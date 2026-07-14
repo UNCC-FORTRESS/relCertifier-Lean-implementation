@@ -328,4 +328,58 @@ def story3_rollover_ladder_rung_aT : TerrainModel 12 :=
 
 example : decideWellFormedT story3_rollover_ladder_rung_aT = true := rfl
 
+/-- `refinement_ladder_rover_rung2_6dof` (R side; units: v ×1000, s ×3000 (the driven
+integrator carries the time scale), time ×3; dt = ε_R/λ at λ = 3 — the declared λ-range
+starts at 1.001, and λ = 3 makes the scaled contract gain 3/3 = 1 integral). -/
+def refinement_ladder_rover_rung2_6dofT : TerrainModel 4 :=
+  { core :=
+    { modes :=
+    [
+      { shapes := ![CoordShape.contract 1 300, CoordShape.driven 0,
+          CoordShape.frozen, CoordShape.frozen], gcoord := 0,
+        glo := 0, ghi := 800, succs := [1] },
+      { shapes := ![CoordShape.contract 1 500, CoordShape.driven 0,
+          CoordShape.frozen, CoordShape.frozen], gcoord := 0,
+        glo := 0, ghi := 800, succs := [2] },
+      { shapes := ![CoordShape.contract 1 650, CoordShape.driven 0,
+          CoordShape.frozen, CoordShape.frozen], gcoord := 0,
+        glo := 0, ghi := 800, succs := [] } ]
+      env := ![{ lo := some 0, hi := some 800 }, { lo := some (-150 : ℤ), hi := none },
+        { lo := some (-500 : ℤ), hi := some 600 }, { lo := some (-500 : ℤ), hi := some 600 }]
+      dtQ := 1 }
+    sbands :=
+    [
+      { sc := 1, slo := 0, shi := some 1800 },
+      { sc := 1, slo := 1800, shi := some 4200 },
+      { sc := 1, slo := 4200, shi := none } ] }
+
+example : decideWellFormedT refinement_ladder_rover_rung2_6dofT = true := rfl
+
+/-- `refinement_ladder_rover_rung2b_6dof` (R side; units: v ×1000, s ×3000, time ×3;
+dt = ε_R/λ at λ = 3, as in rung2_6dof). -/
+def refinement_ladder_rover_rung2b_6dofT : TerrainModel 6 :=
+  { core :=
+    { modes :=
+    [
+      { shapes := ![CoordShape.contract 1 300, CoordShape.driven 0, CoordShape.frozen,
+          CoordShape.frozen, CoordShape.frozen, CoordShape.frozen], gcoord := 0,
+        glo := 0, ghi := 800, succs := [1] },
+      { shapes := ![CoordShape.contract 1 500, CoordShape.driven 0, CoordShape.frozen,
+          CoordShape.frozen, CoordShape.frozen, CoordShape.frozen], gcoord := 0,
+        glo := 0, ghi := 800, succs := [2] },
+      { shapes := ![CoordShape.contract 1 650, CoordShape.driven 0, CoordShape.frozen,
+          CoordShape.frozen, CoordShape.frozen, CoordShape.frozen], gcoord := 0,
+        glo := 0, ghi := 800, succs := [] } ]
+      env := ![{ lo := some 0, hi := some 800 }, { lo := some (-150 : ℤ), hi := none },
+        { lo := some (-500 : ℤ), hi := some 600 }, { lo := some (-500 : ℤ), hi := some 600 },
+        { lo := some (-1000 : ℤ), hi := some 1100 }, { lo := some (-500 : ℤ), hi := some 600 }]
+      dtQ := 1 }
+    sbands :=
+    [
+      { sc := 1, slo := 0, shi := some 1800 },
+      { sc := 1, slo := 1800, shi := some 4200 },
+      { sc := 1, slo := 4200, shi := none } ] }
+
+example : decideWellFormedT refinement_ladder_rover_rung2b_6dofT = true := rfl
+
 end RelCertifier

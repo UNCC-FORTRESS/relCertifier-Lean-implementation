@@ -64,6 +64,9 @@ inductive CoordShape (n : ℕ) where
   | contract (k c : ℤ)              -- x' = k (c − x)
   | contractQ (kn kd c : ℤ)         -- x' = (kn/kd) (c − x): rational gain (the exp-bound ext)
   | driven (j : Fin n)              -- x' = x_j (integrator; phase B)
+  | drivenDamp (j : Fin n) (dampers : List (Fin n × ℤ × ℤ))
+      -- x' = x_j · (1 − Σ_d (aₙ/a_d)·x_{p_d}²): a damped integrator (the nonlinear-s'
+      -- terrain family); each damper p_d is a contract-to-0 coordinate
   deriving Repr, DecidableEq
 
 /-- An optional band `[lo, hi]` (either side may be absent = unbounded). -/
@@ -226,7 +229,8 @@ def checkMode (M : SettlingModel n) (q : ℕ) (m : SettlingMode n) : Bool :=
               else
                decide (m.glo ≤ m'.ghi) && decide (m'.glo ≤ m.glo + c * dt))
          | none => false))
-   | .driven _ => false)
+   | .driven _ => false
+   | .drivenDamp _ _ => false)
 
 /-- **The well-formedness checker.** Decidable; no Z3, no ODE reasoning. -/
 def decideWellFormed (M : SettlingModel n) : Bool :=
@@ -250,6 +254,13 @@ noncomputable def CoordShape.field (i : Fin n) : CoordShape n → Term (Var n)
       Term.binop AOp.mul (Term.const ((kn : ℝ) / (kd : ℝ)))
         (Term.binop AOp.sub (Term.const (c : ℝ)) (Term.var (Rv i)))
   | .driven j => Term.var (Rv j)
+  | .drivenDamp j dampers =>
+      Term.binop AOp.mul (Term.var (Rv j))
+        (dampers.foldr (fun d acc =>
+          Term.binop AOp.sub acc
+            (Term.binop AOp.mul (Term.const ((d.2.1 : ℝ) / (d.2.2 : ℝ)))
+              (Term.binop AOp.mul (Term.var (Rv d.1)) (Term.var (Rv d.1)))))
+          (Term.const 1))
 
 /-- The mode's right field. -/
 noncomputable def SettlingMode.fieldOf (m : SettlingMode n) : Fin n → Term (Var n) :=
@@ -1970,15 +1981,16 @@ theorem settling_contract_below_flex (M : SettlingModel n) {q : ℕ} {m : Settli
           subst hig
           simp
         · rw [if_neg hig]
-          rcases hshx : m.shapes ix with _ | _ | _ | _ | j2
+          rcases hshx : m.shapes ix with _ | _ | _ | _ | j2 | _
           · simp
           · simp
           · simp
           · simp
           · by_cases hj2 : j2 = m.gcoord
             · simp [hj2, expInt]
-            · rcases hshj : m.shapes j2 with _ | _ | _ | _ | _ <;> simp [hj2, expInt] <;>
+            · rcases hshj : m.shapes j2 with _ | _ | _ | _ | _ | _ <;> simp [hj2, expInt] <;>
                 (try rfl) <;> split <;> rfl
+          · simp
     | L => rfl
     | Aux => rfl
   · -- derivatives
@@ -2988,7 +3000,8 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
                  m'.glo ≤ m.glo + c * M.dt ∧ m.ghi + c * M.dt ≤ m'.ghi) ∨
               (∃ q' ∈ m.succs, ∃ m', M.modes[q']? = some m' ∧ m'.gcoord = m.gcoord ∧
                  m.glo ≤ m'.ghi ∧ m'.glo ≤ m.glo + c * M.dt))))
-     | CoordShape.driven _ => False) := by
+     | CoordShape.driven _ => False
+     | CoordShape.drivenDamp _ _ => False) := by
   unfold checkMode at h
   simp only [Bool.and_eq_true, decide_eq_true_eq, List.all_eq_true] at h
   obtain ⟨⟨⟨hord, hinside⟩, hsucc⟩, hshape⟩ := h
@@ -3039,7 +3052,7 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
     · exact absurd h1 hi
     · exact Or.inl h2
     · exact Or.inr (Or.inl h3)
-    · rcases hshx : m.shapes i with _ | _ | _ | _ | j
+    · rcases hshx : m.shapes i with _ | _ | _ | _ | j | _
       all_goals rw [hshx] at h4
       · simp at h4
       · simp at h4
@@ -3048,6 +3061,7 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
       · simp only [Bool.and_eq_true, Bool.not_eq_true', decide_eq_true_eq,
           decide_eq_false_iff_not] at h4
         exact Or.inr (Or.inr ⟨j, rfl, h4.1.1.1, h4.1.1.2, h4.1.2, h4.2⟩)
+      · simp at h4
   have decodeFlexC : ∀ (b : Bool), b = (decide (0 ≤ m.glo) &&
       ((List.finRange n).all fun i =>
         decide (i = m.gcoord) || decide (m.shapes i = CoordShape.frozen) ||
@@ -3084,7 +3098,7 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
     · exact absurd h1 hi
     · exact Or.inl h2
     · exact Or.inr (Or.inl h3)
-    · rcases hshx : m.shapes i with _ | _ | _ | _ | j
+    · rcases hshx : m.shapes i with _ | _ | _ | _ | j | _
       all_goals rw [hshx] at h4
       · simp at h4
       · simp at h4
@@ -3093,7 +3107,8 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
       · simp only [Bool.and_eq_true, Bool.not_eq_true', decide_eq_true_eq,
           decide_eq_false_iff_not] at h4
         exact Or.inr (Or.inr (Or.inl ⟨j, rfl, h4.1.1.1, h4.1.1.2, h4.1.2, h4.2⟩))
-    · rcases hshx : m.shapes i with _ | _ | ⟨k', c'⟩ | _ | _
+      · simp at h4
+    · rcases hshx : m.shapes i with _ | _ | ⟨k', c'⟩ | _ | _ | _
       all_goals rw [hshx] at h5
       · simp at h5
       · simp at h5
@@ -3109,7 +3124,8 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
           simpa using this
       · simp at h5
       · simp at h5
-    · rcases hshx : m.shapes i with _ | _ | _ | _ | j
+      · simp at h5
+    · rcases hshx : m.shapes i with _ | _ | _ | _ | j | _
       all_goals rw [hshx] at h6
       · simp at h6
       · simp at h6
@@ -3118,15 +3134,17 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
       · simp only [Bool.and_eq_true, Bool.not_eq_true', decide_eq_true_eq,
           decide_eq_false_iff_not] at h6
         obtain ⟨⟨⟨hjne, hjc⟩, hlo⟩, hhi⟩ := h6
-        rcases hshj : m.shapes j with _ | _ | ⟨kj, cj⟩ | _ | _
+        rcases hshj : m.shapes j with _ | _ | ⟨kj, cj⟩ | _ | _ | _
         all_goals rw [hshj] at hjc
         · simp at hjc
         · simp at hjc
         · exact Or.inr (Or.inr (Or.inr (Or.inr ⟨j, kj, cj, rfl, hjne, hshj, hlo, hhi⟩)))
         · simp at hjc
         · simp at hjc
+        · simp at hjc
+      · simp at h6
   refine ⟨hord, hloIn, hhiIn, hsucc, ?_⟩
-  rcases hsh : m.shapes m.gcoord with _ | c | ⟨k, c⟩ | ⟨kn, kd, c⟩ | j
+  rcases hsh : m.shapes m.gcoord with _ | c | ⟨k, c⟩ | ⟨kn, kd, c⟩ | j | ⟨j, ds⟩
   all_goals rw [hsh] at hshape
   · -- frozen
     exact decodeFrozen _ rfl hshape
@@ -3254,6 +3272,7 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
           simp only [Bool.and_eq_true, decide_eq_true_eq] at hq'
           exact ⟨q', hq'mem, m', hm', hq'.1.1, hq'.1.2, hq'.2⟩
   · simp at hshape
+  · simp at hshape
 
 /-! ### The assembly: `wellformed_sound` -/
 
@@ -3284,7 +3303,7 @@ theorem wellformed_sound (M : SettlingModel n) (mv tg : Var n) (g : Term (Var n)
     rw [graph_modeAt, hSM]; rfl
   refine ⟨SM.fieldOf, rfl, rfl, by rw [hlen]; exact hqlt, ?_, ?_, ?_, ?_, ?_⟩
   · -- GuardSettlingB, by shape
-    rcases hsh : SM.shapes SM.gcoord with _ | c | ⟨k, c⟩ | ⟨kn, kd, c⟩ | j
+    rcases hsh : SM.shapes SM.gcoord with _ | c | ⟨k, c⟩ | ⟨kn, kd, c⟩ | j | ⟨j, ds⟩
     all_goals rw [hsh] at hshape
     · exact settling_frozen M hSM hsh hshape hdt
     · rcases hshape with ⟨hc, hflex, hglo0, hmar, hland⟩ | ⟨hcneg, hfr, hlomar, hland⟩
@@ -3303,6 +3322,7 @@ theorem wellformed_sound (M : SettlingModel n) (mv tg : Var n) (g : Term (Var n)
       · exact settling_contractQ_above M hSM hsh hflex hglo0 hkn hkd hch hloIn hEnvHi hcover hdt
       · exact settling_contractQ_below M hSM hsh hflex hglo0 hkn hkd hcl hc0 hEnvLo hhiIn
           hcover hdt
+    · exact absurd hshape not_false
     · exact absurd hshape not_false
   · intro ν hν
     exact hcert q (SM.toRMode M) hmodeAt ν hν

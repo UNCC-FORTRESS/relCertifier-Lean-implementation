@@ -234,15 +234,23 @@ carry closed kernel `rfl` certificates**.
   checker's contract-below branch only (a strict superset of the old grammar — every
   previously accepted instance still passes); the inside/above branches stay on the base
   grammar. 22/47 settling + 5/47 terrain = **27/47 closed kernel certificates**.
-- Remaining roadmap: phase D (coupled/nonlinear fields — attitude_rate,
-  endurance_orderlift_2to3, rover_drag's Riccati, rover_tier_r1/rung12's driven-active, the
-  nonlinear-`s'` terrain/story variants). The plan of record: linear-coupled members have
-  closed forms (attitude's symmetric `(p,q)` block diagonalizes to two contracts with
-  rational rates; orderlift is critically damped, `(A + Bt)e^{−4t}`); the genuinely
-  nonlinear rest goes through the Picard box-inflow theorem (strictly-inflowing compact
-  guard box + polynomial field ⟹ exists/stays/self-lands, from `PicardBridge`'s banked
-  local existence + gluing + invariance) and, for the nonlinear-`s'` family, a differential
-  sandwich on `s` (`growth_bound_raw` is the upper half).
+- **EXT 3b (the damped integrator), built — the nonlinear-`s'` family WITHOUT Picard.** The
+  key observation: in `s' = v(1 − Σ a·ψ²)` every factor is an explicit exponential (`v`
+  contracts, each damper `ψ` contracts to 0), so `s` integrates in CLOSED FORM into the
+  existing `expInt` terms — no ODE-existence machinery. `CoordShape.drivenDamp` carries the
+  damper list; the checker requires each damper contract-to-0 with its equilibrium inside its
+  envelope band and the per-damper budget `a·B²·L ≤ 1` (so the damping factor stays in
+  `[0, 1]` and the integrand in `[0, ghi]`); `settling_terrain_damp` discharges landing by
+  MONOTONICITY from the integrand bounds — no algebra on the six-exponential closed form.
+  The terrain v-band also generalized from cap-at-equilibrium to equilibrium-inside-band
+  (`glo ≤ c ≤ ghi`, image rate bounded by `ghi`), admitting the s-only-guarded variants.
+  9 more kernel certificates (refinement/story/attitude-cone rungs, 2–12 coordinates).
+- Remaining roadmap (the linear-coupled closed-form class + two singletons):
+  rung4_8to12/story1_b (second-order dampers `ψ'' = −ψ − 2ψ'`, critically damped
+  `(A + Bt)e^{−t}`), story3_b (coupled `(e, r)` pair), attitude_rate (symmetric `(p,q)` block,
+  diagonalizes to rational-rate contracts), endurance_orderlift_2to3 (critically damped),
+  rover_tier_r1/rung12/rung2_6dof/rung2b_6dof (driven-active `v' = a`, affine witness),
+  rover_drag (Riccati — the one true Picard box-inflow candidate, or a `tanh` closed form).
 
 ## Current state
 

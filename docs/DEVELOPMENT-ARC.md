@@ -270,13 +270,24 @@ carry closed kernel `rfl` certificates**.
   a band-floor modeling fix pending); story3_b's `e`-envelope (±1.5) was narrower than its
   reachable equilibria (`e* = −r`, `r ∈ ±1.52`) — widened to ±1.52, re-certifies, though its
   coupled `(e, r)` block still needs its own invariance analysis.
-- Remaining certifiable (3 + the three outliers): **orderlift_2to3** (critically damped
-  `(A + Bt)e^{−4t}`; per-corner rational bounds via `e^{−x} ≤ 1/(1 + x + x²/2)`, plus the
-  band-floor fix); **attitude_rate** (audit-clean: the weak 0.05 coupling keeps its `(p,q)`
-  box forward-invariant; the witness proof needs a mutual first-exit argument on the explicit
-  two-exponential solution); **rover_drag** (Riccati — Picard box-inflow or hyperbolic-Möbius
-  closed form). Ceiling: 44/47; outliers: shield_unreachable (no guard band),
-  rung4_8to12/story1_b (envelope-language limitation, documented above).
+- **EXT R (Riccati) and EXT P (coupled pair), built — the "phase D needs Picard" prediction
+  fully retired.** rover_drag's quadratic drag has an exact hyperbolic-Möbius flow
+  (`v = q·N/D`, `N' = αD`, `D' = αN`, `D² − N² = q² − v₀²`), field identity by the quotient
+  rule, hull landing by two sign computations — the irrational equilibrium enters only as
+  `√` with its square kernel-checked in ℤ (`glo²a ≤ 10⁶b ≤ ghi²a`). attitude_rate's weakly
+  coupled `(p, q)` block diagonalizes to a two-exponential per member, and the anticipated
+  mutual first-exit topology proved unnecessary: `twoExp_le` bounds it by pure algebra
+  (`e^{−r₂t} ∈ [y², y]` for `y = e^{−r₁t}` since `r₁ ≤ r₂ ≤ 2r₁`, then a quadratic-vertex
+  case analysis needing only three rational facts). One lemma, eight uses (both members,
+  both sides, by sign-flipping). Certificates: rover_drag, attitude_rate — **42/47**.
+- Remaining certifiable (1 + the three outliers): **endurance_orderlift_2to3** — critically
+  damped `(A + Bt)e^{−4t}`: needs a `polyExp_le` analog with BOTH-sided rational exp bounds
+  (`1/(1 + x + x²/2) ≤ e^{−x} ≤ 1/(1 + x)`), per-corner conditions over the `(v₀, a₀)` box
+  (the extremum `B²/(g(2B − gA))` is corner-monotone since `B = a₀ + 4A` is affine), the
+  `a`-coordinate's own poly-exp staying bound, and the pending band-floor fix (STEEP's floor
+  must reach the envelope floor to catch the legitimate `v ≈ −0.02` dip). Ceiling: 43/47;
+  outliers: shield_unreachable (no guard band), rung4_8to12/story1_b (envelope-language
+  limitation, documented above).
 
 ## Current state
 

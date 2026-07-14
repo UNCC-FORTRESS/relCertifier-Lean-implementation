@@ -1256,7 +1256,7 @@ theorem checkModeT_true {M : SettlingModel n} {sbands : List (SBand n)}
           sb'.sc = sb.sc ∧ m'.gcoord = m.gcoord ∧ m'.glo ≤ m.glo ∧ m.ghi ≤ m'.ghi ∧
           sb'.slo ≤ sh ∧ (∀ sh', sb'.shi = some sh' → sh + m.ghi * M.dt ≤ sh')) := by
   unfold checkModeT at h
-  rcases hsh : m.shapes m.gcoord with _ | _ | ⟨k, c⟩ | _ | _ | _
+  rcases hsh : m.shapes m.gcoord with _ | _ | ⟨k, c⟩ | _ | _ | _ | _
   all_goals rw [hsh] at h
   · simp at h
   · simp at h
@@ -1295,7 +1295,7 @@ theorem checkModeT_true {M : SettlingModel n} {sbands : List (SBand n)}
       · exact absurd h1 hig
       · exact absurd h2 his
       · exact Or.inl h3
-      · rcases hshx : m.shapes i with _ | _ | ⟨k', c'⟩ | _ | _ | _
+      · rcases hshx : m.shapes i with _ | _ | ⟨k', c'⟩ | _ | _ | _ | _
         all_goals rw [hshx] at h4
         · simp at h4
         · simp at h4
@@ -1312,6 +1312,7 @@ theorem checkModeT_true {M : SettlingModel n} {sbands : List (SBand n)}
         · simp at h4
         · simp at h4
         · simp at h4
+        · simp at h4
     have hscP : m.shapes sb.sc = CoordShape.driven m.gcoord ∨
         (∃ dampers, m.shapes sb.sc = CoordShape.drivenDamp m.gcoord dampers ∧
           ∀ d ∈ dampers, d.1 ≠ m.gcoord ∧ d.1 ≠ sb.sc ∧ 0 ≤ d.2.1 ∧ 0 < d.2.2 ∧
@@ -1322,7 +1323,7 @@ theorem checkModeT_true {M : SettlingModel n} {sbands : List (SBand n)}
       rw [Bool.or_eq_true] at hscd
       rcases hscd with h1 | h2
       · exact Or.inl (of_decide_eq_true h1)
-      · rcases hs : m.shapes sb.sc with _ | _ | _ | _ | _ | ⟨j, dampers⟩
+      · rcases hs : m.shapes sb.sc with _ | _ | _ | _ | _ | ⟨j, dampers⟩ | _
         all_goals rw [hs] at h2
         · simp at h2
         · simp at h2
@@ -1339,13 +1340,14 @@ theorem checkModeT_true {M : SettlingModel n} {sbands : List (SBand n)}
             decide_eq_false_iff_not] at hthis
           obtain ⟨⟨⟨⟨⟨hd1, hd2⟩, hd3⟩, hd4⟩, hshp⟩, henvd⟩ := hthis
           refine ⟨hd1, hd2, hd3, hd4, ?_, ?_⟩
-          · rcases hsp : m.shapes d.1 with _ | _ | ⟨kp, cp⟩ | _ | _ | _
+          · rcases hsp : m.shapes d.1 with _ | _ | ⟨kp, cp⟩ | _ | _ | _ | _
             all_goals rw [hsp] at hshp
             · simp at hshp
             · simp at hshp
             · simp only [Bool.and_eq_true, decide_eq_true_eq] at hshp
               refine ⟨kp, ?_, hshp.1⟩
               rw [hshp.2]
+            · simp at hshp
             · simp at hshp
             · simp at hshp
             · simp at hshp
@@ -1357,6 +1359,7 @@ theorem checkModeT_true {M : SettlingModel n} {sbands : List (SBand n)}
             · simp at henvd
             · simp only [Bool.and_eq_true, decide_eq_true_eq] at henvd
               exact ⟨lo, hi, rfl, rfl, henvd.1.1, henvd.1.2, henvd.2⟩
+        · simp at h2
     refine ⟨hk, hcl, hch, hglo0, hvLo, hvHi, hscne, hscP, hsloIn, hsHiB, hOth, hsuccB, ?_⟩
     intro sh hshi
     rw [hshi] at hlandB
@@ -1373,6 +1376,7 @@ theorem checkModeT_true {M : SettlingModel n} {sbands : List (SBand n)}
       intro sh' hsh'
       rw [hsh'] at hshi'B
       simpa using hshi'B
+  · simp at h
   · simp at h
   · simp at h
   · simp at h

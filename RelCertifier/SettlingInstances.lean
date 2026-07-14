@@ -25,8 +25,8 @@ A frozen ACTIVE coordinate with non-frozen (driven) others is transcribed as
 `CoordShape.constRate 0` — the identical field (`Term.const 0`) — because the constRate branch
 carries the flex-others grammar and lands in its own band by `c = 0`.
 
-COVERAGE (22/47 data terms; ALL 22 checker-ACCEPTED with closed `rfl` certificates —
-rover_4d_box joined via the EXT 4b extended flex grammar). The remaining benchmarks map to named extension classes,
+COVERAGE (23/47 data terms; ALL 23 checker-ACCEPTED with closed `rfl` certificates —
+rover_4d_box via the EXT 4b extended flex grammar, rover_drag via the `riccati` shape). The remaining benchmarks map to named extension classes,
 each a precise next step, none a gap in what is proven:
 
 * **exp-bound transit contracts** (watertank, match_multi_eps, rover3tier_M1,
@@ -306,6 +306,20 @@ def rover_positionM : SettlingModel 4 :=
     dtQ := 1 }
 
 example : decideWellFormed rover_positionM = true := rfl
+
+/-- `rover_drag` (R side; units: values ×1000, time ×1; dt = ε_R/λ at λ = 1).
+Quadratic drag `vx' = 0.05 − 0.3·vx²` toward `√(1/6) ≈ 0.408` — the `riccati` shape
+(`b = 50`, `a = 300`, both real coefficient ×1000; the `10⁶` divisor in the field absorbs
+the squared value scale); one self-loop mode, hull-of-base-and-equilibrium landing. -/
+def rover_dragM : SettlingModel 1 :=
+  { modes :=
+    [
+      { shapes := ![CoordShape.riccati 50 300], gcoord := 0,
+        glo := 0, ghi := 1210, succs := [] } ]
+    env := ![{ lo := some 0, hi := some 1400 }]
+    dtQ := 1 }
+
+example : decideWellFormed rover_dragM = true := rfl
 
 /-- `rover_terrain_M1` (R side; units: values ×1000, time ×2; dt = ε_R/λ at λ = 1). -/
 def rover_terrain_M1M : SettlingModel 2 :=

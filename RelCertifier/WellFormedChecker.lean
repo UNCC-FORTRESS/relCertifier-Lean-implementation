@@ -67,6 +67,9 @@ inductive CoordShape (n : ℕ) where
   | drivenDamp (j : Fin n) (dampers : List (Fin n × ℤ × ℤ))
       -- x' = x_j · (1 − Σ_d (aₙ/a_d)·x_{p_d}²): a damped integrator (the nonlinear-s'
       -- terrain family); each damper p_d is a contract-to-0 coordinate
+  | riccati (b a : ℤ)               -- x' = b − (a/10⁶)·x²: quadratic drag toward √(10⁶b/a)
+                                    -- (b, a both = real coefficient ×1000 under the value
+                                    -- scaling; the 10⁶ divisor absorbs the squared scale)
   deriving Repr, DecidableEq
 
 /-- An optional band `[lo, hi]` (either side may be absent = unbounded). -/
@@ -230,7 +233,13 @@ def checkMode (M : SettlingModel n) (q : ℕ) (m : SettlingMode n) : Bool :=
                decide (m.glo ≤ m'.ghi) && decide (m'.glo ≤ m.glo + c * dt))
          | none => false))
    | .driven _ => false
-   | .drivenDamp _ _ => false)
+   | .drivenDamp _ _ => false
+   | .riccati b a =>
+       -- quadratic drag: equilibrium √(10⁶b/a) inside the band ⟹ the hull of base and
+       -- equilibrium self-lands; only frozen others (the class is one-coordinate)
+       othersFrozen &&
+       decide (0 < b) && decide (0 < a) && decide (0 ≤ m.glo) &&
+       decide (m.glo^2 * a ≤ 1000000 * b) && decide (1000000 * b ≤ m.ghi^2 * a))
 
 /-- **The well-formedness checker.** Decidable; no Z3, no ODE reasoning. -/
 def decideWellFormed (M : SettlingModel n) : Bool :=
@@ -261,6 +270,10 @@ noncomputable def CoordShape.field (i : Fin n) : CoordShape n → Term (Var n)
             (Term.binop AOp.mul (Term.const ((d.2.1 : ℝ) / (d.2.2 : ℝ)))
               (Term.binop AOp.mul (Term.var (Rv d.1)) (Term.var (Rv d.1)))))
           (Term.const 1))
+  | .riccati b a =>
+      Term.binop AOp.sub (Term.const (b : ℝ))
+        (Term.binop AOp.mul (Term.const ((a : ℝ) / 1000000))
+          (Term.binop AOp.mul (Term.var (Rv i)) (Term.var (Rv i))))
 
 /-- The mode's right field. -/
 noncomputable def SettlingMode.fieldOf (m : SettlingMode n) : Fin n → Term (Var n) :=
@@ -1981,15 +1994,16 @@ theorem settling_contract_below_flex (M : SettlingModel n) {q : ℕ} {m : Settli
           subst hig
           simp
         · rw [if_neg hig]
-          rcases hshx : m.shapes ix with _ | _ | _ | _ | j2 | _
+          rcases hshx : m.shapes ix with _ | _ | _ | _ | j2 | _ | _
           · simp
           · simp
           · simp
           · simp
           · by_cases hj2 : j2 = m.gcoord
             · simp [hj2, expInt]
-            · rcases hshj : m.shapes j2 with _ | _ | _ | _ | _ | _ <;> simp [hj2, expInt] <;>
-                (try rfl) <;> split <;> rfl
+            · rcases hshj : m.shapes j2 with _ | _ | _ | _ | _ | _ | _ <;>
+                simp [hj2, expInt] <;> (try rfl) <;> split <;> rfl
+          · simp
           · simp
     | L => rfl
     | Aux => rfl
@@ -2953,6 +2967,306 @@ theorem settling_contractQ_below (M : SettlingModel n) {q : ℕ} {m : SettlingMo
     · rw [hgc2, drivenΦC_Rv]; exact hl1
     · rw [hgc2, drivenΦC_Rv]; exact hl2
 
+/-! ### EXT R — the Riccati discharge (quadratic drag, hyperbolic-Möbius witness)
+
+`x' = b − (a/10⁶)x²` contracts toward `q = √(10⁶b/a)`; the exact flow is the Möbius form
+`v(t) = q·N/D` with `N = v₀·cosh(αt) + q·sinh(αt)`, `D = q·cosh(αt) + v₀·sinh(αt)`,
+`α = (a/10⁶)·q` — `N' = αD`, `D' = αN`, and `D² − N² = q² − v₀²` (from `cosh² − sinh² = 1`)
+give the field identity by the quotient rule. The value stays in the hull of `v₀` and `q`
+(`v − q` carries the sign of `v₀ − q` via the positive factor `e^{−αt}/D`; `v − v₀` carries
+the sign of `q − v₀` via `sinh/D`), so with the equilibrium inside the band the mode
+self-lands — no successor conditions at all. -/
+
+/-- The Möbius value of the Riccati flow. -/
+noncomputable def riccVal (qR α v0 t : ℝ) : ℝ :=
+  qR * (v0 * Real.cosh (α * t) + qR * Real.sinh (α * t))
+    / (qR * Real.cosh (α * t) + v0 * Real.sinh (α * t))
+
+/-- The Riccati witness flow (frozen off the active coordinate). -/
+noncomputable def riccΦ (m : SettlingMode n) (qR α : ℝ) (base : State (Var n)) (t : ℝ) :
+    State (Var n) :=
+  fun x => match x with
+    | (Side.R, i) =>
+        if i = m.gcoord then riccVal qR α (base (Rv m.gcoord)) t else base (Rv i)
+    | _ => base x
+
+@[simp] theorem riccΦ_Rv (m : SettlingMode n) (qR α : ℝ) (base : State (Var n)) (t : ℝ)
+    (i : Fin n) : riccΦ m qR α base t (Rv i)
+      = if i = m.gcoord then riccVal qR α (base (Rv m.gcoord)) t else base (Rv i) := rfl
+
+theorem riccΦ_nonR (m : SettlingMode n) (qR α : ℝ) (base : State (Var n)) (t : ℝ)
+    {x : Var n} (hx : ∀ i : Fin n, x ≠ Rv i) : riccΦ m qR α base t x = base x := by
+  obtain ⟨sd, ix⟩ := x
+  cases sd with
+  | R => exact absurd rfl (hx ix)
+  | L => rfl
+  | Aux => rfl
+
+/-- RICCATI active coordinate: quadratic drag with the equilibrium inside the band — stays
+in the hull of base and equilibrium and self-lands. Frozen others. -/
+theorem settling_riccati (M : SettlingModel n) {q : ℕ} {m : SettlingMode n}
+    (hq : M.modes[q]? = some m) {b a : ℤ}
+    (hsh : m.shapes m.gcoord = CoordShape.riccati b a)
+    (hfr : ∀ i, i ≠ m.gcoord → m.shapes i = CoordShape.frozen)
+    (hb : 0 < b) (ha : 0 < a) (hglo0 : 0 ≤ m.glo) (hord : m.glo ≤ m.ghi)
+    (hql : m.glo^2 * a ≤ 1000000 * b) (hqh : 1000000 * b ≤ m.ghi^2 * a)
+    (hloIn : ∀ l', (M.env m.gcoord).lo = some l' → l' ≤ m.glo)
+    (hhiIn : ∀ h', (M.env m.gcoord).hi = some h' → m.ghi ≤ h')
+    (hdt : (0 : ℝ) ≤ (M.dt : ℝ)) :
+    GuardSettlingB M.graph M.GdOf m.fieldOf (Term.const 1) M.envF ((M.dt : ℝ)) q := by
+  intro base hb'
+  obtain ⟨henv, hblo, hbhi⟩ := (sat_GdOf hq).mp hb'
+  have haR : (0 : ℝ) < (a : ℝ) := by exact_mod_cast ha
+  have hbR : (0 : ℝ) < (b : ℝ) := by exact_mod_cast hb
+  have hglo0R : (0 : ℝ) ≤ (m.glo : ℝ) := by exact_mod_cast hglo0
+  set qR : ℝ := Real.sqrt ((1000000 * b : ℝ) / a) with hqdef
+  have hargpos : (0 : ℝ) < (1000000 * b : ℝ) / a := by positivity
+  have hqpos : 0 < qR := Real.sqrt_pos.mpr hargpos
+  have hq2 : qR ^ 2 = (1000000 * b : ℝ) / a := Real.sq_sqrt hargpos.le
+  set α : ℝ := (a : ℝ) / 1000000 * qR with hαdef
+  have hαpos : 0 < α := by positivity
+  have hbv0 : (0 : ℝ) ≤ base (Rv m.gcoord) := le_trans hglo0R hblo
+  -- the equilibrium sits inside the band
+  have hghi0 : (0 : ℝ) ≤ (m.ghi : ℝ) := le_trans hglo0R (by exact_mod_cast hord)
+  have hqlR : (m.glo : ℝ) ≤ qR := by
+    have h1 : ((m.glo : ℝ))^2 * (a : ℝ) ≤ 1000000 * (b : ℝ) := by exact_mod_cast hql
+    have h2 : ((m.glo : ℝ))^2 ≤ qR^2 := by
+      rw [hq2, le_div_iff₀ haR]
+      exact h1
+    calc (m.glo : ℝ) = Real.sqrt (((m.glo : ℝ))^2) := (Real.sqrt_sq hglo0R).symm
+      _ ≤ Real.sqrt (qR^2) := Real.sqrt_le_sqrt h2
+      _ = qR := Real.sqrt_sq hqpos.le
+  have hqhR : qR ≤ (m.ghi : ℝ) := by
+    have h1 : 1000000 * (b : ℝ) ≤ ((m.ghi : ℝ))^2 * (a : ℝ) := by exact_mod_cast hqh
+    have h2 : qR^2 ≤ ((m.ghi : ℝ))^2 := by
+      rw [hq2, div_le_iff₀ haR]
+      exact h1
+    calc qR = Real.sqrt (qR^2) := (Real.sqrt_sq hqpos.le).symm
+      _ ≤ Real.sqrt (((m.ghi : ℝ))^2) := Real.sqrt_le_sqrt h2
+      _ = (m.ghi : ℝ) := Real.sqrt_sq hghi0
+  -- the denominator is positive for all t ≥ 0
+  have hD : ∀ t, 0 ≤ t →
+      0 < qR * Real.cosh (α * t) + base (Rv m.gcoord) * Real.sinh (α * t) := by
+    intro t ht
+    have hc := Real.one_le_cosh (α * t)
+    have hs : 0 ≤ Real.sinh (α * t) := Real.sinh_nonneg_iff.mpr (by positivity)
+    nlinarith
+  -- hull bounds: the value sits between the base and the equilibrium
+  have hband : ∀ t, 0 ≤ t →
+      (m.glo : ℝ) ≤ riccVal qR α (base (Rv m.gcoord)) t
+      ∧ riccVal qR α (base (Rv m.gcoord)) t ≤ (m.ghi : ℝ) := by
+    intro t ht
+    have hDpos := hD t ht
+    have hs : 0 ≤ Real.sinh (α * t) := Real.sinh_nonneg_iff.mpr (by positivity)
+    have hexp : Real.cosh (α * t) - Real.sinh (α * t) = Real.exp (-(α * t)) :=
+      Real.cosh_sub_sinh (α * t)
+    have hexppos : (0 : ℝ) < Real.exp (-(α * t)) := Real.exp_pos _
+    have hnum1 : riccVal qR α (base (Rv m.gcoord)) t - qR
+        = qR * (base (Rv m.gcoord) - qR) * Real.exp (-(α * t))
+          / (qR * Real.cosh (α * t) + base (Rv m.gcoord) * Real.sinh (α * t)) := by
+      unfold riccVal
+      rw [← hexp]
+      field_simp
+      ring
+    have hnum2 : riccVal qR α (base (Rv m.gcoord)) t - base (Rv m.gcoord)
+        = (qR ^ 2 - base (Rv m.gcoord) ^ 2) * Real.sinh (α * t)
+          / (qR * Real.cosh (α * t) + base (Rv m.gcoord) * Real.sinh (α * t)) := by
+      unfold riccVal
+      field_simp
+      ring
+    rcases le_total (base (Rv m.gcoord)) qR with hbq | hbq
+    · -- v₀ ≤ q: the value rises from v₀ toward q
+      have hle : riccVal qR α (base (Rv m.gcoord)) t - qR ≤ 0 := by
+        rw [hnum1, div_nonpos_iff]
+        right
+        constructor
+        · nlinarith [mul_nonneg (mul_nonneg hqpos.le (sub_nonneg.mpr hbq)) hexppos.le]
+        · exact hDpos.le
+      have hge : 0 ≤ riccVal qR α (base (Rv m.gcoord)) t - base (Rv m.gcoord) := by
+        rw [hnum2]
+        apply div_nonneg _ hDpos.le
+        nlinarith [mul_nonneg (mul_nonneg (add_nonneg hqpos.le hbv0)
+          (sub_nonneg.mpr hbq)) hs]
+      constructor
+      · linarith
+      · linarith
+    · -- q ≤ v₀: the value falls from v₀ toward q
+      have hge : 0 ≤ riccVal qR α (base (Rv m.gcoord)) t - qR := by
+        rw [hnum1]
+        apply div_nonneg _ hDpos.le
+        have : 0 ≤ base (Rv m.gcoord) - qR := by linarith
+        positivity
+      have hle : riccVal qR α (base (Rv m.gcoord)) t - base (Rv m.gcoord) ≤ 0 := by
+        rw [hnum2, div_nonpos_iff]
+        right
+        constructor
+        · nlinarith [mul_nonneg (mul_nonneg (add_nonneg hbv0 hqpos.le)
+            (sub_nonneg.mpr hbq)) hs]
+        · exact hDpos.le
+      constructor
+      · linarith
+      · linarith
+  -- staying in the envelope
+  have hstayEnv : ∀ t, 0 ≤ t →
+      Formula.sat M.envF (riccΦ m qR α base t) := by
+    intro t ht
+    rw [sat_envF]
+    intro i
+    rw [riccΦ_Rv]
+    by_cases hig : i = m.gcoord
+    · rw [if_pos hig, hig]
+      obtain ⟨h1, h2⟩ := hband t ht
+      unfold Band.memR
+      constructor
+      · cases hcase : (M.env m.gcoord).lo with
+        | none => trivial
+        | some l =>
+            have hlG : (l : ℝ) ≤ (m.glo : ℝ) := by exact_mod_cast hloIn l hcase
+            linarith
+      · cases hcase : (M.env m.gcoord).hi with
+        | none => trivial
+        | some h =>
+            have hhG : (m.ghi : ℝ) ≤ (h : ℝ) := by exact_mod_cast hhiIn h hcase
+            linarith
+    · rw [if_neg hig]
+      exact (sat_envF.mp henv) i
+  refine ⟨riccΦ m qR α base, ?_, ?_, ?_, fun t ht => hstayEnv t ht.1,
+    q, List.mem_cons_self .., ?_⟩
+  · -- t = 0 recovers the base
+    funext x
+    obtain ⟨sd, ix⟩ := x
+    cases sd with
+    | R =>
+        show riccΦ m qR α base 0 (Rv ix) = base (Rv ix)
+        rw [riccΦ_Rv]
+        by_cases hig : ix = m.gcoord
+        · rw [if_pos hig, hig]
+          unfold riccVal
+          simp only [mul_zero, Real.cosh_zero, Real.sinh_zero, mul_one, add_zero, zero_add]
+          rw [mul_comm qR, mul_div_assoc, div_self (ne_of_gt hqpos), mul_one]
+        · rw [if_neg hig]
+    | L => rfl
+    | Aux => rfl
+  · -- derivatives
+    intro t ht p hp
+    simp only [rightBlock, List.mem_map, List.mem_finRange] at hp
+    obtain ⟨i, -, rfl⟩ := hp
+    by_cases hig : i = m.gcoord
+    · rw [hig]
+      have hDpos := hD t ht.1
+      have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf m.gcoord))
+          (riccΦ m qR α base t)
+          = (b : ℝ) - (a : ℝ) / 1000000 * (riccVal qR α (base (Rv m.gcoord)) t) ^ 2 := by
+        simp only [SettlingMode.fieldOf, hsh, CoordShape.field, Term.eval, AOp.interp,
+          riccΦ_Rv, eq_self_iff_true, if_true]
+        ring
+      rw [heval]
+      have hcurve : (fun u => riccΦ m qR α base u (Rv m.gcoord))
+          = fun u => riccVal qR α (base (Rv m.gcoord)) u := by
+        funext u
+        rw [riccΦ_Rv, if_pos rfl]
+      rw [hcurve]
+      -- N' = αD, D' = αN, quotient rule
+      have hinner : ∀ u : ℝ, HasDerivAt (fun w : ℝ => α * w) α u := by
+        intro u
+        simpa using (hasDerivAt_id u).const_mul α
+      have hcoshD : HasDerivAt (fun w : ℝ => Real.cosh (α * w))
+          (Real.sinh (α * t) * α) t :=
+        (Real.hasDerivAt_cosh (α * t)).comp t (hinner t)
+      have hsinhD : HasDerivAt (fun w : ℝ => Real.sinh (α * w))
+          (Real.cosh (α * t) * α) t :=
+        (Real.hasDerivAt_sinh (α * t)).comp t (hinner t)
+      have hN : HasDerivAt
+          (fun w => qR * (base (Rv m.gcoord) * Real.cosh (α * w) + qR * Real.sinh (α * w)))
+          (qR * (base (Rv m.gcoord) * (Real.sinh (α * t) * α)
+            + qR * (Real.cosh (α * t) * α))) t :=
+        ((hcoshD.const_mul (base (Rv m.gcoord))).add (hsinhD.const_mul qR)).const_mul qR
+      have hDD : HasDerivAt
+          (fun w => qR * Real.cosh (α * w) + base (Rv m.gcoord) * Real.sinh (α * w))
+          (qR * (Real.sinh (α * t) * α)
+            + base (Rv m.gcoord) * (Real.cosh (α * t) * α)) t :=
+        (hcoshD.const_mul qR).add (hsinhD.const_mul (base (Rv m.gcoord)))
+      have hdiv := hN.div hDD (ne_of_gt hDpos)
+      have hb' : (a : ℝ) / 1000000 * qR ^ 2 = (b : ℝ) := by
+        rw [hq2]
+        field_simp
+      have hDN : (qR * Real.cosh (α * t) + base (Rv m.gcoord) * Real.sinh (α * t)) ^ 2
+          - (base (Rv m.gcoord) * Real.cosh (α * t) + qR * Real.sinh (α * t)) ^ 2
+          = qR ^ 2 - base (Rv m.gcoord) ^ 2 := by
+        linear_combination (qR ^ 2 - base (Rv m.gcoord) ^ 2)
+          * Real.cosh_sq_sub_sinh_sq (α * t)
+      have heq : (qR * (base (Rv m.gcoord) * (Real.sinh (α * t) * α)
+            + qR * (Real.cosh (α * t) * α))
+            * (qR * Real.cosh (α * t) + base (Rv m.gcoord) * Real.sinh (α * t))
+          - qR * (base (Rv m.gcoord) * Real.cosh (α * t) + qR * Real.sinh (α * t))
+            * (qR * (Real.sinh (α * t) * α)
+              + base (Rv m.gcoord) * (Real.cosh (α * t) * α)))
+          / (qR * Real.cosh (α * t) + base (Rv m.gcoord) * Real.sinh (α * t)) ^ 2
+          = (b : ℝ) - (a : ℝ) / 1000000 * (riccVal qR α (base (Rv m.gcoord)) t) ^ 2 := by
+        rw [show qR * (base (Rv m.gcoord) * (Real.sinh (α * t) * α)
+              + qR * (Real.cosh (α * t) * α))
+              * (qR * Real.cosh (α * t) + base (Rv m.gcoord) * Real.sinh (α * t))
+            - qR * (base (Rv m.gcoord) * Real.cosh (α * t) + qR * Real.sinh (α * t))
+              * (qR * (Real.sinh (α * t) * α)
+                + base (Rv m.gcoord) * (Real.cosh (α * t) * α))
+            = qR * α
+              * ((qR * Real.cosh (α * t) + base (Rv m.gcoord) * Real.sinh (α * t)) ^ 2
+                - (base (Rv m.gcoord) * Real.cosh (α * t)
+                  + qR * Real.sinh (α * t)) ^ 2) from by ring, hDN]
+        have hqα : qR * α = (a : ℝ) / 1000000 * qR ^ 2 := by
+          rw [hαdef]
+          ring
+        have hDne : qR * Real.cosh (α * t) + base (Rv m.gcoord) * Real.sinh (α * t) ≠ 0 :=
+          ne_of_gt hDpos
+        have hrv2 : (riccVal qR α (base (Rv m.gcoord)) t) ^ 2
+            = qR ^ 2 * (base (Rv m.gcoord) * Real.cosh (α * t) + qR * Real.sinh (α * t)) ^ 2
+              / (qR * Real.cosh (α * t) + base (Rv m.gcoord) * Real.sinh (α * t)) ^ 2 := by
+          unfold riccVal
+          rw [div_pow, mul_pow]
+        rw [hrv2]
+        rw [show (b : ℝ) - (a : ℝ) / 1000000
+              * (qR ^ 2
+                * (base (Rv m.gcoord) * Real.cosh (α * t) + qR * Real.sinh (α * t)) ^ 2
+                / (qR * Real.cosh (α * t) + base (Rv m.gcoord) * Real.sinh (α * t)) ^ 2)
+            = ((b : ℝ)
+                * (qR * Real.cosh (α * t) + base (Rv m.gcoord) * Real.sinh (α * t)) ^ 2
+              - (a : ℝ) / 1000000 * qR ^ 2
+                * (base (Rv m.gcoord) * Real.cosh (α * t) + qR * Real.sinh (α * t)) ^ 2)
+              / (qR * Real.cosh (α * t) + base (Rv m.gcoord) * Real.sinh (α * t)) ^ 2
+          from by field_simp]
+        rw [div_eq_div_iff (pow_ne_zero 2 hDne) (pow_ne_zero 2 hDne)]
+        linear_combination
+          (-(((a : ℝ) / 1000000) * qR ^ 2)
+            * (qR * Real.cosh (α * t) + base (Rv m.gcoord) * Real.sinh (α * t)) ^ 2) * hDN
+          + ((qR ^ 2 - base (Rv m.gcoord) ^ 2)
+            * (qR * Real.cosh (α * t) + base (Rv m.gcoord) * Real.sinh (α * t)) ^ 2) * hqα
+          + ((qR * Real.cosh (α * t) + base (Rv m.gcoord) * Real.sinh (α * t)) ^ 4) * hb'
+      rw [← heq]
+      exact hdiv.hasDerivWithinAt
+    · have hfz := hfr i hig
+      have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf i))
+          (riccΦ m qR α base t) = 0 := by
+        simp [SettlingMode.fieldOf, hfz, CoordShape.field, Term.eval, AOp.interp]
+      rw [heval]
+      have hcurve : (fun u => riccΦ m qR α base u (Rv i)) = fun _ => base (Rv i) := by
+        funext u
+        rw [riccΦ_Rv, if_neg hig]
+      rw [hcurve]
+      exact hasDerivWithinAt_const t _ _
+  · -- mask
+    intro t ht x hx
+    refine riccΦ_nonR m qR α base t ?_
+    intro i hxi
+    exact hx (by
+      rw [hxi]
+      simp only [rightBlock, ODESystem.bound, List.map_map]
+      exact List.mem_map.mpr ⟨i, List.mem_finRange i, rfl⟩)
+  · -- self-landing
+    rw [sat_GdOf hq]
+    obtain ⟨h1, h2⟩ := hband (M.dt : ℝ) hdt
+    exact ⟨hstayEnv _ hdt, by rw [riccΦ_Rv, if_pos rfl]; exact h1,
+      by rw [riccΦ_Rv, if_pos rfl]; exact h2⟩
+
 /-! ### Extraction: the checker's Bool facts as Props -/
 
 theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
@@ -3001,7 +3315,11 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
               (∃ q' ∈ m.succs, ∃ m', M.modes[q']? = some m' ∧ m'.gcoord = m.gcoord ∧
                  m.glo ≤ m'.ghi ∧ m'.glo ≤ m.glo + c * M.dt))))
      | CoordShape.driven _ => False
-     | CoordShape.drivenDamp _ _ => False) := by
+     | CoordShape.drivenDamp _ _ => False
+     | CoordShape.riccati b a =>
+         (∀ i, i ≠ m.gcoord → m.shapes i = CoordShape.frozen) ∧
+         0 < b ∧ 0 < a ∧ 0 ≤ m.glo ∧
+         m.glo^2 * a ≤ 1000000 * b ∧ 1000000 * b ≤ m.ghi^2 * a) := by
   unfold checkMode at h
   simp only [Bool.and_eq_true, decide_eq_true_eq, List.all_eq_true] at h
   obtain ⟨⟨⟨hord, hinside⟩, hsucc⟩, hshape⟩ := h
@@ -3052,7 +3370,7 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
     · exact absurd h1 hi
     · exact Or.inl h2
     · exact Or.inr (Or.inl h3)
-    · rcases hshx : m.shapes i with _ | _ | _ | _ | j | _
+    · rcases hshx : m.shapes i with _ | _ | _ | _ | j | _ | _
       all_goals rw [hshx] at h4
       · simp at h4
       · simp at h4
@@ -3061,6 +3379,7 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
       · simp only [Bool.and_eq_true, Bool.not_eq_true', decide_eq_true_eq,
           decide_eq_false_iff_not] at h4
         exact Or.inr (Or.inr ⟨j, rfl, h4.1.1.1, h4.1.1.2, h4.1.2, h4.2⟩)
+      · simp at h4
       · simp at h4
   have decodeFlexC : ∀ (b : Bool), b = (decide (0 ≤ m.glo) &&
       ((List.finRange n).all fun i =>
@@ -3098,7 +3417,7 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
     · exact absurd h1 hi
     · exact Or.inl h2
     · exact Or.inr (Or.inl h3)
-    · rcases hshx : m.shapes i with _ | _ | _ | _ | j | _
+    · rcases hshx : m.shapes i with _ | _ | _ | _ | j | _ | _
       all_goals rw [hshx] at h4
       · simp at h4
       · simp at h4
@@ -3108,7 +3427,8 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
           decide_eq_false_iff_not] at h4
         exact Or.inr (Or.inr (Or.inl ⟨j, rfl, h4.1.1.1, h4.1.1.2, h4.1.2, h4.2⟩))
       · simp at h4
-    · rcases hshx : m.shapes i with _ | _ | ⟨k', c'⟩ | _ | _ | _
+      · simp at h4
+    · rcases hshx : m.shapes i with _ | _ | ⟨k', c'⟩ | _ | _ | _ | _
       all_goals rw [hshx] at h5
       · simp at h5
       · simp at h5
@@ -3125,7 +3445,8 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
       · simp at h5
       · simp at h5
       · simp at h5
-    · rcases hshx : m.shapes i with _ | _ | _ | _ | j | _
+      · simp at h5
+    · rcases hshx : m.shapes i with _ | _ | _ | _ | j | _ | _
       all_goals rw [hshx] at h6
       · simp at h6
       · simp at h6
@@ -3134,7 +3455,7 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
       · simp only [Bool.and_eq_true, Bool.not_eq_true', decide_eq_true_eq,
           decide_eq_false_iff_not] at h6
         obtain ⟨⟨⟨hjne, hjc⟩, hlo⟩, hhi⟩ := h6
-        rcases hshj : m.shapes j with _ | _ | ⟨kj, cj⟩ | _ | _ | _
+        rcases hshj : m.shapes j with _ | _ | ⟨kj, cj⟩ | _ | _ | _ | _
         all_goals rw [hshj] at hjc
         · simp at hjc
         · simp at hjc
@@ -3142,9 +3463,11 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
         · simp at hjc
         · simp at hjc
         · simp at hjc
+        · simp at hjc
+      · simp at h6
       · simp at h6
   refine ⟨hord, hloIn, hhiIn, hsucc, ?_⟩
-  rcases hsh : m.shapes m.gcoord with _ | c | ⟨k, c⟩ | ⟨kn, kd, c⟩ | j | ⟨j, ds⟩
+  rcases hsh : m.shapes m.gcoord with _ | c | ⟨k, c⟩ | ⟨kn, kd, c⟩ | j | ⟨j, ds⟩ | ⟨b, a⟩
   all_goals rw [hsh] at hshape
   · -- frozen
     exact decodeFrozen _ rfl hshape
@@ -3273,6 +3596,10 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
           exact ⟨q', hq'mem, m', hm', hq'.1.1, hq'.1.2, hq'.2⟩
   · simp at hshape
   · simp at hshape
+  · -- riccati
+    simp only [Bool.and_eq_true, decide_eq_true_eq] at hshape
+    obtain ⟨⟨⟨⟨⟨hfrB, hb⟩, ha⟩, hglo0⟩, hql⟩, hqh⟩ := hshape
+    exact ⟨decodeFrozen _ rfl hfrB, hb, ha, hglo0, hql, hqh⟩
 
 /-! ### The assembly: `wellformed_sound` -/
 
@@ -3303,7 +3630,7 @@ theorem wellformed_sound (M : SettlingModel n) (mv tg : Var n) (g : Term (Var n)
     rw [graph_modeAt, hSM]; rfl
   refine ⟨SM.fieldOf, rfl, rfl, by rw [hlen]; exact hqlt, ?_, ?_, ?_, ?_, ?_⟩
   · -- GuardSettlingB, by shape
-    rcases hsh : SM.shapes SM.gcoord with _ | c | ⟨k, c⟩ | ⟨kn, kd, c⟩ | j | ⟨j, ds⟩
+    rcases hsh : SM.shapes SM.gcoord with _ | c | ⟨k, c⟩ | ⟨kn, kd, c⟩ | j | ⟨j, ds⟩ | ⟨b, a⟩
     all_goals rw [hsh] at hshape
     · exact settling_frozen M hSM hsh hshape hdt
     · rcases hshape with ⟨hc, hflex, hglo0, hmar, hland⟩ | ⟨hcneg, hfr, hlomar, hland⟩
@@ -3324,6 +3651,8 @@ theorem wellformed_sound (M : SettlingModel n) (mv tg : Var n) (g : Term (Var n)
           hcover hdt
     · exact absurd hshape not_false
     · exact absurd hshape not_false
+    · obtain ⟨hfr, hb, ha, hglo0, hql, hqh⟩ := hshape
+      exact settling_riccati M hSM hsh hfr hb ha hglo0 hord hql hqh hloIn hhiIn hdt
   · intro ν hν
     exact hcert q (SM.toRMode M) hmodeAt ν hν
   · exact ⟨_, self_edge_mem M hSM, rfl, rfl⟩

@@ -325,7 +325,7 @@ theorem checkModeA_true {M : SettlingModel n} {vtops : List (Option ℤ)}
         ∃ q' ∈ m.succs, ∃ m', M.modes[q']? = some m' ∧ vtops[q']? = some none ∧
           m'.gcoord = m.gcoord ∧ m'.glo ≤ gh) := by
   unfold checkModeA at h
-  rcases hsh : m.shapes m.gcoord with _ | _ | _ | _ | j | _
+  rcases hsh : m.shapes m.gcoord with _ | _ | _ | _ | j | _ | _
   all_goals rw [hsh] at h
   · simp at h
   · simp at h
@@ -371,6 +371,7 @@ theorem checkModeA_true {M : SettlingModel n} {vtops : List (Option ℤ)}
       · simp only [Bool.and_eq_true, decide_eq_true_eq] at hq'
         exact ⟨hglogh, q', hq'mem, m', hm', htpn ▸ htp', hq'.1, hq'.2⟩
       · simp at hq'
+  · simp at h
   · simp at h
 
 /-! ### The assembly: `wellformed_sound_affine` -/

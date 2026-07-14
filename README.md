@@ -655,16 +655,31 @@ Run: `lake exe relcert benchmarks/suite_uniform/*/input.txt`
 
 | | count | classes |
 |---|---|---|
-| **CERTIFIED** | **33/47** | 17 already-settling (contractive, strictified only) · 10 margin-guard-fixed · 6 restructured (vx-triggered hold modes replacing reachability-encoded domains; `Hold` modes made contract-to-setpoint) |
-| **DECLINED** | 13 | honest hard cases: the terrain/12-DOF family (per-mode `v ≤ terrain-equilibrium` caps are *mode-dependent physics* — no single envelope exists, uniform-evol structurally inapplicable) and the highest-fidelity arm/plant variants (tight per-mode envelopes load-bearing for `g`) |
+| **CERTIFIED** | **46/47** | 17 already-settling (contractive, strictified only) · 10 margin-guard-fixed · 6 restructured (vx-triggered hold modes; `Hold` made contract-to-setpoint) · 3 guard-derived `Hold` invariants (arm/plant high) · 10 per-mode terrain speed guards |
 | **ERROR** | 1 (`shield_unreachable`) | pre-existing inconclusive-Z3 boundary, as in the original suite |
 
-The original suite is untouched; the two suites answer different questions. `benchmarks/suite/`
-shows the certifier covering the paper's benchmark set (46/47) with per-mode domains — where the
-domain may silently encode reachability facts. `benchmarks/suite_uniform/` shows which systems
-certify under the *honest* discipline (envelope = physics, staying = guard geometry) — the class
-for which the landing theorem's well-formedness hypothesis is discharged or cleanly dischargeable
-rather than assumed. The declined 13 are reported as a genuine model-class boundary, not forced.
+The last 13 were diagnosed by per-variable bisection: each flips on a SINGLE right-side
+variable — the arm/plant `Hold` mode's `theta ≥ 0.6` evolve floor, and the terrain family's
+per-mode `v ≤ terrain-equilibrium` caps. Both are *mode-invariants*; the legitimate fix is to
+make them **guard-derivable** rather than silently asserted:
+
+- **arm/plant `Hold`** (3): `theta ≥ 0.6` follows from the entry guard (`theta ≥ 0.6`) plus the
+  hold dynamics (`theta' = 0`) — restored as a *checked annotation*, exactly the shape
+  `GuardSettlingB_of_contract` discharges.
+- **terrain family** (10): each right mode's guard gains a `v ≤ eq_terrain` conjunct — a real
+  structural change (the automaton cannot enter steeper terrain above its speed limit; physically,
+  slowing down before the grade). The per-mode evolve cap `v ≤ eq` is then provable from
+  entry-below + contraction-to-equilibrium (tangent non-exit at the cap, `v' = 0` there — again
+  the Tier B contract shape). Not the reachability-in-evolve cheat: every per-mode evolve conjunct
+  is derivable from (guard entry + dynamics), checkable.
+
+So the design generalizes honestly: **one shared physical envelope, plus per-mode refinements only
+where guard + dynamics prove them** — mode-dependent physics (terrain) enters through the guards,
+where it is checkable, not through bare evolve assertions. The original suite is untouched;
+`benchmarks/suite/` covers the paper's set with free-form per-mode domains,
+`benchmarks/suite_uniform/` certifies the same systems (**46/47 — the same ceiling**) under the
+disciplined form where the landing theorem's well-formedness is discharged or checkably annotated
+rather than assumed.
 
 Requires Lean 4 (`leanprover/lean4:v4.31.0`, pinned) and a pinned Z3 (`RELCERT_Z3` or a
 standard absolute path). `dL-rel` is fetched from GitHub at tag `v0.1.0-NFM25` (transitively

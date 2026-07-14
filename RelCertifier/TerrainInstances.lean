@@ -22,9 +22,11 @@ value `(x₀ + x_j₀·t)e^{−kt}`, staying by `polyExp_le` under the driver-ba
 `k`-times-angle-band conditions. story3_rollover_ladder_rung_b's `(e, r)` pair is the
 first member.
 
-Out of grammar (honest skips): refinement_ladder_rover_rung4_8to12 and
-story1_attdist_rung_b_12dof (SECOND-ORDER dampers — cascade-rewritten in the benchmarks,
-pending the chase-damper extension of `dampVal`).
+The cascade-damper family (EXT 4c dampers): when the dampers themselves are chase
+coordinates (`ψ_d(u) = (p_d + w_d·u)e^{−g_d·u}`), `settling_terrain_dampC` integrates the
+position through `polyExpInt₁/₂` and bounds the damping factor pointwise by
+`chase_val_band` — refinement_ladder_rover_rung4_8to12 and story1_attdist_rung_b_12dof
+close the suite's second-order block.
 -/
 import RelCertifier.TerrainChecker
 
@@ -356,6 +358,56 @@ def story3_rollover_ladder_rung_bT : TerrainModel 12 :=
       { sc := 1, slo := 1400, shi := none } ] }
 
 example : decideWellFormedT story3_rollover_ladder_rung_bT = true := rfl
+
+/-- `refinement_ladder_rover_rung4_8to12` (R side; units: values ×1000, time ×1; dt = ε_R/λ at λ = 1; damper
+coefficients stored /10⁶). The attitude blocks ride in cascade coordinates: `ψ, θ`
+(idx 2, 4) are `chase ω 1` against their drivers `ω = ω_orig + ψ_orig` (idx 3, 5,
+contract-to-0 at rate 1, tight band 600 = 1·600), and double as the position's cascade
+dampers (EXT 4c dampers, `settling_terrain_dampC`). -/
+def refinement_ladder_rover_rung4_8to12T : TerrainModel 12 :=
+  { core :=
+    { modes :=
+    [
+      { shapes := ![CoordShape.contract 3 300, CoordShape.drivenDamp 0 [(2, 1, 2000000), (4, 3, 10000000)], CoordShape.chase 3 1, CoordShape.contract 1 0, CoordShape.chase 5 1, CoordShape.contract 1 0, CoordShape.contract 1 0, CoordShape.frozen, CoordShape.contract 1 0, CoordShape.frozen, CoordShape.contract 1 0, CoordShape.frozen], gcoord := 0,
+        glo := 0, ghi := 300, succs := [1] },
+      { shapes := ![CoordShape.contract 3 500, CoordShape.drivenDamp 0 [(2, 1, 2000000), (4, 3, 10000000)], CoordShape.chase 3 1, CoordShape.contract 1 0, CoordShape.chase 5 1, CoordShape.contract 1 0, CoordShape.contract 1 0, CoordShape.frozen, CoordShape.contract 1 0, CoordShape.frozen, CoordShape.contract 1 0, CoordShape.frozen], gcoord := 0,
+        glo := 0, ghi := 500, succs := [2] },
+      { shapes := ![CoordShape.contract 3 650, CoordShape.drivenDamp 0 [(2, 1, 2000000), (4, 3, 10000000)], CoordShape.chase 3 1, CoordShape.contract 1 0, CoordShape.chase 5 1, CoordShape.contract 1 0, CoordShape.contract 1 0, CoordShape.frozen, CoordShape.contract 1 0, CoordShape.frozen, CoordShape.contract 1 0, CoordShape.frozen], gcoord := 0,
+        glo := 0, ghi := 650, succs := [] } ]
+      env := ![{ lo := some 0, hi := some 800 }, { lo := some 0, hi := none }, { lo := some (-600 : ℤ), hi := some 600 }, { lo := some (-600 : ℤ), hi := some 600 }, { lo := some (-600 : ℤ), hi := some 600 }, { lo := some (-600 : ℤ), hi := some 600 }, { lo := some (-1000 : ℤ), hi := some 150 }, { lo := some (-400 : ℤ), hi := some 500 }, { lo := some (-500 : ℤ), hi := some 150 }, { lo := some (-400 : ℤ), hi := some 500 }, { lo := some (-500 : ℤ), hi := some 150 }, { lo := some (-400 : ℤ), hi := some 500 }]
+      dtQ := 1 }
+    sbands :=
+    [
+      { sc := 1, slo := 0, shi := some 600 },
+      { sc := 1, slo := 600, shi := some 1400 },
+      { sc := 1, slo := 1400, shi := none } ] }
+
+example : decideWellFormedT refinement_ladder_rover_rung4_8to12T = true := rfl
+
+/-- `story1_attdist_rung_b_12dof` (R side; units: values ×1000, time ×1; dt = ε_R/λ at λ = 1; damper
+coefficients stored /10⁶). The attitude blocks ride in cascade coordinates: `ψ, θ`
+(idx 2, 4) are `chase ω 1` against their drivers `ω = ω_orig + ψ_orig` (idx 3, 5,
+contract-to-0 at rate 1, tight band 600 = 1·600), and double as the position's cascade
+dampers (EXT 4c dampers, `settling_terrain_dampC`). -/
+def story1_attdist_rung_b_12dofT : TerrainModel 12 :=
+  { core :=
+    { modes :=
+    [
+      { shapes := ![CoordShape.contract 3 300, CoordShape.drivenDamp 0 [(2, 1, 2000000), (4, 3, 10000000)], CoordShape.chase 3 1, CoordShape.contract 1 0, CoordShape.chase 5 1, CoordShape.contract 1 0, CoordShape.contract 1 0, CoordShape.frozen, CoordShape.contract 1 0, CoordShape.frozen, CoordShape.contract 1 0, CoordShape.frozen], gcoord := 0,
+        glo := 0, ghi := 300, succs := [1] },
+      { shapes := ![CoordShape.contract 3 500, CoordShape.drivenDamp 0 [(2, 1, 2000000), (4, 3, 10000000)], CoordShape.chase 3 1, CoordShape.contract 1 0, CoordShape.chase 5 1, CoordShape.contract 1 0, CoordShape.contract 1 0, CoordShape.frozen, CoordShape.contract 1 0, CoordShape.frozen, CoordShape.contract 1 0, CoordShape.frozen], gcoord := 0,
+        glo := 0, ghi := 500, succs := [2] },
+      { shapes := ![CoordShape.contract 3 650, CoordShape.drivenDamp 0 [(2, 1, 2000000), (4, 3, 10000000)], CoordShape.chase 3 1, CoordShape.contract 1 0, CoordShape.chase 5 1, CoordShape.contract 1 0, CoordShape.contract 1 0, CoordShape.frozen, CoordShape.contract 1 0, CoordShape.frozen, CoordShape.contract 1 0, CoordShape.frozen], gcoord := 0,
+        glo := 0, ghi := 650, succs := [] } ]
+      env := ![{ lo := some 0, hi := some 800 }, { lo := some (-50 : ℤ), hi := none }, { lo := some (-600 : ℤ), hi := some 600 }, { lo := some (-600 : ℤ), hi := some 600 }, { lo := some (-600 : ℤ), hi := some 600 }, { lo := some (-600 : ℤ), hi := some 600 }, { lo := some (-1000 : ℤ), hi := some 150 }, { lo := some (-400 : ℤ), hi := some 500 }, { lo := some (-500 : ℤ), hi := some 150 }, { lo := some (-400 : ℤ), hi := some 500 }, { lo := some (-500 : ℤ), hi := some 150 }, { lo := some (-400 : ℤ), hi := some 500 }]
+      dtQ := 1 }
+    sbands :=
+    [
+      { sc := 1, slo := 0, shi := some 600 },
+      { sc := 1, slo := 600, shi := some 1400 },
+      { sc := 1, slo := 1400, shi := none } ] }
+
+example : decideWellFormedT story1_attdist_rung_b_12dofT = true := rfl
 
 /-- `refinement_ladder_rover_rung2_6dof` (R side; units: v ×1000, s ×3000 (the driven
 integrator carries the time scale), time ×3; dt = ε_R/λ at λ = 3 — the declared λ-range

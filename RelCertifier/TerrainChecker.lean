@@ -106,7 +106,7 @@ def checkModeT (M : SettlingModel n) (sbands : List (SBand n)) (m : SettlingMode
        (match m.shapes sb.sc with
         | CoordShape.drivenDamp j dampers =>
             decide (j = m.gcoord) &&
-            dampers.all (fun d =>
+            (dampers.all (fun d =>
               !decide (d.1 = m.gcoord) && !decide (d.1 = sb.sc) &&
               decide (0 ≤ d.2.1) && decide (0 < d.2.2) &&
               (match m.shapes d.1 with
@@ -116,7 +116,23 @@ def checkModeT (M : SettlingModel n) (sbands : List (SBand n)) (m : SettlingMode
                | some lo, some hi =>
                    decide (lo ≤ 0) && decide (0 ≤ hi) &&
                    decide (d.2.1 * (max (-lo) hi)^2 * (dampers.length : ℤ) ≤ d.2.2)
-               | _, _ => false))
+               | _, _ => false)) ||
+             -- cascade dampers (EXT 4c): each damper is a chase coordinate; its band
+             -- conditions give the pointwise |ψ(u)| ≤ B for the same budget geometry
+             dampers.all (fun d =>
+              !decide (d.1 = m.gcoord) && !decide (d.1 = sb.sc) &&
+              decide (0 ≤ d.2.1) && decide (0 < d.2.2) &&
+              (match m.shapes d.1 with
+               | CoordShape.chase jd kd =>
+                   decide (0 < kd) &&
+                   (match (M.env d.1).lo, (M.env d.1).hi,
+                          (M.env jd).lo, (M.env jd).hi with
+                    | some lo, some hi, some loj, some hij =>
+                        decide (lo ≤ 0) && decide (0 ≤ hi) &&
+                        decide (hij ≤ kd * hi) && decide (kd * lo ≤ loj) &&
+                        decide (d.2.1 * (max (-lo) hi)^2 * (dampers.length : ℤ) ≤ d.2.2)
+                    | _, _, _, _ => false)
+               | _ => false)))
         | _ => false)) &&
       ((M.env sb.sc).lo.all fun lo => decide (lo ≤ sb.slo)) &&
       decide ((M.env sb.sc).hi = none) &&
@@ -260,6 +276,88 @@ theorem chase_band {m : SettlingMode n} {sc : Fin n} {kR cR : ℝ} {base : State
   · exact polyExp_le (base (Rv i)) (base (Rv j2)) (k2 : ℝ) (hii : ℝ) t hk2R ht hhii0R hbh
       (Or.inl (by nlinarith))
 
+/-! ## Poly-exponential antiderivatives (EXT 4c dampers)
+
+Closed forms of `∫₀ᵗ uⁱ e^{−mu} du` for `i = 1, 2` (nonzero rate `m`): the cascade
+damper's square `((p + w·u)e^{−gu})²` expands into `uⁱ e^{−2gu}` and `uⁱ e^{−(k+2g)u}`
+terms, so the damped position still integrates in closed form. -/
+
+/-- `∫₀ᵗ u·e^{−mu} du` for `m ≠ 0`. -/
+noncomputable def polyExpInt₁ (m t : ℝ) : ℝ :=
+  (1 - (1 + m * t) * Real.exp (-(m * t))) / m ^ 2
+
+/-- `∫₀ᵗ u²·e^{−mu} du` for `m ≠ 0`. -/
+noncomputable def polyExpInt₂ (m t : ℝ) : ℝ :=
+  (2 - (2 + 2 * m * t + m ^ 2 * t ^ 2) * Real.exp (-(m * t))) / m ^ 3
+
+theorem expNeg_hasDeriv (m t : ℝ) :
+    HasDerivAt (fun u : ℝ => Real.exp (-(m * u))) (-m * Real.exp (-(m * t))) t := by
+  have hinner : HasDerivAt (fun u : ℝ => -(m * u)) (-m) t := by
+    have h := (hasDerivAt_id t).const_mul (-m)
+    simp only [id, mul_one, neg_mul] at h
+    exact h
+  have h := (Real.hasDerivAt_exp (-(m * t))).comp t hinner
+  simp only [Function.comp_def] at h
+  rw [mul_comm (Real.exp (-(m * t))) (-m)] at h
+  exact h
+
+theorem polyExpInt₁_hasDeriv {m : ℝ} (hm : m ≠ 0) (t : ℝ) :
+    HasDerivAt (fun u => polyExpInt₁ m u) (t * Real.exp (-(m * t))) t := by
+  unfold polyExpInt₁
+  have hpoly : HasDerivAt (fun u : ℝ => 1 + m * u) m t := by
+    simpa using ((hasDerivAt_id t).const_mul m).const_add 1
+  have h := ((hpoly.mul (expNeg_hasDeriv m t)).const_sub 1).div_const (m ^ 2)
+  have heq : -(m * Real.exp (-(m * t)) + (1 + m * t) * (-m * Real.exp (-(m * t)))) / m ^ 2
+      = t * Real.exp (-(m * t)) := by
+    field_simp
+    ring
+  rw [← heq]
+  exact h
+
+theorem polyExpInt₂_hasDeriv {m : ℝ} (hm : m ≠ 0) (t : ℝ) :
+    HasDerivAt (fun u => polyExpInt₂ m u) (t ^ 2 * Real.exp (-(m * t))) t := by
+  unfold polyExpInt₂
+  have hpoly : HasDerivAt (fun u : ℝ => 2 + 2 * m * u + m ^ 2 * u ^ 2)
+      (2 * m + m ^ 2 * (2 * t)) t := by
+    have h1 : HasDerivAt (fun u : ℝ => 2 + 2 * m * u) (2 * m) t := by
+      simpa using ((hasDerivAt_id t).const_mul (2 * m)).const_add 2
+    have h2 : HasDerivAt (fun u : ℝ => m ^ 2 * u ^ 2) (m ^ 2 * (2 * t)) t := by
+      have hp := (hasDerivAt_pow 2 t).const_mul (m ^ 2)
+      have hc : ((2 : ℕ) : ℝ) * t ^ (2 - 1) = 2 * t := by push_cast; ring
+      rw [hc] at hp
+      exact hp
+    exact h1.add h2
+  have h := ((hpoly.mul (expNeg_hasDeriv m t)).const_sub 2).div_const (m ^ 3)
+  have heq : -((2 * m + m ^ 2 * (2 * t)) * Real.exp (-(m * t))
+        + (2 + 2 * m * t + m ^ 2 * t ^ 2) * (-m * Real.exp (-(m * t)))) / m ^ 3
+      = t ^ 2 * Real.exp (-(m * t)) := by
+    field_simp
+    ring
+  rw [← heq]
+  exact h
+
+@[simp] theorem polyExpInt₁_zero (m : ℝ) : polyExpInt₁ m 0 = 0 := by
+  simp [polyExpInt₁]
+
+@[simp] theorem polyExpInt₂_zero (m : ℝ) : polyExpInt₂ m 0 = 0 := by
+  simp [polyExpInt₂]
+
+/-- The raw cascade value `(p + w·t)e^{−gt}` stays in `[lo, hi]` — the all-real core of
+`chase_band`, reusable for the damper's pointwise bound. -/
+theorem chase_val_band {p w g lo hi loj hij : ℝ} (hg : 0 < g) (hlo0 : lo ≤ 0)
+    (hhi0 : 0 ≤ hi) (hijle : hij ≤ g * hi) (hlojge : g * lo ≤ loj)
+    (hbl : lo ≤ p) (hbh : p ≤ hi) (hjl : loj ≤ w) (hjh : w ≤ hij)
+    {t : ℝ} (ht : 0 ≤ t) :
+    lo ≤ (p + w * t) * Real.exp (-(g * t)) ∧ (p + w * t) * Real.exp (-(g * t)) ≤ hi := by
+  constructor
+  · have hup := polyExp_le (-p) (-w) g (-lo) t hg ht (by linarith) (by linarith)
+      (Or.inl (by nlinarith))
+    have hre : (-p + -w * t) * Real.exp (-(g * t))
+        = -((p + w * t) * Real.exp (-(g * t))) := by ring
+    rw [hre] at hup
+    linarith
+  · exact polyExp_le p w g hi t hg ht hhi0 hbh (Or.inl (by nlinarith))
+
 /-! ## EXT 3b — the damped integrator (`drivenDamp` position, the nonlinear-s' family)
 
 `s' = v · (1 − Σ_d a_d·ψ_d²)` with each damper `ψ_d` contracting to 0: since `v` and every
@@ -351,6 +449,108 @@ theorem terrainValD_chase {m : SettlingMode n} {sc : Fin n} {kR cR : ℝ}
     terrainValD m sc kR cR base dampers t i
       = (base (Rv i) + base (Rv j2) * t) * Real.exp (-((k2 : ℝ) * t)) := by
   rw [terrainValD_ne his, terrainVal_chase hig his hsh]
+
+/-! ## EXT 4c dampers — the cascade-damped integrator
+
+Same geometry as EXT 3b, but each damper is a `chase` coordinate: `ψ_d(u) =
+(p_d + w_d·u)e^{−g_d·u}` with `p_d` the damper base, `w_d` its driver's base, `g_d` its
+chase rate. The square expands into `uⁱe^{−2gu}` / `uⁱe^{−(k+2g)u}` terms
+(`polyExpInt₁/₂`), the damping factor stays in `[0, 1]` by the pointwise band
+`|ψ_d(u)| ≤ B_d` (`chase_val_band`) and the same per-damper budget, and the position
+runs the unchanged monotonicity argument. -/
+
+/-- A cascade damper's chase rate (from its shape; 0 on non-chase — never hit). -/
+noncomputable def chaseGain (m : SettlingMode n) (d : Fin n × ℤ × ℤ) : ℝ :=
+  match m.shapes d.1 with
+  | CoordShape.chase _ kp => (kp : ℝ)
+  | _ => 0
+
+/-- A cascade damper's driver value at the base state (0 on non-chase — never hit). -/
+noncomputable def chaseDrv (m : SettlingMode n) (base : State (Var n))
+    (d : Fin n × ℤ × ℤ) : ℝ :=
+  match m.shapes d.1 with
+  | CoordShape.chase j _ => base (Rv j)
+  | _ => 0
+
+/-- The closed-form increment of the cascade-damped position:
+`∫₀ᵗ v(u)·(1 − Σ_d a_d ψ_d(u)²) du` with `ψ_d(u) = (p_d + w_d·u)e^{−g_d·u}`. -/
+noncomputable def dampValC (m : SettlingMode n) (kR cR : ℝ) (base : State (Var n))
+    (dampers : List (Fin n × ℤ × ℤ)) (t : ℝ) : ℝ :=
+  cR * t + (base (Rv m.gcoord) - cR) * expInt kR t
+  - ((dampers.map (fun d =>
+      ((d.2.1 : ℝ) / (d.2.2 : ℝ)) *
+        (cR * ((base (Rv d.1)) ^ 2 * expInt (2 * chaseGain m d) t
+            + 2 * base (Rv d.1) * chaseDrv m base d * polyExpInt₁ (2 * chaseGain m d) t
+            + (chaseDrv m base d) ^ 2 * polyExpInt₂ (2 * chaseGain m d) t)
+         + (base (Rv m.gcoord) - cR) *
+            ((base (Rv d.1)) ^ 2 * expInt (kR + 2 * chaseGain m d) t
+            + 2 * base (Rv d.1) * chaseDrv m base d * polyExpInt₁ (kR + 2 * chaseGain m d) t
+            + (chaseDrv m base d) ^ 2 * polyExpInt₂ (kR + 2 * chaseGain m d) t)))).sum)
+
+/-- Per-coordinate value of the cascade-damped terrain witness. -/
+noncomputable def terrainValDC (m : SettlingMode n) (sc : Fin n) (kR cR : ℝ)
+    (base : State (Var n)) (dampers : List (Fin n × ℤ × ℤ)) (t : ℝ) (i : Fin n) : ℝ :=
+  if i = sc then base (Rv i) + dampValC m kR cR base dampers t
+  else terrainVal m sc kR cR base t i
+
+/-- The cascade-damped terrain witness flow. -/
+noncomputable def terrainΦDC (m : SettlingMode n) (sc : Fin n) (kR cR : ℝ)
+    (base : State (Var n)) (dampers : List (Fin n × ℤ × ℤ)) (t : ℝ) : State (Var n) :=
+  fun x => match x with
+    | (Side.R, i) => terrainValDC m sc kR cR base dampers t i
+    | _ => base x
+
+@[simp] theorem terrainΦDC_Rv (m : SettlingMode n) (sc : Fin n) (kR cR : ℝ)
+    (base : State (Var n)) (dampers : List (Fin n × ℤ × ℤ)) (t : ℝ) (i : Fin n) :
+    terrainΦDC m sc kR cR base dampers t (Rv i)
+      = terrainValDC m sc kR cR base dampers t i := rfl
+
+theorem terrainΦDC_nonR (m : SettlingMode n) (sc : Fin n) (kR cR : ℝ)
+    (base : State (Var n)) (dampers : List (Fin n × ℤ × ℤ)) (t : ℝ) {x : Var n}
+    (hx : ∀ i : Fin n, x ≠ Rv i) : terrainΦDC m sc kR cR base dampers t x = base x := by
+  obtain ⟨sd, ix⟩ := x
+  cases sd with
+  | R => exact absurd rfl (hx ix)
+  | L => rfl
+  | Aux => rfl
+
+theorem terrainValDC_s {m : SettlingMode n} {sc : Fin n} {kR cR : ℝ} {base : State (Var n)}
+    {dampers : List (Fin n × ℤ × ℤ)} {t : ℝ} :
+    terrainValDC m sc kR cR base dampers t sc
+      = base (Rv sc) + dampValC m kR cR base dampers t := by
+  simp [terrainValDC]
+
+theorem terrainValDC_ne {m : SettlingMode n} {sc : Fin n} {kR cR : ℝ}
+    {base : State (Var n)} {dampers : List (Fin n × ℤ × ℤ)} {t : ℝ} {i : Fin n}
+    (his : i ≠ sc) :
+    terrainValDC m sc kR cR base dampers t i = terrainVal m sc kR cR base t i := by
+  simp [terrainValDC, his]
+
+theorem terrainValDC_g {m : SettlingMode n} {sc : Fin n} {kR cR : ℝ} {base : State (Var n)}
+    {dampers : List (Fin n × ℤ × ℤ)} {t : ℝ} (hgs : sc ≠ m.gcoord) :
+    terrainValDC m sc kR cR base dampers t m.gcoord
+      = cR + (base (Rv m.gcoord) - cR) * Real.exp (-(kR * t)) := by
+  rw [terrainValDC_ne (fun h => hgs h.symm), terrainVal_g]
+
+theorem terrainValDC_contract {m : SettlingMode n} {sc : Fin n} {kR cR : ℝ}
+    {base : State (Var n)} {dampers : List (Fin n × ℤ × ℤ)} {t : ℝ} {i : Fin n} {k' c' : ℤ}
+    (hig : i ≠ m.gcoord) (his : i ≠ sc) (hsh : m.shapes i = CoordShape.contract k' c') :
+    terrainValDC m sc kR cR base dampers t i
+      = (c' : ℝ) + (base (Rv i) - (c' : ℝ)) * Real.exp (-((k' : ℝ) * t)) := by
+  rw [terrainValDC_ne his, terrainVal_contract hig his hsh]
+
+theorem terrainValDC_frozen {m : SettlingMode n} {sc : Fin n} {kR cR : ℝ}
+    {base : State (Var n)} {dampers : List (Fin n × ℤ × ℤ)} {t : ℝ} {i : Fin n}
+    (hig : i ≠ m.gcoord) (his : i ≠ sc) (hfz : m.shapes i = CoordShape.frozen) :
+    terrainValDC m sc kR cR base dampers t i = base (Rv i) := by
+  rw [terrainValDC_ne his, terrainVal_frozen hig his hfz]
+
+theorem terrainValDC_chase {m : SettlingMode n} {sc : Fin n} {kR cR : ℝ}
+    {base : State (Var n)} {dampers : List (Fin n × ℤ × ℤ)} {t : ℝ} {i j2 : Fin n} {k2 : ℤ}
+    (hig : i ≠ m.gcoord) (his : i ≠ sc) (hsh : m.shapes i = CoordShape.chase j2 k2) :
+    terrainValDC m sc kR cR base dampers t i
+      = (base (Rv i) + base (Rv j2) * t) * Real.exp (-((k2 : ℝ) * t)) := by
+  rw [terrainValDC_ne his, terrainVal_chase hig his hsh]
 
 /-- Derivative of a list-indexed sum of real functions. -/
 theorem hasDerivAt_list_sum {α : Type} (l : List α) (f : α → ℝ → ℝ) (f' : α → ℝ) (t : ℝ)
@@ -1385,6 +1585,701 @@ theorem settling_terrain_damp (T : TerrainModel n) {q : ℕ} {m : SettlingMode n
       exact List.mem_map.mpr ⟨i, List.mem_finRange i, rfl⟩)
 
 
+/-- TERRAIN mode, cascade dampers (EXT 4c): like `settling_terrain_damp`, but each damper
+is a `chase` coordinate `ψ_d(u) = (p_d + w_d·u)e^{−g_d·u}`; the damping factor stays in
+`[0, 1]` by the pointwise band `|ψ_d(u)| ≤ B_d` (`chase_val_band`) and the per-damper
+budget, and the position integrates in closed form through `polyExpInt₁/₂`. -/
+theorem settling_terrain_dampC (T : TerrainModel n) {q : ℕ} {m : SettlingMode n} {sb : SBand n}
+    (hq : T.core.modes[q]? = some m) (hsb : T.sbands[q]? = some sb) {k c : ℤ}
+    (hsh : m.shapes m.gcoord = CoordShape.contract k c)
+    (hk : 0 ≤ k) (hcl : m.glo ≤ c) (hch : c ≤ m.ghi) (hglo0 : 0 ≤ m.glo)
+    (hvLo : ∀ l', (T.core.env m.gcoord).lo = some l' → l' ≤ m.glo)
+    (hvHi : ∀ h', (T.core.env m.gcoord).hi = some h' → m.ghi ≤ h')
+    (hsc : sb.sc ≠ m.gcoord)
+    {dampers : List (Fin n × ℤ × ℤ)}
+    (hscd : m.shapes sb.sc = CoordShape.drivenDamp m.gcoord dampers)
+    (hdamp : ∀ d ∈ dampers, d.1 ≠ m.gcoord ∧ d.1 ≠ sb.sc ∧ 0 ≤ d.2.1 ∧ 0 < d.2.2 ∧
+        ∃ jd kd, m.shapes d.1 = CoordShape.chase jd kd ∧ 0 < kd ∧
+          ∃ lo hi loj hij, (T.core.env d.1).lo = some lo ∧ (T.core.env d.1).hi = some hi ∧
+            (T.core.env jd).lo = some loj ∧ (T.core.env jd).hi = some hij ∧
+            lo ≤ 0 ∧ 0 ≤ hi ∧ hij ≤ kd * hi ∧ kd * lo ≤ loj ∧
+            d.2.1 * (max (-lo) hi) ^ 2 * (dampers.length : ℤ) ≤ d.2.2)
+    (hsloIn : ∀ l', (T.core.env sb.sc).lo = some l' → l' ≤ sb.slo)
+    (hsHiNone : (T.core.env sb.sc).hi = none)
+    (hOth : ∀ i, i ≠ m.gcoord → i ≠ sb.sc →
+        m.shapes i = CoordShape.frozen ∨
+        (∃ k' c', m.shapes i = CoordShape.contract k' c' ∧ 0 ≤ k' ∧
+          (∀ l', (T.core.env i).lo = some l' → l' ≤ c') ∧
+          (∀ h', (T.core.env i).hi = some h' → c' ≤ h')) ∨
+        (∃ j2 k2 loi hii loj hij, m.shapes i = CoordShape.chase j2 k2 ∧
+          j2 ≠ m.gcoord ∧ j2 ≠ sb.sc ∧ m.shapes j2 = CoordShape.contract k2 0 ∧ 0 < k2 ∧
+          (T.core.env i).lo = some loi ∧ (T.core.env i).hi = some hii ∧
+          (T.core.env j2).lo = some loj ∧ (T.core.env j2).hi = some hij ∧
+          loi ≤ 0 ∧ 0 ≤ hii ∧ hij ≤ k2 * hii ∧ k2 * loi ≤ loj))
+    (hland : ∀ sh, sb.shi = some sh →
+        ∃ q' ∈ m.succs, ∃ m' sb', T.core.modes[q']? = some m' ∧ T.sbands[q']? = some sb' ∧
+          sb'.sc = sb.sc ∧ m'.gcoord = m.gcoord ∧ m'.glo ≤ m.glo ∧ m.ghi ≤ m'.ghi ∧
+          sb'.slo ≤ sh ∧ (∀ sh', sb'.shi = some sh' → sh + m.ghi * T.core.dt ≤ sh'))
+    (hdt : (0 : ℝ) ≤ (T.core.dt : ℝ)) :
+    GuardSettlingB T.core.graph T.GdOf m.fieldOf (Term.const 1) T.core.envF
+      ((T.core.dt : ℝ)) q := by
+  intro base hb
+  obtain ⟨⟨henv, hblo, hbhi⟩, hbslo, hbshi⟩ := (sat_GdOfT hq hsb).mp hb
+  have hkR0 : (0 : ℝ) ≤ (k : ℝ) := by exact_mod_cast hk
+  have hglo0R : (0 : ℝ) ≤ (m.glo : ℝ) := by exact_mod_cast hglo0
+  have hclR : (m.glo : ℝ) ≤ (c : ℝ) := by exact_mod_cast hcl
+  have hchR : (c : ℝ) ≤ (m.ghi : ℝ) := by exact_mod_cast hch
+  have hbv0 : (0 : ℝ) ≤ base (Rv m.gcoord) := le_trans hglo0R hblo
+  -- the active value stays in the guard band
+  have hbandV : ∀ t, 0 ≤ t →
+      (m.glo : ℝ) ≤ terrainValDC m sb.sc (k : ℝ) (c : ℝ) base dampers t m.gcoord
+      ∧ terrainValDC m sb.sc (k : ℝ) (c : ℝ) base dampers t m.gcoord ≤ (m.ghi : ℝ) := by
+    intro t ht
+    have hθpos : 0 < Real.exp (-((k : ℝ) * t)) := Real.exp_pos _
+    have hθle : Real.exp (-((k : ℝ) * t)) ≤ 1 := by
+      rw [Real.exp_le_one_iff]; nlinarith
+    rw [terrainValDC_g hsc]
+    rcases le_total (base (Rv m.gcoord)) (c : ℝ) with hbc | hbc
+    · constructor
+      · nlinarith
+      · nlinarith
+    · constructor
+      · nlinarith
+      · nlinarith
+  -- the damped increment's derivative: the integrand v(u)·(1 − Σ a_d ψ_d(u)²)
+  have hF' : ∀ u : ℝ, HasDerivAt (fun w => dampValC m (k : ℝ) (c : ℝ) base dampers w)
+      (((c : ℝ) + (base (Rv m.gcoord) - (c : ℝ)) * Real.exp (-((k : ℝ) * u)))
+        * (1 - ((dampers.map (fun d =>
+            ((d.2.1 : ℝ) / (d.2.2 : ℝ))
+              * (base (Rv d.1) + chaseDrv m base d * u) ^ 2
+              * Real.exp (-(2 * chaseGain m d * u)))).sum))) u := by
+    intro u
+    have h1 : HasDerivAt (fun w : ℝ => (c : ℝ) * w) (c : ℝ) u := by
+      simpa using (hasDerivAt_id u).const_mul (c : ℝ)
+    have h2 : HasDerivAt (fun w => (base (Rv m.gcoord) - (c : ℝ)) * expInt (k : ℝ) w)
+        ((base (Rv m.gcoord) - (c : ℝ)) * Real.exp (-((k : ℝ) * u))) u :=
+      (expInt_hasDeriv (k : ℝ) u).const_mul _
+    have h3 : HasDerivAt (fun w => ((dampers.map (fun d =>
+        ((d.2.1 : ℝ) / (d.2.2 : ℝ)) *
+          ((c : ℝ) * ((base (Rv d.1)) ^ 2 * expInt (2 * chaseGain m d) w
+              + 2 * base (Rv d.1) * chaseDrv m base d * polyExpInt₁ (2 * chaseGain m d) w
+              + (chaseDrv m base d) ^ 2 * polyExpInt₂ (2 * chaseGain m d) w)
+           + (base (Rv m.gcoord) - (c : ℝ)) *
+              ((base (Rv d.1)) ^ 2 * expInt ((k : ℝ) + 2 * chaseGain m d) w
+              + 2 * base (Rv d.1) * chaseDrv m base d
+                  * polyExpInt₁ ((k : ℝ) + 2 * chaseGain m d) w
+              + (chaseDrv m base d) ^ 2
+                  * polyExpInt₂ ((k : ℝ) + 2 * chaseGain m d) w)))).sum))
+        ((dampers.map (fun d =>
+          ((d.2.1 : ℝ) / (d.2.2 : ℝ)) *
+            ((c : ℝ) * ((base (Rv d.1)) ^ 2 * Real.exp (-(2 * chaseGain m d * u))
+                + 2 * base (Rv d.1) * chaseDrv m base d
+                    * (u * Real.exp (-(2 * chaseGain m d * u)))
+                + (chaseDrv m base d) ^ 2
+                    * (u ^ 2 * Real.exp (-(2 * chaseGain m d * u))))
+             + (base (Rv m.gcoord) - (c : ℝ)) *
+                ((base (Rv d.1)) ^ 2 * Real.exp (-(((k : ℝ) + 2 * chaseGain m d) * u))
+                + 2 * base (Rv d.1) * chaseDrv m base d
+                    * (u * Real.exp (-(((k : ℝ) + 2 * chaseGain m d) * u)))
+                + (chaseDrv m base d) ^ 2
+                    * (u ^ 2 * Real.exp (-(((k : ℝ) + 2 * chaseGain m d) * u))))))).sum) u := by
+      refine hasDerivAt_list_sum dampers _ _ u ?_
+      intro d hd
+      obtain ⟨-, -, -, -, jd, kd, hkp, hkd, -, -, -, -, -, -, -, -, -, -, -, -, -⟩ :=
+        hdamp d hd
+      have hgd : (0 : ℝ) < chaseGain m d := by
+        rw [show chaseGain m d = (kd : ℝ) by simp [chaseGain, hkp]]
+        exact_mod_cast hkd
+      have hm1 : 2 * chaseGain m d ≠ 0 := ne_of_gt (by linarith)
+      have hm2 : (k : ℝ) + 2 * chaseGain m d ≠ 0 := ne_of_gt (by linarith)
+      have hA1 : HasDerivAt (fun w => (base (Rv d.1)) ^ 2 * expInt (2 * chaseGain m d) w)
+          ((base (Rv d.1)) ^ 2 * Real.exp (-(2 * chaseGain m d * u))) u :=
+        (expInt_hasDeriv _ u).const_mul _
+      have hA2 : HasDerivAt (fun w => 2 * base (Rv d.1) * chaseDrv m base d
+            * polyExpInt₁ (2 * chaseGain m d) w)
+          (2 * base (Rv d.1) * chaseDrv m base d
+            * (u * Real.exp (-(2 * chaseGain m d * u)))) u :=
+        (polyExpInt₁_hasDeriv hm1 u).const_mul _
+      have hA3 : HasDerivAt (fun w => (chaseDrv m base d) ^ 2
+            * polyExpInt₂ (2 * chaseGain m d) w)
+          ((chaseDrv m base d) ^ 2 * (u ^ 2 * Real.exp (-(2 * chaseGain m d * u)))) u :=
+        (polyExpInt₂_hasDeriv hm1 u).const_mul _
+      have hB1 : HasDerivAt (fun w => (base (Rv d.1)) ^ 2
+            * expInt ((k : ℝ) + 2 * chaseGain m d) w)
+          ((base (Rv d.1)) ^ 2 * Real.exp (-(((k : ℝ) + 2 * chaseGain m d) * u))) u :=
+        (expInt_hasDeriv _ u).const_mul _
+      have hB2 : HasDerivAt (fun w => 2 * base (Rv d.1) * chaseDrv m base d
+            * polyExpInt₁ ((k : ℝ) + 2 * chaseGain m d) w)
+          (2 * base (Rv d.1) * chaseDrv m base d
+            * (u * Real.exp (-(((k : ℝ) + 2 * chaseGain m d) * u)))) u :=
+        (polyExpInt₁_hasDeriv hm2 u).const_mul _
+      have hB3 : HasDerivAt (fun w => (chaseDrv m base d) ^ 2
+            * polyExpInt₂ ((k : ℝ) + 2 * chaseGain m d) w)
+          ((chaseDrv m base d) ^ 2
+            * (u ^ 2 * Real.exp (-(((k : ℝ) + 2 * chaseGain m d) * u)))) u :=
+        (polyExpInt₂_hasDeriv hm2 u).const_mul _
+      exact ((((hA1.add hA2).add hA3).const_mul (c : ℝ)).add
+        ((((hB1.add hB2).add hB3).const_mul (base (Rv m.gcoord) - (c : ℝ))))).const_mul _
+    have h := (h1.add h2).sub h3
+    have hcong : dampers.map (fun d =>
+          ((d.2.1 : ℝ) / (d.2.2 : ℝ)) *
+            ((c : ℝ) * ((base (Rv d.1)) ^ 2 * Real.exp (-(2 * chaseGain m d * u))
+                + 2 * base (Rv d.1) * chaseDrv m base d
+                    * (u * Real.exp (-(2 * chaseGain m d * u)))
+                + (chaseDrv m base d) ^ 2
+                    * (u ^ 2 * Real.exp (-(2 * chaseGain m d * u))))
+             + (base (Rv m.gcoord) - (c : ℝ)) *
+                ((base (Rv d.1)) ^ 2 * Real.exp (-(((k : ℝ) + 2 * chaseGain m d) * u))
+                + 2 * base (Rv d.1) * chaseDrv m base d
+                    * (u * Real.exp (-(((k : ℝ) + 2 * chaseGain m d) * u)))
+                + (chaseDrv m base d) ^ 2
+                    * (u ^ 2 * Real.exp (-(((k : ℝ) + 2 * chaseGain m d) * u))))))
+        = dampers.map (fun d =>
+            (((d.2.1 : ℝ) / (d.2.2 : ℝ)) * (base (Rv d.1) + chaseDrv m base d * u) ^ 2)
+              * ((c : ℝ) * Real.exp (-(2 * chaseGain m d * u))
+                 + (base (Rv m.gcoord) - (c : ℝ))
+                     * Real.exp (-(((k : ℝ) + 2 * chaseGain m d) * u)))) := by
+      refine List.map_congr_left ?_
+      intro d _
+      ring
+    have heq : (c : ℝ) + (base (Rv m.gcoord) - (c : ℝ)) * Real.exp (-((k : ℝ) * u))
+        - ((dampers.map (fun d =>
+          ((d.2.1 : ℝ) / (d.2.2 : ℝ)) *
+            ((c : ℝ) * ((base (Rv d.1)) ^ 2 * Real.exp (-(2 * chaseGain m d * u))
+                + 2 * base (Rv d.1) * chaseDrv m base d
+                    * (u * Real.exp (-(2 * chaseGain m d * u)))
+                + (chaseDrv m base d) ^ 2
+                    * (u ^ 2 * Real.exp (-(2 * chaseGain m d * u))))
+             + (base (Rv m.gcoord) - (c : ℝ)) *
+                ((base (Rv d.1)) ^ 2 * Real.exp (-(((k : ℝ) + 2 * chaseGain m d) * u))
+                + 2 * base (Rv d.1) * chaseDrv m base d
+                    * (u * Real.exp (-(((k : ℝ) + 2 * chaseGain m d) * u)))
+                + (chaseDrv m base d) ^ 2
+                    * (u ^ 2 * Real.exp (-(((k : ℝ) + 2 * chaseGain m d) * u))))))).sum)
+        = ((c : ℝ) + (base (Rv m.gcoord) - (c : ℝ)) * Real.exp (-((k : ℝ) * u)))
+            * (1 - ((dampers.map (fun d =>
+                ((d.2.1 : ℝ) / (d.2.2 : ℝ))
+                  * (base (Rv d.1) + chaseDrv m base d * u) ^ 2
+                  * Real.exp (-(2 * chaseGain m d * u)))).sum)) := by
+      rw [hcong]
+      have hlist := dampProd_sum (k : ℝ) (base (Rv m.gcoord) - (c : ℝ)) (c : ℝ) u dampers
+        (fun d => ((d.2.1 : ℝ) / (d.2.2 : ℝ)) * (base (Rv d.1) + chaseDrv m base d * u) ^ 2)
+        (fun d => chaseGain m d)
+      rw [hlist]
+      have hcong2 : dampers.map (fun d =>
+            ((d.2.1 : ℝ) / (d.2.2 : ℝ))
+              * (base (Rv d.1) + chaseDrv m base d * u) ^ 2
+              * Real.exp (-(2 * chaseGain m d * u)))
+          = dampers.map (fun d =>
+              (((d.2.1 : ℝ) / (d.2.2 : ℝ)) * (base (Rv d.1) + chaseDrv m base d * u) ^ 2)
+                * Real.exp (-(2 * chaseGain m d * u))) := by
+        refine List.map_congr_left ?_
+        intro d _
+        ring
+      rw [hcong2]
+      ring
+    unfold dampValC
+    rw [← heq]
+    exact h
+  -- pointwise integrand bounds on [0, ∞): 0 ≤ F' ≤ ghi
+  have hF'bounds : ∀ u : ℝ, 0 ≤ u →
+      0 ≤ (((c : ℝ) + (base (Rv m.gcoord) - (c : ℝ)) * Real.exp (-((k : ℝ) * u)))
+        * (1 - ((dampers.map (fun d =>
+            ((d.2.1 : ℝ) / (d.2.2 : ℝ))
+              * (base (Rv d.1) + chaseDrv m base d * u) ^ 2
+              * Real.exp (-(2 * chaseGain m d * u)))).sum)))
+      ∧ (((c : ℝ) + (base (Rv m.gcoord) - (c : ℝ)) * Real.exp (-((k : ℝ) * u)))
+        * (1 - ((dampers.map (fun d =>
+            ((d.2.1 : ℝ) / (d.2.2 : ℝ))
+              * (base (Rv d.1) + chaseDrv m base d * u) ^ 2
+              * Real.exp (-(2 * chaseGain m d * u)))).sum))) ≤ (m.ghi : ℝ) := by
+    intro u hu
+    have hθpos : 0 < Real.exp (-((k : ℝ) * u)) := Real.exp_pos _
+    have hθle : Real.exp (-((k : ℝ) * u)) ≤ 1 := by
+      rw [Real.exp_le_one_iff]; nlinarith
+    have hv0 : 0 ≤ (c : ℝ) + (base (Rv m.gcoord) - (c : ℝ)) * Real.exp (-((k : ℝ) * u)) := by
+      rcases le_total (base (Rv m.gcoord)) (c : ℝ) with hbc | hbc
+      · nlinarith
+      · nlinarith
+    have hvc : (c : ℝ) + (base (Rv m.gcoord) - (c : ℝ)) * Real.exp (-((k : ℝ) * u))
+        ≤ (m.ghi : ℝ) := by
+      rcases le_total (base (Rv m.gcoord)) (c : ℝ) with hbc | hbc
+      · nlinarith
+      · nlinarith
+    -- each damping term sits in [0, 1/L]: pointwise |ψ_d(u)| ≤ B_d, then the budget
+    have hterm : ∀ d ∈ dampers,
+        0 ≤ ((d.2.1 : ℝ) / (d.2.2 : ℝ))
+            * (base (Rv d.1) + chaseDrv m base d * u) ^ 2
+            * Real.exp (-(2 * chaseGain m d * u))
+        ∧ ((d.2.1 : ℝ) / (d.2.2 : ℝ))
+            * (base (Rv d.1) + chaseDrv m base d * u) ^ 2
+            * Real.exp (-(2 * chaseGain m d * u))
+          ≤ 1 / (dampers.length : ℝ) := by
+      intro d hd
+      obtain ⟨-, -, han, had, jd, kd, hkp, hkd, lo, hi, loj, hij, hlo, hhi, hloj, hhij,
+        hlo0, hhi0, hijle, hlojge, hbd⟩ := hdamp d hd
+      have hanR : (0 : ℝ) ≤ (d.2.1 : ℝ) := by exact_mod_cast han
+      have hadR : (0 : ℝ) < (d.2.2 : ℝ) := by exact_mod_cast had
+      have hdrv : chaseDrv m base d = base (Rv jd) := by simp [chaseDrv, hkp]
+      have hgain : chaseGain m d = (kd : ℝ) := by simp [chaseGain, hkp]
+      rw [hdrv, hgain]
+      have hkdR : (0 : ℝ) < (kd : ℝ) := by exact_mod_cast hkd
+      -- the base's envelope memberships
+      have hbe := (sat_envF.mp henv) d.1
+      have hbej := (sat_envF.mp henv) jd
+      unfold Band.memR at hbe hbej
+      rw [hlo, hhi] at hbe
+      rw [hloj, hhij] at hbej
+      obtain ⟨hbl, hbh⟩ := hbe
+      obtain ⟨hjl, hjh⟩ := hbej
+      have hloR : (lo : ℝ) ≤ 0 := by exact_mod_cast hlo0
+      have hhiR : (0 : ℝ) ≤ (hi : ℝ) := by exact_mod_cast hhi0
+      have hijR : (hij : ℝ) ≤ (kd : ℝ) * (hi : ℝ) := by exact_mod_cast hijle
+      have hlojR : (kd : ℝ) * (lo : ℝ) ≤ (loj : ℝ) := by exact_mod_cast hlojge
+      have hband := chase_val_band hkdR hloR hhiR hijR hlojR hbl hbh hjl hjh hu
+      have hsqid : ((d.2.1 : ℝ) / (d.2.2 : ℝ)) * (base (Rv d.1) + base (Rv jd) * u) ^ 2
+            * Real.exp (-(2 * (kd : ℝ) * u))
+          = ((d.2.1 : ℝ) / (d.2.2 : ℝ))
+              * ((base (Rv d.1) + base (Rv jd) * u) * Real.exp (-((kd : ℝ) * u))) ^ 2 := by
+        have hexp2 : Real.exp (-(2 * (kd : ℝ) * u)) = Real.exp (-((kd : ℝ) * u)) ^ 2 := by
+          rw [show (-(2 * (kd : ℝ) * u)) = ((2 : ℕ) : ℝ) * (-((kd : ℝ) * u)) by
+            push_cast; ring, Real.exp_nat_mul]
+        rw [hexp2]
+        ring
+      rw [hsqid]
+      constructor
+      · positivity
+      · -- ψ(u)² ≤ B², then a·B²·L ≤ a_d
+        have hB : ((base (Rv d.1) + base (Rv jd) * u) * Real.exp (-((kd : ℝ) * u))) ^ 2
+            ≤ ((max (-(lo : ℝ)) (hi : ℝ))) ^ 2 := by
+          have hml : -(max (-(lo : ℝ)) (hi : ℝ)) ≤ (lo : ℝ) := by
+            have := le_max_left (-(lo : ℝ)) (hi : ℝ)
+            linarith
+          have h1 : -(max (-(lo : ℝ)) (hi : ℝ))
+              ≤ (base (Rv d.1) + base (Rv jd) * u) * Real.exp (-((kd : ℝ) * u)) := by
+            linarith [hband.1]
+          have h2 : (base (Rv d.1) + base (Rv jd) * u) * Real.exp (-((kd : ℝ) * u))
+              ≤ max (-(lo : ℝ)) (hi : ℝ) :=
+            le_trans hband.2 (le_max_right _ _)
+          exact sq_le_sq' h1 h2
+        have hLpos : (0 : ℝ) < (dampers.length : ℝ) := by
+          have : dampers.length ≠ 0 := by
+            intro h0
+            rw [List.length_eq_zero_iff] at h0
+            subst h0
+            exact absurd hd (List.not_mem_nil)
+          exact_mod_cast Nat.pos_of_ne_zero this
+        have hbdR : (d.2.1 : ℝ) * ((max (-(lo : ℝ)) (hi : ℝ))) ^ 2 * (dampers.length : ℝ)
+            ≤ (d.2.2 : ℝ) := by exact_mod_cast hbd
+        rw [div_mul_eq_mul_div, div_le_div_iff₀ hadR hLpos]
+        calc (d.2.1 : ℝ)
+              * ((base (Rv d.1) + base (Rv jd) * u) * Real.exp (-((kd : ℝ) * u))) ^ 2
+              * (dampers.length : ℝ)
+            ≤ (d.2.1 : ℝ) * ((max (-(lo : ℝ)) (hi : ℝ))) ^ 2 * (dampers.length : ℝ) := by
+              have := mul_le_mul_of_nonneg_left hB hanR
+              nlinarith [hLpos]
+          _ ≤ (d.2.2 : ℝ) := hbdR
+          _ = 1 * (d.2.2 : ℝ) := by ring
+    -- so the sum sits in [0, 1]
+    have hsum0 : 0 ≤ (dampers.map (fun d =>
+        ((d.2.1 : ℝ) / (d.2.2 : ℝ)) * (base (Rv d.1) + chaseDrv m base d * u) ^ 2
+          * Real.exp (-(2 * chaseGain m d * u)))).sum := by
+      apply List.sum_nonneg
+      intro x hx
+      obtain ⟨d, hd, rfl⟩ := List.mem_map.mp hx
+      exact (hterm d hd).1
+    have hsum1 : (dampers.map (fun d =>
+        ((d.2.1 : ℝ) / (d.2.2 : ℝ)) * (base (Rv d.1) + chaseDrv m base d * u) ^ 2
+          * Real.exp (-(2 * chaseGain m d * u)))).sum ≤ 1 := by
+      by_cases hnil : dampers = []
+      · subst hnil; simp
+      · have hLpos : (0 : ℝ) < (dampers.length : ℝ) := by
+          exact_mod_cast Nat.pos_of_ne_zero
+            (fun h0 => hnil (List.length_eq_zero_iff.mp h0))
+        calc (dampers.map (fun d =>
+              ((d.2.1 : ℝ) / (d.2.2 : ℝ)) * (base (Rv d.1) + chaseDrv m base d * u) ^ 2
+                * Real.exp (-(2 * chaseGain m d * u)))).sum
+            ≤ (dampers.map (fun d =>
+                ((d.2.1 : ℝ) / (d.2.2 : ℝ)) * (base (Rv d.1) + chaseDrv m base d * u) ^ 2
+                  * Real.exp (-(2 * chaseGain m d * u)))).length
+                • (1 / (dampers.length : ℝ)) := by
+              apply List.sum_le_card_nsmul
+              intro x hx
+              obtain ⟨d, hd, rfl⟩ := List.mem_map.mp hx
+              exact (hterm d hd).2
+          _ = (dampers.length : ℝ) * (1 / (dampers.length : ℝ)) := by
+              rw [List.length_map, nsmul_eq_mul]
+          _ = 1 := by field_simp
+    constructor
+    · nlinarith
+    · nlinarith
+  -- the position's band: [s₀, s₀ + ghi·t], by monotonicity from the bounds
+  have hbandS : ∀ t, 0 ≤ t →
+      base (Rv sb.sc) ≤ terrainValDC m sb.sc (k : ℝ) (c : ℝ) base dampers t sb.sc
+      ∧ terrainValDC m sb.sc (k : ℝ) (c : ℝ) base dampers t sb.sc
+          ≤ base (Rv sb.sc) + (m.ghi : ℝ) * t := by
+    intro t ht
+    have hF0 : dampValC m (k : ℝ) (c : ℝ) base dampers 0 = 0 := by
+      unfold dampValC
+      simp [expInt]
+    have hmono : MonotoneOn (fun w => dampValC m (k : ℝ) (c : ℝ) base dampers w)
+        (Icc 0 t) := by
+      apply monotoneOn_of_deriv_nonneg (convex_Icc 0 t)
+      · exact fun u _ => ((hF' u).continuousAt).continuousWithinAt
+      · intro u _
+        exact ((hF' u).differentiableAt).differentiableWithinAt
+      · intro u hu
+        rw [interior_Icc] at hu
+        rw [(hF' u).deriv]
+        exact (hF'bounds u (le_of_lt hu.1)).1
+    have hmono2 : MonotoneOn
+        (fun w => (m.ghi : ℝ) * w - dampValC m (k : ℝ) (c : ℝ) base dampers w)
+        (Icc 0 t) := by
+      apply monotoneOn_of_deriv_nonneg (convex_Icc 0 t)
+      · intro u _
+        exact (((hasDerivAt_id u).const_mul (m.ghi : ℝ)).sub
+          (hF' u)).continuousAt.continuousWithinAt
+      · intro u _
+        have h1 : HasDerivAt (fun w : ℝ => (m.ghi : ℝ) * w) (m.ghi : ℝ) u := by
+          simpa using (hasDerivAt_id u).const_mul (m.ghi : ℝ)
+        exact ((h1.sub (hF' u)).differentiableAt).differentiableWithinAt
+      · intro u hu
+        rw [interior_Icc] at hu
+        have h1 : HasDerivAt (fun w : ℝ => (m.ghi : ℝ) * w) (m.ghi : ℝ) u := by
+          simpa using (hasDerivAt_id u).const_mul (m.ghi : ℝ)
+        have hd : HasDerivAt
+            (fun w => (m.ghi : ℝ) * w - dampValC m (k : ℝ) (c : ℝ) base dampers w)
+            ((m.ghi : ℝ) - (((c : ℝ) + (base (Rv m.gcoord) - (c : ℝ))
+                * Real.exp (-((k : ℝ) * u)))
+              * (1 - ((dampers.map (fun d =>
+                  ((d.2.1 : ℝ) / (d.2.2 : ℝ))
+                    * (base (Rv d.1) + chaseDrv m base d * u) ^ 2
+                    * Real.exp (-(2 * chaseGain m d * u)))).sum)))) u := h1.sub (hF' u)
+        rw [hd.deriv]
+        have := (hF'bounds u (le_of_lt hu.1)).2
+        linarith
+    have h0mem : (0 : ℝ) ∈ Icc (0 : ℝ) t := ⟨le_refl _, ht⟩
+    have htmem : t ∈ Icc (0 : ℝ) t := ⟨ht, le_refl _⟩
+    have hlow := hmono h0mem htmem ht
+    have hhigh := hmono2 h0mem htmem ht
+    simp only [] at hlow hhigh
+    rw [hF0] at hlow hhigh
+    rw [terrainValDC_s]
+    simp only [mul_zero, sub_zero, zero_sub, neg_nonpos] at hlow hhigh
+    constructor
+    · linarith
+    · have : (m.ghi : ℝ) * t - dampValC m (k : ℝ) (c : ℝ) base dampers t ≥ 0 := by
+        simpa using hhigh
+      linarith
+  -- a contract other stays in the hull of its base and its equilibrium
+  have hbandO : ∀ (i : Fin n) (k' c' : ℤ), i ≠ m.gcoord → i ≠ sb.sc → 0 ≤ k' →
+      m.shapes i = CoordShape.contract k' c' → ∀ t, 0 ≤ t →
+      min (base (Rv i)) (c' : ℝ) ≤ terrainValDC m sb.sc (k : ℝ) (c : ℝ) base dampers t i
+      ∧ terrainValDC m sb.sc (k : ℝ) (c : ℝ) base dampers t i
+          ≤ max (base (Rv i)) (c' : ℝ) := by
+    intro i k' c' hig his hk' hshi t ht
+    have hk'R : (0 : ℝ) ≤ (k' : ℝ) := by exact_mod_cast hk'
+    have hθpos : 0 < Real.exp (-((k' : ℝ) * t)) := Real.exp_pos _
+    have hθle : Real.exp (-((k' : ℝ) * t)) ≤ 1 := by
+      rw [Real.exp_le_one_iff]; nlinarith
+    rw [terrainValDC_contract hig his hshi]
+    rcases le_total (base (Rv i)) (c' : ℝ) with hbc' | hbc'
+    · rw [min_eq_left hbc', max_eq_right hbc']
+      constructor
+      · nlinarith
+      · nlinarith
+    · rw [min_eq_right hbc', max_eq_left hbc']
+      constructor
+      · nlinarith
+      · nlinarith
+  -- staying in the envelope
+  have hstayEnv : ∀ t, 0 ≤ t →
+      Formula.sat T.core.envF (terrainΦDC m sb.sc (k : ℝ) (c : ℝ) base dampers t) := by
+    intro t ht
+    rw [sat_envF]
+    intro i
+    rw [terrainΦDC_Rv]
+    by_cases hig : i = m.gcoord
+    · rw [hig]
+      obtain ⟨h1, h2⟩ := hbandV t ht
+      have hbe := (sat_envF.mp henv) m.gcoord
+      unfold Band.memR at hbe ⊢
+      rcases hbe with ⟨hbl, hbh⟩
+      constructor
+      · cases hcase : (T.core.env m.gcoord).lo with
+        | none => trivial
+        | some l =>
+            have hlG : (l : ℝ) ≤ (m.glo : ℝ) := by exact_mod_cast hvLo l hcase
+            linarith
+      · cases hcase : (T.core.env m.gcoord).hi with
+        | none => trivial
+        | some h =>
+            have hgh : (m.ghi : ℝ) ≤ (h : ℝ) := by exact_mod_cast hvHi h hcase
+            linarith
+    · by_cases his : i = sb.sc
+      · rw [his]
+        obtain ⟨h1, h2⟩ := hbandS t ht
+        unfold Band.memR
+        constructor
+        · cases hcase : (T.core.env sb.sc).lo with
+          | none => trivial
+          | some l =>
+              have hlG : (l : ℝ) ≤ (sb.slo : ℝ) := by exact_mod_cast hsloIn l hcase
+              linarith
+        · rw [hsHiNone]; trivial
+      · rcases hOth i hig his with hfz | ⟨k', c', hshi, hk', hloO, hhiO⟩ | hchase
+        · rw [terrainValDC_frozen hig his hfz]
+          exact (sat_envF.mp henv) i
+        · obtain ⟨h1, h2⟩ := hbandO i k' c' hig his hk' hshi t ht
+          have hbe := (sat_envF.mp henv) i
+          unfold Band.memR at hbe ⊢
+          rcases hbe with ⟨hbl, hbh⟩
+          constructor
+          · cases hcase : (T.core.env i).lo with
+            | none => trivial
+            | some l =>
+                rw [hcase] at hbl
+                have hlc : (l : ℝ) ≤ (c' : ℝ) := by exact_mod_cast hloO l hcase
+                have hmin : (l : ℝ) ≤ min (base (Rv i)) (c' : ℝ) := le_min hbl hlc
+                linarith
+          · cases hcase : (T.core.env i).hi with
+            | none => trivial
+            | some h =>
+                rw [hcase] at hbh
+                have hhc : (c' : ℝ) ≤ (h : ℝ) := by exact_mod_cast hhiO h hcase
+                have hmax : max (base (Rv i)) (c' : ℝ) ≤ (h : ℝ) := max_le hbh hhc
+                linarith
+        · obtain ⟨j2, k2, loi, hii, loj, hij, hshi, hj2g, hj2s, hj2c, hk2, hloi, hhii,
+            hloj, hhij, hloi0, hhii0, hijle, hlojge⟩ := hchase
+          have hbi := (sat_envF.mp henv) i
+          have hbj := (sat_envF.mp henv) j2
+          unfold Band.memR at hbi hbj ⊢
+          rw [hloi, hhii] at hbi ⊢
+          rw [hloj, hhij] at hbj
+          obtain ⟨hbl, hbh⟩ := hbi
+          obtain ⟨hbjl, hbjh⟩ := hbj
+          have hband := chase_band (kR := (k : ℝ)) (cR := (c : ℝ)) hig his hshi hk2
+            hloi0 hhii0 hijle hlojge hbl hbh hbjl hbjh ht
+          rw [← terrainValDC_ne (dampers := dampers) his] at hband
+          exact hband
+  -- landing: the own box below `shi`, the declared successor above
+  have hpick : ∃ q2 ∈ q :: T.core.graph.retainedSucc q,
+      Formula.sat (T.GdOf q2)
+        (terrainΦDC m sb.sc (k : ℝ) (c : ℝ) base dampers (T.core.dt : ℝ)) := by
+    obtain ⟨hv1, hv2⟩ := hbandV (T.core.dt : ℝ) hdt
+    obtain ⟨hs1, hs2⟩ := hbandS (T.core.dt : ℝ) hdt
+    have hself_v : (m.glo : ℝ)
+        ≤ terrainValDC m sb.sc (k : ℝ) (c : ℝ) base dampers (T.core.dt : ℝ) m.gcoord
+        ∧ terrainValDC m sb.sc (k : ℝ) (c : ℝ) base dampers (T.core.dt : ℝ) m.gcoord
+          ≤ (m.ghi : ℝ) := ⟨hv1, hv2⟩
+    cases hshi : sb.shi with
+    | none =>
+        refine ⟨q, List.mem_cons_self .., ?_⟩
+        rw [sat_GdOfT hq hsb]
+        refine ⟨⟨hstayEnv _ hdt, by rw [terrainΦDC_Rv]; exact hself_v.1,
+          by rw [terrainΦDC_Rv]; exact hself_v.2⟩,
+          by rw [terrainΦDC_Rv]; linarith, ?_⟩
+        intro sh' hsh'
+        rw [hshi] at hsh'
+        exact absurd hsh' (by simp)
+    | some sh =>
+        obtain ⟨q', hq'mem, m', sb', hm', hsb', hsc', hgc', hglo', hghi', hslo', hshi'⟩ :=
+          hland sh hshi
+        have hbs_sh : base (Rv sb.sc) ≤ (sh : ℝ) := hbshi sh hshi
+        rcases le_or_gt
+          (terrainValDC m sb.sc (k : ℝ) (c : ℝ) base dampers (T.core.dt : ℝ) sb.sc)
+          ((sh : ℝ)) with he | he
+        · -- self
+          refine ⟨q, List.mem_cons_self .., ?_⟩
+          rw [sat_GdOfT hq hsb]
+          refine ⟨⟨hstayEnv _ hdt, by rw [terrainΦDC_Rv]; exact hself_v.1,
+            by rw [terrainΦDC_Rv]; exact hself_v.2⟩,
+            by rw [terrainΦDC_Rv]; linarith, ?_⟩
+          intro sh' hsh'
+          rw [hshi] at hsh'
+          cases hsh'
+          rw [terrainΦDC_Rv]
+          exact he
+        · -- successor
+          have hglo'R : (m'.glo : ℝ) ≤ (m.glo : ℝ) := by exact_mod_cast hglo'
+          have hghi'R : (m.ghi : ℝ) ≤ (m'.ghi : ℝ) := by exact_mod_cast hghi'
+          have hslo'R : (sb'.slo : ℝ) ≤ (sh : ℝ) := by exact_mod_cast hslo'
+          refine ⟨q', List.mem_cons_of_mem _ (succ_mem_retained T.core hq hq'mem), ?_⟩
+          rw [sat_GdOfT hm' hsb']
+          refine ⟨⟨hstayEnv _ hdt, ?_, ?_⟩, ?_, ?_⟩
+          · rw [hgc', terrainΦDC_Rv]; linarith
+          · rw [hgc', terrainΦDC_Rv]; linarith
+          · rw [hsc', terrainΦDC_Rv]; linarith
+          · intro sh' hsh'
+            have hcov : (sh : ℝ) + (m.ghi : ℝ) * (T.core.dt : ℝ) ≤ (sh' : ℝ) := by
+              exact_mod_cast hshi' sh' hsh'
+            rw [hsc', terrainΦDC_Rv]
+            linarith
+  obtain ⟨q2, hq2ret, hq2sat⟩ := hpick
+  refine ⟨terrainΦDC m sb.sc (k : ℝ) (c : ℝ) base dampers, ?_, ?_, ?_,
+    fun t ht => hstayEnv t ht.1, q2, hq2ret, hq2sat⟩
+  · -- t = 0 recovers the base
+    funext x
+    obtain ⟨sd, ix⟩ := x
+    cases sd with
+    | R =>
+        show terrainValDC m sb.sc (k : ℝ) (c : ℝ) base dampers 0 ix = base (Rv ix)
+        by_cases his : ix = sb.sc
+        · rw [his, terrainValDC_s]
+          have h0 : dampValC m (k : ℝ) (c : ℝ) base dampers 0 = 0 := by
+            unfold dampValC
+            simp [expInt]
+          rw [h0, add_zero]
+        · rw [terrainValDC_ne his]
+          unfold terrainVal
+          by_cases hig : ix = m.gcoord
+          · rw [if_pos hig]; subst hig; simp
+          · rw [if_neg hig, if_neg his]
+            rcases hshx : m.shapes ix with _ | _ | _ | _ | _ | _ <;> simp
+    | L => rfl
+    | Aux => rfl
+  · -- derivatives
+    intro t ht p hp
+    simp only [rightBlock, List.mem_map, List.mem_finRange] at hp
+    obtain ⟨i, -, rfl⟩ := hp
+    by_cases hig : i = m.gcoord
+    · rw [hig]
+      have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf m.gcoord))
+          (terrainΦDC m sb.sc (k : ℝ) (c : ℝ) base dampers t)
+          = (k : ℝ)
+            * ((c : ℝ) - terrainValDC m sb.sc (k : ℝ) (c : ℝ) base dampers t m.gcoord) := by
+        simp [SettlingMode.fieldOf, hsh, CoordShape.field, Term.eval, AOp.interp]
+      rw [heval]
+      have hcurve : (fun u => terrainΦDC m sb.sc (k : ℝ) (c : ℝ) base dampers u (Rv m.gcoord))
+          = fun u => (c : ℝ) + (base (Rv m.gcoord) - (c : ℝ)) * Real.exp (-((k : ℝ) * u)) := by
+        funext u; rw [terrainΦDC_Rv, terrainValDC_g hsc]
+      rw [hcurve]
+      have hexp := expNeg_hasDeriv (k : ℝ) t
+      have h1 : HasDerivAt
+          (fun u => (c : ℝ) + (base (Rv m.gcoord) - (c : ℝ)) * Real.exp (-((k : ℝ) * u)))
+          ((base (Rv m.gcoord) - (c : ℝ)) * (-(k : ℝ) * Real.exp (-((k : ℝ) * t)))) t :=
+        (hexp.const_mul (base (Rv m.gcoord) - (c : ℝ))).const_add (c : ℝ)
+      have heq : (base (Rv m.gcoord) - (c : ℝ)) * (-(k : ℝ) * Real.exp (-((k : ℝ) * t)))
+          = (k : ℝ)
+            * ((c : ℝ) - terrainValDC m sb.sc (k : ℝ) (c : ℝ) base dampers t m.gcoord) := by
+        rw [terrainValDC_g hsc]; ring
+      rw [← heq]
+      exact h1.hasDerivWithinAt
+    · by_cases his : i = sb.sc
+      · rw [his]
+        -- the field eval at the witness: v(t) times the damping factor at the damper values
+        have hdampval : ∀ d ∈ dampers,
+            terrainValDC m sb.sc (k : ℝ) (c : ℝ) base dampers t d.1
+              = (base (Rv d.1) + chaseDrv m base d * t)
+                  * Real.exp (-(chaseGain m d * t)) := by
+          intro d hd
+          obtain ⟨hdg, hds, -, -, jd, kd, hkp, -, -⟩ := hdamp d hd
+          rw [terrainValDC_chase hdg hds hkp]
+          unfold chaseGain chaseDrv
+          rw [hkp]
+        have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf sb.sc))
+            (terrainΦDC m sb.sc (k : ℝ) (c : ℝ) base dampers t)
+            = (((c : ℝ) + (base (Rv m.gcoord) - (c : ℝ)) * Real.exp (-((k : ℝ) * t)))
+              * (1 - ((dampers.map (fun d =>
+                  ((d.2.1 : ℝ) / (d.2.2 : ℝ))
+                    * (base (Rv d.1) + chaseDrv m base d * t) ^ 2
+                    * Real.exp (-(2 * chaseGain m d * t)))).sum))) := by
+          have hbase := eval_drivenDamp_field hscd
+            (terrainΦDC m sb.sc (k : ℝ) (c : ℝ) base dampers t)
+          have h1eval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf sb.sc))
+              (terrainΦDC m sb.sc (k : ℝ) (c : ℝ) base dampers t)
+              = Term.eval (m.fieldOf sb.sc)
+                  (terrainΦDC m sb.sc (k : ℝ) (c : ℝ) base dampers t) := by
+            simp [Term.eval, AOp.interp]
+          rw [h1eval, hbase]
+          rw [terrainΦDC_Rv, terrainValDC_g hsc]
+          congr 2
+          refine congrArg List.sum (List.map_congr_left ?_)
+          intro d hd
+          rw [terrainΦDC_Rv, hdampval d hd]
+          have hsq : ((base (Rv d.1) + chaseDrv m base d * t)
+                * Real.exp (-(chaseGain m d * t))) ^ 2
+              = (base (Rv d.1) + chaseDrv m base d * t) ^ 2
+                * Real.exp (-(2 * chaseGain m d * t)) := by
+            rw [mul_pow]
+            congr 1
+            rw [show (-(2 * chaseGain m d * t)) = ((2 : ℕ) : ℝ) * (-(chaseGain m d * t)) by
+              push_cast; ring, Real.exp_nat_mul]
+          rw [hsq]
+          ring
+        rw [heval]
+        have hcurve : (fun u => terrainΦDC m sb.sc (k : ℝ) (c : ℝ) base dampers u (Rv sb.sc))
+            = fun u => base (Rv sb.sc) + dampValC m (k : ℝ) (c : ℝ) base dampers u := by
+          funext u
+          rw [terrainΦDC_Rv, terrainValDC_s]
+        rw [hcurve]
+        exact ((hF' t).const_add (base (Rv sb.sc))).hasDerivWithinAt
+      · rcases hOth i hig his with hfz | ⟨k', c', hshi, -, -, -⟩ | hchase
+        · have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf i))
+              (terrainΦDC m sb.sc (k : ℝ) (c : ℝ) base dampers t) = 0 := by
+            simp [SettlingMode.fieldOf, hfz, CoordShape.field, Term.eval, AOp.interp]
+          rw [heval]
+          have hcurve : (fun u => terrainΦDC m sb.sc (k : ℝ) (c : ℝ) base dampers u (Rv i))
+              = fun _ => base (Rv i) := by
+            funext u; rw [terrainΦDC_Rv, terrainValDC_frozen hig his hfz]
+          rw [hcurve]
+          exact hasDerivWithinAt_const t _ _
+        · have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf i))
+              (terrainΦDC m sb.sc (k : ℝ) (c : ℝ) base dampers t)
+              = (k' : ℝ)
+                * ((c' : ℝ) - terrainValDC m sb.sc (k : ℝ) (c : ℝ) base dampers t i) := by
+            simp [SettlingMode.fieldOf, hshi, CoordShape.field, Term.eval, AOp.interp]
+          rw [heval]
+          have hcurve : (fun u => terrainΦDC m sb.sc (k : ℝ) (c : ℝ) base dampers u (Rv i))
+              = fun u => (c' : ℝ) + (base (Rv i) - (c' : ℝ)) * Real.exp (-((k' : ℝ) * u)) := by
+            funext u; rw [terrainΦDC_Rv, terrainValDC_contract hig his hshi]
+          rw [hcurve]
+          have hexp := expNeg_hasDeriv (k' : ℝ) t
+          have h1 : HasDerivAt
+              (fun u => (c' : ℝ) + (base (Rv i) - (c' : ℝ)) * Real.exp (-((k' : ℝ) * u)))
+              ((base (Rv i) - (c' : ℝ)) * (-(k' : ℝ) * Real.exp (-((k' : ℝ) * t)))) t :=
+            (hexp.const_mul (base (Rv i) - (c' : ℝ))).const_add (c' : ℝ)
+          have heq : (base (Rv i) - (c' : ℝ)) * (-(k' : ℝ) * Real.exp (-((k' : ℝ) * t)))
+              = (k' : ℝ)
+                * ((c' : ℝ) - terrainValDC m sb.sc (k : ℝ) (c : ℝ) base dampers t i) := by
+            rw [terrainValDC_contract hig his hshi]; ring
+          rw [← heq]
+          exact h1.hasDerivWithinAt
+        · obtain ⟨j2, k2, loi, hii, loj, hij, hshi, hj2g, hj2s, hj2c, hk2, -, -, -, -,
+            -, -, -, -⟩ := hchase
+          have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf i))
+              (terrainΦDC m sb.sc (k : ℝ) (c : ℝ) base dampers t)
+              = terrainValDC m sb.sc (k : ℝ) (c : ℝ) base dampers t j2
+                - (k2 : ℝ) * terrainValDC m sb.sc (k : ℝ) (c : ℝ) base dampers t i := by
+            simp [SettlingMode.fieldOf, hshi, CoordShape.field, Term.eval, AOp.interp]
+          rw [heval]
+          have hcurve : (fun u => terrainΦDC m sb.sc (k : ℝ) (c : ℝ) base dampers u (Rv i))
+              = fun u => (base (Rv i) + base (Rv j2) * u) * Real.exp (-((k2 : ℝ) * u)) := by
+            funext u; rw [terrainΦDC_Rv, terrainValDC_chase hig his hshi]
+          rw [hcurve]
+          have hlin : HasDerivAt (fun u : ℝ => base (Rv i) + base (Rv j2) * u)
+              (base (Rv j2)) t := by
+            simpa using ((hasDerivAt_id t).const_mul (base (Rv j2))).const_add (base (Rv i))
+          have hexp := expNeg_hasDeriv (k2 : ℝ) t
+          have h1 := hlin.mul hexp
+          have heq : base (Rv j2) * Real.exp (-((k2 : ℝ) * t))
+              + (base (Rv i) + base (Rv j2) * t) * (-(k2 : ℝ) * Real.exp (-((k2 : ℝ) * t)))
+              = terrainValDC m sb.sc (k : ℝ) (c : ℝ) base dampers t j2
+                - (k2 : ℝ) * terrainValDC m sb.sc (k : ℝ) (c : ℝ) base dampers t i := by
+            rw [terrainValDC_chase hig his hshi, terrainValDC_contract hj2g hj2s hj2c]
+            push_cast
+            ring
+          rw [← heq]
+          exact h1.hasDerivWithinAt
+  · -- mask
+    intro t ht x hx
+    refine terrainΦDC_nonR m sb.sc (k : ℝ) (c : ℝ) base dampers t ?_
+    intro i hxi
+    exact hx (by
+      rw [hxi]
+      simp only [rightBlock, ODESystem.bound, List.map_map]
+      exact List.mem_map.mpr ⟨i, List.mem_finRange i, rfl⟩)
+
 /-! ### Extraction: the checker's Bool facts as Props -/
 
 theorem checkModeT_true {M : SettlingModel n} {sbands : List (SBand n)}
@@ -1396,12 +2291,19 @@ theorem checkModeT_true {M : SettlingModel n} {sbands : List (SBand n)}
       (∀ h', (M.env m.gcoord).hi = some h' → m.ghi ≤ h') ∧
       sb.sc ≠ m.gcoord ∧
       (m.shapes sb.sc = CoordShape.driven m.gcoord ∨
-       ∃ dampers, m.shapes sb.sc = CoordShape.drivenDamp m.gcoord dampers ∧
+       (∃ dampers, m.shapes sb.sc = CoordShape.drivenDamp m.gcoord dampers ∧
          ∀ d ∈ dampers, d.1 ≠ m.gcoord ∧ d.1 ≠ sb.sc ∧ 0 ≤ d.2.1 ∧ 0 < d.2.2 ∧
            (∃ kp, m.shapes d.1 = CoordShape.contract kp 0 ∧ 0 ≤ kp) ∧
            (∃ lo hi, (M.env d.1).lo = some lo ∧ (M.env d.1).hi = some hi ∧
              lo ≤ 0 ∧ 0 ≤ hi ∧
-             d.2.1 * (max (-lo) hi)^2 * (dampers.length : ℤ) ≤ d.2.2)) ∧
+             d.2.1 * (max (-lo) hi)^2 * (dampers.length : ℤ) ≤ d.2.2)) ∨
+       (∃ dampers, m.shapes sb.sc = CoordShape.drivenDamp m.gcoord dampers ∧
+         ∀ d ∈ dampers, d.1 ≠ m.gcoord ∧ d.1 ≠ sb.sc ∧ 0 ≤ d.2.1 ∧ 0 < d.2.2 ∧
+           ∃ jd kd, m.shapes d.1 = CoordShape.chase jd kd ∧ 0 < kd ∧
+             ∃ lo hi loj hij, (M.env d.1).lo = some lo ∧ (M.env d.1).hi = some hi ∧
+               (M.env jd).lo = some loj ∧ (M.env jd).hi = some hij ∧
+               lo ≤ 0 ∧ 0 ≤ hi ∧ hij ≤ kd * hi ∧ kd * lo ≤ loj ∧
+               d.2.1 * (max (-lo) hi) ^ 2 * (dampers.length : ℤ) ≤ d.2.2)) ∧
       (∀ l', (M.env sb.sc).lo = some l' → l' ≤ sb.slo) ∧
       (M.env sb.sc).hi = none ∧
       (∀ i, i ≠ m.gcoord → i ≠ sb.sc →
@@ -1501,7 +2403,14 @@ theorem checkModeT_true {M : SettlingModel n} {sbands : List (SBand n)}
             (∃ kp, m.shapes d.1 = CoordShape.contract kp 0 ∧ 0 ≤ kp) ∧
             (∃ lo hi, (M.env d.1).lo = some lo ∧ (M.env d.1).hi = some hi ∧
               lo ≤ 0 ∧ 0 ≤ hi ∧
-              d.2.1 * (max (-lo) hi)^2 * (dampers.length : ℤ) ≤ d.2.2)) := by
+              d.2.1 * (max (-lo) hi)^2 * (dampers.length : ℤ) ≤ d.2.2)) ∨
+        (∃ dampers, m.shapes sb.sc = CoordShape.drivenDamp m.gcoord dampers ∧
+          ∀ d ∈ dampers, d.1 ≠ m.gcoord ∧ d.1 ≠ sb.sc ∧ 0 ≤ d.2.1 ∧ 0 < d.2.2 ∧
+            ∃ jd kd, m.shapes d.1 = CoordShape.chase jd kd ∧ 0 < kd ∧
+              ∃ lo hi loj hij, (M.env d.1).lo = some lo ∧ (M.env d.1).hi = some hi ∧
+                (M.env jd).lo = some loj ∧ (M.env jd).hi = some hij ∧
+                lo ≤ 0 ∧ 0 ≤ hi ∧ hij ≤ kd * hi ∧ kd * lo ≤ loj ∧
+                d.2.1 * (max (-lo) hi) ^ 2 * (dampers.length : ℤ) ≤ d.2.2) := by
       rw [Bool.or_eq_true] at hscd
       rcases hscd with h1 | h2
       · exact Or.inl (of_decide_eq_true h1)
@@ -1512,37 +2421,67 @@ theorem checkModeT_true {M : SettlingModel n} {sbands : List (SBand n)}
         · simp at h2
         · simp at h2
         · simp at h2
-        · simp only [Bool.and_eq_true, decide_eq_true_eq, List.all_eq_true] at h2
-          obtain ⟨hj, hall⟩ := h2
+        · simp only [Bool.and_eq_true, Bool.or_eq_true, decide_eq_true_eq,
+            List.all_eq_true] at h2
+          obtain ⟨hj, hor⟩ := h2
           subst hj
-          refine Or.inr ⟨dampers, rfl, ?_⟩
-          intro d hd
-          have hthis := hall d hd
-          simp only [Bool.and_eq_true, Bool.not_eq_true', decide_eq_true_eq,
-            decide_eq_false_iff_not] at hthis
-          obtain ⟨⟨⟨⟨⟨hd1, hd2⟩, hd3⟩, hd4⟩, hshp⟩, henvd⟩ := hthis
-          refine ⟨hd1, hd2, hd3, hd4, ?_, ?_⟩
-          · rcases hsp : m.shapes d.1 with _ | _ | ⟨kp, cp⟩ | _ | _ | _ | _ | _ | _
+          rcases hor with hall | hall
+          · refine Or.inr (Or.inl ⟨dampers, rfl, ?_⟩)
+            intro d hd
+            have hthis := hall d hd
+            simp only [Bool.and_eq_true, Bool.not_eq_true', decide_eq_true_eq,
+              decide_eq_false_iff_not] at hthis
+            obtain ⟨⟨⟨⟨⟨hd1, hd2⟩, hd3⟩, hd4⟩, hshp⟩, henvd⟩ := hthis
+            refine ⟨hd1, hd2, hd3, hd4, ?_, ?_⟩
+            · rcases hsp : m.shapes d.1 with _ | _ | ⟨kp, cp⟩ | _ | _ | _ | _ | _ | _
+              all_goals rw [hsp] at hshp
+              · simp at hshp
+              · simp at hshp
+              · simp only [Bool.and_eq_true, decide_eq_true_eq] at hshp
+                refine ⟨kp, ?_, hshp.1⟩
+                rw [hshp.2]
+              · simp at hshp
+              · simp at hshp
+              · simp at hshp
+              · simp at hshp
+              · simp at hshp
+              · simp at hshp
+            · rcases hlo : (M.env d.1).lo with _ | lo <;>
+                rcases hhi : (M.env d.1).hi with _ | hi
+              all_goals rw [hlo, hhi] at henvd
+              · simp at henvd
+              · simp at henvd
+              · simp at henvd
+              · simp only [Bool.and_eq_true, decide_eq_true_eq] at henvd
+                exact ⟨lo, hi, rfl, rfl, henvd.1.1, henvd.1.2, henvd.2⟩
+          · -- cascade dampers (EXT 4c)
+            refine Or.inr (Or.inr ⟨dampers, rfl, ?_⟩)
+            intro d hd
+            have hthis := hall d hd
+            simp only [Bool.and_eq_true, Bool.not_eq_true', decide_eq_true_eq,
+              decide_eq_false_iff_not] at hthis
+            obtain ⟨⟨⟨⟨hd1, hd2⟩, hd3⟩, hd4⟩, hshp⟩ := hthis
+            refine ⟨hd1, hd2, hd3, hd4, ?_⟩
+            rcases hsp : m.shapes d.1 with _ | _ | _ | _ | _ | _ | _ | _ | ⟨jd, kd⟩
             all_goals rw [hsp] at hshp
             · simp at hshp
             · simp at hshp
-            · simp only [Bool.and_eq_true, decide_eq_true_eq] at hshp
-              refine ⟨kp, ?_, hshp.1⟩
-              rw [hshp.2]
             · simp at hshp
             · simp at hshp
             · simp at hshp
             · simp at hshp
             · simp at hshp
             · simp at hshp
-          · rcases hlo : (M.env d.1).lo with _ | lo <;>
-              rcases hhi : (M.env d.1).hi with _ | hi
-            all_goals rw [hlo, hhi] at henvd
-            · simp at henvd
-            · simp at henvd
-            · simp at henvd
-            · simp only [Bool.and_eq_true, decide_eq_true_eq] at henvd
-              exact ⟨lo, hi, rfl, rfl, henvd.1.1, henvd.1.2, henvd.2⟩
+            · rw [Bool.and_eq_true] at hshp
+              obtain ⟨hkd, henvm⟩ := hshp
+              refine ⟨jd, kd, rfl, of_decide_eq_true hkd, ?_⟩
+              rcases hlo : (M.env d.1).lo with _ | lo <;>
+                rcases hhi : (M.env d.1).hi with _ | hi <;>
+                rcases hloj : (M.env jd).lo with _ | loj <;>
+                rcases hhij : (M.env jd).hi with _ | hij <;>
+                rw [hlo, hhi, hloj, hhij] at henvm <;>
+                simp at henvm
+              refine ⟨lo, hi, loj, hij, rfl, rfl, rfl, rfl, ?_, ?_, ?_, ?_, ?_⟩ <;> tauto
         · simp at h2
         · simp at h2
         · simp at h2
@@ -1613,10 +2552,12 @@ theorem wellformed_sound_terrain (T : TerrainModel n) (mv tg : Var n) (g : Term 
   have hmodeAt : T.core.graph.modeAt q = some (SM.toRMode T.core) := by
     rw [graph_modeAt, hSM]; rfl
   refine ⟨SM.fieldOf, rfl, rfl, by rw [hlen]; exact hqlt, ?_, ?_, ?_, ?_, ?_⟩
-  · rcases hscd with hplain | ⟨dampers, hscdD, hdamp⟩
+  · rcases hscd with hplain | ⟨dampers, hscdD, hdamp⟩ | ⟨dampers, hscdD, hdamp⟩
     · exact settling_terrain T hSM hsb hsh hk hcl hch hglo0 hvLo hvHi hscne hplain hsloIn
         hsHiNone hOth hland hdt
     · exact settling_terrain_damp T hSM hsb hsh hk hcl hch hglo0 hvLo hvHi hscne hscdD hdamp
+        hsloIn hsHiNone hOth hland hdt
+    · exact settling_terrain_dampC T hSM hsb hsh hk hcl hch hglo0 hvLo hvHi hscne hscdD hdamp
         hsloIn hsHiNone hOth hland hdt
   · intro ν hν
     exact hcert q (SM.toRMode T.core) hmodeAt ν hν

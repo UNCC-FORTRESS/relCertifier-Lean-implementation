@@ -215,9 +215,20 @@ carry closed kernel `rfl` certificates**.
   certificates) or audit-clean** (no counterexample at some legal λ, awaiting the EXT 3 /
   phase D grammars); shield_unreachable (no guard band, inconclusive-Z3) remains the one
   intentional outlier.
-- Remaining roadmap: EXT 3 (multi-band guards + driven-active, the s-guarded terrain family —
-  optional band sides in `SettlingModel`, banded-rate landing); phase D (coupled fields —
-  existence via `PicardBridge`).
+- **EXT 3 (the terrain checker), built.** A `TerrainModel` WRAPS a `SettlingModel` and adds
+  per-mode s-bands, so the entire transcription stack (envelope, graph, graph lemmas) is
+  reused verbatim and `GuardSettlingH`'s guard-map parameter absorbs the new box guard —
+  `theorem3_faithful_settling` consumes `wellformed_sound_terrain` unchanged. The discharge
+  (`settling_terrain`): the contract velocity stays in `[v₀, c]` (cap at the equilibrium —
+  the guard discipline from this arc's own fix list), the integrated position's one-step
+  image sits in `[s₀, s₀ + c·dt]` and lands by an endpoint case-split at the segment edge
+  (`shi + c·dt ≤ shi'` per declared successor, terminal segment unbounded), and decaying
+  others stay in the hull of base and equilibrium. 5 terrain benchmarks carry closed kernel
+  certificates (refinement rung1, dof-terrain rungs); the nonlinear-`s'` variants
+  (`s' = v(1 − 0.5ψ² − 0.3θ²)`, cubic rungs) remain phase D.
+- Remaining roadmap: phase D (coupled/nonlinear fields — attitude_rate,
+  endurance_orderlift_2to3, rover_drag, rover_4d_box, the nonlinear-`s'` terrain/story
+  variants; existence via `PicardBridge`).
 
 ## Current state
 

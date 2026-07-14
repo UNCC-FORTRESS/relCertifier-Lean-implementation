@@ -62,4 +62,6 @@ import RelCertifier.GuardThreaded
 import RelCertifier.CutChannel
 import RelCertifier.WellFormedChecker
 import RelCertifier.SettlingInstances
+import RelCertifier.TerrainChecker
+import RelCertifier.TerrainInstances
 import RelCertifier.AxiomCheck

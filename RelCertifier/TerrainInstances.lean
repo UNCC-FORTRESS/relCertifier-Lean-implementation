@@ -16,10 +16,15 @@ in ℤ, discharged by `settling_terrain`. The nonlinear-s' family (EXT 3b) uses
 budget `a·B²·L ≤ 1`; damper coefficients are stored /10⁶ per the value scaling, and
 `settling_terrain_damp` discharges it by monotonicity from the integrand bounds.
 
+The cascade family (EXT 4c): a critically damped block rewritten in its eigen-cascade
+chart becomes `CoordShape.chase` — the angle chases its resonant contract-to-0 driver,
+value `(x₀ + x_j₀·t)e^{−kt}`, staying by `polyExp_le` under the driver-band-inside-
+`k`-times-angle-band conditions. story3_rollover_ladder_rung_b's `(e, r)` pair is the
+first member.
+
 Out of grammar (honest skips): refinement_ladder_rover_rung4_8to12 and
-story1_attdist_rung_b_12dof (SECOND-ORDER dampers `ψ' = ω, ω' = −ψ − 2ω` — critically
-damped, the linear-coupled closed-form class), story3_rollover_ladder_rung_b (a coupled
-`(e, r)` pair — same class).
+story1_attdist_rung_b_12dof (SECOND-ORDER dampers — cascade-rewritten in the benchmarks,
+pending the chase-damper extension of `dampVal`).
 -/
 import RelCertifier.TerrainChecker
 
@@ -327,6 +332,30 @@ def story3_rollover_ladder_rung_aT : TerrainModel 12 :=
       { sc := 1, slo := 1400, shi := none } ] }
 
 example : decideWellFormedT story3_rollover_ladder_rung_aT = true := rfl
+
+/-- `story3_rollover_ladder_rung_b` (R side; units: values ×1000, time ×1; dt = ε_R/λ at
+λ = 1; damper coefficients stored /10⁶). The rollover pair rides in cascade coordinates:
+`e` (idx 6) is `chase r 2` against its driver `r = r_orig + 2e` (idx 7, contract-to-0 at
+rate 2), with the tight band condition `3040 = 2·1520`. -/
+def story3_rollover_ladder_rung_bT : TerrainModel 12 :=
+  { core :=
+    { modes :=
+    [
+      { shapes := ![CoordShape.contract 3 300, CoordShape.drivenDamp 0 [(2, 1, 2000000), (4, 3, 10000000)], CoordShape.contract 1 0, CoordShape.frozen, CoordShape.contract 1 0, CoordShape.frozen, CoordShape.chase 7 2, CoordShape.contract 2 0, CoordShape.contract 1 0, CoordShape.frozen, CoordShape.frozen, CoordShape.frozen], gcoord := 0,
+        glo := 0, ghi := 300, succs := [1] },
+      { shapes := ![CoordShape.contract 3 500, CoordShape.drivenDamp 0 [(2, 1, 2000000), (4, 3, 10000000)], CoordShape.contract 1 0, CoordShape.frozen, CoordShape.contract 1 0, CoordShape.frozen, CoordShape.chase 7 2, CoordShape.contract 2 0, CoordShape.contract 1 0, CoordShape.frozen, CoordShape.frozen, CoordShape.frozen], gcoord := 0,
+        glo := 0, ghi := 500, succs := [2] },
+      { shapes := ![CoordShape.contract 3 650, CoordShape.drivenDamp 0 [(2, 1, 2000000), (4, 3, 10000000)], CoordShape.contract 1 0, CoordShape.frozen, CoordShape.contract 1 0, CoordShape.frozen, CoordShape.chase 7 2, CoordShape.contract 2 0, CoordShape.contract 1 0, CoordShape.frozen, CoordShape.frozen, CoordShape.frozen], gcoord := 0,
+        glo := 0, ghi := 650, succs := [] } ]
+      env := ![{ lo := some 0, hi := some 800 }, { lo := some 0, hi := none }, { lo := some (-500 : ℤ), hi := some 150 }, { lo := some (-500 : ℤ), hi := some 600 }, { lo := some (-500 : ℤ), hi := some 150 }, { lo := some (-500 : ℤ), hi := some 600 }, { lo := some (-1520 : ℤ), hi := some 1520 }, { lo := some (-3040 : ℤ), hi := some 3040 }, { lo := some (-500 : ℤ), hi := some 150 }, { lo := some (-500 : ℤ), hi := some 600 }, { lo := some (-1000 : ℤ), hi := some 1100 }, { lo := some (-1000 : ℤ), hi := some 1100 }]
+      dtQ := 1 }
+    sbands :=
+    [
+      { sc := 1, slo := 0, shi := some 600 },
+      { sc := 1, slo := 600, shi := some 1400 },
+      { sc := 1, slo := 1400, shi := none } ] }
+
+example : decideWellFormedT story3_rollover_ladder_rung_bT = true := rfl
 
 /-- `refinement_ladder_rover_rung2_6dof` (R side; units: v ×1000, s ×3000 (the driven
 integrator carries the time scale), time ×3; dt = ε_R/λ at λ = 3 — the declared λ-range

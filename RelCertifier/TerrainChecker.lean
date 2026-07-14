@@ -128,6 +128,17 @@ def checkModeT (M : SettlingModel n) (sbands : List (SBand n)) (m : SettlingMode
              decide (0 ≤ k') &&
              ((M.env i).lo.all fun lo => decide (lo ≤ c')) &&
              ((M.env i).hi.all fun hi => decide (c' ≤ hi))
+         | CoordShape.chase j2 k2 =>
+             -- cascade angle (EXT 4c): chases its resonant driver j2 (contract-to-0 at the
+             -- same rate); the box is forward-invariant iff the driver's band sits inside
+             -- k2 times the angle's band (`polyExp_le`, linear-dominance branch)
+             !decide (j2 = m.gcoord) && !decide (j2 = sb.sc) &&
+             decide (m.shapes j2 = CoordShape.contract k2 0) && decide (0 < k2) &&
+             (match (M.env i).lo, (M.env i).hi, (M.env j2).lo, (M.env j2).hi with
+              | some loi, some hii, some loj, some hij =>
+                  decide (loi ≤ 0) && decide (0 ≤ hii) &&
+                  decide (hij ≤ k2 * hii) && decide (k2 * loi ≤ loj)
+              | _, _, _, _ => false)
          | _ => false)) &&
       m.succs.all (fun q' => decide (q' < M.modes.length)) &&
       (match sb.shi with
@@ -164,6 +175,8 @@ noncomputable def terrainVal (m : SettlingMode n) (sc : Fin n) (kR cR : ℝ)
   else match m.shapes i with
     | CoordShape.contract k' c' =>
         (c' : ℝ) + (base (Rv i) - (c' : ℝ)) * Real.exp (-((k' : ℝ) * t))
+    | CoordShape.chase j2 k2 =>
+        (base (Rv i) + base (Rv j2) * t) * Real.exp (-((k2 : ℝ) * t))
     | _ => base (Rv i)
 
 /-- The terrain witness flow. -/
@@ -210,6 +223,42 @@ theorem terrainVal_frozen {m : SettlingMode n} {sc : Fin n} {kR cR : ℝ}
     (hig : i ≠ m.gcoord) (his : i ≠ sc) (hfz : m.shapes i = CoordShape.frozen) :
     terrainVal m sc kR cR base t i = base (Rv i) := by
   simp [terrainVal, hig, his, hfz]
+
+theorem terrainVal_chase {m : SettlingMode n} {sc : Fin n} {kR cR : ℝ}
+    {base : State (Var n)} {t : ℝ} {i j2 : Fin n} {k2 : ℤ}
+    (hig : i ≠ m.gcoord) (his : i ≠ sc) (hsh : m.shapes i = CoordShape.chase j2 k2) :
+    terrainVal m sc kR cR base t i
+      = (base (Rv i) + base (Rv j2) * t) * Real.exp (-((k2 : ℝ) * t)) := by
+  simp [terrainVal, hig, his, hsh]
+
+/-- The cascade angle stays in its envelope box: both sides are `polyExp_le` on the
+resonant value `(x₀ + x_j₀·t)e^{−k₂t}`, via the linear-dominance branch from the
+driver-band-inside-`k₂`-times-angle-band conditions. -/
+theorem chase_band {m : SettlingMode n} {sc : Fin n} {kR cR : ℝ} {base : State (Var n)}
+    {i j2 : Fin n} {k2 : ℤ} (hig : i ≠ m.gcoord) (his : i ≠ sc)
+    (hsh : m.shapes i = CoordShape.chase j2 k2) (hk2 : 0 < k2)
+    {loi hii loj hij : ℤ}
+    (hloi0 : loi ≤ 0) (hhii0 : 0 ≤ hii) (hijle : hij ≤ k2 * hii) (hlojge : k2 * loi ≤ loj)
+    (hbl : (loi : ℝ) ≤ base (Rv i)) (hbh : base (Rv i) ≤ (hii : ℝ))
+    (hbjl : (loj : ℝ) ≤ base (Rv j2)) (hbjh : base (Rv j2) ≤ (hij : ℝ))
+    {t : ℝ} (ht : 0 ≤ t) :
+    (loi : ℝ) ≤ terrainVal m sc kR cR base t i
+    ∧ terrainVal m sc kR cR base t i ≤ (hii : ℝ) := by
+  rw [terrainVal_chase hig his hsh]
+  have hk2R : (0 : ℝ) < (k2 : ℝ) := by exact_mod_cast hk2
+  have hloi0R : (loi : ℝ) ≤ 0 := by exact_mod_cast hloi0
+  have hhii0R : (0 : ℝ) ≤ (hii : ℝ) := by exact_mod_cast hhii0
+  have hijleR : (hij : ℝ) ≤ (k2 : ℝ) * (hii : ℝ) := by exact_mod_cast hijle
+  have hlojgeR : (k2 : ℝ) * (loi : ℝ) ≤ (loj : ℝ) := by exact_mod_cast hlojge
+  constructor
+  · have hup := polyExp_le (-(base (Rv i))) (-(base (Rv j2))) (k2 : ℝ) (-(loi : ℝ)) t
+      hk2R ht (by linarith) (by linarith) (Or.inl (by nlinarith))
+    have hre : (-(base (Rv i)) + -(base (Rv j2)) * t) * Real.exp (-((k2 : ℝ) * t))
+        = -((base (Rv i) + base (Rv j2) * t) * Real.exp (-((k2 : ℝ) * t))) := by ring
+    rw [hre] at hup
+    linarith
+  · exact polyExp_le (base (Rv i)) (base (Rv j2)) (k2 : ℝ) (hii : ℝ) t hk2R ht hhii0R hbh
+      (Or.inl (by nlinarith))
 
 /-! ## EXT 3b — the damped integrator (`drivenDamp` position, the nonlinear-s' family)
 
@@ -296,6 +345,13 @@ theorem terrainValD_frozen {m : SettlingMode n} {sc : Fin n} {kR cR : ℝ}
     terrainValD m sc kR cR base dampers t i = base (Rv i) := by
   rw [terrainValD_ne his, terrainVal_frozen hig his hfz]
 
+theorem terrainValD_chase {m : SettlingMode n} {sc : Fin n} {kR cR : ℝ}
+    {base : State (Var n)} {dampers : List (Fin n × ℤ × ℤ)} {t : ℝ} {i j2 : Fin n} {k2 : ℤ}
+    (hig : i ≠ m.gcoord) (his : i ≠ sc) (hsh : m.shapes i = CoordShape.chase j2 k2) :
+    terrainValD m sc kR cR base dampers t i
+      = (base (Rv i) + base (Rv j2) * t) * Real.exp (-((k2 : ℝ) * t)) := by
+  rw [terrainValD_ne his, terrainVal_chase hig his hsh]
+
 /-- Derivative of a list-indexed sum of real functions. -/
 theorem hasDerivAt_list_sum {α : Type} (l : List α) (f : α → ℝ → ℝ) (f' : α → ℝ) (t : ℝ)
     (h : ∀ a ∈ l, HasDerivAt (f a) (f' a) t) :
@@ -353,9 +409,14 @@ theorem settling_terrain (T : TerrainModel n) {q : ℕ} {m : SettlingMode n} {sb
     (hsHiNone : (T.core.env sb.sc).hi = none)
     (hOth : ∀ i, i ≠ m.gcoord → i ≠ sb.sc →
         m.shapes i = CoordShape.frozen ∨
-        ∃ k' c', m.shapes i = CoordShape.contract k' c' ∧ 0 ≤ k' ∧
+        (∃ k' c', m.shapes i = CoordShape.contract k' c' ∧ 0 ≤ k' ∧
           (∀ l', (T.core.env i).lo = some l' → l' ≤ c') ∧
-          (∀ h', (T.core.env i).hi = some h' → c' ≤ h'))
+          (∀ h', (T.core.env i).hi = some h' → c' ≤ h')) ∨
+        (∃ j2 k2 loi hii loj hij, m.shapes i = CoordShape.chase j2 k2 ∧
+          j2 ≠ m.gcoord ∧ j2 ≠ sb.sc ∧ m.shapes j2 = CoordShape.contract k2 0 ∧ 0 < k2 ∧
+          (T.core.env i).lo = some loi ∧ (T.core.env i).hi = some hii ∧
+          (T.core.env j2).lo = some loj ∧ (T.core.env j2).hi = some hij ∧
+          loi ≤ 0 ∧ 0 ≤ hii ∧ hij ≤ k2 * hii ∧ k2 * loi ≤ loj))
     (hland : ∀ sh, sb.shi = some sh →
         ∃ q' ∈ m.succs, ∃ m' sb', T.core.modes[q']? = some m' ∧ T.sbands[q']? = some sb' ∧
           sb'.sc = sb.sc ∧ m'.gcoord = m.gcoord ∧ m'.glo ≤ m.glo ∧ m.ghi ≤ m'.ghi ∧
@@ -457,7 +518,7 @@ theorem settling_terrain (T : TerrainModel n) {q : ℕ} {m : SettlingMode n} {sb
               have hlG : (l : ℝ) ≤ (sb.slo : ℝ) := by exact_mod_cast hsloIn l hcase
               linarith
         · rw [hsHiNone]; trivial
-      · rcases hOth i hig his with hfz | ⟨k', c', hshi, hk', hloO, hhiO⟩
+      · rcases hOth i hig his with hfz | ⟨k', c', hshi, hk', hloO, hhiO⟩ | hchase
         · rw [terrainVal_frozen hig his hfz]
           exact (sat_envF.mp henv) i
         · obtain ⟨h1, h2⟩ := hbandO i k' c' hig his hk' hshi t ht
@@ -479,6 +540,16 @@ theorem settling_terrain (T : TerrainModel n) {q : ℕ} {m : SettlingMode n} {sb
                 have hhc : (c' : ℝ) ≤ (h : ℝ) := by exact_mod_cast hhiO h hcase
                 have hmax : max (base (Rv i)) (c' : ℝ) ≤ (h : ℝ) := max_le hbh hhc
                 linarith
+        · obtain ⟨j2, k2, loi, hii, loj, hij, hshi, hj2g, hj2s, hj2c, hk2, hloi, hhii,
+            hloj, hhij, hloi0, hhii0, hijle, hlojge⟩ := hchase
+          have hbi := (sat_envF.mp henv) i
+          have hbj := (sat_envF.mp henv) j2
+          unfold Band.memR at hbi hbj ⊢
+          rw [hloi, hhii] at hbi ⊢
+          rw [hloj, hhij] at hbj
+          obtain ⟨hbl, hbh⟩ := hbi
+          obtain ⟨hbjl, hbjh⟩ := hbj
+          exact chase_band hig his hshi hk2 hloi0 hhii0 hijle hlojge hbl hbh hbjl hbjh ht
   -- landing: the own box below `shi`, the declared successor above
   have hpick : ∃ q2 ∈ q :: T.core.graph.retainedSucc q,
       Formula.sat (T.GdOf q2) (terrainΦ m sb.sc (k : ℝ) (c : ℝ) base (T.core.dt : ℝ)) := by
@@ -604,7 +675,7 @@ theorem settling_terrain (T : TerrainModel n) {q : ℕ} {m : SettlingMode n} {sb
           (expInt_hasDeriv (k : ℝ) t).const_mul (base (Rv m.gcoord) - (c : ℝ))
         have h := h1.add h2
         exact h.hasDerivWithinAt
-      · rcases hOth i hig his with hfz | ⟨k', c', hshi, -, -, -⟩
+      · rcases hOth i hig his with hfz | ⟨k', c', hshi, -, -, -⟩ | hchase
         · have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf i))
               (terrainΦ m sb.sc (k : ℝ) (c : ℝ) base t) = 0 := by
             simp [SettlingMode.fieldOf, hfz, CoordShape.field, Term.eval, AOp.interp]
@@ -640,6 +711,41 @@ theorem settling_terrain (T : TerrainModel n) {q : ℕ} {m : SettlingMode n} {sb
           have heq : (base (Rv i) - (c' : ℝ)) * (-(k' : ℝ) * Real.exp (-((k' : ℝ) * t)))
               = (k' : ℝ) * ((c' : ℝ) - terrainVal m sb.sc (k : ℝ) (c : ℝ) base t i) := by
             rw [terrainVal_contract hig his hshi]; ring
+          rw [← heq]
+          exact h1.hasDerivWithinAt
+        · obtain ⟨j2, k2, loi, hii, loj, hij, hshi, hj2g, hj2s, hj2c, hk2, -, -, -, -,
+            -, -, -, -⟩ := hchase
+          have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf i))
+              (terrainΦ m sb.sc (k : ℝ) (c : ℝ) base t)
+              = terrainVal m sb.sc (k : ℝ) (c : ℝ) base t j2
+                - (k2 : ℝ) * terrainVal m sb.sc (k : ℝ) (c : ℝ) base t i := by
+            simp [SettlingMode.fieldOf, hshi, CoordShape.field, Term.eval, AOp.interp]
+          rw [heval]
+          have hcurve : (fun u => terrainΦ m sb.sc (k : ℝ) (c : ℝ) base u (Rv i))
+              = fun u => (base (Rv i) + base (Rv j2) * u) * Real.exp (-((k2 : ℝ) * u)) := by
+            funext u; rw [terrainΦ_Rv, terrainVal_chase hig his hshi]
+          rw [hcurve]
+          have hlin : HasDerivAt (fun u : ℝ => base (Rv i) + base (Rv j2) * u)
+              (base (Rv j2)) t := by
+            simpa using ((hasDerivAt_id t).const_mul (base (Rv j2))).const_add (base (Rv i))
+          have hexp : HasDerivAt (fun u : ℝ => Real.exp (-((k2 : ℝ) * u)))
+              (-(k2 : ℝ) * Real.exp (-((k2 : ℝ) * t))) t := by
+            have hinner : HasDerivAt (fun u : ℝ => -((k2 : ℝ) * u)) (-(k2 : ℝ)) t := by
+              have h := (hasDerivAt_id t).const_mul (-(k2 : ℝ))
+              simp only [id, mul_one, neg_mul] at h
+              exact h
+            have h := (Real.hasDerivAt_exp (-((k2 : ℝ) * t))).comp t hinner
+            simp only [Function.comp_def] at h
+            rw [mul_comm (Real.exp (-((k2 : ℝ) * t))) (-(k2 : ℝ))] at h
+            exact h
+          have h1 := hlin.mul hexp
+          have heq : base (Rv j2) * Real.exp (-((k2 : ℝ) * t))
+              + (base (Rv i) + base (Rv j2) * t) * (-(k2 : ℝ) * Real.exp (-((k2 : ℝ) * t)))
+              = terrainVal m sb.sc (k : ℝ) (c : ℝ) base t j2
+                - (k2 : ℝ) * terrainVal m sb.sc (k : ℝ) (c : ℝ) base t i := by
+            rw [terrainVal_chase hig his hshi, terrainVal_contract hj2g hj2s hj2c]
+            push_cast
+            ring
           rw [← heq]
           exact h1.hasDerivWithinAt
   · -- mask
@@ -690,9 +796,14 @@ theorem settling_terrain_damp (T : TerrainModel n) {q : ℕ} {m : SettlingMode n
     (hsHiNone : (T.core.env sb.sc).hi = none)
     (hOth : ∀ i, i ≠ m.gcoord → i ≠ sb.sc →
         m.shapes i = CoordShape.frozen ∨
-        ∃ k' c', m.shapes i = CoordShape.contract k' c' ∧ 0 ≤ k' ∧
+        (∃ k' c', m.shapes i = CoordShape.contract k' c' ∧ 0 ≤ k' ∧
           (∀ l', (T.core.env i).lo = some l' → l' ≤ c') ∧
-          (∀ h', (T.core.env i).hi = some h' → c' ≤ h'))
+          (∀ h', (T.core.env i).hi = some h' → c' ≤ h')) ∨
+        (∃ j2 k2 loi hii loj hij, m.shapes i = CoordShape.chase j2 k2 ∧
+          j2 ≠ m.gcoord ∧ j2 ≠ sb.sc ∧ m.shapes j2 = CoordShape.contract k2 0 ∧ 0 < k2 ∧
+          (T.core.env i).lo = some loi ∧ (T.core.env i).hi = some hii ∧
+          (T.core.env j2).lo = some loj ∧ (T.core.env j2).hi = some hij ∧
+          loi ≤ 0 ∧ 0 ≤ hii ∧ hij ≤ k2 * hii ∧ k2 * loi ≤ loj))
     (hland : ∀ sh, sb.shi = some sh →
         ∃ q' ∈ m.succs, ∃ m' sb', T.core.modes[q']? = some m' ∧ T.sbands[q']? = some sb' ∧
           sb'.sc = sb.sc ∧ m'.gcoord = m.gcoord ∧ m'.glo ≤ m.glo ∧ m.ghi ≤ m'.ghi ∧
@@ -1003,7 +1114,7 @@ theorem settling_terrain_damp (T : TerrainModel n) {q : ℕ} {m : SettlingMode n
               have hlG : (l : ℝ) ≤ (sb.slo : ℝ) := by exact_mod_cast hsloIn l hcase
               linarith
         · rw [hsHiNone]; trivial
-      · rcases hOth i hig his with hfz | ⟨k', c', hshi, hk', hloO, hhiO⟩
+      · rcases hOth i hig his with hfz | ⟨k', c', hshi, hk', hloO, hhiO⟩ | hchase
         · rw [terrainValD_frozen hig his hfz]
           exact (sat_envF.mp henv) i
         · obtain ⟨h1, h2⟩ := hbandO i k' c' hig his hk' hshi t ht
@@ -1025,6 +1136,19 @@ theorem settling_terrain_damp (T : TerrainModel n) {q : ℕ} {m : SettlingMode n
                 have hhc : (c' : ℝ) ≤ (h : ℝ) := by exact_mod_cast hhiO h hcase
                 have hmax : max (base (Rv i)) (c' : ℝ) ≤ (h : ℝ) := max_le hbh hhc
                 linarith
+        · obtain ⟨j2, k2, loi, hii, loj, hij, hshi, hj2g, hj2s, hj2c, hk2, hloi, hhii,
+            hloj, hhij, hloi0, hhii0, hijle, hlojge⟩ := hchase
+          have hbi := (sat_envF.mp henv) i
+          have hbj := (sat_envF.mp henv) j2
+          unfold Band.memR at hbi hbj ⊢
+          rw [hloi, hhii] at hbi ⊢
+          rw [hloj, hhij] at hbj
+          obtain ⟨hbl, hbh⟩ := hbi
+          obtain ⟨hbjl, hbjh⟩ := hbj
+          have hband := chase_band (kR := (k : ℝ)) (cR := (c : ℝ)) hig his hshi hk2
+            hloi0 hhii0 hijle hlojge hbl hbh hbjl hbjh ht
+          rw [← terrainValD_ne (dampers := dampers) his] at hband
+          exact hband
   -- landing: the own box below `shi`, the declared successor above
   have hpick : ∃ q2 ∈ q :: T.core.graph.retainedSucc q,
       Formula.sat (T.GdOf q2) (terrainΦD m sb.sc (k : ℝ) (c : ℝ) base dampers (T.core.dt : ℝ)) := by
@@ -1178,7 +1302,7 @@ theorem settling_terrain_damp (T : TerrainModel n) {q : ℕ} {m : SettlingMode n
           rw [terrainΦD_Rv, terrainValD_s]
         rw [hcurve]
         exact ((hF' t).const_add (base (Rv sb.sc))).hasDerivWithinAt
-      · rcases hOth i hig his with hfz | ⟨k', c', hshi, -, -, -⟩
+      · rcases hOth i hig his with hfz | ⟨k', c', hshi, -, -, -⟩ | hchase
         · have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf i))
               (terrainΦD m sb.sc (k : ℝ) (c : ℝ) base dampers t) = 0 := by
             simp [SettlingMode.fieldOf, hfz, CoordShape.field, Term.eval, AOp.interp]
@@ -1216,6 +1340,41 @@ theorem settling_terrain_damp (T : TerrainModel n) {q : ℕ} {m : SettlingMode n
             rw [terrainValD_contract hig his hshi]; ring
           rw [← heq]
           exact h1.hasDerivWithinAt
+        · obtain ⟨j2, k2, loi, hii, loj, hij, hshi, hj2g, hj2s, hj2c, hk2, -, -, -, -,
+            -, -, -, -⟩ := hchase
+          have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf i))
+              (terrainΦD m sb.sc (k : ℝ) (c : ℝ) base dampers t)
+              = terrainValD m sb.sc (k : ℝ) (c : ℝ) base dampers t j2
+                - (k2 : ℝ) * terrainValD m sb.sc (k : ℝ) (c : ℝ) base dampers t i := by
+            simp [SettlingMode.fieldOf, hshi, CoordShape.field, Term.eval, AOp.interp]
+          rw [heval]
+          have hcurve : (fun u => terrainΦD m sb.sc (k : ℝ) (c : ℝ) base dampers u (Rv i))
+              = fun u => (base (Rv i) + base (Rv j2) * u) * Real.exp (-((k2 : ℝ) * u)) := by
+            funext u; rw [terrainΦD_Rv, terrainValD_chase hig his hshi]
+          rw [hcurve]
+          have hlin : HasDerivAt (fun u : ℝ => base (Rv i) + base (Rv j2) * u)
+              (base (Rv j2)) t := by
+            simpa using ((hasDerivAt_id t).const_mul (base (Rv j2))).const_add (base (Rv i))
+          have hexp : HasDerivAt (fun u : ℝ => Real.exp (-((k2 : ℝ) * u)))
+              (-(k2 : ℝ) * Real.exp (-((k2 : ℝ) * t))) t := by
+            have hinner : HasDerivAt (fun u : ℝ => -((k2 : ℝ) * u)) (-(k2 : ℝ)) t := by
+              have h := (hasDerivAt_id t).const_mul (-(k2 : ℝ))
+              simp only [id, mul_one, neg_mul] at h
+              exact h
+            have h := (Real.hasDerivAt_exp (-((k2 : ℝ) * t))).comp t hinner
+            simp only [Function.comp_def] at h
+            rw [mul_comm (Real.exp (-((k2 : ℝ) * t))) (-(k2 : ℝ))] at h
+            exact h
+          have h1 := hlin.mul hexp
+          have heq : base (Rv j2) * Real.exp (-((k2 : ℝ) * t))
+              + (base (Rv i) + base (Rv j2) * t) * (-(k2 : ℝ) * Real.exp (-((k2 : ℝ) * t)))
+              = terrainValD m sb.sc (k : ℝ) (c : ℝ) base dampers t j2
+                - (k2 : ℝ) * terrainValD m sb.sc (k : ℝ) (c : ℝ) base dampers t i := by
+            rw [terrainValD_chase hig his hshi, terrainValD_contract hj2g hj2s hj2c]
+            push_cast
+            ring
+          rw [← heq]
+          exact h1.hasDerivWithinAt
   · -- mask
     intro t ht x hx
     refine terrainΦD_nonR m sb.sc (k : ℝ) (c : ℝ) base dampers t ?_
@@ -1247,16 +1406,21 @@ theorem checkModeT_true {M : SettlingModel n} {sbands : List (SBand n)}
       (M.env sb.sc).hi = none ∧
       (∀ i, i ≠ m.gcoord → i ≠ sb.sc →
         m.shapes i = CoordShape.frozen ∨
-        ∃ k' c', m.shapes i = CoordShape.contract k' c' ∧ 0 ≤ k' ∧
+        (∃ k' c', m.shapes i = CoordShape.contract k' c' ∧ 0 ≤ k' ∧
           (∀ l', (M.env i).lo = some l' → l' ≤ c') ∧
-          (∀ h', (M.env i).hi = some h' → c' ≤ h')) ∧
+          (∀ h', (M.env i).hi = some h' → c' ≤ h')) ∨
+        (∃ j2 k2 loi hii loj hij, m.shapes i = CoordShape.chase j2 k2 ∧
+          j2 ≠ m.gcoord ∧ j2 ≠ sb.sc ∧ m.shapes j2 = CoordShape.contract k2 0 ∧ 0 < k2 ∧
+          (M.env i).lo = some loi ∧ (M.env i).hi = some hii ∧
+          (M.env j2).lo = some loj ∧ (M.env j2).hi = some hij ∧
+          loi ≤ 0 ∧ 0 ≤ hii ∧ hij ≤ k2 * hii ∧ k2 * loi ≤ loj)) ∧
       (∀ q' ∈ m.succs, q' < M.modes.length) ∧
       (∀ sh, sb.shi = some sh →
         ∃ q' ∈ m.succs, ∃ m' sb', M.modes[q']? = some m' ∧ sbands[q']? = some sb' ∧
           sb'.sc = sb.sc ∧ m'.gcoord = m.gcoord ∧ m'.glo ≤ m.glo ∧ m.ghi ≤ m'.ghi ∧
           sb'.slo ≤ sh ∧ (∀ sh', sb'.shi = some sh' → sh + m.ghi * M.dt ≤ sh')) := by
   unfold checkModeT at h
-  rcases hsh : m.shapes m.gcoord with _ | _ | ⟨k, c⟩ | _ | _ | _ | _ | _
+  rcases hsh : m.shapes m.gcoord with _ | _ | ⟨k, c⟩ | _ | _ | _ | _ | _ | _
   all_goals rw [hsh] at h
   · simp at h
   · simp at h
@@ -1285,9 +1449,14 @@ theorem checkModeT_true {M : SettlingModel n} {sbands : List (SBand n)}
       simpa using hsloB
     have hOth : ∀ i, i ≠ m.gcoord → i ≠ sb.sc →
         m.shapes i = CoordShape.frozen ∨
-        ∃ k' c', m.shapes i = CoordShape.contract k' c' ∧ 0 ≤ k' ∧
+        (∃ k' c', m.shapes i = CoordShape.contract k' c' ∧ 0 ≤ k' ∧
           (∀ l', (M.env i).lo = some l' → l' ≤ c') ∧
-          (∀ h', (M.env i).hi = some h' → c' ≤ h') := by
+          (∀ h', (M.env i).hi = some h' → c' ≤ h')) ∨
+        (∃ j2 k2 loi hii loj hij, m.shapes i = CoordShape.chase j2 k2 ∧
+          j2 ≠ m.gcoord ∧ j2 ≠ sb.sc ∧ m.shapes j2 = CoordShape.contract k2 0 ∧ 0 < k2 ∧
+          (M.env i).lo = some loi ∧ (M.env i).hi = some hii ∧
+          (M.env j2).lo = some loj ∧ (M.env j2).hi = some hij ∧
+          loi ≤ 0 ∧ 0 ≤ hii ∧ hij ≤ k2 * hii ∧ k2 * loi ≤ loj) := by
       intro i hig his
       have := hothB i (List.mem_finRange i)
       simp only [Bool.or_eq_true, decide_eq_true_eq] at this
@@ -1295,12 +1464,12 @@ theorem checkModeT_true {M : SettlingModel n} {sbands : List (SBand n)}
       · exact absurd h1 hig
       · exact absurd h2 his
       · exact Or.inl h3
-      · rcases hshx : m.shapes i with _ | _ | ⟨k', c'⟩ | _ | _ | _ | _ | _
+      · rcases hshx : m.shapes i with _ | _ | ⟨k', c'⟩ | _ | _ | _ | _ | _ | ⟨j2, k2⟩
         all_goals rw [hshx] at h4
         · simp at h4
         · simp at h4
         · simp only [Bool.and_eq_true, decide_eq_true_eq] at h4
-          refine Or.inr ⟨k', c', rfl, h4.1.1, ?_, ?_⟩
+          refine Or.inr (Or.inl ⟨k', c', rfl, h4.1.1, ?_, ?_⟩)
           · intro l' hl'
             have := h4.1.2
             rw [hl'] at this
@@ -1314,6 +1483,18 @@ theorem checkModeT_true {M : SettlingModel n} {sbands : List (SBand n)}
         · simp at h4
         · simp at h4
         · simp at h4
+        · -- chase: decode the cascade-angle conditions
+          simp only [Bool.and_eq_true, Bool.not_eq_true', decide_eq_false_iff_not,
+            decide_eq_true_eq] at h4
+          obtain ⟨⟨⟨⟨hj2g, hj2s⟩, hj2c⟩, hk2⟩, henvm⟩ := h4
+          rcases hloi : (M.env i).lo with _ | loi <;>
+            rcases hhii : (M.env i).hi with _ | hii <;>
+            rcases hloj : (M.env j2).lo with _ | loj <;>
+            rcases hhij : (M.env j2).hi with _ | hij <;>
+            rw [hloi, hhii, hloj, hhij] at henvm <;>
+            simp at henvm
+          refine Or.inr (Or.inr ⟨j2, k2, loi, hii, loj, hij, rfl, hj2g, hj2s, hj2c, hk2,
+            rfl, rfl, hloj, hhij, ?_, ?_, ?_, ?_⟩) <;> tauto
     have hscP : m.shapes sb.sc = CoordShape.driven m.gcoord ∨
         (∃ dampers, m.shapes sb.sc = CoordShape.drivenDamp m.gcoord dampers ∧
           ∀ d ∈ dampers, d.1 ≠ m.gcoord ∧ d.1 ≠ sb.sc ∧ 0 ≤ d.2.1 ∧ 0 < d.2.2 ∧
@@ -1324,7 +1505,7 @@ theorem checkModeT_true {M : SettlingModel n} {sbands : List (SBand n)}
       rw [Bool.or_eq_true] at hscd
       rcases hscd with h1 | h2
       · exact Or.inl (of_decide_eq_true h1)
-      · rcases hs : m.shapes sb.sc with _ | _ | _ | _ | _ | ⟨j, dampers⟩ | _ | _
+      · rcases hs : m.shapes sb.sc with _ | _ | _ | _ | _ | ⟨j, dampers⟩ | _ | _ | _
         all_goals rw [hs] at h2
         · simp at h2
         · simp at h2
@@ -1341,13 +1522,14 @@ theorem checkModeT_true {M : SettlingModel n} {sbands : List (SBand n)}
             decide_eq_false_iff_not] at hthis
           obtain ⟨⟨⟨⟨⟨hd1, hd2⟩, hd3⟩, hd4⟩, hshp⟩, henvd⟩ := hthis
           refine ⟨hd1, hd2, hd3, hd4, ?_, ?_⟩
-          · rcases hsp : m.shapes d.1 with _ | _ | ⟨kp, cp⟩ | _ | _ | _ | _ | _
+          · rcases hsp : m.shapes d.1 with _ | _ | ⟨kp, cp⟩ | _ | _ | _ | _ | _ | _
             all_goals rw [hsp] at hshp
             · simp at hshp
             · simp at hshp
             · simp only [Bool.and_eq_true, decide_eq_true_eq] at hshp
               refine ⟨kp, ?_, hshp.1⟩
               rw [hshp.2]
+            · simp at hshp
             · simp at hshp
             · simp at hshp
             · simp at hshp
@@ -1361,6 +1543,7 @@ theorem checkModeT_true {M : SettlingModel n} {sbands : List (SBand n)}
             · simp at henvd
             · simp only [Bool.and_eq_true, decide_eq_true_eq] at henvd
               exact ⟨lo, hi, rfl, rfl, henvd.1.1, henvd.1.2, henvd.2⟩
+        · simp at h2
         · simp at h2
         · simp at h2
     refine ⟨hk, hcl, hch, hglo0, hvLo, hvHi, hscne, hscP, hsloIn, hsHiB, hOth, hsuccB, ?_⟩
@@ -1379,6 +1562,7 @@ theorem checkModeT_true {M : SettlingModel n} {sbands : List (SBand n)}
       intro sh' hsh'
       rw [hsh'] at hshi'B
       simpa using hshi'B
+  · simp at h
   · simp at h
   · simp at h
   · simp at h

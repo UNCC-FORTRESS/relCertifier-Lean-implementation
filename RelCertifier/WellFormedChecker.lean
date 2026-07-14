@@ -73,6 +73,9 @@ inductive CoordShape (n : ℕ) where
   | pairSym (j : Fin n) (c h : ℤ)   -- x' = c − x + (h/1000)·x_j: one member of a weakly
                                     -- coupled symmetric pair (the partner j mirrors it);
                                     -- diagonalizes by x ± x_j to rates 1 ∓ h/1000
+  | chase (j : Fin n) (k : ℤ)       -- x' = x_j − k·x: the angle member of a critically
+                                    -- damped cascade, chasing its resonant driver
+                                    -- (x_j' = −k·x_j); value (x₀ + x_j₀·t)e^{−kt}
   deriving Repr, DecidableEq
 
 /-- An optional band `[lo, hi]` (either side may be absent = unbounded). -/
@@ -267,6 +270,7 @@ def checkMode (M : SettlingModel n) (q : ℕ) (m : SettlingMode n) : Bool :=
          | none => false))
    | .driven _ => false
    | .drivenDamp _ _ => false
+   | .chase _ _ => false
    | .pairSym j c h =>
        -- weakly coupled symmetric pair (EXT P): the partner mirrors the shape; the eleven
        -- rational conditions of `PairConds` bound both members' two-exponentials against
@@ -348,6 +352,9 @@ noncomputable def CoordShape.field (i : Fin n) : CoordShape n → Term (Var n)
       Term.binop AOp.add
         (Term.binop AOp.sub (Term.const (c : ℝ)) (Term.var (Rv i)))
         (Term.binop AOp.mul (Term.const ((h : ℝ) / 1000)) (Term.var (Rv j)))
+  | .chase j k =>
+      Term.binop AOp.sub (Term.var (Rv j))
+        (Term.binop AOp.mul (Term.const (k : ℝ)) (Term.var (Rv i)))
 
 /-- The mode's right field. -/
 noncomputable def SettlingMode.fieldOf (m : SettlingMode n) : Fin n → Term (Var n) :=
@@ -2068,15 +2075,16 @@ theorem settling_contract_below_flex (M : SettlingModel n) {q : ℕ} {m : Settli
           subst hig
           simp
         · rw [if_neg hig]
-          rcases hshx : m.shapes ix with _ | _ | _ | _ | j2 | _ | _ | _
+          rcases hshx : m.shapes ix with _ | _ | _ | _ | j2 | _ | _ | _ | _
           · simp
           · simp
           · simp
           · simp
           · by_cases hj2 : j2 = m.gcoord
             · simp [hj2, expInt]
-            · rcases hshj : m.shapes j2 with _ | _ | _ | _ | _ | _ | _ | _ <;>
+            · rcases hshj : m.shapes j2 with _ | _ | _ | _ | _ | _ | _ | _ | _ <;>
                 simp [hj2, expInt] <;> (try rfl) <;> split <;> rfl
+          · simp
           · simp
           · simp
           · simp
@@ -3052,6 +3060,71 @@ algebra: with `y = e^{−r₁t}` and `z = e^{−r₂t}`, monotonicity gives `y²
 rational facts — `p* ≤ T`, `p(0) ≤ T`, and `A ≤ 2(T − p*)`. The same lemma applied to the
 negated data gives every lower bound and every `q`-bound (whose coefficients are `(A, −B)`).
 -/
+
+/-- `1 + x + x²/2 ≤ eˣ` for `x ≥ 0` (monotonicity from `add_one_le_exp`). -/
+theorem quadExp (x : ℝ) (hx : 0 ≤ x) : 1 + x + x ^ 2 / 2 ≤ Real.exp x := by
+  have hD : ∀ y : ℝ, HasDerivAt (fun z => Real.exp z - (1 + z + z ^ 2 / 2))
+      (Real.exp y - (1 + y)) y := by
+    intro y
+    have h1 := Real.hasDerivAt_exp y
+    have h2 : HasDerivAt (fun z : ℝ => 1 + z + z ^ 2 / 2) (1 + y) y := by
+      have ha : HasDerivAt (fun z : ℝ => z ^ 2 / 2) y y := by
+        have hp := (hasDerivAt_pow 2 y).div_const 2
+        have : ((2 : ℕ) : ℝ) * y ^ (2 - 1) / 2 = y := by push_cast; ring
+        rw [this] at hp
+        exact hp
+      have hb : HasDerivAt (fun z : ℝ => 1 + z) 1 y := by
+        simpa using (hasDerivAt_id y).const_add (1 : ℝ)
+      exact hb.add ha
+    exact h1.sub h2
+  have hmono : MonotoneOn (fun z => Real.exp z - (1 + z + z ^ 2 / 2)) (Icc 0 x) := by
+    apply monotoneOn_of_deriv_nonneg (convex_Icc 0 x)
+    · exact fun y _ => (hD y).continuousAt.continuousWithinAt
+    · exact fun y _ => (hD y).differentiableAt.differentiableWithinAt
+    · intro y hy
+      rw [interior_Icc] at hy
+      rw [(hD y).deriv]
+      have := Real.add_one_le_exp y
+      linarith
+  have h0 : (0 : ℝ) ∈ Icc (0 : ℝ) x := ⟨le_refl _, hx⟩
+  have hxm : x ∈ Icc (0 : ℝ) x := ⟨hx, le_refl _⟩
+  have := hmono h0 hxm hx
+  simp only [Real.exp_zero] at this
+  linarith
+
+/-- The poly-exponential bound: `(a + b·t)e^{−gt} ≤ T` for `t ≥ 0`, from `a ≤ T`, `0 ≤ T`
+and either linear dominance (`b ≤ gT`) or the quadratic discriminant certificate. -/
+theorem polyExp_le (a b g T t : ℝ) (hg : 0 < g) (ht : 0 ≤ t) (hT : 0 ≤ T) (ha : a ≤ T)
+    (hbr : b ≤ g * T ∨ (g * T - b) ^ 2 ≤ 2 * T * g ^ 2 * (T - a)) :
+    (a + b * t) * Real.exp (-(g * t)) ≤ T := by
+  have hexp := quadExp (g * t) (by positivity)
+  have he : (0 : ℝ) < Real.exp (g * t) := Real.exp_pos _
+  have key : a + b * t ≤ T * Real.exp (g * t) := by
+    have hTq : T * (1 + g * t + (g * t) ^ 2 / 2) ≤ T * Real.exp (g * t) :=
+      mul_le_mul_of_nonneg_left hexp hT
+    have hQ : 0 ≤ (T - a) + (g * T - b) * t + T * g ^ 2 * t ^ 2 / 2 := by
+      rcases hbr with hb | hd
+      · have h1 : 0 ≤ (g * T - b) * t := mul_nonneg (by linarith) ht
+        have h2 : 0 ≤ T * g ^ 2 * t ^ 2 / 2 := by positivity
+        linarith
+      · rcases eq_or_lt_of_le hT with rfl | hT'
+        · -- degenerate target: the discriminant condition forces `b = 0`
+          have hb0 : b = 0 := by
+            have hb2 : b ^ 2 = 0 := le_antisymm (by nlinarith [hd]) (sq_nonneg b)
+            exact pow_eq_zero_iff two_ne_zero |>.mp hb2
+          subst hb0
+          nlinarith [ha]
+        · have h2 : 0 ≤ 2 * T * g ^ 2 *
+              ((T - a) + (g * T - b) * t + T * g ^ 2 * t ^ 2 / 2) := by
+            nlinarith [sq_nonneg (T * g ^ 2 * t + (g * T - b)), hd]
+          have hpos : 0 < 2 * T * g ^ 2 := by positivity
+          nlinarith [h2, hpos]
+    nlinarith [hQ, hTq]
+  have hrw : (a + b * t) * Real.exp (-(g * t)) = (a + b * t) / Real.exp (g * t) := by
+    rw [Real.exp_neg]
+    ring
+  rw [hrw, div_le_iff₀ he]
+  linarith [key]
 
 /-- The two-exponential bound: `p* + A·e^{−r₁t} + B·e^{−r₂t} ≤ T` for `t ≥ 0`, given
 `0 < r₁ ≤ r₂ ≤ 2r₁` and the three rational facts. -/
@@ -4032,6 +4105,7 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
                  m.glo ≤ m'.ghi ∧ m'.glo ≤ m.glo + c * M.dt))))
      | CoordShape.driven _ => False
      | CoordShape.drivenDamp _ _ => False
+     | CoordShape.chase _ _ => False
      | CoordShape.pairSym j c h =>
          j ≠ m.gcoord ∧ m.shapes j = CoordShape.pairSym m.gcoord c h ∧
          0 < h ∧ 3 * h ≤ 1000 ∧ 0 ≤ m.glo ∧
@@ -4105,7 +4179,7 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
     · exact absurd h1 hi
     · exact Or.inl h2
     · exact Or.inr (Or.inl h3)
-    · rcases hshx : m.shapes i with _ | _ | _ | _ | j | _ | _ | _
+    · rcases hshx : m.shapes i with _ | _ | _ | _ | j | _ | _ | _ | _
       all_goals rw [hshx] at h4
       · simp at h4
       · simp at h4
@@ -4114,6 +4188,7 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
       · simp only [Bool.and_eq_true, Bool.not_eq_true', decide_eq_true_eq,
           decide_eq_false_iff_not] at h4
         exact Or.inr (Or.inr ⟨j, rfl, h4.1.1.1, h4.1.1.2, h4.1.2, h4.2⟩)
+      · simp at h4
       · simp at h4
       · simp at h4
       · simp at h4
@@ -4153,7 +4228,7 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
     · exact absurd h1 hi
     · exact Or.inl h2
     · exact Or.inr (Or.inl h3)
-    · rcases hshx : m.shapes i with _ | _ | _ | _ | j | _ | _ | _
+    · rcases hshx : m.shapes i with _ | _ | _ | _ | j | _ | _ | _ | _
       all_goals rw [hshx] at h4
       · simp at h4
       · simp at h4
@@ -4165,7 +4240,8 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
       · simp at h4
       · simp at h4
       · simp at h4
-    · rcases hshx : m.shapes i with _ | _ | ⟨k', c'⟩ | _ | _ | _ | _ | _
+      · simp at h4
+    · rcases hshx : m.shapes i with _ | _ | ⟨k', c'⟩ | _ | _ | _ | _ | _ | _
       all_goals rw [hshx] at h5
       · simp at h5
       · simp at h5
@@ -4184,7 +4260,8 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
       · simp at h5
       · simp at h5
       · simp at h5
-    · rcases hshx : m.shapes i with _ | _ | _ | _ | j | _ | _ | _
+      · simp at h5
+    · rcases hshx : m.shapes i with _ | _ | _ | _ | j | _ | _ | _ | _
       all_goals rw [hshx] at h6
       · simp at h6
       · simp at h6
@@ -4193,7 +4270,7 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
       · simp only [Bool.and_eq_true, Bool.not_eq_true', decide_eq_true_eq,
           decide_eq_false_iff_not] at h6
         obtain ⟨⟨⟨hjne, hjc⟩, hlo⟩, hhi⟩ := h6
-        rcases hshj : m.shapes j with _ | _ | ⟨kj, cj⟩ | _ | _ | _ | _ | _
+        rcases hshj : m.shapes j with _ | _ | ⟨kj, cj⟩ | _ | _ | _ | _ | _ | _
         all_goals rw [hshj] at hjc
         · simp at hjc
         · simp at hjc
@@ -4203,12 +4280,14 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
         · simp at hjc
         · simp at hjc
         · simp at hjc
+        · simp at hjc
+      · simp at h6
       · simp at h6
       · simp at h6
       · simp at h6
   refine ⟨hord, hloIn, hhiIn, hsucc, ?_⟩
   rcases hsh : m.shapes m.gcoord with _ | c | ⟨k, c⟩ | ⟨kn, kd, c⟩ | j | ⟨j, ds⟩ | ⟨b, a⟩
-    | ⟨j, c, h⟩
+    | ⟨j, c, h⟩ | ⟨j, k⟩
   all_goals rw [hsh] at hshape
   · -- frozen
     exact decodeFrozen _ rfl hshape
@@ -4377,7 +4456,7 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
         · exact absurd h1 hij
         · exact Or.inl h2
         · exact Or.inr (Or.inl ⟨h3.1.1, h3.1.2, h3.2⟩)
-        · rcases hshx : m.shapes i with _ | _ | _ | ⟨kn, kd, cc⟩ | j2 | _ | _ | _
+        · rcases hshx : m.shapes i with _ | _ | _ | ⟨kn, kd, cc⟩ | j2 | _ | _ | _ | _
           all_goals rw [hshx] at h4
           · simp at h4
           · simp at h4
@@ -4395,7 +4474,7 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
           · simp only [Bool.and_eq_true, Bool.not_eq_true', decide_eq_true_eq,
               decide_eq_false_iff_not] at h4
             obtain ⟨⟨⟨⟨hj2g, hj2j⟩, hj2cqB⟩, hloN⟩, hhiN⟩ := h4
-            rcases hshj2 : m.shapes j2 with _ | _ | _ | ⟨kn2, kd2, cc2⟩ | _ | _ | _ | _
+            rcases hshj2 : m.shapes j2 with _ | _ | _ | ⟨kn2, kd2, cc2⟩ | _ | _ | _ | _ | _
             all_goals rw [hshj2] at hj2cqB
             · simp at hj2cqB
             · simp at hj2cqB
@@ -4406,6 +4485,8 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
             · simp at hj2cqB
             · simp at hj2cqB
             · simp at hj2cqB
+            · simp at hj2cqB
+          · simp at h4
           · simp at h4
           · simp at h4
           · simp at h4
@@ -4419,6 +4500,7 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
             simp only [Bool.and_eq_true, decide_eq_true_eq] at hq'
             exact Or.inr ⟨q', hq'mem, m', hm', hq'.1.1, hq'.1.2,
               pairCondsB_true hq'.2⟩
+  · simp at hshape
 
 /-! ### The assembly: `wellformed_sound` -/
 
@@ -4450,7 +4532,7 @@ theorem wellformed_sound (M : SettlingModel n) (mv tg : Var n) (g : Term (Var n)
   refine ⟨SM.fieldOf, rfl, rfl, by rw [hlen]; exact hqlt, ?_, ?_, ?_, ?_, ?_⟩
   · -- GuardSettlingB, by shape
     rcases hsh : SM.shapes SM.gcoord with _ | c | ⟨k, c⟩ | ⟨kn, kd, c⟩ | j | ⟨j, ds⟩ | ⟨b, a⟩
-      | ⟨j, c, h⟩
+      | ⟨j, c, h⟩ | ⟨j, k⟩
     all_goals rw [hsh] at hshape
     · exact settling_frozen M hSM hsh hshape hdt
     · rcases hshape with ⟨hc, hflex, hglo0, hmar, hland⟩ | ⟨hcneg, hfr, hlomar, hland⟩
@@ -4477,6 +4559,7 @@ theorem wellformed_sound (M : SettlingModel n) (mv tg : Var n) (g : Term (Var n)
         hqlo0, hOth, hcov⟩ := hshape
       exact settling_pair M hSM hsh hjne hjsh hh0 hh3 hglo0 hplo hphi hqloE hqhiE hqlo0
         hOth hcov hdt
+    · exact absurd hshape not_false
   · intro ν hν
     exact hcert q (SM.toRMode M) hmodeAt ν hν
   · exact ⟨_, self_edge_mem M hSM, rfl, rfl⟩

@@ -764,5 +764,7 @@ RelCertifier/
   CutChannel.lean     checked-cut tie: cut-narrowed certificate lifts to the uniform-domain BoxLe
 Main.lean             `relcert` executable
 ARCHITECTURE.md       certified-checker architecture + the finding that reshaped it
+docs/DEVELOPMENT-ARC.md    the three development arcs, mechanized findings, converged design
+BENCHMARK_INSTANTIABILITY.md  per-benchmark map against tooling_sound (older chain's boundary)
 benchmarks/suite_uniform/  the benchmark suite (shared envelopes, guard physics, checked cuts)
 ```

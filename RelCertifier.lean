@@ -64,4 +64,6 @@ import RelCertifier.WellFormedChecker
 import RelCertifier.SettlingInstances
 import RelCertifier.TerrainChecker
 import RelCertifier.TerrainInstances
+import RelCertifier.AffineChecker
+import RelCertifier.AffineInstances
 import RelCertifier.AxiomCheck

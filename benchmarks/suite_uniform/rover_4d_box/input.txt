@@ -43,14 +43,14 @@ epsilon = 1.0
 #   py' = vy         : lateral advances
 [Rsys.mode.APPROACH]
 ode = px' = vx; py' = vy; vx' = smt2:(- 0.65 vx); vy' = smt2:(- 0.0 vy);
-guard = vx >= 0.65 and vx <= 0.7
+guard = vx >= 0.7 and vx <= 1.5
 evolve = vx >= 0.5 and vx <= 1.5 and vy >= -1.0 and vy <= 1.0
 next = [SETTLE, APPROACH]
 
 # SETTLE: target region -- reached when vx has braked into [0.5, 0.85] band.
 [Rsys.mode.SETTLE]
 ode = px' = vx; py' = vy; vx' = 0; vy' = 0;
-guard = vx >= 0.5 and vx <= 0.85
+guard = vx >= 0.5 and vx <= 0.7
 evolve = vx >= 0.5 and vx <= 1.5 and vy >= -1.0 and vy <= 1.0
 next = [SETTLE]
 

@@ -280,14 +280,22 @@ carry closed kernel `rfl` certificates**.
   (`e^{−r₂t} ∈ [y², y]` for `y = e^{−r₁t}` since `r₁ ≤ r₂ ≤ 2r₁`, then a quadratic-vertex
   case analysis needing only three rational facts). One lemma, eight uses (both members,
   both sides, by sign-flipping). Certificates: rover_drag, attitude_rate — **42/47**.
-- Remaining certifiable (1 + the three outliers): **endurance_orderlift_2to3** — critically
-  damped `(A + Bt)e^{−4t}`: needs a `polyExp_le` analog with BOTH-sided rational exp bounds
-  (`1/(1 + x + x²/2) ≤ e^{−x} ≤ 1/(1 + x)`), per-corner conditions over the `(v₀, a₀)` box
-  (the extremum `B²/(g(2B − gA))` is corner-monotone since `B = a₀ + 4A` is affine), the
-  `a`-coordinate's own poly-exp staying bound, and the pending band-floor fix (STEEP's floor
-  must reach the envelope floor to catch the legitimate `v ≈ −0.02` dip). Ceiling: 43/47;
-  outliers: shield_unreachable (no guard band), rung4_8to12/story1_b (envelope-language
-  limitation, documented above).
+- **endurance_orderlift_2to3: the third envelope-language outlier — a mechanized negative
+  result.** The planned critically-damped build died at its own gate, correctly: the
+  band-floor fix regresses forever. From any floor `F`, the corner base `(F, a_lo)` dips
+  BELOW `F` (the flow `v(t) = v* + (A + Bt)e^{−4t}` with `B = a_lo + 4(F − v*)`), and the
+  escape-chase `F ↦ dip(F)` has contraction factor `e^{−4t*}(1 + 4t*) → 1⁻` with
+  harmonic-tail escapes — no finite fixed point (numerically: −0.02, −0.04, …, −1.68 after
+  200 iterations and still descending; the ceiling side diverges symmetrically, and the
+  `a = ±0.6` faces exit at the reachable `v`-extremes). As with the second-order attitude
+  blocks, no per-coordinate box is forward-invariant for the `(v, a)` block; the honest
+  fixes applied anyway (the unenforced `s ≥ 0` floor removed, the STEEP residence band
+  extended to the envelope floor; still CERTIFIED). Final coverage: **42/47**, ceiling
+  43/47 — the one remaining candidate is story3_rollover_ladder_rung_b, whose `(e, r)`
+  cascade (`w = r + (4/3)e` contracts at rate 4, `e` at rate 1) IS box-invariant with
+  tangent corners, but its two-exponential has rate ratio 4, outside `twoExp_le`'s
+  `r₂ ≤ 2r₁` quadratic bound — it needs a quartic-vertex analog. Outliers: shield_unreachable
+  (no guard band), rung4_8to12/story1_b/orderlift_2to3 (envelope-language limitation).
 
 ## Current state
 

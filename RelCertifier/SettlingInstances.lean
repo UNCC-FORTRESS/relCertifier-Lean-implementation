@@ -25,8 +25,8 @@ A frozen ACTIVE coordinate with non-frozen (driven) others is transcribed as
 `CoordShape.constRate 0` — the identical field (`Term.const 0`) — because the constRate branch
 carries the flex-others grammar and lands in its own band by `c = 0`.
 
-COVERAGE (23/47 data terms; ALL 23 checker-ACCEPTED with closed `rfl` certificates —
-rover_4d_box via the EXT 4b extended flex grammar, rover_drag via the `riccati` shape). The remaining benchmarks map to named extension classes,
+COVERAGE (24/47 data terms; ALL 24 checker-ACCEPTED with closed `rfl` certificates —
+rover_4d_box via EXT 4b, rover_drag via `riccati`, attitude_rate via the `pairSym` block). The remaining benchmarks map to named extension classes,
 each a precise next step, none a gap in what is proven:
 
 * **exp-bound transit contracts** (watertank, match_multi_eps, rover3tier_M1,
@@ -166,6 +166,28 @@ def arm_refinementM : SettlingModel 2 :=
     dtQ := 1 }
 
 example : decideWellFormed arm_refinementM = true := rfl
+
+/-- `attitude_rate` (R side; units: values ×1000, time ×1; dt = ε_R/λ at λ = 2).
+The weakly coupled symmetric `(p, q)` block (`pairSym`, coupling ε = 0.05) with the yaw rate
+`r` contracting via `contractQ 4 5` and the three attitude integrators envelope-free; the
+RECOVER band hands to the terminal TRACK band under the `PairConds` two-exponential covers. -/
+def attitude_rateM : SettlingModel 6 :=
+  { modes :=
+    [
+      { shapes := ![CoordShape.driven 1, CoordShape.pairSym 3 1000 50,
+          CoordShape.driven 3, CoordShape.pairSym 1 1000 50,
+          CoordShape.driven 5, CoordShape.contractQ 4 5 625], gcoord := 1,
+        glo := 0, ghi := 500, succs := [1] },
+      { shapes := ![CoordShape.driven 1, CoordShape.pairSym 3 1000 50,
+          CoordShape.driven 3, CoordShape.pairSym 1 1000 50,
+          CoordShape.driven 5, CoordShape.contractQ 4 5 625], gcoord := 1,
+        glo := 500, ghi := 1150, succs := [] } ]
+    env := ![{ lo := none, hi := none }, { lo := some (-50 : ℤ), hi := some 1200 },
+      { lo := none, hi := none }, { lo := some 0, hi := some 1200 },
+      { lo := none, hi := none }, { lo := some 0, hi := some 1000 }]
+    dtQ := 1 }
+
+example : decideWellFormed attitude_rateM = true := rfl
 
 /-- `endurance_gain_M1` (R side; units: values ×1000, time ×2; dt = ε_R/λ at λ = 1). -/
 def endurance_gain_M1M : SettlingModel 2 :=

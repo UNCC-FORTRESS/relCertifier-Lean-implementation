@@ -70,6 +70,9 @@ inductive CoordShape (n : ℕ) where
   | riccati (b a : ℤ)               -- x' = b − (a/10⁶)·x²: quadratic drag toward √(10⁶b/a)
                                     -- (b, a both = real coefficient ×1000 under the value
                                     -- scaling; the 10⁶ divisor absorbs the squared scale)
+  | pairSym (j : Fin n) (c h : ℤ)   -- x' = c − x + (h/1000)·x_j: one member of a weakly
+                                    -- coupled symmetric pair (the partner j mirrors it);
+                                    -- diagonalizes by x ± x_j to rates 1 ∓ h/1000
   deriving Repr, DecidableEq
 
 /-- An optional band `[lo, hi]` (either side may be absent = unbounded). -/
@@ -109,6 +112,36 @@ def bandOrdered (b : Band) : Bool :=
 /-- `[lo₁, hi₁] ⊆ b` (absent outer side = no constraint). -/
 def bandInside (lo hi : ℤ) (b : Band) : Bool :=
   (b.lo.all fun bl => decide (bl ≤ lo)) && (b.hi.all fun bh => decide (hi ≤ bh))
+
+/-- The eleven rational conditions of the coupled-pair discharge (EXT P), against the
+landing target `TT`: band-in-cover, cover-in-envelope, equilibrium position, and the
+vertex-capped amplitude bounds for both members (see `twoExp_le`). -/
+def pairCondsB (glo ghi plo phi qlo qhi c h TT : ℤ) : Bool :=
+  decide (ghi ≤ TT) && decide (TT ≤ phi) && decide (plo ≤ glo) &&
+  decide (1000 * c ≤ TT * (1000 - h)) && decide (glo * (1000 - h) ≤ 1000 * c) &&
+  decide ((ghi + qhi) * (1000 - h) + 2 * (1000 * c) ≤ 4 * TT * (1000 - h)) &&
+  decide (4 * glo * (1000 - h) ≤ (glo + qlo) * (1000 - h) + 2 * (1000 * c)) &&
+  decide (1000 * c ≤ qhi * (1000 - h)) && decide (qlo * (1000 - h) ≤ 1000 * c) &&
+  decide ((ghi + qhi) * (1000 - h) + 2 * (1000 * c) ≤ 4 * qhi * (1000 - h)) &&
+  decide (4 * qlo * (1000 - h) ≤ (glo + qlo) * (1000 - h) + 2 * (1000 * c))
+
+/-- Its Prop form. -/
+def PairConds (glo ghi plo phi qlo qhi c h TT : ℤ) : Prop :=
+  ghi ≤ TT ∧ TT ≤ phi ∧ plo ≤ glo ∧
+  1000 * c ≤ TT * (1000 - h) ∧ glo * (1000 - h) ≤ 1000 * c ∧
+  (ghi + qhi) * (1000 - h) + 2 * (1000 * c) ≤ 4 * TT * (1000 - h) ∧
+  4 * glo * (1000 - h) ≤ (glo + qlo) * (1000 - h) + 2 * (1000 * c) ∧
+  1000 * c ≤ qhi * (1000 - h) ∧ qlo * (1000 - h) ≤ 1000 * c ∧
+  (ghi + qhi) * (1000 - h) + 2 * (1000 * c) ≤ 4 * qhi * (1000 - h) ∧
+  4 * qlo * (1000 - h) ≤ (glo + qlo) * (1000 - h) + 2 * (1000 * c)
+
+theorem pairCondsB_true {glo ghi plo phi qlo qhi c h TT : ℤ}
+    (hb : pairCondsB glo ghi plo phi qlo qhi c h TT = true) :
+    PairConds glo ghi plo phi qlo qhi c h TT := by
+  unfold pairCondsB at hb
+  simp only [Bool.and_eq_true, decide_eq_true_eq] at hb
+  unfold PairConds
+  tauto
 
 /-- One mode's settling check (see the header). `q` is the mode's own index (for the
 self-landing option). -/
@@ -234,6 +267,43 @@ def checkMode (M : SettlingModel n) (q : ℕ) (m : SettlingMode n) : Bool :=
          | none => false))
    | .driven _ => false
    | .drivenDamp _ _ => false
+   | .pairSym j c h =>
+       -- weakly coupled symmetric pair (EXT P): the partner mirrors the shape; the eleven
+       -- rational conditions of `PairConds` bound both members' two-exponentials against
+       -- the landing target TT (own band top, or a covering successor's) and the envelopes
+       !decide (j = m.gcoord) &&
+       decide (m.shapes j = CoordShape.pairSym m.gcoord c h) &&
+       decide (0 < h) && decide (3 * h ≤ 1000) && decide (0 ≤ m.glo) &&
+       (match (M.env m.gcoord).lo, (M.env m.gcoord).hi,
+              (M.env j).lo, (M.env j).hi with
+        | some plo, some phi, some qlo, some qhi =>
+            decide (0 ≤ qlo) &&
+            ((List.finRange n).all fun i =>
+              decide (i = m.gcoord) || decide (i = j) ||
+              decide (m.shapes i = CoordShape.frozen) ||
+              ((decide (m.shapes i = CoordShape.driven m.gcoord) ||
+                decide (m.shapes i = CoordShape.driven j)) &&
+                decide ((M.env i).lo = none) && decide ((M.env i).hi = none)) ||
+              (match m.shapes i with
+               | CoordShape.contractQ kn kd cc =>
+                   decide (0 ≤ kn) && decide (0 < kd) &&
+                   ((M.env i).lo.all fun lo => decide (lo ≤ cc)) &&
+                   ((M.env i).hi.all fun hi => decide (cc ≤ hi))
+               | CoordShape.driven j2 =>
+                   !decide (j2 = m.gcoord) && !decide (j2 = j) &&
+                   (match m.shapes j2 with
+                    | CoordShape.contractQ _ kd _ => decide (0 < kd)
+                    | _ => false) &&
+                   decide ((M.env i).lo = none) && decide ((M.env i).hi = none)
+               | _ => false)) &&
+            m.succs.all (fun q' => decide (q' < M.modes.length)) &&
+            (pairCondsB m.glo m.ghi plo phi qlo qhi c h m.ghi ||
+             (m.succs.any fun q' =>
+               match M.modes[q']? with
+               | some m' => decide (m'.gcoord = m.gcoord) && decide (m'.glo ≤ m.ghi) &&
+                   pairCondsB m.glo m.ghi plo phi qlo qhi c h m'.ghi
+               | none => false))
+        | _, _, _, _ => false)
    | .riccati b a =>
        -- quadratic drag: equilibrium √(10⁶b/a) inside the band ⟹ the hull of base and
        -- equilibrium self-lands; only frozen others (the class is one-coordinate)
@@ -274,6 +344,10 @@ noncomputable def CoordShape.field (i : Fin n) : CoordShape n → Term (Var n)
       Term.binop AOp.sub (Term.const (b : ℝ))
         (Term.binop AOp.mul (Term.const ((a : ℝ) / 1000000))
           (Term.binop AOp.mul (Term.var (Rv i)) (Term.var (Rv i))))
+  | .pairSym j c h =>
+      Term.binop AOp.add
+        (Term.binop AOp.sub (Term.const (c : ℝ)) (Term.var (Rv i)))
+        (Term.binop AOp.mul (Term.const ((h : ℝ) / 1000)) (Term.var (Rv j)))
 
 /-- The mode's right field. -/
 noncomputable def SettlingMode.fieldOf (m : SettlingMode n) : Fin n → Term (Var n) :=
@@ -1994,15 +2068,16 @@ theorem settling_contract_below_flex (M : SettlingModel n) {q : ℕ} {m : Settli
           subst hig
           simp
         · rw [if_neg hig]
-          rcases hshx : m.shapes ix with _ | _ | _ | _ | j2 | _ | _
+          rcases hshx : m.shapes ix with _ | _ | _ | _ | j2 | _ | _ | _
           · simp
           · simp
           · simp
           · simp
           · by_cases hj2 : j2 = m.gcoord
             · simp [hj2, expInt]
-            · rcases hshj : m.shapes j2 with _ | _ | _ | _ | _ | _ | _ <;>
+            · rcases hshj : m.shapes j2 with _ | _ | _ | _ | _ | _ | _ | _ <;>
                 simp [hj2, expInt] <;> (try rfl) <;> split <;> rfl
+          · simp
           · simp
           · simp
     | L => rfl
@@ -2967,6 +3042,647 @@ theorem settling_contractQ_below (M : SettlingModel n) {q : ℕ} {m : SettlingMo
     · rw [hgc2, drivenΦC_Rv]; exact hl1
     · rw [hgc2, drivenΦC_Rv]; exact hl2
 
+/-! ### EXT P — the coupled-pair discharge (weakly coupled symmetric linear pair)
+
+`p' = c − p + ε·q`, `q' = c − q + ε·p` (ε = h/1000 < 1/3) diagonalizes by `u = p + q`,
+`w = p − q` into contractions with rates `1 ∓ ε`, so `p(t) = p* + A·e^{−r₁t} + B·e^{−r₂t}`
+with `p* = c/(1−ε)`, `A = (u₀ − 2p*)/2`, `B = w₀/2`. The two-exponential is bounded by pure
+algebra: with `y = e^{−r₁t}` and `z = e^{−r₂t}`, monotonicity gives `y² ≤ z ≤ y` (using
+`r₁ ≤ r₂ ≤ 2r₁`), and a quadratic-vertex case analysis closes `p ≤ T` from just three
+rational facts — `p* ≤ T`, `p(0) ≤ T`, and `A ≤ 2(T − p*)`. The same lemma applied to the
+negated data gives every lower bound and every `q`-bound (whose coefficients are `(A, −B)`).
+-/
+
+/-- The two-exponential bound: `p* + A·e^{−r₁t} + B·e^{−r₂t} ≤ T` for `t ≥ 0`, given
+`0 < r₁ ≤ r₂ ≤ 2r₁` and the three rational facts. -/
+theorem twoExp_le (pstar A B r1 r2 T t : ℝ)
+    (hr1 : 0 < r1) (hr12 : r1 ≤ r2) (hr2 : r2 ≤ 2 * r1) (ht : 0 ≤ t)
+    (hpT : pstar ≤ T) (hp0 : pstar + A + B ≤ T) (hAT : A ≤ 2 * (T - pstar)) :
+    pstar + A * Real.exp (-(r1 * t)) + B * Real.exp (-(r2 * t)) ≤ T := by
+  set y := Real.exp (-(r1 * t)) with hydef
+  set z := Real.exp (-(r2 * t)) with hzdef
+  have hy0 : 0 < y := Real.exp_pos _
+  have hy1 : y ≤ 1 := by
+    rw [hydef, Real.exp_le_one_iff]
+    nlinarith
+  have hzy : z ≤ y := by
+    rw [hydef, hzdef]
+    apply Real.exp_le_exp.mpr
+    nlinarith
+  have hyz : y ^ 2 ≤ z := by
+    rw [hydef, hzdef, ← Real.exp_nat_mul]
+    apply Real.exp_le_exp.mpr
+    push_cast
+    nlinarith
+  rcases le_total 0 B with hB | hB
+  · -- B ≥ 0: both exponentials bounded by y, linear in y
+    have hle : A * y + B * z ≤ (A + B) * y := by nlinarith
+    rcases le_total 0 (A + B) with hAB | hAB
+    · nlinarith
+    · nlinarith
+  · -- B ≤ 0: z ≥ y², so B·z ≤ B·y² and the quadratic vertex analysis applies
+    have hle : A * y + B * z ≤ A * y + B * y ^ 2 := by nlinarith
+    rcases le_total A 0 with hA | hA
+    · -- A ≤ 0: the quadratic is nonpositive
+      nlinarith
+    · rcases le_total A (2 * (-B)) with hAB | hAB
+      · -- vertex inside: (2(−B)y − A)² ≥ 0 plus A² ≤ 4(−B)(T − p*)
+        -- (from A ≤ 2(−B) and A ≤ 2(T − p*)) assemble 4(−B)·(T − p* − Ay − By²) ≥ 0
+        have hTp : (0 : ℝ) ≤ T - pstar := by linarith
+        have hA2 : A * A ≤ (2 * (-B)) * (2 * (T - pstar)) :=
+          mul_le_mul hAB hAT hA (by linarith)
+        rcases eq_or_lt_of_le hB with hB0 | hB0
+        · have hA0 : A = 0 := le_antisymm (by linarith) hA
+          nlinarith
+        · have expand : 4 * (-B) * (T - pstar - (A * y + B * y ^ 2))
+              = (2 * (-B) * y - A) ^ 2 - A * A + 4 * (-B) * (T - pstar) := by
+            ring
+          have hpos : 0 ≤ 4 * (-B) * (T - pstar - (A * y + B * y ^ 2)) := by
+            rw [expand]
+            nlinarith [sq_nonneg (2 * (-B) * y - A), hA2]
+          have hBpos : (0 : ℝ) < -B := by linarith
+          nlinarith [hpos, hBpos, hle]
+      · -- vertex beyond 1: increasing on [0, 1], so the value at y = 1 caps it
+        have hkey : 0 ≤ (1 - y) * (-(B * (1 + y)) - A) → True := fun _ => trivial
+        nlinarith [mul_nonneg (sub_nonneg.mpr hy1) (by nlinarith : (0 : ℝ) ≤ B * (1 + y) + A)]
+
+/-- Per-coordinate value of the pair witness (`ps`, `A`, `B`, rates computed at the base). -/
+noncomputable def pairVal (m : SettlingMode n) (j : Fin n) (ps r1 r2 A B : ℝ)
+    (base : State (Var n)) (t : ℝ) (i : Fin n) : ℝ :=
+  if i = m.gcoord then ps + A * Real.exp (-(r1 * t)) + B * Real.exp (-(r2 * t))
+  else if i = j then ps + A * Real.exp (-(r1 * t)) - B * Real.exp (-(r2 * t))
+  else match m.shapes i with
+    | CoordShape.driven j2 =>
+        if j2 = m.gcoord then
+          base (Rv i) + ps * t + A * expInt r1 t + B * expInt r2 t
+        else if j2 = j then
+          base (Rv i) + ps * t + A * expInt r1 t - B * expInt r2 t
+        else match m.shapes j2 with
+          | CoordShape.contractQ kn kd cc =>
+              base (Rv i) + (cc : ℝ) * t
+                + (base (Rv j2) - (cc : ℝ)) * expInt ((kn : ℝ) / (kd : ℝ)) t
+          | _ => base (Rv i)
+    | CoordShape.contractQ kn kd cc =>
+        (cc : ℝ) + (base (Rv i) - (cc : ℝ)) * Real.exp (-(((kn : ℝ) / (kd : ℝ)) * t))
+    | _ => base (Rv i)
+
+/-- The pair witness flow. -/
+noncomputable def pairΦ (m : SettlingMode n) (j : Fin n) (ps r1 r2 A B : ℝ)
+    (base : State (Var n)) (t : ℝ) : State (Var n) :=
+  fun x => match x with
+    | (Side.R, i) => pairVal m j ps r1 r2 A B base t i
+    | _ => base x
+
+@[simp] theorem pairΦ_Rv (m : SettlingMode n) (j : Fin n) (ps r1 r2 A B : ℝ)
+    (base : State (Var n)) (t : ℝ) (i : Fin n) :
+    pairΦ m j ps r1 r2 A B base t (Rv i) = pairVal m j ps r1 r2 A B base t i := rfl
+
+theorem pairΦ_nonR (m : SettlingMode n) (j : Fin n) (ps r1 r2 A B : ℝ)
+    (base : State (Var n)) (t : ℝ) {x : Var n} (hx : ∀ i : Fin n, x ≠ Rv i) :
+    pairΦ m j ps r1 r2 A B base t x = base x := by
+  obtain ⟨sd, ix⟩ := x
+  cases sd with
+  | R => exact absurd rfl (hx ix)
+  | L => rfl
+  | Aux => rfl
+
+set_option maxHeartbeats 1000000 in
+theorem pairVal_g {m : SettlingMode n} {j : Fin n} {ps r1 r2 A B : ℝ}
+    {base : State (Var n)} {t : ℝ} :
+    pairVal m j ps r1 r2 A B base t m.gcoord
+      = ps + A * Real.exp (-(r1 * t)) + B * Real.exp (-(r2 * t)) := by
+  simp [pairVal]
+
+set_option maxHeartbeats 1000000 in
+theorem pairVal_j {m : SettlingMode n} {j : Fin n} {ps r1 r2 A B : ℝ}
+    {base : State (Var n)} {t : ℝ} (hjne : j ≠ m.gcoord) :
+    pairVal m j ps r1 r2 A B base t j
+      = ps + A * Real.exp (-(r1 * t)) - B * Real.exp (-(r2 * t)) := by
+  simp [pairVal, hjne]
+
+set_option maxHeartbeats 1000000 in
+theorem pairVal_dg {m : SettlingMode n} {j : Fin n} {ps r1 r2 A B : ℝ}
+    {base : State (Var n)} {t : ℝ} {i : Fin n}
+    (hig : i ≠ m.gcoord) (hij : i ≠ j) (hdr : m.shapes i = CoordShape.driven m.gcoord) :
+    pairVal m j ps r1 r2 A B base t i
+      = base (Rv i) + ps * t + A * expInt r1 t + B * expInt r2 t := by
+  simp [pairVal, hig, hij, hdr]
+
+set_option maxHeartbeats 1000000 in
+theorem pairVal_dj {m : SettlingMode n} {j : Fin n} {ps r1 r2 A B : ℝ}
+    {base : State (Var n)} {t : ℝ} {i : Fin n}
+    (hig : i ≠ m.gcoord) (hij : i ≠ j) (hjne : j ≠ m.gcoord)
+    (hdr : m.shapes i = CoordShape.driven j) :
+    pairVal m j ps r1 r2 A B base t i
+      = base (Rv i) + ps * t + A * expInt r1 t - B * expInt r2 t := by
+  simp [pairVal, hig, hij, hdr, hjne]
+
+set_option maxHeartbeats 1000000 in
+theorem pairVal_cq {m : SettlingMode n} {j : Fin n} {ps r1 r2 A B : ℝ}
+    {base : State (Var n)} {t : ℝ} {i : Fin n} {kn kd cc : ℤ}
+    (hig : i ≠ m.gcoord) (hij : i ≠ j)
+    (hsh : m.shapes i = CoordShape.contractQ kn kd cc) :
+    pairVal m j ps r1 r2 A B base t i
+      = (cc : ℝ) + (base (Rv i) - (cc : ℝ)) * Real.exp (-(((kn : ℝ) / (kd : ℝ)) * t)) := by
+  simp [pairVal, hig, hij, hsh]
+
+set_option maxHeartbeats 1000000 in
+theorem pairVal_dcq {m : SettlingMode n} {j j2 : Fin n} {ps r1 r2 A B : ℝ}
+    {base : State (Var n)} {t : ℝ} {i : Fin n} {kn kd cc : ℤ}
+    (hig : i ≠ m.gcoord) (hij : i ≠ j) (hj2g : j2 ≠ m.gcoord) (hj2j : j2 ≠ j)
+    (hdr : m.shapes i = CoordShape.driven j2)
+    (hj2 : m.shapes j2 = CoordShape.contractQ kn kd cc) :
+    pairVal m j ps r1 r2 A B base t i
+      = base (Rv i) + (cc : ℝ) * t
+        + (base (Rv j2) - (cc : ℝ)) * expInt ((kn : ℝ) / (kd : ℝ)) t := by
+  simp [pairVal, hig, hij, hdr, hj2g, hj2j, hj2]
+
+set_option maxHeartbeats 1000000 in
+theorem pairVal_frozen {m : SettlingMode n} {j : Fin n} {ps r1 r2 A B : ℝ}
+    {base : State (Var n)} {t : ℝ} {i : Fin n}
+    (hig : i ≠ m.gcoord) (hij : i ≠ j) (hfz : m.shapes i = CoordShape.frozen) :
+    pairVal m j ps r1 r2 A B base t i = base (Rv i) := by
+  simp [pairVal, hig, hij, hfz]
+
+set_option maxHeartbeats 4000000 in
+/-- COUPLED-PAIR active coordinate (EXT P): the two-exponential witness for both members,
+integrators of either member, contractQ others and their integrators — stays within
+`[glo, TT] × [qlo, qhi]` by `twoExp_le` from the `PairConds` rational facts, lands by an
+endpoint case-split at the own band top. -/
+theorem settling_pair (M : SettlingModel n) {q : ℕ} {m : SettlingMode n}
+    (hq : M.modes[q]? = some m) {j : Fin n} {c h : ℤ}
+    (hsh : m.shapes m.gcoord = CoordShape.pairSym j c h)
+    (hjne : j ≠ m.gcoord)
+    (hjsh : m.shapes j = CoordShape.pairSym m.gcoord c h)
+    (hh0 : 0 < h) (hh3 : 3 * h ≤ 1000) (hglo0 : 0 ≤ m.glo)
+    {plo phi qlo qhi : ℤ}
+    (hplo : (M.env m.gcoord).lo = some plo) (hphi : (M.env m.gcoord).hi = some phi)
+    (hqloE : (M.env j).lo = some qlo) (hqhiE : (M.env j).hi = some qhi)
+    (hqlo0 : 0 ≤ qlo)
+    (hOth : ∀ i, i ≠ m.gcoord → i ≠ j →
+        m.shapes i = CoordShape.frozen ∨
+        ((m.shapes i = CoordShape.driven m.gcoord ∨ m.shapes i = CoordShape.driven j) ∧
+          (M.env i).lo = none ∧ (M.env i).hi = none) ∨
+        (∃ kn kd cc, m.shapes i = CoordShape.contractQ kn kd cc ∧ 0 ≤ kn ∧ 0 < kd ∧
+          (∀ l', (M.env i).lo = some l' → l' ≤ cc) ∧
+          (∀ h', (M.env i).hi = some h' → cc ≤ h')) ∨
+        (∃ j2, m.shapes i = CoordShape.driven j2 ∧ j2 ≠ m.gcoord ∧ j2 ≠ j ∧
+          (∃ kn2 kd2 cc2, m.shapes j2 = CoordShape.contractQ kn2 kd2 cc2 ∧ 0 < kd2) ∧
+          (M.env i).lo = none ∧ (M.env i).hi = none))
+    (hcov : PairConds m.glo m.ghi plo phi qlo qhi c h m.ghi ∨
+        ∃ q' ∈ m.succs, ∃ m', M.modes[q']? = some m' ∧ m'.gcoord = m.gcoord ∧
+          m'.glo ≤ m.ghi ∧ PairConds m.glo m.ghi plo phi qlo qhi c h m'.ghi)
+    (hdt : (0 : ℝ) ≤ (M.dt : ℝ)) :
+    GuardSettlingB M.graph M.GdOf m.fieldOf (Term.const 1) M.envF ((M.dt : ℝ)) q := by
+  intro base hb
+  obtain ⟨henv, hblo, hbhi⟩ := (sat_GdOf hq).mp hb
+  have hDR : (0 : ℝ) < 1000 - (h : ℝ) := by
+    have h3 : (3 : ℝ) * (h : ℝ) ≤ 1000 := by exact_mod_cast hh3
+    have h0 : (0 : ℝ) < (h : ℝ) := by exact_mod_cast hh0
+    linarith
+  set psR : ℝ := 1000 * (c : ℝ) / (1000 - (h : ℝ)) with hpsdef
+  set r1 : ℝ := (1000 - (h : ℝ)) / 1000 with hr1def
+  set r2 : ℝ := (1000 + (h : ℝ)) / 1000 with hr2def
+  have hhR : (0 : ℝ) < (h : ℝ) := by exact_mod_cast hh0
+  have hr1 : 0 < r1 := by rw [hr1def]; positivity
+  have hr12 : r1 ≤ r2 := by
+    rw [hr1def, hr2def]
+    apply div_le_div_of_nonneg_right ?_ (by norm_num)
+    · linarith
+  have hr2b : r2 ≤ 2 * r1 := by
+    rw [hr1def, hr2def]
+    rw [div_le_iff₀ (by norm_num : (0:ℝ) < 1000)]
+    have h3 : (3 : ℝ) * (h : ℝ) ≤ 1000 := by exact_mod_cast hh3
+    ring_nf
+    nlinarith
+  set p0 : ℝ := base (Rv m.gcoord) with hp0def
+  set q0 : ℝ := base (Rv j) with hq0def
+  set A : ℝ := (p0 + q0) / 2 - psR with hAdef
+  set B : ℝ := (p0 - q0) / 2 with hBdef
+  -- base membership of the partner (from the envelope)
+  have hqbase : (qlo : ℝ) ≤ q0 ∧ q0 ≤ (qhi : ℝ) := by
+    have hbe := (sat_envF.mp henv) j
+    unfold Band.memR at hbe
+    rw [hqloE, hqhiE] at hbe
+    exact hbe
+  -- the bound machinery, parameterized by the landing target TT
+  have hbounds : ∀ (TT : ℤ), PairConds m.glo m.ghi plo phi qlo qhi c h TT →
+      ∀ t, 0 ≤ t →
+      ((m.glo : ℝ) ≤ psR + A * Real.exp (-(r1 * t)) + B * Real.exp (-(r2 * t))
+        ∧ psR + A * Real.exp (-(r1 * t)) + B * Real.exp (-(r2 * t)) ≤ (TT : ℝ))
+      ∧ ((qlo : ℝ) ≤ psR + A * Real.exp (-(r1 * t)) - B * Real.exp (-(r2 * t))
+        ∧ psR + A * Real.exp (-(r1 * t)) - B * Real.exp (-(r2 * t)) ≤ (qhi : ℝ)) := by
+    intro TT hC t ht
+    obtain ⟨c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11⟩ := hC
+    have c4R : 1000 * (c : ℝ) ≤ (TT : ℝ) * (1000 - (h : ℝ)) := by exact_mod_cast c4
+    have c5R : (m.glo : ℝ) * (1000 - (h : ℝ)) ≤ 1000 * (c : ℝ) := by exact_mod_cast c5
+    have c6R : ((m.ghi : ℝ) + (qhi : ℝ)) * (1000 - (h : ℝ)) + 2 * (1000 * (c : ℝ))
+        ≤ 4 * (TT : ℝ) * (1000 - (h : ℝ)) := by exact_mod_cast c6
+    have c7R : 4 * (m.glo : ℝ) * (1000 - (h : ℝ))
+        ≤ ((m.glo : ℝ) + (qlo : ℝ)) * (1000 - (h : ℝ)) + 2 * (1000 * (c : ℝ)) := by
+      exact_mod_cast c7
+    have c8R : 1000 * (c : ℝ) ≤ (qhi : ℝ) * (1000 - (h : ℝ)) := by exact_mod_cast c8
+    have c9R : (qlo : ℝ) * (1000 - (h : ℝ)) ≤ 1000 * (c : ℝ) := by exact_mod_cast c9
+    have c10R : ((m.ghi : ℝ) + (qhi : ℝ)) * (1000 - (h : ℝ)) + 2 * (1000 * (c : ℝ))
+        ≤ 4 * (qhi : ℝ) * (1000 - (h : ℝ)) := by exact_mod_cast c10
+    have c11R : 4 * (qlo : ℝ) * (1000 - (h : ℝ))
+        ≤ ((m.glo : ℝ) + (qlo : ℝ)) * (1000 - (h : ℝ)) + 2 * (1000 * (c : ℝ)) := by
+      exact_mod_cast c11
+    have hpsT : psR ≤ (TT : ℝ) := by
+      rw [hpsdef, div_le_iff₀ hDR]
+      linarith
+    have hglops : (m.glo : ℝ) ≤ psR := by
+      rw [hpsdef, le_div_iff₀ hDR]
+      linarith
+    have hpsqhi : psR ≤ (qhi : ℝ) := by
+      rw [hpsdef, div_le_iff₀ hDR]
+      linarith
+    have hqlops : (qlo : ℝ) ≤ psR := by
+      rw [hpsdef, le_div_iff₀ hDR]
+      linarith
+    have hghiT : (m.ghi : ℝ) ≤ (TT : ℝ) := by exact_mod_cast c1
+    have hAub : A ≤ ((m.ghi : ℝ) + (qhi : ℝ)) / 2 - psR := by
+      rw [hAdef]
+      have := hqbase.2
+      have := hbhi
+      linarith
+    have hAlb : ((m.glo : ℝ) + (qlo : ℝ)) / 2 - psR ≤ A := by
+      rw [hAdef]
+      have := hqbase.1
+      have := hblo
+      linarith
+    have hAT : A ≤ 2 * ((TT : ℝ) - psR) := by
+      have hps' : psR * (1000 - (h : ℝ)) = 1000 * (c : ℝ) := by
+        rw [hpsdef]
+        field_simp
+      nlinarith [hAub, hDR]
+    have hATq : A ≤ 2 * ((qhi : ℝ) - psR) := by
+      have hps' : psR * (1000 - (h : ℝ)) = 1000 * (c : ℝ) := by
+        rw [hpsdef]
+        field_simp
+      nlinarith [hAub, hDR]
+    have hATl : -A ≤ 2 * (psR - (m.glo : ℝ)) := by
+      have hps' : psR * (1000 - (h : ℝ)) = 1000 * (c : ℝ) := by
+        rw [hpsdef]
+        field_simp
+      nlinarith [hAlb, hDR]
+    have hATlq : -A ≤ 2 * (psR - (qlo : ℝ)) := by
+      have hps' : psR * (1000 - (h : ℝ)) = 1000 * (c : ℝ) := by
+        rw [hpsdef]
+        field_simp
+      nlinarith [hAlb, hDR]
+    have hp0AB : psR + A + B = p0 := by
+      rw [hAdef, hBdef]
+      ring
+    have hq0AB : psR + A + -B = q0 := by
+      rw [hAdef, hBdef]
+      ring
+    refine ⟨⟨?_, ?_⟩, ?_, ?_⟩
+    · -- glo ≤ p(t): twoExp_le on the negated data
+      have := twoExp_le (-psR) (-A) (-B) r1 r2 (-(m.glo : ℝ)) t hr1 hr12 hr2b ht
+        (by linarith) (by rw [show -psR + -A + -B = -(psR + A + B) from by ring, hp0AB]
+                          linarith [hblo])
+        (by linarith [hATl])
+      linarith [this]
+    · exact twoExp_le psR A B r1 r2 (TT : ℝ) t hr1 hr12 hr2b ht hpsT
+        (by rw [hp0AB]; linarith [hbhi, hghiT]) hAT
+    · -- qlo ≤ q(t)
+      have := twoExp_le (-psR) (-A) B r1 r2 (-(qlo : ℝ)) t hr1 hr12 hr2b ht
+        (by linarith) (by rw [show -psR + -A + B = -(psR + A + -B) from by ring, hq0AB]
+                          linarith [hqbase.1])
+        (by linarith [hATlq])
+      linarith [this]
+    · have := twoExp_le psR A (-B) r1 r2 (qhi : ℝ) t hr1 hr12 hr2b ht hpsqhi
+        (by rw [hq0AB]; linarith [hqbase.2]) hATq
+      linarith [this]
+  -- choose the landing target and box (self, or the covering successor by endpoint split)
+  obtain ⟨TT, hC, q2, hq2ret, m2, hm2, hgc2, hl1, hl2⟩ :
+      ∃ TT, PairConds m.glo m.ghi plo phi qlo qhi c h TT ∧
+        ∃ q2 ∈ q :: M.graph.retainedSucc q, ∃ m2, M.modes[q2]? = some m2 ∧
+          m2.gcoord = m.gcoord ∧
+          ((m2.glo : ℝ) ≤ pairVal m j psR r1 r2 A B base (M.dt : ℝ) m.gcoord
+            ∧ pairVal m j psR r1 r2 A B base (M.dt : ℝ) m.gcoord ≤ (m2.ghi : ℝ)) := by
+    rcases hcov with hC | ⟨q', hq'mem, m', hm', hgc', hglo', hC⟩
+    · refine ⟨m.ghi, hC, q, List.mem_cons_self .., m, hq, rfl, ?_, ?_⟩
+      · have hbb := ((hbounds m.ghi hC (M.dt : ℝ) hdt).1).1
+        rw [pairVal_g]
+        linarith
+      · have hbb := ((hbounds m.ghi hC (M.dt : ℝ) hdt).1).2
+        rw [pairVal_g]
+        linarith
+    · rcases le_or_gt (pairVal m j psR r1 r2 A B base (M.dt : ℝ) m.gcoord)
+        ((m.ghi : ℝ)) with he | he
+      · refine ⟨m'.ghi, hC, q, List.mem_cons_self .., m, hq, rfl, ?_, he⟩
+        have hbb := ((hbounds m'.ghi hC (M.dt : ℝ) hdt).1).1
+        rw [pairVal_g]
+        linarith
+      · refine ⟨m'.ghi, hC, q', List.mem_cons_of_mem _ (succ_mem_retained M hq hq'mem),
+          m', hm', hgc', ?_, ?_⟩
+        · have hglo'R : (m'.glo : ℝ) ≤ (m.ghi : ℝ) := by exact_mod_cast hglo'
+          linarith
+        · have hbb := ((hbounds m'.ghi hC (M.dt : ℝ) hdt).1).2
+          rw [pairVal_g]
+          linarith
+  have hc2R : (TT : ℝ) ≤ (phi : ℝ) := by exact_mod_cast hC.2.1
+  have hc3R : (plo : ℝ) ≤ (m.glo : ℝ) := by exact_mod_cast hC.2.2.1
+  -- staying in the envelope
+  have hstayEnv : ∀ t, 0 ≤ t →
+      Formula.sat M.envF (pairΦ m j psR r1 r2 A B base t) := by
+    intro t ht
+    rw [sat_envF]
+    intro i
+    rw [pairΦ_Rv]
+    by_cases hig : i = m.gcoord
+    · rw [hig, pairVal_g]
+      obtain ⟨⟨h1, h2⟩, -⟩ := hbounds TT hC t ht
+      simp only [Band.memR, hplo, hphi]
+      exact ⟨by linarith, by linarith⟩
+    · by_cases hij : i = j
+      · rw [hij, pairVal_j hjne]
+        obtain ⟨-, hq1, hq2b⟩ := hbounds TT hC t ht
+        simp only [Band.memR, hqloE, hqhiE]
+        exact ⟨by linarith, by linarith⟩
+      · rcases hOth i hig hij with hfz | ⟨hdr, hloN, hhiN⟩
+          | ⟨kn, kd, cc, hcq, hkn, hkd, hloC, hhiC⟩
+          | ⟨j2, hdr, hj2g, hj2j, ⟨kn2, kd2, cc2, hj2cq, hkd2⟩, hloN, hhiN⟩
+        · rw [pairVal_frozen hig hij hfz]
+          exact (sat_envF.mp henv) i
+        · rcases hdr with hdr | hdr
+          · rw [pairVal_dg hig hij hdr]
+            simp only [Band.memR, hloN, hhiN]
+            exact ⟨trivial, trivial⟩
+          · rw [pairVal_dj hig hij hjne hdr]
+            simp only [Band.memR, hloN, hhiN]
+            exact ⟨trivial, trivial⟩
+        · have hkdR : (0 : ℝ) < (kd : ℝ) := by exact_mod_cast hkd
+          have hgq : (0 : ℝ) ≤ (kn : ℝ) / (kd : ℝ) :=
+            div_nonneg (by exact_mod_cast hkn) hkdR.le
+          have hθpos : 0 < Real.exp (-(((kn : ℝ) / (kd : ℝ)) * t)) := Real.exp_pos _
+          have hθle : Real.exp (-(((kn : ℝ) / (kd : ℝ)) * t)) ≤ 1 := by
+            rw [Real.exp_le_one_iff]
+            nlinarith
+          rw [pairVal_cq hig hij hcq]
+          have hbe := (sat_envF.mp henv) i
+          unfold Band.memR at hbe ⊢
+          rcases hbe with ⟨hbl, hbh⟩
+          constructor
+          · cases hcase : (M.env i).lo with
+            | none => trivial
+            | some l =>
+                rw [hcase] at hbl
+                have hlc : (l : ℝ) ≤ (cc : ℝ) := by exact_mod_cast hloC l hcase
+                nlinarith
+          · cases hcase : (M.env i).hi with
+            | none => trivial
+            | some hh =>
+                rw [hcase] at hbh
+                have hhc : (cc : ℝ) ≤ (hh : ℝ) := by exact_mod_cast hhiC hh hcase
+                nlinarith
+        · rw [pairVal_dcq hig hij hj2g hj2j hdr hj2cq]
+          simp only [Band.memR, hloN, hhiN]
+          exact ⟨trivial, trivial⟩
+  -- exponential derivative helpers and the rate identities
+  have hexpD : ∀ (r : ℝ) (t : ℝ), HasDerivAt (fun u : ℝ => Real.exp (-(r * u)))
+      (-r * Real.exp (-(r * t))) t := by
+    intro r t
+    have hinner : HasDerivAt (fun u : ℝ => -(r * u)) (-r) t := by
+      have hh := (hasDerivAt_id t).const_mul (-r)
+      simp only [id, mul_one, neg_mul] at hh
+      exact hh
+    have hh := (Real.hasDerivAt_exp (-(r * t))).comp t hinner
+    simp only [Function.comp_def] at hh
+    rw [mul_comm (Real.exp (-(r * t))) (-r)] at hh
+    exact hh
+  have hDne : (1000 : ℝ) - (h : ℝ) ≠ 0 := ne_of_gt hDR
+  have hpsr : psR * r1 = (c : ℝ) := by
+    rw [hpsdef, hr1def]
+    field_simp
+  have hr1' : 1 - (h : ℝ) / 1000 = r1 := by
+    rw [hr1def]
+    ring
+  have hr2' : 1 + (h : ℝ) / 1000 = r2 := by
+    rw [hr2def]
+    ring
+  refine ⟨pairΦ m j psR r1 r2 A B base, ?_, ?_, ?_,
+    fun t ht => hstayEnv t ht.1, q2, hq2ret, ?_⟩
+  · -- t = 0 recovers the base
+    funext x
+    obtain ⟨sd, ix⟩ := x
+    cases sd with
+    | R =>
+        show pairVal m j psR r1 r2 A B base 0 ix = base (Rv ix)
+        by_cases hig : ix = m.gcoord
+        · rw [hig, pairVal_g]
+          simp only [mul_zero, neg_zero, Real.exp_zero, mul_one]
+          rw [hAdef, hBdef, hp0def, hq0def]
+          ring
+        · by_cases hij : ix = j
+          · rw [hij, pairVal_j hjne]
+            simp only [mul_zero, neg_zero, Real.exp_zero, mul_one]
+            rw [hAdef, hBdef, hp0def, hq0def]
+            ring
+          · rcases hOth ix hig hij with hfz | ⟨hdr, -, -⟩
+              | ⟨kn, kd, cc, hcq, -, -, -, -⟩
+              | ⟨j2, hdr, hj2g, hj2j, ⟨kn2, kd2, cc2, hj2cq, -⟩, -, -⟩
+            · rw [pairVal_frozen hig hij hfz]
+            · rcases hdr with hdr | hdr
+              · rw [pairVal_dg hig hij hdr]
+                simp [expInt]
+              · rw [pairVal_dj hig hij hjne hdr]
+                simp [expInt]
+            · rw [pairVal_cq hig hij hcq]
+              simp
+            · rw [pairVal_dcq hig hij hj2g hj2j hdr hj2cq]
+              simp [expInt]
+    | L => rfl
+    | Aux => rfl
+  · -- derivatives
+    intro t ht p hp
+    simp only [rightBlock, List.mem_map, List.mem_finRange] at hp
+    obtain ⟨i, -, rfl⟩ := hp
+    by_cases hig : i = m.gcoord
+    · rw [hig]
+      have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf m.gcoord))
+          (pairΦ m j psR r1 r2 A B base t)
+          = ((c : ℝ) - (psR + A * Real.exp (-(r1 * t)) + B * Real.exp (-(r2 * t))))
+            + (h : ℝ) / 1000
+              * (psR + A * Real.exp (-(r1 * t)) - B * Real.exp (-(r2 * t))) := by
+        simp only [SettlingMode.fieldOf, hsh, CoordShape.field, Term.eval, AOp.interp,
+          pairΦ_Rv, pairVal_g, pairVal_j hjne]
+        ring
+      rw [heval]
+      have hcurve : (fun u => pairΦ m j psR r1 r2 A B base u (Rv m.gcoord))
+          = fun u => psR + A * Real.exp (-(r1 * u)) + B * Real.exp (-(r2 * u)) := by
+        funext u
+        rw [pairΦ_Rv, pairVal_g]
+      rw [hcurve]
+      have hd : HasDerivAt
+          (fun u => psR + A * Real.exp (-(r1 * u)) + B * Real.exp (-(r2 * u)))
+          (A * (-r1 * Real.exp (-(r1 * t))) + B * (-r2 * Real.exp (-(r2 * t)))) t :=
+        (((hexpD r1 t).const_mul A).const_add psR).add ((hexpD r2 t).const_mul B)
+      have heq : A * (-r1 * Real.exp (-(r1 * t))) + B * (-r2 * Real.exp (-(r2 * t)))
+          = ((c : ℝ) - (psR + A * Real.exp (-(r1 * t)) + B * Real.exp (-(r2 * t))))
+            + (h : ℝ) / 1000
+              * (psR + A * Real.exp (-(r1 * t)) - B * Real.exp (-(r2 * t))) := by
+        linear_combination (A * Real.exp (-(r1 * t)) + psR) * hr1'
+          + (B * Real.exp (-(r2 * t))) * hr2' + hpsr
+      rw [← heq]
+      exact hd.hasDerivWithinAt
+    · by_cases hij : i = j
+      · rw [hij]
+        have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf j))
+            (pairΦ m j psR r1 r2 A B base t)
+            = ((c : ℝ) - (psR + A * Real.exp (-(r1 * t)) - B * Real.exp (-(r2 * t))))
+              + (h : ℝ) / 1000
+                * (psR + A * Real.exp (-(r1 * t)) + B * Real.exp (-(r2 * t))) := by
+          simp only [SettlingMode.fieldOf, hjsh, CoordShape.field, Term.eval, AOp.interp,
+            pairΦ_Rv, pairVal_g, pairVal_j hjne]
+          ring
+        rw [heval]
+        have hcurve : (fun u => pairΦ m j psR r1 r2 A B base u (Rv j))
+            = fun u => psR + A * Real.exp (-(r1 * u)) - B * Real.exp (-(r2 * u)) := by
+          funext u
+          rw [pairΦ_Rv, pairVal_j hjne]
+        rw [hcurve]
+        have hd : HasDerivAt
+            (fun u => psR + A * Real.exp (-(r1 * u)) - B * Real.exp (-(r2 * u)))
+            (A * (-r1 * Real.exp (-(r1 * t))) - B * (-r2 * Real.exp (-(r2 * t)))) t :=
+          (((hexpD r1 t).const_mul A).const_add psR).sub ((hexpD r2 t).const_mul B)
+        have heq : A * (-r1 * Real.exp (-(r1 * t))) - B * (-r2 * Real.exp (-(r2 * t)))
+            = ((c : ℝ) - (psR + A * Real.exp (-(r1 * t)) - B * Real.exp (-(r2 * t))))
+              + (h : ℝ) / 1000
+                * (psR + A * Real.exp (-(r1 * t)) + B * Real.exp (-(r2 * t))) := by
+          linear_combination (A * Real.exp (-(r1 * t)) + psR) * hr1'
+            - (B * Real.exp (-(r2 * t))) * hr2' + hpsr
+        rw [← heq]
+        exact hd.hasDerivWithinAt
+      · rcases hOth i hig hij with hfz | ⟨hdr, -, -⟩
+          | ⟨kn, kd, cc, hcq, -, -, -, -⟩
+          | ⟨j2, hdr, hj2g, hj2j, ⟨kn2, kd2, cc2, hj2cq, hkd2⟩, -, -⟩
+        · have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf i))
+              (pairΦ m j psR r1 r2 A B base t) = 0 := by
+            simp [SettlingMode.fieldOf, hfz, CoordShape.field, Term.eval, AOp.interp]
+          rw [heval]
+          have hcurve : (fun u => pairΦ m j psR r1 r2 A B base u (Rv i))
+              = fun _ => base (Rv i) := by
+            funext u
+            rw [pairΦ_Rv, pairVal_frozen hig hij hfz]
+          rw [hcurve]
+          exact hasDerivWithinAt_const t _ _
+        · rcases hdr with hdr | hdr
+          · have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf i))
+                (pairΦ m j psR r1 r2 A B base t)
+                = psR + A * Real.exp (-(r1 * t)) + B * Real.exp (-(r2 * t)) := by
+              simp only [SettlingMode.fieldOf, hdr, CoordShape.field, Term.eval,
+                AOp.interp, pairΦ_Rv, pairVal_g]
+              ring
+            rw [heval]
+            have hcurve : (fun u => pairΦ m j psR r1 r2 A B base u (Rv i))
+                = fun u => base (Rv i) + psR * u + A * expInt r1 u + B * expInt r2 u := by
+              funext u
+              rw [pairΦ_Rv, pairVal_dg hig hij hdr]
+            rw [hcurve]
+            have h1 : HasDerivAt (fun u : ℝ => base (Rv i) + psR * u) psR t := by
+              have hh := ((hasDerivAt_id t).const_mul psR).const_add (base (Rv i))
+              simpa using hh
+            have h2 : HasDerivAt (fun u : ℝ => A * expInt r1 u)
+                (A * Real.exp (-(r1 * t))) t := (expInt_hasDeriv r1 t).const_mul A
+            have h3 : HasDerivAt (fun u : ℝ => B * expInt r2 u)
+                (B * Real.exp (-(r2 * t))) t := (expInt_hasDeriv r2 t).const_mul B
+            exact ((h1.add h2).add h3).hasDerivWithinAt
+          · have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf i))
+                (pairΦ m j psR r1 r2 A B base t)
+                = psR + A * Real.exp (-(r1 * t)) - B * Real.exp (-(r2 * t)) := by
+              simp only [SettlingMode.fieldOf, hdr, CoordShape.field, Term.eval,
+                AOp.interp, pairΦ_Rv, pairVal_j hjne]
+              ring
+            rw [heval]
+            have hcurve : (fun u => pairΦ m j psR r1 r2 A B base u (Rv i))
+                = fun u => base (Rv i) + psR * u + A * expInt r1 u - B * expInt r2 u := by
+              funext u
+              rw [pairΦ_Rv, pairVal_dj hig hij hjne hdr]
+            rw [hcurve]
+            have h1 : HasDerivAt (fun u : ℝ => base (Rv i) + psR * u) psR t := by
+              have hh := ((hasDerivAt_id t).const_mul psR).const_add (base (Rv i))
+              simpa using hh
+            have h2 : HasDerivAt (fun u : ℝ => A * expInt r1 u)
+                (A * Real.exp (-(r1 * t))) t := (expInt_hasDeriv r1 t).const_mul A
+            have h3 : HasDerivAt (fun u : ℝ => B * expInt r2 u)
+                (B * Real.exp (-(r2 * t))) t := (expInt_hasDeriv r2 t).const_mul B
+            exact (((h1.add h2).sub h3)).hasDerivWithinAt
+        · have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf i))
+              (pairΦ m j psR r1 r2 A B base t)
+              = (kn : ℝ) / (kd : ℝ)
+                * ((cc : ℝ) - pairVal m j psR r1 r2 A B base t i) := by
+            simp [SettlingMode.fieldOf, hcq, CoordShape.field, Term.eval, AOp.interp]
+          rw [heval]
+          have hcurve : (fun u => pairΦ m j psR r1 r2 A B base u (Rv i))
+              = fun u => (cc : ℝ)
+                  + (base (Rv i) - (cc : ℝ))
+                    * Real.exp (-(((kn : ℝ) / (kd : ℝ)) * u)) := by
+            funext u
+            rw [pairΦ_Rv, pairVal_cq hig hij hcq]
+          rw [hcurve]
+          have h1 : HasDerivAt
+              (fun u => (cc : ℝ)
+                + (base (Rv i) - (cc : ℝ)) * Real.exp (-(((kn : ℝ) / (kd : ℝ)) * u)))
+              ((base (Rv i) - (cc : ℝ))
+                * (-((kn : ℝ) / (kd : ℝ))
+                  * Real.exp (-(((kn : ℝ) / (kd : ℝ)) * t)))) t :=
+            ((hexpD ((kn : ℝ) / (kd : ℝ)) t).const_mul
+              (base (Rv i) - (cc : ℝ))).const_add (cc : ℝ)
+          have heq : (base (Rv i) - (cc : ℝ))
+              * (-((kn : ℝ) / (kd : ℝ)) * Real.exp (-(((kn : ℝ) / (kd : ℝ)) * t)))
+              = (kn : ℝ) / (kd : ℝ)
+                * ((cc : ℝ) - pairVal m j psR r1 r2 A B base t i) := by
+            rw [pairVal_cq hig hij hcq]
+            ring
+          rw [← heq]
+          exact h1.hasDerivWithinAt
+        · have hvalj2 : pairΦ m j psR r1 r2 A B base t (Rv j2)
+              = (cc2 : ℝ) + (base (Rv j2) - (cc2 : ℝ))
+                * Real.exp (-(((kn2 : ℝ) / (kd2 : ℝ)) * t)) := by
+            rw [pairΦ_Rv, pairVal_cq hj2g hj2j hj2cq]
+          have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (m.fieldOf i))
+              (pairΦ m j psR r1 r2 A B base t)
+              = (cc2 : ℝ) + (base (Rv j2) - (cc2 : ℝ))
+                * Real.exp (-(((kn2 : ℝ) / (kd2 : ℝ)) * t)) := by
+            simp only [SettlingMode.fieldOf, hdr, CoordShape.field, Term.eval, AOp.interp]
+            rw [hvalj2]
+            ring
+          rw [heval]
+          have hcurve : (fun u => pairΦ m j psR r1 r2 A B base u (Rv i))
+              = fun u => base (Rv i) + (cc2 : ℝ) * u
+                  + (base (Rv j2) - (cc2 : ℝ)) * expInt ((kn2 : ℝ) / (kd2 : ℝ)) u := by
+            funext u
+            rw [pairΦ_Rv, pairVal_dcq hig hij hj2g hj2j hdr hj2cq]
+          rw [hcurve]
+          have h1 : HasDerivAt (fun u : ℝ => base (Rv i) + (cc2 : ℝ) * u) (cc2 : ℝ) t := by
+            have hh := ((hasDerivAt_id t).const_mul (cc2 : ℝ)).const_add (base (Rv i))
+            simpa using hh
+          have h2 : HasDerivAt
+              (fun u : ℝ => (base (Rv j2) - (cc2 : ℝ)) * expInt ((kn2 : ℝ) / (kd2 : ℝ)) u)
+              ((base (Rv j2) - (cc2 : ℝ))
+                * Real.exp (-(((kn2 : ℝ) / (kd2 : ℝ)) * t))) t :=
+            (expInt_hasDeriv ((kn2 : ℝ) / (kd2 : ℝ)) t).const_mul
+              (base (Rv j2) - (cc2 : ℝ))
+          exact (h1.add h2).hasDerivWithinAt
+  · -- mask
+    intro t ht x hx
+    refine pairΦ_nonR m j psR r1 r2 A B base t ?_
+    intro i hxi
+    exact hx (by
+      rw [hxi]
+      simp only [rightBlock, ODESystem.bound, List.map_map]
+      exact List.mem_map.mpr ⟨i, List.mem_finRange i, rfl⟩)
+  · -- landing in the picked box
+    rw [sat_GdOf hm2]
+    refine ⟨hstayEnv _ hdt, ?_, ?_⟩
+    · rw [hgc2, pairΦ_Rv]
+      exact hl1
+    · rw [hgc2, pairΦ_Rv]
+      exact hl2
+
 /-! ### EXT R — the Riccati discharge (quadratic drag, hyperbolic-Möbius witness)
 
 `x' = b − (a/10⁶)x²` contracts toward `q = √(10⁶b/a)`; the exact flow is the Möbius form
@@ -3316,6 +4032,25 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
                  m.glo ≤ m'.ghi ∧ m'.glo ≤ m.glo + c * M.dt))))
      | CoordShape.driven _ => False
      | CoordShape.drivenDamp _ _ => False
+     | CoordShape.pairSym j c h =>
+         j ≠ m.gcoord ∧ m.shapes j = CoordShape.pairSym m.gcoord c h ∧
+         0 < h ∧ 3 * h ≤ 1000 ∧ 0 ≤ m.glo ∧
+         ∃ plo phi qlo qhi,
+           (M.env m.gcoord).lo = some plo ∧ (M.env m.gcoord).hi = some phi ∧
+           (M.env j).lo = some qlo ∧ (M.env j).hi = some qhi ∧ 0 ≤ qlo ∧
+           (∀ i, i ≠ m.gcoord → i ≠ j →
+             m.shapes i = CoordShape.frozen ∨
+             ((m.shapes i = CoordShape.driven m.gcoord ∨ m.shapes i = CoordShape.driven j) ∧
+               (M.env i).lo = none ∧ (M.env i).hi = none) ∨
+             (∃ kn kd cc, m.shapes i = CoordShape.contractQ kn kd cc ∧ 0 ≤ kn ∧ 0 < kd ∧
+               (∀ l', (M.env i).lo = some l' → l' ≤ cc) ∧
+               (∀ h', (M.env i).hi = some h' → cc ≤ h')) ∨
+             (∃ j2, m.shapes i = CoordShape.driven j2 ∧ j2 ≠ m.gcoord ∧ j2 ≠ j ∧
+               (∃ kn2 kd2 cc2, m.shapes j2 = CoordShape.contractQ kn2 kd2 cc2 ∧ 0 < kd2) ∧
+               (M.env i).lo = none ∧ (M.env i).hi = none)) ∧
+           (PairConds m.glo m.ghi plo phi qlo qhi c h m.ghi ∨
+             ∃ q' ∈ m.succs, ∃ m', M.modes[q']? = some m' ∧ m'.gcoord = m.gcoord ∧
+               m'.glo ≤ m.ghi ∧ PairConds m.glo m.ghi plo phi qlo qhi c h m'.ghi)
      | CoordShape.riccati b a =>
          (∀ i, i ≠ m.gcoord → m.shapes i = CoordShape.frozen) ∧
          0 < b ∧ 0 < a ∧ 0 ≤ m.glo ∧
@@ -3370,7 +4105,7 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
     · exact absurd h1 hi
     · exact Or.inl h2
     · exact Or.inr (Or.inl h3)
-    · rcases hshx : m.shapes i with _ | _ | _ | _ | j | _ | _
+    · rcases hshx : m.shapes i with _ | _ | _ | _ | j | _ | _ | _
       all_goals rw [hshx] at h4
       · simp at h4
       · simp at h4
@@ -3379,6 +4114,7 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
       · simp only [Bool.and_eq_true, Bool.not_eq_true', decide_eq_true_eq,
           decide_eq_false_iff_not] at h4
         exact Or.inr (Or.inr ⟨j, rfl, h4.1.1.1, h4.1.1.2, h4.1.2, h4.2⟩)
+      · simp at h4
       · simp at h4
       · simp at h4
   have decodeFlexC : ∀ (b : Bool), b = (decide (0 ≤ m.glo) &&
@@ -3417,7 +4153,7 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
     · exact absurd h1 hi
     · exact Or.inl h2
     · exact Or.inr (Or.inl h3)
-    · rcases hshx : m.shapes i with _ | _ | _ | _ | j | _ | _
+    · rcases hshx : m.shapes i with _ | _ | _ | _ | j | _ | _ | _
       all_goals rw [hshx] at h4
       · simp at h4
       · simp at h4
@@ -3428,7 +4164,8 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
         exact Or.inr (Or.inr (Or.inl ⟨j, rfl, h4.1.1.1, h4.1.1.2, h4.1.2, h4.2⟩))
       · simp at h4
       · simp at h4
-    · rcases hshx : m.shapes i with _ | _ | ⟨k', c'⟩ | _ | _ | _ | _
+      · simp at h4
+    · rcases hshx : m.shapes i with _ | _ | ⟨k', c'⟩ | _ | _ | _ | _ | _
       all_goals rw [hshx] at h5
       · simp at h5
       · simp at h5
@@ -3446,7 +4183,8 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
       · simp at h5
       · simp at h5
       · simp at h5
-    · rcases hshx : m.shapes i with _ | _ | _ | _ | j | _ | _
+      · simp at h5
+    · rcases hshx : m.shapes i with _ | _ | _ | _ | j | _ | _ | _
       all_goals rw [hshx] at h6
       · simp at h6
       · simp at h6
@@ -3455,7 +4193,7 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
       · simp only [Bool.and_eq_true, Bool.not_eq_true', decide_eq_true_eq,
           decide_eq_false_iff_not] at h6
         obtain ⟨⟨⟨hjne, hjc⟩, hlo⟩, hhi⟩ := h6
-        rcases hshj : m.shapes j with _ | _ | ⟨kj, cj⟩ | _ | _ | _ | _
+        rcases hshj : m.shapes j with _ | _ | ⟨kj, cj⟩ | _ | _ | _ | _ | _
         all_goals rw [hshj] at hjc
         · simp at hjc
         · simp at hjc
@@ -3464,10 +4202,13 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
         · simp at hjc
         · simp at hjc
         · simp at hjc
+        · simp at hjc
+      · simp at h6
       · simp at h6
       · simp at h6
   refine ⟨hord, hloIn, hhiIn, hsucc, ?_⟩
   rcases hsh : m.shapes m.gcoord with _ | c | ⟨k, c⟩ | ⟨kn, kd, c⟩ | j | ⟨j, ds⟩ | ⟨b, a⟩
+    | ⟨j, c, h⟩
   all_goals rw [hsh] at hshape
   · -- frozen
     exact decodeFrozen _ rfl hshape
@@ -3600,6 +4341,84 @@ theorem checkMode_true {M : SettlingModel n} {q : ℕ} {m : SettlingMode n}
     simp only [Bool.and_eq_true, decide_eq_true_eq] at hshape
     obtain ⟨⟨⟨⟨⟨hfrB, hb⟩, ha⟩, hglo0⟩, hql⟩, hqh⟩ := hshape
     exact ⟨decodeFrozen _ rfl hfrB, hb, ha, hglo0, hql, hqh⟩
+  · -- pairSym (EXT P)
+    simp only [Bool.and_eq_true, Bool.not_eq_true', decide_eq_true_eq,
+      decide_eq_false_iff_not] at hshape
+    obtain ⟨⟨⟨⟨⟨hjne, hjsh⟩, hh0⟩, hh3⟩, hglo0⟩, henvm⟩ := hshape
+    rcases hplo : (M.env m.gcoord).lo with _ | plo <;>
+      rcases hphi : (M.env m.gcoord).hi with _ | phi <;>
+      rcases hqloE : (M.env j).lo with _ | qlo <;>
+      rcases hqhiE : (M.env j).hi with _ | qhi
+    all_goals rw [hplo, hphi, hqloE, hqhiE] at henvm
+    case _ => simp at henvm
+    case _ => simp at henvm
+    case _ => simp at henvm
+    case _ => simp at henvm
+    case _ => simp at henvm
+    case _ => simp at henvm
+    case _ => simp at henvm
+    case _ => simp at henvm
+    case _ => simp at henvm
+    case _ => simp at henvm
+    case _ => simp at henvm
+    case _ => simp at henvm
+    case _ => simp at henvm
+    case _ => simp at henvm
+    case _ => simp at henvm
+    · simp only [Bool.and_eq_true, Bool.or_eq_true, decide_eq_true_eq,
+        List.all_eq_true, Bool.not_eq_true', decide_eq_false_iff_not] at henvm
+      obtain ⟨⟨⟨hqlo0, hothB⟩, -⟩, hcovB⟩ := henvm
+      refine ⟨hjne, hjsh, hh0, hh3, hglo0, plo, phi, qlo, qhi, rfl, rfl, hqloE, hqhiE,
+        hqlo0, ?_, ?_⟩
+      · intro i hig hij
+        have hthis := hothB i (List.mem_finRange i)
+        rcases hthis with (((h1 | h1) | h2) | h3) | h4
+        · exact absurd h1 hig
+        · exact absurd h1 hij
+        · exact Or.inl h2
+        · exact Or.inr (Or.inl ⟨h3.1.1, h3.1.2, h3.2⟩)
+        · rcases hshx : m.shapes i with _ | _ | _ | ⟨kn, kd, cc⟩ | j2 | _ | _ | _
+          all_goals rw [hshx] at h4
+          · simp at h4
+          · simp at h4
+          · simp at h4
+          · simp only [Bool.and_eq_true, decide_eq_true_eq] at h4
+            refine Or.inr (Or.inr (Or.inl ⟨kn, kd, cc, rfl, h4.1.1.1, h4.1.1.2, ?_, ?_⟩))
+            · intro l' hl'
+              have := h4.1.2
+              rw [hl'] at this
+              simpa using this
+            · intro h' hh'
+              have := h4.2
+              rw [hh'] at this
+              simpa using this
+          · simp only [Bool.and_eq_true, Bool.not_eq_true', decide_eq_true_eq,
+              decide_eq_false_iff_not] at h4
+            obtain ⟨⟨⟨⟨hj2g, hj2j⟩, hj2cqB⟩, hloN⟩, hhiN⟩ := h4
+            rcases hshj2 : m.shapes j2 with _ | _ | _ | ⟨kn2, kd2, cc2⟩ | _ | _ | _ | _
+            all_goals rw [hshj2] at hj2cqB
+            · simp at hj2cqB
+            · simp at hj2cqB
+            · simp at hj2cqB
+            · refine Or.inr (Or.inr (Or.inr ⟨j2, rfl, hj2g, hj2j,
+                ⟨kn2, kd2, cc2, hshj2, by simpa using hj2cqB⟩, hloN, hhiN⟩))
+            · simp at hj2cqB
+            · simp at hj2cqB
+            · simp at hj2cqB
+            · simp at hj2cqB
+          · simp at h4
+          · simp at h4
+          · simp at h4
+      · rcases hcovB with hself | hsucc
+        · exact Or.inl (pairCondsB_true hself)
+        · rw [List.any_eq_true] at hsucc
+          obtain ⟨q', hq'mem, hq'⟩ := hsucc
+          rcases hm' : M.modes[q']? with _ | m'
+          · rw [hm'] at hq'; simp at hq'
+          · rw [hm'] at hq'
+            simp only [Bool.and_eq_true, decide_eq_true_eq] at hq'
+            exact Or.inr ⟨q', hq'mem, m', hm', hq'.1.1, hq'.1.2,
+              pairCondsB_true hq'.2⟩
 
 /-! ### The assembly: `wellformed_sound` -/
 
@@ -3631,6 +4450,7 @@ theorem wellformed_sound (M : SettlingModel n) (mv tg : Var n) (g : Term (Var n)
   refine ⟨SM.fieldOf, rfl, rfl, by rw [hlen]; exact hqlt, ?_, ?_, ?_, ?_, ?_⟩
   · -- GuardSettlingB, by shape
     rcases hsh : SM.shapes SM.gcoord with _ | c | ⟨k, c⟩ | ⟨kn, kd, c⟩ | j | ⟨j, ds⟩ | ⟨b, a⟩
+      | ⟨j, c, h⟩
     all_goals rw [hsh] at hshape
     · exact settling_frozen M hSM hsh hshape hdt
     · rcases hshape with ⟨hc, hflex, hglo0, hmar, hland⟩ | ⟨hcneg, hfr, hlomar, hland⟩
@@ -3653,6 +4473,10 @@ theorem wellformed_sound (M : SettlingModel n) (mv tg : Var n) (g : Term (Var n)
     · exact absurd hshape not_false
     · obtain ⟨hfr, hb, ha, hglo0, hql, hqh⟩ := hshape
       exact settling_riccati M hSM hsh hfr hb ha hglo0 hord hql hqh hloIn hhiIn hdt
+    · obtain ⟨hjne, hjsh, hh0, hh3, hglo0, plo, phi, qlo, qhi, hplo, hphi, hqloE, hqhiE,
+        hqlo0, hOth, hcov⟩ := hshape
+      exact settling_pair M hSM hsh hjne hjsh hh0 hh3 hglo0 hplo hphi hqloE hqhiE hqlo0
+        hOth hcov hdt
   · intro ν hν
     exact hcert q (SM.toRMode M) hmodeAt ν hν
   · exact ⟨_, self_edge_mem M hSM, rfl, rfl⟩

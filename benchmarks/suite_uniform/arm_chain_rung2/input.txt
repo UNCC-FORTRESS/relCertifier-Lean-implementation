@@ -65,7 +65,10 @@ next = [Return, ApproachSlow]
 ode = theta' = smt2:(- 0 0.2);
 guard = theta >= 0.70 and theta < 0.85
 evolve = theta >= 0.0 and theta <= 1.0
-next = [ApproachFast, Return]
+# next was [ApproachFast, Return]: under partitioned guards that edge is DEAD (the drain
+# cannot cross ApproachSlow's band in one step), and the actual one-step landing successor
+# is ApproachSlow. Corrected during the EXT 4 union-cover build; still CERTIFIED.
+next = [ApproachSlow, Return]
 [relational_invariant]
 ApproachA = theta[l] <= theta[r] + 0.30
 ApproachB = theta[l] <= theta[r] + 0.30

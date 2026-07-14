@@ -149,22 +149,38 @@ bands, per-mode settling by shape, successor validity), and **`wellformed_sound`
 passes + per-run Z3 certificates ⟹ `GuardSettlingH` ⟹ `rvalid`. Built in proven increments,
 each an explicit-witness discharge lemma: single-active-coordinate (constant/affine/exponential
 witnesses), driven-by-const integrators (quadratic — the rover class), driven-by-contract
-integrators (exp-integral — the terrain-dynamics class), signed rates (the Return modes), and
-frozen-driver coordinates. 21 of 47 benchmark data terms are in-grammar; 3 carry closed kernel
-`rfl` certificates.
+integrators (exp-integral — the terrain-dynamics class), signed rates (the Return modes),
+frozen-driver coordinates, and the **EXT 4 union landing covers** (a TRANSIT mode's one-step
+image spans its own band plus one touching successor band — const rates both signs, and
+contract modes with the equilibrium above/below their band via the hull `[band, c]`; landing
+discharged by an endpoint case-split). 21 of 47 benchmark data terms are in-grammar; **16
+carry closed kernel `rfl` certificates**.
 
 **Findings (the honest ones).**
 - The guard map must be envelope-intersected (`GdOf = envF ∧ band`) or the hypothesis is
   vacuously false for every multi-coordinate model — caught at statement time.
 - An unverified claim died the right way: 18 instances were reported as certificate-pending on
   a "kernel-reduction quirk" — `#reduce` showed the checker genuinely REJECTS them, i.e. the
-  kernel had been refusing a false proposition all along. Root cause is one completeness gap:
-  the landing rule demands a single band contain the one-step image, but TRANSIT modes cross
-  from their own band into a successor's — the union-cover extension (EXT 4, designed) closes
-  it. The episode is the architecture's argument in miniature: the untrusted layer asserted,
-  the kernel refused, the record was corrected.
-- Remaining roadmap: EXT 4 (union covers), EXT 3 (multi-band guards + driven-active, the
-  s-guarded terrain family), phase D (coupled fields — existence via `PicardBridge`).
+  kernel had been refusing a false proposition all along. Root cause was one completeness gap:
+  the landing rule demanded a single band contain the one-step image, but TRANSIT modes cross
+  from their own band into a successor's. The union-cover extension (EXT 4, now proven) plus
+  per-instance segment-budget selection (`dt = ε_R/λ` is a free parameter of
+  `theorem3_faithful_settling`, constrained only by the `k·dt` budget cover — so each instance
+  picks the largest in-range dt the checker accepts) closes 13 of the 18. The episode is the
+  architecture's argument in miniature: the untrusted layer asserted, the kernel refused, the
+  record was corrected.
+- Two smaller findings from the EXT 4 deployment: a frozen ACTIVE coordinate with driven
+  others is `constRate 0` (the identical field) — the flex-others grammar comes for free, no
+  new lemma; and `arm_chain_rung2`'s right `Return.next = [ApproachFast]` was a DEAD edge
+  under partitioned guards (the drain cannot cross the intermediate band in one step) — the
+  cover analysis exposed it, the edge was corrected to the actual landing successor, and the
+  benchmark still certifies.
+- Remaining roadmap: the rational-gain (exp-bound) class — 5 parked transit contracts whose
+  equilibrium lies beyond the adjacent successor band need the sharper finite-dt landing cap
+  `cap + (c − cap)(1 − e^{−k·dt})`, inexpressible with integer `k·dt` (needs
+  `contract kNum kDen c` + a `1 − e^{−x} ≤ x` lemma); EXT 3 (multi-band guards +
+  driven-active, the s-guarded terrain family); phase D (coupled fields — existence via
+  `PicardBridge`).
 
 ## Current state
 

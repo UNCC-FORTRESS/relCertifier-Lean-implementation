@@ -60,4 +60,5 @@ import RelCertifier.DecayDischarge
 import RelCertifier.UniformEvol
 import RelCertifier.GuardThreaded
 import RelCertifier.CutChannel
+import RelCertifier.WellFormedChecker
 import RelCertifier.AxiomCheck

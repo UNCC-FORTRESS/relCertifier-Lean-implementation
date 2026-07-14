@@ -118,7 +118,9 @@ def samples(gbox, ebox, sv):
         elif lo is None: axes.append([hi-1.0, hi])
         elif hi is None: axes.append([lo, lo+1.0])
         else: axes.append([lo,(lo+hi)/2,hi] if hi>lo else [lo])
-    # cap combinatorics: full product only over guard-constrained dims
+    # cap combinatorics: full product over guard-constrained dims; for the OTHER dims,
+    # sweep one at a time to its envelope corners (others at mid) — catches single-coordinate
+    # envelope escapes that midpoints hide (e.g. a second-order block's overshoot corner)
     gdims=[i for i,v in enumerate(sv) if v in gbox]
     fixed=[axes[i][len(axes[i])//2] for i in range(len(sv))]
     pts=[]
@@ -126,6 +128,24 @@ def samples(gbox, ebox, sv):
         p=list(fixed)
         for j,i in enumerate(gdims): p[i]=combo[j]
         pts.append({v:p[i] for i,v in enumerate(sv)})
+        for i in range(len(sv)):
+            if i in gdims: continue
+            for corner in (axes[i][0], axes[i][-1]):
+                if corner==p[i]: continue
+                p2=list(p); p2[i]=corner
+                pts.append({v:p2[ix] for ix,v in enumerate(sv)})
+    # pairwise corners of non-guard dims (2 at a time) — the coupled-block escapes
+    base=list(fixed)
+    nds=[i for i in range(len(sv)) if i not in gdims]
+    for ii in range(len(nds)):
+        for jj in range(ii+1,len(nds)):
+            for ci in (axes[nds[ii]][0], axes[nds[ii]][-1]):
+                for cj in (axes[nds[jj]][0], axes[nds[jj]][-1]):
+                    for combo in itertools.product(*[axes[i] for i in gdims]):
+                        p=list(fixed)
+                        for j,i in enumerate(gdims): p[i]=combo[j]
+                        p[nds[ii]]=ci; p[nds[jj]]=cj
+                        pts.append({v:p[ix] for ix,v in enumerate(sv)})
     return pts
 
 def audit(b):

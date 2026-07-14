@@ -255,15 +255,28 @@ carry closed kernel `rfl` certificates**.
   remained valid) but documented a time-warped system; all gains corrected, all certificates
   re-verified. rung2_6dof/rung2b_6dof turned out to be PLAIN terrain under the generalized
   grammar (stale driven-active classification) and closed via the generator at λ = 3.
-- Remaining (5 certifiable + the intentional outlier), each a well-scoped build:
-  **critically-damped second order** (rung4_8to12, story1_b, endurance_orderlift_2to3 —
-  `(A + Bt)e^{−kt}` witnesses; needs `∫ tⁱe^{−mu}` helpers and the rational bound
-  `t·e^{−t} ≤ 1/2` from `e^t ≥ 1 + t + t²/2`); **coupled hulls** (attitude_rate's symmetric
-  `(p,q)` block — diagonalizes by `u = p ± q` to rational-rate contracts, but the hull bound
-  on `p = (u + w)/2` needs a genuine 2-D invariance argument, the natural home for the cut
-  channel's Z3 route; story3_b's `(e, r)` pair is the 1-frozen-offset special case);
-  **rover_drag** (Riccati — the one true Picard box-inflow candidate, or a hyperbolic-Möbius
-  closed form). Ceiling: 46/47.
+- **The corner-sampling audit upgrade — and what it found.** The first audit sampler only
+  cornered GUARD-constrained dimensions; unguarded coordinates sat at envelope midpoints,
+  hiding single- and paired-coordinate envelope escapes. The upgraded sampler (per-dimension
+  and pairwise corner sweeps) found: **rung4_8to12 and story1_b are H-FALSE as modeled, and
+  unfixably so within per-coordinate envelopes** — their second-order attitude blocks
+  (`ψ' = ω, ω' = −ψ − 2ω`) exit ANY `(ψ, ω)` box at the corner with `ω > 0` on the `ψ`-max
+  face (witness: `ψ(t) = (0.6 + 1.0·t)e^{−t}` peaks at ≈ 0.67 > 0.6); the true invariant is
+  the cascade `|ψ + ω| ≤ B ∧ |ψ| ≤ B`, not expressible in the envelope language. These two
+  join shield_unreachable as intentional outliers unless the envelope language grows
+  ellipse/cascade sides. Also found and fixed the same session: orderlift_2to3 carried an
+  unenforced `s ≤ 1000` cap (removed; re-certifies) and a landing gap (its STEEP band floor
+  0 excludes the legitimate transient dip to `v ≈ −0.02` inside the envelope floor −0.05 —
+  a band-floor modeling fix pending); story3_b's `e`-envelope (±1.5) was narrower than its
+  reachable equilibria (`e* = −r`, `r ∈ ±1.52`) — widened to ±1.52, re-certifies, though its
+  coupled `(e, r)` block still needs its own invariance analysis.
+- Remaining certifiable (3 + the three outliers): **orderlift_2to3** (critically damped
+  `(A + Bt)e^{−4t}`; per-corner rational bounds via `e^{−x} ≤ 1/(1 + x + x²/2)`, plus the
+  band-floor fix); **attitude_rate** (audit-clean: the weak 0.05 coupling keeps its `(p,q)`
+  box forward-invariant; the witness proof needs a mutual first-exit argument on the explicit
+  two-exponential solution); **rover_drag** (Riccati — Picard box-inflow or hyperbolic-Möbius
+  closed form). Ceiling: 44/47; outliers: shield_unreachable (no guard band),
+  rung4_8to12/story1_b (envelope-language limitation, documented above).
 
 ## Current state
 

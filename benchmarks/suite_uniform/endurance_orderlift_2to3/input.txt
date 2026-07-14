@@ -32,17 +32,19 @@ epsilon = 0.5
 [Rsys.mode.STEEP]
 ode = v' = a; s' = v; a' = smt2:(- (- 4.80 (* 16.0 v)) (* 8 a)); j' = smt2:0;
 guard = v >= 0.0 and v < 0.40
-evolve = a >= -0.6 and a <= 0.6 and j >= -1.6 and j <= 1.4 and s >= 0.0 and s <= 1000.0 and v >= -0.05 and v <= 0.85
+# (the s <= 1000 evolve cap removed: nothing in the dynamics enforces it — the
+# reachability-in-evolve defect class; found by the corner-sampling audit.)
+evolve = a >= -0.6 and a <= 0.6 and j >= -1.6 and j <= 1.4 and s >= 0.0 and v >= -0.05 and v <= 0.85
 next = [MODER, STEEP]
 [Rsys.mode.MODER]
 ode = v' = a; s' = v; a' = smt2:(- (- 8.00 (* 16.0 v)) (* 8 a)); j' = smt2:0;
 guard = v >= 0.40 and v < 0.575
-evolve = a >= -0.6 and a <= 0.6 and j >= -1.6 and j <= 1.4 and s >= 0.0 and s <= 1000.0 and v >= -0.05 and v <= 0.85
+evolve = a >= -0.6 and a <= 0.6 and j >= -1.6 and j <= 1.4 and s >= 0.0 and v >= -0.05 and v <= 0.85
 next = [STEEP, FLAT, MODER]
 [Rsys.mode.FLAT]
 ode = v' = a; s' = v; a' = smt2:(- (- 10.40 (* 16.0 v)) (* 8 a)); j' = smt2:0;
 guard = v >= 0.575 and v < 0.715
-evolve = a >= -0.6 and a <= 0.6 and j >= -1.6 and j <= 1.4 and s >= 0.0 and s <= 1000.0 and v >= -0.05 and v <= 0.85
+evolve = a >= -0.6 and a <= 0.6 and j >= -1.6 and j <= 1.4 and s >= 0.0 and v >= -0.05 and v <= 0.85
 next = [MODER, FLAT]
 [relational_invariant]
 STEEP = 48*s[l] - 48*s[r] + 16*v[l] - 24*v[r] + 4*a[l] - 3*a[r] + j[l] <= 1.9 and s[l] <= s[r] + 0.411

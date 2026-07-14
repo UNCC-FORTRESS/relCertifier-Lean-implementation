@@ -48,13 +48,13 @@ ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (*
 guard = s >= 0.0 and s < 0.6
 # (evolve cap on the drifting coordinate removed with it: nothing in the dynamics
 # enforces it — the reachability-in-evolve defect class.)
-evolve = e >= -1.5 and e <= 1.5 and omega_phi >= -0.5 and omega_phi <= 0.6 and omega_psi >= -0.5 and omega_psi <= 0.6 and omega_theta >= -0.5 and omega_theta <= 0.6 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and r >= -1.52 and r <= 1.52 and s >= -0.05 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and y >= -1.0 and y <= 1.1 and z >= -1.0 and z <= 1.1
+evolve = e >= -1.52 and e <= 1.52 and omega_phi >= -0.5 and omega_phi <= 0.6 and omega_psi >= -0.5 and omega_psi <= 0.6 and omega_theta >= -0.5 and omega_theta <= 0.6 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and r >= -1.52 and r <= 1.52 and s >= -0.05 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and y >= -1.0 and y <= 1.1 and z >= -1.0 and z <= 1.1
 next = [MODER, STEEP]
 
 [Rsys.mode.MODER]
 ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); omega_psi' = smt2:0; theta_p' = smt2:(* -1 theta_p); omega_theta' = smt2:0; e' = smt2:r; r' = smt2:(- (* -4 e) (* 4 r)); phi_r' = smt2:(* -1 phi_r); omega_phi' = smt2:0; z' = smt2:0; y' = smt2:0;
 guard = s >= 0.6 and s < 1.4
-evolve = e >= -1.5 and e <= 1.5 and omega_phi >= -0.5 and omega_phi <= 0.6 and omega_psi >= -0.5 and omega_psi <= 0.6 and omega_theta >= -0.5 and omega_theta <= 0.6 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and r >= -1.52 and r <= 1.52 and s >= -0.05 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and y >= -1.0 and y <= 1.1 and z >= -1.0 and z <= 1.1
+evolve = e >= -1.52 and e <= 1.52 and omega_phi >= -0.5 and omega_phi <= 0.6 and omega_psi >= -0.5 and omega_psi <= 0.6 and omega_theta >= -0.5 and omega_theta <= 0.6 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and r >= -1.52 and r <= 1.52 and s >= -0.05 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and y >= -1.0 and y <= 1.1 and z >= -1.0 and z <= 1.1
 next = [FLAT, MODER]
 
 [Rsys.mode.FLAT]
@@ -63,7 +63,7 @@ ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (*
 # escapes with no successor beyond — the H-falsification audit's terminal-band overflow);
 # the band is now unbounded above, per the honest-envelope principle for positions.
 guard = s >= 1.4
-evolve = e >= -1.5 and e <= 1.5 and omega_phi >= -0.5 and omega_phi <= 0.6 and omega_psi >= -0.5 and omega_psi <= 0.6 and omega_theta >= -0.5 and omega_theta <= 0.6 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and r >= -1.52 and r <= 1.52 and s >= -0.05 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and y >= -1.0 and y <= 1.1 and z >= -1.0 and z <= 1.1
+evolve = e >= -1.52 and e <= 1.52 and omega_phi >= -0.5 and omega_phi <= 0.6 and omega_psi >= -0.5 and omega_psi <= 0.6 and omega_theta >= -0.5 and omega_theta <= 0.6 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and r >= -1.52 and r <= 1.52 and s >= -0.05 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and y >= -1.0 and y <= 1.1 and z >= -1.0 and z <= 1.1
 next = [FLAT]
 
 [relational_invariant]

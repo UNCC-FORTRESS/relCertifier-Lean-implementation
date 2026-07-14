@@ -290,12 +290,16 @@ carry closed kernel `rfl` certificates**.
   `a = ±0.6` faces exit at the reachable `v`-extremes). As with the second-order attitude
   blocks, no per-coordinate box is forward-invariant for the `(v, a)` block; the honest
   fixes applied anyway (the unenforced `s ≥ 0` floor removed, the STEEP residence band
-  extended to the envelope floor; still CERTIFIED). Final coverage: **42/47**, ceiling
-  43/47 — the one remaining candidate is story3_rollover_ladder_rung_b, whose `(e, r)`
-  cascade (`w = r + (4/3)e` contracts at rate 4, `e` at rate 1) IS box-invariant with
-  tangent corners, but its two-exponential has rate ratio 4, outside `twoExp_le`'s
-  `r₂ ≤ 2r₁` quadratic bound — it needs a quartic-vertex analog. Outliers: shield_unreachable
-  (no guard band), rung4_8to12/story1_b/orderlift_2to3 (envelope-language limitation).
+  extended to the envelope floor; still CERTIFIED). And story3_rollover_ladder_rung_b —
+  briefly recorded as a quartic-vertex candidate on misread dynamics — is in fact the same
+  class: its block is `e' = r, r' = −4e − 4r` (critically damped `(λ+2)²`, not a cascade),
+  the corner `(1.52, 1.52)` peaks at `e ≈ 1.634 > 1.52`, and the envelope chase diverges
+  (past 12.4 after 300 iterations). **Final coverage: 42/47 — the ceiling.** The five
+  uncovered: shield_unreachable (no guard band) and the four second-order-block benchmarks
+  (rung4_8to12, story1_attdist_rung_b, endurance_orderlift_2to3,
+  story3_rollover_ladder_rung_b), each with a mechanized escape witness; expressing their
+  invariant sets needs envelope-language growth (ellipse/cascade sides), a design decision
+  above any checker extension.
 
 ## Current state
 

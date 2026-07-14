@@ -299,7 +299,28 @@ carry closed kernel `rfl` certificates**.
   (rung4_8to12, story1_attdist_rung_b, endurance_orderlift_2to3,
   story3_rollover_ladder_rung_b), each with a mechanized escape witness; expressing their
   invariant sets needs envelope-language growth (ellipse/cascade sides), a design decision
-  above any checker extension.
+  above any checker extension. *(Superseded for three of the five by the cascade-coordinate
+  program below — the "ceiling" was a ceiling of the chart, not of the dynamics.)*
+- **The cascade-coordinate program: three outliers return (EXT 4c).** The second-order
+  blocks are unboxable in the `(angle, rate)` chart — but each is critically damped, and in
+  its eigen-cascade chart (`angle' = u − k·angle`, `u' = −k·u` with `u := rate + k·angle`, a
+  linear bijection of the same dynamics) per-coordinate envelope boxes ARE forward-invariant:
+  every face inflows once `|u| ≤ k·(angle bound)`. The benchmarks' R sides were rewritten in
+  that chart (story1_b's energy invariant re-expressed accordingly; all three re-certify and
+  pass the corner audit), and the checker grew the matching grammar: `CoordShape.chase j k`
+  (`x' = x_j − k·x`, value `(x₀ + x_j₀·t)e^{−kt}`), discharged by `polyExp_le`
+  (`(a + bt)e^{−gt} ≤ T` from `1 + x + x²/2 ≤ eˣ`, linear-dominance or discriminant branch)
+  under the integer band conditions `hij ≤ k·hii ∧ k·loi ≤ loj` — story3_b's `(e, r)` pair
+  certifies with the tight band `3040 = 2·1520`. For rung4_8to12 and story1_b the cascade
+  angles double as the position's DAMPERS, so `settling_terrain_dampC` integrates
+  `s' = v(1 − Σ a·ψ²)` with `ψ(u) = (p + w·u)e^{−gu}` in closed form through
+  `polyExpInt₁/₂` (`∫ uⁱe^{−mu}`), bounding the damping factor pointwise by
+  `chase_val_band` under the unchanged per-damper budget. **Coverage: 45/47
+  kernel-certified.** The two remaining are genuinely outside: shield_unreachable (no guard
+  band; certifier-inconclusive too) and endurance_orderlift_2to3 (the certifier's
+  v-tolerance flow queries need the tight `(v, a)` chart while H needs the cascade chart —
+  the two are incompatible, a mechanized chart-tension result; its own honest fixes are in
+  and it stays CERTIFIED).
 
 ## Current state
 
@@ -307,6 +328,8 @@ carry closed kernel `rfl` certificates**.
   CERTIFIED, 1 inconclusive-Z3 ERROR (`shield_unreachable`), literal shared evolution domains on
   all 47, mode physics in guards, cuts re-checked on every run.
 - **Theorems**: `tooling_sound` (Arc 1), `theorem3_faithful_landing_clocked_uniform` +
-  `theorem3_faithful_settling` + `boxLe_cut_lift` (Arcs 2–3), `wellformed_sound` (Arc 4);
-  all axioms-clean, the Z3 leaf only at certificate construction.
+  `theorem3_faithful_settling` + `boxLe_cut_lift` (Arcs 2–3), `wellformed_sound` +
+  `wellformed_sound_terrain` + `wellformed_sound_affine` (Arc 4, through EXT 4c);
+  all axioms-clean, the Z3 leaf only at certificate construction. 45/47 benchmarks carry
+  kernel `rfl` well-formedness certificates (24 settling + 19 terrain + 2 affine).
 - **Trust boundary**: unchanged throughout — `z3_unsat_sound`, the parser, and nothing else.

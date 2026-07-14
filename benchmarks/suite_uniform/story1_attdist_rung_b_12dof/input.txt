@@ -1,0 +1,71 @@
+# STORY 1 (forking tower: attitude simulation-distance): story1_attdist_rung_b_12dof
+# CARRIES the attitude distance from 8-DOF (rung_a) to 12-DOF.
+# L=12D (full rigid body, all channels 2nd-order).
+# R=8D-lifted (psi and theta STILL 2nd-order on R; the NEW channels roll/heave/lateral are 1st-order).
+# Property: D_psi and D_theta on the RATE GAP between the two 2nd-order systems.
+# The gap dynamics obey the same equation as the attitude dynamics: trivially inductive.
+# All 9 pairs certify including backward (terrain-independent attitude dynamics).
+#
+# NOTE ON WHAT THIS RUNG PROVES: the new channels added at 8->12 (roll/heave/lateral)
+# are OFF the attitude projection -- D_psi and D_theta do not reference them. So this
+# rung demonstrates "the attitude distance carries through a refinement step whose new
+# channels are irrelevant to it" -- valid and worth stating (same shielding argument as
+# the position spine), but structurally simpler than a step where new channels interact
+# with the property. For future stories, prefer refinement steps where the new channels
+# bear on the certified property.
+
+[problem]
+name = story1_attdist_rung_b_12dof
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 8.0
+bound_T = 4.0
+
+[Lsys]
+state_vars = [v, s, psi, omega_psi, theta_p, omega_theta, z, omega_z, phi_r, omega_phi, y, omega_y]
+epsilon = 1.0
+
+[Lsys.mode.STEEP]
+ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:omega_psi; omega_psi' = smt2:(- (* -1 psi) (* 2 omega_psi)); theta_p' = smt2:omega_theta; omega_theta' = smt2:(- (* -1 theta_p) (* 2 omega_theta)); z' = smt2:omega_z; omega_z' = smt2:(- (* -1 z) (* 2 omega_z)); phi_r' = smt2:omega_phi; omega_phi' = smt2:(- (* -1 phi_r) (* 2 omega_phi)); y' = smt2:omega_y; omega_y' = smt2:(- (* -1 y) (* 2 omega_y));
+guard = s >= 0.0 and s < 0.6
+evolve = omega_phi >= -0.4 and omega_phi <= 0.4 and omega_psi >= -0.4 and omega_psi <= 0.4 and omega_theta >= -0.4 and omega_theta <= 0.4 and omega_y >= -0.4 and omega_y <= 0.4 and omega_z >= -0.4 and omega_z <= 0.4 and phi_r >= -0.5 and phi_r <= 0.5 and psi >= -0.6 and psi <= 0.6 and s >= -0.05 and s <= 1000.0 and theta_p >= -0.6 and theta_p <= 0.6 and v >= 0.0 and v <= 0.8 and y >= -0.5 and y <= 0.5 and z >= -1.0 and z <= 1.0
+next = [MODER, STEEP]
+
+[Lsys.mode.MODER]
+ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:omega_psi; omega_psi' = smt2:(- (* -1 psi) (* 2 omega_psi)); theta_p' = smt2:omega_theta; omega_theta' = smt2:(- (* -1 theta_p) (* 2 omega_theta)); z' = smt2:omega_z; omega_z' = smt2:(- (* -1 z) (* 2 omega_z)); phi_r' = smt2:omega_phi; omega_phi' = smt2:(- (* -1 phi_r) (* 2 omega_phi)); y' = smt2:omega_y; omega_y' = smt2:(- (* -1 y) (* 2 omega_y));
+guard = s >= 0.6 and s < 1.4
+evolve = omega_phi >= -0.4 and omega_phi <= 0.4 and omega_psi >= -0.4 and omega_psi <= 0.4 and omega_theta >= -0.4 and omega_theta <= 0.4 and omega_y >= -0.4 and omega_y <= 0.4 and omega_z >= -0.4 and omega_z <= 0.4 and phi_r >= -0.5 and phi_r <= 0.5 and psi >= -0.6 and psi <= 0.6 and s >= -0.05 and s <= 1000.0 and theta_p >= -0.6 and theta_p <= 0.6 and v >= 0.0 and v <= 0.8 and y >= -0.5 and y <= 0.5 and z >= -1.0 and z <= 1.0
+next = [FLAT, MODER]
+
+[Lsys.mode.FLAT]
+ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:omega_psi; omega_psi' = smt2:(- (* -1 psi) (* 2 omega_psi)); theta_p' = smt2:omega_theta; omega_theta' = smt2:(- (* -1 theta_p) (* 2 omega_theta)); z' = smt2:omega_z; omega_z' = smt2:(- (* -1 z) (* 2 omega_z)); phi_r' = smt2:omega_phi; omega_phi' = smt2:(- (* -1 phi_r) (* 2 omega_phi)); y' = smt2:omega_y; omega_y' = smt2:(- (* -1 y) (* 2 omega_y));
+guard = s >= 1.4 and s < 899.95
+evolve = omega_phi >= -0.4 and omega_phi <= 0.4 and omega_psi >= -0.4 and omega_psi <= 0.4 and omega_theta >= -0.4 and omega_theta <= 0.4 and omega_y >= -0.4 and omega_y <= 0.4 and omega_z >= -0.4 and omega_z <= 0.4 and phi_r >= -0.5 and phi_r <= 0.5 and psi >= -0.6 and psi <= 0.6 and s >= -0.05 and s <= 1000.0 and theta_p >= -0.6 and theta_p <= 0.6 and v >= 0.0 and v <= 0.8 and y >= -0.5 and y <= 0.5 and z >= -1.0 and z <= 1.0
+next = [FLAT]
+
+[Rsys]
+state_vars = [v, s, psi, omega_psi, theta_p, omega_theta, z, omega_z, phi_r, omega_phi, y, omega_y]
+epsilon = 1.0
+
+[Rsys.mode.STEEP]
+ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:omega_psi; omega_psi' = smt2:(- (* -1 psi) (* 2 omega_psi)); theta_p' = smt2:omega_theta; omega_theta' = smt2:(- (* -1 theta_p) (* 2 omega_theta)); z' = smt2:(* -1 z); omega_z' = smt2:0; phi_r' = smt2:(* -1 phi_r); omega_phi' = smt2:0; y' = smt2:(* -1 y); omega_y' = smt2:0;
+guard = s >= 0.0 and s < 0.6
+evolve = omega_phi >= -0.4 and omega_phi <= 0.5 and omega_psi >= -0.4 and omega_psi <= 0.4 and omega_theta >= -0.4 and omega_theta <= 0.4 and omega_y >= -0.4 and omega_y <= 0.5 and omega_z >= -0.4 and omega_z <= 0.5 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.6 and psi <= 0.6 and s >= -0.05 and s <= 1000.0 and theta_p >= -0.6 and theta_p <= 0.6 and v >= 0.0 and v <= 0.8 and y >= -0.5 and y <= 0.15 and z >= -1.0 and z <= 0.15
+next = [MODER, STEEP]
+
+[Rsys.mode.MODER]
+ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:omega_psi; omega_psi' = smt2:(- (* -1 psi) (* 2 omega_psi)); theta_p' = smt2:omega_theta; omega_theta' = smt2:(- (* -1 theta_p) (* 2 omega_theta)); z' = smt2:(* -1 z); omega_z' = smt2:0; phi_r' = smt2:(* -1 phi_r); omega_phi' = smt2:0; y' = smt2:(* -1 y); omega_y' = smt2:0;
+guard = s >= 0.6 and s < 1.4
+evolve = omega_phi >= -0.4 and omega_phi <= 0.5 and omega_psi >= -0.4 and omega_psi <= 0.4 and omega_theta >= -0.4 and omega_theta <= 0.4 and omega_y >= -0.4 and omega_y <= 0.5 and omega_z >= -0.4 and omega_z <= 0.5 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.6 and psi <= 0.6 and s >= -0.05 and s <= 1000.0 and theta_p >= -0.6 and theta_p <= 0.6 and v >= 0.0 and v <= 0.8 and y >= -0.5 and y <= 0.15 and z >= -1.0 and z <= 0.15
+next = [FLAT, MODER]
+
+[Rsys.mode.FLAT]
+ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:omega_psi; omega_psi' = smt2:(- (* -1 psi) (* 2 omega_psi)); theta_p' = smt2:omega_theta; omega_theta' = smt2:(- (* -1 theta_p) (* 2 omega_theta)); z' = smt2:(* -1 z); omega_z' = smt2:0; phi_r' = smt2:(* -1 phi_r); omega_phi' = smt2:0; y' = smt2:(* -1 y); omega_y' = smt2:0;
+guard = s >= 1.4 and s < 899.95
+evolve = omega_phi >= -0.4 and omega_phi <= 0.5 and omega_psi >= -0.4 and omega_psi <= 0.4 and omega_theta >= -0.4 and omega_theta <= 0.4 and omega_y >= -0.4 and omega_y <= 0.5 and omega_z >= -0.4 and omega_z <= 0.5 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.6 and psi <= 0.6 and s >= -0.05 and s <= 1000.0 and theta_p >= -0.6 and theta_p <= 0.6 and v >= 0.0 and v <= 0.8 and y >= -0.5 and y <= 0.15 and z >= -1.0 and z <= 0.15
+next = [FLAT]
+
+[relational_invariant]
+STEEP = v[l] <= v[r] and 2*(psi[l]-psi[r])*(psi[l]-psi[r]) + 2*(psi[l]-psi[r])*(omega_psi[l]-omega_psi[r]) + (omega_psi[l]-omega_psi[r])*(omega_psi[l]-omega_psi[r]) <= 0.25 and 2*(theta_p[l]-theta_p[r])*(theta_p[l]-theta_p[r]) + 2*(theta_p[l]-theta_p[r])*(omega_theta[l]-omega_theta[r]) + (omega_theta[l]-omega_theta[r])*(omega_theta[l]-omega_theta[r]) <= 0.25
+MODER = 2*(psi[l]-psi[r])*(psi[l]-psi[r]) + 2*(psi[l]-psi[r])*(omega_psi[l]-omega_psi[r]) + (omega_psi[l]-omega_psi[r])*(omega_psi[l]-omega_psi[r]) <= 0.25 and 2*(theta_p[l]-theta_p[r])*(theta_p[l]-theta_p[r]) + 2*(theta_p[l]-theta_p[r])*(omega_theta[l]-omega_theta[r]) + (omega_theta[l]-omega_theta[r])*(omega_theta[l]-omega_theta[r]) <= 0.25
+FLAT = 2*(psi[l]-psi[r])*(psi[l]-psi[r]) + 2*(psi[l]-psi[r])*(omega_psi[l]-omega_psi[r]) + (omega_psi[l]-omega_psi[r])*(omega_psi[l]-omega_psi[r]) <= 0.25 and 2*(theta_p[l]-theta_p[r])*(theta_p[l]-theta_p[r]) + 2*(theta_p[l]-theta_p[r])*(omega_theta[l]-omega_theta[r]) + (omega_theta[l]-omega_theta[r])*(omega_theta[l]-omega_theta[r]) <= 0.25

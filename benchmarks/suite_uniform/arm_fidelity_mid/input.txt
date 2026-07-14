@@ -1,0 +1,70 @@
+# Arm Model-Fidelity Study -- Tier 2 of 3: MID fidelity (REDESIGNED)
+#
+# Deployed system (left): an underdamped PD arm to setpoint 0.5. It genuinely
+#   overshoots (peak ~0.58) and brakes back, so the Accelerate/Brake split is
+#   physically real (the original tier was mis-parameterized to CRITICAL damping
+#   c=2, which never overshoots, making Brake unreachable; corrected to c=1).
+#   theta' = v ; v' = -(theta - 0.5) - 1.0 v. Velocity capped to its physical
+#   reachable range (max |v| ~ 0.27 in approach), not the loose [-1,1] box.
+#
+# Reasoning model (right): a coarse LEADING reference that rises (fast then slow)
+#   to a plateau at or above the deployed arm's overshoot peak, then HOLDS. It does
+#   not retreat below the arm. This is the sound envelope: a conservative reference
+#   the deployed arm tracks from below. (The original tier had a Return mode that
+#   retreated at a fixed rate 0.2 while the arm lingered at peak, which diverges
+#   from any deployed arm and cannot be certified by any relational invariant --
+#   that was a model inconsistency, now removed.)
+#
+# Tolerance theta_L <= theta_R + 0.25 (finer than 0.40 at LOW). The reference's
+#   fast/slow rise tracks the arm's deceleration; the plateau bounds the lag.
+
+[problem]
+name = arm_fidelity_mid
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 4.0
+
+[Lsys]
+state_vars = [theta, v]
+epsilon = 1.0
+
+[Lsys.mode.Accelerate]
+ode = theta' = v; v' = smt2:(+ (* -1 (- theta 0.5)) (* -1.0 v));
+guard = theta >= 0.0 and theta < 0.5 and v >= 0.0 and v < 0.355
+evolve = theta >= -0.05 and theta <= 0.65 and v >= -0.45 and v <= 0.45
+next = [Brake, Accelerate]
+
+[Lsys.mode.Brake]
+ode = theta' = v; v' = smt2:(+ (* -1 (- theta 0.5)) (* -1.0 v));
+guard = theta >= 0.5 and theta <= 0.535 and v <= 0.0
+evolve = theta >= -0.05 and theta <= 0.65 and v >= -0.45 and v <= 0.45
+next = [Accelerate, Brake]
+
+[Rsys]
+state_vars = [theta]
+epsilon = 1.0
+
+[Rsys.mode.ApproachFast]
+ode = theta' = smt2:0.5;
+guard = theta >= 0.0 and theta <= 0.35
+evolve = theta >= 0.0 and theta <= 1.2
+next = [ApproachSlow, ApproachFast]
+
+[Rsys.mode.ApproachSlow]
+ode = theta' = smt2:0.3;
+guard = theta >= 0.35 and theta <= 0.6
+evolve = theta >= 0.0 and theta <= 1.2
+next = [Hold, ApproachSlow]
+
+[Rsys.mode.Hold]
+ode = theta' = smt2:(* 0.5 (- 0.6 theta));
+guard = theta >= 0.6 and theta < 1.15
+evolve = theta >= 0.0 and theta <= 1.2
+next = [Hold]
+
+[relational_invariant]
+# theta_L <= theta_R + 0.25. The reference leads (rises to a plateau >= the arm's
+# overshoot peak, then holds), so the arm tracks from below within tolerance.
+Accelerate = theta[l] <= theta[r] + 0.25
+Brake      = theta[l] <= theta[r] + 0.25

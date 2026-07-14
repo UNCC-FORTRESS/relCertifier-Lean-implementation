@@ -1,0 +1,60 @@
+# STORY 2 (forking tower: lateral corridor-keeping): story2_lateral_rung_a_8dof
+# FORKS FROM 6-DOF (rung_3to6). Adds y, w (lateral offset + lateral rate); the
+# corridor-keeping property y_L <= y_R + d is unstatable below this DOF.
+# This rung (a) refines 6->8 carrying the lateral property; rung_b carries it 8->12.
+
+[problem]
+name = story2_lateral_rung_a_8dof
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 8.0
+bound_T = 4.0
+
+[Lsys]
+state_vars = [v, s, psi, theta_p, y, z, phi_r, w]
+epsilon = 1.0
+
+[Lsys.mode.STEEP]
+ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); theta_p' = smt2:(* -1 theta_p); y' = smt2:(* -0.75 y); z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r); w' = smt2:(* -1 w);
+guard = s >= 0.0 and s < 0.6
+evolve = phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= -0.05 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and w >= -1.0 and w <= 0.15 and y >= 0.0 and y <= 0.15 and z >= -1.0 and z <= 0.15
+next = [MODER, STEEP]
+
+[Lsys.mode.MODER]
+ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); theta_p' = smt2:(* -1 theta_p); y' = smt2:(* -0.75 y); z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r); w' = smt2:(* -1 w);
+guard = s >= 0.6 and s < 1.4
+evolve = phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= -0.05 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and w >= -1.0 and w <= 0.15 and y >= 0.0 and y <= 0.15 and z >= -1.0 and z <= 0.15
+next = [FLAT, MODER]
+
+[Lsys.mode.FLAT]
+ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); theta_p' = smt2:(* -1 theta_p); y' = smt2:(* -0.75 y); z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r); w' = smt2:(* -1 w);
+guard = s >= 1.4 and s < 899.95
+evolve = phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= -0.05 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and w >= -1.0 and w <= 0.15 and y >= 0.0 and y <= 0.15 and z >= -1.0 and z <= 0.15
+next = [FLAT]
+
+[Rsys]
+state_vars = [v, s, psi, theta_p, y, z, phi_r, w]
+epsilon = 1.0
+
+[Rsys.mode.STEEP]
+ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); theta_p' = smt2:(* -1 theta_p); y' = smt2:(* -1.0 y); z' = smt2:(* -1 z); phi_r' = smt2:0; w' = smt2:(* -1 w);
+guard = s >= 0.0 and s < 0.6
+evolve = phi_r >= -0.5 and phi_r <= 0.6 and psi >= -0.5 and psi <= 0.15 and s >= -0.05 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and w >= -1.0 and w <= 0.15 and y >= 0.0 and y <= 0.15 and z >= -1.0 and z <= 0.15
+next = [MODER, STEEP]
+
+[Rsys.mode.MODER]
+ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); theta_p' = smt2:(* -1 theta_p); y' = smt2:(* -1.0 y); z' = smt2:(* -1 z); phi_r' = smt2:0; w' = smt2:(* -1 w);
+guard = s >= 0.6 and s < 1.4
+evolve = phi_r >= -0.5 and phi_r <= 0.6 and psi >= -0.5 and psi <= 0.15 and s >= -0.05 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and w >= -1.0 and w <= 0.15 and y >= 0.0 and y <= 0.15 and z >= -1.0 and z <= 0.15
+next = [FLAT, MODER]
+
+[Rsys.mode.FLAT]
+ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); theta_p' = smt2:(* -1 theta_p); y' = smt2:(* -1.0 y); z' = smt2:(* -1 z); phi_r' = smt2:0; w' = smt2:(* -1 w);
+guard = s >= 1.4 and s < 899.95
+evolve = phi_r >= -0.5 and phi_r <= 0.6 and psi >= -0.5 and psi <= 0.15 and s >= -0.05 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and w >= -1.0 and w <= 0.15 and y >= 0.0 and y <= 0.15 and z >= -1.0 and z <= 0.15
+next = [FLAT]
+
+[relational_invariant]
+STEEP = v[l] <= v[r] and y[l] <= y[r] + 0.3 and s[l] <= s[r] and psi[l] <= psi[r] and psi[r] <= psi[l] and theta_p[l] <= theta_p[r] and theta_p[r] <= theta_p[l]
+MODER = v[l] <= v[r] and y[l] <= y[r] + 0.3 and s[l] <= s[r] and psi[l] <= psi[r] and psi[r] <= psi[l] and theta_p[l] <= theta_p[r] and theta_p[r] <= theta_p[l]
+FLAT = v[l] <= v[r] and y[l] <= y[r] + 0.3 and s[l] <= s[r] and psi[l] <= psi[r] and psi[r] <= psi[l] and theta_p[l] <= theta_p[r] and theta_p[r] <= theta_p[l]

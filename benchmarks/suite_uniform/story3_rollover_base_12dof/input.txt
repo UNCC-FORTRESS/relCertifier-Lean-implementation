@@ -1,0 +1,65 @@
+# STORY 3 (forking tower: rollover safety): story3_rollover_base_12dof
+# FORKS FROM 8-DOF (rung3). Adds e, r, omega_phi, y (roll channel); the rollover
+# product property |v*r| <= a_max is unstatable below this DOF because the yaw/roll
+# RATE r is not yet a state. Base case at native 12-DOF fidelity; the transfer
+# variant carries the property across the 6->12 refinement.
+# 12-DOF rover ROLLOVER SAFETY (emergence: property unstatable below yaw-rate DOF)
+# Assume-guarantee: coarse 6-DOF plan commands gentle heading; fine 12-DOF executes
+# with yaw inertia and stays rollover-safe |v*r| <= a_max. Rollover margin emerges
+# only when yaw RATE r is a state (not present at 6-DOF). a_max=1.0 (track/2h_cg*g).
+
+[problem]
+name = story3_rollover_base_12dof
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 4.0
+
+[Lsys]
+state_vars = [v, s, psi, omega_psi, theta_p, omega_theta, e, r, phi_r, omega_phi, z, y]
+epsilon = 1.0
+
+[Lsys.mode.STEEP]
+ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:omega_psi; omega_psi' = smt2:(- (* -1 psi) (* 2 omega_psi)); theta_p' = smt2:omega_theta; omega_theta' = smt2:(- (* -1 theta_p) (* 2 omega_theta)); e' = smt2:r; r' = smt2:(- (* -4 e) (* 4 r)); phi_r' = smt2:omega_phi; omega_phi' = smt2:(- (* -1 phi_r) (* 2 omega_phi)); z' = smt2:(* -1 z); y' = smt2:(* -1 y);
+guard = s >= 0.0 and s < 0.6
+evolve = e >= -1.5 and e <= 1.5 and omega_phi >= -0.5 and omega_phi <= 0.5 and omega_psi >= -0.5 and omega_psi <= 0.5 and omega_theta >= -0.5 and omega_theta <= 0.5 and phi_r >= -0.5 and phi_r <= 0.5 and psi >= -0.5 and psi <= 0.5 and r >= -1.52 and r <= 1.52 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.5 and v >= 0.0 and v <= 0.8 and y >= -1.0 and y <= 0.15 and z >= -1.0 and z <= 0.15
+next = [MODER, STEEP]
+
+[Lsys.mode.MODER]
+ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:omega_psi; omega_psi' = smt2:(- (* -1 psi) (* 2 omega_psi)); theta_p' = smt2:omega_theta; omega_theta' = smt2:(- (* -1 theta_p) (* 2 omega_theta)); e' = smt2:r; r' = smt2:(- (* -4 e) (* 4 r)); phi_r' = smt2:omega_phi; omega_phi' = smt2:(- (* -1 phi_r) (* 2 omega_phi)); z' = smt2:(* -1 z); y' = smt2:(* -1 y);
+guard = s >= 0.6 and s < 1.4
+evolve = e >= -1.5 and e <= 1.5 and omega_phi >= -0.5 and omega_phi <= 0.5 and omega_psi >= -0.5 and omega_psi <= 0.5 and omega_theta >= -0.5 and omega_theta <= 0.5 and phi_r >= -0.5 and phi_r <= 0.5 and psi >= -0.5 and psi <= 0.5 and r >= -1.52 and r <= 1.52 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.5 and v >= 0.0 and v <= 0.8 and y >= -1.0 and y <= 0.15 and z >= -1.0 and z <= 0.15
+next = [FLAT, MODER]
+
+[Lsys.mode.FLAT]
+ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:omega_psi; omega_psi' = smt2:(- (* -1 psi) (* 2 omega_psi)); theta_p' = smt2:omega_theta; omega_theta' = smt2:(- (* -1 theta_p) (* 2 omega_theta)); e' = smt2:r; r' = smt2:(- (* -4 e) (* 4 r)); phi_r' = smt2:omega_phi; omega_phi' = smt2:(- (* -1 phi_r) (* 2 omega_phi)); z' = smt2:(* -1 z); y' = smt2:(* -1 y);
+guard = s >= 1.4 and s < 899.95
+evolve = e >= -1.5 and e <= 1.5 and omega_phi >= -0.5 and omega_phi <= 0.5 and omega_psi >= -0.5 and omega_psi <= 0.5 and omega_theta >= -0.5 and omega_theta <= 0.5 and phi_r >= -0.5 and phi_r <= 0.5 and psi >= -0.5 and psi <= 0.5 and r >= -1.52 and r <= 1.52 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.5 and v >= 0.0 and v <= 0.8 and y >= -1.0 and y <= 0.15 and z >= -1.0 and z <= 0.15
+next = [FLAT]
+
+[Rsys]
+state_vars = [v, s, psi, omega_psi, theta_p, omega_theta, e, r, phi_r, omega_phi, z, y]
+epsilon = 1.0
+
+[Rsys.mode.STEEP]
+ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); omega_psi' = smt2:0; theta_p' = smt2:(* -1 theta_p); omega_theta' = smt2:0; e' = smt2:(* -1 e); r' = smt2:0; phi_r' = smt2:(* -1 phi_r); omega_phi' = smt2:0; z' = smt2:0; y' = smt2:0;
+guard = s >= 0.0 and s < 0.6
+evolve = e >= -1.5 and e <= 0.15 and omega_phi >= -0.5 and omega_phi <= 0.6 and omega_psi >= -0.5 and omega_psi <= 0.6 and omega_theta >= -0.5 and omega_theta <= 0.6 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and r >= -1.52 and r <= 1.62 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and y >= -1.0 and y <= 1.1 and z >= -1.0 and z <= 1.1
+next = [MODER, STEEP]
+
+[Rsys.mode.MODER]
+ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); omega_psi' = smt2:0; theta_p' = smt2:(* -1 theta_p); omega_theta' = smt2:0; e' = smt2:(* -1 e); r' = smt2:0; phi_r' = smt2:(* -1 phi_r); omega_phi' = smt2:0; z' = smt2:0; y' = smt2:0;
+guard = s >= 0.6 and s < 1.4
+evolve = e >= -1.5 and e <= 0.15 and omega_phi >= -0.5 and omega_phi <= 0.6 and omega_psi >= -0.5 and omega_psi <= 0.6 and omega_theta >= -0.5 and omega_theta <= 0.6 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and r >= -1.52 and r <= 1.62 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and y >= -1.0 and y <= 1.1 and z >= -1.0 and z <= 1.1
+next = [FLAT, MODER]
+
+[Rsys.mode.FLAT]
+ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); omega_psi' = smt2:0; theta_p' = smt2:(* -1 theta_p); omega_theta' = smt2:0; e' = smt2:(* -1 e); r' = smt2:0; phi_r' = smt2:(* -1 phi_r); omega_phi' = smt2:0; z' = smt2:0; y' = smt2:0;
+guard = s >= 1.4 and s < 899.95
+evolve = e >= -1.5 and e <= 0.15 and omega_phi >= -0.5 and omega_phi <= 0.6 and omega_psi >= -0.5 and omega_psi <= 0.6 and omega_theta >= -0.5 and omega_theta <= 0.6 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and r >= -1.52 and r <= 1.62 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and y >= -1.0 and y <= 1.1 and z >= -1.0 and z <= 1.1
+next = [FLAT]
+
+[relational_invariant]
+STEEP = v[l] <= v[r] and s[l] <= s[r] + 0.2 and v[l]*r[l] <= 1.0 and 0 <= 1.0 + v[l]*r[l] and 1.125*e[l]*e[l] + 0.25*e[l]*r[l] + 0.156*r[l]*r[l] <= 0.33
+MODER = v[l] <= v[r] and s[l] <= s[r] + 0.2 and v[l]*r[l] <= 1.0 and 0 <= 1.0 + v[l]*r[l] and 1.125*e[l]*e[l] + 0.25*e[l]*r[l] + 0.156*r[l]*r[l] <= 0.33
+FLAT  = v[l] <= v[r] and s[l] <= s[r] + 0.2 and v[l]*r[l] <= 1.0 and 0 <= 1.0 + v[l]*r[l] and 1.125*e[l]*e[l] + 0.25*e[l]*r[l] + 0.156*r[l]*r[l] <= 0.33

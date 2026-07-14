@@ -1,0 +1,78 @@
+# Rover DOF + Terrain ladder -- Rung 2: 6-DOF (fine) refines 3-DOF (coarse)
+#
+# Position-indexed terrain (slope class by along-track location), monotone traversal
+# STEEP -> MODER -> FLAT. Velocity regulates to the slope-class target within each
+# segment; s increases monotonically so segment boundaries are crossed in finite time.
+#
+# Terrain segments and NASA-grounded target speeds:
+#   STEEP  s in [0, 0.6)    v* = 0.30
+#   MODER  s in [0.6, 1.4)    v* = 0.50
+#   FLAT   s in [1.4, inf)  v* = 0.65
+# Velocity dynamics v' = 3(v* - v) shared by both models.
+#
+# Reasoning model (right, 3-DOF [v, s, psi]): the previous rung's fine model in the
+#   coarse role, lifted into 6-DOF with absent pose states pinned (z'=theta_p'=phi_r'=0).
+#   Progress bound optimistically: s' = v (full commanded speed).
+# Deployed model (left, 6-DOF [v, s, psi, z, theta_p, phi_r]): full pose; along-track
+#   progress reduced by heading and pitch, s' = v(1 - 0.5 psi^2 - 0.3 theta_p^2) <= v.
+#   Pose states z, theta_p, phi_r regulate to 0, off the safety projection.
+#
+# Coupled invariant v_L <= v_R and s_L <= s_R + 0.2 per segment. The coarse model's
+# optimistic s' = v keeps s_fine <= s_coarse structural; the velocity conjunct is
+# inductive via the shared decaying velocity dynamics.
+
+[problem]
+name = rover_dof_terrain_rung2
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 4.0
+
+[Lsys]
+state_vars = [v, s, psi, z, theta_p, phi_r]
+epsilon = 1.0
+
+[Lsys.mode.STEEP]
+ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); z' = smt2:(* -1 z); theta_p' = smt2:(* -1 theta_p); phi_r' = smt2:(* -1 phi_r);
+guard = s >= 0.0 and s < 0.6
+evolve = phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 0.15
+next = [MODER, STEEP]
+
+[Lsys.mode.MODER]
+ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); z' = smt2:(* -1 z); theta_p' = smt2:(* -1 theta_p); phi_r' = smt2:(* -1 phi_r);
+guard = s >= 0.6 and s < 1.4
+evolve = phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 0.15
+next = [FLAT, MODER]
+
+[Lsys.mode.FLAT]
+ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); z' = smt2:(* -1 z); theta_p' = smt2:(* -1 theta_p); phi_r' = smt2:(* -1 phi_r);
+guard = s >= 1.4 and s < 899.95
+evolve = phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 0.15
+next = [FLAT]
+
+[Rsys]
+state_vars = [v, s, psi, z, theta_p, phi_r]
+epsilon = 1.0
+
+[Rsys.mode.STEEP]
+ode = v' = smt2:(* 3 (- 0.30 v)); s' = v; psi' = smt2:(* -1 psi); z' = smt2:0; theta_p' = smt2:0; phi_r' = smt2:0;
+guard = s >= 0.0 and s < 0.6
+evolve = phi_r >= -0.5 and phi_r <= 0.6 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.6 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 1.1
+next = [MODER, STEEP]
+
+[Rsys.mode.MODER]
+ode = v' = smt2:(* 3 (- 0.50 v)); s' = v; psi' = smt2:(* -1 psi); z' = smt2:0; theta_p' = smt2:0; phi_r' = smt2:0;
+guard = s >= 0.6 and s < 1.4
+evolve = phi_r >= -0.5 and phi_r <= 0.6 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.6 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 1.1
+next = [FLAT, MODER]
+
+[Rsys.mode.FLAT]
+ode = v' = smt2:(* 3 (- 0.65 v)); s' = v; psi' = smt2:(* -1 psi); z' = smt2:0; theta_p' = smt2:0; phi_r' = smt2:0;
+guard = s >= 1.4 and s < 899.95
+evolve = phi_r >= -0.5 and phi_r <= 0.6 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.6 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 1.1
+next = [FLAT]
+
+[relational_invariant]
+STEEP = v[l] <= v[r] and s[l] <= s[r] + 0.2
+MODER = v[l] <= v[r] and s[l] <= s[r] + 0.2
+FLAT  = v[l] <= v[r] and s[l] <= s[r] + 0.2

@@ -1,0 +1,58 @@
+# Rover 4D box-target transition.
+#
+# Purpose: the transition whose dReal forall-t box-avoidance encoding went
+# VACUOUS (t11: returned delta-sat for both entered and avoided 4D boxes).
+# Here we discharge the REAL obligation -- reach-while-stay into the target
+# region -- with the SOS descent certificate instead.
+#
+# 4 state vars all DRIVEN toward a target region with brisk, transversal
+# dynamics so a uniform descent margin exists (the reach-while-stay property
+# genuinely holds and is certifiable).
+#
+# Source mode APPROACH: all four coordinates converge toward the SETTLE region.
+#   px drifts up toward target via vx; py toward target via vy;
+#   vx, vy brake toward their target band.
+# The target boundary is reached when the rover enters the SETTLE guard.
+
+[problem]
+name = rover_4d_box
+max_depth = 4
+lambda_min = 1.0
+lambda_max = 3.0
+bound_T = 20.0
+
+[Lsys]
+state_vars = [px, py, vx, vy]
+epsilon = 1.0
+
+[Lsys.mode.HOLD]
+ode = px' = 0; py' = 0; vx' = 0; vy' = 0;
+guard = px >= 9.0 and px <= 11.0
+evolve = px >= 9.0 and px <= 11.1 and py >= -2.0 and py <= 2.1 and vx >= 0.0 and vx <= 2.1 and vy >= -1.0 and vy <= 1.1
+next = [HOLD]
+
+[Rsys]
+state_vars = [px, py, vx, vy]
+epsilon = 1.0
+
+# APPROACH: brisk transversal convergence of all four coords toward SETTLE.
+#   vx' = -(vx - 0.65): vx brakes toward 0.65 (target band CENTER, strictly
+#         inside [0.5,0.85] -- equilibrium off the guard boundary, Rule 1)
+#   vy' = -vy        : vy brakes toward 0
+#   px' = vx         : position advances
+#   py' = vy         : lateral advances
+[Rsys.mode.APPROACH]
+ode = px' = vx; py' = vy; vx' = smt2:(- 0.65 vx); vy' = smt2:(- 0.0 vy);
+guard = vx >= 0.65 and vx <= 0.7
+evolve = px >= 0.0 and px <= 15.0 and py >= -2.0 and py <= 2.0 and vx >= 0.5 and vx <= 1.5 and vy >= -1.0 and vy <= 1.0
+next = [SETTLE, APPROACH]
+
+# SETTLE: target region -- reached when vx has braked into [0.5, 0.85] band.
+[Rsys.mode.SETTLE]
+ode = px' = vx; py' = vy; vx' = 0; vy' = 0;
+guard = vx >= 0.5 and vx <= 0.85
+evolve = px >= 0.0 and px <= 15.0 and py >= -2.0 and py <= 2.0 and vx >= 0.5 and vx <= 1.5 and vy >= -1.0 and vy <= 1.0
+next = [SETTLE]
+
+[relational_invariant]
+HOLD = px[l] - px[r] <= 0.5

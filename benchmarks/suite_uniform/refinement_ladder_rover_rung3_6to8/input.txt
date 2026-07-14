@@ -1,0 +1,57 @@
+# 8 refines 6 (dynamics-order refinement: 2nd-order vs 1st-order attitude) -- EXPLORATORY
+
+[problem]
+name = refinement_ladder_rover_rung3_6to8
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 4.0
+
+[Lsys]
+state_vars = [v, s, psi, omega_psi, theta_p, omega_theta, z, phi_r]
+epsilon = 1.0
+
+[Lsys.mode.STEEP]
+ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:omega_psi; omega_psi' = smt2:(- (* -1 psi) (* 2 omega_psi)); theta_p' = smt2:omega_theta; omega_theta' = smt2:(- (* -1 theta_p) (* 2 omega_theta)); z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
+guard = s >= 0.0 and s < 0.6
+evolve = omega_psi >= -0.5 and omega_psi <= 0.5 and omega_theta >= -0.5 and omega_theta <= 0.5 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.5 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.5 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 0.15
+next = [MODER, STEEP]
+
+[Lsys.mode.MODER]
+ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:omega_psi; omega_psi' = smt2:(- (* -1 psi) (* 2 omega_psi)); theta_p' = smt2:omega_theta; omega_theta' = smt2:(- (* -1 theta_p) (* 2 omega_theta)); z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
+guard = s >= 0.6 and s < 1.4
+evolve = omega_psi >= -0.5 and omega_psi <= 0.5 and omega_theta >= -0.5 and omega_theta <= 0.5 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.5 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.5 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 0.15
+next = [FLAT, MODER]
+
+[Lsys.mode.FLAT]
+ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:omega_psi; omega_psi' = smt2:(- (* -1 psi) (* 2 omega_psi)); theta_p' = smt2:omega_theta; omega_theta' = smt2:(- (* -1 theta_p) (* 2 omega_theta)); z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
+guard = s >= 1.4 and s < 899.95
+evolve = omega_psi >= -0.5 and omega_psi <= 0.5 and omega_theta >= -0.5 and omega_theta <= 0.5 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.5 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.5 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 0.15
+next = [FLAT]
+
+[Rsys]
+state_vars = [v, s, psi, omega_psi, theta_p, omega_theta, z, phi_r]
+epsilon = 1.0
+
+[Rsys.mode.STEEP]
+ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); omega_psi' = smt2:0; theta_p' = smt2:(* -1 theta_p); omega_theta' = smt2:0; z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
+guard = s >= 0.0 and s < 0.6
+evolve = omega_psi >= -0.5 and omega_psi <= 0.6 and omega_theta >= -0.5 and omega_theta <= 0.6 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 0.15
+next = [MODER, STEEP]
+
+[Rsys.mode.MODER]
+ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); omega_psi' = smt2:0; theta_p' = smt2:(* -1 theta_p); omega_theta' = smt2:0; z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
+guard = s >= 0.6 and s < 1.4
+evolve = omega_psi >= -0.5 and omega_psi <= 0.6 and omega_theta >= -0.5 and omega_theta <= 0.6 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 0.15
+next = [FLAT, MODER]
+
+[Rsys.mode.FLAT]
+ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); omega_psi' = smt2:0; theta_p' = smt2:(* -1 theta_p); omega_theta' = smt2:0; z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
+guard = s >= 1.4 and s < 899.95
+evolve = omega_psi >= -0.5 and omega_psi <= 0.6 and omega_theta >= -0.5 and omega_theta <= 0.6 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 0.15
+next = [FLAT]
+
+[relational_invariant]
+STEEP = v[l] <= v[r] and s[l] <= s[r] + 0.2 and psi[r]*psi[r] <= psi[l]*psi[l] + 3*omega_psi[l]*omega_psi[l] and theta_p[r]*theta_p[r] <= theta_p[l]*theta_p[l] + 3*omega_theta[l]*omega_theta[l]
+MODER = v[l] <= v[r] and s[l] <= s[r] + 0.2 and psi[r]*psi[r] <= psi[l]*psi[l] + 3*omega_psi[l]*omega_psi[l] and theta_p[r]*theta_p[r] <= theta_p[l]*theta_p[l] + 3*omega_theta[l]*omega_theta[l]
+FLAT  = v[l] <= v[r] and s[l] <= s[r] + 0.2 and psi[r]*psi[r] <= psi[l]*psi[l] + 3*omega_psi[l]*omega_psi[l] and theta_p[r]*theta_p[r] <= theta_p[l]*theta_p[l] + 3*omega_theta[l]*omega_theta[l]

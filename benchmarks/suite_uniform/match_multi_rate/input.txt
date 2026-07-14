@@ -1,0 +1,62 @@
+# match_multi_rate: heterogeneous multiple-cycle matching across a multi-mode left cycle.
+#
+# Generalizes rate_match_3to1 to a left system that CYCLES through three modes, each evolving at
+# a DIFFERENT rate relative to the single reasoning (right) DRIVE mode (rate 1):
+#
+#   Left FAST   : velocity gain 3  vs right gain 1  => lambda = 3  => 3 right cycles to match
+#   Left MEDIUM : velocity gain 2  vs right gain 1  => lambda = 2  => 2 right cycles to match
+#   Left SLOW   : velocity gain 1  vs right gain 1  => lambda = 1  => 1 right cycle  to match
+#
+# Each left mode forces its OWN time-stretch lambda equal to its rate ratio (proven per mode by
+# the sync), so within each left mode the right must re-cycle a DIFFERENT number of times. This
+# tests heterogeneous rate matching: the cover must use the correct per-mode lambda across the
+# left's cycle, not a single global stretch.
+#
+# Relational guarantee v_L <= v_R (deployed velocity never exceeds reasoning velocity), preserved
+# in every (left_mode, right DRIVE) pairing at the per-mode lambda. The left cycles
+# FAST -> MEDIUM -> SLOW -> RESET -> FAST by velocity band; RESET dips v_L back down, which is
+# harmless to v_L <= v_R (lowering v_L only strengthens the inequality). The right is a single
+# DRIVE mode (gain 1) that self-loops, so the only thing varying across the left cycle is the
+# left's per-mode rate, isolating the heterogeneous-ratio effect.
+[problem]
+name = match_multi_rate
+max_depth = 16
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 2.0
+[Lsys]
+state_vars = [v, s]
+epsilon = 0.3
+[Lsys.mode.FAST]
+ode = v' = smt2:(* 3 (- 1.0 v)); s' = v;
+guard = v >= 0.2 and v < 0.5
+evolve = s >= 0.0 and s <= 100.0 and v >= 0.0 and v <= 1.15
+next = [MEDIUM, FAST]
+[Lsys.mode.MEDIUM]
+ode = v' = smt2:(* 2 (- 1.0 v)); s' = v;
+guard = v >= 0.5 and v < 0.7
+evolve = s >= 0.0 and s <= 100.0 and v >= 0.0 and v <= 1.15
+next = [SLOW, MEDIUM]
+[Lsys.mode.SLOW]
+ode = v' = smt2:(* 1 (- 1.0 v)); s' = v;
+guard = v >= 0.7 and v <= 0.95
+evolve = s >= 0.0 and s <= 100.0 and v >= 0.0 and v <= 1.15
+next = [RESET, SLOW]
+[Lsys.mode.RESET]
+ode = v' = smt2:(* 4 (- 0.1 v)); s' = v;
+guard = v >= 0.95 and v < 1.0
+evolve = s >= 0.0 and s <= 100.0 and v >= 0.0 and v <= 1.15
+next = [FAST, RESET]
+[Rsys]
+state_vars = [v, s]
+epsilon = 0.3
+[Rsys.mode.DRIVE]
+ode = v' = smt2:(* 1 (- 1.0 v)); s' = v;
+guard = v >= 0.2 and v <= 0.95
+evolve = s >= 0.0 and s <= 100.0 and v >= 0.0 and v <= 1.15
+next = [DRIVE]
+[relational_invariant]
+FAST = v[l] <= v[r]
+MEDIUM = v[l] <= v[r]
+SLOW = v[l] <= v[r]
+RESET = v[l] <= v[r]

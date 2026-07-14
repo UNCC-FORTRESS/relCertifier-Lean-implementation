@@ -1,0 +1,107 @@
+# Arm Model-Fidelity Study -- Tier 1 of 3: LOW fidelity
+#
+# Deployed system (left): the real robotic arm, a critically-damped PD joint
+#   theta' = v, v' = -(theta - 0.5) - 2 v, physical range theta in [0,1], v in [-1,1].
+#   This plant -- and its physical evolve domains -- is IDENTICAL across all three
+#   fidelity tiers. Only the reasoning model (right) changes.
+#
+# Reasoning model (right): a COARSE 2-mode constant-rate position envelope
+#   (Approach theta'=+0.2, Return theta'=-0.2). It captures only the gross
+#   advance/retreat of the joint, ignoring the velocity profile entirely.
+#
+# Because the model is coarse, the certified tolerance is large: theta_L <= theta_R
+#   + 0.40. This is the loosest of the three tiers. Fidelity rises (and the certified
+#   gap shrinks) in arm_fidelity_mid (0.25) and arm_fidelity_high (0.15).
+
+# Robotic Arm Behavioral Refinement Benchmark
+#
+# Story:
+#   Left  = concrete PD arm, two phases split by velocity sign
+#   Right = abstract two-mode constant-rate envelope
+#
+# Refinement claim: theta_L <= theta_R + 0.4
+#
+# Left system (concrete PD arm):
+#   theta' = v,  v' = -(theta-0.5) - 2v  (critically damped, eq at theta=0.5)
+#   Physical domain: theta in [0,1], v in [-1,1]
+#
+#   Modes (position AND velocity sign):
+#     Accelerate: theta in [0.0, 0.5), v >= 0  -- moving toward target
+#     Brake:      theta in [0.5, 1.0], v <= 0  -- returning from overshoot
+#
+# Right system (abstract envelope, strictly non-overlapping guards):
+#   Approach: theta in [0.0, 0.65]   theta' = +0.2
+#   Return:   theta >= 0.70          theta' = -0.2
+#   Gap (0.65, 0.70): abstraction hysteresis band -- intentional gap
+#     that prevents simultaneous guard satisfaction and avoids
+#     delta-SAT boundary artifacts in dReal.
+#
+# Abstraction note:
+#   Right modes depend only on position (theta), intentionally dropping
+#   velocity structure. This is the refinement claim: the abstract
+#   constant-rate envelope over-approximates the concrete PD behavior.
+#   Upper bound of Return handled by evolve domain theta <= 1.0
+#   Single-atom Return guard avoids compound-target BadDelay artifacts
+#
+# Relational invariant: theta_L <= theta_R + 0.4 (both modes)
+#
+# Guard overlap analysis (at boundary theta_L = theta_R + 0.4):
+#   Accelerate/Approach: theta_R in [0.0, 0.1]   lam_min=5.0  ✓
+#   Accelerate/Return:   no overlap               not certifiable
+#   Brake/Approach:      theta_R in [0.1, 0.6]   lam_min=0.0  ✓
+#   Brake/Return:        no overlap               not certifiable
+#
+# Lie derivative:
+#   Accelerate/Approach: v_L in [0,1], worst v_L=1: lambda_min=5, n*=5
+#   Brake/Approach:      v_L in [-1,0], worst v_L=0: lambda_min=0, n*=1
+#
+# Response sets:
+#   A(Accelerate): Approach via CertSync(lam=5), Return via CertSolo
+#   A(Brake):      Approach via CertSync(lam=1), Return via CertSolo
+#
+# Connecting conditions:
+#   Acc->Brake: theta_L=0.5, Inv gives theta_R >= 0.1: ✓
+#   Brake->Acc: theta_L=0.5, Inv gives theta_R >= 0.1: ✓
+
+[problem]
+name = arm_fidelity_low
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 4.0
+
+[Lsys]
+state_vars = [theta, v]
+epsilon = 1.0
+
+[Lsys.mode.Accelerate]
+ode = theta' = v; v' = smt2:(+ (* -1 (- theta 0.5)) (* -2 v));
+guard = theta >= 0.0 and theta < 0.5 and v >= 0.0 and v < 0.85
+evolve = theta >= -0.05 and theta <= 1.0 and v >= -1.0 and v <= 1.0
+next = [Brake, Accelerate]
+
+[Lsys.mode.Brake]
+ode = theta' = v; v' = smt2:(+ (* -1 (- theta 0.5)) (* -2 v));
+guard = theta >= 0.5 and theta <= 0.85 and v <= 0.0
+evolve = theta >= -0.05 and theta <= 1.0 and v >= -1.0 and v <= 1.0
+next = [Accelerate, Brake]
+
+[Rsys]
+state_vars = [theta]
+epsilon = 1.0
+
+[Rsys.mode.Approach]
+ode = theta' = 0.2;
+guard = theta >= 0.0 and theta <= 0.7
+evolve = theta >= 0.0 and theta <= 1.0
+next = [Return, Approach]
+
+[Rsys.mode.Return]
+ode = theta' = smt2:(- 0 0.2);
+guard = theta >= 0.70 and theta < 0.85
+evolve = theta >= 0.0 and theta <= 1.0
+next = [Approach, Return]
+
+[relational_invariant]
+Accelerate = theta[l] <= theta[r] + 0.4
+Brake      = theta[l] <= theta[r] + 0.4

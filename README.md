@@ -225,6 +225,66 @@ the actual programs, transition-faithful, multi-flow, reposition, all left modes
 sits* (Z3 `unsat` at the leaf; the ⊤-edge model; the ∀-left over-approximation; automaton-shaped
 programs) — without overclaiming.
 
+## The landing chain — the automaton-right end-to-end theorem, intuitively
+
+The newer end-to-end result (`MultisegLanding.lean` → `MultisegLandingBridge.lean` →
+`UniformEvol.lean`) certifies a *different, more demanding shape* than `tooling_sound`: the right
+side is a genuine **mode-switching automaton run under a star** (`star rightAutomatonBody`), not a
+single pre-selected mode per left residence. Its top statement is
+
+```
+theorem3_faithful_landing_clocked_uniform :
+    UniformEvol G evolShared → UniformStayingH … →
+    rvalid (theorem3Form (ode leftBlock domL) (rightAutomatonBody G mv) ψpost)
+```
+
+**What the conclusion says, in words.** `rvalid (theorem3Form L R ψ)` is the NFM'25-encoded ∀∃
+refinement: *for every behavior the deployed left system can exhibit — every solution of its ODE,
+run for any admissible duration, repeated any number of times — the reasoning right automaton can
+produce a matching response, switching modes as it goes, such that the relational invariant `g ≤ 0`
+(e.g. "the deployed rover is never more than 0.5 m ahead of the certified one") holds at every
+checkpoint.* The left is universally quantified (an adversary picks its flow); the right is
+existentially quantified (the theorem *constructs* its response); the invariant survives the whole
+interaction. This is precisely the paper's Theorem 3 statement, and `rvalid` means the encoded
+formula is semantically valid — checked by the Lean kernel, not by the tool.
+
+**How the proof produces the right response.** Time is cut into fixed budget segments of length
+`dt` by a fresh clock (`clockedSeg`; the physical, clock-free left run is recovered by
+`clockLift_collapse`, so the clock is proof scaffolding, not a model change). Within each segment
+the right runs its **current mode's** flow for the same duration (`flowDiamondB`), staying inside
+the mode's evolution domain; at the segment boundary the automaton takes a declared edge
+(`starStep_landingH` — possibly the self-loop, possibly a switch). Preservation of `g` along each
+segment is exactly the **Z3-certified flow query** the `relcert` tool discharges per mode
+(`BoxLe` over the evolution domain — the same object, so tool run and theorem consume identical
+certificates). Chaining segments (`multiseg_clocked` → `faModal_MULTI`) and reifying through the
+NFM'25 encoding gives `rvalid`.
+
+**What must be assumed, and why it is now small.** Two obligations historically carried the risk:
+
+1. **The junction** — when the automaton switches, is the segment endpoint inside the *successor's*
+   evolution domain? Under **uniform evolution domains** (`UniformEvol`: every mode shares one
+   physical envelope `evolShared`, the design the `benchmarks/suite_uniform/` suite instantiates),
+   the successor's domain *is* the current domain, so the endpoint is there by the staying clause —
+   the junction is trivial and the old narrowing/reaching machinery (`SuccReach` etc.) is retired
+   from this path.
+2. **The staying** — does each `≤ dt` right flow remain inside `evolShared`? This is the one
+   substantive hypothesis (`UniformStayingH`, essentially `WellFormedFlowB`: from any admissible
+   state, the mode's flow exists and stays in the envelope for one segment). It is **discharged by
+   construction** for the *stabilizing* class — `WellFormedFlowB_contract` proves it outright for a
+   contractive coordinate `v' = k(c − v)` whose equilibrium lies inside the envelope (the envelope
+   is forward-invariant; explicit exponential witness) — and the geometric content for the
+   *guard-capped growing* class is proven as `staying_from_margin` (a flow with rate ≤ `r` starting
+   at the guard cap cannot cross a margin wider than `r·dt` in one segment; mean value theorem).
+   For benchmarks outside these shapes the hypothesis is carried explicitly and discharged
+   per-benchmark.
+
+So, intuitively: **if the modes share one honest physical envelope, the guards enforce settling
+(switch away from the envelope boundary with margin), and Z3 certifies per-mode invariant
+preservation over that envelope — then every deployed behavior has a certified matching response,
+with the safety margin intact at every step.** The trust boundary is unchanged: three standard Lean
+axioms, plus `z3_unsat_sound` exactly at the per-mode certificate leaf; `#print axioms` on the top
+theorem and on both discharge lemmas confirms `[propext, Classical.choice, Quot.sound]`.
+
 ## What is verified
 
 The tool is built bottom-up as three verified local certificates, their composition into the
@@ -289,6 +349,11 @@ Every source file, its job, the paper result it mechanizes, and the imported the
 | `GapThreeFoundation.lean` | GAP 3 Task 1: `HybridMode`/`HybridAut`, `leftEncode`/`rightEncode` (`⟦·⟧`), `isLeftAut`/`isRightAut`, `graphOf_Gr`/`graphOf_Gj` | **mechanization infrastructure** — the hybrid-program representation and the `graphOf` construction (ties the graph to `L,R`'s dL semantics; no direct paper analog) | `rightBlock`/`jointSys`/`R_real` |
 | `GapThreeTask2.lean` | **`RightProjAlign_from_graphOf`** | **GAP 3**: the graph↔program alignment **derived** from `graphOf` (assumed → derived), leaving only the CSF framework side-conditions | `graphOf` (Task 1) |
 | `GapThreeTask3.lean` | **`tooling_sound`**, `graphOfFlowMode` | **GAP 3 — the tooling-soundness theorem**: cover of the *actual* `L, R`, modality over `⟦L⟧ >> ⟦R⟧` | `theorem3_faithful_family` + `RightProjAlign_from_graphOf` |
+| `WellFormedFlow.lean` / `WFBoundary.lean` | `WellFormedFlow` (∀s) / `WellFormedFlowB` (bounded `≤dt`) flow well-formedness; boundary counterexamples | the honest per-mode staying hypothesis and its falsifiability analysis (`∀s` form FALSE for growing-bounded modes) | `rightBlock` |
+| `MultisegLanding.lean` | `LandingH`, `flowDiamondB`, `starStep_landingH`, `starInvF`, `multiseg_landing_clocked_physical`, `LandingWellFormed` | the automaton-right star: per-segment flow + landing dispatch, threaded star invariant, clocked→physical collapse | `BridgeReposition` (clock), `Cover` (graph) |
+| `MultisegLandingBridge.lean` | `theorem3_faithful_landing_clocked` / `_wf`, `ψpostL`/`encode_ψpostL` | the landing chain's `rvalid` re-point (shipped encoded soundness over `star rightAutomatonBody`) | `MultisegLanding` + reification bridge |
+| `RoverLandingInstance.lean` / `DecayDischarge.lean` | rover instance + falsification lemmas; `decay_stays` (worked ∀-base staying discharge, `v' = −v`) | grounding: which H clauses hold/fail on the rover; the stabilizing-class discharge pattern | `MultisegLanding` |
+| `UniformEvol.lean` | **`theorem3_faithful_landing_clocked_uniform`**, `UniformEvol`/`UniformStayingH`, `staying_from_margin`, `WellFormedFlowB_contract` | **the uniform-evol deployment**: junction trivial (narrowing retired), staying-only H, margin + contraction discharge (see "The landing chain, intuitively" above) | `MultisegLandingBridge` |
 | `Oracle.lean` | `z3_unsat_sound` (the one axiom) + `flow_certified` | the trusted SMT leaf | — (axiom) |
 | `Smt.lean` / `Z3.lean` / `Parse.lean` / `Run.lean` / `Main.lean` | computable IR + SMT printer, Z3 session, parser, runner, `relcert` exe | trusted IO shell | uses the verified queries |
 
@@ -565,6 +630,35 @@ silently raised), Hold-mode reachable-set tightening (`arm`/`plant`), coupled co
 from the former `benchmarks/restated/`), position-only invariants (`rover3_M1`), single-mode attitude
 keys (`story`), and the watertank fill-drift redesign — each reverted-and-retested, each a sound spec fix.
 
+### The uniform-evolution settling suite (`benchmarks/suite_uniform/`)
+
+A second, parallel 47-benchmark suite: each original rewritten to the **uniform-evol + settling
+design** that the landing-chain theorem (`theorem3_faithful_landing_clocked_uniform`) rests on.
+Two disciplines are enforced per benchmark (script-checked, not eyeballed):
+
+1. **One shared evolution domain, strictly wider than every guard** — the envelope is the honest
+   physical limit; guards, not the envelope boundary, control all switching. This is what makes
+   the theorem's junction obligation trivial (successor's domain = current domain).
+2. **Guard-enforced settling with provable margin** — every growing mode's guard fires with margin
+   exceeding the worst-case one-step travel (`margin > max-rate · dt`, `dt = εR/λmin`), or the
+   mode is contractive with its equilibrium strictly inside the envelope. This is exactly the
+   geometry `staying_from_margin` / `WellFormedFlowB_contract` consume.
+
+Run: `lake exe relcert benchmarks/suite_uniform/*/input.txt`
+
+| | count | classes |
+|---|---|---|
+| **CERTIFIED** | **33/47** | 17 already-settling (contractive, strictified only) · 10 margin-guard-fixed · 6 restructured (vx-triggered hold modes replacing reachability-encoded domains; `Hold` modes made contract-to-setpoint) |
+| **DECLINED** | 13 | honest hard cases: the terrain/12-DOF family (per-mode `v ≤ terrain-equilibrium` caps are *mode-dependent physics* — no single envelope exists, uniform-evol structurally inapplicable) and the highest-fidelity arm/plant variants (tight per-mode envelopes load-bearing for `g`) |
+| **ERROR** | 1 (`shield_unreachable`) | pre-existing inconclusive-Z3 boundary, as in the original suite |
+
+The original suite is untouched; the two suites answer different questions. `benchmarks/suite/`
+shows the certifier covering the paper's benchmark set (46/47) with per-mode domains — where the
+domain may silently encode reachability facts. `benchmarks/suite_uniform/` shows which systems
+certify under the *honest* discipline (envelope = physics, staying = guard geometry) — the class
+for which the landing theorem's well-formedness hypothesis is discharged or cleanly dischargeable
+rather than assumed. The declined 13 are reported as a genuine model-class boundary, not forced.
+
 Requires Lean 4 (`leanprover/lean4:v4.31.0`, pinned) and a pinned Z3 (`RELCERT_Z3` or a
 standard absolute path). `dL-rel` is fetched from GitHub at tag `v0.1.0-NFM25` (transitively
 provides dL-lean `v0.1.0-DI` and the encoding bridge) — `lake build` resolves it, no sibling
@@ -620,6 +714,12 @@ RelCertifier/
   Run.lean            end-to-end cover runner
   PicardBridge.lean   the ∀∃ witness — hExist discharged (existence + invariance + chaining)
   HExistDischarge.lean cross-side masking seam — hExist into segment_faModal
+  WellFormedFlow.lean / WFBoundary.lean  per-mode staying hypothesis (∀s / bounded ≤dt) + falsifiability
+  MultisegLanding.lean / MultisegLandingBridge.lean  automaton-right landing chain → rvalid
+  RoverLandingInstance.lean / DecayDischarge.lean    grounding instances + stabilizing discharge
+  UniformEvol.lean    uniform-evol deployment: junction trivial, margin/contraction discharge
 Main.lean             `relcert` executable
 ARCHITECTURE.md       certified-checker architecture + the finding that reshaped it
+benchmarks/suite/          the original 47-benchmark suite (per-mode domains)
+benchmarks/suite_uniform/  the uniform-evol settling suite (shared envelopes, margin guards)
 ```

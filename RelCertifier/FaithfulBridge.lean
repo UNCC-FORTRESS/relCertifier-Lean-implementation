@@ -11,6 +11,7 @@ operations `exprPoly` uses. Downstream (parts 2+), `shapeFaithful`'s Boolean coe
 laws become the real-valued pushforward identities that `GuardSettlingB_rescale` consumes.
 -/
 import RelCertifier.Faithful
+import RelCertifier.Rescale
 import Mathlib.Tactic.FieldSimp
 import Mathlib.Tactic.Ring
 import Mathlib.Data.List.Nodup
@@ -967,5 +968,357 @@ theorem rhoOf_getD {vs : List String} (hnod : vs.Nodup) (hlen : vs.length = n)
   unfold rhoOf
   rw [idxOf?_getD hnod (by omega)]
   simp only [hj, dite_true]
+
+/-! ## Part 5: the per-shape pushforward bridges
+
+For each `CoordShape`, `shapeFaithful`'s Boolean coefficient laws upgrade to the real
+pushforward identity `GuardSettlingB_rescale` consumes:
+
+    eval (field i sh) (scaleState σ ν) = σ i · (u · eval (polyToTerm vs p) ν).
+-/
+
+/-! ### Small monomial facts -/
+
+@[simp] theorem monoEq_nil_cons (x : String × Nat) (m : Mono) :
+    monoEq [] (x :: m) = false := rfl
+
+theorem monoEq_single_ne {v w : String} (h : v ≠ w) (k l : Nat) :
+    monoEq [(v, k)] [(w, l)] = false := by
+  unfold monoEq monoExtract
+  rw [if_neg (by simpa using h)]
+  simp [monoExtract]
+
+theorem monoEq_single_exp_ne {v w : String} {k l : Nat} (h : k ≠ l) :
+    monoEq [(v, k)] [(w, l)] = false := by
+  unfold monoEq monoExtract
+  by_cases hvw : v = w
+  · rw [if_pos (by simpa using hvw)]
+    simp [monoEq, h]
+  · rw [if_neg (by simpa using hvw)]
+    simp [monoExtract]
+
+theorem varsNodup_single (v : String) (k : Nat) : Mono.varsNodup [(v, k)] := by
+  simp [Mono.varsNodup]
+
+/-- Value of a singleton-support polynomial. -/
+theorem evalR_support_one {p : QPoly} (hp : PolyInv p) (m : Mono)
+    (hm : Mono.varsNodup m) (hsup : supportIn p [m] = true) (ρ : String → ℝ) :
+    QPoly.evalR ρ p = (coeffOf p m).val * Mono.evalR ρ m := by
+  rw [evalR_support ρ p hp [m] (by simpa using hm) (by simp) hsup]
+  simp
+
+/-- Value of a two-monomial-support polynomial. -/
+theorem evalR_support_two {p : QPoly} (hp : PolyInv p) (m1 m2 : Mono)
+    (h1 : Mono.varsNodup m1) (h2 : Mono.varsNodup m2)
+    (h12 : monoEq m1 m2 = false)
+    (hsup : supportIn p [m1, m2] = true) (ρ : String → ℝ) :
+    QPoly.evalR ρ p = (coeffOf p m1).val * Mono.evalR ρ m1
+      + (coeffOf p m2).val * Mono.evalR ρ m2 := by
+  rw [evalR_support ρ p hp [m1, m2]
+    (by
+      intro m hm
+      rcases List.mem_cons.mp hm with rfl | hm
+      · exact h1
+      · rw [List.mem_singleton.mp hm]
+        exact h2)
+    (by simp [h12]) hsup]
+  simp
+
+/-! ### The bridge frame -/
+
+/-- Value scales induced by the transcription's `QF` scales. -/
+noncomputable def sigmaOf (σq : List QF) : Fin n → ℝ :=
+  fun j => (σq.getD j.val (qOfInt 0)).val
+
+theorem scaleState_rhoOf {vs : List String} (hnod : vs.Nodup) (hlen : vs.length = n)
+    (σq : List QF) (ν : DL.State (Var n)) {j : Nat} (hj : j < n) :
+    rhoOf vs n (scaleState (sigmaOf σq) ν) (vs.getD j "")
+      = sigmaOf σq ⟨j, hj⟩ * ν (Rv ⟨j, hj⟩) := by
+  rw [rhoOf_getD hnod hlen _ hj]
+  rfl
+
+/-! ### Wave 1 shape bridges -/
+
+section ShapeBridges
+
+variable {vs : List String} {σq : List QF} {uq : QF}
+
+/-- `frozen`: zero field, empty polynomial. -/
+theorem bridge_frozen (i : Fin n) {p : QPoly}
+    (hsf : shapeFaithful vs σq uq i.val (CoordShape.frozen : CoordShape n) p = true)
+    (ν : DL.State (Var n)) :
+    Term.eval (CoordShape.field i CoordShape.frozen) (scaleState (sigmaOf σq) ν)
+      = sigmaOf σq i * (uq.val * Term.eval (polyToTerm vs n p) ν) := by
+  have hpe : p = [] := by
+    unfold shapeFaithful at hsf
+    exact List.isEmpty_iff.mp hsf
+  subst hpe
+  show (0 : ℝ) = sigmaOf σq i * (uq.val * Term.eval (Term.const 0) ν)
+  show (0 : ℝ) = sigmaOf σq i * (uq.val * 0)
+  ring
+
+/-- `constRate c`: constant field, constant polynomial. -/
+theorem bridge_constRate (hσd : ∀ j, j < n → (σq.getD j (qOfInt 0)).pos)
+    (hud : uq.pos) (i : Fin n) {p : QPoly} {c : ℤ}
+    (hp : PolyInv p)
+    (hsf : shapeFaithful vs σq uq i.val (CoordShape.constRate c : CoordShape n) p = true)
+    (ν : DL.State (Var n)) :
+    Term.eval (CoordShape.field i (CoordShape.constRate c)) (scaleState (sigmaOf σq) ν)
+      = sigmaOf σq i * (uq.val * Term.eval (polyToTerm vs n p) ν) := by
+  unfold shapeFaithful at hsf
+  simp only [Bool.and_eq_true] at hsf
+  obtain ⟨hsup, heq⟩ := hsf
+  have hσi := hσd i.val i.isLt
+  have hA : (coeffOf p []).pos := coeffOf_pos hp.pos []
+  have hval : (c : ℝ) = (coeffOf p []).val * sigmaOf σq i * uq.val := by
+    have := qEq_val (qOfInt_pos c) (qMul_pos (qMul_pos hA hσi) hud) heq
+    rw [qOfInt_val, qMul_val, qMul_val] at this
+    exact this
+  show (c : ℝ) = sigmaOf σq i * (uq.val * Term.eval (polyToTerm vs n p) ν)
+  rw [polyToTerm_eval, evalR_support_one hp [] Mono.varsNodup_nil hsup,
+    Mono.evalR_nil, hval]
+  ring
+
+/-- `contract k c`: affine contraction toward `c` at integer rate `k`. -/
+theorem bridge_contract (hnod : vs.Nodup) (hlen : vs.length = n)
+    (hσd : ∀ j, j < n → (σq.getD j (qOfInt 0)).pos) (hud : uq.pos)
+    (i : Fin n) {p : QPoly} {k c : ℤ}
+    (hp : PolyInv p)
+    (hsf : shapeFaithful vs σq uq i.val (CoordShape.contract k c : CoordShape n) p = true)
+    (ν : DL.State (Var n)) :
+    Term.eval (CoordShape.field i (CoordShape.contract k c)) (scaleState (sigmaOf σq) ν)
+      = sigmaOf σq i * (uq.val * Term.eval (polyToTerm vs n p) ν) := by
+  unfold shapeFaithful at hsf
+  simp only [Bool.and_eq_true] at hsf
+  obtain ⟨⟨⟨hsup, hBneg⟩, hk⟩, hc⟩ := hsf
+  set v := vs.getD i.val "" with hv
+  have hσi := hσd i.val i.isLt
+  have hA : (coeffOf p []).pos := coeffOf_pos hp.pos []
+  have hB : (coeffOf p [(v, 1)]).pos := coeffOf_pos hp.pos [(v, 1)]
+  have hBval : (coeffOf p [(v, 1)]).val < 0 := by
+    have := qLt_val hB (qOfInt_pos 0) hBneg
+    simpa using this
+  have hkval : (k : ℝ) = -(coeffOf p [(v, 1)]).val * uq.val := by
+    have := qEq_val (qOfInt_pos k) (qMul_pos (qNeg_pos hB) hud) hk
+    rw [qOfInt_val, qMul_val, qNeg_val] at this
+    exact this
+  have hcval : (c : ℝ)
+      = (coeffOf p []).val / -(coeffOf p [(v, 1)]).val * sigmaOf σq i := by
+    have := qEq_val (qOfInt_pos c)
+      (qMul_pos (qDiv_pos hA (by
+        show (qNeg (coeffOf p [(v, 1)])).n ≠ 0
+        unfold qNeg
+        have : (coeffOf p [(v, 1)]).n ≠ 0 := by
+          intro h0
+          rw [QF.val] at hBval
+          rw [h0] at hBval
+          simp at hBval
+        simpa using this)) hσi) hc
+    rw [qOfInt_val, qMul_val, qDiv_val hA (qNeg_pos hB), qNeg_val] at this
+    exact this
+  have hρ := scaleState_rhoOf (n := n) hnod hlen σq ν i.isLt
+  show (k : ℝ) * ((c : ℝ) - scaleState (sigmaOf σq) ν (Rv i))
+      = sigmaOf σq i * (uq.val * Term.eval (polyToTerm vs n p) ν)
+  rw [polyToTerm_eval,
+    evalR_support_two hp [] [(v, 1)] Mono.varsNodup_nil (varsNodup_single v 1)
+      rfl hsup,
+    Mono.evalR_nil, Mono.evalR_cons, Mono.evalR_nil]
+  have hRv : scaleState (sigmaOf σq) ν (Rv i) = sigmaOf σq i * ν (Rv i) := rfl
+  have hρv : rhoOf vs n ν v = ν (Rv i) := by
+    rw [hv, rhoOf_getD hnod hlen ν i.isLt]
+  rw [hRv, hρv, hkval, hcval]
+  have hBne : (coeffOf p [(v, 1)]).val ≠ 0 := by linarith
+  field_simp
+  ring
+
+/-- `contractQ kn kd c`: contraction at rational rate `kn/kd`. -/
+theorem bridge_contractQ (hnod : vs.Nodup) (hlen : vs.length = n)
+    (hσd : ∀ j, j < n → (σq.getD j (qOfInt 0)).pos) (hud : uq.pos)
+    (i : Fin n) {p : QPoly} {kn kd c : ℤ}
+    (hp : PolyInv p)
+    (hsf : shapeFaithful vs σq uq i.val
+      (CoordShape.contractQ kn kd c : CoordShape n) p = true)
+    (ν : DL.State (Var n)) :
+    Term.eval (CoordShape.field i (CoordShape.contractQ kn kd c))
+        (scaleState (sigmaOf σq) ν)
+      = sigmaOf σq i * (uq.val * Term.eval (polyToTerm vs n p) ν) := by
+  unfold shapeFaithful at hsf
+  simp only [Bool.and_eq_true] at hsf
+  obtain ⟨⟨⟨⟨hsup, hBneg⟩, hkd⟩, hk⟩, hc⟩ := hsf
+  set v := vs.getD i.val "" with hv
+  have hσi := hσd i.val i.isLt
+  have hA : (coeffOf p []).pos := coeffOf_pos hp.pos []
+  have hB : (coeffOf p [(v, 1)]).pos := coeffOf_pos hp.pos [(v, 1)]
+  have hBval : (coeffOf p [(v, 1)]).val < 0 := by
+    have := qLt_val hB (qOfInt_pos 0) hBneg
+    simpa using this
+  have hkdne : (kd : ℤ) ≠ 0 := by simpa using hkd
+  have hkval : (kn : ℝ) / (kd : ℝ) = -(coeffOf p [(v, 1)]).val * uq.val := by
+    have := qEq_val (qDiv_pos (qOfInt_pos kn) (by simpa [qOfInt] using hkdne))
+      (qMul_pos (qNeg_pos hB) hud) hk
+    rw [qDiv_val (qOfInt_pos kn) (qOfInt_pos kd), qOfInt_val, qOfInt_val,
+      qMul_val, qNeg_val] at this
+    exact this
+  have hcval : (c : ℝ)
+      = (coeffOf p []).val / -(coeffOf p [(v, 1)]).val * sigmaOf σq i := by
+    have := qEq_val (qOfInt_pos c)
+      (qMul_pos (qDiv_pos hA (by
+        show (qNeg (coeffOf p [(v, 1)])).n ≠ 0
+        unfold qNeg
+        have : (coeffOf p [(v, 1)]).n ≠ 0 := by
+          intro h0
+          rw [QF.val] at hBval
+          rw [h0] at hBval
+          simp at hBval
+        simpa using this)) hσi) hc
+    rw [qOfInt_val, qMul_val, qDiv_val hA (qNeg_pos hB), qNeg_val] at this
+    exact this
+  show (kn : ℝ) / (kd : ℝ) * ((c : ℝ) - scaleState (sigmaOf σq) ν (Rv i))
+      = sigmaOf σq i * (uq.val * Term.eval (polyToTerm vs n p) ν)
+  rw [polyToTerm_eval,
+    evalR_support_two hp [] [(v, 1)] Mono.varsNodup_nil (varsNodup_single v 1)
+      rfl hsup,
+    Mono.evalR_nil, Mono.evalR_cons, Mono.evalR_nil]
+  have hRv : scaleState (sigmaOf σq) ν (Rv i) = sigmaOf σq i * ν (Rv i) := rfl
+  have hρv : rhoOf vs n ν v = ν (Rv i) := by
+    rw [hv, rhoOf_getD hnod hlen ν i.isLt]
+  rw [hRv, hρv, hkval, hcval]
+  have hBne : (coeffOf p [(v, 1)]).val ≠ 0 := by linarith
+  field_simp
+  ring
+
+/-- `driven j`: the coordinate is driven by coordinate `j`'s value. -/
+theorem bridge_driven (hnod : vs.Nodup) (hlen : vs.length = n)
+    (hσd : ∀ j, j < n → (σq.getD j (qOfInt 0)).pos) (hud : uq.pos)
+    (i : Fin n) {p : QPoly} {j : Fin n}
+    (hp : PolyInv p)
+    (hsf : shapeFaithful vs σq uq i.val (CoordShape.driven j : CoordShape n) p = true)
+    (ν : DL.State (Var n)) :
+    Term.eval (CoordShape.field i (CoordShape.driven j)) (scaleState (sigmaOf σq) ν)
+      = sigmaOf σq i * (uq.val * Term.eval (polyToTerm vs n p) ν) := by
+  unfold shapeFaithful at hsf
+  simp only [Bool.and_eq_true] at hsf
+  obtain ⟨⟨hsup, hCz⟩, hC⟩ := hsf
+  set w := vs.getD j.val "" with hw
+  have hσi := hσd i.val i.isLt
+  have hσj := hσd j.val j.isLt
+  have hCp : (coeffOf p [(w, 1)]).pos := coeffOf_pos hp.pos [(w, 1)]
+  have hCval : (coeffOf p [(w, 1)]).val * sigmaOf σq i * uq.val = sigmaOf σq j := by
+    have := qEq_val (qMul_pos (qMul_pos hCp hσi) hud) hσj hC
+    rw [qMul_val, qMul_val] at this
+    exact this
+  show scaleState (sigmaOf σq) ν (Rv j)
+      = sigmaOf σq i * (uq.val * Term.eval (polyToTerm vs n p) ν)
+  rw [polyToTerm_eval,
+    evalR_support_one hp [(w, 1)] (varsNodup_single w 1) hsup,
+    Mono.evalR_cons, Mono.evalR_nil]
+  have hRv : scaleState (sigmaOf σq) ν (Rv j) = sigmaOf σq j * ν (Rv j) := rfl
+  have hρw : rhoOf vs n ν w = ν (Rv j) := by
+    rw [hw, rhoOf_getD hnod hlen ν j.isLt]
+  rw [hRv, hρw, ← hCval]
+  ring
+
+/-- `chase j k`: chases coordinate `j` at rate `k`. Needs `j ≠ i` (distinct driver). -/
+theorem bridge_chase (hnod : vs.Nodup) (hlen : vs.length = n)
+    (hσd : ∀ j, j < n → (σq.getD j (qOfInt 0)).pos) (hud : uq.pos)
+    (i : Fin n) {p : QPoly} {j : Fin n} {k : ℤ} (hij : j ≠ i)
+    (hp : PolyInv p)
+    (hsf : shapeFaithful vs σq uq i.val (CoordShape.chase j k : CoordShape n) p = true)
+    (ν : DL.State (Var n)) :
+    Term.eval (CoordShape.field i (CoordShape.chase j k)) (scaleState (sigmaOf σq) ν)
+      = sigmaOf σq i * (uq.val * Term.eval (polyToTerm vs n p) ν) := by
+  unfold shapeFaithful at hsf
+  simp only [Bool.and_eq_true] at hsf
+  obtain ⟨⟨⟨hsup, hCz⟩, hk⟩, hC⟩ := hsf
+  set v := vs.getD i.val "" with hv
+  set w := vs.getD j.val "" with hw
+  have hvw : v ≠ w := by
+    rw [hv, hw]
+    intro hcontra
+    apply hij
+    have hiv : vs.getD i.val "" = vs[i.val]'(by omega) :=
+      List.getD_eq_getElem _ _ (by omega)
+    have hjv : vs.getD j.val "" = vs[j.val]'(by omega) :=
+      List.getD_eq_getElem _ _ (by omega)
+    rw [hiv, hjv] at hcontra
+    have := (List.Nodup.getElem_inj_iff hnod).mp hcontra.symm
+    exact Fin.ext this
+  have hσi := hσd i.val i.isLt
+  have hσj := hσd j.val j.isLt
+  have hB : (coeffOf p [(v, 1)]).pos := coeffOf_pos hp.pos [(v, 1)]
+  have hCp : (coeffOf p [(w, 1)]).pos := coeffOf_pos hp.pos [(w, 1)]
+  have hkval : (k : ℝ) = -(coeffOf p [(v, 1)]).val * uq.val := by
+    have := qEq_val (qOfInt_pos k) (qMul_pos (qNeg_pos hB) hud) hk
+    rw [qOfInt_val, qMul_val, qNeg_val] at this
+    exact this
+  have hCval : (coeffOf p [(w, 1)]).val * sigmaOf σq i * uq.val = sigmaOf σq j := by
+    have := qEq_val (qMul_pos (qMul_pos hCp hσi) hud) hσj hC
+    rw [qMul_val, qMul_val] at this
+    exact this
+  show scaleState (sigmaOf σq) ν (Rv j)
+      - (k : ℝ) * scaleState (sigmaOf σq) ν (Rv i)
+      = sigmaOf σq i * (uq.val * Term.eval (polyToTerm vs n p) ν)
+  rw [polyToTerm_eval,
+    evalR_support_two hp [(v, 1)] [(w, 1)] (varsNodup_single v 1)
+      (varsNodup_single w 1) (monoEq_single_ne hvw 1 1) hsup,
+    Mono.evalR_cons, Mono.evalR_cons, Mono.evalR_nil]
+  have hRvj : scaleState (sigmaOf σq) ν (Rv j) = sigmaOf σq j * ν (Rv j) := rfl
+  have hRvi : scaleState (sigmaOf σq) ν (Rv i) = sigmaOf σq i * ν (Rv i) := rfl
+  have hρv : rhoOf vs n ν v = ν (Rv i) := by
+    rw [hv, rhoOf_getD hnod hlen ν i.isLt]
+  have hρw : rhoOf vs n ν w = ν (Rv j) := by
+    rw [hw, rhoOf_getD hnod hlen ν j.isLt]
+  rw [hRvj, hRvi, hρv, hρw, hkval, ← hCval]
+  ring
+
+/-- `riccati b a`: quadratic drag `ḃ = b − (a/10⁶)x²`. -/
+theorem bridge_riccati (hnod : vs.Nodup) (hlen : vs.length = n)
+    (hσd : ∀ j, j < n → (σq.getD j (qOfInt 0)).pos)
+    (hσv : ∀ j : Fin n, 0 < sigmaOf σq j) (hud : uq.pos)
+    (i : Fin n) {p : QPoly} {b a : ℤ}
+    (hp : PolyInv p)
+    (hsf : shapeFaithful vs σq uq i.val (CoordShape.riccati b a : CoordShape n) p = true)
+    (ν : DL.State (Var n)) :
+    Term.eval (CoordShape.field i (CoordShape.riccati b a)) (scaleState (sigmaOf σq) ν)
+      = sigmaOf σq i * (uq.val * Term.eval (polyToTerm vs n p) ν) := by
+  unfold shapeFaithful at hsf
+  simp only [Bool.and_eq_true] at hsf
+  obtain ⟨⟨⟨hsup, hσz⟩, hb⟩, ha⟩ := hsf
+  set v := vs.getD i.val "" with hv
+  have hσi := hσd i.val i.isLt
+  have hσine : sigmaOf σq i ≠ 0 := ne_of_gt (hσv i)
+  have hA : (coeffOf p []).pos := coeffOf_pos hp.pos []
+  have hBq : (coeffOf p [(v, 2)]).pos := coeffOf_pos hp.pos [(v, 2)]
+  have hbval : (b : ℝ) = (coeffOf p []).val * sigmaOf σq i * uq.val := by
+    have := qEq_val (qOfInt_pos b) (qMul_pos (qMul_pos hA hσi) hud) hb
+    rw [qOfInt_val, qMul_val, qMul_val] at this
+    exact this
+  have haval : (a : ℝ) / 1000000
+      = -(coeffOf p [(v, 2)]).val * uq.val / sigmaOf σq i := by
+    have hσn : (σq.getD i.val (qOfInt 0)).n ≠ 0 := by
+      unfold qIsZero at hσz
+      simpa using hσz
+    have := qEq_val (qDiv_pos (qOfInt_pos a) (by simp [qOfInt]))
+      (qDiv_pos (qMul_pos (qNeg_pos hBq) hud) hσn) ha
+    rw [qDiv_val (qOfInt_pos a) (qOfInt_pos 1000000),
+      qDiv_val (qMul_pos (qNeg_pos hBq) hud) hσi,
+      qOfInt_val, qOfInt_val, qMul_val, qNeg_val] at this
+    push_cast at this
+    exact this
+  show (b : ℝ) - (a : ℝ) / 1000000
+        * (scaleState (sigmaOf σq) ν (Rv i) * scaleState (sigmaOf σq) ν (Rv i))
+      = sigmaOf σq i * (uq.val * Term.eval (polyToTerm vs n p) ν)
+  rw [polyToTerm_eval,
+    evalR_support_two hp [] [(v, 2)] Mono.varsNodup_nil (varsNodup_single v 2)
+      rfl hsup,
+    Mono.evalR_nil, Mono.evalR_cons, Mono.evalR_nil]
+  have hRvi : scaleState (sigmaOf σq) ν (Rv i) = sigmaOf σq i * ν (Rv i) := rfl
+  have hρv : rhoOf vs n ν v = ν (Rv i) := by
+    rw [hv, rhoOf_getD hnod hlen ν i.isLt]
+  rw [hRvi, hρv, hbval, haval]
+  field_simp
+  ring
+
+end ShapeBridges
 
 end RelCertifier

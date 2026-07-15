@@ -21,7 +21,7 @@ it, the outcome is `error`, not `declined`. `certified` is only ever produced by
 `unsat` verdicts, so it is trustworthy regardless of errors on unneeded routes.
 -/
 import RelCertifier.Trusted.Run
-import RelCertifier.Checker.CutCertDefs
+import RelCertifier.Checker.EvolStrengthening
 import RelCertifier.Trusted.Z3
 import RelCertifier.Checker.Checker
 import Std.Data.HashMap

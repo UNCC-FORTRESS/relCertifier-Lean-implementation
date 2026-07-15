@@ -21,7 +21,7 @@ Scope note (load-bearing): O1 covers GUARD bases only, so narrowed verdicts lift
 guard-threaded story (`hcert` at `Gd`-states). The flat CSF chain (`pair_faModal`,
 quantified over ALL invariant states) must keep consuming un-narrowed queries.
 -/
-import RelCertifier.Checker.CutCertDefs
+import RelCertifier.Checker.EvolStrengthening
 import RelCertifier.Proofs.Soundness.CutChannel
 import RelCertifier.Trusted.Oracle
 
@@ -486,7 +486,7 @@ fold the tool sends: `(dom ∧ cutL) ∧ cutR`) and the per-atom facts, the bare
 `BoxLe` holds at every guard base — the shape the guard-threaded chain consumes. `hO1`
 is the entry fact (each atom's formula holds wherever the guard's lowering holds),
 dischargeable from `cutAtoms_sat` since every atom is a guard conjunct
-(`cutCertWF`, kernel). -/
+(`evolStrengtheningWF`, kernel). -/
 theorem cut_hcert {fL fR : Fin n → Term (Var n)} {lam : Term (Var n)}
     {dom guardH : Formula (Var n)} (gInv : Term (Var n))
     (afsL afsR : List (AtomFact n (jointSys fL fR lam) dom))

@@ -6,8 +6,8 @@ Released under Apache 2.0 license.
 
 The pure content of the checked-cut channel: candidate extraction (`cutAtoms`), the
 safe-side lowering (`cutAtomG`), the no-Z3 route recognizers (`contractShapeOK`,
-`frozenIn`), the route tag (`CutRoute`), the emitted certificate (`CutCert`), and the
-decidable well-formedness check `cutCertWF` — every listed atom IS a nonstrict guard
+`frozenIn`), the route tag (`CutRoute`), the emitted certificate (`EvolStrengthening`), and the
+decidable well-formedness check `evolStrengtheningWF` — every listed atom IS a nonstrict guard
 conjunct of its named mode (O1, syntactic), and shape/frozen tags re-check by the pure
 recognizers. DI-route atoms carry their O2 obligation at the `z3_unsat_sound` leaf,
 assembled by the lift (`CutChannel` + the cut-lift theorems).
@@ -116,7 +116,7 @@ def CutRoute.tag : CutRoute → String
 
 /-- Emitted cut certificate of one benchmark: per side, mode name ↦ kept atoms with
 their routes. -/
-structure CutCert where
+structure EvolStrengthening where
   L : List (String × List (PForm × CutRoute))
   R : List (String × List (PForm × CutRoute))
   deriving Repr, DecidableEq
@@ -141,7 +141,7 @@ def sideCutWF (modes : List PMode) (mcs : List (String × List (PForm × CutRout
 
 /-- **Cut-certificate well-formedness** against the parsed problem (kernel-decidable;
 certified by `rfl` per benchmark against the parser-emitted IR literal). -/
-def cutCertWF (p : PProblem) (c : CutCert) : Bool :=
+def evolStrengtheningWF (p : PProblem) (c : EvolStrengthening) : Bool :=
   sideCutWF p.L.modes c.L && sideCutWF p.R.modes c.R
 
 end RelCertifier.Oracle

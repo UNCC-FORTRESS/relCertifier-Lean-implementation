@@ -120,7 +120,7 @@ PProblem IR ──────────────► Instances/BenchIR.lean
    │  VERIFIED  Checker/ — kernel-decidable checks, certified by `rfl` per benchmark:
    │            decideWellFormed{,T,A} (model well-formedness), faithful{Settling,Terrain,
    │            Affine} (parser-emitted IR ≡ certified model, exact rational arithmetic),
-   │            cutCertWF (emitted cut atoms are guard conjuncts with re-checked routes).
+   │            evolStrengtheningWF (emitted cut atoms are guard conjuncts with re-checked routes).
    ▼
 scaled model (SettlingModel/Terrain/Affine)
    │
@@ -793,8 +793,8 @@ guard conjunct; **O2 (invariance)** — flow-invariant along the mode's own fiel
 evolve domain (unconditioned: no mutual-barrier coupling; per-atom strict-boundary, whole-domain,
 or the tangent-capable contract-shape route). Failing candidates are silently dropped
 (completeness cost only). The channel's output is CERTIFIED, Faithful-style: `relcert --emit-cuts`
-prints each benchmark's kept atoms with their routes, `Instances/CutCerts.lean` holds all 46 with
-`cutCertWF … = true := rfl` (kernel), and the lift (`Proofs/Soundness/CutLift.lean`, `cut_hcert`)
+prints each benchmark's kept atoms with their routes, `Instances/EvolStrengthenings.lean` holds all 46 with
+`evolStrengtheningWF … = true := rfl` (kernel), and the lift (`Proofs/Soundness/CutLift.lean`, `cut_hcert`)
 turns a narrowed-query UNSAT plus the per-atom O2 verdicts into the bare-domain obligation at
 guard bases — the same `z3_unsat_sound` leaf as the main queries, no trusted narrowing step left.
 Load-bearing scope note: O1 covers guard bases, so narrowed verdicts feed the guard-threaded
@@ -851,7 +851,7 @@ RelCertifier/
   Core/            FlowCert (tderiv/lieDeriv + flow-certificate soundness), QFrac
                    (kernel-fast exact rationals), Reify
   Checker/         kernel-decidable checkers: WellFormed/Terrain/Affine, Faithful
-                   (transcription fidelity), Cover, CutCertDefs, NonConn
+                   (transcription fidelity), Cover, EvolStrengthening, NonConn
   Proofs/
     Flow/          ODE analysis: PicardBridge (hExist), DISuperlevel, MultisegLanding,
                    WellFormedFlow/WFBoundary

@@ -69,9 +69,9 @@ import RelCertifier.Instances.AffineInstances
 import RelCertifier.Instances.AxiomCheck
 import RelCertifier.Instances.BenchIR
 import RelCertifier.Trusted.EmitIR
-import RelCertifier.Checker.CutCertDefs
+import RelCertifier.Checker.EvolStrengthening
 import RelCertifier.Proofs.Soundness.CutLift
-import RelCertifier.Instances.CutCerts
+import RelCertifier.Instances.EvolStrengthenings
 import RelCertifier.Checker.Faithful
 import RelCertifier.Proofs.Transfer.FaithfulBridge
 import RelCertifier.Proofs.Transfer.FaithfulBridgeGuards

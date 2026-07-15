@@ -5,16 +5,16 @@ Released under Apache 2.0 license.
 # GENERATED cut certificates (relcert --emit-cuts; do not edit)
 
 Per benchmark: the checked-cut channel's kept atoms with their O2 routes, plus the
-kernel well-formedness certificate (cutCertWF, rfl) against the parser-emitted IR.
+kernel well-formedness certificate (evolStrengtheningWF, rfl) against the parser-emitted IR.
 -/
-import RelCertifier.Checker.CutCertDefs
+import RelCertifier.Checker.EvolStrengthening
 import RelCertifier.Instances.BenchIR
 
 namespace RelCertifier.Oracle
 
 open RelCertifier.Parse
 
-def arm_chain_rung1_cuts : CutCert :=
+def arm_chain_rung1_cuts : EvolStrengthening :=
   { L := [
       ("ApproachFast", [((.cmp ">=" (.var "theta") (.num "0.0")), CutRoute.diStrict)]),
       ("ApproachSlow", [((.cmp ">=" (.var "theta") (.num "0.35")), CutRoute.diStrict)]),
@@ -25,9 +25,9 @@ def arm_chain_rung1_cuts : CutCert :=
       ("Return", [])
     ] }
 
-example : cutCertWF arm_chain_rung1_IR arm_chain_rung1_cuts = true := rfl
+example : evolStrengtheningWF arm_chain_rung1_IR arm_chain_rung1_cuts = true := rfl
 
-def arm_chain_rung2_cuts : CutCert :=
+def arm_chain_rung2_cuts : EvolStrengthening :=
   { L := [
       ("ApproachA", [((.cmp ">=" (.var "theta") (.num "0.0")), CutRoute.diStrict)]),
       ("ApproachB", [((.cmp ">=" (.var "theta") (.num "0.35")), CutRoute.diStrict)]),
@@ -40,9 +40,9 @@ def arm_chain_rung2_cuts : CutCert :=
       ("Return", [])
     ] }
 
-example : cutCertWF arm_chain_rung2_IR arm_chain_rung2_cuts = true := rfl
+example : evolStrengtheningWF arm_chain_rung2_IR arm_chain_rung2_cuts = true := rfl
 
-def arm_chain_rung3_cuts : CutCert :=
+def arm_chain_rung3_cuts : EvolStrengthening :=
   { L := [
       ("Accelerate", []),
       ("Brake", [])
@@ -54,9 +54,9 @@ def arm_chain_rung3_cuts : CutCert :=
       ("Hold", [((.cmp ">=" (.var "theta") (.num "0.6")), CutRoute.frozen)])
     ] }
 
-example : cutCertWF arm_chain_rung3_IR arm_chain_rung3_cuts = true := rfl
+example : evolStrengtheningWF arm_chain_rung3_IR arm_chain_rung3_cuts = true := rfl
 
-def arm_fidelity_high_cuts : CutCert :=
+def arm_fidelity_high_cuts : EvolStrengthening :=
   { L := [
       ("Accelerate", []),
       ("Brake", [])
@@ -68,9 +68,9 @@ def arm_fidelity_high_cuts : CutCert :=
       ("Hold", [((.cmp ">=" (.var "theta") (.num "0.6")), CutRoute.frozen)])
     ] }
 
-example : cutCertWF arm_fidelity_high_IR arm_fidelity_high_cuts = true := rfl
+example : evolStrengtheningWF arm_fidelity_high_IR arm_fidelity_high_cuts = true := rfl
 
-def arm_fidelity_low_cuts : CutCert :=
+def arm_fidelity_low_cuts : EvolStrengthening :=
   { L := [
       ("Accelerate", []),
       ("Brake", [])
@@ -80,9 +80,9 @@ def arm_fidelity_low_cuts : CutCert :=
       ("Return", [])
     ] }
 
-example : cutCertWF arm_fidelity_low_IR arm_fidelity_low_cuts = true := rfl
+example : evolStrengtheningWF arm_fidelity_low_IR arm_fidelity_low_cuts = true := rfl
 
-def arm_fidelity_mid_cuts : CutCert :=
+def arm_fidelity_mid_cuts : EvolStrengthening :=
   { L := [
       ("Accelerate", []),
       ("Brake", [])
@@ -93,9 +93,9 @@ def arm_fidelity_mid_cuts : CutCert :=
       ("Hold", [((.cmp ">=" (.var "theta") (.num "0.6")), CutRoute.shape)])
     ] }
 
-example : cutCertWF arm_fidelity_mid_IR arm_fidelity_mid_cuts = true := rfl
+example : evolStrengtheningWF arm_fidelity_mid_IR arm_fidelity_mid_cuts = true := rfl
 
-def arm_refinement_cuts : CutCert :=
+def arm_refinement_cuts : EvolStrengthening :=
   { L := [
       ("Accelerate", []),
       ("Brake", [])
@@ -105,9 +105,9 @@ def arm_refinement_cuts : CutCert :=
       ("Return", [])
     ] }
 
-example : cutCertWF arm_refinement_IR arm_refinement_cuts = true := rfl
+example : evolStrengtheningWF arm_refinement_IR arm_refinement_cuts = true := rfl
 
-def attitude_rate_cuts : CutCert :=
+def attitude_rate_cuts : EvolStrengthening :=
   { L := [
       ("CRUISE", [((.cmp ">=" (.var "p") (.num "0.0")), CutRoute.diStrict)])
     ]
@@ -116,9 +116,9 @@ def attitude_rate_cuts : CutCert :=
       ("TRACK", [((.cmp ">=" (.var "p") (.num "0.5")), CutRoute.diStrict), ((.cmp "<=" (.var "p") (.num "1.15")), CutRoute.diStrict)])
     ] }
 
-example : cutCertWF attitude_rate_IR attitude_rate_cuts = true := rfl
+example : evolStrengtheningWF attitude_rate_IR attitude_rate_cuts = true := rfl
 
-def endurance_gain_M1_cuts : CutCert :=
+def endurance_gain_M1_cuts : EvolStrengthening :=
   { L := [
       ("STEEP", [((.cmp ">=" (.var "v") (.num "0.0")), CutRoute.shape)]),
       ("MODER", [((.cmp ">=" (.var "v") (.num "0.40")), CutRoute.shape)]),
@@ -130,9 +130,9 @@ def endurance_gain_M1_cuts : CutCert :=
       ("FLAT", [((.cmp ">=" (.var "v") (.num "0.575")), CutRoute.shape)])
     ] }
 
-example : cutCertWF endurance_gain_M1_IR endurance_gain_M1_cuts = true := rfl
+example : evolStrengtheningWF endurance_gain_M1_IR endurance_gain_M1_cuts = true := rfl
 
-def endurance_orderlift_1to2_cuts : CutCert :=
+def endurance_orderlift_1to2_cuts : EvolStrengthening :=
   { L := [
       ("STEEP", []),
       ("MODER", []),
@@ -144,9 +144,9 @@ def endurance_orderlift_1to2_cuts : CutCert :=
       ("FLAT", [((.cmp ">=" (.var "v") (.num "0.575")), CutRoute.shape)])
     ] }
 
-example : cutCertWF endurance_orderlift_1to2_IR endurance_orderlift_1to2_cuts = true := rfl
+example : evolStrengtheningWF endurance_orderlift_1to2_IR endurance_orderlift_1to2_cuts = true := rfl
 
-def endurance_orderlift_2to3_cuts : CutCert :=
+def endurance_orderlift_2to3_cuts : EvolStrengthening :=
   { L := [
       ("STEEP", []),
       ("MODER", []),
@@ -158,9 +158,9 @@ def endurance_orderlift_2to3_cuts : CutCert :=
       ("FLAT", [])
     ] }
 
-example : cutCertWF endurance_orderlift_2to3_IR endurance_orderlift_2to3_cuts = true := rfl
+example : evolStrengtheningWF endurance_orderlift_2to3_IR endurance_orderlift_2to3_cuts = true := rfl
 
-def match_multi_eps_cuts : CutCert :=
+def match_multi_eps_cuts : EvolStrengthening :=
   { L := [
       ("ACCEL", [((.cmp ">=" (.var "v") (.num "0.3")), CutRoute.shape)]),
       ("COAST", [])
@@ -170,9 +170,9 @@ def match_multi_eps_cuts : CutCert :=
       ("COAST", [])
     ] }
 
-example : cutCertWF match_multi_eps_IR match_multi_eps_cuts = true := rfl
+example : evolStrengtheningWF match_multi_eps_IR match_multi_eps_cuts = true := rfl
 
-def match_multi_rate_cuts : CutCert :=
+def match_multi_rate_cuts : EvolStrengthening :=
   { L := [
       ("FAST", [((.cmp ">=" (.var "v") (.num "0.2")), CutRoute.shape)]),
       ("MEDIUM", [((.cmp ">=" (.var "v") (.num "0.5")), CutRoute.shape)]),
@@ -183,9 +183,9 @@ def match_multi_rate_cuts : CutCert :=
       ("DRIVE", [((.cmp ">=" (.var "v") (.num "0.2")), CutRoute.shape), ((.cmp "<=" (.var "v") (.num "1.0")), CutRoute.shape)])
     ] }
 
-example : cutCertWF match_multi_rate_IR match_multi_rate_cuts = true := rfl
+example : evolStrengtheningWF match_multi_rate_IR match_multi_rate_cuts = true := rfl
 
-def plant_fan_high_cuts : CutCert :=
+def plant_fan_high_cuts : EvolStrengthening :=
   { L := [
       ("Accelerate", []),
       ("Brake", [])
@@ -197,9 +197,9 @@ def plant_fan_high_cuts : CutCert :=
       ("Hold", [((.cmp ">=" (.var "theta") (.num "0.6")), CutRoute.frozen)])
     ] }
 
-example : cutCertWF plant_fan_high_IR plant_fan_high_cuts = true := rfl
+example : evolStrengtheningWF plant_fan_high_IR plant_fan_high_cuts = true := rfl
 
-def plant_fan_low_cuts : CutCert :=
+def plant_fan_low_cuts : EvolStrengthening :=
   { L := [
       ("Accelerate", []),
       ("Brake", [])
@@ -209,9 +209,9 @@ def plant_fan_low_cuts : CutCert :=
       ("Return", [])
     ] }
 
-example : cutCertWF plant_fan_low_IR plant_fan_low_cuts = true := rfl
+example : evolStrengtheningWF plant_fan_low_IR plant_fan_low_cuts = true := rfl
 
-def plant_fan_mid_cuts : CutCert :=
+def plant_fan_mid_cuts : EvolStrengthening :=
   { L := [
       ("Accelerate", []),
       ("Brake", [])
@@ -222,9 +222,9 @@ def plant_fan_mid_cuts : CutCert :=
       ("Hold", [((.cmp ">=" (.var "theta") (.num "0.6")), CutRoute.shape)])
     ] }
 
-example : cutCertWF plant_fan_mid_IR plant_fan_mid_cuts = true := rfl
+example : evolStrengtheningWF plant_fan_mid_IR plant_fan_mid_cuts = true := rfl
 
-def refinement_ladder_rover_rung1_2to3_cuts : CutCert :=
+def refinement_ladder_rover_rung1_2to3_cuts : EvolStrengthening :=
   { L := [
       ("STEEP", [((.cmp ">=" (.var "s") (.num "0.0")), CutRoute.diNonstrict)]),
       ("MODER", [((.cmp ">=" (.var "s") (.num "0.6")), CutRoute.diNonstrict)]),
@@ -236,9 +236,9 @@ def refinement_ladder_rover_rung1_2to3_cuts : CutCert :=
       ("FLAT", [((.cmp ">=" (.var "s") (.num "1.4")), CutRoute.diNonstrict), ((.cmp "<=" (.var "v") (.num "0.65")), CutRoute.shape)])
     ] }
 
-example : cutCertWF refinement_ladder_rover_rung1_2to3_IR refinement_ladder_rover_rung1_2to3_cuts = true := rfl
+example : evolStrengtheningWF refinement_ladder_rover_rung1_2to3_IR refinement_ladder_rover_rung1_2to3_cuts = true := rfl
 
-def refinement_ladder_rover_rung2_3to6_cuts : CutCert :=
+def refinement_ladder_rover_rung2_3to6_cuts : EvolStrengthening :=
   { L := [
       ("STEEP", [((.cmp ">=" (.var "s") (.num "0.0")), CutRoute.diNonstrict), ((.cmp "<=" (.var "v") (.num "0.3")), CutRoute.shape)]),
       ("MODER", [((.cmp ">=" (.var "s") (.num "0.6")), CutRoute.diNonstrict), ((.cmp "<=" (.var "v") (.num "0.5")), CutRoute.shape)]),
@@ -250,9 +250,9 @@ def refinement_ladder_rover_rung2_3to6_cuts : CutCert :=
       ("FLAT", [((.cmp ">=" (.var "s") (.num "1.4")), CutRoute.diNonstrict)])
     ] }
 
-example : cutCertWF refinement_ladder_rover_rung2_3to6_IR refinement_ladder_rover_rung2_3to6_cuts = true := rfl
+example : evolStrengtheningWF refinement_ladder_rover_rung2_3to6_IR refinement_ladder_rover_rung2_3to6_cuts = true := rfl
 
-def refinement_ladder_rover_rung2_6dof_cuts : CutCert :=
+def refinement_ladder_rover_rung2_6dof_cuts : EvolStrengthening :=
   { L := [
       ("STEEP", [((.cmp ">=" (.var "s") (.num "0.0")), CutRoute.diNonstrict)]),
       ("MODER", [((.cmp ">=" (.var "s") (.num "0.6")), CutRoute.diNonstrict)]),
@@ -264,9 +264,9 @@ def refinement_ladder_rover_rung2_6dof_cuts : CutCert :=
       ("FLAT", [((.cmp ">=" (.var "s") (.num "1.4")), CutRoute.diNonstrict)])
     ] }
 
-example : cutCertWF refinement_ladder_rover_rung2_6dof_IR refinement_ladder_rover_rung2_6dof_cuts = true := rfl
+example : evolStrengtheningWF refinement_ladder_rover_rung2_6dof_IR refinement_ladder_rover_rung2_6dof_cuts = true := rfl
 
-def refinement_ladder_rover_rung2b_6dof_cuts : CutCert :=
+def refinement_ladder_rover_rung2b_6dof_cuts : EvolStrengthening :=
   { L := [
       ("STEEP", [((.cmp ">=" (.var "s") (.num "0.0")), CutRoute.diNonstrict)]),
       ("MODER", [((.cmp ">=" (.var "s") (.num "0.6")), CutRoute.diNonstrict)]),
@@ -278,9 +278,9 @@ def refinement_ladder_rover_rung2b_6dof_cuts : CutCert :=
       ("FLAT", [((.cmp ">=" (.var "s") (.num "1.4")), CutRoute.diNonstrict)])
     ] }
 
-example : cutCertWF refinement_ladder_rover_rung2b_6dof_IR refinement_ladder_rover_rung2b_6dof_cuts = true := rfl
+example : evolStrengtheningWF refinement_ladder_rover_rung2b_6dof_IR refinement_ladder_rover_rung2b_6dof_cuts = true := rfl
 
-def refinement_ladder_rover_rung2c_6dof_cuts : CutCert :=
+def refinement_ladder_rover_rung2c_6dof_cuts : EvolStrengthening :=
   { L := [
       ("STEEP", [((.cmp ">=" (.var "s") (.num "0.0")), CutRoute.diNonstrict)]),
       ("MODER", [((.cmp ">=" (.var "s") (.num "0.6")), CutRoute.diNonstrict)]),
@@ -292,9 +292,9 @@ def refinement_ladder_rover_rung2c_6dof_cuts : CutCert :=
       ("FLAT", [((.cmp ">=" (.var "s") (.num "1.4")), CutRoute.diNonstrict)])
     ] }
 
-example : cutCertWF refinement_ladder_rover_rung2c_6dof_IR refinement_ladder_rover_rung2c_6dof_cuts = true := rfl
+example : evolStrengtheningWF refinement_ladder_rover_rung2c_6dof_IR refinement_ladder_rover_rung2c_6dof_cuts = true := rfl
 
-def refinement_ladder_rover_rung3_6to8_cuts : CutCert :=
+def refinement_ladder_rover_rung3_6to8_cuts : EvolStrengthening :=
   { L := [
       ("STEEP", [((.cmp ">=" (.var "s") (.num "0.0")), CutRoute.diNonstrict), ((.cmp "<=" (.var "v") (.num "0.3")), CutRoute.shape)]),
       ("MODER", [((.cmp ">=" (.var "s") (.num "0.6")), CutRoute.diNonstrict), ((.cmp "<=" (.var "v") (.num "0.5")), CutRoute.shape)]),
@@ -306,9 +306,9 @@ def refinement_ladder_rover_rung3_6to8_cuts : CutCert :=
       ("FLAT", [((.cmp ">=" (.var "s") (.num "1.4")), CutRoute.diNonstrict), ((.cmp "<=" (.var "v") (.num "0.65")), CutRoute.shape)])
     ] }
 
-example : cutCertWF refinement_ladder_rover_rung3_6to8_IR refinement_ladder_rover_rung3_6to8_cuts = true := rfl
+example : evolStrengtheningWF refinement_ladder_rover_rung3_6to8_IR refinement_ladder_rover_rung3_6to8_cuts = true := rfl
 
-def refinement_ladder_rover_rung4_8to12_cuts : CutCert :=
+def refinement_ladder_rover_rung4_8to12_cuts : EvolStrengthening :=
   { L := [
       ("STEEP", [((.cmp ">=" (.var "s") (.num "0.0")), CutRoute.diNonstrict)]),
       ("MODER", [((.cmp ">=" (.var "s") (.num "0.6")), CutRoute.diNonstrict)]),
@@ -320,9 +320,9 @@ def refinement_ladder_rover_rung4_8to12_cuts : CutCert :=
       ("FLAT", [((.cmp ">=" (.var "s") (.num "1.4")), CutRoute.diNonstrict), ((.cmp "<=" (.var "v") (.num "0.65")), CutRoute.shape)])
     ] }
 
-example : cutCertWF refinement_ladder_rover_rung4_8to12_IR refinement_ladder_rover_rung4_8to12_cuts = true := rfl
+example : evolStrengtheningWF refinement_ladder_rover_rung4_8to12_IR refinement_ladder_rover_rung4_8to12_cuts = true := rfl
 
-def robot_braking_cuts : CutCert :=
+def robot_braking_cuts : EvolStrengthening :=
   { L := [
       ("CRUISE", [((.cmp ">=" (.var "v") (.num "0.8")), CutRoute.shape), ((.cmp "<=" (.var "v") (.num "1.2")), CutRoute.shape)])
     ]
@@ -332,9 +332,9 @@ def robot_braking_cuts : CutCert :=
       ("SLOW", [((.cmp ">=" (.var "v") (.num "0.0")), CutRoute.shape), ((.cmp "<=" (.var "v") (.num "1.5")), CutRoute.shape)])
     ] }
 
-example : cutCertWF robot_braking_IR robot_braking_cuts = true := rfl
+example : evolStrengtheningWF robot_braking_IR robot_braking_cuts = true := rfl
 
-def rover3_M1_cuts : CutCert :=
+def rover3_M1_cuts : EvolStrengthening :=
   { L := [
       ("Drive", []),
       ("Drift", []),
@@ -346,9 +346,9 @@ def rover3_M1_cuts : CutCert :=
       ("Safe", [((.cmp ">=" (.var "vx") (.num "0.75")), CutRoute.frozen), ((.cmp "<=" (.var "vx") (.num "1.0")), CutRoute.frozen)])
     ] }
 
-example : cutCertWF rover3_M1_IR rover3_M1_cuts = true := rfl
+example : evolStrengtheningWF rover3_M1_IR rover3_M1_cuts = true := rfl
 
-def rover3tier_M1_cuts : CutCert :=
+def rover3tier_M1_cuts : EvolStrengthening :=
   { L := [
       ("ACCEL", [((.cmp ">=" (.var "v") (.num "0.3")), CutRoute.shape)]),
       ("COAST", [])
@@ -358,9 +358,9 @@ def rover3tier_M1_cuts : CutCert :=
       ("COAST", [])
     ] }
 
-example : cutCertWF rover3tier_M1_IR rover3tier_M1_cuts = true := rfl
+example : evolStrengtheningWF rover3tier_M1_IR rover3tier_M1_cuts = true := rfl
 
-def rover3tier_rung12_cuts : CutCert :=
+def rover3tier_rung12_cuts : EvolStrengthening :=
   { L := [
       ("ACCEL", []),
       ("COAST", [])
@@ -370,9 +370,9 @@ def rover3tier_rung12_cuts : CutCert :=
       ("COAST", [((.cmp ">=" (.var "v") (.num "0.6")), CutRoute.diStrict)])
     ] }
 
-example : cutCertWF rover3tier_rung12_IR rover3tier_rung12_cuts = true := rfl
+example : evolStrengtheningWF rover3tier_rung12_IR rover3tier_rung12_cuts = true := rfl
 
-def rover_4d_box_cuts : CutCert :=
+def rover_4d_box_cuts : EvolStrengthening :=
   { L := [
       ("HOLD", [((.cmp ">=" (.var "px") (.num "9.0")), CutRoute.frozen), ((.cmp "<=" (.var "px") (.num "11.0")), CutRoute.frozen)])
     ]
@@ -381,9 +381,9 @@ def rover_4d_box_cuts : CutCert :=
       ("SETTLE", [((.cmp ">=" (.var "vx") (.num "0.5")), CutRoute.frozen), ((.cmp "<=" (.var "vx") (.num "0.7")), CutRoute.frozen)])
     ] }
 
-example : cutCertWF rover_4d_box_IR rover_4d_box_cuts = true := rfl
+example : evolStrengtheningWF rover_4d_box_IR rover_4d_box_cuts = true := rfl
 
-def rover_attitude_cone_12dof_cuts : CutCert :=
+def rover_attitude_cone_12dof_cuts : EvolStrengthening :=
   { L := [
       ("STEEP", [((.cmp ">=" (.var "s") (.num "0.0")), CutRoute.diNonstrict)]),
       ("MODER", [((.cmp ">=" (.var "s") (.num "0.6")), CutRoute.diNonstrict)]),
@@ -395,9 +395,9 @@ def rover_attitude_cone_12dof_cuts : CutCert :=
       ("FLAT", [((.cmp ">=" (.var "s") (.num "1.4")), CutRoute.diNonstrict), ((.cmp "<=" (.var "v") (.num "0.65")), CutRoute.shape)])
     ] }
 
-example : cutCertWF rover_attitude_cone_12dof_IR rover_attitude_cone_12dof_cuts = true := rfl
+example : evolStrengtheningWF rover_attitude_cone_12dof_IR rover_attitude_cone_12dof_cuts = true := rfl
 
-def rover_coupled_cuts : CutCert :=
+def rover_coupled_cuts : EvolStrengthening :=
   { L := [
       ("Drive", []),
       ("Drift", []),
@@ -409,9 +409,9 @@ def rover_coupled_cuts : CutCert :=
       ("Safe", [((.cmp ">=" (.var "vx") (.num "0.75")), CutRoute.frozen), ((.cmp "<=" (.var "vx") (.num "1.0")), CutRoute.frozen)])
     ] }
 
-example : cutCertWF rover_coupled_IR rover_coupled_cuts = true := rfl
+example : evolStrengtheningWF rover_coupled_IR rover_coupled_cuts = true := rfl
 
-def rover_dof_terrain_rung1_cuts : CutCert :=
+def rover_dof_terrain_rung1_cuts : EvolStrengthening :=
   { L := [
       ("STEEP", [((.cmp ">=" (.var "s") (.num "0.0")), CutRoute.diNonstrict)]),
       ("MODER", [((.cmp ">=" (.var "s") (.num "0.6")), CutRoute.diNonstrict)]),
@@ -423,9 +423,9 @@ def rover_dof_terrain_rung1_cuts : CutCert :=
       ("FLAT", [((.cmp ">=" (.var "s") (.num "1.4")), CutRoute.diNonstrict), ((.cmp "<=" (.var "v") (.num "0.65")), CutRoute.shape)])
     ] }
 
-example : cutCertWF rover_dof_terrain_rung1_IR rover_dof_terrain_rung1_cuts = true := rfl
+example : evolStrengtheningWF rover_dof_terrain_rung1_IR rover_dof_terrain_rung1_cuts = true := rfl
 
-def rover_dof_terrain_rung2_cuts : CutCert :=
+def rover_dof_terrain_rung2_cuts : EvolStrengthening :=
   { L := [
       ("STEEP", [((.cmp ">=" (.var "s") (.num "0.0")), CutRoute.diNonstrict)]),
       ("MODER", [((.cmp ">=" (.var "s") (.num "0.6")), CutRoute.diNonstrict)]),
@@ -437,9 +437,9 @@ def rover_dof_terrain_rung2_cuts : CutCert :=
       ("FLAT", [((.cmp ">=" (.var "s") (.num "1.4")), CutRoute.diNonstrict), ((.cmp "<=" (.var "v") (.num "0.65")), CutRoute.shape)])
     ] }
 
-example : cutCertWF rover_dof_terrain_rung2_IR rover_dof_terrain_rung2_cuts = true := rfl
+example : evolStrengtheningWF rover_dof_terrain_rung2_IR rover_dof_terrain_rung2_cuts = true := rfl
 
-def rover_dof_terrain_rung3_cuts : CutCert :=
+def rover_dof_terrain_rung3_cuts : EvolStrengthening :=
   { L := [
       ("STEEP", [((.cmp ">=" (.var "s") (.num "0.0")), CutRoute.diNonstrict)]),
       ("MODER", [((.cmp ">=" (.var "s") (.num "0.6")), CutRoute.diNonstrict)]),
@@ -451,9 +451,9 @@ def rover_dof_terrain_rung3_cuts : CutCert :=
       ("FLAT", [((.cmp ">=" (.var "s") (.num "1.4")), CutRoute.diNonstrict), ((.cmp "<=" (.var "v") (.num "0.65")), CutRoute.shape)])
     ] }
 
-example : cutCertWF rover_dof_terrain_rung3_IR rover_dof_terrain_rung3_cuts = true := rfl
+example : evolStrengtheningWF rover_dof_terrain_rung3_IR rover_dof_terrain_rung3_cuts = true := rfl
 
-def rover_dof_terrain_rung3_8d_cuts : CutCert :=
+def rover_dof_terrain_rung3_8d_cuts : EvolStrengthening :=
   { L := [
       ("STEEP", [((.cmp ">=" (.var "s") (.num "0.0")), CutRoute.diNonstrict)]),
       ("MODER", [((.cmp ">=" (.var "s") (.num "0.6")), CutRoute.diNonstrict)]),
@@ -465,9 +465,9 @@ def rover_dof_terrain_rung3_8d_cuts : CutCert :=
       ("FLAT", [((.cmp ">=" (.var "s") (.num "1.4")), CutRoute.diNonstrict), ((.cmp "<=" (.var "v") (.num "0.65")), CutRoute.shape)])
     ] }
 
-example : cutCertWF rover_dof_terrain_rung3_8d_IR rover_dof_terrain_rung3_8d_cuts = true := rfl
+example : evolStrengtheningWF rover_dof_terrain_rung3_8d_IR rover_dof_terrain_rung3_8d_cuts = true := rfl
 
-def rover_drag_cuts : CutCert :=
+def rover_drag_cuts : EvolStrengthening :=
   { L := [
       ("Cruise", [((.cmp ">=" (.var "vx") (.num "0.0")), CutRoute.diStrict), ((.cmp "<=" (.var "vx") (.num "1.21")), CutRoute.diStrict)])
     ]
@@ -475,9 +475,9 @@ def rover_drag_cuts : CutCert :=
       ("Track", [((.cmp ">=" (.var "vx") (.num "0.0")), CutRoute.diStrict), ((.cmp "<=" (.var "vx") (.num "1.21")), CutRoute.diStrict)])
     ] }
 
-example : cutCertWF rover_drag_IR rover_drag_cuts = true := rfl
+example : evolStrengtheningWF rover_drag_IR rover_drag_cuts = true := rfl
 
-def rover_position_cuts : CutCert :=
+def rover_position_cuts : EvolStrengthening :=
   { L := [
       ("Drive", []),
       ("Drift", []),
@@ -489,9 +489,9 @@ def rover_position_cuts : CutCert :=
       ("Safe", [((.cmp ">=" (.var "vx") (.num "0.75")), CutRoute.frozen), ((.cmp "<=" (.var "vx") (.num "1.0")), CutRoute.frozen)])
     ] }
 
-example : cutCertWF rover_position_IR rover_position_cuts = true := rfl
+example : evolStrengtheningWF rover_position_IR rover_position_cuts = true := rfl
 
-def rover_terrain_M1_cuts : CutCert :=
+def rover_terrain_M1_cuts : EvolStrengthening :=
   { L := [
       ("ROUGH", [((.cmp ">=" (.var "v") (.num "0.0")), CutRoute.shape)]),
       ("FLAT", [((.cmp ">=" (.var "v") (.num "0.6")), CutRoute.shape)]),
@@ -503,9 +503,9 @@ def rover_terrain_M1_cuts : CutCert :=
       ("SMOOTH", [((.cmp ">=" (.var "v") (.num "1.0")), CutRoute.shape)])
     ] }
 
-example : cutCertWF rover_terrain_M1_IR rover_terrain_M1_cuts = true := rfl
+example : evolStrengtheningWF rover_terrain_M1_IR rover_terrain_M1_cuts = true := rfl
 
-def rover_tier_r1_cuts : CutCert :=
+def rover_tier_r1_cuts : EvolStrengthening :=
   { L := [
       ("Cruise", [((.cmp ">=" (.var "v") (.num "0.3")), CutRoute.diNonstrict)])
     ]
@@ -513,9 +513,9 @@ def rover_tier_r1_cuts : CutCert :=
       ("Cruise", [((.cmp ">=" (.var "v") (.num "0.3")), CutRoute.diStrict)])
     ] }
 
-example : cutCertWF rover_tier_r1_IR rover_tier_r1_cuts = true := rfl
+example : evolStrengtheningWF rover_tier_r1_IR rover_tier_r1_cuts = true := rfl
 
-def story1_attdist_rung_a_6to8_cuts : CutCert :=
+def story1_attdist_rung_a_6to8_cuts : EvolStrengthening :=
   { L := [
       ("STEEP", [((.cmp ">=" (.var "s") (.num "0.0")), CutRoute.diNonstrict)]),
       ("MODER", [((.cmp ">=" (.var "s") (.num "0.6")), CutRoute.diNonstrict)]),
@@ -527,9 +527,9 @@ def story1_attdist_rung_a_6to8_cuts : CutCert :=
       ("FLAT", [((.cmp ">=" (.var "s") (.num "1.4")), CutRoute.diNonstrict)])
     ] }
 
-example : cutCertWF story1_attdist_rung_a_6to8_IR story1_attdist_rung_a_6to8_cuts = true := rfl
+example : evolStrengtheningWF story1_attdist_rung_a_6to8_IR story1_attdist_rung_a_6to8_cuts = true := rfl
 
-def story1_attdist_rung_b_12dof_cuts : CutCert :=
+def story1_attdist_rung_b_12dof_cuts : EvolStrengthening :=
   { L := [
       ("STEEP", [((.cmp ">=" (.var "s") (.num "0.0")), CutRoute.diNonstrict)]),
       ("MODER", [((.cmp ">=" (.var "s") (.num "0.6")), CutRoute.diNonstrict)]),
@@ -541,9 +541,9 @@ def story1_attdist_rung_b_12dof_cuts : CutCert :=
       ("FLAT", [((.cmp ">=" (.var "s") (.num "1.4")), CutRoute.diNonstrict)])
     ] }
 
-example : cutCertWF story1_attdist_rung_b_12dof_IR story1_attdist_rung_b_12dof_cuts = true := rfl
+example : evolStrengtheningWF story1_attdist_rung_b_12dof_IR story1_attdist_rung_b_12dof_cuts = true := rfl
 
-def story2_lateral_rung_a_8dof_cuts : CutCert :=
+def story2_lateral_rung_a_8dof_cuts : EvolStrengthening :=
   { L := [
       ("STEEP", [((.cmp ">=" (.var "s") (.num "0.0")), CutRoute.diNonstrict)]),
       ("MODER", [((.cmp ">=" (.var "s") (.num "0.6")), CutRoute.diNonstrict)]),
@@ -555,9 +555,9 @@ def story2_lateral_rung_a_8dof_cuts : CutCert :=
       ("FLAT", [((.cmp ">=" (.var "s") (.num "1.4")), CutRoute.diNonstrict)])
     ] }
 
-example : cutCertWF story2_lateral_rung_a_8dof_IR story2_lateral_rung_a_8dof_cuts = true := rfl
+example : evolStrengtheningWF story2_lateral_rung_a_8dof_IR story2_lateral_rung_a_8dof_cuts = true := rfl
 
-def story2_lateral_rung_b_12dof_cuts : CutCert :=
+def story2_lateral_rung_b_12dof_cuts : EvolStrengthening :=
   { L := [
       ("STEEP", [((.cmp ">=" (.var "s") (.num "0.0")), CutRoute.diNonstrict)]),
       ("MODER", [((.cmp ">=" (.var "s") (.num "0.6")), CutRoute.diNonstrict)]),
@@ -569,23 +569,9 @@ def story2_lateral_rung_b_12dof_cuts : CutCert :=
       ("FLAT", [((.cmp ">=" (.var "s") (.num "1.4")), CutRoute.diNonstrict)])
     ] }
 
-example : cutCertWF story2_lateral_rung_b_12dof_IR story2_lateral_rung_b_12dof_cuts = true := rfl
+example : evolStrengtheningWF story2_lateral_rung_b_12dof_IR story2_lateral_rung_b_12dof_cuts = true := rfl
 
-def story3_rollover_base_12dof_cuts : CutCert :=
-  { L := [
-      ("STEEP", [((.cmp ">=" (.var "s") (.num "0.0")), CutRoute.diNonstrict)]),
-      ("MODER", [((.cmp ">=" (.var "s") (.num "0.6")), CutRoute.diNonstrict)]),
-      ("FLAT", [((.cmp ">=" (.var "s") (.num "1.4")), CutRoute.diNonstrict)])
-    ]
-    R := [
-      ("STEEP", [((.cmp ">=" (.var "s") (.num "0.0")), CutRoute.diNonstrict), ((.cmp "<=" (.var "v") (.num "0.3")), CutRoute.shape)]),
-      ("MODER", [((.cmp ">=" (.var "s") (.num "0.6")), CutRoute.diNonstrict), ((.cmp "<=" (.var "v") (.num "0.5")), CutRoute.shape)]),
-      ("FLAT", [((.cmp ">=" (.var "s") (.num "1.4")), CutRoute.diNonstrict), ((.cmp "<=" (.var "v") (.num "0.65")), CutRoute.shape)])
-    ] }
-
-example : cutCertWF story3_rollover_base_12dof_IR story3_rollover_base_12dof_cuts = true := rfl
-
-def story3_rollover_ladder_rung_a_cuts : CutCert :=
+def story3_rollover_base_12dof_cuts : EvolStrengthening :=
   { L := [
       ("STEEP", [((.cmp ">=" (.var "s") (.num "0.0")), CutRoute.diNonstrict)]),
       ("MODER", [((.cmp ">=" (.var "s") (.num "0.6")), CutRoute.diNonstrict)]),
@@ -597,9 +583,23 @@ def story3_rollover_ladder_rung_a_cuts : CutCert :=
       ("FLAT", [((.cmp ">=" (.var "s") (.num "1.4")), CutRoute.diNonstrict), ((.cmp "<=" (.var "v") (.num "0.65")), CutRoute.shape)])
     ] }
 
-example : cutCertWF story3_rollover_ladder_rung_a_IR story3_rollover_ladder_rung_a_cuts = true := rfl
+example : evolStrengtheningWF story3_rollover_base_12dof_IR story3_rollover_base_12dof_cuts = true := rfl
 
-def story3_rollover_ladder_rung_b_cuts : CutCert :=
+def story3_rollover_ladder_rung_a_cuts : EvolStrengthening :=
+  { L := [
+      ("STEEP", [((.cmp ">=" (.var "s") (.num "0.0")), CutRoute.diNonstrict)]),
+      ("MODER", [((.cmp ">=" (.var "s") (.num "0.6")), CutRoute.diNonstrict)]),
+      ("FLAT", [((.cmp ">=" (.var "s") (.num "1.4")), CutRoute.diNonstrict)])
+    ]
+    R := [
+      ("STEEP", [((.cmp ">=" (.var "s") (.num "0.0")), CutRoute.diNonstrict), ((.cmp "<=" (.var "v") (.num "0.3")), CutRoute.shape)]),
+      ("MODER", [((.cmp ">=" (.var "s") (.num "0.6")), CutRoute.diNonstrict), ((.cmp "<=" (.var "v") (.num "0.5")), CutRoute.shape)]),
+      ("FLAT", [((.cmp ">=" (.var "s") (.num "1.4")), CutRoute.diNonstrict), ((.cmp "<=" (.var "v") (.num "0.65")), CutRoute.shape)])
+    ] }
+
+example : evolStrengtheningWF story3_rollover_ladder_rung_a_IR story3_rollover_ladder_rung_a_cuts = true := rfl
+
+def story3_rollover_ladder_rung_b_cuts : EvolStrengthening :=
   { L := [
       ("STEEP", [((.cmp ">=" (.var "s") (.num "0.0")), CutRoute.diNonstrict)]),
       ("MODER", [((.cmp ">=" (.var "s") (.num "0.6")), CutRoute.diNonstrict)]),
@@ -611,9 +611,9 @@ def story3_rollover_ladder_rung_b_cuts : CutCert :=
       ("FLAT", [((.cmp ">=" (.var "s") (.num "1.4")), CutRoute.diNonstrict)])
     ] }
 
-example : cutCertWF story3_rollover_ladder_rung_b_IR story3_rollover_ladder_rung_b_cuts = true := rfl
+example : evolStrengtheningWF story3_rollover_ladder_rung_b_IR story3_rollover_ladder_rung_b_cuts = true := rfl
 
-def watertank_cuts : CutCert :=
+def watertank_cuts : EvolStrengthening :=
   { L := [
       ("Low", [((.cmp ">=" (.var "x") (.num "0.0")), CutRoute.diStrict)]),
       ("Mid", [((.cmp ">=" (.var "x") (.num "13.0")), CutRoute.diStrict)]),
@@ -625,6 +625,6 @@ def watertank_cuts : CutCert :=
       ("High", [])
     ] }
 
-example : cutCertWF watertank_IR watertank_cuts = true := rfl
+example : evolStrengtheningWF watertank_IR watertank_cuts = true := rfl
 
 end RelCertifier.Oracle

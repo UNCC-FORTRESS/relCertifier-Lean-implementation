@@ -120,8 +120,8 @@ def runBatch (paths : List String) : IO Unit := do
 
 open RelCertifier.Oracle in
 /-- `--emit-cuts <file> <defname>`: run the checked-cut search (Z3) and print the kept
-atoms with their routes as a `CutCert` Lean literal (the cut-lift's single door — the
-search stays untrusted; its output is certified against the IR by `cutCertWF = true`,
+atoms with their routes as a `EvolStrengthening` Lean literal (the cut-lift's single door — the
+search stays untrusted; its output is certified against the IR by `evolStrengtheningWF = true`,
 `rfl`). -/
 def emitCuts (path defname : String) : IO Unit := do
   match ← Z3Config.discover with
@@ -157,7 +157,7 @@ def emitCuts (path defname : String) : IO Unit := do
             RelCertifier.Side.R mM
           rs := rs ++ [s!"      ({RelCertifier.Parse.qs mM.name}, {emitAtoms kept})"]
         s.close
-        IO.println s!"def {defname} : CutCert :="
+        IO.println s!"def {defname} : EvolStrengthening :="
         IO.println "  { L := ["
         IO.println (String.intercalate ",
 " ls)

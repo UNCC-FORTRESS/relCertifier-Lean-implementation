@@ -45,7 +45,7 @@ the budget or disable cuts for it).
 
 **Phase 2 — cut-certificate emission (Faithful pattern).** `relcert --emit-cuts`: per
 benchmark, per mode/side, the kept atoms as parser-level data `(atom : PForm, route tag)`
-into a generated `CutCerts.lean`. Kernel-decidable well-formedness against the BenchIR
+into a generated `EvolStrengthenings.lean`. Kernel-decidable well-formedness against the BenchIR
 literal: each atom is a conjunct of that mode's guard (`cutAtoms` mirror), shape tags
 re-checked by the (already pure) `contractShapeOK`, frozen tags by a vars-frozen check.
 The O1/O2 *search* stays untrusted; only its final output is certified.
@@ -83,7 +83,7 @@ ARCHITECTURE/Trusted-README updated: the cut channel moves from "trusted step" t
 ## Status (2026-07-15)
 
 Phases 1–4 DONE (commits 49ffb37..): unconditioned O2 single-pass with recorded routes;
-CutCertDefs + generated CutCerts.lean (46 benchmarks, per-benchmark `cutCertWF = true` by
+EvolStrengthening + generated EvolStrengthenings.lean (46 benchmarks, per-benchmark `evolStrengtheningWF = true` by
 `rfl`, QF-based recognizers); CutLift.lean — per-atom staying (Lie locality + λ-scaling +
 DI routes), trace staying, `cut_lift_boxle`, O1 semantics, `AtomFact` route constructors,
 and the guard-base packaging `cut_hcert`. `parseRat` re-based on `parseQ` (and `QF` split

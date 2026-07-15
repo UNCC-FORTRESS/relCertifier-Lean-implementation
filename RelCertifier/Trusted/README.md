@@ -11,7 +11,7 @@ files (plus the Lean kernel and Z3 itself) has read the entire trust base:
 | `Z3.lean` | the Z3 process session (IO). |
 | `Oracle.lean` | **the one axiom**: `z3_unsat_sound : z3solve q = unsat → ∀ σ, ¬ sat q σ`, realized by the printer + Z3. Everything above it is a theorem. |
 | `Run.lean` | the lowering `PProblem → IR` (`lowerE`/`lowerF`/`dynOf`) and batch IO glue. Total, structural, kernel-reducing — its *outputs* are re-certified where possible (Faithful, CutCerts), but the lowering semantics is part of the claim. |
-| `OracleAPI.lean` | the tool's search: query budgets, the checked-cut O1/O2 search, segment/cover orchestration (IO). Its *outputs* are certified (`cutCertWF` by `rfl`, verdicts through `z3_unsat_sound`); the search itself is untrusted and cannot affect soundness — only completeness. |
+| `OracleAPI.lean` | the tool's search: query budgets, the checked-cut O1/O2 search, segment/cover orchestration (IO). Its *outputs* are certified (`evolStrengtheningWF` by `rfl`, verdicts through `z3_unsat_sound`); the search itself is untrusted and cannot affect soundness — only completeness. |
 
 **The claim.** If the parser accepts the benchmark, the printer prints the queries
 faithfully, and Z3's `unsat` verdicts are correct, then every theorem in `Proofs/` and

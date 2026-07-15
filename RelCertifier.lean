@@ -70,6 +70,7 @@ import RelCertifier.AxiomCheck
 import RelCertifier.BenchIR
 import RelCertifier.EmitIR
 import RelCertifier.Faithful
+import RelCertifier.FaithfulBridge
 import RelCertifier.FaithfulCerts
 import RelCertifier.Rescale
 import RelCertifier.FvDischarge

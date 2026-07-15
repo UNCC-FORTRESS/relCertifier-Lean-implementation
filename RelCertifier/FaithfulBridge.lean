@@ -403,4 +403,178 @@ theorem monoMul_varsNodup : ∀ {a b : Mono},
       exact ih (monoInsert_varsNodup hb)
 
 
+/-! ## Part 3: polynomial semantics — invariants, `coeffOf`, and the support sum
+
+`shapeFaithful` reads a polynomial only through `coeffOf` and `supportIn`. The crux
+lemma (`evalR_support`) turns those Boolean reads into the polynomial's real value:
+if the support lies in a duplicate-free monomial list `ms`, the value is the sum over
+`ms` of coefficient × monomial. All that is needed of the polynomial itself is the
+invariant `exprPoly` maintains: positive coefficient denominators, distinct-variable
+keys, pairwise `monoEq`-distinct keys. -/
+
+/-- The real value of a polynomial in an environment. -/
+noncomputable def QPoly.evalR (ρ : String → ℝ) (p : QPoly) : ℝ :=
+  (p.map (fun e => e.2.val * Mono.evalR ρ e.1)).sum
+
+@[simp] theorem QPoly.evalR_nil (ρ : String → ℝ) : QPoly.evalR ρ [] = 0 := rfl
+
+@[simp] theorem QPoly.evalR_cons (ρ : String → ℝ) (e : Mono × QF) (p : QPoly) :
+    QPoly.evalR ρ (e :: p) = e.2.val * Mono.evalR ρ e.1 + QPoly.evalR ρ p := by
+  simp [QPoly.evalR]
+
+/-- The invariant `exprPoly` maintains. -/
+structure PolyInv (p : QPoly) : Prop where
+  pos : ∀ e ∈ p, e.2.pos
+  keysNodup : ∀ e ∈ p, Mono.varsNodup e.1
+  keysDistinct : p.Pairwise (fun e f => monoEq e.1 f.1 = false)
+
+theorem PolyInv.nil : PolyInv [] := ⟨by simp, by simp, List.Pairwise.nil⟩
+
+theorem PolyInv.of_cons {a : Mono × QF} {p : QPoly} (h : PolyInv (a :: p)) : PolyInv p :=
+  ⟨fun e he => h.pos e (List.mem_cons_of_mem a he),
+   fun e he => h.keysNodup e (List.mem_cons_of_mem a he),
+   (List.pairwise_cons.mp h.keysDistinct).2⟩
+
+/-! ### `coeffOf` structure -/
+
+theorem coeffOf_nil (m : Mono) : coeffOf [] m = qOfInt 0 := rfl
+
+theorem coeffOf_cons_hit {a : Mono × QF} {m : Mono} (h : monoEq a.1 m = true)
+    (p : QPoly) : coeffOf (a :: p) m = a.2 := by
+  simp [coeffOf, List.find?, h]
+
+theorem coeffOf_cons_miss {a : Mono × QF} {m : Mono} (h : monoEq a.1 m = false)
+    (p : QPoly) : coeffOf (a :: p) m = coeffOf p m := by
+  simp [coeffOf, List.find?, h]
+
+theorem coeffOf_notin {m : Mono} : ∀ {p : QPoly},
+    (∀ e ∈ p, monoEq e.1 m = false) → coeffOf p m = qOfInt 0 := by
+  intro p
+  induction p with
+  | nil => intro _; rfl
+  | cons a q ih =>
+      intro h
+      rw [coeffOf_cons_miss (h a (List.mem_cons_self ..))]
+      exact ih (fun e he => h e (List.mem_cons_of_mem a he))
+
+theorem coeffOf_pos {p : QPoly} (hp : ∀ e ∈ p, e.2.pos) (m : Mono) :
+    (coeffOf p m).pos := by
+  unfold coeffOf
+  rcases hf : p.find? (fun e => monoEq e.1 m) with _ | e <;> rw [hf]
+  · exact qOfInt_pos 0
+  · simpa using hp e (List.mem_of_find?_eq_some hf)
+
+/-- Two keys `monoEq` to the same distinct-variable monomial are `monoEq` to each other. -/
+theorem monoEq_common {a b m : Mono} (hb : Mono.varsNodup b)
+    (ha : monoEq a m = true) (hbm : monoEq b m = true) : monoEq a b = true :=
+  monoEq_of_multiset hb ((monoEq_multiset ha).trans (monoEq_multiset hbm).symm)
+
+/-! ### The support-sum crux -/
+
+/-- Pulling the head entry out of the coefficient sum over a duplicate-free support. -/
+theorem coeffSum_cons (ρ : String → ℝ) (a : Mono × QF) (p : QPoly)
+    (hnda : Mono.varsNodup a.1)
+    (hkeys : ∀ e ∈ p, Mono.varsNodup e.1)
+    (hsep : ∀ e ∈ p, monoEq a.1 e.1 = false) :
+    ∀ (ms : List Mono), (∀ m ∈ ms, Mono.varsNodup m) →
+    ms.Pairwise (fun m m' => monoEq m m' = false) →
+    (∃ m ∈ ms, monoEq a.1 m = true) →
+    (ms.map (fun m => (coeffOf (a :: p) m).val * Mono.evalR ρ m)).sum
+      = a.2.val * Mono.evalR ρ a.1
+        + (ms.map (fun m => (coeffOf p m).val * Mono.evalR ρ m)).sum := by
+  intro ms
+  induction ms with
+  | nil => intro _ _ hex; exact absurd hex (by simp)
+  | cons m ms' ih =>
+      intro hnd hpw hex
+      have hndm := hnd m (List.mem_cons_self ..)
+      have hnd' := fun x hx => hnd x (List.mem_cons_of_mem m hx)
+      obtain ⟨hpwm, hpw'⟩ := List.pairwise_cons.mp hpw
+      rcases hhit : monoEq a.1 m with _ | _
+      · -- head of ms not hit: the witness is in the tail
+        have hex' : ∃ m' ∈ ms', monoEq a.1 m' = true := by
+          rcases hex with ⟨m0, hm0, h0⟩
+          rcases List.mem_cons.mp hm0 with rfl | hm0'
+          · rw [h0] at hhit; exact absurd hhit (by simp)
+          · exact ⟨m0, hm0', h0⟩
+        simp only [List.map_cons, List.sum_cons]
+        rw [coeffOf_cons_miss hhit, ih hnd' hpw' hex']
+        ring
+      · -- head of ms hit
+        simp only [List.map_cons, List.sum_cons]
+        rw [coeffOf_cons_hit hhit]
+        -- the tail of ms misses a.1
+        have hmiss : ∀ m' ∈ ms', monoEq a.1 m' = false := by
+          intro m' hm'
+          rcases hq : monoEq a.1 m' with _ | _
+          · rfl
+          · -- then m ~ a.1 ~ m', contradicting ms-pairwise
+            have hmm' : monoEq m m' = true :=
+              monoEq_of_multiset (hnd' m' hm')
+                ((monoEq_multiset hhit).symm.trans (monoEq_multiset hq))
+            rw [hpwm m' hm'] at hmm'
+            exact absurd hmm' (by simp)
+        -- coeffOf (a::p) on the tail = coeffOf p on the tail
+        have htail : (ms'.map (fun m' => (coeffOf (a :: p) m').val * Mono.evalR ρ m')).sum
+            = (ms'.map (fun m' => (coeffOf p m').val * Mono.evalR ρ m')).sum := by
+          congr 1
+          refine List.map_congr_left ?_
+          intro m' hm'
+          rw [coeffOf_cons_miss (hmiss m' hm')]
+        -- p misses m (an entry hitting m would collide with a's key)
+        have hpm : coeffOf p m = qOfInt 0 := by
+          refine coeffOf_notin ?_
+          intro e he
+          rcases hq : monoEq e.1 m with _ | _
+          · rfl
+          · have : monoEq a.1 e.1 = true := monoEq_common (hkeys e he) hhit hq
+            rw [hsep e he] at this
+            exact absurd this (by simp)
+        rw [htail, hpm]
+        have heval : Mono.evalR ρ m = Mono.evalR ρ a.1 := (monoEq_evalR hhit ρ).symm
+        rw [heval]
+        simp
+
+/-- **The support-sum crux**: a polynomial supported inside a duplicate-free monomial
+list is the sum, over that list, of coefficient × monomial value. -/
+theorem evalR_support (ρ : String → ℝ) : ∀ (p : QPoly),
+    PolyInv p →
+    ∀ (ms : List Mono), (∀ m ∈ ms, Mono.varsNodup m) →
+    ms.Pairwise (fun m m' => monoEq m m' = false) →
+    supportIn p ms = true →
+    QPoly.evalR ρ p = (ms.map (fun m => (coeffOf p m).val * Mono.evalR ρ m)).sum := by
+  intro p
+  induction p with
+  | nil =>
+      intro _ ms _ _ _
+      rw [QPoly.evalR_nil]
+      have hz : ∀ ms' : List Mono,
+          (0 : ℝ) = (ms'.map (fun m => (coeffOf [] m).val * Mono.evalR ρ m)).sum := by
+        intro ms'
+        induction ms' with
+        | nil => rfl
+        | cons m ms'' ihm =>
+            simp only [List.map_cons, List.sum_cons, coeffOf_nil, qOfInt_val,
+              Int.cast_zero, zero_mul, zero_add]
+            simpa using ihm
+      exact hz ms
+  | cons a p ih =>
+      intro hinv ms hnd hpw hsup
+      have hex : ∃ m ∈ ms, monoEq a.1 m = true := by
+        have := hsup
+        unfold supportIn at this
+        simp only [List.all_cons, Bool.and_eq_true, List.any_eq_true] at this
+        exact this.1
+      have hsup' : supportIn p ms = true := by
+        unfold supportIn at hsup ⊢
+        simp only [List.all_cons, Bool.and_eq_true] at hsup
+        exact hsup.2
+      have hsep : ∀ e ∈ p, monoEq a.1 e.1 = false :=
+        List.pairwise_cons.mp hinv.keysDistinct |>.1
+      rw [QPoly.evalR_cons,
+        coeffSum_cons ρ a p (hinv.keysNodup a (List.mem_cons_self ..))
+          (fun e he => hinv.keysNodup e (List.mem_cons_of_mem a he)) hsep
+          ms hnd hpw hex,
+        ih hinv.of_cons ms hnd hpw hsup']
+
 end RelCertifier

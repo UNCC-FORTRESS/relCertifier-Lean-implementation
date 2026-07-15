@@ -12,6 +12,7 @@ invariant-term side split (`g` mentions no Aux coordinates), and the Z3 certific
 -/
 import RelCertifier.WellFormedChecker
 import RelCertifier.ClockedTop
+import RelCertifier.Run
 
 namespace RelCertifier
 open DL DLCalTiming DLRel Function Set
@@ -650,5 +651,132 @@ theorem settling_end_to_end (M : SettlingModel n) (a b c : Fin n)
     (hdis_aux M a b c fL domL (M.dt : ℝ) hfL hdomL hab.symm hbc)
     (hddF_aux M a b c fL domL (M.dt : ℝ) ϕinv hfL hdomL hinvL hinvR hab.symm hbc)
     hcert
+
+/-! ## Lowering hygiene: parser-lowered terms mention no Aux coordinates
+
+`lowerE`/`invToG` resolve variables through `resolveVar`, which only ever produces
+`Side.L`, `Side.R`, or the (non-Aux) default side. Hence the lowered invariant term
+mentions no Aux coordinate — the `hgAux` hypothesis of `settling_end_to_end` is
+automatic on the parser-emitted path. -/
+
+theorem Run.resolveVar_no_aux {vars : List String} {defSide : Side} (hside : defSide ≠ Side.Aux)
+    {name : String} {v : Var n} (h : Run.resolveVar vars n defSide name = some v) :
+    v.1 ≠ Side.Aux := by
+  unfold Run.resolveVar at h
+  have finish : ∀ (side : Side) (base : String), side ≠ Side.Aux →
+      (match List.findIdx? (· == base) vars with
+        | some i => if hlt : i < n then some ((side, ⟨i, hlt⟩) : Var n) else none
+        | none => none) = some v → v.1 ≠ Side.Aux := by
+    intro side base hs hm
+    split at hm
+    · split at hm
+      · injection hm with h'
+        subst h'
+        exact hs
+      · exact absurd hm (by simp)
+    · exact absurd hm (by simp)
+  by_cases h1 : name.startsWith "L_"
+  · simp only [h1, if_true] at h
+    exact finish Side.L (Parse.dr name 2) (by simp) h
+  · by_cases h2 : name.startsWith "R_"
+    · simp only [h1, h2, Bool.false_eq_true, if_false, if_true] at h
+      exact finish Side.R (Parse.dr name 2) (by simp) h
+    · simp only [h1, h2, Bool.false_eq_true, if_false] at h
+      exact finish defSide name hside h
+
+theorem Run.lowerE_no_aux {vars : List String} {defSide : Side} (hside : defSide ≠ Side.Aux) :
+    ∀ {e : Parse.PExpr} {t : ITerm n}, Run.lowerE vars n defSide e = some t →
+      ∀ v ∈ (ITerm.toHost t).fv, v.1 ≠ Side.Aux := by
+  intro e
+  induction e with
+  | num s =>
+      intro t h v hv
+      simp only [Run.lowerE, Option.map_eq_some_iff] at h
+      obtain ⟨q, -, rfl⟩ := h
+      exact absurd hv (by simp [ITerm.toHost, Term.fv])
+  | var name =>
+      intro t h v hv
+      simp only [Run.lowerE, Option.map_eq_some_iff] at h
+      obtain ⟨w, hw, rfl⟩ := h
+      simp only [ITerm.toHost, Term.fv, Set.mem_singleton_iff] at hv
+      subst hv
+      exact Run.resolveVar_no_aux hside hw
+  | neg a ih =>
+      intro t h v hv
+      simp only [Run.lowerE, Option.map_eq_some_iff] at h
+      obtain ⟨ta, hta, rfl⟩ := h
+      simp only [ITerm.toHost, Term.fv, Set.mem_union] at hv
+      rcases hv with hv | hv
+      · exact absurd hv (by simp [Term.fv])
+      · exact ih hta v hv
+  | bin op a b iha ihb =>
+      intro t h v hv
+      simp only [Run.lowerE] at h
+      rcases hea : Run.lowerE vars n defSide a with _ | ea <;> rw [hea] at h
+      · simp at h
+      rcases heb : Run.lowerE vars n defSide b with _ | eb <;> rw [heb] at h
+      · simp at h
+      simp only [Option.bind_eq_bind, Option.bind] at h
+      have hbin : ∀ aop : AOp, t = ITerm.bin aop ea eb → v.1 ≠ Side.Aux := by
+        intro aop ht
+        subst ht
+        simp only [ITerm.toHost, Term.fv, Set.mem_union] at hv
+        rcases hv with hv | hv
+        · exact iha hea v hv
+        · exact ihb heb v hv
+      split at h
+      · injection h with h'; exact hbin _ h'.symm
+      · injection h with h'; exact hbin _ h'.symm
+      · injection h with h'; exact hbin _ h'.symm
+      · -- "/" : constant fold, or fail
+        split at h
+        · split at h
+          · simp at h
+          · injection h with h'
+            subst h'
+            exact absurd hv (by simp [ITerm.toHost, Term.fv])
+        · simp at h
+      · simp at h
+
+/-- **The `hgAux` discharger** for the parser-emitted invariant term: `invToG` output
+mentions no Aux coordinate. -/
+theorem Run.invToG_no_aux {vars : List String} :
+    ∀ {f : Parse.PForm} {gI : ITerm n}, Run.invToG vars n f = some gI →
+      ∀ i : Fin n, ((Side.Aux, i) : Var n) ∉ (ITerm.toHost gI).fv := by
+  intro f
+  induction f with
+  | cmp op a b =>
+      intro gI h i hv
+      simp only [Run.invToG] at h
+      split at h
+      · rcases hex : Run.lowerE vars n Side.L a with _ | ex <;> rw [hex] at h
+        · simp at h
+        rcases hey : Run.lowerE vars n Side.L b with _ | ey <;> rw [hey] at h
+        · simp at h
+        injection h with h'
+        subst h'
+        simp only [ITerm.toHost, Term.fv, Set.mem_union] at hv
+        rcases hv with hm | hm
+        · exact Run.lowerE_no_aux (by simp) hex _ hm rfl
+        · exact Run.lowerE_no_aux (by simp) hey _ hm rfl
+      · split at h
+        · rcases hex : Run.lowerE vars n Side.L a with _ | ex <;> rw [hex] at h
+          · simp at h
+          rcases hey : Run.lowerE vars n Side.L b with _ | ey <;> rw [hey] at h
+          · simp at h
+          injection h with h'
+          subst h'
+          simp only [ITerm.toHost, Term.fv, Set.mem_union] at hv
+          rcases hv with hm | hm
+          · exact Run.lowerE_no_aux (by simp) hey _ hm rfl
+          · exact Run.lowerE_no_aux (by simp) hex _ hm rfl
+        · exact absurd h (by simp)
+  | and x y ihx ihy =>
+      intro gI h i hv
+      simp only [Run.invToG] at h
+      exact ihx h i hv
+  | tt => intro gI h; exact absurd h (by simp [Run.invToG])
+  | or x y ihx ihy => intro gI h; exact absurd h (by simp [Run.invToG])
+  | not x ihx => intro gI h; exact absurd h (by simp [Run.invToG])
 
 end RelCertifier

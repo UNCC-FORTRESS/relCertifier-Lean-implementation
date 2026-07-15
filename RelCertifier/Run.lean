@@ -52,7 +52,7 @@ def resolveVar (vars : List String) (n : ℕ) (defSide : Side) (name : String) :
   | some i => if h : i < n then some (side, ⟨i, h⟩) else none
   | none => none
 
-partial def lowerE (vars : List String) (n : ℕ) (defSide : Side) : PExpr → Option (ITerm n)
+def lowerE (vars : List String) (n : ℕ) (defSide : Side) : PExpr → Option (ITerm n)
   | .num s => (parseRat s).map ITerm.rat
   | .var v => (resolveVar vars n defSide v).map ITerm.var
   | .neg a => (lowerE vars n defSide a).map (fun t => ITerm.bin .sub (.rat 0) t)
@@ -71,7 +71,7 @@ partial def lowerE (vars : List String) (n : ℕ) (defSide : Side) : PExpr → O
       | _   => none
 
 /-- Lower a formula to the Smt IR (conjunctions only; comparisons kept as-is). -/
-partial def lowerF (vars : List String) (n : ℕ) (defSide : Side) : PForm → Option (IForm n)
+def lowerF (vars : List String) (n : ℕ) (defSide : Side) : PForm → Option (IForm n)
   | .tt => some IForm.tt
   | .cmp op a b => do
       let ea ← lowerE vars n defSide a

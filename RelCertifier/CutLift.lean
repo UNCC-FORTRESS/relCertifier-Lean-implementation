@@ -215,7 +215,8 @@ structure AtomFact (n : ℕ) (sys : ODESystem (Var n)) (dom : Formula (Var n)) w
     BoxLe (Program.ode sys dom) (fun ω => Term.eval gT ω) ν
 
 /-- The conjoined cut formula, mirroring the tool's fold. -/
-def hostCut (afs : List (AtomFact n sys dom)) : Formula (Var n) :=
+def hostCut {sys : ODESystem (Var n)} {dom : Formula (Var n)}
+    (afs : List (AtomFact n sys dom)) : Formula (Var n) :=
   afs.foldl (fun d af => Formula.and d af.form) Formula.tt
 
 theorem sat_hostCut {sys : ODESystem (Var n)} {dom : Formula (Var n)}

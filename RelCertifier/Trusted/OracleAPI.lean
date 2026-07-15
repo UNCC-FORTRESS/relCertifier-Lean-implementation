@@ -542,28 +542,22 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     -- structural; the real `repoPresPre/Post` are the Z3-established region-invariants).
     -- a mode is a node iff joint-certified OR reposition-certified by ANY of the 3 kinds
     -- (static pre/post OR dynamic pre/post).
+    -- the emitted flag rows (also what `--emit-cover` prints — ONE construction,
+    -- `buildCoverGraph`, shared by this gate and the kernel replays)
+    let flagRows : List ModeFlagsE := p.R.modes.map (fun m =>
+      { name := m.name, jointOK := seg m.name == Seg.pass,
+        repoPre := repoPreOK m.name, repoPost := repoPostOK m.name,
+        dynPre := repoDynPreOK m.name, dynPost := repoDynPostOK m.name })
     let repoOK := fun nm => repoPreOK nm || repoPostOK nm || repoDynPreOK nm || repoDynPostOK nm
-    let nodeMods := p.R.modes.filter (fun m => seg m.name == Seg.pass || repoOK m.name)
-    let kSentinel := nodeMods.length
-    let idxOf := fun (nm : String) => (nodeMods.findIdx? (·.name == nm)).getD kSentinel
-    let cgReal : SearchGraph (Var n) :=
-      { modes := nodeMods.map (fun m =>
-          { sys := [], dom := .tt, weight := 1,
-            jointOK := seg m.name == Seg.pass,
-            region := .tt, repoPreOK := repoPreOK m.name,
-            regionPost := .tt, repoPostOK := repoPostOK m.name,
-            dynSys := [], dynDomPre := .tt, dynDomPost := .tt,
-            repoDynPreOK := repoDynPreOK m.name, repoDynPostOK := repoDynPostOK m.name })
-        edges := nodeMods.flatMap (fun m => (succOf p m.name).map (fun tgt =>
-          -- FIX 3: `pruned` set by the Def-3 non-connection certificate (`prunedOf`).
-          { src := idxOf m.name, tgt := idxOf tgt, guard := .tt, pruned := prunedOf m.name tgt })) }
+    let idxOf := nodeIdx flagRows
+    let cgReal : SearchGraph (Var n) := buildCoverGraph flagRows (succOf p) prunedOf
     -- fuel bounds `decideCovered`'s depth: joint steps decrease budget (≤ `bBudget`), reposition
     -- steps keep budget but recurse only through repo-OK nodes' non-self exits. A budget-decrement
     -- can be interleaved with a zero-budget reposition through EACH node (Approach→Return→Approach
     -- alternation at high λ ⟹ high `bBudget`), so the worst-case depth is `bBudget·(nodeMods+1)`, not
     -- `bBudget + nodeMods`. Fuel only bounds the checker's search depth — larger is always sound
     -- (`decideCovered_sound` is fuel-generic); too-small merely over-declines.
-    let fuel := bBudget * (nodeMods.length + 1) + 1
+    let fuel := coverFuel flagRows bBudget
     let startCovers := fun (mR : PMode) =>
       -- a start is usable iff it is a node; the verified checker decides base / joint-step /
       -- reposition-step on the real graph. Initial source setting σ = **preJ** (no joint yet).
@@ -574,10 +568,7 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     if !admMods.isEmpty && admMods.all startCovers then
       return (.cov, some {
         mL := mL.name, lamQ := lam, bBudget := bBudget,
-        flags := p.R.modes.map (fun m =>
-          { name := m.name, jointOK := seg m.name == Seg.pass,
-            repoPre := repoPreOK m.name, repoPost := repoPostOK m.name,
-            dynPre := repoDynPreOK m.name, dynPost := repoDynPostOK m.name }),
+        flags := flagRows,
         admissible := admMods.map (·.name),
         strata := strataMap })
     if admMods.any (fun mR => seg mR.name == Seg.incon) then sawIncon := true

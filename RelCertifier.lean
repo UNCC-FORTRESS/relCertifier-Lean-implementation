@@ -95,3 +95,4 @@ import RelCertifier.Proofs.Encoding.Reification
 import RelCertifier.Proofs.Encoding.ToolLevel
 import RelCertifier.Proofs.Flow.StratifiedBarrier
 import RelCertifier.Instances.BenchCovers
+import RelCertifier.Instances.BenchCoverReplay

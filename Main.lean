@@ -10,12 +10,12 @@ computes the verified `lieDeriv` (via the IR mirror, pinned to it by
 reports certified / not. `unsat` is the only trusted verdict:
 `unsat ⟹ flow_certified ⟹ the invariant component is preserved along the flow`.
 -/
-import RelCertifier.Smt
-import RelCertifier.EmitIR
-import RelCertifier.Oracle
-import RelCertifier.Run
-import RelCertifier.Z3
-import RelCertifier.OracleAPI
+import RelCertifier.Trusted.Smt
+import RelCertifier.Trusted.EmitIR
+import RelCertifier.Trusted.Oracle
+import RelCertifier.Trusted.Run
+import RelCertifier.Trusted.Z3
+import RelCertifier.Trusted.OracleAPI
 
 open RelCertifier DL
 

@@ -9,9 +9,9 @@ boundary, determinism, parser, lowering, Z3 layer, and oracle consistency. Exits
 if any assertion fails. These are the anti-flakiness / anti-masquerade guarantees the
 synthesis loop depends on.
 -/
-import RelCertifier.OracleAPI
-import RelCertifier.BenchIR
-import RelCertifier.Z3
+import RelCertifier.Trusted.OracleAPI
+import RelCertifier.Instances.BenchIR
+import RelCertifier.Trusted.Z3
 
 open RelCertifier RelCertifier.Parse RelCertifier.Oracle
 

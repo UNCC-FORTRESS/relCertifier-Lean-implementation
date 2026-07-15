@@ -165,6 +165,15 @@ def routeQueries {n : ℕ} (domain : IForm n) (g gdot : ITerm n) : List (IForm n
     IForm.and domain (IForm.and (IForm.cmp .eq g (.rat 0)) (IForm.cmp .ge gdot (.rat 0))),
     IForm.and domain (IForm.and (IForm.cmp .ge g (.rat 0)) (IForm.cmp .gt gdot (.rat 0))) ]
 
+/-- Multi-barrier route queries: routes A (domain-wide) and C (superlevel) take the
+UN-narrowed domain `domAC`; route B (strict boundary) may take the others-narrowed
+`domB`. Narrowing A/C by the sibling components is unsound (t²-class false
+certification); B's strict Lie sign survives the first-exit argument. -/
+def routeQueriesMB {n : ℕ} (domAC domB : IForm n) (g gdot : ITerm n) : List (IForm n) :=
+  [ IForm.and domAC (IForm.cmp .gt gdot (.rat 0)),
+    IForm.and domB (IForm.and (IForm.cmp .eq g (.rat 0)) (IForm.cmp .ge gdot (.rat 0))),
+    IForm.and domAC (IForm.and (IForm.cmp .ge g (.rat 0)) (IForm.cmp .gt gdot (.rat 0))) ]
+
 /-! ## Z3 -/
 
 def z3Unsat (script : String) : IO Bool := do

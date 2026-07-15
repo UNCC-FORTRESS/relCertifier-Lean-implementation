@@ -77,3 +77,34 @@ must extend it, with:
 3. Prove the `CoexecInvThroughout → theorem3Form` bridge (the new proof work).
 4. Instances: every tool-certified benchmark instantiates; a benchmark that will not go
    through marks a genuine code-or-proof finding to act on.
+
+## FINDING (R4, 2026-07-15): multi-barrier cross-narrowing unsound for routes A/C
+
+`checkSeg` narrowed EVERY route's query domain by the sibling components (`others ≤ 0`).
+For route B (strict boundary) this survives the first-exit argument. For routes A
+(domain-wide) and C (superlevel) it is UNSOUND — counterexample `comps = [x², x²]`,
+`x' = 1`, domain ⊤: the narrowed domain is `{x = 0}`, route A's query `x = 0 ∧ 2x > 0`
+is UNSAT, falsely certifying `x² ≤ 0` under `x' = 1` — the t²-pathology reintroduced
+through the conjunction (circular differential cut).
+
+**Fix (soundness-safe: queries only get harder):** `routeQueriesMB` — routes A/C take
+the un-narrowed domain (checked cuts retained: independently justified), route B keeps
+the narrowing. Soundness of the mixed form: A/C components are independently preserved
+(existing single-component theorems); at a first joint exit the exiting component must
+be B-certified, all components are ≤ 0 there, and the strict Lie sign contradicts the
+exit slope.
+
+**Operational impact (re-run of the 19 multi-component benchmarks):** 5 remain
+CERTIFIED (endurance_orderlift_2to3, rover3tier_rung12, story1_attdist_rung_a_6to8,
+story1_attdist_rung_b_12dof, story3_rollover_ladder_rung_b); **14 now DECLINE** — their
+previous verdicts depended on the unsound narrowing: refinement_ladder rungs 1/2_3to6/
+2c/3/4, rover_attitude_cone_12dof, rover_dof_terrain rung1/2/3/3_8d, story2_lateral
+a/b, story3_rollover base/rung_a. Suite: 46 → 32 certified.
+
+**Sound strength recovery (proposed, not yet implemented): stratified differential
+cuts.** The narrowing is sound when ACYCLIC: prove a component standalone first, then
+add it to the others' domains (iterate to a fixpoint — sequential DC, not circular).
+Strictly stronger than the fix, may re-certify part of the 14. Requires: tool loop in
+`checkSeg` + the domain-refinement lemma in Lean (runs staying in a proven invariant
+are runs of the narrowed-domain ode — `ODESol_restrict` + pointwise BoxLe, the
+CutLift pattern).

@@ -166,7 +166,16 @@ def checkSeg (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     (vars : List String) (n : ℕ) (coord : Fin n → String)
     (comps : List (ITerm n)) (cutL cutR : IForm n) (mL mR : PMode) (lam : ℚ) : IO Seg := do
   -- Each component certifies via ANY of the 3 sound routes (A domain / B strict /
-  -- C superlevel); the OTHER components restrict the domain (multi-barrier coupling).
+  -- C superlevel). MULTI-BARRIER COUPLING (soundness-critical, fixed 2026-07-15): the
+  -- OTHER components may restrict the domain ONLY for route B (strict boundary). For
+  -- routes A and C the narrowing is UNSOUND: with `comps = [x², x²]`, `x' = 1`, the
+  -- A-query on the others-narrowed domain `{x² ≤ 0} = {x = 0}` is `x = 0 ∧ 2x > 0` —
+  -- UNSAT — falsely certifying `x² ≤ 0` under `x' = 1` (the same t²-pathology the
+  -- boundary-only non-strict form has; see `nonstrict_boundary_insufficient`). Route B
+  -- survives the first-exit argument: at the first joint exit time all components are
+  -- ≤ 0 (the narrowed domain holds there), the exiting component sits on its boundary,
+  -- and the strict Lie sign contradicts the exit slope. The checked cuts remain in ALL
+  -- routes' domains — they are single-system invariants justified independently (O1/O2).
   -- Segment status: fail if some component definitively fails all routes; else incon if
   -- some component is inconclusive; else pass (fail dominates incon).
   let mut sawFail := false
@@ -182,10 +191,11 @@ def checkSeg (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
             (fun j => if j == i then none else comps[j]?)
           -- CHECKED-CUT domains: narrow by the modes' re-derived cuts (O1/O2 above)
           let baseDom := IForm.and (IForm.and baseDom cutL) cutR
-          let dom := others.foldl (fun d gj => IForm.and d (IForm.cmp .le gj (.rat 0))) baseDom
+          -- others-narrowing ONLY on route B (see the soundness note above)
+          let domB := others.foldl (fun d gj => IForm.and d (IForm.cmp .le gj (.rat 0))) baseDom
           let mut compPass := false
           let mut compIncon := false
-          for q in routeQueries dom g gdot do
+          for q in routeQueriesMB baseDom domB g gdot do
             if compPass then pure () else do
               cnt.modify (· + 1)
               if (← cnt.get) > maxQ then throw (IO.userError "query budget exceeded")

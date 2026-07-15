@@ -251,4 +251,238 @@ theorem settling_end_to_end_aux (M : SettlingModel n) (a b c : Fin n) (hab : a �
     ((Side.Aux, c) : Var n) (M.dt : ℝ) (Term.const 1) ϕinv hψ hH (hgAux c)
     (aux_tgS M c) (aux_notin_envF M c) (fun q' => aux_notin_GdOf M c q') hdis hddF
 
+/-! ## `Program.vars` bounds and the `hdis` discharger -/
+
+theorem vars_bigChoiceP_sub (ps : List (Program (Var n))) (S : Set (Var n))
+    (h : ∀ p ∈ ps, Program.vars p ⊆ S) : Program.vars (bigChoiceP ps) ⊆ S := by
+  induction ps with
+  | nil =>
+      simp [bigChoiceP, Program.vars, Program.fv, Program.bv, Formula.fv]
+  | cons p ps ih =>
+      have hp := h p (List.mem_cons_self ..)
+      have hps := ih (fun q hq => h q (List.mem_cons_of_mem _ hq))
+      simp only [bigChoiceP, Program.vars, Program.fv, Program.bv] at hp hps ⊢
+      intro x hx
+      rcases hx with (hx | hx) | (hx | hx)
+      · exact hp (Or.inl hx)
+      · exact hps (Or.inl hx)
+      · exact hp (Or.inr hx)
+      · exact hps (Or.inr hx)
+
+/-- Compositional over-approximations of `Program.vars` (the `seq` minus-terms only
+shrink, so the plain unions bound them). -/
+theorem vars_seq_sub (α β : Program (Var n)) :
+    Program.vars (Program.seq α β) ⊆ Program.vars α ∪ Program.vars β := by
+  simp only [Program.vars, Program.fv, Program.bv]
+  intro x hx
+  rcases hx with hx | hx
+  · rcases hx with hx | ⟨hx, -⟩
+    · exact Or.inl (Or.inl hx)
+    · exact Or.inr (Or.inl hx)
+  · rcases hx with hx | hx
+    · exact Or.inl (Or.inr hx)
+    · exact Or.inr (Or.inr hx)
+
+theorem vars_choice_sub (α β : Program (Var n)) :
+    Program.vars (Program.choice α β) ⊆ Program.vars α ∪ Program.vars β := by
+  simp only [Program.vars, Program.fv, Program.bv]
+  intro x hx
+  rcases hx with hx | hx
+  · rcases hx with hx | hx
+    · exact Or.inl (Or.inl hx)
+    · exact Or.inr (Or.inl hx)
+  · rcases hx with hx | hx
+    · exact Or.inl (Or.inr hx)
+    · exact Or.inr (Or.inr hx)
+
+theorem vars_star_eq (α : Program (Var n)) :
+    Program.vars (Program.star α) = Program.vars α := rfl
+
+theorem vars_test_eq (φ : Formula (Var n)) : Program.vars (Program.test φ) = φ.fv := by
+  simp [Program.vars, Program.fv, Program.bv]
+
+theorem vars_assign_sub (x : Var n) (e : Term (Var n)) :
+    Program.vars (Program.assign x e) ⊆ {x} ∪ e.fv := by
+  simp only [Program.vars, Program.fv, Program.bv]
+  intro y hy
+  rcases hy with hy | hy
+  · exact Or.inr hy
+  · exact Or.inl hy
+
+theorem vars_ode_sub (sys : ODESystem (Var n)) (dom : Formula (Var n)) :
+    Program.vars (Program.ode sys dom) ⊆ sys.boundSet ∪ sys.readVars ∪ dom.fv := by
+  simp only [Program.vars, Program.fv, Program.bv]
+  intro x hx
+  rcases hx with hx | hx
+  · rcases hx with hx | hx
+    · rcases hx with hx | hx
+      · exact Or.inl (Or.inl hx)
+      · exact Or.inl (Or.inr hx)
+    · exact Or.inr hx
+  · exact Or.inl (Or.inl hx)
+
+theorem clk_boundSet_sub (tg : Var n) (sys : ODESystem (Var n)) :
+    (DLCalTiming.clk tg sys).boundSet ⊆ sys.boundSet ∪ {tg} := by
+  intro y hy
+  simp only [DLCalTiming.clk, ODESystem.boundSet, ODESystem.bound, List.map_append,
+    List.mem_append, Set.mem_setOf_eq, List.map_cons, List.map_nil, List.mem_cons,
+    List.not_mem_nil, or_false] at hy
+  rcases hy with hy | hy
+  · exact Or.inl hy
+  · exact Or.inr hy
+
+theorem clk_readVars_sub (tg : Var n) (sys : ODESystem (Var n)) :
+    (DLCalTiming.clk tg sys).readVars ⊆ sys.readVars := by
+  intro y hy
+  simp only [DLCalTiming.clk, ODESystem.readVars, Set.mem_setOf_eq, List.mem_append,
+    List.mem_singleton] at hy ⊢
+  obtain ⟨p, hp, hyp⟩ := hy
+  rcases hp with hp | hp
+  · exact ⟨p, hp, hyp⟩
+  · subst hp
+    exact absurd hyp (by simp [Term.fv])
+
+theorem vars_clockedSeg_sub (leftSys : ODESystem (Var n)) (domL : Formula (Var n))
+    (tg : Var n) (dt : ℝ) :
+    Program.vars (clockedSeg leftSys domL tg dt)
+      ⊆ {tg} ∪ leftSys.boundSet ∪ leftSys.readVars ∪ domL.fv := by
+  intro x hx
+  rcases vars_seq_sub _ _ hx with hx | hx
+  · rcases vars_assign_sub tg (Term.const 0) hx with hx | hx
+    · exact Or.inl (Or.inl (Or.inl hx))
+    · exact absurd hx (by simp [Term.fv])
+  · rcases vars_seq_sub _ _ hx with hx | hx
+    · rcases vars_ode_sub _ _ hx with (hx | hx) | hx
+      · rcases clk_boundSet_sub tg leftSys hx with hx | hx
+        · exact Or.inl (Or.inl (Or.inr hx))
+        · exact Or.inl (Or.inl (Or.inl hx))
+      · exact Or.inl (Or.inr (clk_readVars_sub tg leftSys hx))
+      · exact Or.inr hx
+    · rw [vars_test_eq] at hx
+      simp only [clkGuard, Formula.fv, Term.fv] at hx
+      rcases hx with hx | hx
+      · exact Or.inl (Or.inl (Or.inl hx))
+      · exact absurd hx (by simp)
+
+/-- Left block binds only `Lv`s. -/
+theorem leftBlock_boundSet_sub (fL : Fin n → Term (Var n)) :
+    (leftBlock fL).boundSet ⊆ range Lv := by
+  intro x hx
+  simp only [leftBlock, ODESystem.boundSet, ODESystem.bound, List.map_map,
+    Set.mem_setOf_eq, List.mem_map, List.mem_finRange] at hx
+  obtain ⟨i, -, rfl⟩ := hx
+  exact ⟨i, rfl⟩
+
+theorem leftBlock_readVars_sub (fL : Fin n → Term (Var n))
+    (hfL : ∀ i, (fL i).fv ⊆ range Lv) : (leftBlock fL).readVars ⊆ range Lv := by
+  intro x hx
+  simp only [leftBlock, ODESystem.readVars, Set.mem_setOf_eq, List.mem_map,
+    List.mem_finRange] at hx
+  obtain ⟨p, ⟨i, -, rfl⟩, hxp⟩ := hx
+  exact hfL i hxp
+
+/-- One cadenced mode step of a checker model touches only `mv`, its clock, and `Rv`s. -/
+theorem vars_modeStepC_sub (M : SettlingModel n) (mv tr : Var n) (dt : ℝ) (q : ℕ)
+    (SM : SettlingMode n) (hq : M.graph.modeAt q = some (SM.toRMode M)) :
+    Program.vars (modeStepC M.graph mv tr dt q (SM.toRMode M))
+      ⊆ {mv, tr} ∪ range Rv := by
+  intro x hx
+  rcases vars_seq_sub _ _ hx with hx | hx
+  · rw [vars_test_eq] at hx
+    simp only [modeIs, Formula.fv, Term.fv] at hx
+    rcases hx with hx | hx
+    · exact Or.inl (Or.inl hx)
+    · exact absurd hx (by simp)
+  · rcases vars_seq_sub _ _ hx with hx | hx
+    · rcases vars_clockedSeg_sub _ _ _ _ hx with ((hx | hx) | hx) | hx
+      · exact Or.inl (Or.inr hx)
+      · -- bound of the mode system
+        obtain ⟨i, hi⟩ := rightBlock_bound_sub SM.fieldOf (Term.const 1) x
+          (by simpa [SettlingMode.toRMode, ODESystem.boundSet] using hx)
+        exact Or.inr (hi ▸ mem_range_self i)
+      · -- reads of the mode system
+        simp only [SettlingMode.toRMode, ODESystem.readVars, rightBlock,
+          Set.mem_setOf_eq, List.mem_map, List.mem_finRange] at hx
+        obtain ⟨p, ⟨i, -, rfl⟩, hxp⟩ := hx
+        simp only [Term.fv, Set.empty_union] at hxp
+        obtain ⟨j, hj⟩ := field_fv_sub i (SM.shapes i)
+          (by simpa [SettlingMode.fieldOf] using hxp)
+        exact Or.inr (hj ▸ ⟨j, rfl⟩)
+      · -- the domain: the shared envelope
+        exact Or.inr (envF_fv_sub M (by simpa [SettlingMode.toRMode] using hx))
+    · -- the jumps: guards are ⊤, assigns write `mv`
+      refine vars_bigChoiceP_sub _ _ ?_ hx
+      intro p hp
+      simp only [List.mem_map] at hp
+      obtain ⟨e, hef, rfl⟩ := hp
+      have hguard : e.guard = Formula.tt := by
+        have hmem : e ∈ M.graph.edges := List.mem_of_mem_filter hef
+        exact (graph_edges_shape M hmem).1
+      intro y hy
+      rcases vars_seq_sub _ _ hy with hy | hy
+      · rw [vars_test_eq, hguard] at hy
+        exact absurd hy (by simp [Formula.fv])
+      · rcases vars_assign_sub mv _ hy with hy | hy
+        · exact Or.inl (Or.inl hy)
+        · exact absurd hy (by simp [Term.fv])
+
+/-- The cadenced right automaton of a checker model touches only `mv`, its clock, and
+`Rv`s. -/
+theorem vars_bodyC_sub (M : SettlingModel n) (mv tr : Var n) (dt : ℝ) :
+    Program.vars (rightAutomatonBodyC M.graph mv tr dt) ⊆ {mv, tr} ∪ range Rv := by
+  refine vars_bigChoiceP_sub _ _ ?_
+  intro p hp
+  simp only [rightAutomatonBodyC, List.mem_filterMap, List.mem_range] at hp
+  obtain ⟨q, -, hq⟩ := hp
+  rcases hm : M.graph.modeAt q with _ | m
+  · rw [hm] at hq; simp at hq
+  · rw [hm] at hq
+    simp only [Option.map_some, Option.some.injEq] at hq
+    subst hq
+    have hm' := hm
+    rw [graph_modeAt] at hm'
+    obtain ⟨SM, hSM, hEq⟩ := Option.map_eq_some_iff.mp hm'
+    rw [← hEq] at hm ⊢
+    exact vars_modeStepC_sub M mv tr dt q SM hm
+
+/-- **The `hdis` discharger**: for a checker model with Aux mode variable, Aux clocks,
+side-split left fields and left domain, the loop rule's disjointness holds. -/
+theorem hdis_aux (M : SettlingModel n) (a b c : Fin n)
+    (fL : Fin n → Term (Var n)) (domL : Formula (Var n)) (dt : ℝ)
+    (hfL : ∀ i, (fL i).fv ⊆ range Lv) (hdomL : domL.fv ⊆ range Lv)
+    (hba : b ≠ a) (hbc : b ≠ c) :
+    Disjoint
+      (Program.vars (clockedSeg (leftBlock fL) domL ((Side.Aux, b) : Var n) dt))
+      (Program.vars ((Program.star (rightAutomatonBodyC M.graph
+        ((Side.Aux, a) : Var n) ((Side.Aux, c) : Var n) dt)).rename
+        (Equiv.refl (Var n)))) := by
+  rw [Set.disjoint_left]
+  intro x hxL hxR
+  have hL := vars_clockedSeg_sub (leftBlock fL) domL ((Side.Aux, b) : Var n) dt hxL
+  have hR : x ∈ ({((Side.Aux, a) : Var n), ((Side.Aux, c) : Var n)} : Set (Var n))
+      ∪ range Rv := by
+    refine vars_bodyC_sub M _ _ dt ?_
+    rwa [Program.rename_refl, vars_star_eq] at hxR
+  -- the left side is {Aux b} ∪ Lv-image; the right side {Aux a, Aux c} ∪ Rv-image
+  have hLside : x = ((Side.Aux, b) : Var n) ∨ ∃ i, x = Lv i := by
+    rcases hL with ((hx | hx) | hx) | hx
+    · exact Or.inl hx
+    · rcases leftBlock_boundSet_sub fL hx with ⟨i, hi⟩
+      exact Or.inr ⟨i, hi.symm⟩
+    · rcases leftBlock_readVars_sub fL hfL hx with ⟨i, hi⟩
+      exact Or.inr ⟨i, hi.symm⟩
+    · rcases hdomL hx with ⟨i, hi⟩
+      exact Or.inr ⟨i, hi.symm⟩
+  rcases hLside with rfl | ⟨i, rfl⟩
+  · rcases hR with hx | ⟨j, hj⟩
+    · simp only [Set.mem_insert_iff, Set.mem_singleton_iff, Prod.mk.injEq] at hx
+      rcases hx with ⟨-, h⟩ | ⟨-, h⟩
+      · exact hba h
+      · exact hbc h
+    · exact aux_ne_Rv b j hj.symm
+  · rcases hR with hx | ⟨j, hj⟩
+    · simp only [Set.mem_insert_iff, Set.mem_singleton_iff, Lv, Prod.mk.injEq] at hx
+      rcases hx with ⟨h, -⟩ | ⟨h, -⟩ <;> exact absurd h (by simp)
+    · exact absurd hj (by simp [Lv, Rv, Prod.ext_iff])
+
 end RelCertifier

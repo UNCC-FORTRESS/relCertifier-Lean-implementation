@@ -178,69 +178,70 @@ def probeUnsat {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadlin
     | .ok .unsat => pure true
     | _ => pure false
 
-/-- **The checked cut of a mode** (one side): greatest fixpoint of the O1/O2 filter over
-the candidate atoms (the guard conjuncts), returned as the conjoined
-`IForm` to add to this mode's flow-query domains, plus the kept atoms (debug). -/
+/-- The O2 route by which a cut atom was justified (recorded for the emitted cut
+certificate; the Lean lift consumes exactly these four cases). -/
+inductive CutRoute
+  | shape       -- tangent-capable contract shape (no Z3; `contract_stays`)
+  | frozen      -- every atom variable is frozen in this mode (no Z3)
+  | diStrict    -- UNSAT(evolve ∧ g = 0 ∧ ġ ≥ 0)  (`DI_strict`)
+  | diNonstrict -- UNSAT(evolve ∧ ġ > 0)          (`DI_nonstrict_domain`)
+  deriving Repr, DecidableEq
+
+def CutRoute.tag : CutRoute → String
+  | .shape => "shape"
+  | .frozen => "frozen"
+  | .diStrict => "diB"
+  | .diNonstrict => "diA"
+
+/-- **The checked cut of a mode** (one side): the guard conjuncts that survive the O2
+invariance filter, returned as the conjoined `IForm` to add to this mode's flow-query
+domains, plus the kept atoms with their routes (the cut certificate's content).
+
+O1 (entry) is syntactic — every candidate IS a guard conjunct. O2 is UNCONDITIONED:
+each atom must be flow-invariant over the bare evolve domain on its own (per-atom
+`DI_strict` / `DI_nonstrict_domain` / `contract_stays` — no mutual-barrier coupling),
+so a single pass suffices and the Lean lift composes per atom. -/
 def checkedCut (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     (vars : List String) (n : ℕ) (coord : Fin n → String) (side : Side) (m : PMode) :
-    IO (IForm n × Nat) := do
+    IO (IForm n × List (PForm × CutRoute)) := do
   -- own-side field (the other side frozen, λ irrelevant for a one-sided Lie)
   let fOwn := dynOf vars n side m
   let zeroF : Fin n → ITerm n := fun _ => ITerm.rat 0
   let evolveI := (lowerF vars n side m.evolve).getD IForm.tt
-  let guardI  := (lowerF vars n side m.guard).getD IForm.tt
-  -- candidates: (atom, IForm, g-term, tagged)
-  let mkCand (fromS : Bool) (a : PForm) : Option (PForm × IForm n × ITerm n × Bool) := do
+  let mkCand (a : PForm) : Option (PForm × IForm n × ITerm n) := do
     let fI ← lowerF vars n side a
     let g  ← cutAtomG vars n side a
-    pure (a, fI, g, fromS)
-  let gCands := (cutAtoms m.guard).filterMap (mkCand false)
-  -- candidates are the guard conjuncts only (O1 free); the former `strengthen`
-  -- channel is removed (never used by any benchmark)
-  let mut cands := gCands
-  -- O2 greatest fixpoint: drop candidates that fail all routes, with the survivors in the domain
-  let mut changed := true
-  let mut rounds := 0
-  while changed && rounds ≤ cands.length + 1 do
-    changed := false
-    rounds := rounds + 1
-    let mut keep := []
-    for (a, fI, g, fS) in cands do
-      -- O2 domain: evolve ∧ the OTHER candidates (never the candidate itself — a candidate
-      -- must not narrow its own invariance obligation). RELCERT_CUT_NOMUTUAL=1 drops the
-      -- other candidates (unconditioned O2 — each atom invariant over the bare evolve).
-      let noMutual := (← IO.getEnv "RELCERT_CUT_NOMUTUAL").isSome
-      let dom := if noMutual then evolveI
-        else cands.foldl (fun d c => if c.2.2.1 == g then d else IForm.and d c.2.1) evolveI
-      -- contract-shape (tangent-capable, no Z3) / frozen atom
-      let shapeOK := contractShapeOK m a || (atomVars a).all (frozenIn m)
-      let dbg := (← IO.getEnv "RELCERT_DEBUG").isSome
-      let ok ← (if shapeOK then do
-        if dbg then IO.eprintln s!"    [route] {m.name}: shape/frozen"
-        pure true
-      else do
-        match fOwn with
-        | none => pure false
-        | some f =>
-          let gdot := match side with
-            | Side.L => ilieDeriv g f zeroF (ITerm.rat 1)
-            | _      => ilieDeriv g zeroF f (ITerm.rat 1)
-          -- route B (DI_strict boundary), then route A (DI_nonstrict_domain whole-domain)
-          let rB := IForm.and dom (IForm.and (IForm.cmp .eq g (.rat 0))
-            (IForm.cmp .ge gdot (.rat 0)))
-          if ← probeUnsat s cnt maxQ maxSmt deadline coord rB then do
-            if dbg then IO.eprintln s!"    [route] {m.name}: DI-strict(B)"
-            pure true
-          else do
-            let okA ← probeUnsat s cnt maxQ maxSmt deadline coord
-              (IForm.and dom (IForm.cmp .gt gdot (.rat 0)))
-            if dbg && okA then IO.eprintln s!"    [route] {m.name}: DI-nonstrict(A)"
-            pure okA)
-      if ok then keep := keep ++ [(a, fI, g, fS)]
-      else changed := true
-    cands := keep
-  let cut := cands.foldl (fun d c => IForm.and d c.2.1) IForm.tt
-  pure (cut, cands.length)
+    pure (a, fI, g)
+  let gCands := (cutAtoms m.guard).filterMap mkCand
+  let dbg := (← IO.getEnv "RELCERT_DEBUG").isSome
+  let mut kept : List (PForm × IForm n × CutRoute) := []
+  for (a, fI, g) in gCands do
+    if contractShapeOK m a then do
+      if dbg then IO.eprintln s!"    [route] {m.name}: shape"
+      kept := kept ++ [(a, fI, CutRoute.shape)]
+    else if (atomVars a).all (frozenIn m) then do
+      if dbg then IO.eprintln s!"    [route] {m.name}: frozen"
+      kept := kept ++ [(a, fI, CutRoute.frozen)]
+    else
+      match fOwn with
+      | none => pure ()
+      | some f =>
+        let gdot := match side with
+          | Side.L => ilieDeriv g f zeroF (ITerm.rat 1)
+          | _      => ilieDeriv g zeroF f (ITerm.rat 1)
+        -- route B (DI_strict boundary), then route A (DI_nonstrict_domain whole-domain)
+        let rB := IForm.and evolveI (IForm.and (IForm.cmp .eq g (.rat 0))
+          (IForm.cmp .ge gdot (.rat 0)))
+        if ← probeUnsat s cnt maxQ maxSmt deadline coord rB then do
+          if dbg then IO.eprintln s!"    [route] {m.name}: DI-strict(B)"
+          kept := kept ++ [(a, fI, CutRoute.diStrict)]
+        else
+          if ← probeUnsat s cnt maxQ maxSmt deadline coord
+              (IForm.and evolveI (IForm.cmp .gt gdot (.rat 0))) then do
+            if dbg then IO.eprintln s!"    [route] {m.name}: DI-nonstrict(A)"
+            kept := kept ++ [(a, fI, CutRoute.diNonstrict)]
+  let cut := kept.foldl (fun d c => IForm.and d c.2.1) IForm.tt
+  pure (cut, kept.map (fun c => (c.1, c.2.2)))
 
 /-- Check one segment `(qL=mL, qR=mR, λ)`: `pass` iff EVERY component's strict flow query
 is Z3-`unsat`; `fail` iff some component is definitively `sat`; `incon` on any Z3
@@ -645,17 +646,17 @@ def certifyCore (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) 
   let noCut := (← IO.getEnv "RELCERT_NO_CUT").isSome
   let mut cutMapL : List (String × IForm n) := []
   for mM in p.L.modes do
-    let (c, kept) ← if noCut then pure (IForm.tt, 0)
+    let (c, kept) ← if noCut then pure (IForm.tt, [])
       else checkedCut s cnt maxQ maxSmt deadline vars n coord Side.L mM
     if (← IO.getEnv "RELCERT_DEBUG").isSome then
-      IO.eprintln s!"  [cut] L.{mM.name}: {kept} conjunct(s)"
+      IO.eprintln s!"  [cut] L.{mM.name}: {kept.length} conjunct(s)"
     cutMapL := cutMapL ++ [(mM.name, c)]
   let mut cutMapR : List (String × IForm n) := []
   for mM in p.R.modes do
-    let (c, kept) ← if noCut then pure (IForm.tt, 0)
+    let (c, kept) ← if noCut then pure (IForm.tt, [])
       else checkedCut s cnt maxQ maxSmt deadline vars n coord Side.R mM
     if (← IO.getEnv "RELCERT_DEBUG").isSome then
-      IO.eprintln s!"  [cut] R.{mM.name}: {kept} conjunct(s)"
+      IO.eprintln s!"  [cut] R.{mM.name}: {kept.length} conjunct(s)"
     cutMapR := cutMapR ++ [(mM.name, c)]
   let cutOfL := fun (nm : String) => (cutMapL.find? (·.1 == nm)).map (·.2) |>.getD IForm.tt
   let cutOfR := fun (nm : String) => (cutMapR.find? (·.1 == nm)).map (·.2) |>.getD IForm.tt
@@ -701,7 +702,7 @@ verdict, never a hang) — the same input always hits the same count. -/
 def certify (s : Z3Session) (p : PProblem) : IO Outcome := do
   let cnt ← IO.mkRef 0
   let maxQ := (← IO.getEnv "RELCERT_MAX_QUERIES").bind String.toNat? |>.getD 5000
-  let budgetMs := (← IO.getEnv "RELCERT_TIME_BUDGET_MS").bind String.toNat? |>.getD 20000
+  let budgetMs := (← IO.getEnv "RELCERT_TIME_BUDGET_MS").bind String.toNat? |>.getD 40000
   let maxSmt := (← IO.getEnv "RELCERT_MAX_SMT").bind String.toNat? |>.getD 200000
   let deadline := (← IO.monoMsNow) + budgetMs
   try certifyCore s cnt maxQ maxSmt deadline p

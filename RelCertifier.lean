@@ -70,6 +70,7 @@ import RelCertifier.AxiomCheck
 import RelCertifier.BenchIR
 import RelCertifier.EmitIR
 import RelCertifier.CutCertDefs
+import RelCertifier.CutLift
 import RelCertifier.CutCerts
 import RelCertifier.Faithful
 import RelCertifier.FaithfulBridge

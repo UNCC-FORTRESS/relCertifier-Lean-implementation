@@ -2110,4 +2110,190 @@ theorem faithfulSettling_facts {P : Parse.PProblem} {mt : TransMeta}
   rw [hpm, hm] at hfact
   simpa [Bool.and_eq_true] using hfact
 
+/-! ### The real-side domain and guard map -/
+
+/-- Real-side evolution domain of a parsed mode. -/
+noncomputable def realEnvOf (vs : List String) (n : ℕ) (pm : Parse.PMode) :
+    Formula (Var n) :=
+  match boundsOfForm pm.evolve with
+  | some eb => envFormulaR vs n eb
+  | none => Formula.tt
+
+/-- Real-side guard map: per mode, the parsed evolve bounds ∧ the parsed guard band. -/
+noncomputable def realGdOf (P : Parse.PProblem) (M : SettlingModel n) :
+    ℕ → Formula (Var n) :=
+  fun q => match P.R.modes[q]?, M.modes[q]? with
+    | some pm, some m =>
+        match boundsOfForm pm.evolve, boundsOfForm pm.guard with
+        | some eb, some gb =>
+            Formula.and (envFormulaR P.R.stateVars n eb)
+              (bandFormulaR m.gcoord
+                (boundOf gb (P.R.stateVars.getD m.gcoord.val "")).1
+                (boundOf gb (P.R.stateVars.getD m.gcoord.val "")).2)
+        | _, _ => Formula.tt
+    | _, _ => Formula.tt
+
+/-- **The `hGd` discharger**: the real guard map corresponds to the scaled one at every
+mode index. -/
+theorem realGdOf_sat (P : Parse.PProblem) (mt : TransMeta) (M : SettlingModel n)
+    {εR : QF} (hεR : parseQ P.R.epsilon = some εR)
+    (hf : faithfulSettling P mt M = true)
+    (hlen : P.R.stateVars.length = n)
+    (hσd : ∀ j, j < n → (mt.scales.getD j (qOfInt 0)).pos)
+    (hσv : ∀ j : Fin n, 0 < sigmaOf mt.scales j) :
+    ∀ (q' : ℕ) (ν : DL.State (Var n)),
+      Formula.sat (realGdOf P M q') ν
+        ↔ Formula.sat (M.GdOf q') (scaleState (sigmaOf mt.scales) ν) := by
+  obtain ⟨-, -, -, hml, hmode⟩ := faithfulSettling_facts hεR hf
+  intro q' ν
+  rcases hpm : P.R.modes[q']? with _ | pm
+  · have hmnone : M.modes[q']? = none := by
+      rw [List.getElem?_eq_none_iff] at hpm ⊢
+      omega
+    unfold realGdOf SettlingModel.GdOf
+    rw [hpm, hmnone]
+    simp [Formula.sat]
+  · rcases hm : M.modes[q']? with _ | m
+    · exfalso
+      rw [List.getElem?_eq_none_iff] at hm
+      have : q' < P.R.modes.length := by
+        obtain ⟨h, -⟩ := List.getElem?_eq_some_iff.mp hpm
+        exact h
+      omega
+    obtain ⟨hmc, hbsb⟩ := hmode q' pm m hpm hm
+    obtain ⟨eb, heb, hef⟩ := modeCore_env_facts hlen hmc
+    obtain ⟨gb, hgb, hblo, hbhi⟩ := bandSettling_facts hbsb
+    have hgdred : realGdOf P M q'
+        = Formula.and (envFormulaR P.R.stateVars n eb)
+            (bandFormulaR m.gcoord
+              (boundOf gb (P.R.stateVars.getD m.gcoord.val "")).1
+              (boundOf gb (P.R.stateVars.getD m.gcoord.val "")).2) := by
+      unfold realGdOf
+      simp only [hpm, hm, heb, hgb]
+    have hGdred : M.GdOf q'
+        = Formula.and M.envF (bandDom m.gcoord (m.glo : ℝ) (m.ghi : ℝ)) := by
+      unfold SettlingModel.GdOf
+      rw [hm]
+    rw [hgdred, hGdred]
+    simp only [Formula.sat]
+    constructor
+    · rintro ⟨h1, h2⟩
+      exact ⟨(envFormulaR_sat M (boundsOfForm_pos heb) hσd hσv hef ν).mp h1,
+        (bandSettling_sat (boundsOfForm_pos hgb) m hσd hσv ⟨hblo, hbhi⟩ ν).mp h2⟩
+    · rintro ⟨h1, h2⟩
+      exact ⟨(envFormulaR_sat M (boundsOfForm_pos heb) hσd hσv hef ν).mpr h1,
+        (bandSettling_sat (boundsOfForm_pos hgb) m hσd hσv ⟨hblo, hbhi⟩ ν).mpr h2⟩
+
+/-! ### The per-mode field dispatch -/
+
+/-- **The `hfield` discharger**: every coordinate's scaled field pushes forward to the
+real parsed field. -/
+theorem fieldOf_bridge {vs : List String} {σq : List QF} {uq : QF}
+    (hnod : vs.Nodup) (hlen : vs.length = n)
+    (hσd : ∀ j, j < n → (σq.getD j (qOfInt 0)).pos)
+    (hσv : ∀ j : Fin n, 0 < sigmaOf σq j) (hud : uq.pos)
+    (pm : Parse.PMode) (m : SettlingMode n)
+    (hode : ∀ i : Fin n, ∃ o p,
+      pm.odes.find? (fun o => o.1 == vs.getD i.val "") = some o
+      ∧ exprPoly o.2 = some p
+      ∧ shapeFaithful vs σq uq i.val (m.shapes i) p = true)
+    (hidx : ∀ i : Fin n, shapeIdxOkB i (m.shapes i) = true) :
+    ∀ (i : Fin n) (ν : DL.State (Var n)),
+      Term.eval (m.fieldOf i) (scaleState (sigmaOf σq) ν)
+        = sigmaOf σq i * (uq.val * Term.eval (realFieldOf vs pm n i) ν) := by
+  intro i ν
+  obtain ⟨o, p, hfind, hep, hsf⟩ := hode i
+  have hreal : realFieldOf vs pm n i = polyToTerm vs n p := by
+    unfold realFieldOf
+    simp only [hfind, hep]
+  rw [hreal]
+  have hp := exprPoly_inv hep
+  have hidxi := hidx i
+  show Term.eval ((m.shapes i).field i) (scaleState (sigmaOf σq) ν) = _
+  cases hsh : m.shapes i with
+  | frozen =>
+      rw [hsh] at hsf
+      exact bridge_frozen i hsf ν
+  | constRate c =>
+      rw [hsh] at hsf
+      exact bridge_constRate hσd hud i hp hsf ν
+  | contract k c =>
+      rw [hsh] at hsf
+      exact bridge_contract hnod hlen hσd hud i hp hsf ν
+  | contractQ kn kd c =>
+      rw [hsh] at hsf
+      exact bridge_contractQ hnod hlen hσd hud i hp hsf ν
+  | driven j =>
+      rw [hsh] at hsf
+      exact bridge_driven hnod hlen hσd hud i hp hsf ν
+  | drivenDamp j ds =>
+      rw [hsh] at hsf
+      rw [hsh] at hidxi
+      unfold shapeIdxOkB at hidxi
+      simp only [Bool.and_eq_true] at hidxi
+      exact bridge_drivenDamp hnod hlen hσd hud i
+        (fun d hd => by
+          have := List.all_eq_true.mp hidxi.1 d hd
+          simpa using this)
+        (of_decide_eq_true hidxi.2) hp hsf ν
+  | riccati b a =>
+      rw [hsh] at hsf
+      exact bridge_riccati hnod hlen hσd hσv hud i hp hsf ν
+  | pairSym j c h =>
+      rw [hsh] at hsf
+      rw [hsh] at hidxi
+      unfold shapeIdxOkB at hidxi
+      exact bridge_pairSym hnod hlen hσd hud i (by simpa using hidxi) hp hsf ν
+  | chase j k =>
+      rw [hsh] at hsf
+      rw [hsh] at hidxi
+      unfold shapeIdxOkB at hidxi
+      exact bridge_chase hnod hlen hσd hud i (by simpa using hidxi) hp hsf ν
+
+/-! ### The assembly -/
+
+/-- **The Faithful-soundness bridge, assembled.** A `faithfulSettling` verdict upgrades
+the scaled model's per-mode settling certificate to the REAL parsed model — real fields
+(`realFieldOf`), real evolution domain (`realEnvOf`), real guard map (`realGdOf`) — at
+the real duration `u·dts`, where `u = (ε_R/λ)/dtQ` is the transcription's time unit.
+Residual side conditions are per-benchmark decidables: distinct variable names,
+full width, positive scales, positive time unit, and shape index hygiene. -/
+theorem faithfulSettling_rescale (P : Parse.PProblem) (mt : TransMeta)
+    (M : SettlingModel n) {εR : QF} (hεR : parseQ P.R.epsilon = some εR)
+    (hf : faithfulSettling P mt M = true)
+    (hnod : P.R.stateVars.Nodup) (hlen : P.R.stateVars.length = n)
+    (hσd : ∀ j, j < n → (mt.scales.getD j (qOfInt 0)).pos)
+    (hσv : ∀ j : Fin n, 0 < sigmaOf mt.scales j)
+    (huv : 0 < (qDiv (qDiv εR mt.lam) (qOfInt M.dtQ)).val)
+    (hidx : ∀ m ∈ M.modes, ∀ i : Fin n, shapeIdxOkB i (m.shapes i) = true)
+    {q : ℕ} {pm : Parse.PMode} {m : SettlingMode n}
+    (hpm : P.R.modes[q]? = some pm) (hm : M.modes[q]? = some m)
+    (dts : ℝ)
+    (hB : GuardSettlingB M.graph M.GdOf m.fieldOf (Term.const 1) M.envF dts q) :
+    GuardSettlingB M.graph (realGdOf P M) (realFieldOf P.R.stateVars pm n)
+      (Term.const 1) (realEnvOf P.R.stateVars n pm)
+      ((qDiv (qDiv εR mt.lam) (qOfInt M.dtQ)).val * dts) q := by
+  obtain ⟨hlam, hdt, -, hml, hmode⟩ := faithfulSettling_facts hεR hf
+  have hud : (qDiv (qDiv εR mt.lam) (qOfInt M.dtQ)).pos :=
+    qDiv_pos (qDiv_pos (parseQ_pos hεR) hlam) (by simpa [qOfInt] using hdt)
+  obtain ⟨hmc, hbsb⟩ := hmode q pm m hpm hm
+  obtain ⟨eb, heb, hef⟩ := modeCore_env_facts hlen hmc
+  have hmm : m ∈ M.modes := by
+    obtain ⟨h, hEq⟩ := List.getElem?_eq_some_iff.mp hm
+    exact hEq ▸ List.getElem_mem h
+  refine GuardSettlingB_rescale M.graph M.GdOf (realGdOf P M) m.fieldOf
+    (realFieldOf P.R.stateVars pm n) M.envF (realEnvOf P.R.stateVars n pm)
+    (sigmaOf mt.scales) (qDiv (qDiv εR mt.lam) (qOfInt M.dtQ)).val dts q
+    (fun i => ne_of_gt (hσv i)) huv
+    (fieldOf_bridge hnod hlen hσd hσv hud pm m
+      (modeCore_ode_facts hlen hmc) (hidx m hmm))
+    (realGdOf_sat P mt M hεR hf hlen hσd hσv)
+    ?_ hB
+  intro ν
+  have hered : realEnvOf P.R.stateVars n pm = envFormulaR P.R.stateVars n eb := by
+    unfold realEnvOf
+    simp only [heb]
+  rw [hered]
+  exact envFormulaR_sat M (boundsOfForm_pos heb) hσd hσv hef ν
+
 end RelCertifier

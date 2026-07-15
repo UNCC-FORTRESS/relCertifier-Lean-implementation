@@ -29,6 +29,7 @@ import RelCertifier.WellFormedChecker
 import RelCertifier.FaithfulCerts
 import RelCertifier.ClockedTop
 import RelCertifier.FvDischarge
+import RelCertifier.FaithfulBridge
 
 namespace RelCertifier
 open DL DLCalTiming DLRel Function Set
@@ -189,5 +190,105 @@ theorem watertank_end_to_end_cadenced
   exact theorem3_faithful_settling_cadenced' watertankSuiteM.graph watertankSuiteM.GdOf
     mv g fL domL watertankSuiteM.envF tg tr ((watertankSuiteM.dt : ℝ)) (Term.const 1)
     ϕinv hψ hH htgg htgS htgdom htrGd hdis hddF
+
+/-! ## The Faithful bridge, instantiated: watertank
+
+The kernel `faithfulSettling` certificate (named below; the anonymous copy lives in
+`FaithfulCerts`) plus the concrete side-condition discharges upgrade the scaled model's
+per-mode settling obligation to the REAL parsed model — `realFieldOf` (the ode text as a
+polynomial term), `realEnvOf` (the parsed evolve bounds), `realGdOf` (parsed guard band ∧
+evolve bounds) — at the real duration `u·dt` with `u = (ε_R/λ)/dtQ = 1` for this
+transcription. Chained with `wellformed_sound`, the Z3 certificates are the only
+non-structural inputs. -/
+
+/-- Per-mode `GuardSettlingB` extraction from the Tier-B H bundle: the H's existential
+field witness is the mode's own `fieldOf` (right blocks are injective in the field). -/
+theorem GuardSettlingH_B (M : SettlingModel n) {mv : Var n} {g : Term (Var n)}
+    {tg : Var n} {dt : ℝ} {fL : Fin n → Term (Var n)}
+    (hH : GuardSettlingH M.graph M.GdOf mv g (Term.const 1) tg dt fL M.envF)
+    {q : ℕ} {m : SettlingMode n} (hm : M.modes[q]? = some m) :
+    GuardSettlingB M.graph M.GdOf m.fieldOf (Term.const 1) M.envF dt q := by
+  obtain ⟨-, -, -, -, -, -, -, hmodes⟩ := hH
+  have hma : M.graph.modeAt q = some (m.toRMode M) := by
+    rw [graph_modeAt, hm]
+    rfl
+  obtain ⟨fR, hsys, -, -, hB, -⟩ := hmodes q (m.toRMode M) hma
+  have hfr : m.fieldOf = fR := rightBlock_inj hsys
+  rw [hfr]
+  exact hB
+
+/-- The kernel fidelity certificate, named. -/
+theorem watertank_faithful :
+    faithfulSettling Parse.watertank_IR watertankSuite_meta watertankSuiteM = true := rfl
+
+/-- The parsed cadence: `ε_R = 1.0` lowers to the raw fraction `10/10`. -/
+theorem watertank_epsR : parseQ Parse.watertank_IR.R.epsilon = some ⟨10, 10⟩ := rfl
+
+/-- The transcription's time unit is `1` real second per `dt`-tick. -/
+theorem watertank_u_val :
+    (qDiv (qDiv (⟨10, 10⟩ : QF) watertankSuite_meta.lam)
+      (qOfInt watertankSuiteM.dtQ)).val = 1 := by
+  have h10 : qDiv (qDiv (⟨10, 10⟩ : QF) watertankSuite_meta.lam)
+      (qOfInt watertankSuiteM.dtQ) = (⟨10, 10⟩ : QF) := rfl
+  rw [h10]
+  norm_num [QF.val]
+
+/-- **The bridge at watertank, per mode**: scaled settling ⟹ real settling. -/
+theorem watertank_bridge_per_mode {q : ℕ} {pm : Parse.PMode} {m : SettlingMode 1}
+    (hpm : Parse.watertank_IR.R.modes[q]? = some pm)
+    (hm : watertankSuiteM.modes[q]? = some m) (dts : ℝ)
+    (hB : GuardSettlingB watertankSuiteM.graph watertankSuiteM.GdOf m.fieldOf
+      (Term.const 1) watertankSuiteM.envF dts q) :
+    GuardSettlingB watertankSuiteM.graph (realGdOf Parse.watertank_IR watertankSuiteM)
+      (realFieldOf Parse.watertank_IR.R.stateVars pm 1) (Term.const 1)
+      (realEnvOf Parse.watertank_IR.R.stateVars 1 pm) ((1 : ℝ) * dts) q := by
+  have h := faithfulSettling_rescale Parse.watertank_IR watertankSuite_meta watertankSuiteM
+    watertank_epsR watertank_faithful
+    (by decide)
+    rfl
+    (by
+      intro j hj
+      interval_cases j
+      exact Int.zero_lt_one)
+    (by
+      intro j
+      fin_cases j
+      norm_num [sigmaOf, QF.val, watertankSuite_meta, List.getD, qMk])
+    (by rw [watertank_u_val]; norm_num)
+    (by decide)
+    hpm hm dts hB
+  rwa [watertank_u_val] at h
+
+/-- **Watertank, REAL-model end to end.** From the per-mode Z3 `BoxLe` certificates and
+the freshness data, every declared mode of the REAL parsed benchmark — real ode text,
+real evolve bounds, real guard bands — satisfies the settling obligation at the real
+duration. The chain: `decideWellFormed` (kernel) → `wellformed_sound` → per-mode
+`GuardSettlingB` (scaled) → `faithfulSettling` (kernel) + `GuardSettlingB_rescale` →
+real model. -/
+theorem watertank_real_settling
+    (mv tg : Var 1) (g : Term (Var 1)) (fL : Fin 1 → Term (Var 1))
+    (hg : mv ∉ g.fv)
+    (hmvclk : mv ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
+    (hmvtg : mv ≠ tg)
+    (hmvGd : ∀ q', mv ∉ (watertankSuiteM.GdOf q').fv)
+    (htgGd : ∀ q', tg ∉ (watertankSuiteM.GdOf q').fv)
+    (hfrzGd : ∀ q', ∀ x ∈ (watertankSuiteM.GdOf q').fv,
+        x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
+    (hcert : ∀ q m, watertankSuiteM.graph.modeAt q = some m →
+        ∀ ν, Formula.sat (watertankSuiteM.GdOf q) ν →
+          BoxLe (Program.ode m.sys watertankSuiteM.envF) (fun ω => Term.eval g ω) ν) :
+    ∀ q pm m, Parse.watertank_IR.R.modes[q]? = some pm →
+      watertankSuiteM.modes[q]? = some m →
+      GuardSettlingB watertankSuiteM.graph (realGdOf Parse.watertank_IR watertankSuiteM)
+        (realFieldOf Parse.watertank_IR.R.stateVars pm 1) (Term.const 1)
+        (realEnvOf Parse.watertank_IR.R.stateVars 1 pm)
+        ((1 : ℝ) * (watertankSuiteM.dt : ℝ)) q := by
+  intro q pm m hpm hm
+  have hH : GuardSettlingH watertankSuiteM.graph watertankSuiteM.GdOf mv g
+      (Term.const 1) tg ((watertankSuiteM.dt : ℝ)) fL watertankSuiteM.envF :=
+    wellformed_sound watertankSuiteM mv tg g fL rfl
+      (by norm_num [SettlingModel.dt, watertankSuiteM])
+      hg hmvclk hmvtg hmvGd htgGd hfrzGd hcert
+  exact watertank_bridge_per_mode hpm hm _ (GuardSettlingH_B watertankSuiteM hH hm)
 
 end RelCertifier

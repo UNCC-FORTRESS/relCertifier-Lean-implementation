@@ -93,3 +93,4 @@ import RelCertifier.Proofs.Encoding.EncodingBridge
 import RelCertifier.Proofs.Encoding.MultiSeg
 import RelCertifier.Proofs.Encoding.Reification
 import RelCertifier.Proofs.Encoding.ToolLevel
+import RelCertifier.Proofs.Flow.StratifiedBarrier

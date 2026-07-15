@@ -80,7 +80,7 @@ A mode's flow-query domain may be narrowed by a CUT `S` — but only after the c
 itself re-derives BOTH obligations, per atomic conjunct:
 
 * **O1 (entry)**: the mode's guard implies the conjunct. Free for guard conjuncts (the
-  default candidates); a Z3 `UNSAT(guard ∧ ¬c)` for `strengthen` conjuncts.
+  default candidates).
 * **O2 (invariance)**: the conjunct is flow-invariant along THIS mode's own field, checked
   by the same trusted routes as the main certificates — route B (`DI_strict` boundary:
   `dom ∧ g=0 ∧ ġ≥0` UNSAT), route A (`DI_nonstrict_domain` whole-domain: `dom ∧ ġ>0`
@@ -179,7 +179,7 @@ def probeUnsat {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadlin
     | _ => pure false
 
 /-- **The checked cut of a mode** (one side): greatest fixpoint of the O1/O2 filter over
-the candidate atoms (guard conjuncts + `strengthen` conjuncts), returned as the conjoined
+the candidate atoms (the guard conjuncts), returned as the conjoined
 `IForm` to add to this mode's flow-query domains, plus the kept atoms (debug). -/
 def checkedCut (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     (vars : List String) (n : ℕ) (coord : Fin n → String) (side : Side) (m : PMode) :
@@ -189,20 +189,15 @@ def checkedCut (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
   let zeroF : Fin n → ITerm n := fun _ => ITerm.rat 0
   let evolveI := (lowerF vars n side m.evolve).getD IForm.tt
   let guardI  := (lowerF vars n side m.guard).getD IForm.tt
-  -- candidates: (atom, IForm, g-term, from-strengthen?)
+  -- candidates: (atom, IForm, g-term, tagged)
   let mkCand (fromS : Bool) (a : PForm) : Option (PForm × IForm n × ITerm n × Bool) := do
     let fI ← lowerF vars n side a
     let g  ← cutAtomG vars n side a
     pure (a, fI, g, fromS)
   let gCands := (cutAtoms m.guard).filterMap (mkCand false)
-  let sCands := (match m.strengthen with
-    | some f => cutAtoms f | none => []).filterMap (mkCand true)
-  -- O1 for strengthen candidates: UNSAT(guard ∧ g > 0) (guard conjuncts: O1 free)
+  -- candidates are the guard conjuncts only (O1 free); the former `strengthen`
+  -- channel is removed (never used by any benchmark)
   let mut cands := gCands
-  for (a, fI, g, _) in sCands do
-    if ← probeUnsat s cnt maxQ maxSmt deadline coord
-        (IForm.and guardI (IForm.cmp .gt g (.rat 0))) then
-      cands := cands ++ [(a, fI, g, true)]
   -- O2 greatest fixpoint: drop candidates that fail all routes, with the survivors in the domain
   let mut changed := true
   let mut rounds := 0
@@ -632,17 +627,22 @@ def certifyCore (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) 
   let epsR := (parseRat p.R.epsilon).getD 1
   let lmin := (parseRat p.lambdaMin).getD 1
   let lmax := (parseRat p.lambdaMax).getD 1
-  -- CHECKED CUTS (λ- and pair-independent: each mode's own guard/strengthen + own field),
+  -- CHECKED CUTS (λ- and pair-independent: each mode's own guard + own field),
   -- computed ONCE per mode per side. Used ONLY to narrow query domains (never the model).
+  -- RELCERT_NO_CUT=1 disables the checked-cut channel entirely (ablation switch:
+  -- queries fall back to the bare evolution domains).
+  let noCut := (← IO.getEnv "RELCERT_NO_CUT").isSome
   let mut cutMapL : List (String × IForm n) := []
   for mM in p.L.modes do
-    let (c, kept) ← checkedCut s cnt maxQ maxSmt deadline vars n coord Side.L mM
+    let (c, kept) ← if noCut then pure (IForm.tt, 0)
+      else checkedCut s cnt maxQ maxSmt deadline vars n coord Side.L mM
     if (← IO.getEnv "RELCERT_DEBUG").isSome then
       IO.eprintln s!"  [cut] L.{mM.name}: {kept} conjunct(s)"
     cutMapL := cutMapL ++ [(mM.name, c)]
   let mut cutMapR : List (String × IForm n) := []
   for mM in p.R.modes do
-    let (c, kept) ← checkedCut s cnt maxQ maxSmt deadline vars n coord Side.R mM
+    let (c, kept) ← if noCut then pure (IForm.tt, 0)
+      else checkedCut s cnt maxQ maxSmt deadline vars n coord Side.R mM
     if (← IO.getEnv "RELCERT_DEBUG").isSome then
       IO.eprintln s!"  [cut] R.{mM.name}: {kept} conjunct(s)"
     cutMapR := cutMapR ++ [(mM.name, c)]

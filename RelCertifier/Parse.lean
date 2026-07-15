@@ -57,11 +57,6 @@ structure PMode where
   guard  : PForm
   evolve : PForm
   next   : List String
-  /-- Optional CANDIDATE strengthening (checked-cut channel): a formula the certifier may use
-  to narrow this mode's flow-query domain — but ONLY after re-deriving it itself (entry: the
-  guard implies it; invariance: flow-invariant along this mode's field). Unchecked or
-  uncheckable candidates are silently ignored (completeness-only). `evolve` stays physics. -/
-  strengthen : Option PForm := none
   deriving Repr, Inhabited, DecidableEq
 
 structure PSystem where
@@ -353,9 +348,9 @@ def numOk (c : String) : Bool :=
     (parts.headD "").length > 0
 
 /-- Parse a mode section body, strictly: `ode`, `guard`, `evolve`, `next` required; every
-`;`-separated ode equation must have a primed LHS and a parsable RHS; a present
-`strengthen` must parse (it is completeness-only downstream, but a syntactically broken
-one is a typo worth failing on). -/
+`;`-separated ode equation must have a primed LHS and a parsable RHS; a `strengthen`
+key is rejected outright (the field was removed; the checked-cut channel derives its
+candidates from the guard conjuncts only). -/
 def parseModeE (sec : String) (name : String) (kvs : List (String × String)) :
     Except String PMode := do
   let odeStr ← secNeed sec kvs "ode"
@@ -383,13 +378,10 @@ def parseModeE (sec : String) (name : String) (kvs : List (String × String)) :
     | some f => pure f
     | none => throw s!"[{sec}]: unparsable evolve"
   let nextS ← secNeed sec kvs "next"
-  let strengthen ← match secGet kvs "strengthen" with
-    | none => pure none
-    | some v => match parseFormula v with
-      | some f => pure (some f)
-      | none => throw s!"[{sec}]: unparsable strengthen"
+  if (secGet kvs "strengthen").isSome then
+    throw s!"[{sec}]: 'strengthen' is no longer supported (the checked-cut channel derives its candidates from the guard conjuncts only)"
   return { name := name, odes := odes, guard := guard, evolve := evolve,
-           next := parseList nextS, strengthen := strengthen }
+           next := parseList nextS }
 
 /-- Scope/numeral validation for one system: mode names unique; `next` resolves; ode LHS
 cover `state_vars` exactly; variables in odes/guard/evolve are declared; numerals well

@@ -31,15 +31,11 @@ partial def emitForm : PForm → String
 
 def emitMode (m : PMode) : String :=
   let odes := String.intercalate ",\n            " (m.odes.map (fun p => "(" ++ qs p.1 ++ ", " ++ emitExpr p.2 ++ ")"))
-  let strengthen := match m.strengthen with
-    | none => "none"
-    | some f => "some " ++ emitForm f
   "        {\n          name := " ++ qs m.name
     ++ "\n          odes := [" ++ odes ++ "]"
     ++ "\n          guard := " ++ emitForm m.guard
     ++ "\n          evolve := " ++ emitForm m.evolve
-    ++ "\n          next := [" ++ String.intercalate ", " (m.next.map qs) ++ "]"
-    ++ "\n          strengthen := " ++ strengthen ++ " }"
+    ++ "\n          next := [" ++ String.intercalate ", " (m.next.map qs) ++ "] }"
 
 def emitSystem (sys : PSystem) : String :=
   "{\n      stateVars := [" ++ String.intercalate ", " (sys.stateVars.map qs) ++ "]"

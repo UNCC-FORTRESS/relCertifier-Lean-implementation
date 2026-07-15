@@ -108,3 +108,18 @@ Strictly stronger than the fix, may re-certify part of the 14. Requires: tool lo
 `checkSeg` + the domain-refinement lemma in Lean (runs staying in a proven invariant
 are runs of the narrowed-domain ode — `ODESol_restrict` + pointwise BoxLe, the
 CutLift pattern).
+
+### Stratified DC implemented (2026-07-15, follow-up): FULL RECOVERY, 46/46
+
+`checkSeg` now runs the acyclic fixpoint: a component narrows its domain only by
+components proven in earlier rounds (sequential differential cuts; ≤ |comps|+1 rounds).
+Census: **all 14 previously-declining benchmarks re-certify**, and the full suite is
+back to 46/46 — now under a SOUND coupling discipline. The invariant families are
+genuinely stratified (velocity components certify standalone; position offsets then
+assume them), confirming the structural prediction.
+
+Lean debt (R4 mechanization, open): the domain-refinement lemma (runs pointwise inside
+a proven invariant are runs of the narrowed ode) + the stratified `multi_barrier_sound`
+assembly + the list-generalized invariant through the modal chain. Until it lands, the
+multi-component verdicts rest on the paper argument in this section, kernel-checking
+pending.

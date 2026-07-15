@@ -165,55 +165,62 @@ error/`unknown` or unbuildable query. -/
 def checkSeg (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     (vars : List String) (n : ℕ) (coord : Fin n → String)
     (comps : List (ITerm n)) (cutL cutR : IForm n) (mL mR : PMode) (lam : ℚ) : IO Seg := do
-  -- Each component certifies via ANY of the 3 sound routes (A domain / B strict /
-  -- C superlevel). MULTI-BARRIER COUPLING (soundness-critical, fixed 2026-07-15): the
-  -- OTHER components may restrict the domain ONLY for route B (strict boundary). For
-  -- routes A and C the narrowing is UNSOUND: with `comps = [x², x²]`, `x' = 1`, the
-  -- A-query on the others-narrowed domain `{x² ≤ 0} = {x = 0}` is `x = 0 ∧ 2x > 0` —
-  -- UNSAT — falsely certifying `x² ≤ 0` under `x' = 1` (the same t²-pathology the
-  -- boundary-only non-strict form has; see `nonstrict_boundary_insufficient`). Route B
-  -- survives the first-exit argument: at the first joint exit time all components are
-  -- ≤ 0 (the narrowed domain holds there), the exiting component sits on its boundary,
-  -- and the strict Lie sign contradicts the exit slope. The checked cuts remain in ALL
-  -- routes' domains — they are single-system invariants justified independently (O1/O2).
-  -- Segment status: fail if some component definitively fails all routes; else incon if
-  -- some component is inconclusive; else pass (fail dominates incon).
-  let mut sawFail := false
-  let mut sawIncon := false
-  for i in List.range comps.length do
-    match comps[i]? with
-    | none => pure ()
-    | some g =>
-      match segParts vars n g mL mR lam with
-      | none => sawIncon := true                     -- couldn't build the query
-      | some (baseDom, gdot) =>
-          let others := (List.range comps.length).filterMap
-            (fun j => if j == i then none else comps[j]?)
-          -- CHECKED-CUT domains: narrow by the modes' re-derived cuts (O1/O2 above)
-          let baseDom := IForm.and (IForm.and baseDom cutL) cutR
-          -- others-narrowing ONLY on route B (see the soundness note above)
-          let domB := others.foldl (fun d gj => IForm.and d (IForm.cmp .le gj (.rat 0))) baseDom
-          let mut compPass := false
-          let mut compIncon := false
-          for q in routeQueriesMB baseDom domB g gdot do
-            if compPass then pure () else do
-              cnt.modify (· + 1)
-              if (← cnt.get) > maxQ then throw (IO.userError "query budget exceeded")
-              if (← IO.monoMsNow) > deadline then throw (IO.userError "time budget exceeded")
-              let script := q.toScript coord
-              if script.length > maxSmt then compIncon := true
-              else match ← s.check script with
-                | .error _ => compIncon := true
-                | .ok .unknown => compIncon := true
-                | .ok .unsat => compPass := true
-                | .ok .sat => pure ()
-          if compPass then pure ()
-          else if compIncon then sawIncon := true
-          else do
-            sawFail := true
-            if (← IO.getEnv "RELCERT_DBGC").isSome then
-              IO.eprintln s!"      FAIL comp#{i} @ {mL.name}->{mR.name} λ={lam}"
-  return (if sawFail then Seg.fail else if sawIncon then Seg.incon else Seg.pass)
+  -- STRATIFIED DIFFERENTIAL CUTS (soundness-critical, 2026-07-15). A component may
+  -- narrow its query domain ONLY by components proven in EARLIER rounds (sequential,
+  -- acyclic DC — Platzer's differential cut, iterated). The previous MUTUAL narrowing
+  -- (every component assuming all siblings simultaneously) was a circular cut and
+  -- UNSOUND for routes A/C: with `comps = [x², x²]`, `x' = 1`, each narrowed domain is
+  -- `{x = 0}` and route A's query `x = 0 ∧ 2x > 0` is UNSAT — falsely certifying
+  -- `x² ≤ 0` under `x' = 1` (the t²-pathology; see `nonstrict_boundary_insufficient`
+  -- and docs/COVER-AUDIT.md R4). Stratified soundness: round-1 components certify on
+  -- the bare domain (single-component theorems); a round-k component's runs lie in the
+  -- earlier-strata-narrowed ode because those invariants hold pointwise by induction.
+  -- The checked cuts remain in all domains (independently justified, O1/O2).
+  -- Fixpoint: at most |comps| + 1 bounded rounds (the proven set strictly grows).
+  -- Status: pass iff ALL components eventually certify; the final (fixed-point) round
+  -- classifies the unproven ones — incon if any was inconclusive there, else fail.
+  let mut proven : List Nat := []
+  let mut lastIncon := false
+  for _ in List.range (comps.length + 1) do
+    let mut progress := false
+    lastIncon := false
+    for i in List.range comps.length do
+      if proven.contains i then pure () else
+      match comps[i]? with
+      | none => pure ()
+      | some g =>
+        match segParts vars n g mL mR lam with
+        | none => lastIncon := true                  -- couldn't build the query
+        | some (baseDom, gdot) =>
+            -- CHECKED-CUT domains + the PROVEN strata (never unproven siblings)
+            let baseDom := IForm.and (IForm.and baseDom cutL) cutR
+            let dom := proven.foldl (fun d j =>
+              match comps[j]? with
+              | some gj => IForm.and d (IForm.cmp .le gj (.rat 0))
+              | none => d) baseDom
+            let mut compPass := false
+            let mut compIncon := false
+            for q in routeQueries dom g gdot do
+              if compPass then pure () else do
+                cnt.modify (· + 1)
+                if (← cnt.get) > maxQ then throw (IO.userError "query budget exceeded")
+                if (← IO.monoMsNow) > deadline then throw (IO.userError "time budget exceeded")
+                let script := q.toScript coord
+                if script.length > maxSmt then compIncon := true
+                else match ← s.check script with
+                  | .error _ => compIncon := true
+                  | .ok .unknown => compIncon := true
+                  | .ok .unsat => compPass := true
+                  | .ok .sat => pure ()
+            if compPass then do
+              proven := proven ++ [i]
+              progress := true
+            else if compIncon then lastIncon := true
+            else if (← IO.getEnv "RELCERT_DBGC").isSome then
+              IO.eprintln s!"      FAIL comp#{i} @ {mL.name}->{mR.name} λ={lam} (strata {proven})"
+    if !progress then break
+  return (if proven.length == comps.length then Seg.pass
+          else if lastIncon then Seg.incon else Seg.fail)
 
 /-- **REPOSITION region-invariant check** over a supplied `region`. `true` ⟺ `rel_inv` holds
 everywhere in `region`: `¬rel_inv ∧ region` UNSAT iff **for every component** `gᵢ`,

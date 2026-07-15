@@ -72,3 +72,5 @@ import RelCertifier.EmitIR
 import RelCertifier.Faithful
 import RelCertifier.FaithfulCerts
 import RelCertifier.Rescale
+import RelCertifier.FvDischarge
+import RelCertifier.Mega

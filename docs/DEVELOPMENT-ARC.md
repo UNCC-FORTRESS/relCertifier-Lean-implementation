@@ -334,6 +334,22 @@ carry closed kernel `rfl` certificates**.
   remaining, shield_unreachable, has no guard band and is the certifier's own inconclusive
   case — outside by construction, not by grammar.
 
+- **The suite-guideline audit: ladder coherence restored (fa4f919).** Auditing all 47
+  benchmarks against the five suite guidelines (certified / provable H / uniform-evol /
+  disjoint guards / coherent ladder stories): mode-uniform envelopes and per-side guard
+  disjointness held everywhere (shield_unreachable's overlap is the designed negative
+  control), but rung composition — `rung_i.L == rung_{i+1}.R` on shared coordinates — was
+  broken on all seven ladder pairs by accumulated drift plus two genuine model bugs
+  (orderlift_1to2's L was underdamped 24/8, a different model class than 2to3's critically
+  damped M2; story2_a's L had y-gain 0.75 vs 1.0 and a decaying-vs-frozen `phi_r`).
+  Canonicalization: lower-rung L := upper-rung R on shared coordinates (kernel-certified R
+  sides never weakened), second-order L blocks re-charted into the same eigen-cascade
+  charts with the relational invariants substituted exactly, s-floors unified to `s ≥ 0`
+  suite-wide (honest: `v ≥ 0` everywhere post-orderlift-fix) with the matching terrain
+  instance envelopes tightened and every `rfl` certificate re-verified. All fourteen
+  touched benchmarks re-certify; all seven pairs now MATCH; `scripts/suite_audit.py` is
+  the standing regression check.
+
 ## Current state
 
 - **Suite**: `benchmarks/suite_uniform/` (canonical, the paper's benchmark set) — 46/47

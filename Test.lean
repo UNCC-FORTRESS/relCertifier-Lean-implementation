@@ -73,6 +73,50 @@ def testParser : IO Unit := do
   check "quadratic atom parses" ((parseFormula "2*(psi[l]-psi[r])*(psi[l]-psi[r]) <= 0.25").isSome)
   check "product atom parses"   ((parseFormula "v[l]*r[l] <= 1.0").isSome)
   check "smt2 atom parses"      ((parseFormula "smt2:(<= (- L_s R_s) 0.2)").isSome)
+  -- strictness: reject, never weaken
+  check "empty-arg sexpr rejected"   ((parseFormula "smt2:(<= (-) 0.2)").isNone)
+  check "op-dropping (op x) rejected" ((parseExpr "smt2:(* 3)").isNone)
+  check "unknown expr op rejected"   ((parseExpr "smt2:(foo 1 2)").isNone)
+  check "unknown cmp op rejected"    ((parseFormula "smt2:(sim L_v R_v)").isNone)
+  check "(and) not top"              ((parseFormula "smt2:(and)").isNone)
+  let skel (inv : String) (evolve : String := "x >= 0.0") (ode : String := "x' = 0;") :=
+    "[problem]\nname = t\nlambda_min = 1.0\nlambda_max = 1.0\n" ++
+    "[Lsys]\nstate_vars = [x]\nepsilon = 1.0\n" ++
+    "[Lsys.mode.A]\node = " ++ ode ++ "\nguard = x >= 0.0\nevolve = " ++ evolve ++
+    "\nnext = [A]\n" ++
+    "[Rsys]\nstate_vars = [x]\nepsilon = 1.0\n" ++
+    "[Rsys.mode.A]\node = x' = 0;\nguard = x >= 0.0\nevolve = x >= 0.0\nnext = [A]\n" ++
+    "[relational_invariant]\n" ++ inv ++ "\n"
+  let bad (nm : String) (txt : String) : IO Unit :=
+    check nm ((parseProblemE txt).toOption.isNone)
+  check "minimal skeleton parses" ((parseProblemE (skel "A = x[l] <= x[r]")).toOption.isSome)
+  bad "unparsable invariant line → error (was: dropped)"
+      (skel "A = x[l] <=")
+  bad "pair-keyed invariant row → error (dead syntax)"
+      (skel "A/A = x[l] <= x[r]")
+  bad "invariant key not a mode → error"
+      (skel "B = x[l] <= x[r]")
+  bad "unprojected var in invariant → error"
+      (skel "A = x <= 1.0")
+  bad "undeclared var in evolve → error"
+      (skel "A = x[l] <= x[r]" (evolve := "y >= 0.0"))
+  bad "missing ode for state var → error"
+      ((skel "A = x[l] <= x[r]").replace "ode = x' = 0;\nguard = x >= 0.0\nevolve = x >= 0.0\nnext = [A]\n[relational_invariant]"
+        "ode = ;\nguard = x >= 0.0\nevolve = x >= 0.0\nnext = [A]\n[relational_invariant]")
+  bad "unresolved next → error"
+      ((skel "A = x[l] <= x[r]").replace "next = [A]\n[relational_invariant]" "next = [Z]\n[relational_invariant]")
+  bad "duplicate key → error"
+      ((skel "A = x[l] <= x[r]").replace "[Lsys]\nstate_vars = [x]" "[Lsys]\nstate_vars = [x]\nstate_vars = [x]")
+  bad "junk line → error"
+      ((skel "A = x[l] <= x[r]").replace "[problem]" "[problem]\njunk line no equals")
+  bad "missing guard → error"
+      ((skel "A = x[l] <= x[r]").replace "guard = x >= 0.0\nevolve = x >= 0.0\nnext = [A]\n[relational_invariant]"
+        "evolve = x >= 0.0\nnext = [A]\n[relational_invariant]")
+  bad "malformed numeral → error"
+      (skel "A = x[l] <= 1.2.3")
+  bad "ode LHS without prime → error"
+      ((skel "A = x[l] <= x[r]").replace "ode = x' = 0;\nguard = x >= 0.0\nevolve = x >= 0.0\nnext = [A]\n[relational_invariant]"
+        "ode = x = 0;\nguard = x >= 0.0\nevolve = x >= 0.0\nnext = [A]\n[relational_invariant]")
 
 /-! ## Invariant-lowering tests: each shape → expected component count -/
 def testLowering : IO Unit := do

@@ -73,15 +73,8 @@ evolve = psi >= -0.5 and psi <= 0.6 and s >= 0.0 and theta_p >= -0.5 and theta_p
 next = [FLAT]
 
 [relational_invariant]
-# Combined pos-vel: g = s_L - s_R - 0.2 + (v_L-v_R)/3 <= 0
-# psi and theta appear only negatively in s_L'; R has s'=v so no psi/theta on right.
-# dg/dt = v*_L - lambda*v*_R at boundary: independent of all attitude states.
-STEEP/STEEP = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)
-STEEP/MODER = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)
-STEEP/FLAT  = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)
-MODER/STEEP = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)
-MODER/MODER = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)
-MODER/FLAT  = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)
-FLAT/STEEP  = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)
-FLAT/MODER  = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)
-FLAT/FLAT   = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)
+# One row per LEFT mode (the certifier resolves the invariant by left-mode name; the
+# earlier pair-keyed rows were all identical and are collapsed losslessly).
+STEEP = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)
+MODER = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)
+FLAT  = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)

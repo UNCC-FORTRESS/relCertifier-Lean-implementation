@@ -42,10 +42,12 @@ guard = vx >= 0.75 and vx <= 1.0
 evolve = px >= -0.05 and vx >= 0.25 and vx <= 1.1 and vy >= -1.0 and vy <= 1.1
 next = [Safe]
 [relational_invariant]
-Stop = px[l] <= px[r] + 2.0
-Drive/Recover = px[l] <= px[r] + 0.5 and smt2:(<= (- L_vx R_vx) (* 0.1 (+ (- R_px L_px) 0.5)))
-Drive/Drive   = px[l] <= px[r] + 0.5 and smt2:(<= (- L_vx R_vx) (* 0.1 (+ (- R_px L_px) 0.5)))
-Drive/Safe    = px[l] <= px[r] + 0.5
-Drift/Recover = px[l] <= px[r] + 1.0 and smt2:(<= (- L_vx R_vx) (* 0.1 (+ (- R_px L_px) 1.0)))
-Drift/Drive   = px[l] <= px[r] + 1.0 and smt2:(<= (- L_vx R_vx) (* 0.1 (+ (- R_px L_px) 1.0)))
-Drift/Safe    = px[l] <= px[r] + 1.0
+# One row per LEFT mode. The earlier pair-keyed rows (Drive/Recover etc.) were dead
+# syntax: the certifier fell back to Stop's row for every mode, so Drive and Drift were
+# certified only against the weakest tolerance. The rows below state the per-mode claims
+# on the shared position gap (the velocity-coupling conjuncts of the old pair rows were
+# R-mode-dependent and so cannot be a per-left-mode claim; they are witness guidance,
+# not part of the guarantee).
+Drive = px[l] <= px[r] + 0.5
+Drift = px[l] <= px[r] + 1.0
+Stop  = px[l] <= px[r] + 2.0

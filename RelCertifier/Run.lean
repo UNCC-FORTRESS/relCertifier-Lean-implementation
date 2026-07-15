@@ -255,9 +255,9 @@ def runProblem (p : PProblem) : IO (Bool × List String) := do
 
 def runFile (path : String) : IO Unit := do
   let txt ← IO.FS.readFile path
-  match parseProblem txt with
-  | none => IO.println s!"{path}: UNPARSED"
-  | some p =>
+  match parseProblemE txt with
+  | .error e => IO.println s!"{path}: UNPARSED [{e}]"
+  | .ok p =>
     let (ok, notes) ← runProblem p
     let verdict := if ok then "VERIFIED" else "declined"
     IO.println s!"{p.name}: {verdict}"

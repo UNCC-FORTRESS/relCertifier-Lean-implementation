@@ -10,6 +10,7 @@ lambda_min = 1.0
 lambda_max = 6.0
 bound_T = 4.0
 [Lsys]
+epsilon = 1.0
 state_vars = [theta]
 # L = A2, the finer 3-mode piecewise-rate envelope (fast 0.5 / slow 0.3 / return).
 [Lsys.mode.ApproachFast]
@@ -28,6 +29,7 @@ guard = theta >= 0.70 and theta < 0.85
 evolve = theta >= 0.0 and theta <= 1.0
 next = [ApproachFast, Return]
 [Rsys]
+epsilon = 1.0
 state_vars = [theta]
 # R = A1, the coarser 2-mode constant-rate envelope.
 [Rsys.mode.Approach]

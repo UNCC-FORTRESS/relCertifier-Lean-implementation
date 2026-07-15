@@ -14,6 +14,18 @@ never silently certified.
 Grammar handled: space-separated infix and `smt2:` prefix expressions; relational
 projections `x[l]`/`x[r]` ↦ `L_x`/`R_x`. Tightly-packed infix (no spaces around `*`) and
 disjunctive guards are out of scope (reported unparsed).
+
+STRICTNESS: the parser REJECTS, never weakens. Every malformed or missing piece is a hard
+error carrying its location: unparsable invariant lines / modes / ode equations, missing
+required keys (`guard`, `evolve`, `next`, `ode`, `name`, `lambda_min`, `lambda_max`,
+`state_vars`, `epsilon`), duplicate keys or sections, junk lines, unknown operators,
+empty-argument s-expressions, malformed numerals. Assembly additionally validates: mode
+names unique; every `next` entry resolves to a declared mode of the same system; the ode
+left-hand sides cover the declared `state_vars` exactly (each variable exactly once);
+variables used in odes/guards/evolves are declared in their system; invariant formulas use
+only projected `x[l]`/`x[r]` variables declared on the respective side. The previous
+lenient behavior (drop what fails to parse, default what is missing) could silently
+certify a WEAKER reading of the file than the human sees — strictness removes that route.
 -/
 namespace RelCertifier.Parse
 
@@ -118,17 +130,24 @@ def atom (t : String) : PExpr :=
 
 /-! ## smt2 prefix parser -/
 
+def exprOps : List String := ["+", "-", "*", "/"]
+def cmpOps : List String := ["<=", ">=", "<", ">", "="]
+
 mutual
 partial def parseSExpr : List String → Option (PExpr × List String)
   | [] => none
   | "(" :: op :: rest =>
       match parseSArgs rest with
       | some (args, rest') =>
-          let e := match op, args with
-            | "-", [a]     => PExpr.neg a
-            | _,   a :: as => as.foldl (fun acc b => PExpr.bin op acc b) a
-            | _,   []      => PExpr.num "0"
-          some (e, rest')
+          -- strict: known operators only; unary `-`; otherwise at least two arguments
+          -- (no empty-argument default, no silent op-dropping on `(op x)`)
+          match op, args with
+          | "-", [a] => some (PExpr.neg a, rest')
+          | _, a :: b :: as =>
+              if exprOps.contains op then
+                some ((b :: as).foldl (fun acc c => PExpr.bin op acc c) a, rest')
+              else none
+          | _, _ => none
       | none => none
   | ")" :: _ => none
   | t :: rest => some (atom t, rest)
@@ -198,17 +217,18 @@ partial def parseSForm : List String → Option (PForm × List String)
         match parseSFormArgs rest with
         | some (f :: fs, rest') =>
             some (fs.foldl (fun acc g => if op == "and" then PForm.and acc g else PForm.or acc g) f, rest')
-        | some ([], rest') => some (PForm.tt, rest')
+        | some ([], _) => none   -- strict: `(and)` is malformed, not ⊤
         | none => none
       else if op == "not" then
         (parseSForm rest).map (fun (f, r) => (PForm.not f, r))
-      else
+      else if cmpOps.contains op then
         match parseSExpr rest with
         | some (a, r1) =>
             match parseSExpr r1 with
             | some (b, ")" :: r2) => some (PForm.cmp op a b, r2)
             | _ => none
         | none => none
+      else none   -- strict: unknown head operator
   | _ => none
 partial def parseSFormArgs : List String → Option (List PForm × List String)
   | ")" :: rest => some ([], rest)
@@ -243,28 +263,53 @@ partial def parseFormula (s : String) : Option PForm :=
             | _, _ => none
         | none => none
 
-/-! ## Section reader + assembly -/
+/-! ## Section reader + assembly (STRICT: `Except String`, reject-never-weaken) -/
 
-/-- Read `[section]` blocks into `(name, [(key,value)])`. -/
-def readSections (text : String) : List (String × List (String × String)) := Id.run do
+/-- Read `[section]` blocks into `(name, [(key,value)])`. Strict: content before any
+section header, lines without `=`, duplicate keys within a section, and duplicate
+section names are all hard errors. -/
+def readSectionsE (text : String) : Except String (List (String × List (String × String))) := Id.run do
   let mut secs : List (String × List (String × String)) := []
   let mut cur : String := ""
   let mut kvs : List (String × String) := []
+  let mut lineNo := 0
   for raw in (text.splitOn "\n") do
+    lineNo := lineNo + 1
     let line := stripComment raw
     if line.isEmpty then continue
     if line.startsWith "[" && line.endsWith "]" then
       if !cur.isEmpty then secs := secs ++ [(cur, kvs)]
       cur := tr (drr (dr line 1) 1)
+      if cur.isEmpty then return .error s!"line {lineNo}: empty section name"
+      if secs.any (fun p => p.1 == cur) then
+        return .error s!"line {lineNo}: duplicate section [{cur}]"
       kvs := []
-    else match line.splitOn "=" with
-      | k :: rest => kvs := kvs ++ [(tr k, tr (String.intercalate "=" rest))]
+    else if !(line.splitOn "=").length.blt 2 then
+      match line.splitOn "=" with
+      | k :: rest =>
+          let key := tr k
+          if cur.isEmpty then
+            return .error s!"line {lineNo}: key '{key}' before any [section]"
+          if key.isEmpty then
+            return .error s!"line {lineNo}: empty key"
+          if kvs.any (fun p => p.1 == key) then
+            return .error s!"line {lineNo}: duplicate key '{key}' in [{cur}]"
+          kvs := kvs ++ [(key, tr (String.intercalate "=" rest))]
       | [] => pure ()
+    else
+      return .error s!"line {lineNo}: not a section header or key=value: '{line}'"
   if !cur.isEmpty then secs := secs ++ [(cur, kvs)]
-  return secs
+  return .ok secs
 
 def secGet (kvs : List (String × String)) (k : String) : Option String :=
   (kvs.find? (fun p => p.1 == k)).map Prod.snd
+
+/-- Strict required-key lookup. -/
+def secNeed (sec : String) (kvs : List (String × String)) (k : String) :
+    Except String String :=
+  match secGet kvs k with
+  | some v => if (tr v).isEmpty then .error s!"[{sec}]: key '{k}' is empty" else .ok v
+  | none => .error s!"[{sec}]: missing required key '{k}'"
 
 /-- Parse a `[x, y, z]` list literal. -/
 def parseList (s : String) : List String :=
@@ -273,51 +318,175 @@ def parseList (s : String) : List String :=
   let s := if s.endsWith "]" then drr s 1 else s
   (s.splitOn ",").filterMap (fun t => let t := tr t; if t.isEmpty then none else some t)
 
-/-- Parse a mode section body given its `qName`. -/
-def parseMode (name : String) (kvs : List (String × String)) : Option PMode := do
-  let odeStr := (secGet kvs "ode").getD ""
-  -- ode = "v' = smt2:...;" possibly multiple ';'-separated
-  let odes := (odeStr.splitOn ";").filterMap (fun eq =>
+/-- Variables of an expression / formula (for scope validation). -/
+partial def exprVars : PExpr → List String
+  | .var v => [v]
+  | .num _ => []
+  | .neg a => exprVars a
+  | .bin _ a b => exprVars a ++ exprVars b
+
+partial def formVars : PForm → List String
+  | .tt => []
+  | .cmp _ a b => exprVars a ++ exprVars b
+  | .and a b | .or a b => formVars a ++ formVars b
+  | .not a => formVars a
+
+/-- Numeric literals of an expression / formula (for numeral validation). -/
+partial def exprNums : PExpr → List String
+  | .var _ => []
+  | .num c => [c]
+  | .neg a => exprNums a
+  | .bin _ a b => exprNums a ++ exprNums b
+
+partial def formNums : PForm → List String
+  | .tt => []
+  | .cmp _ a b => exprNums a ++ exprNums b
+  | .and a b | .or a b => formNums a ++ formNums b
+  | .not a => formNums a
+
+/-- A well-formed decimal numeral: optional `-`, digits, at most one `.`, digits. -/
+def numOk (c : String) : Bool :=
+  let c := if c.startsWith "-" then dr c 1 else c
+  let parts := c.splitOn "."
+  !c.isEmpty && parts.length ≤ 2 &&
+    parts.all (fun p => p.data.all Char.isDigit) &&
+    (parts.headD "").length > 0
+
+/-- Parse a mode section body, strictly: `ode`, `guard`, `evolve`, `next` required; every
+`;`-separated ode equation must have a primed LHS and a parsable RHS; a present
+`strengthen` must parse (it is completeness-only downstream, but a syntactically broken
+one is a typo worth failing on). -/
+def parseModeE (sec : String) (name : String) (kvs : List (String × String)) :
+    Except String PMode := do
+  let odeStr ← secNeed sec kvs "ode"
+  let mut odes : List (String × PExpr) := []
+  for eq in odeStr.splitOn ";" do
     let eq := tr eq
-    if eq.isEmpty then none
-    else match eq.splitOn "=" with
-      | lhs :: rest =>
-          let v := tr (drr (tr lhs) 1)   -- strip trailing '
-          match parseExpr (String.intercalate "=" rest) with
-          | some e => some (v, e)
-          | none => none
-      | [] => none)
-  let guard ← parseFormula ((secGet kvs "guard").getD "")
-  let evolve ← parseFormula ((secGet kvs "evolve").getD "")
-  some { name := name, odes := odes, guard := guard, evolve := evolve,
-         next := parseList ((secGet kvs "next").getD "[]"),
-         strengthen := (secGet kvs "strengthen").bind parseFormula }
+    if eq.isEmpty then continue
+    match eq.splitOn "=" with
+    | lhs :: rest@(_ :: _) =>
+        let lhs := tr lhs
+        if !lhs.endsWith "'" then
+          throw s!"[{sec}]: ode LHS '{lhs}' lacks prime"
+        let v := tr (drr lhs 1)
+        if v.isEmpty then throw s!"[{sec}]: ode with empty variable"
+        match parseExpr (String.intercalate "=" rest) with
+        | some e => odes := odes ++ [(v, e)]
+        | none => throw s!"[{sec}]: unparsable ode RHS for '{v}''"
+    | _ => throw s!"[{sec}]: ode equation without '=': '{eq}'"
+  let guardS ← secNeed sec kvs "guard"
+  let guard ← match parseFormula guardS with
+    | some f => pure f
+    | none => throw s!"[{sec}]: unparsable guard"
+  let evolveS ← secNeed sec kvs "evolve"
+  let evolve ← match parseFormula evolveS with
+    | some f => pure f
+    | none => throw s!"[{sec}]: unparsable evolve"
+  let nextS ← secNeed sec kvs "next"
+  let strengthen ← match secGet kvs "strengthen" with
+    | none => pure none
+    | some v => match parseFormula v with
+      | some f => pure (some f)
+      | none => throw s!"[{sec}]: unparsable strengthen"
+  return { name := name, odes := odes, guard := guard, evolve := evolve,
+           next := parseList nextS, strengthen := strengthen }
 
-/-- Assemble the full problem from sections. -/
-def assemble (secs : List (String × List (String × String))) : Option PProblem := do
+/-- Scope/numeral validation for one system: mode names unique; `next` resolves; ode LHS
+cover `state_vars` exactly; variables in odes/guard/evolve are declared; numerals well
+formed. -/
+def validateSystem (sysName : String) (sys : PSystem) : Except String Unit := do
+  if sys.stateVars.isEmpty then throw s!"[{sysName}]: empty state_vars"
+  if sys.modes.isEmpty then throw s!"[{sysName}]: no modes"
+  let names := sys.modes.map (·.name)
+  if names.eraseDups.length != names.length then
+    throw s!"[{sysName}]: duplicate mode names"
+  for m in sys.modes do
+    let sec := s!"{sysName}.mode.{m.name}"
+    let lhs := m.odes.map Prod.fst
+    if lhs.eraseDups.length != lhs.length then
+      throw s!"[{sec}]: duplicate ode for a variable"
+    for v in sys.stateVars do
+      if !lhs.contains v then throw s!"[{sec}]: no ode for state var '{v}'"
+    for v in lhs do
+      if !sys.stateVars.contains v then throw s!"[{sec}]: ode for undeclared '{v}'"
+    for q in m.next do
+      if !names.contains q then throw s!"[{sec}]: next '{q}' is not a mode of {sysName}"
+    let scopeOk (v : String) : Bool := sys.stateVars.contains v
+    for (v, e) in m.odes do
+      for u in exprVars e do
+        if !scopeOk u then throw s!"[{sec}]: ode of '{v}' uses undeclared '{u}'"
+    for u in formVars m.guard do
+      if !scopeOk u then throw s!"[{sec}]: guard uses undeclared '{u}'"
+    for u in formVars m.evolve do
+      if !scopeOk u then throw s!"[{sec}]: evolve uses undeclared '{u}'"
+    let nums := (m.odes.map (fun p => exprNums p.2)).flatten
+      ++ formNums m.guard ++ formNums m.evolve
+    for c in nums do
+      if !numOk c then throw s!"[{sec}]: malformed numeral '{c}'"
+
+/-- Assemble the full problem from sections, strictly. -/
+def assembleE (secs : List (String × List (String × String))) : Except String PProblem := do
   let find (n : String) := (secs.find? (fun p => p.1 == n)).map Prod.snd
-  let prob ← find "problem"
-  let lsys ← find "Lsys"
-  let rsys ← find "Rsys"
-  let modesOf (sysName : String) : List PMode :=
-    secs.filterMap (fun (nm, kvs) =>
+  let prob ← match find "problem" with
+    | some kvs => pure kvs | none => throw "missing [problem] section"
+  let lsys ← match find "Lsys" with
+    | some kvs => pure kvs | none => throw "missing [Lsys] section"
+  let rsys ← match find "Rsys" with
+    | some kvs => pure kvs | none => throw "missing [Rsys] section"
+  let modesOfE (sysName : String) : Except String (List PMode) := do
+    let mut out : List PMode := []
+    for (nm, kvs) in secs do
       if nm.startsWith (sysName ++ ".mode.") then
-        parseMode (dr nm (sysName.length + 6)) kvs
-      else none)
-  let invs : List (String × PForm) :=
-    match find "relational_invariant" with
-    | some kvs => kvs.filterMap (fun (k, v) => (parseFormula v).map (fun f => (k, f)))
-    | none => []
-  some {
-    name := (secGet prob "name").getD "?"
-    lambdaMin := (secGet prob "lambda_min").getD "1.0"
-    lambdaMax := (secGet prob "lambda_max").getD "1.0"
-    L := { stateVars := parseList ((secGet lsys "state_vars").getD "[]")
-           epsilon := (secGet lsys "epsilon").getD "1.0", modes := modesOf "Lsys" }
-    R := { stateVars := parseList ((secGet rsys "state_vars").getD "[]")
-           epsilon := (secGet rsys "epsilon").getD "1.0", modes := modesOf "Rsys" }
-    invariants := invs }
+        out := out ++ [← parseModeE nm (dr nm (sysName.length + 6)) kvs]
+    return out
+  let name ← secNeed "problem" prob "name"
+  let lambdaMin ← secNeed "problem" prob "lambda_min"
+  let lambdaMax ← secNeed "problem" prob "lambda_max"
+  if !numOk lambdaMin then throw s!"[problem]: malformed lambda_min '{lambdaMin}'"
+  if !numOk lambdaMax then throw s!"[problem]: malformed lambda_max '{lambdaMax}'"
+  let lVars ← secNeed "Lsys" lsys "state_vars"
+  let rVars ← secNeed "Rsys" rsys "state_vars"
+  let lEps ← secNeed "Lsys" lsys "epsilon"
+  let rEps ← secNeed "Rsys" rsys "epsilon"
+  if !numOk lEps then throw s!"[Lsys]: malformed epsilon '{lEps}'"
+  if !numOk rEps then throw s!"[Rsys]: malformed epsilon '{rEps}'"
+  let L : PSystem := { stateVars := parseList lVars, epsilon := lEps,
+                       modes := ← modesOfE "Lsys" }
+  let R : PSystem := { stateVars := parseList rVars, epsilon := rEps,
+                       modes := ← modesOfE "Rsys" }
+  validateSystem "Lsys" L
+  validateSystem "Rsys" R
+  let invKvs ← match find "relational_invariant" with
+    | some kvs => pure kvs
+    | none => throw "missing [relational_invariant] section"
+  let mut invs : List (String × PForm) := []
+  for (k, v) in invKvs do
+    match parseFormula v with
+    | some f => invs := invs ++ [(k, f)]
+    | none => throw s!"[relational_invariant]: unparsable line for '{k}'"
+  let modeNames := (L.modes.map (·.name)) ++ (R.modes.map (·.name))
+  for (k, f) in invs do
+    if !modeNames.contains k then
+      throw s!"[relational_invariant]: '{k}' is not a mode name"
+    for u in formVars f do
+      if u.startsWith "L_" then
+        if !L.stateVars.contains (dr u 2) then
+          throw s!"[relational_invariant] {k}: '{dr u 2}[l]' not an Lsys state var"
+      else if u.startsWith "R_" then
+        if !R.stateVars.contains (dr u 2) then
+          throw s!"[relational_invariant] {k}: '{dr u 2}[r]' not an Rsys state var"
+      else
+        throw s!"[relational_invariant] {k}: unprojected variable '{u}' (use x[l]/x[r])"
+    for c in formNums f do
+      if !numOk c then throw s!"[relational_invariant] {k}: malformed numeral '{c}'"
+  return { name := name, lambdaMin := lambdaMin, lambdaMax := lambdaMax,
+           L := L, R := R, invariants := invs }
 
-def parseProblem (text : String) : Option PProblem := assemble (readSections text)
+/-- Strict entry point: a parse failure carries its reason. -/
+def parseProblemE (text : String) : Except String PProblem := do
+  assembleE (← readSectionsE text)
+
+/-- Option-valued compatibility wrapper (verdict-level callers). -/
+def parseProblem (text : String) : Option PProblem := (parseProblemE text).toOption
 
 end RelCertifier.Parse

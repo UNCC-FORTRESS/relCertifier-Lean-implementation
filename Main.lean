@@ -103,9 +103,9 @@ def runBatch (paths : List String) : IO Unit := do
       for path in paths do
         let t0 ← IO.monoMsNow
         let oc ← try
-            match RelCertifier.Parse.parseProblem (← IO.FS.readFile path) with
-            | none => pure (Outcome.error "unparsed input")
-            | some p => certify s p
+            match RelCertifier.Parse.parseProblemE (← IO.FS.readFile path) with
+            | .error e => pure (Outcome.error s!"parse: {e}")
+            | .ok p => certify s p
           catch e => pure (Outcome.error s!"io: {e}")
         let dt := (← IO.monoMsNow) - t0
         let name := (path.splitOn "/").reverse.getD 1 path

@@ -665,8 +665,10 @@ def certifyCore (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) 
   let mut sawIncon := false
   for mL in p.L.modes do
     -- invariant for this left mode (key = mode name, else first)
+    -- strict: every left mode must carry its own invariant row (the old head-of-list
+    -- fallback silently certified the FIRST row's formula for unmatched modes — an
+    -- accept-and-weaken route at key resolution)
     let invF := (p.invariants.find? (·.1 == mL.name)).map Prod.snd
-      |>.orElse (fun _ => (p.invariants.head?).map Prod.snd)
     match invF with
     | none => return .error s!"no invariant for left mode {mL.name}"
     | some f =>
@@ -701,9 +703,9 @@ def certifyFile (cfg : Z3Config) (path : String) : IO Outcome := do
   match txt? with
   | none => return .error s!"cannot read {path}"
   | some txt =>
-      match parseProblem txt with
-      | none => return .error "unparsed input"
-      | some p =>
+      match parseProblemE txt with
+      | .error e => return .error s!"parse: {e}"
+      | .ok p =>
           match ← Z3Session.start cfg with
           | .error e => return .error e
           | .ok s => let r ← certify s p; s.close; return r

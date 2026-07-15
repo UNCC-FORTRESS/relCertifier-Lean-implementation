@@ -39,7 +39,9 @@ guard = v >= 0.6
 evolve = a >= 0.5 and a <= 1.0 and s >= 0.0 and v >= 0.0
 next = [ACCEL, COAST]
 [relational_invariant]
-ACCEL/ACCEL = v[l] <= v[r] + 0.5 and a[l] <= a[r] + 0.8
-ACCEL/COAST = v[l] <= v[r] + 0.5 and a[l] <= a[r] + 0.8
-COAST/ACCEL = smt2:(<= (+ (* 3 L_v) L_a) (+ (* 3 R_v) 1.2))
-COAST/COAST = smt2:(<= (+ (* 3 L_v) L_a) (+ (* 3 R_v) 1.2))
+# One row per LEFT mode. NOTE: the earlier pair-keyed rows were dead syntax — the
+# certifier's key resolution matched neither and fell back to the FIRST row, so COAST
+# was being certified against ACCEL's tolerance form; these rows state the intended
+# per-mode claims explicitly.
+ACCEL = v[l] <= v[r] + 0.5 and a[l] <= a[r] + 0.8
+COAST = smt2:(<= (+ (* 3 L_v) L_a) (+ (* 3 R_v) 1.2))

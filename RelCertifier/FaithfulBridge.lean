@@ -1905,4 +1905,96 @@ theorem envFaithful_sat {σq : List QF} {b : Band} {lo hi : Option QF} (i : Fin 
           calc ν (Rv i) * sigmaOf σq i = sigmaOf σq i * ν (Rv i) := by ring
             _ ≤ q.val * sigmaOf σq i := h2) hσv
 
+/-! ### Envelope and guard formulas -/
+
+/-- Real-side envelope: the per-coordinate parsed bounds, conjoined. -/
+noncomputable def envFormulaR (vs : List String) (n : ℕ)
+    (eb : List (String × Option QF × Option QF)) : Formula (Var n) :=
+  (List.finRange n).foldr (fun i acc =>
+    Formula.and (bandFormulaR i (boundOf eb (vs.getD i.val "")).1
+      (boundOf eb (vs.getD i.val "")).2) acc) Formula.tt
+
+/-- Conjunction folds correspond pointwise. -/
+theorem foldr_and_sat {l : List (Fin n)} {f g : Fin n → Formula (Var n)}
+    {ν ν' : DL.State (Var n)}
+    (h : ∀ i ∈ l, (Formula.sat (f i) ν ↔ Formula.sat (g i) ν')) :
+    (Formula.sat (l.foldr (fun i acc => Formula.and (f i) acc) Formula.tt) ν
+      ↔ Formula.sat (l.foldr (fun i acc => Formula.and (g i) acc) Formula.tt) ν') := by
+  induction l with
+  | nil => simp [Formula.sat]
+  | cons i l ih =>
+      simp only [List.foldr_cons, Formula.sat]
+      constructor
+      · rintro ⟨h1, h2⟩
+        exact ⟨(h i (List.mem_cons_self ..)).mp h1,
+          (ih (fun x hx => h x (List.mem_cons_of_mem _ hx))).mp h2⟩
+      · rintro ⟨h1, h2⟩
+        exact ⟨(h i (List.mem_cons_self ..)).mpr h1,
+          (ih (fun x hx => h x (List.mem_cons_of_mem _ hx))).mpr h2⟩
+
+/-- **The `hdom` discharger**: the real envelope corresponds to the scaled envelope. -/
+theorem envFormulaR_sat (M : SettlingModel n) {vs : List String} {σq : List QF}
+    {eb : List (String × Option QF × Option QF)}
+    (hbs : BoundsPos eb)
+    (hσd : ∀ j, j < n → (σq.getD j (qOfInt 0)).pos)
+    (hσv : ∀ j : Fin n, 0 < sigmaOf σq j)
+    (hef : ∀ i : Fin n, envFaithful (σq.getD i.val (qOfInt 0)) (M.env i)
+        (boundOf eb (vs.getD i.val "")).1 (boundOf eb (vs.getD i.val "")).2 = true)
+    (ν : DL.State (Var n)) :
+    Formula.sat (envFormulaR vs n eb) ν
+      ↔ Formula.sat M.envF (scaleState (sigmaOf σq) ν) := by
+  unfold envFormulaR SettlingModel.envF
+  refine foldr_and_sat ?_
+  intro i _
+  exact envFaithful_sat i (hσd i.val i.isLt) (hσv i)
+    (boundOf_pos hbs (vs.getD i.val "")).1 (boundOf_pos hbs (vs.getD i.val "")).2
+    (hef i) ν
+
+/-- **The guard-band correspondence** (settling variant): the parsed guard bounds match
+the scaled mode band. `bandDom` is definitionally the two-sided `Band.formula`, so this
+is the one-band lemma at a both-sides-present band. -/
+theorem bandSettling_sat {vs : List String} {σq : List QF}
+    {gb : List (String × Option QF × Option QF)} (hgb : BoundsPos gb)
+    (m : SettlingMode n)
+    (hσd : ∀ j, j < n → (σq.getD j (qOfInt 0)).pos)
+    (hσv : ∀ j : Fin n, 0 < sigmaOf σq j)
+    (hband :
+      (match (boundOf gb (vs.getD m.gcoord.val "")).1 with
+       | some q => qEq (qOfInt m.glo) (qMul q (σq.getD m.gcoord.val (qOfInt 0)))
+       | none => false) = true ∧
+      (match (boundOf gb (vs.getD m.gcoord.val "")).2 with
+       | some q => qEq (qOfInt m.ghi) (qMul q (σq.getD m.gcoord.val (qOfInt 0)))
+       | none => false) = true)
+    (ν : DL.State (Var n)) :
+    Formula.sat (bandFormulaR m.gcoord (boundOf gb (vs.getD m.gcoord.val "")).1
+        (boundOf gb (vs.getD m.gcoord.val "")).2) ν
+      ↔ Formula.sat (bandDom m.gcoord (m.glo : ℝ) (m.ghi : ℝ))
+          (scaleState (sigmaOf σq) ν) := by
+  obtain ⟨hlo, hhi⟩ := hband
+  -- both bounds are present
+  rcases hloe : (boundOf gb (vs.getD m.gcoord.val "")).1 with _ | qlo
+  · rw [hloe] at hlo
+    exact absurd hlo (by simp)
+  rcases hhie : (boundOf gb (vs.getD m.gcoord.val "")).2 with _ | qhi
+  · rw [hhie] at hhi
+    exact absurd hhi (by simp)
+  rw [hloe] at hlo
+  rw [hhie] at hhi
+  -- reuse the band lemma at the two-sided band
+  have hef : envFaithful (σq.getD m.gcoord.val (qOfInt 0))
+      ⟨some m.glo, some m.ghi⟩ (some qlo) (some qhi) = true := by
+    unfold envFaithful
+    simp only [Bool.and_eq_true]
+    exact ⟨hlo, hhi⟩
+  have hcorr := envFaithful_sat m.gcoord (hσd m.gcoord.val m.gcoord.isLt)
+    (hσv m.gcoord)
+    (fun r hr => by
+      have h' : qlo = r := by injection hr
+      exact h' ▸ (boundOf_pos hgb (vs.getD m.gcoord.val "")).1 qlo hloe)
+    (fun r hr => by
+      have h' : qhi = r := by injection hr
+      exact h' ▸ (boundOf_pos hgb (vs.getD m.gcoord.val "")).2 qhi hhie)
+    hef ν
+  exact hcorr
+
 end RelCertifier

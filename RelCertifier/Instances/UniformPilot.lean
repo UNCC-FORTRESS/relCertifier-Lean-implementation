@@ -32,6 +32,7 @@ the emitted IR).
 -/
 import RelCertifier.Proofs.Encoding.UniformFvDischarge
 import RelCertifier.Proofs.Encoding.LoweringSide
+import RelCertifier.Proofs.Encoding.CoverExtract
 import RelCertifier.Instances.BenchIR
 
 namespace RelCertifier
@@ -214,53 +215,46 @@ theorem rpaP (hfL : ∀ i, (fLP i).fv ⊆ range Lv) (hfR : ∀ i, (fRP i).fv ⊆
   obtain ⟨i, rfl⟩ := hdomR hx
   exact Or.inl (Rv_mem_rightBlock_boundSet fRP (Term.const 1) i)
 
-/-- The emitted window response: `k = 1` — the single self-mode piece. -/
-theorem emitP (hfL : ∀ i, (fLP i).fv ⊆ range Lv) (hdomL : domLP.fv ⊆ range Lv)
-    (hfR : ∀ i, (fRP i).fv ⊆ range Rv) (hdomR : domRP.fv ⊆ range Rv) :
-    EmitWindows GrP gP mvP fLP domLP tgP 1 1 := by
-  intro q hq σ hmv hσ
+/-- Self-edges declared (the `next` list contains the mode itself — input condition). -/
+theorem hselfP : ∀ q, q < GrP.modes.length → ∃ e ∈ GrP.edgesFrom q, e.tgt = q := by
+  intro q hq
   have hq0 : q = 0 := by
     have : GrP.modes.length = 1 := rfl
     omega
   subst hq0
-  refine ⟨[(0, rModeP, selfEdgeP)], rfl, ?_, ?_, ?_, ?_⟩
-  · intro s hs
-    rw [List.mem_singleton] at hs
-    subst hs
-    exact ⟨rfl, selfEdge_mem_from0⟩
-  · simp
-  · intro s hs
-    simp only [List.head?_cons, Option.some.injEq] at hs
-    rw [← hs]
-  · intro Q hQ
-    simp only [List.map_cons, List.map_nil, List.mem_singleton] at hQ
-    subst hQ
-    rw [Set.disjoint_left]
-    intro x hxR hxL
-    have hR : x ∈ ({mvP, mvP} : Set (Var 2)) ∪ range Rv := by
-      rw [Program.rename_refl] at hxR
-      have hsub : (rModeP.sys.boundSet ∪ rModeP.sys.readVars ∪ rModeP.dom.fv)
-          ⊆ range Rv := by
-        intro y hy
-        rcases hy with (hy | hy) | hy
-        · exact rightBlock_boundSet_sub fRP (Term.const 1) hy
-        · exact rightBlock_readVars_sub fRP (Term.const 1) hfR (by simp [Term.fv]) hy
-        · exact hdomR hy
-      exact Or.inr (hsub (vars_ode_sub rModeP.sys rModeP.dom hxR))
-    have hL : x ∈ ({tgP} : Set (Var 2)) ∪ range Lv :=
-      vars_clockedSegL_sub fLP domLP 1 1 hfL hdomL hxL
-    exact absurd hxR (by
-      rcases hL with hx | ⟨i, rfl⟩
-      · rw [Set.mem_singleton_iff] at hx
-        subst hx
-        rcases hR with hx | hx
-        · simp [mvP, tgP, Prod.ext_iff] at hx
-        · exact absurd hx (aux_notin_range_Rv 1)
-      · rcases hR with hx | ⟨j, hj⟩
-        · exact absurd hx.symm (by intro h; exact absurd h (by
-            simp [mvP, Lv, Prod.ext_iff]))
-        · exact absurd hj (by simp [Lv, Rv, Prod.ext_iff])
-      )
+  exact ⟨selfEdgeP, selfEdge_mem_from0, rfl⟩
+
+/-- Per-mode footprint disjointness against the clocked left (side-splits). -/
+theorem hdisP : ∀ q m, GrP.modeAt q = some m →
+    Disjoint (Program.vars ((Program.ode m.sys m.dom).rename (Equiv.refl (Var 2))))
+      (Program.vars (clockedSeg (leftBlock fLP) domLP tgP 1)) := by
+  intro q m hm
+  obtain ⟨rfl, rfl⟩ := GrP_modeAt hm
+  rw [Set.disjoint_left]
+  intro x hxR hxL
+  have hR : x ∈ range Rv := by
+    rw [Program.rename_refl] at hxR
+    have hsub : (rModeP.sys.boundSet ∪ rModeP.sys.readVars ∪ rModeP.dom.fv)
+        ⊆ range Rv := by
+      intro y hy
+      rcases hy with (hy | hy) | hy
+      · exact rightBlock_boundSet_sub fRP (Term.const 1) hy
+      · exact rightBlock_readVars_sub fRP (Term.const 1) hfRP (by simp [Term.fv]) hy
+      · exact hdomRP hy
+    exact hsub (vars_ode_sub rModeP.sys rModeP.dom hxR)
+  have hL : x ∈ ({tgP} : Set (Var 2)) ∪ range Lv :=
+    vars_clockedSegL_sub fLP domLP 1 1 hfLP hdomLP hxL
+  rcases hL with hx | ⟨i, rfl⟩
+  · rw [Set.mem_singleton_iff] at hx
+    subst hx
+    exact aux_notin_range_Rv 1 hR
+  · obtain ⟨j, hj⟩ := hR
+    exact absurd hj (by simp [Lv, Rv, Prod.ext_iff])
+
+/-- **The tool's cover decision, re-run by the kernel** (`k = bBudget = 1`, σ = preJ):
+the very `decideCovered` the tool gates CERTIFIED on, replayed as a kernel fact. -/
+theorem rover_drag_covered :
+    decideCovered GjP 2 ⟨0, 1, SrcSetting.preJ⟩ = true := by decide
 
 /-! ## The pilot theorem -/
 
@@ -299,7 +293,8 @@ theorem rover_drag_multiflow
     intro d hd
     rw [List.mem_singleton] at hd
     subst hd
-    exact ⟨⟨GjP, coverCertP hz3, rpaP hfLP hfRP hdomRP hES⟩, emitP hfLP hdomLP hfRP hdomRP⟩
+    exact ⟨⟨GjP, coverCertP hz3, rpaP hfLP hfRP hdomRP hES⟩,
+      emitWindows_self GrP gP mvP tgP fLP domLP 1 1 hselfP hdisP⟩
 
 end RoverDragPilot
 end RelCertifier

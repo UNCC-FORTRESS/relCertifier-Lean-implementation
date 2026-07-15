@@ -17,6 +17,7 @@ needing multi-segment covers or edge pruning is reported `declined` (not unsound
 verified guarantee is that every reported `certified` is backed by `flow_cert_sound_strict`.
 -/
 import RelCertifier.Parse
+import RelCertifier.QFrac
 import RelCertifier.Smt
 import RelCertifier.FlowCert
 
@@ -24,20 +25,15 @@ namespace RelCertifier.Run
 
 open RelCertifier RelCertifier.Parse DL
 
-/-- Parse a decimal literal to `ℚ` (exact). -/
+/-- Decimal numeral → ℚ, THROUGH the kernel-fast `parseQ` (raw-fraction parser,
+structural recursion): `parseRat s = (parseQ s).map (n/d)`. The old implementation went
+through `String.splitOn`/`toNat?` (well-founded recursion) and mathlib ℚ arithmetic,
+neither of which kernel-reduces — every downstream lowering fact (`lowerE` on numerals,
+`lowerF`, `cutAtomG`) was rfl-opaque. Strictness delta: forms like ".5" (empty integer
+part) are now rejected, as is surrounding whitespace (tokenizer output is clean — the
+`Faithful` kernel certificates already consume the same payloads untrimmed). -/
 def parseRat (s : String) : Option ℚ :=
-  let s := Parse.tr s
-  let neg := s.startsWith "-"
-  let s := if neg then Parse.dr s 1 else s
-  let mk (v : ℚ) := if neg then -v else v
-  match s.splitOn "." with
-  | [i] => (if i.isEmpty then some 0 else i.toNat?).map (fun n => mk (n : ℚ))
-  | [i, f] =>
-      let ip : ℚ := if i.isEmpty then 0 else (i.toNat?.getD 0 : ℚ)
-      match f.toNat? with
-      | some fp => some (mk (ip + (fp : ℚ) / (10 : ℚ) ^ f.length))
-      | none => none
-  | _ => none
+  (parseQ s).map (fun q => (q.n : ℚ) / (q.d : ℚ))
 
 /-! ## Lowering: PExpr/PForm (string vars) → Smt IR over `Var n` -/
 

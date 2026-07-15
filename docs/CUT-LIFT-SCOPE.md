@@ -80,6 +80,19 @@ ARCHITECTURE/Trusted-README updated: the cut channel moves from "trusted step" t
 * **Left-side cuts in the ∀-side story**: same lift shape; deferred until a benchmark
   needs it (the 13 need right-side/joint query narrowing only — verify during Phase 4).
 
+## Status (2026-07-15)
+
+Phases 1–4 DONE (commits 49ffb37..): unconditioned O2 single-pass with recorded routes;
+CutCertDefs + generated CutCerts.lean (46 benchmarks, per-benchmark `cutCertWF = true` by
+`rfl`, QF-based recognizers); CutLift.lean — per-atom staying (Lie locality + λ-scaling +
+DI routes), trace staying, `cut_lift_boxle`, O1 semantics, `AtomFact` route constructors,
+and the guard-base packaging `cut_hcert`. `parseRat` re-based on `parseQ` (and `QF` split
+into `QFrac.lean`), so per-benchmark lowering facts are kernel `rfl`-provable — the
+instantiation enabler. Phase 5 partially done: suite regression 46/47 (story1_attdist
+inside the raised default budget); per-benchmark wiring of `cut_hcert` into the 13's
+end-to-end instances is folded into the all-benchmarks instantiation task (F), which owns
+the real↔scaled `hcert` plumbing anyway.
+
 ## Estimate
 
 Tool work small (Phases 1–2). Lean work ~800–1100 lines (Phases 3–4), no new axioms —

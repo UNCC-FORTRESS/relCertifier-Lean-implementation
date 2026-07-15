@@ -386,4 +386,119 @@ theorem cutAtomG_sat {vars : List String} {side : Side} {op : String}
     · intro h; linarith
     · intro h; linarith
 
+/-! ## Phase 4: the strict-query IR mirror and the guard-base packaging -/
+
+/-- IR mirror of the strict boundary query (the tool's route-B probe shape). -/
+def iflowQueryStrict {n : ℕ} (g : ITerm n) (fL fR : Fin n → ITerm n) (lam : ITerm n)
+    (domain : IForm n) : IForm n :=
+  IForm.and domain (IForm.and (IForm.cmp .eq g (.rat 0))
+    (IForm.cmp .ge (ilieDeriv g fL fR lam) (.rat 0)))
+
+theorem iflowQueryStrict_toHost {n : ℕ} (g : ITerm n) (fL fR : Fin n → ITerm n)
+    (lam : ITerm n) (domain : IForm n) :
+    (iflowQueryStrict g fL fR lam domain).toHost
+      = flowQueryStrict ⟨g.toHost, (fun i => (fL i).toHost), (fun i => (fR i).toHost),
+          lam.toHost, domain.toHost⟩ := by
+  simp [iflowQueryStrict, flowQueryStrict, IForm.toHost, ITerm.toHost, ilieDeriv_toHost]
+
+/-! ### `AtomFact` constructors, one per route -/
+
+/-- Right-sided nonstrict-route atom fact from its O2 Z3 verdict. -/
+noncomputable def AtomFact.ofR_nonstrict (fL fR : Fin n → Term (Var n)) (c : ℝ)
+    (hc : 0 ≤ c) (dom evR : Formula (Var n)) (form : Formula (Var n))
+    (gT : Term (Var n))
+    (hiff : ∀ ν, Formula.sat form ν ↔ Term.eval gT ν ≤ 0)
+    (hfv : ∀ i : Fin n, Lv i ∉ gT.fv)
+    (hdomImp : ∀ x, Formula.sat dom x → Formula.sat evR x)
+    (hz3 : z3solve (flowQuery ⟨gT, fun _ => Term.const 0, fR, Term.const 1, evR⟩)
+      = Verdict.unsat) :
+    AtomFact n (jointSys fL fR (Term.const c)) dom :=
+  { form := form, gT := gT, hiff := hiff,
+    hstay := fun ν hinit =>
+      atom_boxle_R_nonstrict gT fL fR c hc dom evR hfv hdomImp
+        (z3_unsat_sound hz3) hinit }
+
+/-- Right-sided strict-route atom fact from its O2 Z3 verdict (needs λ > 0). -/
+noncomputable def AtomFact.ofR_strict (fL fR : Fin n → Term (Var n)) (c : ℝ)
+    (hc : 0 < c) (dom evR : Formula (Var n)) (form : Formula (Var n))
+    (gT : Term (Var n))
+    (hiff : ∀ ν, Formula.sat form ν ↔ Term.eval gT ν ≤ 0)
+    (hfv : ∀ i : Fin n, Lv i ∉ gT.fv)
+    (hdomImp : ∀ x, Formula.sat dom x → Formula.sat evR x)
+    (hz3 : z3solve (flowQueryStrict ⟨gT, fun _ => Term.const 0, fR, Term.const 1, evR⟩)
+      = Verdict.unsat) :
+    AtomFact n (jointSys fL fR (Term.const c)) dom :=
+  { form := form, gT := gT, hiff := hiff,
+    hstay := fun ν hinit =>
+      atom_boxle_R_strict gT fL fR c hc dom evR hfv hdomImp
+        (z3_unsat_sound hz3) hinit }
+
+/-- Left-sided nonstrict-route atom fact from its O2 Z3 verdict. -/
+noncomputable def AtomFact.ofL_nonstrict (fL fR : Fin n → Term (Var n))
+    (lam : Term (Var n)) (dom evL : Formula (Var n)) (form : Formula (Var n))
+    (gT : Term (Var n))
+    (hiff : ∀ ν, Formula.sat form ν ↔ Term.eval gT ν ≤ 0)
+    (hfv : ∀ i : Fin n, Rv i ∉ gT.fv)
+    (hdomImp : ∀ x, Formula.sat dom x → Formula.sat evL x)
+    (hz3 : z3solve (flowQuery ⟨gT, fL, fun _ => Term.const 0, Term.const 1, evL⟩)
+      = Verdict.unsat) :
+    AtomFact n (jointSys fL fR lam) dom :=
+  { form := form, gT := gT, hiff := hiff,
+    hstay := fun ν hinit =>
+      atom_boxle_L_nonstrict gT fL fR lam dom evL hfv hdomImp
+        (z3_unsat_sound hz3) hinit }
+
+/-- Left-sided strict-route atom fact from its O2 Z3 verdict. -/
+noncomputable def AtomFact.ofL_strict (fL fR : Fin n → Term (Var n))
+    (lam : Term (Var n)) (dom evL : Formula (Var n)) (form : Formula (Var n))
+    (gT : Term (Var n))
+    (hiff : ∀ ν, Formula.sat form ν ↔ Term.eval gT ν ≤ 0)
+    (hfv : ∀ i : Fin n, Rv i ∉ gT.fv)
+    (hdomImp : ∀ x, Formula.sat dom x → Formula.sat evL x)
+    (hz3 : z3solve (flowQueryStrict ⟨gT, fL, fun _ => Term.const 0, Term.const 1, evL⟩)
+      = Verdict.unsat) :
+    AtomFact n (jointSys fL fR lam) dom :=
+  { form := form, gT := gT, hiff := hiff,
+    hstay := fun ν hinit =>
+      atom_boxle_L_strict gT fL fR lam dom evL hfv hdomImp
+        (z3_unsat_sound hz3) hinit }
+
+/-- Shape/frozen-route atom fact from a Lean-proved Lie bound (no Z3): the premise is
+the `DI_nonstrict_superlevel` hypothesis, dischargeable per benchmark by `norm_num` on
+the concrete lowered field (contract shapes: `ġ = k(c−x) ≤ 0` on `{g ≥ 0}`; frozen
+atoms: `ġ = 0`). -/
+noncomputable def AtomFact.ofLie (sys : ODESystem (Var n)) (dom : Formula (Var n))
+    (form : Formula (Var n)) (gT : Term (Var n))
+    (hwf : sys.WellFormed)
+    (hiff : ∀ ν, Formula.sat form ν ↔ Term.eval gT ν ≤ 0)
+    (hLie : ∀ x, Formula.sat dom x → 0 ≤ Term.eval gT x →
+      Lie sys (fun ν => Term.eval gT ν) x ≤ 0) :
+    AtomFact n sys dom :=
+  { form := form, gT := gT, hiff := hiff,
+    hstay := fun ν hinit =>
+      DI_nonstrict_superlevel hwf (term_differentiable gT)
+        (fun x hx hge => hLie x hx hge) hinit }
+
+/-! ### The guard-base packaging -/
+
+/-- **The cut-`hcert` packaging.** From the NARROWED main-query Z3 verdict (the exact
+fold the tool sends: `(dom ∧ cutL) ∧ cutR`) and the per-atom facts, the bare-domain
+`BoxLe` holds at every guard base — the shape the guard-threaded chain consumes. `hO1`
+is the entry fact (each atom's formula holds wherever the guard's lowering holds),
+dischargeable from `cutAtoms_sat` since every atom is a guard conjunct
+(`cutCertWF`, kernel). -/
+theorem cut_hcert {fL fR : Fin n → Term (Var n)} {lam : Term (Var n)}
+    {dom guardH : Formula (Var n)} (gInv : Term (Var n))
+    (afsL afsR : List (AtomFact n (jointSys fL fR lam) dom))
+    (hO1 : ∀ af ∈ afsL ++ afsR, ∀ ν, Formula.sat guardH ν → Formula.sat af.form ν)
+    (hz3 : z3solve (flowQuery ⟨gInv, fL, fR, lam,
+      Formula.and (Formula.and dom (hostCut afsL)) (hostCut afsR)⟩) = Verdict.unsat) :
+    ∀ ν, Formula.sat guardH ν → Term.eval gInv ν ≤ 0 →
+      BoxLe (Program.ode (jointSys fL fR lam) dom) (fun ω => Term.eval gInv ω) ν := by
+  intro ν hg hinit
+  have hnarrow := flow_certified
+    ⟨gInv, fL, fR, lam, Formula.and (Formula.and dom (hostCut afsL)) (hostCut afsR)⟩
+    hz3 hinit
+  exact cut_lift_boxle afsL afsR _ hnarrow (fun af haf => hO1 af haf ν hg)
+
 end RelCertifier

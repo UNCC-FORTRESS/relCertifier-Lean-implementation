@@ -24,9 +24,14 @@ Residuals (named hypotheses, per the battery convention):
 * `hES` — the CSF duration-existence side condition (`HExistSeg`), as carried by
   `certified_relational`/`BridgeDischarge`; dischargeable later via the Picard bridge
   (the drag field pulls toward the interior equilibrium `vx = √(1/6) ≈ 0.408`);
-* the encoding identity and the side-split facts of the lowered data (lowering hygiene).
+* the encoding identity (`hψ`) and the invariant's projection splits.
+
+The side-splits of the lowered fields/domains/invariant are NOT residuals: they are
+kernel-proved via `LoweringSide` (lowering hygiene + a `rfl` prefix-freedom check on
+the emitted IR).
 -/
 import RelCertifier.Proofs.Encoding.UniformFvDischarge
+import RelCertifier.Proofs.Encoding.LoweringSide
 import RelCertifier.Instances.BenchIR
 
 namespace RelCertifier
@@ -91,6 +96,22 @@ noncomputable def obligP : FlowObligation 2 :=
 /-- Mode variable and window clock — the two Aux slots of the pad. -/
 abbrev mvP : Var 2 := (Side.Aux, 0)
 abbrev tgP : Var 2 := (Side.Aux, 1)
+
+/-! ## Side-splits of the lowered data (kernel facts: `rfl` names-check + hygiene) -/
+
+theorem hfLP : ∀ i, (fLP i).fv ⊆ range Lv := fun i x hx =>
+  side_eq_L_mem (field_pipeline_side (resolvesTo_L vsP) _ (by simp [rover_drag_IR, Parse.PExpr.namesFree]) i x hx)
+
+theorem hfRP : ∀ i, (fRP i).fv ⊆ range Rv := fun i x hx =>
+  side_eq_R_mem (field_pipeline_side (resolvesTo_R vsP) _ (by simp [rover_drag_IR, Parse.PExpr.namesFree]) i x hx)
+
+theorem hdomLP : domLP.fv ⊆ range Lv := fun x hx =>
+  side_eq_L_mem (form_pipeline_side (resolvesTo_L vsP) _ (by simp [rover_drag_IR, Parse.PForm.namesFree, Parse.PExpr.namesFree]) x hx)
+
+theorem hdomRP : domRP.fv ⊆ range Rv := fun x hx =>
+  side_eq_R_mem (form_pipeline_side (resolvesTo_R vsP) _ (by simp [rover_drag_IR, Parse.PForm.namesFree, Parse.PExpr.namesFree]) x hx)
+
+theorem hgLRP : gP.fv ⊆ range Lv ∪ range Rv := invToG_pipeline_LR _
 
 /-! ## Graph inversion and shape facts -/
 
@@ -246,14 +267,12 @@ theorem emitP (hfL : ∀ i, (fLP i).fv ⊆ range Lv) (hdomL : domLP.fv ⊆ range
 /-- **`rover_drag`, multi-flow window chain, end to end.** The left `Cruise` window
 (one clock-capped piece, `dt = ε_R/λ = 1`) against the transition-faithful `Track`
 automaton; the piece coupled by the joint flow certificate `hz3` — the single Z3 leaf.
-Residuals: the encoding identity, the lowered data's side-splits, `hz3`, `hES`. -/
+Residuals: the encoding identity and invariant splits, `hz3`, `hES` — the side-splits
+of the lowered data are kernel facts (`LoweringSide` + `rfl` names-check on the IR). -/
 theorem rover_drag_multiflow
     (ϕinv : RFormula (Var 2))
     (hψ : encode (Equiv.refl (Var 2)) ϕinv = invLe gP)
     (hinvL : ϕinv.varsL ⊆ range Lv) (hinvR : ϕinv.varsR ⊆ range Rv)
-    (hfL : ∀ i, (fLP i).fv ⊆ range Lv) (hdomL : domLP.fv ⊆ range Lv)
-    (hfR : ∀ i, (fRP i).fv ⊆ range Rv) (hdomR : domRP.fv ⊆ range Rv)
-    (hgLR : gP.fv ⊆ range Lv ∪ range Rv)
     (hz3 : z3solve (flowQuery obligP) = Verdict.unsat)
     (hES : ∀ ν, HExistSeg fLP fRP (Term.const 1) domLP domRP ν) :
     RFormula.rvalid (theorem3Form
@@ -262,25 +281,25 @@ theorem rover_drag_multiflow
       (rightAutomatonBody GrP mvP)
       (RFormula.and ϕinv (mvValidR mvP GrP.modes.length))) := by
   refine uniform_multiflow_end_to_end GrP gP 0 1 1 [(fLP, domLP, 1)] ϕinv
-    (by decide) hψ hgLR httP hltP ?_ ?_ hinvL hinvR ?_
+    (by decide) hψ hgLRP httP hltP ?_ ?_ hinvL hinvR ?_
   · -- the right modes live on Rv
     intro q m hm
     obtain ⟨rfl, rfl⟩ := GrP_modeAt hm
     intro y hy
     rcases hy with (hy | hy) | hy
     · exact rightBlock_boundSet_sub fRP (Term.const 1) hy
-    · exact rightBlock_readVars_sub fRP (Term.const 1) hfR (by simp [Term.fv]) hy
-    · exact hdomR hy
+    · exact rightBlock_readVars_sub fRP (Term.const 1) hfRP (by simp [Term.fv]) hy
+    · exact hdomRP hy
   · -- the left window lives on Lv
     intro d hd
     rw [List.mem_singleton] at hd
     subst hd
-    exact ⟨hfL, hdomL⟩
+    exact ⟨hfLP, hdomLP⟩
   · -- the load-bearing cover data
     intro d hd
     rw [List.mem_singleton] at hd
     subst hd
-    exact ⟨⟨GjP, coverCertP hz3, rpaP hfL hfR hdomR hES⟩, emitP hfL hdomL hfR hdomR⟩
+    exact ⟨⟨GjP, coverCertP hz3, rpaP hfLP hfRP hdomRP hES⟩, emitP hfLP hdomLP hfRP hdomRP⟩
 
 end RoverDragPilot
 end RelCertifier

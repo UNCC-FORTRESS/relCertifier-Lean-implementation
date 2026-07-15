@@ -220,4 +220,170 @@ theorem GuardSettlingB_rescale {n : ℕ} (G : SearchGraph (Var n))
     rw [hscale]
     exact hland
 
+/-- **`BoxLe` transfer, real → scaled.** The inverse-direction companion of
+`GuardSettlingB_rescale`: a real-side certificate `g' ≤ 0` along the real field
+transfers to the scaled model at the scaled state, given the same pushforward law
+for the fields, the domain correspondence, and a positively-scaled invariant
+correspondence `⟦g⟧(σ·ν) = c·⟦g'⟧(ν)` (`c > 0`). This is the `hcert` discharger's
+final step: the tool's certificates live at the parsed (real) level; the checker's
+`H` consumes them at the scaled model. -/
+theorem BoxLe_rescale {n : ℕ} (fR fR' : Fin n → Term (Var n))
+    (domR domR' : Formula (Var n)) (g g' : Term (Var n)) (σ : Fin n → ℝ) (u c : ℝ)
+    (hσ : ∀ i, σ i ≠ 0) (hu : 0 < u) (hc : 0 < c)
+    (hfield : ∀ (i : Fin n) (ν : State (Var n)),
+        Term.eval (fR i) (scaleState σ ν) = σ i * (u * Term.eval (fR' i) ν))
+    (hdom : ∀ ν : State (Var n),
+        Formula.sat domR' ν ↔ Formula.sat domR (scaleState σ ν))
+    (hg : ∀ ν : State (Var n),
+        Term.eval g (scaleState σ ν) = c * Term.eval g' ν)
+    {ν : State (Var n)}
+    (hB : BoxLe (Program.ode (rightBlock fR' (Term.const 1)) domR')
+      (fun ω => Term.eval g' ω) ν) :
+    BoxLe (Program.ode (rightBlock fR (Term.const 1)) domR)
+      (fun ω => Term.eval g ω) (scaleState σ ν) := by
+  intro ω hrun
+  obtain ⟨r, Φ, hr, hΦ0, hΦr, hder, hmask, hdomr⟩ := hrun
+  -- transport the scaled run to a real run: Φ'(t) = σ⁻¹·Φ(u·t)
+  set Φ' : ℝ → State (Var n) := fun t => fun x => match x with
+    | (Side.R, i) => (σ i)⁻¹ * Φ (t / u) (Side.R, i)
+    | x => Φ (t / u) x with hΦ'
+  have hscaleΦ : ∀ s : ℝ, Φ s = scaleState σ (fun x => match x with
+      | (Side.R, j) => (σ j)⁻¹ * Φ s (Side.R, j)
+      | x => Φ s x) := by
+    intro s
+    funext x
+    obtain ⟨sd, j⟩ := x
+    cases sd with
+    | R =>
+        show Φ s (Side.R, j) = σ j * ((σ j)⁻¹ * Φ s (Side.R, j))
+        have := hσ j
+        field_simp
+    | L => rfl
+    | Aux => rfl
+  have hrun' : Program.sem (Program.ode (rightBlock fR' (Term.const 1)) domR')
+      ν (Φ' (u * r)) := by
+    refine ⟨u * r, Φ', mul_nonneg hu.le hr, ?_, rfl, ?_, ?_, ?_⟩
+    · -- initial state
+      funext x
+      obtain ⟨sd, i⟩ := x
+      cases sd with
+      | R =>
+          show (σ i)⁻¹ * Φ (0 / u) (Side.R, i) = ν (Side.R, i)
+          rw [zero_div, hΦ0, scaleState_R]
+          have := hσ i
+          field_simp
+      | L =>
+          show Φ (0 / u) (Side.L, i) = ν (Side.L, i)
+          rw [zero_div, hΦ0]
+          rfl
+      | Aux =>
+          show Φ (0 / u) (Side.Aux, i) = ν (Side.Aux, i)
+          rw [zero_div, hΦ0]
+          rfl
+    · -- derivatives via the chain rule and the pushforward law, inverted
+      intro t ht p hp
+      simp only [rightBlock, List.mem_map, List.mem_finRange] at hp
+      obtain ⟨i, -, rfl⟩ := hp
+      have htu : t / u ∈ Icc (0 : ℝ) r := by
+        constructor
+        · exact div_nonneg ht.1 hu.le
+        · rw [div_le_iff₀ hu]
+          calc t ≤ u * r := ht.2
+            _ = r * u := by ring
+      have hinner : HasDerivWithinAt (fun t : ℝ => t / u) (1 / u) (Icc 0 (u * r)) t :=
+        (hasDerivAt_id t).div_const u |>.hasDerivWithinAt
+      have houter := hder (t / u) htu ((Side.R, i),
+        Term.binop .mul (Term.const 1) (fR i)) (by
+          simp only [rightBlock, List.mem_map, List.mem_finRange]
+          exact ⟨i, trivial, rfl⟩)
+      have hmaps : MapsTo (fun t : ℝ => t / u) (Icc 0 (u * r)) (Icc 0 r) := by
+        intro s hs
+        constructor
+        · exact div_nonneg hs.1 hu.le
+        · rw [div_le_iff₀ hu]
+          calc s ≤ u * r := hs.2
+            _ = r * u := by ring
+      have hcomp := HasDerivWithinAt.comp t houter hinner hmaps
+      have h1 := hcomp.const_mul ((σ i)⁻¹)
+      simp only [Function.comp_def] at h1
+      have hval : (σ i)⁻¹ * (Term.eval (Term.binop .mul (Term.const 1) (fR i))
+          (Φ (t / u)) * (1 / u))
+          = Term.eval (Term.binop .mul (Term.const 1) (fR' i)) (Φ' t) := by
+        have hf := hfield i (fun x => match x with
+          | (Side.R, j) => (σ j)⁻¹ * Φ (t / u) (Side.R, j)
+          | x => Φ (t / u) x)
+        rw [← hscaleΦ (t / u)] at hf
+        simp only [Term.eval, AOp.interp] at hf ⊢
+        rw [hΦ']
+        simp only
+        rw [hf]
+        have hσi := hσ i
+        field_simp
+      show HasDerivWithinAt (fun s => Φ' s (Side.R, i))
+        (Term.eval (Term.binop .mul (Term.const 1) (fR' i)) (Φ' t)) (Icc 0 (u * r)) t
+      have hfun : (fun s => Φ' s (Side.R, i))
+          = fun s => (σ i)⁻¹ * Φ (s / u) (Side.R, i) := by
+        funext s
+        rw [hΦ']
+      rw [hfun, ← hval]
+      exact h1
+    · -- mask
+      intro t ht x hx
+      have hxR : ∀ i : Fin n, x ≠ (Side.R, i) := by
+        intro i hxi
+        exact hx (by
+          rw [hxi]
+          simp only [rightBlock, ODESystem.bound, List.map_map]
+          exact List.mem_map.mpr ⟨i, List.mem_finRange i, rfl⟩)
+      have htu : t / u ∈ Icc (0 : ℝ) r := by
+        constructor
+        · exact div_nonneg ht.1 hu.le
+        · rw [div_le_iff₀ hu]
+          calc t ≤ u * r := ht.2
+            _ = r * u := by ring
+      have hm := hmask (t / u) htu x (by
+        intro hmem
+        simp only [rightBlock, ODESystem.bound, List.map_map, List.mem_map,
+          List.mem_finRange] at hmem
+        obtain ⟨i, -, rfl⟩ := hmem
+        exact (hxR i) rfl)
+      obtain ⟨sd, i⟩ := x
+      cases sd with
+      | R => exact absurd rfl (hxR i)
+      | L =>
+          show Φ (t / u) (Side.L, i) = ν (Side.L, i)
+          rw [hm]
+          rfl
+      | Aux =>
+          show Φ (t / u) (Side.Aux, i) = ν (Side.Aux, i)
+          rw [hm]
+          rfl
+    · -- real domain along the trace
+      intro t ht
+      have htu : t / u ∈ Icc (0 : ℝ) r := by
+        constructor
+        · exact div_nonneg ht.1 hu.le
+        · rw [div_le_iff₀ hu]
+          calc t ≤ u * r := ht.2
+            _ = r * u := by ring
+      rw [hdom]
+      have : scaleState σ (Φ' t) = Φ (t / u) := by
+        rw [hΦ']
+        exact (hscaleΦ (t / u)).symm
+      rw [this]
+      exact hdomr (t / u) htu
+  -- the real certificate bounds the transported endpoint; scale back
+  have hend := hB (Φ' (u * r)) hrun'
+  have hΦr' : scaleState σ (Φ' (u * r)) = ω := by
+    have hru : u * r / u = r := by field_simp
+    rw [← hΦr, hscaleΦ r]
+    congr 1
+    funext x
+    rw [hΦ']
+    obtain ⟨sd, i⟩ := x
+    cases sd <;> simp only [hru]
+  calc Term.eval g ω = Term.eval g (scaleState σ (Φ' (u * r))) := by rw [hΦr']
+    _ = c * Term.eval g' (Φ' (u * r)) := hg _
+    _ ≤ 0 := mul_nonpos_of_nonneg_of_nonpos hc.le hend
+
 end RelCertifier

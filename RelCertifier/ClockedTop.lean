@@ -78,4 +78,333 @@ theorem theorem3_faithful_settling_clocked (G : SearchGraph (Var n))
         (hHcoupleG_of_GuardSettlingH G Gd mv g lam tg dt fL domL evolShared hH σ hσ))
     (fun _ h => h)
 
+/-! ## Task C, right: the ε-cadenced right automaton
+
+The unclocked `rightAutomatonBody` admits response segments of ANY duration — a strict
+superset of the physical R's cadenced behaviors. On the ∃-side, permissiveness WEAKENS
+the claim: "∃ response in the superset" does not certify that the response is one the
+coarse model can execute. The witnesses the settling machinery constructs run exactly
+`dt` — legal — but the statement never said so. `rightAutomatonBodyC` says so: each mode
+step's flow is a clocked segment (reset, `clk`-ode, `?(tg ≤ dt)`) — the SAME clock as the
+left (the sides strictly alternate, so one clock serves both; no new coordinate, no new
+freshness). The witness is dressed with the clock ONCE here (`Φc t = Φ t [tg ↦ t]`); the
+per-shape discharge lemmas are untouched. -/
+
+/-- `modeStep` with the flow as a clocked `≤ dt` segment. -/
+def modeStepC (G : SearchGraph (Var n)) (mv tg : Var n) (dt : ℝ) (q : ℕ)
+    (m : RMode (Var n)) : Program (Var n) :=
+  Program.seq (Program.test (modeIs mv q))
+    (Program.seq (clockedSeg m.sys m.dom tg dt)
+      (bigChoiceP ((G.edgesFrom q).map (fun e =>
+        Program.seq (Program.test e.guard) (Program.assign mv (Term.const (e.tgt : ℝ)))))))
+
+/-- The ε-cadenced right automaton body. -/
+def rightAutomatonBodyC (G : SearchGraph (Var n)) (mv tg : Var n) (dt : ℝ) :
+    Program (Var n) :=
+  bigChoiceP ((List.range G.modes.length).filterMap (fun q =>
+    (G.modeAt q).map (fun m => modeStepC G mv tg dt q m)))
+
+/-- Dress an unclocked witness flow with the clock: `Φc t = Φ t [tg ↦ t]`. If `Φ` solves
+`sys` on `[0, dt]` from `μ[tg ↦ 0]` (with `tg` outside `sys`'s bound, terms, and domain),
+then the dressed flow yields a `clockedSeg sys dom tg dt` run from `μ`. -/
+theorem sem_clockedSeg_of_flow (sys : ODESystem (Var n)) (dom : Formula (Var n))
+    (tg : Var n) (dt : ℝ) (μ : State (Var n)) (Φ : ℝ → State (Var n)) (hdt : 0 ≤ dt)
+    (htgb : tg ∉ sys.bound) (htgt : ∀ p ∈ sys, tg ∉ (p.2 : Term (Var n)).fv)
+    (htgdom : tg ∉ dom.fv)
+    (hΦ0 : Φ 0 = Function.update μ tg 0)
+    (hder : ∀ t ∈ Icc (0 : ℝ) dt, ∀ p ∈ sys,
+        HasDerivWithinAt (fun u => Φ u p.1) (Term.eval p.2 (Φ t)) (Icc 0 dt) t)
+    (hmask : ∀ t ∈ Icc (0 : ℝ) dt, ∀ x, x ∉ sys.bound → Φ t x = Φ 0 x)
+    (hstay : ∀ t ∈ Icc (0 : ℝ) dt, Formula.sat dom (Φ t)) :
+    Program.sem (clockedSeg sys dom tg dt) μ
+      (Function.update (Φ dt) tg dt) := by
+  set Φc : ℝ → State (Var n) := fun t => Function.update (Φ t) tg t with hΦc
+  have hagree : ∀ t x, x ≠ tg → Φc t x = Φ t x := by
+    intro t x hx
+    simp only [hΦc, Function.update_of_ne hx]
+  have hΦc0 : Φc 0 = Function.update μ tg 0 := by
+    funext x
+    by_cases hx : x = tg
+    · subst hx; simp [hΦc]
+    · rw [hagree 0 x hx, hΦ0]
+  refine ⟨Function.update μ tg 0,
+    ⟨by simp only [Term.eval, Function.update_self],
+     fun y hy => Function.update_of_ne hy _ _⟩, ?_⟩
+  refine ⟨Φc dt, ?_, ⟨rfl, ?_⟩⟩
+  · -- the clocked ode run
+    refine ⟨dt, Φc, hdt, hΦc0, rfl, ?_, ?_, ?_⟩
+    · -- derivatives: original pairs by agreement, the clock at rate 1
+      intro t ht p hp
+      simp only [DLCalTiming.clk, List.mem_append] at hp
+      rcases hp with hp | hp
+      · have hne : p.1 ≠ tg := fun h => htgb (h ▸ List.mem_map_of_mem hp)
+        have hfun : (fun u => Φc u p.1) = (fun u => Φ u p.1) := by
+          funext u; exact hagree u p.1 hne
+        rw [hfun]
+        have heval : Term.eval p.2 (Φc t) = Term.eval p.2 (Φ t) := by
+          refine Term.coincidence p.2 ?_
+          intro x hx
+          exact hagree t x (fun h => htgt p hp (h ▸ hx))
+        rw [heval]
+        exact hder t ht p hp
+      · simp only [List.mem_singleton] at hp
+        subst hp
+        have hfun : (fun u => Φc u tg) = fun u => u := by
+          funext u; simp [hΦc]
+        rw [hfun]
+        simp only [Term.eval]
+        exact (hasDerivAt_id t).hasDerivWithinAt
+    · -- mask
+      intro t ht x hx
+      simp only [DLCalTiming.clk, ODESystem.bound, List.map_append, List.mem_append,
+        List.map_cons, List.map_nil, List.mem_cons, List.not_mem_nil, or_false] at hx
+      push_neg at hx
+      obtain ⟨hxs, hxtg⟩ := hx
+      rw [hagree t x hxtg, hmask t ht x (by simpa [ODESystem.bound] using hxs), hΦ0]
+    · -- staying (tg-free domain)
+      intro t ht
+      refine (Formula.coincidence dom ?_).mp (hstay t ht)
+      intro x hx
+      exact (hagree t x (fun h => htgdom (h ▸ hx))).symm
+  · -- the clock cap test
+    simp only [sat_clkGuard, hΦc, Function.update_self]
+    exact le_refl dt
+
+/-- `starStep_wrapG` for the cadenced body: one `modeStepC` step from `μ` preserving
+`StarInvG`, given a clocked middle run. -/
+theorem starStep_wrapGC (G : SearchGraph (Var n)) (Gd : ℕ → Formula (Var n)) (mv tg : Var n)
+    (q : ℕ) (m : RMode (Var n)) (g : Term (Var n)) (fR : Fin n → Term (Var n))
+    (lam : Term (Var n)) (domR : Formula (Var n)) (dt : ℝ) (μ : State (Var n))
+    (hg : mv ∉ g.fv) (hm : G.modeAt q = some m) (hsys : m.sys = rightBlock fR lam)
+    (hdom : m.dom = domR)
+    {e : REdge (Var n)} (hef : e ∈ G.edgesFrom q) (hetg : e.guard = Formula.tt)
+    (hetv : e.tgt < G.modes.length) (hmvq : μ mv = (q : ℝ))
+    {m' : RMode (Var n)} (het' : G.modeAt e.tgt = some m') (hmvgd' : mv ∉ (Gd e.tgt).fv)
+    (hstep : ∃ μ', Program.sem (clockedSeg (rightBlock fR lam) domR tg dt) μ μ' ∧
+        Formula.sat (invLe g) μ' ∧ Formula.sat (Gd e.tgt) μ') :
+    ∃ ω, Program.sem (rightAutomatonBodyC G mv tg dt) μ ω ∧ StarInvG G Gd mv g ω := by
+  obtain ⟨μ', hode, hinv, hgd'⟩ := hstep
+  refine ⟨update μ' mv (e.tgt : ℝ), ?_, ?_, ?_, ?_⟩
+  · have hjump : Program.sem
+        (bigChoiceP ((G.edgesFrom q).map (fun e =>
+          Program.seq (Program.test e.guard) (Program.assign mv (Term.const (e.tgt : ℝ))))))
+        μ' (update μ' mv (e.tgt : ℝ)) := by
+      refine bigChoiceP_sem_of_mem (List.mem_map_of_mem hef) ?_
+      exact ⟨μ', ⟨rfl, by rw [hetg]; trivial⟩,
+        ⟨by simp only [Term.eval, Function.update_self], fun y hy => update_of_ne hy _ _⟩⟩
+    have hstep' : Program.sem (modeStepC G mv tg dt q m) μ (update μ' mv (e.tgt : ℝ)) := by
+      refine ⟨μ, ⟨rfl, ?_⟩, μ', ?_, ?_⟩
+      · simp only [modeIs, Formula.sat, CompOp.interp, Term.eval, hmvq]
+      · rw [hsys, hdom]; exact hode
+      · exact hjump
+    refine bigChoiceP_sem_of_mem (List.mem_filterMap.mpr ⟨q, ?_, ?_⟩) hstep'
+    · exact List.mem_range.mpr (by
+        have := hm; simp only [SearchGraph.modeAt] at this
+        exact (List.getElem?_eq_some_iff.mp this).1)
+    · rw [hm]; rfl
+  · have : Set.EqOn μ' (update μ' mv (e.tgt : ℝ)) (invLe g).fv := by
+      intro x hx
+      have hxg : x ≠ mv := by
+        intro hxmv; subst hxmv
+        exact hg (by simpa only [invLe, Formula.fv, Term.fv, Set.union_empty] using hx)
+      exact (update_of_ne hxg _ _).symm
+    exact (Formula.coincidence (invLe g) this).mp hinv
+  · rw [sat_mvValid]; exact ⟨e.tgt, hetv, by simp only [Function.update_self]⟩
+  · refine ⟨e.tgt, m', by simp only [Function.update_self], het', ?_⟩
+    have : Set.EqOn μ' (update μ' mv (e.tgt : ℝ)) (Gd e.tgt).fv := by
+      intro x hx
+      exact (update_of_ne (by rintro rfl; exact hmvgd' hx) _ _).symm
+    exact (Formula.coincidence (Gd e.tgt) this).mp hgd'
+
+/-- The settling star-step, cadenced: the flow is a clocked `≤ dt` segment. -/
+theorem starStep_settlingC (G : SearchGraph (Var n)) (Gd : ℕ → Formula (Var n))
+    (mv tg : Var n) (q : ℕ) (m : RMode (Var n)) (g : Term (Var n))
+    (fR : Fin n → Term (Var n)) (lam : Term (Var n)) (domR : Formula (Var n)) (dt : ℝ)
+    (μ : State (Var n))
+    (hg : mv ∉ g.fv) (htgg : tg ∉ g.fv)
+    (hm : G.modeAt q = some m) (hsys : m.sys = rightBlock fR lam) (hdom : m.dom = domR)
+    (hmvq : μ mv = (q : ℝ)) (hdt : 0 ≤ dt)
+    (htgbR : tg ∉ (rightBlock fR lam).bound)
+    (htgfR : ∀ p ∈ rightBlock fR lam, tg ∉ (p.2 : Term (Var n)).fv)
+    (htgdom : tg ∉ domR.fv)
+    (hset : GuardSettlingB G Gd fR lam domR dt q) (hν : Formula.sat (Gd q) μ)
+    (hgboxGd : ∀ ν, Formula.sat (Gd q) ν →
+        BoxLe (Program.ode (rightBlock fR lam) domR) (fun ω => Term.eval g ω) ν)
+    (hmvgdAll : ∀ q', mv ∉ (Gd q').fv) (htggdAll : ∀ q', tg ∉ (Gd q').fv)
+    (hedgeSelf : ∃ e ∈ G.edgesFrom q, e.tgt = q ∧ e.guard = Formula.tt)
+    (hedgeSucc : ∀ q', q' ∈ G.retainedSucc q →
+        ∃ e ∈ G.edgesFrom q, e.tgt = q' ∧ e.guard = Formula.tt ∧ e.tgt < G.modes.length)
+    (hqlen : q < G.modes.length)
+    (hmodeAll : ∀ q', q' ∈ q :: G.retainedSucc q → q' < G.modes.length →
+        ∃ m', G.modeAt q' = some m') :
+    ∃ ω, Program.sem (rightAutomatonBodyC G mv tg dt) μ ω ∧ StarInvG G Gd mv g ω := by
+  -- reset state, still in the guard (tg-free)
+  set μ0 := Function.update μ tg 0 with hμ0
+  have hν0 : Formula.sat (Gd q) μ0 := by
+    refine (Formula.coincidence (Gd q) ?_).mp hν
+    intro x hx
+    exact (update_of_ne (by rintro rfl; exact htggdAll q hx) _ _).symm
+  obtain ⟨ΦR, hΦ0, hder, hmask, hstay, q', hq'mem, hgd'⟩ := hset μ0 hν0
+  -- the clocked middle run
+  have hclk : Program.sem (clockedSeg (rightBlock fR lam) domR tg dt) μ
+      (Function.update (ΦR dt) tg dt) := by
+    refine sem_clockedSeg_of_flow (rightBlock fR lam) domR tg dt μ ΦR hdt htgbR htgfR
+      htgdom hΦ0 hder ?_ hstay
+    intro t ht x hx
+    rw [hmask t ht x hx, hΦ0]
+  -- invLe and landing transfer through the tg-update
+  have hmask0 : ∀ t ∈ Icc (0 : ℝ) dt, ∀ x, x ∉ (rightBlock fR lam).bound →
+      ΦR t x = μ0 x := hmask
+  have hsemU : Program.sem (Program.ode (rightBlock fR lam) domR) μ0 (ΦR dt) :=
+    ⟨dt, ΦR, hdt, hΦ0, rfl, hder, hmask0, hstay⟩
+  have hinv : Formula.sat (invLe g) (Function.update (ΦR dt) tg dt) := by
+    have h1 : Formula.sat (invLe g) (ΦR dt) := by
+      rw [sat_invLe]; exact hgboxGd μ0 hν0 (ΦR dt) hsemU
+    refine (Formula.coincidence (invLe g) ?_).mp h1
+    intro x hx
+    have hxtg : x ≠ tg := by
+      rintro rfl
+      exact htgg (by simpa only [invLe, Formula.fv, Term.fv, Set.union_empty] using hx)
+    exact (update_of_ne hxtg _ _).symm
+  have hgd'U : Formula.sat (Gd q') (Function.update (ΦR dt) tg dt) := by
+    refine (Formula.coincidence (Gd q') ?_).mp hgd'
+    intro x hx
+    exact (update_of_ne (by rintro rfl; exact htggdAll q' hx) _ _).symm
+  rcases List.mem_cons.mp hq'mem with hq'self | hq'succ
+  · subst hq'self
+    obtain ⟨e, hef, hetgt, hetg⟩ := hedgeSelf
+    obtain ⟨m', het'⟩ := hmodeAll q' (List.mem_cons_self ..) hqlen
+    refine starStep_wrapGC G Gd mv tg q' m g fR lam domR dt μ hg hm hsys hdom hef hetg
+      (by rw [hetgt]; exact hqlen) hmvq (by rw [hetgt]; exact het') (hmvgdAll e.tgt) ?_
+    exact ⟨_, hclk, hinv, by rw [hetgt]; exact hgd'U⟩
+  · obtain ⟨e, hef, hetgt, hetg, hetv⟩ := hedgeSucc q' hq'succ
+    obtain ⟨m', het'⟩ := hmodeAll q' hq'mem (by rw [← hetgt]; exact hetv)
+    refine starStep_wrapGC G Gd mv tg q m g fR lam domR dt μ hg hm hsys hdom hef hetg hetv
+      hmvq (by rw [hetgt]; exact het') (hmvgdAll e.tgt) ?_
+    exact ⟨_, hclk, hinv, by rw [hetgt]; exact hgd'U⟩
+
+/-- The clocked per-mode coupling, cadenced right (mirror of
+`landing_step_settling_clocked`). -/
+theorem landing_step_settling_clockedC (G : SearchGraph (Var n))
+    (Gd : ℕ → Formula (Var n)) (mv : Var n) (q : ℕ) (m : RMode (Var n)) (g : Term (Var n))
+    (fL fR : Fin n → Term (Var n)) (lam : Term (Var n)) (domL domR : Formula (Var n))
+    (tg : Var n) (dt : ℝ) (ω : State (Var n))
+    (hg : mv ∉ g.fv) (htgg : tg ∉ g.fv)
+    (hmvLclk : mv ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
+    (hm : G.modeAt q = some m) (hsys : m.sys = rightBlock fR lam) (hdom : m.dom = domR)
+    (hqlen : q < G.modes.length) (hdt : 0 ≤ dt)
+    (htgbR : tg ∉ (rightBlock fR lam).bound)
+    (htgfR : ∀ p ∈ rightBlock fR lam, tg ∉ (p.2 : Term (Var n)).fv)
+    (htgdom : tg ∉ domR.fv)
+    (hset : GuardSettlingB G Gd fR lam domR dt q)
+    (hgboxGd : ∀ ν, Formula.sat (Gd q) ν →
+        BoxLe (Program.ode (rightBlock fR lam) domR) (fun ω => Term.eval g ω) ν)
+    (hfrzClkGd : ∀ x ∈ (Gd q).fv, x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
+    (hmvgdAll : ∀ q', mv ∉ (Gd q').fv) (htggdAll : ∀ q', tg ∉ (Gd q').fv)
+    (hedgeSelf : ∃ e ∈ G.edgesFrom q, e.tgt = q ∧ e.guard = Formula.tt)
+    (hedgeSucc : ∀ q', q' ∈ G.retainedSucc q →
+        ∃ e ∈ G.edgesFrom q, e.tgt = q' ∧ e.guard = Formula.tt ∧ e.tgt < G.modes.length)
+    (hmodeAll : ∀ q', q' ∈ q :: G.retainedSucc q → q' < G.modes.length →
+        ∃ m', G.modeAt q' = some m')
+    (hωmv : ω mv = (q : ℝ)) (hωgd : Formula.sat (Gd q) ω) :
+    faModalB (Equiv.refl (Var n)) (Program.ode (DLCalTiming.clk tg (leftBlock fL)) domL)
+      (rightAutomatonBodyC G mv tg dt) (starInvGF G Gd mv g) tg dt ω := by
+  intro ν hplant
+  obtain ⟨hsemL, _⟩ := hplant
+  obtain ⟨s, Φ, hs, hΦ0, hΦs, _, hmask, _⟩ := hsemL
+  have hmvν : ν mv = (q : ℝ) := by
+    rw [← hΦs, hmask s (right_mem_Icc.mpr hs) mv hmvLclk]; exact hωmv
+  have hνgd : Formula.sat (Gd q) ν := by
+    have heqon : Set.EqOn ω ν (Gd q).fv := by
+      intro x hx
+      rw [← hΦs]; exact (hmask s (right_mem_Icc.mpr hs) x (hfrzClkGd x hx)).symm
+    exact (Formula.coincidence (Gd q) heqon).mp hωgd
+  obtain ⟨o, hsemω, hstarω⟩ :=
+    starStep_settlingC G Gd mv tg q m g fR lam domR dt ν hg htgg hm hsys hdom hmvν hdt
+      htgbR htgfR htgdom hset hνgd (hgboxGd) hmvgdAll htggdAll hedgeSelf hedgeSucc
+      hqlen hmodeAll
+  exact ⟨o, by simpa only [Program.rename_refl] using hsemω, sat_starInvGF.mpr hstarω⟩
+
+/-- The clocked coupling from `GuardSettlingH`, cadenced right. -/
+theorem hHcoupleGC_of_GuardSettlingH (G : SearchGraph (Var n)) (Gd : ℕ → Formula (Var n))
+    (mv : Var n) (g : Term (Var n)) (lam : Term (Var n)) (tg : Var n) (dt : ℝ)
+    (fL : Fin n → Term (Var n)) (domL evolShared : Formula (Var n))
+    (htgg : tg ∉ g.fv)
+    (htgS : ∀ q m, G.modeAt q = some m → ∀ fR, m.sys = rightBlock fR lam →
+        tg ∉ (rightBlock fR lam).bound ∧
+        (∀ p ∈ rightBlock fR lam, tg ∉ (p.2 : Term (Var n)).fv))
+    (htgdom : tg ∉ evolShared.fv)
+    (h : GuardSettlingH G Gd mv g lam tg dt fL evolShared) :
+    ∀ σ', Formula.sat (starInvGF G Gd mv g) σ' →
+      faModalB (Equiv.refl (Var n)) (Program.ode (DLCalTiming.clk tg (leftBlock fL)) domL)
+        (rightAutomatonBodyC G mv tg dt) (starInvGF G Gd mv g) tg dt
+        (Function.update σ' tg 0) := by
+  obtain ⟨hdt, hg, hmvLclk, hmvtg, hmvGd, htgGd, hfrzGd, hmodes⟩ := h
+  intro σ' hσ'
+  obtain ⟨q, m, hqmv, hmode, hqgd⟩ := (sat_starInvGF.mp hσ').2.2
+  obtain ⟨fR, hsys, hdom, hqlen, hset, hgboxGd, hself, hsucc, hmodeAll⟩ := hmodes q m hmode
+  obtain ⟨htgbR, htgfR⟩ := htgS q m hmode fR hsys
+  have hωmv : (Function.update σ' tg 0) mv = (q : ℝ) := by
+    rw [Function.update_of_ne hmvtg]; exact hqmv
+  have hωgd : Formula.sat (Gd q) (Function.update σ' tg 0) := by
+    have heq : Set.EqOn σ' (Function.update σ' tg 0) (Gd q).fv :=
+      fun x hx => (Function.update_of_ne (by rintro rfl; exact htgGd q hx) _ _).symm
+    exact (Formula.coincidence (Gd q) heq).mp hqgd
+  exact landing_step_settling_clockedC G Gd mv q m g fL fR lam domL evolShared tg dt
+    (Function.update σ' tg 0) hg htgg hmvLclk hmode hsys hdom hqlen hdt htgbR htgfR
+    htgdom hset hgboxGd (hfrzGd q) hmvGd htgGd hself hsucc hmodeAll hωmv hωgd
+
+/-- **Theorem 3, settling, ε-CADENCED BOTH SIDES.** The ∀-side left star ranges over
+clocked `dt`-segments; the ∃-side right star over clocked `dt`-responses — the statement
+finally certifies that the responses are cadence-legal. -/
+theorem theorem3_faithful_settling_cadenced (G : SearchGraph (Var n))
+    (Gd : ℕ → Formula (Var n)) (mv : Var n) (g : Term (Var n))
+    (fL : Fin n → Term (Var n)) (domL evolShared : Formula (Var n)) (tg : Var n)
+    (dt : ℝ) (lam : Term (Var n)) (ϕinv : RFormula (Var n))
+    (hψ : encode (Equiv.refl (Var n)) ϕinv = invLe g)
+    (hH : GuardSettlingH G Gd mv g lam tg dt fL evolShared)
+    (htgg : tg ∉ g.fv)
+    (htgS : ∀ q m, G.modeAt q = some m → ∀ fR, m.sys = rightBlock fR lam →
+        tg ∉ (rightBlock fR lam).bound ∧
+        (∀ p ∈ rightBlock fR lam, tg ∉ (p.2 : Term (Var n)).fv))
+    (htgdom : tg ∉ evolShared.fv)
+    (hdis : Disjoint (Program.vars (clockedSeg (leftBlock fL) domL tg dt))
+        (Program.vars ((rightAutomatonBodyC G mv tg dt).rename (Equiv.refl (Var n)))))
+    (hddF : Disjoint (faShape (Program.star (clockedSeg (leftBlock fL) domL tg dt))
+          (Program.star (rightAutomatonBodyC G mv tg dt)) (ψpostG G Gd mv ϕinv)).varsL
+        (Equiv.refl (Var n) '' (faShape (Program.star (clockedSeg (leftBlock fL) domL tg dt))
+          (Program.star (rightAutomatonBodyC G mv tg dt)) (ψpostG G Gd mv ϕinv)).varsR)) :
+    RFormula.rvalid (theorem3Form (clockedSeg (leftBlock fL) domL tg dt)
+      (rightAutomatonBodyC G mv tg dt) (ψpostG G Gd mv ϕinv)) := by
+  set ψpost := ψpostG G Gd mv ϕinv with hψpost
+  set Lp := Program.star (clockedSeg (leftBlock fL) domL tg dt)
+  set Rp := Program.star (rightAutomatonBodyC G mv tg dt)
+  have hencψ : encode (Equiv.refl (Var n)) ψpost = starInvGF G Gd mv g :=
+    encode_ψpostG G Gd mv g ϕinv hψ
+  intro bs
+  rw [theorem3Form]
+  refine (RFormula_sat_imp _ _ bs).mpr ?_
+  intro hpre
+  obtain ⟨ν, hbdg⟩ := exists_bridge (Equiv.refl (Var n))
+    (faShape Lp Rp ψpost).varsL (faShape Lp Rp ψpost).varsR hddF bs
+  have hbψ : Bridges (Equiv.refl (Var n)) ψpost.varsL ψpost.varsR bs ν :=
+    hbdg.mono (varsL_subset_faShape Lp Rp ψpost) (varsR_subset_faShape Lp Rp ψpost)
+  have hdψ : Disjoint ψpost.varsL (Equiv.refl (Var n) '' ψpost.varsR) :=
+    hddF.mono (varsL_subset_faShape Lp Rp ψpost)
+      (Set.image_mono (varsR_subset_faShape Lp Rp ψpost))
+  have hInvν : Formula.sat (starInvGF G Gd mv g) ν := by
+    rw [← hencψ]
+    exact (RFormula.encoding_correct (Equiv.refl (Var n)) ψpost hdψ bs ν hbψ).mp hpre
+  refine faModal_to_faShape (Equiv.refl (Var n)) Lp Rp ψpost ν bs hddF hbdg ?_
+  rw [hencψ]
+  exact faModal_LOCK (Equiv.refl (Var n)) (clockedSeg (leftBlock fL) domL tg dt)
+    (rightAutomatonBodyC G mv tg dt) (starInvGF G Gd mv g) (starInvGF G Gd mv g) ν hdis
+    hInvν
+    (fun σ hσ =>
+      (faModalB_clockedSeg_iff (leftBlock fL) domL (rightAutomatonBodyC G mv tg dt)
+        (starInvGF G Gd mv g) tg dt σ).mpr
+        (hHcoupleGC_of_GuardSettlingH G Gd mv g lam tg dt fL domL evolShared
+          htgg htgS htgdom hH σ hσ))
+    (fun _ h => h)
+
 end RelCertifier

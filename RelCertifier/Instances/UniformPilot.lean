@@ -33,6 +33,7 @@ the emitted IR).
 import RelCertifier.Proofs.Encoding.UniformFvDischarge
 import RelCertifier.Proofs.Encoding.LoweringSide
 import RelCertifier.Proofs.Encoding.CoverExtract
+import RelCertifier.Proofs.Encoding.CanonicalInv
 import RelCertifier.Instances.BenchIR
 
 namespace RelCertifier
@@ -261,21 +262,20 @@ theorem rover_drag_covered :
 /-- **`rover_drag`, multi-flow window chain, end to end.** The left `Cruise` window
 (one clock-capped piece, `dt = ε_R/λ = 1`) against the transition-faithful `Track`
 automaton; the piece coupled by the joint flow certificate `hz3` — the single Z3 leaf.
-Residuals: the encoding identity and invariant splits, `hz3`, `hES` — the side-splits
-of the lowered data are kernel facts (`LoweringSide` + `rfl` names-check on the IR). -/
+Residuals: `hz3` (one joint verdict), `hES` (duration existence) — nothing else. The
+relational invariant is the canonical `canonInv gP` (R3), its encoding identity and
+projection splits proved generically; the lowered-data side-splits are kernel facts. -/
 theorem rover_drag_multiflow
-    (ϕinv : RFormula (Var 2))
-    (hψ : encode (Equiv.refl (Var 2)) ϕinv = invLe gP)
-    (hinvL : ϕinv.varsL ⊆ range Lv) (hinvR : ϕinv.varsR ⊆ range Rv)
     (hz3 : z3solve (flowQuery obligP) = Verdict.unsat)
     (hES : ∀ ν, HExistSeg fLP fRP (Term.const 1) domLP domRP ν) :
     RFormula.rvalid (theorem3Form
       (bigChoice ([(fLP, domLP, 1)].map (fun d =>
         windowSeg (leftBlock d.1) d.2.1 tgP 1 d.2.2)))
       (rightAutomatonBody GrP mvP)
-      (RFormula.and ϕinv (mvValidR mvP GrP.modes.length))) := by
-  refine uniform_multiflow_end_to_end GrP gP 0 1 1 [(fLP, domLP, 1)] ϕinv
-    (by decide) hψ hgLRP httP hltP ?_ ?_ hinvL hinvR ?_
+      (RFormula.and (canonInv gP) (mvValidR mvP GrP.modes.length))) := by
+  refine uniform_multiflow_end_to_end GrP gP 0 1 1 [(fLP, domLP, 1)] (canonInv gP)
+    (by decide) (encode_canonInv gP) hgLRP httP hltP ?_ ?_
+    (canonInv_varsL gP hgLRP) (canonInv_varsR gP) ?_
   · -- the right modes live on Rv
     intro q m hm
     obtain ⟨rfl, rfl⟩ := GrP_modeAt hm

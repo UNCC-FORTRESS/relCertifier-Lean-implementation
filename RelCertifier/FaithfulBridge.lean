@@ -1643,4 +1643,266 @@ theorem bridge_drivenDamp {vs : List String} {σq : List QF} {uq : QF}
   ring
 
 
+/-! ## Part 6: envelope and guard correspondence under scaling
+
+The scaled model's domain/guard formulas carry integer constants; the real side's carry
+the parsed rational bounds. `envFaithful`'s cross-multiplied checks say exactly that each
+integer constant is the rational bound times the (positive) coordinate scale, which turns
+satisfaction at a scaled state into satisfaction of the real bound at the raw state. -/
+
+/-! ### Bounds positivity -/
+
+/-- All bounds in a `boundsOfForm` output have positive denominators. -/
+def BoundsPos (bs : List (String × Option QF × Option QF)) : Prop :=
+  ∀ e ∈ bs, (∀ q, e.2.1 = some q → q.pos) ∧ (∀ q, e.2.2 = some q → q.pos)
+
+theorem BoundsPos.nil : BoundsPos [] := by intro e he; exact absurd he (by simp)
+
+/-- The and-merge step preserves bounds positivity. -/
+theorem boundsMerge_pos {ba : List (String × Option QF × Option QF)}
+    (hba : BoundsPos ba) :
+    ∀ {bb : List (String × Option QF × Option QF)}, BoundsPos bb →
+    BoundsPos (bb.foldl (fun acc e =>
+      let (v, lo, hi) := e
+      match acc.find? (fun e2 => e2.1 == v) with
+      | none => acc ++ [(v, lo, hi)]
+      | some e0 =>
+          let lo' := match e0.2.1, lo with
+            | none, x => x | x, none => x
+            | some x, some y => some (if qLt x y then y else x)
+          let hi' := match e0.2.2, hi with
+            | none, x => x | x, none => x
+            | some x, some y => some (if qLt x y then x else y)
+          acc.map (fun e2 => if e2.1 == v then (v, lo', hi') else e2)) ba) := by
+  intro bb
+  induction bb generalizing ba with
+  | nil => intro _; exact hba
+  | cons e bb ih =>
+      intro hbb
+      obtain ⟨v, lo, hi⟩ := e
+      have he := hbb (v, lo, hi) (List.mem_cons_self ..)
+      have hbb' : BoundsPos bb := fun f hf => hbb f (List.mem_cons_of_mem _ hf)
+      simp only [List.foldl_cons]
+      -- the one-step accumulator is positive again
+      rcases hfind : ba.find? (fun e2 => e2.1 == v) with _ | e0
+      · rw [hfind]
+        refine ih (ba := ba ++ [(v, lo, hi)]) ?_ hbb'
+        intro f hf
+        rcases List.mem_append.mp hf with hf | hf
+        · exact hba f hf
+        · rw [List.mem_singleton.mp hf]
+          exact he
+      · rw [hfind]
+        have he0 := hba e0 (List.mem_of_find?_eq_some hfind)
+        refine ih (ba := _) ?_ hbb'
+        intro f hf
+        simp only [List.mem_map] at hf
+        obtain ⟨g, hg, rfl⟩ := hf
+        by_cases hgv : (g.1 == v) = true
+        · rw [if_pos hgv]
+          constructor
+          · intro qq hqq
+            simp only at hqq
+            revert hqq
+            rcases h0 : e0.2.1 with _ | x <;> rcases hy : lo with _ | y
+            · intro h; exact absurd h (by simp)
+            · intro h
+              injection h with h'
+              exact h'.symm ▸ he.1 y hy
+            · intro h
+              injection h with h'
+              exact h'.symm ▸ he0.1 x h0
+            · intro h
+              injection h with h'
+              subst h'
+              split
+              · exact he.1 y hy
+              · exact he0.1 x h0
+          · intro qq hqq
+            simp only at hqq
+            revert hqq
+            rcases h0 : e0.2.2 with _ | x <;> rcases hy : hi with _ | y
+            · intro h; exact absurd h (by simp)
+            · intro h
+              injection h with h'
+              exact h'.symm ▸ he.2 y hy
+            · intro h
+              injection h with h'
+              exact h'.symm ▸ he0.2 x h0
+            · intro h
+              injection h with h'
+              subst h'
+              split
+              · exact he0.2 x h0
+              · exact he.2 y hy
+        · rw [if_neg hgv]
+          exact hba g hg
+
+theorem boundsOfForm_pos : ∀ {f : Parse.PForm} {bs},
+    boundsOfForm f = some bs → BoundsPos bs := by
+  intro f
+  induction f with
+  | tt =>
+      intro bs h
+      injection h with h'
+      subst h'
+      exact BoundsPos.nil
+  | cmp op a b =>
+      intro bs h
+      have hsingle : ∀ (v : String) (lo hi : Option QF),
+          (∀ q, lo = some q → q.pos) → (∀ q, hi = some q → q.pos) →
+          BoundsPos [(v, lo, hi)] := by
+        intro v lo hi hl hh e he
+        rw [List.mem_singleton.mp he]
+        exact ⟨hl, hh⟩
+      unfold boundsOfForm at h
+      split at h
+      · -- var ⋈ num
+        rcases hq : parseQ _ with _ | q <;> rw [hq] at h
+        · simp at h
+        have hqp := parseQ_pos hq
+        simp only [Option.bind_eq_bind, Option.bind] at h
+        split at h <;>
+          first
+            | (injection h with h'
+               subst h'
+               refine hsingle _ _ _ ?_ ?_ <;>
+                 intro r hr <;>
+                 first
+                   | (injection hr with h2
+                      subst h2
+                      exact hqp)
+                   | injection hr)
+            | simp at h
+      · -- num ⋈ var
+        rcases hq : parseQ _ with _ | q <;> rw [hq] at h
+        · simp at h
+        have hqp := parseQ_pos hq
+        simp only [Option.bind_eq_bind, Option.bind] at h
+        split at h <;>
+          first
+            | (injection h with h'
+               subst h'
+               refine hsingle _ _ _ ?_ ?_ <;>
+                 intro r hr <;>
+                 first
+                   | (injection hr with h2
+                      subst h2
+                      exact hqp)
+                   | injection hr)
+            | simp at h
+      · simp at h
+  | and a b iha ihb =>
+      intro bs h
+      unfold boundsOfForm at h
+      rcases hba : boundsOfForm a with _ | ba <;> rw [hba] at h
+      · simp at h
+      rcases hbb : boundsOfForm b with _ | bb <;> rw [hbb] at h
+      · simp at h
+      injection h with h'
+      subst h'
+      exact boundsMerge_pos (iha hba) (ihb hbb)
+  | or a b iha ihb => intro bs h; exact absurd h (by simp [boundsOfForm])
+  | not a iha => intro bs h; exact absurd h (by simp [boundsOfForm])
+
+theorem boundOf_pos {bs} (hbs : BoundsPos bs) (v : String) :
+    (∀ q, (boundOf bs v).1 = some q → q.pos)
+    ∧ (∀ q, (boundOf bs v).2 = some q → q.pos) := by
+  unfold boundOf
+  rcases hf : bs.find? (fun e => e.1 == v) with _ | e <;> rw [hf]
+  · exact ⟨fun q h => absurd h (by simp), fun q h => absurd h (by simp)⟩
+  · have := hbs e (List.mem_of_find?_eq_some hf)
+    simpa using this
+
+/-! ### Real-side band formulas -/
+
+/-- Real-side band conjunct for one coordinate. -/
+noncomputable def bandFormulaR (i : Fin n) (lo hi : Option QF) : Formula (Var n) :=
+  Formula.and
+    (match lo with
+     | some q => Formula.cmp CompOp.le (Term.const q.val) (Term.var (Rv i))
+     | none => Formula.tt)
+    (match hi with
+     | some q => Formula.cmp CompOp.le (Term.var (Rv i)) (Term.const q.val)
+     | none => Formula.tt)
+
+/-- One-band correspondence: real satisfaction ↔ scaled satisfaction. -/
+theorem envFaithful_sat {σq : List QF} {b : Band} {lo hi : Option QF} (i : Fin n)
+    (hσd : (σq.getD i.val (qOfInt 0)).pos) (hσv : 0 < sigmaOf σq i)
+    (hlop : ∀ q, lo = some q → q.pos) (hhip : ∀ q, hi = some q → q.pos)
+    (hef : envFaithful (σq.getD i.val (qOfInt 0)) b lo hi = true)
+    (ν : DL.State (Var n)) :
+    Formula.sat (bandFormulaR i lo hi) ν
+      ↔ Formula.sat (Band.formula i b) (scaleState (sigmaOf σq) ν) := by
+  unfold envFaithful at hef
+  simp only [Bool.and_eq_true] at hef
+  obtain ⟨hlo, hhi⟩ := hef
+  unfold bandFormulaR Band.formula
+  simp only [Formula.sat]
+  have hRvi : scaleState (sigmaOf σq) ν (Rv i) = sigmaOf σq i * ν (Rv i) := rfl
+  constructor
+  · rintro ⟨h1, h2⟩
+    constructor
+    · revert hlo
+      rcases b.lo with _ | z <;> rcases hloe : lo with _ | q <;> intro hlo
+      · simp [Formula.sat]
+      · exact absurd hlo (by simp)
+      · exact absurd hlo (by simp)
+      · have hzval : (z : ℝ) = q.val * sigmaOf σq i := by
+          have := qEq_val (qOfInt_pos z) (qMul_pos (hlop q hloe) hσd) hlo
+          rw [qOfInt_val, qMul_val] at this
+          exact this
+        rw [hloe] at h1
+        simp only [Formula.sat, CompOp.interp, Term.eval] at h1 ⊢
+        rw [hRvi, hzval]
+        calc q.val * sigmaOf σq i ≤ ν (Rv i) * sigmaOf σq i := by
+              exact mul_le_mul_of_nonneg_right h1 hσv.le
+          _ = sigmaOf σq i * ν (Rv i) := by ring
+    · revert hhi
+      rcases b.hi with _ | z <;> rcases hhie : hi with _ | q <;> intro hhi
+      · simp [Formula.sat]
+      · exact absurd hhi (by simp)
+      · exact absurd hhi (by simp)
+      · have hzval : (z : ℝ) = q.val * sigmaOf σq i := by
+          have := qEq_val (qOfInt_pos z) (qMul_pos (hhip q hhie) hσd) hhi
+          rw [qOfInt_val, qMul_val] at this
+          exact this
+        rw [hhie] at h2
+        simp only [Formula.sat, CompOp.interp, Term.eval] at h2 ⊢
+        rw [hRvi, hzval]
+        calc sigmaOf σq i * ν (Rv i) = ν (Rv i) * sigmaOf σq i := by ring
+          _ ≤ q.val * sigmaOf σq i := mul_le_mul_of_nonneg_right h2 hσv.le
+  · rintro ⟨h1, h2⟩
+    constructor
+    · revert hlo
+      rcases hbe : b.lo with _ | z <;> rcases hloe : lo with _ | q <;> intro hlo
+      · simp [Formula.sat]
+      · exact absurd hlo (by simp)
+      · exact absurd hlo (by simp)
+      · have hzval : (z : ℝ) = q.val * sigmaOf σq i := by
+          have := qEq_val (qOfInt_pos z) (qMul_pos (hlop q hloe) hσd) hlo
+          rw [qOfInt_val, qMul_val] at this
+          exact this
+        rw [hbe] at h1
+        simp only [Formula.sat, CompOp.interp, Term.eval] at h1 ⊢
+        rw [hRvi, hzval] at h1
+        exact le_of_mul_le_mul_right (by
+          calc q.val * sigmaOf σq i ≤ sigmaOf σq i * ν (Rv i) := h1
+            _ = ν (Rv i) * sigmaOf σq i := by ring) hσv
+    · revert hhi
+      rcases hbe : b.hi with _ | z <;> rcases hhie : hi with _ | q <;> intro hhi
+      · simp [Formula.sat]
+      · exact absurd hhi (by simp)
+      · exact absurd hhi (by simp)
+      · have hzval : (z : ℝ) = q.val * sigmaOf σq i := by
+          have := qEq_val (qOfInt_pos z) (qMul_pos (hhip q hhie) hσd) hhi
+          rw [qOfInt_val, qMul_val] at this
+          exact this
+        rw [hbe] at h2
+        simp only [Formula.sat, CompOp.interp, Term.eval] at h2 ⊢
+        rw [hRvi, hzval] at h2
+        exact le_of_mul_le_mul_right (by
+          calc ν (Rv i) * sigmaOf σq i = sigmaOf σq i * ν (Rv i) := by ring
+            _ ≤ q.val * sigmaOf σq i := h2) hσv
+
 end RelCertifier

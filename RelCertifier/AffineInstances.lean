@@ -24,9 +24,13 @@ def rover_tier_r1A : AffineModel 3 :=
 
 example : decideWellFormedA rover_tier_r1A = true := rfl
 
-/-- `rover3tier_rung12` (R side; units: v ×1000, s and a ×10000 (the integrator scale),
-time ×10; dt = ε_R/λ at λ = 1). ACCEL `v ∈ [0.3, 0.6)` hands to the topless COAST
-`v ∈ [0.6, ∞)`. -/
+/-- `rover3tier_rung12` (R side; units: v ×1000, s ×10000 (the integrator scale, v-scale
+divided by the 0.1 time unit), a ×100 (v-scale TIMES the 0.1 time unit — `v' = a` forces
+`scale_a = scale_v · u`), time ×10; dt = ε_R/λ at λ = 1). ACCEL `v ∈ [0.3, 0.6)` hands to
+the topless COAST `v ∈ [0.6, ∞)`. (An earlier revision stored the a-envelope at ×10000,
+which is not the benchmark's image under any consistent scaling — the H content of this
+shape is scale-insensitive, so the certificate's truth was unaffected, but the
+attribution was wrong; caught by the ode-coefficient transcription audit.) -/
 def rover3tier_rung12A : AffineModel 3 :=
   { core :=
     { modes :=
@@ -35,7 +39,7 @@ def rover3tier_rung12A : AffineModel 3 :=
       , { shapes := ![CoordShape.driven 2, CoordShape.driven 0, CoordShape.frozen],
           gcoord := 0, glo := 600, ghi := 600, succs := [0] } ]
       env := ![{ lo := some 0, hi := none }, { lo := some 0, hi := none },
-        { lo := some 5000, hi := some 10000 }]
+        { lo := some 50, hi := some 100 }]
       dtQ := 3 }
     vtops := [some 600, none] }
 

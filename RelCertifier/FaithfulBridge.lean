@@ -1321,4 +1321,326 @@ theorem bridge_riccati (hnod : vs.Nodup) (hlen : vs.length = n)
 
 end ShapeBridges
 
+/-! ### Wave 2 shape bridges: `pairSym` and `drivenDamp` -/
+
+/-- Value of a three-monomial-support polynomial. -/
+theorem evalR_support_three {p : QPoly} (hp : PolyInv p) (m1 m2 m3 : Mono)
+    (h1 : Mono.varsNodup m1) (h2 : Mono.varsNodup m2) (h3 : Mono.varsNodup m3)
+    (h12 : monoEq m1 m2 = false) (h13 : monoEq m1 m3 = false)
+    (h23 : monoEq m2 m3 = false)
+    (hsup : supportIn p [m1, m2, m3] = true) (ρ : String → ℝ) :
+    QPoly.evalR ρ p = (coeffOf p m1).val * Mono.evalR ρ m1
+      + (coeffOf p m2).val * Mono.evalR ρ m2
+      + (coeffOf p m3).val * Mono.evalR ρ m3 := by
+  rw [evalR_support ρ p hp [m1, m2, m3]
+    (by
+      intro m hm
+      rcases List.mem_cons.mp hm with rfl | hm
+      · exact h1
+      rcases List.mem_cons.mp hm with rfl | hm
+      · exact h2
+      · rw [List.mem_singleton.mp hm]
+        exact h3)
+    (by simp [h12, h13, h23]) hsup]
+  simp [add_assoc]
+
+/-- Distinct benchmark indices name distinct variables. -/
+theorem getD_ne_of_ne {vs : List String} (hnod : vs.Nodup) (hlen : vs.length = n)
+    {i j : Fin n} (hij : i ≠ j) : vs.getD i.val "" ≠ vs.getD j.val "" := by
+  intro hcontra
+  apply hij
+  have hiv : vs.getD i.val "" = vs[i.val]'(by omega) :=
+    List.getD_eq_getElem _ _ (by omega)
+  have hjv : vs.getD j.val "" = vs[j.val]'(by omega) :=
+    List.getD_eq_getElem _ _ (by omega)
+  rw [hiv, hjv] at hcontra
+  exact Fin.ext ((List.Nodup.getElem_inj_iff hnod).mp hcontra)
+
+/-- Nonzero value forces nonzero numerator. -/
+theorem QF.n_ne_of_val_ne {a : QF} (h : a.val ≠ 0) : a.n ≠ 0 := by
+  intro h0
+  apply h
+  unfold QF.val
+  rw [h0]
+  simp
+
+/-- `monoEq` is length-invariant (multisets have equal card), so different lengths
+are never `monoEq`. -/
+theorem monoEq_of_ne_length {a b : Mono} (h : a.length ≠ b.length) :
+    monoEq a b = false := by
+  rcases hq : monoEq a b with _ | _
+  · rfl
+  · have := monoEq_multiset hq
+    have hcard : a.length = b.length := by
+      have := congrArg Multiset.card this
+      simpa using this
+    exact absurd hcard h
+
+/-- `pairSym j c h`: one member of a weakly coupled symmetric pair. Needs `j ≠ i`. -/
+theorem bridge_pairSym {vs : List String} {σq : List QF} {uq : QF}
+    (hnod : vs.Nodup) (hlen : vs.length = n)
+    (hσd : ∀ j, j < n → (σq.getD j (qOfInt 0)).pos) (hud : uq.pos)
+    (i : Fin n) {p : QPoly} {j : Fin n} {c h : ℤ} (hij : j ≠ i)
+    (hp : PolyInv p)
+    (hsf : shapeFaithful vs σq uq i.val (CoordShape.pairSym j c h : CoordShape n) p
+      = true)
+    (ν : DL.State (Var n)) :
+    Term.eval (CoordShape.field i (CoordShape.pairSym j c h))
+        (scaleState (sigmaOf σq) ν)
+      = sigmaOf σq i * (uq.val * Term.eval (polyToTerm vs n p) ν) := by
+  unfold shapeFaithful at hsf
+  simp only [Bool.and_eq_true] at hsf
+  obtain ⟨⟨⟨⟨hsup, hσjz⟩, hB1⟩, hh⟩, hc⟩ := hsf
+  set v := vs.getD i.val "" with hv
+  set w := vs.getD j.val "" with hw
+  have hvw : v ≠ w := getD_ne_of_ne hnod hlen (fun hcontra => hij hcontra.symm)
+  have hσi := hσd i.val i.isLt
+  have hσj := hσd j.val j.isLt
+  have hσjne : (σq.getD j.val (qOfInt 0)).val ≠ 0 :=
+    qIsZero_false_val hσj (by simpa using hσjz)
+  have hA : (coeffOf p []).pos := coeffOf_pos hp.pos []
+  have hB : (coeffOf p [(v, 1)]).pos := coeffOf_pos hp.pos [(v, 1)]
+  have hC : (coeffOf p [(w, 1)]).pos := coeffOf_pos hp.pos [(w, 1)]
+  have hB1v : -(coeffOf p [(v, 1)]).val * uq.val = 1 := by
+    have := qEq_val (qMul_pos (qNeg_pos hB) hud) (qOfInt_pos 1) hB1
+    rw [qMul_val, qNeg_val, qOfInt_val] at this
+    simpa using this
+  have hBne : (coeffOf p [(v, 1)]).val ≠ 0 := by
+    intro h0
+    rw [h0] at hB1v
+    simp at hB1v
+  have hhv : (h : ℝ) / 1000
+      = (coeffOf p [(w, 1)]).val * uq.val * sigmaOf σq i
+        / (σq.getD j.val (qOfInt 0)).val := by
+    have hσjn : (σq.getD j.val (qOfInt 0)).n ≠ 0 := QF.n_ne_of_val_ne hσjne
+    have := qEq_val (qDiv_pos (qOfInt_pos h) (by simp [qOfInt]))
+      (qDiv_pos (qMul_pos (qMul_pos hC hud) hσi) hσjn) hh
+    rw [qDiv_val (qOfInt_pos h) (qOfInt_pos 1000),
+      qDiv_val (qMul_pos (qMul_pos hC hud) hσi) hσj,
+      qOfInt_val, qOfInt_val, qMul_val, qMul_val] at this
+    push_cast at this
+    exact this
+  have hcv : (c : ℝ)
+      = (coeffOf p []).val / -(coeffOf p [(v, 1)]).val * sigmaOf σq i := by
+    have := qEq_val (qOfInt_pos c)
+      (qMul_pos (qDiv_pos hA (by
+        show (qNeg (coeffOf p [(v, 1)])).n ≠ 0
+        unfold qNeg
+        simpa using QF.n_ne_of_val_ne hBne)) hσi) hc
+    rw [qOfInt_val, qMul_val, qDiv_val hA (qNeg_pos hB), qNeg_val] at this
+    exact this
+  have hu_eq : uq.val = (-(coeffOf p [(v, 1)]).val)⁻¹ :=
+    eq_inv_of_mul_eq_one_right hB1v
+  show (c : ℝ) - scaleState (sigmaOf σq) ν (Rv i)
+      + (h : ℝ) / 1000 * scaleState (sigmaOf σq) ν (Rv j)
+      = sigmaOf σq i * (uq.val * Term.eval (polyToTerm vs n p) ν)
+  rw [polyToTerm_eval,
+    evalR_support_three hp [] [(v, 1)] [(w, 1)] Mono.varsNodup_nil
+      (varsNodup_single v 1) (varsNodup_single w 1) rfl rfl
+      (monoEq_single_ne hvw 1 1) hsup,
+    Mono.evalR_nil, Mono.evalR_cons, Mono.evalR_cons, Mono.evalR_nil]
+  have hRvi : scaleState (sigmaOf σq) ν (Rv i) = sigmaOf σq i * ν (Rv i) := rfl
+  have hRvj : scaleState (sigmaOf σq) ν (Rv j) = sigmaOf σq j * ν (Rv j) := rfl
+  have hρv : rhoOf vs n ν v = ν (Rv i) := by
+    rw [hv, rhoOf_getD hnod hlen ν i.isLt]
+  have hρw : rhoOf vs n ν w = ν (Rv j) := by
+    rw [hw, rhoOf_getD hnod hlen ν j.isLt]
+  have hσjs : sigmaOf σq j = (σq.getD j.val (qOfInt 0)).val := rfl
+  rw [hRvi, hRvj, hρv, hρw, hcv, hhv, hu_eq, hσjs]
+  have hnBne : -(coeffOf p [(v, 1)]).val ≠ 0 := neg_ne_zero.mpr hBne
+  field_simp
+  ring
+
+/-- The damper product term evaluates to `1 − Σ (aₙ/a_d)·x_d²`. -/
+theorem dampFoldr_eval (ν' : DL.State (Var n)) : ∀ (ds : List (Fin n × ℤ × ℤ)),
+    Term.eval (ds.foldr (fun d acc =>
+      Term.binop AOp.sub acc
+        (Term.binop AOp.mul (Term.const ((d.2.1 : ℝ) / (d.2.2 : ℝ)))
+          (Term.binop AOp.mul (Term.var (Rv d.1)) (Term.var (Rv d.1)))))
+      (Term.const 1)) ν'
+    = 1 - (ds.map (fun d =>
+        (d.2.1 : ℝ) / (d.2.2 : ℝ) * (ν' (Rv d.1) * ν' (Rv d.1)))).sum := by
+  intro ds
+  induction ds with
+  | nil => simp [Term.eval]
+  | cons d ds ih =>
+      show Term.eval _ ν' - (d.2.1 : ℝ) / (d.2.2 : ℝ) * (ν' (Rv d.1) * ν' (Rv d.1)) = _
+      rw [ih]
+      simp only [List.map_cons, List.sum_cons]
+      ring
+
+/-- `monoMul` of distinct singleton monomials, explicitly. -/
+theorem monoMul_single_single {w x : String} (hwx : w ≠ x) (k l : Nat) :
+    monoMul [(w, k)] [(x, l)] = [(x, l), (w, k)] := by
+  show monoMul [] (monoInsert w k [(x, l)]) = _
+  unfold monoMul monoInsert
+  rw [if_neg (by simpa using hwx)]
+  rfl
+
+/-- Distinct-headed damper pairs are not `monoEq`. -/
+theorem monoEq_pair_ne {x x' w : String} (hxx' : x ≠ x') (hxw : x ≠ w)
+    (k k' l l' : Nat) : monoEq [(x, k), (w, l)] [(x', k'), (w, l')] = false := by
+  have hex : monoExtract x [(x', k'), (w, l')] = none := by
+    unfold monoExtract
+    rw [if_neg (by simpa using hxx')]
+    unfold monoExtract
+    rw [if_neg (by simpa using hxw)]
+    rfl
+  unfold monoEq
+  rw [hex]
+
+/-- Products distribute over list sums (left factor). -/
+theorem sumMulLeft {α : Type*} (l : List α) (f : α → ℝ) (r : ℝ) :
+    (l.map fun x => r * f x).sum = r * (l.map f).sum := by
+  induction l with
+  | nil => simp
+  | cons a l ih =>
+      simp only [List.map_cons, List.sum_cons, ih]
+      ring
+
+/-- `drivenDamp j dampers`: damped integrator. Needs the driver and dampers distinct
+(`j` differs from every damper index; damper indices are duplicate-free). -/
+theorem bridge_drivenDamp {vs : List String} {σq : List QF} {uq : QF}
+    (hnod : vs.Nodup) (hlen : vs.length = n)
+    (hσd : ∀ j, j < n → (σq.getD j (qOfInt 0)).pos) (hud : uq.pos)
+    (i : Fin n) {p : QPoly} {j : Fin n} {dampers : List (Fin n × ℤ × ℤ)}
+    (hdj : ∀ d ∈ dampers, d.1 ≠ j)
+    (hddn : (dampers.map (·.1)).Nodup)
+    (hp : PolyInv p)
+    (hsf : shapeFaithful vs σq uq i.val
+      (CoordShape.drivenDamp j dampers : CoordShape n) p = true)
+    (ν : DL.State (Var n)) :
+    Term.eval (CoordShape.field i (CoordShape.drivenDamp j dampers))
+        (scaleState (sigmaOf σq) ν)
+      = sigmaOf σq i * (uq.val * Term.eval (polyToTerm vs n p) ν) := by
+  unfold shapeFaithful at hsf
+  simp only [Bool.and_eq_true] at hsf
+  obtain ⟨⟨⟨hCz, hC⟩, hsup⟩, hall⟩ := hsf
+  set w := vs.getD j.val "" with hw
+  have hσi := hσd i.val i.isLt
+  have hσj := hσd j.val j.isLt
+  have hCp : (coeffOf p [(w, 1)]).pos := coeffOf_pos hp.pos [(w, 1)]
+  have hCne : (coeffOf p [(w, 1)]).val ≠ 0 :=
+    qIsZero_false_val hCp (by simpa using hCz)
+  have hCval : (coeffOf p [(w, 1)]).val * sigmaOf σq i * uq.val = sigmaOf σq j := by
+    have := qEq_val (qMul_pos (qMul_pos hCp hσi) hud) hσj hC
+    rw [qMul_val, qMul_val] at this
+    exact this
+  have hdw : ∀ d ∈ dampers, vs.getD d.1.val "" ≠ w := by
+    intro d hd
+    exact getD_ne_of_ne hnod hlen (hdj d hd)
+  have hmm : ∀ d ∈ dampers,
+      monoMul [(w, 1)] [(vs.getD d.1.val "", 2)]
+        = [(vs.getD d.1.val "", 2), (w, 1)] := by
+    intro d hd
+    exact monoMul_single_single (fun hcontra => hdw d hd hcontra.symm) 1 2
+  have hms_eq : dampers.map (fun d => monoMul [(w, 1)] [(vs.getD d.1.val "", 2)])
+      = dampers.map (fun d => [(vs.getD d.1.val "", 2), (w, 1)]) :=
+    List.map_congr_left hmm
+  rw [hms_eq] at hsup
+  -- duplicate-free support list
+  have hnd : ∀ m ∈ ([(w, 1)] :: dampers.map
+      (fun d => [(vs.getD d.1.val "", 2), (w, 1)])), Mono.varsNodup m := by
+    intro m hm
+    rcases List.mem_cons.mp hm with rfl | hm
+    · exact varsNodup_single w 1
+    · simp only [List.mem_map] at hm
+      obtain ⟨d, hd, rfl⟩ := hm
+      unfold Mono.varsNodup
+      simp only [List.map_cons, List.map_nil, List.nodup_cons, List.mem_singleton,
+        List.not_mem_nil, not_false_iff, List.nodup_nil, and_true]
+      simpa using hdw d hd
+  have hpw : ([(w, 1)] :: dampers.map
+      (fun d => [(vs.getD d.1.val "", 2), (w, 1)])).Pairwise
+      (fun m m' => monoEq m m' = false) := by
+    refine List.pairwise_cons.mpr ⟨?_, ?_⟩
+    · intro m hm
+      simp only [List.mem_map] at hm
+      obtain ⟨d, hd, rfl⟩ := hm
+      exact monoEq_of_ne_length (by simp)
+    · rw [List.pairwise_map]
+      have hpar : dampers.Pairwise (fun d d' => d.1 ≠ d'.1) := by
+        have h' := hddn
+        unfold List.Nodup at h'
+        rwa [List.pairwise_map] at h'
+      refine List.Pairwise.imp_of_mem ?_ hpar
+      intro d d' hd hd' hne
+      exact monoEq_pair_ne (getD_ne_of_ne hnod hlen hne)
+        (getD_ne_of_ne hnod hlen (hdj d hd)) 2 2 1 1
+  have hcrux := evalR_support (rhoOf vs n ν) p hp _ hnd hpw hsup
+  -- per-damper value law
+  have hdval : ∀ d ∈ dampers,
+      (d.2.1 : ℝ) / (d.2.2 : ℝ)
+        * ((σq.getD d.1.val (qOfInt 0)).val * (σq.getD d.1.val (qOfInt 0)).val)
+      = -(coeffOf p [(vs.getD d.1.val "", 2), (w, 1)]).val
+        / (coeffOf p [(w, 1)]).val := by
+    intro d hd
+    have hfact := List.all_eq_true.mp hall d hd
+    simp only [Bool.and_eq_true] at hfact
+    obtain ⟨hdd, hqe⟩ := hfact
+    rw [hmm d hd] at hqe
+    have hddne : (d.2.2 : ℤ) ≠ 0 := by simpa using hdd
+    have hcoeffp := coeffOf_pos hp.pos [(vs.getD d.1.val "", 2), (w, 1)]
+    have hσdp := hσd d.1.val d.1.isLt
+    have hval := qEq_val
+      (qMul_pos (qDiv_pos (qOfInt_pos d.2.1) (by simpa [qOfInt] using hddne))
+        (qMul_pos hσdp hσdp))
+      (qDiv_pos (qNeg_pos hcoeffp) (QF.n_ne_of_val_ne hCne)) hqe
+    rw [qMul_val, qDiv_val (qOfInt_pos d.2.1) (qOfInt_pos d.2.2), qMul_val,
+      qDiv_val (qNeg_pos hcoeffp) hCp, qNeg_val, qOfInt_val, qOfInt_val] at hval
+    exact hval
+  -- assemble
+  have hfield : Term.eval (CoordShape.field i (CoordShape.drivenDamp j dampers))
+      (scaleState (sigmaOf σq) ν)
+      = scaleState (sigmaOf σq) ν (Rv j)
+        * (1 - (dampers.map (fun d =>
+            (d.2.1 : ℝ) / (d.2.2 : ℝ)
+            * (scaleState (sigmaOf σq) ν (Rv d.1)
+              * scaleState (sigmaOf σq) ν (Rv d.1)))).sum) := by
+    show scaleState (sigmaOf σq) ν (Rv j) * Term.eval _ _ = _
+    rw [dampFoldr_eval]
+  rw [hfield, polyToTerm_eval, hcrux]
+  simp only [List.map_cons, List.sum_cons, List.map_map]
+  have hRvj : scaleState (sigmaOf σq) ν (Rv j) = sigmaOf σq j * ν (Rv j) := rfl
+  have hρw : rhoOf vs n ν w = ν (Rv j) := by
+    rw [hw, rhoOf_getD hnod hlen ν j.isLt]
+  -- the damper sums cancel term-by-term
+  have hcomb : ∀ (ds : List (Fin n × ℤ × ℤ)), (∀ d ∈ ds, d ∈ dampers) →
+      sigmaOf σq j * ν (Rv j) * (ds.map (fun d =>
+        (d.2.1 : ℝ) / (d.2.2 : ℝ)
+        * (scaleState (sigmaOf σq) ν (Rv d.1)
+          * scaleState (sigmaOf σq) ν (Rv d.1)))).sum
+      = -(sigmaOf σq i * (uq.val * (ds.map ((fun m =>
+          (coeffOf p m).val * Mono.evalR (rhoOf vs n ν) m) ∘
+          fun d => [(vs.getD d.1.val "", 2), (w, 1)])).sum)) := by
+    intro ds
+    induction ds with
+    | nil => simp
+    | cons d ds ih =>
+        intro hsub
+        have hd : d ∈ dampers := hsub d (List.mem_cons_self ..)
+        have hvd := hdval d hd
+        simp only [List.map_cons, List.sum_cons, Function.comp_apply]
+        rw [mul_add, ih (fun x hx => hsub x (List.mem_cons_of_mem _ hx))]
+        have hRvd : scaleState (sigmaOf σq) ν (Rv d.1)
+            = sigmaOf σq d.1 * ν (Rv d.1) := rfl
+        have hρd : rhoOf vs n ν (vs.getD d.1.val "") = ν (Rv d.1) :=
+          rhoOf_getD hnod hlen ν d.1.isLt
+        have hσds : sigmaOf σq d.1 = (σq.getD d.1.val (qOfInt 0)).val := rfl
+        have hvd' : (d.2.1 : ℝ) / (d.2.2 : ℝ)
+            * ((σq.getD d.1.val (qOfInt 0)).val * (σq.getD d.1.val (qOfInt 0)).val)
+            * (coeffOf p [(w, 1)]).val
+            = -(coeffOf p [(vs.getD d.1.val "", 2), (w, 1)]).val := by
+          rw [hvd]
+          field_simp
+        simp only [Mono.evalR_cons, Mono.evalR_nil]
+        rw [hRvd, hρd, hρw, hσds, ← hCval]
+        linear_combination (sigmaOf σq i * uq.val * ν (Rv j)
+          * (ν (Rv d.1) * ν (Rv d.1))) * hvd'
+  have hsum := hcomb dampers (fun d hd => hd)
+  simp only [Mono.evalR_cons, Mono.evalR_nil]
+  rw [hRvj, hρw, mul_sub, hsum, ← hCval]
+  ring
+
+
 end RelCertifier

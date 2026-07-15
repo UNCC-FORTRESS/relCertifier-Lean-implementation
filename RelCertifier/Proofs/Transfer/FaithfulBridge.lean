@@ -26,6 +26,8 @@ noncomputable def QF.val (a : QF) : ℝ := (a.n : ℝ) / (a.d : ℝ)
 /-- The invariant every `Faithful`-built fraction satisfies. -/
 def QF.pos (a : QF) : Prop := 0 < a.d
 
+instance (a : QF) : Decidable a.pos := inferInstanceAs (Decidable (0 < a.d))
+
 theorem QF.pos.dR_pos {a : QF} (h : a.pos) : (0 : ℝ) < (a.d : ℝ) := by
   exact_mod_cast h
 

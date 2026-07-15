@@ -77,6 +77,18 @@ theorem scaledHi_sat {σq : List QF} (i : Fin n)
       calc ν (Rv i) * sigmaOf σq i = sigmaOf σq i * ν (Rv i) := by ring
         _ ≤ scaledConst σq i z * sigmaOf σq i := h) hσv
 
+/-- Positive scale values from a decidable entry check: every fraction in the scale list
+has positive numerator and denominator. -/
+theorem sigmaOf_pos {σq : List QF} (h : ∀ q ∈ σq, 0 < q.n ∧ 0 < q.d)
+    (hlen : n ≤ σq.length) (j : Fin n) : 0 < sigmaOf σq j := by
+  unfold sigmaOf QF.val
+  have hj : j.val < σq.length := lt_of_lt_of_le j.isLt hlen
+  rw [List.getD_eq_getElem _ _ hj]
+  obtain ⟨hn, hd⟩ := h σq[j.val] (List.getElem_mem hj)
+  have hnR : (0 : ℝ) < (σq[j.val].n : ℝ) := by exact_mod_cast hn
+  have hdR : (0 : ℝ) < (σq[j.val].d : ℝ) := by exact_mod_cast hd
+  positivity
+
 /-! ## The real-side guard maps -/
 
 /-- Real-side terrain guard: parsed envelope ∧ scaled-down v-band ∧ scaled-down s-band. -/

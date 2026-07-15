@@ -80,6 +80,7 @@ import RelCertifier.Instances.FaithfulCerts
 import RelCertifier.Proofs.Transfer.Rescale
 import RelCertifier.Proofs.Encoding.FvDischarge
 import RelCertifier.Instances.Mega
+import RelCertifier.Instances.RealInstances
 import RelCertifier.Proofs.Encoding.ClockedTop
 import RelCertifier.Archive.ClockReduce
 import RelCertifier.Core.QFrac

@@ -118,6 +118,55 @@ def runBatch (paths : List String) : IO Unit := do
       IO.println s!"errors={errs}"
       if errs > 0 then IO.Process.exit 1
 
+open RelCertifier.Oracle in
+/-- `--emit-cuts <file> <defname>`: run the checked-cut search (Z3) and print the kept
+atoms with their routes as a `CutCert` Lean literal (the cut-lift's single door — the
+search stays untrusted; its output is certified against the IR by `cutCertWF = true`,
+`rfl`). -/
+def emitCuts (path defname : String) : IO Unit := do
+  match ← Z3Config.discover with
+  | .error e => IO.eprintln s!"ERROR: {e}"; IO.Process.exit 2
+  | .ok cfg =>
+    match ← Z3Session.start cfg with
+    | .error e => IO.eprintln s!"ERROR: z3 session: {e}"; IO.Process.exit 2
+    | .ok s =>
+      match RelCertifier.Parse.parseProblemE (← IO.FS.readFile path) with
+      | .error e => IO.eprintln s!"ERROR: parse: {e}"; s.close; IO.Process.exit 1
+      | .ok p => do
+        let vars := p.L.stateVars
+        let n := vars.length
+        let coord := fun (i : Fin n) => vars.getD i.val "v"
+        let cnt ← IO.mkRef 0
+        let deadline := (← IO.monoMsNow) + 120000
+        let emitAtoms (atoms : List (RelCertifier.Parse.PForm × CutRoute)) : String :=
+          "[" ++ String.intercalate ", " (atoms.map (fun ar =>
+            "(" ++ RelCertifier.Parse.emitForm ar.1 ++ ", CutRoute." ++
+              (match ar.2 with
+                | .shape => "shape"
+                | .frozen => "frozen"
+                | .diStrict => "diStrict"
+                | .diNonstrict => "diNonstrict") ++ ")")) ++ "]"
+        let mut ls : List String := []
+        for mM in p.L.modes do
+          let (_, kept) ← checkedCut s cnt 5000 200000 deadline vars n coord
+            RelCertifier.Side.L mM
+          ls := ls ++ [s!"      ({RelCertifier.Parse.qs mM.name}, {emitAtoms kept})"]
+        let mut rs : List String := []
+        for mM in p.R.modes do
+          let (_, kept) ← checkedCut s cnt 5000 200000 deadline vars n coord
+            RelCertifier.Side.R mM
+          rs := rs ++ [s!"      ({RelCertifier.Parse.qs mM.name}, {emitAtoms kept})"]
+        s.close
+        IO.println s!"def {defname} : CutCert :="
+        IO.println "  { L := ["
+        IO.println (String.intercalate ",
+" ls)
+        IO.println "    ]"
+        IO.println "    R := ["
+        IO.println (String.intercalate ",
+" rs)
+        IO.println "    ] }"
+
 /-- `--emit-ir <file> <defname>`: print the parsed `PProblem` as a Lean literal (the
 single-door bridge for the `Faithful` kernel certificates — see EmitIR.lean). -/
 def emitIR (path defname : String) : IO Unit := do
@@ -128,5 +177,6 @@ def emitIR (path defname : String) : IO Unit := do
 def main (args : List String) : IO Unit := do
   match args with
   | ["--emit-ir", path, defname] => emitIR path defname
+  | ["--emit-cuts", path, defname] => emitCuts path defname
   | [] => demoStage1
   | _ => runBatch args

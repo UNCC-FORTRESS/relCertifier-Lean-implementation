@@ -21,6 +21,7 @@ it, the outcome is `error`, not `declined`. `certified` is only ever produced by
 `unsat` verdicts, so it is trustworthy regardless of errors on unneeded routes.
 -/
 import RelCertifier.Run
+import RelCertifier.CutCertDefs
 import RelCertifier.Z3
 import RelCertifier.Checker
 import Std.Data.HashMap
@@ -95,76 +96,6 @@ or unprovable candidate costs completeness (DECLINE), never soundness. `evolve` 
 NEVER modified: the model (and the Lean proof structure, which requires the uniform shared
 envelope as every mode's domain) sees only `evolve`; cuts narrow the queries alone. -/
 
-/-- Atomic NON-STRICT (`≤`/`≥`) conjuncts of a `PForm` (candidate cuts). Strict atoms are
-NOT candidates: a strict guard conjunct is typically the mode's EXIT face (not invariant),
-and a strict candidate would vacuously pass the boundary route (its own strictness excludes
-the boundary from the domain) — a closed-set discipline keeps O2 meaningful and DI-shaped. -/
-def cutAtoms : PForm → List PForm
-  | .and a b => cutAtoms a ++ cutAtoms b
-  | .cmp op a b =>
-      if op == "<=" || op == ">=" then [.cmp op a b] else []
-  | _ => []
-
-/-- Safe-side term of an atom `c` (`c = {g ≤ 0}`), lowered at `side`. -/
-def cutAtomG (vars : List String) (n : ℕ) (side : Side) : PForm → Option (ITerm n)
-  | .cmp op a b =>
-      if op == "<=" || op == "<" then do
-        let ea ← lowerE vars n side a; let eb ← lowerE vars n side b
-        some (ITerm.bin .sub ea eb)
-      else if op == ">=" || op == ">" then do
-        let ea ← lowerE vars n side a; let eb ← lowerE vars n side b
-        some (ITerm.bin .sub eb ea)
-      else none
-  | _ => none
-
-/-- Variables of a `PExpr`. -/
-partial def pexprVars : PExpr → List String
-  | .var v => [v]
-  | .num _ => []
-  | .neg e => pexprVars e
-  | .bin _ a b => pexprVars a ++ pexprVars b
-
-/-- Variables of a `PForm` atom. -/
-def atomVars : PForm → List String
-  | .cmp _ a b => pexprVars a ++ pexprVars b
-  | _ => []
-
-/-- The mode's field for `v` is syntactically zero (absent ode, or a literal 0). -/
-def frozenIn (m : PMode) (v : String) : Bool :=
-  match m.odes.find? (·.1 == v) with
-  | none => true
-  | some (_, .num s) => (parseRat s).getD 1 == 0
-  | some _ => false
-
-/-- CONTRACT-SHAPE O2 (the tangent case): atom `v ≤ κ` (or `v ≥ κ`) with the mode's field
-for `v` of the form `k·(c − v)` (`k ≥ 0`) and equilibrium on the safe side (`c ≤ κ` resp.
-`c ≥ κ`). Every solution from the safe side stays there (monotone toward the interior
-equilibrium — `contract_stays`); rational comparison only, no Z3. Recognized field shapes:
-`(* k (- c v))`, `(- c v)`, `(* k v)` with `k ≤ 0` (decay, `c = 0`). -/
-def contractShapeOK (m : PMode) : PForm → Bool
-  | .cmp op (.var v) (.num κs) =>
-      let le := op == "<=" || op == "<"
-      let ge := op == ">=" || op == ">"
-      if !(le || ge) then false else
-      match parseRat κs, m.odes.find? (·.1 == v) with
-      | some κ, some (_, f) =>
-          let eq? : Option (ℚ × ℚ) :=      -- (k, c)
-            match f with
-            | .bin "*" (.num ks) (.bin "-" (.num cs) (.var w)) =>
-                if w == v then do
-                  let k ← parseRat ks; let c ← parseRat cs; pure (k, c)
-                else none
-            | .bin "-" (.num cs) (.var w) =>
-                if w == v then (parseRat cs).map (fun c => ((1 : ℚ), c)) else none
-            | .bin "*" (.num ks) (.var w) =>
-                if w == v then (parseRat ks).map (fun k => (-k, (0 : ℚ))) else none
-            | _ => none
-          match eq? with
-          | some (k, c) => 0 ≤ k && (if le then c ≤ κ else κ ≤ c)
-          | none => false
-      | _, _ => false
-  | _ => false
-
 /-- One Z3 UNSAT probe (budget-counted); `true` ⟺ definitive `unsat`. -/
 def probeUnsat {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     (coord : Fin n → String) (q : IForm n) : IO Bool := do
@@ -177,21 +108,6 @@ def probeUnsat {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadlin
     match ← s.check script with
     | .ok .unsat => pure true
     | _ => pure false
-
-/-- The O2 route by which a cut atom was justified (recorded for the emitted cut
-certificate; the Lean lift consumes exactly these four cases). -/
-inductive CutRoute
-  | shape       -- tangent-capable contract shape (no Z3; `contract_stays`)
-  | frozen      -- every atom variable is frozen in this mode (no Z3)
-  | diStrict    -- UNSAT(evolve ∧ g = 0 ∧ ġ ≥ 0)  (`DI_strict`)
-  | diNonstrict -- UNSAT(evolve ∧ ġ > 0)          (`DI_nonstrict_domain`)
-  deriving Repr, DecidableEq
-
-def CutRoute.tag : CutRoute → String
-  | .shape => "shape"
-  | .frozen => "frozen"
-  | .diStrict => "diB"
-  | .diNonstrict => "diA"
 
 /-- **The checked cut of a mode** (one side): the guard conjuncts that survive the O2
 invariance filter, returned as the conjoined `IForm` to add to this mode's flow-query

@@ -76,6 +76,7 @@ import RelCertifier.Checker.Faithful
 import RelCertifier.Proofs.Transfer.FaithfulBridge
 import RelCertifier.Proofs.Transfer.FaithfulBridgeGuards
 import RelCertifier.Proofs.Transfer.RealEndToEnd
+import RelCertifier.Proofs.Transfer.FaithfulBridgePad
 import RelCertifier.Instances.FaithfulCerts
 import RelCertifier.Proofs.Transfer.Rescale
 import RelCertifier.Proofs.Encoding.FvDischarge

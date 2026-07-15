@@ -10,6 +10,7 @@ condition discharged. Residual hypotheses per theorem: the freshness data (mv/tg
 and the Z3 BoxLe certificates — the z3_unsat_sound leaf, exactly as in the watertank demo.
 -/
 import RelCertifier.Proofs.Transfer.RealEndToEnd
+import RelCertifier.Proofs.Transfer.FaithfulBridgePad
 import RelCertifier.Instances.FaithfulCerts
 
 namespace RelCertifier
@@ -80,6 +81,176 @@ theorem arm_chain_rung2_real
       norm_num [QF.val])
     (by decide)
     mv tg g fL rfl (by norm_num [SettlingModel.dt, arm_chain_rung2M])
+    hg hmvclk hmvtg hmvGd htgGd hfrzGd hcert
+
+/-- `arm_chain_rung3` (PADDED model): real-model end to end (residuals: freshness data +
+Z3 certificates). -/
+theorem arm_chain_rung3_real
+    (mv tg : Var 2) (g : Term (Var 2)) (fL : Fin 2 → Term (Var 2))
+    (hg : mv ∉ g.fv)
+    (hmvclk : mv ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
+    (hmvtg : mv ≠ tg)
+    (hmvGd : ∀ q', mv ∉ (arm_chain_rung3M.GdOf q').fv)
+    (htgGd : ∀ q', tg ∉ (arm_chain_rung3M.GdOf q').fv)
+    (hfrzGd : ∀ q', ∀ x ∈ (arm_chain_rung3M.GdOf q').fv,
+        x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
+    (hcert : ∀ q m, arm_chain_rung3M.graph.modeAt q = some m →
+        ∀ ν, Formula.sat (arm_chain_rung3M.GdOf q) ν →
+          BoxLe (Program.ode m.sys arm_chain_rung3M.envF) (fun ω => Term.eval g ω) ν) :
+    ∀ q pm m, arm_chain_rung3_IR.R.modes[q]? = some pm → arm_chain_rung3M.modes[q]? = some m →
+      GuardSettlingB arm_chain_rung3M.graph (realGdOf arm_chain_rung3_IR arm_chain_rung3M)
+        (realFieldOf arm_chain_rung3_IR.R.stateVars pm 2) (Term.const 1)
+        (realEnvOf arm_chain_rung3_IR.R.stateVars 2 pm)
+        ((qDiv (qDiv (⟨10, 10⟩ : QF) arm_chain_rung3_meta.lam) (qOfInt arm_chain_rung3M.dtQ)).val
+          * ((arm_chain_rung3M.dt : ℤ) : ℝ)) q :=
+  settling_real_end_to_end_pad arm_chain_rung3_IR arm_chain_rung3_meta arm_chain_rung3M
+    (εR := ⟨10, 10⟩) rfl rfl
+    (by decide) (by decide)
+    (by intro j hj; interval_cases j <;> decide)
+    (fun j hj => sigmaOf_pos_lt (by decide) hj)
+    (by
+      have h : qDiv (qDiv (⟨10, 10⟩ : QF) arm_chain_rung3_meta.lam)
+          (qOfInt arm_chain_rung3M.dtQ) = (⟨10, 50⟩ : QF) := rfl
+      rw [h]
+      norm_num [QF.val])
+    (by decide) (by decide) (by decide) (by decide)
+    mv tg g fL rfl (by norm_num [SettlingModel.dt, arm_chain_rung3M])
+    hg hmvclk hmvtg hmvGd htgGd hfrzGd hcert
+
+/-- `arm_fidelity_high` (PADDED model): real-model end to end (residuals: freshness data +
+Z3 certificates). -/
+theorem arm_fidelity_high_real
+    (mv tg : Var 2) (g : Term (Var 2)) (fL : Fin 2 → Term (Var 2))
+    (hg : mv ∉ g.fv)
+    (hmvclk : mv ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
+    (hmvtg : mv ≠ tg)
+    (hmvGd : ∀ q', mv ∉ (arm_fidelity_highM.GdOf q').fv)
+    (htgGd : ∀ q', tg ∉ (arm_fidelity_highM.GdOf q').fv)
+    (hfrzGd : ∀ q', ∀ x ∈ (arm_fidelity_highM.GdOf q').fv,
+        x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
+    (hcert : ∀ q m, arm_fidelity_highM.graph.modeAt q = some m →
+        ∀ ν, Formula.sat (arm_fidelity_highM.GdOf q) ν →
+          BoxLe (Program.ode m.sys arm_fidelity_highM.envF) (fun ω => Term.eval g ω) ν) :
+    ∀ q pm m, arm_fidelity_high_IR.R.modes[q]? = some pm → arm_fidelity_highM.modes[q]? = some m →
+      GuardSettlingB arm_fidelity_highM.graph (realGdOf arm_fidelity_high_IR arm_fidelity_highM)
+        (realFieldOf arm_fidelity_high_IR.R.stateVars pm 2) (Term.const 1)
+        (realEnvOf arm_fidelity_high_IR.R.stateVars 2 pm)
+        ((qDiv (qDiv (⟨10, 10⟩ : QF) arm_fidelity_high_meta.lam) (qOfInt arm_fidelity_highM.dtQ)).val
+          * ((arm_fidelity_highM.dt : ℤ) : ℝ)) q :=
+  settling_real_end_to_end_pad arm_fidelity_high_IR arm_fidelity_high_meta arm_fidelity_highM
+    (εR := ⟨10, 10⟩) rfl rfl
+    (by decide) (by decide)
+    (by intro j hj; interval_cases j <;> decide)
+    (fun j hj => sigmaOf_pos_lt (by decide) hj)
+    (by
+      have h : qDiv (qDiv (⟨10, 10⟩ : QF) arm_fidelity_high_meta.lam)
+          (qOfInt arm_fidelity_highM.dtQ) = (⟨10, 50⟩ : QF) := rfl
+      rw [h]
+      norm_num [QF.val])
+    (by decide) (by decide) (by decide) (by decide)
+    mv tg g fL rfl (by norm_num [SettlingModel.dt, arm_fidelity_highM])
+    hg hmvclk hmvtg hmvGd htgGd hfrzGd hcert
+
+/-- `arm_fidelity_low` (PADDED model): real-model end to end (residuals: freshness data +
+Z3 certificates). -/
+theorem arm_fidelity_low_real
+    (mv tg : Var 2) (g : Term (Var 2)) (fL : Fin 2 → Term (Var 2))
+    (hg : mv ∉ g.fv)
+    (hmvclk : mv ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
+    (hmvtg : mv ≠ tg)
+    (hmvGd : ∀ q', mv ∉ (arm_fidelity_lowM.GdOf q').fv)
+    (htgGd : ∀ q', tg ∉ (arm_fidelity_lowM.GdOf q').fv)
+    (hfrzGd : ∀ q', ∀ x ∈ (arm_fidelity_lowM.GdOf q').fv,
+        x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
+    (hcert : ∀ q m, arm_fidelity_lowM.graph.modeAt q = some m →
+        ∀ ν, Formula.sat (arm_fidelity_lowM.GdOf q) ν →
+          BoxLe (Program.ode m.sys arm_fidelity_lowM.envF) (fun ω => Term.eval g ω) ν) :
+    ∀ q pm m, arm_fidelity_low_IR.R.modes[q]? = some pm → arm_fidelity_lowM.modes[q]? = some m →
+      GuardSettlingB arm_fidelity_lowM.graph (realGdOf arm_fidelity_low_IR arm_fidelity_lowM)
+        (realFieldOf arm_fidelity_low_IR.R.stateVars pm 2) (Term.const 1)
+        (realEnvOf arm_fidelity_low_IR.R.stateVars 2 pm)
+        ((qDiv (qDiv (⟨10, 10⟩ : QF) arm_fidelity_low_meta.lam) (qOfInt arm_fidelity_lowM.dtQ)).val
+          * ((arm_fidelity_lowM.dt : ℤ) : ℝ)) q :=
+  settling_real_end_to_end_pad arm_fidelity_low_IR arm_fidelity_low_meta arm_fidelity_lowM
+    (εR := ⟨10, 10⟩) rfl rfl
+    (by decide) (by decide)
+    (by intro j hj; interval_cases j <;> decide)
+    (fun j hj => sigmaOf_pos_lt (by decide) hj)
+    (by
+      have h : qDiv (qDiv (⟨10, 10⟩ : QF) arm_fidelity_low_meta.lam)
+          (qOfInt arm_fidelity_lowM.dtQ) = (⟨10, 20⟩ : QF) := rfl
+      rw [h]
+      norm_num [QF.val])
+    (by decide) (by decide) (by decide) (by decide)
+    mv tg g fL rfl (by norm_num [SettlingModel.dt, arm_fidelity_lowM])
+    hg hmvclk hmvtg hmvGd htgGd hfrzGd hcert
+
+/-- `arm_fidelity_mid` (PADDED model): real-model end to end (residuals: freshness data +
+Z3 certificates). -/
+theorem arm_fidelity_mid_real
+    (mv tg : Var 2) (g : Term (Var 2)) (fL : Fin 2 → Term (Var 2))
+    (hg : mv ∉ g.fv)
+    (hmvclk : mv ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
+    (hmvtg : mv ≠ tg)
+    (hmvGd : ∀ q', mv ∉ (arm_fidelity_midM.GdOf q').fv)
+    (htgGd : ∀ q', tg ∉ (arm_fidelity_midM.GdOf q').fv)
+    (hfrzGd : ∀ q', ∀ x ∈ (arm_fidelity_midM.GdOf q').fv,
+        x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
+    (hcert : ∀ q m, arm_fidelity_midM.graph.modeAt q = some m →
+        ∀ ν, Formula.sat (arm_fidelity_midM.GdOf q) ν →
+          BoxLe (Program.ode m.sys arm_fidelity_midM.envF) (fun ω => Term.eval g ω) ν) :
+    ∀ q pm m, arm_fidelity_mid_IR.R.modes[q]? = some pm → arm_fidelity_midM.modes[q]? = some m →
+      GuardSettlingB arm_fidelity_midM.graph (realGdOf arm_fidelity_mid_IR arm_fidelity_midM)
+        (realFieldOf arm_fidelity_mid_IR.R.stateVars pm 2) (Term.const 1)
+        (realEnvOf arm_fidelity_mid_IR.R.stateVars 2 pm)
+        ((qDiv (qDiv (⟨10, 10⟩ : QF) arm_fidelity_mid_meta.lam) (qOfInt arm_fidelity_midM.dtQ)).val
+          * ((arm_fidelity_midM.dt : ℤ) : ℝ)) q :=
+  settling_real_end_to_end_pad arm_fidelity_mid_IR arm_fidelity_mid_meta arm_fidelity_midM
+    (εR := ⟨10, 10⟩) rfl rfl
+    (by decide) (by decide)
+    (by intro j hj; interval_cases j <;> decide)
+    (fun j hj => sigmaOf_pos_lt (by decide) hj)
+    (by
+      have h : qDiv (qDiv (⟨10, 10⟩ : QF) arm_fidelity_mid_meta.lam)
+          (qOfInt arm_fidelity_midM.dtQ) = (⟨10, 20⟩ : QF) := rfl
+      rw [h]
+      norm_num [QF.val])
+    (by decide) (by decide) (by decide) (by decide)
+    mv tg g fL rfl (by norm_num [SettlingModel.dt, arm_fidelity_midM])
+    hg hmvclk hmvtg hmvGd htgGd hfrzGd hcert
+
+/-- `arm_refinement` (PADDED model): real-model end to end (residuals: freshness data +
+Z3 certificates). -/
+theorem arm_refinement_real
+    (mv tg : Var 2) (g : Term (Var 2)) (fL : Fin 2 → Term (Var 2))
+    (hg : mv ∉ g.fv)
+    (hmvclk : mv ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
+    (hmvtg : mv ≠ tg)
+    (hmvGd : ∀ q', mv ∉ (arm_refinementM.GdOf q').fv)
+    (htgGd : ∀ q', tg ∉ (arm_refinementM.GdOf q').fv)
+    (hfrzGd : ∀ q', ∀ x ∈ (arm_refinementM.GdOf q').fv,
+        x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
+    (hcert : ∀ q m, arm_refinementM.graph.modeAt q = some m →
+        ∀ ν, Formula.sat (arm_refinementM.GdOf q) ν →
+          BoxLe (Program.ode m.sys arm_refinementM.envF) (fun ω => Term.eval g ω) ν) :
+    ∀ q pm m, arm_refinement_IR.R.modes[q]? = some pm → arm_refinementM.modes[q]? = some m →
+      GuardSettlingB arm_refinementM.graph (realGdOf arm_refinement_IR arm_refinementM)
+        (realFieldOf arm_refinement_IR.R.stateVars pm 2) (Term.const 1)
+        (realEnvOf arm_refinement_IR.R.stateVars 2 pm)
+        ((qDiv (qDiv (⟨10, 10⟩ : QF) arm_refinement_meta.lam) (qOfInt arm_refinementM.dtQ)).val
+          * ((arm_refinementM.dt : ℤ) : ℝ)) q :=
+  settling_real_end_to_end_pad arm_refinement_IR arm_refinement_meta arm_refinementM
+    (εR := ⟨10, 10⟩) rfl rfl
+    (by decide) (by decide)
+    (by intro j hj; interval_cases j <;> decide)
+    (fun j hj => sigmaOf_pos_lt (by decide) hj)
+    (by
+      have h : qDiv (qDiv (⟨10, 10⟩ : QF) arm_refinement_meta.lam)
+          (qOfInt arm_refinementM.dtQ) = (⟨10, 20⟩ : QF) := rfl
+      rw [h]
+      norm_num [QF.val])
+    (by decide) (by decide) (by decide) (by decide)
+    mv tg g fL rfl (by norm_num [SettlingModel.dt, arm_refinementM])
     hg hmvclk hmvtg hmvGd htgGd hfrzGd hcert
 
 /-- `attitude_rate`: real-model end to end (residuals: freshness data + Z3 certificates). -/
@@ -278,6 +449,108 @@ theorem match_multi_rate_real
       norm_num [QF.val])
     (by decide)
     mv tg g fL rfl (by norm_num [SettlingModel.dt, match_multi_rateM])
+    hg hmvclk hmvtg hmvGd htgGd hfrzGd hcert
+
+/-- `plant_fan_high` (PADDED model): real-model end to end (residuals: freshness data +
+Z3 certificates). -/
+theorem plant_fan_high_real
+    (mv tg : Var 2) (g : Term (Var 2)) (fL : Fin 2 → Term (Var 2))
+    (hg : mv ∉ g.fv)
+    (hmvclk : mv ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
+    (hmvtg : mv ≠ tg)
+    (hmvGd : ∀ q', mv ∉ (plant_fan_highM.GdOf q').fv)
+    (htgGd : ∀ q', tg ∉ (plant_fan_highM.GdOf q').fv)
+    (hfrzGd : ∀ q', ∀ x ∈ (plant_fan_highM.GdOf q').fv,
+        x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
+    (hcert : ∀ q m, plant_fan_highM.graph.modeAt q = some m →
+        ∀ ν, Formula.sat (plant_fan_highM.GdOf q) ν →
+          BoxLe (Program.ode m.sys plant_fan_highM.envF) (fun ω => Term.eval g ω) ν) :
+    ∀ q pm m, plant_fan_high_IR.R.modes[q]? = some pm → plant_fan_highM.modes[q]? = some m →
+      GuardSettlingB plant_fan_highM.graph (realGdOf plant_fan_high_IR plant_fan_highM)
+        (realFieldOf plant_fan_high_IR.R.stateVars pm 2) (Term.const 1)
+        (realEnvOf plant_fan_high_IR.R.stateVars 2 pm)
+        ((qDiv (qDiv (⟨10, 10⟩ : QF) plant_fan_high_meta.lam) (qOfInt plant_fan_highM.dtQ)).val
+          * ((plant_fan_highM.dt : ℤ) : ℝ)) q :=
+  settling_real_end_to_end_pad plant_fan_high_IR plant_fan_high_meta plant_fan_highM
+    (εR := ⟨10, 10⟩) rfl rfl
+    (by decide) (by decide)
+    (by intro j hj; interval_cases j <;> decide)
+    (fun j hj => sigmaOf_pos_lt (by decide) hj)
+    (by
+      have h : qDiv (qDiv (⟨10, 10⟩ : QF) plant_fan_high_meta.lam)
+          (qOfInt plant_fan_highM.dtQ) = (⟨10, 50⟩ : QF) := rfl
+      rw [h]
+      norm_num [QF.val])
+    (by decide) (by decide) (by decide) (by decide)
+    mv tg g fL rfl (by norm_num [SettlingModel.dt, plant_fan_highM])
+    hg hmvclk hmvtg hmvGd htgGd hfrzGd hcert
+
+/-- `plant_fan_low` (PADDED model): real-model end to end (residuals: freshness data +
+Z3 certificates). -/
+theorem plant_fan_low_real
+    (mv tg : Var 2) (g : Term (Var 2)) (fL : Fin 2 → Term (Var 2))
+    (hg : mv ∉ g.fv)
+    (hmvclk : mv ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
+    (hmvtg : mv ≠ tg)
+    (hmvGd : ∀ q', mv ∉ (plant_fan_lowM.GdOf q').fv)
+    (htgGd : ∀ q', tg ∉ (plant_fan_lowM.GdOf q').fv)
+    (hfrzGd : ∀ q', ∀ x ∈ (plant_fan_lowM.GdOf q').fv,
+        x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
+    (hcert : ∀ q m, plant_fan_lowM.graph.modeAt q = some m →
+        ∀ ν, Formula.sat (plant_fan_lowM.GdOf q) ν →
+          BoxLe (Program.ode m.sys plant_fan_lowM.envF) (fun ω => Term.eval g ω) ν) :
+    ∀ q pm m, plant_fan_low_IR.R.modes[q]? = some pm → plant_fan_lowM.modes[q]? = some m →
+      GuardSettlingB plant_fan_lowM.graph (realGdOf plant_fan_low_IR plant_fan_lowM)
+        (realFieldOf plant_fan_low_IR.R.stateVars pm 2) (Term.const 1)
+        (realEnvOf plant_fan_low_IR.R.stateVars 2 pm)
+        ((qDiv (qDiv (⟨10, 10⟩ : QF) plant_fan_low_meta.lam) (qOfInt plant_fan_lowM.dtQ)).val
+          * ((plant_fan_lowM.dt : ℤ) : ℝ)) q :=
+  settling_real_end_to_end_pad plant_fan_low_IR plant_fan_low_meta plant_fan_lowM
+    (εR := ⟨10, 10⟩) rfl rfl
+    (by decide) (by decide)
+    (by intro j hj; interval_cases j <;> decide)
+    (fun j hj => sigmaOf_pos_lt (by decide) hj)
+    (by
+      have h : qDiv (qDiv (⟨10, 10⟩ : QF) plant_fan_low_meta.lam)
+          (qOfInt plant_fan_lowM.dtQ) = (⟨10, 20⟩ : QF) := rfl
+      rw [h]
+      norm_num [QF.val])
+    (by decide) (by decide) (by decide) (by decide)
+    mv tg g fL rfl (by norm_num [SettlingModel.dt, plant_fan_lowM])
+    hg hmvclk hmvtg hmvGd htgGd hfrzGd hcert
+
+/-- `plant_fan_mid` (PADDED model): real-model end to end (residuals: freshness data +
+Z3 certificates). -/
+theorem plant_fan_mid_real
+    (mv tg : Var 2) (g : Term (Var 2)) (fL : Fin 2 → Term (Var 2))
+    (hg : mv ∉ g.fv)
+    (hmvclk : mv ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
+    (hmvtg : mv ≠ tg)
+    (hmvGd : ∀ q', mv ∉ (plant_fan_midM.GdOf q').fv)
+    (htgGd : ∀ q', tg ∉ (plant_fan_midM.GdOf q').fv)
+    (hfrzGd : ∀ q', ∀ x ∈ (plant_fan_midM.GdOf q').fv,
+        x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
+    (hcert : ∀ q m, plant_fan_midM.graph.modeAt q = some m →
+        ∀ ν, Formula.sat (plant_fan_midM.GdOf q) ν →
+          BoxLe (Program.ode m.sys plant_fan_midM.envF) (fun ω => Term.eval g ω) ν) :
+    ∀ q pm m, plant_fan_mid_IR.R.modes[q]? = some pm → plant_fan_midM.modes[q]? = some m →
+      GuardSettlingB plant_fan_midM.graph (realGdOf plant_fan_mid_IR plant_fan_midM)
+        (realFieldOf plant_fan_mid_IR.R.stateVars pm 2) (Term.const 1)
+        (realEnvOf plant_fan_mid_IR.R.stateVars 2 pm)
+        ((qDiv (qDiv (⟨10, 10⟩ : QF) plant_fan_mid_meta.lam) (qOfInt plant_fan_midM.dtQ)).val
+          * ((plant_fan_midM.dt : ℤ) : ℝ)) q :=
+  settling_real_end_to_end_pad plant_fan_mid_IR plant_fan_mid_meta plant_fan_midM
+    (εR := ⟨10, 10⟩) rfl rfl
+    (by decide) (by decide)
+    (by intro j hj; interval_cases j <;> decide)
+    (fun j hj => sigmaOf_pos_lt (by decide) hj)
+    (by
+      have h : qDiv (qDiv (⟨10, 10⟩ : QF) plant_fan_mid_meta.lam)
+          (qOfInt plant_fan_midM.dtQ) = (⟨10, 20⟩ : QF) := rfl
+      rw [h]
+      norm_num [QF.val])
+    (by decide) (by decide) (by decide) (by decide)
+    mv tg g fL rfl (by norm_num [SettlingModel.dt, plant_fan_midM])
     hg hmvclk hmvtg hmvGd htgGd hfrzGd hcert
 
 /-- `refinement_ladder_rover_rung1_2to3`: real-model end to end (residuals: freshness data + Z3 certificates). -/

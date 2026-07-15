@@ -963,13 +963,20 @@ theorem idxOf?_getD {vs : List String} (hnod : vs.Nodup) {j : Nat}
   have := (List.Nodup.getElem_inj_iff hnod).mp h
   omega
 
+/-- `rhoOf` at the `j`-th benchmark variable reads the `j`-th right coordinate
+(width-based form: needs only `j < vs.length`, so padded models qualify). -/
+theorem rhoOf_getD' {vs : List String} (hnod : vs.Nodup)
+    (ν : DL.State (Var n)) {j : Nat} (hjw : j < vs.length) (hj : j < n) :
+    rhoOf vs n ν (vs.getD j "") = ν (Rv ⟨j, hj⟩) := by
+  unfold rhoOf
+  rw [idxOf?_getD hnod hjw]
+  simp only [hj, dite_true]
+
 /-- `rhoOf` at the `j`-th benchmark variable reads the `j`-th right coordinate. -/
 theorem rhoOf_getD {vs : List String} (hnod : vs.Nodup) (hlen : vs.length = n)
     (ν : DL.State (Var n)) {j : Nat} (hj : j < n) :
-    rhoOf vs n ν (vs.getD j "") = ν (Rv ⟨j, hj⟩) := by
-  unfold rhoOf
-  rw [idxOf?_getD hnod (by omega)]
-  simp only [hj, dite_true]
+    rhoOf vs n ν (vs.getD j "") = ν (Rv ⟨j, hj⟩) :=
+  rhoOf_getD' hnod ν (by omega) hj
 
 /-! ## Part 5: the per-shape pushforward bridges
 
@@ -1082,9 +1089,9 @@ theorem bridge_constRate (hσd : ∀ j, j < n → (σq.getD j (qOfInt 0)).pos)
   ring
 
 /-- `contract k c`: affine contraction toward `c` at integer rate `k`. -/
-theorem bridge_contract (hnod : vs.Nodup) (hlen : vs.length = n)
+theorem bridge_contract (hnod : vs.Nodup) (i : Fin n) (hiw : i.val < vs.length)
     (hσd : ∀ j, j < n → (σq.getD j (qOfInt 0)).pos) (hud : uq.pos)
-    (i : Fin n) {p : QPoly} {k c : ℤ}
+    {p : QPoly} {k c : ℤ}
     (hp : PolyInv p)
     (hsf : shapeFaithful vs σq uq i.val (CoordShape.contract k c : CoordShape n) p = true)
     (ν : DL.State (Var n)) :
@@ -1118,7 +1125,6 @@ theorem bridge_contract (hnod : vs.Nodup) (hlen : vs.length = n)
         simpa using this)) hσi) hc
     rw [qOfInt_val, qMul_val, qDiv_val hA (qNeg_pos hB), qNeg_val] at this
     exact this
-  have hρ := scaleState_rhoOf (n := n) hnod hlen σq ν i.isLt
   show (k : ℝ) * ((c : ℝ) - scaleState (sigmaOf σq) ν (Rv i))
       = sigmaOf σq i * (uq.val * Term.eval (polyToTerm vs n p) ν)
   rw [polyToTerm_eval,
@@ -1127,16 +1133,16 @@ theorem bridge_contract (hnod : vs.Nodup) (hlen : vs.length = n)
     Mono.evalR_nil, Mono.evalR_cons, Mono.evalR_nil]
   have hRv : scaleState (sigmaOf σq) ν (Rv i) = sigmaOf σq i * ν (Rv i) := rfl
   have hρv : rhoOf vs n ν v = ν (Rv i) := by
-    rw [hv, rhoOf_getD hnod hlen ν i.isLt]
+    rw [hv, rhoOf_getD' hnod ν hiw i.isLt]
   rw [hRv, hρv, hkval, hcval]
   have hBne : (coeffOf p [(v, 1)]).val ≠ 0 := by linarith
   field_simp
   ring
 
 /-- `contractQ kn kd c`: contraction at rational rate `kn/kd`. -/
-theorem bridge_contractQ (hnod : vs.Nodup) (hlen : vs.length = n)
+theorem bridge_contractQ (hnod : vs.Nodup) (i : Fin n) (hiw : i.val < vs.length)
     (hσd : ∀ j, j < n → (σq.getD j (qOfInt 0)).pos) (hud : uq.pos)
-    (i : Fin n) {p : QPoly} {kn kd c : ℤ}
+    {p : QPoly} {kn kd c : ℤ}
     (hp : PolyInv p)
     (hsf : shapeFaithful vs σq uq i.val
       (CoordShape.contractQ kn kd c : CoordShape n) p = true)
@@ -1183,7 +1189,7 @@ theorem bridge_contractQ (hnod : vs.Nodup) (hlen : vs.length = n)
     Mono.evalR_nil, Mono.evalR_cons, Mono.evalR_nil]
   have hRv : scaleState (sigmaOf σq) ν (Rv i) = sigmaOf σq i * ν (Rv i) := rfl
   have hρv : rhoOf vs n ν v = ν (Rv i) := by
-    rw [hv, rhoOf_getD hnod hlen ν i.isLt]
+    rw [hv, rhoOf_getD' hnod ν hiw i.isLt]
   rw [hRv, hρv, hkval, hcval]
   have hBne : (coeffOf p [(v, 1)]).val ≠ 0 := by linarith
   field_simp
@@ -1276,8 +1282,8 @@ theorem bridge_chase (hnod : vs.Nodup) (hlen : vs.length = n)
 /-- `riccati b a`: quadratic drag `ḃ = b − (a/10⁶)x²`. -/
 theorem bridge_riccati (hnod : vs.Nodup) (hlen : vs.length = n)
     (hσd : ∀ j, j < n → (σq.getD j (qOfInt 0)).pos)
-    (hσv : ∀ j : Fin n, 0 < sigmaOf σq j) (hud : uq.pos)
-    (i : Fin n) {p : QPoly} {b a : ℤ}
+    (hud : uq.pos)
+    (i : Fin n) (hσvI : 0 < sigmaOf σq i) {p : QPoly} {b a : ℤ}
     (hp : PolyInv p)
     (hsf : shapeFaithful vs σq uq i.val (CoordShape.riccati b a : CoordShape n) p = true)
     (ν : DL.State (Var n)) :
@@ -1288,7 +1294,7 @@ theorem bridge_riccati (hnod : vs.Nodup) (hlen : vs.length = n)
   obtain ⟨⟨⟨hsup, hσz⟩, hb⟩, ha⟩ := hsf
   set v := vs.getD i.val "" with hv
   have hσi := hσd i.val i.isLt
-  have hσine : sigmaOf σq i ≠ 0 := ne_of_gt (hσv i)
+  have hσine : sigmaOf σq i ≠ 0 := ne_of_gt hσvI
   have hA : (coeffOf p []).pos := coeffOf_pos hp.pos []
   have hBq : (coeffOf p [(v, 2)]).pos := coeffOf_pos hp.pos [(v, 2)]
   have hbval : (b : ℝ) = (coeffOf p []).val * sigmaOf σq i * uq.val := by
@@ -1959,7 +1965,7 @@ theorem bandSettling_sat {vs : List String} {σq : List QF}
     {gb : List (String × Option QF × Option QF)} (hgb : BoundsPos gb)
     (m : SettlingMode n)
     (hσd : ∀ j, j < n → (σq.getD j (qOfInt 0)).pos)
-    (hσv : ∀ j : Fin n, 0 < sigmaOf σq j)
+    (hσvg : 0 < sigmaOf σq m.gcoord)
     (hband :
       (match (boundOf gb (vs.getD m.gcoord.val "")).1 with
        | some q => qEq (qOfInt m.glo) (qMul q (σq.getD m.gcoord.val (qOfInt 0)))
@@ -1989,7 +1995,7 @@ theorem bandSettling_sat {vs : List String} {σq : List QF}
     simp only [Bool.and_eq_true]
     exact ⟨hlo, hhi⟩
   have hcorr := envFaithful_sat m.gcoord (hσd m.gcoord.val m.gcoord.isLt)
-    (hσv m.gcoord)
+    hσvg
     (fun r hr => by
       have h' : qlo = r := by injection hr
       exact h' ▸ (boundOf_pos hgb (vs.getD m.gcoord.val "")).1 qlo hloe)
@@ -2181,10 +2187,10 @@ theorem realGdOf_sat (P : Parse.PProblem) (mt : TransMeta) (M : SettlingModel n)
     constructor
     · rintro ⟨h1, h2⟩
       exact ⟨(envFormulaR_sat M (boundsOfForm_pos heb) hσd hσv hef ν).mp h1,
-        (bandSettling_sat (boundsOfForm_pos hgb) m hσd hσv ⟨hblo, hbhi⟩ ν).mp h2⟩
+        (bandSettling_sat (boundsOfForm_pos hgb) m hσd (hσv m.gcoord) ⟨hblo, hbhi⟩ ν).mp h2⟩
     · rintro ⟨h1, h2⟩
       exact ⟨(envFormulaR_sat M (boundsOfForm_pos heb) hσd hσv hef ν).mpr h1,
-        (bandSettling_sat (boundsOfForm_pos hgb) m hσd hσv ⟨hblo, hbhi⟩ ν).mpr h2⟩
+        (bandSettling_sat (boundsOfForm_pos hgb) m hσd (hσv m.gcoord) ⟨hblo, hbhi⟩ ν).mpr h2⟩
 
 /-! ### The per-mode field dispatch -/
 
@@ -2221,10 +2227,10 @@ theorem fieldOf_bridge {vs : List String} {σq : List QF} {uq : QF}
       exact bridge_constRate hσd hud i hp hsf ν
   | contract k c =>
       rw [hsh] at hsf
-      exact bridge_contract hnod hlen hσd hud i hp hsf ν
+      exact bridge_contract hnod i (by omega) hσd hud hp hsf ν
   | contractQ kn kd c =>
       rw [hsh] at hsf
-      exact bridge_contractQ hnod hlen hσd hud i hp hsf ν
+      exact bridge_contractQ hnod i (by omega) hσd hud hp hsf ν
   | driven j =>
       rw [hsh] at hsf
       exact bridge_driven hnod hlen hσd hud i hp hsf ν
@@ -2240,7 +2246,7 @@ theorem fieldOf_bridge {vs : List String} {σq : List QF} {uq : QF}
         (of_decide_eq_true hidxi.2) hp hsf ν
   | riccati b a =>
       rw [hsh] at hsf
-      exact bridge_riccati hnod hlen hσd hσv hud i hp hsf ν
+      exact bridge_riccati hnod hlen hσd hud i (hσv i) hp hsf ν
   | pairSym j c h =>
       rw [hsh] at hsf
       rw [hsh] at hidxi

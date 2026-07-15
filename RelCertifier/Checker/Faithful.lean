@@ -118,6 +118,21 @@ def supportIn (p : QPoly) (ms : List Mono) : Bool :=
 
 /-! ## Bounds from conjunctive guard/evolve formulas -/
 
+/-- One merge step of the `and`-fold: insert or interval-intersect entry `e`. Named (not a
+lambda) so proofs can speak about it without restating the match. -/
+def mergeBound (acc : List (String × Option QF × Option QF))
+    (e : String × Option QF × Option QF) : List (String × Option QF × Option QF) :=
+  match acc.find? (fun e2 => e2.1 == e.1) with
+  | none => acc ++ [e]
+  | some e0 =>
+      let lo' := match e0.2.1, e.2.1 with
+        | none, x => x | x, none => x
+        | some x, some y => some (if qLt x y then y else x)
+      let hi' := match e0.2.2, e.2.2 with
+        | none, x => x | x, none => x
+        | some x, some y => some (if qLt x y then x else y)
+      acc.map (fun e2 => if e2.1 == e.1 then (e.1, lo', hi') else e2)
+
 /-- Fold a conjunction of `var ⋈ const` atoms into per-variable interval bounds.
 Non-conjunctive structure or non-(var,const) atoms → `none` (`Faithful` then fails). -/
 def boundsOfForm : PForm → Option (List (String × Option QF × Option QF))
@@ -125,18 +140,7 @@ def boundsOfForm : PForm → Option (List (String × Option QF × Option QF))
   | .and a b => do
       let ba ← boundsOfForm a
       let bb ← boundsOfForm b
-      return bb.foldl (fun acc e =>
-        let (v, lo, hi) := e
-        match acc.find? (fun e2 => e2.1 == v) with
-        | none => acc ++ [(v, lo, hi)]
-        | some e0 =>
-            let lo' := match e0.2.1, lo with
-              | none, x => x | x, none => x
-              | some x, some y => some (if qLt x y then y else x)
-            let hi' := match e0.2.2, hi with
-              | none, x => x | x, none => x
-              | some x, some y => some (if qLt x y then x else y)
-            acc.map (fun e2 => if e2.1 == v then (v, lo', hi') else e2)) ba
+      return bb.foldl mergeBound ba
   | .cmp op a b =>
       match a, b with
       | .var v, .num c => do

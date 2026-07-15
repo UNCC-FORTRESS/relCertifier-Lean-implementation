@@ -62,8 +62,7 @@ PADDED = {"arm_chain_rung3", "arm_fidelity_high", "arm_fidelity_low", "arm_fidel
           "arm_refinement", "plant_fan_high", "plant_fan_low", "plant_fan_mid"}
 for fam, ir, meta, model in triples:
     bench = ir[:-3] if ir.endswith("_IR") else ir
-    if bench in PADDED:
-        continue  # padded models (vs.length < n): bridge extension pending
+    padded = bench in PADDED
     # meta literal: lam + scales
     mm = re.search(r'def '+re.escape(meta)+r'\s*:\s*TransMeta\s*:=\s*\{\s*lam := \(qMk (-?\d+) (-?\d+)\)', fc)
     lam = qMk(int(mm.group(1)), int(mm.group(2)))
@@ -111,6 +110,44 @@ for fam, ir, meta, model in triples:
           "faithfulAffine": "decideWellFormedA"}[fam]
     dtq_expr = f"{model}.dtQ" if fam == "faithfulSettling" else f"{core_expr}.dtQ"
 
+    if padded:
+        out.append(f"""/-- `{bench}` (PADDED model): real-model end to end (residuals: freshness data +
+Z3 certificates). -/
+theorem {bench}_real
+    (mv tg : Var {n}) (g : Term (Var {n})) (fL : Fin {n} → Term (Var {n}))
+    (hg : mv ∉ g.fv)
+    (hmvclk : mv ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
+    (hmvtg : mv ≠ tg)
+    (hmvGd : ∀ q', mv ∉ ({gdOf} q').fv)
+    (htgGd : ∀ q', tg ∉ ({gdOf} q').fv)
+    (hfrzGd : ∀ q', ∀ x ∈ ({gdOf} q').fv,
+        x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
+    (hcert : ∀ q m, {graph}.modeAt q = some m →
+        ∀ ν, Formula.sat ({gdOf} q) ν →
+          BoxLe (Program.ode m.sys {envF}) (fun ω => Term.eval g ω) ν) :
+    ∀ q pm m, {ir}.R.modes[q]? = some pm → {modes}[q]? = some m →
+      GuardSettlingB {graph} ({gd_real})
+        (realFieldOf {ir}.R.stateVars pm {n}) (Term.const 1)
+        (realEnvOf {ir}.R.stateVars {n} pm)
+        ((qDiv (qDiv (⟨{epsq[0]}, {epsq[1]}⟩ : QF) {meta}.lam) (qOfInt {dtq_expr})).val
+          * (({dt} : ℤ) : ℝ)) q :=
+  settling_real_end_to_end_pad {ir} {meta} {model}
+    (εR := ⟨{epsq[0]}, {epsq[1]}⟩) rfl rfl
+    (by decide) (by decide)
+    (by intro j hj; interval_cases j <;> decide)
+    (fun j hj => sigmaOf_pos_lt (by decide) hj)
+    (by
+      have h : qDiv (qDiv (⟨{epsq[0]}, {epsq[1]}⟩ : QF) {meta}.lam)
+          (qOfInt {dtq_expr}) = (⟨{u[0]}, {u[1]}⟩ : QF) := rfl
+      rw [h]
+      norm_num [QF.val])
+    (by decide) (by decide) (by decide) (by decide)
+    mv tg g fL rfl (by norm_num [SettlingModel.dt, {model}])
+    hg hmvclk hmvtg hmvGd htgGd hfrzGd hcert
+
+""")
+        continue
+
     out.append(f"""/-- `{bench}`: real-model end to end (residuals: freshness data + Z3 certificates). -/
 theorem {bench}_real
     (mv tg : Var {n}) (g : Term (Var {n})) (fL : Fin {n} → Term (Var {n}))
@@ -148,4 +185,4 @@ theorem {bench}_real
 
 out.append("end RelCertifier\n")
 open(os.path.join(root, "RelCertifier/Instances/RealInstances.lean"), "w").write("".join(out))
-print(f"generated {len(triples) - len(PADDED)} instances ({len(PADDED)} padded deferred)")
+print(f"generated {len(triples)} instances ({len(PADDED)} padded)")

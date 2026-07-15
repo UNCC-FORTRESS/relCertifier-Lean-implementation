@@ -297,10 +297,10 @@ every within-window piece coupled by its JOINT certificate (`cert.segPres`), seq
 from the emitted cover. The window budget is structural (the clock), so no analytic
 duration hypothesis appears. Repositions can be added as further frozen-left plain-ode
 elements of `leftData` in the standard way. -/
-theorem theorem3_uniform_multiflow (Gj Gr : SearchGraph (Var n)) (g : Term (Var n))
+theorem theorem3_uniform_multiflow (Gr : SearchGraph (Var n)) (g : Term (Var n))
     (mv : Var n) (tg : Var n) (dt : ℝ)
     (leftData : List ((Fin n → Term (Var n)) × Formula (Var n) × ℕ))
-    (ϕinv : RFormula (Var n)) (cert : CoverCert Gj g)
+    (ϕinv : RFormula (Var n))
     (hg : mv ∉ g.fv) (htgg : tg ∉ g.fv) (hmvtg : mv ≠ tg)
     (hψ : encode (Equiv.refl (Var n)) ϕinv = invLe g)
     (hfresh : ∀ q m, Gr.modeAt q = some m → mv ∉ (Program.ode m.sys m.dom).fv)
@@ -311,7 +311,7 @@ theorem theorem3_uniform_multiflow (Gj Gr : SearchGraph (Var n)) (g : Term (Var 
     (hleft : ∀ d ∈ leftData, mv ∉ (leftBlock d.1).bound
       ∧ d.2.1.fv ⊆ (leftBlock d.1).boundSet ∪ (leftBlock d.1).readVars
       ∧ tg ∉ (leftBlock d.1).bound ∧ tg ∉ (leftBlock d.1).readVars ∧ tg ∉ d.2.1.fv
-      ∧ RightProjAlignV Gj Gr g d.1 d.2.1
+      ∧ (∃ Gj : SearchGraph (Var n), CoverCert Gj g ∧ RightProjAlignV Gj Gr g d.1 d.2.1)
       ∧ EmitWindows Gr g mv d.1 d.2.1 tg dt d.2.2)
     (hd : Disjoint (Program.vars (bigChoice (leftData.map (fun d =>
           windowSeg (leftBlock d.1) d.2.1 tg dt d.2.2))))
@@ -337,7 +337,7 @@ theorem theorem3_uniform_multiflow (Gj Gr : SearchGraph (Var n)) (g : Term (Var 
   · -- the window Hmulti, cert-sourced
     intro P hP q hqlt σ hmvq hσ
     obtain ⟨d, hd', rfl⟩ := List.mem_map.mp hP
-    obtain ⟨-, hφL0, htgLb, htgLr, htgdL0, hRPA, hemit⟩ := hleft d hd'
+    obtain ⟨-, hφL0, htgLb, htgLr, htgdL0, ⟨Gj, cert, hRPA⟩, hemit⟩ := hleft d hd'
     exact Hmulti_window_from_cover Gj Gr g mv d.1 d.2.1 tg dt d.2.2 cert hφL0 htgLb htgLr
       htgdL0 htgg htgRight hRPA hemit q hqlt σ hmvq hσ
 

@@ -10,7 +10,7 @@ correct**, each proof citing a mechanized theorem of the imported theory. The si
 trusted assumption of the whole tool is that Z3's `unsat` verdict is sound
 (`z3_unsat_sound`); everything else is kernel-checked.
 
-The headline guarantee is **`tooling_sound`** (`GapThreeTask3.lean`): given hybrid automata `L` and `R`
+The headline guarantee is **`tooling_sound`** (`Archive/GapThreeTask3.lean` — the earlier flat-chain arc; the live suite pipeline is the guard-threaded one below): given hybrid automata `L` and `R`
 and an invariant candidate, if the tooling's cover succeeds, the paper's ∀∃ refinement modality holds
 over the programs **derived from the actual `L` and `R`** — the right ∃-response jumps only along
 *declared* transitions (`R_real = star(rightAutomatonBody)`), not the weaker flat choice-star. It covers
@@ -23,6 +23,17 @@ shared evolution domain, and the staying well-formedness discharged by construct
 classes (see "The landing chain, intuitively"). Separately, on the 47-benchmark suite the tool runs
 and reports **46 CERTIFIED / 47** (1 inconclusive-Z3 ERROR, never a false verdict) — that is *tool
 behavior*, a distinct and weaker claim than the Lean theorems. The two are kept distinct throughout.
+
+Beyond the automaton-level theorems, the repo now closes the **instance gap**: every one of the 46
+certifiable benchmarks carries a named theorem (`Instances/RealInstances.lean`,
+`<benchmark>_real`) stating the settling obligation for the **real parsed model** — the ode text
+lowered to polynomial fields, the parsed evolution bounds, the parsed/scaled guard bands — at the
+real duration, derived from the kernel fidelity certificate (`faithfulSettling`/`Terrain`/`Affine`,
+by `rfl` per benchmark) through the scaling-transfer bridge (`Proofs/Transfer/`). Residual
+hypotheses per theorem are exactly the Z3 `BoxLe` certificates and the freshness data — the
+`z3_unsat_sound` leaf, nothing else. The trusted surface is one folder:
+[`RelCertifier/Trusted/`](RelCertifier/Trusted/README.md), with an import-direction audit
+(`scripts/trust_audit.py`).
 
 ## What "end-to-end verified" means — and its exact scope
 
@@ -44,7 +55,7 @@ certificate → the paper's Theorem 3 → the dL semantics of the actual `L, R`,
 Z3's `unsat` is sound (`z3_unsat_sound`). The verdict is not *asserted* to mean the property — it is
 *proven* to, and about *your* `L` and `R`.
 
-**(c) The exact scope — stated plainly.** The end-to-end theorem `tooling_sound` (`GapThreeTask3.lean`)
+**(c) The exact scope — stated plainly.** The end-to-end theorem `tooling_sound` (`Archive/GapThreeTask3.lean`)
 covers:
 
 - **genuine multi-flow** — one left residence during which the right switches modes several times, each
@@ -85,7 +96,62 @@ on the three standard axioms. Reproduce: `lake env lean RelCertifier/AxiomCheck.
 | Automaton-right star, uniform-evol (`theorem3_faithful_landing_clocked_uniform`) | **proven** |
 | Guard-threaded settling discharge (`theorem3_faithful_settling`) + checked-cut tie (`boxLe_cut_lift`) | **proven** |
 | Well-formedness checker soundness (`wellformed_sound`: checker + Z3 certs ⟹ `GuardSettlingH`) | **proven** |
-| Trust boundary | Z3 UNSAT (`z3_unsat_sound`, 1 axiom) |
+| Kernel fidelity: parser-emitted IR ≡ certified model (`faithfulSettling`/`Terrain`/`Affine`, 46/46 `rfl`) | **proven** |
+| Scaling-transfer bridge, scaled ⟹ real model, all 9 shapes + 3 guard families (`faithful*_rescale`) | **proven** |
+| Padded models (`vs.length < n`, the arm/plant eight) (`settling_real_end_to_end_pad`) | **proven** |
+| Per-benchmark real-model end-to-end, 46/46 (`Instances/RealInstances.lean`) | **proven** |
+| Checked-cut lift: O1 syntactic + per-atom O2 via DI routes + `cut_hcert` at guard bases | **proven** (consumption wiring in progress, task F2) |
+| Real ⟹ scaled `BoxLe` transfer (`BoxLe_rescale`) | **proven** |
+| Trust boundary | parser + SMT printer + Z3 UNSAT (`z3_unsat_sound`, 1 axiom) — see `RelCertifier/Trusted/README.md` |
+
+## Architecture — the pipeline, and what is verified vs. trusted
+
+The library layout mirrors the end-to-end pipeline; each step below is marked **VERIFIED**
+(kernel-checked Lean, axioms `propext, Classical.choice, Quot.sound`) or **TRUSTED** (the audit
+surface — everything the kernel cannot check).
+
+```
+input.txt
+   │  TRUSTED   Trusted/Parse.lean — strict parser (reject-never-weaken); defines what the
+   │            theorems are about. Trusted/EmitIR.lean prints the IR as Lean literals.
+   ▼
+PProblem IR ──────────────► Instances/BenchIR.lean (generated literals; ir-drift test)
+   │
+   │  VERIFIED  Checker/ — kernel-decidable checks, certified by `rfl` per benchmark:
+   │            decideWellFormed{,T,A} (model well-formedness), faithful{Settling,Terrain,
+   │            Affine} (parser-emitted IR ≡ certified model, exact rational arithmetic),
+   │            cutCertWF (emitted cut atoms are guard conjuncts with re-checked routes).
+   ▼
+scaled model (SettlingModel/Terrain/Affine)
+   │
+   │  VERIFIED  Proofs/Soundness/ + Proofs/Flow/ — wellformed_sound{,_terrain,_affine}:
+   │            checker verdict + Z3 BoxLe certificates ⟹ GuardSettlingH (per-mode staying
+   │            and landing, from guard bases). The cut lift (CutLift.lean) repairs the
+   │            tool's narrowed queries back to bare-domain obligations at guard bases.
+   ▼
+GuardSettlingH ── VERIFIED ──► Proofs/Encoding/ — the theorem-3 chain: per-segment faModal,
+   │                           the calculus loop rule, clocked/cadenced ε on both sides,
+   │                           down to rvalid(theorem3Form …) — the paper's ∀∃ modality.
+   ▼
+   │  VERIFIED  Proofs/Transfer/ — the Faithful bridge: the kernel fidelity boolean upgrades
+   │            the scaled per-mode certificate to the REAL parsed model (real fields =
+   │            lowered ode text, real bounds, real/scaled guard bands) at the real duration
+   │            u·dt; padded models via sigmaPad. BoxLe_rescale carries certificates the
+   │            other way (real → scaled), for the hcert discharge chain.
+   ▼
+Instances/RealInstances.lean — 46 named per-benchmark theorems; residuals = Z3 verdicts
+                               (z3_unsat_sound) + freshness data.
+
+Z3 leaves:  TRUSTED  Trusted/Smt.lean (printer) + Trusted/Z3.lean (process) +
+            Trusted/Oracle.lean (the ONE axiom, z3_unsat_sound). Every query the proofs
+            cite is literally the query printed (IR-mirror identities, printer battery).
+Search:     TRUSTED-but-harmless  Trusted/OracleAPI.lean — budgets, cut search, cover
+            orchestration. Its OUTPUTS are certified; a wrong search costs completeness,
+            never soundness.
+```
+
+Import direction is machine-checked: `scripts/trust_audit.py` fails the build discipline if
+anything in `Trusted/` imports `Proofs/`, `Instances/`, or `Archive/`.
 
 ## Imported theories — the four repos it builds on
 
@@ -203,7 +269,7 @@ carries its own `Gj`/certificate; a shared `Gj` would be vacuous, since `RightPr
 `Gj`'s joint modes to `jointSys fL fR`, injective in `fL`.) **Intuition:** each left mode has its own
 cover; the loop composes them, tracking the right's current mode in the state across the switch.
 
-### 6. The tooling-soundness tie — cover of the *actual* programs (`GapThreeFoundation.lean`, `GapThreeTask2.lean`, `GapThreeTask3.lean`)
+### 6. The tooling-soundness tie — cover of the *actual* programs (`Archive/GapThree*.lean`)
 
 Steps 1–5 prove `cover ⟹ ∀∃` for a graph `G`. But nothing yet forces `G` to be the graph *of the input
 programs* `L, R` — the theorem could be about a graph unrelated to your input. GAP 3 closes that. A
@@ -552,9 +618,18 @@ same three Lean axioms. `theorem3_faithful` is the one that pins the ∃-right t
 #print axioms flow_certified       -- + z3_unsat_sound
 ```
 
-The pure core depends only on the three standard Lean axioms. The IO-boundary theorems add
-exactly one leaf, `z3_unsat_sound` (an `unsat` verdict from the opaque `z3solve` is sound),
-isolated in `Oracle.lean`. **No subtangency axiom** — where a boundary-only
+```
+#print axioms watertank_real / rover_dof_terrain_rung1_real / …
+                                   -- propext, Classical.choice, Quot.sound
+#print axioms cut_hcert            -- + z3_unsat_sound (the designed leaf)
+```
+
+The pure core — including all 46 per-benchmark real-model theorems — depends only on the three
+standard Lean axioms. The IO-boundary theorems add exactly one leaf, `z3_unsat_sound` (an `unsat`
+verdict from the opaque `z3solve` is sound), isolated in `Trusted/Oracle.lean`. The complete
+audit surface is the seven files of [`RelCertifier/Trusted/`](RelCertifier/Trusted/README.md),
+and `scripts/trust_audit.py` machine-checks that nothing trusted imports anything it is supposed
+to justify. **No subtangency axiom** — where a boundary-only
 non-strict flow check is unsound (dL-lean's `nonstrict_boundary_insufficient`, the `t²`
 counterexample), the verified version takes the sound strict route (`DI_strict`).
 
@@ -610,7 +685,10 @@ terminates (query / SMT-size / wall / rlimit bounds, all deterministic).
 ```sh
 lake build                      # verified library + `relcert` + `relcert-test`
 lake exe relcert <input.txt> …  # oracle over each file on one warm session (3-way verdict + ms)
+lake exe relcert --emit-ir <input.txt> <name>    # parsed IR as a Lean literal (BenchIR door)
+lake exe relcert --emit-cuts <input.txt> <name>  # checked-cut certificate literal (CutCerts door)
 lake exe relcert                # no args: the Stage-1 flow-certificate demo
+python3 scripts/trust_audit.py # import-direction check for the trust boundary
 BENCH_PATHS=<name-tab-path-file> lake exe relcert-test   # trusted-layer test suite
 ```
 
@@ -706,16 +784,21 @@ make them **guard-derivable** rather than silently asserted:
   contraction-to-equilibrium (tangent non-exit at the cap).
 
 These mode-invariants are consumed through the **checked-cut channel**
-(`OracleAPI.checkedCut`): every mode's evolve is the LITERAL shared envelope — one evolve string
-per side on all 47 benchmarks — and the certifier itself re-derives each cut before using it.
-Candidate cuts are the guard's non-strict atomic conjuncts (the default proposer; an optional
-per-mode `strengthen =` field supplies extras), and a candidate narrows the query domains only
-after BOTH obligations certify: **O1 (entry)** — the guard implies it; **O2 (invariance)** —
-flow-invariant along the mode's own field (the same DI routes as the main certificates, or the
-tangent-capable contract-shape check backed by `contract_stays`). Failing candidates are silently
-dropped (completeness-only, never soundness), and `evolve` is never modified — the model matches
-the uniform-evol proof structure exactly, and `CutChannel.lean` (`boxLe_cut_lift`) proves the
-narrowed certificate lifts back to the uniform-domain obligation the landing chain consumes.
+(`Trusted/OracleAPI.checkedCut`): every mode's evolve is the LITERAL shared envelope — one evolve
+string per side on all 47 benchmarks — and the certifier itself re-derives each cut before using
+it. Candidate cuts are the guard's non-strict atomic conjuncts (nothing else: the former
+`strengthen` field was never used by any benchmark and has been removed), and a candidate narrows
+the query domains only after both obligations certify: **O1 (entry)** — syntactic, the atom IS a
+guard conjunct; **O2 (invariance)** — flow-invariant along the mode's own field over the BARE
+evolve domain (unconditioned: no mutual-barrier coupling; per-atom strict-boundary, whole-domain,
+or the tangent-capable contract-shape route). Failing candidates are silently dropped
+(completeness cost only). The channel's output is CERTIFIED, Faithful-style: `relcert --emit-cuts`
+prints each benchmark's kept atoms with their routes, `Instances/CutCerts.lean` holds all 46 with
+`cutCertWF … = true := rfl` (kernel), and the lift (`Proofs/Soundness/CutLift.lean`, `cut_hcert`)
+turns a narrowed-query UNSAT plus the per-atom O2 verdicts into the bare-domain obligation at
+guard bases — the same `z3_unsat_sound` leaf as the main queries, no trusted narrowing step left.
+Load-bearing scope note: O1 covers guard bases, so narrowed verdicts feed the guard-threaded
+story only; the flat CSF chain consumes un-narrowed queries.
 
 So the design lands fully honest: **one shared physical envelope; mode-dependent physics enters
 through the guards; anything tighter than the envelope is re-derived by the certifier, never
@@ -760,37 +843,34 @@ parser, lowering, Z3-layer verdicts. See the **Benchmark suite** section above f
 
 ```
 RelCertifier/
-  FlowCert.lean       Stage 1 — tderiv/lieDeriv + flow certificate soundness
-  NonConn.lean        Stage 2 — Nagumo non-connection barrier
-  Cover.lean          Stage 3 — cover relation, finiteness, cover_sound (Theorem 3)
-  Cover/Encoding.lean Stage 3 — global ∀∃ encoding bridge (encoding_correct)
-  JointBridge.lean    Stage 4 — R_real (transition-faithful automaton) + right-response witness
-  OdeProject.lean     Stage 4 — joint-ODE projection onto the right block
-  RightReachProject.lean Stage 4 — run-level projection of the co-execution
-  BridgeUnit1/2/3.lean Stage 4 — segment-wrap, loop-step assembly, faModal_LOCK close
-  BridgeFinish.lean   Stage 4 — theorem3_faithful (∀∃ over R_real, rvalid form)
-  BridgeDischarge.lean Stage 5 — decideCovered_implies_theorem3_faithful (discharge hstep, end-to-end)
-  Smt.lean            computable IR + SMT-LIB printer (pinned to lieDeriv by bridge lemmas)
-  Oracle.lean         the single trusted leaf (z3_unsat_sound) + IO-boundary theorems
-  Parse.lean          input.txt parser (trusted IO)
-  Run.lean            end-to-end cover runner
-  PicardBridge.lean   the ∀∃ witness — hExist discharged (existence + invariance + chaining)
-  HExistDischarge.lean cross-side masking seam — hExist into segment_faModal
-  WellFormedFlow.lean / WFBoundary.lean  per-mode staying hypothesis (∀s / bounded ≤dt) + falsifiability
-  MultisegLanding.lean / MultisegLandingBridge.lean  automaton-right landing chain → rvalid
-  RoverLandingInstance.lean / DecayDischarge.lean    grounding instances + stabilizing discharge
-  UniformEvol.lean    uniform-evol deployment: junction trivial, margin/contraction discharge
-  GuardThreaded.lean  Tier B guard-threaded discharge: staying from guard bases, by construction
-  CutChannel.lean     checked-cut tie: cut-narrowed certificate lifts to the uniform-domain BoxLe
-  WellFormedChecker.lean  verified decidable well-formedness checker (wellformed_sound)
-  SettlingInstances.lean  benchmark SettlingModel data terms + kernel certificates
-  TerrainChecker.lean     EXT 3/3b terrain checker: box guards, driven/damped position (wellformed_sound_terrain)
-  TerrainInstances.lean   terrain TerrainModel data terms + kernel certificates
-  AffineChecker.lean      EXT 2b affine checker: driven-active velocity (wellformed_sound_affine)
-  AffineInstances.lean    affine AffineModel data terms + kernel certificates
-Main.lean             `relcert` executable
-ARCHITECTURE.md       certified-checker architecture + the finding that reshaped it
-docs/DEVELOPMENT-ARC.md    the three development arcs, mechanized findings, converged design
-BENCHMARK_INSTANTIABILITY.md  per-benchmark map against tooling_sound (older chain's boundary)
-benchmarks/suite_uniform/  the benchmark suite (shared envelopes, guard physics, checked cuts)
+  Trusted/       THE AUDIT SURFACE (see Trusted/README.md for the exact trust claim)
+    Parse.lean       strict input.txt parser  ·  EmitIR.lean  IR-literal printer
+    Smt.lean         SMT-LIB printer (+ kernel-checked IR mirrors)
+    Z3.lean          Z3 session (IO)  ·  Oracle.lean  the one axiom, z3_unsat_sound
+    Run.lean         lowering PProblem → IR  ·  OracleAPI.lean  search/budgets/cut search
+  Core/            FlowCert (tderiv/lieDeriv + flow-certificate soundness), QFrac
+                   (kernel-fast exact rationals), Reify
+  Checker/         kernel-decidable checkers: WellFormed/Terrain/Affine, Faithful
+                   (transcription fidelity), Cover, CutCertDefs, NonConn
+  Proofs/
+    Flow/          ODE analysis: PicardBridge (hExist), DISuperlevel, MultisegLanding,
+                   WellFormedFlow/WFBoundary
+    Soundness/     GuardThreaded (Tier-B H), UniformEvol, CutChannel + CutLift (the
+                   checked-cut lift)
+    Encoding/      the theorem-3 chain: BridgeUnit1–3, BridgeFinish, BridgeDischarge,
+                   JointBridge, ClockedTop (ε on both sides), FvDischarge, ToolLevel
+    Transfer/      Rescale (+ BoxLe_rescale), FaithfulBridge (+Guards, +Pad),
+                   RealEndToEnd (generic per-family end-to-end)
+  Instances/       BenchIR (generated IR literals), FaithfulCerts + CutCerts (kernel
+                   certificates, rfl), Settling/Terrain/AffineInstances (models),
+                   RealInstances (46 per-benchmark real-model theorems), EndToEnd
+                   (watertank walkthrough), Mega, AxiomCheck
+  Archive/         earlier development arcs (GapTwo/GapThree*, Reposition*, …); still
+                   compiled, not on the live import path
+Main.lean          `relcert` executable (--emit-ir, --emit-cuts, batch certify)
+scripts/           trust_audit.py (import-direction check), gen_real_instances.py,
+                   transcription/suite audits
+ARCHITECTURE.md    certified-checker architecture + the finding that reshaped it
+docs/              DEVELOPMENT-ARC.md, CUT-LIFT-SCOPE.md
+benchmarks/suite_uniform/  the benchmark suite
 ```

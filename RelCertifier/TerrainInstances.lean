@@ -149,7 +149,7 @@ def refinement_ladder_rover_rung2_3to6T : TerrainModel 6 :=
         glo := 0, ghi := 800, succs := [2] },
       { shapes := ![CoordShape.contract 3 650, CoordShape.drivenDamp 0 [(2, 1, 2000000)], CoordShape.contract 1 0, CoordShape.contract 1 0, CoordShape.frozen, CoordShape.frozen], gcoord := 0,
         glo := 0, ghi := 800, succs := [] } ]
-      env := ![{ lo := some 0, hi := some 800 }, { lo := some (-50 : ℤ), hi := none }, { lo := some (-500 : ℤ), hi := some 150 }, { lo := some (-500 : ℤ), hi := some 150 }, { lo := some (-1000 : ℤ), hi := some 1100 }, { lo := some (-500 : ℤ), hi := some 600 }]
+      env := ![{ lo := some 0, hi := some 800 }, { lo := some 0, hi := none }, { lo := some (-500 : ℤ), hi := some 150 }, { lo := some (-500 : ℤ), hi := some 150 }, { lo := some (-1000 : ℤ), hi := some 1100 }, { lo := some (-500 : ℤ), hi := some 600 }]
       dtQ := 1 }
     sbands :=
     [
@@ -171,7 +171,7 @@ def refinement_ladder_rover_rung2c_6dofT : TerrainModel 6 :=
         glo := 0, ghi := 800, succs := [2] },
       { shapes := ![CoordShape.contract 3 650, CoordShape.drivenDamp 0 [(2, 1, 2000000), (3, 3, 10000000)], CoordShape.contract 1 0, CoordShape.contract 1 0, CoordShape.frozen, CoordShape.frozen], gcoord := 0,
         glo := 0, ghi := 800, succs := [] } ]
-      env := ![{ lo := some 0, hi := some 800 }, { lo := some (-50 : ℤ), hi := none }, { lo := some (-500 : ℤ), hi := some 150 }, { lo := some (-500 : ℤ), hi := some 150 }, { lo := some (-1000 : ℤ), hi := some 1100 }, { lo := some (-500 : ℤ), hi := some 600 }]
+      env := ![{ lo := some 0, hi := some 800 }, { lo := some 0, hi := none }, { lo := some (-500 : ℤ), hi := some 150 }, { lo := some (-500 : ℤ), hi := some 150 }, { lo := some (-1000 : ℤ), hi := some 1100 }, { lo := some (-500 : ℤ), hi := some 600 }]
       dtQ := 1 }
     sbands :=
     [
@@ -237,7 +237,7 @@ def story1_attdist_rung_a_6to8T : TerrainModel 8 :=
         glo := 0, ghi := 800, succs := [2] },
       { shapes := ![CoordShape.contract 3 650, CoordShape.drivenDamp 0 [(2, 1, 2000000), (4, 3, 10000000)], CoordShape.contract 1 0, CoordShape.frozen, CoordShape.contract 1 0, CoordShape.frozen, CoordShape.contract 1 0, CoordShape.contract 1 0], gcoord := 0,
         glo := 0, ghi := 800, succs := [] } ]
-      env := ![{ lo := some 0, hi := some 800 }, { lo := some (-50 : ℤ), hi := none }, { lo := some (-500 : ℤ), hi := some 150 }, { lo := some (-500 : ℤ), hi := some 600 }, { lo := some (-500 : ℤ), hi := some 150 }, { lo := some (-500 : ℤ), hi := some 600 }, { lo := some (-1000 : ℤ), hi := some 150 }, { lo := some (-500 : ℤ), hi := some 150 }]
+      env := ![{ lo := some 0, hi := some 800 }, { lo := some 0, hi := none }, { lo := some (-500 : ℤ), hi := some 150 }, { lo := some (-500 : ℤ), hi := some 600 }, { lo := some (-500 : ℤ), hi := some 150 }, { lo := some (-500 : ℤ), hi := some 600 }, { lo := some (-1000 : ℤ), hi := some 150 }, { lo := some (-500 : ℤ), hi := some 150 }]
       dtQ := 1 }
     sbands :=
     [
@@ -259,7 +259,7 @@ def story2_lateral_rung_a_8dofT : TerrainModel 8 :=
         glo := 0, ghi := 800, succs := [2] },
       { shapes := ![CoordShape.contract 3 650, CoordShape.drivenDamp 0 [(2, 1, 2000000), (3, 3, 10000000)], CoordShape.contract 1 0, CoordShape.contract 1 0, CoordShape.contract 1 0, CoordShape.contract 1 0, CoordShape.frozen, CoordShape.contract 1 0], gcoord := 0,
         glo := 0, ghi := 800, succs := [] } ]
-      env := ![{ lo := some 0, hi := some 800 }, { lo := some (-50 : ℤ), hi := none }, { lo := some (-500 : ℤ), hi := some 150 }, { lo := some (-500 : ℤ), hi := some 150 }, { lo := some 0, hi := some 150 }, { lo := some (-1000 : ℤ), hi := some 150 }, { lo := some (-500 : ℤ), hi := some 600 }, { lo := some (-1000 : ℤ), hi := some 150 }]
+      env := ![{ lo := some 0, hi := some 800 }, { lo := some 0, hi := none }, { lo := some (-500 : ℤ), hi := some 150 }, { lo := some (-500 : ℤ), hi := some 150 }, { lo := some 0, hi := some 150 }, { lo := some (-1000 : ℤ), hi := some 150 }, { lo := some (-500 : ℤ), hi := some 600 }, { lo := some (-1000 : ℤ), hi := some 150 }]
       dtQ := 1 }
     sbands :=
     [
@@ -281,7 +281,7 @@ def story2_lateral_rung_b_12dofT : TerrainModel 12 :=
         glo := 0, ghi := 800, succs := [2] },
       { shapes := ![CoordShape.contract 3 650, CoordShape.drivenDamp 0 [(2, 1, 2000000), (3, 3, 10000000)], CoordShape.contract 1 0, CoordShape.contract 1 0, CoordShape.contract 1 0, CoordShape.contract 1 0, CoordShape.contract 1 0, CoordShape.frozen, CoordShape.contract 1 0, CoordShape.frozen, CoordShape.frozen, CoordShape.frozen], gcoord := 0,
         glo := 0, ghi := 800, succs := [] } ]
-      env := ![{ lo := some 0, hi := some 800 }, { lo := some (-50 : ℤ), hi := none }, { lo := some (-500 : ℤ), hi := some 150 }, { lo := some (-500 : ℤ), hi := some 150 }, { lo := some 0, hi := some 150 }, { lo := some 0, hi := some 150 }, { lo := some (-1000 : ℤ), hi := some 150 }, { lo := some (-500 : ℤ), hi := some 600 }, { lo := some (-1000 : ℤ), hi := some 150 }, { lo := some (-1000 : ℤ), hi := some 1100 }, { lo := some (-1000 : ℤ), hi := some 1100 }, { lo := some (-1000 : ℤ), hi := some 1100 }]
+      env := ![{ lo := some 0, hi := some 800 }, { lo := some 0, hi := none }, { lo := some (-500 : ℤ), hi := some 150 }, { lo := some (-500 : ℤ), hi := some 150 }, { lo := some 0, hi := some 150 }, { lo := some 0, hi := some 150 }, { lo := some (-1000 : ℤ), hi := some 150 }, { lo := some (-500 : ℤ), hi := some 600 }, { lo := some (-1000 : ℤ), hi := some 150 }, { lo := some (-1000 : ℤ), hi := some 1100 }, { lo := some (-1000 : ℤ), hi := some 1100 }, { lo := some (-1000 : ℤ), hi := some 1100 }]
       dtQ := 1 }
     sbands :=
     [
@@ -399,7 +399,7 @@ def story1_attdist_rung_b_12dofT : TerrainModel 12 :=
         glo := 0, ghi := 500, succs := [2] },
       { shapes := ![CoordShape.contract 3 650, CoordShape.drivenDamp 0 [(2, 1, 2000000), (4, 3, 10000000)], CoordShape.chase 3 1, CoordShape.contract 1 0, CoordShape.chase 5 1, CoordShape.contract 1 0, CoordShape.contract 1 0, CoordShape.frozen, CoordShape.contract 1 0, CoordShape.frozen, CoordShape.contract 1 0, CoordShape.frozen], gcoord := 0,
         glo := 0, ghi := 650, succs := [] } ]
-      env := ![{ lo := some 0, hi := some 800 }, { lo := some (-50 : ℤ), hi := none }, { lo := some (-600 : ℤ), hi := some 600 }, { lo := some (-600 : ℤ), hi := some 600 }, { lo := some (-600 : ℤ), hi := some 600 }, { lo := some (-600 : ℤ), hi := some 600 }, { lo := some (-1000 : ℤ), hi := some 150 }, { lo := some (-400 : ℤ), hi := some 500 }, { lo := some (-500 : ℤ), hi := some 150 }, { lo := some (-400 : ℤ), hi := some 500 }, { lo := some (-500 : ℤ), hi := some 150 }, { lo := some (-400 : ℤ), hi := some 500 }]
+      env := ![{ lo := some 0, hi := some 800 }, { lo := some 0, hi := none }, { lo := some (-600 : ℤ), hi := some 600 }, { lo := some (-600 : ℤ), hi := some 600 }, { lo := some (-600 : ℤ), hi := some 600 }, { lo := some (-600 : ℤ), hi := some 600 }, { lo := some (-1000 : ℤ), hi := some 150 }, { lo := some (-400 : ℤ), hi := some 500 }, { lo := some (-500 : ℤ), hi := some 150 }, { lo := some (-400 : ℤ), hi := some 500 }, { lo := some (-500 : ℤ), hi := some 150 }, { lo := some (-400 : ℤ), hi := some 500 }]
       dtQ := 1 }
     sbands :=
     [
@@ -425,7 +425,7 @@ def refinement_ladder_rover_rung2_6dofT : TerrainModel 4 :=
       { shapes := ![CoordShape.contract 1 650, CoordShape.driven 0,
           CoordShape.frozen, CoordShape.frozen], gcoord := 0,
         glo := 0, ghi := 800, succs := [] } ]
-      env := ![{ lo := some 0, hi := some 800 }, { lo := some (-150 : ℤ), hi := none },
+      env := ![{ lo := some 0, hi := some 800 }, { lo := some 0, hi := none },
         { lo := some (-500 : ℤ), hi := some 600 }, { lo := some (-500 : ℤ), hi := some 600 }]
       dtQ := 1 }
     sbands :=
@@ -451,7 +451,7 @@ def refinement_ladder_rover_rung2b_6dofT : TerrainModel 6 :=
       { shapes := ![CoordShape.contract 1 650, CoordShape.driven 0, CoordShape.frozen,
           CoordShape.frozen, CoordShape.frozen, CoordShape.frozen], gcoord := 0,
         glo := 0, ghi := 800, succs := [] } ]
-      env := ![{ lo := some 0, hi := some 800 }, { lo := some (-150 : ℤ), hi := none },
+      env := ![{ lo := some 0, hi := some 800 }, { lo := some 0, hi := none },
         { lo := some (-500 : ℤ), hi := some 600 }, { lo := some (-500 : ℤ), hi := some 600 },
         { lo := some (-1000 : ℤ), hi := some 1100 }, { lo := some (-500 : ℤ), hi := some 600 }]
       dtQ := 1 }

@@ -18,19 +18,19 @@ epsilon = 1.0
 [Lsys.mode.STEEP]
 ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- 1 (* 0.5 (* psi psi)))); psi' = smt2:(* -1 psi);
 guard = s >= 0.0 and s < 0.6
-evolve = psi >= -0.5 and psi <= 0.15 and s >= 0.0 and s <= 1000.0 and v >= 0.0 and v <= 0.8
+evolve = psi >= -0.5 and psi <= 0.15 and s >= 0.0 and v >= 0.0 and v <= 0.8
 next = [MODER, STEEP]
 
 [Lsys.mode.MODER]
 ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- 1 (* 0.5 (* psi psi)))); psi' = smt2:(* -1 psi);
 guard = s >= 0.6 and s < 1.4
-evolve = psi >= -0.5 and psi <= 0.15 and s >= 0.0 and s <= 1000.0 and v >= 0.0 and v <= 0.8
+evolve = psi >= -0.5 and psi <= 0.15 and s >= 0.0 and v >= 0.0 and v <= 0.8
 next = [FLAT, MODER]
 
 [Lsys.mode.FLAT]
 ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- 1 (* 0.5 (* psi psi)))); psi' = smt2:(* -1 psi);
-guard = s >= 1.4 and s < 899.95
-evolve = psi >= -0.5 and psi <= 0.15 and s >= 0.0 and s <= 1000.0 and v >= 0.0 and v <= 0.8
+guard = s >= 1.4
+evolve = psi >= -0.5 and psi <= 0.15 and s >= 0.0 and v >= 0.0 and v <= 0.8
 next = [FLAT]
 
 [Rsys]

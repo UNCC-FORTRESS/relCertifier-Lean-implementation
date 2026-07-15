@@ -2,8 +2,14 @@
 # R = M1 COARSE (reasoning/ground-plan, lifted to [v,s,a], a as off-H slack a'=0).
 # forall-exists: every fine onboard execution has an admissible coarse ground-plan response
 # keeping the shared-projection safety invariant s_onboard <= s_ground + d.
-# Same gain k=3 both sides (this axis is FIDELITY, not degradation). ka=8.
 # 3 slope-class modes. Invariant one-sided on shared {v,s}: s[l] <= s[r] + d, plus v-coupling.
+#
+# LADDER COHERENCE: this rung's L is THE SAME M2 as endurance_orderlift_2to3's R
+# (rung composition: 1to2.L == 2to3.R on the shared [v, s, a] coordinates; 2to3 pads a
+# fourth off-H slack j). M2 is the critically damped (lambda+4)^2 order-2 model written in
+# its eigen-cascade chart — the a-slot carries u := a_orig + 4v: u' = c - 4u (contract to
+# u* = c/4), v' = u - 4v. (An earlier revision used underdamped gains 24/8 here, which
+# broke the composition; corrected to the canonical M2.)
 [problem]
 name = endurance_orderlift_1to2
 max_depth = 8
@@ -14,20 +20,20 @@ bound_T = 2.0
 state_vars = [v, s, a]
 epsilon = 1.0
 [Lsys.mode.STEEP]
-ode = v' = a; s' = v; a' = smt2:(- (- 7.20 (* 24.0 v)) (* 8 a));
+ode = v' = smt2:(- a (* 4 v)); s' = v; a' = smt2:(- 4.80 (* 4 a));
 guard = v >= 0.0 and v < 0.40
-evolve = a >= -0.5 and a <= 0.6 and s >= 0.0 and v >= -0.05 and v <= 0.8
+evolve = a >= 0.0 and a <= 2.8 and s >= 0.0 and v >= 0.0 and v <= 0.85
 next = [MODER, STEEP]
 [Lsys.mode.MODER]
-ode = v' = a; s' = v; a' = smt2:(- (- 12.00 (* 24.0 v)) (* 8 a));
+ode = v' = smt2:(- a (* 4 v)); s' = v; a' = smt2:(- 8.00 (* 4 a));
 guard = v >= 0.40 and v < 0.575
-evolve = a >= -0.5 and a <= 0.6 and s >= 0.0 and v >= -0.05 and v <= 0.8
+evolve = a >= 0.0 and a <= 2.8 and s >= 0.0 and v >= 0.0 and v <= 0.85
 next = [STEEP, FLAT, MODER]
 [Lsys.mode.FLAT]
-ode = v' = a; s' = v; a' = smt2:(- (- 15.60 (* 24.0 v)) (* 8 a));
-guard = v >= 0.575 and v < 0.67
-evolve = a >= -0.5 and a <= 0.6 and s >= 0.0 and v >= -0.05 and v <= 0.8
-next = [MODER, FLAT]
+ode = v' = smt2:(- a (* 4 v)); s' = v; a' = smt2:(- 10.40 (* 4 a));
+guard = v >= 0.575 and v < 0.75
+evolve = a >= 0.0 and a <= 2.8 and s >= 0.0 and v >= 0.0 and v <= 0.85
+next = [MODER, FLAT, STEEP]
 [Rsys]
 state_vars = [v, s, a]
 epsilon = 0.5

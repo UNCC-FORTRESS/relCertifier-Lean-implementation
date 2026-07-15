@@ -74,6 +74,7 @@ import RelCertifier.Proofs.Soundness.CutLift
 import RelCertifier.Instances.CutCerts
 import RelCertifier.Checker.Faithful
 import RelCertifier.Proofs.Transfer.FaithfulBridge
+import RelCertifier.Proofs.Transfer.FaithfulBridgeGuards
 import RelCertifier.Instances.FaithfulCerts
 import RelCertifier.Proofs.Transfer.Rescale
 import RelCertifier.Proofs.Encoding.FvDischarge

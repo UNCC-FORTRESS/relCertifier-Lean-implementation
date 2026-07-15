@@ -27,6 +27,8 @@ DISCHARGED by the kernel below, with no per-benchmark proof text beyond `rfl`.
 -/
 import RelCertifier.WellFormedChecker
 import RelCertifier.FaithfulCerts
+import RelCertifier.ClockedTop
+import RelCertifier.FvDischarge
 
 namespace RelCertifier
 open DL DLCalTiming DLRel Function Set
@@ -85,5 +87,50 @@ theorem watertank_end_to_end
   exact theorem3_faithful_settling watertankSuiteM.graph watertankSuiteM.GdOf mv g fL
     domL watertankSuiteM.envF tg ((watertankSuiteM.dt : ℝ)) k (Term.const 1) ϕinv
     hψ hH htgb htgr htgϕ htgR htgφ hdis hdMULTI hbudget hddF
+
+/-- **Watertank, end to end, CLOCKED ∀-side** — the preferred form. Relative to
+`watertank_end_to_end`: the mission-budget hypothesis and all six clock-freshness
+side conditions are GONE (segment boundedness is semantic in `clockedSeg`; the loop
+rule `faModal_LOCK` replaces the counted physical collapse). What remains: the
+invariant encoding, the aux-freshness of `g`, the two variable-hygiene facts
+(task B's targets), and the Z3 certificates. -/
+theorem watertank_end_to_end_clocked
+    (mv tg : Var 1) (g : Term (Var 1)) (fL : Fin 1 → Term (Var 1))
+    (domL : Formula (Var 1)) (ϕinv : RFormula (Var 1))
+    (hψ : encode (Equiv.refl (Var 1)) ϕinv = invLe g)
+    (hg : mv ∉ g.fv) (hmvclk : mv ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
+    (hmvtg : mv ≠ tg)
+    (hmvGd : ∀ q', mv ∉ (watertankSuiteM.GdOf q').fv)
+    (htgGd : ∀ q', tg ∉ (watertankSuiteM.GdOf q').fv)
+    (hfrzGd : ∀ q', ∀ x ∈ (watertankSuiteM.GdOf q').fv,
+        x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
+    (hdis : Disjoint
+        (Program.vars (clockedSeg (leftBlock fL) domL tg ((watertankSuiteM.dt : ℝ))))
+        (Program.vars ((rightAutomatonBody watertankSuiteM.graph mv).rename
+          (Equiv.refl (Var 1)))))
+    (hddF : Disjoint
+        (faShape (Program.star (clockedSeg (leftBlock fL) domL tg
+            ((watertankSuiteM.dt : ℝ))))
+          (Program.star (rightAutomatonBody watertankSuiteM.graph mv))
+          (ψpostG watertankSuiteM.graph watertankSuiteM.GdOf mv ϕinv)).varsL
+        (Equiv.refl (Var 1) '' (faShape (Program.star (clockedSeg (leftBlock fL) domL tg
+            ((watertankSuiteM.dt : ℝ))))
+          (Program.star (rightAutomatonBody watertankSuiteM.graph mv))
+          (ψpostG watertankSuiteM.graph watertankSuiteM.GdOf mv ϕinv)).varsR))
+    (hcert : ∀ q m, watertankSuiteM.graph.modeAt q = some m →
+        ∀ ν, Formula.sat (watertankSuiteM.GdOf q) ν →
+          BoxLe (Program.ode m.sys watertankSuiteM.envF) (fun ω => Term.eval g ω) ν) :
+    RFormula.rvalid (theorem3Form
+      (clockedSeg (leftBlock fL) domL tg ((watertankSuiteM.dt : ℝ)))
+      (rightAutomatonBody watertankSuiteM.graph mv)
+      (ψpostG watertankSuiteM.graph watertankSuiteM.GdOf mv ϕinv)) := by
+  have hH : GuardSettlingH watertankSuiteM.graph watertankSuiteM.GdOf mv g
+      (Term.const 1) tg ((watertankSuiteM.dt : ℝ)) fL watertankSuiteM.envF :=
+    wellformed_sound watertankSuiteM mv tg g fL rfl
+      (by norm_num [SettlingModel.dt, watertankSuiteM])
+      hg hmvclk hmvtg hmvGd htgGd hfrzGd hcert
+  exact theorem3_faithful_settling_clocked watertankSuiteM.graph watertankSuiteM.GdOf
+    mv g fL domL watertankSuiteM.envF tg ((watertankSuiteM.dt : ℝ)) (Term.const 1)
+    ϕinv hψ hH hdis hddF
 
 end RelCertifier

@@ -288,19 +288,19 @@ theorem starStep_settlingC (G : SearchGraph (Var n)) (Gd : ℕ → Formula (Var 
 theorem landing_step_settling_clockedC (G : SearchGraph (Var n))
     (Gd : ℕ → Formula (Var n)) (mv : Var n) (q : ℕ) (m : RMode (Var n)) (g : Term (Var n))
     (fL fR : Fin n → Term (Var n)) (lam : Term (Var n)) (domL domR : Formula (Var n))
-    (tg : Var n) (dt : ℝ) (ω : State (Var n))
-    (hg : mv ∉ g.fv) (htgg : tg ∉ g.fv)
+    (tg tr : Var n) (dt : ℝ) (ω : State (Var n))
+    (hg : mv ∉ g.fv) (htgg : tr ∉ g.fv)
     (hmvLclk : mv ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
     (hm : G.modeAt q = some m) (hsys : m.sys = rightBlock fR lam) (hdom : m.dom = domR)
     (hqlen : q < G.modes.length) (hdt : 0 ≤ dt)
-    (htgbR : tg ∉ (rightBlock fR lam).bound)
-    (htgfR : ∀ p ∈ rightBlock fR lam, tg ∉ (p.2 : Term (Var n)).fv)
-    (htgdom : tg ∉ domR.fv)
+    (htgbR : tr ∉ (rightBlock fR lam).bound)
+    (htgfR : ∀ p ∈ rightBlock fR lam, tr ∉ (p.2 : Term (Var n)).fv)
+    (htgdom : tr ∉ domR.fv)
     (hset : GuardSettlingB G Gd fR lam domR dt q)
     (hgboxGd : ∀ ν, Formula.sat (Gd q) ν →
         BoxLe (Program.ode (rightBlock fR lam) domR) (fun ω => Term.eval g ω) ν)
     (hfrzClkGd : ∀ x ∈ (Gd q).fv, x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
-    (hmvgdAll : ∀ q', mv ∉ (Gd q').fv) (htggdAll : ∀ q', tg ∉ (Gd q').fv)
+    (hmvgdAll : ∀ q', mv ∉ (Gd q').fv) (htggdAll : ∀ q', tr ∉ (Gd q').fv)
     (hedgeSelf : ∃ e ∈ G.edgesFrom q, e.tgt = q ∧ e.guard = Formula.tt)
     (hedgeSucc : ∀ q', q' ∈ G.retainedSucc q →
         ∃ e ∈ G.edgesFrom q, e.tgt = q' ∧ e.guard = Formula.tt ∧ e.tgt < G.modes.length)
@@ -308,7 +308,7 @@ theorem landing_step_settling_clockedC (G : SearchGraph (Var n))
         ∃ m', G.modeAt q' = some m')
     (hωmv : ω mv = (q : ℝ)) (hωgd : Formula.sat (Gd q) ω) :
     faModalB (Equiv.refl (Var n)) (Program.ode (DLCalTiming.clk tg (leftBlock fL)) domL)
-      (rightAutomatonBodyC G mv tg dt) (starInvGF G Gd mv g) tg dt ω := by
+      (rightAutomatonBodyC G mv tr dt) (starInvGF G Gd mv g) tg dt ω := by
   intro ν hplant
   obtain ⟨hsemL, _⟩ := hplant
   obtain ⟨s, Φ, hs, hΦ0, hΦs, _, hmask, _⟩ := hsemL
@@ -320,24 +320,25 @@ theorem landing_step_settling_clockedC (G : SearchGraph (Var n))
       rw [← hΦs]; exact (hmask s (right_mem_Icc.mpr hs) x (hfrzClkGd x hx)).symm
     exact (Formula.coincidence (Gd q) heqon).mp hωgd
   obtain ⟨o, hsemω, hstarω⟩ :=
-    starStep_settlingC G Gd mv tg q m g fR lam domR dt ν hg htgg hm hsys hdom hmvν hdt
+    starStep_settlingC G Gd mv tr q m g fR lam domR dt ν hg htgg hm hsys hdom hmvν hdt
       htgbR htgfR htgdom hset hνgd (hgboxGd) hmvgdAll htggdAll hedgeSelf hedgeSucc
       hqlen hmodeAll
   exact ⟨o, by simpa only [Program.rename_refl] using hsemω, sat_starInvGF.mpr hstarω⟩
 
 /-- The clocked coupling from `GuardSettlingH`, cadenced right. -/
 theorem hHcoupleGC_of_GuardSettlingH (G : SearchGraph (Var n)) (Gd : ℕ → Formula (Var n))
-    (mv : Var n) (g : Term (Var n)) (lam : Term (Var n)) (tg : Var n) (dt : ℝ)
+    (mv : Var n) (g : Term (Var n)) (lam : Term (Var n)) (tg tr : Var n) (dt : ℝ)
     (fL : Fin n → Term (Var n)) (domL evolShared : Formula (Var n))
-    (htgg : tg ∉ g.fv)
+    (htgg : tr ∉ g.fv)
     (htgS : ∀ q m, G.modeAt q = some m → ∀ fR, m.sys = rightBlock fR lam →
-        tg ∉ (rightBlock fR lam).bound ∧
-        (∀ p ∈ rightBlock fR lam, tg ∉ (p.2 : Term (Var n)).fv))
-    (htgdom : tg ∉ evolShared.fv)
+        tr ∉ (rightBlock fR lam).bound ∧
+        (∀ p ∈ rightBlock fR lam, tr ∉ (p.2 : Term (Var n)).fv))
+    (htgdom : tr ∉ evolShared.fv)
+    (htrGd : ∀ q', tr ∉ (Gd q').fv)
     (h : GuardSettlingH G Gd mv g lam tg dt fL evolShared) :
     ∀ σ', Formula.sat (starInvGF G Gd mv g) σ' →
       faModalB (Equiv.refl (Var n)) (Program.ode (DLCalTiming.clk tg (leftBlock fL)) domL)
-        (rightAutomatonBodyC G mv tg dt) (starInvGF G Gd mv g) tg dt
+        (rightAutomatonBodyC G mv tr dt) (starInvGF G Gd mv g) tg dt
         (Function.update σ' tg 0) := by
   obtain ⟨hdt, hg, hmvLclk, hmvtg, hmvGd, htgGd, hfrzGd, hmodes⟩ := h
   intro σ' hσ'
@@ -350,35 +351,36 @@ theorem hHcoupleGC_of_GuardSettlingH (G : SearchGraph (Var n)) (Gd : ℕ → For
     have heq : Set.EqOn σ' (Function.update σ' tg 0) (Gd q).fv :=
       fun x hx => (Function.update_of_ne (by rintro rfl; exact htgGd q hx) _ _).symm
     exact (Formula.coincidence (Gd q) heq).mp hqgd
-  exact landing_step_settling_clockedC G Gd mv q m g fL fR lam domL evolShared tg dt
+  exact landing_step_settling_clockedC G Gd mv q m g fL fR lam domL evolShared tg tr dt
     (Function.update σ' tg 0) hg htgg hmvLclk hmode hsys hdom hqlen hdt htgbR htgfR
-    htgdom hset hgboxGd (hfrzGd q) hmvGd htgGd hself hsucc hmodeAll hωmv hωgd
+    htgdom hset hgboxGd (hfrzGd q) hmvGd htrGd hself hsucc hmodeAll hωmv hωgd
 
 /-- **Theorem 3, settling, ε-CADENCED BOTH SIDES.** The ∀-side left star ranges over
 clocked `dt`-segments; the ∃-side right star over clocked `dt`-responses — the statement
 finally certifies that the responses are cadence-legal. -/
 theorem theorem3_faithful_settling_cadenced (G : SearchGraph (Var n))
     (Gd : ℕ → Formula (Var n)) (mv : Var n) (g : Term (Var n))
-    (fL : Fin n → Term (Var n)) (domL evolShared : Formula (Var n)) (tg : Var n)
+    (fL : Fin n → Term (Var n)) (domL evolShared : Formula (Var n)) (tg tr : Var n)
     (dt : ℝ) (lam : Term (Var n)) (ϕinv : RFormula (Var n))
     (hψ : encode (Equiv.refl (Var n)) ϕinv = invLe g)
     (hH : GuardSettlingH G Gd mv g lam tg dt fL evolShared)
-    (htgg : tg ∉ g.fv)
+    (htgg : tr ∉ g.fv)
     (htgS : ∀ q m, G.modeAt q = some m → ∀ fR, m.sys = rightBlock fR lam →
-        tg ∉ (rightBlock fR lam).bound ∧
-        (∀ p ∈ rightBlock fR lam, tg ∉ (p.2 : Term (Var n)).fv))
-    (htgdom : tg ∉ evolShared.fv)
+        tr ∉ (rightBlock fR lam).bound ∧
+        (∀ p ∈ rightBlock fR lam, tr ∉ (p.2 : Term (Var n)).fv))
+    (htgdom : tr ∉ evolShared.fv)
+    (htrGd : ∀ q', tr ∉ (Gd q').fv)
     (hdis : Disjoint (Program.vars (clockedSeg (leftBlock fL) domL tg dt))
-        (Program.vars ((rightAutomatonBodyC G mv tg dt).rename (Equiv.refl (Var n)))))
+        (Program.vars ((rightAutomatonBodyC G mv tr dt).rename (Equiv.refl (Var n)))))
     (hddF : Disjoint (faShape (Program.star (clockedSeg (leftBlock fL) domL tg dt))
-          (Program.star (rightAutomatonBodyC G mv tg dt)) (ψpostG G Gd mv ϕinv)).varsL
+          (Program.star (rightAutomatonBodyC G mv tr dt)) (ψpostG G Gd mv ϕinv)).varsL
         (Equiv.refl (Var n) '' (faShape (Program.star (clockedSeg (leftBlock fL) domL tg dt))
-          (Program.star (rightAutomatonBodyC G mv tg dt)) (ψpostG G Gd mv ϕinv)).varsR)) :
+          (Program.star (rightAutomatonBodyC G mv tr dt)) (ψpostG G Gd mv ϕinv)).varsR)) :
     RFormula.rvalid (theorem3Form (clockedSeg (leftBlock fL) domL tg dt)
-      (rightAutomatonBodyC G mv tg dt) (ψpostG G Gd mv ϕinv)) := by
+      (rightAutomatonBodyC G mv tr dt) (ψpostG G Gd mv ϕinv)) := by
   set ψpost := ψpostG G Gd mv ϕinv with hψpost
   set Lp := Program.star (clockedSeg (leftBlock fL) domL tg dt)
-  set Rp := Program.star (rightAutomatonBodyC G mv tg dt)
+  set Rp := Program.star (rightAutomatonBodyC G mv tr dt)
   have hencψ : encode (Equiv.refl (Var n)) ψpost = starInvGF G Gd mv g :=
     encode_ψpostG G Gd mv g ϕinv hψ
   intro bs
@@ -398,13 +400,13 @@ theorem theorem3_faithful_settling_cadenced (G : SearchGraph (Var n))
   refine faModal_to_faShape (Equiv.refl (Var n)) Lp Rp ψpost ν bs hddF hbdg ?_
   rw [hencψ]
   exact faModal_LOCK (Equiv.refl (Var n)) (clockedSeg (leftBlock fL) domL tg dt)
-    (rightAutomatonBodyC G mv tg dt) (starInvGF G Gd mv g) (starInvGF G Gd mv g) ν hdis
+    (rightAutomatonBodyC G mv tr dt) (starInvGF G Gd mv g) (starInvGF G Gd mv g) ν hdis
     hInvν
     (fun σ hσ =>
-      (faModalB_clockedSeg_iff (leftBlock fL) domL (rightAutomatonBodyC G mv tg dt)
+      (faModalB_clockedSeg_iff (leftBlock fL) domL (rightAutomatonBodyC G mv tr dt)
         (starInvGF G Gd mv g) tg dt σ).mpr
-        (hHcoupleGC_of_GuardSettlingH G Gd mv g lam tg dt fL domL evolShared
-          htgg htgS htgdom hH σ hσ))
+        (hHcoupleGC_of_GuardSettlingH G Gd mv g lam tg tr dt fL domL evolShared
+          htgg htgS htgdom htrGd hH σ hσ))
     (fun _ h => h)
 
 /-! ## The calculus-faithful coupling slot: one left segment vs the right STAR
@@ -451,27 +453,28 @@ theorem faModal_LOCK_starR (ρ : Var n ≃ Var n) (P R : Program (Var n))
 responses fit the same slot. -/
 theorem theorem3_faithful_settling_cadenced' (G : SearchGraph (Var n))
     (Gd : ℕ → Formula (Var n)) (mv : Var n) (g : Term (Var n))
-    (fL : Fin n → Term (Var n)) (domL evolShared : Formula (Var n)) (tg : Var n)
+    (fL : Fin n → Term (Var n)) (domL evolShared : Formula (Var n)) (tg tr : Var n)
     (dt : ℝ) (lam : Term (Var n)) (ϕinv : RFormula (Var n))
     (hψ : encode (Equiv.refl (Var n)) ϕinv = invLe g)
     (hH : GuardSettlingH G Gd mv g lam tg dt fL evolShared)
-    (htgg : tg ∉ g.fv)
+    (htgg : tr ∉ g.fv)
     (htgS : ∀ q m, G.modeAt q = some m → ∀ fR, m.sys = rightBlock fR lam →
-        tg ∉ (rightBlock fR lam).bound ∧
-        (∀ p ∈ rightBlock fR lam, tg ∉ (p.2 : Term (Var n)).fv))
-    (htgdom : tg ∉ evolShared.fv)
+        tr ∉ (rightBlock fR lam).bound ∧
+        (∀ p ∈ rightBlock fR lam, tr ∉ (p.2 : Term (Var n)).fv))
+    (htgdom : tr ∉ evolShared.fv)
+    (htrGd : ∀ q', tr ∉ (Gd q').fv)
     (hdis : Disjoint (Program.vars (clockedSeg (leftBlock fL) domL tg dt))
-        (Program.vars ((Program.star (rightAutomatonBodyC G mv tg dt)).rename
+        (Program.vars ((Program.star (rightAutomatonBodyC G mv tr dt)).rename
           (Equiv.refl (Var n)))))
     (hddF : Disjoint (faShape (Program.star (clockedSeg (leftBlock fL) domL tg dt))
-          (Program.star (rightAutomatonBodyC G mv tg dt)) (ψpostG G Gd mv ϕinv)).varsL
+          (Program.star (rightAutomatonBodyC G mv tr dt)) (ψpostG G Gd mv ϕinv)).varsL
         (Equiv.refl (Var n) '' (faShape (Program.star (clockedSeg (leftBlock fL) domL tg dt))
-          (Program.star (rightAutomatonBodyC G mv tg dt)) (ψpostG G Gd mv ϕinv)).varsR)) :
+          (Program.star (rightAutomatonBodyC G mv tr dt)) (ψpostG G Gd mv ϕinv)).varsR)) :
     RFormula.rvalid (theorem3Form (clockedSeg (leftBlock fL) domL tg dt)
-      (rightAutomatonBodyC G mv tg dt) (ψpostG G Gd mv ϕinv)) := by
+      (rightAutomatonBodyC G mv tr dt) (ψpostG G Gd mv ϕinv)) := by
   set ψpost := ψpostG G Gd mv ϕinv with hψpost
   set Lp := Program.star (clockedSeg (leftBlock fL) domL tg dt)
-  set Rp := Program.star (rightAutomatonBodyC G mv tg dt)
+  set Rp := Program.star (rightAutomatonBodyC G mv tr dt)
   have hencψ : encode (Equiv.refl (Var n)) ψpost = starInvGF G Gd mv g :=
     encode_ψpostG G Gd mv g ϕinv hψ
   intro bs
@@ -491,14 +494,14 @@ theorem theorem3_faithful_settling_cadenced' (G : SearchGraph (Var n))
   refine faModal_to_faShape (Equiv.refl (Var n)) Lp Rp ψpost ν bs hddF hbdg ?_
   rw [hencψ]
   refine faModal_LOCK_starR (Equiv.refl (Var n)) (clockedSeg (leftBlock fL) domL tg dt)
-    (rightAutomatonBodyC G mv tg dt) (starInvGF G Gd mv g) ν hdis hInvν ?_
+    (rightAutomatonBodyC G mv tr dt) (starInvGF G Gd mv g) ν hdis hInvν ?_
   -- per-segment obligation in the CALCULUS form: one left segment vs the right STAR;
   -- the settling witness is a single body step, entering by ∃-weakening
   intro σ hσ
-  have h1 := (faModalB_clockedSeg_iff (leftBlock fL) domL (rightAutomatonBodyC G mv tg dt)
+  have h1 := (faModalB_clockedSeg_iff (leftBlock fL) domL (rightAutomatonBodyC G mv tr dt)
     (starInvGF G Gd mv g) tg dt σ).mpr
-    (hHcoupleGC_of_GuardSettlingH G Gd mv g lam tg dt fL domL evolShared
-      htgg htgS htgdom hH σ hσ)
+    (hHcoupleGC_of_GuardSettlingH G Gd mv g lam tg tr dt fL domL evolShared
+      htgg htgS htgdom htrGd hH σ hσ)
   rw [faModal_sat] at h1 ⊢
   intro ν' hν'
   obtain ⟨μ, hsem, hφ⟩ := h1 ν' hν'

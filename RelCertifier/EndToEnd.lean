@@ -143,10 +143,10 @@ assumes a budget nor forces lockstep. Residuals: the invariant encoding, aux-fre
 `g` (`hg`, `htgg`), the tg-side and variable-hygiene facts (task B's targets), and the Z3
 certificates. -/
 theorem watertank_end_to_end_cadenced
-    (mv tg : Var 1) (g : Term (Var 1)) (fL : Fin 1 → Term (Var 1))
+    (mv tg tr : Var 1) (g : Term (Var 1)) (fL : Fin 1 → Term (Var 1))
     (domL : Formula (Var 1)) (ϕinv : RFormula (Var 1))
     (hψ : encode (Equiv.refl (Var 1)) ϕinv = invLe g)
-    (hg : mv ∉ g.fv) (htgg : tg ∉ g.fv)
+    (hg : mv ∉ g.fv) (htgg : tr ∉ g.fv)
     (hmvclk : mv ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
     (hmvtg : mv ≠ tg)
     (hmvGd : ∀ q', mv ∉ (watertankSuiteM.GdOf q').fv)
@@ -155,22 +155,23 @@ theorem watertank_end_to_end_cadenced
         x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
     (htgS : ∀ q m, watertankSuiteM.graph.modeAt q = some m →
         ∀ fR, m.sys = rightBlock fR (Term.const 1) →
-        tg ∉ (rightBlock fR (Term.const 1)).bound ∧
-        (∀ p ∈ rightBlock fR (Term.const 1), tg ∉ (p.2 : Term (Var 1)).fv))
-    (htgdom : tg ∉ watertankSuiteM.envF.fv)
+        tr ∉ (rightBlock fR (Term.const 1)).bound ∧
+        (∀ p ∈ rightBlock fR (Term.const 1), tr ∉ (p.2 : Term (Var 1)).fv))
+    (htgdom : tr ∉ watertankSuiteM.envF.fv)
+    (htrGd : ∀ q', tr ∉ (watertankSuiteM.GdOf q').fv)
     (hdis : Disjoint
         (Program.vars (clockedSeg (leftBlock fL) domL tg ((watertankSuiteM.dt : ℝ))))
-        (Program.vars ((Program.star (rightAutomatonBodyC watertankSuiteM.graph mv tg
+        (Program.vars ((Program.star (rightAutomatonBodyC watertankSuiteM.graph mv tr
           ((watertankSuiteM.dt : ℝ)))).rename (Equiv.refl (Var 1)))))
     (hddF : Disjoint
         (faShape (Program.star (clockedSeg (leftBlock fL) domL tg
             ((watertankSuiteM.dt : ℝ))))
-          (Program.star (rightAutomatonBodyC watertankSuiteM.graph mv tg
+          (Program.star (rightAutomatonBodyC watertankSuiteM.graph mv tr
             ((watertankSuiteM.dt : ℝ))))
           (ψpostG watertankSuiteM.graph watertankSuiteM.GdOf mv ϕinv)).varsL
         (Equiv.refl (Var 1) '' (faShape (Program.star (clockedSeg (leftBlock fL) domL tg
             ((watertankSuiteM.dt : ℝ))))
-          (Program.star (rightAutomatonBodyC watertankSuiteM.graph mv tg
+          (Program.star (rightAutomatonBodyC watertankSuiteM.graph mv tr
             ((watertankSuiteM.dt : ℝ))))
           (ψpostG watertankSuiteM.graph watertankSuiteM.GdOf mv ϕinv)).varsR))
     (hcert : ∀ q m, watertankSuiteM.graph.modeAt q = some m →
@@ -178,7 +179,7 @@ theorem watertank_end_to_end_cadenced
           BoxLe (Program.ode m.sys watertankSuiteM.envF) (fun ω => Term.eval g ω) ν) :
     RFormula.rvalid (theorem3Form
       (clockedSeg (leftBlock fL) domL tg ((watertankSuiteM.dt : ℝ)))
-      (rightAutomatonBodyC watertankSuiteM.graph mv tg ((watertankSuiteM.dt : ℝ)))
+      (rightAutomatonBodyC watertankSuiteM.graph mv tr ((watertankSuiteM.dt : ℝ)))
       (ψpostG watertankSuiteM.graph watertankSuiteM.GdOf mv ϕinv)) := by
   have hH : GuardSettlingH watertankSuiteM.graph watertankSuiteM.GdOf mv g
       (Term.const 1) tg ((watertankSuiteM.dt : ℝ)) fL watertankSuiteM.envF :=
@@ -186,7 +187,7 @@ theorem watertank_end_to_end_cadenced
       (by norm_num [SettlingModel.dt, watertankSuiteM])
       hg hmvclk hmvtg hmvGd htgGd hfrzGd hcert
   exact theorem3_faithful_settling_cadenced' watertankSuiteM.graph watertankSuiteM.GdOf
-    mv g fL domL watertankSuiteM.envF tg ((watertankSuiteM.dt : ℝ)) (Term.const 1)
-    ϕinv hψ hH htgg htgS htgdom hdis hddF
+    mv g fL domL watertankSuiteM.envF tg tr ((watertankSuiteM.dt : ℝ)) (Term.const 1)
+    ϕinv hψ hH htgg htgS htgdom htrGd hdis hddF
 
 end RelCertifier

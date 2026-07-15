@@ -217,7 +217,7 @@ theorem aux_notin_envF (M : SettlingModel n) (b : Fin n) :
 every freshness and clock-hygiene hypothesis discharged. Residuals: the invariant
 encoding, the invariant's Aux-freshness, the two variable-hygiene facts, and the Z3
 certificates. -/
-theorem settling_end_to_end_aux (M : SettlingModel n) (a b : Fin n) (hab : a ≠ b)
+theorem settling_end_to_end_aux (M : SettlingModel n) (a b c : Fin n) (hab : a ≠ b)
     (g : Term (Var n)) (fL : Fin n → Term (Var n)) (domL : Formula (Var n))
     (ϕinv : RFormula (Var n))
     (hwf : decideWellFormed M = true)
@@ -227,28 +227,28 @@ theorem settling_end_to_end_aux (M : SettlingModel n) (a b : Fin n) (hab : a ≠
     (hdis : Disjoint (Program.vars (clockedSeg (leftBlock fL) domL
           ((Side.Aux, b) : Var n) (M.dt : ℝ)))
         (Program.vars ((Program.star (rightAutomatonBodyC M.graph
-          ((Side.Aux, a) : Var n) ((Side.Aux, b) : Var n) (M.dt : ℝ))).rename
+          ((Side.Aux, a) : Var n) ((Side.Aux, c) : Var n) (M.dt : ℝ))).rename
           (Equiv.refl (Var n)))))
     (hddF : Disjoint (faShape (Program.star (clockedSeg (leftBlock fL) domL
             ((Side.Aux, b) : Var n) (M.dt : ℝ)))
           (Program.star (rightAutomatonBodyC M.graph ((Side.Aux, a) : Var n)
-            ((Side.Aux, b) : Var n) (M.dt : ℝ)))
+            ((Side.Aux, c) : Var n) (M.dt : ℝ)))
           (ψpostG M.graph M.GdOf ((Side.Aux, a) : Var n) ϕinv)).varsL
         (Equiv.refl (Var n) '' (faShape (Program.star (clockedSeg (leftBlock fL) domL
             ((Side.Aux, b) : Var n) (M.dt : ℝ)))
           (Program.star (rightAutomatonBodyC M.graph ((Side.Aux, a) : Var n)
-            ((Side.Aux, b) : Var n) (M.dt : ℝ)))
+            ((Side.Aux, c) : Var n) (M.dt : ℝ)))
           (ψpostG M.graph M.GdOf ((Side.Aux, a) : Var n) ϕinv)).varsR))
     (hcert : ∀ q m, M.graph.modeAt q = some m → ∀ ν, Formula.sat (M.GdOf q) ν →
         BoxLe (Program.ode m.sys M.envF) (fun ω => Term.eval g ω) ν) :
     RFormula.rvalid (theorem3Form
       (clockedSeg (leftBlock fL) domL ((Side.Aux, b) : Var n) (M.dt : ℝ))
-      (rightAutomatonBodyC M.graph ((Side.Aux, a) : Var n) ((Side.Aux, b) : Var n)
+      (rightAutomatonBodyC M.graph ((Side.Aux, a) : Var n) ((Side.Aux, c) : Var n)
         (M.dt : ℝ))
       (ψpostG M.graph M.GdOf ((Side.Aux, a) : Var n) ϕinv)) := by
   have hH := wellformed_sound_aux M a b hab g fL hwf hdt hgAux hcert
   exact theorem3_faithful_settling_cadenced' M.graph M.GdOf _ g fL domL M.envF _
-    (M.dt : ℝ) (Term.const 1) ϕinv hψ hH (hgAux b) (aux_tgS M b) (aux_notin_envF M b)
-    hdis hddF
+    ((Side.Aux, c) : Var n) (M.dt : ℝ) (Term.const 1) ϕinv hψ hH (hgAux c)
+    (aux_tgS M c) (aux_notin_envF M c) (fun q' => aux_notin_GdOf M c q') hdis hddF
 
 end RelCertifier

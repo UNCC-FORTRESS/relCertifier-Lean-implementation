@@ -350,8 +350,12 @@ theorem encode_ψpostG (G : SearchGraph (Var n)) (Gd : ℕ → Formula (Var n)) 
 
 /-- **The guard-threaded settling well-formedness (Tier B H).** Per mode: the guard-based
 staying-and-landing (`GuardSettlingB` — dischargeable by construction from the settling-guard
-geometry, below) + the `g`-certificate over the shared envelope + the structural plumbing. The
-staying obligation quantifies ONLY over guard-region bases — the margin band never enters. -/
+geometry, below) + the structural plumbing. The staying obligation quantifies ONLY over
+guard-region bases — the margin band never enters.
+
+SINGLE-SYSTEM ONLY: nothing relational lives here. The relational invariant's preservation
+along right residences is a separate obligation (`GBoxAll` below, quarantined; the
+paper-faithful replacement is the per-piece joint/reposition certificates — task H). -/
 def GuardSettlingH (G : SearchGraph (Var n)) (Gd : ℕ → Formula (Var n)) (mv : Var n)
     (g : Term (Var n)) (lam : Term (Var n)) (tg : Var n) (dt : ℝ)
     (fL : Fin n → Term (Var n)) (evolShared : Formula (Var n)) : Prop :=
@@ -361,26 +365,38 @@ def GuardSettlingH (G : SearchGraph (Var n)) (Gd : ℕ → Formula (Var n)) (mv 
   (∀ q m, G.modeAt q = some m → ∃ fR : Fin n → Term (Var n),
     m.sys = rightBlock fR lam ∧ m.dom = evolShared ∧ q < G.modes.length ∧
     GuardSettlingB G Gd fR lam evolShared dt q ∧
-    (∀ ν, Formula.sat (Gd q) ν →
-      BoxLe (Program.ode (rightBlock fR lam) evolShared) (fun ω => Term.eval g ω) ν) ∧
     (∃ e ∈ G.edgesFrom q, e.tgt = q ∧ e.guard = Formula.tt) ∧
     (∀ q', q' ∈ G.retainedSucc q →
       ∃ e ∈ G.edgesFrom q, e.tgt = q' ∧ e.guard = Formula.tt ∧ e.tgt < G.modes.length) ∧
     (∀ q', q' ∈ q :: G.retainedSucc q → q' < G.modes.length →
       ∃ m', G.modeAt q' = some m'))
 
+/-- **QUARANTINED (defective shape — task H).** Relational `g`-preservation along right
+residences, stated LEFT-CONTEXT-FREE: for an `L`-mentioning `g` and a drain-type mode this is
+unsatisfiable (the left coordinates are unconstrained), so no certificate battery can discharge
+it. It is kept only so the existing cadenced chain still states its assumption explicitly; the
+paper-faithful replacement couples each within-window piece by its own JOINT certificate and
+each seam by a REPOSITION certificate (left-contextualized). Do not build on this. -/
+def GBoxAll (G : SearchGraph (Var n)) (Gd : ℕ → Formula (Var n)) (g : Term (Var n))
+    (lam : Term (Var n)) (evolShared : Formula (Var n)) : Prop :=
+  ∀ q m, G.modeAt q = some m → ∀ fR : Fin n → Term (Var n), m.sys = rightBlock fR lam →
+    ∀ ν, Formula.sat (Gd q) ν →
+      BoxLe (Program.ode (rightBlock fR lam) evolShared) (fun ω => Term.eval g ω) ν
+
 /-- The clocked coupling from the Tier B H (mirror of `hHcouple_of_LandingWellFormed`). -/
 theorem hHcoupleG_of_GuardSettlingH (G : SearchGraph (Var n)) (Gd : ℕ → Formula (Var n))
     (mv : Var n) (g : Term (Var n)) (lam : Term (Var n)) (tg : Var n) (dt : ℝ)
     (fL : Fin n → Term (Var n)) (domL evolShared : Formula (Var n))
-    (h : GuardSettlingH G Gd mv g lam tg dt fL evolShared) :
+    (h : GuardSettlingH G Gd mv g lam tg dt fL evolShared)
+    (hgbox : GBoxAll G Gd g lam evolShared) :
     ∀ σ', Formula.sat (starInvGF G Gd mv g) σ' →
       faModalB (Equiv.refl (Var n)) (Program.ode (DLCalTiming.clk tg (leftBlock fL)) domL)
         (rightAutomatonBody G mv) (starInvGF G Gd mv g) tg dt (Function.update σ' tg 0) := by
   obtain ⟨hdt, hg, hmvLclk, hmvtg, hmvGd, htgGd, hfrzGd, hmodes⟩ := h
   intro σ' hσ'
   obtain ⟨q, m, hqmv, hmode, hqgd⟩ := (sat_starInvGF.mp hσ').2.2
-  obtain ⟨fR, hsys, hdom, hqlen, hset, hgboxGd, hself, hsucc, hmodeAll⟩ := hmodes q m hmode
+  obtain ⟨fR, hsys, hdom, hqlen, hset, hself, hsucc, hmodeAll⟩ := hmodes q m hmode
+  have hgboxGd := hgbox q m hmode fR hsys
   have hωmv : (Function.update σ' tg 0) mv = (q : ℝ) := by
     rw [Function.update_of_ne hmvtg]; exact hqmv
   have hωgd : Formula.sat (Gd q) (Function.update σ' tg 0) := by
@@ -403,6 +419,7 @@ theorem theorem3_faithful_settling (G : SearchGraph (Var n)) (Gd : ℕ → Formu
     (domL evolShared : Formula (Var n)) (tg : Var n) (dt : ℝ) (k : ℕ) (lam : Term (Var n))
     (ϕinv : RFormula (Var n)) (hψ : encode (Equiv.refl (Var n)) ϕinv = invLe g)
     (hH : GuardSettlingH G Gd mv g lam tg dt fL evolShared)
+    (hgbox : GBoxAll G Gd g lam evolShared)
     (htgb : tg ∉ (leftBlock fL).bound) (htgr : tg ∉ (leftBlock fL).readVars)
     (htgϕ : tg ∉ domL.fv)
     (htgR : tg ∉ ((rightAutomatonBody G mv).rename (Equiv.refl (Var n))).fv)
@@ -439,7 +456,7 @@ theorem theorem3_faithful_settling (G : SearchGraph (Var n)) (Gd : ℕ → Formu
     rw [← hencψ]; exact (RFormula.encoding_correct (Equiv.refl (Var n)) ψpost hdψ bs ν hbψ).mp hpre
   have hphys := multiseg_clocked_physical_gen G mv (starInvGF G Gd mv g) fL domL tg dt k
     htgb htgr htgϕ hH.1 htgR htgφ
-    (hHcoupleG_of_GuardSettlingH G Gd mv g lam tg dt fL domL evolShared hH)
+    (hHcoupleG_of_GuardSettlingH G Gd mv g lam tg dt fL domL evolShared hH hgbox)
     hdis hdMULTI hbudgetAll hInvν
   refine faModal_to_faShape (Equiv.refl (Var n)) Lp Rp ψpost ν bs hddF hbdg ?_
   rw [hencψ]

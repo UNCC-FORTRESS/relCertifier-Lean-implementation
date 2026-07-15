@@ -455,8 +455,6 @@ def WellFormedSound (M : SettlingModel n) (mv tg : Var n) (g : Term (Var n))
   mv ∉ g.fv → mv ∉ (DLCalTiming.clk tg (leftBlock fL)).bound → mv ≠ tg →
   (∀ q', mv ∉ (M.GdOf q').fv) → (∀ q', tg ∉ (M.GdOf q').fv) →
   (∀ q', ∀ x ∈ (M.GdOf q').fv, x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound) →
-  (∀ q m, M.graph.modeAt q = some m → ∀ ν, Formula.sat (M.GdOf q) ν →
-      BoxLe (Program.ode m.sys M.envF) (fun ω => Term.eval g ω) ν) →
   GuardSettlingH M.graph M.GdOf mv g (Term.const 1) tg (M.dt : ℝ) fL M.envF
 
 /-! ## The phased proof plan — phases A′/B/C PROVEN below; D scoped
@@ -5225,7 +5223,7 @@ and the per-run certificates, yields the settling hypothesis — hence
 `theorem3_faithful_settling` applies to the transcribed model. -/
 theorem wellformed_sound (M : SettlingModel n) (mv tg : Var n) (g : Term (Var n))
     (fL : Fin n → Term (Var n)) : WellFormedSound M mv tg g fL := by
-  intro hwf hdt hg hmvclk hmvtg hmvGd htgGd hfrzGd hcert
+  intro hwf hdt hg hmvclk hmvtg hmvGd htgGd hfrzGd
   unfold decideWellFormed at hwf
   simp only [Bool.and_eq_true, decide_eq_true_eq, List.all_eq_true] at hwf
   obtain ⟨⟨-, -⟩, hall⟩ := hwf
@@ -5245,7 +5243,7 @@ theorem wellformed_sound (M : SettlingModel n) (mv tg : Var n) (g : Term (Var n)
     unfold SettlingModel.graph; simp
   have hmodeAt : M.graph.modeAt q = some (SM.toRMode M) := by
     rw [graph_modeAt, hSM]; rfl
-  refine ⟨SM.fieldOf, rfl, rfl, by rw [hlen]; exact hqlt, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨SM.fieldOf, rfl, rfl, by rw [hlen]; exact hqlt, ?_, ?_, ?_, ?_⟩
   · -- GuardSettlingB, by shape
     rcases hsh : SM.shapes SM.gcoord with _ | c | ⟨k, c⟩ | ⟨kn, kd, c⟩ | j | ⟨j, ds⟩ | ⟨b, a⟩
       | ⟨j, c, h⟩ | ⟨j, k⟩
@@ -5277,12 +5275,21 @@ theorem wellformed_sound (M : SettlingModel n) (mv tg : Var n) (g : Term (Var n)
         hOth hcov hdt
     · obtain ⟨hjne, hkpos, -, hflexC, c, ulo, uhi, hjshC, hjlo, hjhi, hcovLo, hcovHi⟩ := hshape
       exact settling_chaseG M hSM hsh hjne hjshC hkpos hflexC hjlo hjhi hcovLo hcovHi hdt
-  · intro ν hν
-    exact hcert q (SM.toRMode M) hmodeAt ν hν
   · exact ⟨_, self_edge_mem M hSM, rfl, rfl⟩
   · exact retainedSucc_edges M hSM hsucclen
   · intro q' _ hq'
     exact graph_modeAll M q' hq'
+
+/-- The relational `g`-preservation obligation (quarantined shape, see `GBoxAll`) threaded
+from the per-mode `BoxLe` certificates. Kept as a separate helper so the single-system H
+stays clean; the paper-faithful replacement is task H's per-piece certificates. -/
+theorem wellformed_gbox (M : SettlingModel n) (g : Term (Var n))
+    (hcert : ∀ q m, M.graph.modeAt q = some m → ∀ ν, Formula.sat (M.GdOf q) ν →
+        BoxLe (Program.ode m.sys M.envF) (fun ω => Term.eval g ω) ν) :
+    GBoxAll M.graph M.GdOf g (Term.const 1) M.envF := by
+  intro q m hmode fR hsys ν hν
+  have := hcert q m hmode ν hν
+  rwa [hsys] at this
 
 /-! ### A concrete instance — watertank's settling model, checker-accepted by `decide`
 

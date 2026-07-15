@@ -673,16 +673,14 @@ theorem settling_real_end_to_end_pad (P : Parse.PProblem) (mt : TransMeta)
     (htgGd : ∀ q', tg ∉ (M.GdOf q').fv)
     (hfrzGd : ∀ q', ∀ x ∈ (M.GdOf q').fv,
         x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
-    (hcert : ∀ q m, M.graph.modeAt q = some m →
-        ∀ ν, Formula.sat (M.GdOf q) ν →
-          BoxLe (Program.ode m.sys M.envF) (fun ω => Term.eval g ω) ν) :
+    :
     ∀ q pm m, P.R.modes[q]? = some pm → M.modes[q]? = some m →
       GuardSettlingB M.graph (realGdOf P M) (realFieldOf P.R.stateVars pm n)
         (Term.const 1) (realEnvOf P.R.stateVars n pm)
         ((qDiv (qDiv εR mt.lam) (qOfInt M.dtQ)).val * (M.dt : ℝ)) q := by
   intro q pm m hpm hm
   have hH : GuardSettlingH M.graph M.GdOf mv g (Term.const 1) tg (M.dt : ℝ) fL M.envF :=
-    wellformed_sound M mv tg g fL hwf hdt hg hmvclk hmvtg hmvGd htgGd hfrzGd hcert
+    wellformed_sound M mv tg g fL hwf hdt hg hmvclk hmvtg hmvGd htgGd hfrzGd
   exact faithfulSettling_rescale_pad P mt M hεR hfaith hnod hlenLE hσd hσv huv
     hshapes hgcw hnoempty hevnames hpm hm (M.dt : ℝ) (GuardSettlingH_B' M M.GdOf hH hm)
 

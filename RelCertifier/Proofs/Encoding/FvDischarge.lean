@@ -101,14 +101,12 @@ theorem wellformed_sound_aux (M : SettlingModel n) (a b : Fin n) (hab : a ≠ b)
     (g : Term (Var n)) (fL : Fin n → Term (Var n))
     (hwf : decideWellFormed M = true)
     (hdt : (0 : ℝ) ≤ (M.dt : ℝ))
-    (hgAux : ∀ i : Fin n, ((Side.Aux, i) : Var n) ∉ g.fv)
-    (hcert : ∀ q m, M.graph.modeAt q = some m → ∀ ν, Formula.sat (M.GdOf q) ν →
-        BoxLe (Program.ode m.sys M.envF) (fun ω => Term.eval g ω) ν) :
+    (hgAux : ∀ i : Fin n, ((Side.Aux, i) : Var n) ∉ g.fv) :
     GuardSettlingH M.graph M.GdOf ((Side.Aux, a) : Var n) g (Term.const 1)
       ((Side.Aux, b) : Var n) (M.dt : ℝ) fL M.envF := by
   refine wellformed_sound M _ _ g fL hwf hdt (hgAux a) (aux_notin_clk_bound fL hab)
     (by intro h; exact hab (by injection h)) (fun q' => aux_notin_GdOf M a q')
-    (fun q' => aux_notin_GdOf M b q') ?_ hcert
+    (fun q' => aux_notin_GdOf M b q') ?_
   intro q' x hx
   obtain ⟨i, hi⟩ := GdOf_fv_sub M q' hx
   rw [← hi]
@@ -247,10 +245,11 @@ theorem settling_end_to_end_aux (M : SettlingModel n) (a b c : Fin n) (hab : a �
       (rightAutomatonBodyC M.graph ((Side.Aux, a) : Var n) ((Side.Aux, c) : Var n)
         (M.dt : ℝ))
       (ψpostG M.graph M.GdOf ((Side.Aux, a) : Var n) ϕinv)) := by
-  have hH := wellformed_sound_aux M a b hab g fL hwf hdt hgAux hcert
+  have hH := wellformed_sound_aux M a b hab g fL hwf hdt hgAux
   exact theorem3_faithful_settling_cadenced' M.graph M.GdOf _ g fL domL M.envF _
     ((Side.Aux, c) : Var n) (M.dt : ℝ) (Term.const 1) ϕinv hψ hH (hgAux c)
-    (aux_tgS M c) (aux_notin_envF M c) (fun q' => aux_notin_GdOf M c q') hdis hddF
+    (aux_tgS M c) (aux_notin_envF M c) (fun q' => aux_notin_GdOf M c q')
+    (wellformed_gbox M g hcert) hdis hddF
 
 /-! ## `Program.vars` bounds and the `hdis` discharger -/
 

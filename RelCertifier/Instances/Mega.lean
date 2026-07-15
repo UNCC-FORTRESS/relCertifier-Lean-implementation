@@ -43,6 +43,6 @@ theorem arm_refinement_mega (g : Term (Var 2)) (fL : Fin 2 → Term (Var 2))
         ((arm_refinementM.dt : ℝ)) fL arm_refinementM.envF :=
   ⟨rfl,
    wellformed_sound_aux arm_refinementM 0 1 (by decide) g fL
-     rfl (by norm_num [SettlingModel.dt, arm_refinementM]) hgAux hcert⟩
+     rfl (by norm_num [SettlingModel.dt, arm_refinementM]) hgAux⟩
 
 end RelCertifier

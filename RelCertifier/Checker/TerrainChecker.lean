@@ -2454,14 +2454,12 @@ def WellFormedSoundT (T : TerrainModel n) (mv tg : Var n) (g : Term (Var n))
   mv ∉ g.fv → mv ∉ (DLCalTiming.clk tg (leftBlock fL)).bound → mv ≠ tg →
   (∀ q', mv ∉ (T.GdOf q').fv) → (∀ q', tg ∉ (T.GdOf q').fv) →
   (∀ q', ∀ x ∈ (T.GdOf q').fv, x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound) →
-  (∀ q m, T.core.graph.modeAt q = some m → ∀ ν, Formula.sat (T.GdOf q) ν →
-      BoxLe (Program.ode m.sys T.core.envF) (fun ω => Term.eval g ω) ν) →
   GuardSettlingH T.core.graph T.GdOf mv g (Term.const 1) tg (T.core.dt : ℝ) fL T.core.envF
 
 /-- **The terrain checker is sound** — the EXT 3 reduction theorem. -/
 theorem wellformed_sound_terrain (T : TerrainModel n) (mv tg : Var n) (g : Term (Var n))
     (fL : Fin n → Term (Var n)) : WellFormedSoundT T mv tg g fL := by
-  intro hwf hdt hg hmvclk hmvtg hmvGd htgGd hfrzGd hcert
+  intro hwf hdt hg hmvclk hmvtg hmvGd htgGd hfrzGd
   unfold decideWellFormedT at hwf
   simp only [Bool.and_eq_true, decide_eq_true_eq, List.all_eq_true] at hwf
   obtain ⟨⟨-, -⟩, hall⟩ := hwf
@@ -2486,7 +2484,7 @@ theorem wellformed_sound_terrain (T : TerrainModel n) (mv tg : Var n) (g : Term 
     unfold SettlingModel.graph; simp
   have hmodeAt : T.core.graph.modeAt q = some (SM.toRMode T.core) := by
     rw [graph_modeAt, hSM]; rfl
-  refine ⟨SM.fieldOf, rfl, rfl, by rw [hlen]; exact hqlt, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨SM.fieldOf, rfl, rfl, by rw [hlen]; exact hqlt, ?_, ?_, ?_, ?_⟩
   · rcases hscd with hplain | ⟨dampers, hscdD, hdamp⟩ | ⟨dampers, hscdD, hdamp⟩
     · exact settling_terrain T hSM hsb hsh hk hcl hch hglo0 hvLo hvHi hscne hplain hsloIn
         hsHiNone hOth hland hdt
@@ -2494,8 +2492,6 @@ theorem wellformed_sound_terrain (T : TerrainModel n) (mv tg : Var n) (g : Term 
         hsloIn hsHiNone hOth hland hdt
     · exact settling_terrain_dampC T hSM hsb hsh hk hcl hch hglo0 hvLo hvHi hscne hscdD hdamp
         hsloIn hsHiNone hOth hland hdt
-  · intro ν hν
-    exact hcert q (SM.toRMode T.core) hmodeAt ν hν
   · exact ⟨_, self_edge_mem T.core hSM, rfl, rfl⟩
   · exact retainedSucc_edges T.core hSM hsucclen
   · intro q' _ hq'

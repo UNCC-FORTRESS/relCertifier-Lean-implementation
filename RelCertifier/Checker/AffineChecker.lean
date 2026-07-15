@@ -386,14 +386,12 @@ def WellFormedSoundA (A : AffineModel n) (mv tg : Var n) (g : Term (Var n))
   mv ∉ g.fv → mv ∉ (DLCalTiming.clk tg (leftBlock fL)).bound → mv ≠ tg →
   (∀ q', mv ∉ (A.GdOf q').fv) → (∀ q', tg ∉ (A.GdOf q').fv) →
   (∀ q', ∀ x ∈ (A.GdOf q').fv, x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound) →
-  (∀ q m, A.core.graph.modeAt q = some m → ∀ ν, Formula.sat (A.GdOf q) ν →
-      BoxLe (Program.ode m.sys A.core.envF) (fun ω => Term.eval g ω) ν) →
   GuardSettlingH A.core.graph A.GdOf mv g (Term.const 1) tg (A.core.dt : ℝ) fL A.core.envF
 
 /-- **The affine checker is sound** — the EXT 2b reduction theorem. -/
 theorem wellformed_sound_affine (A : AffineModel n) (mv tg : Var n) (g : Term (Var n))
     (fL : Fin n → Term (Var n)) : WellFormedSoundA A mv tg g fL := by
-  intro hwf hdt hg hmvclk hmvtg hmvGd htgGd hfrzGd hcert
+  intro hwf hdt hg hmvclk hmvtg hmvGd htgGd hfrzGd
   unfold decideWellFormedA at hwf
   simp only [Bool.and_eq_true, decide_eq_true_eq, List.all_eq_true] at hwf
   obtain ⟨⟨-, -⟩, hall⟩ := hwf
@@ -418,10 +416,8 @@ theorem wellformed_sound_affine (A : AffineModel n) (mv tg : Var n) (g : Term (V
     unfold SettlingModel.graph; simp
   have hmodeAt : A.core.graph.modeAt q = some (SM.toRMode A.core) := by
     rw [graph_modeAt, hSM]; rfl
-  refine ⟨SM.fieldOf, rfl, rfl, by rw [hlen]; exact hqlt, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨SM.fieldOf, rfl, rfl, by rw [hlen]; exact hqlt, ?_, ?_, ?_, ?_⟩
   · exact settling_affine A hSM htop hsh hjne hjfz halo hglo0 hvLo hvHi hOth hland hdt
-  · intro ν hν
-    exact hcert q (SM.toRMode A.core) hmodeAt ν hν
   · exact ⟨_, self_edge_mem A.core hSM, rfl, rfl⟩
   · exact retainedSucc_edges A.core hSM hsucclen
   · intro q' _ hq'

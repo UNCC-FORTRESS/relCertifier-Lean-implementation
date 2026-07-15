@@ -111,8 +111,7 @@ for fam, ir, meta, model in triples:
     dtq_expr = f"{model}.dtQ" if fam == "faithfulSettling" else f"{core_expr}.dtQ"
 
     if padded:
-        out.append(f"""/-- `{bench}` (PADDED model): real-model end to end (residuals: freshness data +
-Z3 certificates). -/
+        out.append(f"""/-- `{bench}` (PADDED model): real-model end to end (residuals: freshness data only). -/
 theorem {bench}_real
     (mv tg : Var {n}) (g : Term (Var {n})) (fL : Fin {n} → Term (Var {n}))
     (hg : mv ∉ g.fv)
@@ -121,10 +120,7 @@ theorem {bench}_real
     (hmvGd : ∀ q', mv ∉ ({gdOf} q').fv)
     (htgGd : ∀ q', tg ∉ ({gdOf} q').fv)
     (hfrzGd : ∀ q', ∀ x ∈ ({gdOf} q').fv,
-        x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
-    (hcert : ∀ q m, {graph}.modeAt q = some m →
-        ∀ ν, Formula.sat ({gdOf} q) ν →
-          BoxLe (Program.ode m.sys {envF}) (fun ω => Term.eval g ω) ν) :
+        x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound) :
     ∀ q pm m, {ir}.R.modes[q]? = some pm → {modes}[q]? = some m →
       GuardSettlingB {graph} ({gd_real})
         (realFieldOf {ir}.R.stateVars pm {n}) (Term.const 1)
@@ -143,12 +139,12 @@ theorem {bench}_real
       norm_num [QF.val])
     (by decide) (by decide) (by decide) (by decide)
     mv tg g fL rfl (by norm_num [SettlingModel.dt, {model}])
-    hg hmvclk hmvtg hmvGd htgGd hfrzGd hcert
+    hg hmvclk hmvtg hmvGd htgGd hfrzGd
 
 """)
         continue
 
-    out.append(f"""/-- `{bench}`: real-model end to end (residuals: freshness data + Z3 certificates). -/
+    out.append(f"""/-- `{bench}`: real-model end to end (residuals: freshness data only — the conclusion is single-system; no Z3 hypotheses remain). -/
 theorem {bench}_real
     (mv tg : Var {n}) (g : Term (Var {n})) (fL : Fin {n} → Term (Var {n}))
     (hg : mv ∉ g.fv)
@@ -157,10 +153,7 @@ theorem {bench}_real
     (hmvGd : ∀ q', mv ∉ ({gdOf} q').fv)
     (htgGd : ∀ q', tg ∉ ({gdOf} q').fv)
     (hfrzGd : ∀ q', ∀ x ∈ ({gdOf} q').fv,
-        x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
-    (hcert : ∀ q m, {graph}.modeAt q = some m →
-        ∀ ν, Formula.sat ({gdOf} q) ν →
-          BoxLe (Program.ode m.sys {envF}) (fun ω => Term.eval g ω) ν) :
+        x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound) :
     ∀ q pm m, {ir}.R.modes[q]? = some pm → {modes}[q]? = some m →
       GuardSettlingB {graph} ({gd_real})
         (realFieldOf {ir}.R.stateVars pm {n}) (Term.const 1)
@@ -179,7 +172,7 @@ theorem {bench}_real
       norm_num [QF.val])
     (by decide)
     mv tg g fL rfl (by norm_num [SettlingModel.dt, {model}])
-    hg hmvclk hmvtg hmvGd htgGd hfrzGd hcert
+    hg hmvclk hmvtg hmvGd htgGd hfrzGd
 
 """)
 

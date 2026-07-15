@@ -87,10 +87,10 @@ theorem watertank_end_to_end
     wellformed_sound watertankSuiteM mv tg g fL
       rfl                       -- ← the kernel checker certificate
       (by norm_num [SettlingModel.dt, watertankSuiteM])
-      hg hmvclk hmvtg hmvGd htgGd hfrzGd hcert
+      hg hmvclk hmvtg hmvGd htgGd hfrzGd
   exact theorem3_faithful_settling watertankSuiteM.graph watertankSuiteM.GdOf mv g fL
     domL watertankSuiteM.envF tg ((watertankSuiteM.dt : ℝ)) k (Term.const 1) ϕinv
-    hψ hH htgb htgr htgϕ htgR htgφ hdis hdMULTI hbudget hddF
+    hψ hH (wellformed_gbox watertankSuiteM g hcert) htgb htgr htgϕ htgR htgφ hdis hdMULTI hbudget hddF
 
 /-- **Watertank, end to end, CLOCKED ∀-side** — the preferred form. Relative to
 `watertank_end_to_end`: the mission-budget hypothesis and all six clock-freshness
@@ -132,10 +132,10 @@ theorem watertank_end_to_end_clocked
       (Term.const 1) tg ((watertankSuiteM.dt : ℝ)) fL watertankSuiteM.envF :=
     wellformed_sound watertankSuiteM mv tg g fL rfl
       (by norm_num [SettlingModel.dt, watertankSuiteM])
-      hg hmvclk hmvtg hmvGd htgGd hfrzGd hcert
+      hg hmvclk hmvtg hmvGd htgGd hfrzGd
   exact theorem3_faithful_settling_clocked watertankSuiteM.graph watertankSuiteM.GdOf
     mv g fL domL watertankSuiteM.envF tg ((watertankSuiteM.dt : ℝ)) (Term.const 1)
-    ϕinv hψ hH hdis hddF
+    ϕinv hψ hH (wellformed_gbox watertankSuiteM g hcert) hdis hddF
 
 /-- **Watertank, end to end, ε-CADENCED BOTH SIDES, calculus coupling — the final form.**
 Both stars clocked (`clockedSeg` left, `rightAutomatonBodyC` right); the per-segment
@@ -186,10 +186,10 @@ theorem watertank_end_to_end_cadenced
       (Term.const 1) tg ((watertankSuiteM.dt : ℝ)) fL watertankSuiteM.envF :=
     wellformed_sound watertankSuiteM mv tg g fL rfl
       (by norm_num [SettlingModel.dt, watertankSuiteM])
-      hg hmvclk hmvtg hmvGd htgGd hfrzGd hcert
+      hg hmvclk hmvtg hmvGd htgGd hfrzGd
   exact theorem3_faithful_settling_cadenced' watertankSuiteM.graph watertankSuiteM.GdOf
     mv g fL domL watertankSuiteM.envF tg tr ((watertankSuiteM.dt : ℝ)) (Term.const 1)
-    ϕinv hψ hH htgg htgS htgdom htrGd hdis hddF
+    ϕinv hψ hH htgg htgS htgdom htrGd (wellformed_gbox watertankSuiteM g hcert) hdis hddF
 
 /-! ## The Faithful bridge, instantiated: watertank
 
@@ -288,7 +288,7 @@ theorem watertank_real_settling
       (Term.const 1) tg ((watertankSuiteM.dt : ℝ)) fL watertankSuiteM.envF :=
     wellformed_sound watertankSuiteM mv tg g fL rfl
       (by norm_num [SettlingModel.dt, watertankSuiteM])
-      hg hmvclk hmvtg hmvGd htgGd hfrzGd hcert
+      hg hmvclk hmvtg hmvGd htgGd hfrzGd
   exact watertank_bridge_per_mode hpm hm _ (GuardSettlingH_B watertankSuiteM hH hm)
 
 end RelCertifier

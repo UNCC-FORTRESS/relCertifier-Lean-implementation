@@ -40,6 +40,7 @@ theorem theorem3_faithful_settling_clocked (G : SearchGraph (Var n))
     (dt : ℝ) (lam : Term (Var n)) (ϕinv : RFormula (Var n))
     (hψ : encode (Equiv.refl (Var n)) ϕinv = invLe g)
     (hH : GuardSettlingH G Gd mv g lam tg dt fL evolShared)
+    (hgbox : GBoxAll G Gd g lam evolShared)
     (hdis : Disjoint (Program.vars (clockedSeg (leftBlock fL) domL tg dt))
         (Program.vars ((rightAutomatonBody G mv).rename (Equiv.refl (Var n)))))
     (hddF : Disjoint (faShape (Program.star (clockedSeg (leftBlock fL) domL tg dt))
@@ -75,7 +76,7 @@ theorem theorem3_faithful_settling_clocked (G : SearchGraph (Var n))
     (fun σ hσ =>
       (faModalB_clockedSeg_iff (leftBlock fL) domL (rightAutomatonBody G mv)
         (starInvGF G Gd mv g) tg dt σ).mpr
-        (hHcoupleG_of_GuardSettlingH G Gd mv g lam tg dt fL domL evolShared hH σ hσ))
+        (hHcoupleG_of_GuardSettlingH G Gd mv g lam tg dt fL domL evolShared hH hgbox σ hσ))
     (fun _ h => h)
 
 /-! ## Task C, right: the ε-cadenced right automaton
@@ -335,7 +336,8 @@ theorem hHcoupleGC_of_GuardSettlingH (G : SearchGraph (Var n)) (Gd : ℕ → For
         (∀ p ∈ rightBlock fR lam, tr ∉ (p.2 : Term (Var n)).fv))
     (htgdom : tr ∉ evolShared.fv)
     (htrGd : ∀ q', tr ∉ (Gd q').fv)
-    (h : GuardSettlingH G Gd mv g lam tg dt fL evolShared) :
+    (h : GuardSettlingH G Gd mv g lam tg dt fL evolShared)
+    (hgbox : GBoxAll G Gd g lam evolShared) :
     ∀ σ', Formula.sat (starInvGF G Gd mv g) σ' →
       faModalB (Equiv.refl (Var n)) (Program.ode (DLCalTiming.clk tg (leftBlock fL)) domL)
         (rightAutomatonBodyC G mv tr dt) (starInvGF G Gd mv g) tg dt
@@ -343,7 +345,8 @@ theorem hHcoupleGC_of_GuardSettlingH (G : SearchGraph (Var n)) (Gd : ℕ → For
   obtain ⟨hdt, hg, hmvLclk, hmvtg, hmvGd, htgGd, hfrzGd, hmodes⟩ := h
   intro σ' hσ'
   obtain ⟨q, m, hqmv, hmode, hqgd⟩ := (sat_starInvGF.mp hσ').2.2
-  obtain ⟨fR, hsys, hdom, hqlen, hset, hgboxGd, hself, hsucc, hmodeAll⟩ := hmodes q m hmode
+  obtain ⟨fR, hsys, hdom, hqlen, hset, hself, hsucc, hmodeAll⟩ := hmodes q m hmode
+  have hgboxGd := hgbox q m hmode fR hsys
   obtain ⟨htgbR, htgfR⟩ := htgS q m hmode fR hsys
   have hωmv : (Function.update σ' tg 0) mv = (q : ℝ) := by
     rw [Function.update_of_ne hmvtg]; exact hqmv
@@ -370,6 +373,7 @@ theorem theorem3_faithful_settling_cadenced (G : SearchGraph (Var n))
         (∀ p ∈ rightBlock fR lam, tr ∉ (p.2 : Term (Var n)).fv))
     (htgdom : tr ∉ evolShared.fv)
     (htrGd : ∀ q', tr ∉ (Gd q').fv)
+    (hgbox : GBoxAll G Gd g lam evolShared)
     (hdis : Disjoint (Program.vars (clockedSeg (leftBlock fL) domL tg dt))
         (Program.vars ((rightAutomatonBodyC G mv tr dt).rename (Equiv.refl (Var n)))))
     (hddF : Disjoint (faShape (Program.star (clockedSeg (leftBlock fL) domL tg dt))
@@ -406,7 +410,7 @@ theorem theorem3_faithful_settling_cadenced (G : SearchGraph (Var n))
       (faModalB_clockedSeg_iff (leftBlock fL) domL (rightAutomatonBodyC G mv tr dt)
         (starInvGF G Gd mv g) tg dt σ).mpr
         (hHcoupleGC_of_GuardSettlingH G Gd mv g lam tg tr dt fL domL evolShared
-          htgg htgS htgdom htrGd hH σ hσ))
+          htgg htgS htgdom htrGd hH hgbox σ hσ))
     (fun _ h => h)
 
 /-! ## The calculus-faithful coupling slot: one left segment vs the right STAR
@@ -463,6 +467,7 @@ theorem theorem3_faithful_settling_cadenced' (G : SearchGraph (Var n))
         (∀ p ∈ rightBlock fR lam, tr ∉ (p.2 : Term (Var n)).fv))
     (htgdom : tr ∉ evolShared.fv)
     (htrGd : ∀ q', tr ∉ (Gd q').fv)
+    (hgbox : GBoxAll G Gd g lam evolShared)
     (hdis : Disjoint (Program.vars (clockedSeg (leftBlock fL) domL tg dt))
         (Program.vars ((Program.star (rightAutomatonBodyC G mv tr dt)).rename
           (Equiv.refl (Var n)))))
@@ -501,7 +506,7 @@ theorem theorem3_faithful_settling_cadenced' (G : SearchGraph (Var n))
   have h1 := (faModalB_clockedSeg_iff (leftBlock fL) domL (rightAutomatonBodyC G mv tr dt)
     (starInvGF G Gd mv g) tg dt σ).mpr
     (hHcoupleGC_of_GuardSettlingH G Gd mv g lam tg tr dt fL domL evolShared
-      htgg htgS htgdom htrGd hH σ hσ)
+      htgg htgS htgdom htrGd hH hgbox σ hσ)
   rw [faModal_sat] at h1 ⊢
   intro ν' hν'
   obtain ⟨μ, hsem, hφ⟩ := h1 ν' hν'

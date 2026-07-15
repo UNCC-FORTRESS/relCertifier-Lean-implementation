@@ -30,7 +30,7 @@ import RelCertifier.Proofs.Flow.DISuperlevel
 import RelCertifier.Checker.Cover.Coexec
 import RelCertifier.Checker.Checker
 import RelCertifier.Proofs.Flow.PicardBridge
-import RelCertifier.Archive.HExistDischarge
+import RelCertifier.Proofs.Flow.HExistDischarge
 import RelCertifier.Proofs.Encoding.JointBridge
 import RelCertifier.Archive.OdeProject
 import RelCertifier.Archive.RightReachProject
@@ -40,9 +40,9 @@ import RelCertifier.Proofs.Encoding.BridgeUnit3
 import RelCertifier.Proofs.Encoding.BridgeFinish
 import RelCertifier.Proofs.Encoding.BridgeDischarge
 import RelCertifier.Proofs.Encoding.BridgeReposition
-import RelCertifier.Archive.RepositionFinish
-import RelCertifier.Archive.RepositionDischarge
-import RelCertifier.Archive.RepositionEndToEnd
+import RelCertifier.Proofs.Encoding.RepositionFinish
+import RelCertifier.Proofs.Encoding.RepositionDischarge
+import RelCertifier.Proofs.Encoding.RepositionEndToEnd
 import RelCertifier.Archive.GapTwo
 import RelCertifier.Archive.GapThreeFoundation
 import RelCertifier.Archive.GapThreeTask2
@@ -83,7 +83,7 @@ import RelCertifier.Proofs.Encoding.FvDischarge
 import RelCertifier.Instances.Mega
 import RelCertifier.Instances.RealInstances
 import RelCertifier.Proofs.Encoding.ClockedTop
-import RelCertifier.Archive.ClockReduce
+import RelCertifier.Proofs.Encoding.ClockReduce
 import RelCertifier.Core.QFrac
 import RelCertifier.Core.Reify
 import RelCertifier.Instances.EndToEnd

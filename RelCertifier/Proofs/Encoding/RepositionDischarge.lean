@@ -11,7 +11,7 @@ not re-assumed.
 -/
 import RelCertifier.Proofs.Encoding.BridgeReposition
 import RelCertifier.Proofs.Encoding.BridgeDischarge
-import RelCertifier.Archive.ClockReduce
+import RelCertifier.Proofs.Encoding.ClockReduce
 
 namespace RelCertifier
 open DL DLCalTiming Function Set

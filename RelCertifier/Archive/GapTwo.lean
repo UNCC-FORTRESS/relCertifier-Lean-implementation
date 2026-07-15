@@ -18,7 +18,7 @@ left — and `faModal_bigChoiceL` composes over the left choice.
 re-entry. `faModal_MULTI` preserves `phiInv = invLe g ∧ mvValid`; the right's mode is carried in `mv`;
 each iteration reads `mv` and dispatches. `mv` is the sync.
 -/
-import RelCertifier.Archive.RepositionEndToEnd
+import RelCertifier.Proofs.Encoding.RepositionEndToEnd
 
 namespace RelCertifier
 open DL DLCalTiming DLRel Function

@@ -6,8 +6,8 @@ reposition-inclusive multi Theorem 3). Mirror of `decideCovered_implies_theorem3
 flow), now for covers where the right switches modes mid-residence. The Z3 leaf lives at `cert`
 construction (parametric here — 3 axioms); `cert` is load-bearing for the `rvalid` conjunct.
 -/
-import RelCertifier.Archive.RepositionDischarge
-import RelCertifier.Archive.RepositionFinish
+import RelCertifier.Proofs.Encoding.RepositionDischarge
+import RelCertifier.Proofs.Encoding.RepositionFinish
 
 namespace RelCertifier
 open DL DLCalTiming DLRel Function

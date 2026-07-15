@@ -485,4 +485,170 @@ theorem hdis_aux (M : SettlingModel n) (a b c : Fin n)
       rcases hx with ⟨h, -⟩ | ⟨h, -⟩ <;> exact absurd h (by simp)
     · exact absurd hj (by simp [Lv, Rv, Prod.ext_iff])
 
+/-! ## The `hddF` discharger: shape disjointness from side-splits -/
+
+/-- Side separation: a set inside `{Aux b} ∪ Lv`-side is disjoint from a set inside
+`{Aux a, Aux c} ∪ Rv`-side whenever `b ∉ {a, c}`. -/
+theorem sides_disjoint {S T : Set (Var n)} (a b c : Fin n) (hba : b ≠ a) (hbc : b ≠ c)
+    (hS : S ⊆ {((Side.Aux, b) : Var n)} ∪ range Lv)
+    (hT : T ⊆ ({((Side.Aux, a) : Var n), ((Side.Aux, c) : Var n)} : Set (Var n))
+      ∪ range Rv) : Disjoint S T := by
+  rw [Set.disjoint_left]
+  intro x hxS hxT
+  rcases hS hxS with hx | ⟨i, rfl⟩
+  · rw [Set.mem_singleton_iff] at hx
+    subst hx
+    rcases hT hxT with hx | ⟨j, hj⟩
+    · simp only [Set.mem_insert_iff, Set.mem_singleton_iff, Prod.mk.injEq] at hx
+      rcases hx with ⟨-, h⟩ | ⟨-, h⟩
+      · exact hba h
+      · exact hbc h
+    · exact aux_ne_Rv b j hj.symm
+  · rcases hT hxT with hx | ⟨j, hj⟩
+    · simp only [Set.mem_insert_iff, Set.mem_singleton_iff, Lv, Prod.mk.injEq] at hx
+      rcases hx with ⟨h, -⟩ | ⟨h, -⟩ <;> exact absurd h (by simp)
+    · exact absurd hj (by simp [Lv, Rv, Prod.ext_iff])
+
+/-- The clocked left segment touches only its clock and `Lv`s (given side-split data). -/
+theorem vars_clockedSegL_sub (fL : Fin n → Term (Var n)) (domL : Formula (Var n))
+    (b : Fin n) (dt : ℝ) (hfL : ∀ i, (fL i).fv ⊆ range Lv)
+    (hdomL : domL.fv ⊆ range Lv) :
+    Program.vars (clockedSeg (leftBlock fL) domL ((Side.Aux, b) : Var n) dt)
+      ⊆ {((Side.Aux, b) : Var n)} ∪ range Lv := by
+  intro x hx
+  rcases vars_clockedSeg_sub _ _ _ _ hx with ((hx | hx) | hx) | hx
+  · exact Or.inl hx
+  · exact Or.inr (leftBlock_boundSet_sub fL hx)
+  · exact Or.inr (leftBlock_readVars_sub fL hfL hx)
+  · exact Or.inr (hdomL hx)
+
+/-- `faShape`'s left variables: the left program's plus the postcondition's. -/
+theorem faShape_varsL' (α β : Program (Var n)) (ψ : RFormula (Var n)) :
+    (faShape α β ψ).varsL = pvars α ∪ ψ.varsL := by
+  simp only [faShape, RFormula.rdiamond, RFormula.varsL, RProgram.varsL, pvars, Program.fv,
+    Program.bv, Formula.fv, Set.union_empty, Set.empty_union]
+
+/-- `faShape`'s right variables: the right program's plus the postcondition's. -/
+theorem faShape_varsR' (α β : Program (Var n)) (ψ : RFormula (Var n)) :
+    (faShape α β ψ).varsR = pvars β ∪ ψ.varsR := by
+  simp only [faShape, RFormula.rdiamond, RFormula.varsR, RProgram.varsR, pvars, Program.fv,
+    Program.bv, Formula.fv, Set.union_empty, Set.empty_union]
+
+/-- `pvars (star P) = Program.vars P`. -/
+theorem pvars_star' (P : Program (Var n)) : pvars (Program.star P) = Program.vars P := rfl
+
+/-- `bigOr`'s free variables are bounded by any set bounding each disjunct's. -/
+theorem bigOr_fv_sub {fs : List (Formula (Var n))} {S : Set (Var n)}
+    (h : ∀ f ∈ fs, f.fv ⊆ S) : (bigOr fs).fv ⊆ S := by
+  induction fs with
+  | nil => intro v hv; exact absurd hv (by simp [bigOr, Formula.fv])
+  | cons a as ih =>
+      intro v hv
+      simp only [bigOr, Formula.fv, Set.mem_union] at hv
+      rcases hv with ha | hrest
+      · exact h a (List.mem_cons.mpr (Or.inl rfl)) ha
+      · exact ih (fun f hf => h f (List.mem_cons.mpr (Or.inr hf))) hrest
+
+/-- `mvValid` reads only `mv`. -/
+theorem mvValid_fv_sub (mv : Var n) (k : ℕ) : (mvValid mv k).fv ⊆ {mv} := by
+  refine bigOr_fv_sub ?_
+  intro f hf
+  simp only [List.mem_map, List.mem_range] at hf
+  obtain ⟨q, -, rfl⟩ := hf
+  intro v hv
+  simpa only [modeIs, Formula.fv, Term.fv, Set.union_empty] using hv
+
+/-- `inModeGuardF` of a checker model reads only `mv` and `Rv`s. -/
+theorem inModeGuardF_fv_sub (M : SettlingModel n) (mv : Var n) :
+    (inModeGuardF M.graph M.GdOf mv).fv ⊆ {mv} ∪ range Rv := by
+  refine bigOr_fv_sub ?_
+  intro f hf
+  simp only [List.mem_filterMap, List.mem_range] at hf
+  obtain ⟨q, -, hq⟩ := hf
+  rcases hm : M.graph.modeAt q with _ | m
+  · rw [hm] at hq; simp at hq
+  · rw [hm] at hq
+    simp only [Option.map_some, Option.some.injEq] at hq
+    subst hq
+    intro v hv
+    simp only [Formula.fv, modeIs, Term.fv, Set.union_empty, Set.mem_union] at hv
+    rcases hv with hv | hv
+    · exact Or.inl hv
+    · exact Or.inr (GdOf_fv_sub M q hv)
+
+/-- `ψpostG`'s left variables are exactly the invariant's. -/
+theorem ψpostG_varsL (G : SearchGraph (Var n)) (Gd : ℕ → Formula (Var n)) (mv : Var n)
+    (ϕinv : RFormula (Var n)) :
+    (ψpostG G Gd mv ϕinv).varsL = ϕinv.varsL := by
+  simp only [ψpostG, mvValidR, inModeGuardR, RFormula.varsL, Set.union_empty]
+
+/-- `ψpostG`'s right variables: the invariant's, `mv`, and (for a checker model) `Rv`s. -/
+theorem ψpostG_varsR_sub (M : SettlingModel n) (mv : Var n) (ϕinv : RFormula (Var n)) :
+    (ψpostG M.graph M.GdOf mv ϕinv).varsR ⊆ ϕinv.varsR ∪ ({mv} ∪ range Rv) := by
+  simp only [ψpostG, mvValidR, inModeGuardR, RFormula.varsR]
+  refine Set.union_subset (Set.subset_union_left) (Set.union_subset ?_ ?_)
+  · exact fun v hv =>
+      Or.inr (Or.inl (mvValid_fv_sub mv M.graph.modes.length hv))
+  · exact fun v hv => Or.inr (inModeGuardF_fv_sub M mv hv)
+
+/-- **The `hddF` discharger**: the shape disjointness of `settling_end_to_end_aux` from
+side-split data on the left field/domain and the invariant. -/
+theorem hddF_aux (M : SettlingModel n) (a b c : Fin n)
+    (fL : Fin n → Term (Var n)) (domL : Formula (Var n)) (dt : ℝ)
+    (ϕinv : RFormula (Var n))
+    (hfL : ∀ i, (fL i).fv ⊆ range Lv) (hdomL : domL.fv ⊆ range Lv)
+    (hinvL : ϕinv.varsL ⊆ range Lv) (hinvR : ϕinv.varsR ⊆ range Rv)
+    (hba : b ≠ a) (hbc : b ≠ c) :
+    Disjoint (faShape (Program.star (clockedSeg (leftBlock fL) domL
+          ((Side.Aux, b) : Var n) dt))
+        (Program.star (rightAutomatonBodyC M.graph ((Side.Aux, a) : Var n)
+          ((Side.Aux, c) : Var n) dt))
+        (ψpostG M.graph M.GdOf ((Side.Aux, a) : Var n) ϕinv)).varsL
+      (Equiv.refl (Var n) '' (faShape (Program.star (clockedSeg (leftBlock fL) domL
+          ((Side.Aux, b) : Var n) dt))
+        (Program.star (rightAutomatonBodyC M.graph ((Side.Aux, a) : Var n)
+          ((Side.Aux, c) : Var n) dt))
+        (ψpostG M.graph M.GdOf ((Side.Aux, a) : Var n) ϕinv)).varsR) := by
+  rw [show ∀ S : Set (Var n), Equiv.refl (Var n) '' S = S by
+    intro S; simp]
+  refine sides_disjoint a b c hba hbc ?_ ?_
+  · rw [faShape_varsL', pvars_star', ψpostG_varsL]
+    exact Set.union_subset (vars_clockedSegL_sub fL domL b dt hfL hdomL)
+      (fun v hv => Or.inr (hinvL hv))
+  · rw [faShape_varsR', pvars_star']
+    refine Set.union_subset ?_ ?_
+    · intro v hv
+      exact vars_bodyC_sub M _ _ dt hv
+    · intro v hv
+      rcases ψpostG_varsR_sub M _ ϕinv hv with hv | hv | hv
+      · exact Or.inr (hinvR hv)
+      · exact Or.inl (Or.inl hv)
+      · exact Or.inr hv
+
+/-- **Discharged end-to-end**: `settling_end_to_end_aux` with both disjointness
+hypotheses replaced by their side-split dischargers. What remains is per-benchmark
+data: well-formedness, the encoding identity, side-splits, and the Z3-certified
+`BoxLe` facts. -/
+theorem settling_end_to_end (M : SettlingModel n) (a b c : Fin n)
+    (hab : a ≠ b) (hbc : b ≠ c)
+    (g : Term (Var n)) (fL : Fin n → Term (Var n)) (domL : Formula (Var n))
+    (ϕinv : RFormula (Var n))
+    (hwf : decideWellFormed M = true)
+    (hdt : (0 : ℝ) ≤ (M.dt : ℝ))
+    (hψ : encode (Equiv.refl (Var n)) ϕinv = invLe g)
+    (hgAux : ∀ i : Fin n, ((Side.Aux, i) : Var n) ∉ g.fv)
+    (hfL : ∀ i, (fL i).fv ⊆ range Lv) (hdomL : domL.fv ⊆ range Lv)
+    (hinvL : ϕinv.varsL ⊆ range Lv) (hinvR : ϕinv.varsR ⊆ range Rv)
+    (hcert : ∀ q m, M.graph.modeAt q = some m → ∀ ν, Formula.sat (M.GdOf q) ν →
+        BoxLe (Program.ode m.sys M.envF) (fun ω => Term.eval g ω) ν) :
+    RFormula.rvalid (theorem3Form
+      (clockedSeg (leftBlock fL) domL ((Side.Aux, b) : Var n) (M.dt : ℝ))
+      (rightAutomatonBodyC M.graph ((Side.Aux, a) : Var n) ((Side.Aux, c) : Var n)
+        (M.dt : ℝ))
+      (ψpostG M.graph M.GdOf ((Side.Aux, a) : Var n) ϕinv)) :=
+  settling_end_to_end_aux M a b c hab g fL domL ϕinv hwf hdt hψ hgAux
+    (hdis_aux M a b c fL domL (M.dt : ℝ) hfL hdomL hab.symm hbc)
+    (hddF_aux M a b c fL domL (M.dt : ℝ) ϕinv hfL hdomL hinvL hinvR hab.symm hbc)
+    hcert
+
 end RelCertifier

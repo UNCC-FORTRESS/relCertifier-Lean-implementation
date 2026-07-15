@@ -4,7 +4,11 @@ This catalogs how each suite benchmark relates to the **`tooling_sound`** meta-t
 ∀∃ refinement modality over the *actual* programs `L, R`, via `graphOf`). The suite is
 `benchmarks/suite_uniform/` (the uniform-evolution settling form — see README); the table below
 applies unchanged, since the uniform restructuring altered only guards and evolution domains,
-never the dynamics, the mode structure, or the verdicts (46/47 in both forms).
+never the dynamics, the mode structure, or the verdicts (46/47 in both forms). (Later, the
+cascade-coordinate program rewrote the second-order blocks of four benchmarks — and, for
+ladder coherence, the matching lower-rung L sides — in their eigen-cascade charts: a linear
+bijection of the same dynamics with the relational invariants substituted exactly, so the
+table below is likewise unaffected; see docs/DEVELOPMENT-ARC.md.)
 
 Scope note: this document addresses the **`tooling_sound`** chain and its `HExistSeg` boundary.
 The newer landing/uniform chain (`theorem3_faithful_landing_clocked_uniform`,

@@ -95,6 +95,24 @@ def main():
                         tag = "note(negative-control)" if bench in NEGATIVE_CONTROLS else "VIOL"
                         print(f"{tag} guard-overlap {bench}.{side}: {ms[i]}/{ms[j]}")
                         if bench not in NEGATIVE_CONTROLS: fail += 1
+    # guard COVERAGE: on each side, bands on the common guard variable must tile
+    # an interval without holes (meaningful partition, not just disjointness)
+    for bench in sorted(os.listdir(ROOT)):
+        p = os.path.join(ROOT, bench, "input.txt")
+        if not os.path.exists(p): continue
+        for side in ("Lsys", "Rsys"):
+            S = section(p, side)
+            boxes = {m: guard_box(d.get("guard", "")) for m, d in S.items() if m != "_hdr"}
+            if any(v is None for v in boxes.values()) or len(boxes) < 2: continue
+            common = set.intersection(*[set(v) for v in boxes.values()])
+            for gv in common:
+                ivs = sorted((boxes[m][gv][0], boxes[m][gv][1]) for m in boxes)
+                holes = [(ivs[i][1], ivs[i+1][0]) for i in range(len(ivs)-1)
+                         if ivs[i+1][0] > ivs[i][1] + 1e-9]
+                if holes:
+                    tag = "note(negative-control)" if bench in NEGATIVE_CONTROLS else "VIOL"
+                    print(f"{tag} guard-gap {bench}.{side}[{gv}]: {holes}")
+                    if bench not in NEGATIVE_CONTROLS: fail += 1
     for a, b in LADDER_PAIRS:
         A = section(os.path.join(ROOT, a, "input.txt"), "Lsys")
         B = section(os.path.join(ROOT, b, "input.txt"), "Rsys")

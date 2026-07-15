@@ -51,7 +51,9 @@
 [problem]
 name = attitude_rate
 max_depth = 6
-lambda_min = 3.0
+# lambda_min widened 3.0 -> 2.0: the kernel settling certificate is derived at
+# lambda = 2 (dt = eps_R/2), which must lie in the declared range
+lambda_min = 2.0
 lambda_max = 5.0
 bound_T = 4.0
 

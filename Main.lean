@@ -177,6 +177,10 @@ def emitIR (path defname : String) : IO Unit := do
 def main (args : List String) : IO Unit := do
   match args with
   | ["--emit-ir", path, defname] => emitIR path defname
+  | ["--emit-cover", path, defname] => do
+      match ← RelCertifier.Z3Config.discover with
+      | .error e => IO.eprintln s!"ERROR: {e}"; IO.Process.exit 1
+      | .ok cfg => RelCertifier.Oracle.emitCoverFile cfg path defname
   | ["--emit-cuts", path, defname] => emitCuts path defname
   | [] => demoStage1
   | _ => runBatch args

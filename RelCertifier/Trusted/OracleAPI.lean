@@ -24,6 +24,7 @@ import RelCertifier.Trusted.Run
 import RelCertifier.Checker.EvolStrengthening
 import RelCertifier.Trusted.Z3
 import RelCertifier.Checker.Checker
+import RelCertifier.Checker.CoverEmit
 import Std.Data.HashMap
 
 namespace RelCertifier.Oracle
@@ -164,7 +165,8 @@ is Z3-`unsat`; `fail` iff some component is definitively `sat`; `incon` on any Z
 error/`unknown` or unbuildable query. -/
 def checkSeg (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     (vars : List String) (n : ℕ) (coord : Fin n → String)
-    (comps : List (ITerm n)) (cutL cutR : IForm n) (mL mR : PMode) (lam : ℚ) : IO Seg := do
+    (comps : List (ITerm n)) (cutL cutR : IForm n) (mL mR : PMode) (lam : ℚ) :
+    IO (Seg × List Nat) := do
   -- STRATIFIED DIFFERENTIAL CUTS (soundness-critical, 2026-07-15). A component may
   -- narrow its query domain ONLY by components proven in EARLIER rounds (sequential,
   -- acyclic DC — Platzer's differential cut, iterated). The previous MUTUAL narrowing
@@ -219,8 +221,8 @@ def checkSeg (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
             else if (← IO.getEnv "RELCERT_DBGC").isSome then
               IO.eprintln s!"      FAIL comp#{i} @ {mL.name}->{mR.name} λ={lam} (strata {proven})"
     if !progress then break
-  return (if proven.length == comps.length then Seg.pass
-          else if lastIncon then Seg.incon else Seg.fail)
+  return ((if proven.length == comps.length then Seg.pass
+           else if lastIncon then Seg.incon else Seg.fail), proven)
 
 /-- **REPOSITION region-invariant check** over a supplied `region`. `true` ⟺ `rel_inv` holds
 everywhere in `region`: `¬rel_inv ∧ region` UNSAT iff **for every component** `gᵢ`,
@@ -448,7 +450,7 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     (coord : Fin n → String) (comps : List (ITerm n))
     (prunedOf : String → String → Bool)
     (cutL : IForm n) (cutOfR : String → IForm n)
-    (epsL epsR lmin lmax : ℚ) (mL : PMode) : IO Cov3 := do
+    (epsL epsR lmin lmax : ℚ) (mL : PMode) : IO (Cov3 × Option LeftCoverE) := do
   let mut sawIncon := false
   -- FIX 1 (precise admissibility): the admissible initial right modes for `mL` — those with an
   -- invariant-satisfying initial pair. λ-independent (guards + `ϕ_rel` only), so computed ONCE.
@@ -494,9 +496,12 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     if deltaL ≤ 0 then continue
     -- precompute per-right-mode segment status at this λ
     let mut segMap : List (String × Seg) := []
+    let mut strataMap : List PairStrataE := []
     for mR in p.R.modes do
-      segMap := segMap ++ [(mR.name,
-        ← checkSeg s cnt maxQ maxSmt deadline vars n coord comps cutL (cutOfR mR.name) mL mR lam)]
+      let (st, order) ←
+        checkSeg s cnt maxQ maxSmt deadline vars n coord comps cutL (cutOfR mR.name) mL mR lam
+      segMap := segMap ++ [(mR.name, st)]
+      strataMap := strataMap ++ [{ mR := mR.name, order := order }]
     let seg := fun q => (segMap.find? (·.1 == q)).map (·.2) |>.getD Seg.incon
     if (← IO.getEnv "RELCERT_DEBUG").isSome then
       IO.eprintln (s!"  [{mL.name}_L λ={lam} #comps={comps.length}] " ++
@@ -559,12 +564,21 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
         decideCovered cgReal fuel ⟨idxOf mR.name, bBudget, SrcSetting.preJ⟩
     -- `.cov` for this λ iff every admissible initial mode covers. Empty `admMods` ⟹ do NOT
     -- certify (safe: a possibly-buggy all-drop cannot vacuously certify; over-decline instead).
-    if !admMods.isEmpty && admMods.all startCovers then return .cov
+    if !admMods.isEmpty && admMods.all startCovers then
+      return (.cov, some {
+        mL := mL.name, lamQ := lam, bBudget := bBudget,
+        flags := p.R.modes.map (fun m =>
+          { name := m.name, jointOK := seg m.name == Seg.pass,
+            repoPre := repoPreOK m.name, repoPost := repoPostOK m.name,
+            dynPre := repoDynPreOK m.name, dynPost := repoDynPostOK m.name }),
+        admissible := admMods.map (·.name),
+        strata := strataMap })
     if admMods.any (fun mR => seg mR.name == Seg.incon) then sawIncon := true
-  return (if sawIncon then .incon else .nocov)
+  return ((if sawIncon then .incon else .nocov), none)
 
 /-- Core cover, parameterized by a query counter/budget (`throw`s on overrun). -/
-def certifyCore (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p : PProblem) : IO Outcome := do
+def certifyWithData (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
+    (p : PProblem) : IO (Outcome × Option CoverEmitE) := do
   let vars := p.L.stateVars
   let n := vars.length
   let coord := fun (i : Fin n) => vars.getD i.val "v"
@@ -608,6 +622,7 @@ def certifyCore (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) 
     IO.eprintln s!"  [prune] {p.name}: {prunedPairs.map (fun e => s!"{e.1}->{e.2}")}"
   let prunedOf := fun (src tgt : String) => prunedPairs.contains (src, tgt)
   let mut sawIncon := false
+  let mut covers : List LeftCoverE := []
   for mL in p.L.modes do
     -- invariant for this left mode (key = mode name, else first)
     -- strict: every left mode must carry its own invariant row (the old head-of-list
@@ -615,18 +630,24 @@ def certifyCore (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) 
     -- accept-and-weaken route at key resolution)
     let invF := (p.invariants.find? (·.1 == mL.name)).map Prod.snd
     match invF with
-    | none => return .error s!"no invariant for left mode {mL.name}"
+    | none => return (.error s!"no invariant for left mode {mL.name}", none)
     | some f =>
         match invComponents vars n f with
-        | none => return .error s!"unlowerable invariant for mode {mL.name}"
+        | none => return (.error s!"unlowerable invariant for mode {mL.name}", none)
         | some comps =>
             match ← coverMode s cnt maxQ maxSmt deadline p vars n coord comps prunedOf
                 (cutOfL mL.name) cutOfR epsL epsR lmin lmax mL with
-            | .cov => pure ()
-            | .incon => sawIncon := true
-            | .nocov => return .declined   -- definitive uncovered ⟹ sound DECLINE
-  if sawIncon then return .error "inconclusive Z3 verdict on a candidate route"
-  else return .certified
+            | (.cov, some lc) => covers := covers ++ [lc]
+            | (.cov, none) => pure ()      -- unreachable: .cov always carries data
+            | (.incon, _) => sawIncon := true
+            | (.nocov, _) => return (.declined, none)   -- definitive uncovered ⟹ sound DECLINE
+  if sawIncon then return (.error "inconclusive Z3 verdict on a candidate route", none)
+  else return (.certified, some { name := p.name, pruned := prunedPairs, covers := covers })
+
+/-- Core cover (verdict only). -/
+def certifyCore (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
+    (p : PProblem) : IO Outcome :=
+  (·.1) <$> certifyWithData s cnt maxQ maxSmt deadline p
 
 /-- **In-process oracle entry.** Certify problem `p` on a warm session `s`. No shelling.
 A deterministic query budget (`RELCERT_MAX_QUERIES`, default 1500) bounds every call: a
@@ -640,6 +661,41 @@ def certify (s : Z3Session) (p : PProblem) : IO Outcome := do
   let deadline := (← IO.monoMsNow) + budgetMs
   try certifyCore s cnt maxQ maxSmt deadline p
   catch e => return .error s!"budget exceeded ({e})"
+
+/-- The `--emit-cover` printer: the successful cover as a Lean literal (EmitIR
+pattern — the drift test re-runs the search and compares). Anonymous-constructor
+form, consumable against `Checker/CoverEmit.lean`. -/
+def emitCoverE (defname : String) (c : CoverEmitE) : String :=
+  let fl := fun (f : ModeFlagsE) =>
+    s!"⟨\"{f.name}\", {f.jointOK}, {f.repoPre}, {f.repoPost}, {f.dynPre}, {f.dynPost}⟩"
+  let ps := fun (x : PairStrataE) => s!"⟨\"{x.mR}\", {repr x.order}⟩"
+  let lc := fun (l : LeftCoverE) =>
+    s!"⟨\"{l.mL}\", ({l.lamQ.num} : ℚ) / {l.lamQ.den}, {l.bBudget}, [" ++
+      String.intercalate ", " (l.flags.map fl) ++ "], " ++ reprStr l.admissible ++ ", [" ++
+      String.intercalate ", " (l.strata.map ps) ++ "]⟩"
+  s!"def {defname} : CoverEmitE :=\n  ⟨\"{c.name}\", {reprStr c.pruned}, [\n    " ++
+    String.intercalate ",\n    " (c.covers.map lc) ++ "]⟩"
+
+/-- `--emit-cover` entry: run the search, print the cover literal. -/
+def emitCoverFile (cfg : Z3Config) (path defname : String) : IO Unit := do
+  let txt ← IO.FS.readFile path
+  match parseProblemE txt with
+  | .error e => IO.eprintln s!"ERROR: parse: {e}"; IO.Process.exit 1
+  | .ok p =>
+      match ← Z3Session.start cfg with
+      | .error e => IO.eprintln s!"ERROR: z3: {e}"; IO.Process.exit 1
+      | .ok s =>
+          let cnt ← IO.mkRef 0
+          let maxQ := (← IO.getEnv "RELCERT_MAX_QUERIES").bind String.toNat? |>.getD 5000
+          let budgetMs := (← IO.getEnv "RELCERT_TIME_BUDGET_MS").bind String.toNat? |>.getD 40000
+          let maxSmt := (← IO.getEnv "RELCERT_MAX_SMT").bind String.toNat? |>.getD 200000
+          let deadline := (← IO.monoMsNow) + budgetMs
+          let r ← try certifyWithData s cnt maxQ maxSmt deadline p
+            catch e => pure (.error s!"budget exceeded ({e})", none)
+          s.close
+          match r with
+          | (.certified, some c) => IO.println (emitCoverE defname c)
+          | (o, _) => IO.eprintln s!"ERROR: not certified: {o.tag}"; IO.Process.exit 1
 
 /-- File entry: parse + certify on a fresh warm session (for the CLI / batch). Parse
 failure ⟹ `error` (unparsed), never a verdict. -/

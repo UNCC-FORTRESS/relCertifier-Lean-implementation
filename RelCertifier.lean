@@ -71,3 +71,4 @@ import RelCertifier.BenchIR
 import RelCertifier.EmitIR
 import RelCertifier.Faithful
 import RelCertifier.FaithfulCerts
+import RelCertifier.Rescale

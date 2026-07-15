@@ -36,6 +36,38 @@ Already separated and kernel-certified (task D).
   are single-system; residuals = freshness data only). `GBoxAll` threaded explicitly only where the
   deprecated cadenced chain still consumes it.
 
+## H5 grounding status (2026-07-15)
+
+* LANDED: `theorem3_uniform_multiflow` (UniformMultiflow.lean) — per-left-window cover data
+  (`∃ Gj, CoverCert ∧ RightProjAlignV` inside `hleft`; joint systems differ per window, a
+  global `Gj` cannot align them). Axioms clean.
+* LANDED: `UniformFvDischarge.lean` — hd/hddF dischargers + the bookkeeping-free wrapper
+  `uniform_multiflow_end_to_end` (side-splits ⟹ every freshness/hygiene hypothesis).
+* LANDED: `LoweringSide.lean` — lowered data lives on its declared side (`namesFree`
+  prefix-freedom check, per benchmark by simp; `String.startsWith` does NOT kernel-reduce,
+  so `decide`/`rfl` are unavailable — simp's ground-string evaluation is the route).
+* LANDED: **pilot** `Instances/UniformPilot.lean` — `rover_drag_multiflow` end to end
+  (1 left mode, 1 right mode, k = 1). Residuals: `hψ` + invariant splits, `hz3` (one joint
+  query), `hES`. Axioms: the standard three + `z3_unsat_sound`.
+
+### The honest multi-mode blocker (mode correspondence)
+
+Watertank CANNOT be instantiated this way: the ∀∃ form quantifies over every
+(left window, right start mode) pair, but off-diagonal pairs have no joint certificate —
+left `Low` (fill 0.6) vs right `High` (fill 0.1) has `ċ` gap 0.5 > 0.12 on `g = 0`: the
+flow query is SAT. The cadenced chain carried the pairing via `inModeGuardF` in `ψpostG`
+(mv = q ⟹ the right sits in its mode region). The multiflow chain needs the same:
+either (a) a region conjunct in the loop invariant + region restoration at piece ends, or
+(b) window entry starts with a REPOSITION to the matching right mode (paper's witness) —
+repositions interleaved inside the window. Design decision pending.
+
+### hES per shape
+
+`HExistSeg` residual is dischargeable via the revived `HExistDischarge` seam for the
+rover-chase and cubic shapes; `rover_drag`'s quadratic drag (`0.05 − 0.3·vx²`, forward-
+invariant `[0, 1.4]`, interior equilibrium `√(1/6)`) needs a new slab-Lipschitz Picard
+instance — mechanical but not yet written.
+
 ## Remaining (H4/H5) — the execution list
 
 1. **H4a — joint-piece adapter.** From `hz3 : z3solve (flowQuery ⟨g, fL, fR, λᵢ, domL∧domR⟩) = unsat`

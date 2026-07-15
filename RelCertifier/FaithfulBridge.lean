@@ -1997,4 +1997,117 @@ theorem bandSettling_sat {vs : List String} {σq : List QF}
     hef ν
   exact hcorr
 
+/-! ## Part 7: assembly — `faithfulSettling` discharges the rescale hypotheses
+
+Extraction of the kernel Boolean into per-mode, per-coordinate facts, the real-side
+model definitions, and the per-mode pushforward dispatch. -/
+
+/-- The real-side field of a parsed mode: each coordinate's ode as a polynomial term. -/
+noncomputable def realFieldOf (vs : List String) (pm : Parse.PMode) (n : ℕ) :
+    Fin n → Term (Var n) :=
+  fun i => match pm.odes.find? (fun o => o.1 == vs.getD i.val "") with
+    | some o => match exprPoly o.2 with
+      | some p => polyToTerm vs n p
+      | none => Term.const 0
+    | none => Term.const 0
+
+/-- Decidable index-hygiene of a shape (the side conditions the shape bridges need). -/
+def shapeIdxOkB (i : Fin n) : CoordShape n → Bool
+  | .chase j _ => j != i
+  | .pairSym j _ _ => j != i
+  | .drivenDamp j ds =>
+      ds.all (fun d => d.1 != j) && decide (ds.map (·.1)).Nodup
+  | _ => true
+
+/-! ### Extraction lemmas -/
+
+/-- Per-coordinate ode facts from `modeCore` (full-width models: `vs.length = n`). -/
+theorem modeCore_ode_facts {vs : List String} {σq : List QF} {uq : QF}
+    {names : List String} {self : Nat} {pm : Parse.PMode} {m : SettlingMode n}
+    {env : Fin n → Band} (hlen : vs.length = n)
+    (hmc : modeCore vs σq uq names self pm m env = true) (i : Fin n) :
+    ∃ o p, pm.odes.find? (fun o => o.1 == vs.getD i.val "") = some o
+      ∧ exprPoly o.2 = some p
+      ∧ shapeFaithful vs σq uq i.val (m.shapes i) p = true := by
+  unfold modeCore at hmc
+  simp only [Bool.and_eq_true] at hmc
+  have hall := hmc.1.1.1
+  have hi : i.val ∈ List.range vs.length := List.mem_range.mpr (by omega)
+  have hfact := List.all_eq_true.mp hall i.val hi
+  rw [dif_pos i.isLt] at hfact
+  rcases hfind : pm.odes.find? (fun o => o.1 == vs.getD i.val "") with _ | o <;>
+    rw [hfind] at hfact
+  · exact absurd hfact (by simp)
+  have hfact' : (match exprPoly o.2 with
+      | some p => shapeFaithful vs σq uq i.val (m.shapes ⟨i.val, i.isLt⟩) p
+      | none => false) = true := hfact
+  rcases hep : exprPoly o.2 with _ | pq <;> rw [hep] at hfact'
+  · exact absurd hfact' (by simp)
+  exact ⟨o, pq, hfind, hep, by simpa using hfact'⟩
+
+/-- Envelope facts from `modeCore`. -/
+theorem modeCore_env_facts {vs : List String} {σq : List QF} {uq : QF}
+    {names : List String} {self : Nat} {pm : Parse.PMode} {m : SettlingMode n}
+    {env : Fin n → Band} (hlen : vs.length = n)
+    (hmc : modeCore vs σq uq names self pm m env = true) :
+    ∃ eb, boundsOfForm pm.evolve = some eb
+      ∧ ∀ i : Fin n, envFaithful (σq.getD i.val (qOfInt 0)) (env i)
+          (boundOf eb (vs.getD i.val "")).1 (boundOf eb (vs.getD i.val "")).2 = true := by
+  unfold modeCore at hmc
+  simp only [Bool.and_eq_true] at hmc
+  have henv := hmc.1.2
+  rcases heb : boundsOfForm pm.evolve with _ | eb <;> rw [heb] at henv
+  · exact absurd henv (by simp)
+  refine ⟨eb, rfl, ?_⟩
+  intro i
+  have hi : i.val ∈ List.range vs.length := List.mem_range.mpr (by omega)
+  have hfact := List.all_eq_true.mp henv i.val hi
+  rw [dif_pos i.isLt] at hfact
+  simpa using hfact
+
+/-- Guard-band facts from `bandSettling`. -/
+theorem bandSettling_facts {vs : List String} {σq : List QF} {pm : Parse.PMode}
+    {m : SettlingMode n} (hbs : bandSettling vs σq pm m = true) :
+    ∃ gb, boundsOfForm pm.guard = some gb
+      ∧ (match (boundOf gb (vs.getD m.gcoord.val "")).1 with
+         | some q => qEq (qOfInt m.glo) (qMul q (σq.getD m.gcoord.val (qOfInt 0)))
+         | none => false) = true
+      ∧ (match (boundOf gb (vs.getD m.gcoord.val "")).2 with
+         | some q => qEq (qOfInt m.ghi) (qMul q (σq.getD m.gcoord.val (qOfInt 0)))
+         | none => false) = true := by
+  unfold bandSettling at hbs
+  rcases hgb : boundsOfForm pm.guard with _ | gb <;> rw [hgb] at hbs
+  · exact absurd hbs (by simp)
+  simp only [Bool.and_eq_true] at hbs
+  exact ⟨gb, rfl, hbs.1, hbs.2⟩
+
+/-- Frame facts from `faithfulSettling`. -/
+theorem faithfulSettling_facts {P : Parse.PProblem} {mt : TransMeta}
+    {M : SettlingModel n} {εR : QF} (hεR : parseQ P.R.epsilon = some εR)
+    (hf : faithfulSettling P mt M = true) :
+    mt.lam.n ≠ 0 ∧ M.dtQ ≠ 0
+    ∧ P.R.stateVars.length ≤ n
+    ∧ P.R.modes.length = M.modes.length
+    ∧ ∀ q pm m, P.R.modes[q]? = some pm → M.modes[q]? = some m →
+        modeCore P.R.stateVars mt.scales (qDiv (qDiv εR mt.lam) (qOfInt M.dtQ))
+          (P.R.modes.map (·.name)) q pm m M.env = true
+        ∧ bandSettling P.R.stateVars mt.scales pm m = true := by
+  unfold faithfulSettling faithfulFrame at hf
+  rw [hεR] at hf
+  simp only [Bool.and_eq_true] at hf
+  obtain ⟨⟨⟨⟨⟨hlam, hdt⟩, hle⟩, hsc⟩, hml⟩, hall⟩ := hf
+  refine ⟨by unfold qIsZero at hlam; simpa using hlam, by simpa using hdt,
+    by simpa using hle,
+    by first
+      | exact of_decide_eq_true hml
+      | exact Nat.eq_of_beq_eq_true hml
+      | simpa using hml, ?_⟩
+  intro q pm m hpm hm
+  have hq : q < P.R.modes.length := by
+    obtain ⟨h, -⟩ := List.getElem?_eq_some_iff.mp hpm
+    exact h
+  have hfact := List.all_eq_true.mp hall q (List.mem_range.mpr hq)
+  rw [hpm, hm] at hfact
+  simpa [Bool.and_eq_true] using hfact
+
 end RelCertifier

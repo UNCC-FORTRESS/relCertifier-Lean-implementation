@@ -11,6 +11,7 @@ reports certified / not. `unsat` is the only trusted verdict:
 `unsat ⟹ flow_certified ⟹ the invariant component is preserved along the flow`.
 -/
 import RelCertifier.Smt
+import RelCertifier.EmitIR
 import RelCertifier.Oracle
 import RelCertifier.Run
 import RelCertifier.Z3
@@ -117,6 +118,15 @@ def runBatch (paths : List String) : IO Unit := do
       IO.println s!"errors={errs}"
       if errs > 0 then IO.Process.exit 1
 
-/-- Entry: no args → Stage-1 demo; else run the oracle on each `input.txt` (warm). -/
+/-- `--emit-ir <file> <defname>`: print the parsed `PProblem` as a Lean literal (the
+single-door bridge for the `Faithful` kernel certificates — see EmitIR.lean). -/
+def emitIR (path defname : String) : IO Unit := do
+  match RelCertifier.Parse.parseProblemE (← IO.FS.readFile path) with
+  | .error e => IO.eprintln s!"ERROR: parse: {e}"; IO.Process.exit 1
+  | .ok p => IO.println (RelCertifier.Parse.emitProblem defname p)
+
 def main (args : List String) : IO Unit := do
-  if args.isEmpty then demoStage1 else runBatch args
+  match args with
+  | ["--emit-ir", path, defname] => emitIR path defname
+  | [] => demoStage1
+  | _ => runBatch args

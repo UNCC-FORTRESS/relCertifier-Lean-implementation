@@ -10,6 +10,7 @@ if any assertion fails. These are the anti-flakiness / anti-masquerade guarantee
 synthesis loop depends on.
 -/
 import RelCertifier.OracleAPI
+import RelCertifier.BenchIR
 import RelCertifier.Z3
 
 open RelCertifier RelCertifier.Parse RelCertifier.Oracle
@@ -118,6 +119,21 @@ def testParser : IO Unit := do
       ((skel "A = x[l] <= x[r]").replace "ode = x' = 0;\nguard = x >= 0.0\nevolve = x >= 0.0\nnext = [A]\n[relational_invariant]"
         "ode = x = 0;\nguard = x >= 0.0\nevolve = x >= 0.0\nnext = [A]\n[relational_invariant]")
 
+/-! ## IR drift check: every embedded literal must equal a fresh parse of its file -/
+def testIRDrift : IO Unit := do
+  IO.println "[ir-drift]"
+  let mut bad := 0
+  for (nm, p) in RelCertifier.Parse.benchIRTable do
+    let path := s!"benchmarks/suite_uniform/{nm}/input.txt"
+    let txt ← try IO.FS.readFile path catch _ => pure ""
+    match RelCertifier.Parse.parseProblemE txt with
+    | .error e => bad := bad + 1; check s!"{nm}: parse ({e})" false
+    | .ok q =>
+        if q == p then pure ()
+        else bad := bad + 1; check s!"{nm}: literal == fresh parse" false
+  check s!"all {RelCertifier.Parse.benchIRTable.length} IR literals match their files"
+    (bad == 0)
+
 /-! ## Invariant-lowering tests: each shape → expected component count -/
 def testLowering : IO Unit := do
   IO.println "[lowering]"
@@ -175,6 +191,7 @@ def main : IO Unit := do
   | .ok cfg =>
       testZ3Layer cfg
       testParser
+      testIRDrift
       testLowering
       testOutcomeIntegrity cfg
       testDeterminism cfg

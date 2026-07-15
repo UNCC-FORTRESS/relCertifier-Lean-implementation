@@ -67,3 +67,7 @@ import RelCertifier.TerrainInstances
 import RelCertifier.AffineChecker
 import RelCertifier.AffineInstances
 import RelCertifier.AxiomCheck
+import RelCertifier.BenchIR
+import RelCertifier.EmitIR
+import RelCertifier.Faithful
+import RelCertifier.FaithfulCerts

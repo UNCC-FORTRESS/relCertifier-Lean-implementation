@@ -41,7 +41,7 @@ inductive PExpr where
   | num : String → PExpr
   | bin : String → PExpr → PExpr → PExpr
   | neg : PExpr → PExpr
-  deriving Repr, Inhabited
+  deriving Repr, Inhabited, DecidableEq
 
 inductive PForm where
   | tt  : PForm
@@ -49,7 +49,7 @@ inductive PForm where
   | and : PForm → PForm → PForm
   | or  : PForm → PForm → PForm
   | not : PForm → PForm
-  deriving Repr, Inhabited
+  deriving Repr, Inhabited, DecidableEq
 
 structure PMode where
   name   : String
@@ -62,13 +62,13 @@ structure PMode where
   guard implies it; invariance: flow-invariant along this mode's field). Unchecked or
   uncheckable candidates are silently ignored (completeness-only). `evolve` stays physics. -/
   strengthen : Option PForm := none
-  deriving Repr, Inhabited
+  deriving Repr, Inhabited, DecidableEq
 
 structure PSystem where
   stateVars : List String
   epsilon   : String
   modes     : List PMode
-  deriving Repr, Inhabited
+  deriving Repr, Inhabited, DecidableEq
 
 structure PProblem where
   name       : String
@@ -77,7 +77,7 @@ structure PProblem where
   L          : PSystem
   R          : PSystem
   invariants : List (String × PForm)
-  deriving Repr, Inhabited
+  deriving Repr, Inhabited, DecidableEq
 
 /-! ## Lexing -/
 

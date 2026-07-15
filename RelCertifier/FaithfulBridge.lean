@@ -13,6 +13,7 @@ laws become the real-valued pushforward identities that `GuardSettlingB_rescale`
 import RelCertifier.Faithful
 import Mathlib.Tactic.FieldSimp
 import Mathlib.Tactic.Ring
+import Mathlib.Data.List.Nodup
 
 namespace RelCertifier
 
@@ -865,5 +866,106 @@ theorem exprPoly_inv : ∀ {e : Parse.PExpr} {p : QPoly}, exprPoly e = some p �
             exact polyScale_inv (qDiv_pos (qOfInt_pos 1) hdn) hia
         · exact absurd h (by simp)
       · exact absurd h (by simp)
+
+/-! ## Part 4: the real-side model — polynomials as host terms
+
+The bridge's real-side field for a coordinate is its parsed ode as a host `Term`,
+built directly from the `exprPoly` output. `rhoOf` reads a joint state through the
+benchmark's variable list (right-side coordinates), and evaluation of the built term
+is exactly `QPoly.evalR` in that environment. -/
+
+open DL
+
+variable {n : ℕ}
+
+/-- The environment a joint state induces on benchmark variable names. -/
+noncomputable def rhoOf (vs : List String) (n : ℕ) (ν : DL.State (Var n)) :
+    String → ℝ :=
+  fun v => match vs.idxOf? v with
+    | some i => if h : i < n then ν (Rv ⟨i, h⟩) else 0
+    | none => 0
+
+/-- Variable name → host term (unresolvable names map to `0`, mirroring `rhoOf`). -/
+noncomputable def varToTerm (vs : List String) (n : ℕ) (v : String) : Term (Var n) :=
+  match vs.idxOf? v with
+  | some i => if h : i < n then Term.var (Rv ⟨i, h⟩) else Term.const 0
+  | none => Term.const 0
+
+theorem varToTerm_eval (vs : List String) (v : String) (ν : DL.State (Var n)) :
+    Term.eval (varToTerm vs n v) ν = rhoOf vs n ν v := by
+  unfold varToTerm rhoOf
+  rcases hix : vs.idxOf? v with _ | i <;> simp only [hix]
+  · rfl
+  · by_cases h : i < n
+    · simp only [h, dite_true]
+      rfl
+    · simp only [h, dite_false]
+      rfl
+
+/-- `k`-fold product of a term. -/
+noncomputable def termPow (t : Term (Var n)) : Nat → Term (Var n)
+  | 0 => Term.const 1
+  | k + 1 => Term.binop AOp.mul t (termPow t k)
+
+theorem termPow_eval (t : Term (Var n)) (ν : DL.State (Var n)) :
+    ∀ k, Term.eval (termPow t k) ν = (Term.eval t ν) ^ k := by
+  intro k
+  induction k with
+  | zero => rfl
+  | succ k ih =>
+      show Term.eval t ν * Term.eval (termPow t k) ν = _
+      rw [ih, pow_succ]
+      ring
+
+/-- Monomial → host term. -/
+noncomputable def monoToTerm (vs : List String) (n : ℕ) (m : Mono) : Term (Var n) :=
+  m.foldr (fun p acc =>
+    Term.binop AOp.mul (termPow (varToTerm vs n p.1) p.2) acc) (Term.const 1)
+
+theorem monoToTerm_eval (vs : List String) (ν : DL.State (Var n)) : ∀ (m : Mono),
+    Term.eval (monoToTerm vs n m) ν = Mono.evalR (rhoOf vs n ν) m := by
+  intro m
+  induction m with
+  | nil => rfl
+  | cons p rest ih =>
+      obtain ⟨v, k⟩ := p
+      show Term.eval (termPow (varToTerm vs n v) k) ν
+          * Term.eval (monoToTerm vs n rest) ν = _
+      rw [termPow_eval, varToTerm_eval, ih, Mono.evalR_cons]
+
+/-- Polynomial → host term (the bridge's real-side field). -/
+noncomputable def polyToTerm (vs : List String) (n : ℕ) (p : QPoly) : Term (Var n) :=
+  p.foldr (fun e acc =>
+    Term.binop AOp.add
+      (Term.binop AOp.mul (Term.const e.2.val) (monoToTerm vs n e.1)) acc)
+    (Term.const 0)
+
+theorem polyToTerm_eval (vs : List String) (ν : DL.State (Var n)) : ∀ (p : QPoly),
+    Term.eval (polyToTerm vs n p) ν = QPoly.evalR (rhoOf vs n ν) p := by
+  intro p
+  induction p with
+  | nil => rfl
+  | cons e q ih =>
+      show e.2.val * Term.eval (monoToTerm vs n e.1) ν
+          + Term.eval (polyToTerm vs n q) ν = _
+      rw [monoToTerm_eval, ih, QPoly.evalR_cons]
+
+/-- On a duplicate-free variable list, position lookup inverts `getD`. -/
+theorem idxOf?_getD {vs : List String} (hnod : vs.Nodup) {j : Nat}
+    (hj : j < vs.length) : vs.idxOf? (vs.getD j "") = some j := by
+  rw [List.getD_eq_getElem _ _ hj]
+  rw [List.idxOf?_eq_some_iff]
+  refine ⟨hj, rfl, ?_⟩
+  intro k hk h
+  have := (List.Nodup.getElem_inj_iff hnod).mp h
+  omega
+
+/-- `rhoOf` at the `j`-th benchmark variable reads the `j`-th right coordinate. -/
+theorem rhoOf_getD {vs : List String} (hnod : vs.Nodup) (hlen : vs.length = n)
+    (ν : DL.State (Var n)) {j : Nat} (hj : j < n) :
+    rhoOf vs n ν (vs.getD j "") = ν (Rv ⟨j, hj⟩) := by
+  unfold rhoOf
+  rw [idxOf?_getD hnod (by omega)]
+  simp only [hj, dite_true]
 
 end RelCertifier

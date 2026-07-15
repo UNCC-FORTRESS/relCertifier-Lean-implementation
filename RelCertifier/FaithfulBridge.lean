@@ -577,4 +577,293 @@ theorem evalR_support (ρ : String → ℝ) : ∀ (p : QPoly),
           ms hnd hpw hex,
         ih hinv.of_cons ms hnd hpw hsup']
 
+/-! ## Part 3b: `exprPoly` maintains the invariant -/
+
+theorem polyInsert_key_sub {m : Mono} {c : QF} : ∀ {p : QPoly} {e : Mono × QF},
+    e ∈ polyInsert m c p → e.1 = m ∨ ∃ f ∈ p, e.1 = f.1 := by
+  intro p
+  induction p with
+  | nil =>
+      intro e he
+      unfold polyInsert at he
+      split at he
+      · exact absurd he (by simp)
+      · rcases List.mem_singleton.mp he with rfl
+        exact Or.inl rfl
+  | cons a q ih =>
+      obtain ⟨nn, dd⟩ := a
+      intro e he
+      unfold polyInsert at he
+      split at he
+      · have he' : e ∈ (if qIsZero (qAdd c dd) = true then q
+            else (nn, qAdd c dd) :: q) := he
+        split at he'
+        · exact Or.inr ⟨e, List.mem_cons_of_mem _ he', rfl⟩
+        · rcases List.mem_cons.mp he' with rfl | he''
+          · exact Or.inr ⟨(nn, dd), List.mem_cons_self .., rfl⟩
+          · exact Or.inr ⟨e, List.mem_cons_of_mem _ he'', rfl⟩
+      · rcases List.mem_cons.mp he with rfl | he'
+        · exact Or.inr ⟨(nn, dd), List.mem_cons_self .., rfl⟩
+        · rcases ih he' with hm | ⟨f, hf, hef⟩
+          · exact Or.inl hm
+          · exact Or.inr ⟨f, List.mem_cons_of_mem _ hf, hef⟩
+
+theorem polyInsert_pos {m : Mono} {c : QF} (hc : c.pos) : ∀ {p : QPoly},
+    (∀ e ∈ p, e.2.pos) → ∀ e ∈ polyInsert m c p, e.2.pos := by
+  intro p
+  induction p with
+  | nil =>
+      intro _ e he
+      unfold polyInsert at he
+      split at he
+      · exact absurd he (by simp)
+      · rcases List.mem_singleton.mp he with rfl
+        exact hc
+  | cons a q ih =>
+      obtain ⟨nn, dd⟩ := a
+      intro hp e he
+      have hdd : dd.pos := hp (nn, dd) (List.mem_cons_self ..)
+      have hq : ∀ e ∈ q, e.2.pos := fun e he => hp e (List.mem_cons_of_mem _ he)
+      unfold polyInsert at he
+      split at he
+      · have he' : e ∈ (if qIsZero (qAdd c dd) = true then q
+            else (nn, qAdd c dd) :: q) := he
+        split at he'
+        · exact hq e he'
+        · rcases List.mem_cons.mp he' with rfl | he''
+          · exact qAdd_pos hc hdd
+          · exact hq e he''
+      · rcases List.mem_cons.mp he with rfl | he'
+        · exact hdd
+        · exact ih hq e he'
+
+theorem polyInsert_inv {m : Mono} {c : QF} (hm : Mono.varsNodup m) (hc : c.pos) :
+    ∀ {p : QPoly}, PolyInv p → PolyInv (polyInsert m c p) := by
+  intro p
+  induction p with
+  | nil =>
+      intro _
+      unfold polyInsert
+      split
+      · exact PolyInv.nil
+      · exact ⟨by simpa using hc, by simpa using hm, by simp⟩
+  | cons a q ih =>
+      obtain ⟨nn, dd⟩ := a
+      intro hp
+      have hqinv := hp.of_cons
+      have hnn : Mono.varsNodup nn := hp.keysNodup (nn, dd) (List.mem_cons_self ..)
+      have hsep : ∀ f ∈ q, monoEq nn f.1 = false :=
+        (List.pairwise_cons.mp hp.keysDistinct).1
+      unfold polyInsert
+      split
+      · rename_i hguard
+        show PolyInv (if qIsZero (qAdd c dd) = true then q else (nn, qAdd c dd) :: q)
+        split
+        · exact hqinv
+        · exact ⟨
+            (fun e he => by
+              rcases List.mem_cons.mp he with rfl | he'
+              · exact qAdd_pos hc (hp.pos (nn, dd) (List.mem_cons_self ..))
+              · exact hqinv.pos e he'),
+            (fun e he => by
+              rcases List.mem_cons.mp he with rfl | he'
+              · exact hnn
+              · exact hqinv.keysNodup e he'),
+            (List.pairwise_cons.mpr ⟨hsep, hqinv.keysDistinct⟩)⟩
+      · rename_i hguard
+        have hmn : monoEq m nn = false := by
+          rcases hx : monoEq m nn with _ | _
+          · rfl
+          · exact absurd hx hguard
+        have hins := ih hqinv
+        refine ⟨
+          (fun e he => by
+            rcases List.mem_cons.mp he with rfl | he'
+            · exact hp.pos (nn, dd) (List.mem_cons_self ..)
+            · exact hins.pos e he'),
+          (fun e he => by
+            rcases List.mem_cons.mp he with rfl | he'
+            · exact hnn
+            · exact hins.keysNodup e he'),
+          List.pairwise_cons.mpr ⟨?_, hins.keysDistinct⟩⟩
+        intro f hf
+        rcases polyInsert_key_sub hf with hfm | ⟨g, hg, hfg⟩
+        · -- f's key is m; nn ≁ m since m ≁ nn
+          rw [hfm]
+          rcases hx : monoEq nn m with _ | _
+          · rfl
+          · have := monoEq_symm hnn hx
+            rw [hmn] at this
+            exact absurd this (by simp)
+        · rw [hfg]
+          exact hsep g hg
+
+theorem polyAdd_inv : ∀ {b : QPoly} {a : QPoly}, PolyInv a →
+    (∀ e ∈ b, Mono.varsNodup e.1) → (∀ e ∈ b, e.2.pos) → PolyInv (polyAdd a b) := by
+  intro b
+  induction b with
+  | nil => intro a ha _ _; exact ha
+  | cons e b ih =>
+      intro a ha hk hp
+      show PolyInv (polyAdd (polyInsert e.1 e.2 a) b)
+      exact ih (polyInsert_inv (hk e (List.mem_cons_self ..))
+          (hp e (List.mem_cons_self ..)) ha)
+        (fun f hf => hk f (List.mem_cons_of_mem _ hf))
+        (fun f hf => hp f (List.mem_cons_of_mem _ hf))
+
+theorem polyNeg_inv {a : QPoly} (ha : PolyInv a) : PolyInv (polyNeg a) := by
+  refine ⟨?_, ?_, ?_⟩
+  · intro e he
+    simp only [polyNeg, List.mem_map] at he
+    obtain ⟨f, hf, rfl⟩ := he
+    exact qNeg_pos (ha.pos f hf)
+  · intro e he
+    simp only [polyNeg, List.mem_map] at he
+    obtain ⟨f, hf, rfl⟩ := he
+    exact ha.keysNodup f hf
+  · unfold polyNeg
+    refine List.Pairwise.map _ ?_ ha.keysDistinct
+    intro e f h
+    exact h
+
+theorem polyScale_inv {q : QF} {a : QPoly} (hq : q.pos) (ha : PolyInv a) :
+    PolyInv (polyScale q a) := by
+  unfold polyScale
+  split
+  · exact PolyInv.nil
+  · refine ⟨?_, ?_, ?_⟩
+    · intro e he
+      simp only [List.mem_map] at he
+      obtain ⟨f, hf, rfl⟩ := he
+      exact qMul_pos hq (ha.pos f hf)
+    · intro e he
+      simp only [List.mem_map] at he
+      obtain ⟨f, hf, rfl⟩ := he
+      exact ha.keysNodup f hf
+    · refine List.Pairwise.map _ ?_ ha.keysDistinct
+      intro e f h
+      exact h
+
+theorem polyMul_inv {a b : QPoly} (ha : PolyInv a) (hb : PolyInv b) :
+    PolyInv (polyMul a b) := by
+  unfold polyMul
+  suffices hgen : ∀ (l : QPoly), (∀ e ∈ l, Mono.varsNodup e.1) → (∀ e ∈ l, e.2.pos) →
+      ∀ (acc : QPoly), PolyInv acc →
+      PolyInv (l.foldl (fun acc mc =>
+        polyAdd acc (b.map (fun nd => (monoMul mc.1 nd.1, qMul mc.2 nd.2)))) acc) by
+    exact hgen a ha.keysNodup ha.pos [] PolyInv.nil
+  intro l
+  induction l with
+  | nil => intro _ _ acc hacc; exact hacc
+  | cons mc l ih =>
+      intro hk hp acc hacc
+      refine ih (fun e he => hk e (List.mem_cons_of_mem _ he))
+        (fun e he => hp e (List.mem_cons_of_mem _ he)) _ ?_
+      refine polyAdd_inv hacc ?_ ?_
+      · intro e he
+        simp only [List.mem_map] at he
+        obtain ⟨nd, hnd, rfl⟩ := he
+        exact monoMul_varsNodup (hb.keysNodup nd hnd)
+      · intro e he
+        simp only [List.mem_map] at he
+        obtain ⟨nd, hnd, rfl⟩ := he
+        exact qMul_pos (hp mc (List.mem_cons_self ..)) (hb.pos nd hnd)
+
+theorem polyConstOf_inv {q : QF} (hq : q.pos) : PolyInv (polyConstOf q) := by
+  unfold polyConstOf
+  split
+  · exact PolyInv.nil
+  · exact ⟨by simpa using hq, by simp [Mono.varsNodup_nil], by simp⟩
+
+theorem polyVarOf_inv (v : String) : PolyInv (polyVarOf v) := by
+  refine ⟨by simp [polyVarOf, qOfInt_pos], ?_, by simp [polyVarOf]⟩
+  intro e he
+  simp only [polyVarOf, List.mem_singleton] at he
+  subst he
+  simp [Mono.varsNodup]
+
+/-! ### `parseQ` outputs are positive-denominator -/
+
+theorem parseQPos_pos {cs : List Char} {q : QF}
+    (h : parseQChars.parseQPos cs = some q) : q.pos := by
+  unfold parseQChars.parseQPos at h
+  split at h
+  · simp only [Option.map_eq_some_iff] at h
+    obtain ⟨nn, -, rfl⟩ := h
+    exact qOfInt_pos _
+  · rcases hw : digitsToNat _ with _ | nn <;> rw [hw] at h
+    · exact absurd h (by simp)
+    rcases hf : digitsToNat _ with _ | mm <;> rw [hf] at h
+    · exact absurd h (by simp)
+    injection h with h'
+    subst h'
+    exact qAdd_pos (qOfInt_pos _) (qMul_pos (qOfInt_pos _) (qPow10_pos _))
+
+theorem parseQChars_pos {cs : List Char} {q : QF} (h : parseQChars cs = some q) :
+    q.pos := by
+  unfold parseQChars at h
+  split at h
+  · simp only [Option.map_eq_some_iff] at h
+    obtain ⟨r, hr, rfl⟩ := h
+    exact qNeg_pos (parseQPos_pos hr)
+  · exact parseQPos_pos h
+
+theorem parseQ_pos {s : String} {q : QF} (h : parseQ s = some q) : q.pos :=
+  parseQChars_pos h
+
+/-! ### `exprPoly` invariant -/
+
+theorem exprPoly_inv : ∀ {e : Parse.PExpr} {p : QPoly}, exprPoly e = some p → PolyInv p := by
+  intro e
+  induction e with
+  | var v =>
+      intro p h
+      injection h with h'
+      subst h'
+      exact polyVarOf_inv v
+  | num c =>
+      intro p h
+      simp only [exprPoly, Option.map_eq_some_iff] at h
+      obtain ⟨q, hq, rfl⟩ := h
+      exact polyConstOf_inv (parseQ_pos hq)
+  | neg a ih =>
+      intro p h
+      simp only [exprPoly, Option.map_eq_some_iff] at h
+      obtain ⟨pa, hpa, rfl⟩ := h
+      exact polyNeg_inv (ih hpa)
+  | bin op a b iha ihb =>
+      intro p h
+      simp only [exprPoly] at h
+      rcases hpa : exprPoly a with _ | pa <;> rw [hpa] at h
+      · simp at h
+      rcases hpb : exprPoly b with _ | pb <;> rw [hpb] at h
+      · simp at h
+      have hia := iha hpa
+      have hib := ihb hpb
+      simp only [Option.bind_eq_bind, Option.bind] at h
+      split at h
+      · injection h with h'
+        subst h'
+        exact polyAdd_inv hia hib.keysNodup hib.pos
+      · injection h with h'
+        subst h'
+        exact polyAdd_inv hia (polyNeg_inv hib).keysNodup (polyNeg_inv hib).pos
+      · injection h with h'
+        subst h'
+        exact polyMul_inv hia hib
+      · -- division by a nonzero constant
+        split at h
+        · rename_i dd
+          split at h
+          · exact absurd h (by simp)
+          · rename_i hz
+            injection h with h'
+            subst h'
+            have hdn : dd.n ≠ 0 := by
+              unfold qIsZero at hz
+              simpa using hz
+            exact polyScale_inv (qDiv_pos (qOfInt_pos 1) hdn) hia
+        · exact absurd h (by simp)
+      · exact absurd h (by simp)
+
 end RelCertifier

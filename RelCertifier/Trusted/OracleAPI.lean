@@ -276,32 +276,39 @@ def checkDynRepo (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     (vars : List String) (n : ℕ) (coord : Fin n → String)
     (comps : List (ITerm n)) (cutL cutR : IForm n) (mL mR : PMode) (withGuardL : Bool) : IO Bool := do
   let gLform : IForm n := (if withGuardL then lowerF vars n Side.L mL.guard else some IForm.tt).getD IForm.tt
-  let mut allUnsat := true
-  for i in List.range comps.length do
-    if allUnsat then
+  -- STRATIFIED (soundness, same discipline as checkSeg — the previous mutual narrowing
+  -- was a circular cut, unsound for the whole-domain route; see docs/COVER-AUDIT.md R4):
+  -- a component's domain is narrowed only by components proven in earlier rounds.
+  let mut proven : List Nat := []
+  for _ in List.range (comps.length + 1) do
+    let mut progress := false
+    for i in List.range comps.length do
+      if proven.contains i then pure () else
       match comps[i]? with
       | none => pure ()
       | some g =>
         match segPartsRO vars n g mL mR with        -- (evolveL∧evolveR, ġ) with fL=0, λ=1
-        | none => allUnsat := false
+        | none => pure ()
         | some (baseDom, gdot) =>
             let baseDom := IForm.and (IForm.and baseDom cutL) cutR   -- checked-cut narrowing
-            let others := (List.range comps.length).filterMap
-              (fun j => if j == i then none else comps[j]?)
-            let dom0 := others.foldl (fun d gj => IForm.and d (IForm.cmp .le gj (.rat 0))) baseDom
+            let dom0 := proven.foldl (fun d j =>
+              match comps[j]? with
+              | some gj => IForm.and d (IForm.cmp .le gj (.rat 0))
+              | none => d) baseDom
             let dom := IForm.and dom0 gLform            -- σ-matched: add guardL iff pre-j
             -- route A (DI_nonstrict_domain, WHOLE-DOMAIN): domain ∧ ġ>0 UNSAT
             let q := IForm.and dom (IForm.cmp .gt gdot (.rat 0))
             let script := q.toScript coord
-            if script.length > maxSmt then allUnsat := false
+            if script.length > maxSmt then pure ()
             else do
               cnt.modify (· + 1)
               if (← cnt.get) > maxQ then throw (IO.userError "query budget exceeded")
               if (← IO.monoMsNow) > deadline then throw (IO.userError "time budget exceeded")
               match ← s.check script with
-              | .ok .unsat => pure ()
-              | _          => allUnsat := false
-  pure allUnsat
+              | .ok .unsat => proven := proven ++ [i]; progress := true
+              | _          => pure ()
+    if !progress then break
+  pure (proven.length == comps.length)
 
 /-- The multi-segment all-successors cover, three-valued, **memoized** on `(qR, f)` (the
 budget `B` is a function of `f`, so the state is finite: `modes × fuel`). Without the memo

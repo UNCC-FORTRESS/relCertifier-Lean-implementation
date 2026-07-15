@@ -207,11 +207,18 @@ def checkedCut (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     let mut keep := []
     for (a, fI, g, fS) in cands do
       -- O2 domain: evolve ∧ the OTHER candidates (never the candidate itself — a candidate
-      -- must not narrow its own invariance obligation)
-      let dom := cands.foldl (fun d c => if c.2.2.1 == g then d else IForm.and d c.2.1) evolveI
+      -- must not narrow its own invariance obligation). RELCERT_CUT_NOMUTUAL=1 drops the
+      -- other candidates (unconditioned O2 — each atom invariant over the bare evolve).
+      let noMutual := (← IO.getEnv "RELCERT_CUT_NOMUTUAL").isSome
+      let dom := if noMutual then evolveI
+        else cands.foldl (fun d c => if c.2.2.1 == g then d else IForm.and d c.2.1) evolveI
       -- contract-shape (tangent-capable, no Z3) / frozen atom
       let shapeOK := contractShapeOK m a || (atomVars a).all (frozenIn m)
-      let ok ← (if shapeOK then pure true else do
+      let dbg := (← IO.getEnv "RELCERT_DEBUG").isSome
+      let ok ← (if shapeOK then do
+        if dbg then IO.eprintln s!"    [route] {m.name}: shape/frozen"
+        pure true
+      else do
         match fOwn with
         | none => pure false
         | some f =>
@@ -221,10 +228,14 @@ def checkedCut (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
           -- route B (DI_strict boundary), then route A (DI_nonstrict_domain whole-domain)
           let rB := IForm.and dom (IForm.and (IForm.cmp .eq g (.rat 0))
             (IForm.cmp .ge gdot (.rat 0)))
-          if ← probeUnsat s cnt maxQ maxSmt deadline coord rB then pure true
-          else
-            probeUnsat s cnt maxQ maxSmt deadline coord
-              (IForm.and dom (IForm.cmp .gt gdot (.rat 0))))
+          if ← probeUnsat s cnt maxQ maxSmt deadline coord rB then do
+            if dbg then IO.eprintln s!"    [route] {m.name}: DI-strict(B)"
+            pure true
+          else do
+            let okA ← probeUnsat s cnt maxQ maxSmt deadline coord
+              (IForm.and dom (IForm.cmp .gt gdot (.rat 0)))
+            if dbg && okA then IO.eprintln s!"    [route] {m.name}: DI-nonstrict(A)"
+            pure okA)
       if ok then keep := keep ++ [(a, fI, g, fS)]
       else changed := true
     cands := keep

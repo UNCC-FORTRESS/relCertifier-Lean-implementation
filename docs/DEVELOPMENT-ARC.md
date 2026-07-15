@@ -361,4 +361,8 @@ carry closed kernel `rfl` certificates**.
   all axioms-clean, the Z3 leaf only at certificate construction. 46/47 benchmarks carry
   kernel `rfl` well-formedness certificates (25 settling + 19 terrain + 2 affine; the one
   out, shield_unreachable, is the certifier's own inconclusive case).
-- **Trust boundary**: unchanged throughout — `z3_unsat_sound`, the parser, and nothing else.
+- **Trust boundary**: unchanged throughout — `z3_unsat_sound` and the parser; stated precisely,
+  the opaque `z3solve` inside the axiom encapsulates the SMT-LIB printer, the Z3 binary, and the
+  process plumbing (pinned behaviorally by the `[smt-printer]` battery), and the parser is strict
+  (reject-never-weaken) with the instance↔benchmark identity kernel-checked through it
+  (`Faithful` certificates + runtime drift check).

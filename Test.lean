@@ -119,6 +119,53 @@ def testParser : IO Unit := do
       ((skel "A = x[l] <= x[r]").replace "ode = x' = 0;\nguard = x >= 0.0\nevolve = x >= 0.0\nnext = [A]\n[relational_invariant]"
         "ode = x = 0;\nguard = x >= 0.0\nevolve = x >= 0.0\nnext = [A]\n[relational_invariant]")
 
+/-! ## SMT printer tests: golden strings + Z3 behavioral agreement
+
+The printer (`IForm.toSmt`/`toScript`) sits INSIDE the trusted `z3solve` plumbing: a
+printing bug is an unsoundness route no Lean proof can see. Golden tests pin the exact
+output for each constructor; the behavioral tests hand crafted formulas with known
+verdicts to a real Z3 session THROUGH the printer, so an operator/parenthesization slip
+flips a known verdict and fails the battery. -/
+def testPrinter (cfg : Z3Config) : IO Unit := do
+  IO.println "[smt-printer]"
+  let coord : Fin 1 → String := fun _ => "x"
+  let x : ITerm 1 := .var (Side.L, 0)
+  let r (q : ℚ) : ITerm 1 := .rat q
+  -- golden strings, one per constructor/op
+  check "golden var"  ((ITerm.toSmt coord x) == "L_x")
+  check "golden neg-rat" ((ITerm.toSmt coord (r (-2))) == "(- 2)")
+  check "golden frac"    ((ITerm.toSmt coord (r (1/3))) == "(/ 1 3)")
+  check "golden nested sub"
+    ((ITerm.toSmt coord (.bin .sub (.bin .mul (r 2) x) (r 1))) == "(- (* 2 L_x) 1)")
+  check "golden ne"
+    ((IForm.toSmt coord (.cmp .ne x (r 0))) == "(not (= L_x 0))")
+  -- behavioral: known verdicts through the full print→Z3 path
+  match ← Z3Session.start cfg with
+  | .error e => check s!"z3 session ({e})" false
+  | .ok s =>
+      let run (nm : String) (f : IForm 1) (expectUnsat : Bool) : IO Unit := do
+        let script := IForm.toScript coord f
+        let v ← s.check script
+        let ok := match v, expectUnsat with
+          | .ok .unsat, true => true
+          | .ok .sat, false => true
+          | _, _ => false
+        check nm ok
+      let eq (a b : ITerm 1) : IForm 1 := .cmp .eq a b
+      -- x = 3 ∧ 2x − 1 = 5 : SAT (a sub/mul precedence slip breaks it)
+      run "2x−1 arithmetic (sat)"
+        (.and (eq x (r 3)) (eq (.bin .sub (.bin .mul (r 2) x) (r 1)) (r 5))) false
+      -- x = 3 ∧ 2x − 1 > 5 : UNSAT
+      run "2x−1 bound (unsat)"
+        (.and (eq x (r 3)) (.cmp .gt (.bin .sub (.bin .mul (r 2) x) (r 1)) (r 5))) true
+      -- x = 1/3 ∧ 3x < 1 : UNSAT (rational printing exact, not decimal-rounded)
+      run "exact rational (unsat)"
+        (.and (eq x (r (1/3))) (.cmp .lt (.bin .mul (r 3) x) (r 1))) true
+      -- x = −2 ∧ x·x ≠ 4 : UNSAT (negative literal + ne encoding)
+      run "neg literal square (unsat)"
+        (.and (eq x (r (-2))) (.cmp .ne (.bin .mul x x) (r 4))) true
+      s.close
+
 /-! ## IR drift check: every embedded literal must equal a fresh parse of its file -/
 def testIRDrift : IO Unit := do
   IO.println "[ir-drift]"
@@ -192,6 +239,7 @@ def main : IO Unit := do
       testZ3Layer cfg
       testParser
       testIRDrift
+      testPrinter cfg
       testLowering
       testOutcomeIntegrity cfg
       testDeterminism cfg

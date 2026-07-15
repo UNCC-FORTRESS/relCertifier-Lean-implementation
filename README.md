@@ -122,6 +122,18 @@ certificate** (3 axioms in its own `#print axioms`), and the 4th axiom (`z3_unsa
 the certificate is *constructed*, per obligation. This is the standard certificate-based-verification
 boundary: the checker is verified, the SMT `unsat` is trusted.
 
+Stated precisely, the opaque `z3solve` **encapsulates three artifacts**, all inside the one axiom:
+the SMT-LIB *printer* (`IForm.toScript`, `Smt.lean` — fully parenthesized S-expressions, exact
+rationals), the Z3 *binary*, and the process plumbing. A printer bug would be an unsoundness route no
+Lean proof can see, so the battery pins it behaviorally: golden strings per constructor plus crafted
+formulas with known verdicts pushed through the real print→Z3 path (`relcert-test`, `[smt-printer]`).
+The other boundary artifact is the **input parser** (`Parse.lean`): it is strict — anything malformed
+or missing is a hard error, never a defaulted or silently weaker reading — and the benchmark↔instance
+identity behind the kernel certificates is itself machine-checked through that same parser
+(`Faithful.lean`/`FaithfulCerts.lean`: parser-emitted IR literals, kernel-`rfl` fidelity certificates,
+and a runtime drift check re-parsing every file). Residual trust for the whole pipeline: the parser,
+the printer+Z3+plumbing behind `z3solve`, and the Lean kernel.
+
 ### 1. The checker side — the cover keeps the invariant (`Cover.lean`, `Checker.lean`)
 
 `decideCovered` is a *verified, computable* transcription of the paper's **Definition 4**: from a

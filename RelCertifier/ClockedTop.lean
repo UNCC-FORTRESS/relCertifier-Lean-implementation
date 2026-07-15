@@ -407,4 +407,103 @@ theorem theorem3_faithful_settling_cadenced (G : SearchGraph (Var n))
           htgg htgS htgdom hH σ hσ))
     (fun _ h => h)
 
+/-! ## The calculus-faithful coupling slot: one left segment vs the right STAR
+
+`faModal_LOCK` instantiated at `Q := body` demands LOCKSTEP — one right body step per
+left segment. That is a witness discipline, not the calculus: the ∀∃ loop rule is
+`inv → [|(L, R*)⟩⟩ inv ⟹ inv → [|(L*, R*)⟩⟩ inv`, allowing arbitrarily many right
+steps per left segment (the certifier's own route search uses solo-hops). Instantiating
+`LOCK` at `Q := star body` and collapsing `star (star body) = star body` gives exactly
+that rule. The settling witnesses are single-hop and embed by ∃-weakening; discharges
+needing multi-hop responses now have a slot to feed. -/
+
+/-- `⟦(α*)*⟧ = ⟦α*⟧` (reflexive-transitive closure is idempotent). -/
+theorem sem_star_star (α : Program (Var n)) (ν μ : State (Var n)) :
+    Program.sem (Program.star (Program.star α)) ν μ ↔ Program.sem (Program.star α) ν μ := by
+  constructor
+  · intro h
+    induction h with
+    | refl => exact Relation.ReflTransGen.refl
+    | tail _ hstep ih => exact Relation.ReflTransGen.trans ih hstep
+  · intro h
+    exact Relation.ReflTransGen.single h
+
+/-- **The loop rule in its calculus form**: from `inv → [|(P, R*)⟩⟩ inv` (one left segment,
+right STAR — any number of right steps), conclude `inv → [|(P*, R*)⟩⟩ inv`. -/
+theorem faModal_LOCK_starR (ρ : Var n ≃ Var n) (P R : Program (Var n))
+    (φinv : Formula (Var n)) (ω : State (Var n))
+    (hd : Disjoint (Program.vars P) (Program.vars ((Program.star R).rename ρ)))
+    (hinv : Formula.sat φinv ω)
+    (hstep : ∀ σ, Formula.sat φinv σ →
+        Formula.sat (faModal ρ P (Program.star R) φinv) σ) :
+    Formula.sat (faModal ρ (Program.star P) (Program.star R) φinv) ω := by
+  have h := faModal_LOCK ρ P (Program.star R) φinv φinv ω hd hinv hstep (fun _ h => h)
+  rw [faModal_sat] at h ⊢
+  intro ν hν
+  obtain ⟨μ, hsem, hφ⟩ := h ν hν
+  refine ⟨μ, ?_, hφ⟩
+  rw [rename_star] at hsem ⊢
+  exact (sem_star_star _ _ _).mp (by rwa [rename_star] at hsem)
+
+/-- **Theorem 3, settling, ε-cadenced, calculus-faithful coupling.** Identical to
+`theorem3_faithful_settling_cadenced`, but the per-segment obligation passes through the
+`R*` slot — the settling witness (one body step) enters by ∃-weakening, and multi-hop
+responses fit the same slot. -/
+theorem theorem3_faithful_settling_cadenced' (G : SearchGraph (Var n))
+    (Gd : ℕ → Formula (Var n)) (mv : Var n) (g : Term (Var n))
+    (fL : Fin n → Term (Var n)) (domL evolShared : Formula (Var n)) (tg : Var n)
+    (dt : ℝ) (lam : Term (Var n)) (ϕinv : RFormula (Var n))
+    (hψ : encode (Equiv.refl (Var n)) ϕinv = invLe g)
+    (hH : GuardSettlingH G Gd mv g lam tg dt fL evolShared)
+    (htgg : tg ∉ g.fv)
+    (htgS : ∀ q m, G.modeAt q = some m → ∀ fR, m.sys = rightBlock fR lam →
+        tg ∉ (rightBlock fR lam).bound ∧
+        (∀ p ∈ rightBlock fR lam, tg ∉ (p.2 : Term (Var n)).fv))
+    (htgdom : tg ∉ evolShared.fv)
+    (hdis : Disjoint (Program.vars (clockedSeg (leftBlock fL) domL tg dt))
+        (Program.vars ((Program.star (rightAutomatonBodyC G mv tg dt)).rename
+          (Equiv.refl (Var n)))))
+    (hddF : Disjoint (faShape (Program.star (clockedSeg (leftBlock fL) domL tg dt))
+          (Program.star (rightAutomatonBodyC G mv tg dt)) (ψpostG G Gd mv ϕinv)).varsL
+        (Equiv.refl (Var n) '' (faShape (Program.star (clockedSeg (leftBlock fL) domL tg dt))
+          (Program.star (rightAutomatonBodyC G mv tg dt)) (ψpostG G Gd mv ϕinv)).varsR)) :
+    RFormula.rvalid (theorem3Form (clockedSeg (leftBlock fL) domL tg dt)
+      (rightAutomatonBodyC G mv tg dt) (ψpostG G Gd mv ϕinv)) := by
+  set ψpost := ψpostG G Gd mv ϕinv with hψpost
+  set Lp := Program.star (clockedSeg (leftBlock fL) domL tg dt)
+  set Rp := Program.star (rightAutomatonBodyC G mv tg dt)
+  have hencψ : encode (Equiv.refl (Var n)) ψpost = starInvGF G Gd mv g :=
+    encode_ψpostG G Gd mv g ϕinv hψ
+  intro bs
+  rw [theorem3Form]
+  refine (RFormula_sat_imp _ _ bs).mpr ?_
+  intro hpre
+  obtain ⟨ν, hbdg⟩ := exists_bridge (Equiv.refl (Var n))
+    (faShape Lp Rp ψpost).varsL (faShape Lp Rp ψpost).varsR hddF bs
+  have hbψ : Bridges (Equiv.refl (Var n)) ψpost.varsL ψpost.varsR bs ν :=
+    hbdg.mono (varsL_subset_faShape Lp Rp ψpost) (varsR_subset_faShape Lp Rp ψpost)
+  have hdψ : Disjoint ψpost.varsL (Equiv.refl (Var n) '' ψpost.varsR) :=
+    hddF.mono (varsL_subset_faShape Lp Rp ψpost)
+      (Set.image_mono (varsR_subset_faShape Lp Rp ψpost))
+  have hInvν : Formula.sat (starInvGF G Gd mv g) ν := by
+    rw [← hencψ]
+    exact (RFormula.encoding_correct (Equiv.refl (Var n)) ψpost hdψ bs ν hbψ).mp hpre
+  refine faModal_to_faShape (Equiv.refl (Var n)) Lp Rp ψpost ν bs hddF hbdg ?_
+  rw [hencψ]
+  refine faModal_LOCK_starR (Equiv.refl (Var n)) (clockedSeg (leftBlock fL) domL tg dt)
+    (rightAutomatonBodyC G mv tg dt) (starInvGF G Gd mv g) ν hdis hInvν ?_
+  -- per-segment obligation in the CALCULUS form: one left segment vs the right STAR;
+  -- the settling witness is a single body step, entering by ∃-weakening
+  intro σ hσ
+  have h1 := (faModalB_clockedSeg_iff (leftBlock fL) domL (rightAutomatonBodyC G mv tg dt)
+    (starInvGF G Gd mv g) tg dt σ).mpr
+    (hHcoupleGC_of_GuardSettlingH G Gd mv g lam tg dt fL domL evolShared
+      htgg htgS htgdom hH σ hσ)
+  rw [faModal_sat] at h1 ⊢
+  intro ν' hν'
+  obtain ⟨μ, hsem, hφ⟩ := h1 ν' hν'
+  refine ⟨μ, ?_, hφ⟩
+  rw [rename_star]
+  exact Relation.ReflTransGen.single (by rwa [Program.rename_refl] at hsem ⊢)
+
 end RelCertifier

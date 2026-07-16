@@ -135,4 +135,62 @@ theorem hstep_assembled_multiE (G : SearchGraph (Var n)) (mv : Var n)
   exact hstep_single_multiE G mv q g env P hg henv (hframes P hP) hqlt hfresh htt hlt
     segs halign hchain hhead hmvq hfaModal
 
+/-- Encoding of the envelope-carrying postcondition. -/
+theorem encode_phiInvE {ϕinv : RFormula (Var n)} {g : Term (Var n)}
+    {env : Formula (Var n)} {mv : Var n} {k : ℕ}
+    (hψ : encode (Equiv.refl (Var n)) ϕinv = invLe g) :
+    encode (Equiv.refl (Var n))
+      (RFormula.and (RFormula.and ϕinv (envR env)) (mvValidR mv k))
+      = phiInvE g env mv k := by
+  have hdist : encode (Equiv.refl (Var n))
+      (RFormula.and (RFormula.and ϕinv (envR env)) (mvValidR mv k))
+      = Formula.and (Formula.and (encode (Equiv.refl (Var n)) ϕinv)
+          (encode (Equiv.refl (Var n)) (envR env)))
+        (encode (Equiv.refl (Var n)) (mvValidR mv k)) := by
+    unfold encode; simp only [RFormula.renameR, RFormula.enc]
+  rw [hdist, hψ, encode_envR, encode_mvValidR]; rfl
+
+/-- **The envelope-carrying multi Theorem 3.** `theorem3_faithful_multi` with
+`ψ = (ϕinv ∧ ⌊env⌋_R) ∧ mvValidR` — the loop invariant that keeps every response
+anchor inside the right envelope. -/
+theorem theorem3_faithful_multiE (G : SearchGraph (Var n)) (mv : Var n) (g : Term (Var n))
+    (env : Formula (Var n))
+    (leftProgs : List (Program (Var n))) (ϕinv : RFormula (Var n))
+    (hψ : encode (Equiv.refl (Var n)) ϕinv = invLe g)
+    (hd : Disjoint (Program.vars (bigChoice leftProgs))
+        (Program.vars ((rightAutomatonBody G mv).rename (Equiv.refl (Var n)))))
+    (hstep : ∀ σ, Formula.sat (phiInvE g env mv G.modes.length) σ →
+      Formula.sat (faModal (Equiv.refl (Var n)) (bigChoice leftProgs)
+        (Program.star (rightAutomatonBody G mv)) (phiInvE g env mv G.modes.length)) σ)
+    (hddF : Disjoint (faShape (Program.star (bigChoice leftProgs))
+          (Program.star (rightAutomatonBody G mv))
+          (RFormula.and (RFormula.and ϕinv (envR env)) (mvValidR mv G.modes.length))).varsL
+        (Equiv.refl (Var n) '' (faShape (Program.star (bigChoice leftProgs))
+          (Program.star (rightAutomatonBody G mv))
+          (RFormula.and (RFormula.and ϕinv (envR env)) (mvValidR mv G.modes.length))).varsR)) :
+    RFormula.rvalid (theorem3Form (bigChoice leftProgs) (rightAutomatonBody G mv)
+      (RFormula.and (RFormula.and ϕinv (envR env)) (mvValidR mv G.modes.length))) := by
+  set k := G.modes.length
+  set ψpost := RFormula.and (RFormula.and ϕinv (envR env)) (mvValidR mv k) with hψpost
+  set Lp := Program.star (bigChoice leftProgs)
+  set Rp := Program.star (rightAutomatonBody G mv)
+  have hencψ : encode (Equiv.refl (Var n)) ψpost = phiInvE g env mv k := encode_phiInvE hψ
+  intro bs
+  rw [theorem3Form]
+  refine (RFormula_sat_imp _ _ bs).mpr ?_
+  intro hpre
+  obtain ⟨ν, hbdg⟩ := exists_bridge (Equiv.refl (Var n))
+    (faShape Lp Rp ψpost).varsL (faShape Lp Rp ψpost).varsR hddF bs
+  have hbψ : Bridges (Equiv.refl (Var n)) ψpost.varsL ψpost.varsR bs ν :=
+    hbdg.mono (varsL_subset_faShape Lp Rp ψpost) (varsR_subset_faShape Lp Rp ψpost)
+  have hdψ : Disjoint ψpost.varsL (Equiv.refl (Var n) '' ψpost.varsR) :=
+    hddF.mono (varsL_subset_faShape Lp Rp ψpost)
+      (Set.image_mono (varsR_subset_faShape Lp Rp ψpost))
+  have hInvν : Formula.sat (phiInvE g env mv k) ν := by
+    rw [← hencψ]
+    exact (RFormula.encoding_correct (Equiv.refl (Var n)) ψpost hdψ bs ν hbψ).mp hpre
+  exact relational_loop_multi (bigChoice leftProgs) (rightAutomatonBody G mv) ψpost ν bs hd
+    (by rw [hencψ]; exact hInvν)
+    (fun σ hσ => by rw [hencψ] at hσ ⊢; exact hstep σ hσ) hddF hbdg
+
 end RelCertifier

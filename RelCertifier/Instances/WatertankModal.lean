@@ -24,6 +24,7 @@ three + `z3_unsat_sound` where verdicts enter.
 import RelCertifier.Proofs.Encoding.EnvelopeChain
 import RelCertifier.Proofs.Encoding.CanonicalInv
 import RelCertifier.Proofs.Encoding.CoverInstance
+import RelCertifier.Proofs.Flow.ViabilityWiring
 import RelCertifier.Instances.BenchIR
 
 namespace RelCertifier
@@ -206,17 +207,20 @@ def VerdW (l q : ℕ) : Prop :=
   ∨ z3solve (flowQuerySuperlevel ⟨gW, fLW l, fRW q, Term.const 1,
     Formula.and domLW domRW⟩) = Verdict.unsat
 
-/-- The per-pair duration-existence residual, ENVELOPE-CONDITIONED: anchors are only
-the loop invariant's states (inside the joint universal domain) — the honest form
-(the unconditioned `∀ ν` version is false in general); S3's discharge target. -/
-def ESW (l q : ℕ) : Prop :=
+/-- The per-pair duration-existence residual, ENVELOPE-CONDITIONED and CLOCK-CAPPED:
+anchors are only the loop invariant's states, and responses are needed only for left
+durations `≤ dt` (`HExistSegB`) — the honest form both ways (the unconditioned `∀ ν`
+version is false in general; the `∀ s` version needlessly demands unbounded flows).
+Dischargeable from bounded box viability (`HExistSegB_of_viability` + the anchor
+conditioning verdicts) — the S3 emission wiring. -/
+def ESW (l q : ℕ) (dt : ℝ) : Prop :=
   ∀ σ, Formula.sat (Formula.and (invLe gW) envW) σ →
-    HExistSeg (fLW l) (fRW q) (Term.const 1) domLW domRW (Function.update σ tgM 0)
+    HExistSegB (fLW l) (fRW q) (Term.const 1) domLW domRW dt (Function.update σ tgM 0)
 
 /-! ## The per-pair bounded coupling (cert-sourced, envelope-strengthened) -/
 
 theorem coupleW {l q : ℕ} (hl : l < 3) (hq : q < 3) (dt : ℝ)
-    (hv : VerdW l q) (hES : ESW l q) :
+    (hv : VerdW l q) (hES : ESW l q dt) :
     ∀ σ', Formula.sat (Formula.and (invLe gW) envW) σ' → σ' tgM = 0 →
       faModalB (Equiv.refl (Var 2))
         (Program.ode (DLCalTiming.clk tgM (leftBlock (fLW l))) domLW)
@@ -247,7 +251,7 @@ theorem coupleW {l q : ℕ} (hl : l < 3) (hq : q < 3) (dt : ℝ)
     rw [List.mem_singleton] at hg
     subst hg
     exact (sat_invLe gW σ').mp hσ'.1
-  have hbase := segment_faModalB_from_cert gW (fLW l) (fRW q) (Term.const 1)
+  have hbase := segment_faModalB_from_certB gW (fLW l) (fRW q) (Term.const 1)
     domLW domRW tgM dt
     (LR_blocks_disjoint _ _ _ (hfLW l hl) (hfRW q hq) (by simp [Term.fv]))
     (fun v hv' => Or.inl (by
@@ -287,7 +291,7 @@ theorem coupleW {l q : ℕ} (hl : l < 3) (hq : q < 3) (dt : ℝ)
 
 /-- JointOK start: the single self-edge piece. -/
 theorem seg_selfW (dt : ℝ) {l q : ℕ} (hl : l < 3) (hq : q < 3)
-    (hv : VerdW l q) (hES : ESW l q)
+    (hv : VerdW l q) (hES : ESW l q dt)
     {σ : State (Var 2)} (hσ : Formula.sat (Formula.and (invLe gW) envW) σ) :
     Formula.sat (faModal (Equiv.refl (Var 2))
       (windowSeg (leftBlock (fLW l)) domLW tgM dt 1)
@@ -302,7 +306,7 @@ theorem seg_selfW (dt : ℝ) {l q : ℕ} (hl : l < 3) (hq : q < 3)
 
 /-- Non-jointOK start `qh`: static hop `qh → 1` (Mid), then the piece at Mid. -/
 theorem seg_hopW (dt : ℝ) {l qh : ℕ} (hl : l < 3) (hqh : qh < 3)
-    (hv : VerdW l 1) (hES : ESW l 1)
+    (hv : VerdW l 1) (hES : ESW l 1 dt)
     {σ : State (Var 2)} (hσ : Formula.sat (Formula.and (invLe gW) envW) σ) :
     Formula.sat (faModal (Equiv.refl (Var 2))
       (windowSeg (leftBlock (fLW l)) domLW tgM dt 1)
@@ -335,8 +339,8 @@ theorem seg_hopW (dt : ℝ) {l qh : ℕ} (hl : l < 3) (hqh : qh < 3)
 theorem HmultiW (dt : ℝ)
     (h00 : VerdW 0 0) (h01 : VerdW 0 1) (h11 : VerdW 1 1)
     (h20 : VerdW 2 0) (h21 : VerdW 2 1) (h22 : VerdW 2 2)
-    (hES00 : ESW 0 0) (hES01 : ESW 0 1) (hES11 : ESW 1 1)
-    (hES20 : ESW 2 0) (hES21 : ESW 2 1) (hES22 : ESW 2 2) :
+    (hES00 : ESW 0 0 dt) (hES01 : ESW 0 1 dt) (hES11 : ESW 1 1 dt)
+    (hES20 : ESW 2 0 dt) (hES21 : ESW 2 1 dt) (hES22 : ESW 2 2 dt) :
     ∀ P ∈ leftProgsW dt, ∀ (q : ℕ), q < GrW.modes.length → ∀ σ, σ mvM = (q : ℝ) →
       Formula.sat (Formula.and (invLe gW) envW) σ →
       ∃ segs : List (ℕ × RMode (Var 2) × REdge (Var 2)),
@@ -471,8 +475,8 @@ envelope-conditioned duration-existence facts (`ESW`, S3's target). -/
 theorem watertank_modal (dt : ℝ)
     (h00 : VerdW 0 0) (h01 : VerdW 0 1) (h11 : VerdW 1 1)
     (h20 : VerdW 2 0) (h21 : VerdW 2 1) (h22 : VerdW 2 2)
-    (hES00 : ESW 0 0) (hES01 : ESW 0 1) (hES11 : ESW 1 1)
-    (hES20 : ESW 2 0) (hES21 : ESW 2 1) (hES22 : ESW 2 2) :
+    (hES00 : ESW 0 0 dt) (hES01 : ESW 0 1 dt) (hES11 : ESW 1 1 dt)
+    (hES20 : ESW 2 0 dt) (hES21 : ESW 2 1 dt) (hES22 : ESW 2 2 dt) :
     RFormula.rvalid (theorem3Form
       (bigChoice (leftProgsW dt))
       (rightAutomatonBody GrW mvM)

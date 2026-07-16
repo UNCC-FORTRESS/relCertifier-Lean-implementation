@@ -50,7 +50,7 @@ Conjunctions lower every component (per-component flow certificates). `lowerE` h
 `+ − ×`, so quadratic (`x*x`) and product (`v*r`) terms lower into `Term` and flow
 through the unchanged `lieDeriv`/`flowQueryStrict`. If ANY component fails to lower,
 returns `none` ⟹ the caller reports `error` (never silently drops a component). -/
-partial def invComponents (vars : List String) (n : ℕ) : PForm → Option (List (ITerm n))
+def invComponents (vars : List String) (n : ℕ) : PForm → Option (List (ITerm n))
   | .tt => some []
   | .cmp op a b =>
       if op == "<=" || op == "<" then do
@@ -196,10 +196,7 @@ def checkSeg (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
         | some (baseDom, gdot) =>
             -- CHECKED-CUT domains + the PROVEN strata (never unproven siblings)
             let baseDom := IForm.and (IForm.and baseDom cutL) cutR
-            let dom := proven.foldl (fun d j =>
-              match comps[j]? with
-              | some gj => IForm.and d (IForm.cmp .le gj (.rat 0))
-              | none => d) baseDom
+            let dom := strataDomIR comps proven baseDom
             let mut compPass := false
             let mut compIncon := false
             for q in routeQueries dom g gdot do
@@ -291,10 +288,7 @@ def checkDynRepo (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
         | none => pure ()
         | some (baseDom, gdot) =>
             let baseDom := IForm.and (IForm.and baseDom cutL) cutR   -- checked-cut narrowing
-            let dom0 := proven.foldl (fun d j =>
-              match comps[j]? with
-              | some gj => IForm.and d (IForm.cmp .le gj (.rat 0))
-              | none => d) baseDom
+            let dom0 := strataDomIR comps proven baseDom
             let dom := IForm.and dom0 gLform            -- σ-matched: add guardL iff pre-j
             -- route A (DI_nonstrict_domain, WHOLE-DOMAIN): domain ∧ ġ>0 UNSAT
             let q := IForm.and dom (IForm.cmp .gt gdot (.rat 0))

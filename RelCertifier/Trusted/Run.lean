@@ -155,6 +155,16 @@ def segPartsRO (vars : List String) (n : ℕ) (g : ITerm n) (mL mR : PMode) :
   let gdot := ilieDeriv g (fun _ => ITerm.rat 0) fR (.rat 1)
   some (IForm.and domL domR, gdot)
 
+/-- The stratified-DC domain: the base narrowed by exactly the PROVEN components
+(sequential differential cuts — the shared definition `checkSeg`/`checkDynRepo` iterate
+and the kernel instances quote; see docs/COVER-AUDIT.md R4). -/
+def strataDomIR {n : ℕ} (comps : List (ITerm n)) (proven : List Nat)
+    (base : IForm n) : IForm n :=
+  proven.foldl (fun d j =>
+    match comps[j]? with
+    | some gj => IForm.and d (IForm.cmp .le gj (.rat 0))
+    | none => d) base
+
 /-- The three **sound** flow queries for `(domain, g, ġ)` — UNSAT of ANY certifies the
 segment, each backed by a verified theorem:
 * A `domain ∧ ġ>0`        — `flow_cert_sound` (`DI_nonstrict_domain`);

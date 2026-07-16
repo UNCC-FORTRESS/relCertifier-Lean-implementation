@@ -216,4 +216,86 @@ theorem segPresAll_from_strata_verdicts (fL fR : Fin n → Term (Var n))
   fun _ hinit => stratified_barrier_boxle (jointSys fL fR lam) D gs
     (strata_hcert_from_verdicts fL fR lam D gs hz3) hinit
 
+/-! ## The fold-shaped domains (the tool's exact `strataDomIR` image) -/
+
+/-- The host image of `strataDomIR`: base narrowed by a left fold of `≤ 0` conjuncts —
+the EXACT formula shape of the tool's stratified queries. -/
+def strataDomHost (D : Formula (Var n)) (pre : List (Term (Var n))) : Formula (Var n) :=
+  pre.foldl (fun d g => Formula.and d (invLe g)) D
+
+theorem sat_strataDomHost (D : Formula (Var n)) (pre : List (Term (Var n)))
+    (ν : State (Var n)) :
+    Formula.sat (strataDomHost D pre) ν ↔
+      Formula.sat D ν ∧ ∀ g ∈ pre, Term.eval g ν ≤ 0 := by
+  induction pre generalizing D with
+  | nil => simp [strataDomHost]
+  | cons g pre ih =>
+      simp only [strataDomHost, List.foldl_cons] at ih ⊢
+      rw [ih (Formula.and D (invLe g))]
+      constructor
+      · rintro ⟨⟨hD, hg⟩, hrest⟩
+        refine ⟨hD, ?_⟩
+        intro g' hg'
+        rcases List.mem_cons.mp hg' with rfl | hg'
+        · simpa [invLe, Formula.sat, Term.eval, CompOp.interp] using hg
+        · exact hrest g' hg'
+      · rintro ⟨hD, hall⟩
+        have hg0 : Term.eval g ν ≤ 0 := hall g List.mem_cons_self
+        exact ⟨⟨hD, by simpa [invLe, Formula.sat, Term.eval, CompOp.interp] using hg0⟩,
+          fun g' hg' => hall g' (List.mem_cons_of_mem _ hg')⟩
+
+/-- Same-runs transfer between sat-equivalent ode domains. -/
+theorem boxle_dom_congr {sys : ODESystem (Var n)} {D D' : Formula (Var n)}
+    (h : ∀ ν, Formula.sat D ν ↔ Formula.sat D' ν) {f : State (Var n) → ℝ}
+    {ν : State (Var n)} (hbox : BoxLe (Program.ode sys D') f ν) :
+    BoxLe (Program.ode sys D) f ν := by
+  intro ω hsem
+  obtain ⟨r, Φ, hr, hΦ0, hΦr, hder, hmask, hdom⟩ := hsem
+  exact hbox ω ⟨r, Φ, hr, hΦ0, hΦr, hder, hmask, fun t ht => (h (Φ t)).mp (hdom t ht)⟩
+
+/-- **The Z3 leaf, fold-shaped** — verdicts on the tool's EXACT stratified query domains
+(`strataDomHost`, the host image of `strataDomIR`) discharge the strata certificates in
+the `bigLe` shape `stratified_barrier_sound` consumes. -/
+theorem strata_hcert_from_verdicts' (fL fR : Fin n → Term (Var n)) (lam : Term (Var n))
+    (D : Formula (Var n)) (gs : List (Term (Var n)))
+    (hz3 : ∀ i (hi : i < gs.length),
+      z3solve (flowQuery ⟨gs[i], fL, fR, lam,
+        strataDomHost D (gs.take i)⟩) = Verdict.unsat
+      ∨ z3solve (flowQueryStrict ⟨gs[i], fL, fR, lam,
+        strataDomHost D (gs.take i)⟩) = Verdict.unsat
+      ∨ z3solve (flowQuerySuperlevel ⟨gs[i], fL, fR, lam,
+        strataDomHost D (gs.take i)⟩) = Verdict.unsat) :
+    ∀ i (hi : i < gs.length), ∀ ν', Term.eval gs[i] ν' ≤ 0 →
+      BoxLe (Program.ode (jointSys fL fR lam) (Formula.and D (bigLe (gs.take i))))
+        (fun ω => Term.eval gs[i] ω) ν' := by
+  intro i hi ν' hinit
+  have hcong : ∀ ν, Formula.sat (Formula.and D (bigLe (gs.take i))) ν ↔
+      Formula.sat (strataDomHost D (gs.take i)) ν := by
+    intro ν
+    rw [sat_strataDomHost]
+    constructor
+    · rintro ⟨hD, hb⟩
+      exact ⟨hD, (sat_bigLe_iff _ _).mp hb⟩
+    · rintro ⟨hD, hall⟩
+      exact ⟨hD, (sat_bigLe_iff _ _).mpr hall⟩
+  refine boxle_dom_congr hcong ?_
+  rcases hz3 i hi with h | h | h
+  · exact flow_cert_sound _ (z3_unsat_sound h) hinit
+  · exact flow_cert_sound_strict _ (z3_unsat_sound h) hinit
+  · exact flow_cert_sound_superlevel _ (z3_unsat_sound h) hinit
+
+/-- Fold-shaped end-to-end multi-component certificate (the battery entry point). -/
+theorem segPresAll_from_strata_verdicts' (fL fR : Fin n → Term (Var n))
+    (lam : Term (Var n)) (D : Formula (Var n)) (gs : List (Term (Var n)))
+    (hz3 : ∀ i (hi : i < gs.length),
+      z3solve (flowQuery ⟨gs[i], fL, fR, lam,
+        strataDomHost D (gs.take i)⟩) = Verdict.unsat
+      ∨ z3solve (flowQueryStrict ⟨gs[i], fL, fR, lam,
+        strataDomHost D (gs.take i)⟩) = Verdict.unsat
+      ∨ z3solve (flowQuerySuperlevel ⟨gs[i], fL, fR, lam,
+        strataDomHost D (gs.take i)⟩) = Verdict.unsat) :
+    SegPreservesAllOn gs (jointSys fL fR lam) D :=
+  fun _ hinit => stratified_barrier_boxle (jointSys fL fR lam) D gs
+    (strata_hcert_from_verdicts' fL fR lam D gs hz3) hinit
+
 end RelCertifier

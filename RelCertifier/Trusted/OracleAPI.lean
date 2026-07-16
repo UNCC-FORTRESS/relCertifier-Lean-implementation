@@ -160,6 +160,12 @@ def checkedCut (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
   let cut := kept.foldl (fun d c => IForm.and d c.2.1) IForm.tt
   pure (cut, kept.map (fun c => (c.1, c.2.2)))
 
+/-- Conjoin the checked cuts, shape-normalized: `tt` cuts (the `RELCERT_NO_CUT` path)
+leave the base formula UNCHANGED, so emitted-cover instances mirror the exact query. -/
+def andCuts {n : ℕ} (base cutL cutR : IForm n) : IForm n :=
+  let b1 := if cutL == IForm.tt then base else IForm.and base cutL
+  if cutR == IForm.tt then b1 else IForm.and b1 cutR
+
 /-- Check one segment `(qL=mL, qR=mR, λ)`: `pass` iff EVERY component's strict flow query
 is Z3-`unsat`; `fail` iff some component is definitively `sat`; `incon` on any Z3
 error/`unknown` or unbuildable query. -/
@@ -195,7 +201,7 @@ def checkSeg (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
         | none => lastIncon := true                  -- couldn't build the query
         | some (baseDom, gdot) =>
             -- CHECKED-CUT domains + the PROVEN strata (never unproven siblings)
-            let baseDom := IForm.and (IForm.and baseDom cutL) cutR
+            let baseDom := andCuts baseDom cutL cutR
             let dom := strataDomIR comps proven baseDom
             let mut compPass := false
             let mut compIncon := false
@@ -259,7 +265,7 @@ def repoRegions (vars : List String) (n : ℕ) (cutL cutR : IForm n) (mL mR : PM
   let eR ← lowerF vars n Side.R mR.evolve
   -- CHECKED CUTS narrow the regions: every reachable σ-state satisfies the checked cuts
   -- (entry by O1, invariance by O2), so the region-invariant obligation may assume them.
-  let ev := IForm.and (IForm.and (IForm.and eL eR) cutL) cutR
+  let ev := andCuts (IForm.and eL eR) cutL cutR
   pure (IForm.and (IForm.and gL gR) ev, IForm.and gR ev)
 
 /-- **DYNAMIC REPOSITION check (certificate 3)** — the right-only FLOW cert via the **whole-domain**
@@ -271,7 +277,8 @@ the domain (multi-barrier). `true` iff every component's route-A query is defini
 any sat/unknown/error → `false` (withhold — drop-only-on-UNSAT). -/
 def checkDynRepo (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     (vars : List String) (n : ℕ) (coord : Fin n → String)
-    (comps : List (ITerm n)) (cutL cutR : IForm n) (mL mR : PMode) (withGuardL : Bool) : IO Bool := do
+    (comps : List (ITerm n)) (cutL cutR : IForm n) (mL mR : PMode) (withGuardL : Bool) :
+    IO (Bool × List Nat) := do
   let gLform : IForm n := (if withGuardL then lowerF vars n Side.L mL.guard else some IForm.tt).getD IForm.tt
   -- STRATIFIED (soundness, same discipline as checkSeg — the previous mutual narrowing
   -- was a circular cut, unsound for the whole-domain route; see docs/COVER-AUDIT.md R4):
@@ -287,7 +294,7 @@ def checkDynRepo (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
         match segPartsRO vars n g mL mR with        -- (evolveL∧evolveR, ġ) with fL=0, λ=1
         | none => pure ()
         | some (baseDom, gdot) =>
-            let baseDom := IForm.and (IForm.and baseDom cutL) cutR   -- checked-cut narrowing
+            let baseDom := andCuts baseDom cutL cutR   -- checked-cut narrowing
             let dom0 := strataDomIR comps proven baseDom
             let dom := IForm.and dom0 gLform            -- σ-matched: add guardL iff pre-j
             -- route A (DI_nonstrict_domain, WHOLE-DOMAIN): domain ∧ ġ>0 UNSAT
@@ -302,7 +309,7 @@ def checkDynRepo (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
               | .ok .unsat => proven := proven ++ [i]; progress := true
               | _          => pure ()
     if !progress then break
-  pure (proven.length == comps.length)
+  pure (proven.length == comps.length, proven)
 
 /-- The multi-segment all-successors cover, three-valued, **memoized** on `(qR, f)` (the
 budget `B` is a function of `f`, so the state is finite: `modes × fuel`). Without the memo
@@ -481,10 +488,12 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
   -- λ-independent (fL=0, λ=1; sign λ-invariant), computed ONCE. For the rover cross-terrain hop,
   -- `ġ_s=−v_R≤0` and `ġ_v` on the terrain's v-evolve-cap ⟹ route-A UNSAT ⟹ the advancing reposition.
   let mut dynMap : List (String × Bool × Bool) := []
+  let mut dynOrders : List (String × List Nat × List Nat) := []
   for mR in p.R.modes do
-    let pre  ← checkDynRepo s cnt maxQ maxSmt deadline vars n coord comps cutL (cutOfR mR.name) mL mR true
-    let post ← checkDynRepo s cnt maxQ maxSmt deadline vars n coord comps cutL (cutOfR mR.name) mL mR false
+    let (pre, preOrd)  ← checkDynRepo s cnt maxQ maxSmt deadline vars n coord comps cutL (cutOfR mR.name) mL mR true
+    let (post, postOrd) ← checkDynRepo s cnt maxQ maxSmt deadline vars n coord comps cutL (cutOfR mR.name) mL mR false
     dynMap := dynMap ++ [(mR.name, pre, post)]
+    dynOrders := dynOrders ++ [(mR.name, preOrd, postOrd)]
   let repoDynPreOK  := fun (nm : String) => (dynMap.find? (·.1 == nm)).map (·.2.1) |>.getD false
   let repoDynPostOK := fun (nm : String) => (dynMap.find? (·.1 == nm)).map (·.2.2) |>.getD false
   if (← IO.getEnv "RELCERT_DEBUG").isSome then
@@ -502,7 +511,12 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
       let (st, order) ←
         checkSeg s cnt maxQ maxSmt deadline vars n coord comps cutL (cutOfR mR.name) mL mR lam
       segMap := segMap ++ [(mR.name, st)]
-      strataMap := strataMap ++ [{ mR := mR.name, order := order }]
+      let dpair := match dynOrders.find? (fun t => t.1 == mR.name) with
+        | some t => (t.2.1, t.2.2)
+        | none => ([], [])
+      strataMap := strataMap ++
+        [({ mR := mR.name, order := order, dynPreOrder := dpair.1,
+            dynPostOrder := dpair.2 } : PairStrataE)]
     let seg := fun q => (segMap.find? (·.1 == q)).map (·.2) |>.getD Seg.incon
     if (← IO.getEnv "RELCERT_DEBUG").isSome then
       IO.eprintln (s!"  [{mL.name}_L λ={lam} #comps={comps.length}] " ++
@@ -660,7 +674,8 @@ form, consumable against `Checker/CoverEmit.lean`. -/
 def emitCoverE (defname : String) (c : CoverEmitE) : String :=
   let fl := fun (f : ModeFlagsE) =>
     s!"⟨\"{f.name}\", {f.jointOK}, {f.repoPre}, {f.repoPost}, {f.dynPre}, {f.dynPost}⟩"
-  let ps := fun (x : PairStrataE) => s!"⟨\"{x.mR}\", {repr x.order}⟩"
+  let ps := fun (x : PairStrataE) =>
+    s!"⟨\"{x.mR}\", {repr x.order}, {repr x.dynPreOrder}, {repr x.dynPostOrder}⟩"
   let lc := fun (l : LeftCoverE) =>
     s!"⟨\"{l.mL}\", ({l.lamQ.num} : ℚ) / {l.lamQ.den}, {l.bBudget}, [" ++
       String.intercalate ", " (l.flags.map fl) ++ "], " ++ reprStr l.admissible ++ ", [" ++

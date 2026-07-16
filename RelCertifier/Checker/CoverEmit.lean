@@ -35,6 +35,8 @@ component `order[k]` is narrowed by exactly `order.take k`. -/
 structure PairStrataE where
   mR    : String
   order : List Nat
+  dynPreOrder  : List Nat := []
+  dynPostOrder : List Nat := []
   deriving Repr, DecidableEq
 
 /-- Per left mode: the successful cover's data. -/

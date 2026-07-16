@@ -283,13 +283,12 @@ theorem plantT_rpatch {fL : Fin n → Term (Var n)} {domL : Formula (Var n)}
 reposition-prefixed response: the frozen-left hop runs at the anchor (invariant
 preserved by the POST-J dynamic certificate), replays verbatim at the left's endpoint,
 and the joint coupling fires from the repositioned anchor by right-frame-invariance. -/
-theorem faModalB_repoPrefix {fL fR fRq : Fin n → Term (Var n)} {lam lamq : Term (Var n)}
-    {domL domR domRq : Formula (Var n)} {gs : List (Term (Var n))}
+theorem faModalB_repoPrefix {fL fR : Fin n → Term (Var n)} {lam : Term (Var n)}
+    {domL domR : Formula (Var n)} {gs : List (Term (Var n))} {Q : Program (Var n)}
     {a : Fin n} {dt : ℝ} {ω₀ : State (Var n)}
     (hfL : ∀ i, (fL i).fv ⊆ range Lv) (hdomL : domL.fv ⊆ range Lv)
     (hfR : ∀ i, (fR i).fv ⊆ range Rv) (hlam : lam.fv ⊆ range Rv)
     (hdomR : domR.fv ⊆ range Rv)
-    (hgs : ∀ g ∈ gs, ∀ v ∈ g.fv, v.1 ≠ Side.Aux)
     (hω₀tg : ω₀ ((Side.Aux, a) : Var n) = 0)
     -- the hop: a frozen-left run from the anchor, endpoint jointly invariant
     (hR : ∃ ρ₁, Program.sem (Program.ode (jointSys (fun _ => Term.const 0) fR lam)
@@ -298,13 +297,12 @@ theorem faModalB_repoPrefix {fL fR fRq : Fin n → Term (Var n)} {lam lamq : Ter
     (hQ : ∀ σ, InvAllHolds gs σ → σ ((Side.Aux, a) : Var n) = 0 →
       faModalB (Equiv.refl (Var n))
         (Program.ode (DLCalTiming.clk ((Side.Aux, a) : Var n) (leftBlock fL)) domL)
-        (Program.ode (rightBlock fRq lamq) domRq) (bigLe gs)
-        ((Side.Aux, a) : Var n) dt σ) :
+        Q (bigLe gs) ((Side.Aux, a) : Var n) dt σ) :
     faModalB (Equiv.refl (Var n))
       (Program.ode (DLCalTiming.clk ((Side.Aux, a) : Var n) (leftBlock fL)) domL)
       (Program.seq
         (Program.ode (jointSys (fun _ => Term.const 0) fR lam) (Formula.and domL domR))
-        (Program.ode (rightBlock fRq lamq) domRq))
+        Q)
       (bigLe gs) ((Side.Aux, a) : Var n) dt ω₀ := by
   intro ν hplant
   obtain ⟨ρ₁, hhop, hρ₁inv⟩ := hR
@@ -347,5 +345,46 @@ theorem faModalB_repoPrefix {fL fR fRq : Fin n → Term (Var n)} {lam lamq : Ter
   refine ⟨μ, ?_, hQμφ⟩
   rw [Program.rename_refl] at hQμSem ⊢
   exact ⟨rpatch ν ρ₁, hreplay, hQμSem⟩
+
+/-- Per-hop data: the frozen-left field and stretch of the mode being hopped through. -/
+structure RepoHop (n : ℕ) where
+  fR  : Fin n → Term (Var n)
+  lam : Term (Var n)
+  domR : Formula (Var n)
+
+/-- The hop's frozen-left program (post-j domain). -/
+def RepoHop.prog (h : RepoHop n) (domL : Formula (Var n)) : Program (Var n) :=
+  Program.ode (jointSys (fun _ => Term.const 0) h.fR h.lam) (Formula.and domL h.domR)
+
+/-- **Multi-hop reposition prefix.** Iterate `faModalB_repoPrefix` over a hop list:
+each hop's existence-with-invariant is supplied as a family (anchored anywhere the
+invariant holds with clock 0 — the previous hop's endpoint qualifies), and the final
+continuation coupling fires at the last hop's endpoint. -/
+theorem faModalB_repoPath {fL : Fin n → Term (Var n)} {domL : Formula (Var n)}
+    {gs : List (Term (Var n))} {Q : Program (Var n)} {a : Fin n} {dt : ℝ}
+    (hfL : ∀ i, (fL i).fv ⊆ range Lv) (hdomL : domL.fv ⊆ range Lv)
+    (hops : List (RepoHop n))
+    (hhops : ∀ h ∈ hops, (∀ i, (h.fR i).fv ⊆ range Rv) ∧ h.lam.fv ⊆ range Rv
+      ∧ h.domR.fv ⊆ range Rv)
+    (hR : ∀ h ∈ hops, ∀ σ, InvAllHolds gs σ → σ ((Side.Aux, a) : Var n) = 0 →
+      ∃ ρ, Program.sem (h.prog domL) σ ρ ∧ InvAllHolds gs ρ)
+    (hQ : ∀ σ, InvAllHolds gs σ → σ ((Side.Aux, a) : Var n) = 0 →
+      faModalB (Equiv.refl (Var n))
+        (Program.ode (DLCalTiming.clk ((Side.Aux, a) : Var n) (leftBlock fL)) domL)
+        Q (bigLe gs) ((Side.Aux, a) : Var n) dt σ) :
+    ∀ σ, InvAllHolds gs σ → σ ((Side.Aux, a) : Var n) = 0 →
+      faModalB (Equiv.refl (Var n))
+        (Program.ode (DLCalTiming.clk ((Side.Aux, a) : Var n) (leftBlock fL)) domL)
+        (hops.foldr (fun h q => Program.seq (h.prog domL) q) Q)
+        (bigLe gs) ((Side.Aux, a) : Var n) dt σ := by
+  induction hops with
+  | nil => exact hQ
+  | cons h hs ih =>
+      intro σ hσ hσtg
+      obtain ⟨hhfR, hhlam, hhdomR⟩ := hhops h (List.mem_cons_self)
+      have ihs := ih (fun h' hh' => hhops h' (List.mem_cons_of_mem _ hh'))
+        (fun h' hh' => hR h' (List.mem_cons_of_mem _ hh'))
+      exact faModalB_repoPrefix hfL hdomL hhfR hhlam hhdomR hσtg
+        (hR h (List.mem_cons_self) σ hσ hσtg) ihs
 
 end RelCertifier

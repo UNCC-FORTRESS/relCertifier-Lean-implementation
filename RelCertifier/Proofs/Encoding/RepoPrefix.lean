@@ -284,7 +284,7 @@ reposition-prefixed response: the frozen-left hop runs at the anchor (invariant
 preserved by the POST-J dynamic certificate), replays verbatim at the left's endpoint,
 and the joint coupling fires from the repositioned anchor by right-frame-invariance. -/
 theorem faModalB_repoPrefix {fL fR : Fin n → Term (Var n)} {lam : Term (Var n)}
-    {domL domR : Formula (Var n)} {gs : List (Term (Var n))} {Q : Program (Var n)}
+    {domL domR : Formula (Var n)} {φ : Formula (Var n)} {Q : Program (Var n)}
     {a : Fin n} {dt : ℝ} {ω₀ : State (Var n)}
     (hfL : ∀ i, (fL i).fv ⊆ range Lv) (hdomL : domL.fv ⊆ range Lv)
     (hfR : ∀ i, (fR i).fv ⊆ range Rv) (hlam : lam.fv ⊆ range Rv)
@@ -292,20 +292,20 @@ theorem faModalB_repoPrefix {fL fR : Fin n → Term (Var n)} {lam : Term (Var n)
     (hω₀tg : ω₀ ((Side.Aux, a) : Var n) = 0)
     -- the hop: a frozen-left run from the anchor, endpoint jointly invariant
     (hR : ∃ ρ₁, Program.sem (Program.ode (jointSys (fun _ => Term.const 0) fR lam)
-        (Formula.and domL domR)) ω₀ ρ₁ ∧ InvAllHolds gs ρ₁)
+        (Formula.and domL domR)) ω₀ ρ₁ ∧ Formula.sat φ ρ₁)
     -- the piece coupling, cert-sourced, anchored at any invariant state with clock 0
-    (hQ : ∀ σ, InvAllHolds gs σ → σ ((Side.Aux, a) : Var n) = 0 →
+    (hQ : ∀ σ, Formula.sat φ σ → σ ((Side.Aux, a) : Var n) = 0 →
       faModalB (Equiv.refl (Var n))
         (Program.ode (DLCalTiming.clk ((Side.Aux, a) : Var n) (leftBlock fL)) domL)
-        Q (bigLe gs) ((Side.Aux, a) : Var n) dt σ) :
+        Q φ ((Side.Aux, a) : Var n) dt σ) :
     faModalB (Equiv.refl (Var n))
       (Program.ode (DLCalTiming.clk ((Side.Aux, a) : Var n) (leftBlock fL)) domL)
       (Program.seq
         (Program.ode (jointSys (fun _ => Term.const 0) fR lam) (Formula.and domL domR))
         Q)
-      (bigLe gs) ((Side.Aux, a) : Var n) dt ω₀ := by
+      φ ((Side.Aux, a) : Var n) dt ω₀ := by
   intro ν hplant
-  obtain ⟨ρ₁, hhop, hρ₁inv⟩ := hR
+  obtain ⟨ρ₁, hhop, hρ₁sat⟩ := hR
   -- the left run masks rights: ν's rights are the anchor's
   have hrights : ∀ i : Fin n, ν (Rv i) = ω₀ (Rv i) := by
     intro i
@@ -341,7 +341,7 @@ theorem faModalB_repoPrefix {fL fR : Fin n → Term (Var n)} {lam : Term (Var n)
   have hρ₁tg : ρ₁ ((Side.Aux, a) : Var n) = 0 := by
     rw [sem_ode_mask hhop (aux_not_jointSys_bound _ _ _ a)]
     exact hω₀tg
-  obtain ⟨μ, hQμSem, hQμφ⟩ := hQ ρ₁ hρ₁inv hρ₁tg (rpatch ν ρ₁) hplant'
+  obtain ⟨μ, hQμSem, hQμφ⟩ := hQ ρ₁ hρ₁sat hρ₁tg (rpatch ν ρ₁) hplant'
   refine ⟨μ, ?_, hQμφ⟩
   rw [Program.rename_refl] at hQμSem ⊢
   exact ⟨rpatch ν ρ₁, hreplay, hQμSem⟩
@@ -361,22 +361,22 @@ each hop's existence-with-invariant is supplied as a family (anchored anywhere t
 invariant holds with clock 0 — the previous hop's endpoint qualifies), and the final
 continuation coupling fires at the last hop's endpoint. -/
 theorem faModalB_repoPath {fL : Fin n → Term (Var n)} {domL : Formula (Var n)}
-    {gs : List (Term (Var n))} {Q : Program (Var n)} {a : Fin n} {dt : ℝ}
+    {φ : Formula (Var n)} {Q : Program (Var n)} {a : Fin n} {dt : ℝ}
     (hfL : ∀ i, (fL i).fv ⊆ range Lv) (hdomL : domL.fv ⊆ range Lv)
     (hops : List (RepoHop n))
     (hhops : ∀ h ∈ hops, (∀ i, (h.fR i).fv ⊆ range Rv) ∧ h.lam.fv ⊆ range Rv
       ∧ h.domR.fv ⊆ range Rv)
-    (hR : ∀ h ∈ hops, ∀ σ, InvAllHolds gs σ → σ ((Side.Aux, a) : Var n) = 0 →
-      ∃ ρ, Program.sem (h.prog domL) σ ρ ∧ InvAllHolds gs ρ)
-    (hQ : ∀ σ, InvAllHolds gs σ → σ ((Side.Aux, a) : Var n) = 0 →
+    (hR : ∀ h ∈ hops, ∀ σ, Formula.sat φ σ → σ ((Side.Aux, a) : Var n) = 0 →
+      ∃ ρ, Program.sem (h.prog domL) σ ρ ∧ Formula.sat φ ρ)
+    (hQ : ∀ σ, Formula.sat φ σ → σ ((Side.Aux, a) : Var n) = 0 →
       faModalB (Equiv.refl (Var n))
         (Program.ode (DLCalTiming.clk ((Side.Aux, a) : Var n) (leftBlock fL)) domL)
-        Q (bigLe gs) ((Side.Aux, a) : Var n) dt σ) :
-    ∀ σ, InvAllHolds gs σ → σ ((Side.Aux, a) : Var n) = 0 →
+        Q φ ((Side.Aux, a) : Var n) dt σ) :
+    ∀ σ, Formula.sat φ σ → σ ((Side.Aux, a) : Var n) = 0 →
       faModalB (Equiv.refl (Var n))
         (Program.ode (DLCalTiming.clk ((Side.Aux, a) : Var n) (leftBlock fL)) domL)
         (hops.foldr (fun h q => Program.seq (h.prog domL) q) Q)
-        (bigLe gs) ((Side.Aux, a) : Var n) dt σ := by
+        φ ((Side.Aux, a) : Var n) dt σ := by
   induction hops with
   | nil => exact hQ
   | cons h hs ih =>

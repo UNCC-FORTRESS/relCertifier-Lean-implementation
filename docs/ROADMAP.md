@@ -109,3 +109,30 @@ use repositions — the baton's reposition cases are exercised.
 **S3 pending**: bounded-time viability + wiring into the `hES`/`ESW` residuals.
 **S4 pending**: no battery-invalidating rebuild occurred this session; the batch
 (invComponents decoupling, ClockedTop header) still waits for the first unavoidable one.
+
+## S-arc second wave (2026-07-16, non-blocking session 2)
+
+**Contract folded** (4612fc1, user-approved): successor-completeness now includes
+guard-at-entry (guard-gated jump semantics of hybrid programs; consumed only by the 13
+cut benchmarks via `RightReachG`).
+
+**S2 instances**: generator v2 (`gen_cut_throughout.py`) — all 13 generated, 36 window
+theorems. Shape atoms via the SUPERLEVEL route (tool simplification candidate: `checkedCut`
+could probe route C and drop `contractShapeOK`); frozen atoms via trivially-UNSAT route-A
+probes; L-cut support with `CutSat` initial conditioning. 6 light banked green (efb10ea);
+7 heavy in the serial queue.
+
+**S3 landed through the coupling**: `BoxViabilityBounded.lean` (mixed strict+growth
+first-exit over the good-prefix supremum; `box_viability_bounded`;
+`face_growth_from_verdict`) + `ViabilityWiring.lean` (`integralCurve_coords`,
+`HExistSegB_of_viability`, `hExist_clocked_of_HExistSegB`, `segment_faModalB_from_certB`,
+`anchor_budget_from_verdict`/`anchor_face_from_verdict`). The S1 gate now consumes it:
+`watertank_modal`'s `ESW` is `HExistSegB` (envelope-conditioned AND clock-capped), all
+couplings through `segment_faModalB_from_certB`. Axioms everywhere: 3 pure / 4 at leaves.
+
+**S4 batch STAGED** (scratchpad `apply_s4_batch.py`, apply after the heavy builds land —
+ONE rebuild): invComponents → new leaf `Trusted/InvComponents.lean` (battery decoupled
+from the tool door permanently), ClockedTop deprecation header, `emitViabilityFileB`
+(per-face strict/growth0 tags) + `--emit-viability2`. VERIFY the Main.lean flag-branch
+shape and the extracted def block before committing; then regenerate viability data and
+wire per-benchmark ESW discharges.

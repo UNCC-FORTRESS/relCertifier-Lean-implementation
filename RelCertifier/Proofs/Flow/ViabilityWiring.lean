@@ -224,4 +224,137 @@ theorem HExistSegB_of_viability
           exact hxL ⟨i, hi⟩
         · exact hx (by simpa [ODESystem.bound] using hb)
 
+/-- The clocked `hExist` from the BOUNDED `HExistSegB` — the mirror of
+`hExist_clocked_of_HExistSeg` with the `dt` cap threaded through (the cap was already
+available at the clocked level; the unbounded adapter simply ignored it). -/
+theorem hExist_clocked_of_HExistSegB (fL fR : Fin n → Term (Var n)) (lam : Term (Var n))
+    (domL domR : Formula (Var n)) (tg : Var n) (dt : ℝ)
+    (htgLb : tg ∉ (leftBlock fL).bound) (htgLr : tg ∉ (leftBlock fL).readVars)
+    (htgRb : tg ∉ (rightBlock fR lam).bound) (htgRr : tg ∉ (rightBlock fR lam).readVars)
+    (htgdL : tg ∉ domL.fv) (htgdR : tg ∉ domR.fv) {σ : State (Var n)}
+    (hES : HExistSegB fL fR lam domL domR dt (Function.update σ tg 0)) :
+    ∀ (s : ℝ) (ΦL : ℝ → State (Var n)), 0 ≤ s → s ≤ dt → ΦL 0 = Function.update σ tg 0 →
+      (∀ t ∈ Icc (0 : ℝ) s, ∀ p ∈ clk tg (leftBlock fL),
+          HasDerivWithinAt (fun u => ΦL u p.1) (p.2.eval (ΦL t)) (Icc 0 s) t) →
+      (∀ t ∈ Icc (0 : ℝ) s, ∀ x, x ∉ (clk tg (leftBlock fL)).bound →
+          ΦL t x = Function.update σ tg 0 x) →
+      (∀ t ∈ Icc (0 : ℝ) s, Formula.sat domL (ΦL t)) →
+      ∃ ΦR : ℝ → State (Var n), ΦR 0 = ΦL s ∧
+        (∀ t ∈ Icc (0 : ℝ) s, ∀ p ∈ rightBlock fR lam,
+            HasDerivWithinAt (fun u => ΦR u p.1) (p.2.eval (ΦR t)) (Icc 0 s) t) ∧
+        (∀ t ∈ Icc (0 : ℝ) s, ∀ x, x ∉ (rightBlock fR lam).bound → ΦR t x = ΦL s x) ∧
+        (∀ t ∈ Icc (0 : ℝ) s, Formula.sat domR (ΦR t)) := by
+  intro s ΦL hs0 hsdt hΦL0 hclkder hclkmask hdomL
+  set ν := Function.update σ tg 0 with hν
+  have hνtg : ν tg = 0 := Function.update_self tg 0 σ
+  have htgclkb : tg ∈ (clk tg (leftBlock fL)).bound := by
+    simp only [clk, ODESystem.bound, List.map_append, List.map_cons, List.map_nil]
+    exact List.mem_append_right _ (List.mem_singleton.mpr rfl)
+  -- projected (declocked) left curve
+  set ΦL' : ℝ → State (Var n) := fun t => Function.update (ΦL t) tg (ν tg) with hΦL'
+  have hL'phys : ∀ t x, x ≠ tg → ΦL' t x = ΦL t x := fun t x hx => Function.update_of_ne hx _ _
+  have hΦL'0 : ΦL' 0 = ν := by
+    funext x; by_cases hx : x = tg
+    · subst hx; simp only [hΦL', Function.update_self, hνtg]
+    · rw [hL'phys 0 x hx, hΦL0]
+  have hder' : ∀ t ∈ Icc (0 : ℝ) s, ∀ p ∈ leftBlock fL,
+      HasDerivWithinAt (fun u => ΦL' u p.1) (p.2.eval (ΦL' t)) (Icc 0 s) t := by
+    intro t ht p hp
+    have hp1 : p.1 ≠ tg := fun hc => htgLb (by rw [← hc]; exact List.mem_map.mpr ⟨p, hp, rfl⟩)
+    have hfun : (fun u => ΦL' u p.1) = fun u => ΦL u p.1 := by funext u; exact hL'phys u p.1 hp1
+    rw [hfun]
+    have hev : p.2.eval (ΦL' t) = p.2.eval (ΦL t) :=
+      Term.coincidence p.2 (fun y hy => hL'phys t y
+        (fun hc => htgLr (by rw [← hc]; exact ⟨p, hp, hy⟩)))
+    rw [hev]
+    exact hclkder t ht p (List.mem_append_left _ hp)
+  have hmask' : ∀ t ∈ Icc (0 : ℝ) s, ∀ x, x ∉ (leftBlock fL).bound → ΦL' t x = ν x := by
+    intro t ht x hx
+    by_cases hxtg : x = tg
+    · subst hxtg; simp only [hΦL', Function.update_self]
+    · rw [hL'phys t x hxtg]
+      refine hclkmask t ht x (fun hc => ?_)
+      simp only [clk, ODESystem.bound, List.map_append, List.map_cons, List.map_nil,
+        List.mem_append, List.mem_singleton] at hc
+      exact hc.elim (fun h => hx h) (fun h => hxtg h)
+  have hdomL' : ∀ t ∈ Icc (0 : ℝ) s, Formula.sat domL (ΦL' t) := by
+    intro t ht
+    exact (Formula.coincidence domL (fun y hy => (hL'phys t y
+      (fun hc => htgdL (by rw [← hc]; exact hy))).symm)).mp (hdomL t ht)
+  obtain ⟨ΦR, hΦR0, hRder, hRmask, hRdom⟩ := hES s ΦL' hs0 hsdt hΦL'0 hder' hmask' hdomL'
+  -- restore the clock coordinate on the right witness
+  set ΦR' : ℝ → State (Var n) := fun t => Function.update (ΦR t) tg (ΦL s tg) with hΦR'
+  have hR'phys : ∀ t x, x ≠ tg → ΦR' t x = ΦR t x := fun t x hx => Function.update_of_ne hx _ _
+  have hΦLs' : ΦL' s = Function.update (ΦL s) tg (ν tg) := rfl
+  refine ⟨ΦR', ?_, ?_, ?_, ?_⟩
+  · -- ΦR' 0 = ΦL s
+    show Function.update (ΦR 0) tg (ΦL s tg) = ΦL s
+    rw [hΦR0, hΦLs']
+    funext x; by_cases hx : x = tg
+    · subst hx; simp only [Function.update_self]
+    · rw [Function.update_of_ne hx, Function.update_of_ne hx]
+  · intro t ht p hp
+    have hp1 : p.1 ≠ tg := fun hc => htgRb (by rw [← hc]; exact List.mem_map.mpr ⟨p, hp, rfl⟩)
+    have hfun : (fun u => ΦR' u p.1) = fun u => ΦR u p.1 := by funext u; exact hR'phys u p.1 hp1
+    rw [hfun]
+    have hev : p.2.eval (ΦR' t) = p.2.eval (ΦR t) :=
+      Term.coincidence p.2 (fun y hy => hR'phys t y
+        (fun hc => htgRr (by rw [← hc]; exact ⟨p, hp, hy⟩)))
+    rw [hev]; exact hRder t ht p hp
+  · intro t ht x hx
+    by_cases hxtg : x = tg
+    · subst hxtg; simp only [hΦR', Function.update_self]
+    · rw [hR'phys t x hxtg, hRmask t ht x hx, hL'phys s x hxtg]
+  · intro t ht
+    exact (Formula.coincidence domR (fun y hy => (hR'phys t y
+      (fun hc => htgdR (by rw [← hc]; exact hy))).symm)).mp (hRdom t ht)
+
+/-- **The per-segment bounded coupling from the BOUNDED existence residual** —
+`segment_faModalB_from_cert` with `HExistSegB` (dischargeable from bounded box
+viability via `HExistSegB_of_viability`) in place of the `∀s` `HExistSeg`. -/
+theorem segment_faModalB_from_certB (g : Term (Var n)) (fL fR : Fin n → Term (Var n))
+    (lam : Term (Var n)) (domL domR : Formula (Var n)) (tg : Var n) (dt : ℝ)
+    (hdisj0 : Disjoint ((leftBlock fL).boundSet ∪ (leftBlock fL).readVars)
+                       ((rightBlock fR lam).boundSet ∪ (rightBlock fR lam).readVars))
+    (hφL : domL.fv ⊆ (leftBlock fL).boundSet ∪ (leftBlock fL).readVars)
+    (hφR : domR.fv ⊆ (rightBlock fR lam).boundSet ∪ (rightBlock fR lam).readVars)
+    (htgLb : tg ∉ (leftBlock fL).bound) (htgLr : tg ∉ (leftBlock fL).readVars)
+    (htgRb : tg ∉ (rightBlock fR lam).bound) (htgRr : tg ∉ (rightBlock fR lam).readVars)
+    (htgRbs : tg ∉ (rightBlock fR lam).boundSet)
+    (htgdL : tg ∉ domL.fv) (htgdR : tg ∉ domR.fv) (htgg : tg ∉ g.fv)
+    {σ : State (Var n)}
+    (hbox : Formula.sat (Formula.box (Program.ode (leftBlock fL ++ rightBlock fR lam)
+        (Formula.and domL domR)) (invLe g)) σ)
+    (hES : HExistSegB fL fR lam domL domR dt (Function.update σ tg 0)) :
+    faModalB (Equiv.refl (Var n)) (Program.ode (clk tg (leftBlock fL)) domL)
+      (Program.ode (rightBlock fR lam) domR) (invLe g) tg dt (Function.update σ tg 0) := by
+  have hrv := clk_readVars (leftBlock fL) tg
+  have hbs := clk_boundSet (leftBlock fL) tg
+  refine faModal_ODE_G'_bounded (Equiv.refl (Var n)) (clk tg (leftBlock fL)) (rightBlock fR lam)
+    domL domR (invLe g) tg dt (Function.update σ tg 0) ?_ ?_ ?_ ?_ ?_ ?_
+  · exact List.mem_append_right _ (List.mem_singleton.mpr rfl)
+  · -- hdisj: (clocked-left vars) ⊥ (right vars)
+    rw [ODESystem.rename_refl, hbs, hrv]
+    have hset : (leftBlock fL).boundSet ∪ {tg} ∪ (leftBlock fL).readVars
+        = ((leftBlock fL).boundSet ∪ (leftBlock fL).readVars) ∪ {tg} := by
+      ext y; simp only [Set.mem_union, Set.mem_singleton_iff]; tauto
+    rw [hset]
+    refine Set.disjoint_union_left.mpr ⟨hdisj0, ?_⟩
+    rw [Set.disjoint_singleton_left, Set.mem_union]
+    exact fun hc => hc.elim htgRbs htgRr
+  · -- hφx
+    rw [hbs, hrv]
+    exact hφL.trans (Set.union_subset_union_left _ Set.subset_union_left)
+  · rw [Formula.rename_refl, ODESystem.rename_refl]; exact hφR
+  · -- hP2 from cert box, clock-lifted
+    rw [ODESystem.rename_refl, Formula.rename_refl]
+    have htgdom : tg ∉ (Formula.and domL domR).fv := by
+      simp only [Formula.fv, Set.mem_union, not_or]; exact ⟨htgdL, htgdR⟩
+    exact box_joint_to_clocked g (leftBlock fL) (rightBlock fR lam) (Formula.and domL domR) tg
+      htgLb htgRb htgLr htgRr htgdom htgg hbox
+  · -- hExist, clock-adapted from HExistSeg
+    simp only [ODESystem.rename_refl, Formula.rename_refl]
+    exact hExist_clocked_of_HExistSegB fL fR lam domL domR tg dt htgLb htgLr htgRb htgRr htgdL htgdR
+      hES
+
 end RelCertifier

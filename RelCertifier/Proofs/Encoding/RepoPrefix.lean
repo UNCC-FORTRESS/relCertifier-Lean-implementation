@@ -387,4 +387,117 @@ theorem faModalB_repoPath {fL : Fin n → Term (Var n)} {domL : Formula (Var n)}
       exact faModalB_repoPrefix hfL hdomL hhfR hhlam hhdomR hσtg
         (hR h (List.mem_cons_self) σ hσ hσtg) ihs
 
+/-! ## Automaton-shape bridges -/
+
+/-- `foldr seq` and `bigSeq (· ++ [·])` have the same runs (associativity of `seq`). -/
+theorem sem_foldr_seq_bigSeq (hops : List (Program (Var n))) (Q : Program (Var n)) :
+    ∀ ν μ, Program.sem (hops.foldr (fun h q => Program.seq h q) Q) ν μ ↔
+      Program.sem (bigSeq (hops ++ [Q])) ν μ := by
+  induction hops with
+  | nil =>
+      intro ν μ
+      constructor
+      · intro h
+        exact ⟨μ, h, rfl, by simpa [Formula.sat] using trivial⟩
+      · rintro ⟨κ, hκ, rfl, -⟩
+        exact hκ
+  | cons h hs ih =>
+      intro ν μ
+      constructor
+      · rintro ⟨κ, hκ, hrest⟩
+        exact ⟨κ, hκ, (ih κ μ).mp hrest⟩
+      · rintro ⟨κ, hκ, hrest⟩
+        exact ⟨κ, hκ, (ih κ μ).mpr hrest⟩
+
+/-- **Hop-shape bridge.** A run of the automaton's right-only mode ode (over the mode's
+`domL ∧ domR` domain) is a run of the frozen-left joint ode and vice versa — lefts are
+masked constants on one side, bound 0-field constants on the other. -/
+theorem sem_rightBlock_frozen_iff {fR : Fin n → Term (Var n)} {lam : Term (Var n)}
+    {domL domR : Formula (Var n)} {ν μ : State (Var n)}
+    (hfR : ∀ i, (fR i).fv ⊆ range Rv) (hlam : lam.fv ⊆ range Rv) :
+    Program.sem (Program.ode (jointSys (fun _ => Term.const 0) fR lam)
+        (Formula.and domL domR)) ν μ ↔
+      Program.sem (Program.ode (rightBlock fR lam) (Formula.and domL domR)) ν μ := by
+  constructor
+  · rintro ⟨r, Φ, hr, hΦ0, hΦr, hder, hmask, hdom⟩
+    refine ⟨r, Φ, hr, hΦ0, hΦr, ?_, ?_, hdom⟩
+    · intro t ht p hp
+      refine hder t ht p ?_
+      rw [jointSys_split]
+      exact List.mem_append_right _ hp
+    · intro t ht x hx
+      by_cases hxL : ∃ i : Fin n, x = Lv i
+      · obtain ⟨i, rfl⟩ := hxL
+        -- left coordinate: 0-field-bound in the joint run, hence constant
+        have hpair : (Lv i, Term.const 0) ∈ jointSys (fun _ => Term.const 0) fR lam := by
+          rw [jointSys_split]
+          exact List.mem_append_left _ (List.mem_map.mpr ⟨i, List.mem_finRange i, rfl⟩)
+        have hd : ∀ s ∈ Set.Icc (0:ℝ) t, HasDerivWithinAt (fun u => Φ u (Lv i)) 0
+            (Set.Icc 0 t) s := by
+          intro s hs
+          have := hder s ⟨hs.1, hs.2.trans ht.2⟩ (Lv i, Term.const 0) hpair
+          simpa [Term.eval] using this.mono (Set.Icc_subset_Icc_right ht.2)
+        -- constant on [0,t] (antitone + monotone at derivative 0)
+        have h1 : AntitoneOn (fun u => Φ u (Lv i)) (Set.Icc 0 t) := by
+          refine antitoneOn_of_deriv_nonpos (convex_Icc 0 t)
+            (fun s hs => (hd s hs).continuousWithinAt) (fun s hs => ?_) (fun s hs => ?_)
+          · rw [interior_Icc] at hs
+            exact ((hd s (Set.Ioo_subset_Icc_self hs)).hasDerivAt
+              (Icc_mem_nhds hs.1 hs.2)).differentiableAt.differentiableWithinAt
+          · rw [interior_Icc] at hs
+            rw [((hd s (Set.Ioo_subset_Icc_self hs)).hasDerivAt
+              (Icc_mem_nhds hs.1 hs.2)).deriv]
+        have h2 : MonotoneOn (fun u => Φ u (Lv i)) (Set.Icc 0 t) := by
+          refine monotoneOn_of_deriv_nonneg (convex_Icc 0 t)
+            (fun s hs => (hd s hs).continuousWithinAt) (fun s hs => ?_) (fun s hs => ?_)
+          · rw [interior_Icc] at hs
+            exact ((hd s (Set.Ioo_subset_Icc_self hs)).hasDerivAt
+              (Icc_mem_nhds hs.1 hs.2)).differentiableAt.differentiableWithinAt
+          · rw [interior_Icc] at hs
+            rw [((hd s (Set.Ioo_subset_Icc_self hs)).hasDerivAt
+              (Icc_mem_nhds hs.1 hs.2)).deriv]
+        have ht0 : (0:ℝ) ∈ Set.Icc 0 t := Set.left_mem_Icc.mpr ht.1
+        have htt : t ∈ Set.Icc (0:ℝ) t := Set.right_mem_Icc.mpr ht.1
+        have hconst : Φ t (Lv i) = Φ 0 (Lv i) :=
+          le_antisymm (h1 ht0 htt ht.1) (h2 ht0 htt ht.1)
+        rw [hconst, hΦ0]
+      · -- neither right-bound nor left: aux — masked in the joint run too
+        refine hmask t ht x ?_
+        rw [jointSys_split]
+        intro hb
+        simp only [ODESystem.bound, List.map_append, List.mem_append] at hb
+        rcases hb with hb | hb
+        · obtain ⟨i, hi⟩ := leftBlock_bound_sub (fun _ => Term.const 0) _ hb
+          exact hxL ⟨i, hi⟩
+        · exact hx (by simpa [ODESystem.bound] using hb)
+  · rintro ⟨r, Φ, hr, hΦ0, hΦr, hder, hmask, hdom⟩
+    refine ⟨r, Φ, hr, hΦ0, hΦr, ?_, ?_, hdom⟩
+    · intro t ht p hp
+      rw [jointSys_split] at hp
+      rcases List.mem_append.mp hp with hpL | hpR
+      · -- left pair: the right-only run masks lefts (not bound), so constant, derivative 0
+        have hex : ∃ i : Fin n, (Lv i, Term.const 0) = p := by
+          simpa [leftBlock] using hpL
+        obtain ⟨i, hip⟩ := hex
+        cases hip
+        have hLnb : Lv i ∉ (rightBlock fR lam).bound := by
+          intro hb
+          obtain ⟨j, hj⟩ := rightBlock_bound_sub fR lam _ hb
+          exact absurd hj (by simp [Lv, Rv, Prod.ext_iff])
+        show HasDerivWithinAt (fun u => Φ u (Lv i))
+          (Term.eval (Term.const 0) (Φ t)) (Set.Icc 0 r) t
+        rw [show Term.eval (Term.const 0) (Φ t) = 0 from rfl]
+        refine (hasDerivWithinAt_const t (Set.Icc (0:ℝ) r) (ν (Lv i))).congr ?_ ?_
+        · intro u hu
+          exact hmask u hu (Lv i) hLnb
+        · exact hmask t ht (Lv i) hLnb
+      · exact hder t ht p hpR
+    · intro t ht x hx
+      refine hmask t ht x ?_
+      intro hb
+      refine hx ?_
+      rw [jointSys_split]
+      simp only [ODESystem.bound, List.map_append, List.mem_append]
+      exact Or.inr hb
+
 end RelCertifier

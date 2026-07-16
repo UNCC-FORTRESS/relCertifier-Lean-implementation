@@ -329,4 +329,26 @@ theorem Hmulti_window_prefixed (fL : Fin n → Term (Var n)) (domL : Formula (Va
   rw [hfold_eq]
   exact hflat ν μ
 
+/-- Static hop: with the envelope being the joint universal domain, a zero-duration
+run of the hop program exists from every invariant anchor — no hypothesis needed. -/
+theorem static_hop_exists {fR : Fin n → Term (Var n)} {lam : Term (Var n)}
+    {domL domR : Formula (Var n)} {g : Term (Var n)} {σ : State (Var n)}
+    (hσ : Formula.sat (Formula.and (invLe g) (Formula.and domL domR)) σ) :
+    ∃ ρ, Program.sem (Program.ode (jointSys (fun _ => Term.const 0) fR lam)
+        (Formula.and domL domR)) σ ρ
+      ∧ Formula.sat (Formula.and (invLe g) (Formula.and domL domR)) ρ := by
+  refine ⟨σ, ⟨0, fun _ => σ, le_refl 0, rfl, rfl, ?_, ?_, ?_⟩, hσ⟩
+  · intro t ht p hp
+    have h0 : t = 0 := le_antisymm ht.2 ht.1
+    subst h0
+    rw [hasDerivWithinAt_iff_tendsto_slope]
+    have hempty : (Set.Icc (0:ℝ) 0) \ {0} = (∅ : Set ℝ) := by
+      simp [Set.Icc_self]
+    rw [hempty, nhdsWithin_empty]
+    exact Filter.tendsto_bot
+  · intro t ht x hx
+    rfl
+  · intro t ht
+    exact hσ.2
+
 end RelCertifier

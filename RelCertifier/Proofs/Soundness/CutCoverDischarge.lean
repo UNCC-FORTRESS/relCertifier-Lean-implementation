@@ -216,4 +216,191 @@ theorem regionInvAll_congr {gs : List (Term (Var n))} {R R' : Formula (Var n)}
     (hp : RegionInvAllOn gs R') : RegionInvAllOn gs R :=
   fun ω hω => hp ω ((h ω).mp hω)
 
+/-! ## Frozen and contract-shape staying (Lean facts, no Z3)
+
+The tool's `frozen` and `shape` cut routes take no Z3 probe: frozen atoms read only
+zero-field coordinates; shape atoms are the contract tangent case (`v ≥ lo` under
+`v' = k(c−v)` with `lo ≤ c`, or `v ≤ hi` with `c ≤ hi`) — a superlevel-DI fact
+(`Lie ≤ 0` on the atom's superlevel set), no exponential needed. -/
+
+/-- The Lie sum collapses to the `j`-summand when the atom reads only `Rv j`. -/
+theorem eval_lieDeriv_single_R (g : Term (Var n)) (j : Fin n)
+    (hLv : ∀ i : Fin n, Lv i ∉ g.fv) (hRv : ∀ i : Fin n, i ≠ j → Rv i ∉ g.fv)
+    (fL fR : Fin n → Term (Var n)) (lam : Term (Var n)) (x : DL.State (Var n)) :
+    Term.eval (lieDeriv g fL fR lam) x
+      = Term.eval (tderiv g (Rv j)) x * (Term.eval lam x * Term.eval (fR j) x) := by
+  unfold lieDeriv
+  rw [eval_sumTerm, List.map_map, ← Fin.sum_univ_def]
+  rw [Finset.sum_eq_single j]
+  · simp [Term.eval, AOp.interp, tderiv_not_free (hLv j)]
+  · intro b _ hb
+    simp [Term.eval, AOp.interp, tderiv_not_free (hLv b), tderiv_not_free (hRv b hb)]
+  · intro hj
+    exact absurd (Finset.mem_univ j) hj
+
+/-- The Lie sum collapses to the `j`-summand when the atom reads only `Lv j`. -/
+theorem eval_lieDeriv_single_L (g : Term (Var n)) (j : Fin n)
+    (hRv : ∀ i : Fin n, Rv i ∉ g.fv) (hLv : ∀ i : Fin n, i ≠ j → Lv i ∉ g.fv)
+    (fL fR : Fin n → Term (Var n)) (lam : Term (Var n)) (x : DL.State (Var n)) :
+    Term.eval (lieDeriv g fL fR lam) x
+      = Term.eval (tderiv g (Lv j)) x * Term.eval (fL j) x := by
+  unfold lieDeriv
+  rw [eval_sumTerm, List.map_map, ← Fin.sum_univ_def]
+  rw [Finset.sum_eq_single j]
+  · simp [Term.eval, AOp.interp, tderiv_not_free (hRv j)]
+  · intro b _ hb
+    simp [Term.eval, AOp.interp, tderiv_not_free (hLv b hb), tderiv_not_free (hRv b)]
+  · intro hj
+    exact absurd (Finset.mem_univ j) hj
+
+/-- **Frozen R-atom staying**: every coordinate the atom reads carries the zero field. -/
+theorem atom_boxle_R_frozen (g : Term (Var n)) (fL fR : Fin n → Term (Var n))
+    (lam : Term (Var n)) (dom : Formula (Var n))
+    (hLv : ∀ i : Fin n, Lv i ∉ g.fv)
+    (hfz : ∀ i : Fin n, Rv i ∈ g.fv → fR i = Term.const 0)
+    {ν : DL.State (Var n)} (hinit : Term.eval g ν ≤ 0) :
+    BoxLe (Program.ode (jointSys fL fR lam) dom) (fun ω => Term.eval g ω) ν := by
+  refine DI_nonstrict_domain (jointSys_wellFormed fL fR lam)
+    (term_differentiable g) ?_ hinit
+  intro x hx
+  rw [← lieDeriv_correct]
+  have hz : Term.eval (lieDeriv g fL fR lam) x = 0 := by
+    unfold lieDeriv
+    rw [eval_sumTerm, List.map_map]
+    refine List.sum_eq_zero ?_
+    intro y hy
+    obtain ⟨i, -, rfl⟩ := List.mem_map.mp hy
+    by_cases hi : Rv i ∈ g.fv
+    · simp [Term.eval, AOp.interp, tderiv_not_free (hLv i), hfz i hi]
+    · simp [Term.eval, AOp.interp, tderiv_not_free (hLv i), tderiv_not_free hi]
+  rw [hz]
+
+/-- **Contract-shape R-atom, `≥` direction**: `v ≥ lo` (safe side `lo − v ≤ 0`) under
+the contract field `v' = k(c − v)` with `0 ≤ k`, `lo ≤ c`, `0 ≤ λ` — superlevel DI. -/
+theorem atom_boxle_R_contract_ge (j : Fin n) (lo c k lamv : ℝ)
+    (fL fR : Fin n → Term (Var n)) (dom : Formula (Var n))
+    (hk : 0 ≤ k) (hcl : lo ≤ c) (hlam : 0 ≤ lamv)
+    (hfj : fR j = Term.binop .mul (Term.const k)
+      (Term.binop .sub (Term.const c) (Term.var (Rv j))))
+    {ν : DL.State (Var n)}
+    (hinit : Term.eval (Term.binop .sub (Term.const lo) (Term.var (Rv j))) ν ≤ 0) :
+    BoxLe (Program.ode (jointSys fL fR (Term.const lamv)) dom)
+      (fun ω => Term.eval (Term.binop .sub (Term.const lo) (Term.var (Rv j))) ω) ν := by
+  set g : Term (Var n) := Term.binop .sub (Term.const lo) (Term.var (Rv j)) with hg
+  refine DI_nonstrict_superlevel (jointSys_wellFormed fL fR (Term.const lamv))
+    (term_differentiable g) ?_ hinit
+  intro x hx hge
+  rw [← lieDeriv_correct]
+  rw [eval_lieDeriv_single_R g j
+    (fun i h => by simp [hg, Term.fv, Lv, Rv, Prod.ext_iff] at h)
+    (fun i hij h => by
+      simp only [hg, Term.fv, Set.mem_union, Set.mem_empty_iff_false, false_or,
+        Set.mem_singleton_iff] at h
+      exact hij (by simpa [Rv, Prod.ext_iff] using h)) fL fR (Term.const lamv) x]
+  rw [hfj]
+  have hv : x (Rv j) ≤ lo := by
+    simpa [hg, Term.eval, AOp.interp] using hge
+  have htd : Term.eval (tderiv g (Rv j)) x = -1 := by
+    simp [hg, tderiv, Term.eval, AOp.interp]
+  rw [htd]
+  have hcv : (0:ℝ) ≤ c - x (Rv j) := by linarith
+  simp only [Term.eval, AOp.interp]
+  nlinarith [mul_nonneg hk hcv, mul_nonneg hlam (mul_nonneg hk hcv)]
+
+/-- **Contract-shape R-atom, `≤` direction**: `v ≤ hi` (safe side `v − hi ≤ 0`) under
+`v' = k(c − v)` with `0 ≤ k`, `c ≤ hi`, `0 ≤ λ`. -/
+theorem atom_boxle_R_contract_le (j : Fin n) (hi c k lamv : ℝ)
+    (fL fR : Fin n → Term (Var n)) (dom : Formula (Var n))
+    (hk : 0 ≤ k) (hch : c ≤ hi) (hlam : 0 ≤ lamv)
+    (hfj : fR j = Term.binop .mul (Term.const k)
+      (Term.binop .sub (Term.const c) (Term.var (Rv j))))
+    {ν : DL.State (Var n)}
+    (hinit : Term.eval (Term.binop .sub (Term.var (Rv j)) (Term.const hi)) ν ≤ 0) :
+    BoxLe (Program.ode (jointSys fL fR (Term.const lamv)) dom)
+      (fun ω => Term.eval (Term.binop .sub (Term.var (Rv j)) (Term.const hi)) ω) ν := by
+  set g : Term (Var n) := Term.binop .sub (Term.var (Rv j)) (Term.const hi) with hg
+  refine DI_nonstrict_superlevel (jointSys_wellFormed fL fR (Term.const lamv))
+    (term_differentiable g) ?_ hinit
+  intro x hx hge
+  rw [← lieDeriv_correct]
+  rw [eval_lieDeriv_single_R g j
+    (fun i h => by simp [hg, Term.fv, Lv, Rv, Prod.ext_iff] at h)
+    (fun i hij h => by
+      simp only [hg, Term.fv, Set.mem_union, Set.mem_empty_iff_false, or_false,
+        Set.mem_singleton_iff] at h
+      exact hij (by simpa [Rv, Prod.ext_iff] using h)) fL fR (Term.const lamv) x]
+  rw [hfj]
+  have hv : hi ≤ x (Rv j) := by
+    simpa [hg, Term.eval, AOp.interp] using hge
+  have htd : Term.eval (tderiv g (Rv j)) x = 1 := by
+    simp [hg, tderiv, Term.eval, AOp.interp]
+  rw [htd]
+  have hcv : c - x (Rv j) ≤ 0 := by linarith
+  simp only [Term.eval, AOp.interp]
+  nlinarith [mul_nonpos_of_nonneg_of_nonpos hk hcv,
+    mul_nonpos_of_nonneg_of_nonpos hlam (mul_nonpos_of_nonneg_of_nonpos hk hcv)]
+
+/-- **Contract-shape L-atom, `≥` direction** (stretch-free left field). -/
+theorem atom_boxle_L_contract_ge (j : Fin n) (lo c k : ℝ)
+    (fL fR : Fin n → Term (Var n)) (lam : Term (Var n)) (dom : Formula (Var n))
+    (hk : 0 ≤ k) (hcl : lo ≤ c)
+    (hfj : fL j = Term.binop .mul (Term.const k)
+      (Term.binop .sub (Term.const c) (Term.var (Lv j))))
+    {ν : DL.State (Var n)}
+    (hinit : Term.eval (Term.binop .sub (Term.const lo) (Term.var (Lv j))) ν ≤ 0) :
+    BoxLe (Program.ode (jointSys fL fR lam) dom)
+      (fun ω => Term.eval (Term.binop .sub (Term.const lo) (Term.var (Lv j))) ω) ν := by
+  set g : Term (Var n) := Term.binop .sub (Term.const lo) (Term.var (Lv j)) with hg
+  refine DI_nonstrict_superlevel (jointSys_wellFormed fL fR lam)
+    (term_differentiable g) ?_ hinit
+  intro x hx hge
+  rw [← lieDeriv_correct]
+  rw [eval_lieDeriv_single_L g j
+    (fun i h => by simp [hg, Term.fv, Lv, Rv, Prod.ext_iff] at h)
+    (fun i hij h => by
+      simp only [hg, Term.fv, Set.mem_union, Set.mem_empty_iff_false, false_or,
+        Set.mem_singleton_iff] at h
+      exact hij (by simpa [Lv, Prod.ext_iff] using h)) fL fR lam x]
+  rw [hfj]
+  have hv : x (Lv j) ≤ lo := by
+    simpa [hg, Term.eval, AOp.interp] using hge
+  have htd : Term.eval (tderiv g (Lv j)) x = -1 := by
+    simp [hg, tderiv, Term.eval, AOp.interp]
+  rw [htd]
+  have hcv : (0:ℝ) ≤ c - x (Lv j) := by linarith
+  simp only [Term.eval, AOp.interp]
+  nlinarith [mul_nonneg hk hcv]
+
+/-- **Contract-shape L-atom, `≤` direction**. -/
+theorem atom_boxle_L_contract_le (j : Fin n) (hi c k : ℝ)
+    (fL fR : Fin n → Term (Var n)) (lam : Term (Var n)) (dom : Formula (Var n))
+    (hk : 0 ≤ k) (hch : c ≤ hi)
+    (hfj : fL j = Term.binop .mul (Term.const k)
+      (Term.binop .sub (Term.const c) (Term.var (Lv j))))
+    {ν : DL.State (Var n)}
+    (hinit : Term.eval (Term.binop .sub (Term.var (Lv j)) (Term.const hi)) ν ≤ 0) :
+    BoxLe (Program.ode (jointSys fL fR lam) dom)
+      (fun ω => Term.eval (Term.binop .sub (Term.var (Lv j)) (Term.const hi)) ω) ν := by
+  set g : Term (Var n) := Term.binop .sub (Term.var (Lv j)) (Term.const hi) with hg
+  refine DI_nonstrict_superlevel (jointSys_wellFormed fL fR lam)
+    (term_differentiable g) ?_ hinit
+  intro x hx hge
+  rw [← lieDeriv_correct]
+  rw [eval_lieDeriv_single_L g j
+    (fun i h => by simp [hg, Term.fv, Lv, Rv, Prod.ext_iff] at h)
+    (fun i hij h => by
+      simp only [hg, Term.fv, Set.mem_union, Set.mem_empty_iff_false, or_false,
+        Set.mem_singleton_iff] at h
+      exact hij (by simpa [Lv, Prod.ext_iff] using h)) fL fR lam x]
+  rw [hfj]
+  have hv : hi ≤ x (Lv j) := by
+    simpa [hg, Term.eval, AOp.interp] using hge
+  have htd : Term.eval (tderiv g (Lv j)) x = 1 := by
+    simp [hg, tderiv, Term.eval, AOp.interp]
+  rw [htd]
+  have hcv : c - x (Lv j) ≤ 0 := by linarith
+  simp only [Term.eval, AOp.interp]
+  nlinarith [mul_nonpos_of_nonneg_of_nonpos hk hcv]
+
 end RelCertifier
+

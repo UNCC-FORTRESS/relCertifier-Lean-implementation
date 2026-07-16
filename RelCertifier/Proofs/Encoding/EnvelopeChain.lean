@@ -52,6 +52,20 @@ theorem faModalB_strengthen {P Q : Program (Var n)} {φ env : Formula (Var n)}
   rw [Program.rename_refl] at hsem
   refine ⟨μ, by rwa [Program.rename_refl], hφ, hend ν μ hsem⟩
 
+/-- `faModalB_strengthen` with the response endpoint fact allowed to use the LEFT
+run's endpoint (`plantT`): the left ode ends in `domL`, the right-only response masks
+the left coordinates, so a joint envelope (`domL ∧ domR`) transfers to `μ` even though
+the response's own domain is right-only. -/
+theorem faModalB_strengthen_plant {P Q : Program (Var n)} {φ env : Formula (Var n)}
+    {tg : Var n} {dt : ℝ} {σ : State (Var n)}
+    (hend : ∀ ν μ, plantT P tg dt σ ν → Program.sem Q ν μ → Formula.sat env μ)
+    (h : faModalB (Equiv.refl (Var n)) P Q φ tg dt σ) :
+    faModalB (Equiv.refl (Var n)) P Q (Formula.and φ env) tg dt σ := by
+  intro ν hν
+  obtain ⟨μ, hsem, hφ⟩ := h ν hν
+  rw [Program.rename_refl] at hsem
+  exact ⟨μ, by rwa [Program.rename_refl], hφ, hend ν μ hν hsem⟩
+
 /-- An ode response whose domain's right conjunct is the envelope ends inside it
 (zero-duration runs included: the domain holds at every time, including `r = 0` where
 the endpoint is the start — which then must itself satisfy the domain). -/
@@ -328,6 +342,282 @@ theorem Hmulti_window_prefixed (fL : Fin n → Term (Var n)) (domL : Formula (Va
   refine sat_faModal_congrR (fun ν μ => ?_) hm
   rw [hfold_eq]
   exact hflat ν μ
+
+/-! ## The LR envelope and the side-split closure
+
+`envR (domL ∧ domR)` is encoding-correct but puts `domL`'s LEFT variables into
+`ψpost.varsR`, breaking the `hddF` side split. The two-sided form
+`⌊domL⌋_L ∧ ⌊domR⌋_R` encodes to the SAME host formula with clean projections. -/
+
+/-- The two-sided envelope: `⌊domL⌋_L ∧ ⌊domR⌋_R`. -/
+def envLR (domL domR : Formula (Var n)) : RFormula (Var n) :=
+  RFormula.and (RFormula.proj DLRel.Side.L domL) (RFormula.proj DLRel.Side.R domR)
+
+theorem encode_envLR (domL domR : Formula (Var n)) :
+    encode (Equiv.refl (Var n)) (envLR domL domR) = Formula.and domL domR := by
+  unfold encode envLR
+  simp [RFormula.renameR, RFormula.enc, Formula.rename_refl]
+
+theorem envLR_varsL (domL domR : Formula (Var n)) :
+    (envLR domL domR).varsL = domL.fv := by
+  simp [envLR, RFormula.varsL]
+
+theorem envLR_varsR (domL domR : Formula (Var n)) :
+    (envLR domL domR).varsR = domR.fv := by
+  simp [envLR, RFormula.varsR]
+
+/-- Encoding of the LR-envelope postcondition (same host formula as `encode_phiInvE`). -/
+theorem encode_phiInvE_LR {ϕinv : RFormula (Var n)} {g : Term (Var n)}
+    {domL domR : Formula (Var n)} {mv : Var n} {k : ℕ}
+    (hψ : encode (Equiv.refl (Var n)) ϕinv = invLe g) :
+    encode (Equiv.refl (Var n))
+      (RFormula.and (RFormula.and ϕinv (envLR domL domR)) (mvValidR mv k))
+      = phiInvE g (Formula.and domL domR) mv k := by
+  have hdist : encode (Equiv.refl (Var n))
+      (RFormula.and (RFormula.and ϕinv (envLR domL domR)) (mvValidR mv k))
+      = Formula.and (Formula.and (encode (Equiv.refl (Var n)) ϕinv)
+          (encode (Equiv.refl (Var n)) (envLR domL domR)))
+        (encode (Equiv.refl (Var n)) (mvValidR mv k)) := by
+    unfold encode; simp only [RFormula.renameR, RFormula.enc]
+  rw [hdist, hψ, encode_envLR, encode_mvValidR]; rfl
+
+/-- **The envelope-carrying multi Theorem 3, LR-split form.** `theorem3_faithful_multiE`
+with the envelope stated two-sidedly (`⌊domL⌋_L ∧ ⌊domR⌋_R`) so the `hddF` side split
+is dischargeable: `varsL` gets `domL.fv` (left), `varsR` gets `domR.fv` (right). -/
+theorem theorem3_faithful_multiE_LR (G : SearchGraph (Var n)) (mv : Var n)
+    (g : Term (Var n)) (domL domR : Formula (Var n))
+    (leftProgs : List (Program (Var n))) (ϕinv : RFormula (Var n))
+    (hψ : encode (Equiv.refl (Var n)) ϕinv = invLe g)
+    (hd : Disjoint (Program.vars (bigChoice leftProgs))
+        (Program.vars ((rightAutomatonBody G mv).rename (Equiv.refl (Var n)))))
+    (hstep : ∀ σ, Formula.sat (phiInvE g (Formula.and domL domR) mv G.modes.length) σ →
+      Formula.sat (faModal (Equiv.refl (Var n)) (bigChoice leftProgs)
+        (Program.star (rightAutomatonBody G mv))
+        (phiInvE g (Formula.and domL domR) mv G.modes.length)) σ)
+    (hddF : Disjoint (faShape (Program.star (bigChoice leftProgs))
+          (Program.star (rightAutomatonBody G mv))
+          (RFormula.and (RFormula.and ϕinv (envLR domL domR))
+            (mvValidR mv G.modes.length))).varsL
+        (Equiv.refl (Var n) '' (faShape (Program.star (bigChoice leftProgs))
+          (Program.star (rightAutomatonBody G mv))
+          (RFormula.and (RFormula.and ϕinv (envLR domL domR))
+            (mvValidR mv G.modes.length))).varsR)) :
+    RFormula.rvalid (theorem3Form (bigChoice leftProgs) (rightAutomatonBody G mv)
+      (RFormula.and (RFormula.and ϕinv (envLR domL domR))
+        (mvValidR mv G.modes.length))) := by
+  set k := G.modes.length
+  set ψpost := RFormula.and (RFormula.and ϕinv (envLR domL domR)) (mvValidR mv k)
+    with hψpost
+  set Lp := Program.star (bigChoice leftProgs)
+  set Rp := Program.star (rightAutomatonBody G mv)
+  have hencψ : encode (Equiv.refl (Var n)) ψpost
+      = phiInvE g (Formula.and domL domR) mv k := encode_phiInvE_LR hψ
+  intro bs
+  rw [theorem3Form]
+  refine (RFormula_sat_imp _ _ bs).mpr ?_
+  intro hpre
+  obtain ⟨ν, hbdg⟩ := exists_bridge (Equiv.refl (Var n))
+    (faShape Lp Rp ψpost).varsL (faShape Lp Rp ψpost).varsR hddF bs
+  have hbψ : Bridges (Equiv.refl (Var n)) ψpost.varsL ψpost.varsR bs ν :=
+    hbdg.mono (varsL_subset_faShape Lp Rp ψpost) (varsR_subset_faShape Lp Rp ψpost)
+  have hdψ : Disjoint ψpost.varsL (Equiv.refl (Var n) '' ψpost.varsR) :=
+    hddF.mono (varsL_subset_faShape Lp Rp ψpost)
+      (Set.image_mono (varsR_subset_faShape Lp Rp ψpost))
+  have hInvν : Formula.sat (phiInvE g (Formula.and domL domR) mv k) ν := by
+    rw [← hencψ]
+    exact (RFormula.encoding_correct (Equiv.refl (Var n)) ψpost hdψ bs ν hbψ).mp hpre
+  exact relational_loop_multi (bigChoice leftProgs) (rightAutomatonBody G mv) ψpost ν bs hd
+    (by rw [hencψ]; exact hInvν)
+    (fun σ hσ => by rw [hencψ] at hσ ⊢; exact hstep σ hσ) hddF hbdg
+
+/-! ## The E-shape `hddF` discharger -/
+
+theorem ψmultiE_varsL_sub (mv : Var n) (len : ℕ) (ϕinv : RFormula (Var n))
+    (domL domR : Formula (Var n)) :
+    (RFormula.and (RFormula.and ϕinv (envLR domL domR)) (mvValidR mv len)).varsL
+      ⊆ ϕinv.varsL ∪ domL.fv := by
+  have h : (RFormula.and (RFormula.and ϕinv (envLR domL domR)) (mvValidR mv len)).varsL
+      = (ϕinv.varsL ∪ (envLR domL domR).varsL) ∪ (mvValidR mv len).varsL := rfl
+  rw [h, envLR_varsL]
+  have hmv : (mvValidR mv len).varsL = ∅ := by simp [mvValidR, RFormula.varsL]
+  rw [hmv, Set.union_empty]
+
+theorem ψmultiE_varsR_sub (mv : Var n) (len : ℕ) (ϕinv : RFormula (Var n))
+    (domL domR : Formula (Var n)) :
+    (RFormula.and (RFormula.and ϕinv (envLR domL domR)) (mvValidR mv len)).varsR
+      ⊆ (ϕinv.varsR ∪ domR.fv) ∪ {mv} := by
+  have h : (RFormula.and (RFormula.and ϕinv (envLR domL domR)) (mvValidR mv len)).varsR
+      = (ϕinv.varsR ∪ (envLR domL domR).varsR) ∪ (mvValidR mv len).varsR := rfl
+  rw [h, envLR_varsR]
+  refine Set.union_subset (Set.subset_union_left) ?_
+  have hmv : (mvValidR mv len).varsR = (mvValid mv len).fv := rfl
+  rw [hmv]
+  exact fun v hv => Or.inr (mvValid_fv_sub mv len hv)
+
+/-- **The `hddF` discharger, E-shape** (`hddF_multi` with the LR envelope conjunct). -/
+theorem hddF_multiE (Gr : SearchGraph (Var n)) (a b : Fin n) (dt : ℝ)
+    (leftData : List ((Fin n → Term (Var n)) × Formula (Var n) × ℕ))
+    (ϕinv : RFormula (Var n)) (domL domR : Formula (Var n)) (hab : a ≠ b)
+    (htt : ∀ q, ∀ e ∈ Gr.edgesFrom q, e.guard = Formula.tt)
+    (hRv : ∀ q m, Gr.modeAt q = some m →
+      m.sys.boundSet ∪ m.sys.readVars ∪ m.dom.fv ⊆ range Rv)
+    (hL : ∀ d ∈ leftData, (∀ i, (d.1 i).fv ⊆ range Lv) ∧ d.2.1.fv ⊆ range Lv)
+    (hinvL : ϕinv.varsL ⊆ range Lv) (hinvR : ϕinv.varsR ⊆ range Rv)
+    (hdomLv : domL.fv ⊆ range Lv) (hdomRv : domR.fv ⊆ range Rv) :
+    Disjoint (faShape (Program.star (bigChoice (leftData.map (fun d =>
+          windowSeg (leftBlock d.1) d.2.1 ((Side.Aux, b) : Var n) dt d.2.2))))
+        (Program.star (rightAutomatonBody Gr ((Side.Aux, a) : Var n)))
+        (RFormula.and (RFormula.and ϕinv (envLR domL domR))
+          (mvValidR ((Side.Aux, a) : Var n) Gr.modes.length))).varsL
+      (Equiv.refl (Var n) '' (faShape (Program.star (bigChoice (leftData.map (fun d =>
+          windowSeg (leftBlock d.1) d.2.1 ((Side.Aux, b) : Var n) dt d.2.2))))
+        (Program.star (rightAutomatonBody Gr ((Side.Aux, a) : Var n)))
+        (RFormula.and (RFormula.and ϕinv (envLR domL domR))
+          (mvValidR ((Side.Aux, a) : Var n) Gr.modes.length))).varsR) := by
+  rw [show ∀ S : Set (Var n), Equiv.refl (Var n) '' S = S by intro S; simp]
+  refine sides_disjoint a b a hab.symm hab.symm ?_ ?_
+  · rw [faShape_varsL', pvars_star']
+    refine Set.union_subset ?_ ?_
+    · refine vars_bigChoice_sub _ _ ?_
+      intro p hp
+      simp only [List.mem_map] at hp
+      obtain ⟨d, hd, rfl⟩ := hp
+      exact vars_windowSegL_sub d.1 d.2.1 b dt d.2.2 (hL d hd).1 (hL d hd).2
+    · intro v hv
+      rcases ψmultiE_varsL_sub _ Gr.modes.length ϕinv domL domR hv with hv | hv
+      · exact Or.inr (hinvL hv)
+      · exact Or.inr (hdomLv hv)
+  · rw [faShape_varsR', pvars_star']
+    refine Set.union_subset ?_ ?_
+    · intro v hv
+      rcases vars_bodyU_sub Gr _ htt hRv hv with hv | hv
+      · exact Or.inl (Set.mem_insert_iff.mpr (Or.inl (Set.mem_singleton_iff.mp hv)))
+      · exact Or.inr hv
+    · intro v hv
+      rcases ψmultiE_varsR_sub _ Gr.modes.length ϕinv domL domR hv with (hv | hv) | hv
+      · exact Or.inr (hinvR hv)
+      · exact Or.inr (hdomRv hv)
+      · exact Or.inl (Set.mem_insert_iff.mpr (Or.inl (Set.mem_singleton_iff.mp hv)))
+
+/-! ## Run-monotonicity bridges (automaton alignment of the hop programs)
+
+A frozen-left hop program (`RepoHop.prog` — the joint ode with 0 left fields over
+`domL ∧ domR`) syntactically WRITES the left coordinates (bound, derivative 0), so no
+vars-disjointness against the left window can hold; the automaton's mode program is the
+right-only ode over the mode domain. The conversion is semantic and one-directional
+(every hop run IS a mode-program run; the converse needs `domL` at the anchor), which
+suffices on the diamond side of `faModal`. -/
+
+/-- Weaken an ode's domain to the right conjunct (runs only lose constraints). -/
+theorem sem_ode_dom_and_right {sys : ODESystem (Var n)} {A B : Formula (Var n)}
+    {ν μ : State (Var n)} (h : Program.sem (Program.ode sys (Formula.and A B)) ν μ) :
+    Program.sem (Program.ode sys B) ν μ := by
+  obtain ⟨r, Φ, hr, hΦ0, hΦr, hder, hmask, hdom⟩ := h
+  exact ⟨r, Φ, hr, hΦ0, hΦr, hder, hmask, fun t ht => (hdom t ht).2⟩
+
+/-- Pointwise run-inclusion lifts through `bigSeq`. -/
+theorem sem_bigSeq_mono {ps qs : List (Program (Var n))}
+    (h : List.Forall₂ (fun p q => ∀ ν μ, Program.sem p ν μ → Program.sem q ν μ) ps qs) :
+    ∀ ν μ, Program.sem (bigSeq ps) ν μ → Program.sem (bigSeq qs) ν μ := by
+  induction h with
+  | nil => exact fun ν μ h => h
+  | cons hpq _ ih =>
+      rintro ν μ ⟨κ, hp, hrest⟩
+      exact ⟨κ, hpq ν κ hp, ih κ μ hrest⟩
+
+/-- `faModal` is monotone in the response program's runs (diamond side). -/
+theorem sat_faModal_monoR {P Q Q' : Program (Var n)} {φ : Formula (Var n)}
+    {σ : State (Var n)}
+    (h : ∀ ν μ, Program.sem Q ν μ → Program.sem Q' ν μ)
+    (hQ : Formula.sat (faModal (Equiv.refl (Var n)) P Q φ) σ) :
+    Formula.sat (faModal (Equiv.refl (Var n)) P Q' φ) σ := by
+  unfold faModal at hQ ⊢
+  rw [sat_box] at hQ ⊢
+  intro ν hν
+  have hdia := hQ ν hν
+  rw [sat_diamond] at hdia ⊢
+  push_neg at hdia ⊢
+  obtain ⟨μ, hsem, hφ⟩ := hdia
+  rw [Program.rename_refl] at hsem ⊢
+  exact ⟨μ, h ν μ hsem, hφ⟩
+
+/-- `faModal` is antitone in the left program's runs (box side). -/
+theorem sat_faModal_monoL {P P' Q : Program (Var n)} {φ : Formula (Var n)}
+    {σ : State (Var n)}
+    (h : ∀ ν μ, Program.sem P' ν μ → Program.sem P ν μ)
+    (hQ : Formula.sat (faModal (Equiv.refl (Var n)) P Q φ) σ) :
+    Formula.sat (faModal (Equiv.refl (Var n)) P' Q φ) σ := by
+  unfold faModal at hQ ⊢
+  rw [sat_box] at hQ ⊢
+  intro ν hν
+  exact hQ ν (h σ ν hν)
+
+/-- A one-piece window's runs are exactly the clocked segment's. -/
+theorem sem_windowSeg_one (leftSys : ODESystem (Var n)) (domL : Formula (Var n))
+    (tg : Var n) (dt : ℝ) {σ ν : State (Var n)} :
+    Program.sem (windowSeg leftSys domL tg dt 1) σ ν ↔
+      Program.sem (clockedSeg leftSys domL tg dt) σ ν := by
+  unfold windowSeg
+  simp only [List.replicate, bigSeq]
+  constructor
+  · rintro ⟨κ, hc, rfl, -⟩
+    exact hc
+  · intro hc
+    exact ⟨ν, hc, rfl, by simpa [Formula.sat] using trivial⟩
+
+/-! ## The k = 1 prefixed window (the reposition-window assembly actually used)
+
+`Hmulti_window_prefixed` above is DEPRECATED for nonempty hop lists: its `hdisH`
+hypothesis (vars-disjointness of the frozen-left hop program against the clocked left
+segment) is UNSATISFIABLE for genuine hops — the frozen hop binds every left coordinate
+(derivative 0), so its `Program.vars` always meets the left window's. NEGATIVE FINDING,
+kept per the never-delete rule; the `k = 1` route below needs no such disjointness
+(single window piece ⟹ nothing to commute past). -/
+
+/-- **The one-piece prefixed window.** Reposition-hop prefix + one certified piece,
+against the single clocked window segment. No vars-disjointness on the hops: with one
+piece the multiseg interleave is trivial (`faModalB_clockedSeg_iff` directly). -/
+theorem Hmulti_window1_prefixed (fL : Fin n → Term (Var n)) (domL : Formula (Var n))
+    (g : Term (Var n)) (env : Formula (Var n)) (a : Fin n) (dt : ℝ)
+    (htgg : ((Side.Aux, a) : Var n) ∉ g.fv) (htgenv : ((Side.Aux, a) : Var n) ∉ env.fv)
+    (hops : List (RepoHop n))
+    (hhops : ∀ h ∈ hops, (∀ i, (h.fR i).fv ⊆ range Rv) ∧ h.lam.fv ⊆ range Rv
+      ∧ h.domR.fv ⊆ range Rv)
+    (hR : ∀ h ∈ hops, ∀ σ, Formula.sat (Formula.and (invLe g) env) σ →
+      σ ((Side.Aux, a) : Var n) = 0 →
+      ∃ ρ, Program.sem (h.prog domL) σ ρ ∧ Formula.sat (Formula.and (invLe g) env) ρ)
+    (hfL : ∀ i, (fL i).fv ⊆ range Lv) (hdomL : domL.fv ⊆ range Lv)
+    (piece : Program (Var n))
+    (hcouple : ∀ σ, Formula.sat (Formula.and (invLe g) env) σ →
+      σ ((Side.Aux, a) : Var n) = 0 →
+      faModalB (Equiv.refl (Var n))
+        (Program.ode (DLCalTiming.clk ((Side.Aux, a) : Var n) (leftBlock fL)) domL)
+        piece (Formula.and (invLe g) env) ((Side.Aux, a) : Var n) dt σ)
+    {σ : State (Var n)} (hσ : Formula.sat (Formula.and (invLe g) env) σ) :
+    Formula.sat (faModal (Equiv.refl (Var n))
+      (windowSeg (leftBlock fL) domL ((Side.Aux, a) : Var n) dt 1)
+      (bigSeq ((hops.map (fun h => h.prog domL)) ++ [piece]))
+      (Formula.and (invLe g) env)) σ := by
+  have htgφ : ((Side.Aux, a) : Var n) ∉ (Formula.and (invLe g) env).fv := by
+    intro h
+    rcases h with h | h
+    · exact htgg (by simpa [invLe, Formula.fv, Term.fv] using h)
+    · exact htgenv h
+  have hupdφ : Formula.sat (Formula.and (invLe g) env)
+      (Function.update σ ((Side.Aux, a) : Var n) 0) := by
+    rwa [(Formula.coincidence (Formula.and (invLe g) env) (fun v hv =>
+      Function.update_of_ne (fun hc => htgφ (by rw [← hc]; exact hv)) _ _) :
+        Formula.sat (Formula.and (invLe g) env) _ ↔ _)]
+  have hpath := faModalB_repoPath hfL hdomL hops hhops hR hcouple
+    (Function.update σ ((Side.Aux, a) : Var n) 0) hupdφ (Function.update_self _ _ _)
+  have hseg := (faModalB_clockedSeg_iff (leftBlock fL) domL _
+    (Formula.and (invLe g) env) ((Side.Aux, a) : Var n) dt σ).mpr hpath
+  have hcong := sat_faModal_congrR (Q' := bigSeq ((hops.map (fun h => h.prog domL))
+      ++ [piece])) (fun ν μ => by
+    rw [foldr_prog_map]
+    exact sem_foldr_seq_bigSeq (hops.map (fun h => h.prog domL)) piece ν μ) hseg
+  exact sat_faModal_monoL
+    (fun ν μ h => (sem_windowSeg_one (leftBlock fL) domL _ dt).mp h) hcong
 
 /-- Static hop: with the envelope being the joint universal domain, a zero-duration
 run of the hop program exists from every invariant anchor — no hypothesis needed. -/

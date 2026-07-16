@@ -100,6 +100,7 @@ import RelCertifier.Instances.BenchCoverReplay
 import RelCertifier.Proofs.Encoding.CoverMulti
 import RelCertifier.Proofs.Encoding.RepoPrefix
 import RelCertifier.Proofs.Encoding.EnvelopeChain
+import RelCertifier.Instances.WatertankModal
 import RelCertifier.Proofs.Encoding.CoverInstance
 import RelCertifier.Instances.BenchCoversNC
 import RelCertifier.Instances.ThroughoutPilot

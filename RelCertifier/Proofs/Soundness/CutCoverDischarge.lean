@@ -402,5 +402,49 @@ theorem atom_boxle_L_contract_le (j : Fin n) (hi c k : ℝ)
   simp only [Term.eval, AOp.interp]
   nlinarith [mul_nonpos_of_nonneg_of_nonpos hk hcv]
 
+/-- Right-sided atom, superlevel route (C): the O2 UNSAT (`evR ∧ g ≥ 0 ∧ ġ > 0`,
+one-sided, λ = 1) gives flow-invariance for any λ ≥ 0. Subsumes the tool's bespoke
+contract-shape check: a shape atom's superlevel probe is UNSAT by the contract sign. -/
+theorem atom_boxle_R_superlevel (g : Term (Var n)) (fL fR : Fin n → Term (Var n))
+    (c : ℝ) (hc : 0 ≤ c) (dom evR : Formula (Var n))
+    (hfv : ∀ i : Fin n, Lv i ∉ g.fv)
+    (hdomImp : ∀ x, Formula.sat dom x → Formula.sat evR x)
+    (hunsat : ∀ σ, ¬ Formula.sat
+      (flowQuerySuperlevel ⟨g, fun _ => Term.const 0, fR, Term.const 1, evR⟩) σ)
+    {ν : DL.State (Var n)} (hinit : Term.eval g ν ≤ 0) :
+    BoxLe (Program.ode (jointSys fL fR (Term.const c)) dom)
+      (fun ω => Term.eval g ω) ν := by
+  refine DI_nonstrict_superlevel (jointSys_wellFormed fL fR (Term.const c))
+    (term_differentiable g) ?_ hinit
+  intro x hx hge
+  rw [← lieDeriv_correct, lieDeriv_one_sided_R g fL fR c hfv]
+  have hle : Term.eval (lieDeriv g (fun _ => Term.const 0) fR (Term.const 1)) x ≤ 0 := by
+    by_contra hpos
+    rw [not_le] at hpos
+    exact hunsat x ⟨hdomImp x hx,
+      by simpa [Formula.sat, CompOp.interp, Term.eval] using hge,
+      by simpa [Formula.sat, CompOp.interp, Term.eval] using hpos⟩
+  exact mul_nonpos_of_nonneg_of_nonpos hc hle
+
+/-- Left-sided atom, superlevel route (C) — the stretch is immaterial. -/
+theorem atom_boxle_L_superlevel (g : Term (Var n)) (fL fR : Fin n → Term (Var n))
+    (lam : Term (Var n)) (dom evL : Formula (Var n))
+    (hfv : ∀ i : Fin n, Rv i ∉ g.fv)
+    (hdomImp : ∀ x, Formula.sat dom x → Formula.sat evL x)
+    (hunsat : ∀ σ, ¬ Formula.sat
+      (flowQuerySuperlevel ⟨g, fL, fun _ => Term.const 0, Term.const 1, evL⟩) σ)
+    {ν : DL.State (Var n)} (hinit : Term.eval g ν ≤ 0) :
+    BoxLe (Program.ode (jointSys fL fR lam) dom) (fun ω => Term.eval g ω) ν := by
+  refine DI_nonstrict_superlevel (jointSys_wellFormed fL fR lam)
+    (term_differentiable g) ?_ hinit
+  intro x hx hge
+  rw [← lieDeriv_correct, lieDeriv_one_sided_L g fL fR lam hfv]
+  by_contra hpos
+  rw [not_le] at hpos
+  exact hunsat x ⟨hdomImp x hx,
+    by simpa [Formula.sat, CompOp.interp, Term.eval] using hge,
+    by simpa [Formula.sat, CompOp.interp, Term.eval] using hpos⟩
+
 end RelCertifier
+
 

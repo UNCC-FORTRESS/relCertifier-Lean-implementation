@@ -94,6 +94,12 @@ import RelCertifier.Proofs.Encoding.MultiSeg
 import RelCertifier.Proofs.Encoding.Reification
 import RelCertifier.Proofs.Encoding.ToolLevel
 import RelCertifier.Proofs.Flow.StratifiedBarrier
+import RelCertifier.Proofs.Flow.BoxViability
 import RelCertifier.Instances.BenchCovers
 import RelCertifier.Instances.BenchCoverReplay
 import RelCertifier.Proofs.Encoding.CoverMulti
+import RelCertifier.Proofs.Encoding.CoverInstance
+import RelCertifier.Instances.BenchCoversNC
+import RelCertifier.Instances.ThroughoutPilot
+import RelCertifier.Instances.WatertankThroughout
+import RelCertifier.Instances.ThroughoutBattery

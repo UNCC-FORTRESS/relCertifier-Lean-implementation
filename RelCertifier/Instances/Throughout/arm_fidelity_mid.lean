@@ -33,42 +33,96 @@ theorem GWArmFidelityMid0_modes_eq : (GWArmFidelityMid 0).modes =
 
 theorem certArmFidelityMid_0 (hs_0_0 : ∀ i (hi : i < gsArmFidelityMid_0.length),     z3solve (flowQuery ⟨gsArmFidelityMid_0[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmFidelityMid_0[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmFidelityMid_0[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat) (hdp_0_0 : ∀ i (hi : i < gsArmFidelityMid_0.length),     z3solve (flowQuery ⟨gsArmFidelityMid_0[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (hostGuard vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmFidelityMid_0[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (hostGuard vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmFidelityMid_0[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (hostGuard vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat) (hdq_0_0 : ∀ i (hi : i < gsArmFidelityMid_0.length),     z3solve (flowQuery ⟨gsArmFidelityMid_0[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmFidelityMid_0[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmFidelityMid_0[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat) (hs_0_1 : ∀ i (hi : i < gsArmFidelityMid_0.length),     z3solve (flowQuery ⟨gsArmFidelityMid_0[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmFidelityMid_0[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmFidelityMid_0[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat) (hr_0_1 : ∀ g ∈ gsArmFidelityMid_0, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostGuard vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hdp_0_1 : ∀ i (hi : i < gsArmFidelityMid_0.length),     z3solve (flowQuery ⟨gsArmFidelityMid_0[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (hostGuard vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmFidelityMid_0[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (hostGuard vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmFidelityMid_0[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (hostGuard vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat) (hdq_0_1 : ∀ i (hi : i < gsArmFidelityMid_0.length),     z3solve (flowQuery ⟨gsArmFidelityMid_0[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmFidelityMid_0[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmFidelityMid_0[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat) (hs_0_2 : ∀ i (hi : i < gsArmFidelityMid_0.length),     z3solve (flowQuery ⟨gsArmFidelityMid_0[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmFidelityMid_0[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmFidelityMid_0[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat) (hr_0_2 : ∀ g ∈ gsArmFidelityMid_0, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostGuard vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2))) (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hq_0_2 : ∀ g ∈ gsArmFidelityMid_0, z3solve (Formula.and (Formula.and (hostGuard vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2)) (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) :
     CoverCertM (GWArmFidelityMid 0) gsArmFidelityMid_0 := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩ <;>
-    first
-    | (intro q m hm hflag
-       unfold SearchGraph.modeAt at hm
-       rw [GWArmFidelityMid0_modes_eq] at hm
-       match q, hm with
-       | 0, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmFidelityMid_0 hs_0_0)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmFidelityMid_0 hdp_0_0)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmFidelityMid_0 hdq_0_0)
-           | exact absurd hflag (by simp [fRowArmFidelityMid, arm_fidelity_mid_coverNC])
-       | 1, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmFidelityMid_0 hs_0_1)
-           | (rw [realModeOf_region]; exact regionInvAll_of_unsat' gsArmFidelityMid_0 _ (fun g hg => z3_unsat_sound (hr_0_1 g hg)))
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmFidelityMid_0 hdp_0_1)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmFidelityMid_0 hdq_0_1)
-           | exact absurd hflag (by simp [fRowArmFidelityMid, arm_fidelity_mid_coverNC])
-       | 2, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmFidelityMid_0 hs_0_2)
-           | (rw [realModeOf_region]; exact regionInvAll_of_unsat' gsArmFidelityMid_0 _ (fun g hg => z3_unsat_sound (hr_0_2 g hg)))
-           | (rw [realModeOf_regionPost]; exact regionInvAll_of_unsat' gsArmFidelityMid_0 _ (fun g hg => z3_unsat_sound (hq_0_2 g hg)))
-           | exact absurd hflag (by simp [fRowArmFidelityMid, arm_fidelity_mid_coverNC])
-       | q + 3, hm => simp at hm)
-    | (intro m hm
-       rw [GWArmFidelityMid0_modes_eq] at hm
-       simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
-       rcases hm with rfl | rfl | rfl <;> simp)
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmFidelityMid0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmFidelityMid_0 hs_0_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmFidelityMid_0 hs_0_1
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmFidelityMid_0 hs_0_2
+    | q + 3, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmFidelityMid0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmFidelityMid, arm_fidelity_mid_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_region]; exact regionInvAll_of_unsat' gsArmFidelityMid_0 _ (fun g hg => z3_unsat_sound (hr_0_1 g hg))
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_region]; exact regionInvAll_of_unsat' gsArmFidelityMid_0 _ (fun g hg => z3_unsat_sound (hr_0_2 g hg))
+    | q + 3, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmFidelityMid0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmFidelityMid, arm_fidelity_mid_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmFidelityMid, arm_fidelity_mid_coverNC])
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_regionPost]; exact regionInvAll_of_unsat' gsArmFidelityMid_0 _ (fun g hg => z3_unsat_sound (hq_0_2 g hg))
+    | q + 3, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmFidelityMid0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmFidelityMid_0 hdp_0_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmFidelityMid_0 hdp_0_1
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmFidelityMid, arm_fidelity_mid_coverNC])
+    | q + 3, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmFidelityMid0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmFidelityMid_0 hdq_0_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmFidelityMid_0 hdq_0_1
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmFidelityMid, arm_fidelity_mid_coverNC])
+    | q + 3, hm => simp at hm
+  · intro m hm
+    rw [GWArmFidelityMid0_modes_eq] at hm
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
+    rcases hm with rfl | rfl | rfl <;> simp
 
 theorem arm_fidelity_mid_throughout_Accelerate (hs_0_0 : ∀ i (hi : i < gsArmFidelityMid_0.length),     z3solve (flowQuery ⟨gsArmFidelityMid_0[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmFidelityMid_0[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmFidelityMid_0[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat) (hdp_0_0 : ∀ i (hi : i < gsArmFidelityMid_0.length),     z3solve (flowQuery ⟨gsArmFidelityMid_0[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (hostGuard vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmFidelityMid_0[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (hostGuard vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmFidelityMid_0[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (hostGuard vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat) (hdq_0_0 : ∀ i (hi : i < gsArmFidelityMid_0.length),     z3solve (flowQuery ⟨gsArmFidelityMid_0[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmFidelityMid_0[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmFidelityMid_0[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat) (hs_0_1 : ∀ i (hi : i < gsArmFidelityMid_0.length),     z3solve (flowQuery ⟨gsArmFidelityMid_0[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmFidelityMid_0[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmFidelityMid_0[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat) (hr_0_1 : ∀ g ∈ gsArmFidelityMid_0, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostGuard vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hdp_0_1 : ∀ i (hi : i < gsArmFidelityMid_0.length),     z3solve (flowQuery ⟨gsArmFidelityMid_0[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (hostGuard vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmFidelityMid_0[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (hostGuard vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmFidelityMid_0[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (hostGuard vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat) (hdq_0_1 : ∀ i (hi : i < gsArmFidelityMid_0.length),     z3solve (flowQuery ⟨gsArmFidelityMid_0[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmFidelityMid_0[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmFidelityMid_0[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat) (hs_0_2 : ∀ i (hi : i < gsArmFidelityMid_0.length),     z3solve (flowQuery ⟨gsArmFidelityMid_0[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmFidelityMid_0[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmFidelityMid_0[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2))) (gsArmFidelityMid_0.take i)⟩) = Verdict.unsat) (hr_0_2 : ∀ g ∈ gsArmFidelityMid_0, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostGuard vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2))) (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hq_0_2 : ∀ g ∈ gsArmFidelityMid_0, z3solve (Formula.and (Formula.and (hostGuard vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2)) (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 0)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) :
     ∀ q0 ∈ [0, 1, 2], ∀ ν, InvAllHolds gsArmFidelityMid_0 ν →
@@ -90,42 +144,96 @@ theorem GWArmFidelityMid1_modes_eq : (GWArmFidelityMid 1).modes =
 
 theorem certArmFidelityMid_1 (hs_1_0 : ∀ i (hi : i < gsArmFidelityMid_1.length),     z3solve (flowQuery ⟨gsArmFidelityMid_1[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmFidelityMid_1[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmFidelityMid_1[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat) (hdp_1_0 : ∀ i (hi : i < gsArmFidelityMid_1.length),     z3solve (flowQuery ⟨gsArmFidelityMid_1[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (hostGuard vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmFidelityMid_1[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (hostGuard vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmFidelityMid_1[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (hostGuard vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat) (hdq_1_0 : ∀ i (hi : i < gsArmFidelityMid_1.length),     z3solve (flowQuery ⟨gsArmFidelityMid_1[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmFidelityMid_1[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmFidelityMid_1[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat) (hs_1_1 : ∀ i (hi : i < gsArmFidelityMid_1.length),     z3solve (flowQuery ⟨gsArmFidelityMid_1[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmFidelityMid_1[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmFidelityMid_1[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat) (hr_1_1 : ∀ g ∈ gsArmFidelityMid_1, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostGuard vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hdp_1_1 : ∀ i (hi : i < gsArmFidelityMid_1.length),     z3solve (flowQuery ⟨gsArmFidelityMid_1[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (hostGuard vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmFidelityMid_1[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (hostGuard vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmFidelityMid_1[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (hostGuard vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat) (hdq_1_1 : ∀ i (hi : i < gsArmFidelityMid_1.length),     z3solve (flowQuery ⟨gsArmFidelityMid_1[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmFidelityMid_1[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmFidelityMid_1[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat) (hs_1_2 : ∀ i (hi : i < gsArmFidelityMid_1.length),     z3solve (flowQuery ⟨gsArmFidelityMid_1[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmFidelityMid_1[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmFidelityMid_1[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat) (hr_1_2 : ∀ g ∈ gsArmFidelityMid_1, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostGuard vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2))) (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hq_1_2 : ∀ g ∈ gsArmFidelityMid_1, z3solve (Formula.and (Formula.and (hostGuard vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2)) (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) :
     CoverCertM (GWArmFidelityMid 1) gsArmFidelityMid_1 := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩ <;>
-    first
-    | (intro q m hm hflag
-       unfold SearchGraph.modeAt at hm
-       rw [GWArmFidelityMid1_modes_eq] at hm
-       match q, hm with
-       | 0, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmFidelityMid_1 hs_1_0)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmFidelityMid_1 hdp_1_0)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmFidelityMid_1 hdq_1_0)
-           | exact absurd hflag (by simp [fRowArmFidelityMid, arm_fidelity_mid_coverNC])
-       | 1, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmFidelityMid_1 hs_1_1)
-           | (rw [realModeOf_region]; exact regionInvAll_of_unsat' gsArmFidelityMid_1 _ (fun g hg => z3_unsat_sound (hr_1_1 g hg)))
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmFidelityMid_1 hdp_1_1)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmFidelityMid_1 hdq_1_1)
-           | exact absurd hflag (by simp [fRowArmFidelityMid, arm_fidelity_mid_coverNC])
-       | 2, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmFidelityMid_1 hs_1_2)
-           | (rw [realModeOf_region]; exact regionInvAll_of_unsat' gsArmFidelityMid_1 _ (fun g hg => z3_unsat_sound (hr_1_2 g hg)))
-           | (rw [realModeOf_regionPost]; exact regionInvAll_of_unsat' gsArmFidelityMid_1 _ (fun g hg => z3_unsat_sound (hq_1_2 g hg)))
-           | exact absurd hflag (by simp [fRowArmFidelityMid, arm_fidelity_mid_coverNC])
-       | q + 3, hm => simp at hm)
-    | (intro m hm
-       rw [GWArmFidelityMid1_modes_eq] at hm
-       simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
-       rcases hm with rfl | rfl | rfl <;> simp)
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmFidelityMid1_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmFidelityMid_1 hs_1_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmFidelityMid_1 hs_1_1
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmFidelityMid_1 hs_1_2
+    | q + 3, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmFidelityMid1_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmFidelityMid, arm_fidelity_mid_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_region]; exact regionInvAll_of_unsat' gsArmFidelityMid_1 _ (fun g hg => z3_unsat_sound (hr_1_1 g hg))
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_region]; exact regionInvAll_of_unsat' gsArmFidelityMid_1 _ (fun g hg => z3_unsat_sound (hr_1_2 g hg))
+    | q + 3, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmFidelityMid1_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmFidelityMid, arm_fidelity_mid_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmFidelityMid, arm_fidelity_mid_coverNC])
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_regionPost]; exact regionInvAll_of_unsat' gsArmFidelityMid_1 _ (fun g hg => z3_unsat_sound (hq_1_2 g hg))
+    | q + 3, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmFidelityMid1_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmFidelityMid_1 hdp_1_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmFidelityMid_1 hdp_1_1
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmFidelityMid, arm_fidelity_mid_coverNC])
+    | q + 3, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmFidelityMid1_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmFidelityMid_1 hdq_1_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmFidelityMid_1 hdq_1_1
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmFidelityMid, arm_fidelity_mid_coverNC])
+    | q + 3, hm => simp at hm
+  · intro m hm
+    rw [GWArmFidelityMid1_modes_eq] at hm
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
+    rcases hm with rfl | rfl | rfl <;> simp
 
 theorem arm_fidelity_mid_throughout_Brake (hs_1_0 : ∀ i (hi : i < gsArmFidelityMid_1.length),     z3solve (flowQuery ⟨gsArmFidelityMid_1[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmFidelityMid_1[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmFidelityMid_1[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat) (hdp_1_0 : ∀ i (hi : i < gsArmFidelityMid_1.length),     z3solve (flowQuery ⟨gsArmFidelityMid_1[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (hostGuard vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmFidelityMid_1[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (hostGuard vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmFidelityMid_1[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (hostGuard vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat) (hdq_1_0 : ∀ i (hi : i < gsArmFidelityMid_1.length),     z3solve (flowQuery ⟨gsArmFidelityMid_1[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmFidelityMid_1[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmFidelityMid_1[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 0))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat) (hs_1_1 : ∀ i (hi : i < gsArmFidelityMid_1.length),     z3solve (flowQuery ⟨gsArmFidelityMid_1[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmFidelityMid_1[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmFidelityMid_1[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat) (hr_1_1 : ∀ g ∈ gsArmFidelityMid_1, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostGuard vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hdp_1_1 : ∀ i (hi : i < gsArmFidelityMid_1.length),     z3solve (flowQuery ⟨gsArmFidelityMid_1[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (hostGuard vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmFidelityMid_1[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (hostGuard vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmFidelityMid_1[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (hostGuard vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat) (hdq_1_1 : ∀ i (hi : i < gsArmFidelityMid_1.length),     z3solve (flowQuery ⟨gsArmFidelityMid_1[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmFidelityMid_1[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmFidelityMid_1[i],       (fun _ => Term.const 0), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 1))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat) (hs_1_2 : ∀ i (hi : i < gsArmFidelityMid_1.length),     z3solve (flowQuery ⟨gsArmFidelityMid_1[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmFidelityMid_1[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmFidelityMid_1[i],       hostDyn vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1), hostDyn vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2), Term.const (((9 : ℚ) / 2 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2))) (gsArmFidelityMid_1.take i)⟩) = Verdict.unsat) (hr_1_2 : ∀ g ∈ gsArmFidelityMid_1, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostGuard vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2))) (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hq_1_2 : ∀ g ∈ gsArmFidelityMid_1, z3solve (Formula.and (Formula.and (hostGuard vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2)) (Formula.and (hostEvolve vsArmFidelityMid 2 Side.L (mLArmFidelityMid 1)) (hostEvolve vsArmFidelityMid 2 Side.R (mRArmFidelityMid 2)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) :
     ∀ q0 ∈ [0, 1, 2], ∀ ν, InvAllHolds gsArmFidelityMid_1 ν →

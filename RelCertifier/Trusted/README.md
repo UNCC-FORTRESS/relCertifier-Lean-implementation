@@ -13,10 +13,20 @@ files (plus the Lean kernel and Z3 itself) has read the entire trust base:
 | `Run.lean` | the lowering `PProblem → IR` (`lowerE`/`lowerF`/`dynOf`) and batch IO glue. Total, structural, kernel-reducing — its *outputs* are re-certified where possible (Faithful, CutCerts), but the lowering semantics is part of the claim. |
 | `OracleAPI.lean` | the tool's search: query budgets, the checked-cut O1/O2 search, segment/cover orchestration (IO). Its *outputs* are certified (`evolStrengtheningWF` by `rfl`, verdicts through `z3_unsat_sound`); the search itself is untrusted and cannot affect soundness — only completeness. |
 
-**The claim.** If the parser accepts the benchmark, the printer prints the queries
-faithfully, and Z3's `unsat` verdicts are correct, then every theorem in `Proofs/` and
-`Instances/` holds as stated, checked by the Lean kernel with axioms
-`[propext, Classical.choice, Quot.sound]` plus `z3_unsat_sound` exactly at the Z3 leaves.
+**The claim (the frozen hypothesis contract).** If the parser accepts the benchmark,
+the lowering means what it says, the printer prints the queries faithfully, and Z3's
+`unsat` verdicts are correct — plus the ONE model-faithfulness assumption
+(successor-completeness: every right execution exits a mode via a declared successor) —
+then every theorem in `Proofs/` and `Instances/` holds as stated, checked by the Lean
+kernel with axioms `[propext, Classical.choice, Quot.sound]` plus `z3_unsat_sound`
+exactly at the Z3 leaves. Nothing else is assumed: well-formedness is kernel-checked on
+the parsed IR; the tool's cover decisions are RE-DECIDED in kernel
+(`Instances/BenchCoverReplay.lean`, 46/46, three standard axioms); the invariant
+conjunction's throughout-preservation is a per-benchmark theorem whose only inputs are
+the listed verdicts (`Instances/Throughout/`, 83 window theorems); flow viability is
+certificate-backed where the strict face queries pass (`BenchViability.lean`), with the
+bounded-time variant and the 13 checked-cut-reliant benchmarks documented follow-ups
+(docs/COVER-AUDIT.md).
 
 **Import discipline** (checked by `scripts/trust_audit.py`): files in this folder may
 import each other, `Core/`, `Checker/` (pure, kernel-cited definitions), and upstream

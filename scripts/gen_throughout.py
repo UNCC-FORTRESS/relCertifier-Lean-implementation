@@ -207,30 +207,32 @@ def gen_bench(name):
                 disp.setdefault(qn, {})["repoDynPresPost"] = d
         binders = " ".join(f"({h} : {t.strip()})" for h, t in
                            [(h, t.replace(chr(10), " ")) for h, t in hyps])
-        # cert theorem
+        # cert theorem — six explicit field blocks, exact per-node dispatch (no `first` search)
         L.append(f"theorem cert{U}_{l} {binders} :")
         L.append(f"    CoverCertM (GW{U} {l}) {gs} := by")
-        L.append(f"  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩ <;>")
-        L.append(f"    first")
-        L.append(f"    | (intro q m hm hflag")
-        L.append(f"       unfold SearchGraph.modeAt at hm")
-        L.append(f"       rw [GW{U}{l}_modes_eq] at hm")
-        L.append(f"       match q, hm with")
-        for pos, (qn, f) in enumerate(nodes):
-            L.append(f"       | {pos}, hm =>")
-            L.append(f"           replace hm := Option.some.inj hm")
-            L.append(f"           subst hm")
-            L.append(f"           first")
-            for k in ["segPres", "repoPresPre", "repoPresPost", "repoDynPresPre", "repoDynPresPost"]:
-                if k in disp.get(qn, {}):
-                    L.append(f"           | {disp[qn][k]}")
-            L.append(f"           | exact absurd hflag (by simp [fRow{U}, {name}_coverNC])")
-        L.append(f"       | q + {len(nodes)}, hm => simp at hm)")
-        L.append(f"    | (intro m hm")
-        L.append(f"       rw [GW{U}{l}_modes_eq] at hm")
-        L.append(f"       simp only [List.mem_cons, List.not_mem_nil, or_false] at hm")
+        L.append(f"  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩")
+        FIELDS = ["segPres", "repoPresPre", "repoPresPost", "repoDynPresPre", "repoDynPresPost"]
+        for fk in FIELDS:
+            L.append(f"  · intro q m hm hflag")
+            L.append(f"    unfold SearchGraph.modeAt at hm")
+            L.append(f"    rw [GW{U}{l}_modes_eq] at hm")
+            L.append(f"    match q, hm with")
+            for pos, (qn, f) in enumerate(nodes):
+                L.append(f"    | {pos}, hm =>")
+                L.append(f"        replace hm := Option.some.inj hm")
+                L.append(f"        subst hm")
+                if fk in disp.get(qn, {}):
+                    L.append(f"        exact{disp[qn][fk][1:-1].replace('(rw', ' (by rw', 1) if False else ''}")
+                    # emit as tactic block
+                    L[-1] = f"        {disp[qn][fk][1:-1]}"
+                else:
+                    L.append(f"        exact absurd hflag (by simp [fRow{U}, {name}_coverNC])")
+            L.append(f"    | q + {len(nodes)}, hm => simp at hm")
+        L.append(f"  · intro m hm")
+        L.append(f"    rw [GW{U}{l}_modes_eq] at hm")
+        L.append(f"    simp only [List.mem_cons, List.not_mem_nil, or_false] at hm")
         pats = " | ".join(["rfl"] * len(nodes))
-        L.append(f"       rcases hm with {pats} <;> simp)")
+        L.append(f"    rcases hm with {pats} <;> simp")
         L.append(f"")
         # window theorem
         fuel = w["bud"] * (len(nodes) + 1) + 1

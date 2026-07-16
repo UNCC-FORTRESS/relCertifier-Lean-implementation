@@ -104,6 +104,32 @@ on the three standard axioms. Reproduce: `lake env lean RelCertifier/AxiomCheck.
 | Real ⟹ scaled `BoxLe` transfer (`BoxLe_rescale`) | **proven** |
 | Trust boundary | parser + SMT printer + Z3 UNSAT (`z3_unsat_sound`, 1 axiom) — see `RelCertifier/Trusted/README.md` |
 
+## The frozen hypothesis contract (2026-07: the R1–R7 realignment)
+
+End-to-end soundness rests on exactly two things, and nothing else:
+
+1. **Trust base** — the strict parser, the lowering (`Trusted/Run.lean`), the SMT
+   printer, Z3 (one axiom, `z3_unsat_sound`, UNSAT only), and the Lean kernel.
+2. **Successor-completeness** — every right execution exits a mode via a declared
+   successor (model faithfulness; also assumed in the paper).
+
+Everything else is checked or proved: well-formedness by kernel computation on the
+parsed IR; the tool's cover decisions RE-DECIDED in kernel on the same graph
+construction the tool uses (`BenchCoverReplay.lean`, 46/46, three standard axioms);
+multi-component invariant preservation as per-benchmark theorems whose only inputs are
+the tool's exact emitted queries (`Instances/Throughout/`, 83 window theorems over 33
+cut-free benchmarks — stratified differential cuts, kernel-checked in
+`StratifiedBarrier.lean`); flow viability certificate-backed where the strict face
+queries pass (`BoxViability.lean` + `BenchViability.lean`). Documented follow-ups, each
+within the contract: the 13 checked-cut-reliant benchmarks (guard-threaded cut lift),
+bounded-time viability for integrator coordinates, and the reposition-window modal form
+for multi-mode benchmarks (docs/COVER-AUDIT.md, docs/ROADMAP.md).
+
+Two tool soundness defects were found and fixed during the realignment — the circular
+multi-barrier narrowing in `checkSeg` and `checkDynRepo` (t²-class false certification;
+now stratified, acyclic, and kernel-checked) — with the full suite re-certified at
+46/46 afterwards. The mechanization catching them is the point of the exercise.
+
 ## Architecture — the pipeline, and what is verified vs. trusted
 
 The library layout mirrors the end-to-end pipeline; each step below is marked **VERIFIED**

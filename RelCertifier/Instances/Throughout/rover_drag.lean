@@ -31,23 +31,56 @@ theorem GWRoverDrag0_modes_eq : (GWRoverDrag 0).modes =
 
 theorem certRoverDrag_0 (hs_0_0 : ∀ i (hi : i < gsRoverDrag_0.length),     z3solve (flowQuery ⟨gsRoverDrag_0[i],       hostDyn vsRoverDrag 1 Side.L (mLRoverDrag 0), hostDyn vsRoverDrag 1 Side.R (mRRoverDrag 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRoverDrag 1 Side.L (mLRoverDrag 0)) (hostEvolve vsRoverDrag 1 Side.R (mRRoverDrag 0))) (gsRoverDrag_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsRoverDrag_0[i],       hostDyn vsRoverDrag 1 Side.L (mLRoverDrag 0), hostDyn vsRoverDrag 1 Side.R (mRRoverDrag 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRoverDrag 1 Side.L (mLRoverDrag 0)) (hostEvolve vsRoverDrag 1 Side.R (mRRoverDrag 0))) (gsRoverDrag_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsRoverDrag_0[i],       hostDyn vsRoverDrag 1 Side.L (mLRoverDrag 0), hostDyn vsRoverDrag 1 Side.R (mRRoverDrag 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRoverDrag 1 Side.L (mLRoverDrag 0)) (hostEvolve vsRoverDrag 1 Side.R (mRRoverDrag 0))) (gsRoverDrag_0.take i)⟩) = Verdict.unsat) :
     CoverCertM (GWRoverDrag 0) gsRoverDrag_0 := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩ <;>
-    first
-    | (intro q m hm hflag
-       unfold SearchGraph.modeAt at hm
-       rw [GWRoverDrag0_modes_eq] at hm
-       match q, hm with
-       | 0, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsRoverDrag_0 hs_0_0)
-           | exact absurd hflag (by simp [fRowRoverDrag, rover_drag_coverNC])
-       | q + 1, hm => simp at hm)
-    | (intro m hm
-       rw [GWRoverDrag0_modes_eq] at hm
-       simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
-       rcases hm with rfl <;> simp)
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWRoverDrag0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsRoverDrag_0 hs_0_0
+    | q + 1, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWRoverDrag0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowRoverDrag, rover_drag_coverNC])
+    | q + 1, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWRoverDrag0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowRoverDrag, rover_drag_coverNC])
+    | q + 1, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWRoverDrag0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowRoverDrag, rover_drag_coverNC])
+    | q + 1, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWRoverDrag0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowRoverDrag, rover_drag_coverNC])
+    | q + 1, hm => simp at hm
+  · intro m hm
+    rw [GWRoverDrag0_modes_eq] at hm
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
+    rcases hm with rfl <;> simp
 
 theorem rover_drag_throughout_Cruise (hs_0_0 : ∀ i (hi : i < gsRoverDrag_0.length),     z3solve (flowQuery ⟨gsRoverDrag_0[i],       hostDyn vsRoverDrag 1 Side.L (mLRoverDrag 0), hostDyn vsRoverDrag 1 Side.R (mRRoverDrag 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRoverDrag 1 Side.L (mLRoverDrag 0)) (hostEvolve vsRoverDrag 1 Side.R (mRRoverDrag 0))) (gsRoverDrag_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsRoverDrag_0[i],       hostDyn vsRoverDrag 1 Side.L (mLRoverDrag 0), hostDyn vsRoverDrag 1 Side.R (mRRoverDrag 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRoverDrag 1 Side.L (mLRoverDrag 0)) (hostEvolve vsRoverDrag 1 Side.R (mRRoverDrag 0))) (gsRoverDrag_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsRoverDrag_0[i],       hostDyn vsRoverDrag 1 Side.L (mLRoverDrag 0), hostDyn vsRoverDrag 1 Side.R (mRRoverDrag 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRoverDrag 1 Side.L (mLRoverDrag 0)) (hostEvolve vsRoverDrag 1 Side.R (mRRoverDrag 0))) (gsRoverDrag_0.take i)⟩) = Verdict.unsat) :
     ∀ q0 ∈ [0], ∀ ν, InvAllHolds gsRoverDrag_0 ν →

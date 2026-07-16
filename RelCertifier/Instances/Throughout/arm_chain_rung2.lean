@@ -33,41 +33,96 @@ theorem GWArmChainRung20_modes_eq : (GWArmChainRung2 0).modes =
 
 theorem certArmChainRung2_0 (hs_0_0 : ∀ i (hi : i < gsArmChainRung2_0.length),     z3solve (flowQuery ⟨gsArmChainRung2_0[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const (((7 : ℚ) / 4 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_0[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const (((7 : ℚ) / 4 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_0[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const (((7 : ℚ) / 4 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat) (hdp_0_0 : ∀ i (hi : i < gsArmChainRung2_0.length),     z3solve (flowQuery ⟨gsArmChainRung2_0[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 0))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_0[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 0))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_0[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 0))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat) (hdq_0_0 : ∀ i (hi : i < gsArmChainRung2_0.length),     z3solve (flowQuery ⟨gsArmChainRung2_0[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_0[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_0[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat) (hs_0_1 : ∀ i (hi : i < gsArmChainRung2_0.length),     z3solve (flowQuery ⟨gsArmChainRung2_0[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const (((7 : ℚ) / 4 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_0[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const (((7 : ℚ) / 4 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_0[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const (((7 : ℚ) / 4 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat) (hr_0_1 : ∀ g ∈ gsArmChainRung2_0, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostGuard vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hdp_0_1 : ∀ i (hi : i < gsArmChainRung2_0.length),     z3solve (flowQuery ⟨gsArmChainRung2_0[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 0))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_0[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 0))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_0[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 0))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat) (hdq_0_1 : ∀ i (hi : i < gsArmChainRung2_0.length),     z3solve (flowQuery ⟨gsArmChainRung2_0[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_0[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_0[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat) (hr_0_2 : ∀ g ∈ gsArmChainRung2_0, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostGuard vsArmChainRung2 1 Side.R (mRArmChainRung2 2))) (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 2)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hq_0_2 : ∀ g ∈ gsArmChainRung2_0, z3solve (Formula.and (Formula.and (hostGuard vsArmChainRung2 1 Side.R (mRArmChainRung2 2)) (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 2)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) :
     CoverCertM (GWArmChainRung2 0) gsArmChainRung2_0 := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩ <;>
-    first
-    | (intro q m hm hflag
-       unfold SearchGraph.modeAt at hm
-       rw [GWArmChainRung20_modes_eq] at hm
-       match q, hm with
-       | 0, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_0 hs_0_0)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_0 hdp_0_0)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_0 hdq_0_0)
-           | exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
-       | 1, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_0 hs_0_1)
-           | (rw [realModeOf_region]; exact regionInvAll_of_unsat' gsArmChainRung2_0 _ (fun g hg => z3_unsat_sound (hr_0_1 g hg)))
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_0 hdp_0_1)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_0 hdq_0_1)
-           | exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
-       | 2, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_region]; exact regionInvAll_of_unsat' gsArmChainRung2_0 _ (fun g hg => z3_unsat_sound (hr_0_2 g hg)))
-           | (rw [realModeOf_regionPost]; exact regionInvAll_of_unsat' gsArmChainRung2_0 _ (fun g hg => z3_unsat_sound (hq_0_2 g hg)))
-           | exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
-       | q + 3, hm => simp at hm)
-    | (intro m hm
-       rw [GWArmChainRung20_modes_eq] at hm
-       simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
-       rcases hm with rfl | rfl | rfl <;> simp)
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmChainRung20_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_0 hs_0_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_0 hs_0_1
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
+    | q + 3, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmChainRung20_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_region]; exact regionInvAll_of_unsat' gsArmChainRung2_0 _ (fun g hg => z3_unsat_sound (hr_0_1 g hg))
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_region]; exact regionInvAll_of_unsat' gsArmChainRung2_0 _ (fun g hg => z3_unsat_sound (hr_0_2 g hg))
+    | q + 3, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmChainRung20_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_regionPost]; exact regionInvAll_of_unsat' gsArmChainRung2_0 _ (fun g hg => z3_unsat_sound (hq_0_2 g hg))
+    | q + 3, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmChainRung20_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_0 hdp_0_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_0 hdp_0_1
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
+    | q + 3, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmChainRung20_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_0 hdq_0_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_0 hdq_0_1
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
+    | q + 3, hm => simp at hm
+  · intro m hm
+    rw [GWArmChainRung20_modes_eq] at hm
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
+    rcases hm with rfl | rfl | rfl <;> simp
 
 theorem arm_chain_rung2_throughout_ApproachA (hs_0_0 : ∀ i (hi : i < gsArmChainRung2_0.length),     z3solve (flowQuery ⟨gsArmChainRung2_0[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const (((7 : ℚ) / 4 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_0[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const (((7 : ℚ) / 4 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_0[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const (((7 : ℚ) / 4 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat) (hdp_0_0 : ∀ i (hi : i < gsArmChainRung2_0.length),     z3solve (flowQuery ⟨gsArmChainRung2_0[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 0))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_0[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 0))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_0[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 0))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat) (hdq_0_0 : ∀ i (hi : i < gsArmChainRung2_0.length),     z3solve (flowQuery ⟨gsArmChainRung2_0[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_0[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_0[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat) (hs_0_1 : ∀ i (hi : i < gsArmChainRung2_0.length),     z3solve (flowQuery ⟨gsArmChainRung2_0[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const (((7 : ℚ) / 4 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_0[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const (((7 : ℚ) / 4 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_0[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const (((7 : ℚ) / 4 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat) (hr_0_1 : ∀ g ∈ gsArmChainRung2_0, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostGuard vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hdp_0_1 : ∀ i (hi : i < gsArmChainRung2_0.length),     z3solve (flowQuery ⟨gsArmChainRung2_0[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 0))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_0[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 0))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_0[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 0))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat) (hdq_0_1 : ∀ i (hi : i < gsArmChainRung2_0.length),     z3solve (flowQuery ⟨gsArmChainRung2_0[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_0[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_0[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_0.take i)⟩) = Verdict.unsat) (hr_0_2 : ∀ g ∈ gsArmChainRung2_0, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostGuard vsArmChainRung2 1 Side.R (mRArmChainRung2 2))) (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 2)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hq_0_2 : ∀ g ∈ gsArmChainRung2_0, z3solve (Formula.and (Formula.and (hostGuard vsArmChainRung2 1 Side.R (mRArmChainRung2 2)) (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 0)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 2)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) :
     ∀ q0 ∈ [0, 1, 2], ∀ ν, InvAllHolds gsArmChainRung2_0 ν →
@@ -89,41 +144,96 @@ theorem GWArmChainRung21_modes_eq : (GWArmChainRung2 1).modes =
 
 theorem certArmChainRung2_1 (hs_1_0 : ∀ i (hi : i < gsArmChainRung2_1.length),     z3solve (flowQuery ⟨gsArmChainRung2_1[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 1), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const (((5 : ℚ) / 4 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_1[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 1), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const (((5 : ℚ) / 4 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_1[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 1), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const (((5 : ℚ) / 4 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat) (hdp_1_0 : ∀ i (hi : i < gsArmChainRung2_1.length),     z3solve (flowQuery ⟨gsArmChainRung2_1[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 1))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_1[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 1))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_1[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 1))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat) (hdq_1_0 : ∀ i (hi : i < gsArmChainRung2_1.length),     z3solve (flowQuery ⟨gsArmChainRung2_1[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_1[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_1[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat) (hs_1_1 : ∀ i (hi : i < gsArmChainRung2_1.length),     z3solve (flowQuery ⟨gsArmChainRung2_1[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 1), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const (((5 : ℚ) / 4 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_1[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 1), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const (((5 : ℚ) / 4 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_1[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 1), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const (((5 : ℚ) / 4 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat) (hr_1_1 : ∀ g ∈ gsArmChainRung2_1, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostGuard vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hdp_1_1 : ∀ i (hi : i < gsArmChainRung2_1.length),     z3solve (flowQuery ⟨gsArmChainRung2_1[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 1))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_1[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 1))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_1[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 1))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat) (hdq_1_1 : ∀ i (hi : i < gsArmChainRung2_1.length),     z3solve (flowQuery ⟨gsArmChainRung2_1[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_1[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_1[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat) (hr_1_2 : ∀ g ∈ gsArmChainRung2_1, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostGuard vsArmChainRung2 1 Side.R (mRArmChainRung2 2))) (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 2)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hq_1_2 : ∀ g ∈ gsArmChainRung2_1, z3solve (Formula.and (Formula.and (hostGuard vsArmChainRung2 1 Side.R (mRArmChainRung2 2)) (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 2)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) :
     CoverCertM (GWArmChainRung2 1) gsArmChainRung2_1 := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩ <;>
-    first
-    | (intro q m hm hflag
-       unfold SearchGraph.modeAt at hm
-       rw [GWArmChainRung21_modes_eq] at hm
-       match q, hm with
-       | 0, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_1 hs_1_0)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_1 hdp_1_0)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_1 hdq_1_0)
-           | exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
-       | 1, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_1 hs_1_1)
-           | (rw [realModeOf_region]; exact regionInvAll_of_unsat' gsArmChainRung2_1 _ (fun g hg => z3_unsat_sound (hr_1_1 g hg)))
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_1 hdp_1_1)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_1 hdq_1_1)
-           | exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
-       | 2, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_region]; exact regionInvAll_of_unsat' gsArmChainRung2_1 _ (fun g hg => z3_unsat_sound (hr_1_2 g hg)))
-           | (rw [realModeOf_regionPost]; exact regionInvAll_of_unsat' gsArmChainRung2_1 _ (fun g hg => z3_unsat_sound (hq_1_2 g hg)))
-           | exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
-       | q + 3, hm => simp at hm)
-    | (intro m hm
-       rw [GWArmChainRung21_modes_eq] at hm
-       simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
-       rcases hm with rfl | rfl | rfl <;> simp)
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmChainRung21_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_1 hs_1_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_1 hs_1_1
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
+    | q + 3, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmChainRung21_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_region]; exact regionInvAll_of_unsat' gsArmChainRung2_1 _ (fun g hg => z3_unsat_sound (hr_1_1 g hg))
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_region]; exact regionInvAll_of_unsat' gsArmChainRung2_1 _ (fun g hg => z3_unsat_sound (hr_1_2 g hg))
+    | q + 3, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmChainRung21_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_regionPost]; exact regionInvAll_of_unsat' gsArmChainRung2_1 _ (fun g hg => z3_unsat_sound (hq_1_2 g hg))
+    | q + 3, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmChainRung21_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_1 hdp_1_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_1 hdp_1_1
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
+    | q + 3, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmChainRung21_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_1 hdq_1_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_1 hdq_1_1
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
+    | q + 3, hm => simp at hm
+  · intro m hm
+    rw [GWArmChainRung21_modes_eq] at hm
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
+    rcases hm with rfl | rfl | rfl <;> simp
 
 theorem arm_chain_rung2_throughout_ApproachB (hs_1_0 : ∀ i (hi : i < gsArmChainRung2_1.length),     z3solve (flowQuery ⟨gsArmChainRung2_1[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 1), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const (((5 : ℚ) / 4 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_1[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 1), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const (((5 : ℚ) / 4 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_1[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 1), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const (((5 : ℚ) / 4 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat) (hdp_1_0 : ∀ i (hi : i < gsArmChainRung2_1.length),     z3solve (flowQuery ⟨gsArmChainRung2_1[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 1))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_1[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 1))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_1[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 1))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat) (hdq_1_0 : ∀ i (hi : i < gsArmChainRung2_1.length),     z3solve (flowQuery ⟨gsArmChainRung2_1[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_1[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_1[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat) (hs_1_1 : ∀ i (hi : i < gsArmChainRung2_1.length),     z3solve (flowQuery ⟨gsArmChainRung2_1[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 1), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const (((5 : ℚ) / 4 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_1[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 1), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const (((5 : ℚ) / 4 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_1[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 1), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const (((5 : ℚ) / 4 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat) (hr_1_1 : ∀ g ∈ gsArmChainRung2_1, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostGuard vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hdp_1_1 : ∀ i (hi : i < gsArmChainRung2_1.length),     z3solve (flowQuery ⟨gsArmChainRung2_1[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 1))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_1[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 1))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_1[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 1))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat) (hdq_1_1 : ∀ i (hi : i < gsArmChainRung2_1.length),     z3solve (flowQuery ⟨gsArmChainRung2_1[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_1[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_1[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_1.take i)⟩) = Verdict.unsat) (hr_1_2 : ∀ g ∈ gsArmChainRung2_1, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostGuard vsArmChainRung2 1 Side.R (mRArmChainRung2 2))) (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 2)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hq_1_2 : ∀ g ∈ gsArmChainRung2_1, z3solve (Formula.and (Formula.and (hostGuard vsArmChainRung2 1 Side.R (mRArmChainRung2 2)) (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 1)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 2)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) :
     ∀ q0 ∈ [0, 1, 2], ∀ ν, InvAllHolds gsArmChainRung2_1 ν →
@@ -145,41 +255,96 @@ theorem GWArmChainRung22_modes_eq : (GWArmChainRung2 2).modes =
 
 theorem certArmChainRung2_2 (hs_2_0 : ∀ i (hi : i < gsArmChainRung2_2.length),     z3solve (flowQuery ⟨gsArmChainRung2_2[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 2), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_2[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 2), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_2[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 2), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat) (hdp_2_0 : ∀ i (hi : i < gsArmChainRung2_2.length),     z3solve (flowQuery ⟨gsArmChainRung2_2[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 2))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_2[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 2))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_2[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 2))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat) (hdq_2_0 : ∀ i (hi : i < gsArmChainRung2_2.length),     z3solve (flowQuery ⟨gsArmChainRung2_2[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_2[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_2[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat) (hs_2_1 : ∀ i (hi : i < gsArmChainRung2_2.length),     z3solve (flowQuery ⟨gsArmChainRung2_2[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 2), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_2[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 2), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_2[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 2), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat) (hr_2_1 : ∀ g ∈ gsArmChainRung2_2, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostGuard vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hdp_2_1 : ∀ i (hi : i < gsArmChainRung2_2.length),     z3solve (flowQuery ⟨gsArmChainRung2_2[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 2))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_2[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 2))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_2[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 2))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat) (hdq_2_1 : ∀ i (hi : i < gsArmChainRung2_2.length),     z3solve (flowQuery ⟨gsArmChainRung2_2[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_2[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_2[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat) (hr_2_2 : ∀ g ∈ gsArmChainRung2_2, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostGuard vsArmChainRung2 1 Side.R (mRArmChainRung2 2))) (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 2)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hq_2_2 : ∀ g ∈ gsArmChainRung2_2, z3solve (Formula.and (Formula.and (hostGuard vsArmChainRung2 1 Side.R (mRArmChainRung2 2)) (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 2)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) :
     CoverCertM (GWArmChainRung2 2) gsArmChainRung2_2 := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩ <;>
-    first
-    | (intro q m hm hflag
-       unfold SearchGraph.modeAt at hm
-       rw [GWArmChainRung22_modes_eq] at hm
-       match q, hm with
-       | 0, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_2 hs_2_0)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_2 hdp_2_0)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_2 hdq_2_0)
-           | exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
-       | 1, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_2 hs_2_1)
-           | (rw [realModeOf_region]; exact regionInvAll_of_unsat' gsArmChainRung2_2 _ (fun g hg => z3_unsat_sound (hr_2_1 g hg)))
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_2 hdp_2_1)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_2 hdq_2_1)
-           | exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
-       | 2, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_region]; exact regionInvAll_of_unsat' gsArmChainRung2_2 _ (fun g hg => z3_unsat_sound (hr_2_2 g hg)))
-           | (rw [realModeOf_regionPost]; exact regionInvAll_of_unsat' gsArmChainRung2_2 _ (fun g hg => z3_unsat_sound (hq_2_2 g hg)))
-           | exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
-       | q + 3, hm => simp at hm)
-    | (intro m hm
-       rw [GWArmChainRung22_modes_eq] at hm
-       simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
-       rcases hm with rfl | rfl | rfl <;> simp)
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmChainRung22_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_2 hs_2_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_2 hs_2_1
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
+    | q + 3, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmChainRung22_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_region]; exact regionInvAll_of_unsat' gsArmChainRung2_2 _ (fun g hg => z3_unsat_sound (hr_2_1 g hg))
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_region]; exact regionInvAll_of_unsat' gsArmChainRung2_2 _ (fun g hg => z3_unsat_sound (hr_2_2 g hg))
+    | q + 3, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmChainRung22_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_regionPost]; exact regionInvAll_of_unsat' gsArmChainRung2_2 _ (fun g hg => z3_unsat_sound (hq_2_2 g hg))
+    | q + 3, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmChainRung22_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_2 hdp_2_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_2 hdp_2_1
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
+    | q + 3, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmChainRung22_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_2 hdq_2_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_2 hdq_2_1
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
+    | q + 3, hm => simp at hm
+  · intro m hm
+    rw [GWArmChainRung22_modes_eq] at hm
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
+    rcases hm with rfl | rfl | rfl <;> simp
 
 theorem arm_chain_rung2_throughout_ApproachC (hs_2_0 : ∀ i (hi : i < gsArmChainRung2_2.length),     z3solve (flowQuery ⟨gsArmChainRung2_2[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 2), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_2[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 2), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_2[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 2), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat) (hdp_2_0 : ∀ i (hi : i < gsArmChainRung2_2.length),     z3solve (flowQuery ⟨gsArmChainRung2_2[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 2))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_2[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 2))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_2[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 2))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat) (hdq_2_0 : ∀ i (hi : i < gsArmChainRung2_2.length),     z3solve (flowQuery ⟨gsArmChainRung2_2[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_2[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_2[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat) (hs_2_1 : ∀ i (hi : i < gsArmChainRung2_2.length),     z3solve (flowQuery ⟨gsArmChainRung2_2[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 2), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_2[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 2), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_2[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 2), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat) (hr_2_1 : ∀ g ∈ gsArmChainRung2_2, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostGuard vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hdp_2_1 : ∀ i (hi : i < gsArmChainRung2_2.length),     z3solve (flowQuery ⟨gsArmChainRung2_2[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 2))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_2[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 2))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_2[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 2))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat) (hdq_2_1 : ∀ i (hi : i < gsArmChainRung2_2.length),     z3solve (flowQuery ⟨gsArmChainRung2_2[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_2[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_2[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_2.take i)⟩) = Verdict.unsat) (hr_2_2 : ∀ g ∈ gsArmChainRung2_2, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostGuard vsArmChainRung2 1 Side.R (mRArmChainRung2 2))) (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 2)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hq_2_2 : ∀ g ∈ gsArmChainRung2_2, z3solve (Formula.and (Formula.and (hostGuard vsArmChainRung2 1 Side.R (mRArmChainRung2 2)) (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 2)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 2)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) :
     ∀ q0 ∈ [0, 1, 2], ∀ ν, InvAllHolds gsArmChainRung2_2 ν →
@@ -201,40 +366,96 @@ theorem GWArmChainRung23_modes_eq : (GWArmChainRung2 3).modes =
 
 theorem certArmChainRung2_3 (hs_3_0 : ∀ i (hi : i < gsArmChainRung2_3.length),     z3solve (flowQuery ⟨gsArmChainRung2_3[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 3), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_3[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 3), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_3[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 3), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat) (hdp_3_0 : ∀ i (hi : i < gsArmChainRung2_3.length),     z3solve (flowQuery ⟨gsArmChainRung2_3[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 3))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_3[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 3))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_3[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 3))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat) (hdq_3_0 : ∀ i (hi : i < gsArmChainRung2_3.length),     z3solve (flowQuery ⟨gsArmChainRung2_3[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_3[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_3[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat) (hs_3_1 : ∀ i (hi : i < gsArmChainRung2_3.length),     z3solve (flowQuery ⟨gsArmChainRung2_3[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 3), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_3[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 3), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_3[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 3), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat) (hdp_3_1 : ∀ i (hi : i < gsArmChainRung2_3.length),     z3solve (flowQuery ⟨gsArmChainRung2_3[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 3))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_3[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 3))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_3[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 3))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat) (hdq_3_1 : ∀ i (hi : i < gsArmChainRung2_3.length),     z3solve (flowQuery ⟨gsArmChainRung2_3[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_3[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_3[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat) (hr_3_2 : ∀ g ∈ gsArmChainRung2_3, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostGuard vsArmChainRung2 1 Side.R (mRArmChainRung2 2))) (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 2)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hq_3_2 : ∀ g ∈ gsArmChainRung2_3, z3solve (Formula.and (Formula.and (hostGuard vsArmChainRung2 1 Side.R (mRArmChainRung2 2)) (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 2)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) :
     CoverCertM (GWArmChainRung2 3) gsArmChainRung2_3 := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩ <;>
-    first
-    | (intro q m hm hflag
-       unfold SearchGraph.modeAt at hm
-       rw [GWArmChainRung23_modes_eq] at hm
-       match q, hm with
-       | 0, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_3 hs_3_0)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_3 hdp_3_0)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_3 hdq_3_0)
-           | exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
-       | 1, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_3 hs_3_1)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_3 hdp_3_1)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_3 hdq_3_1)
-           | exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
-       | 2, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_region]; exact regionInvAll_of_unsat' gsArmChainRung2_3 _ (fun g hg => z3_unsat_sound (hr_3_2 g hg)))
-           | (rw [realModeOf_regionPost]; exact regionInvAll_of_unsat' gsArmChainRung2_3 _ (fun g hg => z3_unsat_sound (hq_3_2 g hg)))
-           | exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
-       | q + 3, hm => simp at hm)
-    | (intro m hm
-       rw [GWArmChainRung23_modes_eq] at hm
-       simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
-       rcases hm with rfl | rfl | rfl <;> simp)
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmChainRung23_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_3 hs_3_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_3 hs_3_1
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
+    | q + 3, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmChainRung23_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_region]; exact regionInvAll_of_unsat' gsArmChainRung2_3 _ (fun g hg => z3_unsat_sound (hr_3_2 g hg))
+    | q + 3, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmChainRung23_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_regionPost]; exact regionInvAll_of_unsat' gsArmChainRung2_3 _ (fun g hg => z3_unsat_sound (hq_3_2 g hg))
+    | q + 3, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmChainRung23_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_3 hdp_3_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_3 hdp_3_1
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
+    | q + 3, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmChainRung23_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_3 hdq_3_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmChainRung2_3 hdq_3_1
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmChainRung2, arm_chain_rung2_coverNC])
+    | q + 3, hm => simp at hm
+  · intro m hm
+    rw [GWArmChainRung23_modes_eq] at hm
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
+    rcases hm with rfl | rfl | rfl <;> simp
 
 theorem arm_chain_rung2_throughout_Hold (hs_3_0 : ∀ i (hi : i < gsArmChainRung2_3.length),     z3solve (flowQuery ⟨gsArmChainRung2_3[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 3), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_3[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 3), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_3[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 3), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat) (hdp_3_0 : ∀ i (hi : i < gsArmChainRung2_3.length),     z3solve (flowQuery ⟨gsArmChainRung2_3[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 3))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_3[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 3))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_3[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 3))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat) (hdq_3_0 : ∀ i (hi : i < gsArmChainRung2_3.length),     z3solve (flowQuery ⟨gsArmChainRung2_3[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_3[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_3[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 0))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat) (hs_3_1 : ∀ i (hi : i < gsArmChainRung2_3.length),     z3solve (flowQuery ⟨gsArmChainRung2_3[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 3), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_3[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 3), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_3[i],       hostDyn vsArmChainRung2 1 Side.L (mLArmChainRung2 3), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat) (hdp_3_1 : ∀ i (hi : i < gsArmChainRung2_3.length),     z3solve (flowQuery ⟨gsArmChainRung2_3[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 3))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_3[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 3))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_3[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 3))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat) (hdq_3_1 : ∀ i (hi : i < gsArmChainRung2_3.length),     z3solve (flowQuery ⟨gsArmChainRung2_3[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmChainRung2_3[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmChainRung2_3[i],       (fun _ => Term.const 0), hostDyn vsArmChainRung2 1 Side.R (mRArmChainRung2 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 1))) (gsArmChainRung2_3.take i)⟩) = Verdict.unsat) (hr_3_2 : ∀ g ∈ gsArmChainRung2_3, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostGuard vsArmChainRung2 1 Side.R (mRArmChainRung2 2))) (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 2)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hq_3_2 : ∀ g ∈ gsArmChainRung2_3, z3solve (Formula.and (Formula.and (hostGuard vsArmChainRung2 1 Side.R (mRArmChainRung2 2)) (Formula.and (hostEvolve vsArmChainRung2 1 Side.L (mLArmChainRung2 3)) (hostEvolve vsArmChainRung2 1 Side.R (mRArmChainRung2 2)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) :
     ∀ q0 ∈ [0, 1, 2], ∀ ν, InvAllHolds gsArmChainRung2_3 ν →

@@ -32,30 +32,76 @@ theorem GWMatchMultiEps0_modes_eq : (GWMatchMultiEps 0).modes =
 
 theorem certMatchMultiEps_0 (hs_0_0 : ∀ i (hi : i < gsMatchMultiEps_0.length),     z3solve (flowQuery ⟨gsMatchMultiEps_0[i],       hostDyn vsMatchMultiEps 2 Side.L (mLMatchMultiEps 0), hostDyn vsMatchMultiEps 2 Side.R (mRMatchMultiEps 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsMatchMultiEps 2 Side.L (mLMatchMultiEps 0)) (hostEvolve vsMatchMultiEps 2 Side.R (mRMatchMultiEps 0))) (gsMatchMultiEps_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsMatchMultiEps_0[i],       hostDyn vsMatchMultiEps 2 Side.L (mLMatchMultiEps 0), hostDyn vsMatchMultiEps 2 Side.R (mRMatchMultiEps 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsMatchMultiEps 2 Side.L (mLMatchMultiEps 0)) (hostEvolve vsMatchMultiEps 2 Side.R (mRMatchMultiEps 0))) (gsMatchMultiEps_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsMatchMultiEps_0[i],       hostDyn vsMatchMultiEps 2 Side.L (mLMatchMultiEps 0), hostDyn vsMatchMultiEps 2 Side.R (mRMatchMultiEps 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsMatchMultiEps 2 Side.L (mLMatchMultiEps 0)) (hostEvolve vsMatchMultiEps 2 Side.R (mRMatchMultiEps 0))) (gsMatchMultiEps_0.take i)⟩) = Verdict.unsat) (hr_0_1 : ∀ g ∈ gsMatchMultiEps_0, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsMatchMultiEps 2 Side.L (mLMatchMultiEps 0)) (hostGuard vsMatchMultiEps 2 Side.R (mRMatchMultiEps 1))) (Formula.and (hostEvolve vsMatchMultiEps 2 Side.L (mLMatchMultiEps 0)) (hostEvolve vsMatchMultiEps 2 Side.R (mRMatchMultiEps 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hq_0_1 : ∀ g ∈ gsMatchMultiEps_0, z3solve (Formula.and (Formula.and (hostGuard vsMatchMultiEps 2 Side.R (mRMatchMultiEps 1)) (Formula.and (hostEvolve vsMatchMultiEps 2 Side.L (mLMatchMultiEps 0)) (hostEvolve vsMatchMultiEps 2 Side.R (mRMatchMultiEps 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) :
     CoverCertM (GWMatchMultiEps 0) gsMatchMultiEps_0 := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩ <;>
-    first
-    | (intro q m hm hflag
-       unfold SearchGraph.modeAt at hm
-       rw [GWMatchMultiEps0_modes_eq] at hm
-       match q, hm with
-       | 0, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsMatchMultiEps_0 hs_0_0)
-           | exact absurd hflag (by simp [fRowMatchMultiEps, match_multi_eps_coverNC])
-       | 1, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_region]; exact regionInvAll_of_unsat' gsMatchMultiEps_0 _ (fun g hg => z3_unsat_sound (hr_0_1 g hg)))
-           | (rw [realModeOf_regionPost]; exact regionInvAll_of_unsat' gsMatchMultiEps_0 _ (fun g hg => z3_unsat_sound (hq_0_1 g hg)))
-           | exact absurd hflag (by simp [fRowMatchMultiEps, match_multi_eps_coverNC])
-       | q + 2, hm => simp at hm)
-    | (intro m hm
-       rw [GWMatchMultiEps0_modes_eq] at hm
-       simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
-       rcases hm with rfl | rfl <;> simp)
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWMatchMultiEps0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsMatchMultiEps_0 hs_0_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowMatchMultiEps, match_multi_eps_coverNC])
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWMatchMultiEps0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowMatchMultiEps, match_multi_eps_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_region]; exact regionInvAll_of_unsat' gsMatchMultiEps_0 _ (fun g hg => z3_unsat_sound (hr_0_1 g hg))
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWMatchMultiEps0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowMatchMultiEps, match_multi_eps_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_regionPost]; exact regionInvAll_of_unsat' gsMatchMultiEps_0 _ (fun g hg => z3_unsat_sound (hq_0_1 g hg))
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWMatchMultiEps0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowMatchMultiEps, match_multi_eps_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowMatchMultiEps, match_multi_eps_coverNC])
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWMatchMultiEps0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowMatchMultiEps, match_multi_eps_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowMatchMultiEps, match_multi_eps_coverNC])
+    | q + 2, hm => simp at hm
+  · intro m hm
+    rw [GWMatchMultiEps0_modes_eq] at hm
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
+    rcases hm with rfl | rfl <;> simp
 
 theorem match_multi_eps_throughout_ACCEL (hs_0_0 : ∀ i (hi : i < gsMatchMultiEps_0.length),     z3solve (flowQuery ⟨gsMatchMultiEps_0[i],       hostDyn vsMatchMultiEps 2 Side.L (mLMatchMultiEps 0), hostDyn vsMatchMultiEps 2 Side.R (mRMatchMultiEps 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsMatchMultiEps 2 Side.L (mLMatchMultiEps 0)) (hostEvolve vsMatchMultiEps 2 Side.R (mRMatchMultiEps 0))) (gsMatchMultiEps_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsMatchMultiEps_0[i],       hostDyn vsMatchMultiEps 2 Side.L (mLMatchMultiEps 0), hostDyn vsMatchMultiEps 2 Side.R (mRMatchMultiEps 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsMatchMultiEps 2 Side.L (mLMatchMultiEps 0)) (hostEvolve vsMatchMultiEps 2 Side.R (mRMatchMultiEps 0))) (gsMatchMultiEps_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsMatchMultiEps_0[i],       hostDyn vsMatchMultiEps 2 Side.L (mLMatchMultiEps 0), hostDyn vsMatchMultiEps 2 Side.R (mRMatchMultiEps 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsMatchMultiEps 2 Side.L (mLMatchMultiEps 0)) (hostEvolve vsMatchMultiEps 2 Side.R (mRMatchMultiEps 0))) (gsMatchMultiEps_0.take i)⟩) = Verdict.unsat) (hr_0_1 : ∀ g ∈ gsMatchMultiEps_0, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsMatchMultiEps 2 Side.L (mLMatchMultiEps 0)) (hostGuard vsMatchMultiEps 2 Side.R (mRMatchMultiEps 1))) (Formula.and (hostEvolve vsMatchMultiEps 2 Side.L (mLMatchMultiEps 0)) (hostEvolve vsMatchMultiEps 2 Side.R (mRMatchMultiEps 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hq_0_1 : ∀ g ∈ gsMatchMultiEps_0, z3solve (Formula.and (Formula.and (hostGuard vsMatchMultiEps 2 Side.R (mRMatchMultiEps 1)) (Formula.and (hostEvolve vsMatchMultiEps 2 Side.L (mLMatchMultiEps 0)) (hostEvolve vsMatchMultiEps 2 Side.R (mRMatchMultiEps 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) :
     ∀ q0 ∈ [0, 1], ∀ ν, InvAllHolds gsMatchMultiEps_0 ν →
@@ -76,31 +122,76 @@ theorem GWMatchMultiEps1_modes_eq : (GWMatchMultiEps 1).modes =
 
 theorem certMatchMultiEps_1 (hs_1_0 : ∀ i (hi : i < gsMatchMultiEps_1.length),     z3solve (flowQuery ⟨gsMatchMultiEps_1[i],       hostDyn vsMatchMultiEps 2 Side.L (mLMatchMultiEps 1), hostDyn vsMatchMultiEps 2 Side.R (mRMatchMultiEps 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsMatchMultiEps 2 Side.L (mLMatchMultiEps 1)) (hostEvolve vsMatchMultiEps 2 Side.R (mRMatchMultiEps 0))) (gsMatchMultiEps_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsMatchMultiEps_1[i],       hostDyn vsMatchMultiEps 2 Side.L (mLMatchMultiEps 1), hostDyn vsMatchMultiEps 2 Side.R (mRMatchMultiEps 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsMatchMultiEps 2 Side.L (mLMatchMultiEps 1)) (hostEvolve vsMatchMultiEps 2 Side.R (mRMatchMultiEps 0))) (gsMatchMultiEps_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsMatchMultiEps_1[i],       hostDyn vsMatchMultiEps 2 Side.L (mLMatchMultiEps 1), hostDyn vsMatchMultiEps 2 Side.R (mRMatchMultiEps 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsMatchMultiEps 2 Side.L (mLMatchMultiEps 1)) (hostEvolve vsMatchMultiEps 2 Side.R (mRMatchMultiEps 0))) (gsMatchMultiEps_1.take i)⟩) = Verdict.unsat) (hs_1_1 : ∀ i (hi : i < gsMatchMultiEps_1.length),     z3solve (flowQuery ⟨gsMatchMultiEps_1[i],       hostDyn vsMatchMultiEps 2 Side.L (mLMatchMultiEps 1), hostDyn vsMatchMultiEps 2 Side.R (mRMatchMultiEps 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsMatchMultiEps 2 Side.L (mLMatchMultiEps 1)) (hostEvolve vsMatchMultiEps 2 Side.R (mRMatchMultiEps 1))) (gsMatchMultiEps_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsMatchMultiEps_1[i],       hostDyn vsMatchMultiEps 2 Side.L (mLMatchMultiEps 1), hostDyn vsMatchMultiEps 2 Side.R (mRMatchMultiEps 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsMatchMultiEps 2 Side.L (mLMatchMultiEps 1)) (hostEvolve vsMatchMultiEps 2 Side.R (mRMatchMultiEps 1))) (gsMatchMultiEps_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsMatchMultiEps_1[i],       hostDyn vsMatchMultiEps 2 Side.L (mLMatchMultiEps 1), hostDyn vsMatchMultiEps 2 Side.R (mRMatchMultiEps 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsMatchMultiEps 2 Side.L (mLMatchMultiEps 1)) (hostEvolve vsMatchMultiEps 2 Side.R (mRMatchMultiEps 1))) (gsMatchMultiEps_1.take i)⟩) = Verdict.unsat) (hr_1_1 : ∀ g ∈ gsMatchMultiEps_1, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsMatchMultiEps 2 Side.L (mLMatchMultiEps 1)) (hostGuard vsMatchMultiEps 2 Side.R (mRMatchMultiEps 1))) (Formula.and (hostEvolve vsMatchMultiEps 2 Side.L (mLMatchMultiEps 1)) (hostEvolve vsMatchMultiEps 2 Side.R (mRMatchMultiEps 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hq_1_1 : ∀ g ∈ gsMatchMultiEps_1, z3solve (Formula.and (Formula.and (hostGuard vsMatchMultiEps 2 Side.R (mRMatchMultiEps 1)) (Formula.and (hostEvolve vsMatchMultiEps 2 Side.L (mLMatchMultiEps 1)) (hostEvolve vsMatchMultiEps 2 Side.R (mRMatchMultiEps 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) :
     CoverCertM (GWMatchMultiEps 1) gsMatchMultiEps_1 := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩ <;>
-    first
-    | (intro q m hm hflag
-       unfold SearchGraph.modeAt at hm
-       rw [GWMatchMultiEps1_modes_eq] at hm
-       match q, hm with
-       | 0, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsMatchMultiEps_1 hs_1_0)
-           | exact absurd hflag (by simp [fRowMatchMultiEps, match_multi_eps_coverNC])
-       | 1, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsMatchMultiEps_1 hs_1_1)
-           | (rw [realModeOf_region]; exact regionInvAll_of_unsat' gsMatchMultiEps_1 _ (fun g hg => z3_unsat_sound (hr_1_1 g hg)))
-           | (rw [realModeOf_regionPost]; exact regionInvAll_of_unsat' gsMatchMultiEps_1 _ (fun g hg => z3_unsat_sound (hq_1_1 g hg)))
-           | exact absurd hflag (by simp [fRowMatchMultiEps, match_multi_eps_coverNC])
-       | q + 2, hm => simp at hm)
-    | (intro m hm
-       rw [GWMatchMultiEps1_modes_eq] at hm
-       simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
-       rcases hm with rfl | rfl <;> simp)
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWMatchMultiEps1_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsMatchMultiEps_1 hs_1_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsMatchMultiEps_1 hs_1_1
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWMatchMultiEps1_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowMatchMultiEps, match_multi_eps_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_region]; exact regionInvAll_of_unsat' gsMatchMultiEps_1 _ (fun g hg => z3_unsat_sound (hr_1_1 g hg))
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWMatchMultiEps1_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowMatchMultiEps, match_multi_eps_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_regionPost]; exact regionInvAll_of_unsat' gsMatchMultiEps_1 _ (fun g hg => z3_unsat_sound (hq_1_1 g hg))
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWMatchMultiEps1_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowMatchMultiEps, match_multi_eps_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowMatchMultiEps, match_multi_eps_coverNC])
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWMatchMultiEps1_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowMatchMultiEps, match_multi_eps_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowMatchMultiEps, match_multi_eps_coverNC])
+    | q + 2, hm => simp at hm
+  · intro m hm
+    rw [GWMatchMultiEps1_modes_eq] at hm
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
+    rcases hm with rfl | rfl <;> simp
 
 theorem match_multi_eps_throughout_COAST (hs_1_0 : ∀ i (hi : i < gsMatchMultiEps_1.length),     z3solve (flowQuery ⟨gsMatchMultiEps_1[i],       hostDyn vsMatchMultiEps 2 Side.L (mLMatchMultiEps 1), hostDyn vsMatchMultiEps 2 Side.R (mRMatchMultiEps 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsMatchMultiEps 2 Side.L (mLMatchMultiEps 1)) (hostEvolve vsMatchMultiEps 2 Side.R (mRMatchMultiEps 0))) (gsMatchMultiEps_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsMatchMultiEps_1[i],       hostDyn vsMatchMultiEps 2 Side.L (mLMatchMultiEps 1), hostDyn vsMatchMultiEps 2 Side.R (mRMatchMultiEps 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsMatchMultiEps 2 Side.L (mLMatchMultiEps 1)) (hostEvolve vsMatchMultiEps 2 Side.R (mRMatchMultiEps 0))) (gsMatchMultiEps_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsMatchMultiEps_1[i],       hostDyn vsMatchMultiEps 2 Side.L (mLMatchMultiEps 1), hostDyn vsMatchMultiEps 2 Side.R (mRMatchMultiEps 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsMatchMultiEps 2 Side.L (mLMatchMultiEps 1)) (hostEvolve vsMatchMultiEps 2 Side.R (mRMatchMultiEps 0))) (gsMatchMultiEps_1.take i)⟩) = Verdict.unsat) (hs_1_1 : ∀ i (hi : i < gsMatchMultiEps_1.length),     z3solve (flowQuery ⟨gsMatchMultiEps_1[i],       hostDyn vsMatchMultiEps 2 Side.L (mLMatchMultiEps 1), hostDyn vsMatchMultiEps 2 Side.R (mRMatchMultiEps 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsMatchMultiEps 2 Side.L (mLMatchMultiEps 1)) (hostEvolve vsMatchMultiEps 2 Side.R (mRMatchMultiEps 1))) (gsMatchMultiEps_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsMatchMultiEps_1[i],       hostDyn vsMatchMultiEps 2 Side.L (mLMatchMultiEps 1), hostDyn vsMatchMultiEps 2 Side.R (mRMatchMultiEps 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsMatchMultiEps 2 Side.L (mLMatchMultiEps 1)) (hostEvolve vsMatchMultiEps 2 Side.R (mRMatchMultiEps 1))) (gsMatchMultiEps_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsMatchMultiEps_1[i],       hostDyn vsMatchMultiEps 2 Side.L (mLMatchMultiEps 1), hostDyn vsMatchMultiEps 2 Side.R (mRMatchMultiEps 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsMatchMultiEps 2 Side.L (mLMatchMultiEps 1)) (hostEvolve vsMatchMultiEps 2 Side.R (mRMatchMultiEps 1))) (gsMatchMultiEps_1.take i)⟩) = Verdict.unsat) (hr_1_1 : ∀ g ∈ gsMatchMultiEps_1, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsMatchMultiEps 2 Side.L (mLMatchMultiEps 1)) (hostGuard vsMatchMultiEps 2 Side.R (mRMatchMultiEps 1))) (Formula.and (hostEvolve vsMatchMultiEps 2 Side.L (mLMatchMultiEps 1)) (hostEvolve vsMatchMultiEps 2 Side.R (mRMatchMultiEps 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hq_1_1 : ∀ g ∈ gsMatchMultiEps_1, z3solve (Formula.and (Formula.and (hostGuard vsMatchMultiEps 2 Side.R (mRMatchMultiEps 1)) (Formula.and (hostEvolve vsMatchMultiEps 2 Side.L (mLMatchMultiEps 1)) (hostEvolve vsMatchMultiEps 2 Side.R (mRMatchMultiEps 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) :
     ∀ q0 ∈ [0, 1], ∀ ν, InvAllHolds gsMatchMultiEps_1 ν →

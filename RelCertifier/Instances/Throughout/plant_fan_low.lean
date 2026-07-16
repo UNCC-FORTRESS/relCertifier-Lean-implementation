@@ -32,32 +32,76 @@ theorem GWPlantFanLow0_modes_eq : (GWPlantFanLow 0).modes =
 
 theorem certPlantFanLow_0 (hs_0_0 : ∀ i (hi : i < gsPlantFanLow_0.length),     z3solve (flowQuery ⟨gsPlantFanLow_0[i],       hostDyn vsPlantFanLow 2 Side.L (mLPlantFanLow 0), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const (((5 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 0)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (gsPlantFanLow_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsPlantFanLow_0[i],       hostDyn vsPlantFanLow 2 Side.L (mLPlantFanLow 0), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const (((5 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 0)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (gsPlantFanLow_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsPlantFanLow_0[i],       hostDyn vsPlantFanLow 2 Side.L (mLPlantFanLow 0), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const (((5 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 0)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (gsPlantFanLow_0.take i)⟩) = Verdict.unsat) (hdp_0_0 : ∀ i (hi : i < gsPlantFanLow_0.length),     z3solve (flowQuery ⟨gsPlantFanLow_0[i],       (fun _ => Term.const 0), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 0)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (hostGuard vsPlantFanLow 2 Side.L (mLPlantFanLow 0))) (gsPlantFanLow_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsPlantFanLow_0[i],       (fun _ => Term.const 0), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 0)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (hostGuard vsPlantFanLow 2 Side.L (mLPlantFanLow 0))) (gsPlantFanLow_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsPlantFanLow_0[i],       (fun _ => Term.const 0), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 0)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (hostGuard vsPlantFanLow 2 Side.L (mLPlantFanLow 0))) (gsPlantFanLow_0.take i)⟩) = Verdict.unsat) (hdq_0_0 : ∀ i (hi : i < gsPlantFanLow_0.length),     z3solve (flowQuery ⟨gsPlantFanLow_0[i],       (fun _ => Term.const 0), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 0)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (gsPlantFanLow_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsPlantFanLow_0[i],       (fun _ => Term.const 0), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 0)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (gsPlantFanLow_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsPlantFanLow_0[i],       (fun _ => Term.const 0), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 0)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (gsPlantFanLow_0.take i)⟩) = Verdict.unsat) (hr_0_1 : ∀ g ∈ gsPlantFanLow_0, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsPlantFanLow 2 Side.L (mLPlantFanLow 0)) (hostGuard vsPlantFanLow 2 Side.R (mRPlantFanLow 1))) (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 0)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hq_0_1 : ∀ g ∈ gsPlantFanLow_0, z3solve (Formula.and (Formula.and (hostGuard vsPlantFanLow 2 Side.R (mRPlantFanLow 1)) (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 0)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) :
     CoverCertM (GWPlantFanLow 0) gsPlantFanLow_0 := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩ <;>
-    first
-    | (intro q m hm hflag
-       unfold SearchGraph.modeAt at hm
-       rw [GWPlantFanLow0_modes_eq] at hm
-       match q, hm with
-       | 0, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsPlantFanLow_0 hs_0_0)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsPlantFanLow_0 hdp_0_0)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsPlantFanLow_0 hdq_0_0)
-           | exact absurd hflag (by simp [fRowPlantFanLow, plant_fan_low_coverNC])
-       | 1, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_region]; exact regionInvAll_of_unsat' gsPlantFanLow_0 _ (fun g hg => z3_unsat_sound (hr_0_1 g hg)))
-           | (rw [realModeOf_regionPost]; exact regionInvAll_of_unsat' gsPlantFanLow_0 _ (fun g hg => z3_unsat_sound (hq_0_1 g hg)))
-           | exact absurd hflag (by simp [fRowPlantFanLow, plant_fan_low_coverNC])
-       | q + 2, hm => simp at hm)
-    | (intro m hm
-       rw [GWPlantFanLow0_modes_eq] at hm
-       simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
-       rcases hm with rfl | rfl <;> simp)
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWPlantFanLow0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsPlantFanLow_0 hs_0_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowPlantFanLow, plant_fan_low_coverNC])
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWPlantFanLow0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowPlantFanLow, plant_fan_low_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_region]; exact regionInvAll_of_unsat' gsPlantFanLow_0 _ (fun g hg => z3_unsat_sound (hr_0_1 g hg))
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWPlantFanLow0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowPlantFanLow, plant_fan_low_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_regionPost]; exact regionInvAll_of_unsat' gsPlantFanLow_0 _ (fun g hg => z3_unsat_sound (hq_0_1 g hg))
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWPlantFanLow0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsPlantFanLow_0 hdp_0_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowPlantFanLow, plant_fan_low_coverNC])
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWPlantFanLow0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsPlantFanLow_0 hdq_0_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowPlantFanLow, plant_fan_low_coverNC])
+    | q + 2, hm => simp at hm
+  · intro m hm
+    rw [GWPlantFanLow0_modes_eq] at hm
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
+    rcases hm with rfl | rfl <;> simp
 
 theorem plant_fan_low_throughout_Accelerate (hs_0_0 : ∀ i (hi : i < gsPlantFanLow_0.length),     z3solve (flowQuery ⟨gsPlantFanLow_0[i],       hostDyn vsPlantFanLow 2 Side.L (mLPlantFanLow 0), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const (((5 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 0)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (gsPlantFanLow_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsPlantFanLow_0[i],       hostDyn vsPlantFanLow 2 Side.L (mLPlantFanLow 0), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const (((5 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 0)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (gsPlantFanLow_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsPlantFanLow_0[i],       hostDyn vsPlantFanLow 2 Side.L (mLPlantFanLow 0), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const (((5 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 0)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (gsPlantFanLow_0.take i)⟩) = Verdict.unsat) (hdp_0_0 : ∀ i (hi : i < gsPlantFanLow_0.length),     z3solve (flowQuery ⟨gsPlantFanLow_0[i],       (fun _ => Term.const 0), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 0)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (hostGuard vsPlantFanLow 2 Side.L (mLPlantFanLow 0))) (gsPlantFanLow_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsPlantFanLow_0[i],       (fun _ => Term.const 0), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 0)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (hostGuard vsPlantFanLow 2 Side.L (mLPlantFanLow 0))) (gsPlantFanLow_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsPlantFanLow_0[i],       (fun _ => Term.const 0), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 0)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (hostGuard vsPlantFanLow 2 Side.L (mLPlantFanLow 0))) (gsPlantFanLow_0.take i)⟩) = Verdict.unsat) (hdq_0_0 : ∀ i (hi : i < gsPlantFanLow_0.length),     z3solve (flowQuery ⟨gsPlantFanLow_0[i],       (fun _ => Term.const 0), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 0)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (gsPlantFanLow_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsPlantFanLow_0[i],       (fun _ => Term.const 0), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 0)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (gsPlantFanLow_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsPlantFanLow_0[i],       (fun _ => Term.const 0), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 0)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (gsPlantFanLow_0.take i)⟩) = Verdict.unsat) (hr_0_1 : ∀ g ∈ gsPlantFanLow_0, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsPlantFanLow 2 Side.L (mLPlantFanLow 0)) (hostGuard vsPlantFanLow 2 Side.R (mRPlantFanLow 1))) (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 0)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hq_0_1 : ∀ g ∈ gsPlantFanLow_0, z3solve (Formula.and (Formula.and (hostGuard vsPlantFanLow 2 Side.R (mRPlantFanLow 1)) (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 0)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) :
     ∀ q0 ∈ [0, 1], ∀ ν, InvAllHolds gsPlantFanLow_0 ν →
@@ -78,32 +122,76 @@ theorem GWPlantFanLow1_modes_eq : (GWPlantFanLow 1).modes =
 
 theorem certPlantFanLow_1 (hs_1_0 : ∀ i (hi : i < gsPlantFanLow_1.length),     z3solve (flowQuery ⟨gsPlantFanLow_1[i],       hostDyn vsPlantFanLow 2 Side.L (mLPlantFanLow 1), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const (((5 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 1)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (gsPlantFanLow_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsPlantFanLow_1[i],       hostDyn vsPlantFanLow 2 Side.L (mLPlantFanLow 1), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const (((5 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 1)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (gsPlantFanLow_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsPlantFanLow_1[i],       hostDyn vsPlantFanLow 2 Side.L (mLPlantFanLow 1), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const (((5 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 1)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (gsPlantFanLow_1.take i)⟩) = Verdict.unsat) (hdp_1_0 : ∀ i (hi : i < gsPlantFanLow_1.length),     z3solve (flowQuery ⟨gsPlantFanLow_1[i],       (fun _ => Term.const 0), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 1)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (hostGuard vsPlantFanLow 2 Side.L (mLPlantFanLow 1))) (gsPlantFanLow_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsPlantFanLow_1[i],       (fun _ => Term.const 0), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 1)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (hostGuard vsPlantFanLow 2 Side.L (mLPlantFanLow 1))) (gsPlantFanLow_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsPlantFanLow_1[i],       (fun _ => Term.const 0), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 1)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (hostGuard vsPlantFanLow 2 Side.L (mLPlantFanLow 1))) (gsPlantFanLow_1.take i)⟩) = Verdict.unsat) (hdq_1_0 : ∀ i (hi : i < gsPlantFanLow_1.length),     z3solve (flowQuery ⟨gsPlantFanLow_1[i],       (fun _ => Term.const 0), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 1)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (gsPlantFanLow_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsPlantFanLow_1[i],       (fun _ => Term.const 0), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 1)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (gsPlantFanLow_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsPlantFanLow_1[i],       (fun _ => Term.const 0), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 1)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (gsPlantFanLow_1.take i)⟩) = Verdict.unsat) (hr_1_1 : ∀ g ∈ gsPlantFanLow_1, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsPlantFanLow 2 Side.L (mLPlantFanLow 1)) (hostGuard vsPlantFanLow 2 Side.R (mRPlantFanLow 1))) (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 1)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hq_1_1 : ∀ g ∈ gsPlantFanLow_1, z3solve (Formula.and (Formula.and (hostGuard vsPlantFanLow 2 Side.R (mRPlantFanLow 1)) (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 1)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) :
     CoverCertM (GWPlantFanLow 1) gsPlantFanLow_1 := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩ <;>
-    first
-    | (intro q m hm hflag
-       unfold SearchGraph.modeAt at hm
-       rw [GWPlantFanLow1_modes_eq] at hm
-       match q, hm with
-       | 0, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsPlantFanLow_1 hs_1_0)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsPlantFanLow_1 hdp_1_0)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsPlantFanLow_1 hdq_1_0)
-           | exact absurd hflag (by simp [fRowPlantFanLow, plant_fan_low_coverNC])
-       | 1, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_region]; exact regionInvAll_of_unsat' gsPlantFanLow_1 _ (fun g hg => z3_unsat_sound (hr_1_1 g hg)))
-           | (rw [realModeOf_regionPost]; exact regionInvAll_of_unsat' gsPlantFanLow_1 _ (fun g hg => z3_unsat_sound (hq_1_1 g hg)))
-           | exact absurd hflag (by simp [fRowPlantFanLow, plant_fan_low_coverNC])
-       | q + 2, hm => simp at hm)
-    | (intro m hm
-       rw [GWPlantFanLow1_modes_eq] at hm
-       simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
-       rcases hm with rfl | rfl <;> simp)
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWPlantFanLow1_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsPlantFanLow_1 hs_1_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowPlantFanLow, plant_fan_low_coverNC])
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWPlantFanLow1_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowPlantFanLow, plant_fan_low_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_region]; exact regionInvAll_of_unsat' gsPlantFanLow_1 _ (fun g hg => z3_unsat_sound (hr_1_1 g hg))
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWPlantFanLow1_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowPlantFanLow, plant_fan_low_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_regionPost]; exact regionInvAll_of_unsat' gsPlantFanLow_1 _ (fun g hg => z3_unsat_sound (hq_1_1 g hg))
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWPlantFanLow1_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsPlantFanLow_1 hdp_1_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowPlantFanLow, plant_fan_low_coverNC])
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWPlantFanLow1_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsPlantFanLow_1 hdq_1_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowPlantFanLow, plant_fan_low_coverNC])
+    | q + 2, hm => simp at hm
+  · intro m hm
+    rw [GWPlantFanLow1_modes_eq] at hm
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
+    rcases hm with rfl | rfl <;> simp
 
 theorem plant_fan_low_throughout_Brake (hs_1_0 : ∀ i (hi : i < gsPlantFanLow_1.length),     z3solve (flowQuery ⟨gsPlantFanLow_1[i],       hostDyn vsPlantFanLow 2 Side.L (mLPlantFanLow 1), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const (((5 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 1)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (gsPlantFanLow_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsPlantFanLow_1[i],       hostDyn vsPlantFanLow 2 Side.L (mLPlantFanLow 1), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const (((5 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 1)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (gsPlantFanLow_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsPlantFanLow_1[i],       hostDyn vsPlantFanLow 2 Side.L (mLPlantFanLow 1), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const (((5 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 1)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (gsPlantFanLow_1.take i)⟩) = Verdict.unsat) (hdp_1_0 : ∀ i (hi : i < gsPlantFanLow_1.length),     z3solve (flowQuery ⟨gsPlantFanLow_1[i],       (fun _ => Term.const 0), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 1)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (hostGuard vsPlantFanLow 2 Side.L (mLPlantFanLow 1))) (gsPlantFanLow_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsPlantFanLow_1[i],       (fun _ => Term.const 0), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 1)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (hostGuard vsPlantFanLow 2 Side.L (mLPlantFanLow 1))) (gsPlantFanLow_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsPlantFanLow_1[i],       (fun _ => Term.const 0), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 1)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (hostGuard vsPlantFanLow 2 Side.L (mLPlantFanLow 1))) (gsPlantFanLow_1.take i)⟩) = Verdict.unsat) (hdq_1_0 : ∀ i (hi : i < gsPlantFanLow_1.length),     z3solve (flowQuery ⟨gsPlantFanLow_1[i],       (fun _ => Term.const 0), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 1)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (gsPlantFanLow_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsPlantFanLow_1[i],       (fun _ => Term.const 0), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 1)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (gsPlantFanLow_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsPlantFanLow_1[i],       (fun _ => Term.const 0), hostDyn vsPlantFanLow 2 Side.R (mRPlantFanLow 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 1)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 0))) (gsPlantFanLow_1.take i)⟩) = Verdict.unsat) (hr_1_1 : ∀ g ∈ gsPlantFanLow_1, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsPlantFanLow 2 Side.L (mLPlantFanLow 1)) (hostGuard vsPlantFanLow 2 Side.R (mRPlantFanLow 1))) (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 1)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hq_1_1 : ∀ g ∈ gsPlantFanLow_1, z3solve (Formula.and (Formula.and (hostGuard vsPlantFanLow 2 Side.R (mRPlantFanLow 1)) (Formula.and (hostEvolve vsPlantFanLow 2 Side.L (mLPlantFanLow 1)) (hostEvolve vsPlantFanLow 2 Side.R (mRPlantFanLow 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) :
     ∀ q0 ∈ [0, 1], ∀ ν, InvAllHolds gsPlantFanLow_1 ν →

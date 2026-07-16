@@ -33,37 +33,96 @@ theorem GWRobotBraking0_modes_eq : (GWRobotBraking 0).modes =
 
 theorem certRobotBraking_0 (hr_0_0 : ∀ g ∈ gsRobotBraking_0, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsRobotBraking 1 Side.L (mLRobotBraking 0)) (hostGuard vsRobotBraking 1 Side.R (mRRobotBraking 0))) (Formula.and (hostEvolve vsRobotBraking 1 Side.L (mLRobotBraking 0)) (hostEvolve vsRobotBraking 1 Side.R (mRRobotBraking 0)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hq_0_0 : ∀ g ∈ gsRobotBraking_0, z3solve (Formula.and (Formula.and (hostGuard vsRobotBraking 1 Side.R (mRRobotBraking 0)) (Formula.and (hostEvolve vsRobotBraking 1 Side.L (mLRobotBraking 0)) (hostEvolve vsRobotBraking 1 Side.R (mRRobotBraking 0)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hr_0_1 : ∀ g ∈ gsRobotBraking_0, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsRobotBraking 1 Side.L (mLRobotBraking 0)) (hostGuard vsRobotBraking 1 Side.R (mRRobotBraking 1))) (Formula.and (hostEvolve vsRobotBraking 1 Side.L (mLRobotBraking 0)) (hostEvolve vsRobotBraking 1 Side.R (mRRobotBraking 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hq_0_1 : ∀ g ∈ gsRobotBraking_0, z3solve (Formula.and (Formula.and (hostGuard vsRobotBraking 1 Side.R (mRRobotBraking 1)) (Formula.and (hostEvolve vsRobotBraking 1 Side.L (mLRobotBraking 0)) (hostEvolve vsRobotBraking 1 Side.R (mRRobotBraking 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hs_0_2 : ∀ i (hi : i < gsRobotBraking_0.length),     z3solve (flowQuery ⟨gsRobotBraking_0[i],       hostDyn vsRobotBraking 1 Side.L (mLRobotBraking 0), hostDyn vsRobotBraking 1 Side.R (mRRobotBraking 2), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRobotBraking 1 Side.L (mLRobotBraking 0)) (hostEvolve vsRobotBraking 1 Side.R (mRRobotBraking 2))) (gsRobotBraking_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsRobotBraking_0[i],       hostDyn vsRobotBraking 1 Side.L (mLRobotBraking 0), hostDyn vsRobotBraking 1 Side.R (mRRobotBraking 2), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRobotBraking 1 Side.L (mLRobotBraking 0)) (hostEvolve vsRobotBraking 1 Side.R (mRRobotBraking 2))) (gsRobotBraking_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsRobotBraking_0[i],       hostDyn vsRobotBraking 1 Side.L (mLRobotBraking 0), hostDyn vsRobotBraking 1 Side.R (mRRobotBraking 2), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRobotBraking 1 Side.L (mLRobotBraking 0)) (hostEvolve vsRobotBraking 1 Side.R (mRRobotBraking 2))) (gsRobotBraking_0.take i)⟩) = Verdict.unsat) :
     CoverCertM (GWRobotBraking 0) gsRobotBraking_0 := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩ <;>
-    first
-    | (intro q m hm hflag
-       unfold SearchGraph.modeAt at hm
-       rw [GWRobotBraking0_modes_eq] at hm
-       match q, hm with
-       | 0, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_region]; exact regionInvAll_of_unsat' gsRobotBraking_0 _ (fun g hg => z3_unsat_sound (hr_0_0 g hg)))
-           | (rw [realModeOf_regionPost]; exact regionInvAll_of_unsat' gsRobotBraking_0 _ (fun g hg => z3_unsat_sound (hq_0_0 g hg)))
-           | exact absurd hflag (by simp [fRowRobotBraking, robot_braking_coverNC])
-       | 1, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_region]; exact regionInvAll_of_unsat' gsRobotBraking_0 _ (fun g hg => z3_unsat_sound (hr_0_1 g hg)))
-           | (rw [realModeOf_regionPost]; exact regionInvAll_of_unsat' gsRobotBraking_0 _ (fun g hg => z3_unsat_sound (hq_0_1 g hg)))
-           | exact absurd hflag (by simp [fRowRobotBraking, robot_braking_coverNC])
-       | 2, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsRobotBraking_0 hs_0_2)
-           | exact absurd hflag (by simp [fRowRobotBraking, robot_braking_coverNC])
-       | q + 3, hm => simp at hm)
-    | (intro m hm
-       rw [GWRobotBraking0_modes_eq] at hm
-       simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
-       rcases hm with rfl | rfl | rfl <;> simp)
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWRobotBraking0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowRobotBraking, robot_braking_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowRobotBraking, robot_braking_coverNC])
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsRobotBraking_0 hs_0_2
+    | q + 3, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWRobotBraking0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_region]; exact regionInvAll_of_unsat' gsRobotBraking_0 _ (fun g hg => z3_unsat_sound (hr_0_0 g hg))
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_region]; exact regionInvAll_of_unsat' gsRobotBraking_0 _ (fun g hg => z3_unsat_sound (hr_0_1 g hg))
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowRobotBraking, robot_braking_coverNC])
+    | q + 3, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWRobotBraking0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_regionPost]; exact regionInvAll_of_unsat' gsRobotBraking_0 _ (fun g hg => z3_unsat_sound (hq_0_0 g hg))
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_regionPost]; exact regionInvAll_of_unsat' gsRobotBraking_0 _ (fun g hg => z3_unsat_sound (hq_0_1 g hg))
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowRobotBraking, robot_braking_coverNC])
+    | q + 3, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWRobotBraking0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowRobotBraking, robot_braking_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowRobotBraking, robot_braking_coverNC])
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowRobotBraking, robot_braking_coverNC])
+    | q + 3, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWRobotBraking0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowRobotBraking, robot_braking_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowRobotBraking, robot_braking_coverNC])
+    | 2, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowRobotBraking, robot_braking_coverNC])
+    | q + 3, hm => simp at hm
+  · intro m hm
+    rw [GWRobotBraking0_modes_eq] at hm
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
+    rcases hm with rfl | rfl | rfl <;> simp
 
 theorem robot_braking_throughout_CRUISE (hr_0_0 : ∀ g ∈ gsRobotBraking_0, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsRobotBraking 1 Side.L (mLRobotBraking 0)) (hostGuard vsRobotBraking 1 Side.R (mRRobotBraking 0))) (Formula.and (hostEvolve vsRobotBraking 1 Side.L (mLRobotBraking 0)) (hostEvolve vsRobotBraking 1 Side.R (mRRobotBraking 0)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hq_0_0 : ∀ g ∈ gsRobotBraking_0, z3solve (Formula.and (Formula.and (hostGuard vsRobotBraking 1 Side.R (mRRobotBraking 0)) (Formula.and (hostEvolve vsRobotBraking 1 Side.L (mLRobotBraking 0)) (hostEvolve vsRobotBraking 1 Side.R (mRRobotBraking 0)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hr_0_1 : ∀ g ∈ gsRobotBraking_0, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsRobotBraking 1 Side.L (mLRobotBraking 0)) (hostGuard vsRobotBraking 1 Side.R (mRRobotBraking 1))) (Formula.and (hostEvolve vsRobotBraking 1 Side.L (mLRobotBraking 0)) (hostEvolve vsRobotBraking 1 Side.R (mRRobotBraking 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hq_0_1 : ∀ g ∈ gsRobotBraking_0, z3solve (Formula.and (Formula.and (hostGuard vsRobotBraking 1 Side.R (mRRobotBraking 1)) (Formula.and (hostEvolve vsRobotBraking 1 Side.L (mLRobotBraking 0)) (hostEvolve vsRobotBraking 1 Side.R (mRRobotBraking 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hs_0_2 : ∀ i (hi : i < gsRobotBraking_0.length),     z3solve (flowQuery ⟨gsRobotBraking_0[i],       hostDyn vsRobotBraking 1 Side.L (mLRobotBraking 0), hostDyn vsRobotBraking 1 Side.R (mRRobotBraking 2), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRobotBraking 1 Side.L (mLRobotBraking 0)) (hostEvolve vsRobotBraking 1 Side.R (mRRobotBraking 2))) (gsRobotBraking_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsRobotBraking_0[i],       hostDyn vsRobotBraking 1 Side.L (mLRobotBraking 0), hostDyn vsRobotBraking 1 Side.R (mRRobotBraking 2), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRobotBraking 1 Side.L (mLRobotBraking 0)) (hostEvolve vsRobotBraking 1 Side.R (mRRobotBraking 2))) (gsRobotBraking_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsRobotBraking_0[i],       hostDyn vsRobotBraking 1 Side.L (mLRobotBraking 0), hostDyn vsRobotBraking 1 Side.R (mRRobotBraking 2), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRobotBraking 1 Side.L (mLRobotBraking 0)) (hostEvolve vsRobotBraking 1 Side.R (mRRobotBraking 2))) (gsRobotBraking_0.take i)⟩) = Verdict.unsat) :
     ∀ q0 ∈ [0, 1, 2], ∀ ν, InvAllHolds gsRobotBraking_0 ν →

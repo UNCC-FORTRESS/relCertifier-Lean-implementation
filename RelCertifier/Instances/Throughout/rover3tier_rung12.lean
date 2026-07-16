@@ -32,34 +32,76 @@ theorem GWRover3tierRung120_modes_eq : (GWRover3tierRung12 0).modes =
 
 theorem certRover3tierRung12_0 (hs_0_0 : ∀ i (hi : i < gsRover3tierRung12_0.length),     z3solve (flowQuery ⟨gsRover3tierRung12_0[i],       hostDyn vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const (((2 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsRover3tierRung12_0[i],       hostDyn vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const (((2 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsRover3tierRung12_0[i],       hostDyn vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const (((2 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat) (hdp_0_0 : ∀ i (hi : i < gsRover3tierRung12_0.length),     z3solve (flowQuery ⟨gsRover3tierRung12_0[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (hostGuard vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsRover3tierRung12_0[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (hostGuard vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsRover3tierRung12_0[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (hostGuard vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat) (hdq_0_0 : ∀ i (hi : i < gsRover3tierRung12_0.length),     z3solve (flowQuery ⟨gsRover3tierRung12_0[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsRover3tierRung12_0[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsRover3tierRung12_0[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat) (hs_0_1 : ∀ i (hi : i < gsRover3tierRung12_0.length),     z3solve (flowQuery ⟨gsRover3tierRung12_0[i],       hostDyn vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const (((2 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsRover3tierRung12_0[i],       hostDyn vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const (((2 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsRover3tierRung12_0[i],       hostDyn vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const (((2 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat) (hr_0_1 : ∀ g ∈ gsRover3tierRung12_0, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostGuard vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hdp_0_1 : ∀ i (hi : i < gsRover3tierRung12_0.length),     z3solve (flowQuery ⟨gsRover3tierRung12_0[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (hostGuard vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsRover3tierRung12_0[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (hostGuard vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsRover3tierRung12_0[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (hostGuard vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat) (hdq_0_1 : ∀ i (hi : i < gsRover3tierRung12_0.length),     z3solve (flowQuery ⟨gsRover3tierRung12_0[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsRover3tierRung12_0[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsRover3tierRung12_0[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat) :
     CoverCertM (GWRover3tierRung12 0) gsRover3tierRung12_0 := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩ <;>
-    first
-    | (intro q m hm hflag
-       unfold SearchGraph.modeAt at hm
-       rw [GWRover3tierRung120_modes_eq] at hm
-       match q, hm with
-       | 0, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsRover3tierRung12_0 hs_0_0)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsRover3tierRung12_0 hdp_0_0)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsRover3tierRung12_0 hdq_0_0)
-           | exact absurd hflag (by simp [fRowRover3tierRung12, rover3tier_rung12_coverNC])
-       | 1, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsRover3tierRung12_0 hs_0_1)
-           | (rw [realModeOf_region]; exact regionInvAll_of_unsat' gsRover3tierRung12_0 _ (fun g hg => z3_unsat_sound (hr_0_1 g hg)))
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsRover3tierRung12_0 hdp_0_1)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsRover3tierRung12_0 hdq_0_1)
-           | exact absurd hflag (by simp [fRowRover3tierRung12, rover3tier_rung12_coverNC])
-       | q + 2, hm => simp at hm)
-    | (intro m hm
-       rw [GWRover3tierRung120_modes_eq] at hm
-       simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
-       rcases hm with rfl | rfl <;> simp)
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWRover3tierRung120_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsRover3tierRung12_0 hs_0_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsRover3tierRung12_0 hs_0_1
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWRover3tierRung120_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowRover3tierRung12, rover3tier_rung12_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_region]; exact regionInvAll_of_unsat' gsRover3tierRung12_0 _ (fun g hg => z3_unsat_sound (hr_0_1 g hg))
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWRover3tierRung120_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowRover3tierRung12, rover3tier_rung12_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowRover3tierRung12, rover3tier_rung12_coverNC])
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWRover3tierRung120_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsRover3tierRung12_0 hdp_0_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsRover3tierRung12_0 hdp_0_1
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWRover3tierRung120_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsRover3tierRung12_0 hdq_0_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsRover3tierRung12_0 hdq_0_1
+    | q + 2, hm => simp at hm
+  · intro m hm
+    rw [GWRover3tierRung120_modes_eq] at hm
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
+    rcases hm with rfl | rfl <;> simp
 
 theorem rover3tier_rung12_throughout_ACCEL (hs_0_0 : ∀ i (hi : i < gsRover3tierRung12_0.length),     z3solve (flowQuery ⟨gsRover3tierRung12_0[i],       hostDyn vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const (((2 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsRover3tierRung12_0[i],       hostDyn vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const (((2 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsRover3tierRung12_0[i],       hostDyn vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const (((2 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat) (hdp_0_0 : ∀ i (hi : i < gsRover3tierRung12_0.length),     z3solve (flowQuery ⟨gsRover3tierRung12_0[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (hostGuard vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsRover3tierRung12_0[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (hostGuard vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsRover3tierRung12_0[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (hostGuard vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat) (hdq_0_0 : ∀ i (hi : i < gsRover3tierRung12_0.length),     z3solve (flowQuery ⟨gsRover3tierRung12_0[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsRover3tierRung12_0[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsRover3tierRung12_0[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat) (hs_0_1 : ∀ i (hi : i < gsRover3tierRung12_0.length),     z3solve (flowQuery ⟨gsRover3tierRung12_0[i],       hostDyn vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const (((2 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsRover3tierRung12_0[i],       hostDyn vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const (((2 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsRover3tierRung12_0[i],       hostDyn vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const (((2 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat) (hr_0_1 : ∀ g ∈ gsRover3tierRung12_0, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostGuard vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hdp_0_1 : ∀ i (hi : i < gsRover3tierRung12_0.length),     z3solve (flowQuery ⟨gsRover3tierRung12_0[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (hostGuard vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsRover3tierRung12_0[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (hostGuard vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsRover3tierRung12_0[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (hostGuard vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat) (hdq_0_1 : ∀ i (hi : i < gsRover3tierRung12_0.length),     z3solve (flowQuery ⟨gsRover3tierRung12_0[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsRover3tierRung12_0[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsRover3tierRung12_0[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 0)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (gsRover3tierRung12_0.take i)⟩) = Verdict.unsat) :
     ∀ q0 ∈ [0, 1], ∀ ν, InvAllHolds gsRover3tierRung12_0 ν →
@@ -80,33 +122,76 @@ theorem GWRover3tierRung121_modes_eq : (GWRover3tierRung12 1).modes =
 
 theorem certRover3tierRung12_1 (hs_1_0 : ∀ i (hi : i < gsRover3tierRung12_1.length),     z3solve (flowQuery ⟨gsRover3tierRung12_1[i],       hostDyn vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsRover3tierRung12_1[i],       hostDyn vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsRover3tierRung12_1[i],       hostDyn vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat) (hdp_1_0 : ∀ i (hi : i < gsRover3tierRung12_1.length),     z3solve (flowQuery ⟨gsRover3tierRung12_1[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (hostGuard vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsRover3tierRung12_1[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (hostGuard vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsRover3tierRung12_1[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (hostGuard vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat) (hdq_1_0 : ∀ i (hi : i < gsRover3tierRung12_1.length),     z3solve (flowQuery ⟨gsRover3tierRung12_1[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsRover3tierRung12_1[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsRover3tierRung12_1[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat) (hs_1_1 : ∀ i (hi : i < gsRover3tierRung12_1.length),     z3solve (flowQuery ⟨gsRover3tierRung12_1[i],       hostDyn vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsRover3tierRung12_1[i],       hostDyn vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsRover3tierRung12_1[i],       hostDyn vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat) (hdp_1_1 : ∀ i (hi : i < gsRover3tierRung12_1.length),     z3solve (flowQuery ⟨gsRover3tierRung12_1[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (hostGuard vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsRover3tierRung12_1[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (hostGuard vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsRover3tierRung12_1[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (hostGuard vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat) (hdq_1_1 : ∀ i (hi : i < gsRover3tierRung12_1.length),     z3solve (flowQuery ⟨gsRover3tierRung12_1[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsRover3tierRung12_1[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsRover3tierRung12_1[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat) :
     CoverCertM (GWRover3tierRung12 1) gsRover3tierRung12_1 := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩ <;>
-    first
-    | (intro q m hm hflag
-       unfold SearchGraph.modeAt at hm
-       rw [GWRover3tierRung121_modes_eq] at hm
-       match q, hm with
-       | 0, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsRover3tierRung12_1 hs_1_0)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsRover3tierRung12_1 hdp_1_0)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsRover3tierRung12_1 hdq_1_0)
-           | exact absurd hflag (by simp [fRowRover3tierRung12, rover3tier_rung12_coverNC])
-       | 1, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsRover3tierRung12_1 hs_1_1)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsRover3tierRung12_1 hdp_1_1)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsRover3tierRung12_1 hdq_1_1)
-           | exact absurd hflag (by simp [fRowRover3tierRung12, rover3tier_rung12_coverNC])
-       | q + 2, hm => simp at hm)
-    | (intro m hm
-       rw [GWRover3tierRung121_modes_eq] at hm
-       simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
-       rcases hm with rfl | rfl <;> simp)
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWRover3tierRung121_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsRover3tierRung12_1 hs_1_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsRover3tierRung12_1 hs_1_1
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWRover3tierRung121_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowRover3tierRung12, rover3tier_rung12_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowRover3tierRung12, rover3tier_rung12_coverNC])
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWRover3tierRung121_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowRover3tierRung12, rover3tier_rung12_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowRover3tierRung12, rover3tier_rung12_coverNC])
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWRover3tierRung121_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsRover3tierRung12_1 hdp_1_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsRover3tierRung12_1 hdp_1_1
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWRover3tierRung121_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsRover3tierRung12_1 hdq_1_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsRover3tierRung12_1 hdq_1_1
+    | q + 2, hm => simp at hm
+  · intro m hm
+    rw [GWRover3tierRung121_modes_eq] at hm
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
+    rcases hm with rfl | rfl <;> simp
 
 theorem rover3tier_rung12_throughout_COAST (hs_1_0 : ∀ i (hi : i < gsRover3tierRung12_1.length),     z3solve (flowQuery ⟨gsRover3tierRung12_1[i],       hostDyn vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsRover3tierRung12_1[i],       hostDyn vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsRover3tierRung12_1[i],       hostDyn vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat) (hdp_1_0 : ∀ i (hi : i < gsRover3tierRung12_1.length),     z3solve (flowQuery ⟨gsRover3tierRung12_1[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (hostGuard vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsRover3tierRung12_1[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (hostGuard vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsRover3tierRung12_1[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (hostGuard vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat) (hdq_1_0 : ∀ i (hi : i < gsRover3tierRung12_1.length),     z3solve (flowQuery ⟨gsRover3tierRung12_1[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsRover3tierRung12_1[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsRover3tierRung12_1[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 0))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat) (hs_1_1 : ∀ i (hi : i < gsRover3tierRung12_1.length),     z3solve (flowQuery ⟨gsRover3tierRung12_1[i],       hostDyn vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsRover3tierRung12_1[i],       hostDyn vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsRover3tierRung12_1[i],       hostDyn vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat) (hdp_1_1 : ∀ i (hi : i < gsRover3tierRung12_1.length),     z3solve (flowQuery ⟨gsRover3tierRung12_1[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (hostGuard vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsRover3tierRung12_1[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (hostGuard vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsRover3tierRung12_1[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (hostGuard vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat) (hdq_1_1 : ∀ i (hi : i < gsRover3tierRung12_1.length),     z3solve (flowQuery ⟨gsRover3tierRung12_1[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsRover3tierRung12_1[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsRover3tierRung12_1[i],       (fun _ => Term.const 0), hostDyn vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsRover3tierRung12 3 Side.L (mLRover3tierRung12 1)) (hostEvolve vsRover3tierRung12 3 Side.R (mRRover3tierRung12 1))) (gsRover3tierRung12_1.take i)⟩) = Verdict.unsat) :
     ∀ q0 ∈ [0, 1], ∀ ν, InvAllHolds gsRover3tierRung12_1 ν →

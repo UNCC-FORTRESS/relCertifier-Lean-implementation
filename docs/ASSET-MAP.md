@@ -55,3 +55,24 @@ property. Duration alignment (ε-tiling, budget) is the WITNESS STRATEGY, not st
 content; hence `rvalid_from_cert`'s finding that the budget is not load-bearing for
 `rvalid`. The budget arithmetic remains load-bearing for the tool's CERTIFIED gate and
 for constructing the matched-duration witnesses.
+
+## Refresh (2026-07-16, post R1–R6)
+
+New top assets since the original map:
+
+| asset | file | role |
+|---|---|---|
+| `theorem3_uniform_guarded` | CoverExtract | guard-gated windows, Emit-free, checker conjunct |
+| `emitWindows_self`, `Covered.jointOK_head` | CoverExtract | R1 witness + inversion |
+| `canonInv`, `encode_canonInv`, `canonInv_varsL/R` | CanonicalInv | R3 canonical invariant, generic |
+| `stratified_barrier_sound`, `segPresAll_from_strata_verdicts{,'}` | StratifiedBarrier | R4 acyclic-DC soundness, fold-shaped Z3 leaf |
+| `CoverCertM`, `pres_multi`, `check_sound_multi` | CoverMulti | multi-component certificate + throughout |
+| `hostDyn/hostEvolve/hostGuard/hostComps`, `realModeOf/realGraphOf` (+projection lemmas), permutation transport | CoverInstance | instance layer |
+| `buildCoverGraph/coverFuel/nodeIdx` | Checker/CoverEmit | ONE graph construction, tool + kernel |
+| `strict_faces_endpoint/raw`, `box_viability{,_step}`, `face_strict_from_verdict` | Flow/BoxViability | R6 viability core |
+| batteries | BenchCovers{,NC}, BenchCoverReplay, Throughout/*, BenchViability | emitted data + 46 gate replays + 83 throughout theorems + viability census |
+
+Emit devices: NONE remain assumed on the live chain (EmitSegs consumers retire with the
+cadenced chain, R7). Open follow-ups: 13 cut-reliant benchmarks (guard-threaded cut
+lift), bounded-time viability (growth faces + entry budget), reposition-windows modal
+form for multi-mode benchmarks, per-mode viability wiring into instances.

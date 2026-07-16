@@ -32,31 +32,76 @@ theorem GWAttitudeRate0_modes_eq : (GWAttitudeRate 0).modes =
 
 theorem certAttitudeRate_0 (hs_0_0 : ∀ i (hi : i < gsAttitudeRate_0.length),     z3solve (flowQuery ⟨gsAttitudeRate_0[i],       hostDyn vsAttitudeRate 6 Side.L (mLAttitudeRate 0), hostDyn vsAttitudeRate 6 Side.R (mRAttitudeRate 0), Term.const (((2 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsAttitudeRate 6 Side.L (mLAttitudeRate 0)) (hostEvolve vsAttitudeRate 6 Side.R (mRAttitudeRate 0))) (gsAttitudeRate_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsAttitudeRate_0[i],       hostDyn vsAttitudeRate 6 Side.L (mLAttitudeRate 0), hostDyn vsAttitudeRate 6 Side.R (mRAttitudeRate 0), Term.const (((2 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsAttitudeRate 6 Side.L (mLAttitudeRate 0)) (hostEvolve vsAttitudeRate 6 Side.R (mRAttitudeRate 0))) (gsAttitudeRate_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsAttitudeRate_0[i],       hostDyn vsAttitudeRate 6 Side.L (mLAttitudeRate 0), hostDyn vsAttitudeRate 6 Side.R (mRAttitudeRate 0), Term.const (((2 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsAttitudeRate 6 Side.L (mLAttitudeRate 0)) (hostEvolve vsAttitudeRate 6 Side.R (mRAttitudeRate 0))) (gsAttitudeRate_0.take i)⟩) = Verdict.unsat) (hs_0_1 : ∀ i (hi : i < gsAttitudeRate_0.length),     z3solve (flowQuery ⟨gsAttitudeRate_0[i],       hostDyn vsAttitudeRate 6 Side.L (mLAttitudeRate 0), hostDyn vsAttitudeRate 6 Side.R (mRAttitudeRate 1), Term.const (((2 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsAttitudeRate 6 Side.L (mLAttitudeRate 0)) (hostEvolve vsAttitudeRate 6 Side.R (mRAttitudeRate 1))) (gsAttitudeRate_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsAttitudeRate_0[i],       hostDyn vsAttitudeRate 6 Side.L (mLAttitudeRate 0), hostDyn vsAttitudeRate 6 Side.R (mRAttitudeRate 1), Term.const (((2 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsAttitudeRate 6 Side.L (mLAttitudeRate 0)) (hostEvolve vsAttitudeRate 6 Side.R (mRAttitudeRate 1))) (gsAttitudeRate_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsAttitudeRate_0[i],       hostDyn vsAttitudeRate 6 Side.L (mLAttitudeRate 0), hostDyn vsAttitudeRate 6 Side.R (mRAttitudeRate 1), Term.const (((2 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsAttitudeRate 6 Side.L (mLAttitudeRate 0)) (hostEvolve vsAttitudeRate 6 Side.R (mRAttitudeRate 1))) (gsAttitudeRate_0.take i)⟩) = Verdict.unsat) (hr_0_1 : ∀ g ∈ gsAttitudeRate_0, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsAttitudeRate 6 Side.L (mLAttitudeRate 0)) (hostGuard vsAttitudeRate 6 Side.R (mRAttitudeRate 1))) (Formula.and (hostEvolve vsAttitudeRate 6 Side.L (mLAttitudeRate 0)) (hostEvolve vsAttitudeRate 6 Side.R (mRAttitudeRate 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hq_0_1 : ∀ g ∈ gsAttitudeRate_0, z3solve (Formula.and (Formula.and (hostGuard vsAttitudeRate 6 Side.R (mRAttitudeRate 1)) (Formula.and (hostEvolve vsAttitudeRate 6 Side.L (mLAttitudeRate 0)) (hostEvolve vsAttitudeRate 6 Side.R (mRAttitudeRate 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) :
     CoverCertM (GWAttitudeRate 0) gsAttitudeRate_0 := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩ <;>
-    first
-    | (intro q m hm hflag
-       unfold SearchGraph.modeAt at hm
-       rw [GWAttitudeRate0_modes_eq] at hm
-       match q, hm with
-       | 0, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsAttitudeRate_0 hs_0_0)
-           | exact absurd hflag (by simp [fRowAttitudeRate, attitude_rate_coverNC])
-       | 1, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsAttitudeRate_0 hs_0_1)
-           | (rw [realModeOf_region]; exact regionInvAll_of_unsat' gsAttitudeRate_0 _ (fun g hg => z3_unsat_sound (hr_0_1 g hg)))
-           | (rw [realModeOf_regionPost]; exact regionInvAll_of_unsat' gsAttitudeRate_0 _ (fun g hg => z3_unsat_sound (hq_0_1 g hg)))
-           | exact absurd hflag (by simp [fRowAttitudeRate, attitude_rate_coverNC])
-       | q + 2, hm => simp at hm)
-    | (intro m hm
-       rw [GWAttitudeRate0_modes_eq] at hm
-       simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
-       rcases hm with rfl | rfl <;> simp)
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWAttitudeRate0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsAttitudeRate_0 hs_0_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsAttitudeRate_0 hs_0_1
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWAttitudeRate0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowAttitudeRate, attitude_rate_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_region]; exact regionInvAll_of_unsat' gsAttitudeRate_0 _ (fun g hg => z3_unsat_sound (hr_0_1 g hg))
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWAttitudeRate0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowAttitudeRate, attitude_rate_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_regionPost]; exact regionInvAll_of_unsat' gsAttitudeRate_0 _ (fun g hg => z3_unsat_sound (hq_0_1 g hg))
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWAttitudeRate0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowAttitudeRate, attitude_rate_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowAttitudeRate, attitude_rate_coverNC])
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWAttitudeRate0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowAttitudeRate, attitude_rate_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowAttitudeRate, attitude_rate_coverNC])
+    | q + 2, hm => simp at hm
+  · intro m hm
+    rw [GWAttitudeRate0_modes_eq] at hm
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
+    rcases hm with rfl | rfl <;> simp
 
 theorem attitude_rate_throughout_CRUISE (hs_0_0 : ∀ i (hi : i < gsAttitudeRate_0.length),     z3solve (flowQuery ⟨gsAttitudeRate_0[i],       hostDyn vsAttitudeRate 6 Side.L (mLAttitudeRate 0), hostDyn vsAttitudeRate 6 Side.R (mRAttitudeRate 0), Term.const (((2 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsAttitudeRate 6 Side.L (mLAttitudeRate 0)) (hostEvolve vsAttitudeRate 6 Side.R (mRAttitudeRate 0))) (gsAttitudeRate_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsAttitudeRate_0[i],       hostDyn vsAttitudeRate 6 Side.L (mLAttitudeRate 0), hostDyn vsAttitudeRate 6 Side.R (mRAttitudeRate 0), Term.const (((2 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsAttitudeRate 6 Side.L (mLAttitudeRate 0)) (hostEvolve vsAttitudeRate 6 Side.R (mRAttitudeRate 0))) (gsAttitudeRate_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsAttitudeRate_0[i],       hostDyn vsAttitudeRate 6 Side.L (mLAttitudeRate 0), hostDyn vsAttitudeRate 6 Side.R (mRAttitudeRate 0), Term.const (((2 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsAttitudeRate 6 Side.L (mLAttitudeRate 0)) (hostEvolve vsAttitudeRate 6 Side.R (mRAttitudeRate 0))) (gsAttitudeRate_0.take i)⟩) = Verdict.unsat) (hs_0_1 : ∀ i (hi : i < gsAttitudeRate_0.length),     z3solve (flowQuery ⟨gsAttitudeRate_0[i],       hostDyn vsAttitudeRate 6 Side.L (mLAttitudeRate 0), hostDyn vsAttitudeRate 6 Side.R (mRAttitudeRate 1), Term.const (((2 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsAttitudeRate 6 Side.L (mLAttitudeRate 0)) (hostEvolve vsAttitudeRate 6 Side.R (mRAttitudeRate 1))) (gsAttitudeRate_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsAttitudeRate_0[i],       hostDyn vsAttitudeRate 6 Side.L (mLAttitudeRate 0), hostDyn vsAttitudeRate 6 Side.R (mRAttitudeRate 1), Term.const (((2 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsAttitudeRate 6 Side.L (mLAttitudeRate 0)) (hostEvolve vsAttitudeRate 6 Side.R (mRAttitudeRate 1))) (gsAttitudeRate_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsAttitudeRate_0[i],       hostDyn vsAttitudeRate 6 Side.L (mLAttitudeRate 0), hostDyn vsAttitudeRate 6 Side.R (mRAttitudeRate 1), Term.const (((2 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsAttitudeRate 6 Side.L (mLAttitudeRate 0)) (hostEvolve vsAttitudeRate 6 Side.R (mRAttitudeRate 1))) (gsAttitudeRate_0.take i)⟩) = Verdict.unsat) (hr_0_1 : ∀ g ∈ gsAttitudeRate_0, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsAttitudeRate 6 Side.L (mLAttitudeRate 0)) (hostGuard vsAttitudeRate 6 Side.R (mRAttitudeRate 1))) (Formula.and (hostEvolve vsAttitudeRate 6 Side.L (mLAttitudeRate 0)) (hostEvolve vsAttitudeRate 6 Side.R (mRAttitudeRate 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hq_0_1 : ∀ g ∈ gsAttitudeRate_0, z3solve (Formula.and (Formula.and (hostGuard vsAttitudeRate 6 Side.R (mRAttitudeRate 1)) (Formula.and (hostEvolve vsAttitudeRate 6 Side.L (mLAttitudeRate 0)) (hostEvolve vsAttitudeRate 6 Side.R (mRAttitudeRate 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) :
     ∀ q0 ∈ [0, 1], ∀ ν, InvAllHolds gsAttitudeRate_0 ν →

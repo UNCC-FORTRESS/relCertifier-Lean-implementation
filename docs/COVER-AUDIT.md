@@ -123,3 +123,21 @@ a proven invariant are runs of the narrowed ode) + the stratified `multi_barrier
 assembly + the list-generalized invariant through the modal chain. Until it lands, the
 multi-component verdicts rest on the paper argument in this section, kernel-checking
 pending.
+
+## R6 status (2026-07-16, overnight)
+
+Strict-face viability landed: `BoxViability.lean` (`strict_faces_endpoint/raw` —
+multi-face box-conditioned first-exit; `box_viability` — Picard + chainN, any duration;
+`face_strict_from_verdict` — the Z3 leaf as frozen-left `flowQueryStrict`, no new query
+surface). Tool: `checkViability` + `--emit-viability`; `BenchViability.lean` emitted.
+
+Census: 9/126 right modes pass all-faces-strict (compact self-invariant boxes: drag,
+level bands; watertank Low/High). The rest decline LEGITIMATELY — integrator
+coordinates (`s' = v`) exit their boxes in finite time, so unbounded-horizon viability
+is false; the correct general certificate is BOUNDED-TIME viability: strict faces +
+growth faces (`Lie ≤ M` on the box) + the per-piece entry-budget query
+(`s₀ + M·ε_R ≤ s_max`) — `growth_bound_raw`/`hExist_multi`'s pattern folded into the
+same first-exit lemma (growth faces cannot exit before the horizon by the budget).
+Follow-up: `box_viability_bounded` + the budget query family + per-mode instance
+wiring; until then declining modes carry the named per-mode single-system hypothesis —
+within the frozen contract.

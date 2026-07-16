@@ -32,32 +32,76 @@ theorem GWArmRefinement0_modes_eq : (GWArmRefinement 0).modes =
 
 theorem certArmRefinement_0 (hs_0_0 : ∀ i (hi : i < gsArmRefinement_0.length),     z3solve (flowQuery ⟨gsArmRefinement_0[i],       hostDyn vsArmRefinement 2 Side.L (mLArmRefinement 0), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const (((5 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 0)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (gsArmRefinement_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmRefinement_0[i],       hostDyn vsArmRefinement 2 Side.L (mLArmRefinement 0), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const (((5 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 0)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (gsArmRefinement_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmRefinement_0[i],       hostDyn vsArmRefinement 2 Side.L (mLArmRefinement 0), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const (((5 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 0)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (gsArmRefinement_0.take i)⟩) = Verdict.unsat) (hdp_0_0 : ∀ i (hi : i < gsArmRefinement_0.length),     z3solve (flowQuery ⟨gsArmRefinement_0[i],       (fun _ => Term.const 0), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 0)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (hostGuard vsArmRefinement 2 Side.L (mLArmRefinement 0))) (gsArmRefinement_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmRefinement_0[i],       (fun _ => Term.const 0), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 0)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (hostGuard vsArmRefinement 2 Side.L (mLArmRefinement 0))) (gsArmRefinement_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmRefinement_0[i],       (fun _ => Term.const 0), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 0)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (hostGuard vsArmRefinement 2 Side.L (mLArmRefinement 0))) (gsArmRefinement_0.take i)⟩) = Verdict.unsat) (hdq_0_0 : ∀ i (hi : i < gsArmRefinement_0.length),     z3solve (flowQuery ⟨gsArmRefinement_0[i],       (fun _ => Term.const 0), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 0)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (gsArmRefinement_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmRefinement_0[i],       (fun _ => Term.const 0), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 0)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (gsArmRefinement_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmRefinement_0[i],       (fun _ => Term.const 0), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 0)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (gsArmRefinement_0.take i)⟩) = Verdict.unsat) (hr_0_1 : ∀ g ∈ gsArmRefinement_0, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsArmRefinement 2 Side.L (mLArmRefinement 0)) (hostGuard vsArmRefinement 2 Side.R (mRArmRefinement 1))) (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 0)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hq_0_1 : ∀ g ∈ gsArmRefinement_0, z3solve (Formula.and (Formula.and (hostGuard vsArmRefinement 2 Side.R (mRArmRefinement 1)) (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 0)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) :
     CoverCertM (GWArmRefinement 0) gsArmRefinement_0 := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩ <;>
-    first
-    | (intro q m hm hflag
-       unfold SearchGraph.modeAt at hm
-       rw [GWArmRefinement0_modes_eq] at hm
-       match q, hm with
-       | 0, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmRefinement_0 hs_0_0)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmRefinement_0 hdp_0_0)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmRefinement_0 hdq_0_0)
-           | exact absurd hflag (by simp [fRowArmRefinement, arm_refinement_coverNC])
-       | 1, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_region]; exact regionInvAll_of_unsat' gsArmRefinement_0 _ (fun g hg => z3_unsat_sound (hr_0_1 g hg)))
-           | (rw [realModeOf_regionPost]; exact regionInvAll_of_unsat' gsArmRefinement_0 _ (fun g hg => z3_unsat_sound (hq_0_1 g hg)))
-           | exact absurd hflag (by simp [fRowArmRefinement, arm_refinement_coverNC])
-       | q + 2, hm => simp at hm)
-    | (intro m hm
-       rw [GWArmRefinement0_modes_eq] at hm
-       simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
-       rcases hm with rfl | rfl <;> simp)
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmRefinement0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmRefinement_0 hs_0_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmRefinement, arm_refinement_coverNC])
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmRefinement0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmRefinement, arm_refinement_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_region]; exact regionInvAll_of_unsat' gsArmRefinement_0 _ (fun g hg => z3_unsat_sound (hr_0_1 g hg))
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmRefinement0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmRefinement, arm_refinement_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_regionPost]; exact regionInvAll_of_unsat' gsArmRefinement_0 _ (fun g hg => z3_unsat_sound (hq_0_1 g hg))
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmRefinement0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmRefinement_0 hdp_0_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmRefinement, arm_refinement_coverNC])
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmRefinement0_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmRefinement_0 hdq_0_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmRefinement, arm_refinement_coverNC])
+    | q + 2, hm => simp at hm
+  · intro m hm
+    rw [GWArmRefinement0_modes_eq] at hm
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
+    rcases hm with rfl | rfl <;> simp
 
 theorem arm_refinement_throughout_Accelerate (hs_0_0 : ∀ i (hi : i < gsArmRefinement_0.length),     z3solve (flowQuery ⟨gsArmRefinement_0[i],       hostDyn vsArmRefinement 2 Side.L (mLArmRefinement 0), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const (((5 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 0)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (gsArmRefinement_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmRefinement_0[i],       hostDyn vsArmRefinement 2 Side.L (mLArmRefinement 0), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const (((5 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 0)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (gsArmRefinement_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmRefinement_0[i],       hostDyn vsArmRefinement 2 Side.L (mLArmRefinement 0), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const (((5 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 0)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (gsArmRefinement_0.take i)⟩) = Verdict.unsat) (hdp_0_0 : ∀ i (hi : i < gsArmRefinement_0.length),     z3solve (flowQuery ⟨gsArmRefinement_0[i],       (fun _ => Term.const 0), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 0)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (hostGuard vsArmRefinement 2 Side.L (mLArmRefinement 0))) (gsArmRefinement_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmRefinement_0[i],       (fun _ => Term.const 0), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 0)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (hostGuard vsArmRefinement 2 Side.L (mLArmRefinement 0))) (gsArmRefinement_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmRefinement_0[i],       (fun _ => Term.const 0), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 0)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (hostGuard vsArmRefinement 2 Side.L (mLArmRefinement 0))) (gsArmRefinement_0.take i)⟩) = Verdict.unsat) (hdq_0_0 : ∀ i (hi : i < gsArmRefinement_0.length),     z3solve (flowQuery ⟨gsArmRefinement_0[i],       (fun _ => Term.const 0), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 0)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (gsArmRefinement_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmRefinement_0[i],       (fun _ => Term.const 0), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 0)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (gsArmRefinement_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmRefinement_0[i],       (fun _ => Term.const 0), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 0)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (gsArmRefinement_0.take i)⟩) = Verdict.unsat) (hr_0_1 : ∀ g ∈ gsArmRefinement_0, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsArmRefinement 2 Side.L (mLArmRefinement 0)) (hostGuard vsArmRefinement 2 Side.R (mRArmRefinement 1))) (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 0)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hq_0_1 : ∀ g ∈ gsArmRefinement_0, z3solve (Formula.and (Formula.and (hostGuard vsArmRefinement 2 Side.R (mRArmRefinement 1)) (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 0)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) :
     ∀ q0 ∈ [0, 1], ∀ ν, InvAllHolds gsArmRefinement_0 ν →
@@ -78,32 +122,76 @@ theorem GWArmRefinement1_modes_eq : (GWArmRefinement 1).modes =
 
 theorem certArmRefinement_1 (hs_1_0 : ∀ i (hi : i < gsArmRefinement_1.length),     z3solve (flowQuery ⟨gsArmRefinement_1[i],       hostDyn vsArmRefinement 2 Side.L (mLArmRefinement 1), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const (((5 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 1)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (gsArmRefinement_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmRefinement_1[i],       hostDyn vsArmRefinement 2 Side.L (mLArmRefinement 1), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const (((5 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 1)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (gsArmRefinement_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmRefinement_1[i],       hostDyn vsArmRefinement 2 Side.L (mLArmRefinement 1), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const (((5 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 1)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (gsArmRefinement_1.take i)⟩) = Verdict.unsat) (hdp_1_0 : ∀ i (hi : i < gsArmRefinement_1.length),     z3solve (flowQuery ⟨gsArmRefinement_1[i],       (fun _ => Term.const 0), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 1)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (hostGuard vsArmRefinement 2 Side.L (mLArmRefinement 1))) (gsArmRefinement_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmRefinement_1[i],       (fun _ => Term.const 0), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 1)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (hostGuard vsArmRefinement 2 Side.L (mLArmRefinement 1))) (gsArmRefinement_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmRefinement_1[i],       (fun _ => Term.const 0), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 1)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (hostGuard vsArmRefinement 2 Side.L (mLArmRefinement 1))) (gsArmRefinement_1.take i)⟩) = Verdict.unsat) (hdq_1_0 : ∀ i (hi : i < gsArmRefinement_1.length),     z3solve (flowQuery ⟨gsArmRefinement_1[i],       (fun _ => Term.const 0), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 1)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (gsArmRefinement_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmRefinement_1[i],       (fun _ => Term.const 0), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 1)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (gsArmRefinement_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmRefinement_1[i],       (fun _ => Term.const 0), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 1)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (gsArmRefinement_1.take i)⟩) = Verdict.unsat) (hr_1_1 : ∀ g ∈ gsArmRefinement_1, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsArmRefinement 2 Side.L (mLArmRefinement 1)) (hostGuard vsArmRefinement 2 Side.R (mRArmRefinement 1))) (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 1)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hq_1_1 : ∀ g ∈ gsArmRefinement_1, z3solve (Formula.and (Formula.and (hostGuard vsArmRefinement 2 Side.R (mRArmRefinement 1)) (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 1)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) :
     CoverCertM (GWArmRefinement 1) gsArmRefinement_1 := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩ <;>
-    first
-    | (intro q m hm hflag
-       unfold SearchGraph.modeAt at hm
-       rw [GWArmRefinement1_modes_eq] at hm
-       match q, hm with
-       | 0, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmRefinement_1 hs_1_0)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmRefinement_1 hdp_1_0)
-           | (rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmRefinement_1 hdq_1_0)
-           | exact absurd hflag (by simp [fRowArmRefinement, arm_refinement_coverNC])
-       | 1, hm =>
-           replace hm := Option.some.inj hm
-           subst hm
-           first
-           | (rw [realModeOf_region]; exact regionInvAll_of_unsat' gsArmRefinement_1 _ (fun g hg => z3_unsat_sound (hr_1_1 g hg)))
-           | (rw [realModeOf_regionPost]; exact regionInvAll_of_unsat' gsArmRefinement_1 _ (fun g hg => z3_unsat_sound (hq_1_1 g hg)))
-           | exact absurd hflag (by simp [fRowArmRefinement, arm_refinement_coverNC])
-       | q + 2, hm => simp at hm)
-    | (intro m hm
-       rw [GWArmRefinement1_modes_eq] at hm
-       simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
-       rcases hm with rfl | rfl <;> simp)
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmRefinement1_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmRefinement_1 hs_1_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmRefinement, arm_refinement_coverNC])
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmRefinement1_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmRefinement, arm_refinement_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_region]; exact regionInvAll_of_unsat' gsArmRefinement_1 _ (fun g hg => z3_unsat_sound (hr_1_1 g hg))
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmRefinement1_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmRefinement, arm_refinement_coverNC])
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_regionPost]; exact regionInvAll_of_unsat' gsArmRefinement_1 _ (fun g hg => z3_unsat_sound (hq_1_1 g hg))
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmRefinement1_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPre]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmRefinement_1 hdp_1_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmRefinement, arm_refinement_coverNC])
+    | q + 2, hm => simp at hm
+  · intro q m hm hflag
+    unfold SearchGraph.modeAt at hm
+    rw [GWArmRefinement1_modes_eq] at hm
+    match q, hm with
+    | 0, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        rw [realModeOf_dynSys, realModeOf_dynDomPost]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsArmRefinement_1 hdq_1_0
+    | 1, hm =>
+        replace hm := Option.some.inj hm
+        subst hm
+        exact absurd hflag (by simp [fRowArmRefinement, arm_refinement_coverNC])
+    | q + 2, hm => simp at hm
+  · intro m hm
+    rw [GWArmRefinement1_modes_eq] at hm
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
+    rcases hm with rfl | rfl <;> simp
 
 theorem arm_refinement_throughout_Brake (hs_1_0 : ∀ i (hi : i < gsArmRefinement_1.length),     z3solve (flowQuery ⟨gsArmRefinement_1[i],       hostDyn vsArmRefinement 2 Side.L (mLArmRefinement 1), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const (((5 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 1)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (gsArmRefinement_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmRefinement_1[i],       hostDyn vsArmRefinement 2 Side.L (mLArmRefinement 1), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const (((5 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 1)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (gsArmRefinement_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmRefinement_1[i],       hostDyn vsArmRefinement 2 Side.L (mLArmRefinement 1), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const (((5 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 1)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (gsArmRefinement_1.take i)⟩) = Verdict.unsat) (hdp_1_0 : ∀ i (hi : i < gsArmRefinement_1.length),     z3solve (flowQuery ⟨gsArmRefinement_1[i],       (fun _ => Term.const 0), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 1)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (hostGuard vsArmRefinement 2 Side.L (mLArmRefinement 1))) (gsArmRefinement_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmRefinement_1[i],       (fun _ => Term.const 0), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 1)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (hostGuard vsArmRefinement 2 Side.L (mLArmRefinement 1))) (gsArmRefinement_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmRefinement_1[i],       (fun _ => Term.const 0), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const 1,       strataDomHost (Formula.and (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 1)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (hostGuard vsArmRefinement 2 Side.L (mLArmRefinement 1))) (gsArmRefinement_1.take i)⟩) = Verdict.unsat) (hdq_1_0 : ∀ i (hi : i < gsArmRefinement_1.length),     z3solve (flowQuery ⟨gsArmRefinement_1[i],       (fun _ => Term.const 0), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 1)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (gsArmRefinement_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsArmRefinement_1[i],       (fun _ => Term.const 0), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 1)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (gsArmRefinement_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsArmRefinement_1[i],       (fun _ => Term.const 0), hostDyn vsArmRefinement 2 Side.R (mRArmRefinement 0), Term.const 1,       strataDomHost (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 1)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 0))) (gsArmRefinement_1.take i)⟩) = Verdict.unsat) (hr_1_1 : ∀ g ∈ gsArmRefinement_1, z3solve (Formula.and (Formula.and (Formula.and (hostGuard vsArmRefinement 2 Side.L (mLArmRefinement 1)) (hostGuard vsArmRefinement 2 Side.R (mRArmRefinement 1))) (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 1)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) (hq_1_1 : ∀ g ∈ gsArmRefinement_1, z3solve (Formula.and (Formula.and (hostGuard vsArmRefinement 2 Side.R (mRArmRefinement 1)) (Formula.and (hostEvolve vsArmRefinement 2 Side.L (mLArmRefinement 1)) (hostEvolve vsArmRefinement 2 Side.R (mRArmRefinement 1)))) (Formula.cmp .gt g (Term.const 0))) = Verdict.unsat) :
     ∀ q0 ∈ [0, 1], ∀ ν, InvAllHolds gsArmRefinement_1 ν →

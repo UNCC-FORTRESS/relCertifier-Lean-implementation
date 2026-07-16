@@ -705,6 +705,77 @@ def emitCoverFile (cfg : Z3Config) (path defname : String) : IO Unit := do
           | (.certified, some c) => IO.println (emitCoverE defname c)
           | (o, _) => IO.eprintln s!"ERROR: not certified: {o.tag}"; IO.Process.exit 1
 
+/-- R-side face terms of an evolve conjunction (safe-side `g ≤ 0` per comparison). -/
+def evolveFacesR (vars : List String) (n : ℕ) : PForm → Option (List (ITerm n))
+  | .tt => some []
+  | .cmp op a b =>
+      if op == "<=" || op == "<" then do
+        let ea ← lowerE vars n Side.R a
+        let eb ← lowerE vars n Side.R b
+        some [ITerm.bin .sub ea eb]
+      else if op == ">=" || op == ">" then do
+        let ea ← lowerE vars n Side.R a
+        let eb ← lowerE vars n Side.R b
+        some [ITerm.bin .sub eb ea]
+      else none
+  | .and x y => do
+      let lx ← evolveFacesR vars n x
+      let ly ← evolveFacesR vars n y
+      some (lx ++ ly)
+  | _ => none
+
+/-- **R6 viability check**: per right mode, per evolve-box face, the STRICT inward
+query — `flowQueryStrict` with the left frozen (`fL = 0`, λ = 1) over the mode's own
+evolve box: `UNSAT(evolve ∧ face = 0 ∧ face-Lie ≥ 0)`. All faces UNSAT ⟹ the mode's
+flows exist and stay in the box for any duration (`box_viability`). Declines honestly
+on equilibrium-on-face and integrator (growth) faces — those take the bounded-time
+variant (docs/COVER-AUDIT.md R6) or a named per-mode hypothesis. -/
+def checkViability (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
+    (vars : List String) (n : ℕ) (coord : Fin n → String) (mR : PMode) : IO Bool := do
+  match evolveFacesR vars n mR.evolve, lowerF vars n Side.R mR.evolve,
+      dynOf vars n Side.R mR with
+  | some faces, some box, some fR => do
+      let mut allUnsat := true
+      for g in faces do
+        if allUnsat then
+          let gdot := ilieDeriv g (fun _ => ITerm.rat 0) fR (.rat 1)
+          let q := IForm.and box (IForm.and (IForm.cmp .eq g (.rat 0))
+            (IForm.cmp .ge gdot (.rat 0)))
+          let script := q.toScript coord
+          if script.length > maxSmt then allUnsat := false
+          else do
+            cnt.modify (· + 1)
+            if (← cnt.get) > maxQ then throw (IO.userError "query budget exceeded")
+            if (← IO.monoMsNow) > deadline then throw (IO.userError "time budget exceeded")
+            match ← s.check script with
+            | .ok .unsat => pure ()
+            | _ => allUnsat := false
+      pure allUnsat
+  | _, _, _ => pure false
+
+/-- `--emit-viability`: per right mode, the all-faces-strict verdict, as a Lean literal. -/
+def emitViabilityFile (cfg : Z3Config) (path defname : String) : IO Unit := do
+  let txt ← IO.FS.readFile path
+  match parseProblemE txt with
+  | .error e => IO.eprintln s!"ERROR: parse: {e}"; IO.Process.exit 1
+  | .ok p =>
+      match ← Z3Session.start cfg with
+      | .error e => IO.eprintln s!"ERROR: z3: {e}"; IO.Process.exit 1
+      | .ok s =>
+          let cnt ← IO.mkRef 0
+          let vars := p.L.stateVars
+          let n := vars.length
+          let coord := fun (i : Fin n) => vars.getD i.val "v"
+          let deadline := (← IO.monoMsNow) + 40000
+          let mut rows : List String := []
+          for mR in p.R.modes do
+            let v ← try checkViability s cnt 5000 200000 deadline vars n coord mR
+              catch _ => pure false
+            rows := rows ++ [s!"(\"{mR.name}\", {v})"]
+          s.close
+          IO.println (s!"def {defname} : List (String × Bool) := [" ++
+            String.intercalate ", " rows ++ "]")
+
 /-- File entry: parse + certify on a fresh warm session (for the CLI / batch). Parse
 failure ⟹ `error` (unparsed), never a verdict. -/
 def certifyFile (cfg : Z3Config) (path : String) : IO Outcome := do

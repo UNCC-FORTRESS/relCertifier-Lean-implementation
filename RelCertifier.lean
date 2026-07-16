@@ -101,6 +101,7 @@ import RelCertifier.Proofs.Flow.BoxViability
 import RelCertifier.Proofs.Flow.BoxViabilityBounded
 import RelCertifier.Proofs.Flow.ViabilityWiring
 import RelCertifier.Instances.BenchCovers
+import RelCertifier.Instances.BenchViability2
 import RelCertifier.Instances.BenchCoverReplay
 import RelCertifier.Proofs.Encoding.CoverMulti
 import RelCertifier.Proofs.Encoding.RepoPrefix

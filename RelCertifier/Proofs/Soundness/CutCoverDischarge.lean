@@ -155,4 +155,65 @@ theorem atomsStay_L_frozen_dyn (fR : Fin n → Term (Var n)) (dom : Formula (Var
   rw [eval_lieDeriv_zero] at hgt
   exact lt_irrefl 0 hgt
 
+/-! ## Side split of the atom's safe-side term, and small assembly helpers -/
+
+/-- `hostAtomG` of an opposite-prefix-free atom lives on its lowering side. -/
+theorem hostAtomG_fv_side {vars : List String} {s : Side} {bad : String}
+    (hres : ResolvesTo vars n s bad) {op : String} {x y : PExpr}
+    (hop : op = "<=" ∨ op = ">=")
+    (hfx : PExpr.namesFree bad x = true) (hfy : PExpr.namesFree bad y = true) :
+    ∀ v ∈ (hostAtomG vars n s (.cmp op x y) : Term (Var n)).fv, v.1 = s := by
+  intro v hv
+  unfold hostAtomG at hv
+  rcases hex : Run.lowerE vars n s x with _ | ex
+  · rcases hop with rfl | rfl <;>
+      · rw [show cutAtomG vars n s (.cmp _ x y) = (none : Option (ITerm n)) from by
+          simp [cutAtomG, hex]] at hv
+        exact absurd hv (by simp [Term.fv])
+  · rcases hey : Run.lowerE vars n s y with _ | ey
+    · rcases hop with rfl | rfl <;>
+        · rw [show cutAtomG vars n s (.cmp _ x y) = (none : Option (ITerm n)) from by
+            simp [cutAtomG, hex, hey]] at hv
+          exact absurd hv (by simp [Term.fv])
+    · have hvx := Run.lowerE_fv_side hres hfx hex
+      have hvy := Run.lowerE_fv_side hres hfy hey
+      rcases hop with rfl | rfl
+      · rw [show cutAtomG vars n s (.cmp "<=" x y) = some (ITerm.bin .sub ex ey) from by
+          simp [cutAtomG, hex, hey]] at hv
+        simp only [Option.map_some, Option.getD_some, ITerm.toHost, Term.fv,
+          Set.mem_union] at hv
+        rcases hv with hv | hv
+        · exact hvx v hv
+        · exact hvy v hv
+      · rw [show cutAtomG vars n s (.cmp ">=" x y) = some (ITerm.bin .sub ey ex) from by
+          simp [cutAtomG, hex, hey]] at hv
+        simp only [Option.map_some, Option.getD_some, ITerm.toHost, Term.fv,
+          Set.mem_union] at hv
+        rcases hv with hv | hv
+        · exact hvy v hv
+        · exact hvx v hv
+
+/-- The empty atom family stays along anything (windows without left cuts). -/
+theorem atomsStay_nil (sys : ODESystem (Var n)) (dom : Formula (Var n)) :
+    AtomsStay ([] : List (CutAtomP n)) sys dom := by
+  intro a ha
+  exact absurd ha (List.not_mem_nil)
+
+theorem atomsIff_nil : AtomsIff ([] : List (CutAtomP n)) := by
+  intro a ha
+  exact absurd ha (List.not_mem_nil)
+
+/-- Transport `SegPreservesAllOn` across satisfaction-equivalent domains (the tool
+skips `⊤` cut conjuncts in its fold; the certificate's shape keeps them). -/
+theorem segPresAll_dom_congr {gs : List (Term (Var n))} {sys : ODESystem (Var n)}
+    {D D' : Formula (Var n)} (h : ∀ x, Formula.sat D x ↔ Formula.sat D' x)
+    (hp : SegPreservesAllOn gs sys D') : SegPreservesAllOn gs sys D :=
+  fun ν hν ω hsem => hp ν hν ω (sem_ode_congr h hsem)
+
+/-- Transport `RegionInvAllOn` across satisfaction-equivalent regions. -/
+theorem regionInvAll_congr {gs : List (Term (Var n))} {R R' : Formula (Var n)}
+    (h : ∀ x, Formula.sat R x ↔ Formula.sat R' x)
+    (hp : RegionInvAllOn gs R') : RegionInvAllOn gs R :=
+  fun ω hω => hp ω ((h ω).mp hω)
+
 end RelCertifier

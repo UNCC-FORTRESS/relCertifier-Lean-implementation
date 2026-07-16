@@ -72,6 +72,33 @@ for m in re.finditer(r'def (\w+)_cuts : EvolStrengthening :=\n((?:.|\n)*?)\n\nex
 def is_identity(o):
     return o == list(range(len(o)))
 
+QFORM = dict(diStrict="flowQueryStrict", diNonstrict="flowQuery",
+             frozen="flowQuery", shape="flowQuerySuperlevel")
+RLEM = dict(diStrict="atom_boxle_R_strict", diNonstrict="atom_boxle_R_nonstrict",
+            frozen="atom_boxle_R_nonstrict", shape="atom_boxle_R_superlevel")
+LLEM = dict(diStrict="atom_boxle_L_strict", diNonstrict="atom_boxle_L_nonstrict",
+            frozen="atom_boxle_L_nonstrict", shape="atom_boxle_L_superlevel")
+
+def iff_call(U, n, side, a):
+    m = re.match(r'\.cmp "(<=|>=)" (\(.*?\)) (\(.*\))$', a["lit"])
+    x, y = m.group(2), m.group(3)
+    orc = "Or.inl rfl" if a["op"] == "<=" else "Or.inr rfl"
+    return (f"exact hostAtom_iff (vars := vs{U}) (side := Side.{side}) "
+            f"(x := {x}) (y := {y}) ({orc}) ν")
+
+def fv_core(U, side, a):
+    m = re.match(r'\.cmp "(<=|>=)" (\(.*?\)) (\(.*\))$', a["lit"])
+    x, y = m.group(2), m.group(3)
+    orc = "Or.inl rfl" if a["op"] == "<=" else "Or.inr rfl"
+    other = "Lv" if side == "R" else "Rv"
+    return (f"absurd (hostAtomG_fv_side (resolvesTo_{side} vs{U}) "
+            f"(x := {x}) (y := {y}) ({orc}) "
+            f"(by first | decide | simp [Parse.PExpr.namesFree]) "
+            f"(by first | decide | simp [Parse.PExpr.namesFree]) _ h) (by simp [{other}])")
+
+def fv_refute(U, side, a):
+    return f"(fun i h => {fv_core(U, side, a)})"
+
 def gen_bench(name):
     wins = covers[name]
     fi = ir_facts[name]
@@ -80,12 +107,12 @@ def gen_bench(name):
     U = "".join(w[0].upper() + w[1:] for w in name.split("_"))
     vars_lit = "[" + ", ".join(f'"{v}"' for v in fi["vars"]) + "]"
     rIdx = {nm: i for i, nm in enumerate(fi["R"])}
-    # v1 preconditions
-    for lm in fi["L"]:
-        assert not cc["L"].get(lm), f"{name}: nonempty left cuts (v2)"
-    for rm, atoms in cc["R"].items():
-        for a in atoms:
-            assert a["route"] in ("diStrict", "diNonstrict", "frozen"), f"{name}: route {a['route']} (v2)"
+    for side in ("L", "R"):
+        for rm, atoms in cc[side].items():
+            assert len(atoms) <= 2, f"{name}: >2 atoms per mode"
+            for a in atoms:
+                assert a["route"] in ("diStrict", "diNonstrict", "frozen", "shape"), \
+                    f"{name}: route {a['route']}"
 
     L = []
     A = L.append
@@ -131,8 +158,7 @@ def gen_bench(name):
         hyps = []
         for ai, a in enumerate(atoms):
             hname = f"hO2{U}_{q}_{ai}"
-            qform = "flowQueryStrict" if a["route"] == "diStrict" else "flowQuery"
-            t = (f"z3solve ({qform} ⟨hostAtomG vs{U} {n} Side.R ({a['lit']}),\n"
+            t = (f"z3solve ({QFORM[a['route']]} ⟨hostAtomG vs{U} {n} Side.R ({a['lit']}),\n"
                  f"      (fun _ => Term.const 0), hostDyn vs{U} {n} Side.R (mR{U} {q}), Term.const 1,\n"
                  f"      hostEvolve vs{U} {n} Side.R (mR{U} {q})⟩) = Verdict.unsat")
             hyps.append((hname, t, a))
@@ -163,8 +189,22 @@ def gen_bench(name):
         for pos, (qn, f) in enumerate(nodes):
             A(f"  | {pos} => hostGuard vs{U} {n} Side.R (mR{U} {rIdx[f['name']]})")
         A(f"  | _ => Formula.tt")
-        A(f"def cutL{U}_{l} : List (CutAtomP {n}) := []")
+        latoms = cc["L"].get(w["mL"], [])
+        if latoms:
+            items = ", ".join(
+                f"(hostAtomF vs{U} {n} Side.L ({a['lit']}), hostAtomG vs{U} {n} Side.L ({a['lit']}))"
+                for a in latoms)
+            A(f"noncomputable def cutL{U}_{l} : List (CutAtomP {n}) := [{items}]")
+        else:
+            A(f"def cutL{U}_{l} : List (CutAtomP {n}) := []")
         A(f"")
+        o2L = []
+        for ai, a in enumerate(latoms):
+            hname = f"hO2L{U}_{l}_{ai}"
+            t = (f"z3solve ({QFORM[a['route']]} ⟨hostAtomG vs{U} {n} Side.L ({a['lit']}),\n"
+                 f"      hostDyn vs{U} {n} Side.L (mL{U} {l}), (fun _ => Term.const 0), Term.const 1,\n"
+                 f"      hostEvolve vs{U} {n} Side.L (mL{U} {l})⟩) = Verdict.unsat")
+            o2L.append((hname, t, a))
         lamq = f"(({w['lamn']} : ℚ) / {w['lamd']})"
         A(f"theorem GW{U}{l}_modes_eq : (GW{U} {l}).modes =")
         A("    [" + ",\n     ".join(
@@ -237,48 +277,56 @@ def gen_bench(name):
                 o2_uniq.append((hname, t, a))
         binders = " ".join(f"({h} : {t.strip()})" for h, t in
                            [(h, t.replace(chr(10), " ")) for h, t in hyps]
-                           + [(h, t.replace(chr(10), " ")) for h, t, _ in o2_uniq])
-        # per-atom stay text (joint and dyn variants)
-        def stay_text(pos, f, lam_c, dom_imp, sysdom_rw):
-            q = rIdx[f["name"]]
-            atoms = cc["R"].get(f["name"], [])
-            hlist = o2[f["name"]]
-            lines = [f"        {sysdom_rw}",
-                     f"        intro a ha ν hb",
-                     f"        simp only [cutR{U}_{l}] at ha"]
-            if len(atoms) == 1:
-                lines.append(f"        rw [List.mem_singleton] at ha")
-                lines.append(f"        subst ha")
-                lines += atom_stay(hlist[0], lam_c, dom_imp)
-            else:
-                lines.append(f"        rcases List.mem_cons.mp ha with rfl | ha")
-                for ai in range(len(atoms)):
-                    if ai < len(atoms) - 1:
-                        lines += ["        · " + atom_stay(hlist[ai], lam_c, dom_imp)[0].strip()] + \
-                                 ["          " + x.strip() for x in atom_stay(hlist[ai], lam_c, dom_imp)[1:]]
-                        if ai < len(atoms) - 2:
-                            lines.append(f"        rcases List.mem_cons.mp ha with rfl | ha")
-                        else:
-                            lines.append(f"        rw [List.mem_singleton] at ha")
-                            lines.append(f"        subst ha")
-                    else:
-                        lines += atom_stay(hlist[ai], lam_c, dom_imp)
-            return lines
-        def atom_stay(h, lam_c, dom_imp):
+                           + [(h, t.replace(chr(10), " ")) for h, t, _ in o2_uniq]
+                           + [(h, t.replace(chr(10), " ")) for h, t, _ in o2L])
+        # per-atom exact blocks
+        def atom_stay_R(h, lam_c, dom_imp, ind):
             hname, _, a = h
-            lemma = "atom_boxle_R_strict" if a["route"] == "diStrict" else "atom_boxle_R_nonstrict"
-            pos_h = "(by norm_num)"
-            return [f"        exact {lemma} _ _ _ {lam_c} {pos_h} _ _",
-                    f"          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vs{U}) "
-                    f"(Or.{'inl' if a['op']=='<=' else 'inr'} rfl) (by simp [Parse.PExpr.namesFree]) "
-                    f"(by simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))",
-                    f"          {dom_imp} (z3_unsat_sound {hname}) hb"]
+            p = " " * ind
+            return [f"{p}exact {RLEM[a['route']]} _ _ _ {lam_c} (by norm_num) _ _",
+                    f"{p}  {fv_refute(U, 'R', a)}",
+                    f"{p}  {dom_imp} (z3_unsat_sound {hname}) hb"]
+        def atom_stay_L(h, lam_t, dom_imp, ind):
+            hname, _, a = h
+            p = " " * ind
+            return [f"{p}exact {LLEM[a['route']]} _ _ _ {lam_t} _ _",
+                    f"{p}  {fv_refute(U, 'L', a)}",
+                    f"{p}  {dom_imp} (z3_unsat_sound {hname}) hb"]
+        def per_atom_dispatch(listdef, blocks, ind):
+            """blocks: list of line-lists (relative indent), one per atom."""
+            p = " " * ind
+            def reind(blk, extra):
+                base = len(blk[0]) - len(blk[0].lstrip())
+                return [" " * extra + x[base:] for x in blk]
+            out = [f"{p}simp only [{listdef}] at ha"]
+            if len(blocks) == 1:
+                out += [f"{p}rw [List.mem_singleton] at ha", f"{p}subst ha"] + reind(blocks[0], ind)
+            else:
+                out.append(f"{p}rcases List.mem_cons.mp ha with rfl | ha")
+                b0 = reind(blocks[0], ind + 2)
+                out.append(f"{p}· " + b0[0].strip())
+                out += b0[1:]
+                out.append(f"{p}· rw [List.mem_singleton] at ha")
+                out.append(f"{p}  subst ha")
+                out += reind(blocks[1], ind + 2)
+            return out
+        def stay_text(pos, f, lam_c, dom_imp, sysdom_rw):
+            hlist = o2[f["name"]]
+            return ([f"        {sysdom_rw}", f"        intro a ha ν hb"]
+                    + per_atom_dispatch(f"cutR{U}_{l}",
+                        [atom_stay_R(h, lam_c, dom_imp, 8) for h in hlist], 8))
         # cert theorem
         A(f"theorem cert{U}_{l} {binders} :")
         A(f"    CoverCertMC (GW{U} {l}) {gs} Gd{U}_{l} cutL{U}_{l} cutR{U}_{l} := by")
         A(f"  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩")
         # 1 hiffL
-        A(f"  · exact atomsIff_nil")
+        if not latoms:
+            A(f"  · exact atomsIff_nil")
+        else:
+            A(f"  · intro a ha ν")
+            for ln in per_atom_dispatch(f"cutL{U}_{l}",
+                    [[iff_call(U, n, "L", a)] for a in latoms], 4):
+                A(ln)
         # 2 hiffR
         A(f"  · intro q")
         A(f"    match q with")
@@ -286,30 +334,39 @@ def gen_bench(name):
             atoms = cc["R"].get(f["name"], [])
             A(f"    | {pos} =>")
             A(f"        intro a ha ν")
-            A(f"        simp only [cutR{U}_{l}] at ha")
-            if len(atoms) == 1:
-                A(f"        rw [List.mem_singleton] at ha")
-                A(f"        subst ha")
-                A(f"        exact hostAtom_iff (Or.{'inl' if atoms[0]['op']=='<=' else 'inr'} rfl) ν")
-            else:
-                for ai, a in enumerate(atoms):
-                    if ai < len(atoms) - 1:
-                        A(f"        rcases List.mem_cons.mp ha with rfl | ha")
-                        A(f"        · exact hostAtom_iff (Or.{'inl' if a['op']=='<=' else 'inr'} rfl) ν")
-                    else:
-                        A(f"        rw [List.mem_singleton] at ha")
-                        A(f"        subst ha")
-                        A(f"        exact hostAtom_iff (Or.{'inl' if a['op']=='<=' else 'inr'} rfl) ν")
             if not atoms:
-                L.pop(); L.pop()
-                A(f"        intro a ha ν")
+                A(f"        simp only [cutR{U}_{l}] at ha")
                 A(f"        exact absurd ha List.not_mem_nil")
+            else:
+                for ln in per_atom_dispatch(f"cutR{U}_{l}",
+                        [[iff_call(U, n, "R", a)] for a in atoms], 8):
+                    A(ln)
         A(f"    | q + {len(nodes)} =>")
         A(f"        intro a ha ν")
         A(f"        exact absurd ha List.not_mem_nil")
         # 3 stayJL
-        A(f"  · intro q m hm hflag")
-        A(f"    exact atomsStay_nil _ _")
+        if not latoms:
+            A(f"  · intro q m hm hflag")
+            A(f"    exact atomsStay_nil _ _")
+        else:
+            A(f"  · intro q m hm hflag")
+            A(f"    unfold SearchGraph.modeAt at hm")
+            A(f"    rw [GW{U}{l}_modes_eq] at hm")
+            A(f"    match q, hm with")
+            for pos, (qn, f) in enumerate(nodes):
+                A(f"    | {pos}, hm =>")
+                A(f"        replace hm := Option.some.inj hm")
+                A(f"        subst hm")
+                if f["j"]:
+                    A(f"        simp only [realModeOf_sys, realModeOf_dom]")
+                    A(f"        intro a ha ν hb")
+                    for ln in per_atom_dispatch(f"cutL{U}_{l}",
+                            [atom_stay_L(h, f"(Term.const {lamc})",
+                                         "(by intro x h; exact h.1)", 8) for h in o2L], 8):
+                        A(ln)
+                else:
+                    A(f"        exact absurd hflag (by simp [fRow{U}, {name}_cover])")
+            A(f"    | q + {len(nodes)}, hm => simp at hm")
         # 4 stayJR
         def stay_field(flagkey, lam_c, dom_imp, sysdom_rw):
             A(f"  · intro q m hm hflag")
@@ -332,14 +389,56 @@ def gen_bench(name):
         stay_field("j", lamc, "(by intro x h; exact h.2)",
                    "simp only [realModeOf_sys, realModeOf_dom]")
         # 5 stayDPreL
-        A(f"  · intro q m hm hflag")
-        A(f"    exact atomsStay_nil _ _")
+        if not latoms:
+            A(f"  · intro q m hm hflag")
+            A(f"    exact atomsStay_nil _ _")
+        else:
+            A(f"  · intro q m hm hflag")
+            A(f"    unfold SearchGraph.modeAt at hm")
+            A(f"    rw [GW{U}{l}_modes_eq] at hm")
+            A(f"    match q, hm with")
+            for pos, (qn, f) in enumerate(nodes):
+                A(f"    | {pos}, hm =>")
+                A(f"        replace hm := Option.some.inj hm")
+                A(f"        subst hm")
+                if f["dp"]:
+                    A(f"        simp only [realModeOf_dynSys, realModeOf_dynDomPre]")
+                    A(f"        refine atomsStay_L_frozen_dyn _ _ _ ?_")
+                    A(f"        intro a ha i")
+                    for ln in per_atom_dispatch(f"cutL{U}_{l}",
+                            [[f"exact fun h => {fv_core(U, 'L', a)}"]
+                             for a in latoms], 8):
+                        A(ln)
+                else:
+                    A(f"        exact absurd hflag (by simp [fRow{U}, {name}_cover])")
+            A(f"    | q + {len(nodes)}, hm => simp at hm")
         # 6 stayDPreR
         stay_field("dp", "(1 : ℝ)", "(by intro x h; exact h.1.2)",
                    "simp only [realModeOf_dynSys, realModeOf_dynDomPre]")
         # 7 stayDPostL
-        A(f"  · intro q m hm hflag")
-        A(f"    exact atomsStay_nil _ _")
+        if not latoms:
+            A(f"  · intro q m hm hflag")
+            A(f"    exact atomsStay_nil _ _")
+        else:
+            A(f"  · intro q m hm hflag")
+            A(f"    unfold SearchGraph.modeAt at hm")
+            A(f"    rw [GW{U}{l}_modes_eq] at hm")
+            A(f"    match q, hm with")
+            for pos, (qn, f) in enumerate(nodes):
+                A(f"    | {pos}, hm =>")
+                A(f"        replace hm := Option.some.inj hm")
+                A(f"        subst hm")
+                if f["dq"]:
+                    A(f"        simp only [realModeOf_dynSys, realModeOf_dynDomPost]")
+                    A(f"        refine atomsStay_L_frozen_dyn _ _ _ ?_")
+                    A(f"        intro a ha i")
+                    for ln in per_atom_dispatch(f"cutL{U}_{l}",
+                            [[f"exact fun h => {fv_core(U, 'L', a)}"]
+                             for a in latoms], 8):
+                        A(ln)
+                else:
+                    A(f"        exact absurd hflag (by simp [fRow{U}, {name}_cover])")
+            A(f"    | q + {len(nodes)}, hm => simp at hm")
         # 8 stayDPostR
         stay_field("dq", "(1 : ℝ)", "(by intro x h; exact h.2)",
                    "simp only [realModeOf_dynSys, realModeOf_dynDomPost]")
@@ -351,23 +450,15 @@ def gen_bench(name):
             atoms = cc["R"].get(f["name"], [])
             A(f"    | {pos} =>")
             A(f"        intro a ha")
-            A(f"        simp only [cutR{U}_{l}] at ha")
             if not atoms:
+                A(f"        simp only [cutR{U}_{l}] at ha")
                 A(f"        exact absurd ha List.not_mem_nil")
                 continue
-            if len(atoms) == 1:
-                A(f"        rw [List.mem_singleton] at ha")
-                A(f"        subst ha")
-                A(f"        exact hostGuard_cutAtoms_sat (by decide) hsome{U}_{q} ν hg")
-            else:
-                for ai in range(len(atoms)):
-                    if ai < len(atoms) - 1:
-                        A(f"        rcases List.mem_cons.mp ha with rfl | ha")
-                        A(f"        · exact hostGuard_cutAtoms_sat (by decide) hsome{U}_{q} ν hg")
-                    else:
-                        A(f"        rw [List.mem_singleton] at ha")
-                        A(f"        subst ha")
-                        A(f"        exact hostGuard_cutAtoms_sat (by decide) hsome{U}_{q} ν hg")
+            for ln in per_atom_dispatch(f"cutR{U}_{l}",
+                    [[f"exact hostGuard_cutAtoms_sat (a := {a['lit']}) (by decide) "
+                      f"hsome{U}_{q} ν hg"]
+                     for a in atoms], 8):
+                A(ln)
         A(f"    | q + {len(nodes)} =>")
         A(f"        intro a ha")
         A(f"        exact absurd ha List.not_mem_nil")
@@ -398,27 +489,35 @@ def gen_bench(name):
         fuel = w["bud"] * (len(nodes) + 1) + 1
         node_of = {f["name"]: pos for pos, (qn, f) in enumerate(nodes)}
         adm_idx = [node_of[a] for a in w["adm"]]
-        hargs = " ".join([h for h, _ in hyps] + [h for h, _, _ in o2_uniq])
+        hargs = " ".join([h for h, _ in hyps] + [h for h, _, _ in o2_uniq]
+                         + [h for h, _, _ in o2L])
         tname = f"{name}_cut_throughout_{w['mL']}"
         thm_names.append(tname)
         A(f"theorem {tname} {binders} :")
-        A(f"    ∀ q0 ∈ {adm_idx}, ∀ ν, InvAllHolds {gs} ν → CutSat (cutR{U}_{l} q0) ν →")
+        cutlh = f"CutSat cutL{U}_{l} ν → " if latoms else ""
+        A(f"    ∀ q0 ∈ {adm_idx}, ∀ ν, InvAllHolds {gs} ν → {cutlh}CutSat (cutR{U}_{l} q0) ν →")
         A(f"      Covered (GW{U} {l}) ⟨q0, {w['bud']}, SrcSetting.preJ⟩")
         A(f"      ∧ CoexecInvAllThroughoutG (GW{U} {l}) Gd{U}_{l} {gs} ⟨q0, {w['bud']}, SrcSetting.preJ⟩ ν := by")
-        A(f"  intro q0 hq0 ν hν hcut")
+        A(f"  intro q0 hq0 ν hν {'hcutL ' if latoms else ''}hcut")
         A(f"  have cert := cert{U}_{l} {hargs}")
         A(f"  simp only [List.mem_cons, List.not_mem_nil, or_false] at hq0")
         pats = " | ".join(["rfl"] * len(adm_idx))
         A(f"  rcases hq0 with {pats} <;>")
+        hl = "hcutL" if latoms else "(fun a ha => absurd ha List.not_mem_nil)"
         A(f"    exact check_sound_multi_cut _ _ _ _ _ cert {fuel} _ (by decide) ν hν")
-        A(f"      (fun a ha => absurd ha List.not_mem_nil) hcut")
+        A(f"      {hl} hcut")
         A(f"")
     A(f"end CutThroughout{U}")
     A(f"end RelCertifier")
     return "\n".join(L) + "\n", thm_names
 
 names = sys.argv[1:] if len(sys.argv) > 1 else \
-    ["arm_chain_rung3", "arm_fidelity_high", "plant_fan_high"]
+    ["arm_chain_rung3", "arm_fidelity_high", "plant_fan_high",
+     "refinement_ladder_rover_rung1_2to3", "refinement_ladder_rover_rung3_6to8",
+     "refinement_ladder_rover_rung4_8to12", "rover_attitude_cone_12dof",
+     "rover_dof_terrain_rung1", "rover_dof_terrain_rung2",
+     "rover_dof_terrain_rung3_8d", "rover_dof_terrain_rung3",
+     "story3_rollover_base_12dof", "story3_rollover_ladder_rung_a"]
 os.makedirs("RelCertifier/Instances/CutThroughout", exist_ok=True)
 all_thms = []
 for nme in names:

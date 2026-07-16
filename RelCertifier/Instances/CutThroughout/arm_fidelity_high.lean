@@ -77,25 +77,25 @@ theorem certArmFidelityHigh_0 (hs_0_0 : ∀ i (hi : i < gsArmFidelityHigh_0.leng
         simp only [cutRArmFidelityHigh_0] at ha
         rw [List.mem_singleton] at ha
         subst ha
-        exact hostAtom_iff (Or.inr rfl) ν
+        exact hostAtom_iff (vars := vsArmFidelityHigh) (side := Side.R) (x := (.var "theta")) (y := (.num "0.0")) (Or.inr rfl) ν
     | 1 =>
         intro a ha ν
         simp only [cutRArmFidelityHigh_0] at ha
         rw [List.mem_singleton] at ha
         subst ha
-        exact hostAtom_iff (Or.inr rfl) ν
+        exact hostAtom_iff (vars := vsArmFidelityHigh) (side := Side.R) (x := (.var "theta")) (y := (.num "0.35")) (Or.inr rfl) ν
     | 2 =>
         intro a ha ν
         simp only [cutRArmFidelityHigh_0] at ha
         rw [List.mem_singleton] at ha
         subst ha
-        exact hostAtom_iff (Or.inr rfl) ν
+        exact hostAtom_iff (vars := vsArmFidelityHigh) (side := Side.R) (x := (.var "theta")) (y := (.num "0.5")) (Or.inr rfl) ν
     | 3 =>
         intro a ha ν
         simp only [cutRArmFidelityHigh_0] at ha
         rw [List.mem_singleton] at ha
         subst ha
-        exact hostAtom_iff (Or.inr rfl) ν
+        exact hostAtom_iff (vars := vsArmFidelityHigh) (side := Side.R) (x := (.var "theta")) (y := (.num "0.6")) (Or.inr rfl) ν
     | q + 4 =>
         intro a ha ν
         exact absurd ha List.not_mem_nil
@@ -114,7 +114,7 @@ theorem certArmFidelityHigh_0 (hs_0_0 : ∀ i (hi : i < gsArmFidelityHigh_0.leng
         rw [List.mem_singleton] at ha
         subst ha
         exact atom_boxle_R_strict _ _ _ (((1 : ℚ) / 1 : ℚ) : ℝ) (by norm_num) _ _
-          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (Or.inr rfl) (by simp [Parse.PExpr.namesFree]) (by simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
+          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (x := (.var "theta")) (y := (.num "0.0")) (Or.inr rfl) (by first | decide | simp [Parse.PExpr.namesFree]) (by first | decide | simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
           (by intro x h; exact h.2) (z3_unsat_sound hO2ArmFidelityHigh_0_0) hb
     | 1, hm =>
         replace hm := Option.some.inj hm
@@ -133,7 +133,7 @@ theorem certArmFidelityHigh_0 (hs_0_0 : ∀ i (hi : i < gsArmFidelityHigh_0.leng
         rw [List.mem_singleton] at ha
         subst ha
         exact atom_boxle_R_nonstrict _ _ _ (((1 : ℚ) / 1 : ℚ) : ℝ) (by norm_num) _ _
-          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (Or.inr rfl) (by simp [Parse.PExpr.namesFree]) (by simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
+          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (x := (.var "theta")) (y := (.num "0.6")) (Or.inr rfl) (by first | decide | simp [Parse.PExpr.namesFree]) (by first | decide | simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
           (by intro x h; exact h.2) (z3_unsat_sound hO2ArmFidelityHigh_3_0) hb
     | q + 4, hm => simp at hm
   · intro q m hm hflag
@@ -151,7 +151,7 @@ theorem certArmFidelityHigh_0 (hs_0_0 : ∀ i (hi : i < gsArmFidelityHigh_0.leng
         rw [List.mem_singleton] at ha
         subst ha
         exact atom_boxle_R_strict _ _ _ (1 : ℝ) (by norm_num) _ _
-          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (Or.inr rfl) (by simp [Parse.PExpr.namesFree]) (by simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
+          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (x := (.var "theta")) (y := (.num "0.0")) (Or.inr rfl) (by first | decide | simp [Parse.PExpr.namesFree]) (by first | decide | simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
           (by intro x h; exact h.1.2) (z3_unsat_sound hO2ArmFidelityHigh_0_0) hb
     | 1, hm =>
         replace hm := Option.some.inj hm
@@ -162,7 +162,7 @@ theorem certArmFidelityHigh_0 (hs_0_0 : ∀ i (hi : i < gsArmFidelityHigh_0.leng
         rw [List.mem_singleton] at ha
         subst ha
         exact atom_boxle_R_strict _ _ _ (1 : ℝ) (by norm_num) _ _
-          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (Or.inr rfl) (by simp [Parse.PExpr.namesFree]) (by simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
+          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (x := (.var "theta")) (y := (.num "0.35")) (Or.inr rfl) (by first | decide | simp [Parse.PExpr.namesFree]) (by first | decide | simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
           (by intro x h; exact h.1.2) (z3_unsat_sound hO2ArmFidelityHigh_1_0) hb
     | 2, hm =>
         replace hm := Option.some.inj hm
@@ -173,7 +173,7 @@ theorem certArmFidelityHigh_0 (hs_0_0 : ∀ i (hi : i < gsArmFidelityHigh_0.leng
         rw [List.mem_singleton] at ha
         subst ha
         exact atom_boxle_R_strict _ _ _ (1 : ℝ) (by norm_num) _ _
-          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (Or.inr rfl) (by simp [Parse.PExpr.namesFree]) (by simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
+          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (x := (.var "theta")) (y := (.num "0.5")) (Or.inr rfl) (by first | decide | simp [Parse.PExpr.namesFree]) (by first | decide | simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
           (by intro x h; exact h.1.2) (z3_unsat_sound hO2ArmFidelityHigh_2_0) hb
     | 3, hm =>
         replace hm := Option.some.inj hm
@@ -184,7 +184,7 @@ theorem certArmFidelityHigh_0 (hs_0_0 : ∀ i (hi : i < gsArmFidelityHigh_0.leng
         rw [List.mem_singleton] at ha
         subst ha
         exact atom_boxle_R_nonstrict _ _ _ (1 : ℝ) (by norm_num) _ _
-          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (Or.inr rfl) (by simp [Parse.PExpr.namesFree]) (by simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
+          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (x := (.var "theta")) (y := (.num "0.6")) (Or.inr rfl) (by first | decide | simp [Parse.PExpr.namesFree]) (by first | decide | simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
           (by intro x h; exact h.1.2) (z3_unsat_sound hO2ArmFidelityHigh_3_0) hb
     | q + 4, hm => simp at hm
   · intro q m hm hflag
@@ -202,7 +202,7 @@ theorem certArmFidelityHigh_0 (hs_0_0 : ∀ i (hi : i < gsArmFidelityHigh_0.leng
         rw [List.mem_singleton] at ha
         subst ha
         exact atom_boxle_R_strict _ _ _ (1 : ℝ) (by norm_num) _ _
-          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (Or.inr rfl) (by simp [Parse.PExpr.namesFree]) (by simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
+          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (x := (.var "theta")) (y := (.num "0.0")) (Or.inr rfl) (by first | decide | simp [Parse.PExpr.namesFree]) (by first | decide | simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
           (by intro x h; exact h.2) (z3_unsat_sound hO2ArmFidelityHigh_0_0) hb
     | 1, hm =>
         replace hm := Option.some.inj hm
@@ -213,7 +213,7 @@ theorem certArmFidelityHigh_0 (hs_0_0 : ∀ i (hi : i < gsArmFidelityHigh_0.leng
         rw [List.mem_singleton] at ha
         subst ha
         exact atom_boxle_R_strict _ _ _ (1 : ℝ) (by norm_num) _ _
-          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (Or.inr rfl) (by simp [Parse.PExpr.namesFree]) (by simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
+          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (x := (.var "theta")) (y := (.num "0.35")) (Or.inr rfl) (by first | decide | simp [Parse.PExpr.namesFree]) (by first | decide | simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
           (by intro x h; exact h.2) (z3_unsat_sound hO2ArmFidelityHigh_1_0) hb
     | 2, hm =>
         replace hm := Option.some.inj hm
@@ -224,7 +224,7 @@ theorem certArmFidelityHigh_0 (hs_0_0 : ∀ i (hi : i < gsArmFidelityHigh_0.leng
         rw [List.mem_singleton] at ha
         subst ha
         exact atom_boxle_R_strict _ _ _ (1 : ℝ) (by norm_num) _ _
-          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (Or.inr rfl) (by simp [Parse.PExpr.namesFree]) (by simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
+          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (x := (.var "theta")) (y := (.num "0.5")) (Or.inr rfl) (by first | decide | simp [Parse.PExpr.namesFree]) (by first | decide | simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
           (by intro x h; exact h.2) (z3_unsat_sound hO2ArmFidelityHigh_2_0) hb
     | 3, hm =>
         replace hm := Option.some.inj hm
@@ -235,7 +235,7 @@ theorem certArmFidelityHigh_0 (hs_0_0 : ∀ i (hi : i < gsArmFidelityHigh_0.leng
         rw [List.mem_singleton] at ha
         subst ha
         exact atom_boxle_R_nonstrict _ _ _ (1 : ℝ) (by norm_num) _ _
-          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (Or.inr rfl) (by simp [Parse.PExpr.namesFree]) (by simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
+          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (x := (.var "theta")) (y := (.num "0.6")) (Or.inr rfl) (by first | decide | simp [Parse.PExpr.namesFree]) (by first | decide | simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
           (by intro x h; exact h.2) (z3_unsat_sound hO2ArmFidelityHigh_3_0) hb
     | q + 4, hm => simp at hm
   · intro q ν hg
@@ -245,25 +245,25 @@ theorem certArmFidelityHigh_0 (hs_0_0 : ∀ i (hi : i < gsArmFidelityHigh_0.leng
         simp only [cutRArmFidelityHigh_0] at ha
         rw [List.mem_singleton] at ha
         subst ha
-        exact hostGuard_cutAtoms_sat (by decide) hsomeArmFidelityHigh_0 ν hg
+        exact hostGuard_cutAtoms_sat (a := .cmp ">=" (.var "theta") (.num "0.0")) (by decide) hsomeArmFidelityHigh_0 ν hg
     | 1 =>
         intro a ha
         simp only [cutRArmFidelityHigh_0] at ha
         rw [List.mem_singleton] at ha
         subst ha
-        exact hostGuard_cutAtoms_sat (by decide) hsomeArmFidelityHigh_1 ν hg
+        exact hostGuard_cutAtoms_sat (a := .cmp ">=" (.var "theta") (.num "0.35")) (by decide) hsomeArmFidelityHigh_1 ν hg
     | 2 =>
         intro a ha
         simp only [cutRArmFidelityHigh_0] at ha
         rw [List.mem_singleton] at ha
         subst ha
-        exact hostGuard_cutAtoms_sat (by decide) hsomeArmFidelityHigh_2 ν hg
+        exact hostGuard_cutAtoms_sat (a := .cmp ">=" (.var "theta") (.num "0.5")) (by decide) hsomeArmFidelityHigh_2 ν hg
     | 3 =>
         intro a ha
         simp only [cutRArmFidelityHigh_0] at ha
         rw [List.mem_singleton] at ha
         subst ha
-        exact hostGuard_cutAtoms_sat (by decide) hsomeArmFidelityHigh_3 ν hg
+        exact hostGuard_cutAtoms_sat (a := .cmp ">=" (.var "theta") (.num "0.6")) (by decide) hsomeArmFidelityHigh_3 ν hg
     | q + 4 =>
         intro a ha
         exact absurd ha List.not_mem_nil
@@ -422,25 +422,25 @@ theorem certArmFidelityHigh_1 (hs_1_0 : ∀ i (hi : i < gsArmFidelityHigh_1.leng
         simp only [cutRArmFidelityHigh_1] at ha
         rw [List.mem_singleton] at ha
         subst ha
-        exact hostAtom_iff (Or.inr rfl) ν
+        exact hostAtom_iff (vars := vsArmFidelityHigh) (side := Side.R) (x := (.var "theta")) (y := (.num "0.0")) (Or.inr rfl) ν
     | 1 =>
         intro a ha ν
         simp only [cutRArmFidelityHigh_1] at ha
         rw [List.mem_singleton] at ha
         subst ha
-        exact hostAtom_iff (Or.inr rfl) ν
+        exact hostAtom_iff (vars := vsArmFidelityHigh) (side := Side.R) (x := (.var "theta")) (y := (.num "0.35")) (Or.inr rfl) ν
     | 2 =>
         intro a ha ν
         simp only [cutRArmFidelityHigh_1] at ha
         rw [List.mem_singleton] at ha
         subst ha
-        exact hostAtom_iff (Or.inr rfl) ν
+        exact hostAtom_iff (vars := vsArmFidelityHigh) (side := Side.R) (x := (.var "theta")) (y := (.num "0.5")) (Or.inr rfl) ν
     | 3 =>
         intro a ha ν
         simp only [cutRArmFidelityHigh_1] at ha
         rw [List.mem_singleton] at ha
         subst ha
-        exact hostAtom_iff (Or.inr rfl) ν
+        exact hostAtom_iff (vars := vsArmFidelityHigh) (side := Side.R) (x := (.var "theta")) (y := (.num "0.6")) (Or.inr rfl) ν
     | q + 4 =>
         intro a ha ν
         exact absurd ha List.not_mem_nil
@@ -459,7 +459,7 @@ theorem certArmFidelityHigh_1 (hs_1_0 : ∀ i (hi : i < gsArmFidelityHigh_1.leng
         rw [List.mem_singleton] at ha
         subst ha
         exact atom_boxle_R_strict _ _ _ (((1 : ℚ) / 1 : ℚ) : ℝ) (by norm_num) _ _
-          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (Or.inr rfl) (by simp [Parse.PExpr.namesFree]) (by simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
+          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (x := (.var "theta")) (y := (.num "0.0")) (Or.inr rfl) (by first | decide | simp [Parse.PExpr.namesFree]) (by first | decide | simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
           (by intro x h; exact h.2) (z3_unsat_sound hO2ArmFidelityHigh_0_0) hb
     | 1, hm =>
         replace hm := Option.some.inj hm
@@ -478,7 +478,7 @@ theorem certArmFidelityHigh_1 (hs_1_0 : ∀ i (hi : i < gsArmFidelityHigh_1.leng
         rw [List.mem_singleton] at ha
         subst ha
         exact atom_boxle_R_nonstrict _ _ _ (((1 : ℚ) / 1 : ℚ) : ℝ) (by norm_num) _ _
-          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (Or.inr rfl) (by simp [Parse.PExpr.namesFree]) (by simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
+          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (x := (.var "theta")) (y := (.num "0.6")) (Or.inr rfl) (by first | decide | simp [Parse.PExpr.namesFree]) (by first | decide | simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
           (by intro x h; exact h.2) (z3_unsat_sound hO2ArmFidelityHigh_3_0) hb
     | q + 4, hm => simp at hm
   · intro q m hm hflag
@@ -496,7 +496,7 @@ theorem certArmFidelityHigh_1 (hs_1_0 : ∀ i (hi : i < gsArmFidelityHigh_1.leng
         rw [List.mem_singleton] at ha
         subst ha
         exact atom_boxle_R_strict _ _ _ (1 : ℝ) (by norm_num) _ _
-          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (Or.inr rfl) (by simp [Parse.PExpr.namesFree]) (by simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
+          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (x := (.var "theta")) (y := (.num "0.0")) (Or.inr rfl) (by first | decide | simp [Parse.PExpr.namesFree]) (by first | decide | simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
           (by intro x h; exact h.1.2) (z3_unsat_sound hO2ArmFidelityHigh_0_0) hb
     | 1, hm =>
         replace hm := Option.some.inj hm
@@ -507,7 +507,7 @@ theorem certArmFidelityHigh_1 (hs_1_0 : ∀ i (hi : i < gsArmFidelityHigh_1.leng
         rw [List.mem_singleton] at ha
         subst ha
         exact atom_boxle_R_strict _ _ _ (1 : ℝ) (by norm_num) _ _
-          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (Or.inr rfl) (by simp [Parse.PExpr.namesFree]) (by simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
+          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (x := (.var "theta")) (y := (.num "0.35")) (Or.inr rfl) (by first | decide | simp [Parse.PExpr.namesFree]) (by first | decide | simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
           (by intro x h; exact h.1.2) (z3_unsat_sound hO2ArmFidelityHigh_1_0) hb
     | 2, hm =>
         replace hm := Option.some.inj hm
@@ -518,7 +518,7 @@ theorem certArmFidelityHigh_1 (hs_1_0 : ∀ i (hi : i < gsArmFidelityHigh_1.leng
         rw [List.mem_singleton] at ha
         subst ha
         exact atom_boxle_R_strict _ _ _ (1 : ℝ) (by norm_num) _ _
-          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (Or.inr rfl) (by simp [Parse.PExpr.namesFree]) (by simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
+          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (x := (.var "theta")) (y := (.num "0.5")) (Or.inr rfl) (by first | decide | simp [Parse.PExpr.namesFree]) (by first | decide | simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
           (by intro x h; exact h.1.2) (z3_unsat_sound hO2ArmFidelityHigh_2_0) hb
     | 3, hm =>
         replace hm := Option.some.inj hm
@@ -529,7 +529,7 @@ theorem certArmFidelityHigh_1 (hs_1_0 : ∀ i (hi : i < gsArmFidelityHigh_1.leng
         rw [List.mem_singleton] at ha
         subst ha
         exact atom_boxle_R_nonstrict _ _ _ (1 : ℝ) (by norm_num) _ _
-          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (Or.inr rfl) (by simp [Parse.PExpr.namesFree]) (by simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
+          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (x := (.var "theta")) (y := (.num "0.6")) (Or.inr rfl) (by first | decide | simp [Parse.PExpr.namesFree]) (by first | decide | simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
           (by intro x h; exact h.1.2) (z3_unsat_sound hO2ArmFidelityHigh_3_0) hb
     | q + 4, hm => simp at hm
   · intro q m hm hflag
@@ -547,7 +547,7 @@ theorem certArmFidelityHigh_1 (hs_1_0 : ∀ i (hi : i < gsArmFidelityHigh_1.leng
         rw [List.mem_singleton] at ha
         subst ha
         exact atom_boxle_R_strict _ _ _ (1 : ℝ) (by norm_num) _ _
-          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (Or.inr rfl) (by simp [Parse.PExpr.namesFree]) (by simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
+          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (x := (.var "theta")) (y := (.num "0.0")) (Or.inr rfl) (by first | decide | simp [Parse.PExpr.namesFree]) (by first | decide | simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
           (by intro x h; exact h.2) (z3_unsat_sound hO2ArmFidelityHigh_0_0) hb
     | 1, hm =>
         replace hm := Option.some.inj hm
@@ -558,7 +558,7 @@ theorem certArmFidelityHigh_1 (hs_1_0 : ∀ i (hi : i < gsArmFidelityHigh_1.leng
         rw [List.mem_singleton] at ha
         subst ha
         exact atom_boxle_R_strict _ _ _ (1 : ℝ) (by norm_num) _ _
-          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (Or.inr rfl) (by simp [Parse.PExpr.namesFree]) (by simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
+          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (x := (.var "theta")) (y := (.num "0.35")) (Or.inr rfl) (by first | decide | simp [Parse.PExpr.namesFree]) (by first | decide | simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
           (by intro x h; exact h.2) (z3_unsat_sound hO2ArmFidelityHigh_1_0) hb
     | 2, hm =>
         replace hm := Option.some.inj hm
@@ -569,7 +569,7 @@ theorem certArmFidelityHigh_1 (hs_1_0 : ∀ i (hi : i < gsArmFidelityHigh_1.leng
         rw [List.mem_singleton] at ha
         subst ha
         exact atom_boxle_R_strict _ _ _ (1 : ℝ) (by norm_num) _ _
-          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (Or.inr rfl) (by simp [Parse.PExpr.namesFree]) (by simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
+          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (x := (.var "theta")) (y := (.num "0.5")) (Or.inr rfl) (by first | decide | simp [Parse.PExpr.namesFree]) (by first | decide | simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
           (by intro x h; exact h.2) (z3_unsat_sound hO2ArmFidelityHigh_2_0) hb
     | 3, hm =>
         replace hm := Option.some.inj hm
@@ -580,7 +580,7 @@ theorem certArmFidelityHigh_1 (hs_1_0 : ∀ i (hi : i < gsArmFidelityHigh_1.leng
         rw [List.mem_singleton] at ha
         subst ha
         exact atom_boxle_R_nonstrict _ _ _ (1 : ℝ) (by norm_num) _ _
-          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (Or.inr rfl) (by simp [Parse.PExpr.namesFree]) (by simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
+          (fun i h => absurd (hostAtomG_fv_side (resolvesTo_R vsArmFidelityHigh) (x := (.var "theta")) (y := (.num "0.6")) (Or.inr rfl) (by first | decide | simp [Parse.PExpr.namesFree]) (by first | decide | simp [Parse.PExpr.namesFree]) _ h) (by simp [Lv]))
           (by intro x h; exact h.2) (z3_unsat_sound hO2ArmFidelityHigh_3_0) hb
     | q + 4, hm => simp at hm
   · intro q ν hg
@@ -590,25 +590,25 @@ theorem certArmFidelityHigh_1 (hs_1_0 : ∀ i (hi : i < gsArmFidelityHigh_1.leng
         simp only [cutRArmFidelityHigh_1] at ha
         rw [List.mem_singleton] at ha
         subst ha
-        exact hostGuard_cutAtoms_sat (by decide) hsomeArmFidelityHigh_0 ν hg
+        exact hostGuard_cutAtoms_sat (a := .cmp ">=" (.var "theta") (.num "0.0")) (by decide) hsomeArmFidelityHigh_0 ν hg
     | 1 =>
         intro a ha
         simp only [cutRArmFidelityHigh_1] at ha
         rw [List.mem_singleton] at ha
         subst ha
-        exact hostGuard_cutAtoms_sat (by decide) hsomeArmFidelityHigh_1 ν hg
+        exact hostGuard_cutAtoms_sat (a := .cmp ">=" (.var "theta") (.num "0.35")) (by decide) hsomeArmFidelityHigh_1 ν hg
     | 2 =>
         intro a ha
         simp only [cutRArmFidelityHigh_1] at ha
         rw [List.mem_singleton] at ha
         subst ha
-        exact hostGuard_cutAtoms_sat (by decide) hsomeArmFidelityHigh_2 ν hg
+        exact hostGuard_cutAtoms_sat (a := .cmp ">=" (.var "theta") (.num "0.5")) (by decide) hsomeArmFidelityHigh_2 ν hg
     | 3 =>
         intro a ha
         simp only [cutRArmFidelityHigh_1] at ha
         rw [List.mem_singleton] at ha
         subst ha
-        exact hostGuard_cutAtoms_sat (by decide) hsomeArmFidelityHigh_3 ν hg
+        exact hostGuard_cutAtoms_sat (a := .cmp ">=" (.var "theta") (.num "0.6")) (by decide) hsomeArmFidelityHigh_3 ν hg
     | q + 4 =>
         intro a ha
         exact absurd ha List.not_mem_nil

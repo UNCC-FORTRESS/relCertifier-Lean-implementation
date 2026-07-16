@@ -1,6 +1,15 @@
 /- GENERATED umbrella (scripts/gen_cut_throughout.py) — do not edit.
-S2 cut-lifted throughout instances. v1: the arm/plant family (empty left cuts,
-diStrict/diNonstrict/frozen right atoms). Terrain benchmarks land with generator v2. -/
+S2 cut-lifted throughout instances: the 13 cut-reliant benchmarks. -/
 import RelCertifier.Instances.CutThroughout.arm_chain_rung3
 import RelCertifier.Instances.CutThroughout.arm_fidelity_high
 import RelCertifier.Instances.CutThroughout.plant_fan_high
+import RelCertifier.Instances.CutThroughout.refinement_ladder_rover_rung1_2to3
+import RelCertifier.Instances.CutThroughout.refinement_ladder_rover_rung3_6to8
+import RelCertifier.Instances.CutThroughout.refinement_ladder_rover_rung4_8to12
+import RelCertifier.Instances.CutThroughout.rover_attitude_cone_12dof
+import RelCertifier.Instances.CutThroughout.rover_dof_terrain_rung1
+import RelCertifier.Instances.CutThroughout.rover_dof_terrain_rung2
+import RelCertifier.Instances.CutThroughout.rover_dof_terrain_rung3_8d
+import RelCertifier.Instances.CutThroughout.rover_dof_terrain_rung3
+import RelCertifier.Instances.CutThroughout.story3_rollover_base_12dof
+import RelCertifier.Instances.CutThroughout.story3_rollover_ladder_rung_a

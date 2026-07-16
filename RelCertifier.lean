@@ -101,5 +101,6 @@ import RelCertifier.Proofs.Encoding.CoverMulti
 import RelCertifier.Proofs.Encoding.CoverInstance
 import RelCertifier.Instances.BenchCoversNC
 import RelCertifier.Instances.ThroughoutPilot
+import RelCertifier.Instances.UniformPilot
 import RelCertifier.Instances.WatertankThroughout
 import RelCertifier.Instances.ThroughoutBattery

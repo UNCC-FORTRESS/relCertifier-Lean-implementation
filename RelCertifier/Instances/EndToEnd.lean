@@ -1,4 +1,10 @@
 /-
+**DEPRECATED (R7, 2026-07-16) — cadenced-chain demos, kept until parity.** The
+watertank end-to-end theorems here ride the cadenced chain (`ClockedTop`). The
+paper-faithful successors are `Instances/UniformPilot.lean` (modal form, all-joint) and
+`Instances/WatertankThroughout.lean` / `Instances/Throughout/` (the conjunction
+throughout battery). See the deprecation note in `Proofs/Encoding/ClockedTop.lean`.
+
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 

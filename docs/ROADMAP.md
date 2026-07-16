@@ -59,6 +59,18 @@ restated against the frozen contract; ASSET-MAP refreshed; suite regression.
 **Gate:** `#print axioms` battery = the four axioms everywhere; hypothesis list in docs
 matches the frozen contract verbatim.
 
+## R7 closure record (2026-07-16)
+
+Decision (b): the cadenced chain is DEPRECATED, not deleted — the 46/46 `_real`
+settling battery stays green on it until the reposition-window modal form and the
+13-benchmark cut lift reach parity; then chain + cadenced demos retire to `Archive/`
+in one commit. `Instances/EndToEnd.lean` carries the deprecation header;
+`Proofs/Encoding/ClockedTop.lean`'s header note is DEFERRED to the next
+battery-invalidating batch (rebuild hygiene: a comment edit there cascades through
+`FvDischarge` into the full battery re-elaboration). `GBoxAll` retains its
+quarantine notice. Rule: never delete a theorem before its stronger replacement
+exists; never trigger a battery rebuild for a comment.
+
 ## Standing discipline
 - Before building anything: check docs/ASSET-MAP.md; update it when a top theorem lands.
 - Any tool↔proof mismatch: stop, record in COVER-AUDIT.md, resolve BY THE CODE or flag

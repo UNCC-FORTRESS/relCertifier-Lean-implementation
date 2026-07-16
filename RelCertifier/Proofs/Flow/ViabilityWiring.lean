@@ -357,4 +357,41 @@ theorem segment_faModalB_from_certB (g : Term (Var n)) (fL fR : Fin n → Term (
     exact hExist_clocked_of_HExistSegB fL fR lam domL domR tg dt htgLb htgLr htgRb htgRr htgdL htgdR
       hES
 
+
+/-! ## Anchor budget conditioning — the loop invariant implies the entry budgets
+
+The chain presents response anchors as envelope-conditioned invariant states
+(`phiInvE`). One UNSAT per growth face turns that into the entry budget
+`HExistSegB_of_viability` consumes: `UNSAT(inv ∧ env ∧ gT + M·dt ≥ 0)`. -/
+
+/-- Budget from an anchor verdict: wherever the loop invariant (with envelope) holds,
+the growth face carries its `dt`-budget. -/
+theorem anchor_budget_from_verdict (g gT : Term (Var n)) (env : Formula (Var n))
+    (Mdt : ℝ)
+    (hz3 : z3solve (Formula.and (Formula.and (invLe g) env)
+      (Formula.cmp .ge (Term.binop .add gT (Term.const Mdt))
+        (Term.const 0))) = Verdict.unsat) :
+    ∀ σ : State (Var n), Formula.sat (Formula.and (invLe g) env) σ →
+      Term.eval gT σ + Mdt < 0 := by
+  intro σ hσ
+  have hunsat := z3_unsat_sound hz3
+  by_contra hge
+  rw [not_lt] at hge
+  exact hunsat σ ⟨hσ, by
+    simpa [Formula.sat, CompOp.interp, Term.eval, AOp.interp] using hge⟩
+
+/-- Strict-face anchoring: wherever the loop invariant holds, the strict faces hold
+(`UNSAT(inv ∧ env ∧ gT > 0)` — the same per-component shape as the region queries). -/
+theorem anchor_face_from_verdict (g gT : Term (Var n)) (env : Formula (Var n))
+    (hz3 : z3solve (Formula.and (Formula.and (invLe g) env)
+      (Formula.cmp .gt gT (Term.const 0))) = Verdict.unsat) :
+    ∀ σ : State (Var n), Formula.sat (Formula.and (invLe g) env) σ →
+      Term.eval gT σ ≤ 0 := by
+  intro σ hσ
+  have hunsat := z3_unsat_sound hz3
+  by_contra hpos
+  rw [not_le] at hpos
+  exact hunsat σ ⟨hσ, by
+    simpa [Formula.sat, CompOp.interp, Term.eval] using hpos⟩
+
 end RelCertifier

@@ -500,4 +500,36 @@ theorem sem_rightBlock_frozen_iff {fR : Fin n → Term (Var n)} {lam : Term (Var
       simp only [ODESystem.bound, List.map_append, List.mem_append]
       exact Or.inr hb
 
+/-- `bigSeq` with a folded head has the same runs as the flattened list. -/
+theorem sem_bigSeq_fold_head (hops : List (Program (Var n))) (p : Program (Var n))
+    (rest : List (Program (Var n))) :
+    ∀ ν μ, Program.sem (bigSeq ((hops.foldr (fun h q => Program.seq h q) p) :: rest)) ν μ ↔
+      Program.sem (bigSeq (hops ++ p :: rest)) ν μ := by
+  induction hops with
+  | nil => intro ν μ; exact Iff.rfl
+  | cons h hs ih =>
+      intro ν μ
+      constructor
+      · rintro ⟨κ, ⟨κ', hκ', hfold⟩, hrest⟩
+        exact ⟨κ', hκ', (ih κ' μ).mp ⟨κ, hfold, hrest⟩⟩
+      · rintro ⟨κ', hκ', htail⟩
+        obtain ⟨κ, hfold, hrest⟩ := (ih κ' μ).mpr htail
+        exact ⟨κ, ⟨κ', hκ', hfold⟩, hrest⟩
+
+/-- `faModal` respects run-equivalent right programs (identity renaming). -/
+theorem sat_faModal_congrR {P Q Q' : Program (Var n)} {φ : Formula (Var n)}
+    {σ : State (Var n)}
+    (h : ∀ ν μ, Program.sem Q ν μ ↔ Program.sem Q' ν μ)
+    (hQ : Formula.sat (faModal (Equiv.refl (Var n)) P Q φ) σ) :
+    Formula.sat (faModal (Equiv.refl (Var n)) P Q' φ) σ := by
+  unfold faModal at hQ ⊢
+  rw [sat_box] at hQ ⊢
+  intro ν hν
+  have hdia := hQ ν hν
+  rw [sat_diamond] at hdia ⊢
+  push_neg at hdia ⊢
+  obtain ⟨μ, hsem, hφ⟩ := hdia
+  rw [Program.rename_refl] at hsem ⊢
+  exact ⟨μ, (h ν μ).mp hsem, hφ⟩
+
 end RelCertifier

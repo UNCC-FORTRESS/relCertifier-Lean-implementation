@@ -16,7 +16,11 @@ files (plus the Lean kernel and Z3 itself) has read the entire trust base:
 **The claim (the frozen hypothesis contract).** If the parser accepts the benchmark,
 the lowering means what it says, the printer prints the queries faithfully, and Z3's
 `unsat` verdicts are correct — plus the ONE model-faithfulness assumption
-(successor-completeness: every right execution exits a mode via a declared successor) —
+(successor-completeness: every mode change of the right-hand system moves it from its
+current mode into one of that mode's declared successor modes, and at the instant of the
+change the state satisfies the entering mode's guard — the standard guard-gated jump
+semantics of hybrid programs; the guard clause is consumed only by the 13 cut-reliant
+benchmarks' theorems, via `RightReachG`) —
 then every theorem in `Proofs/` and `Instances/` holds as stated, checked by the Lean
 kernel with axioms `[propext, Classical.choice, Quot.sound]` plus `z3_unsat_sound`
 exactly at the Z3 leaves. Nothing else is assumed: well-formedness is kernel-checked on

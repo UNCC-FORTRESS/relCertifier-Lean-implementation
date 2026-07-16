@@ -99,6 +99,7 @@ import RelCertifier.Proofs.Encoding.ToolLevel
 import RelCertifier.Proofs.Flow.StratifiedBarrier
 import RelCertifier.Proofs.Flow.BoxViability
 import RelCertifier.Proofs.Flow.BoxViabilityBounded
+import RelCertifier.Proofs.Flow.ViabilityWiring
 import RelCertifier.Instances.BenchCovers
 import RelCertifier.Instances.BenchCoverReplay
 import RelCertifier.Proofs.Encoding.CoverMulti

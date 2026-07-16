@@ -9,8 +9,10 @@ Released under Apache 2.0 license.
 * `growth0` — the S3 growth route at `M = 0` (`UNSAT(box ∧ ġ > 0)`): the face value
   never climbs, so any STRICTLY interior anchor keeps it for every bounded duration
   (`anchor_budget_from_verdict` with `M·dt = 0`);
-* `fail`    — neither probe closes (candidate for a positive-`M` growth bound or a
-  model-margin fix — the tool-improvement loop).
+* `growth<M>` — the positive-bound growth route (`UNSAT(box ∧ ġ > M)`, doubling sweep
+  `M ∈ {1,…,32}`): anchors within budget `g₀ + M·dt < 0` keep the face for `dt`
+  (e.g. watertank `Mid`'s equilibrium face `x ≤ 25`, `ġ = 3(1−0.04x)`);
+* `fail`    — no probe closes (model-margin fix — the tool-improvement loop).
 
 Lean consumers: `face_strict_from_verdict` / `face_growth_from_verdict` →
 `HExistSegB_of_viability` → `segment_faModalB_from_certB`.
@@ -44,7 +46,16 @@ def checkViabilityFacesB (s : Z3Session) (cnt : IO.Ref Nat)
           if ← probeUnsat s cnt maxQ maxSmt deadline coord qg then
             out := out ++ [(idx, "growth0")]
           else
-            out := out ++ [(idx, "fail")]
+            -- positive growth bounds, doubling sweep (budget: g₀ + M·dt < 0)
+            let mut tagged := false
+            for m in [1, 2, 4, 8, 16, 32] do
+              if !tagged then
+                let qm := IForm.and box (IForm.cmp .gt gdot (.rat m))
+                if ← probeUnsat s cnt maxQ maxSmt deadline coord qm then
+                  out := out ++ [(idx, s!"growth{m}")]
+                  tagged := true
+            if !tagged then
+              out := out ++ [(idx, "fail")]
         idx := idx + 1
       pure out
   | _, _, _ => pure []

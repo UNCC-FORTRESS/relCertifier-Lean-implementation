@@ -193,4 +193,140 @@ theorem theorem3_faithful_multiE (G : SearchGraph (Var n)) (mv : Var n) (g : Ter
     (by rw [hencψ]; exact hInvν)
     (fun σ hσ => by rw [hencψ] at hσ ⊢; exact hstep σ hσ) hddF hbdg
 
+/-- Pointwise run-equivalent program lists have run-equivalent `bigSeq`s. -/
+theorem sem_bigSeq_congr {ps qs : List (Program (Var n))}
+    (h : List.Forall₂ (fun p q => ∀ ν μ, Program.sem p ν μ ↔ Program.sem q ν μ) ps qs) :
+    ∀ ν μ, Program.sem (bigSeq ps) ν μ ↔ Program.sem (bigSeq qs) ν μ := by
+  induction h with
+  | nil => intro ν μ; exact Iff.rfl
+  | cons hpq _ ih =>
+      intro ν μ
+      constructor
+      · rintro ⟨κ, hp, hrest⟩
+        exact ⟨κ, (hpq ν κ).mp hp, (ih κ μ).mp hrest⟩
+      · rintro ⟨κ, hq, hrest⟩
+        exact ⟨κ, (hpq ν κ).mpr hq, (ih κ μ).mpr hrest⟩
+
+/-- Fold-of-seq variable peel (generic). -/
+theorem vars_foldr_seq_sub (hs : List (Program (Var n))) (p : Program (Var n)) :
+    ∀ x ∈ Program.vars (hs.foldr (fun h q => Program.seq h q) p),
+      x ∈ Program.vars p ∨ ∃ h ∈ hs, x ∈ Program.vars h := by
+  induction hs with
+  | nil => exact fun x hx => Or.inl hx
+  | cons h hs ih =>
+      intro x hx
+      rcases vars_seq_sub _ _ hx with hx | hx
+      · exact Or.inr ⟨h, List.mem_cons_self, hx⟩
+      · rcases ih x hx with hx | ⟨h', hh', hx⟩
+        · exact Or.inl hx
+        · exact Or.inr ⟨h', List.mem_cons_of_mem _ hh', hx⟩
+
+/-- Folding hop programs = folding the mapped program list. -/
+theorem foldr_prog_map (hops : List (RepoHop n)) (domL : Formula (Var n))
+    (p : Program (Var n)) :
+    hops.foldr (fun h q => Program.seq (h.prog domL) q) p
+      = (hops.map (fun h => h.prog domL)).foldr (fun h q => Program.seq h q) p := by
+  induction hops with
+  | nil => rfl
+  | cons h hs ih => simp [List.map_cons, List.foldr_cons, ih]
+
+/-- **The prefixed window response (S1 assembly).** The clocked `k`-piece window's
+`faModal`, response = reposition-hop prefix (frozen-left programs) followed by the `k`
+pieces: `faModalB_repoPath` folds the prefix into the first piece's coupling,
+`multiseg_clocked` composes, and fold-head associativity flattens the response program
+to the hop-programs-then-pieces list. φ = the envelope-carrying `(invLe g) ∧ env`. -/
+theorem Hmulti_window_prefixed (fL : Fin n → Term (Var n)) (domL : Formula (Var n))
+    (g : Term (Var n)) (env : Formula (Var n)) (a : Fin n) (dt : ℝ) (k : ℕ)
+    (htgg : ((Side.Aux, a) : Var n) ∉ g.fv) (htgenv : ((Side.Aux, a) : Var n) ∉ env.fv)
+    (hops : List (RepoHop n))
+    (hhops : ∀ h ∈ hops, (∀ i, (h.fR i).fv ⊆ range Rv) ∧ h.lam.fv ⊆ range Rv
+      ∧ h.domR.fv ⊆ range Rv)
+    (hR : ∀ h ∈ hops, ∀ σ, Formula.sat (Formula.and (invLe g) env) σ →
+      σ ((Side.Aux, a) : Var n) = 0 →
+      ∃ ρ, Program.sem (h.prog domL) σ ρ ∧ Formula.sat (Formula.and (invLe g) env) ρ)
+    (hfL : ∀ i, (fL i).fv ⊆ range Lv) (hdomL : domL.fv ⊆ range Lv)
+    (pieces : List (Program (Var n))) (hklen : pieces.length = k) (hk : 0 < k)
+    (hdisP : ∀ Q ∈ pieces, Disjoint (Program.vars (Q.rename (Equiv.refl (Var n))))
+        (Program.vars (clockedSeg (leftBlock fL) domL ((Side.Aux, a) : Var n) dt)))
+    (hdisH : ∀ h ∈ hops, Disjoint (Program.vars (h.prog domL))
+        (Program.vars (clockedSeg (leftBlock fL) domL ((Side.Aux, a) : Var n) dt)))
+    (hcouple : ∀ Q ∈ pieces, ∀ σ, Formula.sat (Formula.and (invLe g) env) σ →
+      faModalB (Equiv.refl (Var n))
+        (Program.ode (DLCalTiming.clk ((Side.Aux, a) : Var n) (leftBlock fL)) domL)
+        Q (Formula.and (invLe g) env) ((Side.Aux, a) : Var n) dt
+        (Function.update σ ((Side.Aux, a) : Var n) 0))
+    {σ : State (Var n)} (hσ : Formula.sat (Formula.and (invLe g) env) σ) :
+    Formula.sat (faModal (Equiv.refl (Var n))
+      (windowSeg (leftBlock fL) domL ((Side.Aux, a) : Var n) dt k)
+      (bigSeq ((hops.map (fun h => h.prog domL)) ++ pieces))
+      (Formula.and (invLe g) env)) σ := by
+  set φ := Formula.and (invLe g) env with hφdef
+  have htgφ : ((Side.Aux, a) : Var n) ∉ φ.fv := by
+    intro h
+    rcases h with h | h
+    · exact htgg (by simpa [invLe, Formula.fv, Term.fv] using h)
+    · exact htgenv h
+  obtain ⟨p₁, rest, rfl⟩ : ∃ p₁ rest, pieces = p₁ :: rest := by
+    cases pieces with
+    | nil => exact absurd hklen (by simp; omega)
+    | cons p₁ rest => exact ⟨p₁, rest, rfl⟩
+  set folded := hops.foldr (fun h q => Program.seq (h.prog domL) q) p₁ with hfolded
+  have hfoldvars : ∀ x ∈ Program.vars folded,
+      x ∈ Program.vars p₁ ∨ ∃ h ∈ hops, x ∈ Program.vars (h.prog domL) := by
+    rw [hfolded, foldr_prog_map]
+    intro x hx
+    rcases vars_foldr_seq_sub _ _ x hx with hx | ⟨hp, hhp, hx⟩
+    · exact Or.inl hx
+    · obtain ⟨h, hh, rfl⟩ := List.mem_map.mp hhp
+      exact Or.inr ⟨h, hh, hx⟩
+  have hm := multiseg_clocked φ (leftBlock fL) domL ((Side.Aux, a) : Var n) dt
+    (folded :: rest)
+    (by
+      intro Q hQ
+      rcases List.mem_cons.mp hQ with rfl | hQr
+      · rw [Set.disjoint_left]
+        intro x hxQ hxW
+        rw [Program.rename_refl] at hxQ
+        rcases hfoldvars x hxQ with hx | ⟨h, hh, hx⟩
+        · exact absurd hxW (Set.disjoint_left.mp (hdisP p₁ List.mem_cons_self)
+            (by rwa [Program.rename_refl]))
+        · exact absurd hxW (Set.disjoint_left.mp (hdisH h hh) hx)
+      · exact hdisP Q (List.mem_cons_of_mem _ hQr))
+    (by
+      intro Q hQ σ' hσ'
+      rcases List.mem_cons.mp hQ with rfl | hQr
+      · -- the folded coupling: repoPath feeding the first piece
+        have hupdφ : Formula.sat φ (Function.update σ' ((Side.Aux, a) : Var n) 0) := by
+          rwa [(Formula.coincidence φ (fun v hv =>
+            Function.update_of_ne (fun hc => htgφ (by rw [← hc]; exact hv)) _ _) :
+              Formula.sat φ _ ↔ Formula.sat φ σ')]
+        have hupdtg : (Function.update σ' ((Side.Aux, a) : Var n) 0)
+            ((Side.Aux, a) : Var n) = 0 := Function.update_self _ _ _
+        refine faModalB_repoPath hfL hdomL hops hhops hR
+          (fun τ hτ hτtg => ?_) (Function.update σ' ((Side.Aux, a) : Var n) 0)
+          hupdφ hupdtg
+        have hupdτ : Function.update τ ((Side.Aux, a) : Var n) 0 = τ := by
+          funext x
+          by_cases hx : x = ((Side.Aux, a) : Var n)
+          · subst hx; rw [Function.update_self, hτtg]
+          · rw [Function.update_of_ne hx]
+        have := hcouple p₁ List.mem_cons_self τ hτ
+        rwa [hupdτ] at this
+      · exact hcouple Q (List.mem_cons_of_mem _ hQr) σ' hσ')
+    σ hσ
+  -- flatten: the folded head ↔ the hop-programs-then-pieces list; the left side is the window
+  have hlen : (folded :: rest).length = k := by simpa using hklen
+  have hleft : (folded :: rest).map
+      (fun _ => clockedSeg (leftBlock fL) domL ((Side.Aux, a) : Var n) dt)
+      = List.replicate k (clockedSeg (leftBlock fL) domL ((Side.Aux, a) : Var n) dt) := by
+    rw [List.map_const', hlen]
+  rw [hleft] at hm
+  have hfold_eq : folded = (hops.map (fun h => h.prog domL)).foldr
+      (fun h q => Program.seq h q) p₁ := by
+    rw [hfolded, foldr_prog_map]
+  have hflat := sem_bigSeq_fold_head (hops.map (fun h => h.prog domL)) p₁ rest
+  refine sat_faModal_congrR (fun ν μ => ?_) hm
+  rw [hfold_eq]
+  exact hflat ν μ
+
 end RelCertifier

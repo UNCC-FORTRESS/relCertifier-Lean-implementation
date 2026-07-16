@@ -296,7 +296,8 @@ def checkDynRepo (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
         | some (baseDom, gdot) =>
             let baseDom := andCuts baseDom cutL cutR   -- checked-cut narrowing
             let dom0 := strataDomIR comps proven baseDom
-            let dom := IForm.and dom0 gLform            -- σ-matched: add guardL iff pre-j
+            -- σ-matched, shape-normalized: conjoin guardL ONLY pre-j (no tt-noise post-j)
+            let dom := if withGuardL then IForm.and dom0 gLform else dom0
             -- route A (DI_nonstrict_domain, WHOLE-DOMAIN): domain ∧ ġ>0 UNSAT
             let q := IForm.and dom (IForm.cmp .gt gdot (.rat 0))
             let script := q.toScript coord

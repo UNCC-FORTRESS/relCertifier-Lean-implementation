@@ -118,12 +118,38 @@ Fix a benchmark: left modes `l ∈ L`, right modes `q ∈ Q`, declared edge rela
 
 ### 3.2 Where ε_R lives: inside R's move, as a tiling
 
-Matching is width-sensitive. A flow piece at stretch λ covers `ε_R/λ` of left time,
-so answering a full left window (width ε_L) in general takes a *sequence* of pieces
-tiling it: `Σᵢ ε_R/λᵢ = ε_L`, hop chains permitted at the seams (the multiflow round
-shape, task H). Whether a tiling exists depends on the benchmark's (ε_R, λ-range)
-design — for a fixed L, some ε_R designs can match and some cannot. The design
-accounts for this by placing ε_R under the ∃, in the answer, never in the position:
+**The short answer: ε_R does not change the fixpoint machinery at all. It changes
+what counts as "an answer" inside the membership test.** It is an input parameter of
+the game, like the mode graph. The design has three layers, and ε_R touches exactly
+one of them:
+
+- **Layer 1 — the pruning loop.** "Delete positions with no answer, repeat." Knows
+  nothing about widths. Unchanged by ε_R.
+
+- **Layer 2 — the membership test, per position `(l, q)`.** Asks: can `q` fully
+  cover the window `l` presents? Here ε_R enters. The window has left-duration ε_L.
+  R answers with pieces; a piece run at stretch λ consumes `ε_R/λ` of left time. To
+  cover the window, the piece durations must add up to ε_L — a *tiling*
+  `Σᵢ ε_R/λᵢ = ε_L`, hop chains permitted at the seams (the multiflow round shape,
+  task H). Whether a tiling exists depends on ε_R and the allowed λ range — *before
+  any Z3 query is even asked*. Concretely, with ε_L = 1 and λ ∈ [1, 2]:
+  - ε_R = 0.4 → each piece covers between 0.2 and 0.4 of left time; the tiling
+    0.4 + 0.4 + 0.2 = 1 works (λ = 1, 1, 2). The position can pass.
+  - ε_R = 0.7 with λ fixed at 1 → each piece covers exactly 0.7; one piece gives
+    0.7, two give 1.4 — the sum can never hit 1. The position fails, *no matter how
+    good the dynamics are*.
+
+  This is precisely the observation that motivates the section: for a fixed L, some
+  ε_R designs can match and some cannot — and it surfaces here, in layer 2, as
+  "does a tiling exist."
+
+- **Layer 3 — the consequence.** Positions failing the test are pruned → W shrinks →
+  if the admissible starts fall out of W, there is no modal theorem *for that ε_R
+  design*. Different ε_R = a different game = a different winning region.
+
+One could imagine instead making ε_R part of the state the fixpoint iterates over —
+that would bloat W for nothing: for a given benchmark, ε_R is *fixed by the benchmark
+file*. So the design places ε_R under the ∃ — in the answer, never in the position:
 
 - **Positions stay mode pairs.** W does not grow with the width parameters.
 - **A σ flow entry is a tiling**, not a single piece: a finite list

@@ -18,6 +18,7 @@ import RelCertifier.Trusted.Z3
 import RelCertifier.Trusted.OracleAPI
 import RelCertifier.Trusted.ViabilityEmit
 import RelCertifier.Verdicts.Run
+import RelCertifier.Verdicts.RunCut
 
 open RelCertifier DL
 
@@ -183,8 +184,10 @@ def main (args : List String) : IO Unit := do
       match ← RelCertifier.Z3Config.discover with
       | .error e => IO.eprintln s!"ERROR: {e}"; IO.Process.exit 1
       | .ok cfg =>
-          if ← RelCertifier.Verdicts.runVerdicts cfg then
-            IO.println "ALL HYPOTHESES DISCHARGED (every pair has an unsat route)"
+          let ok1 ← RelCertifier.Verdicts.runVerdicts cfg
+          let ok2 ← RelCertifier.Verdicts.runCutProbes cfg
+          if ok1 && ok2 then
+            IO.println "ALL HYPOTHESES DISCHARGED"
           else
             IO.eprintln "SOME HYPOTHESIS NOT DISCHARGED"; IO.Process.exit 1
   | ["--emit-viability2", path, defname] => do

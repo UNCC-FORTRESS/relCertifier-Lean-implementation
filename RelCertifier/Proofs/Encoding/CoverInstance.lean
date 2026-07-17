@@ -16,7 +16,7 @@ Everything here is generic; the generated instances supply only literals and `de
 import RelCertifier.Proofs.Encoding.CoverMulti
 import RelCertifier.Proofs.Encoding.LoweringSide
 import RelCertifier.Instances.BenchCovers
-import RelCertifier.Trusted.OracleAPI
+import RelCertifier.Trusted.InvComponents
 
 namespace RelCertifier
 open DL Run

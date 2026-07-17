@@ -221,6 +221,51 @@ theorem bounded_faces_raw {sys : ODESystem V} (hwf : sys.WellFormed)
   have := hbudget g hgm
   nlinarith [mul_le_mul_of_nonneg_left ht.2 hM]
 
+
+/-- Quantitative growth along a box-staying curve: `g(Φ r) ≤ g(Φ 0) + M·r` (the
+antitone integrating-factor argument, given the box holds pointwise). -/
+theorem growth_along {sys : ODESystem V} (hwf : sys.WellFormed)
+    (gs : List (State V → ℝ)) (M : ℝ)
+    (g : State V → ℝ) (hgd : Differentiable ℝ g)
+    (hbnd : ∀ x, (∀ g' ∈ gs, g' x ≤ 0) → Lie sys g x ≤ M)
+    {r : ℝ} {Φ : ℝ → State V} (hr : 0 ≤ r)
+    (hcurve : IsIntegralCurveOn Φ (fun _ => odeField sys) (Set.Icc 0 r))
+    (hbox : ∀ t ∈ Set.Icc (0:ℝ) r, ∀ g' ∈ gs, g' (Φ t) ≤ 0) :
+    g (Φ r) ≤ g (Φ 0) + M * r := by
+  have hderiv : ∀ t ∈ Set.Icc (0:ℝ) r,
+      HasDerivWithinAt (fun s => g (Φ s)) (Lie sys g (Φ t)) (Set.Icc 0 r) t :=
+    fun t ht => hasDeriv_g_along_flow hwf hgd hcurve ht
+  have hanti : AntitoneOn (fun u => g (Φ u) - M * u) (Set.Icc 0 r) := by
+    refine antitoneOn_of_deriv_nonpos (convex_Icc 0 r) ?_ ?_ ?_
+    · intro u hu
+      exact (hderiv u hu).continuousWithinAt.sub
+        ((continuous_const.mul continuous_id).continuousOn u hu)
+    · intro u hu
+      rw [interior_Icc] at hu
+      have hd' : HasDerivAt (fun v => g (Φ v)) (Lie sys g (Φ u)) u := by
+        refine (hderiv u ⟨hu.1.le, hu.2.le⟩).hasDerivAt ?_
+        exact Icc_mem_nhds hu.1 hu.2
+      have hDM : HasDerivAt (fun v : ℝ => M * v) M u := by
+        simpa using (hasDerivAt_id u).const_mul M
+      have hD : HasDerivAt (fun v => g (Φ v) - M * v) (Lie sys g (Φ u) - M) u :=
+        hd'.sub hDM
+      exact hD.differentiableAt.differentiableWithinAt
+    · intro u hu
+      rw [interior_Icc] at hu
+      have hd' : HasDerivAt (fun v => g (Φ v)) (Lie sys g (Φ u)) u := by
+        refine (hderiv u ⟨hu.1.le, hu.2.le⟩).hasDerivAt ?_
+        exact Icc_mem_nhds hu.1 hu.2
+      have hDM : HasDerivAt (fun v : ℝ => M * v) M u := by
+        simpa using (hasDerivAt_id u).const_mul M
+      have hD : HasDerivAt (fun v => g (Φ v) - M * v) (Lie sys g (Φ u) - M) u :=
+        hd'.sub hDM
+      rw [hD.deriv]
+      have := hbnd (Φ u) (hbox u ⟨hu.1.le, hu.2.le⟩)
+      linarith
+  have := hanti (Set.left_mem_Icc.mpr hr) (Set.right_mem_Icc.mpr hr) hr
+  simp only [mul_zero, sub_zero] at this
+  linarith
+
 /-- **Bounded-time box viability (S3 core).** Strict + growth face certificates and an
 entry budget give a run of ANY duration `T` within the budget horizon, staying in the
 box throughout — a SINGLE Picard step per piece (window pieces are clock-capped, so
@@ -239,7 +284,8 @@ theorem box_viability_bounded {sys : ODESystem V} {dom : Formula V}
       ∀ x ∈ Metric.closedBall ν a, ‖odeField sys x‖ ≤ (L : ℝ))
     (T : ℝ) (hT : 0 < T) (hTle : (L : ℝ) * T ≤ a) :
     ∀ ν : State V, (∀ g ∈ gsS, g ν ≤ 0) → (∀ g ∈ gsG, g ν + M * T < 0) →
-      ∃ ν', (∀ g ∈ gsS ++ gsG, g ν' ≤ 0) ∧ RunFor sys dom T ν ν' := by
+      ∃ ν', (∀ g ∈ gsS ++ gsG, g ν' ≤ 0) ∧ (∀ g ∈ gsG, g ν' ≤ g ν + M * T)
+        ∧ RunFor sys dom T ν ν' := by
   intro ν hPS hPG
   have hP : ∀ g ∈ gsS ++ gsG, g ν ≤ 0 := by
     intro g hgm
@@ -256,10 +302,107 @@ theorem box_viability_bounded {sys : ODESystem V} {dom : Formula V}
       (fun g hgm => by rw [hΦ0]; exact hPS g hgm)
       (fun g hgm => by rw [hΦ0]; exact hPG g hgm) t ht
   obtain ⟨Φ, hΦ0, hcurve, hrun⟩ := picard_to_RunFor ν hT hpl hdomC
-  refine ⟨Φ T, ?_, hrun⟩
-  exact bounded_faces_raw hwf gsS gsG M hM hgS hgG hbndS hbndG hcurve
-    (fun g hgm => by rw [hΦ0]; exact hPS g hgm)
-    (fun g hgm => by rw [hΦ0]; exact hPG g hgm) T (Set.right_mem_Icc.mpr hT.le)
+  have hboxall : ∀ t ∈ Set.Icc (0:ℝ) T, ∀ g ∈ gsS ++ gsG, g (Φ t) ≤ 0 :=
+    bounded_faces_raw hwf gsS gsG M hM hgS hgG hbndS hbndG hcurve
+      (fun g hgm => by rw [hΦ0]; exact hPS g hgm)
+      (fun g hgm => by rw [hΦ0]; exact hPG g hgm)
+  refine ⟨Φ T, hboxall T (Set.right_mem_Icc.mpr hT.le), ?_, hrun⟩
+  intro g hgm
+  have := growth_along hwf (gsS ++ gsG) M g (hgG g hgm)
+    (hbndG g hgm) hT.le hcurve hboxall
+  rw [hΦ0] at this
+  exact this
+
+
+/-- **Chained bounded viability** — ANY duration within the budget horizon, with NO
+`L·T ≤ a` constraint: fixed Picard steps `r₀ = a/(L+1)` glue along the box, the growth
+budget telescoping through the steps' quantitative growth bound. -/
+theorem box_viability_bounded_chain {sys : ODESystem V} {dom : Formula V}
+    (hwf : sys.WellFormed)
+    (gsS gsG : List (State V → ℝ)) (M : ℝ) (hM : 0 ≤ M)
+    (hgS : ∀ g ∈ gsS, Differentiable ℝ g) (hgG : ∀ g ∈ gsG, Differentiable ℝ g)
+    (hbndS : ∀ g ∈ gsS, ∀ x, (∀ g' ∈ gsS ++ gsG, g' x ≤ 0) → g x = 0 → Lie sys g x < 0)
+    (hbndG : ∀ g ∈ gsG, ∀ x, (∀ g' ∈ gsS ++ gsG, g' x ≤ 0) → Lie sys g x ≤ M)
+    (hdomsat : ∀ x : State V, (∀ g ∈ gsS ++ gsG, g x ≤ 0) → Formula.sat dom x)
+    (K L : NNReal) (a : ℝ) (ha : 0 < a)
+    (hLipOn : ∀ ν : State V, (∀ g ∈ gsS ++ gsG, g ν ≤ 0) →
+      LipschitzOnWith K (odeField sys) (Metric.closedBall ν a))
+    (hfbnd : ∀ ν : State V, (∀ g ∈ gsS ++ gsG, g ν ≤ 0) →
+      ∀ x ∈ Metric.closedBall ν a, ‖odeField sys x‖ ≤ (L : ℝ)) :
+    ∀ T : ℝ, 0 ≤ T → ∀ ν : State V,
+      (∀ g ∈ gsS, g ν ≤ 0) → (∀ g ∈ gsG, g ν + M * T < 0) →
+      ∃ ν', (∀ g ∈ gsS ++ gsG, g ν' ≤ 0) ∧ RunFor sys dom T ν ν' := by
+  set r₀ : ℝ := a / ((L : ℝ) + 1) with hr₀def
+  have hL1 : (0:ℝ) < (L : ℝ) + 1 := by positivity
+  have hr₀ : 0 < r₀ := div_pos ha hL1
+  have hstep_le : ∀ T', 0 < T' → T' ≤ r₀ → (L : ℝ) * T' ≤ a := by
+    intro T' _ hT'
+    have h1 : (L : ℝ) * T' ≤ (L : ℝ) * r₀ := mul_le_mul_of_nonneg_left hT' L.coe_nonneg
+    have h2 : (L : ℝ) * r₀ ≤ a := by
+      rw [hr₀def, mul_div_assoc']
+      rw [div_le_iff₀ hL1]
+      nlinarith [L.coe_nonneg, ha.le]
+    exact le_trans h1 h2
+  -- strong induction on the step count
+  suffices h : ∀ n : ℕ, ∀ T : ℝ, 0 ≤ T → T ≤ n * r₀ → ∀ ν : State V,
+      (∀ g ∈ gsS, g ν ≤ 0) → (∀ g ∈ gsG, g ν + M * T < 0) →
+      ∃ ν', (∀ g ∈ gsS ++ gsG, g ν' ≤ 0) ∧ RunFor sys dom T ν ν' by
+    intro T hT ν hS hG
+    obtain ⟨n, hn⟩ := exists_nat_ge (T / r₀)
+    refine h n T hT ?_ ν hS hG
+    calc T = (T / r₀) * r₀ := by field_simp
+      _ ≤ (n : ℝ) * r₀ := mul_le_mul_of_nonneg_right hn hr₀.le
+  intro n
+  induction n with
+  | zero =>
+      intro T hT0 hTle ν hS hG
+      have hT0' : T = 0 := le_antisymm (by simpa using hTle) hT0
+      subst hT0'
+      have hall : ∀ g ∈ gsS ++ gsG, g ν ≤ 0 := by
+        intro g hgm
+        rcases List.mem_append.mp hgm with h | h
+        · exact hS g h
+        · nlinarith [hG g h]
+      exact ⟨ν, hall, RunFor.zero (hdomsat ν hall)⟩
+  | succ m ih =>
+      intro T hT0 hTle ν hS hG
+      rcases le_or_gt T r₀ with hcase | hcase
+      · -- one bounded step covers it
+        rcases eq_or_lt_of_le hT0 with hT0' | hTpos
+        · subst hT0'
+          have hall : ∀ g ∈ gsS ++ gsG, g ν ≤ 0 := by
+            intro g hgm
+            rcases List.mem_append.mp hgm with h | h
+            · exact hS g h
+            · nlinarith [hG g h]
+          exact ⟨ν, hall, RunFor.zero (hdomsat ν hall)⟩
+        · obtain ⟨ν', hfaces, -, hrun⟩ := box_viability_bounded hwf gsS gsG M hM
+            hgS hgG hbndS hbndG hdomsat K L a ha hLipOn hfbnd T hTpos
+            (hstep_le T hTpos hcase) ν hS hG
+          exact ⟨ν', hfaces, hrun⟩
+      · -- step r₀, then induct on the remainder with the telescoped budget
+        have hbud₀ : ∀ g ∈ gsG, g ν + M * r₀ < 0 := by
+          intro g hgm
+          have := hG g hgm
+          nlinarith [mul_le_mul_of_nonneg_left hcase.le hM]
+        obtain ⟨ν₁, hfaces₁, hgrow₁, hrun₁⟩ := box_viability_bounded hwf gsS gsG M hM
+          hgS hgG hbndS hbndG hdomsat K L a ha hLipOn hfbnd r₀ hr₀
+          (hstep_le r₀ hr₀ le_rfl) ν hS hbud₀
+        have hS₁ : ∀ g ∈ gsS, g ν₁ ≤ 0 :=
+          fun g hgm => hfaces₁ g (List.mem_append_left _ hgm)
+        have hG₁ : ∀ g ∈ gsG, g ν₁ + M * (T - r₀) < 0 := by
+          intro g hgm
+          have h1 := hgrow₁ g hgm
+          have h2 := hG g hgm
+          nlinarith
+        have hTle' : T ≤ (m : ℝ) * r₀ + r₀ := by
+          push_cast at hTle
+          linarith
+        obtain ⟨ν', hfaces', hrun'⟩ := ih (T - r₀) (by linarith)
+          (by linarith) ν₁ hS₁ hG₁
+        refine ⟨ν', hfaces', ?_⟩
+        have := RunFor.glue hrun₁ hrun'
+        simpa using this
 
 /-! ## The Z3 leaf: growth-face verdicts (frozen-left, `UNSAT(box ∧ ġ > M)`) -/
 

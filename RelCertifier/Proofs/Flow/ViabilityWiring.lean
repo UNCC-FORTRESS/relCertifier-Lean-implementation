@@ -102,7 +102,7 @@ theorem HExistSegB_of_viability
     (hfbnd : ∀ ν : State (Var n), (∀ gT ∈ gsS ++ gsG, Term.eval gT ν ≤ 0) →
       ∀ x ∈ Metric.closedBall ν a,
         ‖odeField (jointSys (fun _ => Term.const 0) fR lam) x‖ ≤ (L : ℝ))
-    (dt : ℝ) (hdtle : (L : ℝ) * dt ≤ a)
+    (dt : ℝ) (hdt0 : 0 ≤ dt)
     (ν : State (Var n))
     (hinitS : ∀ gT ∈ gsS, Term.eval gT ν ≤ 0)
     (hbudget : ∀ gT ∈ gsG, Term.eval gT ν + M * dt < 0) :
@@ -126,103 +126,84 @@ theorem HExistSegB_of_viability
     rcases List.mem_append.mp hgT with h | h
     · exact hinitS' gT h
     · nlinarith [hbudget' gT h, hM, hs0]
-  rcases eq_or_lt_of_le hs0 with hs0' | hspos
-  · -- zero left duration: the constant response
-    refine ⟨fun _ => ΦL s, rfl, ?_, ?_, ?_⟩
-    · intro t ht p hp
-      rw [← hs0'] at ht
-      have ht0 : t = 0 := le_antisymm ht.2 ht.1
-      subst ht0
-      rw [← hs0', hasDerivWithinAt_iff_tendsto_slope]
-      rw [show (Set.Icc (0:ℝ) 0) \ {0} = (∅ : Set ℝ) from by simp [Set.Icc_self],
-        nhdsWithin_empty]
-      exact Filter.tendsto_bot
-    · intro t ht x hx
-      rfl
-    · intro t ht
-      exact hdomsat (ΦL s) hallν'
-  · -- positive duration: bounded viability from the left endpoint
-    -- semantic face lists
-    set fS : List (State (Var n) → ℝ) := gsS.map (fun gT ω => Term.eval gT ω) with hfS
-    set fG : List (State (Var n) → ℝ) := gsG.map (fun gT ω => Term.eval gT ω) with hfG
-    have hmemS : ∀ f ∈ fS, ∃ gT ∈ gsS, f = fun ω => Term.eval gT ω := by
+  -- chained bounded viability from the left endpoint (any duration, budget-covered)
+  set fS : List (State (Var n) → ℝ) := gsS.map (fun gT ω => Term.eval gT ω) with hfS
+  set fG : List (State (Var n) → ℝ) := gsG.map (fun gT ω => Term.eval gT ω) with hfG
+  have hmemS : ∀ f ∈ fS, ∃ gT ∈ gsS, f = fun ω => Term.eval gT ω := by
+    intro f hf
+    obtain ⟨gT, hgT, rfl⟩ := List.mem_map.mp hf
+    exact ⟨gT, hgT, rfl⟩
+  have hmemG : ∀ f ∈ fG, ∃ gT ∈ gsG, f = fun ω => Term.eval gT ω := by
+    intro f hf
+    obtain ⟨gT, hgT, rfl⟩ := List.mem_map.mp hf
+    exact ⟨gT, hgT, rfl⟩
+  have happF : ∀ x : State (Var n), (∀ f ∈ fS ++ fG, f x ≤ 0) ↔
+      (∀ gT ∈ gsS ++ gsG, Term.eval gT x ≤ 0) := by
+    intro x
+    constructor
+    · intro h gT hgT
+      rcases List.mem_append.mp hgT with hm | hm
+      · exact h _ (List.mem_append_left _ (List.mem_map.mpr ⟨gT, hm, rfl⟩))
+      · exact h _ (List.mem_append_right _ (List.mem_map.mpr ⟨gT, hm, rfl⟩))
+    · intro h f hf
+      rcases List.mem_append.mp hf with hm | hm
+      · obtain ⟨gT, hgT, rfl⟩ := hmemS f hm
+        exact h gT (List.mem_append_left _ hgT)
+      · obtain ⟨gT, hgT, rfl⟩ := hmemG f hm
+        exact h gT (List.mem_append_right _ hgT)
+  obtain ⟨ν'', hfaces'', hrun⟩ := box_viability_bounded_chain hwf fS fG M hM
+    (by
       intro f hf
-      obtain ⟨gT, hgT, rfl⟩ := List.mem_map.mp hf
-      exact ⟨gT, hgT, rfl⟩
-    have hmemG : ∀ f ∈ fG, ∃ gT ∈ gsG, f = fun ω => Term.eval gT ω := by
+      obtain ⟨gT, _, rfl⟩ := hmemS f hf
+      exact term_differentiable gT)
+    (by
       intro f hf
-      obtain ⟨gT, hgT, rfl⟩ := List.mem_map.mp hf
-      exact ⟨gT, hgT, rfl⟩
-    have happF : ∀ x : State (Var n), (∀ f ∈ fS ++ fG, f x ≤ 0) ↔
-        (∀ gT ∈ gsS ++ gsG, Term.eval gT x ≤ 0) := by
-      intro x
-      constructor
-      · intro h gT hgT
-        rcases List.mem_append.mp hgT with hm | hm
-        · exact h _ (List.mem_append_left _ (List.mem_map.mpr ⟨gT, hm, rfl⟩))
-        · exact h _ (List.mem_append_right _ (List.mem_map.mpr ⟨gT, hm, rfl⟩))
-      · intro h f hf
-        rcases List.mem_append.mp hf with hm | hm
-        · obtain ⟨gT, hgT, rfl⟩ := hmemS f hm
-          exact h gT (List.mem_append_left _ hgT)
-        · obtain ⟨gT, hgT, rfl⟩ := hmemG f hm
-          exact h gT (List.mem_append_right _ hgT)
-    obtain ⟨ν'', hfaces'', hrun⟩ := box_viability_bounded hwf fS fG M hM
-      (by
-        intro f hf
-        obtain ⟨gT, _, rfl⟩ := hmemS f hf
-        exact term_differentiable gT)
-      (by
-        intro f hf
-        obtain ⟨gT, _, rfl⟩ := hmemG f hf
-        exact term_differentiable gT)
-      (by
-        intro f hf x hx hf0
-        obtain ⟨gT, hgT, rfl⟩ := hmemS f hf
-        exact hbndS gT hgT x ((happF x).mp hx) hf0)
-      (by
-        intro f hf x hx
-        obtain ⟨gT, hgT, rfl⟩ := hmemG f hf
-        exact hbndG gT hgT x ((happF x).mp hx))
-      (fun x hx => hdomsat x ((happF x).mp hx))
-      K L a ha
-      (fun ν0 h0 => hLipOn ν0 ((happF ν0).mp h0))
-      (fun ν0 h0 => hfbnd ν0 ((happF ν0).mp h0))
-      s hspos (le_trans (mul_le_mul_of_nonneg_left hsdt L.coe_nonneg) hdtle)
-      (ΦL s)
-      (by
-        intro f hf
-        obtain ⟨gT, hgT, rfl⟩ := hmemS f hf
-        exact hinitS' gT hgT)
-      (by
-        intro f hf
-        obtain ⟨gT, hgT, rfl⟩ := hmemG f hf
-        exact hbudget' gT hgT)
-    obtain ⟨-, Φ, hΦ0, -, hcurve, hdomR⟩ := hrun
-    obtain ⟨hderJ, hmaskJ⟩ := integralCurve_coords hwf hcurve
-    refine ⟨Φ, hΦ0, ?_, ?_, hdomR⟩
-    · -- right-block derivatives: right pairs are joint pairs
-      intro t ht p hp
-      refine hderJ t ht p ?_
-      rw [jointSys_split]
-      exact List.mem_append_right _ hp
-    · -- mask off the right block: left rows are inert, others masked
-      intro t ht x hx
-      by_cases hxL : ∃ i : Fin n, x = Lv i
-      · obtain ⟨i, rfl⟩ := hxL
-        have hpair : (Lv i, (Term.const 0 : Term (Var n)))
-            ∈ jointSys (fun _ => Term.const 0) fR lam := by
-          rw [jointSys_split]
-          exact List.mem_append_left _ (List.mem_map.mpr ⟨i, List.mem_finRange i, rfl⟩)
-        rw [integralCurve_zero_coord hwf hcurve hpair t ht, hΦ0]
-      · refine (hmaskJ t ht x ?_).trans (by rw [hΦ0])
+      obtain ⟨gT, _, rfl⟩ := hmemG f hf
+      exact term_differentiable gT)
+    (by
+      intro f hf x hx hf0
+      obtain ⟨gT, hgT, rfl⟩ := hmemS f hf
+      exact hbndS gT hgT x ((happF x).mp hx) hf0)
+    (by
+      intro f hf x hx
+      obtain ⟨gT, hgT, rfl⟩ := hmemG f hf
+      exact hbndG gT hgT x ((happF x).mp hx))
+    (fun x hx => hdomsat x ((happF x).mp hx))
+    K L a ha
+    (fun ν0 h0 => hLipOn ν0 ((happF ν0).mp h0))
+    (fun ν0 h0 => hfbnd ν0 ((happF ν0).mp h0))
+    s hs0 (ΦL s)
+    (by
+      intro f hf
+      obtain ⟨gT, hgT, rfl⟩ := hmemS f hf
+      exact hinitS' gT hgT)
+    (by
+      intro f hf
+      obtain ⟨gT, hgT, rfl⟩ := hmemG f hf
+      exact hbudget' gT hgT)
+  obtain ⟨-, Φ, hΦ0, -, hcurve, hdomR⟩ := hrun
+  obtain ⟨hderJ, hmaskJ⟩ := integralCurve_coords hwf hcurve
+  refine ⟨Φ, hΦ0, ?_, ?_, hdomR⟩
+  · intro t ht p hp
+    refine hderJ t ht p ?_
+    rw [jointSys_split]
+    exact List.mem_append_right _ hp
+  · intro t ht x hx
+    by_cases hxL : ∃ i : Fin n, x = Lv i
+    · obtain ⟨i, rfl⟩ := hxL
+      have hpair : (Lv i, (Term.const 0 : Term (Var n)))
+          ∈ jointSys (fun _ => Term.const 0) fR lam := by
         rw [jointSys_split]
-        intro hb
-        simp only [ODESystem.bound, List.map_append, List.mem_append] at hb
-        rcases hb with hb | hb
-        · obtain ⟨i, hi⟩ := leftBlock_bound_sub (fun _ => Term.const 0) _ hb
-          exact hxL ⟨i, hi⟩
-        · exact hx (by simpa [ODESystem.bound] using hb)
+        exact List.mem_append_left _ (List.mem_map.mpr ⟨i, List.mem_finRange i, rfl⟩)
+      rw [integralCurve_zero_coord hwf hcurve hpair t ht, hΦ0]
+    · refine (hmaskJ t ht x ?_).trans (by rw [hΦ0])
+      rw [jointSys_split]
+      intro hb
+      simp only [ODESystem.bound, List.map_append, List.mem_append] at hb
+      rcases hb with hb | hb
+      · obtain ⟨i, hi⟩ := leftBlock_bound_sub (fun _ => Term.const 0) _ hb
+        exact hxL ⟨i, hi⟩
+      · exact hx (by simpa [ODESystem.bound] using hb)
 
 /-- The clocked `hExist` from the BOUNDED `HExistSegB` — the mirror of
 `hExist_clocked_of_HExistSeg` with the `dt` cap threaded through (the cap was already

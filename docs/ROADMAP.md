@@ -160,3 +160,14 @@ face (the tangential case — for contract-shaped faces prefer route (a)).
 Toolchain note (recorded): raw kernel `decide` through the numeral parser is blocked
 (ByteArray char extraction, `Rat` op reduction); the working recipe is elaborator-side
 `simp` with parser/lowering unfolds + per-numeral `String.data` rfl-facts + `norm_num`.
+
+## Verdict column (2026-07-16, closure)
+
+`RelCertifier/Verdicts/` — the EMPIRICAL column, separated from `Instances/` (kernel):
+per benchmark, IR mirrors of the exact hypothesis queries + kernel identity theorems
+(`mirror.toHost = hypothesis-query`) + `relcert --run-verdicts` (prints via the tool's
+own `toScript`, runs Z3, reports the discharging route). First report (docs/VERDICTS.md):
+watertank's six `VerdW` all UNSAT (route B) — with the in-kernel existence discharge,
+`watertank_modal_certified` holds under the frozen contract alone. Remaining mirror
+generation (13 cut instances' probes, settling/throughout re-run harness) follows the
+watertank pattern; queries already ran during tool certification/census.

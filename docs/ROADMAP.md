@@ -136,3 +136,27 @@ from the tool door permanently), ClockedTop deprecation header, `emitViabilityFi
 (per-face strict/growth0 tags) + `--emit-viability2`. VERIFY the Main.lean flag-branch
 shape and the extracted def block before committing; then regenerate viability data and
 wire per-benchmark ESW discharges.
+
+## S3 closure (2026-07-16, third wave)
+
+**Chained bounded viability** (`box_viability_bounded_chain`): fixed Picard steps
+`r₀ = a/(L+1)` glue along the box, growth budgets telescoping through the quantitative
+per-step bound (`growth_along`) — ANY duration within the budget horizon, no single-step
+`L·T ≤ a` constraint. `HExistSegB_of_viability` rides the chain. **FaceBridge**:
+`evolveFacesR_sound` (nonstrict evolve ⟺ its emitted face box), `hostFacesR` wrappers,
+`uniform_picard_data`, `WellFormedFlowB_transfer` (contract witnesses transfer to
+lowered data semantically). **Watertank fully discharged** (`WatertankViability.lean`):
+all modes are exact contract fields; `watertank_ESW` = 3 axioms (NO Z3, no budget,
+equilibrium anchors included); `watertank_modal_certified` = the S1 gate with ONLY the
+six joint route verdicts left (4 axioms).
+
+Two discharge routes now exist for existence residuals: (a) contract fields → explicit
+exponential witness (complete, budget-free); (b) general polynomial fields → chained
+Picard + strict/growth face verdicts with entry budgets (census: every face suite-wide
+carries a tag). Route (a) covers the watertank-like families; route (b)'s remaining
+per-benchmark cost is the anchor-budget conditioning where anchors may sit ON a growth
+face (the tangential case — for contract-shaped faces prefer route (a)).
+
+Toolchain note (recorded): raw kernel `decide` through the numeral parser is blocked
+(ByteArray char extraction, `Rat` op reduction); the working recipe is elaborator-side
+`simp` with parser/lowering unfolds + per-numeral `String.data` rfl-facts + `norm_num`.

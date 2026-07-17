@@ -17,6 +17,7 @@ import RelCertifier.Trusted.Run
 import RelCertifier.Trusted.Z3
 import RelCertifier.Trusted.OracleAPI
 import RelCertifier.Trusted.ViabilityEmit
+import RelCertifier.Verdicts.Run
 
 open RelCertifier DL
 
@@ -178,6 +179,14 @@ def emitIR (path defname : String) : IO Unit := do
 def main (args : List String) : IO Unit := do
   match args with
   | ["--emit-ir", path, defname] => emitIR path defname
+  | ["--run-verdicts"] => do
+      match ← RelCertifier.Z3Config.discover with
+      | .error e => IO.eprintln s!"ERROR: {e}"; IO.Process.exit 1
+      | .ok cfg =>
+          if ← RelCertifier.Verdicts.runVerdicts cfg then
+            IO.println "ALL HYPOTHESES DISCHARGED (every pair has an unsat route)"
+          else
+            IO.eprintln "SOME HYPOTHESIS NOT DISCHARGED"; IO.Process.exit 1
   | ["--emit-viability2", path, defname] => do
       match ← RelCertifier.Z3Config.discover with
       | .error e => IO.eprintln s!"ERROR: {e}"; IO.Process.exit 1

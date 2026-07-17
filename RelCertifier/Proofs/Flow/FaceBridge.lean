@@ -19,6 +19,7 @@ ball Lipschitz/bound data with ONE `K, L` for every box anchor. This file suppli
 import RelCertifier.Trusted.OracleAPI
 import RelCertifier.Proofs.Encoding.CoverInstance
 import RelCertifier.Proofs.Flow.ViabilityWiring
+import RelCertifier.Proofs.Soundness.UniformEvol
 
 namespace RelCertifier
 open DL Parse Set RelCertifier.Oracle
@@ -272,5 +273,40 @@ theorem uniform_picard_data {V : Type*} [Fintype V] [DecidableEq V]
     calc ‖odeField sys x‖ ≤ C := hC x (hsub ν hν hx)
       _ ≤ max C 0 := le_max_left _ _
       _ = (C.toNNReal : ℝ) := (Real.coe_toNNReal' C).symm
+/-! ## `WellFormedFlowB` transfer along pointwise-equal fields
+
+The contract witnesses (`WellFormedFlowB_contract`, the explicit exponential) are
+stated over the syntactic shape `contractF`/`bandDom`; benchmark instances carry the
+`getD`-lowered `hostDyn`/`hostEvolve`. The bounded flow well-formedness is purely
+semantic in the field values and the domain's satisfaction, so it transfers. -/
+
+theorem WellFormedFlowB_transfer {fR fR' : Fin n → Term (Var n)}
+    {lam lam' : Term (Var n)} {domR domR' : Formula (Var n)} {dt : ℝ}
+    (hev : ∀ (i : Fin n) (x : DL.State (Var n)),
+      Term.eval (Term.binop .mul lam' (fR' i)) x
+        = Term.eval (Term.binop .mul lam (fR i)) x)
+    (hdom : ∀ x : DL.State (Var n), Formula.sat domR' x ↔ Formula.sat domR x)
+    (h : WellFormedFlowB fR lam domR dt) :
+    WellFormedFlowB fR' lam' domR' dt := by
+  intro base hb s hs hsdt
+  obtain ⟨ΦR, hΦR0, hRder, hRmask, hRdom⟩ := h base ((hdom base).mp hb) s hs hsdt
+  refine ⟨ΦR, hΦR0, ?_, ?_, ?_⟩
+  · intro t ht p hp
+    simp only [rightBlock, List.mem_map, List.mem_finRange] at hp
+    obtain ⟨i, -, rfl⟩ := hp
+    have horig := hRder t ht (Rv i, Term.binop .mul lam (fR i)) (by
+      simp only [rightBlock, List.mem_map, List.mem_finRange]
+      exact ⟨i, trivial, rfl⟩)
+    simpa only [hev i (ΦR t)] using horig
+  · intro t ht x hx
+    refine hRmask t ht x ?_
+    intro hb'
+    refine hx ?_
+    simp only [rightBlock, ODESystem.bound, List.map_map, List.mem_map,
+      List.mem_finRange] at hb' ⊢
+    obtain ⟨i, -, hi⟩ := hb'
+    exact ⟨i, trivial, hi⟩
+  · intro t ht
+    exact (hdom (ΦR t)).mpr (hRdom t ht)
 
 end RelCertifier

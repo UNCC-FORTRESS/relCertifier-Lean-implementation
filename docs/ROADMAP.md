@@ -107,8 +107,10 @@ the 13 instances (serial builds for the 12-dof files) + battery wiring. All 13 c
 use repositions — the baton's reposition cases are exercised.
 
 **S3 pending**: bounded-time viability + wiring into the `hES`/`ESW` residuals.
+*(Closed in the third wave below.)*
 **S4 pending**: no battery-invalidating rebuild occurred this session; the batch
 (invComponents decoupling, ClockedTop header) still waits for the first unavoidable one.
+*(Applied and closed — see the final closure section.)*
 
 ## S-arc second wave (2026-07-16, non-blocking session 2)
 
@@ -130,12 +132,10 @@ first-exit over the good-prefix supremum; `box_viability_bounded`;
 `watertank_modal`'s `ESW` is `HExistSegB` (envelope-conditioned AND clock-capped), all
 couplings through `segment_faModalB_from_certB`. Axioms everywhere: 3 pure / 4 at leaves.
 
-**S4 batch STAGED** (scratchpad `apply_s4_batch.py`, apply after the heavy builds land —
-ONE rebuild): invComponents → new leaf `Trusted/InvComponents.lean` (battery decoupled
-from the tool door permanently), ClockedTop deprecation header, `emitViabilityFileB`
-(per-face strict/growth0 tags) + `--emit-viability2`. VERIFY the Main.lean flag-branch
-shape and the extracted def block before committing; then regenerate viability data and
-wire per-benchmark ESW discharges.
+**S4 batch STAGED** (applied 2026-07-17 — see the final closure section): invComponents
+→ new leaf `Trusted/InvComponents.lean` (battery decoupled from the tool door
+permanently), ClockedTop deprecation header. The `--emit-viability2` emission door had
+already landed separately as new files (`Trusted/ViabilityEmit.lean`, rebuild hygiene).
 
 ## S3 closure (2026-07-16, third wave)
 
@@ -171,3 +171,27 @@ watertank's six `VerdW` all UNSAT (route B) — with the in-kernel existence dis
 `watertank_modal_certified` holds under the frozen contract alone. Remaining mirror
 generation (13 cut instances' probes, settling/throughout re-run harness) follows the
 watertank pattern; queries already ran during tool certification/census.
+
+## Final closure (2026-07-17) — the arc is done
+
+**Verdict column completed** (d8b0888): `Verdicts/GenericPins.lean` (getD-collapse pins —
+one lemma per query *shape*, covering every benchmark at once, no per-benchmark literals)
++ `Verdicts/RunCut.lean` (runtime probe rebuild from `benchIRTable` +
+`EvolStrengthenings`). `relcert --run-verdicts` = watertank's six `VerdW` + all 13 cut
+benchmarks' per-atom probes: **111 UNSAT, 0 failures** (`docs/VERDICTS.md`). The
+remaining hypothesis families are the tool's own certification runs (tabulated there).
+
+**S4 applied** (fdaedae): `Trusted/InvComponents.lean` leaf; `CoverInstance` imports the
+leaf instead of `OracleAPI`; ClockedTop deprecation header. One serial battery rebuild
+(12 heavies + world, 8751 jobs) — the LAST battery-wide rebuild: the instance batteries
+are now permanently decoupled from the tool door.
+
+**Confirmation sweep** (2026-07-17): `lake build` no-op green (8751 jobs); full
+certification run 46/47 CERTIFIED (`shield_unreachable` the known inconclusive case);
+`--run-verdicts` all hypotheses discharged. Headline: **end-to-end verified in Lean,
+modulo Z3-unsat and the modeling boundary** (parse, print, transition semantics).
+
+**Open options (not scheduled).** Route-(b) chained-Picard existence instances for
+non-contract fields; modal instances beyond watertank (needs the modal-instance
+generator + rover_drag re-conditioning); strata-query mirrors under `--run-verdicts`;
+retiring the cadenced chain once modal parity reaches the full suite.

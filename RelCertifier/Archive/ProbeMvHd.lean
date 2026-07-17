@@ -1,3 +1,17 @@
+/-
+Copyright (c) 2026 relCertifier-lean contributors.
+Released under Apache 2.0 license.
+
+# Archive — the `MvFrozen` vacuity probe (mechanized counterexample)
+
+Historical record of a design finding: freezing the mode variable INSIDE the left block
+(`mv = Lv 2`, what the early `MvFrozen` device forced) makes `tooling_sound`'s
+vars-disjointness hypothesis provably FALSE — `mv` is bound by both the left ODE block
+and the right automaton's `modeStep` assign. `probe_hd_false` seals it: any
+`MvFrozen`-based instantiation was vacuous. Consequence (live in the current design):
+the mode variable is an `Aux` coordinate outside both blocks. Kept as the
+counterexample the redesign rests on; nothing imports this file except the library root.
+-/
 import RelCertifier.Archive.GapThreeRoverDemo
 import RelCertifier.Archive.GapThreeTask3
 

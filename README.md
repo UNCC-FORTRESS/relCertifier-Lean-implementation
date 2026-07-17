@@ -301,7 +301,9 @@ families, rover refinement ladders, terrain and rollover stories up to 12 dof.
 
 ## History
 
-`docs/ROADMAP.md` (arc records: R1–R7 realignment, S1–S4), `docs/COVER-AUDIT.md`
+`docs/ROADMAP.md` (arc records: R1–R7 realignment, S1–S4, all closed), `docs/COVER-AUDIT.md`
 (soundness findings), `docs/CUT-LIFT-SCOPE.md`, `docs/DEVELOPMENT-ARC.md`,
-`ARCHITECTURE.md` (the certified-checker re-architecture and the finding that forced
-it), `docs/VERDICTS.md` (the current empirical report).
+`docs/VERDICTS.md` (the current empirical report). Superseded design documents live in
+`docs/archive/` (`ARCHITECTURE.md` — the certified-checker re-architecture and the
+finding that forced it; `BENCHMARK_INSTANTIABILITY.md` — the pre-battery instantiability
+census).

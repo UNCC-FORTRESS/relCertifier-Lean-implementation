@@ -1,3 +1,8 @@
+> **Historical record.** The finding below forced the certified-checker
+> re-architecture the repository now has; the current architecture summary lives in
+> the README ("Repository map", "The end-to-end guarantee"). Kept verbatim —
+> the honesty standard it sets still governs the project.
+
 # Verified architecture — and the finding that reshaped it
 
 ## The finding (must be stated plainly)

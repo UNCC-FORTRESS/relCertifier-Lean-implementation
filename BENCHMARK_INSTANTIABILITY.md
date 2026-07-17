@@ -1,3 +1,8 @@
+> **SUPERSEDED (2026-07).** This catalog addresses the early `tooling_sound` chain.
+> The current per-benchmark guarantees are the settling battery (46), the throughout
+> batteries (33 + 13 cut-lifted), and the modal flagship — see the README's
+> "Theorem families" and docs/ROADMAP.md. Kept for the historical record.
+
 # Benchmark instantiability against the end-to-end theorem
 
 This catalogs how each suite benchmark relates to the **`tooling_sound`** meta-theorem (GAP 3 — the

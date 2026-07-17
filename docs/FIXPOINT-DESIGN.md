@@ -116,7 +116,38 @@ Fix a benchmark: left modes `l ∈ L`, right modes `q ∈ Q`, declared edge rela
   `F` is monotone (bigger W ⟹ easier membership), the lattice is finite, so the
   greatest fixpoint `gfp F` exists and pruning iteration reaches it.
 
-### 3.2 The tool side: search = pruning
+### 3.2 Where ε_R lives: inside R's move, as a tiling
+
+Matching is width-sensitive. A flow piece at stretch λ covers `ε_R/λ` of left time,
+so answering a full left window (width ε_L) in general takes a *sequence* of pieces
+tiling it: `Σᵢ ε_R/λᵢ = ε_L`, hop chains permitted at the seams (the multiflow round
+shape, task H). Whether a tiling exists depends on the benchmark's (ε_R, λ-range)
+design — for a fixed L, some ε_R designs can match and some cannot. The design
+accounts for this by placing ε_R under the ∃, in the answer, never in the position:
+
+- **Positions stay mode pairs.** W does not grow with the width parameters.
+- **A σ flow entry is a tiling**, not a single piece: a finite list
+  `[(λ₁, w₁), …, (λₖ, wₖ)]` with its seam hops. Its obligations split cleanly:
+  - *arithmetic* — `Σ wᵢ = ε_L`, `wᵢ = ε_R/λᵢ`, each λᵢ in the declared range:
+    decidable rational facts, kernel `decide`, no Z3;
+  - *analytic* — per-piece invariant preservation (Z3 verdicts) and existence (§5),
+    one set per piece, exactly as for single pieces.
+- **F stays monotone** — a richer answer type does not disturb the lattice; the
+  pruning iteration is unchanged.
+
+Consequence worth naming: the fixpoint yields a **per-design verdict**. Under a given
+ε_R, if a position admits no tiling it is pruned; if the admissible starts then fall
+out of W, the tool reports "this ε_R design cannot match this L" *with the exact
+windows that failed* — a diagnosis, not a silent failure. Sweeping candidate ε_R
+values (doubling sweep, as with the growth budgets M) turns this into cheap
+design-space exploration, since only σ's arithmetic layer varies per candidate.
+
+Status note: the current watertank modal instance is single-piece full-width
+(`λ = ε_R/ε_L` per pair); the multiflow tiling machinery exists in the uniform chain.
+σ must carry tilings from day one — retrofitting the answer type later would rebuild
+the lemma.
+
+### 3.3 The tool side: search = pruning
 
 Replace (rather: complement) the cover exploration with the textbook iteration:
 
@@ -136,7 +167,7 @@ cover exploration: no windows-within-derivations, no case tree; just a shrinking
 recorded during the last iteration), and the named verdict list backing every table
 entry. All as drift-checked Lean literals, EmitIR pattern.
 
-### 3.3 The kernel side: one lemma, then `decide`
+### 3.4 The kernel side: one lemma, then `decide`
 
 Proven **once**, generically (the entire per-benchmark proof burden of the old route
 concentrates here):

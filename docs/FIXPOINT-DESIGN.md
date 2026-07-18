@@ -128,20 +128,33 @@ one of them:
 
 - **Layer 2 — the membership test, per position `(l, q)`.** Asks: can `q` fully
   cover the window `l` presents? Here ε_R enters. The window has left-duration ε_L.
-  R answers with pieces; a piece run at stretch λ consumes `ε_R/λ` of left time. To
-  cover the window, the piece durations must add up to ε_L — a *tiling*
-  `Σᵢ ε_R/λᵢ = ε_L`, hop chains permitted at the seams (the multiflow round shape,
-  task H). Whether a tiling exists depends on ε_R and the allowed λ range — *before
-  any Z3 query is even asked*. Concretely, with ε_L = 1 and λ ∈ [1, 2]:
-  - ε_R = 0.4 → each piece covers between 0.2 and 0.4 of left time; the tiling
-    0.4 + 0.4 + 0.2 = 1 works (λ = 1, 1, 2). The position can pass.
-  - ε_R = 0.7 with λ fixed at 1 → each piece covers exactly 0.7; one piece gives
-    0.7, two give 1.4 — the sum can never hit 1. The position fails, *no matter how
-    good the dynamics are*.
+  R answers with pieces; a piece run at stretch λ consumes `ε_R/λ` of left time.
+  λ is *R's choice, per piece*, from the range the benchmark file declares — the
+  benchmark fixes the range, R picks within it. To cover the window, the piece
+  durations must add up to ε_L — a *tiling* `Σᵢ ε_R/λᵢ = ε_L`, hop chains permitted
+  at the seams (the multiflow round shape, task H). Whether a tiling exists depends
+  on ε_R and the declared λ range — *before any Z3 query is even asked*:
+  - **Success:** ε_L = 1, ε_R = 0.4, declared λ ∈ [1, 2] → each piece covers between
+    0.2 and 0.4 of left time; the tiling 0.4 + 0.4 + 0.2 = 1 works (λ = 1, 1, 2).
+  - **Failure:** ε_L = 1, ε_R = 0.7, declared λ ∈ [1, 1.05] → each piece covers
+    `0.7/λ` ∈ [0.667, 0.7]; k pieces total in [k·0.667, k·0.7], so k = 1 reaches at
+    most 0.7 < 1 and k = 2 already needs ≥ 1.333 > 1. The reachable sums have a gap
+    at 1 — no tiling, whatever λs R picks, *no matter how good the dynamics are*.
+  - **The general criterion:** a tiling exists iff
+    `ε_L ∈ ⋃ₖ [k·ε_R/λmax, k·ε_R/λmin]`; gaps occur only while consecutive
+    intervals fail to overlap, i.e. while `λmax/λmin < (k+1)/k`. Generous λ ranges
+    never fail; narrow ranges with ε_R large relative to ε_L can.
 
   This is precisely the observation that motivates the section: for a fixed L, some
   ε_R designs can match and some cannot — and it surfaces here, in layer 2, as
   "does a tiling exist."
+
+  (Caveat, recorded: all of this assumes pieces are *full-width* — each consumes its
+  whole ε_R budget — which is what the current certificates provide. If the
+  machinery ever admits a certified *truncated last piece*, the arithmetic gap
+  failure mode disappears and ε_R sensitivity reduces to guard/domain constraints at
+  the seams. That partial-width certificate is the alternative fix, at the cost of a
+  new certificate shape.)
 
 - **Layer 3 — the consequence.** Positions failing the test are pruned → W shrinks →
   if the admissible starts fall out of W, there is no modal theorem *for that ε_R

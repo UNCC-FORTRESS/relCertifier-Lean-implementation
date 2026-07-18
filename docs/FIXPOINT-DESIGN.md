@@ -317,60 +317,89 @@ Three left modes `l ∈ {0, 1, 2}` with the ideal dynamics, declared edges `GrW`
 self-loops, invariant `gW` (the ε-band between `L_x` and `R_x`), mode-validity
 bookkeeping `mvValidR`.
 
-**Step 1 — the universe.** 3 × 3 = 9 positions `(l, q)`.
+**Step 0 — the board.** Positions = the 9 cells of the 3 × 3 grid `(l, q)`. Think of
+a checkerboard: rows = what L is doing, columns = what R is doing.
 
-**Step 2 — the pruning iteration.** `W₀` = the admissible pairs. Evaluating `F` asks,
-per pair, the same route-A/B/C queries the tool already printed for watertank. The
-recorded verdict set (docs/VERDICTS.md: the six `VerdW`, all UNSAT via route B) tells
-us exactly which pairs carry certified flow answers:
+**Step 1 — admissibility.** `W₀` = cells where the invariant and both guards can
+hold at all. For watertank all 9 pass — a filling L and a draining R *can*
+momentarily be within ε of each other. The board starts full.
 
-```
-W₀ = { (0,0) (0,1) (0,2)
-       (1,0) (1,1) (1,2)
-       (2,0) (2,1) (2,2) }
-
-flow-certified pairs (the six VerdW):
-       (0,0) (0,1)
-             (1,1)
-       (2,0) (2,1) (2,2)
-```
-
-Iteration 1 deletes `(0,2)`, `(1,0)`, `(1,2)` — no certified flow answer, and no hop
-rescues them *for their own window* (a hop changes `q`, then the target's flow answer
-is what counts; the deleted pairs' windows are covered from other `q`s, which is
-irrelevant to their own membership — pruning is per-position). Intuition for the
-deletions: the drain mode cannot ε-track a filling window and vice versa; only the
-pairings the tool certified survive.
+**Step 2 — the flow test, per cell.** For each cell, ask: *if L runs this window,
+can R's current mode track it for the whole window?* Per cell this unfolds as §3.2's
+layer 2: probe λ candidates (Z3 — route B here, strict decrease of the barrier along
+the joint dynamics); each `unsat` certifies one λ, i.e. one piece width `ε_R/λ`;
+then tiling arithmetic over the certified widths. Watertank is the easy case — one
+full-width piece per window (`λ = ε_R/ε_L` per pair), so tiling degenerates to "the
+single certified λ exists." The recorded verdict set (docs/VERDICTS.md: the six
+`VerdW`, all UNSAT via route B) gives the grid:
 
 ```
-W₁ = { (0,0) (0,1) (1,1) (2,0) (2,1) (2,2) }
+          q0 settle   q1 fill   q2 drain
+  l0         ✓           ✓          ✗
+  l1         ✗           ✓          ✗
+  l2         ✓           ✓          ✓
 ```
 
-Iteration 2 re-checks the survivors' *successor closure*: for `(l, q) ∈ W₁` and every
-declared L-successor `l′`, is there a (possibly empty) hop chain to some `q*` with
-`(l′, q*) ∈ W₁`? E.g. from `(1,1)`, if L switches to mode 0: stay at `q = 1` — since
-`(0,1) ∈ W₁`, no hop even needed. If L switches to mode 2 from `(0,0)`: `(2,0) ∈ W₁`,
-stay again. Where staying fails, the declared edges of `GrW` (with guard-at-entry
-checked SAT at the switch instant) provide the hop; every such hop used by σ is
-backed by a frozen-left verdict. For watertank the closure check passes without
-deleting anything:
+Intuition per ✗: cell `(l1, q2)` — L fills toward 25, R drains toward 2.5; the gap
+`|L_x − R_x|` grows monotonically, and no λ rescale fixes a wrong *direction* —
+every probe fails, the certified set is empty. Cell `(l1, q0)`: R plateaus at 12.5
+while L climbs past `12.5 + ε`. Cell `(l0, q2)`: the same divergence in the other
+direction. Only the pairings the tool certified survive.
+
+**Step 3 — prune.** Delete the three ✗ cells. (A hop cannot rescue a deleted cell
+*for its own window*: a hop changes `q`, and then the *target's* flow answer is what
+counts — pruning is per-position.)
+
+```
+W₁ = { (l0,q0) (l0,q1)  (l1,q1)  (l2,q0) (l2,q1) (l2,q2) }
+```
+
+**Step 4 — the closure test (the "…and lands back in W" half).** Re-examine each
+survivor: when L *switches* modes, can R stay in the region? For each
+`(l, q) ∈ W₁` and each declared L-successor `l′`:
+
+- **Stay works?** Is `(l′, q) ∈ W₁`? From `(l1, q1)`, L switches to `l0`:
+  `(l0, q1) ∈ W₁` → R does nothing, just flows. Column q1 is full, so from q1 R
+  *never* needs to hop.
+- **Stay fails → hop.** From `(l2, q2)`, L switches to `l1`: `(l1, q2) ∉ W₁` → R
+  hops `q2 → q1` along a declared edge of `GrW`, guard holding at the entry instant
+  (guard-at-entry — the folded contract), invariant carried across the frozen-left
+  hop (a frozen-hop verdict). Lands at `(l1, q1) ∈ W₁`. ✓
+
+Every survivor passes for every successor (q1's column covers every row and the mode
+graph reaches q1), so nothing more is deleted:
 
 ```
 W₂ = W₁  →  fixpoint. W = the six certified pairs — exactly the six VerdW indices.
 ```
 
-This is the reassuring identity: **the winning region IS the verdict index set** the
-old route already named. The fixpoint route doesn't discover new facts about
-watertank; it reorganizes the same facts so the proof assembles itself.
+The reassuring identity: **the winning region IS the verdict index set** the old
+route already named. The fixpoint route discovers no new facts about watertank; it
+reorganizes the same facts so the proof assembles itself.
 
-**Step 3 — the choice table σ** (illustrative shape):
+**Step 5 — the certificate.** Emit two literals: `W` (six cells) and the choice
+table σ — per cell, per L-successor, the recorded answer:
 
 ```
-σ(l, q)(l′) =  stay-and-flow(λ_{l′q})      if (l′, q) ∈ W
-               hop(q → q′) ∘ flow(λ_{l′q′}) otherwise, q → q′ ∈ GrW, guard entered
+σ(l, q)(l′) =  stay-and-flow(λ_{l′q})       if (l′, q) ∈ W
+               hop(q → q′) ∘ flow(λ_{l′q′})  otherwise, q → q′ ∈ GrW, guard entered
+
+e.g.  σ(l2,q2)(l1) = hop q2→q1, then flow at λ₁₁
+      σ(l1,q1)(l0) = stay, flow at λ₀₁
 ```
 
-**Step 4 — the per-benchmark theorem on the new route:**
+**Step 6 — the kernel's share.** Three checks, all mechanical:
+
+1. `decide`: every cell of W, under σ's choices, lands back in W — the post-fixpoint
+   property, a finite table lookup (six cells × their successors);
+2. the named Z3 facts: the six flow verdicts plus the hop verdicts σ uses — the same
+   `z3solve … = unsat` hypotheses as today;
+3. existence: each flow entry actually evolves for its window — watertank's fields
+   are exact exponential contracts, so this is the already-proven `watertank_ESW`,
+   no Z3.
+
+**Step 7 — the theorem.** The generic lemma converts checks 1–3 into the modal
+statement — the automaton in the statement:
 
 ```lean
 theorem watertank_modal_fixpoint (dt : ℝ)
@@ -388,6 +417,12 @@ Compare with what `watertank_modal` cost on the old route: the envelope split
 lemma, hand-wired hop re-anchoring — S1 was a full autonomous session. On the
 fixpoint route all of that is *inside* `winning_region_sound`, paid once, and the
 watertank instance is the six facts plus a `decide`.
+
+**Where ε_R hid in all this:** watertank never exercised the tiling arithmetic —
+single full-width piece per window, certified set = one λ per cell. A benchmark
+where Z3 certifies only a thin λ set would show its ε_R sensitivity in Step 2:
+certified widths that cannot sum to the window → cell ✗ despite healthy dynamics →
+W shrinks → the per-design diagnosis of §3.2.
 
 **Pilot acceptance gate:** `watertank_modal_fixpoint` kernel-green with axioms exactly
 `[propext, Classical.choice, Quot.sound]` + `z3_unsat_sound` at the leaves, and its

@@ -104,17 +104,52 @@ Fix a benchmark: left modes `l ∈ L`, right modes `q ∈ Q`, declared edge rela
   - **hop(q → q′)**: an edge in `E` whose guard holds at the switch instant
     (guard-at-entry — the folded successor-completeness contract), left clock frozen,
     invariant preserved across the hop (the frozen-left verdicts). Hops chain.
-- **Step operator** `F : Set (L × Q) → Set (L × Q)`:
+The design is **two nested fixpoints** — an inner one *per left mode* over R's
+graph, and an outer one over pairs. They answer different questions and neither
+subsumes the other.
+
+- **Inner fixpoint (least, per left mode): reachability — "who can serve this
+  window?"** Fix a target left mode `l′` and a candidate landing set
+  `T ⊆ Q` (below: the modes `q*` with `(l′, q*)` still in the outer W). Define
 
   ```
-  (l, q) ∈ F(W)  ⟺  for every L-successor mode l′ of l (including l itself):
-                      ∃ hop chain q → … → q* along E, guards entered legally,
-                      invariant carried, such that q* has a certified flow answer
-                      to l′'s window and (l′, q*) ∈ W.
+  Serve(l′, T) = lfp of:  q ∈ S  if  q ∈ T and q has a certified flow answer
+                                     (a tiling, §3.2) to l′'s window
+                          q ∈ S  if  ∃ edge q → q′ ∈ E, guard-legal at entry,
+                                     invariant carried (frozen-left verdict),
+                                     with q′ ∈ S
   ```
 
-  `F` is monotone (bigger W ⟹ easier membership), the lattice is finite, so the
-  greatest fixpoint `gfp F` exists and pruning iteration reaches it.
+  This is transitive closure on R's mode graph. **Multi-hop witnesses live
+  entirely here**: a response needing several repositions to reach the answering
+  mode is just several steps of this reachability, computed per left mode — the
+  per-left-mode fixpoint. (It is essentially what the tool's cover search already
+  computes per left mode today.)
+
+- **Outer fixpoint (greatest, over pairs): persistence — "and then keep
+  serving, forever."** `Serve` answers ONE window. Winning means answering every
+  window of every L line. The step operator evaluates the inner fixpoint inside
+  each membership test:
+
+  ```
+  (l, q) ∈ F(W)  ⟺  for every declared L-successor mode l′ of l
+                      (including l itself):
+                      q ∈ Serve(l′, { q* | (l′, q*) ∈ W })
+  ```
+
+  `F` is monotone (bigger W ⟹ bigger landing set ⟹ easier membership; `Serve` is
+  monotone in `T`), the lattice is finite, so the greatest fixpoint `gfp F` exists
+  and pruning iteration reaches it.
+
+  Why the outer layer cannot be dropped: one fixpoint per left mode alone
+  expresses "this window is answerable," not "and the landing mode is again
+  well-positioned for the next window." W is exactly that across-time coupling —
+  membership in W is the loop invariant of the rounds.
+
+R hops in two places, both frozen-left, both moves of the *inner* fixpoint:
+at L's mode switches, and at the seams *between tiling pieces within one window*
+(the multiflow round shape permits mid-window repositions). Same chain machinery,
+same frozen-hop verdicts.
 
 ### 3.2 Where ε_R lives: inside R's move, as a tiling
 
@@ -355,8 +390,12 @@ W₁ = { (l0,q0) (l0,q1)  (l1,q1)  (l2,q0) (l2,q1) (l2,q2) }
 ```
 
 **Step 4 — the closure test (the "…and lands back in W" half).** Re-examine each
-survivor: when L *switches* modes, can R stay in the region? For each
-`(l, q) ∈ W₁` and each declared L-successor `l′`:
+survivor: when L *switches* modes, can R stay in the region? In general this
+evaluates the *inner* per-left-mode reachability fixpoint `Serve(l′, …)` of §3.1 —
+multi-hop chains through R's graph. Watertank is degenerate here: every needed
+chain has length ≤ 1 (q1's column is full and direct edges reach q1), so the test
+collapses to "stay, or hop once." For each `(l, q) ∈ W₁` and each declared
+L-successor `l′`:
 
 - **Stay works?** Is `(l′, q) ∈ W₁`? From `(l1, q1)`, L switches to `l0`:
   `(l0, q1) ∈ W₁` → R does nothing, just flows. Column q1 is full, so from q1 R

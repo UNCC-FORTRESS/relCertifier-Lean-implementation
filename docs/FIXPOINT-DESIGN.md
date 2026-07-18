@@ -293,6 +293,42 @@ theorem bench_modal_certified ... :=
 No window chains. No hop lemmas per instance. No envelope bookkeeping per instance.
 The generator emits *data*, not proofs.
 
+### 3.5 What the fixpoint formulation actually buys (it is not the search)
+
+A fair challenge: computationally, the inner layer is essentially the bounded
+cover search the tool already runs (the benchmark files even declare
+`max_depth`). If the fixpoint were a search algorithm, it would buy nothing. It
+is not; it is the shape of the **certificate and the lemma**. Three gains:
+
+1. **Certificate locality — the kernel never sees the search.** The old route
+   makes the kernel replay the derivation, and the per-benchmark proof does
+   induction over it — where all the assembly cost and the H5/hop-lemma blockers
+   lived. Here the search emits `W` + σ and the kernel checks a *local closure
+   property*: each entry lands back in W. How W was found is irrelevant to
+   soundness — bounded search, heuristics, buggy pruning are all fine, because
+   the search is untrusted and the check is independent of it. The fixpoint
+   equation is the specification the certificate must satisfy — which is exactly
+   what makes it checkable by one `decide`.
+
+2. **The outer gfp is load-bearing, not decorative.** "The automaton refines L"
+   quantifies over *unbounded* rounds; no bounded search certifies "forever"
+   directly. The greatest fixpoint is the device that reduces an infinite-horizon
+   ∀∃ to a finite set closed under one step: in W now + closure ⟹ in W after
+   every future round, by coinduction. The current per-left-mode search does not
+   express this at all — today it is handled by baking the choreography into the
+   statement. The outer fixpoint is what lets the statement mention the automaton
+   and still be discharged by finite checks.
+
+3. **Monotonicity makes search bounds harmless.** A depth-bounded inner search
+   under-approximates the true `Serve`; under-approximating `Serve` shrinks the
+   certifiable W — but a post-fixpoint of an under-approximated operator is still
+   a post-fixpoint of the true one. Truncation costs *coverage*, never
+   *soundness*. Without the framing, every bound in the search would need its own
+   soundness argument.
+
+One sentence: the search stays what it is today; the fixpoint is what turns its
+output into a certificate a single generic theorem can consume.
+
 ---
 
 ## 4. What dissolves, what remains

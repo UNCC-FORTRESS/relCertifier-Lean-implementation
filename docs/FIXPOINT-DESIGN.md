@@ -329,6 +329,35 @@ is not; it is the shape of the **certificate and the lemma**. Three gains:
 One sentence: the search stays what it is today; the fixpoint is what turns its
 output into a certificate a single generic theorem can consume.
 
+### 3.6 In plain loop-invariant terms (deflating the gfp vocabulary)
+
+The fixpoint language deflates entirely into the familiar story — "prove the
+invariant inductive and you are done" — with exactly two additions:
+
+- **"W is a post-fixpoint of F" = "membership in W is an inductive invariant of
+  the game."** Nothing more. The proof obligation is the standard one: a set,
+  one-step preservation under σ's moves, starts inside. Induction on rounds
+  closes it; "coinduction" here is that induction, no deeper.
+
+- **Which invariant: a strengthening.** The relational invariant ϕ alone is NOT
+  inductive for the ∀∃ game — inductiveness must carry the strategic content
+  "and R currently has an answer." (Watertank: ϕ can hold at `(Mid, High)` while
+  R is about to be dragged out of the band — true now, not preservable from
+  there without the hop.) W = ϕ ∧ "R well-positioned" — the classic
+  loop-invariant strengthening, of the classic reason: raw postconditions are
+  rarely inductive.
+
+- **Where "greatest" enters: the tool side only, never the proof.** Any
+  inductive W yields the theorem; smaller W = fewer certified starts, same
+  soundness. The gfp is merely the *largest* inductive W, and pruning iteration
+  is the classic way to compute it — the search finds the weakest sufficient
+  strengthening automatically instead of a human guessing it. The kernel and the
+  lemma only ever use "inductive."
+
+The design in one line of this vocabulary: **the tool computes the strengthened
+inductive invariant of the refinement game and emits it; the kernel checks
+inductiveness; one generic lemma says inductive + start inside ⟹ refines.**
+
 ---
 
 ## 4. What dissolves, what remains

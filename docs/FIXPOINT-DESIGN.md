@@ -359,85 +359,102 @@ a checkerboard: rows = what L is doing, columns = what R is doing.
 hold at all. For watertank all 9 pass — a filling L and a draining R *can*
 momentarily be within ε of each other. The board starts full.
 
-**Step 2 — the flow test, per cell.** For each cell, ask: *if L runs this window,
-can R's current mode track it for the whole window?* Per cell this unfolds as §3.2's
-layer 2: probe λ candidates (Z3 — route B here, strict decrease of the barrier along
-the joint dynamics); each `unsat` certifies one λ, i.e. one piece width `ε_R/λ`;
-then tiling arithmetic over the certified widths. Watertank is the easy case — one
-full-width piece per window (`λ = ε_R/ε_L` per pair), so tiling degenerates to "the
-single certified λ exists." The recorded verdict set (docs/VERDICTS.md: the six
-`VerdW`, all UNSAT via route B) gives the grid:
+**Step 2 — the direct flow test, per cell.** For each cell, ask: *if L runs this
+window, can R's current mode track it directly, no repositioning?* Per cell this
+unfolds as §3.2's layer 2: probe λ candidates (Z3 — route B here, strict decrease of
+the barrier along the joint dynamics); each `unsat` certifies one λ, i.e. one piece
+width `ε_R/λ`; then tiling arithmetic over the certified widths. Watertank is the
+easy case — one full-width piece per window, so tiling degenerates to "the single
+certified λ exists." The recorded verdict set (docs/VERDICTS.md: the six `VerdW`,
+all UNSAT via route B) gives the direct-certificate grid (rows = L's mode, columns
+= R's mode; the invariant is the one-sided `x_L ≤ x_R + 3`):
 
 ```
-          q0 settle   q1 fill   q2 drain
-  l0         ✓           ✓          ✗
-  l1         ✗           ✓          ✗
-  l2         ✓           ✓          ✓
+           R:Low   R:Mid   R:High
+  L:Low      ✓       ✓       ✗
+  L:Mid      ✗       ✓       ✗
+  L:High     ✓       ✓       ✓
 ```
 
-Intuition per ✗: cell `(l1, q2)` — L fills toward 25, R drains toward 2.5; the gap
-`|L_x − R_x|` grows monotonically, and no λ rescale fixes a wrong *direction* —
-every probe fails, the certified set is empty. Cell `(l1, q0)`: R plateaus at 12.5
-while L climbs past `12.5 + ε`. Cell `(l0, q2)`: the same divergence in the other
-direction. Only the pairings the tool certified survive.
+Intuition per ✗ (the benchmark file documents these as its no-certificate pairs):
+`(Mid, High)` — L fills toward 25 while R drains toward 2.5; `x_L − x_R` grows
+monotonically, and no λ rescale fixes a wrong *direction*. `(Mid, Low)` — L
+fast-fills toward setpoint 25 while R slow-fills toward 12.5; L outruns the bound.
+`(Low, High)` — filling left against draining right, same growth. (Note `(High,
+Mid)` ✓ even though right *fills* while left drains: the invariant is one-sided —
+the right side running ahead only helps.)
 
-**Step 3 — prune.** Delete the three ✗ cells. (A hop cannot rescue a deleted cell
-*for its own window*: a hop changes `q`, and then the *target's* flow answer is what
-counts — pruning is per-position.)
+**Step 3 — serve, with repositions.** A cell without a direct certificate is not
+dead: a reposition is a **frozen-left right flow** — L's clock does not advance
+while R flows in its own time toward the target mode's guard, enters it legally,
+and only then does the window's joint flow start. So the inner fixpoint
+`Serve(l, …)` of §3.1 can rescue a ✗ cell *for its own window*. Concretely,
+`(Low, High)`: R sits in High (`x ≥ 17`) while L runs a Low window — R drains in
+frozen left-time until `x < 17`, Mid's guard turns true, R enters Mid, and
+`(Low, Mid)` is directly certified. The hop is legal *only because the drain flow
+reaches the guard* — High's and Mid's guard regions are statically disjoint, so
+hop legality is a **reachability certificate** (the existing frozen-left
+reposition machinery), not a syntactic edge check.
 
-```
-W₁ = { (l0,q0) (l0,q1)  (l1,q1)  (l2,q0) (l2,q1) (l2,q2) }
-```
-
-**Step 4 — the closure test (the "…and lands back in W" half).** Re-examine each
-survivor: when L *switches* modes, can R stay in the region? In general this
-evaluates the *inner* per-left-mode reachability fixpoint `Serve(l′, …)` of §3.1 —
-multi-hop chains through R's graph. Watertank is degenerate here: every needed
-chain has length ≤ 1 (q1's column is full and direct edges reach q1), so the test
-collapses to "stay, or hop once." For each `(l, q) ∈ W₁` and each declared
-L-successor `l′`:
-
-- **Stay works?** Is `(l′, q) ∈ W₁`? From `(l1, q1)`, L switches to `l0`:
-  `(l0, q1) ∈ W₁` → R does nothing, just flows. Column q1 is full, so from q1 R
-  *never* needs to hop.
-- **Stay fails → hop.** From `(l2, q2)`, L switches to `l1`: `(l1, q2) ∉ W₁` → R
-  hops `q2 → q1` along a declared edge of `GrW`, guard holding at the entry instant
-  (guard-at-entry — the folded contract), invariant carried across the frozen-left
-  hop (a frozen-hop verdict). Lands at `(l1, q1) ∈ W₁`. ✓
-
-Every survivor passes for every successor (q1's column covers every row and the mode
-graph reaches q1), so nothing more is deleted:
+**Step 4 — the outer fixpoint, executed.** `scripts/fixpoint_prototype.py` runs
+the nested fixpoints on this exact data (real mode lists, real declared edges,
+flow oracle = the six recorded verdicts; hop legality approximated by the declared
+edges, with the reachability caveat above). Result:
 
 ```
-W₂ = W₁  →  fixpoint. W = the six certified pairs — exactly the six VerdW indices.
+RUN 1 (watertank as-is):   W = ALL NINE positions, stable in one iteration.
 ```
 
-The reassuring identity: **the winning region IS the verdict index set** the old
-route already named. The fixpoint route discovers no new facts about watertank; it
-reorganizes the same facts so the proof assembles itself.
+Every cell serves every successor window — the ✗ cells via a reposition into the
+Mid column, everything else directly. **This falsified the first draft of this
+section**, which claimed W would equal the six verdict indices with the ✗ cells
+pruned: running the example showed that window-start repositions *widen* the
+winning region beyond the directly-certified pairs. The identity that actually
+holds (visible in the emitted σ): **every flow endpoint σ uses is one of the six
+VerdW pairs** — six verdicts = the strategy's flow endpoints; W = the serviceable
+*starts*, which hops legitimately enlarge. Against the old route this is a
+strengthening: `watertank_modal` conditions its starts on the certified pairs,
+while the fixpoint certifies the full board as admissible starts — at the honestly
+named price of one reachability certificate per hop used.
 
-**Step 5 — the certificate.** Emit two literals: `W` (six cells) and the choice
-table σ — per cell, per L-successor, the recorded answer:
+The prototype's counterfactuals show the fixpoint biting in both inputs:
 
 ```
-σ(l, q)(l′) =  stay-and-flow(λ_{l′q})       if (l′, q) ∈ W
-               hop(q → q′) ∘ flow(λ_{l′q′})  otherwise, q → q′ ∈ GrW, guard entered
-
-e.g.  σ(l2,q2)(l1) = hop q2→q1, then flow at λ₁₁
-      σ(l1,q1)(l0) = stay, flow at λ₀₁
+RUN 2 (delete R edge High→Mid): drain trap — R stuck in High can never rejoin
+      a filling mode; the whole High column is pruned, W = 6.
+RUN 3 (delete the (High,Mid) verdict instead): W stays 9, but σ reroutes —
+      (Mid,Mid) now answers a High switch by hopping Mid→High and flowing
+      at (High,High) rather than staying.
 ```
 
-**Step 6 — the kernel's share.** Three checks, all mechanical:
+Graph weakness and dynamics weakness compose through the same operator; a bad
+design shrinks W and the pruning trace *names the windows that failed*.
+
+**Step 5 — the certificate.** Emit two literals: `W` (here: all nine cells) and the
+choice table σ — per cell, per L-successor, the recorded answer (excerpts from the
+prototype's actual output):
+
+```
+at (Low, Mid),  L switches to Mid:   stay, flow at the certified λ for (Mid,Mid)
+at (Low, High), L switches to Low:   hop High→Mid, then flow for (Low,Mid)
+at (High,High), L switches to Mid:   hop High→Mid, then flow for (Mid,Mid)
+```
+
+**Step 6 — the kernel's share.** Four checks, all mechanical:
 
 1. `decide`: every cell of W, under σ's choices, lands back in W — the post-fixpoint
-   property, a finite table lookup (six cells × their successors);
-2. the named Z3 facts: the six flow verdicts plus the hop verdicts σ uses — the same
-   `z3solve … = unsat` hypotheses as today;
-3. existence: each flow entry actually evolves for its window — watertank's fields
+   property, a finite table lookup (nine cells × their successors; the prototype's
+   `post_fixpoint_check` is this check in miniature);
+2. the named Z3 facts: the six flow verdicts plus the frozen-hop preservation
+   verdicts σ uses — the same `z3solve … = unsat` hypotheses as today;
+3. reach certificates for σ's hops: each reposition is a frozen-left right *flow*
+   into the target guard (Step 3), so each hop used carries a reachability
+   discharge — the existing reposition machinery, now named per edge;
+4. existence: each flow entry actually evolves for its window — watertank's fields
    are exact exponential contracts, so this is the already-proven `watertank_ESW`,
    no Z3.
 
-**Step 7 — the theorem.** The generic lemma converts checks 1–3 into the modal
+**Step 7 — the theorem.** The generic lemma converts checks 1–4 into the modal
 statement — the automaton in the statement:
 
 ```lean
@@ -446,8 +463,9 @@ theorem watertank_modal_fixpoint (dt : ℝ)
     rvalid (theorem3Form (bigChoice (leftProgsW dt))
       (rightAutomatonBody GrW mvM) ϕ⁺) :=
   winning_region_sound wtW wtσ
-    (by decide)                                    -- postFix over 6 positions
+    (by decide)                                    -- postFix over 9 positions
     ⟨h00, h01, h11, h20, h21, h22⟩                 -- verdicts, unchanged
+    ⟨hopReach_HighMid, …⟩                          -- reach certs for σ's hops
     (fun _ q hq => watertank_ESW_from_contract …)  -- existence: route (a), proven
 ```
 
@@ -465,8 +483,11 @@ W shrinks → the per-design diagnosis of §3.2.
 
 **Pilot acceptance gate:** `watertank_modal_fixpoint` kernel-green with axioms exactly
 `[propext, Classical.choice, Quot.sound]` + `z3_unsat_sound` at the leaves, and its
-statement literally identical (or provably equivalent) to `watertank_modal_certified`'s
-conclusion. That identity is the proof that the new route proves the *same thing*.
+conclusion at least as strong as `watertank_modal_certified`'s: restricted to the old
+route's admissible starts it must provably imply the old conclusion (the prototype
+indicates the fixpoint starts are strictly *wider* — the full board versus the six
+certified pairs — so "identical statement" is the wrong gate; "provably subsumes" is
+the right one).
 
 ---
 
@@ -480,11 +501,16 @@ conclusion. That identity is the proof that the new route proves the *same thing
    particular lemma, not facts about the systems — the fixpoint statement avoids that
    lemma's shape — but the general proof may surface its own findings. That is what
    the pilot is for.
-2. **Guard SAT at hops.** σ's hop entries need "guard satisfiable at the switch
-   instant *given the invariant*" — per-edge SAT checks (new query kind for the tool,
-   though trivially printable; SAT answers are used only to *select* σ during search,
-   never trusted — only UNSAT facts enter theorems, as today; the *proof* obligation
-   at a hop is invariant preservation, a frozen-left UNSAT verdict).
+2. **Hop legality is reachability, not a syntactic edge check.** The prototype run
+   made this concrete: R's High and Mid guard regions are statically *disjoint*
+   (`x ≥ 17` vs `x < 17`), yet the hop High→Mid is legitimate — a reposition is a
+   frozen-left right *flow* that carries the state into the target guard (here:
+   draining below 17). So each hop σ uses needs a **reach certificate** (the
+   existing frozen-left reposition machinery, named per edge) plus the frozen-hop
+   invariant-preservation UNSAT verdict. SAT probes may still guide the *selection*
+   of σ during search — never trusted, as today; only UNSAT facts and reach
+   discharges enter theorems. The prototype approximates legality by the declared
+   edge relation and says so; the real design must not.
 3. **W can be empty or miss the starts.** Then the benchmark genuinely lacks a modal
    certificate at this granularity — the design reports it honestly (as
    shield_unreachable is reported today) rather than failing silently.

@@ -1,10 +1,21 @@
 # Design: the winning-region fixpoint — "the automaton refines L" for every benchmark
 
-Status: DESIGN PROPOSAL (2026-07-17). Nothing here is implemented; the current
+Status: DESIGN PROPOSAL (2026-07-17). Nothing here is implemented in Lean; the current
 derivation-style pipeline (cover search → `decideCovered` replay → per-benchmark
 assembly) stays the production route until this design lands end-to-end on a pilot.
+An executable prototype exists — `scripts/fixpoint_prototype.py`, six runs on
+watertank's real data — and its findings are folded into §6.
 Companion reading: README ("The end-to-end guarantee, intuitively"), `docs/ROADMAP.md`
 (final closure — options 1 and 2 are the problem this design attacks).
+
+**Scope, in three sentences (details in §9).** This design buys nothing for the
+existing results: the 46 settling/throughout theorems and the watertank modal
+theorem are done, green, and unaffected, and the project headline stands without
+it. It matters only if the *modal* statement — "the automaton refines L," strategy
+proof-internal — is wanted for every benchmark; for that goal it converts
+open-ended per-benchmark proof work into one hard generic lemma plus emitted data
+plus `decide`. If that suite-wide modal claim is not needed, this document is a
+recorded design option, not scheduled work.
 
 ---
 
@@ -101,9 +112,12 @@ Fix a benchmark: left modes `l ∈ L`, right modes `q ∈ Q`, declared edge rela
   - **flow(λ)**: the joint piece — `l`'s dynamics vs `q`'s dynamics ×λ, invariant
     preserved throughout the piece. Backed by the *same* per-piece Z3 queries the
     tool prints today (routes A / B / C, cut-narrowed domains, evolve-box faces).
-  - **hop(q → q′)**: an edge in `E` whose guard holds at the switch instant
-    (guard-at-entry — the folded successor-completeness contract), left clock frozen,
-    invariant preserved across the hop (the frozen-left verdicts). Hops chain.
+  - **hop(q → q′)**: an edge in `E`, taken as a *frozen-left right flow* — L's
+    clock does not advance while R flows into `q′`'s guard and enters it legally
+    (guard-at-entry — the folded successor-completeness contract), invariant
+    preserved throughout (the frozen-left verdicts). Legality is a *reachability*
+    fact, not a syntactic edge check (§6 Step 3, risk 2). Hops chain.
+
 The design is **two nested fixpoints** — an inner one *per left mode* over R's
 graph, and an outer one over pairs. They answer different questions and neither
 subsumes the other.
@@ -217,8 +231,8 @@ file*. So the design places ε_R under the ∃ — in the answer, never in the p
   `(mode, covered-time)` pairs instead of modes — flow moves advance time within
   a mode, hop moves change mode at fixed time — still finite, same frame
   (prototype RUN 6). Its obligations split cleanly:
-  - *arithmetic* — `Σ wᵢ = ε_L`, `wᵢ = ε_R/λᵢ`, each λᵢ in the declared range:
-    decidable rational facts, kernel `decide`, no Z3;
+  - *arithmetic* — `Σ wᵢ = ε_L`, `wᵢ = ε_R/λᵢ`, each λᵢ inside the declared
+    range: decidable rational facts, kernel `decide`, no Z3;
   - *analytic* — per-piece invariant preservation at that λᵢ (the Z3 verdicts —
     these are what make λᵢ *certified*, not merely declared) and existence (§5),
     one set per piece, exactly as for single pieces.
@@ -248,9 +262,10 @@ stop when Wₖ₊₁ = Wₖ
 ```
 
 Each `F` evaluation asks Z3 the *same query shapes as today* (flow-piece routes,
-frozen-hop preservation, guard entry SAT) — the oracle interface does not change.
-The iteration terminates in ≤ |L|·|Q| rounds. This is *simpler* than the current
-cover exploration: no windows-within-derivations, no case tree; just a shrinking set.
+frozen-hop preservation, hop-reach probes, guard entry SAT for selection) — the
+oracle interface does not change. The iteration terminates in ≤ |L|·|Q| rounds.
+This is *simpler* than the current cover exploration: no
+windows-within-derivations, no case tree; just a shrinking set.
 
 **Emission** (`--emit-winning-region`): the final `W`, the **choice table**
 `σ : W × L-successor → answer` (which flow/hop chain each surviving position uses —
@@ -287,11 +302,30 @@ theorem bench_modal_certified ... :=
   winning_region_sound benchW benchσ
     (by decide)          -- postFix: the one kernel check
     ⟨v₁, v₂, …⟩          -- the named Z3 verdict facts (as today)
+    ⟨r₁, r₂, …⟩          -- the reach certificates for σ's hops
     ⟨e₁, e₂, …⟩          -- the existence discharges (route a or b, §5)
 ```
 
 No window chains. No hop lemmas per instance. No envelope bookkeeping per instance.
 The generator emits *data*, not proofs.
+
+Two properties of this shape are the entire point, stated precisely:
+
+- **The statement is clean.** The per-benchmark theorem *statement* mentions only
+  L's program, `rightAutomatonBody` (the automaton), the invariant, and the named
+  hypotheses (verdicts, reach, existence). The strategy appears **nowhere in the
+  statement** — σ and W are arguments to the generic lemma *inside the proof
+  term*, which is the right place for witness data backing an ∃. The claim reads
+  "the automaton refines L," full stop.
+
+- **Instantiation is uniform.** Every benchmark's proof is the *same one-liner*,
+  differing only in the emitted data literals (`benchW`, `benchσ` — drift-checked
+  like `BenchIR` today). Contrast the old route: `watertank_modal`'s statement was
+  also clean, but its *proof* was a hand-assembled, benchmark-shaped construction,
+  and scaling means a generator emitting *proofs*, each able to fail in
+  benchmark-specific ways (the §1 blockers). Here every benchmark-shaped
+  difficulty lives in the one lemma; the only per-benchmark failure mode is honest
+  and diagnostic — W does not contain the starts.
 
 ### 3.5 What the fixpoint formulation actually buys (it is not the search)
 
@@ -649,3 +683,39 @@ the right one).
 W1+W2 together are one focused arc (S1-sized) and are decision-complete: if the pilot
 reproduces watertank cheaply, the route is validated; if it surfaces findings, they
 are findings about the *general* lemma we were going to need anyway.
+
+---
+
+## 9. Scope: what this buys, and the decision rule
+
+**Buys nothing for (all done, green, unaffected):**
+
+- the 46 settling/throughout end-to-end theorems;
+- the watertank modal theorem (`watertank_modal_certified`) — the fixpoint route
+  would only widen its start set, marginal;
+- the project headline — "end-to-end verified in Lean, modulo Z3-unsat and the
+  modeling boundary" stands without this design.
+
+**Buys something only under one condition:** the *modal statement* — the automaton
+in the theorem, strategy proof-internal (§3.4's two properties) — is wanted for
+**every** benchmark, not just watertank. Under that condition the win is real and
+structural: the open-ended per-benchmark proof work of the old route (mode
+correspondence, hop-lemma limits, generators emitting proofs — §1's blockers)
+becomes one hard generic lemma + emitted data + `decide` per benchmark, and every
+per-benchmark failure is the diagnostic kind (W misses the starts), never the
+mysterious kind (a proof script that will not close). Even then, two costs are
+route-independent: `winning_region_sound` is an S1-sized-or-larger proof, and the
+existence wiring for non-contract fields (§5, route b) must be paid on any route.
+
+**Banked already at zero further cost:** the design-space clarifications this
+document and the prototype produced — where ε_R bites (tiling over certified
+widths), hop legality as reachability, repositions widening the start set, the
+per-design diagnostic capability. Recorded; useful independently of whether the
+arc ever runs.
+
+**Decision rule.** Does the paper, a reviewer, or a certification story require
+"the automaton refines L" suite-wide? If yes: schedule W1+W2 (§8) — it is the
+cheapest path to that claim, and decision-complete. If no: shelve — this document
+costs nothing on the shelf, and the shipped results are complete and defensible as
+they stand. Default recommendation: **shelved** until the suite-wide modal claim
+is concretely demanded.

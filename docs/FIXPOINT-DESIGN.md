@@ -475,11 +475,30 @@ lemma, hand-wired hop re-anchoring — S1 was a full autonomous session. On the
 fixpoint route all of that is *inside* `winning_region_sound`, paid once, and the
 watertank instance is the six facts plus a `decide`.
 
-**Where ε_R hid in all this:** watertank never exercised the tiling arithmetic —
-single full-width piece per window, certified set = one λ per cell. A benchmark
-where Z3 certifies only a thin λ set would show its ε_R sensitivity in Step 2:
-certified widths that cannot sum to the window → cell ✗ despite healthy dynamics →
-W shrinks → the per-design diagnosis of §3.2.
+**Where ε_R hid — and the runs that expose it.** Watertank as-shipped never
+exercises the tiling arithmetic: all six verdicts are at λ = 1 with
+ε_R = ε_L = 1, one full-width piece per window. The prototype's RUNs 4–5 turn the
+dial with the dynamics, graph, and certified *pairs* all held fixed — only the
+certified λ sets are varied (hypothetical there; real ones come from Z3 probes),
+and the tiling requirement `Σ ε_R/λᵢ = ε_L` is checked exactly:
+
+```
+RUN 4 (ε_R sweep, certified λ set = {1}):
+  ε_R = 1    → width 1        tiles → |W| = 9
+  ε_R = 1/2  → width 1/2      tiles (1/2 + 1/2) → |W| = 9
+  ε_R = 7/10 → width 7/10     NO TILING (reaches only 7/10, 14/10, …) → |W| = 0
+
+RUN 5 (ε_R = 7/10 kept, richer certified λ set {1, 7/5}):
+  widths {7/10, 1/2}          tiles (1/2 + 1/2 = 1) → |W| = 9
+```
+
+RUN 4's third line is the clean demonstration of the phenomenon: **the dynamics
+never changed — the width dial alone collapsed the winning region to empty.** And
+RUN 5 shows the recovery lever: certifying one more λ (7/5, width 1/2) restores the
+tiling and the full region returns. ε_R sensitivity = thinness of the certified
+width set against the window — exactly §3.2's criterion — and the fixpoint
+surfaces it as a per-design verdict with the failing windows named, not as an
+unexplained proof failure.
 
 **Pilot acceptance gate:** `watertank_modal_fixpoint` kernel-green with axioms exactly
 `[propext, Classical.choice, Quot.sound]` + `z3_unsat_sound` at the leaves, and its

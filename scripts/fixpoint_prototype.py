@@ -169,3 +169,77 @@ show(W3, sigma3)
 FLOW_CERT.add(("High", "Mid"))
 print("  reading: weaker dynamics (one fewer certified pair) shrinks W the")
 print("  same way a weaker graph does - the fixpoint composes both effects.")
+
+# ---------------------------------------------------- eps_R: the tiling layer
+# Watertank's real verdicts are all at lambda = 1 with eps_R = eps_L = 1.0, so
+# the tiling is degenerate (one full-width piece) and eps_R is invisible above.
+# The runs below make it visible: same modes, same edges, same six certified
+# PAIRS - but now each pair's certified lambda SET is explicit, piece width is
+# eps_R/lambda, and a pair only has a flow answer if some multiset of its
+# widths sums exactly to eps_L (full-width pieces, no truncation - the current
+# certificate shape). Certified lambda sets other than {1} are HYPOTHETICAL
+# here (real ones come from Z3 probes); the arithmetic they feed is exact.
+from fractions import Fraction as Fr
+
+EPS_L = Fr(1)          # left window width (epsilon = 1.0 in the benchmark file)
+
+def tiles(eps_L, widths):
+    """Can a multiset drawn from `widths` sum exactly to eps_L? Exact DP."""
+    reach = {Fr(0)}
+    frontier = [Fr(0)]
+    while frontier:
+        nxt = []
+        for s in frontier:
+            for w in widths:
+                t = s + w
+                if t == eps_L:
+                    return True
+                if t < eps_L and t not in reach:
+                    reach.add(t); nxt.append(t)
+        frontier = nxt
+    return False
+
+def flow_cert_under(eps_R, lam_set):
+    """The flow-certified pairs when each certified pair's lambda set is
+    lam_set and the piece width is eps_R/lambda (same six pairs, new widths)."""
+    widths = [Fr(eps_R) / Fr(l) for l in lam_set]
+    ok = tiles(EPS_L, widths)
+    return {p for p in BASE_CERT} if ok else set()
+
+BASE_CERT = set(FLOW_CERT)
+
+def sweep(eps_R, lam_set, label):
+    global FLOW_CERT
+    FLOW_CERT = flow_cert_under(eps_R, lam_set)
+    widths = sorted(set(Fr(eps_R) / Fr(l) for l in lam_set))
+    W, sg, _ = winning_region(R_EDGES, verbose=False)
+    tag = "tiles" if FLOW_CERT else "NO TILING"
+    print(f"  eps_R = {eps_R}, certified lambdas = {sorted(lam_set)}"
+          f"  -> piece widths {[str(w) for w in widths]}  [{tag}]"
+          f"  ->  |W| = {len(W)}")
+    FLOW_CERT = set(BASE_CERT)
+    return len(W)
+
+print()
+print("=" * 72)
+print("RUN 4: eps_R sweep - same dynamics, same graph, only the width dial")
+print("=" * 72)
+sweep("1",    ["1"],        "as-is")     # the real configuration
+sweep("1/2",  ["1"],        "halved")    # two pieces tile the window
+sweep("7/10", ["1"],        "awkward")   # 0.7 / 1.4 - gap at 1.0
+print("  reading: eps_R = 7/10 with only lambda = 1 certified kills EVERY")
+print("  pair's flow answer (widths 7/10 can only reach 7/10, 14/10, ...);")
+print("  no flow answers -> Serve is empty everywhere -> W collapses to 0.")
+print("  The dynamics never changed. The design dial alone did this.")
+
+print()
+print("=" * 72)
+print("RUN 5: same awkward eps_R = 7/10, but a RICHER certified lambda set")
+print("=" * 72)
+sweep("7/10", ["1"],        "thin")
+sweep("7/10", ["1", "7/5"], "richer")    # widths 7/10 and 1/2: 1/2 + 1/2 = 1
+print("  reading: certifying one more lambda (7/5 -> width 1/2) restores the")
+print("  tiling (1/2 + 1/2 = 1) and the full winning region returns. eps_R")
+print("  sensitivity = thinness of the certified width set vs the window,")
+print("  exactly section 3.2's criterion - and the fixpoint surfaces it as a")
+print("  per-design verdict, not a proof failure.")

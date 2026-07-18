@@ -129,21 +129,30 @@ one of them:
 - **Layer 2 — the membership test, per position `(l, q)`.** Asks: can `q` fully
   cover the window `l` presents? Here ε_R enters. The window has left-duration ε_L.
   R answers with pieces; a piece run at stretch λ consumes `ε_R/λ` of left time.
-  λ is *R's choice, per piece*, from the range the benchmark file declares — the
-  benchmark fixes the range, R picks within it. To cover the window, the piece
-  durations must add up to ε_L — a *tiling* `Σᵢ ε_R/λᵢ = ε_L`, hop chains permitted
-  at the seams (the multiflow round shape, task H). Whether a tiling exists depends
-  on ε_R and the declared λ range — *before any Z3 query is even asked*:
-  - **Success:** ε_L = 1, ε_R = 0.4, declared λ ∈ [1, 2] → each piece covers between
-    0.2 and 0.4 of left time; the tiling 0.4 + 0.4 + 0.2 = 1 works (λ = 1, 1, 2).
-  - **Failure:** ε_L = 1, ε_R = 0.7, declared λ ∈ [1, 1.05] → each piece covers
-    `0.7/λ` ∈ [0.667, 0.7]; k pieces total in [k·0.667, k·0.7], so k = 1 reaches at
-    most 0.7 < 1 and k = 2 already needs ≥ 1.333 > 1. The reachable sums have a gap
-    at 1 — no tiling, whatever λs R picks, *no matter how good the dynamics are*.
-  - **The general criterion:** a tiling exists iff
-    `ε_L ∈ ⋃ₖ [k·ε_R/λmax, k·ε_R/λmin]`; gaps occur only while consecutive
-    intervals fail to overlap, i.e. while `λmax/λmin < (k+1)/k`. Generous λ ranges
-    never fail; narrow ranges with ε_R large relative to ε_L can.
+  Two λ layers must not be conflated:
+  - the **declared range** (benchmark file) is only the *search space* — a design
+    input; nothing in it works by fiat;
+  - the **certified set** of a pair `(l, q)` is the λs that actually work — the
+    tool probes candidates inside the range and Z3 certifies (or rejects) each;
+    finite, dynamics-dependent, discovered during the `F` evaluation.
+
+  To cover the window, piece durations must add up to ε_L — a *tiling*
+  `Σᵢ ε_R/λᵢ = ε_L` with every λᵢ drawn from the **certified set**, hop chains
+  permitted at the seams (the multiflow round shape, task H). So the membership
+  test interleaves: probe λ candidates (Z3) → collect certified widths `ε_R/λ` →
+  tiling arithmetic over those widths. Concretely, with ε_L = 1:
+  - **Success:** ε_R = 0.4, certified λs include {1, 2} → widths {0.4, 0.2};
+    the tiling 0.4 + 0.4 + 0.2 = 1 works.
+  - **Failure:** ε_R = 0.7, certified λs all in [1, 1.05] (whether because the
+    declared range is that narrow or because Z3 rejects everything outside it) →
+    widths in [0.667, 0.7]; k pieces total in [k·0.667, k·0.7], so k = 1 reaches
+    at most 0.7 < 1 and k = 2 already needs ≥ 1.333 > 1. The reachable sums have
+    a gap at 1 — no tiling from that certified set.
+  - **The general criterion** (certified widths within `[wmin, wmax]`): a tiling
+    exists iff `ε_L ∈ ⋃ₖ [k·wmin, k·wmax]`; gaps occur only while consecutive
+    intervals fail to overlap, i.e. while `wmax/wmin < (k+1)/k`. A rich certified
+    set never fails; a thin one — narrow declared range *or* picky dynamics —
+    with ε_R large relative to ε_L can.
 
   This is precisely the observation that motivates the section: for a fixed L, some
   ε_R designs can match and some cannot — and it surfaces here, in layer 2, as
@@ -169,7 +178,8 @@ file*. So the design places ε_R under the ∃ — in the answer, never in the p
   `[(λ₁, w₁), …, (λₖ, wₖ)]` with its seam hops. Its obligations split cleanly:
   - *arithmetic* — `Σ wᵢ = ε_L`, `wᵢ = ε_R/λᵢ`, each λᵢ in the declared range:
     decidable rational facts, kernel `decide`, no Z3;
-  - *analytic* — per-piece invariant preservation (Z3 verdicts) and existence (§5),
+  - *analytic* — per-piece invariant preservation at that λᵢ (the Z3 verdicts —
+    these are what make λᵢ *certified*, not merely declared) and existence (§5),
     one set per piece, exactly as for single pieces.
 - **F stays monotone** — a richer answer type does not disturb the lattice; the
   pruning iteration is unchanged.

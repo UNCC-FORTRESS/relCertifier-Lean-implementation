@@ -210,7 +210,13 @@ file*. So the design places ε_R under the ∃ — in the answer, never in the p
 
 - **Positions stay mode pairs.** W does not grow with the width parameters.
 - **A σ flow entry is a tiling**, not a single piece: a finite list
-  `[(λ₁, w₁), …, (λₖ, wₖ)]` with its seam hops. Its obligations split cleanly:
+  `[(λ₁, w₁), …, (λₖ, wₖ)]` with its seam hops — and the pieces may be drawn
+  from *different* R modes along the walk (mid-window repositions: piece in q₁,
+  frozen-left hop, piece in q₂, …). Several modes can jointly cover one window
+  none of them covers alone. The inner fixpoint then runs over
+  `(mode, covered-time)` pairs instead of modes — flow moves advance time within
+  a mode, hop moves change mode at fixed time — still finite, same frame
+  (prototype RUN 6). Its obligations split cleanly:
   - *arithmetic* — `Σ wᵢ = ε_L`, `wᵢ = ε_R/λᵢ`, each λᵢ in the declared range:
     decidable rational facts, kernel `decide`, no Z3;
   - *analytic* — per-piece invariant preservation at that λᵢ (the Z3 verdicts —
@@ -499,6 +505,22 @@ tiling and the full region returns. ε_R sensitivity = thinness of the certified
 width set against the window — exactly §3.2's criterion — and the fixpoint
 surfaces it as a per-design verdict with the failing windows named, not as an
 unexplained proof failure.
+
+**RUN 6 — several modes jointly cover a window none covers alone** (mid-window
+repositions, §3.2's `(mode, covered-time)` upgrade of the inner fixpoint):
+
+```
+pair (Low,Low): width 3/10  — cannot tile alone (reaches 3/10, 6/10, 9/10, …)
+pair (Low,Mid): width 7/10  — cannot tile alone (reaches 7/10, 14/10)
+mixed-mode Serve(Low) = {Low}:
+  from Low:  flow 3/10 in Low;  hop Low→Mid;  flow 7/10 in Mid   (= 1) ✓
+```
+
+No single pair tiles the window, yet the alternation — piece, frozen-left hop,
+piece — covers it exactly. And the graph's *direction* matters: from Mid or High
+the Low-piece is unreachable (no edge back to Low), so only starts in Low serve.
+The mixed tiling drops into the same fixpoint frame, and its failures are as
+informative as its successes.
 
 **Pilot acceptance gate:** `watertank_modal_fixpoint` kernel-green with axioms exactly
 `[propext, Classical.choice, Quot.sound]` + `z3_unsat_sound` at the leaves, and its

@@ -243,3 +243,63 @@ print("  tiling (1/2 + 1/2 = 1) and the full winning region returns. eps_R")
 print("  sensitivity = thinness of the certified width set vs the window,")
 print("  exactly section 3.2's criterion - and the fixpoint surfaces it as a")
 print("  per-design verdict, not a proof failure.")
+
+# ------------------------------------ mixed-mode tilings: hops INSIDE a window
+# The full multiflow round shape: a window may be covered by an ALTERNATION -
+# piece in q1, frozen-left hop, piece in q2, ... - widths drawn from DIFFERENT
+# modes summing to eps_L. Serve upgrades to reachability over (mode, covered
+# time): flow moves advance time within a mode, hop moves change mode at fixed
+# time. Same fixpoint frame, richer moves.
+
+def serve_mixed(l_target, landing, edges, width_sets):
+    """width_sets[(l_target, q)] = certified piece widths of pair (l_target, q).
+    Returns (served, path) where path[q] is an example alternation from q."""
+    from collections import deque
+    served, path = set(), {}
+    for q0 in R_MODES:
+        seen = {(q0, Fr(0))}
+        dq = deque([(q0, Fr(0), [])])
+        found = None
+        while dq and found is None:
+            q, t, moves = dq.popleft()
+            if t == EPS_L and q in landing:
+                found = moves
+                break
+            for w in width_sets.get((l_target, q), []):     # flow piece in q
+                nt = t + w
+                if nt <= EPS_L and (q, nt) not in seen:
+                    seen.add((q, nt))
+                    dq.append((q, nt, moves + [f"flow {w} in {q}"]))
+            for q2 in edges[q]:                              # frozen-left hop
+                if (q2, t) not in seen:
+                    seen.add((q2, t))
+                    dq.append((q2, t, moves + [f"hop {q}->{q2}"]))
+        if found is not None:
+            served.add(q0)
+            path[q0] = found
+    return served, path
+
+print()
+print("=" * 72)
+print("RUN 6: mixed-mode tiling - three modes together cover one window")
+print("=" * 72)
+# eps_R regime where NO single pair tiles the Low window alone, but pieces
+# from different modes combine (hypothetical widths; real ones = Z3 probes):
+WIDTHS = {("Low", "Low"): [Fr(3, 10)], ("Low", "Mid"): [Fr(7, 10)],
+          ("Low", "High"): []}
+for q in R_MODES:
+    ws = WIDTHS.get(("Low", q), [])
+    alone = "tiles alone" if ws and tiles(EPS_L, ws) else "cannot tile alone"
+    print(f"  pair (Low,{q}): widths {[str(w) for w in ws]} -> {alone}")
+served, path = serve_mixed("Low", set(R_MODES), R_EDGES, WIDTHS)
+print(f"  mixed-mode Serve(Low) = {sorted(served)}")
+for q in sorted(path):
+    print(f"    from {q}: " + "; ".join(path[q]))
+print("  reading: NO pair tiles the window alone (3/10 reaches 3/10, 6/10,")
+print("  9/10, ...; 7/10 reaches 7/10, 14/10). Only the alternation covers:")
+print("  3/10 in Low, hop Low->Mid, 7/10 in Mid = 1. And the graph's")
+print("  DIRECTION matters: from Mid or High the Low-piece is unreachable")
+print("  (no edge back to Low), so only starts in Low serve - the mixed")
+print("  tiling drops into the same fixpoint frame (Serve over")
+print("  (mode, covered-time)), and its failures are as informative as its")
+print("  successes.")

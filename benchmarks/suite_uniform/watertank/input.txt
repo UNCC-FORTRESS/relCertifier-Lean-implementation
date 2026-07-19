@@ -60,8 +60,11 @@
 #
 # Evolution domains are PHYSICAL limits only: every mode uses x in [0, 25]
 #   (the tank's physical range under this setpoint scale), identical on both
-#   systems. No evolve bound is set to a guard or invariant value to assist
-#   verification.
+#   systems. The floor x >= 0 coincides with the Low guard's lower bound, but
+#   certification provably does not lean on it: every mode's field has strict
+#   inflow at the floor (x' = 3a >= 0.3 at x = 0), so the x = 0 face carries a
+#   strict viability tag and the invariant queries never bind there. No other
+#   evolve bound is set to a guard or invariant value.
 
 [problem]
 name = watertank
@@ -77,19 +80,19 @@ epsilon = 1.0
 [Lsys.mode.Low]
 ode = x' = smt2:(* 3 (- 0.6 (* x 0.04)));
 guard = x >= 0.0 and x < 13.0
-evolve = x >= -0.05 and x <= 25.0
+evolve = x >= 0.0 and x <= 25.0
 next = [Mid, Low]
 
 [Lsys.mode.Mid]
 ode = x' = smt2:(* 3 (- 1.0 (* x 0.04)));
 guard = x >= 13.0 and x < 20.0
-evolve = x >= -0.05 and x <= 25.0
+evolve = x >= 0.0 and x <= 25.0
 next = [High, Mid]
 
 [Lsys.mode.High]
 ode = x' = smt2:(* 3 (- 0.1 (* x 0.04)));
 guard = x >= 20.0 and x < 22.45
-evolve = x >= -0.05 and x <= 25.0
+evolve = x >= 0.0 and x <= 25.0
 next = [Mid, High]
 
 [Rsys]
@@ -99,19 +102,19 @@ epsilon = 1.0
 [Rsys.mode.Low]
 ode = x' = smt2:(* 3 (- 0.5 (* x 0.04)));
 guard = x >= 0.0 and x < 10.0
-evolve = x >= -0.05 and x <= 25.0
+evolve = x >= 0.0 and x <= 25.0
 next = [Mid, Low]
 
 [Rsys.mode.Mid]
 ode = x' = smt2:(* 3 (- 1.0 (* x 0.04)));
 guard = x >= 10.0 and x < 17.0
-evolve = x >= -0.05 and x <= 25.0
+evolve = x >= 0.0 and x <= 25.0
 next = [High, Mid]
 
 [Rsys.mode.High]
 ode = x' = smt2:(* 3 (- 0.1 (* x 0.04)));
 guard = x >= 17.0 and x < 22.45
-evolve = x >= -0.05 and x <= 25.0
+evolve = x >= 0.0 and x <= 25.0
 next = [Mid, High]
 
 [relational_invariant]

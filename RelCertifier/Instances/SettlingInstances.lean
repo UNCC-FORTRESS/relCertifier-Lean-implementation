@@ -458,7 +458,7 @@ def watertankSuiteM : SettlingModel 1 :=
         glo := 10000, ghi := 17000, succs := [2] },
       { shapes := ![CoordShape.contractQ 3 25 2500], gcoord := 0,
         glo := 17000, ghi := 22450, succs := [1] } ]
-    env := ![{ lo := some (-50 : ℤ), hi := some 25000 }]
+    env := ![{ lo := some 0, hi := some 25000 }]
     dtQ := 1 }
 
 example : decideWellFormed watertankSuiteM = true := rfl

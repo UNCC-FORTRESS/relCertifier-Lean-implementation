@@ -25,7 +25,7 @@ import RelCertifier.Proofs.Encoding.EnvelopeChain
 import RelCertifier.Proofs.Encoding.CanonicalInv
 import RelCertifier.Proofs.Encoding.CoverInstance
 import RelCertifier.Proofs.Flow.ViabilityWiring
-import RelCertifier.Instances.BenchIR
+import RelCertifier.Instances.BenchIR.watertank
 
 namespace RelCertifier
 namespace WatertankModal

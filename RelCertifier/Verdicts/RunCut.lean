@@ -17,6 +17,7 @@ queries (kernel-replayed flags, `BenchCoverReplay`); their empirical record is t
 certification run itself, re-runnable via `relcert <benchmark dirs>`.
 -/
 import RelCertifier.Verdicts.GenericPins
+import RelCertifier.Instances.BenchIR
 import RelCertifier.Instances.EvolStrengthenings
 import RelCertifier.Trusted.Z3
 

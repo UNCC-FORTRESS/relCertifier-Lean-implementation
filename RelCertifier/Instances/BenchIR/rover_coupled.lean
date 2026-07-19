@@ -1,0 +1,87 @@
+/-
+Copyright (c) 2026 relCertifier-lean contributors.
+Released under Apache 2.0 license.
+
+# `rover_coupled` — parser-emitted IR literal (GENERATED leaf — do not edit)
+
+Per-benchmark leaf module (X0 modularization): editing one benchmark no longer
+re-elaborates the whole instance battery. Regenerate with `relcert --emit-ir`.
+-/
+import RelCertifier.Trusted.Parse
+
+namespace RelCertifier.Parse
+
+/-- Parser-emitted IR of `benchmarks/suite_uniform/rover_coupled/input.txt` (do not edit). -/
+def rover_coupled_IR : PProblem :=
+  {
+    name := "rover_coupled"
+    lambdaMin := "1.0"
+    lambdaMax := "5.0"
+    L := {
+      stateVars := ["px", "py", "vx", "vy"]
+      epsilon := "1.0"
+      modes := [
+        {
+          name := "Drive"
+          odes := [("px", (.var "vx")),
+            ("py", (.var "vy")),
+            ("vx", (.num "0.2")),
+            ("vy", (.num "0"))]
+          guard := (.and (.cmp ">=" (.var "px") (.num "0.0")) (.cmp "<=" (.var "px") (.num "5.0")))
+          evolve := (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "px") (.num "-0.05")) (.cmp "<=" (.var "px") (.num "12.0"))) (.cmp ">=" (.var "py") (.num "-2.0"))) (.cmp "<=" (.var "py") (.num "2.0"))) (.cmp ">=" (.var "vx") (.num "-0.05"))) (.cmp "<=" (.var "vx") (.num "1.0"))) (.cmp ">=" (.var "vy") (.num "-1.0"))) (.cmp "<=" (.var "vy") (.num "1.0")))
+          next := ["Drift", "Drive"] },
+        {
+          name := "Drift"
+          odes := [("px", (.var "vx")),
+            ("py", (.var "vy")),
+            ("vx", (.num "0.1")),
+            ("vy", (.num "0.1"))]
+          guard := (.and (.cmp ">=" (.var "px") (.num "5.0")) (.cmp "<=" (.var "px") (.num "10.0")))
+          evolve := (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "px") (.num "-0.05")) (.cmp "<=" (.var "px") (.num "12.0"))) (.cmp ">=" (.var "py") (.num "-2.0"))) (.cmp "<=" (.var "py") (.num "2.0"))) (.cmp ">=" (.var "vx") (.num "-0.05"))) (.cmp "<=" (.var "vx") (.num "1.0"))) (.cmp ">=" (.var "vy") (.num "-1.0"))) (.cmp "<=" (.var "vy") (.num "1.0")))
+          next := ["Stop", "Drift"] },
+        {
+          name := "Stop"
+          odes := [("px", (.var "vx")),
+            ("py", (.var "vy")),
+            ("vx", (.bin "*" (.num "-0.5") (.var "vx"))),
+            ("vy", (.bin "*" (.num "-0.5") (.var "vy")))]
+          guard := (.and (.cmp ">=" (.var "px") (.num "10.0")) (.cmp "<" (.var "px") (.num "10.75")))
+          evolve := (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "px") (.num "-0.05")) (.cmp "<=" (.var "px") (.num "12.0"))) (.cmp ">=" (.var "py") (.num "-2.0"))) (.cmp "<=" (.var "py") (.num "2.0"))) (.cmp ">=" (.var "vx") (.num "-0.05"))) (.cmp "<=" (.var "vx") (.num "1.0"))) (.cmp ">=" (.var "vy") (.num "-1.0"))) (.cmp "<=" (.var "vy") (.num "1.0")))
+          next := ["Stop"] } ] }
+    R := {
+      stateVars := ["px", "py", "vx", "vy"]
+      epsilon := "1.0"
+      modes := [
+        {
+          name := "Recover"
+          odes := [("px", (.var "vx")),
+            ("py", (.var "vy")),
+            ("vx", (.num "0.4")),
+            ("vy", (.num "0"))]
+          guard := (.and (.cmp ">=" (.var "vx") (.num "0.25")) (.cmp "<=" (.var "vx") (.num "0.3")))
+          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "px") (.num "-0.05")) (.cmp ">=" (.var "vx") (.num "0.25"))) (.cmp "<=" (.var "vx") (.num "1.1"))) (.cmp ">=" (.var "vy") (.num "-1.0"))) (.cmp "<=" (.var "vy") (.num "1.1")))
+          next := ["Drive", "Recover"] },
+        {
+          name := "Drive"
+          odes := [("px", (.var "vx")),
+            ("py", (.var "vy")),
+            ("vx", (.num "0.2")),
+            ("vy", (.num "0"))]
+          guard := (.and (.cmp ">=" (.var "vx") (.num "0.3")) (.cmp "<" (.var "vx") (.num "0.75")))
+          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "px") (.num "-0.05")) (.cmp ">=" (.var "vx") (.num "0.25"))) (.cmp "<=" (.var "vx") (.num "1.1"))) (.cmp ">=" (.var "vy") (.num "-1.0"))) (.cmp "<=" (.var "vy") (.num "1.1")))
+          next := ["Safe", "Drive"] },
+        {
+          name := "Safe"
+          odes := [("px", (.var "vx")),
+            ("py", (.var "vy")),
+            ("vx", (.num "0")),
+            ("vy", (.num "0"))]
+          guard := (.and (.cmp ">=" (.var "vx") (.num "0.75")) (.cmp "<=" (.var "vx") (.num "1.0")))
+          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "px") (.num "-0.05")) (.cmp ">=" (.var "vx") (.num "0.25"))) (.cmp "<=" (.var "vx") (.num "1.1"))) (.cmp ">=" (.var "vy") (.num "-1.0"))) (.cmp "<=" (.var "vy") (.num "1.1")))
+          next := ["Safe"] } ] }
+    invariants := [
+      ("Drive", (.cmp "<=" (.var "L_px") (.bin "+" (.var "R_px") (.num "0.5")))),
+      ("Drift", (.cmp "<=" (.var "L_px") (.bin "+" (.var "R_px") (.num "1.0")))),
+      ("Stop", (.cmp "<=" (.var "L_px") (.bin "+" (.var "R_px") (.num "2.0"))))] }
+
+end RelCertifier.Parse

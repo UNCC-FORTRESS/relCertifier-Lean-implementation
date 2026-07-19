@@ -36,11 +36,11 @@ def fRWI (q : ℕ) : Fin 2 → ITerm 2 := fun i =>
   else ITerm.rat 0
 
 def domLWI : IForm 2 :=
-  IForm.and (IForm.cmp .ge (ITerm.var (Side.L, 0)) (ITerm.rat ((-1:ℚ)/20)))
+  IForm.and (IForm.cmp .ge (ITerm.var (Side.L, 0)) (ITerm.rat 0))
     (IForm.cmp .le (ITerm.var (Side.L, 0)) (ITerm.rat 25))
 
 def domRWI : IForm 2 :=
-  IForm.and (IForm.cmp .ge (ITerm.var (Side.R, 0)) (ITerm.rat ((-1:ℚ)/20)))
+  IForm.and (IForm.cmp .ge (ITerm.var (Side.R, 0)) (ITerm.rat 0))
     (IForm.cmp .le (ITerm.var (Side.R, 0)) (ITerm.rat 25))
 
 theorem hinv_W :
@@ -58,7 +58,7 @@ theorem hinv_W :
     (show "1.0".data = ['1','.','0'] from rfl),
     (show "0.1".data = ['0','.','1'] from rfl),
     (show "0.04".data = ['0','.','0','4'] from rfl),
-    (show "-0.05".data = ['-','0','.','0','5'] from rfl),
+    (show "0.0".data = ['0','.','0'] from rfl),
     (show "25.0".data = ['2','5','.','0'] from rfl)]
   try norm_num
 
@@ -77,7 +77,7 @@ theorem hdynL0_W (l : ℕ) (hl : l < 3) :
         (show "1.0".data = ['1','.','0'] from rfl),
         (show "0.1".data = ['0','.','1'] from rfl),
         (show "0.04".data = ['0','.','0','4'] from rfl),
-        (show "-0.05".data = ['-','0','.','0','5'] from rfl),
+        (show "0.0".data = ['0','.','0'] from rfl),
         (show "25.0".data = ['2','5','.','0'] from rfl)]
       try norm_num
 
@@ -96,7 +96,7 @@ theorem hdynL1_W (l : ℕ) (hl : l < 3) :
         (show "1.0".data = ['1','.','0'] from rfl),
         (show "0.1".data = ['0','.','1'] from rfl),
         (show "0.04".data = ['0','.','0','4'] from rfl),
-        (show "-0.05".data = ['-','0','.','0','5'] from rfl),
+        (show "0.0".data = ['0','.','0'] from rfl),
         (show "25.0".data = ['2','5','.','0'] from rfl)]
       try norm_num
 
@@ -114,7 +114,7 @@ theorem hlowL_W :
     (show "1.0".data = ['1','.','0'] from rfl),
     (show "0.1".data = ['0','.','1'] from rfl),
     (show "0.04".data = ['0','.','0','4'] from rfl),
-    (show "-0.05".data = ['-','0','.','0','5'] from rfl),
+    (show "0.0".data = ['0','.','0'] from rfl),
     (show "25.0".data = ['2','5','.','0'] from rfl)]
   try norm_num
 

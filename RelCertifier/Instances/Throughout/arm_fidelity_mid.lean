@@ -1,7 +1,7 @@
 /- GENERATED (scripts/gen_throughout.py) — do not edit. -/
 import RelCertifier.Proofs.Encoding.CoverInstance
-import RelCertifier.Instances.BenchCoversNC
-import RelCertifier.Instances.BenchIR
+import RelCertifier.Instances.BenchCoversNC.arm_fidelity_mid
+import RelCertifier.Instances.BenchIR.arm_fidelity_mid
 
 set_option maxHeartbeats 4000000
 set_option linter.unnecessarySeqFocus false

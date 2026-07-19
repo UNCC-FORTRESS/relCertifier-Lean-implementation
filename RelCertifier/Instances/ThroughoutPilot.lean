@@ -14,8 +14,8 @@ Residual: the strata verdicts (`hz3`, item 1 of the frozen contract). Axioms: th
 standard three + `z3_unsat_sound`.
 -/
 import RelCertifier.Proofs.Encoding.CoverInstance
-import RelCertifier.Instances.BenchCoversNC
-import RelCertifier.Instances.BenchIR
+import RelCertifier.Instances.BenchCoversNC.rover_drag
+import RelCertifier.Instances.BenchIR.rover_drag
 
 namespace RelCertifier
 namespace RoverDragThroughout

@@ -210,11 +210,16 @@ theorems tie the runner's printed queries to the theorems' named queries).
 * `GuardThreaded.lean`, `CutLift.lean` — the settling-side guard threading.
 
 ### Instances/ — the kernel column
-* `BenchIR.lean` — drift-checked emitted IR literals for all benchmarks (the single
+* `BenchIR/<name>.lean` — drift-checked emitted IR literal, one leaf module per
+  benchmark (X0 modularization: editing one benchmark re-elaborates only its own
+  column, not the battery); `BenchIR.lean` aggregates the leaves and carries the
+  whole-suite `benchIRTable` (the single
   source of truth the instances quote).
-* `BenchCovers.lean` / `BenchCoversNC.lean` — emitted cover data (with/without cuts).
+* `BenchCovers/`, `BenchCoversNC/` — emitted cover data (with/without cuts), one
+  leaf per benchmark; thin aggregators re-export.
 * `BenchCoverReplay.lean` — kernel replays of every cover decision (`by decide`).
-* `EvolStrengthenings.lean` — emitted cut certificates + kernel well-formedness.
+* `EvolStrengthenings/` — emitted cut certificates + kernel well-formedness, one
+  leaf per benchmark; thin aggregator re-exports.
 * `BenchViability2.lean` — the S3 face census (1121/1121, suite-wide).
 * `Throughout/*.lean`, `ThroughoutBattery.lean` — the 33 cut-free instances.
 * `CutThroughout/*.lean`, `CutThroughoutBattery.lean` — the 13 cut-lifted instances.
@@ -295,7 +300,7 @@ Mechanizing surfaced real issues; each is recorded in `docs/COVER-AUDIT.md`:
 
 `benchmarks/suite_uniform/<name>/input.txt` — one file per benchmark: state variables,
 `L`/`R` mode lists (`odes`, `guard`, `evolve`, `next`), per-mode relational invariants,
-and the `λ` stretch range. The parser is strict; the emitted IR (`BenchIR.lean`) is the
+and the `λ` stretch range. The parser is strict; the emitted IR (`BenchIR/<name>.lean`) is the
 drift-checked single source every instance quotes. 47 benchmarks: watertank, arm/plant
 families, rover refinement ladders, terrain and rollover stories up to 12 dof.
 

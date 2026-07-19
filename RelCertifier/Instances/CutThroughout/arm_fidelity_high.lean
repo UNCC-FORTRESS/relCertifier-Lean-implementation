@@ -1,7 +1,7 @@
 /- GENERATED (scripts/gen_cut_throughout.py) — do not edit. -/
 import RelCertifier.Proofs.Soundness.CutCoverDischarge
-import RelCertifier.Instances.BenchCovers
-import RelCertifier.Instances.BenchIR
+import RelCertifier.Instances.BenchCovers.arm_fidelity_high
+import RelCertifier.Instances.BenchIR.arm_fidelity_high
 
 set_option maxHeartbeats 4000000
 set_option linter.unnecessarySeqFocus false

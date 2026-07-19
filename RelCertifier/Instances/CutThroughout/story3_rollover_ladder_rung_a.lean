@@ -1,7 +1,7 @@
 /- GENERATED (scripts/gen_cut_throughout.py) — do not edit. -/
 import RelCertifier.Proofs.Soundness.CutCoverDischarge
-import RelCertifier.Instances.BenchCovers
-import RelCertifier.Instances.BenchIR
+import RelCertifier.Instances.BenchCovers.story3_rollover_ladder_rung_a
+import RelCertifier.Instances.BenchIR.story3_rollover_ladder_rung_a
 
 set_option maxHeartbeats 0
 set_option linter.unnecessarySeqFocus false

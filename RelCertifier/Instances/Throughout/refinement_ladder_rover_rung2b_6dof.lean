@@ -1,7 +1,7 @@
 /- GENERATED (scripts/gen_throughout.py) — do not edit. -/
 import RelCertifier.Proofs.Encoding.CoverInstance
-import RelCertifier.Instances.BenchCoversNC
-import RelCertifier.Instances.BenchIR
+import RelCertifier.Instances.BenchCoversNC.refinement_ladder_rover_rung2b_6dof
+import RelCertifier.Instances.BenchIR.refinement_ladder_rover_rung2b_6dof
 
 set_option maxHeartbeats 4000000
 set_option linter.unnecessarySeqFocus false

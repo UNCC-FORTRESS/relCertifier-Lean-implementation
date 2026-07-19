@@ -12,8 +12,8 @@ pre-j repositions (`regionInvAll_of_unsat'`), and σ-matched dynamic repositions
 emitted cut-free queries. Axioms: the standard three + `z3_unsat_sound`.
 -/
 import RelCertifier.Proofs.Encoding.CoverInstance
-import RelCertifier.Instances.BenchCoversNC
-import RelCertifier.Instances.BenchIR
+import RelCertifier.Instances.BenchCoversNC.watertank
+import RelCertifier.Instances.BenchIR.watertank
 
 namespace RelCertifier
 namespace WatertankThroughout

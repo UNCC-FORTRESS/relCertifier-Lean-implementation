@@ -5,7 +5,7 @@ Released under Apache 2.0 license.
 # S3 — watertank's existence residuals, fully discharged
 
 Every watertank right mode is an exact contract field (`x' = (3/25)·(c_q − x)` with
-`c_q ∈ {12.5, 25, 2.5}` inside the band `[−1/20, 25]`), so the settling arc's explicit
+`c_q ∈ {12.5, 25, 2.5}` inside the band `[0, 25]`), so the settling arc's explicit
 exponential witness (`WellFormedFlowB_contract`) discharges the bounded existence
 residual COMPLETELY — no Z3, no growth budget, equilibrium anchors included. The
 `watertank_modal_certified` wrapper feeds the discharge into the S1 gate: the theorem's
@@ -38,7 +38,7 @@ theorem hdyn0_W (q : ℕ) (hq : q < 3) :
         (show "1.0".data = ['1','.','0'] from rfl),
         (show "0.1".data = ['0','.','1'] from rfl),
         (show "0.04".data = ['0','.','0','4'] from rfl),
-        (show "-0.05".data = ['-','0','.','0','5'] from rfl),
+        (show "0.0".data = ['0','.','0'] from rfl),
         (show "25.0".data = ['2','5','.','0'] from rfl), qNeg]
       try norm_num
 
@@ -53,14 +53,14 @@ theorem hdyn1_W (q : ℕ) (hq : q < 3) :
         (show "1.0".data = ['1','.','0'] from rfl),
         (show "0.1".data = ['0','.','1'] from rfl),
         (show "0.04".data = ['0','.','0','4'] from rfl),
-        (show "-0.05".data = ['-','0','.','0','5'] from rfl),
+        (show "0.0".data = ['0','.','0'] from rfl),
         (show "25.0".data = ['2','5','.','0'] from rfl), qNeg]
       try norm_num
 
 theorem hlowR_W :
     Run.lowerF vsM 2 Side.R (mRW 0).evolve
       = some (IForm.and
-          (IForm.cmp .ge (ITerm.var (Side.R, 0)) (ITerm.rat ((-1:ℚ)/20)))
+          (IForm.cmp .ge (ITerm.var (Side.R, 0)) (ITerm.rat 0))
           (IForm.cmp .le (ITerm.var (Side.R, 0)) (ITerm.rat 25))) := by
   simp [mRW, vsM, watertank_IR, Run.lowerF, Run.lowerE, Run.resolveVar, Run.parseRat,
     parseQ, parseQChars, parseQChars.parseQPos, parseQChars.splitDot,
@@ -70,7 +70,7 @@ theorem hlowR_W :
     (show "1.0".data = ['1','.','0'] from rfl),
     (show "0.1".data = ['0','.','1'] from rfl),
     (show "0.04".data = ['0','.','0','4'] from rfl),
-    (show "-0.05".data = ['-','0','.','0','5'] from rfl),
+    (show "0.0".data = ['0','.','0'] from rfl),
     (show "25.0".data = ['2','5','.','0'] from rfl), qNeg]
   try norm_num
 
@@ -120,7 +120,7 @@ theorem hev_W (q : ℕ) (hq : q < 3) :
       simp [ITerm.toHost, contractF, Term.eval, AOp.interp]
 
 theorem hdom_W : ∀ x : DL.State (Var 2),
-    Formula.sat domRW x ↔ Formula.sat (bandDom 0 ((-1)/20) 25) x := by
+    Formula.sat domRW x ↔ Formula.sat (bandDom 0 0 25) x := by
   intro x
   rw [domRW_pipe]
   rw [show ((some (mRW 0)).bind (fun m => Run.lowerF vsM 2 Side.R m.evolve))
@@ -147,7 +147,7 @@ exponential contract witness, transferred to the lowered data. -/
 theorem hwfB_W (q : ℕ) (hq : q < 3) (dt : ℝ) :
     WellFormedFlowB (fRW q) (Term.const 1) domRW dt := by
   refine WellFormedFlowB_transfer (hev_W q hq) hdom_W ?_
-  refine WellFormedFlowB_contract 0 (3/25) (cW q) ((-1)/20) 25 dt (by norm_num) ?_ ?_
+  refine WellFormedFlowB_contract 0 (3/25) (cW q) 0 25 dt (by norm_num) ?_ ?_
   · interval_cases q <;> simp [cW] <;> norm_num
   · interval_cases q <;> simp [cW] <;> norm_num
 

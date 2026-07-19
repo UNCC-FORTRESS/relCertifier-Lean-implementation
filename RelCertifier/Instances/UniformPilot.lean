@@ -34,7 +34,7 @@ import RelCertifier.Proofs.Encoding.UniformFvDischarge
 import RelCertifier.Proofs.Encoding.LoweringSide
 import RelCertifier.Proofs.Encoding.CoverExtract
 import RelCertifier.Proofs.Encoding.CanonicalInv
-import RelCertifier.Instances.BenchIR
+import RelCertifier.Instances.BenchIR.rover_drag
 
 namespace RelCertifier
 namespace RoverDragPilot

@@ -1,7 +1,7 @@
 /- GENERATED (scripts/gen_cut_throughout.py) — do not edit. -/
 import RelCertifier.Proofs.Soundness.CutCoverDischarge
-import RelCertifier.Instances.BenchCovers
-import RelCertifier.Instances.BenchIR
+import RelCertifier.Instances.BenchCovers.rover_dof_terrain_rung3
+import RelCertifier.Instances.BenchIR.rover_dof_terrain_rung3
 
 set_option maxHeartbeats 0
 set_option linter.unnecessarySeqFocus false

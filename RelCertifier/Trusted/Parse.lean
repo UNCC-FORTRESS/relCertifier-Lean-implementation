@@ -193,7 +193,11 @@ partial def parseInfix (toks : List String) : Option PExpr :=
 def parseExpr (s : String) : Option PExpr :=
   let s := tr s
   if s.startsWith "smt2:" then
-    (parseSExpr (tokenize (dr s 5))).map Prod.fst
+    -- STRICT (2026-07-19): reject trailing tokens (same discard pattern as
+    -- the formula branch; see there).
+    match parseSExpr (tokenize (dr s 5)) with
+    | some (e, []) => some e
+    | _ => none
   else parseInfix (tokenize s)
 
 /-! ## Formula parser -/
@@ -236,7 +240,16 @@ end
 partial def parseFormula (s : String) : Option PForm :=
   let s := tr s
   if s.isEmpty then some PForm.tt
-  else if s.startsWith "smt2:" then (parseSForm (tokenize (dr s 5))).map Prod.fst
+  else if s.startsWith "smt2:" then
+    -- STRICT (2026-07-19): a trailing remainder after the s-expression was
+    -- previously DISCARDED, silently weakening multi-conjunct lines of the
+    -- form `smt2:(...) and smt2:(...)` to their first conjunct (found via a
+    -- false CERTIFIED on a synthesized two-sided band; see relSynth
+    -- results/bug/). Reject instead — never weaken. Multi-conjunct smt2
+    -- lines must use a single `smt2:(and ...)`.
+    match parseSForm (tokenize (dr s 5)) with
+    | some (f, []) => some f
+    | _ => none
   else
     let toks := tokenize s
     match splitLastTop toks ["and"] with

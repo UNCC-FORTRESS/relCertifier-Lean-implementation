@@ -278,6 +278,48 @@ interval, stays in its evolution domain, and lands in a state satisfying some re
 successor's guard. That is the paper's well-formedness assumption, discharged 46/46 and
 non-vacuously.
 
+
+### 3i. `Proofs/Soundness` (6 files, 2,397 lines) — and the consolidated route verdict
+
+**`CutLift.lean` (505 L)** — the checked-cut channel. Four atom routes
+(`atom_boxle_{R,L}_{nonstrict,strict}`) plus `AtomFact.ofLie`, each **conditional** on
+the atom holding initially (`hinit`), so none repeats the `GBoxAll` trap. `cut_lift_boxle`
+does the narrowing lift; `cut_hcert` assembles it from O1 (guard entry) and the Z3
+verdict. Four of the twelve `z3_unsat_sound` sites live here.
+
+**`CutChannel.lean` (70 L)** — the core lift, cleanly stated: if the invariant holds on
+the narrowed domain `D ∧ S` and the flow provably stays in `S`, it holds on `D`.
+
+**`UniformEvol.lean` (291 L)** — `contract_stays` and `WellFormedFlowB_contract` need
+only arithmetic side conditions (`0 ≤ k`, band containment): **no Z3, no budget**. This
+is why watertank's existence discharge (S3 route (a)) was cheap.
+
+**A second documented vacuity trap: `hbudgetAll`.** It states that *every* solution of
+the left ODE within `domL` has duration `≤ k·dt`. `ClockedTop.lean`'s header names it
+outright: *"unsatisfiable for autonomous benchmarks unless the caller smuggles a clock
+into `domL` — a vacuity trap"*. It is carried by `theorem3_faithful_settling` (which
+therefore has **both** traps) and by the whole landing family —
+`theorem3_faithful_landing_clocked`, `_wf`, and `_uniform`. Clocking the left retires it,
+which is exactly what `ClockedTop` and the uniform route do.
+
+**Consolidated verdict over every route to `rvalid (theorem3Form …)`:**
+
+| route | distinguishing hypotheses | verdict |
+|---|---|---|
+| cover / uniform — `decideCovered_implies_theorem3_faithful`, `theorem3_uniform_from_covered`, `theorem3_uniform_guarded` | `CoverCert`, `decideCovered`, `RightProjAlign(V)` | **live** |
+| `hstep`-parametric — `theorem3_faithful`, `_multi`, `_multiE`, `_multiE_LR` | `hstep` + disjointness | **live** |
+| settling, unclocked — `theorem3_faithful_settling` | **`GBoxAll` and `hbudgetAll`** | doubly vacuous |
+| settling, clocked/cadenced (×3) and `settling_end_to_end` | **`GBoxAll`** (budget retired by clocking) | vacuous |
+| landing, clocked (×3 incl. `_uniform`) | **`hbudgetAll`** | vacuous for autonomous benchmarks |
+| Emit-carrying — `*_of_emit`, `theorem3_uniform_multiflow`, `uniform_multiflow_end_to_end`, the reposition multi forms | `EmitSegs` / `EmitWindows` | sound, but assumes the witness — *unless discharged at the instance* |
+
+**Both live instantiations survive this.** `rover_drag_multiflow` goes through
+`uniform_multiflow_end_to_end`, whose `hcov` bundles `EmitWindows` — but the instance
+**discharges it inside the proof**, leaving only `hz3` (one Z3 verdict) and `hES`
+(existence). `watertank_modal` goes through `theorem3_faithful_multiE_LR` with `hstep`
+assembled from six joint verdicts and six existence facts, the latter proven in-kernel by
+`WatertankViability`. Neither touches `GBoxAll` or `hbudgetAll`.
+
 ---
 
 ## 4. What each benchmark has

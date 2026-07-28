@@ -69,6 +69,30 @@ Follow this path to see one guarantee all the way through:
    **Theorem 2** (`RFormula.encoding_correct`, soundness *and* completeness, never
    vacuous by `exists_bridge`).
 
+## 3a. The equation: how "throughout" and Theorem 3 relate
+
+Both routes consume the **same** certificate — `cert.segPres`, the per-mode-pair joint
+flow certificates built from the Z3 verdicts. Nothing about *preservation* differs
+between them. So:
+
+> **Theorem 3  =  throughout-preservation  +  existence  +  assembly**,
+> after which the loop rule and the encoding close it for free.
+
+| term | what it is | status |
+|---|---|---|
+| **throughout-preservation** | the invariant survives every certified joint piece and every reposition | ✅ **46/46** — this is what `Throughout/` and `CutThroughout/` prove |
+| **existence** | for a given L run, R's matching flow actually exists. Because `jointSys` puts L and R on **disjoint coordinate blocks**, L's flow plus R's flow in `domR` compose into the joint flow in `domL ∧ domR` (`hExistSegB_of_wellFormedFlowB`) | proven for watertank (contract fields); the `*_real` `GuardSettlingB` battery asserts the same object for 46/46 — a bridge lemma away (§5 note) |
+| **assembly** | knowing *all* joint runs are safe is not the same as *exhibiting one* spanning the whole L window; the ∃ must build a chain of pieces (plus repositions) covering the full duration | `EmitWindows`/`Hmulti`; available for 25 benchmarks, blocked for 21 (§5 note) |
+| **loop + encoding** | chaining windows (`relational_loop_multi`) and wrapping into the dL modality (`theorem3_encoded`, on dL-rel's Theorem 2) | ✅ **generic and proven** — no per-benchmark cost |
+
+This is why the two statements feel like they should be nearly the same thing: they are.
+The certificate is shared. The difference is that "throughout" *quantifies over* runs while
+Theorem 3 must *construct* one — and constructing needs existence and assembly.
+
+It also explains why exactly two benchmarks are done rather than none or all: watertank
+and rover_drag are the two where both extra ingredients happened to be available —
+contract-field existence for the first, an all-joint-certified graph for the second.
+
 ## 4. Live vs historical — check this before citing anything
 
 | route | hypotheses | status |

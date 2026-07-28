@@ -104,17 +104,56 @@ advantage is packaging — deriving the programs from a `HybridAut` rather than 
 `leftProgs`/`G` as given — which is a convenience worth borrowing if an
 automaton-parametric statement is ever wanted, not a soundness matter.
 
-## 3a. What is actually left, per benchmark
+## 3a. Two routes reach `theorem3Form` — and the settling route is generic
 
-Only `hstep`. For watertank it is assembled from six route verdicts and six existence
-facts. For the other 45, the cover machinery yields *preservation*
-(`CoexecInvAllThroughoutG`, ∀ over reaches) and the existence residuals separately, but
-the assembly into `hstep` has not been done. So:
+**Correction (second pass).** An earlier version of this section said "`hstep` has not
+been assembled for the other 45". That is wrong, and it came from looking only at the
+multiflow/modal route. There are **two** routes to `rvalid (theorem3Form …)`:
 
-- the paper's §2.3 reduction — **mechanized generically** ✓
-- the paper's Theorem 3 at a benchmark — **done for watertank**, pending for 45
-- an automaton-parametric version — would additionally need `hstep` discharged over
-  `HybridAut` rather than at concrete data
+**Route A — settling / ε-cadenced. Generic, no per-benchmark proof.**
+`settling_end_to_end` (`Proofs/Encoding/FvDischarge.lean:632`) is parametric in
+`SettlingModel n` and concludes
+
+```lean
+rvalid (theorem3Form (clockedSeg (leftBlock fL) domL (Aux b) M.dt)
+                     (rightAutomatonBodyC M.graph (Aux a) (Aux c) M.dt)
+                     (ψpostG M.graph M.GdOf (Aux a) ϕinv))
+```
+
+Its hypotheses are `decideWellFormed M = true` (kernel `rfl` per benchmark), the
+encoding identity, side-splits (generic dischargers), and the per-mode Z3 `BoxLe`
+certificates. The settling analogue of `hstep` — `GuardSettlingH` — is discharged
+**generically** by `wellformed_sound` + `FvDischarge`, which is why the family headers
+say it outright: *"per-run Z3 certificates yields `GuardSettlingH` — hence
+`theorem3_faithful_settling` — **with no per-benchmark proof**"*
+(`Instances/SettlingInstances.lean:7`, `Instances/TerrainInstances.lean:8`).
+
+Supporting this for all 46: `faithfulSettling … = true` by kernel `rfl` (the model *is*
+the parsed file), and `GuardSettlingB_rescale` transporting the per-mode content to each
+benchmark's real chart — the 46 `*_real` theorems in `Instances/RealInstances.lean`.
+
+So `theorem3Form` is **available for all 46 with no per-benchmark proof**. The line is
+actually written out at watertank (`Instances/EndToEnd.lean:49,107,152`, three variants)
+and bundled at arm_refinement (`Instances/Mega.lean`); for the remaining 44 it is a
+one-line application, not new mathematics. That is a packaging gap, not a mathematical
+one.
+
+**Route B — multiflow / reposition.** `theorem3_faithful_multiE_LR` (§2), instantiated
+at watertank only.
+
+**The real distinction is the witness shape, not coverage:**
+
+| | route A (settling) | route B (multiflow) |
+|---|---|---|
+| conclusion | `rvalid (theorem3Form …)` | `rvalid (theorem3Form …)` |
+| coverage | all 46, generic | watertank |
+| witness | ε-cadenced, one right cycle per round, full-width | multi-step: several right cycles, mode changes, right-only reposition segments |
+| paper content | Definition 1 / eq. (mode-inv) | Definition 1 **+ §4** (all-successors cover, budget, repositions) |
+| status | R7 marked the cadenced chain DEPRECATED — retained until the modal form and cut lift reach parity | current |
+
+So the honest position: **the paper's Theorem 3 conclusion shape holds for all 46**
+(route A, generic); what is watertank-only is the **multi-step witness content of §4** —
+the part that makes Theorem 3 more than one-cycle-per-round matching.
 
 ## 4. Residual modelling gaps, even after a re-basing
 
@@ -142,17 +181,20 @@ budget `⌈ε_L/δ_L⌉`).
 
 ## 5. Honest options
 
-1. **Claim what is proven.** Theorem 3 instantiated end-to-end for watertank (existence
-   proven in-kernel, six named verdicts); invariant-preservation for all 46 via the
-   settling and throughout families; and note that the settling family *discharges* the
-   paper's own well-formedness assumption. State the §4 modelling choices. Zero further
-   work.
+1. **Claim what is proven.** `rvalid (theorem3Form …)` available for all 46 by the
+   generic settling route (written out at watertank and arm_refinement); the full
+   multi-step §4 witness content instantiated at watertank, existence proven in-kernel;
+   and the settling family *discharges* the paper's own well-formedness assumption.
+   State the §4 modelling choices. Zero further work.
 
-2. **Discharge `hstep` for the remaining 45.** The generic top already holds; this is
-   the only missing piece for a per-benchmark Theorem 3. Doing it *parametrically over
-   `HybridAut`* (borrowing `tooling_sound`'s packaging) would cover the suite in one
-   theorem rather than 45 instances. Sizing not attempted here.
+2. **Write out route A for the remaining 44** — one line each, no new mathematics, if
+   you want 46 named `theorem3Form` theorems rather than a generic theorem plus the
+   ingredients.
 
-3. Note that the paper currently describes `\toolname` as a SymPy + Z3 prototype and
+3. **Discharge route B's `hstep` beyond watertank** if the paper's §4 multi-step witness
+   content (cover, budget, repositions) is to be mechanized per benchmark rather than
+   demonstrated once. This is the real remaining arc.
+
+4. Note that the paper currently describes `\toolname` as a SymPy + Z3 prototype and
    **does not mention Lean at all**. If the mechanization is meant to back this paper,
    §§1–4 above are what the bridging text has to say.

@@ -111,13 +111,16 @@ carrying `GBoxAll`/`hbudgetAll` (§4). Nothing live consumes it. Claim it as a s
 strengthening, not as a step toward the ∀∃ guarantee; the relational content for all 46
 comes from the Throughout/CutThroughout batteries.
 
-**Why the ∀∃ form does not extend easily.** Measured from the emitted covers: 21
-benchmarks have cover budget 1 (one joint piece per window — watertank's shape), and
-**25 have budget > 1, all of which also use repositions**. The only k > 1 route with hops,
-`Hmulti_window_prefixed`, carries a hypothesis its own note proves **unsatisfiable for
-genuine hops** (a frozen hop binds every left coordinate, so vars-disjointness against the
-window can never hold). So over half the suite is blocked on a formulation problem, not on
-generator work. See `PAPER-MAPPING.md` §3k.
+**Why the ∀∃ form extends to some benchmarks and not others.** The constraint is not the
+cover budget — `emitWindows_self` answers a k-piece window with k self-loop residences, so
+budget > 1 is fine. It is `RightProjAlignV`'s requirement that **every** mode be
+joint-certified: one non-joint mode forces a reposition prefix. Measured: **9** benchmarks
+have all modes joint-certified (uniform route, any k — `rover_drag` is one); **16** have a
+non-joint mode but budget 1 (watertank's modal k = 1 route); **21** have both a non-joint
+mode and budget > 1, needing a reposition prefix *with* multiple pieces — the one shape
+whose lemma (`Hmulti_window_prefixed`) has a side condition its own note proves false. So
+25 are reachable with identified work and 21 wait on one new lemma. See
+`PAPER-MAPPING.md` §3k–3l.
 
 The 47th benchmark, `shield_unreachable`, is honestly reported as non-certifying.
 

@@ -356,53 +356,74 @@ premise is conditional (`hinit : InvAllHolds gs ν`) — neither the `GBoxAll` n
   ones outside those two go through the quarantined settling route.
 
 
-### 3k. What "Theorem 3 for all 46" would actually take — measured
+### 3k. What "Theorem 3 for all 46" would take — measured
 
-Measured from the emitted covers, not estimated. The cover budget `B` is the
-ℕ-discretization of `ε_L` against per-mode weight 1, so `B` is **the number of joint
-pieces a window needs** (base fires at `B ≤ weight`).
+**Corrected.** An earlier version of this section said the blocker was cover budget > 1
+and that 25 benchmarks were blocked. Both wrong. `emitWindows_self`
+(`CoverExtract.lean`) is **parametric in `k`**: the response to a k-piece window is *"k
+residences in the current mode along the declared self-edge"*, so budget > 1 needs no
+hops and never touches the unsatisfiable `hdisH`. The real constraint is
+`RightProjAlignV`, which requires **`mj.jointOK = true` for every mode** — a single
+non-joint-certified mode rules the uniform route out and forces a reposition prefix.
 
-| | benchmarks | route |
-|---|---|---|
-| **budget = 1** (one piece per window) | **21** — 13 of them also use repositions | watertank's exact shape: `Hmulti_window1_prefixed` |
-| **budget > 1** (multi-piece windows) | **25** — **all 25 also use repositions** | needs k > 1 **with hops** |
-| budget > 1, no repositions | **0** | — |
+Measured over the emitted covers, on both axes:
 
-**The 25 are blocked on a documented negative finding.** The only k > 1 route with hops is
-`Hmulti_window_prefixed` (`EnvelopeChain.lean`), and its own note reads:
+| | budget = 1 | budget > 1 | |
+|---|---|---|---|
+| **all modes joint-certified** | 5 | 4 | **9 — uniform route, any k** |
+| **has a non-joint mode** | **16** | **21** | |
 
-> its `hdisH` hypothesis (vars-disjointness of the frozen-left hop program against the
-> clocked left segment) is **UNSATISFIABLE for genuine hops** — the frozen hop binds every
-> left coordinate (derivative 0), so its `Program.vars` always meets the left window's.
-> **NEGATIVE FINDING**, kept per the never-delete rule; the `k = 1` route below needs no
-> such disjointness (single window piece ⟹ nothing to commute past).
+- **9 — uniform route** (`theorem3_uniform_from_covered`), any budget. `rover_drag` is
+  here, which is why it is one of the two completed.
+- **16 — modal k = 1 route** (`Hmulti_window1_prefixed`): a non-joint mode forces a
+  reposition prefix, but one piece per window means nothing to commute past. `watertank`
+  is here.
+- **21 — neither**: reposition prefix **and** k > 1 pieces. The only lemma for that shape,
+  `Hmulti_window_prefixed`, carries `hdisH`, which its own note proves **unsatisfiable
+  for genuine hops** (a frozen hop binds every left coordinate, so vars-disjointness
+  against the window can never hold). Not a missing proof — a formulation whose side
+  condition is false.
 
-This is not a missing proof — it is a formulation whose side condition **cannot** be
-satisfied. Multi-piece windows need the hop program commuted past a window piece, and
-vars-disjointness is the wrong tool for that because a frozen hop still *binds* the left
-coordinates. A k > 1 route needs a **different argument** (e.g. an explicit clock-tracking
-interleave, or absorbing the hop into the piece boundary) — research-level work, not
-mechanical generation.
+**Why this was never noticed in day-to-day work:** the two completed instances are one
+from each *working* group. rover_drag exercised the uniform route, watertank the modal
+k = 1 route. Both are real and both succeeded; the third group only appears when asking
+for the remainder.
 
-**Revised sizing of "Theorem 3 for all 46":**
+**Sizing:**
 
-1. **21 benchmarks** — plausibly reachable with existing lemmas, per-benchmark cost:
-   `HExistSegB` existence (route (a) cheap for contract fields, route (b) Picard data
-   otherwise), the `hstep` assembly (S1's pattern, currently hand-built), the
-   `CoverCertM` → `CoverCert` gap, and `Aux` room. Mechanical-to-moderate.
-2. **25 benchmarks** — **blocked** until a k > 1-with-hops window lemma exists. Over half
-   the suite.
+1. **25 reachable with identified, non-novel work** — 9 via the uniform route
+   (`CoverCertM` → `CoverCert`, `RightProjAlignV`'s structural conjuncts, `hself`,
+   disjointness, and the *unbounded* `HExistSeg`); 16 via the modal route (the `hstep`
+   assembly generalized from watertank's hand-built pattern, plus `HExistSegB` — where a
+   bridge from the `*_real` `GuardSettlingB` battery would pay off, see §3l).
+2. **21 need one new lemma** — reposition prefix with k > 1. Track the clock explicitly
+   through the interleave rather than commuting programs past each other, so
+   vars-disjointness never arises. This is the only genuinely new mathematics in the
+   picture.
 
-So the roadmap's "modal instances beyond watertank" line understates this considerably:
-it is not one generator away. The k = 1 restriction that let watertank through is exactly
-the restriction 25 benchmarks violate, and the general case has a recorded impossibility
-for its current formulation.
+**Interaction with the shelved fixpoint design.** `docs/FIXPOINT-DESIGN.md` §4 claims the
+winning-region reformulation dissolves exactly this blocker ("hops are just edges inside
+`F`; chains handled by the fixpoint, not by a per-length lemma"). That claim now has a
+price tag: it would clear the wall blocking 21/46.
 
-**Where this interacts with the shelved fixpoint design.** `docs/FIXPOINT-DESIGN.md`
-§4 claims the winning-region reformulation dissolves precisely this blocker ("hops are
-just edges inside `F`; chains handled by the fixpoint, not by a per-length lemma"). That
-claim now has a concrete price tag attached: it would be addressing a wall that blocks
-25/46 benchmarks, not a convenience.
+### 3l. The existence bridge that may already be paid for
+
+`HExistSegB` (bounded) and `GuardSettlingB` (the `*_real` battery, 46/46) assert the
+**same object**: a right flow from a start point, with `rightBlock fR lam` derivatives,
+masking non-bound coordinates, staying in `domR`. Three differences, all small: the start
+point (`ΦL s` vs `base` — reducible to `sat (Gd q) ν` since `Gd q` is right-only and the
+left flow moves only left coordinates); the duration (restrict `[0,dt]` to `[0,s]`,
+`ODESol_restrict` exists); and `GuardSettlingB` supplies an *extra* successor-guard
+conjunct that `HExistSegB` does not need. `HExistSegB`'s own docstring records the design
+intent — *"unlike the `∀s` `HExistSeg`, it is dischargeable from the HONEST bounded-`dt`
+domain-invariance"*.
+
+If that bridge lands, the **existence** half of the ∀∃ surcharge is already paid 46/46 by
+a battery that currently feeds only vacuous routes (§3b), and the modal route's
+per-benchmark existence cost drops to near zero. Note `GuardSettlingB` is indexed by right
+mode only while `ESW` is per (left, right) pair, so |Q| facts should cover |L|×|Q|
+obligations. **Not built** — the risk is matching the lowered data (`realFieldOf` /
+`realEnvOf` against an instance's `fR` / `domR`).
 
 ---
 

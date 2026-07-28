@@ -21,8 +21,20 @@ def modeStep (G : SearchGraph V) (mv : V) (q : ℕ) (m : RMode V) : Program V :=
         Program.seq (Program.test e.guard) (Program.assign mv (Term.const (e.tgt : ℝ)))))))
 ```
 
-the edge does `?guard; mv := tgt` — the only assignment is to the mode variable. A
-**reset map** adds per-edge state assignments: `?guard; x := ρ(x); mv := tgt`.
+the edge does `?guard; mv := tgt` — the only assignment is to the mode variable.
+
+**The model of interest** (user-supplied, 2026-07-19) places a **per-target-mode**
+reset immediately before the flow:
+
+```
+( ⋃_{m ∈ modes}  ?(m ∈ next(mv)) ; ?guard_m(x) ; mv := m ; x := ρ_m(x) ;
+                 {x' = f_m(x) & evolC_m} )*
+```
+
+Two features of this shape drive everything below. The guard is the **target mode's**,
+tested at the **pre-reset** state — so a reset can never enable a transition that was
+not already enabled. And the reset sits **immediately before the flow** — so every mode
+residence begins at a reset image.
 
 **What it buys the modeling story.** Resets are how one writes: controller
 re-initialization at a switch, clock/timer resets, impacts and bouncing, quantized or
@@ -69,34 +81,45 @@ resets today, so the feature is purely additive.
 
 ### 3.1 Surface syntax, IR, and the tool (mechanical, but touches the strict parser)
 
-- `PMode.next : List String` (`Trusted/Parse.lean:59`) carries bare target names with
-  no room for reset data. It becomes either a parallel `resets` field or — cleaner — a
-  proper `PEdge` record (`tgt : String`, `reset : List (String × PExpr)`). This changes
-  `PProblem`'s derived `DecidableEq`, which is exactly what the drift check uses, so
-  drift checking extends for free.
+- Because `ρ_m` is indexed by the **target mode**, not the edge, `PMode`
+  (`Trusted/Parse.lean:54`) simply gains a `reset : List (String × PExpr)` field. No
+  `PEdge` restructuring, and the obligation count is |Q|, not |E| — materially smaller
+  than an edge-indexed design. This changes `PProblem`'s derived `DecidableEq`, which is
+  exactly what the drift check uses, so drift checking extends for free.
+- The guard convention already matches: the mechanization indexes guards by target mode
+  (`hostGuard` reads `m.guard`, `CoverInstance.lean:39`; built edges carry `Formula.tt`
+  and the guard is threaded as `Gd : ℕ → Formula`, consumed as `sat (Gd e.tgt) μ`). No
+  change needed.
 - Parser: a concrete syntax (e.g. `next = [Mid { x := x - 3 }, Low]`), held to the
   standing **reject-never-weaken** discipline — an unparseable or ill-formed reset must
   error, never silently degrade to the identity.
-- Lowering: a `resetOf : vars → n → Side → PEdge → Option (List (Fin n × ITerm n))`,
+- Lowering: a `resetOf : vars → n → Side → PMode → Option (List (Fin n × ITerm n))`,
   mirroring the existing `dynOf` (`Trusted/Run.lean:109`). Same shape, same failure
   mode.
 - Emission doors: `--emit-ir` must round-trip resets; `--emit-cover` must record which
   edges a cover actually uses (it effectively does already).
-- Search (`coverMode`, `Trusted/OracleAPI.lean:428`): two new probe kinds per edge —
+- Search (`coverMode`, `Trusted/OracleAPI.lean:428`): two new probe kinds per mode —
   reset-preserves-invariant, and reset-lands-in-target-domain (§3.4).
 
 ### 3.2 Checker data (small, but upstream)
 
-- `REdge` (`Checker/Cover.lean:73`) gains a `reset` field.
+- The reset rides the **target mode** (`RMode`), not `REdge` — matching `ρ_m`.
 - `RMode` unchanged; `decideCovered` unchanged (§2.3).
 - The reset's proof obligation should live in the **certificate** (`CoverCertMC`), not
-  in the decision procedure — a new `jumpPresC` field discharged per used edge. This
+  in the decision procedure — a new `jumpPresC` field discharged per target mode. This
   keeps the decidable combinatorial and avoids adding a flag that every `decide` replay
   would have to re-establish.
 - Cost note: `Checker/Cover.lean` is upstream of the whole proof layer, so this is a
   full-world rebuild — one, batched (see §8).
 
 ### 3.3 The proof layer — where the actual work is
+
+**Loop shape.** The model of interest is *jump-then-flow*; the mechanization's
+`modeStep` is *flow-then-jump*. Over a whole run these produce the same alternation of
+segments and discrete events, so this is a boundary/initialization question rather than
+a restructure — but it lands on the admissible-starts conditioning (R2), which was
+already delicate, and it is what makes the repeated-self-reset obligation (§4.4)
+visible.
 
 **The load-bearing assumption to break.** `RightReachG.jump`
 (`Proofs/Soundness/CutCover.lean:136`):
@@ -150,27 +173,32 @@ the **reset image**, not the pre-jump point. Two consequences:
 
 - *landing*: `sat domR (ρ μ)` — the reset must land inside the target mode's evolution
   domain. New query, easy.
-- *re-anchoring*: the bounded-viability chain must be re-entered at the reset image,
-  which means the anchor budget is recomputed there. This lands directly on S3's known
-  weak spot — the tangential case, an anchor sitting *on* a face with zero budget. A
-  reset that drops the state exactly onto a domain face is the natural way to hit it.
-  Contract-shaped fields (route a) are unaffected; general polynomial fields (route b)
-  pay here.
+- *re-anchoring, and it is universal*: because the reset sits immediately before the
+  flow, **every** mode residence begins at a reset image — not occasionally, always. The
+  bounded-viability chain must therefore be re-entered at `ρ_m(x)` on every entry, with
+  the anchor budget recomputed at a point the model author chose rather than one the
+  dynamics produced. This lands squarely on S3's known weak spot: the tangential case,
+  an anchor sitting *on* a face with zero budget. Contract-shaped fields (route a) are
+  unaffected; general polynomial fields (route b) pay here, on every entry. This is the
+  largest single sharpening relative to an edge-indexed reading of the feature.
+- *the landing obligation is a precondition, not a nicety*: the flow runs with domain
+  `evolC_m` immediately after the reset, so if `ρ_m(x)` violates that domain the loop
+  body is stuck and the ∃-witness dies outright.
 
 ### 3.5 Instances, verdicts, generators
 
 - New query shapes ⟹ new pins in `Verdicts/GenericPins.lean` (one lemma per shape, the
   established pattern) plus mirrors, so `--run-verdicts` can re-check reset obligations.
-- Generators emit the per-edge verdict names; the leaf modularization from X0 means
+- Generators emit the per-mode reset verdict names; the leaf modularization from X0 means
   per-benchmark regeneration is now cheap.
-- `Faithful` (`Checker/Faithful.lean:357`) compares per-**mode** data (`modeCore` per
-  `q`); resets are per-**edge**, so the fidelity predicate needs an edge-level
-  extension. Without it, the kernel identity "the instance IS the benchmark" would not
-  cover the reset data — a soundness hole, not an optional nicety.
+- `Faithful` (`Checker/Faithful.lean:357`) already compares per-**mode** data
+  (`modeCore` per `q`), and `ρ_m` is per-mode — so the fidelity predicate extends along
+  its existing grain, one new clause. It is still mandatory: without it the kernel
+  identity "the instance IS the benchmark" would not cover the reset data.
 
 ---
 
-## 4. The three genuinely hard problems
+## 4. The four genuinely hard problems
 
 Everything in §3 except these is plumbing.
 
@@ -185,13 +213,26 @@ Everything in §3 except these is plumbing.
    adversarially-chosen anchor: nothing stops it from sitting on a growth face. This is
    the S3 tangential case arriving by construction rather than by accident.
 
-3. **Reposition semantics become flow-plus-jump.** Today a reposition is a frozen-left
-   right *flow* into a target guard. With resets it is a flow *and* an instantaneous
-   state change, so the frozen-left reasoning (left atoms unchanged, right atoms
-   same-verdict) must be re-derived across the discontinuity. Note this cuts **for** us
-   in one place: resets make target guards reachable that a flow alone cannot reach,
-   which strictly enlarges the reposition repertoire (and, in the shelved fixpoint
-   design, enlarges `Serve` — `docs/FIXPOINT-DESIGN.md` §3.1).
+3. **Repositions get strictly harder — there is no compensating gain.** An earlier
+   draft of this document claimed resets would *help* repositioning by making
+   unreachable guards reachable. **That is false**, and the model shape is why: the
+   guard is tested *before* the reset (`sat (Gd e.tgt) μ` at the pre-jump state), so a
+   reset can never enable a transition that was not already enabled. What actually
+   happens is the reverse. Every hop through mode `m` drags the right state through
+   `ρ_m`, so a multi-hop reposition chain composes resets —
+   `ρ_{m₃}(ρ_{m₂}(ρ_{m₁}(x)))` — and the relational invariant must survive each one.
+   Today a reposition is right-state-preserving (a frozen-left flow, or nothing);
+   under resets every hop displaces the right state discretely, and long chains can
+   drift out of the invariant band. In the shelved fixpoint design this makes `Serve`'s
+   hop moves costly rather than free (`docs/FIXPOINT-DESIGN.md` §3.1).
+
+4. **Repeated self-resets on the left.** Every mode in this suite declares itself a
+   successor (watertank's `Low` has `next = [Mid, Low]`). Under the jump-then-flow loop
+   shape, staying in a mode may be realized as many iterations, each re-applying `ρ_m`.
+   For the right system this is harmless — we choose the witness, so we take one long
+   flow. For the **left** system, which is ∀-quantified, the proof must tolerate
+   arbitrarily many repeated self-resets inside a single window. If `ρ` is not
+   idempotent this is a genuine obligation, and an easy one to miss.
 
 ---
 
@@ -218,12 +259,14 @@ These are not optional hardening; without them the extension is unsound or vacuo
 
 | tier | what it admits | difficulty |
 |---|---|---|
-| **T1 — deterministic, same-side, right-only** | `R_x := ρ(R_x)`, polynomial ρ, on R's edges only | the tractable core; all of §3, hard problems 1–3 in their mildest form |
+| **T1 — deterministic, same-side, right-only** | `R_x := ρ_m(R_x)`, polynomial ρ, on R's modes only | the tractable core; all of §3, hard problems 1–4 in their mildest form |
 | **T2 — both sides** | L's windows also reset | adds left-window jump handling to the ∀ side; the `windowSeg`/`leftProgs` chain and the frozen-left invariants need review |
 | **T3 — nondeterministic / guarded resets** | `x := *` with a post-condition, or reset choice per edge | `Program.assignAny` exists, but the ∃-witness must now *choose*, and the cover certificate becomes a choice structure — a different (larger) design |
 
 Recommendation if pursued: T1 only, with T2 as a follow-on, and T3 explicitly out of
-scope until a benchmark demands it.
+scope until a benchmark demands it. Note T2 is *not* symmetric with T1: left-side
+resets are ∀-quantified, so they inherit the repeated-self-reset obligation (§4.4),
+which the right side escapes by witness choice.
 
 ---
 

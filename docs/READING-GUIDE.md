@@ -96,7 +96,7 @@ systems, clocked left segments).
 | right-system well-formedness at the real scale (the paper's nonblocking + successor-complete assumption, **discharged**) | **46/46** (`*_real`) | ✅ live, but **stands alone** — see note |
 | the instance **is** the parsed file (`faithful… := rfl`) | 46/46 | ✅ live |
 | the tool's cover decision replayed (`coverReplays := by decide`) | 46/46 | ✅ live |
-| full ∀∃ `rvalid (theorem3Form …)` | **2** — watertank, rover_drag | ✅ live |
+| full ∀∃ `rvalid (theorem3Form …)` | **2** — watertank, rover_drag | ✅ live; extending to all 46 is **blocked for 25 of them** — see note |
 | (`EndToEnd` ×3, `Mega`) | watertank, arm_refinement | ❌ vacuous route |
 
 **Note on the `*_real` battery.** `GuardSettlingB` takes no invariant term — its
@@ -110,6 +110,14 @@ mechanization proves what the paper assumes. But its only downstream consumers �
 carrying `GBoxAll`/`hbudgetAll` (§4). Nothing live consumes it. Claim it as a standalone
 strengthening, not as a step toward the ∀∃ guarantee; the relational content for all 46
 comes from the Throughout/CutThroughout batteries.
+
+**Why the ∀∃ form does not extend easily.** Measured from the emitted covers: 21
+benchmarks have cover budget 1 (one joint piece per window — watertank's shape), and
+**25 have budget > 1, all of which also use repositions**. The only k > 1 route with hops,
+`Hmulti_window_prefixed`, carries a hypothesis its own note proves **unsatisfiable for
+genuine hops** (a frozen hop binds every left coordinate, so vars-disjointness against the
+window can never hold). So over half the suite is blocked on a formulation problem, not on
+generator work. See `PAPER-MAPPING.md` §3k.
 
 The 47th benchmark, `shield_unreachable`, is honestly reported as non-certifying.
 

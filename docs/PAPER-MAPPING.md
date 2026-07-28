@@ -355,6 +355,55 @@ premise is conditional (`hinit : InvAllHolds gs ν`) — neither the `GBoxAll` n
   two benchmarks.** The other 44 have no non-vacuous ∀∃ statement, and the four written
   ones outside those two go through the quarantined settling route.
 
+
+### 3k. What "Theorem 3 for all 46" would actually take — measured
+
+Measured from the emitted covers, not estimated. The cover budget `B` is the
+ℕ-discretization of `ε_L` against per-mode weight 1, so `B` is **the number of joint
+pieces a window needs** (base fires at `B ≤ weight`).
+
+| | benchmarks | route |
+|---|---|---|
+| **budget = 1** (one piece per window) | **21** — 13 of them also use repositions | watertank's exact shape: `Hmulti_window1_prefixed` |
+| **budget > 1** (multi-piece windows) | **25** — **all 25 also use repositions** | needs k > 1 **with hops** |
+| budget > 1, no repositions | **0** | — |
+
+**The 25 are blocked on a documented negative finding.** The only k > 1 route with hops is
+`Hmulti_window_prefixed` (`EnvelopeChain.lean`), and its own note reads:
+
+> its `hdisH` hypothesis (vars-disjointness of the frozen-left hop program against the
+> clocked left segment) is **UNSATISFIABLE for genuine hops** — the frozen hop binds every
+> left coordinate (derivative 0), so its `Program.vars` always meets the left window's.
+> **NEGATIVE FINDING**, kept per the never-delete rule; the `k = 1` route below needs no
+> such disjointness (single window piece ⟹ nothing to commute past).
+
+This is not a missing proof — it is a formulation whose side condition **cannot** be
+satisfied. Multi-piece windows need the hop program commuted past a window piece, and
+vars-disjointness is the wrong tool for that because a frozen hop still *binds* the left
+coordinates. A k > 1 route needs a **different argument** (e.g. an explicit clock-tracking
+interleave, or absorbing the hop into the piece boundary) — research-level work, not
+mechanical generation.
+
+**Revised sizing of "Theorem 3 for all 46":**
+
+1. **21 benchmarks** — plausibly reachable with existing lemmas, per-benchmark cost:
+   `HExistSegB` existence (route (a) cheap for contract fields, route (b) Picard data
+   otherwise), the `hstep` assembly (S1's pattern, currently hand-built), the
+   `CoverCertM` → `CoverCert` gap, and `Aux` room. Mechanical-to-moderate.
+2. **25 benchmarks** — **blocked** until a k > 1-with-hops window lemma exists. Over half
+   the suite.
+
+So the roadmap's "modal instances beyond watertank" line understates this considerably:
+it is not one generator away. The k = 1 restriction that let watertank through is exactly
+the restriction 25 benchmarks violate, and the general case has a recorded impossibility
+for its current formulation.
+
+**Where this interacts with the shelved fixpoint design.** `docs/FIXPOINT-DESIGN.md`
+§4 claims the winning-region reformulation dissolves precisely this blocker ("hops are
+just edges inside `F`; chains handled by the fixpoint, not by a per-length lemma"). That
+claim now has a concrete price tag attached: it would be addressing a wall that blocks
+25/46 benchmarks, not a convenience.
+
 ---
 
 ## 4. What each benchmark has

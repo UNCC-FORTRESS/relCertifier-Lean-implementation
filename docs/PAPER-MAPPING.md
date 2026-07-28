@@ -50,6 +50,53 @@ Axioms: `[propext, Classical.choice, Quot.sound]` — parametric in `cert`, so
 
 ---
 
+---
+
+## 2a. Theorem 3, clause by clause
+
+The paper's statement:
+
+> **Theorem 3 (Soundness of Synthesis).** For a left mode `m_L`, if every admissible
+> initial right mode `q₀` admits an all-successors cover from `(q₀, ε_L, pre-joint)`,
+> then the cover induces a certified witness strategy for `m_L`. If such a cover exists
+> for every `m_L ∈ modes_L`, then `φInv` is a ∀∃ invariant:
+> `φInv → [|(L,R)⟩⟩ φInv`.
+
+Against `theorem3_uniform_from_covered` (`Proofs/Encoding/CoverExtract.lean:122`):
+
+| paper clause | Lean |
+|---|---|
+| *"every admissible initial right mode `q₀` admits an all-successors cover from `(q₀, ε_L, pre-joint)`"* | `hchk : ∀ q, q < Gj.modes.length → decideCovered Gj fuel ⟨q, B, SrcSetting.preJ⟩ = true` — `q₀ ↔ q`, `ε_L ↔ B` (ℕ-discretized), *pre-joint* `↔ SrcSetting.preJ`, and *all-successors* is `decideCovered`'s own successor case `(G.retainedSucc q).all (…)`, i.e. Definition 4 verbatim |
+| *"the cover induces a certified witness strategy for `m_L`"* | **not a hypothesis — the proof.** `emitWindows_self` builds the window response from the declared self-edges and feeds `theorem3_uniform_multiflow`. This is exactly what the **R1 gate** required: the witness *derived* from `Covered`, never assumed (Definition 5 in the paper) |
+| *"if such a cover exists for every `m_L ∈ modes_L`"* | `leftData : List (…)`, one entry per left mode, with `hleft : ∀ d ∈ leftData, …`; the left program is `bigChoice (leftData.map (windowSeg …))` |
+| *"`φInv → [|(L,R)⟩⟩ φInv`"* | `rvalid (theorem3Form (bigChoice (leftData.map …)) (rightAutomatonBody Gr mv) (ϕinv ∧ mvValidR mv Gr.modes.length))` |
+
+**What the Lean makes explicit that the paper folds in.** The Lean takes
+`cert : CoverCert Gj g` — the flow certificates — as a *separate* argument. The paper
+folds this into the graph construction (§4.2: *"If no flow certificate is available at
+`m_R`, none of its candidate edges is retained"*), so "a cover exists" already
+presupposes certificates. Both are the same content; the Lean simply names it.
+
+**What the Lean adds.** A second conjunct, `∀ q, ∀ ν, InvHolds g ν →
+CoexecInvThroughout Gj g ⟨q, B, preJ⟩ ν` — the invariant holds *throughout* the
+co-execution, not merely at the round's end. The paper's Theorem 3 states only the
+endpoint form.
+
+**A decomposition of your own proof, worth knowing.** The Lean proof draws the two
+conjuncts from *different* hypotheses, and `decideCovered_implies_theorem3_faithful`
+records it:
+
+> `cert` is required for the `rvalid` conjunct … `hchk` (`decideCovered`) is load-bearing
+> for the **throughput** conjunct, NOT for `rvalid`: the `faModal_LOCK` loop preserves the
+> invariant over any number of iterations, so the ∀∃ modality needs every mode CERTIFIED
+> (`cert.segPres`), not the coverage/budget DECISION.
+
+So Theorem 3 bundles two guarantees with two different sources: **invariant preservation**
+comes from the flow certificates at every mode, while **duration coverage** — that the
+response spans the whole `m_L` residence — comes from the budget walk. The paper's §4.4
+("Finiteness and Duration Coverage") is the second; §3's flow certificates are the first.
+Stating that split explicitly would sharpen the theorem's proof sketch.
+
 ## 3. Full inventory of generic `rvalid (theorem3Form …)` theorems
 
 Twenty-odd, in five families by what they assume. This variety is the "additional
@@ -153,7 +200,40 @@ Limitations already says resets are identities, matching the mechanization
 
 ---
 
-## 6. Record: how the earlier assessments went wrong
+## 6. The R-series gates, and what each supports in the paper
+
+The development was built as an ordered arc (`docs/ROADMAP.md`), R1–R7, each item
+carrying an **acceptance gate** — the concrete artifact that counts as done: *"an item is
+done when its gate is kernel-green, committed, and pushed."* The gates are the natural
+evidence list for a referee, because each removes a specific way the mechanization could
+have been weaker than the paper.
+
+| item | what it removed / established | gate | Lean artifact | paper element it supports |
+|---|---|---|---|---|
+| **R1** witness extraction | the assumed `EmitSegs`/`EmitWindows` devices — hypotheses asserting *a chain of response segments exists*. Replaced by induction on the `Covered` derivation (joint cases → pieces; the four reposition cases → frozen-left segments; staying backed by declared self-edges) | *"`theorem3_faithful_multi{,_reposition}` restated without any `Emit*` hypothesis; rover_drag pilot re-based on it; axioms unchanged"* | `theorem3_uniform_from_covered` (`CoverExtract.lean:122`) | **Theorem 3** and **Definition 5 (Witness Strategy)** — makes "the cover *induces* a certified witness strategy" an inference rather than an assumption. Without R1 the mechanization would assume exactly what §4 constructs |
+| **R2** statement conditioning | quantification over more initial configurations than the tool certifies (instances demanded "phantom pairs"). Entry conditioned on `admissible` (SAT `guardL ∧ guardR ∧ inv`), `mv = q₀`, `σ = preJ`; left family = all modes' windows, each `test(guardL)`-gated | *"top theorem's start set provably matches `coverMode`'s admissible-start ∀; a watertank-shaped 3-mode toy goes through where it previously demanded phantom pairs"* | `theorem3_uniform_guarded` (`CoverExtract.lean:218`) | **§4.3 admissibility** (*"an initial right mode is admissible for `m_L` if some initial state pair satisfies `φInv`"*) and **eq. (mode-inv)**'s per-mode, guard-entered decomposition |
+| **R3** canonical `ϕinv` + encoding identity | the per-instance `hψ`/`hinvL`/`hinvR` residuals — a builder from the lowered invariant components plus a generic `encode … = invLe g` proof | *"pilot instance carries NO encoding hypotheses"* | `canonInv`, `encode_canonInv` | **eq. (polynomial-invariant)** — the invariant language `⋀ᵢ p_i ≤ 0` — and the encoding step into dL-rel's Theorem 2 |
+| **R4** multi-component invariants | certification of only the primary component. Per-component certificates via three routes (A domain / B strict / C superlevel), each component's domain narrowed by the others `≤ 0` (multi-barrier coupling) and by the checked cuts | *"a multi-component benchmark's full conjunction invariant certified, not just the primary component"* | route adapters + the multi-barrier lemma; `CoverCertM` | **Definition 2 (Flow Certificate)** and **Theorem 1** — the paper's *"when this condition holds for every component, no boundary of the conjunction can be crossed outward"* |
+| **R5** emission door + battery | hand-built instance data. `--emit-cover` emits λ, budget, node flags, edges + pruned bits, admissible starts and the verdict list as drift-checked literals; the generator writes instances re-running `decideCovered` in the kernel | *"all 46 tool-certified benchmarks build with axioms exactly `[propext, Classical.choice, Quot.sound, z3_unsat_sound]`; suite + drift + trust audits green"* | `Instances/BenchCovers/`, `BenchCoverReplay.lean` (46 × `by decide`) | the **evaluation claim** (§5) — that what the tool reports CERTIFIED is what the kernel checks, per benchmark |
+| **R6** viability certificates | the last analytic hypothesis: that certified evolutions exist for the needed durations. Per mode, per evolve-box face, `UNSAT(on-face ∧ field-outward)`, plus one generic Picard lemma | *"viability hypotheses removed on every mode whose face-queries pass; legitimate failures fall back to a named per-mode hypothesis or a model-margin fix"* | `Proofs/Flow/BoxViability*`, the face census (1121/1121) | the **existence side of Definition 5** — a witness strategy must map to an actual execution, not merely a formal segment chain. Also the counterpart to the paper's "bounded-time reachability" paragraph |
+| **R7** closure | drift between the docs' stated assumptions and the proofs'. Cadenced chain deprecated, contract frozen | *"`#print axioms` battery = the four axioms everywhere; hypothesis list in docs matches the frozen contract verbatim"* | `Instances/AxiomCheck.lean` | the **trust-base claim** — what a paper section on the mechanization would assert about its assumptions |
+
+**The follow-on S-arc**, for completeness: **S1** built the reposition-window modal form
+(multi-mode `rvalid`) — the paper's §4 multi-step matching; **S2** the guard-threaded cut
+lift for the 13 cut-reliant benchmarks — the paper's use of guards to strengthen the
+evolution constraint (§3); **S3** bounded-time viability wired per mode — existence;
+**S4** housekeeping.
+
+**How to use this list in the paper.** R1 and R2 are the two a referee should care about
+most: R1 is why the mechanized Theorem 3 does not assume its own conclusion, and R2 is
+why its ∀ ranges over exactly the admissible entries the tool certifies rather than a
+larger phantom set. R5 is why "certifies all 46" is a kernel-checked claim rather than a
+tool report. R4 and R6 are why the certificate covers the *full* conjunction invariant
+and a *real* execution respectively.
+
+---
+
+## 7. Record: how the earlier assessments went wrong
 
 Three prior versions of this file understated the development. The causes, so they are
 not repeated:
@@ -174,7 +254,7 @@ against a list rather than re-derived.
 
 ---
 
-## 7. Note on `tooling_sound`
+## 8. Note on `tooling_sound`
 
 `Archive/GapThreeTask3.lean:63` is the Arc-1 automaton-parametric statement — programs
 derived from two `HybridAut`s via `graphOf_Gr` — instantiated non-vacuously at rover data

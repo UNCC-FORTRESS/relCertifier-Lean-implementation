@@ -384,10 +384,15 @@ Measured over the emitted covers, on both axes:
   against the window can never hold). Not a missing proof — a formulation whose side
   condition is false.
 
-**Why this was never noticed in day-to-day work:** the two completed instances are one
-from each *working* group. rover_drag exercised the uniform route, watertank the modal
-k = 1 route. Both are real and both succeeded; the third group only appears when asking
-for the remainder.
+**Why this was never noticed in day-to-day work:** the two completed instances are
+**pilots**, one from each *working* group — rover_drag validating the uniform route
+(`UniformPilot.lean`: *"First benchmark instance of `theorem3_uniform_multiflow`"*),
+watertank the modal k = 1 route (the S1 gate). Both succeeded, so both routes looked
+settled. The third group only appears when asking for the remainder.
+
+**Note on counting.** *Written* is 2; *in scope* is 25 (9 uniform + 16 modal k = 1,
+including the two written). The other 23 are **unwritten, not blocked** — they need the
+per-benchmark instantiation work, not new mathematics. Only the 21 are blocked.
 
 **Sizing:**
 

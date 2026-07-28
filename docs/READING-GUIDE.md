@@ -89,9 +89,15 @@ This is why the two statements feel like they should be nearly the same thing: t
 The certificate is shared. The difference is that "throughout" *quantifies over* runs while
 Theorem 3 must *construct* one — and constructing needs existence and assembly.
 
-It also explains why exactly two benchmarks are done rather than none or all: watertank
-and rover_drag are the two where both extra ingredients happened to be available —
-contract-field existence for the first, an all-joint-certified graph for the second.
+**Why exactly two are *written*.** Not because they are the only ones in scope — **25**
+are in scope (9 via the uniform route, 16 via the modal k = 1 route, the two written ones
+included). watertank and rover_drag are **pilots**, each built deliberately to validate one
+chain end to end (`UniformPilot.lean`'s header: *"First benchmark instance of
+`theorem3_uniform_multiflow`"*; watertank was the S1 gate). They were chosen because their
+extra ingredients are cheap — contract-field existence for watertank, an
+all-joint-certified graph for rover_drag — which makes them good pilots, not because the
+other 23 lack a route. Those 23 are unwritten, not blocked; that is the generator work.
+Only the remaining **21** are actually blocked (§5 note).
 
 ## 4. Live vs historical — check this before citing anything
 

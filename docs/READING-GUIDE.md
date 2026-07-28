@@ -93,11 +93,23 @@ systems, clocked left segments).
 | guarantee | benchmarks | status |
 |---|---|---|
 | relational invariant holds **throughout** every right co-execution | **46/46** | ✅ live |
-| right-system well-formedness at the real scale (the paper's nonblocking + successor-complete assumption, **discharged**) | **46/46** (`*_real`) | ✅ live |
+| right-system well-formedness at the real scale (the paper's nonblocking + successor-complete assumption, **discharged**) | **46/46** (`*_real`) | ✅ live, but **stands alone** — see note |
 | the instance **is** the parsed file (`faithful… := rfl`) | 46/46 | ✅ live |
 | the tool's cover decision replayed (`coverReplays := by decide`) | 46/46 | ✅ live |
 | full ∀∃ `rvalid (theorem3Form …)` | **2** — watertank, rover_drag | ✅ live |
 | (`EndToEnd` ×3, `Mega`) | watertank, arm_refinement | ❌ vacuous route |
+
+**Note on the `*_real` battery.** `GuardSettlingB` takes no invariant term — its
+parameters are `(G) (Gd) (fR) (lam) (domR) (dt) (q)` — so it is a **unary** property of
+the right system: from any state in a mode's guard region a solution exists, runs the
+control interval inside the evolution domain, and lands in a retained successor's guard.
+It says nothing about `L` or the relational invariant. Its value is that this is
+*precisely* the paper's nonblocking/successor-complete **assumption**, so the
+mechanization proves what the paper assumes. But its only downstream consumers —
+`GuardSettlingH` → `theorem3_faithful_settling`, and the landing family — are the routes
+carrying `GBoxAll`/`hbudgetAll` (§4). Nothing live consumes it. Claim it as a standalone
+strengthening, not as a step toward the ∀∃ guarantee; the relational content for all 46
+comes from the Throughout/CutThroughout batteries.
 
 The 47th benchmark, `shield_unreachable`, is honestly reported as non-certifying.
 

@@ -189,21 +189,50 @@ successor-completeness assumption cannot bridge it: assuming the real system onl
 guard-legal switches constrains the real system further, which is the wrong direction
 for an existential.
 
-Concretely, `watertank_modal_certified`: `GrW` contains the unguarded edge `Low → Mid`,
-while R's `Mid` guard is `x ∈ [10, 17)`. Nothing in the theorem statement prevents the
-constructed response from switching `Low → Mid` at, say, `x = 3` — a transition the
-modeled implementation cannot take. (Whether the cover's actual witness does so is a
-separate question, not yet checked; the gap is that the *statement* does not exclude it.)
+**Correction to the shape of this gap (same day, after reading the step rule).** The
+first draft of this entry framed the gap as "the witness might take an illegal
+transition". That overstates it. `decideCovered`'s joint step is
+
+```lean
+|| (m.jointOK && decide (m.weight < B) &&
+      (G.retainedSucc q).all (fun q' => decideCovered G fuel ⟨q', B - m.weight, .postJ⟩))
+```
+
+— a **∀ over every retained successor**, with `retainedSucc` always including `q` itself
+(`Checker/Cover.lean:107`, `q :: …`). The cover therefore proves the continuation works
+*whichever* declared successor is taken, so the witness is free to choose one. It does
+not need the edge it happened to take to be guard-legal; it needs only that **some**
+retained successor is enabled at the switch instant.
+
+The missing fact is therefore **non-blocking**, not illegality — roughly one query per
+mode:
+
+```
+evolve_q ∧ inv  ⟹  ⋁_{m ∈ retainedSucc(q)} guard_m
+```
+
+**This query is not trivial, and watertank shows why.** R's guards are `Low [0,10)`,
+`Mid [10,17)`, `High [17,22.45)`, while every evolve domain is `[0,25]` — so on
+`x ∈ [22.45, 25]` *no* guard holds and the naive form of the query fails. It is fine
+dynamically (High drains: `x' = 0.3 − 0.12x < 0` at `x = 22.45`, so the band is not
+reached), but establishing that requires conditioning the query on the invariant or the
+reachable set rather than the raw evolution domain. That conditioning is the real cost
+of closing this gap and should be scoped before being attempted.
 
 **Options, in increasing cost.**
-1. *Qualify the claim.* State the modal theorem as being about the successor-respecting
-   automaton without guard tests, and say so in the paper. Zero work, weaker claim.
+1. *Qualify the claim.* State plainly that the certified implementation model permits any
+   declared, unpruned successor transition unconditionally, and that mode guards enter
+   only as the successor-completeness assumption on the universal side. Zero work. Note
+   this reads better than it sounds: because the cover quantifies ∀ over successors, the
+   result is *stronger* than the existential requires — whichever successor the
+   implementation takes, the response continues to work. What is not established is that
+   the guarded implementation can always take *some* successor (non-blocking, above).
 2. *Close it.* Build graphs with `e.guard := hostGuard vars n Side.R (target mode)` and
-   discharge, at each switch of the witness construction (`emit_from_covered`), that the
-   target guard holds at the switch instant. The tool already computes guard information
-   (admissibility uses `guardL ∧ guardR ∧ ϕ_rel`; repositions use guard-carrying
-   regions), so the data likely exists; the new obligation is one Z3 query per
-   (mode, successor) plus the witness-side proof. Upstream edit ⟹ one world rebuild.
+   discharge **non-blocking** per mode (above) plus the witness-side choice of an
+   enabled successor. Cheaper than the first draft of this entry suggested — the cover's
+   ∀-over-successors does the heavy lifting — but the invariant/reachability
+   conditioning of the non-blocking query is the unknown. Upstream edit ⟹ one world
+   rebuild.
 3. Note that option 2 subsumes what a reset-map extension would need anyway
    (`docs/RESET-MAPS-SCOPE.md` §3.3), so the two should be batched if both are wanted.
 

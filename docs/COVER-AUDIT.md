@@ -144,7 +144,21 @@ within the frozen contract.
 
 ---
 
-## Finding (2026-07-19): the mechanized right automaton carries NO guard tests
+## Note (2026-07-19): the mechanized right automaton carries no guard tests
+
+**Resolution first (this entry was initially over-called; read this paragraph and skip
+the rest unless you need the detail).** There is **no soundness or fidelity hole**. The
+cover treats R's mode switching *demonically* — `decideCovered`'s joint step is
+`(retainedSucc q).all (…)`, so the continuation is proven for **every** declared,
+unpruned successor, including staying put. The real guarded controller's switches are a
+*subset* of those, so everything proven covers it. Dropping the `?guard_m` test made the
+mechanized automaton more permissive, which under a demonic treatment makes the proof
+*harder*, not weaker. The only property not literally covered is **non-blocking** — that
+the guarded automaton always has *some* enabled successor, without which it has no run
+to exhibit. That is a standard hybrid-automaton well-formedness property and belongs
+next to the existing successor-completeness item in the declared assumptions. Action:
+one line in the paper's assumptions; optionally put real guards on the graph edges if
+the statement should read literally like `cpsProg`. Detail below.
 
 Raised by the question "is the mechanized relCertifier consistent with the writeup's
 `cpsProg`?", where the writeup's model is
@@ -177,17 +191,20 @@ sound exactly under the declared trust-table item "successor-completeness with
 guard-gated switching". Consistent with the writeup provided the paper states that
 assumption. No action needed.
 
-**Where it is a genuine fidelity gap — the modal family.** In
+**Where the statement is literally about a more permissive automaton — the modal
+family** (superseded by the resolution above; retained because the reasoning is worth
+having on record). In
 `theorem3Form L R ϕ = ϕ → [|(L*, R*)⟩⟩ ϕ` the right program sits under an
 **existential** (∀ left run, ∃ right run). Deleting the guard test makes that ∃ range
 over *more* runs, so what is proven is
 
 > for every left run, the **unguarded** successor-respecting automaton can respond,
 
-which does **not** entail the writeup's claim about the guarded `cpsProg`. The
-successor-completeness assumption cannot bridge it: assuming the real system only makes
-guard-legal switches constrains the real system further, which is the wrong direction
-for an existential.
+which does not *literally* entail the writeup's claim about the guarded `cpsProg`,
+since the existential ranges over a larger set of runs. What repairs this is not a new
+argument but the demonic structure noted in the resolution: the cover proves every
+retained successor works, so a run of the guarded automaton is covered as soon as it
+exists — i.e. as soon as non-blocking holds.
 
 **Correction to the shape of this gap (same day, after reading the step rule).** The
 first draft of this entry framed the gap as "the witness might take an illegal

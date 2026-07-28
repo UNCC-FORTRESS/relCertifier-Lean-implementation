@@ -5,7 +5,7 @@ derivation-style pipeline (cover search → `decideCovered` replay → per-bench
 assembly) stays the production route until this design lands end-to-end on a pilot.
 An executable prototype exists — `scripts/fixpoint_prototype.py`, six runs on
 watertank's real data — and its findings are folded into §6.
-Companion reading: README ("The end-to-end guarantee, intuitively"), `docs/ROADMAP.md`
+Companion reading: README ("The end-to-end guarantee, intuitively"), `docs/history/ROADMAP.md`
 (final closure — options 1 and 2 are the problem this design attacks).
 
 **Scope, in three sentences (details in §9).** This design buys nothing for the

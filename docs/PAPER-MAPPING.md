@@ -446,7 +446,7 @@ Limitations already says resets are identities, matching the mechanization
 
 ## 6. The R-series gates, and what each supports in the paper
 
-The development was built as an ordered arc (`docs/ROADMAP.md`), R1–R7, each item
+The development was built as an ordered arc (`docs/history/ROADMAP.md`), R1–R7, each item
 carrying an **acceptance gate** — the concrete artifact that counts as done: *"an item is
 done when its gate is kernel-green, committed, and pushed."* The gates are the natural
 evidence list for a referee, because each removes a specific way the mechanization could

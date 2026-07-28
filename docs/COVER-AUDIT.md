@@ -141,3 +141,79 @@ same first-exit lemma (growth faces cannot exit before the horizon by the budget
 Follow-up: `box_viability_bounded` + the budget query family + per-mode instance
 wiring; until then declining modes carry the named per-mode single-system hypothesis —
 within the frozen contract.
+
+---
+
+## Finding (2026-07-19): the mechanized right automaton carries NO guard tests
+
+Raised by the question "is the mechanized relCertifier consistent with the writeup's
+`cpsProg`?", where the writeup's model is
+
+```
+( ⋃_{m ∈ modes}  ?(m ∈ next(mv)) ; ?guard_m(x) ; mv := m ; {x' = f_m(x) & evolC_m} )*
+```
+
+**What the code does.** `modeStep` (`Proofs/Encoding/JointBridge.lean:34`) is
+`?(mv = q) ; {x' = f_q & evolC_q} ; ⋃_e ( ?e.guard ; mv := e.tgt )`, and **every
+constructed graph sets `e.guard := Formula.tt`**:
+
+| site | line |
+|---|---|
+| `realGraphOf` — the generic instance builder | `Proofs/Encoding/CoverInstance.lean:154` |
+| `coverGraphOf` — the emitted-cover builder | `Checker/CoverEmit.lean:86` |
+| `edgeW` — the modal flagship's graph | `Instances/WatertankModal.lean:72` (and `httW` *proves* all `GrW` edge guards are `tt`) |
+
+The per-mode guards are parsed and used (`hostGuard`), but only inside the reposition
+regions (`region`, `regionPost`, `dynDomPre`) and as the `Gd` parameter of
+`RightReachG` — **never as a program test on a transition**. So the mechanized right
+program is: *flow in the current mode, then jump to any declared successor,
+unconditionally.*
+
+**Where this is sound and already declared — the ∀ families.** The settling and
+throughout theorems quantify **universally** over right runs
+(`CoexecInvAllThroughoutG G Gd gs cfg ν = ∀ ω, RightReachG G Gd cfg ν ω → …`).
+Re-imposing the target guard via `Gd e.tgt` *restricts* that ∀, which is a weakening,
+sound exactly under the declared trust-table item "successor-completeness with
+guard-gated switching". Consistent with the writeup provided the paper states that
+assumption. No action needed.
+
+**Where it is a genuine fidelity gap — the modal family.** In
+`theorem3Form L R ϕ = ϕ → [|(L*, R*)⟩⟩ ϕ` the right program sits under an
+**existential** (∀ left run, ∃ right run). Deleting the guard test makes that ∃ range
+over *more* runs, so what is proven is
+
+> for every left run, the **unguarded** successor-respecting automaton can respond,
+
+which does **not** entail the writeup's claim about the guarded `cpsProg`. The
+successor-completeness assumption cannot bridge it: assuming the real system only makes
+guard-legal switches constrains the real system further, which is the wrong direction
+for an existential.
+
+Concretely, `watertank_modal_certified`: `GrW` contains the unguarded edge `Low → Mid`,
+while R's `Mid` guard is `x ∈ [10, 17)`. Nothing in the theorem statement prevents the
+constructed response from switching `Low → Mid` at, say, `x = 3` — a transition the
+modeled implementation cannot take. (Whether the cover's actual witness does so is a
+separate question, not yet checked; the gap is that the *statement* does not exclude it.)
+
+**Options, in increasing cost.**
+1. *Qualify the claim.* State the modal theorem as being about the successor-respecting
+   automaton without guard tests, and say so in the paper. Zero work, weaker claim.
+2. *Close it.* Build graphs with `e.guard := hostGuard vars n Side.R (target mode)` and
+   discharge, at each switch of the witness construction (`emit_from_covered`), that the
+   target guard holds at the switch instant. The tool already computes guard information
+   (admissibility uses `guardL ∧ guardR ∧ ϕ_rel`; repositions use guard-carrying
+   regions), so the data likely exists; the new obligation is one Z3 query per
+   (mode, successor) plus the witness-side proof. Upstream edit ⟹ one world rebuild.
+3. Note that option 2 subsumes what a reset-map extension would need anyway
+   (`docs/RESET-MAPS-SCOPE.md` §3.3), so the two should be batched if both are wanted.
+
+**Second, minor delta: loop rotation.** The mechanization is *flow-then-jump*; the
+writeup is *jump-then-flow*. The guard sits between the two flows in both, so these are
+the same relation up to rotation of the loop body; they differ only in whether a run
+begins with a flow or a switch, which touches initialization/admissible-start
+conditioning (R2). Cosmetic for the mathematics, worth one sentence in the paper or a
+re-shaping of `modeStep` (cheap to write, but upstream ⟹ rebuild — batch it).
+
+**Third: `?(m ∈ next(mv))` is faithful.** Declared successors are encoded structurally
+(the `edges` list, built from `Run.succOf`), and R1 verified every benchmark mode
+declares itself in `next`, so self-loops (staying) are available. No gap.

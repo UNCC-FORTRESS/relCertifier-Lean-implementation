@@ -93,12 +93,18 @@ trust table above, full stop.
 
 ## Theorem families and status
 
-| family | statement shape | benchmarks | hypotheses beyond the trust base |
-|---|---|---|---|
-| **settling** (`*_real`) | cadenced rounds settle into the invariant band | 46/46 | flow/cut verdicts (certification run) |
-| **throughout** | every component of the invariant holds throughout every right coexecution | 33 cut-free | cover verdicts (certification run) |
-| **cut throughout** | same, via the guard-threaded cut lift (`RightReachG`) | 13 cut-reliant | cut-narrowed cover verdicts + per-atom O2 probes (runner: all unsat) |
-| **modal (Theorem 3)** | `rvalid (theorem3Form …)` — the paper's ∀∃ with reposition-opened windows | watertank (pattern generalizes) | 6 route verdicts (runner: all unsat); existence **proven** |
+| family | statement shape | benchmarks | where the mode guard lives | hypotheses beyond the trust base |
+|---|---|---|---|---|
+| **settling** (`*_real`) | cadenced rounds settle into the invariant band (`GuardSettlingB`) | 46/46 | **in the statement**, as `Gd q` (= the mode's guard bounds ∧ evolve envelope, `realGdOf`). Its final conjunct — *some retained successor's guard holds at the segment's end* — is **non-blocking, proven** | flow/cut verdicts (certification run) |
+| **throughout** | every component of the invariant holds throughout every right coexecution | 33 cut-free | **in the statement**, as `Gd` threaded through `RightReachG` | cover verdicts (certification run) |
+| **cut throughout** | same, via the guard-threaded cut lift (`RightReachG`) | 13 cut-reliant | **in the statement** as `Gd`, *and* as the guard-derived cut atoms (entering guard's lower bound, held by DI) | cut-narrowed cover verdicts + per-atom O2 probes (runner: all unsat) |
+| **modal (Theorem 3)** | `rvalid (theorem3Form …)` — the paper's ∀∃ with reposition-opened windows | watertank (pattern generalizes) | **not in the statement**: the R *program* appears instead, and its edge guards are `⊤` (see `docs/COVER-AUDIT.md`) | 6 route verdicts (runner: all unsat); existence **proven** |
+
+The guard column is the one to read when relating these theorems to a paper's automaton
+`( ⋃_m ?(m ∈ next(mv)) ; ?guard_m(x) ; mv := m ; {x' = f_m & evolC_m} )*`: the first
+three families carry the guard *in the statement* and never mention a program, so
+questions about the program's shape or its edge guards do not arise for them. Only the
+modal family puts a program in the statement.
 
 All instances: axioms exactly `[propext, Classical.choice, Quot.sound]` plus
 `z3_unsat_sound` at the verdict leaves.

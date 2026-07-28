@@ -237,6 +237,47 @@ per-anchor Lipschitz and field-bound data). That is the S3 route-(b) price for
 non-contract fields, and it is why watertank's contract route
 (`hExistSegB_of_wellFormedFlowB`, 124-line file) was the cheap path.
 
+
+### 3h. Findings from the full read of `Proofs/Transfer` (5 files, 3,918 lines)
+
+This layer is the bridge from the **scaled integer model** — where the kernel
+certificates live (values ×σᵢ, time in `dt`-units) — to the **real parsed benchmark**.
+It is what makes the 46 `*_real` theorems mean something about the benchmark files.
+
+- `Rescale.lean` (389 L) — `GuardSettlingB_rescale`, the scaling-transfer lemma, proved
+  once: the scaled model's per-mode settling obligation implies the real one, provided
+  the two sides correspond by the pushforward law `f(σ·x) = σᵢ·u·f'(x)` (exactly the
+  coefficient laws `Faithful` checks) and guards/envelopes correspond under state
+  scaling. The witness flow transports by `Φ'(t) = σ⁻¹·Φ(t/u)` (chain rule).
+- `FaithfulBridge.lean` (2,307 L) — gives the kernel's raw `ℤ × ℤ` `QF` arithmetic a
+  real denotation, so `Faithful`'s Boolean coefficient laws become real-valued
+  pushforward identities. This is the bulk of the layer and it is genuine work.
+- `FaithfulBridgeGuards.lean` (401 L) — terrain/affine guard-map variants.
+- `FaithfulBridgePad.lean` (687 L) — the eight padded benchmarks (`vs.length < n`),
+  where a padded coordinate needs an invertible scale the transcription does not supply
+  (`sigmaPad`).
+- `RealEndToEnd.lean` (134 L) — the generic per-family theorems; its header states the
+  design intent plainly: *"Per-benchmark instantiation (Instances/) is then a dozen lines
+  of `decide`/`rfl`/`norm_num` discharges — the watertank pattern, mechanized for all 46."*
+
+**Non-vacuity of the 46 `*_real` theorems — checked, and it holds by construction.**
+`GuardSettlingB` is `∀ base, sat (Gd q) base → …`, so it would be vacuous if
+`realGdOf q` were unsatisfiable. `realGdOf` is a conjunction of per-coordinate closed
+bands (`envFormulaR` ∧ the guard band). And `decideWellFormed` — kernel-checked `rfl`
+for all 46 — includes `(List.finRange n).all fun i => bandOrdered (M.env i)`, where
+`bandOrdered b` is `l ≤ h` when both endpoints are present, plus per-mode clauses
+including `0 ≤ m.glo` and band-containment (`bandInside`). So band non-emptiness is part
+of what every benchmark's well-formedness certificate establishes; the `*_real`
+obligations are non-vacuous **because a kernel check says so**, not by inspection.
+(Verified `bandOrdered` and the `decideWellFormed` clause list directly; did not trace
+every `checkMode` sub-clause.)
+
+**Net for §4:** the 46 `*_real` theorems are substantive — they establish, at the real
+benchmark's own scale, that every declared right mode's flow exists for the control
+interval, stays in its evolution domain, and lands in a state satisfying some retained
+successor's guard. That is the paper's well-formedness assumption, discharged 46/46 and
+non-vacuously.
+
 ---
 
 ## 4. What each benchmark has

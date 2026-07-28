@@ -209,3 +209,55 @@ successors.*
 **Minor, confirmed faithful:** `?(m ∈ next(mv))` is encoded structurally (the `edges`
 list, built from `Run.succOf`), and R1 verified every benchmark mode declares itself in
 `next`, so staying put is always available.
+
+---
+
+## Finding (2026-07-19): the parser silently drops unknown keys
+
+`Trusted/Parse.lean` is in the trust base and its stated contract is **"the parser
+REJECTS, never weakens"**. It honours that for malformed input and even rejects one
+*retired* key by name (`strengthen`, `Parse.lean:394-395`). But it **silently ignores
+unknown keys**: `parseModeE` (`Parse.lean:367-397`) `secNeed`s exactly `ode`, `guard`,
+`evolve`, `next`; anything else in a `[*.mode.*]` section is dropped. `assembleE`
+(`Parse.lean:435-457`) likewise `secNeed`s only `name`, `lambda_min`, `lambda_max` from
+`[problem]`.
+
+**Verified against HEAD (2026-07-19).** All **47/47** benchmarks carry a `max_depth`
+key; `Parse.lean` mentions `max_depth` **zero** times. So every benchmark in the suite
+already contains a key the parser never reads.
+
+**Demonstrated.** Inserting `reset = x := 1.0` into two mode sections of watertank and
+running the tool:
+
+```
+wtreset: CERTIFIED (665ms)
+errors=0
+```
+
+The reset was discarded and the model certified green — a certified object different
+from the file the user believes was certified, with no warning.
+
+**Why it matters.** The parser decides *which model the kernel certifies*. This is the
+same silent-weakening class the project already closed once (trailing tokens after
+`smt2:` s-expressions, `Parse.lean:243-252`). It is also a hard prerequisite for reset
+support (`docs/RESET-MAPS-SCOPE.md` §0): any reset syntax added on top of this door
+inherits the trap.
+
+**Fix** (no kernel changes, no regeneration of generated instance files; about an hour):
+
+1. Whitelist known keys per section and `throw` on anything else, following the existing
+   `strengthen` rejection style:
+   - mode sections: `ode`, `guard`, `evolve`, `next`
+   - `[problem]`: `name`, `lambda_min`, `lambda_max`, plus known-but-unused
+     `max_depth`, `bound_T`
+   - system sections: `state_vars`, `epsilon`
+   - `[relational_invariant]`: mode names (already validated, `Parse.lean:464-486`)
+2. Put `max_depth` / `bound_T` on a *known-but-unused* list rather than stripping them
+   from 47 files — cheaper, and keeps the published files as they are.
+3. Reject-tests in the parser battery (`Test.lean`, the existing `bad "…" (skel …)`
+   style): unknown key in a mode section, unknown key in `[problem]`, typo'd key
+   (`guardd`).
+4. Re-parse the whole suite to confirm 47/47 still load.
+
+Status: **not fixed** — recorded as actionable. Originally raised in the QRC-paper
+thread (`relcertifier-handoff.md`, item A), now reconciled into this repository.

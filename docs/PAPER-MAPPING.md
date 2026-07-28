@@ -156,6 +156,43 @@ application … for every finite number of control cycles"*.
 dL-rel's **Theorem 2** (`RFormula.encoding_correct`: soundness *and* completeness of the
 bi-state↔host encoding, with `exists_bridge` proving it never vacuous).
 
+
+### 3f. Findings from the full read of `Proofs/Encoding` (27 files, 7,746 lines)
+
+**The Z3 leaf is exactly one theorem.** `segPres_from_flowCert`
+(`BridgeDischarge.lean`) is the only theorem in the layer whose hypothesis is a
+`z3solve … = unsat`; it produces `SegPreservesOn`. Every route above is parametric in
+`CoverCert`, so `z3_unsat_sound` enters only there. This matches the axiom audit exactly.
+
+**Route classification by hypothesis** (read off every signature in the directory):
+
+| route | distinguishing hypotheses | verdict |
+|---|---|---|
+| cover / uniform — `decideCovered_implies_theorem3_faithful`, `theorem3_uniform_from_covered`, `theorem3_uniform_guarded` | `cert : CoverCert`, `hchk : decideCovered`, `hproj : RightProjAlign(V)`, side-split disjointness | **live, non-vacuous** |
+| settling / cadenced — `theorem3_faithful_settling`, `_clocked`, `_cadenced`, `_cadenced'`, `settling_end_to_end` | **`hgbox : GBoxAll`** (all four ClockedTop/GuardThreaded variants) or the same shape as `hcert` | **vacuous** (§3b) |
+| Emit-carrying — `theorem3_faithful_multi_reposition`, `decideCovered_implies_theorem3_faithful_multi`, `theorem3_uniform_multiflow`, `uniform_multiflow_end_to_end` | `hemit : EmitSegs` / `EmitWindows` | assumes the witness; superseded by R1 |
+| `hstep`-parametric — `theorem3_faithful`, `_multi`, `_multiE`, `_multiE_LR` | `hstep` plus disjointness only | sound; `hstep` supplied per instance |
+
+**Three further defects, each already self-documented, each with a live replacement:**
+
+1. `Hmulti_window_prefixed` (`EnvelopeChain.lean`) carries `hdisH`, which the file marks
+   **UNSATISFIABLE for genuine hops** — "the frozen hop binds every left coordinate".
+   The replacement `Hmulti_window1_prefixed` (k = 1) carries **no `hdisH`**, only
+   `hcouple`; watertank's modal instance uses that one.
+2. `ClockedTop`'s `hbudgetAll` is "unsatisfiable for autonomous benchmarks unless `domL`
+   itself bounds time" — repaired in the uniform route, where "the clock caps every
+   piece" (`UniformMultiflow.lean:10`).
+3. `rightReach_is_R_real_run` (`JointBridge.lean`) requires **`NoRepoModes`** — it
+   applies only to graphs with no reposition modes. A real scope limit on that
+   particular reach→program bridge, not previously noted here.
+
+**The disjointness side conditions are genuinely discharged, not hidden.**
+`hdis_multi`, `hddF_multi`, `hddF_multiE` (`UniformFvDischarge`, `EnvelopeChain`) and
+`hdis_aux`, `hddF_aux` (`FvDischarge`) prove them generically by side-splitting the
+variable space into `Lv` / `Rv` / `Aux`. This is what makes the `Aux` placement of `mv`
+and `tg` load-bearing — and it is the repair for the archived `MvFrozen` vacuity
+(`BridgeUnit1.lean:119` records the same failure mode).
+
 ---
 
 ## 4. What each benchmark has

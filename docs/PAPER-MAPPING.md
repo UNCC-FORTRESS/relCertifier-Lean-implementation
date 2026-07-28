@@ -162,9 +162,31 @@ bi-state↔host encoding, with `exists_bridge` proving it never vacuous).
 | `Instances/WatertankModal` + `WatertankViability` | watertank | **`rvalid (theorem3Form …)`**, multi-mode with repositions, existence proven in-kernel |
 
 So `rvalid (theorem3Form …)` is **written out for three benchmarks** (watertank in four
-forms, arm_refinement, rover_drag). For the rest, the generic theorems of §2–§3 plus the
-46/46 ingredients above make the top line an application, not new mathematics — a
-packaging gap, not a mathematical one.
+forms, arm_refinement, rover_drag).
+
+**For the other 43 it is NOT a one-line application** — an earlier version of this
+section said it was; that was checked and is false. The two chains are disconnected:
+
+| | throughout battery (33 + 13) | the `rvalid` chain |
+|---|---|---|
+| certificate | `CoverCertM` (multi-component, R4) | `CoverCert` (single `g`) |
+| alignment | — | `RightProjAlign` / `RightProjAlignV` required |
+| conclusion | `Covered ∧ CoexecInvAllThroughout` (∀∀ preservation) | `rvalid (theorem3Form …)` |
+
+Verified against HEAD: the 33 `Throughout/*.lean` instances build **only** `CoverCertM`
+(83 occurrences, zero `CoverCert`); **no instance** outside `UniformPilot.lean` mentions
+`RightProjAlign`; **no `CoverCertM`-based `rvalid` theorem exists** anywhere in
+`Proofs/`; and **no `CoverCertM → CoverCert` bridge exists**.
+
+Closing it therefore needs two things, only the second of which is mechanical:
+
+1. **A multi-component sibling of `theorem3_uniform_from_covered`** taking `CoverCertM`
+   (or a bridge from `CoverCertM` to `CoverCert` per component, which would only yield a
+   per-component conclusion rather than the conjunction). This is real proof work.
+2. **Per-benchmark `RightProjAlignV`** — for each right mode, exhibit `fR`, `lam`,
+   `domR`, `mj` with the block/domain shapes and the joint-graph correspondence. Since
+   `realModeOf` builds exactly those shapes this is plausibly mechanical, but it is
+   written for one benchmark today.
 
 ---
 

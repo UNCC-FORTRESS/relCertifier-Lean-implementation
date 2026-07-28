@@ -193,6 +193,50 @@ variable space into `Lv` / `Rv` / `Aux`. This is what makes the `Aux` placement 
 and `tg` load-bearing — and it is the repair for the archived `MvFrozen` vacuity
 (`BridgeUnit1.lean:119` records the same failure mode).
 
+
+### 3g. Findings from the full read of `Proofs/Flow` (12 files, 5,165 lines)
+
+**The trust leaf, counted exactly.** `z3_unsat_sound` is *applied* at **12 sites across 5
+files**: `Trusted/Oracle.lean` (4 — flow certificate, segPreserves, and two pruning
+wrappers), `Proofs/Soundness/CutLift.lean` (4 — the cut-channel routes),
+`Proofs/Flow/BoxViability.lean` (1), `BoxViabilityBounded.lean` (1) and
+`ViabilityWiring.lean` (2 — the face/anchor viability verdicts). Everywhere else the
+`hz3 : z3solve … = unsat` occurrences are *hypotheses*, discharged by supplying named
+facts. So the trust boundary is narrow and enumerable, but it is **not** confined to
+`Trusted/` — the viability and cut routes apply the axiom directly. Worth stating
+precisely rather than as "one leaf".
+
+**`Instances/AxiomCheck.lean` prints only `flow_certified` and `segPres_from_flowCert`.**
+The other leaf sites (cut lift, the four viability verdict theorems) are not in the
+printed battery. Not unsound — they are the same axiom, used the same way — but the audit
+under-reports the leaf set, and extending it would make the claim self-evident.
+
+**Proven vacuity and proven satisfiability are used as a discipline, in both directions:**
+- `SuccReachUnion_vacuous` (`MultisegLanding.lean`) takes **no hypotheses** and proves a
+  tempting formulation unconditionally true — hence useless. The development uses the
+  non-vacuous `SuccReach` instead. The vacuity is a *theorem*, not a comment.
+- `WFBoundary_narrowing_satisfiable` and `narrowing_coherence_true` (`WFBoundary.lean`)
+  go the other way: they exhibit witnesses proving the boundary hypothesis is
+  satisfiable, so the instances built on it are not vacuous.
+
+This is the pattern that makes the `GBoxAll` finding (§3b) legible rather than alarming:
+where the project suspects vacuity it either proves it and retires the route, or proves
+satisfiability and keeps it.
+
+**The analytic core is real.** `PicardBridge.lean` (1,607 lines) carries genuine
+Mathlib-level ODE work — `odeField_contDiff`, `odeField_lipschitzOnWith`,
+`IsPicardLindelof` construction, `uniform_local_existence_on_compact`, compactness
+subcovers, slab chaining. `StratifiedBarrier.lean` records that "mutual narrowing was
+circular and unsound for the non-strict routes" and now routes through the repaired
+indexed `stratified_barrier_sound`.
+
+**Route-(b) existence cost, confirmed concretely.** `HExistSegB_of_viability`
+(`ViabilityWiring.lean`) needs, per benchmark: `hM`, well-formedness, the face lists,
+strict/growth bounds, domain satisfaction, `ha : 0 < a`, `hLipOn` and `hfbnd` (the
+per-anchor Lipschitz and field-bound data). That is the S3 route-(b) price for
+non-contract fields, and it is why watertank's contract route
+(`hExistSegB_of_wellFormedFlowB`, 124-line file) was the cheap path.
+
 ---
 
 ## 4. What each benchmark has

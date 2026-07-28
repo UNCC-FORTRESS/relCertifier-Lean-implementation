@@ -320,6 +320,41 @@ which is exactly what `ClockedTop` and the uniform route do.
 assembled from six joint verdicts and six existence facts, the latter proven in-kernel by
 `WatertankViability`. Neither touches `GBoxAll` or `hbudgetAll`.
 
+
+### 3j. `Instances/` — the per-benchmark verdict, settled
+
+Routing is uniform and was checked exhaustively, not sampled:
+
+- **all 33** `Throughout/*.lean` apply `check_sound_multi`;
+- **all 13** `CutThroughout/*.lean` apply `check_sound_multi_cut`;
+- **none of the 46** mentions `rvalid` — they stop at
+  `Covered ∧ CoexecInvAllThroughout{,G}`.
+
+Both are **live**: `check_sound_multi`'s certificate is `CoverCertM` over the *joint*
+graph (`realModeOf` builds `jointSys` with domain `evolveL ∧ evolveR`) and its invariant
+premise is conditional (`hinit : InvAllHolds gs ν`) — neither the `GBoxAll` nor the
+`hbudgetAll` trap.
+
+**The definitive per-benchmark table:**
+
+| what is proven | benchmarks | route | status |
+|---|---|---|---|
+| relational invariant holds **throughout** every right co-execution | **46/46** (33 cut-free + 13 cut-lifted) | `check_sound_multi{,_cut}` from named Z3 verdicts | ✅ **live** |
+| right-system well-formedness at the real scale — flow exists for the control interval, stays in its domain, lands in a retained successor's guard | **46/46** (`*_real`) | Transfer/rescale + `decideWellFormed` `rfl` | ✅ **live** (this is the paper's well-formedness *assumption*, discharged) |
+| the instance **is** the parsed benchmark file | 46/46 | `faithfulSettling… = true := rfl` | ✅ live |
+| the tool's cover decision, kernel-replayed | 46/46 | `coverReplays … := by decide` | ✅ live |
+| full ∀∃ `rvalid (theorem3Form …)` | **2** — `watertank` (`WatertankModal`/`Viability`), `rover_drag` (`UniformPilot`) | `theorem3_faithful_multiE_LR` / `uniform_multiflow_end_to_end` | ✅ **live** |
+| `rvalid (theorem3Form …)` | `watertank` ×3 (`EndToEnd`), `arm_refinement` (`Mega`) | settling route | ❌ **vacuous** (§3b) |
+
+**Answer to "are all benchmarks end-to-end verified?"** — depends on which statement:
+
+- **Invariant preservation throughout co-executions: yes, all 46, non-vacuously**, from
+  named Z3 verdicts with the instance pinned to the benchmark file by kernel `rfl` and
+  the cover decision replayed by `decide`. This is the substantive relational result.
+- **The ∀∃ modality (`theorem3Form`, the paper's Definition 1 / Theorem 3 conclusion):
+  two benchmarks.** The other 44 have no non-vacuous ∀∃ statement, and the four written
+  ones outside those two go through the quarantined settling route.
+
 ---
 
 ## 4. What each benchmark has

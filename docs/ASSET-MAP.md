@@ -17,7 +17,11 @@ Where each guarantee lives, and what it rests on. (Historic entries retired to
 | `flow_certified` + route B/C | `Trusted/Oracle.lean`, `Core/FlowCert.lean` | verdict → invariance (the axiom's single consumer chain) |
 | `decideCovered_sound` | `Checker/Checker.lean` | kernel-replayed cover decisions |
 | generic pins (`hostDyn_pin`, …, `o2_probe_pin`) | `Verdicts/GenericPins.lean` | printed queries = hypothesized queries |
-| `theorem3_faithful_settling` + `_real` battery | `Proofs/Encoding/ClockedTop.lean`, `Instances/` | the settling presentation (deprecated for new work) |
+| `*_real` battery (46) | `Instances/RealInstances.lean` | right-system well-formedness at the real scale — the paper's nonblocking/successor-complete assumption, **discharged**. Live and non-vacuous (`decideWellFormed`'s `bandOrdered` makes `realGdOf` satisfiable) |
+| ⚠️ `theorem3_faithful_settling` + clocked/cadenced variants, `settling_end_to_end` | `Proofs/Soundness/GuardThreaded.lean`, `Proofs/Encoding/ClockedTop.lean`, `FvDischarge.lean` | **VACUOUS for relational invariants** — all require `GBoxAll` (quarantined, unsatisfiable for an `L`-mentioning `g`); the unclocked form also carries `hbudgetAll`. Historical presentation only. See `PAPER-MAPPING.md` §3b |
+| ⚠️ `theorem3_faithful_landing_clocked{,_wf,_uniform}` | `Proofs/Flow/MultisegLandingBridge.lean`, `Proofs/Soundness/UniformEvol.lean` | carry `hbudgetAll` — "unsatisfiable for autonomous benchmarks unless the caller smuggles a clock into `domL`". Historical |
+| `theorem3_uniform_from_covered` / `_guarded` | `Proofs/Encoding/CoverExtract.lean` | the R1/R2 gates: Theorem 3 from the checker's own decision, **Emit-free** |
+| `decideCovered_implies_theorem3_faithful` | `Proofs/Encoding/BridgeDischarge.lean` | Theorem 3 + throughout, from `decideCovered` + `CoverCert` |
 
 Standing discipline: before building anything new, check this map; update it when a
 top theorem lands. Any tool↔proof mismatch: record in `COVER-AUDIT.md`, resolve BY THE

@@ -104,16 +104,36 @@ machinery" — routes built at different times for different witness shapes.
 
 **(a) Cover-based, Emit-free** — §2. The paper's Theorem 3 proper.
 
-**(b) Certificate-based, no cover decision.**
-- `settling_end_to_end` (`Proofs/Encoding/FvDischarge.lean:632`) — parametric in
-  `SettlingModel n`; needs `decideWellFormed M = true` (kernel `rfl`) plus per-mode Z3
-  `BoxLe` certificates. Cadenced left and right.
-- `theorem3_faithful_settling` (`Proofs/Soundness/GuardThreaded.lean:417`) and the
-  clocked / cadenced variants (`Proofs/Encoding/ClockedTop.lean:41,368,462`) — from
-  `GuardSettlingH`, which `wellformed_sound` + `FvDischarge` discharge **generically**.
-  The family headers say so: *"per-run Z3 certificates yields `GuardSettlingH` — hence
-  `theorem3_faithful_settling` — with no per-benchmark proof"*
-  (`Instances/SettlingInstances.lean:7`, `Instances/TerrainInstances.lean:8`).
+**(b) Settling / cadenced — ⚠️ VACUOUS for relational invariants. Do not cite.**
+`theorem3_faithful_settling` (`Proofs/Soundness/GuardThreaded.lean:417`), its clocked and
+cadenced variants (`Proofs/Encoding/ClockedTop.lean:41,368,462`), and
+`settling_end_to_end` (`Proofs/Encoding/FvDischarge.lean:632`) all require a hypothesis of
+the `GBoxAll` shape (`GuardThreaded.lean:380`), whose own docstring reads:
+
+> **QUARANTINED (defective shape — task H).** Relational `g`-preservation along right
+> residences, stated LEFT-CONTEXT-FREE: for an `L`-mentioning `g` and a drain-type mode
+> this is **unsatisfiable** (the left coordinates are unconstrained), so no certificate
+> battery can discharge it. … **Do not build on this.**
+
+Why it is unsatisfiable, concretely: `BoxLe α g ν := ∀ ω, sem α ν ω → g ω ≤ 0`
+(`dL-lean/DLLean/DI.lean:46`) is *unconditional* — the zero-duration run forces
+`g ν ≤ 0` for **every** `ν` satisfying `Gd q`. But `Gd q` (`realGdOf`) constrains only
+right-side coordinates, while a relational `g` mentions left ones. For watertank,
+`g = x_L − x_R − 3`: take `x_R = 5` (inside Low's guard) and `x_L = 100`; then
+`g ν = 92 > 0` and `BoxLe` fails. So the hypothesis is false and every theorem above is
+**vacuously true** for the suite's actual relational invariants.
+
+This is why R7 deprecated the cadenced chain and quarantined `GBoxAll`, and why the
+S-arc built the replacement: *"the paper-faithful replacement couples each within-window
+piece by its own JOINT certificate and each seam by a REPOSITION certificate
+(left-contextualized)"*.
+
+**What the settling battery does prove, non-vacuously:** the 46 `*_real` theorems
+conclude `GuardSettlingB`, which mentions no invariant term at all — it says the right
+system's flow exists for the control interval, stays in its evolution domain, and lands
+in a state satisfying some retained successor's guard. That is the paper's
+**well-formedness assumption** (nonblocking + successor-complete), discharged for 46/46.
+Valuable, and worth claiming — but it is *not* relational invariant preservation.
 
 **(c) `hstep`-parametric** (Emit-free by construction; `hstep` supplied per instance).
 `theorem3_faithful` (`BridgeFinish.lean:77`), `theorem3_faithful_multi`
@@ -156,13 +176,16 @@ bi-state↔host encoding, with `exists_bridge` proving it never vacuous).
 |---|---|---|
 | `Instances/Throughout/*.lean` | 33 | `Covered … ∧ CoexecInvAllThroughout …`, per left mode, from named Z3 verdicts |
 | `Instances/CutThroughout/*.lean` | 13 | same, guard-threaded via `RightReachG` |
-| `Instances/EndToEnd.lean` | watertank | **`rvalid (theorem3Form …)`** ×3 — physical, clocked, ε-cadenced |
-| `Instances/Mega.lean` | arm_refinement | fidelity ∧ settling in one term; *"yields `rvalid (theorem3Form …)` exactly as in `EndToEnd.lean`"* |
+| `Instances/EndToEnd.lean` | watertank | `rvalid (theorem3Form …)` ×3 — **but via the settling route, hence vacuous (§3b)**; the first form additionally carries a documented `hbudget` caveat |
+| `Instances/Mega.lean` | arm_refinement | fidelity ∧ settling in one term — **same settling route, same vacuity (§3b)** |
 | `Instances/UniformPilot.lean` | rover_drag | **`rvalid (theorem3Form …)`** from **one** Z3 verdict + `hES`; includes `rover_drag_covered : decideCovered … = true := by decide` |
 | `Instances/WatertankModal` + `WatertankViability` | watertank | **`rvalid (theorem3Form …)`**, multi-mode with repositions, existence proven in-kernel |
 
-So `rvalid (theorem3Form …)` is **written out for three benchmarks** (watertank in four
-forms, arm_refinement, rover_drag).
+So `rvalid (theorem3Form …)` is written out for three benchmarks — but **only two of
+those are non-vacuous**: `rover_drag` (`UniformPilot`, joint certificate) and `watertank`
+(`WatertankModal`/`WatertankViability`, joint certificates + proven existence). The
+`EndToEnd` and `Mega` forms go through the settling route and are vacuous for relational
+invariants (§3b).
 
 **For the other 43 it is NOT a one-line application** — an earlier version of this
 section said it was; that was checked and is false. The two chains are disconnected:

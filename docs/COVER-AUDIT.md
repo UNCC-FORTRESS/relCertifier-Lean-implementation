@@ -144,122 +144,68 @@ within the frozen contract.
 
 ---
 
-## Note (2026-07-19): the mechanized right automaton carries no guard tests
+## Note (2026-07-19): why the right automaton carries no guard test in the program
 
-**Resolution first (this entry was initially over-called; read this paragraph and skip
-the rest unless you need the detail).** There is **no soundness or fidelity hole**. The
-cover treats R's mode switching *demonically* — `decideCovered`'s joint step is
-`(retainedSucc q).all (…)`, so the continuation is proven for **every** declared,
-unpruned successor, including staying put. The real guarded controller's switches are a
-*subset* of those, so everything proven covers it. Dropping the `?guard_m` test made the
-mechanized automaton more permissive, which under a demonic treatment makes the proof
-*harder*, not weaker. The only property not literally covered is **non-blocking** — that
-the guarded automaton always has *some* enabled successor, without which it has no run
-to exhibit. That is a standard hybrid-automaton well-formedness property and belongs
-next to the existing successor-completeness item in the declared assumptions. Action:
-one line in the paper's assumptions; optionally put real guards on the graph edges if
-the statement should read literally like `cpsProg`. Detail below.
+Raised by the question "is the mechanization consistent with the writeup's `cpsProg`?",
+whose loop body is `?(m ∈ next(mv)) ; ?guard_m(x) ; mv := m ; {x' = f_m(x) & evolC_m}`.
+The mechanized `modeStep` (`Proofs/Encoding/JointBridge.lean:34`) is the same up to
+rotation — `?(mv = q) ; ODE_q ; ⋃_e (?e.guard ; mv := e.tgt)`, guard between the two
+flows either way — but **every constructed graph sets `e.guard := Formula.tt`**
+(`CoverInstance.lean:154`, `CoverEmit.lean:86`, and the modal flagship's `edgeW` in
+`WatertankModal.lean:72`, where `httW` *proves* all `GrW` edge guards are `tt`).
 
-Raised by the question "is the mechanized relCertifier consistent with the writeup's
-`cpsProg`?", where the writeup's model is
+**This is by design, and the guard is not discarded — it does its work in the
+certificate rather than in the program.** There is no reliable general reachability
+analysis available, so the cover cannot know which successor the implementation will
+take. It therefore treats the mode choice **demonically**: `decideCovered`'s joint step
+is `(retainedSucc q).all (…)`, requiring the continuation to work for *every* declared,
+unpruned successor (`retainedSucc` always includes `q` itself,
+`Checker/Cover.lean:107`). Against that backdrop the guard has two jobs, both
+soundness-load-bearing, neither of which a program test would serve:
 
-```
-( ⋃_{m ∈ modes}  ?(m ∈ next(mv)) ; ?guard_m(x) ; mv := m ; {x' = f_m(x) & evolC_m} )*
-```
+1. **Pruning — the partial reachability analysis.** `nonconn_sound`
+   (`Checker/NonConn.lean:101`) concludes
+   `∀ ω, Program.sem (ode sysR domain) ν ω → ¬ Formula.sat o.guard ω`: from an
+   admissible entry, no state reachable by the mode's own flow satisfies the
+   successor's guard, so that edge is dropped from `retainedSucc`. This shrinks the
+   demonic ∀ exactly where unreachability can be *proven* (Nagumo barrier; strict
+   scalar guards only — a closed guard has a boundary the strict barrier cannot
+   exclude). Deliberately conservative: prune only when both checks are definitively
+   `unsat`, otherwise keep the edge, so a query bug can over-decline but never
+   false-certify.
 
-**What the code does.** `modeStep` (`Proofs/Encoding/JointBridge.lean:34`) is
-`?(mv = q) ; {x' = f_q & evolC_q} ; ⋃_e ( ?e.guard ; mv := e.tgt )`, and **every
-constructed graph sets `e.guard := Formula.tt`**:
+2. **Domain strengthening — narrowing where the flow certificate must hold.** The
+   entering guard's lower bound becomes a cut atom, maintained through the residence by
+   differential induction, which narrows the region in which the Lie-derivative query
+   must be discharged. Watertank makes the derivation visible: L `Mid` guard
+   `x ≥ 13 ∧ x < 20` → cut `x ≥ 13`; R `Mid` guard `x ≥ 10 ∧ x < 17` → cut `x ≥ 10`;
+   both `Low`s → `x ≥ 0` (`Instances/EvolStrengthenings/watertank.lean`). This is
+   precisely why guard-at-entry is the load-bearing half of the folded
+   successor-completeness contract: the atom holds at entry *because* the guard did, and
+   DI carries it forward. Consumed by the 13 cut-reliant benchmarks via `RightReachG`'s
+   `Gd`.
 
-| site | line |
-|---|---|
-| `realGraphOf` — the generic instance builder | `Proofs/Encoding/CoverInstance.lean:154` |
-| `coverGraphOf` — the emitted-cover builder | `Checker/CoverEmit.lean:86` |
-| `edgeW` — the modal flagship's graph | `Instances/WatertankModal.lean:72` (and `httW` *proves* all `GrW` edge guards are `tt`) |
+**Consequence for fidelity.** Because the treatment is demonic, the guarded
+automaton's transitions are a *subset* of what is already certified, so everything
+proven covers `cpsProg`. Making the automaton more permissive by omitting the test makes
+the proof harder, not weaker. The only property not literally covered is
+**non-blocking** — that the guarded automaton always has some enabled successor, without
+which it has no run to exhibit at all. That is standard hybrid-automaton
+well-formedness and belongs beside the existing successor-completeness item in the
+paper's declared assumptions; it is not a certifier obligation.
 
-The per-mode guards are parsed and used (`hostGuard`), but only inside the reposition
-regions (`region`, `regionPost`, `dynDomPre`) and as the `Gd` parameter of
-`RightReachG` — **never as a program test on a transition**. So the mechanized right
-program is: *flow in the current mode, then jump to any declared successor,
-unconditionally.*
+**Actions.** None required for soundness. Optional: (a) one line in the paper's
+assumptions covering non-blocking; (b) if the displayed program should read literally
+like the instances, present it without the `?guard_m` test and explain the two roles
+above; (c) note the rotation (flow-then-jump vs jump-then-flow) in one sentence, or
+re-shape `modeStep` to match the writeup — cheap to write, but upstream, so batch it
+with any other world-rebuild work.
 
-**Where this is sound and already declared — the ∀ families.** The settling and
-throughout theorems quantify **universally** over right runs
-(`CoexecInvAllThroughoutG G Gd gs cfg ν = ∀ ω, RightReachG G Gd cfg ν ω → …`).
-Re-imposing the target guard via `Gd e.tgt` *restricts* that ∀, which is a weakening,
-sound exactly under the declared trust-table item "successor-completeness with
-guard-gated switching". Consistent with the writeup provided the paper states that
-assumption. No action needed.
+*Record: this entry was initially filed as a soundness/fidelity finding and twice
+narrowed before reaching the account above. The error was reasoning about the ∃
+direction of `theorem3Form` before reading how `decideCovered` quantifies over
+successors.*
 
-**Where the statement is literally about a more permissive automaton — the modal
-family** (superseded by the resolution above; retained because the reasoning is worth
-having on record). In
-`theorem3Form L R ϕ = ϕ → [|(L*, R*)⟩⟩ ϕ` the right program sits under an
-**existential** (∀ left run, ∃ right run). Deleting the guard test makes that ∃ range
-over *more* runs, so what is proven is
-
-> for every left run, the **unguarded** successor-respecting automaton can respond,
-
-which does not *literally* entail the writeup's claim about the guarded `cpsProg`,
-since the existential ranges over a larger set of runs. What repairs this is not a new
-argument but the demonic structure noted in the resolution: the cover proves every
-retained successor works, so a run of the guarded automaton is covered as soon as it
-exists — i.e. as soon as non-blocking holds.
-
-**Correction to the shape of this gap (same day, after reading the step rule).** The
-first draft of this entry framed the gap as "the witness might take an illegal
-transition". That overstates it. `decideCovered`'s joint step is
-
-```lean
-|| (m.jointOK && decide (m.weight < B) &&
-      (G.retainedSucc q).all (fun q' => decideCovered G fuel ⟨q', B - m.weight, .postJ⟩))
-```
-
-— a **∀ over every retained successor**, with `retainedSucc` always including `q` itself
-(`Checker/Cover.lean:107`, `q :: …`). The cover therefore proves the continuation works
-*whichever* declared successor is taken, so the witness is free to choose one. It does
-not need the edge it happened to take to be guard-legal; it needs only that **some**
-retained successor is enabled at the switch instant.
-
-The missing fact is therefore **non-blocking**, not illegality — roughly one query per
-mode:
-
-```
-evolve_q ∧ inv  ⟹  ⋁_{m ∈ retainedSucc(q)} guard_m
-```
-
-**This query is not trivial, and watertank shows why.** R's guards are `Low [0,10)`,
-`Mid [10,17)`, `High [17,22.45)`, while every evolve domain is `[0,25]` — so on
-`x ∈ [22.45, 25]` *no* guard holds and the naive form of the query fails. It is fine
-dynamically (High drains: `x' = 0.3 − 0.12x < 0` at `x = 22.45`, so the band is not
-reached), but establishing that requires conditioning the query on the invariant or the
-reachable set rather than the raw evolution domain. That conditioning is the real cost
-of closing this gap and should be scoped before being attempted.
-
-**Options, in increasing cost.**
-1. *Qualify the claim.* State plainly that the certified implementation model permits any
-   declared, unpruned successor transition unconditionally, and that mode guards enter
-   only as the successor-completeness assumption on the universal side. Zero work. Note
-   this reads better than it sounds: because the cover quantifies ∀ over successors, the
-   result is *stronger* than the existential requires — whichever successor the
-   implementation takes, the response continues to work. What is not established is that
-   the guarded implementation can always take *some* successor (non-blocking, above).
-2. *Close it.* Build graphs with `e.guard := hostGuard vars n Side.R (target mode)` and
-   discharge **non-blocking** per mode (above) plus the witness-side choice of an
-   enabled successor. Cheaper than the first draft of this entry suggested — the cover's
-   ∀-over-successors does the heavy lifting — but the invariant/reachability
-   conditioning of the non-blocking query is the unknown. Upstream edit ⟹ one world
-   rebuild.
-3. Note that option 2 subsumes what a reset-map extension would need anyway
-   (`docs/RESET-MAPS-SCOPE.md` §3.3), so the two should be batched if both are wanted.
-
-**Second, minor delta: loop rotation.** The mechanization is *flow-then-jump*; the
-writeup is *jump-then-flow*. The guard sits between the two flows in both, so these are
-the same relation up to rotation of the loop body; they differ only in whether a run
-begins with a flow or a switch, which touches initialization/admissible-start
-conditioning (R2). Cosmetic for the mathematics, worth one sentence in the paper or a
-re-shaping of `modeStep` (cheap to write, but upstream ⟹ rebuild — batch it).
-
-**Third: `?(m ∈ next(mv))` is faithful.** Declared successors are encoded structurally
-(the `edges` list, built from `Run.succOf`), and R1 verified every benchmark mode
-declares itself in `next`, so self-loops (staying) are available. No gap.
+**Minor, confirmed faithful:** `?(m ∈ next(mv))` is encoded structurally (the `edges`
+list, built from `Run.succOf`), and R1 verified every benchmark mode declares itself in
+`next`, so staying put is always available.

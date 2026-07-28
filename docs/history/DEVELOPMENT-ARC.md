@@ -1,3 +1,6 @@
+> **HISTORY.** Completed record, retained for provenance — not a description of the
+> current state. For what is live today see `docs/READING-GUIDE.md`.
+
 # The development arc — how the proofs, the tool, and the benchmarks converged
 
 This documents the project's three development arcs: what was attempted, what was *found* (several

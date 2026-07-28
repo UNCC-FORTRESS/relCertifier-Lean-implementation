@@ -1,0 +1,141 @@
+# Reading guide — the whole repository, in dependency order
+
+Start here. This connects every layer, names the theorems that carry each guarantee, and
+says plainly which routes are **live** and which are **historical layers with documented
+vacuity traps**. It was written from a full read of `Proofs/` (50 files, ~19,200 lines)
+and `Instances/`, not from grepping — the distinction matters, because greps cannot tell
+a live theorem from a superseded one and several earlier summaries in this repo's history
+got that wrong.
+
+**The single most important thing to know before reading any theorem:** this development
+contains *both* the current chain and several retired ones. Retired routes are still
+compiled and still conclude impressive-looking statements, but rest on hypotheses the
+repo itself proves or documents to be **unsatisfiable**. Always check a theorem's
+hypotheses against §4 before citing it.
+
+---
+
+## 1. What the tool claims, in one paragraph
+
+Given two hybrid automata `L` (ideal) and `R` (implementation) in a small textual DSL,
+plus a candidate relational invariant, `relcert` searches for a **cover** — a finite
+strategy saying how `R` answers every `L` window — and discharges the analytic side
+conditions with Z3. The Lean development then re-checks, in the kernel, that the emitted
+data *is* the benchmark, that the cover decision replays, and that the certificates
+compose into the semantic guarantee. Z3's `unsat` answers are the only assumed facts.
+
+## 2. Layers, bottom-up
+
+| layer | files / lines | what it is | read for |
+|---|---|---|---|
+| `Core/` | 3 / 543 | flow queries, Lie derivatives, ℚ parsing | `FlowCert.lean` — the three DI routes and the note on why the boundary-only form is unsound |
+| `Trusted/` | 9 / 2,099 | parser, lowering, printer, Z3 session, search, emission doors | `Oracle.lean` — the axiom and its four wrappers; `Parse.lean` — the reject-never-weaken contract |
+| `Checker/` | 11 / 9,767 | cover graphs, `decideCovered`, cut certificates, fidelity | `Cover.lean` — `CoverCert`, `SegPreserves`, `Covered`; `Checker.lean` — the decision procedure |
+| `Proofs/Encoding` | 27 / 7,746 | the ∀∃ chain: bridges, windows, repositions, envelopes | `CoverExtract.lean`, `BridgeDischarge.lean` — the live Theorem 3 routes |
+| `Proofs/Flow` | 12 / 5,165 | DI routes, Picard existence, viability, contract witnesses | `PicardBridge.lean` (1,607 L, the analytic core); `ViabilityWiring.lean` |
+| `Proofs/Soundness` | 6 / 2,397 | cut lift, guard threading, uniform evolution | `CutLift.lean`, `CutCover.lean`; **`GuardThreaded.lean:374` — the `GBoxAll` quarantine** |
+| `Proofs/Transfer` | 5 / 3,918 | rescaling, the `Faithful` denotation bridge | `Rescale.lean` — the scaling-transfer lemma |
+| `Instances/` | 238 / 36,622 (217 generated) | per-benchmark theorems + emitted data | `WatertankModal`/`WatertankViability`, `UniformPilot` — the two live ∀∃ instances |
+| `Verdicts/` | 6 / 638 | query mirrors, kernel pins, the runner | `GenericPins.lean` — printed query = hypothesised query |
+| `Archive/` | 13 / 1,855 | superseded developments, not built upon | `ProbeMvHd.lean` — a mechanized vacuity counterexample |
+
+## 3. The live chain, end to end
+
+Follow this path to see one guarantee all the way through:
+
+1. **Z3 verdict → invariance.** `flow_certified` / `segPres_from_flowCert`
+   (`Trusted/Oracle.lean`, `Proofs/Encoding/BridgeDischarge.lean`) turn
+   `z3solve q = unsat` into `SegPreservesOn g sys dom`. This is where the axiom enters.
+2. **Per-mode certificates → a bundle.** `CoverCert` / `CoverCertM`
+   (`Checker/Cover.lean`) collect per-mode `SegPreserves`, reposition region invariants,
+   and prune soundness. Crucially `SegPreservesOn` is **conditional** (`InvHolds g ν →`)
+   and over the **joint** system — this is what keeps it satisfiable (contrast §4).
+3. **The cover decision.** `decideCovered` (`Checker/Checker.lean`) walks
+   `⟨mode, budget, source-setting⟩`; `decideCovered_sound` replays it in the kernel.
+   Its `step` case is `(retainedSucc q).all …` — the paper's all-successors condition.
+4. **Preservation over reaches.** `check_sound_multi` / `check_sound_multi_cut`
+   (`CoverMulti.lean`, `CutCover.lean`) give
+   `Covered ∧ CoexecInvAllThroughout{,G}` — *the invariant holds throughout every right
+   co-execution*. **This is what all 46 benchmarks instantiate.**
+5. **The ∀∃ modality.** `theorem3_uniform_from_covered` /
+   `decideCovered_implies_theorem3_faithful` (`CoverExtract.lean`,
+   `BridgeDischarge.lean`), or the `hstep`-parametric `theorem3_faithful_multiE_LR`
+   (`EnvelopeChain.lean`), conclude `rvalid (theorem3Form …)`. **Two benchmarks
+   instantiate this.**
+6. **Existence.** The ∀∃ route needs the response flow to exist: `WellFormedFlowB_contract`
+   (`UniformEvol.lean`) for contract fields — no Z3, no budget — or the chained-Picard
+   route `HExistSegB_of_viability` (`ViabilityWiring.lean`) for general polynomial fields.
+7. **Encoding.** `theorem3_encoded` (`Checker/Cover/Encoding.lean`) rests on dL-rel's
+   **Theorem 2** (`RFormula.encoding_correct`, soundness *and* completeness, never
+   vacuous by `exists_bridge`).
+
+## 4. Live vs historical — check this before citing anything
+
+| route | hypotheses | status |
+|---|---|---|
+| cover / uniform — `decideCovered_implies_theorem3_faithful`, `theorem3_uniform_from_covered` (R1 gate), `theorem3_uniform_guarded` (R2 gate) | `CoverCert`, `decideCovered`, `RightProjAlign` | ✅ **live** |
+| `hstep`-parametric — `theorem3_faithful{,_multi,_multiE,_multiE_LR}` | `hstep` + disjointness | ✅ **live** |
+| preservation — `check_sound_multi{,_cut}` | `CoverCertM{C}` + conditional `InvAllHolds` | ✅ **live** |
+| settling — `theorem3_faithful_settling` and its clocked/cadenced variants, `settling_end_to_end` | **`GBoxAll`** — quarantined, *unsatisfiable* for an `L`-mentioning `g`; the unclocked form also carries `hbudgetAll` | ❌ **vacuous** |
+| landing — `theorem3_faithful_landing_clocked{,_wf,_uniform}` | **`hbudgetAll`** — "unsatisfiable for autonomous benchmarks unless the caller smuggles a clock into `domL`" | ❌ vacuous for these benchmarks |
+| Emit-carrying — `*_of_emit`, `theorem3_uniform_multiflow`, `uniform_multiflow_end_to_end`, reposition multi | `EmitSegs`/`EmitWindows` — *assumes* the witness | ⚠️ sound, but assumes what R1 proves — unless discharged at the instance (as `rover_drag` does) |
+
+**Why the two traps exist and why they are safe.** `GBoxAll` uses an *unconditional*
+`BoxLe` over a *right-only* system with a *right-only* guard region, so a zero-duration
+run forces `g ν ≤ 0` at every `ν` in that region — impossible when `g` mentions left
+coordinates. `hbudgetAll` asserts every left-ODE solution is duration-bounded, which
+fails for autonomous fields. Both are **named at their definitions**, both were
+superseded, and the live routes fix exactly these defects (conditional premises, joint
+systems, clocked left segments).
+
+## 5. What every benchmark has
+
+| guarantee | benchmarks | status |
+|---|---|---|
+| relational invariant holds **throughout** every right co-execution | **46/46** | ✅ live |
+| right-system well-formedness at the real scale (the paper's nonblocking + successor-complete assumption, **discharged**) | **46/46** (`*_real`) | ✅ live |
+| the instance **is** the parsed file (`faithful… := rfl`) | 46/46 | ✅ live |
+| the tool's cover decision replayed (`coverReplays := by decide`) | 46/46 | ✅ live |
+| full ∀∃ `rvalid (theorem3Form …)` | **2** — watertank, rover_drag | ✅ live |
+| (`EndToEnd` ×3, `Mega`) | watertank, arm_refinement | ❌ vacuous route |
+
+The 47th benchmark, `shield_unreachable`, is honestly reported as non-certifying.
+
+## 6. The trust base, enumerated
+
+`z3solve` is `opaque`; `z3_unsat_sound` (`Trusted/Oracle.lean:37`) is the only axiom
+beyond Lean's three. It is **applied at 12 sites in 5 files**: `Trusted/Oracle.lean` (4),
+`Proofs/Soundness/CutLift.lean` (4), `Proofs/Flow/BoxViability.lean` (1),
+`BoxViabilityBounded.lean` (1), `ViabilityWiring.lean` (2). Note `Instances/AxiomCheck.lean`
+prints only two of these — extending it would make the claim self-evident.
+
+Beyond the axiom: the parser, the printer, the Lean kernel, and successor-completeness
+with guard-gated switching (a fact about the modeled system). See README's trust table.
+
+## 7. Where the documents fit
+
+**Active:**
+- `READING-GUIDE.md` (this file) — the entry point
+- `PAPER-MAPPING.md` — paper ↔ mechanization inventory, the full-read findings, and the
+  R-series gate glossary
+- `COVER-AUDIT.md` — tool↔proof findings, incl. the ⊤-guard note and the open parser hole
+- `VERDICTS.md` — the current empirical report
+- `ASSET-MAP.md` — load-bearing theorems, with the vacuous routes flagged
+
+**Design proposals (nothing scheduled):** `FIXPOINT-DESIGN.md` (winning-region
+alternative), `RESET-MAPS-SCOPE.md` (per-mode state resets), `ROTATION-SCOPE.md`
+(jump-then-flow vs flow-then-jump equivalence).
+
+**`history/`** — true, completed records: `ROADMAP.md` (the R/S arcs and their acceptance
+gates), `DEVELOPMENT-ARC.md` (the narrative, including findings that turned out false),
+`CUT-LIFT-SCOPE.md` (task D, delivered as S2), `MULTIFLOW-REALIGN.md` (task H).
+
+**`archive/`** — superseded by later architecture: `ARCHITECTURE.md`,
+`BENCHMARK_INSTANTIABILITY.md`.
+
+## 8. Standing discipline
+
+Before building: check `ASSET-MAP.md`. Any tool↔proof mismatch: record in
+`COVER-AUDIT.md`, resolve **by the code**, never invent parallel structures. Before
+citing a theorem: check §4. Proof-layer edits rebuild the world — batch them
+(`rebuild-hygiene`); per-benchmark edits are cheap since the X0 leaf modularization.

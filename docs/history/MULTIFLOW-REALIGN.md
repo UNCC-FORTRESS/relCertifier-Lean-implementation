@@ -1,3 +1,6 @@
+> **HISTORY.** Completed record, retained for provenance — not a description of the
+> current state. For what is live today see `docs/READING-GUIDE.md`.
+
 # Task H: realigning the uniform suite onto the paper-faithful multi-flow chain
 
 ## Design agreement (from the F2 discussion)

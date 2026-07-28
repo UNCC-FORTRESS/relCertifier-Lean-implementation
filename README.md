@@ -312,9 +312,16 @@ families, rover refinement ladders, terrain and rollover stories up to 12 dof.
 
 ## History
 
-`docs/ROADMAP.md` (arc records: R1–R7 realignment, S1–S4, all closed), `docs/COVER-AUDIT.md`
-(soundness findings), `docs/CUT-LIFT-SCOPE.md`, `docs/DEVELOPMENT-ARC.md`,
-`docs/VERDICTS.md` (the current empirical report). Superseded design documents live in
-`docs/archive/` (`ARCHITECTURE.md` — the certified-checker re-architecture and the
-finding that forced it; `BENCHMARK_INSTANTIABILITY.md` — the pre-battery instantiability
-census).
+**Start with [`docs/READING-GUIDE.md`](docs/READING-GUIDE.md)** — the entry point to the
+whole repository, in dependency order, with the live theorem chain traced end to end and
+the historical routes (which still compile, but rest on documented-unsatisfiable
+hypotheses) clearly marked.
+
+Active docs: `docs/PAPER-MAPPING.md` (paper ↔ mechanization inventory + the R-series gate
+glossary), `docs/COVER-AUDIT.md` (tool↔proof findings), `docs/VERDICTS.md` (the empirical
+report), `docs/ASSET-MAP.md` (load-bearing theorems). Design proposals, nothing
+scheduled: `docs/FIXPOINT-DESIGN.md`, `docs/RESET-MAPS-SCOPE.md`, `docs/ROTATION-SCOPE.md`.
+
+Completed records live in `docs/history/` (the R/S arc roadmap and its acceptance gates,
+the development narrative, the cut-lift and multiflow scopes); superseded design
+documents in `docs/archive/`.

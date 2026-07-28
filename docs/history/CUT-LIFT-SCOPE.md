@@ -1,3 +1,6 @@
+> **HISTORY.** Completed record, retained for provenance — not a description of the
+> current state. For what is live today see `docs/READING-GUIDE.md`.
+
 # Scope: the verified checked-cut lift (closing the last tool-side narrowing gap)
 
 ## Problem

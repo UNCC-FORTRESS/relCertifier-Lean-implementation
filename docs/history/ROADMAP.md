@@ -1,3 +1,6 @@
+> **HISTORY.** Completed record, retained for provenance — not a description of the
+> current state. For what is live today see `docs/READING-GUIDE.md`.
+
 # Roadmap: end-to-end guarantee on all benchmarks (task H closure)
 
 Held to the FROZEN hypothesis contract: trust base (parser, lowering, printer, Z3, kernel)

@@ -398,5 +398,310 @@ theorem esA (l : ℕ) (dt : ℝ) (hdt : 0 ≤ dt) :
         rw [hupd faceHi (by simp)]; exact hfaces.2)
     (by intro gT hgT; exact absurd hgT (List.not_mem_nil))
 
+/-! ## The per-pair bounded coupling (cert-sourced, envelope-strengthened) -/
+
+theorem coupleA {l : ℕ} (hl : l < 2) (dt : ℝ) (hdt : 0 ≤ dt) (hv : Verd3 l) :
+    ∀ σ', Formula.sat (Formula.and (invLe gA) envA) σ' → σ' tgA = 0 →
+      faModalB (Equiv.refl (Var 2))
+        (Program.ode (DLCalTiming.clk tgA (leftBlock (fLA l))) domLA)
+        (Program.ode (rightBlock (fRA 3) (Term.const 1)) domRA)
+        (Formula.and (invLe gA) envA) tgA dt σ' := by
+  intro σ' hσ' htg0
+  have hupd : Function.update σ' tgA (0 : ℝ) = σ' := by
+    funext x
+    by_cases hx : x = tgA
+    · subst hx; rw [Function.update_self]; exact htg0.symm
+    · rw [Function.update_of_ne hx]
+  have hAll := segPresAll_from_strata_verdicts' (fLA l) (fRA 3) (Term.const 1)
+    (Formula.and domLA domRA) [gA]
+    (by
+      intro i hi
+      have hi1 : i < 1 := by simpa using hi
+      interval_cases i
+      simpa [strataDomHost, Verd3] using hv)
+  have hbox : Formula.sat (Formula.box (Program.ode
+      (leftBlock (fLA l) ++ rightBlock (fRA 3) (Term.const 1))
+      (Formula.and domLA domRA)) (invLe gA)) σ' := by
+    rw [sat_box]
+    intro ω hω
+    rw [sat_invLe]
+    refine hAll σ' ?_ ω (by rw [← jointSys_split] at hω; exact hω) gA
+      List.mem_cons_self
+    intro g hg
+    rw [List.mem_singleton] at hg
+    subst hg
+    exact (sat_invLe gA σ').mp hσ'.1
+  have hbase := segment_faModalB_from_certB gA (fLA l) (fRA 3) (Term.const 1)
+    domLA domRA tgA dt
+    (LR_blocks_disjoint _ _ _ (hfLA l hl) (hfRA 3 (by norm_num)) (by simp [Term.fv]))
+    (fun v hv' => Or.inl (by
+      obtain ⟨i, rfl⟩ := hdomLA hv'
+      exact Lv_mem_leftBlock_boundSet _ i))
+    (fun v hv' => Or.inl (by
+      obtain ⟨i, rfl⟩ := hdomRA hv'
+      exact Rv_mem_rightBlock_boundSet _ _ i))
+    (fun h => by
+      obtain ⟨i, hi⟩ := leftBlock_bound_sub (fLA l) _ h
+      exact aux_ne_Lv aA i hi)
+    (fun h => aux_notin_range_Lv aA (leftBlock_readVars_sub (fLA l) (hfLA l hl) h))
+    (fun h => by
+      obtain ⟨i, hi⟩ := rightBlock_bound_sub (fRA 3) (Term.const 1) _ h
+      exact aux_ne_Rv aA i hi)
+    (fun h => aux_notin_range_Rv aA (rightBlock_readVars_sub (fRA 3) (Term.const 1)
+      (hfRA 3 (by norm_num)) (by simp [Term.fv]) h))
+    (fun h => aux_notin_range_Rv aA (rightBlock_boundSet_sub (fRA 3) (Term.const 1) h))
+    (fun h => aux_notin_range_Lv aA (hdomLA h))
+    (fun h => aux_notin_range_Rv aA (hdomRA h))
+    htggA hbox (esA l dt hdt σ' hσ')
+  rw [hupd] at hbase
+  refine faModalB_strengthen_plant ?_ hbase
+  intro ν μ hplant hsem
+  have hdomLν : Formula.sat domLA ν := sem_ode_ends_in_domain hplant.1
+  have hdomRμ : Formula.sat domRA μ := sem_ode_ends_in_domain hsem
+  have hdomLμ : Formula.sat domLA μ := by
+    rwa [(Formula.coincidence domLA (fun v hv' => sem_ode_mask hsem (by
+      obtain ⟨i, rfl⟩ := hdomLA hv'
+      intro hb
+      obtain ⟨j, hj⟩ := rightBlock_bound_sub (fRA 3) (Term.const 1) _ hb
+      exact absurd hj (by simp [Lv, Rv, Prod.ext_iff]))) :
+        Formula.sat domLA μ ↔ Formula.sat domLA ν)]
+  exact ⟨hdomLμ, hdomRμ⟩
+
+/-! ## Per-(window, start) responses — every response lands at `Hold` -/
+
+/-- Start `Hold` (3): the single self-edge piece. -/
+theorem seg_selfA (dt : ℝ) (hdt : 0 ≤ dt) {l : ℕ} (hl : l < 2) (hv : Verd3 l)
+    {σ : State (Var 2)} (hσ : Formula.sat (Formula.and (invLe gA) envA) σ) :
+    Formula.sat (faModal (Equiv.refl (Var 2))
+      (windowSeg (leftBlock (fLA l)) domLA tgA dt 1)
+      (bigSeq ([((3 : ℕ), modeA 3, edgeA 3 3)].map
+        (fun s => Program.ode s.2.1.sys s.2.1.dom)))
+      (Formula.and (invLe gA) envA)) σ := by
+  have hfa := Hmulti_window1_prefixed (fLA l) domLA gA envA aA dt htggA htgenvA []
+    (by simp) (by simp) (hfLA l hl) hdomLA
+    (Program.ode (rightBlock (fRA 3) (Term.const 1)) domRA)
+    (coupleA hl dt hdt hv) hσ
+  simpa [modeA] using hfa
+
+/-- The hop conversion for one static seg: the frozen-left hop run maps to the
+mode's own (right-block) program over the mode domain. -/
+theorem hop_conv (q : ℕ) (hq : q < 4) :
+    ∀ ν μ, Program.sem ((RepoHop.mk (fRA q) (Term.const 1) domRA).prog domLA) ν μ →
+      Program.sem (Program.ode (rightBlock (fRA q) (Term.const 1)) domRA) ν μ := by
+  intro ν μ h
+  exact sem_ode_dom_and_right
+    ((sem_rightBlock_frozen_iff (hfRA q hq) (by simp [Term.fv])).mp h)
+
+/-- The hop list converts elementwise to the modes' own programs. -/
+theorem hops_forall2 : ∀ (p : List ℕ), (∀ q ∈ p, q < 4) →
+    List.Forall₂ (fun a b => ∀ ν μ, Program.sem a ν μ → Program.sem b ν μ)
+      (p.map (fun q => (RepoHop.mk (fRA q) (Term.const 1) domRA).prog domLA))
+      (p.map (fun q => Program.ode (rightBlock (fRA q) (Term.const 1)) domRA)) := by
+  intro p
+  induction p with
+  | nil => exact fun _ => List.Forall₂.nil
+  | cons q rest ih =>
+      intro hlt4
+      exact List.Forall₂.cons (hop_conv q (hlt4 q List.mem_cons_self))
+        (ih (fun q' hq' => hlt4 q' (List.mem_cons_of_mem _ hq')))
+
+/-- Non-`Hold` start `q`: static hops along the declared chain to `Hold`, then the
+piece there. `path` enumerates the traversed modes (`q` first). -/
+theorem seg_hopA (dt : ℝ) (hdt : 0 ≤ dt) {l : ℕ} (hl : l < 2) (hv : Verd3 l)
+    (path : List ℕ) (hlt4 : ∀ q ∈ path, q < 4)
+    {σ : State (Var 2)} (hσ : Formula.sat (Formula.and (invLe gA) envA) σ) :
+    Formula.sat (faModal (Equiv.refl (Var 2))
+      (windowSeg (leftBlock (fLA l)) domLA tgA dt 1)
+      (bigSeq ((path.map (fun q => Program.ode (rightBlock (fRA q) (Term.const 1)) domRA))
+        ++ [Program.ode (rightBlock (fRA 3) (Term.const 1)) domRA]))
+      (Formula.and (invLe gA) envA)) σ := by
+  have hfa := Hmulti_window1_prefixed (fLA l) domLA gA envA aA dt htggA htgenvA
+    (path.map (fun q => ⟨fRA q, Term.const 1, domRA⟩))
+    (by
+      intro h hh
+      obtain ⟨q, hq, rfl⟩ := List.mem_map.mp hh
+      exact ⟨hfRA q (hlt4 q hq), by simp [Term.fv], hdomRA⟩)
+    (by
+      intro h hh σ' hσ' htg'
+      obtain ⟨q, hq, rfl⟩ := List.mem_map.mp hh
+      exact static_hop_exists hσ')
+    (hfLA l hl) hdomLA
+    (Program.ode (rightBlock (fRA 3) (Term.const 1)) domRA)
+    (coupleA hl dt hdt hv) hσ
+  rw [List.map_map] at hfa
+  refine sat_faModal_monoR (fun ν μ hrun => sem_bigSeq_mono ?_ ν μ hrun) hfa
+  exact List.rel_append (hops_forall2 path hlt4)
+    (List.Forall₂.cons (fun ν μ h => h) List.Forall₂.nil)
+
+/-! ## The `Hmulti` provider and the gate -/
+
+theorem HmultiA (dt : ℝ) (hdt : 0 ≤ dt) (h0 : Verd3 0) (h1 : Verd3 1) :
+    ∀ P ∈ leftProgsA dt, ∀ (q : ℕ), q < GrA.modes.length → ∀ σ, σ mvA = (q : ℝ) →
+      Formula.sat (Formula.and (invLe gA) envA) σ →
+      ∃ segs : List (ℕ × RMode (Var 2) × REdge (Var 2)),
+        (∀ s ∈ segs, GrA.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ GrA.edgesFrom s.1) ∧
+        List.IsChain (fun a b => a.2.2.tgt = b.1) segs ∧
+        (∀ s, segs.head? = some s → s.1 = q) ∧
+        Formula.sat (faModal (Equiv.refl (Var 2)) P
+          (bigSeq (segs.map (fun s => Program.ode s.2.1.sys s.2.1.dom)))
+          (Formula.and (invLe gA) envA)) σ := by
+  intro P hP q hq σ hmv hσ
+  have hq4 : q < 4 := by simpa [GrA] using hq
+  simp only [leftProgsA, leftDataA, List.map_cons, List.map_nil, List.mem_cons,
+    List.not_mem_nil, or_false] at hP
+  have hsingle : ∀ (a : ℕ × RMode (Var 2) × REdge (Var 2)),
+      List.IsChain (fun a b => a.2.2.tgt = b.1) [a] := by
+    intro a; simp
+  have hstep : ∀ (a : ℕ × RMode (Var 2) × REdge (Var 2))
+      (b : ℕ × RMode (Var 2) × REdge (Var 2)) rest,
+      a.2.2.tgt = b.1 → List.IsChain (fun x y => x.2.2.tgt = y.1) (b :: rest) →
+      List.IsChain (fun x y => x.2.2.tgt = y.1) (a :: b :: rest) := by
+    intro a b rest hab hrest
+    refine hrest.cons ?_
+    intro y hy
+    rw [List.head?_cons, Option.mem_some_iff] at hy
+    subst hy
+    exact hab
+  have hhead1 : ∀ (a : ℕ × RMode (Var 2) × REdge (Var 2)) rest s,
+      (a :: rest : List _).head? = some s → s = a := by
+    intro a rest s hs
+    simpa [List.head?_cons] using hs.symm
+  have halign : ∀ st tg, edgeA st tg ∈ GrA.edges → st < 4 →
+      GrA.modeAt st = some (modeA st) ∧ edgeA st tg ∈ GrA.edgesFrom st := by
+    intro st tg he hst
+    refine ⟨?_, edgeA_from he⟩
+    interval_cases st <;> rfl
+  -- dispatch: window l, start q; every response lands at Hold (3)
+  rcases hP with rfl | rfl
+  · -- window 0 (Accelerate)
+    interval_cases q
+    · exact ⟨[(0, modeA 0, edgeA 0 1), (1, modeA 1, edgeA 1 2), (2, modeA 2, edgeA 2 3),
+        (3, modeA 3, edgeA 3 3)],
+        (by
+          intro s hs
+          simp only [List.mem_cons, List.not_mem_nil, or_false] at hs
+          rcases hs with rfl | rfl | rfl | rfl
+          · exact halign 0 1 (by simp [GrA]) (by norm_num)
+          · exact halign 1 2 (by simp [GrA]) (by norm_num)
+          · exact halign 2 3 (by simp [GrA]) (by norm_num)
+          · exact halign 3 3 (by simp [GrA]) (by norm_num)),
+        (hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl (hsingle _)))),
+        (fun s hs => by rw [hhead1 _ _ _ hs]),
+        (by
+          have := seg_hopA dt hdt (l := 0) (by norm_num) h0 [0, 1, 2]
+            (by intro q hq; fin_cases hq <;> norm_num) hσ
+          simpa [modeA] using this)⟩
+    · exact ⟨[(1, modeA 1, edgeA 1 2), (2, modeA 2, edgeA 2 3), (3, modeA 3, edgeA 3 3)],
+        (by
+          intro s hs
+          simp only [List.mem_cons, List.not_mem_nil, or_false] at hs
+          rcases hs with rfl | rfl | rfl
+          · exact halign 1 2 (by simp [GrA]) (by norm_num)
+          · exact halign 2 3 (by simp [GrA]) (by norm_num)
+          · exact halign 3 3 (by simp [GrA]) (by norm_num)),
+        (hstep _ _ _ rfl (hstep _ _ _ rfl (hsingle _))),
+        (fun s hs => by rw [hhead1 _ _ _ hs]),
+        (by
+          have := seg_hopA dt hdt (l := 0) (by norm_num) h0 [1, 2]
+            (by intro q hq; fin_cases hq <;> norm_num) hσ
+          simpa [modeA] using this)⟩
+    · exact ⟨[(2, modeA 2, edgeA 2 3), (3, modeA 3, edgeA 3 3)],
+        (by
+          intro s hs
+          simp only [List.mem_cons, List.not_mem_nil, or_false] at hs
+          rcases hs with rfl | rfl
+          · exact halign 2 3 (by simp [GrA]) (by norm_num)
+          · exact halign 3 3 (by simp [GrA]) (by norm_num)),
+        (hstep _ _ _ rfl (hsingle _)),
+        (fun s hs => by rw [hhead1 _ _ _ hs]),
+        (by
+          have := seg_hopA dt hdt (l := 0) (by norm_num) h0 [2]
+            (by intro q hq; fin_cases hq <;> norm_num) hσ
+          simpa [modeA] using this)⟩
+    · exact ⟨[(3, modeA 3, edgeA 3 3)],
+        (by
+          intro s hs
+          rw [List.mem_singleton] at hs
+          subst hs
+          exact halign 3 3 (by simp [GrA]) (by norm_num)),
+        hsingle _,
+        (fun s hs => by rw [hhead1 _ _ _ hs]),
+        seg_selfA dt hdt (by norm_num) h0 hσ⟩
+  · -- window 1 (Brake)
+    interval_cases q
+    · exact ⟨[(0, modeA 0, edgeA 0 1), (1, modeA 1, edgeA 1 2), (2, modeA 2, edgeA 2 3),
+        (3, modeA 3, edgeA 3 3)],
+        (by
+          intro s hs
+          simp only [List.mem_cons, List.not_mem_nil, or_false] at hs
+          rcases hs with rfl | rfl | rfl | rfl
+          · exact halign 0 1 (by simp [GrA]) (by norm_num)
+          · exact halign 1 2 (by simp [GrA]) (by norm_num)
+          · exact halign 2 3 (by simp [GrA]) (by norm_num)
+          · exact halign 3 3 (by simp [GrA]) (by norm_num)),
+        (hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl (hsingle _)))),
+        (fun s hs => by rw [hhead1 _ _ _ hs]),
+        (by
+          have := seg_hopA dt hdt (l := 1) (by norm_num) h1 [0, 1, 2]
+            (by intro q hq; fin_cases hq <;> norm_num) hσ
+          simpa [modeA] using this)⟩
+    · exact ⟨[(1, modeA 1, edgeA 1 2), (2, modeA 2, edgeA 2 3), (3, modeA 3, edgeA 3 3)],
+        (by
+          intro s hs
+          simp only [List.mem_cons, List.not_mem_nil, or_false] at hs
+          rcases hs with rfl | rfl | rfl
+          · exact halign 1 2 (by simp [GrA]) (by norm_num)
+          · exact halign 2 3 (by simp [GrA]) (by norm_num)
+          · exact halign 3 3 (by simp [GrA]) (by norm_num)),
+        (hstep _ _ _ rfl (hstep _ _ _ rfl (hsingle _))),
+        (fun s hs => by rw [hhead1 _ _ _ hs]),
+        (by
+          have := seg_hopA dt hdt (l := 1) (by norm_num) h1 [1, 2]
+            (by intro q hq; fin_cases hq <;> norm_num) hσ
+          simpa [modeA] using this)⟩
+    · exact ⟨[(2, modeA 2, edgeA 2 3), (3, modeA 3, edgeA 3 3)],
+        (by
+          intro s hs
+          simp only [List.mem_cons, List.not_mem_nil, or_false] at hs
+          rcases hs with rfl | rfl
+          · exact halign 2 3 (by simp [GrA]) (by norm_num)
+          · exact halign 3 3 (by simp [GrA]) (by norm_num)),
+        (hstep _ _ _ rfl (hsingle _)),
+        (fun s hs => by rw [hhead1 _ _ _ hs]),
+        (by
+          have := seg_hopA dt hdt (l := 1) (by norm_num) h1 [2]
+            (by intro q hq; fin_cases hq <;> norm_num) hσ
+          simpa [modeA] using this)⟩
+    · exact ⟨[(3, modeA 3, edgeA 3 3)],
+        (by
+          intro s hs
+          rw [List.mem_singleton] at hs
+          subst hs
+          exact halign 3 3 (by simp [GrA]) (by norm_num)),
+        hsingle _,
+        (fun s hs => by rw [hhead1 _ _ _ hs]),
+        seg_selfA dt hdt (by norm_num) h1 hσ⟩
+
+/-- **`arm_chain_rung3`, modal Theorem 3, UNCONDITIONAL on existence.** Two left
+windows, the transition-faithful four-mode right automaton with the declared edges,
+every response landing at `Hold` (static hops + one certified piece). The existence
+residual is DISCHARGED (the L1 stratified route, Z3-free at the zero-field landing
+mode); the only remaining hypotheses are the two per-window joint route verdicts. -/
+theorem arm_chain_rung3_modal (dt : ℝ) (hdt : 0 ≤ dt)
+    (h0 : Verd3 0) (h1 : Verd3 1) :
+    RFormula.rvalid (theorem3Form
+      (bigChoice (leftProgsA dt))
+      (rightAutomatonBody GrA mvA)
+      (RFormula.and (RFormula.and (canonInv gA) (envLR domLA domRA))
+        (mvValidR mvA GrA.modes.length))) := by
+  refine theorem3_faithful_multiE_LR GrA mvA gA domLA domRA (leftProgsA dt)
+    (canonInv gA) (encode_canonInv gA) ?_ ?_ ?_
+  · exact hdis_multi GrA 0 1 dt leftDataA (by decide) httA hRvA hLA
+  · exact hstep_assembled_multiE GrA mvA gA envA (leftProgsA dt) hmvgA hmvenvA
+      hfreshA httA hltA (hframesA dt)
+      (HmultiA dt hdt h0 h1)
+  · exact hddF_multiE GrA 0 1 dt leftDataA (canonInv gA) domLA domRA (by decide)
+      httA hRvA hLA (canonInv_varsL gA hgA) (canonInv_varsR gA) hdomLA hdomRA
+
 end ArmChainRung3Modal
 end RelCertifier

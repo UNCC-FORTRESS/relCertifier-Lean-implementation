@@ -266,5 +266,406 @@ theorem gC_eval (x : State (Var 2)) :
     Run.resolveVar, Parse.dr, hdL, hdR, List.findIdx?_cons, ITerm.toHost,
     Term.eval, AOp.interp, Lv, Rv]
 
+/-! ## The split systems (per-window λ) -/
+
+noncomputable def sysXC (l : ℕ) : ODESystem (Var 2) :=
+  DLCalTiming.clk tgC (leftBlock (fLC l))
+noncomputable def sysBC (l : ℕ) : ODESystem (Var 2) :=
+  rightBlock (fRC 1) (Term.const (lamC l))
+noncomputable def sysAC (l : ℕ) : ODESystem (Var 2) :=
+  rightBlock (fRC 0) (Term.const (lamC l))
+
+theorem hwfXBC (l : ℕ) : (sysXC l ++ sysBC l).WellFormed := by
+  show (((sysXC l ++ sysBC l).map Prod.fst)).Nodup
+  simp only [sysXC, sysBC, DLCalTiming.clk, leftBlock, rightBlock, List.map_append,
+    List.map_map, Function.comp_def, List.append_assoc]
+  simp only [List.finRange, List.map_cons, List.map_nil, List.cons_append,
+    List.nil_append]
+  decide
+
+/-- Two-coordinate affine Lie (copy of the pilot's mirror). -/
+theorem lie_affine_coord2 (sys : ODESystem (Var 2)) (hwf : sys.WellFormed)
+    (i j : Var 2) (a b c : ℝ) (x : State (Var 2)) :
+    Lie sys (fun y => a * y i + b * y j + c) x
+      = a * odeField sys x i + b * odeField sys x j := by
+  rw [← Lie_eq_fderiv hwf]
+  have hpi : HasFDerivAt (fun y : State (Var 2) => y i)
+      (ContinuousLinearMap.proj i) x :=
+    hasFDerivAt_apply (𝕜 := ℝ) (F' := fun _ : Var 2 => ℝ) i x
+  have hpj : HasFDerivAt (fun y : State (Var 2) => y j)
+      (ContinuousLinearMap.proj j) x :=
+    hasFDerivAt_apply (𝕜 := ℝ) (F' := fun _ : Var 2 => ℝ) j x
+  have h1 := ((hpi.const_mul a).add (hpj.const_mul b)).add_const c
+  have h1' : HasFDerivAt (fun y : State (Var 2) => a * y i + b * y j + c)
+      (a • ContinuousLinearMap.proj i + b • ContinuousLinearMap.proj j) x := h1
+  rw [h1'.fderiv]
+  simp [ContinuousLinearMap.proj_apply]
+
+theorem memB_Rv0C (l : ℕ) :
+    ((Rv 0 : Var 2), Term.binop AOp.mul (Term.const (lamC l)) (fRC 1 0)) ∈ sysBC l := by
+  simp only [sysBC, rightBlock, List.mem_map]
+  exact ⟨0, List.mem_finRange 0, rfl⟩
+
+theorem memX_Lv0C (l : ℕ) : ((Lv 0 : Var 2), fLC l 0) ∈ sysXC l := by
+  simp only [sysXC, DLCalTiming.clk, leftBlock, List.mem_append, List.mem_map]
+  exact Or.inl ⟨0, List.mem_finRange 0, rfl⟩
+
+theorem odeFieldXB_Rv0C (l : ℕ) (hl : l < 3) (x : State (Var 2)) :
+    odeField (sysXC l ++ sysBC l) x (Rv 0) = -(rC l) := by
+  have hmem : ((Rv 0 : Var 2), Term.binop AOp.mul (Term.const (lamC l)) (fRC 1 0))
+      ∈ sysXC l ++ sysBC l := List.mem_append_right _ (memB_Rv0C l)
+  have hb : (Rv 0 : Var 2) ∈ (sysXC l ++ sysBC l).bound := by
+    simp only [ODESystem.bound, List.mem_map]
+    exact ⟨_, hmem, rfl⟩
+  rw [show odeField (sysXC l ++ sysBC l) x (Rv 0)
+      = ((sysXC l ++ sysBC l).rhs (Rv 0)).eval x from by
+    simp only [odeField, if_pos hb]]
+  rw [show (Rv 0 : Var 2) = ((Rv 0 : Var 2), Term.binop AOp.mul
+      (Term.const (lamC l)) (fRC 1 0)).1 from rfl,
+    ODESystem.rhs_eq_of_mem (hwfXBC l) hmem]
+  simp only [Term.eval, AOp.interp, fRC0_eval 1 (by norm_num)]
+  simp [rC]
+  ring
+
+theorem odeFieldXB_Lv0C (l : ℕ) (hl : l < 3) (x : State (Var 2)) :
+    odeField (sysXC l ++ sysBC l) x (Lv 0) = rLC l := by
+  have hmem : ((Lv 0 : Var 2), fLC l 0) ∈ sysXC l ++ sysBC l :=
+    List.mem_append_left _ (memX_Lv0C l)
+  have hb : (Lv 0 : Var 2) ∈ (sysXC l ++ sysBC l).bound := by
+    simp only [ODESystem.bound, List.mem_map]
+    exact ⟨_, hmem, rfl⟩
+  rw [show odeField (sysXC l ++ sysBC l) x (Lv 0)
+      = ((sysXC l ++ sysBC l).rhs (Lv 0)).eval x from by
+    simp only [odeField, if_pos hb]]
+  rw [show (Lv 0 : Var 2) = ((Lv 0 : Var 2), fLC l 0).1 from rfl,
+    ODESystem.rhs_eq_of_mem (hwfXBC l) hmem]
+  exact fLC0_eval l hl x
+
+theorem hbndBC (l : ℕ) (hl : l < 3) : ∀ x : State (Var 2),
+    Formula.sat (Formula.and domLC domRC) x →
+    Lie (sysXC l ++ sysBC l) (fun ν => Term.eval gC ν) x ≤ 2 := by
+  intro x _
+  have hfun : (fun ν : State (Var 2) => Term.eval gC ν)
+      = fun y => 1 * y (Lv 0) + (-1) * y (Rv 0) + (-(2/5)) := by
+    funext y
+    rw [gC_eval]
+    ring
+  rw [hfun, lie_affine_coord2 _ (hwfXBC l) (Lv 0) (Rv 0) 1 (-1) (-(2/5)) x,
+    odeFieldXB_Lv0C l hl, odeFieldXB_Rv0C l hl]
+  interval_cases l <;> norm_num [rLC, rC, lamC]
+
+theorem hjrowC (l : ℕ) (hl : l < 3) : ∀ x : State (Var 2),
+    Formula.sat (Formula.and domLC domRC) x →
+    Lie (sysXC l ++ sysBC l) (fun ν => Term.eval (Term.var (Rv 0)) ν) x ≤ -(rC l) := by
+  intro x _
+  have hfun : (fun ν : State (Var 2) => Term.eval (Term.var (Rv 0)) ν)
+      = fun y => 1 * y (Rv 0) + 0 := by
+    funext y
+    simp [Term.eval]
+  rw [hfun, lie_affine_coord _ (hwfXBC l) (Rv 0) 1 0 x, odeFieldXB_Rv0C l hl]
+  norm_num
+
+/-! ## Clock-anchored joint box (copy of the pilot's device) -/
+
+theorem box_clk_anchor (g : Term (Var 2)) (A B : ODESystem (Var 2))
+    (dom : Formula (Var 2)) (tg : Var 2)
+    (htgAb : tg ∉ A.bound) (htgBb : tg ∉ B.bound)
+    (htgAr : tg ∉ A.readVars) (htgBr : tg ∉ B.readVars)
+    (htgd : tg ∉ dom.fv) (htgg : tg ∉ g.fv) {κ : State (Var 2)}
+    (h : Formula.sat (Formula.box (Program.ode (A ++ B) dom) (invLe g)) κ) :
+    Formula.sat (Formula.box (Program.ode ((DLCalTiming.clk tg A) ++ B) dom)
+      (invLe g)) κ := by
+  rw [sat_box] at h ⊢
+  intro ω hω
+  obtain ⟨r, Φ, hr, hΦ0, hΦr, hder, hmask, hdom⟩ := hω
+  have htgrow : ∀ p ∈ A ++ B, tg ∉ p.2.fv := by
+    intro p hp htgp
+    rcases List.mem_append.mp hp with hp | hp
+    · exact htgAr ⟨p, hp, htgp⟩
+    · exact htgBr ⟨p, hp, htgp⟩
+  have hbnd : ∀ p ∈ A ++ B, p.1 ≠ tg := by
+    intro p hp hc
+    rcases List.mem_append.mp hp with hp | hp
+    · exact htgAb (by rw [← hc]; exact List.mem_map.mpr ⟨p, hp, rfl⟩)
+    · exact htgBb (by rw [← hc]; exact List.mem_map.mpr ⟨p, hp, rfl⟩)
+  set Ψ : ℝ → State (Var 2) := fun t => Function.update (Φ t) tg (κ tg) with hΨ
+  have hΨcoin : ∀ t, ∀ x, x ≠ tg → Ψ t x = Φ t x := by
+    intro t x hx
+    simp only [hΨ, Function.update_of_ne hx]
+  have hrun : Program.sem (Program.ode (A ++ B) dom) κ
+      (Function.update ω tg (κ tg)) := by
+    refine ⟨r, Ψ, hr, ?_, ?_, ?_, ?_, ?_⟩
+    · funext x
+      by_cases hx : x = tg
+      · subst hx; simp [hΨ, Function.update_self]
+      · rw [hΨcoin 0 x hx, hΦ0]
+    · funext x
+      by_cases hx : x = tg
+      · subst hx; simp [hΨ, Function.update_self]
+      · rw [hΨcoin r x hx, hΦr, Function.update_of_ne hx]
+    · intro t ht p hp
+      have hne := hbnd p hp
+      have hfun : (fun u => Ψ u p.1) = fun u => Φ u p.1 := by
+        funext u
+        exact hΨcoin u p.1 hne
+      have heval : Term.eval p.2 (Ψ t) = Term.eval p.2 (Φ t) :=
+        Term.coincidence p.2 (fun y hy =>
+          hΨcoin t y (fun hc => htgrow p hp (by rw [← hc]; exact hy)))
+      rw [hfun, heval]
+      refine hder t ht p ?_
+      simp only [DLCalTiming.clk, List.append_assoc, List.mem_append] at hp ⊢
+      rcases hp with hp | hp
+      · exact Or.inl hp
+      · exact Or.inr (Or.inr hp)
+    · intro t ht x hx
+      by_cases hxtg : x = tg
+      · subst hxtg
+        simp [hΨ, Function.update_self]
+      · rw [hΨcoin t x hxtg]
+        refine hmask t ht x ?_
+        intro hc
+        refine hx ?_
+        simp only [ODESystem.bound, List.map_append, List.mem_append] at hc
+        simp only [ODESystem.bound, List.map_append, List.mem_append]
+        rcases hc with hc | hc
+        · left
+          have hA : x ∈ List.map Prod.fst (A ++ [(tg, Term.const 1)]) := hc
+          rw [List.map_append, List.mem_append] at hA
+          rcases hA with h' | h'
+          · exact h'
+          · exact absurd (by simpa using h') hxtg
+        · exact Or.inr hc
+    · intro t ht
+      refine (Formula.coincidence dom (fun y hy =>
+        hΨcoin t y (fun hc => htgd (by rw [← hc]; exact hy)))).mpr (hdom t ht)
+  have hinv := h _ hrun
+  have hcoin : Term.eval g (Function.update ω tg (κ tg)) = Term.eval g ω :=
+    Term.coincidence g (fun y hy =>
+      Function.update_of_ne (fun hc => htgg (by rw [← hc]; exact hy)) _ _)
+  rw [sat_invLe] at hinv ⊢
+  rw [← hcoin]
+  exact hinv
+
+/-! ## The route verdicts and the certified `A` box -/
+
+def VerdC (l : ℕ) : Prop :=
+  z3solve (flowQuery ⟨gC, fLC l, fRC 0, Term.const (lamC l),
+    Formula.and domLC domRC⟩) = Verdict.unsat
+  ∨ z3solve (flowQueryStrict ⟨gC, fLC l, fRC 0, Term.const (lamC l),
+    Formula.and domLC domRC⟩) = Verdict.unsat
+  ∨ z3solve (flowQuerySuperlevel ⟨gC, fLC l, fRC 0, Term.const (lamC l),
+    Formula.and domLC domRC⟩) = Verdict.unsat
+
+theorem hboxAC (l : ℕ) (hl : l < 3) (hv : VerdC l) :
+    ∀ κ : State (Var 2), Term.eval gC κ ≤ 0 →
+      Formula.sat (Formula.box (Program.ode (sysXC l ++ sysAC l)
+        (Formula.and domLC domRC)) (Formula.and (invLe gC) envC)) κ := by
+  intro κ hκ
+  have hAll := segPresAll_from_strata_verdicts' (fLC l) (fRC 0) (Term.const (lamC l))
+    (Formula.and domLC domRC) [gC]
+    (by
+      intro i hi
+      have hi1 : i < 1 := by simpa using hi
+      interval_cases i
+      simpa [strataDomHost, VerdC] using hv)
+  have hjoint : Formula.sat (Formula.box (Program.ode
+      (jointSys (fLC l) (fRC 0) (Term.const (lamC l))) (Formula.and domLC domRC))
+      (invLe gC)) κ := by
+    rw [sat_box]
+    intro ω hω
+    rw [sat_invLe]
+    refine hAll κ ?_ ω hω gC List.mem_cons_self
+    intro g hg
+    rw [List.mem_singleton] at hg
+    subst hg
+    exact hκ
+  have htgLb : tgC ∉ (leftBlock (fLC l)).bound := by
+    intro h
+    obtain ⟨i, hi⟩ := leftBlock_bound_sub (fLC l) _ h
+    exact aux_ne_Lv aC i hi
+  have htgAb' : tgC ∉ (rightBlock (fRC 0) (Term.const (lamC l))).bound := by
+    intro h
+    obtain ⟨i, hi⟩ := rightBlock_bound_sub (fRC 0) (Term.const (lamC l)) _ h
+    exact aux_ne_Rv aC i hi
+  have htgLr : tgC ∉ (leftBlock (fLC l)).readVars := fun h =>
+    aux_notin_range_Lv aC (leftBlock_readVars_sub (fLC l) (hfLC l hl) h)
+  have htgAr' : tgC ∉ (rightBlock (fRC 0) (Term.const (lamC l))).readVars := fun h =>
+    aux_notin_range_Rv aC (rightBlock_readVars_sub (fRC 0) (Term.const (lamC l))
+      (hfRC 0 (by norm_num)) (by simp [Term.fv]) h)
+  have htgdom : tgC ∉ (Formula.and domLC domRC).fv := by
+    simp only [Formula.fv, Set.mem_union, not_or]
+    exact ⟨fun h => aux_notin_range_Lv aC (hdomLC h),
+      fun h => aux_notin_range_Rv aC (hdomRC h)⟩
+  have hclk := box_clk_anchor gC (leftBlock (fLC l))
+    (rightBlock (fRC 0) (Term.const (lamC l))) (Formula.and domLC domRC) tgC
+    htgLb htgAb' htgLr htgAr' htgdom htggC
+    (by rw [← jointSys_split]; exact hjoint)
+  rw [sat_box] at hclk ⊢
+  intro ω hω
+  refine ⟨hclk ω hω, sem_ode_ends_in_domain hω⟩
+
+/-! ## Rate-generic linear witnesses -/
+
+noncomputable def lineUpR (r : ℝ) (base : State (Var 2)) (t : ℝ) : State (Var 2) :=
+  Function.update base (Rv 0) (base (Rv 0) + r * t)
+
+noncomputable def lineDnR (r : ℝ) (base : State (Var 2)) (t : ℝ) : State (Var 2) :=
+  Function.update base (Rv 0) (base (Rv 0) - r * t)
+
+theorem lineUpR_zero (r : ℝ) (base : State (Var 2)) : lineUpR r base 0 = base := by
+  funext x
+  by_cases hx : x = (Rv 0 : Var 2)
+  · subst hx; simp [lineUpR, Function.update_self]
+  · simp [lineUpR, Function.update_of_ne hx]
+
+theorem lineDnR_zero (r : ℝ) (base : State (Var 2)) : lineDnR r base 0 = base := by
+  funext x
+  by_cases hx : x = (Rv 0 : Var 2)
+  · subst hx; simp [lineDnR, Function.update_self]
+  · simp [lineDnR, Function.update_of_ne hx]
+
+theorem lineUpR_run (l : ℕ) (hl : l < 3) (base : State (Var 2)) (s : ℝ) (hs : 0 ≤ s)
+    (hlo : 0 ≤ base (Rv 0)) (hhi : base (Rv 0) + rC l * s ≤ 1) :
+    (∀ t ∈ Icc (0:ℝ) s, ∀ p ∈ rightBlock (fRC 0) (Term.const (lamC l)),
+      HasDerivWithinAt (fun u => lineUpR (rC l) base u p.1)
+        (p.2.eval (lineUpR (rC l) base t)) (Icc 0 s) t) ∧
+    (∀ t ∈ Icc (0:ℝ) s, ∀ x, x ∉ (rightBlock (fRC 0) (Term.const (lamC l))).bound →
+      lineUpR (rC l) base t x = base x) ∧
+    (∀ t ∈ Icc (0:ℝ) s, Formula.sat domRC (lineUpR (rC l) base t)) := by
+  have hr0 : 0 ≤ rC l := by
+    have := (rC_bounds l hl).1
+    linarith
+  refine ⟨?_, ?_, ?_⟩
+  · intro t ht p hp
+    simp only [rightBlock, List.mem_map] at hp
+    obtain ⟨j, -, rfl⟩ := hp
+    fin_cases j
+    · show HasDerivWithinAt (fun u => lineUpR (rC l) base u (Rv 0))
+        (Term.eval (Term.binop AOp.mul (Term.const (lamC l)) (fRC 0 0))
+          (lineUpR (rC l) base t))
+        (Icc 0 s) t
+      have heval : Term.eval (Term.binop AOp.mul (Term.const (lamC l)) (fRC 0 0))
+          (lineUpR (rC l) base t) = rC l := by
+        simp only [Term.eval, AOp.interp, fRC0_eval 0 (by norm_num)]
+        simp [rC]
+        ring
+      rw [heval]
+      have hfun : (fun u => lineUpR (rC l) base u (Rv 0))
+          = fun u => base (Rv 0) + rC l * u := by
+        funext u
+        simp [lineUpR, Function.update_self]
+      rw [hfun]
+      simpa using (((hasDerivWithinAt_id t (Icc (0:ℝ) s)).const_mul
+        (rC l)).const_add (base (Rv 0)))
+    · show HasDerivWithinAt (fun u => lineUpR (rC l) base u (Rv 1))
+        (Term.eval (Term.binop AOp.mul (Term.const (lamC l)) (fRC 0 1))
+          (lineUpR (rC l) base t))
+        (Icc 0 s) t
+      have heval : Term.eval (Term.binop AOp.mul (Term.const (lamC l)) (fRC 0 1))
+          (lineUpR (rC l) base t) = 0 := by
+        simp [Term.eval, AOp.interp, fRC1_eval 0 (by norm_num)]
+      rw [heval]
+      have hne : (Rv (1 : Fin 2) : Var 2) ≠ Rv 0 := by simp [Rv, Prod.ext_iff]
+      have hfun : (fun u => lineUpR (rC l) base u (Rv 1)) = fun _ => base (Rv 1) := by
+        funext u
+        simp [lineUpR, Function.update_of_ne hne]
+      rw [hfun]
+      exact hasDerivWithinAt_const t _ (base (Rv 1))
+  · intro t ht x hx
+    have hne : x ≠ (Rv 0 : Var 2) := by
+      intro hc
+      subst hc
+      exact hx (by
+        simp only [rightBlock, ODESystem.bound, List.map_map, List.mem_map]
+        exact ⟨0, List.mem_finRange 0, rfl⟩)
+    simp [lineUpR, Function.update_of_ne hne]
+  · intro t ht
+    rw [sat_domRC]
+    constructor
+    · simp only [lineUpR, Function.update_self]
+      nlinarith [ht.1]
+    · simp only [lineUpR, Function.update_self]
+      nlinarith [ht.2]
+
+theorem lineDnR_run (l : ℕ) (hl : l < 3) (base : State (Var 2)) (s : ℝ) (hs : 0 ≤ s)
+    (hlo : rC l * s ≤ base (Rv 0)) (hhi : base (Rv 0) ≤ 1) :
+    (∀ t ∈ Icc (0:ℝ) s, ∀ p ∈ rightBlock (fRC 1) (Term.const (lamC l)),
+      HasDerivWithinAt (fun u => lineDnR (rC l) base u p.1)
+        (p.2.eval (lineDnR (rC l) base t)) (Icc 0 s) t) ∧
+    (∀ t ∈ Icc (0:ℝ) s, ∀ x, x ∉ (rightBlock (fRC 1) (Term.const (lamC l))).bound →
+      lineDnR (rC l) base t x = base x) ∧
+    (∀ t ∈ Icc (0:ℝ) s, Formula.sat domRC (lineDnR (rC l) base t)) := by
+  have hr0 : 0 ≤ rC l := by
+    have := (rC_bounds l hl).1
+    linarith
+  refine ⟨?_, ?_, ?_⟩
+  · intro t ht p hp
+    simp only [rightBlock, List.mem_map] at hp
+    obtain ⟨j, -, rfl⟩ := hp
+    fin_cases j
+    · show HasDerivWithinAt (fun u => lineDnR (rC l) base u (Rv 0))
+        (Term.eval (Term.binop AOp.mul (Term.const (lamC l)) (fRC 1 0))
+          (lineDnR (rC l) base t))
+        (Icc 0 s) t
+      have heval : Term.eval (Term.binop AOp.mul (Term.const (lamC l)) (fRC 1 0))
+          (lineDnR (rC l) base t) = -(rC l) := by
+        simp only [Term.eval, AOp.interp, fRC0_eval 1 (by norm_num)]
+        simp [rC]
+        ring
+      rw [heval]
+      have hfun : (fun u => lineDnR (rC l) base u (Rv 0))
+          = fun u => base (Rv 0) - rC l * u := by
+        funext u
+        simp [lineDnR, Function.update_self]
+      rw [hfun]
+      simpa using (((hasDerivWithinAt_id t (Icc (0:ℝ) s)).const_mul
+        (rC l)).const_sub (base (Rv 0)))
+    · show HasDerivWithinAt (fun u => lineDnR (rC l) base u (Rv 1))
+        (Term.eval (Term.binop AOp.mul (Term.const (lamC l)) (fRC 1 1))
+          (lineDnR (rC l) base t))
+        (Icc 0 s) t
+      have heval : Term.eval (Term.binop AOp.mul (Term.const (lamC l)) (fRC 1 1))
+          (lineDnR (rC l) base t) = 0 := by
+        simp [Term.eval, AOp.interp, fRC1_eval 1 (by norm_num)]
+      rw [heval]
+      have hne : (Rv (1 : Fin 2) : Var 2) ≠ Rv 0 := by simp [Rv, Prod.ext_iff]
+      have hfun : (fun u => lineDnR (rC l) base u (Rv 1)) = fun _ => base (Rv 1) := by
+        funext u
+        simp [lineDnR, Function.update_of_ne hne]
+      rw [hfun]
+      exact hasDerivWithinAt_const t _ (base (Rv 1))
+  · intro t ht x hx
+    have hne : x ≠ (Rv 0 : Var 2) := by
+      intro hc
+      subst hc
+      exact hx (by
+        simp only [rightBlock, ODESystem.bound, List.map_map, List.mem_map]
+        exact ⟨0, List.mem_finRange 0, rfl⟩)
+    simp [lineDnR, Function.update_of_ne hne]
+  · intro t ht
+    rw [sat_domRC]
+    constructor
+    · simp only [lineDnR, Function.update_self]
+      nlinarith [ht.2]
+    · simp only [lineDnR, Function.update_self]
+      nlinarith [ht.1]
+
+theorem esAloneC (l : ℕ) (hl : l < 3) (dt : ℝ) (hdt0 : 0 ≤ dt)
+    (ω : State (Var 2)) (hω0 : 0 ≤ ω (Rv 0)) (hωfar : ω (Rv 0) ≤ 1 - rC l * dt) :
+    HExistSegB (fLC l) (fRC 0) (Term.const (lamC l)) domLC domRC dt ω := by
+  intro s ΦL hs0 hsdt hΦL0 hder hmask hdom
+  have hr0 : 0 ≤ rC l := by
+    have := (rC_bounds l hl).1
+    linarith
+  have hbase : ΦL s (Rv 0) = ω (Rv 0) := by
+    refine hmask s (right_mem_Icc.mpr hs0) (Rv 0) ?_
+    intro h
+    obtain ⟨i, hi⟩ := leftBlock_bound_sub (fLC l) _ h
+    exact absurd hi (by simp [Lv, Rv, Prod.ext_iff])
+  obtain ⟨hd, hm, hdm⟩ := lineUpR_run l hl (ΦL s) s hs0
+    (by rw [hbase]; exact hω0)
+    (by rw [hbase]; nlinarith)
+  exact ⟨lineUpR (rC l) (ΦL s), lineUpR_zero (rC l) (ΦL s), hd, hm, hdm⟩
+
 end ArmChainRung1Modal
 end RelCertifier

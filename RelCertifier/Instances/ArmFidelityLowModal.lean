@@ -921,5 +921,286 @@ theorem coupleF (l : ℕ) (hl : l < 2) (dt : ℝ) (hdt0 : 0 ≤ dt) (hdt5 : dt �
   exact ⟨κ, sem_rightBlock_reparam 5 1 (by norm_num) one_pos hB,
     sem_rightBlock_reparam 5 1 (by norm_num) one_pos hA⟩
 
+/-! ## Assembly (k = 5 windows over the switch piece) -/
+
+/-- The switch piece at the real λ = 1: `Return ; Approach`. -/
+noncomputable def pieceF : Program (Var 2) :=
+  Program.seq (Program.ode (rightBlock (fRF 1) (Term.const 1)) domRF)
+    (Program.ode (rightBlock (fRF 0) (Term.const 1)) domRF)
+
+/-- Update-anchored transport of the dichotomy coupling (the windowR shape). -/
+theorem coupleF' (l : ℕ) (hl : l < 2) (dt : ℝ) (hdt0 : 0 ≤ dt) (hdt5 : dt ≤ 1/5)
+    (hv : VerdF l) :
+    ∀ σ, Formula.sat (Formula.and (invLe gF) envF) σ →
+      faModalB (Equiv.refl (Var 2))
+        (Program.ode (DLCalTiming.clk tgF (leftBlock (fLF l))) domLF)
+        pieceF (Formula.and (invLe gF) envF) tgF dt
+        (Function.update σ tgF 0) := by
+  intro σ hσ
+  have htgφ : tgF ∉ (Formula.and (invLe gF) envF).fv := by
+    intro h
+    rcases h with h | h
+    · exact htggF (by simpa [invLe, Formula.fv, Term.fv] using h)
+    · exact htgenvF h
+  have hupdφ : Formula.sat (Formula.and (invLe gF) envF)
+      (Function.update σ tgF 0) := by
+    rwa [(Formula.coincidence (Formula.and (invLe gF) envF) (fun v hv' =>
+      Function.update_of_ne (fun hc => htgφ (by rw [← hc]; exact hv')) _ _) :
+        Formula.sat (Formula.and (invLe gF) envF) _ ↔ _)]
+  exact coupleF l hl dt hdt0 hdt5 hv (Function.update σ tgF 0) hupdφ
+    (Function.update_self _ _ _)
+
+/-- The switch piece is right-side (its disjointness against the left window). -/
+theorem hdisPieceF (l : ℕ) (hl : l < 2) (dt : ℝ) :
+    Disjoint (Program.vars (pieceF.rename (Equiv.refl (Var 2))))
+      (Program.vars (clockedSeg (leftBlock (fLF l)) domLF tgF dt)) := by
+  rw [Program.rename_refl, Set.disjoint_left]
+  intro x hx hxW
+  have hxR : x ∈ range Rv := by
+    rcases vars_seq_sub _ _ hx with hx | hx <;>
+      · rcases vars_ode_sub _ _ hx with hx | hx
+        · rcases hx with hx | hx
+          · exact rightBlock_boundSet_sub _ _ hx
+          · refine rightBlock_readVars_sub _ (Term.const 1) ?_ (by simp [Term.fv]) hx
+            first
+              | exact hfRF 1 (by norm_num)
+              | exact hfRF 0 (by norm_num)
+        · exact hdomRF hx
+  rcases vars_clockedSegL_sub (fLF l) domLF aF dt (hfLF l hl) hdomLF hxW with hx' | hx'
+  · rw [Set.mem_singleton_iff] at hx'
+    obtain ⟨i, hi⟩ := hxR
+    rw [hx'] at hi
+    exact absurd hi (by simp [Rv, Prod.ext_iff])
+  · obtain ⟨i, hi⟩ := hxR
+    obtain ⟨j, hj⟩ := hx'
+    rw [← hi] at hj
+    exact absurd hj (by simp [Lv, Rv, Prod.ext_iff])
+
+/-- Runs of `k` replicated `seq p q` pieces are runs of the interleaved `[p, q, …]`. -/
+theorem sem_seqPairs : ∀ (k : ℕ) (p q : Program (Var 2)) (ν μ : State (Var 2)),
+    Program.sem (bigSeq (List.replicate k (Program.seq p q))) ν μ →
+    Program.sem (bigSeq ((List.replicate k [p, q]).flatten)) ν μ := by
+  intro k
+  induction k with
+  | zero => intro p q ν μ h; exact h
+  | succ n ih =>
+      intro p q ν μ h
+      simp only [List.replicate_succ, bigSeq] at h
+      obtain ⟨κ, hseq, hrest⟩ := h
+      obtain ⟨κ', hp, hq⟩ := hseq
+      simp only [List.replicate_succ, List.flatten_cons, List.cons_append,
+        List.nil_append, bigSeq]
+      exact ⟨κ', hp, κ, hq, ih p q κ μ hrest⟩
+
+/-- The per-window response (start `Return`): five switch pieces. -/
+theorem segRet (l : ℕ) (hl : l < 2) (dt : ℝ) (hdt0 : 0 ≤ dt) (hdt5 : dt ≤ 1/5)
+    (hv : VerdF l) {σ : State (Var 2)}
+    (hσ : Formula.sat (Formula.and (invLe gF) envF) σ) :
+    Formula.sat (faModal (Equiv.refl (Var 2))
+      (windowSeg (leftBlock (fLF l)) domLF tgF dt 5)
+      (bigSeq ((List.replicate 5 [Program.ode (rightBlock (fRF 1) (Term.const 1)) domRF,
+        Program.ode (rightBlock (fRF 0) (Term.const 1)) domRF]).flatten))
+      (Formula.and (invLe gF) envF)) σ := by
+  have hfa := Hmulti_windowR_prefixed (fLF l) domLF gF envF aF dt 5 htggF htgenvF
+    [] (by simp) (fun σ' hσ' => hσ'.2.1) (by simp)
+    (hfLF l hl) hdomLF
+    (List.replicate 5 pieceF) (by simp) (by norm_num)
+    (by
+      intro Q hQ
+      rw [List.eq_of_mem_replicate hQ]
+      exact hdisPieceF l hl dt)
+    (by
+      intro Q hQ σ' hσ'
+      rw [List.eq_of_mem_replicate hQ]
+      exact coupleF' l hl dt hdt0 hdt5 hv σ' hσ')
+    hσ
+  simp only [List.map_nil, List.nil_append] at hfa
+  exact sat_faModal_monoR (fun ν μ hrun => sem_seqPairs 5 _ _ ν μ hrun) hfa
+
+/-- The per-window response (start `Approach`): a static hop to `Return`, then five
+switch pieces. -/
+theorem segApp (l : ℕ) (hl : l < 2) (dt : ℝ) (hdt0 : 0 ≤ dt) (hdt5 : dt ≤ 1/5)
+    (hv : VerdF l) {σ : State (Var 2)}
+    (hσ : Formula.sat (Formula.and (invLe gF) envF) σ) :
+    Formula.sat (faModal (Equiv.refl (Var 2))
+      (windowSeg (leftBlock (fLF l)) domLF tgF dt 5)
+      (bigSeq (Program.ode (rightBlock (fRF 0) (Term.const 1)) domRF ::
+        (List.replicate 5 [Program.ode (rightBlock (fRF 1) (Term.const 1)) domRF,
+          Program.ode (rightBlock (fRF 0) (Term.const 1)) domRF]).flatten))
+      (Formula.and (invLe gF) envF)) σ := by
+  have hfa := Hmulti_windowR_prefixed (fLF l) domLF gF envF aF dt 5 htggF htgenvF
+    [⟨fRF 0, Term.const 1, domRF⟩]
+    (by
+      intro h hh
+      rw [List.mem_singleton] at hh
+      subst hh
+      exact ⟨hfRF 0 (by norm_num), by simp [Term.fv], hdomRF⟩)
+    (fun σ' hσ' => hσ'.2.1)
+    (by
+      intro h hh σ' hσ' htg'
+      rw [List.mem_singleton] at hh
+      subst hh
+      obtain ⟨ρ, hsem, hρσ⟩ := static_hop_existsR (fR := fRF 0)
+        (lam := Term.const 1) (domR := domRF) hσ'.2.2
+      exact ⟨ρ, hsem, hρσ ▸ hσ'⟩)
+    (hfLF l hl) hdomLF
+    (List.replicate 5 pieceF) (by simp) (by norm_num)
+    (by
+      intro Q hQ
+      rw [List.eq_of_mem_replicate hQ]
+      exact hdisPieceF l hl dt)
+    (by
+      intro Q hQ σ' hσ'
+      rw [List.eq_of_mem_replicate hQ]
+      exact coupleF' l hl dt hdt0 hdt5 hv σ' hσ')
+    hσ
+  refine sat_faModal_monoR (fun ν μ hrun => ?_) hfa
+  simp only [List.map_cons, List.map_nil, List.singleton_append, bigSeq] at hrun ⊢
+  obtain ⟨κ, hhop, hrest⟩ := hrun
+  exact ⟨κ, hhop, sem_seqPairs 5 _ _ κ μ hrest⟩
+
+/-! ## The step provider and the final theorem -/
+
+theorem HmultiF (dt : ℝ) (hdt0 : 0 ≤ dt) (hdt5 : dt ≤ 1/5)
+    (hv0 : VerdF 0) (hv1 : VerdF 1) :
+    ∀ P ∈ leftProgsF dt, ∀ (q : ℕ), q < GrF.modes.length → ∀ σ, σ mvF = (q : ℝ) →
+      Formula.sat (Formula.and (invLe gF) envF) σ →
+      ∃ segs : List (ℕ × RMode (Var 2) × REdge (Var 2)),
+        (∀ s ∈ segs, GrF.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ GrF.edgesFrom s.1) ∧
+        List.IsChain (fun a b => a.2.2.tgt = b.1) segs ∧
+        (∀ s, segs.head? = some s → s.1 = q) ∧
+        Formula.sat (faModal (Equiv.refl (Var 2)) P
+          (bigSeq (segs.map (fun s => Program.ode s.2.1.sys s.2.1.dom)))
+          (Formula.and (invLe gF) envF)) σ := by
+  intro P hP q hq σ hmv hσ
+  have hq2 : q < 2 := by simpa [GrF] using hq
+  have hsingle : ∀ (a : ℕ × RMode (Var 2) × REdge (Var 2)),
+      List.IsChain (fun a b => a.2.2.tgt = b.1) [a] := by
+    intro a; simp
+  have hstep : ∀ (a : ℕ × RMode (Var 2) × REdge (Var 2))
+      (b : ℕ × RMode (Var 2) × REdge (Var 2)) rest,
+      a.2.2.tgt = b.1 → List.IsChain (fun x y => x.2.2.tgt = y.1) (b :: rest) →
+      List.IsChain (fun x y => x.2.2.tgt = y.1) (a :: b :: rest) := by
+    intro a b rest hab hrest
+    refine hrest.cons ?_
+    intro y hy
+    rw [List.head?_cons, Option.mem_some_iff] at hy
+    subst hy
+    exact hab
+  have hhead1 : ∀ (a : ℕ × RMode (Var 2) × REdge (Var 2)) rest s,
+      (a :: rest : List _).head? = some s → s = a := by
+    intro a rest s hs
+    simpa [List.head?_cons] using hs.symm
+  have halign : ∀ st tgt, edgeF st tgt ∈ GrF.edges → st < 2 →
+      ∀ s ∈ ([] : List ℕ), True := fun _ _ _ _ _ _ => trivial
+  simp only [leftProgsF, leftDataF, List.map_cons, List.map_nil, List.mem_cons,
+    List.not_mem_nil, or_false] at hP
+  -- the ten-seg switch tail (Return-start) and its hop-prefixed variant
+  have pairsegs : List (ℕ × RMode (Var 2) × REdge (Var 2)) :=
+    [(1, modeF 1, edgeF 1 0), (0, modeF 0, edgeF 0 1),
+     (1, modeF 1, edgeF 1 0), (0, modeF 0, edgeF 0 1),
+     (1, modeF 1, edgeF 1 0), (0, modeF 0, edgeF 0 1),
+     (1, modeF 1, edgeF 1 0), (0, modeF 0, edgeF 0 1),
+     (1, modeF 1, edgeF 1 0), (0, modeF 0, edgeF 0 0)]
+  rcases hP with rfl | rfl
+  all_goals interval_cases q
+  -- window Accelerate, start Approach
+  · refine ⟨(0, modeF 0, edgeF 0 1) ::
+      [(1, modeF 1, edgeF 1 0), (0, modeF 0, edgeF 0 1),
+       (1, modeF 1, edgeF 1 0), (0, modeF 0, edgeF 0 1),
+       (1, modeF 1, edgeF 1 0), (0, modeF 0, edgeF 0 1),
+       (1, modeF 1, edgeF 1 0), (0, modeF 0, edgeF 0 1),
+       (1, modeF 1, edgeF 1 0), (0, modeF 0, edgeF 0 0)], ?_, ?_, ?_, ?_⟩
+    · intro s hs
+      simp only [List.mem_cons, List.not_mem_nil, or_false] at hs
+      rcases hs with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
+        first
+          | exact ⟨GrF_modeAt 0 (by norm_num), edgeF_mem 0 1 (by simp [GrF])⟩
+          | exact ⟨GrF_modeAt 0 (by norm_num), edgeF_mem 0 0 (by simp [GrF])⟩
+          | exact ⟨GrF_modeAt 1 (by norm_num), edgeF_mem 1 0 (by simp [GrF])⟩
+    · exact hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl
+        (hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl
+        (hstep _ _ _ rfl (hstep _ _ _ rfl (hsingle _))))))))))
+    · exact fun s hs => by rw [hhead1 _ _ _ hs]
+    · have := segApp 0 (by norm_num) dt hdt0 hdt5 hv0 hσ
+      simpa [modeF, List.replicate] using this
+  -- window Accelerate, start Return
+  · refine ⟨[(1, modeF 1, edgeF 1 0), (0, modeF 0, edgeF 0 1),
+       (1, modeF 1, edgeF 1 0), (0, modeF 0, edgeF 0 1),
+       (1, modeF 1, edgeF 1 0), (0, modeF 0, edgeF 0 1),
+       (1, modeF 1, edgeF 1 0), (0, modeF 0, edgeF 0 1),
+       (1, modeF 1, edgeF 1 0), (0, modeF 0, edgeF 0 0)], ?_, ?_, ?_, ?_⟩
+    · intro s hs
+      simp only [List.mem_cons, List.not_mem_nil, or_false] at hs
+      rcases hs with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
+        first
+          | exact ⟨GrF_modeAt 0 (by norm_num), edgeF_mem 0 1 (by simp [GrF])⟩
+          | exact ⟨GrF_modeAt 0 (by norm_num), edgeF_mem 0 0 (by simp [GrF])⟩
+          | exact ⟨GrF_modeAt 1 (by norm_num), edgeF_mem 1 0 (by simp [GrF])⟩
+    · exact hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl
+        (hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl
+        (hstep _ _ _ rfl (hsingle _)))))))))
+    · exact fun s hs => by rw [hhead1 _ _ _ hs]
+    · have := segRet 0 (by norm_num) dt hdt0 hdt5 hv0 hσ
+      simpa [modeF, List.replicate] using this
+  -- window Brake, start Approach
+  · refine ⟨(0, modeF 0, edgeF 0 1) ::
+      [(1, modeF 1, edgeF 1 0), (0, modeF 0, edgeF 0 1),
+       (1, modeF 1, edgeF 1 0), (0, modeF 0, edgeF 0 1),
+       (1, modeF 1, edgeF 1 0), (0, modeF 0, edgeF 0 1),
+       (1, modeF 1, edgeF 1 0), (0, modeF 0, edgeF 0 1),
+       (1, modeF 1, edgeF 1 0), (0, modeF 0, edgeF 0 0)], ?_, ?_, ?_, ?_⟩
+    · intro s hs
+      simp only [List.mem_cons, List.not_mem_nil, or_false] at hs
+      rcases hs with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
+        first
+          | exact ⟨GrF_modeAt 0 (by norm_num), edgeF_mem 0 1 (by simp [GrF])⟩
+          | exact ⟨GrF_modeAt 0 (by norm_num), edgeF_mem 0 0 (by simp [GrF])⟩
+          | exact ⟨GrF_modeAt 1 (by norm_num), edgeF_mem 1 0 (by simp [GrF])⟩
+    · exact hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl
+        (hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl
+        (hstep _ _ _ rfl (hstep _ _ _ rfl (hsingle _))))))))))
+    · exact fun s hs => by rw [hhead1 _ _ _ hs]
+    · have := segApp 1 (by norm_num) dt hdt0 hdt5 hv1 hσ
+      simpa [modeF, List.replicate] using this
+  -- window Brake, start Return
+  · refine ⟨[(1, modeF 1, edgeF 1 0), (0, modeF 0, edgeF 0 1),
+       (1, modeF 1, edgeF 1 0), (0, modeF 0, edgeF 0 1),
+       (1, modeF 1, edgeF 1 0), (0, modeF 0, edgeF 0 1),
+       (1, modeF 1, edgeF 1 0), (0, modeF 0, edgeF 0 1),
+       (1, modeF 1, edgeF 1 0), (0, modeF 0, edgeF 0 0)], ?_, ?_, ?_, ?_⟩
+    · intro s hs
+      simp only [List.mem_cons, List.not_mem_nil, or_false] at hs
+      rcases hs with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
+        first
+          | exact ⟨GrF_modeAt 0 (by norm_num), edgeF_mem 0 1 (by simp [GrF])⟩
+          | exact ⟨GrF_modeAt 0 (by norm_num), edgeF_mem 0 0 (by simp [GrF])⟩
+          | exact ⟨GrF_modeAt 1 (by norm_num), edgeF_mem 1 0 (by simp [GrF])⟩
+    · exact hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl
+        (hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl
+        (hstep _ _ _ rfl (hsingle _)))))))))
+    · exact fun s hs => by rw [hhead1 _ _ _ hs]
+    · have := segRet 1 (by norm_num) dt hdt0 hdt5 hv1 hσ
+      simpa [modeF, List.replicate] using this
+
+/-- **`arm_fidelity_low`, modal Theorem 3 — the L3 switch pilot.** dt-capped at the
+tool's window duration; the intra-piece switch (`Return;Approach` with the
+drop-tracked split) serves every anchor. Residuals: the two window route verdicts. -/
+theorem arm_fidelity_low_modal (dt : ℝ) (hdt0 : 0 ≤ dt) (hdt5 : dt ≤ 1/5)
+    (hv0 : VerdF 0) (hv1 : VerdF 1) :
+    RFormula.rvalid (theorem3Form
+      (bigChoice (leftProgsF dt))
+      (rightAutomatonBody GrF mvF)
+      (RFormula.and (RFormula.and (canonInv gF) (envLR domLF domRF))
+        (mvValidR mvF GrF.modes.length))) := by
+  refine theorem3_faithful_multiE_LR GrF mvF gF domLF domRF (leftProgsF dt)
+    (canonInv gF) (encode_canonInv gF) ?_ ?_ ?_
+  · exact hdis_multi GrF 0 1 dt leftDataF (by decide) httF hRvF hLF
+  · exact hstep_assembled_multiE GrF mvF gF envF (leftProgsF dt) hmvgF hmvenvF
+      hfreshF httF hltF (hframesF dt)
+      (HmultiF dt hdt0 hdt5 hv0 hv1)
+  · exact hddF_multiE GrF 0 1 dt leftDataF (canonInv gF) domLF domRF (by decide)
+      httF hRvF hLF (canonInv_varsL gF hgF) (canonInv_varsR gF) hdomLF hdomRF
+
 end ArmFidelityLowModal
 end RelCertifier

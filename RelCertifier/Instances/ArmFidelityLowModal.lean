@@ -671,5 +671,255 @@ theorem esAloneF (l : ℕ) (hl : l < 2) (dt : ℝ) (hdt0 : 0 ≤ dt)
     (by rw [hbase]; linarith)
   exact ⟨lineUp (ΦL s), lineUp_zero (ΦL s), hd, hm, hdm⟩
 
+/-! ## Shared side conditions for the split lemma -/
+
+theorem htgX (l : ℕ) : (tgF, Term.const 1) ∈ sysXF l := by
+  show (tgF, Term.const 1) ∈ leftBlock (fLF l) ++ [(tgF, Term.const 1)]
+  exact List.mem_append_right _ (List.mem_singleton.mpr rfl)
+
+theorem hRv0notX (l : ℕ) : (Rv 0 : Var 2) ∉ (sysXF l).bound := by
+  intro h
+  simp only [sysXF, DLCalTiming.clk, ODESystem.bound, List.map_append,
+    List.mem_append] at h
+  rcases h with h | h
+  · obtain ⟨i, hi⟩ := leftBlock_bound_sub (fLF l) _ h
+    exact absurd hi (by simp [Lv, Rv, Prod.ext_iff])
+  · simp only [List.map_cons, List.map_nil, List.mem_singleton] at h
+    exact absurd h (by simp [tgF, Rv, Prod.ext_iff])
+
+theorem hdisjXR (l : ℕ) (hl : l < 2) (q : ℕ) (hq : q < 2) :
+    Disjoint ((sysXF l).boundSet ∪ (sysXF l).readVars)
+      ((rightBlock (fRF q) (Term.const 5)).boundSet
+        ∪ (rightBlock (fRF q) (Term.const 5)).readVars) := by
+  rw [Set.disjoint_left]
+  intro x hxX hxR
+  have hxRv : x ∈ range Rv := by
+    rcases hxR with h | h
+    · exact rightBlock_boundSet_sub (fRF q) (Term.const 5) h
+    · exact rightBlock_readVars_sub (fRF q) (Term.const 5) (hfRF q hq)
+        (by simp [Term.fv]) h
+  obtain ⟨i, hi⟩ := hxRv
+  rcases hxX with h | h
+  · rw [sysXF, clk_boundSet] at h
+    rcases h with h | h
+    · obtain ⟨j, hj⟩ := leftBlock_boundSet_sub (fLF l) h
+      rw [← hj] at hi
+      exact absurd hi (by simp [Lv, Rv, Prod.ext_iff])
+    · rw [Set.mem_singleton_iff] at h
+      rw [h] at hi
+      exact absurd hi (by simp [tgF, Rv, Prod.ext_iff])
+  · rw [sysXF, clk_readVars] at h
+    have := leftBlock_readVars_sub (fLF l) (hfLF l hl) h
+    obtain ⟨j, hj⟩ := this
+    rw [← hj] at hi
+    exact absurd hi (by simp [Lv, Rv, Prod.ext_iff])
+
+/-! ## The split branch (near-ceiling anchors) -/
+
+theorem coupleSplitF (l : ℕ) (hl : l < 2) (dt : ℝ) (hdt0 : 0 ≤ dt)
+    (hdt5 : dt ≤ 1/5) (hv : VerdF l) (ω : State (Var 2))
+    (hσ : Formula.sat (Formula.and (invLe gF) envF) ω)
+    (hnear : 1 - dt < ω (Rv 0)) :
+    faModalB (Equiv.refl (Var 2)) (Program.ode (sysXF l) domLF)
+      (Program.seq (Program.ode sysBF domRF) (Program.ode sysAF domRF))
+      (Formula.and (invLe gF) envF) tgF dt ω := by
+  have hωL := (sat_domLF ω).mp hσ.2.1
+  have hωR := (sat_domRF ω).mp hσ.2.2
+  refine faModal_ODE_split_bounded (sysXF l) sysBF sysAF
+    domLF domRF domRF (Formula.and (invLe gF) envF)
+    gF 2 (by norm_num) (Rv 0) 1 (1/2) dt (by norm_num) (by norm_num)
+    tgF (htgX l) (hwfXBF l) (hdisjXR l hl 1 (by norm_num)) (hdisjXR l hl 0 (by norm_num))
+    ?_ ?_ ?_ ?_ ?_ ?_ ?_ ω (hbndBF l hl) (hjrowF l hl) ?_ ?_ ?_ ?_
+  · -- hφx
+    intro x hx
+    obtain ⟨i, hi⟩ := hdomLF hx
+    subst hi
+    exact Or.inl (by rw [sysXF, clk_boundSet]; exact Or.inl (Lv_mem_leftBlock_boundSet _ i))
+  · -- hφyB
+    intro x hx
+    obtain ⟨i, hi⟩ := hdomRF hx
+    subst hi
+    exact Rv_mem_rightBlock_boundSet _ _ i
+  · -- hφyA
+    intro x hx
+    obtain ⟨i, hi⟩ := hdomRF hx
+    subst hi
+    exact Or.inl (Rv_mem_rightBlock_boundSet _ _ i)
+  · -- hXreads
+    intro x hx
+    rw [sysXF, clk_readVars] at hx
+    obtain ⟨i, hi⟩ := leftBlock_readVars_sub (fLF l) (hfLF l hl) hx
+    subst hi
+    rw [sysXF, clk_boundSet]
+    exact Or.inl (Lv_mem_leftBlock_boundSet _ i)
+  · -- hBreads
+    intro x hx
+    obtain ⟨i, hi⟩ := rightBlock_readVars_sub (fRF 1) (Term.const 5)
+      (hfRF 1 (by norm_num)) (by simp [Term.fv]) hx
+    subst hi
+    exact Rv_mem_rightBlock_boundSet _ _ i
+  · -- hAreads
+    intro x hx
+    obtain ⟨i, hi⟩ := rightBlock_readVars_sub (fRF 0) (Term.const 5)
+      (hfRF 0 (by norm_num)) (by simp [Term.fv]) hx
+    subst hi
+    exact Rv_mem_rightBlock_boundSet _ _ i
+  · -- hABb
+    intro x
+    simp [sysAF, sysBF, rightBlock, ODESystem.bound, List.map_map, Function.comp_def]
+  · -- hg0: near the ceiling the invariant has ≥ 0.4 − dt of slack
+    have hg := gF_eval ω
+    rw [hg]
+    linarith [hωL.2.1]
+  · -- hboxA
+    intro κ hκ
+    exact hboxAF l hl hv κ hκ
+  · -- hExistB: the falling Return line from the near-ceiling anchor
+    intro s1 ΦL hs10 hs1dt hΦL0 hder hmask hdoms
+    have hbase : ΦL s1 (Rv 0) = ω (Rv 0) :=
+      hmask s1 (right_mem_Icc.mpr hs10) (Rv 0) (hRv0notX l)
+    obtain ⟨hd, hm, hdm⟩ := lineDn_run (ΦL s1) s1 hs10
+      (by rw [hbase]; nlinarith)
+      (by rw [hbase]; exact hωR.2)
+    exact ⟨lineDn (ΦL s1), lineDn_zero (ΦL s1), hd, hm, hdm⟩
+  · -- hExistA: the rising Approach line from the dropped switch state
+    intro s1 s2 ΨL κ' hs1 hs2 hs2dt hfr hdrop hΨ0 hΨder hΨmask hΨdom hκ'B hκ'g
+    have hs1s2 : s1 = s2 := by linarith
+    have hbase : ΨL s2 (Rv 0) = κ' (Rv 0) :=
+      hΨmask s2 (right_mem_Icc.mpr hs2) (Rv 0) (hRv0notX l)
+    have hκ'R := (sat_domRF κ').mp hκ'B
+    obtain ⟨hd, hm, hdm⟩ := lineUp_run (ΨL s2) s2 hs2
+      (by rw [hbase]; exact hκ'R.1)
+      (by rw [hbase]; nlinarith [hωR.2])
+    exact ⟨lineUp (ΨL s2), lineUp_zero (ΨL s2), hd, hm, hdm⟩
+
+/-! ## The A-alone branch (far anchors), embedded into the seq shape -/
+
+/-- An `Approach`-only response is a `Return;Approach` response with a
+zero-duration `Return` stretch. -/
+theorem seqB_of_A : ∀ ν μ : State (Var 2),
+    Program.sem (Program.ode sysAF domRF) ν μ →
+    Program.sem (Program.seq (Program.ode sysBF domRF) (Program.ode sysAF domRF)) ν μ := by
+  intro ν μ hA
+  have hdomν : Formula.sat domRF ν := by
+    obtain ⟨r, Φ, hr, hΦ0, hΦr, hder, hmask, hdom⟩ := hA
+    have := hdom 0 (left_mem_Icc.mpr hr)
+    rwa [hΦ0] at this
+  refine ⟨ν, ⟨0, fun _ => ν, le_refl 0, rfl, rfl, ?_, ?_, ?_⟩, hA⟩
+  · intro t ht p hp
+    have h0 : t = 0 := le_antisymm ht.2 ht.1
+    subst h0
+    rw [hasDerivWithinAt_iff_tendsto_slope]
+    have hempty : (Set.Icc (0:ℝ) 0) \ {0} = (∅ : Set ℝ) := by
+      simp [Set.Icc_self]
+    rw [hempty, nhdsWithin_empty]
+    exact Filter.tendsto_bot
+  · intro t ht x hx
+    rfl
+  · intro t ht
+    exact hdomν
+
+theorem coupleAloneF (l : ℕ) (hl : l < 2) (dt : ℝ) (hdt0 : 0 ≤ dt) (hv : VerdF l)
+    (σ' : State (Var 2))
+    (hσ' : Formula.sat (Formula.and (invLe gF) envF) σ') (htg0 : σ' tgF = 0)
+    (hfar : σ' (Rv 0) ≤ 1 - dt) :
+    faModalB (Equiv.refl (Var 2))
+      (Program.ode (DLCalTiming.clk tgF (leftBlock (fLF l))) domLF)
+      (Program.ode (rightBlock (fRF 0) (Term.const 5)) domRF)
+      (Formula.and (invLe gF) envF) tgF dt σ' := by
+  have hupd : Function.update σ' tgF (0 : ℝ) = σ' := by
+    funext x
+    by_cases hx : x = tgF
+    · subst hx; rw [Function.update_self]; exact htg0.symm
+    · rw [Function.update_of_ne hx]
+  have hAll := segPresAll_from_strata_verdicts' (fLF l) (fRF 0) (Term.const 5)
+    (Formula.and domLF domRF) [gF]
+    (by
+      intro i hi
+      have hi1 : i < 1 := by simpa using hi
+      interval_cases i
+      simpa [strataDomHost, VerdF] using hv)
+  have hbox : Formula.sat (Formula.box (Program.ode
+      (leftBlock (fLF l) ++ rightBlock (fRF 0) (Term.const 5))
+      (Formula.and domLF domRF)) (invLe gF)) σ' := by
+    rw [sat_box]
+    intro ω hω
+    rw [sat_invLe]
+    refine hAll σ' ?_ ω (by rw [← jointSys_split] at hω; exact hω) gF
+      List.mem_cons_self
+    intro g hg
+    rw [List.mem_singleton] at hg
+    subst hg
+    exact (sat_invLe gF σ').mp hσ'.1
+  have hωR := (sat_domRF σ').mp hσ'.2.2
+  have hES : HExistSegB (fLF l) (fRF 0) (Term.const 5) domLF domRF dt
+      (Function.update σ' tgF 0) := by
+    rw [hupd]
+    exact esAloneF l hl dt hdt0 σ' hωR.1 hfar
+  have hbase := segment_faModalB_from_certB gF (fLF l) (fRF 0) (Term.const 5)
+    domLF domRF tgF dt
+    (LR_blocks_disjoint _ _ _ (hfLF l hl) (hfRF 0 (by norm_num)) (by simp [Term.fv]))
+    (fun v hv' => Or.inl (by
+      obtain ⟨i, rfl⟩ := hdomLF hv'
+      exact Lv_mem_leftBlock_boundSet _ i))
+    (fun v hv' => Or.inl (by
+      obtain ⟨i, rfl⟩ := hdomRF hv'
+      exact Rv_mem_rightBlock_boundSet _ _ i))
+    (fun h => by
+      obtain ⟨i, hi⟩ := leftBlock_bound_sub (fLF l) _ h
+      exact aux_ne_Lv aF i hi)
+    (fun h => aux_notin_range_Lv aF (leftBlock_readVars_sub (fLF l) (hfLF l hl) h))
+    (fun h => by
+      obtain ⟨i, hi⟩ := rightBlock_bound_sub (fRF 0) (Term.const 5) _ h
+      exact aux_ne_Rv aF i hi)
+    (fun h => aux_notin_range_Rv aF (rightBlock_readVars_sub (fRF 0) (Term.const 5)
+      (hfRF 0 (by norm_num)) (by simp [Term.fv]) h))
+    (fun h => aux_notin_range_Rv aF (rightBlock_boundSet_sub (fRF 0) (Term.const 5) h))
+    (fun h => aux_notin_range_Lv aF (hdomLF h))
+    (fun h => aux_notin_range_Rv aF (hdomRF h))
+    htggF hbox hES
+  rw [hupd] at hbase
+  refine faModalB_strengthen_plant ?_ hbase
+  intro ν μ hplant hsem
+  have hdomLν : Formula.sat domLF ν := sem_ode_ends_in_domain hplant.1
+  have hdomRμ : Formula.sat domRF μ := sem_ode_ends_in_domain hsem
+  have hdomLμ : Formula.sat domLF μ := by
+    rwa [(Formula.coincidence domLF (fun v hv' => sem_ode_mask hsem (by
+      obtain ⟨i, rfl⟩ := hdomLF hv'
+      intro hb
+      obtain ⟨j, hj⟩ := rightBlock_bound_sub (fRF 0) (Term.const 5) _ hb
+      exact absurd hj (by simp [Lv, Rv, Prod.ext_iff]))) :
+        Formula.sat domLF μ ↔ Formula.sat domLF ν)]
+  exact ⟨hdomLμ, hdomRμ⟩
+
+/-! ## The uniform per-piece coupling (dichotomy + λ-reparam) -/
+
+/-- **The switch-piece coupling**: every anchor is served by the `Return;Approach`
+response — far anchors ride `Approach` alone (a zero-duration `Return` stretch),
+near-ceiling anchors take the drop-tracked B-first split. The λ = 5 phases convert
+to the REAL λ = 1 mode programs per component (L7). -/
+theorem coupleF (l : ℕ) (hl : l < 2) (dt : ℝ) (hdt0 : 0 ≤ dt) (hdt5 : dt ≤ 1/5)
+    (hv : VerdF l) :
+    ∀ σ', Formula.sat (Formula.and (invLe gF) envF) σ' → σ' tgF = 0 →
+      faModalB (Equiv.refl (Var 2))
+        (Program.ode (DLCalTiming.clk tgF (leftBlock (fLF l))) domLF)
+        (Program.seq (Program.ode (rightBlock (fRF 1) (Term.const 1)) domRF)
+          (Program.ode (rightBlock (fRF 0) (Term.const 1)) domRF))
+        (Formula.and (invLe gF) envF) tgF dt σ' := by
+  intro σ' hσ' htg0
+  have hstretch : faModalB (Equiv.refl (Var 2))
+      (Program.ode (DLCalTiming.clk tgF (leftBlock (fLF l))) domLF)
+      (Program.seq (Program.ode sysBF domRF) (Program.ode sysAF domRF))
+      (Formula.and (invLe gF) envF) tgF dt σ' := by
+    by_cases hc : 1 - dt < σ' (Rv 0)
+    · exact coupleSplitF l hl dt hdt0 hdt5 hv σ' hσ' hc
+    · exact faModalB_monoQ seqB_of_A
+        (coupleAloneF l hl dt hdt0 hv σ' hσ' htg0 (by linarith [not_lt.mp hc]))
+  refine faModalB_monoQ ?_ hstretch
+  intro ν μ hsem
+  obtain ⟨κ, hB, hA⟩ := hsem
+  exact ⟨κ, sem_rightBlock_reparam 5 1 (by norm_num) one_pos hB,
+    sem_rightBlock_reparam 5 1 (by norm_num) one_pos hA⟩
+
 end ArmFidelityLowModal
 end RelCertifier

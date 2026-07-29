@@ -84,4 +84,100 @@ def emitViabilityFileB (cfg : Z3Config) (path defname : String) : IO Unit := do
           IO.println (s!"def {defname} : List (String × List (Nat × String)) := [" ++
             String.intercalate ", " rows ++ "]")
 
+/-! ## Stratified tagging (`--emit-viability3`) — the L1 emission door
+
+Per right mode: the GREATEST SELF-CONDITIONED STRICT CORE (shrink from all faces until
+every member's strict boundary query closes conditioned on the core alone), then the
+non-strict faces level by level (each level's `UNSAT(region ∧ ġ > 0)` conditioned on
+the core plus the earlier levels), then the growth sweep for outward faces over the
+core region, then `fail`. Tags: `strict` / `nonstrict<level>` / `growth<M>` / `fail`.
+The regions match `stratified_faces_raw`'s premises (`Proofs/Flow/StratifiedFaces`):
+strict and growth conditioned on a SUBSET of the strict+growth sublevel (stronger
+facts, a fortiori dischargeable), non-strict level `k` conditioned on core + earlier
+levels — exactly `hbndN`'s region with the growth faces dropped. -/
+
+/-- The sublevel-region conjunction of a face subset. -/
+def faceRegion {n : ℕ} (sel : List (ITerm n)) : IForm n :=
+  sel.foldl (fun acc g => IForm.and acc (IForm.cmp .le g (.rat 0))) (IForm.cmp .le (.rat 0) (.rat 0))
+
+/-- Stratified per-face tags for one right mode. -/
+def checkViabilityFacesStrat (s : Z3Session) (cnt : IO.Ref Nat)
+    (maxQ maxSmt deadline : Nat) (vars : List String) (n : ℕ)
+    (coord : Fin n → String) (mR : PMode) : IO (List (Nat × String)) := do
+  match evolveFacesR vars n mR.evolve, Run.dynOf vars n Side.R mR with
+  | some faces, some fR => do
+      let idxs := (List.range faces.length)
+      let gdotOf := fun (g : ITerm n) => ilieDeriv g (fun _ => ITerm.rat 0) fR (.rat 1)
+      -- (1) the greatest self-conditioned strict core, by shrinking fixpoint
+      let mut core := idxs
+      for _ in [0 : faces.length + 1] do
+        let reg := faceRegion (core.map (fun i => faces.getD i (.rat 0)))
+        let mut keep : List Nat := []
+        for i in core do
+          let g := faces.getD i (.rat 0)
+          let qs := IForm.and reg (IForm.and (IForm.cmp .eq g (.rat 0))
+            (IForm.cmp .ge (gdotOf g) (.rat 0)))
+          if ← probeUnsat s cnt maxQ maxSmt deadline coord qs then
+            keep := keep ++ [i]
+        if keep.length == core.length then break
+        core := keep
+      let mut tags : List (Nat × String) := core.map (fun i => (i, "strict"))
+      -- (2) non-strict strata, level by level over core + earlier levels
+      let mut proven := core
+      let mut rest := idxs.filter (fun i => !core.contains i)
+      let mut lvl := 1
+      for _ in [0 : faces.length + 1] do
+        if rest.isEmpty then break
+        let reg := faceRegion (proven.map (fun i => faces.getD i (.rat 0)))
+        let mut newly : List Nat := []
+        for i in rest do
+          let g := faces.getD i (.rat 0)
+          let qn := IForm.and reg (IForm.cmp .gt (gdotOf g) (.rat 0))
+          if ← probeUnsat s cnt maxQ maxSmt deadline coord qn then
+            tags := tags ++ [(i, s!"nonstrict{lvl}")]
+            newly := newly ++ [i]
+        if newly.isEmpty then break
+        proven := proven ++ newly
+        rest := rest.filter (fun i => !newly.contains i)
+        lvl := lvl + 1
+      -- (3) growth sweep for the remainder, over the core region
+      let regCore := faceRegion (core.map (fun i => faces.getD i (.rat 0)))
+      for i in rest do
+        let g := faces.getD i (.rat 0)
+        let mut tagged := false
+        for m in [1, 2, 4, 8, 16, 32] do
+          if !tagged then
+            let qm := IForm.and regCore (IForm.cmp .gt (gdotOf g) (.rat m))
+            if ← probeUnsat s cnt maxQ maxSmt deadline coord qm then
+              tags := tags ++ [(i, s!"growth{m}")]
+              tagged := true
+        if !tagged then
+          tags := tags ++ [(i, "fail")]
+      pure (tags.toArray.qsort (fun a b => a.1 < b.1)).toList
+  | _, _ => pure []
+
+/-- `--emit-viability3`: the stratified per-benchmark face-tag table as a Lean literal. -/
+def emitViabilityFileStrat (cfg : Z3Config) (path defname : String) : IO Unit := do
+  let txt ← IO.FS.readFile path
+  match parseProblemE txt with
+  | .error e => IO.eprintln s!"ERROR: parse: {e}"; IO.Process.exit 1
+  | .ok p =>
+      match ← Z3Session.start cfg with
+      | .error e => IO.eprintln s!"ERROR: z3: {e}"; IO.Process.exit 1
+      | .ok s =>
+          let cnt ← IO.mkRef 0
+          let vars := p.L.stateVars
+          let n := vars.length
+          let coord := fun (i : Fin n) => vars.getD i.val "v"
+          let deadline := (← IO.monoMsNow) + 60000
+          let mut rows : List String := []
+          for mR in p.R.modes do
+            let v ← try checkViabilityFacesStrat s cnt 8000 200000 deadline vars n coord mR
+              catch _ => pure []
+            let cells := v.map (fun c => s!"({c.1}, \"{c.2}\")")
+            rows := rows ++ [s!"(\"{mR.name}\", [" ++ String.intercalate ", " cells ++ "])"]
+          s.close
+          IO.println (s!"def {defname} : List (String × List (Nat × String)) := [" ++
+            String.intercalate ", " rows ++ "]")
+
 end RelCertifier.Oracle

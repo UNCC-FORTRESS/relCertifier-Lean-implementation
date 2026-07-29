@@ -190,6 +190,10 @@ def main (args : List String) : IO Unit := do
             IO.println "ALL HYPOTHESES DISCHARGED"
           else
             IO.eprintln "SOME HYPOTHESIS NOT DISCHARGED"; IO.Process.exit 1
+  | ["--emit-viability3", path, defname] => do
+      match ← RelCertifier.Z3Config.discover with
+      | .error e => IO.eprintln s!"ERROR: {e}"; IO.Process.exit 1
+      | .ok cfg => RelCertifier.Oracle.emitViabilityFileStrat cfg path defname
   | ["--emit-viability2", path, defname] => do
       match ← RelCertifier.Z3Config.discover with
       | .error e => IO.eprintln s!"ERROR: {e}"; IO.Process.exit 1

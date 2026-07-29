@@ -1,0 +1,402 @@
+/-
+Copyright (c) 2026 relCertifier-lean contributors.
+Released under Apache 2.0 license.
+
+# T3-3 GATE — `arm_chain_rung3`, the first UNCONDITIONAL modal Theorem 3
+
+`rvalid (theorem3Form …)` with the existence residual DISCHARGED IN-FILE: the only
+remaining hypotheses are the two per-window joint route verdicts (`Verd3`) — the
+frozen-contract Z3 leaves. No `hES`.
+
+Structure: two left windows (`Accelerate`, `Brake`), the four-mode right automaton
+(`ApproachA → ApproachB → ApproachC → Hold` with self-loops). EVERY response lands at
+`Hold` (`jointOK` for both windows, per the emitted cover): joint starts answer with
+the self-edge piece there; other starts open with STATIC reposition hops along the
+declared chain (zero-duration, certificate-free — the envelope is universal).
+
+Existence at `Hold` is where the L1 chain fires: the mode's evolve faces are both
+NON-STRICT (`θ' = 0` — the emitted `--emit-viability3` tags are `nonstrict1` with an
+EMPTY strict core), so `HExistSegB_of_viability_stratified` applies with `gsS = []`,
+`gsG = []`, and the two faces as the single non-strict stratum. The right field is
+identically zero, so the Lie bounds, the Lipschitz data, and the field bound are all
+discharged in-kernel — the existence residual costs NO Z3 verdicts here.
+
+Residuals: `Verd3 0`, `Verd3 1`. Axioms: the standard three + `z3_unsat_sound` where
+the verdicts enter.
+-/
+import RelCertifier.Proofs.Encoding.EnvelopeChain
+import RelCertifier.Proofs.Encoding.CanonicalInv
+import RelCertifier.Proofs.Encoding.CoverInstance
+import RelCertifier.Proofs.Flow.StratifiedFaces
+import RelCertifier.Instances.BenchIR.arm_chain_rung3
+
+namespace RelCertifier
+namespace ArmChainRung3Modal
+
+open DL DLCalTiming DLRel Parse Set
+
+def vsA : List String := ["theta", "v"]
+def dummyA : Parse.PMode := ⟨"", [], .tt, .tt, []⟩
+def mLA (l : ℕ) : Parse.PMode := arm_chain_rung3_IR.L.modes.getD l dummyA
+def mRA (q : ℕ) : Parse.PMode := arm_chain_rung3_IR.R.modes.getD q dummyA
+
+abbrev mvA : Var 2 := (Side.Aux, 0)
+abbrev aA : Fin 2 := (1 : Fin 2)
+abbrev tgA : Var 2 := (Side.Aux, aA)
+
+/-- Lowered fields and domains (`n = 2`; the left is genuinely 2-D, the right's `v`
+row is inert). -/
+noncomputable def fLA (l : ℕ) : Fin 2 → Term (Var 2) := hostDyn vsA 2 Side.L (mLA l)
+noncomputable def fRA (q : ℕ) : Fin 2 → Term (Var 2) := hostDyn vsA 2 Side.R (mRA q)
+noncomputable def domLA : Formula (Var 2) := hostEvolve vsA 2 Side.L (mLA 0)
+noncomputable def domRA : Formula (Var 2) := hostEvolve vsA 2 Side.R (mRA 0)
+
+/-- The joint universal envelope — the loop invariant's conditioning conjunct. -/
+noncomputable def envA : Formula (Var 2) := Formula.and domLA domRA
+
+/-- The invariant term (`L_theta − (R_theta + 0.15)`). -/
+noncomputable def gA : Term (Var 2) :=
+  ((Run.invToG vsA 2 ((arm_chain_rung3_IR.invariants.getD 0 ("", Parse.PForm.tt)).2)).map
+    ITerm.toHost).getD (Term.const 0)
+
+/-- Universal evolve: all mode evolves lower identically (kernel facts). -/
+theorem domLA_univ (l : ℕ) (hl : l < 2) : hostEvolve vsA 2 Side.L (mLA l) = domLA := by
+  interval_cases l <;> rfl
+theorem domRA_univ (q : ℕ) (hq : q < 4) : hostEvolve vsA 2 Side.R (mRA q) = domRA := by
+  interval_cases q <;> rfl
+
+/-- The right automaton graph. -/
+noncomputable def modeA (q : ℕ) : RMode (Var 2) :=
+  { sys := rightBlock (fRA q) (Term.const 1), dom := domRA, weight := 1 }
+
+def edgeA (s t : ℕ) : REdge (Var 2) :=
+  { src := s, tgt := t, guard := Formula.tt, pruned := false }
+
+noncomputable def GrA : SearchGraph (Var 2) :=
+  { modes := [modeA 0, modeA 1, modeA 2, modeA 3]
+    edges := [edgeA 0 1, edgeA 0 0, edgeA 1 2, edgeA 1 1, edgeA 2 3, edgeA 2 2,
+      edgeA 3 3] }
+
+/-! ## Side-splits (kernel facts via the lowering pipelines) -/
+
+theorem fLA_pipe (l : ℕ) (i : Fin 2) : fLA l i =
+    (((some (mLA l)).bind (Run.dynOf vsA 2 Side.L)).map
+      (fun f => ITerm.toHost (f i))).getD (Term.const 0) := rfl
+theorem fRA_pipe (q : ℕ) (i : Fin 2) : fRA q i =
+    (((some (mRA q)).bind (Run.dynOf vsA 2 Side.R)).map
+      (fun f => ITerm.toHost (f i))).getD (Term.const 0) := rfl
+theorem domLA_pipe : domLA =
+    (((some (mLA 0)).bind (fun m => Run.lowerF vsA 2 Side.L m.evolve)).map
+      IForm.toHost).getD Formula.tt := rfl
+theorem domRA_pipe : domRA =
+    (((some (mRA 0)).bind (fun m => Run.lowerF vsA 2 Side.R m.evolve)).map
+      IForm.toHost).getD Formula.tt := rfl
+
+theorem hfLA (l : ℕ) (hl : l < 2) : ∀ i, ((fLA l) i).fv ⊆ range Lv := fun i x hx =>
+  side_eq_L_mem (field_pipeline_side (resolvesTo_L vsA) (some (mLA l))
+    (by interval_cases l <;> simp [mLA, arm_chain_rung3_IR, Parse.PExpr.namesFree]) i x
+    (fLA_pipe l i ▸ hx))
+
+theorem hfRA (q : ℕ) (hq : q < 4) : ∀ i, ((fRA q) i).fv ⊆ range Rv := fun i x hx =>
+  side_eq_R_mem (field_pipeline_side (resolvesTo_R vsA) (some (mRA q))
+    (by interval_cases q <;> simp [mRA, arm_chain_rung3_IR, Parse.PExpr.namesFree]) i x
+    (fRA_pipe q i ▸ hx))
+
+theorem hdomLA : domLA.fv ⊆ range Lv := fun x hx =>
+  side_eq_L_mem (form_pipeline_side (resolvesTo_L vsA) (some (mLA 0))
+    (by simp [mLA, arm_chain_rung3_IR, Parse.PForm.namesFree, Parse.PExpr.namesFree]) x
+    (domLA_pipe ▸ hx))
+
+theorem hdomRA : domRA.fv ⊆ range Rv := fun x hx =>
+  side_eq_R_mem (form_pipeline_side (resolvesTo_R vsA) (some (mRA 0))
+    (by simp [mRA, arm_chain_rung3_IR, Parse.PForm.namesFree, Parse.PExpr.namesFree]) x
+    (domRA_pipe ▸ hx))
+
+theorem hgA : gA.fv ⊆ range Lv ∪ range Rv := invToG_pipeline_LR _
+
+theorem hmvgA : mvA ∉ gA.fv := fun h => by
+  rcases hgA h with ⟨i, hi⟩ | ⟨i, hi⟩ <;> exact absurd hi (by simp [Lv, Rv, Prod.ext_iff])
+theorem htggA : tgA ∉ gA.fv := fun h => by
+  rcases hgA h with ⟨i, hi⟩ | ⟨i, hi⟩ <;> exact absurd hi (by simp [Lv, Rv, Prod.ext_iff])
+theorem hmvenvA : mvA ∉ envA.fv := fun h => by
+  rcases h with h | h
+  · exact absurd (hdomLA h) (by rintro ⟨i, hi⟩; exact absurd hi (by simp [Lv, Prod.ext_iff]))
+  · exact absurd (hdomRA h) (by rintro ⟨i, hi⟩; exact absurd hi (by simp [Rv, Prod.ext_iff]))
+theorem htgenvA : tgA ∉ envA.fv := fun h => by
+  rcases h with h | h
+  · exact absurd (hdomLA h) (by rintro ⟨i, hi⟩; exact absurd hi (by simp [Lv, Prod.ext_iff]))
+  · exact absurd (hdomRA h) (by rintro ⟨i, hi⟩; exact absurd hi (by simp [Rv, Prod.ext_iff]))
+
+/-! ## Graph shape facts -/
+
+theorem GrA_modeAt {q : ℕ} {m : RMode (Var 2)} (hm : GrA.modeAt q = some m) :
+    q < 4 ∧ m = modeA q := by
+  match q with
+  | 0 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, GrA] using hm.symm⟩
+  | 1 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, GrA] using hm.symm⟩
+  | 2 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, GrA] using hm.symm⟩
+  | 3 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, GrA] using hm.symm⟩
+  | q + 4 => exact absurd hm (by simp [SearchGraph.modeAt, GrA])
+
+theorem httA : ∀ q, ∀ e ∈ GrA.edgesFrom q, e.guard = Formula.tt := by
+  intro q e he
+  have hmem : e ∈ GrA.edges := List.mem_of_mem_filter he
+  simp only [GrA, List.mem_cons, List.not_mem_nil, or_false] at hmem
+  rcases hmem with rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> rfl
+
+theorem hltA : ∀ q, ∀ e ∈ GrA.edgesFrom q, e.tgt < GrA.modes.length := by
+  intro q e he
+  have hmem : e ∈ GrA.edges := List.mem_of_mem_filter he
+  simp only [GrA, List.mem_cons, List.not_mem_nil, or_false] at hmem
+  rcases hmem with rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> norm_num [GrA, edgeA]
+
+theorem hRvA : ∀ q m, GrA.modeAt q = some m →
+    m.sys.boundSet ∪ m.sys.readVars ∪ m.dom.fv ⊆ range Rv := by
+  intro q m hm
+  obtain ⟨hq, rfl⟩ := GrA_modeAt hm
+  intro y hy
+  rcases hy with (hy | hy) | hy
+  · exact rightBlock_boundSet_sub (fRA q) (Term.const 1) hy
+  · exact rightBlock_readVars_sub (fRA q) (Term.const 1) (hfRA q hq) (by simp [Term.fv]) hy
+  · exact hdomRA hy
+
+theorem edgeA_from {s t : ℕ} (h : edgeA s t ∈ GrA.edges) : edgeA s t ∈ GrA.edgesFrom s :=
+  List.mem_filter.mpr ⟨h, by simp [edgeA]⟩
+
+/-! ## The left window family -/
+
+noncomputable def leftDataA : List ((Fin 2 → Term (Var 2)) × Formula (Var 2) × ℕ) :=
+  [(fLA 0, domLA, 1), (fLA 1, domLA, 1)]
+
+noncomputable def leftProgsA (dt : ℝ) : List (Program (Var 2)) :=
+  leftDataA.map (fun d => windowSeg (leftBlock d.1) d.2.1 tgA dt d.2.2)
+
+theorem hLA : ∀ d ∈ leftDataA, (∀ i, (d.1 i).fv ⊆ range Lv) ∧ d.2.1.fv ⊆ range Lv := by
+  intro d hd
+  simp only [leftDataA, List.mem_cons, List.not_mem_nil, or_false] at hd
+  rcases hd with rfl | rfl
+  · exact ⟨hfLA 0 (by norm_num), hdomLA⟩
+  · exact ⟨hfLA 1 (by norm_num), hdomLA⟩
+
+theorem hframesA (dt : ℝ) : ∀ P ∈ leftProgsA dt, FramesMv P mvA := by
+  intro P hP
+  simp only [leftProgsA, List.mem_map] at hP
+  obtain ⟨d, hd, rfl⟩ := hP
+  refine framesMv_window (leftBlock d.1) d.2.1 tgA dt d.2.2 mvA (by decide) ?_
+  intro h
+  obtain ⟨i, hi⟩ := leftBlock_bound_sub d.1 _ h
+  exact aux_ne_Lv 0 i hi
+
+theorem hfreshA : ∀ q m, GrA.modeAt q = some m →
+    mvA ∉ (Program.ode m.sys m.dom).fv := by
+  intro q m hm hmv
+  exact aux_notin_range_Rv 0 (hRvA q m hm (vars_ode_sub _ _ (Or.inl hmv)))
+
+/-! ## The route-verdict residual -/
+
+/-- The per-window joint verdict at the landing mode `Hold` (index 3): the tool's
+stratified three-route query family at λ = 1 over the joint universal envelope. -/
+def Verd3 (l : ℕ) : Prop :=
+  z3solve (flowQuery ⟨gA, fLA l, fRA 3, Term.const 1,
+    Formula.and domLA domRA⟩) = Verdict.unsat
+  ∨ z3solve (flowQueryStrict ⟨gA, fLA l, fRA 3, Term.const 1,
+    Formula.and domLA domRA⟩) = Verdict.unsat
+  ∨ z3solve (flowQuerySuperlevel ⟨gA, fLA l, fRA 3, Term.const 1,
+    Formula.and domLA domRA⟩) = Verdict.unsat
+
+/-! ## The existence discharge — the L1 chain at the zero-field landing mode -/
+
+/-- `Hold`'s field is identically zero on every coordinate (kernel facts: the
+`theta` row lowers `smt2:0`, the `v` row is absent). -/
+theorem hpr0 : Run.parseRat "0" = some 0 := by
+  have h : parseQ "0" = some (⟨0, 1⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+
+theorem hpr00 : Run.parseRat "0.0" = some 0 := by
+  have h : parseQ "0.0" = some (⟨0, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+
+theorem hpr12 : Run.parseRat "1.2" = some ((6:ℚ)/5) := by
+  have h : parseQ "1.2" = some (⟨12, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+  norm_num
+
+theorem fRA3_eval (i : Fin 2) (x : State (Var 2)) : Term.eval (fRA 3 i) x = 0 := by
+  fin_cases i <;>
+    simp [fRA, hostDyn, mRA, arm_chain_rung3_IR, vsA, Run.dynOf, Run.lowerE, hpr0,
+      List.finRange, ITerm.toHost, Term.eval]
+
+/-- The frozen-left joint system at `Hold` has the identically-zero field. -/
+theorem odeField_zero (x : State (Var 2)) :
+    odeField (jointSys (fun _ => Term.const 0) (fRA 3) (Term.const 1)) x = 0 := by
+  funext i
+  show odeField _ x i = 0
+  unfold odeField
+  split
+  · next hmem =>
+      have hall : ∀ p ∈ jointSys (fun _ => (Term.const 0 : Term (Var 2)))
+          (fRA 3) (Term.const 1), Term.eval p.2 x = 0 := by
+        intro p hp
+        rw [jointSys_split] at hp
+        rcases List.mem_append.mp hp with hp | hp
+        · obtain ⟨j, -, rfl⟩ := List.mem_map.mp hp
+          simp [Term.eval]
+        · obtain ⟨j, -, rfl⟩ := List.mem_map.mp hp
+          simp [Term.eval, AOp.interp, fRA3_eval]
+      have hrhs : ((jointSys (fun _ => (Term.const 0 : Term (Var 2)))
+          (fRA 3) (Term.const 1)).rhs i).eval x = 0 := by
+        obtain ⟨p, hp, hfst⟩ : ∃ p ∈ jointSys (fun _ => (Term.const 0 : Term (Var 2)))
+            (fRA 3) (Term.const 1), p.1 = i := by
+          simpa [ODESystem.bound, List.mem_map] using hmem
+        have := ODESystem.rhs_eq_of_mem (jointSys_wellFormed _ _ _) hp
+        rw [hfst] at this
+        rw [this]
+        exact hall p hp
+      exact hrhs
+  · rfl
+
+/-- The two `Hold` evolve faces, as host terms: `−θ_R` (lower) and `θ_R − 6/5`
+(upper). The emitted `--emit-viability3` tags: both `nonstrict1`, empty core. -/
+noncomputable def faceLo : Term (Var 2) :=
+  Term.binop .sub (Term.const 0) (Term.var (Rv 0))
+noncomputable def faceHi : Term (Var 2) :=
+  Term.binop .sub (Term.var (Rv 0)) (Term.const ((6:ℝ)/5))
+
+theorem faces_fv_R : ∀ gT ∈ [faceLo, faceHi], ∀ x ∈ gT.fv, x ∈ range Rv := by
+  intro gT hgT x hx
+  rcases List.mem_cons.mp hgT with rfl | hgT
+  · simp only [faceLo, Term.fv, Set.mem_union, Set.mem_empty_iff_false, false_or,
+      Set.mem_singleton_iff] at hx
+    exact ⟨0, hx.symm⟩
+  · rw [List.mem_singleton] at hgT
+    subst hgT
+    simp only [faceHi, Term.fv, Set.mem_union, Set.mem_empty_iff_false, or_false,
+      Set.mem_singleton_iff] at hx
+    exact ⟨0, hx.symm⟩
+
+/-- The lowered `Hold` evolve, pinned (kernel `decide` on the IR pipeline). -/
+theorem hlowA : Run.lowerF vsA 2 Side.R (mRA 0).evolve =
+    some (IForm.and
+      (IForm.cmp .ge (ITerm.var (Side.R, 0)) (ITerm.rat 0))
+      (IForm.cmp .le (ITerm.var (Side.R, 0)) (ITerm.rat ((6:ℚ)/5)))) := by
+  simp [Run.lowerF, mRA, arm_chain_rung3_IR, vsA, Run.lowerE, Run.resolveVar,
+    hpr00, hpr12, List.findIdx?_cons, List.findIdx?_nil]
+
+theorem domRA_shape : domRA = Formula.and
+    (Formula.cmp .ge (Term.var (Side.R, 0)) (Term.const ((0:ℚ):ℝ)))
+    (Formula.cmp .le (Term.var (Side.R, 0)) (Term.const (((6:ℚ)/5):ℝ))) := by
+  rw [domRA_pipe]
+  simp [hlowA, IForm.toHost, ITerm.toHost]
+
+/-- `domRA`, satisfied wherever both faces are ≤ 0 (the lowered evolve is exactly
+the face conjunction). -/
+theorem domRA_of_faces (x : State (Var 2))
+    (hlo : Term.eval faceLo x ≤ 0) (hhi : Term.eval faceHi x ≤ 0) :
+    Formula.sat domRA x := by
+  have hlo' : (0:ℝ) ≤ x (Rv 0) := by
+    simpa [faceLo, Term.eval, AOp.interp] using hlo
+  have hhi' : x (Rv 0) ≤ (6:ℝ)/5 := by
+    have := hhi
+    simp only [faceHi, Term.eval, AOp.interp] at this
+    linarith
+  rw [domRA_shape]
+  refine ⟨?_, ?_⟩ <;>
+    · show CompOp.interp _ _ _
+      push_cast [CompOp.interp, Term.eval]
+      first
+        | simpa [Rv] using hlo'
+        | simpa [Rv] using hhi'
+
+/-- Faces hold wherever `envA` does (the envelope contains the `Hold` box). -/
+theorem faces_of_env (x : State (Var 2)) (henv : Formula.sat envA x) :
+    Term.eval faceLo x ≤ 0 ∧ Term.eval faceHi x ≤ 0 := by
+  have hR : Formula.sat domRA x := henv.2
+  rw [domRA_shape] at hR
+  obtain ⟨h1, h2⟩ := hR
+  simp only [Formula.sat, CompOp.interp, Term.eval] at h1 h2
+  push_cast at h1 h2
+  constructor
+  · simp only [faceLo, Term.eval, AOp.interp]
+    simpa [Rv] using h1
+  · simp only [faceHi, Term.eval, AOp.interp]
+    have : x (Side.R, 0) ≤ (6:ℝ)/5 := by simpa using h2
+    simp only [Rv]
+    linarith
+
+/-- **The existence residual, discharged.** From every envelope-conditioned invariant
+anchor, the right response at `Hold` exists for any left duration `≤ dt` — the L1
+stratified consumer with an empty strict core, no growth faces, and the two `Hold`
+faces as the single non-strict stratum. The zero field discharges every analytic side
+condition in-kernel: `Lie ≡ 0`, the Lipschitz constant and the field bound are `0`. -/
+theorem esA (l : ℕ) (dt : ℝ) (hdt : 0 ≤ dt) :
+    ∀ σ, Formula.sat (Formula.and (invLe gA) envA) σ →
+      HExistSegB (fLA l) (fRA 3) (Term.const 1) domLA domRA dt
+        (Function.update σ tgA 0) := by
+  intro σ hσ
+  refine HExistSegB_of_viability_stratified (fLA l) (fRA 3) (Term.const 1)
+    domLA domRA [] [] [faceLo, faceHi] 0 le_rfl
+    (jointSys_wellFormed _ _ _)
+    (by intro gT hgT; exact absurd hgT (List.not_mem_nil))
+    (by
+      intro gT hgT x hx hb
+      obtain ⟨i, hi⟩ := leftBlock_bound_sub (fLA l) _ hb
+      obtain ⟨j, hj⟩ := faces_fv_R gT hgT x hx
+      rw [← hj] at hi
+      exact absurd hi (by simp [Lv, Rv, Prod.ext_iff]))
+    (by intro gT hgT; exact absurd hgT (List.not_mem_nil))
+    (by intro gT hgT; exact absurd hgT (List.not_mem_nil))
+    (by
+      intro i hi x _ _
+      have : Lie (jointSys (fun _ => Term.const 0) (fRA 3) (Term.const 1))
+          (fun ω => Term.eval ([faceLo, faceHi][i]) ω) x = 0 := by
+        unfold Lie
+        refine List.sum_eq_zero ?_
+        intro y hy
+        obtain ⟨p, hp, rfl⟩ := List.mem_map.mp hy
+        have hz : Term.eval p.2 x = 0 := by
+          rw [jointSys_split] at hp
+          rcases List.mem_append.mp hp with hp | hp
+          · obtain ⟨j, -, rfl⟩ := List.mem_map.mp hp
+            simp [Term.eval]
+          · obtain ⟨j, -, rfl⟩ := List.mem_map.mp hp
+            simp [Term.eval, AOp.interp, fRA3_eval]
+        rw [hz, mul_zero]
+      rw [this])
+    (by
+      intro x _ hN
+      exact domRA_of_faces x (hN faceLo List.mem_cons_self)
+        (hN faceHi (by simp)))
+    0 0 1 one_pos
+    (by
+      intro ν0 _
+      intro x _ y _
+      rw [odeField_zero x, odeField_zero y]
+      simp)
+    (by
+      intro ν0 _ x _
+      rw [odeField_zero x]
+      simp)
+    dt hdt
+    (Function.update σ tgA 0)
+    (by intro gT hgT; exact absurd hgT (List.not_mem_nil))
+    (by
+      intro gT hgT
+      have hfaces := faces_of_env σ hσ.2
+      have hupd : ∀ gT' ∈ [faceLo, faceHi],
+          Term.eval gT' (Function.update σ tgA 0) = Term.eval gT' σ := by
+        intro gT' hgT'
+        refine Term.coincidence gT' ?_
+        intro y hy
+        obtain ⟨j, hj⟩ := faces_fv_R gT' hgT' y hy
+        refine Function.update_of_ne ?_ _ _
+        rw [← hj]
+        simp [Rv, Prod.ext_iff]
+      rcases List.mem_cons.mp hgT with rfl | hgT
+      · rw [hupd faceLo List.mem_cons_self]; exact hfaces.1
+      · rw [List.mem_singleton] at hgT
+        subst hgT
+        rw [hupd faceHi (by simp)]; exact hfaces.2)
+    (by intro gT hgT; exact absurd hgT (List.not_mem_nil))
+
+end ArmChainRung3Modal
+end RelCertifier

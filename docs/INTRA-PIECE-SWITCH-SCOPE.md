@@ -154,3 +154,29 @@ mode for `arm_chain_rung2`; it is not one (it fails the reachable-from-every-mod
 4 obligations are not dischargeable and are also not needed — `ApproachSlow` covers all four
 of that benchmark's windows. The accurate statement is per-window, and the conclusion is
 unchanged: **5/5 benchmarks**.
+
+
+---
+
+## 8. Instance-side interface gap + the L3′ fix (2026-07-29, T3-6)
+
+Wiring the first instance (`arm_fidelity_low`) against `faModal_ODE_split_bounded`
+exposed an information gap in `hExistA`: the A-phase existence hypothesis receives
+only `φyB κ'` and `g κ' ≤ 0` at the switch state, but discharging A's existence
+(rise `cA·s2` toward the outward face) needs the QUANTITATIVE drop B achieved
+(`x_j(κ') ≤ x_j(ω) − cB·s1`), which only the lemma's internal merged trajectory
+knows. State-formula encodings of the room (via the clock) fail at `t = 0` for
+face anchors — checked, not fixable at the interface as stated.
+
+**L3′ (drop-tracked split):** extend the lemma with a B-row rate hypothesis —
+`sysB`'s row for the tracked coordinate `x_j` has field `≤ −cB` on `φx ∧ φyB` —
+and derive `x_j(κ') ≤ x_j(ω) − cB·s1` internally (two applications of
+`growth_along_dom` on the coordinate term), passing it to `hExistA` as an extra
+argument. With `θ = cA/(cA + cB)` the A-rise then cancels the B-drop from any
+anchor at or below the face: `x_j(ω) + s·(cA(1−θ) − cB·θ) ≤ x_j(ω)`.
+
+**dt caps:** the per-anchor dichotomy (A-alone for face-room `≥ cA·λ·dt`, split
+otherwise, with the split's invariant budget `g(ω) + MgB·θ·dt ≤ 0` holding on the
+near-face band) closes only for bounded `dt` — the five switch instances will be
+stated with `dt ≤ dt₀` (the tool's window duration), unlike the dt-uniform
+instances landed so far.

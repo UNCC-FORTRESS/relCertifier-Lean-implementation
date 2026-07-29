@@ -211,3 +211,33 @@ them have not. Over this session's analysis I was wrong four times on the connec
 the battery and Theorem 3, and three times on the W3 obligation specifically — alternating
 optimistic and pessimistic, each time corrected by reading a definition or running a control
 rather than by reasoning. Treat the counts as measured and the effort estimates as unvalidated.
+
+---
+
+## STATUS LEDGER (updated 2026-07-29, end of build arc session 1)
+
+**Lemma layer: COMPLETE.** L1/L1a (stratified faces + consumer), L1c (affine, both
+polarities + four-class consumer), L2 (right-only hops, `Hmulti_windowR_prefixed`),
+L3 (split coupling + choice dispatch; feasibility measured — 4 benchmarks single-band,
+`arm_chain_rung2` at K=2 banded), L4 core (`lowR_preserved`), L6 (list-invariant
+F-chain), L7 (λ-reparam), L2×L6 (`Hmulti_windowRF_prefixed`). All on the standard
+three axioms. W6 parser gate landed (47/47 pass, unknown keys refused).
+
+**Instances: Tier-0 COMPLETE (8/8), every one with existence DISCHARGED** (zero Z3
+verdicts spent on existence): `arm_chain_rung3` (zero field), `rover_drag` (quadratic,
+hand K/L), `arm_fidelity_high`/`plant_fan_high` (generator clones of rung3),
+`arm_fidelity_mid` (affine landing) → `plant_fan_mid` (clone), `robot_braking`
+(affine transform), `rover_4d_box` (closed-form drift witness). Residuals: the
+tool-certified route verdicts only (2 per instance; 1 for the single-mode pair).
+
+**Tooling:** `--emit-viability3` stratified tags; `scripts/gen_modal_clone.py`
+(byte-identical-right-system clones — zero-error first generations).
+
+**Recorded limitations:** the stratified consumer's Lipschitz/bound conditioning is
+strict+growth-only (fields needing non-strict-face bounds take closed-form witnesses
+or a future L1a variant); affine emission tags deferred (instances hand-supply
+(λ, M, C)).
+
+**Remaining:** `rung2c` instance (L4 threading over the F-chain), the 5 switch
+instances (L3 lemmas + band verdicts), the k>1 / multi-component / λ≠1 instance
+generator over the completed chain variants, suite verdict battery.

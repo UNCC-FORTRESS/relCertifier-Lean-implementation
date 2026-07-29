@@ -238,6 +238,19 @@ strict+growth-only (fields needing non-strict-face bounds take closed-form witne
 or a future L1a variant); affine emission tags deferred (instances hand-supply
 (λ, M, C)).
 
-**Remaining:** `rung2c` instance (L4 threading over the F-chain), the 5 switch
-instances (L3 lemmas + band verdicts), the k>1 / multi-component / λ≠1 instance
-generator over the completed chain variants, suite verdict battery.
+**k>1 landed:** `match_multi_eps` (6b82d18) — first `Hmulti_windowR_prefixed`
+instance (hop prefix + four replicate pieces); first stratified existence with a
+REAL conditioned non-strict stratum (`s' = −v ≤ 0` given the strict core).
+
+**W5 landed:** `EnvelopeChainR.lean` (d6dc192) — the region-carrying modal chain
+(`mvRegion` loop invariant, pinned-final-mode bridge, gwindowSeg-gated `hddF`) —
+plus `rover_rung2c_6dof` (7e2a251): first list-invariant (multiF) + first
+region-carrying (multiR) + first 6-dimensional existence instance. The three
+backward (window, start) pairs of the one-way chain discharge by vacuity fully
+in-kernel; the landing region rides the coupling as a ninth invariant conjunct.
+Residuals: three 9-query stratified-DC verdict packs (semantic mirrors measured
+27/27 unsat).
+
+**Remaining:** the 5 switch instances (L3 lemmas + band verdicts), the k>1 /
+multi-component / λ≠1 instance generator over the completed chain variants,
+suite verdict battery.

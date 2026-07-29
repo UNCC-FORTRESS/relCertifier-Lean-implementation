@@ -17,6 +17,7 @@ import RelCertifier.Trusted.Run
 import RelCertifier.Trusted.Z3
 import RelCertifier.Trusted.OracleAPI
 import RelCertifier.Trusted.ViabilityEmit
+import RelCertifier.Trusted.KeyAudit
 import RelCertifier.Verdicts.Run
 import RelCertifier.Verdicts.RunCut
 
@@ -107,7 +108,7 @@ def runBatch (paths : List String) : IO Unit := do
       for path in paths do
         let t0 ← IO.monoMsNow
         let oc ← try
-            match RelCertifier.Parse.parseProblemE (← IO.FS.readFile path) with
+            match ← RelCertifier.Oracle.readProblemStrict path with
             | .error e => pure (Outcome.error s!"parse: {e}")
             | .ok p => certify s p
           catch e => pure (Outcome.error s!"io: {e}")
@@ -133,7 +134,7 @@ def emitCuts (path defname : String) : IO Unit := do
     match ← Z3Session.start cfg with
     | .error e => IO.eprintln s!"ERROR: z3 session: {e}"; IO.Process.exit 2
     | .ok s =>
-      match RelCertifier.Parse.parseProblemE (← IO.FS.readFile path) with
+      match ← RelCertifier.Oracle.readProblemStrict path with
       | .error e => IO.eprintln s!"ERROR: parse: {e}"; s.close; IO.Process.exit 1
       | .ok p => do
         let vars := p.L.stateVars
@@ -173,7 +174,7 @@ def emitCuts (path defname : String) : IO Unit := do
 /-- `--emit-ir <file> <defname>`: print the parsed `PProblem` as a Lean literal (the
 single-door bridge for the `Faithful` kernel certificates — see EmitIR.lean). -/
 def emitIR (path defname : String) : IO Unit := do
-  match RelCertifier.Parse.parseProblemE (← IO.FS.readFile path) with
+  match ← RelCertifier.Oracle.readProblemStrict path with
   | .error e => IO.eprintln s!"ERROR: parse: {e}"; IO.Process.exit 1
   | .ok p => IO.println (RelCertifier.Parse.emitProblem defname p)
 

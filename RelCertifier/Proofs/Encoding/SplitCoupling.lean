@@ -406,4 +406,22 @@ theorem faModal_ODE_split_bounded
     rw [hμeq]
     exact hφ'end
 
+/-- Per-anchor branch selection for a `choice` response: whichever side's coupling
+fires at this anchor covers the choice (the diamond is a union of runs). The
+instance's branch condition is the anchor's face distance — decidable classically. -/
+theorem faModalB_choice_cases {P QB QA : Program (Var n)} {φ : Formula (Var n)}
+    {tg : Var n} {dt : ℝ} {ω : State (Var n)} (c : Prop)
+    (h1 : c → faModalB (Equiv.refl (Var n)) P QB φ tg dt ω)
+    (h2 : ¬c → faModalB (Equiv.refl (Var n)) P QA φ tg dt ω) :
+    faModalB (Equiv.refl (Var n)) P (Program.choice QB QA) φ tg dt ω := by
+  classical
+  intro ν hplant
+  by_cases hc : c
+  · obtain ⟨μ, hsem, hφ⟩ := h1 hc ν hplant
+    rw [Program.rename_refl] at hsem ⊢
+    exact ⟨μ, Or.inl hsem, hφ⟩
+  · obtain ⟨μ, hsem, hφ⟩ := h2 hc ν hplant
+    rw [Program.rename_refl] at hsem ⊢
+    exact ⟨μ, Or.inr hsem, hφ⟩
+
 end RelCertifier

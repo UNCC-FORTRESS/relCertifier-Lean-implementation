@@ -155,15 +155,23 @@ theorem integralCurve_of_tuple {sys : ODESystem (Var n)} (hwf : sys.WellFormed)
 
 /-! ## The split coupling -/
 
-/-- **The B-first split coupling.** One clocked left piece against the two-phase
-response `B ; A`: `B` for the fixed fraction `θ` of the left duration (the invariant
-charged at most `MgB·θ·dt`, covered by the anchor budget), then the certified `A`
-for the rest (the `A` joint box carries `φ'` from the switch state, a `g ≤ 0`
-state). -/
+/-- **The B-first split coupling, drop-tracked.** One clocked left piece against the
+two-phase response `B ; A`: `B` for the fixed fraction `θ` of the left duration (the
+invariant charged at most `MgB·θ·dt`, covered by the anchor budget), then the
+certified `A` for the rest (the `A` joint box carries `φ'` from the switch state, a
+`g ≤ 0` state).
+
+The A-phase existence hypothesis additionally receives the QUANTITATIVE drop `B`
+achieved on the tracked coordinate `xj` (`κ' xj ≤ ω xj − cB·s₁`, from `hjrow` via
+`growth_along_dom`) together with the split fraction identity
+`(1 − θ)·s₁ = θ·s₂` — with `θ = cA/(cA + cB)` the instance's A-rise then cancels
+the B-drop from any anchor at or below the outward face (the §8 interface fix in
+docs/INTRA-PIECE-SWITCH-SCOPE.md). -/
 theorem faModal_ODE_split_bounded
     (sysX sysB sysA : ODESystem (Var n))
     (φx φyB φyA φ' : Formula (Var n))
     (g : Term (Var n)) (MgB : ℝ) (hMgB : 0 ≤ MgB)
+    (xj : Var n) (cB : ℝ)
     (θ dt : ℝ) (hθ0 : 0 ≤ θ) (hθ1 : θ ≤ 1)
     (tg : Var n) (htg : (tg, Term.const 1) ∈ sysX)
     (hwfXB : (sysX ++ sysB).WellFormed)
@@ -181,6 +189,8 @@ theorem faModal_ODE_split_bounded
     (ω : State (Var n))
     (hbndB : ∀ x : State (Var n), Formula.sat (Formula.and φx φyB) x →
       Lie (sysX ++ sysB) (fun ν => Term.eval g ν) x ≤ MgB)
+    (hjrow : ∀ x : State (Var n), Formula.sat (Formula.and φx φyB) x →
+      Lie (sysX ++ sysB) (fun ν => Term.eval (Term.var xj) ν) x ≤ -cB)
     (hg0 : Term.eval g ω + MgB * (θ * dt) ≤ 0)
     (hboxA : ∀ κ : State (Var n), Term.eval g κ ≤ 0 →
       Formula.sat (Formula.box (Program.ode (sysX ++ sysA)
@@ -196,8 +206,9 @@ theorem faModal_ODE_split_bounded
           HasDerivWithinAt (fun u => ΦB u p.1) (p.2.eval (ΦB t)) (Icc 0 s1) t) ∧
         (∀ t ∈ Icc (0:ℝ) s1, ∀ x, x ∉ sysB.bound → ΦB t x = ΦL s1 x) ∧
         (∀ t ∈ Icc (0:ℝ) s1, Formula.sat φyB (ΦB t)))
-    (hExistA : ∀ (s2 : ℝ) (ΨL : ℝ → State (Var n)) (κ' : State (Var n)),
-      0 ≤ s2 → s2 ≤ dt → ΨL 0 = κ' →
+    (hExistA : ∀ (s1 s2 : ℝ) (ΨL : ℝ → State (Var n)) (κ' : State (Var n)),
+      0 ≤ s1 → 0 ≤ s2 → s2 ≤ dt → (1 - θ) * s1 = θ * s2 →
+      κ' xj ≤ ω xj - cB * s1 → ΨL 0 = κ' →
       (∀ t ∈ Icc (0:ℝ) s2, ∀ p ∈ sysX,
         HasDerivWithinAt (fun u => ΨL u p.1) (p.2.eval (ΨL t)) (Icc 0 s2) t) →
       (∀ t ∈ Icc (0:ℝ) s2, ∀ x, x ∉ sysX.bound → ΨL t x = κ' x) →
@@ -268,6 +279,17 @@ theorem faModal_ODE_split_bounded
     linarith
   have hκ'x : Formula.sat φx κ' := hφxΦ₁ s1 (right_mem_Icc.mpr hs1)
   have hκ'yB : Formula.sat φyB κ' := hφyBΦ₁ s1 (right_mem_Icc.mpr hs1)
+  -- the tracked drop along the B phase
+  have hκ'drop : κ' xj ≤ ω xj - cB * s1 := by
+    have hgrow := growth_along_dom hwfXB (Term.var xj) (-cB) (Formula.and φx φyB)
+      hjrow hs1 hcurve₁ (fun t ht => ⟨hφxΦ₁ t ht, hφyBΦ₁ t ht⟩)
+    rw [hΦ10] at hgrow
+    simp only [Term.eval] at hgrow
+    rw [hκ']
+    linarith
+  have hfr : (1 - θ) * s1 = θ * s2 := by
+    simp only [hs1def, hs2def]
+    ring
   -- phase 2: the shifted, frame-patched left run from the switch state
   have hshift : ∀ t ∈ Icc (0:ℝ) s2, ∀ p ∈ sysX,
       HasDerivWithinAt (fun u => ΦL (s1 + u) p.1) (p.2.eval (ΦL (s1 + t)))
@@ -309,7 +331,7 @@ theorem faModal_ODE_split_bounded
       · have := ht.2; simp only [hs2def] at this; linarith
     exact hLdom (s1 + t) htin
   obtain ⟨ΦA, hA0, hAder, hAmask, hAdom⟩ :=
-    hExistA s2 ΨL κ' hs2 hs2dt hΨ0 hΨder hΨmask hΨdom hκ'yB hκ'g
+    hExistA s1 s2 ΨL κ' hs1 hs2 hs2dt hfr hκ'drop hΨ0 hΨder hΨmask hΨdom hκ'yB hκ'g
   have hdlA := Set.disjoint_left.mp hdisjA
   have hnotXofA : ∀ x ∈ sysA.bound, x ∉ sysX.bound := fun x hxA hxX =>
     hdlA (Or.inl hxX) (Or.inl hxA)

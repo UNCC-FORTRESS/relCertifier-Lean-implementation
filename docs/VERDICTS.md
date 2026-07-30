@@ -261,7 +261,7 @@ device for the story1/rollover-b/rover3tier group; and the three specials
 
 ## Modal Theorem 3 — final suite map (2026-07-30, marathon close)
 
-**41 of 46 certified benchmarks carry `rvalid (theorem3Form …)`.** The five
+**40 of 46 certified benchmarks carry `rvalid (theorem3Form …)`.** The six
 that do not, with the precise reason each is out of the chain's scope:
 
 * `refinement_ladder_rover_rung2_6dof`, `refinement_ladder_rover_rung2b_6dof`

@@ -22,6 +22,8 @@ lake build relcert                           # the certifier executable
 ```
 
 Reports land in `docs/VERDICTS.md`. Axiom audits: see [Trust audit](#trust-audit).
+**Reproducing the whole certification claim, step by step:**
+[`docs/CERTIFICATION-CHECK.md`](docs/CERTIFICATION-CHECK.md).
 
 ---
 
@@ -83,11 +85,23 @@ re-validated by kernel-checked replay or becomes a named Z3 fact.
   general it reduces to face-viability verdicts with growth budgets (the S3 chain);
   the suite-wide census certifies 1121/1121 evolve-box faces.
 
+**Coverage** — the modal (Theorem 3) statement is instantiated for **all 46 certified
+benchmarks**; `Instances/ModalBattery.lean` imports every one and re-emits its axiom
+audit on each build. Five of them are entirely **Z3-free** (`rover3_M1`,
+`rover_coupled`, `rover_position`, `refinement_ladder_rover_rung2_6dof`,
+`refinement_ladder_rover_rung2b_6dof`): their responses are pure right-side flows with
+the invariant re-established by endpoint arithmetic, so no flow certificate — and no
+verdict hypothesis — appears at all.
+
 **Flagship instantiation** — `watertank_modal_certified`
 (`Instances/WatertankViability.lean`): the multi-mode reposition-window Theorem 3 for
 watertank, with existence proven in-kernel; its complete hypothesis list is six route
-verdicts, all observed `unsat` (route B) by the runner. That theorem holds under the
-trust table above, full stop.
+verdicts, all observed `unsat` (route B) by the runner, each tied to the printed query
+by a kernel identity theorem. That theorem holds under the trust table above, full stop.
+
+**How to check all of this yourself:** [`docs/CERTIFICATION-CHECK.md`](docs/CERTIFICATION-CHECK.md)
+— the five checks, the exact commands, the expected output, and a per-benchmark table of
+theorem names, hypotheses, and audited axioms.
 
 ---
 
@@ -98,7 +112,7 @@ trust table above, full stop.
 | **settling** (`*_real`) | cadenced rounds settle into the invariant band (`GuardSettlingB`) | 46/46 | **in the statement**, as `Gd q` (= the mode's guard bounds ∧ evolve envelope, `realGdOf`). Its final conjunct — *some retained successor's guard holds at the segment's end* — is **non-blocking, proven** | flow/cut verdicts (certification run) |
 | **throughout** | every component of the invariant holds throughout every right coexecution | 33 cut-free | **in the statement**, as `Gd` threaded through `RightReachG` | cover verdicts (certification run) |
 | **cut throughout** | same, via the guard-threaded cut lift (`RightReachG`) | 13 cut-reliant | **in the statement** as `Gd`, *and* as the guard-derived cut atoms (entering guard's lower bound, held by DI) | cut-narrowed cover verdicts + per-atom O2 probes (runner: all unsat) |
-| **modal (Theorem 3)** | `rvalid (theorem3Form …)` — the paper's ∀∃ with reposition-opened windows | watertank (pattern generalizes) | **not in the statement**: the R *program* appears instead, and its edge guards are `⊤` (see `docs/COVER-AUDIT.md`) | 6 route verdicts (runner: all unsat); existence **proven** |
+| **modal (Theorem 3)** | `rvalid (theorem3Form …)` — the paper's ∀∃ with reposition-opened windows | **46/46** (`Instances/ModalBattery.lean`) | **not in the statement**: the R *program* appears instead, and its edge guards are `⊤` (see `docs/COVER-AUDIT.md`) | per-instance route verdicts (all measured unsat); existence **proven** for every instance — zero existence hypotheses remain. Five benchmarks need no verdicts at all |
 
 The guard column is the one to read when relating these theorems to a paper's automaton
 `( ⋃_m ?(m ∈ next(mv)) ; ?guard_m(x) ; mv := m ; {x' = f_m & evolC_m} )*`: the first
@@ -126,7 +140,8 @@ RelCertifier/
   Instances/  KERNEL COLUMN: per-benchmark theorem instantiations + emitted data
     Throughout/     33 cut-free throughout instances (generated)
     CutThroughout/  13 cut-lifted throughout instances (generated)
-    WatertankModal / WatertankViability   the modal flagship
+    ModalBattery.lean   imports every benchmark's Theorem 3 + re-emits its axiom audit
+    WatertankModal / WatertankViability   the modal flagship (existence proven)
     Bench*.lean     drift-checked emitted data (IR, covers, cuts, viability census)
   Verdicts/   EMPIRICAL COLUMN: query mirrors, kernel pins, the runner
   Archive/    superseded developments (kept for the record, not imported)
@@ -261,10 +276,15 @@ theorems tie the runner's printed queries to the theorems' named queries).
 ## Re-checking the guarantees
 
 ```bash
+lake build                                      # kernel-checks every instance (incl. all 46 modal)
+./.lake/build/bin/relcert-test                  # IR drift, parser, printer, z3 layer
 ./.lake/build/bin/relcert --run-verdicts        # modal + cut-probe hypotheses → docs/VERDICTS.md
 ./.lake/build/bin/relcert benchmarks/suite_uniform/*/input.txt   # full certification re-run
 ./.lake/build/bin/relcert --emit-viability2 <bench>/input.txt <name>  # face census
 ```
+
+The full recipe — what each command proves, what it does *not* cover, and the
+per-benchmark table — is [`docs/CERTIFICATION-CHECK.md`](docs/CERTIFICATION-CHECK.md).
 
 <a name="trust-audit"></a>
 ### Trust audit
@@ -276,6 +296,13 @@ theorems tie the runner's printed queries to the theorems' named queries).
 -- + RelCertifier.z3_unsat_sound                     (six named verdicts)
 #print axioms RelCertifier.pres_multi_cut            -- 3 axioms (pure chain)
 #print axioms RelCertifier.WatertankVerdicts.wt_id   -- 3 axioms (the pins)
+#print axioms RelCertifier.Rover3M1Modal.rover3_M1_modal  -- 3 axioms (Z3-free instance)
+```
+
+For all 46 benchmarks at once:
+
+```bash
+lake build RelCertifier.Instances.ModalBattery 2>&1 | grep -A2 "depends on axioms"
 ```
 
 Every `Instances/` theorem audits to the standard three axioms plus `z3_unsat_sound`

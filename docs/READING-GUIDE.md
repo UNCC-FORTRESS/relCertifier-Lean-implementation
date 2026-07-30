@@ -59,12 +59,19 @@ Follow this path to see one guarantee all the way through:
    co-execution*. **This is what all 46 benchmarks instantiate.**
 5. **The ∀∃ modality.** `theorem3_uniform_from_covered` /
    `decideCovered_implies_theorem3_faithful` (`CoverExtract.lean`,
-   `BridgeDischarge.lean`), or the `hstep`-parametric `theorem3_faithful_multiE_LR`
-   (`EnvelopeChain.lean`), conclude `rvalid (theorem3Form …)`. **Two benchmarks
-   instantiate this.**
+   `BridgeDischarge.lean`), or the `hstep`-parametric family
+   `theorem3_faithful_multiE_LR` / `theorem3_faithful_multiF_LR` /
+   `theorem3_faithful_multiR_LR` (`EnvelopeChain*.lean`), conclude
+   `rvalid (theorem3Form …)`. **All 46 certified benchmarks instantiate this** —
+   see `Instances/ModalBattery.lean` and `docs/CERTIFICATION-CHECK.md`.
 6. **Existence.** The ∀∃ route needs the response flow to exist: `WellFormedFlowB_contract`
-   (`UniformEvol.lean`) for contract fields — no Z3, no budget — or the chained-Picard
-   route `HExistSegB_of_viability` (`ViabilityWiring.lean`) for general polynomial fields.
+   (`UniformEvol.lean`) for contract fields — no Z3, no budget — the stratified-face
+   consumers `HExistSegB_of_viability_strat{ified,A,A2}` (`Proofs/Flow/StratifiedFaces.lean`,
+   `AffineFaces{,2}.lean`) for general polynomial fields, or an explicit closed-form
+   witness where the response flow is elementary (`rover_tier_r1`; and, for the
+   catch-up instances, an explicit linear or exponential run). **Every modal instance
+   discharges existence in-kernel — no instance carries an existence hypothesis, and
+   no existence obligation is a Z3 verdict.**
 7. **Encoding.** `theorem3_encoded` (`Checker/Cover/Encoding.lean`) rests on dL-rel's
    **Theorem 2** (`RFormula.encoding_correct`, soundness *and* completeness, never
    vacuous by `exists_bridge`).
@@ -81,23 +88,23 @@ between them. So:
 | term | what it is | status |
 |---|---|---|
 | **throughout-preservation** | the invariant survives every certified joint piece and every reposition | ✅ **46/46** — this is what `Throughout/` and `CutThroughout/` prove |
-| **existence** | for a given L run, R's matching flow actually exists. Because `jointSys` puts L and R on **disjoint coordinate blocks**, L's flow plus R's flow in `domR` compose into the joint flow in `domL ∧ domR` (`hExistSegB_of_wellFormedFlowB`) | proven for watertank (contract fields); the `*_real` `GuardSettlingB` battery asserts the same object for 46/46 — a bridge lemma away (§5 note) |
-| **assembly** | knowing *all* joint runs are safe is not the same as *exhibiting one* spanning the whole L window; the ∃ must build a chain of pieces (plus repositions) covering the full duration | `EmitWindows`/`Hmulti`; available for 25 benchmarks, blocked for 21 (§5 note) |
+| **existence** | for a given L run, R's matching flow actually exists. Because `jointSys` puts L and R on **disjoint coordinate blocks**, L's flow plus R's flow in `domR` compose into the joint flow in `domL ∧ domR` (`hExistSegB_of_wellFormedFlowB`) | ✅ **46/46 proven in-kernel** — contract witnesses, stratified/affine face consumers, or explicit closed-form runs. Zero existence hypotheses, zero existence verdicts |
+| **assembly** | knowing *all* joint runs are safe is not the same as *exhibiting one* spanning the whole L window; the ∃ must build a chain of pieces (plus repositions) covering the full duration | ✅ **46/46** via the window layer (`Hmulti_window{1,R,RF}_prefixed`, `hstep_assembled_multi{E,F}`), the split layer for mode-switching responses (`SplitCoupling.lean`), and the catch-up layer for right-only responses (`WindowGrowth.lean`) |
 | **loop + encoding** | chaining windows (`relational_loop_multi`) and wrapping into the dL modality (`theorem3_encoded`, on dL-rel's Theorem 2) | ✅ **generic and proven** — no per-benchmark cost |
 
 This is why the two statements feel like they should be nearly the same thing: they are.
 The certificate is shared. The difference is that "throughout" *quantifies over* runs while
 Theorem 3 must *construct* one — and constructing needs existence and assembly.
 
-**Why exactly two are *written*.** Not because they are the only ones in scope — **25**
-are in scope (9 via the uniform route, 16 via the modal k = 1 route, the two written ones
-included). watertank and rover_drag are **pilots**, each built deliberately to validate one
-chain end to end (`UniformPilot.lean`'s header: *"First benchmark instance of
-`theorem3_uniform_multiflow`"*; watertank was the S1 gate). They were chosen because their
-extra ingredients are cheap — contract-field existence for watertank, an
-all-joint-certified graph for rover_drag — which makes them good pilots, not because the
-other 23 lack a route. Those 23 are unwritten, not blocked; that is the generator work.
-Only the remaining **21** are actually blocked (§5 note).
+**All 46 are now written** (2026-07-30). watertank and rover_drag were the pilots — each
+built to validate one chain end to end (`UniformPilot.lean`'s header: *"First benchmark
+instance of `theorem3_uniform_multiflow`"*; watertank was the S1 gate) — and the rest
+followed as the response layers landed: right-only hops, k > 1 windows, λ-reparametrized
+pieces, list-valued invariants, mode-switching splits, per-left-mode statements, and
+finally the catch-up form (`WindowGrowth.lean`), where the response is a pure right-side
+flow and the invariant is re-established by endpoint arithmetic. The last five benchmarks
+closed that way carry **no Z3 verdicts at all**. Per-benchmark theorem names, hypotheses
+and audited axioms: `docs/CERTIFICATION-CHECK.md`.
 
 ## 4. Live vs historical — check this before citing anything
 
@@ -126,7 +133,7 @@ systems, clocked left segments).
 | right-system well-formedness at the real scale (the paper's nonblocking + successor-complete assumption, **discharged**) | **46/46** (`*_real`) | ✅ live, but **stands alone** — see note |
 | the instance **is** the parsed file (`faithful… := rfl`) | 46/46 | ✅ live |
 | the tool's cover decision replayed (`coverReplays := by decide`) | 46/46 | ✅ live |
-| full ∀∃ `rvalid (theorem3Form …)` | **2** — watertank, rover_drag | ✅ live; extending to all 46 is **blocked for 25 of them** — see note |
+| full ∀∃ `rvalid (theorem3Form …)` | **46/46** (`Instances/ModalBattery.lean`) | ✅ live; existence proven in every instance; 5 instances carry no Z3 verdict at all |
 | (`EndToEnd` ×3, `Mega`) | watertank, arm_refinement | ❌ vacuous route |
 
 **Note on the `*_real` battery.** `GuardSettlingB` takes no invariant term — its
@@ -141,16 +148,20 @@ carrying `GBoxAll`/`hbudgetAll` (§4). Nothing live consumes it. Claim it as a s
 strengthening, not as a step toward the ∀∃ guarantee; the relational content for all 46
 comes from the Throughout/CutThroughout batteries.
 
-**Why the ∀∃ form extends to some benchmarks and not others.** The constraint is not the
-cover budget — `emitWindows_self` answers a k-piece window with k self-loop residences, so
-budget > 1 is fine. It is `RightProjAlignV`'s requirement that **every** mode be
-joint-certified: one non-joint mode forces a reposition prefix. Measured: **9** benchmarks
-have all modes joint-certified (uniform route, any k — `rover_drag` is one); **16** have a
-non-joint mode but budget 1 (watertank's modal k = 1 route); **21** have both a non-joint
-mode and budget > 1, needing a reposition prefix *with* multiple pieces — the one shape
-whose lemma (`Hmulti_window_prefixed`) has a side condition its own note proves false. So
-25 are reachable with identified work and 21 wait on one new lemma. See
-`PAPER-MAPPING.md` §3k–3l.
+**How the ∀∃ form reached all 46 (and what the old obstacle was).** The historical
+constraint was never the cover budget — `emitWindows_self` answers a k-piece window with
+k self-loop residences. It was `RightProjAlignV`'s requirement that **every** mode be
+joint-certified (one non-joint mode forces a reposition prefix), combined with
+`Hmulti_window_prefixed`'s unsatisfiable disjointness side condition. Both were resolved
+by later layers rather than by that lemma: right-only hop prefixes (`RepoPrefixR.lean`,
+whose disjointness is *derived*), k > 1 windows (`WindowRF.lean`), λ-reparametrized
+pieces (`Reparam.lean`), list-valued invariants (`EnvelopeChainM.lean`),
+mode-region-threaded statements (`EnvelopeChainR.lean`), intra-window mode switching
+(`SplitCoupling.lean`), per-left-mode statements (`rover3tier_rung12`), and finally the
+catch-up form (`WindowGrowth.lean`), where the response is a *right-only* flow and the
+invariant is re-established by endpoint arithmetic — no joint certificate, hence no Z3.
+The uniform route was retired for this purpose in R7; every instance goes through the
+modal chain. Per-benchmark inventory: `docs/CERTIFICATION-CHECK.md`.
 
 The 47th benchmark, `shield_unreachable`, is honestly reported as non-certifying.
 
@@ -169,6 +180,8 @@ with guard-gated switching (a fact about the modeled system). See README's trust
 
 **Active:**
 - `READING-GUIDE.md` (this file) — the entry point
+- `CERTIFICATION-CHECK.md` — **how to check the suite end to end**: the five checks, the
+  exact commands, and the per-benchmark theorem/hypothesis/axiom table
 - `PAPER-MAPPING.md` — paper ↔ mechanization inventory, the full-read findings, and the
   R-series gate glossary
 - `COVER-AUDIT.md` — tool↔proof findings, incl. the ⊤-guard note and the open parser hole

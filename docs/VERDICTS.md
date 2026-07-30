@@ -255,3 +255,37 @@ variant (affine-on-affine chaining) for `endurance_orderlift_2to3`,
 `attitude_rate`, `refinement_ladder_rover_rung4_8to12`; the per-mode-invariant
 device for the story1/rollover-b/rover3tier group; and the three specials
 (closed-form witness, no cover, smt2 invariants).
+
+
+---
+
+## Modal Theorem 3 — final suite map (2026-07-30, marathon close)
+
+**41 of 46 certified benchmarks carry `rvalid (theorem3Form …)`.** The five
+that do not, with the precise reason each is out of the chain's scope:
+
+* `refinement_ladder_rover_rung2_6dof`, `refinement_ladder_rover_rung2b_6dof`
+  — genuinely **reposition-reliant**: their window verdicts fail on 8 of 9
+  pairs at any single λ (measured), and the tool certifies them through
+  dynamic reposition certificates (`dynPre`/`dynPost`). The reposition-
+  inclusive assembly (`decideCovered_implies_theorem3_faithful_multi`)
+  exists but consumes the retired cadenced chain (R7).
+* `rover3_M1`, `rover_coupled`, `rover_position` — **pump-then-hold**: the
+  right modes are constant-drive with outflow ceilings, so no mode admits
+  arbitrary-duration viable runs, and the correct response switches modes at
+  value-dependent times. Needs the L3-split machinery lifted into the multiF
+  window — an open arc.
+* `rover3tier_rung12` — genuinely **per-mode different-shape** invariants
+  (a two-conjunct tolerance in ACCEL, a combined functional in COAST, no
+  implication either way), which the single-φ modal form cannot state
+  without a left-mode-indexed invariant device.
+
+`shield_unreachable` stays the 47th benchmark: the tool itself reports an
+inconclusive Z3 verdict, so it is outside the certified suite entirely.
+
+Landed in this closing stretch: `rover_tier_r1` (the closed-form polynomial
+witness — the first instance whose existence has no Picard machinery),
+`story3_rollover_ladder_rung_b`, `story1_attdist_rung_a_6to8`,
+`story1_attdist_rung_b_12dof` (the nested per-mode group, certified at their
+COMMON declared invariant — the modes' invariants nest, so the shared row is
+the honest modal loop invariant).

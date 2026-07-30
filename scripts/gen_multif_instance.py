@@ -32,18 +32,23 @@ def gen(spec):
     def ifnegs(j):
         return "".join(f"if_neg (hne {j} {k} (by decide)), " for k in negs(j))
 
-    def rowval(i, xs='x'):
+    LAM = spec.get('lam', '1')
+    DR = spec.get('drive', 3)
+    KWv = spec.get('kw', 1)
+    def rowval(i, xs='x', scaled=False):
         kind = rows[i]
+        LM = ("" if LAM == '1' or not scaled else "(" + LAM + ") * ")
         if kind[0] == 'affine':
-            return f'3 * (cst{SUF} q - {xs} (Rv {i}))'
+            return (LM + f'({DR} * (cst{SUF} q - {xs} (Rv {i})))') if LM else f'{DR} * (cst{SUF} q - {xs} (Rv {i}))'
         if kind[0] == 'vel':
-            return f'{xs} (Rv 0)'
+            return LM + f'{xs} (Rv 0)'
         if kind[0] == 'bracket':
             _, p, t = kind
-            return (f'{xs} (Rv 0) * ((1 - 1/2 * ({xs} (Rv {p}) * {xs} (Rv {p})))'
+            core = (f'{xs} (Rv 0) * ((1 - 1/2 * ({xs} (Rv {p}) * {xs} (Rv {p})))'
                     f' - 3/10 * ({xs} (Rv {t}) * {xs} (Rv {t})))')
+            return (LM + '(' + core + ')') if LM else core
         if kind[0] == 'decay':
-            return f'-1 * {xs} (Rv {i})'
+            return (LM + f'(-1 * {xs} (Rv {i}))') if LM else f'-1 * {xs} (Rv {i})'
         return '0'
 
     O = []
@@ -225,7 +230,7 @@ theorem hfresh{SUF} : ∀ q m, Gr{SUF}.modeAt q = some m →
 /-! ## The left window family -/
 
 noncomputable def leftData{SUF} : List ((Fin {N} → Term (Var {N})) × Formula (Var {N}) × ℕ) :=
-  [(fL{SUF} 0, domL{SUF}, 1), (fL{SUF} 1, domL{SUF}, 1), (fL{SUF} 2, domL{SUF}, 1)]
+  [(fL{SUF} 0, domL{SUF}, {KWv}), (fL{SUF} 1, domL{SUF}, {KWv}), (fL{SUF} 2, domL{SUF}, {KWv})]
 
 noncomputable def leftProgs{SUF} (dt : ℝ) : List (Program (Var {N})) :=
   leftData{SUF}.map (fun d => windowSeg (leftBlock d.1) d.2.1 tg{SUF} dt d.2.2)
@@ -337,7 +342,7 @@ theorem faces_fv_R{SUF} : ∀ gT' ∈ gsS{SUF} ++ gsN{SUF}, ∀ x ∈ gT'.fv, x 
 
 /-! ## The frozen-left joint field -/
 ''')
-    ifs = "\n".join(f"        else if c = Rv {j} then {rowval(j)}" for j in nz[1:])
+    ifs = "\n".join(f"        else if c = Rv {j} then {rowval(j, scaled=True)}" for j in nz[1:])
     branches = []
     for j in sorted(rows):
         hyps = "".join(f",\n          hne {j} {k} (by decide)" for k in negs(j))
@@ -345,17 +350,17 @@ theorem faces_fv_R{SUF} : ∀ gT' ∈ gsS{SUF} ++ gsN{SUF}, ∀ x ∈ gT'.fv, x 
     hLRs = ", ".join(f"hLR {k}" for k in nz)
     A(f'''
 theorem odeField_R{SUF} (q : ℕ) (hq : q < {nmodes}) (x : State (Var {N})) :
-    odeField (jointSys (fun _ => Term.const 0) (fR{SUF} q) (Term.const 1)) x
+    odeField (jointSys (fun _ => Term.const 0) (fR{SUF} q) (Term.const ({LAM}))) x
       = fun c =>
-        if c = Rv {nz[0]} then {rowval(nz[0])}
+        if c = Rv {nz[0]} then {rowval(nz[0], scaled=True)}
 {ifs}
         else 0 := by
   funext c
-  by_cases hc : c ∈ (jointSys (fun _ => Term.const 0) (fR{SUF} q) (Term.const 1)).bound
-  · rw [show odeField (jointSys (fun _ => Term.const 0) (fR{SUF} q) (Term.const 1)) x c
-        = ((jointSys (fun _ => Term.const 0) (fR{SUF} q) (Term.const 1)).rhs c).eval x from by
+  by_cases hc : c ∈ (jointSys (fun _ => Term.const 0) (fR{SUF} q) (Term.const ({LAM}))).bound
+  · rw [show odeField (jointSys (fun _ => Term.const 0) (fR{SUF} q) (Term.const ({LAM}))) x c
+        = ((jointSys (fun _ => Term.const 0) (fR{SUF} q) (Term.const ({LAM}))).rhs c).eval x from by
       simp only [odeField, if_pos hc]]
-    obtain ⟨p, hp, hfst⟩ : ∃ p ∈ jointSys (fun _ => Term.const 0) (fR{SUF} q) (Term.const 1),
+    obtain ⟨p, hp, hfst⟩ : ∃ p ∈ jointSys (fun _ => Term.const 0) (fR{SUF} q) (Term.const ({LAM})),
         p.1 = c := by simpa [ODESystem.bound, List.mem_map] using hc
     rw [← hfst, ODESystem.rhs_eq_of_mem (jointSys_wellFormed _ _ _) hp]
     rw [jointSys_split] at hp
@@ -421,7 +426,7 @@ theorem odeField_R{SUF} (q : ℕ) (hq : q < {nmodes}) (x : State (Var {N})) :
     A(f'''
 theorem hbndS_{SUF} (q : ℕ) (hq : q < {nmodes}) : ∀ gT' ∈ gsS{SUF}, ∀ x : State (Var {N}),
     Term.eval gT' x = 0 →
-    Lie (jointSys (fun _ => Term.const 0) (fR{SUF} q) (Term.const 1))
+    Lie (jointSys (fun _ => Term.const 0) (fR{SUF} q) (Term.const ({LAM})))
       (fun ω => Term.eval gT' ω) x < 0 := by
   have hne : ∀ (a b : Fin {N}), a ≠ b → (Rv a : Var {N}) ≠ Rv b := by
     intro a b hab
@@ -495,7 +500,7 @@ theorem hbndS_{SUF} (q : ℕ) (hq : q < {nmodes}) : ∀ gT' ∈ gsS{SUF}, ∀ x 
 theorem hbndN_{SUF} (q : ℕ) (hq : q < {nmodes}) : ∀ i (hi : i < gsN{SUF}.length),
     ∀ x : State (Var {N}),
     (∀ gT' ∈ gsS{SUF} ++ ([] : List (Term (Var {N}))), Term.eval gT' x ≤ 0) →
-    Lie (jointSys (fun _ => Term.const 0) (fR{SUF} q) (Term.const 1))
+    Lie (jointSys (fun _ => Term.const 0) (fR{SUF} q) (Term.const ({LAM})))
       (fun ω => Term.eval gsN{SUF}[i] ω) x ≤ 0 := by
   have hne : ∀ (a b : Fin {N}), a ≠ b → (Rv a : Var {N}) ≠ Rv b := by
     intro a b hab
@@ -508,114 +513,122 @@ theorem hbndN_{SUF} (q : ℕ) (hq : q < {nmodes}) : ∀ i (hi : i < gsN{SUF}.len
 
 /-! ## Lipschitz and field bound -/
 ''')
-    # Lipschitz: bracket row needs the rung2c-style argument; others simple
+    # ---- Lipschitz and field bound (lambda-aware: factor lambda out, bound the core) ----
+    LMul = "" if LAM == '1' else "(" + LAM + ") * "
+    def corediff(j):
+        k = rows[j][0]
+        if k == 'affine':
+            return (f"{DR} * (cst{SUF} q - x (Rv {j})) - {DR} * (cst{SUF} q - y (Rv {j}))",
+                    f"-({DR} : ℝ) * (x (Rv {j}) - y (Rv {j}))", f"-({DR} : ℝ)", str(DR), j)
+        if k == 'vel':
+            return ("x (Rv 0) - y (Rv 0)", "(1 : ℝ) * (x (Rv 0) - y (Rv 0))", "(1 : ℝ)", "1", 0)
+        return (f"-1 * x (Rv {j}) - -1 * y (Rv {j})",
+                f"-(1 : ℝ) * (x (Rv {j}) - y (Rv {j}))", "-(1 : ℝ)", "1", j)
+    lipfac = ("skip" if not LMul else
+        "have hfac : ∀ A B : ℝ, " + LMul + "A - " + LMul + "B = (" + LAM + ") * (A - B) := by\n"
+        "      intro A B; ring\n"
+        "    rw [hfac, abs_mul, abs_of_pos (show (0:ℝ) < (" + LAM + ") by norm_num)]")
     lipbr = []
-    lipbr.append(f'''  by_cases hc{nz[0]} : c = Rv {nz[0]}
-  · subst hc{nz[0]}
-    simp only [eq_self_iff_true, if_true, if_pos rfl]
+    for j in nz:
+        kk = rows[j][0]
+        pre = ifnegs(j) if j != nz[0] else ""
+        if kk == 'bracket':
+            _, pp, tt = rows[j]
+            lipbr.append(f'''  by_cases hc{j} : c = Rv {j}
+  · subst hc{j}
+    simp only [{pre}eq_self_iff_true, if_true, if_pos rfl]
     rw [Real.dist_eq]
-    have hdiff : 3 * (cst{SUF} q - x (Rv 0)) - 3 * (cst{SUF} q - y (Rv 0))
-        = -3 * (x (Rv 0) - y (Rv 0)) := by ring
-    rw [hdiff, abs_mul]
-    have habs : |(-3 : ℝ)| = 3 := by norm_num
-    rw [habs, hcoe]
-    nlinarith [hdc 0]''')
-    for j in nz[1:]:
-        kind = rows[j][0]
-        if kind == 'vel':
-            lipbr.append(f'''  by_cases hc{j} : c = Rv {j}
-  · subst hc{j}
-    simp only [{ifnegs(j)}eq_self_iff_true, if_true, if_pos rfl]
-    rw [Real.dist_eq, hcoe]
-    nlinarith [hdc 0, abs_nonneg (x (Rv 0) - y (Rv 0))]''')
-        elif kind == 'bracket':
-            _, p, t = rows[j]
-            lipbr.append(f'''  by_cases hc{j} : c = Rv {j}
-  · subst hc{j}
-    simp only [{ifnegs(j)}eq_self_iff_true, if_true, if_pos rfl]
-    rw [Real.dist_eq, hcoe]
-    have hdiff : x (Rv 0) * ((1 - 1/2 * (x (Rv {p}) * x (Rv {p}))) - 3/10 * (x (Rv {t}) * x (Rv {t})))
-        - y (Rv 0) * ((1 - 1/2 * (y (Rv {p}) * y (Rv {p}))) - 3/10 * (y (Rv {t}) * y (Rv {t})))
-        = ((1 - 1/2 * (x (Rv {p}) * x (Rv {p}))) - 3/10 * (x (Rv {t}) * x (Rv {t})))
-            * (x (Rv 0) - y (Rv 0))
-          + y (Rv 0) * (-(1/2) * ((x (Rv {p}) + y (Rv {p})) * (x (Rv {p}) - y (Rv {p})))
-              - 3/10 * ((x (Rv {t}) + y (Rv {t})) * (x (Rv {t}) - y (Rv {t})))) := by
-      ring
-    rw [hdiff]
-    have hBx : |(1 - 1/2 * (x (Rv {p}) * x (Rv {p}))) - 3/10 * (x (Rv {t}) * x (Rv {t}))|
-        ≤ 5 := by
-      have h2 : x (Rv {p}) * x (Rv {p}) ≤ 4 := by nlinarith [abs_le.mp hxb{p}]
-      have h3 : x (Rv {t}) * x (Rv {t}) ≤ 4 := by nlinarith [abs_le.mp hxb{t}]
-      have h2n : 0 ≤ x (Rv {p}) * x (Rv {p}) := mul_self_nonneg _
-      have h3n : 0 ≤ x (Rv {t}) * x (Rv {t}) := mul_self_nonneg _
-      rw [abs_le]
-      constructor <;> nlinarith
-    have hsum{p} : |x (Rv {p}) + y (Rv {p})| ≤ 4 := by
-      calc |x (Rv {p}) + y (Rv {p})| ≤ |x (Rv {p})| + |y (Rv {p})| := abs_add_le _ _
-        _ ≤ 4 := by linarith [abs_le.mp hxb{p}, abs_le.mp hyb{p}]
-    have hsum{t} : |x (Rv {t}) + y (Rv {t})| ≤ 4 := by
-      calc |x (Rv {t}) + y (Rv {t})| ≤ |x (Rv {t})| + |y (Rv {t})| := abs_add_le _ _
-        _ ≤ 4 := by linarith [abs_le.mp hxb{t}, abs_le.mp hyb{t}]
-    have hA : |(x (Rv {p}) + y (Rv {p})) * (x (Rv {p}) - y (Rv {p}))| ≤ 4 * dist x y := by
-      rw [abs_mul]
-      nlinarith [hdc {p}, abs_nonneg (x (Rv {p}) + y (Rv {p})), abs_nonneg (x (Rv {p}) - y (Rv {p}))]
-    have hB : |(x (Rv {t}) + y (Rv {t})) * (x (Rv {t}) - y (Rv {t}))| ≤ 4 * dist x y := by
-      rw [abs_mul]
-      nlinarith [hdc {t}, abs_nonneg (x (Rv {t}) + y (Rv {t})), abs_nonneg (x (Rv {t}) - y (Rv {t}))]
-    have htri : |(-(1/2) * ((x (Rv {p}) + y (Rv {p})) * (x (Rv {p}) - y (Rv {p})))
-          - 3/10 * ((x (Rv {t}) + y (Rv {t})) * (x (Rv {t}) - y (Rv {t}))))|
-        ≤ 4 * dist x y := by
-      have e1 : |(-(1/2) : ℝ) * ((x (Rv {p}) + y (Rv {p})) * (x (Rv {p}) - y (Rv {p})))|
-          ≤ 1/2 * (4 * dist x y) := by
-        rw [abs_mul]
-        have h : |(-(1/2) : ℝ)| = 1/2 := by norm_num
-        rw [h]
-        nlinarith [abs_nonneg ((x (Rv {p}) + y (Rv {p})) * (x (Rv {p}) - y (Rv {p})))]
-      have e2 : |((3:ℝ)/10) * ((x (Rv {t}) + y (Rv {t})) * (x (Rv {t}) - y (Rv {t})))|
-          ≤ 3/10 * (4 * dist x y) := by
-        rw [abs_mul]
-        have h : |((3:ℝ)/10)| = 3/10 := by norm_num
-        rw [h]
-        nlinarith [abs_nonneg ((x (Rv {t}) + y (Rv {t})) * (x (Rv {t}) - y (Rv {t})))]
-      have hsub : |(-(1/2) * ((x (Rv {p}) + y (Rv {p})) * (x (Rv {p}) - y (Rv {p})))
-            - 3/10 * ((x (Rv {t}) + y (Rv {t})) * (x (Rv {t}) - y (Rv {t}))))|
-          ≤ |(-(1/2) : ℝ) * ((x (Rv {p}) + y (Rv {p})) * (x (Rv {p}) - y (Rv {p})))|
-            + |((3:ℝ)/10) * ((x (Rv {t}) + y (Rv {t})) * (x (Rv {t}) - y (Rv {t})))| := by
-        rw [sub_eq_add_neg]
-        refine (abs_add_le _ _).trans ?_
-        rw [abs_neg]
+    have hcore : |x (Rv 0) * ((1 - 1/2 * (x (Rv {pp}) * x (Rv {pp}))) - 3/10 * (x (Rv {tt}) * x (Rv {tt})))
+        - y (Rv 0) * ((1 - 1/2 * (y (Rv {pp}) * y (Rv {pp}))) - 3/10 * (y (Rv {tt}) * y (Rv {tt})))|
+        ≤ 13 * dist x y := by
+      have hdiff : x (Rv 0) * ((1 - 1/2 * (x (Rv {pp}) * x (Rv {pp}))) - 3/10 * (x (Rv {tt}) * x (Rv {tt})))
+          - y (Rv 0) * ((1 - 1/2 * (y (Rv {pp}) * y (Rv {pp}))) - 3/10 * (y (Rv {tt}) * y (Rv {tt})))
+          = ((1 - 1/2 * (x (Rv {pp}) * x (Rv {pp}))) - 3/10 * (x (Rv {tt}) * x (Rv {tt})))
+              * (x (Rv 0) - y (Rv 0))
+            + y (Rv 0) * (-(1/2) * ((x (Rv {pp}) + y (Rv {pp})) * (x (Rv {pp}) - y (Rv {pp})))
+                - 3/10 * ((x (Rv {tt}) + y (Rv {tt})) * (x (Rv {tt}) - y (Rv {tt})))) := by
+        ring
+      rw [hdiff]
+      have hBx : |(1 - 1/2 * (x (Rv {pp}) * x (Rv {pp}))) - 3/10 * (x (Rv {tt}) * x (Rv {tt}))| ≤ 5 := by
+        have h2 : x (Rv {pp}) * x (Rv {pp}) ≤ 4 := by nlinarith [abs_le.mp hxb{pp}]
+        have h3 : x (Rv {tt}) * x (Rv {tt}) ≤ 4 := by nlinarith [abs_le.mp hxb{tt}]
+        have h2n : 0 ≤ x (Rv {pp}) * x (Rv {pp}) := mul_self_nonneg _
+        have h3n : 0 ≤ x (Rv {tt}) * x (Rv {tt}) := mul_self_nonneg _
+        rw [abs_le]
+        constructor <;> nlinarith
+      have htri : |(-(1/2) * ((x (Rv {pp}) + y (Rv {pp})) * (x (Rv {pp}) - y (Rv {pp})))
+            - 3/10 * ((x (Rv {tt}) + y (Rv {tt})) * (x (Rv {tt}) - y (Rv {tt}))))| ≤ 4 * dist x y := by
+        have hA : |(x (Rv {pp}) + y (Rv {pp})) * (x (Rv {pp}) - y (Rv {pp}))| ≤ 4 * dist x y := by
+          rw [abs_mul]
+          have hs : |x (Rv {pp}) + y (Rv {pp})| ≤ 4 := by
+            calc |x (Rv {pp}) + y (Rv {pp})| ≤ |x (Rv {pp})| + |y (Rv {pp})| := abs_add_le _ _
+              _ ≤ 4 := by linarith [abs_le.mp hxb{pp}, abs_le.mp hyb{pp}]
+          nlinarith [hdc {pp}, abs_nonneg (x (Rv {pp}) + y (Rv {pp})), abs_nonneg (x (Rv {pp}) - y (Rv {pp}))]
+        have hB2 : |(x (Rv {tt}) + y (Rv {tt})) * (x (Rv {tt}) - y (Rv {tt}))| ≤ 4 * dist x y := by
+          rw [abs_mul]
+          have hs : |x (Rv {tt}) + y (Rv {tt})| ≤ 4 := by
+            calc |x (Rv {tt}) + y (Rv {tt})| ≤ |x (Rv {tt})| + |y (Rv {tt})| := abs_add_le _ _
+              _ ≤ 4 := by linarith [abs_le.mp hxb{tt}, abs_le.mp hyb{tt}]
+          nlinarith [hdc {tt}, abs_nonneg (x (Rv {tt}) + y (Rv {tt})), abs_nonneg (x (Rv {tt}) - y (Rv {tt}))]
+        have e1 : |(-(1/2) : ℝ) * ((x (Rv {pp}) + y (Rv {pp})) * (x (Rv {pp}) - y (Rv {pp})))|
+            ≤ 1/2 * (4 * dist x y) := by
+          rw [abs_mul]
+          have h : |(-(1/2) : ℝ)| = 1/2 := by norm_num
+          rw [h]
+          nlinarith [abs_nonneg ((x (Rv {pp}) + y (Rv {pp})) * (x (Rv {pp}) - y (Rv {pp})))]
+        have e2 : |((3:ℝ)/10) * ((x (Rv {tt}) + y (Rv {tt})) * (x (Rv {tt}) - y (Rv {tt})))|
+            ≤ 3/10 * (4 * dist x y) := by
+          rw [abs_mul]
+          have h : |((3:ℝ)/10)| = 3/10 := by norm_num
+          rw [h]
+          nlinarith [abs_nonneg ((x (Rv {tt}) + y (Rv {tt})) * (x (Rv {tt}) - y (Rv {tt})))]
+        have hsub : |(-(1/2) * ((x (Rv {pp}) + y (Rv {pp})) * (x (Rv {pp}) - y (Rv {pp})))
+              - 3/10 * ((x (Rv {tt}) + y (Rv {tt})) * (x (Rv {tt}) - y (Rv {tt}))))|
+            ≤ |(-(1/2) : ℝ) * ((x (Rv {pp}) + y (Rv {pp})) * (x (Rv {pp}) - y (Rv {pp})))|
+              + |((3:ℝ)/10) * ((x (Rv {tt}) + y (Rv {tt})) * (x (Rv {tt}) - y (Rv {tt})))| := by
+          rw [sub_eq_add_neg]
+          refine (abs_add_le _ _).trans ?_
+          rw [abs_neg]
+        linarith
+      have hfin1 : |(1 - 1/2 * (x (Rv {pp}) * x (Rv {pp}))) - 3/10 * (x (Rv {tt}) * x (Rv {tt}))|
+          * |x (Rv 0) - y (Rv 0)| ≤ 5 * dist x y :=
+        mul_le_mul hBx (hdc 0) (abs_nonneg _) (by norm_num)
+      have hfin2 : |y (Rv 0)| * |(-(1/2) * ((x (Rv {pp}) + y (Rv {pp})) * (x (Rv {pp}) - y (Rv {pp})))
+            - 3/10 * ((x (Rv {tt}) + y (Rv {tt})) * (x (Rv {tt}) - y (Rv {tt}))))|
+          ≤ 2 * (4 * dist x y) :=
+        mul_le_mul hyb0 htri (abs_nonneg _) (by norm_num)
+      have hsplit : |((1 - 1/2 * (x (Rv {pp}) * x (Rv {pp}))) - 3/10 * (x (Rv {tt}) * x (Rv {tt})))
+              * (x (Rv 0) - y (Rv 0))
+            + y (Rv 0) * (-(1/2) * ((x (Rv {pp}) + y (Rv {pp})) * (x (Rv {pp}) - y (Rv {pp})))
+                - 3/10 * ((x (Rv {tt}) + y (Rv {tt})) * (x (Rv {tt}) - y (Rv {tt}))))|
+          ≤ |((1 - 1/2 * (x (Rv {pp}) * x (Rv {pp}))) - 3/10 * (x (Rv {tt}) * x (Rv {tt})))
+              * (x (Rv 0) - y (Rv 0))|
+            + |y (Rv 0) * (-(1/2) * ((x (Rv {pp}) + y (Rv {pp})) * (x (Rv {pp}) - y (Rv {pp})))
+                - 3/10 * ((x (Rv {tt}) + y (Rv {tt})) * (x (Rv {tt}) - y (Rv {tt}))))| := abs_add_le _ _
+      rw [abs_mul, abs_mul] at hsplit
       linarith
-    calc |((1 - 1/2 * (x (Rv {p}) * x (Rv {p}))) - 3/10 * (x (Rv {t}) * x (Rv {t})))
-            * (x (Rv 0) - y (Rv 0))
-          + y (Rv 0) * (-(1/2) * ((x (Rv {p}) + y (Rv {p})) * (x (Rv {p}) - y (Rv {p})))
-              - 3/10 * ((x (Rv {t}) + y (Rv {t})) * (x (Rv {t}) - y (Rv {t}))))|
-        ≤ |((1 - 1/2 * (x (Rv {p}) * x (Rv {p}))) - 3/10 * (x (Rv {t}) * x (Rv {t})))
-            * (x (Rv 0) - y (Rv 0))|
-          + |y (Rv 0) * (-(1/2) * ((x (Rv {p}) + y (Rv {p})) * (x (Rv {p}) - y (Rv {p})))
-              - 3/10 * ((x (Rv {t}) + y (Rv {t})) * (x (Rv {t}) - y (Rv {t}))))| :=
-          abs_add_le _ _
-      _ ≤ (({K} : NNReal) : ℝ) * dist x y := by
-          rw [abs_mul, abs_mul, hcoe]
-          have e1 : |(1 - 1/2 * (x (Rv {p}) * x (Rv {p}))) - 3/10 * (x (Rv {t}) * x (Rv {t}))|
-              * |x (Rv 0) - y (Rv 0)| ≤ 5 * dist x y :=
-            mul_le_mul hBx (hdc 0) (abs_nonneg _) (by norm_num)
-          have e2 : |y (Rv 0)| * |(-(1/2) * ((x (Rv {p}) + y (Rv {p})) * (x (Rv {p}) - y (Rv {p})))
-                - 3/10 * ((x (Rv {t}) + y (Rv {t})) * (x (Rv {t}) - y (Rv {t}))))|
-              ≤ 2 * (4 * dist x y) :=
-            mul_le_mul hyb0 htri (abs_nonneg _) (by norm_num)
-          linarith''')
-        else:  # decay
+    {lipfac}
+    nlinarith [hcore, hd]''')
+        else:
+            raw, fac, coefexpr, coefval, dj = corediff(j)
             lipbr.append(f'''  by_cases hc{j} : c = Rv {j}
   · subst hc{j}
-    simp only [{ifnegs(j)}eq_self_iff_true, if_true, if_pos rfl]
-    rw [Real.dist_eq, hcoe]
-    exact hdecay {j}''')
-    # ball bounds needed by bracket branch
+    simp only [{pre}eq_self_iff_true, if_true, if_pos rfl]
+    rw [Real.dist_eq]
+    have hcore : |{raw}| ≤ {coefval} * dist x y := by
+      have hdiff : {raw} = {fac} := by ring
+      rw [hdiff, abs_mul]
+      have habs : |{coefexpr}| = {coefval} := by norm_num
+      rw [habs]
+      nlinarith [hdc {dj}]
+    {lipfac}
+    nlinarith [hcore, hd]''')
     ballfacts = ""
     if hasBracket:
-        _, p, t = next(r for r in rows.values() if r[0] == 'bracket')
-        pb = next((lo, hi, nlo, nhi) for c, lo, hi, nlo, nhi in strict if c == p)
-        tb = next((lo, hi, nlo, nhi) for c, lo, hi, nlo, nhi in strict if c == t)
+        _, pp, tt = next(r for r in rows.values() if r[0] == 'bracket')
+        pb = next((lo, hi, nlo, nhi) for c, lo, hi, nlo, nhi in strict if c == pp)
+        tb = next((lo, hi, nlo, nhi) for c, lo, hi, nlo, nhi in strict if c == tt)
+        vb = strict[0]
         ballfacts = f'''
   have hband : ∀ (w : State (Var {N})), dist w ν ≤ 1 → ∀ (j : Fin {N}) (lo hi : ℝ),
       lo ≤ ν (Rv j) → ν (Rv j) ≤ hi → -1 ≤ lo → hi ≤ 1 → |w (Rv j)| ≤ 2 := by
@@ -625,35 +638,35 @@ theorem hbndN_{SUF} (q : ℕ) (hq : q < {nmodes}) : ∀ i (hi : i < gsN{SUF}.len
     have hνb : |ν (Rv j)| ≤ 1 := abs_le.mpr ⟨by linarith, by linarith⟩
     have h2 := abs_sub_abs_le_abs_sub (w (Rv j)) (ν (Rv j))
     linarith [abs_le.mp hνb, hw]
-  have hνp1 : {pb[0]} ≤ ν (Rv {p}) := by
+  have hνv1 : {vb[1]} ≤ ν (Rv 0) := by
+    have := hν {vb[3]} (by simp [gsS{SUF}])
+    simp only [{vb[3]}, Term.eval, AOp.interp] at this; linarith
+  have hνv2 : ν (Rv 0) ≤ {vb[2]} := by
+    have := hν {vb[4]} (by simp [gsS{SUF}])
+    simp only [{vb[4]}, Term.eval, AOp.interp] at this; linarith
+  have hνp1 : {pb[0]} ≤ ν (Rv {pp}) := by
     have := hν {pb[2]} (by simp [gsS{SUF}])
     simp only [{pb[2]}, Term.eval, AOp.interp] at this; linarith
-  have hνp2 : ν (Rv {p}) ≤ {pb[1]} := by
+  have hνp2 : ν (Rv {pp}) ≤ {pb[1]} := by
     have := hν {pb[3]} (by simp [gsS{SUF}])
     simp only [{pb[3]}, Term.eval, AOp.interp] at this; linarith
-  have hνt1 : {tb[0]} ≤ ν (Rv {t}) := by
+  have hνt1 : {tb[0]} ≤ ν (Rv {tt}) := by
     have := hν {tb[2]} (by simp [gsS{SUF}])
     simp only [{tb[2]}, Term.eval, AOp.interp] at this; linarith
-  have hνt2 : ν (Rv {t}) ≤ {tb[1]} := by
+  have hνt2 : ν (Rv {tt}) ≤ {tb[1]} := by
     have := hν {tb[3]} (by simp [gsS{SUF}])
     simp only [{tb[3]}, Term.eval, AOp.interp] at this; linarith
-  have hνv1 : {strict[0][1]} ≤ ν (Rv 0) := by
-    have := hν {strict[0][3]} (by simp [gsS{SUF}])
-    simp only [{strict[0][3]}, Term.eval, AOp.interp] at this; linarith
-  have hνv2 : ν (Rv 0) ≤ {strict[0][2]} := by
-    have := hν {strict[0][4]} (by simp [gsS{SUF}])
-    simp only [{strict[0][4]}, Term.eval, AOp.interp] at this; linarith
-  have hyb0 : |y (Rv 0)| ≤ 2 := hband y hy 0 ({strict[0][1]}) ({strict[0][2]}) hνv1 hνv2 (by norm_num) (by norm_num)
-  have hxb{p} : |x (Rv {p})| ≤ 2 := hband x hx {p} ({pb[0]}) ({pb[1]}) hνp1 hνp2 (by norm_num) (by norm_num)
-  have hyb{p} : |y (Rv {p})| ≤ 2 := hband y hy {p} ({pb[0]}) ({pb[1]}) hνp1 hνp2 (by norm_num) (by norm_num)
-  have hxb{t} : |x (Rv {t})| ≤ 2 := hband x hx {t} ({tb[0]}) ({tb[1]}) hνt1 hνt2 (by norm_num) (by norm_num)
-  have hyb{t} : |y (Rv {t})| ≤ 2 := hband y hy {t} ({tb[0]}) ({tb[1]}) hνt1 hνt2 (by norm_num) (by norm_num)'''
+  have hyb0 : |y (Rv 0)| ≤ 2 := hband y hy 0 ({vb[1]}) ({vb[2]}) hνv1 hνv2 (by norm_num) (by norm_num)
+  have hxb{pp} : |x (Rv {pp})| ≤ 2 := hband x hx {pp} ({pb[0]}) ({pb[1]}) hνp1 hνp2 (by norm_num) (by norm_num)
+  have hyb{pp} : |y (Rv {pp})| ≤ 2 := hband y hy {pp} ({pb[0]}) ({pb[1]}) hνp1 hνp2 (by norm_num) (by norm_num)
+  have hxb{tt} : |x (Rv {tt})| ≤ 2 := hband x hx {tt} ({tb[0]}) ({tb[1]}) hνt1 hνt2 (by norm_num) (by norm_num)
+  have hyb{tt} : |y (Rv {tt})| ≤ 2 := hband y hy {tt} ({tb[0]}) ({tb[1]}) hνt1 hνt2 (by norm_num) (by norm_num)'''
     lipsig = (f"theorem hLip_{SUF} (q : ℕ) (hq : q < {nmodes}) (ν : State (Var {N}))\n"
               f"    (hν : ∀ gT' ∈ gsS{SUF}, Term.eval gT' ν ≤ 0) :" if hasBracket else
               f"theorem hLip_{SUF} (q : ℕ) (hq : q < {nmodes}) (ν : State (Var {N})) :")
     A(f'''
 {lipsig}
-    LipschitzOnWith {K} (odeField (jointSys (fun _ => Term.const 0) (fR{SUF} q) (Term.const 1)))
+    LipschitzOnWith {K} (odeField (jointSys (fun _ => Term.const 0) (fR{SUF} q) (Term.const ({LAM}))))
       (Metric.closedBall ν 1) := by
   have hne : ∀ (a b : Fin {N}), a ≠ b → (Rv a : Var {N}) ≠ Rv b := by
     intro a b hab
@@ -669,107 +682,77 @@ theorem hbndN_{SUF} (q : ℕ) (hq : q < {nmodes}) : ∀ i (hi : i < gsN{SUF}.len
     rwa [Real.dist_eq] at h
   have hd : (0:ℝ) ≤ dist x y := dist_nonneg
   have hcoe : (({K} : NNReal) : ℝ) = {K} := rfl
-  have hdecay : ∀ j : Fin {N}, |(-1 * x (Rv j)) - (-1 * y (Rv j))| ≤ {K} * dist x y := by
-    intro j
-    have hdiff : -1 * x (Rv j) - -1 * y (Rv j) = -(x (Rv j) - y (Rv j)) := by ring
-    rw [hdiff, abs_neg]
-    nlinarith [hdc j]{ballfacts}
+  rw [hcoe]{ballfacts}
   refine dist_pi_le_iff (by positivity) |>.mpr ?_
   intro c
 {chr(10).join(lipbr)}
   · simp only [{", ".join(f"if_neg hc{j}" for j in nz)}]
-    rw [hcoe]
     simp [dist_nonneg]
 ''')
-    # field bound
+    fb_facts = [f'''  have hbandf : ∀ (j : Fin {N}) (lo hi : ℝ),
+      lo ≤ ν (Rv j) → ν (Rv j) ≤ hi → -1 ≤ lo → hi ≤ 1 → |x (Rv j)| ≤ 2 := by
+    intro j lo hi hl hh hlo1 hhi1
+    have h := dist_le_pi_dist x ν (Rv j)
+    rw [Real.dist_eq] at h
+    have hνb : |ν (Rv j)| ≤ 1 := abs_le.mpr ⟨by linarith, by linarith⟩
+    have h2 := abs_sub_abs_le_abs_sub (x (Rv j)) (ν (Rv j))
+    linarith [abs_le.mp hνb, hx]''']
+    for c, lo, hi, nlo, nhi in strict:
+        fb_facts.append(f'''  have hxb{c} : |x (Rv {c})| ≤ 2 := by
+    refine hbandf {c} ({lo}) ({hi}) ?_ ?_ (by norm_num) (by norm_num)
+    · have := hν {nlo} (by simp [gsS{SUF}])
+      simp only [{nlo}, Term.eval, AOp.interp] at this; linarith
+    · have := hν {nhi} (by simp [gsS{SUF}])
+      simp only [{nhi}, Term.eval, AOp.interp] at this; linarith''')
     fbr = []
-    fbr.append(f'''  by_cases hc{nz[0]} : c = Rv {nz[0]}
-  · subst hc{nz[0]}
-    simp only [eq_self_iff_true, if_true, if_pos rfl, Real.norm_eq_abs]
-    have hcst : 0 ≤ cst{SUF} q ∧ cst{SUF} q ≤ 1 := by
-      interval_cases q <;> norm_num [cst{SUF}]
-    rw [abs_le]
-    push_cast
-    obtain ⟨hcl, hch⟩ := hcst
-    constructor <;> nlinarith [abs_le.mp hxv]''')
-    for j in nz[1:]:
-        kind = rows[j][0]
-        if kind == 'vel':
-            fbr.append(f'''  by_cases hc{j} : c = Rv {j}
-  · subst hc{j}
-    simp only [{ifnegs(j)}eq_self_iff_true, if_true, if_pos rfl, Real.norm_eq_abs]
-    push_cast
-    linarith [abs_le.mp hxv]''')
-        elif kind == 'bracket':
-            _, p, t = rows[j]
-            fbr.append(f'''  by_cases hc{j} : c = Rv {j}
-  · subst hc{j}
-    simp only [{ifnegs(j)}eq_self_iff_true, if_true, if_pos rfl, Real.norm_eq_abs]
-    have hBx : |(1 - 1/2 * (x (Rv {p}) * x (Rv {p}))) - 3/10 * (x (Rv {t}) * x (Rv {t}))|
-        ≤ 5 := by
-      have h2 : x (Rv {p}) * x (Rv {p}) ≤ 4 := by nlinarith [abs_le.mp hxb{p}]
-      have h3 : x (Rv {t}) * x (Rv {t}) ≤ 4 := by nlinarith [abs_le.mp hxb{t}]
-      have h2n : 0 ≤ x (Rv {p}) * x (Rv {p}) := mul_self_nonneg _
-      have h3n : 0 ≤ x (Rv {t}) * x (Rv {t}) := mul_self_nonneg _
+    for j in nz:
+        kk = rows[j][0]
+        pre = ifnegs(j) if j != nz[0] else ""
+        if kk == 'bracket':
+            _, pp, tt = rows[j]
+            core = f"x (Rv 0) * ((1 - 1/2 * (x (Rv {pp}) * x (Rv {pp}))) - 3/10 * (x (Rv {tt}) * x (Rv {tt})))"
+            extra = f'''    have hBx : |(1 - 1/2 * (x (Rv {pp}) * x (Rv {pp}))) - 3/10 * (x (Rv {tt}) * x (Rv {tt}))| ≤ 5 := by
+      have h2 : x (Rv {pp}) * x (Rv {pp}) ≤ 4 := by nlinarith [abs_le.mp hxb{pp}]
+      have h3 : x (Rv {tt}) * x (Rv {tt}) ≤ 4 := by nlinarith [abs_le.mp hxb{tt}]
+      have h2n : 0 ≤ x (Rv {pp}) * x (Rv {pp}) := mul_self_nonneg _
+      have h3n : 0 ≤ x (Rv {tt}) * x (Rv {tt}) := mul_self_nonneg _
       rw [abs_le]
       constructor <;> nlinarith
-    rw [abs_mul]
-    push_cast
-    nlinarith [abs_nonneg (x (Rv 0)), abs_le.mp hxv,
-      abs_nonneg ((1 - 1/2 * (x (Rv {p}) * x (Rv {p}))) - 3/10 * (x (Rv {t}) * x (Rv {t})))]''')
+    have hcore : |{core}| ≤ 10 := by
+      rw [abs_mul]
+      nlinarith [abs_nonneg (x (Rv 0)), abs_le.mp hxb0, abs_nonneg ((1 - 1/2 * (x (Rv {pp}) * x (Rv {pp}))) - 3/10 * (x (Rv {tt}) * x (Rv {tt})))]'''
+        elif kk == 'affine':
+            core = f"{DR} * (cst{SUF} q - x (Rv {j}))"
+            extra = f'''    have hcst : 0 ≤ cst{SUF} q ∧ cst{SUF} q ≤ 1 := by
+      interval_cases q <;> norm_num [cst{SUF}]
+    have hcore : |{core}| ≤ {3*DR} := by
+      obtain ⟨hcl, hch⟩ := hcst
+      rw [abs_le]
+      constructor <;> nlinarith [abs_le.mp hxb{j}]'''
+        elif kk == 'vel':
+            core = "x (Rv 0)"
+            extra = "    have hcore : |x (Rv 0)| ≤ 2 := hxb0"
         else:
-            fbr.append(f'''  by_cases hc{j} : c = Rv {j}
+            core = f"-1 * x (Rv {j})"
+            extra = f'''    have hcore : |{core}| ≤ 2 := by
+      rw [abs_mul]
+      have habs : |(-1 : ℝ)| = 1 := by norm_num
+      rw [habs]
+      linarith [abs_le.mp hxb{j}, abs_nonneg (x (Rv {j}))]'''
+        scal = ("" if not LMul else
+                f'''    rw [show {LMul}({core}) = ({LAM}) * ({core}) from by ring, abs_mul,
+      abs_of_pos (show (0:ℝ) < ({LAM}) by norm_num)]''')
+        fbr.append(f'''  by_cases hc{j} : c = Rv {j}
   · subst hc{j}
-    simp only [{ifnegs(j)}eq_self_iff_true, if_true, if_pos rfl]
-    exact hdecayb {j} (hxb{j})''')
-    # per-coordinate ball facts for fbnd: all strict coords + aux
-    fb_facts = []
-    vlo, vhi, vnlo, vnhi = strict[0][1], strict[0][2], strict[0][3], strict[0][4]
-    fb_facts.append(f'''  have hν0l : {vlo} ≤ ν (Rv 0) := by
-    have := hν {vnlo} (by simp [gsS{SUF}])
-    simp only [{vnlo}, Term.eval, AOp.interp] at this; linarith
-  have hν0h : ν (Rv 0) ≤ {vhi} := by
-    have := hν {vnhi} (by simp [gsS{SUF}])
-    simp only [{vnhi}, Term.eval, AOp.interp] at this; linarith
-  have hxv : |x (Rv 0)| ≤ 2 := by
-    have h := dist_le_pi_dist x ν (Rv 0)
-    rw [Real.dist_eq] at h
-    have hνb : |ν (Rv 0)| ≤ 1 := abs_le.mpr ⟨by linarith, by linarith⟩
-    have h2 := abs_sub_abs_le_abs_sub (x (Rv 0)) (ν (Rv 0))
-    linarith [abs_le.mp hνb]''')
-    for c, lo, hi, nlo, nhi in strict[1:]:
-        fb_facts.append(f'''  have hxb{c} : |x (Rv {c})| ≤ 2 := by
-    have h := dist_le_pi_dist x ν (Rv {c})
-    rw [Real.dist_eq] at h
-    have hl : {lo} ≤ ν (Rv {c}) := by
-      have := hν {nlo} (by simp [gsS{SUF}])
-      simp only [{nlo}, Term.eval, AOp.interp] at this; linarith
-    have hh : ν (Rv {c}) ≤ {hi} := by
-      have := hν {nhi} (by simp [gsS{SUF}])
-      simp only [{nhi}, Term.eval, AOp.interp] at this; linarith
-    have hνb : |ν (Rv {c})| ≤ 1 := abs_le.mpr ⟨by linarith, by linarith⟩
-    have h2 := abs_sub_abs_le_abs_sub (x (Rv {c})) (ν (Rv {c}))
-    linarith [abs_le.mp hνb]''')
-    for c, lo, nm in aux:
-        hi = next(h for cc, l, h, nl, nh in strict if cc == c) if any(cc == c for cc, _, _, _, _ in strict) else None
-        nhi = next(nh for cc, l, h, nl, nh in strict if cc == c)
-        fb_facts.append(f'''  have hxb{c} : |x (Rv {c})| ≤ 2 := by
-    have h := dist_le_pi_dist x ν (Rv {c})
-    rw [Real.dist_eq] at h
-    have hl : {lo} ≤ ν (Rv {c}) := by
-      have := hν {nm} (by simp [gsS{SUF}])
-      simp only [{nm}, Term.eval, AOp.interp] at this; linarith
-    have hh : ν (Rv {c}) ≤ {hi} := by
-      have := hν {nhi} (by simp [gsS{SUF}])
-      simp only [{nhi}, Term.eval, AOp.interp] at this; linarith
-    have hνb : |ν (Rv {c})| ≤ 1 := abs_le.mpr ⟨by linarith, by linarith⟩
-    have h2 := abs_sub_abs_le_abs_sub (x (Rv {c})) (ν (Rv {c}))
-    linarith [abs_le.mp hνb]''')
+    simp only [{pre}eq_self_iff_true, if_true, if_pos rfl, Real.norm_eq_abs]
+{extra}
+{scal}
+    nlinarith [hcore, abs_nonneg ({core})]''')
     A(f'''
 theorem hfbnd_{SUF} (q : ℕ) (hq : q < {nmodes}) (ν : State (Var {N}))
     (hν : ∀ gT' ∈ gsS{SUF}, Term.eval gT' ν ≤ 0) :
     ∀ x ∈ Metric.closedBall ν 1,
-      ‖odeField (jointSys (fun _ => Term.const 0) (fR{SUF} q) (Term.const 1)) x‖
+      ‖odeField (jointSys (fun _ => Term.const 0) (fR{SUF} q) (Term.const ({LAM}))) x‖
         ≤ (({L}:NNReal) : ℝ) := by
   have hne : ∀ (a b : Fin {N}), a ≠ b → (Rv a : Var {N}) ≠ Rv b := by
     intro a b hab
@@ -781,13 +764,8 @@ theorem hfbnd_{SUF} (q : ℕ) (hq : q < {nmodes}) (ν : State (Var {N}))
   rw [odeField_R{SUF} q hq]
   refine pi_norm_le_iff_of_nonneg (by norm_num) |>.mpr ?_
   intro c
-  have hdecayb : ∀ j : Fin {N}, |x (Rv j)| ≤ 2 → ‖(-1 : ℝ) * x (Rv j)‖ ≤ (({L}:NNReal) : ℝ) := by
-    intro j hj
-    rw [Real.norm_eq_abs, abs_mul]
-    push_cast
-    have habs : |(-1 : ℝ)| = 1 := by norm_num
-    rw [habs]
-    linarith [abs_le.mp hj, abs_nonneg (x (Rv j))]
+  have hLcoe : (({L}:NNReal) : ℝ) = {L} := rfl
+  rw [hLcoe]
 {chr(10).join(fbr)}
   · simp only [{", ".join(f"if_neg hc{j}" for j in nz)}]
     norm_num
@@ -852,7 +830,7 @@ theorem hfbnd_{SUF} (q : ℕ) (hq : q < {nmodes}) (ν : State (Var {N}))
         A(f'''
 theorem es{SUF} (l m : ℕ) (hl : l < {nmodes}) (hm : m < {nmodes}) (dt : ℝ) (hdt : 0 ≤ dt) :
     ∀ σ, Formula.sat (Formula.and (FM g{SUF} gs{SUF}) env{SUF}) σ →
-      HExistSegB (fL{SUF} l) (fR{SUF} m) (Term.const 1) domL{SUF} domR{SUF} dt
+      HExistSegB (fL{SUF} l) (fR{SUF} m) (Term.const ({LAM})) domL{SUF} domR{SUF} dt
         (Function.update σ tg{SUF} 0) := by
   intro σ hσ
   have hR : Formula.sat domR{SUF} σ := hσ.2.2
@@ -873,7 +851,7 @@ theorem es{SUF} (l m : ℕ) (hl : l < {nmodes}) (hm : m < {nmodes}) (dt : ℝ) (
     rcases hgT with {" | ".join(["rfl"]*len(nfaces))} <;>
       · first
 {chr(10).join(nanchor)}
-  refine HExistSegB_of_viability_stratA (fL{SUF} l) (fR{SUF} m) (Term.const 1)
+  refine HExistSegB_of_viability_stratA (fL{SUF} l) (fR{SUF} m) (Term.const ({LAM}))
     domL{SUF} domR{SUF} gsS{SUF} [] gsN{SUF} 0 le_rfl
     ([] : List (Var {N} × ℝ × ℝ × ℝ)) gsAL{SUF}
     (jointSys_wellFormed _ _ _)
@@ -955,7 +933,7 @@ theorem es{SUF} (l m : ℕ) (hl : l < {nmodes}) (hm : m < {nmodes}) (dt : ℝ) (
         A(f'''
 theorem es{SUF} (l m : ℕ) (hl : l < {nmodes}) (hm : m < {nmodes}) (dt : ℝ) (hdt : 0 ≤ dt) :
     ∀ σ, Formula.sat (Formula.and (FM g{SUF} gs{SUF}) env{SUF}) σ →
-      HExistSegB (fL{SUF} l) (fR{SUF} m) (Term.const 1) domL{SUF} domR{SUF} dt
+      HExistSegB (fL{SUF} l) (fR{SUF} m) (Term.const ({LAM})) domL{SUF} domR{SUF} dt
         (Function.update σ tg{SUF} 0) := by
   intro σ hσ
   have hR : Formula.sat domR{SUF} σ := hσ.2.2
@@ -976,7 +954,7 @@ theorem es{SUF} (l m : ℕ) (hl : l < {nmodes}) (hm : m < {nmodes}) (dt : ℝ) (
     rcases hgT with {" | ".join(["rfl"]*len(nfaces))} <;>
       · first
 {chr(10).join(nanchor)}
-  refine HExistSegB_of_viability_stratified (fL{SUF} l) (fR{SUF} m) (Term.const 1)
+  refine HExistSegB_of_viability_stratified (fL{SUF} l) (fR{SUF} m) (Term.const ({LAM}))
     domL{SUF} domR{SUF} gsS{SUF} [] gsN{SUF} 0 le_rfl
     (jointSys_wellFormed _ _ _)
     (by
@@ -1016,6 +994,8 @@ theorem es{SUF} (l m : ℕ) (hl : l < {nmodes}) (hm : m < {nmodes}) (dt : ℝ) (
     hfN
     (by intro gT' hgT; exact absurd hgT (List.not_mem_nil))
 ''')
+    if spec.get('no_tail'):
+        return "".join(O)
     # assembly: rename the pilot tail
     src = open('RelCertifier/Instances/RoverLadderRung1Modal.lean').read()
     tail = src[src.index('/-! ## The route verdicts'):src.index('end RoverLadderRung1Modal')]

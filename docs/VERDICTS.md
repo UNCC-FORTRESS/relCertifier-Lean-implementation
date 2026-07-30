@@ -218,3 +218,40 @@ Until the per-pair certified λ is read out of the checker rather than inferred
 from the cover row, no λ ≠ 1 instance can state an honest residual. The
 generator machinery for that tier is kept and is independent of this question
 (`scripts/gen_multif_lambda_k.py`).
+
+
+---
+
+## Resolution: all five withdrawn instances re-landed (2026-07-30)
+
+The λ-provenance question is settled and every withdrawn benchmark carries a
+(correct) modal Theorem 3 again:
+
+* The cover row's λ **is** the flow-certificate λ. The withdrawn Props failed
+  because the tool's queries conjoin per-mode **checked cuts**
+  (`RELCERT_NO_CUT=1` turns `rover_attitude_cone_12dof` into DECLINED — the
+  cuts are load-bearing). For the terrain-family composites the right cuts
+  are the shape-route contraction ceilings `v_R ≤ c_m`.
+* No cut-free λ exists for those benchmarks (velocity conjunct forces λ = 1,
+  position conjunct forces λ ≈ 1.65+), so the honest modal statement is
+  **region-conditioned**: the L4 chain (`mvRegionR`) with regions := the cut
+  ceilings, region face first in the strata order, climb-to-max dispatch,
+  and existence through the stratA affine **upper** face (the ceiling is an
+  equilibrium of the contraction). Landed: `rover_attitude_cone_12dof`,
+  `story3_rollover_base_12dof`, `story3_rollover_ladder_rung_a`,
+  `refinement_ladder_rover_rung3_6to8`.
+* `endurance_orderlift_1to2` was withdrawn by mistake: the blanket mirror
+  tested a conjunct (`v_L ≤ v_R`) this benchmark does not have. Its real
+  invariant's Lie derivative is state-constant and true on all used pairs;
+  the file was re-landed byte-identical.
+
+Also landed since: `endurance_gain_M1`, `rover_terrain_M1` (combined
+functionals at λ = 1, climb dispatch), `match_multi_rate` (per-window λ
+∈ {3,2,1,1} against the single drive mode, symbolic-λ analytic layer).
+
+Suite: **36/46** benchmarks carry modal Theorem 3. Remaining blockers are
+catalogued per benchmark in the working notes: an L1d existence-consumer
+variant (affine-on-affine chaining) for `endurance_orderlift_2to3`,
+`attitude_rate`, `refinement_ladder_rover_rung4_8to12`; the per-mode-invariant
+device for the story1/rollover-b/rover3tier group; and the three specials
+(closed-form witness, no cover, smt2 invariants).

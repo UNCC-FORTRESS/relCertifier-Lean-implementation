@@ -667,5 +667,524 @@ theorem esAloneC (l : ℕ) (hl : l < 3) (dt : ℝ) (hdt0 : 0 ≤ dt)
     (by rw [hbase]; nlinarith)
   exact ⟨lineUpR (rC l) (ΦL s), lineUpR_zero (rC l) (ΦL s), hd, hm, hdm⟩
 
+/-! ## The dichotomy coupling (per-window rate) -/
+
+theorem htgXC (l : ℕ) : (tgC, Term.const 1) ∈ sysXC l := by
+  show (tgC, Term.const 1) ∈ leftBlock (fLC l) ++ [(tgC, Term.const 1)]
+  exact List.mem_append_right _ (List.mem_singleton.mpr rfl)
+
+theorem hRv0notXC (l : ℕ) : (Rv 0 : Var 2) ∉ (sysXC l).bound := by
+  intro h
+  simp only [sysXC, DLCalTiming.clk, ODESystem.bound, List.map_append,
+    List.mem_append] at h
+  rcases h with h | h
+  · obtain ⟨i, hi⟩ := leftBlock_bound_sub (fLC l) _ h
+    exact absurd hi (by simp [Lv, Rv, Prod.ext_iff])
+  · simp only [List.map_cons, List.map_nil, List.mem_singleton] at h
+    exact absurd h (by simp [tgC, Rv, Prod.ext_iff])
+
+theorem hdisjXRC (l : ℕ) (hl : l < 3) (q : ℕ) (hq : q < 2) :
+    Disjoint ((sysXC l).boundSet ∪ (sysXC l).readVars)
+      ((rightBlock (fRC q) (Term.const (lamC l))).boundSet
+        ∪ (rightBlock (fRC q) (Term.const (lamC l))).readVars) := by
+  rw [Set.disjoint_left]
+  intro x hxX hxR
+  have hxRv : x ∈ range Rv := by
+    rcases hxR with h | h
+    · exact rightBlock_boundSet_sub (fRC q) (Term.const (lamC l)) h
+    · exact rightBlock_readVars_sub (fRC q) (Term.const (lamC l)) (hfRC q hq)
+        (by simp [Term.fv]) h
+  obtain ⟨i, hi⟩ := hxRv
+  rcases hxX with h | h
+  · rw [sysXC, clk_boundSet] at h
+    rcases h with h | h
+    · obtain ⟨j, hj⟩ := leftBlock_boundSet_sub (fLC l) h
+      rw [← hj] at hi
+      exact absurd hi (by simp [Lv, Rv, Prod.ext_iff])
+    · rw [Set.mem_singleton_iff] at h
+      rw [h] at hi
+      exact absurd hi (by simp [tgC, Rv, Prod.ext_iff])
+  · rw [sysXC, clk_readVars] at h
+    obtain ⟨j, hj⟩ := leftBlock_readVars_sub (fLC l) (hfLC l hl) h
+    rw [← hj] at hi
+    exact absurd hi (by simp [Lv, Rv, Prod.ext_iff])
+
+theorem coupleSplitC (l : ℕ) (hl : l < 3) (dt : ℝ) (hdt0 : 0 ≤ dt)
+    (hdt5 : dt ≤ 1/5) (hv : VerdC l) (ω : State (Var 2))
+    (hσ : Formula.sat (Formula.and (invLe gC) envC) ω)
+    (hnear : 1 - rC l * dt < ω (Rv 0)) :
+    faModalB (Equiv.refl (Var 2)) (Program.ode (sysXC l) domLC)
+      (Program.seq (Program.ode (sysBC l) domRC) (Program.ode (sysAC l) domRC))
+      (Formula.and (invLe gC) envC) tgC dt ω := by
+  have hωL := (sat_domLC ω).mp hσ.2.1
+  have hωR := (sat_domRC ω).mp hσ.2.2
+  have hrb := rC_bounds l hl
+  refine faModal_ODE_split_bounded (sysXC l) (sysBC l) (sysAC l)
+    domLC domRC domRC (Formula.and (invLe gC) envC)
+    gC 2 (by norm_num) (Rv 0) (rC l) (1/2) dt (by norm_num) (by norm_num)
+    tgC (htgXC l) (hwfXBC l) (hdisjXRC l hl 1 (by norm_num))
+    (hdisjXRC l hl 0 (by norm_num))
+    ?_ ?_ ?_ ?_ ?_ ?_ ?_ ω (hbndBC l hl) (hjrowC l hl) ?_ ?_ ?_ ?_
+  · intro x hx
+    obtain ⟨i, hi⟩ := hdomLC hx
+    subst hi
+    exact Or.inl (by rw [sysXC, clk_boundSet]; exact Or.inl (Lv_mem_leftBlock_boundSet _ i))
+  · intro x hx
+    obtain ⟨i, hi⟩ := hdomRC hx
+    subst hi
+    exact Rv_mem_rightBlock_boundSet _ _ i
+  · intro x hx
+    obtain ⟨i, hi⟩ := hdomRC hx
+    subst hi
+    exact Or.inl (Rv_mem_rightBlock_boundSet _ _ i)
+  · intro x hx
+    rw [sysXC, clk_readVars] at hx
+    obtain ⟨i, hi⟩ := leftBlock_readVars_sub (fLC l) (hfLC l hl) hx
+    subst hi
+    rw [sysXC, clk_boundSet]
+    exact Or.inl (Lv_mem_leftBlock_boundSet _ i)
+  · intro x hx
+    obtain ⟨i, hi⟩ := rightBlock_readVars_sub (fRC 1) (Term.const (lamC l))
+      (hfRC 1 (by norm_num)) (by simp [Term.fv]) hx
+    subst hi
+    exact Rv_mem_rightBlock_boundSet _ _ i
+  · intro x hx
+    obtain ⟨i, hi⟩ := rightBlock_readVars_sub (fRC 0) (Term.const (lamC l))
+      (hfRC 0 (by norm_num)) (by simp [Term.fv]) hx
+    subst hi
+    exact Rv_mem_rightBlock_boundSet _ _ i
+  · intro x
+    simp [sysAC, sysBC, rightBlock, ODESystem.bound, List.map_map, Function.comp_def]
+  · -- hg0
+    have hg := gC_eval ω
+    rw [hg]
+    nlinarith [hωL.2, hrb.2]
+  · intro κ hκ
+    exact hboxAC l hl hv κ hκ
+  · -- hExistB
+    intro s1 ΦL hs10 hs1dt hΦL0 hder hmask hdoms
+    have hbase : ΦL s1 (Rv 0) = ω (Rv 0) :=
+      hmask s1 (right_mem_Icc.mpr hs10) (Rv 0) (hRv0notXC l)
+    obtain ⟨hd, hm, hdm⟩ := lineDnR_run l hl (ΦL s1) s1 hs10
+      (by rw [hbase]; nlinarith [hrb.1, hrb.2])
+      (by rw [hbase]; exact hωR.2)
+    exact ⟨lineDnR (rC l) (ΦL s1), lineDnR_zero (rC l) (ΦL s1), hd, hm, hdm⟩
+  · -- hExistA
+    intro s1 s2 ΨL κ' hs1 hs2 hs2dt hfr hdrop hΨ0 hΨder hΨmask hΨdom hκ'B hκ'g
+    have hs1s2 : s1 = s2 := by linarith
+    have hbase : ΨL s2 (Rv 0) = κ' (Rv 0) :=
+      hΨmask s2 (right_mem_Icc.mpr hs2) (Rv 0) (hRv0notXC l)
+    have hκ'R := (sat_domRC κ').mp hκ'B
+    obtain ⟨hd, hm, hdm⟩ := lineUpR_run l hl (ΨL s2) s2 hs2
+      (by rw [hbase]; exact hκ'R.1)
+      (by rw [hbase]; nlinarith [hωR.2])
+    exact ⟨lineUpR (rC l) (ΨL s2), lineUpR_zero (rC l) (ΨL s2), hd, hm, hdm⟩
+
+theorem seqB_of_AC (l : ℕ) : ∀ ν μ : State (Var 2),
+    Program.sem (Program.ode (sysAC l) domRC) ν μ →
+    Program.sem (Program.seq (Program.ode (sysBC l) domRC)
+      (Program.ode (sysAC l) domRC)) ν μ := by
+  intro ν μ hA
+  have hdomν : Formula.sat domRC ν := by
+    obtain ⟨r, Φ, hr, hΦ0, hΦr, hder, hmask, hdom⟩ := hA
+    have := hdom 0 (left_mem_Icc.mpr hr)
+    rwa [hΦ0] at this
+  refine ⟨ν, ⟨0, fun _ => ν, le_refl 0, rfl, rfl, ?_, ?_, ?_⟩, hA⟩
+  · intro t ht p hp
+    have h0 : t = 0 := le_antisymm ht.2 ht.1
+    subst h0
+    rw [hasDerivWithinAt_iff_tendsto_slope]
+    have hempty : (Set.Icc (0:ℝ) 0) \ {0} = (∅ : Set ℝ) := by
+      simp [Set.Icc_self]
+    rw [hempty, nhdsWithin_empty]
+    exact Filter.tendsto_bot
+  · intro t ht x hx
+    rfl
+  · intro t ht
+    exact hdomν
+
+theorem coupleAloneC (l : ℕ) (hl : l < 3) (dt : ℝ) (hdt0 : 0 ≤ dt) (hv : VerdC l)
+    (σ' : State (Var 2))
+    (hσ' : Formula.sat (Formula.and (invLe gC) envC) σ') (htg0 : σ' tgC = 0)
+    (hfar : σ' (Rv 0) ≤ 1 - rC l * dt) :
+    faModalB (Equiv.refl (Var 2))
+      (Program.ode (DLCalTiming.clk tgC (leftBlock (fLC l))) domLC)
+      (Program.ode (rightBlock (fRC 0) (Term.const (lamC l))) domRC)
+      (Formula.and (invLe gC) envC) tgC dt σ' := by
+  have hupd : Function.update σ' tgC (0 : ℝ) = σ' := by
+    funext x
+    by_cases hx : x = tgC
+    · subst hx; rw [Function.update_self]; exact htg0.symm
+    · rw [Function.update_of_ne hx]
+  have hAll := segPresAll_from_strata_verdicts' (fLC l) (fRC 0) (Term.const (lamC l))
+    (Formula.and domLC domRC) [gC]
+    (by
+      intro i hi
+      have hi1 : i < 1 := by simpa using hi
+      interval_cases i
+      simpa [strataDomHost, VerdC] using hv)
+  have hbox : Formula.sat (Formula.box (Program.ode
+      (leftBlock (fLC l) ++ rightBlock (fRC 0) (Term.const (lamC l)))
+      (Formula.and domLC domRC)) (invLe gC)) σ' := by
+    rw [sat_box]
+    intro ω hω
+    rw [sat_invLe]
+    refine hAll σ' ?_ ω (by rw [← jointSys_split] at hω; exact hω) gC
+      List.mem_cons_self
+    intro g hg
+    rw [List.mem_singleton] at hg
+    subst hg
+    exact (sat_invLe gC σ').mp hσ'.1
+  have hωR := (sat_domRC σ').mp hσ'.2.2
+  have hES : HExistSegB (fLC l) (fRC 0) (Term.const (lamC l)) domLC domRC dt
+      (Function.update σ' tgC 0) := by
+    rw [hupd]
+    exact esAloneC l hl dt hdt0 σ' hωR.1 hfar
+  have hbase := segment_faModalB_from_certB gC (fLC l) (fRC 0) (Term.const (lamC l))
+    domLC domRC tgC dt
+    (LR_blocks_disjoint _ _ _ (hfLC l hl) (hfRC 0 (by norm_num)) (by simp [Term.fv]))
+    (fun v hv' => Or.inl (by
+      obtain ⟨i, rfl⟩ := hdomLC hv'
+      exact Lv_mem_leftBlock_boundSet _ i))
+    (fun v hv' => Or.inl (by
+      obtain ⟨i, rfl⟩ := hdomRC hv'
+      exact Rv_mem_rightBlock_boundSet _ _ i))
+    (fun h => by
+      obtain ⟨i, hi⟩ := leftBlock_bound_sub (fLC l) _ h
+      exact aux_ne_Lv aC i hi)
+    (fun h => aux_notin_range_Lv aC (leftBlock_readVars_sub (fLC l) (hfLC l hl) h))
+    (fun h => by
+      obtain ⟨i, hi⟩ := rightBlock_bound_sub (fRC 0) (Term.const (lamC l)) _ h
+      exact aux_ne_Rv aC i hi)
+    (fun h => aux_notin_range_Rv aC (rightBlock_readVars_sub (fRC 0)
+      (Term.const (lamC l)) (hfRC 0 (by norm_num)) (by simp [Term.fv]) h))
+    (fun h => aux_notin_range_Rv aC (rightBlock_boundSet_sub (fRC 0)
+      (Term.const (lamC l)) h))
+    (fun h => aux_notin_range_Lv aC (hdomLC h))
+    (fun h => aux_notin_range_Rv aC (hdomRC h))
+    htggC hbox hES
+  rw [hupd] at hbase
+  refine faModalB_strengthen_plant ?_ hbase
+  intro ν μ hplant hsem
+  have hdomLν : Formula.sat domLC ν := sem_ode_ends_in_domain hplant.1
+  have hdomRμ : Formula.sat domRC μ := sem_ode_ends_in_domain hsem
+  have hdomLμ : Formula.sat domLC μ := by
+    rwa [(Formula.coincidence domLC (fun v hv' => sem_ode_mask hsem (by
+      obtain ⟨i, rfl⟩ := hdomLC hv'
+      intro hb
+      obtain ⟨j, hj⟩ := rightBlock_bound_sub (fRC 0) (Term.const (lamC l)) _ hb
+      exact absurd hj (by simp [Lv, Rv, Prod.ext_iff]))) :
+        Formula.sat domLC μ ↔ Formula.sat domLC ν)]
+  exact ⟨hdomLμ, hdomRμ⟩
+
+theorem coupleC (l : ℕ) (hl : l < 3) (dt : ℝ) (hdt0 : 0 ≤ dt) (hdt5 : dt ≤ 1/5)
+    (hv : VerdC l) :
+    ∀ σ', Formula.sat (Formula.and (invLe gC) envC) σ' → σ' tgC = 0 →
+      faModalB (Equiv.refl (Var 2))
+        (Program.ode (DLCalTiming.clk tgC (leftBlock (fLC l))) domLC)
+        (Program.seq (Program.ode (rightBlock (fRC 1) (Term.const 1)) domRC)
+          (Program.ode (rightBlock (fRC 0) (Term.const 1)) domRC))
+        (Formula.and (invLe gC) envC) tgC dt σ' := by
+  intro σ' hσ' htg0
+  have hstretch : faModalB (Equiv.refl (Var 2))
+      (Program.ode (DLCalTiming.clk tgC (leftBlock (fLC l))) domLC)
+      (Program.seq (Program.ode (sysBC l) domRC) (Program.ode (sysAC l) domRC))
+      (Formula.and (invLe gC) envC) tgC dt σ' := by
+    by_cases hc : 1 - rC l * dt < σ' (Rv 0)
+    · exact coupleSplitC l hl dt hdt0 hdt5 hv σ' hσ' hc
+    · exact faModalB_monoQ (seqB_of_AC l)
+        (coupleAloneC l hl dt hdt0 hv σ' hσ' htg0 (by linarith [not_lt.mp hc]))
+  refine faModalB_monoQ ?_ hstretch
+  intro ν μ hsem
+  obtain ⟨κ, hB, hA⟩ := hsem
+  exact ⟨κ, sem_rightBlock_reparam (lamC l) 1 (lamC_pos l) one_pos hB,
+    sem_rightBlock_reparam (lamC l) 1 (lamC_pos l) one_pos hA⟩
+
+/-! ## Assembly -/
+
+noncomputable def pieceC : Program (Var 2) :=
+  Program.seq (Program.ode (rightBlock (fRC 1) (Term.const 1)) domRC)
+    (Program.ode (rightBlock (fRC 0) (Term.const 1)) domRC)
+
+theorem coupleC' (l : ℕ) (hl : l < 3) (dt : ℝ) (hdt0 : 0 ≤ dt) (hdt5 : dt ≤ 1/5)
+    (hv : VerdC l) :
+    ∀ σ, Formula.sat (Formula.and (invLe gC) envC) σ →
+      faModalB (Equiv.refl (Var 2))
+        (Program.ode (DLCalTiming.clk tgC (leftBlock (fLC l))) domLC)
+        pieceC (Formula.and (invLe gC) envC) tgC dt
+        (Function.update σ tgC 0) := by
+  intro σ hσ
+  have htgφ : tgC ∉ (Formula.and (invLe gC) envC).fv := by
+    intro h
+    rcases h with h | h
+    · exact htggC (by simpa [invLe, Formula.fv, Term.fv] using h)
+    · exact htgenvC h
+  have hupdφ : Formula.sat (Formula.and (invLe gC) envC)
+      (Function.update σ tgC 0) := by
+    rwa [(Formula.coincidence (Formula.and (invLe gC) envC) (fun v hv' =>
+      Function.update_of_ne (fun hc => htgφ (by rw [← hc]; exact hv')) _ _) :
+        Formula.sat (Formula.and (invLe gC) envC) _ ↔ _)]
+  exact coupleC l hl dt hdt0 hdt5 hv (Function.update σ tgC 0) hupdφ
+    (Function.update_self _ _ _)
+
+theorem hdisPieceC (l : ℕ) (hl : l < 3) (dt : ℝ) :
+    Disjoint (Program.vars (pieceC.rename (Equiv.refl (Var 2))))
+      (Program.vars (clockedSeg (leftBlock (fLC l)) domLC tgC dt)) := by
+  rw [Program.rename_refl, Set.disjoint_left]
+  intro x hx hxW
+  have hxR : x ∈ range Rv := by
+    rcases vars_seq_sub _ _ hx with hx | hx <;>
+      · rcases vars_ode_sub _ _ hx with hx | hx
+        · rcases hx with hx | hx
+          · exact rightBlock_boundSet_sub _ _ hx
+          · refine rightBlock_readVars_sub _ (Term.const 1) ?_ (by simp [Term.fv]) hx
+            first
+              | exact hfRC 1 (by norm_num)
+              | exact hfRC 0 (by norm_num)
+        · exact hdomRC hx
+  rcases vars_clockedSegL_sub (fLC l) domLC aC dt (hfLC l hl) hdomLC hxW with hx' | hx'
+  · rw [Set.mem_singleton_iff] at hx'
+    obtain ⟨i, hi⟩ := hxR
+    rw [hx'] at hi
+    exact absurd hi (by simp [Rv, Prod.ext_iff])
+  · obtain ⟨i, hi⟩ := hxR
+    obtain ⟨j, hj⟩ := hx'
+    rw [← hi] at hj
+    exact absurd hj (by simp [Lv, Rv, Prod.ext_iff])
+
+theorem sem_seqPairs : ∀ (k : ℕ) (p q : Program (Var 2)) (ν μ : State (Var 2)),
+    Program.sem (bigSeq (List.replicate k (Program.seq p q))) ν μ →
+    Program.sem (bigSeq ((List.replicate k [p, q]).flatten)) ν μ := by
+  intro k
+  induction k with
+  | zero => intro p q ν μ h; exact h
+  | succ n ih =>
+      intro p q ν μ h
+      simp only [List.replicate_succ, bigSeq] at h
+      obtain ⟨κ, hseq, hrest⟩ := h
+      obtain ⟨κ', hp, hq⟩ := hseq
+      simp only [List.replicate_succ, List.flatten_cons, List.cons_append,
+        List.nil_append, bigSeq]
+      exact ⟨κ', hp, κ, hq, ih p q κ μ hrest⟩
+
+theorem segRetC (l : ℕ) (hl : l < 3) (dt : ℝ) (hdt0 : 0 ≤ dt) (hdt5 : dt ≤ 1/5)
+    (hv : VerdC l) {σ : State (Var 2)}
+    (hσ : Formula.sat (Formula.and (invLe gC) envC) σ) :
+    Formula.sat (faModal (Equiv.refl (Var 2))
+      (windowSeg (leftBlock (fLC l)) domLC tgC dt (kC l))
+      (bigSeq ((List.replicate (kC l)
+        [Program.ode (rightBlock (fRC 1) (Term.const 1)) domRC,
+         Program.ode (rightBlock (fRC 0) (Term.const 1)) domRC]).flatten))
+      (Formula.and (invLe gC) envC)) σ := by
+  have hkpos : 0 < kC l := by
+    interval_cases l <;> norm_num [kC]
+  have hfa := Hmulti_windowR_prefixed (fLC l) domLC gC envC aC dt (kC l) htggC htgenvC
+    [] (by simp) (fun σ' hσ' => hσ'.2.1) (by simp)
+    (hfLC l hl) hdomLC
+    (List.replicate (kC l) pieceC) (by simp) hkpos
+    (by
+      intro Q hQ
+      rw [List.eq_of_mem_replicate hQ]
+      exact hdisPieceC l hl dt)
+    (by
+      intro Q hQ σ' hσ'
+      rw [List.eq_of_mem_replicate hQ]
+      exact coupleC' l hl dt hdt0 hdt5 hv σ' hσ')
+    hσ
+  simp only [List.map_nil, List.nil_append] at hfa
+  exact sat_faModal_monoR (fun ν μ hrun => sem_seqPairs (kC l) _ _ ν μ hrun) hfa
+
+theorem segAppC (l : ℕ) (hl : l < 3) (dt : ℝ) (hdt0 : 0 ≤ dt) (hdt5 : dt ≤ 1/5)
+    (hv : VerdC l) {σ : State (Var 2)}
+    (hσ : Formula.sat (Formula.and (invLe gC) envC) σ) :
+    Formula.sat (faModal (Equiv.refl (Var 2))
+      (windowSeg (leftBlock (fLC l)) domLC tgC dt (kC l))
+      (bigSeq (Program.ode (rightBlock (fRC 0) (Term.const 1)) domRC ::
+        (List.replicate (kC l)
+          [Program.ode (rightBlock (fRC 1) (Term.const 1)) domRC,
+           Program.ode (rightBlock (fRC 0) (Term.const 1)) domRC]).flatten))
+      (Formula.and (invLe gC) envC)) σ := by
+  have hkpos : 0 < kC l := by
+    interval_cases l <;> norm_num [kC]
+  have hfa := Hmulti_windowR_prefixed (fLC l) domLC gC envC aC dt (kC l) htggC htgenvC
+    [⟨fRC 0, Term.const 1, domRC⟩]
+    (by
+      intro h hh
+      rw [List.mem_singleton] at hh
+      subst hh
+      exact ⟨hfRC 0 (by norm_num), by simp [Term.fv], hdomRC⟩)
+    (fun σ' hσ' => hσ'.2.1)
+    (by
+      intro h hh σ' hσ' htg'
+      rw [List.mem_singleton] at hh
+      subst hh
+      obtain ⟨ρ, hsem, hρσ⟩ := static_hop_existsR (fR := fRC 0)
+        (lam := Term.const 1) (domR := domRC) hσ'.2.2
+      exact ⟨ρ, hsem, hρσ ▸ hσ'⟩)
+    (hfLC l hl) hdomLC
+    (List.replicate (kC l) pieceC) (by simp) hkpos
+    (by
+      intro Q hQ
+      rw [List.eq_of_mem_replicate hQ]
+      exact hdisPieceC l hl dt)
+    (by
+      intro Q hQ σ' hσ'
+      rw [List.eq_of_mem_replicate hQ]
+      exact coupleC' l hl dt hdt0 hdt5 hv σ' hσ')
+    hσ
+  refine sat_faModal_monoR (fun ν μ hrun => ?_) hfa
+  simp only [List.map_cons, List.map_nil, List.singleton_append, bigSeq] at hrun ⊢
+  obtain ⟨κ, hhop, hrest⟩ := hrun
+  exact ⟨κ, hhop, sem_seqPairs (kC l) _ _ κ μ hrest⟩
+
+theorem HmultiC (dt : ℝ) (hdt0 : 0 ≤ dt) (hdt5 : dt ≤ 1/5)
+    (hv0 : VerdC 0) (hv1 : VerdC 1) (hv2 : VerdC 2) :
+    ∀ P ∈ leftProgsC dt, ∀ (q : ℕ), q < GrC.modes.length → ∀ σ, σ mvC = (q : ℝ) →
+      Formula.sat (Formula.and (invLe gC) envC) σ →
+      ∃ segs : List (ℕ × RMode (Var 2) × REdge (Var 2)),
+        (∀ s ∈ segs, GrC.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ GrC.edgesFrom s.1) ∧
+        List.IsChain (fun a b => a.2.2.tgt = b.1) segs ∧
+        (∀ s, segs.head? = some s → s.1 = q) ∧
+        Formula.sat (faModal (Equiv.refl (Var 2)) P
+          (bigSeq (segs.map (fun s => Program.ode s.2.1.sys s.2.1.dom)))
+          (Formula.and (invLe gC) envC)) σ := by
+  intro P hP q hq σ hmv hσ
+  have hq2 : q < 2 := by simpa [GrC] using hq
+  have hsingle : ∀ (a : ℕ × RMode (Var 2) × REdge (Var 2)),
+      List.IsChain (fun a b => a.2.2.tgt = b.1) [a] := by
+    intro a; simp
+  have hstep : ∀ (a : ℕ × RMode (Var 2) × REdge (Var 2))
+      (b : ℕ × RMode (Var 2) × REdge (Var 2)) rest,
+      a.2.2.tgt = b.1 → List.IsChain (fun x y => x.2.2.tgt = y.1) (b :: rest) →
+      List.IsChain (fun x y => x.2.2.tgt = y.1) (a :: b :: rest) := by
+    intro a b rest hab hrest
+    refine hrest.cons ?_
+    intro y hy
+    rw [List.head?_cons, Option.mem_some_iff] at hy
+    subst hy
+    exact hab
+  have hhead1 : ∀ (a : ℕ × RMode (Var 2) × REdge (Var 2)) rest s,
+      (a :: rest : List _).head? = some s → s = a := by
+    intro a rest s hs
+    simpa [List.head?_cons] using hs.symm
+  have halignseg : ∀ s ∈ [((1:ℕ), modeC 1, edgeC 1 0), ((0:ℕ), modeC 0, edgeC 0 1),
+      ((1:ℕ), modeC 1, edgeC 1 0), ((0:ℕ), modeC 0, edgeC 0 1),
+      ((1:ℕ), modeC 1, edgeC 1 0), ((0:ℕ), modeC 0, edgeC 0 0)],
+      GrC.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ GrC.edgesFrom s.1 := by
+    intro s hs
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hs
+    rcases hs with rfl | rfl | rfl | rfl | rfl | rfl <;>
+      first
+        | exact ⟨GrC_modeAt 0 (by norm_num), edgeC_mem 0 1 (by simp [GrC])⟩
+        | exact ⟨GrC_modeAt 0 (by norm_num), edgeC_mem 0 0 (by simp [GrC])⟩
+        | exact ⟨GrC_modeAt 1 (by norm_num), edgeC_mem 1 0 (by simp [GrC])⟩
+  have halignhop : GrC.modeAt 0 = some (modeC 0) ∧ edgeC 0 1 ∈ GrC.edgesFrom 0 :=
+    ⟨GrC_modeAt 0 (by norm_num), edgeC_mem 0 1 (by simp [GrC])⟩
+  simp only [leftProgsC, leftDataC, List.map_cons, List.map_nil, List.mem_cons,
+    List.not_mem_nil, or_false] at hP
+  rcases hP with rfl | rfl | rfl
+  all_goals interval_cases q
+  -- window Fast (k = 3), start Approach
+  · refine ⟨(0, modeC 0, edgeC 0 1) ::
+      [(1, modeC 1, edgeC 1 0), (0, modeC 0, edgeC 0 1),
+       (1, modeC 1, edgeC 1 0), (0, modeC 0, edgeC 0 1),
+       (1, modeC 1, edgeC 1 0), (0, modeC 0, edgeC 0 0)],
+      (by
+        intro s hs
+        rcases List.mem_cons.mp hs with rfl | hs
+        · exact halignhop
+        · exact halignseg s hs),
+      hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl
+        (hstep _ _ _ rfl (hstep _ _ _ rfl (hsingle _)))))),
+      (fun s hs => by rw [hhead1 _ _ _ hs]),
+      ?_⟩
+    have := segAppC 0 (by norm_num) dt hdt0 hdt5 hv0 hσ
+    simpa [modeC, kC, List.replicate] using this
+  -- window Fast, start Return
+  · refine ⟨[(1, modeC 1, edgeC 1 0), (0, modeC 0, edgeC 0 1),
+       (1, modeC 1, edgeC 1 0), (0, modeC 0, edgeC 0 1),
+       (1, modeC 1, edgeC 1 0), (0, modeC 0, edgeC 0 0)],
+      halignseg,
+      hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl
+        (hstep _ _ _ rfl (hsingle _))))),
+      (fun s hs => by rw [hhead1 _ _ _ hs]),
+      ?_⟩
+    have := segRetC 0 (by norm_num) dt hdt0 hdt5 hv0 hσ
+    simpa [modeC, kC, List.replicate] using this
+  -- window Slow (k = 2), start Approach
+  · refine ⟨(0, modeC 0, edgeC 0 1) ::
+      [(1, modeC 1, edgeC 1 0), (0, modeC 0, edgeC 0 1),
+       (1, modeC 1, edgeC 1 0), (0, modeC 0, edgeC 0 0)],
+      (by
+        intro s hs
+        rcases List.mem_cons.mp hs with rfl | hs
+        · exact halignhop
+        · refine halignseg s ?_
+          simp only [List.mem_cons, List.not_mem_nil, or_false] at hs ⊢
+          tauto),
+      hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl
+        (hsingle _)))),
+      (fun s hs => by rw [hhead1 _ _ _ hs]),
+      ?_⟩
+    have := segAppC 1 (by norm_num) dt hdt0 hdt5 hv1 hσ
+    simpa [modeC, kC, List.replicate] using this
+  -- window Slow, start Return
+  · refine ⟨[(1, modeC 1, edgeC 1 0), (0, modeC 0, edgeC 0 1),
+       (1, modeC 1, edgeC 1 0), (0, modeC 0, edgeC 0 0)],
+      (by
+        intro s hs
+        refine halignseg s ?_
+        simp only [List.mem_cons, List.not_mem_nil, or_false] at hs ⊢
+        tauto),
+      hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl (hsingle _))),
+      (fun s hs => by rw [hhead1 _ _ _ hs]),
+      ?_⟩
+    have := segRetC 1 (by norm_num) dt hdt0 hdt5 hv1 hσ
+    simpa [modeC, kC, List.replicate] using this
+  -- window Return (k = 1), start Approach
+  · refine ⟨(0, modeC 0, edgeC 0 1) ::
+      [(1, modeC 1, edgeC 1 0), (0, modeC 0, edgeC 0 0)],
+      (by
+        intro s hs
+        rcases List.mem_cons.mp hs with rfl | hs
+        · exact halignhop
+        · refine halignseg s ?_
+          simp only [List.mem_cons, List.not_mem_nil, or_false] at hs ⊢
+          tauto),
+      hstep _ _ _ rfl (hstep _ _ _ rfl (hsingle _)),
+      (fun s hs => by rw [hhead1 _ _ _ hs]),
+      ?_⟩
+    have := segAppC 2 (by norm_num) dt hdt0 hdt5 hv2 hσ
+    simpa [modeC, kC, List.replicate] using this
+  -- window Return, start Return
+  · refine ⟨[(1, modeC 1, edgeC 1 0), (0, modeC 0, edgeC 0 0)],
+      (by
+        intro s hs
+        refine halignseg s ?_
+        simp only [List.mem_cons, List.not_mem_nil, or_false] at hs ⊢
+        tauto),
+      hstep _ _ _ rfl (hsingle _),
+      (fun s hs => by rw [hhead1 _ _ _ hs]),
+      ?_⟩
+    have := segRetC 2 (by norm_num) dt hdt0 hdt5 hv2 hσ
+    simpa [modeC, kC, List.replicate] using this
+
+/-- **`arm_chain_rung1`, modal Theorem 3** — the per-window λ/k switch instance. -/
+theorem arm_chain_rung1_modal (dt : ℝ) (hdt0 : 0 ≤ dt) (hdt5 : dt ≤ 1/5)
+    (hv0 : VerdC 0) (hv1 : VerdC 1) (hv2 : VerdC 2) :
+    RFormula.rvalid (theorem3Form
+      (bigChoice (leftProgsC dt))
+      (rightAutomatonBody GrC mvC)
+      (RFormula.and (RFormula.and (canonInv gC) (envLR domLC domRC))
+        (mvValidR mvC GrC.modes.length))) := by
+  refine theorem3_faithful_multiE_LR GrC mvC gC domLC domRC (leftProgsC dt)
+    (canonInv gC) (encode_canonInv gC) ?_ ?_ ?_
+  · exact hdis_multi GrC 0 1 dt leftDataC (by decide) httC hRvC hLC
+  · exact hstep_assembled_multiE GrC mvC gC envC (leftProgsC dt) hmvgC hmvenvC
+      hfreshC httC hltC (hframesC dt)
+      (HmultiC dt hdt0 hdt5 hv0 hv1 hv2)
+  · exact hddF_multiE GrC 0 1 dt leftDataC (canonInv gC) domLC domRC (by decide)
+      httC hRvC hLC (canonInv_varsL gC hgC) (canonInv_varsR gC) hdomLC hdomRC
+
 end ArmChainRung1Modal
 end RelCertifier

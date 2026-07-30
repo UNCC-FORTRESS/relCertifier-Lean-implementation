@@ -251,6 +251,20 @@ in-kernel; the landing region rides the coupling as a ninth invariant conjunct.
 Residuals: three 9-query stratified-DC verdict packs (semantic mirrors measured
 27/27 unsat).
 
-**Remaining:** the 5 switch instances (L3 lemmas + band verdicts), the k>1 /
-multi-component / λ≠1 instance generator over the completed chain variants,
-suite verdict battery.
+**L3 switch class CLOSED (4536485…4c3d56a):** all five switch benchmarks carry
+modal Theorem 3 — the `arm_fidelity_low` pilot (first switch + first λ≠1 + first
+dt-capped instance; drop-tracked B-first split, L3′), its `arm_refinement` /
+`plant_fan_low` clones, `arm_chain_rung1` (per-window λ/k), and
+`arm_chain_rung2` (asymmetric θ = 3/5 — single-band under L3′ where the
+pre-L3′ measurement needed a banded θ-family). All existence Z3-free.
+
+**Generator sweep (cb1fa6c):** signature sweep over the remaining suite found
+exactly one exact clone — `rover3tier_M1` = `match_multi_eps` — landed.
+**Seventeen instances total**; residual inventory in
+[`VERDICTS.md`](VERDICTS.md) (mirrors measured; existence residuals zero).
+
+**T3-6 CLOSED.** The remaining 29 benchmarks need genuinely new instance
+arcs (the 19 multi-component/list-F, the λ≠1 × k>1 composites, the 8/12-dof
+story benchmarks) over the completed lemma layer — every chain variant they
+need ({k=1,k>1} × {single-g,list-F,region} × {hops,splits,λ-reparam}) is
+landed and instantiated at least once.

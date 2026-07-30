@@ -2,7 +2,12 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The per-benchmark mega-theorem (arm_refinement): fidelity ∧ settling, one term
+# `arm_refinement` mega-theorem (ARCHIVED 2026-07-30 — vacuous route, superseded)
+
+**ARCHIVED.** Single theorem `arm_refinement_mega`, referenced nowhere, riding the
+settling/`GBoxAll` route documented as vacuous for these benchmarks
+(`docs/READING-GUIDE.md` §4). Superseded by `Instances/ArmRefinementModal.lean`
+(`arm_refinement_modal`), which is audited in `Instances/ModalBattery.lean`.
 
 Bundles the whole checker-side pipeline for one benchmark into a single theorem whose
 only hypotheses are the pipeline's designed residuals:

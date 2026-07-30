@@ -13,12 +13,12 @@ never the dynamics, the mode structure, or the verdicts (46/47 in both forms). (
 cascade-coordinate program rewrote the second-order blocks of four benchmarks — and, for
 ladder coherence, the matching lower-rung L sides — in their eigen-cascade charts: a linear
 bijection of the same dynamics with the relational invariants substituted exactly, so the
-table below is likewise unaffected; see docs/DEVELOPMENT-ARC.md.)
+table below is likewise unaffected; see docs/history/DEVELOPMENT-ARC.md.)
 
 Scope note: this document addresses the **`tooling_sound`** chain and its `HExistSeg` boundary.
 The newer landing/uniform chain (`theorem3_faithful_landing_clocked_uniform`,
 `theorem3_faithful_settling` — README "The landing chain, intuitively";
-`docs/DEVELOPMENT-ARC.md`) replaces that side-condition entirely: its per-segment obligation is
+`docs/history/DEVELOPMENT-ARC.md`) replaces that side-condition entirely: its per-segment obligation is
 duration-bounded staying (`WellFormedFlowB` / `GuardSettlingB`), discharged by construction for
 the settling classes — so the `∀ν HExistSeg` wall below is a boundary of the older chain, not of
 the current canonical one.

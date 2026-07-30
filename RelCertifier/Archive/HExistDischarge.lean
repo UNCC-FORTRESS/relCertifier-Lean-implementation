@@ -4,6 +4,12 @@ Released under Apache 2.0 license.
 
 # Wiring `hExist_rover` into `segment_faModal` — discharging the carried side-condition
 
+**ARCHIVED 2026-07-30.** Superseded by `Proofs/Flow/WellFormedFlow.lean`, which
+generalizes `hExist_from_rover` (its own header says so). Nothing references the three
+declarations below; the live existence routes are `WellFormedFlowB_contract`, the
+stratified/affine face consumers, and the explicit closed-form witnesses in the catch-up
+instances.
+
 `hExist_rover` (PicardBridge) constructs the right witness `ΦR` for the rover field shape. This file
 threads it into `segment_faModal`'s `hExist` hypothesis, **removing** it from the carried
 side-conditions for the rover-shape benchmarks.

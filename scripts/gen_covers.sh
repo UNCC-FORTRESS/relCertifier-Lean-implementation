@@ -1,4 +1,8 @@
 #!/bin/zsh
+# STALE (2026-07-30 audit): reads/writes the MONOLITHIC aggregator form that the X0
+# modularization replaced with per-benchmark leaves. Running gen_covers.sh would
+# OVERWRITE RelCertifier/Instances/BenchCovers.lean and destroy the 46-leaf layout.
+# Repoint at the leaves before any use.
 # Regenerate RelCertifier/Instances/BenchCovers.lean from the tool's cover search.
 set -e
 cd "$(dirname $0)/.."

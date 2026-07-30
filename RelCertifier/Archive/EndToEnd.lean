@@ -8,7 +8,14 @@ throughout battery). See the deprecation note in `Proofs/Encoding/ClockedTop.lea
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# End-to-end demo theorem (watertank): one term from checker cert to `rvalid`
+# Watertank end-to-end demos (ARCHIVED 2026-07-30 — cadenced chain, superseded)
+
+**ARCHIVED.** These are the cadenced-chain end-to-end demos, deprecated in R7 and kept
+only until the modal form reached suite parity. Parity was reached on 2026-07-30: all 46
+certified benchmarks now carry `rvalid (theorem3Form …)` (`Instances/ModalBattery.lean`,
+`docs/CERTIFICATION-CHECK.md`), so nothing depends on this file. Its theorems rest on the
+`GBoxAll`/`hbudgetAll` hypotheses documented as unsatisfiable for these benchmarks
+(`docs/READING-GUIDE.md` §4) — do not cite them. Kept compiled for the record.
 
 Materializes, for one concrete benchmark, the composition that the pipeline performs
 per benchmark at run time:

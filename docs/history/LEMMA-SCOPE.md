@@ -1,3 +1,12 @@
+> **COMPLETED — archived 2026-07-30.** Every lemma group scoped here landed:
+> L1 `Proofs/Flow/StratifiedFaces.lean`, L1c/L1d `AffineFaces{,2}.lean`,
+> L2 `Proofs/Encoding/RepoPrefixR.lean`, L3 `SplitCoupling.lean`,
+> L4 `ModeRegion.lean` + `EnvelopeChainR.lean`, L6 `EnvelopeChainM.lean`,
+> L7 `Reparam.lean`, plus the later `WindowRF.lean` and `WindowGrowth.lean`.
+> The file's "Nothing built" banner and its sizing estimates are historical. One
+> projection was notably wrong in the good direction: it expected ~1130 new Z3 verdicts
+> to enter the trust base, but the hardest benchmarks landed **Z3-free**.
+
 # Lemma scope — what must be stated and proved for Theorem 3 across all 46
 
 **Scope document. Nothing built.** Companion to

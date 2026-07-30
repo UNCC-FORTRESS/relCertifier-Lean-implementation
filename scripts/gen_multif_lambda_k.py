@@ -1,7 +1,11 @@
 """λ/k assembly tail for multiF instances (single λ, single k, in-place dispatch)."""
+import os
 import sys
-sys.path.insert(0, '/private/tmp/claude-503/-Users-jxiang1-Develop/fcb60004-278e-482c-8a81-5509a4c43a3d/scratchpad')
-from gen_multif import gen
+
+# The base emitter lives next to this file (it was developed as `gen_multif.py` in a
+# scratchpad; `gen_multif_instance.py` is the in-repo copy of the same module).
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from gen_multif_instance import gen
 
 
 def tail_lk(spec):

@@ -1,19 +1,84 @@
 # Benchmark suite
 
-One directory per benchmark; `input.txt` is the complete specification in the
-certifier's DSL:
+One directory per benchmark under `suite_uniform/`; `input.txt` is the complete
+specification. **47 directories: 46 certified, plus `shield_unreachable`, on which the
+tool reports an inconclusive Z3 verdict and which is therefore outside the certified
+suite.** Every certified benchmark carries a machine-checked modal Theorem 3 — see
+`docs/CERTIFICATION-CHECK.md` for how to verify that end to end.
 
-* `vars` — the shared state-variable table (both sides use the same names);
-* `L:` / `R:` — the ideal and implementation automata: per mode `odes` (polynomial
-  right-hand sides), `guard` (entry condition), `evolve` (domain the flow may not
-  leave), `next` (declared successors);
-* `invariant` — per left mode, the relational invariant over `L_`/`R_`-prefixed
-  variables (e.g. `L_x <= R_x + 3`);
-* `lambda` — the admissible time-stretch range for the right's responses.
+## File format
 
-`relcert <dir>/input.txt` parses, lowers, searches, and certifies. Certified
-benchmarks' data is emitted into `RelCertifier/Instances/Bench*.lean` (drift-checked
-literals) from which the per-benchmark theorem instances are generated — see the
-repository README's "File guide". The suite (47): watertank; arm chain/fidelity and
-plant fan families; rover refinement ladders (2–12 dof); dof-terrain rungs; endurance,
-attitude, rollover stories.
+INI-style sections. The parser is `RelCertifier/Trusted/Parse.lean` and it is **strict**:
+it rejects rather than weakens, and the CLI additionally refuses unknown keys and unknown
+sections (`Trusted/KeyAudit.lean`, the W6 gate). Lines starting with `#` are comments.
+
+```ini
+[problem]
+name       = watertank
+max_depth  = 6           # accepted, deliberately unread by the parser (see note below)
+lambda_min = 1.0
+lambda_max = 10.0
+bound_T    = 40.0        # optional
+
+[Lsys]                   # the ideal system; [Rsys] is the implementation
+state_vars = [x]
+epsilon    = 1.0
+
+[Lsys.mode.Low]          # one section per mode, named [<Lsys|Rsys>.mode.<Name>]
+ode    = x' = smt2:(* 3 (- 0.6 (* x 0.04)));
+guard  = x >= 0.0 and x < 13.0
+evolve = x >= 0.0 and x <= 25.0
+next   = [Mid, Low]
+
+[relational_invariant]   # one row per LEFT mode name
+Low  = x[l] <= x[r] + 3
+Mid  = x[l] <= x[r] + 3
+High = x[l] <= x[r] + 3
+```
+
+Key points, each of which the parser enforces:
+
+* **`ode`** (singular) holds the whole vector field as one `;`-separated list:
+  `ode = px' = vx; py' = vy; vx' = 0.2; vy' = 0;`. A right-hand side is either infix
+  arithmetic or an `smt2:`-prefixed S-expression for anything nonlinear
+  (`vx' = smt2:(* -0.5 vx)`).
+* **`guard`** is the mode's entry condition, **`evolve`** the domain the flow may not
+  leave, **`next`** the declared successors (the automaton's transition relation — the
+  successor-completeness assumption in the repository README's trust table quantifies over
+  exactly this list).
+* **`state_vars`** is per system; both sides normally use the same names, and the
+  coordinate *order* here is the order the Lean instances index by (`Lv 0`, `Rv 0`, …).
+* **`[relational_invariant]`** has one row per **left** mode, over `[l]`/`[r]`-suffixed
+  variables. Rows may differ per mode (nested tolerances are common: `Drive` tighter than
+  `Drift` tighter than `Stop`); when they do, a single-invariant modal statement uses the
+  weakest declared row, and where the rows have genuinely different *shapes* the instance
+  states one theorem per left mode (`rover3tier_rung12`).
+* **`lambda_min`/`lambda_max`** bound the time-stretch the right side may use when
+  responding.
+
+**Note on `max_depth`.** Every input carries it and the parser deliberately never reads
+it — search depth is a tool parameter, not part of the specification. The key is
+whitelisted (rather than silently dropped) precisely so that the CLI's key audit can still
+reject genuinely unknown keys. The underlying observation is recorded in
+`docs/COVER-AUDIT.md`.
+
+## Running one
+
+```bash
+lake build relcert
+./.lake/build/bin/relcert benchmarks/suite_uniform/watertank/input.txt
+```
+
+The tool parses, lowers, searches for a cover, and discharges the analytic side conditions
+with Z3. Certified data is emitted into `RelCertifier/Instances/BenchIR/<name>.lean`,
+`BenchCovers/<name>.lean`, and friends — drift-checked literals from which the
+per-benchmark theorem instances are built. `./.lake/build/bin/relcert-test` re-parses every
+`input.txt` and checks it still equals the emitted literal, so a benchmark file and its
+theorem cannot drift apart silently.
+
+## The suite
+
+watertank; the arm chain / arm fidelity / plant fan families; rover refinement ladders
+(2–12 dof); dof-terrain rungs; endurance, attitude, lateral and rollover stories; plus the
+rover tier, coupled, position and drag models. Sizes run from 1 to 12 state variables per
+side.

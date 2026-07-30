@@ -8,8 +8,9 @@ Per benchmark, per left window, the instances need: the REAL cover graph (lowere
 systems at the emitted λ, flags from the emitted cover), the component list (lowered
 `invComponents`, now total), and the `CoverCertM` bundle assembled from named Z3
 verdicts whose query domains are EXACTLY the tool's stratified, cut-free queries
-(`strataDomIR` over the emitted per-pair orders — the 33-benchmark battery scope;
-the 13 cut-reliant benchmarks take the guard-threaded cut lift, follow-up).
+(`strataDomIR` over the emitted per-pair orders — the 33 cut-free benchmarks; the 13
+cut-reliant ones take the guard-threaded cut lift, landed in
+`Proofs/Soundness/CutCover.lean` + `CutCoverDischarge.lean`. 33 + 13 = 46).
 
 Everything here is generic; the generated instances supply only literals and `decide`.
 -/

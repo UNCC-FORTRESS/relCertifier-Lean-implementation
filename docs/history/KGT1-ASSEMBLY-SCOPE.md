@@ -1,3 +1,10 @@
+> **COMPLETED — archived 2026-07-30.** The k > 1 window assembly landed as
+> `Hmulti_windowR_prefixed` in `Proofs/Encoding/RepoPrefixR.lean` (and its list-invariant
+> sibling `Hmulti_windowRF_prefixed` in `WindowRF.lean`). The "21 blocked benchmarks" this
+> document opens with all carry modal Theorem 3 today. Note the resolution was *not* the
+> one scoped here: rather than repairing `Hmulti_window_prefixed`'s unsatisfiable `hdisH`
+> side condition, the right-only hop program derives disjointness instead of assuming it.
+
 # Scope — the k>1 window assembly (multi-piece windows with reposition hops)
 
 **Status: SCOPE ONLY. Nothing built.**

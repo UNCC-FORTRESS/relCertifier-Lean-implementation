@@ -2,7 +2,12 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# Watertank, conjunction throughout — the multi-node template (R5)
+# watertank throughout pilot (ARCHIVED 2026-07-30 — template, superseded by the generated battery)
+
+**ARCHIVED.** The second hand-built template for the generated throughout battery. The
+generated `Instances/Throughout/watertank.lean` (`ThroughoutWatertank`) defines the same
+three `watertank_throughout_{Low,Mid,High}` theorems from the same emitted cover and IR,
+and is the live instance. Kept compiled as the readable reference version.
 
 The second validated template for the generated battery: THREE windows (one per left
 mode), multi-node real graphs (the Mid window drops the uncertified `Low` row), and all

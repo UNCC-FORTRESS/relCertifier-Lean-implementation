@@ -29,15 +29,15 @@ compose into the semantic guarantee. Z3's `unsat` answers are the only assumed f
 | layer | files / lines | what it is | read for |
 |---|---|---|---|
 | `Core/` | 3 / 543 | flow queries, Lie derivatives, ℚ parsing | `FlowCert.lean` — the three DI routes and the note on why the boundary-only form is unsound |
-| `Trusted/` | 9 / 2,099 | parser, lowering, printer, Z3 session, search, emission doors | `Oracle.lean` — the axiom and its four wrappers; `Parse.lean` — the reject-never-weaken contract |
+| `Trusted/` | 10 / 2,273 | parser, lowering, printer, Z3 session, search, emission doors | `Oracle.lean` — the axiom and its four wrappers; `Parse.lean` — the reject-never-weaken contract |
 | `Checker/` | 11 / 9,767 | cover graphs, `decideCovered`, cut certificates, fidelity | `Cover.lean` — `CoverCert`, `SegPreserves`, `Covered`; `Checker.lean` — the decision procedure |
-| `Proofs/Encoding` | 27 / 7,746 | the ∀∃ chain: bridges, windows, repositions, envelopes | `CoverExtract.lean`, `BridgeDischarge.lean` — the live Theorem 3 routes |
-| `Proofs/Flow` | 12 / 5,165 | DI routes, Picard existence, viability, contract witnesses | `PicardBridge.lean` (1,607 L, the analytic core); `ViabilityWiring.lean` |
+| `Proofs/Encoding` | 35 / 9,782 | the ∀∃ chain: bridges, windows, repositions, envelopes | `CoverExtract.lean`, `BridgeDischarge.lean` — the live Theorem 3 routes |
+| `Proofs/Flow` | 15 / 6,113 | DI routes, Picard existence, viability, contract witnesses | `PicardBridge.lean` (1,607 L, the analytic core); `ViabilityWiring.lean` |
 | `Proofs/Soundness` | 6 / 2,397 | cut lift, guard threading, uniform evolution | `CutLift.lean`, `CutCover.lean`; **`GuardThreaded.lean:374` — the `GBoxAll` quarantine** |
 | `Proofs/Transfer` | 5 / 3,918 | rescaling, the `Faithful` denotation bridge | `Rescale.lean` — the scaling-transfer lemma |
-| `Instances/` | 238 / 36,622 (217 generated) | per-benchmark theorems + emitted data | `WatertankModal`/`WatertankViability`, `UniformPilot` — the two live ∀∃ instances |
+| `Instances/` | 280 / 85,680 (mostly generated) | per-benchmark theorems + emitted data | `ModalBattery.lean` — every benchmark's Theorem 3 and its axiom audit; `WatertankModal`/`WatertankViability` — the flagship, existence proven |
 | `Verdicts/` | 6 / 638 | query mirrors, kernel pins, the runner | `GenericPins.lean` — printed query = hypothesised query |
-| `Archive/` | 13 / 1,855 | superseded developments, not built upon | `ProbeMvHd.lean` — a mechanized vacuity counterexample |
+| `Archive/` | 17 / 2,683 | superseded developments, not built upon | `ProbeMvHd.lean` — a mechanized vacuity counterexample |
 
 ## 3. The live chain, end to end
 
@@ -189,12 +189,19 @@ with guard-gated switching (a fact about the modeled system). See README's trust
 - `ASSET-MAP.md` — load-bearing theorems, with the vacuous routes flagged
 
 **Design proposals (nothing scheduled):** `FIXPOINT-DESIGN.md` (winning-region
-alternative), `RESET-MAPS-SCOPE.md` (per-mode state resets), `ROTATION-SCOPE.md`
-(jump-then-flow vs flow-then-jump equivalence).
+alternative — its premise is superseded, see its banner), `RESET-MAPS-SCOPE.md` (per-mode
+state resets), `ROTATION-SCOPE.md` (jump-then-flow vs flow-then-jump equivalence).
+
+**Measurements:** `VIABILITY-FACE-CENSUS.md` (the 1133-face census; the counts stand, the
+route columns are historical — every class has a Lean route now).
 
 **`history/`** — true, completed records: `ROADMAP.md` (the R/S arcs and their acceptance
 gates), `DEVELOPMENT-ARC.md` (the narrative, including findings that turned out false),
-`CUT-LIFT-SCOPE.md` (task D, delivered as S2), `MULTIFLOW-REALIGN.md` (task H).
+`CUT-LIFT-SCOPE.md` (task D, delivered as S2), `MULTIFLOW-REALIGN.md` (task H), and the
+four T3-arc scope documents archived on 2026-07-30 when the arc closed:
+`THEOREM3-ALL-BENCHMARKS-PLAN.md`, `LEMMA-SCOPE.md`, `KGT1-ASSEMBLY-SCOPE.md`,
+`INTRA-PIECE-SWITCH-SCOPE.md`. Each carries a banner saying what landed and — where the
+prediction was wrong — how it actually resolved.
 
 **`archive/`** — superseded by later architecture: `ARCHITECTURE.md`,
 `BENCHMARK_INSTANTIABILITY.md`.

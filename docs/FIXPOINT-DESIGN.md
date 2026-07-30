@@ -1,5 +1,15 @@
 # Design: the winning-region fixpoint — "the automaton refines L" for every benchmark
 
+> **PREMISE SUPERSEDED (2026-07-30).** This design was scoped to buy the suite-wide modal
+> claim — "Theorem 3 for every benchmark" — which now holds without it: all 46 certified
+> benchmarks carry `rvalid (theorem3Form …)` through the response-structure layers
+> (`RepoPrefixR`, `WindowRF`, `Reparam`, `EnvelopeChainM/R`, `SplitCoupling`,
+> `WindowGrowth`). In particular §4's claim that the winning-region reformulation would
+> clear the "21 blocked benchmarks" was never tested, because those benchmarks were closed
+> another way. Kept as a recorded alternative: it is still the natural design if a
+> *modal-for-all-schedules* claim (as opposed to per-window responses) is ever wanted.
+
+
 Status: DESIGN PROPOSAL (2026-07-17). Nothing here is implemented in Lean; the current
 derivation-style pipeline (cover search → `decideCovered` replay → per-benchmark
 assembly) stays the production route until this design lands end-to-end on a pilot.

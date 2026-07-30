@@ -12,9 +12,20 @@ Reading order (bottom-up, matching the paper's stages):
 * `Cover` / `Cover.Encoding` / `Cover.Coexec` — Stage 3, the cover (Definition 4) ⟹ Theorem 3,
   and its dL-rel ∀∃ encoding.
 * `Checker` — the verified `decideCovered` that gates a sound `CERTIFIED`.
-* `PicardBridge` / `HExistDischarge` / `CSFBridge` / `EncodingBridge` / `Reify` / `Reification`
+* `PicardBridge` / `CSFBridge` / `EncodingBridge` / `Reify` / `Reification`
   / `MultiSeg` / `ClockReduce` — the ∀∃ witness (`hExist`) and the CSF→NFM'25 modality chain.
+* `EnvelopeChain{,M,R}` / `RepoPrefixR` / `WindowRF` / `Reparam` / `SplitCoupling` /
+  `WindowGrowth` — the response layers the per-benchmark instances are built from
+  (envelope, list-valued and mode-region loop invariants; right-only hop prefixes;
+  k > 1 windows; λ-reparametrization; intra-window switching; the catch-up bound).
+* `Instances.ModalBattery` — **the headline**: every certified benchmark's Theorem 3,
+  with its axiom audit re-emitted on each build. Checking recipe:
+  `docs/CERTIFICATION-CHECK.md`.
 * `Smt` / `Oracle` / `Z3` / `OracleAPI` / `Parse` / `Run` — the trusted IO shell + runnable tool.
+
+Note on retired routes: the settling/cadenced chain (`ClockedTop`, `GuardThreaded`'s
+`GBoxAll` forms) is kept compiled but is **not** a live route — see `docs/READING-GUIDE.md`
+§4 before citing anything from it. Superseded instances live in `RelCertifier/Archive/`.
 -/
 import RelCertifier.Core.FlowCert
 import RelCertifier.Trusted.Smt
@@ -30,7 +41,7 @@ import RelCertifier.Proofs.Flow.DISuperlevel
 import RelCertifier.Checker.Cover.Coexec
 import RelCertifier.Checker.Checker
 import RelCertifier.Proofs.Flow.PicardBridge
-import RelCertifier.Proofs.Flow.HExistDischarge
+import RelCertifier.Archive.HExistDischarge
 import RelCertifier.Proofs.Encoding.JointBridge
 import RelCertifier.Archive.OdeProject
 import RelCertifier.Archive.RightReachProject
@@ -84,13 +95,13 @@ import RelCertifier.Proofs.Transfer.FaithfulBridgePad
 import RelCertifier.Instances.FaithfulCerts
 import RelCertifier.Proofs.Transfer.Rescale
 import RelCertifier.Proofs.Encoding.FvDischarge
-import RelCertifier.Instances.Mega
+import RelCertifier.Archive.Mega
 import RelCertifier.Instances.RealInstances
 import RelCertifier.Proofs.Encoding.ClockedTop
 import RelCertifier.Proofs.Encoding.ClockReduce
 import RelCertifier.Core.QFrac
 import RelCertifier.Core.Reify
-import RelCertifier.Instances.EndToEnd
+import RelCertifier.Archive.EndToEnd
 import RelCertifier.Proofs.Encoding.CSFBridge
 import RelCertifier.Proofs.Encoding.EncodingBridge
 import RelCertifier.Proofs.Encoding.MultiSeg
@@ -111,9 +122,9 @@ import RelCertifier.Instances.WatertankViability
 import RelCertifier.Verdicts.Run
 import RelCertifier.Proofs.Encoding.CoverInstance
 import RelCertifier.Instances.BenchCoversNC
-import RelCertifier.Instances.ThroughoutPilot
+import RelCertifier.Archive.ThroughoutPilot
 import RelCertifier.Instances.UniformPilot
-import RelCertifier.Instances.WatertankThroughout
+import RelCertifier.Archive.WatertankThroughout
 import RelCertifier.Instances.ThroughoutBattery
 
 -- The modal battery: every benchmark's Theorem 3 + its axiom audit (docs/CERTIFICATION-CHECK.md)

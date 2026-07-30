@@ -147,7 +147,8 @@ RelCertifier/
   Archive/    superseded developments (kept for the record, not imported)
 benchmarks/   the input suite (one dir per benchmark, textual DSL)
 scripts/      instance generators + build orchestration
-docs/         design records, audits, the verdict report
+docs/         CERTIFICATION-CHECK.md (how to verify the suite end to end),
+              READING-GUIDE.md (entry point), design records, audits, verdict report
 ```
 
 The separation that matters: **`Instances/` states theorems; `Verdicts/` makes their
@@ -194,6 +195,20 @@ theorems tie the runner's printed queries to the theorems' named queries).
 * `EnvelopeChain.lean` — the envelope-carrying loop invariant (`phiInvE`), the
   LR-split relational envelope (`envLR`), `theorem3_faithful_multiE_LR` — the
   multi-mode modal top theorem the flagship instantiates.
+* `EnvelopeChainM.lean` — the same chain over a **list** of invariant components
+  (`FM`, `canonInvM`, `theorem3_faithful_multiF_LR`): the 19 multi-component benchmarks.
+* `EnvelopeChainR.lean`, `ModeRegion.lean` — the mode-region loop invariant
+  (`mvRegionR`): responses that owe a landing region, not just an invariant.
+* `RepoPrefixR.lean` — right-only reposition hops whose vars-disjointness is **derived**;
+  what unblocked windows with more than one piece.
+* `WindowRF.lean` — the k > 1 window assembly over list-valued invariants.
+* `Reparam.lean` — λ-stretched right runs have the same runs as λ = 1 ones, so the
+  statement can be made at the real automaton (23 benchmarks with λ ≠ 1).
+* `SplitCoupling.lean` — intra-window mode switching (B-then-A at a fixed fraction), the
+  five `dt ≤ 1/5` switch instances.
+* `WindowGrowth.lean` — the **catch-up** device: `windowSeg_growth` bounds how far a left
+  window can move a quantity, `windowSeg_mask` carries the right state through it. Behind
+  the five Z3-free instances, whose responses are pure right-side flows.
 * `CanonicalInv.lean` — the canonical relational invariant and its encoding identity.
 * `CoverExtract.lean`, `CoverMulti.lean`, `CoverInstance.lean` — from the checker's
   `Covered` facts to theorem-grade responses; multi-component certificates
@@ -216,6 +231,10 @@ theorems tie the runner's printed queries to the theorems' named queries).
   conditioning verdicts.
 * `FaceBridge.lean` — faces ⟺ evolve domain; uniform Picard data; the contract-
   witness transfer (`WellFormedFlowB_transfer`).
+* `StratifiedFaces.lean` — L1: face invariance by strata (strict core first, non-strict
+  layers on top), plus the existence consumer most instances use.
+* `AffineFaces.lean`, `AffineFaces2.lean` — L1c/L1d: equilibrium faces via affine
+  relaxation, and monotone lower faces chained on the affine pass.
 * `WellFormedFlow.lean`, `DISuperlevel.lean`, … — bounded flow well-formedness and
   DI route backings.
 
@@ -244,11 +263,19 @@ theorems tie the runner's printed queries to the theorems' named queries).
 * `BenchViability2.lean` — the S3 face census (1121/1121, suite-wide).
 * `Throughout/*.lean`, `ThroughoutBattery.lean` — the 33 cut-free instances.
 * `CutThroughout/*.lean`, `CutThroughoutBattery.lean` — the 13 cut-lifted instances.
+* `<Bench>Modal.lean` (46 files) — the per-benchmark modal Theorem 3 instances.
+* `ModalBattery.lean` — imports all 46 and re-emits their axiom audits on every build;
+  the door for the end-to-end check (`docs/CERTIFICATION-CHECK.md`).
 * `WatertankModal.lean` — the modal flagship's statement-level instance.
 * `WatertankViability.lean` — its existence discharge + `watertank_modal_certified`.
-* `SettlingInstances.lean`, `EndToEnd.lean`, `Mega.lean`, `FaithfulCerts.lean`,
-  `ThroughoutPilot.lean`, `UniformPilot.lean`, `WatertankThroughout.lean`, … —
-  the settling battery and the pilots that validated each chain.
+* `AxiomCheck.lean` — the chain-level audit: where `z3_unsat_sound` enters and where it
+  does not.
+* `SettlingInstances.lean`, `RealInstances.lean`, `FaithfulCerts.lean`,
+  `UniformPilot.lean` — the settling battery (a standalone right-system claim), the
+  benchmark-identity certificates, and the uniform-route pilot.
+
+Superseded pilots and retired routes live in `RelCertifier/Archive/` (see its README):
+`EndToEnd.lean`, `Mega.lean`, `ThroughoutPilot.lean`, `WatertankThroughout.lean`.
 
 ### Verdicts/ — the empirical column
 * `Mirrors.lean`, `Combinators.lean` — route-C mirror; fold mirrors (`istrataDomHost`,
@@ -332,10 +359,12 @@ Mechanizing surfaced real issues; each is recorded in `docs/COVER-AUDIT.md`:
 ## Benchmarks
 
 `benchmarks/suite_uniform/<name>/input.txt` — one file per benchmark: state variables,
-`L`/`R` mode lists (`odes`, `guard`, `evolve`, `next`), per-mode relational invariants,
+`L`/`R` mode lists (`ode`, `guard`, `evolve`, `next`), per-mode relational invariants,
 and the `λ` stretch range. The parser is strict; the emitted IR (`BenchIR/<name>.lean`) is the
-drift-checked single source every instance quotes. 47 benchmarks: watertank, arm/plant
-families, rover refinement ladders, terrain and rollover stories up to 12 dof.
+drift-checked single source every instance quotes. 47 directories — 46 certified, plus
+`shield_unreachable`, on which the tool reports an inconclusive verdict and which is
+outside the certified suite: watertank, arm/plant families, rover refinement ladders,
+terrain and rollover stories up to 12 dof. Format details: `benchmarks/README.md`.
 
 ## History
 

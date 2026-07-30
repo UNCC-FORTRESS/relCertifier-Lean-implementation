@@ -8,7 +8,8 @@ This module imports the modal (Theorem 3) instance of EVERY certified benchmark
 and re-emits its axiom audit. It is the single door for the end-to-end check
 described in `docs/CERTIFICATION-CHECK.md`:
 
-* importing it forces the kernel to check all 47 instance proofs (`lake build`);
+* importing it forces the kernel to check all 47 modal theorems, across the 46
+  instance files imported below (`lake build`);
 * the `#print axioms` lines below re-emit on every build, so the audit cannot
   drift from the theorems;
 * the benchmark ↔ theorem correspondence is the import list itself — each

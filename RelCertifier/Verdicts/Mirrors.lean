@@ -7,10 +7,16 @@ Released under Apache 2.0 license.
 The theorems' hypotheses are `z3solve (query) = unsat` facts over HOST formulas;
 `z3solve` is opaque, operationally realized as "print the IR mirror, run Z3"
 (the trust wording: parser + printer + Z3-on-unsat + kernel). This directory is the
-EMPIRICAL column, kept separate from `Instances/` (the kernel column): per benchmark,
-the IR mirrors of the exact hypothesis queries, kernel identity theorems
-`mirror.toHost = hypothesis-query` (so what Z3 sees IS what the theorem assumes), and
-the `--run-verdicts` runner producing the dated report (docs/VERDICTS.md).
+EMPIRICAL column, kept separate from `Instances/` (the kernel column): the IR mirrors of
+the hypothesis queries, kernel identity theorems `mirror.toHost = hypothesis-query` (so
+what Z3 sees IS what the theorem assumes), and the `--run-verdicts` runner producing the
+dated report (docs/VERDICTS.md).
+
+COVERAGE (2026-07-30): identity theorems exist per benchmark for watertank
+(`Watertank.lean`) and per query SHAPE generically (`GenericPins.lean`, used by the cut
+probes). The verdict packs of the other modal instances are measured through the same
+printer but are not yet pinned here — recorded as the open item in
+`docs/CERTIFICATION-CHECK.md` § Check 3.
 
 This file: the missing route-C mirror (`iflowQuerySuperlevel`), completing the
 route-A/B mirrors from `Smt.lean`/`CutLift.lean`.

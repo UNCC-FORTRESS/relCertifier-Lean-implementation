@@ -1,3 +1,4 @@
 /.lake/
 .DS_Store
 .category
+__pycache__/

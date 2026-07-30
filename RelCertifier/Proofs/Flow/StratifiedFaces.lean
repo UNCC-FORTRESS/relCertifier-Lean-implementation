@@ -25,8 +25,10 @@ and no Nagumo sub-tangency is needed.
 then re-derives the full face box — including the non-strict faces — post hoc on that
 run, and only then concludes the evolve domain. No re-proof of the Picard/chain layer.
 
-Measured grounding (docs/LEMMA-SCOPE.md): the stratification closes for 47/47
-benchmarks, strata depth ≤ 3 beyond the strict core, zero stuck faces.
+Measured grounding (docs/history/LEMMA-SCOPE.md): the stratification closes for every
+benchmark measured — 47/47 at census time, i.e. the 46 certified ones plus the
+tool-inconclusive `shield_unreachable` — with strata depth ≤ 3 beyond the strict core and
+zero stuck faces.
 -/
 import RelCertifier.Proofs.Flow.ViabilityWiring
 

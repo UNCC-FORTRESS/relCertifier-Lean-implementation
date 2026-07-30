@@ -52,7 +52,8 @@ not a `domR`-exit first-passage.
 * `ClockReduce`/`plantT`: a clock `tg` (`tg' = 1`) **states** the duration-bounded segment; `plantT`
   bounds `ν tg − ω tg ≤ T`. The segment's duration is fixed by the clock budget, then the clock is
   eliminated (`clockReduce`).
-* `HExistDischarge`: `hExist` supplies the right witness for **any** `s` where the left stays in
+* existence (`WellFormedFlow`, the stratified/affine face consumers): `hExist` supplies the right
+  witness for **any** `s` where the left stays in
   `domL` over `[0,s]`, with the right guaranteed in `domR` over the same `[0,s]` (the `hsmax` growth
   bound). So the right never needs a `domR`-exit first-passage — it stays in `domR` for the whole
   fixed-budget segment.

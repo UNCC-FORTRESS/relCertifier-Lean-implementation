@@ -15,7 +15,8 @@ This file lands the composable core statement-first:
   (`WellFormedFlow`, banked) and 4 (`segment_faModal`, banked) COMPOSE sorry-free, with the in-domain
   entry `hνdom` the landing supplies by construction.
 The full `multiseg_landing` induction over `Covered` (composing these via `faModal_seq`/`faModal_MR`,
-threading `invLe g`) is the remaining build; its per-node step is `segment_landing`.
+threading `invLe g`) is `theorem multiseg_landing` below — the capstone; its per-node step is
+`segment_landing`.
 -/
 import RelCertifier.Core.Reify
 import RelCertifier.Proofs.Flow.WFBoundary

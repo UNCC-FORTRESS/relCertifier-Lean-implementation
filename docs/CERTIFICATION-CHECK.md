@@ -40,6 +40,14 @@ hypothesis contract; see `README.md` § *The end-to-end guarantee*.
 
 ---
 
+## What you need
+
+A Lean toolchain matching `lean-toolchain` (elan will fetch it), and **Z3 on `PATH`**
+for checks 3 and 5 — the Lean-side checks 1, 2 and 4's kernel certificates need no
+solver. First `lake build` from cold pulls and compiles mathlib; budget hours, not
+minutes. Nothing else is required: the emitted certificates the theorems consume are
+already in the repository.
+
 ## Check 1 — the kernel checks every instance proof
 
 ```bash
@@ -102,6 +110,8 @@ query.
 ```bash
 ./.lake/build/bin/relcert --run-verdicts      # → "ALL HYPOTHESES DISCHARGED"
 ```
+
+Measured on 2026-07-30: **111 queries, 111 `unsat`, 0 failures.**
 
 **What this covers today, precisely:**
 
@@ -211,7 +221,7 @@ obligations (watertank's are *proven*, in `WatertankViability.lean`).
 | `story3_rollover_base_12dof` | `Story3RolloverBaseModal.lean` | `story3_rollover_base_modal` | `0 ≤ dt`; 6×`VerdB` | std 3 + `z3_unsat_sound` |
 | `story3_rollover_ladder_rung_a` | `Story3RolloverRungAModal.lean` | `story3_rollover_rung_a_modal` | `0 ≤ dt`; 6×`VerdA` | std 3 + `z3_unsat_sound` |
 | `story3_rollover_ladder_rung_b` | `Story3RolloverRungBModal.lean` | `story3_rollover_rung_b_modal` | `0 ≤ dt`; 9×`VerdV` | std 3 + `z3_unsat_sound` |
-| `watertank` | `WatertankViability.lean` | `watertank_modal_certified` | `0 ≤ dt` | std 3 + `z3_unsat_sound` |
+| `watertank` | `WatertankViability.lean` | `watertank_modal_certified` | `dt : ℝ` (unconstrained); 6×`VerdW` — the six pinned to the runner. Existence (`ESW`) is **proven**, not hypothesised | std 3 + `z3_unsat_sound` |
 
 Two rows deserve a note:
 

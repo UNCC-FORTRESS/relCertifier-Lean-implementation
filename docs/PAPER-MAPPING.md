@@ -343,8 +343,8 @@ premise is conditional (`hinit : InvAllHolds gs ν`) — neither the `GBoxAll` n
 | right-system well-formedness at the real scale — flow exists for the control interval, stays in its domain, lands in a retained successor's guard | **46/46** (`*_real`) | Transfer/rescale + `decideWellFormed` `rfl` | ✅ **live** (this is the paper's well-formedness *assumption*, discharged) |
 | the instance **is** the parsed benchmark file | 46/46 | `faithfulSettling… = true := rfl` | ✅ live |
 | the tool's cover decision, kernel-replayed | 46/46 | `coverReplays … := by decide` | ✅ live |
-| full ∀∃ `rvalid (theorem3Form …)` | **2** — `watertank` (`WatertankModal`/`Viability`), `rover_drag` (`UniformPilot`) | `theorem3_faithful_multiE_LR` / `uniform_multiflow_end_to_end` | ✅ **live** |
-| `rvalid (theorem3Form …)` | `watertank` ×3 (`EndToEnd`), `arm_refinement` (`Mega`) | settling route | ❌ **vacuous** (§3b) |
+| full ∀∃ `rvalid (theorem3Form …)` | **46/46** (`Instances/ModalBattery.lean`; 47 theorems — `rover3tier_rung12` has one per left mode) | `theorem3_faithful_multi{E,F,R}_LR` | ✅ **live**; existence proven in every instance, 5 instances Z3-free |
+| `rvalid (theorem3Form …)` | `watertank` ×3, `arm_refinement` (now in `Archive/`) | settling route | ❌ **vacuous** (§3b) — archived 2026-07-30 |
 
 **Answer to "are all benchmarks end-to-end verified?"** — depends on which statement:
 
@@ -352,64 +352,49 @@ premise is conditional (`hinit : InvAllHolds gs ν`) — neither the `GBoxAll` n
   named Z3 verdicts with the instance pinned to the benchmark file by kernel `rfl` and
   the cover decision replayed by `decide`. This is the substantive relational result.
 - **The ∀∃ modality (`theorem3Form`, the paper's Definition 1 / Theorem 3 conclusion):
-  two benchmarks.** The other 44 have no non-vacuous ∀∃ statement, and the four written
-  ones outside those two go through the quarantined settling route.
+  all 46, as of 2026-07-30.** Every certified benchmark has a non-vacuous instance in
+  `Instances/ModalBattery.lean`; existence is proven in each (no `HExistSeg`-style
+  hypothesis survives), and five instances carry no Z3 verdict at all. The old
+  settling-route statements are vacuous as documented in §3b and now live in `Archive/`.
+  How to check all of this: `docs/CERTIFICATION-CHECK.md`.
 
 
-### 3k. What "Theorem 3 for all 46" would take — measured
+### 3k. What "Theorem 3 for all 46" took — the record
 
-**Corrected.** An earlier version of this section said the blocker was cover budget > 1
-and that 25 benchmarks were blocked. Both wrong. `emitWindows_self`
-(`CoverExtract.lean`) is **parametric in `k`**: the response to a k-piece window is *"k
-residences in the current mode along the declared self-edge"*, so budget > 1 needs no
-hops and never touches the unsatisfiable `hdisH`. The real constraint is
-`RightProjAlignV`, which requires **`mj.jointOK = true` for every mode** — a single
-non-joint-certified mode rules the uniform route out and forces a reposition prefix.
+> **RESOLVED 2026-07-30.** This section was written when 2 of 46 were done, and it
+> measured the obstacle correctly but predicted the wrong resolution. Kept because the
+> measurement is still the clearest statement of what the shapes are; read the resolution
+> note first.
 
-Measured over the emitted covers, on both axes:
+The measured groups were: **9** benchmarks with every mode joint-certified (uniform
+route, any k); **16** with a non-joint mode but budget 1 (the modal k = 1 route,
+watertank's); **21** with both a non-joint mode and budget > 1 — the shape whose only
+lemma, `Hmulti_window_prefixed`, carries a `hdisH` side condition its own note proves
+unsatisfiable for genuine hops.
 
-| | budget = 1 | budget > 1 | |
-|---|---|---|---|
-| **all modes joint-certified** | 5 | 4 | **9 — uniform route, any k** |
-| **has a non-joint mode** | **16** | **21** | |
+**How it actually resolved.** Not by repairing `hdisH`, and not by the fixpoint
+reformulation:
 
-- **9 — uniform route** (`theorem3_uniform_from_covered`), any budget. `rover_drag` is
-  here, which is why it is one of the two completed.
-- **16 — modal k = 1 route** (`Hmulti_window1_prefixed`): a non-joint mode forces a
-  reposition prefix, but one piece per window means nothing to commute past. `watertank`
-  is here.
-- **21 — neither**: reposition prefix **and** k > 1 pieces. The only lemma for that shape,
-  `Hmulti_window_prefixed`, carries `hdisH`, which its own note proves **unsatisfiable
-  for genuine hops** (a frozen hop binds every left coordinate, so vars-disjointness
-  against the window can never hold). Not a missing proof — a formulation whose side
-  condition is false.
+* the 21 went through `Proofs/Encoding/RepoPrefixR.lean`, where the response prefix is a
+  *right-only* hop program whose disjointness is **derived** rather than assumed, plus
+  `WindowRF.lean` for the list-invariant variant — so the false side condition simply
+  never arises;
+* λ ≠ 1 windows state at the real automaton via `Reparam.lean`;
+* multi-component invariants go through `EnvelopeChainM.lean`, mode-region ones through
+  `EnvelopeChainR.lean`;
+* the five intra-window mode-switching benchmarks go through `SplitCoupling.lean`
+  (with an explicit `dt ≤ 1/5` cap in their statements);
+* the last six — `rover3tier_rung12` and the five pump-hold/reposition-reliant ones —
+  needed no new joint machinery at all. `rover3tier_rung12` is stated per left mode
+  (its modes' invariants have genuinely different shapes). The other five use the
+  **catch-up** form: because `faModal`'s `⟨…⟩` runs *after* the left window, the response
+  may be a pure right-side flow, with the invariant re-established by endpoint arithmetic
+  over `WindowGrowth.lean`'s displacement bound. Those five carry **no Z3 verdicts**.
 
-**Why this was never noticed in day-to-day work:** the two completed instances are
-**pilots**, one from each *working* group — rover_drag validating the uniform route
-(`UniformPilot.lean`: *"First benchmark instance of `theorem3_uniform_multiflow`"*),
-watertank the modal k = 1 route (the S1 gate). Both succeeded, so both routes looked
-settled. The third group only appears when asking for the remainder.
-
-**Note on counting.** *Written* is 2; *in scope* is 25 (9 uniform + 16 modal k = 1,
-including the two written). The other 23 are **unwritten, not blocked** — they need the
-per-benchmark instantiation work, not new mathematics. Only the 21 are blocked.
-
-**Sizing:**
-
-1. **25 reachable with identified, non-novel work** — 9 via the uniform route
-   (`CoverCertM` → `CoverCert`, `RightProjAlignV`'s structural conjuncts, `hself`,
-   disjointness, and the *unbounded* `HExistSeg`); 16 via the modal route (the `hstep`
-   assembly generalized from watertank's hand-built pattern, plus `HExistSegB` — where a
-   bridge from the `*_real` `GuardSettlingB` battery would pay off, see §3l).
-2. **21 need one new lemma** — reposition prefix with k > 1. Track the clock explicitly
-   through the interleave rather than commuting programs past each other, so
-   vars-disjointness never arises. This is the only genuinely new mathematics in the
-   picture.
-
-**Interaction with the shelved fixpoint design.** `docs/FIXPOINT-DESIGN.md` §4 claims the
-winning-region reformulation dissolves exactly this blocker ("hops are just edges inside
-`F`; chains handled by the fixpoint, not by a per-length lemma"). That claim now has a
-price tag: it would clear the wall blocking 21/46.
+**Interaction with the shelved fixpoint design.** `docs/FIXPOINT-DESIGN.md` §4 claimed the
+winning-region reformulation would dissolve this blocker. It was never needed: the blocker
+dissolved through the response-structure layers above. The design remains a recorded
+alternative, not a dependency.
 
 ### 3l. The existence bridge that may already be paid for
 
@@ -450,40 +435,28 @@ obligations. **Not built** — the risk is matching the lowered data (`realField
 |---|---|---|
 | `Instances/Throughout/*.lean` | 33 | `Covered … ∧ CoexecInvAllThroughout …`, per left mode, from named Z3 verdicts |
 | `Instances/CutThroughout/*.lean` | 13 | same, guard-threaded via `RightReachG` |
-| `Instances/EndToEnd.lean` | watertank | `rvalid (theorem3Form …)` ×3 — **but via the settling route, hence vacuous (§3b)**; the first form additionally carries a documented `hbudget` caveat |
-| `Instances/Mega.lean` | arm_refinement | fidelity ∧ settling in one term — **same settling route, same vacuity (§3b)** |
-| `Instances/UniformPilot.lean` | rover_drag | **`rvalid (theorem3Form …)`** from **one** Z3 verdict + `hES`; includes `rover_drag_covered : decideCovered … = true := by decide` |
-| `Instances/WatertankModal` + `WatertankViability` | watertank | **`rvalid (theorem3Form …)`**, multi-mode with repositions, existence proven in-kernel |
+| `Instances/*Modal.lean` (46 files) | **46** | **`rvalid (theorem3Form …)`** — 47 theorems, all imported and axiom-audited by `Instances/ModalBattery.lean` |
+| `Archive/EndToEnd.lean` | watertank | `rvalid (theorem3Form …)` ×3 — **via the settling route, hence vacuous (§3b)**; archived 2026-07-30 |
+| `Archive/Mega.lean` | arm_refinement | fidelity ∧ settling in one term — **same settling route, same vacuity (§3b)**; archived 2026-07-30 |
+| `Instances/UniformPilot.lean` | rover_drag | **`rvalid (theorem3Form …)`** from **one** Z3 verdict + `hES`; kept as the only instantiation of `theorem3_uniform_multiflow` (the benchmark's live instance is `RoverDragModal.lean`) |
+| `Instances/WatertankModal` + `WatertankViability` | watertank | **`rvalid (theorem3Form …)`**, multi-mode with repositions, existence proven in-kernel; the six verdicts are pinned to the runner's printed queries |
 
-So `rvalid (theorem3Form …)` is written out for three benchmarks — but **only two of
-those are non-vacuous**: `rover_drag` (`UniformPilot`, joint certificate) and `watertank`
-(`WatertankModal`/`WatertankViability`, joint certificates + proven existence). The
-`EndToEnd` and `Mega` forms go through the settling route and are vacuous for relational
-invariants (§3b).
+So `rvalid (theorem3Form …)` is written out for **all 46 certified benchmarks**
+(`Instances/ModalBattery.lean`), non-vacuously: each instance carries a joint certificate
+or a right-only response, existence is proven rather than hypothesised, and five carry no
+Z3 verdict at all. The `EndToEnd`/`Mega` forms remain vacuous (§3b) and are archived.
 
-**For the other 43 it is NOT a one-line application** — an earlier version of this
-section said it was; that was checked and is false. The two chains are disconnected:
-
-| | throughout battery (33 + 13) | the `rvalid` chain |
-|---|---|---|
-| certificate | `CoverCertM` (multi-component, R4) | `CoverCert` (single `g`) |
-| alignment | — | `RightProjAlign` / `RightProjAlignV` required |
-| conclusion | `Covered ∧ CoexecInvAllThroughout` (∀∀ preservation) | `rvalid (theorem3Form …)` |
-
-Verified against HEAD: the 33 `Throughout/*.lean` instances build **only** `CoverCertM`
-(83 occurrences, zero `CoverCert`); **no instance** outside `UniformPilot.lean` mentions
-`RightProjAlign`; **no `CoverCertM`-based `rvalid` theorem exists** anywhere in
-`Proofs/`; and **no `CoverCertM → CoverCert` bridge exists**.
-
-Closing it therefore needs two things, only the second of which is mechanical:
-
-1. **A multi-component sibling of `theorem3_uniform_from_covered`** taking `CoverCertM`
-   (or a bridge from `CoverCertM` to `CoverCert` per component, which would only yield a
-   per-component conclusion rather than the conjunction). This is real proof work.
-2. **Per-benchmark `RightProjAlignV`** — for each right mode, exhibit `fR`, `lam`,
-   `domR`, `mj` with the block/domain shapes and the joint-graph correspondence. Since
-   `realModeOf` builds exactly those shapes this is plausibly mechanical, but it is
-   written for one benchmark today.
+**Historical note — why an earlier version of this section said the remaining 43 were far
+off.** That analysis was correct about the *uniform* chain: the throughout battery builds
+`CoverCertM` (multi-component), the uniform `rvalid` route wanted `CoverCert` (single `g`)
+plus `RightProjAlignV`, and no bridge between them existed. The gap was closed by not
+using that route at all. `EnvelopeChainM.lean` states the modal chain over a **list** of
+invariant components directly (`theorem3_faithful_multiF_LR`), so no `CoverCertM →
+CoverCert` bridge is needed; `EnvelopeChainR.lean` adds the mode-region variant; and the
+`hstep` assembly is discharged per benchmark from the emitted cover rather than from
+`RightProjAlignV`. The two chains are still disconnected — the throughout battery and the
+modal battery are independent statements over the same emitted certificates — but the
+modal side no longer needs anything from the uniform side.
 
 ---
 
@@ -497,7 +470,7 @@ Not coverage — **witness shape**:
 | written out at | watertank, arm_refinement | rover_drag | watertank |
 | witness | one right cycle per round, full width | window chain over declared self-edges | several right cycles, mode changes, right-only reposition segments |
 | paper content | Definition 1 / eq. (mode-inv) | + window chaining | + **§4** (all-successors cover, budget, repositions) |
-| status | R7: cadenced chain DEPRECATED, retained until the modal form and cut lift reach parity | — | current |
+| status | R7: cadenced chain **RETIRED** — parity reached 2026-07-30 (modal form on 46/46, cut lift on 13/13); the settling/cadenced files are in `Archive/` | — | current |
 
 **Modelling choices to state in the paper** (all documented in-repo; none are defects):
 

@@ -10,11 +10,12 @@ assembles `B` per-segment couplings (`pair_faModal`, proven) into a `B`-fold loc
 via the proven `faModal_seq` (both-sides sequential) + `faModal_MR` (rule of consequence),
 by induction on `B`. Each step peels one right segment coupled with one left `piter` factor.
 
-Remaining after this file (the one analytic piece): `ode` **self-concatenation**
-`sem (ode sys ϕ ; ode sys ϕ) = sem (ode sys ϕ)` — so `piter leftOde B ≡ leftOde` and the
-`B`-fold left collapses to the single left residence. It mirrors `plantT_glue`'s junction
-differentiability, minus the clock. Then `faModal_loopN` lifts the right to `star`, and
-`faModal_MULTI` (proven) closes the loop.
+Historical note: this clock-free route needed `ode` self-concatenation
+(`sem (ode sys ϕ ; ode sys ϕ) = sem (ode sys ϕ)`) to collapse the `B`-fold left residence.
+That analytic piece was never needed in the end — the live chain went the clocked way
+instead (`multiseg_clocked`, `BridgeReposition`), where the clock makes each segment's
+duration explicit and the collapse question does not arise. Kept because the clock-free
+composition lemmas here are still the readable statement of how segments compose.
 -/
 import RelCertifier.Proofs.Encoding.ToolLevel
 

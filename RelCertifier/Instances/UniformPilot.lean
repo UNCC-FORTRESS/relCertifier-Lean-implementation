@@ -29,6 +29,14 @@ Residuals (named hypotheses, per the battery convention):
 The side-splits of the lowered fields/domains/invariant are NOT residuals: they are
 kernel-proved via `LoweringSide` (lowering hygiene + a `rfl` prefix-freedom check on
 the emitted IR).
+
+STATUS (2026-07-30). Kept as the **only** instantiation of `theorem3_uniform_multiflow`
+anywhere in the tree — that is its remaining value. It is no longer the `rover_drag`
+deliverable: `Instances/RoverDragModal.lean` (`rover_drag_modal`) carries that benchmark's
+Theorem 3 through the modal chain, and is audited in `Instances/ModalBattery.lean`. The
+open items this header once listed are closed: the mode-correspondence loop invariant is
+`WatertankModal`/`EnvelopeChainR`, and `hES` is discharged by
+`Proofs/Flow/ViabilityWiring.lean` (and, per benchmark, in the modal instances).
 -/
 import RelCertifier.Proofs.Encoding.UniformFvDischarge
 import RelCertifier.Proofs.Encoding.LoweringSide

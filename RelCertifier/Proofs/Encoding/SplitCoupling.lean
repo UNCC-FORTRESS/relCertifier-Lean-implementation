@@ -166,7 +166,7 @@ achieved on the tracked coordinate `xj` (`κ' xj ≤ ω xj − cB·s₁`, from `
 `growth_along_dom`) together with the split fraction identity
 `(1 − θ)·s₁ = θ·s₂` — with `θ = cA/(cA + cB)` the instance's A-rise then cancels
 the B-drop from any anchor at or below the outward face (the §8 interface fix in
-docs/INTRA-PIECE-SWITCH-SCOPE.md). -/
+docs/history/INTRA-PIECE-SWITCH-SCOPE.md). -/
 theorem faModal_ODE_split_bounded
     (sysX sysB sysA : ODESystem (Var n))
     (φx φyB φyA φ' : Formula (Var n))

@@ -1,4 +1,9 @@
 #!/bin/zsh
+# ONE-SHOT (2026-07-30 audit): written for the overnight rebuild after the Parse
+# strict-fix (b67a02a); its HEAVIES list is a snapshot of the pre-T3 tree and does not
+# include the modal instances. `lake build` now covers everything (RelCertifier.lean
+# imports Instances/ModalBattery.lean). Kept only as a record of the serial-heavy-file
+# rebuild recipe.
 # Overnight battery rebuild after the Parse strict-fix (b67a02a).
 # Serial-heavies discipline (rebuild hygiene): elaborate the 12-dof instance
 # files one at a time before the parallel world build.

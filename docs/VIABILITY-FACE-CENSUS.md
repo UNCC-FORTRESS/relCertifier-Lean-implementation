@@ -1,5 +1,17 @@
 # Viability face census — measured, 47 benchmarks
 
+> **UPDATE (2026-07-30).** The census measurements below stand. The *route* columns do
+> not: every face class now has a Lean route and all of them are instantiated. Non-strict
+> faces go through `Proofs/Flow/StratifiedFaces.lean` (strata, no Nagumo needed); the 45
+> affine/equilibrium faces through `AffineFaces.lean` (with the auxiliary-strict-face
+> trick that supplies the ball bound); monotone lower faces through `AffineFaces2.lean`
+> (L1d). Where a face class was awkward, some benchmarks instead use an explicit
+> closed-form witness (`rover_tier_r1`) or a right-only response that needs no viability
+> certificate at all (the five catch-up instances). Existence is proven — not
+> hypothesised, and not Z3-backed — in all 46 modal instances; see
+> `docs/CERTIFICATION-CHECK.md`. Read "not available" / "unscoped" below as historical.
+
+
 **Measurement only. Nothing built.** Answers: can the right system blockingly escape its
 evolve envelope, which is the one open question whose answer could have been "no".
 

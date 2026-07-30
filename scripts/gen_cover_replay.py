@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+# STALE (2026-07-30 audit): this script reads a MONOLITHIC aggregator file, but the X0
+# modularization moved every literal into per-benchmark leaves under
+# RelCertifier/Instances/{BenchIR,BenchCovers,BenchCoversNC,EvolStrengthenings}/.
+# As written it finds zero definitions and would emit an empty battery. Do not run it
+# without first repointing it at the leaf directories. Kept because the emitted shapes
+# below are still the reference for what those batteries contain.
 """Regenerate RelCertifier/Instances/BenchCoverReplay.lean from BenchCovers.lean."""
 import re, os
 os.chdir(os.path.join(os.path.dirname(__file__), ".."))

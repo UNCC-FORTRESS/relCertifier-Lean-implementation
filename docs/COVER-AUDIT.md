@@ -1,5 +1,17 @@
 # Audit: the tool's cover search vs. the mechanization (task H realign)
 
+> **STATUS BANNER (2026-07-30).** This file is chronological. Two findings below are
+> **live and load-bearing**: the ⊤-guard note (why the mechanized right automaton's edge
+> guards are `⊤`, and why that is sound) and the parser-key finding (`max_depth` is
+> accepted but never read; the CLI's `Trusted/KeyAudit.lean` gate now refuses genuinely
+> *unknown* keys, while `max_depth` stays deliberately whitelisted — so "silently
+> dropped" is fixed, "read and honoured" is not, by design). Everything above them is
+> **closed**: the H5 modal-connection gap (now `CoverExtract.lean` / `EnvelopeChain*.lean`),
+> the `EmitWindows` realign plan (all four items delivered), the R4 mechanization debt
+> (`StratifiedBarrier.lean` + `CoverCertM`), and the R6 follow-up
+> (`BoxViabilityBounded.lean` / `ViabilityWiring.lean`). Read those sections as history.
+
+
 Method correction (2026-07-15): the mechanization follows the code. This audit maps
 `OracleAPI.coverMode` — the tool's actual per-left-mode certification — onto what is
 already kernel-verified, and isolates the one genuine gap. The `UniformMultiflow`

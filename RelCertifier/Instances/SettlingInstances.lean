@@ -25,9 +25,17 @@ A frozen ACTIVE coordinate with non-frozen (driven) others is transcribed as
 `CoordShape.constRate 0` — the identical field (`Term.const 0`) — because the constRate branch
 carries the flex-others grammar and lands in its own band by `c = 0`.
 
-COVERAGE (24/47 data terms; ALL 24 checker-ACCEPTED with closed `rfl` certificates —
-rover_4d_box via EXT 4b, rover_drag via `riccati`, attitude_rate via the `pairSym` block). The remaining benchmarks map to named extension classes,
-each a precise next step, none a gap in what is proven:
+COVERAGE (26 data terms out of the 46 certified benchmarks; ALL 26 checker-ACCEPTED with
+closed `rfl` certificates — rover_4d_box via EXT 4b, rover_drag via `riccati`, attitude_rate
+via the `pairSym` block).
+
+SCOPE NOTE (2026-07-30). The settling battery is a **standalone** claim about the right
+system (nonblocking + successor-completeness, the paper's assumption, discharged) — nothing
+live consumes it, and it is not a step toward the relational guarantee. Since every certified
+benchmark now carries the modal Theorem 3 instead (`Instances/ModalBattery.lean`,
+`docs/CERTIFICATION-CHECK.md`), the extension classes listed below were **not pursued**. They
+are kept as an accurate record of what this particular battery does and does not cover — read
+them as "not attempted", not as "pending work":
 
 * **exp-bound transit contracts** (watertank, match_multi_eps, rover3tier_M1,
   robot_braking) — CLOSED by the rational-gain extension: `CoordShape.contractQ kn kd c`
@@ -50,7 +58,8 @@ each a precise next step, none a gap in what is proven:
   rover_tier_r1, rover3tier_rung12, rover_drag, the nonlinear-`s'` rungs) — phase D: the
   invariance half can ride the cut channel's Z3 route; flow existence needs `PicardBridge`
   generalized (linear-coupled members have closed forms — see the roadmap).
-* shield_unreachable — the pre-existing inconclusive-Z3 ERROR benchmark (no guard band).
+* shield_unreachable — the pre-existing inconclusive-Z3 ERROR benchmark (no guard band);
+  the 47th benchmark, outside the certified suite entirely.
 
 HISTORY. Under the pre-EXT 4 single-band landing rule only 3 of these terms were accepted; the
 18 rejections shared one cause (TRANSIT modes crossing from their own band into a successor's),

@@ -1,3 +1,10 @@
+> **COMPLETED — archived 2026-07-30.** The intra-piece switch landed as
+> `faModal_ODE_split_bounded` in `Proofs/Encoding/SplitCoupling.lean` (with the L3′ revision
+> that threads the tracked coordinate's quantitative drop into the A-phase existence). All
+> five benchmarks named below — `arm_chain_rung1`, `arm_chain_rung2`, `arm_fidelity_low`,
+> `arm_refinement`, `plant_fan_low` — carry modal Theorem 3. The `dt ≤ 1/5` cap discussed
+> in the tail is real and is visible in those five theorem statements.
+
 # Scope — intra-piece mode switching (the Group A coupling)
 
 **Status: SCOPE ONLY. Nothing built.**

@@ -2,7 +2,12 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# R5 throughput template: `rover_drag`, the conjunction throughout-invariant
+# `rover_drag` throughout pilot (ARCHIVED 2026-07-30 — template, superseded by the generated battery)
+
+**ARCHIVED.** The hand-built template that `scripts/gen_throughout.py` was modelled on.
+The generated battery shipped: `Instances/Throughout/rover_drag.lean`
+(`ThroughoutRoverDrag.rover_drag_throughout_Cruise`) is the live instance, and this file
+has no other referents. Kept compiled as the readable reference version of the shape.
 
 The generated battery's shape, validated by hand on the simplest benchmark: the REAL
 cover graph from the IR at the emitted cut-free cover (`rover_drag_coverNC`), the

@@ -1,3 +1,13 @@
+> **COMPLETED — archived 2026-07-30.** This was the scope document for getting modal
+> Theorem 3 onto every benchmark. The target was reached: all 46 certified benchmarks
+> carry `rvalid (theorem3Form …)` (`RelCertifier/Instances/ModalBattery.lean`), and the
+> reproduction recipe is `docs/CERTIFICATION-CHECK.md`. Read below for the measurements
+> and the reasoning, not for the status: every "blocked", "next step", and per-class count
+> in this file describes the situation *before* the arc, and several of the predicted
+> obstacles were dissolved rather than solved (the 21 "blocked on `hdisH`" benchmarks went
+> through `RepoPrefixR`'s derived disjointness; the six last ones went through the
+> right-only catch-up form in `WindowGrowth.lean`, which needs no verdicts at all).
+
 # Plan — Theorem 3 instantiated for all 46 benchmarks
 
 **Scope document. Nothing built.** Consolidates the measurements of 2026-07-28.

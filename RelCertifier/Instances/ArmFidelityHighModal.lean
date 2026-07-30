@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# T3-6 (GENERATED from arm_chain_rung3 — identical right system) — `arm_fidelity_high`, the first UNCONDITIONAL modal Theorem 3
+# T3-6 (GENERATED from arm_chain_rung3 — identical right system) — `arm_fidelity_high`, unconditional modal Theorem 3
 
 `rvalid (theorem3Form …)` with the existence residual DISCHARGED IN-FILE: the only
 remaining hypotheses are the two per-window joint route verdicts (`Verd3`) — the

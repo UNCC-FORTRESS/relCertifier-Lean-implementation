@@ -5,9 +5,9 @@ Released under Apache 2.0 license.
 # L6 — the list-invariant modal chain (multi-component Theorem 3)
 
 The modal chain (`phiInvE`, the couplings, `hstep_*_multiE`,
-`theorem3_faithful_multiE_LR`) is single-invariant-term: `invLe g` throughout. 19 of
-47 benchmarks have multi-component relational invariants (up to 8 conjuncts) — the
-recorded R4/R5 debt ("list-generalized invariant through modal chain"). `AOp` has no
+`theorem3_faithful_multiE_LR`) is single-invariant-term: `invLe g` throughout. 19 of the
+46 certified benchmarks have multi-component relational invariants (up to 8 conjuncts) —
+what the R4/R5 notes recorded as debt, and what this file pays. `AOp` has no
 `max`, so no single term denotes the conjunction; the chain must be generalized.
 
 This file delivers the generalization as F-PARAMETRIC MIRRORS over an opaque loop

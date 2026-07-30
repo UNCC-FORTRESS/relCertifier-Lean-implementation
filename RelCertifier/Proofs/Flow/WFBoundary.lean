@@ -1,6 +1,12 @@
 /-
 `WFBoundary` — the named well-formedness hypothesis that discharges `HExistSeg` at a fold junction.
 
+**SUPERSEDED (kept for the record).** The landing redesign eliminates clause 2 (`guardHolds`) by
+construction — see `Proofs/Flow/MultisegLanding.lean` ("ELIMINATES `WFBoundary` clause 2") and
+`MultisegLandingBridge.lean` ("no `WFBoundary` assumption"). No live route consumes the declarations
+below; `MultisegLanding` imports this file only to state what it removed. Read it as the record of a
+hypothesis that was named honestly and then discharged, not as a current assumption.
+
 This is a COMPLETENESS condition (witness-existence), NOT a soundness fix: soundness is independently
 done (`cover_sound` checks invariant-preservation on the real dynamics; the ⊤-automaton ∃ is the sound
 over-approximation). `HExistSeg` is the ∃-witness-existence side-condition; it discharges freely for

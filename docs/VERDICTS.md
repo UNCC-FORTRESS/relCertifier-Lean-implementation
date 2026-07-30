@@ -249,7 +249,7 @@ Also landed since: `endurance_gain_M1`, `rover_terrain_M1` (combined
 functionals at λ = 1, climb dispatch), `match_multi_rate` (per-window λ
 ∈ {3,2,1,1} against the single drive mode, symbolic-λ analytic layer).
 
-Suite: **36/46** benchmarks carry modal Theorem 3. Remaining blockers are
+Suite: **33/46** benchmarks carry modal Theorem 3. Remaining blockers are
 catalogued per benchmark in the working notes: an L1d existence-consumer
 variant (affine-on-affine chaining) for `endurance_orderlift_2to3`,
 `attitude_rate`, `refinement_ladder_rover_rung4_8to12`; the per-mode-invariant

@@ -179,3 +179,42 @@ The five switch instances and rung2c use hand-stated `z3solve` Props (the
 same `flowQuery`/`strataDomHost` families the cover emits); folding them
 into the `--run-verdicts` kernel-identity battery is routine follow-up work,
 not a soundness gap — the theorems' hypotheses are explicit either way.
+
+
+---
+
+## The composite tier and the cover-row λ (2026-07-30)
+
+Five λ ≠ 1 instances were generated, elaborated green, and then **withdrawn**:
+`rover_attitude_cone_12dof`, `story3_rollover_base_12dof`,
+`story3_rollover_ladder_rung_a`, `refinement_ladder_rover_rung3_6to8`,
+`endurance_orderlift_1to2`.
+
+Their residual Props were stated at the **cover row's λ**. Semantic mirrors of
+the shared velocity conjunct are **satisfiable** there for most (window, mode)
+pairs — take `v_L = v_R = 0.8`, where `g = v_L − v_R = 0` and
+`ġ = 3(c − v) − λ·3(c − v) > 0` whenever `λ > 1` and `v > c`. All three routes
+(nonstrict, strict-boundary, superlevel) die on that witness. The same query
+family at λ = 1 is unsat on all six climb pairs (6/6), which is what every
+landed plain-tier instance uses.
+
+A theorem conditioned on a false hypothesis is vacuous, so those five were
+removed rather than left in the tree looking green.
+
+**What has to be settled first.** `CoverEmit.ModeFlagsE` is documented as
+carrying flags "at the emitted λ", and the tool re-certifies these benchmarks
+end to end, so one of the following is true and has not yet been determined:
+
+* the emitted row λ is the settling/ε stretch, and the joint flow certificates
+  were discharged at some other (per-pair) λ found by the search; or
+* the flags' provenance needs an audit of the same kind as
+  [`COVER-AUDIT.md`](COVER-AUDIT.md).
+
+The query **domain** is not the issue: `Run.flowQueryIR` is confirmed to use
+the evolve domains only (no guards), which is exactly what the generated Props
+use. The gap is the λ.
+
+Until the per-pair certified λ is read out of the checker rather than inferred
+from the cover row, no λ ≠ 1 instance can state an honest residual. The
+generator machinery for that tier is kept and is independent of this question
+(`scripts/gen_multif_lambda_k.py`).

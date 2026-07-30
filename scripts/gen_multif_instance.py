@@ -540,7 +540,7 @@ theorem hbndN_{SUF} (q : ℕ) (hq : q < {nmodes}) : ∀ i (hi : i < gsN{SUF}.len
     rw [Real.dist_eq]
     have hcore : |x (Rv 0) * ((1 - 1/2 * (x (Rv {pp}) * x (Rv {pp}))) - 3/10 * (x (Rv {tt}) * x (Rv {tt})))
         - y (Rv 0) * ((1 - 1/2 * (y (Rv {pp}) * y (Rv {pp}))) - 3/10 * (y (Rv {tt}) * y (Rv {tt})))|
-        ≤ 13 * dist x y := by
+        ≤ 27 * dist x y := by
       have hdiff : x (Rv 0) * ((1 - 1/2 * (x (Rv {pp}) * x (Rv {pp}))) - 3/10 * (x (Rv {tt}) * x (Rv {tt})))
           - y (Rv 0) * ((1 - 1/2 * (y (Rv {pp}) * y (Rv {pp}))) - 3/10 * (y (Rv {tt}) * y (Rv {tt})))
           = ((1 - 1/2 * (x (Rv {pp}) * x (Rv {pp}))) - 3/10 * (x (Rv {tt}) * x (Rv {tt})))
@@ -549,35 +549,35 @@ theorem hbndN_{SUF} (q : ℕ) (hq : q < {nmodes}) : ∀ i (hi : i < gsN{SUF}.len
                 - 3/10 * ((x (Rv {tt}) + y (Rv {tt})) * (x (Rv {tt}) - y (Rv {tt})))) := by
         ring
       rw [hdiff]
-      have hBx : |(1 - 1/2 * (x (Rv {pp}) * x (Rv {pp}))) - 3/10 * (x (Rv {tt}) * x (Rv {tt}))| ≤ 5 := by
-        have h2 : x (Rv {pp}) * x (Rv {pp}) ≤ 4 := by nlinarith [abs_le.mp hxb{pp}]
-        have h3 : x (Rv {tt}) * x (Rv {tt}) ≤ 4 := by nlinarith [abs_le.mp hxb{tt}]
+      have hBx : |(1 - 1/2 * (x (Rv {pp}) * x (Rv {pp}))) - 3/10 * (x (Rv {tt}) * x (Rv {tt}))| ≤ 9 := by
+        have h2 : x (Rv {pp}) * x (Rv {pp}) ≤ 9 := by nlinarith [abs_le.mp hxb{pp}]
+        have h3 : x (Rv {tt}) * x (Rv {tt}) ≤ 9 := by nlinarith [abs_le.mp hxb{tt}]
         have h2n : 0 ≤ x (Rv {pp}) * x (Rv {pp}) := mul_self_nonneg _
         have h3n : 0 ≤ x (Rv {tt}) * x (Rv {tt}) := mul_self_nonneg _
         rw [abs_le]
         constructor <;> nlinarith
       have htri : |(-(1/2) * ((x (Rv {pp}) + y (Rv {pp})) * (x (Rv {pp}) - y (Rv {pp})))
-            - 3/10 * ((x (Rv {tt}) + y (Rv {tt})) * (x (Rv {tt}) - y (Rv {tt}))))| ≤ 4 * dist x y := by
-        have hA : |(x (Rv {pp}) + y (Rv {pp})) * (x (Rv {pp}) - y (Rv {pp}))| ≤ 4 * dist x y := by
+            - 3/10 * ((x (Rv {tt}) + y (Rv {tt})) * (x (Rv {tt}) - y (Rv {tt}))))| ≤ 6 * dist x y := by
+        have hA : |(x (Rv {pp}) + y (Rv {pp})) * (x (Rv {pp}) - y (Rv {pp}))| ≤ 6 * dist x y := by
           rw [abs_mul]
-          have hs : |x (Rv {pp}) + y (Rv {pp})| ≤ 4 := by
+          have hs : |x (Rv {pp}) + y (Rv {pp})| ≤ 6 := by
             calc |x (Rv {pp}) + y (Rv {pp})| ≤ |x (Rv {pp})| + |y (Rv {pp})| := abs_add_le _ _
-              _ ≤ 4 := by linarith [abs_le.mp hxb{pp}, abs_le.mp hyb{pp}]
+              _ ≤ 6 := by linarith [abs_le.mp hxb{pp}, abs_le.mp hyb{pp}]
           nlinarith [hdc {pp}, abs_nonneg (x (Rv {pp}) + y (Rv {pp})), abs_nonneg (x (Rv {pp}) - y (Rv {pp}))]
-        have hB2 : |(x (Rv {tt}) + y (Rv {tt})) * (x (Rv {tt}) - y (Rv {tt}))| ≤ 4 * dist x y := by
+        have hB2 : |(x (Rv {tt}) + y (Rv {tt})) * (x (Rv {tt}) - y (Rv {tt}))| ≤ 6 * dist x y := by
           rw [abs_mul]
-          have hs : |x (Rv {tt}) + y (Rv {tt})| ≤ 4 := by
+          have hs : |x (Rv {tt}) + y (Rv {tt})| ≤ 6 := by
             calc |x (Rv {tt}) + y (Rv {tt})| ≤ |x (Rv {tt})| + |y (Rv {tt})| := abs_add_le _ _
-              _ ≤ 4 := by linarith [abs_le.mp hxb{tt}, abs_le.mp hyb{tt}]
+              _ ≤ 6 := by linarith [abs_le.mp hxb{tt}, abs_le.mp hyb{tt}]
           nlinarith [hdc {tt}, abs_nonneg (x (Rv {tt}) + y (Rv {tt})), abs_nonneg (x (Rv {tt}) - y (Rv {tt}))]
         have e1 : |(-(1/2) : ℝ) * ((x (Rv {pp}) + y (Rv {pp})) * (x (Rv {pp}) - y (Rv {pp})))|
-            ≤ 1/2 * (4 * dist x y) := by
+            ≤ 1/2 * (6 * dist x y) := by
           rw [abs_mul]
           have h : |(-(1/2) : ℝ)| = 1/2 := by norm_num
           rw [h]
           nlinarith [abs_nonneg ((x (Rv {pp}) + y (Rv {pp})) * (x (Rv {pp}) - y (Rv {pp})))]
         have e2 : |((3:ℝ)/10) * ((x (Rv {tt}) + y (Rv {tt})) * (x (Rv {tt}) - y (Rv {tt})))|
-            ≤ 3/10 * (4 * dist x y) := by
+            ≤ 3/10 * (6 * dist x y) := by
           rw [abs_mul]
           have h : |((3:ℝ)/10)| = 3/10 := by norm_num
           rw [h]
@@ -591,11 +591,11 @@ theorem hbndN_{SUF} (q : ℕ) (hq : q < {nmodes}) : ∀ i (hi : i < gsN{SUF}.len
           rw [abs_neg]
         linarith
       have hfin1 : |(1 - 1/2 * (x (Rv {pp}) * x (Rv {pp}))) - 3/10 * (x (Rv {tt}) * x (Rv {tt}))|
-          * |x (Rv 0) - y (Rv 0)| ≤ 5 * dist x y :=
+          * |x (Rv 0) - y (Rv 0)| ≤ 9 * dist x y :=
         mul_le_mul hBx (hdc 0) (abs_nonneg _) (by norm_num)
       have hfin2 : |y (Rv 0)| * |(-(1/2) * ((x (Rv {pp}) + y (Rv {pp})) * (x (Rv {pp}) - y (Rv {pp})))
             - 3/10 * ((x (Rv {tt}) + y (Rv {tt})) * (x (Rv {tt}) - y (Rv {tt}))))|
-          ≤ 2 * (4 * dist x y) :=
+          ≤ 3 * (6 * dist x y) :=
         mul_le_mul hyb0 htri (abs_nonneg _) (by norm_num)
       have hsplit : |((1 - 1/2 * (x (Rv {pp}) * x (Rv {pp}))) - 3/10 * (x (Rv {tt}) * x (Rv {tt})))
               * (x (Rv 0) - y (Rv 0))
@@ -631,11 +631,11 @@ theorem hbndN_{SUF} (q : ℕ) (hq : q < {nmodes}) : ∀ i (hi : i < gsN{SUF}.len
         vb = strict[0]
         ballfacts = f'''
   have hband : ∀ (w : State (Var {N})), dist w ν ≤ 1 → ∀ (j : Fin {N}) (lo hi : ℝ),
-      lo ≤ ν (Rv j) → ν (Rv j) ≤ hi → -1 ≤ lo → hi ≤ 1 → |w (Rv j)| ≤ 2 := by
+      lo ≤ ν (Rv j) → ν (Rv j) ≤ hi → -2 ≤ lo → hi ≤ 2 → |w (Rv j)| ≤ 3 := by
     intro w hw j lo hi hl hh hlo1 hhi1
     have h := dist_le_pi_dist w ν (Rv j)
     rw [Real.dist_eq] at h
-    have hνb : |ν (Rv j)| ≤ 1 := abs_le.mpr ⟨by linarith, by linarith⟩
+    have hνb : |ν (Rv j)| ≤ 2 := abs_le.mpr ⟨by linarith, by linarith⟩
     have h2 := abs_sub_abs_le_abs_sub (w (Rv j)) (ν (Rv j))
     linarith [abs_le.mp hνb, hw]
   have hνv1 : {vb[1]} ≤ ν (Rv 0) := by
@@ -656,11 +656,11 @@ theorem hbndN_{SUF} (q : ℕ) (hq : q < {nmodes}) : ∀ i (hi : i < gsN{SUF}.len
   have hνt2 : ν (Rv {tt}) ≤ {tb[1]} := by
     have := hν {tb[3]} (by simp [gsS{SUF}])
     simp only [{tb[3]}, Term.eval, AOp.interp] at this; linarith
-  have hyb0 : |y (Rv 0)| ≤ 2 := hband y hy 0 ({vb[1]}) ({vb[2]}) hνv1 hνv2 (by norm_num) (by norm_num)
-  have hxb{pp} : |x (Rv {pp})| ≤ 2 := hband x hx {pp} ({pb[0]}) ({pb[1]}) hνp1 hνp2 (by norm_num) (by norm_num)
-  have hyb{pp} : |y (Rv {pp})| ≤ 2 := hband y hy {pp} ({pb[0]}) ({pb[1]}) hνp1 hνp2 (by norm_num) (by norm_num)
-  have hxb{tt} : |x (Rv {tt})| ≤ 2 := hband x hx {tt} ({tb[0]}) ({tb[1]}) hνt1 hνt2 (by norm_num) (by norm_num)
-  have hyb{tt} : |y (Rv {tt})| ≤ 2 := hband y hy {tt} ({tb[0]}) ({tb[1]}) hνt1 hνt2 (by norm_num) (by norm_num)'''
+  have hyb0 : |y (Rv 0)| ≤ 3 := hband y hy 0 ({vb[1]}) ({vb[2]}) hνv1 hνv2 (by norm_num) (by norm_num)
+  have hxb{pp} : |x (Rv {pp})| ≤ 3 := hband x hx {pp} ({pb[0]}) ({pb[1]}) hνp1 hνp2 (by norm_num) (by norm_num)
+  have hyb{pp} : |y (Rv {pp})| ≤ 3 := hband y hy {pp} ({pb[0]}) ({pb[1]}) hνp1 hνp2 (by norm_num) (by norm_num)
+  have hxb{tt} : |x (Rv {tt})| ≤ 3 := hband x hx {tt} ({tb[0]}) ({tb[1]}) hνt1 hνt2 (by norm_num) (by norm_num)
+  have hyb{tt} : |y (Rv {tt})| ≤ 3 := hband y hy {tt} ({tb[0]}) ({tb[1]}) hνt1 hνt2 (by norm_num) (by norm_num)'''
     lipsig = (f"theorem hLip_{SUF} (q : ℕ) (hq : q < {nmodes}) (ν : State (Var {N}))\n"
               f"    (hν : ∀ gT' ∈ gsS{SUF}, Term.eval gT' ν ≤ 0) :" if hasBracket else
               f"theorem hLip_{SUF} (q : ℕ) (hq : q < {nmodes}) (ν : State (Var {N})) :")
@@ -690,15 +690,15 @@ theorem hbndN_{SUF} (q : ℕ) (hq : q < {nmodes}) : ∀ i (hi : i < gsN{SUF}.len
     simp [dist_nonneg]
 ''')
     fb_facts = [f'''  have hbandf : ∀ (j : Fin {N}) (lo hi : ℝ),
-      lo ≤ ν (Rv j) → ν (Rv j) ≤ hi → -1 ≤ lo → hi ≤ 1 → |x (Rv j)| ≤ 2 := by
+      lo ≤ ν (Rv j) → ν (Rv j) ≤ hi → -2 ≤ lo → hi ≤ 2 → |x (Rv j)| ≤ 3 := by
     intro j lo hi hl hh hlo1 hhi1
     have h := dist_le_pi_dist x ν (Rv j)
     rw [Real.dist_eq] at h
-    have hνb : |ν (Rv j)| ≤ 1 := abs_le.mpr ⟨by linarith, by linarith⟩
+    have hνb : |ν (Rv j)| ≤ 2 := abs_le.mpr ⟨by linarith, by linarith⟩
     have h2 := abs_sub_abs_le_abs_sub (x (Rv j)) (ν (Rv j))
     linarith [abs_le.mp hνb, hx]''']
     for c, lo, hi, nlo, nhi in strict:
-        fb_facts.append(f'''  have hxb{c} : |x (Rv {c})| ≤ 2 := by
+        fb_facts.append(f'''  have hxb{c} : |x (Rv {c})| ≤ 3 := by
     refine hbandf {c} ({lo}) ({hi}) ?_ ?_ (by norm_num) (by norm_num)
     · have := hν {nlo} (by simp [gsS{SUF}])
       simp only [{nlo}, Term.eval, AOp.interp] at this; linarith
@@ -711,30 +711,30 @@ theorem hbndN_{SUF} (q : ℕ) (hq : q < {nmodes}) : ∀ i (hi : i < gsN{SUF}.len
         if kk == 'bracket':
             _, pp, tt = rows[j]
             core = f"x (Rv 0) * ((1 - 1/2 * (x (Rv {pp}) * x (Rv {pp}))) - 3/10 * (x (Rv {tt}) * x (Rv {tt})))"
-            extra = f'''    have hBx : |(1 - 1/2 * (x (Rv {pp}) * x (Rv {pp}))) - 3/10 * (x (Rv {tt}) * x (Rv {tt}))| ≤ 5 := by
-      have h2 : x (Rv {pp}) * x (Rv {pp}) ≤ 4 := by nlinarith [abs_le.mp hxb{pp}]
-      have h3 : x (Rv {tt}) * x (Rv {tt}) ≤ 4 := by nlinarith [abs_le.mp hxb{tt}]
+            extra = f'''    have hBx : |(1 - 1/2 * (x (Rv {pp}) * x (Rv {pp}))) - 3/10 * (x (Rv {tt}) * x (Rv {tt}))| ≤ 9 := by
+      have h2 : x (Rv {pp}) * x (Rv {pp}) ≤ 9 := by nlinarith [abs_le.mp hxb{pp}]
+      have h3 : x (Rv {tt}) * x (Rv {tt}) ≤ 9 := by nlinarith [abs_le.mp hxb{tt}]
       have h2n : 0 ≤ x (Rv {pp}) * x (Rv {pp}) := mul_self_nonneg _
       have h3n : 0 ≤ x (Rv {tt}) * x (Rv {tt}) := mul_self_nonneg _
       rw [abs_le]
       constructor <;> nlinarith
-    have hcore : |{core}| ≤ 10 := by
+    have hcore : |{core}| ≤ 27 := by
       rw [abs_mul]
       nlinarith [abs_nonneg (x (Rv 0)), abs_le.mp hxb0, abs_nonneg ((1 - 1/2 * (x (Rv {pp}) * x (Rv {pp}))) - 3/10 * (x (Rv {tt}) * x (Rv {tt})))]'''
         elif kk == 'affine':
             core = f"{DR} * (cst{SUF} q - x (Rv {j}))"
             extra = f'''    have hcst : 0 ≤ cst{SUF} q ∧ cst{SUF} q ≤ 1 := by
       interval_cases q <;> norm_num [cst{SUF}]
-    have hcore : |{core}| ≤ {3*DR} := by
+    have hcore : |{core}| ≤ {4*DR} := by
       obtain ⟨hcl, hch⟩ := hcst
       rw [abs_le]
       constructor <;> nlinarith [abs_le.mp hxb{j}]'''
         elif kk == 'vel':
             core = "x (Rv 0)"
-            extra = "    have hcore : |x (Rv 0)| ≤ 2 := hxb0"
+            extra = "    have hcore : |x (Rv 0)| ≤ 3 := hxb0"
         else:
             core = f"-1 * x (Rv {j})"
-            extra = f'''    have hcore : |{core}| ≤ 2 := by
+            extra = f'''    have hcore : |{core}| ≤ 3 := by
       rw [abs_mul]
       have habs : |(-1 : ℝ)| = 1 := by norm_num
       rw [habs]

@@ -259,33 +259,59 @@ device for the story1/rollover-b/rover3tier group; and the three specials
 
 ---
 
-## Modal Theorem 3 — final suite map (2026-07-30, marathon close)
+## Modal Theorem 3 — FULL SUITE (2026-07-30, final close)
 
-**40 of 46 certified benchmarks carry `rvalid (theorem3Form …)`.** The six
-that do not, with the precise reason each is out of the chain's scope:
+**46 of 46 certified benchmarks carry `rvalid (theorem3Form …)`.** The six
+listed as out-of-scope in the marathon-close note above all landed the same
+day, each through a new response-structure device (new leaf modules only —
+no verified-chain theorem was modified):
 
+* `rover3tier_rung12` — **per-left-mode theorems** (`…_ACCEL`, `…_COAST` in
+  `Rover3tierRung12Modal.lean`): `theorem3Form`'s invariant is a parameter,
+  so each left window family gets the modal theorem at its own declared
+  invariant (λ = 2 / λ = 1 respectively). Cross-mode handoff is not claimed,
+  and is not claimed by the tool's per-mode certificates either.
+* `rover3_M1`, `rover_coupled`, `rover_position` — **catch-up** (the
+  `WindowGrowth.lean` leaf): `faModal`'s response runs AFTER the left window,
+  so it can be pure right-only flow. The right evolve domain's velocity floor
+  (`v_x ≥ 1/4`) means zero-duration hops to Safe plus ONE hold of `8·dt`
+  regain more position than `windowSeg_growth`'s `2·dt` ceiling on the left
+  window; the weakest declared tolerance (`Stop`, offset 2 — the modes'
+  invariants nest) is re-established by endpoint arithmetic. No pumping, no
+  mode switching at value-dependent times, no Picard machinery.
 * `refinement_ladder_rover_rung2_6dof`, `refinement_ladder_rover_rung2b_6dof`
-  — genuinely **reposition-reliant**: their window verdicts fail on 8 of 9
-  pairs at any single λ (measured), and the tool certifies them through
-  dynamic reposition certificates (`dynPre`/`dynPost`). The reposition-
-  inclusive assembly (`decideCovered_implies_theorem3_faithful_multi`)
-  exists but consumes the retired cadenced chain (R7).
-* `rover3_M1`, `rover_coupled`, `rover_position` — **pump-then-hold**: the
-  right modes are constant-drive with outflow ceilings, so no mode admits
-  arbitrary-duration viable runs, and the correct response switches modes at
-  value-dependent times. Needs the L3-split machinery lifted into the multiF
-  window — an open arc.
-* `rover3tier_rung12` — genuinely **per-mode different-shape** invariants
-  (a two-conjunct tolerance in ACCEL, a combined functional in COAST, no
-  implication either way), which the single-φ modal form cannot state
-  without a left-mode-indexed invariant device.
+  — **combined-coordinate catch-up**: the declared tolerance bounds
+  `g₂ = s + v/3`, whose Lie along the right's FLAT hold is EXACTLY `0.65`
+  (the asymptotic `v`-row cancels: `ṡ + v̇/3 = v + (0.65 − v)`). An explicit
+  exponential witness flow gains `0.65·τ` in `g₂` precisely, while
+  `lie_two_coord` + `windowSeg_growth` cap any left window at `0.65·(2·dt)`;
+  `τ = 2·dt` closes the invariant with zero slack. The reposition
+  certificates the tool uses are thereby bypassed, not mechanized: the modal
+  theorem holds without them.
+
+All six are **Z3-free**: `#print axioms` on each is exactly
+`[propext, Classical.choice, Quot.sound]` — no `z3_unsat_sound`, no verdict
+hypotheses. Files: `Rover3tierRung12Modal.lean`, `Rover3M1Modal.lean`,
+`RoverCoupledModal.lean`, `RoverPositionModal.lean`,
+`RoverRung26dofModal.lean`, `RoverRung2b6dofModal.lean`; the shared leaf is
+`Proofs/Encoding/WindowGrowth.lean` (`clk_wellFormed`, `windowSeg_growth`,
+`windowSeg_mask`, `windowSeg_end_domL`).
 
 `shield_unreachable` stays the 47th benchmark: the tool itself reports an
 inconclusive Z3 verdict, so it is outside the certified suite entirely.
 
-Landed in this closing stretch: `rover_tier_r1` (the closed-form polynomial
-witness — the first instance whose existence has no Picard machinery),
-`story3_rollover_ladder_rung_b`, `story1_attdist_rung_a_6to8`,
-`story1_attdist_rung_b_12dof` (the nested per-mode group, certified at their
-COMMON declared invariant — the modes' invariants nest, so the shared row is
-the honest modal loop invariant).
+### Superseded note (2026-07-30 morning, kept for the record)
+
+The marathon-close snapshot earlier the same day read "40 of 46" and
+classified the six above as out of scope (reposition-reliant / pump-then-hold
+/ per-mode-shape). The classifications were accurate about the TOOL's
+certificate structure; the modal statements nevertheless hold through the
+response-structure arguments above, which need nothing from the retired
+cadenced chain.
+
+Landed in the closing stretch before those six: `rover_tier_r1` (the
+closed-form polynomial witness — the first instance whose existence has no
+Picard machinery), `story3_rollover_ladder_rung_b`,
+`story1_attdist_rung_a_6to8`, `story1_attdist_rung_b_12dof` (the nested
+per-mode group, certified at their COMMON declared invariant — the modes'
+invariants nest, so the shared row is the honest modal loop invariant).

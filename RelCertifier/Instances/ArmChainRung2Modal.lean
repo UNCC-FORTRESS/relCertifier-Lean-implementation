@@ -676,5 +676,541 @@ theorem esAloneD (l : ℕ) (hl : l < 4) (dt : ℝ) (hdt0 : 0 ≤ dt)
     (by rw [hbase]; nlinarith)
   exact ⟨lineUpD (cAD l) (ΦL s), lineUpD_zero (cAD l) (ΦL s), hd, hm, hdm⟩
 
+/-! ## The θ = 3/5 dichotomy coupling -/
+
+theorem htgXD (l : ℕ) : (tgD, Term.const 1) ∈ sysXD l := by
+  show (tgD, Term.const 1) ∈ leftBlock (fLD l) ++ [(tgD, Term.const 1)]
+  exact List.mem_append_right _ (List.mem_singleton.mpr rfl)
+
+theorem hRv0notXD (l : ℕ) : (Rv 0 : Var 2) ∉ (sysXD l).bound := by
+  intro h
+  simp only [sysXD, DLCalTiming.clk, ODESystem.bound, List.map_append,
+    List.mem_append] at h
+  rcases h with h | h
+  · obtain ⟨i, hi⟩ := leftBlock_bound_sub (fLD l) _ h
+    exact absurd hi (by simp [Lv, Rv, Prod.ext_iff])
+  · simp only [List.map_cons, List.map_nil, List.mem_singleton] at h
+    exact absurd h (by simp [tgD, Rv, Prod.ext_iff])
+
+theorem hdisjXRD (l : ℕ) (hl : l < 4) (q : ℕ) (hq : q < 3) :
+    Disjoint ((sysXD l).boundSet ∪ (sysXD l).readVars)
+      ((rightBlock (fRD q) (Term.const (lamD l))).boundSet
+        ∪ (rightBlock (fRD q) (Term.const (lamD l))).readVars) := by
+  rw [Set.disjoint_left]
+  intro x hxX hxR
+  have hxRv : x ∈ range Rv := by
+    rcases hxR with h | h
+    · exact rightBlock_boundSet_sub (fRD q) (Term.const (lamD l)) h
+    · exact rightBlock_readVars_sub (fRD q) (Term.const (lamD l)) (hfRD q hq)
+        (by simp [Term.fv]) h
+  obtain ⟨i, hi⟩ := hxRv
+  rcases hxX with h | h
+  · rw [sysXD, clk_boundSet] at h
+    rcases h with h | h
+    · obtain ⟨j, hj⟩ := leftBlock_boundSet_sub (fLD l) h
+      rw [← hj] at hi
+      exact absurd hi (by simp [Lv, Rv, Prod.ext_iff])
+    · rw [Set.mem_singleton_iff] at h
+      rw [h] at hi
+      exact absurd hi (by simp [tgD, Rv, Prod.ext_iff])
+  · rw [sysXD, clk_readVars] at h
+    obtain ⟨j, hj⟩ := leftBlock_readVars_sub (fLD l) (hfLD l hl) h
+    rw [← hj] at hi
+    exact absurd hi (by simp [Lv, Rv, Prod.ext_iff])
+
+theorem coupleSplitD (l : ℕ) (hl : l < 4) (dt : ℝ) (hdt0 : 0 ≤ dt)
+    (hdt5 : dt ≤ 1/5) (hv : VerdD l) (ω : State (Var 2))
+    (hσ : Formula.sat (Formula.and (invLe gD) envD) ω)
+    (hnear : 1 - cAD l * dt < ω (Rv 0)) :
+    faModalB (Equiv.refl (Var 2)) (Program.ode (sysXD l) domLD)
+      (Program.seq (Program.ode (sysBD l) domRD) (Program.ode (sysAD l) domRD))
+      (Formula.and (invLe gD) envD) tgD dt ω := by
+  have hωL := (sat_domLD ω).mp hσ.2.1
+  have hωR := (sat_domRD ω).mp hσ.2.2
+  have hcb := cD_bounds l hl
+  refine faModal_ODE_split_bounded (sysXD l) (sysBD l) (sysAD l)
+    domLD domRD domRD (Formula.and (invLe gD) envD)
+    gD 1 (by norm_num) (Rv 0) (cBD l) (3/5) dt (by norm_num) (by norm_num)
+    tgD (htgXD l) (hwfXBD l) (hdisjXRD l hl 2 (by norm_num))
+    (hdisjXRD l hl 1 (by norm_num))
+    ?_ ?_ ?_ ?_ ?_ ?_ ?_ ω (hbndBD l hl) (hjrowD l hl) ?_ ?_ ?_ ?_
+  · intro x hx
+    obtain ⟨i, hi⟩ := hdomLD hx
+    subst hi
+    exact Or.inl (by rw [sysXD, clk_boundSet]; exact Or.inl (Lv_mem_leftBlock_boundSet _ i))
+  · intro x hx
+    obtain ⟨i, hi⟩ := hdomRD hx
+    subst hi
+    exact Rv_mem_rightBlock_boundSet _ _ i
+  · intro x hx
+    obtain ⟨i, hi⟩ := hdomRD hx
+    subst hi
+    exact Or.inl (Rv_mem_rightBlock_boundSet _ _ i)
+  · intro x hx
+    rw [sysXD, clk_readVars] at hx
+    obtain ⟨i, hi⟩ := leftBlock_readVars_sub (fLD l) (hfLD l hl) hx
+    subst hi
+    rw [sysXD, clk_boundSet]
+    exact Or.inl (Lv_mem_leftBlock_boundSet _ i)
+  · intro x hx
+    obtain ⟨i, hi⟩ := rightBlock_readVars_sub (fRD 2) (Term.const (lamD l))
+      (hfRD 2 (by norm_num)) (by simp [Term.fv]) hx
+    subst hi
+    exact Rv_mem_rightBlock_boundSet _ _ i
+  · intro x hx
+    obtain ⟨i, hi⟩ := rightBlock_readVars_sub (fRD 1) (Term.const (lamD l))
+      (hfRD 1 (by norm_num)) (by simp [Term.fv]) hx
+    subst hi
+    exact Rv_mem_rightBlock_boundSet _ _ i
+  · intro x
+    simp [sysAD, sysBD, rightBlock, ODESystem.bound, List.map_map, Function.comp_def]
+  · -- hg0: the near-ceiling budget at θ = 3/5, MgB = 1
+    have hg := gD_eval ω
+    rw [hg]
+    nlinarith [hωL.2, hcb.2.1]
+  · intro κ hκ
+    exact hboxAD l hl hv κ hκ
+  · -- hExistB: the falling Return line
+    intro s1 ΦL hs10 hs1dt hΦL0 hder hmask hdoms
+    have hbase : ΦL s1 (Rv 0) = ω (Rv 0) :=
+      hmask s1 (right_mem_Icc.mpr hs10) (Rv 0) (hRv0notXD l)
+    obtain ⟨hd, hm, hdm⟩ := lineDnD_run l hl (ΦL s1) s1 hs10
+      (by rw [hbase]; nlinarith [hcb.2.1, hcb.2.2.2])
+      (by rw [hbase]; exact hωR.2)
+    exact ⟨lineDnD (cBD l) (ΦL s1), lineDnD_zero (cBD l) (ΦL s1), hd, hm, hdm⟩
+  · -- hExistA: the rising Slow line; the asymmetric fraction cancels the drop
+    intro s1 s2 ΨL κ' hs1 hs2 hs2dt hfr hdrop hΨ0 hΨder hΨmask hΨdom hκ'B hκ'g
+    have h32 : 3 * s2 = 2 * s1 := by linarith
+    have hcs : cAD l * s2 = cBD l * s1 := by
+      simp only [cAD, cBD]
+      linear_combination (lamD l / 10) * h32
+    have hbase : ΨL s2 (Rv 0) = κ' (Rv 0) :=
+      hΨmask s2 (right_mem_Icc.mpr hs2) (Rv 0) (hRv0notXD l)
+    have hκ'R := (sat_domRD κ').mp hκ'B
+    obtain ⟨hd, hm, hdm⟩ := lineUpD_run l hl (ΨL s2) s2 hs2
+      (by rw [hbase]; exact hκ'R.1)
+      (by rw [hbase]; nlinarith [hωR.2])
+    exact ⟨lineUpD (cAD l) (ΨL s2), lineUpD_zero (cAD l) (ΨL s2), hd, hm, hdm⟩
+
+theorem seqB_of_AD (l : ℕ) : ∀ ν μ : State (Var 2),
+    Program.sem (Program.ode (sysAD l) domRD) ν μ →
+    Program.sem (Program.seq (Program.ode (sysBD l) domRD)
+      (Program.ode (sysAD l) domRD)) ν μ := by
+  intro ν μ hA
+  have hdomν : Formula.sat domRD ν := by
+    obtain ⟨r, Φ, hr, hΦ0, hΦr, hder, hmask, hdom⟩ := hA
+    have := hdom 0 (left_mem_Icc.mpr hr)
+    rwa [hΦ0] at this
+  refine ⟨ν, ⟨0, fun _ => ν, le_refl 0, rfl, rfl, ?_, ?_, ?_⟩, hA⟩
+  · intro t ht p hp
+    have h0 : t = 0 := le_antisymm ht.2 ht.1
+    subst h0
+    rw [hasDerivWithinAt_iff_tendsto_slope]
+    have hempty : (Set.Icc (0:ℝ) 0) \ {0} = (∅ : Set ℝ) := by
+      simp [Set.Icc_self]
+    rw [hempty, nhdsWithin_empty]
+    exact Filter.tendsto_bot
+  · intro t ht x hx
+    rfl
+  · intro t ht
+    exact hdomν
+
+theorem coupleAloneD (l : ℕ) (hl : l < 4) (dt : ℝ) (hdt0 : 0 ≤ dt) (hv : VerdD l)
+    (σ' : State (Var 2))
+    (hσ' : Formula.sat (Formula.and (invLe gD) envD) σ') (htg0 : σ' tgD = 0)
+    (hfar : σ' (Rv 0) ≤ 1 - cAD l * dt) :
+    faModalB (Equiv.refl (Var 2))
+      (Program.ode (DLCalTiming.clk tgD (leftBlock (fLD l))) domLD)
+      (Program.ode (rightBlock (fRD 1) (Term.const (lamD l))) domRD)
+      (Formula.and (invLe gD) envD) tgD dt σ' := by
+  have hupd : Function.update σ' tgD (0 : ℝ) = σ' := by
+    funext x
+    by_cases hx : x = tgD
+    · subst hx; rw [Function.update_self]; exact htg0.symm
+    · rw [Function.update_of_ne hx]
+  have hAll := segPresAll_from_strata_verdicts' (fLD l) (fRD 1) (Term.const (lamD l))
+    (Formula.and domLD domRD) [gD]
+    (by
+      intro i hi
+      have hi1 : i < 1 := by simpa using hi
+      interval_cases i
+      simpa [strataDomHost, VerdD] using hv)
+  have hbox : Formula.sat (Formula.box (Program.ode
+      (leftBlock (fLD l) ++ rightBlock (fRD 1) (Term.const (lamD l)))
+      (Formula.and domLD domRD)) (invLe gD)) σ' := by
+    rw [sat_box]
+    intro ω hω
+    rw [sat_invLe]
+    refine hAll σ' ?_ ω (by rw [← jointSys_split] at hω; exact hω) gD
+      List.mem_cons_self
+    intro g hg
+    rw [List.mem_singleton] at hg
+    subst hg
+    exact (sat_invLe gD σ').mp hσ'.1
+  have hωR := (sat_domRD σ').mp hσ'.2.2
+  have hES : HExistSegB (fLD l) (fRD 1) (Term.const (lamD l)) domLD domRD dt
+      (Function.update σ' tgD 0) := by
+    rw [hupd]
+    exact esAloneD l hl dt hdt0 σ' hωR.1 hfar
+  have hbase := segment_faModalB_from_certB gD (fLD l) (fRD 1) (Term.const (lamD l))
+    domLD domRD tgD dt
+    (LR_blocks_disjoint _ _ _ (hfLD l hl) (hfRD 1 (by norm_num)) (by simp [Term.fv]))
+    (fun v hv' => Or.inl (by
+      obtain ⟨i, rfl⟩ := hdomLD hv'
+      exact Lv_mem_leftBlock_boundSet _ i))
+    (fun v hv' => Or.inl (by
+      obtain ⟨i, rfl⟩ := hdomRD hv'
+      exact Rv_mem_rightBlock_boundSet _ _ i))
+    (fun h => by
+      obtain ⟨i, hi⟩ := leftBlock_bound_sub (fLD l) _ h
+      exact aux_ne_Lv aD i hi)
+    (fun h => aux_notin_range_Lv aD (leftBlock_readVars_sub (fLD l) (hfLD l hl) h))
+    (fun h => by
+      obtain ⟨i, hi⟩ := rightBlock_bound_sub (fRD 1) (Term.const (lamD l)) _ h
+      exact aux_ne_Rv aD i hi)
+    (fun h => aux_notin_range_Rv aD (rightBlock_readVars_sub (fRD 1)
+      (Term.const (lamD l)) (hfRD 1 (by norm_num)) (by simp [Term.fv]) h))
+    (fun h => aux_notin_range_Rv aD (rightBlock_boundSet_sub (fRD 1)
+      (Term.const (lamD l)) h))
+    (fun h => aux_notin_range_Lv aD (hdomLD h))
+    (fun h => aux_notin_range_Rv aD (hdomRD h))
+    htggD hbox hES
+  rw [hupd] at hbase
+  refine faModalB_strengthen_plant ?_ hbase
+  intro ν μ hplant hsem
+  have hdomLν : Formula.sat domLD ν := sem_ode_ends_in_domain hplant.1
+  have hdomRμ : Formula.sat domRD μ := sem_ode_ends_in_domain hsem
+  have hdomLμ : Formula.sat domLD μ := by
+    rwa [(Formula.coincidence domLD (fun v hv' => sem_ode_mask hsem (by
+      obtain ⟨i, rfl⟩ := hdomLD hv'
+      intro hb
+      obtain ⟨j, hj⟩ := rightBlock_bound_sub (fRD 1) (Term.const (lamD l)) _ hb
+      exact absurd hj (by simp [Lv, Rv, Prod.ext_iff]))) :
+        Formula.sat domLD μ ↔ Formula.sat domLD ν)]
+  exact ⟨hdomLμ, hdomRμ⟩
+
+theorem coupleD (l : ℕ) (hl : l < 4) (dt : ℝ) (hdt0 : 0 ≤ dt) (hdt5 : dt ≤ 1/5)
+    (hv : VerdD l) :
+    ∀ σ', Formula.sat (Formula.and (invLe gD) envD) σ' → σ' tgD = 0 →
+      faModalB (Equiv.refl (Var 2))
+        (Program.ode (DLCalTiming.clk tgD (leftBlock (fLD l))) domLD)
+        (Program.seq (Program.ode (rightBlock (fRD 2) (Term.const 1)) domRD)
+          (Program.ode (rightBlock (fRD 1) (Term.const 1)) domRD))
+        (Formula.and (invLe gD) envD) tgD dt σ' := by
+  intro σ' hσ' htg0
+  have hstretch : faModalB (Equiv.refl (Var 2))
+      (Program.ode (DLCalTiming.clk tgD (leftBlock (fLD l))) domLD)
+      (Program.seq (Program.ode (sysBD l) domRD) (Program.ode (sysAD l) domRD))
+      (Formula.and (invLe gD) envD) tgD dt σ' := by
+    by_cases hc : 1 - cAD l * dt < σ' (Rv 0)
+    · exact coupleSplitD l hl dt hdt0 hdt5 hv σ' hσ' hc
+    · exact faModalB_monoQ (seqB_of_AD l)
+        (coupleAloneD l hl dt hdt0 hv σ' hσ' htg0 (by linarith [not_lt.mp hc]))
+  refine faModalB_monoQ ?_ hstretch
+  intro ν μ hsem
+  obtain ⟨κ, hB, hA⟩ := hsem
+  exact ⟨κ, sem_rightBlock_reparam (lamD l) 1 (lamD_pos l) one_pos hB,
+    sem_rightBlock_reparam (lamD l) 1 (lamD_pos l) one_pos hA⟩
+
+/-! ## Assembly -/
+
+noncomputable def pieceD : Program (Var 2) :=
+  Program.seq (Program.ode (rightBlock (fRD 2) (Term.const 1)) domRD)
+    (Program.ode (rightBlock (fRD 1) (Term.const 1)) domRD)
+
+theorem coupleD' (l : ℕ) (hl : l < 4) (dt : ℝ) (hdt0 : 0 ≤ dt) (hdt5 : dt ≤ 1/5)
+    (hv : VerdD l) :
+    ∀ σ, Formula.sat (Formula.and (invLe gD) envD) σ →
+      faModalB (Equiv.refl (Var 2))
+        (Program.ode (DLCalTiming.clk tgD (leftBlock (fLD l))) domLD)
+        pieceD (Formula.and (invLe gD) envD) tgD dt
+        (Function.update σ tgD 0) := by
+  intro σ hσ
+  have htgφ : tgD ∉ (Formula.and (invLe gD) envD).fv := by
+    intro h
+    rcases h with h | h
+    · exact htggD (by simpa [invLe, Formula.fv, Term.fv] using h)
+    · exact htgenvD h
+  have hupdφ : Formula.sat (Formula.and (invLe gD) envD)
+      (Function.update σ tgD 0) := by
+    rwa [(Formula.coincidence (Formula.and (invLe gD) envD) (fun v hv' =>
+      Function.update_of_ne (fun hc => htgφ (by rw [← hc]; exact hv')) _ _) :
+        Formula.sat (Formula.and (invLe gD) envD) _ ↔ _)]
+  exact coupleD l hl dt hdt0 hdt5 hv (Function.update σ tgD 0) hupdφ
+    (Function.update_self _ _ _)
+
+theorem hdisPieceD (l : ℕ) (hl : l < 4) (dt : ℝ) :
+    Disjoint (Program.vars (pieceD.rename (Equiv.refl (Var 2))))
+      (Program.vars (clockedSeg (leftBlock (fLD l)) domLD tgD dt)) := by
+  rw [Program.rename_refl, Set.disjoint_left]
+  intro x hx hxW
+  have hxR : x ∈ range Rv := by
+    rcases vars_seq_sub _ _ hx with hx | hx <;>
+      · rcases vars_ode_sub _ _ hx with hx | hx
+        · rcases hx with hx | hx
+          · exact rightBlock_boundSet_sub _ _ hx
+          · refine rightBlock_readVars_sub _ (Term.const 1) ?_ (by simp [Term.fv]) hx
+            first
+              | exact hfRD 2 (by norm_num)
+              | exact hfRD 1 (by norm_num)
+        · exact hdomRD hx
+  rcases vars_clockedSegL_sub (fLD l) domLD aD dt (hfLD l hl) hdomLD hxW with hx' | hx'
+  · rw [Set.mem_singleton_iff] at hx'
+    obtain ⟨i, hi⟩ := hxR
+    rw [hx'] at hi
+    exact absurd hi (by simp [Rv, Prod.ext_iff])
+  · obtain ⟨i, hi⟩ := hxR
+    obtain ⟨j, hj⟩ := hx'
+    rw [← hi] at hj
+    exact absurd hj (by simp [Lv, Rv, Prod.ext_iff])
+
+theorem sem_seqPairs : ∀ (k : ℕ) (p q : Program (Var 2)) (ν μ : State (Var 2)),
+    Program.sem (bigSeq (List.replicate k (Program.seq p q))) ν μ →
+    Program.sem (bigSeq ((List.replicate k [p, q]).flatten)) ν μ := by
+  intro k
+  induction k with
+  | zero => intro p q ν μ h; exact h
+  | succ n ih =>
+      intro p q ν μ h
+      simp only [List.replicate_succ, bigSeq] at h
+      obtain ⟨κ, hseq, hrest⟩ := h
+      obtain ⟨κ', hp, hq⟩ := hseq
+      simp only [List.replicate_succ, List.flatten_cons, List.cons_append,
+        List.nil_append, bigSeq]
+      exact ⟨κ', hp, κ, hq, ih p q κ μ hrest⟩
+
+/-- The per-window response with a hop prefix of `hs` static hops. -/
+theorem segD (l : ℕ) (hl : l < 4) (dt : ℝ) (hdt0 : 0 ≤ dt) (hdt5 : dt ≤ 1/5)
+    (hv : VerdD l) (path : List ℕ) (hpath : ∀ p ∈ path, p < 3)
+    {σ : State (Var 2)}
+    (hσ : Formula.sat (Formula.and (invLe gD) envD) σ) :
+    Formula.sat (faModal (Equiv.refl (Var 2))
+      (windowSeg (leftBlock (fLD l)) domLD tgD dt (kD l))
+      (bigSeq ((path.map (fun p =>
+          Program.ode (rightBlock (fRD p) (Term.const 1)) domRD)) ++
+        (List.replicate (kD l)
+          [Program.ode (rightBlock (fRD 2) (Term.const 1)) domRD,
+           Program.ode (rightBlock (fRD 1) (Term.const 1)) domRD]).flatten))
+      (Formula.and (invLe gD) envD)) σ := by
+  have hkpos : 0 < kD l := by
+    interval_cases l <;> norm_num [kD]
+  have hfa := Hmulti_windowR_prefixed (fLD l) domLD gD envD aD dt (kD l) htggD htgenvD
+    (path.map (fun p => (⟨fRD p, Term.const 1, domRD⟩ : RepoHop 2)))
+    (by
+      intro h hh
+      obtain ⟨p, hp, rfl⟩ := List.mem_map.mp hh
+      exact ⟨hfRD p (hpath p hp), by simp [Term.fv], hdomRD⟩)
+    (fun σ' hσ' => hσ'.2.1)
+    (by
+      intro h hh σ' hσ' htg'
+      obtain ⟨p, hp, rfl⟩ := List.mem_map.mp hh
+      obtain ⟨ρ, hsem, hρσ⟩ := static_hop_existsR (fR := fRD p)
+        (lam := Term.const 1) (domR := domRD) hσ'.2.2
+      exact ⟨ρ, hsem, hρσ ▸ hσ'⟩)
+    (hfLD l hl) hdomLD
+    (List.replicate (kD l) pieceD) (by simp) hkpos
+    (by
+      intro Q hQ
+      rw [List.eq_of_mem_replicate hQ]
+      exact hdisPieceD l hl dt)
+    (by
+      intro Q hQ σ' hσ'
+      rw [List.eq_of_mem_replicate hQ]
+      exact coupleD' l hl dt hdt0 hdt5 hv σ' hσ')
+    hσ
+  rw [show (path.map (fun p => (⟨fRD p, Term.const 1, domRD⟩ : RepoHop 2))).map
+      (fun h => h.progR)
+      = path.map (fun p => Program.ode (rightBlock (fRD p) (Term.const 1)) domRD)
+    from by rw [List.map_map]; rfl] at hfa
+  refine sat_faModal_monoR (fun ν μ hrun => ?_) hfa
+  clear hfa
+  induction path generalizing ν with
+  | nil =>
+      simpa using sem_seqPairs (kD l) _ _ ν μ (by simpa [pieceD] using hrun)
+  | cons a as ih =>
+      simp only [List.map_cons, List.cons_append, bigSeq] at hrun ⊢
+      obtain ⟨κ, hhop, hrest⟩ := hrun
+      exact ⟨κ, hhop, ih (fun p hp => hpath p (List.mem_cons_of_mem a hp)) κ hrest⟩
+
+theorem HmultiD (dt : ℝ) (hdt0 : 0 ≤ dt) (hdt5 : dt ≤ 1/5)
+    (hv0 : VerdD 0) (hv1 : VerdD 1) (hv2 : VerdD 2) (hv3 : VerdD 3) :
+    ∀ P ∈ leftProgsD dt, ∀ (q : ℕ), q < GrD.modes.length → ∀ σ, σ mvD = (q : ℝ) →
+      Formula.sat (Formula.and (invLe gD) envD) σ →
+      ∃ segs : List (ℕ × RMode (Var 2) × REdge (Var 2)),
+        (∀ s ∈ segs, GrD.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ GrD.edgesFrom s.1) ∧
+        List.IsChain (fun a b => a.2.2.tgt = b.1) segs ∧
+        (∀ s, segs.head? = some s → s.1 = q) ∧
+        Formula.sat (faModal (Equiv.refl (Var 2)) P
+          (bigSeq (segs.map (fun s => Program.ode s.2.1.sys s.2.1.dom)))
+          (Formula.and (invLe gD) envD)) σ := by
+  intro P hP q hq σ hmv hσ
+  have hq3 : q < 3 := by simpa [GrD] using hq
+  have hsingle : ∀ (a : ℕ × RMode (Var 2) × REdge (Var 2)),
+      List.IsChain (fun a b => a.2.2.tgt = b.1) [a] := by
+    intro a; simp
+  have hstep : ∀ (a : ℕ × RMode (Var 2) × REdge (Var 2))
+      (b : ℕ × RMode (Var 2) × REdge (Var 2)) rest,
+      a.2.2.tgt = b.1 → List.IsChain (fun x y => x.2.2.tgt = y.1) (b :: rest) →
+      List.IsChain (fun x y => x.2.2.tgt = y.1) (a :: b :: rest) := by
+    intro a b rest hab hrest
+    refine hrest.cons ?_
+    intro y hy
+    rw [List.head?_cons, Option.mem_some_iff] at hy
+    subst hy
+    exact hab
+  have hhead1 : ∀ (a : ℕ × RMode (Var 2) × REdge (Var 2)) rest s,
+      (a :: rest : List _).head? = some s → s = a := by
+    intro a rest s hs
+    simpa [List.head?_cons] using hs.symm
+  have hal : ∀ s ∈ [((0:ℕ), modeD 0, edgeD 0 1), ((1:ℕ), modeD 1, edgeD 1 2),
+      ((2:ℕ), modeD 2, edgeD 2 1), ((1:ℕ), modeD 1, edgeD 1 1)],
+      GrD.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ GrD.edgesFrom s.1 := by
+    intro s hs
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hs
+    rcases hs with rfl | rfl | rfl | rfl <;>
+      first
+        | exact ⟨GrD_modeAt 0 (by norm_num), edgeD_mem 0 1 (by simp [GrD])⟩
+        | exact ⟨GrD_modeAt 1 (by norm_num), edgeD_mem 1 2 (by simp [GrD])⟩
+        | exact ⟨GrD_modeAt 1 (by norm_num), edgeD_mem 1 1 (by simp [GrD])⟩
+        | exact ⟨GrD_modeAt 2 (by norm_num), edgeD_mem 2 1 (by simp [GrD])⟩
+  have halmem : ∀ s ∈ ([((2:ℕ), modeD 2, edgeD 2 1), ((1:ℕ), modeD 1, edgeD 1 2),
+      ((2:ℕ), modeD 2, edgeD 2 1), ((1:ℕ), modeD 1, edgeD 1 1)] :
+        List (ℕ × RMode (Var 2) × REdge (Var 2))),
+      GrD.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ GrD.edgesFrom s.1 := by
+    intro s hs
+    refine hal s ?_
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hs ⊢
+    tauto
+  simp only [leftProgsD, leftDataD, List.map_cons, List.map_nil, List.mem_cons,
+    List.not_mem_nil, or_false] at hP
+  have hbody : ∀ (l : ℕ) (hl : l < 4) (hkv : VerdD l), ∀ (q' : ℕ), q' < 3 →
+      σ mvD = (q' : ℝ) →
+      ∃ segs : List (ℕ × RMode (Var 2) × REdge (Var 2)),
+        (∀ s ∈ segs, GrD.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ GrD.edgesFrom s.1) ∧
+        List.IsChain (fun a b => a.2.2.tgt = b.1) segs ∧
+        (∀ s, segs.head? = some s → s.1 = q') ∧
+        Formula.sat (faModal (Equiv.refl (Var 2))
+          (windowSeg (leftBlock (fLD l)) domLD tgD dt (kD l))
+          (bigSeq (segs.map (fun s => Program.ode s.2.1.sys s.2.1.dom)))
+          (Formula.and (invLe gD) envD)) σ := by
+    intro l hl hkv q' hq' hmv'
+    have hk12 : kD l = 2 ∨ kD l = 1 := by
+      interval_cases l <;> simp [kD]
+    interval_cases q'
+    · -- start Fast: hops [0, 1]
+      rcases hk12 with hk | hk
+      · refine ⟨(0, modeD 0, edgeD 0 1) :: (1, modeD 1, edgeD 1 2) ::
+          [(2, modeD 2, edgeD 2 1), (1, modeD 1, edgeD 1 2),
+           (2, modeD 2, edgeD 2 1), (1, modeD 1, edgeD 1 1)],
+          (by
+            intro s hs
+            rcases List.mem_cons.mp hs with rfl | hs
+            · exact hal _ (by simp)
+            · rcases List.mem_cons.mp hs with rfl | hs
+              · exact hal _ (by simp)
+              · exact halmem s hs),
+          hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl
+            (hstep _ _ _ rfl (hsingle _))))),
+          (fun s hs => by rw [hhead1 _ _ _ hs]),
+          ?_⟩
+        have := segD l hl dt hdt0 hdt5 hkv [0, 1]
+          (by intro p hp; simp only [List.mem_cons, List.not_mem_nil, or_false] at hp
+              rcases hp with rfl | rfl <;> norm_num) hσ
+        simpa [modeD, List.replicate, hk] using this
+      · refine ⟨(0, modeD 0, edgeD 0 1) :: (1, modeD 1, edgeD 1 2) ::
+          [(2, modeD 2, edgeD 2 1), (1, modeD 1, edgeD 1 1)],
+          (by
+            intro s hs
+            rcases List.mem_cons.mp hs with rfl | hs
+            · exact hal _ (by simp)
+            · rcases List.mem_cons.mp hs with rfl | hs
+              · exact hal _ (by simp)
+              · refine halmem s ?_
+                simp only [List.mem_cons, List.not_mem_nil, or_false] at hs ⊢
+                tauto),
+          hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl (hsingle _))),
+          (fun s hs => by rw [hhead1 _ _ _ hs]),
+          ?_⟩
+        have := segD l hl dt hdt0 hdt5 hkv [0, 1]
+          (by intro p hp; simp only [List.mem_cons, List.not_mem_nil, or_false] at hp
+              rcases hp with rfl | rfl <;> norm_num) hσ
+        simpa [modeD, List.replicate, hk] using this
+    · -- start Slow: hop [1]
+      rcases hk12 with hk | hk
+      · refine ⟨(1, modeD 1, edgeD 1 2) ::
+          [(2, modeD 2, edgeD 2 1), (1, modeD 1, edgeD 1 2),
+           (2, modeD 2, edgeD 2 1), (1, modeD 1, edgeD 1 1)],
+          (by
+            intro s hs
+            rcases List.mem_cons.mp hs with rfl | hs
+            · exact hal _ (by simp)
+            · exact halmem s hs),
+          hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl
+            (hsingle _)))),
+          (fun s hs => by rw [hhead1 _ _ _ hs]),
+          ?_⟩
+        have := segD l hl dt hdt0 hdt5 hkv [1]
+          (by intro p hp; rw [List.mem_singleton] at hp; subst hp; norm_num) hσ
+        simpa [modeD, List.replicate, hk] using this
+      · refine ⟨(1, modeD 1, edgeD 1 2) ::
+          [(2, modeD 2, edgeD 2 1), (1, modeD 1, edgeD 1 1)],
+          (by
+            intro s hs
+            rcases List.mem_cons.mp hs with rfl | hs
+            · exact hal _ (by simp)
+            · refine halmem s ?_
+              simp only [List.mem_cons, List.not_mem_nil, or_false] at hs ⊢
+              tauto),
+          hstep _ _ _ rfl (hstep _ _ _ rfl (hsingle _)),
+          (fun s hs => by rw [hhead1 _ _ _ hs]),
+          ?_⟩
+        have := segD l hl dt hdt0 hdt5 hkv [1]
+          (by intro p hp; rw [List.mem_singleton] at hp; subst hp; norm_num) hσ
+        simpa [modeD, List.replicate, hk] using this
+    · -- start Return: no hop
+      rcases hk12 with hk | hk
+      · refine ⟨[(2, modeD 2, edgeD 2 1), (1, modeD 1, edgeD 1 2),
+           (2, modeD 2, edgeD 2 1), (1, modeD 1, edgeD 1 1)],
+          halmem,
+          hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl (hsingle _))),
+          (fun s hs => by rw [hhead1 _ _ _ hs]),
+          ?_⟩
+        have := segD l hl dt hdt0 hdt5 hkv [] (by simp) hσ
+        simpa [modeD, List.replicate, hk] using this
+      · refine ⟨[(2, modeD 2, edgeD 2 1), (1, modeD 1, edgeD 1 1)],
+          (by
+            intro s hs
+            refine halmem s ?_
+            simp only [List.mem_cons, List.not_mem_nil, or_false] at hs ⊢
+            tauto),
+          hstep _ _ _ rfl (hsingle _),
+          (fun s hs => by rw [hhead1 _ _ _ hs]),
+          ?_⟩
+        have := segD l hl dt hdt0 hdt5 hkv [] (by simp) hσ
+        simpa [modeD, List.replicate, hk] using this
+  rcases hP with rfl | rfl | rfl | rfl
+  · exact hbody 0 (by norm_num) hv0 q hq3 hmv
+  · exact hbody 1 (by norm_num) hv1 q hq3 hmv
+  · exact hbody 2 (by norm_num) hv2 q hq3 hmv
+  · exact hbody 3 (by norm_num) hv3 q hq3 hmv
+
+/-- **`arm_chain_rung2`, modal Theorem 3** — the asymmetric-rate switch, closing
+the L3 class. -/
+theorem arm_chain_rung2_modal (dt : ℝ) (hdt0 : 0 ≤ dt) (hdt5 : dt ≤ 1/5)
+    (hv0 : VerdD 0) (hv1 : VerdD 1) (hv2 : VerdD 2) (hv3 : VerdD 3) :
+    RFormula.rvalid (theorem3Form
+      (bigChoice (leftProgsD dt))
+      (rightAutomatonBody GrD mvD)
+      (RFormula.and (RFormula.and (canonInv gD) (envLR domLD domRD))
+        (mvValidR mvD GrD.modes.length))) := by
+  refine theorem3_faithful_multiE_LR GrD mvD gD domLD domRD (leftProgsD dt)
+    (canonInv gD) (encode_canonInv gD) ?_ ?_ ?_
+  · exact hdis_multi GrD 0 1 dt leftDataD (by decide) httD hRvD hLD
+  · exact hstep_assembled_multiE GrD mvD gD envD (leftProgsD dt) hmvgD hmvenvD
+      hfreshD httD hltD (hframesD dt)
+      (HmultiD dt hdt0 hdt5 hv0 hv1 hv2 hv3)
+  · exact hddF_multiE GrD 0 1 dt leftDataD (canonInv gD) domLD domRD (by decide)
+      httD hRvD hLD (canonInv_varsL gD hgD) (canonInv_varsR gD) hdomLD hdomRD
+
 end ArmChainRung2Modal
 end RelCertifier

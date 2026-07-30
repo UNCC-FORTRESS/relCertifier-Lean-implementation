@@ -534,5 +534,322 @@ theorem esE (l m : ℕ) (hl : l < 3) (hm : m < 3) (dt : ℝ) (hdt : 0 ≤ dt) :
     hfN
     (by intro gT hgT; exact absurd hgT (List.not_mem_nil))
 
+/-! ## The route verdicts (stratified-DC over the two components) -/
+
+def VerdE (l m : ℕ) : Prop :=
+  ∀ i (hi : i < (gE :: gsE).length),
+    z3solve (flowQuery ⟨(gE :: gsE)[i], fLE l, fRE m, Term.const 1,
+      strataDomHost (Formula.and domLE domRE) ((gE :: gsE).take i)⟩) = Verdict.unsat
+    ∨ z3solve (flowQueryStrict ⟨(gE :: gsE)[i], fLE l, fRE m, Term.const 1,
+      strataDomHost (Formula.and domLE domRE) ((gE :: gsE).take i)⟩) = Verdict.unsat
+    ∨ z3solve (flowQuerySuperlevel ⟨(gE :: gsE)[i], fLE l, fRE m, Term.const 1,
+      strataDomHost (Formula.and domLE domRE) ((gE :: gsE).take i)⟩) = Verdict.unsat
+
+/-! ## The certified couplings -/
+
+theorem coupleE (l m : ℕ) (hl : l < 3) (hm : m < 3) (dt : ℝ) (hdt : 0 ≤ dt)
+    (hv : VerdE l m) :
+    ∀ σ', Formula.sat (Formula.and (FM gE gsE) envE) σ' → σ' tgE = 0 →
+      faModalB (Equiv.refl (Var 3))
+        (Program.ode (DLCalTiming.clk tgE (leftBlock (fLE l))) domLE)
+        (Program.ode (rightBlock (fRE m) (Term.const 1)) domRE)
+        (Formula.and (FM gE gsE) envE) tgE dt σ' := by
+  intro σ' hσ' htg0
+  have hupd : Function.update σ' tgE (0 : ℝ) = σ' := by
+    funext x
+    by_cases hx : x = tgE
+    · subst hx; rw [Function.update_self]; exact htg0.symm
+    · rw [Function.update_of_ne hx]
+  have hAll := segPresAll_from_strata_verdicts' (fLE l) (fRE m) (Term.const 1)
+    (Formula.and domLE domRE) (gE :: gsE) hv
+  have hboxes : ∀ g' ∈ gE :: gsE, Formula.sat (Formula.box (Program.ode
+      (leftBlock (fLE l) ++ rightBlock (fRE m) (Term.const 1))
+      (Formula.and domLE domRE)) (invLe g')) σ' := by
+    intro g' hg'
+    rw [sat_box]
+    intro ω hω
+    rw [sat_invLe]
+    refine hAll σ' ?_ ω (by rw [← jointSys_split] at hω; exact hω) g' hg'
+    intro g hg
+    exact (sat_FM_iff gE gsE σ').mp hσ'.1 g hg
+  have hbase := segment_faModalB_from_certB_list gE gsE (fLE l) (fRE m)
+    (Term.const 1) domLE domRE tgE dt
+    (LR_blocks_disjoint _ _ _ (hfLE l hl) (hfRE m hm) (by simp [Term.fv]))
+    (fun v hv' => Or.inl (by
+      obtain ⟨i, rfl⟩ := hdomLE hv'
+      exact Lv_mem_leftBlock_boundSet _ i))
+    (fun v hv' => Or.inl (by
+      obtain ⟨i, rfl⟩ := hdomRE hv'
+      exact Rv_mem_rightBlock_boundSet _ _ i))
+    (fun h => by
+      obtain ⟨i, hi⟩ := leftBlock_bound_sub (fLE l) _ h
+      exact aux_ne_Lv aE i hi)
+    (fun h => aux_notin_range_Lv aE (leftBlock_readVars_sub (fLE l) (hfLE l hl) h))
+    (fun h => by
+      obtain ⟨i, hi⟩ := rightBlock_bound_sub (fRE m) (Term.const 1) _ h
+      exact aux_ne_Rv aE i hi)
+    (fun h => aux_notin_range_Rv aE (rightBlock_readVars_sub (fRE m) (Term.const 1)
+      (hfRE m hm) (by simp [Term.fv]) h))
+    (fun h => aux_notin_range_Rv aE (rightBlock_boundSet_sub (fRE m) (Term.const 1) h))
+    (fun h => aux_notin_range_Lv aE (hdomLE h))
+    (fun h => aux_notin_range_Rv aE (hdomRE h))
+    htgg hboxes
+    (esE l m hl hm dt hdt σ' hσ')
+  rw [hupd] at hbase
+  refine faModalB_strengthen_plant ?_ hbase
+  intro ν μ hplant hsem
+  have hdomLν : Formula.sat domLE ν := sem_ode_ends_in_domain hplant.1
+  have hdomRμ : Formula.sat domRE μ := sem_ode_ends_in_domain hsem
+  have hdomLμ : Formula.sat domLE μ := by
+    rwa [(Formula.coincidence domLE (fun v hv' => sem_ode_mask hsem (by
+      obtain ⟨i, rfl⟩ := hdomLE hv'
+      intro hb
+      obtain ⟨j, hj⟩ := rightBlock_bound_sub (fRE m) (Term.const 1) _ hb
+      exact absurd hj (by simp [Lv, Rv, Prod.ext_iff]))) :
+        Formula.sat domLE μ ↔ Formula.sat domLE ν)]
+  exact ⟨hdomLμ, hdomRμ⟩
+
+/-! ## Static hops and the window response -/
+
+theorem static_hopE (fR : Fin 3 → Term (Var 3)) (lam : Term (Var 3))
+    (φ : Formula (Var 3)) (σ : State (Var 3)) (hσφ : Formula.sat φ σ)
+    (hdom : Formula.sat (Formula.and domLE domRE) σ) :
+    ∃ ρ, Program.sem ((⟨fR, lam, domRE⟩ : RepoHop 3).prog domLE) σ ρ
+      ∧ Formula.sat φ ρ := by
+  refine ⟨σ, ⟨0, fun _ => σ, le_refl 0, rfl, rfl, ?_, ?_, ?_⟩, hσφ⟩
+  · intro t ht p hp
+    have h0 : t = 0 := le_antisymm ht.2 ht.1
+    subst h0
+    rw [hasDerivWithinAt_iff_tendsto_slope]
+    have hempty : (Set.Icc (0:ℝ) 0) \ {0} = (∅ : Set ℝ) := by
+      simp [Set.Icc_self]
+    rw [hempty, nhdsWithin_empty]
+    exact Filter.tendsto_bot
+  · intro t ht x hx
+    rfl
+  · intro t ht
+    exact hdom
+
+theorem hops_convE : ∀ (ps : List ℕ), (∀ p ∈ ps, p < 3) →
+    List.Forall₂ (fun p q => ∀ ν μ, Program.sem p ν μ → Program.sem q ν μ)
+      (ps.map (fun p => (⟨fRE p, Term.const 1, domRE⟩ : RepoHop 3).prog domLE))
+      (ps.map (fun p => Program.ode (rightBlock (fRE p) (Term.const 1)) domRE)) := by
+  intro ps
+  induction ps with
+  | nil => intro _; exact List.Forall₂.nil
+  | cons a as ih =>
+      intro hps
+      refine List.Forall₂.cons ?_ (ih (fun p hp => hps p (List.mem_cons_of_mem a hp)))
+      intro ν μ hrun
+      exact joint_run_toR (hfRE a (hps a List.mem_cons_self)) (by simp [Term.fv]) hrun
+
+/-- The window response: static hops up the chain, the certified coupling at the
+reached mode. -/
+theorem respondE (l m : ℕ) (hl : l < 3) (hm : m < 3) (dt : ℝ) (hdt : 0 ≤ dt)
+    (hv : VerdE l m) (path : List ℕ) (hpath : ∀ p ∈ path, p < 3)
+    {σ : State (Var 3)} (hσ : Formula.sat (Formula.and (FM gE gsE) envE) σ) :
+    Formula.sat (faModal (Equiv.refl (Var 3))
+      (windowSeg (leftBlock (fLE l)) domLE tgE dt 1)
+      (bigSeq ((path.map (fun p => Program.ode (rightBlock (fRE p) (Term.const 1))
+          domRE))
+        ++ [Program.ode (rightBlock (fRE m) (Term.const 1)) domRE]))
+      (Formula.and (FM gE gsE) envE)) σ := by
+  have hfa := Hmulti_window1_prefixedF (fLE l) domLE (FM gE gsE) envE aE dt
+    htgFE htgenvE
+    (path.map (fun p => (⟨fRE p, Term.const 1, domRE⟩ : RepoHop 3)))
+    (by
+      intro h hh
+      obtain ⟨p, hp, rfl⟩ := List.mem_map.mp hh
+      exact ⟨hfRE p (hpath p hp), by simp [Term.fv], hdomRE⟩)
+    (by
+      intro h hh σ' hσ' htg'
+      obtain ⟨p, hp, rfl⟩ := List.mem_map.mp hh
+      exact static_hopE (fRE p) (Term.const 1) _ σ' hσ' hσ'.2)
+    (hfLE l hl) hdomLE
+    (Program.ode (rightBlock (fRE m) (Term.const 1)) domRE)
+    (coupleE l m hl hm dt hdt hv)
+    hσ
+  rw [show (path.map (fun p => (⟨fRE p, Term.const 1, domRE⟩ : RepoHop 3))).map
+      (fun h => h.prog domLE)
+      = path.map (fun p => (⟨fRE p, Term.const 1, domRE⟩ : RepoHop 3).prog domLE)
+    from by rw [List.map_map]; rfl] at hfa
+  exact sat_faModal_monoR (fun ν μ hrun => sem_bigSeq_mono
+    (List.rel_append (hops_convE path hpath)
+      (List.Forall₂.cons (fun _ _ h => h) List.Forall₂.nil)) ν μ hrun) hfa
+
+/-! ## The step provider (in-place at or ahead, climb from behind) -/
+
+theorem HmultiE (dt : ℝ) (hdt : 0 ≤ dt)
+    (hv00 : VerdE 0 0) (hv01 : VerdE 0 1) (hv02 : VerdE 0 2)
+    (hv11 : VerdE 1 1) (hv12 : VerdE 1 2) (hv22 : VerdE 2 2) :
+    ∀ P ∈ leftProgsE dt, ∀ (q : ℕ), q < GrE.modes.length → ∀ σ, σ mvE = (q : ℝ) →
+      Formula.sat (Formula.and (FM gE gsE) envE) σ →
+      ∃ segs : List (ℕ × RMode (Var 3) × REdge (Var 3)),
+        (∀ s ∈ segs, GrE.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ GrE.edgesFrom s.1) ∧
+        List.IsChain (fun a b => a.2.2.tgt = b.1) segs ∧
+        (∀ s, segs.head? = some s → s.1 = q) ∧
+        Formula.sat (faModal (Equiv.refl (Var 3)) P
+          (bigSeq (segs.map (fun s => Program.ode s.2.1.sys s.2.1.dom)))
+          (Formula.and (FM gE gsE) envE)) σ := by
+  intro P hP q hq σ hmv hσ
+  have hq3 : q < 3 := by simpa [GrE] using hq
+  have hsingle : ∀ (a : ℕ × RMode (Var 3) × REdge (Var 3)),
+      List.IsChain (fun a b => a.2.2.tgt = b.1) [a] := by
+    intro a; simp
+  have hstep : ∀ (a : ℕ × RMode (Var 3) × REdge (Var 3))
+      (b : ℕ × RMode (Var 3) × REdge (Var 3)) rest,
+      a.2.2.tgt = b.1 → List.IsChain (fun x y => x.2.2.tgt = y.1) (b :: rest) →
+      List.IsChain (fun x y => x.2.2.tgt = y.1) (a :: b :: rest) := by
+    intro a b rest hab hrest
+    refine hrest.cons ?_
+    intro y hy
+    rw [List.head?_cons, Option.mem_some_iff] at hy
+    subst hy
+    exact hab
+  have hhead1 : ∀ (a : ℕ × RMode (Var 3) × REdge (Var 3)) rest s,
+      (a :: rest : List _).head? = some s → s = a := by
+    intro a rest s hs
+    simpa [List.head?_cons] using hs.symm
+  simp only [leftProgsE, leftDataE, List.map_cons, List.map_nil, List.mem_cons,
+    List.not_mem_nil, or_false] at hP
+  rcases hP with rfl | rfl | rfl
+  all_goals interval_cases q
+  -- window STEEP: every start couples in place
+  · exact ⟨[(0, modeE 0, edgeE 0 0)],
+      (by
+        intro s hs
+        rw [List.mem_singleton] at hs
+        subst hs
+        exact ⟨GrE_modeAt 0 (by norm_num), edgeE_mem 0 0 (by simp [GrE])⟩),
+      hsingle _,
+      (fun s hs => by rw [hhead1 _ _ _ hs]),
+      (by
+        have := respondE 0 0 (by norm_num) (by norm_num) dt hdt hv00 [] (by simp) hσ
+        simpa [modeE] using this)⟩
+  · exact ⟨[(1, modeE 1, edgeE 1 1)],
+      (by
+        intro s hs
+        rw [List.mem_singleton] at hs
+        subst hs
+        exact ⟨GrE_modeAt 1 (by norm_num), edgeE_mem 1 1 (by simp [GrE])⟩),
+      hsingle _,
+      (fun s hs => by rw [hhead1 _ _ _ hs]),
+      (by
+        have := respondE 0 1 (by norm_num) (by norm_num) dt hdt hv01 [] (by simp) hσ
+        simpa [modeE] using this)⟩
+  · exact ⟨[(2, modeE 2, edgeE 2 2)],
+      (by
+        intro s hs
+        rw [List.mem_singleton] at hs
+        subst hs
+        exact ⟨GrE_modeAt 2 (by norm_num), edgeE_mem 2 2 (by simp [GrE])⟩),
+      hsingle _,
+      (fun s hs => by rw [hhead1 _ _ _ hs]),
+      (by
+        have := respondE 0 2 (by norm_num) (by norm_num) dt hdt hv02 [] (by simp) hσ
+        simpa [modeE] using this)⟩
+  -- window MODER: start STEEP climbs, the rest in place
+  · exact ⟨[(0, modeE 0, edgeE 0 1), (1, modeE 1, edgeE 1 1)],
+      (by
+        intro s hs
+        simp only [List.mem_cons, List.not_mem_nil, or_false] at hs
+        rcases hs with rfl | rfl
+        · exact ⟨GrE_modeAt 0 (by norm_num), edgeE_mem 0 1 (by simp [GrE])⟩
+        · exact ⟨GrE_modeAt 1 (by norm_num), edgeE_mem 1 1 (by simp [GrE])⟩),
+      hstep _ _ _ rfl (hsingle _),
+      (fun s hs => by rw [hhead1 _ _ _ hs]),
+      (by
+        have := respondE 1 1 (by norm_num) (by norm_num) dt hdt hv11 [0]
+          (by intro p hp; rw [List.mem_singleton] at hp; subst hp; norm_num) hσ
+        simpa [modeE] using this)⟩
+  · exact ⟨[(1, modeE 1, edgeE 1 1)],
+      (by
+        intro s hs
+        rw [List.mem_singleton] at hs
+        subst hs
+        exact ⟨GrE_modeAt 1 (by norm_num), edgeE_mem 1 1 (by simp [GrE])⟩),
+      hsingle _,
+      (fun s hs => by rw [hhead1 _ _ _ hs]),
+      (by
+        have := respondE 1 1 (by norm_num) (by norm_num) dt hdt hv11 [] (by simp) hσ
+        simpa [modeE] using this)⟩
+  · exact ⟨[(2, modeE 2, edgeE 2 2)],
+      (by
+        intro s hs
+        rw [List.mem_singleton] at hs
+        subst hs
+        exact ⟨GrE_modeAt 2 (by norm_num), edgeE_mem 2 2 (by simp [GrE])⟩),
+      hsingle _,
+      (fun s hs => by rw [hhead1 _ _ _ hs]),
+      (by
+        have := respondE 1 2 (by norm_num) (by norm_num) dt hdt hv12 [] (by simp) hσ
+        simpa [modeE] using this)⟩
+  -- window FLAT: climb to FLAT from behind, in place at FLAT
+  · exact ⟨[(0, modeE 0, edgeE 0 1), (1, modeE 1, edgeE 1 2), (2, modeE 2, edgeE 2 2)],
+      (by
+        intro s hs
+        simp only [List.mem_cons, List.not_mem_nil, or_false] at hs
+        rcases hs with rfl | rfl | rfl
+        · exact ⟨GrE_modeAt 0 (by norm_num), edgeE_mem 0 1 (by simp [GrE])⟩
+        · exact ⟨GrE_modeAt 1 (by norm_num), edgeE_mem 1 2 (by simp [GrE])⟩
+        · exact ⟨GrE_modeAt 2 (by norm_num), edgeE_mem 2 2 (by simp [GrE])⟩),
+      hstep _ _ _ rfl (hstep _ _ _ rfl (hsingle _)),
+      (fun s hs => by rw [hhead1 _ _ _ hs]),
+      (by
+        have := respondE 2 2 (by norm_num) (by norm_num) dt hdt hv22 [0, 1]
+          (by
+            intro p hp
+            simp only [List.mem_cons, List.not_mem_nil, or_false] at hp
+            rcases hp with rfl | rfl <;> norm_num) hσ
+        simpa [modeE] using this)⟩
+  · exact ⟨[(1, modeE 1, edgeE 1 2), (2, modeE 2, edgeE 2 2)],
+      (by
+        intro s hs
+        simp only [List.mem_cons, List.not_mem_nil, or_false] at hs
+        rcases hs with rfl | rfl
+        · exact ⟨GrE_modeAt 1 (by norm_num), edgeE_mem 1 2 (by simp [GrE])⟩
+        · exact ⟨GrE_modeAt 2 (by norm_num), edgeE_mem 2 2 (by simp [GrE])⟩),
+      hstep _ _ _ rfl (hsingle _),
+      (fun s hs => by rw [hhead1 _ _ _ hs]),
+      (by
+        have := respondE 2 2 (by norm_num) (by norm_num) dt hdt hv22 [1]
+          (by intro p hp; rw [List.mem_singleton] at hp; subst hp; norm_num) hσ
+        simpa [modeE] using this)⟩
+  · exact ⟨[(2, modeE 2, edgeE 2 2)],
+      (by
+        intro s hs
+        rw [List.mem_singleton] at hs
+        subst hs
+        exact ⟨GrE_modeAt 2 (by norm_num), edgeE_mem 2 2 (by simp [GrE])⟩),
+      hsingle _,
+      (fun s hs => by rw [hhead1 _ _ _ hs]),
+      (by
+        have := respondE 2 2 (by norm_num) (by norm_num) dt hdt hv22 [] (by simp) hσ
+        simpa [modeE] using this)⟩
+
+/-- **`refinement_ladder_rover_rung1_2to3`, modal Theorem 3** — the first plain
+list-invariant instance (multiF chain, climb dispatch, no vacuity). -/
+theorem rover_ladder_rung1_modal (dt : ℝ) (hdt : 0 ≤ dt)
+    (hv00 : VerdE 0 0) (hv01 : VerdE 0 1) (hv02 : VerdE 0 2)
+    (hv11 : VerdE 1 1) (hv12 : VerdE 1 2) (hv22 : VerdE 2 2) :
+    RFormula.rvalid (theorem3Form
+      (bigChoice (leftProgsE dt))
+      (rightAutomatonBody GrE mvE)
+      (RFormula.and (RFormula.and (canonInvM gE gsE) (envLR domLE domRE))
+        (mvValidR mvE GrE.modes.length))) := by
+  refine theorem3_faithful_multiF_LR GrE mvE (FM gE gsE) domLE domRE (leftProgsE dt)
+    (canonInvM gE gsE) (encode_canonInvM gE gsE) ?_ ?_ ?_
+  · exact hdis_multi GrE 0 1 dt leftDataE (by decide) httE hRvE hLE
+  · exact hstep_assembled_multiF GrE mvE (FM gE gsE) envE (leftProgsE dt)
+      hmvFE hmvenvE hfreshE httE hltE (hframesE dt)
+      (HmultiE dt hdt hv00 hv01 hv02 hv11 hv12 hv22)
+  · exact hddF_multiE GrE 0 1 dt leftDataE (canonInvM gE gsE) domLE domRE (by decide)
+      httE hRvE hLE
+      (canonInvM_varsL gE gsE (by
+        intro g' hg'
+        simp only [gE, gsE, List.mem_cons, List.not_mem_nil, or_false] at hg'
+        rcases hg' with rfl | rfl <;> exact hgAt _))
+      (canonInvM_varsR gE gsE) hdomLE hdomRE
+
 end RoverLadderRung1Modal
 end RelCertifier

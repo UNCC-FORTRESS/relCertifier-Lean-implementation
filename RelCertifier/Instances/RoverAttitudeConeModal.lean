@@ -1418,15 +1418,29 @@ theorem couple1C (l m : ℕ) (hl : l < 3) (hm : m < 3) (dt : ℝ) (hdt : 0 ≤ d
 /-! ## The window response (2 pieces at the in-place mode) -/
 
 theorem respondC (l m : ℕ) (hl : l < 3) (hm : m < 3) (dt : ℝ) (hdt : 0 ≤ dt)
-    (hv : VerdC l m) {σ : State (Var 12)}
+    (hv : VerdC l m) (path : List ℕ) (hpath : ∀ p ∈ path, p < 3)
+    {σ : State (Var 12)}
     (hσ : Formula.sat (Formula.and (FM gC gsC) envC) σ) :
     Formula.sat (faModal (Equiv.refl (Var 12))
       (windowSeg (leftBlock (fLC l)) domLC tgC dt 2)
-      (bigSeq [Program.ode (rightBlock (fRC m) (Term.const 1)) domRC,
-        Program.ode (rightBlock (fRC m) (Term.const 1)) domRC])
+      (bigSeq ((path.map (fun p => Program.ode (rightBlock (fRC p) (Term.const 1)) domRC))
+        ++ [Program.ode (rightBlock (fRC m) (Term.const 1)) domRC,
+        Program.ode (rightBlock (fRC m) (Term.const 1)) domRC]))
       (Formula.and (FM gC gsC) envC)) σ := by
   have hfa := Hmulti_windowRF_prefixed (fLC l) domLC (FM gC gsC) envC
-    aC dt 2 htgFC htgenvC [] (by simp) (fun σ' hσ' => hσ'.2.1) (by simp)
+    aC dt 2 htgFC htgenvC
+    (path.map (fun p => (⟨fRC p, Term.const 1, domRC⟩ : RepoHop 12)))
+    (by
+      intro h hh
+      obtain ⟨p, hp, rfl⟩ := List.mem_map.mp hh
+      exact ⟨hfRC p (hpath p hp), by simp [Term.fv], hdomRC⟩)
+    (fun σ' hσ' => hσ'.2.1)
+    (by
+      intro h hh σ' hσ' htg'
+      obtain ⟨p, hp, rfl⟩ := List.mem_map.mp hh
+      obtain ⟨ρ, hsem, hρσ⟩ := static_hop_existsR (fR := fRC p)
+        (lam := Term.const 1) (domR := domRC) hσ'.2.2
+      exact ⟨ρ, hsem, hρσ ▸ hσ'⟩)
     (hfLC l hl) hdomLC
     (List.replicate 2 (Program.ode (rightBlock (fRC m) (Term.const 1)) domRC)) (by simp) (by norm_num)
     (by
@@ -1439,6 +1453,10 @@ theorem respondC (l m : ℕ) (hl : l < 3) (hm : m < 3) (dt : ℝ) (hdt : 0 ≤ d
       rw [List.eq_of_mem_replicate hQ]
       exact couple1C l m hl hm dt hdt hv σ' hσ')
     hσ
+  rw [show (path.map (fun p => (⟨fRC p, Term.const 1, domRC⟩ : RepoHop 12))).map
+      (fun h => h.progR)
+      = path.map (fun p => Program.ode (rightBlock (fRC p) (Term.const 1)) domRC)
+    from by rw [List.map_map]; rfl] at hfa
   simpa [List.replicate] using hfa
 
 /-! ## The step provider — every window certifies every mode, so the response
@@ -1475,19 +1493,101 @@ theorem HmultiC (dt : ℝ) (hdt : 0 ≤ dt)
     simpa [List.head?_cons] using hs.symm
   simp only [leftProgsC, leftDataC, List.map_cons, List.map_nil, List.mem_cons,
     List.not_mem_nil, or_false] at hP
-  refine ⟨[(q, modeC q, edgeC q q), (q, modeC q, edgeC q q)], ?_, ?_, ?_, ?_⟩
-  · intro s hs
-    simp only [List.mem_cons, List.not_mem_nil, or_false] at hs
-    rcases hs with rfl | rfl <;> exact hself
-  · exact (hstep _ _ _ rfl (by simp))
-  · exact fun s hs => by rw [hhead1 _ _ _ hs]
-  · rcases hP with rfl | rfl | rfl
-    · have := respondC 0 q (by norm_num) hq3 dt hdt (hv 0 q (by norm_num) hq3) hσ
-      simpa [modeC] using this
-    · have := respondC 1 q (by norm_num) hq3 dt hdt (hv 1 q (by norm_num) hq3) hσ
-      simpa [modeC] using this
-    · have := respondC 2 q (by norm_num) hq3 dt hdt (hv 2 q (by norm_num) hq3) hσ
-      simpa [modeC] using this
+  have halign : ∀ st tgt : ℕ, st < 3 → tgt < 3 → edgeC st tgt ∈ GrC.edges →
+      GrC.modeAt st = some (modeC st) ∧ edgeC st tgt ∈ GrC.edgesFrom st :=
+    fun st tgt hs ht he => ⟨GrC_modeAt st hs, edgeC_mem st tgt he⟩
+  rcases hP with rfl | rfl | rfl
+  all_goals interval_cases q
+  · refine ⟨[(0, modeC 0, edgeC 0 0), (0, modeC 0, edgeC 0 0)], ?_, ?_, ?_, ?_⟩
+    · intro s hs
+      simp only [List.mem_cons, List.not_mem_nil, or_false] at hs
+      rcases hs with rfl | rfl
+      · exact halign 0 0 (by norm_num) (by norm_num) (by simp [GrC])
+      · exact halign 0 0 (by norm_num) (by norm_num) (by simp [GrC])
+    · exact (hstep _ _ _ rfl (by simp))
+    · exact fun s hs => by rw [hhead1 _ _ _ hs]
+    · have := respondC 0 0 (by norm_num) (by norm_num) dt hdt (hv 0 0 (by norm_num) (by norm_num)) [] (by simp) hσ
+      simpa [modeC, List.replicate] using this
+  · refine ⟨[(1, modeC 1, edgeC 1 1), (1, modeC 1, edgeC 1 1)], ?_, ?_, ?_, ?_⟩
+    · intro s hs
+      simp only [List.mem_cons, List.not_mem_nil, or_false] at hs
+      rcases hs with rfl | rfl
+      · exact halign 1 1 (by norm_num) (by norm_num) (by simp [GrC])
+      · exact halign 1 1 (by norm_num) (by norm_num) (by simp [GrC])
+    · exact (hstep _ _ _ rfl (by simp))
+    · exact fun s hs => by rw [hhead1 _ _ _ hs]
+    · have := respondC 0 1 (by norm_num) (by norm_num) dt hdt (hv 0 1 (by norm_num) (by norm_num)) [] (by simp) hσ
+      simpa [modeC, List.replicate] using this
+  · refine ⟨[(2, modeC 2, edgeC 2 2), (2, modeC 2, edgeC 2 2)], ?_, ?_, ?_, ?_⟩
+    · intro s hs
+      simp only [List.mem_cons, List.not_mem_nil, or_false] at hs
+      rcases hs with rfl | rfl
+      · exact halign 2 2 (by norm_num) (by norm_num) (by simp [GrC])
+      · exact halign 2 2 (by norm_num) (by norm_num) (by simp [GrC])
+    · exact (hstep _ _ _ rfl (by simp))
+    · exact fun s hs => by rw [hhead1 _ _ _ hs]
+    · have := respondC 0 2 (by norm_num) (by norm_num) dt hdt (hv 0 2 (by norm_num) (by norm_num)) [] (by simp) hσ
+      simpa [modeC, List.replicate] using this
+  · refine ⟨[(0, modeC 0, edgeC 0 0), (0, modeC 0, edgeC 0 0)], ?_, ?_, ?_, ?_⟩
+    · intro s hs
+      simp only [List.mem_cons, List.not_mem_nil, or_false] at hs
+      rcases hs with rfl | rfl
+      · exact halign 0 0 (by norm_num) (by norm_num) (by simp [GrC])
+      · exact halign 0 0 (by norm_num) (by norm_num) (by simp [GrC])
+    · exact (hstep _ _ _ rfl (by simp))
+    · exact fun s hs => by rw [hhead1 _ _ _ hs]
+    · have := respondC 1 0 (by norm_num) (by norm_num) dt hdt (hv 1 0 (by norm_num) (by norm_num)) [] (by simp) hσ
+      simpa [modeC, List.replicate] using this
+  · refine ⟨[(1, modeC 1, edgeC 1 1), (1, modeC 1, edgeC 1 1)], ?_, ?_, ?_, ?_⟩
+    · intro s hs
+      simp only [List.mem_cons, List.not_mem_nil, or_false] at hs
+      rcases hs with rfl | rfl
+      · exact halign 1 1 (by norm_num) (by norm_num) (by simp [GrC])
+      · exact halign 1 1 (by norm_num) (by norm_num) (by simp [GrC])
+    · exact (hstep _ _ _ rfl (by simp))
+    · exact fun s hs => by rw [hhead1 _ _ _ hs]
+    · have := respondC 1 1 (by norm_num) (by norm_num) dt hdt (hv 1 1 (by norm_num) (by norm_num)) [] (by simp) hσ
+      simpa [modeC, List.replicate] using this
+  · refine ⟨[(2, modeC 2, edgeC 2 2), (2, modeC 2, edgeC 2 2)], ?_, ?_, ?_, ?_⟩
+    · intro s hs
+      simp only [List.mem_cons, List.not_mem_nil, or_false] at hs
+      rcases hs with rfl | rfl
+      · exact halign 2 2 (by norm_num) (by norm_num) (by simp [GrC])
+      · exact halign 2 2 (by norm_num) (by norm_num) (by simp [GrC])
+    · exact (hstep _ _ _ rfl (by simp))
+    · exact fun s hs => by rw [hhead1 _ _ _ hs]
+    · have := respondC 1 2 (by norm_num) (by norm_num) dt hdt (hv 1 2 (by norm_num) (by norm_num)) [] (by simp) hσ
+      simpa [modeC, List.replicate] using this
+  · refine ⟨[(0, modeC 0, edgeC 0 0), (0, modeC 0, edgeC 0 0)], ?_, ?_, ?_, ?_⟩
+    · intro s hs
+      simp only [List.mem_cons, List.not_mem_nil, or_false] at hs
+      rcases hs with rfl | rfl
+      · exact halign 0 0 (by norm_num) (by norm_num) (by simp [GrC])
+      · exact halign 0 0 (by norm_num) (by norm_num) (by simp [GrC])
+    · exact (hstep _ _ _ rfl (by simp))
+    · exact fun s hs => by rw [hhead1 _ _ _ hs]
+    · have := respondC 2 0 (by norm_num) (by norm_num) dt hdt (hv 2 0 (by norm_num) (by norm_num)) [] (by simp) hσ
+      simpa [modeC, List.replicate] using this
+  · refine ⟨[(1, modeC 1, edgeC 1 1), (1, modeC 1, edgeC 1 1)], ?_, ?_, ?_, ?_⟩
+    · intro s hs
+      simp only [List.mem_cons, List.not_mem_nil, or_false] at hs
+      rcases hs with rfl | rfl
+      · exact halign 1 1 (by norm_num) (by norm_num) (by simp [GrC])
+      · exact halign 1 1 (by norm_num) (by norm_num) (by simp [GrC])
+    · exact (hstep _ _ _ rfl (by simp))
+    · exact fun s hs => by rw [hhead1 _ _ _ hs]
+    · have := respondC 2 1 (by norm_num) (by norm_num) dt hdt (hv 2 1 (by norm_num) (by norm_num)) [] (by simp) hσ
+      simpa [modeC, List.replicate] using this
+  · refine ⟨[(2, modeC 2, edgeC 2 2), (2, modeC 2, edgeC 2 2)], ?_, ?_, ?_, ?_⟩
+    · intro s hs
+      simp only [List.mem_cons, List.not_mem_nil, or_false] at hs
+      rcases hs with rfl | rfl
+      · exact halign 2 2 (by norm_num) (by norm_num) (by simp [GrC])
+      · exact halign 2 2 (by norm_num) (by norm_num) (by simp [GrC])
+    · exact (hstep _ _ _ rfl (by simp))
+    · exact fun s hs => by rw [hhead1 _ _ _ hs]
+    · have := respondC 2 2 (by norm_num) (by norm_num) dt hdt (hv 2 2 (by norm_num) (by norm_num)) [] (by simp) hσ
+      simpa [modeC, List.replicate] using this
 
 /-- **`rover_attitude_cone_12dof`, modal Theorem 3** (λ = (17:ℝ)/10, k = 2). -/
 theorem rover_attitude_cone_modal (dt : ℝ) (hdt : 0 ≤ dt)

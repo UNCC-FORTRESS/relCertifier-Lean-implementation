@@ -17,9 +17,41 @@ def tail_lk(spec):
         chain = "  · simp"
     else:
         chain = "  · exact " + "".join(["(hstep _ _ _ rfl "] * (K - 1)) + "(by simp)" + ")" * (K - 1)
-    resp = "\n".join(
-        "    · have := respond%s %d q (by norm_num) hq3 dt hdt (hv %d q (by norm_num) hq3) hσ\n"
-        "      simpa [mode%s] using this" % (S, i, i, S) for i in range(3))
+    land = spec.get('land')
+    if land is None:
+        land = [[([], q) for q in range(3)] for _ in range(3)]
+    brs = []
+    for l in range(3):
+        for q in range(3):
+            path, m = land[l][q]
+            segs = ["(%d, mode%s %d, edge%s %d %d)" % (p_, S, p_, S, p_, (path + [m])[i + 1])
+                    for i, p_ in enumerate(path)]
+            segs += ["(%d, mode%s %d, edge%s %d %d)" % (m, S, m, S, m, m)] * K
+            nseg = len(segs)
+            alignlines = "\n".join(
+                "      · exact halign %s (by norm_num) (by norm_num) (by simp [Gr%s])" % (
+                    ("%d %d" % (p_, (path + [m])[i + 1])), S)
+                for i, p_ in enumerate(path)) + ("\n" if path else "")
+            alignlines += "\n".join(
+                "      · exact halign %d %d (by norm_num) (by norm_num) (by simp [Gr%s])" % (m, m, S)
+                for _ in range(K))
+            chain_expr = ("simp" if nseg == 1 else
+                          "exact " + "".join(["(hstep _ _ _ rfl "] * (nseg - 1)) + "(by simp)" + ")" * (nseg - 1))
+            pathlit = "[" + ", ".join(str(x) for x in path) + "]"
+            hpath_pf = "(by simp)" if not path else (
+                "(by intro p hp; simp only [List.mem_cons, List.not_mem_nil, or_false] at hp; "
+                + ("rcases hp with " + " | ".join(["rfl"] * len(path)) + " <;> norm_num)"))
+            brs.append(
+                "  · refine ⟨[" + ", ".join(segs) + "], ?_, ?_, ?_, ?_⟩\n"
+                "    · intro s hs\n"
+                "      simp only [List.mem_cons, List.not_mem_nil, or_false] at hs\n"
+                "      rcases hs with " + " | ".join(["rfl"] * nseg) + "\n"
+                + alignlines + "\n"
+                "    · " + chain_expr + "\n"
+                "    · exact fun s hs => by rw [hhead1 _ _ _ hs]\n"
+                "    · have := respond%s %d %d (by norm_num) (by norm_num) dt hdt (hv %d %d (by norm_num) (by norm_num)) %s %s hσ\n"
+                "      simpa [mode%s, List.replicate] using this" % (S, l, m, l, m, pathlit, hpath_pf, S))
+    branches = "\n".join(brs)
     T = []
     A = T.append
     A("""
@@ -125,14 +157,28 @@ theorem couple1{S} (l m : ℕ) (hl : l < 3) (hm : m < 3) (dt : ℝ) (hdt : 0 ≤
 /-! ## The window response ({K} pieces at the in-place mode) -/
 
 theorem respond{S} (l m : ℕ) (hl : l < 3) (hm : m < 3) (dt : ℝ) (hdt : 0 ≤ dt)
-    (hv : Verd{S} l m) {{σ : State (Var {N})}}
+    (hv : Verd{S} l m) (path : List ℕ) (hpath : ∀ p ∈ path, p < 3)
+    {{σ : State (Var {N})}}
     (hσ : Formula.sat (Formula.and (FM g{S} gs{S}) env{S}) σ) :
     Formula.sat (faModal (Equiv.refl (Var {N}))
       (windowSeg (leftBlock (fL{S} l)) domL{S} tg{S} dt {K})
-      (bigSeq [{piecelist}])
+      (bigSeq ((path.map (fun p => Program.ode (rightBlock (fR{S} p) (Term.const 1)) domR{S}))
+        ++ [{piecelist}]))
       (Formula.and (FM g{S} gs{S}) env{S})) σ := by
   have hfa := Hmulti_windowRF_prefixed (fL{S} l) domL{S} (FM g{S} gs{S}) env{S}
-    a{S} dt {K} htgF{S} htgenv{S} [] (by simp) (fun σ' hσ' => hσ'.2.1) (by simp)
+    a{S} dt {K} htgF{S} htgenv{S}
+    (path.map (fun p => (⟨fR{S} p, Term.const 1, domR{S}⟩ : RepoHop {N})))
+    (by
+      intro h hh
+      obtain ⟨p, hp, rfl⟩ := List.mem_map.mp hh
+      exact ⟨hfR{S} p (hpath p hp), by simp [Term.fv], hdomR{S}⟩)
+    (fun σ' hσ' => hσ'.2.1)
+    (by
+      intro h hh σ' hσ' htg'
+      obtain ⟨p, hp, rfl⟩ := List.mem_map.mp hh
+      obtain ⟨ρ, hsem, hρσ⟩ := static_hop_existsR (fR := fR{S} p)
+        (lam := Term.const 1) (domR := domR{S}) hσ'.2.2
+      exact ⟨ρ, hsem, hρσ ▸ hσ'⟩)
     (hfL{S} l hl) hdomL{S}
     (List.replicate {K} ({P1})) (by simp) (by norm_num)
     (by
@@ -145,6 +191,10 @@ theorem respond{S} (l m : ℕ) (hl : l < 3) (hm : m < 3) (dt : ℝ) (hdt : 0 ≤
       rw [List.eq_of_mem_replicate hQ]
       exact couple1{S} l m hl hm dt hdt hv σ' hσ')
     hσ
+  rw [show (path.map (fun p => (⟨fR{S} p, Term.const 1, domR{S}⟩ : RepoHop {N}))).map
+      (fun h => h.progR)
+      = path.map (fun p => Program.ode (rightBlock (fR{S} p) (Term.const 1)) domR{S})
+    from by rw [List.map_map]; rfl] at hfa
   simpa [List.replicate] using hfa
 
 /-! ## The step provider — every window certifies every mode, so the response
@@ -181,14 +231,12 @@ theorem Hmulti{S} (dt : ℝ) (hdt : 0 ≤ dt)
     simpa [List.head?_cons] using hs.symm
   simp only [leftProgs{S}, leftData{S}, List.map_cons, List.map_nil, List.mem_cons,
     List.not_mem_nil, or_false] at hP
-  refine ⟨[{seglist}], ?_, ?_, ?_, ?_⟩
-  · intro s hs
-    simp only [List.mem_cons, List.not_mem_nil, or_false] at hs
-    rcases hs with {rfls} <;> exact hself
-{chain}
-  · exact fun s hs => by rw [hhead1 _ _ _ hs]
-  · rcases hP with {rfl3}
-{resp}
+  have halign : ∀ st tgt : ℕ, st < 3 → tgt < 3 → edge{S} st tgt ∈ Gr{S}.edges →
+      Gr{S}.modeAt st = some (mode{S} st) ∧ edge{S} st tgt ∈ Gr{S}.edgesFrom st :=
+    fun st tgt hs ht he => ⟨Gr{S}_modeAt st hs, edge{S}_mem st tgt he⟩
+  rcases hP with {rfl3}
+  all_goals interval_cases q
+{branches}
 
 /-- **`{BENCH}`, modal Theorem 3** (λ = {LAM}, k = {K}). -/
 theorem {THM} (dt : ℝ) (hdt : 0 ≤ dt)
@@ -216,7 +264,7 @@ end {NS}
 end RelCertifier
 """.format(S=S, N=N, LAM=LAM, K=K, NS=NS, THM=THM, BENCH=BENCH, P1=P1,
            piecelist=piecelist, seglist=seglist, rfls=rfls, rfl3=rfl3, rflg=rflg,
-           chain=chain, resp=resp))
+           chain=chain, branches=branches))
     return "".join(T)
 
 

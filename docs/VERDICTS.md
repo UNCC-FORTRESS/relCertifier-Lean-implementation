@@ -146,3 +146,36 @@ ALL HYPOTHESES DISCHARGED
 by this runner, or recorded by the tool's own certification runs. The only standing
 assumptions are the frozen contract's: parser, printer, Z3-on-unsat, Lean kernel, and
 successor-completeness with guard-gated switching.
+
+
+---
+
+## Modal Theorem-3 instance residuals (T3 arc, 2026-07-29)
+
+Seventeen benchmarks carry `rvalid (theorem3Form …)` modal instances. Every
+theorem's Z3 residual is a hypothesis of the stated theorem (never assumed
+internally); the table records the residual inventory and the empirical check.
+
+| instance | residual verdicts | empirical record |
+|---|---|---|
+| arm_chain_rung3 / arm_fidelity_high / plant_fan_high (clones) | 2 route packs each | cover-certified queries (emitted covers) |
+| arm_fidelity_mid / plant_fan_mid (clone) | 2 route packs each | cover-certified queries |
+| rover_drag | 1 route pack | cover-certified query |
+| robot_braking | 2 route packs | cover-certified queries |
+| rover_4d_box | 2 route packs | cover-certified queries |
+| match_multi_eps / rover3tier_M1 (clone) | 2 route packs each | cover-certified queries |
+| refinement_ladder_rover_rung2c_6dof | 3 stratified-DC packs (9 queries each) | semantic mirrors 27/27 unsat (route C for the 8 lockstep conjuncts with strata stacking, route A for the region face) |
+| arm_fidelity_low / arm_refinement / plant_fan_low (clones) | 2 route packs each | route-A mirrors unsat (`dg/dt = v_L − 1 ≤ 0` domain-wide) |
+| arm_chain_rung1 | 3 route packs | route-A mirrors unsat (`dg/dt = rL − λ/5` = 0, 0, −2/5) |
+| arm_chain_rung2 | 4 route packs | route-A mirrors unsat (`dg/dt = rL − 0.3λ` < 0 all four) |
+| watertank | 6 `VerdW` packs | `--run-verdicts` battery (kernel-identity IR mirrors) |
+
+Existence residuals: **zero** across all seventeen — every `HExistSegB` /
+split-phase witness is discharged in-kernel (stratified faces, closed-form
+drift, or explicit linear curves). The dt-capped switch instances
+(`dt ≤ 1/5`) state the cap as a hypothesis.
+
+The five switch instances and rung2c use hand-stated `z3solve` Props (the
+same `flowQuery`/`strataDomHost` families the cover emits); folding them
+into the `--run-verdicts` kernel-identity battery is routine follow-up work,
+not a soundness gap — the theorems' hypotheses are explicit either way.

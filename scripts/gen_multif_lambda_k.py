@@ -20,6 +20,8 @@ def tail_lk(spec):
     land = spec.get('land')
     if land is None:
         land = [[([], q) for q in range(3)] for _ in range(3)]
+    used = sorted({(l, land[l][q][1]) for l in range(3) for q in range(3)})
+    hvsig = " ".join("(hv%d%d : Verd%s %d %d)" % (l, m, S, l, m) for l, m in used)
     brs = []
     for l in range(3):
         for q in range(3):
@@ -49,7 +51,7 @@ def tail_lk(spec):
                 + alignlines + "\n"
                 "    · " + chain_expr + "\n"
                 "    · exact fun s hs => by rw [hhead1 _ _ _ hs]\n"
-                "    · have := respond%s %d %d (by norm_num) (by norm_num) dt hdt (hv %d %d (by norm_num) (by norm_num)) %s %s hσ\n"
+                "    · have := respond%s %d %d (by norm_num) (by norm_num) dt hdt hv%d%d %s %s hσ\n"
                 "      simpa [mode%s, List.replicate] using this" % (S, l, m, l, m, pathlit, hpath_pf, S))
     branches = "\n".join(brs)
     T = []
@@ -200,8 +202,7 @@ theorem respond{S} (l m : ℕ) (hl : l < 3) (hm : m < 3) (dt : ℝ) (hdt : 0 ≤
 /-! ## The step provider — every window certifies every mode, so the response
 stays in place -/
 
-theorem Hmulti{S} (dt : ℝ) (hdt : 0 ≤ dt)
-    (hv : ∀ l m : ℕ, l < 3 → m < 3 → Verd{S} l m) :
+theorem Hmulti{S} (dt : ℝ) (hdt : 0 ≤ dt) {hvsig} :
     ∀ P ∈ leftProgs{S} dt, ∀ (q : ℕ), q < Gr{S}.modes.length → ∀ σ, σ mv{S} = (q : ℝ) →
       Formula.sat (Formula.and (FM g{S} gs{S}) env{S}) σ →
       ∃ segs : List (ℕ × RMode (Var {N}) × REdge (Var {N})),
@@ -239,8 +240,7 @@ theorem Hmulti{S} (dt : ℝ) (hdt : 0 ≤ dt)
 {branches}
 
 /-- **`{BENCH}`, modal Theorem 3** (λ = {LAM}, k = {K}). -/
-theorem {THM} (dt : ℝ) (hdt : 0 ≤ dt)
-    (hv : ∀ l m : ℕ, l < 3 → m < 3 → Verd{S} l m) :
+theorem {THM} (dt : ℝ) (hdt : 0 ≤ dt) {hvsig} :
     RFormula.rvalid (theorem3Form
       (bigChoice (leftProgs{S} dt))
       (rightAutomatonBody Gr{S} mv{S})
@@ -251,7 +251,7 @@ theorem {THM} (dt : ℝ) (hdt : 0 ≤ dt)
   · exact hdis_multi Gr{S} 0 1 dt leftData{S} (by decide) htt{S} hRv{S} hL{S}
   · exact hstep_assembled_multiF Gr{S} mv{S} (FM g{S} gs{S}) env{S} (leftProgs{S} dt)
       hmvF{S} hmvenv{S} hfresh{S} htt{S} hlt{S} (hframes{S} dt)
-      (Hmulti{S} dt hdt hv)
+      (Hmulti{S} dt hdt {hvargs})
   · exact hddF_multiE Gr{S} 0 1 dt leftData{S} (canonInvM g{S} gs{S}) domL{S} domR{S}
       (by decide) htt{S} hRv{S} hL{S}
       (canonInvM_varsL g{S} gs{S} (by
@@ -264,7 +264,8 @@ end {NS}
 end RelCertifier
 """.format(S=S, N=N, LAM=LAM, K=K, NS=NS, THM=THM, BENCH=BENCH, P1=P1,
            piecelist=piecelist, seglist=seglist, rfls=rfls, rfl3=rfl3, rflg=rflg,
-           chain=chain, branches=branches))
+           chain=chain, branches=branches, hvsig=hvsig,
+           hvargs=" ".join("hv%d%d" % (l, m) for l, m in used)))
     return "".join(T)
 
 

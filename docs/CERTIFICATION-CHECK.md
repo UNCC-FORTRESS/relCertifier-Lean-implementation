@@ -167,7 +167,11 @@ reviewer re-checking them is re-running a *mirror* of the query rather than a
 query provably identical to the theorem's. Folding these into the
 `--run-verdicts` battery is routine work, and is the one open hygiene item in
 the checking story — it is not a soundness gap in the theorems (the hypotheses
-are explicit in the statements).
+are explicit in the statements). An exhaustive audit of exactly this link —
+that every asserted hypothesis is entailed, via domain containment, by queries
+the tool demonstrably ran — was performed on 2026-07-31 and is recorded, with
+its method, results (210/210), pitfalls, and expiry conditions, in
+[`VERDICT-EVIDENCE-AUDIT.md`](VERDICT-EVIDENCE-AUDIT.md).
 
 ## Check 4 — the benchmark files match the IR the theorems quote
 

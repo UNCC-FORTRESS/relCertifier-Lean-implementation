@@ -391,7 +391,7 @@ reformulation:
   may be a pure right-side flow, with the invariant re-established by endpoint arithmetic
   over `WindowGrowth.lean`'s displacement bound. Those five carry **no Z3 verdicts**.
 
-**Interaction with the shelved fixpoint design.** `docs/FIXPOINT-DESIGN.md` §4 claimed the
+**Interaction with the shelved fixpoint design.** `docs/proposals/FIXPOINT-DESIGN.md` §4 claimed the
 winning-region reformulation would dissolve this blocker. It was never needed: the blocker
 dissolved through the response-structure layers above. The design remains a recorded
 alternative, not a dependency.
@@ -480,13 +480,13 @@ Not coverage — **witness shape**:
 | `?guard_m(x)` on transitions | `e.guard = ⊤` | permissive — the documented "⊤-model"; harmless because the cover is demonic over successors (`docs/COVER-AUDIT.md`) |
 | `t := 0; {…, t' = 1 & t ≤ ε_R}` | clocked in the cadenced/landing routes; unclocked in `rightAutomatonBody` | permissive where unclocked |
 | invariant `φInv` | `φInv ∧ mvValidR` (and `∧ envLR` in the E-forms) | bookkeeping conjuncts, both sides of the implication |
-| jump-then-flow | flow-then-jump | rotation (`docs/ROTATION-SCOPE.md`) |
+| jump-then-flow | flow-then-jump | rotation (`docs/proposals/ROTATION-SCOPE.md`) |
 | budgets `B = ε_L`, `w = ε_R/λ` (real-valued) | `weight : ℕ`, budget `⌈ε_L/δ_L⌉` | faithful ℕ-discretization |
 
 **Two paper assumptions land well.** § Well-formedness (nonblocking + successor
 completeness) is exactly what `GuardSettlingB`'s final conjunct **proves** for all 46; and
 Limitations already says resets are identities, matching the mechanization
-(`docs/RESET-MAPS-SCOPE.md`). **Definition 4** (All-Successors Cover) maps onto
+(`docs/proposals/RESET-MAPS-SCOPE.md`). **Definition 4** (All-Successors Cover) maps onto
 `Covered`/`decideCovered` — base case `B ≤ w`, successor case ∃kind ∀retained-edges,
 σ ↔ `SrcSetting`.
 

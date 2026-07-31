@@ -189,7 +189,7 @@ nominal one, no matter how the deployed one behaves?*
 **② Parse — TRUSTED.** `Trusted/Parse.lean` is strict: it rejects rather than repairs.
 `Trusted/KeyAudit.lean` gates every CLI parse site so an unknown key is an error rather
 than a silent drop — writing `reset = x2 := 1` into a mode section now fails with exit 1
-instead of being discarded (see `docs/RESET-MAPS-SCOPE.md` §0).
+instead of being discarded (see `docs/proposals/RESET-MAPS-SCOPE.md` §0).
 
 **④ Freeze the IR.** The parse result is emitted as a Lean literal, `watertank_IR`. Every
 downstream instance *quotes that literal* — no model data is ever re-typed by hand into a
@@ -673,6 +673,6 @@ the historical routes clearly marked.
 * `docs/VERDICTS.md` — the empirical report and the full-suite closure record.
 * `docs/ASSET-MAP.md` — the load-bearing theorems.
 
-Design proposals, nothing scheduled: `docs/FIXPOINT-DESIGN.md`,
-`docs/RESET-MAPS-SCOPE.md`, `docs/ROTATION-SCOPE.md`. Completed records live in
+Design proposals, nothing scheduled: `docs/proposals/FIXPOINT-DESIGN.md`,
+`docs/proposals/RESET-MAPS-SCOPE.md`, `docs/proposals/ROTATION-SCOPE.md`. Completed records live in
 `docs/history/`; superseded designs in `docs/archive/`.

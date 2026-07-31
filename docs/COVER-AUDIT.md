@@ -252,7 +252,7 @@ from the file the user believes was certified, with no warning.
 **Why it matters.** The parser decides *which model the kernel certifies*. This is the
 same silent-weakening class the project already closed once (trailing tokens after
 `smt2:` s-expressions, `Parse.lean:243-252`). It is also a hard prerequisite for reset
-support (`docs/RESET-MAPS-SCOPE.md` §0): any reset syntax added on top of this door
+support (`docs/proposals/RESET-MAPS-SCOPE.md` §0): any reset syntax added on top of this door
 inherits the trap.
 
 **Fix** (no kernel changes, no regeneration of generated instance files; about an hour):

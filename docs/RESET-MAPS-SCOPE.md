@@ -12,21 +12,39 @@ by this file. Companion reading: README ("The end-to-end guarantee, intuitively"
 
 ## 0. Prerequisite: the parser silently drops unknown keys
 
-**Before any reset syntax is added, this must be fixed**, and it is worth fixing on its
-own account. `Trusted/Parse.lean` is in the trust base and its stated contract is
-*"the parser REJECTS, never weakens"*. It honours that for malformed input and even
-rejects one retired key by name (`strengthen`), but it **silently ignores unknown
-keys**: `parseModeE` reads exactly `ode`, `guard`, `evolve`, `next`; anything else in a
-`[*.mode.*]` section is dropped.
+**STATUS: FIXED (W6, commit `1bf8e30`).** This section is kept because it states the
+prerequisite a reset feature still depends on, and because the shape of the fix
+constrains where reset syntax may be added.
 
-Live evidence the door is open: all 47 benchmarks carry `max_depth`, which the parser
-never reads (watertank additionally carries `bound_T`).
+The hole as it stood: `Trusted/Parse.lean` is in the trust base and its stated
+contract is *"the parser REJECTS, never weakens"*. It honoured that for malformed
+input and even rejected one retired key by name (`strengthen`), but it **silently
+ignored unknown keys** — `parseModeE` reads exactly `ode`, `guard`, `evolve`, `next`,
+and anything else in a `[*.mode.*]` section was dropped. So writing
+`reset = x2 := 1` into a mode section parsed cleanly and was discarded: a green
+certification of a model that is not the one in the file.
 
-The concrete trigger for this document: **writing `reset = x2 := 1` into a mode
-section today parses cleanly and is discarded** — a green certification of a model that
-is not the one in the file. Recorded as a finding in `docs/COVER-AUDIT.md` with the
-fix (whitelist per section, known-but-unused list for `max_depth`/`bound_T`, reject
-tests, re-parse the suite). No kernel changes; about an hour.
+The fix is `Trusted/KeyAudit.lean` — `auditKeys` (a per-section whitelist, with
+`max_depth`/`bound_T` listed as known-but-unused) plus `readProblemStrict`, wired into
+every CLI parse site in `Main.lean`. All 47 benchmark inputs pass the audit unchanged.
+
+Measured on 2026-07-31 — the doc's own trigger case, `reset = x2 := 1` injected into
+each mode section of `watertank/input.txt`:
+
+```
+ERROR [parse: line 84: unknown key 'reset'; line 91: unknown key 'reset'; …
+       — the parser would silently drop these (W6 gate)]
+errors=1                                          # exit 1
+```
+
+**The nuance that matters for a future reset feature:** `Trusted/Parse.lean` itself is
+unchanged and still ignores unknown keys. The gate lives one level up, at the CLI
+entry points. That was deliberate — `Parse.lean` sits upstream of the entire proof
+layer, so touching it forces a world rebuild (measured at 10–14 hours; see the
+rebuild-hygiene note in `docs/READING-GUIDE.md`). Consequence: adding reset syntax
+means adding `reset` to the `KeyAudit` whitelist *and* teaching `parseModeE` to read
+it — and any parse path that does not go through `readProblemStrict` is still
+unguarded.
 
 ---
 

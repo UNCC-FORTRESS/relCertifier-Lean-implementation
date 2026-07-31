@@ -276,6 +276,12 @@ device for the story1/rollover-b/rover3tier group; and the three specials
 
 ## Modal Theorem 3 — FULL SUITE (2026-07-30, final close)
 
+> **Verified end to end 2026-07-31 on `d40788d`** (12h18m run): `lake build` 8979
+> jobs exit 0; `relcert-test` ALL PASS; `--run-verdicts` 111/111 `unsat`; axiom
+> audit 47 theorems = 42 with `z3_unsat_sound` + 5 with the standard three alone,
+> no `sorryAx`, no `native_decide`. Recipe and costs:
+> [`CERTIFICATION-CHECK.md`](CERTIFICATION-CHECK.md).
+
 **46 of 46 certified benchmarks carry `rvalid (theorem3Form …)`.** The six
 listed as out-of-scope in the marathon-close note above all landed the same
 day, each through a new response-structure device (new leaf modules only —

@@ -8,6 +8,13 @@ theorem?*
 Read `README.md` first for what the theorems say. This document is only about
 **checking** them.
 
+> **Last full run: 2026-07-31, on `d40788d`. All four checks green.**
+> `lake build` 8979 jobs, exit 0 · `relcert-test` ALL PASS ·
+> `--run-verdicts` ALL HYPOTHESES DISCHARGED (111/111 `unsat`) ·
+> axiom audit 47 theorems: 42 with `z3_unsat_sound`, 5 with the standard three
+> alone, **no `sorryAx`, no `native_decide`, no other axioms**.
+> Wall clock 12h18m — see *Cost* below before you start it.
+
 ---
 
 ## 0. The chain being checked
@@ -44,9 +51,37 @@ hypothesis contract; see `README.md` § *The end-to-end guarantee*.
 
 A Lean toolchain matching `lean-toolchain` (elan will fetch it), and **Z3 on `PATH`**
 for checks 3 and 5 — the Lean-side checks 1, 2 and 4's kernel certificates need no
-solver. First `lake build` from cold pulls and compiles mathlib; budget hours, not
-minutes. Nothing else is required: the emitted certificates the theorems consume are
+solver. Nothing else is required: the emitted certificates the theorems consume are
 already in the repository.
+
+### Cost — read this before starting check 1
+
+A full `lake build` of this development is **10–14 hours** and peaks near **30 GB**
+across ~12 Lean workers. Measured 2026-07-31: 12h18m wall clock, 29.6 GB peak,
+8979 jobs. From cold it is longer still, since mathlib compiles first.
+
+The shape of the run matters if you are watching it. Most files clear steadily, then
+the last five — the 12-dof instances `refinement_ladder_rover_rung4_8to12`,
+`rover_attitude_cone_12dof`, `story3_rollover_base_12dof`,
+`story1_attdist_rung_b_12dof`, `story3_rollover_ladder_rung_b` — run 1–3 hours each
+and finish roughly one per hour at the very end. A long quiet stretch near the end is
+normal, not a hang.
+
+Practical notes:
+
+* Run it detached and log to a file. If you pipe a step through `tail`, nothing
+  appears until that step *exits* — use `tee` if you want to watch progress.
+* This `lake` version has **no `-j`/`--jobs` flag**; you cannot throttle worker count
+  from the command line.
+* **Killing `lake build` orphans its Lean workers**, which keep running and holding
+  their memory. Always follow up:
+  ```bash
+  pkill -f "lake build"; pkill -9 -f "leanprover--lean4"
+  ```
+* To check a single file against already-built dependencies, skip `lake build`
+  entirely: `lake env lean <file>` runs one process and reuses the existing oleans.
+* Editing a docstring in `Proofs/Encoding/` or `Trusted/` invalidates everything
+  downstream and costs a full rebuild. Batch such edits into one sweep.
 
 ## Check 1 — the kernel checks every instance proof
 
@@ -111,7 +146,8 @@ query.
 ./.lake/build/bin/relcert --run-verdicts      # → "ALL HYPOTHESES DISCHARGED"
 ```
 
-Measured on 2026-07-30: **111 queries, 111 `unsat`, 0 failures.**
+Measured on 2026-07-30 and re-confirmed in the full run of 2026-07-31:
+**111 queries, 111 `unsat`, 0 failures.**
 
 **What this covers today, precisely:**
 

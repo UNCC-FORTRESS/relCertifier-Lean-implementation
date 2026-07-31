@@ -36,6 +36,7 @@ import RelCertifier.Instances.ArmFidelityMidModal
 import RelCertifier.Instances.ArmRefinementModal
 import RelCertifier.Instances.AttitudeRateModal
 import RelCertifier.Instances.EnduranceGainM1Modal
+import RelCertifier.Instances.EnduranceOrderlift1to2Modal
 import RelCertifier.Instances.EnduranceOrderlift2to3Modal
 import RelCertifier.Instances.MatchMultiEpsModal
 import RelCertifier.Instances.MatchMultiRateModal
@@ -282,6 +283,35 @@ theorem modal_from_spec (dt : ℝ) (hdt : 0 ≤ dt) (hv : VerdAll) :
     (hv (1,1) (by decide)) (hv (1,2) (by decide)) (hv (2,2) (by decide))
 
 end EnduranceGainM1
+
+namespace EnduranceOrderlift1to2
+open RelCertifier.EnduranceOrderlift1to2Modal
+
+/-- The six pairs are exactly the cover's `jointOK = true` set. The three `(l, STEEP)`
+pairs are deliberately absent: the tool's joint attempt for them failed (empty strata
+order), and Z3 returns SAT on all three routes, so asserting them would make the
+theorem vacuous. See `docs/VERDICT-EVIDENCE-AUDIT.md` §5. -/
+def spec : VerdSpec :=
+  { bench := "endurance_orderlift_1to2"
+    pairs := [(0,1), (0,2), (1,1), (1,2), (2,1), (2,2)]
+    order := [0]
+  }
+
+theorem spec_components : (gO :: gsO) = spec.order.map gAt := by rfl
+
+def VerdAll : Prop := ∀ p ∈ spec.pairs, VerdO p.1 p.2
+
+theorem modal_from_spec (dt : ℝ) (hdt : 0 ≤ dt) (hv : VerdAll) :
+    RFormula.rvalid (theorem3Form
+      (bigChoice (leftProgsO dt))
+      (rightAutomatonBody GrO mvO)
+      (RFormula.and (RFormula.and (canonInvM gO gsO) (envLR domLO domRO))
+        (mvValidR mvO GrO.modes.length))) :=
+  endurance_orderlift_1to2_modal dt hdt
+    (hv (0,1) (by decide)) (hv (0,2) (by decide)) (hv (1,1) (by decide))
+    (hv (1,2) (by decide)) (hv (2,1) (by decide)) (hv (2,2) (by decide))
+
+end EnduranceOrderlift1to2
 
 namespace EnduranceOrderlift2to3
 open RelCertifier.EnduranceOrderlift2to3Modal
@@ -1025,6 +1055,6 @@ end Watertank
 
 /-- Every spec, for the runner to iterate. -/
 def specs : List VerdSpec :=
-  [ArmChainRung1.spec, ArmChainRung2.spec, ArmChainRung3.spec, ArmFidelityHigh.spec, ArmFidelityLow.spec, ArmFidelityMid.spec, ArmRefinement.spec, AttitudeRate.spec, EnduranceGainM1.spec, EnduranceOrderlift2to3.spec, MatchMultiEps.spec, MatchMultiRate.spec, PlantFanHigh.spec, PlantFanLow.spec, PlantFanMid.spec, RobotBraking.spec, Rover3tierM1.spec, Rover3tierRung12Accel.spec, Rover3tierRung12Coast.spec, Rover4dBox.spec, RoverAttitudeCone.spec, RoverDofTerrainRung1.spec, RoverDofTerrainRung2.spec, RoverDofTerrainRung38d.spec, RoverDofTerrainRung3.spec, RoverDrag.spec, RoverLadderRung1.spec, RoverLadderRung2.spec, RoverLadderRung3.spec, RoverLadderRung4.spec, RoverRung2c.spec, RoverTerrainM1.spec, RoverTierR1.spec, Story1AttdistRungA.spec, Story1AttdistRungB.spec, Story2LateralA.spec, Story2LateralB.spec, Story3RolloverBase.spec, Story3RolloverRungA.spec, Story3RolloverRungB.spec, Watertank.spec]
+  [EnduranceOrderlift1to2.spec, ArmChainRung1.spec, ArmChainRung2.spec, ArmChainRung3.spec, ArmFidelityHigh.spec, ArmFidelityLow.spec, ArmFidelityMid.spec, ArmRefinement.spec, AttitudeRate.spec, EnduranceGainM1.spec, EnduranceOrderlift2to3.spec, MatchMultiEps.spec, MatchMultiRate.spec, PlantFanHigh.spec, PlantFanLow.spec, PlantFanMid.spec, RobotBraking.spec, Rover3tierM1.spec, Rover3tierRung12Accel.spec, Rover3tierRung12Coast.spec, Rover4dBox.spec, RoverAttitudeCone.spec, RoverDofTerrainRung1.spec, RoverDofTerrainRung2.spec, RoverDofTerrainRung38d.spec, RoverDofTerrainRung3.spec, RoverDrag.spec, RoverLadderRung1.spec, RoverLadderRung2.spec, RoverLadderRung3.spec, RoverLadderRung4.spec, RoverRung2c.spec, RoverTerrainM1.spec, RoverTierR1.spec, Story1AttdistRungA.spec, Story1AttdistRungB.spec, Story2LateralA.spec, Story2LateralB.spec, Story3RolloverBase.spec, Story3RolloverRungA.spec, Story3RolloverRungB.spec, Watertank.spec]
 
 end RelCertifier.ModalSpecs

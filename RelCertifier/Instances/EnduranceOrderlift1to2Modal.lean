@@ -746,7 +746,8 @@ theorem respondO (l m : ℕ) (hl : l < 3) (hm : m < 3) (dt : ℝ) (hdt : 0 ≤ d
 stays in place -/
 
 theorem HmultiO (dt : ℝ) (hdt : 0 ≤ dt)
-    (hv : ∀ l m : ℕ, l < 3 → m < 3 → VerdO l m) :
+    (hv01 : VerdO 0 1) (hv02 : VerdO 0 2) (hv11 : VerdO 1 1)
+    (hv12 : VerdO 1 2) (hv21 : VerdO 2 1) (hv22 : VerdO 2 2) :
     ∀ P ∈ leftProgsO dt, ∀ (q : ℕ), q < GrO.modes.length → ∀ σ, σ mvO = (q : ℝ) →
       Formula.sat (Formula.and (FM gO gsO) envO) σ →
       ∃ segs : List (ℕ × RMode (Var 3) × REdge (Var 3)),
@@ -792,7 +793,7 @@ theorem HmultiO (dt : ℝ) (hdt : 0 ≤ dt)
       · exact halign 1 1 (by norm_num) (by norm_num) (by simp [GrO])
     · exact (hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl (by simp)))))
     · exact fun s hs => by rw [hhead1 _ _ _ hs]
-    · have := respondO 0 1 (by norm_num) (by norm_num) dt hdt (hv 0 1 (by norm_num) (by norm_num)) [0] (by intro p hp; simp only [List.mem_cons, List.not_mem_nil, or_false] at hp; rcases hp with rfl <;> norm_num) hσ
+    · have := respondO 0 1 (by norm_num) (by norm_num) dt hdt hv01 [0] (by intro p hp; simp only [List.mem_cons, List.not_mem_nil, or_false] at hp; rcases hp with rfl <;> norm_num) hσ
       simpa [modeO, List.replicate] using this
   · refine ⟨[(1, modeO 1, edgeO 1 1), (1, modeO 1, edgeO 1 1), (1, modeO 1, edgeO 1 1), (1, modeO 1, edgeO 1 1)], ?_, ?_, ?_, ?_⟩
     · intro s hs
@@ -804,7 +805,7 @@ theorem HmultiO (dt : ℝ) (hdt : 0 ≤ dt)
       · exact halign 1 1 (by norm_num) (by norm_num) (by simp [GrO])
     · exact (hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl (by simp))))
     · exact fun s hs => by rw [hhead1 _ _ _ hs]
-    · have := respondO 0 1 (by norm_num) (by norm_num) dt hdt (hv 0 1 (by norm_num) (by norm_num)) [] (by simp) hσ
+    · have := respondO 0 1 (by norm_num) (by norm_num) dt hdt hv01 [] (by simp) hσ
       simpa [modeO, List.replicate] using this
   · refine ⟨[(2, modeO 2, edgeO 2 2), (2, modeO 2, edgeO 2 2), (2, modeO 2, edgeO 2 2), (2, modeO 2, edgeO 2 2)], ?_, ?_, ?_, ?_⟩
     · intro s hs
@@ -816,7 +817,7 @@ theorem HmultiO (dt : ℝ) (hdt : 0 ≤ dt)
       · exact halign 2 2 (by norm_num) (by norm_num) (by simp [GrO])
     · exact (hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl (by simp))))
     · exact fun s hs => by rw [hhead1 _ _ _ hs]
-    · have := respondO 0 2 (by norm_num) (by norm_num) dt hdt (hv 0 2 (by norm_num) (by norm_num)) [] (by simp) hσ
+    · have := respondO 0 2 (by norm_num) (by norm_num) dt hdt hv02 [] (by simp) hσ
       simpa [modeO, List.replicate] using this
   · refine ⟨[(0, modeO 0, edgeO 0 1), (1, modeO 1, edgeO 1 1), (1, modeO 1, edgeO 1 1), (1, modeO 1, edgeO 1 1), (1, modeO 1, edgeO 1 1)], ?_, ?_, ?_, ?_⟩
     · intro s hs
@@ -829,7 +830,7 @@ theorem HmultiO (dt : ℝ) (hdt : 0 ≤ dt)
       · exact halign 1 1 (by norm_num) (by norm_num) (by simp [GrO])
     · exact (hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl (by simp)))))
     · exact fun s hs => by rw [hhead1 _ _ _ hs]
-    · have := respondO 1 1 (by norm_num) (by norm_num) dt hdt (hv 1 1 (by norm_num) (by norm_num)) [0] (by intro p hp; simp only [List.mem_cons, List.not_mem_nil, or_false] at hp; rcases hp with rfl <;> norm_num) hσ
+    · have := respondO 1 1 (by norm_num) (by norm_num) dt hdt hv11 [0] (by intro p hp; simp only [List.mem_cons, List.not_mem_nil, or_false] at hp; rcases hp with rfl <;> norm_num) hσ
       simpa [modeO, List.replicate] using this
   · refine ⟨[(1, modeO 1, edgeO 1 1), (1, modeO 1, edgeO 1 1), (1, modeO 1, edgeO 1 1), (1, modeO 1, edgeO 1 1)], ?_, ?_, ?_, ?_⟩
     · intro s hs
@@ -841,7 +842,7 @@ theorem HmultiO (dt : ℝ) (hdt : 0 ≤ dt)
       · exact halign 1 1 (by norm_num) (by norm_num) (by simp [GrO])
     · exact (hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl (by simp))))
     · exact fun s hs => by rw [hhead1 _ _ _ hs]
-    · have := respondO 1 1 (by norm_num) (by norm_num) dt hdt (hv 1 1 (by norm_num) (by norm_num)) [] (by simp) hσ
+    · have := respondO 1 1 (by norm_num) (by norm_num) dt hdt hv11 [] (by simp) hσ
       simpa [modeO, List.replicate] using this
   · refine ⟨[(2, modeO 2, edgeO 2 2), (2, modeO 2, edgeO 2 2), (2, modeO 2, edgeO 2 2), (2, modeO 2, edgeO 2 2)], ?_, ?_, ?_, ?_⟩
     · intro s hs
@@ -853,7 +854,7 @@ theorem HmultiO (dt : ℝ) (hdt : 0 ≤ dt)
       · exact halign 2 2 (by norm_num) (by norm_num) (by simp [GrO])
     · exact (hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl (by simp))))
     · exact fun s hs => by rw [hhead1 _ _ _ hs]
-    · have := respondO 1 2 (by norm_num) (by norm_num) dt hdt (hv 1 2 (by norm_num) (by norm_num)) [] (by simp) hσ
+    · have := respondO 1 2 (by norm_num) (by norm_num) dt hdt hv12 [] (by simp) hσ
       simpa [modeO, List.replicate] using this
   · refine ⟨[(0, modeO 0, edgeO 0 1), (1, modeO 1, edgeO 1 1), (1, modeO 1, edgeO 1 1), (1, modeO 1, edgeO 1 1), (1, modeO 1, edgeO 1 1)], ?_, ?_, ?_, ?_⟩
     · intro s hs
@@ -866,7 +867,7 @@ theorem HmultiO (dt : ℝ) (hdt : 0 ≤ dt)
       · exact halign 1 1 (by norm_num) (by norm_num) (by simp [GrO])
     · exact (hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl (by simp)))))
     · exact fun s hs => by rw [hhead1 _ _ _ hs]
-    · have := respondO 2 1 (by norm_num) (by norm_num) dt hdt (hv 2 1 (by norm_num) (by norm_num)) [0] (by intro p hp; simp only [List.mem_cons, List.not_mem_nil, or_false] at hp; rcases hp with rfl <;> norm_num) hσ
+    · have := respondO 2 1 (by norm_num) (by norm_num) dt hdt hv21 [0] (by intro p hp; simp only [List.mem_cons, List.not_mem_nil, or_false] at hp; rcases hp with rfl <;> norm_num) hσ
       simpa [modeO, List.replicate] using this
   · refine ⟨[(1, modeO 1, edgeO 1 1), (1, modeO 1, edgeO 1 1), (1, modeO 1, edgeO 1 1), (1, modeO 1, edgeO 1 1)], ?_, ?_, ?_, ?_⟩
     · intro s hs
@@ -878,7 +879,7 @@ theorem HmultiO (dt : ℝ) (hdt : 0 ≤ dt)
       · exact halign 1 1 (by norm_num) (by norm_num) (by simp [GrO])
     · exact (hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl (by simp))))
     · exact fun s hs => by rw [hhead1 _ _ _ hs]
-    · have := respondO 2 1 (by norm_num) (by norm_num) dt hdt (hv 2 1 (by norm_num) (by norm_num)) [] (by simp) hσ
+    · have := respondO 2 1 (by norm_num) (by norm_num) dt hdt hv21 [] (by simp) hσ
       simpa [modeO, List.replicate] using this
   · refine ⟨[(2, modeO 2, edgeO 2 2), (2, modeO 2, edgeO 2 2), (2, modeO 2, edgeO 2 2), (2, modeO 2, edgeO 2 2)], ?_, ?_, ?_, ?_⟩
     · intro s hs
@@ -890,12 +891,13 @@ theorem HmultiO (dt : ℝ) (hdt : 0 ≤ dt)
       · exact halign 2 2 (by norm_num) (by norm_num) (by simp [GrO])
     · exact (hstep _ _ _ rfl (hstep _ _ _ rfl (hstep _ _ _ rfl (by simp))))
     · exact fun s hs => by rw [hhead1 _ _ _ hs]
-    · have := respondO 2 2 (by norm_num) (by norm_num) dt hdt (hv 2 2 (by norm_num) (by norm_num)) [] (by simp) hσ
+    · have := respondO 2 2 (by norm_num) (by norm_num) dt hdt hv22 [] (by simp) hσ
       simpa [modeO, List.replicate] using this
 
 /-- **`endurance_orderlift_1to2`, modal Theorem 3** (λ = (2:ℝ), k = 4). -/
 theorem endurance_orderlift_1to2_modal (dt : ℝ) (hdt : 0 ≤ dt)
-    (hv : ∀ l m : ℕ, l < 3 → m < 3 → VerdO l m) :
+    (hv01 : VerdO 0 1) (hv02 : VerdO 0 2) (hv11 : VerdO 1 1)
+    (hv12 : VerdO 1 2) (hv21 : VerdO 2 1) (hv22 : VerdO 2 2) :
     RFormula.rvalid (theorem3Form
       (bigChoice (leftProgsO dt))
       (rightAutomatonBody GrO mvO)
@@ -906,7 +908,7 @@ theorem endurance_orderlift_1to2_modal (dt : ℝ) (hdt : 0 ≤ dt)
   · exact hdis_multi GrO 0 1 dt leftDataO (by decide) httO hRvO hLO
   · exact hstep_assembled_multiF GrO mvO (FM gO gsO) envO (leftProgsO dt)
       hmvFO hmvenvO hfreshO httO hltO (hframesO dt)
-      (HmultiO dt hdt hv)
+      (HmultiO dt hdt hv01 hv02 hv11 hv12 hv21 hv22)
   · exact hddF_multiE GrO 0 1 dt leftDataO (canonInvM gO gsO) domLO domRO
       (by decide) httO hRvO hLO
       (canonInvM_varsL gO gsO (by

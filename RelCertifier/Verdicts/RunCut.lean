@@ -20,6 +20,7 @@ import RelCertifier.Verdicts.GenericPins
 import RelCertifier.Instances.BenchIR
 import RelCertifier.Instances.EvolStrengthenings
 import RelCertifier.Trusted.Z3
+import RelCertifier.Verdicts.Coverage
 
 namespace RelCertifier.Verdicts
 
@@ -77,6 +78,7 @@ def runBenchProbes (s : Z3Session) (name : String) (p : PProblem)
         match ← s.check (q.toScript coord) with
         | .ok .unsat =>
             IO.println s!"  UNSAT [{routeTag route}]  {name} {sideTag}/{m.name}"
+            counted
         | v =>
             IO.println s!"  FAIL  {name} {sideTag}/{m.name} [{routeTag route}] → {reprStr (match v with | .ok r => reprStr r | .error e => e)}"
             ok := false

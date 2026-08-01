@@ -29,6 +29,7 @@ import RelCertifier.Verdicts.GenericPins
 import RelCertifier.Instances.ModalSpecs
 import RelCertifier.Instances.BenchIR
 import RelCertifier.Trusted.Z3
+import RelCertifier.Verdicts.Coverage
 
 namespace RelCertifier.Verdicts
 
@@ -154,6 +155,7 @@ def runSpec (s : Z3Session) (spec : VerdSpec) (info : RunInfo)
           let (good, detail) ← checkComp s coord (comps.getD i (.rat 0)) fL fR lam dom
           if good then
             IO.println s!"  UNSAT ({detail})  {spec.bench} (l={l},m={m}) comp={i}"
+            counted
           else
             IO.println s!"  FAIL  {spec.bench} (l={l},m={m}) comp={i} : {detail}"
             ok := false

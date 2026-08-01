@@ -155,6 +155,23 @@ earlier split (some hypotheses discharged by the runner, the rest deferred to th
 tool's coarse `CERTIFIED` line) is gone. Anything the runner cannot rebuild prints
 `SKIP` and makes the run exit non-zero; it never silently falls back.
 
+**Coverage is declared, not inferred.** A runner that issues *fewer* queries than it
+owes looks identical to one that issued them all — every line it does print says
+`UNSAT`. That is how three defects passed green on 2026-07-31: `rover_drag` issued no
+query at all, `rover_rung2c` issued 3 where 27 were owed, and `rover3tier_rung12`'s
+Accel row issued 1 per pair instead of 2. So `Verdicts/Coverage.lean` declares the
+per-phase totals and `--run-verdicts` checks them:
+
+```
+  [coverage] watertank: 6/6 hypotheses discharged
+  [coverage] cut probes: 105/105 hypotheses discharged
+  [coverage] modal: 483/483 hypotheses discharged
+```
+
+A mismatch either way fails the run. If the suite legitimately changes, edit
+`Verdicts/Coverage.expected` deliberately — the edit is then a statement of how
+coverage moved.
+
 The queries the runner rebuilds are not merely plausible ones: `Verdicts/ModalPinTable`
 proves by `rfl`, for each of the 42 verdict packs, that the instance's own `Verd…` **is**
 the query the runner's table names. A wrong entry does not compile, so a green line here

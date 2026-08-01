@@ -186,10 +186,20 @@ def main (args : List String) : IO Unit := do
       match ← RelCertifier.Z3Config.discover with
       | .error e => IO.eprintln s!"ERROR: {e}"; IO.Process.exit 1
       | .ok cfg =>
+          let exp := RelCertifier.Verdicts.expected
+          let n0 ← RelCertifier.Verdicts.dischargedCount.get
           let ok1 ← RelCertifier.Verdicts.runVerdicts cfg
+          let n1 ← RelCertifier.Verdicts.dischargedCount.get
           let ok2 ← RelCertifier.Verdicts.runCutProbes cfg
+          let n2 ← RelCertifier.Verdicts.dischargedCount.get
           let ok3 ← RelCertifier.Verdicts.runModal cfg
-          if ok1 && ok2 && ok3 then
+          let n3 ← RelCertifier.Verdicts.dischargedCount.get
+          -- a phase that issued fewer queries than it owes is not a green run,
+          -- however clean its own output looked (Verdicts/Coverage.lean)
+          let c1 ← RelCertifier.Verdicts.checkPhase "watertank" (n1 - n0) exp.watertank
+          let c2 ← RelCertifier.Verdicts.checkPhase "cut probes" (n2 - n1) exp.cut
+          let c3 ← RelCertifier.Verdicts.checkPhase "modal" (n3 - n2) exp.modal
+          if ok1 && ok2 && ok3 && c1 && c2 && c3 then
             IO.println "ALL HYPOTHESES DISCHARGED"
           else
             IO.eprintln "SOME HYPOTHESIS NOT DISCHARGED"; IO.Process.exit 1

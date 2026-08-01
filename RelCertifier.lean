@@ -119,6 +119,7 @@ import RelCertifier.Proofs.Encoding.RepoPrefix
 import RelCertifier.Proofs.Encoding.EnvelopeChain
 import RelCertifier.Instances.WatertankModal
 import RelCertifier.Instances.WatertankViability
+import RelCertifier.Verdicts.Coverage
 import RelCertifier.Verdicts.Run
 import RelCertifier.Verdicts.RunModal
 import RelCertifier.Verdicts.ModalPinTable

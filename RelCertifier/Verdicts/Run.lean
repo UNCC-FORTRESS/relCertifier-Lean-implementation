@@ -12,6 +12,7 @@ that every theorem's Z3 hypotheses hold (docs/VERDICTS.md).
 -/
 import RelCertifier.Verdicts.Watertank
 import RelCertifier.Trusted.Z3
+import RelCertifier.Verdicts.Coverage
 
 namespace RelCertifier.Verdicts
 
@@ -34,6 +35,7 @@ def checkOne (s : Z3Session) (nm : String) (l q : ℕ) : IO Bool := do
     match ← s.check (f.toScript wtCoord) with
     | .ok .unsat =>
         IO.println s!"  UNSAT (route {rn})  {nm}"
+        counted
         return true
     | _ => pure ()
   IO.println s!"  FAIL  {nm}  (no route unsat)"

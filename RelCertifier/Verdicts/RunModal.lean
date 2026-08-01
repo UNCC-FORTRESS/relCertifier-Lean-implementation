@@ -103,11 +103,17 @@ def runSpec (s : Z3Session) (spec : VerdSpec) (info : RunInfo)
       Run.invToG vars n (if single then invF else atoms.getD i .tt))
     if base.length != order.length then
       IO.println s!"  SKIP  {spec.bench}  (invariant lowering failed)"; return false
-    let pairs := if !spec.pairs.isEmpty then spec.pairs
+    -- A nullary `Verd` names one mode pair rather than a family; `pin_RoverDrag`
+    -- fixes it at `(0, 0)`. Without this case its `pairs` list came out empty, the
+    -- loop below never ran, and the pack passed with nothing checked at all.
+    let pairs := if spec.nullary then [(0, 0)]
+      else if !spec.pairs.isEmpty then spec.pairs
       else spec.singles.map (fun v =>
         match info.fixedOther with
         | none   => (v, v)
         | some o => if info.argIsRight then (o, v) else (v, o))
+    if pairs.isEmpty then
+      IO.println s!"  SKIP  {spec.bench}  (no mode pairs to check)"; return false
     let mut ok := true
     for (l, m) in pairs do
       match Run.dynOf vars n Side.L (p.L.modes.getD l dm),
@@ -172,7 +178,8 @@ def modalTable : List (VerdSpec × RunInfo × List ℕ) :=
   (PlantFanMid.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1, region := some (3/5), fixedOther := some 2 }, [0]),
   (RobotBraking.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1, fixedOther := some 2 }, [0]),
   (Rover3tierM1.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1, fixedOther := some 0 }, [0]),
-  (Rover3tierRung12Accel.spec, { dim := 3, invRow := 0, lamN := 2, lamD := 1, argIsRight := true, fixedOther := some 0 }, [0]),
+  -- two components, per `pin_Rover3tierRung12Accel` and the spec's own `order`
+  (Rover3tierRung12Accel.spec, { dim := 3, invRow := 0, lamN := 2, lamD := 1, argIsRight := true, fixedOther := some 0 }, [0, 1]),
   (Rover3tierRung12Coast.spec, { dim := 3, invRow := 1, lamN := 1, lamD := 1, argIsRight := true, fixedOther := some 1 }, [0]),
   (Rover4dBox.spec, { dim := 4, invRow := 0, lamN := 1, lamD := 1, fixedOther := some 1 }, [0]),
   (RoverAttitudeCone.spec, { dim := 12, invRow := 0, lamN := 17, lamD := 10, ceilCo := some 0, ceilFlip := false, ceilKs := [3/10, 1/2, 13/20] }, [0, 1, 2, 3]),

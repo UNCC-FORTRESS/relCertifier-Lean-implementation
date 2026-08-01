@@ -291,7 +291,7 @@ benchmark. The region device is the faithful route, which is why `rung2c` uses i
 ## The last unpinned link (closed, 2026-07-31)
 
 `relcert --run-verdicts` discharges **every** theorem's hypotheses in one route
-(591 queries: 6 watertank + 105 cut probes + 480 modal). All three links from *what
+(594 queries: 6 watertank + 105 cut probes + 483 modal). All three links from *what
 Z3 is asked* to *what the theorem assumes* are now kernel-checked:
 
 | link | status |
@@ -312,15 +312,46 @@ their hypothesis as a bare three-route disjunction rather than a `∀` over comp
 those use `modalVerd1`, with a companion `modalComps … = [modalRowG …]` pin so the
 runner's one-element component list is provably that same row.
 
-**What the pins caught.** A third wrong entry, of a kind the earlier hand-audits had
-missed four times over: `rover_rung2c` runs left mode `l` against right mode `l`, not
-against a fixed `0`, and carries eight invariant components plus a tail region face —
-where the table said one component at `(0, l)`. `RunInfo` had no tail-append field at
-all. So for two of that benchmark's three hypotheses the runner had been checking a
-different query and reporting it green, which is precisely the silent-pass this link
-was supposed to rule out. `RunInfo` gains `tailCo`/`tailFlip`/`tailKs` mirroring the
-ceiling head; the corrected entry rebuilds 27 queries where it used to rebuild 3, and
-all 27 return `unsat`.
+**What the pins caught.** Three further wrong entries, of a kind the earlier hand-audits
+had missed four times over. Every one had been reported green.
+
+1. **`rover_rung2c` — wrong mode pair and a missing component list.** It runs left mode
+   `l` against right mode `l`, not against a fixed `0`, and carries eight invariant
+   components plus a tail region face — where the table said *one* component at `(0, l)`.
+   `RunInfo` had no tail-append field at all. `RunInfo` gains
+   `tailCo`/`tailFlip`/`tailKs` mirroring the ceiling head; the corrected entry rebuilds
+   27 queries where it used to rebuild 3.
+2. **`rover3tier_rung12` (Accel row) — a dropped component.** The table passed `order :=
+   [0]` for a theorem whose hypothesis ranges over two components, so component 1 was
+   never checked for either asserted pair. The spec's own `order` field already said
+   `[0, 1]`, and `spec_components` proves it; only the runner's copy was wrong. The same
+   row also cited `Coast`'s spec for data belonging to `Accel`'s theorem — the rebuilt
+   queries were identical, but the provenance link pointed at the wrong theorem.
+3. **`rover_drag` — checked zero times.** Its spec is `nullary := true` with no `pairs`
+   and no `singles`, so the runner's `pairs` list came out empty, the per-pair loop body
+   never ran, and `runSpec` returned success having issued no query at all. The pack
+   printed nothing and the run still reported `ALL MODAL HYPOTHESES DISCHARGED`. This is
+   the worst of the three: not a wrong query, but *no* query, passing silently. The
+   runner now maps a nullary `Verd` to the single pair `(0, 0)` that `pin_RoverDrag`
+   names, and — independently of that case — treats an empty `pairs` list as `SKIP` and
+   a non-green run, so an unchecked pack can no longer masquerade as a discharged one.
+
+All 594 queries return `unsat` after the corrections.
+
+**What the pin does not close.** `ModalPinTable` proves `VerdX = modalVerd <literals>`
+against the *instance*, by `rfl`. It does not mechanically compare those literals to
+`RunModal.modalTable`'s fields — the two are separate hand-written copies, and the
+correspondence between them was checked by hand (row by row, 2026-07-31) rather than by
+the kernel. What the pin buys is that the intended query is now written down once,
+explicitly, and is kernel-tied to the theorem; a table field that disagrees with it
+shows up as a query count or mode pair that does not match the pin, which is how all
+three defects above were found. Closing the remaining step means having the pin quote
+the table row itself (`modalVerd p info.dim info.invRow order …`) instead of restating
+its literals. That is blocked on a mundane obstacle rather than a deep one: `lamN`/`lamD`
+are `ℕ`, so the table's λ reaches the host statement as `((9 : ℕ) : ℝ) / ((4 : ℕ) : ℝ)`,
+which is not definitionally the instance's `(9 : ℝ) / 4` — the same `ℚ`/`ℕ` → `ℝ` cast
+that blocks `whnf` elsewhere in this development. A λ field carried as a host-level
+`Term` would remove it.
 
 **On the earlier diagnosis.** This section previously recorded that the composite
 `VerdX = modalVerd` failed `rfl` while each step reduced, and guessed the unifier was

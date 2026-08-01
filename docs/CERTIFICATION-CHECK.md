@@ -156,7 +156,9 @@ tool's coarse `CERTIFIED` line) is gone. Anything the runner cannot rebuild prin
 The queries the runner rebuilds are not merely plausible ones: `Verdicts/ModalPinTable`
 proves by `rfl`, for each of the 42 verdict packs, that the instance's own `Verd…` **is**
 the query the runner's table names. A wrong entry does not compile, so a green line here
-is evidence about the theorem's own hypothesis rather than about a lookalike. (The
+is evidence about the theorem's own hypothesis rather than about a lookalike; the pins
+quote `dim`/`invRow`/`order` from the runner's table row, and `Verdicts/ModalTablePins`
+pins the rest of the row, so corrupting a field fails the build. (The
 earlier count of 567 was taken before that pin existed; three of its entries were in
 fact rebuilding the wrong query, and a fourth benchmark was not being checked at all —
 see `docs/VERDICT-EVIDENCE-AUDIT.md`.)

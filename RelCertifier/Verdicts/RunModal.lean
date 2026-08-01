@@ -68,6 +68,22 @@ structure RunInfo where
   lamPerL : List (ℕ × ℕ) := []
   deriving Repr
 
+/-- The `(left mode, right mode)` pairs a pack is checked at.
+
+Factored out of `runSpec` so that `Verdicts/ModalTablePins.lean` can state, per
+instance, which pairs the runner actually visits — a theorem about a transcription of
+this code would not constrain the runner, so the runner must call the same function
+the pins talk about. Getting this wrong is not hypothetical: `rover_rung2c` was being
+checked at `(0, l)` instead of `(l, l)`, and `rover_drag` came out empty and was
+checked at nothing at all. -/
+def modalPairs (spec : VerdSpec) (info : RunInfo) : List (ℕ × ℕ) :=
+  if spec.nullary then [(0, 0)]
+  else if !spec.pairs.isEmpty then spec.pairs
+  else spec.singles.map (fun v =>
+    match info.fixedOther with
+    | none   => (v, v)
+    | some o => if info.argIsRight then (o, v) else (v, o))
+
 /-- One hypothesis: all three routes on one component of one argument pair. -/
 private def checkComp {n : ℕ} (s : Z3Session) (coord : Fin n → String)
     (g : ITerm n) (fL fR : Fin n → ITerm n) (lam : ITerm n) (dom : IForm n) :
@@ -103,15 +119,7 @@ def runSpec (s : Z3Session) (spec : VerdSpec) (info : RunInfo)
       Run.invToG vars n (if single then invF else atoms.getD i .tt))
     if base.length != order.length then
       IO.println s!"  SKIP  {spec.bench}  (invariant lowering failed)"; return false
-    -- A nullary `Verd` names one mode pair rather than a family; `pin_RoverDrag`
-    -- fixes it at `(0, 0)`. Without this case its `pairs` list came out empty, the
-    -- loop below never ran, and the pack passed with nothing checked at all.
-    let pairs := if spec.nullary then [(0, 0)]
-      else if !spec.pairs.isEmpty then spec.pairs
-      else spec.singles.map (fun v =>
-        match info.fixedOther with
-        | none   => (v, v)
-        | some o => if info.argIsRight then (o, v) else (v, o))
+    let pairs := modalPairs spec info
     if pairs.isEmpty then
       IO.println s!"  SKIP  {spec.bench}  (no mode pairs to check)"; return false
     let mut ok := true

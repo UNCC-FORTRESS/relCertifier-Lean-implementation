@@ -338,14 +338,38 @@ had missed four times over. Every one had been reported green.
 
 All 594 queries return `unsat` after the corrections.
 
-**What the pin does not close.** `ModalPinTable` proves `VerdX = modalVerd <literals>`
-against the *instance*, by `rfl`. It does not mechanically compare those literals to
-`RunModal.modalTable`'s fields — the two are separate hand-written copies, and the
-correspondence between them was checked by hand (row by row, 2026-07-31) rather than by
-the kernel. What the pin buys is that the intended query is now written down once,
-explicitly, and is kernel-tied to the theorem; a table field that disagrees with it
-shows up as a query count or mode pair that does not match the pin, which is how all
-three defects above were found.
+**How the table itself is tied.** `ModalPinTable` proves `VerdX = modalVerd …` against
+the *instance*, by `rfl`. For that to say anything about the runner, its arguments have
+to be the runner's, so:
+
+* `dim`, `invRow` and `order` are **quoted straight out of the row** —
+  `modalVerd IR (row 27).2.1.dim (row 27).2.1.invRow (row 27).2.2 …` — so those three
+  fields exist in exactly one place. Edit the table and the pin stops compiling.
+* the remaining fields are pinned as data in `Verdicts/ModalTablePins.lean`, one
+  `rfl` theorem per row, including `(row i).1.bench` so that a wrong *row index* in a
+  pin fails to compile rather than silently pinning a different benchmark;
+* the `(left, right)` pairs are pinned through `RunModal.modalPairs` — the runner's own
+  function, factored out of `runSpec` for this purpose rather than transcribed, since a
+  theorem about a copy would not constrain the runner.
+
+Checked by deliberately corrupting the table (2026-07-31): a wrong `tailCo`, a dropped
+`order` entry, and a wrong `fixedOther` each fail the build. Those are exactly the three
+defect classes found above.
+
+**What is still not kernel-checked.** Two things, both narrow:
+
+* **λ and the head terms.** A pin writes `(9 : ℝ) / 4`, `regA`, `ceilR m`; the table
+  carries `lamN`/`lamD`, `region`, `ceilCo`/`ceilKs`. `ModalTablePins` pins the table
+  side, but nothing in the kernel says `lamN/lamD` *means* `lamN/lamD : ℝ`, or that
+  `ceilCo`/`ceilKs` build that head term — those are two short stretches of runner code,
+  checked by reading. The numeric agreement between the two sides was checked by script
+  over all 42 rows, not by eye: λ literals against `lamN`/`lamD`, fixed modes against the
+  visited pairs, and the three `lamPerL` rows against the instances' own `lamC`/`lamD`/
+  `lamM` (`5/2, 3/2, 1` etc.).
+* **The `comps_*` shape argument.** For the eleven one-component instances,
+  `modalComps … = [modalRowG …]` says the runner's component list is the single
+  invariant row; that the runner's *loop over a one-element list* issues exactly the
+  three queries of a bare disjunction is again read, not proved.
 
 **Correction (measured 2026-07-31).** An earlier version of this paragraph blamed the
 `ℕ → ℝ` cast: it claimed the table's λ reaches the host statement as

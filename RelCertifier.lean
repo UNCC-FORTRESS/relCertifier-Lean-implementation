@@ -122,6 +122,7 @@ import RelCertifier.Instances.WatertankViability
 import RelCertifier.Verdicts.Run
 import RelCertifier.Verdicts.RunModal
 import RelCertifier.Verdicts.ModalPinTable
+import RelCertifier.Verdicts.ModalTablePins
 import RelCertifier.Proofs.Encoding.CoverInstance
 import RelCertifier.Instances.BenchCoversNC
 import RelCertifier.Archive.ThroughoutPilot

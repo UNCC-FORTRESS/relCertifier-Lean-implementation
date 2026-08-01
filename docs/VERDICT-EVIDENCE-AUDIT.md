@@ -123,8 +123,8 @@ Not established, deliberately left open (the "options shelf" if ever needed):
 * ~~`--run-verdicts` re-runs only watertank's 6 + the 105 cut probes, not the 41
   instances' packs (option C: extend the runner — the operational gold standard)~~
   — **done later the same day.** The runner now covers every pack in one route,
-  594 queries, and the containment argument below is no longer what the hypotheses
-  rest on. See *The last unpinned link*.
+  594 queries, and the containment argument of §§1–6 is no longer what the
+  hypotheses rest on. See *The last unpinned link*.
 
 **Expiry.** This audit is a statement about the *frozen* emitted covers. It goes
 stale the moment any cover is regenerated (`--emit-cover` after a model or search

@@ -133,6 +133,11 @@ end ArmChainRung2
 namespace ArmChainRung3
 open RelCertifier.ArmChainRung3Modal
 
+/-- No order pin: this instance builds its invariant term directly from the IR
+rather than through a `gAt` indexer, and its component list's head is the `Hold`
+region `regA` (added when the vacuous statement was repaired — see the instance's
+`regA` docstring and `docs/VERDICT-EVIDENCE-AUDIT.md` Part II). The pair set below
+is still tied to the theorem by `modal_from_spec`. -/
 def spec : VerdSpec :=
   { bench := "arm_chain_rung3"
     singles := [0, 1]
@@ -144,7 +149,7 @@ theorem modal_from_spec (dt : ℝ) (hdt : 0 ≤ dt) (hv : VerdAll) :
     RFormula.rvalid (theorem3Form
       (bigChoice (leftProgsA dt))
       (rightAutomatonBody GrA mvA)
-      (RFormula.and (RFormula.and (canonInv gA) (envLR domLA domRA))
+      (RFormula.and (RFormula.and (canonInvM regA gsA) (envLR domLA domRA))
         (mvValidR mvA GrA.modes.length))) :=
   arm_chain_rung3_modal dt hdt
     (hv 0 (by decide)) (hv 1 (by decide))
@@ -154,6 +159,11 @@ end ArmChainRung3
 namespace ArmFidelityHigh
 open RelCertifier.ArmFidelityHighModal
 
+/-- No order pin: this instance builds its invariant term directly from the IR
+rather than through a `gAt` indexer, and its component list's head is the `Hold`
+region `regA` (added when the vacuous statement was repaired — see the instance's
+`regA` docstring and `docs/VERDICT-EVIDENCE-AUDIT.md` Part II). The pair set below
+is still tied to the theorem by `modal_from_spec`. -/
 def spec : VerdSpec :=
   { bench := "arm_fidelity_high"
     singles := [0, 1]
@@ -165,7 +175,7 @@ theorem modal_from_spec (dt : ℝ) (hdt : 0 ≤ dt) (hv : VerdAll) :
     RFormula.rvalid (theorem3Form
       (bigChoice (leftProgsA dt))
       (rightAutomatonBody GrA mvA)
-      (RFormula.and (RFormula.and (canonInv gA) (envLR domLA domRA))
+      (RFormula.and (RFormula.and (canonInvM regA gsA) (envLR domLA domRA))
         (mvValidR mvA GrA.modes.length))) :=
   arm_fidelity_high_modal dt hdt
     (hv 0 (by decide)) (hv 1 (by decide))
@@ -196,6 +206,11 @@ end ArmFidelityLow
 namespace ArmFidelityMid
 open RelCertifier.ArmFidelityMidModal
 
+/-- No order pin: this instance builds its invariant term directly from the IR
+rather than through a `gAt` indexer, and its component list's head is the `Hold`
+region `regA` (added when the vacuous statement was repaired — see the instance's
+`regA` docstring and `docs/VERDICT-EVIDENCE-AUDIT.md` Part II). The pair set below
+is still tied to the theorem by `modal_from_spec`. -/
 def spec : VerdSpec :=
   { bench := "arm_fidelity_mid"
     singles := [0, 1]
@@ -207,7 +222,7 @@ theorem modal_from_spec (dt : ℝ) (hdt : 0 ≤ dt) (hv : VerdAll) :
     RFormula.rvalid (theorem3Form
       (bigChoice (leftProgsA dt))
       (rightAutomatonBody GrA mvA)
-      (RFormula.and (RFormula.and (canonInv gA) (envLR domLA domRA))
+      (RFormula.and (RFormula.and (canonInvM regA gsA) (envLR domLA domRA))
         (mvValidR mvA GrA.modes.length))) :=
   arm_fidelity_mid_modal dt hdt
     (hv 0 (by decide)) (hv 1 (by decide))
@@ -386,6 +401,11 @@ end MatchMultiRate
 namespace PlantFanHigh
 open RelCertifier.PlantFanHighModal
 
+/-- No order pin: this instance builds its invariant term directly from the IR
+rather than through a `gAt` indexer, and its component list's head is the `Hold`
+region `regA` (added when the vacuous statement was repaired — see the instance's
+`regA` docstring and `docs/VERDICT-EVIDENCE-AUDIT.md` Part II). The pair set below
+is still tied to the theorem by `modal_from_spec`. -/
 def spec : VerdSpec :=
   { bench := "plant_fan_high"
     singles := [0, 1]
@@ -397,7 +417,7 @@ theorem modal_from_spec (dt : ℝ) (hdt : 0 ≤ dt) (hv : VerdAll) :
     RFormula.rvalid (theorem3Form
       (bigChoice (leftProgsA dt))
       (rightAutomatonBody GrA mvA)
-      (RFormula.and (RFormula.and (canonInv gA) (envLR domLA domRA))
+      (RFormula.and (RFormula.and (canonInvM regA gsA) (envLR domLA domRA))
         (mvValidR mvA GrA.modes.length))) :=
   plant_fan_high_modal dt hdt
     (hv 0 (by decide)) (hv 1 (by decide))
@@ -428,6 +448,11 @@ end PlantFanLow
 namespace PlantFanMid
 open RelCertifier.PlantFanMidModal
 
+/-- No order pin: this instance builds its invariant term directly from the IR
+rather than through a `gAt` indexer, and its component list's head is the `Hold`
+region `regA` (added when the vacuous statement was repaired — see the instance's
+`regA` docstring and `docs/VERDICT-EVIDENCE-AUDIT.md` Part II). The pair set below
+is still tied to the theorem by `modal_from_spec`. -/
 def spec : VerdSpec :=
   { bench := "plant_fan_mid"
     singles := [0, 1]
@@ -439,7 +464,7 @@ theorem modal_from_spec (dt : ℝ) (hdt : 0 ≤ dt) (hv : VerdAll) :
     RFormula.rvalid (theorem3Form
       (bigChoice (leftProgsA dt))
       (rightAutomatonBody GrA mvA)
-      (RFormula.and (RFormula.and (canonInv gA) (envLR domLA domRA))
+      (RFormula.and (RFormula.and (canonInvM regA gsA) (envLR domLA domRA))
         (mvValidR mvA GrA.modes.length))) :=
   plant_fan_mid_modal dt hdt
     (hv 0 (by decide)) (hv 1 (by decide))

@@ -25,6 +25,7 @@ Residuals: `Verd3 0`, `Verd3 1`. Axioms: the standard three + `z3_unsat_sound` w
 the verdicts enter.
 -/
 import RelCertifier.Proofs.Encoding.EnvelopeChain
+import RelCertifier.Proofs.Encoding.EnvelopeChainM
 import RelCertifier.Proofs.Encoding.CanonicalInv
 import RelCertifier.Proofs.Encoding.CoverInstance
 import RelCertifier.Proofs.Flow.StratifiedFaces
@@ -114,6 +115,38 @@ theorem hdomRA : domRA.fv ⊆ range Rv := fun x hx =>
 
 theorem hgA : gA.fv ⊆ range Lv ∪ range Rv := invToG_pipeline_LR _
 
+/-- **The landing mode's region, as an invariant component.** `3/5 - theta_R <= 0`,
+i.e. `theta_R >= 0.6` -- exactly `Hold`'s guard. The response always lands ∈ `Hold`,
+whose field is `theta' = 0`, so this component is preserved trivially (route A).
+
+REQUIRED: without it the `gA` query is satisfiable on all three routes, so the old
+single-invariant statement had a FALSE hypothesis and was vacuous
+(`docs/VERDICT-EVIDENCE-AUDIT.md` Part II). The tool certifies `Hold` at exactly
+this narrowed domain -- the cover records `jointOK = true` there. -/
+noncomputable def regA : Term (Var 2) :=
+  Term.binop AOp.sub (Term.const (3/5)) (Term.var (Rv 0))
+
+/-- Stratified-DC order: the region first, so it narrows the invariant's query. -/
+noncomputable def gsA : List (Term (Var 2)) := [gA]
+
+theorem hregA : regA.fv ⊆ range Lv ∪ range Rv := by
+  intro x hx
+  simp only [regA, Term.fv, Set.mem_union, Set.mem_empty_iff_false, false_or,
+    Set.mem_singleton_iff] at hx
+  subst hx; exact Or.inr (Exists.intro 0 rfl)
+
+theorem hgAllA : ∀ g' ∈ regA :: gsA, g'.fv ⊆ range Lv ∪ range Rv := by
+  intro g' hg'
+  simp only [gsA, List.mem_cons, List.not_mem_nil, or_false] at hg'
+  rcases hg' with rfl | rfl
+  · exact hregA
+  · exact hgA
+
+theorem hmvFA : mvA ∉ (FM regA gsA).fv := notMem_FM_fv (by
+  intro g' hg' h
+  rcases hgAllA g' hg' h with ⟨i, hi⟩ | ⟨i, hi⟩ <;>
+    exact absurd hi (by simp [Lv, Rv, Prod.ext_iff]))
+
 theorem hmvgA : mvA ∉ gA.fv := fun h => by
   rcases hgA h with ⟨i, hi⟩ | ⟨i, hi⟩ <;> exact absurd hi (by simp [Lv, Rv, Prod.ext_iff])
 theorem htggA : tgA ∉ gA.fv := fun h => by
@@ -122,6 +155,13 @@ theorem hmvenvA : mvA ∉ envA.fv := fun h => by
   rcases h with h | h
   · exact absurd (hdomLA h) (by rintro ⟨i, hi⟩; exact absurd hi (by simp [Lv, Prod.ext_iff]))
   · exact absurd (hdomRA h) (by rintro ⟨i, hi⟩; exact absurd hi (by simp [Rv, Prod.ext_iff]))
+theorem htggAllA : ∀ g' ∈ regA :: gsA, tgA ∉ g'.fv := by
+  intro g' hg' h
+  rcases hgAllA g' hg' h with ⟨i, hi⟩ | ⟨i, hi⟩ <;>
+    exact absurd hi (by simp [tgA, Lv, Rv, Prod.ext_iff])
+
+theorem htgFA : tgA ∉ (FM regA gsA).fv := notMem_FM_fv htggAllA
+
 theorem htgenvA : tgA ∉ envA.fv := fun h => by
   rcases h with h | h
   · exact absurd (hdomLA h) (by rintro ⟨i, hi⟩; exact absurd hi (by simp [Lv, Prod.ext_iff]))
@@ -197,12 +237,13 @@ theorem hfreshA : ∀ q m, GrA.modeAt q = some m →
 /-- The per-window joint verdict at the landing mode `Hold` (index 3): the tool's
 stratified three-route query family at λ = 1 over the joint universal envelope. -/
 def Verd3 (l : ℕ) : Prop :=
-  z3solve (flowQuery ⟨gA, fLA l, fRA 3, Term.const 1,
-    Formula.and domLA domRA⟩) = Verdict.unsat
-  ∨ z3solve (flowQueryStrict ⟨gA, fLA l, fRA 3, Term.const 1,
-    Formula.and domLA domRA⟩) = Verdict.unsat
-  ∨ z3solve (flowQuerySuperlevel ⟨gA, fLA l, fRA 3, Term.const 1,
-    Formula.and domLA domRA⟩) = Verdict.unsat
+  ∀ i (hi : i < (regA :: gsA).length),
+    z3solve (flowQuery ⟨(regA :: gsA)[i], fLA l, fRA 3, Term.const 1,
+      strataDomHost (Formula.and domLA domRA) ((regA :: gsA).take i)⟩) = Verdict.unsat
+    ∨ z3solve (flowQueryStrict ⟨(regA :: gsA)[i], fLA l, fRA 3, Term.const 1,
+      strataDomHost (Formula.and domLA domRA) ((regA :: gsA).take i)⟩) = Verdict.unsat
+    ∨ z3solve (flowQuerySuperlevel ⟨(regA :: gsA)[i], fLA l, fRA 3, Term.const 1,
+      strataDomHost (Formula.and domLA domRA) ((regA :: gsA).take i)⟩) = Verdict.unsat
 
 /-! ## The existence discharge — the L1 chain at the zero-field landing mode -/
 
@@ -329,7 +370,7 @@ stratified consumer with an empty strict core, no growth faces, and the two `Hol
 faces as the single non-strict stratum. The zero field discharges every analytic side
 condition in-kernel: `Lie ≡ 0`, the Lipschitz constant and the field bound are `0`. -/
 theorem esA (l : ℕ) (dt : ℝ) (hdt : 0 ≤ dt) :
-    ∀ σ, Formula.sat (Formula.and (invLe gA) envA) σ →
+    ∀ σ, Formula.sat (Formula.and (FM regA gsA) envA) σ →
       HExistSegB (fLA l) (fRA 3) (Term.const 1) domLA domRA dt
         (Function.update σ tgA 0) := by
   intro σ hσ
@@ -401,11 +442,11 @@ theorem esA (l : ℕ) (dt : ℝ) (hdt : 0 ≤ dt) :
 /-! ## The per-pair bounded coupling (cert-sourced, envelope-strengthened) -/
 
 theorem coupleA {l : ℕ} (hl : l < 2) (dt : ℝ) (hdt : 0 ≤ dt) (hv : Verd3 l) :
-    ∀ σ', Formula.sat (Formula.and (invLe gA) envA) σ' → σ' tgA = 0 →
+    ∀ σ', Formula.sat (Formula.and (FM regA gsA) envA) σ' → σ' tgA = 0 →
       faModalB (Equiv.refl (Var 2))
         (Program.ode (DLCalTiming.clk tgA (leftBlock (fLA l))) domLA)
         (Program.ode (rightBlock (fRA 3) (Term.const 1)) domRA)
-        (Formula.and (invLe gA) envA) tgA dt σ' := by
+        (Formula.and (FM regA gsA) envA) tgA dt σ' := by
   intro σ' hσ' htg0
   have hupd : Function.update σ' tgA (0 : ℝ) = σ' := by
     funext x
@@ -413,25 +454,18 @@ theorem coupleA {l : ℕ} (hl : l < 2) (dt : ℝ) (hdt : 0 ≤ dt) (hv : Verd3 l
     · subst hx; rw [Function.update_self]; exact htg0.symm
     · rw [Function.update_of_ne hx]
   have hAll := segPresAll_from_strata_verdicts' (fLA l) (fRA 3) (Term.const 1)
-    (Formula.and domLA domRA) [gA]
-    (by
-      intro i hi
-      have hi1 : i < 1 := by simpa using hi
-      interval_cases i
-      simpa [strataDomHost, Verd3] using hv)
-  have hbox : Formula.sat (Formula.box (Program.ode
+    (Formula.and domLA domRA) (regA :: gsA) hv
+  have hboxes : ∀ g' ∈ regA :: gsA, Formula.sat (Formula.box (Program.ode
       (leftBlock (fLA l) ++ rightBlock (fRA 3) (Term.const 1))
-      (Formula.and domLA domRA)) (invLe gA)) σ' := by
+      (Formula.and domLA domRA)) (invLe g')) σ' := by
+    intro g' hg'
     rw [sat_box]
     intro ω hω
     rw [sat_invLe]
-    refine hAll σ' ?_ ω (by rw [← jointSys_split] at hω; exact hω) gA
-      List.mem_cons_self
+    refine hAll σ' ?_ ω (by rw [← jointSys_split] at hω; exact hω) g' hg'
     intro g hg
-    rw [List.mem_singleton] at hg
-    subst hg
-    exact (sat_invLe gA σ').mp hσ'.1
-  have hbase := segment_faModalB_from_certB gA (fLA l) (fRA 3) (Term.const 1)
+    exact (sat_FM_iff regA gsA σ').mp hσ'.1 g hg
+  have hbase := segment_faModalB_from_certB_list regA gsA (fLA l) (fRA 3) (Term.const 1)
     domLA domRA tgA dt
     (LR_blocks_disjoint _ _ _ (hfLA l hl) (hfRA 3 (by norm_num)) (by simp [Term.fv]))
     (fun v hv' => Or.inl (by
@@ -452,7 +486,7 @@ theorem coupleA {l : ℕ} (hl : l < 2) (dt : ℝ) (hdt : 0 ≤ dt) (hv : Verd3 l
     (fun h => aux_notin_range_Rv aA (rightBlock_boundSet_sub (fRA 3) (Term.const 1) h))
     (fun h => aux_notin_range_Lv aA (hdomLA h))
     (fun h => aux_notin_range_Rv aA (hdomRA h))
-    htggA hbox (esA l dt hdt σ' hσ')
+    htggAllA hboxes (esA l dt hdt σ' hσ')
   rw [hupd] at hbase
   refine faModalB_strengthen_plant ?_ hbase
   intro ν μ hplant hsem
@@ -471,13 +505,13 @@ theorem coupleA {l : ℕ} (hl : l < 2) (dt : ℝ) (hdt : 0 ≤ dt) (hv : Verd3 l
 
 /-- Start `Hold` (3): the single self-edge piece. -/
 theorem seg_selfA (dt : ℝ) (hdt : 0 ≤ dt) {l : ℕ} (hl : l < 2) (hv : Verd3 l)
-    {σ : State (Var 2)} (hσ : Formula.sat (Formula.and (invLe gA) envA) σ) :
+    {σ : State (Var 2)} (hσ : Formula.sat (Formula.and (FM regA gsA) envA) σ) :
     Formula.sat (faModal (Equiv.refl (Var 2))
       (windowSeg (leftBlock (fLA l)) domLA tgA dt 1)
       (bigSeq ([((3 : ℕ), modeA 3, edgeA 3 3)].map
         (fun s => Program.ode s.2.1.sys s.2.1.dom)))
-      (Formula.and (invLe gA) envA)) σ := by
-  have hfa := Hmulti_window1_prefixed (fLA l) domLA gA envA aA dt htggA htgenvA []
+      (Formula.and (FM regA gsA) envA)) σ := by
+  have hfa := Hmulti_window1_prefixedF (fLA l) domLA (FM regA gsA) envA aA dt htgFA htgenvA []
     (by simp) (by simp) (hfLA l hl) hdomLA
     (Program.ode (rightBlock (fRA 3) (Term.const 1)) domRA)
     (coupleA hl dt hdt hv) hσ
@@ -505,17 +539,37 @@ theorem hops_forall2 : ∀ (p : List ℕ), (∀ q ∈ p, q < 4) →
       exact List.Forall₂.cons (hop_conv q (hlt4 q List.mem_cons_self))
         (ih (fun q' hq' => hlt4 q' (List.mem_cons_of_mem _ hq')))
 
+/-- phi-generic zero-duration hop, for the list-invariant window assembly. -/
+theorem static_hopA (fR : Fin 2 → Term (Var 2)) (lam : Term (Var 2))
+    (φ : Formula (Var 2)) (σ : State (Var 2)) (hσφ : Formula.sat φ σ)
+    (hdom : Formula.sat (Formula.and domLA domRA) σ) :
+    ∃ ρ, Program.sem ((⟨fR, lam, domRA⟩ : RepoHop 2).prog domLA) σ ρ
+      ∧ Formula.sat φ ρ := by
+  refine ⟨σ, ⟨0, fun _ => σ, le_refl 0, rfl, rfl, ?_, ?_, ?_⟩, hσφ⟩
+  · intro t ht p hp
+    have h0 : t = 0 := le_antisymm ht.2 ht.1
+    subst h0
+    rw [hasDerivWithinAt_iff_tendsto_slope]
+    have hempty : (Set.Icc (0:ℝ) 0) \ {0} = (∅ : Set ℝ) := by
+      simp [Set.Icc_self]
+    rw [hempty, nhdsWithin_empty]
+    exact Filter.tendsto_bot
+  · intro t ht x hx
+    rfl
+  · intro t ht
+    exact hdom
+
 /-- Non-`Hold` start `q`: static hops along the declared chain to `Hold`, then the
 piece there. `path` enumerates the traversed modes (`q` first). -/
 theorem seg_hopA (dt : ℝ) (hdt : 0 ≤ dt) {l : ℕ} (hl : l < 2) (hv : Verd3 l)
     (path : List ℕ) (hlt4 : ∀ q ∈ path, q < 4)
-    {σ : State (Var 2)} (hσ : Formula.sat (Formula.and (invLe gA) envA) σ) :
+    {σ : State (Var 2)} (hσ : Formula.sat (Formula.and (FM regA gsA) envA) σ) :
     Formula.sat (faModal (Equiv.refl (Var 2))
       (windowSeg (leftBlock (fLA l)) domLA tgA dt 1)
       (bigSeq ((path.map (fun q => Program.ode (rightBlock (fRA q) (Term.const 1)) domRA))
         ++ [Program.ode (rightBlock (fRA 3) (Term.const 1)) domRA]))
-      (Formula.and (invLe gA) envA)) σ := by
-  have hfa := Hmulti_window1_prefixed (fLA l) domLA gA envA aA dt htggA htgenvA
+      (Formula.and (FM regA gsA) envA)) σ := by
+  have hfa := Hmulti_window1_prefixedF (fLA l) domLA (FM regA gsA) envA aA dt htgFA htgenvA
     (path.map (fun q => ⟨fRA q, Term.const 1, domRA⟩))
     (by
       intro h hh
@@ -524,7 +578,7 @@ theorem seg_hopA (dt : ℝ) (hdt : 0 ≤ dt) {l : ℕ} (hl : l < 2) (hv : Verd3 
     (by
       intro h hh σ' hσ' htg'
       obtain ⟨q, hq, rfl⟩ := List.mem_map.mp hh
-      exact static_hop_exists hσ')
+      exact static_hopA (fRA q) (Term.const 1) _ σ' hσ' hσ'.2)
     (hfLA l hl) hdomLA
     (Program.ode (rightBlock (fRA 3) (Term.const 1)) domRA)
     (coupleA hl dt hdt hv) hσ
@@ -537,14 +591,14 @@ theorem seg_hopA (dt : ℝ) (hdt : 0 ≤ dt) {l : ℕ} (hl : l < 2) (hv : Verd3 
 
 theorem HmultiA (dt : ℝ) (hdt : 0 ≤ dt) (h0 : Verd3 0) (h1 : Verd3 1) :
     ∀ P ∈ leftProgsA dt, ∀ (q : ℕ), q < GrA.modes.length → ∀ σ, σ mvA = (q : ℝ) →
-      Formula.sat (Formula.and (invLe gA) envA) σ →
+      Formula.sat (Formula.and (FM regA gsA) envA) σ →
       ∃ segs : List (ℕ × RMode (Var 2) × REdge (Var 2)),
         (∀ s ∈ segs, GrA.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ GrA.edgesFrom s.1) ∧
         List.IsChain (fun a b => a.2.2.tgt = b.1) segs ∧
         (∀ s, segs.head? = some s → s.1 = q) ∧
         Formula.sat (faModal (Equiv.refl (Var 2)) P
           (bigSeq (segs.map (fun s => Program.ode s.2.1.sys s.2.1.dom)))
-          (Formula.and (invLe gA) envA)) σ := by
+          (Formula.and (FM regA gsA) envA)) σ := by
   intro P hP q hq σ hmv hσ
   have hq4 : q < 4 := by simpa [GrA] using hq
   simp only [leftProgsA, leftDataA, List.map_cons, List.map_nil, List.mem_cons,
@@ -692,16 +746,16 @@ theorem arm_fidelity_high_modal (dt : ℝ) (hdt : 0 ≤ dt)
     RFormula.rvalid (theorem3Form
       (bigChoice (leftProgsA dt))
       (rightAutomatonBody GrA mvA)
-      (RFormula.and (RFormula.and (canonInv gA) (envLR domLA domRA))
+      (RFormula.and (RFormula.and (canonInvM regA gsA) (envLR domLA domRA))
         (mvValidR mvA GrA.modes.length))) := by
-  refine theorem3_faithful_multiE_LR GrA mvA gA domLA domRA (leftProgsA dt)
-    (canonInv gA) (encode_canonInv gA) ?_ ?_ ?_
+  refine theorem3_faithful_multiF_LR GrA mvA (FM regA gsA) domLA domRA (leftProgsA dt)
+    (canonInvM regA gsA) (encode_canonInvM regA gsA) ?_ ?_ ?_
   · exact hdis_multi GrA 0 1 dt leftDataA (by decide) httA hRvA hLA
-  · exact hstep_assembled_multiE GrA mvA gA envA (leftProgsA dt) hmvgA hmvenvA
+  · exact hstep_assembled_multiF GrA mvA (FM regA gsA) envA (leftProgsA dt) hmvFA hmvenvA
       hfreshA httA hltA (hframesA dt)
       (HmultiA dt hdt h0 h1)
-  · exact hddF_multiE GrA 0 1 dt leftDataA (canonInv gA) domLA domRA (by decide)
-      httA hRvA hLA (canonInv_varsL gA hgA) (canonInv_varsR gA) hdomLA hdomRA
+  · exact hddF_multiE GrA 0 1 dt leftDataA (canonInvM regA gsA) domLA domRA (by decide)
+      httA hRvA hLA (canonInvM_varsL regA gsA hgAllA) (canonInvM_varsR regA gsA) hdomLA hdomRA
 
 end ArmFidelityHighModal
 end RelCertifier

@@ -26,6 +26,8 @@ Where each guarantee lives, and what it rests on. (Historic entries retired to
 | `flow_certified` + route B/C | `Trusted/Oracle.lean`, `Core/FlowCert.lean` | verdict → invariance (the axiom's single consumer chain) |
 | `decideCovered_sound` | `Checker/Checker.lean` | kernel-replayed cover decisions |
 | generic pins (`hostDyn_pin`, …, `o2_probe_pin`) | `Verdicts/GenericPins.lean` | printed queries = hypothesized queries |
+| modal pins (`pin_*`, 42) | `Verdicts/ModalPinTable.lean` | each modal theorem's `Verd…` **is** the query the runner rebuilds |
+| table ties (`ties_*`, 42) | `Verdicts/ModalTablePins.lean` | the runner's `RunInfo` row, incl. its mode pairs via `modalPairs` — corrupting a field fails the build |
 | `*_real` battery (46) | `Instances/RealInstances.lean` | right-system well-formedness at the real scale — the paper's nonblocking/successor-complete assumption, **discharged**. Live and non-vacuous (`decideWellFormed`'s `bandOrdered` makes `realGdOf` satisfiable) |
 | ⚠️ `theorem3_faithful_settling` + clocked/cadenced variants, `settling_end_to_end` | `Proofs/Soundness/GuardThreaded.lean`, `Proofs/Encoding/ClockedTop.lean`, `FvDischarge.lean` | **VACUOUS for relational invariants** — all require `GBoxAll` (quarantined, unsatisfiable for an `L`-mentioning `g`); the unclocked form also carries `hbudgetAll`. Historical presentation only. See `PAPER-MAPPING.md` §3b |
 | ⚠️ `theorem3_faithful_landing_clocked{,_wf,_uniform}` | `Proofs/Flow/MultisegLandingBridge.lean`, `Proofs/Soundness/UniformEvol.lean` | carry `hbudgetAll` — "unsatisfiable for autonomous benchmarks unless the caller smuggles a clock into `domL`". Historical |

@@ -283,8 +283,8 @@ device for the story1/rollover-b/rover3tier group; and the three specials
 > five theorems are now conditioned on it — see the README's *Conditioning* note
 > and [`VERDICT-EVIDENCE-AUDIT.md`](VERDICT-EVIDENCE-AUDIT.md) Part II.
 
-> **Verified end to end 2026-07-31 on `d40788d`** (12h18m run): `lake build` 8979
-> jobs exit 0; `relcert-test` ALL PASS; `--run-verdicts` 111/111 `unsat`; axiom
+> **Verified end to end 2026-07-31 on `1bcee57`**: `lake build` 8987
+> jobs exit 0; `relcert-test` ALL PASS; `--run-verdicts` 594/594 `unsat`; axiom
 > audit 47 theorems = 42 with `z3_unsat_sound` + 5 with the standard three alone,
 > no `sorryAx`, no `native_decide`. Recipe and costs:
 > [`CERTIFICATION-CHECK.md`](CERTIFICATION-CHECK.md).

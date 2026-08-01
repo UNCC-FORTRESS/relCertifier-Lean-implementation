@@ -8,9 +8,9 @@ theorem?*
 Read `README.md` first for what the theorems say. This document is only about
 **checking** them.
 
-> **Last full run: 2026-07-31, on `d40788d`. All four checks green.**
-> `lake build` 8979 jobs, exit 0 · `relcert-test` ALL PASS ·
-> `--run-verdicts` ALL HYPOTHESES DISCHARGED (111/111 `unsat`) ·
+> **Last full run: 2026-07-31, on `1bcee57`. All four checks green.**
+> `lake build` 8987 jobs, exit 0 · `relcert-test` ALL PASS ·
+> `--run-verdicts` ALL HYPOTHESES DISCHARGED (594/594 `unsat`) ·
 > axiom audit 47 theorems: 42 with `z3_unsat_sound`, 5 with the standard three
 > alone, **no `sorryAx`, no `native_decide`, no other axioms**.
 > Wall clock 12h18m — see *Cost* below before you start it.
@@ -58,7 +58,7 @@ already in the repository.
 
 A full `lake build` of this development is **10–14 hours** and peaks near **30 GB**
 across ~12 Lean workers. Measured 2026-07-31: 12h18m wall clock, 29.6 GB peak,
-8979 jobs. From cold it is longer still, since mathlib compiles first.
+at 8979 jobs (8987 now, after the verdict pins landed). From cold it is longer still, since mathlib compiles first.
 
 The shape of the run matters if you are watching it. Most files clear steadily, then
 the last five — the 12-dof instances `refinement_ladder_rover_rung4_8to12`,

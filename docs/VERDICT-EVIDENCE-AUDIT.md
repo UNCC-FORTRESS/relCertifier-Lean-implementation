@@ -1,19 +1,27 @@
 # Verdict-hypothesis evidence audit — 2026-07-31
 
-**Question this document answers.** 41 of the 47 modal theorems carry named Z3
-verdict hypotheses (`Verd… l m`) that are *not* re-run by `relcert --run-verdicts`
-and have no kernel identity theorems tying them to the runner
-(`docs/CERTIFICATION-CHECK.md` § "What is measured but not yet in the runner").
-What, exactly, justifies believing those hypotheses — and how solid is that
-justification?
+**Question this document answers.** 41 of the 47 modal theorems carry named Z3 verdict
+hypotheses (`Verd… l m`). A theorem with a false hypothesis is vacuously true, and
+`#print axioms` cannot detect that. So: what justifies believing those hypotheses?
 
-**Answer, up front.** Every asserted hypothesis is implied by queries the tool
-demonstrably ran and got `unsat` on, via a domain-containment argument that was
-checked exhaustively (210/210 non-trivial cases) on 2026-07-31 against the emitted
-cover data at commit `f0858b6`. Nothing is broken and nothing was found unverified.
-The caveat: the containment argument itself lives in this document and its script —
-it is **not** kernel-checked and **not** part of any automated test. This document
-is the record of that argument, its scope, and its expiry conditions.
+**Answer, as of the end of 2026-07-31.** All of them are re-run, in one route, by
+`relcert --run-verdicts` — 594 queries, all `unsat`, exit 0 — and the query the runner
+sends is tied to the query the theorem assumes by `rfl` pins
+(`Verdicts/ModalPinTable.lean`, `Verdicts/ModalTablePins.lean`). Six hypotheses were
+found **vacuous** during the day's audit and all six were repaired; four further defects
+were found in the runner's own table, three of them by the pins. What remains outside the
+kernel is listed under *The last unpinned link* below, and is narrow.
+
+**How to read this document.** It was written in three passes over one day and the early
+sections describe a weaker situation than the later ones:
+
+| § | pass | status |
+|---|---|---|
+| 1–6 | containment argument: the hypotheses are *implied* by queries the tool ran | **superseded** — kept as the record of that argument and its expiry conditions. It was the justification while the runner still covered only watertank's 6 and the 105 cut probes. |
+| Part II | the hypothesis-truth audit: six vacuous theorems, and their repair | current |
+| *The last unpinned link* | the runner's table, and how it is tied to the theorems | current |
+
+Read §1–6 as history. The live claim is in the last two.
 
 ---
 
@@ -112,8 +120,11 @@ Not established, deliberately left open (the "options shelf" if ever needed):
 * the containment check is **not** in `relcert-test` (option A: add it — hours);
 * the §2 monotonicity fact is **not** a Lean lemma with a decidable per-benchmark
   side condition (option B: prove it — ~a day plus a world rebuild);
-* `--run-verdicts` still re-runs only watertank's 6 + the 105 cut probes, not the
-  41 instances' packs (option C: extend the runner — the operational gold standard).
+* ~~`--run-verdicts` re-runs only watertank's 6 + the 105 cut probes, not the 41
+  instances' packs (option C: extend the runner — the operational gold standard)~~
+  — **done later the same day.** The runner now covers every pack in one route,
+  594 queries, and the containment argument below is no longer what the hypotheses
+  rest on. See *The last unpinned link*.
 
 **Expiry.** This audit is a statement about the *frozen* emitted covers. It goes
 stale the moment any cover is regenerated (`--emit-cover` after a model or search
@@ -251,7 +262,7 @@ Until then, **six of the 47 modal theorems say nothing about their benchmark**, 
 the suite claim should be read as 41 of 47 meaningful (46 with `endurance` fixed,
 less the five outstanding).
 
-## Fix design for the five `Hold` cases (validated, not yet implemented)
+## Fix design for the five `Hold` cases (implemented — see *Status* above)
 
 The repair is the **mode-region** device the repo already uses for
 `refinement_ladder_rover_rung2c_6dof` — not new theory. Every piece exists:

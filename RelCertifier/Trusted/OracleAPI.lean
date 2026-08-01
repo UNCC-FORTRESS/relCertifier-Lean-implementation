@@ -616,6 +616,17 @@ def certifyWithData (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : N
             | (.incon, _) => sawIncon := true
             | (.nocov, _) => return (.declined, none)   -- definitive uncovered ⟹ sound DECLINE
   if sawIncon then return (.error "inconclusive Z3 verdict on a candidate route", none)
+  -- Every left mode must have contributed a cover. Two ways that could silently fail
+  -- otherwise, both of which would still have returned `.certified`: an empty
+  -- `p.L.modes` never enters the loop (the parser rejects that — `validateSystem`'s
+  -- "no modes" — so this is defence in depth, not a live hole), and the `(.cov, none)`
+  -- branch above skips the append. Counting is the same discipline the verdict runners
+  -- use (`Verdicts/Coverage.lean`): a pass that did less work than it owes must not
+  -- look like one that did it all. Strictly conservative — it can only turn a
+  -- `CERTIFIED` into an `ERROR`, never the reverse.
+  else if covers.length != p.L.modes.length then
+    return (.error s!"internal: {covers.length} cover(s) for {p.L.modes.length} left \
+mode(s) — a mode was certified without recording one", none)
   else return (.certified, some { name := p.name, pruned := prunedPairs, covers := covers })
 
 /-- Core cover (verdict only). -/

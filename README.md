@@ -18,6 +18,13 @@ theorems, since one benchmark splits per left mode. Verified end to end on 2026-
 42 theorems audit to the three standard Lean axioms plus `z3_unsat_sound`, and 5 audit
 to the three standard axioms alone. No `sorry`, no `admit`, no `native_decide`.
 
+**Every verdict hypothesis has been checked true.** A kernel-checked axiom list says a
+proof did not cheat; it cannot say the theorem's *hypotheses* hold, and a theorem with a
+false hypothesis is vacuously true. An audit of all 42 `Verd` definitions on 2026-07-31
+found six that were vacuous, and all six were repaired the same day
+([`docs/VERDICT-EVIDENCE-AUDIT.md`](docs/VERDICT-EVIDENCE-AUDIT.md)). Five of those
+repairs add a **region conjunct** to the invariant — see *Conditioning* below.
+
 ### Contents
 
 1. [Quickstart](#quickstart)
@@ -109,6 +116,16 @@ the ∀∃ modality over both starred programs.
 Nothing else. In particular the search — cover exploration, cut fixpoints, route
 selection, λ choice — is **completely untrusted**. It only *proposes*; every accepted
 output is re-validated by kernel-checked replay or becomes a named Z3 fact.
+
+**Conditioning (the five region-carrying instances).** `arm_chain_rung3`,
+`arm_fidelity_high`, `arm_fidelity_mid`, `plant_fan_high` and `plant_fan_mid` state their
+invariant as `θ_R ≥ 0.6 ∧ (the benchmark's relational invariant)`. The extra conjunct is
+exactly the `Hold` mode's guard, and it is *necessary*: the tool certifies `Hold` at that
+narrowed domain (the emitted cover records `jointOK = true` there), and without it the
+flow query is satisfiable, so the theorem would be vacuous. These five therefore claim:
+*from states where the right system already satisfies `Hold`'s guard, the refinement is
+maintained.* That is what the certificate supports, stated honestly. The same device
+(`lowFace`, a region as an invariant component) is what `rung2c` has always used.
 
 **Coverage.** The modal statement is instantiated for all 46 certified benchmarks;
 `Instances/ModalBattery.lean` imports every one and re-emits its axiom audit on each
@@ -361,7 +378,7 @@ which no amount of formula manipulation can establish.
 | **settling** (`*_real`) | cadenced rounds settle into the invariant band (`GuardSettlingB`) | 46/46 | **in the statement**, as `Gd q`. Its final conjunct — *some retained successor's guard holds at the segment's end* — is **non-blocking, proven** | flow/cut verdicts |
 | **throughout** | every component of the invariant holds throughout every right coexecution | 33 cut-free | **in the statement**, as `Gd` threaded through `RightReachG` | cover verdicts |
 | **cut throughout** | same, via the guard-threaded cut lift | 13 cut-reliant | **in the statement** as `Gd`, *and* as guard-derived cut atoms | cut-narrowed cover verdicts + per-atom O2 probes |
-| **modal (Theorem 3)** | `rvalid (theorem3Form …)` — the paper's ∀∃ with reposition-opened windows | **46/46**, 47 theorems | **not in the statement**: the R *program* appears instead, and its edge guards are `⊤` | per-instance route verdicts; existence **proven** for every instance. Five need no verdicts at all |
+| **modal (Theorem 3)** | `rvalid (theorem3Form …)` — the paper's ∀∃ with reposition-opened windows | **46/46**, 47 theorems | **not in the statement** for most: the R *program* appears instead, with edge guards `⊤`. **Five carry the landing mode's guard as a region conjunct in the invariant** (see *Conditioning*) | per-instance route verdicts, **all checked true** (2026-07-31); existence **proven** for every instance. Five need no verdicts at all |
 
 The guard column is the one to read when relating these to a paper's automaton
 `( ⋃_m ?(m ∈ next(mv)) ; ?guard_m(x) ; mv := m ; {x' = f_m & evolC_m} )*`: the first three

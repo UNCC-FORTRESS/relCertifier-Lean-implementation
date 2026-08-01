@@ -224,10 +224,26 @@ the modal family does not, and these five are where the omission bites. Restatin
 the domain as `domL ∧ domR ∧ guard_R(m)` writes down what the contract already
 grants.
 
-## Status
+## Status — ALL SIX REPAIRED (2026-07-31)
 
-`endurance_orderlift_1to2` is fixed (`edf54d5`). The five `Hold` cases are
-diagnosed but **not fixed** — the repair needs the guard threaded through the modal
+| instance | repair | commit |
+|---|---|---|
+| `endurance_orderlift_1to2` | hypothesis narrowed to the six certified pairs | `edf54d5` |
+| `arm_chain_rung3` | `Hold` region added as an invariant component | `e62cb5a` |
+| `arm_fidelity_high`, `plant_fan_high` | same | `597def5` |
+| `arm_fidelity_mid`, `plant_fan_mid` | same (region via route C — their `Hold` is asymptotic, not frozen) | `28c86f2` |
+
+Each verified four ways: compiles; axioms unchanged; the new `Verd` pinned by `rfl`
+to a data-built query; that query measured `unsat`. Then re-verified independently
+with freshly written pins and queries — 6/6 pins, 16/16 Z3 query-groups, full build
+green, 47 theorems audited (42 + `z3_unsat_sound`, 5 standard-three, zero `sorryAx`).
+
+`ModalSpecs` refused to compile when the five statements changed, flagging exactly
+those five — the spec layer working as designed (`e56b8a6`).
+
+### Superseded status note
+
+The five `Hold` cases were, before the repair, — the repair needs the guard threaded through the modal
 coupling, for which the machinery exists (`CutCover`'s `RightReachG`,
 `GuardThreaded.lean`) but is not yet wired to the modal chain.
 

@@ -276,6 +276,13 @@ device for the story1/rollover-b/rover3tier group; and the three specials
 
 ## Modal Theorem 3 — FULL SUITE (2026-07-30, final close)
 
+> **Hypothesis-truth audit, 2026-07-31.** Separately from the axiom audit, every
+> `Verd` hypothesis was checked for *truth* (a false hypothesis makes a theorem
+> vacuous, which `#print axioms` cannot see). Six were false; all six are repaired.
+> Five of the repairs add the landing mode's guard as a region conjunct, so those
+> five theorems are now conditioned on it — see the README's *Conditioning* note
+> and [`VERDICT-EVIDENCE-AUDIT.md`](VERDICT-EVIDENCE-AUDIT.md) Part II.
+
 > **Verified end to end 2026-07-31 on `d40788d`** (12h18m run): `lake build` 8979
 > jobs exit 0; `relcert-test` ALL PASS; `--run-verdicts` 111/111 `unsat`; axiom
 > audit 47 theorems = 42 with `z3_unsat_sound` + 5 with the standard three alone,

@@ -60,6 +60,12 @@ def runBenchProbes (s : Z3Session) (name : String) (p : PProblem)
   let coord := fun (i : Fin n) => vars.getD i.val s!"pad{i.val}"
   let work := (modeAtoms Side.L cuts.L p.L.modes).map (fun w => (Side.L, w))
     ++ (modeAtoms Side.R cuts.R p.R.modes).map (fun w => (Side.R, w))
+  -- An empty `work` would run no query and still return success, which is how
+  -- `rover_drag` went unchecked in the modal runner (`docs/VERDICT-EVIDENCE-AUDIT.md`).
+  -- All 13 cut benchmarks currently yield probes; this makes a future empty one loud.
+  if work.isEmpty then
+    IO.println s!"  SKIP  {name}  (no cut atoms to probe)"
+    return false
   let mut ok := true
   for (side, m, a, route) in work do
     let sideTag := if side == Side.L then "L" else "R"

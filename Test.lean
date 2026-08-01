@@ -18,6 +18,16 @@ open RelCertifier RelCertifier.Parse RelCertifier.Oracle
 /-- Global failure counter. -/
 initialize failCount : IO.Ref Nat ← IO.mkRef 0
 
+/-- Checks that did not run. A suite that prints `ALL PASS` while having quietly
+skipped a check is reporting work it did not do — the same failure mode as a verdict
+runner that discharges a pack by issuing no query. Skips are counted and named in the
+final line so a green run states what it actually covered. -/
+initialize skipCount : IO.Ref Nat ← IO.mkRef 0
+
+def skip (name : String) (why : String) : IO Unit := do
+  IO.println s!"  SKIP {name} ({why})"
+  skipCount.modify (· + 1)
+
 def check (name : String) (ok : Bool) : IO Unit := do
   if ok then IO.println s!"  ok   {name}"
   else do IO.println s!"  FAIL {name}"; failCount.modify (· + 1)
@@ -217,14 +227,14 @@ def testDeterminism (cfg : Z3Config) : IO Unit := do
   | .ok s =>
       -- a CERTIFIED benchmark, 8× on one warm session
       match ← loadProblem "watertank" with
-      | none => IO.println "  (skip: BENCH_PATHS not set)"
+      | none => skip "watertank: 8× identical CERTIFIED" "BENCH_PATHS not set"
       | some p => do
           let mut outs : List Bool := []
           for _ in [0:8] do outs := outs ++ [isCert (← certify s p)]
           check "watertank: 8× identical CERTIFIED" (outs.all id)
       -- a DECLINED benchmark, 8× identical verdict (stability, not the value)
       match ← loadProblem "rover_terrain_M1" with
-      | none => pure ()
+      | none => skip "declined benchmark: 8× identical verdict" "BENCH_PATHS not set"
       | some p => do
           let mut tags : List String := []
           for _ in [0:8] do tags := tags ++ [(← certify s p).tag]
@@ -244,5 +254,10 @@ def main : IO Unit := do
       testOutcomeIntegrity cfg
       testDeterminism cfg
       let fails ← failCount.get
-      IO.println s!"\n{if fails == 0 then "ALL PASS" else s!"{fails} FAILED"}"
+      let skips ← skipCount.get
+      let verdict :=
+        if fails > 0 then s!"{fails} FAILED"
+        else if skips > 0 then s!"ALL PASS ({skips} SKIPPED — set BENCH_PATHS to run them)"
+        else "ALL PASS"
+      IO.println s!"\n{verdict}"
       if fails > 0 then IO.Process.exit 1

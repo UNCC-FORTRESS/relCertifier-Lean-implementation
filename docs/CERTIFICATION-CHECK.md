@@ -11,8 +11,8 @@ Read `README.md` first for what the theorems say. This document is only about
 > **Last full run: 2026-07-31, on `fc6acc3`. All four checks green.**
 > `lake build` 8987 jobs, exit 0 · `relcert-test` ALL PASS ·
 > `--run-verdicts` ALL HYPOTHESES DISCHARGED (594/594 `unsat`) ·
-> `relcert-test` re-run with `BENCH_PATHS` set, so the 8× Z3-determinism check ran
-> rather than skipping ·
+> `relcert-test` run with `BENCH_PATHS` set, so the two Z3-determinism checks ran
+> rather than skipping — a plain run now says `ALL PASS (2 SKIPPED)` ·
 > axiom audit 47 theorems: 42 with `z3_unsat_sound`, 5 with the standard three
 > alone, **no `sorryAx`, no `native_decide`, no other axioms**.
 > Wall clock 12h18m — see *Cost* below before you start it.

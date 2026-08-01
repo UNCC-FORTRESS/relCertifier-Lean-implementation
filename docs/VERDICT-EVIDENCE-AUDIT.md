@@ -286,3 +286,38 @@ identical guard `theta ≥ 0.6`, all frozen).
 domain: that would change the automaton in the statement and stop matching the
 benchmark. The region device is the faithful route, which is why `rung2c` uses it.
 
+---
+
+## The last unpinned link (open, 2026-07-31)
+
+`relcert --run-verdicts` now discharges **every** theorem's hypotheses in one route
+(567 queries: 6 watertank + 105 cut probes + 456 modal). Two of the three links from
+*what Z3 is asked* to *what the theorem assumes* are kernel-checked:
+
+| link | status |
+|---|---|
+| spec's argument pairs → theorem | `ModalSpecs.modal_from_spec` ✓ |
+| IR query shape → host query shape | `Verdicts/ModalPins` ✓ |
+| **`RunModal`'s `RunInfo` data → the instance's actual query** | **unpinned** |
+
+`RunInfo` (dimension, invariant row, λ, region, ceiling constants) is hand-written
+in `RunModal.modalTable` and nothing checks it against the instances. A wrong field
+makes the runner test the *wrong query*. That happened twice while the runner was
+being built — a wrong λ and a wrong `invRow` — and both were caught only because the
+wrong query came back `sat`. One that happens to be `unsat` would pass silently.
+
+**Attempted fix and where it stalled.** The intended closure is a per-instance
+
+    theorem …_pinned : VerdX l m = modalVerd <IR> <fields…> l m := by rfl
+
+with `modalVerd` stating exactly what the runner builds. The audit's own builders
+prove this shape (`VerdE l m = sVN … := by rfl` ✓), and a generalised `modalVerd`
+was shown equal to them (`sVN … = modalVerd … := by rfl` ✓) — yet the *composite*
+`VerdX = modalVerd` fails `rfl`, and also fails `with_unfolding_all rfl`. Each step
+reduces; the one-step unification does not. Resolving that (a `.trans` of the two
+steps, or a formulation whose normal form the unifier reaches directly) is the
+remaining work. It is fiddly rather than deep, and wants fresh eyes.
+
+Until then the runner's data is *validated by its results* — all 456 modal queries
+return `unsat`, and a wrong field would have to be wrong in a way that stays `unsat`
+to hide — but it is not *certified by the kernel*.

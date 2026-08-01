@@ -58,6 +58,12 @@ structure RunInfo where
   ceilCo  : Option ℕ := none
   ceilFlip : Bool := false
   ceilKs  : List ℚ := []
+  /-- Same shape as the ceiling head, but appended *behind* the invariant's own
+  components rather than prepended: `rover_rung2c` carries its mode region there, so
+  the region is narrowed by the invariant instead of the other way round. -/
+  tailCo  : Option ℕ := none
+  tailFlip : Bool := false
+  tailKs  : List ℚ := []
   /-- When the `Verd` takes one argument that is the LEFT index, the right mode is
   fixed at this value (and vice versa via `argIsRight`). -/
   fixedOther : Option ℕ := none
@@ -120,9 +126,16 @@ def runSpec (s : Z3Session) (spec : VerdSpec) (info : RunInfo)
             let k : ℚ := info.ceilKs.getD m (info.ceilKs.getD 0 0)
             let v : ITerm n := .var (Rv ⟨c % n, Nat.mod_lt _ h⟩)
             [if info.ceilFlip then .bin .sub (.rat k) v else .bin .sub v (.rat k)]
+        -- the tail face is per right mode too, and sits behind the invariant's own
+        let tailT : List (ITerm n) := match info.tailCo with
+          | none => []
+          | some c =>
+            let k : ℚ := info.tailKs.getD m (info.tailKs.getD 0 0)
+            let v : ITerm n := .var (Rv ⟨c % n, Nat.mod_lt _ h⟩)
+            [if info.tailFlip then .bin .sub (.rat k) v else .bin .sub v (.rat k)]
         let comps : List (ITerm n) := ceilT ++ (match info.region with
           | none   => base
-          | some k => (ITerm.bin .sub (.rat k) (.var (Rv ⟨0, h⟩))) :: base)
+          | some k => (ITerm.bin .sub (.rat k) (.var (Rv ⟨0, h⟩))) :: base) ++ tailT
         let (ln, ld) := match info.lamPerL.getD l (info.lamN, info.lamD) with
           | (a, b) => (a, b)
         let lam : ITerm n := .rat ((ln : ℚ) / (ld : ℚ))
@@ -163,7 +176,7 @@ def modalTable : List (VerdSpec × RunInfo × List ℕ) :=
   (PlantFanMid.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1, region := some (3/5), fixedOther := some 2 }, [0]),
   (RobotBraking.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1, fixedOther := some 2 }, [0]),
   (Rover3tierM1.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1, fixedOther := some 0 }, [0]),
-  (Rover3tierRung12Coast.spec, { dim := 3, invRow := 0, lamN := 2, lamD := 1, argIsRight := true, fixedOther := some 0 }, [0]),
+  (Rover3tierRung12Accel.spec, { dim := 3, invRow := 0, lamN := 2, lamD := 1, argIsRight := true, fixedOther := some 0 }, [0]),
   (Rover3tierRung12Coast.spec, { dim := 3, invRow := 1, lamN := 1, lamD := 1, argIsRight := true, fixedOther := some 1 }, [0]),
   (Rover4dBox.spec, { dim := 4, invRow := 0, lamN := 1, lamD := 1, fixedOther := some 1 }, [0]),
   (RoverAttitudeCone.spec, { dim := 12, invRow := 0, lamN := 17, lamD := 10, ceilCo := some 0, ceilFlip := false, ceilKs := [3/10, 1/2, 13/20] }, [0, 1, 2, 3]),
@@ -176,7 +189,13 @@ def modalTable : List (VerdSpec × RunInfo × List ℕ) :=
   (RoverLadderRung2.spec, { dim := 6, invRow := 0, lamN := 1, lamD := 1 }, [0, 2, 3, 1]),
   (RoverLadderRung3.spec, { dim := 8, invRow := 0, lamN := 9, lamD := 4, ceilCo := some 0, ceilFlip := false, ceilKs := [3/10, 1/2, 13/20] }, [0, 1, 2, 3]),
   (RoverLadderRung4.spec, { dim := 12, invRow := 0, lamN := 17, lamD := 10, ceilCo := some 0, ceilFlip := false, ceilKs := [3/10, 1/2, 13/20] }, [0, 1]),
-  (RoverRung2c.spec, { dim := 6, invRow := 0, lamN := 1, lamD := 1, argIsRight := true, fixedOther := some 0 }, [0]),
+  -- `VerdR6 l` runs left mode `l` against right mode `l`, not against a fixed 0, and
+  -- carries eight invariant components plus the mode region `b6 m − s_R` at the tail.
+  -- `pin_RoverRung2c` is what caught the earlier reading of this row, which rebuilt a
+  -- single component at `(0, l)` — the wrong query for two of the three hypotheses.
+  (RoverRung2c.spec, { dim := 6, invRow := 0, lamN := 1, lamD := 1,
+                       tailCo := some 1, tailFlip := true,
+                       tailKs := [0, 3/5, 7/5] }, [0, 1, 4, 5, 6, 7, 2, 3]),
   (RoverTerrainM1.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1 }, [0]),
   (RoverTierR1.spec, { dim := 3, invRow := 0, lamN := 19, lamD := 4, ceilCo := some 1, ceilFlip := true, ceilKs := [3/10] }, [0]),
   (Story1AttdistRungA.spec, { dim := 8, invRow := 1, lamN := 1, lamD := 1 }, [0, 1]),

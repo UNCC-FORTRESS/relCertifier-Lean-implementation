@@ -235,3 +235,38 @@ Until then, **six of the 47 modal theorems say nothing about their benchmark**, 
 the suite claim should be read as 41 of 47 meaningful (46 with `endurance` fixed,
 less the five outstanding).
 
+## Fix design for the five `Hold` cases (validated, not yet implemented)
+
+The repair is the **mode-region** device the repo already uses for
+`refinement_ladder_rover_rung2c_6dof` — not new theory. Every piece exists:
+
+| piece | where |
+|---|---|
+| `lowFace b sr` — the region term `b − s_R` (region = `b ≤ s_R`) | `Proofs/Encoding/ModeRegion.lean:36` |
+| `lowR_preserved` — region survives a run, from a `SegPreservesOn` certificate | `ModeRegion.lean:46` |
+| `theorem3_faithful_multiR_LR` + `mvRegionR` — the top theorem carrying regions | `Proofs/Encoding/EnvelopeChainR.lean` |
+| a worked instance | `Instances/RoverRung2cModal.lean` (threads `lowFace (b6 l) (Rv 1)` as a ninth invariant conjunct) |
+
+**Per instance:**
+
+1. add the region component `lowFace (3/5) (Rv 0)` — i.e. `theta_R ≥ 0.6`, exactly
+   `Hold`'s guard — to the invariant component list;
+2. restate `Verd` in the multi-component strata form so the region narrows the
+   later components' domains (measured: this makes routes B and C `unsat`);
+3. discharge region preservation. **`Hold`'s field is `theta' = 0`** — the
+   coordinate is frozen, so the region is trivially invariant; this is the easiest
+   possible case of `lowR_preserved`;
+4. switch the top theorem from the `multiE`/`multiF` form to
+   `theorem3_faithful_multiR_LR` with `mvRegionR`, and thread the region through
+   the coupling and `Hmulti` dispatch.
+
+Steps 1–3 are small. **Step 4 is the work**: it converts a single-component
+`multiE` instance into a region-carrying `multiR` one, and `RoverRung2cModal.lean`
+— the only existing example — is ~1500 lines. Budget a session per instance for
+the first, then the remaining four are near-clones (same family, same `Hold`,
+identical guard `theta ≥ 0.6`, all frozen).
+
+**Do not shortcut it** by putting the guard directly into the response program's
+domain: that would change the automaton in the statement and stop matching the
+benchmark. The region device is the faithful route, which is why `rung2c` uses it.
+

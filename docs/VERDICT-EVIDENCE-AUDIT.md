@@ -166,3 +166,72 @@ print(f'safe {safe}  unsafe {unsafe}')   # 2026-07-31 @ f0858b6: safe 210  unsaf
 (The binder harvest above guards against §4 trap 2 by anchoring on `hv<l><m> : Verd`.
 Instances whose verdict binders are not of that shape — e.g. per-mode `VerdR6 l` —
 were checked by inspection; their component lists are in the cover's DC order.)
+
+---
+
+# PART II — Complete hypothesis-truth audit (2026-07-31, later the same day)
+
+Part I asked whether the *evidence* for each hypothesis was sound. It did not ask
+the prior question: **is each hypothesis actually true?** This part does, for all
+42 `Verd` definitions across the 41 instances that carry them.
+
+## Method
+
+For each instance, two steps:
+
+1. **Pin.** Prove `VerdX … = <a query built only from the benchmark IR and data>`
+   by `rfl`. The kernel then certifies that the query being tested IS the theorem's
+   own hypothesis. All 42 pins prove. This is what makes the result trustworthy —
+   four earlier reconstruction attempts produced false alarms precisely because
+   they lacked this step (§4).
+2. **Run.** Send all three routes (`flowQuery`, `…Strict`, `…Superlevel`) to Z3.
+   `Verd` is a disjunction, so the hypothesis holds iff *some* route is `unsat`.
+
+## Result — 6 vacuous theorems
+
+| instance | failing pairs | all three routes | cause |
+|---|---|---|---|
+| `endurance_orderlift_1to2` | (l, STEEP) ∀l | SAT | asserted pairs the cover never certified (∀-quantified hypothesis) |
+| `arm_chain_rung3` | (l, Hold) ∀l | SAT | domain omits the `Hold` guard/cut `theta ≥ 0.6` |
+| `arm_fidelity_high` | (l, Hold) ∀l | SAT | same |
+| `plant_fan_high` | (l, Hold) ∀l | SAT | same |
+| `arm_fidelity_mid` | (l, Hold) ∀l | SAT | same |
+| `plant_fan_mid` | (l, Hold) ∀l | SAT | same |
+
+All other instances pass at every asserted index, including all 7 ceiling-shaped
+ones (37 query-groups) and the two special shapes (`rover_drag`, `rung2c`).
+
+**The benchmarks are not in question.** The tool holds a valid certificate for each
+— for the five `Hold` cases it certifies at the *narrowed* domain, which the cover
+records as `jointOK = true`. What is wrong is the **theorem statement**: it asserts
+the query over the bare evolve domain, which is strictly harder and false. A false
+hypothesis makes the theorem vacuously true, so it delivers nothing — and this is
+invisible to `#print axioms`, which is why it survived.
+
+Measured confirmation of the diagnosis, all 10 `Hold` pairs:
+
+```
+stated (bare domain)   : A=SAT  B=SAT  C=SAT
++ Hold cut theta ≥ 0.6 : A=SAT  B=unsat C=unsat
+```
+
+## Why the fix is principled, not a patch
+
+`theta ≥ 0.6` is exactly the `Hold` mode's **guard**. The trust base already
+assumes *guard-gated switching*: at a mode change the entering mode's guard holds.
+The settling and throughout families carry that guard **in the statement** (`Gd`);
+the modal family does not, and these five are where the omission bites. Restating
+the domain as `domL ∧ domR ∧ guard_R(m)` writes down what the contract already
+grants.
+
+## Status
+
+`endurance_orderlift_1to2` is fixed (`edf54d5`). The five `Hold` cases are
+diagnosed but **not fixed** — the repair needs the guard threaded through the modal
+coupling, for which the machinery exists (`CutCover`'s `RightReachG`,
+`GuardThreaded.lean`) but is not yet wired to the modal chain.
+
+Until then, **six of the 47 modal theorems say nothing about their benchmark**, and
+the suite claim should be read as 41 of 47 meaningful (46 with `endurance` fixed,
+less the five outstanding).
+

@@ -146,12 +146,19 @@ query.
 ./.lake/build/bin/relcert --run-verdicts      # → "ALL HYPOTHESES DISCHARGED"
 ```
 
-Measured 2026-07-31 after the modal runner landed: **567 queries, 567 `unsat`,
-0 failures** — 6 watertank + 105 cut probes + **456 modal**, in three passes of one
+Measured 2026-07-31 after the runner's table was pinned: **591 queries, 591 `unsat`,
+0 failures** — 6 watertank + 105 cut probes + **480 modal**, in three passes of one
 command. Every modal instance's verdict pack is now re-run per hypothesis, so the
 earlier split (some hypotheses discharged by the runner, the rest deferred to the
 tool's coarse `CERTIFIED` line) is gone. Anything the runner cannot rebuild prints
 `SKIP` and makes the run exit non-zero; it never silently falls back.
+
+The queries the runner rebuilds are not merely plausible ones: `Verdicts/ModalPinTable`
+proves by `rfl`, for each of the 42 verdict packs, that the instance's own `Verd…` **is**
+the query the runner's table names. A wrong entry does not compile, so a green line here
+is evidence about the theorem's own hypothesis rather than about a lookalike. (The
+earlier count of 567 was taken before that pin existed, and one of its entries was in
+fact rebuilding the wrong query — see `docs/VERDICT-EVIDENCE-AUDIT.md`.)
 
 **What this covers today, precisely:**
 

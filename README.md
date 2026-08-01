@@ -405,7 +405,7 @@ RelCertifier/
     BenchCovers/    46     emitted cover data (+ BenchCoversNC/ without cuts)
     Throughout/     33     cut-free throughout instances (generated)
     CutThroughout/  13     cut-lifted throughout instances (generated)
-  Verdicts/   6 files    EMPIRICAL COLUMN: query mirrors, kernel pins, the runner
+  Verdicts/  10 files    EMPIRICAL COLUMN: query mirrors, kernel pins, the runner
   Archive/    18 files   superseded developments, kept for the record
 benchmarks/   47 dirs    the input suite (46 certified + shield_unreachable)
 scripts/                 instance generators + build orchestration
@@ -587,7 +587,18 @@ compose into a window response; window responses compose into a loop that closes
 * `GenericPins.lean` — the pins that make a runtime-rebuilt query denote *exactly* the
   hypothesized one: one lemma per query shape, covering all benchmarks at once.
 * `Watertank.lean` — the flagship's per-query kernel identity theorems.
-* `Run.lean`, `RunCut.lean` — the runner behind `relcert --run-verdicts`.
+* `ModalPins.lean` — the same idea for the modal instances: an IR query rebuilt at
+  runtime denotes the host-level query the hypothesis names.
+* `ModalVerd.lean` — states, at the host level, exactly what the runner builds:
+  `modalVerd` for the `∀`-over-components form (with an optional head prepended — a
+  ceiling or the repaired `Hold` region — or appended), `modalVerd1` for the bare
+  three-route disjunction eleven instances use.
+* `ModalPinTable.lean` — the 42 `rfl` pins. Each says the instance's own `Verd…` *is*
+  `modalVerd` at the arguments the runner's table names, so a wrong table entry fails
+  to compile rather than sending Z3 a lookalike query and reporting it green.
+* `Run.lean`, `RunCut.lean`, `RunModal.lean` — the runner behind
+  `relcert --run-verdicts`. `RunModal`'s hand-written `RunInfo` table is the data the
+  pins check.
 
 ### `Archive/` — kept for the record, not imported
 

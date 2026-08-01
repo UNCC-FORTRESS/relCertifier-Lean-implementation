@@ -288,36 +288,50 @@ benchmark. The region device is the faithful route, which is why `rung2c` uses i
 
 ---
 
-## The last unpinned link (open, 2026-07-31)
+## The last unpinned link (closed, 2026-07-31)
 
-`relcert --run-verdicts` now discharges **every** theorem's hypotheses in one route
-(567 queries: 6 watertank + 105 cut probes + 456 modal). Two of the three links from
-*what Z3 is asked* to *what the theorem assumes* are kernel-checked:
+`relcert --run-verdicts` discharges **every** theorem's hypotheses in one route
+(591 queries: 6 watertank + 105 cut probes + 480 modal). All three links from *what
+Z3 is asked* to *what the theorem assumes* are now kernel-checked:
 
 | link | status |
 |---|---|
 | spec's argument pairs → theorem | `ModalSpecs.modal_from_spec` ✓ |
+| `RunModal`'s `RunInfo` data → the instance's actual query | `Verdicts/ModalPinTable` ✓ |
 | IR query shape → host query shape | `Verdicts/ModalPins` ✓ |
-| **`RunModal`'s `RunInfo` data → the instance's actual query** | **unpinned** |
 
-`RunInfo` (dimension, invariant row, λ, region, ceiling constants) is hand-written
-in `RunModal.modalTable` and nothing checks it against the instances. A wrong field
-makes the runner test the *wrong query*. That happened twice while the runner was
-being built — a wrong λ and a wrong `invRow` — and both were caught only because the
-wrong query came back `sat`. One that happens to be `unsat` would pass silently.
+`RunInfo` (dimension, invariant row, λ, component order, region and ceiling heads) is
+still hand-written in `RunModal.modalTable`, but it is no longer unchecked: each of
+the 42 verdict packs carries a
 
-**Attempted fix and where it stalled.** The intended closure is a per-instance
+    theorem pin_X (l m : ℕ) : VerdX l m = modalVerd <IR> <fields…> l m := pin_of rfl
 
-    theorem …_pinned : VerdX l m = modalVerd <IR> <fields…> l m := by rfl
+in `Verdicts/ModalPinTable.lean`, where `modalVerd` states at the host level exactly
+what the runner builds. A wrong field no longer type-checks. Eleven instances state
+their hypothesis as a bare three-route disjunction rather than a `∀` over components;
+those use `modalVerd1`, with a companion `modalComps … = [modalRowG …]` pin so the
+runner's one-element component list is provably that same row.
 
-with `modalVerd` stating exactly what the runner builds. The audit's own builders
-prove this shape (`VerdE l m = sVN … := by rfl` ✓), and a generalised `modalVerd`
-was shown equal to them (`sVN … = modalVerd … := by rfl` ✓) — yet the *composite*
-`VerdX = modalVerd` fails `rfl`, and also fails `with_unfolding_all rfl`. Each step
-reduces; the one-step unification does not. Resolving that (a `.trans` of the two
-steps, or a formulation whose normal form the unifier reaches directly) is the
-remaining work. It is fiddly rather than deep, and wants fresh eyes.
+**What the pins caught.** A third wrong entry, of a kind the earlier hand-audits had
+missed four times over: `rover_rung2c` runs left mode `l` against right mode `l`, not
+against a fixed `0`, and carries eight invariant components plus a tail region face —
+where the table said one component at `(0, l)`. `RunInfo` had no tail-append field at
+all. So for two of that benchmark's three hypotheses the runner had been checking a
+different query and reporting it green, which is precisely the silent-pass this link
+was supposed to rule out. `RunInfo` gains `tailCo`/`tailFlip`/`tailKs` mirroring the
+ceiling head; the corrected entry rebuilds 27 queries where it used to rebuild 3, and
+all 27 return `unsat`.
 
-Until then the runner's data is *validated by its results* — all 456 modal queries
-return `unsat`, and a wrong field would have to be wrong in a way that stays `unsat`
-to hide — but it is not *certified by the kernel*.
+**On the earlier diagnosis.** This section previously recorded that the composite
+`VerdX = modalVerd` failed `rfl` while each step reduced, and guessed the unifier was
+at fault. That was wrong. The scratch file exercising the pin lacked
+`open RelCertifier.Parse`, so the benchmark's IR name was unresolvable — and because
+`lake env lean` does not apply the lakefile's `leanOptions`, `autoImplicit`
+silently bound it as a fresh universally-quantified variable. The pin was stating
+something about an *arbitrary* `PProblem`, so `rfl` failed for an entirely mundane
+reason. In-repo files are not exposed to this: the lakefile sets
+`relaxedAutoImplicit = false`, which rejects multi-character auto-binding, and
+`ModalPinTable` additionally sets `autoImplicit false`. Worth recording because the
+failure mode is invisible in the error message — it reports a defeq failure, not an
+unknown identifier — and because an auto-bound pin that *did* happen to prove would
+have been worthless while looking fine.

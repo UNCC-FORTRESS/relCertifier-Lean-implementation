@@ -24,6 +24,7 @@ hypothesis names, so a green line here is evidence about the theorem's own query
 and not about a lookalike.
 -/
 import RelCertifier.Verdicts.ModalPins
+import RelCertifier.Verdicts.ModalVerd
 import RelCertifier.Verdicts.GenericPins
 import RelCertifier.Instances.ModalSpecs
 import RelCertifier.Instances.BenchIR
@@ -32,11 +33,6 @@ import RelCertifier.Trusted.Z3
 namespace RelCertifier.Verdicts
 
 open RelCertifier RelCertifier.Parse RelCertifier.ModalSpecs
-
-/-- Split a conjunctive invariant into its atoms, as the instances do. -/
-def atomsOfM : PForm → List PForm
-  | .and x y => atomsOfM x ++ atomsOfM y
-  | f => [f]
 
 /-- What the runner needs beyond `VerdSpec` to rebuild an instance's queries:
 the ambient dimension, the invariant row, λ, and the optional landing-mode region

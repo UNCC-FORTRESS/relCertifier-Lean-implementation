@@ -345,13 +345,26 @@ correspondence between them was checked by hand (row by row, 2026-07-31) rather 
 the kernel. What the pin buys is that the intended query is now written down once,
 explicitly, and is kernel-tied to the theorem; a table field that disagrees with it
 shows up as a query count or mode pair that does not match the pin, which is how all
-three defects above were found. Closing the remaining step means having the pin quote
-the table row itself (`modalVerd p info.dim info.invRow order …`) instead of restating
-its literals. That is blocked on a mundane obstacle rather than a deep one: `lamN`/`lamD`
-are `ℕ`, so the table's λ reaches the host statement as `((9 : ℕ) : ℝ) / ((4 : ℕ) : ℝ)`,
-which is not definitionally the instance's `(9 : ℝ) / 4` — the same `ℚ`/`ℕ` → `ℝ` cast
-that blocks `whnf` elsewhere in this development. A λ field carried as a host-level
-`Term` would remove it.
+three defects above were found.
+
+**Correction (measured 2026-07-31).** An earlier version of this paragraph blamed the
+`ℕ → ℝ` cast: it claimed the table's λ reaches the host statement as
+`((9 : ℕ) : ℝ) / ((4 : ℕ) : ℝ)`, which is not definitionally the instance's
+`(9 : ℝ) / 4`. **That is false** — `((9:ℕ):ℝ)/((4:ℕ):ℝ) = (9:ℝ)/4` closes by `rfl`, as
+does `((2:ℕ):ℝ) = (2:ℝ)`. The claim was asserted from a general worry about casts rather
+than probed, and it named the wrong obstacle. What actually blocks a pin from quoting
+the table row is two different things:
+
+* **`List.getD` at a symbolic index.** `info.lamPerL.getD l …` and
+  `info.ceilKs.getD m …` are stuck while `l`/`m` are variables, so neither λ (for the
+  three `lamPerL` rows) nor a per-right-mode ceiling head reduces. At a *concrete*
+  index it does reduce — `lamOf (row 0).2.1 0 = (5:ℝ)/2` closes by `rfl`.
+* **Elaboration order, in one spot.** `Rv 1` in `rover_rung2c`'s tail wants
+  `Fin (row 31).2.1.dim` before the projection reduces, so the numeral has no `OfNat`
+  instance. A type ascription fixes it; it is not a defeq failure.
+
+The structural fields carry no such obstacle: quoting `dim`, `invRow` and `order`
+straight from the row closes by `rfl` for every shape in the table.
 
 **On the earlier diagnosis.** This section previously recorded that the composite
 `VerdX = modalVerd` failed `rfl` while each step reduced, and guessed the unifier was

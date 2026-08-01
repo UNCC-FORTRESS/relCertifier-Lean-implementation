@@ -146,8 +146,12 @@ query.
 ./.lake/build/bin/relcert --run-verdicts      # → "ALL HYPOTHESES DISCHARGED"
 ```
 
-Measured on 2026-07-30 and re-confirmed in the full run of 2026-07-31:
-**111 queries, 111 `unsat`, 0 failures.**
+Measured 2026-07-31 after the modal runner landed: **567 queries, 567 `unsat`,
+0 failures** — 6 watertank + 105 cut probes + **456 modal**, in three passes of one
+command. Every modal instance's verdict pack is now re-run per hypothesis, so the
+earlier split (some hypotheses discharged by the runner, the rest deferred to the
+tool's coarse `CERTIFIED` line) is gone. Anything the runner cannot rebuild prints
+`SKIP` and makes the run exit non-zero; it never silently falls back.
 
 **What this covers today, precisely:**
 
@@ -159,8 +163,8 @@ Measured on 2026-07-30 and re-confirmed in the full run of 2026-07-31:
 * the per-atom O2 route probes for the 13 cut-lifted benchmarks
   (`Verdicts/RunCut.lean`).
 
-**What is measured but not yet in the runner:** the verdict packs of the other
-41 modal instances. Each was measured by running its mirror query through the
+**Superseded (kept for context).** Until 2026-07-31 the verdict packs of the other
+41 modal instances were NOT in the runner: Each was measured by running its mirror query through the
 same printer and Z3 (all `unsat`; results recorded per instance in
 `docs/VERDICTS.md`), but they do not yet have kernel identity pins, so a
 reviewer re-checking them is re-running a *mirror* of the query rather than a

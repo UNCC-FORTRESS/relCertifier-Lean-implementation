@@ -19,6 +19,7 @@ import RelCertifier.Trusted.OracleAPI
 import RelCertifier.Trusted.ViabilityEmit
 import RelCertifier.Trusted.KeyAudit
 import RelCertifier.Verdicts.Run
+import RelCertifier.Verdicts.RunModal
 import RelCertifier.Verdicts.RunCut
 
 open RelCertifier DL
@@ -187,7 +188,8 @@ def main (args : List String) : IO Unit := do
       | .ok cfg =>
           let ok1 ← RelCertifier.Verdicts.runVerdicts cfg
           let ok2 ← RelCertifier.Verdicts.runCutProbes cfg
-          if ok1 && ok2 then
+          let ok3 ← RelCertifier.Verdicts.runModal cfg
+          if ok1 && ok2 && ok3 then
             IO.println "ALL HYPOTHESES DISCHARGED"
           else
             IO.eprintln "SOME HYPOTHESIS NOT DISCHARGED"; IO.Process.exit 1

@@ -120,6 +120,7 @@ import RelCertifier.Proofs.Encoding.EnvelopeChain
 import RelCertifier.Instances.WatertankModal
 import RelCertifier.Instances.WatertankViability
 import RelCertifier.Verdicts.Run
+import RelCertifier.Verdicts.RunModal
 import RelCertifier.Proofs.Encoding.CoverInstance
 import RelCertifier.Instances.BenchCoversNC
 import RelCertifier.Archive.ThroughoutPilot

@@ -203,9 +203,12 @@ per-phase totals and `--run-verdicts` checks them:
   [coverage] modal: 483/483 hypotheses discharged
 ```
 
-A mismatch either way fails the run. If the suite legitimately changes, edit
-`Verdicts/Coverage.expected` deliberately — the edit is then a statement of how
-coverage moved.
+A mismatch either way fails the run. And the declared totals are themselves checked:
+`Verdicts/CoveragePins.lean` derives each from the table that generates the work —
+mode pairs × components for the modal phase, tagged atoms per side for the cut probes —
+and proves the derived value equals the declared one. So `Coverage.expected` cannot be
+quietly re-pointed at whatever a run happened to produce; changing it without changing
+the suite fails the build, and vice versa.
 
 The queries the runner rebuilds are not merely plausible ones: `Verdicts/ModalPinTable`
 proves by `rfl`, for each of the 42 verdict packs, that the instance's own `Verd…` **is**

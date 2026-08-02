@@ -36,7 +36,7 @@ compose into the semantic guarantee. Z3's `unsat` answers are the only assumed f
 | `Proofs/Soundness` | 6 / 2,397 | cut lift, guard threading, uniform evolution | `CutLift.lean`, `CutCover.lean`; **`GuardThreaded.lean:374` — the `GBoxAll` quarantine** |
 | `Proofs/Transfer` | 5 / 3,918 | rescaling, the `Faithful` denotation bridge | `Rescale.lean` — the scaling-transfer lemma |
 | `Instances/` | 280 / 85,680 (mostly generated) | per-benchmark theorems + emitted data | `ModalBattery.lean` — every benchmark's Theorem 3 and its axiom audit; `WatertankModal`/`WatertankViability` — the flagship, existence proven |
-| `Verdicts/` | 13 / 2746 | query mirrors, kernel pins, the runner | `ModalPinTable.lean` — each theorem's hypothesis *is* the runner's query |
+| `Verdicts/` | 14 / 2808 | query mirrors, kernel pins, the runner | `ModalPinTable.lean` — each theorem's hypothesis *is* the runner's query |
 | `Archive/` | 17 / 2,683 | superseded developments, not built upon | `ProbeMvHd.lean` — a mechanized vacuity counterexample |
 
 ## 3. The live chain, end to end

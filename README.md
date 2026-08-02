@@ -428,7 +428,7 @@ RelCertifier/
     BenchCovers/    46     emitted cover data (+ BenchCoversNC/ without cuts)
     Throughout/     33     cut-free throughout instances (generated)
     CutThroughout/  13     cut-lifted throughout instances (generated)
-  Verdicts/  13 files    EMPIRICAL COLUMN: query mirrors, kernel pins, the runner
+  Verdicts/  14 files    EMPIRICAL COLUMN: query mirrors, kernel pins, the runner
   Archive/    18 files   superseded developments, kept for the record
 benchmarks/   47 dirs    the input suite (46 certified + shield_unreachable)
 scripts/                 instance generators + build orchestration
@@ -629,6 +629,9 @@ compose into a window response; window responses compose into a loop that closes
 * `Coverage.lean` — the declared per-phase query counts. A runner that issues fewer
   queries than it owes prints nothing but `UNSAT` lines, so the count is checked rather
   than inferred; a mismatch either way fails `--run-verdicts`.
+* `CoveragePins.lean` — proves those declared counts equal what the tables actually
+  generate, so the constants and the suite can only change together. Editing one without
+  the other fails the build.
 * `Run.lean`, `RunCut.lean`, `RunModal.lean` — the runner behind
   `relcert --run-verdicts`. `RunModal`'s `RunInfo` table is the data the pins check;
   `dim`/`invRow`/`order` are quoted out of it by the pins rather than restated.

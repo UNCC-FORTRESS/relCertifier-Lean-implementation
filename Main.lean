@@ -96,8 +96,12 @@ def demoStage1 : IO Unit := do
 
 open RelCertifier.Oracle in
 /-- Run the oracle over `paths` on ONE warm Z3 session; print `path: TAG (Δms)` per file
-and an ERROR count. Exits non-zero if any ERROR (a trustworthy run has zero). -/
-def runBatch (paths : List String) : IO Unit := do
+and an ERROR count, returning the `(certified, declined, errors)` tally.
+
+Split out from `runBatch` so `--check-quick` can consume the tally instead of
+re-implementing the loop; a check that reasons about a copy of this code would not be
+checking what the tool does. -/
+def runBatchTally (paths : List String) : IO (Nat × Nat × Nat) := do
   match ← Z3Config.discover with
   | .error e => IO.eprintln s!"ERROR: {e}"; IO.Process.exit 2
   | .ok cfg =>
@@ -105,6 +109,8 @@ def runBatch (paths : List String) : IO Unit := do
     match ← Z3Session.start cfg with
     | .error e => IO.eprintln s!"ERROR: z3 session: {e}"; IO.Process.exit 2
     | .ok s =>
+      let mut cert := 0
+      let mut decl := 0
       let mut errs := 0
       for path in paths do
         let t0 ← IO.monoMsNow
@@ -116,12 +122,64 @@ def runBatch (paths : List String) : IO Unit := do
         let dt := (← IO.monoMsNow) - t0
         let name := (path.splitOn "/").reverse.getD 1 path
         match oc with
-        | .certified => IO.println s!"{name}: CERTIFIED ({dt}ms)"
-        | .declined  => IO.println s!"{name}: DECLINED ({dt}ms)"
+        | .certified => cert := cert + 1; IO.println s!"{name}: CERTIFIED ({dt}ms)"
+        | .declined  => decl := decl + 1; IO.println s!"{name}: DECLINED ({dt}ms)"
         | .error m   => errs := errs + 1; IO.println s!"{name}: ERROR [{m}] ({dt}ms)"
       s.close
       IO.println s!"errors={errs}"
-      if errs > 0 then IO.Process.exit 1
+      pure (cert, decl, errs)
+
+def runBatch (paths : List String) : IO Unit := do
+  let (_, _, errs) ← runBatchTally paths
+  if errs > 0 then IO.Process.exit 1
+
+/-- Every verdict phase, with its declared coverage checked. Shared by `--run-verdicts`
+and `--check-quick`. -/
+def runAllVerdicts (cfg : RelCertifier.Z3Config) : IO Bool := do
+  let exp := RelCertifier.Verdicts.expected
+  let n0 ← RelCertifier.Verdicts.dischargedCount.get
+  let ok1 ← RelCertifier.Verdicts.runVerdicts cfg
+  let n1 ← RelCertifier.Verdicts.dischargedCount.get
+  let ok2 ← RelCertifier.Verdicts.runCutProbes cfg
+  let n2 ← RelCertifier.Verdicts.dischargedCount.get
+  let ok3 ← RelCertifier.Verdicts.runModal cfg
+  let n3 ← RelCertifier.Verdicts.dischargedCount.get
+  -- a phase that issued fewer queries than it owes is not a green run, however clean
+  -- its own output looked (Verdicts/Coverage.lean)
+  let c1 ← RelCertifier.Verdicts.checkPhase "watertank" (n1 - n0) exp.watertank
+  let c2 ← RelCertifier.Verdicts.checkPhase "cut probes" (n2 - n1) exp.cut
+  let c3 ← RelCertifier.Verdicts.checkPhase "modal" (n3 - n2) exp.modal
+  pure (ok1 && ok2 && ok3 && c1 && c2 && c3)
+
+def usage : String :=
+"relcert — the relCertifier certification tool
+
+USAGE
+  relcert <benchmark input.txt>...        certify benchmarks (CERTIFIED/DECLINED/ERROR)
+  relcert --run-verdicts                  re-run every theorem's Z3 hypotheses
+  relcert --check-quick <input.txt>...    the fast checks: certify, then --run-verdicts
+  relcert --help                          this text
+
+EMITTERS (regenerate committed Lean literals; each prints to stdout)
+  relcert --emit-ir         <input.txt> <defname>
+  relcert --emit-cover      <input.txt> <defname>
+  relcert --emit-cuts       <input.txt> <defname>
+  relcert --emit-viability  <input.txt> <defname>     (also --emit-viability2, -3)
+
+NOT PART OF THIS BINARY
+  The kernel check is the Lean toolchain, not a flag here:
+    lake build                                      kernel-checks everything (~13 h)
+    lake build RelCertifier.Instances.ModalBattery  the 47 theorems + axiom audit
+  The trusted-layer tests are a separate executable:
+    BENCH_PATHS=<manifest> ./.lake/build/bin/relcert-test
+  `relcert-test` silently skips its two Z3-determinism checks unless BENCH_PATHS
+  points at a TSV of `<benchmark name>\\t<absolute path to input.txt>`; a complete run
+  prints a bare `ALL PASS`, a skipping one says so in the final line.
+
+  The full four-check recipe is docs/CERTIFICATION-CHECK.md.
+
+EXIT
+  0 success · 1 a check failed · 2 environment problem (no z3, bad usage)"
 
 open RelCertifier.Oracle in
 /-- `--emit-cuts <file> <defname>`: run the checked-cut search (Z3) and print the kept
@@ -182,24 +240,13 @@ def emitIR (path defname : String) : IO Unit := do
 def main (args : List String) : IO Unit := do
   match args with
   | ["--emit-ir", path, defname] => emitIR path defname
+  | ["--help"] => IO.println usage
+  | ["-h"] => IO.println usage
   | ["--run-verdicts"] => do
       match ← RelCertifier.Z3Config.discover with
       | .error e => IO.eprintln s!"ERROR: {e}"; IO.Process.exit 1
       | .ok cfg =>
-          let exp := RelCertifier.Verdicts.expected
-          let n0 ← RelCertifier.Verdicts.dischargedCount.get
-          let ok1 ← RelCertifier.Verdicts.runVerdicts cfg
-          let n1 ← RelCertifier.Verdicts.dischargedCount.get
-          let ok2 ← RelCertifier.Verdicts.runCutProbes cfg
-          let n2 ← RelCertifier.Verdicts.dischargedCount.get
-          let ok3 ← RelCertifier.Verdicts.runModal cfg
-          let n3 ← RelCertifier.Verdicts.dischargedCount.get
-          -- a phase that issued fewer queries than it owes is not a green run,
-          -- however clean its own output looked (Verdicts/Coverage.lean)
-          let c1 ← RelCertifier.Verdicts.checkPhase "watertank" (n1 - n0) exp.watertank
-          let c2 ← RelCertifier.Verdicts.checkPhase "cut probes" (n2 - n1) exp.cut
-          let c3 ← RelCertifier.Verdicts.checkPhase "modal" (n3 - n2) exp.modal
-          if ok1 && ok2 && ok3 && c1 && c2 && c3 then
+          if ← runAllVerdicts cfg then
             IO.println "ALL HYPOTHESES DISCHARGED"
           else
             IO.eprintln "SOME HYPOTHESIS NOT DISCHARGED"; IO.Process.exit 1
@@ -221,4 +268,31 @@ def main (args : List String) : IO Unit := do
       | .ok cfg => RelCertifier.Oracle.emitCoverFile cfg path defname
   | ["--emit-cuts", path, defname] => emitCuts path defname
   | [] => demoStage1
-  | _ => runBatch args
+  | "--check-quick" :: paths => do
+      if paths.isEmpty then
+        IO.eprintln "ERROR: --check-quick needs benchmark paths (see --help)"
+        IO.Process.exit 2
+      IO.println "== check 1/2 : certify the benchmarks =="
+      let (cert, decl, errs) ← runBatchTally paths
+      let okSuite ← RelCertifier.Verdicts.checkSuite paths.length cert decl errs
+      IO.println "\n== check 2/2 : discharge the verdict hypotheses =="
+      let okVerd ← match ← RelCertifier.Z3Config.discover with
+        | .error e => IO.eprintln s!"ERROR: {e}"; pure false
+        | .ok cfg => runAllVerdicts cfg
+      IO.println ""
+      IO.println s!"  suite:    {if okSuite then "PASS" else "FAIL"}"
+      IO.println s!"  verdicts: {if okVerd then "PASS" else "FAIL"}"
+      if okSuite && okVerd then
+        IO.println "QUICK CHECKS PASSED  (the kernel check is `lake build` — see --help)"
+      else
+        IO.eprintln "QUICK CHECKS FAILED"; IO.Process.exit 1
+  -- Reject unknown flags rather than treating them as benchmark paths: a mistyped
+  -- `--run-verdict` used to be reported as a missing *file*, which reads like a bad
+  -- path rather than a bad command.
+  | _ =>
+      match args.find? (fun a => a.startsWith "-") with
+      | some bad =>
+          IO.eprintln s!"ERROR: unknown option '{bad}'\n"
+          IO.eprintln usage
+          IO.Process.exit 2
+      | none => runBatch args

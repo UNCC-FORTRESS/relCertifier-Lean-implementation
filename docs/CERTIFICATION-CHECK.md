@@ -94,6 +94,32 @@ Practical notes:
 * Editing a docstring in `Proofs/Encoding/` or `Trusted/` invalidates everything
   downstream and costs a full rebuild. Batch such edits into one sweep.
 
+## The four checks at a glance
+
+| # | what it establishes | command |
+|---|---|---|
+| 1 | the Lean proofs kernel-check | `lake build` (~13 h) |
+| 2 | no hidden axioms | `lake build RelCertifier.Instances.ModalBattery` |
+| 3 | the Z3 hypotheses hold | `./.lake/build/bin/relcert --run-verdicts` |
+| 4 | parser/printer/IR-drift/determinism | `BENCH_PATHS=<manifest> ./.lake/build/bin/relcert-test` |
+| — | the benchmarks still certify | `./.lake/build/bin/relcert benchmarks/suite_uniform/*/input.txt` |
+
+Checks 3 and the certification run are bundled by
+
+```bash
+./.lake/build/bin/relcert --check-quick benchmarks/suite_uniform/*/input.txt
+```
+
+which certifies the suite, compares the tally against `Verdicts/Coverage.expectedSuite`
+(46 certified, 0 declined, 1 documented inconclusive), then discharges every hypothesis
+with its coverage counts, and exits non-zero if either half fails. It deliberately does
+*not* run check 1 — a 13-hour build does not belong behind a flag named "quick" — and
+does not run check 4, which lives in a separate binary. `relcert --help` says so.
+
+`relcert` rejects unknown options rather than treating them as benchmark paths: a
+mistyped `--run-verdict` reports `unknown option` and exits 2, instead of complaining
+that a *file* by that name is missing.
+
 ## Check 1 — the kernel checks every instance proof
 
 ```bash

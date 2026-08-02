@@ -46,9 +46,30 @@ repairs add a **region conjunct** to the invariant — see *Conditioning* below.
 ```bash
 lake build                                   # whole development (proofs + instances)
 lake build relcert                           # the certifier executable
+./.lake/build/bin/relcert --help             # all commands, and what is NOT in this binary
 ./.lake/build/bin/relcert benchmarks/suite_uniform/watertank/input.txt   # certify one
 ./.lake/build/bin/relcert --run-verdicts     # empirically re-check theorem hypotheses
+
+# the two fast checks in one command (certify the suite, then discharge hypotheses):
+./.lake/build/bin/relcert --check-quick benchmarks/suite_uniform/*/input.txt
 ```
+
+**Which command checks what.** The kernel check and the tool check are deliberately
+separate, and they live in different places:
+
+| what you want to check | command |
+|---|---|
+| the Lean proofs (kernel) | `lake build` — everything, ~13 h |
+| the 47 theorems + their axioms | `lake build RelCertifier.Instances.ModalBattery` |
+| the benchmarks certify (the tool) | `relcert <input.txt>...` |
+| the theorems' Z3 hypotheses hold | `relcert --run-verdicts` |
+| both of the fast ones at once | `relcert --check-quick <input.txt>...` |
+| parser / printer / IR-drift / determinism | `BENCH_PATHS=<manifest> relcert-test` |
+
+`--check-quick` compares the certification tally against the suite declared in
+`Verdicts/Coverage.expectedSuite` (46 certified, 0 declined, and the one documented
+inconclusive), so a benchmark that starts failing cannot hide among the expected
+results. Give it a different path set and the tally is reported but not enforced.
 
 A full `lake build` is **~13 hours** (12h59m measured from cold, 2026-08-02) and peaks
 near 30 GB; see the *Cost* section of

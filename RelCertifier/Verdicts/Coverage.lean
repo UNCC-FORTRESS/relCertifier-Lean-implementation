@@ -51,6 +51,42 @@ structure Expected where
 docstring for why this is a declared constant rather than whatever the run produced. -/
 def expected : Expected := { watertank := 6, cut := 105, modal := 483 }
 
+/-- What a certification run over the standard suite produces.
+
+`shield_unreachable` is the 47th benchmark and is *documented* to come back with an
+inconclusive Z3 verdict rather than a decision — so a green run has exactly one error,
+not zero. Declaring that here means a *second* benchmark starting to error is a failure
+instead of blending into an expected one. -/
+structure ExpectedSuite where
+  paths     : Nat := 47
+  certified : Nat := 46
+  declined  : Nat := 0
+  errors    : Nat := 1
+  deriving Repr
+
+def expectedSuite : ExpectedSuite := {}
+
+/-- Compare a certification tally against `expectedSuite`.
+
+Enforced only when the run covered the declared number of paths; on any other path set
+the tally is reported but not judged, since the expected numbers describe the whole
+suite and say nothing about a subset. -/
+def checkSuite (nPaths certified declined errors : Nat) : IO Bool := do
+  let e := expectedSuite
+  if nPaths != e.paths then
+    IO.println s!"  [suite] {certified} certified, {declined} declined, {errors} error(s) \
+over {nPaths} path(s) — tally not enforced (the declared suite is {e.paths} paths)"
+    return true
+  else if certified == e.certified && declined == e.declined && errors == e.errors then
+    IO.println s!"  [suite] {certified} certified, {declined} declined, {errors} error(s) \
+— matches the declared suite"
+    return true
+  else
+    IO.eprintln s!"  [suite] {certified} certified, {declined} declined, {errors} error(s) \
+but the declared suite is {e.certified}/{e.declined}/{e.errors}; if this change is \
+intended, update `Verdicts/Coverage.expectedSuite`"
+    return false
+
 /-- Compare an actual phase count against its declared total, reporting either way. -/
 def checkPhase (name : String) (actual want : Nat) : IO Bool := do
   if actual == want then

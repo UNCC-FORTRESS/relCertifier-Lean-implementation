@@ -58,9 +58,18 @@ already in the repository.
 
 ### Cost — read this before starting check 1
 
-A full `lake build` of this development is **10–14 hours** and peaks near **30 GB**
-across ~12 Lean workers. Measured 2026-07-31: 12h18m wall clock, 29.6 GB peak,
-at 8979 jobs (8987 now, after the verdict pins landed). From cold it is longer still, since mathlib compiles first.
+A full `lake build` of this development is **13–14 hours** and peaks near **30 GB**
+across ~12 Lean workers. Two measurements:
+
+* **From cold** (2026-08-02, `920f79c`): **12h59m**, 8988 jobs, exit 0. "Cold" means
+  `lake clean` had wiped this package *and* its dependencies, so the run recompiles
+  dL-rel and the Mathlib subset this development imports before it reaches
+  `RelCertifier/` — roughly the first 8000 of those jobs. Peak memory was not
+  instrumented on this run.
+* **Warm dependencies** (2026-07-31): 12h18m, 29.6 GB peak, at 8979 jobs.
+
+The two are closer than you might expect. The Mathlib subset pulled in here is small
+next to the 12-dof instances, which dominate the wall clock either way.
 
 The shape of the run matters if you are watching it. Most files clear steadily, then
 the last five — the 12-dof instances `refinement_ladder_rover_rung4_8to12`,

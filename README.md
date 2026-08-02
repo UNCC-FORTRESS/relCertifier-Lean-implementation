@@ -50,7 +50,8 @@ lake build relcert                           # the certifier executable
 ./.lake/build/bin/relcert --run-verdicts     # empirically re-check theorem hypotheses
 ```
 
-A full `lake build` is **10–14 hours** and peaks near 30 GB; see the *Cost* section of
+A full `lake build` is **~13 hours** (12h59m measured from cold, 2026-08-02) and peaks
+near 30 GB; see the *Cost* section of
 [`docs/CERTIFICATION-CHECK.md`](docs/CERTIFICATION-CHECK.md) before starting one. To
 check a single file against already-built dependencies, use `lake env lean <file>`
 instead — one process, reusing existing oleans.

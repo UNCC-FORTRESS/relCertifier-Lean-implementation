@@ -8,14 +8,14 @@ theorem?*
 Read `README.md` first for what the theorems say. This document is only about
 **checking** them.
 
-> **Last full run: 2026-07-31, on `fc6acc3`. All four checks green.**
-> `lake build` 8987 jobs, exit 0 · `relcert-test` ALL PASS ·
-> `--run-verdicts` ALL HYPOTHESES DISCHARGED (594/594 `unsat`) ·
-> `relcert-test` run with `BENCH_PATHS` set, so the two Z3-determinism checks ran
-> rather than skipping — a plain run now says `ALL PASS (2 SKIPPED)` ·
+> **Last full run: 2026-08-02, on `920f79c`, from a cold tree. All four checks green.**
+> `lake build` 8988 jobs, exit 0, **12h59m from cold** · `relcert-test` ALL PASS (with
+> `BENCH_PATHS` set, so the two Z3-determinism checks ran rather than skipping) ·
+> `--run-verdicts` ALL HYPOTHESES DISCHARGED (594/594 `unsat`, coverage 6/105/483) ·
 > axiom audit 47 theorems: 42 with `z3_unsat_sound`, 5 with the standard three
-> alone, **no `sorryAx`, no `native_decide`, no other axioms**.
-> Wall clock 12h18m — see *Cost* below before you start it.
+> alone, **no `sorryAx`, no `native_decide`, no other axioms** ·
+> full suite 46 CERTIFIED, 0 DECLINED, `shield_unreachable` inconclusive as documented.
+> See *Cost* below before you start one.
 
 ---
 

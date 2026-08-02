@@ -85,13 +85,40 @@ def modalPairs (spec : VerdSpec) (info : RunInfo) : List (ℕ × ℕ) :=
     | none   => (v, v)
     | some o => if info.argIsRight then (o, v) else (v, o))
 
+/-! ### The pieces the runner builds, factored out
+
+`ModalCodePins.lean` proves these denote the host-level terms the hypotheses name. The
+functions have to be the ones `runSpec`/`checkComp` actually call — a lemma about a
+transcription of this code would say nothing about what Z3 is asked. -/
+
+/-- λ, as the runner builds it: the per-window entry if there is one, else `lamN/lamD`. -/
+def modalLamI (info : RunInfo) (l n : ℕ) : ITerm n :=
+  let (ln, ld) := info.lamPerL.getD l (info.lamN, info.lamD)
+  .rat ((ln : ℚ) / (ld : ℚ))
+
+/-- A `k − R_c` / `R_c − k` head from a coordinate, a flip flag and a per-mode constant
+list. Shared by the ceiling head and the tail face, which differ only in where they sit
+in the component list. -/
+def modalHeadI (co : Option ℕ) (flip : Bool) (ks : List ℚ) (m : ℕ) {n : ℕ} (h : 0 < n) :
+    List (ITerm n) :=
+  match co with
+  | none => []
+  | some c =>
+    let k : ℚ := ks.getD m (ks.getD 0 0)
+    let v : ITerm n := .var (Rv ⟨c % n, Nat.mod_lt _ h⟩)
+    [if flip then .bin .sub (.rat k) v else .bin .sub v (.rat k)]
+
+/-- The three route queries tried per component, in order. -/
+def modalRoutes {n : ℕ} (g : ITerm n) (fL fR : Fin n → ITerm n) (lam : ITerm n)
+    (dom : IForm n) : List (String × IForm n) :=
+  [("A", iflowQuery g fL fR lam dom), ("B", iflowQueryStrict g fL fR lam dom),
+   ("C", iflowQuerySuperlevel g fL fR lam dom)]
+
 /-- One hypothesis: all three routes on one component of one argument pair. -/
 private def checkComp {n : ℕ} (s : Z3Session) (coord : Fin n → String)
     (g : ITerm n) (fL fR : Fin n → ITerm n) (lam : ITerm n) (dom : IForm n) :
     IO (Bool × String) := do
-  let qs : List (String × IForm n) :=
-    [("A", iflowQuery g fL fR lam dom), ("B", iflowQueryStrict g fL fR lam dom),
-     ("C", iflowQuerySuperlevel g fL fR lam dom)]
+  let qs : List (String × IForm n) := modalRoutes g fL fR lam dom
   let mut detail := ""
   for (rn, q) in qs do
     match ← s.check (q.toScript coord) with
@@ -131,25 +158,13 @@ def runSpec (s : Z3Session) (spec : VerdSpec) (info : RunInfo)
             Run.lowerF vars n Side.R (p.R.modes.getD 0 dm).evolve with
       | some fL, some fR, some dL, some dR =>
         -- the ceiling head is per right mode, so it is rebuilt inside the pair loop
-        let ceilT : List (ITerm n) := match info.ceilCo with
-          | none => []
-          | some c =>
-            let k : ℚ := info.ceilKs.getD m (info.ceilKs.getD 0 0)
-            let v : ITerm n := .var (Rv ⟨c % n, Nat.mod_lt _ h⟩)
-            [if info.ceilFlip then .bin .sub (.rat k) v else .bin .sub v (.rat k)]
+        let ceilT : List (ITerm n) := modalHeadI info.ceilCo info.ceilFlip info.ceilKs m h
         -- the tail face is per right mode too, and sits behind the invariant's own
-        let tailT : List (ITerm n) := match info.tailCo with
-          | none => []
-          | some c =>
-            let k : ℚ := info.tailKs.getD m (info.tailKs.getD 0 0)
-            let v : ITerm n := .var (Rv ⟨c % n, Nat.mod_lt _ h⟩)
-            [if info.tailFlip then .bin .sub (.rat k) v else .bin .sub v (.rat k)]
+        let tailT : List (ITerm n) := modalHeadI info.tailCo info.tailFlip info.tailKs m h
         let comps : List (ITerm n) := ceilT ++ (match info.region with
           | none   => base
           | some k => (ITerm.bin .sub (.rat k) (.var (Rv ⟨0, h⟩))) :: base) ++ tailT
-        let (ln, ld) := match info.lamPerL.getD l (info.lamN, info.lamD) with
-          | (a, b) => (a, b)
-        let lam : ITerm n := .rat ((ln : ℚ) / (ld : ℚ))
+        let lam : ITerm n := modalLamI info l n
         for i in List.range comps.length do
           let dom := istrataDomHost (IForm.and dL dR) (comps.take i)
           let (good, detail) ← checkComp s coord (comps.getD i (.rat 0)) fL fR lam dom

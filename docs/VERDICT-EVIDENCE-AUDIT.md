@@ -6,8 +6,9 @@ hypotheses (`Verd… l m`). A theorem with a false hypothesis is vacuously true,
 
 **Answer, as of the end of 2026-07-31.** All of them are re-run, in one route, by
 `relcert --run-verdicts` — 594 queries, all `unsat`, exit 0 — and the query the runner
-sends is tied to the query the theorem assumes by `rfl` pins
-(`Verdicts/ModalPinTable.lean`, `Verdicts/ModalTablePins.lean`). Six hypotheses were
+sends is tied to the query the theorem assumes by kernel pins
+(`Verdicts/ModalPinTable.lean`, `ModalTablePins.lean`, `ModalCodePins.lean` — the last
+covering the runner's *code*, not just its data). Six hypotheses were
 found **vacuous** during the day's audit and all six were repaired; four further defects
 were found in the runner's own table, three of them by the pins. What remains outside the
 kernel is listed under *The last unpinned link* below, and is narrow.
@@ -367,39 +368,31 @@ Checked by deliberately corrupting the table (2026-07-31): a wrong `tailCo`, a d
 `order` entry, and a wrong `fixedOther` each fail the build. Those are exactly the three
 defect classes found above.
 
-**What is still not kernel-checked.** Two things, both narrow:
+**The runner's code, not just its data.** The pins above tie the `RunInfo` row to the
+theorems, which still left the code turning those fields into a query read rather than
+proved. `Verdicts/ModalCodePins.lean` closes that, in 72 `rfl`/`simp` theorems over the
+functions `runSpec` and `checkComp` actually call:
 
-* **λ and the head terms.** A pin writes `(9 : ℝ) / 4`, `regA`, `ceilR m`; the table
-  carries `lamN`/`lamD`, `region`, `ceilCo`/`ceilKs`. `ModalTablePins` pins the table
-  side, but nothing in the kernel says `lamN/lamD` *means* `lamN/lamD : ℝ`, or that
-  `ceilCo`/`ceilKs` build that head term — those are two short stretches of runner code,
-  checked by reading. The numeric agreement between the two sides was checked by script
-  over all 42 rows, not by eye: λ literals against `lamN`/`lamD`, fixed modes against the
-  visited pairs, and the three `lamPerL` rows against the instances' own `lamC`/`lamD`/
-  `lamM` (`5/2, 3/2, 1` etc.).
-* **The `comps_*` shape argument.** For the eleven one-component instances,
-  `modalComps … = [modalRowG …]` says the runner's component list is the single
-  invariant row; that the runner's *loop over a one-element list* issues exactly the
-  three queries of a bare disjunction is again read, not proved.
+* `modalLamI` — that the pair `(lamN, lamD)` denotes the real number `lamN/lamD`. This
+  was the sharpest remaining hole: no data pin mentioned those fields, so changing the
+  `/` to a `*` left every pin compiling, and since a larger λ is a *weaker* flow
+  condition the wrong query would likely still come back `unsat`. Now 12 theorems fail
+  if that line changes.
+* `modalHeadI` — that `ceilCo`/`ceilFlip`/`ceilKs` build the head term the instance
+  names (`ceilR m` and friends), and likewise `rover_rung2c`'s tail face. Stated per
+  right mode, because `List.getD` does not reduce at a variable index.
+* `modalRoutes` — that the three queries tried per component denote exactly
+  `flowQuery`, `flowQueryStrict` and `flowQuerySuperlevel`, the three the hypotheses
+  disjoin. Generic in every argument.
 
-**Correction (measured 2026-07-31).** An earlier version of this paragraph blamed the
-`ℕ → ℝ` cast: it claimed the table's λ reaches the host statement as
-`((9 : ℕ) : ℝ) / ((4 : ℕ) : ℝ)`, which is not definitionally the instance's
-`(9 : ℝ) / 4`. **That is false** — `((9:ℕ):ℝ)/((4:ℕ):ℝ) = (9:ℝ)/4` closes by `rfl`, as
-does `((2:ℕ):ℝ) = (2:ℝ)`. The claim was asserted from a general worry about casts rather
-than probed, and it named the wrong obstacle. What actually blocks a pin from quoting
-the table row is two different things:
+Checked by breaking the runner three ways: `/` → `*` in the λ fails 12 theorems,
+dropping route C fails 3, and shifting the head coordinate by one fails 24. Before this
+file, all three edits compiled clean.
 
-* **`List.getD` at a symbolic index.** `info.lamPerL.getD l …` and
-  `info.ceilKs.getD m …` are stuck while `l`/`m` are variables, so neither λ (for the
-  three `lamPerL` rows) nor a per-right-mode ceiling head reduces. At a *concrete*
-  index it does reduce — `lamOf (row 0).2.1 0 = (5:ℝ)/2` closes by `rfl`.
-* **Elaboration order, in one spot.** `Rv 1` in `rover_rung2c`'s tail wants
-  `Fin (row 31).2.1.dim` before the projection reduces, so the numeral has no `OfNat`
-  instance. A type ascription fixes it; it is not a defeq failure.
-
-The structural fields carry no such obstacle: quoting `dim`, `invRow` and `order`
-straight from the row closes by `rfl` for every shape in the table.
+So the chain is now kernel-checked from a theorem's `Verd…` all the way to the IR query
+handed to `toScript`. What remains outside the kernel is the printer and Z3 — the frozen
+trust base — plus one control-flow fact left to reading: that `checkComp`'s loop reports
+success exactly when one of the three routes answered `unsat`.
 
 **On the earlier diagnosis.** This section previously recorded that the composite
 `VerdX = modalVerd` failed `rfl` while each step reduced, and guessed the unifier was

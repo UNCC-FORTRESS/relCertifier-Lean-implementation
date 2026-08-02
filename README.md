@@ -428,7 +428,7 @@ RelCertifier/
     BenchCovers/    46     emitted cover data (+ BenchCoversNC/ without cuts)
     Throughout/     33     cut-free throughout instances (generated)
     CutThroughout/  13     cut-lifted throughout instances (generated)
-  Verdicts/  12 files    EMPIRICAL COLUMN: query mirrors, kernel pins, the runner
+  Verdicts/  13 files    EMPIRICAL COLUMN: query mirrors, kernel pins, the runner
   Archive/    18 files   superseded developments, kept for the record
 benchmarks/   47 dirs    the input suite (46 certified + shield_unreachable)
 scripts/                 instance generators + build orchestration
@@ -622,6 +622,10 @@ compose into a window response; window responses compose into a loop that closes
 * `ModalTablePins.lean` — pins the rest of the `RunInfo` row as data, including the
   `(left, right)` pairs via `RunModal.modalPairs` (the runner's own function, not a
   copy). Corrupting a table field fails the build.
+* `ModalCodePins.lean` — pins the runner's *code*: that `(lamN, lamD)` denotes
+  `lamN/lamD`, that the ceiling and tail fields build the head terms the instances name,
+  and that the three routes tried per component are A, B and C. Breaking any of those
+  lines fails the build; before this file they compiled clean.
 * `Coverage.lean` — the declared per-phase query counts. A runner that issues fewer
   queries than it owes prints nothing but `UNSAT` lines, so the count is checked rather
   than inferred; a mismatch either way fails `--run-verdicts`.

@@ -14,9 +14,10 @@ single external oracle, consulted only through printed SMT scripts, and only its
 `unsat` answers are trusted.
 
 **Status.** All 46 certified benchmarks carry the modal (Theorem 3) statement — 47
-theorems, since one benchmark splits per left mode. Verified end to end on 2026-07-31:
-42 theorems audit to the three standard Lean axioms plus `z3_unsat_sound`, and 5 audit
-to the three standard axioms alone. No `sorry`, no `admit`, no `native_decide`.
+theorems, since one benchmark splits per left mode. Verified end to end on 2026-08-02
+from a cold tree (12h59m, 8988 jobs, exit 0): 42 theorems audit to the three standard
+Lean axioms plus `z3_unsat_sound`, and 5 audit to the three standard axioms alone. No
+`sorry`, no `admit`, no `native_decide`.
 
 **Every verdict hypothesis has been checked true.** A kernel-checked axiom list says a
 proof did not cheat; it cannot say the theorem's *hypotheses* hold, and a theorem with a
@@ -651,11 +652,19 @@ mechanized counterexample `WellFormedFlow_rover_false`. See `RelCertifier/Archiv
 ## Re-checking the guarantees
 
 ```bash
-lake build                                      # kernel-checks every instance (10-14 h)
-./.lake/build/bin/relcert-test                  # IR drift, parser, printer, z3 layer
-./.lake/build/bin/relcert --run-verdicts        # hypotheses → docs/VERDICTS.md
-./.lake/build/bin/relcert benchmarks/suite_uniform/*/input.txt   # full certification re-run
+lake build                                      # kernel-checks every instance (~13 h)
+./.lake/build/bin/relcert --check-quick benchmarks/suite_uniform/*/input.txt
+                                                # certification re-run + all hypotheses
+BENCH_PATHS=<manifest> ./.lake/build/bin/relcert-test
+                                                # IR drift, parser, printer, z3 layer
 ```
+
+The two halves of `--check-quick` are also available separately as
+`relcert benchmarks/…/input.txt` and `relcert --run-verdicts`; `relcert --help` lists
+everything. **Set `BENCH_PATHS`** when running `relcert-test` — a TSV of
+`<benchmark name><TAB><absolute path to input.txt>`. Without it the binary skips its two
+Z3-determinism checks; it says so in the final line (`ALL PASS (2 SKIPPED …)`), but a
+complete run prints a bare `ALL PASS`.
 
 The full recipe — what each command proves, what it does *not* cover, the cost, and the
 per-benchmark table — is [`docs/CERTIFICATION-CHECK.md`](docs/CERTIFICATION-CHECK.md).

@@ -245,12 +245,22 @@ its method, results (210/210), pitfalls, and expiry conditions, in
 
 ```bash
 lake build relcert-test
-./.lake/build/bin/relcert-test               # → "[ir-drift] ... ALL PASS"
+# BENCH_PATHS is a TSV of  <benchmark name><TAB><absolute path to input.txt>
+for d in benchmarks/suite_uniform/*/; do
+  printf '%s\t%s\n' "$(basename "$d")" "$PWD/$d/input.txt"
+done > /tmp/bench-paths.tsv
+BENCH_PATHS=/tmp/bench-paths.tsv ./.lake/build/bin/relcert-test   # → "ALL PASS"
 ```
 
 This re-parses every `benchmarks/suite_uniform/<name>/input.txt` and compares
 it to the embedded `<name>_IR` literal that the instances quote. It also
 exercises the Z3 layer, the parser's rejection behaviour, and the SMT printer.
+
+**Set `BENCH_PATHS`.** Without it the two Z3-determinism checks (the same query
+answered identically 8× on a warm session, for one CERTIFIED and one DECLINED
+benchmark) cannot find their inputs and do not run. A complete run prints a bare
+`ALL PASS`; a run that skipped them says `ALL PASS (2 SKIPPED — set BENCH_PATHS
+to run them)`. Read the final line, not just the words "ALL PASS".
 
 Additionally, `Instances/FaithfulCerts.lean` carries kernel `rfl` certificates
 tying each IR literal to its transcribed instance data (λ and per-coordinate

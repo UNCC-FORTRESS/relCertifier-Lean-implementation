@@ -78,6 +78,8 @@ near 30 GB; see the *Cost* section of
 check a single file against already-built dependencies, use `lake env lean <file>`
 instead — one process, reusing existing oleans.
 
+Current state in one page — what is proved, assumed, and open: [`STATUS.md`](STATUS.md).
+
 Reports land in `docs/VERDICTS.md`. Axiom audits: see [Trust audit](#trust-audit).
 **Reproducing the whole certification claim, step by step:**
 [`docs/CERTIFICATION-CHECK.md`](docs/CERTIFICATION-CHECK.md).

@@ -79,6 +79,11 @@ import RelCertifier.Instances.Story1AttdistRungAHandoff
 import RelCertifier.Instances.Story1AttdistRungBHandoff
 import RelCertifier.Instances.Story3RolloverRungBHandoff
 import RelCertifier.Instances.Rover3tierRung12Handoff
+import RelCertifier.Instances.ArmChainRung3Declared
+import RelCertifier.Instances.ArmFidelityHighDeclared
+import RelCertifier.Instances.ArmFidelityMidDeclared
+import RelCertifier.Instances.PlantFanHighDeclared
+import RelCertifier.Instances.PlantFanMidDeclared
 
 namespace RelCertifier
 
@@ -194,5 +199,21 @@ that its handoffs hold, and it keeps its two per-left-mode theorems above as wel
 #print axioms Story3RolloverRungBHandoff.story3_rollover_rung_b_modeKeyed
 -- rover3tier_rung12 (repaired rows)
 #print axioms Rover3tierRung12Handoff.rover3tier_rung12_modeKeyed
+
+/-! ### The cut-composed theorems — the DECLARED invariant of the five checked-cut
+benchmarks, with the `Hold` cut carried as that mode's region only (`mvRegionR`;
+`Proofs/Encoding/CutComposition.lean`, `docs/CUT-COMPOSITION.md`). Their base theorems
+above keep the cut as an invariant conjunct at every mode. All five are Z3-free:
+right-only catch-up responses, endpoint arithmetic. -/
+-- arm_chain_rung3
+#print axioms ArmChainRung3Declared.arm_chain_rung3_declared
+-- arm_fidelity_high
+#print axioms ArmFidelityHighDeclared.arm_fidelity_high_declared
+-- arm_fidelity_mid
+#print axioms ArmFidelityMidDeclared.arm_fidelity_mid_declared
+-- plant_fan_high
+#print axioms PlantFanHighDeclared.plant_fan_high_declared
+-- plant_fan_mid
+#print axioms PlantFanMidDeclared.plant_fan_mid_declared
 
 end RelCertifier

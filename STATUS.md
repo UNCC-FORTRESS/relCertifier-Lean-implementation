@@ -1,19 +1,20 @@
-# Status — 2026-10-08 (branch `cut-composition`)
+# Status — 2026-10-08 (branch `dedupe-suite`)
 
 Current state of `relCertifier-lean-implementation` in one page: what is proved, what is
 assumed, what to run, and what is open. For *what the theorems say* read
 [`README.md`](README.md); for *how to re-check them* read
 [`docs/CERTIFICATION-CHECK.md`](docs/CERTIFICATION-CHECK.md).
 
-**Branch head: see `git log`.** 413 Lean files, 47 benchmark inputs, 46 modal instances (+ 7 mode-keyed, + 5 declared-invariant leaves).
+**Branch head: see `git log`.** 378 Lean files, 41 benchmark inputs, 40 modal instances (+ 7 mode-keyed, + 2 declared-invariant leaves).
 
 ---
 
 ## Headline
 
-Every one of the 46 certified benchmarks carries a kernel-checked relational-refinement
-theorem of the paper's Theorem 3 shape (47 theorems — `rover3tier_rung12` splits per left
-mode). Their only assumptions are a five-item trust base and a finite list of Z3 `unsat`
+Every one of the 40 certified benchmarks carries a kernel-checked relational-refinement
+theorem of the paper's Theorem 3 shape (41 base theorems — `rover3tier_rung12` splits per
+left mode; 50 theorems in `ModalBattery` with the 7 mode-keyed and the 2 cut-composed
+ones). Their only assumptions are a five-item trust base and a finite list of Z3 `unsat`
 verdicts, and **every one of those verdicts is re-run on demand against a query the kernel
 certifies is the theorem's own**.
 
@@ -30,22 +31,39 @@ carry the composed theorem `…_modeKeyed` at their declared rows (54 theorems i
 `ACCEL → COAST` handoff was satisfiable (countermodel recorded); the row was re-stated — rows
 only — as the velocity envelope plus COAST's own functional bound (`docs/HANDOFF.md`).
 
-**New (2026-10-08, branch `cut-composition`): the five checked-cut benchmarks at their
+**New (2026-10-08, branch `dedupe-suite`): the suite is deduplicated to 40
+benchmarks.** Normalizing each `input.txt` (comments, blank lines and the `name =` line
+removed) showed three groups of byte-identical models under several names
+(`arm_chain_rung3` = `arm_fidelity_high` = `plant_fan_high`; `arm_fidelity_low` =
+`arm_refinement` = `plant_fan_low`; `match_multi_eps` = `rover3tier_M1`) and one
+near-duplicate (`plant_fan_mid` = `arm_fidelity_mid` with tolerance 0.3 instead of 0.25).
+The six redundant names were removed with everything that referenced them (benchmark
+directories, 9 instance leaves, 28 emitted-data leaves, `Archive/Mega.lean`, runner rows,
+pins, coverage constants, generator lists). Declared coverage is now 6 / 97 / 504 / 191
+(from 6 / 105 / 522 / 215), re-derived and pinned by `decide` in `CoveragePins`; the
+battery has 50 theorems (41 base + 7 mode-keyed + 2 cut-composed), 40 with
+`z3_unsat_sound` and 10 standard-three. Method, removals, and the per-benchmark
+declared-invariant theorem table: `docs/SUITE-DEDUPE.md`.
+
+**New (2026-10-08, branch `cut-composition`): the checked-cut benchmarks at their
 DECLARED invariant.** `arm_chain_rung3`, `arm_fidelity_high`, `arm_fidelity_mid`,
-`plant_fan_high`, `plant_fan_mid` carried Theorem 3 only with the `Hold` cut `θ_R ≥ 0.6`
+`plant_fan_high`, `plant_fan_mid` (the latter three removed by the deduplication above;
+two remain) carried Theorem 3 only with the `Hold` cut `θ_R ≥ 0.6`
 conjoined to the invariant at every right mode. Each now also carries
 `<name>_declared` (`Instances/<Name>Declared.lean`): the declared row itself, with the cut
 carried as `Hold`'s mode region only (`mvRegionR`; `⊤` at the approach modes) — the
 composition of the cut's two obligations, O1 entry and O2 invariance. Z3-free: right-only
 catch-up responses (`Proofs/Encoding/CutComposition.lean`), standard three axioms, no
 runner change. The plain-`mvValid` form (no region anywhere) is FALSE for these automata
-(countermodel recorded). 59 theorems in `ModalBattery`. `docs/CUT-COMPOSITION.md`,
+(countermodel recorded). 59 theorems in `ModalBattery` at the time; 50 after the
+deduplication. `docs/CUT-COMPOSITION.md`,
 `docs/PAPER-MAPPING.md` §2c.
 
 ## Last full verification
 
 Four checks, all green, from a **cold tree** (`lake clean` had wiped this package *and*
-its dependencies):
+its dependencies). This run predates the 2026-10-08 deduplication (46-benchmark suite);
+the current numbers are in *Branch run (`dedupe-suite`)* below:
 
 | check | command | result |
 |---|---|---|
@@ -77,6 +95,22 @@ the new 12-dof leaf `Story1AttdistRungBHandoff.lean` takes ~10 min on its own):
 | trusted layer | `BENCH_PATHS=… relcert-test` | ALL PASS (no skips) |
 | suite + verdicts | `relcert --check-quick benchmarks/suite_uniform/*/input.txt` | 46 CERTIFIED, 0 DECLINED, 1 documented error; QUICK CHECKS PASSED |
 | handoff alone | `relcert --handoff benchmarks/suite_uniform/*/input.txt` | 216/216 transitions checked, 215 unsat; the one FAIL is `shield_unreachable`'s self-loop, whose right evolve does not lower against the left variable list (the 47th, outside the emitted suite) |
+
+## Branch run (2026-10-08, `dedupe-suite`) — the current numbers
+
+All checks green on the branch head after the removal of the six duplicate benchmarks,
+from the warm tree (the rebuild touched only the whole-suite aggregators, the pins and
+runner, and the ≤ 6-dof leaves downstream of two `Proofs/` docstring edits; 8969 jobs,
+1m27s):
+
+| check | command | result |
+|---|---|---|
+| kernel | `lake build` | 8969 jobs, exit 0 |
+| axioms | `lake build RelCertifier.Instances.ModalBattery` (`grep -A3`) | **50** theorems: 10 standard-three (the 5 Z3-free base instances, the 3 composed rover theorems, the 2 `…_declared`), 40 `+z3_unsat_sound`, 0 other, no `sorryAx` |
+| hypotheses | `relcert --run-verdicts` | **798 `unsat`**, coverage 6 / 97 / 504 / 191, no declared handoff failure, `ALL HYPOTHESES DISCHARGED`, exit 0 |
+| trusted layer | `BENCH_PATHS=… relcert-test` | `ALL PASS` (no skips; `all 40 IR literals match their files`) |
+| suite + verdicts | `relcert --check-quick benchmarks/suite_uniform/*/input.txt` | `40 certified, 0 declined, 1 error(s) — matches the declared suite`; QUICK CHECKS PASSED |
+| handoff alone | `relcert --handoff benchmarks/suite_uniform/*/input.txt` | 192/192 transitions checked over 41 inputs, 191 unsat; the one FAIL is `shield_unreachable`'s self-loop, as documented (exit 1 by design) |
 
 ## Branch run (2026-10-08, `cut-composition`)
 
@@ -112,14 +146,14 @@ fixpoints, route selection, λ choice — is entirely untrusted: it only propose
 ## What was closed recently
 
 The gap between *the hypothesis a theorem assumes* and *the query the runner sends Z3* is
-now kernel-checked end to end, in 169 theorems under `RelCertifier/Verdicts/`:
+now kernel-checked end to end, in 174 theorems under `RelCertifier/Verdicts/`:
 
 | file | n | what it ties |
 |---|---|---|
-| `ModalPinTable` | 53 | each instance's `Verd…` **is** `modalVerd` at the runner's arguments |
-| `ModalTablePins` | 42 | the rest of the `RunInfo` row, incl. mode pairs via the runner's own `modalPairs` |
-| `ModalCodePins` | 72 | the runner's **code**: λ from `(lamN, lamD)`, head terms from `ceilCo`/`ceilKs`, the three routes |
-| `CoveragePins` | 2 | the declared query counts equal what the tables generate |
+| `ModalPinTable` | 49 | each instance's `Verd…` **is** `modalVerd` at the runner's arguments (41 rows; 53 theorems before the deduplication) |
+| `ModalTablePins` | 41 | the rest of the `RunInfo` row, incl. mode pairs via the runner's own `modalPairs` |
+| `ModalCodePins` | 80 | the runner's **code**: λ from `(lamN, lamD)`, head terms from `ceilCo`/`ceilKs`, the three routes |
+| `CoveragePins` | 4 | the declared query counts equal what the tables generate (modal, cut, handoff; the declared handoff-failure set) |
 
 Each layer was verified by breaking what it pins: `/`→`*` in the λ fails 12 theorems,
 dropping route C fails 3, shifting a head coordinate fails 24, corrupting a table field

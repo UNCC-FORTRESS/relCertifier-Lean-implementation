@@ -1,5 +1,7 @@
 # Verdict-hypothesis evidence audit — 2026-07-31
 
+> **Note (2026-10-08).** This audit was performed on the 46-benchmark suite. `arm_fidelity_high`, `plant_fan_high`, `arm_refinement`, `plant_fan_low`, `match_multi_eps` and `plant_fan_mid` were removed as duplicates afterwards (`SUITE-DEDUPE.md`); rows naming them describe the suite as it was.
+
 **Question this document answers.** 41 of the 47 modal theorems carry named Z3 verdict
 hypotheses (`Verd… l m`). A theorem with a false hypothesis is vacuously true, and
 `#print axioms` cannot detect that. So: what justifies believing those hypotheses?

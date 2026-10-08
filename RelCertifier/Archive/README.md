@@ -16,4 +16,6 @@ per-benchmark instances in `Instances/`, audited by `Instances/ModalBattery.lean
 recipe for checking them is `docs/CERTIFICATION-CHECK.md`.
 
 Archived on 2026-07-30, when the modal form reached suite parity (46/46): `EndToEnd.lean`,
-`Mega.lean`, `ThroughoutPilot.lean`, `WatertankThroughout.lean`.
+`Mega.lean`, `ThroughoutPilot.lean`, `WatertankThroughout.lean`. `Mega.lean` (the
+`arm_refinement` mega-theorem) was deleted on 2026-10-08 together with its benchmark,
+a byte-identical duplicate of `arm_fidelity_low` (`docs/SUITE-DEDUPE.md`).

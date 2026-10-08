@@ -6,6 +6,11 @@ file in `RelCertifier/Instances/`. It replaces three earlier partial assessments
 file's history, each of which **understated** what the development proves; §6 records
 what went wrong so the mistake is not repeated.
 
+**Suite deduplication (2026-10-08).** The suite is 40 certified benchmarks since six
+duplicates were removed (`docs/SUITE-DEDUPE.md`); the per-benchmark tallies in §2c, §3j
+and §4 are updated below, and "46" in the quoted historical gates (§6) and dated
+measurements is the count of that time.
+
 ---
 
 ## 1. What the paper asks for
@@ -131,9 +136,9 @@ mode-keyed conjunct at the end reads exactly `F t`, which the response establish
 loop closes by `relational_loop_multi` as for every other instance.
 
 **Mode-independent invariants are the special case** `F m = F` for all `m`: (ii) is
-trivial and the statement collapses to the one §2a maps (the existing 40 instances keep
-their `bigChoice leftProgs` form, which over-approximates the left and so is the stronger
-claim — §5).
+trivial and the statement collapses to the one §2a maps (the 33 mode-independent instances
+keep their `bigChoice leftProgs` form, which over-approximates the left and so is the
+stronger claim — §5).
 
 ### The seven benchmarks
 
@@ -190,15 +195,15 @@ flow preserves it (invariance, by differential induction or a recognized contrac
 shape); cuts are conjoined to the flow-query domains of that mode and never to the
 model.*
 
-**Which benchmarks use cuts.** 13 benchmarks carry a cut certificate with DI-route atoms
-(the 13 cut-lifted `CutThroughout` instances; `RELCERT_NO_CUT=1` declines them). The 105
-probes, per benchmark (`docs/VERDICTS.md`, runner output, "cut instances"):
+**Which benchmarks use cuts.** 11 benchmarks carry a cut certificate with DI-route atoms
+(the 11 cut-lifted `CutThroughout` instances; `RELCERT_NO_CUT=1` declines them; 13 before
+the deduplication removed `arm_fidelity_high` and `plant_fan_high`, both identical to
+`arm_chain_rung3`). The 97 probes, per benchmark (`docs/VERDICTS.md`, runner output,
+"cut instances"):
 
 | benchmark | probes | atoms (side/mode: route) |
 |---|---|---|
 | `arm_chain_rung3` | 4 | `R/ApproachA θ ≥ 0`, `R/ApproachB θ ≥ 0.35`, `R/ApproachC θ ≥ 0.5` (B strict); `R/Hold θ ≥ 0.6` (frozen, probed as A) |
-| `arm_fidelity_high` | 4 | same |
-| `plant_fan_high` | 4 | same |
 | `refinement_ladder_rover_rung1_2to3` | 9 | `L/STEEP, MODER, FLAT` (A); `R/STEEP, MODER, FLAT` (A and C each) |
 | `refinement_ladder_rover_rung3_6to8` | 12 | `L/…` (A and C each); `R/…` (A and C each) |
 | `refinement_ladder_rover_rung4_8to12` | 9 | as `rung1_2to3` |
@@ -210,14 +215,15 @@ probes, per benchmark (`docs/VERDICTS.md`, runner output, "cut instances"):
 | `story3_rollover_base_12dof` | 9 | as `rung1_2to3` |
 | `story3_rollover_ladder_rung_a` | 9 | as `rung1_2to3` |
 
-`arm_fidelity_mid` and `plant_fan_mid` also carry a cut certificate (`R/ApproachFast θ ≥
-0`, `R/ApproachSlow θ ≥ 0.35`, B strict; `R/Hold θ ≥ 0.6`, shape) but are not cut-reliant
-for the tool (they certify without cuts at λ = 9/2 resp. 15/4, `Instances/BenchCoversNC/`)
-and are not probed: their Lean instances at λ = 1 use the `Hold` region in the modal pack
-instead.
+`arm_fidelity_mid` also carries a cut certificate (`R/ApproachFast θ ≥
+0`, `R/ApproachSlow θ ≥ 0.35`, B strict; `R/Hold θ ≥ 0.6`, shape) but is not cut-reliant
+for the tool (it certifies without cuts at λ = 9/2, `Instances/BenchCoversNC/`; so did
+the removed `plant_fan_mid`, at λ = 15/4) and is not probed: its Lean instance at λ = 1
+uses the `Hold` region in the modal pack instead.
 
-**The five cut-composed theorems.** For `arm_chain_rung3`, `arm_fidelity_high`,
-`arm_fidelity_mid`, `plant_fan_high` and `plant_fan_mid` the base modal theorems carry the
+**The cut-composed theorems.** For `arm_chain_rung3` and `arm_fidelity_mid` (and, before
+the deduplication, their duplicates `arm_fidelity_high`, `plant_fan_high`,
+`plant_fan_mid`) the base modal theorems carry the
 `Hold` cut `θ_R ≥ 0.6` as an invariant conjunct at EVERY right mode (`README.md`,
 *Conditioning*). The declared invariant with plain `mvValid` is false (at `mv = Hold`,
 `θ_R < 0.6` the right cannot respond — countermodel in `docs/CUT-COMPOSITION.md` §3). The
@@ -233,8 +239,8 @@ carried as **`Hold`'s mode region only**:
 | the conclusion | `rvalid (theorem3Form (bigChoice leftProgs) (rightAutomatonBody GrA mvA) (canonInvM gA [] ∧ envLR ∧ mvRegionR mvA regionsA k))` — `theorem <name>_declared`, axioms the standard three |
 
 The per-benchmark table, the tool-run confirmation of the strategy and the countermodels
-are in `docs/CUT-COMPOSITION.md`. The base theorems stand beside the new ones (59 theorems
-in `ModalBattery`).
+are in `docs/CUT-COMPOSITION.md`. The base theorems stand beside the new ones (50 theorems
+in `ModalBattery` after the deduplication: 41 base, 7 mode-keyed, 2 cut-composed).
 
 ## 3. Full inventory of generic `rvalid (theorem3Form …)` theorems
 
@@ -381,7 +387,7 @@ non-contract fields, and it is why watertank's contract route
 
 This layer is the bridge from the **scaled integer model** — where the kernel
 certificates live (values ×σᵢ, time in `dt`-units) — to the **real parsed benchmark**.
-It is what makes the 46 `*_real` theorems mean something about the benchmark files.
+It is what makes the 40 `*_real` theorems mean something about the benchmark files.
 
 - `Rescale.lean` (389 L) — `GuardSettlingB_rescale`, the scaling-transfer lemma, proved
   once: the scaled model's per-mode settling obligation implies the real one, provided
@@ -392,14 +398,14 @@ It is what makes the 46 `*_real` theorems mean something about the benchmark fil
   real denotation, so `Faithful`'s Boolean coefficient laws become real-valued
   pushforward identities. This is the bulk of the layer and it is genuine work.
 - `FaithfulBridgeGuards.lean` (401 L) — terrain/affine guard-map variants.
-- `FaithfulBridgePad.lean` (687 L) — the eight padded benchmarks (`vs.length < n`),
+- `FaithfulBridgePad.lean` (687 L) — the padded benchmarks (`vs.length < n`; eight before the deduplication, three after),
   where a padded coordinate needs an invertible scale the transcription does not supply
   (`sigmaPad`).
 - `RealEndToEnd.lean` (134 L) — the generic per-family theorems; its header states the
   design intent plainly: *"Per-benchmark instantiation (Instances/) is then a dozen lines
   of `decide`/`rfl`/`norm_num` discharges — the watertank pattern, mechanized for all 46."*
 
-**Non-vacuity of the 46 `*_real` theorems — checked, and it holds by construction.**
+**Non-vacuity of the 40 `*_real` theorems — checked, and it holds by construction.**
 `GuardSettlingB` is `∀ base, sat (Gd q) base → …`, so it would be vacuous if
 `realGdOf q` were unsatisfiable. `realGdOf` is a conjunction of per-coordinate closed
 bands (`envFormulaR` ∧ the guard band). And `decideWellFormed` — kernel-checked `rfl`
@@ -411,10 +417,10 @@ obligations are non-vacuous **because a kernel check says so**, not by inspectio
 (Verified `bandOrdered` and the `decideWellFormed` clause list directly; did not trace
 every `checkMode` sub-clause.)
 
-**Net for §4:** the 46 `*_real` theorems are substantive — they establish, at the real
+**Net for §4:** the 40 `*_real` theorems are substantive — they establish, at the real
 benchmark's own scale, that every declared right mode's flow exists for the control
 interval, stays in its evolution domain, and lands in a state satisfying some retained
-successor's guard. That is the paper's well-formedness assumption, discharged 46/46 and
+successor's guard. That is the paper's well-formedness assumption, discharged 40/40 and
 non-vacuously.
 
 
@@ -464,9 +470,9 @@ assembled from six joint verdicts and six existence facts, the latter proven in-
 
 Routing is uniform and was checked exhaustively, not sampled:
 
-- **all 33** `Throughout/*.lean` apply `check_sound_multi`;
-- **all 13** `CutThroughout/*.lean` apply `check_sound_multi_cut`;
-- **none of the 46** mentions `rvalid` — they stop at
+- **all 29** `Throughout/*.lean` apply `check_sound_multi` (33 before the deduplication);
+- **all 11** `CutThroughout/*.lean` apply `check_sound_multi_cut` (13 before);
+- **none of the 40** mentions `rvalid` — they stop at
   `Covered ∧ CoexecInvAllThroughout{,G}`.
 
 Both are **live**: `check_sound_multi`'s certificate is `CoverCertM` over the *joint*
@@ -478,20 +484,20 @@ premise is conditional (`hinit : InvAllHolds gs ν`) — neither the `GBoxAll` n
 
 | what is proven | benchmarks | route | status |
 |---|---|---|---|
-| relational invariant holds **throughout** every right co-execution | **46/46** (33 cut-free + 13 cut-lifted) | `check_sound_multi{,_cut}` from named Z3 verdicts | ✅ **live** |
-| right-system well-formedness at the real scale — flow exists for the control interval, stays in its domain, lands in a retained successor's guard | **46/46** (`*_real`) | Transfer/rescale + `decideWellFormed` `rfl` | ✅ **live** (this is the paper's well-formedness *assumption*, discharged) |
-| the instance **is** the parsed benchmark file | 46/46 | `faithfulSettling… = true := rfl` | ✅ live |
-| the tool's cover decision, kernel-replayed | 46/46 | `coverReplays … := by decide` | ✅ live |
-| full ∀∃ `rvalid (theorem3Form …)` | **46/46** (`Instances/ModalBattery.lean`; 47 theorems — `rover3tier_rung12` has one per left mode) | `theorem3_faithful_multi{E,F,R}_LR` | ✅ **live**; existence proven in every instance, 5 instances Z3-free |
-| `rvalid (theorem3Form …)` | `watertank` ×3, `arm_refinement` (now in `Archive/`) | settling route | ❌ **vacuous** (§3b) — archived 2026-07-30 |
+| relational invariant holds **throughout** every right co-execution | **40/40** (29 cut-free + 11 cut-lifted) | `check_sound_multi{,_cut}` from named Z3 verdicts | ✅ **live** |
+| right-system well-formedness at the real scale — flow exists for the control interval, stays in its domain, lands in a retained successor's guard | **40/40** (`*_real`) | Transfer/rescale + `decideWellFormed` `rfl` | ✅ **live** (this is the paper's well-formedness *assumption*, discharged) |
+| the instance **is** the parsed benchmark file | 40/40 | `faithfulSettling… = true := rfl` | ✅ live |
+| the tool's cover decision, kernel-replayed | 40/40 | `coverReplays … := by decide` | ✅ live |
+| full ∀∃ `rvalid (theorem3Form …)` | **40/40** (`Instances/ModalBattery.lean`; 41 base theorems — `rover3tier_rung12` has one per left mode — plus 7 mode-keyed and 2 cut-composed) | `theorem3_faithful_multi{E,F,R}_LR` | ✅ **live**; existence proven in every instance, 5 base instances Z3-free |
+| `rvalid (theorem3Form …)` | `watertank` ×3 (`Archive/EndToEnd.lean`); `arm_refinement` (`Archive/Mega.lean`, deleted with the benchmark 2026-10-08) | settling route | ❌ **vacuous** (§3b) — archived 2026-07-30 |
 
 **Answer to "are all benchmarks end-to-end verified?"** — depends on which statement:
 
-- **Invariant preservation throughout co-executions: yes, all 46, non-vacuously**, from
+- **Invariant preservation throughout co-executions: yes, all 40, non-vacuously**, from
   named Z3 verdicts with the instance pinned to the benchmark file by kernel `rfl` and
   the cover decision replayed by `decide`. This is the substantive relational result.
 - **The ∀∃ modality (`theorem3Form`, the paper's Definition 1 / Theorem 3 conclusion):
-  all 46, as of 2026-07-30.** Every certified benchmark has a non-vacuous instance in
+  all 40 (46 before the deduplication), as of 2026-07-30.** Every certified benchmark has a non-vacuous instance in
   `Instances/ModalBattery.lean`; existence is proven in each (no `HExistSeg`-style
   hypothesis survives), and five instances carry no Z3 verdict at all. The old
   settling-route statements are vacuous as documented in §3b and now live in `Archive/`.
@@ -558,32 +564,32 @@ obligations. **Not built** — the risk is matching the lowered data (`realField
 
 ## 4. What each benchmark has
 
-**Ingredients, all 46 — kernel-checked:**
+**Ingredients, all 40 — kernel-checked:**
 
 | artefact | file | check |
 |---|---|---|
-| the instance **is** the parsed benchmark file | `Instances/FaithfulCerts.lean` | 46 × `faithful… = true := rfl` |
-| the tool's cover decision, replayed | `Instances/BenchCoverReplay.lean` | 46 × `coverReplays IR cover = true := by decide`, for **every** emitted left-mode cover and **every** admissible start |
-| model well-formedness | `SettlingInstances` (25), `TerrainInstances` (19), `AffineInstances` (2) | `decideWellFormed … = true` by `rfl` |
-| real-chart transport | `Instances/RealInstances.lean` | 46 `*_real` theorems — the generic family theorem instantiated at the parser-emitted IR, concluding `GuardSettlingB` |
+| the instance **is** the parsed benchmark file | `Instances/FaithfulCerts.lean` | 40 × `faithful… = true := rfl` |
+| the tool's cover decision, replayed | `Instances/BenchCoverReplay.lean` | 40 × `coverReplays IR cover = true := by decide`, for **every** emitted left-mode cover and **every** admissible start |
+| model well-formedness | `SettlingInstances` (19), `TerrainInstances` (19), `AffineInstances` (2) | `decideWellFormed … = true` by `rfl` |
+| real-chart transport | `Instances/RealInstances.lean` | 40 `*_real` theorems — the generic family theorem instantiated at the parser-emitted IR, concluding `GuardSettlingB` |
 | emitted data | `BenchIR/`, `BenchCovers/`, `BenchCoversNC/`, `EvolStrengthenings/`, `BenchViability2` | drift-checked literals |
 
 **Per-benchmark theorem instantiations:**
 
 | family | benchmarks | conclusion |
 |---|---|---|
-| `Instances/Throughout/*.lean` | 33 | `Covered … ∧ CoexecInvAllThroughout …`, per left mode, from named Z3 verdicts |
-| `Instances/CutThroughout/*.lean` | 13 | same, guard-threaded via `RightReachG` |
-| `Instances/*Modal.lean` (46 files) | **46** | **`rvalid (theorem3Form …)`** — 47 theorems, all imported and axiom-audited by `Instances/ModalBattery.lean` |
+| `Instances/Throughout/*.lean` | 29 | `Covered … ∧ CoexecInvAllThroughout …`, per left mode, from named Z3 verdicts |
+| `Instances/CutThroughout/*.lean` | 11 | same, guard-threaded via `RightReachG` |
+| `Instances/*Modal.lean` (40 files) | **40** | **`rvalid (theorem3Form …)`** — 41 base theorems (+ 7 `*Handoff.lean` mode-keyed, + 2 `*Declared.lean` cut-composed), all imported and axiom-audited by `Instances/ModalBattery.lean` |
 | `Archive/EndToEnd.lean` | watertank | `rvalid (theorem3Form …)` ×3 — **via the settling route, hence vacuous (§3b)**; archived 2026-07-30 |
-| `Archive/Mega.lean` | arm_refinement | fidelity ∧ settling in one term — **same settling route, same vacuity (§3b)**; archived 2026-07-30 |
+| `Archive/Mega.lean` | arm_refinement | fidelity ∧ settling in one term — **same settling route, same vacuity (§3b)**; archived 2026-07-30, **deleted 2026-10-08** with the `arm_refinement` benchmark (a duplicate of `arm_fidelity_low`) |
 | `Instances/UniformPilot.lean` | rover_drag | **`rvalid (theorem3Form …)`** from **one** Z3 verdict + `hES`; kept as the only instantiation of `theorem3_uniform_multiflow` (the benchmark's live instance is `RoverDragModal.lean`) |
 | `Instances/WatertankModal` + `WatertankViability` | watertank | **`rvalid (theorem3Form …)`**, multi-mode with repositions, existence proven in-kernel; the six verdicts are pinned to the runner's printed queries |
 
-So `rvalid (theorem3Form …)` is written out for **all 46 certified benchmarks**
+So `rvalid (theorem3Form …)` is written out for **all 40 certified benchmarks**
 (`Instances/ModalBattery.lean`), non-vacuously: each instance carries a joint certificate
 or a right-only response, existence is proven rather than hypothesised, and five carry no
-Z3 verdict at all. The `EndToEnd`/`Mega` forms remain vacuous (§3b) and are archived.
+Z3 verdict at all. The `EndToEnd` form remains vacuous (§3b) and is archived (`Mega` was deleted with its benchmark).
 
 **Historical note — why an earlier version of this section said the remaining 43 were far
 off.** That analysis was correct about the *uniform* chain: the throughout battery builds

@@ -1,7 +1,7 @@
 # Benchmark suite
 
 One directory per benchmark under `suite_uniform/`; `input.txt` is the complete
-specification. **47 directories: 46 certified, plus `shield_unreachable`, on which the
+specification. **41 directories: 40 certified, plus `shield_unreachable`, on which the
 tool reports an inconclusive Z3 verdict and which is therefore outside the certified
 suite.** Every certified benchmark carries a machine-checked modal Theorem 3 — see
 `docs/CERTIFICATION-CHECK.md` for how to verify that end to end.
@@ -78,7 +78,7 @@ theorem cannot drift apart silently.
 
 ## The suite
 
-watertank; the arm chain / arm fidelity / plant fan families; rover refinement ladders
+watertank; the arm chain / arm fidelity families (the plant-fan copies and `arm_refinement`, byte-identical duplicates, were removed on 2026-10-08 — `docs/SUITE-DEDUPE.md`); rover refinement ladders
 (2–12 dof); dof-terrain rungs; endurance, attitude, lateral and rollover stories; plus the
 rover tier, coupled, position and drag models. Sizes run from 1 to 12 state variables per
 side.

@@ -1,9 +1,35 @@
 # Verdict report — empirical discharge of theorem hypotheses
 
-## The five checked-cut benchmarks at their declared invariant (2026-10-08, branch `cut-composition`)
+## Suite deduplication (2026-10-08, branch `dedupe-suite`)
+
+Six benchmarks were removed as duplicates (`arm_fidelity_high`, `plant_fan_high`,
+`arm_refinement`, `plant_fan_low`, `match_multi_eps`, `plant_fan_mid`; method and
+removal list in `docs/SUITE-DEDUPE.md`). With them went 18 modal queries (six packs:
+2 × 2 for the three region-head packs, 2 × 1 for the other three), 8 cut probes
+(`arm_fidelity_high` and `plant_fan_high`, 4 each) and 24 handoff transitions (4 per
+benchmark, all vacuous). Declared coverage is now **6 / 97 / 504 / 191** (watertank /
+cut probes / modal / handoff), re-derived from the tables by `CoveragePins` (`decide`).
+Runner rows are renumbered: the mode-keyed packs are rows 36–40 of `RunModal.modalTable`
+(42–46 before). Run of 2026-10-08 after the removal (`relcert --run-verdicts`, Z3
+4.15.1, warm session):
+
+```
+  [coverage] watertank: 6/6 hypotheses discharged
+  [coverage] cut probes: 97/97 hypotheses discharged
+  [coverage] modal: 504/504 hypotheses discharged
+  [coverage] handoff: 191/191 hypotheses discharged
+ALL HYPOTHESES DISCHARGED
+```
+
+**Every section below this one was written for the 46-benchmark suite** and is kept as
+the record it is; counts and listings that name a removed benchmark describe the suite
+as it was on the date given.
+
+## The checked-cut benchmarks at their declared invariant (2026-10-08, branch `cut-composition`)
 
 `arm_chain_rung3`, `arm_fidelity_high`, `arm_fidelity_mid`, `plant_fan_high` and
-`plant_fan_mid` gained a second theorem each, `<name>_declared`
+`plant_fan_mid` (the first and third survive the deduplication; the other three were
+duplicates of them) gained a second theorem each, `<name>_declared`
 (`Instances/<Name>Declared.lean`): the DECLARED row (`θ_L ≤ θ_R + tol`) with the `Hold`
 cut `θ_R ≥ 0.6` carried as `Hold`'s mode region only (`mvRegionR`, `⊤` at the approach
 modes), where the base theorem conjoins the cut to the invariant at every mode. The
@@ -11,7 +37,8 @@ responses are right-only catch-ups (constant-rate reach of `θ_R = 0.6` in the s
 zero-duration hops into `Hold`, endpoint arithmetic), so the theorems carry **no verdict
 hypothesis** and audit to the standard three axioms. Nothing changed in the runner: no new
 row, pin or coverage constant; the base theorems' `Verd3` packs (rows 3, 4, 6, 14, 16 of
-`RunModal.modalTable`, 2 × 2 queries each) and the 12 cut probes of the high trio are
+`RunModal.modalTable` at the time — rows 2 and 4 after the deduplication, 2 × 2 queries
+each) and the cut probes of the high trio (12; 4 after the deduplication) are
 re-run as before. The plain-`mvValid` statement of the declared row is false for these
 automata — countermodel and per-benchmark table in `docs/CUT-COMPOSITION.md`; the cut
 mechanism in `docs/PAPER-MAPPING.md` §2c.
@@ -19,10 +46,10 @@ mechanism in `docs/PAPER-MAPPING.md` §2c.
 | benchmark | base theorem (kept) | declared theorem (new) | runner |
 |---|---|---|---|
 | `arm_chain_rung3` | `arm_chain_rung3_modal`, 2×`Verd3`, region at every mode | `arm_chain_rung3_declared`, std 3, region at `Hold` only | unchanged (4 cut probes + 4 modal queries) |
-| `arm_fidelity_high` | `arm_fidelity_high_modal`, 2×`Verd3` | `arm_fidelity_high_declared`, std 3 | unchanged (4 + 4) |
-| `plant_fan_high` | `plant_fan_high_modal`, 2×`Verd3` | `plant_fan_high_declared`, std 3 | unchanged (4 + 4) |
+| `arm_fidelity_high` | `arm_fidelity_high_modal`, 2×`Verd3` | `arm_fidelity_high_declared`, std 3 | unchanged (4 + 4) — **removed 2026-10-08** (duplicate of `arm_chain_rung3`) |
+| `plant_fan_high` | `plant_fan_high_modal`, 2×`Verd3` | `plant_fan_high_declared`, std 3 | unchanged (4 + 4) — **removed 2026-10-08** (duplicate of `arm_chain_rung3`) |
 | `arm_fidelity_mid` | `arm_fidelity_mid_modal`, 2×`Verd3` (region via route C) | `arm_fidelity_mid_declared`, std 3 | unchanged (4 modal queries; no cut probes) |
-| `plant_fan_mid` | `plant_fan_mid_modal`, 2×`Verd3` | `plant_fan_mid_declared`, std 3 | unchanged (4; no cut probes) |
+| `plant_fan_mid` | `plant_fan_mid_modal`, 2×`Verd3` | `plant_fan_mid_declared`, std 3 | unchanged (4; no cut probes) — **removed 2026-10-08** (near-duplicate of `arm_fidelity_mid`) |
 
 ## Cross-mode handoff and the mode-keyed theorems (2026-10-07/08, branch `mode-handoff`)
 
@@ -94,7 +121,7 @@ wording. The kernel guarantees the printed queries ARE the hypothesized ones:
 | settling, 46 | flow/cut verdicts | settling-arc certification + printer battery |
 | bounded viability (S3 census) | face tags | `BenchViability2.lean` (`--emit-viability2`, 1121/1121 faces) |
 
-## Runner output (111 UNSAT, 0 failures)
+## Runner output (111 UNSAT, 0 failures; record of 2026-07-30 — the `arm_fidelity_high` and `plant_fan_high` probes no longer exist after the 2026-10-08 deduplication)
 
 ```
 == watertank_modal_certified : 6 VerdW hypotheses ==

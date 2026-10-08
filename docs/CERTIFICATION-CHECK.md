@@ -15,7 +15,9 @@ Read `README.md` first for what the theorems say. This document is only about
 > axiom audit 47 theorems: 42 with `z3_unsat_sound`, 5 with the standard three
 > alone, **no `sorryAx`, no `native_decide`, no other axioms** ·
 > full suite 46 CERTIFIED, 0 DECLINED, `shield_unreachable` inconclusive as documented.
-> See *Cost* below before you start one.
+> See *Cost* below before you start one. **This cold run and the two branch runs below
+> predate the 2026-10-08 suite deduplication** (46 benchmarks then; 40 now —
+> `docs/SUITE-DEDUPE.md`). The current numbers are in the `dedupe-suite` entry.
 >
 > **Branch `mode-handoff` (2026-10-08):** `lake build` exit 0 (warm; only new leaves and
 > the `rover3tier_rung12` column) · `relcert-test` ALL PASS · `--run-verdicts` 848/848
@@ -31,6 +33,15 @@ Read `README.md` first for what the theorems say. This document is only about
 > `z3_unsat_sound`, 13 standard-three (the five `…_declared` theorems among them), no
 > `sorryAx`, no other axiom. The five checked-cut benchmarks at their declared invariant:
 > `docs/CUT-COMPOSITION.md`, `docs/PAPER-MAPPING.md` §2c.
+>
+> **Branch `dedupe-suite` (2026-10-08) — current:** six duplicate benchmarks removed
+> (`docs/SUITE-DEDUPE.md`). `lake build` 8969 jobs, exit 0 (warm) · `--check-quick`
+> **40 CERTIFIED, 0 DECLINED, 1 documented error — matches the declared suite**,
+> coverage 6/97/504/191, QUICK CHECKS PASSED · `relcert-test` ALL PASS (with
+> `BENCH_PATHS`; 40 IR literals match their files) · `--run-verdicts` 798/798 `unsat`,
+> ALL HYPOTHESES DISCHARGED · axiom audit **50** theorems: 40 with `z3_unsat_sound`, 10
+> standard-three, no `sorryAx`, no other axiom · `--handoff` 192 transitions over 41
+> inputs, 191 unsat, the documented `shield_unreachable` FAIL.
 
 ---
 
@@ -126,7 +137,7 @@ Checks 3 and the certification run are bundled by
 ```
 
 which certifies the suite, compares the tally against `Verdicts/Coverage.expectedSuite`
-(46 certified, 0 declined, 1 documented inconclusive), then discharges every hypothesis
+(40 certified, 0 declined, 1 documented inconclusive), then discharges every hypothesis
 with its coverage counts, and exits non-zero if either half fails. It deliberately does
 *not* run check 1 — a 13-hour build does not belong behind a flag named "quick" — and
 does not run check 4, which lives in a separate binary. `relcert --help` says so.
@@ -143,8 +154,9 @@ lake build
 
 `RelCertifier.lean` imports `RelCertifier/Instances/ModalBattery.lean`, which
 imports the modal instance of **every** benchmark. So a clean `lake build`
-elaborates and kernel-checks all 47 modal theorems (plus the settling and
-throughout families, the proof calculus, and the checker). A green build is the
+elaborates and kernel-checks all 41 base modal theorems, the 7 mode-keyed and the 2
+cut-composed ones (plus the settling and throughout families, the proof calculus, and
+the checker). A green build is the
 primary result: no `sorry`, no `admit`, no `native_decide` anywhere in the
 development.
 
@@ -173,19 +185,19 @@ lake build RelCertifier.Instances.ModalBattery 2>&1 | grep -A3 "depends on axiom
 last one — the line that says `z3_unsat_sound`. With `-A2` every theorem reads as
 standard-three. Found 2026-10-08; the earlier recipe said `-A2`.)
 
-Expected, for all 59 theorems (46 benchmarks; `rover3tier_rung12` has two, one
-per left mode; seven benchmarks have a mode-keyed theorem as well; the five
+Expected, for all 50 theorems (40 benchmarks; `rover3tier_rung12` has two, one
+per left mode; seven benchmarks have a mode-keyed theorem as well; the two
 checked-cut benchmarks have a declared-invariant theorem as well):
 
 * `[propext, Classical.choice, Quot.sound]` — the three standard Lean axioms;
-* plus `RelCertifier.z3_unsat_sound` for the 42 theorems whose flow certificates
-  are built from a Z3 verdict.
+* plus `RelCertifier.z3_unsat_sound` for the 40 theorems whose flow certificates
+  are built from a Z3 verdict (36 base theorems and 4 mode-keyed ones).
 
 Five benchmarks are **entirely Z3-free** — the standard three alone, and no
 verdict hypotheses in the statement either: `rover3_M1`, `rover_coupled`,
 `rover_position`, `refinement_ladder_rover_rung2_6dof`,
 `refinement_ladder_rover_rung2b_6dof`. The three composed rover theorems and the
-five `…_declared` theorems are Z3-free as well (13 standard-three lines in all). Their responses are pure right-side
+two `…_declared` theorems are Z3-free as well (10 standard-three lines in all). Their responses are pure right-side
 flows with the invariant re-established by endpoint arithmetic, so no joint
 flow certificate is involved (see `docs/VERDICTS.md` § *FULL SUITE*).
 
@@ -220,16 +232,19 @@ per-phase totals and `--run-verdicts` checks them:
 
 ```
   [coverage] watertank: 6/6 hypotheses discharged
-  [coverage] cut probes: 105/105 hypotheses discharged
-  [coverage] modal: 522/522 hypotheses discharged
-  [coverage] handoff: 215/215 hypotheses discharged
+  [coverage] cut probes: 97/97 hypotheses discharged
+  [coverage] modal: 504/504 hypotheses discharged
+  [coverage] handoff: 191/191 hypotheses discharged
 ```
 
 (The modal count moved from 483 to 522 on 2026-10-07 with the five packs of the
-mode-keyed instances, runner rows 42–46. The fourth phase is the cross-mode **handoff**
-check: one domain-conditioned query per declared left transition of every emitted
-benchmark, 215 in all; it is green only on exactly the declared failure set, which is
-empty since the `rover3tier_rung12` row repair of 2026-10-08. `docs/HANDOFF.md`.)
+mode-keyed instances, runner rows 42–46 — rows 36–40 since the deduplication. The fourth
+phase is the cross-mode **handoff** check: one domain-conditioned query per declared left
+transition of every emitted benchmark, 215 in all before the deduplication; it is green
+only on exactly the declared failure set, which is empty since the `rover3tier_rung12`
+row repair of 2026-10-08. `docs/HANDOFF.md`. The 2026-10-08 deduplication removed six
+benchmarks and with them 18 modal queries, 8 cut probes and 24 handoff transitions:
+6 / 97 / 504 / 191, re-derived by `CoveragePins`. `docs/SUITE-DEDUPE.md`.)
 
 A mismatch either way fails the run. And the declared totals are themselves checked:
 `Verdicts/CoveragePins.lean` derives each from the table that generates the work —
@@ -239,7 +254,7 @@ quietly re-pointed at whatever a run happened to produce; changing it without ch
 the suite fails the build, and vice versa.
 
 The queries the runner rebuilds are not merely plausible ones: `Verdicts/ModalPinTable`
-proves by `rfl`, for each of the 42 verdict packs, that the instance's own `Verd…` **is**
+proves by `rfl`, for each verdict pack (36 base packs and 5 mode-keyed), that the instance's own `Verd…` **is**
 the query the runner's table names. A wrong entry does not compile, so a green line here
 is evidence about the theorem's own hypothesis rather than about a lookalike; the pins
 quote `dim`/`invRow`/`order` from the runner's table row, and `Verdicts/ModalTablePins`
@@ -255,7 +270,7 @@ see `docs/VERDICT-EVIDENCE-AUDIT.md`.)
   `RelCertifier/Verdicts/Watertank.lean` (`hgW_id`, `hfLW_id`, `hfRW_id`,
   `hdomLW_id`, …) — this is the drift-free form: the query Z3 answers is
   provably the query the theorem names;
-* the per-atom O2 route probes for the 13 cut-lifted benchmarks
+* the per-atom O2 route probes for the 11 cut-lifted benchmarks
   (`Verdicts/RunCut.lean`).
 
 **Superseded (kept for context).** Until 2026-07-31 the verdict packs of the other
@@ -310,15 +325,15 @@ This is the *search* side: the tool re-derives covers and certificates from the
 inputs. It is not needed to believe the theorems (the certificates the theorems
 consume are emitted data, checked by `decideCovered` and the kernel), but it
 confirms the emitted data in `Instances/Bench*.lean` is what the current tool
-produces. 46 of 47 benchmarks certify; `shield_unreachable` reports an
+produces. 40 of 41 benchmarks certify; `shield_unreachable` reports an
 inconclusive Z3 verdict and is therefore outside the certified suite.
 
 ---
 
 ## Per-benchmark inventory
 
-46 benchmarks, 47 modal theorems. "std 3" = `[propext, Classical.choice,
-Quot.sound]`. Hypotheses are exactly the binders of the theorem: `dt` is the
+40 benchmarks, 41 base modal theorems (50 rows with the mode-keyed and declared
+theorems). "std 3" = `[propext, Classical.choice, Quot.sound]`. Hypotheses are exactly the binders of the theorem: `dt` is the
 window duration, `Verd…` are the Z3 verdict packs, `ESW` are existence
 obligations (watertank's are *proven*, in `WatertankViability.lean`).
 
@@ -328,23 +343,14 @@ obligations (watertank's are *proven*, in `WatertankViability.lean`).
 | `arm_chain_rung2` | `ArmChainRung2Modal.lean` | `arm_chain_rung2_modal` | `0 ≤ dt`; `dt ≤ 1/5`; 4×`VerdD` | std 3 + `z3_unsat_sound` |
 | `arm_chain_rung3` | `ArmChainRung3Modal.lean` | `arm_chain_rung3_modal` | `0 ≤ dt`; 2×`Verd3` | std 3 + `z3_unsat_sound` |
 | `arm_chain_rung3` (declared invariant, `Hold` cut as mode region) | `ArmChainRung3Declared.lean` | `arm_chain_rung3_declared` | `0 ≤ dt` | **std 3 only** |
-| `arm_fidelity_high` | `ArmFidelityHighModal.lean` | `arm_fidelity_high_modal` | `0 ≤ dt`; 2×`Verd3` | std 3 + `z3_unsat_sound` |
-| `arm_fidelity_high` (declared invariant, `Hold` cut as mode region) | `ArmFidelityHighDeclared.lean` | `arm_fidelity_high_declared` | `0 ≤ dt` | **std 3 only** |
 | `arm_fidelity_low` | `ArmFidelityLowModal.lean` | `arm_fidelity_low_modal` | `0 ≤ dt`; `dt ≤ 1/5`; 2×`VerdF` | std 3 + `z3_unsat_sound` |
 | `arm_fidelity_mid` | `ArmFidelityMidModal.lean` | `arm_fidelity_mid_modal` | `0 ≤ dt`; 2×`Verd3` | std 3 + `z3_unsat_sound` |
 | `arm_fidelity_mid` (declared invariant, `Hold` cut as mode region) | `ArmFidelityMidDeclared.lean` | `arm_fidelity_mid_declared` | `0 ≤ dt` | **std 3 only** |
-| `arm_refinement` | `ArmRefinementModal.lean` | `arm_refinement_modal` | `0 ≤ dt`; `dt ≤ 1/5`; 2×`VerdF` | std 3 + `z3_unsat_sound` |
 | `attitude_rate` | `AttitudeRateModal.lean` | `attitude_rate_modal` | `0 ≤ dt`; 2×`VerdW` | std 3 + `z3_unsat_sound` |
 | `endurance_gain_M1` | `EnduranceGainM1Modal.lean` | `endurance_gain_M1_modal` | `0 ≤ dt`; 6×`VerdG` | std 3 + `z3_unsat_sound` |
 | `endurance_orderlift_1to2` | `EnduranceOrderlift1to2Modal.lean` | `endurance_orderlift_1to2_modal` | `0 ≤ dt`; 1×`VerdO` | std 3 + `z3_unsat_sound` |
 | `endurance_orderlift_2to3` | `EnduranceOrderlift2to3Modal.lean` | `endurance_orderlift_2to3_modal` | `0 ≤ dt`; 6×`VerdJ` | std 3 + `z3_unsat_sound` |
-| `match_multi_eps` | `MatchMultiEpsModal.lean` | `match_multi_eps_modal` | `0 ≤ dt`; 2×`Verd3` | std 3 + `z3_unsat_sound` |
 | `match_multi_rate` | `MatchMultiRateModal.lean` | `match_multi_rate_modal` | `0 ≤ dt`; 4×`VerdM` | std 3 + `z3_unsat_sound` |
-| `plant_fan_high` | `PlantFanHighModal.lean` | `plant_fan_high_modal` | `0 ≤ dt`; 2×`Verd3` | std 3 + `z3_unsat_sound` |
-| `plant_fan_high` (declared invariant, `Hold` cut as mode region) | `PlantFanHighDeclared.lean` | `plant_fan_high_declared` | `0 ≤ dt` | **std 3 only** |
-| `plant_fan_low` | `PlantFanLowModal.lean` | `plant_fan_low_modal` | `0 ≤ dt`; `dt ≤ 1/5`; 2×`VerdF` | std 3 + `z3_unsat_sound` |
-| `plant_fan_mid` | `PlantFanMidModal.lean` | `plant_fan_mid_modal` | `0 ≤ dt`; 2×`Verd3` | std 3 + `z3_unsat_sound` |
-| `plant_fan_mid` (declared invariant, `Hold` cut as mode region) | `PlantFanMidDeclared.lean` | `plant_fan_mid_declared` | `0 ≤ dt` | **std 3 only** |
 | `refinement_ladder_rover_rung1_2to3` | `RoverLadderRung1Modal.lean` | `rover_ladder_rung1_modal` | `0 ≤ dt`; 6×`VerdE` | std 3 + `z3_unsat_sound` |
 | `refinement_ladder_rover_rung2_3to6` | `RoverLadderRung2Modal.lean` | `rover_ladder_rung2_3to6_modal` | `0 ≤ dt`; 6×`Verd36` | std 3 + `z3_unsat_sound` |
 | `refinement_ladder_rover_rung2_6dof` | `RoverRung26dofModal.lean` | `rung2_6dof_modal` | `0 ≤ dt` | **std 3 only** |
@@ -406,16 +412,17 @@ Two rows deserve a note:
   Their handoffs pass (5/5 each) and are discharged in-kernel, so the composed
   theorems add no verdict beyond the per-mode packs; `rover3_M1` is padded to
   `n = 3` for the left mode variable. Seven more `#print axioms` lines in
-  `ModalBattery.lean`: 54 theorems in all.
-* **The five checked-cut benchmarks** (`arm_chain_rung3`, `arm_fidelity_high`,
-  `arm_fidelity_mid`, `plant_fan_high`, `plant_fan_mid`) carry, beside their base
+  `ModalBattery.lean`.
+* **The two checked-cut benchmarks** (`arm_chain_rung3`, `arm_fidelity_mid`; three
+  more — `arm_fidelity_high`, `plant_fan_high`, `plant_fan_mid` — were duplicates
+  removed on 2026-10-08) carry, beside their base
   theorem (the `Hold` cut `θ_R ≥ 0.6` conjoined to the invariant at every right mode),
   a second theorem `…_declared` at the DECLARED row with the cut carried as `Hold`'s
   mode region only (`mvRegionR`, `⊤` at the approach modes) — the composition of the
   cut's entry (O1) and invariance (O2) obligations. Their responses are Z3-free
   right-only catch-ups (`Proofs/Encoding/CutComposition.lean`), so they add no
-  verdict, no runner row and no pin; five more `#print axioms` lines in
-  `ModalBattery.lean`: **59 theorems in all**. The declared row with no region
+  verdict, no runner row and no pin; two more `#print axioms` lines in
+  `ModalBattery.lean`: **50 theorems in all**. The declared row with no region
   anywhere is false for these automata (`docs/CUT-COMPOSITION.md` §3).
 * **`watertank`** is the flagship: existence is proven (not hypothesised) and
   its verdicts are the ones wired into `--run-verdicts` with kernel identity

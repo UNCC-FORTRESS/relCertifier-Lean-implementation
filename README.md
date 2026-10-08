@@ -13,11 +13,23 @@ certificate checker, the proofs, and the per-benchmark theorem instances. Z3 is 
 single external oracle, consulted only through printed SMT scripts, and only its
 `unsat` answers are trusted.
 
-**Status.** All 46 certified benchmarks carry the modal (Theorem 3) statement — 47
-theorems, since one benchmark splits per left mode. Verified end to end on 2026-08-02
-from a cold tree (12h59m, 8988 jobs, exit 0): 42 theorems audit to the three standard
-Lean axioms plus `z3_unsat_sound`, and 5 audit to the three standard axioms alone. No
-`sorry`, no `admit`, no `native_decide`.
+**Status.** All 40 certified benchmarks carry the modal (Theorem 3) statement — 41 base
+theorems, since one benchmark splits per left mode — and, beside them, 7 mode-keyed and
+2 cut-composed theorems at the DECLARED invariants (50 theorems in `ModalBattery`): 40
+audit to the three standard Lean axioms plus `z3_unsat_sound`, 10 to the three standard
+axioms alone. No `sorry`, no `admit`, no `native_decide`. The last cold-tree
+verification (2026-08-02, 12h59m, 8988 jobs, exit 0) predates the 2026-10-08 suite
+deduplication and covered the 46-benchmark suite of that time; every check has been
+re-run warm on the 40-benchmark suite since (`STATUS.md`).
+
+**Suite deduplication (2026-10-08).** Six benchmark directories were byte-identical
+copies of others once comments, blank lines and the `name =` line are stripped
+(`arm_fidelity_high` = `plant_fan_high` = `arm_chain_rung3`; `arm_refinement` =
+`plant_fan_low` = `arm_fidelity_low`; `match_multi_eps` = `rover3tier_M1`), and
+`plant_fan_mid` differed from `arm_fidelity_mid` only in its tolerance constant. The six
+were removed, with every instance, pin, runner row and coverage constant that named them;
+the certified suite is 40 benchmarks (41 inputs with `shield_unreachable`). Method, the
+removal list and the per-benchmark theorem table: [`docs/SUITE-DEDUPE.md`](docs/SUITE-DEDUPE.md).
 
 **Mode-dependent invariants (2026-10-07).** Seven benchmarks declare one invariant row per
 left mode. The tool checks the cross-mode **handoff** `φ_inv(m') ∧ evolve_{m'} ∧ guard_m ∧
@@ -71,7 +83,7 @@ separate, and they live in different places:
 | what you want to check | command |
 |---|---|
 | the Lean proofs (kernel) | `lake build` — everything, ~13 h |
-| the 47 theorems + their axioms | `lake build RelCertifier.Instances.ModalBattery` |
+| the 50 theorems + their axioms | `lake build RelCertifier.Instances.ModalBattery` |
 | the benchmarks certify (the tool) | `relcert <input.txt>...` |
 | the theorems' Z3 hypotheses hold (+ the cross-mode handoff) | `relcert --run-verdicts` |
 | the handoff alone, per benchmark | `relcert --handoff <input.txt>...` |
@@ -79,7 +91,7 @@ separate, and they live in different places:
 | parser / printer / IR-drift / determinism | `BENCH_PATHS=<manifest> relcert-test` |
 
 `--check-quick` compares the certification tally against the suite declared in
-`Verdicts/Coverage.expectedSuite` (46 certified, 0 declined, and the one documented
+`Verdicts/Coverage.expectedSuite` (40 certified, 0 declined, and the one documented
 inconclusive), so a benchmark that starts failing cannot hide among the expected
 results. Give it a different path set and the tally is reported but not enforced.
 
@@ -153,17 +165,17 @@ Nothing else. In particular the search — cover exploration, cut fixpoints, rou
 selection, λ choice — is **completely untrusted**. It only *proposes*; every accepted
 output is re-validated by kernel-checked replay or becomes a named Z3 fact.
 
-**Conditioning (the five region-carrying instances).** `arm_chain_rung3`,
-`arm_fidelity_high`, `arm_fidelity_mid`, `plant_fan_high` and `plant_fan_mid` state their
+**Conditioning (the two region-carrying instances).** `arm_chain_rung3` and
+`arm_fidelity_mid` (five instances before the 2026-10-08 deduplication) state their base
 invariant as `θ_R ≥ 0.6 ∧ (the benchmark's relational invariant)`. The extra conjunct is
 exactly the `Hold` mode's guard, and it is *necessary*: the tool certifies `Hold` at that
 narrowed domain (the emitted cover records `jointOK = true` there), and without it the
-flow query is satisfiable, so the theorem would be vacuous. These five therefore claim:
+flow query is satisfiable, so the theorem would be vacuous. These two therefore claim:
 *from states where the right system already satisfies `Hold`'s guard, the refinement is
 maintained.* That is what the certificate supports, stated honestly. The same device
 (`lowFace`, a region as an invariant component) is what `rung2c` has always used.
 
-**Cut composition (2026-10-08).** Each of the five also carries a second theorem,
+**Cut composition (2026-10-08).** Each of the two also carries a second theorem,
 `<name>_declared` (`Instances/<Name>Declared.lean`), at the DECLARED invariant with the
 cut carried only where the tool checked it — as `Hold`'s mode region (`mvRegionR`, `⊤` at
 the approach modes). From every state satisfying the declared invariant with the right in
@@ -173,7 +185,7 @@ declared invariant with no region anywhere is false for these automata (from `Ho
 below its guard the right cannot move): `docs/CUT-COMPOSITION.md`,
 `docs/PAPER-MAPPING.md` §2c.
 
-**Coverage.** The modal statement is instantiated for all 46 certified benchmarks;
+**Coverage.** The modal statement is instantiated for all 40 certified benchmarks;
 `Instances/ModalBattery.lean` imports every one and re-emits its axiom audit on each
 build. Five are entirely **Z3-free** (`rover3_M1`, `rover_coupled`, `rover_position`,
 `refinement_ladder_rover_rung2_6dof`, `refinement_ladder_rover_rung2b_6dof`): their
@@ -295,7 +307,7 @@ The pipeline is identical; three knobs vary.
   viability certificates (strict faces, or growth faces with entry budgets); the five
   catch-up instances need none, because their responses are closed-form flows.
 * **How the response is built.** Most benchmarks respond in place or hop statically along
-  declared edges. Five switch mode *inside* a window (`SplitCoupling.lean`, capped at
+  declared edges. Three switch mode *inside* a window (`SplitCoupling.lean`, capped at
   `dt ≤ 1/5`). Five respond with pure right-side flow and close the invariant by endpoint
   arithmetic (`WindowGrowth.lean`). One states two theorems, one per left mode.
 
@@ -370,7 +382,7 @@ is strictly weaker.
 | route | mechanism | benchmarks |
 |---|---|---|
 | **proven outright** | explicit exponential witness for contract-shaped fields (`contractΦ`, `Proofs/Soundness/UniformEvol.lean`) | watertank and the contract family |
-| **from viability certificates** | strict faces by a first-exit argument (`BoxViability.lean`); growth faces with entry budgets, telescoped (`BoxViabilityBounded.lean`); assembled in strata by `StratifiedFaces.lean`, with equilibrium and monotone faces in `AffineFaces{,2}.lean`. Suite-wide census: 1121/1121 evolve-box faces (`BenchViability2.lean`) | most of the suite |
+| **from viability certificates** | strict faces by a first-exit argument (`BoxViability.lean`); growth faces with entry budgets, telescoped (`BoxViabilityBounded.lean`); assembled in strata by `StratifiedFaces.lean`, with equilibrium and monotone faces in `AffineFaces{,2}.lean`. Suite-wide census: 1085/1085 evolve-box faces (`BenchViability2.lean`; 1121 before the deduplication) | most of the suite |
 | **not needed at all** | the response is a closed-form flow written down directly (linear, or the exponential `v(t) = c + (v₀−c)e^{−3t}`), so existence is a witness rather than a hypothesis | the five Z3-free catch-up instances |
 
 The middle route bottoms out at face verdicts, i.e. at `z3_unsat_sound` — no *new* trust,
@@ -421,10 +433,10 @@ which no amount of formula manipulation can establish.
 
 | family | statement shape | benchmarks | where the mode guard lives | hypotheses beyond the trust base |
 |---|---|---|---|---|
-| **settling** (`*_real`) | cadenced rounds settle into the invariant band (`GuardSettlingB`) | 46/46 | **in the statement**, as `Gd q`. Its final conjunct — *some retained successor's guard holds at the segment's end* — is **non-blocking, proven** | flow/cut verdicts |
-| **throughout** | every component of the invariant holds throughout every right coexecution | 33 cut-free | **in the statement**, as `Gd` threaded through `RightReachG` | cover verdicts |
-| **cut throughout** | same, via the guard-threaded cut lift | 13 cut-reliant | **in the statement** as `Gd`, *and* as guard-derived cut atoms | cut-narrowed cover verdicts + per-atom O2 probes |
-| **modal (Theorem 3)** | `rvalid (theorem3Form …)` — the paper's ∀∃ with reposition-opened windows | **46/46**, 47 theorems | **not in the statement** for most: the R *program* appears instead, with edge guards `⊤`. **Five carry the landing mode's guard as a region conjunct in the invariant** (see *Conditioning*) | per-instance route verdicts, **all checked true** (2026-07-31); existence **proven** for every instance. Five need no verdicts at all |
+| **settling** (`*_real`) | cadenced rounds settle into the invariant band (`GuardSettlingB`) | 40/40 | **in the statement**, as `Gd q`. Its final conjunct — *some retained successor's guard holds at the segment's end* — is **non-blocking, proven** | flow/cut verdicts |
+| **throughout** | every component of the invariant holds throughout every right coexecution | 29 cut-free | **in the statement**, as `Gd` threaded through `RightReachG` | cover verdicts |
+| **cut throughout** | same, via the guard-threaded cut lift | 11 cut-reliant | **in the statement** as `Gd`, *and* as guard-derived cut atoms | cut-narrowed cover verdicts + per-atom O2 probes |
+| **modal (Theorem 3)** | `rvalid (theorem3Form …)` — the paper's ∀∃ with reposition-opened windows | **40/40**, 41 base theorems (+ 7 mode-keyed, + 2 cut-composed) | **not in the statement** for most: the R *program* appears instead, with edge guards `⊤`. **Two carry the landing mode's guard as a region conjunct in the invariant** (see *Conditioning*; their `…_declared` theorems carry it as `Hold`'s mode region only) | per-instance route verdicts, **all checked true** (2026-07-31); existence **proven** for every instance. Five base instances need no verdicts at all |
 
 The guard column is the one to read when relating these to a paper's automaton
 `( ⋃_m ?(m ∈ next(mv)) ; ?guard_m(x) ; mv := m ; {x' = f_m & evolC_m} )*`: the first three
@@ -446,14 +458,14 @@ RelCertifier/
     Flow/       14 files   analysis: DI routes, Picard, viability, faces
     Soundness/  6 files    cut lift, guard threading, contract witnesses
     Transfer/   5 files    rescaling and faithfulness bridges
-  Instances/  63 files   KERNEL COLUMN: per-benchmark theorems + emitted data
-    BenchIR/        46     drift-checked IR literals, one leaf per benchmark
-    BenchCovers/    46     emitted cover data (+ BenchCoversNC/ without cuts)
-    Throughout/     33     cut-free throughout instances (generated)
-    CutThroughout/  13     cut-lifted throughout instances (generated)
+  Instances/  54 files   KERNEL COLUMN: per-benchmark theorems + emitted data
+    BenchIR/        40     drift-checked IR literals, one leaf per benchmark
+    BenchCovers/    40     emitted cover data (+ BenchCoversNC/ without cuts)
+    Throughout/     29     cut-free throughout instances (generated)
+    CutThroughout/  11     cut-lifted throughout instances (generated)
   Verdicts/  14 files    EMPIRICAL COLUMN: query mirrors, kernel pins, the runner
-  Archive/    18 files   superseded developments, kept for the record
-benchmarks/   47 dirs    the input suite (46 certified + shield_unreachable)
+  Archive/    17 files   superseded developments, kept for the record
+benchmarks/   41 dirs    the input suite (40 certified + shield_unreachable)
 scripts/                 instance generators + build orchestration
 docs/                    CERTIFICATION-CHECK.md, READING-GUIDE.md, audits, records
 ```
@@ -549,7 +561,8 @@ compose into a window response; window responses compose into a loop that closes
   the cross-mode handoffs; `handoff_of_unsat` bridges the runner's handoff query.
 * `WindowRF.lean` — the k > 1 window assembly over list-valued invariants.
 * `Reparam.lean` — λ-stretched right runs have exactly the runs of λ = 1 ones, so the
-  theorem can be stated at the real automaton (23 benchmarks have λ ≠ 1).
+  theorem can be stated at the real automaton (21 benchmarks have a cover window at
+  λ ≠ 1).
 * `SplitCoupling.lean` — intra-window mode switching (B-then-A at a fixed fraction); the
   five `dt ≤ 1/5` switch instances.
 * `WindowGrowth.lean` — the **catch-up** device. The key observation: the `⟨…⟩` side of
@@ -616,15 +629,15 @@ compose into a window response; window responses compose into a loop that closes
 * `BenchCovers/`, `BenchCoversNC/` — emitted cover data with and without cuts.
 * `BenchCoverReplay.lean` — the kernel replay of every cover decision (`by decide`).
 * `EvolStrengthenings/` — emitted cut certificates plus kernel well-formedness.
-* `BenchViability2.lean` — the face census, 1121/1121 suite-wide.
-* `<Bench>Modal.lean` (46 files) — the per-benchmark modal Theorem 3 instances. Each one
+* `BenchViability2.lean` — the face census, 1085/1085 suite-wide.
+* `<Bench>Modal.lean` (40 files) — the per-benchmark modal Theorem 3 instances. Each one
   defines its left window family, right mode graph, and invariant terms, discharges the
   side conditions, and applies the generic top theorem.
 * `ModalBattery.lean` — imports all of them and re-emits their axiom audits on every
   build, so the audit cannot drift from the theorems.
 * `WatertankModal.lean` / `WatertankViability.lean` — the flagship: statement, then
   existence discharged in-kernel, yielding `watertank_modal_certified`.
-* `Throughout/`, `CutThroughout/` and their batteries — the 33 cut-free and 13 cut-lifted
+* `Throughout/`, `CutThroughout/` and their batteries — the 29 cut-free and 11 cut-lifted
   throughout instances (generated).
 * `AxiomCheck.lean` — the chain-level audit showing exactly where `z3_unsat_sound` enters
   (`flow_certified`, `segPres_from_flowCert`, `cut_hcert`) and where it does not.
@@ -642,8 +655,9 @@ compose into a window response; window responses compose into a loop that closes
 * `ModalVerd.lean` — states, at the host level, exactly what the runner builds:
   `modalVerd` for the `∀`-over-components form (with an optional head prepended — a
   ceiling or the repaired `Hold` region — or appended), `modalVerd1` for the bare
-  three-route disjunction eleven instances use.
-* `ModalPinTable.lean` — the 42 `rfl` pins. Each says the instance's own `Verd…` *is*
+  three-route disjunction eight instances use.
+* `ModalPinTable.lean` — the `rfl` pins, one per verdict pack (36 base packs and the 5
+  packs of the mode-keyed instances). Each says the instance's own `Verd…` *is*
   `modalVerd` at the arguments the runner's table names, so a wrong table entry fails
   to compile rather than sending Z3 a lookalike query and reporting it green.
 * `ModalTablePins.lean` — pins the rest of the `RunInfo` row as data, including the
@@ -677,12 +691,12 @@ mechanized counterexample `WellFormedFlow_rover_false`. See `RelCertifier/Archiv
 
 | paper result | mechanization | notes |
 |---|---|---|
-| Theorem 3 (relational ∀∃ over co-executions, reposition-opened windows) | `theorem3Form` + `theorem3_faithful_multiE_LR`; instantiated 47× | the loop invariant is the paper's invariant ∧ mode-validity ∧ the joint envelope |
+| Theorem 3 (relational ∀∃ over co-executions, reposition-opened windows) | `theorem3Form` + `theorem3_faithful_multiE_LR`; instantiated 41× (base), plus the 7 mode-keyed and 2 cut-composed forms | the loop invariant is the paper's invariant ∧ mode-validity ∧ the joint envelope |
 | per-segment flow certificates (three DI routes) | `flow_cert_sound` (A), `flow_cert_sound_strict` (B), `flow_cert_sound_superlevel` (C) in `Core/FlowCert.lean`; `flow_certified` (`Trusted/Oracle.lean`) is the verdict→invariance step; stratified multi-component form in `StratifiedBarrier.lean` | the mutual-narrowing variant was found **unsound** (R4) and replaced by sequential cuts — a tool fix surfaced by the mechanization |
 | checked guard cuts (O1 entry / O2 invariance) | `CutLift.lean` per-atom staying + `CutCover.lean` baton | O2's one-sidedness covers both joint and frozen-left flows |
 | response existence (non-blocking flows) | strict faces + growth budgets (`BoxViability*.lean`), contract witnesses (`UniformEvol.lean`) | the `∀s` form of the side condition is **unsatisfiable in general**; the clock-capped `HExistSegB` is what the coupling consumes |
 | cover soundness (the certificate checker) | `decideCovered_sound`, `check_sound_multi{,_cut}` | search untrusted; decisions kernel-replayed per benchmark |
-| settling rounds (the cadenced presentation) | `theorem3_faithful_settling` + the 46-benchmark `_real` battery | retained; superseded for new work by the modal chain |
+| settling rounds (the cadenced presentation) | `theorem3_faithful_settling` + the 40-benchmark `_real` battery | retained; superseded for new work by the modal chain |
 
 ---
 
@@ -720,7 +734,7 @@ per-benchmark table — is [`docs/CERTIFICATION-CHECK.md`](docs/CERTIFICATION-CH
 #print axioms RelCertifier.WatertankVerdicts.wt_id   -- 3 axioms (the pins)
 ```
 
-All 47 modal theorems at once:
+All 50 theorems of the battery at once:
 
 ```bash
 lake build RelCertifier.Instances.ModalBattery 2>&1 | grep -A3 "depends on axioms"
@@ -729,7 +743,10 @@ lake build RelCertifier.Instances.ModalBattery 2>&1 | grep -A3 "depends on axiom
 Measured 2026-07-31: 42 theorems at the standard three plus `z3_unsat_sound`, 5 at the
 standard three alone, **no `sorryAx`, no `native_decide`, nothing else**. Measured
 2026-10-08 (branch `cut-composition`): 59 theorems, 46 with `z3_unsat_sound`, 13 at the
-standard three alone. Use `-A3`: a four-axiom list prints over four lines and `-A2` drops
+standard three alone. Measured 2026-10-08 after the suite deduplication (branch
+`dedupe-suite`): **50 theorems, 40 with `z3_unsat_sound`, 10 at the standard three
+alone** (the 5 Z3-free base instances, the 3 composed rover theorems, the 2 `…_declared`
+theorems). Use `-A3`: a four-axiom list prints over four lines and `-A2` drops
 the line naming `z3_unsat_sound`.
 
 ---
@@ -759,10 +776,11 @@ Mechanizing surfaced real issues; each is recorded in `docs/COVER-AUDIT.md`:
 
 `benchmarks/suite_uniform/<name>/input.txt` — one file per benchmark: state variables,
 `L`/`R` mode lists (`ode`, `guard`, `evolve`, `next`), per-mode relational invariants, and
-the λ stretch range. 47 directories: 46 certified, plus `shield_unreachable`, on which the
+the λ stretch range. 41 directories: 40 certified, plus `shield_unreachable`, on which the
 tool itself reports an inconclusive verdict and which is therefore outside the certified
-suite. The families are watertank, arm and plant control loops, rover refinement ladders,
-and terrain and rollover stories up to 12 degrees of freedom. Format details:
+suite. The families are watertank, arm control loops, rover refinement ladders, and
+terrain and rollover stories up to 12 degrees of freedom; six byte-identical duplicates
+were removed on 2026-10-08 (`docs/SUITE-DEDUPE.md`). Format details:
 [`benchmarks/README.md`](benchmarks/README.md).
 
 ## Further reading
@@ -776,6 +794,7 @@ the historical routes clearly marked.
 * `docs/PAPER-MAPPING.md` — paper ↔ mechanization inventory and the R-series gate glossary.
 * `docs/COVER-AUDIT.md` — tool↔proof findings.
 * `docs/VERDICTS.md` — the empirical report and the full-suite closure record.
+* `docs/SUITE-DEDUPE.md` — the 2026-10-08 suite deduplication: method, removals, the 40-benchmark theorem table.
 * `docs/ASSET-MAP.md` — the load-bearing theorems.
 
 Design proposals, nothing scheduled: `docs/proposals/FIXPOINT-DESIGN.md`,

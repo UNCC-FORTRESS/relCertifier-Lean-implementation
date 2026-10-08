@@ -6,6 +6,16 @@ benchmarks/suite_uniform/*/input.txt` (warm persistent session). The 2026-10-07 
 the domain-FREE query and the original rows is kept below as the record of the failure
 that motivated both changes.
 
+**Suite deduplication (2026-10-08, branch `dedupe-suite`).** Six duplicate benchmarks
+were removed afterwards (`arm_fidelity_high`, `plant_fan_high`, `arm_refinement`,
+`plant_fan_low`, `match_multi_eps`, `plant_fan_mid`; `docs/SUITE-DEDUPE.md`), each with
+4 declared left transitions, all of them vacuous (rows identical). The handoff phase now
+owes **191** queries over the 40 emitted benchmarks (`Coverage.expected.handoff = 191`,
+`CoveragePins.derivedHandoff_eq_expected`), 192 over the 41 input files with
+`shield_unreachable`'s self-loop; the results table below has been pruned to the current
+suite, and the superseded 2026-10-07 table is kept as it was measured. None of the seven
+mode-dependent benchmarks was affected.
+
 ## What is checked, and why
 
 Seven benchmarks declare a MODE-DEPENDENT relational invariant: a `[relational_invariant]`
@@ -47,34 +57,29 @@ Self-loops are checked too (trivially unsat) and counted. A mode-INDEPENDENT inv
 row syntactically identical) makes every query vacuous; such benchmarks are still run and
 reported as `vacuous`, never skipped.
 
-**Coverage is declared.** `Verdicts/Coverage.expected.handoff = 215` is the suite total (one
-query per declared left transition over the 46 emitted benchmarks),
+**Coverage is declared.** `Verdicts/Coverage.expected.handoff = 191` is the suite total (one
+query per declared left transition over the 40 emitted benchmarks; 215 over 46 before the
+deduplication),
 `CoveragePins.derivedHandoff_eq_expected` proves by `decide` that this equals what the emitted
 IR declares, and `expectedHandoffFailures` lists the transitions known to fail — now EMPTY;
 `CoveragePins.expectedHandoffFailures_declared` proves each entry names a real transition.
 The handoff phase of `--run-verdicts` / `--check-quick` is green iff the failure set is
-exactly the declared one and all 215 queries came back `unsat`.
+exactly the declared one and all 191 queries came back `unsat`.
 
-## Results — the whole suite (47 inputs; `shield_unreachable` is the documented 47th)
+## Results — the whole suite (41 inputs; `shield_unreachable` is the documented 41st)
 
 | benchmark | left transitions (checked/declared) | passed | failing transitions | invariant | wall time |
 |---|---|---|---|---|---|
 | `arm_chain_rung1` | 6/6 | 6 | - | vacuous (rows identical) | 102 ms |
 | `arm_chain_rung2` | 7/7 | 7 | - | vacuous (rows identical) | 5 ms |
 | `arm_chain_rung3` | 4/4 | 4 | - | vacuous (rows identical) | 3 ms |
-| `arm_fidelity_high` | 4/4 | 4 | - | vacuous (rows identical) | 3 ms |
 | `arm_fidelity_low` | 4/4 | 4 | - | vacuous (rows identical) | 3 ms |
 | `arm_fidelity_mid` | 4/4 | 4 | - | vacuous (rows identical) | 2 ms |
-| `arm_refinement` | 4/4 | 4 | - | vacuous (rows identical) | 3 ms |
 | `attitude_rate` | 1/1 | 1 | - | vacuous (rows identical) | 0 ms |
 | `endurance_gain_M1` | 7/7 | 7 | - | vacuous (rows identical) | 4 ms |
 | `endurance_orderlift_1to2` | 8/8 | 8 | - | vacuous (rows identical) | 6 ms |
 | `endurance_orderlift_2to3` | 7/7 | 7 | - | vacuous (rows identical) | 5 ms |
-| `match_multi_eps` | 4/4 | 4 | - | vacuous (rows identical) | 2 ms |
 | `match_multi_rate` | 8/8 | 8 | - | vacuous (rows identical) | 4 ms |
-| `plant_fan_high` | 4/4 | 4 | - | vacuous (rows identical) | 2 ms |
-| `plant_fan_low` | 4/4 | 4 | - | vacuous (rows identical) | 3 ms |
-| `plant_fan_mid` | 4/4 | 4 | - | vacuous (rows identical) | 3 ms |
 | `refinement_ladder_rover_rung1_2to3` | 5/5 | 5 | - | vacuous (rows identical) | 3 ms |
 | `refinement_ladder_rover_rung2_3to6` | 5/5 | 5 | - | vacuous (rows identical) | 3 ms |
 | `refinement_ladder_rover_rung2_6dof` | 5/5 | 5 | - | vacuous (rows identical) | 3 ms |
@@ -107,12 +112,14 @@ exactly the declared one and all 215 queries came back `unsat`.
 | `story3_rollover_ladder_rung_b` | 5/5 | 5 | - | mode-dependent | 5 ms |
 | `watertank` | 6/6 | 6 | - | vacuous (rows identical) | 3 ms |
 
-Totals: 216 transitions checked over the 47 input files (215 over the 46 emitted benchmarks
-plus `shield_unreachable`'s single self-loop), 215 unsat. The one FAIL is
+Totals (as measured on the 46-benchmark suite): 216 transitions checked over the 47 input
+files (215 over the 46 emitted benchmarks plus `shield_unreachable`'s single self-loop),
+215 unsat; after the deduplication, 192 over 41 input files, 191 over the 40 emitted
+benchmarks, 191 unsat (re-run 2026-10-08, branch `dedupe-suite`). The one FAIL is
 `shield_unreachable`'s self-loop: its right side declares a state variable (`w`) the left
 does not, so the right evolve domain does not lower against the left's variable list and the
 query cannot be built — reported, never skipped. It is the 47th benchmark, outside the
-emitted suite (`benchIRTable`), so the `--run-verdicts` phase (46 benchmarks, 215 queries) is
+emitted suite (`benchIRTable`), so the `--run-verdicts` phase (40 benchmarks, 191 queries) is
 unaffected; `--handoff` over all 47 input files exits 1 on it by design (the raw check fails
 on anything that is not `unsat`).
 
@@ -181,7 +188,7 @@ are atom-agnostic and re-elaborate unchanged; the composed theorem is
 ## Re-running
 
     ./.lake/build/bin/relcert --handoff benchmarks/suite_uniform/*/input.txt   # per benchmark, exit 1 on any non-unsat (incl. shield_unreachable)
-    ./.lake/build/bin/relcert --run-verdicts                                    # phase 4 = handoff over the 46 emitted benchmarks, 215/215 owed
+    ./.lake/build/bin/relcert --run-verdicts                                    # phase 4 = handoff over the 40 emitted benchmarks, 191/191 owed
 
 ## Record: the 2026-10-07 run — domain-FREE query, original `rover3tier_rung12` rows (superseded)
 

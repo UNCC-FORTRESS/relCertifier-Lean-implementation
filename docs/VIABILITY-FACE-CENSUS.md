@@ -1,5 +1,7 @@
 # Viability face census — measured, 47 benchmarks
 
+> **Note (2026-10-08).** Census taken on the 46-benchmark suite. After the removal of six duplicate benchmarks (`SUITE-DEDUPE.md`) the committed `BenchViability2.lean` lists 1085 faces (36 fewer: 8 + 4 + 6 + 8 + 4 + 6 for `arm_fidelity_high`, `arm_refinement`, `match_multi_eps`, `plant_fan_high`, `plant_fan_low`, `plant_fan_mid`); the per-face findings below are unchanged.
+
 > **UPDATE (2026-07-30).** The census measurements below stand. The *route* columns do
 > not: every face class now has a Lean route and all of them are instantiated. Non-strict
 > faces go through `Proofs/Flow/StratifiedFaces.lean` (strata, no Nagumo needed); the 45

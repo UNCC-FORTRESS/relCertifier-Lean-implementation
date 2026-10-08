@@ -1,9 +1,17 @@
-# Cut composition — the declared invariant of the five checked-cut benchmarks
+# Cut composition — the declared invariant of the checked-cut benchmarks
 
 Status: landed 2026-10-08, branch `cut-composition`. Five new leaves
 `Instances/<Name>Declared.lean` plus the generic leaf
 `Proofs/Encoding/CutComposition.lean`; base instances, `Proofs/` chain, benchmarks,
 runner and pins untouched. Companion to `docs/PAPER-MAPPING.md` §2c.
+
+**Suite deduplication (2026-10-08, branch `dedupe-suite`).** Three of the five were
+duplicates and were removed afterwards: `arm_fidelity_high` and `plant_fan_high` are
+byte-identical to `arm_chain_rung3` (§2a already records this), and `plant_fan_mid` is
+`arm_fidelity_mid` with tolerance 0.3 instead of 0.25 (§2b). The surviving leaves are
+`ArmChainRung3Declared.lean` and `ArmFidelityMidDeclared.lean`; the analysis below is
+kept as written, since every statement about a removed name holds verbatim for its
+surviving representative. `docs/SUITE-DEDUPE.md`.
 
 ## 1. The question
 
@@ -202,13 +210,14 @@ same response).
 | benchmark | strategy confirmed (tool) | cut (atom, route; load-bearing for the tool?) | cut probes in `--run-verdicts` | literal `mvValid` form | declared theorem landed | file | axioms |
 |---|---|---|---|---|---|---|---|
 | `arm_chain_rung3` | yes: jointOK at `ApproachA`, `Hold`; static/dyn repositions at `B`, `C`; right-only reach of `0.6` from any approach mode | `Hold: θ ≥ 0.6`, frozen; yes (`NO_CUT` declines) | 4 (`A/B/C` B-strict, `Hold` A) | **false** (countermodel §3) | `arm_chain_rung3_declared`, mode-region form | `Instances/ArmChainRung3Declared.lean` | std 3 |
-| `arm_fidelity_high` | same (identical system) | same | 4 | false | `arm_fidelity_high_declared` | `Instances/ArmFidelityHighDeclared.lean` | std 3 |
-| `plant_fan_high` | same (identical system) | same | 4 | false | `plant_fan_high_declared` | `Instances/PlantFanHighDeclared.lean` | std 3 |
+| `arm_fidelity_high` | same (identical system) | same | 4 | false | `arm_fidelity_high_declared` | **removed 2026-10-08** (duplicate of `arm_chain_rung3`) | — |
+| `plant_fan_high` | same (identical system) | same | 4 | false | `plant_fan_high_declared` | **removed 2026-10-08** (duplicate of `arm_chain_rung3`) | — |
 | `arm_fidelity_mid` | yes: jointOK at `ApproachFast`, `Hold`; right-only reach from `Fast`/`Slow`; `Hold` dyn-repo off (contraction) | `Hold: θ ≥ 0.6`, shape; no for the tool (`NO_CUT` certifies at λ = 9/2), yes for the λ = 1 Lean instance | 0 (not in `cutBenchmarks`) | false | `arm_fidelity_mid_declared` | `Instances/ArmFidelityMidDeclared.lean` | std 3 |
-| `plant_fan_mid` | same, tolerance `0.3` | same (λ = 15/4 without the cut) | 0 | false | `plant_fan_mid_declared` | `Instances/PlantFanMidDeclared.lean` | std 3 |
+| `plant_fan_mid` | same, tolerance `0.3` | same (λ = 15/4 without the cut) | 0 | false | `plant_fan_mid_declared` | **removed 2026-10-08** (near-duplicate of `arm_fidelity_mid`) | — |
 
-Wiring: `Instances/ModalBattery.lean` imports the five leaves and prints their axioms
-(59 theorems in the battery). No `ModalSpecs` namespace, runner row, pin or coverage
+Wiring: `Instances/ModalBattery.lean` imports the leaves and prints their axioms
+(59 theorems in the battery at the time; 50 after the deduplication, with the two
+surviving `…_declared` theorems). No `ModalSpecs` namespace, runner row, pin or coverage
 change: the theorems carry no Z3 hypothesis, exactly as the rover trio's `*Handoff.lean`
 leaves.
 

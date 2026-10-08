@@ -21,6 +21,7 @@ import RelCertifier.Trusted.KeyAudit
 import RelCertifier.Verdicts.Run
 import RelCertifier.Verdicts.RunModal
 import RelCertifier.Verdicts.RunCut
+import RelCertifier.Verdicts.RunHandoff
 
 open RelCertifier DL
 
@@ -144,12 +145,18 @@ def runAllVerdicts (cfg : RelCertifier.Z3Config) : IO Bool := do
   let n2 ← RelCertifier.Verdicts.dischargedCount.get
   let ok3 ← RelCertifier.Verdicts.runModal cfg
   let n3 ← RelCertifier.Verdicts.dischargedCount.get
+  let ok4 ← RelCertifier.Verdicts.runHandoffAll cfg
+  let n4 ← RelCertifier.Verdicts.dischargedCount.get
   -- a phase that issued fewer queries than it owes is not a green run, however clean
   -- its own output looked (Verdicts/Coverage.lean)
   let c1 ← RelCertifier.Verdicts.checkPhase "watertank" (n1 - n0) exp.watertank
   let c2 ← RelCertifier.Verdicts.checkPhase "cut probes" (n2 - n1) exp.cut
   let c3 ← RelCertifier.Verdicts.checkPhase "modal" (n3 - n2) exp.modal
-  pure (ok1 && ok2 && ok3 && c1 && c2 && c3)
+  -- the handoff phase counts its `unsat`s; the declared failures are not discharged, so
+  -- the owed count is the total minus the declared failure list
+  let c4 ← RelCertifier.Verdicts.checkPhase "handoff" (n4 - n3)
+    (exp.handoff - RelCertifier.Verdicts.expectedHandoffFailures.length)
+  pure (ok1 && ok2 && ok3 && ok4 && c1 && c2 && c3 && c4)
 
 def usage : String :=
 "relcert — the relCertifier certification tool
@@ -157,6 +164,9 @@ def usage : String :=
 USAGE
   relcert <benchmark input.txt>...        certify benchmarks (CERTIFIED/DECLINED/ERROR)
   relcert --run-verdicts                  re-run every theorem's Z3 hypotheses
+                                          (incl. the cross-mode handoff phase)
+  relcert --handoff <input.txt>...        the handoff check alone, per benchmark, with
+                                          per-transition verdicts and wall time
   relcert --check-quick <input.txt>...    the fast checks: certify, then --run-verdicts
   relcert --help                          this text
 
@@ -268,6 +278,30 @@ def main (args : List String) : IO Unit := do
       | .ok cfg => RelCertifier.Oracle.emitCoverFile cfg path defname
   | ["--emit-cuts", path, defname] => emitCuts path defname
   | [] => demoStage1
+  | "--handoff" :: paths => do
+      if paths.isEmpty then
+        IO.eprintln "ERROR: --handoff needs benchmark paths (see --help)"
+        IO.Process.exit 2
+      match ← RelCertifier.Z3Config.discover with
+      | .error e => IO.eprintln s!"ERROR: {e}"; IO.Process.exit 2
+      | .ok cfg =>
+        match ← RelCertifier.Z3Session.start cfg with
+        | .error e => IO.eprintln s!"ERROR: z3 session: {e}"; IO.Process.exit 2
+        | .ok s =>
+          let mut anyFail := false
+          let mut total := 0
+          for path in paths do
+            match ← RelCertifier.Oracle.readProblemStrict path with
+            | .error e => IO.println s!"{path}: ERROR [parse: {e}]"; anyFail := true
+            | .ok p =>
+              let name := (path.splitOn "/").reverse.getD 1 path
+              let r ← RelCertifier.Verdicts.runHandoffBench s cfg name p
+              IO.println r.line
+              total := total + r.checked
+              if !r.failing.isEmpty || r.checked != r.declared then anyFail := true
+          s.close
+          IO.println s!"handoff: {total} transition(s) checked over {paths.length} benchmark(s)"
+          if anyFail then IO.Process.exit 1
   | "--check-quick" :: paths => do
       if paths.isEmpty then
         IO.eprintln "ERROR: --check-quick needs benchmark paths (see --help)"

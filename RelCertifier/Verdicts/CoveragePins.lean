@@ -28,6 +28,7 @@ there is nothing to derive there.
 -/
 import RelCertifier.Verdicts.ModalTablePins
 import RelCertifier.Verdicts.RunCut
+import RelCertifier.Verdicts.RunHandoff
 
 namespace RelCertifier.Verdicts
 
@@ -58,5 +59,22 @@ theorem derivedModal_eq_expected : derivedModal = expected.modal := by decide
 
 /-- Likewise for the cut probes, against `cutBenchmarks` and the emitted IR. -/
 theorem derivedCut_eq_expected : derivedCut = expected.cut := by decide
+
+/-- What the handoff phase owes: one query per declared left transition of every emitted
+benchmark — the resolved pairs `Handoff.transitions` the runner actually visits. -/
+def derivedHandoff : ℕ :=
+  benchIRTable.foldl (fun acc r => acc + (Handoff.transitions r.2).length) 0
+
+/-- The handoff total is what the emitted IR declares, not a remembered number. -/
+theorem derivedHandoff_eq_expected : derivedHandoff = expected.handoff := by decide
+
+/-- Every declared-failing handoff names a benchmark in the table and a transition it
+really declares — a stale entry (a renamed benchmark, a removed edge) fails the build
+rather than being silently "expected" forever. -/
+theorem expectedHandoffFailures_declared :
+    expectedHandoffFailures.all (fun f =>
+      match benchIRTable.find? (fun r => r.1 == f.1) with
+      | some (_, p) => (Handoff.transitions p).contains (f.2.1, f.2.2)
+      | none => false) = true := by decide
 
 end RelCertifier.Verdicts

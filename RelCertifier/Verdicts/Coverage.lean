@@ -40,16 +40,32 @@ def counted : IO Unit := dischargedCount.modify (· + 1)
 * `watertank` — 6: three routes over the six (window, right-mode) pairs it asserts.
 * `cut` — 105: per-atom O2 route probes across the 13 cut-reliant benchmarks.
 * `modal` — 483: every modal instance's verdict pack, one query per component per
-  asserted mode pair. -/
+  asserted mode pair.
+* `handoff` — one static query per declared LEFT transition of every certified
+  benchmark (self-loops included), `φ_inv(m') ∧ guard_m ∧ ¬φ_inv(m)` — the cross-mode
+  handoff of the mode-keyed invariant (`Trusted/Handoff.lean`). Mode-independent
+  invariants make these vacuous; they are still issued and counted. -/
 structure Expected where
   watertank : Nat
   cut       : Nat
   modal     : Nat
+  handoff   : Nat
   deriving Repr
 
-/-- Measured 2026-07-31. Edit deliberately when the suite changes; see the module
-docstring for why this is a declared constant rather than whatever the run produced. -/
-def expected : Expected := { watertank := 6, cut := 105, modal := 483 }
+/-- Measured 2026-07-31 (watertank/cut/modal) and 2026-10-07 (handoff). Edit
+deliberately when the suite changes; see the module docstring for why this is a
+declared constant rather than whatever the run produced. -/
+def expected : Expected := { watertank := 6, cut := 105, modal := 483, handoff := 215 }
+
+/-- The handoff transitions that are KNOWN to fail, declared as `(benchmark, m', m)`.
+A green handoff phase has exactly this failure set — a new failure fails the run, and so
+does a declared failure that stops failing (the declaration is then stale). The two
+entries are `rover3tier_rung12`'s `ACCEL → COAST` (0 → 1) and `COAST → ACCEL` (1 → 0):
+its two rows are incomparable (`v_L ≤ v_R + 0.5 ∧ a_L ≤ a_R + 0.8` versus
+`3v_L + a_L ≤ 3v_R + 1.2`), so the mode-keyed invariant is not established across
+either switch; see `docs/HANDOFF.md` for the countermodels. -/
+def expectedHandoffFailures : List (String × Nat × Nat) :=
+  [("rover3tier_rung12", 0, 1), ("rover3tier_rung12", 1, 0)]
 
 /-- What a certification run over the standard suite produces.
 

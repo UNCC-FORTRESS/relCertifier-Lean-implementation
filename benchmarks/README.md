@@ -9,6 +9,20 @@ suite).** Every certified benchmark carries a machine-checked modal Theorem 3 �
 declares a pruned stall fallback (`STALL`, edge `DRIVE → STALL`) that exercises the
 non-connection certificate: `RELCERT_NO_PRUNE=1` makes it DECLINE (`docs/PRUNING.md`).
 
+## The redesigned suite — `suite_v2/` (2026-10-08, branch `suite-redesign`)
+
+`suite_v2/` is the redesigned 40-benchmark suite: the 19 kept benchmarks (terrain/
+position ladder, story ladders, watertank) and `match_multi_rate`, `rover3tier_rung12`
+copied unchanged, plus 19 new benchmarks in six families (ACC under sensor spoofing /
+retune, quadrotor climb with a lighter airframe, battery charger, platoon follower with
+a delayed link, rover patrol zones, arm with a leading reference). Each new file's
+header states the physical story, units, the measured cover and the mechanisms it
+exercises (`# scenario:` / `# mechanisms:` lines). The mechanism matrix, the per-family
+design, the counter-runs and the scenarios tried and dropped are in
+`docs/SUITE-REDESIGN.md`; `scripts/suite_v2_matrix.py` regenerates all of it. The Lean
+instances still read `suite_uniform/` (the mechanization of `suite_v2` is a separate
+task), so `suite_uniform/` must not be edited.
+
 ## File format
 
 INI-style sections. The parser is `RelCertifier/Trusted/Parse.lean` and it is **strict**:

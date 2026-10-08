@@ -20,12 +20,13 @@ Lean axioms plus `z3_unsat_sound`, and 5 audit to the three standard axioms alon
 `sorry`, no `admit`, no `native_decide`.
 
 **Mode-dependent invariants (2026-10-07).** Seven benchmarks declare one invariant row per
-left mode. The tool checks the cross-mode **handoff** `φ_inv(m') ∧ guard_m → φ_inv(m)` at
-every declared left transition (`relcert --handoff`; phase 4 of `--run-verdicts`), and
-`Proofs/Encoding/ModeHandoff.lean` composes per-left-mode theorems with those handoffs into
-the paper's general Theorem 3 at the mode-keyed invariant `⋀_m (u_L = m → φ_inv(m))` over
-the full left automaton. Six of the seven carry that composed theorem (`…_modeKeyed`);
-`rover3tier_rung12`'s handoff fails both ways and it stays per left mode.
+left mode. The tool checks the cross-mode **handoff** `φ_inv(m') ∧ evolve_{m'} ∧ guard_m ∧
+evolve_R → φ_inv(m)` at every declared left transition (`relcert --handoff`; phase 4 of
+`--run-verdicts`), and `Proofs/Encoding/ModeHandoff.lean` composes per-left-mode theorems
+with those handoffs into the paper's general Theorem 3 at the mode-keyed invariant
+`⋀_m (u_L = m → φ_inv(m))` over the full left automaton. All seven carry that composed
+theorem (`…_modeKeyed`); `rover3tier_rung12`'s ACCEL row had to be re-stated first (rows
+only; its original row failed the handoff, countermodel recorded).
 [`docs/HANDOFF.md`](docs/HANDOFF.md), [`docs/PAPER-MAPPING.md`](docs/PAPER-MAPPING.md) §2b.
 
 **Every verdict hypothesis has been checked true.** A kernel-checked axiom list says a

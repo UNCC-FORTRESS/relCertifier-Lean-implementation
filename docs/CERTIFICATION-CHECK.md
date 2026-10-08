@@ -17,11 +17,12 @@ Read `README.md` first for what the theorems say. This document is only about
 > full suite 46 CERTIFIED, 0 DECLINED, `shield_unreachable` inconclusive as documented.
 > See *Cost* below before you start one.
 >
-> **Branch `mode-handoff` (2026-10-07):** `lake build` 9000 jobs exit 0 (warm; only new
-> leaves) · `relcert-test` ALL PASS · `--run-verdicts` 846/846 `unsat`, coverage
-> 6/105/522/213 with the two declared handoff failures · axiom audit **53** theorems: 45 with
-> `z3_unsat_sound`, 8 standard-three · `--check-quick` PASSED (48 s). Six new composed
-> theorems and the handoff phase: `docs/HANDOFF.md`, `docs/PAPER-MAPPING.md` §2b.
+> **Branch `mode-handoff` (2026-10-08):** `lake build` exit 0 (warm; only new leaves and
+> the `rover3tier_rung12` column) · `relcert-test` ALL PASS · `--run-verdicts` 848/848
+> `unsat`, coverage 6/105/522/215, no declared handoff failure · axiom audit **54**
+> theorems: 46 with `z3_unsat_sound`, 8 standard-three · `--check-quick` PASSED. The
+> domain-conditioned handoff phase, seven composed theorems and the `rover3tier_rung12`
+> row repair: `docs/HANDOFF.md`, `docs/PAPER-MAPPING.md` §2b.
 
 ---
 
@@ -160,8 +161,8 @@ the audit re-emits on every build and cannot drift from the theorems:
 lake build RelCertifier.Instances.ModalBattery 2>&1 | grep -A2 "depends on axioms"
 ```
 
-Expected, for all 53 theorems (46 benchmarks; `rover3tier_rung12` has two, one
-per left mode; six benchmarks have a second, mode-keyed theorem):
+Expected, for all 54 theorems (46 benchmarks; `rover3tier_rung12` has two, one
+per left mode; seven benchmarks have a mode-keyed theorem as well):
 
 * `[propext, Classical.choice, Quot.sound]` — the three standard Lean axioms;
 * plus `RelCertifier.z3_unsat_sound` for the 42 theorems whose flow certificates
@@ -207,14 +208,14 @@ per-phase totals and `--run-verdicts` checks them:
   [coverage] watertank: 6/6 hypotheses discharged
   [coverage] cut probes: 105/105 hypotheses discharged
   [coverage] modal: 522/522 hypotheses discharged
-  [coverage] handoff: 213/213 hypotheses discharged
+  [coverage] handoff: 215/215 hypotheses discharged
 ```
 
 (The modal count moved from 483 to 522 on 2026-10-07 with the five packs of the
 mode-keyed instances, runner rows 42–46. The fourth phase is the cross-mode **handoff**
-check: one static query per declared left transition of every emitted benchmark, 215 in
-all; it is green only on exactly the declared failure set — `rover3tier_rung12`'s two
-cross transitions — so 213 `unsat`s are owed. `docs/HANDOFF.md`.)
+check: one domain-conditioned query per declared left transition of every emitted
+benchmark, 215 in all; it is green only on exactly the declared failure set, which is
+empty since the `rover3tier_rung12` row repair of 2026-10-08. `docs/HANDOFF.md`.)
 
 A mismatch either way fails the run. And the declared totals are themselves checked:
 `Verdicts/CoveragePins.lean` derives each from the table that generates the work —
@@ -338,6 +339,7 @@ obligations (watertank's are *proven*, in `WatertankViability.lean`).
 | `rover3tier_M1` | `Rover3tierM1Modal.lean` | `rover3tier_M1_modal` | `0 ≤ dt`; 2×`Verd3` | std 3 + `z3_unsat_sound` |
 | `rover3tier_rung12` | `Rover3tierRung12Modal.lean` | `rover3tier_rung12_modal_ACCEL` | `0 ≤ dt`; 2×`VerdQA` | std 3 + `z3_unsat_sound` |
 | `rover3tier_rung12` | `Rover3tierRung12Modal.lean` | `rover3tier_rung12_modal_COAST` | `0 ≤ dt`; 2×`VerdQC` | std 3 + `z3_unsat_sound` |
+| `rover3tier_rung12` (declared per-mode rows, composed; ACCEL row repaired 2026-10-08) | `Rover3tierRung12Handoff.lean` | `rover3tier_rung12_modeKeyed` | `0 ≤ dt`; 2×`VerdQA` + 2×`VerdQC` | std 3 + `z3_unsat_sound` |
 | `rover_4d_box` | `Rover4dBoxModal.lean` | `rover_4d_box_modal` | `0 ≤ dt`; 1×`Verd3` | std 3 + `z3_unsat_sound` |
 | `rover_attitude_cone_12dof` | `RoverAttitudeConeModal.lean` | `rover_attitude_cone_modal` | `0 ≤ dt`; 6×`VerdC` | std 3 + `z3_unsat_sound` |
 | `rover_coupled` | `RoverCoupledModal.lean` | `rover_coupled_modal` | `0 ≤ dt` | **std 3 only** |
@@ -369,10 +371,13 @@ Two rows deserve a note:
   `…_COAST`). Its modes declare *different-shaped* invariants with no
   implication either way, so a single-invariant statement would have to
   weaken one of them; the per-mode form states exactly what the tool certifies.
-  Cross-mode handoff is NOT claimed, and **cannot be**: the tool's handoff check
-  (`relcert --handoff`, `docs/HANDOFF.md`) finds both cross transitions
-  `ACCEL ↔ COAST` satisfiable, with countermodels. The mode-keyed invariant
-  `⋀_m (u_L = m → row_m)` is therefore not an invariant of the declared model.
+  With the rows as first declared the cross-mode handoff `ACCEL → COAST` was
+  satisfiable (`docs/HANDOFF.md`, countermodel), so the mode-keyed invariant was
+  not an invariant of that model. On 2026-10-08 the ACCEL row was re-stated —
+  rows only, dynamics/guards/evolves untouched — as the velocity envelope plus
+  COAST's own functional bound; both handoffs now hold under the
+  domain-conditioned query and the composed theorem `rover3tier_rung12_modeKeyed`
+  (`Rover3tierRung12Handoff.lean`) states the declared mode-keyed invariant.
 * **The six other mode-dependent benchmarks** (`rover3_M1`, `rover_coupled`,
   `rover_position`, `story1_attdist_rung_a_6to8`, `story1_attdist_rung_b_12dof`,
   `story3_rollover_ladder_rung_b`) carry, beside their base theorem (which states
@@ -381,8 +386,8 @@ Two rows deserve a note:
   switches by `Proofs/Encoding/ModeHandoff.lean` (`docs/PAPER-MAPPING.md` §2b).
   Their handoffs pass (5/5 each) and are discharged in-kernel, so the composed
   theorems add no verdict beyond the per-mode packs; `rover3_M1` is padded to
-  `n = 3` for the left mode variable. Six more `#print axioms` lines in
-  `ModalBattery.lean`: 53 theorems in all.
+  `n = 3` for the left mode variable. Seven more `#print axioms` lines in
+  `ModalBattery.lean`: 54 theorems in all.
 * **`watertank`** is the flagship: existence is proven (not hypothesised) and
   its verdicts are the ones wired into `--run-verdicts` with kernel identity
   pins.

@@ -16,6 +16,12 @@ Read `README.md` first for what the theorems say. This document is only about
 > alone, **no `sorryAx`, no `native_decide`, no other axioms** ·
 > full suite 46 CERTIFIED, 0 DECLINED, `shield_unreachable` inconclusive as documented.
 > See *Cost* below before you start one.
+>
+> **Branch `mode-handoff` (2026-10-07):** `lake build` 9000 jobs exit 0 (warm; only new
+> leaves) · `relcert-test` ALL PASS · `--run-verdicts` 846/846 `unsat`, coverage
+> 6/105/522/213 with the two declared handoff failures · axiom audit **53** theorems: 45 with
+> `z3_unsat_sound`, 8 standard-three · `--check-quick` PASSED (48 s). Six new composed
+> theorems and the handoff phase: `docs/HANDOFF.md`, `docs/PAPER-MAPPING.md` §2b.
 
 ---
 
@@ -100,7 +106,7 @@ Practical notes:
 |---|---|---|
 | 1 | the Lean proofs kernel-check | `lake build` (~13 h) |
 | 2 | no hidden axioms | `lake build RelCertifier.Instances.ModalBattery` |
-| 3 | the Z3 hypotheses hold | `./.lake/build/bin/relcert --run-verdicts` |
+| 3 | the Z3 hypotheses hold (incl. the cross-mode handoff phase) | `./.lake/build/bin/relcert --run-verdicts` |
 | 4 | parser/printer/IR-drift/determinism | `BENCH_PATHS=<manifest> ./.lake/build/bin/relcert-test` |
 | — | the benchmarks still certify | `./.lake/build/bin/relcert benchmarks/suite_uniform/*/input.txt` |
 
@@ -154,8 +160,8 @@ the audit re-emits on every build and cannot drift from the theorems:
 lake build RelCertifier.Instances.ModalBattery 2>&1 | grep -A2 "depends on axioms"
 ```
 
-Expected, for all 47 theorems (46 benchmarks; `rover3tier_rung12` has two, one
-per left mode):
+Expected, for all 53 theorems (46 benchmarks; `rover3tier_rung12` has two, one
+per left mode; six benchmarks have a second, mode-keyed theorem):
 
 * `[propext, Classical.choice, Quot.sound]` — the three standard Lean axioms;
 * plus `RelCertifier.z3_unsat_sound` for the 42 theorems whose flow certificates
@@ -200,8 +206,15 @@ per-phase totals and `--run-verdicts` checks them:
 ```
   [coverage] watertank: 6/6 hypotheses discharged
   [coverage] cut probes: 105/105 hypotheses discharged
-  [coverage] modal: 483/483 hypotheses discharged
+  [coverage] modal: 522/522 hypotheses discharged
+  [coverage] handoff: 213/213 hypotheses discharged
 ```
+
+(The modal count moved from 483 to 522 on 2026-10-07 with the five packs of the
+mode-keyed instances, runner rows 42–46. The fourth phase is the cross-mode **handoff**
+check: one static query per declared left transition of every emitted benchmark, 215 in
+all; it is green only on exactly the declared failure set — `rover3tier_rung12`'s two
+cross transitions — so 213 `unsat`s are owed. `docs/HANDOFF.md`.)
 
 A mismatch either way fails the run. And the declared totals are themselves checked:
 `Verdicts/CoveragePins.lean` derives each from the table that generates the work —
@@ -321,27 +334,33 @@ obligations (watertank's are *proven*, in `WatertankViability.lean`).
 | `refinement_ladder_rover_rung4_8to12` | `RoverLadderRung4Modal.lean` | `rover_ladder_rung4_8to12_modal` | `0 ≤ dt`; 6×`VerdF` | std 3 + `z3_unsat_sound` |
 | `robot_braking` | `RobotBrakingModal.lean` | `robot_braking_modal` | `0 ≤ dt`; 1×`Verd3` | std 3 + `z3_unsat_sound` |
 | `rover3_M1` | `Rover3M1Modal.lean` | `rover3_M1_modal` | `0 ≤ dt` | **std 3 only** |
+| `rover3_M1` (declared per-mode rows, composed) | `Rover3M1Handoff.lean` | `rover3_M1_modeKeyed` | `0 ≤ dt` | **std 3 only** |
 | `rover3tier_M1` | `Rover3tierM1Modal.lean` | `rover3tier_M1_modal` | `0 ≤ dt`; 2×`Verd3` | std 3 + `z3_unsat_sound` |
 | `rover3tier_rung12` | `Rover3tierRung12Modal.lean` | `rover3tier_rung12_modal_ACCEL` | `0 ≤ dt`; 2×`VerdQA` | std 3 + `z3_unsat_sound` |
 | `rover3tier_rung12` | `Rover3tierRung12Modal.lean` | `rover3tier_rung12_modal_COAST` | `0 ≤ dt`; 2×`VerdQC` | std 3 + `z3_unsat_sound` |
 | `rover_4d_box` | `Rover4dBoxModal.lean` | `rover_4d_box_modal` | `0 ≤ dt`; 1×`Verd3` | std 3 + `z3_unsat_sound` |
 | `rover_attitude_cone_12dof` | `RoverAttitudeConeModal.lean` | `rover_attitude_cone_modal` | `0 ≤ dt`; 6×`VerdC` | std 3 + `z3_unsat_sound` |
 | `rover_coupled` | `RoverCoupledModal.lean` | `rover_coupled_modal` | `0 ≤ dt` | **std 3 only** |
+| `rover_coupled` (declared per-mode rows, composed) | `RoverCoupledHandoff.lean` | `rover_coupled_modeKeyed` | `0 ≤ dt` | **std 3 only** |
 | `rover_dof_terrain_rung1` | `RoverDofTerrainRung1Modal.lean` | `rover_dof_terrain_rung1_modal` | `0 ≤ dt`; 6×`VerdE` | std 3 + `z3_unsat_sound` |
 | `rover_dof_terrain_rung2` | `RoverDofTerrainRung2Modal.lean` | `rover_dof_terrain_rung2_modal` | `0 ≤ dt`; 6×`VerdT` | std 3 + `z3_unsat_sound` |
 | `rover_dof_terrain_rung3` | `RoverDofTerrainRung3Modal.lean` | `rover_dof_terrain_rung3_modal` | `0 ≤ dt`; 6×`VerdW` | std 3 + `z3_unsat_sound` |
 | `rover_dof_terrain_rung3_8d` | `RoverDofTerrainRung38dModal.lean` | `rover_dof_terrain_rung3_8d_modal` | `0 ≤ dt`; 6×`VerdU` | std 3 + `z3_unsat_sound` |
 | `rover_drag` | `RoverDragModal.lean` | `rover_drag_modal` | `0 ≤ dt`; 1×`VerdRD` | std 3 + `z3_unsat_sound` |
 | `rover_position` | `RoverPositionModal.lean` | `rover_position_modal` | `0 ≤ dt` | **std 3 only** |
+| `rover_position` (declared per-mode rows, composed) | `RoverPositionHandoff.lean` | `rover_position_modeKeyed` | `0 ≤ dt` | **std 3 only** |
 | `rover_terrain_M1` | `RoverTerrainM1Modal.lean` | `rover_terrain_M1_modal` | `0 ≤ dt`; 6×`VerdT` | std 3 + `z3_unsat_sound` |
 | `rover_tier_r1` | `RoverTierR1Modal.lean` | `rover_tier_r1_modal` | `0 ≤ dt`; 1×`VerdX` | std 3 + `z3_unsat_sound` |
 | `story1_attdist_rung_a_6to8` | `Story1AttdistRungAModal.lean` | `story1_attdist_rung_a_modal` | `0 ≤ dt`; 9×`VerdD` | std 3 + `z3_unsat_sound` |
+| `story1_attdist_rung_a_6to8` (declared per-mode rows, composed) | `Story1AttdistRungAHandoff.lean` | `story1_attdist_rung_a_modeKeyed` | `0 ≤ dt`; 3×`VerdS` (STEEP, 3 components) + 6×`VerdD` | std 3 + `z3_unsat_sound` |
 | `story1_attdist_rung_b_12dof` | `Story1AttdistRungBModal.lean` | `story1_attdist_rung_b_modal` | `0 ≤ dt`; 6×`VerdF` | std 3 + `z3_unsat_sound` |
+| `story1_attdist_rung_b_12dof` (declared per-mode rows, composed) | `Story1AttdistRungBHandoff.lean` | `story1_attdist_rung_b_modeKeyed` | `0 ≤ dt`; 6×`VerdR r m` (`r ≤ m`; 4 components for STEEP, 3 otherwise) | std 3 + `z3_unsat_sound` |
 | `story2_lateral_rung_a_8dof` | `Story2LateralAModal.lean` | `story2_lateral_rung_a_modal` | `0 ≤ dt`; 6×`VerdY` | std 3 + `z3_unsat_sound` |
 | `story2_lateral_rung_b_12dof` | `Story2LateralBModal.lean` | `story2_lateral_rung_b_modal` | `0 ≤ dt`; 6×`VerdZ` | std 3 + `z3_unsat_sound` |
 | `story3_rollover_base_12dof` | `Story3RolloverBaseModal.lean` | `story3_rollover_base_modal` | `0 ≤ dt`; 6×`VerdB` | std 3 + `z3_unsat_sound` |
 | `story3_rollover_ladder_rung_a` | `Story3RolloverRungAModal.lean` | `story3_rollover_rung_a_modal` | `0 ≤ dt`; 6×`VerdA` | std 3 + `z3_unsat_sound` |
 | `story3_rollover_ladder_rung_b` | `Story3RolloverRungBModal.lean` | `story3_rollover_rung_b_modal` | `0 ≤ dt`; 9×`VerdV` | std 3 + `z3_unsat_sound` |
+| `story3_rollover_ladder_rung_b` (declared per-mode rows, composed) | `Story3RolloverRungBHandoff.lean` | `story3_rollover_rung_b_modeKeyed` | `0 ≤ dt`; 3×`VerdS` + 6×`VerdV` | std 3 + `z3_unsat_sound` |
 | `watertank` | `WatertankViability.lean` | `watertank_modal_certified` | `dt : ℝ` (unconstrained); 6×`VerdW` — the six pinned to the runner. Existence (`ESW`) is **proven**, not hypothesised | std 3 + `z3_unsat_sound` |
 
 Two rows deserve a note:
@@ -350,7 +369,20 @@ Two rows deserve a note:
   `…_COAST`). Its modes declare *different-shaped* invariants with no
   implication either way, so a single-invariant statement would have to
   weaken one of them; the per-mode form states exactly what the tool certifies.
-  Cross-mode handoff is not claimed.
+  Cross-mode handoff is NOT claimed, and **cannot be**: the tool's handoff check
+  (`relcert --handoff`, `docs/HANDOFF.md`) finds both cross transitions
+  `ACCEL ↔ COAST` satisfiable, with countermodels. The mode-keyed invariant
+  `⋀_m (u_L = m → row_m)` is therefore not an invariant of the declared model.
+* **The six other mode-dependent benchmarks** (`rover3_M1`, `rover_coupled`,
+  `rover_position`, `story1_attdist_rung_a_6to8`, `story1_attdist_rung_b_12dof`,
+  `story3_rollover_ladder_rung_b`) carry, beside their base theorem (which states
+  a single weakest or common row for every window), a second theorem
+  `…_modeKeyed` at the DECLARED per-left-mode invariant, composed across left
+  switches by `Proofs/Encoding/ModeHandoff.lean` (`docs/PAPER-MAPPING.md` §2b).
+  Their handoffs pass (5/5 each) and are discharged in-kernel, so the composed
+  theorems add no verdict beyond the per-mode packs; `rover3_M1` is padded to
+  `n = 3` for the left mode variable. Six more `#print axioms` lines in
+  `ModalBattery.lean`: 53 theorems in all.
 * **`watertank`** is the flagship: existence is proven (not hypothesised) and
   its verdicts are the ones wired into `--run-verdicts` with kernel identity
   pins.

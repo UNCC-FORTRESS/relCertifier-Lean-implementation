@@ -97,6 +97,65 @@ response spans the whole `m_L` residence — comes from the budget walk. The pap
 ("Finiteness and Duration Coverage") is the second; §3's flow certificates are the first.
 Stating that split explicitly would sharpen the theorem's proof sketch.
 
+## 2b. Theorem 3 for MODE-DEPENDENT invariants — the composition lemma (2026-10-07)
+
+Seven benchmarks declare one relational invariant per LEFT mode. §2a's clause-by-clause
+mapping covers a single `φInv`; the paper's general statement is
+
+> **Theorem 3 (general form).** Let `Φ ≡ ⋀_m (u_L = m → φ_inv(m))`. If (i) for every left
+> mode `m_L` every admissible initial right mode admits an all-successors cover at
+> `φ_inv(m_L)`, (ii) for every declared left transition `m' → m`,
+> `φ_inv(m') ∧ guard_m(x_L) → φ_inv(m)`, and (iii) the well-formedness assumption holds,
+> then `Φ → [|(L*, R*)⟩⟩ Φ`.
+
+Mechanized in `Proofs/Encoding/ModeHandoff.lean` as `theorem3_modeKeyed`, clause by clause:
+
+| paper element | Lean |
+|---|---|
+| the left program `L` with mode variable `u_L`, body `⋃_m ?(m ∈ next(u_L)) ; ?guard_m ; u_L := m ; flow_m` | `leftAutomatonBody A ul` — `bigChoiceP` over `leftModeStep A ul m'` = `?(u_L = m') ; ⋃_{t ∈ next m'} (?guard_t ; u_L := t ; window_t)`. **Jump-then-flow, as the paper writes it** (the right side keeps `modeStep`'s flow-then-jump rotation, `docs/proposals/ROTATION-SCOPE.md`). `A : LeftAut n` is built per benchmark from the IR: `windows` = the clock-capped `windowSeg` of each left mode (the same programs the per-mode theorems quantify over), `guards` = `hostGuard` of each left mode, `next` = the file's `next` lists resolved by the runner's own `Handoff.leftModeIndex` — and each instance proves by `decide` that this graph's transition list IS `Handoff.transitions IR`, the list the handoff runner checks |
+| `u_L` | a third `Aux` coordinate `(Aux, 2)` (beside `mv = (Aux, 0)` and the clock `tg = (Aux, 1)`); `rover3_M1` has `n = 2` and is re-lowered at the padded `n = 3` for it |
+| `Φ ≡ ⋀_m (u_L = m → φ_inv(m))` | `modeKeyedR ul ϕ nL = ⋀_{m < nL} (⌊u_L = m⌋_L → ϕ m)`, encoding to the host `modeKeyed ul F nL` with `sat_modeKeyed : … ↔ ∀ m < nL, ν u_L = m → sat (F m) ν` |
+| the loop invariant | `psiK ul ϕ nL domL domR BkR = ((Φ ∧ envLR) ∧ BkR) ∧ ⌊u_L ∈ modes⌋_L`, where `BkR` is the right-side bookkeeping the per-mode chain carries (`mvValidR` for the F-chain, `mvRegionR` for the region-carrying R-chain) — the same conjuncts §5 already lists as bookkeeping, plus `u_L ∈ modes` |
+| **(i)** per-mode all-successors cover at `φ_inv(m_L)` | `hstepM : ∀ t < nL, ∀ σ, sat ((F t ∧ env) ∧ Bk) σ → sat (faModal (window t) R* ((F t ∧ env) ∧ Bk)) σ` — exactly the per-mode `hstep` that `theorem3_faithful_multiF_LR`/`_multiR_LR` consume, produced from the instance's own `Hmulti` provider by `hstepMode_multiF` / `hstepMode_multiR` (each is `hstep_single_multiF/R` for one window) |
+| **(ii)** the handoff `φ_inv(m') ∧ guard_m → φ_inv(m)` | `hhand : ∀ m' < nL, ∀ t ∈ A.succ m', ∀ ω, sat (F m') ω → sat (A.guard t) ω → sat (F t) ω`. Two discharges: **(a)** from Z3 on the runner's query — `handoff_of_unsat` takes `z3solve (ihandoffQuery …).toHost = unsat` for the very `IForm` `relcert --run-verdicts` prints (`Trusted/Handoff.lean`), via `z3_unsat_sound`; **(b)** in-kernel, when the rows are nested (`FM_mono`: an identical row, a row that drops a conjunct) or constant-offset bounds (`linarith`). All six composed instances use (b), so they add **no** verdict beyond their per-mode packs |
+| **(iii)** well-formedness | unchanged: successor-completeness with guard-gated switching stays the trust item (README § trust); the mechanized side conditions are freshness of `u_L` (`hulF`, `hulenv`, `hulBk`, `hulG`, `hframes`, `hulR`) and the two footprint disjointnesses `hd`/`hddF`, discharged by `hd_modeKeyed` / `hddF_modeKeyed` (`sides_disjoint3`) |
+| the conclusion `Φ → [|(L*, R*)⟩⟩ Φ` | `rvalid (theorem3Form (leftAutomatonBody A ul) (rightAutomatonBody G mv) (psiK …))` — the same `theorem3Form` as every other instance |
+
+**Proof shape** (`hstep_modeKeyed`). One iteration of the left automaton from a state
+satisfying `Φ`: `?(u_L = m')` selects the current mode, an edge `t ∈ next m'` whose guard
+holds is taken, `u_L := t`, `window_t` runs. The handoff (ii) turns `F m'` into `F t` at the
+switch state; `u_L` is fresh for `F t`, `env`, `Bk`, so they transport to the post-switch
+state; the per-mode step (i) at `t` produces the right response; `u_L` survives the window
+(`FramesMv`) and the right response (`Program.bound_effect`, `u_L ∉ bv R`), so the
+mode-keyed conjunct at the end reads exactly `F t`, which the response established. The
+loop closes by `relational_loop_multi` as for every other instance.
+
+**Mode-independent invariants are the special case** `F m = F` for all `m`: (ii) is
+trivial and the statement collapses to the one §2a maps (the existing 40 instances keep
+their `bigChoice leftProgs` form, which over-approximates the left and so is the stronger
+claim — §5).
+
+### The seven benchmarks
+
+| benchmark | declared rows | handoff (tool, `docs/HANDOFF.md`) | composed Lean theorem | its handoff discharge | axioms |
+|---|---|---|---|---|---|
+| `rover3_M1` | Drive `+0.5` ⊂ Drift `+1.0` ⊂ Stop `+2.0` | 5/5 unsat | `Rover3M1Handoff.rover3_M1_modeKeyed` (n padded 2 → 3) | `linarith` | standard three (Z3-free) |
+| `rover_coupled` | same | 5/5 | `RoverCoupledHandoff.rover_coupled_modeKeyed` | `linarith` | standard three |
+| `rover_position` | same | 5/5 | `RoverPositionHandoff.rover_position_modeKeyed` | `linarith` | standard three |
+| `story1_attdist_rung_a_6to8` | STEEP = `v[l] ≤ v[r]` ∧ common; MODER = FLAT = common | 5/5 | `Story1AttdistRungAHandoff.story1_attdist_rung_a_modeKeyed` | `FM_mono` | + `z3_unsat_sound` (3 new STEEP packs `VerdS`, 6 base packs) |
+| `story1_attdist_rung_b_12dof` | same nesting, region-conditioned (`mvRegionR`) | 5/5 | `Story1AttdistRungBHandoff.story1_attdist_rung_b_modeKeyed` | `FM_mono` | + `z3_unsat_sound` (6 packs `VerdR r m`, `r ≤ m`) |
+| `story3_rollover_ladder_rung_b` | same nesting | 5/5 | `Story3RolloverRungBHandoff.story3_rollover_rung_b_modeKeyed` | `FM_mono` | + `z3_unsat_sound` (3 `VerdS` + 6 base) |
+| `rover3tier_rung12` | ACCEL `v+0.5 ∧ a+0.8` vs COAST `3v+a ≤ 3v+1.2` (incomparable) | **2/4: both cross transitions FAIL** (countermodels in `docs/HANDOFF.md`) | none — the two per-left-mode theorems `rover3tier_rung12_modal_{ACCEL,COAST}` stand; `Φ` is NOT an invariant of the declared model | — | — |
+
+The per-mode theorems the composition consumes are the base instances' (`respondX`,
+`esX` reused unchanged) re-stated at the declared rows: the rover trio's catch-up
+response is offset-independent (`HmultiRow r`), the stories' STEEP window gets a new
+three-component pack at its full row, and `story1_attdist_rung_b`'s existence lemma is
+restated with its invariant hypothesis weakened to the two facts it reads (`esFG`). New
+verdict packs are runner rows 42–46 (`Verdicts/RunModal.lean`), pinned in
+`ModalPinTable`/`ModalTablePins`/`ModalCodePins`, and counted in `Coverage.expected.modal`
+(483 → 522).
+
 ## 3. Full inventory of generic `rvalid (theorem3Form …)` theorems
 
 Twenty-odd, in five families by what they assume. This variety is the "additional

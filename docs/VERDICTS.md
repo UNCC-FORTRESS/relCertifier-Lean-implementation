@@ -1,5 +1,39 @@
 # Verdict report — empirical discharge of theorem hypotheses
 
+## Cross-mode handoff and the mode-keyed theorems (2026-10-07, branch `mode-handoff`)
+
+`--run-verdicts` gained a fourth phase, **handoff**: for every emitted benchmark and every
+declared left transition `m' → m` (self-loops included) the static query
+`UNSAT(φ_inv(m') ∧ guard_m ∧ ¬φ_inv(m))` is printed through `toScript` and sent to Z3
+(`Trusted/Handoff.lean`, `Verdicts/RunHandoff.lean`). 215 transitions over the 46 emitted
+benchmarks; 213 `unsat`; the 2 `sat` are `rover3tier_rung12`'s `ACCEL → COAST` and
+`COAST → ACCEL`, declared in `Coverage.expectedHandoffFailures` so the phase is green on
+exactly that failure set. Per-benchmark table, countermodels and the suite run:
+`docs/HANDOFF.md`.
+
+The modal phase grew from 483 to 522 queries: rows 42–46 of `RunModal.modalTable` are the
+packs of the six **mode-keyed** theorems (`Instances/*Handoff.lean`, `#print axioms` in
+`ModalBattery.lean`), which state each benchmark's DECLARED per-left-mode invariant as a
+∀∃ invariant of the full left automaton (`Proofs/Encoding/ModeHandoff.lean`,
+`docs/PAPER-MAPPING.md` §2b): the STEEP window of `story1_attdist_rung_a_6to8` and
+`story3_rollover_ladder_rung_b` at its full three-component row (3 pairs × 3 = 9 each),
+and `story1_attdist_rung_b_12dof`'s three rows with the ceiling head (3×4 + 2×3 + 1×3 =
+21). The rover trio's composed theorems are Z3-free. All new packs are pinned
+(`ModalPinTable` rows 42–46, `ModalTablePins`, `ModalCodePins`) and counted
+(`CoveragePins.derivedModal_eq_expected`, `derivedHandoff_eq_expected`).
+
+Run of 2026-10-07 (this branch, after the composition landed):
+
+```
+  [coverage] watertank: 6/6 hypotheses discharged
+  [coverage] cut probes: 105/105 hypotheses discharged
+  [coverage] modal: 522/522 hypotheses discharged
+  [coverage] handoff: 213/213 hypotheses discharged
+ALL HYPOTHESES DISCHARGED
+```
+
+---
+
 Last run: `relcert --run-verdicts` on **2026-07-30** — 111 queries, **111 UNSAT, 0
 failures**, `ALL HYPOTHESES DISCHARGED` (6 `VerdW` hypotheses of
 `watertank_modal_certified` + the per-atom O2 route probes for the 13 cut instances).

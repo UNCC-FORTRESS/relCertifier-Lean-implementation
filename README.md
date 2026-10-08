@@ -19,6 +19,15 @@ from a cold tree (12h59m, 8988 jobs, exit 0): 42 theorems audit to the three sta
 Lean axioms plus `z3_unsat_sound`, and 5 audit to the three standard axioms alone. No
 `sorry`, no `admit`, no `native_decide`.
 
+**Mode-dependent invariants (2026-10-07).** Seven benchmarks declare one invariant row per
+left mode. The tool checks the cross-mode **handoff** `φ_inv(m') ∧ guard_m → φ_inv(m)` at
+every declared left transition (`relcert --handoff`; phase 4 of `--run-verdicts`), and
+`Proofs/Encoding/ModeHandoff.lean` composes per-left-mode theorems with those handoffs into
+the paper's general Theorem 3 at the mode-keyed invariant `⋀_m (u_L = m → φ_inv(m))` over
+the full left automaton. Six of the seven carry that composed theorem (`…_modeKeyed`);
+`rover3tier_rung12`'s handoff fails both ways and it stays per left mode.
+[`docs/HANDOFF.md`](docs/HANDOFF.md), [`docs/PAPER-MAPPING.md`](docs/PAPER-MAPPING.md) §2b.
+
 **Every verdict hypothesis has been checked true.** A kernel-checked axiom list says a
 proof did not cheat; it cannot say the theorem's *hypotheses* hold, and a theorem with a
 false hypothesis is vacuously true. An audit of all 42 `Verd` definitions on 2026-07-31
@@ -63,7 +72,8 @@ separate, and they live in different places:
 | the Lean proofs (kernel) | `lake build` — everything, ~13 h |
 | the 47 theorems + their axioms | `lake build RelCertifier.Instances.ModalBattery` |
 | the benchmarks certify (the tool) | `relcert <input.txt>...` |
-| the theorems' Z3 hypotheses hold | `relcert --run-verdicts` |
+| the theorems' Z3 hypotheses hold (+ the cross-mode handoff) | `relcert --run-verdicts` |
+| the handoff alone, per benchmark | `relcert --handoff <input.txt>...` |
 | both of the fast ones at once | `relcert --check-quick <input.txt>...` |
 | parser / printer / IR-drift / determinism | `BENCH_PATHS=<manifest> relcert-test` |
 
@@ -522,6 +532,10 @@ compose into a window response; window responses compose into a loop that closes
   `canonInvM`, `theorem3_faithful_multiF_LR`), for the 19 multi-component benchmarks.
 * `EnvelopeChainR.lean`, `ModeRegion.lean` — the mode-region loop invariant: responses
   that owe a landing *region*, not merely an invariant.
+* `ModeHandoff.lean` — **the mode-keyed Theorem 3**: the left automaton over the file's
+  `next` lists (jump-then-flow, with a fresh left mode variable), the invariant
+  `⋀_m (u_L = m → φ_inv(m))`, and `theorem3_modeKeyed` composing per-left-mode steps with
+  the cross-mode handoffs; `handoff_of_unsat` bridges the runner's handoff query.
 * `WindowRF.lean` — the k > 1 window assembly over list-valued invariants.
 * `Reparam.lean` — λ-stretched right runs have exactly the runs of λ = 1 ones, so the
   theorem can be stated at the real automaton (23 benchmarks have λ ≠ 1).
@@ -634,6 +648,9 @@ compose into a window response; window responses compose into a loop that closes
 * `CoveragePins.lean` — proves those declared counts equal what the tables actually
   generate, so the constants and the suite can only change together. Editing one without
   the other fails the build.
+* `RunHandoff.lean` — the cross-mode handoff phase: one static query per declared left
+  transition, built by `Trusted/Handoff.lean` (the same `IForm` the composition theorem's
+  `handoff_of_unsat` denotes); declared failure set in `Coverage.expectedHandoffFailures`.
 * `Run.lean`, `RunCut.lean`, `RunModal.lean` — the runner behind
   `relcert --run-verdicts`. `RunModal`'s `RunInfo` table is the data the pins check;
   `dim`/`invRow`/`order` are quoted out of it by the pins rather than restated.

@@ -1,4 +1,4 @@
-# Status — 2026-08-02
+# Status — 2026-10-07 (branch `mode-handoff`)
 
 Current state of `relCertifier-lean-implementation` in one page: what is proved, what is
 assumed, what to run, and what is open. For *what the theorems say* read
@@ -17,6 +17,18 @@ mode). Their only assumptions are a five-item trust base and a finite list of Z3
 verdicts, and **every one of those verdicts is re-run on demand against a query the kernel
 certifies is the theorem's own**.
 
+**New (2026-10-07): the DECLARED mode-dependent invariants.** Seven benchmarks declare one
+invariant row per left mode. The tool now checks the cross-mode **handoff**
+`φ_inv(m') ∧ guard_m → φ_inv(m)` at every declared left transition (215 over the suite,
+`relcert --handoff`, phase 4 of `--run-verdicts`; `docs/HANDOFF.md`), and
+`Proofs/Encoding/ModeHandoff.lean` mechanizes the paper's general Theorem 3: from
+per-left-mode covers and the handoffs, `Φ ≡ ⋀_m (u_L = m → φ_inv(m))` is a ∀∃ invariant of
+the full left automaton (`theorem3_modeKeyed`, `docs/PAPER-MAPPING.md` §2b). Six of the
+seven carry the composed theorem `…_modeKeyed` at their declared rows (53 theorems in
+`ModalBattery`); the seventh, `rover3tier_rung12`, fails the handoff in both directions
+(countermodels recorded) and keeps its two per-left-mode theorems — the mode-keyed
+invariant is genuinely not an invariant of that model as declared.
+
 ## Last full verification
 
 Four checks, all green, from a **cold tree** (`lake clean` had wiped this package *and*
@@ -26,7 +38,7 @@ its dependencies):
 |---|---|---|
 | kernel | `lake build` | 8991 jobs, exit 0 — cold build measured **12h59m** at 8988 jobs |
 | axioms | `lake build RelCertifier.Instances.ModalBattery` | 47 theorems: 5 standard-three, 42 `+z3_unsat_sound`, **0 other**, no `sorryAx` |
-| hypotheses | `relcert --run-verdicts` | **594/594 `unsat`**, coverage 6 / 105 / 483, exit 0 |
+| hypotheses | `relcert --run-verdicts` | **594/594 `unsat`**, coverage 6 / 105 / 483, exit 0 (now 6 / 105 / 522 / 213 — see *Branch run* below) |
 | trusted layer | `BENCH_PATHS=… relcert-test` | ALL PASS |
 | suite | `relcert benchmarks/suite_uniform/*/input.txt` | 46 CERTIFIED, 0 DECLINED, `shield_unreachable` inconclusive as documented |
 
@@ -37,6 +49,21 @@ The middle two are bundled:
 ```
 
 `relcert --help` lists every command and, importantly, what is *not* in that binary.
+
+## Branch run (2026-10-07, `mode-handoff`)
+
+All checks green on the branch head, from the warm tree (no file in `Proofs/` other than
+the new leaf `ModeHandoff.lean` was touched, so the heavy instances did not re-elaborate;
+the new 12-dof leaf `Story1AttdistRungBHandoff.lean` takes ~10 min on its own):
+
+| check | command | result |
+|---|---|---|
+| kernel | `lake build` | 9000 jobs, exit 0 |
+| axioms | `lake build RelCertifier.Instances.ModalBattery` | **53** theorems: 8 standard-three (the 5 before + the 3 composed rover theorems), 45 `+z3_unsat_sound`, 0 other, no `sorryAx` |
+| hypotheses | `relcert --run-verdicts` | **846 `unsat`**, coverage 6 / 105 / **522** / **213**, 2 declared handoff failures (`rover3tier_rung12`), exit 0, 10 s |
+| trusted layer | `BENCH_PATHS=… relcert-test` | ALL PASS (no skips) |
+| suite + verdicts | `relcert --check-quick benchmarks/suite_uniform/*/input.txt` | 46 CERTIFIED, 0 DECLINED, 1 documented error; QUICK CHECKS PASSED, 48 s |
+| handoff alone | `relcert --handoff benchmarks/suite_uniform/*/input.txt` | 216/216 transitions checked (215 + `shield_unreachable`'s self-loop), 214 unsat, 2 sat (`docs/HANDOFF.md`), 2 s |
 
 ## What is trusted
 
@@ -76,6 +103,14 @@ runner's table, and five places where a success path was reachable without doing
 ## What is open
 
 Nothing blocking. In rough order of interest:
+
+* **`rover3tier_rung12` is not composable as declared.** Its ACCEL and COAST rows are
+  incomparable and the handoff fails both ways (`docs/HANDOFF.md`); the benchmark's
+  statement stays per left mode. Widening the COAST row to `3v[l] + a[l] ≤ 3v[r] + 2.3` (or
+  tightening ACCEL's) would make it composable — a modelling decision, not taken here.
+* **Handoff hypotheses are discharged in-kernel for all six composed instances** (nested
+  or constant-offset rows). The Z3 route (`handoff_of_unsat`, over exactly the runner's
+  `ihandoffQuery`) exists and is axiom-audited but no instance needs it yet.
 
 * **One control-flow fact, stated not proved:** that `checkComp`'s loop reports success
   exactly when one of the three routes answered `unsat`. Deliberate — getting it wrong

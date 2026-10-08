@@ -623,8 +623,8 @@ theorem hulRP3 : ulP3 ∉ (rightAutomatonBody GrP3 mvP3).bv :=
 /-! ## The handoff: nested constant offsets, in-kernel -/
 
 theorem handoffP3 (dt : ℝ) : ∀ m' < (AP3 dt).numModes, ∀ t ∈ (AP3 dt).succ m', ∀ ω,
-    Formula.sat (FRow m') ω → Formula.sat ((AP3 dt).guard t) ω → Formula.sat (FRow t) ω := by
-  intro m' hm' t ht ω hF _
+    Formula.sat (FRow m') ω → Formula.sat envP3 ω → Formula.sat ((AP3 dt).guard t) ω → Formula.sat (FRow t) ω := by
+  intro m' hm' t ht ω hF _ _
   rw [AP3_numModes] at hm'
   rw [AP3_succ, nextP3_eq] at ht
   have hm3 : m' < 3 := hm'

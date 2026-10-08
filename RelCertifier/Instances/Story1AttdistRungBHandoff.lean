@@ -884,8 +884,8 @@ theorem hulRF : ulF ∉ (rightAutomatonBody GrF mvF).bv :=
 /-! ## The handoff: nested rows, in-kernel -/
 
 theorem handoffF (dt : ℝ) : ∀ m' < (AF dt).numModes, ∀ t ∈ (AF dt).succ m', ∀ ω,
-    Formula.sat (FRow m') ω → Formula.sat ((AF dt).guard t) ω → Formula.sat (FRow t) ω := by
-  intro m' hm' t ht ω hF _
+    Formula.sat (FRow m') ω → Formula.sat envF ω → Formula.sat ((AF dt).guard t) ω → Formula.sat (FRow t) ω := by
+  intro m' hm' t ht ω hF _ _
   rw [AF_numModes] at hm'
   rw [AF_succ, nextF_eq] at ht
   have hm3 : m' < 3 := hm'

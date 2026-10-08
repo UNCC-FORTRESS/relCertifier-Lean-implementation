@@ -25,9 +25,11 @@ bookkeeping the per-mode chains carry (`env`, the right-side `mvValid`/`mvRegion
 `u_L ∈ modes`). A MODE-INDEPENDENT invariant is the special case `F m = F` for all `m`, where
 the handoff hypothesis is trivial.
 
-The handoff hypothesis has two discharge routes: as a Z3 verdict on EXACTLY the query the
-runner prints (`Trusted/Handoff.lean`'s `ihandoffQuery`, bridged by `handoff_of_unsat` —
-the verdict-pin discipline), or in-kernel when the rows are constant-offset bounds or
+The handoff hypothesis is DOMAIN-CONDITIONED — `φ_inv(m') ∧ env ∧ guard_m → φ_inv(m)`
+with `env = domL ∧ domR` the envelope the loop invariant carries at the switch — and has
+two discharge routes: as a Z3 verdict on EXACTLY the query the runner prints
+(`Trusted/Handoff.lean`'s `ihandoffQuery`, bridged by `handoff_of_unsat` — the
+verdict-pin discipline), or in-kernel when the rows are constant-offset bounds or
 nested conjunctions (`linarith`/membership; this is what the seven mode-dependent
 benchmarks use, so their composed theorems add no verdict beyond the per-mode packs).
 
@@ -203,8 +205,10 @@ theorem encode_psiK (ul : Var n) (ϕ : ℕ → RFormula (Var n)) (F : ℕ → Fo
 /-! ## The step: one left-automaton iteration from per-mode steps and handoffs -/
 
 /-- **The composition step.** From (i) a per-left-mode `hstep` at each mode's own row and
-(ii) the handoff implication at every declared left transition, one iteration of the left
-automaton preserves the mode-keyed loop invariant against `R*`.
+(ii) the DOMAIN-CONDITIONED handoff implication at every declared left transition —
+`φ_inv(m') ∧ env ∧ guard_t → φ_inv(t)`, with `env = domL ∧ domR` the envelope the loop
+invariant carries — one iteration of the left automaton preserves the mode-keyed loop
+invariant against `R*`.
 
 The run of `leftAutomatonBody` from `σ` selects the current mode `m'` (`?(u_L = m')`), a
 declared successor `t` whose guard holds at `σ`, sets `u_L := t`, and runs `window t`. The
@@ -222,7 +226,8 @@ theorem hstep_modeKeyed (A : LeftAut n) (ul : Var n) (R : Program (Var n))
       Formula.sat (faModal (Equiv.refl (Var n)) (A.window t) (Program.star R)
         (Formula.and (Formula.and (F t) env) Bk)) σ)
     (hhand : ∀ m' < A.numModes, ∀ t ∈ A.succ m', ∀ ω,
-      Formula.sat (F m') ω → Formula.sat (A.guard t) ω → Formula.sat (F t) ω) :
+      Formula.sat (F m') ω → Formula.sat env ω → Formula.sat (A.guard t) ω →
+      Formula.sat (F t) ω) :
     ∀ σ, Formula.sat (phiInvK ul F A.numModes env Bk) σ →
       Formula.sat (faModal (Equiv.refl (Var n)) (leftAutomatonBody A ul) (Program.star R)
         (phiInvK ul F A.numModes env Bk)) σ := by
@@ -256,9 +261,11 @@ theorem hstep_modeKeyed (A : LeftAut n) (ul : Var n) (R : Program (Var n))
       simpa [Term.eval] using hassign.1
     · rw [Function.update_of_ne hx]
       exact hassign.2 x hx
-  -- the handoff at the switch state
+  -- the handoff at the switch state: the source row, the envelope (the loop invariant
+  -- carries it: the left state is the end of an `m''` residence, the right state is in its
+  -- domain), and the entered mode's guard
   have hFm' : Formula.sat (F m'') σ := (sat_modeKeyed.mp hMK) m'' hm' hulm'
-  have hFt : Formula.sat (F t) σ := hhand m'' hm' t ht σ hFm' hguard
+  have hFt : Formula.sat (F t) σ := hhand m'' hm' t ht σ hFm' henv hguard
   -- transport to the post-switch state (nothing but `u_L` changed, and none of these read it)
   have hcoin : ∀ (G : Formula (Var n)), ul ∉ G.fv →
       (Formula.sat G σ₃ ↔ Formula.sat G σ) := by
@@ -648,37 +655,48 @@ theorem sat_iinvConj_toHost (comps : List (ITerm n)) (base : IForm n) (σ : Stat
       tauto
 
 /-- **The handoff implication from a Z3 `unsat` on the runner's query.** `cs`/`ct` are the
-lowered components of the source/target rows and `gT` the lowered target guard — exactly
-what `ihandoffQuery` assembles. -/
-theorem handoff_of_unsat (cs ct : List (ITerm n)) (gT : IForm n)
-    (hz : z3solve (IForm.and (Handoff.iinvConj cs gT)
+lowered components of the source/target rows, `eL`/`gT` the lowered source evolve and
+target guard, `eR` the lowered right evolve — exactly what `ihandoffQuery` assembles. The
+conclusion is the conditioned implication `hstep_modeKeyed` consumes once `env` is
+`eL.toHost ∧ eR.toHost`. -/
+theorem handoff_of_unsat (cs ct : List (ITerm n)) (eL gT eR : IForm n)
+    (hz : z3solve (IForm.and (Handoff.iinvConj cs (IForm.and (IForm.and eL gT) eR))
       (IForm.neg (Handoff.iinvConj ct IForm.tt))).toHost = Verdict.unsat) :
-    ∀ σ : State (Var n), (∀ g ∈ cs, Term.eval g.toHost σ ≤ 0) → Formula.sat gT.toHost σ →
+    ∀ σ : State (Var n), (∀ g ∈ cs, Term.eval g.toHost σ ≤ 0) →
+      Formula.sat eL.toHost σ → Formula.sat gT.toHost σ → Formula.sat eR.toHost σ →
       ∀ g ∈ ct, Term.eval g.toHost σ ≤ 0 := by
-  intro σ hsrc hg
+  intro σ hsrc heL hg heR
   by_contra hneg
   apply z3_unsat_sound hz σ
-  refine ⟨(sat_iinvConj_toHost cs gT σ).mpr ⟨hg, hsrc⟩, ?_⟩
+  refine ⟨(sat_iinvConj_toHost cs _ σ).mpr ⟨⟨⟨heL, hg⟩, heR⟩, hsrc⟩, ?_⟩
   show ¬ Formula.sat (Handoff.iinvConj ct IForm.tt).toHost σ
   rw [sat_iinvConj_toHost]
   exact fun h => hneg h.2
 
 /-- `ihandoffQuery` unfolded: its pieces, when it lowers. -/
-theorem ihandoffQuery_eq {vars : List String} {invSrc guardT invTgt : Parse.PForm}
-    {q : IForm n} (hq : Handoff.ihandoffQuery vars n invSrc guardT invTgt = some q) :
-    ∃ cs gT ct, Oracle.invComponents vars n invSrc = some cs ∧
+theorem ihandoffQuery_eq {vars : List String}
+    {invSrc evolveSrc guardT evolveR invTgt : Parse.PForm} {q : IForm n}
+    (hq : Handoff.ihandoffQuery vars n invSrc evolveSrc guardT evolveR invTgt = some q) :
+    ∃ cs eL gT eR ct, Oracle.invComponents vars n invSrc = some cs ∧
+      Run.lowerF vars n Side.L evolveSrc = some eL ∧
       Run.lowerF vars n Side.L guardT = some gT ∧
+      Run.lowerF vars n Side.R evolveR = some eR ∧
       Oracle.invComponents vars n invTgt = some ct ∧
-      q = IForm.and (Handoff.iinvConj cs gT) (IForm.neg (Handoff.iinvConj ct IForm.tt)) := by
+      q = IForm.and (Handoff.iinvConj cs (IForm.and (IForm.and eL gT) eR))
+        (IForm.neg (Handoff.iinvConj ct IForm.tt)) := by
   unfold Handoff.ihandoffQuery at hq
   rcases h1 : Oracle.invComponents vars n invSrc with _ | cs
   · rw [h1] at hq; simp at hq
-  rcases h2 : Run.lowerF vars n Side.L guardT with _ | gT
+  rcases h2 : Run.lowerF vars n Side.L evolveSrc with _ | eL
   · rw [h1, h2] at hq; simp at hq
-  rcases h3 : Oracle.invComponents vars n invTgt with _ | ct
+  rcases h3 : Run.lowerF vars n Side.L guardT with _ | gT
   · rw [h1, h2, h3] at hq; simp at hq
-  rw [h1, h2, h3] at hq
+  rcases h4 : Run.lowerF vars n Side.R evolveR with _ | eR
+  · rw [h1, h2, h3, h4] at hq; simp at hq
+  rcases h5 : Oracle.invComponents vars n invTgt with _ | ct
+  · rw [h1, h2, h3, h4, h5] at hq; simp at hq
+  rw [h1, h2, h3, h4, h5] at hq
   simp only [Option.pure_def, Option.bind_eq_bind, Option.bind_some, Option.some.injEq] at hq
-  exact ⟨cs, gT, ct, rfl, rfl, rfl, hq.symm⟩
+  exact ⟨cs, eL, gT, eR, ct, rfl, rfl, rfl, rfl, rfl, hq.symm⟩
 
 end RelCertifier

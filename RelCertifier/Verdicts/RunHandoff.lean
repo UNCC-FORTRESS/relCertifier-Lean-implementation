@@ -5,9 +5,10 @@ Released under Apache 2.0 license.
 # The handoff runner — the cross-mode implication, per declared left transition
 
 For every certified benchmark and every declared left transition `m' → m` (self-loops
-included) this runner builds the handoff query of `Trusted/Handoff.lean`,
+included) this runner builds the domain-conditioned handoff query of
+`Trusted/Handoff.lean`,
 
-    UNSAT( φ_inv(m') ∧ guard_m(x_L) ∧ ¬φ_inv(m) ),
+    UNSAT( φ_inv(m') ∧ evolve_{m'}(x_L) ∧ guard_m(x_L) ∧ evolve_R(x_R) ∧ ¬φ_inv(m) ),
 
 prints it through the tool's own `toScript`, and reports Z3's verdict. The query is the
 one the composition theorem's handoff hypothesis denotes (`ModeHandoff.handoff_of_unsat`
@@ -68,6 +69,11 @@ def runHandoffBench (s : Z3Session) (cfg : Z3Config) (name : String) (p : PProbl
   let vac := modeIndependent p
   let mut passed := 0
   let mut failing : List ((ℕ × ℕ) × String) := []
+  -- the right domain at a switch is one formula only under uniform evolve; a benchmark
+  -- that breaks the discipline is reported, never silently given its first mode's domain
+  let uniform := uniformEvolveR p
+  if !uniform && verbose then
+    IO.println s!"  FAIL  {name}  (right modes do not share one evolve domain)"
   for tr in trs do
     let src := (p.L.modes.getD tr.1 dm).name
     let tgt := (p.L.modes.getD tr.2 dm).name
@@ -77,7 +83,7 @@ def runHandoffBench (s : Z3Session) (cfg : Z3Config) (name : String) (p : PProbl
         if verbose then IO.println s!"  FAIL  {name} {src} -> {tgt}  (handoff query did not lower)"
     | some q =>
         let script := q.toScript coord
-        match ← s.check script with
+        match ← (if uniform then s.check script else pure (.error "non-uniform right evolve")) with
         | .ok .unsat =>
             passed := passed + 1
             counted

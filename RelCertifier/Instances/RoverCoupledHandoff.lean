@@ -355,8 +355,8 @@ theorem hulRC2 : ulC2 ∉ (rightAutomatonBody GrC2 mvC2).bv :=
 /-! ## The handoff: nested constant offsets, in-kernel -/
 
 theorem handoffC2 (dt : ℝ) : ∀ m' < (AC2 dt).numModes, ∀ t ∈ (AC2 dt).succ m', ∀ ω,
-    Formula.sat (FRow m') ω → Formula.sat ((AC2 dt).guard t) ω → Formula.sat (FRow t) ω := by
-  intro m' hm' t ht ω hF _
+    Formula.sat (FRow m') ω → Formula.sat envC2 ω → Formula.sat ((AC2 dt).guard t) ω → Formula.sat (FRow t) ω := by
+  intro m' hm' t ht ω hF _ _
   rw [AC2_numModes] at hm'
   rw [AC2_succ, nextC2_eq] at ht
   have hm3 : m' < 3 := hm'

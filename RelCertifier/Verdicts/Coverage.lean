@@ -43,7 +43,8 @@ def counted : IO Unit := dischargedCount.modify (· + 1)
   asserted mode pair (483 for the 42 base packs, plus 39 for the five packs of the
   mode-keyed instances in `Instances/*Handoff.lean`).
 * `handoff` — one static query per declared LEFT transition of every certified
-  benchmark (self-loops included), `φ_inv(m') ∧ guard_m ∧ ¬φ_inv(m)` — the cross-mode
+  benchmark (self-loops included), `φ_inv(m') ∧ evolve_{m'} ∧ guard_m ∧ evolve_R ∧
+  ¬φ_inv(m)` (domain-conditioned) — the cross-mode
   handoff of the mode-keyed invariant (`Trusted/Handoff.lean`). Mode-independent
   invariants make these vacuous; they are still issued and counted. -/
 structure Expected where
@@ -60,13 +61,14 @@ def expected : Expected := { watertank := 6, cut := 105, modal := 522, handoff :
 
 /-- The handoff transitions that are KNOWN to fail, declared as `(benchmark, m', m)`.
 A green handoff phase has exactly this failure set — a new failure fails the run, and so
-does a declared failure that stops failing (the declaration is then stale). The two
-entries are `rover3tier_rung12`'s `ACCEL → COAST` (0 → 1) and `COAST → ACCEL` (1 → 0):
-its two rows are incomparable (`v_L ≤ v_R + 0.5 ∧ a_L ≤ a_R + 0.8` versus
-`3v_L + a_L ≤ 3v_R + 1.2`), so the mode-keyed invariant is not established across
-either switch; see `docs/HANDOFF.md` for the countermodels. -/
+does a declared failure that stops failing (the declaration is then stale). The one
+entry is `rover3tier_rung12`'s `ACCEL → COAST` (0 → 1): its ACCEL row
+(`v_L ≤ v_R + 0.5 ∧ a_L ≤ a_R + 0.8`) allows more slack on `3v + a` than its COAST row
+(`3v_L + a_L ≤ 3v_R + 1.2`) admits, even inside the evolve domains, so the mode-keyed
+invariant is not established across that switch (`COAST → ACCEL` holds under the
+domain-conditioned query); see `docs/HANDOFF.md` for the countermodel. -/
 def expectedHandoffFailures : List (String × Nat × Nat) :=
-  [("rover3tier_rung12", 0, 1), ("rover3tier_rung12", 1, 0)]
+  [("rover3tier_rung12", 0, 1)]
 
 /-- What a certification run over the standard suite produces.
 

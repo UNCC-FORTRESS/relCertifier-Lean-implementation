@@ -31,12 +31,12 @@ epsilon = 2.0
 [Lsys.mode.FOLLOW]
 ode = g' = smt2:(* -0.5 (- g 29.0));
 guard = g >= 21.0 and g < 40.0
-evolve = g >= 15.0 and g <= 60.0
+evolve = g >= 0.0 and g <= 60.0
 next = [CATCH, FOLLOW]
 [Lsys.mode.CATCH]
 ode = g' = smt2:(* -0.6 (- g 29.0));
 guard = g >= 30.0
-evolve = g >= 15.0 and g <= 60.0
+evolve = g >= 0.0 and g <= 60.0
 next = [FOLLOW, CATCH]
 [Rsys]
 state_vars = [g]
@@ -44,17 +44,17 @@ epsilon = 1.0
 [Rsys.mode.FOLLOW]
 ode = g' = smt2:(* -0.5 (- g 30.0));
 guard = g >= 20.0 and g < 40.0
-evolve = g >= 15.0 and g <= 60.0
+evolve = g >= 0.0 and g <= 60.0
 next = [CATCH, FOLLOW, BRAKE]
 [Rsys.mode.CATCH]
 ode = g' = smt2:(* -0.6 (- g 30.0));
 guard = g >= 30.0
-evolve = g >= 15.0 and g <= 60.0
+evolve = g >= 0.0 and g <= 60.0
 next = [FOLLOW, CATCH]
 [Rsys.mode.BRAKE]
 ode = g' = smt2:1.5;
 guard = g < 20.0
-evolve = g >= 15.0 and g <= 60.0
+evolve = g >= 0.0 and g <= 60.0
 next = [BRAKE]
 [relational_invariant]
 FOLLOW = smt2:(and (<= L_g (+ R_g 1.0)) (<= R_g (+ L_g 3.0)))

@@ -33,12 +33,12 @@ epsilon = 2.0
 [Lsys.mode.FOLLOW]
 ode = g' = smt2:(* -0.5 (- g 29.0));
 guard = g >= 24.0 and g <= 40.0
-evolve = g >= 15.0 and g <= 60.0
+evolve = g >= 0.0 and g <= 60.0
 next = [GENTLE, FOLLOW]
 [Lsys.mode.GENTLE]
 ode = g' = smt2:(* -0.6 (- g 29.0));
 guard = g >= 30.0
-evolve = g >= 15.0 and g <= 60.0
+evolve = g >= 0.0 and g <= 60.0
 next = [FOLLOW, GENTLE]
 [Rsys]
 state_vars = [g]
@@ -46,22 +46,22 @@ epsilon = 1.0
 [Rsys.mode.FOLLOW]
 ode = g' = smt2:(* -0.5 (- g 30.0));
 guard = g >= 20.0 and g <= 40.0
-evolve = g >= 15.0 and g <= 60.0
+evolve = g >= 0.0 and g <= 60.0
 next = [GENTLE, ASSERTIVE, FOLLOW, BRAKE]
 [Rsys.mode.GENTLE]
 ode = g' = smt2:(* -0.6 (- g 30.0));
 guard = g >= 30.0
-evolve = g >= 15.0 and g <= 60.0
+evolve = g >= 0.0 and g <= 60.0
 next = [FOLLOW, GENTLE]
 [Rsys.mode.ASSERTIVE]
 ode = g' = smt2:(* -0.7 (- g 30.0));
 guard = g >= 30.0
-evolve = g >= 15.0 and g <= 60.0
+evolve = g >= 0.0 and g <= 60.0
 next = [FOLLOW, ASSERTIVE]
 [Rsys.mode.BRAKE]
 ode = g' = smt2:1.5;
 guard = g < 20.0
-evolve = g >= 15.0 and g <= 60.0
+evolve = g >= 0.0 and g <= 60.0
 next = [BRAKE]
 [relational_invariant]
 FOLLOW    = smt2:(and (<= L_g (+ R_g 4.0)) (<= R_g (+ L_g 3.0)))

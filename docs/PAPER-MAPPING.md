@@ -157,6 +157,85 @@ verdict packs are runner rows 42–46 (`Verdicts/RunModal.lean`), pinned in
 `ModalPinTable`/`ModalTablePins`/`ModalCodePins`, and counted in `Coverage.expected.modal`
 (483 → 522).
 
+## 2c. Checked cuts — what the tool checks, and the five cut-composed theorems (2026-10-08)
+
+**What a checked cut is.** For each mode (either side) the tool takes the mode's guard,
+splits it into its non-strict conjuncts (`cutAtoms`: `≤`/`≥` atoms only), and keeps an atom
+as a CUT when two obligations hold (`Trusted/OracleAPI.lean` `checkedCut`):
+
+* **O1 (entry)** — the atom is implied by the mode's guard. Syntactic: every candidate *is*
+  a guard conjunct, so a switch into the mode (guard-gated, the trust-base item) lands
+  inside the atom.
+* **O2 (invariance)** — the atom `g ≤ 0` is forward-invariant along THIS mode's own field,
+  the other side frozen, λ irrelevant. Four routes, tried in order: `shape` (the atom is
+  `v ≤ κ`/`v ≥ κ` and the field for `v` is a contraction `k(c − v)` with the equilibrium on
+  the safe side — a rational comparison, no Z3; Lean `contract_stays`), `frozen` (every atom
+  variable has field `0`; no Z3), `diStrict` (`UNSAT(evolve ∧ g = 0 ∧ ġ ≥ 0)`, the DI
+  boundary query, route B) and `diNonstrict` (`UNSAT(evolve ∧ ġ > 0)`, whole-domain, route
+  A). O2 is UNCONDITIONED — each atom over the bare evolve domain, no mutual narrowing — so
+  the Lean lift composes per atom (`Proofs/Soundness/CutLift.lean`, `CutCover.lean`).
+
+**How the cut narrows the flow query.** The kept atoms of the left mode `m_L` and the right
+mode `m_R` are conjoined to the domain of every query of that pairing (`andCuts`): the joint
+flow queries (`checkSeg`, all three routes), the static reposition regions (`repoRegions`)
+and the dynamic reposition queries (`checkDynRepo`). `evolve` itself is never modified; the
+model, and the Lean statement (uniform evolve as every mode's domain), see only `evolve`.
+The emitted certificate is `Instances/EvolStrengthenings/<name>.lean` (atom + route per
+mode), kernel-checked well-formed by `rfl` (`evolStrengtheningWF`: every atom is a guard
+conjunct of its mode, shape/frozen tags re-checked by the pure recognizers), and the DI
+atoms' O2 obligations are re-run by `--run-verdicts` (`Verdicts/RunCut.lean`: the **105 cut
+probes**). Two sentences for Section 4.2: *a guard conjunct becomes a cut when the
+certifier re-derives that the mode's guard implies it (entry) and that the mode's own
+flow preserves it (invariance, by differential induction or a recognized contraction
+shape); cuts are conjoined to the flow-query domains of that mode and never to the
+model.*
+
+**Which benchmarks use cuts.** 13 benchmarks carry a cut certificate with DI-route atoms
+(the 13 cut-lifted `CutThroughout` instances; `RELCERT_NO_CUT=1` declines them). The 105
+probes, per benchmark (`docs/VERDICTS.md`, runner output, "cut instances"):
+
+| benchmark | probes | atoms (side/mode: route) |
+|---|---|---|
+| `arm_chain_rung3` | 4 | `R/ApproachA θ ≥ 0`, `R/ApproachB θ ≥ 0.35`, `R/ApproachC θ ≥ 0.5` (B strict); `R/Hold θ ≥ 0.6` (frozen, probed as A) |
+| `arm_fidelity_high` | 4 | same |
+| `plant_fan_high` | 4 | same |
+| `refinement_ladder_rover_rung1_2to3` | 9 | `L/STEEP, MODER, FLAT` (A); `R/STEEP, MODER, FLAT` (A and C each) |
+| `refinement_ladder_rover_rung3_6to8` | 12 | `L/…` (A and C each); `R/…` (A and C each) |
+| `refinement_ladder_rover_rung4_8to12` | 9 | as `rung1_2to3` |
+| `rover_attitude_cone_12dof` | 9 | as `rung1_2to3` |
+| `rover_dof_terrain_rung1` | 9 | as `rung1_2to3` |
+| `rover_dof_terrain_rung2` | 9 | as `rung1_2to3` |
+| `rover_dof_terrain_rung3_8d` | 9 | as `rung1_2to3` |
+| `rover_dof_terrain_rung3` | 9 | as `rung1_2to3` |
+| `story3_rollover_base_12dof` | 9 | as `rung1_2to3` |
+| `story3_rollover_ladder_rung_a` | 9 | as `rung1_2to3` |
+
+`arm_fidelity_mid` and `plant_fan_mid` also carry a cut certificate (`R/ApproachFast θ ≥
+0`, `R/ApproachSlow θ ≥ 0.35`, B strict; `R/Hold θ ≥ 0.6`, shape) but are not cut-reliant
+for the tool (they certify without cuts at λ = 9/2 resp. 15/4, `Instances/BenchCoversNC/`)
+and are not probed: their Lean instances at λ = 1 use the `Hold` region in the modal pack
+instead.
+
+**The five cut-composed theorems.** For `arm_chain_rung3`, `arm_fidelity_high`,
+`arm_fidelity_mid`, `plant_fan_high` and `plant_fan_mid` the base modal theorems carry the
+`Hold` cut `θ_R ≥ 0.6` as an invariant conjunct at EVERY right mode (`README.md`,
+*Conditioning*). The declared invariant with plain `mvValid` is false (at `mv = Hold`,
+`θ_R < 0.6` the right cannot respond — countermodel in `docs/CUT-COMPOSITION.md` §3). The
+statement that composes the two cut obligations is the declared invariant with the cut
+carried as **`Hold`'s mode region only**:
+
+| paper element | Lean (`Instances/<Name>Declared.lean`) |
+|---|---|
+| `φ_declared` | `canonInvM gA []` — the file's row, nothing added |
+| the cut at `Hold`: O1 entry ∧ O2 invariance | `mvRegionR mvA regionsA k` with `regionsA Hold = ⌊θ_R ≥ 0.6⌋`, `regionsA q = ⊤` otherwise (`EnvelopeChainR.lean`): at the approach modes this IS `mvValid`; at `Hold` it is the cut, established at entry (guard-gated switching) and kept by `Hold`'s flow (O2: `frozen`, resp. `shape`) |
+| the right-only repositioning (`checkDynRepo`, route A, left frozen) | `sem_rightBlock_rate` (`Proofs/Encoding/CutComposition.lean`): the explicit constant-rate curve in the start mode to `θ_R = 0.6`, then zero-duration hops into `Hold` — Z3-free |
+| the `Hold` phase | endpoint arithmetic `θ_L ≤ 0.65 ≤ 0.6 + tol` (the same fact that makes the base instances' route-B/C `Hold` queries unsat) |
+| the conclusion | `rvalid (theorem3Form (bigChoice leftProgs) (rightAutomatonBody GrA mvA) (canonInvM gA [] ∧ envLR ∧ mvRegionR mvA regionsA k))` — `theorem <name>_declared`, axioms the standard three |
+
+The per-benchmark table, the tool-run confirmation of the strategy and the countermodels
+are in `docs/CUT-COMPOSITION.md`. The base theorems stand beside the new ones (59 theorems
+in `ModalBattery`).
+
 ## 3. Full inventory of generic `rvalid (theorem3Form …)` theorems
 
 Twenty-odd, in five families by what they assume. This variety is the "additional

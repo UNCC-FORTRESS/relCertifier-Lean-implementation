@@ -1,5 +1,29 @@
 # Verdict report — empirical discharge of theorem hypotheses
 
+## The five checked-cut benchmarks at their declared invariant (2026-10-08, branch `cut-composition`)
+
+`arm_chain_rung3`, `arm_fidelity_high`, `arm_fidelity_mid`, `plant_fan_high` and
+`plant_fan_mid` gained a second theorem each, `<name>_declared`
+(`Instances/<Name>Declared.lean`): the DECLARED row (`θ_L ≤ θ_R + tol`) with the `Hold`
+cut `θ_R ≥ 0.6` carried as `Hold`'s mode region only (`mvRegionR`, `⊤` at the approach
+modes), where the base theorem conjoins the cut to the invariant at every mode. The
+responses are right-only catch-ups (constant-rate reach of `θ_R = 0.6` in the start mode,
+zero-duration hops into `Hold`, endpoint arithmetic), so the theorems carry **no verdict
+hypothesis** and audit to the standard three axioms. Nothing changed in the runner: no new
+row, pin or coverage constant; the base theorems' `Verd3` packs (rows 3, 4, 6, 14, 16 of
+`RunModal.modalTable`, 2 × 2 queries each) and the 12 cut probes of the high trio are
+re-run as before. The plain-`mvValid` statement of the declared row is false for these
+automata — countermodel and per-benchmark table in `docs/CUT-COMPOSITION.md`; the cut
+mechanism in `docs/PAPER-MAPPING.md` §2c.
+
+| benchmark | base theorem (kept) | declared theorem (new) | runner |
+|---|---|---|---|
+| `arm_chain_rung3` | `arm_chain_rung3_modal`, 2×`Verd3`, region at every mode | `arm_chain_rung3_declared`, std 3, region at `Hold` only | unchanged (4 cut probes + 4 modal queries) |
+| `arm_fidelity_high` | `arm_fidelity_high_modal`, 2×`Verd3` | `arm_fidelity_high_declared`, std 3 | unchanged (4 + 4) |
+| `plant_fan_high` | `plant_fan_high_modal`, 2×`Verd3` | `plant_fan_high_declared`, std 3 | unchanged (4 + 4) |
+| `arm_fidelity_mid` | `arm_fidelity_mid_modal`, 2×`Verd3` (region via route C) | `arm_fidelity_mid_declared`, std 3 | unchanged (4 modal queries; no cut probes) |
+| `plant_fan_mid` | `plant_fan_mid_modal`, 2×`Verd3` | `plant_fan_mid_declared`, std 3 | unchanged (4; no cut probes) |
+
 ## Cross-mode handoff and the mode-keyed theorems (2026-10-07/08, branch `mode-handoff`)
 
 `--run-verdicts` gained a fourth phase, **handoff**: for every emitted benchmark and every

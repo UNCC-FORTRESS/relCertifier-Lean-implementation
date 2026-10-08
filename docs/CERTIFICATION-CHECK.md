@@ -23,6 +23,14 @@ Read `README.md` first for what the theorems say. This document is only about
 > theorems: 46 with `z3_unsat_sound`, 8 standard-three · `--check-quick` PASSED. The
 > domain-conditioned handoff phase, seven composed theorems and the `rover3tier_rung12`
 > row repair: `docs/HANDOFF.md`, `docs/PAPER-MAPPING.md` §2b.
+>
+> **Branch `cut-composition` (2026-10-08):** `lake build` 9007 jobs, exit 0 (warm; the
+> new leaves and `ModalBattery` only) · `--check-quick` 46 CERTIFIED, 0 DECLINED, 1
+> documented error, 6/105/522/215, QUICK CHECKS PASSED · `relcert-test` ALL PASS (with
+> `BENCH_PATHS`) · `--run-verdicts` 848/848 `unsat` · axiom audit **59** theorems: 46 with
+> `z3_unsat_sound`, 13 standard-three (the five `…_declared` theorems among them), no
+> `sorryAx`, no other axiom. The five checked-cut benchmarks at their declared invariant:
+> `docs/CUT-COMPOSITION.md`, `docs/PAPER-MAPPING.md` §2c.
 
 ---
 
@@ -158,11 +166,16 @@ grep -rn 'sorry\|admit\b\|native_decide' --include='*.lean' RelCertifier/ | grep
 the audit re-emits on every build and cannot drift from the theorems:
 
 ```bash
-lake build RelCertifier.Instances.ModalBattery 2>&1 | grep -A2 "depends on axioms"
+lake build RelCertifier.Instances.ModalBattery 2>&1 | grep -A3 "depends on axioms"
 ```
 
-Expected, for all 54 theorems (46 benchmarks; `rover3tier_rung12` has two, one
-per left mode; seven benchmarks have a mode-keyed theorem as well):
+(`-A3`, not `-A2`: Lean prints a four-axiom list over four lines, and `-A2` drops the
+last one — the line that says `z3_unsat_sound`. With `-A2` every theorem reads as
+standard-three. Found 2026-10-08; the earlier recipe said `-A2`.)
+
+Expected, for all 59 theorems (46 benchmarks; `rover3tier_rung12` has two, one
+per left mode; seven benchmarks have a mode-keyed theorem as well; the five
+checked-cut benchmarks have a declared-invariant theorem as well):
 
 * `[propext, Classical.choice, Quot.sound]` — the three standard Lean axioms;
 * plus `RelCertifier.z3_unsat_sound` for the 42 theorems whose flow certificates
@@ -171,7 +184,8 @@ per left mode; seven benchmarks have a mode-keyed theorem as well):
 Five benchmarks are **entirely Z3-free** — the standard three alone, and no
 verdict hypotheses in the statement either: `rover3_M1`, `rover_coupled`,
 `rover_position`, `refinement_ladder_rover_rung2_6dof`,
-`refinement_ladder_rover_rung2b_6dof`. Their responses are pure right-side
+`refinement_ladder_rover_rung2b_6dof`. The three composed rover theorems and the
+five `…_declared` theorems are Z3-free as well (13 standard-three lines in all). Their responses are pure right-side
 flows with the invariant re-established by endpoint arithmetic, so no joint
 flow certificate is involved (see `docs/VERDICTS.md` § *FULL SUITE*).
 
@@ -313,9 +327,12 @@ obligations (watertank's are *proven*, in `WatertankViability.lean`).
 | `arm_chain_rung1` | `ArmChainRung1Modal.lean` | `arm_chain_rung1_modal` | `0 ≤ dt`; `dt ≤ 1/5`; 3×`VerdC` | std 3 + `z3_unsat_sound` |
 | `arm_chain_rung2` | `ArmChainRung2Modal.lean` | `arm_chain_rung2_modal` | `0 ≤ dt`; `dt ≤ 1/5`; 4×`VerdD` | std 3 + `z3_unsat_sound` |
 | `arm_chain_rung3` | `ArmChainRung3Modal.lean` | `arm_chain_rung3_modal` | `0 ≤ dt`; 2×`Verd3` | std 3 + `z3_unsat_sound` |
+| `arm_chain_rung3` (declared invariant, `Hold` cut as mode region) | `ArmChainRung3Declared.lean` | `arm_chain_rung3_declared` | `0 ≤ dt` | **std 3 only** |
 | `arm_fidelity_high` | `ArmFidelityHighModal.lean` | `arm_fidelity_high_modal` | `0 ≤ dt`; 2×`Verd3` | std 3 + `z3_unsat_sound` |
+| `arm_fidelity_high` (declared invariant, `Hold` cut as mode region) | `ArmFidelityHighDeclared.lean` | `arm_fidelity_high_declared` | `0 ≤ dt` | **std 3 only** |
 | `arm_fidelity_low` | `ArmFidelityLowModal.lean` | `arm_fidelity_low_modal` | `0 ≤ dt`; `dt ≤ 1/5`; 2×`VerdF` | std 3 + `z3_unsat_sound` |
 | `arm_fidelity_mid` | `ArmFidelityMidModal.lean` | `arm_fidelity_mid_modal` | `0 ≤ dt`; 2×`Verd3` | std 3 + `z3_unsat_sound` |
+| `arm_fidelity_mid` (declared invariant, `Hold` cut as mode region) | `ArmFidelityMidDeclared.lean` | `arm_fidelity_mid_declared` | `0 ≤ dt` | **std 3 only** |
 | `arm_refinement` | `ArmRefinementModal.lean` | `arm_refinement_modal` | `0 ≤ dt`; `dt ≤ 1/5`; 2×`VerdF` | std 3 + `z3_unsat_sound` |
 | `attitude_rate` | `AttitudeRateModal.lean` | `attitude_rate_modal` | `0 ≤ dt`; 2×`VerdW` | std 3 + `z3_unsat_sound` |
 | `endurance_gain_M1` | `EnduranceGainM1Modal.lean` | `endurance_gain_M1_modal` | `0 ≤ dt`; 6×`VerdG` | std 3 + `z3_unsat_sound` |
@@ -324,8 +341,10 @@ obligations (watertank's are *proven*, in `WatertankViability.lean`).
 | `match_multi_eps` | `MatchMultiEpsModal.lean` | `match_multi_eps_modal` | `0 ≤ dt`; 2×`Verd3` | std 3 + `z3_unsat_sound` |
 | `match_multi_rate` | `MatchMultiRateModal.lean` | `match_multi_rate_modal` | `0 ≤ dt`; 4×`VerdM` | std 3 + `z3_unsat_sound` |
 | `plant_fan_high` | `PlantFanHighModal.lean` | `plant_fan_high_modal` | `0 ≤ dt`; 2×`Verd3` | std 3 + `z3_unsat_sound` |
+| `plant_fan_high` (declared invariant, `Hold` cut as mode region) | `PlantFanHighDeclared.lean` | `plant_fan_high_declared` | `0 ≤ dt` | **std 3 only** |
 | `plant_fan_low` | `PlantFanLowModal.lean` | `plant_fan_low_modal` | `0 ≤ dt`; `dt ≤ 1/5`; 2×`VerdF` | std 3 + `z3_unsat_sound` |
 | `plant_fan_mid` | `PlantFanMidModal.lean` | `plant_fan_mid_modal` | `0 ≤ dt`; 2×`Verd3` | std 3 + `z3_unsat_sound` |
+| `plant_fan_mid` (declared invariant, `Hold` cut as mode region) | `PlantFanMidDeclared.lean` | `plant_fan_mid_declared` | `0 ≤ dt` | **std 3 only** |
 | `refinement_ladder_rover_rung1_2to3` | `RoverLadderRung1Modal.lean` | `rover_ladder_rung1_modal` | `0 ≤ dt`; 6×`VerdE` | std 3 + `z3_unsat_sound` |
 | `refinement_ladder_rover_rung2_3to6` | `RoverLadderRung2Modal.lean` | `rover_ladder_rung2_3to6_modal` | `0 ≤ dt`; 6×`Verd36` | std 3 + `z3_unsat_sound` |
 | `refinement_ladder_rover_rung2_6dof` | `RoverRung26dofModal.lean` | `rung2_6dof_modal` | `0 ≤ dt` | **std 3 only** |
@@ -388,6 +407,16 @@ Two rows deserve a note:
   theorems add no verdict beyond the per-mode packs; `rover3_M1` is padded to
   `n = 3` for the left mode variable. Seven more `#print axioms` lines in
   `ModalBattery.lean`: 54 theorems in all.
+* **The five checked-cut benchmarks** (`arm_chain_rung3`, `arm_fidelity_high`,
+  `arm_fidelity_mid`, `plant_fan_high`, `plant_fan_mid`) carry, beside their base
+  theorem (the `Hold` cut `θ_R ≥ 0.6` conjoined to the invariant at every right mode),
+  a second theorem `…_declared` at the DECLARED row with the cut carried as `Hold`'s
+  mode region only (`mvRegionR`, `⊤` at the approach modes) — the composition of the
+  cut's entry (O1) and invariance (O2) obligations. Their responses are Z3-free
+  right-only catch-ups (`Proofs/Encoding/CutComposition.lean`), so they add no
+  verdict, no runner row and no pin; five more `#print axioms` lines in
+  `ModalBattery.lean`: **59 theorems in all**. The declared row with no region
+  anywhere is false for these automata (`docs/CUT-COMPOSITION.md` §3).
 * **`watertank`** is the flagship: existence is proven (not hypothesised) and
   its verdicts are the ones wired into `--run-verdicts` with kernel identity
   pins.
@@ -401,7 +430,7 @@ lake build \
   && lake build relcert relcert-test \
   && ./.lake/build/bin/relcert-test \
   && ./.lake/build/bin/relcert --run-verdicts \
-  && lake build RelCertifier.Instances.ModalBattery 2>&1 | grep -A2 "depends on axioms"
+  && lake build RelCertifier.Instances.ModalBattery 2>&1 | grep -A3 "depends on axioms"
 ```
 
 Green build + `ALL PASS` + `ALL HYPOTHESES DISCHARGED` + an axiom listing with

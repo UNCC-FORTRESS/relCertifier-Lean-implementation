@@ -1,11 +1,11 @@
-# Status — 2026-10-07 (branch `mode-handoff`)
+# Status — 2026-10-08 (branch `cut-composition`)
 
 Current state of `relCertifier-lean-implementation` in one page: what is proved, what is
 assumed, what to run, and what is open. For *what the theorems say* read
 [`README.md`](README.md); for *how to re-check them* read
 [`docs/CERTIFICATION-CHECK.md`](docs/CERTIFICATION-CHECK.md).
 
-**Commit `ce487e6`.** 397 Lean files, 47 benchmark inputs, 46 modal instances.
+**Branch head: see `git log`.** 413 Lean files, 47 benchmark inputs, 46 modal instances (+ 7 mode-keyed, + 5 declared-invariant leaves).
 
 ---
 
@@ -29,6 +29,18 @@ carry the composed theorem `…_modeKeyed` at their declared rows (54 theorems i
 `ModalBattery`). `rover3tier_rung12` needed a repair first: with its original ACCEL row the
 `ACCEL → COAST` handoff was satisfiable (countermodel recorded); the row was re-stated — rows
 only — as the velocity envelope plus COAST's own functional bound (`docs/HANDOFF.md`).
+
+**New (2026-10-08, branch `cut-composition`): the five checked-cut benchmarks at their
+DECLARED invariant.** `arm_chain_rung3`, `arm_fidelity_high`, `arm_fidelity_mid`,
+`plant_fan_high`, `plant_fan_mid` carried Theorem 3 only with the `Hold` cut `θ_R ≥ 0.6`
+conjoined to the invariant at every right mode. Each now also carries
+`<name>_declared` (`Instances/<Name>Declared.lean`): the declared row itself, with the cut
+carried as `Hold`'s mode region only (`mvRegionR`; `⊤` at the approach modes) — the
+composition of the cut's two obligations, O1 entry and O2 invariance. Z3-free: right-only
+catch-up responses (`Proofs/Encoding/CutComposition.lean`), standard three axioms, no
+runner change. The plain-`mvValid` form (no region anywhere) is FALSE for these automata
+(countermodel recorded). 59 theorems in `ModalBattery`. `docs/CUT-COMPOSITION.md`,
+`docs/PAPER-MAPPING.md` §2c.
 
 ## Last full verification
 
@@ -65,6 +77,23 @@ the new 12-dof leaf `Story1AttdistRungBHandoff.lean` takes ~10 min on its own):
 | trusted layer | `BENCH_PATHS=… relcert-test` | ALL PASS (no skips) |
 | suite + verdicts | `relcert --check-quick benchmarks/suite_uniform/*/input.txt` | 46 CERTIFIED, 0 DECLINED, 1 documented error; QUICK CHECKS PASSED |
 | handoff alone | `relcert --handoff benchmarks/suite_uniform/*/input.txt` | 216/216 transitions checked, 215 unsat; the one FAIL is `shield_unreachable`'s self-loop, whose right evolve does not lower against the left variable list (the 47th, outside the emitted suite) |
+
+## Branch run (2026-10-08, `cut-composition`)
+
+All checks green on the branch head, from the warm tree (new leaves only — the
+`CutComposition` proof leaf and the five `…Declared` instances — plus `ModalBattery`):
+
+| check | command | result |
+|---|---|---|
+| kernel | `lake build` | 9007 jobs, exit 0 |
+| axioms | `lake build RelCertifier.Instances.ModalBattery` (`grep -A3`) | **59** theorems: 13 standard-three (the 8 before + the 5 `…_declared`), 46 `+z3_unsat_sound`, 0 other, no `sorryAx` |
+| hypotheses | `relcert --run-verdicts` | **848 `unsat`**, coverage 6 / 105 / 522 / 215, exit 0 (unchanged: the new theorems carry no verdict) |
+| trusted layer | `BENCH_PATHS=… relcert-test` | ALL PASS (no skips) |
+| suite + verdicts | `relcert --check-quick benchmarks/suite_uniform/*/input.txt` | 46 CERTIFIED, 0 DECLINED, 1 documented error; QUICK CHECKS PASSED |
+
+One recipe defect fixed on the way: the documented axiom audit used `grep -A2`, which
+drops the fourth line of a four-axiom block — the one naming `z3_unsat_sound` — so every
+theorem read as standard-three. The recipe now says `-A3`.
 
 ## What is trusted
 

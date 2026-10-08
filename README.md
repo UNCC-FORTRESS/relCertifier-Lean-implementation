@@ -163,6 +163,16 @@ flow query is satisfiable, so the theorem would be vacuous. These five therefore
 maintained.* That is what the certificate supports, stated honestly. The same device
 (`lowFace`, a region as an invariant component) is what `rung2c` has always used.
 
+**Cut composition (2026-10-08).** Each of the five also carries a second theorem,
+`<name>_declared` (`Instances/<Name>Declared.lean`), at the DECLARED invariant with the
+cut carried only where the tool checked it — as `Hold`'s mode region (`mvRegionR`, `⊤` at
+the approach modes). From every state satisfying the declared invariant with the right in
+an approach mode, and from every state in `Hold` inside its guard, the refinement is
+maintained; the response is a Z3-free right-only catch-up (standard three axioms). The
+declared invariant with no region anywhere is false for these automata (from `Hold`
+below its guard the right cannot move): `docs/CUT-COMPOSITION.md`,
+`docs/PAPER-MAPPING.md` §2c.
+
 **Coverage.** The modal statement is instantiated for all 46 certified benchmarks;
 `Instances/ModalBattery.lean` imports every one and re-emits its axiom audit on each
 build. Five are entirely **Z3-free** (`rover3_M1`, `rover_coupled`, `rover_position`,
@@ -713,11 +723,14 @@ per-benchmark table — is [`docs/CERTIFICATION-CHECK.md`](docs/CERTIFICATION-CH
 All 47 modal theorems at once:
 
 ```bash
-lake build RelCertifier.Instances.ModalBattery 2>&1 | grep -A2 "depends on axioms"
+lake build RelCertifier.Instances.ModalBattery 2>&1 | grep -A3 "depends on axioms"
 ```
 
 Measured 2026-07-31: 42 theorems at the standard three plus `z3_unsat_sound`, 5 at the
-standard three alone, **no `sorryAx`, no `native_decide`, nothing else**.
+standard three alone, **no `sorryAx`, no `native_decide`, nothing else**. Measured
+2026-10-08 (branch `cut-composition`): 59 theorems, 46 with `z3_unsat_sound`, 13 at the
+standard three alone. Use `-A3`: a four-axiom list prints over four lines and `-A2` drops
+the line naming `z3_unsat_sound`.
 
 ---
 

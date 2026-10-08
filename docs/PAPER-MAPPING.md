@@ -189,11 +189,46 @@ The emitted certificate is `Instances/EvolStrengthenings/<name>.lean` (atom + ro
 mode), kernel-checked well-formed by `rfl` (`evolStrengtheningWF`: every atom is a guard
 conjunct of its mode, shape/frozen tags re-checked by the pure recognizers), and the DI
 atoms' O2 obligations are re-run by `--run-verdicts` (`Verdicts/RunCut.lean`: the **105 cut
-probes**). Two sentences for Section 4.2: *a guard conjunct becomes a cut when the
-certifier re-derives that the mode's guard implies it (entry) and that the mode's own
-flow preserves it (invariance, by differential induction or a recognized contraction
-shape); cuts are conjoined to the flow-query domains of that mode and never to the
-model.*
+probes**).
+
+**Three atom KINDS (2026-10-08, branch `suite-redesign`; tool side, the Lean lift of
+the two new kinds is the later pass).** The candidate set above — literal closed guard
+conjuncts, O1 by membership — is incomplete in two ways that real scenarios met
+(`docs/SUITE-REDESIGN.md` §7 L1, L2). Behind `RELCERT_IMPLIED_CUT=1`
+(`Checker/EvolStrengtheningX.lean`, `OracleAPI.checkedCutX`; off by default so the
+`suite_uniform` pins keep reading the legacy certificate) the certifier offers two more
+kinds, and records for every kept atom its kind and its O1 justification so the lift
+knows what to prove:
+
+| kind (`CutKind`) | candidate | O1 — entry (`CutEntry`) | O2 — invariance (`CutRoute`) |
+|---|---|---|---|
+| `guardConj` | a closed guard conjunct (`cutAtoms`) | `membership`: the atom IS a conjunct (kernel, `cutAtoms_sat`) | the legacy four routes, unchanged |
+| `closure` | the closure `x ≤ k` / `x ≥ k` of a strict guard conjunct `x < k` / `x > k` (`strictAtoms`, `closureOf`) | `weakening`: the strict conjunct implies its closure | as any closed atom: `shape` over `contractEq`'s grammar (`contractShapeOKX`), `frozen`, DI-B, DI-A |
+| `impliedContract` | `x ≤ c` and `x ≥ c` for a field `x' = k (c − x)`, `k > 0` (`contractEq`: `k(c − x)`, `c − x`, `kx` with `k < 0`, `k(x − c)` with `k < 0`; `impliedCandidates`) — the tightest flow-invariant half-lines, since `{x ≤ K}` is invariant iff `K ≥ c` | `rational`: a threshold guard conjunct on `x` at least as tight (`guardImpliesRational`, rational comparison, no Z3); else `z3`: one counted query `UNSAT(guard ∧ ¬atom)` | as for `closure` (the `shape` route decides it without Z3: the equilibrium `c` is on the safe side by construction) |
+
+The extended certificate `EvolStrengtheningX` (per mode: `⟨atom, kind, entry, route⟩`,
+the legacy atoms included) is printed by `--emit-cuts` as `<defname>X` after the
+unchanged legacy literal; `evolStrengtheningWFX` is its kernel-decidable
+well-formedness (membership / closure-of-a-strict-conjunct / implied-candidate-of-a-
+recognized-contraction, the rational O1 re-checked, shape/frozen re-checked; the `z3`
+entries and the DI routes are obligations for the lift's `z3_unsat_sound` leaf). O2
+stays UNCONDITIONED per atom, so the per-atom composition of `CutLift.lean` carries over;
+what the lift must add is the O1 case split — `hostGuard_cutAtoms_sat` for `membership`,
+the strict-implies-closed fact for `weakening`, a rational threshold lemma for
+`rational`, and a Z3 leaf for `z3`. Exercised by `charger_fast_setpoints` (`R.BULK:
+x <= 90.0`, implied-contraction, rational, shape — load-bearing: `RELCERT_NO_IMPLIED_CUT=1`
+DECLINES) and `platoon_delay_band` (`R.FOLLOW: g <= 40.0`, closure, weakening, shape —
+load-bearing).
+
+**The wording for Section 4.2.** *A cut is an atom implied by the mode's guard and
+preserved by its own flow.* Three kinds of atom qualify: a closed guard conjunct (implied
+by membership), the closure of a strict guard conjunct (implied by weakening), and, for a
+state variable whose field in that mode is a contraction toward a set point `c`, the
+half-line bounded by `c` on the side of the guard (implied by a threshold conjunct of the
+guard, or, failing that, by a satisfiability check of `guard ∧ ¬atom`). Preservation is
+re-derived per atom along the mode's own field, by differential induction or by the
+recognized contraction shape; cuts are conjoined to the flow-query domains of that mode
+and never to the model.
 
 **Which benchmarks use cuts.** 11 benchmarks carry a cut certificate with DI-route atoms
 (the 11 cut-lifted `CutThroughout` instances; `RELCERT_NO_CUT=1` declines them; 13 before

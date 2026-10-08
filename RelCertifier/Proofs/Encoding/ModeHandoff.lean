@@ -620,6 +620,14 @@ theorem notMem_bv_rightAutomatonBody (G : SearchGraph (Var n)) (mv : Var n) (x :
   · exact hx (Set.mem_singleton_iff.mp hx')
   · exact hxR hx'
 
+/-- A conjunction of invariant components implies any conjunction of a sub-multiset of
+them — the handoff for nested rows (a row that drops a conjunct, or an identical row). -/
+theorem FM_mono {g₁ g₂ : Term (Var n)} {gs₁ gs₂ : List (Term (Var n))}
+    (hsub : ∀ g ∈ g₂ :: gs₂, g ∈ g₁ :: gs₁) {ν : State (Var n)}
+    (h : Formula.sat (FM g₁ gs₁) ν) : Formula.sat (FM g₂ gs₂) ν := by
+  rw [sat_FM_iff] at h ⊢
+  exact fun g hg => h g (hsub g hg)
+
 /-! ## The handoff hypothesis from the runner's query
 
 `Trusted/Handoff.lean`'s `ihandoffQuery` is what `relcert --run-verdicts` prints to Z3 for

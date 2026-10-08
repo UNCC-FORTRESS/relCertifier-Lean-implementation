@@ -314,20 +314,15 @@ def rover_terrain_M1M : SettlingModel 2 :=
 
 example : decideWellFormed rover_terrain_M1M = true := rfl
 
-/-- `match_multi_rate` (R side; units: values ×1000, time ×10; dt = ε_R/λ at λ = 1).
-The guard cap was 0.95 with the equilibrium at 1.0 and no successor — the settling hypothesis
-was FALSE as originally modeled (H-falsification audit witness: base v = 0.95 exits the band at
-every dt); the band now reaches the equilibrium (contract-inside, self-settling) and the
-benchmark re-certifies. -/
-def match_multi_rateM : SettlingModel 2 :=
-  { modes :=
-    [
-      { shapes := ![CoordShape.contractQ 1 10 1000, CoordShape.driven 0], gcoord := 0,
-        glo := 200, ghi := 1000, succs := [] } ]
-    env := ![{ lo := some 0, hi := some 1150 }, { lo := some 0, hi := none }]
-    dtQ := 3 }
-
-example : decideWellFormed match_multi_rateM = true := rfl
+/-! `match_multi_rate` — settling model WITHDRAWN 2026-10-08 (pruning suite, `docs/PRUNING.md`).
+The benchmark's right side gained a declared stall fallback mode `STALL` (guard `v < 0.2`, a
+single strict threshold — the shape the non-connection certificate prunes). The settling
+transcription requires every right mode's guard to be a closed band `[glo, ghi]` on its
+`gcoord` (`Faithful.bandSettling`), so the automaton with `STALL` is outside the settling
+model class and its `faithfulSettling` certificate cannot hold; the model, its fidelity
+certificate and `match_multi_rate_real` are removed rather than restated against a
+different file. The benchmark's declared-invariant theorem is the modal one
+(`Instances/MatchMultiRatePruned.lean`). -/
 
 /-! ### The rational-gain (`contractQ`) instances — the former exp-bound parked class
 

@@ -10,7 +10,8 @@ described in `docs/CERTIFICATION-CHECK.md`:
 
 * importing it forces the kernel to check all 41 base modal theorems, across the 40
   instance files imported below (`lake build`), plus the 7 mode-keyed and the 2
-  cut-composed theorems (50 theorems in all);
+  cut-composed theorems, plus the pruning-suite theorem and its
+  non-connection certificate (52 theorems in all);
 * the `#print axioms` lines below re-emit on every build, so the audit cannot
   drift from the theorems;
 * the benchmark ↔ theorem correspondence is the import list itself — each
@@ -76,6 +77,7 @@ import RelCertifier.Instances.Story3RolloverRungBHandoff
 import RelCertifier.Instances.Rover3tierRung12Handoff
 import RelCertifier.Instances.ArmChainRung3Declared
 import RelCertifier.Instances.ArmFidelityMidDeclared
+import RelCertifier.Instances.MatchMultiRatePruned
 
 namespace RelCertifier
 
@@ -190,5 +192,16 @@ until the 2026-10-08 suite deduplication, `docs/SUITE-DEDUPE.md`.) -/
 #print axioms ArmChainRung3Declared.arm_chain_rung3_declared
 -- arm_fidelity_mid
 #print axioms ArmFidelityMidDeclared.arm_fidelity_mid_declared
+
+/-! ### The pruning suite — Theorem 3 over the ENLARGED right automaton of a benchmark
+that declares a pruned emergency mode, with the right never in that mode (`mvRegionR`,
+`⊥` at the sink; `Proofs/Encoding/SinkExtension.lean`, `docs/PRUNING.md`), and the
+pruned edge's non-connection certificate (paper Theorem 2) from the certifier's two
+verdicts (`Proofs/Encoding/NonConnBridge.lean`). The base theorem above stands over the
+one-mode automaton. -/
+-- match_multi_rate (DRIVE + STALL; STALL never entered) — the base `VerdM` packs
+#print axioms MatchMultiRatePruned.match_multi_rate_pruned
+-- match_multi_rate: the pruned edge DRIVE → STALL (Theorem 2 from `VerdNC`)
+#print axioms MatchMultiRatePruned.match_multi_rate_nonconn
 
 end RelCertifier

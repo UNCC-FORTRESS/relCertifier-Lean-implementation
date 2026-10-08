@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-# STALE (2026-07-30 audit): this script reads a MONOLITHIC aggregator file, but the X0
-# modularization moved every literal into per-benchmark leaves under
-# RelCertifier/Instances/{BenchIR,BenchCovers,BenchCoversNC,EvolStrengthenings}/.
-# As written it finds zero definitions and would emit an empty battery. Do not run it
-# without first repointing it at the leaf directories. Kept because the emitted shapes
-# below are still the reference for what those batteries contain.
+# Repointed 2026-10-08 at the per-benchmark leaves (RelCertifier/Instances/BenchCoversNC/<b>.lean,
+# BenchIR/<b>.lean); the monolithic aggregators this script originally read were split by the
+# X0 modularization. `python3 scripts/gen_throughout.py [name ...]` regenerates the named
+# benchmarks' Throughout/<name>.lean leaves (every cut-free benchmark when no name is given)
+# and the ThroughoutBattery umbrella.
 """Generate the throughout-instance battery from BenchCoversNC + BenchIR.
 
 Per cut-free benchmark, per left window: the real cover graph at the emitted flags,
@@ -19,8 +18,9 @@ regions, dyn). This generator emits the same shapes.
 import re, os, sys
 
 os.chdir(os.path.join(os.path.dirname(__file__), ".."))
-nc = open("RelCertifier/Instances/BenchCoversNC.lean").read()
-ir = open("RelCertifier/Instances/BenchIR.lean").read()
+import glob
+nc = "".join(open(f).read() for f in sorted(glob.glob("RelCertifier/Instances/BenchCoversNC/*.lean")))
+ir = "".join(open(f).read() for f in sorted(glob.glob("RelCertifier/Instances/BenchIR/*.lean")))
 
 # ---------- parse the NC covers ----------
 def parse_list(s):
@@ -110,8 +110,8 @@ def gen_bench(name):
     L = []
     L.append(f"/- GENERATED (scripts/gen_throughout.py) — do not edit. -/")
     L.append(f"import RelCertifier.Proofs.Encoding.CoverInstance")
-    L.append(f"import RelCertifier.Instances.BenchCoversNC")
-    L.append(f"import RelCertifier.Instances.BenchIR")
+    L.append(f"import RelCertifier.Instances.BenchCoversNC.{name}")
+    L.append(f"import RelCertifier.Instances.BenchIR.{name}")
     L.append(f"")
     hb = 0 if n >= 8 else 4000000
     L.append(f"set_option maxHeartbeats {hb}")

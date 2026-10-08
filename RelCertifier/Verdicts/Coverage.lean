@@ -46,12 +46,19 @@ def counted : IO Unit := dischargedCount.modify (· + 1)
   benchmark (self-loops included), `φ_inv(m') ∧ evolve_{m'} ∧ guard_m ∧ evolve_R ∧
   ¬φ_inv(m)` (domain-conditioned) — the cross-mode
   handoff of the mode-keyed invariant (`Trusted/Handoff.lean`). Mode-independent
-  invariants make these vacuous; they are still issued and counted. -/
+  invariants make these vacuous; they are still issued and counted.
+* `prunedEdges` — the declared right edges the emitted covers record as PRUNED by a
+  non-connection certificate (`CoverEmitE.pruned`; paper Section 4.3, `docs/PRUNING.md`):
+  1, the `DRIVE → STALL` edge of `match_multi_rate`.
+* `nonconn` — the queries the non-connection phase owes: two per pruned edge (the source
+  check and the barrier check, `Trusted/NonConnQuery.lean`, `Verdicts/RunNonConn.lean`). -/
 structure Expected where
-  watertank : Nat
-  cut       : Nat
-  modal     : Nat
-  handoff   : Nat
+  watertank   : Nat
+  cut         : Nat
+  modal       : Nat
+  handoff     : Nat
+  prunedEdges : Nat
+  nonconn     : Nat
   deriving Repr
 
 /-- Measured 2026-07-31 (watertank/cut/modal) and 2026-10-07 (handoff); re-derived
@@ -59,7 +66,8 @@ structure Expected where
 benchmarks removed — 18 modal queries, 8 cut probes, 24 handoff transitions). Edit
 deliberately when the suite changes; see the module docstring for why this is a
 declared constant rather than whatever the run produced. -/
-def expected : Expected := { watertank := 6, cut := 97, modal := 504, handoff := 191 }
+def expected : Expected :=
+  { watertank := 6, cut := 97, modal := 504, handoff := 191, prunedEdges := 1, nonconn := 2 }
 
 /-- The handoff transitions that are KNOWN to fail, declared as `(benchmark, m', m)`.
 A green handoff phase has exactly this failure set — a new failure fails the run, and so
@@ -72,15 +80,19 @@ def expectedHandoffFailures : List (String × Nat × Nat) := []
 
 /-- What a certification run over the standard suite produces.
 
-`shield_unreachable` is the 41st benchmark and is *documented* to come back with an
-inconclusive Z3 verdict rather than a decision — so a green run has exactly one error,
-not zero. Declaring that here means a *second* benchmark starting to error is a failure
-instead of blending into an expected one. -/
+`shield_unreachable` is the 41st benchmark and is *documented* to be DECLINED: its right
+side declares a variable the left lacks (`w`), which the lowering accepts since
+2026-10-08 (`Trusted/JointVars.lean`; before that every query failed to lower and the
+run reported an inconclusive error), and its `Shield` successor's guard is a closed
+compound band (`w ≥ 4 ∧ w < 4.95`) that the non-connection certificate does not prune,
+so the universal cover must cover `Shield` and declines (`docs/PRUNING.md`). Declaring
+that here means a *second* benchmark starting to decline is a failure instead of
+blending into an expected one. -/
 structure ExpectedSuite where
   paths     : Nat := 41
   certified : Nat := 40
-  declined  : Nat := 0
-  errors    : Nat := 1
+  declined  : Nat := 1
+  errors    : Nat := 0
   deriving Repr
 
 def expectedSuite : ExpectedSuite := {}

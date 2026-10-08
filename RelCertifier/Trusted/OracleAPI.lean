@@ -22,6 +22,8 @@ it, the outcome is `error`, not `declined`. `certified` is only ever produced by
 -/
 import RelCertifier.Trusted.Run
 import RelCertifier.Trusted.InvComponents
+import RelCertifier.Trusted.NonConnQuery
+import RelCertifier.Trusted.JointVars
 import RelCertifier.Checker.EvolStrengthening
 import RelCertifier.Trusted.Z3
 import RelCertifier.Checker.Checker
@@ -379,45 +381,24 @@ kept (scope, not unsoundness). -/
 def nonConnPrune (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     (vars : List String) (n : ℕ) (coord : Fin n → String) (cutR : IForm n)
     (mR mSuc : PMode) : IO Bool := do
-  -- safe-side term `g` with successor `guard = {g > 0}`; STRICT scalar comparisons only.
-  let gOpt : Option (ITerm n) :=
-    match mSuc.guard with
-    | PForm.cmp ">" a b =>
-        (lowerE vars n Side.R a).bind fun ea =>
-          (lowerE vars n Side.R b).map fun eb => ITerm.bin .sub ea eb    -- {a>b} = {a−b>0}
-    | PForm.cmp "<" a b =>
-        (lowerE vars n Side.R a).bind fun ea =>
-          (lowerE vars n Side.R b).map fun eb => ITerm.bin .sub eb ea    -- {a<b} = {b−a>0}
-    | _ => none                                                          -- closed / non-atomic ⟹ keep
-  match gOpt with
+  -- The two queries are built ONCE, in `Trusted/NonConnQuery.lean` (shared with the
+  -- verdict runner and the kernel bridge); `none` = closed/compound guard or a part that
+  -- does not lower ⟹ keep the edge.
+  match NonConn.queries vars n cutR mR mSuc with
   | none => pure false
-  | some g =>
-    match (do
-        let domR0 ← lowerF vars n Side.R mR.evolve
-        let domR := IForm.and domR0 cutR                             -- checked-cut narrowing
-        let srcR0 ← lowerF vars n Side.R (PForm.and mR.guard mR.evolve)
-        let srcR := IForm.and srcR0 cutR
-        let fR   ← dynOf vars n Side.R mR
-        let lie  := ilieDeriv g (fun _ => ITerm.rat 0) fR (ITerm.rat 1)  -- right-only Lie
-        let gPos := IForm.cmp .gt g (ITerm.rat 0)
-        pure (IForm.and srcR gPos,                                       -- sourceCheck = source ∧ {g>0}
-              IForm.and domR (IForm.and (IForm.cmp .eq g (ITerm.rat 0))
-                (IForm.cmp .ge lie (ITerm.rat 0)))) )                    -- barrierCheck = dom ∧ g=0 ∧ ġ≥0
-      with
-    | none => pure false
-    | some (srcCheck, barCheck) =>
-      let s1 := srcCheck.toScript coord
-      let s2 := barCheck.toScript coord
-      if s1.length > maxSmt || s2.length > maxSmt then pure false        -- can't check ⟹ keep
-      else do
-        cnt.modify (· + 2)
-        if (← cnt.get) > maxQ then throw (IO.userError "query budget exceeded")
-        if (← IO.monoMsNow) > deadline then throw (IO.userError "time budget exceeded")
-        let r1 ← s.check s1
-        let r2 ← s.check s2
-        match r1, r2 with
-        | .ok .unsat, .ok .unsat => pure true    -- BOTH UNSAT ⟹ Def-3 non-connection ⟹ PRUNE
-        | _, _                   => pure false   -- anything else ⟹ keep the edge required
+  | some (srcCheck, barCheck) =>
+    let s1 := srcCheck.toScript coord
+    let s2 := barCheck.toScript coord
+    if s1.length > maxSmt || s2.length > maxSmt then pure false        -- can't check ⟹ keep
+    else do
+      cnt.modify (· + 2)
+      if (← cnt.get) > maxQ then throw (IO.userError "query budget exceeded")
+      if (← IO.monoMsNow) > deadline then throw (IO.userError "time budget exceeded")
+      let r1 ← s.check s1
+      let r2 ← s.check s2
+      match r1, r2 with
+      | .ok .unsat, .ok .unsat => pure true    -- BOTH UNSAT ⟹ Def-3 non-connection ⟹ PRUNE
+      | _, _                   => pure false   -- anything else ⟹ keep the edge required
 
 /-- Cover a single left mode: `cov` if some (start,λ) closes definitively; `incon` if none
 close but a route was inconclusive; `nocov` if all routes are definitive fails. -/
@@ -465,6 +446,7 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
   let repoDynPreOK  := fun (nm : String) => (dynMap.find? (·.1 == nm)).map (·.2.1) |>.getD false
   let repoDynPostOK := fun (nm : String) => (dynMap.find? (·.1 == nm)).map (·.2.2) |>.getD false
   if (← IO.getEnv "RELCERT_DEBUG").isSome then
+    IO.eprintln s!"  [admissible] {mL.name}_L: {admMods.map (·.name)}"
     let preL := repoMap.filterMap (fun p => if p.2.1 then some p.1 else none)
     let postL := repoMap.filterMap (fun p => if p.2.2 then some p.1 else none)
     let dpreL := dynMap.filterMap (fun p => if p.2.1 then some p.1 else none)
@@ -553,7 +535,9 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
 /-- Core cover, parameterized by a query counter/budget (`throw`s on overrun). -/
 def certifyWithData (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     (p : PProblem) : IO (Outcome × Option CoverEmitE) := do
-  let vars := p.L.stateVars
+  -- the joint variable list: the left variables, then any right-only ones (a right-only
+  -- variable is held fixed on the left; `Trusted/JointVars.lean`)
+  let vars := p.jointVars
   let n := vars.length
   let coord := fun (i : Fin n) => vars.getD i.val "v"
   let epsL := (parseRat p.L.epsilon).getD 1
@@ -584,16 +568,30 @@ def certifyWithData (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : N
   -- FIX 3: Def-3 non-connection pruning. mL- AND λ-independent (right flow + right guards only),
   -- so computed ONCE for the whole problem. Edge `mR → tgt` pruned iff BOTH nonconn checks are
   -- definitive Z3 UNSAT (`nonConnPrune`); any other verdict keeps it. Drop-only-on-UNSAT ⟹ sound.
+  -- RELCERT_NO_PRUNE=1 disables non-connection pruning entirely (ablation switch, the
+  -- `--no-prune` of docs/PRUNING.md: every declared edge stays in the cover's
+  -- all-successors obligation; the two pruning queries are not issued).
+  let noPrune := (← IO.getEnv "RELCERT_NO_PRUNE").isSome
   let mut prunedPairs : List (String × String) := []
-  for mR in p.R.modes do
-    for tgt in mR.next do
-      match p.R.modes.find? (·.name == tgt) with
-      | none => pure ()
-      | some mSuc =>
-          if ← nonConnPrune s cnt maxQ maxSmt deadline vars n coord (cutOfR mR.name) mR mSuc then
-            prunedPairs := prunedPairs ++ [(mR.name, tgt)]
-  if (← IO.getEnv "RELCERT_DEBUG").isSome then
+  if !noPrune then
+    for mR in p.R.modes do
+      for tgt in mR.next do
+        match p.R.modes.find? (·.name == tgt) with
+        | none => pure ()
+        | some mSuc =>
+            if ← nonConnPrune s cnt maxQ maxSmt deadline vars n coord (cutOfR mR.name) mR mSuc then
+              prunedPairs := prunedPairs ++ [(mR.name, tgt)]
+  -- the pruned edges are part of the certificate (`CoverEmitE.pruned`); say so on every
+  -- run, not only under RELCERT_DEBUG, so a reader can see which declared edges the
+  -- non-connection certificates removed (or that pruning was switched off)
+  -- (stderr, like the other `[...]` diagnostics: the `--emit-*` doors print literals
+  -- on stdout)
+  if noPrune then
+    IO.eprintln s!"  [prune] {p.name}: disabled (RELCERT_NO_PRUNE)"
+  else if !prunedPairs.isEmpty then
     IO.eprintln s!"  [prune] {p.name}: {prunedPairs.map (fun e => s!"{e.1}->{e.2}")}"
+  else if (← IO.getEnv "RELCERT_DEBUG").isSome then
+    IO.eprintln s!"  [prune] {p.name}: []"
   let prunedOf := fun (src tgt : String) => prunedPairs.contains (src, tgt)
   let mut sawIncon := false
   let mut covers : List LeftCoverE := []
@@ -741,7 +739,7 @@ def emitViabilityFile (cfg : Z3Config) (path defname : String) : IO Unit := do
       | .error e => IO.eprintln s!"ERROR: z3: {e}"; IO.Process.exit 1
       | .ok s =>
           let cnt ← IO.mkRef 0
-          let vars := p.L.stateVars
+          let vars := p.jointVars
           let n := vars.length
           let coord := fun (i : Fin n) => vars.getD i.val "v"
           let deadline := (← IO.monoMsNow) + 40000

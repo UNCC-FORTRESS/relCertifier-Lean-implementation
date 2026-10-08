@@ -59,7 +59,14 @@ def match_multi_rate_IR : PProblem :=
             ("s", (.var "v"))]
           guard := (.and (.cmp ">=" (.var "v") (.num "0.2")) (.cmp "<=" (.var "v") (.num "1.0")))
           evolve := (.and (.and (.cmp ">=" (.var "s") (.num "0.0")) (.cmp ">=" (.var "v") (.num "0.0"))) (.cmp "<=" (.var "v") (.num "1.15")))
-          next := ["DRIVE"] } ] }
+          next := ["DRIVE", "STALL"] },
+        {
+          name := "STALL"
+          odes := [("v", (.bin "*" (.num "-2") (.var "v"))),
+            ("s", (.var "v"))]
+          guard := (.cmp "<" (.var "v") (.num "0.2"))
+          evolve := (.and (.and (.cmp ">=" (.var "s") (.num "0.0")) (.cmp ">=" (.var "v") (.num "0.0"))) (.cmp "<=" (.var "v") (.num "1.15")))
+          next := ["STALL"] } ] }
     invariants := [
       ("FAST", (.cmp "<=" (.var "L_v") (.var "R_v"))),
       ("MEDIUM", (.cmp "<=" (.var "L_v") (.var "R_v"))),

@@ -125,6 +125,8 @@ import RelCertifier.Verdicts.ModalPinTable
 import RelCertifier.Verdicts.ModalTablePins
 import RelCertifier.Verdicts.ModalCodePins
 import RelCertifier.Verdicts.CoveragePins
+import RelCertifier.Verdicts.RunNonConn
+import RelCertifier.Verdicts.NonConnPins
 import RelCertifier.Proofs.Encoding.CoverInstance
 import RelCertifier.Instances.BenchCoversNC
 import RelCertifier.Archive.ThroughoutPilot

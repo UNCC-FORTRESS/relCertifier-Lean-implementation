@@ -29,6 +29,7 @@ there is nothing to derive there.
 import RelCertifier.Verdicts.ModalTablePins
 import RelCertifier.Verdicts.RunCut
 import RelCertifier.Verdicts.RunHandoff
+import RelCertifier.Verdicts.RunNonConn
 
 namespace RelCertifier.Verdicts
 
@@ -76,5 +77,46 @@ theorem expectedHandoffFailures_declared :
       match benchIRTable.find? (fun r => r.1 == f.1) with
       | some (_, p) => (Handoff.transitions p).contains (f.2.1, f.2.2)
       | none => false) = true := by decide
+
+/-! ## The non-connection phase -/
+
+/-- What the non-connection phase owes in edges: the pruned pairs the emitted covers
+record, summed over the cover table the runner walks. -/
+def derivedPruned : ℕ :=
+  benchCoverTable.foldl (fun acc c => acc + c.2.pruned.length) 0
+
+/-- The declared pruned-edge count is what the emitted covers say. -/
+theorem derivedPruned_eq_expected : derivedPruned = expected.prunedEdges := by decide
+
+/-- Two queries per pruned edge: the declared query count is tied to the edge count. -/
+theorem nonconn_eq_two_pruned : expected.nonconn = 2 * expected.prunedEdges := by decide
+
+/-- The cover table walks exactly the emitted benchmarks, in the same order as the IR
+table the queries are rebuilt from — a cover row for a benchmark with no IR (or a
+missing cover) fails here, not at runtime. -/
+theorem benchCoverTable_names :
+    benchCoverTable.map (·.1) = benchIRTable.map (·.1) := by decide
+
+/-- Every pruned pair names a declared right edge of its benchmark's IR: the source and
+target are right modes and the target is in the source's `next` list. A stale pair (a
+renamed mode, a removed edge) fails the build rather than being re-run forever. -/
+theorem prunedEdges_declared :
+    prunedEdges.all (fun e =>
+      match benchIRTable.find? (fun r => r.1 == e.1) with
+      | some (_, p) =>
+          match p.R.modes.find? (·.name == e.2.1), p.R.modes.find? (·.name == e.2.2) with
+          | some mR, some _ => mR.next.contains e.2.2
+          | _, _ => false
+      | none => false) = true := by decide
+
+/-- Every pruned edge's two queries rebuild from the emitted data (so the runner never
+reaches its `did not rebuild` branch on the current suite): the successor guard is a
+strict scalar threshold and every part lowers. -/
+theorem prunedEdges_rebuild :
+    prunedEdges.all (fun e =>
+      match benchIRTable.find? (fun r => r.1 == e.1),
+            benchCutsTable.find? (fun r => r.1 == e.1) with
+      | some (_, p), some (_, cuts) => (nonConnQueriesOf p cuts e.2.1 e.2.2).isSome
+      | _, _ => false) = true := by decide
 
 end RelCertifier.Verdicts

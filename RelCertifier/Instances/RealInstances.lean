@@ -287,35 +287,8 @@ theorem endurance_orderlift_2to3_real
     mv tg g fL rfl (by norm_num [SettlingModel.dt, endurance_orderlift_2to3M])
     hg hmvclk hmvtg hmvGd htgGd hfrzGd
 
-/-- `match_multi_rate`: real-model end to end (residuals: freshness data only — the conclusion is single-system; no Z3 hypotheses remain). -/
-theorem match_multi_rate_real
-    (mv tg : Var 2) (g : Term (Var 2)) (fL : Fin 2 → Term (Var 2))
-    (hg : mv ∉ g.fv)
-    (hmvclk : mv ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
-    (hmvtg : mv ≠ tg)
-    (hmvGd : ∀ q', mv ∉ (match_multi_rateM.GdOf q').fv)
-    (htgGd : ∀ q', tg ∉ (match_multi_rateM.GdOf q').fv)
-    (hfrzGd : ∀ q', ∀ x ∈ (match_multi_rateM.GdOf q').fv,
-        x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound) :
-    ∀ q pm m, match_multi_rate_IR.R.modes[q]? = some pm → match_multi_rateM.modes[q]? = some m →
-      GuardSettlingB match_multi_rateM.graph (realGdOf match_multi_rate_IR match_multi_rateM)
-        (realFieldOf match_multi_rate_IR.R.stateVars pm 2) (Term.const 1)
-        (realEnvOf match_multi_rate_IR.R.stateVars 2 pm)
-        ((qDiv (qDiv (⟨3, 10⟩ : QF) match_multi_rate_meta.lam) (qOfInt match_multi_rateM.dtQ)).val
-          * ((match_multi_rateM.dt : ℤ) : ℝ)) q :=
-  settling_real_end_to_end match_multi_rate_IR match_multi_rate_meta match_multi_rateM
-    (εR := ⟨3, 10⟩) rfl rfl
-    (by decide) rfl
-    (by intro j hj; interval_cases j <;> decide)
-    (fun j => sigmaOf_pos (by decide) (by decide) j)
-    (by
-      have h : qDiv (qDiv (⟨3, 10⟩ : QF) match_multi_rate_meta.lam)
-          (qOfInt match_multi_rateM.dtQ) = (⟨3, 30⟩ : QF) := rfl
-      rw [h]
-      norm_num [QF.val])
-    (by decide)
-    mv tg g fL rfl (by norm_num [SettlingModel.dt, match_multi_rateM])
-    hg hmvclk hmvtg hmvGd htgGd hfrzGd
+-- `match_multi_rate_real`: withdrawn 2026-10-08 with its settling model (`SettlingInstances.lean`;
+-- `docs/PRUNING.md`).
 
 /-- `refinement_ladder_rover_rung1_2to3`: real-model end to end (residuals: freshness data only — the conclusion is single-system; no Z3 hypotheses remain). -/
 theorem refinement_ladder_rover_rung1_2to3_real

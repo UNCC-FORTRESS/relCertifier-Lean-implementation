@@ -13,10 +13,10 @@ namespace RelCertifier
 
 /-- `match_multi_rate` (cut-free emission). -/
 def match_multi_rate_coverNC : CoverEmitE :=
-  ⟨"match_multi_rate", [], [
-    ⟨"FAST", (3 : ℚ) / 1, 3, [⟨"DRIVE", true, false, false, false, false⟩], ["DRIVE"], [⟨"DRIVE", [0], [], []⟩]⟩,
-    ⟨"MEDIUM", (2 : ℚ) / 1, 2, [⟨"DRIVE", true, false, false, false, false⟩], ["DRIVE"], [⟨"DRIVE", [0], [], []⟩]⟩,
-    ⟨"SLOW", (1 : ℚ) / 1, 1, [⟨"DRIVE", true, false, false, false, false⟩], ["DRIVE"], [⟨"DRIVE", [0], [], []⟩]⟩,
-    ⟨"RESET", (1 : ℚ) / 1, 1, [⟨"DRIVE", true, false, false, false, false⟩], ["DRIVE"], [⟨"DRIVE", [0], [], []⟩]⟩]⟩
+  ⟨"match_multi_rate", [("DRIVE", "STALL")], [
+    ⟨"FAST", (3 : ℚ) / 1, 3, [⟨"DRIVE", true, false, false, false, false⟩, ⟨"STALL", false, false, false, false, false⟩], ["DRIVE"], [⟨"DRIVE", [0], [], []⟩, ⟨"STALL", [], [], []⟩]⟩,
+    ⟨"MEDIUM", (2 : ℚ) / 1, 2, [⟨"DRIVE", true, false, false, false, false⟩, ⟨"STALL", false, false, false, false, false⟩], ["DRIVE"], [⟨"DRIVE", [0], [], []⟩, ⟨"STALL", [], [], []⟩]⟩,
+    ⟨"SLOW", (1 : ℚ) / 1, 1, [⟨"DRIVE", true, false, false, false, false⟩, ⟨"STALL", false, false, false, false, false⟩], ["DRIVE"], [⟨"DRIVE", [0], [], []⟩, ⟨"STALL", [], [], []⟩]⟩,
+    ⟨"RESET", (1 : ℚ) / 1, 1, [⟨"DRIVE", true, false, false, false, false⟩, ⟨"STALL", false, false, false, false, false⟩], ["DRIVE"], [⟨"DRIVE", [0], [], []⟩, ⟨"STALL", [], [], []⟩]⟩]⟩
 
 end RelCertifier

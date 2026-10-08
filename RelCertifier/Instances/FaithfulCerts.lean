@@ -67,10 +67,8 @@ def endurance_orderlift_2to3_meta : TransMeta :=
 
 example : faithfulSettling endurance_orderlift_2to3_IR endurance_orderlift_2to3_meta endurance_orderlift_2to3M = true := rfl
 
-def match_multi_rate_meta : TransMeta :=
-  { lam := (qMk 1 1), scales := [(qMk 1000 1), (qMk 10000 1)] }
-
-example : faithfulSettling match_multi_rate_IR match_multi_rate_meta match_multi_rateM = true := rfl
+-- `match_multi_rate`: settling fidelity certificate withdrawn 2026-10-08 (see
+-- `SettlingInstances.lean`; `docs/PRUNING.md`).
 
 def refinement_ladder_rover_rung1_2to3_meta : TransMeta :=
   { lam := (qMk 1 1), scales := [(qMk 1000 1), (qMk 1000 1)] }

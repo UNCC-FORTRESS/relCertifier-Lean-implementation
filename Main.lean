@@ -22,6 +22,7 @@ import RelCertifier.Verdicts.Run
 import RelCertifier.Verdicts.RunModal
 import RelCertifier.Verdicts.RunCut
 import RelCertifier.Verdicts.RunHandoff
+import RelCertifier.Verdicts.RunNonConn
 
 open RelCertifier DL
 
@@ -147,6 +148,8 @@ def runAllVerdicts (cfg : RelCertifier.Z3Config) : IO Bool := do
   let n3 ← RelCertifier.Verdicts.dischargedCount.get
   let ok4 ← RelCertifier.Verdicts.runHandoffAll cfg
   let n4 ← RelCertifier.Verdicts.dischargedCount.get
+  let ok5 ← RelCertifier.Verdicts.runNonConnAll cfg
+  let n5 ← RelCertifier.Verdicts.dischargedCount.get
   -- a phase that issued fewer queries than it owes is not a green run, however clean
   -- its own output looked (Verdicts/Coverage.lean)
   let c1 ← RelCertifier.Verdicts.checkPhase "watertank" (n1 - n0) exp.watertank
@@ -156,7 +159,11 @@ def runAllVerdicts (cfg : RelCertifier.Z3Config) : IO Bool := do
   -- the owed count is the total minus the declared failure list
   let c4 ← RelCertifier.Verdicts.checkPhase "handoff" (n4 - n3)
     (exp.handoff - RelCertifier.Verdicts.expectedHandoffFailures.length)
-  pure (ok1 && ok2 && ok3 && ok4 && c1 && c2 && c3 && c4)
+  -- the non-connection phase: two queries per pruned edge, both counts declared
+  let c5 ← RelCertifier.Verdicts.checkPhase "non-connection" (n5 - n4) exp.nonconn
+  let c5' ← RelCertifier.Verdicts.checkPhase "pruned edges"
+    RelCertifier.Verdicts.prunedEdges.length exp.prunedEdges
+  pure (ok1 && ok2 && ok3 && ok4 && ok5 && c1 && c2 && c3 && c4 && c5 && c5')
 
 def usage : String :=
 "relcert — the relCertifier certification tool
@@ -164,7 +171,9 @@ def usage : String :=
 USAGE
   relcert <benchmark input.txt>...        certify benchmarks (CERTIFIED/DECLINED/ERROR)
   relcert --run-verdicts                  re-run every theorem's Z3 hypotheses
-                                          (incl. the cross-mode handoff phase)
+                                          (incl. the cross-mode handoff phase and the
+                                          non-connection phase: both pruning queries
+                                          of every pruned edge)
   relcert --handoff <input.txt>...        the handoff check alone, per benchmark, with
                                           per-transition verdicts and wall time
   relcert --check-quick <input.txt>...    the fast checks: certify, then --run-verdicts
@@ -188,6 +197,14 @@ NOT PART OF THIS BINARY
 
   The full four-check recipe is docs/CERTIFICATION-CHECK.md.
 
+SWITCHES (environment)
+  RELCERT_NO_PRUNE=1   disable non-connection pruning (the paper's Section 4.3 device):
+                       every declared right edge stays in the cover's all-successors
+                       obligation; docs/PRUNING.md shows the benchmark it flips
+  RELCERT_NO_CUT=1     disable the checked-cut channel (queries on the bare evolve domains)
+  RELCERT_DEBUG=1      per-mode diagnostics on stderr (cuts, admissible starts, pruned
+                       edges, per-λ segment status)
+
 EXIT
   0 success · 1 a check failed · 2 environment problem (no z3, bad usage)"
 
@@ -206,7 +223,7 @@ def emitCuts (path defname : String) : IO Unit := do
       match ← RelCertifier.Oracle.readProblemStrict path with
       | .error e => IO.eprintln s!"ERROR: parse: {e}"; s.close; IO.Process.exit 1
       | .ok p => do
-        let vars := p.L.stateVars
+        let vars := p.jointVars
         let n := vars.length
         let coord := fun (i : Fin n) => vars.getD i.val "v"
         let cnt ← IO.mkRef 0

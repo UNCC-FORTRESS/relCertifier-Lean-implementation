@@ -22,7 +22,8 @@ def match_multi_rate_cuts : EvolStrengthening :=
       ("RESET", [])
     ]
     R := [
-      ("DRIVE", [((.cmp ">=" (.var "v") (.num "0.2")), CutRoute.shape), ((.cmp "<=" (.var "v") (.num "1.0")), CutRoute.shape)])
+      ("DRIVE", [((.cmp ">=" (.var "v") (.num "0.2")), CutRoute.shape), ((.cmp "<=" (.var "v") (.num "1.0")), CutRoute.shape)]),
+      ("STALL", [])
     ] }
 
 example : evolStrengtheningWF match_multi_rate_IR match_multi_rate_cuts = true := rfl

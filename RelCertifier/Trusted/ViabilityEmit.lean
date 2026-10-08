@@ -70,7 +70,7 @@ def emitViabilityFileB (cfg : Z3Config) (path defname : String) : IO Unit := do
       | .error e => IO.eprintln s!"ERROR: z3: {e}"; IO.Process.exit 1
       | .ok s =>
           let cnt ← IO.mkRef 0
-          let vars := p.L.stateVars
+          let vars := p.jointVars
           let n := vars.length
           let coord := fun (i : Fin n) => vars.getD i.val "v"
           let deadline := (← IO.monoMsNow) + 40000
@@ -166,7 +166,7 @@ def emitViabilityFileStrat (cfg : Z3Config) (path defname : String) : IO Unit :=
       | .error e => IO.eprintln s!"ERROR: z3: {e}"; IO.Process.exit 1
       | .ok s =>
           let cnt ← IO.mkRef 0
-          let vars := p.L.stateVars
+          let vars := p.jointVars
           let n := vars.length
           let coord := fun (i : Fin n) => vars.getD i.val "v"
           let deadline := (← IO.monoMsNow) + 60000

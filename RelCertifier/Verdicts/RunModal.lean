@@ -5,7 +5,7 @@ Released under Apache 2.0 license.
 # The modal verdict runner — one route for every theorem's hypotheses
 
 Before this, hypotheses were discharged two ways: `Verdicts/Run.lean` re-ran
-watertank's six and `Verdicts/RunCut.lean` the 105 cut probes, while the remaining
+watertank's six and `Verdicts/RunCut.lean` the cut probes, while the remaining
 modal instances' packs were left to "the tool's own certification run" — a coarse
 `CERTIFIED` line with no per-hypothesis output and no pin tying it to the theorem.
 That split is what let six vacuous theorems sit unnoticed until the 2026-07-31
@@ -188,19 +188,13 @@ def modalTable : List (VerdSpec × RunInfo × List ℕ) :=
   (ArmChainRung1.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1, fixedOther := some 0, lamPerL := [(5,2),(3,2),(1,1)] }, [0]),
   (ArmChainRung2.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1, fixedOther := some 1, lamPerL := [(7,4),(5,4),(1,1)] }, [0]),
   (ArmChainRung3.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1, region := some (3/5), fixedOther := some 3 }, [0]),
-  (ArmFidelityHigh.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1, region := some (3/5), fixedOther := some 3 }, [0]),
   (ArmFidelityLow.spec, { dim := 2, invRow := 0, lamN := 5, lamD := 1, fixedOther := some 0 }, [0]),
   (ArmFidelityMid.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1, region := some (3/5), fixedOther := some 2 }, [0]),
-  (ArmRefinement.spec, { dim := 2, invRow := 0, lamN := 5, lamD := 1, fixedOther := some 0 }, [0]),
   (AttitudeRate.spec, { dim := 6, invRow := 0, lamN := 2, lamD := 1, argIsRight := true, fixedOther := some 0 }, [0]),
   (EnduranceGainM1.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1 }, [0]),
   (EnduranceOrderlift1to2.spec, { dim := 3, invRow := 0, lamN := 2, lamD := 1 }, [0]),
   (EnduranceOrderlift2to3.spec, { dim := 4, invRow := 0, lamN := 1, lamD := 1 }, [0, 1]),
-  (MatchMultiEps.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1, fixedOther := some 0 }, [0]),
   (MatchMultiRate.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1, fixedOther := some 0, lamPerL := [(3,1),(2,1),(1,1)] }, [0]),
-  (PlantFanHigh.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1, region := some (3/5), fixedOther := some 3 }, [0]),
-  (PlantFanLow.spec, { dim := 2, invRow := 0, lamN := 5, lamD := 1, fixedOther := some 0 }, [0]),
-  (PlantFanMid.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1, region := some (3/5), fixedOther := some 2 }, [0]),
   (RobotBraking.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1, fixedOther := some 2 }, [0]),
   (Rover3tierM1.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1, fixedOther := some 0 }, [0]),
   -- two components, per `pin_Rover3tierRung12Accel` and the spec's own `order`

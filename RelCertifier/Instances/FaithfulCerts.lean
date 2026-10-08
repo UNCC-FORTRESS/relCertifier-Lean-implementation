@@ -37,11 +37,6 @@ def arm_chain_rung3_meta : TransMeta :=
 
 example : faithfulSettling arm_chain_rung3_IR arm_chain_rung3_meta arm_chain_rung3M = true := rfl
 
-def arm_fidelity_high_meta : TransMeta :=
-  { lam := (qMk 5 1), scales := [(qMk 1000 1)] }
-
-example : faithfulSettling arm_fidelity_high_IR arm_fidelity_high_meta arm_fidelity_highM = true := rfl
-
 def arm_fidelity_low_meta : TransMeta :=
   { lam := (qMk 2 1), scales := [(qMk 1000 1)] }
 
@@ -51,11 +46,6 @@ def arm_fidelity_mid_meta : TransMeta :=
   { lam := (qMk 2 1), scales := [(qMk 1000 1)] }
 
 example : faithfulSettling arm_fidelity_mid_IR arm_fidelity_mid_meta arm_fidelity_midM = true := rfl
-
-def arm_refinement_meta : TransMeta :=
-  { lam := (qMk 2 1), scales := [(qMk 1000 1)] }
-
-example : faithfulSettling arm_refinement_IR arm_refinement_meta arm_refinementM = true := rfl
 
 def attitude_rate_meta : TransMeta :=
   { lam := (qMk 2 1), scales := [(qMk 1000 1), (qMk 1000 1), (qMk 1000 1), (qMk 1000 1), (qMk 1000 1), (qMk 1000 1)] }
@@ -77,30 +67,10 @@ def endurance_orderlift_2to3_meta : TransMeta :=
 
 example : faithfulSettling endurance_orderlift_2to3_IR endurance_orderlift_2to3_meta endurance_orderlift_2to3M = true := rfl
 
-def match_multi_eps_meta : TransMeta :=
-  { lam := (qMk 5 1), scales := [(qMk 1000 1), (qMk 50000 1)] }
-
-example : faithfulSettling match_multi_eps_IR match_multi_eps_meta match_multi_epsM = true := rfl
-
 def match_multi_rate_meta : TransMeta :=
   { lam := (qMk 1 1), scales := [(qMk 1000 1), (qMk 10000 1)] }
 
 example : faithfulSettling match_multi_rate_IR match_multi_rate_meta match_multi_rateM = true := rfl
-
-def plant_fan_high_meta : TransMeta :=
-  { lam := (qMk 5 1), scales := [(qMk 1000 1)] }
-
-example : faithfulSettling plant_fan_high_IR plant_fan_high_meta plant_fan_highM = true := rfl
-
-def plant_fan_low_meta : TransMeta :=
-  { lam := (qMk 2 1), scales := [(qMk 1000 1)] }
-
-example : faithfulSettling plant_fan_low_IR plant_fan_low_meta plant_fan_lowM = true := rfl
-
-def plant_fan_mid_meta : TransMeta :=
-  { lam := (qMk 2 1), scales := [(qMk 1000 1)] }
-
-example : faithfulSettling plant_fan_mid_IR plant_fan_mid_meta plant_fan_midM = true := rfl
 
 def refinement_ladder_rover_rung1_2to3_meta : TransMeta :=
   { lam := (qMk 1 1), scales := [(qMk 1000 1), (qMk 1000 1)] }

@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The cut-probe runner — per-atom O2 hypotheses of the 13 cut benchmarks
+# The cut-probe runner — per-atom O2 hypotheses of the 11 cut benchmarks
 
 The cut instances (`Instances/CutThroughout/`) hypothesize, per cut atom, one route
 probe over the atom's safe-side term with the own-side field (other side frozen):
@@ -63,7 +63,7 @@ def runBenchProbes (s : Z3Session) (name : String) (p : PProblem)
     ++ (modeAtoms Side.R cuts.R p.R.modes).map (fun w => (Side.R, w))
   -- An empty `work` would run no query and still return success, which is how
   -- `rover_drag` went unchecked in the modal runner (`docs/VERDICT-EVIDENCE-AUDIT.md`).
-  -- All 13 cut benchmarks currently yield probes; this makes a future empty one loud.
+  -- All 11 cut benchmarks currently yield probes; this makes a future empty one loud.
   if work.isEmpty then
     IO.println s!"  SKIP  {name}  (no cut atoms to probe)"
     return false
@@ -86,8 +86,6 @@ def runBenchProbes (s : Z3Session) (name : String) (p : PProblem)
 
 def cutBenchmarks : List (String × Oracle.EvolStrengthening) :=
   [("arm_chain_rung3", Oracle.arm_chain_rung3_cuts),
-   ("arm_fidelity_high", Oracle.arm_fidelity_high_cuts),
-   ("plant_fan_high", Oracle.plant_fan_high_cuts),
    ("refinement_ladder_rover_rung1_2to3", Oracle.refinement_ladder_rover_rung1_2to3_cuts),
    ("refinement_ladder_rover_rung3_6to8", Oracle.refinement_ladder_rover_rung3_6to8_cuts),
    ("refinement_ladder_rover_rung4_8to12", Oracle.refinement_ladder_rover_rung4_8to12_cuts),

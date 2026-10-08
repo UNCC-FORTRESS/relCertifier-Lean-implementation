@@ -64,8 +64,7 @@ open DL DLCalTiming DLRel Function Set RelCertifier.Parse
 
 """)
 
-PADDED = {"arm_chain_rung3", "arm_fidelity_high", "arm_fidelity_low", "arm_fidelity_mid",
-          "arm_refinement", "plant_fan_high", "plant_fan_low", "plant_fan_mid"}
+PADDED = {"arm_chain_rung3", "arm_fidelity_low", "arm_fidelity_mid"}
 for fam, ir, meta, model in triples:
     bench = ir[:-3] if ir.endswith("_IR") else ir
     padded = bench in PADDED

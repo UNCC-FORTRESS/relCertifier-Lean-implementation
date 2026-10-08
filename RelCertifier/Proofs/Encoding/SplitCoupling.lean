@@ -4,8 +4,7 @@ Released under Apache 2.0 license.
 
 # L3 — the intra-piece switch coupling (B-first split)
 
-Five benchmarks (`arm_chain_rung1/2`, `arm_fidelity_low`, `arm_refinement`,
-`plant_fan_low`) have landing modes with a genuinely outward evolve face
+Three benchmarks (`arm_chain_rung1/2`, `arm_fidelity_low`) have landing modes with a genuinely outward evolve face
 (`θ' = const > 0` against a bounded band): a full-duration single-mode piece leaves
 the envelope, so the response must SWITCH modes inside one left piece. The measured
 design: run the escape mode `B` first for the FIXED fraction `θ = M_A/(M_A+M_B)` of

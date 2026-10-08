@@ -107,36 +107,6 @@ theorem arm_chain_rung3_real
     mv tg g fL rfl (by norm_num [SettlingModel.dt, arm_chain_rung3M])
     hg hmvclk hmvtg hmvGd htgGd hfrzGd
 
-/-- `arm_fidelity_high` (PADDED model): real-model end to end (residuals: freshness data only). -/
-theorem arm_fidelity_high_real
-    (mv tg : Var 2) (g : Term (Var 2)) (fL : Fin 2 → Term (Var 2))
-    (hg : mv ∉ g.fv)
-    (hmvclk : mv ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
-    (hmvtg : mv ≠ tg)
-    (hmvGd : ∀ q', mv ∉ (arm_fidelity_highM.GdOf q').fv)
-    (htgGd : ∀ q', tg ∉ (arm_fidelity_highM.GdOf q').fv)
-    (hfrzGd : ∀ q', ∀ x ∈ (arm_fidelity_highM.GdOf q').fv,
-        x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound) :
-    ∀ q pm m, arm_fidelity_high_IR.R.modes[q]? = some pm → arm_fidelity_highM.modes[q]? = some m →
-      GuardSettlingB arm_fidelity_highM.graph (realGdOf arm_fidelity_high_IR arm_fidelity_highM)
-        (realFieldOf arm_fidelity_high_IR.R.stateVars pm 2) (Term.const 1)
-        (realEnvOf arm_fidelity_high_IR.R.stateVars 2 pm)
-        ((qDiv (qDiv (⟨10, 10⟩ : QF) arm_fidelity_high_meta.lam) (qOfInt arm_fidelity_highM.dtQ)).val
-          * ((arm_fidelity_highM.dt : ℤ) : ℝ)) q :=
-  settling_real_end_to_end_pad arm_fidelity_high_IR arm_fidelity_high_meta arm_fidelity_highM
-    (εR := ⟨10, 10⟩) rfl rfl
-    (by decide) (by decide)
-    (by intro j hj; interval_cases j <;> decide)
-    (fun j hj => sigmaOf_pos_lt (by decide) hj)
-    (by
-      have h : qDiv (qDiv (⟨10, 10⟩ : QF) arm_fidelity_high_meta.lam)
-          (qOfInt arm_fidelity_highM.dtQ) = (⟨10, 50⟩ : QF) := rfl
-      rw [h]
-      norm_num [QF.val])
-    (by decide) (by decide) (by decide) (by decide)
-    mv tg g fL rfl (by norm_num [SettlingModel.dt, arm_fidelity_highM])
-    hg hmvclk hmvtg hmvGd htgGd hfrzGd
-
 /-- `arm_fidelity_low` (PADDED model): real-model end to end (residuals: freshness data only). -/
 theorem arm_fidelity_low_real
     (mv tg : Var 2) (g : Term (Var 2)) (fL : Fin 2 → Term (Var 2))
@@ -195,36 +165,6 @@ theorem arm_fidelity_mid_real
       norm_num [QF.val])
     (by decide) (by decide) (by decide) (by decide)
     mv tg g fL rfl (by norm_num [SettlingModel.dt, arm_fidelity_midM])
-    hg hmvclk hmvtg hmvGd htgGd hfrzGd
-
-/-- `arm_refinement` (PADDED model): real-model end to end (residuals: freshness data only). -/
-theorem arm_refinement_real
-    (mv tg : Var 2) (g : Term (Var 2)) (fL : Fin 2 → Term (Var 2))
-    (hg : mv ∉ g.fv)
-    (hmvclk : mv ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
-    (hmvtg : mv ≠ tg)
-    (hmvGd : ∀ q', mv ∉ (arm_refinementM.GdOf q').fv)
-    (htgGd : ∀ q', tg ∉ (arm_refinementM.GdOf q').fv)
-    (hfrzGd : ∀ q', ∀ x ∈ (arm_refinementM.GdOf q').fv,
-        x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound) :
-    ∀ q pm m, arm_refinement_IR.R.modes[q]? = some pm → arm_refinementM.modes[q]? = some m →
-      GuardSettlingB arm_refinementM.graph (realGdOf arm_refinement_IR arm_refinementM)
-        (realFieldOf arm_refinement_IR.R.stateVars pm 2) (Term.const 1)
-        (realEnvOf arm_refinement_IR.R.stateVars 2 pm)
-        ((qDiv (qDiv (⟨10, 10⟩ : QF) arm_refinement_meta.lam) (qOfInt arm_refinementM.dtQ)).val
-          * ((arm_refinementM.dt : ℤ) : ℝ)) q :=
-  settling_real_end_to_end_pad arm_refinement_IR arm_refinement_meta arm_refinementM
-    (εR := ⟨10, 10⟩) rfl rfl
-    (by decide) (by decide)
-    (by intro j hj; interval_cases j <;> decide)
-    (fun j hj => sigmaOf_pos_lt (by decide) hj)
-    (by
-      have h : qDiv (qDiv (⟨10, 10⟩ : QF) arm_refinement_meta.lam)
-          (qOfInt arm_refinementM.dtQ) = (⟨10, 20⟩ : QF) := rfl
-      rw [h]
-      norm_num [QF.val])
-    (by decide) (by decide) (by decide) (by decide)
-    mv tg g fL rfl (by norm_num [SettlingModel.dt, arm_refinementM])
     hg hmvclk hmvtg hmvGd htgGd hfrzGd
 
 /-- `attitude_rate`: real-model end to end (residuals: freshness data only — the conclusion is single-system; no Z3 hypotheses remain). -/
@@ -347,36 +287,6 @@ theorem endurance_orderlift_2to3_real
     mv tg g fL rfl (by norm_num [SettlingModel.dt, endurance_orderlift_2to3M])
     hg hmvclk hmvtg hmvGd htgGd hfrzGd
 
-/-- `match_multi_eps`: real-model end to end (residuals: freshness data only — the conclusion is single-system; no Z3 hypotheses remain). -/
-theorem match_multi_eps_real
-    (mv tg : Var 2) (g : Term (Var 2)) (fL : Fin 2 → Term (Var 2))
-    (hg : mv ∉ g.fv)
-    (hmvclk : mv ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
-    (hmvtg : mv ≠ tg)
-    (hmvGd : ∀ q', mv ∉ (match_multi_epsM.GdOf q').fv)
-    (htgGd : ∀ q', tg ∉ (match_multi_epsM.GdOf q').fv)
-    (hfrzGd : ∀ q', ∀ x ∈ (match_multi_epsM.GdOf q').fv,
-        x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound) :
-    ∀ q pm m, match_multi_eps_IR.R.modes[q]? = some pm → match_multi_epsM.modes[q]? = some m →
-      GuardSettlingB match_multi_epsM.graph (realGdOf match_multi_eps_IR match_multi_epsM)
-        (realFieldOf match_multi_eps_IR.R.stateVars pm 2) (Term.const 1)
-        (realEnvOf match_multi_eps_IR.R.stateVars 2 pm)
-        ((qDiv (qDiv (⟨3, 10⟩ : QF) match_multi_eps_meta.lam) (qOfInt match_multi_epsM.dtQ)).val
-          * ((match_multi_epsM.dt : ℤ) : ℝ)) q :=
-  settling_real_end_to_end match_multi_eps_IR match_multi_eps_meta match_multi_epsM
-    (εR := ⟨3, 10⟩) rfl rfl
-    (by decide) rfl
-    (by intro j hj; interval_cases j <;> decide)
-    (fun j => sigmaOf_pos (by decide) (by decide) j)
-    (by
-      have h : qDiv (qDiv (⟨3, 10⟩ : QF) match_multi_eps_meta.lam)
-          (qOfInt match_multi_epsM.dtQ) = (⟨3, 150⟩ : QF) := rfl
-      rw [h]
-      norm_num [QF.val])
-    (by decide)
-    mv tg g fL rfl (by norm_num [SettlingModel.dt, match_multi_epsM])
-    hg hmvclk hmvtg hmvGd htgGd hfrzGd
-
 /-- `match_multi_rate`: real-model end to end (residuals: freshness data only — the conclusion is single-system; no Z3 hypotheses remain). -/
 theorem match_multi_rate_real
     (mv tg : Var 2) (g : Term (Var 2)) (fL : Fin 2 → Term (Var 2))
@@ -405,96 +315,6 @@ theorem match_multi_rate_real
       norm_num [QF.val])
     (by decide)
     mv tg g fL rfl (by norm_num [SettlingModel.dt, match_multi_rateM])
-    hg hmvclk hmvtg hmvGd htgGd hfrzGd
-
-/-- `plant_fan_high` (PADDED model): real-model end to end (residuals: freshness data only). -/
-theorem plant_fan_high_real
-    (mv tg : Var 2) (g : Term (Var 2)) (fL : Fin 2 → Term (Var 2))
-    (hg : mv ∉ g.fv)
-    (hmvclk : mv ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
-    (hmvtg : mv ≠ tg)
-    (hmvGd : ∀ q', mv ∉ (plant_fan_highM.GdOf q').fv)
-    (htgGd : ∀ q', tg ∉ (plant_fan_highM.GdOf q').fv)
-    (hfrzGd : ∀ q', ∀ x ∈ (plant_fan_highM.GdOf q').fv,
-        x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound) :
-    ∀ q pm m, plant_fan_high_IR.R.modes[q]? = some pm → plant_fan_highM.modes[q]? = some m →
-      GuardSettlingB plant_fan_highM.graph (realGdOf plant_fan_high_IR plant_fan_highM)
-        (realFieldOf plant_fan_high_IR.R.stateVars pm 2) (Term.const 1)
-        (realEnvOf plant_fan_high_IR.R.stateVars 2 pm)
-        ((qDiv (qDiv (⟨10, 10⟩ : QF) plant_fan_high_meta.lam) (qOfInt plant_fan_highM.dtQ)).val
-          * ((plant_fan_highM.dt : ℤ) : ℝ)) q :=
-  settling_real_end_to_end_pad plant_fan_high_IR plant_fan_high_meta plant_fan_highM
-    (εR := ⟨10, 10⟩) rfl rfl
-    (by decide) (by decide)
-    (by intro j hj; interval_cases j <;> decide)
-    (fun j hj => sigmaOf_pos_lt (by decide) hj)
-    (by
-      have h : qDiv (qDiv (⟨10, 10⟩ : QF) plant_fan_high_meta.lam)
-          (qOfInt plant_fan_highM.dtQ) = (⟨10, 50⟩ : QF) := rfl
-      rw [h]
-      norm_num [QF.val])
-    (by decide) (by decide) (by decide) (by decide)
-    mv tg g fL rfl (by norm_num [SettlingModel.dt, plant_fan_highM])
-    hg hmvclk hmvtg hmvGd htgGd hfrzGd
-
-/-- `plant_fan_low` (PADDED model): real-model end to end (residuals: freshness data only). -/
-theorem plant_fan_low_real
-    (mv tg : Var 2) (g : Term (Var 2)) (fL : Fin 2 → Term (Var 2))
-    (hg : mv ∉ g.fv)
-    (hmvclk : mv ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
-    (hmvtg : mv ≠ tg)
-    (hmvGd : ∀ q', mv ∉ (plant_fan_lowM.GdOf q').fv)
-    (htgGd : ∀ q', tg ∉ (plant_fan_lowM.GdOf q').fv)
-    (hfrzGd : ∀ q', ∀ x ∈ (plant_fan_lowM.GdOf q').fv,
-        x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound) :
-    ∀ q pm m, plant_fan_low_IR.R.modes[q]? = some pm → plant_fan_lowM.modes[q]? = some m →
-      GuardSettlingB plant_fan_lowM.graph (realGdOf plant_fan_low_IR plant_fan_lowM)
-        (realFieldOf plant_fan_low_IR.R.stateVars pm 2) (Term.const 1)
-        (realEnvOf plant_fan_low_IR.R.stateVars 2 pm)
-        ((qDiv (qDiv (⟨10, 10⟩ : QF) plant_fan_low_meta.lam) (qOfInt plant_fan_lowM.dtQ)).val
-          * ((plant_fan_lowM.dt : ℤ) : ℝ)) q :=
-  settling_real_end_to_end_pad plant_fan_low_IR plant_fan_low_meta plant_fan_lowM
-    (εR := ⟨10, 10⟩) rfl rfl
-    (by decide) (by decide)
-    (by intro j hj; interval_cases j <;> decide)
-    (fun j hj => sigmaOf_pos_lt (by decide) hj)
-    (by
-      have h : qDiv (qDiv (⟨10, 10⟩ : QF) plant_fan_low_meta.lam)
-          (qOfInt plant_fan_lowM.dtQ) = (⟨10, 20⟩ : QF) := rfl
-      rw [h]
-      norm_num [QF.val])
-    (by decide) (by decide) (by decide) (by decide)
-    mv tg g fL rfl (by norm_num [SettlingModel.dt, plant_fan_lowM])
-    hg hmvclk hmvtg hmvGd htgGd hfrzGd
-
-/-- `plant_fan_mid` (PADDED model): real-model end to end (residuals: freshness data only). -/
-theorem plant_fan_mid_real
-    (mv tg : Var 2) (g : Term (Var 2)) (fL : Fin 2 → Term (Var 2))
-    (hg : mv ∉ g.fv)
-    (hmvclk : mv ∉ (DLCalTiming.clk tg (leftBlock fL)).bound)
-    (hmvtg : mv ≠ tg)
-    (hmvGd : ∀ q', mv ∉ (plant_fan_midM.GdOf q').fv)
-    (htgGd : ∀ q', tg ∉ (plant_fan_midM.GdOf q').fv)
-    (hfrzGd : ∀ q', ∀ x ∈ (plant_fan_midM.GdOf q').fv,
-        x ∉ (DLCalTiming.clk tg (leftBlock fL)).bound) :
-    ∀ q pm m, plant_fan_mid_IR.R.modes[q]? = some pm → plant_fan_midM.modes[q]? = some m →
-      GuardSettlingB plant_fan_midM.graph (realGdOf plant_fan_mid_IR plant_fan_midM)
-        (realFieldOf plant_fan_mid_IR.R.stateVars pm 2) (Term.const 1)
-        (realEnvOf plant_fan_mid_IR.R.stateVars 2 pm)
-        ((qDiv (qDiv (⟨10, 10⟩ : QF) plant_fan_mid_meta.lam) (qOfInt plant_fan_midM.dtQ)).val
-          * ((plant_fan_midM.dt : ℤ) : ℝ)) q :=
-  settling_real_end_to_end_pad plant_fan_mid_IR plant_fan_mid_meta plant_fan_midM
-    (εR := ⟨10, 10⟩) rfl rfl
-    (by decide) (by decide)
-    (by intro j hj; interval_cases j <;> decide)
-    (fun j hj => sigmaOf_pos_lt (by decide) hj)
-    (by
-      have h : qDiv (qDiv (⟨10, 10⟩ : QF) plant_fan_mid_meta.lam)
-          (qOfInt plant_fan_midM.dtQ) = (⟨10, 20⟩ : QF) := rfl
-      rw [h]
-      norm_num [QF.val])
-    (by decide) (by decide) (by decide) (by decide)
-    mv tg g fL rfl (by norm_num [SettlingModel.dt, plant_fan_midM])
     hg hmvclk hmvtg hmvGd htgGd hfrzGd
 
 /-- `refinement_ladder_rover_rung1_2to3`: real-model end to end (residuals: freshness data only — the conclusion is single-system; no Z3 hypotheses remain). -/

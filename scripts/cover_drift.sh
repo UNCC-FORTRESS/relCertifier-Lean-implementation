@@ -1,7 +1,7 @@
 #!/bin/zsh
 # STALE (2026-07-30 audit): reads/writes the MONOLITHIC aggregator form that the X0
 # modularization replaced with per-benchmark leaves. Running gen_covers.sh would
-# OVERWRITE RelCertifier/Instances/BenchCovers.lean and destroy the 46-leaf layout.
+# OVERWRITE RelCertifier/Instances/BenchCovers.lean and destroy the 40-leaf layout.
 # Repoint at the leaves before any use.
 # Cover drift check: re-run the search, compare against the committed literals.
 set -e
@@ -16,4 +16,4 @@ for d in benchmarks/suite_uniform/*/; do
     echo "DRIFT: $b"; exit 1
   fi
 done
-echo "cover drift: clean (46 benchmarks)"
+echo "cover drift: clean (40 benchmarks)"

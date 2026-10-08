@@ -37,7 +37,7 @@ benchmark now carries the modal Theorem 3 instead (`Instances/ModalBattery.lean`
 are kept as an accurate record of what this particular battery does and does not cover — read
 them as "not attempted", not as "pending work":
 
-* **exp-bound transit contracts** (watertank, match_multi_eps, rover3tier_M1,
+* **exp-bound transit contracts** (watertank, rover3tier_M1,
   robot_braking) — CLOSED by the rational-gain extension: `CoordShape.contractQ kn kd c`
   carries the fractional gain exactly, the checker's transit cover uses the finite-dt cap
   `ghi·kd + (c − ghi)·kn·dt ≤ ghi'·kd` (cross-multiplied to ℤ), and
@@ -118,23 +118,6 @@ def arm_chain_rung3M : SettlingModel 2 :=
 
 example : decideWellFormed arm_chain_rung3M = true := rfl
 
-/-- `arm_fidelity_high` (R side; units: values ×1000, time ×5; dt = ε_R/λ at λ = 5). -/
-def arm_fidelity_highM : SettlingModel 2 :=
-  { modes :=
-    [
-      { shapes := ![CoordShape.constRate 100, CoordShape.frozen], gcoord := 0,
-        glo := 0, ghi := 350, succs := [1] },
-      { shapes := ![CoordShape.constRate 70, CoordShape.frozen], gcoord := 0,
-        glo := 350, ghi := 500, succs := [2] },
-      { shapes := ![CoordShape.constRate 40, CoordShape.frozen], gcoord := 0,
-        glo := 500, ghi := 600, succs := [3] },
-      { shapes := ![CoordShape.frozen, CoordShape.frozen], gcoord := 0,
-        glo := 600, ghi := 1150, succs := [] } ]
-    env := ![{ lo := some 0, hi := some 1200 }, { lo := none, hi := none }]
-    dtQ := 1 }
-
-example : decideWellFormed arm_fidelity_highM = true := rfl
-
 /-- `arm_fidelity_low` (R side; units: values ×1000, time ×2; dt = ε_R/λ at λ = 2). -/
 def arm_fidelity_lowM : SettlingModel 2 :=
   { modes :=
@@ -162,19 +145,6 @@ def arm_fidelity_midM : SettlingModel 2 :=
     dtQ := 1 }
 
 example : decideWellFormed arm_fidelity_midM = true := rfl
-
-/-- `arm_refinement` (R side; units: values ×1000, time ×2; dt = ε_R/λ at λ = 2). -/
-def arm_refinementM : SettlingModel 2 :=
-  { modes :=
-    [
-      { shapes := ![CoordShape.constRate 100, CoordShape.frozen], gcoord := 0,
-        glo := 0, ghi := 700, succs := [1] },
-      { shapes := ![CoordShape.constRate (-100 : ℤ), CoordShape.frozen], gcoord := 0,
-        glo := 700, ghi := 850, succs := [0] } ]
-    env := ![{ lo := some 0, hi := some 1000 }, { lo := none, hi := none }]
-    dtQ := 1 }
-
-example : decideWellFormed arm_refinementM = true := rfl
 
 /-- `attitude_rate` (R side; units: values ×1000, time ×1; dt = ε_R/λ at λ = 2).
 The weakly coupled symmetric `(p, q)` block (`pairSym`, coupling ε = 0.05) with the yaw rate
@@ -249,51 +219,6 @@ def endurance_orderlift_2to3M : SettlingModel 4 :=
     dtQ := 1 }
 
 example : decideWellFormed endurance_orderlift_2to3M = true := rfl
-
-/-- `plant_fan_high` (R side; units: values ×1000, time ×5; dt = ε_R/λ at λ = 5). -/
-def plant_fan_highM : SettlingModel 2 :=
-  { modes :=
-    [
-      { shapes := ![CoordShape.constRate 100, CoordShape.frozen], gcoord := 0,
-        glo := 0, ghi := 350, succs := [1] },
-      { shapes := ![CoordShape.constRate 70, CoordShape.frozen], gcoord := 0,
-        glo := 350, ghi := 500, succs := [2] },
-      { shapes := ![CoordShape.constRate 40, CoordShape.frozen], gcoord := 0,
-        glo := 500, ghi := 600, succs := [3] },
-      { shapes := ![CoordShape.frozen, CoordShape.frozen], gcoord := 0,
-        glo := 600, ghi := 1150, succs := [] } ]
-    env := ![{ lo := some 0, hi := some 1200 }, { lo := none, hi := none }]
-    dtQ := 1 }
-
-example : decideWellFormed plant_fan_highM = true := rfl
-
-/-- `plant_fan_low` (R side; units: values ×1000, time ×2; dt = ε_R/λ at λ = 2). -/
-def plant_fan_lowM : SettlingModel 2 :=
-  { modes :=
-    [
-      { shapes := ![CoordShape.constRate 100, CoordShape.frozen], gcoord := 0,
-        glo := 0, ghi := 700, succs := [1] },
-      { shapes := ![CoordShape.constRate (-100 : ℤ), CoordShape.frozen], gcoord := 0,
-        glo := 700, ghi := 850, succs := [0] } ]
-    env := ![{ lo := some 0, hi := some 1000 }, { lo := none, hi := none }]
-    dtQ := 1 }
-
-example : decideWellFormed plant_fan_lowM = true := rfl
-
-/-- `plant_fan_mid` (R side; units: values ×1000, time ×2; dt = ε_R/λ at λ = 2). -/
-def plant_fan_midM : SettlingModel 2 :=
-  { modes :=
-    [
-      { shapes := ![CoordShape.constRate 250, CoordShape.frozen], gcoord := 0,
-        glo := 0, ghi := 350, succs := [1] },
-      { shapes := ![CoordShape.constRate 150, CoordShape.frozen], gcoord := 0,
-        glo := 350, ghi := 600, succs := [2] },
-      { shapes := ![CoordShape.contractQ 1 4 600, CoordShape.frozen], gcoord := 0,
-        glo := 600, ghi := 1150, succs := [] } ]
-    env := ![{ lo := some 0, hi := some 1200 }, { lo := none, hi := none }]
-    dtQ := 1 }
-
-example : decideWellFormed plant_fan_midM = true := rfl
 
 /-- `rover3_M1` (R side; units: values ×1000, time ×1; dt = ε_R/λ at λ = 1). -/
 def rover3_M1M : SettlingModel 2 :=
@@ -411,20 +336,6 @@ the landing needs the sharper finite-dt cap `ghi + (c − ghi)·(kn/kd)·dt` (so
 `1 − e^{−x} ≤ x`); the integer `contract` shape cannot express the fractional gain, and
 `CoordShape.contractQ kn kd c` can. Gains are stored exactly (`kn/kd` = the benchmark's gain
 in scaled time), so these are faithful transcriptions, not sign-only approximations. -/
-
-/-- `match_multi_eps` (R side; units: values ×1000, time ×50; dt = ε_R/λ at λ = 5;
-gain 2/s = 1/25 per time unit). -/
-def match_multi_epsM : SettlingModel 2 :=
-  { modes :=
-    [
-      { shapes := ![CoordShape.contractQ 1 25 1000, CoordShape.driven 0], gcoord := 0,
-        glo := 300, ghi := 600, succs := [1] },
-      { shapes := ![CoordShape.contractQ 1 25 200, CoordShape.driven 0], gcoord := 0,
-        glo := 600, ghi := 650, succs := [0] } ]
-    env := ![{ lo := some 0, hi := some 1150 }, { lo := some 0, hi := none }]
-    dtQ := 3 }
-
-example : decideWellFormed match_multi_epsM = true := rfl
 
 /-- `robot_braking` (R side; units: values ×1000, time ×1; dt = ε_R/λ at λ = 2;
 gain 1/2). -/

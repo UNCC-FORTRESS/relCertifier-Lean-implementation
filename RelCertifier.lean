@@ -95,7 +95,6 @@ import RelCertifier.Proofs.Transfer.FaithfulBridgePad
 import RelCertifier.Instances.FaithfulCerts
 import RelCertifier.Proofs.Transfer.Rescale
 import RelCertifier.Proofs.Encoding.FvDischarge
-import RelCertifier.Archive.Mega
 import RelCertifier.Instances.RealInstances
 import RelCertifier.Proofs.Encoding.ClockedTop
 import RelCertifier.Proofs.Encoding.ClockReduce

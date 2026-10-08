@@ -38,9 +38,9 @@ def counted : IO Unit := dischargedCount.modify (· + 1)
 /-- What a complete `--run-verdicts` owes, per phase.
 
 * `watertank` — 6: three routes over the six (window, right-mode) pairs it asserts.
-* `cut` — 105: per-atom O2 route probes across the 13 cut-reliant benchmarks.
-* `modal` — 522: every modal instance's verdict pack, one query per component per
-  asserted mode pair (483 for the 42 base packs, plus 39 for the five packs of the
+* `cut` — 97: per-atom O2 route probes across the 11 cut-reliant benchmarks.
+* `modal` — 504: every modal instance's verdict pack, one query per component per
+  asserted mode pair (465 for the 36 base packs, plus 39 for the five packs of the
   mode-keyed instances in `Instances/*Handoff.lean`).
 * `handoff` — one static query per declared LEFT transition of every certified
   benchmark (self-loops included), `φ_inv(m') ∧ evolve_{m'} ∧ guard_m ∧ evolve_R ∧
@@ -54,10 +54,12 @@ structure Expected where
   handoff   : Nat
   deriving Repr
 
-/-- Measured 2026-07-31 (watertank/cut/modal) and 2026-10-07 (handoff). Edit
+/-- Measured 2026-07-31 (watertank/cut/modal) and 2026-10-07 (handoff); re-derived
+2026-10-08 after the suite deduplication (`docs/SUITE-DEDUPE.md`: six duplicate
+benchmarks removed — 18 modal queries, 8 cut probes, 24 handoff transitions). Edit
 deliberately when the suite changes; see the module docstring for why this is a
 declared constant rather than whatever the run produced. -/
-def expected : Expected := { watertank := 6, cut := 105, modal := 522, handoff := 215 }
+def expected : Expected := { watertank := 6, cut := 97, modal := 504, handoff := 191 }
 
 /-- The handoff transitions that are KNOWN to fail, declared as `(benchmark, m', m)`.
 A green handoff phase has exactly this failure set — a new failure fails the run, and so
@@ -70,13 +72,13 @@ def expectedHandoffFailures : List (String × Nat × Nat) := []
 
 /-- What a certification run over the standard suite produces.
 
-`shield_unreachable` is the 47th benchmark and is *documented* to come back with an
+`shield_unreachable` is the 41st benchmark and is *documented* to come back with an
 inconclusive Z3 verdict rather than a decision — so a green run has exactly one error,
 not zero. Declaring that here means a *second* benchmark starting to error is a failure
 instead of blending into an expected one. -/
 structure ExpectedSuite where
-  paths     : Nat := 47
-  certified : Nat := 46
+  paths     : Nat := 41
+  certified : Nat := 40
   declined  : Nat := 0
   errors    : Nat := 1
   deriving Repr

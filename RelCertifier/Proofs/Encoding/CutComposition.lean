@@ -4,8 +4,7 @@ Released under Apache 2.0 license.
 
 # Cut composition — the declared invariant with the checked cut carried as a MODE REGION
 
-Five benchmarks (`arm_chain_rung3`, `arm_fidelity_high`, `arm_fidelity_mid`,
-`plant_fan_high`, `plant_fan_mid`) are certified by the tool at a CHECKED CUT: the right
+Two benchmarks (`arm_chain_rung3`, `arm_fidelity_mid`) are certified by the tool at a CHECKED CUT: the right
 `Hold` mode's flow certificate is discharged on the domain narrowed by `Hold`'s guard
 atom `θ_R ≥ 0.6` (entry by O1, invariance by O2 — `Trusted/OracleAPI.lean`
 `checkedCut`/`andCuts`). Their first modal statements carried that cut as a conjunct of

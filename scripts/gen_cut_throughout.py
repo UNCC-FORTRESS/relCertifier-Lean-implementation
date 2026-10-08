@@ -518,7 +518,7 @@ def gen_bench(name):
     return "\n".join(L) + "\n", thm_names
 
 names = sys.argv[1:] if len(sys.argv) > 1 else \
-    ["arm_chain_rung3", "arm_fidelity_high", "plant_fan_high",
+    ["arm_chain_rung3",
      "refinement_ladder_rover_rung1_2to3", "refinement_ladder_rover_rung3_6to8",
      "refinement_ladder_rover_rung4_8to12", "rover_attitude_cone_12dof",
      "rover_dof_terrain_rung1", "rover_dof_terrain_rung2",

@@ -13,7 +13,7 @@ The right graph is the one-way chain `STEEP → MODER → FLAT`, but unlike rung
 pair is vacuous: the cover certifies the joint coupling for every (window, start)
 at or ahead of the window (all three for the `STEEP` window), and behind-the-window
 starts CLIMB — static hops up the chain, then the certified coupling at the reached
-mode. Existence is the `match_multi_eps` face shape one dimension up: strict `v`
+mode. Existence is the `rover3tier_M1` face shape one dimension up: strict `v`
 faces, the non-strict `s ≥ 0` face conditioned on the core, affine fields
 (`K = 3`, `L = 8`), Z3-free.
 
@@ -292,7 +292,7 @@ theorem gAt1_eval (x : State (Var 3)) :
     Run.lowerE, vsE, he02, Run.resolveVar, Parse.dr, hdL, hdR, List.findIdx?_cons,
     ITerm.toHost, Term.eval, AOp.interp, Lv, Rv]
 
-/-! ## Existence (match_multi_eps shape, one dimension up) -/
+/-! ## Existence (rover3tier_M1 shape, one dimension up) -/
 
 noncomputable def faceVLo : Term (Var 3) :=
   Term.binop AOp.sub (Term.const 0) (Term.var (Rv 0))

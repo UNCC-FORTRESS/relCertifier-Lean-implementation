@@ -179,7 +179,7 @@ EMITTERS (regenerate committed Lean literals; each prints to stdout)
 NOT PART OF THIS BINARY
   The kernel check is the Lean toolchain, not a flag here:
     lake build                                      kernel-checks everything (~13 h)
-    lake build RelCertifier.Instances.ModalBattery  the 47 theorems + axiom audit
+    lake build RelCertifier.Instances.ModalBattery  the 50 theorems + axiom audit
   The trusted-layer tests are a separate executable:
     BENCH_PATHS=<manifest> ./.lake/build/bin/relcert-test
   `relcert-test` silently skips its two Z3-determinism checks unless BENCH_PATHS

@@ -3,26 +3,21 @@
 S3 bounded-viability census: per benchmark, per right mode, per evolve-box face —
 strict (R6 boundary probe) / growth<M> (UNSAT(box ∧ ġ > M); anchors within budget
 g₀ + M·dt < 0 keep the face for the piece duration). 2026-07-16: 1121/1121 faces
-certified suite-wide, zero fails (R6 strict-only census: 9/126 modes). -/
+certified suite-wide, zero fails (R6 strict-only census: 9/126 modes); 1085 faces after the
+2026-10-08 suite deduplication (`docs/SUITE-DEDUPE.md`). -/
 
 namespace RelCertifier
 
 def arm_chain_rung1_viab2 : List (String × List (Nat × String)) := [("Approach", [(0, "strict"), (1, "growth1")]), ("Return", [(0, "growth1"), (1, "strict")])]
 def arm_chain_rung2_viab2 : List (String × List (Nat × String)) := [("ApproachFast", [(0, "strict"), (1, "growth1")]), ("ApproachSlow", [(0, "strict"), (1, "growth1")]), ("Return", [(0, "growth1"), (1, "strict")])]
 def arm_chain_rung3_viab2 : List (String × List (Nat × String)) := [("ApproachA", [(0, "strict"), (1, "growth1")]), ("ApproachB", [(0, "strict"), (1, "growth1")]), ("ApproachC", [(0, "strict"), (1, "growth1")]), ("Hold", [(0, "growth0"), (1, "growth0")])]
-def arm_fidelity_high_viab2 : List (String × List (Nat × String)) := [("ApproachA", [(0, "strict"), (1, "growth1")]), ("ApproachB", [(0, "strict"), (1, "growth1")]), ("ApproachC", [(0, "strict"), (1, "growth1")]), ("Hold", [(0, "growth0"), (1, "growth0")])]
 def arm_fidelity_low_viab2 : List (String × List (Nat × String)) := [("Approach", [(0, "strict"), (1, "growth1")]), ("Return", [(0, "growth1"), (1, "strict")])]
 def arm_fidelity_mid_viab2 : List (String × List (Nat × String)) := [("ApproachFast", [(0, "strict"), (1, "growth1")]), ("ApproachSlow", [(0, "strict"), (1, "growth1")]), ("Hold", [(0, "strict"), (1, "strict")])]
-def arm_refinement_viab2 : List (String × List (Nat × String)) := [("Approach", [(0, "strict"), (1, "growth1")]), ("Return", [(0, "growth1"), (1, "strict")])]
 def attitude_rate_viab2 : List (String × List (Nat × String)) := [("RECOVER", [(0, "strict"), (1, "strict"), (2, "strict"), (3, "strict"), (4, "strict"), (5, "strict")]), ("TRACK", [(0, "strict"), (1, "strict"), (2, "strict"), (3, "strict"), (4, "strict"), (5, "strict")])]
 def endurance_gain_M1_viab2 : List (String × List (Nat × String)) := [("STEEP", [(0, "growth0"), (1, "strict"), (2, "strict")]), ("MODER", [(0, "growth0"), (1, "strict"), (2, "strict")]), ("FLAT", [(0, "growth0"), (1, "strict"), (2, "strict")])]
 def endurance_orderlift_1to2_viab2 : List (String × List (Nat × String)) := [("STEEP", [(0, "growth0"), (1, "growth0"), (2, "growth0"), (3, "strict"), (4, "strict")]), ("MODER", [(0, "growth0"), (1, "growth0"), (2, "growth0"), (3, "strict"), (4, "strict")]), ("FLAT", [(0, "growth0"), (1, "growth0"), (2, "growth0"), (3, "strict"), (4, "strict")])]
 def endurance_orderlift_2to3_viab2 : List (String × List (Nat × String)) := [("STEEP", [(0, "strict"), (1, "strict"), (2, "growth0"), (3, "growth0"), (4, "growth0"), (5, "growth4"), (6, "strict")]), ("MODER", [(0, "strict"), (1, "strict"), (2, "growth0"), (3, "growth0"), (4, "growth0"), (5, "growth4"), (6, "strict")]), ("FLAT", [(0, "strict"), (1, "strict"), (2, "growth0"), (3, "growth0"), (4, "growth0"), (5, "growth4"), (6, "strict")])]
-def match_multi_eps_viab2 : List (String × List (Nat × String)) := [("ACCEL", [(0, "growth0"), (1, "strict"), (2, "strict")]), ("COAST", [(0, "growth0"), (1, "strict"), (2, "strict")])]
 def match_multi_rate_viab2 : List (String × List (Nat × String)) := [("DRIVE", [(0, "growth0"), (1, "strict"), (2, "strict")])]
-def plant_fan_high_viab2 : List (String × List (Nat × String)) := [("ApproachA", [(0, "strict"), (1, "growth1")]), ("ApproachB", [(0, "strict"), (1, "growth1")]), ("ApproachC", [(0, "strict"), (1, "growth1")]), ("Hold", [(0, "growth0"), (1, "growth0")])]
-def plant_fan_low_viab2 : List (String × List (Nat × String)) := [("Approach", [(0, "strict"), (1, "growth1")]), ("Return", [(0, "growth1"), (1, "strict")])]
-def plant_fan_mid_viab2 : List (String × List (Nat × String)) := [("ApproachFast", [(0, "strict"), (1, "growth1")]), ("ApproachSlow", [(0, "strict"), (1, "growth1")]), ("Hold", [(0, "strict"), (1, "strict")])]
 def refinement_ladder_rover_rung1_2to3_viab2 : List (String × List (Nat × String)) := [("STEEP", [(0, "growth0"), (1, "strict"), (2, "strict")]), ("MODER", [(0, "growth0"), (1, "strict"), (2, "strict")]), ("FLAT", [(0, "growth0"), (1, "strict"), (2, "strict")])]
 def refinement_ladder_rover_rung2_3to6_viab2 : List (String × List (Nat × String)) := [("STEEP", [(0, "growth0"), (1, "growth0"), (2, "strict"), (3, "strict"), (4, "growth0"), (5, "strict"), (6, "strict"), (7, "strict"), (8, "strict"), (9, "growth0"), (10, "growth0")]), ("MODER", [(0, "growth0"), (1, "growth0"), (2, "strict"), (3, "strict"), (4, "growth0"), (5, "strict"), (6, "strict"), (7, "strict"), (8, "strict"), (9, "growth0"), (10, "growth0")]), ("FLAT", [(0, "growth0"), (1, "growth0"), (2, "strict"), (3, "strict"), (4, "growth0"), (5, "strict"), (6, "strict"), (7, "strict"), (8, "strict"), (9, "growth0"), (10, "growth0")])]
 def refinement_ladder_rover_rung2_6dof_viab2 : List (String × List (Nat × String)) := [("STEEP", [(0, "growth0"), (1, "growth0"), (2, "growth0"), (3, "growth0"), (4, "growth0"), (5, "strict"), (6, "strict")]), ("MODER", [(0, "growth0"), (1, "growth0"), (2, "growth0"), (3, "growth0"), (4, "growth0"), (5, "strict"), (6, "strict")]), ("FLAT", [(0, "growth0"), (1, "growth0"), (2, "growth0"), (3, "growth0"), (4, "growth0"), (5, "strict"), (6, "strict")])]

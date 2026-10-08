@@ -1,8 +1,6 @@
 /- GENERATED umbrella (scripts/gen_cut_throughout.py) — do not edit.
-S2 cut-lifted throughout instances: the 13 cut-reliant benchmarks. -/
+S2 cut-lifted throughout instances: the 11 cut-reliant benchmarks. -/
 import RelCertifier.Instances.CutThroughout.arm_chain_rung3
-import RelCertifier.Instances.CutThroughout.arm_fidelity_high
-import RelCertifier.Instances.CutThroughout.plant_fan_high
 import RelCertifier.Instances.CutThroughout.refinement_ladder_rover_rung1_2to3
 import RelCertifier.Instances.CutThroughout.refinement_ladder_rover_rung3_6to8
 import RelCertifier.Instances.CutThroughout.refinement_ladder_rover_rung4_8to12

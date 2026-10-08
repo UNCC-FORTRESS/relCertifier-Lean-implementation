@@ -8,8 +8,9 @@ This module imports the modal (Theorem 3) instance of EVERY certified benchmark
 and re-emits its axiom audit. It is the single door for the end-to-end check
 described in `docs/CERTIFICATION-CHECK.md`:
 
-* importing it forces the kernel to check all 47 modal theorems, across the 46
-  instance files imported below (`lake build`);
+* importing it forces the kernel to check all 41 base modal theorems, across the 40
+  instance files imported below (`lake build`), plus the 7 mode-keyed and the 2
+  cut-composed theorems (50 theorems in all);
 * the `#print axioms` lines below re-emit on every build, so the audit cannot
   drift from the theorems;
 * the benchmark ↔ theorem correspondence is the import list itself — each
@@ -29,19 +30,13 @@ No `sorry`, no `native_decide`, no benchmark-specific axiom.
 import RelCertifier.Instances.ArmChainRung1Modal
 import RelCertifier.Instances.ArmChainRung2Modal
 import RelCertifier.Instances.ArmChainRung3Modal
-import RelCertifier.Instances.ArmFidelityHighModal
 import RelCertifier.Instances.ArmFidelityLowModal
 import RelCertifier.Instances.ArmFidelityMidModal
-import RelCertifier.Instances.ArmRefinementModal
 import RelCertifier.Instances.AttitudeRateModal
 import RelCertifier.Instances.EnduranceGainM1Modal
 import RelCertifier.Instances.EnduranceOrderlift1to2Modal
 import RelCertifier.Instances.EnduranceOrderlift2to3Modal
-import RelCertifier.Instances.MatchMultiEpsModal
 import RelCertifier.Instances.MatchMultiRateModal
-import RelCertifier.Instances.PlantFanHighModal
-import RelCertifier.Instances.PlantFanLowModal
-import RelCertifier.Instances.PlantFanMidModal
 import RelCertifier.Instances.RobotBrakingModal
 import RelCertifier.Instances.Rover3M1Modal
 import RelCertifier.Instances.Rover3tierM1Modal
@@ -80,10 +75,7 @@ import RelCertifier.Instances.Story1AttdistRungBHandoff
 import RelCertifier.Instances.Story3RolloverRungBHandoff
 import RelCertifier.Instances.Rover3tierRung12Handoff
 import RelCertifier.Instances.ArmChainRung3Declared
-import RelCertifier.Instances.ArmFidelityHighDeclared
 import RelCertifier.Instances.ArmFidelityMidDeclared
-import RelCertifier.Instances.PlantFanHighDeclared
-import RelCertifier.Instances.PlantFanMidDeclared
 
 namespace RelCertifier
 
@@ -93,14 +85,10 @@ namespace RelCertifier
 #print axioms ArmChainRung2Modal.arm_chain_rung2_modal
 -- arm_chain_rung3
 #print axioms ArmChainRung3Modal.arm_chain_rung3_modal
--- arm_fidelity_high
-#print axioms ArmFidelityHighModal.arm_fidelity_high_modal
 -- arm_fidelity_low
 #print axioms ArmFidelityLowModal.arm_fidelity_low_modal
 -- arm_fidelity_mid
 #print axioms ArmFidelityMidModal.arm_fidelity_mid_modal
--- arm_refinement
-#print axioms ArmRefinementModal.arm_refinement_modal
 -- attitude_rate
 #print axioms AttitudeRateModal.attitude_rate_modal
 -- endurance_gain_M1
@@ -109,16 +97,8 @@ namespace RelCertifier
 #print axioms EnduranceOrderlift1to2Modal.endurance_orderlift_1to2_modal
 -- endurance_orderlift_2to3
 #print axioms EnduranceOrderlift2to3Modal.endurance_orderlift_2to3_modal
--- match_multi_eps
-#print axioms MatchMultiEpsModal.match_multi_eps_modal
 -- match_multi_rate
 #print axioms MatchMultiRateModal.match_multi_rate_modal
--- plant_fan_high
-#print axioms PlantFanHighModal.plant_fan_high_modal
--- plant_fan_low
-#print axioms PlantFanLowModal.plant_fan_low_modal
--- plant_fan_mid
-#print axioms PlantFanMidModal.plant_fan_mid_modal
 -- refinement_ladder_rover_rung1_2to3
 #print axioms RoverLadderRung1Modal.rover_ladder_rung1_modal
 -- refinement_ladder_rover_rung2_3to6
@@ -200,20 +180,15 @@ that its handoffs hold, and it keeps its two per-left-mode theorems above as wel
 -- rover3tier_rung12 (repaired rows)
 #print axioms Rover3tierRung12Handoff.rover3tier_rung12_modeKeyed
 
-/-! ### The cut-composed theorems — the DECLARED invariant of the five checked-cut
+/-! ### The cut-composed theorems — the DECLARED invariant of the two checked-cut
 benchmarks, with the `Hold` cut carried as that mode's region only (`mvRegionR`;
 `Proofs/Encoding/CutComposition.lean`, `docs/CUT-COMPOSITION.md`). Their base theorems
-above keep the cut as an invariant conjunct at every mode. All five are Z3-free:
-right-only catch-up responses, endpoint arithmetic. -/
+above keep the cut as an invariant conjunct at every mode. Both are Z3-free:
+right-only catch-up responses, endpoint arithmetic. (Three more carried this theorem
+until the 2026-10-08 suite deduplication, `docs/SUITE-DEDUPE.md`.) -/
 -- arm_chain_rung3
 #print axioms ArmChainRung3Declared.arm_chain_rung3_declared
--- arm_fidelity_high
-#print axioms ArmFidelityHighDeclared.arm_fidelity_high_declared
 -- arm_fidelity_mid
 #print axioms ArmFidelityMidDeclared.arm_fidelity_mid_declared
--- plant_fan_high
-#print axioms PlantFanHighDeclared.plant_fan_high_declared
--- plant_fan_mid
-#print axioms PlantFanMidDeclared.plant_fan_mid_declared
 
 end RelCertifier

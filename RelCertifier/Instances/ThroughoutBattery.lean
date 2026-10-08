@@ -3,15 +3,11 @@ import RelCertifier.Instances.Throughout.arm_chain_rung1
 import RelCertifier.Instances.Throughout.arm_chain_rung2
 import RelCertifier.Instances.Throughout.arm_fidelity_low
 import RelCertifier.Instances.Throughout.arm_fidelity_mid
-import RelCertifier.Instances.Throughout.arm_refinement
 import RelCertifier.Instances.Throughout.attitude_rate
 import RelCertifier.Instances.Throughout.endurance_gain_M1
 import RelCertifier.Instances.Throughout.endurance_orderlift_1to2
 import RelCertifier.Instances.Throughout.endurance_orderlift_2to3
-import RelCertifier.Instances.Throughout.match_multi_eps
 import RelCertifier.Instances.Throughout.match_multi_rate
-import RelCertifier.Instances.Throughout.plant_fan_low
-import RelCertifier.Instances.Throughout.plant_fan_mid
 import RelCertifier.Instances.Throughout.refinement_ladder_rover_rung2_3to6
 import RelCertifier.Instances.Throughout.refinement_ladder_rover_rung2_6dof
 import RelCertifier.Instances.Throughout.refinement_ladder_rover_rung2b_6dof

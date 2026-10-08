@@ -193,7 +193,7 @@ targets=["attitude_rate","endurance_orderlift_2to3","refinement_ladder_rover_run
 "story2_lateral_rung_b_12dof","story3_rollover_base_12dof","story3_rollover_ladder_rung_a",
 "story3_rollover_ladder_rung_b",
 # parked exp-bound five, as sanity check (expect OK):
-"watertank","match_multi_eps","match_multi_rate","rover3tier_M1","robot_braking"]
+"watertank","match_multi_rate","rover3tier_M1","robot_braking"]
 for b in targets:
     try:
         verdict, msg = audit(b)

@@ -13,19 +13,13 @@ leaves and carries the whole-suite `benchIRTable` for the runtime doors
 import RelCertifier.Instances.BenchIR.arm_chain_rung1
 import RelCertifier.Instances.BenchIR.arm_chain_rung2
 import RelCertifier.Instances.BenchIR.arm_chain_rung3
-import RelCertifier.Instances.BenchIR.arm_fidelity_high
 import RelCertifier.Instances.BenchIR.arm_fidelity_low
 import RelCertifier.Instances.BenchIR.arm_fidelity_mid
-import RelCertifier.Instances.BenchIR.arm_refinement
 import RelCertifier.Instances.BenchIR.attitude_rate
 import RelCertifier.Instances.BenchIR.endurance_gain_M1
 import RelCertifier.Instances.BenchIR.endurance_orderlift_1to2
 import RelCertifier.Instances.BenchIR.endurance_orderlift_2to3
-import RelCertifier.Instances.BenchIR.match_multi_eps
 import RelCertifier.Instances.BenchIR.match_multi_rate
-import RelCertifier.Instances.BenchIR.plant_fan_high
-import RelCertifier.Instances.BenchIR.plant_fan_low
-import RelCertifier.Instances.BenchIR.plant_fan_mid
 import RelCertifier.Instances.BenchIR.refinement_ladder_rover_rung1_2to3
 import RelCertifier.Instances.BenchIR.refinement_ladder_rover_rung2_3to6
 import RelCertifier.Instances.BenchIR.refinement_ladder_rover_rung2_6dof
@@ -63,19 +57,13 @@ def benchIRTable : List (String × PProblem) := [
   ("arm_chain_rung1", arm_chain_rung1_IR),
   ("arm_chain_rung2", arm_chain_rung2_IR),
   ("arm_chain_rung3", arm_chain_rung3_IR),
-  ("arm_fidelity_high", arm_fidelity_high_IR),
   ("arm_fidelity_low", arm_fidelity_low_IR),
   ("arm_fidelity_mid", arm_fidelity_mid_IR),
-  ("arm_refinement", arm_refinement_IR),
   ("attitude_rate", attitude_rate_IR),
   ("endurance_gain_M1", endurance_gain_M1_IR),
   ("endurance_orderlift_1to2", endurance_orderlift_1to2_IR),
   ("endurance_orderlift_2to3", endurance_orderlift_2to3_IR),
-  ("match_multi_eps", match_multi_eps_IR),
   ("match_multi_rate", match_multi_rate_IR),
-  ("plant_fan_high", plant_fan_high_IR),
-  ("plant_fan_low", plant_fan_low_IR),
-  ("plant_fan_mid", plant_fan_mid_IR),
   ("refinement_ladder_rover_rung1_2to3", refinement_ladder_rover_rung1_2to3_IR),
   ("refinement_ladder_rover_rung2_3to6", refinement_ladder_rover_rung2_3to6_IR),
   ("refinement_ladder_rover_rung2_6dof", refinement_ladder_rover_rung2_6dof_IR),

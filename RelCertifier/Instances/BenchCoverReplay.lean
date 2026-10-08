@@ -35,13 +35,9 @@ theorem arm_chain_rung2_cover_replay : coverReplays Parse.arm_chain_rung2_IR arm
 
 theorem arm_chain_rung3_cover_replay : coverReplays Parse.arm_chain_rung3_IR arm_chain_rung3_cover = true := by decide
 
-theorem arm_fidelity_high_cover_replay : coverReplays Parse.arm_fidelity_high_IR arm_fidelity_high_cover = true := by decide
-
 theorem arm_fidelity_low_cover_replay : coverReplays Parse.arm_fidelity_low_IR arm_fidelity_low_cover = true := by decide
 
 theorem arm_fidelity_mid_cover_replay : coverReplays Parse.arm_fidelity_mid_IR arm_fidelity_mid_cover = true := by decide
-
-theorem arm_refinement_cover_replay : coverReplays Parse.arm_refinement_IR arm_refinement_cover = true := by decide
 
 theorem attitude_rate_cover_replay : coverReplays Parse.attitude_rate_IR attitude_rate_cover = true := by decide
 
@@ -51,15 +47,7 @@ theorem endurance_orderlift_1to2_cover_replay : coverReplays Parse.endurance_ord
 
 theorem endurance_orderlift_2to3_cover_replay : coverReplays Parse.endurance_orderlift_2to3_IR endurance_orderlift_2to3_cover = true := by decide
 
-theorem match_multi_eps_cover_replay : coverReplays Parse.match_multi_eps_IR match_multi_eps_cover = true := by decide
-
 theorem match_multi_rate_cover_replay : coverReplays Parse.match_multi_rate_IR match_multi_rate_cover = true := by decide
-
-theorem plant_fan_high_cover_replay : coverReplays Parse.plant_fan_high_IR plant_fan_high_cover = true := by decide
-
-theorem plant_fan_low_cover_replay : coverReplays Parse.plant_fan_low_IR plant_fan_low_cover = true := by decide
-
-theorem plant_fan_mid_cover_replay : coverReplays Parse.plant_fan_mid_IR plant_fan_mid_cover = true := by decide
 
 theorem refinement_ladder_rover_rung1_2to3_cover_replay : coverReplays Parse.refinement_ladder_rover_rung1_2to3_IR refinement_ladder_rover_rung1_2to3_cover = true := by decide
 

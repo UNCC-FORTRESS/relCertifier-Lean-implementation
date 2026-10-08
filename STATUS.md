@@ -1,11 +1,11 @@
-# Status — 2026-10-08 (branch `dedupe-suite`)
+# Status — 2026-10-08 (branch `pruning-suite`)
 
 Current state of `relCertifier-lean-implementation` in one page: what is proved, what is
 assumed, what to run, and what is open. For *what the theorems say* read
 [`README.md`](README.md); for *how to re-check them* read
 [`docs/CERTIFICATION-CHECK.md`](docs/CERTIFICATION-CHECK.md).
 
-**Branch head: see `git log`.** 378 Lean files, 41 benchmark inputs, 40 modal instances (+ 7 mode-keyed, + 2 declared-invariant leaves).
+**Branch head: see `git log`.** 385 Lean files, 41 benchmark inputs, 40 modal instances (+ 7 mode-keyed, + 2 declared-invariant leaves, + 1 pruning-suite leaf).
 
 ---
 
@@ -13,8 +13,27 @@ assumed, what to run, and what is open. For *what the theorems say* read
 
 Every one of the 40 certified benchmarks carries a kernel-checked relational-refinement
 theorem of the paper's Theorem 3 shape (41 base theorems — `rover3tier_rung12` splits per
-left mode; 50 theorems in `ModalBattery` with the 7 mode-keyed and the 2 cut-composed
-ones). Their only assumptions are a five-item trust base and a finite list of Z3 `unsat`
+left mode; 52 theorems in `ModalBattery` with the 7 mode-keyed, the 2 cut-composed, the
+pruning-suite theorem of `match_multi_rate` and its pruned edge's Theorem 2 instance).
+
+**New (2026-10-08, branch `pruning-suite`): the non-connection certificate exercised.**
+The paper's Section 4.3 pruning (`nonConnPrune`) fired on no benchmark. `match_multi_rate`
+now declares (additively) a stall fallback `STALL` (`v < 0.2`, sink) with the edge
+`DRIVE → STALL`; the certifier prunes it on two `unsat` verdicts, `RELCERT_NO_PRUNE=1`
+makes the benchmark DECLINE (the FAST/MEDIUM covers owe the uncertifiable successor), and
+with pruning it is CERTIFIED as before. `--run-verdicts` gained a fifth phase (the two
+pruning queries, declared counts 1 edge / 2 queries, derived from the emitted covers by
+`CoveragePins`, pinned to the instance's `VerdNC` by `NonConnPins`); the lowering accepts
+right-only variables (`shield_unreachable` runs: DECLINED either way, its guard is a
+closed compound band). Lean: `match_multi_rate_pruned` (Theorem 3 over the two-mode
+automaton, the right never in `STALL` — the `mvValid` form over that automaton is false)
+and `match_multi_rate_nonconn` (Theorem 2 from the runner's two queries). Thirteen other
+candidates were tried by runs and dropped: their emergency mode is an admissible initial
+right mode under the paper's definition, which the cover must cover regardless of
+pruning (the suite's one-sided invariants with left guard floors at the right evolve
+floor make this unavoidable), or the cover is a single segment. The settling-family rows
+of `match_multi_rate` (`faithfulSettling`, `*_real`) are withdrawn: the transcription
+needs closed guard bands. `docs/PRUNING.md`. Their only assumptions are a five-item trust base and a finite list of Z3 `unsat`
 verdicts, and **every one of those verdicts is re-run on demand against a query the kernel
 certifies is the theorem's own**.
 
@@ -96,7 +115,24 @@ the new 12-dof leaf `Story1AttdistRungBHandoff.lean` takes ~10 min on its own):
 | suite + verdicts | `relcert --check-quick benchmarks/suite_uniform/*/input.txt` | 46 CERTIFIED, 0 DECLINED, 1 documented error; QUICK CHECKS PASSED |
 | handoff alone | `relcert --handoff benchmarks/suite_uniform/*/input.txt` | 216/216 transitions checked, 215 unsat; the one FAIL is `shield_unreachable`'s self-loop, whose right evolve does not lower against the left variable list (the 47th, outside the emitted suite) |
 
-## Branch run (2026-10-08, `dedupe-suite`) — the current numbers
+## Branch run (2026-10-08, `pruning-suite`) — the current numbers
+
+All checks green on the branch head, from the warm tree (the rebuild touched the
+`match_multi_rate` column, the `OracleAPI` cascade — `CutComposition`, the two
+`…Declared` leaves, `FaceBridge`, `WatertankViability` — the settling aggregators, the
+runner/pin layer and the new leaves; 8976 jobs):
+
+| check | command | result |
+|---|---|---|
+| kernel | `lake build` | 8976 jobs, exit 0 |
+| axioms | `lake env lean RelCertifier/Instances/ModalBattery.lean` (`grep -A3`) | **52** theorems: 10 standard-three (as before), 42 `+z3_unsat_sound` (the 40 before + `match_multi_rate_pruned` + `match_multi_rate_nonconn`), 0 other, no `sorryAx` |
+| hypotheses | `relcert --run-verdicts` | **800 `unsat`**, coverage 6 / 97 / 504 / 191 / **2** (+ 1 pruned edge), `ALL HYPOTHESES DISCHARGED`, exit 0 |
+| trusted layer | `BENCH_PATHS=… relcert-test` | `ALL PASS` (no skips; `all 40 IR literals match their files`) |
+| suite + verdicts | `relcert --check-quick benchmarks/suite_uniform/*/input.txt` | `40 certified, 1 declined, 0 error(s) — matches the declared suite`; `[prune] match_multi_rate: [DRIVE->STALL]`; QUICK CHECKS PASSED |
+| the ablation | `RELCERT_NO_PRUNE=1 relcert benchmarks/suite_uniform/match_multi_rate/input.txt` | `match_multi_rate: DECLINED` |
+| handoff alone | `relcert --handoff benchmarks/suite_uniform/*/input.txt` | 192/192 over 41 inputs, 191 unsat; the documented `shield_unreachable` FAIL (`query did not lower`; that runner reads the left variable list and is untouched), exit 1 by design |
+
+## Branch run (2026-10-08, `dedupe-suite`)
 
 All checks green on the branch head after the removal of the six duplicate benchmarks,
 from the warm tree (the rebuild touched only the whole-suite aggregators, the pins and
@@ -146,14 +182,15 @@ fixpoints, route selection, λ choice — is entirely untrusted: it only propose
 ## What was closed recently
 
 The gap between *the hypothesis a theorem assumes* and *the query the runner sends Z3* is
-now kernel-checked end to end, in 174 theorems under `RelCertifier/Verdicts/`:
+now kernel-checked end to end, in 183 theorems under `RelCertifier/Verdicts/`:
 
 | file | n | what it ties |
 |---|---|---|
 | `ModalPinTable` | 49 | each instance's `Verd…` **is** `modalVerd` at the runner's arguments (41 rows; 53 theorems before the deduplication) |
 | `ModalTablePins` | 41 | the rest of the `RunInfo` row, incl. mode pairs via the runner's own `modalPairs` |
 | `ModalCodePins` | 80 | the runner's **code**: λ from `(lamN, lamD)`, head terms from `ceilCo`/`ceilKs`, the three routes |
-| `CoveragePins` | 4 | the declared query counts equal what the tables generate (modal, cut, handoff; the declared handoff-failure set) |
+| `CoveragePins` | 9 | the declared query counts equal what the tables generate (modal, cut, handoff; the declared handoff-failure set; the pruned-edge and non-connection counts, the cover table's names, that every pruned pair is a declared edge whose queries rebuild) |
+| `NonConnPins` | 4 | the runner's rebuilt pruning pair for `DRIVE → STALL` IS `MatchMultiRatePruned.VerdNC`'s pair; the pruned-edge list is exactly that edge |
 
 Each layer was verified by breaking what it pins: `/`→`*` in the λ fails 12 theorems,
 dropping route C fails 3, shifting a head coordinate fails 24, corrupting a table field
@@ -167,6 +204,20 @@ runner's table, and five places where a success path was reachable without doing
 ## What is open
 
 Nothing blocking. In rough order of interest:
+
+* **The pruning exhibit is one benchmark.** Rules (a)–(e) of `docs/PRUNING.md` plus the
+  paper's admissibility of initial modes admit no other member of this suite: an
+  emergency sink whose threshold region is compatible with some left guard under the
+  invariant is an admissible START the cover must cover, pruning or not. Only
+  `match_multi_rate` (`v_L ≤ v_R`, left guards `v_L ≥ 0.2` above the right floor `0`)
+  excludes it. A second exhibit needs a benchmark whose invariant bounds the emergency
+  variable on the threshold's side — a modelling addition, not a tool change.
+* **`match_multi_rate`'s settling-family rows are withdrawn** (39 `*_real` theorems
+  remain): the settling transcription requires a closed guard band on every right mode
+  and `STALL`'s guard is a one-sided threshold by construction. Extending
+  `SettlingModel`/`Faithful` to one-sided fallback modes is new machinery.
+* **`--handoff` still reports `shield_unreachable` as `did not lower`**: `Trusted/Handoff.lean`
+  reads `p.L.stateVars` and is upstream of the mode-keyed proofs, so it was not touched.
 
 * **`rover3tier_rung12`'s ACCEL row was re-stated** (rows only) to make its declared
   invariant mode-keyed; the original row and its countermodel are recorded in
@@ -202,7 +253,7 @@ RelCertifier/
   Checker/     verified decideCovered — search proposes, this gates
   Proofs/      the ∀∃ calculus + the analytic facts, proved once for all benchmarks
   Instances/   per-benchmark data and theorems; ModalBattery imports every one
-  Verdicts/    the empirical column: query mirrors, the 169 pins, the runner
+  Verdicts/    the empirical column: query mirrors, the 183 pins, the runner (five phases)
   Archive/     superseded developments, kept for the record
 docs/          CERTIFICATION-CHECK (the recipe), READING-GUIDE, audits, archive/
 ```

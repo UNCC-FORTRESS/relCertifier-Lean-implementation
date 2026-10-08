@@ -1,10 +1,13 @@
 # Benchmark suite
 
 One directory per benchmark under `suite_uniform/`; `input.txt` is the complete
-specification. **41 directories: 40 certified, plus `shield_unreachable`, on which the
-tool reports an inconclusive Z3 verdict and which is therefore outside the certified
-suite.** Every certified benchmark carries a machine-checked modal Theorem 3 — see
-`docs/CERTIFICATION-CHECK.md` for how to verify that end to end.
+specification. **41 directories: 40 certified, plus `shield_unreachable`, which the tool
+DECLINES (its `Shield` guard is a closed compound band the non-connection certificate
+does not prune, and `Shield` is an admissible initial mode; it is outside the certified
+suite).** Every certified benchmark carries a machine-checked modal Theorem 3 — see
+`docs/CERTIFICATION-CHECK.md` for how to verify that end to end. `match_multi_rate`
+declares a pruned stall fallback (`STALL`, edge `DRIVE → STALL`) that exercises the
+non-connection certificate: `RELCERT_NO_PRUNE=1` makes it DECLINE (`docs/PRUNING.md`).
 
 ## File format
 
@@ -48,6 +51,8 @@ Key points, each of which the parser enforces:
   exactly this list).
 * **`state_vars`** is per system; both sides normally use the same names, and the
   coordinate *order* here is the order the Lean instances index by (`Lv 0`, `Rv 0`, …).
+  A right-only variable (declared in `[Rsys]` only) is accepted: it gets a coordinate
+  after the left variables, held fixed on the left (`shield_unreachable`'s `w`).
 * **`[relational_invariant]`** has one row per **left** mode, over `[l]`/`[r]`-suffixed
   variables. Rows may differ per mode (nested tolerances are common: `Drive` tighter than
   `Drift` tighter than `Stop`); when they do, a single-invariant modal statement uses the

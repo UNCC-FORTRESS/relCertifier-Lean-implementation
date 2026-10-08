@@ -242,6 +242,35 @@ The per-benchmark table, the tool-run confirmation of the strategy and the count
 are in `docs/CUT-COMPOSITION.md`. The base theorems stand beside the new ones (50 theorems
 in `ModalBattery` after the deduplication: 41 base, 7 mode-keyed, 2 cut-composed).
 
+## 2d. Non-connection certificates — Section 4.3 / Theorem 2, exercised (2026-10-08)
+
+**What the paper claims.** A declared right edge `mR → mSuc` whose successor guard is a
+single strict threshold `{g > 0}` is pruned from the cover's all-successors obligation
+when (source) no entry state of `mR` satisfies the guard and (barrier) on `g = 0` the
+right flow of `mR` moves `g` strictly down; "without pruning the cover fails; once a
+non-connection certificate removes the branch, the cover succeeds".
+
+**Mechanization, clause by clause.**
+
+| paper element | Lean / tool |
+|---|---|
+| Theorem 2 (the certificate is sound) | `nonconn_sound` (`Checker/NonConn.lean`): dL-lean `DI_strict` on the safe-side term; from every source state no reached state satisfies the guard |
+| the two checks, as the tool sends them | `Trusted/NonConnQuery.lean` `queries` — the one definition `OracleAPI.nonConnPrune`, the runner and the kernel bridge share; `cut_src` (the source's checked cut) conjoined to both domains, as before |
+| the runner's queries ARE Theorem 2's hypotheses | `Proofs/Encoding/NonConnBridge.lean`: `sourceCheck_iff`, `barrierCheck_iff` (the printed queries' host denotations are satisfaction-equivalent to the obligation's two checks — `lieDeriv g 0 fR 1` and `lieAlong g (jointSys 0 fR 1)` are both the semantic `Lie`), `nonconn_of_unsat` (two `z3solve … = unsat` facts ⟹ Theorem 2's conclusion) |
+| the per-edge instance | `MatchMultiRatePruned.match_multi_rate_nonconn`: from `VerdNC` (the two queries for `DRIVE → STALL`, pinned to the runner's rebuilt pair by `Verdicts/NonConnPins.lean`), every state the `DRIVE` right flow reaches from a `DRIVE` entry state has `v_R ≥ 0.2` |
+| where the pruned edge enters the cover | `retainedSucc` (`Checker/Cover.lean`) drops it; `BenchCoverReplay` replays `decideCovered` by `decide` on the structural graph with the emitted `pruned` list — FAST (budget 3) and MEDIUM (budget 2) accept only with the edge pruned (the unpruned edge targets a non-node, the sentinel index, and fails) |
+| where it enters Theorem 3 | it does not: `match_multi_rate_pruned` (`Instances/MatchMultiRatePruned.lean`) states Theorem 3 over the two-mode automaton with the mode region `⊥` at `STALL` (`mvRegionR`, `Proofs/Encoding/SinkExtension.lean`); the witness is the base instance's in-place `DRIVE` response, lifted edge by edge, and never takes a declared edge into `STALL`. The plain `mvValid` form over the two-mode automaton is false (a start in `STALL` has no response), so the region form is the statement the certificate licenses — the right is never in `STALL` |
+| "without pruning the cover fails" | `RELCERT_NO_PRUNE=1 relcert …/match_multi_rate/input.txt`: DECLINED; with pruning: CERTIFIED, `[prune] match_multi_rate: [DRIVE->STALL]` |
+| the evaluation claim | one benchmark exercises the device for real; thirteen candidates tried by runs are blocked by the paper's own admissibility of initial right modes (`guard_{m_L} ∧ guard_{q₀} ∧ φ_inv` satisfiable ⟹ `q₀` must cover from the start, pruning or not) — `docs/PRUNING.md` §3 |
+
+**What the mechanization makes explicit that the paper folds in.** An emergency mode
+reachable only by a threshold the flow never crosses is still, under Definition 4.3's
+admissibility, a possible INITIAL mode whenever its guard is compatible with a left
+guard under `φ_inv`; the certificate speaks about edges, not starts. With the suite's
+one-sided rows `x_L ≤ x_R + d` (left guard floors at the right evolve floor), that makes
+every feasible far-side threshold admissible except `match_multi_rate`'s. A paper
+sentence to that effect would state the device's precondition exactly.
+
 ## 3. Full inventory of generic `rvalid (theorem3Form …)` theorems
 
 Twenty-odd, in five families by what they assume. This variety is the "additional

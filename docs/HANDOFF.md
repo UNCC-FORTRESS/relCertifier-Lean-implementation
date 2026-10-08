@@ -6,6 +6,13 @@ benchmarks/suite_uniform/*/input.txt` (warm persistent session). The 2026-10-07 
 the domain-FREE query and the original rows is kept below as the record of the failure
 that motivated both changes.
 
+**Pruning suite (2026-10-08, branch `pruning-suite`).** `match_multi_rate` gained a
+right mode (`STALL`) and the edge `DRIVE → STALL` (`docs/PRUNING.md`); its handoff phase
+is untouched (left transitions only: 8/8, vacuous). `shield_unreachable` now lowers for
+the certifier (`Trusted/JointVars.lean`) but this runner still reads `p.L.stateVars`
+(`Trusted/Handoff.lean` is upstream of the mode-keyed proofs and was not edited), so its
+self-loop still reports `handoff query did not lower`, as recorded below.
+
 **Suite deduplication (2026-10-08, branch `dedupe-suite`).** Six duplicate benchmarks
 were removed afterwards (`arm_fidelity_high`, `plant_fan_high`, `arm_refinement`,
 `plant_fan_low`, `match_multi_eps`, `plant_fan_mid`; `docs/SUITE-DEDUPE.md`), each with

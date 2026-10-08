@@ -15,12 +15,25 @@ single external oracle, consulted only through printed SMT scripts, and only its
 
 **Status.** All 40 certified benchmarks carry the modal (Theorem 3) statement — 41 base
 theorems, since one benchmark splits per left mode — and, beside them, 7 mode-keyed and
-2 cut-composed theorems at the DECLARED invariants (50 theorems in `ModalBattery`): 40
-audit to the three standard Lean axioms plus `z3_unsat_sound`, 10 to the three standard
-axioms alone. No `sorry`, no `admit`, no `native_decide`. The last cold-tree
-verification (2026-08-02, 12h59m, 8988 jobs, exit 0) predates the 2026-10-08 suite
-deduplication and covered the 46-benchmark suite of that time; every check has been
-re-run warm on the 40-benchmark suite since (`STATUS.md`).
+2 cut-composed theorems at the DECLARED invariants, plus the pruning-suite theorem of
+`match_multi_rate` over its enlarged automaton and the Theorem 2 instance of its pruned
+edge (52 theorems in `ModalBattery`): 42 audit to the three standard Lean axioms plus
+`z3_unsat_sound`, 10 to the three standard axioms alone. No `sorry`, no `admit`, no
+`native_decide`. The last cold-tree verification (2026-08-02, 12h59m, 8988 jobs, exit 0)
+predates the 2026-10-08 suite deduplication and covered the 46-benchmark suite of that
+time; every check has been re-run warm on the 40-benchmark suite since (`STATUS.md`).
+
+**Non-connection pruning exercised (2026-10-08).** The paper's Section 4.3 device — a
+declared right edge pruned from the cover's all-successors obligation on two Z3 `unsat`
+verdicts — was implemented but fired on no benchmark. `match_multi_rate` now declares
+(additively) a stall fallback `STALL` with the edge `DRIVE → STALL`; the certifier prunes
+it, `RELCERT_NO_PRUNE=1` makes the benchmark DECLINE, and the pruned edge's two queries
+are a fifth `--run-verdicts` phase with declared counts, pinned to the kernel-stated
+Theorem 2 instance. Thirteen other candidates were tried by runs and dropped: under the
+paper's definition their emergency mode is an *admissible initial* right mode, which the
+cover must cover whether or not the edge into it is pruned. The lowering accepts
+right-only variables, so `shield_unreachable` runs (DECLINED, with and without pruning:
+its `Shield` guard is a closed compound band). [`docs/PRUNING.md`](docs/PRUNING.md).
 
 **Suite deduplication (2026-10-08).** Six benchmark directories were byte-identical
 copies of others once comments, blank lines and the `name =` line are stripped
@@ -83,17 +96,18 @@ separate, and they live in different places:
 | what you want to check | command |
 |---|---|
 | the Lean proofs (kernel) | `lake build` — everything, ~13 h |
-| the 50 theorems + their axioms | `lake build RelCertifier.Instances.ModalBattery` |
+| the 52 theorems + their axioms | `lake build RelCertifier.Instances.ModalBattery` |
 | the benchmarks certify (the tool) | `relcert <input.txt>...` |
-| the theorems' Z3 hypotheses hold (+ the cross-mode handoff) | `relcert --run-verdicts` |
+| the theorems' Z3 hypotheses hold (+ the cross-mode handoff, + the pruning queries) | `relcert --run-verdicts` |
+| the same with pruning switched off (the Section 4.3 ablation) | `RELCERT_NO_PRUNE=1 relcert <input.txt>...` |
 | the handoff alone, per benchmark | `relcert --handoff <input.txt>...` |
 | both of the fast ones at once | `relcert --check-quick <input.txt>...` |
 | parser / printer / IR-drift / determinism | `BENCH_PATHS=<manifest> relcert-test` |
 
 `--check-quick` compares the certification tally against the suite declared in
-`Verdicts/Coverage.expectedSuite` (40 certified, 0 declined, and the one documented
-inconclusive), so a benchmark that starts failing cannot hide among the expected
-results. Give it a different path set and the tally is reported but not enforced.
+`Verdicts/Coverage.expectedSuite` (40 certified, 1 declined — the documented
+`shield_unreachable` — 0 errors), so a benchmark that starts failing cannot hide among
+the expected results. Give it a different path set and the tally is reported but not enforced.
 
 A full `lake build` is **~13 hours** (12h59m measured from cold, 2026-08-02) and peaks
 near 30 GB; see the *Cost* section of
@@ -506,6 +520,11 @@ re-run the oracle without trusting that anyone kept two copies of a query in syn
 * `Z3.lean` — the Z3 process session (warm, budgeted). Engineering, not trust.
 * `Run.lean` — the lowering: DSL → SMT IR → host terms (`lowerE`, `lowerF`, `dynOf`,
   `invToG`). The bridge between the file's syntax and the proofs' objects.
+* `JointVars.lean` — the joint variable list (left variables, then right-only ones), so
+  a right side may declare a variable the left lacks (`shield_unreachable`'s `w`).
+* `NonConnQuery.lean` — the two non-connection (pruning) queries of a declared right
+  edge, defined once; `nonConnPrune`, the verdict runner and the kernel bridge all
+  call it.
 * `OracleAPI.lean` — **the untrusted search**: stratified segment checking, checked cuts
   (O1/O2), dynamic repositions, cover exploration, and the `--emit-*` doors. Everything
   here only proposes; nothing here is believed.
@@ -570,6 +589,11 @@ compose into a window response; window responses compose into a loop that closes
   flow. `windowSeg_growth` bounds how far a left window can move a quantity,
   `windowSeg_mask` carries the right state through it untouched, and the invariant is
   re-established by arithmetic at the endpoint. Behind the five Z3-free instances.
+* `SinkExtension.lean` — a pruned emergency sink appended to the right automaton: the
+  original step provider transfers to the enlarged graph with the mode region `⊥` at the
+  sink (`docs/PRUNING.md`).
+* `NonConnBridge.lean` — the runner's two pruning queries are exactly the hypotheses of
+  `nonconn_sound` (Theorem 2); `nonconn_of_unsat` composes them.
 * `CanonicalInv.lean` — the canonical relational invariant and its encoding identity.
 * `CoverExtract.lean`, `CoverMulti.lean`, `CoverInstance.lean` — from the checker's
   `Covered` facts to theorem-grade responses, including multi-component certificates.
@@ -676,6 +700,10 @@ compose into a window response; window responses compose into a loop that closes
 * `RunHandoff.lean` — the cross-mode handoff phase: one static query per declared left
   transition, built by `Trusted/Handoff.lean` (the same `IForm` the composition theorem's
   `handoff_of_unsat` denotes); declared failure set in `Coverage.expectedHandoffFailures`.
+* `RunNonConn.lean`, `NonConnPins.lean` — the non-connection phase: for every pruned
+  edge of every emitted cover, the two pruning queries rebuilt from the emitted IR and
+  cut certificate (declared counts `prunedEdges`/`nonconn` in `Coverage`, derived in
+  `CoveragePins`), and the pin that the rebuilt pair IS the instance's `VerdNC`.
 * `Run.lean`, `RunCut.lean`, `RunModal.lean` — the runner behind
   `relcert --run-verdicts`. `RunModal`'s `RunInfo` table is the data the pins check;
   `dim`/`invRow`/`order` are quoted out of it by the pins rather than restated.
@@ -694,6 +722,7 @@ mechanized counterexample `WellFormedFlow_rover_false`. See `RelCertifier/Archiv
 | Theorem 3 (relational ∀∃ over co-executions, reposition-opened windows) | `theorem3Form` + `theorem3_faithful_multiE_LR`; instantiated 41× (base), plus the 7 mode-keyed and 2 cut-composed forms | the loop invariant is the paper's invariant ∧ mode-validity ∧ the joint envelope |
 | per-segment flow certificates (three DI routes) | `flow_cert_sound` (A), `flow_cert_sound_strict` (B), `flow_cert_sound_superlevel` (C) in `Core/FlowCert.lean`; `flow_certified` (`Trusted/Oracle.lean`) is the verdict→invariance step; stratified multi-component form in `StratifiedBarrier.lean` | the mutual-narrowing variant was found **unsound** (R4) and replaced by sequential cuts — a tool fix surfaced by the mechanization |
 | checked guard cuts (O1 entry / O2 invariance) | `CutLift.lean` per-atom staying + `CutCover.lean` baton | O2's one-sidedness covers both joint and frozen-left flows |
+| non-connection certificates (Theorem 2, Section 4.3) | `nonconn_sound` (`Checker/NonConn.lean`), instantiated for `match_multi_rate`'s pruned edge from the runner's two queries (`NonConnBridge.lean`, `MatchMultiRatePruned.lean`); the pruned edge is dropped from `retainedSucc` in the kernel cover replay and never taken by the modal witness | exercised by one benchmark; the obstacle elsewhere is the admissibility of initial modes (`docs/PRUNING.md`) |
 | response existence (non-blocking flows) | strict faces + growth budgets (`BoxViability*.lean`), contract witnesses (`UniformEvol.lean`) | the `∀s` form of the side condition is **unsatisfiable in general**; the clock-capped `HExistSegB` is what the coupling consumes |
 | cover soundness (the certificate checker) | `decideCovered_sound`, `check_sound_multi{,_cut}` | search untrusted; decisions kernel-replayed per benchmark |
 | settling rounds (the cadenced presentation) | `theorem3_faithful_settling` + the 40-benchmark `_real` battery | retained; superseded for new work by the modal chain |
@@ -734,7 +763,7 @@ per-benchmark table — is [`docs/CERTIFICATION-CHECK.md`](docs/CERTIFICATION-CH
 #print axioms RelCertifier.WatertankVerdicts.wt_id   -- 3 axioms (the pins)
 ```
 
-All 50 theorems of the battery at once:
+All 52 theorems of the battery at once:
 
 ```bash
 lake build RelCertifier.Instances.ModalBattery 2>&1 | grep -A3 "depends on axioms"
@@ -744,10 +773,13 @@ Measured 2026-07-31: 42 theorems at the standard three plus `z3_unsat_sound`, 5 
 standard three alone, **no `sorryAx`, no `native_decide`, nothing else**. Measured
 2026-10-08 (branch `cut-composition`): 59 theorems, 46 with `z3_unsat_sound`, 13 at the
 standard three alone. Measured 2026-10-08 after the suite deduplication (branch
-`dedupe-suite`): **50 theorems, 40 with `z3_unsat_sound`, 10 at the standard three
-alone** (the 5 Z3-free base instances, the 3 composed rover theorems, the 2 `…_declared`
-theorems). Use `-A3`: a four-axiom list prints over four lines and `-A2` drops
-the line naming `z3_unsat_sound`.
+`dedupe-suite`): 50 theorems, 40 with `z3_unsat_sound`, 10 at the standard three
+alone (the 5 Z3-free base instances, the 3 composed rover theorems, the 2 `…_declared`
+theorems). Measured 2026-10-08 (branch `pruning-suite`): **52 theorems, 42 with
+`z3_unsat_sound`, 10 at the standard three alone** (the two new ones,
+`match_multi_rate_pruned` and `match_multi_rate_nonconn`, both carry the verdict axiom).
+Use `-A3`: a four-axiom list prints over four lines and `-A2` drops the line naming
+`z3_unsat_sound`.
 
 ---
 
@@ -776,9 +808,10 @@ Mechanizing surfaced real issues; each is recorded in `docs/COVER-AUDIT.md`:
 
 `benchmarks/suite_uniform/<name>/input.txt` — one file per benchmark: state variables,
 `L`/`R` mode lists (`ode`, `guard`, `evolve`, `next`), per-mode relational invariants, and
-the λ stretch range. 41 directories: 40 certified, plus `shield_unreachable`, on which the
-tool itself reports an inconclusive verdict and which is therefore outside the certified
-suite. The families are watertank, arm control loops, rover refinement ladders, and
+the λ stretch range. 41 directories: 40 certified, plus `shield_unreachable`, which the
+tool DECLINES (its `Shield` guard is a closed compound band the non-connection
+certificate does not prune, and `Shield` is an admissible initial mode) and which is
+therefore outside the certified suite. The families are watertank, arm control loops, rover refinement ladders, and
 terrain and rollover stories up to 12 degrees of freedom; six byte-identical duplicates
 were removed on 2026-10-08 (`docs/SUITE-DEDUPE.md`). Format details:
 [`benchmarks/README.md`](benchmarks/README.md).
@@ -795,6 +828,7 @@ the historical routes clearly marked.
 * `docs/COVER-AUDIT.md` — tool↔proof findings.
 * `docs/VERDICTS.md` — the empirical report and the full-suite closure record.
 * `docs/SUITE-DEDUPE.md` — the 2026-10-08 suite deduplication: method, removals, the 40-benchmark theorem table.
+* `docs/PRUNING.md` — the non-connection pruning suite: design rules, the candidate runs, `match_multi_rate`'s exhibit, the `shield_unreachable` outcome.
 * `docs/ASSET-MAP.md` — the load-bearing theorems.
 
 Design proposals, nothing scheduled: `docs/proposals/FIXPOINT-DESIGN.md`,

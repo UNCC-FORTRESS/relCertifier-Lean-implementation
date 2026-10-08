@@ -1,5 +1,42 @@
 # Verdict report — empirical discharge of theorem hypotheses
 
+## The non-connection phase (2026-10-08, branch `pruning-suite`)
+
+`--run-verdicts` gained a fifth phase: for every pruned edge the emitted covers record
+(`CoverEmitE.pruned`), the two queries the certifier sent Z3 to prune it — the source
+check `guard_src ∧ evolve_src ∧ cut_src ∧ g > 0` and the barrier check
+`evolve_src ∧ cut_src ∧ g = 0 ∧ Lie_R g ≥ 0` (`Trusted/NonConnQuery.lean`, the function
+`nonConnPrune` itself calls), rebuilt from the emitted IR and cut certificate
+(`Verdicts/RunNonConn.lean`), printed through `toScript`. The counts are declared
+(`Coverage.expected.prunedEdges = 1`, `expected.nonconn = 2`) and derived from the cover
+table by `CoveragePins` (`derivedPruned_eq_expected`, `nonconn_eq_two_pruned`,
+`benchCoverTable_names`, `prunedEdges_declared`, `prunedEdges_rebuild`); the rebuilt pair
+is pinned to the instance's hypothesis `MatchMultiRatePruned.VerdNC` by
+`Verdicts/NonConnPins.lean`, and `Proofs/Encoding/NonConnBridge.lean` turns the two
+verdicts into Theorem 2's conclusion (`match_multi_rate_nonconn`). One edge in the suite:
+`match_multi_rate`'s `DRIVE → STALL` (`docs/PRUNING.md`). Run of 2026-10-08 (Z3 4.15.1,
+warm session):
+
+```
+== non-connection : 1 pruned edge(s), two queries each ==
+  UNSAT [source]  match_multi_rate DRIVE -> STALL
+  UNSAT [barrier]  match_multi_rate DRIVE -> STALL
+NON-CONNECTION PHASE COMPLETE (1 edge(s))
+  [coverage] watertank: 6/6 hypotheses discharged
+  [coverage] cut probes: 97/97 hypotheses discharged
+  [coverage] modal: 504/504 hypotheses discharged
+  [coverage] handoff: 191/191 hypotheses discharged
+  [coverage] non-connection: 2/2 hypotheses discharged
+  [coverage] pruned edges: 1/1 hypotheses discharged
+ALL HYPOTHESES DISCHARGED
+```
+
+The other four phases are unchanged (the `match_multi_rate` modal pack, row 9 of
+`RunModal.modalTable`, is the same four `VerdM` queries; its handoff phase is the same 8
+vacuous transitions). The suite tally expected by `--check-quick` is now 40 certified /
+1 declined / 0 errors: `shield_unreachable` lowers (right-only variables,
+`Trusted/JointVars.lean`) and is DECLINED rather than erroring.
+
 ## Suite deduplication (2026-10-08, branch `dedupe-suite`)
 
 Six benchmarks were removed as duplicates (`arm_fidelity_high`, `plant_fan_high`,

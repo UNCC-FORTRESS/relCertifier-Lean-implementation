@@ -4,6 +4,19 @@ Status: landed 2026-10-08. Six benchmark directories removed with everything tha
 referenced them; no proof added, no surviving benchmark file touched. Every check
 re-run green on the 40-benchmark suite (§5).
 
+**Pruning suite (2026-10-08, branch `pruning-suite`, after this document).**
+`match_multi_rate` gained — additively — a pruned stall fallback mode `STALL` and the
+edge `DRIVE → STALL` (`docs/PRUNING.md`). Its row in §3 stays (declared-invariant
+theorem `match_multi_rate_modal` over the one-mode automaton); beside it the battery now
+carries `MatchMultiRatePruned.match_multi_rate_pruned` (Theorem 3 over the two-mode
+automaton, the right never in `STALL`) and `match_multi_rate_nonconn` (Theorem 2 for
+the pruned edge): 52 theorems, 42 with `z3_unsat_sound`. Its settling-family rows
+(`match_multi_rateM`, `faithfulSettling`, `match_multi_rate_real`) are withdrawn — the
+transcription needs closed guard bands — so the `*_real` battery is 39; the viability
+census is 1088 faces (`STALL` adds three); `shield_unreachable` now lowers and is
+DECLINED (40 / 1 / 0 over the 41 inputs). The counts below are those of this
+deduplication as measured.
+
 ## 1. The finding, re-verified
 
 Normalize every `benchmarks/suite_uniform/<name>/input.txt` by removing comments, blank

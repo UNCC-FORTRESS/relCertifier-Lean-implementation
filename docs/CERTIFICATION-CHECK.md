@@ -34,7 +34,18 @@ Read `README.md` first for what the theorems say. This document is only about
 > `sorryAx`, no other axiom. The five checked-cut benchmarks at their declared invariant:
 > `docs/CUT-COMPOSITION.md`, `docs/PAPER-MAPPING.md` §2c.
 >
-> **Branch `dedupe-suite` (2026-10-08) — current:** six duplicate benchmarks removed
+> **Branch `pruning-suite` (2026-10-08) — current:** `match_multi_rate` declares a pruned
+> stall fallback (`docs/PRUNING.md`). `lake build` 8976 jobs, exit 0 (warm) ·
+> `--check-quick` **40 CERTIFIED, 1 DECLINED (`shield_unreachable`, now lowering and
+> declared as declined), 0 errors — matches the declared suite**, coverage
+> 6/97/504/191/**2** (+ 1 pruned edge), QUICK CHECKS PASSED · `relcert-test` ALL PASS
+> (with `BENCH_PATHS`; 40 IR literals match their files) · `--run-verdicts` 800/800
+> `unsat`, ALL HYPOTHESES DISCHARGED · axiom audit **52** theorems: 42 with
+> `z3_unsat_sound`, 10 standard-three, no `sorryAx`, no other axiom · `--handoff` 192
+> transitions over 41 inputs, 191 unsat, the documented `shield_unreachable` FAIL ·
+> `RELCERT_NO_PRUNE=1 relcert …/match_multi_rate/input.txt` DECLINED.
+>
+> **Branch `dedupe-suite` (2026-10-08):** six duplicate benchmarks removed
 > (`docs/SUITE-DEDUPE.md`). `lake build` 8969 jobs, exit 0 (warm) · `--check-quick`
 > **40 CERTIFIED, 0 DECLINED, 1 documented error — matches the declared suite**,
 > coverage 6/97/504/191, QUICK CHECKS PASSED · `relcert-test` ALL PASS (with
@@ -137,8 +148,9 @@ Checks 3 and the certification run are bundled by
 ```
 
 which certifies the suite, compares the tally against `Verdicts/Coverage.expectedSuite`
-(40 certified, 0 declined, 1 documented inconclusive), then discharges every hypothesis
-with its coverage counts, and exits non-zero if either half fails. It deliberately does
+(40 certified, 1 declined — the documented `shield_unreachable` — 0 errors), then
+discharges every hypothesis with its coverage counts, and exits non-zero if either half
+fails. It deliberately does
 *not* run check 1 — a 13-hour build does not belong behind a flag named "quick" — and
 does not run check 4, which lives in a separate binary. `relcert --help` says so.
 
@@ -154,9 +166,10 @@ lake build
 
 `RelCertifier.lean` imports `RelCertifier/Instances/ModalBattery.lean`, which
 imports the modal instance of **every** benchmark. So a clean `lake build`
-elaborates and kernel-checks all 41 base modal theorems, the 7 mode-keyed and the 2
-cut-composed ones (plus the settling and throughout families, the proof calculus, and
-the checker). A green build is the
+elaborates and kernel-checks all 41 base modal theorems, the 7 mode-keyed, the 2
+cut-composed ones, the pruning-suite theorem of `match_multi_rate` and its Theorem 2
+instance (plus the settling and throughout families, the proof calculus, and the
+checker). A green build is the
 primary result: no `sorry`, no `admit`, no `native_decide` anywhere in the
 development.
 
@@ -185,13 +198,16 @@ lake build RelCertifier.Instances.ModalBattery 2>&1 | grep -A3 "depends on axiom
 last one — the line that says `z3_unsat_sound`. With `-A2` every theorem reads as
 standard-three. Found 2026-10-08; the earlier recipe said `-A2`.)
 
-Expected, for all 50 theorems (40 benchmarks; `rover3tier_rung12` has two, one
+Expected, for all 52 theorems (40 benchmarks; `rover3tier_rung12` has two, one
 per left mode; seven benchmarks have a mode-keyed theorem as well; the two
-checked-cut benchmarks have a declared-invariant theorem as well):
+checked-cut benchmarks have a declared-invariant theorem as well; `match_multi_rate`
+has the pruning-suite theorem over its two-mode automaton and the Theorem 2 instance
+of its pruned edge as well):
 
 * `[propext, Classical.choice, Quot.sound]` — the three standard Lean axioms;
-* plus `RelCertifier.z3_unsat_sound` for the 40 theorems whose flow certificates
-  are built from a Z3 verdict (36 base theorems and 4 mode-keyed ones).
+* plus `RelCertifier.z3_unsat_sound` for the 42 theorems whose flow certificates
+  are built from a Z3 verdict (36 base theorems, 4 mode-keyed ones, and the two
+  `match_multi_rate` pruning-suite theorems).
 
 Five benchmarks are **entirely Z3-free** — the standard three alone, and no
 verdict hypotheses in the statement either: `rover3_M1`, `rover_coupled`,
@@ -235,9 +251,15 @@ per-phase totals and `--run-verdicts` checks them:
   [coverage] cut probes: 97/97 hypotheses discharged
   [coverage] modal: 504/504 hypotheses discharged
   [coverage] handoff: 191/191 hypotheses discharged
+  [coverage] non-connection: 2/2 hypotheses discharged
+  [coverage] pruned edges: 1/1 hypotheses discharged
 ```
 
-(The modal count moved from 483 to 522 on 2026-10-07 with the five packs of the
+(The fifth phase, **non-connection** (2026-10-08, `docs/PRUNING.md`), re-runs the two
+pruning queries of every pruned edge the emitted covers record — one edge, `DRIVE →
+STALL` of `match_multi_rate`; `Verdicts/RunNonConn.lean`, counts derived from the cover
+table by `CoveragePins`, the rebuilt pair pinned to the instance's `VerdNC` by
+`Verdicts/NonConnPins.lean`. The modal count moved from 483 to 522 on 2026-10-07 with the five packs of the
 mode-keyed instances, runner rows 42–46 — rows 36–40 since the deduplication. The fourth
 phase is the cross-mode **handoff** check: one domain-conditioned query per declared left
 transition of every emitted benchmark, 215 in all before the deduplication; it is green
@@ -325,8 +347,13 @@ This is the *search* side: the tool re-derives covers and certificates from the
 inputs. It is not needed to believe the theorems (the certificates the theorems
 consume are emitted data, checked by `decideCovered` and the kernel), but it
 confirms the emitted data in `Instances/Bench*.lean` is what the current tool
-produces. 40 of 41 benchmarks certify; `shield_unreachable` reports an
-inconclusive Z3 verdict and is therefore outside the certified suite.
+produces. 40 of 41 benchmarks certify; `shield_unreachable` is DECLINED (since
+2026-10-08 it lowers — right-only variables are accepted — but its `Shield` guard is a
+closed compound band the non-connection certificate does not prune, and `Shield` is an
+admissible initial mode) and is therefore outside the certified suite. The pruned edge
+of `match_multi_rate` is printed on every run (`[prune] match_multi_rate:
+[DRIVE->STALL]`, stderr); `RELCERT_NO_PRUNE=1` makes that benchmark DECLINE
+(`docs/PRUNING.md`).
 
 ---
 
@@ -351,6 +378,8 @@ obligations (watertank's are *proven*, in `WatertankViability.lean`).
 | `endurance_orderlift_1to2` | `EnduranceOrderlift1to2Modal.lean` | `endurance_orderlift_1to2_modal` | `0 ≤ dt`; 1×`VerdO` | std 3 + `z3_unsat_sound` |
 | `endurance_orderlift_2to3` | `EnduranceOrderlift2to3Modal.lean` | `endurance_orderlift_2to3_modal` | `0 ≤ dt`; 6×`VerdJ` | std 3 + `z3_unsat_sound` |
 | `match_multi_rate` | `MatchMultiRateModal.lean` | `match_multi_rate_modal` | `0 ≤ dt`; 4×`VerdM` | std 3 + `z3_unsat_sound` |
+| `match_multi_rate` (two-mode automaton with the pruned `STALL` sink; right never in `STALL`) | `MatchMultiRatePruned.lean` | `match_multi_rate_pruned` | `0 ≤ dt`; 4×`VerdM` | std 3 + `z3_unsat_sound` |
+| `match_multi_rate` (the pruned edge `DRIVE → STALL`, Theorem 2) | `MatchMultiRatePruned.lean` | `match_multi_rate_nonconn` | `VerdNC` (source + barrier `unsat`) | std 3 + `z3_unsat_sound` |
 | `refinement_ladder_rover_rung1_2to3` | `RoverLadderRung1Modal.lean` | `rover_ladder_rung1_modal` | `0 ≤ dt`; 6×`VerdE` | std 3 + `z3_unsat_sound` |
 | `refinement_ladder_rover_rung2_3to6` | `RoverLadderRung2Modal.lean` | `rover_ladder_rung2_3to6_modal` | `0 ≤ dt`; 6×`Verd36` | std 3 + `z3_unsat_sound` |
 | `refinement_ladder_rover_rung2_6dof` | `RoverRung26dofModal.lean` | `rung2_6dof_modal` | `0 ≤ dt` | **std 3 only** |

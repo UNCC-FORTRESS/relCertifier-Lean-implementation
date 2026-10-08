@@ -202,8 +202,19 @@ SWITCHES (environment)
                        every declared right edge stays in the cover's all-successors
                        obligation; docs/PRUNING.md shows the benchmark it flips
   RELCERT_NO_CUT=1     disable the checked-cut channel (queries on the bare evolve domains)
+  RELCERT_IMPLIED_CUT=1
+                       widen the cut candidates (off by default): the closure of a strict
+                       guard conjunct (O1 by weakening) and, for a contraction field
+                       x' = k (c - x), the atoms x <= c / x >= c (O1 by rational
+                       comparison with a threshold guard conjunct, else one Z3 query
+                       UNSAT(guard and not atom)); --emit-cuts then also prints the
+                       extended certificate `<defname>X` (atom, kind, O1, O2 route).
+                       The suite_uniform pins read the default (legacy) certificate.
+  RELCERT_NO_IMPLIED_CUT=1
+                       force the widened candidates off (the counter-run of the suite_v2
+                       matrix, legacy guard-conjunct cuts only)
   RELCERT_DEBUG=1      per-mode diagnostics on stderr (cuts, admissible starts, pruned
-                       edges, per-λ segment status)
+                       edges, per-λ segment status; [cut-x] lines for the widened atoms)
 
 EXIT
   0 success · 1 a check failed · 2 environment problem (no z3, bad usage)"
@@ -236,16 +247,53 @@ def emitCuts (path defname : String) : IO Unit := do
                 | .frozen => "frozen"
                 | .diStrict => "diStrict"
                 | .diNonstrict => "diNonstrict") ++ ")")) ++ "]"
+        -- RELCERT_IMPLIED_CUT=1: the extended search (`checkedCutX`) runs instead; its
+        -- `guardConj` subset IS the legacy certificate (printed first, same literal),
+        -- and the full extended certificate is printed as a second `def <defname>X`.
+        let implied ← impliedCutsOn
+        let emitAtomsX (xs : List CutAtomX) : String :=
+          "[" ++ String.intercalate ", " (xs.map (fun x =>
+            "⟨" ++ RelCertifier.Parse.emitForm x.atom ++ ", CutKind." ++
+              (match x.kind with
+                | .guardConj => "guardConj"
+                | .impliedContract => "impliedContract"
+                | .closure => "closure") ++ ", CutEntry." ++
+              (match x.entry with
+                | .membership => "membership"
+                | .rational => "rational"
+                | .z3 => "z3"
+                | .weakening => "weakening") ++ ", CutRoute." ++
+              (match x.route with
+                | .shape => "shape"
+                | .frozen => "frozen"
+                | .diStrict => "diStrict"
+                | .diNonstrict => "diNonstrict") ++ "⟩")) ++ "]"
+        let legacyOf (xs : List CutAtomX) : List (RelCertifier.Parse.PForm × CutRoute) :=
+          (xs.filter (fun x => x.kind == CutKind.guardConj)).map (fun x => (x.atom, x.route))
         let mut ls : List String := []
+        let mut lxs : List String := []
         for mM in p.L.modes do
-          let (_, kept) ← checkedCut s cnt 5000 200000 deadline vars n coord
-            RelCertifier.Side.L mM
-          ls := ls ++ [s!"      ({RelCertifier.Parse.qs mM.name}, {emitAtoms kept})"]
+          if implied then
+            let (_, xs) ← checkedCutX s cnt 5000 200000 deadline vars n coord
+              RelCertifier.Side.L mM
+            ls := ls ++ [s!"      ({RelCertifier.Parse.qs mM.name}, {emitAtoms (legacyOf xs)})"]
+            lxs := lxs ++ [s!"      ({RelCertifier.Parse.qs mM.name}, {emitAtomsX xs})"]
+          else
+            let (_, kept) ← checkedCut s cnt 5000 200000 deadline vars n coord
+              RelCertifier.Side.L mM
+            ls := ls ++ [s!"      ({RelCertifier.Parse.qs mM.name}, {emitAtoms kept})"]
         let mut rs : List String := []
+        let mut rxs : List String := []
         for mM in p.R.modes do
-          let (_, kept) ← checkedCut s cnt 5000 200000 deadline vars n coord
-            RelCertifier.Side.R mM
-          rs := rs ++ [s!"      ({RelCertifier.Parse.qs mM.name}, {emitAtoms kept})"]
+          if implied then
+            let (_, xs) ← checkedCutX s cnt 5000 200000 deadline vars n coord
+              RelCertifier.Side.R mM
+            rs := rs ++ [s!"      ({RelCertifier.Parse.qs mM.name}, {emitAtoms (legacyOf xs)})"]
+            rxs := rxs ++ [s!"      ({RelCertifier.Parse.qs mM.name}, {emitAtomsX xs})"]
+          else
+            let (_, kept) ← checkedCut s cnt 5000 200000 deadline vars n coord
+              RelCertifier.Side.R mM
+            rs := rs ++ [s!"      ({RelCertifier.Parse.qs mM.name}, {emitAtoms kept})"]
         s.close
         IO.println s!"def {defname} : EvolStrengthening :="
         IO.println "  { L := ["
@@ -256,6 +304,17 @@ def emitCuts (path defname : String) : IO Unit := do
         IO.println (String.intercalate ",
 " rs)
         IO.println "    ] }"
+        if implied then
+          IO.println ""
+          IO.println s!"def {defname}X : EvolStrengtheningX :="
+          IO.println "  { L := ["
+          IO.println (String.intercalate ",
+" lxs)
+          IO.println "    ]"
+          IO.println "    R := ["
+          IO.println (String.intercalate ",
+" rxs)
+          IO.println "    ] }"
 
 /-- `--emit-ir <file> <defname>`: print the parsed `PProblem` as a Lean literal (the
 single-door bridge for the `Faithful` kernel certificates — see EmitIR.lean). -/

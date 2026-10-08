@@ -1,0 +1,61 @@
+# platoon_delay_band: the delayed-link platoon follower with its original half-open FOLLOW band.
+# scenario: sensor-attack
+# mechanisms: M2 M4 M6 M6+
+#
+# The platoon of platoon_delay_bias (gap g in m to a constant-speed leader; FOLLOW
+# g' = -0.5 (g - 30), CATCH g' = -0.6 (g - 30) re-engaged from a gap of at least 30 m,
+# BRAKE fallback below 20 m, g' = +1.5, sink; the deployed follower acts on the link's
+# 1 m gap overstatement, loops toward 29 m, bands entered 1 m later), with the FOLLOW
+# band written as the controller has it: 20 <= g < 40 (the 40 m boundary belongs to
+# CATCH). Claim (every mode): g_L <= g_R + 1 and g_R <= g_L + 3.
+#
+# This is the strict band that docs/SUITE-REDESIGN.md section 7 recorded as L2: the
+# strict conjunct g < 40 is not a cut candidate, and the mixed FOLLOW/CATCH segments
+# need the band cap, so the closed band 20 <= g <= 40 was used instead. With
+# RELCERT_IMPLIED_CUT=1 the certifier offers the CLOSURE g <= 40 (O1 by weakening of the
+# strict guard conjunct; O2 by differential induction, the gentle loop closes the gap at
+# 40 m) and the file certifies as written: lambda = 1, budget 2, crossing FOLLOW <-> CATCH
+# (M2). RELCERT_NO_IMPLIED_CUT=1 (legacy guard-conjunct cuts only) DECLINES: the closure
+# is load-bearing (M6+); RELCERT_NO_CUT=1 DECLINES (M6). FOLLOW -> BRAKE is pruned and
+# BRAKE is not an admissible start (M4, NO_PRUNE DECLINES). Units m, s; envelope
+# 15 <= g <= 60 both sides.
+[problem]
+name = platoon_delay_band
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 4.0
+[Lsys]
+state_vars = [g]
+epsilon = 2.0
+[Lsys.mode.FOLLOW]
+ode = g' = smt2:(* -0.5 (- g 29.0));
+guard = g >= 21.0 and g < 40.0
+evolve = g >= 15.0 and g <= 60.0
+next = [CATCH, FOLLOW]
+[Lsys.mode.CATCH]
+ode = g' = smt2:(* -0.6 (- g 29.0));
+guard = g >= 30.0
+evolve = g >= 15.0 and g <= 60.0
+next = [FOLLOW, CATCH]
+[Rsys]
+state_vars = [g]
+epsilon = 1.0
+[Rsys.mode.FOLLOW]
+ode = g' = smt2:(* -0.5 (- g 30.0));
+guard = g >= 20.0 and g < 40.0
+evolve = g >= 15.0 and g <= 60.0
+next = [CATCH, FOLLOW, BRAKE]
+[Rsys.mode.CATCH]
+ode = g' = smt2:(* -0.6 (- g 30.0));
+guard = g >= 30.0
+evolve = g >= 15.0 and g <= 60.0
+next = [FOLLOW, CATCH]
+[Rsys.mode.BRAKE]
+ode = g' = smt2:1.5;
+guard = g < 20.0
+evolve = g >= 15.0 and g <= 60.0
+next = [BRAKE]
+[relational_invariant]
+FOLLOW = smt2:(and (<= L_g (+ R_g 1.0)) (<= R_g (+ L_g 3.0)))
+CATCH  = smt2:(and (<= L_g (+ R_g 1.0)) (<= R_g (+ L_g 3.0)))

@@ -1,0 +1,61 @@
+# heater_cycle: a thermostat-cycled heater with a stronger element, against the certified cycle.
+# scenario: degraded-actuator
+# mechanisms: M2
+#
+# Temperature T (deg C) of a heated enclosure. The certified controller (right) cycles
+# between HEAT (T' = 0.1 (90 - T), the element drives T toward 90) and OFF
+# (T' = 0.05 (20 - T), cooling toward the 20 deg ambient) with a 55..65 hysteresis band:
+# HEAT may hand over to OFF anywhere in the band and must at 65; OFF may hand over to
+# HEAT anywhere in the band and must at 55. The deployed unit (left) has a replacement
+# element 25 % stronger (HEAT T' = 0.125 (90 - T)); the cooling and the band are the
+# same. Claim (both modes): T_L <= T_R + 10.5 and T_R <= T_L + 10.5.
+#
+# PER-MODE EVOLVE DOMAINS (Eq. 2): HEAT's domain is 50..65 and OFF's 55..70, so the
+# hand-overs at the band edges are forced. docs/SUITE-REDESIGN.md section 6 dropped
+# the heater cycle under one uniform envelope. With the band edges as domains the claim
+# is the band width: the two cycles may be in opposite phases (a deployed unit at the
+# bottom of the band heating while the reference at the top cools is an admissible
+# pair), so no two-sided bound tighter than 10 is true of the model. The certified
+# slack is 10.5, not 10: at exactly the band width the row's boundary meets the domain
+# corner (T_L = 65, T_R = 55) where the flow points outward but exits both domains, a
+# point the differential-induction routes cannot discharge (tool scope, recorded in
+# docs/SUITE-REDESIGN.md section 7). Within a phase the bound is not implied by the
+# domains (two heating units may be 15 deg apart) and is kept by the flows at
+# lambda = 1; budget 2 (epsilon_L = 2 h, epsilon_R = 1 h), every window crossing
+# HEAT <-> OFF jointly (M2). The implied atoms T <= 90 / T >= 20 the widened cut channel
+# keeps are the set points, outside the bands, and not load-bearing.
+[problem]
+name = heater_cycle
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 4.0
+[Lsys]
+state_vars = [T]
+epsilon = 2.0
+[Lsys.mode.HEAT]
+ode = T' = smt2:(* 0.125 (- 90.0 T));
+guard = T <= 65.0
+evolve = T >= 50.0 and T <= 65.0
+next = [OFF, HEAT]
+[Lsys.mode.OFF]
+ode = T' = smt2:(* 0.05 (- 20.0 T));
+guard = T >= 55.0
+evolve = T >= 55.0 and T <= 70.0
+next = [HEAT, OFF]
+[Rsys]
+state_vars = [T]
+epsilon = 1.0
+[Rsys.mode.HEAT]
+ode = T' = smt2:(* 0.1 (- 90.0 T));
+guard = T <= 65.0
+evolve = T >= 50.0 and T <= 65.0
+next = [OFF, HEAT]
+[Rsys.mode.OFF]
+ode = T' = smt2:(* 0.05 (- 20.0 T));
+guard = T >= 55.0
+evolve = T >= 55.0 and T <= 70.0
+next = [HEAT, OFF]
+[relational_invariant]
+HEAT = T[l] <= T[r] + 10.5 and T[r] <= T[l] + 10.5
+OFF  = T[l] <= T[r] + 10.5 and T[r] <= T[l] + 10.5

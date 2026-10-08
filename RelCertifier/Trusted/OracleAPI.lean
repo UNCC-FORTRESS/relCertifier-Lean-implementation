@@ -25,6 +25,7 @@ import RelCertifier.Trusted.InvComponents
 import RelCertifier.Trusted.NonConnQuery
 import RelCertifier.Trusted.JointVars
 import RelCertifier.Checker.EvolStrengthening
+import RelCertifier.Checker.EvolStrengtheningX
 import RelCertifier.Trusted.Z3
 import RelCertifier.Checker.Checker
 import RelCertifier.Checker.CoverEmit
@@ -128,6 +129,96 @@ def checkedCut (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
             kept := kept ++ [(a, fI, CutRoute.diNonstrict)]
   let cut := kept.foldl (fun d c => IForm.and d c.2.1) IForm.tt
   pure (cut, kept.map (fun c => (c.1, c.2.2)))
+
+/-- **The extended cut channel switch** (L1 implied-contraction atoms and L2 closures,
+`Checker/EvolStrengtheningX.lean`). Default OFF: the `suite_uniform` instances `rfl`-pin
+the legacy certificate and the covers searched with it, so by default the tool emits
+exactly what it did before. `RELCERT_IMPLIED_CUT=1` turns the channel on (the
+`suite_v2` runs, `scripts/suite_v2_matrix.py`); `RELCERT_NO_IMPLIED_CUT=1` overrides to
+off (the matrix's counter-run: legacy cuts only, so a benchmark that then DECLINES is
+load-bearing on the implied atoms — the "M6+" cell). -/
+def impliedCutsOn : IO Bool := do
+  if (← IO.getEnv "RELCERT_NO_IMPLIED_CUT").isSome then pure false
+  else pure (← IO.getEnv "RELCERT_IMPLIED_CUT").isSome
+
+/-- **The extended checked cut of a mode** (`RELCERT_IMPLIED_CUT=1` path): the legacy
+guard-conjunct atoms (computed by `checkedCut`, unchanged, tagged `guardConj` /
+`membership`), then the L2 closures of the strict guard conjuncts (O1 by weakening),
+then the L1 implied-contraction atoms `v ≤ c` / `v ≥ c` of every contraction field
+(O1 by rational comparison against a threshold guard conjunct, else by one counted Z3
+query `UNSAT(guard ∧ ¬atom)`). O2 for the new atoms is as for any closed atom: the
+contract-shape route over `contractEq`'s grammar (no Z3), the frozen route, then the DI
+routes B and A — each atom over the bare evolve domain, unconditioned, so the lift
+composes per atom. An atom already kept (rationally the same threshold) is not offered
+twice. Returns the conjoined domain narrowing and the full extended certificate entry. -/
+def checkedCutX (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
+    (vars : List String) (n : ℕ) (coord : Fin n → String) (side : Side) (m : PMode) :
+    IO (IForm n × List CutAtomX) := do
+  let dbg := (← IO.getEnv "RELCERT_DEBUG").isSome
+  let (_, legacy) ← checkedCut s cnt maxQ maxSmt deadline vars n coord side m
+  let fOwn := dynOf vars n side m
+  let zeroF : Fin n → ITerm n := fun _ => ITerm.rat 0
+  let evolveI := (lowerF vars n side m.evolve).getD IForm.tt
+  let guardI? := lowerF vars n side m.guard
+  -- O2 of an extended (closed) atom
+  let o2 (a : PForm) : IO (Option CutRoute) := do
+    if contractShapeOKX m a then pure (some CutRoute.shape)
+    else if (atomVars a).all (frozenIn m) then pure (some CutRoute.frozen)
+    else
+      match fOwn, cutAtomG vars n side a with
+      | some f, some g =>
+          let gdot := match side with
+            | Side.L => ilieDeriv g f zeroF (ITerm.rat 1)
+            | _      => ilieDeriv g zeroF f (ITerm.rat 1)
+          let rB := IForm.and evolveI (IForm.and (IForm.cmp .eq g (.rat 0))
+            (IForm.cmp .ge gdot (.rat 0)))
+          if ← probeUnsat s cnt maxQ maxSmt deadline coord rB then pure (some CutRoute.diStrict)
+          else if ← probeUnsat s cnt maxQ maxSmt deadline coord
+              (IForm.and evolveI (IForm.cmp .gt gdot (.rat 0))) then
+            pure (some CutRoute.diNonstrict)
+          else pure none
+      | _, _ => pure none
+  let mut out : List CutAtomX :=
+    legacy.map (fun ar => { atom := ar.1, kind := .guardConj, entry := .membership, route := ar.2 })
+  let mut seen : List PForm := legacy.map (·.1)
+  -- L2: closures of the strict guard conjuncts (O1 by weakening)
+  for sa in strictAtoms m.guard do
+    match closureOf sa with
+    | none => pure ()
+    | some a =>
+        if seen.any (atomEqQ a) then pure () else
+        match ← o2 a with
+        | some r =>
+            seen := seen ++ [a]
+            out := out ++ [{ atom := a, kind := .closure, entry := .weakening, route := r }]
+            if dbg then IO.eprintln s!"    [route] {m.name}: closure {ppForm a}: {r.tag}"
+        | none => pure ()
+  -- L1: implied-contraction atoms (O1 rational, else one Z3 query)
+  for a in impliedCandidates m do
+    if seen.any (atomEqQ a) then pure () else
+    let entry? : Option CutEntry ←
+      if guardImpliesRational m.guard a then pure (some CutEntry.rational)
+      else
+        match guardI?, cutAtomG vars n side a with
+        | some gI, some g =>
+            if ← probeUnsat s cnt maxQ maxSmt deadline coord
+                (IForm.and gI (IForm.cmp .gt g (.rat 0))) then pure (some CutEntry.z3)
+            else pure none
+        | _, _ => pure none
+    match entry? with
+    | none => pure ()
+    | some e =>
+        match ← o2 a with
+        | some r =>
+            seen := seen ++ [a]
+            out := out ++ [{ atom := a, kind := .impliedContract, entry := e, route := r }]
+            if dbg then IO.eprintln s!"    [route] {m.name}: implied {ppForm a}: O1 {e.tag}, O2 {r.tag}"
+        | none => pure ()
+  let cut := out.foldl (fun d x =>
+    match lowerF vars n side x.atom with
+    | some fI => IForm.and d fI
+    | none => d) IForm.tt
+  pure (cut, out)
 
 /-- Conjoin the checked cuts, shape-normalized: `tt` cuts (the `RELCERT_NO_CUT` path)
 leave the base formula UNCHANGED, so emitted-cover instances mirror the exact query. -/
@@ -549,19 +640,37 @@ def certifyWithData (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : N
   -- RELCERT_NO_CUT=1 disables the checked-cut channel entirely (ablation switch:
   -- queries fall back to the bare evolution domains).
   let noCut := (← IO.getEnv "RELCERT_NO_CUT").isSome
+  -- RELCERT_IMPLIED_CUT=1 widens the candidate set (L1 implied-contraction atoms, L2
+  -- closures; `checkedCutX`); off by default, see `impliedCutsOn`.
+  let implied ← impliedCutsOn
+  let dbg := (← IO.getEnv "RELCERT_DEBUG").isSome
+  -- one mode's cut: `(domain narrowing, kept-atom count, extended atoms)`; the
+  -- `[cut]` line counts every kept atom (legacy format), `[cut-x]` lists the
+  -- extended ones (implied mode only)
+  let cutOf (side : Side) (mM : PMode) : IO (IForm n × Nat) := do
+    if noCut then pure (IForm.tt, 0)
+    else if implied then do
+      let (c, xs) ← checkedCutX s cnt maxQ maxSmt deadline vars n coord side mM
+      if dbg then
+        let sd := match side with | Side.L => "L" | Side.R => "R" | _ => "?"
+        for x in xs do
+          if x.kind != CutKind.guardConj then
+            IO.eprintln s!"  [cut-x] {sd}.{mM.name}: {ppForm x.atom} kind={x.kind.tag} entry={x.entry.tag} route={x.route.tag}"
+      pure (c, xs.length)
+    else do
+      let (c, kept) ← checkedCut s cnt maxQ maxSmt deadline vars n coord side mM
+      pure (c, kept.length)
   let mut cutMapL : List (String × IForm n) := []
   for mM in p.L.modes do
-    let (c, kept) ← if noCut then pure (IForm.tt, [])
-      else checkedCut s cnt maxQ maxSmt deadline vars n coord Side.L mM
-    if (← IO.getEnv "RELCERT_DEBUG").isSome then
-      IO.eprintln s!"  [cut] L.{mM.name}: {kept.length} conjunct(s)"
+    let (c, k) ← cutOf Side.L mM
+    if dbg then
+      IO.eprintln s!"  [cut] L.{mM.name}: {k} conjunct(s)"
     cutMapL := cutMapL ++ [(mM.name, c)]
   let mut cutMapR : List (String × IForm n) := []
   for mM in p.R.modes do
-    let (c, kept) ← if noCut then pure (IForm.tt, [])
-      else checkedCut s cnt maxQ maxSmt deadline vars n coord Side.R mM
-    if (← IO.getEnv "RELCERT_DEBUG").isSome then
-      IO.eprintln s!"  [cut] R.{mM.name}: {kept.length} conjunct(s)"
+    let (c, k) ← cutOf Side.R mM
+    if dbg then
+      IO.eprintln s!"  [cut] R.{mM.name}: {k} conjunct(s)"
     cutMapR := cutMapR ++ [(mM.name, c)]
   let cutOfL := fun (nm : String) => (cutMapL.find? (·.1 == nm)).map (·.2) |>.getD IForm.tt
   let cutOfR := fun (nm : String) => (cutMapR.find? (·.1 == nm)).map (·.2) |>.getD IForm.tt

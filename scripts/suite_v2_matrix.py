@@ -12,8 +12,16 @@ reads the evidence off the tool's own output (never off the file's header):
                                                  dynPre, dynPost) and the admissible starts
   3. RELCERT_NO_PRUNE=1 relcert <input>        -> the pruning counter-run
   4. RELCERT_NO_CUT=1 relcert <input>          -> the checked-cut counter-run
+  4b. RELCERT_NO_IMPLIED_CUT=1 relcert <input> -> the implied-cut counter-run (legacy
+                                                 guard-conjunct cuts only)
   5. `relcert --handoff <input>`               -> the cross-mode handoff queries
                                                  (vacuous = every row identical)
+
+Every run except 4b sets RELCERT_IMPLIED_CUT=1: the suite_v2 runs use the widened cut
+channel (closures of strict guard conjuncts, implied-contraction atoms;
+Checker/EvolStrengtheningX.lean), which is off by default so that the suite_uniform
+pins keep reading the legacy certificate. The `[cut-x]` debug lines list the widened
+atoms (kind, O1 justification, O2 route).
 
 From (2) the script REPLAYS the verified checker's structural cover (`decideCovered`,
 RelCertifier/Checker/Checker.lean) on the emitted flags and the file's declared
@@ -32,6 +40,12 @@ joint step (branching). The mechanism columns are then DERIVED:
   M5  the invariant rows differ between left modes, the --handoff queries are
       non-vacuous and all unsat, and the benchmark is CERTIFIED
   M6  some mode keeps a checked cut AND RELCERT_NO_CUT=1 DECLINES
+  M6+ some mode keeps a widened atom (closure / implied-contraction) AND
+      RELCERT_NO_IMPLIED_CUT=1 DECLINES: the cuts are load-bearing only with the
+      implied atoms
+  domains: "per-mode" if some side's modes declare different evolve domains (the
+      paper's Eq. 2 model; the uniform-evolve discipline of the Lean lift does not
+      cover these yet), else "uniform"
   M7  the scenario kind is read from the file's `# scenario:` line; the dimension and
       invariant shape are computed from the file
 
@@ -56,7 +70,8 @@ ROOT = os.path.abspath(os.path.join(HERE, ".."))
 FAMILIES = [
     ("acc_", "ACC under sensor spoofing / retune"),
     ("quad_", "Quadrotor climb, lighter airframe"),
-    ("charger_", "Battery charger, fast unit"),
+    ("charger_", "Battery charger"),
+    ("heater_", "Heater cycle"),
     ("platoon_", "Platoon follower, delayed link"),
     ("rover_patrol_", "Rover patrol (zones)"),
     ("rover3tier_", "Rover patrol (zones)"),
@@ -400,22 +415,25 @@ def analyze(name, path, relcert, timeout):
     rec["rows_identical"] = all(r == rows[0] for r in rows) if rows else True
     shapes = sorted(set(row_shape(r) for r in rows))
     rec["inv_shape"] = "+".join(shapes)
+    rec["per_mode_evolve"] = any(
+        len(set(prob[side]["modes"][m]["evolve"] for m in prob[side]["order"])) > 1 for side in ("L", "R"))
     rec["nonlinear_L"] = any(ode_is_nonlinear(prob["L"]["modes"][m]["ode"], prob["L"]["vars"]) for m in prob["L"]["order"])
     rec["nonlinear_R"] = any(ode_is_nonlinear(prob["R"]["modes"][m]["ode"], prob["R"]["vars"]) for m in prob["R"]["order"])
 
     # 1. main run
-    rc, out, err, wall = run([relcert, path], {"RELCERT_DEBUG": "1"}, timeout)
+    rc, out, err, wall = run([relcert, path], {"RELCERT_DEBUG": "1", "RELCERT_IMPLIED_CUT": "1"}, timeout)
     v, ms, extra = verdict_of(out)
     rec["verdict"] = v; rec["ms"] = ms; rec["verdict_extra"] = extra
     rec["prune_line"] = next((l.strip() for l in err.splitlines() if l.strip().startswith("[prune]")), None)
     rec["admissible_lines"] = [l.strip() for l in err.splitlines() if l.strip().startswith("[admissible]")]
     rec["cut_lines"] = [l.strip() for l in err.splitlines() if l.strip().startswith("[cut]") and "0 conjunct" not in l]
+    rec["cutx_lines"] = [l.strip() for l in err.splitlines() if l.strip().startswith("[cut-x]")]
     rec["route_lines"] = [l.strip() for l in err.splitlines() if l.strip().startswith("[route]")]
     rec["repo_lines"] = [l.strip() for l in err.splitlines() if l.strip().startswith("[repo-pre]")]
     rec["debug_stderr"] = err
 
     # 2. cover
-    rc, out2, err2, _ = run([relcert, "--emit-cover", path, "x"], {}, timeout)
+    rc, out2, err2, _ = run([relcert, "--emit-cover", path, "x"], {"RELCERT_IMPLIED_CUT": "1"}, timeout)
     cov = parse_cover(out2) if v == "CERTIFIED" else None
     rec["covers"] = []
     rec["pruned"] = []
@@ -447,12 +465,16 @@ def analyze(name, path, relcert, timeout):
                 "paths": paths})
 
     # 3./4. counter-runs
-    rc, o3, e3, _ = run([relcert, path], {"RELCERT_NO_PRUNE": "1"}, timeout)
+    rc, o3, e3, _ = run([relcert, path], {"RELCERT_NO_PRUNE": "1", "RELCERT_IMPLIED_CUT": "1"}, timeout)
     rec["no_prune_verdict"] = verdict_of(o3)[0]
     rec["no_prune_ms"] = verdict_of(o3)[1]
-    rc, o4, e4, _ = run([relcert, path], {"RELCERT_NO_CUT": "1"}, timeout)
+    rc, o4, e4, _ = run([relcert, path], {"RELCERT_NO_CUT": "1", "RELCERT_IMPLIED_CUT": "1"}, timeout)
     rec["no_cut_verdict"] = verdict_of(o4)[0]
     rec["no_cut_ms"] = verdict_of(o4)[1]
+    # 4b. the implied-cut counter-run (legacy guard-conjunct cuts only)
+    rc, o4b, e4b, _ = run([relcert, path], {"RELCERT_NO_IMPLIED_CUT": "1"}, timeout)
+    rec["no_implied_verdict"] = verdict_of(o4b)[0]
+    rec["no_implied_ms"] = verdict_of(o4b)[1]
 
     # 5. handoff
     rc, o5, e5, _ = run([relcert, "--handoff", path], {}, timeout)
@@ -501,26 +523,34 @@ def analyze(name, path, relcert, timeout):
         cells["M6"] = "vacuous: cuts kept (" + "; ".join(l.replace("[cut] ", "") for l in rec["cut_lines"]) + f") but NO_CUT={rec['no_cut_verdict']}"
     else:
         cells["M6"] = "no (no cut kept)" if cert else "no"
-    cells["M7"] = f"{rec['scenario'] or 'UNTAGGED'}; dim {rec['dimL']}" + (f"+{rec['dimR'] - rec['dimL']}" if rec['dimR'] != rec['dimL'] else "") + f"; {rec['inv_shape']}"
+    xatoms = [l.replace("[cut-x] ", "") for l in rec["cutx_lines"]]
+    if cert and xatoms and rec["no_implied_verdict"] == "DECLINED":
+        cells["M6+"] = "yes: " + "; ".join(xatoms) + "; NO_IMPLIED=DECLINED"
+    elif cert and xatoms:
+        cells["M6+"] = "vacuous: widened atoms kept (" + "; ".join(xatoms) + f") but NO_IMPLIED={rec['no_implied_verdict']}"
+    else:
+        cells["M6+"] = "no (no widened atom kept)" if cert else "no"
+    cells["M7"] = f"{rec['scenario'] or 'UNTAGGED'}; dim {rec['dimL']}" + (f"+{rec['dimR'] - rec['dimL']}" if rec['dimR'] != rec['dimL'] else "") + f"; {rec['inv_shape']}" + ("; per-mode domains" if rec["per_mode_evolve"] else "")
     rec["cells"] = cells
-    rec["exercised"] = [m for m in ("M1", "M2", "M3", "M4", "M5", "M6") if cells[m].startswith("yes")]
+    rec["exercised"] = [m for m in ("M1", "M2", "M3", "M4", "M5", "M6", "M6+") if cells[m].startswith("yes")]
     return rec
 
 # ----------------------------------------------------------------------------- output
 
 def md_table(recs):
     lines = []
-    lines.append("| benchmark | verdict (ms) | M1 λ≠1 | M2 multi-step | M3 branch | M4 prune | M5 mode-dep | M6 cut | M7 scenario; dim; invariant |")
-    lines.append("|---|---|---|---|---|---|---|---|---|")
+    lines.append("| benchmark | verdict (ms) | M1 λ≠1 | M2 multi-step | M3 branch | M4 prune | M5 mode-dep | M6 cut | M6+ implied cut | M7 scenario; dim; invariant; domains |")
+    lines.append("|---|---|---|---|---|---|---|---|---|---|")
     for r in recs:
         c = r["cells"]
         def short(x):
             return x if len(x) < 70 else x[:67] + "..."
-        lines.append(f"| `{r['name']}` | {r['verdict']} ({r['ms']}) | {short(c['M1'])} | {short(c['M2'])} | {short(c['M3'])} | {short(c['M4'])} | {short(c['M5'])} | {short(c['M6'])} | {c['M7']} |")
+        lines.append(f"| `{r['name']}` | {r['verdict']} ({r['ms']}) | {short(c['M1'])} | {short(c['M2'])} | {short(c['M3'])} | {short(c['M4'])} | {short(c['M5'])} | {short(c['M6'])} | {short(c['M6+'])} | {c['M7']} |")
     return "\n".join(lines)
 
 def md_totals(recs):
-    tot = {m: [r["name"] for r in recs if m in r["exercised"]] for m in ("M1", "M2", "M3", "M4", "M5", "M6")}
+    tot = {m: [r["name"] for r in recs if m in r["exercised"]] for m in ("M1", "M2", "M3", "M4", "M5", "M6", "M6+")}
+    tot["per-mode domains"] = [r["name"] for r in recs if r["per_mode_evolve"]]
     lines = ["| mechanism | benchmarks (non-vacuous) | count |", "|---|---|---|"]
     for m, names in tot.items():
         lines.append(f"| {m} | {', '.join('`'+n+'`' for n in names)} | {len(names)} |")
@@ -531,10 +561,10 @@ def md_table1(recs):
     groups = {}
     for r in recs:
         groups.setdefault(r["family"], []).append(r)
-    order = ["ACC under sensor spoofing / retune", "Quadrotor climb, lighter airframe", "Battery charger, fast unit",
-             "Platoon follower, delayed link", "Rover patrol (zones)", "Arm, leading reference",
+    order = ["ACC under sensor spoofing / retune", "Quadrotor climb, lighter airframe", "Battery charger",
+             "Platoon follower, delayed link", "Rover patrol (zones)", "Arm, leading reference", "Heater cycle",
              "Terrain/position ladder", "Story ladders", "Watertank", "other"]
-    lines = ["| group | count | dim (L/R) | invariant forms | dynamics | discrete structure (modes L/R; pruned fallbacks; mode-dep. rows; cuts) |",
+    lines = ["| group | count | dim (L/R) | invariant forms | dynamics | discrete structure (modes L/R; pruned fallbacks; mode-dep. rows; cuts; implied cuts; per-mode domains) |",
              "|---|---|---|---|---|---|"]
     total = 0
     for g in order:
@@ -550,7 +580,9 @@ def md_table1(recs):
         pr = sum(1 for r in rs if r["cells"]["M4"].startswith("yes"))
         md = sum(1 for r in rs if r["cells"]["M5"].startswith("yes"))
         cut = sum(1 for r in rs if r["cells"]["M6"].startswith("yes"))
-        struct = f"modes {min(mL)}-{max(mL)} / {min(mR)}-{max(mR)}; {pr} with a pruned fallback; {md} mode-dependent; {cut} cut-reliant"
+        cutx = sum(1 for r in rs if r["cells"]["M6+"].startswith("yes"))
+        pmd = sum(1 for r in rs if r["per_mode_evolve"])
+        struct = f"modes {min(mL)}-{max(mL)} / {min(mR)}-{max(mR)}; {pr} with a pruned fallback; {md} mode-dependent; {cut} cut-reliant; {cutx} implied-cut-reliant; {pmd} per-mode domains"
         lines.append(f"| {g} | {len(rs)} | {dimtxt} | {', '.join(forms)} | {dyn} | {struct} |")
     lines.append(f"| **total** | **{total}** | | | | |")
     return "\n".join(lines)
@@ -560,8 +592,10 @@ def md_records(recs):
     for r in recs:
         out.append(f"### `{r['name']}`\n")
         out.append(f"* family: {r['family']}; scenario: {r['scenario']}; dims L/R {r['dimL']}/{r['dimR']}; modes L/R {r['modesL']}/{r['modesR']}; εL/εR {r['epsL']}/{r['epsR']}; λ ∈ [{r['lambda_min']}, {r['lambda_max']}]; invariant shape {r['inv_shape']}; rows identical: {r['rows_identical']}; normalized md5 `{r['hash'][:12]}`")
-        out.append(f"* `relcert`: **{r['verdict']}** ({r['ms']} ms); `{r['prune_line']}`; NO_PRUNE: **{r['no_prune_verdict']}** ({r['no_prune_ms']} ms); NO_CUT: **{r['no_cut_verdict']}** ({r['no_cut_ms']} ms)")
+        out.append(f"* `relcert`: **{r['verdict']}** ({r['ms']} ms); `{r['prune_line']}`; NO_PRUNE: **{r['no_prune_verdict']}** ({r['no_prune_ms']} ms); NO_CUT: **{r['no_cut_verdict']}** ({r['no_cut_ms']} ms); NO_IMPLIED_CUT: **{r['no_implied_verdict']}** ({r['no_implied_ms']} ms); domains: {'per-mode' if r['per_mode_evolve'] else 'uniform'}")
         for l in r["cut_lines"]:
+            out.append(f"* `{l}`")
+        for l in r["cutx_lines"]:
             out.append(f"* `{l}`")
         for l in r["admissible_lines"]:
             out.append(f"* `{l}`")
@@ -574,7 +608,7 @@ def md_records(recs):
             out.append(f"* cover `{c['mL']}_L`: λ = {c['lam']}, budget {c['budget']}, admissible {c['admissible']}, flags {c['flags']}, kinds {c['kinds']}, path modes {c['modes_on_path']}, branching {c['branching']}, right-only {c['right_only']}")
             for s, p in c["paths"].items():
                 out.append(f"    * from `{s}`: `{p}`")
-        out.append("* cells: " + "; ".join(f"**{m}** {r['cells'][m]}" for m in ("M1", "M2", "M3", "M4", "M5", "M6")))
+        out.append("* cells: " + "; ".join(f"**{m}** {r['cells'][m]}" for m in ("M1", "M2", "M3", "M4", "M5", "M6", "M6+")))
         out.append("")
     return "\n".join(out)
 
@@ -596,7 +630,7 @@ def main():
         path = os.path.join(args.bench, n, "input.txt")
         r = analyze(n, path, args.relcert, args.timeout)
         recs.append(r)
-        print(f"{n}: {r['verdict']} ({r['ms']} ms) NO_PRUNE={r['no_prune_verdict']} NO_CUT={r['no_cut_verdict']} exercised={r['exercised']}", flush=True)
+        print(f"{n}: {r['verdict']} ({r['ms']} ms) NO_PRUNE={r['no_prune_verdict']} NO_CUT={r['no_cut_verdict']} NO_IMPLIED_CUT={r['no_implied_verdict']} domains={'per-mode' if r['per_mode_evolve'] else 'uniform'} exercised={r['exercised']}", flush=True)
     # duplicates
     byhash = {}
     for r in recs:

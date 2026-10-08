@@ -1,0 +1,95 @@
+# rover_patrol_zones: patrol rover with a worn drivetrain on a three-zone route.
+# scenario: degraded-actuator
+# mechanisms: M2 M3 M4 M5 M6
+#
+# A patrol rover drives a route whose speed zones are keyed to the odometer s (m):
+#   SLOW    s <  20         commanded speed 0.6 m/s (leaving the depot)
+#   MEDIUM  20 <= s < 50    the planner selects a profile on zone entry, ECO (0.9 m/s)
+#                           or BRISK (1.1 m/s)
+#   FAST    s >= 50         commanded speed 1.5 m/s (open track, sink)
+# Each zone is a first-order speed loop v' = k (vcmd - v), k = 1 /s, entered at a speed
+# between the 0.3 m/s floor and the zone's command. The deployed rover (left) has a
+# worn drivetrain: an extra rolling resistance 0.25 v, so its loop is
+# v' = (vcmd - v) - 0.25 v = 1.25 (0.8 vcmd - v): it settles 20 % slower and reacts
+# 25 % faster; the deployed planner may also switch between the two MEDIUM profiles.
+# The reference (right) is the nominal rover.
+#
+# Rows (one per left mode): the deployed never drives faster than the reference
+# (v_L <= v_R) and its odometer never leads the reference's by more than a zone margin
+# that grows along the route (SLOW 0.5 m, MEDIUM 1 m, FAST 2 m); the handoffs along
+# SLOW -> MEDIUM -> FAST loosen the bound (M5, 10 non-vacuous handoff queries).
+# Covers (measured): every zone certifies at lambda = 1 with budget 2 (epsilon_L = 2 s,
+# epsilon_R = 1 s); a window started in SLOW takes a joint step whose retained
+# successors MEDIUM_ECO and MEDIUM_BRISK both cover (M2, M3); a reference that is still
+# in an earlier zone than the deployed (or in the ECO profile while the deployed runs
+# BRISK) repositions right-only to the deployed's zone. The zone speed caps are
+# flow-invariant guard conjuncts (each loop contracts toward its command), the checked
+# cuts those right-only segments need (RELCERT_NO_CUT=1 DECLINES, M6).
+#
+# Fallback (M4): the reference declares a STALL fallback below 0.2 m/s (drive cut,
+# v' = -2 v, odometer keeps integrating, sink) from every driving zone; every zone floor
+# is 0.3 m/s and every loop accelerates at 0.2 m/s, so all four STALL edges are pruned;
+# v_L >= 0.3 and v_L <= v_R exclude STALL as a start. RELCERT_NO_PRUNE=1 DECLINES.
+# Envelope: v in [0, 1.6] m/s, s in [0, 100] m, both sides.
+[problem]
+name = rover_patrol_zones
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 4.0
+[Lsys]
+state_vars = [v, s]
+epsilon = 2.0
+[Lsys.mode.SLOW]
+ode = v' = smt2:(* 1.25 (- 0.48 v)); s' = v;
+guard = s >= 0.0 and s < 20.0 and v >= 0.3 and v <= 0.6
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0
+next = [MEDIUM_ECO, MEDIUM_BRISK, SLOW]
+[Lsys.mode.MEDIUM_ECO]
+ode = v' = smt2:(* 1.25 (- 0.72 v)); s' = v;
+guard = s >= 20.0 and s < 50.0 and v >= 0.3 and v <= 0.9
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0
+next = [FAST, MEDIUM_BRISK, MEDIUM_ECO]
+[Lsys.mode.MEDIUM_BRISK]
+ode = v' = smt2:(* 1.25 (- 0.88 v)); s' = v;
+guard = s >= 20.0 and s < 50.0 and v >= 0.3 and v <= 1.1
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0
+next = [FAST, MEDIUM_ECO, MEDIUM_BRISK]
+[Lsys.mode.FAST]
+ode = v' = smt2:(* 1.25 (- 1.2 v)); s' = v;
+guard = s >= 50.0 and v >= 0.3 and v <= 1.5
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0
+next = [FAST]
+[Rsys]
+state_vars = [v, s]
+epsilon = 1.0
+[Rsys.mode.SLOW]
+ode = v' = smt2:(- 0.6 v); s' = v;
+guard = s >= 0.0 and s < 20.0 and v >= 0.3 and v <= 0.6
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0
+next = [MEDIUM_ECO, MEDIUM_BRISK, SLOW, STALL]
+[Rsys.mode.MEDIUM_ECO]
+ode = v' = smt2:(- 0.9 v); s' = v;
+guard = s >= 20.0 and s < 50.0 and v >= 0.3 and v <= 0.9
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0
+next = [FAST, MEDIUM_ECO, STALL]
+[Rsys.mode.MEDIUM_BRISK]
+ode = v' = smt2:(- 1.1 v); s' = v;
+guard = s >= 20.0 and s < 50.0 and v >= 0.3 and v <= 1.1
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0
+next = [FAST, MEDIUM_BRISK, STALL]
+[Rsys.mode.FAST]
+ode = v' = smt2:(- 1.5 v); s' = v;
+guard = s >= 50.0 and v >= 0.3 and v <= 1.5
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0
+next = [FAST, STALL]
+[Rsys.mode.STALL]
+ode = v' = smt2:(* -2.0 v); s' = v;
+guard = v < 0.2
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0
+next = [STALL]
+[relational_invariant]
+SLOW         = smt2:(and (<= L_v R_v) (<= L_s (+ R_s 0.5)))
+MEDIUM_ECO   = smt2:(and (<= L_v R_v) (<= L_s (+ R_s 1.0)))
+MEDIUM_BRISK = smt2:(and (<= L_v R_v) (<= L_s (+ R_s 1.0)))
+FAST         = smt2:(and (<= L_v R_v) (<= L_s (+ R_s 2.0)))

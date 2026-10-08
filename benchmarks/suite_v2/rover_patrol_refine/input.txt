@@ -1,0 +1,82 @@
+# rover_patrol_refine: the worn-drivetrain patrol rover refined with its motor lag.
+# scenario: model-refinement
+# mechanisms: M1 M2 M3 M5 M6
+#
+# Refinement rung of rover_patrol_zones. The deployed rover (left) is modeled with its
+# motor-current lag: each zone's speed loop commands an acceleration
+# a_cmd = 1.25 (0.8 vcmd - v) (the worn-drivetrain loop of rover_patrol_zones) and the
+# motor realises it through a 0.5 s lag, v' = a, a' = 2 (a_cmd - a); the odometer is
+# s' = v. The reference (right) is the first-order nominal rover of rover_patrol_zones
+# (zones SLOW 0.6, MEDIUM ECO 0.9 / BRISK 1.1 selected on zone entry, FAST 1.5 m/s).
+#
+# Rows (one per left mode): the lifted functional a_L + 2 v_L <= 2 v_R + 1 (along the
+# deployed model (a + 2v)' = 2 a_cmd; with the motor envelope -0.5 <= a <= 1 the row
+# implies v_L <= v_R + 0.75) and the zone-dependent odometer margin of
+# rover_patrol_zones (SLOW 0.5 m, MEDIUM 1 m, FAST 2 m), loosening along the route (M5).
+# Covers (measured): every window certifies at lambda = 7/2 (the lagged functional needs
+# the reference run 3.5x faster; every smaller grid point fails some zone pairing),
+# budget ceil(7/2 * 2 / 1) = 7 right cycles per left window; a window started in SLOW
+# takes joint steps whose retained successors MEDIUM_ECO and MEDIUM_BRISK both cover
+# (M1, M2, M3); a reference in an earlier zone repositions right-only, which needs the
+# zone speed caps as checked cuts (RELCERT_NO_CUT=1 DECLINES, M6).
+# The stall fallback of rover_patrol_zones is not declared here: with the lag the
+# rows cannot exclude a stalled reference as a start (the functional admits a_L < 0),
+# so the refinement rung keeps the nominal reference automaton only.
+# Envelope: v in [0, 1.6], s in [0, 100], a in [-0.5, 1.0].
+[problem]
+name = rover_patrol_refine
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 4.0
+[Lsys]
+state_vars = [v, s, a]
+epsilon = 2.0
+[Lsys.mode.SLOW]
+ode = v' = a; s' = v; a' = smt2:(* 2.0 (- (* 1.25 (- 0.48 v)) a));
+guard = s >= 0.0 and s < 20.0 and v >= 0.3 and v <= 0.6
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -0.5 and a <= 1.0
+next = [MEDIUM_ECO, MEDIUM_BRISK, SLOW]
+[Lsys.mode.MEDIUM_ECO]
+ode = v' = a; s' = v; a' = smt2:(* 2.0 (- (* 1.25 (- 0.72 v)) a));
+guard = s >= 20.0 and s < 50.0 and v >= 0.3 and v <= 0.9
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -0.5 and a <= 1.0
+next = [FAST, MEDIUM_BRISK, MEDIUM_ECO]
+[Lsys.mode.MEDIUM_BRISK]
+ode = v' = a; s' = v; a' = smt2:(* 2.0 (- (* 1.25 (- 0.88 v)) a));
+guard = s >= 20.0 and s < 50.0 and v >= 0.3 and v <= 1.1
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -0.5 and a <= 1.0
+next = [FAST, MEDIUM_ECO, MEDIUM_BRISK]
+[Lsys.mode.FAST]
+ode = v' = a; s' = v; a' = smt2:(* 2.0 (- (* 1.25 (- 1.2 v)) a));
+guard = s >= 50.0 and v >= 0.3 and v <= 1.5
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -0.5 and a <= 1.0
+next = [FAST]
+[Rsys]
+state_vars = [v, s, a]
+epsilon = 1.0
+[Rsys.mode.SLOW]
+ode = v' = smt2:(- 0.6 v); s' = v; a' = smt2:0;
+guard = s >= 0.0 and s < 20.0 and v >= 0.3 and v <= 0.6
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -0.5 and a <= 1.0
+next = [MEDIUM_ECO, MEDIUM_BRISK, SLOW]
+[Rsys.mode.MEDIUM_ECO]
+ode = v' = smt2:(- 0.9 v); s' = v; a' = smt2:0;
+guard = s >= 20.0 and s < 50.0 and v >= 0.3 and v <= 0.9
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -0.5 and a <= 1.0
+next = [FAST, MEDIUM_ECO]
+[Rsys.mode.MEDIUM_BRISK]
+ode = v' = smt2:(- 1.1 v); s' = v; a' = smt2:0;
+guard = s >= 20.0 and s < 50.0 and v >= 0.3 and v <= 1.1
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -0.5 and a <= 1.0
+next = [FAST, MEDIUM_BRISK]
+[Rsys.mode.FAST]
+ode = v' = smt2:(- 1.5 v); s' = v; a' = smt2:0;
+guard = s >= 50.0 and v >= 0.3 and v <= 1.5
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -0.5 and a <= 1.0
+next = [FAST]
+[relational_invariant]
+SLOW         = smt2:(and (<= (+ L_a (* 2.0 L_v)) (+ (* 2.0 R_v) 1.0)) (<= L_s (+ R_s 0.5)))
+MEDIUM_ECO   = smt2:(and (<= (+ L_a (* 2.0 L_v)) (+ (* 2.0 R_v) 1.0)) (<= L_s (+ R_s 1.0)))
+MEDIUM_BRISK = smt2:(and (<= (+ L_a (* 2.0 L_v)) (+ (* 2.0 R_v) 1.0)) (<= L_s (+ R_s 1.0)))
+FAST         = smt2:(and (<= (+ L_a (* 2.0 L_v)) (+ (* 2.0 R_v) 1.0)) (<= L_s (+ R_s 2.0)))

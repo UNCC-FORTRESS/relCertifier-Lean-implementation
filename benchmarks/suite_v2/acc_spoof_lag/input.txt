@@ -1,0 +1,51 @@
+# acc_spoof_lag: the spoofed cruise controller refined with the powertrain lag.
+# scenario: model-refinement
+# mechanisms: M1 M2 M4
+#
+# Refinement of acc_spoof_cruise. The deployed vehicle (left) is modeled with its
+# powertrain lag: the speed loop commands an acceleration a_cmd = 0.5 (30 - 1.25 v)
+# (set speed 30 m/s, +25 % speed-sensor gain spoof) and the powertrain realises it
+# through a first-order lag of 0.5 s: v' = a, a' = 2 (a_cmd - a). The reference (right)
+# is the unspoofed first-order cruise model v' = 0.5 (30 - v) (lag abstracted away).
+#
+# Claim: the lifted functional a_L + 2 v_L <= 2 v_R. Along the deployed model
+# (a + 2v)' = 1.25 (24 - v), the spoofed first-order loop's rate, so the functional
+# plays the role the speed plays in acc_spoof_cruise; with the powertrain envelope
+# -5 <= a <= 10 the row implies v_L <= v_R + 2.5. The right certifies at lambda = 5/4
+# (at lambda = 1 the boundary derivative 1.25 (24 - v_L) - 0.5 (30 - v_R) is positive for
+# a_L + 2 v_L = 2 v_R at low speeds), budget 3 right cycles per left window (M1, M2).
+#
+# Fallback (M4): the reference's DISENGAGE branch below the 20 m/s wheel-speed floor
+# (v' = -0.5 v, sink) is pruned (CRUISE accelerates at the floor, entered above it);
+# the deployed CRUISE window starts at v_L >= 23 with a_L >= -5, so the row gives
+# v_R >= v_L + a_L / 2 >= 20.5 and DISENGAGE is not an admissible start.
+# RELCERT_NO_PRUNE=1 DECLINES. Units m/s, m/s^2, s; envelope v in [0, 40], a in [-5, 10].
+[problem]
+name = acc_spoof_lag
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 4.0
+[Lsys]
+state_vars = [v, a]
+epsilon = 2.0
+[Lsys.mode.CRUISE]
+ode = v' = a; a' = smt2:(* 2.0 (- (* 0.5 (- 30.0 (* 1.25 v))) a));
+guard = v >= 23.0 and v < 40.0 and a >= -5.0 and a <= 10.0
+evolve = v >= 0.0 and v <= 40.0 and a >= -5.0 and a <= 10.0
+next = [CRUISE]
+[Rsys]
+state_vars = [v, a]
+epsilon = 1.0
+[Rsys.mode.CRUISE]
+ode = v' = smt2:(* 0.5 (- 30.0 v)); a' = smt2:0;
+guard = v >= 20.0 and v < 40.0
+evolve = v >= 0.0 and v <= 40.0 and a >= -5.0 and a <= 10.0
+next = [CRUISE, DISENGAGE]
+[Rsys.mode.DISENGAGE]
+ode = v' = smt2:(* -0.5 v); a' = smt2:0;
+guard = v < 20.0
+evolve = v >= 0.0 and v <= 40.0 and a >= -5.0 and a <= 10.0
+next = [DISENGAGE]
+[relational_invariant]
+CRUISE = smt2:(<= (+ L_a (* 2.0 L_v)) (* 2.0 R_v))

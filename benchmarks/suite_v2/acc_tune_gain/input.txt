@@ -1,0 +1,54 @@
+# acc_tune_gain: adaptive cruise control with an aftermarket speed-loop retune.
+# scenario: degraded-controller
+# mechanisms: M1 M2 M4
+#
+# Physical story. Same cruise controller as acc_spoof_cruise (set speed 30 m/s, speed
+# loop v' = k (30 - v), k = 0.5 /s, disengage floor 20 m/s read from the wheel-speed
+# sensor). The deployed vehicle (left) runs an aftermarket "sport" tune that raised the
+# speed-loop gain by 50 % (k = 0.75 /s, time constant 1.33 s): same set speed, faster
+# response. The nominal reference (right) is the stock controller.
+#
+# Relational claim: |v_L - v_R| <= 1 m/s, written as the two rows
+#   v_L <= v_R + 1  and  v_R <= v_L + 1.
+# At lambda = 1.5 (the gain ratio) both conjuncts have Lie derivative -0.75 on their
+# boundaries for every speed; at lambda = 1 and 1.25 the first conjunct fails below
+# 27 m/s resp. 24 m/s. Budget ceil(1.5 * 2 / 1) = 3 right cycles per left window (M1, M2).
+#
+# Fallback (M4): the stock controller's DISENGAGE branch (wheel speed < 20 m/s, coast
+# down v' = -0.5 v, sink) is declared on the reference and pruned by the certifier
+# (CRUISE's flow accelerates at the floor, v' = 5 > 0; no CRUISE entry state is below
+# it); it is not an admissible start for the deployed CRUISE window (v_L >= 20 and
+# v_R >= v_L - 1 would need v_R >= 19 -- not excluded!). See the row: the floor exclusion
+# needs v_L >= 21 for the right threshold 20 under the slack 1, so the deployed band
+# starts at 21 m/s (its tune engages from 21 m/s). RELCERT_NO_PRUNE=1 DECLINES.
+#
+# Units: v in m/s, time in s; physical envelope 0 <= v <= 40 on both sides.
+[problem]
+name = acc_tune_gain
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 4.0
+[Lsys]
+state_vars = [v]
+epsilon = 2.0
+[Lsys.mode.CRUISE]
+ode = v' = smt2:(* 0.75 (- 30.0 v));
+guard = v >= 21.0 and v < 40.0
+evolve = v >= 0.0 and v <= 40.0
+next = [CRUISE]
+[Rsys]
+state_vars = [v]
+epsilon = 1.0
+[Rsys.mode.CRUISE]
+ode = v' = smt2:(* 0.5 (- 30.0 v));
+guard = v >= 20.0 and v < 40.0
+evolve = v >= 0.0 and v <= 40.0
+next = [CRUISE, DISENGAGE]
+[Rsys.mode.DISENGAGE]
+ode = v' = smt2:(* -0.5 v);
+guard = v < 20.0
+evolve = v >= 0.0 and v <= 40.0
+next = [DISENGAGE]
+[relational_invariant]
+CRUISE = smt2:(and (<= L_v (+ R_v 1.0)) (<= R_v (+ L_v 1.0)))

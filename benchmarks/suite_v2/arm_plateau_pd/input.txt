@@ -1,0 +1,81 @@
+# arm_plateau_pd: PD arm (underdamped) tracking a leading ramp-to-plateau reference.
+# scenario: model-refinement
+# mechanisms: M2 M6
+#
+# The reference-tracking arm (redesign of the arm tower). Deployed (left): a PD-controlled
+# joint tracking the step command theta = 0.5 rad from rest, state (theta, v):
+# theta' = v, v' = -k_p (theta - 0.5) - k_d v, with the modes Accelerate (rising toward
+# the command, v >= 0) and Brake (past the command, v <= 0). Reference (right): a coarse
+# leading reference that ramps up in three rate steps, ApproachA (0.5 rad/s) ->
+# ApproachB (0.35) -> ApproachC (0.2), to a plateau of 0.6 rad and then HOLDS there
+# (Hold: theta' = 0, guard theta >= 0.6), a sound envelope the arm tracks from below.
+# Claim: theta_L <= theta_R + 0.15 in both deployed modes.
+#
+# Covers (measured): lambda = 1 with budget 2 right cycles per left window
+# (epsilon_L = 2 s, epsilon_R = 1 s). A reference still in an approach step repositions
+# right-only up the ramp to Hold and the deployed window is then matched jointly against
+# the holding plateau (M2 with right-only segments; from ApproachA a joint step then a
+# right-only climb). Hold's guard conjunct theta >= 0.6 is frozen by its flow and is the
+# checked cut the Hold segment needs: the invariant boundary theta_L = theta_R + 0.15
+# lies at theta_L >= 0.75, outside the arm's envelope theta_L <= 0.65, only once the cut
+# is known; with RELCERT_NO_CUT=1 no lambda certifies Hold and the benchmark is
+# DECLINED (M6). No fallback is declared: the arm starts at theta = 0, so no reference
+# threshold below an operating floor can be excluded as a start by a one-sided row.
+# This rung: nominal gains k_p = 1, k_d = 1 (underdamped, damping ratio 0.5): the arm
+# overshoots to about 0.58 rad, so Brake is reached. Units rad, rad/s, s; envelope
+# theta in [0, 0.65], v in [-0.45, 0.45] (left), theta in [0, 1.2] (right).
+[problem]
+name = arm_plateau_pd
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 4.0
+
+[Lsys]
+state_vars = [theta, v]
+epsilon = 2.0
+
+[Lsys.mode.Accelerate]
+ode = theta' = v; v' = smt2:(+ (* -1 (- theta 0.5)) (* -1.0 v));
+guard = theta >= 0.0 and theta < 0.5 and v >= 0.0 and v < 0.355
+evolve = theta >= 0.0 and theta <= 0.65 and v >= -0.45 and v <= 0.45
+next = [Brake, Accelerate]
+
+[Lsys.mode.Brake]
+ode = theta' = v; v' = smt2:(+ (* -1 (- theta 0.5)) (* -1.0 v));
+guard = theta >= 0.5 and theta <= 0.535 and v <= 0.0
+evolve = theta >= 0.0 and theta <= 0.65 and v >= -0.45 and v <= 0.45
+next = [Accelerate, Brake]
+
+[Rsys]
+state_vars = [theta]
+epsilon = 1.0
+
+[Rsys.mode.ApproachA]
+ode = theta' = smt2:0.5;
+guard = theta >= 0.0 and theta <= 0.35
+evolve = theta >= 0.0 and theta <= 1.2
+next = [ApproachB, ApproachA]
+
+[Rsys.mode.ApproachB]
+ode = theta' = smt2:0.35;
+guard = theta >= 0.35 and theta <= 0.5
+evolve = theta >= 0.0 and theta <= 1.2
+next = [ApproachC, ApproachB]
+
+[Rsys.mode.ApproachC]
+ode = theta' = smt2:0.2;
+guard = theta >= 0.5 and theta <= 0.6
+evolve = theta >= 0.0 and theta <= 1.2
+next = [Hold, ApproachC]
+
+[Rsys.mode.Hold]
+ode = theta' = smt2:0;
+guard = theta >= 0.6 and theta < 1.15
+evolve = theta >= 0.0 and theta <= 1.2
+next = [Hold]
+
+[relational_invariant]
+# theta_L <= theta_R + 0.15. Reference leads to plateau >= arm peak, then holds.
+Accelerate = theta[l] <= theta[r] + 0.15
+Brake      = theta[l] <= theta[r] + 0.15

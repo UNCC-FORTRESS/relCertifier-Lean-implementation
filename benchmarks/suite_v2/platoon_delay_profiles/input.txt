@@ -1,0 +1,68 @@
+# platoon_delay_profiles: the delayed-link platoon follower against a reference with two catch-up profiles.
+# scenario: sensor-attack
+# mechanisms: M2 M3 M4 M6
+#
+# The platoon of platoon_delay_bias (gap g to a constant-speed leader, desired gap
+# 30 m, follower loops g' = -k (g - 30)). The reference follower (right) may re-engage
+# from a wide gap (>= 30 m) with either of two catch-up profiles, GENTLE (k = 0.6) or
+# ASSERTIVE (k = 0.7), selected when it leaves FOLLOW (k = 0.5, band 20..40 m); it
+# declares the BRAKE fallback below 20 m (gap opens at 1.5 m/s, sink). The deployed
+# follower (left) acts on the delayed link's 1 m gap overstatement (loops toward 29 m)
+# and, under its delay-mitigation policy, re-engages with the gentle profile only
+# (bands FOLLOW_L 24..40 m, GENTLE_L >= 30 m).
+#
+# Claim (every mode): g_L <= g_R + 4 and g_R <= g_L + 3 -- against an assertive
+# reference re-engaging from a 60 m gap the gentle deployed follower falls up to 4 m
+# wider (the 1 m tolerance of platoon_delay_bias is violated by that pairing), and it is
+# never more than 3 m narrower. Certified at lambda = 1 with budget 2 right cycles per
+# left window; the cover from FOLLOW takes a joint step whose retained successors
+# GENTLE and ASSERTIVE both cover (M2, M3). The closed bands are flow-invariant guard
+# conjuncts kept as checked cuts; the mixed-profile segments need them
+# (RELCERT_NO_CUT=1 DECLINES, M6). FOLLOW -> BRAKE is pruned (the gentle loop opens the
+# gap at 20 m, g' = +5) and BRAKE is not an admissible start (g_L >= 24, g_L <= g_R + 4);
+# RELCERT_NO_PRUNE=1 DECLINES (M4). Units m, s; envelope 15 <= g <= 60 both sides.
+[problem]
+name = platoon_delay_profiles
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 4.0
+[Lsys]
+state_vars = [g]
+epsilon = 2.0
+[Lsys.mode.FOLLOW]
+ode = g' = smt2:(* -0.5 (- g 29.0));
+guard = g >= 24.0 and g <= 40.0
+evolve = g >= 15.0 and g <= 60.0
+next = [GENTLE, FOLLOW]
+[Lsys.mode.GENTLE]
+ode = g' = smt2:(* -0.6 (- g 29.0));
+guard = g >= 30.0
+evolve = g >= 15.0 and g <= 60.0
+next = [FOLLOW, GENTLE]
+[Rsys]
+state_vars = [g]
+epsilon = 1.0
+[Rsys.mode.FOLLOW]
+ode = g' = smt2:(* -0.5 (- g 30.0));
+guard = g >= 20.0 and g <= 40.0
+evolve = g >= 15.0 and g <= 60.0
+next = [GENTLE, ASSERTIVE, FOLLOW, BRAKE]
+[Rsys.mode.GENTLE]
+ode = g' = smt2:(* -0.6 (- g 30.0));
+guard = g >= 30.0
+evolve = g >= 15.0 and g <= 60.0
+next = [FOLLOW, GENTLE]
+[Rsys.mode.ASSERTIVE]
+ode = g' = smt2:(* -0.7 (- g 30.0));
+guard = g >= 30.0
+evolve = g >= 15.0 and g <= 60.0
+next = [FOLLOW, ASSERTIVE]
+[Rsys.mode.BRAKE]
+ode = g' = smt2:1.5;
+guard = g < 20.0
+evolve = g >= 15.0 and g <= 60.0
+next = [BRAKE]
+[relational_invariant]
+FOLLOW    = smt2:(and (<= L_g (+ R_g 4.0)) (<= R_g (+ L_g 3.0)))
+GENTLE    = smt2:(and (<= L_g (+ R_g 4.0)) (<= R_g (+ L_g 3.0)))

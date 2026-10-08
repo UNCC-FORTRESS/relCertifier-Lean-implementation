@@ -1,0 +1,61 @@
+# acc_spoof_cruise: adaptive cruise control under a speed-sensor gain spoof.
+# scenario: sensor-attack
+# mechanisms: M1 M2 M4
+#
+# Physical story. An adaptive-cruise controller holds the ego speed v (m/s) at the set
+# speed 30 m/s with a first-order speed loop of gain k = 0.5 /s (time constant 2 s):
+# v' = k (30 - v). The control law reads the fused GPS/radar ground speed; the
+# engage/disengage logic (ACC disengages below 20 m/s) reads the wheel-speed sensor,
+# which the attacker cannot reach. The deployed vehicle (left) is under a GAIN SPOOF of
+# +25 % on the fused speed: the controller sees 1.25 v, so its speed loop becomes
+# v' = k (30 - 1.25 v) = 0.625 (24 - v): it settles 6 m/s low and reacts 25 % faster.
+# The nominal reference (right) is the unspoofed controller.
+#
+# Relational claim (one row per left mode, both identical here):
+#   v_L <= v_R          the spoof never makes the deployed vehicle faster than nominal;
+#   v_R <= v_L + 7      and it slows the vehicle by at most 7 m/s (6 at equilibrium, 7
+#                       with margin).
+# The right certifies the window at lambda = 1.25 (the spoofed loop is 1.25x faster;
+# at lambda = 1 the slowdown bound fails for v_L > 28), budget ceil(1.25 * 2 / 1) = 3
+# right cycles per left window (M1, M2).
+#
+# Fallback (M4). The nominal controller declares a DISENGAGE fallback: if the wheel
+# speed drops below 20 m/s the ACC hands back to the driver and the vehicle coasts
+# down (v' = -0.5 v, a sink). DISENGAGE is never entered along the CRUISE flow (at
+# v = 20 the loop accelerates, v' = 5 > 0), so the certifier prunes CRUISE -> DISENGAGE;
+# it is not an admissible start for the deployed CRUISE window (v_L >= 20 and v_L <= v_R
+# exclude v_R < 20). Without pruning (RELCERT_NO_PRUNE=1) every multi-cycle cover owes
+# the uncertifiable fallback and the benchmark is DECLINED. The deployed vehicle's own
+# disengage branch is unreachable from its cruise band (v' > 0 at the floor) and is not
+# modeled.
+#
+# Units: v in m/s, time in s; physical envelope 0 <= v <= 40 on both sides.
+[problem]
+name = acc_spoof_cruise
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 4.0
+[Lsys]
+state_vars = [v]
+epsilon = 2.0
+[Lsys.mode.CRUISE]
+ode = v' = smt2:(* 0.5 (- 30.0 (* 1.25 v)));
+guard = v >= 20.0 and v < 40.0
+evolve = v >= 0.0 and v <= 40.0
+next = [CRUISE]
+[Rsys]
+state_vars = [v]
+epsilon = 1.0
+[Rsys.mode.CRUISE]
+ode = v' = smt2:(* 0.5 (- 30.0 v));
+guard = v >= 20.0 and v < 40.0
+evolve = v >= 0.0 and v <= 40.0
+next = [CRUISE, DISENGAGE]
+[Rsys.mode.DISENGAGE]
+ode = v' = smt2:(* -0.5 v);
+guard = v < 20.0
+evolve = v >= 0.0 and v <= 40.0
+next = [DISENGAGE]
+[relational_invariant]
+CRUISE = smt2:(and (<= L_v R_v) (<= R_v (+ L_v 7.0)))

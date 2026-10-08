@@ -1,0 +1,42 @@
+# quad_light_lag: the lighter quadrotor airframe refined with the motor thrust lag.
+# scenario: model-refinement
+# mechanisms: M1 M2
+#
+# Refinement of quad_light_airframe_20: the deployed airframe's net specific thrust a is
+# a state that follows the commanded 7.45 m/s^2 through the motors' 0.2 s lag,
+# a' = 5 (7.45 - a); the climb rate obeys w' = a - 1.25 w^2. The reference (right) is the
+# first-order climb model w' = 4 - w^2 of the nominal airframe (thrust lag abstracted).
+#
+# Claim: the lifted functional a_L + 5 w_L <= 5 w_R + 12.45. Along the deployed model
+# (a + 5w)' = 5 (7.45 - 1.25 w^2), the lighter airframe's first-order climb rate times 5;
+# with the thrust envelope 0 <= a <= 7.45 the row implies w_L <= w_R + 2.49 and, at
+# full thrust, w_L <= w_R + 1 as in quad_light_airframe_20. The right certifies at
+# lambda = 7/4 (the same stretch as the lag-free rung; lambda = 1, 5/4, 3/2 fail),
+# budget ceil(7/4 * 2 / 1) = 4 right cycles per left window (M1 with polynomial
+# dynamics, M2). No fallback is declared on this rung: the functional bounds w_R from
+# below only through a_L, so a climb-rate limiter above a ceiling could not be excluded
+# as a start. Envelope: w in [0, 3.5], a in [0, 7.45] both sides.
+[problem]
+name = quad_light_lag
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 4.0
+[Lsys]
+state_vars = [w, a]
+epsilon = 2.0
+[Lsys.mode.CLIMB]
+ode = w' = smt2:(- a (* 1.25 (* w w))); a' = smt2:(* 5.0 (- 7.45 a));
+guard = w >= 0.0 and w <= 2.5 and a >= 0.0 and a <= 7.45
+evolve = w >= 0.0 and w <= 3.5 and a >= 0.0 and a <= 7.45
+next = [CLIMB]
+[Rsys]
+state_vars = [w, a]
+epsilon = 1.0
+[Rsys.mode.CLIMB]
+ode = w' = smt2:(- 4.0 (* w w)); a' = smt2:0;
+guard = w >= 0.0 and w <= 2.6
+evolve = w >= 0.0 and w <= 3.5 and a >= 0.0 and a <= 7.45
+next = [CLIMB]
+[relational_invariant]
+CLIMB = smt2:(<= (+ L_a (* 5.0 L_w)) (+ (* 5.0 R_w) 12.45))

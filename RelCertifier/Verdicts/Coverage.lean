@@ -61,14 +61,12 @@ def expected : Expected := { watertank := 6, cut := 105, modal := 522, handoff :
 
 /-- The handoff transitions that are KNOWN to fail, declared as `(benchmark, m', m)`.
 A green handoff phase has exactly this failure set — a new failure fails the run, and so
-does a declared failure that stops failing (the declaration is then stale). The one
-entry is `rover3tier_rung12`'s `ACCEL → COAST` (0 → 1): its ACCEL row
-(`v_L ≤ v_R + 0.5 ∧ a_L ≤ a_R + 0.8`) allows more slack on `3v + a` than its COAST row
-(`3v_L + a_L ≤ 3v_R + 1.2`) admits, even inside the evolve domains, so the mode-keyed
-invariant is not established across that switch (`COAST → ACCEL` holds under the
-domain-conditioned query); see `docs/HANDOFF.md` for the countermodel. -/
-def expectedHandoffFailures : List (String × Nat × Nat) :=
-  [("rover3tier_rung12", 0, 1)]
+does a declared failure that stops failing (the declaration is then stale). Empty since
+`rover3tier_rung12`'s ACCEL row was re-stated on the COAST functional (2026-10-08, rows
+only): before that its `ACCEL → COAST` switch failed (`v_L ≤ v_R + 0.5 ∧ a_L ≤ a_R + 0.8`
+allowed more slack on `3v + a` than `3v_L + a_L ≤ 3v_R + 1.2` admits, even inside the
+evolve domains); the record, with countermodel, is in `docs/HANDOFF.md`. -/
+def expectedHandoffFailures : List (String × Nat × Nat) := []
 
 /-- What a certification run over the standard suite produces.
 

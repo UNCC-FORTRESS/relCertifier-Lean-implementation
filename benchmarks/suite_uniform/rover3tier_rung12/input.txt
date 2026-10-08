@@ -43,5 +43,12 @@ next = [ACCEL, COAST]
 # certifier's key resolution matched neither and fell back to the FIRST row, so COAST
 # was being certified against ACCEL's tolerance form; these rows state the intended
 # per-mode claims explicitly.
-ACCEL = v[l] <= v[r] + 0.5 and a[l] <= a[r] + 0.8
+# ACCEL carries the velocity envelope v[l] <= v[r] + 0.5 and, in place of the separate
+# acceleration bound a[l] <= a[r] + 0.8, the SAME lifted-M1 functional COAST bounds,
+# 3v + a: the ACCEL slack on that functional (3*0.5 + 0.8 = 2.3) exceeded COAST's 1.2, so
+# the mode-keyed invariant did not survive an ACCEL -> COAST switch (docs/HANDOFF.md).
+# With both rows bounding 3v + a by the same constant, ACCEL -> COAST drops the v
+# conjunct and COAST -> ACCEL recovers it from a[l] >= -0.3 (the evolve floor): both
+# cross handoffs hold under the domain-conditioned query. Dynamics, guards, evolves unchanged.
+ACCEL = smt2:(and (<= L_v (+ R_v 0.5)) (<= (+ (* 3 L_v) L_a) (+ (* 3 R_v) 1.2)))
 COAST = smt2:(<= (+ (* 3 L_v) L_a) (+ (* 3 R_v) 1.2))

@@ -11,6 +11,13 @@ Z3-free (stratified faces).
 
 Residuals: six stratified-DC verdict packs (`VerdQ l m`). Axioms: the standard
 three + `z3_unsat_sound` at those leaves.
+
+2026-10-08: the benchmark's ACCEL row was re-stated (rows only; dynamics, guards and
+evolve domains untouched) as `v[l] ≤ v[r] + 0.5 ∧ 3v[l] + a[l] ≤ 3v[r] + 1.2`, the second
+conjunct being COAST's own functional bound, so that the cross-mode handoffs hold. This
+file is atom-agnostic (it quotes `invariants.getD 0/1` and the verdict packs) and
+re-elaborates unchanged at the new row; the composed, `u_L`-keyed theorem is
+`Instances/Rover3tierRung12Handoff.lean`.
 -/
 import RelCertifier.Proofs.Encoding.EnvelopeChainM
 import RelCertifier.Proofs.Encoding.RepoPrefixR

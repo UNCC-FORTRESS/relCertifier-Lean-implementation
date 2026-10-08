@@ -71,6 +71,7 @@ import RelCertifier.Instances.WatertankModal
 import RelCertifier.Instances.Story1AttdistRungAHandoff
 import RelCertifier.Instances.Story1AttdistRungBHandoff
 import RelCertifier.Instances.Story3RolloverRungBHandoff
+import RelCertifier.Instances.Rover3tierRung12Handoff
 namespace RelCertifier.ModalSpecs
 
 open RelCertifier DL DLRel
@@ -1205,6 +1206,23 @@ theorem modal_from_spec (dt : ℝ) (hdt : 0 ≤ dt) (hv0 : Story1AttdistRungBRow
     (hv1 (1,1) (by decide)) (hv1 (1,2) (by decide)) (hv2 (2,2) (by decide))
 
 end Story1AttdistRungBRow2
+
+namespace Rover3tierRung12Composed
+open RelCertifier.Rover3tierRung12Handoff
+
+/-- The composed theorem needs no pack of its own: it re-derives from the two per-left-mode
+packs (`Rover3tierRung12Accel`, `Rover3tierRung12Coast`), the handoffs being in-kernel. -/
+theorem modal_from_spec (dt : ℝ) (hdt : 0 ≤ dt)
+    (hvA : Rover3tierRung12Accel.VerdAll) (hvC : Rover3tierRung12Coast.VerdAll) :
+    RFormula.rvalid (theorem3Form
+      (leftAutomatonBody (AQ dt) ulQ)
+      (rightAutomatonBody Rover3tierRung12Modal.GrQ Rover3tierRung12Modal.mvQ)
+      (psiK ulQ ϕRow (AQ dt).numModes Rover3tierRung12Modal.domLQ Rover3tierRung12Modal.domRQ
+        (mvValidR Rover3tierRung12Modal.mvQ Rover3tierRung12Modal.GrQ.modes.length))) :=
+  rover3tier_rung12_modeKeyed dt hdt
+    (hvA 0 (by decide)) (hvA 1 (by decide)) (hvC 0 (by decide)) (hvC 1 (by decide))
+
+end Rover3tierRung12Composed
 
 /-- Every spec, for the runner to iterate. -/
 def specs : List VerdSpec :=

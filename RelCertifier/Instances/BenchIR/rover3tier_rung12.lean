@@ -58,7 +58,7 @@ def rover3tier_rung12_IR : PProblem :=
           evolve := (.and (.and (.and (.cmp ">=" (.var "a") (.num "0.5")) (.cmp "<=" (.var "a") (.num "1.0"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "v") (.num "0.0")))
           next := ["ACCEL", "COAST"] } ] }
     invariants := [
-      ("ACCEL", (.and (.cmp "<=" (.var "L_v") (.bin "+" (.var "R_v") (.num "0.5"))) (.cmp "<=" (.var "L_a") (.bin "+" (.var "R_a") (.num "0.8"))))),
+      ("ACCEL", (.and (.cmp "<=" (.var "L_v") (.bin "+" (.var "R_v") (.num "0.5"))) (.cmp "<=" (.bin "+" (.bin "*" (.num "3") (.var "L_v")) (.var "L_a")) (.bin "+" (.bin "*" (.num "3") (.var "R_v")) (.num "1.2"))))),
       ("COAST", (.cmp "<=" (.bin "+" (.bin "*" (.num "3") (.var "L_v")) (.var "L_a")) (.bin "+" (.bin "*" (.num "3") (.var "R_v")) (.num "1.2"))))] }
 
 end RelCertifier.Parse

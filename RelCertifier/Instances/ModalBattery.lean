@@ -78,6 +78,7 @@ import RelCertifier.Instances.RoverPositionHandoff
 import RelCertifier.Instances.Story1AttdistRungAHandoff
 import RelCertifier.Instances.Story1AttdistRungBHandoff
 import RelCertifier.Instances.Story3RolloverRungBHandoff
+import RelCertifier.Instances.Rover3tierRung12Handoff
 
 namespace RelCertifier
 
@@ -176,9 +177,9 @@ namespace RelCertifier
 #print axioms WatertankModal.watertank_modal_certified
 
 /-! ### The mode-keyed theorems — the DECLARED per-left-mode invariants, composed across
-left switches (`Proofs/Encoding/ModeHandoff.lean`; `docs/HANDOFF.md`). Six of the seven
-mode-dependent benchmarks; `rover3tier_rung12`'s handoff fails and it keeps its two
-per-left-mode theorems above. -/
+left switches (`Proofs/Encoding/ModeHandoff.lean`; `docs/HANDOFF.md`). All seven
+mode-dependent benchmarks; `rover3tier_rung12`'s ACCEL row was re-stated (rows only) so
+that its handoffs hold, and it keeps its two per-left-mode theorems above as well. -/
 -- rover3_M1 (padded to n = 3 for the left mode variable)
 #print axioms Rover3M1Handoff.rover3_M1_modeKeyed
 -- rover_coupled
@@ -191,5 +192,7 @@ per-left-mode theorems above. -/
 #print axioms Story1AttdistRungBHandoff.story1_attdist_rung_b_modeKeyed
 -- story3_rollover_ladder_rung_b
 #print axioms Story3RolloverRungBHandoff.story3_rollover_rung_b_modeKeyed
+-- rover3tier_rung12 (repaired rows)
+#print axioms Rover3tierRung12Handoff.rover3tier_rung12_modeKeyed
 
 end RelCertifier

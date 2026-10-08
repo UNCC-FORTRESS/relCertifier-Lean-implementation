@@ -611,4 +611,122 @@ theorem head_tail_31_2 (h : 0 < 6) :
   have hk : (row 31).2.1.tailKs = [0, 3/5, 7/5] := rfl
   simp [modalHeadI, ITerm.toHost, lowFace, b6, hc, hf, hk] <;> norm_num
 
+/-! ## The mode-keyed instances' rows (`Instances/*Handoff.lean`) -/
+
+theorem lam_Story1AttdistRungASteep (l : ℕ) :
+    (modalLamI (row 42).2.1 l 8).toHost = Term.const (1 : ℝ) := by
+  have hp : (row 42).2.1.lamPerL = [] := rfl
+  have hn : (row 42).2.1.lamN = 1 := rfl
+  have hd : (row 42).2.1.lamD = 1 := rfl
+  simp [modalLamI, ITerm.toHost, hp, hn, hd] <;> norm_num
+
+theorem lam_Story3RolloverRungBSteep (l : ℕ) :
+    (modalLamI (row 43).2.1 l 12).toHost = Term.const (1 : ℝ) := by
+  have hp : (row 43).2.1.lamPerL = [] := rfl
+  have hn : (row 43).2.1.lamN = 1 := rfl
+  have hd : (row 43).2.1.lamD = 1 := rfl
+  simp [modalLamI, ITerm.toHost, hp, hn, hd] <;> norm_num
+
+theorem lam_Story1AttdistRungBRow0 (l : ℕ) :
+    (modalLamI (row 44).2.1 l 12).toHost = Term.const (1 : ℝ) := by
+  have hp : (row 44).2.1.lamPerL = [] := rfl
+  have hn : (row 44).2.1.lamN = 1 := rfl
+  have hd : (row 44).2.1.lamD = 1 := rfl
+  simp [modalLamI, ITerm.toHost, hp, hn, hd] <;> norm_num
+
+theorem lam_Story1AttdistRungBRow1 (l : ℕ) :
+    (modalLamI (row 45).2.1 l 12).toHost = Term.const (1 : ℝ) := by
+  have hp : (row 45).2.1.lamPerL = [] := rfl
+  have hn : (row 45).2.1.lamN = 1 := rfl
+  have hd : (row 45).2.1.lamD = 1 := rfl
+  simp [modalLamI, ITerm.toHost, hp, hn, hd] <;> norm_num
+
+theorem lam_Story1AttdistRungBRow2 (l : ℕ) :
+    (modalLamI (row 46).2.1 l 12).toHost = Term.const (1 : ℝ) := by
+  have hp : (row 46).2.1.lamPerL = [] := rfl
+  have hn : (row 46).2.1.lamN = 1 := rfl
+  have hd : (row 46).2.1.lamD = 1 := rfl
+  simp [modalLamI, ITerm.toHost, hp, hn, hd] <;> norm_num
+
+open RelCertifier.Story1AttdistRungBModal in
+theorem head_ceilF_44_0 (h : 0 < 12) :
+    (modalHeadI (row 44).2.1.ceilCo (row 44).2.1.ceilFlip (row 44).2.1.ceilKs 0
+      (n := 12) h).map ITerm.toHost = [ceilF 0] := by
+  have hc : (row 44).2.1.ceilCo = some 0 := rfl
+  have hf : (row 44).2.1.ceilFlip = false := rfl
+  have hk : (row 44).2.1.ceilKs = [3/10, 1/2, 13/20] := rfl
+  simp [modalHeadI, ITerm.toHost, ceilF, hc, hf, hk] <;> norm_num
+
+open RelCertifier.Story1AttdistRungBModal in
+theorem head_ceilF_44_1 (h : 0 < 12) :
+    (modalHeadI (row 44).2.1.ceilCo (row 44).2.1.ceilFlip (row 44).2.1.ceilKs 1
+      (n := 12) h).map ITerm.toHost = [ceilF 1] := by
+  have hc : (row 44).2.1.ceilCo = some 0 := rfl
+  have hf : (row 44).2.1.ceilFlip = false := rfl
+  have hk : (row 44).2.1.ceilKs = [3/10, 1/2, 13/20] := rfl
+  simp [modalHeadI, ITerm.toHost, ceilF, hc, hf, hk] <;> norm_num
+
+open RelCertifier.Story1AttdistRungBModal in
+theorem head_ceilF_44_2 (h : 0 < 12) :
+    (modalHeadI (row 44).2.1.ceilCo (row 44).2.1.ceilFlip (row 44).2.1.ceilKs 2
+      (n := 12) h).map ITerm.toHost = [ceilF 2] := by
+  have hc : (row 44).2.1.ceilCo = some 0 := rfl
+  have hf : (row 44).2.1.ceilFlip = false := rfl
+  have hk : (row 44).2.1.ceilKs = [3/10, 1/2, 13/20] := rfl
+  simp [modalHeadI, ITerm.toHost, ceilF, hc, hf, hk] <;> norm_num
+
+open RelCertifier.Story1AttdistRungBModal in
+theorem head_ceilF_45_0 (h : 0 < 12) :
+    (modalHeadI (row 45).2.1.ceilCo (row 45).2.1.ceilFlip (row 45).2.1.ceilKs 0
+      (n := 12) h).map ITerm.toHost = [ceilF 0] := by
+  have hc : (row 45).2.1.ceilCo = some 0 := rfl
+  have hf : (row 45).2.1.ceilFlip = false := rfl
+  have hk : (row 45).2.1.ceilKs = [3/10, 1/2, 13/20] := rfl
+  simp [modalHeadI, ITerm.toHost, ceilF, hc, hf, hk] <;> norm_num
+
+open RelCertifier.Story1AttdistRungBModal in
+theorem head_ceilF_45_1 (h : 0 < 12) :
+    (modalHeadI (row 45).2.1.ceilCo (row 45).2.1.ceilFlip (row 45).2.1.ceilKs 1
+      (n := 12) h).map ITerm.toHost = [ceilF 1] := by
+  have hc : (row 45).2.1.ceilCo = some 0 := rfl
+  have hf : (row 45).2.1.ceilFlip = false := rfl
+  have hk : (row 45).2.1.ceilKs = [3/10, 1/2, 13/20] := rfl
+  simp [modalHeadI, ITerm.toHost, ceilF, hc, hf, hk] <;> norm_num
+
+open RelCertifier.Story1AttdistRungBModal in
+theorem head_ceilF_45_2 (h : 0 < 12) :
+    (modalHeadI (row 45).2.1.ceilCo (row 45).2.1.ceilFlip (row 45).2.1.ceilKs 2
+      (n := 12) h).map ITerm.toHost = [ceilF 2] := by
+  have hc : (row 45).2.1.ceilCo = some 0 := rfl
+  have hf : (row 45).2.1.ceilFlip = false := rfl
+  have hk : (row 45).2.1.ceilKs = [3/10, 1/2, 13/20] := rfl
+  simp [modalHeadI, ITerm.toHost, ceilF, hc, hf, hk] <;> norm_num
+
+open RelCertifier.Story1AttdistRungBModal in
+theorem head_ceilF_46_0 (h : 0 < 12) :
+    (modalHeadI (row 46).2.1.ceilCo (row 46).2.1.ceilFlip (row 46).2.1.ceilKs 0
+      (n := 12) h).map ITerm.toHost = [ceilF 0] := by
+  have hc : (row 46).2.1.ceilCo = some 0 := rfl
+  have hf : (row 46).2.1.ceilFlip = false := rfl
+  have hk : (row 46).2.1.ceilKs = [3/10, 1/2, 13/20] := rfl
+  simp [modalHeadI, ITerm.toHost, ceilF, hc, hf, hk] <;> norm_num
+
+open RelCertifier.Story1AttdistRungBModal in
+theorem head_ceilF_46_1 (h : 0 < 12) :
+    (modalHeadI (row 46).2.1.ceilCo (row 46).2.1.ceilFlip (row 46).2.1.ceilKs 1
+      (n := 12) h).map ITerm.toHost = [ceilF 1] := by
+  have hc : (row 46).2.1.ceilCo = some 0 := rfl
+  have hf : (row 46).2.1.ceilFlip = false := rfl
+  have hk : (row 46).2.1.ceilKs = [3/10, 1/2, 13/20] := rfl
+  simp [modalHeadI, ITerm.toHost, ceilF, hc, hf, hk] <;> norm_num
+
+open RelCertifier.Story1AttdistRungBModal in
+theorem head_ceilF_46_2 (h : 0 < 12) :
+    (modalHeadI (row 46).2.1.ceilCo (row 46).2.1.ceilFlip (row 46).2.1.ceilKs 2
+      (n := 12) h).map ITerm.toHost = [ceilF 2] := by
+  have hc : (row 46).2.1.ceilCo = some 0 := rfl
+  have hf : (row 46).2.1.ceilFlip = false := rfl
+  have hk : (row 46).2.1.ceilKs = [3/10, 1/2, 13/20] := rfl
+  simp [modalHeadI, ITerm.toHost, ceilF, hc, hf, hk] <;> norm_num
+
 end RelCertifier.Verdicts

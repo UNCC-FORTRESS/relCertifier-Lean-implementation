@@ -68,6 +68,9 @@ import RelCertifier.Instances.Story3RolloverBaseModal
 import RelCertifier.Instances.Story3RolloverRungAModal
 import RelCertifier.Instances.Story3RolloverRungBModal
 import RelCertifier.Instances.WatertankModal
+import RelCertifier.Instances.Story1AttdistRungAHandoff
+import RelCertifier.Instances.Story1AttdistRungBHandoff
+import RelCertifier.Instances.Story3RolloverRungBHandoff
 namespace RelCertifier.ModalSpecs
 
 open RelCertifier DL DLRel
@@ -1078,8 +1081,133 @@ theorem modal_from_spec (dt : ℝ) (hES00 : ESW 0 0 dt) (hES01 : ESW 0 1 dt) (hE
 
 end Watertank
 
+/-! ## The mode-keyed (handoff-composed) instances
+
+The three story benchmarks with nested per-mode rows carry, beside the base theorem at
+the common row, a composed theorem at the DECLARED per-mode invariant
+(`Instances/*Handoff.lean`). Their new packs — the STEEP window at its full row, and for
+`story1_attdist_rung_b` every row with its ceiling — are specs of their own; the
+composed theorem is re-derived from them plus the base packs it reuses. -/
+
+namespace Story1AttdistRungASteep
+open RelCertifier.Story1AttdistRungAHandoff
+
+def spec : VerdSpec :=
+  { bench := "story1_attdist_rung_a_6to8"
+    singles := [0, 1, 2]
+    order := [0, 1, 2]
+  }
+
+theorem spec_components : (gS :: gsS) = spec.order.map (gRowAt 0) := by rfl
+
+def VerdAll : Prop := ∀ m ∈ spec.singles, VerdS m
+
+theorem modal_from_spec (dt : ℝ) (hdt : 0 ≤ dt) (hvS : VerdAll)
+    (hvD : Story1AttdistRungA.VerdAll) :
+    RFormula.rvalid (theorem3Form
+      (leftAutomatonBody (AD dt) ulD)
+      (rightAutomatonBody Story1AttdistRungAModal.GrD Story1AttdistRungAModal.mvD)
+      (psiK ulD ϕRow (AD dt).numModes Story1AttdistRungAModal.domLD
+        Story1AttdistRungAModal.domRD
+        (mvValidR Story1AttdistRungAModal.mvD Story1AttdistRungAModal.GrD.modes.length))) :=
+  story1_attdist_rung_a_modeKeyed dt hdt
+    (hvS 0 (by decide)) (hvS 1 (by decide)) (hvS 2 (by decide))
+    (hvD (1,0) (by decide)) (hvD (1,1) (by decide)) (hvD (1,2) (by decide))
+    (hvD (2,0) (by decide)) (hvD (2,1) (by decide)) (hvD (2,2) (by decide))
+
+end Story1AttdistRungASteep
+
+namespace Story3RolloverRungBSteep
+open RelCertifier.Story3RolloverRungBHandoff
+
+def spec : VerdSpec :=
+  { bench := "story3_rollover_ladder_rung_b"
+    singles := [0, 1, 2]
+    order := [0, 1, 2]
+  }
+
+theorem spec_components : (gS :: gsS) = spec.order.map (gRowAt 0) := by rfl
+
+def VerdAll : Prop := ∀ m ∈ spec.singles, VerdS m
+
+theorem modal_from_spec (dt : ℝ) (hdt : 0 ≤ dt) (hvS : VerdAll)
+    (hvV : Story3RolloverRungB.VerdAll) :
+    RFormula.rvalid (theorem3Form
+      (leftAutomatonBody (AV dt) ulV)
+      (rightAutomatonBody Story3RolloverRungBModal.GrV Story3RolloverRungBModal.mvV)
+      (psiK ulV ϕRow (AV dt).numModes Story3RolloverRungBModal.domLV
+        Story3RolloverRungBModal.domRV
+        (mvValidR Story3RolloverRungBModal.mvV Story3RolloverRungBModal.GrV.modes.length))) :=
+  story3_rollover_rung_b_modeKeyed dt hdt
+    (hvS 0 (by decide)) (hvS 1 (by decide)) (hvS 2 (by decide))
+    (hvV (1,0) (by decide)) (hvV (1,1) (by decide)) (hvV (1,2) (by decide))
+    (hvV (2,0) (by decide)) (hvV (2,1) (by decide)) (hvV (2,2) (by decide))
+
+end Story3RolloverRungBSteep
+
+namespace Story1AttdistRungBRow0
+open RelCertifier.Story1AttdistRungBHandoff
+
+def spec : VerdSpec :=
+  { bench := "story1_attdist_rung_b_12dof"
+    singles := [0, 1, 2]
+    order := [0, 1, 2]
+    modeDep := true
+  }
+
+theorem spec_components : (gR 0 :: gsR 0) = spec.order.map (gRowAt 0) := by rfl
+
+def VerdAll : Prop := ∀ m ∈ spec.singles, VerdR 0 m
+
+end Story1AttdistRungBRow0
+
+namespace Story1AttdistRungBRow1
+open RelCertifier.Story1AttdistRungBHandoff
+
+def spec : VerdSpec :=
+  { bench := "story1_attdist_rung_b_12dof"
+    pairs := [(1,1), (1,2)]
+    order := [0, 1]
+    modeDep := true
+  }
+
+theorem spec_components : (gR 1 :: gsR 1) = spec.order.map (gRowAt 1) := by rfl
+
+def VerdAll : Prop := ∀ p ∈ spec.pairs, VerdR p.1 p.2
+
+end Story1AttdistRungBRow1
+
+namespace Story1AttdistRungBRow2
+open RelCertifier.Story1AttdistRungBHandoff
+
+def spec : VerdSpec :=
+  { bench := "story1_attdist_rung_b_12dof"
+    pairs := [(2,2)]
+    order := [0, 1]
+    modeDep := true
+  }
+
+theorem spec_components : (gR 2 :: gsR 2) = spec.order.map (gRowAt 2) := by rfl
+
+def VerdAll : Prop := ∀ p ∈ spec.pairs, VerdR p.1 p.2
+
+theorem modal_from_spec (dt : ℝ) (hdt : 0 ≤ dt) (hv0 : Story1AttdistRungBRow0.VerdAll)
+    (hv1 : Story1AttdistRungBRow1.VerdAll) (hv2 : VerdAll) :
+    RFormula.rvalid (theorem3Form
+      (leftAutomatonBody (AF dt) ulF)
+      (rightAutomatonBody Story1AttdistRungBModal.GrF Story1AttdistRungBModal.mvF)
+      (psiK ulF ϕRow (AF dt).numModes Story1AttdistRungBModal.domLF
+        Story1AttdistRungBModal.domRF
+        (mvRegionR Story1AttdistRungBModal.mvF Story1AttdistRungBModal.regionF
+          Story1AttdistRungBModal.GrF.modes.length))) :=
+  story1_attdist_rung_b_modeKeyed dt hdt
+    (hv0 0 (by decide)) (hv0 1 (by decide)) (hv0 2 (by decide))
+    (hv1 (1,1) (by decide)) (hv1 (1,2) (by decide)) (hv2 (2,2) (by decide))
+
+end Story1AttdistRungBRow2
+
 /-- Every spec, for the runner to iterate. -/
 def specs : List VerdSpec :=
-  [EnduranceOrderlift1to2.spec, ArmChainRung1.spec, ArmChainRung2.spec, ArmChainRung3.spec, ArmFidelityHigh.spec, ArmFidelityLow.spec, ArmFidelityMid.spec, ArmRefinement.spec, AttitudeRate.spec, EnduranceGainM1.spec, EnduranceOrderlift2to3.spec, MatchMultiEps.spec, MatchMultiRate.spec, PlantFanHigh.spec, PlantFanLow.spec, PlantFanMid.spec, RobotBraking.spec, Rover3tierM1.spec, Rover3tierRung12Accel.spec, Rover3tierRung12Coast.spec, Rover4dBox.spec, RoverAttitudeCone.spec, RoverDofTerrainRung1.spec, RoverDofTerrainRung2.spec, RoverDofTerrainRung38d.spec, RoverDofTerrainRung3.spec, RoverDrag.spec, RoverLadderRung1.spec, RoverLadderRung2.spec, RoverLadderRung3.spec, RoverLadderRung4.spec, RoverRung2c.spec, RoverTerrainM1.spec, RoverTierR1.spec, Story1AttdistRungA.spec, Story1AttdistRungB.spec, Story2LateralA.spec, Story2LateralB.spec, Story3RolloverBase.spec, Story3RolloverRungA.spec, Story3RolloverRungB.spec, Watertank.spec]
+  [EnduranceOrderlift1to2.spec, ArmChainRung1.spec, ArmChainRung2.spec, ArmChainRung3.spec, ArmFidelityHigh.spec, ArmFidelityLow.spec, ArmFidelityMid.spec, ArmRefinement.spec, AttitudeRate.spec, EnduranceGainM1.spec, EnduranceOrderlift2to3.spec, MatchMultiEps.spec, MatchMultiRate.spec, PlantFanHigh.spec, PlantFanLow.spec, PlantFanMid.spec, RobotBraking.spec, Rover3tierM1.spec, Rover3tierRung12Accel.spec, Rover3tierRung12Coast.spec, Rover4dBox.spec, RoverAttitudeCone.spec, RoverDofTerrainRung1.spec, RoverDofTerrainRung2.spec, RoverDofTerrainRung38d.spec, RoverDofTerrainRung3.spec, RoverDrag.spec, RoverLadderRung1.spec, RoverLadderRung2.spec, RoverLadderRung3.spec, RoverLadderRung4.spec, RoverRung2c.spec, RoverTerrainM1.spec, RoverTierR1.spec, Story1AttdistRungA.spec, Story1AttdistRungB.spec, Story2LateralA.spec, Story2LateralB.spec, Story3RolloverBase.spec, Story3RolloverRungA.spec, Story3RolloverRungB.spec, Watertank.spec, Story1AttdistRungASteep.spec, Story3RolloverRungBSteep.spec, Story1AttdistRungBRow0.spec, Story1AttdistRungBRow1.spec, Story1AttdistRungBRow2.spec]
 
 end RelCertifier.ModalSpecs

@@ -39,8 +39,9 @@ def counted : IO Unit := dischargedCount.modify (· + 1)
 
 * `watertank` — 6: three routes over the six (window, right-mode) pairs it asserts.
 * `cut` — 105: per-atom O2 route probes across the 13 cut-reliant benchmarks.
-* `modal` — 483: every modal instance's verdict pack, one query per component per
-  asserted mode pair.
+* `modal` — 522: every modal instance's verdict pack, one query per component per
+  asserted mode pair (483 for the 42 base packs, plus 39 for the five packs of the
+  mode-keyed instances in `Instances/*Handoff.lean`).
 * `handoff` — one static query per declared LEFT transition of every certified
   benchmark (self-loops included), `φ_inv(m') ∧ guard_m ∧ ¬φ_inv(m)` — the cross-mode
   handoff of the mode-keyed invariant (`Trusted/Handoff.lean`). Mode-independent
@@ -55,7 +56,7 @@ structure Expected where
 /-- Measured 2026-07-31 (watertank/cut/modal) and 2026-10-07 (handoff). Edit
 deliberately when the suite changes; see the module docstring for why this is a
 declared constant rather than whatever the run produced. -/
-def expected : Expected := { watertank := 6, cut := 105, modal := 483, handoff := 215 }
+def expected : Expected := { watertank := 6, cut := 105, modal := 522, handoff := 215 }
 
 /-- The handoff transitions that are KNOWN to fail, declared as `(benchmark, m', m)`.
 A green handoff phase has exactly this failure set — a new failure fails the run, and so

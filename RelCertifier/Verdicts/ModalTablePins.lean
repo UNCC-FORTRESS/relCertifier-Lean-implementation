@@ -535,4 +535,64 @@ theorem ties_Watertank :
        [], none, false,
        []) := by rfl
 
+theorem ties_Story1AttdistRungASteep :
+    ((row 42).1.bench, modalPairs (row 42).1 (row 42).2.1,
+     (row 42).2.1.lamN, (row 42).2.1.lamD, (row 42).2.1.lamPerL,
+     (row 42).2.1.region, (row 42).2.1.ceilCo, (row 42).2.1.ceilFlip,
+     (row 42).2.1.ceilKs, (row 42).2.1.tailCo, (row 42).2.1.tailFlip,
+     (row 42).2.1.tailKs)
+    = ("story1_attdist_rung_a_6to8", [(0, 0), (0, 1), (0, 2)],
+       1, 1, [],
+       none, none, false,
+       [], none, false,
+       []) := by rfl
+
+theorem ties_Story3RolloverRungBSteep :
+    ((row 43).1.bench, modalPairs (row 43).1 (row 43).2.1,
+     (row 43).2.1.lamN, (row 43).2.1.lamD, (row 43).2.1.lamPerL,
+     (row 43).2.1.region, (row 43).2.1.ceilCo, (row 43).2.1.ceilFlip,
+     (row 43).2.1.ceilKs, (row 43).2.1.tailCo, (row 43).2.1.tailFlip,
+     (row 43).2.1.tailKs)
+    = ("story3_rollover_ladder_rung_b", [(0, 0), (0, 1), (0, 2)],
+       1, 1, [],
+       none, none, false,
+       [], none, false,
+       []) := by rfl
+
+theorem ties_Story1AttdistRungBRow0 :
+    ((row 44).1.bench, modalPairs (row 44).1 (row 44).2.1,
+     (row 44).2.1.lamN, (row 44).2.1.lamD, (row 44).2.1.lamPerL,
+     (row 44).2.1.region, (row 44).2.1.ceilCo, (row 44).2.1.ceilFlip,
+     (row 44).2.1.ceilKs, (row 44).2.1.tailCo, (row 44).2.1.tailFlip,
+     (row 44).2.1.tailKs)
+    = ("story1_attdist_rung_b_12dof", [(0, 0), (0, 1), (0, 2)],
+       1, 1, [],
+       none, some 0, false,
+       [3/10, 1/2, 13/20], none, false,
+       []) := by rfl
+
+theorem ties_Story1AttdistRungBRow1 :
+    ((row 45).1.bench, modalPairs (row 45).1 (row 45).2.1,
+     (row 45).2.1.lamN, (row 45).2.1.lamD, (row 45).2.1.lamPerL,
+     (row 45).2.1.region, (row 45).2.1.ceilCo, (row 45).2.1.ceilFlip,
+     (row 45).2.1.ceilKs, (row 45).2.1.tailCo, (row 45).2.1.tailFlip,
+     (row 45).2.1.tailKs)
+    = ("story1_attdist_rung_b_12dof", [(1, 1), (1, 2)],
+       1, 1, [],
+       none, some 0, false,
+       [3/10, 1/2, 13/20], none, false,
+       []) := by rfl
+
+theorem ties_Story1AttdistRungBRow2 :
+    ((row 46).1.bench, modalPairs (row 46).1 (row 46).2.1,
+     (row 46).2.1.lamN, (row 46).2.1.lamD, (row 46).2.1.lamPerL,
+     (row 46).2.1.region, (row 46).2.1.ceilCo, (row 46).2.1.ceilFlip,
+     (row 46).2.1.ceilKs, (row 46).2.1.tailCo, (row 46).2.1.tailFlip,
+     (row 46).2.1.tailKs)
+    = ("story1_attdist_rung_b_12dof", [(2, 2)],
+       1, 1, [],
+       none, some 0, false,
+       [3/10, 1/2, 13/20], none, false,
+       []) := by rfl
+
 end RelCertifier.Verdicts

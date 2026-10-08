@@ -233,7 +233,15 @@ def modalTable : List (VerdSpec × RunInfo × List ℕ) :=
   (Story3RolloverBase.spec, { dim := 12, invRow := 0, lamN := 5, lamD := 4, ceilCo := some 0, ceilFlip := false, ceilKs := [3/10, 1/2, 13/20] }, [0, 1, 2, 3, 4]),
   (Story3RolloverRungA.spec, { dim := 12, invRow := 0, lamN := 27, lamD := 20, ceilCo := some 0, ceilFlip := false, ceilKs := [3/10, 1/2, 13/20] }, [0, 1, 2]),
   (Story3RolloverRungB.spec, { dim := 12, invRow := 1, lamN := 1, lamD := 1 }, [0, 1]),
-  (Watertank.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1 }, [0])
+  (Watertank.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1 }, [0]),
+  -- the mode-keyed (handoff-composed) instances' own packs: the STEEP window at its full
+  -- declared row (three components, `v` first), and `story1_attdist_rung_b`'s rows with the
+  -- ceiling head, per `Instances/*Handoff.lean`
+  (Story1AttdistRungASteep.spec, { dim := 8, invRow := 0, lamN := 1, lamD := 1, argIsRight := true, fixedOther := some 0 }, [0, 1, 2]),
+  (Story3RolloverRungBSteep.spec, { dim := 12, invRow := 0, lamN := 1, lamD := 1, argIsRight := true, fixedOther := some 0 }, [0, 1, 2]),
+  (Story1AttdistRungBRow0.spec, { dim := 12, invRow := 0, lamN := 1, lamD := 1, ceilCo := some 0, ceilFlip := false, ceilKs := [3/10, 1/2, 13/20], argIsRight := true, fixedOther := some 0 }, [0, 1, 2]),
+  (Story1AttdistRungBRow1.spec, { dim := 12, invRow := 1, lamN := 1, lamD := 1, ceilCo := some 0, ceilFlip := false, ceilKs := [3/10, 1/2, 13/20] }, [0, 1]),
+  (Story1AttdistRungBRow2.spec, { dim := 12, invRow := 2, lamN := 1, lamD := 1, ceilCo := some 0, ceilFlip := false, ceilKs := [3/10, 1/2, 13/20] }, [0, 1])
 ]
 
 /-- `--run-verdicts`' modal pass: every theorem's hypotheses, one route, no fallback. -/

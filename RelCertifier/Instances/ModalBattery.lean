@@ -72,6 +72,12 @@ import RelCertifier.Instances.Story3RolloverBaseModal
 import RelCertifier.Instances.Story3RolloverRungAModal
 import RelCertifier.Instances.Story3RolloverRungBModal
 import RelCertifier.Instances.WatertankViability
+import RelCertifier.Instances.Rover3M1Handoff
+import RelCertifier.Instances.RoverCoupledHandoff
+import RelCertifier.Instances.RoverPositionHandoff
+import RelCertifier.Instances.Story1AttdistRungAHandoff
+import RelCertifier.Instances.Story1AttdistRungBHandoff
+import RelCertifier.Instances.Story3RolloverRungBHandoff
 
 namespace RelCertifier
 
@@ -168,5 +174,22 @@ namespace RelCertifier
 #print axioms Story3RolloverRungBModal.story3_rollover_rung_b_modal
 -- watertank
 #print axioms WatertankModal.watertank_modal_certified
+
+/-! ### The mode-keyed theorems — the DECLARED per-left-mode invariants, composed across
+left switches (`Proofs/Encoding/ModeHandoff.lean`; `docs/HANDOFF.md`). Six of the seven
+mode-dependent benchmarks; `rover3tier_rung12`'s handoff fails and it keeps its two
+per-left-mode theorems above. -/
+-- rover3_M1 (padded to n = 3 for the left mode variable)
+#print axioms Rover3M1Handoff.rover3_M1_modeKeyed
+-- rover_coupled
+#print axioms RoverCoupledHandoff.rover_coupled_modeKeyed
+-- rover_position
+#print axioms RoverPositionHandoff.rover_position_modeKeyed
+-- story1_attdist_rung_a_6to8
+#print axioms Story1AttdistRungAHandoff.story1_attdist_rung_a_modeKeyed
+-- story1_attdist_rung_b_12dof
+#print axioms Story1AttdistRungBHandoff.story1_attdist_rung_b_modeKeyed
+-- story3_rollover_ladder_rung_b
+#print axioms Story3RolloverRungBHandoff.story3_rollover_rung_b_modeKeyed
 
 end RelCertifier

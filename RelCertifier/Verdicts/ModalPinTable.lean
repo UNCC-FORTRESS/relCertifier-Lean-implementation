@@ -371,4 +371,39 @@ theorem pin_RoverRung2c (l : ℕ) :
         none (some (lowFace (b6 l) (Rv (1 : Fin 6)))) (1 : ℝ) l l :=
   pin_of rfl
 
+/-! ## The mode-keyed instances' packs (`Instances/*Handoff.lean`)
+
+The STEEP window at its full declared row (three components, the `v` conjunct first),
+and `story1_attdist_rung_b`'s three rows, each with the right mode's ceiling head. -/
+
+open RelCertifier.Story1AttdistRungAHandoff in
+theorem pin_Story1AttdistRungASteep (m : ℕ) :
+    VerdS m = modalVerd story1_attdist_rung_a_6to8_IR
+        (row 42).2.1.dim (row 42).2.1.invRow (row 42).2.2 none none (1 : ℝ) 0 m :=
+  pin_of rfl
+
+open RelCertifier.Story3RolloverRungBHandoff in
+theorem pin_Story3RolloverRungBSteep (m : ℕ) :
+    VerdS m = modalVerd story3_rollover_ladder_rung_b_IR
+        (row 43).2.1.dim (row 43).2.1.invRow (row 43).2.2 none none (1 : ℝ) 0 m :=
+  pin_of rfl
+
+open RelCertifier.Story1AttdistRungBHandoff RelCertifier.Story1AttdistRungBModal in
+theorem pin_Story1AttdistRungBRow0 (m : ℕ) :
+    VerdR 0 m = modalVerd story1_attdist_rung_b_12dof_IR
+        (row 44).2.1.dim (row 44).2.1.invRow (row 44).2.2 (some (ceilF m)) none (1 : ℝ) 0 m :=
+  pin_of rfl
+
+open RelCertifier.Story1AttdistRungBHandoff RelCertifier.Story1AttdistRungBModal in
+theorem pin_Story1AttdistRungBRow1 (m : ℕ) :
+    VerdR 1 m = modalVerd story1_attdist_rung_b_12dof_IR
+        (row 45).2.1.dim (row 45).2.1.invRow (row 45).2.2 (some (ceilF m)) none (1 : ℝ) 1 m :=
+  pin_of rfl
+
+open RelCertifier.Story1AttdistRungBHandoff RelCertifier.Story1AttdistRungBModal in
+theorem pin_Story1AttdistRungBRow2 (m : ℕ) :
+    VerdR 2 m = modalVerd story1_attdist_rung_b_12dof_IR
+        (row 46).2.1.dim (row 46).2.1.invRow (row 46).2.2 (some (ceilF m)) none (1 : ℝ) 2 m :=
+  pin_of rfl
+
 end RelCertifier.Verdicts

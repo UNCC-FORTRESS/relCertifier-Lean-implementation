@@ -27,8 +27,11 @@ structure Z3Config where
   /-- Deterministic solver work-unit bound (machine-independent, unlike a wall timeout):
   a hard NRA query hits it and returns `unknown` at the SAME point on every machine, so
   the verdict is reproducible. This is what actually bounds pathological queries `z3`'s
-  `:timeout` may ignore in preprocessing. `0` disables it. -/
-  rlimit    : Nat := 8000000
+  `:timeout` may ignore in preprocessing. `0` disables it. Default 64 000 000 (was
+  8 000 000): the heaviest tangent-boundary flow queries of the 6-D gyrostat need about
+  33 000 000 units; the per-query `:timeout` stays the wall-clock safety net (a timeout
+  is `unknown`, hence an error, never a verdict). -/
+  rlimit    : Nat := 64000000
   deriving Repr
 
 /-- Three-valued solver verdict. `error` is carried by `Except`, never conflated here. -/
@@ -41,7 +44,7 @@ spawn (not re-resolved through PATH). -/
 def Z3Config.discover : IO (Except String Z3Config) := do
   -- optional deterministic per-query timeout override (ms)
   let t := (← IO.getEnv "RELCERT_Z3_TIMEOUT").bind String.toNat? |>.getD 10000
-  let rl := (← IO.getEnv "RELCERT_Z3_RLIMIT").bind String.toNat? |>.getD 8000000
+  let rl := (← IO.getEnv "RELCERT_Z3_RLIMIT").bind String.toNat? |>.getD 64000000
   match ← IO.getEnv "RELCERT_Z3" with
   | some p =>
       if ← System.FilePath.pathExists p then return .ok { binary := p, timeoutMs := t, rlimit := rl }

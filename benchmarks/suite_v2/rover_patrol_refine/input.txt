@@ -1,28 +1,53 @@
 # rover_patrol_refine: the worn-drivetrain patrol rover refined with its motor lag.
 # scenario: model-refinement
-# mechanisms: M1 M2 M3 M5 M6
+# mechanisms: M1 M2 M5 M6 M6+ M6L
 #
 # Refinement rung of rover_patrol_zones. The deployed rover (left) is modeled with its
 # motor-current lag: each zone's speed loop commands an acceleration
 # a_cmd = 1.25 (0.8 vcmd - v) (the worn-drivetrain loop of rover_patrol_zones) and the
-# motor realises it through a 0.5 s lag, v' = a, a' = 2 (a_cmd - a); the odometer is
-# s' = v. The reference (right) is the first-order nominal rover of rover_patrol_zones
-# (zones SLOW 0.6, MEDIUM ECO 0.9 / BRISK 1.1 selected on zone entry, FAST 1.5 m/s).
+# motor realises it through a first-order lag of time constant tau = 0.2 s,
+# v' = a, a' = 5 (a_cmd - a); the odometer is s' = v. The reference (right) is the
+# first-order nominal rover of rover_patrol_zones (zones SLOW 0.6, MEDIUM ECO 0.9 /
+# BRISK 1.1 selected on zone entry, FAST 1.5 m/s).
 #
-# Rows (one per left mode): the lifted functional a_L + 2 v_L <= 2 v_R + 1 (along the
-# deployed model (a + 2v)' = 2 a_cmd; with the motor envelope -0.5 <= a <= 1 the row
-# implies v_L <= v_R + 0.75) and the zone-dependent odometer margin of
-# rover_patrol_zones (SLOW 0.5 m, MEDIUM 1 m, FAST 2 m), loosening along the route (M5).
-# Covers (measured): every window certifies at lambda = 7/2 (the lagged functional needs
-# the reference run 3.5x faster; every smaller grid point fails some zone pairing),
-# budget ceil(7/2 * 2 / 1) = 7 right cycles per left window; a window started in SLOW
-# takes joint steps whose retained successors MEDIUM_ECO and MEDIUM_BRISK both cover
-# (M1, M2, M3); a reference in an earlier zone repositions right-only, which needs the
-# zone speed caps as checked cuts (RELCERT_NO_CUT=1 DECLINES, M6).
-# The stall fallback of rover_patrol_zones is not declared here: with the lag the
-# rows cannot exclude a stalled reference as a start (the functional admits a_L < 0),
-# so the refinement rung keeps the nominal reference automaton only.
-# Envelope: v in [0, 1.6], s in [0, 100], a in [-0.5, 1.0].
+# LAG CHOICE (domain audit, docs/SUITE-REDESIGN.md section 13, A2). Per zone the (v, a)
+# loop is v'' + b v' + 1.25 b (v - c) = 0 (b = 1/tau, c = 0.8 vcmd); non-oscillatory
+# iff b >= 5 (tau <= 0.2 s). The previous lag (tau = 0.5 s, b = 2, discriminant
+# 4 - 10 < 0) was UNDERDAMPED and its motor cap a <= 1 a load-bearing, non-invariant
+# domain bound (a_cmd = 1.5 - 1.25 v > 1 for v < 0.4 in FAST). Here tau = 0.2 s
+# (b = 5): characteristic polynomial s^2 + 5 s + 6.25 = (s + 2.5)^2, CRITICALLY damped,
+# rational double root 2.5 (tau = 0.25 s, b = 4, would still oscillate).
+#
+# ZONE HAND-OVER (guard, a controller-design condition): the planner hands a zone's
+# speed loop over -- and starts the first zone -- only with the motor current settled,
+# |a| <= 0.5 m/s^2 (bumpless transfer), at a speed between the 0.3 m/s floor and the
+# zone's command. PHYSICAL DOMAIN: v in [0, 1.6] m/s, s in [0, 100] m, a in [-2, 2]
+# m/s^2 (0.2 g, the traction limit of the rover's wheels); no domain bound is
+# load-bearing (widening test).
+#
+# THE CUT CHAIN (RELCERT_IMPLIED_CUT=1, L7), per zone with c = 0.48 / 0.72 / 0.88 / 1.2:
+# q = a + 2.5 (v - c), q' = -2.5 q; round 1 over the hand-over box: SLOW q in
+# [-0.95, 0.8], MEDIUM_ECO [-1.55, 0.95], MEDIUM_BRISK [-1.95, 1.05], FAST [-2.75, 1.25]
+# (kind linear-form, O1 rational, O2 linear-shape); round 2: v <= 0.8 / 1.1 / 1.3 and
+# v >= 0.1 (kind derived-bound). Inside the chain a is bounded by a <= K - 2.5 (v - c):
+# the acceleration bound is DERIVED, not a motor cap.
+#
+# Rows (one per left mode): the lifted functional w = v + tau a = v + 0.2 a
+# (w' = a_cmd) satisfies a_L + 5 v_L <= 5 v_R - 0.25, i.e. w_L <= v_R - 0.05 (the
+# worn deployed's lag-compensated speed stays below the reference's), plus the
+# zone-dependent odometer margin of rover_patrol_zones (SLOW 0.5 m, MEDIUM 1 m, FAST
+# 2 m), loosening along the route (M5, 10 non-vacuous handoff queries, all unsat).
+# -0.25 is the tightest slack (grid 0.25 in functional units) that certifies; -0.5 is
+# DECLINED (FAST_L), with the domain at +-2 and at +-100 alike.
+# Covers (measured): SLOW, MEDIUM_ECO, MEDIUM_BRISK at lambda = 7/4 (budget 4), FAST at
+# lambda = 5/2 (budget 5) (M1, M2); a reference in an earlier zone repositions
+# right-only. Counter-runs: RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1 and
+# RELCERT_NO_LINEAR_CUT=1 all DECLINE (M6, M6+, M6L). The tight claim costs the
+# branching of the previous rung: at w_L <= v_R - 0.05 the SLOW/SLOW joint segment
+# fails, so the cover from SLOW repositions instead of taking a joint step through
+# both MEDIUM profiles (at the looser slack +0.5 it branches; not claimed here).
+# The stall fallback of rover_patrol_zones is not declared here (the refinement rung
+# keeps the nominal reference automaton only). Units m/s, m, m/s^2, s.
 [problem]
 name = rover_patrol_refine
 max_depth = 8
@@ -33,24 +58,24 @@ bound_T = 4.0
 state_vars = [v, s, a]
 epsilon = 2.0
 [Lsys.mode.SLOW]
-ode = v' = a; s' = v; a' = smt2:(* 2.0 (- (* 1.25 (- 0.48 v)) a));
-guard = s >= 0.0 and s < 20.0 and v >= 0.3 and v <= 0.6
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -0.5 and a <= 1.0
+ode = v' = a; s' = v; a' = smt2:(* 5.0 (- (* 1.25 (- 0.48 v)) a));
+guard = s >= 0.0 and s < 20.0 and v >= 0.3 and v <= 0.6 and a >= -0.5 and a <= 0.5
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -2.0 and a <= 2.0
 next = [MEDIUM_ECO, MEDIUM_BRISK, SLOW]
 [Lsys.mode.MEDIUM_ECO]
-ode = v' = a; s' = v; a' = smt2:(* 2.0 (- (* 1.25 (- 0.72 v)) a));
-guard = s >= 20.0 and s < 50.0 and v >= 0.3 and v <= 0.9
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -0.5 and a <= 1.0
+ode = v' = a; s' = v; a' = smt2:(* 5.0 (- (* 1.25 (- 0.72 v)) a));
+guard = s >= 20.0 and s < 50.0 and v >= 0.3 and v <= 0.9 and a >= -0.5 and a <= 0.5
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -2.0 and a <= 2.0
 next = [FAST, MEDIUM_BRISK, MEDIUM_ECO]
 [Lsys.mode.MEDIUM_BRISK]
-ode = v' = a; s' = v; a' = smt2:(* 2.0 (- (* 1.25 (- 0.88 v)) a));
-guard = s >= 20.0 and s < 50.0 and v >= 0.3 and v <= 1.1
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -0.5 and a <= 1.0
+ode = v' = a; s' = v; a' = smt2:(* 5.0 (- (* 1.25 (- 0.88 v)) a));
+guard = s >= 20.0 and s < 50.0 and v >= 0.3 and v <= 1.1 and a >= -0.5 and a <= 0.5
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -2.0 and a <= 2.0
 next = [FAST, MEDIUM_ECO, MEDIUM_BRISK]
 [Lsys.mode.FAST]
-ode = v' = a; s' = v; a' = smt2:(* 2.0 (- (* 1.25 (- 1.2 v)) a));
-guard = s >= 50.0 and v >= 0.3 and v <= 1.5
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -0.5 and a <= 1.0
+ode = v' = a; s' = v; a' = smt2:(* 5.0 (- (* 1.25 (- 1.2 v)) a));
+guard = s >= 50.0 and v >= 0.3 and v <= 1.5 and a >= -0.5 and a <= 0.5
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -2.0 and a <= 2.0
 next = [FAST]
 [Rsys]
 state_vars = [v, s, a]
@@ -58,25 +83,25 @@ epsilon = 1.0
 [Rsys.mode.SLOW]
 ode = v' = smt2:(- 0.6 v); s' = v; a' = smt2:0;
 guard = s >= 0.0 and s < 20.0 and v >= 0.3 and v <= 0.6
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -0.5 and a <= 1.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -2.0 and a <= 2.0
 next = [MEDIUM_ECO, MEDIUM_BRISK, SLOW]
 [Rsys.mode.MEDIUM_ECO]
 ode = v' = smt2:(- 0.9 v); s' = v; a' = smt2:0;
 guard = s >= 20.0 and s < 50.0 and v >= 0.3 and v <= 0.9
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -0.5 and a <= 1.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -2.0 and a <= 2.0
 next = [FAST, MEDIUM_ECO]
 [Rsys.mode.MEDIUM_BRISK]
 ode = v' = smt2:(- 1.1 v); s' = v; a' = smt2:0;
 guard = s >= 20.0 and s < 50.0 and v >= 0.3 and v <= 1.1
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -0.5 and a <= 1.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -2.0 and a <= 2.0
 next = [FAST, MEDIUM_BRISK]
 [Rsys.mode.FAST]
 ode = v' = smt2:(- 1.5 v); s' = v; a' = smt2:0;
 guard = s >= 50.0 and v >= 0.3 and v <= 1.5
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -0.5 and a <= 1.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -2.0 and a <= 2.0
 next = [FAST]
 [relational_invariant]
-SLOW         = smt2:(and (<= (+ L_a (* 2.0 L_v)) (+ (* 2.0 R_v) 1.0)) (<= L_s (+ R_s 0.5)))
-MEDIUM_ECO   = smt2:(and (<= (+ L_a (* 2.0 L_v)) (+ (* 2.0 R_v) 1.0)) (<= L_s (+ R_s 1.0)))
-MEDIUM_BRISK = smt2:(and (<= (+ L_a (* 2.0 L_v)) (+ (* 2.0 R_v) 1.0)) (<= L_s (+ R_s 1.0)))
-FAST         = smt2:(and (<= (+ L_a (* 2.0 L_v)) (+ (* 2.0 R_v) 1.0)) (<= L_s (+ R_s 2.0)))
+SLOW         = smt2:(and (<= (+ L_a (* 5.0 L_v)) (+ (* 5.0 R_v) (- 0.25))) (<= L_s (+ R_s 0.5)))
+MEDIUM_ECO   = smt2:(and (<= (+ L_a (* 5.0 L_v)) (+ (* 5.0 R_v) (- 0.25))) (<= L_s (+ R_s 1.0)))
+MEDIUM_BRISK = smt2:(and (<= (+ L_a (* 5.0 L_v)) (+ (* 5.0 R_v) (- 0.25))) (<= L_s (+ R_s 1.0)))
+FAST         = smt2:(and (<= (+ L_a (* 5.0 L_v)) (+ (* 5.0 R_v) (- 0.25))) (<= L_s (+ R_s 2.0)))

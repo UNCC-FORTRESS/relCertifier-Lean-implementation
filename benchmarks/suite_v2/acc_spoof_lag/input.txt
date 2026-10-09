@@ -1,25 +1,53 @@
 # acc_spoof_lag: the spoofed cruise controller refined with the powertrain lag.
 # scenario: model-refinement
-# mechanisms: M1 M2 M4
+# mechanisms: M1 M2 M6 M6+ M6L
 #
 # Refinement of acc_spoof_cruise. The deployed vehicle (left) is modeled with its
 # powertrain lag: the speed loop commands an acceleration a_cmd = 0.5 (30 - 1.25 v)
-# (set speed 30 m/s, +25 % speed-sensor gain spoof) and the powertrain realises it
-# through a first-order lag of 0.5 s: v' = a, a' = 2 (a_cmd - a). The reference (right)
-# is the unspoofed first-order cruise model v' = 0.5 (30 - v) (lag abstracted away).
+# = 0.625 (24 - v) (set speed 30 m/s, +25 % speed-sensor gain spoof) and the powertrain
+# realises it through a first-order lag of time constant tau: v' = a,
+# a' = (a_cmd - a) / tau. The reference (right) is the unspoofed first-order cruise
+# model v' = 0.5 (30 - v) (lag abstracted away).
 #
-# Claim: the lifted functional a_L + 2 v_L <= 2 v_R. Along the deployed model
-# (a + 2v)' = 1.25 (24 - v), the spoofed first-order loop's rate, so the functional
-# plays the role the speed plays in acc_spoof_cruise; with the powertrain envelope
-# -5 <= a <= 10 the row implies v_L <= v_R + 2.5. The right certifies at lambda = 5/4
-# (at lambda = 1 the boundary derivative 1.25 (24 - v_L) - 0.5 (30 - v_R) is positive for
-# a_L + 2 v_L = 2 v_R at low speeds), budget 3 right cycles per left window (M1, M2).
+# LAG CHOICE (domain audit, docs/SUITE-REDESIGN.md section 13, A2). The (v, a) loop is
+# v'' + b v' + 0.625 b (v - 24) = 0 with b = 1/tau; it is non-oscillatory iff
+# b^2 >= 4 * 0.625 b, i.e. b >= 2.5, tau <= 0.4 s. The previous lag (tau = 0.5 s,
+# b = 2, discriminant 4 - 5 < 0) was UNDERDAMPED: a overshoots and, unsaturated, the
+# command a_cmd = 15 - 0.625 v exceeds any fixed cap at low speed, so the old cap
+# a <= 10 was a load-bearing, non-invariant domain bound. Here tau = 0.4 s (b = 2.5):
+# characteristic polynomial s^2 + 2.5 s + 1.5625 = (s + 1.25)^2, CRITICALLY damped,
+# rational double root r = 1.25 (tau = 0.25 s would give s^2 + 4 s + 2.5, roots
+# -2 +- sqrt(1.5): over-damped but irrational, which the linear-form chain cannot
+# use; tau = 0.4 s is the slowest non-oscillatory lag).
 #
-# Fallback (M4): the reference's DISENGAGE branch below the 20 m/s wheel-speed floor
-# (v' = -0.5 v, sink) is pruned (CRUISE accelerates at the floor, entered above it);
-# the deployed CRUISE window starts at v_L >= 23 with a_L >= -5, so the row gives
-# v_R >= v_L + a_L / 2 >= 20.5 and DISENGAGE is not an admissible start.
-# RELCERT_NO_PRUNE=1 DECLINES. Units m/s, m/s^2, s; envelope v in [0, 40], a in [-5, 10].
+# ENGAGEMENT (guard, a controller-design condition): the cruise controller engages
+# (resumes) between 23 m/s and the set speed 30 m/s, and only with |a| <= 2 m/s^2 (no
+# hard pedal input at engagement). PHYSICAL DOMAIN: v in [0, 40] m/s, a in [-10, 10]
+# m/s^2 (1 g, the tyre-road friction limit). Neither domain bound is load-bearing
+# (widening test).
+#
+# THE CUT CHAIN (RELCERT_IMPLIED_CUT=1, L7). q = a + 1.25 (v - 24), q' = -1.25 q.
+# Round 1 over the guard box (v in [23, 30], a in [-2, 2]): q <= 9.5 and q >= -3.25
+# (kind linear-form, O1 rational, O2 linear-shape). Round 2: v <= 31.6 and v >= 21.4
+# (kind derived-bound, given the round-1 atoms). Inside the chain a is bounded by
+# a <= 9.5 - 1.25 (v - 24): the acceleration bound the claim needs is DERIVED, not a
+# domain cap.
+#
+# Claim, derived: the lifted functional w = v + tau a = v + 0.4 a (w' = a_cmd =
+# 0.625 (24 - v)) satisfies a_L + 2.5 v_L <= 2.5 v_R - 5.5, i.e. w_L <= v_R - 2.2: the
+# spoofed vehicle's lag-compensated speed stays at least 2.2 m/s below the reference's
+# speed. This is the tightest slack (grid 0.25 in functional units) that certifies;
+# -5.75 is DECLINED, with the domain at +-10 and at +-100 alike. Certified at lambda =
+# 5/2, budget ceil(5/2 * 2 / 1) = 5 right cycles per left window (M1, M2).
+# Counter-runs: RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1 and RELCERT_NO_LINEAR_CUT=1
+# all DECLINE (M6, M6+, M6L).
+#
+# Fallback: the reference's DISENGAGE branch below the 20 m/s wheel-speed floor
+# (v' = -0.5 v, sink) is still declared and pruned (CRUISE accelerates at the floor),
+# but the pruning is no longer load-bearing (RELCERT_NO_PRUNE=1 CERTIFIES): the derived
+# floor v_L >= 21.4 and the row put w_L >= 21.4 > 17.8 >= v_R - 2.2 on every
+# CRUISE_L/DISENGAGE_R state, so that pairing region is empty under the cuts (as in
+# rover_patrol_zones, docs/SUITE-REDESIGN.md section 5 finding 9). Units m/s, m/s^2, s.
 [problem]
 name = acc_spoof_lag
 max_depth = 8
@@ -30,9 +58,9 @@ bound_T = 4.0
 state_vars = [v, a]
 epsilon = 2.0
 [Lsys.mode.CRUISE]
-ode = v' = a; a' = smt2:(* 2.0 (- (* 0.5 (- 30.0 (* 1.25 v))) a));
-guard = v >= 23.0 and v < 40.0 and a >= -5.0 and a <= 10.0
-evolve = v >= 0.0 and v <= 40.0 and a >= -5.0 and a <= 10.0
+ode = v' = a; a' = smt2:(* 2.5 (- (* 0.5 (- 30.0 (* 1.25 v))) a));
+guard = v >= 23.0 and v <= 30.0 and a >= -2.0 and a <= 2.0
+evolve = v >= 0.0 and v <= 40.0 and a >= -10.0 and a <= 10.0
 next = [CRUISE]
 [Rsys]
 state_vars = [v, a]
@@ -40,12 +68,12 @@ epsilon = 1.0
 [Rsys.mode.CRUISE]
 ode = v' = smt2:(* 0.5 (- 30.0 v)); a' = smt2:0;
 guard = v >= 20.0 and v < 40.0
-evolve = v >= 0.0 and v <= 40.0 and a >= -5.0 and a <= 10.0
+evolve = v >= 0.0 and v <= 40.0 and a >= -10.0 and a <= 10.0
 next = [CRUISE, DISENGAGE]
 [Rsys.mode.DISENGAGE]
 ode = v' = smt2:(* -0.5 v); a' = smt2:0;
 guard = v < 20.0
-evolve = v >= 0.0 and v <= 40.0 and a >= -5.0 and a <= 10.0
+evolve = v >= 0.0 and v <= 40.0 and a >= -10.0 and a <= 10.0
 next = [DISENGAGE]
 [relational_invariant]
-CRUISE = smt2:(<= (+ L_a (* 2.0 L_v)) (* 2.0 R_v))
+CRUISE = smt2:(<= (+ L_a (* 2.5 L_v)) (- (* 2.5 R_v) 5.5))

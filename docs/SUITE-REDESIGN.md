@@ -2215,7 +2215,7 @@ shapes.
 | **total** | | | **61182** | | | **61108** | | |
 
 Summary: 42 / 42 CERTIFIED in 61.2 s of tool time in total (sum of the per-benchmark
-`relcert` times); 36 benchmarks under 1.6 s each; the long ones are
+`relcert` times); 37 benchmarks under 1.6 s each; the long ones are
 `story1_attdist_rung_a_6to8` (20.5 s, one query of 5.0 s), `sat_detumble_weak` (12.3 s),
 `sat_detumble_phases` (6.5 s), `refinement_ladder_rover_rung3_6to8` (2.9 s). The
 polynomial rigid-body rungs have FEW but HEAVY queries (41–88 queries, up to 3.1 s each);

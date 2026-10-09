@@ -89,6 +89,7 @@ FAMILIES = [
     ("story3_", "Story ladders"),
     ("watertank", "Watertank"),
     ("sat_detumble_", "Rigid-body detumbling (polynomial)"),
+    ("sat3w_detumble_", "Rigid-body detumbling (polynomial)"),
 ]
 KEPT_SCENARIO = {
     "watertank": "sensor-attack",

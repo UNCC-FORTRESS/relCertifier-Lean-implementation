@@ -1,0 +1,104 @@
+# sat3w_detumble_phases: microsatellite with three reaction wheels, detumbling then fine pointing, phase-resolved claim against the design model.
+# scenario: model-refinement
+# mechanisms: M2 M4 M5 M6
+#
+# Dimension lift (pass 6) of sat_detumble_phases: the single z-wheel gyrostat becomes a
+# full three-wheel gyrostat, state (w1, w2, w3, h1, h2, h3) per side (6 D).
+#
+# THE PLANT (both sides; a ~60 kg microsatellite, SI units). Body rates w = (w1, w2, w3)
+# (rad/s) about the principal axes, inertia J = diag(2, 4, 5) kg m^2, and the momenta
+# h = (h1, h2, h3) (N m s) of three reaction wheels aligned with the principal axes.
+# Euler's equations of a gyrostat (body frame, no external torque):
+#   J w' = -w x (J w + h) - h',
+# and each wheel absorbs its axis rate (rate-damping law of gain k): h_i' = k J_i w_i, so
+#   J w' = -w x (J w + h) - k J w.
+# Componentwise, with (w x H)_1 = w2 H3 - w3 H2 etc. and H = J w + h:
+#   J1 w1' = (J2 - J3) w2 w3 + w3 h2 - w2 h3 - k J1 w1,
+#   J2 w2' = (J3 - J1) w3 w1 + w1 h3 - w3 h1 - k J2 w2,
+#   J3 w3' = (J1 - J2) w1 w2 + w2 h1 - w1 h2 - k J3 w3,
+# i.e. w1' = -0.5 w2 w3 + 0.5 (w3 h2 - w2 h3) - k w1,
+#      w2' = 0.75 w3 w1 + 0.25 (w1 h3 - w3 h1) - k w2,
+#      w3' = -0.4 w1 w2 + 0.2 (w2 h1 - w1 h2) - k w3,
+#      h1' = 2 k w1, h2' = 4 k w2, h3' = 5 k w3.
+# ENERGY: E = 2 w1^2 + 4 w2^2 + 5 w3^2 = w . J w (twice the body's rotational kinetic
+# energy). E' = 2 w . J w' = -2 w . (w x H) - 2 k w . J w = -2 k E, because w . (w x H) = 0
+# for EVERY H: the gyroscopic cubic terms (coefficients -2 + 6 - 4 = 0 on w1 w2 w3) and the
+# six wheel-coupling cubic terms (w1 w3 h2, w1 w2 h3, w2 w3 h1, each +2 and -2) cancel
+# exactly. E' = -2 k E holds only through that cancellation, which every flow query on the
+# energy rows has to establish in nonlinear real arithmetic (12 real variables per query).
+# The wheels do not dissipate the TOTAL momentum: |J w + h| is conserved (H . H' = 0);
+# a later momentum dump by magnetorquers is not modeled.
+# The DESIGN MODEL (right) neglects the gyroscopic and wheel couplings: w_i' = -k w_i,
+# h_i' = k J_i w_i.
+# PHYSICAL DOMAIN (both sides): |w_i| <= 1 rad/s (the gyro's measurement range) and
+# |h_i| <= 2 N m s (each wheel's momentum capacity); no certificate stands on them
+# (widening test: CERTIFIED with every bound widened at once, no load-bearing group).
+# Guards (entry conditions): the detumble controller engages with the body energy inside
+# its authority envelope, E <= 1 (a controller-design constant). The design model
+# declares the FDIR SAFE mode on the ENERGY threshold E > 1 (actuators inhibited, a sink;
+# modeled frozen) -- a quadratic threshold.
+#
+# Refined rung: the deployed's mode logic is modeled. DETUMBLE (k = 0.5 /s, engaged at
+# E <= 1) hands over to FINE pointing once the body energy is inside the pointing loop's
+# capture envelope, E <= 0.3 (a controller-design constant; e.g. |w3| <= 0.24 rad/s about
+# z alone): FINE keeps damping the rates through the wheels with a lower, power-saving
+# gain k = 0.35 /s. FINE is terminal (DETUMBLE -> FINE only). The design model (right)
+# is the k = 0.5 decoupled model with SAFE.
+#
+# Rows (MODE-DEPENDENT, M5), each the tightest for its phase:
+#   DETUMBLE: E_L <= E_R and E_R <= E_L (exact, as sat_detumble_nominal);
+#   FINE:     E_L <= E_R + 0.095 and E_R <= E_L.
+# FINE, derived: on the boundary E_L = E_R + d the gap grows iff E_R > d k_F / (k_R - k_F);
+# with E_R <= E_L <= 0.3 (the FINE envelope, a checked cut) d* = 0.3 (1 - k_F / k_R) =
+# 0.09. Measured (default solver settings): 0.095 CERTIFIED; 0.09 = d* ERROR (tangent;
+# the route queries exhaust the tool's deterministic Z3 resource limit,
+# RELCERT_Z3_RLIMIT = 8000000 by default, and come back `unknown`); 0.085 and 0.08
+# DECLINED. Remark: with RELCERT_Z3_RLIMIT=0 the analytic d* = 0.09 CERTIFIES (12.5 s).
+# The handoff DETUMBLE -> FINE loosens the row (--handoff 3/3 unsat).
+# Remark on the capture envelope: the 4-D rung uses E <= 0.2 and k_F = 0.3. In 6 D that
+# pairing's FINE windows exhaust the default resource limit at every tolerance tried
+# below the envelope itself (0.085 .. 0.18: ERROR; 0.19: CERTIFIED), while with
+# RELCERT_Z3_RLIMIT = 16000000 it certifies at 0.085 (9.2 s) and with no limit at the
+# analytic 0.08 (12.6 s). A scan (envelope 0.2, 0.25, 0.3, 0.5 x gain 0.25, 0.35, 0.4,
+# 0.45, each at d* + 0.005) certifies under the default limit at four points (0.25/0.4,
+# 0.3/0.35, 0.3/0.4, 0.5/0.45); 0.3/0.35 is the one with the largest gain drop (FINE at
+# 70 % of the detumble gain). The choice is a solver-budget accommodation, stated as such.
+# Covers (measured): lambda in [1, 1], budget 2 in both phases (M2). The FINE envelope
+# E <= 0.3 is a quadratic checked cut the FINE windows need: RELCERT_NO_CUT=1 DECLINES
+# (M6). Fallback (M4): DETUMBLE -> SAFE pruned; RELCERT_NO_PRUNE=1 DECLINES.
+# Z3 (measured, Z3 4.15.1): 71 queries, 11.6 s in total, the largest 3.3 s.
+[problem]
+name = sat3w_detumble_phases
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 4.0
+[Lsys]
+state_vars = [w1, w2, w3, h1, h2, h3]
+epsilon = 2.0
+[Lsys.mode.DETUMBLE]
+ode = w1' = smt2:(- (+ (* -0.5 (* w2 w3)) (* 0.5 (* w3 h2)) (* -0.5 (* w2 h3))) (* 0.5 w1)); w2' = smt2:(- (+ (* 0.75 (* w3 w1)) (* 0.25 (* w1 h3)) (* -0.25 (* w3 h1))) (* 0.5 w2)); w3' = smt2:(- (+ (* -0.4 (* w1 w2)) (* 0.2 (* w2 h1)) (* -0.2 (* w1 h2))) (* 0.5 w3)); h1' = smt2:(* 1.0 w1); h2' = smt2:(* 2.0 w2); h3' = smt2:(* 2.5 w3);
+guard = w1*w1*2 + w2*w2*4 + w3*w3*5 <= 1.0
+evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h1 >= -2.0 and h1 <= 2.0 and h2 >= -2.0 and h2 <= 2.0 and h3 >= -2.0 and h3 <= 2.0
+next = [FINE, DETUMBLE]
+[Lsys.mode.FINE]
+ode = w1' = smt2:(- (+ (* -0.5 (* w2 w3)) (* 0.5 (* w3 h2)) (* -0.5 (* w2 h3))) (* 0.35 w1)); w2' = smt2:(- (+ (* 0.75 (* w3 w1)) (* 0.25 (* w1 h3)) (* -0.25 (* w3 h1))) (* 0.35 w2)); w3' = smt2:(- (+ (* -0.4 (* w1 w2)) (* 0.2 (* w2 h1)) (* -0.2 (* w1 h2))) (* 0.35 w3)); h1' = smt2:(* 0.7 w1); h2' = smt2:(* 1.4 w2); h3' = smt2:(* 1.75 w3);
+guard = w1*w1*2 + w2*w2*4 + w3*w3*5 <= 0.3
+evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h1 >= -2.0 and h1 <= 2.0 and h2 >= -2.0 and h2 <= 2.0 and h3 >= -2.0 and h3 <= 2.0
+next = [FINE]
+[Rsys]
+state_vars = [w1, w2, w3, h1, h2, h3]
+epsilon = 1.0
+[Rsys.mode.DETUMBLE]
+ode = w1' = smt2:(* -0.5 w1); w2' = smt2:(* -0.5 w2); w3' = smt2:(* -0.5 w3); h1' = smt2:(* 1.0 w1); h2' = smt2:(* 2.0 w2); h3' = smt2:(* 2.5 w3);
+guard = w1*w1*2 + w2*w2*4 + w3*w3*5 <= 1.0
+evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h1 >= -2.0 and h1 <= 2.0 and h2 >= -2.0 and h2 <= 2.0 and h3 >= -2.0 and h3 <= 2.0
+next = [DETUMBLE, SAFE]
+[Rsys.mode.SAFE]
+ode = w1' = smt2:0; w2' = smt2:0; w3' = smt2:0; h1' = smt2:0; h2' = smt2:0; h3' = smt2:0;
+guard = w1*w1*2 + w2*w2*4 + w3*w3*5 > 1.0
+evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h1 >= -2.0 and h1 <= 2.0 and h2 >= -2.0 and h2 <= 2.0 and h3 >= -2.0 and h3 <= 2.0
+next = [SAFE]
+[relational_invariant]
+DETUMBLE = w1[l]*w1[l]*2 + w2[l]*w2[l]*4 + w3[l]*w3[l]*5 <= w1[r]*w1[r]*2 + w2[r]*w2[r]*4 + w3[r]*w3[r]*5 and w1[r]*w1[r]*2 + w2[r]*w2[r]*4 + w3[r]*w3[r]*5 <= w1[l]*w1[l]*2 + w2[l]*w2[l]*4 + w3[l]*w3[l]*5
+FINE = w1[l]*w1[l]*2 + w2[l]*w2[l]*4 + w3[l]*w3[l]*5 <= w1[r]*w1[r]*2 + w2[r]*w2[r]*4 + w3[r]*w3[r]*5 + 0.095 and w1[r]*w1[r]*2 + w2[r]*w2[r]*4 + w3[r]*w3[r]*5 <= w1[l]*w1[l]*2 + w2[l]*w2[l]*4 + w3[l]*w3[l]*5

@@ -31,11 +31,16 @@
 # profile with set point c_k the forms Q_j = Delta r_i + rho_j e_i obey
 # Q_j' = -rho_{3-j} (Q_j - rho_j (30 - c_k)): they contract toward 0 (NORMAL) or
 # +-2 rho_j (CLOSE / FAR), so [-2 rho_j, 2 rho_j] is the tightest box invariant under all
-# three; |e_i| <= 2 is stratified on the proven Q_1 rows. One step tighter (measured):
-# the Q box at 1.9 rho_j DECLINED; |e_i| <= 1.9 DECLINED.
-# Covers (measured): lambda in [1, 1] (synchronous: the same gains on both sides), budget
-# 2; the cover from NORMAL takes a joint step whose retained successors CLOSE and FAR both
-# cover (M2, M3).
+# three; |e_i| <= 2 is stratified on the proven Q_1 rows. One step tighter (measured on
+# the stretch grid): the Q box at 1.9 rho_j DECLINED (27.9 s); |e_i| <= 1.9 DECLINED
+# (28.9 s).
+# Covers (measured): stretch grid lambda in [1, 6]; the cover is found at lambda = 1 (the
+# same gains on both sides; no M1), budget 2; the cover from NORMAL takes a joint step
+# whose retained successors CLOSE and FAR both cover (M2, M3). On the grid the
+# counter-runs re-try the failing segments at every grid point: NO_PRUNE needs 8 824
+# Z3 queries (DECLINED in 27.3 s), NO_CUT / NO_IMPLIED_CUT / NO_LINEAR_CUT about 7 200
+# (DECLINED in 16.2-16.5 s), within the default query budget of 20 000
+# (RELCERT_MAX_QUERIES; it was 5 000 before pass 7, which ended these runs in ERROR).
 # Fallback (M4): every profile -> BRAKE1/2/3 pruned (nine edges): the L7 chain on each
 # profile's engagement box keeps r + 0.5 (g - c_k) >= -3, so g_i >= c_k - 6 >= 22 > 20;
 # RELCERT_NO_PRUNE=1 DECLINES. The chain is what proves the non-connection, so
@@ -45,7 +50,7 @@
 name = platoon3_profiles
 max_depth = 8
 lambda_min = 1.0
-lambda_max = 1.0
+lambda_max = 6.0
 bound_T = 4.0
 [Lsys]
 state_vars = [g1, r1, g2, r2, g3, r3]

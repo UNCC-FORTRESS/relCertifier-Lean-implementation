@@ -825,12 +825,12 @@ def certifyCore (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
   (·.1) <$> certifyWithData s cnt maxQ maxSmt deadline p
 
 /-- **In-process oracle entry.** Certify problem `p` on a warm session `s`. No shelling.
-A deterministic query budget (`RELCERT_MAX_QUERIES`, default 1500) bounds every call: a
+A deterministic query budget (`RELCERT_MAX_QUERIES`, default 20000) bounds every call: a
 candidate whose exhaustive search exceeds it ⟹ `error "query budget exceeded"` (never a
 verdict, never a hang) — the same input always hits the same count. -/
 def certify (s : Z3Session) (p : PProblem) : IO Outcome := do
   let cnt ← IO.mkRef 0
-  let maxQ := (← IO.getEnv "RELCERT_MAX_QUERIES").bind String.toNat? |>.getD 5000
+  let maxQ := (← IO.getEnv "RELCERT_MAX_QUERIES").bind String.toNat? |>.getD 20000
   let budgetMs := (← IO.getEnv "RELCERT_TIME_BUDGET_MS").bind String.toNat? |>.getD 40000
   let maxSmt := (← IO.getEnv "RELCERT_MAX_SMT").bind String.toNat? |>.getD 200000
   let deadline := (← IO.monoMsNow) + budgetMs
@@ -862,7 +862,7 @@ def emitCoverFile (cfg : Z3Config) (path defname : String) : IO Unit := do
       | .error e => IO.eprintln s!"ERROR: z3: {e}"; IO.Process.exit 1
       | .ok s =>
           let cnt ← IO.mkRef 0
-          let maxQ := (← IO.getEnv "RELCERT_MAX_QUERIES").bind String.toNat? |>.getD 5000
+          let maxQ := (← IO.getEnv "RELCERT_MAX_QUERIES").bind String.toNat? |>.getD 20000
           let budgetMs := (← IO.getEnv "RELCERT_TIME_BUDGET_MS").bind String.toNat? |>.getD 40000
           let maxSmt := (← IO.getEnv "RELCERT_MAX_SMT").bind String.toNat? |>.getD 200000
           let deadline := (← IO.monoMsNow) + budgetMs

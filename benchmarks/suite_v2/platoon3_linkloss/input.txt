@@ -48,14 +48,16 @@
 # Q_j' = -rho_{3-j} Q_j; the FOLLOW row gives Q_j = -6 rho_j at the switch, so the box
 # [-6 rho_j, 0] is the tightest that contains the handoff state. The bounds on e1 are
 # stratified on the proven Q rows (Q_1 <= 0 gives e1' <= 0 at e1 = 6; Q_2 >= -3 gives
-# e1' >= 0 at e1 = 0). One step tighter (measured): e1 <= 5.9 or <= 5.75 DECLINED;
-# e1 >= 0.25 DECLINED (and the handoff FOLLOW -> LOST fails); the Q box [-5.9 rho_j, 0]
-# CERTIFIES but the handoff FOLLOW -> LOST fails (M5 lost); dropping the e1 rows
-# DECLINES (BRAKE1 becomes an admissible start: g1_R = g1_L - Delta g1 < 20). The
+# e1' >= 0 at e1 = 0). One step tighter (measured on the stretch grid): e1 <= 5.9
+# DECLINED (22.0 s); e1 >= 0.25 DECLINED (22.1 s); the Q box [-5.9 rho_j, 0] CERTIFIES
+# but the handoff FOLLOW -> LOST fails (2/3; M5 lost). At lambda = 1 (pass 6) also
+# e1 <= 5.75 DECLINED, and dropping the e1 rows DECLINES (BRAKE1 becomes an admissible
+# start: g1_R = g1_L - Delta g1 < 20). The
 # handoff FOLLOW -> LOST is a loosening on link 1 only (--handoff 3/3 unsat).
-# Covers (measured): lambda in [1, 1] (synchronous: both sides run the same gains; the
-# claim is stated at lambda = 1, the stretch grid is not searched), budget 2 in both left
-# modes (M2).
+# Covers (measured): stretch grid lambda in [1, 6]; the cover is found at lambda = 1
+# (both sides run the same gains; no M1), budget 2 in both left modes (M2). On the grid
+# every counter-run is clean under the default settings (NO_PRUNE DECLINED in 11.1 s,
+# NO_CUT / NO_IMPLIED_CUT / NO_LINEAR_CUT DECLINED in 7.5-7.6 s, at most 3 799 queries).
 # Fallback (M4): FOLLOW -> BRAKE1/2/3 pruned: the reference's L7 chain on its engagement
 # box keeps p_2 = r + 0.5 (g - 30) >= -3, hence g_i >= 24 > 20 (derived-bound cuts);
 # RELCERT_NO_PRUNE=1 DECLINES. The chain is what proves the non-connection, so
@@ -65,7 +67,7 @@
 name = platoon3_linkloss
 max_depth = 8
 lambda_min = 1.0
-lambda_max = 1.0
+lambda_max = 6.0
 bound_T = 4.0
 [Lsys]
 state_vars = [g1, r1, g2, r2, g3, r3]

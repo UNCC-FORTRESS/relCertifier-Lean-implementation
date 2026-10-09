@@ -66,14 +66,12 @@ flagged `story3_rollover_ladder_rung_b` (§13).
 | Rover patrol (zones) | `rover_patrol_zones`, `rover_patrol_refine` (+ kept `rover3tier_rung12`, `match_multi_rate`) | degraded-actuator, model-refinement | 2, 3 |
 | Arm, leading reference | `arm_plateau_crit`, `arm_plateau_slow`, `arm_plateau_profiles` (pass 4, replaces `arm_plateau_lowgain`) | model-refinement, degraded-actuator, degraded-controller | 2 / 1 |
 
-Every new benchmark exercises at least two of M1–M6 non-vacuously (§3; `quad_light_lag`
-exercises exactly two) and belongs to one scenario kind. Every mechanism is exercised by
-at least three benchmarks: M1 18 (ACC ×6, quadrotor ×3, rover ×3, ladders ×6), M2 26,
-M3 6 (ACC ×2, charger, platoon, rover ×2), M4 13 (ACC ×6, quadrotor ×2, charger ×2,
-platoon ×2, rover), M5 6 (rover ×3, stories ×3), M6 19 (arm ×3, charger ×2, platoon ×2,
-rover ×2, ACC, ladders ×9); the widened cut kinds are load-bearing in 6 (M6+: arm ×3,
-charger, platoon ×2) and the linear-form chain in 3 (M6L: the arm family). No file
-declares per-mode domains any more.
+(The table above is the pass-3 list with the pass-4 replacements marked; the
+rigid-body detumbling family — `sat_detumble_nominal`, `sat_detumble_weak`,
+`sat_detumble_phases`, dim 4, polynomial — is new in pass 4, §14.2.) **Pass-4 suite: 42
+benchmarks, 42 / 42 CERTIFIED.** Every non-kept benchmark exercises at least two of M1–M6
+non-vacuously (§3; `quad_light_lag` exercises exactly two). Totals (§8): M1 18, M2 29,
+M3 10, M4 14, M5 10, M6 26, M6+ 10, M6L 7; no file declares per-mode domains.
 
 ## 2. Method — how a cell is earned
 
@@ -454,6 +452,16 @@ These are the facts the runs established; each is visible in a trace in §9.
    is then whatever that bound supports (0.855 for the nominal arm, 0.6775 for the
    over-damped one). For an underdamped loop no such chain exists and the benchmark was
    replaced.
+
+12. **Mode-dependent rows need a switch along which the row loosens** (pass 4, §14.1). A
+   fault-LATCHED degraded mode (limp-home, radar-only after a link loss, fine pointing at
+   a lower gain) gives one naturally: the degraded loop settles lower or slower, its
+   tightest row is strictly looser than the nominal mode's, and there is no switch back.
+   Where the tighter row belongs to the LATER mode (ACC launch → cruise) the handoff
+   fails, and a row scheduled on the left state cannot rescue it unless it stays valid for
+   the whole residence (guards are entry conditions); a range-proportional tolerance that
+   is valid throughout and coincides with the earlier row on the later mode's guard does
+   (`platoon_delay_linkloss`).
 
 ## 6. Scenarios tried and dropped, and why
 
@@ -1779,6 +1787,7 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 
     RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert benchmarks/suite_v2/*/input.txt   # 39 CERTIFIED
     scripts/suite_v2_matrix.py --md /tmp/suite_v2.md --json /tmp/suite_v2.json
+    scripts/suite_v2_matrix.py --z3time --md /tmp/suite_v2.md   # + Z3 time / route shapes (§14.3)
     scripts/suite_v2_matrix.py --only acc_tune_modes,rover_patrol_zones  # a subset
     scripts/domain_widening.py --jobs 6 --md /tmp/widen.md --json /tmp/widen.json
     scripts/domain_widening.py benchmarks/suite_v2/arm_plateau_crit/input.txt   # one file
@@ -1816,6 +1825,8 @@ everything else certifies either way.
   from `suite_v2` (`θ_L ≤ 0.65 ≤ 0.6 + tol`, `docs/PAPER-MAPPING.md` §2c); not touched
   here (`suite_uniform` must stay byte-identical).
 * The paper's Table 1 / §6 rewrite from §8.
+* The Lean mechanization of the pass-4 files: the five replacements and the rigid-body
+  family (quadratic energy rows and a quadratic non-connection guard) are tool-side only.
 
 ## 12. Regression record for `suite_uniform`
 
@@ -1924,7 +1935,7 @@ LOAD-BEARING. Then all groups are widened at once. 39 files, 742 runs.
 | `story3_rollover_ladder_rung_b` | CERTIFIED | DECLINED | `R.psi.hi` (0.15->0.475: DECLINED); `R.theta_p.hi` (0.15->0.475: DECLINED) | `L.s.lo`, `L.s.lo`, `L.s.lo`, `R.s.lo`, `R.s.lo`, `R.s.lo` |
 | `watertank` | CERTIFIED | CERTIFIED | none | none |
 
-(Pass-3 run; the rows of the four files changed in pass 4 — `acc_spoof_lag`, `acc_tune_lag`, `rover_patrol_refine`, `story3_rollover_ladder_rung_b` — are the pass-4 re-run, §13.6; the whole-suite pass-4 re-run is §14.) Totals of the pass-3 run: 39 files; **23** certify with every bound widened at once; **5** have a
+(Pass-3 run, kept as the record; the rows of the four files changed in pass 4 were updated, and the whole-suite pass-4 re-run is §14.4.) Totals of the pass-3 run: 39 files; **23** certify with every bound widened at once; **5** have a
 load-bearing group; **11** pass every single-group widening but fail the all-at-once
 one. Classification:
 
@@ -2139,3 +2150,176 @@ reposition queries), B = `dom ∧ g = 0 ∧ ġ ≥ 0` (boundary), C = `dom ∧ g
 All three routes are used by the family's certificates; the heaviest single queries
 (≈ 3 s) are the route-A/C queries of the weak and phase rungs. The `sat_detumble_fast`
 variant (M1 at λ = 5/4) certified and was not added (§6).
+
+### 14.3 Timing — full-suite run (Task D; feeds the paper's §6 cost paragraph)
+
+One run of `scripts/suite_v2_matrix.py --z3time` on the final 42 files (Z3 4.15.1, warm
+persistent session, `RELCERT_IMPLIED_CUT=1`, nothing else running; the domain-widening run
+started after it). "tool ms" is `relcert`'s own reported time of the plain run; "wall s" the
+process wall time of that run (start-up included). The Z3 columns come from ONE EXTRA run
+through `scripts/z3_timing_proxy.py` (`RELCERT_Z3` = the proxy, which forwards to the same
+Z3 binary and stamps each query from its `(check-sat)` to the sentinel echo): number of
+queries, the summed and the largest per-query Z3 time. The proxied times include the pipe
+hop (about 1 ms per query; it is why a few rows show Z3 ms slightly above tool ms); Z3
+dominates every run. "UNSAT queries by shape" classifies each definitive `unsat` by the
+asserted formula's last conjunct: A `ġ > 0`, B `g = 0 ∧ ġ ≥ 0`, C `g ≥ 0 ∧ ġ > 0`, with
+`/L`, `/R` for one-sided queries (cut O2, non-connection, reposition regions);
+"A-or-static" = an A-shaped query whose term has degree ≤ 1 (affine Lie derivatives and
+static region queries cannot be told apart from the text); "other" = entry / handoff-like
+shapes.
+
+| benchmark | dim L/R | verdict | tool ms (relcert's own) | wall s (process) | Z3 queries | Z3 ms (sum) | Z3 max ms | UNSAT queries by shape |
+|---|---|---|---|---|---|---|---|---|
+| `acc_spoof_lag` | 2/2 | CERTIFIED | 131 | 0.33 | 63 | 217 | 94 | A-or-static/L 2, A-or-static/R 1, B 7, B/R 1, C 1, other 1 |
+| `acc_spoof_limp` | 1/1 | CERTIFIED | 251 | 0.46 | 145 | 247 | 25 | A-or-static/R 7, B 19, B/L 2, B/R 3, C 1, other 2 |
+| `acc_spoof_modes` | 1/1 | CERTIFIED | 212 | 0.46 | 92 | 234 | 84 | A-or-static/R 5, B 13, B/L 2, B/R 3, other 1 |
+| `acc_tune_lag` | 2/2 | CERTIFIED | 199 | 0.38 | 53 | 178 | 74 | A-or-static/L 2, A-or-static/R 1, B 5, B/R 1, C 1, other 1 |
+| `acc_tune_limp` | 1/1 | CERTIFIED | 373 | 0.58 | 175 | 367 | 90 | A-or-static/R 7, B 19, B/R 3, C 5, other 2 |
+| `acc_tune_modes` | 1/1 | CERTIFIED | 294 | 0.54 | 122 | 210 | 20 | A-or-static/R 5, B 13, B/R 3, C 4, other 1 |
+| `arm_plateau_crit` | 2/1 | CERTIFIED | 215 | 0.46 | 82 | 218 | 93 | A-or-static 6, A-or-static/- 16, A-or-static/L 3, B 4, B/L 1, B/R 3, C 2 |
+| `arm_plateau_profiles` | 2/1 | CERTIFIED | 226 | 0.47 | 97 | 243 | 97 | A-or-static 7, A-or-static/- 20, A-or-static/L 4, B 6, B/L 1, B/R 4, C 2 |
+| `arm_plateau_slow` | 2/1 | CERTIFIED | 140 | 0.4 | 81 | 160 | 40 | A-or-static 5, A-or-static/- 16, A-or-static/L 5, B 1, B/L 1, B/R 3, C 3, other 1 |
+| `charger_fast_setpoints` | 1/1 | CERTIFIED | 234 | 0.47 | 106 | 258 | 99 | A-or-static 7, A-or-static/- 7, A-or-static/L 2, A-or-static/R 17, B 6, B/R 1, other 4 |
+| `charger_fast_tapers` | 1/1 | CERTIFIED | 279 | 0.53 | 131 | 270 | 84 | A-or-static 8, A-or-static/- 7, A-or-static/L 2, A-or-static/R 25, B 7, B/R 1, other 4 |
+| `match_multi_rate` | 2/2 | CERTIFIED | 317 | 0.45 | 151 | 342 | 92 | A-or-static 1, A-or-static/L 4, A-or-static/R 9, B 6, B/R 1, C 3, other 4 |
+| `platoon_delay_linkloss` | 1/1 | CERTIFIED | 286 | 0.53 | 142 | 287 | 73 | A-or-static/- 4, A-or-static/L 4, A-or-static/R 8, B 12, B/L 3, B/R 3, other 3 |
+| `platoon_delay_profiles` | 1/1 | CERTIFIED | 253 | 0.47 | 131 | 277 | 78 | A-or-static/- 4, A-or-static/L 2, A-or-static/R 11, B 12, B/L 2, B/R 4, other 2 |
+| `quad_light_airframe_20` | 1/1 | CERTIFIED | 237 | 0.45 | 90 | 246 | 93 | A-or-static 2, A-or-static/R 4, B 9, B/L 2, B/R 4, other 1 |
+| `quad_light_lag` | 2/2 | CERTIFIED | 96 | 0.33 | 22 | 64 | 21 | B 1, B/L 1, B/R 2 |
+| `quad_light_profiles` | 1/1 | CERTIFIED | 463 | 0.62 | 253 | 447 | 41 | A-or-static 2, A-or-static/R 6, B 34, B/L 1, B/R 10, other 1 |
+| `refinement_ladder_rover_rung1_2to3` | 3/2 | CERTIFIED | 260 | 0.38 | 137 | 202 | 17 | A 6, A-or-static/R 39, A/L 3, B 3, C 3, other 1 |
+| `refinement_ladder_rover_rung2_3to6` | 6/6 | CERTIFIED | 676 | 0.84 | 329 | 716 | 97 | A 15, A/L 3, A/R 21, B 3, C 12, other 3 |
+| `refinement_ladder_rover_rung2_6dof` | 4/4 | CERTIFIED | 249 | 0.5 | 106 | 246 | 76 | A 24, A-or-static 1, A-or-static/R 3, A/L 3 |
+| `refinement_ladder_rover_rung2b_6dof` | 6/6 | CERTIFIED | 258 | 0.5 | 118 | 294 | 98 | A 24, A-or-static 1, A-or-static/R 3, A/L 3 |
+| `refinement_ladder_rover_rung2c_6dof` | 6/6 | CERTIFIED | 1343 | 1.59 | 619 | 1326 | 97 | A 33, A/L 3, A/R 21, B 6, C 21, other 6 |
+| `refinement_ladder_rover_rung3_6to8` | 8/8 | CERTIFIED | 2878 | 3.09 | 959 | 2860 | 51 | A 66, A/L 3, A/R 39, B 18, C 36, other 1 |
+| `refinement_ladder_rover_rung4_8to12` | 12/12 | CERTIFIED | 940 | 1.08 | 301 | 974 | 73 | A 6, A/L 3, A/R 39, B 9, C 9, other 1 |
+| `rover3tier_rung12` | 3/3 | CERTIFIED | 213 | 0.45 | 91 | 267 | 98 | A 12, A-or-static 1, A-or-static/R 4, B 2, B/R 2 |
+| `rover_dof_terrain_rung1` | 3/3 | CERTIFIED | 301 | 0.51 | 139 | 293 | 88 | A 6, A-or-static/R 39, A/L 3, B 3, C 3, other 1 |
+| `rover_dof_terrain_rung2` | 6/6 | CERTIFIED | 357 | 0.6 | 163 | 291 | 33 | A 6, A-or-static/R 39, A/L 3, B 3, C 3, other 1 |
+| `rover_dof_terrain_rung3` | 12/12 | CERTIFIED | 357 | 0.57 | 157 | 366 | 82 | A 6, A-or-static/R 39, A/L 3, B 3, C 3, other 1 |
+| `rover_dof_terrain_rung3_8d` | 8/8 | CERTIFIED | 347 | 0.53 | 169 | 378 | 93 | A 6, A-or-static/R 39, A/L 3, B 3, C 3, other 1 |
+| `rover_patrol_refine` | 3/3 | CERTIFIED | 1264 | 1.51 | 648 | 1247 | 90 | A 32, A-or-static 7, A-or-static/L 11, A-or-static/R 36, B 19, C 2, other 1 |
+| `rover_patrol_zones` | 2/2 | CERTIFIED | 379 | 0.63 | 278 | 466 | 96 | A-or-static 14, A-or-static/L 4, A-or-static/R 80, B 14, B/R 4, other 5 |
+| `sat_detumble_nominal` | 4/4 | CERTIFIED | 1608 | 1.81 | 41 | 1651 | 760 | A 10, A/R 1, B/L 1, B/R 2, C 1, other 1 |
+| `sat_detumble_phases` | 4/4 | CERTIFIED | 6521 | 6.74 | 68 | 6596 | 3025 | A 19, A/R 1, B 2, B/L 2, B/R 2, C 2, other 2 |
+| `sat_detumble_weak` | 4/4 | CERTIFIED | 12302 | 12.56 | 88 | 12319 | 3109 | A 13, A/R 3, B 3, B/L 1, B/R 6, C 3, other 1 |
+| `story1_attdist_rung_a_6to8` | 8/8 | CERTIFIED | 20549 | 20.78 | 192 | 20414 | 4959 | A/L 3, A/R 3, B 20, C 1 |
+| `story1_attdist_rung_b_12dof` | 12/12 | CERTIFIED | 497 | 0.73 | 158 | 490 | 99 | A 18, A/L 3, A/R 3, B 2, C 1 |
+| `story2_lateral_rung_a_8dof` | 8/8 | CERTIFIED | 1146 | 1.38 | 518 | 1127 | 88 | A 24, A/L 3, A/R 21, B 12, C 21, other 3 |
+| `story2_lateral_rung_b_12dof` | 12/12 | CERTIFIED | 1494 | 1.75 | 610 | 1459 | 96 | A 24, A/L 3, A/R 21, B 21, C 21, other 3 |
+| `story3_rollover_base_12dof` | 12/12 | CERTIFIED | 1255 | 1.48 | 466 | 1220 | 95 | A 78, A/L 3, A/R 39, B 42, C 6, other/L 1 |
+| `story3_rollover_ladder_rung_a` | 12/12 | CERTIFIED | 900 | 1.15 | 320 | 812 | 27 | A 42, A/L 3, A/R 39, B 6, C 6, other/L 1 |
+| `story3_rollover_ladder_rung_b` | 12/12 | CERTIFIED | 688 | 0.91 | 212 | 690 | 49 | A-or-static/L 6, A/L 3, A/R 3, B 20, C 1 |
+| `watertank` | 1/1 | CERTIFIED | 194 | 0.45 | 84 | 139 | 16 | A-or-static 3, A-or-static/R 6, B 6, B/L 3, B/R 3, other 3 |
+| **total** | | | **61182** | | | **61108** | | |
+
+Summary: 42 / 42 CERTIFIED in 61.2 s of tool time in total (sum of the per-benchmark
+`relcert` times); 36 benchmarks under 1.6 s each; the long ones are
+`story1_attdist_rung_a_6to8` (20.5 s, one query of 5.0 s), `sat_detumble_weak` (12.3 s),
+`sat_detumble_phases` (6.5 s), `refinement_ladder_rover_rung3_6to8` (2.9 s). The
+polynomial rigid-body rungs have FEW but HEAVY queries (41–88 queries, up to 3.1 s each);
+the 12-dof ladders have many light ones (300–960 queries, ≤ 100 ms each).
+
+### 14.4 Domain-widening re-run on the whole suite (Task D)
+
+`scripts/domain_widening.py --jobs 6` over the final 42 files (796 runs):
+
+| benchmark | base | all widened | load-bearing evolve bounds (widened by half the range: verdict) | skipped (one-sided) |
+|---|---|---|---|---|
+| `acc_spoof_lag` | CERTIFIED | CERTIFIED | none | none |
+| `acc_spoof_limp` | CERTIFIED | CERTIFIED | none | none |
+| `acc_spoof_modes` | CERTIFIED | CERTIFIED | none | none |
+| `acc_tune_lag` | CERTIFIED | CERTIFIED | none | none |
+| `acc_tune_limp` | CERTIFIED | CERTIFIED | none | none |
+| `acc_tune_modes` | CERTIFIED | CERTIFIED | none | none |
+| `arm_plateau_crit` | CERTIFIED | CERTIFIED | none | none |
+| `arm_plateau_profiles` | CERTIFIED | CERTIFIED | none | none |
+| `arm_plateau_slow` | CERTIFIED | CERTIFIED | none | none |
+| `charger_fast_setpoints` | CERTIFIED | CERTIFIED | none | none |
+| `charger_fast_tapers` | CERTIFIED | CERTIFIED | none | none |
+| `match_multi_rate` | CERTIFIED | CERTIFIED | none | `L.s.lo`, `L.s.lo`, `L.s.lo`, `L.s.lo`, `R.s.lo`, `R.s.lo` |
+| `platoon_delay_linkloss` | CERTIFIED | CERTIFIED | none | none |
+| `platoon_delay_profiles` | CERTIFIED | DECLINED | none | none |
+| `quad_light_airframe_20` | CERTIFIED | CERTIFIED | none | none |
+| `quad_light_lag` | CERTIFIED | CERTIFIED | none | none |
+| `quad_light_profiles` | CERTIFIED | CERTIFIED | none | none |
+| `refinement_ladder_rover_rung1_2to3` | CERTIFIED | DECLINED | none | `L.s.lo`, `L.s.lo`, `L.s.lo`, `R.s.lo`, `R.s.lo`, `R.s.lo` |
+| `refinement_ladder_rover_rung2_3to6` | CERTIFIED | DECLINED | none | `L.s.lo`, `L.s.lo`, `L.s.lo`, `R.s.lo`, `R.s.lo`, `R.s.lo` |
+| `refinement_ladder_rover_rung2_6dof` | CERTIFIED | CERTIFIED | none | `L.s.lo`, `L.s.lo`, `L.s.lo`, `R.s.lo`, `R.s.lo`, `R.s.lo` |
+| `refinement_ladder_rover_rung2b_6dof` | CERTIFIED | CERTIFIED | none | `L.s.lo`, `L.s.lo`, `L.s.lo`, `R.s.lo`, `R.s.lo`, `R.s.lo` |
+| `refinement_ladder_rover_rung2c_6dof` | CERTIFIED | CERTIFIED | none | `L.s.lo`, `L.s.lo`, `L.s.lo`, `R.s.lo`, `R.s.lo`, `R.s.lo` |
+| `refinement_ladder_rover_rung3_6to8` | CERTIFIED | DECLINED | none | `L.s.lo`, `L.s.lo`, `L.s.lo`, `R.s.lo`, `R.s.lo`, `R.s.lo` |
+| `refinement_ladder_rover_rung4_8to12` | CERTIFIED | DECLINED | none | none |
+| `rover3tier_rung12` | CERTIFIED | CERTIFIED | none | none |
+| `rover_dof_terrain_rung1` | CERTIFIED | DECLINED | none | none |
+| `rover_dof_terrain_rung2` | CERTIFIED | DECLINED | none | none |
+| `rover_dof_terrain_rung3` | CERTIFIED | DECLINED | none | none |
+| `rover_dof_terrain_rung3_8d` | CERTIFIED | DECLINED | none | none |
+| `rover_patrol_refine` | CERTIFIED | CERTIFIED | none | none |
+| `rover_patrol_zones` | CERTIFIED | CERTIFIED | none | none |
+| `sat_detumble_nominal` | CERTIFIED | CERTIFIED | none | none |
+| `sat_detumble_phases` | CERTIFIED | CERTIFIED | none | none |
+| `sat_detumble_weak` | CERTIFIED | CERTIFIED | none | none |
+| `story1_attdist_rung_a_6to8` | CERTIFIED | DECLINED | `L.psi.lo` (-0.6->-1.2: DECLINED); `L.theta_p.lo` (-0.6->-1.2: ERROR) | `L.s.lo`, `L.s.lo`, `L.s.lo`, `R.s.lo`, `R.s.lo`, `R.s.lo` |
+| `story1_attdist_rung_b_12dof` | CERTIFIED | CERTIFIED | none | `L.s.lo`, `L.s.lo`, `L.s.lo`, `R.s.lo`, `R.s.lo`, `R.s.lo` |
+| `story2_lateral_rung_a_8dof` | CERTIFIED | CERTIFIED | none | `L.s.lo`, `L.s.lo`, `L.s.lo`, `R.s.lo`, `R.s.lo`, `R.s.lo` |
+| `story2_lateral_rung_b_12dof` | CERTIFIED | CERTIFIED | none | `L.s.lo`, `L.s.lo`, `L.s.lo`, `R.s.lo`, `R.s.lo`, `R.s.lo` |
+| `story3_rollover_base_12dof` | CERTIFIED | DECLINED | none | none |
+| `story3_rollover_ladder_rung_a` | CERTIFIED | DECLINED | none | `L.s.lo`, `L.s.lo`, `L.s.lo`, `R.s.lo`, `R.s.lo`, `R.s.lo` |
+| `story3_rollover_ladder_rung_b` | CERTIFIED | DECLINED | `R.psi.hi` (0.15->0.475: DECLINED); `R.theta_p.hi` (0.15->0.475: DECLINED) | `L.s.lo`, `L.s.lo`, `L.s.lo`, `R.s.lo`, `R.s.lo`, `R.s.lo` |
+| `watertank` | CERTIFIED | CERTIFIED | none | none |
+
+Totals: 42 files; **29** certify with every bound widened at once; **2** have a
+load-bearing group; **11** pass every single-group widening but fail the all-at-once one.
+Classification of every load-bearing bound (nothing is classified "forcing"):
+
+* **Forward-invariant (stated in the header):** `story1_attdist_rung_a_6to8` `L.psi.lo`,
+  `L.theta_p.lo` (−0.6; the cascade `ψ' = ω_ψ − ψ, ω_ψ' = −ω_ψ` with `ω_ψ ≥ −0.6`; the
+  `θ_p` run is ERROR = the 600 s budget, not a decline); `story3_rollover_ladder_rung_b`
+  `R.psi.hi`, `R.theta_p.hi` (0.15; the reference attitude `ψ' = −ψ` contracts to 0, every
+  face of the box inflows; §13.6 A1).
+* **Joint-only (11), unchanged files, bisected in pass 3 (§13.1):** the speed floors
+  `L.v.lo` with `R.v.lo` (`v ≥ 0`, forward-invariant: `v' = 3 (c − v)`, `c > 0`) in the 8
+  terrain / position rungs and `story3_rollover_base_12dof`,
+  `story3_rollover_ladder_rung_a`; the right attitude pairs of
+  `refinement_ladder_rover_rung4_8to12` (forward-invariant cascade); `L.g.hi` with
+  `R.g.hi` in `platoon_delay_profiles` (60 m gap cap, forward-invariant for every
+  admissible mode, the radar range).
+* **Stated physical limits that no certificate needs:** every domain bound of the 21 pass-4
+  non-kept files (ACC `|a| ≤ 10`, rover `|a| ≤ 2`, gyro `|w_i| ≤ 1`, wheel `|h| ≤ 2`, …):
+  all of them certify with every bound widened at once.
+* **Skipped (one-sided on both sides):** the odometer floors `s ≥ 0` (forward-invariant).
+
+### 14.5 Matrix before / after pass 4
+
+| mechanism | pass 3 (39) | pass 4 (42) | change |
+|---|---|---|---|
+| M1 | 18 | 18 | −`acc_spoof_cruise`, −`acc_tune_gain`, −`quad_light_airframe_40` (replaced); +`acc_spoof_limp`, +`acc_tune_limp`, +`quad_light_profiles` |
+| M2 | 26 | 29 | +3 rigid-body rungs |
+| M3 | 6 | **10** | −`rover_patrol_refine` (tight claim, §13.6); +`acc_spoof_limp`, `acc_tune_limp`, `quad_light_profiles`, `arm_plateau_profiles`, `sat_detumble_weak` |
+| M4 | 13 | 14 | −`acc_spoof_lag`, −`acc_tune_lag` (pairing emptied by the derived floor, §13.6); +3 rigid-body rungs (energy-threshold fallback); replacements keep theirs |
+| M5 | 6 | **10** | +`acc_spoof_limp`, `acc_tune_limp`, `platoon_delay_linkloss`, `sat_detumble_phases` |
+| M6 | 19 | 26 | +lag rungs ×2, story3 rung_b, limp ×2, `sat_detumble_weak`, `sat_detumble_phases` |
+| M6+ | 6 | 10 | +lag rungs ×3 (`acc_*_lag`, `rover_patrol_refine`), story3 rung_b |
+| M6L | 3 | 7 | +lag rungs ×3, story3 rung_b |
+| per-mode domains | 0 | 0 | |
+
+Replaced in pass 4 (each by a superset of its cells, §14.1): `acc_spoof_cruise` →
+`acc_spoof_limp`, `acc_tune_gain` → `acc_tune_limp`, `quad_light_airframe_40` →
+`quad_light_profiles`, `arm_plateau_lowgain` → `arm_plateau_profiles`,
+`platoon_delay_band` → `platoon_delay_linkloss`. Added: the three rigid-body rungs.
+Dropped without replacement: none. Changed in place: `story3_rollover_ladder_rung_b`
+(A1), `acc_spoof_lag`, `acc_tune_lag`, `rover_patrol_refine` (A2), header pointers in
+`acc_spoof_lag`, `acc_spoof_modes`, `acc_tune_lag`, `acc_tune_modes`.
+Duplicate check: no two files normalize to the same model, and no two differ only in
+tolerance constants (the matrix script's new tolerance-masked hash, §8).
+
+### 14.6 `suite_uniform` regression (pass 4)
+
+No Lean / tool code was changed in pass 4 (only `benchmarks/suite_v2`, `scripts/` and docs),
+so no emission diff was owed. As a sanity check on the final tree: `relcert --check-quick
+benchmarks/suite_uniform/*/input.txt` → `[suite] 40 certified, 1 declined, 0 error(s) —
+matches the declared suite`, coverage watertank 6/6, cut probes 97/97, modal 504/504,
+handoff 191/191, non-connection 2/2, pruned edges 1/1, `QUICK CHECKS PASSED` (49.7 s).
+

@@ -1,30 +1,46 @@
-# arm_plateau_slow: PD arm with a degraded actuator (half torque) tracking the leading reference.
+# arm_plateau_slow: over-damped PD arm (worn joint, extra friction) tracking the leading reference.
 # scenario: degraded-actuator
-# mechanisms: M2 M6
+# mechanisms: M2 M6 M6L
 #
-# The reference-tracking arm (redesign of the arm tower). Deployed (left): a PD-controlled
-# joint tracking the step command theta = 0.5 rad from rest, state (theta, v):
-# theta' = v, v' = -k_p (theta - 0.5) - k_d v, with the modes Accelerate (rising toward
-# the command, v >= 0) and Brake (past the command, v <= 0). Reference (right): a coarse
+# The reference-tracking arm (redesign of the arm tower; repaired in the domain audit,
+# docs/SUITE-REDESIGN.md section 13). Deployed (left): a PD-controlled joint tracking
+# the step command theta = 0.5 rad from rest, state (theta, v): theta' = v,
+# v' = -k_p (theta - 0.5) - k_d v, with the modes Accelerate (rising toward the
+# command, v >= 0) and Brake (past the command, v <= 0). Reference (right): a coarse
 # leading reference that ramps up in three rate steps, ApproachA (0.5 rad/s) ->
 # ApproachB (0.35) -> ApproachC (0.2), to a plateau of 0.6 rad and then HOLDS there
 # (Hold: theta' = 0, guard theta >= 0.6), a sound envelope the arm tracks from below.
-# Claim: theta_L <= theta_R + 0.15 in both deployed modes.
+# This rung: a worn joint whose viscous friction adds to the controller's damping,
+# k_p = 1, k_d = 2.5 (over-damped, eigenvalues -0.5 and -2): the arm is sluggish, with
+# a slow mode of time constant 2 s, and still never oscillates.
+#
+# PHYSICAL DOMAINS. As in arm_plateau_crit: theta in [0, 1.2] rad (the joint's range,
+# the reference's too), v in [-1, 1] rad/s (the actuator's speed limit); no reachable-set
+# estimate. Guards are entry conditions: Accelerate with the engagement velocity
+# v < 0.355 rad/s; Brake past the command with v <= 0 and the entry cap theta <= 0.6775,
+# the bound the cut chain proves for its only predecessor, Accelerate.
+#
+# THE CUT CHAIN (RELCERT_IMPLIED_CUT=1, L3). With two real eigenvalues there are two
+# decoupling linear forms, q_r = v + r (theta - 0.5) for r in {0.5, 2}, with
+# q_r' = -(2.5 - r) q_r. Round 1 from the Accelerate guard box (theta < 0.5, v < 0.355):
+# q_0.5 <= 0.355 and q_2 <= 0.355 (kind linear-form, O1 rational, O2 linear-shape).
+# Round 2: the derived bound from the LARGER root is the tight one, theta <= 0.5 +
+# 0.355 / 2 = 0.6775 (kind derived-bound, given q_2 <= 0.355; the one from r = 0.5,
+# theta <= 1.21, is wider than the domain and not offered). Brake (guard theta <=
+# 0.6775, v <= 0) yields q_0.5 <= 0.08875 and the same theta <= 0.6775. The stiffer
+# damping pays off in the bound: 0.6775 against 0.855 for the critically damped loop.
+#
+# CLAIM, derived: theta_L <= theta_R + 0.0775 in both deployed modes (0.6775 against
+# the 0.6 plateau, the tangent point (0.6775, 0.6) decided by the superlevel route).
+# 0.075 is DECLINED. The stiffer damping is what makes the chain tight: with physical
+# domains the earlier family-wide claim of 0.15 is provable for this member only, and
+# the critically damped and low-gain members derive 0.255.
 #
 # Covers (measured): lambda = 1 with budget 2 right cycles per left window
-# (epsilon_L = 2 s, epsilon_R = 1 s). A reference still in an approach step repositions
-# right-only up the ramp to Hold and the deployed window is then matched jointly against
-# the holding plateau (M2 with right-only segments; from ApproachA a joint step then a
-# right-only climb). Hold's guard conjunct theta >= 0.6 is frozen by its flow and is the
-# checked cut the Hold segment needs: the invariant boundary theta_L = theta_R + 0.15
-# lies at theta_L >= 0.75, outside the arm's envelope theta_L <= 0.65, only once the cut
-# is known; with RELCERT_NO_CUT=1 no lambda certifies Hold and the benchmark is
-# DECLINED (M6). No fallback is declared: the arm starts at theta = 0, so no reference
-# threshold below an operating floor can be excluded as a start by a one-sided row.
-# This rung: the actuator delivers half the torque, so both PD gains are halved,
-# k_p = 0.5, k_d = 0.5 (damping ratio 0.35, slower and with more overshoot, peak about
-# 0.65 rad). The same leading reference still envelopes the slower arm. Units rad,
-# rad/s, s; envelope theta in [0, 0.65], v in [-0.45, 0.45] (left), theta in [0, 1.2].
+# (epsilon_L = 2 s, epsilon_R = 1 s), right-only repositioning up the ramp to Hold and
+# a joint window against the plateau (M2 with right-only segments). Counter-runs:
+# RELCERT_NO_CUT=1 DECLINED (M6); RELCERT_NO_LINEAR_CUT=1 DECLINED (M6L). No fallback
+# is declared: the arm starts at theta = 0 and the row is one-sided. Units rad, rad/s, s.
 [problem]
 name = arm_plateau_slow
 max_depth = 8
@@ -37,15 +53,15 @@ state_vars = [theta, v]
 epsilon = 2.0
 
 [Lsys.mode.Accelerate]
-ode = theta' = v; v' = smt2:(+ (* -0.5 (- theta 0.5)) (* -0.5 v));
+ode = theta' = v; v' = smt2:(+ (* -1 (- theta 0.5)) (* -2.5 v));
 guard = theta >= 0.0 and theta < 0.5 and v >= 0.0 and v < 0.355
-evolve = theta >= 0.0 and theta <= 0.65 and v >= -0.45 and v <= 0.45
+evolve = theta >= 0.0 and theta <= 1.2 and v >= -1.0 and v <= 1.0
 next = [Brake, Accelerate]
 
 [Lsys.mode.Brake]
-ode = theta' = v; v' = smt2:(+ (* -0.5 (- theta 0.5)) (* -0.5 v));
-guard = theta >= 0.5 and theta <= 0.535 and v <= 0.0
-evolve = theta >= 0.0 and theta <= 0.65 and v >= -0.45 and v <= 0.45
+ode = theta' = v; v' = smt2:(+ (* -1 (- theta 0.5)) (* -2.5 v));
+guard = theta >= 0.5 and theta <= 0.6775 and v <= 0.0
+evolve = theta >= 0.0 and theta <= 1.2 and v >= -1.0 and v <= 1.0
 next = [Accelerate, Brake]
 
 [Rsys]
@@ -77,6 +93,6 @@ evolve = theta >= 0.0 and theta <= 1.2
 next = [Hold]
 
 [relational_invariant]
-# theta_L <= theta_R + 0.15. Reference leads to plateau >= arm peak, then holds.
-Accelerate = theta[l] <= theta[r] + 0.15
-Brake      = theta[l] <= theta[r] + 0.15
+# theta_L <= theta_R + 0.0775: the chain bound 0.6775 against the 0.6 plateau.
+Accelerate = theta[l] <= theta[r] + 0.0775
+Brake      = theta[l] <= theta[r] + 0.0775

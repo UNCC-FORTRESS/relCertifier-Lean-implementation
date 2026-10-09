@@ -48,7 +48,17 @@
 # but the pruning is no longer load-bearing (RELCERT_NO_PRUNE=1 CERTIFIES): the derived
 # floor v_L >= 21.4 and the row put w_L >= 21.4 > 17.8 >= v_R - 2.2 on every
 # CRUISE_L/DISENGAGE_R state, so that pairing region is empty under the cuts (as in
-# rover_patrol_zones, docs/SUITE-REDESIGN.md section 5 finding 9). Units m/s, m/s^2, s.
+# rover_patrol_zones, docs/SUITE-REDESIGN.md section 5 finding 9).
+#
+# Remark (looser claim, pass 5, NOT taken): the fallback is exercised from slack
+# +3.5 on (a_L + 2.5 v_L <= 2.5 v_R + 3.5, w_L <= v_R + 1.4: the floor w_L >= 21.4
+# meets v_R < 20 iff c >= 2.5 * 1.4), where RELCERT_NO_PRUNE=1 DECLINES; at +3.25
+# (and +3.45) it CERTIFIES. But at that slack lambda = 1 certifies (M1 lost; the
+# reported lambda is 5/2, 7/4, 5/4, 5/4 at -5.5, -5.25, -5.0, -4.0 and 1 at -2.0, 0,
+# +2, +3.25, +3.5) and the chain is not load-bearing (all three cut
+# counter-runs CERTIFY from -5.0 on), so the trade would be {M1 M2 M6 M6+ M6L} ->
+# {M2 M4}: no headline cell gained. The tight claim is kept (docs/SUITE-REDESIGN.md
+# section 13.6, pass 5). Units m/s, m/s^2, s.
 [problem]
 name = acc_spoof_lag
 max_depth = 8

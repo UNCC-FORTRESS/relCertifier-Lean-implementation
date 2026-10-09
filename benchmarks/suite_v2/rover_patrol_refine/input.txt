@@ -1,6 +1,6 @@
 # rover_patrol_refine: the worn-drivetrain patrol rover refined with its motor lag.
 # scenario: model-refinement
-# mechanisms: M1 M2 M5 M6 M6+ M6L
+# mechanisms: M1 M2 M3 M5 M6 M6+ M6L
 #
 # Refinement rung of rover_patrol_zones. The deployed rover (left) is modeled with its
 # motor-current lag: each zone's speed loop commands an acceleration
@@ -33,19 +33,27 @@
 # the acceleration bound is DERIVED, not a motor cap.
 #
 # Rows (one per left mode): the lifted functional w = v + tau a = v + 0.2 a
-# (w' = a_cmd) satisfies a_L + 5 v_L <= 5 v_R - 0.25, i.e. w_L <= v_R - 0.05 (the
-# worn deployed's lag-compensated speed stays below the reference's), plus the
-# zone-dependent odometer margin of rover_patrol_zones (SLOW 0.5 m, MEDIUM 1 m, FAST
-# 2 m), loosening along the route (M5, 10 non-vacuous handoff queries, all unsat).
-# -0.25 is the tightest slack (grid 0.25 in functional units) that certifies; -0.5 is
-# DECLINED (FAST_L), with the domain at +-2 and at +-100 alike.
-# Covers (measured): SLOW, MEDIUM_ECO, MEDIUM_BRISK at lambda = 7/4 (budget 4), FAST at
-# lambda = 5/2 (budget 5) (M1, M2); a reference in an earlier zone repositions
-# right-only. Counter-runs: RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1 and
-# RELCERT_NO_LINEAR_CUT=1 all DECLINE (M6, M6+, M6L). The tight claim costs the
-# branching of the previous rung: at w_L <= v_R - 0.05 the SLOW/SLOW joint segment
-# fails, so the cover from SLOW repositions instead of taking a joint step through
-# both MEDIUM profiles (at the looser slack +0.5 it branches; not claimed here).
+# (w' = a_cmd) satisfies a_L + 5 v_L <= 5 v_R + 0.35, i.e. w_L <= v_R + 0.07 (the
+# worn deployed's lag-compensated speed stays within 0.07 m/s above the reference's),
+# plus the zone-dependent odometer margin of rover_patrol_zones (SLOW 0.5 m, MEDIUM
+# 1 m, FAST 2 m), loosening along the route (M5, 10 non-vacuous handoff queries, all
+# unsat). The tolerance is CHOSEN so that the branching mechanism is exercised: +0.35
+# is the smallest slack (grid 0.05 in functional units) at which the SLOW window takes
+# a joint step whose retained successors MEDIUM_ECO and MEDIUM_BRISK both cover (M3,
+# branch 2); at +0.30 (and +0.25, 0, -0.25) no joint step has two non-self covering
+# successors (max 1). Covers (measured): every left mode at lambda = 9/4,
+# budget ceil(9/4 * 2 / 1) = 5 (M1, M2); a reference in an earlier zone repositions
+# right-only from the MEDIUM and FAST windows. Counter-runs: RELCERT_NO_CUT=1,
+# RELCERT_NO_IMPLIED_CUT=1 and RELCERT_NO_LINEAR_CUT=1 all DECLINE (M6, M6+, M6L);
+# nothing is pruned (no fallback declared), RELCERT_NO_PRUNE=1 CERTIFIES. At the
+# 0.25-grid point +0.5 the cover also branches, but the chain is no longer needed
+# (RELCERT_NO_IMPLIED_CUT=1 and RELCERT_NO_LINEAR_CUT=1 CERTIFY, M6+ M6L lost).
+#
+# Remark (the tight bound): the tightest certifiable slack is a_L + 5 v_L <=
+# 5 v_R - 0.25 (w_L <= v_R - 0.05); -0.5 is DECLINED (FAST_L), with the domain at +-2
+# and at +-100 alike. There the cover does not branch (lambda = 7/4, budget 4; FAST
+# 5/2, 5).
+#
 # The stall fallback of rover_patrol_zones is not declared here (the refinement rung
 # keeps the nominal reference automaton only). Units m/s, m, m/s^2, s.
 [problem]
@@ -101,7 +109,7 @@ guard = s >= 50.0 and v >= 0.3 and v <= 1.5
 evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -2.0 and a <= 2.0
 next = [FAST]
 [relational_invariant]
-SLOW         = smt2:(and (<= (+ L_a (* 5.0 L_v)) (+ (* 5.0 R_v) (- 0.25))) (<= L_s (+ R_s 0.5)))
-MEDIUM_ECO   = smt2:(and (<= (+ L_a (* 5.0 L_v)) (+ (* 5.0 R_v) (- 0.25))) (<= L_s (+ R_s 1.0)))
-MEDIUM_BRISK = smt2:(and (<= (+ L_a (* 5.0 L_v)) (+ (* 5.0 R_v) (- 0.25))) (<= L_s (+ R_s 1.0)))
-FAST         = smt2:(and (<= (+ L_a (* 5.0 L_v)) (+ (* 5.0 R_v) (- 0.25))) (<= L_s (+ R_s 2.0)))
+SLOW         = smt2:(and (<= (+ L_a (* 5.0 L_v)) (+ (* 5.0 R_v) 0.35)) (<= L_s (+ R_s 0.5)))
+MEDIUM_ECO   = smt2:(and (<= (+ L_a (* 5.0 L_v)) (+ (* 5.0 R_v) 0.35)) (<= L_s (+ R_s 1.0)))
+MEDIUM_BRISK = smt2:(and (<= (+ L_a (* 5.0 L_v)) (+ (* 5.0 R_v) 0.35)) (<= L_s (+ R_s 1.0)))
+FAST         = smt2:(and (<= (+ L_a (* 5.0 L_v)) (+ (* 5.0 R_v) 0.35)) (<= L_s (+ R_s 2.0)))

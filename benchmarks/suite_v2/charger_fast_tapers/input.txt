@@ -7,7 +7,16 @@
 # The certified profile (right) offers two taper options the charger firmware selects
 # when it leaves BULK: ABSORB_SLOW (rate constant 0.05 /h) or ABSORB_FAST (0.07 /h). The
 # deployed unit (left) runs the profile with its current limit raised 25 % and the slow
-# taper (BULK 0.125, ABSORB 0.0625). Claim: x_L <= x_R + 5 in every phase.
+# taper (BULK 0.125, ABSORB 0.0625). Claim: x_L <= x_R + 5 in every phase. The
+# tolerance is CHOSEN so that the fallback mechanism is exercised: 5 is the smallest
+# tolerance at which the BULK_L/FAULT_R pairing (x_L >= 15 on the BULK guard, x_R < 10
+# in FAULT) is not excluded by the row, so BULK -> FAULT must be pruned; at 4.95 (and
+# 4.9, 4.75, 4.5, 4, 3, 2, 1) RELCERT_NO_PRUNE=1 CERTIFIES (pass 5,
+# docs/SUITE-REDESIGN.md section 15).
+#
+# Remark (the tight bound): the tightest certifiable tolerance is x_L <= x_R + 1 (grid
+# 0.25, refined at 0.05: 0.95, 0.9, 0.85, 0.8, 0.75 DECLINED). At tolerance 1 the cells
+# are M2 M3 M6 (M4 lost: NO_PRUNE CERTIFIES), so the tight bound is not the claim.
 #
 # Covers (measured): lambda = 1, budget 2 right cycles per left window. In the deployed
 # ABSORB window a reference still in BULK takes a joint step whose retained successors

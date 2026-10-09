@@ -17,8 +17,8 @@
 # 40 m) and the file certifies as written: lambda = 1, budget 2, crossing FOLLOW <-> CATCH
 # (M2). RELCERT_NO_IMPLIED_CUT=1 (legacy guard-conjunct cuts only) DECLINES: the closure
 # is load-bearing (M6+); RELCERT_NO_CUT=1 DECLINES (M6). FOLLOW -> BRAKE is pruned and
-# BRAKE is not an admissible start (M4, NO_PRUNE DECLINES). Units m, s; envelope
-# 15 <= g <= 60 both sides.
+# BRAKE is not an admissible start (M4, NO_PRUNE DECLINES). Units m, s; physical
+# domain 0 <= g <= 60 both sides.
 [problem]
 name = platoon_delay_band
 max_depth = 8

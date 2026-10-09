@@ -192,7 +192,7 @@ atoms' O2 obligations are re-run by `--run-verdicts` (`Verdicts/RunCut.lean`: th
 probes**).
 
 **Three atom KINDS (2026-10-08, branch `suite-redesign`; tool side, the Lean lift of
-the two new kinds is the later pass).** The candidate set above — literal closed guard
+the two new kinds is the later pass; two more, the linear-form chain, below).** The candidate set above — literal closed guard
 conjuncts, O1 by membership — is incomplete in two ways that real scenarios met
 (`docs/SUITE-REDESIGN.md` §7 L1, L2). Behind `RELCERT_IMPLIED_CUT=1`
 (`Checker/EvolStrengtheningX.lean`, `OracleAPI.checkedCutX`; off by default so the
@@ -220,6 +220,42 @@ x <= 90.0`, implied-contraction, rational, shape — load-bearing: `RELCERT_NO_I
 DECLINES) and `platoon_delay_band` (`R.FOLLOW: g <= 40.0`, closure, weakening, shape —
 load-bearing).
 
+**Two more atom kinds: the linear-form chain (2026-10-08, the domain audit; tool side).**
+A threshold atom on one variable cannot bound the overshoot of a damped second-order
+loop `x' = y, y' = −a (x − c) − b y`, and a quadratic form cannot bound it tightly
+(its level sets are centrally symmetric about the equilibrium). The `suite_v2` arm
+family had closed its Hold phase with a reachable-set cap in the EVOLVE domain
+(`θ ≤ 0.65`), which the domain audit forbids (`docs/SUITE-REDESIGN.md` §13). For a
+critically or over-damped pair with RATIONAL eigenvalues (`b² − 4a` a rational square)
+the loop decouples: for every root `r` of `r² − b r + a = 0` with `0 < r < b`, the
+linear form `q = y + r (x − c)` satisfies `q' = −(b − r) q`. Behind the same switch
+(`RELCERT_IMPLIED_CUT=1`; `RELCERT_NO_LINEAR_CUT=1` turns only these two kinds off) the
+certifier offers, in two rounds (`OracleAPI.checkedCutX`, `Checker/EvolStrengtheningX.lean`
+§L7):
+
+| kind (`CutKind`) | candidate | O1 — entry (`CutEntry`) | O2 — invariance (`CutRouteX`) | conditioning (`given`) |
+|---|---|---|---|---|
+| `linearForm` | `y + r (x − c) ≤ sup` / `≥ inf`, sup/inf over the guard's threshold box in `(x, y)` (`secondOrderPairs` — syntactic: `x' = y` a variable, `y'` affine in `x, y` with both coefficients negative; `pairRoots`; `linearCandidates`) | `rational`: interval arithmetic over the guard box (`linearEntryRational`) | `linearShape` (`linearShapeOKX`: root re-checked by multiplication, `pairRootOK`; the constant on the safe side, `K ≥ 0` for `≤`: on `{q ≥ K}`, `q' = −σ q ≤ −σ K ≤ 0`), else DI-B, DI-A, DI-C | `[]` (unconditioned) |
+| `derivedBound` | `x ≤ c + K/r` from a kept `q ≤ K` (resp. `≥` from `q ≥ K`) (`derivedOf`; not offered when the evolve box already implies it) | `rational` (`guardImpliesRational`), else `z3`: one counted query `UNSAT(guard ∧ ¬atom)` | `derivedShape` (`derivedShapeOKX`: on `{x ≥ K'} ∩ {q ≤ K}`, `x' = y = q − r (x − c) ≤ K − r (K' − c) ≤ 0`), else DI-B, DI-A, DI-C over `evolve ∧ q ≤ K` | `[q ≤ K]` — STRATIFIED: O2 holds only inside the round-1 atom |
+
+DI-C is the superlevel route `UNSAT(dom ∧ g ≥ 0 ∧ ġ > 0)` (`DI_nonstrict_superlevel`);
+at the tangent point `(x, q) = (K', K)` of a derived bound routes A and B are both sat,
+and C (or its rational special case `derivedShape`) is what decides it. Every kept atom
+of the arm family took the rational routes; no Z3 query was needed for O1 or O2.
+
+What the Lean lift must add for these two kinds, beyond the O1 case split above:
+(i) the linear-shape lemma — for `q = y + r (x − c)` with `r² − b r + a = 0`, the Lie
+derivative along the pair is `−(b − r) q` (a ring identity), hence `{q ≤ K}`, `K ≥ 0`,
+is forward-invariant (`contract_stays`'s argument on `q`); (ii) the rational O1 of a
+linear form — the guard box bounds `q` by interval arithmetic; (iii) the derived-shape
+lemma — on `{q ≤ K}` the half-line `x ≤ c + K/r` is invariant (sign of `x' = q − r (x −
+c)` at the boundary); and (iv) SEQUENTIAL composition for the `given` field: the derived
+bound's O2 is proved over `evolve ∧ q ≤ K`, so the lift conjoins the round-1 atom first
+and the derived bound inside it (a differential-cut chain, as `strataDomIR` does for the
+invariant components), not per atom over the bare domain as `CutLift.lean` does now.
+Exercised by `arm_plateau_crit`, `arm_plateau_slow`, `arm_plateau_lowgain` (all three
+DECLINE under `RELCERT_NO_LINEAR_CUT=1`: the chain is load-bearing).
+
 **The wording for Section 4.2.** *A cut is an atom implied by the mode's guard and
 preserved by its own flow.* Three kinds of atom qualify: a closed guard conjunct (implied
 by membership), the closure of a strict guard conjunct (implied by weakening), and, for a
@@ -228,7 +264,10 @@ half-line bounded by `c` on the side of the guard (implied by a threshold conjun
 guard, or, failing that, by a satisfiability check of `guard ∧ ¬atom`). Preservation is
 re-derived per atom along the mode's own field, by differential induction or by the
 recognized contraction shape; cuts are conjoined to the flow-query domains of that mode
-and never to the model.
+and never to the model. For a critically or over-damped second-order loop the
+candidates also include a decoupling linear form of the loop, bounded by the guard, and
+the threshold it implies for the position, whose preservation is derived inside the
+linear form's cut (a cut chain).
 
 **Which benchmarks use cuts.** 11 benchmarks carry a cut certificate with DI-route atoms
 (the 11 cut-lifted `CutThroughout` instances; `RELCERT_NO_CUT=1` declines them; 13 before

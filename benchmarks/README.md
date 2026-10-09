@@ -11,21 +11,27 @@ non-connection certificate: `RELCERT_NO_PRUNE=1` makes it DECLINE (`docs/PRUNING
 
 ## The redesigned suite — `suite_v2/` (2026-10-08, branch `suite-redesign`)
 
-`suite_v2/` is the redesigned 42-benchmark suite: the 19 kept benchmarks (terrain/
+`suite_v2/` is the redesigned 39-benchmark suite: the 19 kept benchmarks (terrain/
 position ladder, story ladders, watertank) and `match_multi_rate`, `rover3tier_rung12`
-copied unchanged, plus 21 new benchmarks in seven families (ACC under sensor spoofing /
+copied unchanged, plus 18 new benchmarks in six families (ACC under sensor spoofing /
 retune, quadrotor climb with a lighter airframe, battery charger, platoon follower with
-a delayed link, rover patrol zones, arm with a leading reference, heater cycle). Each
-new file's header states the physical story, units, the measured cover and the
-mechanisms it exercises (`# scenario:` / `# mechanisms:` lines). The `suite_v2` runs use
-the widened cut channel, `RELCERT_IMPLIED_CUT=1` (closures of strict guard conjuncts and
-implied-contraction atoms; off by default), and three files (`charger_bias_estimator`,
-`charger_fast_thermal`, `heater_cycle`) declare per-mode evolve domains, the paper's
-Eq. 2 model, which the Lean lift's uniform-evolve discipline does not cover yet. The
-mechanism matrix, the per-family design, the counter-runs and the scenarios tried and
-dropped are in `docs/SUITE-REDESIGN.md`; `scripts/suite_v2_matrix.py` regenerates all
-of it. The Lean instances still read `suite_uniform/` (the mechanization of `suite_v2`
-is a separate task), so `suite_uniform/` must not be edited.
+a delayed link, rover patrol zones, arm with a leading reference). Each new file's
+header states the physical story, units, the measured cover and the mechanisms it
+exercises (`# scenario:` / `# mechanisms:` lines). The `suite_v2` runs use the widened
+cut channel, `RELCERT_IMPLIED_CUT=1` (closures of strict guard conjuncts,
+implied-contraction atoms, and the linear-form chain of critically / over-damped
+second-order loops; off by default). Every evolve domain states a PHYSICAL limit of the
+plant (the domain audit, `docs/SUITE-REDESIGN.md` §13): `scripts/domain_widening.py`
+widens every evolve bound by half the variable's range and re-runs the tool, and a bound
+the certificate needs is either a forward-invariant floor the dynamics justify or a
+recorded finding (`story3_rollover_ladder_rung_b` carries a `DOMAIN-AUDIT FLAG` header).
+The three per-mode-domain files of the previous pass (`charger_bias_estimator`,
+`charger_fast_thermal`, `heater_cycle`) were dropped: their band domains encode
+event-triggered switching, which is not claimed. The mechanism matrix, the per-family
+design, the counter-runs and the scenarios tried and dropped are in
+`docs/SUITE-REDESIGN.md`; `scripts/suite_v2_matrix.py` regenerates all of it. The Lean
+instances still read `suite_uniform/` (the mechanization of `suite_v2` is a separate
+task), so `suite_uniform/` must not be edited.
 
 ## File format
 

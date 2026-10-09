@@ -1,6 +1,6 @@
 # platoon_delay_profiles: the delayed-link platoon follower against a reference with two catch-up profiles.
 # scenario: sensor-attack
-# mechanisms: M2 M3 M4 M6
+# mechanisms: M2 M3 M4 M6 M6+
 #
 # The platoon of platoon_delay_bias (gap g to a constant-speed leader, desired gap
 # 30 m, follower loops g' = -k (g - 30)). The reference follower (right) may re-engage
@@ -20,7 +20,11 @@
 # conjuncts kept as checked cuts; the mixed-profile segments need them
 # (RELCERT_NO_CUT=1 DECLINES, M6). FOLLOW -> BRAKE is pruned (the gentle loop opens the
 # gap at 20 m, g' = +5) and BRAKE is not an admissible start (g_L >= 24, g_L <= g_R + 4);
-# RELCERT_NO_PRUNE=1 DECLINES (M4). Units m, s; envelope 15 <= g <= 60 both sides.
+# RELCERT_NO_PRUNE=1 DECLINES (M4). Since the gap domain floor is the physical 0 m (not
+# 15 m), the re-engagement profiles' lower bound comes from the dynamics: the implied
+# contraction atoms g >= 30 (R.GENTLE, R.ASSERTIVE) and g >= 29 (L.GENTLE), O1 rational,
+# O2 shape, are load-bearing (RELCERT_NO_IMPLIED_CUT=1 DECLINES, M6+). Units m, s;
+# physical domain 0 <= g <= 60 both sides.
 [problem]
 name = platoon_delay_profiles
 max_depth = 8

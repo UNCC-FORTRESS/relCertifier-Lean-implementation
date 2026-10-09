@@ -1,20 +1,24 @@
-# DOMAIN-AUDIT FLAG (docs/SUITE-REDESIGN.md section 13; OPEN, awaiting a decision).
-# The left attitude floors psi >= -0.5 and theta_p >= -0.5 are LOAD-BEARING and NOT
-# forward-invariant: the left attitude loop psi' = omega_psi, omega_psi' = -psi -
-# 2 omega_psi overshoots any floor from a start with a negative rate (from psi = -0.5,
-# omega_psi = -0.5 it reaches psi = -0.607 at t = 0.5 s). Widening them by half their range (to -1)
-# makes the run fail its segments (ERROR, time budget, after every lambda = 1 and
-# 27/20 segment of STEEP_L fails). This is not a tool gap: with psi_L = -0.95,
-# omega_psi_L = 0.232, psi_R = -0.5 (energy row at its 0.25 level) the row's
-# derivative is -0.522 + 0.668 lambda > 0 for every lambda >= 1, so the claim needs a
-# floor on psi_L. The linear-form chain (q = omega_psi + psi, q' = -q, giving
-# psi >= -0.5 from q >= -0.5) cannot supply it here: the guards are terrain zones in s
-# only and say nothing about the attitude at entry, so there is no constant for q.
-# Tested, NOT installed (it changes the guards, which the repair was to leave alone):
-# left attitude domains [-1, 1] plus the attitude entry condition
-# psi, omega_psi, theta_p, omega_theta >= -0.25 in every left guard CERTIFIES (746 ms)
-# with the chain q >= -0.5 then psi >= -0.5 (kinds linear-form, derived-bound; both
-# rational shapes, no Z3) in all three left modes.
+# DOMAIN AUDIT (docs/SUITE-REDESIGN.md section 13; resolved 2026-10-08, user decision).
+# Left attitude domains are the PHYSICAL validity range of the small-angle model:
+# psi, omega_psi, theta_p, omega_theta in [-1, 1] (rad, rad/s). (Before: [-0.5, 0.5],
+# a floor the claim stood on although the loop overshoots it.) The deployed terrain
+# controller switches zones -- and starts its first zone -- only when the attitude is
+# SETTLED: every left guard carries the entry condition psi, omega_psi, theta_p,
+# omega_theta >= -0.25. This is a controller-design condition on the switch (a guard),
+# not a domain restriction: the flow may leave it freely after entry.
+# Why the claim needs it, and what it buys: the left attitude loop psi' = omega_psi,
+# omega_psi' = -psi - 2 omega_psi (theta_p alike) is critically damped (double root 1),
+# so q = omega_psi + psi satisfies q' = -q. From the entry box q >= -0.5 (kind
+# linear-form, O1 rational, O2 linear-shape), and inside it psi >= -0.5 (kind
+# derived-bound, O1 rational, O2 derived-shape): the floor the energy row needs is now
+# DERIVED, not declared (with psi_L = -0.95, omega_psi_L = 0.232, psi_R = -0.5 the row's
+# derivative is -0.522 + 0.668 lambda > 0 for every lambda >= 1, so some floor is
+# necessary). Counter-runs: RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_IMPLIED_CUT=1 and
+# RELCERT_NO_CUT=1 all DECLINE. Widening test: every left bound passes; the right
+# attitude caps psi <= 0.15, theta_p <= 0.15 are load-bearing and FORWARD-INVARIANT
+# (the reference attitude is psi' = -psi, theta_p' = -theta_p, a contraction toward 0:
+# on psi = 0.15 the field points inward, so no right trajectory leaves the box).
+# Dynamics, rows and every other bound are unchanged.
 #
 # STORY 3 LADDER: rung_b (attitude order-raise)
 # L = direct_L: attitude 2nd-order AND rollover 2nd-order (full model)
@@ -41,20 +45,20 @@ epsilon = 1.0
 
 [Lsys.mode.STEEP]
 ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:omega_psi; omega_psi' = smt2:(- (* -1 psi) (* 2 omega_psi)); theta_p' = smt2:omega_theta; omega_theta' = smt2:(- (* -1 theta_p) (* 2 omega_theta)); e' = smt2:r; r' = smt2:(- (* -4 e) (* 4 r)); phi_r' = smt2:omega_phi; omega_phi' = smt2:(- (* -1 phi_r) (* 2 omega_phi)); z' = smt2:(* -1 z); y' = smt2:(* -1 y);
-guard = s >= 0.0 and s < 0.6
-evolve = e >= -1.5 and e <= 1.5 and omega_phi >= -0.5 and omega_phi <= 0.5 and omega_psi >= -0.5 and omega_psi <= 0.5 and omega_theta >= -0.5 and omega_theta <= 0.5 and phi_r >= -0.5 and phi_r <= 0.5 and psi >= -0.5 and psi <= 0.5 and r >= -1.52 and r <= 1.52 and s >= 0.0 and theta_p >= -0.5 and theta_p <= 0.5 and v >= 0.0 and v <= 0.8 and y >= -1.0 and y <= 0.15 and z >= -1.0 and z <= 0.15
+guard = s >= 0.0 and s < 0.6 and psi >= -0.25 and omega_psi >= -0.25 and theta_p >= -0.25 and omega_theta >= -0.25
+evolve = e >= -1.5 and e <= 1.5 and omega_phi >= -0.5 and omega_phi <= 0.5 and omega_psi >= -1.0 and omega_psi <= 1.0 and omega_theta >= -1.0 and omega_theta <= 1.0 and phi_r >= -0.5 and phi_r <= 0.5 and psi >= -1.0 and psi <= 1.0 and r >= -1.52 and r <= 1.52 and s >= 0.0 and theta_p >= -1.0 and theta_p <= 1.0 and v >= 0.0 and v <= 0.8 and y >= -1.0 and y <= 0.15 and z >= -1.0 and z <= 0.15
 next = [MODER, STEEP]
 
 [Lsys.mode.MODER]
 ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:omega_psi; omega_psi' = smt2:(- (* -1 psi) (* 2 omega_psi)); theta_p' = smt2:omega_theta; omega_theta' = smt2:(- (* -1 theta_p) (* 2 omega_theta)); e' = smt2:r; r' = smt2:(- (* -4 e) (* 4 r)); phi_r' = smt2:omega_phi; omega_phi' = smt2:(- (* -1 phi_r) (* 2 omega_phi)); z' = smt2:(* -1 z); y' = smt2:(* -1 y);
-guard = s >= 0.6 and s < 1.4
-evolve = e >= -1.5 and e <= 1.5 and omega_phi >= -0.5 and omega_phi <= 0.5 and omega_psi >= -0.5 and omega_psi <= 0.5 and omega_theta >= -0.5 and omega_theta <= 0.5 and phi_r >= -0.5 and phi_r <= 0.5 and psi >= -0.5 and psi <= 0.5 and r >= -1.52 and r <= 1.52 and s >= 0.0 and theta_p >= -0.5 and theta_p <= 0.5 and v >= 0.0 and v <= 0.8 and y >= -1.0 and y <= 0.15 and z >= -1.0 and z <= 0.15
+guard = s >= 0.6 and s < 1.4 and psi >= -0.25 and omega_psi >= -0.25 and theta_p >= -0.25 and omega_theta >= -0.25
+evolve = e >= -1.5 and e <= 1.5 and omega_phi >= -0.5 and omega_phi <= 0.5 and omega_psi >= -1.0 and omega_psi <= 1.0 and omega_theta >= -1.0 and omega_theta <= 1.0 and phi_r >= -0.5 and phi_r <= 0.5 and psi >= -1.0 and psi <= 1.0 and r >= -1.52 and r <= 1.52 and s >= 0.0 and theta_p >= -1.0 and theta_p <= 1.0 and v >= 0.0 and v <= 0.8 and y >= -1.0 and y <= 0.15 and z >= -1.0 and z <= 0.15
 next = [FLAT, MODER]
 
 [Lsys.mode.FLAT]
 ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:omega_psi; omega_psi' = smt2:(- (* -1 psi) (* 2 omega_psi)); theta_p' = smt2:omega_theta; omega_theta' = smt2:(- (* -1 theta_p) (* 2 omega_theta)); e' = smt2:r; r' = smt2:(- (* -4 e) (* 4 r)); phi_r' = smt2:omega_phi; omega_phi' = smt2:(- (* -1 phi_r) (* 2 omega_phi)); z' = smt2:(* -1 z); y' = smt2:(* -1 y);
-guard = s >= 1.4 and s < 899.95
-evolve = e >= -1.5 and e <= 1.5 and omega_phi >= -0.5 and omega_phi <= 0.5 and omega_psi >= -0.5 and omega_psi <= 0.5 and omega_theta >= -0.5 and omega_theta <= 0.5 and phi_r >= -0.5 and phi_r <= 0.5 and psi >= -0.5 and psi <= 0.5 and r >= -1.52 and r <= 1.52 and s >= 0.0 and theta_p >= -0.5 and theta_p <= 0.5 and v >= 0.0 and v <= 0.8 and y >= -1.0 and y <= 0.15 and z >= -1.0 and z <= 0.15
+guard = s >= 1.4 and s < 899.95 and psi >= -0.25 and omega_psi >= -0.25 and theta_p >= -0.25 and omega_theta >= -0.25
+evolve = e >= -1.5 and e <= 1.5 and omega_phi >= -0.5 and omega_phi <= 0.5 and omega_psi >= -1.0 and omega_psi <= 1.0 and omega_theta >= -1.0 and omega_theta <= 1.0 and phi_r >= -0.5 and phi_r <= 0.5 and psi >= -1.0 and psi <= 1.0 and r >= -1.52 and r <= 1.52 and s >= 0.0 and theta_p >= -1.0 and theta_p <= 1.0 and v >= 0.0 and v <= 0.8 and y >= -1.0 and y <= 0.15 and z >= -1.0 and z <= 0.15
 next = [FLAT]
 
 # CASCADE COORDINATES: the second-order block is rewritten in its eigen-cascade

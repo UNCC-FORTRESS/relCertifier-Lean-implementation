@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# Extended cut certificate: implied-contraction, closure and linear-form atoms (L1 / L2 / L3)
+# Extended cut certificate: implied-contraction, closure and linear-form atoms (L1 / L2 / L7)
 
 The checked-cut channel of `EvolStrengthening.lean` takes only atoms that are literal
 CLOSED guard conjuncts (`x <= k` / `x >= k`); O1 (entry) is syntactic membership. Three
@@ -20,7 +20,7 @@ incompleteness gaps (docs/SUITE-REDESIGN.md §7, §13):
   counted); the certificate records which (`CutEntry.rational` / `CutEntry.z3`).
 * **L2 — closures of strict guard atoms.** A strict conjunct `x < k` / `x > k` offers its
   closure `x ≤ k` / `x ≥ k`; O1 holds by weakening (`CutEntry.weakening`).
-* **L3 — linear-form cuts for second-order pairs (the domain audit).** A threshold atom
+* **L7 — linear-form cuts for second-order pairs (the domain audit).** A threshold atom
   on one variable cannot bound the overshoot of a damped second-order loop
   `x' = y, y' = −a (x − c) − b y` (the only invariant half-lines of a single coordinate
   are those the domain already gives), and no quadratic form can bound it tightly either
@@ -58,7 +58,7 @@ Compatibility: this module ADDS definitions only. `EvolStrengthening`, `cutAtoms
 `contractShapeOK`, `modeCutWF` and `evolStrengtheningWF` are unchanged, and the legacy
 certificate the `suite_uniform` instances `rfl`-pin is emitted exactly as before; the
 extended channel is off unless `RELCERT_IMPLIED_CUT=1` (`OracleAPI.impliedCutsOn`), and
-the L3 candidates can be switched off on their own with `RELCERT_NO_LINEAR_CUT=1`
+the L7 candidates can be switched off on their own with `RELCERT_NO_LINEAR_CUT=1`
 (`OracleAPI.linearCutsOn`).
 -/
 import RelCertifier.Checker.EvolStrengthening
@@ -161,7 +161,7 @@ def atomEqQ : PForm → PForm → Bool
          | _, _ => c1 == c2)
   | a, b => a == b
 
-/-! ## L3 — linear-form cuts for second-order pairs -/
+/-! ## L7 — linear-form cuts for second-order pairs -/
 
 /-- Affine normal form of a `PExpr`: `(coefficients, constant)`, the coefficients as
 `(variable, QF)` pairs (a variable may occur several times; `coeffOf` sums). `none` if
@@ -357,7 +357,7 @@ structure LinCand where
   atom : PForm
   deriving Repr, DecidableEq
 
-/-- The L3 round-1 candidates of a mode: for every recognized pair and every positive
+/-- The L7 round-1 candidates of a mode: for every recognized pair and every positive
 rational root, `q ≤ sup q` and `q ≥ inf q` over the guard box (each only when the box
 bounds both coordinates on that side and the constants print as decimals). -/
 def linearCandidates (m : PMode) : List LinCand :=
@@ -448,8 +448,8 @@ inductive CutKind
   | guardConj        -- a literal closed guard conjunct (the legacy channel)
   | impliedContract  -- `v ≤ c` / `v ≥ c` for a contraction field toward `c` (L1)
   | closure          -- the closure of a strict guard conjunct (L2)
-  | linearForm       -- `y + r (x − c) ≤ K` / `≥ K` for a recognized 2nd-order pair (L3, round 1)
-  | derivedBound     -- `x ≤ c + K/r` / `≥` from a kept linear-form atom (L3, round 2, stratified)
+  | linearForm       -- `y + r (x − c) ≤ K` / `≥ K` for a recognized 2nd-order pair (L7, round 1)
+  | derivedBound     -- `x ≤ c + K/r` / `≥` from a kept linear-form atom (L7, round 2, stratified)
   deriving Repr, DecidableEq
 
 /-- How O1 (entry: the mode's guard implies the atom) was justified. -/
@@ -460,7 +460,7 @@ inductive CutEntry
   | weakening   -- the strict guard conjunct implies its closure (closure)
   deriving Repr, DecidableEq
 
-/-- The O2 route of an extended atom: the four legacy routes plus the L3 rational
+/-- The O2 route of an extended atom: the four legacy routes plus the L7 rational
 shapes and the superlevel DI route C (`UNSAT(dom ∧ g ≥ 0 ∧ ġ > 0)`,
 `DI_nonstrict_superlevel`, the route that decides a derived bound at its tangent
 point). Kept separate from `CutRoute` so that the legacy module stays untouched. -/

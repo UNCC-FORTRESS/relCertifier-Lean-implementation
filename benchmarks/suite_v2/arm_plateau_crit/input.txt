@@ -26,7 +26,7 @@
 # theta <= 0.855 is the bound the cut chain proves for its only predecessor,
 # Accelerate (below).
 #
-# THE CUT CHAIN (RELCERT_IMPLIED_CUT=1, Checker/EvolStrengtheningX.lean, L3). A
+# THE CUT CHAIN (RELCERT_IMPLIED_CUT=1, Checker/EvolStrengtheningX.lean, L7). A
 # threshold cut on theta alone cannot bound the overshoot of a second-order loop, and
 # no quadratic form can bound it tightly (level sets are centrally symmetric about the
 # equilibrium). With k_p = 1, k_d = 2 the loop decouples along the LINEAR FORM

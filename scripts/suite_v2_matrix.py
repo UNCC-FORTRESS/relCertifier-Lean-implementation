@@ -15,7 +15,7 @@ reads the evidence off the tool's own output (never off the file's header):
   4b. RELCERT_NO_IMPLIED_CUT=1 relcert <input> -> the implied-cut counter-run (legacy
                                                  guard-conjunct cuts only)
   4c. RELCERT_NO_LINEAR_CUT=1 relcert <input>  -> the linear-form counter-run (closures
-                                                 and implied atoms kept, the L3 chain off)
+                                                 and implied atoms kept, the L7 chain off)
   5. `relcert --handoff <input>`               -> the cross-mode handoff queries
                                                  (vacuous = every row identical)
 
@@ -47,7 +47,7 @@ joint step (branching). The mechanism columns are then DERIVED:
       derived-bound) AND RELCERT_NO_IMPLIED_CUT=1 DECLINES: the cuts are load-bearing
       only with the widened atoms
   M6L some mode keeps a linear-form or derived-bound atom AND RELCERT_NO_LINEAR_CUT=1
-      DECLINES: the L3 chain (docs/SUITE-REDESIGN.md section 13) is load-bearing
+      DECLINES: the L7 chain (docs/SUITE-REDESIGN.md section 13) is load-bearing
   domains: "per-mode" if some side's modes declare different evolve domains (the
       paper's Eq. 2 model; the uniform-evolve discipline of the Lean lift does not
       cover these yet), else "uniform"
@@ -480,7 +480,7 @@ def analyze(name, path, relcert, timeout):
     rc, o4b, e4b, _ = run([relcert, path], {"RELCERT_NO_IMPLIED_CUT": "1"}, timeout)
     rec["no_implied_verdict"] = verdict_of(o4b)[0]
     rec["no_implied_ms"] = verdict_of(o4b)[1]
-    # 4c. the linear-form counter-run (closures and implied atoms kept, the L3 chain off)
+    # 4c. the linear-form counter-run (closures and implied atoms kept, the L7 chain off)
     rc, o4c, e4c, _ = run([relcert, path], {"RELCERT_NO_LINEAR_CUT": "1", "RELCERT_IMPLIED_CUT": "1"}, timeout)
     rec["no_linear_verdict"] = verdict_of(o4c)[0]
     rec["no_linear_ms"] = verdict_of(o4c)[1]

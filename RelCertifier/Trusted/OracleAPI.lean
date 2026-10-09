@@ -141,7 +141,7 @@ def impliedCutsOn : IO Bool := do
   if (← IO.getEnv "RELCERT_NO_IMPLIED_CUT").isSome then pure false
   else pure (← IO.getEnv "RELCERT_IMPLIED_CUT").isSome
 
-/-- **The L3 linear-form switch** (`Checker/EvolStrengtheningX.lean`, the domain
+/-- **The L7 linear-form switch** (`Checker/EvolStrengtheningX.lean`, the domain
 audit): the linear-form and derived-bound candidates run whenever the extended channel
 is on, unless `RELCERT_NO_LINEAR_CUT=1` overrides them off (the counter-run of the
 `suite_v2` matrix: a benchmark that then DECLINES is load-bearing on the linear-form
@@ -158,7 +158,7 @@ then the L1 implied-contraction atoms `v ≤ c` / `v ≥ c` of every contraction
 query `UNSAT(guard ∧ ¬atom)`). O2 for these atoms is as for any closed atom: the
 contract-shape route over `contractEq`'s grammar (no Z3), the frozen route, then the DI
 routes B and A — each atom over the bare evolve domain, unconditioned, so the lift
-composes per atom. Then (`linearCutsOn`) the L3 chain in two rounds: the linear-form
+composes per atom. Then (`linearCutsOn`) the L7 chain in two rounds: the linear-form
 atoms `y + r (x − c) ≤ sup` / `≥ inf` of every recognized second-order pair
 (`linearCandidates`; O1 rational from the guard box; O2 by the rational linear-shape
 route, else DI B, A, C over the bare evolve domain), and for each kept linear-form
@@ -177,7 +177,7 @@ def checkedCutX (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
   let zeroF : Fin n → ITerm n := fun _ => ITerm.rat 0
   let evolveI := (lowerF vars n side m.evolve).getD IForm.tt
   let guardI? := lowerF vars n side m.guard
-  -- the DI queries of an atom over a domain: route B, route A, and (L3 only) route C
+  -- the DI queries of an atom over a domain: route B, route A, and (L7 only) route C
   let diRoutes (a : PForm) (dom : IForm n) (withC : Bool) : IO (Option CutRouteX) := do
     match fOwn, cutAtomG vars n side a with
     | some f, some g =>
@@ -240,7 +240,7 @@ def checkedCutX (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
             out := out ++ [{ atom := a, kind := .impliedContract, entry := e, route := r, given := [] }]
             if dbg then IO.eprintln s!"    [route] {m.name}: implied {ppForm a}: O1 {e.tag}, O2 {r.tag}"
         | none => pure ()
-  -- L3 round 1: linear-form atoms of the recognized second-order pairs (O1 rational
+  -- L7 round 1: linear-form atoms of the recognized second-order pairs (O1 rational
   -- from the guard box, by construction; O2 linear-shape, else DI B / A / C)
   let mut kept1 : List LinCand := []
   if linear then
@@ -266,7 +266,7 @@ def checkedCutX (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
                            route := r, given := [] }]
           if dbg then IO.eprintln s!"    [route] {m.name}: linear-form {ppForm cand.atom}: O1 rational, O2 {r.tag}"
       | none => pure ()
-    -- L3 round 2: the derived bound of each kept linear-form atom, STRATIFIED on it
+    -- L7 round 2: the derived bound of each kept linear-form atom, STRATIFIED on it
     for cand in kept1 do
       match derivedOf cand with
       | none => pure ()

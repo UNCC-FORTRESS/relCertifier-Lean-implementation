@@ -20,7 +20,7 @@
 # v < 0.355 rad/s; Brake past the command with v <= 0 and the entry cap theta <= 0.6775,
 # the bound the cut chain proves for its only predecessor, Accelerate.
 #
-# THE CUT CHAIN (RELCERT_IMPLIED_CUT=1, L3). With two real eigenvalues there are two
+# THE CUT CHAIN (RELCERT_IMPLIED_CUT=1, L7). With two real eigenvalues there are two
 # decoupling linear forms, q_r = v + r (theta - 0.5) for r in {0.5, 2}, with
 # q_r' = -(2.5 - r) q_r. Round 1 from the Accelerate guard box (theta < 0.5, v < 0.355):
 # q_0.5 <= 0.355 and q_2 <= 0.355 (kind linear-form, O1 rational, O2 linear-shape).

@@ -2,7 +2,7 @@
 # scenario: degraded-controller
 # mechanisms: M1 M2 M3 M4 M6
 #
-# Same vehicle as acc_tune_gain: the deployed cruise controller (left) runs an
+# Same vehicle as acc_tune_limp's CRUISE mode: the deployed cruise controller (left) runs an
 # aftermarket tune with speed-loop gain 0.75 /s toward the set speed 30 m/s
 # (v' = 0.75 (30 - v)). The reference controller (right) is the stock unit, which lets the
 # driver select a response mode at any time: COMFORT (gain 0.4), NORMAL (0.5) or SPORT

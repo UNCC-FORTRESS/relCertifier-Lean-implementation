@@ -156,6 +156,22 @@ def parse_input(path):
             prob["row_order"].append(k)
     return prob
 
+def tolerance_masked_hash(path):
+    """docs/SUITE-DEDUPE.md tolerance-only variants: the normalized text with every numeric
+    literal of the [relational_invariant] rows masked -- two files with the same masked hash
+    differ at most in their tolerance constants."""
+    out, inrows = [], False
+    for raw in open(path, encoding="utf-8"):
+        s = re.sub(r"#.*$", "", raw).rstrip()
+        if not s.strip() or re.match(r"^name\s*=", s.strip()):
+            continue
+        if re.match(r"^\[.*\]$", s.strip()):
+            inrows = s.strip() == "[relational_invariant]"
+        elif inrows:
+            s = re.sub(r"(?<![A-Za-z_])-?\d+(?:\.\d+)?", "#", s)
+        out.append(s)
+    return hashlib.md5(("\n".join(out) + "\n").encode()).hexdigest()
+
 def normalized_hash(path):
     """docs/SUITE-DEDUPE.md: comments, trailing blanks, blank lines and the `name =` line removed."""
     out = []
@@ -415,7 +431,7 @@ def analyze(name, path, relcert, timeout):
            "modesL": len(prob["L"]["order"]), "modesR": len(prob["R"]["order"]),
            "epsL": prob["L"]["eps"], "epsR": prob["R"]["eps"],
            "lambda_min": prob["problem"].get("lambda_min"), "lambda_max": prob["problem"].get("lambda_max"),
-           "rows": prob["rows"], "hash": normalized_hash(path)}
+           "rows": prob["rows"], "hash": normalized_hash(path), "tol_hash": tolerance_masked_hash(path)}
     rows = [prob["rows"][k] for k in prob["row_order"]]
     rec["rows_identical"] = all(r == rows[0] for r in rows) if rows else True
     shapes = sorted(set(row_shape(r) for r in rows))
@@ -654,13 +670,19 @@ def main():
         byhash.setdefault(r["hash"], []).append(r["name"])
     dups = {h: v for h, v in byhash.items() if len(v) > 1}
     print("\nDUPLICATE CHECK:", "none" if not dups else dups)
+    bytol = {}
+    for r in recs:
+        bytol.setdefault(r["tol_hash"], []).append(r["name"])
+    toldups = {h: v for h, v in bytol.items() if len(v) > 1}
+    print("TOLERANCE-ONLY VARIANT CHECK:", "none" if not toldups else toldups)
     for r in recs:
         r.pop("debug_stderr", None)
     if args.json:
         with open(args.json, "w") as f:
-            json.dump({"records": recs, "duplicates": dups}, f, indent=1, default=str)
+            json.dump({"records": recs, "duplicates": dups, "tolerance_variants": toldups}, f, indent=1, default=str)
     md = ["## Matrix\n", md_table(recs), "\n## Totals\n", md_totals(recs), "\n## Proposed Table-1 grouping\n", md_table1(recs), "\n## Duplicate check\n",
-          ("no two benchmarks normalize to the same model" if not dups else f"DUPLICATES: {dups}"),
+          ("no two benchmarks normalize to the same model" if not dups else f"DUPLICATES: {dups}")
+          + "; " + ("no two benchmarks differ only in tolerance constants (rows' numerals masked)" if not toldups else f"TOLERANCE-ONLY VARIANTS: {toldups}"),
           "\n## Per-benchmark run records\n", md_records(recs)]
     if args.md:
         with open(args.md, "w") as f:

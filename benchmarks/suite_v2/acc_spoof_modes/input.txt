@@ -3,7 +3,7 @@
 # mechanisms: M1 M2 M3 M4
 #
 # The deployed cruise controller (left) is under the +25 % speed-sensor gain spoof of
-# acc_spoof_cruise with the set speed 30 m/s: v' = 0.5 (30 - 1.25 v) = 0.625 (24 - v).
+# acc_spoof_limp's CRUISE mode with the set speed 30 m/s: v' = 0.5 (30 - 1.25 v) = 0.625 (24 - v).
 # The reference controller (right) is unspoofed and lets the driver select a set speed
 # at any time: ECO 27, NORMAL 30 or SPORT 33 m/s (speed loop gain 0.5 /s in each); the
 # selection can change from NORMAL to either neighbour and back.

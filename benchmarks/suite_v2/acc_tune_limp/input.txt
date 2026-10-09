@@ -1,0 +1,74 @@
+# acc_tune_limp: retuned cruise control with a fault-latched limp-home map, against a reference with selectable response modes.
+# scenario: degraded-controller
+# mechanisms: M1 M2 M3 M4 M5 M6
+#
+# Replaces acc_tune_gain (pass 4; its cells M1 M2 M4 are a subset). The deployed
+# controller (left) runs the aftermarket tune of acc_tune_modes, CRUISE:
+# v' = 0.75 (30 - v). When the tuned ECU detects a drivetrain fault it LATCHES a
+# limp-home map until the next ignition cycle: LIMP: v' = 0.3 (25 - v) (set speed
+# reduced to 25 m/s, soft gain 0.3 /s). CRUISE -> LIMP at any time, no way back.
+# The reference (right) is the stock controller of acc_tune_modes: the driver selects
+# COMFORT 0.4, NORMAL 0.5 or SPORT 0.6 /s toward 30 m/s, NORMAL <-> COMFORT / SPORT.
+#
+# Guards (entry conditions): CRUISE engages at 22 <= v <= 36 m/s (2 m/s above the
+# reference's 20 m/s floor, the offset of the v_L <= v_R + 2 row, so DISENGAGE is not an
+# admissible start; 36 m/s the tune's resume ceiling), the reference bands 20..36 m/s;
+# LIMP is entered between 22 and 30 m/s (the fault latches while the ACC is engaged at
+# or below the set speed). Physical domain 0 <= v <= 40 m/s on both sides.
+#
+# Rows (MODE-DEPENDENT, M5): CRUISE: |v_L - v_R| <= 2; LIMP: v_L <= v_R + 2 and
+# v_R <= v_L + 6.5. Tightest per mode (CRUISE 1.5 DECLINED; LIMP 6.0 DECLINED): the
+# limp map settles 5 m/s low and reacts slowly, so the reference leads it by up to
+# 6.5 m/s. CRUISE -> LIMP loosens the row; --handoff 3/3 unsat.
+# Covers (measured): CRUISE at lambda = 3/2 (the tune is the stock loop sped up 1.5x),
+# budget 3; LIMP at lambda = 1, budget 2; joint steps from NORMAL retain COMFORT and
+# SPORT, both covering (M1, M2, M3). The band bounds are flow-invariant guard conjuncts
+# kept as checked cuts; RELCERT_NO_CUT=1 DECLINES (M6).
+#
+# Fallback (M4): DISENGAGE below 20 m/s from every reference mode (v' = -0.5 v, sink),
+# pruned (each loop accelerates at the floor); RELCERT_NO_PRUNE=1 DECLINES. Units m/s, s.
+[problem]
+name = acc_tune_limp
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 4.0
+[Lsys]
+state_vars = [v]
+epsilon = 2.0
+[Lsys.mode.CRUISE]
+ode = v' = smt2:(* 0.75 (- 30.0 v));
+guard = v >= 22.0 and v <= 36.0
+evolve = v >= 0.0 and v <= 40.0
+next = [CRUISE, LIMP]
+[Lsys.mode.LIMP]
+ode = v' = smt2:(* 0.3 (- 25.0 v));
+guard = v >= 22.0 and v <= 30.0
+evolve = v >= 0.0 and v <= 40.0
+next = [LIMP]
+[Rsys]
+state_vars = [v]
+epsilon = 1.0
+[Rsys.mode.NORMAL]
+ode = v' = smt2:(* 0.5 (- 30.0 v));
+guard = v >= 20.0 and v <= 36.0
+evolve = v >= 0.0 and v <= 40.0
+next = [NORMAL, COMFORT, SPORT, DISENGAGE]
+[Rsys.mode.COMFORT]
+ode = v' = smt2:(* 0.4 (- 30.0 v));
+guard = v >= 20.0 and v <= 36.0
+evolve = v >= 0.0 and v <= 40.0
+next = [COMFORT, NORMAL, DISENGAGE]
+[Rsys.mode.SPORT]
+ode = v' = smt2:(* 0.6 (- 30.0 v));
+guard = v >= 20.0 and v <= 36.0
+evolve = v >= 0.0 and v <= 40.0
+next = [SPORT, NORMAL, DISENGAGE]
+[Rsys.mode.DISENGAGE]
+ode = v' = smt2:(* -0.5 v);
+guard = v < 20.0
+evolve = v >= 0.0 and v <= 40.0
+next = [DISENGAGE]
+[relational_invariant]
+CRUISE = smt2:(and (<= L_v (+ R_v 2.0)) (<= R_v (+ L_v 2.0)))
+LIMP   = smt2:(and (<= L_v (+ R_v 2.0)) (<= R_v (+ L_v 6.5)))

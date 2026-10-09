@@ -2,7 +2,8 @@
 # scenario: model-refinement
 # mechanisms: M1 M2 M6 M6+ M6L
 #
-# Refinement of acc_tune_gain. The deployed vehicle (left) is modeled with its
+# Refinement of the retuned CRUISE loop of acc_tune_modes / acc_tune_limp against the
+# stock single-gain reference. The deployed vehicle (left) is modeled with its
 # powertrain lag: the retuned speed loop commands a_cmd = 0.75 (30 - v) and the
 # powertrain realises it through a first-order lag of time constant tau = 0.25 s:
 # v' = a, a' = 4 (a_cmd - a). The reference (right) is the stock first-order cruise
@@ -30,7 +31,7 @@
 #
 # Claim, derived: the lifted functional w = v + tau a = v + 0.25 a (w' = a_cmd =
 # 0.75 (30 - v)) satisfies a_L + 4 v_L <= 4 v_R + 2, i.e. w_L <= v_R + 0.5 (against
-# v_L <= v_R + 1 of the lag-free acc_tune_gain). This is the tightest slack (grid 0.25
+# |v_L - v_R| <= 1 of the lag-free single-gain tune, pass-3 acc_tune_gain). This is the tightest slack (grid 0.25
 # in functional units) that certifies; 1.75 is DECLINED, with the domain at +-10 and at
 # +-100 alike. Certified at lambda = 2, budget ceil(2 * 2 / 1) = 4 right cycles per
 # left window (M1, M2). Counter-runs: RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1 and

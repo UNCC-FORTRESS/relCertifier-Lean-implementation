@@ -1,76 +1,75 @@
-# Watertank: Sensor Offset + Fill-Speedup Attack
+# watertank: set-point level controller under a sensor offset and a tampered fill pump.
+# scenario: sensor-attack
+# mechanisms: M1 M2 M3 M4 M6 M6+
 #
-# NOTE: This header describes the model below. The model (ODEs, guards,
-# invariant) is authoritative; if they ever diverge, trust the model.
+# THE PAPER'S RUNNING EXAMPLE (redesigned 2026-10-09, supersedes the fill-speedup
+# watertank of the earlier passes; docs/SUITE-REDESIGN.md section 18).
 #
-# The tank is level-CONTROLLED: each mode is a proportional controller that
-# throttles inflow/outflow toward a setpoint, x' = 3*(a - x/25) = 0.12*(25a - x),
-# a first-order relaxation with time constant tau = 25/3 to the setpoint 25*a.
-# (Reading x as percent-of-range and time in minutes gives fill rates of order
-# 1.5-1.8 %/min and ~25 min settling, a physically reasonable controlled tank.)
+# THE PLANT. A tank of capacity 25 (level x in dm, so a 2.5 m tank; time in minutes).
+# Every mode is a proportional pump controller that drives the level toward a set point c,
+#   x' = k (c - x),   k = 0.3 /min   (a first-order relaxation, time constant ~3.3 min).
+# NOMINAL controller (right, the reference design):
+#   PumpOff  x < 2           x' = 0               dry-run interlock: below the 2 dm intake
+#                                                  the pump is switched off and latched
+#                                                  (a sink, PumpOff -> PumpOff only)
+#   Low      2 <= x < 10     x' = 0.3 (12.5 - x)  fill toward 12.5
+#   Mid      10 <= x < 17    toward 17, in two selectable pump profiles chosen on entry:
+#              MidEco          x' = 0.15 (17 - x)   half gain k/2 (energy-saving)
+#              MidBoost        x' = 0.3 (17 - x)    full gain k
+#   High     x >= 17         x' = 0.3 (17 - x)    regulate (drain) down to 17
+# The nominal controller may move between MidEco and MidBoost at any time while in Mid,
+# and returns from High into either profile.
 #
-# Nominal system (right):
-#   Low:  guard x in [0, 10),  x' = 3*(0.5 - x/25)   eq 12.5, slow fill
-#   Mid:  guard x in [10, 17), x' = 3*(1.0 - x/25)   eq 25,   fast fill
-#   High: guard x >= 17,       x' = 3*(0.1 - x/25)   eq 2.5,  drain
+# THE ATTACK (left, the deployed controller):
+#   1. Sensor offset: the level sensor reads 3 dm LOW (x_measured = x - 3), so every
+#      threshold and every set point the controller acts on is 3 dm higher in true level:
+#        Low  5 <= x < 13   toward 15.5 (= 12.5 + 3)
+#        Mid  13 <= x < 20  toward 20   (= 17 + 3), gain k
+#        High x >= 20       regulate down to 20
+#   2. Pump tamper: the Low pump runs at TWICE the nominal gain, x' = 0.6 (15.5 - x).
+#   The deployed controller has a single Mid profile and no dry-run mode: its Low floor
+#   5 = 2 + 3 is the nominal intake threshold shifted by the offset.
 #
-# Deployed (left, attacked) system, two coordinated effects:
-#   1. Sensor offset -3 (x_measured = x - 3): the controller switches at shifted
-#      thresholds, so left guards are nominal + 3:
-#         Low [0, 13),  Mid [13, 20),  High x >= 20.
-#   2. Fill speedup in Low: deployed Low fills at a=0.6 (eq 15) versus the
-#      nominal slow-fill a=0.5 (eq 12.5), i.e. a modest 0.5 -> 0.6 increase in
-#      the low-level fill setpoint (a 20% higher setpoint, ~20% faster initial
-#      fill). This is NOT a 2x speedup; it is a small, plausible fill-rate drift.
-#      Mid and High dynamics are unchanged (Mid a=1.0, High a=0.1 both sides);
-#      the attack disappears in High (both drain identically), exploiting fill
-#      control rather than drain control.
+# CLAIM (two rows per mode): |x_L - x_R| <= 3, i.e. x_L <= x_R + 3 and x_R <= x_L + 3 in
+# every left mode: the true levels of the deployed and the reference tank never differ
+# by more than the sensor offset. The tolerance 3 IS the offset, and it is tight: with
+# tolerance 2.9 (both rows) the benchmark is DECLINED (measured). Why it is tight
+# (derived from the model): on the boundary x_L = x_R + 3 the deployed Low field is
+# 0.6 (15.5 - x_L) = 0.6 (12.5 - x_R), exactly the nominal Low field run at speed
+# ratio 2, so the gap is neutral there (zero Lie derivative), not contracting; the same
+# holds for Mid against MidEco at ratio 2 and against MidBoost at ratio 1.
 #
-# Behavioral alignment (a consequence of the attack, derived from the model):
-#   The deployed low-level fill setpoint (15) exceeds the nominal one (12.5) by
-#   2.5, within the sensor offset of 3. Because the setpoint gap stays under the
-#   invariant bound, the deployed level leads the nominal level by less than the
-#   offset while both remain in Low, and Low_L/Low_R synchronizes at lambda = 1.
-#   On the invariant boundary x_L = x_R + 3:
-#     dg/dt = 3*(0.6 - 0.5) - (3/25)*(x_L - x_R) = 0.3 - 0.12*3 = -0.06 < 0,
-#   so the +3 gap contracts and the pair certifies with margin. Low_L also
-#   synchronizes cleanly with the nominal fast-fill Mid_R at lambda = 1.
+# DOMAIN: the tank capacity, 0 <= x <= 25, identical in every mode on both sides. No
+# certificate stands on it: widened to x <= 60 (and to -60 <= x <= 60) the benchmark
+# still CERTIFIES (measured).
 #
-# Relational invariant: x_L <= x_R + 3 (all mode pairs). The bound 3 is the
-#   sensor offset: the deployed level may lead the nominal level by at most the
-#   offset. The 0.5 -> 0.6 fill setpoint gap raises the deployed steady low-level
-#   by 2.5 (15 vs 12.5), which the offset absorbs, so d = 3 suffices.
-#
-# Per-pair sync (lambda_min, derived from the model on the invariant boundary):
-#   Low_L/Low_R:   ~1.00   0.6 vs 0.5 fill; setpoint gap 2.5 < offset 3
-#   Low_L/Mid_R:   ~1.00   deployed Low aligns with nominal fast-fill Mid
-#   Mid_L/Mid_R:   ~1.00   identical dynamics
-#   Mid_L/High_R:    -     left fills while right drains: no valid stretch
-#   High_L/Mid_R:    -     (right fills, left drains)
-#   High_L/Low_R:  ~1.00
-#   High_L/High_R: ~1.00   identical drain dynamics
-#
-# Filling-left / draining-right pairs (Low_L/High_R, Mid_L/High_R) have no flow
-#   certificate on the physical evolve domain, but they are off the critical
-#   path: they are only reachable with the nominal level far ahead of the
-#   deployed level (x_R - x_L >= 4), where the invariant holds with wide margin.
-#   Low_L and Mid_L each cover their full budget through a single certifying
-#   sync (Low_L via Low_R or Mid_R, Mid_L via Mid_R, all at lambda = 1), so the
-#   cover does not depend on these edges.
-#
-# Evolution domains are PHYSICAL limits only: every mode uses x in [0, 25]
-#   (the tank's physical range under this setpoint scale), identical on both
-#   systems. The floor x >= 0 coincides with the Low guard's lower bound, but
-#   certification provably does not lean on it: every mode's field has strict
-#   inflow at the floor (x' = 3a >= 0.3 at x = 0), so the x = 0 face carries a
-#   strict viability tag and the invariant queries never bind there. No other
-#   evolve bound is set to a guard or invariant value.
-
+# MEASURED (relcert, RELCERT_IMPLIED_CUT=1; epsilon_L = epsilon_R = 1 min, lambda grid
+# [1, 6]; counter-runs as in docs/SUITE-REDESIGN.md section 2):
+#   * CERTIFIED with no reposition of any kind: the replayed cover derivation consists
+#     of joint segments only (every left/right pair it visits is a joint segment; no
+#     static and no dynamic right-only step).
+#   * Low and Mid certify at lambda = 2 (the speed ratio: the tampered Low pump against
+#     the nominal one, and the full-gain deployed Mid against MidEco) with budget 2
+#     (two right segments per left window); High at lambda = 1, budget 1.
+#   * Branching (M3): a joint step from the nominal Low retains BOTH MidEco and MidBoost, and
+#     both cover. MidEco needs lambda = 2, MidBoost already passes at lambda = 1 (the
+#     per-lambda segment rows of RELCERT_DEBUG=1: for the deployed Mid, MidEco passes
+#     only at lambda = 2, MidBoost at every grid point from 1).
+#   * Pruning: Low -> PumpOff is pruned (the nominal Low flow from its entry x >= 2
+#     never reaches x < 2). RELCERT_NO_PRUNE=1 DECLINES: the deployed Low window cannot
+#     cover a reference latched in PumpOff (its segment fails at every lambda). The
+#     deployed floor 5 = 2 + 3 keeps PumpOff out of the admissible starts for the
+#     deployed Low.
+#   * Cuts: the set-point atoms x <= c are the cuts (deployed Low x <= 15.5, an implied
+#     contraction atom; deployed Mid x <= 20, nominal MidEco / MidBoost x <= 17, the
+#     closures of the strict guard caps; nominal Low x <= 12.5, implied). RELCERT_NO_CUT=1
+#     and RELCERT_NO_IMPLIED_CUT=1 both DECLINE; RELCERT_NO_LINEAR_CUT=1 still CERTIFIES
+#     (no linear-form atom is kept).
 [problem]
 name = watertank
-max_depth = 6
+max_depth = 8
 lambda_min = 1.0
-lambda_max = 10.0
+lambda_max = 6.0
 bound_T = 40.0
 
 [Lsys]
@@ -78,46 +77,58 @@ state_vars = [x]
 epsilon = 1.0
 
 [Lsys.mode.Low]
-ode = x' = smt2:(* 3 (- 0.6 (* x 0.04)));
-guard = x >= 0.0 and x < 13.0
+ode = x' = smt2:(* 0.6 (- 15.5 x));
+guard = x >= 5.0 and x < 13.0
 evolve = x >= 0.0 and x <= 25.0
-next = [Mid, Low]
+next = [Low, Mid]
 
 [Lsys.mode.Mid]
-ode = x' = smt2:(* 3 (- 1.0 (* x 0.04)));
+ode = x' = smt2:(* 0.3 (- 20.0 x));
 guard = x >= 13.0 and x < 20.0
 evolve = x >= 0.0 and x <= 25.0
-next = [High, Mid]
+next = [Mid, High]
 
 [Lsys.mode.High]
-ode = x' = smt2:(* 3 (- 0.1 (* x 0.04)));
-guard = x >= 20.0 and x < 22.45
+ode = x' = smt2:(* 0.3 (- 20.0 x));
+guard = x >= 20.0
 evolve = x >= 0.0 and x <= 25.0
-next = [Mid, High]
+next = [High, Mid]
 
 [Rsys]
 state_vars = [x]
 epsilon = 1.0
 
 [Rsys.mode.Low]
-ode = x' = smt2:(* 3 (- 0.5 (* x 0.04)));
-guard = x >= 0.0 and x < 10.0
+ode = x' = smt2:(* 0.3 (- 12.5 x));
+guard = x >= 2.0 and x < 10.0
 evolve = x >= 0.0 and x <= 25.0
-next = [Mid, Low]
+next = [Low, MidEco, MidBoost, PumpOff]
 
-[Rsys.mode.Mid]
-ode = x' = smt2:(* 3 (- 1.0 (* x 0.04)));
+[Rsys.mode.MidEco]
+ode = x' = smt2:(* 0.15 (- 17.0 x));
 guard = x >= 10.0 and x < 17.0
 evolve = x >= 0.0 and x <= 25.0
-next = [High, Mid]
+next = [MidEco, MidBoost, High]
+
+[Rsys.mode.MidBoost]
+ode = x' = smt2:(* 0.3 (- 17.0 x));
+guard = x >= 10.0 and x < 17.0
+evolve = x >= 0.0 and x <= 25.0
+next = [MidBoost, MidEco, High]
 
 [Rsys.mode.High]
-ode = x' = smt2:(* 3 (- 0.1 (* x 0.04)));
-guard = x >= 17.0 and x < 22.45
+ode = x' = smt2:(* 0.3 (- 17.0 x));
+guard = x >= 17.0
 evolve = x >= 0.0 and x <= 25.0
-next = [Mid, High]
+next = [High, MidEco, MidBoost]
+
+[Rsys.mode.PumpOff]
+ode = x' = smt2:0.0;
+guard = x < 2.0
+evolve = x >= 0.0 and x <= 25.0
+next = [PumpOff]
 
 [relational_invariant]
-Low  = x[l] <= x[r] + 3
-Mid  = x[l] <= x[r] + 3
-High = x[l] <= x[r] + 3
+Low  = x[l] <= x[r] + 3 and x[r] <= x[l] + 3
+Mid  = x[l] <= x[r] + 3 and x[r] <= x[l] + 3
+High = x[l] <= x[r] + 3 and x[r] <= x[l] + 3

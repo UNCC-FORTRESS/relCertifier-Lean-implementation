@@ -3,12 +3,15 @@
 # mechanisms: M1 M2 M3 M4 M5 M6
 #
 # Replaces acc_tune_gain (pass 4; its cells M1 M2 M4 are a subset). The deployed
-# controller (left) runs the aftermarket tune of acc_tune_modes, CRUISE:
-# v' = 0.75 (30 - v). When the tuned ECU detects a drivetrain fault it LATCHES a
+# controller (left) runs an aftermarket tune with speed-loop gain 0.75 /s toward the
+# set speed 30 m/s, CRUISE: v' = 0.75 (30 - v). (Pass 6: acc_tune_modes, this CRUISE
+# loop against the same reference without the limp map, was dropped; its cells were a
+# strict subset of this file's.) When the tuned ECU detects a drivetrain fault it LATCHES a
 # limp-home map until the next ignition cycle: LIMP: v' = 0.3 (25 - v) (set speed
 # reduced to 25 m/s, soft gain 0.3 /s). CRUISE -> LIMP at any time, no way back.
-# The reference (right) is the stock controller of acc_tune_modes: the driver selects
-# COMFORT 0.4, NORMAL 0.5 or SPORT 0.6 /s toward 30 m/s, NORMAL <-> COMFORT / SPORT.
+# The reference (right) is the stock controller: the driver selects a response mode at
+# any time, COMFORT 0.4, NORMAL 0.5 or SPORT 0.6 /s toward 30 m/s, NORMAL <-> COMFORT /
+# SPORT.
 #
 # Guards (entry conditions): CRUISE engages at 22 <= v <= 36 m/s (2 m/s above the
 # reference's 20 m/s floor, the offset of the v_L <= v_R + 2 row, so DISENGAGE is not an

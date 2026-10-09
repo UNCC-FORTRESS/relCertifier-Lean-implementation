@@ -2,7 +2,7 @@
 # scenario: model-refinement
 # mechanisms: M1 M2 M4
 #
-# Refinement of the retuned CRUISE loop of acc_tune_modes / acc_tune_limp against the
+# Refinement of the retuned CRUISE loop of acc_tune_limp against the
 # stock single-gain reference. The deployed vehicle (left) is modeled with its
 # powertrain lag: the retuned speed loop commands a_cmd = 0.75 (30 - v) and the
 # powertrain realises it through a first-order lag of time constant tau = 0.25 s:

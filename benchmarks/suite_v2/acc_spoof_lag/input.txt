@@ -2,7 +2,7 @@
 # scenario: model-refinement
 # mechanisms: M1 M2 M6 M6+ M6L
 #
-# Refinement of the spoofed CRUISE loop of acc_spoof_modes / acc_spoof_limp against
+# Refinement of the spoofed CRUISE loop of acc_spoof_limp against
 # the stock single-set-speed reference. The deployed vehicle (left) is modeled with its
 # powertrain lag: the speed loop commands an acceleration a_cmd = 0.5 (30 - 1.25 v)
 # = 0.625 (24 - v) (set speed 30 m/s, +25 % speed-sensor gain spoof) and the powertrain

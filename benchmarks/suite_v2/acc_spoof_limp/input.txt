@@ -3,15 +3,18 @@
 # mechanisms: M1 M2 M3 M4 M5 M6
 #
 # Replaces acc_spoof_cruise (pass 4; its cells M1 M2 M4 are a subset). The deployed
-# cruise controller (left) is under the +25 % speed-sensor gain spoof of acc_spoof_modes
-# (set speed 30 m/s, CRUISE: v' = 0.5 (30 - 1.25 v) = 0.625 (24 - v)). Its plausibility
+# cruise controller (left) is under a +25 % speed-sensor gain spoof (the fused speed
+# reads 1.25x the true speed; set speed 30 m/s, speed-loop gain 0.5 /s, so CRUISE:
+# v' = 0.5 (30 - 1.25 v) = 0.625 (24 - v)). (Pass 6: acc_spoof_modes, this CRUISE loop
+# against the same reference without the limp mode, was dropped; its cells were a
+# strict subset of this file's.) Its plausibility
 # monitor compares the fused speed with the wheel-speed sensor; when it flags the
 # mismatch, the controller LATCHES a limp-home mode until the next ignition cycle:
 # LIMP: v' = 0.3 (22 - v) -- the speed loop now reads the wheel-speed sensor (unspoofed),
 # with a reduced set speed of 22 m/s (80 km/h limp-home speed) and a soft gain of
 # 0.3 /s. CRUISE -> LIMP may happen at any time; there is no way back (latched).
-# The reference (right) is the unspoofed controller of acc_spoof_modes: the driver
-# selects ECO 27, NORMAL 30 or SPORT 33 m/s (gain 0.5 /s), NORMAL <-> ECO / SPORT.
+# The reference (right) is the unspoofed controller: the driver selects ECO 27,
+# NORMAL 30 or SPORT 33 m/s at any time (gain 0.5 /s), NORMAL <-> ECO / SPORT.
 #
 # Guards (entry conditions): CRUISE engages at 20 <= v < 40 (the ACC floor, as the
 # reference); LIMP is entered between 20 and 30 m/s (the monitor latches only while the

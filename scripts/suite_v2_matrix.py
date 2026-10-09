@@ -88,6 +88,7 @@ FAMILIES = [
     ("story2_", "Story ladders"),
     ("story3_", "Story ladders"),
     ("watertank", "Watertank"),
+    ("sat_detumble_", "Rigid-body detumbling (polynomial)"),
 ]
 KEPT_SCENARIO = {
     "watertank": "sensor-attack",
@@ -420,9 +421,74 @@ def path_string(d):
     walk(d)
     return "; ".join(steps)
 
+# ----------------------------------------------------------------------------- Z3 profile
+
+def _sx(text):
+    toks = re.findall(r"\(|\)|[^\s()]+", text)
+    node, _ = _parse_sexpr(toks, 0)
+    return node
+
+def _sides(n, acc):
+    if isinstance(n, str):
+        if n.startswith("L_"): acc.add("L")
+        if n.startswith("R_"): acc.add("R")
+    else:
+        for x in n: _sides(x, acc)
+
+def _sdeg(n):
+    if isinstance(n, str):
+        return 1 if (n.startswith("L_") or n.startswith("R_")) else 0
+    ds = [_sdeg(x) for x in n[1:]]
+    return sum(ds) if n[0] == "*" else (max(ds) if ds else 0)
+
+def query_shape(q):
+    """Shape of the asserted formula's last top-level conjunct X: route A (X = gdot > 0),
+    B (X = g = 0 and gdot >= 0), C (X = g >= 0 and gdot > 0), or 'other' (static region,
+    entry, non-connection source queries and anything else are 'other' unless they match
+    a route shape). A-shaped terms of degree <= 1 (affine Lie derivatives and static region queries alike) are counted as "A-or-static"."""
+    i = q.find("(assert ")
+    if i < 0:
+        return "other", ""
+    try:
+        f = _sx(q[i:])[1]
+    except (IndexError, ValueError):
+        return "other", ""
+    X = f[-1] if (isinstance(f, list) and f and f[0] == "and") else f
+    side = set(); _sides(X, side); side = "".join(sorted(side))
+    if isinstance(X, list) and len(X) == 3 and X[0] == "and" and isinstance(X[1], list) and X[1][0] == "=":
+        return "B", side
+    if isinstance(X, list) and len(X) == 3 and X[0] == "and" and isinstance(X[1], list) and X[1][0] == ">=" and isinstance(X[2], list) and X[2][0] == ">":
+        return "C", side
+    if isinstance(X, list) and X and X[0] == ">":
+        return ("A" if _sdeg(X[1]) >= 2 else "A-or-static"), side
+    return "other", side
+
+def z3_profile(relcert, path, timeout):
+    """One extra run through scripts/z3_timing_proxy.py: number of Z3 queries, total and
+    maximal Z3 wall time (from the (check-sat) to the sentinel, per query), and the UNSAT
+    queries by shape (A/B/C on both sides = joint or reposition flow certificates)."""
+    import tempfile
+    proxy = os.path.join(HERE, "z3_timing_proxy.py")
+    with tempfile.NamedTemporaryFile(suffix=".jsonl", delete=False) as tf:
+        logp = tf.name
+    try:
+        rc, out, err, wall = run([relcert, path], {"RELCERT_IMPLIED_CUT": "1", "RELCERT_Z3": proxy,
+                                                   "Z3PROXY_LOG": logp}, timeout)
+        rs = [json.loads(l) for l in open(logp) if l.strip()]
+    finally:
+        os.unlink(logp)
+    shapes = {}
+    for r in rs:
+        if r.get("verdict") == "unsat":
+            sh, side = query_shape(r.get("q", ""))
+            key = sh + ("" if side == "LR" else "/" + (side or "-"))
+            shapes[key] = shapes.get(key, 0) + 1
+    return {"queries": len(rs), "z3_ms": round(sum(r["ms"] for r in rs)), "z3_max_ms": round(max([r["ms"] for r in rs] or [0])),
+            "proxied_wall_s": round(wall, 2), "unsat_shapes": dict(sorted(shapes.items()))}
+
 # ----------------------------------------------------------------------------- per benchmark
 
-def analyze(name, path, relcert, timeout):
+def analyze(name, path, relcert, timeout, z3time=False):
     prob = parse_input(path)
     scenario = prob["scenario"] or KEPT_SCENARIO.get(name) or ("model-refinement" if family_of(name) in ("Terrain/position ladder", "Story ladders") else None)
     rec = {"name": name, "path": os.path.relpath(path, ROOT), "scenario": scenario, "family": family_of(name),
@@ -452,6 +518,9 @@ def analyze(name, path, relcert, timeout):
     rec["route_lines"] = [l.strip() for l in err.splitlines() if l.strip().startswith("[route]")]
     rec["repo_lines"] = [l.strip() for l in err.splitlines() if l.strip().startswith("[repo-pre]")]
     rec["debug_stderr"] = err
+    rec["wall_s"] = round(wall, 2)
+    if z3time:
+        rec["z3"] = z3_profile(relcert, path, timeout)
 
     # 2. cover
     rc, out2, err2, _ = run([relcert, "--emit-cover", path, "x"], {"RELCERT_IMPLIED_CUT": "1"}, timeout)
@@ -594,7 +663,7 @@ def md_table1(recs):
     for r in recs:
         groups.setdefault(r["family"], []).append(r)
     order = ["ACC under sensor spoofing / retune", "Quadrotor climb, lighter airframe", "Battery charger",
-             "Platoon follower, delayed link", "Rover patrol (zones)", "Arm, leading reference", "Heater cycle",
+             "Platoon follower, delayed link", "Rover patrol (zones)", "Arm, leading reference", "Rigid-body detumbling (polynomial)", "Heater cycle",
              "Terrain/position ladder", "Story ladders", "Watertank", "other"]
     lines = ["| group | count | dim (L/R) | invariant forms | dynamics | discrete structure (modes L/R; pruned fallbacks; mode-dep. rows; cuts; widened cuts; linear-form chains; per-mode domains) |",
              "|---|---|---|---|---|---|"]
@@ -618,6 +687,20 @@ def md_table1(recs):
         struct = f"modes {min(mL)}-{max(mL)} / {min(mR)}-{max(mR)}; {pr} with a pruned fallback; {md} mode-dependent; {cut} cut-reliant; {cutx} widened-cut-reliant; {cutl} linear-form-reliant; {pmd} per-mode domains"
         lines.append(f"| {g} | {len(rs)} | {dimtxt} | {', '.join(forms)} | {dyn} | {struct} |")
     lines.append(f"| **total** | **{total}** | | | | |")
+    return "\n".join(lines)
+
+def md_timing(recs):
+    lines = ["| benchmark | dim L/R | verdict | tool ms (relcert's own) | wall s (process) | Z3 queries | Z3 ms (sum) | Z3 max ms | UNSAT queries by shape |",
+             "|---|---|---|---|---|---|---|---|---|"]
+    tot_ms = tot_z3 = 0
+    for r in recs:
+        z = r.get("z3")
+        tot_ms += r["ms"] or 0
+        if z:
+            tot_z3 += z["z3_ms"]
+        lines.append(f"| `{r['name']}` | {r['dimL']}/{r['dimR']} | {r['verdict']} | {r['ms']} | {r.get('wall_s')} | "
+                     + (f"{z['queries']} | {z['z3_ms']} | {z['z3_max_ms']} | " + ", ".join(f"{k} {v}" for k, v in z['unsat_shapes'].items()) + " |" if z else "- | - | - | - |"))
+    lines.append(f"| **total** | | | **{tot_ms}** | | | **{tot_z3}** | | |")
     return "\n".join(lines)
 
 def md_records(recs):
@@ -653,6 +736,7 @@ def main():
     ap.add_argument("--md", default=None)
     ap.add_argument("--only", default=None)
     ap.add_argument("--timeout", type=int, default=600)
+    ap.add_argument("--z3time", action="store_true", help="one extra proxied run per benchmark: Z3 time, query count, UNSAT queries by route shape")
     args = ap.parse_args()
     names = sorted(d for d in os.listdir(args.bench) if os.path.isfile(os.path.join(args.bench, d, "input.txt")))
     if args.only:
@@ -661,7 +745,7 @@ def main():
     recs = []
     for n in names:
         path = os.path.join(args.bench, n, "input.txt")
-        r = analyze(n, path, args.relcert, args.timeout)
+        r = analyze(n, path, args.relcert, args.timeout, args.z3time)
         recs.append(r)
         print(f"{n}: {r['verdict']} ({r['ms']} ms) NO_PRUNE={r['no_prune_verdict']} NO_CUT={r['no_cut_verdict']} NO_IMPLIED_CUT={r['no_implied_verdict']} NO_LINEAR_CUT={r['no_linear_verdict']} domains={'per-mode' if r['per_mode_evolve'] else 'uniform'} exercised={r['exercised']}", flush=True)
     # duplicates
@@ -683,6 +767,7 @@ def main():
     md = ["## Matrix\n", md_table(recs), "\n## Totals\n", md_totals(recs), "\n## Proposed Table-1 grouping\n", md_table1(recs), "\n## Duplicate check\n",
           ("no two benchmarks normalize to the same model" if not dups else f"DUPLICATES: {dups}")
           + "; " + ("no two benchmarks differ only in tolerance constants (rows' numerals masked)" if not toldups else f"TOLERANCE-ONLY VARIANTS: {toldups}"),
+          "\n## Timing\n", md_timing(recs),
           "\n## Per-benchmark run records\n", md_records(recs)]
     if args.md:
         with open(args.md, "w") as f:

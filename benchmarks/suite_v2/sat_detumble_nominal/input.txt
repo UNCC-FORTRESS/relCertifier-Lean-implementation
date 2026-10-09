@@ -1,0 +1,66 @@
+# sat_detumble_nominal: microsatellite detumbling, full gyrostat model against the decoupled design model.
+# scenario: model-refinement
+# mechanisms: M2 M4
+#
+# THE PLANT (both sides; a ~60 kg microsatellite, SI units). Body rates w1, w2, w3 (rad/s)
+# about the principal axes, inertia J = diag(2, 4, 5) kg m^2, and the momentum h (N m s)
+# of a reaction wheel on the z-axis. Euler's equations with the wheel (a gyrostat):
+#   J1 w1' = (J2 - J3) w2 w3 - w2 h + tau1,   J2 w2' = (J3 - J1) w3 w1 + w1 h + tau2,
+#   J3 w3' = (J1 - J2) w1 w2 - h',            h' = k J3 w3,
+# with rate-damping magnetorquers tau_i = -k J_i w_i on x, y and the wheel absorbing the
+# z-rate: w1' = -0.5 w2 w3 - 0.5 w2 h - k w1, w2' = 0.75 w3 w1 + 0.25 w1 h - k w2,
+# w3' = -0.4 w1 w2 - k w3, h' = 5 k w3. The gyroscopic and wheel-coupling terms are
+# genuine BILINEAR couplings (products w2 w3, w3 w1, w1 w2, w2 h, w1 h); they do no work,
+# so the body energy E = 2 w1^2 + 4 w2^2 + 5 w3^2 (twice the rotational kinetic energy)
+# obeys E' = -2 k E exactly -- but only through the cancellation of the cubic terms,
+# which every flow query has to establish (Z3, nonlinear real arithmetic).
+# The DESIGN MODEL (right) neglects the couplings: w_i' = -k w_i, h' = 5 k w3.
+# PHYSICAL DOMAIN (both sides): |w_i| <= 1 rad/s (the gyro's measurement range) and
+# |h| <= 2 N m s (the wheel's momentum capacity); no certificate stands on them
+# (widening test).
+# Guards (entry conditions): the detumble controller engages with the body energy inside
+# its authority envelope, E <= 1 (e.g. |w1| <= 0.71 rad/s about x alone). The design
+# model declares the FDIR SAFE mode on an ENERGY threshold, E > 1 (actuators inhibited,
+# free tumble: E conserved; a sink) -- a quadratic threshold, not a speed floor.
+#
+# Nominal: k = 0.5 /s on both sides. CLAIM: E_L <= E_R and E_R <= E_L -- the full
+# rigid body's energy EQUALS the design model's at every instant (tolerance 0 in both
+# directions; the exact equality is what the cubic cancellation gives). The claim is
+# synchronous: lambda in [1, 1] (the design model must match in real time; with a
+# stretch grid the SAFE counter-run's non-unit-lambda queries are inconclusive in Z3).
+# Covers (measured): lambda = 1, budget 2 right cycles per left window (M2).
+#
+# Fallback (M4, energy threshold): DETUMBLE -> SAFE is pruned by the non-connection
+# certificate -- source: no DETUMBLE entry state has E > 1; barrier: on E = 1 the
+# design model's field gives E' = -E < 0. SAFE is not an admissible start
+# (E_R <= E_L <= 1). Without pruning the cover owes SAFE, whose frozen energy breaks
+# E_R <= E_L as soon as the deployed's energy decays: RELCERT_NO_PRUNE=1 DECLINES.
+[problem]
+name = sat_detumble_nominal
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 4.0
+[Lsys]
+state_vars = [w1, w2, w3, h]
+epsilon = 2.0
+[Lsys.mode.DETUMBLE]
+ode = w1' = smt2:(- (- (* -0.5 (* w2 w3)) (* 0.5 (* w2 h))) (* 0.5 w1)); w2' = smt2:(- (+ (* 0.75 (* w3 w1)) (* 0.25 (* w1 h))) (* 0.5 w2)); w3' = smt2:(- (* -0.4 (* w1 w2)) (* 0.5 w3)); h' = smt2:(* 2.5 w3);
+guard = w1*w1*2 + w2*w2*4 + w3*w3*5 <= 1.0
+evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h >= -2.0 and h <= 2.0
+next = [DETUMBLE]
+[Rsys]
+state_vars = [w1, w2, w3, h]
+epsilon = 1.0
+[Rsys.mode.DETUMBLE]
+ode = w1' = smt2:(* -0.5 w1); w2' = smt2:(* -0.5 w2); w3' = smt2:(* -0.5 w3); h' = smt2:(* 2.5 w3);
+guard = w1*w1*2 + w2*w2*4 + w3*w3*5 <= 1.0
+evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h >= -2.0 and h <= 2.0
+next = [DETUMBLE, SAFE]
+[Rsys.mode.SAFE]
+ode = w1' = smt2:0; w2' = smt2:0; w3' = smt2:0; h' = smt2:0;
+guard = w1*w1*2 + w2*w2*4 + w3*w3*5 > 1.0
+evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h >= -2.0 and h <= 2.0
+next = [SAFE]
+[relational_invariant]
+DETUMBLE = w1[l]*w1[l]*2 + w2[l]*w2[l]*4 + w3[l]*w3[l]*5 <= w1[r]*w1[r]*2 + w2[r]*w2[r]*4 + w3[r]*w3[r]*5 and w1[r]*w1[r]*2 + w2[r]*w2[r]*4 + w3[r]*w3[r]*5 <= w1[l]*w1[l]*2 + w2[l]*w2[l]*4 + w3[l]*w3[l]*5

@@ -2727,7 +2727,7 @@ mode-dependent rows (M5) was at 1–4 D, and no file at ≥ 6 D exercised branch
 pruning (the 6–12-D ladders have M5 at most). This pass adds four 6-D files (two
 polynomial, two linear) that do, and drops two redundant 1-D files. No tool, Lean or
 `suite_uniform` file changed; `scripts/suite_v2_matrix.py` only gained two family-prefix
-lines. Every run `RELCERT_IMPLIED_CUT=1` (except the `RELCERT_NO_IMPLIED_CUT=1`
+lines and the new family's place in the Table-1 group order. Every run `RELCERT_IMPLIED_CUT=1` (except the `RELCERT_NO_IMPLIED_CUT=1`
 counter-run), binary of `049991c`, Z3 4.15.1, DEFAULT solver settings
 (`RELCERT_Z3_TIMEOUT` 10 s, `RELCERT_Z3_RLIMIT` 8 000 000) unless a line says otherwise.
 

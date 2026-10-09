@@ -141,45 +141,76 @@ def impliedCutsOn : IO Bool := do
   if (← IO.getEnv "RELCERT_NO_IMPLIED_CUT").isSome then pure false
   else pure (← IO.getEnv "RELCERT_IMPLIED_CUT").isSome
 
+/-- **The L3 linear-form switch** (`Checker/EvolStrengtheningX.lean`, the domain
+audit): the linear-form and derived-bound candidates run whenever the extended channel
+is on, unless `RELCERT_NO_LINEAR_CUT=1` overrides them off (the counter-run of the
+`suite_v2` matrix: a benchmark that then DECLINES is load-bearing on the linear-form
+chain — the "M6L" cell). -/
+def linearCutsOn : IO Bool := do
+  if (← IO.getEnv "RELCERT_NO_LINEAR_CUT").isSome then pure false
+  else impliedCutsOn
+
 /-- **The extended checked cut of a mode** (`RELCERT_IMPLIED_CUT=1` path): the legacy
 guard-conjunct atoms (computed by `checkedCut`, unchanged, tagged `guardConj` /
 `membership`), then the L2 closures of the strict guard conjuncts (O1 by weakening),
 then the L1 implied-contraction atoms `v ≤ c` / `v ≥ c` of every contraction field
 (O1 by rational comparison against a threshold guard conjunct, else by one counted Z3
-query `UNSAT(guard ∧ ¬atom)`). O2 for the new atoms is as for any closed atom: the
+query `UNSAT(guard ∧ ¬atom)`). O2 for these atoms is as for any closed atom: the
 contract-shape route over `contractEq`'s grammar (no Z3), the frozen route, then the DI
 routes B and A — each atom over the bare evolve domain, unconditioned, so the lift
-composes per atom. An atom already kept (rationally the same threshold) is not offered
-twice. Returns the conjoined domain narrowing and the full extended certificate entry. -/
+composes per atom. Then (`linearCutsOn`) the L3 chain in two rounds: the linear-form
+atoms `y + r (x − c) ≤ sup` / `≥ inf` of every recognized second-order pair
+(`linearCandidates`; O1 rational from the guard box; O2 by the rational linear-shape
+route, else DI B, A, C over the bare evolve domain), and for each kept linear-form
+atom its derived bound `x ≤ c + K/r` / `≥` (O1 by `guardImpliesRational`, else one
+counted Z3 query; O2 by the rational derived-shape route, else DI B, A, C over the
+evolve domain narrowed by THAT linear-form atom — stratified, recorded in `given`). An
+atom already kept (rationally the same threshold) is not offered twice. Returns the
+conjoined domain narrowing (every kept atom) and the full extended certificate entry. -/
 def checkedCutX (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     (vars : List String) (n : ℕ) (coord : Fin n → String) (side : Side) (m : PMode) :
     IO (IForm n × List CutAtomX) := do
   let dbg := (← IO.getEnv "RELCERT_DEBUG").isSome
+  let linear ← linearCutsOn
   let (_, legacy) ← checkedCut s cnt maxQ maxSmt deadline vars n coord side m
   let fOwn := dynOf vars n side m
   let zeroF : Fin n → ITerm n := fun _ => ITerm.rat 0
   let evolveI := (lowerF vars n side m.evolve).getD IForm.tt
   let guardI? := lowerF vars n side m.guard
-  -- O2 of an extended (closed) atom
-  let o2 (a : PForm) : IO (Option CutRoute) := do
-    if contractShapeOKX m a then pure (some CutRoute.shape)
-    else if (atomVars a).all (frozenIn m) then pure (some CutRoute.frozen)
-    else
-      match fOwn, cutAtomG vars n side a with
-      | some f, some g =>
-          let gdot := match side with
-            | Side.L => ilieDeriv g f zeroF (ITerm.rat 1)
-            | _      => ilieDeriv g zeroF f (ITerm.rat 1)
-          let rB := IForm.and evolveI (IForm.and (IForm.cmp .eq g (.rat 0))
-            (IForm.cmp .ge gdot (.rat 0)))
-          if ← probeUnsat s cnt maxQ maxSmt deadline coord rB then pure (some CutRoute.diStrict)
-          else if ← probeUnsat s cnt maxQ maxSmt deadline coord
-              (IForm.and evolveI (IForm.cmp .gt gdot (.rat 0))) then
-            pure (some CutRoute.diNonstrict)
+  -- the DI queries of an atom over a domain: route B, route A, and (L3 only) route C
+  let diRoutes (a : PForm) (dom : IForm n) (withC : Bool) : IO (Option CutRouteX) := do
+    match fOwn, cutAtomG vars n side a with
+    | some f, some g =>
+        let gdot := match side with
+          | Side.L => ilieDeriv g f zeroF (ITerm.rat 1)
+          | _      => ilieDeriv g zeroF f (ITerm.rat 1)
+        let rB := IForm.and dom (IForm.and (IForm.cmp .eq g (.rat 0))
+          (IForm.cmp .ge gdot (.rat 0)))
+        if ← probeUnsat s cnt maxQ maxSmt deadline coord rB then pure (some .diStrict)
+        else if ← probeUnsat s cnt maxQ maxSmt deadline coord
+            (IForm.and dom (IForm.cmp .gt gdot (.rat 0))) then
+          pure (some .diNonstrict)
+        else if withC then
+          let rC := IForm.and dom (IForm.and (IForm.cmp .ge g (.rat 0))
+            (IForm.cmp .gt gdot (.rat 0)))
+          if ← probeUnsat s cnt maxQ maxSmt deadline coord rC then pure (some .diSuperlevel)
           else pure none
-      | _, _ => pure none
+        else pure none
+    | _, _ => pure none
+  -- O2 of an L1 / L2 (closed threshold) atom: unconditioned, legacy routes only
+  let o2 (a : PForm) : IO (Option CutRouteX) := do
+    if contractShapeOKX m a then pure (some .shape)
+    else if (atomVars a).all (frozenIn m) then pure (some .frozen)
+    else diRoutes a evolveI false
+  -- the O1 Z3 fallback: one counted query `UNSAT(guard ∧ ¬atom)`
+  let entryZ3 (a : PForm) : IO Bool := do
+    match guardI?, cutAtomG vars n side a with
+    | some gI, some g =>
+        probeUnsat s cnt maxQ maxSmt deadline coord (IForm.and gI (IForm.cmp .gt g (.rat 0)))
+    | _, _ => pure false
   let mut out : List CutAtomX :=
-    legacy.map (fun ar => { atom := ar.1, kind := .guardConj, entry := .membership, route := ar.2 })
+    legacy.map (fun ar => { atom := ar.1, kind := .guardConj, entry := .membership,
+                            route := CutRouteX.ofLegacy ar.2, given := [] })
   let mut seen : List PForm := legacy.map (·.1)
   -- L2: closures of the strict guard conjuncts (O1 by weakening)
   for sa in strictAtoms m.guard do
@@ -190,7 +221,7 @@ def checkedCutX (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
         match ← o2 a with
         | some r =>
             seen := seen ++ [a]
-            out := out ++ [{ atom := a, kind := .closure, entry := .weakening, route := r }]
+            out := out ++ [{ atom := a, kind := .closure, entry := .weakening, route := r, given := [] }]
             if dbg then IO.eprintln s!"    [route] {m.name}: closure {ppForm a}: {r.tag}"
         | none => pure ()
   -- L1: implied-contraction atoms (O1 rational, else one Z3 query)
@@ -198,22 +229,72 @@ def checkedCutX (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     if seen.any (atomEqQ a) then pure () else
     let entry? : Option CutEntry ←
       if guardImpliesRational m.guard a then pure (some CutEntry.rational)
-      else
-        match guardI?, cutAtomG vars n side a with
-        | some gI, some g =>
-            if ← probeUnsat s cnt maxQ maxSmt deadline coord
-                (IForm.and gI (IForm.cmp .gt g (.rat 0))) then pure (some CutEntry.z3)
-            else pure none
-        | _, _ => pure none
+      else if ← entryZ3 a then pure (some CutEntry.z3)
+      else pure none
     match entry? with
     | none => pure ()
     | some e =>
         match ← o2 a with
         | some r =>
             seen := seen ++ [a]
-            out := out ++ [{ atom := a, kind := .impliedContract, entry := e, route := r }]
+            out := out ++ [{ atom := a, kind := .impliedContract, entry := e, route := r, given := [] }]
             if dbg then IO.eprintln s!"    [route] {m.name}: implied {ppForm a}: O1 {e.tag}, O2 {r.tag}"
         | none => pure ()
+  -- L3 round 1: linear-form atoms of the recognized second-order pairs (O1 rational
+  -- from the guard box, by construction; O2 linear-shape, else DI B / A / C)
+  let mut kept1 : List LinCand := []
+  if linear then
+    if dbg then
+      -- diagnostics: recognized pairs whose guard offers no candidate (no box on the
+      -- pair's coordinates, or irrational eigenvalues)
+      for p in secondOrderPairs m do
+        let roots := pairRoots p.a p.b
+        if roots.isEmpty then
+          IO.eprintln s!"    [lin-skip] {m.name}: pair ({p.x}, {p.y}) has no positive rational root (b² − 4a not a rational square)"
+        else if (linearCandidates m).all (fun c => c.pair != p) then
+          IO.eprintln s!"    [lin-skip] {m.name}: pair ({p.x}, {p.y}) with {roots.length} root(s) but the guard bounds neither side of ({p.x}, {p.y}) — no O1 constant"
+    for cand in linearCandidates m do
+      if seen.any (· == cand.atom) then pure () else
+      let r? : Option CutRouteX ←
+        if linearShapeOKX m cand.atom then pure (some .linearShape)
+        else diRoutes cand.atom evolveI true
+      match r? with
+      | some r =>
+          seen := seen ++ [cand.atom]
+          kept1 := kept1 ++ [cand]
+          out := out ++ [{ atom := cand.atom, kind := .linearForm, entry := .rational,
+                           route := r, given := [] }]
+          if dbg then IO.eprintln s!"    [route] {m.name}: linear-form {ppForm cand.atom}: O1 rational, O2 {r.tag}"
+      | none => pure ()
+    -- L3 round 2: the derived bound of each kept linear-form atom, STRATIFIED on it
+    for cand in kept1 do
+      match derivedOf cand with
+      | none => pure ()
+      | some a =>
+          -- not offered twice, and not when the evolve box already implies it (a bound
+          -- wider than the domain narrows nothing)
+          if seen.any (atomEqQ a) || guardImpliesRational m.evolve a then pure () else
+          let entry? : Option CutEntry ←
+            if guardImpliesRational m.guard a then pure (some CutEntry.rational)
+            else if ← entryZ3 a then pure (some CutEntry.z3)
+            else pure none
+          match entry? with
+          | none => pure ()
+          | some e =>
+              let r? : Option CutRouteX ←
+                if derivedShapeOKX m cand.atom a then pure (some .derivedShape)
+                else
+                  let dom := match lowerF vars n side cand.atom with
+                    | some gI => IForm.and evolveI gI
+                    | none => evolveI
+                  diRoutes a dom true
+              match r? with
+              | some r =>
+                  seen := seen ++ [a]
+                  out := out ++ [{ atom := a, kind := .derivedBound, entry := e, route := r,
+                                   given := [cand.atom] }]
+                  if dbg then IO.eprintln s!"    [route] {m.name}: derived-bound {ppForm a} given {ppForm cand.atom}: O1 {e.tag}, O2 {r.tag}"
+              | none => pure ()
   let cut := out.foldl (fun d x =>
     match lowerF vars n side x.atom with
     | some fI => IForm.and d fI
@@ -655,7 +736,9 @@ def certifyWithData (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : N
         let sd := match side with | Side.L => "L" | Side.R => "R" | _ => "?"
         for x in xs do
           if x.kind != CutKind.guardConj then
-            IO.eprintln s!"  [cut-x] {sd}.{mM.name}: {ppForm x.atom} kind={x.kind.tag} entry={x.entry.tag} route={x.route.tag}"
+            let gv := if x.given.isEmpty then "" else
+              " given=[" ++ String.intercalate "; " (x.given.map ppForm) ++ "]"
+            IO.eprintln s!"  [cut-x] {sd}.{mM.name}: {ppForm x.atom} kind={x.kind.tag} entry={x.entry.tag} route={x.route.tag}{gv}"
       pure (c, xs.length)
     else do
       let (c, kept) ← checkedCut s cnt maxQ maxSmt deadline vars n coord side mM

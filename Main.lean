@@ -207,12 +207,20 @@ SWITCHES (environment)
                        guard conjunct (O1 by weakening) and, for a contraction field
                        x' = k (c - x), the atoms x <= c / x >= c (O1 by rational
                        comparison with a threshold guard conjunct, else one Z3 query
-                       UNSAT(guard and not atom)); --emit-cuts then also prints the
-                       extended certificate `<defname>X` (atom, kind, O1, O2 route).
-                       The suite_uniform pins read the default (legacy) certificate.
+                       UNSAT(guard and not atom)), and the linear-form chain of a
+                       recognized second-order pair x' = y, y' = -a (x - c) - b y with
+                       rational eigenvalues: y + r (x - c) <= sup / >= inf over the guard
+                       box (O1 rational, O2 by the rational linear shape), then the
+                       derived bound x <= c + K/r stratified on it; --emit-cuts then
+                       also prints the extended certificate `<defname>X` (atom, kind,
+                       O1, O2 route, conditioning atoms). The suite_uniform pins read
+                       the default (legacy) certificate.
   RELCERT_NO_IMPLIED_CUT=1
                        force the widened candidates off (the counter-run of the suite_v2
                        matrix, legacy guard-conjunct cuts only)
+  RELCERT_NO_LINEAR_CUT=1
+                       keep the closures and implied-contraction atoms but switch the
+                       linear-form chain off (the matrix's M6L counter-run)
   RELCERT_DEBUG=1      per-mode diagnostics on stderr (cuts, admissible starts, pruned
                        edges, per-λ segment status; [cut-x] lines for the widened atoms)
 
@@ -257,19 +265,31 @@ def emitCuts (path defname : String) : IO Unit := do
               (match x.kind with
                 | .guardConj => "guardConj"
                 | .impliedContract => "impliedContract"
-                | .closure => "closure") ++ ", CutEntry." ++
+                | .closure => "closure"
+                | .linearForm => "linearForm"
+                | .derivedBound => "derivedBound") ++ ", CutEntry." ++
               (match x.entry with
                 | .membership => "membership"
                 | .rational => "rational"
                 | .z3 => "z3"
-                | .weakening => "weakening") ++ ", CutRoute." ++
+                | .weakening => "weakening") ++ ", CutRouteX." ++
               (match x.route with
                 | .shape => "shape"
                 | .frozen => "frozen"
                 | .diStrict => "diStrict"
-                | .diNonstrict => "diNonstrict") ++ "⟩")) ++ "]"
+                | .diNonstrict => "diNonstrict"
+                | .linearShape => "linearShape"
+                | .derivedShape => "derivedShape"
+                | .diSuperlevel => "diSuperlevel") ++ ", [" ++
+              String.intercalate ", " (x.given.map RelCertifier.Parse.emitForm) ++ "]⟩")) ++ "]"
         let legacyOf (xs : List CutAtomX) : List (RelCertifier.Parse.PForm × CutRoute) :=
-          (xs.filter (fun x => x.kind == CutKind.guardConj)).map (fun x => (x.atom, x.route))
+          (xs.filter (fun x => x.kind == CutKind.guardConj)).filterMap (fun x =>
+            match x.route with
+            | .shape => some (x.atom, CutRoute.shape)
+            | .frozen => some (x.atom, CutRoute.frozen)
+            | .diStrict => some (x.atom, CutRoute.diStrict)
+            | .diNonstrict => some (x.atom, CutRoute.diNonstrict)
+            | _ => none)
         let mut ls : List String := []
         let mut lxs : List String := []
         for mM in p.L.modes do

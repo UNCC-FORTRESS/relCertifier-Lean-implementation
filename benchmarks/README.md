@@ -11,10 +11,10 @@ non-connection certificate: `RELCERT_NO_PRUNE=1` makes it DECLINE (`docs/PRUNING
 
 ## The redesigned suite — `suite_v2/` (2026-10-08, branch `suite-redesign`)
 
-`suite_v2/` is the redesigned 44-benchmark suite (pass 6): the 19 kept benchmarks (terrain/
+`suite_v2/` is the redesigned 45-benchmark suite (pass 7): the 19 kept benchmarks (terrain/
 position ladder, story ladders, watertank) and `match_multi_rate`, `rover3tier_rung12`
 copied unchanged (except the user-approved repair of `story3_rollover_ladder_rung_b`'s
-attitude domains and zone-switch entry condition), plus 23 benchmarks in eight families
+attitude domains and zone-switch entry condition), plus 24 benchmarks in eight families
 (ACC under sensor spoofing / retune with fault-latched limp modes, quadrotor climb with a
 lighter airframe, battery charger, platoon follower with a delayed link, a three-follower
 CACC platoon string (6 D), rover patrol zones, arm with a leading reference, and the

@@ -44,16 +44,14 @@
 # NOMINAL <-> ECONOMY / SURVIVAL; each declares SAFE.
 #
 # CLAIM, derived: E_R <= E_L (the weakened spacecraft never detumbles faster than the
-# design model) and E_L <= E_R + 0.205. On the boundary E_L = E_R + d the gap grows at
+# design model) and E_L <= E_R + 0.2. On the boundary E_L = E_R + d the gap grows at
 # 2 k_R E_R - 2 k_L (E_R + d), which is <= 0 iff E_R <= d k_L / (k_R - k_L); with
 # E_R <= E_L <= 1 (the engagement envelope, a checked cut) the tight tolerance is
-# d* = 1 - k_L / k_R = 0.2 against NOMINAL (the slower profiles need less).
-# Measured (default solver settings): 0.205 CERTIFIED; 0.2 = d* ERROR (the boundary is
-# TANGENT; the route queries exhaust the tool's deterministic Z3 resource limit,
-# RELCERT_Z3_RLIMIT = 8000000 by default, and come back `unknown`); 0.19 and 0.15
-# DECLINED. Remark: with RELCERT_Z3_RLIMIT=0 (no resource limit) the analytic d* = 0.2
-# CERTIFIES (12.2 s); the claim is stated at 0.205 so that the file certifies under the
-# suite's standard run settings.
+# d* = 1 - k_L / k_R = 0.2 against NOMINAL (the slower profiles need less): the claim
+# is stated at the analytic d*, where the boundary is TANGENT to the flow.
+# Measured (default settings): 0.2 CERTIFIED; 0.195 DECLINED (one step tighter on the
+# 0.005 grid). The heaviest tangent route query takes about 6.5 s and 29 M Z3 resource
+# units (default limit 64 M, per-query timeout 10 s).
 # Covers (measured): lambda in [1, 1] (synchronous, as sat_detumble_nominal; a weaker
 # deployed gains nothing from a stretch), budget 2; the cover from NOMINAL takes a joint
 # step whose retained successors ECONOMY and SURVIVAL both cover (M2, M3). The
@@ -62,7 +60,7 @@
 # DECLINES (M6).
 # Fallback (M4): NOMINAL/ECONOMY/SURVIVAL -> SAFE pruned (no entry state has E > 1; on
 # E = 1 the field gives E' = -2 k E < 0); RELCERT_NO_PRUNE=1 DECLINES.
-# Z3 (measured, Z3 4.15.1): 88 queries, 8.8 s in total, the largest 2.8 s.
+# Z3 (measured, Z3 4.15.1): 89 queries, 11.8 s in total, the largest 6.5 s.
 [problem]
 name = sat3w_detumble_weak
 max_depth = 8
@@ -101,4 +99,4 @@ guard = w1*w1*2 + w2*w2*4 + w3*w3*5 > 1.0
 evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h1 >= -2.0 and h1 <= 2.0 and h2 >= -2.0 and h2 <= 2.0 and h3 >= -2.0 and h3 <= 2.0
 next = [SAFE]
 [relational_invariant]
-DETUMBLE = w1[l]*w1[l]*2 + w2[l]*w2[l]*4 + w3[l]*w3[l]*5 <= w1[r]*w1[r]*2 + w2[r]*w2[r]*4 + w3[r]*w3[r]*5 + 0.205 and w1[r]*w1[r]*2 + w2[r]*w2[r]*4 + w3[r]*w3[r]*5 <= w1[l]*w1[l]*2 + w2[l]*w2[l]*4 + w3[l]*w3[l]*5
+DETUMBLE = w1[l]*w1[l]*2 + w2[l]*w2[l]*4 + w3[l]*w3[l]*5 <= w1[r]*w1[r]*2 + w2[r]*w2[r]*4 + w3[r]*w3[r]*5 + 0.2 and w1[r]*w1[r]*2 + w2[r]*w2[r]*4 + w3[r]*w3[r]*5 <= w1[l]*w1[l]*2 + w2[l]*w2[l]*4 + w3[l]*w3[l]*5

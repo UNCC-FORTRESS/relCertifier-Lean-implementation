@@ -26,8 +26,12 @@
 # Nominal: k = 0.5 /s on both sides. CLAIM: E_L <= E_R and E_R <= E_L -- the full
 # rigid body's energy EQUALS the design model's at every instant (tolerance 0 in both
 # directions; the exact equality is what the cubic cancellation gives). The claim is
-# synchronous: lambda in [1, 1] (the design model must match in real time; with a
-# stretch grid the SAFE counter-run's non-unit-lambda queries are inconclusive in Z3).
+# synchronous: lambda in [1, 1] (the design model must match in real time). Measured
+# with the stretch grid lambda in [1, 6]: CERTIFIED at lambda = 1 (no M1), but the
+# RELCERT_NO_PRUNE=1 counter-run tries every grid point with SAFE owed (203 queries, 168
+# of them sat, 44 s of Z3 time) and ends in the tool's 40 s time budget (ERROR); with
+# RELCERT_TIME_BUDGET_MS=900000 it DECLINES in 89.7 s. The 6-D lift
+# (sat3w_detumble_nominal) keeps the grid.
 # Covers (measured): lambda = 1, budget 2 right cycles per left window (M2).
 #
 # Fallback (M4, energy threshold): DETUMBLE -> SAFE is pruned by the non-connection

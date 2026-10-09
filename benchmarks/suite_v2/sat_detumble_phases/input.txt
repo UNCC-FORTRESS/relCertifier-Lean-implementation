@@ -34,7 +34,13 @@
 #   FINE:     E_L <= E_R + 0.085 and E_R <= E_L.
 # FINE, derived: on the boundary the gap grows iff E_R > d k_F / (k_R - k_F); with
 # E_R <= E_L <= 0.2 (the FINE envelope, a checked cut) d* = 0.2 (1 - k_F / k_R) = 0.08
-# (tangent: Z3 inconclusive, ERROR); 0.085 certifies; 0.07 is DECLINED. The handoff
+# (tangent). Measured (default settings): 0.085 CERTIFIED; 0.08 = d* ERROR -- the two
+# tangent route queries are unsat in plain z3 but take about 15.4 s each (59.7 M and
+# 61.6 M resource units), above the per-query timeout of 10 s (RELCERT_Z3_TIMEOUT), and
+# come back `unknown` (the run ends in the 40 s time budget); 0.075 and 0.07
+# DECLINED. With RELCERT_Z3_TIMEOUT=60000 and RELCERT_TIME_BUDGET_MS=600000, 0.08
+# CERTIFIES in 36.7 s; the 6-D lift
+# (sat3w_detumble_phases) certifies at its d* under the default settings. The handoff
 # DETUMBLE -> FINE loosens the row (--handoff 3/3 unsat). The tolerance is a refinement
 # of the weakened-actuator rung's global 0.205: resolved by phase, it is exact while
 # detumbling and 0.085 in fine pointing.

@@ -33,8 +33,13 @@
 # 2 k_R E_R - 2 k_L (E_R + d), which is <= 0 iff E_R <= d k_L / (k_R - k_L); with
 # E_R <= E_L <= 1 (the engagement envelope, a checked cut) the tight tolerance is
 # d* = 1 - k_L / k_R = 0.2 against NOMINAL (the slower profiles need less). At d* the
-# boundary is TANGENT and Z3 returns an inconclusive verdict (ERROR); 0.205 is the
-# smallest certifying slack on the 0.005 grid; 0.15 is DECLINED.
+# boundary is TANGENT. Measured (default settings): 0.205 CERTIFIED; 0.2 = d* ERROR --
+# the two tangent route queries are unsat in plain z3 but take about 17 s each (63.5 M
+# and 71.2 M resource units), above the per-query timeout of 10 s (RELCERT_Z3_TIMEOUT),
+# so they come back `unknown` and the run ends in the 40 s time budget; 0.195 and 0.15
+# DECLINED. With RELCERT_Z3_TIMEOUT=60000, RELCERT_TIME_BUDGET_MS=600000 and a resource
+# limit of 128 M (or none) 0.2 CERTIFIES in 44.7 s; the 6-D lift (sat3w_detumble_weak)
+# certifies at its d* under the default settings.
 # Covers (measured): lambda in [1, 1] (synchronous, as the nominal rung; a weaker
 # deployed gains nothing from a stretch), budget 2; the cover from NOMINAL takes a joint
 # step whose retained successors ECONOMY and SURVIVAL both cover (M2, M3). The

@@ -40,33 +40,26 @@
 #
 # Refined rung: the deployed's mode logic is modeled. DETUMBLE (k = 0.5 /s, engaged at
 # E <= 1) hands over to FINE pointing once the body energy is inside the pointing loop's
-# capture envelope, E <= 0.3 (a controller-design constant; e.g. |w3| <= 0.24 rad/s about
-# z alone): FINE keeps damping the rates through the wheels with a lower, power-saving
-# gain k = 0.35 /s. FINE is terminal (DETUMBLE -> FINE only). The design model (right)
-# is the k = 0.5 decoupled model with SAFE.
+# capture envelope, E <= 0.2 (a controller-design constant, as in the 4-D rung; e.g.
+# |w3| <= 0.2 rad/s about z alone): FINE keeps damping the rates through the wheels with
+# a lower, power-saving gain k = 0.3 /s (60 % of the detumble gain). FINE is terminal
+# (DETUMBLE -> FINE only). The design model (right) is the k = 0.5 decoupled model with
+# SAFE. The constants are those of sat_detumble_phases.
 #
 # Rows (MODE-DEPENDENT, M5), each the tightest for its phase:
 #   DETUMBLE: E_L <= E_R and E_R <= E_L (exact, as sat_detumble_nominal);
-#   FINE:     E_L <= E_R + 0.095 and E_R <= E_L.
+#   FINE:     E_L <= E_R + 0.08 and E_R <= E_L.
 # FINE, derived: on the boundary E_L = E_R + d the gap grows iff E_R > d k_F / (k_R - k_F);
-# with E_R <= E_L <= 0.3 (the FINE envelope, a checked cut) d* = 0.3 (1 - k_F / k_R) =
-# 0.09. Measured (default solver settings): 0.095 CERTIFIED; 0.09 = d* ERROR (tangent;
-# the route queries exhaust the tool's deterministic Z3 resource limit,
-# RELCERT_Z3_RLIMIT = 8000000 by default, and come back `unknown`); 0.085 and 0.08
-# DECLINED. Remark: with RELCERT_Z3_RLIMIT=0 the analytic d* = 0.09 CERTIFIES (12.5 s).
+# with E_R <= E_L <= 0.2 (the FINE envelope, a checked cut) d* = 0.2 (1 - k_F / k_R) =
+# 0.08: the FINE row is stated at the analytic d*, where its boundary is TANGENT to the
+# flow. Measured (default settings): 0.08 CERTIFIED; 0.075 DECLINED (one step tighter on
+# the 0.005 grid). The heaviest tangent route query takes about 8 s and 33 M Z3 resource
+# units (default limit 64 M, per-query timeout 10 s).
 # The handoff DETUMBLE -> FINE loosens the row (--handoff 3/3 unsat).
-# Remark on the capture envelope: the 4-D rung uses E <= 0.2 and k_F = 0.3. In 6 D that
-# pairing's FINE windows exhaust the default resource limit at every tolerance tried
-# below the envelope itself (0.085 .. 0.18: ERROR; 0.19: CERTIFIED), while with
-# RELCERT_Z3_RLIMIT = 16000000 it certifies at 0.085 (9.2 s) and with no limit at the
-# analytic 0.08 (12.6 s). A scan (envelope 0.2, 0.25, 0.3, 0.5 x gain 0.25, 0.35, 0.4,
-# 0.45, each at d* + 0.005) certifies under the default limit at four points (0.25/0.4,
-# 0.3/0.35, 0.3/0.4, 0.5/0.45); 0.3/0.35 is the one with the largest gain drop (FINE at
-# 70 % of the detumble gain). The choice is a solver-budget accommodation, stated as such.
 # Covers (measured): lambda in [1, 1], budget 2 in both phases (M2). The FINE envelope
-# E <= 0.3 is a quadratic checked cut the FINE windows need: RELCERT_NO_CUT=1 DECLINES
+# E <= 0.2 is a quadratic checked cut the FINE windows need: RELCERT_NO_CUT=1 DECLINES
 # (M6). Fallback (M4): DETUMBLE -> SAFE pruned; RELCERT_NO_PRUNE=1 DECLINES.
-# Z3 (measured, Z3 4.15.1): 71 queries, 11.6 s in total, the largest 3.3 s.
+# Z3 (measured, Z3 4.15.1): 69 queries, 12.1 s in total, the largest 8.1 s.
 [problem]
 name = sat3w_detumble_phases
 max_depth = 8
@@ -82,8 +75,8 @@ guard = w1*w1*2 + w2*w2*4 + w3*w3*5 <= 1.0
 evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h1 >= -2.0 and h1 <= 2.0 and h2 >= -2.0 and h2 <= 2.0 and h3 >= -2.0 and h3 <= 2.0
 next = [FINE, DETUMBLE]
 [Lsys.mode.FINE]
-ode = w1' = smt2:(- (+ (* -0.5 (* w2 w3)) (* 0.5 (* w3 h2)) (* -0.5 (* w2 h3))) (* 0.35 w1)); w2' = smt2:(- (+ (* 0.75 (* w3 w1)) (* 0.25 (* w1 h3)) (* -0.25 (* w3 h1))) (* 0.35 w2)); w3' = smt2:(- (+ (* -0.4 (* w1 w2)) (* 0.2 (* w2 h1)) (* -0.2 (* w1 h2))) (* 0.35 w3)); h1' = smt2:(* 0.7 w1); h2' = smt2:(* 1.4 w2); h3' = smt2:(* 1.75 w3);
-guard = w1*w1*2 + w2*w2*4 + w3*w3*5 <= 0.3
+ode = w1' = smt2:(- (+ (* -0.5 (* w2 w3)) (* 0.5 (* w3 h2)) (* -0.5 (* w2 h3))) (* 0.3 w1)); w2' = smt2:(- (+ (* 0.75 (* w3 w1)) (* 0.25 (* w1 h3)) (* -0.25 (* w3 h1))) (* 0.3 w2)); w3' = smt2:(- (+ (* -0.4 (* w1 w2)) (* 0.2 (* w2 h1)) (* -0.2 (* w1 h2))) (* 0.3 w3)); h1' = smt2:(* 0.6 w1); h2' = smt2:(* 1.2 w2); h3' = smt2:(* 1.5 w3);
+guard = w1*w1*2 + w2*w2*4 + w3*w3*5 <= 0.2
 evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h1 >= -2.0 and h1 <= 2.0 and h2 >= -2.0 and h2 <= 2.0 and h3 >= -2.0 and h3 <= 2.0
 next = [FINE]
 [Rsys]
@@ -101,4 +94,4 @@ evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 an
 next = [SAFE]
 [relational_invariant]
 DETUMBLE = w1[l]*w1[l]*2 + w2[l]*w2[l]*4 + w3[l]*w3[l]*5 <= w1[r]*w1[r]*2 + w2[r]*w2[r]*4 + w3[r]*w3[r]*5 and w1[r]*w1[r]*2 + w2[r]*w2[r]*4 + w3[r]*w3[r]*5 <= w1[l]*w1[l]*2 + w2[l]*w2[l]*4 + w3[l]*w3[l]*5
-FINE = w1[l]*w1[l]*2 + w2[l]*w2[l]*4 + w3[l]*w3[l]*5 <= w1[r]*w1[r]*2 + w2[r]*w2[r]*4 + w3[r]*w3[r]*5 + 0.095 and w1[r]*w1[r]*2 + w2[r]*w2[r]*4 + w3[r]*w3[r]*5 <= w1[l]*w1[l]*2 + w2[l]*w2[l]*4 + w3[l]*w3[l]*5
+FINE = w1[l]*w1[l]*2 + w2[l]*w2[l]*4 + w3[l]*w3[l]*5 <= w1[r]*w1[r]*2 + w2[r]*w2[r]*4 + w3[r]*w3[r]*5 + 0.08 and w1[r]*w1[r]*2 + w2[r]*w2[r]*4 + w3[r]*w3[r]*5 <= w1[l]*w1[l]*2 + w2[l]*w2[l]*4 + w3[l]*w3[l]*5

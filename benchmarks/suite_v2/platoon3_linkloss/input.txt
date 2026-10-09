@@ -1,0 +1,108 @@
+# platoon3_linkloss: three-follower CACC string with a latched radar-only mode after a V2V link loss on the lead link, against the design model.
+# scenario: sensor-attack
+# mechanisms: M2 M4 M5 M6 M6+ M6L
+#
+# Dimension lift (pass 6) of platoon_delay_linkloss: a lead vehicle cruising at constant
+# speed and THREE automated followers; per link i = 1, 2, 3 (link i = follower i behind
+# its predecessor) the gap g_i (m) and the closing-rate state r_i = v_{i-1} - v_i (m/s),
+# so g_i' = r_i: state (g1, r1, g2, r2, g3, r3) per side (6 D, linear).
+#
+# THE LOOP (both sides). Follower i commands a_i = a_{i-1} + kp (g_i - c) + kd r_i (CACC:
+# the predecessor's acceleration a_{i-1} arrives over V2V as feed-forward; a_0 = 0, the
+# leader cruises). Then r_i' = a_{i-1} - a_i = -kp (g_i - c) - kd r_i: every link is the
+# same second-order loop, the feed-forward cancelling the coupling. kp = 0.125 /s^2,
+# kd = 0.75 /s: s^2 + 0.75 s + 0.125 = (s + 0.25)(s + 0.5), OVER-DAMPED with rational
+# roots, so the linear forms p_j = r + rho_j (g - c) (rho_1 = 0.25, rho_2 = 0.5) obey
+# p_1' = -0.5 p_1, p_2' = -0.25 p_2 (the L7 decoupling forms).
+# Reference (right, the design model): set point c = 30 m (1.2 s at 25 m/s) on every link.
+# Deployed (left): acts on a gap fused with a 40 ms-old V2V position, overstated by 1 m
+# at 25 m/s, so its loops settle at 29 m true. When the V2V link to the LEADER is LOST
+# (jamming or dropout), follower 1 LATCHES a radar-only gap keeper with the larger
+# stand-off 35 m (radar-measured, no overstatement; same gains): LOST: r1' = -kp (g1 - 35)
+# - kd r1; links 2 and 3 keep their V2V and the CACC law. No way back (the link is
+# re-established at the next platoon join, not modeled).
+#
+# PHYSICAL DOMAIN (both sides): 0 <= g_i <= 60 m (the radar's range), |r_i| <= 10 m/s
+# (the closing-rate range); no certificate stands on them (widening test: CERTIFIED with
+# every bound widened at once, no load-bearing group).
+# Guards (entry conditions, controller design): CACC engages when every MEASURED gap is
+# within 4 m of 30 m and every closing rate within 1 m/s: right 26 <= g_i <= 34, left (1 m
+# overstatement) 25 <= g_i <= 33, |r_i| <= 1. LOST has the left FOLLOW box as its entry
+# condition: with the leader cruising, the lost feed-forward is zero, so the supervisor
+# keeps the CACC law until the string is inside the engagement box and then latches the
+# radar-only stand-off. The design model declares, per follower k, an AEB fallback BRAKEk
+# below a 20 m gap (g_k < 20; 2/3 of the set gap, a controller-design floor): follower k
+# brakes at 4 m/s^2 (a_k = -4), the followers behind it keep the CACC law (their
+# feed-forward carries the braking); sinks.
+#
+# Rows (MODE-DEPENDENT, M5; Delta = L - R, e1 = Delta g1 + 1 the deviation from the
+# deployed's 1 m offset):
+#   FOLLOW: Delta r_i + rho_j (Delta g_i + 1) = 0 for every link i and j = 1, 2 (EXACT
+#     refinement up to the 1 m offset: Delta g_i = -1, Delta r_i = 0);
+#   LOST:   links 2, 3 as FOLLOW; link 1 (the lost link) LOOSENED:
+#     Delta r1 + rho_j (e1 - 6) in [-6 rho_j, 0] (j = 1, 2), then 0 <= e1 <= 6, i.e.
+#     g1_R - 1 <= g1_L <= g1_R + 5: the radar-only follower never closes in on the
+#     reference's gap beyond the 1 m offset and opens it by at most the 6 m stand-off step.
+# Derivation: on LOST link 1, e1'' = -kp (e1 - 6) - kd e1' (both loops have the same
+# gains; the set points differ by 6), so the forms Q_j = e1' + rho_j (e1 - 6) decay,
+# Q_j' = -rho_{3-j} Q_j; the FOLLOW row gives Q_j = -6 rho_j at the switch, so the box
+# [-6 rho_j, 0] is the tightest that contains the handoff state. The bounds on e1 are
+# stratified on the proven Q rows (Q_1 <= 0 gives e1' <= 0 at e1 = 6; Q_2 >= -3 gives
+# e1' >= 0 at e1 = 0). One step tighter (measured): e1 <= 5.9 or <= 5.75 DECLINED;
+# e1 >= 0.25 DECLINED (and the handoff FOLLOW -> LOST fails); the Q box [-5.9 rho_j, 0]
+# CERTIFIES but the handoff FOLLOW -> LOST fails (M5 lost); dropping the e1 rows
+# DECLINES (BRAKE1 becomes an admissible start: g1_R = g1_L - Delta g1 < 20). The
+# handoff FOLLOW -> LOST is a loosening on link 1 only (--handoff 3/3 unsat).
+# Covers (measured): lambda in [1, 1] (synchronous: both sides run the same gains; the
+# claim is stated at lambda = 1, the stretch grid is not searched), budget 2 in both left
+# modes (M2).
+# Fallback (M4): FOLLOW -> BRAKE1/2/3 pruned: the reference's L7 chain on its engagement
+# box keeps p_2 = r + 0.5 (g - 30) >= -3, hence g_i >= 24 > 20 (derived-bound cuts);
+# RELCERT_NO_PRUNE=1 DECLINES. The chain is what proves the non-connection, so
+# RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1 and RELCERT_NO_LINEAR_CUT=1 all DECLINE
+# (M6, M6+, M6L; enabling).
+[problem]
+name = platoon3_linkloss
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 4.0
+[Lsys]
+state_vars = [g1, r1, g2, r2, g3, r3]
+epsilon = 2.0
+[Lsys.mode.FOLLOW]
+ode = g1' = smt2:r1; r1' = smt2:(- (* -0.125 (- g1 29.0)) (* 0.75 r1)); g2' = smt2:r2; r2' = smt2:(- (* -0.125 (- g2 29.0)) (* 0.75 r2)); g3' = smt2:r3; r3' = smt2:(- (* -0.125 (- g3 29.0)) (* 0.75 r3));
+guard = g1 >= 25.0 and g1 <= 33.0 and r1 >= -1.0 and r1 <= 1.0 and g2 >= 25.0 and g2 <= 33.0 and r2 >= -1.0 and r2 <= 1.0 and g3 >= 25.0 and g3 <= 33.0 and r3 >= -1.0 and r3 <= 1.0
+evolve = g1 >= 0.0 and g1 <= 60.0 and r1 >= -10.0 and r1 <= 10.0 and g2 >= 0.0 and g2 <= 60.0 and r2 >= -10.0 and r2 <= 10.0 and g3 >= 0.0 and g3 <= 60.0 and r3 >= -10.0 and r3 <= 10.0
+next = [FOLLOW, LOST]
+[Lsys.mode.LOST]
+ode = g1' = smt2:r1; r1' = smt2:(- (* -0.125 (- g1 35.0)) (* 0.75 r1)); g2' = smt2:r2; r2' = smt2:(- (* -0.125 (- g2 29.0)) (* 0.75 r2)); g3' = smt2:r3; r3' = smt2:(- (* -0.125 (- g3 29.0)) (* 0.75 r3));
+guard = g1 >= 25.0 and g1 <= 33.0 and r1 >= -1.0 and r1 <= 1.0 and g2 >= 25.0 and g2 <= 33.0 and r2 >= -1.0 and r2 <= 1.0 and g3 >= 25.0 and g3 <= 33.0 and r3 >= -1.0 and r3 <= 1.0
+evolve = g1 >= 0.0 and g1 <= 60.0 and r1 >= -10.0 and r1 <= 10.0 and g2 >= 0.0 and g2 <= 60.0 and r2 >= -10.0 and r2 <= 10.0 and g3 >= 0.0 and g3 <= 60.0 and r3 >= -10.0 and r3 <= 10.0
+next = [LOST]
+[Rsys]
+state_vars = [g1, r1, g2, r2, g3, r3]
+epsilon = 1.0
+[Rsys.mode.FOLLOW]
+ode = g1' = smt2:r1; r1' = smt2:(- (* -0.125 (- g1 30.0)) (* 0.75 r1)); g2' = smt2:r2; r2' = smt2:(- (* -0.125 (- g2 30.0)) (* 0.75 r2)); g3' = smt2:r3; r3' = smt2:(- (* -0.125 (- g3 30.0)) (* 0.75 r3));
+guard = g1 >= 26.0 and g1 <= 34.0 and r1 >= -1.0 and r1 <= 1.0 and g2 >= 26.0 and g2 <= 34.0 and r2 >= -1.0 and r2 <= 1.0 and g3 >= 26.0 and g3 <= 34.0 and r3 >= -1.0 and r3 <= 1.0
+evolve = g1 >= 0.0 and g1 <= 60.0 and r1 >= -10.0 and r1 <= 10.0 and g2 >= 0.0 and g2 <= 60.0 and r2 >= -10.0 and r2 <= 10.0 and g3 >= 0.0 and g3 <= 60.0 and r3 >= -10.0 and r3 <= 10.0
+next = [FOLLOW, BRAKE1, BRAKE2, BRAKE3]
+[Rsys.mode.BRAKE1]
+ode = g1' = smt2:r1; r1' = smt2:4.0; g2' = smt2:r2; r2' = smt2:(- (* -0.125 (- g2 30.0)) (* 0.75 r2)); g3' = smt2:r3; r3' = smt2:(- (* -0.125 (- g3 30.0)) (* 0.75 r3));
+guard = g1 < 20.0
+evolve = g1 >= 0.0 and g1 <= 60.0 and r1 >= -10.0 and r1 <= 10.0 and g2 >= 0.0 and g2 <= 60.0 and r2 >= -10.0 and r2 <= 10.0 and g3 >= 0.0 and g3 <= 60.0 and r3 >= -10.0 and r3 <= 10.0
+next = [BRAKE1]
+[Rsys.mode.BRAKE2]
+ode = g1' = smt2:r1; r1' = smt2:(- (* -0.125 (- g1 30.0)) (* 0.75 r1)); g2' = smt2:r2; r2' = smt2:(+ (+ (* 0.125 (- g1 30.0)) (* 0.75 r1)) 4.0); g3' = smt2:r3; r3' = smt2:(- (* -0.125 (- g3 30.0)) (* 0.75 r3));
+guard = g2 < 20.0
+evolve = g1 >= 0.0 and g1 <= 60.0 and r1 >= -10.0 and r1 <= 10.0 and g2 >= 0.0 and g2 <= 60.0 and r2 >= -10.0 and r2 <= 10.0 and g3 >= 0.0 and g3 <= 60.0 and r3 >= -10.0 and r3 <= 10.0
+next = [BRAKE2]
+[Rsys.mode.BRAKE3]
+ode = g1' = smt2:r1; r1' = smt2:(- (* -0.125 (- g1 30.0)) (* 0.75 r1)); g2' = smt2:r2; r2' = smt2:(- (* -0.125 (- g2 30.0)) (* 0.75 r2)); g3' = smt2:r3; r3' = smt2:(+ (+ (* 0.125 (- g1 30.0)) (* 0.75 r1) (* 0.125 (- g2 30.0)) (* 0.75 r2)) 4.0);
+guard = g3 < 20.0
+evolve = g1 >= 0.0 and g1 <= 60.0 and r1 >= -10.0 and r1 <= 10.0 and g2 >= 0.0 and g2 <= 60.0 and r2 >= -10.0 and r2 <= 10.0 and g3 >= 0.0 and g3 <= 60.0 and r3 >= -10.0 and r3 <= 10.0
+next = [BRAKE3]
+[relational_invariant]
+FOLLOW = smt2:(and (<= (+ (- L_r1 R_r1) (* 0.25 (- (- L_g1 R_g1) (- 0.0 1.0)))) 0.0) (>= (+ (- L_r1 R_r1) (* 0.25 (- (- L_g1 R_g1) (- 0.0 1.0)))) 0.0) (<= (+ (- L_r1 R_r1) (* 0.5 (- (- L_g1 R_g1) (- 0.0 1.0)))) 0.0) (>= (+ (- L_r1 R_r1) (* 0.5 (- (- L_g1 R_g1) (- 0.0 1.0)))) 0.0) (<= (+ (- L_r2 R_r2) (* 0.25 (- (- L_g2 R_g2) (- 0.0 1.0)))) 0.0) (>= (+ (- L_r2 R_r2) (* 0.25 (- (- L_g2 R_g2) (- 0.0 1.0)))) 0.0) (<= (+ (- L_r2 R_r2) (* 0.5 (- (- L_g2 R_g2) (- 0.0 1.0)))) 0.0) (>= (+ (- L_r2 R_r2) (* 0.5 (- (- L_g2 R_g2) (- 0.0 1.0)))) 0.0) (<= (+ (- L_r3 R_r3) (* 0.25 (- (- L_g3 R_g3) (- 0.0 1.0)))) 0.0) (>= (+ (- L_r3 R_r3) (* 0.25 (- (- L_g3 R_g3) (- 0.0 1.0)))) 0.0) (<= (+ (- L_r3 R_r3) (* 0.5 (- (- L_g3 R_g3) (- 0.0 1.0)))) 0.0) (>= (+ (- L_r3 R_r3) (* 0.5 (- (- L_g3 R_g3) (- 0.0 1.0)))) 0.0))
+LOST = smt2:(and (<= (+ (- L_r1 R_r1) (* 0.25 (- (- L_g1 R_g1) 5.0))) 0.0) (>= (+ (- L_r1 R_r1) (* 0.25 (- (- L_g1 R_g1) 5.0))) (- 0.0 1.5)) (<= (+ (- L_r1 R_r1) (* 0.5 (- (- L_g1 R_g1) 5.0))) 0.0) (>= (+ (- L_r1 R_r1) (* 0.5 (- (- L_g1 R_g1) 5.0))) (- 0.0 3.0)) (<= (- (- L_g1 R_g1) (- 0.0 1.0)) 6.0) (>= (- (- L_g1 R_g1) (- 0.0 1.0)) 0.0) (<= (+ (- L_r2 R_r2) (* 0.25 (- (- L_g2 R_g2) (- 0.0 1.0)))) 0.0) (>= (+ (- L_r2 R_r2) (* 0.25 (- (- L_g2 R_g2) (- 0.0 1.0)))) 0.0) (<= (+ (- L_r2 R_r2) (* 0.5 (- (- L_g2 R_g2) (- 0.0 1.0)))) 0.0) (>= (+ (- L_r2 R_r2) (* 0.5 (- (- L_g2 R_g2) (- 0.0 1.0)))) 0.0) (<= (+ (- L_r3 R_r3) (* 0.25 (- (- L_g3 R_g3) (- 0.0 1.0)))) 0.0) (>= (+ (- L_r3 R_r3) (* 0.25 (- (- L_g3 R_g3) (- 0.0 1.0)))) 0.0) (<= (+ (- L_r3 R_r3) (* 0.5 (- (- L_g3 R_g3) (- 0.0 1.0)))) 0.0) (>= (+ (- L_r3 R_r3) (* 0.5 (- (- L_g3 R_g3) (- 0.0 1.0)))) 0.0))

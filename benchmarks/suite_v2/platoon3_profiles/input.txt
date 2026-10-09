@@ -1,0 +1,92 @@
+# platoon3_profiles: three-follower CACC string on a delayed link, against a design model with driver-selectable gap profiles.
+# scenario: sensor-attack
+# mechanisms: M2 M3 M4 M6 M6+ M6L
+#
+# Dimension lift (pass 6) of platoon_delay_profiles: a lead vehicle cruising at constant
+# speed and THREE automated followers; per link i = 1, 2, 3 the gap g_i (m) and the
+# closing-rate state r_i = v_{i-1} - v_i (m/s), g_i' = r_i: state (g1, r1, g2, r2, g3, r3)
+# per side (6 D, linear).
+#
+# THE LOOP (both sides). Follower i commands a_i = a_{i-1} + kp (g_i - c) + kd r_i (CACC
+# with V2V feed-forward; a_0 = 0, the leader cruises), so r_i' = -kp (g_i - c) - kd r_i;
+# kp = 0.125 /s^2, kd = 0.75 /s, s^2 + 0.75 s + 0.125 = (s + 0.25)(s + 0.5): over-damped,
+# rational roots rho_1 = 0.25, rho_2 = 0.5.
+# Reference (right, the design model): the driver selects the gap profile CLOSE 28 m,
+# NORMAL 30 m or FAR 32 m (the time-gap button; NORMAL <-> CLOSE / FAR), applied to all
+# three links. Deployed (left): the nominal setting, acting on a gap fused with a 40 ms-old
+# V2V position, overstated by 1 m at 25 m/s: its loops settle at 29 m true.
+#
+# PHYSICAL DOMAIN (both sides): 0 <= g_i <= 60 m (the radar's range), |r_i| <= 10 m/s
+# (the closing-rate range); no certificate stands on them (widening test).
+# Guards (entry conditions, controller design): a profile engages when every MEASURED gap
+# is within 4 m of its set point and every closing rate within 1 m/s (CLOSE 24..32,
+# NORMAL 26..34, FAR 28..36; the deployed 25..33 true); per follower k the design model
+# declares an AEB fallback BRAKEk below a 20 m gap (g_k < 20, a controller-design floor):
+# follower k brakes at 4 m/s^2, the followers behind it keep the CACC law; sinks.
+#
+# CLAIM, derived (Delta = L - R, e_i = Delta g_i + 1 the deviation from the deployed's
+# 1 m offset against NORMAL): for every link
+#   Delta r_i + rho_j e_i in [-2 rho_j, 2 rho_j] (j = 1, 2), then |e_i| <= 2,
+# i.e. g_i^R - 3 <= g_i^L <= g_i^R + 1 whichever profile the driver selects. Against a
+# profile with set point c_k the forms Q_j = Delta r_i + rho_j e_i obey
+# Q_j' = -rho_{3-j} (Q_j - rho_j (30 - c_k)): they contract toward 0 (NORMAL) or
+# +-2 rho_j (CLOSE / FAR), so [-2 rho_j, 2 rho_j] is the tightest box invariant under all
+# three; |e_i| <= 2 is stratified on the proven Q_1 rows. One step tighter (measured):
+# the Q box at 1.9 rho_j DECLINED; |e_i| <= 1.9 DECLINED.
+# Covers (measured): lambda in [1, 1] (synchronous: the same gains on both sides), budget
+# 2; the cover from NORMAL takes a joint step whose retained successors CLOSE and FAR both
+# cover (M2, M3).
+# Fallback (M4): every profile -> BRAKE1/2/3 pruned (nine edges): the L7 chain on each
+# profile's engagement box keeps r + 0.5 (g - c_k) >= -3, so g_i >= c_k - 6 >= 22 > 20;
+# RELCERT_NO_PRUNE=1 DECLINES. The chain is what proves the non-connection, so
+# RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1 and RELCERT_NO_LINEAR_CUT=1 all DECLINE
+# (M6, M6+, M6L; enabling).
+[problem]
+name = platoon3_profiles
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 4.0
+[Lsys]
+state_vars = [g1, r1, g2, r2, g3, r3]
+epsilon = 2.0
+[Lsys.mode.FOLLOW]
+ode = g1' = smt2:r1; r1' = smt2:(- (* -0.125 (- g1 29.0)) (* 0.75 r1)); g2' = smt2:r2; r2' = smt2:(- (* -0.125 (- g2 29.0)) (* 0.75 r2)); g3' = smt2:r3; r3' = smt2:(- (* -0.125 (- g3 29.0)) (* 0.75 r3));
+guard = g1 >= 25.0 and g1 <= 33.0 and r1 >= -1.0 and r1 <= 1.0 and g2 >= 25.0 and g2 <= 33.0 and r2 >= -1.0 and r2 <= 1.0 and g3 >= 25.0 and g3 <= 33.0 and r3 >= -1.0 and r3 <= 1.0
+evolve = g1 >= 0.0 and g1 <= 60.0 and r1 >= -10.0 and r1 <= 10.0 and g2 >= 0.0 and g2 <= 60.0 and r2 >= -10.0 and r2 <= 10.0 and g3 >= 0.0 and g3 <= 60.0 and r3 >= -10.0 and r3 <= 10.0
+next = [FOLLOW]
+[Rsys]
+state_vars = [g1, r1, g2, r2, g3, r3]
+epsilon = 1.0
+[Rsys.mode.NORMAL]
+ode = g1' = smt2:r1; r1' = smt2:(- (* -0.125 (- g1 30.0)) (* 0.75 r1)); g2' = smt2:r2; r2' = smt2:(- (* -0.125 (- g2 30.0)) (* 0.75 r2)); g3' = smt2:r3; r3' = smt2:(- (* -0.125 (- g3 30.0)) (* 0.75 r3));
+guard = g1 >= 26.0 and g1 <= 34.0 and r1 >= -1.0 and r1 <= 1.0 and g2 >= 26.0 and g2 <= 34.0 and r2 >= -1.0 and r2 <= 1.0 and g3 >= 26.0 and g3 <= 34.0 and r3 >= -1.0 and r3 <= 1.0
+evolve = g1 >= 0.0 and g1 <= 60.0 and r1 >= -10.0 and r1 <= 10.0 and g2 >= 0.0 and g2 <= 60.0 and r2 >= -10.0 and r2 <= 10.0 and g3 >= 0.0 and g3 <= 60.0 and r3 >= -10.0 and r3 <= 10.0
+next = [NORMAL, CLOSE, FAR, BRAKE1, BRAKE2, BRAKE3]
+[Rsys.mode.CLOSE]
+ode = g1' = smt2:r1; r1' = smt2:(- (* -0.125 (- g1 28.0)) (* 0.75 r1)); g2' = smt2:r2; r2' = smt2:(- (* -0.125 (- g2 28.0)) (* 0.75 r2)); g3' = smt2:r3; r3' = smt2:(- (* -0.125 (- g3 28.0)) (* 0.75 r3));
+guard = g1 >= 24.0 and g1 <= 32.0 and r1 >= -1.0 and r1 <= 1.0 and g2 >= 24.0 and g2 <= 32.0 and r2 >= -1.0 and r2 <= 1.0 and g3 >= 24.0 and g3 <= 32.0 and r3 >= -1.0 and r3 <= 1.0
+evolve = g1 >= 0.0 and g1 <= 60.0 and r1 >= -10.0 and r1 <= 10.0 and g2 >= 0.0 and g2 <= 60.0 and r2 >= -10.0 and r2 <= 10.0 and g3 >= 0.0 and g3 <= 60.0 and r3 >= -10.0 and r3 <= 10.0
+next = [CLOSE, NORMAL, BRAKE1, BRAKE2, BRAKE3]
+[Rsys.mode.FAR]
+ode = g1' = smt2:r1; r1' = smt2:(- (* -0.125 (- g1 32.0)) (* 0.75 r1)); g2' = smt2:r2; r2' = smt2:(- (* -0.125 (- g2 32.0)) (* 0.75 r2)); g3' = smt2:r3; r3' = smt2:(- (* -0.125 (- g3 32.0)) (* 0.75 r3));
+guard = g1 >= 28.0 and g1 <= 36.0 and r1 >= -1.0 and r1 <= 1.0 and g2 >= 28.0 and g2 <= 36.0 and r2 >= -1.0 and r2 <= 1.0 and g3 >= 28.0 and g3 <= 36.0 and r3 >= -1.0 and r3 <= 1.0
+evolve = g1 >= 0.0 and g1 <= 60.0 and r1 >= -10.0 and r1 <= 10.0 and g2 >= 0.0 and g2 <= 60.0 and r2 >= -10.0 and r2 <= 10.0 and g3 >= 0.0 and g3 <= 60.0 and r3 >= -10.0 and r3 <= 10.0
+next = [FAR, NORMAL, BRAKE1, BRAKE2, BRAKE3]
+[Rsys.mode.BRAKE1]
+ode = g1' = smt2:r1; r1' = smt2:4.0; g2' = smt2:r2; r2' = smt2:(- (* -0.125 (- g2 30.0)) (* 0.75 r2)); g3' = smt2:r3; r3' = smt2:(- (* -0.125 (- g3 30.0)) (* 0.75 r3));
+guard = g1 < 20.0
+evolve = g1 >= 0.0 and g1 <= 60.0 and r1 >= -10.0 and r1 <= 10.0 and g2 >= 0.0 and g2 <= 60.0 and r2 >= -10.0 and r2 <= 10.0 and g3 >= 0.0 and g3 <= 60.0 and r3 >= -10.0 and r3 <= 10.0
+next = [BRAKE1]
+[Rsys.mode.BRAKE2]
+ode = g1' = smt2:r1; r1' = smt2:(- (* -0.125 (- g1 30.0)) (* 0.75 r1)); g2' = smt2:r2; r2' = smt2:(+ (+ (* 0.125 (- g1 30.0)) (* 0.75 r1)) 4.0); g3' = smt2:r3; r3' = smt2:(- (* -0.125 (- g3 30.0)) (* 0.75 r3));
+guard = g2 < 20.0
+evolve = g1 >= 0.0 and g1 <= 60.0 and r1 >= -10.0 and r1 <= 10.0 and g2 >= 0.0 and g2 <= 60.0 and r2 >= -10.0 and r2 <= 10.0 and g3 >= 0.0 and g3 <= 60.0 and r3 >= -10.0 and r3 <= 10.0
+next = [BRAKE2]
+[Rsys.mode.BRAKE3]
+ode = g1' = smt2:r1; r1' = smt2:(- (* -0.125 (- g1 30.0)) (* 0.75 r1)); g2' = smt2:r2; r2' = smt2:(- (* -0.125 (- g2 30.0)) (* 0.75 r2)); g3' = smt2:r3; r3' = smt2:(+ (+ (* 0.125 (- g1 30.0)) (* 0.75 r1) (* 0.125 (- g2 30.0)) (* 0.75 r2)) 4.0);
+guard = g3 < 20.0
+evolve = g1 >= 0.0 and g1 <= 60.0 and r1 >= -10.0 and r1 <= 10.0 and g2 >= 0.0 and g2 <= 60.0 and r2 >= -10.0 and r2 <= 10.0 and g3 >= 0.0 and g3 <= 60.0 and r3 >= -10.0 and r3 <= 10.0
+next = [BRAKE3]
+[relational_invariant]
+FOLLOW = smt2:(and (<= (+ (- L_r1 R_r1) (* 0.25 (- (- L_g1 R_g1) (- 0.0 1.0)))) 0.5) (>= (+ (- L_r1 R_r1) (* 0.25 (- (- L_g1 R_g1) (- 0.0 1.0)))) (- 0.0 0.5)) (<= (+ (- L_r1 R_r1) (* 0.5 (- (- L_g1 R_g1) (- 0.0 1.0)))) 1.0) (>= (+ (- L_r1 R_r1) (* 0.5 (- (- L_g1 R_g1) (- 0.0 1.0)))) (- 0.0 1.0)) (<= (+ (- L_r2 R_r2) (* 0.25 (- (- L_g2 R_g2) (- 0.0 1.0)))) 0.5) (>= (+ (- L_r2 R_r2) (* 0.25 (- (- L_g2 R_g2) (- 0.0 1.0)))) (- 0.0 0.5)) (<= (+ (- L_r2 R_r2) (* 0.5 (- (- L_g2 R_g2) (- 0.0 1.0)))) 1.0) (>= (+ (- L_r2 R_r2) (* 0.5 (- (- L_g2 R_g2) (- 0.0 1.0)))) (- 0.0 1.0)) (<= (+ (- L_r3 R_r3) (* 0.25 (- (- L_g3 R_g3) (- 0.0 1.0)))) 0.5) (>= (+ (- L_r3 R_r3) (* 0.25 (- (- L_g3 R_g3) (- 0.0 1.0)))) (- 0.0 0.5)) (<= (+ (- L_r3 R_r3) (* 0.5 (- (- L_g3 R_g3) (- 0.0 1.0)))) 1.0) (>= (+ (- L_r3 R_r3) (* 0.5 (- (- L_g3 R_g3) (- 0.0 1.0)))) (- 0.0 1.0)) (<= (- (- L_g1 R_g1) (- 0.0 1.0)) 2.0) (>= (- (- L_g1 R_g1) (- 0.0 1.0)) (- 0.0 2.0)) (<= (- (- L_g2 R_g2) (- 0.0 1.0)) 2.0) (>= (- (- L_g2 R_g2) (- 0.0 1.0)) (- 0.0 2.0)) (<= (- (- L_g3 R_g3) (- 0.0 1.0)) 2.0) (>= (- (- L_g3 R_g3) (- 0.0 1.0)) (- 0.0 2.0)))

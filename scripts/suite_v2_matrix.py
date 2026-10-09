@@ -78,6 +78,7 @@ FAMILIES = [
     ("charger_", "Battery charger"),
     ("heater_", "Heater cycle"),
     ("platoon_", "Platoon follower, delayed link"),
+    ("platoon3_", "Platoon string, three followers"),
     ("rover_patrol_", "Rover patrol (zones)"),
     ("rover3tier_", "Rover patrol (zones)"),
     ("match_multi_rate", "Rover patrol (zones)"),

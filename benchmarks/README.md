@@ -11,14 +11,15 @@ non-connection certificate: `RELCERT_NO_PRUNE=1` makes it DECLINE (`docs/PRUNING
 
 ## The redesigned suite — `suite_v2/` (2026-10-08, branch `suite-redesign`)
 
-`suite_v2/` is the redesigned 42-benchmark suite (pass 4): the 19 kept benchmarks (terrain/
+`suite_v2/` is the redesigned 44-benchmark suite (pass 6): the 19 kept benchmarks (terrain/
 position ladder, story ladders, watertank) and `match_multi_rate`, `rover3tier_rung12`
 copied unchanged (except the user-approved repair of `story3_rollover_ladder_rung_b`'s
-attitude domains and zone-switch entry condition), plus 21 benchmarks in seven families
+attitude domains and zone-switch entry condition), plus 23 benchmarks in eight families
 (ACC under sensor spoofing / retune with fault-latched limp modes, quadrotor climb with a
-lighter airframe, battery charger, platoon follower with a delayed link, rover patrol
-zones, arm with a leading reference, and the rigid-body detumbling family with bilinear
-Euler / gyrostat dynamics and an energy-threshold SAFE fallback). Each new file's
+lighter airframe, battery charger, platoon follower with a delayed link, a three-follower
+CACC platoon string (6 D), rover patrol zones, arm with a leading reference, and the
+rigid-body detumbling family with bilinear Euler / gyrostat dynamics — one-wheel 4 D and
+three-wheel 6 D — and an energy-threshold SAFE fallback). Each new file's
 header states the physical story, units, the measured cover and the mechanisms it
 exercises (`# scenario:` / `# mechanisms:` lines). The `suite_v2` runs use the widened
 cut channel, `RELCERT_IMPLIED_CUT=1` (closures of strict guard conjuncts,

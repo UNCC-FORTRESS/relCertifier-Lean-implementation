@@ -665,7 +665,7 @@ def md_table1(recs):
     for r in recs:
         groups.setdefault(r["family"], []).append(r)
     order = ["ACC under sensor spoofing / retune", "Quadrotor climb, lighter airframe", "Battery charger",
-             "Platoon follower, delayed link", "Rover patrol (zones)", "Arm, leading reference", "Rigid-body detumbling (polynomial)", "Heater cycle",
+             "Platoon follower, delayed link", "Platoon string, three followers", "Rover patrol (zones)", "Arm, leading reference", "Rigid-body detumbling (polynomial)", "Heater cycle",
              "Terrain/position ladder", "Story ladders", "Watertank", "other"]
     lines = ["| group | count | dim (L/R) | invariant forms | dynamics | discrete structure (modes L/R; pruned fallbacks; mode-dep. rows; cuts; widened cuts; linear-form chains; per-mode domains) |",
              "|---|---|---|---|---|---|"]

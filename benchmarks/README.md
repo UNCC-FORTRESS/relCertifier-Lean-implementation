@@ -42,9 +42,16 @@ the certificate needs is a forward-invariant bound the dynamics justify (stated 
 header). The three per-mode-domain files of pass 2 were dropped: their band domains encode
 event-triggered switching, which is not claimed. The mechanism matrix, the per-family
 design, the counter-runs and the scenarios tried and dropped are in
-`docs/SUITE-REDESIGN.md`; `scripts/suite_v2_matrix.py` regenerates all of it. The Lean
-instances still read `suite_uniform/` (the mechanization of `suite_v2` is a separate
-task), so `suite_uniform/` must not be edited.
+`docs/SUITE-REDESIGN.md`; `scripts/suite_v2_matrix.py` regenerates all of it. The legacy Lean
+instances read `suite_uniform/`, so `suite_uniform/` must not be edited. The `suite_v2`
+mechanization (branch `suite-v2-lean`) lives in `RelCertifier/InstancesV2/` (per-benchmark
+IR literals, extended cut certificates, covers, kernel replays, Theorem-3 instances) and
+`RelCertifier/VerdictsV2/` (runner, pins, declared counts); its check recipe is the
+*suite_v2* section of `docs/CERTIFICATION-CHECK.md`
+(`RELCERT_IMPLIED_CUT=1 relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt`,
+`relcert-test` `[ir-drift-v2]`, `lake build RelCertifier.InstancesV2.BatteryV2`). Which
+`suite_v2` benchmarks carry their Theorem 3, and why the others do not: `README.md`,
+*suite_v2*.
 
 ## File format
 

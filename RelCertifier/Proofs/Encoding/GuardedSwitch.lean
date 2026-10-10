@@ -571,6 +571,57 @@ theorem hopAG {fL fR : Fin n → Term (Var n)} {lam : Term (Var n)}
   rw [Program.rename_refl] at hQμSem ⊢
   exact ⟨rpatch ν ρ₁, ⟨rpatch ν ρ₁, joint_run_toR hfR hlam hreplay, rfl, hγpatch⟩, hQμSem⟩
 
+/-- **A linear coordinate, explicitly.** If along a run the coordinate `x` has field
+`k (c − x)` on the domain, the run ends at `c + (x₀ − c) e^{−k r}` for its duration `r ≥ 0`
+(`(c − x) e^{k t}` is constant along the run). -/
+theorem ode_linear_coord {sys : ODESystem (Var n)} {dom : Formula (Var n)}
+    {ν μ : State (Var n)} (h : Program.sem (Program.ode sys dom) ν μ)
+    {x : Var n} {f : Term (Var n)} (hx : (x, f) ∈ sys) (k c : ℝ)
+    (hf : ∀ s, Formula.sat dom s → Term.eval f s = k * (c - s x)) :
+    ∃ r, 0 ≤ r ∧ μ x = c + (ν x - c) * Real.exp (-(k * r)) := by
+  obtain ⟨r, Φ, hr, hΦ0, hΦr, hder, -, hdom⟩ := h
+  refine ⟨r, hr, ?_⟩
+  set H : ℝ → ℝ := fun t => (c - Φ t x) * Real.exp (k * t) with hH
+  have hHder : ∀ t ∈ Set.Icc (0:ℝ) r, HasDerivWithinAt H 0 (Set.Icc 0 r) t := by
+    intro t ht
+    have h1 := hder t ht (x, f) hx
+    rw [hf _ (hdom t ht)] at h1
+    have h2 : HasDerivWithinAt (fun u => Real.exp (k * u)) (Real.exp (k * t) * (k * 1))
+        (Set.Icc 0 r) t :=
+      (((hasDerivAt_id t).const_mul k).exp).hasDerivWithinAt
+    exact ((h1.const_sub c).mul h2).congr_deriv (by ring)
+  have hcont : ContinuousOn H (Set.Icc 0 r) := fun t ht => (hHder t ht).continuousWithinAt
+  have hconst := constant_of_has_deriv_right_zero hcont (fun t ht =>
+    (hHder t (Set.Ico_subset_Icc_self ht)).mono_of_mem_nhdsWithin (Icc_mem_nhdsGE_of_mem ht))
+    r ⟨hr, le_refl r⟩
+  simp only [hH, hΦ0, hΦr, mul_zero, Real.exp_zero, mul_one] at hconst
+  have hexp : Real.exp (k * r) * Real.exp (-(k * r)) = 1 := by
+    rw [← Real.exp_add]; simp
+  have : c - μ x = (c - ν x) * Real.exp (-(k * r)) := by
+    calc c - μ x = (c - μ x) * (Real.exp (k * r) * Real.exp (-(k * r))) := by rw [hexp, mul_one]
+      _ = ((c - μ x) * Real.exp (k * r)) * Real.exp (-(k * r)) := by ring
+      _ = (c - ν x) * Real.exp (-(k * r)) := by rw [hconst]
+  linarith
+
+/-- A predicate preserved by every clocked piece is preserved by a `k`-piece window. -/
+theorem windowSeg_preserve (leftSys : ODESystem (Var n)) (domL : Formula (Var n))
+    (tg : Var n) (dt : ℝ) (P : State (Var n) → Prop)
+    (hpiece : ∀ σ ν, P σ → Program.sem (clockedSeg leftSys domL tg dt) σ ν → P ν) :
+    ∀ (k : ℕ) (σ ν : State (Var n)), P σ →
+      Program.sem (windowSeg leftSys domL tg dt k) σ ν → P ν := by
+  intro k
+  induction k with
+  | zero =>
+      intro σ ν hP h
+      simp only [windowSeg, List.replicate_zero, bigSeq, sem_test] at h
+      obtain ⟨rfl, -⟩ := h
+      exact hP
+  | succ k ih =>
+      intro σ ν hP h
+      simp only [windowSeg, List.replicate_succ, bigSeq] at h
+      obtain ⟨mid, hseg, hrest⟩ := h
+      exact ih mid ν (hpiece σ mid hP hseg) hrest
+
 /-- Right-only facts survive a left program that binds no right coordinate. -/
 theorem sat_framed {P : Program (Var n)} {φ : Formula (Var n)}
     (hdis : ∀ x ∈ φ.fv, x ∉ P.bv) {σ ν : State (Var n)} (hrun : Program.sem P σ ν) :
@@ -837,6 +888,78 @@ theorem hddF_multiR_G (Gr : SearchGraph (Var n)) (a b : Fin n) (dt : ℝ)
       obtain ⟨d, hd, rfl⟩ := hp
       exact vars_gwindowSegL_sub d.1 d.2.1 d.2.2.1 b dt d.2.2.2 (hL d hd).1
         (hL d hd).2.1 (hL d hd).2.2
+    · intro v hv
+      rcases ψmultiR_varsL_sub _ regions Gr.modes.length ϕinv domL domR hv with hv | hv
+      · exact Or.inr (hinvL hv)
+      · exact Or.inr (hdomLv hv)
+  · rw [faShape_varsR', pvars_star']
+    refine Set.union_subset ?_ ?_
+    · intro v hv
+      rcases vars_bodyG_sub Gr _ hgR hRv hv with hv | hv
+      · exact Or.inl (Set.mem_insert_iff.mpr (Or.inl (Set.mem_singleton_iff.mp hv)))
+      · exact Or.inr hv
+    · intro v hv
+      rcases ψmultiR_varsR_sub _ regions Gr.modes.length ϕinv domL domR hreg hv
+        with (hv | hv) | (hv | hv)
+      · exact Or.inr (hinvR hv)
+      · exact Or.inr (hdomRv hv)
+      · exact Or.inl (Set.mem_insert_iff.mpr (Or.inl (Set.mem_singleton_iff.mp hv)))
+      · exact Or.inr hv
+
+/-- The guarded counterpart of `hdis_multi` (plain clock-capped windows). -/
+theorem hdis_multi_G (Gr : SearchGraph (Var n)) (a b : Fin n) (dt : ℝ)
+    (leftData : List ((Fin n → Term (Var n)) × Formula (Var n) × ℕ))
+    (hab : a ≠ b) (hgR : GuardsRight Gr)
+    (hRv : ∀ q m, Gr.modeAt q = some m →
+      m.sys.boundSet ∪ m.sys.readVars ∪ m.dom.fv ⊆ range Rv)
+    (hL : ∀ d ∈ leftData, (∀ i, (d.1 i).fv ⊆ range Lv) ∧ d.2.1.fv ⊆ range Lv) :
+    Disjoint (Program.vars (bigChoice (leftData.map (fun d =>
+        windowSeg (leftBlock d.1) d.2.1 ((Side.Aux, b) : Var n) dt d.2.2))))
+      (Program.vars ((rightAutomatonBody Gr ((Side.Aux, a) : Var n)).rename
+        (Equiv.refl (Var n)))) := by
+  refine sides_disjoint a b a hab.symm hab.symm ?_ ?_
+  · refine vars_bigChoice_sub _ _ ?_
+    intro p hp
+    simp only [List.mem_map] at hp
+    obtain ⟨d, hd, rfl⟩ := hp
+    exact vars_windowSegL_sub d.1 d.2.1 b dt d.2.2 (hL d hd).1 (hL d hd).2
+  · intro x hx
+    rw [Program.rename_refl] at hx
+    rcases vars_bodyG_sub Gr _ hgR hRv hx with hx | hx
+    · exact Or.inl (Set.mem_insert_iff.mpr (Or.inl (Set.mem_singleton_iff.mp hx)))
+    · exact Or.inr hx
+
+/-- The guarded counterpart of `hddF_multiR_plain`. -/
+theorem hddF_multiR_plain_G (Gr : SearchGraph (Var n)) (a b : Fin n) (dt : ℝ)
+    (leftData : List ((Fin n → Term (Var n)) × Formula (Var n) × ℕ))
+    (regions : ℕ → Formula (Var n))
+    (ϕinv : RFormula (Var n)) (domL domR : Formula (Var n)) (hab : a ≠ b)
+    (hgR : GuardsRight Gr)
+    (hRv : ∀ q m, Gr.modeAt q = some m →
+      m.sys.boundSet ∪ m.sys.readVars ∪ m.dom.fv ⊆ range Rv)
+    (hL : ∀ d ∈ leftData, (∀ i, (d.1 i).fv ⊆ range Lv) ∧ d.2.1.fv ⊆ range Lv)
+    (hreg : ∀ q < Gr.modes.length, (regions q).fv ⊆ range Rv)
+    (hinvL : ϕinv.varsL ⊆ range Lv) (hinvR : ϕinv.varsR ⊆ range Rv)
+    (hdomLv : domL.fv ⊆ range Lv) (hdomRv : domR.fv ⊆ range Rv) :
+    Disjoint (faShape (Program.star (bigChoice (leftData.map (fun d =>
+          windowSeg (leftBlock d.1) d.2.1 ((Side.Aux, b) : Var n) dt d.2.2))))
+        (Program.star (rightAutomatonBody Gr ((Side.Aux, a) : Var n)))
+        (RFormula.and (RFormula.and ϕinv (envLR domL domR))
+          (mvRegionR ((Side.Aux, a) : Var n) regions Gr.modes.length))).varsL
+      (Equiv.refl (Var n) '' (faShape (Program.star (bigChoice (leftData.map (fun d =>
+          windowSeg (leftBlock d.1) d.2.1 ((Side.Aux, b) : Var n) dt d.2.2))))
+        (Program.star (rightAutomatonBody Gr ((Side.Aux, a) : Var n)))
+        (RFormula.and (RFormula.and ϕinv (envLR domL domR))
+          (mvRegionR ((Side.Aux, a) : Var n) regions Gr.modes.length))).varsR) := by
+  rw [show ∀ S : Set (Var n), Equiv.refl (Var n) '' S = S by intro S; simp]
+  refine sides_disjoint a b a hab.symm hab.symm ?_ ?_
+  · rw [faShape_varsL', pvars_star']
+    refine Set.union_subset ?_ ?_
+    · refine vars_bigChoice_sub _ _ ?_
+      intro p hp
+      simp only [List.mem_map] at hp
+      obtain ⟨d, hd, rfl⟩ := hp
+      exact vars_windowSegL_sub d.1 d.2.1 b dt d.2.2 (hL d hd).1 (hL d hd).2
     · intro v hv
       rcases ψmultiR_varsL_sub _ regions Gr.modes.length ϕinv domL domR hv with hv | hv
       · exact Or.inr (hinvL hv)

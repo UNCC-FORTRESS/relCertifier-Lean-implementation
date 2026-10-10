@@ -11,6 +11,7 @@ synthesis loop depends on.
 -/
 import RelCertifier.Trusted.OracleAPI
 import RelCertifier.Instances.BenchIR
+import RelCertifier.InstancesV2.BenchIR
 import RelCertifier.Trusted.Z3
 
 open RelCertifier RelCertifier.Parse RelCertifier.Oracle
@@ -191,6 +192,22 @@ def testIRDrift : IO Unit := do
   check s!"all {RelCertifier.Parse.benchIRTable.length} IR literals match their files"
     (bad == 0)
 
+/-- The suite_v2 drift check: every `benchIRTableV2` literal equals a fresh parse of
+`benchmarks/suite_v2/<name>/input.txt`, and the table covers all 45 files. -/
+def testIRDriftV2 : IO Unit := do
+  IO.println "[ir-drift-v2]"
+  let mut bad := 0
+  for (nm, p) in RelCertifier.Parse.benchIRTableV2 do
+    let path := s!"benchmarks/suite_v2/{nm}/input.txt"
+    let txt ← try IO.FS.readFile path catch _ => pure ""
+    match RelCertifier.Parse.parseProblemE txt with
+    | .error e => bad := bad + 1; check s!"{nm}: parse ({e})" false
+    | .ok q =>
+        if q == p then pure ()
+        else bad := bad + 1; check s!"{nm}: literal == fresh parse (suite_v2)" false
+  check s!"all {RelCertifier.Parse.benchIRTableV2.length} suite_v2 IR literals match their files"
+    (bad == 0 && RelCertifier.Parse.benchIRTableV2.length == 45)
+
 /-! ## Invariant-lowering tests: each shape → expected component count -/
 def testLowering : IO Unit := do
   IO.println "[lowering]"
@@ -250,6 +267,7 @@ def main : IO Unit := do
       testZ3Layer cfg
       testParser
       testIRDrift
+      testIRDriftV2
       testPrinter cfg
       testLowering
       testOutcomeIntegrity cfg

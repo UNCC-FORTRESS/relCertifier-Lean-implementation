@@ -257,6 +257,34 @@ invariant components), not per atom over the bare domain as `CutLift.lean` does 
 Exercised by `arm_plateau_crit`, `arm_plateau_slow`, `arm_plateau_lowgain` (all three
 DECLINE under `RELCERT_NO_LINEAR_CUT=1`: the chain is load-bearing).
 
+**The Lean lift of the widened channel — DONE (2026-10-09, branch `suite-v2-lean`,
+`Proofs/Soundness/CutLiftX.lean`).** Every item listed above is now a kernel-checked lemma:
+
+| obligation | lemma (`CutLiftX.lean` unless noted) | trust |
+|---|---|---|
+| O1 `membership` | `entry_membership` (the legacy `cutAtoms_sat`) | standard three |
+| O1 `weakening` (closure of a strict conjunct) | `entry_weakening` (`strictAtoms`, `closureOf`, `conj_sat`) | standard three |
+| O1 `rational`, threshold atoms (implied contraction, derived bound) | `entry_rational` (`guardImpliesRational` re-read as a real comparison: `qLt_val`, `qLt_false_val`, `lowerF_thr`) | standard three |
+| O1 `rational`, linear forms (item ii) | `entry_linear` (`guardBox_sound` by a fold invariant, `linearAtomPair_spec`, `secondOrderPairs_c_pos`, `lowerF_lin`; positive root from `pairRootOK`) | standard three |
+| O1 `z3` | `entry_z3` / `entryZ3Fact_of_unsat` on `entryZ3Query gI g = gI ∧ g > 0` — the `IForm` `checkedCutX.entryZ3` sends | `z3_unsat_sound` (no `z3` entry occurs in `suite_v2`) |
+| O1, per atom / mode / certificate | `atomWFX_entry`, `modeCutWFX_entry`, `evolStrengtheningWFX_entryL/R` (from the kernel-checked `evolStrengtheningWFX p c = true`; `CutRespond.cutSatL/R_of_guard` package it per mode) | standard three |
+| O2 `linearShape` (item i) | `linQ_rate` (the ring identity `f_y + r f_x = −(b − r) q`), `super_linear_le_L/_ge_L/_le_R/_ge_R`, transported to the stretched joint flow by `boxle_L_of_super`/`boxle_R_of_super` (`lieDeriv_one_sided_*`) | standard three |
+| O2 `derivedShape` (item iii) | `super_derived_le_L/_ge_L/_le_R/_ge_R` over the domain narrowed by the given atom | standard three |
+| O2 DI routes A / C | `super_of_unsatA_R/L`, `super_of_unsat_R/L` (`flowQuery` / `flowQuerySuperlevel` — the `GenericPins.o2_probe_pin` shapes); route B through the legacy `atom_boxle_*_strict` | `z3_unsat_sound` |
+| stratification (item iv) | `stay_given` (the given atom stays over the bare domain ⇒ the run is a run of the narrowed domain, where the derived bound's O2 applies); conditional staying `AtomsStayC` | standard three |
+| the threading (the `RightReachG`/`Gd` cut lift, X channel) | `CoverCertMCX`, `pres_multi_cutX`, `check_sound_multi_cutX`; the legacy certificate embeds (`CoverCertMC.toX`) | standard three |
+| the per-segment form the Theorem-3 instances consume | `segPresAll_cut_liftX`; `Proofs/Encoding/CutRespond.couple_cutX` (narrowed stratified pack + both families' staying + existence ⟹ the λ-reparametrized coupling over an anchor that carries the atoms) | `z3_unsat_sound` via the pack |
+
+All 45 `suite_v2` extended certificates are kernel-checked well formed
+(`InstancesV2/Cuts/<b>.lean`, `evolStrengtheningWFX … = true := rfl`). The lift is
+exercised by the `suite_v2` Theorem-3 instances (`InstancesV2/Modal/`), which discharge
+every kept atom's O1 through `cutSatL_of_guard` on that certificate and its O2 rationally.
+What the generic layer does NOT provide is a cover-generic `decideCovered ⟹ theorem3Form`
+for the widened channel: the modal theorem stays per instance (the response strategy and
+existence are per benchmark), exactly as for the legacy channel; the generic X-channel
+theorem is the throughout form `check_sound_multi_cutX`, the X analogue of
+`check_sound_multi_cut`.
+
 **The wording for Section 4.2.** *A cut is an atom implied by the mode's guard and
 preserved by its own flow.* Three kinds of atom qualify: a closed guard conjunct (implied
 by membership), the closure of a strict guard conjunct (implied by weakening), and, for a

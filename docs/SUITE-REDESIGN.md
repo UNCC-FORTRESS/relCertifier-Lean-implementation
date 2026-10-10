@@ -1625,6 +1625,7 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 
 ### `rover_patrol_refine`
 
+* **2026-10-10 (§19.1):** the odometer wall `s ≤ 100` removed from every evolve domain on both sides (a blocking constraint, not a physical limit). Re-measured: CERTIFIED (1517 ms); NO_PRUNE CERTIFIED, NO_CUT / NO_IMPLIED_CUT / NO_LINEAR_CUT DECLINED; `--handoff` 10/10; cells M1 M2 M3 M5 M6 M6+ M6L unchanged; widening: no load-bearing bound. Covers and cuts byte-identical; the records below predate the change.
 * family: Rover patrol (zones); scenario: model-refinement; dims L/R 3/3; modes L/R 4/4; εL/εR 2.0/1.0; λ ∈ [1.0, 6.0]; invariant shape conjunctive; rows identical: False; normalized md5 `f3bdf93f8f88`
 * `relcert`: **CERTIFIED** (1562 ms); `[prune] rover_patrol_refine: []`; NO_PRUNE: **CERTIFIED** (1622 ms); NO_CUT: **DECLINED** (1207 ms); NO_IMPLIED_CUT: **DECLINED** (2537 ms); NO_LINEAR_CUT: **DECLINED** (2512 ms); domains: uniform
 * `[cut] L.SLOW: 5 conjunct(s)`
@@ -1678,6 +1679,7 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 
 ### `rover_patrol_zones`
 
+* **2026-10-10 (§19.1):** the odometer wall `s ≤ 100` removed from every evolve domain on both sides (a blocking constraint, not a physical limit). Re-measured: CERTIFIED (390 ms); NO_PRUNE CERTIFIED, NO_CUT DECLINED, NO_IMPLIED_CUT / NO_LINEAR_CUT CERTIFIED; `--handoff` 10/10; cells M2 M3 M5 M6 unchanged; widening: no load-bearing bound. Covers and cuts byte-identical; the records below predate the change.
 * family: Rover patrol (zones); scenario: degraded-actuator; dims L/R 2/2; modes L/R 4/5; εL/εR 2.0/1.0; λ ∈ [1.0, 6.0]; invariant shape conjunctive; rows identical: False; normalized md5 `088224fb0842`
 * `relcert`: **CERTIFIED** (319 ms); `[prune] rover_patrol_zones: [SLOW->STALL, MEDIUM_ECO->STALL, MEDIUM_BRISK->STALL, FAST->STALL]`; NO_PRUNE: **CERTIFIED** (382 ms); NO_CUT: **DECLINED** (1159 ms); NO_IMPLIED_CUT: **CERTIFIED** (373 ms); NO_LINEAR_CUT: **CERTIFIED** (392 ms); domains: uniform
 * `[cut] L.SLOW: 3 conjunct(s)`
@@ -3458,3 +3460,86 @@ strings in §9 are now three characters, `j`/`d`/`d`).
   standard axioms alone, no other axiom. `BENCH_PATHS=<manifest of the 41> relcert-test`:
   `ALL PASS` (40 IR literals match their files; the IR literals of the six declined
   benchmarks are kept and still drift-checked).
+
+## 19. Pass 9 (2026-10-10): the odometer wall removed; the satellite nonblocking regions
+
+Two model-level findings from the Theorem 3 mechanization of the last nine suite_v2
+benchmarks (`docs/PAPER-MAPPING.md` §2c; `RelCertifier/InstancesV2/Modal/`). Both concern
+Assumption 1 of the paper (nonblocking: a right state inside the invariant can always flow
+for the window's duration). Every number below: Z3 4.15.1, `RELCERT_IMPLIED_CUT=1` except in
+the counter-runs, default solver settings (§10).
+
+### 19.1 `rover_patrol_zones`, `rover_patrol_refine`: the track-end wall `s ≤ 100` removed
+
+**Finding.** Both files carried `s <= 100.0` in every evolve domain on both sides. A domain
+wall is a *blocking* constraint, not a physical limit of the rover: at `s_R = 100` the
+reference cannot flow (its odometer would leave the domain), while a deployed rover up to
+2 m behind (`s_L ≤ s_R + 2`) still moves. The modal claim with the right zone's kept cut
+atoms as its region is then FALSE as modeled (found while proving it, 2026-10-09), although
+the tool CERTIFIED (nonblocking is the paper's Assumption 1 on the model; the tool's queries
+do not check it).
+
+**Change** (benchmark rule: domains are physical limits, never restrictions to force a
+match). The odometer wall is removed from both sides' evolve domains of every mode in both
+files; the physical domains stay (`v ∈ [0, 1.6]` m/s, `s ≥ 0` m, and `a ∈ [−2, 2]` m/s² in
+the refinement rung). The patrol continues past the last zone boundary: `FAST`'s guard
+`s ≥ 50` already covers every `s` beyond the `MEDIUM` zones. Headers updated with the
+rationale. No guard, ODE, row or tolerance changed.
+
+**Evidence** (after the change; before in parentheses where it differs):
+
+| run | `rover_patrol_zones` | `rover_patrol_refine` |
+|---|---|---|
+| `relcert` | CERTIFIED 390 ms (413) | CERTIFIED 1517 ms (1484) |
+| `RELCERT_NO_PRUNE=1` | CERTIFIED | CERTIFIED |
+| `RELCERT_NO_CUT=1` | DECLINED | DECLINED |
+| `RELCERT_NO_IMPLIED_CUT=1` | CERTIFIED | DECLINED |
+| `RELCERT_NO_LINEAR_CUT=1` | CERTIFIED | DECLINED |
+| `--handoff` | 10/10 unsat | 10/10 unsat |
+| matrix cells (`suite_v2_matrix.py --only …`) | M2 M3 M5 M6 (unchanged) | M1 M2 M3 M5 M6 M6+ M6L (unchanged) |
+| `domain_widening.py` | all widened CERTIFIED, no load-bearing bound (`s.lo` one-sided, skipped) | same |
+
+The emitted covers and cut certificates are byte-identical before and after
+(`scripts/gen_v2_data.py` regenerated only the two IR leaves; `[ir-drift-v2]` 45/45).
+
+**Theorem 3.** Both now carry the mode-keyed Theorem 3 (`RoverPatrolZones.lean`,
+`RoverPatrolRefine.lean`; ten verdict packs each). The right zone runs are the explicit
+solutions `v(t) = c + (v₀ − c) e^{−kt}`, `s(t) = s₀ + k c t + (v₀ − c)(1 − e^{−kt})`, which
+stay in the domain from every domain state now that `s` has no upper wall. Right starts in
+an earlier zone than the window's certified target reposition right-only (the zone run until
+the odometer reaches the target's floor; `SLOW` in the `FAST` window via `MEDIUM_ECO`, since
+`SLOW` has no edge to `FAST`), then the certified joint piece.
+
+**Pre-existing header inaccuracy, reported, not changed:** the `rover_patrol_zones` header
+lists mechanism M4 and says `RELCERT_NO_PRUNE=1` DECLINES; both before and after this pass
+NO_PRUNE CERTIFIES (the matrix credits M4 as vacuous: `STALL`'s region is empty under the
+row and the left floor, so no window ever needs the pruning). The matrix cells are unchanged
+by this pass.
+
+### 19.2 The satellite family: theorems on the nonblocking region (model property)
+
+The six detumbling benchmarks (`sat_detumble_{nominal,weak,phases}`,
+`sat3w_detumble_{nominal,weak,phases}`) declare the wheel-momentum band `|h| ≤ 2` (resp.
+`|h_i| ≤ 2`) as a physical domain on both sides. It blocks right flows: from `h_R = 2`,
+`w3_R = 0.4` (energy 0.8, inside the cut `E ≤ 1`) every right mode leaves `h ≤ 2` at once
+(`h' = 5 k w3 > 0`), so the right cannot move, while a left state of the same energy and
+`h_L = 0` flows and its energy decays — the modal claim with the cut atoms alone as the region
+is FALSE. The benchmark files are NOT changed (the band is the wheel's real capacity). The
+theorems are instead stated on the **nonblocking region**: the right region of every non-sink
+mode carries, besides its kept cut atoms, the bands on the total angular momentum about each
+wheel axis (`J = diag(2, 4, 5)`):
+
+| benchmark | nonblocking conjunct (right state) |
+|---|---|
+| `sat_detumble_*` (one wheel on z) | `−2 ≤ h + 5 w3 ≤ 2` |
+| `sat3w_detumble_*` (three wheels) | `−2 ≤ h1 + 2 w1 ≤ 2`, `−2 ≤ h2 + 4 w2 ≤ 2`, `−2 ≤ h3 + 5 w3 ≤ 2` |
+
+Each quantity `h_i + J_i w_i` is EXACTLY conserved by every right design-model mode
+(`(h_i + J_i w_i)' = J_i k w_i − J_i k w_i = 0`; the gains differ per profile, the ratio
+`h_i' / w_i' = −J_i` does not), and `h_i(t)` stays between `h_i(0)` and `h_i(0) + J_i w_i(0)`,
+so the conjunct is exactly what keeps the right run inside the band (existence: the explicit
+solution). It is a property of the benchmark MODEL — the total momentum stays within the
+wheel capacity — not a tool cut: it enters NO verdict query (the packs are the tool's own
+`modalVerdX` queries, narrowed by the kept cut atoms only) and is carried through the joint
+piece by a separate conservation lemma (`couple_cutX_nb`, `stayNB`). Every instance's
+docstring states this.

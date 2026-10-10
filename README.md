@@ -71,13 +71,14 @@ repairs add a **region conjunct** to the invariant — see *Conditioning* below.
 2. [The end-to-end guarantee, intuitively](#the-end-to-end-guarantee-intuitively)
 3. [How one benchmark becomes a theorem](#how-one-benchmark-becomes-a-theorem) — the pipeline, step by step
 4. [Well-formedness: why the hypotheses exist and how they are discharged](#well-formedness)
-5. [Theorem families and status](#theorem-families-and-status)
-6. [Repository map](#repository-map)
-7. [File guide — what each file is *for*](#file-guide)
-8. [Lean mechanization ↔ the paper](#lean-mechanization--the-papers-formal-results)
-9. [Re-checking the guarantees](#re-checking-the-guarantees)
-10. [Soundness findings](#soundness-findings)
-11. [Benchmarks and further reading](#benchmarks)
+5. [suite_v2 — the paper's suite, all 45 with Theorem 3](#suite_v2--the-papers-suite-all-45-benchmarks-with-theorem-3-2026-10-10)
+6. [Theorem families and status](#theorem-families-and-status)
+7. [Repository map](#repository-map)
+8. [File guide — what each file is *for*](#file-guide)
+9. [Lean mechanization ↔ the paper](#lean-mechanization--the-papers-formal-results)
+10. [Re-checking the guarantees](#re-checking-the-guarantees)
+11. [Soundness findings](#soundness-findings)
+12. [Benchmarks and further reading](#benchmarks)
 
 ---
 
@@ -453,6 +454,47 @@ The last row is the only well-formedness-flavoured item inside the trust base, a
 there for a principled reason: it says the *modeled system* only ever switches into
 declared successors whose guards hold. That is a statement about what the automaton is,
 which no amount of formula manipulation can establish.
+
+---
+
+## suite_v2 — the paper's suite, all 45 benchmarks with Theorem 3 (2026-10-10)
+
+`benchmarks/suite_v2/` (45 benchmarks; `benchmarks/README.md`) is the suite the paper
+reports. **Every one of the 45 carries a kernel-checked Theorem 3**, re-emitted with its axiom
+list on every build of `RelCertifier/InstancesV2/BatteryV2.lean`:
+
+| theorem family | count | which |
+|---|---|---|
+| total (one Theorem 3 per benchmark) | **45** | 26 new instances in `InstancesV2/Modal/`; 19 benchmarks copied unchanged from `suite_uniform` reuse their legacy theorem (`InstancesV2/SameIR.lean`: the v2 IR literal IS the legacy literal, `rfl`) |
+| mode-keyed (declared per-left-mode rows, composed by `ModeHandoff.theorem3_modeKeyed`, handoffs in-kernel) | **12** | `acc_spoof_limp`, `acc_tune_limp`, `platoon_delay_linkloss`, `platoon3_linkloss`, `rover_patrol_zones`, `rover_patrol_refine`, `sat_detumble_phases`, `sat3w_detumble_phases`, `story3_rollover_ladder_rung_b` (new); `rover3tier_rung12`, `story1_attdist_rung_a_6to8`, `story1_attdist_rung_b_12dof` (copied) |
+| X-channel (the widened cut channel `RELCERT_IMPLIED_CUT=1` is needed: closures, implied contractions, linear-form chains; lifted by `Proofs/Soundness/CutLiftX.lean`) | **12** | `acc_spoof_lag`, `arm_plateau_{crit,profiles,slow}`, `charger_fast_setpoints`, `platoon3_{linkloss,profiles}`, `platoon_delay_{linkloss,profiles}`, `rover_patrol_refine`, `story3_rollover_ladder_rung_b`, `watertank` (each DECLINES without the channel) |
+| Z3-free (the standard three axioms only, no verdict hypothesis) | **5** | `arm_plateau_{crit,profiles,slow}`, `refinement_ladder_rover_rung2_6dof`, `refinement_ladder_rover_rung2b_6dof` |
+| on the nonblocking region (a conserved-quantity band of the MODEL in the right region; enters no verdict query) | **6** | the satellite family: `−2 ≤ h + 5 w3 ≤ 2` (one wheel), `−2 ≤ h_i + J_i w_i ≤ 2` per wheel axis (three wheels); `docs/SUITE-REDESIGN.md` §19.2 |
+
+Every hypothesis is a Z3 verdict pack pinned to the query the runner sends
+(`VerdictsV2/PinsV2.lean`) or a copied legacy pack (`Verdicts/ModalPinTable`):
+`relcert --run-verdicts-v2` discharges 262 modal + 186 handoff + 88 non-connection + 385
+copied-benchmark queries, all `unsat`, against counts derived from the tables in-kernel
+(`docs/VERDICTS.md`, suite_v2 section). The axiom audit (51 `#print axioms` lines in
+`BatteryV2`: 46 benchmark theorems — `match_multi_rate` has its Theorem 2 instance as well —
+and 5 generic lemmas): every one is `[propext, Classical.choice, Quot.sound]`, 42 with
+`z3_unsat_sound` in addition, 9 without (the 5 Z3-free benchmarks and 4 generic lemmas).
+**The trust base is unchanged**: the strict parser, the SMT printer + Z3 (`z3_unsat_sound`),
+and the Lean kernel.
+
+Build and check (`docs/CERTIFICATION-CHECK.md`, suite_v2 section):
+
+```bash
+lake build RelCertifier.InstancesV2.BatteryV2 2>&1 | grep -A3 "depends on axioms"
+lake build relcert relcert-test
+RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt
+BENCH_PATHS=<manifest> ./.lake/build/bin/relcert-test      # [ir-drift-v2]: 45 literals
+```
+
+Two model findings of the mechanization are recorded in `docs/SUITE-REDESIGN.md` §19: the
+track-end odometer wall `s ≤ 100` of `rover_patrol_{zones,refine}` blocked the reference
+flow (removed; both still CERTIFIED with unchanged cells), and the satellite wheel-momentum
+band blocks right flows, so those six theorems are stated on the nonblocking region.
 
 ---
 

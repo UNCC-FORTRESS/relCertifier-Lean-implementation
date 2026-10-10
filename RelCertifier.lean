@@ -85,6 +85,7 @@ import RelCertifier.Checker.EvolStrengthening
 import RelCertifier.Proofs.Soundness.CutLift
 import RelCertifier.Proofs.Soundness.CutCover
 import RelCertifier.Proofs.Soundness.CutCoverDischarge
+import RelCertifier.Proofs.Soundness.CutLiftX
 import RelCertifier.Instances.CutThroughoutBattery
 import RelCertifier.Instances.EvolStrengthenings
 import RelCertifier.Checker.Faithful
@@ -132,3 +133,4 @@ import RelCertifier.Instances.ThroughoutBattery
 
 -- The modal battery: every benchmark's Theorem 3 + its axiom audit (docs/CERTIFICATION-CHECK.md)
 import RelCertifier.Instances.ModalBattery
+import RelCertifier.InstancesV2.BatteryV2

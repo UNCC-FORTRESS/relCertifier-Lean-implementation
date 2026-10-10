@@ -1,6 +1,6 @@
 # rover_patrol_zones: patrol rover with a worn drivetrain on a three-zone route.
 # scenario: degraded-actuator
-# mechanisms: M2 M3 M4 M5 M6
+# mechanisms: M2 M3 M5 M6
 #
 # A patrol rover drives a route whose speed zones are keyed to the odometer s (m):
 #   SLOW    s <  20         commanded speed 0.6 m/s (leaving the depot)
@@ -29,8 +29,18 @@
 # Fallback (M4): the reference declares a STALL fallback below 0.2 m/s (drive cut,
 # v' = -2 v, odometer keeps integrating, sink) from every driving zone; every zone floor
 # is 0.3 m/s and every loop accelerates at 0.2 m/s, so all four STALL edges are pruned;
-# v_L >= 0.3 and v_L <= v_R exclude STALL as a start. RELCERT_NO_PRUNE=1 DECLINES.
-# Envelope: v in [0, 1.6] m/s, s in [0, 100] m, both sides.
+# v_L >= 0.3 and v_L <= v_R exclude STALL as a start. Pruning is NOT load-bearing on
+# this rung: RELCERT_NO_PRUNE=1 still CERTIFIES (the STALL pairings close without it), so
+# the matrix scores M4 as vacuous here; the pruning exhibit of this family is rover_patrol_refine's
+# sibling scenarios, not this file.
+# Envelope (physical domain, both sides): v in [0, 1.6] m/s (the drive's speed range);
+# s >= 0 m (the odometer counts up from the depot). The odometer has NO upper wall: the
+# patrol continues past the last zone boundary (FAST's guard s >= 50 already covers every
+# s beyond MEDIUM). Until 2026-10-10 the evolve domains also carried s <= 100 m; that is a
+# blocking constraint, not a physical limit of the rover (it stops the reference's flow at
+# s = 100 while the deployed, up to 2 m behind, still moves, violating nonblocking,
+# Assumption 1, and making the modal claim false as modeled). Removed on both sides;
+# docs/SUITE-REDESIGN.md section 19.
 [problem]
 name = rover_patrol_zones
 max_depth = 8
@@ -43,22 +53,22 @@ epsilon = 2.0
 [Lsys.mode.SLOW]
 ode = v' = smt2:(* 1.25 (- 0.48 v)); s' = v;
 guard = s >= 0.0 and s < 20.0 and v >= 0.3 and v <= 0.6
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0
 next = [MEDIUM_ECO, MEDIUM_BRISK, SLOW]
 [Lsys.mode.MEDIUM_ECO]
 ode = v' = smt2:(* 1.25 (- 0.72 v)); s' = v;
 guard = s >= 20.0 and s < 50.0 and v >= 0.3 and v <= 0.9
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0
 next = [FAST, MEDIUM_BRISK, MEDIUM_ECO]
 [Lsys.mode.MEDIUM_BRISK]
 ode = v' = smt2:(* 1.25 (- 0.88 v)); s' = v;
 guard = s >= 20.0 and s < 50.0 and v >= 0.3 and v <= 1.1
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0
 next = [FAST, MEDIUM_ECO, MEDIUM_BRISK]
 [Lsys.mode.FAST]
 ode = v' = smt2:(* 1.25 (- 1.2 v)); s' = v;
 guard = s >= 50.0 and v >= 0.3 and v <= 1.5
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0
 next = [FAST]
 [Rsys]
 state_vars = [v, s]
@@ -66,27 +76,27 @@ epsilon = 1.0
 [Rsys.mode.SLOW]
 ode = v' = smt2:(- 0.6 v); s' = v;
 guard = s >= 0.0 and s < 20.0 and v >= 0.3 and v <= 0.6
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0
 next = [MEDIUM_ECO, MEDIUM_BRISK, SLOW, STALL]
 [Rsys.mode.MEDIUM_ECO]
 ode = v' = smt2:(- 0.9 v); s' = v;
 guard = s >= 20.0 and s < 50.0 and v >= 0.3 and v <= 0.9
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0
 next = [FAST, MEDIUM_ECO, STALL]
 [Rsys.mode.MEDIUM_BRISK]
 ode = v' = smt2:(- 1.1 v); s' = v;
 guard = s >= 20.0 and s < 50.0 and v >= 0.3 and v <= 1.1
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0
 next = [FAST, MEDIUM_BRISK, STALL]
 [Rsys.mode.FAST]
 ode = v' = smt2:(- 1.5 v); s' = v;
 guard = s >= 50.0 and v >= 0.3 and v <= 1.5
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0
 next = [FAST, STALL]
 [Rsys.mode.STALL]
 ode = v' = smt2:(* -2.0 v); s' = v;
 guard = v < 0.2
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0
 next = [STALL]
 [relational_invariant]
 SLOW         = smt2:(and (<= L_v R_v) (<= L_s (+ R_s 0.5)))

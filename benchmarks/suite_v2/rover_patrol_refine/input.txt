@@ -21,9 +21,13 @@
 # ZONE HAND-OVER (guard, a controller-design condition): the planner hands a zone's
 # speed loop over -- and starts the first zone -- only with the motor current settled,
 # |a| <= 0.5 m/s^2 (bumpless transfer), at a speed between the 0.3 m/s floor and the
-# zone's command. PHYSICAL DOMAIN: v in [0, 1.6] m/s, s in [0, 100] m, a in [-2, 2]
-# m/s^2 (0.2 g, the traction limit of the rover's wheels); no domain bound is
-# load-bearing (widening test).
+# zone's command. PHYSICAL DOMAIN: v in [0, 1.6] m/s, s >= 0 m, a in [-2, 2] m/s^2
+# (0.2 g, the traction limit of the rover's wheels); no domain bound is load-bearing
+# (widening test). The odometer has NO upper wall: until 2026-10-10 the evolve domains
+# carried s <= 100 m, a blocking constraint rather than a physical limit of the rover (it
+# stops the reference's flow at the track end while the deployed still moves, violating
+# nonblocking, Assumption 1); removed on both sides, as in rover_patrol_zones
+# (docs/SUITE-REDESIGN.md section 19).
 #
 # THE CUT CHAIN (RELCERT_IMPLIED_CUT=1, L7), per zone with c = 0.48 / 0.72 / 0.88 / 1.2:
 # q = a + 2.5 (v - c), q' = -2.5 q; round 1 over the hand-over box: SLOW q in
@@ -68,22 +72,22 @@ epsilon = 2.0
 [Lsys.mode.SLOW]
 ode = v' = a; s' = v; a' = smt2:(* 5.0 (- (* 1.25 (- 0.48 v)) a));
 guard = s >= 0.0 and s < 20.0 and v >= 0.3 and v <= 0.6 and a >= -0.5 and a <= 0.5
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -2.0 and a <= 2.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and a >= -2.0 and a <= 2.0
 next = [MEDIUM_ECO, MEDIUM_BRISK, SLOW]
 [Lsys.mode.MEDIUM_ECO]
 ode = v' = a; s' = v; a' = smt2:(* 5.0 (- (* 1.25 (- 0.72 v)) a));
 guard = s >= 20.0 and s < 50.0 and v >= 0.3 and v <= 0.9 and a >= -0.5 and a <= 0.5
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -2.0 and a <= 2.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and a >= -2.0 and a <= 2.0
 next = [FAST, MEDIUM_BRISK, MEDIUM_ECO]
 [Lsys.mode.MEDIUM_BRISK]
 ode = v' = a; s' = v; a' = smt2:(* 5.0 (- (* 1.25 (- 0.88 v)) a));
 guard = s >= 20.0 and s < 50.0 and v >= 0.3 and v <= 1.1 and a >= -0.5 and a <= 0.5
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -2.0 and a <= 2.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and a >= -2.0 and a <= 2.0
 next = [FAST, MEDIUM_ECO, MEDIUM_BRISK]
 [Lsys.mode.FAST]
 ode = v' = a; s' = v; a' = smt2:(* 5.0 (- (* 1.25 (- 1.2 v)) a));
 guard = s >= 50.0 and v >= 0.3 and v <= 1.5 and a >= -0.5 and a <= 0.5
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -2.0 and a <= 2.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and a >= -2.0 and a <= 2.0
 next = [FAST]
 [Rsys]
 state_vars = [v, s, a]
@@ -91,22 +95,22 @@ epsilon = 1.0
 [Rsys.mode.SLOW]
 ode = v' = smt2:(- 0.6 v); s' = v; a' = smt2:0;
 guard = s >= 0.0 and s < 20.0 and v >= 0.3 and v <= 0.6
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -2.0 and a <= 2.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and a >= -2.0 and a <= 2.0
 next = [MEDIUM_ECO, MEDIUM_BRISK, SLOW]
 [Rsys.mode.MEDIUM_ECO]
 ode = v' = smt2:(- 0.9 v); s' = v; a' = smt2:0;
 guard = s >= 20.0 and s < 50.0 and v >= 0.3 and v <= 0.9
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -2.0 and a <= 2.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and a >= -2.0 and a <= 2.0
 next = [FAST, MEDIUM_ECO]
 [Rsys.mode.MEDIUM_BRISK]
 ode = v' = smt2:(- 1.1 v); s' = v; a' = smt2:0;
 guard = s >= 20.0 and s < 50.0 and v >= 0.3 and v <= 1.1
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -2.0 and a <= 2.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and a >= -2.0 and a <= 2.0
 next = [FAST, MEDIUM_BRISK]
 [Rsys.mode.FAST]
 ode = v' = smt2:(- 1.5 v); s' = v; a' = smt2:0;
 guard = s >= 50.0 and v >= 0.3 and v <= 1.5
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and s <= 100.0 and a >= -2.0 and a <= 2.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and a >= -2.0 and a <= 2.0
 next = [FAST]
 [relational_invariant]
 SLOW         = smt2:(and (<= (+ L_a (* 5.0 L_v)) (+ (* 5.0 R_v) 0.35)) (<= L_s (+ R_s 0.5)))

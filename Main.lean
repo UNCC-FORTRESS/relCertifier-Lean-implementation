@@ -22,6 +22,7 @@ import RelCertifier.Verdicts.RunModal
 import RelCertifier.Verdicts.RunCut
 import RelCertifier.Verdicts.RunHandoff
 import RelCertifier.Verdicts.RunNonConn
+import RelCertifier.VerdictsV2.RunV2
 
 open RelCertifier DL
 
@@ -161,6 +162,31 @@ def runAllVerdicts (cfg : RelCertifier.Z3Config) : IO Bool := do
     RelCertifier.Verdicts.prunedEdges.length exp.prunedEdges
   pure (ok2 && ok3 && ok4 && ok5 && c2 && c3 && c4 && c5 && c5')
 
+/-- Every suite_v2 verdict phase, with its declared coverage checked (`--run-verdicts-v2`,
+`--check-quick-v2`). -/
+def runAllVerdictsV2 (cfg : RelCertifier.Z3Config) : IO Bool := do
+  let n0 ← RelCertifier.Verdicts.dischargedCount.get
+  let ok1 ← RelCertifier.VerdictsV2.runModalV2 cfg
+  let n1 ← RelCertifier.Verdicts.dischargedCount.get
+  let c1 ← RelCertifier.Verdicts.checkPhase "suite_v2 modal" (n1 - n0)
+    RelCertifier.VerdictsV2.expectedModalV2
+  let ok2 ← RelCertifier.VerdictsV2.runHandoffAllV2 cfg
+  let n2 ← RelCertifier.Verdicts.dischargedCount.get
+  let c2 ← RelCertifier.Verdicts.checkPhase "suite_v2 handoff" (n2 - n1)
+    (RelCertifier.VerdictsV2.expectedHandoffV2
+      - RelCertifier.VerdictsV2.expectedHandoffFailuresV2.length)
+  let ok3 ← RelCertifier.VerdictsV2.runNonConnAllV2 cfg
+  let n3 ← RelCertifier.Verdicts.dischargedCount.get
+  let c3 ← RelCertifier.Verdicts.checkPhase "suite_v2 non-connection" (n3 - n2)
+    RelCertifier.VerdictsV2.expectedNonConnV2
+  let c3' ← RelCertifier.Verdicts.checkPhase "suite_v2 pruned edges"
+    RelCertifier.VerdictsV2.prunedEdgesV2.length RelCertifier.VerdictsV2.expectedPrunedEdgesV2
+  let ok4 ← RelCertifier.VerdictsV2.runSameModalV2 cfg
+  let n4 ← RelCertifier.Verdicts.dischargedCount.get
+  let c4 ← RelCertifier.Verdicts.checkPhase "suite_v2 copied benchmarks (legacy packs)"
+    (n4 - n3) RelCertifier.VerdictsV2.expectedSameModalV2
+  pure (ok1 && c1 && ok2 && c2 && ok3 && c3 && c3' && ok4 && c4)
+
 def usage : String :=
 "relcert — the relCertifier certification tool
 
@@ -173,6 +199,12 @@ USAGE
   relcert --handoff <input.txt>...        the handoff check alone, per benchmark, with
                                           per-transition verdicts and wall time
   relcert --check-quick <input.txt>...    the fast checks: certify, then --run-verdicts
+  relcert --run-verdicts-v2               the suite_v2 hypotheses: modal packs of the
+                                          InstancesV2 theorems, handoff and
+                                          non-connection phases (declared counts)
+  RELCERT_IMPLIED_CUT=1 relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt
+                                          the suite_v2 fast checks (45 certified,
+                                          0 declined), then --run-verdicts-v2
   relcert --help                          this text
 
 EMITTERS (regenerate committed Lean literals; each prints to stdout)
@@ -352,6 +384,14 @@ def main (args : List String) : IO Unit := do
             IO.println "ALL HYPOTHESES DISCHARGED"
           else
             IO.eprintln "SOME HYPOTHESIS NOT DISCHARGED"; IO.Process.exit 1
+  | ["--run-verdicts-v2"] => do
+      match ← RelCertifier.Z3Config.discover with
+      | .error e => IO.eprintln s!"ERROR: {e}"; IO.Process.exit 1
+      | .ok cfg =>
+          if ← runAllVerdictsV2 cfg then
+            IO.println "ALL suite_v2 HYPOTHESES DISCHARGED"
+          else
+            IO.eprintln "SOME suite_v2 HYPOTHESIS NOT DISCHARGED"; IO.Process.exit 1
   | ["--emit-viability3", path, defname] => do
       match ← RelCertifier.Z3Config.discover with
       | .error e => IO.eprintln s!"ERROR: {e}"; IO.Process.exit 1
@@ -394,6 +434,29 @@ def main (args : List String) : IO Unit := do
           s.close
           IO.println s!"handoff: {total} transition(s) checked over {paths.length} benchmark(s)"
           if anyFail then IO.Process.exit 1
+  | "--check-quick-v2" :: paths => do
+      if paths.isEmpty then
+        IO.eprintln "ERROR: --check-quick-v2 needs the suite_v2 paths (see --help)"
+        IO.Process.exit 2
+      if (← IO.getEnv "RELCERT_IMPLIED_CUT").isNone ||
+          (← IO.getEnv "RELCERT_NO_IMPLIED_CUT").isSome then
+        IO.eprintln "ERROR: --check-quick-v2 certifies suite_v2 with the widened cut channel; \
+run it as RELCERT_IMPLIED_CUT=1 relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt"
+        IO.Process.exit 2
+      IO.println "== check 1/2 : certify the suite_v2 benchmarks (widened cut channel) =="
+      let (cert, decl, errs) ← runBatchTally paths
+      let okSuite ← RelCertifier.VerdictsV2.checkSuiteV2 paths.length cert decl errs
+      IO.println "\n== check 2/2 : discharge the suite_v2 verdict hypotheses =="
+      let okVerd ← match ← RelCertifier.Z3Config.discover with
+        | .error e => IO.eprintln s!"ERROR: {e}"; pure false
+        | .ok cfg => runAllVerdictsV2 cfg
+      IO.println ""
+      IO.println s!"  suite_v2: {if okSuite then "PASS" else "FAIL"}"
+      IO.println s!"  verdicts: {if okVerd then "PASS" else "FAIL"}"
+      if okSuite && okVerd then
+        IO.println "SUITE_V2 QUICK CHECKS PASSED  (the kernel check is `lake build`)"
+      else
+        IO.eprintln "SUITE_V2 QUICK CHECKS FAILED"; IO.Process.exit 1
   | "--check-quick" :: paths => do
       if paths.isEmpty then
         IO.eprintln "ERROR: --check-quick needs benchmark paths (see --help)"

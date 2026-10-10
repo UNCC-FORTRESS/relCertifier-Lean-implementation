@@ -1,0 +1,97 @@
+/- suite_v2 cover aggregator (GENERATED — `scripts/gen_v2_data.py`). -/
+import RelCertifier.InstancesV2.BenchCovers.acc_spoof_lag
+import RelCertifier.InstancesV2.BenchCovers.acc_spoof_limp
+import RelCertifier.InstancesV2.BenchCovers.acc_tune_lag
+import RelCertifier.InstancesV2.BenchCovers.acc_tune_limp
+import RelCertifier.InstancesV2.BenchCovers.arm_plateau_crit
+import RelCertifier.InstancesV2.BenchCovers.arm_plateau_profiles
+import RelCertifier.InstancesV2.BenchCovers.arm_plateau_slow
+import RelCertifier.InstancesV2.BenchCovers.charger_fast_setpoints
+import RelCertifier.InstancesV2.BenchCovers.charger_fast_tapers
+import RelCertifier.InstancesV2.BenchCovers.match_multi_rate
+import RelCertifier.InstancesV2.BenchCovers.platoon3_linkloss
+import RelCertifier.InstancesV2.BenchCovers.platoon3_profiles
+import RelCertifier.InstancesV2.BenchCovers.platoon_delay_linkloss
+import RelCertifier.InstancesV2.BenchCovers.platoon_delay_profiles
+import RelCertifier.InstancesV2.BenchCovers.quad_light_airframe_20
+import RelCertifier.InstancesV2.BenchCovers.quad_light_lag
+import RelCertifier.InstancesV2.BenchCovers.quad_light_profiles
+import RelCertifier.InstancesV2.BenchCovers.refinement_ladder_rover_rung1_2to3
+import RelCertifier.InstancesV2.BenchCovers.refinement_ladder_rover_rung2_3to6
+import RelCertifier.InstancesV2.BenchCovers.refinement_ladder_rover_rung2_6dof
+import RelCertifier.InstancesV2.BenchCovers.refinement_ladder_rover_rung2b_6dof
+import RelCertifier.InstancesV2.BenchCovers.refinement_ladder_rover_rung2c_6dof
+import RelCertifier.InstancesV2.BenchCovers.refinement_ladder_rover_rung3_6to8
+import RelCertifier.InstancesV2.BenchCovers.refinement_ladder_rover_rung4_8to12
+import RelCertifier.InstancesV2.BenchCovers.rover3tier_rung12
+import RelCertifier.InstancesV2.BenchCovers.rover_dof_terrain_rung1
+import RelCertifier.InstancesV2.BenchCovers.rover_dof_terrain_rung2
+import RelCertifier.InstancesV2.BenchCovers.rover_dof_terrain_rung3
+import RelCertifier.InstancesV2.BenchCovers.rover_dof_terrain_rung3_8d
+import RelCertifier.InstancesV2.BenchCovers.rover_patrol_refine
+import RelCertifier.InstancesV2.BenchCovers.rover_patrol_zones
+import RelCertifier.InstancesV2.BenchCovers.sat3w_detumble_nominal
+import RelCertifier.InstancesV2.BenchCovers.sat3w_detumble_phases
+import RelCertifier.InstancesV2.BenchCovers.sat3w_detumble_weak
+import RelCertifier.InstancesV2.BenchCovers.sat_detumble_nominal
+import RelCertifier.InstancesV2.BenchCovers.sat_detumble_phases
+import RelCertifier.InstancesV2.BenchCovers.sat_detumble_weak
+import RelCertifier.InstancesV2.BenchCovers.story1_attdist_rung_a_6to8
+import RelCertifier.InstancesV2.BenchCovers.story1_attdist_rung_b_12dof
+import RelCertifier.InstancesV2.BenchCovers.story2_lateral_rung_a_8dof
+import RelCertifier.InstancesV2.BenchCovers.story2_lateral_rung_b_12dof
+import RelCertifier.InstancesV2.BenchCovers.story3_rollover_base_12dof
+import RelCertifier.InstancesV2.BenchCovers.story3_rollover_ladder_rung_a
+import RelCertifier.InstancesV2.BenchCovers.story3_rollover_ladder_rung_b
+import RelCertifier.InstancesV2.BenchCovers.watertank
+
+namespace RelCertifier
+
+def coverTableV2 : List (String × CoverEmitE) := [
+  ("acc_spoof_lag", acc_spoof_lag_coverV2),
+  ("acc_spoof_limp", acc_spoof_limp_coverV2),
+  ("acc_tune_lag", acc_tune_lag_coverV2),
+  ("acc_tune_limp", acc_tune_limp_coverV2),
+  ("arm_plateau_crit", arm_plateau_crit_coverV2),
+  ("arm_plateau_profiles", arm_plateau_profiles_coverV2),
+  ("arm_plateau_slow", arm_plateau_slow_coverV2),
+  ("charger_fast_setpoints", charger_fast_setpoints_coverV2),
+  ("charger_fast_tapers", charger_fast_tapers_coverV2),
+  ("match_multi_rate", match_multi_rate_coverV2),
+  ("platoon3_linkloss", platoon3_linkloss_coverV2),
+  ("platoon3_profiles", platoon3_profiles_coverV2),
+  ("platoon_delay_linkloss", platoon_delay_linkloss_coverV2),
+  ("platoon_delay_profiles", platoon_delay_profiles_coverV2),
+  ("quad_light_airframe_20", quad_light_airframe_20_coverV2),
+  ("quad_light_lag", quad_light_lag_coverV2),
+  ("quad_light_profiles", quad_light_profiles_coverV2),
+  ("refinement_ladder_rover_rung1_2to3", refinement_ladder_rover_rung1_2to3_coverV2),
+  ("refinement_ladder_rover_rung2_3to6", refinement_ladder_rover_rung2_3to6_coverV2),
+  ("refinement_ladder_rover_rung2_6dof", refinement_ladder_rover_rung2_6dof_coverV2),
+  ("refinement_ladder_rover_rung2b_6dof", refinement_ladder_rover_rung2b_6dof_coverV2),
+  ("refinement_ladder_rover_rung2c_6dof", refinement_ladder_rover_rung2c_6dof_coverV2),
+  ("refinement_ladder_rover_rung3_6to8", refinement_ladder_rover_rung3_6to8_coverV2),
+  ("refinement_ladder_rover_rung4_8to12", refinement_ladder_rover_rung4_8to12_coverV2),
+  ("rover3tier_rung12", rover3tier_rung12_coverV2),
+  ("rover_dof_terrain_rung1", rover_dof_terrain_rung1_coverV2),
+  ("rover_dof_terrain_rung2", rover_dof_terrain_rung2_coverV2),
+  ("rover_dof_terrain_rung3", rover_dof_terrain_rung3_coverV2),
+  ("rover_dof_terrain_rung3_8d", rover_dof_terrain_rung3_8d_coverV2),
+  ("rover_patrol_refine", rover_patrol_refine_coverV2),
+  ("rover_patrol_zones", rover_patrol_zones_coverV2),
+  ("sat3w_detumble_nominal", sat3w_detumble_nominal_coverV2),
+  ("sat3w_detumble_phases", sat3w_detumble_phases_coverV2),
+  ("sat3w_detumble_weak", sat3w_detumble_weak_coverV2),
+  ("sat_detumble_nominal", sat_detumble_nominal_coverV2),
+  ("sat_detumble_phases", sat_detumble_phases_coverV2),
+  ("sat_detumble_weak", sat_detumble_weak_coverV2),
+  ("story1_attdist_rung_a_6to8", story1_attdist_rung_a_6to8_coverV2),
+  ("story1_attdist_rung_b_12dof", story1_attdist_rung_b_12dof_coverV2),
+  ("story2_lateral_rung_a_8dof", story2_lateral_rung_a_8dof_coverV2),
+  ("story2_lateral_rung_b_12dof", story2_lateral_rung_b_12dof_coverV2),
+  ("story3_rollover_base_12dof", story3_rollover_base_12dof_coverV2),
+  ("story3_rollover_ladder_rung_a", story3_rollover_ladder_rung_a_coverV2),
+  ("story3_rollover_ladder_rung_b", story3_rollover_ladder_rung_b_coverV2),
+  ("watertank", watertank_coverV2) ]
+
+end RelCertifier

@@ -66,6 +66,65 @@ Read `README.md` first for what the theorems say. This document is only about
 
 ---
 
+## suite_v2 — the paper's suite (2026-10-09/10, branch `suite-v2-lean`)
+
+> **Last run (2026-10-10, branch `suite-v2-lean`): all four checks green, all 45 benchmarks
+> with Theorem 3.** `lake build` exit 0, `Build completed successfully (9122 jobs)` (warm),
+> no `sorry` · `RELCERT_IMPLIED_CUT=1 relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt`:
+> `[suite_v2] 45 certified, 0 declined, 0 error(s) — matches the declared suite`, coverage
+> modal 262/262, handoff 186/186, non-connection 88/88, pruned edges 44/44, copied benchmarks
+> 385/385, `SUITE_V2 QUICK CHECKS PASSED` · `BENCH_PATHS=<manifest> relcert-test`: `ALL PASS`
+> (`[ir-drift-v2]` all 45 suite_v2 IR literals match their files) · axiom audit over
+> `BatteryV2`: 51 lines (46 benchmark theorems + 5 generic lemmas), 42 with `z3_unsat_sound`,
+> 9 with the standard three alone (Z3-free benchmarks: `arm_plateau_{crit,profiles,slow}`,
+> `refinement_ladder_rover_rung2_6dof`, `rung2b_6dof`), nothing else.
+
+`benchmarks/suite_v2/` (45 benchmarks) is the suite the paper reports. Its checks mirror
+the legacy ones, with their own entry points; the legacy `suite_uniform` battery stays
+buildable and is not extended.
+
+| # | what it establishes | command |
+|---|---|---|
+| 1 | the suite_v2 theorems kernel-check, with their axiom audit | `lake build RelCertifier.InstancesV2.BatteryV2 2>&1 \| grep -A3 "depends on axioms"` |
+| 2 | every suite_v2 file certifies (45 / 0 / 0 declared) and every Z3 hypothesis of the suite_v2 battery holds, with declared counts | `RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt` |
+| 2' | the hypotheses alone | `./.lake/build/bin/relcert --run-verdicts-v2` |
+| 3 | each suite_v2 file parses to the literal the theorems quote | `BENCH_PATHS=<manifest> ./.lake/build/bin/relcert-test` (the `[ir-drift-v2]` block) |
+
+`--check-quick-v2` refuses to run without `RELCERT_IMPLIED_CUT=1` (twelve suite_v2
+benchmarks DECLINE without the widened cut channel, so a run without it would not be the
+suite's run). The manifest for `relcert-test`'s determinism checks:
+
+```bash
+for d in benchmarks/suite_v2/*/; do
+  printf '%s\t%s\n' "$(basename "$d")" "$PWD/$d/input.txt"
+done > /tmp/bench-paths-v2.tsv
+printf 'rover_terrain_M1\t%s\n' "$PWD/benchmarks/suite_uniform/rover_terrain_M1/input.txt" \
+  >> /tmp/bench-paths-v2.tsv      # the declined benchmark the second determinism check uses
+BENCH_PATHS=/tmp/bench-paths-v2.tsv ./.lake/build/bin/relcert-test   # → bare "ALL PASS"
+```
+
+What each piece is (all under `RelCertifier/InstancesV2/` and `RelCertifier/VerdictsV2/`):
+
+* `BenchIR/<b>.lean` — the 45 parser-emitted literals (`scripts/gen_v2_data.py`);
+  `[ir-drift-v2]` re-parses each file and compares.
+* `Cuts/<b>.lean` — the extended cut certificates (`RELCERT_IMPLIED_CUT=1 relcert
+  --emit-cuts`), each kernel-checked well formed (`evolStrengtheningWFX … = true := rfl`).
+* `BenchCovers/<b>.lean`, `CoverReplay.lean` — the emitted covers and their kernel replay
+  (`decideCovered` by `decide`, every left mode, every admissible start).
+* `SameIR.lean` — for the 19 benchmarks copied unchanged from `suite_uniform`, the v2
+  literal IS the legacy literal (`rfl`); their legacy theorems are therefore theorems
+  about the suite_v2 files, and their legacy packs are re-run by `--run-verdicts-v2`.
+* `Modal/<Bench>.lean` — the new instances: Theorem 3 at the declared invariant (the
+  mode-keyed form for mode-dependent rows), right regions = the right mode's kept cut
+  atoms, pruned sinks excluded.
+* `VerdictsV2/RunV2.lean` — the runner: the new instances' packs (`packsV2`, rebuilt by
+  `modalVerdXQueries`), the handoff phase over all 45 files, the non-connection phase over
+  every pruned edge of the emitted covers (the source cut rebuilt from the extended
+  certificate), and the copied benchmarks' legacy packs. `PinsV2.lean` proves each
+  instance's `Verd` is its table row; `ModalX.modalVerdX_of_queries` proves the rebuilt
+  queries denote the hypothesis; `CoveragePinsV2.lean` derives every declared count from
+  its table.
+
 ## 0. The chain being checked
 
 ```

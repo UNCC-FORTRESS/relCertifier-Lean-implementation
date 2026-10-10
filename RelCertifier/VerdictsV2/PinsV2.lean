@@ -14,6 +14,7 @@ kernel-checked.
 -/
 import RelCertifier.VerdictsV2.RunV2
 import RelCertifier.InstancesV2.Modal.Watertank
+import RelCertifier.InstancesV2.Modal.PlatoonDelayProfiles
 
 namespace RelCertifier.VerdictsV2
 
@@ -58,5 +59,20 @@ theorem pin_watertank_22 : V2Watertank.Verd 2 2 = packVerd (packsV2.getD 9 defau
   pin_row _ rfl irV2_watertank cutV2_watertank (by simp [packLam, packsV2, V2Watertank.lam])
 theorem pin_watertank_23 : V2Watertank.Verd 2 3 = packVerd (packsV2.getD 10 default) :=
   pin_row _ rfl irV2_watertank cutV2_watertank (by simp [packLam, packsV2, V2Watertank.lam])
+
+theorem irV2_pdp : irV2 "platoon_delay_profiles" = platoon_delay_profiles_IRv2 := by decide
+theorem cutV2_pdp : cutV2 "platoon_delay_profiles" = Oracle.platoon_delay_profiles_cutsV2X := by decide
+theorem pin_platoon_delay_profiles_00 : V2PlatoonDelayProfiles.Verd 0 0 = packVerd (packsV2.getD 11 default) :=
+  pin_row _ rfl irV2_pdp cutV2_pdp (by simp [packLam, packsV2, V2PlatoonDelayProfiles.lam])
+theorem pin_platoon_delay_profiles_01 : V2PlatoonDelayProfiles.Verd 0 1 = packVerd (packsV2.getD 12 default) :=
+  pin_row _ rfl irV2_pdp cutV2_pdp (by simp [packLam, packsV2, V2PlatoonDelayProfiles.lam])
+theorem pin_platoon_delay_profiles_02 : V2PlatoonDelayProfiles.Verd 0 2 = packVerd (packsV2.getD 13 default) :=
+  pin_row _ rfl irV2_pdp cutV2_pdp (by simp [packLam, packsV2, V2PlatoonDelayProfiles.lam])
+theorem pin_platoon_delay_profiles_10 : V2PlatoonDelayProfiles.Verd 1 0 = packVerd (packsV2.getD 14 default) :=
+  pin_row _ rfl irV2_pdp cutV2_pdp (by simp [packLam, packsV2, V2PlatoonDelayProfiles.lam])
+theorem pin_platoon_delay_profiles_11 : V2PlatoonDelayProfiles.Verd 1 1 = packVerd (packsV2.getD 15 default) :=
+  pin_row _ rfl irV2_pdp cutV2_pdp (by simp [packLam, packsV2, V2PlatoonDelayProfiles.lam])
+theorem pin_platoon_delay_profiles_12 : V2PlatoonDelayProfiles.Verd 1 2 = packVerd (packsV2.getD 16 default) :=
+  pin_row _ rfl irV2_pdp cutV2_pdp (by simp [packLam, packsV2, V2PlatoonDelayProfiles.lam])
 
 end RelCertifier.VerdictsV2

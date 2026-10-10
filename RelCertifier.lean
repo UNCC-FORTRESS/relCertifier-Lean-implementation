@@ -133,3 +133,4 @@ import RelCertifier.Instances.ThroughoutBattery
 
 -- The modal battery: every benchmark's Theorem 3 + its axiom audit (docs/CERTIFICATION-CHECK.md)
 import RelCertifier.Instances.ModalBattery
+import RelCertifier.InstancesV2.BatteryV2

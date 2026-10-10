@@ -5,17 +5,16 @@ Released under Apache 2.0 license.
 # The joint variable list (leaf)
 
 The lowering (`Trusted/Run.lean`) indexes the joint state `Var n = Side × Fin n` by ONE
-variable list: coordinate `i` names `L_<vars[i]>` and `R_<vars[i]>`. Until 2026-10-08
-every CLI entry used `p.L.stateVars` for that list, so a right-only variable (declared in
-`[Rsys] state_vars` but not in `[Lsys]`) had no coordinate and every query of the
-benchmark failed to lower — `shield_unreachable` (right `w`) reported an inconclusive
-verdict on every path for that reason alone.
+variable list: coordinate `i` names `L_<vars[i]>` and `R_<vars[i]>`. With the left list
+alone, a right-only variable (declared in `[Rsys] state_vars` but not in `[Lsys]`) would
+have no coordinate and every query of the benchmark would fail to lower.
 
 `jointVars` is the left list followed by the right-only names, in declaration order. A
 right-only variable gets a left coordinate `L_w` that no left formula mentions and whose
 left derivative is `0` (`dynOf`: a variable with no `ode` row is held fixed), which is
-exactly the "absent on the left" reading. Benchmarks whose sides declare the same
-variables (the whole emitted suite) get `p.L.stateVars` back unchanged, so nothing the
+exactly the "absent on the left" reading. A benchmark whose right list is contained in
+the left one gets `p.L.stateVars` back unchanged; that is every suite_v2 benchmark (41
+declare the same variables on both sides, four declare a right sublist), so nothing the
 kernel instances quote moves.
 
 Leaf over `Parse` only: `Run.lean` stays untouched (it is upstream of every proof).

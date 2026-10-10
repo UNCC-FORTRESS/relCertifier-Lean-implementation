@@ -5,8 +5,8 @@ Released under Apache 2.0 license.
 # W6 — the unknown-key audit gate
 
 The trusted parser reads the keys it knows and SILENTLY DROPS the rest: a
-`reset = x := 1.0` line certifies green with the reset discarded, and every suite
-input carries an unread `max_depth` (docs/COVER-AUDIT.md). Editing `Trusted/Parse`
+`reset = x := 1.0` line would certify green with the reset discarded, and every suite
+input carries an unread `max_depth` (`docs/history/COVER-AUDIT.md`). Editing `Trusted/Parse`
 to reject would force a world rebuild (it is upstream of every emitted leaf), so
 the gate lives at the CLI boundary instead: every entry point that reads a
 benchmark runs `auditKeys` first and REFUSES inputs containing sections or keys
@@ -15,7 +15,7 @@ a model containing directives it ignored — with an exe-only rebuild.
 
 Recognized: `[problem]` name/max_depth/lambda_min/lambda_max/bound_T (max_depth
 and bound_T are read by no stage and are on the explicit IGNORED list — present in
-all 47 suite inputs); `[Lsys]`/`[Rsys]` state_vars/epsilon; mode sections
+all 45 suite_v2 inputs); `[Lsys]`/`[Rsys]` state_vars/epsilon; mode sections
 ode/guard/evolve/next; `[relational_invariant]` any key (keys are mode names).
 -/
 import RelCertifier.Trusted.Parse

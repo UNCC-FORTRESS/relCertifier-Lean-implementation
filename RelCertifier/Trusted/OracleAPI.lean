@@ -2,18 +2,41 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The oracle API (TRUSTED harness layer, not verified)
+# The certifier (TRUSTED harness layer, not verified)
 
-The in-process entry point synthesis calls thousands of times. Three distinct,
-never-conflated outcomes:
+`certify` decides one benchmark on a warm Z3 session (`relcert <input.txt>`). The search
+is untrusted: what soundness rests on is the verdicts it records (Z3 `unsat`, consumed
+through `z3_unsat_sound`) and the cover decision, which is made by the verified checker
+`decideCovered` and replayed in the kernel from the emitted flags.
 
-* `certified` — the verified cover closed via sound routes only (every segment on a
-  covering path returned Z3 `unsat` on its `flowQueryStrict`). A real, sound YES.
+* **Checked cuts** (`checkedCut`; `checkedCutX` under `RELCERT_IMPLIED_CUT=1`, the widened
+  channel of `Checker/EvolStrengtheningX.lean`): per mode, atoms implied by its guard (O1)
+  and kept by its own flow (O2); they only narrow query domains.
+* **Non-connection pruning** (`nonConnPrune`): a declared right edge is dropped when both
+  queries of `Trusted/NonConnQuery.lean` are `unsat`.
+* **Per left mode** (`coverMode`): the admissible right starts (`admissible`); per right
+  mode the dynamic right-only reposition (`checkDynRepo`: the right flows under its own
+  field with the left frozen, the invariant preserved on the whole domain, before and after
+  the left jump); per λ on the grid and per right mode the joint segment (`checkSeg`: every
+  invariant component certified by route A, B or C over the cut-narrowed, stratified
+  domain). The cover closes when `decideCovered` accepts from every admissible start.
+  These are the only two step kinds: joint segments and dynamic right-only reposition.
+  There is no zero-duration right switch.
+
+Budgets, per benchmark (env-overridable): query budget `RELCERT_MAX_QUERIES` = 20000,
+wall-clock budget `RELCERT_TIME_BUDGET_MS` = 40000 ms; per query (`Trusted/Z3.lean`):
+timeout 10 s, rlimit 64 000 000.
+
+Three distinct, never-conflated outcomes:
+
+* `certified` — the verified cover closed via sound routes only (every component of every
+  segment on a covering path returned Z3 `unsat` on one of its route queries). A real,
+  sound YES.
 * `declined`  — every query returned a definitive `sat`/`unsat`, and no cover closes.
   A real, sound NO (genuine incompleteness).
 * `error msg` — ANY harness/solver/environment failure: unlowerable invariant, Z3
-  spawn/crash/EOF, malformed SMT, `unknown`/timeout verdict. NEVER a verdict — the
-  synthesis driver must treat this as retry/abort, never as signal.
+  spawn/crash/EOF, malformed SMT, `unknown`/timeout verdict, budget exceeded. NEVER a
+  verdict.
 
 Honesty invariant: an `error` can never masquerade as `declined`/`certified`. A Z3
 `unknown` or process failure taints only routes it touches; if a covering route needed
@@ -131,10 +154,11 @@ def checkedCut (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
   pure (cut, kept.map (fun c => (c.1, c.2.2)))
 
 /-- **The extended cut channel switch** (L1 implied-contraction atoms and L2 closures,
-`Checker/EvolStrengtheningX.lean`). Default OFF: the `suite_uniform` instances `rfl`-pin
-the legacy certificate and the covers searched with it, so by default the tool emits
-exactly what it did before. `RELCERT_IMPLIED_CUT=1` turns the channel on (the
-`suite_v2` runs, `scripts/suite_v2_matrix.py`); `RELCERT_NO_IMPLIED_CUT=1` overrides to
+`Checker/EvolStrengtheningX.lean`). Default OFF, so that a run without it searches with
+the guard-conjunct certificate alone (the certificate the 19 carried-over legacy instances
+quote). `RELCERT_IMPLIED_CUT=1` turns the channel on (every suite_v2 run,
+`scripts/suite_v2_matrix.py`; 12 suite_v2 benchmarks DECLINE without it);
+`RELCERT_NO_IMPLIED_CUT=1` overrides to
 off (the matrix's counter-run: legacy cuts only, so a benchmark that then DECLINES is
 load-bearing on the implied atoms — the "M6+" cell). -/
 def impliedCutsOn : IO Bool := do
@@ -307,8 +331,8 @@ def andCuts {n : ℕ} (base cutL cutR : IForm n) : IForm n :=
   let b1 := if cutL == IForm.tt then base else IForm.and base cutL
   if cutR == IForm.tt then b1 else IForm.and b1 cutR
 
-/-- Check one segment `(qL=mL, qR=mR, λ)`: `pass` iff EVERY component's strict flow query
-is Z3-`unsat`; `fail` iff some component is definitively `sat`; `incon` on any Z3
+/-- Check one segment `(qL=mL, qR=mR, λ)`: `pass` iff EVERY component has a route query
+(A, B or C, `Run.routeQueries`) that is Z3-`unsat`; `fail` iff some component is definitively `sat`; `incon` on any Z3
 error/`unknown` or unbuildable query. -/
 def checkSeg (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     (vars : List String) (n : ℕ) (coord : Fin n → String)
@@ -321,7 +345,7 @@ def checkSeg (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
   -- UNSOUND for routes A/C: with `comps = [x², x²]`, `x' = 1`, each narrowed domain is
   -- `{x = 0}` and route A's query `x = 0 ∧ 2x > 0` is UNSAT — falsely certifying
   -- `x² ≤ 0` under `x' = 1` (the t²-pathology; see `nonstrict_boundary_insufficient`
-  -- and docs/COVER-AUDIT.md R4). Stratified soundness: round-1 components certify on
+  -- and docs/history/COVER-AUDIT.md R4). Stratified soundness: round-1 components certify on
   -- the bare domain (single-component theorems); a round-k component's runs lie in the
   -- earlier-strata-narrowed ode because those invariants hold pointwise by induction.
   -- The checked cuts remain in all domains (independently justified, O1/O2).
@@ -381,7 +405,7 @@ def checkDynRepo (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     IO (Bool × List Nat) := do
   let gLform : IForm n := (if withGuardL then lowerF vars n Side.L mL.guard else some IForm.tt).getD IForm.tt
   -- STRATIFIED (soundness, same discipline as checkSeg — the previous mutual narrowing
-  -- was a circular cut, unsound for the whole-domain route; see docs/COVER-AUDIT.md R4):
+  -- was a circular cut, unsound for the whole-domain route; see docs/history/COVER-AUDIT.md R4):
   -- a component's domain is narrowed only by components proven in earlier rounds.
   let mut proven : List Nat := []
   for _ in List.range (comps.length + 1) do
@@ -548,10 +572,9 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
   for mR in p.R.modes do
     if ← admissible s cnt maxQ maxSmt deadline vars n coord comps mL mR then
       admMods := admMods ++ [mR]
-  -- There is NO static (zero-duration) reposition (removed 2026-10-09): a right mode switch at a
-  -- single instant, with no check that the successor's guard holds at the switch state, is not
-  -- a move the guarded right automaton can make (docs/COVER-AUDIT.md, note of 2026-10-09). The
-  -- only right-only move is the DYNAMIC reposition below: a full-interval right-only flow.
+  -- The only right-only move is the DYNAMIC reposition below: a full-interval right-only flow.
+  -- There is no zero-duration right switch (one that would switch at a single instant with no
+  -- check that the successor's guard holds there).
   -- DYNAMIC reposition (certificate 3): right-only whole-domain flow cert (route A), σ-matched.
   -- λ-independent (fL=0, λ=1; sign λ-invariant), computed ONCE. For the rover cross-terrain hop,
   -- `ġ_s=−v_R≤0` and `ġ_v` on the terrain's v-evolve-cap ⟹ route-A UNSAT ⟹ the advancing reposition.
@@ -703,7 +726,7 @@ def certifyWithData (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : N
   -- so computed ONCE for the whole problem. Edge `mR → tgt` pruned iff BOTH nonconn checks are
   -- definitive Z3 UNSAT (`nonConnPrune`); any other verdict keeps it. Drop-only-on-UNSAT ⟹ sound.
   -- RELCERT_NO_PRUNE=1 disables non-connection pruning entirely (ablation switch, the
-  -- `--no-prune` of docs/PRUNING.md: every declared edge stays in the cover's
+  -- counter-run of the suite_v2 matrix: every declared edge stays in the cover's
   -- all-successors obligation; the two pruning queries are not issued).
   let noPrune := (← IO.getEnv "RELCERT_NO_PRUNE").isSome
   let mut prunedPairs : List (String × String) := []
@@ -839,7 +862,8 @@ query — `flowQueryStrict` with the left frozen (`fL = 0`, λ = 1) over the mod
 evolve box: `UNSAT(evolve ∧ face = 0 ∧ face-Lie ≥ 0)`. All faces UNSAT ⟹ the mode's
 flows exist and stay in the box for any duration (`box_viability`). Declines honestly
 on equilibrium-on-face and integrator (growth) faces — those take the bounded-time
-variant (docs/COVER-AUDIT.md R6) or a named per-mode hypothesis. -/
+variant (docs/history/COVER-AUDIT.md R6) or a named per-mode hypothesis. Used only by
+`--emit-viability`. -/
 def checkViability (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     (vars : List String) (n : ℕ) (coord : Fin n → String) (mR : PMode) : IO Bool := do
   match evolveFacesR vars n mR.evolve, lowerF vars n Side.R mR.evolve,

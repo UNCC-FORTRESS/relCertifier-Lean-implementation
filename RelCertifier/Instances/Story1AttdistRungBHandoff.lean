@@ -22,8 +22,8 @@ automaton over the file's `next` lists, with the same region bookkeeping. Ingred
   identical row, self-loops are trivial.
 
 Residuals: six packs — `VerdR 0 m` (4 queries each, `m < 3`), `VerdR 1 1`, `VerdR 1 2`,
-`VerdR 2 2` (3 queries each) — every one re-run by `relcert --run-verdicts` and pinned to
-the runner's query in `Verdicts/ModalPinTable.lean`.
+`VerdR 2 2` (3 queries each) — every one re-run by `relcert --run-verdicts-v2` (phase
+"copied benchmarks") and pinned to the runner's query in `Verdicts/ModalPinTable.lean`.
 -/
 import RelCertifier.Instances.Story1AttdistRungBModal
 import RelCertifier.Proofs.Encoding.ModeHandoff

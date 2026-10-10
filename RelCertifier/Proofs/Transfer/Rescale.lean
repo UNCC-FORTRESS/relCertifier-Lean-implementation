@@ -4,6 +4,13 @@ Released under Apache 2.0 license.
 
 # The scaling-transfer lemma (seam #6): `GuardSettlingB` under state/time rescaling
 
+**Status.** Part of the settling / `Faithful` route (per-benchmark settling, terrain and
+affine models of the legacy suite, kernel-certified against the parsed IR). Its
+per-benchmark batteries (`SettlingInstances`, `TerrainInstances`, `AffineInstances`,
+`FaithfulCerts`, `RealInstances`) were retired with the legacy suite (git history); the
+suite_v2 theorems use the modal chain instead. The generic definitions and lemmas stay
+compiled as part of the soundness development.
+
 The kernel settling certificates hold for the SCALED model (integer data: values ×σᵢ,
 time in `dt`-units of `u` real seconds). The benchmark's own claim lives at real values
 and real time. This file proves the transfer once and for all: if the scaled model's

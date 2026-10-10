@@ -8,7 +8,8 @@ Each declared count in `RunV2` is proved equal to what the table that generates 
 produces, so the constants and the suite (or the pack table) can only change together.
 -/
 import RelCertifier.VerdictsV2.RunV2
-import RelCertifier.Verdicts.CoveragePins
+import RelCertifier.Verdicts.ModalTablePins
+import RelCertifier.Verdicts.ModalCodePins
 
 namespace RelCertifier.VerdictsV2
 

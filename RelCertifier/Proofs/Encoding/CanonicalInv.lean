@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# R3 — the canonical relational invariant (docs/ROADMAP.md R3)
+# R3 — the canonical relational invariant (docs/history/ROADMAP.md R3)
 
 The `hψ`/`hinvL`/`hinvR` residuals were per-benchmark hypotheses: SOME relational formula
 `ϕinv` with `encode ϕinv = invLe g` and side-split projections. This file constructs it

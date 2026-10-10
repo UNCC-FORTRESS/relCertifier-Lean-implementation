@@ -4,6 +4,13 @@ Released under Apache 2.0 license.
 
 # Real-model end-to-end, generic per family
 
+**Status.** Part of the settling / `Faithful` route (per-benchmark settling, terrain and
+affine models of the legacy suite, kernel-certified against the parsed IR). Its
+per-benchmark batteries (`SettlingInstances`, `TerrainInstances`, `AffineInstances`,
+`FaithfulCerts`, `RealInstances`) were retired with the legacy suite (git history); the
+suite_v2 theorems use the modal chain instead. The generic definitions and lemmas stay
+compiled as part of the soundness development.
+
 One theorem per model family, fully generic in the benchmark: from the kernel checker
 verdict (`decideWellFormed{,T,A}`), the kernel fidelity certificate
 (`faithfulSettling`/`Terrain`/`Affine`), the per-benchmark decidable side conditions,
@@ -11,7 +18,7 @@ the freshness data, and the Z3 `BoxLe` certificates, every declared mode of the 
 parsed benchmark satisfies the settling obligation at the real duration `u·dt`.
 
 Per-benchmark instantiation (Instances/) is then a dozen lines of `decide`/`rfl`/
-`norm_num` discharges — the watertank pattern, mechanized for all 46.
+`norm_num` discharges (the retired `Instances/RealInstances.lean` did this for the legacy suite).
 -/
 import RelCertifier.Proofs.Transfer.FaithfulBridgeGuards
 import RelCertifier.Proofs.Encoding.FvDischarge

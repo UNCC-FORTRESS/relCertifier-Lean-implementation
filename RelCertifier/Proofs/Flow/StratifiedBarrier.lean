@@ -2,13 +2,13 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# R4 — stratified differential cuts, kernel-checked (docs/ROADMAP.md R4)
+# R4 — stratified differential cuts, kernel-checked (docs/history/ROADMAP.md R4)
 
 The tool's `checkSeg` (since commit 1f9b578) certifies invariant components by
 STRATIFIED differential cuts: a component's flow query may narrow its domain only by
 components proven in EARLIER fixpoint rounds — sequential, acyclic DC. (The previous
 mutual narrowing was circular and unsound for the non-strict routes; see
-docs/COVER-AUDIT.md R4 and the `x², x' = 1` counterexample.)
+docs/history/COVER-AUDIT.md R4 and the `x², x' = 1` counterexample.)
 
 This file is the soundness of that discipline, in kernel:
 

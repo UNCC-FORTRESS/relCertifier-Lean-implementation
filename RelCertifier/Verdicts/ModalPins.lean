@@ -11,16 +11,16 @@ The modal instances' verdict hypotheses have the strata-narrowed shape
 
 A runner can only send *text* to Z3, so it must rebuild that query at the SMT-IR
 level and print it. These lemmas prove the rebuild denotes exactly the host-level
-term the hypothesis names — the same job `Verdicts/Watertank.lean` does for the
-flagship and `GenericPins.lean` does for the cut probes, for the one query shape
-those two do not cover.
+term the hypothesis names, for the strata-narrowed shape (`GenericPins.lean` does the
+same for single lowered components). The legacy-pack runner (`Verdicts/RunModal`) and the
+suite_v2 runner (`VerdictsV2/ModalX`) both rest on them.
 
 Why this matters concretely: an audit that *reconstructs* what a theorem asks Z3,
 rather than proving the reconstruction correct, is unreliable. On 2026-07-31 four
 separate reconstruction attempts produced false alarms (wrong component order,
 wrong invariant row, parse-pin names read as binders, failed joint attempts read
 as live certificates) before one real defect was isolated — see
-`docs/VERDICT-EVIDENCE-AUDIT.md` §4. With these pins the reconstruction cannot be
+`docs/history/VERDICT-EVIDENCE-AUDIT.md` §4. With these pins the reconstruction cannot be
 silently wrong: a mismatched rebuild fails to typecheck.
 
 Composed from the existing bridges (`iflowQuery_toHost`, `istrataDomHost_toHost`)

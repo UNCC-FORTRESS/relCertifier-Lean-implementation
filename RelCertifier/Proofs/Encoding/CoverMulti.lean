@@ -12,7 +12,7 @@ conjuncts) — with the segment fields discharged by the stratified multi-barrie
 `checkSeg`/`checkDynRepo` queries exactly.
 
 `check_sound_multi` is the runner↔theorem connection for the full conjunction: the
-kernel-replayed `decideCovered` (BenchCoverReplay) + the per-benchmark verdict bundle
+kernel-replayed `decideCovered` (`InstancesV2/CoverReplay`) + the per-benchmark verdict bundle
 give the ∀∃-throughout invariant of EVERY component simultaneously.
 -/
 import RelCertifier.Proofs.Flow.StratifiedBarrier

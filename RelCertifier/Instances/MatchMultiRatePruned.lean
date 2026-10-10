@@ -5,7 +5,7 @@ Released under Apache 2.0 license.
 # `match_multi_rate` with its pruned `STALL` fallback — Theorem 3 over the enlarged
 automaton, and the non-connection certificate (Theorem 2) of the pruned edge
 
-`benchmarks/suite_uniform/match_multi_rate/input.txt` declares (2026-10-08, additively)
+`benchmarks/suite_v2/match_multi_rate/input.txt` declares (2026-10-08, additively)
 a stall fallback on the right: `STALL` (`v' = −2v`, `s' = v`, guard `v < 0.2`, self-loop
 only) with the single declared edge `DRIVE → STALL`. The certifier PRUNES that edge by a
 non-connection certificate (paper Section 4.3): no `DRIVE` entry state has `v < 0.2`
@@ -13,7 +13,7 @@ non-connection certificate (paper Section 4.3): no `DRIVE` entry state has `v < 
 `v' = 1 − v = 0.8 > 0`, so the right flow moves strictly away from it. Without pruning
 (`RELCERT_NO_PRUNE=1`) the `FAST` and `MEDIUM` windows, whose covers take 3 and 2 `DRIVE`
 segments, owe the uncertifiable `STALL` successor and the benchmark is DECLINED; with
-pruning it is CERTIFIED as before (`docs/PRUNING.md`, with both runs).
+pruning it is CERTIFIED (`docs/history/PRUNING.md` has both runs).
 
 **Theorem 3 over the enlarged automaton** (`match_multi_rate_pruned`). The base instance
 `MatchMultiRateModal.match_multi_rate_modal` states Theorem 3 over the one-mode right
@@ -33,8 +33,9 @@ row, same pins).
 
 **The pruned edge's certificate** (`match_multi_rate_nonconn`). The two queries the
 certifier sent Z3 to prune `DRIVE → STALL` — `Trusted/NonConnQuery.lean`, rebuilt and
-re-run by `relcert --run-verdicts` phase 5 (`Verdicts/RunNonConn.lean`), pinned to this
-file's hypothesis by `Verdicts/NonConnPins.lean` — are stated here as `VerdNC`, and
+re-run by the non-connection phase of `relcert --run-verdicts-v2`
+(`VerdictsV2.runNonConnAllV2`), pinned to this file's hypothesis by
+`VerdictsV2/NonConnPinV2.lean` — are stated here as `VerdNC`, and
 `Proofs/Encoding/NonConnBridge.lean` turns them into Theorem 2's conclusion: from every
 `DRIVE` entry state (guard ∧ evolve ∧ `DRIVE`'s checked cut), along `DRIVE`'s right flow
 with the left frozen, `v_R < 0.2` never holds. Axioms: the standard three plus
@@ -188,7 +189,8 @@ theorem queriesD :
   queries_eq hgD hdomD hsrcD hdynD
 
 /-- The two verdicts the certifier observed to prune `DRIVE → STALL`: the source check
-and the barrier check, both `unsat`. Re-run by `relcert --run-verdicts` (phase 5). -/
+and the barrier check, both `unsat`. Re-run by the non-connection phase of
+`relcert --run-verdicts-v2` (`VerdictsV2/NonConnPinV2.lean`). -/
 def VerdNC : Prop :=
   z3solve (srcQuery gD srcD cutD).toHost = Verdict.unsat ∧
   z3solve (barQuery gD domD cutD fD).toHost = Verdict.unsat

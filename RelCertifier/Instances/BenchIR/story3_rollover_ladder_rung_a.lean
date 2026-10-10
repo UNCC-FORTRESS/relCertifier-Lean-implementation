@@ -11,7 +11,7 @@ import RelCertifier.Trusted.Parse
 
 namespace RelCertifier.Parse
 
-/-- Parser-emitted IR of `benchmarks/suite_uniform/story3_rollover_ladder_rung_a/input.txt` (do not edit). -/
+/-- Parser-emitted IR of `benchmarks/suite_v2/story3_rollover_ladder_rung_a/input.txt` (byte-identical to the retired legacy file it was emitted from; do not edit). -/
 def story3_rollover_ladder_rung_a_IR : PProblem :=
   {
     name := "story3_rollover_ladder_rung_a"

@@ -4,7 +4,8 @@ Released under Apache 2.0 license.
 
 # L7 — time reparametrization of stretched right runs
 
-23 of 46 benchmarks certify with some window's λ ≠ 1, and λ varies per window within
+Many benchmarks certify with some window's λ ≠ 1 (in suite_v2: 17 of 45, matrix column M1
+of `docs/SUITE-REDESIGN.md`), and λ may vary per window within
 one benchmark, while the right automaton has ONE fixed system per mode. The bridge:
 for a POSITIVE CONSTANT stretch, the run relation of the stretched right block equals
 the run relation of any other positive stretch — `sem` existentially quantifies the

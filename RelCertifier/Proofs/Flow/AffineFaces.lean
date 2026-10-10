@@ -4,9 +4,9 @@ Released under Apache 2.0 license.
 
 # L1c — affine-relaxation face invariance (the equilibrium-face class)
 
-45 faces across 8 benchmarks have the affine self-damping shape: the field reaches
+In the legacy suite, 45 faces across 8 benchmarks had the affine self-damping shape: the field reaches
 the face exactly at equilibrium (`x' = M − λ·x` with `M = λ·C` at the face `x ≤ C`,
-e.g. watertank `Mid`'s `x' = 3(1 − 0.04x)` at `x = 25`), so the face is neither
+e.g. the legacy watertank `Mid`'s `x' = 3(1 − 0.04x)` at `x = 25`), so the face is neither
 strict (`Lie = 0` there) nor non-strict over any region (`Lie > 0` inside). The
 UPPER-face lemma is `driven_bound_raw` (PicardBridge — the S3 driven-coordinate
 bound); this file adds the LOWER mirror. Both feed the stratified existence consumer

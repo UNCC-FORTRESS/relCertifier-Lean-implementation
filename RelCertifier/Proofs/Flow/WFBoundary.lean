@@ -17,7 +17,7 @@ honest, checkable well-formedness assumption.
 Two clauses:
 * `coherence` (STATIC, checkable per edge, `decide`/Z3): source domain ∧ successor guard ⟹ successor
   domain. True per benchmark (for rover Recover→Drive: `vx∈[0,1] ∧ vx≥0.3 ⟹ vx∈[0.3,1]`). This is
-  exactly `WellFormedGuards` (banked, `GuardLegality.lean`).
+  exactly `WellFormedGuards` (banked in the retired `Archive/GuardLegality.lean`, in git history).
 * `guardHolds` (the ASSUMED bridge): the successor guard holds at the junction state `ν`. True for a
   well-formed automaton (a fold boundary IS a real in-domain switch) — but it is the part the ⊤-model
   does not mechanize (it strips the guard to `⊤`), so it is stated as the honest assumption.

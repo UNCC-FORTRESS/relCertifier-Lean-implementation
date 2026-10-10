@@ -5,14 +5,27 @@ Released under Apache 2.0 license.
 # Kernel replays of the suite_v2 covers (GENERATED — `scripts/gen_v2_data.py`)
 
 Per benchmark, for every emitted left-mode cover and every admissible start, the verified
-`decideCovered` accepts on the structural graph the tool built (`coverReplays`,
-`Instances/BenchCoverReplay.lean`), by kernel computation.
+`decideCovered`, run on the same structural graph the tool built (`buildCoverGraph` over
+the emitted flags, successors and pruned edges, same fuel, same budget, σ = preJ), accepts,
+by kernel computation (`decide`). This replays the tool's CERTIFIED gate inside the kernel:
+three standard axioms, no Z3, no IO.
 -/
-import RelCertifier.Instances.BenchCoverReplay
+import RelCertifier.Checker.Checker
+import RelCertifier.Trusted.Run
 import RelCertifier.InstancesV2.BenchIR
 import RelCertifier.InstancesV2.BenchCovers
 
 namespace RelCertifier
+
+/-- The replay predicate: every window, every admissible start, the checker accepts. -/
+def coverReplays (p : Parse.PProblem) (c : CoverEmitE) : Bool :=
+  c.covers.all (fun lc =>
+    lc.admissible.all (fun q0 =>
+      decideCovered (V := Var 1)
+        (buildCoverGraph lc.flags (Run.succOf p)
+          (fun a b => c.pruned.contains (a, b)))
+        (coverFuel lc.flags lc.bBudget)
+        ⟨nodeIdx lc.flags q0, lc.bBudget, SrcSetting.preJ⟩))
 
 theorem acc_spoof_lag_coverV2_replay : coverReplays Parse.acc_spoof_lag_IRv2 acc_spoof_lag_coverV2 = true := by decide
 

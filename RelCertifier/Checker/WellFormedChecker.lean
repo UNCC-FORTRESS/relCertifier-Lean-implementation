@@ -1,6 +1,13 @@
 /-
 # `decideWellFormed` — the decidable well-formedness checker (phases A′/B/C + EXT 1/2/4 PROVEN)
 
+**Status.** Part of the settling / `Faithful` route (per-benchmark settling, terrain and
+affine models of the legacy suite, kernel-certified against the parsed IR). Its
+per-benchmark batteries (`SettlingInstances`, `TerrainInstances`, `AffineInstances`,
+`FaithfulCerts`, `RealInstances`) were retired with the legacy suite (git history); the
+suite_v2 theorems use the modal chain instead. The generic definitions and lemmas stay
+compiled as part of the soundness development.
+
 The reduction this file mechanizes: for the SETTLING model class, per-benchmark soundness
 reduces to (a) this decidable checker passing on the model data, plus (b) the per-run Z3
 certificates — tied together by ONE theorem (`WellFormedSound`, stated below; proof is the
@@ -481,7 +488,7 @@ Original plan (kept for the record):
   preservation for frozen coordinates, from the base's envelope membership). Expected pass
   set: watertank, robot_braking, the arm/plant family (single-θ right sides) — ~10–12.
 * **Phase B (driven-by-const: `x' = y`, `y' = c`).** The integrator shape with the banked
-  quadratic witness (`GapThreeRoverTooling.roverΦR` pattern); one-sided envelope bounds
+  quadratic witness (the `roverΦR` pattern of the retired `Archive/GapThreeRoverTooling.lean`, in git history); one-sided envelope bounds
   with signed drift (the rover family's `px ≥ lo` with `vx > 0`) or two-sided with margin
   against the driving coordinate's band (via `staying_from_margin`, which is already
   deriv-bound-generic). Adds the rover family (+3–4).

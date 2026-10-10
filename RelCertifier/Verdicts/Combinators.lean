@@ -4,7 +4,8 @@ Released under Apache 2.0 license.
 
 # Verdict-column combinators
 
-The cut-instance hypotheses assemble their queries from lowered components with four
+The verdict hypotheses (the legacy packs, `Verdicts/RunModal`; the suite_v2 packs,
+`VerdictsV2/ModalX`) assemble their queries from lowered components with four
 combinators: the three route queries (mirrors in `Smt.lean`/`CutLift.lean`/
 `Mirrors.lean`), the stratified domain fold (`strataDomHost`), the cut fold (`cutF`),
 and plain `and`/`cmp` (whose `toHost` distribution is definitional). This file supplies

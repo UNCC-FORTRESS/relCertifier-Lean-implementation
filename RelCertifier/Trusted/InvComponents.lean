@@ -6,8 +6,7 @@ Released under Apache 2.0 license.
 
 The multi-component invariant lowering, moved out of `OracleAPI` (S4): the
 kernel-facing instance layer (`CoverInstance`) needs ONLY this definition, so the
-instance batteries no longer depend on the tool door — future `OracleAPI` edits
-stop invalidating them.
+instances do not depend on the tool door: `OracleAPI` edits do not invalidate them.
 -/
 import RelCertifier.Trusted.Run
 

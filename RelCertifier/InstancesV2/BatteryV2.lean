@@ -2,25 +2,36 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The suite_v2 battery — the paper's Theorem 3 per benchmark, axiom-audited on every build
+# The suite_v2 battery: the paper's Theorem 3 per benchmark, axiom-audited on every build
 
-`benchmarks/suite_v2` (45 benchmarks, all CERTIFIED with `RELCERT_IMPLIED_CUT=1`). For each
-benchmark that carries its theorem, the theorem is imported here and its axioms are
-re-emitted on every build (`lake build RelCertifier.InstancesV2.BatteryV2 2>&1 | grep -A3
-"depends on axioms"`), so the audit cannot drift from the theorems. Expected: the three
-standard axioms, plus `z3_unsat_sound` where a verdict pack enters.
+`benchmarks/suite_v2` (45 benchmarks, all CERTIFIED with `RELCERT_IMPLIED_CUT=1`). Every
+benchmark carries Theorem 3; each theorem is imported here and its axioms are re-emitted on
+every build (`lake build RelCertifier.InstancesV2.BatteryV2 2>&1 | grep -A3 "depends on
+axioms"`), so the audit cannot drift from the theorems. 51 `#print axioms` lines: 46
+benchmark theorems (26 new instances, 19 carried-over benchmarks of which
+`match_multi_rate` has two: Theorem 3 and the Theorem 2 certificate of its pruned edge) and
+5 generic lemmas. Expected and observed: the three standard axioms plus `z3_unsat_sound`
+where a verdict pack enters; five benchmark theorems are Z3-free
+(`arm_plateau_crit/profiles/slow`, `refinement_ladder_rover_rung2_6dof`, `rung2b_6dof`).
+12 of the 45 are mode-keyed (`*_modeKeyed`: the invariant row depends on the left mode,
+composed through in-kernel handoffs).
 
 * Data, kernel-checked for all 45: the IR literals (`BenchIR/`, drift-checked against the
   files by `relcert-test` `[ir-drift-v2]`), the extended cut certificates
   (`Cuts/<b>.lean`, `evolStrengtheningWFX … = true` by `rfl`), the cover replays
   (`CoverReplay.lean`, `decideCovered` by `decide`).
-* The 19 benchmarks copied unchanged from `suite_uniform`: the suite_v2 literal IS the
-  legacy literal (`SameIR.lean`, `rfl`), so the legacy theorems below are theorems about
-  the suite_v2 files; their packs are rows of the legacy runner table, re-run by
-  `relcert --run-verdicts-v2` (phase "copied benchmarks").
-* The new suite_v2 instances (`Modal/`): Theorem 3 at the declared invariant over the
-  file's right automaton, the right mode's kept cut atoms as its region, pruned sinks
-  excluded; packs are rows of `VerdictsV2.RunV2.packsV2`, pinned in `VerdictsV2/PinsV2`.
+* The 26 new suite_v2 instances (`Modal/`): Theorem 3 at the declared invariant over the
+  file's right automaton, the right mode's kept cut atoms as its region (the widened cut
+  channel lifted by `Proofs/Soundness/CutLiftX`), pruned sinks excluded; the six satellite
+  instances state it on the conserved-momentum nonblocking region (a model property that
+  enters no verdict query). Packs are rows of `VerdictsV2.RunV2.packsV2`, pinned in
+  `VerdictsV2/PinsV2`.
+* The 19 carried-over benchmarks: their suite_v2 files are byte-identical copies of files
+  of the retired legacy suite, and their literal IS the legacy literal (`SameIR.lean`,
+  `rfl`), so the legacy theorems below (`Instances/`) are theorems about the suite_v2
+  files. Their packs are the rows of `Verdicts/RunModal.modalTable`, re-run by
+  `relcert --run-verdicts-v2` (phase "copied benchmarks"); `match_multi_rate_nonconn`'s
+  hypothesis is pinned to the suite_v2 non-connection phase by `VerdictsV2/NonConnPinV2`.
 * Declared counts: `VerdictsV2/CoveragePinsV2` derives every declared phase count from
   the tables.
 -/
@@ -28,6 +39,7 @@ import RelCertifier.InstancesV2.SameIR
 import RelCertifier.InstancesV2.CoverReplay
 import RelCertifier.VerdictsV2.PinsV2
 import RelCertifier.VerdictsV2.CoveragePinsV2
+import RelCertifier.VerdictsV2.NonConnPinV2
 -- new suite_v2 instances
 import RelCertifier.InstancesV2.Modal.Watertank
 import RelCertifier.InstancesV2.Modal.PlatoonDelayProfiles
@@ -55,7 +67,7 @@ import RelCertifier.InstancesV2.Modal.SatDetumblePhases
 import RelCertifier.InstancesV2.Modal.Sat3wDetumblePhases
 import RelCertifier.InstancesV2.Modal.RoverPatrolZones
 import RelCertifier.InstancesV2.Modal.RoverPatrolRefine
--- the 19 copied benchmarks: legacy theorems (their literal is the suite_v2 literal)
+-- the 19 carried-over benchmarks: legacy theorems (their literal is the suite_v2 literal)
 import RelCertifier.Instances.MatchMultiRatePruned
 import RelCertifier.Instances.RoverLadderRung1Modal
 import RelCertifier.Instances.RoverLadderRung2Modal
@@ -107,7 +119,7 @@ namespace RelCertifier
 #print axioms V2RoverPatrolZones.rover_patrol_zones_modeKeyed
 #print axioms V2RoverPatrolRefine.rover_patrol_refine_modeKeyed
 
-/-! ## Copied benchmarks (legacy theorems; `SameIR` ties the literals) -/
+/-! ## Carried-over benchmarks (legacy theorems; `SameIR` ties the literals) -/
 
 #print axioms MatchMultiRatePruned.match_multi_rate_pruned
 #print axioms MatchMultiRatePruned.match_multi_rate_nonconn

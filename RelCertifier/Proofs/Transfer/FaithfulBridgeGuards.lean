@@ -4,6 +4,13 @@ Released under Apache 2.0 license.
 
 # The Faithful bridge, terrain and affine guard variants
 
+**Status.** Part of the settling / `Faithful` route (per-benchmark settling, terrain and
+affine models of the legacy suite, kernel-certified against the parsed IR). Its
+per-benchmark batteries (`SettlingInstances`, `TerrainInstances`, `AffineInstances`,
+`FaithfulCerts`, `RealInstances`) were retired with the legacy suite (git history); the
+suite_v2 theorems use the modal chain instead. The generic definitions and lemmas stay
+compiled as part of the soundness development.
+
 `FaithfulBridge` assembled the settling family: fields (`realFieldOf` + the nine shape
 bridges) and envelope (`realEnvOf`/`envFormulaR_sat`) are family-independent and reused
 verbatim here. What changes per family is the GUARD MAP. The terrain/affine guard bands

@@ -2,29 +2,20 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# Declared coverage — how many hypotheses a green run must actually discharge
+# Declared coverage: how many hypotheses a green run must actually discharge
 
-Three times on 2026-07-31 a runner reported success for work it had not done:
+A runner can issue fewer queries than it owes and still print only green lines: a pack
+whose mode-pair list comes out empty runs its loop body zero times, a row that rebuilds
+one component where nine are owed sends three queries instead of twenty-seven. All three
+such defects found during development (2026-07-31) looked identical to a complete run.
 
-* `rover_drag`'s pack produced an empty mode-pair list, so its loop body never ran and
-  the pack "passed" having issued **no** query;
-* `rover_rung2c` rebuilt one component at the wrong mode pair instead of nine at the
-  right one — 3 queries where 27 were owed;
-* `rover3tier_rung12`'s Accel row dropped a component — 1 query per pair instead of 2.
-
-Every one of them printed green. Each was found by hand, and each fix was a patch to
-the specific case. What they have in common is not the specific field that was wrong:
-it is that **a run can issue fewer queries than it owes and still look identical to one
-that issued them all**. Guarding each site individually does not stop the next one.
-
-So the count is declared here and checked. `counted` is called at each discharge point;
-`main`'s `--run-verdicts` compares the per-phase totals against `expected` and fails the
-run on any mismatch, low *or* high. All three defects above would have tripped this
-immediately, without anyone knowing to look for them.
-
-**When the suite legitimately changes**, these numbers must be edited deliberately, and
-the edit says exactly how coverage moved. That is the point: coverage cannot drift
-quietly, in either direction.
+So every phase's count is declared and checked. `counted` is called at each discharge
+point (a query that came back `unsat`); `Main.runAllVerdictsV2` (`--run-verdicts-v2`,
+`--check-quick-v2`) reads `dischargedCount` around each phase and compares the difference
+against the phase's declared total with `checkPhase`, failing the run on any mismatch, low
+*or* high. The declared totals live next to their tables in `VerdictsV2/RunV2.lean`, and
+`VerdictsV2/CoveragePinsV2.lean` proves each one equal to what its table generates, so a
+count can only change together with the work it counts.
 -/
 
 namespace RelCertifier.Verdicts
@@ -35,99 +26,6 @@ initialize dischargedCount : IO.Ref Nat ← IO.mkRef 0
 /-- Record one discharged hypothesis. Call at the point a query came back `unsat`. -/
 def counted : IO Unit := dischargedCount.modify (· + 1)
 
-/-- What a complete `--run-verdicts` owes, per phase.
-
-* `cut` — 97: per-atom O2 route probes across the 11 cut-reliant benchmarks.
-* `modal` — 486: every modal instance's verdict pack, one query per component per
-  asserted mode pair (447 for the 30 base packs, plus 39 for the five packs of the
-  mode-keyed instances in `Instances/*Handoff.lean`).
-* `handoff` — 163: one static query per declared LEFT transition of every certified
-  benchmark (self-loops included), `φ_inv(m') ∧ evolve_{m'} ∧ guard_m ∧ evolve_R ∧
-  ¬φ_inv(m)` (domain-conditioned) — the cross-mode
-  handoff of the mode-keyed invariant (`Trusted/Handoff.lean`). Mode-independent
-  invariants make these vacuous; they are still issued and counted.
-* `prunedEdges` — the declared right edges the emitted covers record as PRUNED by a
-  non-connection certificate (`CoverEmitE.pruned`; paper Section 4.3, `docs/PRUNING.md`):
-  1, the `DRIVE → STALL` edge of `match_multi_rate`.
-* `nonconn` — the queries the non-connection phase owes: two per pruned edge (the source
-  check and the barrier check, `Trusted/NonConnQuery.lean`, `Verdicts/RunNonConn.lean`). -/
-structure Expected where
-  cut         : Nat
-  modal       : Nat
-  handoff     : Nat
-  prunedEdges : Nat
-  nonconn     : Nat
-  deriving Repr
-
-/-- Measured 2026-07-31 (cut/modal) and 2026-10-07 (handoff); re-derived 2026-10-08 after
-the suite deduplication (`docs/SUITE-DEDUPE.md`: six duplicate benchmarks removed — 18
-modal queries, 8 cut probes, 24 handoff transitions); re-derived 2026-10-09 after the
-static (zero-duration) reposition was removed and six benchmarks became DECLINED
-(`Parse.declinedIR`): the `watertank` phase (6) is gone with the `watertank` modal
-theorem, modal 504 → 486 (−18: arm_chain_rung1 3, arm_chain_rung2 4, arm_fidelity_low 2,
-robot_braking 1, rover3tier_M1 2, watertank 6), handoff 191 → 163 (−28: 6 + 7 + 4 + 1 + 4
-+ 6 declared left transitions); cut, pruned edges and non-connection unchanged. Edit
-deliberately when the suite changes; see the module docstring for why this is a
-declared constant rather than whatever the run produced. -/
-def expected : Expected :=
-  { cut := 97, modal := 486, handoff := 163, prunedEdges := 1, nonconn := 2 }
-
-/-- The handoff transitions that are KNOWN to fail, declared as `(benchmark, m', m)`.
-A green handoff phase has exactly this failure set — a new failure fails the run, and so
-does a declared failure that stops failing (the declaration is then stale). Empty since
-`rover3tier_rung12`'s ACCEL row was re-stated on the COAST functional (2026-10-08, rows
-only): before that its `ACCEL → COAST` switch failed (`v_L ≤ v_R + 0.5 ∧ a_L ≤ a_R + 0.8`
-allowed more slack on `3v + a` than `3v_L + a_L ≤ 3v_R + 1.2` admits, even inside the
-evolve domains); the record, with countermodel, is in `docs/HANDOFF.md`. -/
-def expectedHandoffFailures : List (String × Nat × Nat) := []
-
-/-- What a certification run over the standard suite produces.
-
-Six benchmarks are DECLINED since the static (zero-duration) reposition was removed
-(2026-10-09; `Parse.declinedIR`, `docs/COVER-AUDIT.md`): `arm_chain_rung1`,
-`arm_chain_rung2`, `arm_fidelity_low`, `robot_braking`, `rover3tier_M1`, `watertank`.
-Their covers needed a reposition that switches the right system at a single instant with
-no check that the successor's guard holds there. Until then the declared tally was
-40 certified / 1 declined.
-
-`shield_unreachable` is the 41st benchmark and is *documented* to be DECLINED: its right
-side declares a variable the left lacks (`w`), which the lowering accepts since
-2026-10-08 (`Trusted/JointVars.lean`; before that every query failed to lower and the
-run reported an inconclusive error), and its `Shield` successor's guard is a closed
-compound band (`w ≥ 4 ∧ w < 4.95`) that the non-connection certificate does not prune,
-so the universal cover must cover `Shield` and declines (`docs/PRUNING.md`). Declaring
-that here means a *second* benchmark starting to decline is a failure instead of
-blending into an expected one. -/
-structure ExpectedSuite where
-  paths     : Nat := 41
-  certified : Nat := 34
-  declined  : Nat := 7
-  errors    : Nat := 0
-  deriving Repr
-
-def expectedSuite : ExpectedSuite := {}
-
-/-- Compare a certification tally against `expectedSuite`.
-
-Enforced only when the run covered the declared number of paths; on any other path set
-the tally is reported but not judged, since the expected numbers describe the whole
-suite and say nothing about a subset. -/
-def checkSuite (nPaths certified declined errors : Nat) : IO Bool := do
-  let e := expectedSuite
-  if nPaths != e.paths then
-    IO.println s!"  [suite] {certified} certified, {declined} declined, {errors} error(s) \
-over {nPaths} path(s) — tally not enforced (the declared suite is {e.paths} paths)"
-    return true
-  else if certified == e.certified && declined == e.declined && errors == e.errors then
-    IO.println s!"  [suite] {certified} certified, {declined} declined, {errors} error(s) \
-— matches the declared suite"
-    return true
-  else
-    IO.eprintln s!"  [suite] {certified} certified, {declined} declined, {errors} error(s) \
-but the declared suite is {e.certified}/{e.declined}/{e.errors}; if this change is \
-intended, update `Verdicts/Coverage.expectedSuite`"
-    return false
-
 /-- Compare an actual phase count against its declared total, reporting either way. -/
 def checkPhase (name : String) (actual want : Nat) : IO Bool := do
   if actual == want then
@@ -136,7 +34,7 @@ def checkPhase (name : String) (actual want : Nat) : IO Bool := do
   else
     IO.eprintln s!"  [coverage] {name}: discharged {actual} but owes {want} — \
 {if actual < want then "queries were skipped" else "unexpected extra queries"}; \
-if this change is intended, update `Verdicts/Coverage.expected`"
+if this change is intended, update the declared count in `VerdictsV2/RunV2.lean`"
     return false
 
 end RelCertifier.Verdicts

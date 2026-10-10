@@ -1,31 +1,16 @@
-# Cross-mode handoff — the static implication at every declared left transition
+# Cross-mode handoff: the static implication at every declared left transition
 
-Status: measured 2026-10-08 on branch `mode-handoff` (domain-conditioned query; the
-`rover3tier_rung12` rows repaired), Z3 4.15.1, `relcert --handoff
-benchmarks/suite_uniform/*/input.txt` (warm persistent session). The 2026-10-07 run with
-the domain-FREE query and the original rows is kept below as the record of the failure
-that motivated both changes.
-
-**Pruning suite (2026-10-08, branch `pruning-suite`).** `match_multi_rate` gained a
-right mode (`STALL`) and the edge `DRIVE → STALL` (`docs/PRUNING.md`); its handoff phase
-is untouched (left transitions only: 8/8, vacuous). `shield_unreachable` now lowers for
-the certifier (`Trusted/JointVars.lean`) but this runner still reads `p.L.stateVars`
-(`Trusted/Handoff.lean` is upstream of the mode-keyed proofs and was not edited), so its
-self-loop still reports `handoff query did not lower`, as recorded below.
-
-**Suite deduplication (2026-10-08, branch `dedupe-suite`).** Six duplicate benchmarks
-were removed afterwards (`arm_fidelity_high`, `plant_fan_high`, `arm_refinement`,
-`plant_fan_low`, `match_multi_eps`, `plant_fan_mid`; `docs/SUITE-DEDUPE.md`), each with
-4 declared left transitions, all of them vacuous (rows identical). The handoff phase now
-owes **191** queries over the 40 emitted benchmarks (`Coverage.expected.handoff = 191`,
-`CoveragePins.derivedHandoff_eq_expected`), 192 over the 41 input files with
-`shield_unreachable`'s self-loop; the results table below has been pruned to the current
-suite, and the superseded 2026-10-07 table is kept as it was measured. None of the seven
-mode-dependent benchmarks was affected.
+Status: current for suite_v2 (2026-10-10). Every number below is from
+`RELCERT_IMPLIED_CUT=1 relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt` (its handoff
+phase) on 2026-10-10, Z3 4.15.1. The handoff check is a tool-level check: the twelve
+mode-keyed Theorem 3 instances discharge their handoffs in the kernel
+(`docs/PAPER-MAPPING.md` §2b), so no theorem consumes these verdicts; the phase confirms the
+implication the composition lemma needs, for every benchmark, including the 33 whose rows
+are identical (vacuous).
 
 ## What is checked, and why
 
-Seven benchmarks declare a MODE-DEPENDENT relational invariant: a `[relational_invariant]`
+Twelve suite_v2 benchmarks declare a MODE-DEPENDENT relational invariant: a `[relational_invariant]`
 block with a different formula per LEFT mode. The tool certifies each left mode's residence
 against that mode's own row. A run of the full left program also switches mode, and at a
 declared transition `m' → m` (`m ∈ next(m')`) the state is unchanged while the left mode
@@ -54,7 +39,7 @@ own invariant lowering; the guard and the domains through `lowerF` on their side
 suite's uniform-evol discipline — every right mode declares the same evolve, which is what
 makes `⋁_q evolve_q` one formula and what the mechanized `hostEvolve … (mR 0)` relies on;
 the runner checks that uniformity per benchmark and reports a violation as a failure rather
-than picking a mode. The same IR term is what `Verdicts/RunHandoff.lean` prints to Z3 and
+than picking a mode. The same IR term is what `Verdicts/RunHandoff.lean` (`runHandoffBench`) prints to Z3 and
 what the composition theorem's handoff hypothesis denotes (`ModeHandoff.handoff_of_unsat`
 consumes `z3solve (ihandoffQuery …).toHost = unsat` and yields the conditioned implication
 that `hstep_modeKeyed` takes: the loop invariant carries `env = domL ∧ domR` and the edge's
@@ -64,85 +49,66 @@ Self-loops are checked too (trivially unsat) and counted. A mode-INDEPENDENT inv
 row syntactically identical) makes every query vacuous; such benchmarks are still run and
 reported as `vacuous`, never skipped.
 
-**Coverage is declared.** `Verdicts/Coverage.expected.handoff = 191` is the suite total (one
-query per declared left transition over the 40 emitted benchmarks; 215 over 46 before the
-deduplication),
-`CoveragePins.derivedHandoff_eq_expected` proves by `decide` that this equals what the emitted
-IR declares, and `expectedHandoffFailures` lists the transitions known to fail — now EMPTY;
-`CoveragePins.expectedHandoffFailures_declared` proves each entry names a real transition.
-The handoff phase of `--run-verdicts` / `--check-quick` is green iff the failure set is
-exactly the declared one and all 191 queries came back `unsat`.
+**Coverage is declared.** `VerdictsV2/RunV2.expectedHandoffV2 = 186` is the suite total
+(one query per declared left transition over the 45 suite_v2 files, self-loops included);
+`CoveragePinsV2.derivedHandoffV2_eq` proves by `decide` that this equals what the emitted
+IR declares, and `expectedHandoffFailuresV2` (the transitions known to fail) is empty. The
+handoff phase of `--run-verdicts-v2` / `--check-quick-v2` is green iff all 186 queries
+come back `unsat` and every per-benchmark count matches its declaration.
 
-## Results — the whole suite (41 inputs; `shield_unreachable` is the documented 41st)
+## Results: suite_v2 (45 files, 186 transitions, all `unsat`)
 
-| benchmark | left transitions (checked/declared) | passed | failing transitions | invariant | wall time |
-|---|---|---|---|---|---|
-| `arm_chain_rung1` | 6/6 | 6 | - | vacuous (rows identical) | 102 ms |
-| `arm_chain_rung2` | 7/7 | 7 | - | vacuous (rows identical) | 5 ms |
-| `arm_chain_rung3` | 4/4 | 4 | - | vacuous (rows identical) | 3 ms |
-| `arm_fidelity_low` | 4/4 | 4 | - | vacuous (rows identical) | 3 ms |
-| `arm_fidelity_mid` | 4/4 | 4 | - | vacuous (rows identical) | 2 ms |
-| `attitude_rate` | 1/1 | 1 | - | vacuous (rows identical) | 0 ms |
-| `endurance_gain_M1` | 7/7 | 7 | - | vacuous (rows identical) | 4 ms |
-| `endurance_orderlift_1to2` | 8/8 | 8 | - | vacuous (rows identical) | 6 ms |
-| `endurance_orderlift_2to3` | 7/7 | 7 | - | vacuous (rows identical) | 5 ms |
-| `match_multi_rate` | 8/8 | 8 | - | vacuous (rows identical) | 4 ms |
-| `refinement_ladder_rover_rung1_2to3` | 5/5 | 5 | - | vacuous (rows identical) | 3 ms |
-| `refinement_ladder_rover_rung2_3to6` | 5/5 | 5 | - | vacuous (rows identical) | 3 ms |
-| `refinement_ladder_rover_rung2_6dof` | 5/5 | 5 | - | vacuous (rows identical) | 3 ms |
-| `refinement_ladder_rover_rung2b_6dof` | 5/5 | 5 | - | vacuous (rows identical) | 3 ms |
-| `refinement_ladder_rover_rung2c_6dof` | 5/5 | 5 | - | vacuous (rows identical) | 3 ms |
-| `refinement_ladder_rover_rung3_6to8` | 5/5 | 5 | - | vacuous (rows identical) | 4 ms |
-| `refinement_ladder_rover_rung4_8to12` | 5/5 | 5 | - | vacuous (rows identical) | 5 ms |
-| `robot_braking` | 1/1 | 1 | - | vacuous (rows identical) | 1 ms |
-| `rover3_M1` | 5/5 | 5 | - | mode-dependent | 8 ms |
-| `rover3tier_M1` | 4/4 | 4 | - | vacuous (rows identical) | 2 ms |
-| `rover3tier_rung12` | 4/4 | 4 | - | mode-dependent | 4 ms |
-| `rover_4d_box` | 1/1 | 1 | - | vacuous (rows identical) | 1 ms |
-| `rover_attitude_cone_12dof` | 5/5 | 5 | - | vacuous (rows identical) | 5 ms |
-| `rover_coupled` | 5/5 | 5 | - | mode-dependent | 6 ms |
-| `rover_dof_terrain_rung1` | 5/5 | 5 | - | vacuous (rows identical) | 3 ms |
-| `rover_dof_terrain_rung2` | 5/5 | 5 | - | vacuous (rows identical) | 3 ms |
-| `rover_dof_terrain_rung3` | 5/5 | 5 | - | vacuous (rows identical) | 5 ms |
-| `rover_dof_terrain_rung3_8d` | 5/5 | 5 | - | vacuous (rows identical) | 4 ms |
-| `rover_drag` | 1/1 | 1 | - | vacuous (rows identical) | 1 ms |
-| `rover_position` | 5/5 | 5 | - | mode-dependent | 6 ms |
-| `rover_terrain_M1` | 7/7 | 7 | - | vacuous (rows identical) | 4 ms |
-| `rover_tier_r1` | 1/1 | 1 | - | vacuous (rows identical) | 0 ms |
-| `shield_unreachable` | 1/1 | 0 | 0->0 | vacuous (rows identical) | 0 ms |
-| `story1_attdist_rung_a_6to8` | 5/5 | 5 | - | mode-dependent | 4 ms |
-| `story1_attdist_rung_b_12dof` | 5/5 | 5 | - | mode-dependent | 5 ms |
-| `story2_lateral_rung_a_8dof` | 5/5 | 5 | - | vacuous (rows identical) | 4 ms |
-| `story2_lateral_rung_b_12dof` | 5/5 | 5 | - | vacuous (rows identical) | 4 ms |
-| `story3_rollover_base_12dof` | 5/5 | 5 | - | vacuous (rows identical) | 4 ms |
-| `story3_rollover_ladder_rung_a` | 5/5 | 5 | - | vacuous (rows identical) | 5 ms |
-| `story3_rollover_ladder_rung_b` | 5/5 | 5 | - | mode-dependent | 5 ms |
-| `watertank` | 6/6 | 6 | - | vacuous (rows identical) | 3 ms |
+| benchmark | left transitions (checked/declared) | passed | failing | invariant |
+|---|---|---|---|---|
+| `acc_spoof_lag` | 1/1 | 1 | - | vacuous (rows identical) |
+| `acc_spoof_limp` | 3/3 | 3 | - | mode-dependent |
+| `acc_tune_lag` | 1/1 | 1 | - | vacuous (rows identical) |
+| `acc_tune_limp` | 3/3 | 3 | - | mode-dependent |
+| `arm_plateau_crit` | 4/4 | 4 | - | vacuous (rows identical) |
+| `arm_plateau_profiles` | 4/4 | 4 | - | vacuous (rows identical) |
+| `arm_plateau_slow` | 4/4 | 4 | - | vacuous (rows identical) |
+| `charger_fast_setpoints` | 5/5 | 5 | - | vacuous (rows identical) |
+| `charger_fast_tapers` | 5/5 | 5 | - | vacuous (rows identical) |
+| `match_multi_rate` | 8/8 | 8 | - | vacuous (rows identical) |
+| `platoon3_linkloss` | 3/3 | 3 | - | mode-dependent |
+| `platoon3_profiles` | 1/1 | 1 | - | vacuous (rows identical) |
+| `platoon_delay_linkloss` | 7/7 | 7 | - | mode-dependent |
+| `platoon_delay_profiles` | 4/4 | 4 | - | vacuous (rows identical) |
+| `quad_light_airframe_20` | 1/1 | 1 | - | vacuous (rows identical) |
+| `quad_light_lag` | 1/1 | 1 | - | vacuous (rows identical) |
+| `quad_light_profiles` | 1/1 | 1 | - | vacuous (rows identical) |
+| `refinement_ladder_rover_rung1_2to3` | 5/5 | 5 | - | vacuous (rows identical) |
+| `refinement_ladder_rover_rung2_3to6` | 5/5 | 5 | - | vacuous (rows identical) |
+| `refinement_ladder_rover_rung2_6dof` | 5/5 | 5 | - | vacuous (rows identical) |
+| `refinement_ladder_rover_rung2b_6dof` | 5/5 | 5 | - | vacuous (rows identical) |
+| `refinement_ladder_rover_rung2c_6dof` | 5/5 | 5 | - | vacuous (rows identical) |
+| `refinement_ladder_rover_rung3_6to8` | 5/5 | 5 | - | vacuous (rows identical) |
+| `refinement_ladder_rover_rung4_8to12` | 5/5 | 5 | - | vacuous (rows identical) |
+| `rover3tier_rung12` | 4/4 | 4 | - | mode-dependent |
+| `rover_dof_terrain_rung1` | 5/5 | 5 | - | vacuous (rows identical) |
+| `rover_dof_terrain_rung2` | 5/5 | 5 | - | vacuous (rows identical) |
+| `rover_dof_terrain_rung3` | 5/5 | 5 | - | vacuous (rows identical) |
+| `rover_dof_terrain_rung3_8d` | 5/5 | 5 | - | vacuous (rows identical) |
+| `rover_patrol_refine` | 10/10 | 10 | - | mode-dependent |
+| `rover_patrol_zones` | 10/10 | 10 | - | mode-dependent |
+| `sat3w_detumble_nominal` | 1/1 | 1 | - | vacuous (rows identical) |
+| `sat3w_detumble_phases` | 3/3 | 3 | - | mode-dependent |
+| `sat3w_detumble_weak` | 1/1 | 1 | - | vacuous (rows identical) |
+| `sat_detumble_nominal` | 1/1 | 1 | - | vacuous (rows identical) |
+| `sat_detumble_phases` | 3/3 | 3 | - | mode-dependent |
+| `sat_detumble_weak` | 1/1 | 1 | - | vacuous (rows identical) |
+| `story1_attdist_rung_a_6to8` | 5/5 | 5 | - | mode-dependent |
+| `story1_attdist_rung_b_12dof` | 5/5 | 5 | - | mode-dependent |
+| `story2_lateral_rung_a_8dof` | 5/5 | 5 | - | vacuous (rows identical) |
+| `story2_lateral_rung_b_12dof` | 5/5 | 5 | - | vacuous (rows identical) |
+| `story3_rollover_base_12dof` | 5/5 | 5 | - | vacuous (rows identical) |
+| `story3_rollover_ladder_rung_a` | 5/5 | 5 | - | vacuous (rows identical) |
+| `story3_rollover_ladder_rung_b` | 5/5 | 5 | - | mode-dependent |
+| `watertank` | 6/6 | 6 | - | vacuous (rows identical) |
 
-Totals (as measured on the 46-benchmark suite): 216 transitions checked over the 47 input
-files (215 over the 46 emitted benchmarks plus `shield_unreachable`'s single self-loop),
-215 unsat; after the deduplication, 192 over 41 input files, 191 over the 40 emitted
-benchmarks, 191 unsat (re-run 2026-10-08, branch `dedupe-suite`). The one FAIL is
-`shield_unreachable`'s self-loop: its right side declares a state variable (`w`) the left
-does not, so the right evolve domain does not lower against the left's variable list and the
-query cannot be built — reported, never skipped. It is the 47th benchmark, outside the
-emitted suite (`benchIRTable`), so the `--run-verdicts` phase (40 benchmarks, 191 queries) is
-unaffected; `--handoff` over all 47 input files exits 1 on it by design (the raw check fails
-on anything that is not `unsat`).
+12 benchmarks are mode-dependent (all their handoffs `unsat`), 33 vacuous.
 
-The seven mode-dependent benchmarks under the domain-conditioned query:
-
-| benchmark | per-mode rows | handoff | how the Lean side discharges it |
-|---|---|---|---|
-| `rover3_M1` | Drive 0.5 ⊂ Drift 1.0 ⊂ Stop 2.0 (nested offsets) | 5/5 pass | in-kernel (`linarith` on the lowered offsets) |
-| `rover_coupled` | same three rows | 5/5 pass | in-kernel |
-| `rover_position` | same three rows | 5/5 pass | in-kernel |
-| `story1_attdist_rung_a_6to8` | STEEP = common ∧ `v[l] ≤ v[r]`; MODER = FLAT = common | 5/5 pass | in-kernel (`FM_mono`) |
-| `story1_attdist_rung_b_12dof` | same nesting | 5/5 pass | in-kernel |
-| `story3_rollover_ladder_rung_b` | same nesting | 5/5 pass | in-kernel |
-| `rover3tier_rung12` (rows repaired, see below) | ACCEL = `v[l] ≤ v[r]+0.5 ∧ 3v[l]+a[l] ≤ 3v[r]+1.2`; COAST = `3v[l]+a[l] ≤ 3v[r]+1.2` | **4/4 pass** | in-kernel: ACCEL → COAST drops a conjunct; COAST → ACCEL uses the evolve floor `a[l] ≥ −0.3` (`linarith`) — the domain-conditioned form is what makes this direction hold |
-
-## The `rover3tier_rung12` repair (2026-10-08) — rows only
+## The `rover3tier_rung12` repair (2026-10-08): rows only
 
 Constraint set by the task: the only permitted change is the `[relational_invariant]` block;
 dynamics, guards and evolve domains are untouched (the file's `diff` is the two ACCEL-row
@@ -176,10 +142,12 @@ lifted-M1 functional bound rather than a separate acceleration offset.
 `Lie(v_L − v_R − 0.5) = a_L − 2a_R ≤ 0.95 − 1 < 0` and
 `Lie(3v_L + a_L − 3v_R − 1.2) = 3a_L + 3(0.8 − a_L) − 6a_R = 2.4 − 6a_R ≤ −0.6 < 0` on the
 evolve domains — route A, both right modes (both have `a' = 0`, `a_R ∈ [0.5, 1]`). The runner
-re-checks `VerdQA 0/1` at the new row (rows 18/19 of `RunModal.modalTable`, unchanged
+re-checks `VerdQA 0/1` at the new row (rows `Rover3tierRung12Accel` / `Rover3tierRung12Coast` of `RunModal.modalTable`, unchanged
 shape: two components, λ = 2 / λ = 1).
 
-**What was regenerated from the new file** (all GENERATED leaves, re-emitted by the tool):
+**What was regenerated from the new file** (at the time, in the legacy suite; the file is
+byte-identical in suite_v2, and of these leaves only `Instances/BenchIR/rover3tier_rung12.lean`
+and the modal instances remain) (all GENERATED leaves, re-emitted by the tool):
 `Instances/BenchIR/rover3tier_rung12.lean` (`--emit-ir`), `Instances/BenchCovers/` and
 `BenchCoversNC/rover3tier_rung12.lean` (`--emit-cover`, with/without cuts: ACCEL now at
 λ = 7/4, budget 6, strata order `[1, 0]`, COAST's pre-reposition flag off),
@@ -194,13 +162,15 @@ are atom-agnostic and re-elaborate unchanged; the composed theorem is
 
 ## Re-running
 
-    ./.lake/build/bin/relcert --handoff benchmarks/suite_uniform/*/input.txt   # per benchmark, exit 1 on any non-unsat (incl. shield_unreachable)
-    ./.lake/build/bin/relcert --run-verdicts                                    # phase 4 = handoff over the 40 emitted benchmarks, 191/191 owed
+    ./.lake/build/bin/relcert --handoff benchmarks/suite_v2/*/input.txt   # per benchmark, exit 1 on any non-unsat
+    ./.lake/build/bin/relcert --run-verdicts-v2                           # the handoff phase: 186/186 owed
 
-## Record: the 2026-10-07 run — domain-FREE query, original `rover3tier_rung12` rows (superseded)
+## Record: the 2026-10-07 run on the legacy suite (domain-FREE query, original `rover3tier_rung12` rows; superseded)
 
 > Kept as the record of the failure that motivated the conditioned query and the row
-> repair. Numbers and the rung12 analysis below describe the ORIGINAL file and query.
+> repair. Numbers and the rung12 analysis below describe the ORIGINAL file and query, on
+> the legacy suite; the `--run-verdicts` runner and `benchmarks/suite_uniform` it names no
+> longer exist.
 
 
 | benchmark | left transitions (checked/declared) | passed | failing transitions | invariant | wall time |
@@ -315,7 +285,7 @@ the composition theorem is not instantiated for it. A repair would have to widen
 row to at least `3v[l] + a[l] ≤ 3v[r] + 2.3` (or tighten ACCEL's), which is a modelling
 decision for the benchmark's author.
 
-### Re-running (unchanged commands)
+### Re-running (the commands of that time)
 
     ./.lake/build/bin/relcert --handoff benchmarks/suite_uniform/*/input.txt   # per benchmark, exit 1 on any failure
     ./.lake/build/bin/relcert --run-verdicts                                    # phase 4 = handoff, declared failures tolerated

@@ -116,4 +116,36 @@ theorem wellFormedR_ladder {G : SearchGraph (Var n)} {guard : ℕ → Formula (V
     rw [W.e22_tgt, W.g2]
     exact ⟨by linarith, fun h => hcap _ hc.le (hvc h)⟩
 
+/-- The attitude-weighted odometer rate `v ((1 − ψ²/2) − 0.3 θ²)` lies in `[0, 0.8]` on the
+ladders' evolve boxes (`0 ≤ v ≤ 0.8`, `|ψ|, |θ| ≤ 0.6`). -/
+theorem odo_rate2 (v a b : ℝ) (hv0 : 0 ≤ v) (hv1 : v ≤ 4/5) (ha0 : -(3/5) ≤ a) (ha1 : a ≤ 3/5)
+    (hb0 : -(3/5) ≤ b) (hb1 : b ≤ 3/5) :
+    0 ≤ v * ((1 - 1/2 * (a * a)) - 3/10 * (b * b)) ∧
+      v * ((1 - 1/2 * (a * a)) - 3/10 * (b * b)) ≤ 4/5 := by
+  have ha2 : a * a ≤ 9/25 := by nlinarith
+  have hb2 : b * b ≤ 9/25 := by nlinarith
+  have hk0 : 0 ≤ (1 - 1/2 * (a * a)) - 3/10 * (b * b) := by nlinarith
+  have hk1 : (1 - 1/2 * (a * a)) - 3/10 * (b * b) ≤ 1 := by nlinarith [mul_self_nonneg a, mul_self_nonneg b]
+  exact ⟨mul_nonneg hv0 hk0, by nlinarith [mul_le_mul_of_nonneg_left hk1 hv0]⟩
+
+/-- The heading-weighted odometer rate `v (1 − ψ²/2)` lies in `[0, 0.8]`. -/
+theorem odo_rate1 (v a : ℝ) (hv0 : 0 ≤ v) (hv1 : v ≤ 4/5) (ha0 : -(3/5) ≤ a) (ha1 : a ≤ 3/5) :
+    0 ≤ v * (1 - 1/2 * (a * a)) ∧ v * (1 - 1/2 * (a * a)) ≤ 4/5 := by
+  have ha2 : a * a ≤ 9/25 := by nlinarith
+  have hk0 : 0 ≤ 1 - 1/2 * (a * a) := by nlinarith
+  have hk1 : 1 - 1/2 * (a * a) ≤ 1 := by nlinarith [mul_self_nonneg a]
+  exact ⟨mul_nonneg hv0 hk0, by nlinarith [mul_le_mul_of_nonneg_left hk1 hv0]⟩
+
+/-- Existence of every band's runs from an instance's `LadderRun` (its explicit runs). -/
+theorem LadderRun.exists_run {G : SearchGraph (Var (n+2))} {dom : Formula (Var (n+2))}
+    (LR : LadderRun G dom) {m : ℕ → RMode (Var (n+2))}
+    (hm : ∀ q < 3, G.modeAt q = some (m q)) :
+    ∀ q < 3, ∀ x, Formula.sat dom x → ∃ Φ, ODESol (m q).sys (m q).dom x 1 Φ := by
+  intro q hq x hx
+  have h1 := LR.modeAt q hq
+  rw [hm q hq] at h1
+  have heq : m q = LR.m q := Option.some.inj h1
+  rw [heq]
+  exact ⟨_, LR.sol q hq x hx 1 (by norm_num)⟩
+
 end RelCertifier

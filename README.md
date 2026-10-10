@@ -362,7 +362,8 @@ sufficient check of clause (ii) per right mode: the guard atoms are kept by the 
 flow (stratified cut routes) and the mode has a self-loop (`ok (invariant)`), or every run of
 at most `ε_r` ends in a declared successor's guard (rate bounds on the atoms that are not
 kept, then one coverage query: `ok (exit→S)`), else `UNKNOWN`. On the suite: 77 ok
-(invariant), 53 ok (exit), 16 UNKNOWN, exactly the blocking modes above; on the old
+(invariant), 53 ok (exit), 16 UNKNOWN, exactly the blocking modes above (`platoon3`'s
+`BRAKE2`/`BRAKE3` included: they block by the same argument as `BRAKE1`); on the old
 `platoon3` model (commit `1a3507f`) every mode is `UNKNOWN`. `--check-quick-v2` prints the
 same section, informational. `RELCERT_WELLFORMED_STRICT=1` turns an `UNKNOWN` into a DECLINE.
 

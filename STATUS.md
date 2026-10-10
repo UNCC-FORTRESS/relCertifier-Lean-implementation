@@ -43,7 +43,9 @@ conserved momentum band for the 6 satellites** (the band is invariant; off it `D
 no full-interval run, also refuted). These are model defects to report, not used by any
 Theorem 3 (no theorem assumes Assumption 1). The tool's sufficient check
 (`relcert --wellformed`, informational; `RELCERT_WELLFORMED_STRICT=1` declines on `UNKNOWN`)
-reports 77 ok (invariant), 53 ok (exit), 16 UNKNOWN right modes, exactly the blocking modes;
+reports 77 ok (invariant), 53 ok (exit), 16 UNKNOWN right modes, exactly the blocking modes
+(the kernel refutes one per defect benchmark and both arm approach bands; `platoon3`'s
+`BRAKE2`/`BRAKE3` block by the same argument as `BRAKE1`);
 it flags every mode of the old `platoon3` model (`1a3507f`).
 
 **Discharged.** Every Z3 hypothesis is re-sent by `relcert --run-verdicts-v2` against

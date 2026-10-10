@@ -250,12 +250,13 @@ def runWellformed (cfg : Z3Config) (paths : List String) : IO (Tally × Bool) :=
 def strictOn : IO Bool := do
   pure ((← IO.getEnv "RELCERT_WELLFORMED_STRICT") == some "1")
 
-/-- The certifier with the strict switch: identical to `certify` unless
-`RELCERT_WELLFORMED_STRICT=1`, in which case a CERTIFIED benchmark whose right model has an
-`UNKNOWN` mode is DECLINED (with a `[wellformed]` line on stderr). -/
-def certifyWF (s : Z3Session) (p : PProblem) : IO Outcome := do
+/-- The certifier with the strict switch passed explicitly: `strict = false` is `certify`;
+`strict = true` turns a CERTIFIED benchmark whose right model has an `UNKNOWN` mode into
+DECLINED (with a `[wellformed]` line on stderr). `--check-quick-v2` runs it with
+`strict = true` (the recipe's strict mode, 2026-10-10). -/
+def certifyWFWith (strict : Bool) (s : Z3Session) (p : PProblem) : IO Outcome := do
   let o ← certify s p
-  if !(← strictOn) then return o
+  if !strict then return o
   match o with
   | .certified =>
       let (rows, q) ← checkProblem s p
@@ -264,5 +265,10 @@ def certifyWF (s : Z3Session) (p : PProblem) : IO Outcome := do
       IO.eprintln s!"  [wellformed] STRICT: {p.name} DECLINED (an UNKNOWN right mode)"
       return .declined
   | _ => return o
+
+/-- The certifier with the environment switch: identical to `certify` unless
+`RELCERT_WELLFORMED_STRICT=1`. -/
+def certifyWF (s : Z3Session) (p : PProblem) : IO Outcome := do
+  certifyWFWith (← strictOn) s p
 
 end RelCertifier.WellFormed

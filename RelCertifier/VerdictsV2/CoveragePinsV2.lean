@@ -39,6 +39,12 @@ theorem derivedNonConnV2_eq : 2 * expectedPrunedEdgesV2 = expectedNonConnV2 := b
 
 theorem suiteV2_size : benchIRTableV2.length = expectedSuiteV2.paths := by decide
 
+/-- The declared right-mode count of the strict well-formedness gate IS the suite's: the
+right modes of the 45 IR literals. -/
+theorem suiteV2_wfModes :
+    (benchIRTableV2.map (fun r => r.2.R.modes.length)).sum = expectedSuiteV2.wfModes := by
+  decide
+
 /-- The copied benchmarks' legacy packs: the legacy derivation, over the filtered table. -/
 def derivedSameModalV2 : ℕ :=
   sameModalTable.foldl (fun acc r =>

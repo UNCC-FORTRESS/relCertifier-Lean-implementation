@@ -8,7 +8,9 @@ Released under Apache 2.0 license.
   on one warm Z3 session and prints CERTIFIED / DECLINED / ERROR per file.
 * `relcert --run-verdicts-v2` re-sends every Z3 hypothesis of the suite_v2 battery
   (`InstancesV2/BatteryV2`) with declared per-phase counts (`runAllVerdictsV2`);
-  `--check-quick-v2` certifies the 45 suite_v2 files first and checks the tally.
+  `--check-quick-v2` certifies the 45 suite_v2 files first (in the strict well-formedness
+  mode) and checks the tally, then runs the verdicts, then the strict Assumption 1 gate
+  (declared 146 right modes, 0 UNKNOWN).
 * `relcert --handoff <input.txt>…` runs the cross-mode handoff check per benchmark.
 * `relcert --wellformed <input.txt>…` runs the Assumption 1 check of the right models
   (`Trusted/WellFormedCheck.lean`, informational; `RELCERT_WELLFORMED_STRICT=1` makes an
@@ -37,7 +39,8 @@ and an ERROR count, returning the `(certified, declined, errors)` tally.
 Split out from `runBatch` so `--check-quick-v2` can consume the tally instead of
 re-implementing the loop; a check that reasons about a copy of this code would not be
 checking what the tool does. -/
-def runBatchTally (paths : List String) : IO (Nat × Nat × Nat) := do
+def runBatchTally (paths : List String) (strict : Option Bool := none) :
+    IO (Nat × Nat × Nat) := do
   match ← Z3Config.discover with
   | .error e => IO.eprintln s!"ERROR: {e}"; IO.Process.exit 2
   | .ok cfg =>
@@ -53,7 +56,10 @@ def runBatchTally (paths : List String) : IO (Nat × Nat × Nat) := do
         let oc ← try
             match ← RelCertifier.Oracle.readProblemStrict path with
             | .error e => pure (Outcome.error s!"parse: {e}")
-            | .ok p => RelCertifier.WellFormed.certifyWF s p
+            | .ok p =>
+                match strict with
+                | some b => RelCertifier.WellFormed.certifyWFWith b s p
+                | none => RelCertifier.WellFormed.certifyWF s p
           catch e => pure (Outcome.error s!"io: {e}")
         let dt := (← IO.monoMsNow) - t0
         let name := (path.splitOn "/").reverse.getD 1 path
@@ -105,8 +111,11 @@ USAGE
                                           pruning queries of every pruned edge), and the
                                           packs of the 19 carried-over theorems
   RELCERT_IMPLIED_CUT=1 relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt
-                                          certify the 45 suite_v2 files (declared 45
-                                          certified, 0 declined), then --run-verdicts-v2
+                                          certify the 45 suite_v2 files in the strict
+                                          well-formedness mode (declared 45 certified,
+                                          0 declined), then --run-verdicts-v2, then the
+                                          strict --wellformed gate (declared 146 right
+                                          modes, 0 UNKNOWN; any UNKNOWN fails the run)
   relcert --handoff <input.txt>...        the handoff check alone, per benchmark, with
                                           per-transition verdicts and wall time
   relcert --wellformed <input.txt>...     the Assumption 1 check of the right model, per
@@ -376,24 +385,39 @@ def main (args : List String) : IO Unit := do
         IO.eprintln "ERROR: --check-quick-v2 certifies suite_v2 with the widened cut channel; \
 run it as RELCERT_IMPLIED_CUT=1 relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt"
         IO.Process.exit 2
-      IO.println "== check 1/2 : certify the suite_v2 benchmarks (widened cut channel) =="
-      let (cert, decl, errs) ← runBatchTally paths
+      IO.println "== check 1/3 : certify the suite_v2 benchmarks (widened cut channel, strict \
+well-formedness: a CERTIFIED file with an UNKNOWN right mode is DECLINED) =="
+      let (cert, decl, errs) ← runBatchTally paths (strict := some true)
       let okSuite ← RelCertifier.VerdictsV2.checkSuiteV2 paths.length cert decl errs
-      IO.println "\n== check 2/2 : discharge the suite_v2 verdict hypotheses =="
+      IO.println "\n== check 2/3 : discharge the suite_v2 verdict hypotheses =="
       let okVerd ← match ← RelCertifier.Z3Config.discover with
         | .error e => IO.eprintln s!"ERROR: {e}"; pure false
         | .ok cfg => runAllVerdictsV2 cfg
-      IO.println "\n== informational : the Assumption 1 check of the right models (--wellformed) =="
-      let wfLine ← match ← RelCertifier.Z3Config.discover with
-        | .error e => pure s!"not run ({e})"
+      IO.println "\n== check 3/3 : the Assumption 1 check of the right models (--wellformed, strict) =="
+      let e := RelCertifier.VerdictsV2.expectedSuiteV2
+      let (okWF, wfLine) ← match ← RelCertifier.Z3Config.discover with
+        | .error err => IO.eprintln s!"ERROR: {err}"; pure (false, s!"not run ({err})")
         | .ok cfg => do
-            let (t, _) ← RelCertifier.WellFormed.runWellformed cfg paths
-            pure s!"{t.inv} ok (invariant), {t.exit} ok (exit), {t.unknown} UNKNOWN of {t.modes} right modes"
+            let (t, okParse) ← RelCertifier.WellFormed.runWellformed cfg paths
+            let line := s!"{t.modes - t.unknown}/{t.modes} right modes ok \
+({t.inv} invariant, {t.exit} exit), {t.unknown} UNKNOWN"
+            if paths.length != e.paths then
+              IO.println s!"  [wellformed] {line} over {paths.length} path(s) — tally not \
+enforced (the declared suite is {e.paths} paths); an UNKNOWN mode still fails"
+              pure (okParse && t.unknown == 0, line)
+            else if okParse && t.modes == e.wfModes && t.unknown == e.wfUnknown then
+              IO.println s!"  [wellformed] STRICT: {line} — matches the declared suite \
+({e.wfModes} modes, {e.wfUnknown} UNKNOWN)"
+              pure (true, line)
+            else
+              IO.eprintln s!"  [wellformed] STRICT: {line}, but the declared suite is \
+{e.wfModes} modes, {e.wfUnknown} UNKNOWN"
+              pure (false, line)
       IO.println ""
       IO.println s!"  suite_v2: {if okSuite then "PASS" else "FAIL"}"
       IO.println s!"  verdicts: {if okVerd then "PASS" else "FAIL"}"
-      IO.println s!"  wellformed (informational): {wfLine}"
-      if okSuite && okVerd then
+      IO.println s!"  wellformed (strict): {if okWF then "PASS" else "FAIL"} ({wfLine})"
+      if okSuite && okVerd && okWF then
         IO.println "SUITE_V2 QUICK CHECKS PASSED  (the kernel check is `lake build`)"
       else
         IO.eprintln "SUITE_V2 QUICK CHECKS FAILED"; IO.Process.exit 1

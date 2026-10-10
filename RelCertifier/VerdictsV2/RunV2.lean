@@ -154,10 +154,13 @@ def packsV2 : List PackV2 :=
     ⟨"sat3w_detumble_weak", 6, 0, [0, 1], 1, 1, 0, 2⟩,
     -- sat_detumble_phases
     ⟨"sat_detumble_phases", 4, 0, [0, 1], 1, 1, 0, 0⟩,
-    ⟨"sat_detumble_phases", 4, 1, [0, 1], 1, 1, 1, 0⟩ ]
+    ⟨"sat_detumble_phases", 4, 1, [0, 1], 1, 1, 1, 0⟩,
+    -- sat3w_detumble_phases
+    ⟨"sat3w_detumble_phases", 6, 0, [0, 1], 1, 1, 0, 0⟩,
+    ⟨"sat3w_detumble_phases", 6, 1, [0, 1], 1, 1, 1, 0⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 218
+def expectedModalV2 : Nat := 222
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do

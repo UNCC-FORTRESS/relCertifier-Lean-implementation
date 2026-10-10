@@ -52,6 +52,7 @@ import RelCertifier.InstancesV2.Modal.SatDetumbleWeak
 import RelCertifier.InstancesV2.Modal.Sat3wDetumbleNominal
 import RelCertifier.InstancesV2.Modal.Sat3wDetumbleWeak
 import RelCertifier.InstancesV2.Modal.SatDetumblePhases
+import RelCertifier.InstancesV2.Modal.Sat3wDetumblePhases
 -- the 19 copied benchmarks: legacy theorems (their literal is the suite_v2 literal)
 import RelCertifier.Instances.MatchMultiRatePruned
 import RelCertifier.Instances.RoverLadderRung1Modal
@@ -100,6 +101,7 @@ namespace RelCertifier
 #print axioms V2Sat3wDetumbleNominal.sat3w_detumble_nominal_modal
 #print axioms V2Sat3wDetumbleWeak.sat3w_detumble_weak_modal
 #print axioms V2SatDetumblePhases.sat_detumble_phases_modeKeyed
+#print axioms V2Sat3wDetumblePhases.sat3w_detumble_phases_modeKeyed
 
 /-! ## Copied benchmarks (legacy theorems; `SameIR` ties the literals) -/
 

@@ -157,10 +157,21 @@ def packsV2 : List PackV2 :=
     ⟨"sat_detumble_phases", 4, 1, [0, 1], 1, 1, 1, 0⟩,
     -- sat3w_detumble_phases
     ⟨"sat3w_detumble_phases", 6, 0, [0, 1], 1, 1, 0, 0⟩,
-    ⟨"sat3w_detumble_phases", 6, 1, [0, 1], 1, 1, 1, 0⟩ ]
+    ⟨"sat3w_detumble_phases", 6, 1, [0, 1], 1, 1, 1, 0⟩,
+    -- rover_patrol_zones
+    ⟨"rover_patrol_zones", 3, 0, [0, 1], 1, 1, 0, 0⟩,
+    ⟨"rover_patrol_zones", 3, 0, [0, 1], 1, 1, 0, 1⟩,
+    ⟨"rover_patrol_zones", 3, 0, [0, 1], 1, 1, 0, 2⟩,
+    ⟨"rover_patrol_zones", 3, 0, [0, 1], 1, 1, 0, 3⟩,
+    ⟨"rover_patrol_zones", 3, 1, [0, 1], 1, 1, 1, 1⟩,
+    ⟨"rover_patrol_zones", 3, 1, [0, 1], 1, 1, 1, 2⟩,
+    ⟨"rover_patrol_zones", 3, 1, [0, 1], 1, 1, 1, 3⟩,
+    ⟨"rover_patrol_zones", 3, 2, [0, 1], 1, 1, 2, 2⟩,
+    ⟨"rover_patrol_zones", 3, 2, [0, 1], 1, 1, 2, 3⟩,
+    ⟨"rover_patrol_zones", 3, 3, [0, 1], 1, 1, 3, 3⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 222
+def expectedModalV2 : Nat := 242
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do

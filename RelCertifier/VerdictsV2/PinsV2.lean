@@ -13,6 +13,7 @@ so a wrong row does not compile; with `modalVerdX_of_queries` (the rebuild denot
 kernel-checked.
 -/
 import RelCertifier.VerdictsV2.RunV2
+import RelCertifier.InstancesV2.Modal.RoverPatrolZones
 import RelCertifier.InstancesV2.Modal.Sat3wDetumblePhases
 import RelCertifier.InstancesV2.Modal.SatDetumblePhases
 import RelCertifier.InstancesV2.Modal.Sat3wDetumbleWeak
@@ -284,5 +285,28 @@ theorem pin_sat3w_detumble_phases_0 : V2Sat3wDetumblePhases.Verd 0 0 = packVerd 
   pin_row _ rfl irV2_sat3w_detumble_phases cutV2_sat3w_detumble_phases (by simp [packLam, packsV2])
 theorem pin_sat3w_detumble_phases_1 : V2Sat3wDetumblePhases.Verd 1 0 = packVerd (packsV2.getD 83 default) :=
   pin_row _ rfl irV2_sat3w_detumble_phases cutV2_sat3w_detumble_phases (by simp [packLam, packsV2])
+
+theorem irV2_rover_patrol_zones : irV2 "rover_patrol_zones" = rover_patrol_zones_IRv2 := by decide
+theorem cutV2_rover_patrol_zones : cutV2 "rover_patrol_zones" = Oracle.rover_patrol_zones_cutsV2X := by decide
+theorem pin_rover_patrol_zones_0 : V2RoverPatrolZones.Verd 0 0 = packVerd (packsV2.getD 84 default) :=
+  pin_row _ rfl irV2_rover_patrol_zones cutV2_rover_patrol_zones (by simp [packLam, packsV2])
+theorem pin_rover_patrol_zones_1 : V2RoverPatrolZones.Verd 0 1 = packVerd (packsV2.getD 85 default) :=
+  pin_row _ rfl irV2_rover_patrol_zones cutV2_rover_patrol_zones (by simp [packLam, packsV2])
+theorem pin_rover_patrol_zones_2 : V2RoverPatrolZones.Verd 0 2 = packVerd (packsV2.getD 86 default) :=
+  pin_row _ rfl irV2_rover_patrol_zones cutV2_rover_patrol_zones (by simp [packLam, packsV2])
+theorem pin_rover_patrol_zones_3 : V2RoverPatrolZones.Verd 0 3 = packVerd (packsV2.getD 87 default) :=
+  pin_row _ rfl irV2_rover_patrol_zones cutV2_rover_patrol_zones (by simp [packLam, packsV2])
+theorem pin_rover_patrol_zones_4 : V2RoverPatrolZones.Verd 1 1 = packVerd (packsV2.getD 88 default) :=
+  pin_row _ rfl irV2_rover_patrol_zones cutV2_rover_patrol_zones (by simp [packLam, packsV2])
+theorem pin_rover_patrol_zones_5 : V2RoverPatrolZones.Verd 1 2 = packVerd (packsV2.getD 89 default) :=
+  pin_row _ rfl irV2_rover_patrol_zones cutV2_rover_patrol_zones (by simp [packLam, packsV2])
+theorem pin_rover_patrol_zones_6 : V2RoverPatrolZones.Verd 1 3 = packVerd (packsV2.getD 90 default) :=
+  pin_row _ rfl irV2_rover_patrol_zones cutV2_rover_patrol_zones (by simp [packLam, packsV2])
+theorem pin_rover_patrol_zones_7 : V2RoverPatrolZones.Verd 2 2 = packVerd (packsV2.getD 91 default) :=
+  pin_row _ rfl irV2_rover_patrol_zones cutV2_rover_patrol_zones (by simp [packLam, packsV2])
+theorem pin_rover_patrol_zones_8 : V2RoverPatrolZones.Verd 2 3 = packVerd (packsV2.getD 92 default) :=
+  pin_row _ rfl irV2_rover_patrol_zones cutV2_rover_patrol_zones (by simp [packLam, packsV2])
+theorem pin_rover_patrol_zones_9 : V2RoverPatrolZones.Verd 3 3 = packVerd (packsV2.getD 93 default) :=
+  pin_row _ rfl irV2_rover_patrol_zones cutV2_rover_patrol_zones (by simp [packLam, packsV2])
 
 end RelCertifier.VerdictsV2

@@ -68,13 +68,9 @@ theorem rightReach_project (G G' : SearchGraph (Var n)) (dat : ℕ → JointData
       refine RightReach.jump m' hm' (by rw [hjoint']; exact hj) e (by rw [hedge]; exact he)
         hsrc hlt' hstep hgud' ?_
       rw [hw']; exact ih
-  | @repositionPre q B ν ω m hm hrepo _ _ _ _ _ _ _ =>
-      exact absurd hrepo (by rw [(hnorepo q m hm).1]; simp)
-  | @repositionPost q B ν ω m hm hrepo _ _ _ _ _ _ _ =>
-      exact absurd hrepo (by rw [(hnorepo q m hm).2.1]; simp)
   | @repositionDynPre q B ν μ ω m hm hrepo _ _ _ _ _ _ _ =>
-      exact absurd hrepo (by rw [(hnorepo q m hm).2.2.1]; simp)
+      exact absurd hrepo (by rw [(hnorepo q m hm).1]; simp)
   | @repositionDynPost q B ν μ ω m hm hrepo _ _ _ _ _ _ _ =>
-      exact absurd hrepo (by rw [(hnorepo q m hm).2.2.2]; simp)
+      exact absurd hrepo (by rw [(hnorepo q m hm).2]; simp)
 
 end RelCertifier

@@ -1,0 +1,78 @@
+# platoon_delay_linkloss: delayed-link platoon follower with a latched radar-only mode after a V2V link loss.
+# scenario: sensor-attack
+# mechanisms: M2 M4 M5 M6 M6+
+#
+# Replaces platoon_delay_band (pass 4; same FOLLOW/CATCH automaton with the half-open
+# FOLLOW band, cells M2 M4 M6 M6+ are a subset). Gap g (m) to a constant-speed leader.
+# Reference (right): FOLLOW g' = -0.5 (g - 30) on 20 <= g < 40, CATCH g' = -0.6 (g - 30)
+# re-engaged from g >= 30, BRAKE fallback below 20 m (g' = +1.5, sink). Deployed (left):
+# acts on the delayed link's 1 m gap overstatement (loops toward 29 m), bands entered
+# 1 m later (FOLLOW 21 <= g < 40, CATCH g >= 30); when the V2V link is LOST (jamming or
+# dropout) the follower LATCHES a radar-only gap keeper with a larger stand-off:
+# LOST: g' = -0.5 (g - 35), entered at any gap 21 <= g <= 60 m, no way back until the
+# link is re-established at the next platoon join (not modeled).
+#
+# Physical domain 0 <= g <= 60 m (the radar's range) on both sides.
+#
+# Rows (MODE-DEPENDENT, M5): FOLLOW = CATCH: g_L <= g_R + 1 and g_R <= g_L + 3; LOST:
+# g_L - g_R <= 1 + 0.45 (g_L - 21) and g_R <= g_L + 3, i.e. 0.55 g_L <= g_R - 8.45 -- a
+# RANGE-PROPORTIONAL tolerance: 1 m at the 21 m engagement floor plus 45 % of the gap
+# beyond it (7.3 m at the radar-only equilibrium 35 m). The slope is the smallest on the
+# 0.05 grid that certifies (0.40 DECLINED: against a CATCH reference re-engaging from a
+# wide gap the radar-only follower falls behind faster than a constant tolerance allows).
+# The handoffs FOLLOW -> LOST and CATCH -> LOST are DOMAIN-CONDITIONED: the LOST row is
+# implied by the FOLLOW/CATCH row only on LOST's guard g_L >= 21 (--handoff 7/7 unsat).
+# Covers (measured): lambda = 1, budget 2 in every left mode (M2). The FOLLOW band cap is
+# the CLOSURE g <= 40 of the strict guard conjunct (RELCERT_IMPLIED_CUT=1; O1 by
+# weakening, O2 shape): RELCERT_NO_IMPLIED_CUT=1 DECLINES (M6+), RELCERT_NO_CUT=1
+# DECLINES (M6).
+#
+# Fallback (M4): FOLLOW -> BRAKE is pruned (the reference loop opens the gap at 20 m);
+# BRAKE is not an admissible start for any left mode (g_L >= 21 and the rows give
+# g_R >= 20 at g_L = 21). RELCERT_NO_PRUNE=1 DECLINES. Units m, s.
+[problem]
+name = platoon_delay_linkloss
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 4.0
+[Lsys]
+state_vars = [g]
+epsilon = 2.0
+[Lsys.mode.FOLLOW]
+ode = g' = smt2:(* -0.5 (- g 29.0));
+guard = g >= 21.0 and g < 40.0
+evolve = g >= 0.0 and g <= 60.0
+next = [CATCH, FOLLOW, LOST]
+[Lsys.mode.CATCH]
+ode = g' = smt2:(* -0.6 (- g 29.0));
+guard = g >= 30.0
+evolve = g >= 0.0 and g <= 60.0
+next = [FOLLOW, CATCH, LOST]
+[Lsys.mode.LOST]
+ode = g' = smt2:(* -0.5 (- g 35.0));
+guard = g >= 21.0 and g <= 60.0
+evolve = g >= 0.0 and g <= 60.0
+next = [LOST]
+[Rsys]
+state_vars = [g]
+epsilon = 1.0
+[Rsys.mode.FOLLOW]
+ode = g' = smt2:(* -0.5 (- g 30.0));
+guard = g >= 20.0 and g < 40.0
+evolve = g >= 0.0 and g <= 60.0
+next = [CATCH, FOLLOW, BRAKE]
+[Rsys.mode.CATCH]
+ode = g' = smt2:(* -0.6 (- g 30.0));
+guard = g >= 30.0
+evolve = g >= 0.0 and g <= 60.0
+next = [FOLLOW, CATCH]
+[Rsys.mode.BRAKE]
+ode = g' = smt2:1.5;
+guard = g < 20.0
+evolve = g >= 0.0 and g <= 60.0
+next = [BRAKE]
+[relational_invariant]
+FOLLOW = smt2:(and (<= L_g (+ R_g 1.0)) (<= R_g (+ L_g 3.0)))
+CATCH  = smt2:(and (<= L_g (+ R_g 1.0)) (<= R_g (+ L_g 3.0)))
+LOST   = smt2:(and (<= (* 0.55 L_g) (- R_g 8.45)) (<= R_g (+ L_g 3.0)))

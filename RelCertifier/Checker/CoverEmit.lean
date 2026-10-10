@@ -23,8 +23,6 @@ namespace RelCertifier
 structure ModeFlagsE where
   name    : String
   jointOK : Bool
-  repoPre : Bool
-  repoPost : Bool
   dynPre  : Bool
   dynPost : Bool
   deriving Repr, DecidableEq
@@ -60,7 +58,7 @@ structure CoverEmitE where
 
 /-- A flag row is a NODE iff it carries any certificate. -/
 def ModeFlagsE.isNode (f : ModeFlagsE) : Bool :=
-  f.jointOK || f.repoPre || f.repoPost || f.dynPre || f.dynPost
+  f.jointOK || f.dynPre || f.dynPost
 
 /-- **The structural cover graph** — the exact construction the tool gates CERTIFIED on
 (`coverMode`'s `cgReal`), as a pure function of the emitted flags, the declared
@@ -78,8 +76,6 @@ def buildCoverGraph {V : Type*} [Fintype V] [DecidableEq V]
   { modes := nodes.map (fun f =>
       { sys := [], dom := .tt, weight := 1,
         jointOK := f.jointOK,
-        region := .tt, repoPreOK := f.repoPre,
-        regionPost := .tt, repoPostOK := f.repoPost,
         dynSys := [], dynDomPre := .tt, dynDomPost := .tt,
         repoDynPreOK := f.dynPre, repoDynPostOK := f.dynPost })
     edges := nodes.flatMap (fun f => (succ f.name).map (fun tgt =>

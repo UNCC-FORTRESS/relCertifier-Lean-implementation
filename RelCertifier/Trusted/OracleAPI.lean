@@ -25,6 +25,7 @@ import RelCertifier.Trusted.InvComponents
 import RelCertifier.Trusted.NonConnQuery
 import RelCertifier.Trusted.JointVars
 import RelCertifier.Checker.EvolStrengthening
+import RelCertifier.Checker.EvolStrengtheningX
 import RelCertifier.Trusted.Z3
 import RelCertifier.Checker.Checker
 import RelCertifier.Checker.CoverEmit
@@ -129,6 +130,177 @@ def checkedCut (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
   let cut := kept.foldl (fun d c => IForm.and d c.2.1) IForm.tt
   pure (cut, kept.map (fun c => (c.1, c.2.2)))
 
+/-- **The extended cut channel switch** (L1 implied-contraction atoms and L2 closures,
+`Checker/EvolStrengtheningX.lean`). Default OFF: the `suite_uniform` instances `rfl`-pin
+the legacy certificate and the covers searched with it, so by default the tool emits
+exactly what it did before. `RELCERT_IMPLIED_CUT=1` turns the channel on (the
+`suite_v2` runs, `scripts/suite_v2_matrix.py`); `RELCERT_NO_IMPLIED_CUT=1` overrides to
+off (the matrix's counter-run: legacy cuts only, so a benchmark that then DECLINES is
+load-bearing on the implied atoms — the "M6+" cell). -/
+def impliedCutsOn : IO Bool := do
+  if (← IO.getEnv "RELCERT_NO_IMPLIED_CUT").isSome then pure false
+  else pure (← IO.getEnv "RELCERT_IMPLIED_CUT").isSome
+
+/-- **The L7 linear-form switch** (`Checker/EvolStrengtheningX.lean`, the domain
+audit): the linear-form and derived-bound candidates run whenever the extended channel
+is on, unless `RELCERT_NO_LINEAR_CUT=1` overrides them off (the counter-run of the
+`suite_v2` matrix: a benchmark that then DECLINES is load-bearing on the linear-form
+chain — the "M6L" cell). -/
+def linearCutsOn : IO Bool := do
+  if (← IO.getEnv "RELCERT_NO_LINEAR_CUT").isSome then pure false
+  else impliedCutsOn
+
+/-- **The extended checked cut of a mode** (`RELCERT_IMPLIED_CUT=1` path): the legacy
+guard-conjunct atoms (computed by `checkedCut`, unchanged, tagged `guardConj` /
+`membership`), then the L2 closures of the strict guard conjuncts (O1 by weakening),
+then the L1 implied-contraction atoms `v ≤ c` / `v ≥ c` of every contraction field
+(O1 by rational comparison against a threshold guard conjunct, else by one counted Z3
+query `UNSAT(guard ∧ ¬atom)`). O2 for these atoms is as for any closed atom: the
+contract-shape route over `contractEq`'s grammar (no Z3), the frozen route, then the DI
+routes B and A — each atom over the bare evolve domain, unconditioned, so the lift
+composes per atom. Then (`linearCutsOn`) the L7 chain in two rounds: the linear-form
+atoms `y + r (x − c) ≤ sup` / `≥ inf` of every recognized second-order pair
+(`linearCandidates`; O1 rational from the guard box; O2 by the rational linear-shape
+route, else DI B, A, C over the bare evolve domain), and for each kept linear-form
+atom its derived bound `x ≤ c + K/r` / `≥` (O1 by `guardImpliesRational`, else one
+counted Z3 query; O2 by the rational derived-shape route, else DI B, A, C over the
+evolve domain narrowed by THAT linear-form atom — stratified, recorded in `given`). An
+atom already kept (rationally the same threshold) is not offered twice. Returns the
+conjoined domain narrowing (every kept atom) and the full extended certificate entry. -/
+def checkedCutX (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
+    (vars : List String) (n : ℕ) (coord : Fin n → String) (side : Side) (m : PMode) :
+    IO (IForm n × List CutAtomX) := do
+  let dbg := (← IO.getEnv "RELCERT_DEBUG").isSome
+  let linear ← linearCutsOn
+  let (_, legacy) ← checkedCut s cnt maxQ maxSmt deadline vars n coord side m
+  let fOwn := dynOf vars n side m
+  let zeroF : Fin n → ITerm n := fun _ => ITerm.rat 0
+  let evolveI := (lowerF vars n side m.evolve).getD IForm.tt
+  let guardI? := lowerF vars n side m.guard
+  -- the DI queries of an atom over a domain: route B, route A, and (L7 only) route C
+  let diRoutes (a : PForm) (dom : IForm n) (withC : Bool) : IO (Option CutRouteX) := do
+    match fOwn, cutAtomG vars n side a with
+    | some f, some g =>
+        let gdot := match side with
+          | Side.L => ilieDeriv g f zeroF (ITerm.rat 1)
+          | _      => ilieDeriv g zeroF f (ITerm.rat 1)
+        let rB := IForm.and dom (IForm.and (IForm.cmp .eq g (.rat 0))
+          (IForm.cmp .ge gdot (.rat 0)))
+        if ← probeUnsat s cnt maxQ maxSmt deadline coord rB then pure (some .diStrict)
+        else if ← probeUnsat s cnt maxQ maxSmt deadline coord
+            (IForm.and dom (IForm.cmp .gt gdot (.rat 0))) then
+          pure (some .diNonstrict)
+        else if withC then
+          let rC := IForm.and dom (IForm.and (IForm.cmp .ge g (.rat 0))
+            (IForm.cmp .gt gdot (.rat 0)))
+          if ← probeUnsat s cnt maxQ maxSmt deadline coord rC then pure (some .diSuperlevel)
+          else pure none
+        else pure none
+    | _, _ => pure none
+  -- O2 of an L1 / L2 (closed threshold) atom: unconditioned, legacy routes only
+  let o2 (a : PForm) : IO (Option CutRouteX) := do
+    if contractShapeOKX m a then pure (some .shape)
+    else if (atomVars a).all (frozenIn m) then pure (some .frozen)
+    else diRoutes a evolveI false
+  -- the O1 Z3 fallback: one counted query `UNSAT(guard ∧ ¬atom)`
+  let entryZ3 (a : PForm) : IO Bool := do
+    match guardI?, cutAtomG vars n side a with
+    | some gI, some g =>
+        probeUnsat s cnt maxQ maxSmt deadline coord (IForm.and gI (IForm.cmp .gt g (.rat 0)))
+    | _, _ => pure false
+  let mut out : List CutAtomX :=
+    legacy.map (fun ar => { atom := ar.1, kind := .guardConj, entry := .membership,
+                            route := CutRouteX.ofLegacy ar.2, given := [] })
+  let mut seen : List PForm := legacy.map (·.1)
+  -- L2: closures of the strict guard conjuncts (O1 by weakening)
+  for sa in strictAtoms m.guard do
+    match closureOf sa with
+    | none => pure ()
+    | some a =>
+        if seen.any (atomEqQ a) then pure () else
+        match ← o2 a with
+        | some r =>
+            seen := seen ++ [a]
+            out := out ++ [{ atom := a, kind := .closure, entry := .weakening, route := r, given := [] }]
+            if dbg then IO.eprintln s!"    [route] {m.name}: closure {ppForm a}: {r.tag}"
+        | none => pure ()
+  -- L1: implied-contraction atoms (O1 rational, else one Z3 query)
+  for a in impliedCandidates m do
+    if seen.any (atomEqQ a) then pure () else
+    let entry? : Option CutEntry ←
+      if guardImpliesRational m.guard a then pure (some CutEntry.rational)
+      else if ← entryZ3 a then pure (some CutEntry.z3)
+      else pure none
+    match entry? with
+    | none => pure ()
+    | some e =>
+        match ← o2 a with
+        | some r =>
+            seen := seen ++ [a]
+            out := out ++ [{ atom := a, kind := .impliedContract, entry := e, route := r, given := [] }]
+            if dbg then IO.eprintln s!"    [route] {m.name}: implied {ppForm a}: O1 {e.tag}, O2 {r.tag}"
+        | none => pure ()
+  -- L7 round 1: linear-form atoms of the recognized second-order pairs (O1 rational
+  -- from the guard box, by construction; O2 linear-shape, else DI B / A / C)
+  let mut kept1 : List LinCand := []
+  if linear then
+    if dbg then
+      -- diagnostics: recognized pairs whose guard offers no candidate (no box on the
+      -- pair's coordinates, or irrational eigenvalues)
+      for p in secondOrderPairs m do
+        let roots := pairRoots p.a p.b
+        if roots.isEmpty then
+          IO.eprintln s!"    [lin-skip] {m.name}: pair ({p.x}, {p.y}) has no positive rational root (b² − 4a not a rational square)"
+        else if (linearCandidates m).all (fun c => c.pair != p) then
+          IO.eprintln s!"    [lin-skip] {m.name}: pair ({p.x}, {p.y}) with {roots.length} root(s) but the guard bounds neither side of ({p.x}, {p.y}) — no O1 constant"
+    for cand in linearCandidates m do
+      if seen.any (· == cand.atom) then pure () else
+      let r? : Option CutRouteX ←
+        if linearShapeOKX m cand.atom then pure (some .linearShape)
+        else diRoutes cand.atom evolveI true
+      match r? with
+      | some r =>
+          seen := seen ++ [cand.atom]
+          kept1 := kept1 ++ [cand]
+          out := out ++ [{ atom := cand.atom, kind := .linearForm, entry := .rational,
+                           route := r, given := [] }]
+          if dbg then IO.eprintln s!"    [route] {m.name}: linear-form {ppForm cand.atom}: O1 rational, O2 {r.tag}"
+      | none => pure ()
+    -- L7 round 2: the derived bound of each kept linear-form atom, STRATIFIED on it
+    for cand in kept1 do
+      match derivedOf cand with
+      | none => pure ()
+      | some a =>
+          -- not offered twice, and not when the evolve box already implies it (a bound
+          -- wider than the domain narrows nothing)
+          if seen.any (atomEqQ a) || guardImpliesRational m.evolve a then pure () else
+          let entry? : Option CutEntry ←
+            if guardImpliesRational m.guard a then pure (some CutEntry.rational)
+            else if ← entryZ3 a then pure (some CutEntry.z3)
+            else pure none
+          match entry? with
+          | none => pure ()
+          | some e =>
+              let r? : Option CutRouteX ←
+                if derivedShapeOKX m cand.atom a then pure (some .derivedShape)
+                else
+                  let dom := match lowerF vars n side cand.atom with
+                    | some gI => IForm.and evolveI gI
+                    | none => evolveI
+                  diRoutes a dom true
+              match r? with
+              | some r =>
+                  seen := seen ++ [a]
+                  out := out ++ [{ atom := a, kind := .derivedBound, entry := e, route := r,
+                                   given := [cand.atom] }]
+                  if dbg then IO.eprintln s!"    [route] {m.name}: derived-bound {ppForm a} given {ppForm cand.atom}: O1 {e.tag}, O2 {r.tag}"
+              | none => pure ()
+  let cut := out.foldl (fun d x =>
+    match lowerF vars n side x.atom with
+    | some fI => IForm.and d fI
+    | none => d) IForm.tt
+  pure (cut, out)
+
 /-- Conjoin the checked cuts, shape-normalized: `tt` cuts (the `RELCERT_NO_CUT` path)
 leave the base formula UNCHANGED, so emitted-cover instances mirror the exact query. -/
 def andCuts {n : ℕ} (base cutL cutR : IForm n) : IForm n :=
@@ -195,47 +367,6 @@ def checkSeg (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     if !progress then break
   return ((if proven.length == comps.length then Seg.pass
            else if lastIncon then Seg.incon else Seg.fail), proven)
-
-/-- **REPOSITION region-invariant check** over a supplied `region`. `true` ⟺ `rel_inv` holds
-everywhere in `region`: `¬rel_inv ∧ region` UNSAT iff **for every component** `gᵢ`,
-`UNSAT(region ∧ gᵢ > 0)`. STATIC — no ODE, no Lie, no `t²`. Used twice: with the **pre-j** region
-`guardL ∧ guardR ∧ evolveL ∧ evolveR` (obligation 1) and the **post-j** region
-`guardR ∧ evolveL ∧ evolveR` (obligation 2, no guardL — stronger).
-
-Discipline (soundness): returns `true` ONLY when **every** component is a definitive Z3 `unsat`;
-any `sat`/`unknown`/`error`/over-long → `false` (withhold reposition). A query bug can only
-withhold reposition (over-decline), never wrongly offer it. -/
-def regionUnsat {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
-    (coord : Fin n → String) (comps : List (ITerm n)) (region : IForm n) : IO Bool := do
-  let mut allUnsat := true
-  for g in comps do
-    if allUnsat then
-      let q := IForm.and region (IForm.cmp .gt g (.rat 0))     -- region ∧ (gᵢ > 0) = ¬rel_inv part
-      let script := q.toScript coord
-      if script.length > maxSmt then allUnsat := false
-      else do
-        cnt.modify (· + 1)
-        if (← cnt.get) > maxQ then throw (IO.userError "query budget exceeded")
-        if (← IO.monoMsNow) > deadline then throw (IO.userError "time budget exceeded")
-        match ← s.check script with
-        | .ok .unsat => pure ()
-        | _          => allUnsat := false
-  pure allUnsat
-
-/-- Build the (pre-j, post-j) reposition region `IForm`s for `(mL, mR)`:
-* pre-j: `guardL(mL) ∧ guardR(mR) ∧ evolveL(mL) ∧ evolveR(mR)` (obligation 1, left in guard);
-* post-j: `guardR(mR) ∧ evolveL(mL) ∧ evolveR(mR)` (obligation 2, NO guardL — false post-joint,
-  left carried by `evolveL`). Both include the evolve domains. -/
-def repoRegions (vars : List String) (n : ℕ) (cutL cutR : IForm n) (mL mR : PMode) :
-    Option (IForm n × IForm n) := do
-  let gL ← lowerF vars n Side.L mL.guard
-  let gR ← lowerF vars n Side.R mR.guard
-  let eL ← lowerF vars n Side.L mL.evolve
-  let eR ← lowerF vars n Side.R mR.evolve
-  -- CHECKED CUTS narrow the regions: every reachable σ-state satisfies the checked cuts
-  -- (entry by O1, invariance by O2), so the region-invariant obligation may assume them.
-  let ev := andCuts (IForm.and eL eR) cutL cutR
-  pure (IForm.and (IForm.and gL gR) ev, IForm.and gR ev)
 
 /-- **DYNAMIC REPOSITION check (certificate 3)** — the right-only FLOW cert via the **whole-domain**
 `DI_nonstrict_domain` route (route A: `UNSAT(ġ > 0 ∧ domain)`), left FROZEN (`fL=0`, `ġ` via
@@ -417,22 +548,10 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
   for mR in p.R.modes do
     if ← admissible s cnt maxQ maxSmt deadline vars n coord comps mL mR then
       admMods := admMods ++ [mR]
-  -- REPOSITION: BOTH source-setting region-invariants per right mode (left `mL` frozen).
-  -- λ-independent (guards + invariant only), computed ONCE. `repoPreOK` uses the pre-j region
-  -- (with guardL), `repoPostOK` the stronger post-j region (without guardL). σ selects between
-  -- them in the cover. For watertank `(Mid_L, High_R)`: pre-j PASSES (enables the initial-pair
-  -- reposition `High_R → Mid_R`).
-  let mut repoMap : List (String × Bool × Bool) := []   -- (name, preOK, postOK)
-  for mR in p.R.modes do
-    let (pre, post) ← (match repoRegions vars n cutL (cutOfR mR.name) mL mR with
-      | none => pure (false, false)                       -- unbuildable ⟹ no reposition
-      | some (rPre, rPost) => do
-          let pre  ← regionUnsat s cnt maxQ maxSmt deadline coord comps rPre
-          let post ← regionUnsat s cnt maxQ maxSmt deadline coord comps rPost
-          pure (pre, post))
-    repoMap := repoMap ++ [(mR.name, pre, post)]
-  let repoPreOK  := fun (nm : String) => (repoMap.find? (·.1 == nm)).map (·.2.1) |>.getD false
-  let repoPostOK := fun (nm : String) => (repoMap.find? (·.1 == nm)).map (·.2.2) |>.getD false
+  -- There is NO static (zero-duration) reposition (removed 2026-10-09): a right mode switch at a
+  -- single instant, with no check that the successor's guard holds at the switch state, is not
+  -- a move the guarded right automaton can make (docs/COVER-AUDIT.md, note of 2026-10-09). The
+  -- only right-only move is the DYNAMIC reposition below: a full-interval right-only flow.
   -- DYNAMIC reposition (certificate 3): right-only whole-domain flow cert (route A), σ-matched.
   -- λ-independent (fL=0, λ=1; sign λ-invariant), computed ONCE. For the rover cross-terrain hop,
   -- `ġ_s=−v_R≤0` and `ġ_v` on the terrain's v-evolve-cap ⟹ route-A UNSAT ⟹ the advancing reposition.
@@ -447,10 +566,9 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
   let repoDynPostOK := fun (nm : String) => (dynMap.find? (·.1 == nm)).map (·.2.2) |>.getD false
   if (← IO.getEnv "RELCERT_DEBUG").isSome then
     IO.eprintln s!"  [admissible] {mL.name}_L: {admMods.map (·.name)}"
-    let preL := repoMap.filterMap (fun p => if p.2.1 then some p.1 else none)
-    let postL := repoMap.filterMap (fun p => if p.2.2 then some p.1 else none)
     let dpreL := dynMap.filterMap (fun p => if p.2.1 then some p.1 else none)
-    IO.eprintln s!"  [repo-pre] {mL.name}_L: {preL} [repo-post]: {postL} [repo-dyn-pre]: {dpreL}"
+    let dpostL := dynMap.filterMap (fun p => if p.2.2 then some p.1 else none)
+    IO.eprintln s!"  [repo-dyn-pre] {mL.name}_L: {dpreL} [repo-dyn-post]: {dpostL}"
   for lam in lambdaCandidates lmin lmax epsL epsR do
     let deltaL := if lam == 0 then epsR else epsR / lam
     if deltaL ≤ 0 then continue
@@ -493,20 +611,16 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     -- successor cannot be silently stripped from the ∀. Weight 1 / budget `⌈εL/δL⌉` is the
     -- faithful ℕ-discretization of `(B = εL, w = εR/λ)`: base fires at `B ≤ 1 ⟺ εL ≤ εR/λ`
     -- (one segment closes the residence), matching the paper's real-valued base condition.
-    -- REPOSITION: NODES = modes joint-certified OR reposition-certified (pre-j OR post-j). Each
-    -- node carries `jointOK`, `repoPreOK`, `repoPostOK`; `decideCovered` offers base/joint-step
-    -- where `jointOK`, and the zero-budget reposition step σ-matched (pre-j → `repoPreOK`, post-j
-    -- → `repoPostOK`). `region`/`regionPost` are structural placeholders (`decideCovered` is
-    -- structural; the real `repoPresPre/Post` are the Z3-established region-invariants).
-    -- a mode is a node iff joint-certified OR reposition-certified by ANY of the 3 kinds
-    -- (static pre/post OR dynamic pre/post).
+    -- NODES = modes joint-certified OR dynamic-reposition-certified (pre-j OR post-j). Each node
+    -- carries `jointOK`, `dynPre`, `dynPost`; `decideCovered` offers base/joint-step where
+    -- `jointOK`, and the zero-budget dynamic reposition step σ-matched (pre-j → `dynPre`, post-j
+    -- → `dynPost`).
     -- the emitted flag rows (also what `--emit-cover` prints — ONE construction,
     -- `buildCoverGraph`, shared by this gate and the kernel replays)
     let flagRows : List ModeFlagsE := p.R.modes.map (fun m =>
       { name := m.name, jointOK := seg m.name == Seg.pass,
-        repoPre := repoPreOK m.name, repoPost := repoPostOK m.name,
         dynPre := repoDynPreOK m.name, dynPost := repoDynPostOK m.name })
-    let repoOK := fun nm => repoPreOK nm || repoPostOK nm || repoDynPreOK nm || repoDynPostOK nm
+    let repoOK := fun nm => repoDynPreOK nm || repoDynPostOK nm
     let idxOf := nodeIdx flagRows
     let cgReal : SearchGraph (Var n) := buildCoverGraph flagRows (succOf p) prunedOf
     -- fuel bounds `decideCovered`'s depth: joint steps decrease budget (≤ `bBudget`), reposition
@@ -549,19 +663,39 @@ def certifyWithData (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : N
   -- RELCERT_NO_CUT=1 disables the checked-cut channel entirely (ablation switch:
   -- queries fall back to the bare evolution domains).
   let noCut := (← IO.getEnv "RELCERT_NO_CUT").isSome
+  -- RELCERT_IMPLIED_CUT=1 widens the candidate set (L1 implied-contraction atoms, L2
+  -- closures; `checkedCutX`); off by default, see `impliedCutsOn`.
+  let implied ← impliedCutsOn
+  let dbg := (← IO.getEnv "RELCERT_DEBUG").isSome
+  -- one mode's cut: `(domain narrowing, kept-atom count, extended atoms)`; the
+  -- `[cut]` line counts every kept atom (legacy format), `[cut-x]` lists the
+  -- extended ones (implied mode only)
+  let cutOf (side : Side) (mM : PMode) : IO (IForm n × Nat) := do
+    if noCut then pure (IForm.tt, 0)
+    else if implied then do
+      let (c, xs) ← checkedCutX s cnt maxQ maxSmt deadline vars n coord side mM
+      if dbg then
+        let sd := match side with | Side.L => "L" | Side.R => "R" | _ => "?"
+        for x in xs do
+          if x.kind != CutKind.guardConj then
+            let gv := if x.given.isEmpty then "" else
+              " given=[" ++ String.intercalate "; " (x.given.map ppForm) ++ "]"
+            IO.eprintln s!"  [cut-x] {sd}.{mM.name}: {ppForm x.atom} kind={x.kind.tag} entry={x.entry.tag} route={x.route.tag}{gv}"
+      pure (c, xs.length)
+    else do
+      let (c, kept) ← checkedCut s cnt maxQ maxSmt deadline vars n coord side mM
+      pure (c, kept.length)
   let mut cutMapL : List (String × IForm n) := []
   for mM in p.L.modes do
-    let (c, kept) ← if noCut then pure (IForm.tt, [])
-      else checkedCut s cnt maxQ maxSmt deadline vars n coord Side.L mM
-    if (← IO.getEnv "RELCERT_DEBUG").isSome then
-      IO.eprintln s!"  [cut] L.{mM.name}: {kept.length} conjunct(s)"
+    let (c, k) ← cutOf Side.L mM
+    if dbg then
+      IO.eprintln s!"  [cut] L.{mM.name}: {k} conjunct(s)"
     cutMapL := cutMapL ++ [(mM.name, c)]
   let mut cutMapR : List (String × IForm n) := []
   for mM in p.R.modes do
-    let (c, kept) ← if noCut then pure (IForm.tt, [])
-      else checkedCut s cnt maxQ maxSmt deadline vars n coord Side.R mM
-    if (← IO.getEnv "RELCERT_DEBUG").isSome then
-      IO.eprintln s!"  [cut] R.{mM.name}: {kept.length} conjunct(s)"
+    let (c, k) ← cutOf Side.R mM
+    if dbg then
+      IO.eprintln s!"  [cut] R.{mM.name}: {k} conjunct(s)"
     cutMapR := cutMapR ++ [(mM.name, c)]
   let cutOfL := fun (nm : String) => (cutMapL.find? (·.1 == nm)).map (·.2) |>.getD IForm.tt
   let cutOfR := fun (nm : String) => (cutMapR.find? (·.1 == nm)).map (·.2) |>.getD IForm.tt
@@ -633,12 +767,12 @@ def certifyCore (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
   (·.1) <$> certifyWithData s cnt maxQ maxSmt deadline p
 
 /-- **In-process oracle entry.** Certify problem `p` on a warm session `s`. No shelling.
-A deterministic query budget (`RELCERT_MAX_QUERIES`, default 1500) bounds every call: a
+A deterministic query budget (`RELCERT_MAX_QUERIES`, default 20000) bounds every call: a
 candidate whose exhaustive search exceeds it ⟹ `error "query budget exceeded"` (never a
 verdict, never a hang) — the same input always hits the same count. -/
 def certify (s : Z3Session) (p : PProblem) : IO Outcome := do
   let cnt ← IO.mkRef 0
-  let maxQ := (← IO.getEnv "RELCERT_MAX_QUERIES").bind String.toNat? |>.getD 5000
+  let maxQ := (← IO.getEnv "RELCERT_MAX_QUERIES").bind String.toNat? |>.getD 20000
   let budgetMs := (← IO.getEnv "RELCERT_TIME_BUDGET_MS").bind String.toNat? |>.getD 40000
   let maxSmt := (← IO.getEnv "RELCERT_MAX_SMT").bind String.toNat? |>.getD 200000
   let deadline := (← IO.monoMsNow) + budgetMs
@@ -650,7 +784,7 @@ pattern — the drift test re-runs the search and compares). Anonymous-construct
 form, consumable against `Checker/CoverEmit.lean`. -/
 def emitCoverE (defname : String) (c : CoverEmitE) : String :=
   let fl := fun (f : ModeFlagsE) =>
-    s!"⟨\"{f.name}\", {f.jointOK}, {f.repoPre}, {f.repoPost}, {f.dynPre}, {f.dynPost}⟩"
+    s!"⟨\"{f.name}\", {f.jointOK}, {f.dynPre}, {f.dynPost}⟩"
   let ps := fun (x : PairStrataE) =>
     s!"⟨\"{x.mR}\", {repr x.order}, {repr x.dynPreOrder}, {repr x.dynPostOrder}⟩"
   let lc := fun (l : LeftCoverE) =>
@@ -670,7 +804,7 @@ def emitCoverFile (cfg : Z3Config) (path defname : String) : IO Unit := do
       | .error e => IO.eprintln s!"ERROR: z3: {e}"; IO.Process.exit 1
       | .ok s =>
           let cnt ← IO.mkRef 0
-          let maxQ := (← IO.getEnv "RELCERT_MAX_QUERIES").bind String.toNat? |>.getD 5000
+          let maxQ := (← IO.getEnv "RELCERT_MAX_QUERIES").bind String.toNat? |>.getD 20000
           let budgetMs := (← IO.getEnv "RELCERT_TIME_BUDGET_MS").bind String.toNat? |>.getD 40000
           let maxSmt := (← IO.getEnv "RELCERT_MAX_SMT").bind String.toNat? |>.getD 200000
           let deadline := (← IO.monoMsNow) + budgetMs

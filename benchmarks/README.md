@@ -1,13 +1,50 @@
 # Benchmark suite
 
 One directory per benchmark under `suite_uniform/`; `input.txt` is the complete
-specification. **41 directories: 40 certified, plus `shield_unreachable`, which the tool
-DECLINES (its `Shield` guard is a closed compound band the non-connection certificate
-does not prune, and `Shield` is an admissible initial mode; it is outside the certified
-suite).** Every certified benchmark carries a machine-checked modal Theorem 3 — see
+specification. **41 directories: 34 certified and 7 DECLINED.** `shield_unreachable` is
+DECLINED by design (its `Shield` guard is a closed compound band the non-connection
+certificate does not prune, and `Shield` is an admissible initial mode; it is outside the
+certified suite). Six are **declined after static-reposition removal** (2026-10-09):
+`arm_chain_rung1`, `arm_chain_rung2`, `arm_fidelity_low`, `robot_braking`,
+`rover3tier_M1`, `watertank`. Their covers needed the static reposition, a zero-duration
+switch of the right system into a declared successor with no check that the successor's
+guard held at the switch state; it was removed from the certifier
+(`docs/COVER-AUDIT.md`, note of 2026-10-09). Their input files are kept unchanged and their
+IR literals are still drift-checked, but no cover, Theorem 3 instance or verdict pack is
+claimed for them; they are not repaired here (`suite_v2/` supersedes this suite, and its
+redesigned `watertank` certifies with joint segments only). Every certified benchmark
+carries a machine-checked modal Theorem 3 — see
 `docs/CERTIFICATION-CHECK.md` for how to verify that end to end. `match_multi_rate`
 declares a pruned stall fallback (`STALL`, edge `DRIVE → STALL`) that exercises the
 non-connection certificate: `RELCERT_NO_PRUNE=1` makes it DECLINE (`docs/PRUNING.md`).
+
+## The redesigned suite — `suite_v2/` (2026-10-08, branch `suite-redesign`)
+
+`suite_v2/` is the redesigned 45-benchmark suite (pass 7): the 19 kept benchmarks (terrain/
+position ladder, story ladders, watertank; `watertank` was REDESIGNED on 2026-10-09 as the
+paper's running example — a set-point level controller under a sensor offset and a
+tampered fill pump, certified with joint segments only, `docs/SUITE-REDESIGN.md` §18) and `match_multi_rate`, `rover3tier_rung12`
+copied unchanged (except the user-approved repair of `story3_rollover_ladder_rung_b`'s
+attitude domains and zone-switch entry condition), plus 24 benchmarks in eight families
+(ACC under sensor spoofing / retune with fault-latched limp modes, quadrotor climb with a
+lighter airframe, battery charger, platoon follower with a delayed link, a three-follower
+CACC platoon string (6 D), rover patrol zones, arm with a leading reference, and the
+rigid-body detumbling family with bilinear Euler / gyrostat dynamics — one-wheel 4 D and
+three-wheel 6 D — and an energy-threshold SAFE fallback). Each new file's
+header states the physical story, units, the measured cover and the mechanisms it
+exercises (`# scenario:` / `# mechanisms:` lines). The `suite_v2` runs use the widened
+cut channel, `RELCERT_IMPLIED_CUT=1` (closures of strict guard conjuncts,
+implied-contraction atoms, and the linear-form chain of critically / over-damped
+second-order loops; off by default). Every evolve domain states a PHYSICAL limit of the
+plant (the domain audit, `docs/SUITE-REDESIGN.md` §13): `scripts/domain_widening.py`
+widens every evolve bound by half the variable's range and re-runs the tool, and a bound
+the certificate needs is a forward-invariant bound the dynamics justify (stated in the
+header). The three per-mode-domain files of pass 2 were dropped: their band domains encode
+event-triggered switching, which is not claimed. The mechanism matrix, the per-family
+design, the counter-runs and the scenarios tried and dropped are in
+`docs/SUITE-REDESIGN.md`; `scripts/suite_v2_matrix.py` regenerates all of it. The Lean
+instances still read `suite_uniform/` (the mechanization of `suite_v2` is a separate
+task), so `suite_uniform/` must not be edited.
 
 ## File format
 
@@ -71,7 +108,7 @@ reject genuinely unknown keys. The underlying observation is recorded in
 
 ```bash
 lake build relcert
-./.lake/build/bin/relcert benchmarks/suite_uniform/watertank/input.txt
+./.lake/build/bin/relcert benchmarks/suite_uniform/match_multi_rate/input.txt
 ```
 
 The tool parses, lowers, searches for a cover, and discharges the analytic side conditions
@@ -83,7 +120,8 @@ theorem cannot drift apart silently.
 
 ## The suite
 
-watertank; the arm chain / arm fidelity families (the plant-fan copies and `arm_refinement`, byte-identical duplicates, were removed on 2026-10-08 — `docs/SUITE-DEDUPE.md`); rover refinement ladders
+watertank (declined after static-reposition removal); the arm chain / arm fidelity families (`arm_chain_rung1`, `arm_chain_rung2`, `arm_fidelity_low` declined after static-reposition removal) (the plant-fan copies and `arm_refinement`, byte-identical duplicates, were removed on 2026-10-08 — `docs/SUITE-DEDUPE.md`); rover refinement ladders
 (2–12 dof); dof-terrain rungs; endurance, attitude, lateral and rollover stories; plus the
-rover tier, coupled, position and drag models. Sizes run from 1 to 12 state variables per
-side.
+rover tier, coupled, position and drag models (`rover3tier_M1` declined after
+static-reposition removal), and `robot_braking` (declined after static-reposition removal).
+Sizes run from 1 to 12 state variables per side.

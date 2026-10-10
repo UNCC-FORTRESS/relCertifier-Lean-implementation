@@ -1,7 +1,4 @@
 /- GENERATED umbrella (scripts/gen_throughout.py) — do not edit. -/
-import RelCertifier.Instances.Throughout.arm_chain_rung1
-import RelCertifier.Instances.Throughout.arm_chain_rung2
-import RelCertifier.Instances.Throughout.arm_fidelity_low
 import RelCertifier.Instances.Throughout.arm_fidelity_mid
 import RelCertifier.Instances.Throughout.attitude_rate
 import RelCertifier.Instances.Throughout.endurance_gain_M1
@@ -12,9 +9,7 @@ import RelCertifier.Instances.Throughout.refinement_ladder_rover_rung2_3to6
 import RelCertifier.Instances.Throughout.refinement_ladder_rover_rung2_6dof
 import RelCertifier.Instances.Throughout.refinement_ladder_rover_rung2b_6dof
 import RelCertifier.Instances.Throughout.refinement_ladder_rover_rung2c_6dof
-import RelCertifier.Instances.Throughout.robot_braking
 import RelCertifier.Instances.Throughout.rover3_M1
-import RelCertifier.Instances.Throughout.rover3tier_M1
 import RelCertifier.Instances.Throughout.rover3tier_rung12
 import RelCertifier.Instances.Throughout.rover_4d_box
 import RelCertifier.Instances.Throughout.rover_coupled
@@ -27,4 +22,3 @@ import RelCertifier.Instances.Throughout.story1_attdist_rung_b_12dof
 import RelCertifier.Instances.Throughout.story2_lateral_rung_a_8dof
 import RelCertifier.Instances.Throughout.story2_lateral_rung_b_12dof
 import RelCertifier.Instances.Throughout.story3_rollover_ladder_rung_b
-import RelCertifier.Instances.Throughout.watertank

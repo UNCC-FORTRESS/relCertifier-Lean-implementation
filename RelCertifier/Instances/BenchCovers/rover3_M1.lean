@@ -14,8 +14,8 @@ namespace RelCertifier
 /-- `rover3_M1` (emitted). -/
 def rover3_M1_cover : CoverEmitE :=
   ⟨"rover3_M1", [], [
-    ⟨"Drive", (7 : ℚ) / 5, 2, [⟨"Recover", false, false, false, true, true⟩, ⟨"Drive", false, false, false, true, true⟩, ⟨"Safe", true, false, false, true, true⟩], ["Recover", "Drive", "Safe"], [⟨"Recover", [], [0], [0]⟩, ⟨"Drive", [], [0], [0]⟩, ⟨"Safe", [0], [0], [0]⟩]⟩,
-    ⟨"Drift", (7 : ℚ) / 5, 2, [⟨"Recover", false, false, false, true, true⟩, ⟨"Drive", false, false, false, true, true⟩, ⟨"Safe", true, false, false, true, true⟩], ["Recover", "Drive", "Safe"], [⟨"Recover", [], [0], [0]⟩, ⟨"Drive", [], [0], [0]⟩, ⟨"Safe", [0], [0], [0]⟩]⟩,
-    ⟨"Stop", (7 : ℚ) / 5, 2, [⟨"Recover", false, false, false, true, true⟩, ⟨"Drive", false, false, false, true, true⟩, ⟨"Safe", true, false, false, true, true⟩], ["Recover", "Drive", "Safe"], [⟨"Recover", [], [0], [0]⟩, ⟨"Drive", [], [0], [0]⟩, ⟨"Safe", [0], [0], [0]⟩]⟩]⟩
+    ⟨"Drive", (7 : ℚ) / 5, 2, [⟨"Recover", false, true, true⟩, ⟨"Drive", false, true, true⟩, ⟨"Safe", true, true, true⟩], ["Recover", "Drive", "Safe"], [⟨"Recover", [], [0], [0]⟩, ⟨"Drive", [], [0], [0]⟩, ⟨"Safe", [0], [0], [0]⟩]⟩,
+    ⟨"Drift", (7 : ℚ) / 5, 2, [⟨"Recover", false, true, true⟩, ⟨"Drive", false, true, true⟩, ⟨"Safe", true, true, true⟩], ["Recover", "Drive", "Safe"], [⟨"Recover", [], [0], [0]⟩, ⟨"Drive", [], [0], [0]⟩, ⟨"Safe", [0], [0], [0]⟩]⟩,
+    ⟨"Stop", (7 : ℚ) / 5, 2, [⟨"Recover", false, true, true⟩, ⟨"Drive", false, true, true⟩, ⟨"Safe", true, true, true⟩], ["Recover", "Drive", "Safe"], [⟨"Recover", [], [0], [0]⟩, ⟨"Drive", [], [0], [0]⟩, ⟨"Safe", [0], [0], [0]⟩]⟩]⟩
 
 end RelCertifier

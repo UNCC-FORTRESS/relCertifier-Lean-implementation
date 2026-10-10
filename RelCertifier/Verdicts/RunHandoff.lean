@@ -109,18 +109,19 @@ def HandoffReport.line (r : HandoffReport) : String :=
   s!"  [handoff] {r.bench}: {r.checked}/{r.declared} transitions checked, {r.passed} passed, \
 failing: {fails}{if r.vacuous then " (vacuous: mode-independent invariant)" else ""} ({r.ms}ms)"
 
-/-- The handoff phase of `--run-verdicts` over the whole emitted suite: every benchmark in
-`benchIRTable`, every declared left transition. Green iff every per-benchmark count
+/-- The handoff phase of `--run-verdicts` over the whole certified suite: every benchmark in
+`certifiedIRTable` (`benchIRTable` minus the declined `declinedIR`), every declared left
+transition. Green iff every per-benchmark count
 matches its declaration, the failure set is exactly `expectedHandoffFailures`, and the
 total equals `expected.handoff` (checked by the caller via `checkPhase`). -/
 def runHandoffAll (cfg : Z3Config) : IO Bool := do
   match ← Z3Session.start cfg with
   | .error e => IO.eprintln s!"ERROR: z3: {e}"; return false
   | .ok s =>
-      IO.println s!"== handoff : {benchIRTable.length} benchmarks, one query per declared left transition =="
+      IO.println s!"== handoff : {certifiedIRTable.length} benchmarks, one query per declared left transition =="
       let mut ok := true
       let mut fails : List (String × ℕ × ℕ) := []
-      for (name, p) in benchIRTable do
+      for (name, p) in certifiedIRTable do
         let r ← runHandoffBench s cfg name p
         IO.println r.line
         if r.checked != r.declared then

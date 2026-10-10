@@ -57,15 +57,10 @@ def decideCovered (G : SearchGraph V) : ℕ → Config → Bool
           || (m.jointOK && decide (m.weight < B) &&
                 (G.retainedSucc q).all (fun q' =>
                    decideCovered G fuel ⟨q', B - m.weight, SrcSetting.postJ⟩))
-          -- reposition step (REPOSITION CERTIFICATE), **σ-matched**: pre-j uses `repoPreOK`
-          -- (obligation with guardL), post-j uses `repoPostOK` (stronger, without guardL). Zero
-          -- budget, `exitSucc` non-empty (no vacuous dead-end cover), all non-self exits cover at
-          -- the SAME budget `B` and SAME `σ` (reposition doesn't evolve the left, so σ is preserved).
-          || ((match σ with | .preJ => m.repoPreOK | .postJ => m.repoPostOK)
-                && decide (0 < B) && !(G.exitSucc q).isEmpty &&
-                (G.exitSucc q).all (fun q' => decideCovered G fuel ⟨q', B, σ⟩))
-          -- DYNAMIC reposition step (certificate 3), σ-matched (`repoDynPreOK`/`repoDynPostOK`).
-          -- Same structural gate; availability is the whole-domain flow cert, not the static region.
+          -- DYNAMIC reposition step (certificate 3, the right-only segment), σ-matched
+          -- (`repoDynPreOK`/`repoDynPostOK`): zero budget, `exitSucc` non-empty (no vacuous
+          -- dead-end cover), all non-self exits cover at the SAME budget `B` and SAME `σ` (the
+          -- left is held, so σ is preserved). There is no static (zero-duration) reposition.
           || ((match σ with | .preJ => m.repoDynPreOK | .postJ => m.repoDynPostOK)
                 && decide (0 < B) && !(G.exitSucc q).isEmpty &&
                 (G.exitSucc q).all (fun q' => decideCovered G fuel ⟨q', B, σ⟩))
@@ -86,20 +81,10 @@ theorem decideCovered_sound (G : SearchGraph V) :
       | some m =>
           rw [hm] at h
           simp only [Bool.or_eq_true, Bool.and_eq_true, decide_eq_true_eq] at h
-          rcases h with ((⟨hj, hle⟩ | ⟨⟨hj, hlt⟩, hall⟩) | ⟨⟨⟨hrepo, hB⟩, hne'⟩, hall⟩)
-                        | ⟨⟨⟨hrepo, hB⟩, hne'⟩, hall⟩
+          rcases h with (⟨hj, hle⟩ | ⟨⟨hj, hlt⟩, hall⟩) | ⟨⟨⟨hrepo, hB⟩, hne'⟩, hall⟩
           · exact Covered.base m hm hj hle                              -- base (joint)
           · refine Covered.step m hm hj hlt ?_                          -- joint step (successors postJ)
             intro q' hq'; exact ih _ (List.all_eq_true.mp hall q' hq')
-          · -- STATIC reposition step, σ-matched
-            have hne : G.exitSucc q ≠ [] := by intro hnil; rw [hnil] at hne'; simp at hne'
-            cases σ with
-            | preJ =>
-                refine Covered.stepRepositionPre m hm hrepo hB hne ?_
-                intro q' hq'; exact ih _ (List.all_eq_true.mp hall q' hq')
-            | postJ =>
-                refine Covered.stepRepositionPost m hm hrepo hB hne ?_
-                intro q' hq'; exact ih _ (List.all_eq_true.mp hall q' hq')
           · -- DYNAMIC reposition step (certificate 3), σ-matched
             have hne : G.exitSucc q ≠ [] := by intro hnil; rw [hnil] at hne'; simp at hne'
             cases σ with

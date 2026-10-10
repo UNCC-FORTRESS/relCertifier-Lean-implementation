@@ -14,7 +14,7 @@ namespace RelCertifier
 /-- `rover3tier_rung12` (emitted). -/
 def rover3tier_rung12_cover : CoverEmitE :=
   ⟨"rover3tier_rung12", [], [
-    ⟨"ACCEL", (7 : ℚ) / 4, 6, [⟨"ACCEL", true, false, false, true, true⟩, ⟨"COAST", true, false, false, true, true⟩], ["ACCEL", "COAST"], [⟨"ACCEL", [1, 0], [0, 1], [0, 1]⟩, ⟨"COAST", [1, 0], [0, 1], [0, 1]⟩]⟩,
-    ⟨"COAST", (1 : ℚ) / 1, 4, [⟨"ACCEL", true, false, false, true, true⟩, ⟨"COAST", true, false, false, true, true⟩], ["ACCEL", "COAST"], [⟨"ACCEL", [0], [0], [0]⟩, ⟨"COAST", [0], [0], [0]⟩]⟩]⟩
+    ⟨"ACCEL", (7 : ℚ) / 4, 6, [⟨"ACCEL", true, true, true⟩, ⟨"COAST", true, true, true⟩], ["ACCEL", "COAST"], [⟨"ACCEL", [1, 0], [0, 1], [0, 1]⟩, ⟨"COAST", [1, 0], [0, 1], [0, 1]⟩]⟩,
+    ⟨"COAST", (1 : ℚ) / 1, 4, [⟨"ACCEL", true, true, true⟩, ⟨"COAST", true, true, true⟩], ["ACCEL", "COAST"], [⟨"ACCEL", [0], [0], [0]⟩, ⟨"COAST", [0], [0], [0]⟩]⟩]⟩
 
 end RelCertifier

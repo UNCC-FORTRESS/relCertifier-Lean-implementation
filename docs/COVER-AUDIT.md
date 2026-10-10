@@ -224,6 +224,58 @@ list, built from `Run.succOf`), and R1 verified every benchmark mode declares it
 
 ---
 
+## Note (2026-10-09): the static reposition is removed; the 2026-07-19 note does not cover it
+
+**Supersedes** the claim of the 2026-07-19 note above that the `⊤` edge guards are harmless
+"because the treatment is demonic". That argument is correct for the moves the certificate
+makes **after a flow**: at the end of a joint segment (`Covered.step`) and at the end of a
+dynamic reposition (`Covered.stepRepositionDyn*`, the right flows alone under its own field
+for a full interval while the left is held: the paper's right-only segment), the cover
+demands that **every** declared, unpruned successor covers, so whichever successor the
+guarded automaton actually enables is among those certified.
+
+It is **not** correct for the **static reposition** (`RMode.repoPreOK`/`repoPostOK`,
+`Covered.stepRepositionPre/Post`, `RightReach.repositionPre/Post`, the tool's
+`repoRegions`/`regionUnsat`). That step moved the right system into a declared successor in
+**zero time**, at the current state, and it was the *witness* (the ∃ side) that chose to
+make it: the cover used it to reach a successor whose segment certifies, from a mode whose
+own segment does not. Its only obligation was the static region check
+`guardL ∧ guardR ∧ evolve ⟹ φ_inv` (pre-j; post-j without `guardL`), which says the
+invariant holds in the *source* mode's region. Nothing checked that the **successor's guard
+holds at the switch state**, and the Lean right automaton carries `⊤` edge guards, so
+nothing in the program caught it either. A guarded automaton cannot make that switch when
+the successor's guard is false there, so a certificate built on it can describe a response
+the modeled system does not have. The demonic argument does not help: it is about the ∀
+over successors after a flow, not about an ∃-chosen instantaneous switch. (`CutCover`'s
+`RightReachG` did record the target guard at a static switch, but as an *assumption* of the
+reach relation, which is exactly the fact that was never established.)
+
+**Decision (user, 2026-10-09): remove the static reposition entirely.** Removed: the
+`region`/`repoPreOK`/`regionPost`/`repoPostOK` fields of `RMode`, the `repoPresPre/Post`
+fields of `CoverCert`/`CoverCertM` (and `repoPresPreC/PostC` of `CoverCertMC`), the
+`Covered.stepRepositionPre/Post` and `RightReach(G).repositionPre/Post` constructors and
+every proof case on them, `RegionInvOn`/`RegionInvAllOn` and their discharge lemmas,
+`reposition_step_pres`, the tool's `repoRegions`/`regionUnsat`/`repoMap`, the
+`[repo-pre]`/`[repo-post]` debug output, and the two static flags of the emitted cover
+literal (`ModeFlagsE` is now `⟨name, jointOK, dynPre, dynPost⟩`). The dynamic reposition
+(`checkDynRepo`, `repoDynPreOK`/`repoDynPostOK`, `stepRepositionDynPre/Post`) stays. The
+certificate now makes no zero-duration switch: every right mode change follows a joint
+segment or a full-interval right-only flow, and the guard-gated-switching assumption of the
+trust base is needed only there.
+
+**Casualties.** Six `suite_uniform` benchmarks DECLINE without it and are marked "declined
+after static-reposition removal": `arm_chain_rung1`, `arm_chain_rung2`, `arm_fidelity_low`,
+`robot_braking`, `rover3tier_M1`, `watertank` (suite tally 40/1 → 34/7). Their modal
+theorems, throughout instances, emitted covers, cover replays and verdict packs are removed
+from the battery (`Instances/ModalBattery.lean` 52 → 46 theorems); their input files and IR
+literals stay. Five more certified benchmarks had static flags in their emitted covers
+(`arm_chain_rung3`, `arm_fidelity_mid`, `attitude_rate`, `refinement_ladder_rover_rung2_6dof`,
+`refinement_ladder_rover_rung2b_6dof`) and still certify with the regenerated cover. In
+`suite_v2` only the old `watertank` needed it; it was replaced by the redesigned running
+example, which certifies with joint segments only (`docs/SUITE-REDESIGN.md` §18).
+
+---
+
 ## Finding (2026-07-19): the parser silently drops unknown keys
 
 `Trusted/Parse.lean` is in the trust base and its stated contract is **"the parser

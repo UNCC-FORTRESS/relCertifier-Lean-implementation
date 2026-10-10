@@ -225,13 +225,14 @@ def testDeterminism (cfg : Z3Config) : IO Unit := do
   match ← Z3Session.start cfg with
   | .error e => check s!"session ({e})" false
   | .ok s =>
-      -- a CERTIFIED benchmark, 8× on one warm session
-      match ← loadProblem "watertank" with
-      | none => skip "watertank: 8× identical CERTIFIED" "BENCH_PATHS not set"
+      -- a CERTIFIED benchmark, 8× on one warm session (`watertank` until 2026-10-09; it is
+      -- DECLINED since the static reposition was removed)
+      match ← loadProblem "match_multi_rate" with
+      | none => skip "match_multi_rate: 8× identical CERTIFIED" "BENCH_PATHS not set"
       | some p => do
           let mut outs : List Bool := []
           for _ in [0:8] do outs := outs ++ [isCert (← certify s p)]
-          check "watertank: 8× identical CERTIFIED" (outs.all id)
+          check "match_multi_rate: 8× identical CERTIFIED" (outs.all id)
       -- a DECLINED benchmark, 8× identical verdict (stability, not the value)
       match ← loadProblem "rover_terrain_M1" with
       | none => skip "declined benchmark: 8× identical verdict" "BENCH_PATHS not set"

@@ -1,0 +1,71 @@
+# Rover DOF + Terrain ladder -- Rung 3 (8-state, fully coupled): refines 6-state rung2
+#
+# Same terrain structure as rung1/2/3 (STEEP/MODER/FLAT). This 8D variant adds
+# heading and pitch 2nd-order (inertia) without the roll/heave/acceleration filler
+# states of the full 12D rung3. Keeps the story clean: 8 meaningful DOF.
+#
+# Reasoning model (right, 6-DOF): rung2's fine model, omega pinned to 0.
+# Deployed model (left, 8-DOF): heading and pitch promoted to 2nd-order (PD inertia).
+#
+# Invariant v_L <= v_R and s_L <= s_R + 0.2. Cross-terrain pairs fail (v_R=0 possible).
+
+[problem]
+name = rover_dof_terrain_rung3_8d
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 4.0
+
+[Lsys]
+state_vars = [v, s, psi, omega_psi, theta_p, omega_theta, z, phi_r]
+epsilon = 1.0
+
+[Lsys.mode.STEEP]
+ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = omega_psi; omega_psi' = smt2:(+ (* -1 psi) (* -2 omega_psi)); theta_p' = omega_theta; omega_theta' = smt2:(+ (* -1 theta_p) (* -2 omega_theta)); z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
+guard = s >= 0.0 and s < 0.6
+evolve = omega_psi >= -1.0 and omega_psi <= 1.0 and omega_theta >= -1.0 and omega_theta <= 1.0 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.5 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.5 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 0.15
+next = [MODER, STEEP]
+
+[Lsys.mode.MODER]
+ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = omega_psi; omega_psi' = smt2:(+ (* -1 psi) (* -2 omega_psi)); theta_p' = omega_theta; omega_theta' = smt2:(+ (* -1 theta_p) (* -2 omega_theta)); z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
+guard = s >= 0.6 and s < 1.4
+evolve = omega_psi >= -1.0 and omega_psi <= 1.0 and omega_theta >= -1.0 and omega_theta <= 1.0 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.5 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.5 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 0.15
+next = [FLAT, MODER]
+
+[Lsys.mode.FLAT]
+ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = omega_psi; omega_psi' = smt2:(+ (* -1 psi) (* -2 omega_psi)); theta_p' = omega_theta; omega_theta' = smt2:(+ (* -1 theta_p) (* -2 omega_theta)); z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
+guard = s >= 1.4 and s < 899.95
+evolve = omega_psi >= -1.0 and omega_psi <= 1.0 and omega_theta >= -1.0 and omega_theta <= 1.0 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.5 and s >= 0.0 and s <= 1000.0 and theta_p >= -0.5 and theta_p <= 0.5 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 0.15
+next = [FLAT]
+
+[Rsys]
+state_vars = [v, s, psi, omega_psi, theta_p, omega_theta, z, phi_r]
+epsilon = 1.0
+
+[Rsys.mode.STEEP]
+ode = v' = smt2:(* 3 (- 0.30 v)); s' = v; psi' = smt2:(* -1 psi); omega_psi' = smt2:0; theta_p' = smt2:(* -1 theta_p); omega_theta' = smt2:0; z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
+guard = s >= 0.0 and s < 0.6 and v <= 0.3
+# (evolve cap on the drifting coordinate removed with it: nothing in the dynamics
+# enforces it — the reachability-in-evolve defect class.)
+evolve = omega_psi >= -1.0 and omega_psi <= 1.1 and omega_theta >= -1.0 and omega_theta <= 1.1 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 0.15
+next = [MODER, STEEP]
+
+[Rsys.mode.MODER]
+ode = v' = smt2:(* 3 (- 0.50 v)); s' = v; psi' = smt2:(* -1 psi); omega_psi' = smt2:0; theta_p' = smt2:(* -1 theta_p); omega_theta' = smt2:0; z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
+guard = s >= 0.6 and s < 1.4 and v <= 0.5
+evolve = omega_psi >= -1.0 and omega_psi <= 1.1 and omega_theta >= -1.0 and omega_theta <= 1.1 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 0.15
+next = [FLAT, MODER]
+
+[Rsys.mode.FLAT]
+ode = v' = smt2:(* 3 (- 0.65 v)); s' = v; psi' = smt2:(* -1 psi); omega_psi' = smt2:0; theta_p' = smt2:(* -1 theta_p); omega_theta' = smt2:0; z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
+# terminal segment: the upper cap made the settling hypothesis false (one-step image
+# escapes with no successor beyond — the H-falsification audit's terminal-band overflow);
+# the band is now unbounded above, per the honest-envelope principle for positions.
+guard = s >= 1.4 and v <= 0.65
+evolve = omega_psi >= -1.0 and omega_psi <= 1.1 and omega_theta >= -1.0 and omega_theta <= 1.1 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 0.15
+next = [FLAT]
+
+[relational_invariant]
+STEEP = v[l] <= v[r] and s[l] <= s[r] + 0.2
+MODER = v[l] <= v[r] and s[l] <= s[r] + 0.2
+FLAT  = v[l] <= v[r] and s[l] <= s[r] + 0.2

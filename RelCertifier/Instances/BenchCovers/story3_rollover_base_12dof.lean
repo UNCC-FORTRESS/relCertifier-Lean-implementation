@@ -14,8 +14,8 @@ namespace RelCertifier
 /-- `story3_rollover_base_12dof` (emitted). -/
 def story3_rollover_base_12dof_cover : CoverEmitE :=
   ⟨"story3_rollover_base_12dof", [], [
-    ⟨"STEEP", (5 : ℚ) / 4, 2, [⟨"STEEP", true, false, false, true, true⟩, ⟨"MODER", true, false, false, true, true⟩, ⟨"FLAT", true, false, false, true, true⟩], ["STEEP", "MODER", "FLAT"], [⟨"STEEP", [0, 1, 2, 3, 4], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4]⟩, ⟨"MODER", [0, 1, 2, 3, 4], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4]⟩, ⟨"FLAT", [0, 1, 2, 3, 4], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4]⟩]⟩,
-    ⟨"MODER", (5 : ℚ) / 4, 2, [⟨"STEEP", false, false, false, true, true⟩, ⟨"MODER", true, false, false, true, true⟩, ⟨"FLAT", true, false, false, true, true⟩], ["STEEP", "MODER", "FLAT"], [⟨"STEEP", [2, 3, 4], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4]⟩, ⟨"MODER", [0, 1, 2, 3, 4], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4]⟩, ⟨"FLAT", [0, 1, 2, 3, 4], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4]⟩]⟩,
-    ⟨"FLAT", (5 : ℚ) / 4, 2, [⟨"STEEP", false, false, false, true, true⟩, ⟨"MODER", false, false, false, true, true⟩, ⟨"FLAT", true, false, false, true, true⟩], ["MODER", "FLAT"], [⟨"STEEP", [4, 2, 3], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4]⟩, ⟨"MODER", [4, 2, 3], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4]⟩, ⟨"FLAT", [0, 1, 2, 3, 4], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4]⟩]⟩]⟩
+    ⟨"STEEP", (5 : ℚ) / 4, 2, [⟨"STEEP", true, true, true⟩, ⟨"MODER", true, true, true⟩, ⟨"FLAT", true, true, true⟩], ["STEEP", "MODER", "FLAT"], [⟨"STEEP", [0, 1, 2, 3, 4], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4]⟩, ⟨"MODER", [0, 1, 2, 3, 4], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4]⟩, ⟨"FLAT", [0, 1, 2, 3, 4], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4]⟩]⟩,
+    ⟨"MODER", (5 : ℚ) / 4, 2, [⟨"STEEP", false, true, true⟩, ⟨"MODER", true, true, true⟩, ⟨"FLAT", true, true, true⟩], ["STEEP", "MODER", "FLAT"], [⟨"STEEP", [2, 3, 4], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4]⟩, ⟨"MODER", [0, 1, 2, 3, 4], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4]⟩, ⟨"FLAT", [0, 1, 2, 3, 4], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4]⟩]⟩,
+    ⟨"FLAT", (5 : ℚ) / 4, 2, [⟨"STEEP", false, true, true⟩, ⟨"MODER", false, true, true⟩, ⟨"FLAT", true, true, true⟩], ["MODER", "FLAT"], [⟨"STEEP", [4, 2, 3], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4]⟩, ⟨"MODER", [4, 2, 3], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4]⟩, ⟨"FLAT", [0, 1, 2, 3, 4], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4]⟩]⟩]⟩
 
 end RelCertifier

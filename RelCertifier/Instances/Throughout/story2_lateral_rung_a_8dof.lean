@@ -16,7 +16,7 @@ def mLStory2LateralRungA8dof (l : ℕ) : Parse.PMode := story2_lateral_rung_a_8d
 def mRStory2LateralRungA8dof (q : ℕ) : Parse.PMode := story2_lateral_rung_a_8dof_IR.R.modes.getD q dummyStory2LateralRungA8dof
 def fRowStory2LateralRungA8dof (l q : ℕ) : ModeFlagsE :=
   ((story2_lateral_rung_a_8dof_coverNC.covers.getD l ⟨"", 1, 1, [], [], []⟩).flags.getD q
-    ⟨"", false, false, false, false, false⟩)
+    ⟨"", false, false, false⟩)
 noncomputable def GWStory2LateralRungA8dof (l : ℕ) : SearchGraph (Var 8) :=
   realGraphOf vsStory2LateralRungA8dof 8 story2_lateral_rung_a_8dof_IR (mLStory2LateralRungA8dof l)
     ((story2_lateral_rung_a_8dof_coverNC.covers.getD l ⟨"", 1, 1, [], [], []⟩).lamQ)
@@ -33,7 +33,7 @@ theorem GWStory2LateralRungA8dof0_modes_eq : (GWStory2LateralRungA8dof 0).modes 
 
 theorem certStory2LateralRungA8dof_0 (hs_0_0 : ∀ i (hi : i < gsStory2LateralRungA8dof_0.length),     z3solve (flowQuery ⟨gsStory2LateralRungA8dof_0[i],       hostDyn vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 0), hostDyn vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 0)) (hostEvolve vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 0))) (gsStory2LateralRungA8dof_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsStory2LateralRungA8dof_0[i],       hostDyn vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 0), hostDyn vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 0)) (hostEvolve vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 0))) (gsStory2LateralRungA8dof_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsStory2LateralRungA8dof_0[i],       hostDyn vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 0), hostDyn vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 0)) (hostEvolve vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 0))) (gsStory2LateralRungA8dof_0.take i)⟩) = Verdict.unsat) (hs_0_1 : ∀ i (hi : i < gsStory2LateralRungA8dof_0.length),     z3solve (flowQuery ⟨gsStory2LateralRungA8dof_0[i],       hostDyn vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 0), hostDyn vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 0)) (hostEvolve vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 1))) (gsStory2LateralRungA8dof_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsStory2LateralRungA8dof_0[i],       hostDyn vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 0), hostDyn vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 0)) (hostEvolve vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 1))) (gsStory2LateralRungA8dof_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsStory2LateralRungA8dof_0[i],       hostDyn vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 0), hostDyn vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 0)) (hostEvolve vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 1))) (gsStory2LateralRungA8dof_0.take i)⟩) = Verdict.unsat) (hs_0_2 : ∀ i (hi : i < gsStory2LateralRungA8dof_0.length),     z3solve (flowQuery ⟨gsStory2LateralRungA8dof_0[i],       hostDyn vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 0), hostDyn vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 2), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 0)) (hostEvolve vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 2))) (gsStory2LateralRungA8dof_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsStory2LateralRungA8dof_0[i],       hostDyn vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 0), hostDyn vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 2), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 0)) (hostEvolve vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 2))) (gsStory2LateralRungA8dof_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsStory2LateralRungA8dof_0[i],       hostDyn vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 0), hostDyn vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 2), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 0)) (hostEvolve vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 2))) (gsStory2LateralRungA8dof_0.take i)⟩) = Verdict.unsat) :
     CoverCertM (GWStory2LateralRungA8dof 0) gsStory2LateralRungA8dof_0 := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨?_, ?_, ?_, ?_⟩
   · intro q m hm hflag
     unfold SearchGraph.modeAt at hm
     rw [GWStory2LateralRungA8dof0_modes_eq] at hm
@@ -50,40 +50,6 @@ theorem certStory2LateralRungA8dof_0 (hs_0_0 : ∀ i (hi : i < gsStory2LateralRu
         replace hm := Option.some.inj hm
         subst hm
         rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsStory2LateralRungA8dof_0 hs_0_2
-    | q + 3, hm => simp at hm
-  · intro q m hm hflag
-    unfold SearchGraph.modeAt at hm
-    rw [GWStory2LateralRungA8dof0_modes_eq] at hm
-    match q, hm with
-    | 0, hm =>
-        replace hm := Option.some.inj hm
-        subst hm
-        exact absurd hflag (by simp [fRowStory2LateralRungA8dof, story2_lateral_rung_a_8dof_coverNC])
-    | 1, hm =>
-        replace hm := Option.some.inj hm
-        subst hm
-        exact absurd hflag (by simp [fRowStory2LateralRungA8dof, story2_lateral_rung_a_8dof_coverNC])
-    | 2, hm =>
-        replace hm := Option.some.inj hm
-        subst hm
-        exact absurd hflag (by simp [fRowStory2LateralRungA8dof, story2_lateral_rung_a_8dof_coverNC])
-    | q + 3, hm => simp at hm
-  · intro q m hm hflag
-    unfold SearchGraph.modeAt at hm
-    rw [GWStory2LateralRungA8dof0_modes_eq] at hm
-    match q, hm with
-    | 0, hm =>
-        replace hm := Option.some.inj hm
-        subst hm
-        exact absurd hflag (by simp [fRowStory2LateralRungA8dof, story2_lateral_rung_a_8dof_coverNC])
-    | 1, hm =>
-        replace hm := Option.some.inj hm
-        subst hm
-        exact absurd hflag (by simp [fRowStory2LateralRungA8dof, story2_lateral_rung_a_8dof_coverNC])
-    | 2, hm =>
-        replace hm := Option.some.inj hm
-        subst hm
-        exact absurd hflag (by simp [fRowStory2LateralRungA8dof, story2_lateral_rung_a_8dof_coverNC])
     | q + 3, hm => simp at hm
   · intro q m hm hflag
     unfold SearchGraph.modeAt at hm
@@ -143,7 +109,7 @@ theorem GWStory2LateralRungA8dof1_modes_eq : (GWStory2LateralRungA8dof 1).modes 
 
 theorem certStory2LateralRungA8dof_1 (hs_1_1 : ∀ i (hi : i < gsStory2LateralRungA8dof_1.length),     z3solve (flowQuery ⟨gsStory2LateralRungA8dof_1[i],       hostDyn vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 1), hostDyn vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 1)) (hostEvolve vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 1))) (gsStory2LateralRungA8dof_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsStory2LateralRungA8dof_1[i],       hostDyn vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 1), hostDyn vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 1)) (hostEvolve vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 1))) (gsStory2LateralRungA8dof_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsStory2LateralRungA8dof_1[i],       hostDyn vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 1), hostDyn vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 1)) (hostEvolve vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 1))) (gsStory2LateralRungA8dof_1.take i)⟩) = Verdict.unsat) (hs_1_2 : ∀ i (hi : i < gsStory2LateralRungA8dof_1.length),     z3solve (flowQuery ⟨gsStory2LateralRungA8dof_1[i],       hostDyn vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 1), hostDyn vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 2), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 1)) (hostEvolve vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 2))) (gsStory2LateralRungA8dof_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsStory2LateralRungA8dof_1[i],       hostDyn vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 1), hostDyn vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 2), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 1)) (hostEvolve vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 2))) (gsStory2LateralRungA8dof_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsStory2LateralRungA8dof_1[i],       hostDyn vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 1), hostDyn vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 2), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 1)) (hostEvolve vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 2))) (gsStory2LateralRungA8dof_1.take i)⟩) = Verdict.unsat) :
     CoverCertM (GWStory2LateralRungA8dof 1) gsStory2LateralRungA8dof_1 := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨?_, ?_, ?_, ?_⟩
   · intro q m hm hflag
     unfold SearchGraph.modeAt at hm
     rw [GWStory2LateralRungA8dof1_modes_eq] at hm
@@ -156,32 +122,6 @@ theorem certStory2LateralRungA8dof_1 (hs_1_1 : ∀ i (hi : i < gsStory2LateralRu
         replace hm := Option.some.inj hm
         subst hm
         rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsStory2LateralRungA8dof_1 hs_1_2
-    | q + 2, hm => simp at hm
-  · intro q m hm hflag
-    unfold SearchGraph.modeAt at hm
-    rw [GWStory2LateralRungA8dof1_modes_eq] at hm
-    match q, hm with
-    | 0, hm =>
-        replace hm := Option.some.inj hm
-        subst hm
-        exact absurd hflag (by simp [fRowStory2LateralRungA8dof, story2_lateral_rung_a_8dof_coverNC])
-    | 1, hm =>
-        replace hm := Option.some.inj hm
-        subst hm
-        exact absurd hflag (by simp [fRowStory2LateralRungA8dof, story2_lateral_rung_a_8dof_coverNC])
-    | q + 2, hm => simp at hm
-  · intro q m hm hflag
-    unfold SearchGraph.modeAt at hm
-    rw [GWStory2LateralRungA8dof1_modes_eq] at hm
-    match q, hm with
-    | 0, hm =>
-        replace hm := Option.some.inj hm
-        subst hm
-        exact absurd hflag (by simp [fRowStory2LateralRungA8dof, story2_lateral_rung_a_8dof_coverNC])
-    | 1, hm =>
-        replace hm := Option.some.inj hm
-        subst hm
-        exact absurd hflag (by simp [fRowStory2LateralRungA8dof, story2_lateral_rung_a_8dof_coverNC])
     | q + 2, hm => simp at hm
   · intro q m hm hflag
     unfold SearchGraph.modeAt at hm
@@ -232,7 +172,7 @@ theorem GWStory2LateralRungA8dof2_modes_eq : (GWStory2LateralRungA8dof 2).modes 
 
 theorem certStory2LateralRungA8dof_2 (hs_2_2 : ∀ i (hi : i < gsStory2LateralRungA8dof_2.length),     z3solve (flowQuery ⟨gsStory2LateralRungA8dof_2[i],       hostDyn vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 2), hostDyn vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 2), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 2)) (hostEvolve vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 2))) (gsStory2LateralRungA8dof_2.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsStory2LateralRungA8dof_2[i],       hostDyn vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 2), hostDyn vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 2), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 2)) (hostEvolve vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 2))) (gsStory2LateralRungA8dof_2.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsStory2LateralRungA8dof_2[i],       hostDyn vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 2), hostDyn vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 2), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsStory2LateralRungA8dof 8 Side.L (mLStory2LateralRungA8dof 2)) (hostEvolve vsStory2LateralRungA8dof 8 Side.R (mRStory2LateralRungA8dof 2))) (gsStory2LateralRungA8dof_2.take i)⟩) = Verdict.unsat) :
     CoverCertM (GWStory2LateralRungA8dof 2) gsStory2LateralRungA8dof_2 := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨?_, ?_, ?_, ?_⟩
   · intro q m hm hflag
     unfold SearchGraph.modeAt at hm
     rw [GWStory2LateralRungA8dof2_modes_eq] at hm
@@ -241,24 +181,6 @@ theorem certStory2LateralRungA8dof_2 (hs_2_2 : ∀ i (hi : i < gsStory2LateralRu
         replace hm := Option.some.inj hm
         subst hm
         rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsStory2LateralRungA8dof_2 hs_2_2
-    | q + 1, hm => simp at hm
-  · intro q m hm hflag
-    unfold SearchGraph.modeAt at hm
-    rw [GWStory2LateralRungA8dof2_modes_eq] at hm
-    match q, hm with
-    | 0, hm =>
-        replace hm := Option.some.inj hm
-        subst hm
-        exact absurd hflag (by simp [fRowStory2LateralRungA8dof, story2_lateral_rung_a_8dof_coverNC])
-    | q + 1, hm => simp at hm
-  · intro q m hm hflag
-    unfold SearchGraph.modeAt at hm
-    rw [GWStory2LateralRungA8dof2_modes_eq] at hm
-    match q, hm with
-    | 0, hm =>
-        replace hm := Option.some.inj hm
-        subst hm
-        exact absurd hflag (by simp [fRowStory2LateralRungA8dof, story2_lateral_rung_a_8dof_coverNC])
     | q + 1, hm => simp at hm
   · intro q m hm hflag
     unfold SearchGraph.modeAt at hm

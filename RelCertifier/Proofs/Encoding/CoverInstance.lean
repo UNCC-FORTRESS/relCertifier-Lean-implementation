@@ -49,7 +49,7 @@ noncomputable def hostComps (vars : List String) (n : ℕ) (f : Parse.PForm) :
 /-! ## The real cover graph at the emitted flags -/
 
 /-- The real mode for a flag row: joint system at λ, evolve domains; frozen-left dyn
-system with σ-matched domains; σ-matched reposition regions. Mirrors `coverMode`'s
+system with σ-matched domains. Mirrors `coverMode`'s
 semantic content for the structural `cgReal` node. -/
 noncomputable def realModeOf (vars : List String) (n : ℕ) (mL : Parse.PMode)
     (lam : ℚ) (f : ModeFlagsE) (mR : Parse.PMode) : RMode (Var n) :=
@@ -59,11 +59,6 @@ noncomputable def realModeOf (vars : List String) (n : ℕ) (mL : Parse.PMode)
     dom := domLR
     weight := 1
     jointOK := f.jointOK
-    region := Formula.and (Formula.and (hostGuard vars n Side.L mL)
-        (hostGuard vars n Side.R mR)) domLR
-    repoPreOK := f.repoPre
-    regionPost := Formula.and (hostGuard vars n Side.R mR) domLR
-    repoPostOK := f.repoPost
     dynSys := jointSys (fun _ => Term.const 0) (hostDyn vars n Side.R mR) (Term.const 1)
     dynDomPre := Formula.and domLR (hostGuard vars n Side.L mL)
     dynDomPost := domLR
@@ -80,18 +75,6 @@ theorem realModeOf_dom (vars : List String) (n : ℕ) (mL : Parse.PMode) (lam : 
     (f : ModeFlagsE) (mR : Parse.PMode) :
     (realModeOf vars n mL lam f mR).dom =
       Formula.and (hostEvolve vars n Side.L mL) (hostEvolve vars n Side.R mR) := rfl
-
-theorem realModeOf_region (vars : List String) (n : ℕ) (mL : Parse.PMode) (lam : ℚ)
-    (f : ModeFlagsE) (mR : Parse.PMode) :
-    (realModeOf vars n mL lam f mR).region =
-      Formula.and (Formula.and (hostGuard vars n Side.L mL) (hostGuard vars n Side.R mR))
-        (Formula.and (hostEvolve vars n Side.L mL) (hostEvolve vars n Side.R mR)) := rfl
-
-theorem realModeOf_regionPost (vars : List String) (n : ℕ) (mL : Parse.PMode) (lam : ℚ)
-    (f : ModeFlagsE) (mR : Parse.PMode) :
-    (realModeOf vars n mL lam f mR).regionPost =
-      Formula.and (hostGuard vars n Side.R mR)
-        (Formula.and (hostEvolve vars n Side.L mL) (hostEvolve vars n Side.R mR)) := rfl
 
 theorem realModeOf_dynSys (vars : List String) (n : ℕ) (mL : Parse.PMode) (lam : ℚ)
     (f : ModeFlagsE) (mR : Parse.PMode) :
@@ -113,12 +96,6 @@ theorem realModeOf_dynDomPost (vars : List String) (n : ℕ) (mL : Parse.PMode) 
 @[simp] theorem realModeOf_jointOK (vars : List String) (n : ℕ) (mL : Parse.PMode)
     (lam : ℚ) (f : ModeFlagsE) (mR : Parse.PMode) :
     (realModeOf vars n mL lam f mR).jointOK = f.jointOK := rfl
-@[simp] theorem realModeOf_repoPreOK (vars : List String) (n : ℕ) (mL : Parse.PMode)
-    (lam : ℚ) (f : ModeFlagsE) (mR : Parse.PMode) :
-    (realModeOf vars n mL lam f mR).repoPreOK = f.repoPre := rfl
-@[simp] theorem realModeOf_repoPostOK (vars : List String) (n : ℕ) (mL : Parse.PMode)
-    (lam : ℚ) (f : ModeFlagsE) (mR : Parse.PMode) :
-    (realModeOf vars n mL lam f mR).repoPostOK = f.repoPost := rfl
 @[simp] theorem realModeOf_repoDynPreOK (vars : List String) (n : ℕ) (mL : Parse.PMode)
     (lam : ℚ) (f : ModeFlagsE) (mR : Parse.PMode) :
     (realModeOf vars n mL lam f mR).repoDynPreOK = f.dynPre := rfl
@@ -129,15 +106,7 @@ theorem realModeOf_dynDomPost (vars : List String) (n : ℕ) (mL : Parse.PMode) 
     (lam : ℚ) (f : ModeFlagsE) (mR : Parse.PMode) :
     (realModeOf vars n mL lam f mR).weight = 1 := rfl
 
-/-- Reposition R1 from tool-ordered verdicts (`region ∧ g > 0` UNSAT per component). -/
-theorem regionInvAll_of_unsat' (gs : List (Term (Var n))) (region : Formula (Var n))
-    (hunsat : ∀ g ∈ gs, ∀ σ,
-      ¬ Formula.sat (Formula.and region (Formula.cmp .gt g (Term.const 0))) σ) :
-    RegionInvAllOn gs region := by
-  intro ω hreg g hg
-  by_contra h
-  rw [not_le] at h
-  exact hunsat g hg ω ⟨hreg, h⟩
+
 
 /-- The real cover graph: nodes = certificated flag rows paired with their IR modes,
 edges = the structural builder's (same indices, same prunes). -/

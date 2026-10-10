@@ -13,12 +13,16 @@ certificate checker, the proofs, and the per-benchmark theorem instances. Z3 is 
 single external oracle, consulted only through printed SMT scripts, and only its
 `unsat` answers are trusted.
 
-**Status.** All 40 certified benchmarks carry the modal (Theorem 3) statement — 41 base
+**Status.** All 34 certified benchmarks carry the modal (Theorem 3) statement — 35 base
 theorems, since one benchmark splits per left mode — and, beside them, 7 mode-keyed and
 2 cut-composed theorems at the DECLARED invariants, plus the pruning-suite theorem of
 `match_multi_rate` over its enlarged automaton and the Theorem 2 instance of its pruned
-edge (52 theorems in `ModalBattery`): 42 audit to the three standard Lean axioms plus
-`z3_unsat_sound`, 10 to the three standard axioms alone. No `sorry`, no `admit`, no
+edge (46 theorems in `ModalBattery`): 36 audit to the three standard Lean axioms plus
+`z3_unsat_sound`, 10 to the three standard axioms alone (measured 2026-10-09). On 2026-10-09 the certifier's static
+(zero-duration) reposition was removed (`docs/COVER-AUDIT.md`); six benchmarks that needed
+it (`arm_chain_rung1`, `arm_chain_rung2`, `arm_fidelity_low`, `robot_braking`,
+`rover3tier_M1`, `watertank`) are now DECLINED and left the battery (40 → 34 certified,
+52 → 46 theorems). No `sorry`, no `admit`, no
 `native_decide`. The last cold-tree verification (2026-08-02, 12h59m, 8988 jobs, exit 0)
 predates the 2026-10-08 suite deduplication and covered the 46-benchmark suite of that
 time; every check has been re-run warm on the 40-benchmark suite since (`STATUS.md`).
@@ -96,7 +100,7 @@ separate, and they live in different places:
 | what you want to check | command |
 |---|---|
 | the Lean proofs (kernel) | `lake build` — everything, ~13 h |
-| the 52 theorems + their axioms | `lake build RelCertifier.Instances.ModalBattery` |
+| the 46 theorems + their axioms | `lake build RelCertifier.Instances.ModalBattery` |
 | the benchmarks certify (the tool) | `relcert <input.txt>...` |
 | the theorems' Z3 hypotheses hold (+ the cross-mode handoff, + the pruning queries) | `relcert --run-verdicts` |
 | the same with pruning switched off (the Section 4.3 ablation) | `RELCERT_NO_PRUNE=1 relcert <input.txt>...` |
@@ -105,8 +109,8 @@ separate, and they live in different places:
 | parser / printer / IR-drift / determinism | `BENCH_PATHS=<manifest> relcert-test` |
 
 `--check-quick` compares the certification tally against the suite declared in
-`Verdicts/Coverage.expectedSuite` (40 certified, 1 declined — the documented
-`shield_unreachable` — 0 errors), so a benchmark that starts failing cannot hide among
+`Verdicts/Coverage.expectedSuite` (34 certified, 7 declined — the documented
+`shield_unreachable` and the six declined after the static-reposition removal — 0 errors), so a benchmark that starts failing cannot hide among
 the expected results. Give it a different path set and the tally is reported but not enforced.
 
 A full `lake build` is **~13 hours** (12h59m measured from cold, 2026-08-02) and peaks
@@ -173,7 +177,7 @@ the ∀∃ modality over both starred programs.
 | the **printer** (`toScript`) renders formulas to SMT faithfully | Z3 reads text |
 | **Z3's `unsat`** answers are correct | the one oracle (axiom `z3_unsat_sound`) |
 | the **Lean kernel** | checks everything else |
-| **successor-completeness with guard-gated switching**: every mode change of `R` enters a *declared* successor, and at that instant the entering mode's guard holds | the automaton's transition semantics — a fact about the modeled system, not about formulas |
+| **successor-completeness with guard-gated switching**: every mode change of `R` enters a *declared* successor, and at that instant the entering mode's guard holds. The certificate relies on it only at the two kinds of switch it uses: the end of a **joint segment** (both systems flowed) and the end of a **dynamic reposition** (`R` flowed alone, under its own field, for a full interval while `L` is held — the paper's right-only segment). The certificate makes **no zero-duration switch**: the static reposition, which moved `R` into a successor at a single instant, was removed on 2026-10-09 (`docs/COVER-AUDIT.md`) | the automaton's transition semantics — a fact about the modeled system, not about formulas |
 
 Nothing else. In particular the search — cover exploration, cut fixpoints, route
 selection, λ choice — is **completely untrusted**. It only *proposes*; every accepted
@@ -199,7 +203,7 @@ declared invariant with no region anywhere is false for these automata (from `Ho
 below its guard the right cannot move): `docs/CUT-COMPOSITION.md`,
 `docs/PAPER-MAPPING.md` §2c.
 
-**Coverage.** The modal statement is instantiated for all 40 certified benchmarks;
+**Coverage.** The modal statement is instantiated for all 34 certified benchmarks;
 `Instances/ModalBattery.lean` imports every one and re-emits its axiom audit on each
 build. Five are entirely **Z3-free** (`rover3_M1`, `rover_coupled`, `rover_position`,
 `refinement_ladder_rover_rung2_6dof`, `refinement_ladder_rover_rung2b_6dof`): their
@@ -248,6 +252,15 @@ rvalid (theorem3Form …)   +   a finite list of `Verd…` Z3 hypotheses
 ```
 
 ### Worked example: `watertank`
+
+*Historical (2026-10-09).* This walkthrough describes the `suite_uniform/watertank`
+instance as it stood before the static (zero-duration) reposition was removed. That
+benchmark's cover needed the static reposition, so it is now DECLINED, and its Lean files
+(`Instances/WatertankModal.lean`, `WatertankViability.lean`, `Verdicts/Watertank.lean`)
+were deleted; they remain in the git history (commit `3494c49`). The pipeline stages
+described here are unchanged for every certified benchmark. The paper's running example
+is now the redesigned `benchmarks/suite_v2/watertank` (set-point pumps, sensor offset 3,
+tampered Low pump), which certifies with joint segments only.
 
 **① The spec.** A tank whose controller is attacked two ways — a sensor offset of −3 and
 a fill speedup in the Low mode. Each mode is a proportional controller, so each ODE is a
@@ -434,7 +447,7 @@ semantic fact.
 | `WellFormedFlowB` — catch-up instances | closed-form witness | **mechanized** |
 | `LandingWellFormed` bundle | kernel, per-instance discharge | **mechanized** |
 | `decideWellFormed` (settling models) | kernel `decide` + `WellFormedSound` | **mechanized** |
-| successor-completeness, guard-gated switching | **not discharged** | **TRUSTED** — a modeling fact about the automaton, not a fact about formulas |
+| successor-completeness, guard-gated switching (at the end of joint segments and full-interval dynamic repositions only; no zero-duration switch is made) | **not discharged** | **TRUSTED** — a modeling fact about the automaton, not a fact about formulas |
 
 The last row is the only well-formedness-flavoured item inside the trust base, and it is
 there for a principled reason: it says the *modeled system* only ever switches into
@@ -448,9 +461,9 @@ which no amount of formula manipulation can establish.
 | family | statement shape | benchmarks | where the mode guard lives | hypotheses beyond the trust base |
 |---|---|---|---|---|
 | **settling** (`*_real`) | cadenced rounds settle into the invariant band (`GuardSettlingB`) | 40/40 | **in the statement**, as `Gd q`. Its final conjunct — *some retained successor's guard holds at the segment's end* — is **non-blocking, proven** | flow/cut verdicts |
-| **throughout** | every component of the invariant holds throughout every right coexecution | 29 cut-free | **in the statement**, as `Gd` threaded through `RightReachG` | cover verdicts |
+| **throughout** | every component of the invariant holds throughout every right coexecution | 23 cut-free | **in the statement**, as `Gd` threaded through `RightReachG` | cover verdicts |
 | **cut throughout** | same, via the guard-threaded cut lift | 11 cut-reliant | **in the statement** as `Gd`, *and* as guard-derived cut atoms | cut-narrowed cover verdicts + per-atom O2 probes |
-| **modal (Theorem 3)** | `rvalid (theorem3Form …)` — the paper's ∀∃ with reposition-opened windows | **40/40**, 41 base theorems (+ 7 mode-keyed, + 2 cut-composed) | **not in the statement** for most: the R *program* appears instead, with edge guards `⊤`. **Two carry the landing mode's guard as a region conjunct in the invariant** (see *Conditioning*; their `…_declared` theorems carry it as `Hold`'s mode region only) | per-instance route verdicts, **all checked true** (2026-07-31); existence **proven** for every instance. Five base instances need no verdicts at all |
+| **modal (Theorem 3)** | `rvalid (theorem3Form …)` — the paper's ∀∃ with reposition-opened windows | **34/34**, 35 base theorems (+ 7 mode-keyed, + 2 cut-composed) | **not in the statement** for most: the R *program* appears instead, with edge guards `⊤`. **Two carry the landing mode's guard as a region conjunct in the invariant** (see *Conditioning*; their `…_declared` theorems carry it as `Hold`'s mode region only) | per-instance route verdicts, **all checked true** (2026-07-31); existence **proven** for every instance. Five base instances need no verdicts at all |
 
 The guard column is the one to read when relating these to a paper's automaton
 `( ⋃_m ?(m ∈ next(mv)) ; ?guard_m(x) ; mv := m ; {x' = f_m & evolC_m} )*`: the first three
@@ -479,7 +492,8 @@ RelCertifier/
     CutThroughout/  11     cut-lifted throughout instances (generated)
   Verdicts/  14 files    EMPIRICAL COLUMN: query mirrors, kernel pins, the runner
   Archive/    17 files   superseded developments, kept for the record
-benchmarks/   41 dirs    the input suite (40 certified + shield_unreachable)
+benchmarks/   41 dirs    the input suite (34 certified + 7 declined: shield_unreachable and six
+                         declined after the static-reposition removal)
 scripts/                 instance generators + build orchestration
 docs/                    CERTIFICATION-CHECK.md, READING-GUIDE.md, audits, records
 ```
@@ -659,9 +673,9 @@ compose into a window response; window responses compose into a loop that closes
   side conditions, and applies the generic top theorem.
 * `ModalBattery.lean` — imports all of them and re-emits their axiom audits on every
   build, so the audit cannot drift from the theorems.
-* `WatertankModal.lean` / `WatertankViability.lean` — the flagship: statement, then
-  existence discharged in-kernel, yielding `watertank_modal_certified`.
-* `Throughout/`, `CutThroughout/` and their batteries — the 29 cut-free and 11 cut-lifted
+* (`WatertankModal.lean` / `WatertankViability.lean`, the former flagship, were deleted on
+  2026-10-09: `suite_uniform/watertank` is DECLINED since the static reposition was removed.)
+* `Throughout/`, `CutThroughout/` and their batteries — the 23 cut-free and 11 cut-lifted
   throughout instances (generated).
 * `AxiomCheck.lean` — the chain-level audit showing exactly where `z3_unsat_sound` enters
   (`flow_certified`, `segPres_from_flowCert`, `cut_hcert`) and where it does not.
@@ -673,14 +687,15 @@ compose into a window response; window responses compose into a loop that closes
 * `Mirrors.lean`, `Combinators.lean` — query mirrors with their `toHost` bridges.
 * `GenericPins.lean` — the pins that make a runtime-rebuilt query denote *exactly* the
   hypothesized one: one lemma per query shape, covering all benchmarks at once.
-* `Watertank.lean` — the flagship's per-query kernel identity theorems.
+* (`Watertank.lean`, the former flagship's identity theorems, and the `Run.lean`
+  watertank phase were deleted on 2026-10-09 with `suite_uniform/watertank`.)
 * `ModalPins.lean` — the same idea for the modal instances: an IR query rebuilt at
   runtime denotes the host-level query the hypothesis names.
 * `ModalVerd.lean` — states, at the host level, exactly what the runner builds:
   `modalVerd` for the `∀`-over-components form (with an optional head prepended — a
   ceiling or the repaired `Hold` region — or appended), `modalVerd1` for the bare
-  three-route disjunction eight instances use.
-* `ModalPinTable.lean` — the `rfl` pins, one per verdict pack (36 base packs and the 5
+  three-route disjunction two instances use.
+* `ModalPinTable.lean` — the `rfl` pins, one per verdict pack (30 base packs and the 5
   packs of the mode-keyed instances). Each says the instance's own `Verd…` *is*
   `modalVerd` at the arguments the runner's table names, so a wrong table entry fails
   to compile rather than sending Z3 a lookalike query and reporting it green.
@@ -704,7 +719,7 @@ compose into a window response; window responses compose into a loop that closes
   edge of every emitted cover, the two pruning queries rebuilt from the emitted IR and
   cut certificate (declared counts `prunedEdges`/`nonconn` in `Coverage`, derived in
   `CoveragePins`), and the pin that the rebuilt pair IS the instance's `VerdNC`.
-* `Run.lean`, `RunCut.lean`, `RunModal.lean` — the runner behind
+* `RunCut.lean`, `RunModal.lean` — the runner behind
   `relcert --run-verdicts`. `RunModal`'s `RunInfo` table is the data the pins check;
   `dim`/`invRow`/`order` are quoted out of it by the pins rather than restated.
 
@@ -753,17 +768,14 @@ per-benchmark table — is [`docs/CERTIFICATION-CHECK.md`](docs/CERTIFICATION-CH
 ### Trust audit
 
 ```lean
-#print axioms RelCertifier.WatertankModal.watertank_ESW
--- [propext, Classical.choice, Quot.sound]           (existence: proven)
-#print axioms RelCertifier.WatertankModal.watertank_modal_certified
--- + RelCertifier.z3_unsat_sound                     (six named verdicts)
+#print axioms RelCertifier.MatchMultiRateModal.match_multi_rate_modal
+-- + RelCertifier.z3_unsat_sound                     (named verdicts)
 #print axioms RelCertifier.Rover3M1Modal.rover3_M1_modal
 -- [propext, Classical.choice, Quot.sound]           (Z3-free instance)
 #print axioms RelCertifier.pres_multi_cut            -- 3 axioms (pure chain)
-#print axioms RelCertifier.WatertankVerdicts.wt_id   -- 3 axioms (the pins)
 ```
 
-All 52 theorems of the battery at once:
+All 46 theorems of the battery at once:
 
 ```bash
 lake build RelCertifier.Instances.ModalBattery 2>&1 | grep -A3 "depends on axioms"
@@ -778,6 +790,9 @@ alone (the 5 Z3-free base instances, the 3 composed rover theorems, the 2 `…_d
 theorems). Measured 2026-10-08 (branch `pruning-suite`): **52 theorems, 42 with
 `z3_unsat_sound`, 10 at the standard three alone** (the two new ones,
 `match_multi_rate_pruned` and `match_multi_rate_nonconn`, both carry the verdict axiom).
+Measured 2026-10-09 after the static-reposition removal: **46 theorems, 36 with
+`z3_unsat_sound`, 10 at the standard three alone** (the six removed base theorems all
+carried the verdict axiom), no other axiom.
 Use `-A3`: a four-axiom list prints over four lines and `-A2` drops the line naming
 `z3_unsat_sound`.
 
@@ -808,7 +823,9 @@ Mechanizing surfaced real issues; each is recorded in `docs/COVER-AUDIT.md`:
 
 `benchmarks/suite_uniform/<name>/input.txt` — one file per benchmark: state variables,
 `L`/`R` mode lists (`ode`, `guard`, `evolve`, `next`), per-mode relational invariants, and
-the λ stretch range. 41 directories: 40 certified, plus `shield_unreachable`, which the
+the λ stretch range. 41 directories: 34 certified; six declined after the
+static-reposition removal (2026-10-09: `arm_chain_rung1`, `arm_chain_rung2`,
+`arm_fidelity_low`, `robot_braking`, `rover3tier_M1`, `watertank`); and `shield_unreachable`, which the
 tool DECLINES (its `Shield` guard is a closed compound band the non-connection
 certificate does not prune, and `Shield` is an admissible initial mode) and which is
 therefore outside the certified suite. The families are watertank, arm control loops, rover refinement ladders, and

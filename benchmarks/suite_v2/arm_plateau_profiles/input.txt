@@ -1,0 +1,89 @@
+# arm_plateau_profiles: detuned over-damped PD arm against a leading reference with two selectable final approaches.
+# scenario: degraded-controller
+# mechanisms: M2 M3 M6 M6+ M6L
+#
+# Replaces arm_plateau_lowgain (pass 4; same deployed arm, cells M2 M6 M6+ M6L are a
+# subset). Deployed (left): the detuned PD joint of arm_plateau_lowgain tracking the step
+# command 0.5 rad from rest, theta' = v, v' = -0.5 (theta - 0.5) - 1.5 v (k_p = 0.5,
+# k_d = 1.5, over-damped, eigenvalues -0.5 and -1), modes Accelerate (v >= 0 below the
+# command) and Brake (v <= 0 past it). Reference (right): the leading ramp ApproachA
+# (0.5 rad/s, theta <= 0.35) -> ApproachB (0.35 rad/s, 0.35..0.5) -> final approach to the
+# 0.6 rad plateau, where the motion planner SELECTS the final approach on entering the
+# last segment: ApproachCfast (0.25 rad/s, nominal payload) or ApproachCslow (0.15 rad/s,
+# fragile payload), each then Hold (theta' = 0, guard theta >= 0.6).
+#
+# PHYSICAL DOMAINS: theta in [0, 1.2] rad (the joint's range, both sides), v in [-1, 1]
+# rad/s (the actuator's speed limit). Guards are entry conditions: Accelerate with the
+# engagement velocity v < 0.355 rad/s; Brake past the command with v <= 0 and the entry
+# cap theta <= 0.855, the bound the cut chain proves for its only predecessor; the ramp
+# guards are the planner's segment boundaries; Hold up to 1.15 rad (the joint's soft
+# stop margin).
+#
+# THE CUT CHAIN (RELCERT_IMPLIED_CUT=1, L7), as in arm_plateau_lowgain: q_1 = v + (theta -
+# 0.5) <= 0.355 and q_0.5 <= 0.355 from the Accelerate guard box (linear-form), then
+# theta <= 0.855 (derived-bound). CLAIM, derived: theta_L <= theta_R + 0.255 (0.855
+# against the 0.6 plateau); 0.25 is DECLINED.
+# Covers (measured): lambda = 1, budget 2; from ApproachB the cover takes a joint step
+# whose retained successors ApproachCfast and ApproachCslow BOTH cover (M2, M3): the
+# claim holds whichever final approach the planner picks. Counter-runs: RELCERT_NO_CUT=1,
+# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1 all DECLINE (M6, M6+, M6L). No
+# fallback (the arm starts at theta = 0 and the row is one-sided). Units rad, rad/s, s.
+[problem]
+name = arm_plateau_profiles
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 4.0
+
+[Lsys]
+state_vars = [theta, v]
+epsilon = 2.0
+
+[Lsys.mode.Accelerate]
+ode = theta' = v; v' = smt2:(+ (* -0.5 (- theta 0.5)) (* -1.5 v));
+guard = theta >= 0.0 and theta < 0.5 and v >= 0.0 and v < 0.355
+evolve = theta >= 0.0 and theta <= 1.2 and v >= -1.0 and v <= 1.0
+next = [Brake, Accelerate]
+
+[Lsys.mode.Brake]
+ode = theta' = v; v' = smt2:(+ (* -0.5 (- theta 0.5)) (* -1.5 v));
+guard = theta >= 0.5 and theta <= 0.855 and v <= 0.0
+evolve = theta >= 0.0 and theta <= 1.2 and v >= -1.0 and v <= 1.0
+next = [Accelerate, Brake]
+
+[Rsys]
+state_vars = [theta]
+epsilon = 1.0
+
+[Rsys.mode.ApproachA]
+ode = theta' = smt2:0.5;
+guard = theta >= 0.0 and theta <= 0.35
+evolve = theta >= 0.0 and theta <= 1.2
+next = [ApproachB, ApproachA]
+
+[Rsys.mode.ApproachB]
+ode = theta' = smt2:0.35;
+guard = theta >= 0.35 and theta <= 0.5
+evolve = theta >= 0.0 and theta <= 1.2
+next = [ApproachCfast, ApproachCslow, ApproachB]
+
+[Rsys.mode.ApproachCfast]
+ode = theta' = smt2:0.25;
+guard = theta >= 0.5 and theta <= 0.6
+evolve = theta >= 0.0 and theta <= 1.2
+next = [Hold, ApproachCfast]
+[Rsys.mode.ApproachCslow]
+ode = theta' = smt2:0.15;
+guard = theta >= 0.5 and theta <= 0.6
+evolve = theta >= 0.0 and theta <= 1.2
+next = [Hold, ApproachCslow]
+
+[Rsys.mode.Hold]
+ode = theta' = smt2:0;
+guard = theta >= 0.6 and theta < 1.15
+evolve = theta >= 0.0 and theta <= 1.2
+next = [Hold]
+
+[relational_invariant]
+Accelerate = theta[l] <= theta[r] + 0.255
+Brake      = theta[l] <= theta[r] + 0.255

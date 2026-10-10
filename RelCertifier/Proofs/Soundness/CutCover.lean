@@ -5,7 +5,7 @@ Released under Apache 2.0 license.
 # S2 — the guard-threaded cut lift for the cover chain
 
 13 of the 46 benchmarks certify only with the checked-cut channel: their cover queries
-(joint segments, dynamic repositions, static regions) are NARROWED by guard-derived cut
+(joint segments and dynamic repositions) are NARROWED by guard-derived cut
 atoms, so the emitted UNSATs establish preservation over `dom ∧ cut`, not `dom` — outside
 `CoverCertM`'s fields. This file lifts them: the CUT BATON.
 
@@ -36,8 +36,7 @@ model assumption. No change to `Checker/` (no battery invalidation).
 `CoverCertMC`: the narrowed preservation fields (exactly the queries the tool sent for
 the 13) + per-atom `hiff`/staying facts (from the O2 probes via `CutLift`'s per-route
 constructors) + the O1 entry fact (mode guard ⟹ its atoms — `cutAtoms_sat`, kernel).
-The static-reposition region fields are narrowed too; the baton supplies the cut at the
-reposition state. `pres_multi_cut` threads everything; `check_sound_multi_cut` is the
+`pres_multi_cut` threads everything; `check_sound_multi_cut` is the
 runner↔theorem connection, mirroring `check_sound_multi`.
 -/
 import RelCertifier.Proofs.Encoding.CoverMulti
@@ -141,20 +140,6 @@ inductive RightReachG (G : SearchGraph (Var n)) (Gd : ℕ → Formula (Var n)) :
       Formula.sat (Gd e.tgt) μ →
       RightReachG G Gd ⟨e.tgt, B - m.weight, SrcSetting.postJ⟩ μ ω →
       RightReachG G Gd ⟨q, B, σ⟩ ν ω
-  | repositionPre {q B ν ω} (m : RMode (Var n)) (hm : G.modeAt q = some m)
-      (hrepo : m.repoPreOK = true) (e : REdge (Var n)) (he : e ∈ G.edges)
-      (hsrc : e.src = q) (hB : 0 < B) :
-      Formula.sat m.region ν →
-      Formula.sat (Gd e.tgt) ν →
-      RightReachG G Gd ⟨e.tgt, B, SrcSetting.preJ⟩ ν ω →
-      RightReachG G Gd ⟨q, B, SrcSetting.preJ⟩ ν ω
-  | repositionPost {q B ν ω} (m : RMode (Var n)) (hm : G.modeAt q = some m)
-      (hrepo : m.repoPostOK = true) (e : REdge (Var n)) (he : e ∈ G.edges)
-      (hsrc : e.src = q) (hB : 0 < B) :
-      Formula.sat m.regionPost ν →
-      Formula.sat (Gd e.tgt) ν →
-      RightReachG G Gd ⟨e.tgt, B, SrcSetting.postJ⟩ ν ω →
-      RightReachG G Gd ⟨q, B, SrcSetting.postJ⟩ ν ω
   | repositionDynPre {q B ν μ ω} (m : RMode (Var n)) (hm : G.modeAt q = some m)
       (hrepo : m.repoDynPreOK = true) (e : REdge (Var n)) (he : e ∈ G.edges)
       (hsrc : e.src = q) (hB : 0 < B) :
@@ -179,10 +164,6 @@ theorem rightReachG_forget {G : SearchGraph (Var n)} {Gd : ℕ → Formula (Var 
   | evolve m hm hj hsem _ ih => exact RightReach.evolve m hm hj hsem ih
   | jump m hm hj e he hsrc hlt hsem hguard _ _ ih =>
       exact RightReach.jump m hm hj e he hsrc hlt hsem hguard ih
-  | repositionPre m hm hrepo e he hsrc hB hregion _ _ ih =>
-      exact RightReach.repositionPre m hm hrepo e he hsrc hB hregion ih
-  | repositionPost m hm hrepo e he hsrc hB hregion _ _ ih =>
-      exact RightReach.repositionPost m hm hrepo e he hsrc hB hregion ih
   | repositionDynPre m hm hrepo e he hsrc hB hsem _ _ ih =>
       exact RightReach.repositionDynPre m hm hrepo e he hsrc hB hsem ih
   | repositionDynPost m hm hrepo e he hsrc hB hsem _ _ ih =>
@@ -195,8 +176,7 @@ theorem rightReachG_forget {G : SearchGraph (Var n)} {Gd : ℕ → Formula (Var 
 switch via `Gd q`). Preservation fields carry the NARROWED domains — exactly the queries
 the tool sent for the 13 cut-reliant benchmarks. Staying fields per system kind: the
 joint flow and the frozen-left dynamic flows (one-sided O2 covers both; left atoms are
-frozen along the dynamic flows). The static-reposition regions are narrowed by the
-resident cut; the baton supplies it at the reposition state. -/
+frozen along the dynamic flows). -/
 structure CoverCertMC (G : SearchGraph (Var n)) (gs : List (Term (Var n)))
     (Gd : ℕ → Formula (Var n)) (cutL : List (CutAtomP n))
     (cutR : ℕ → List (CutAtomP n)) : Prop where
@@ -220,12 +200,6 @@ structure CoverCertMC (G : SearchGraph (Var n)) (gs : List (Term (Var n)))
   segPresC : ∀ q m, G.modeAt q = some m → m.jointOK = true →
     SegPreservesAllOn gs m.sys
       (Formula.and m.dom (Formula.and (cutF cutL) (cutF (cutR q))))
-  repoPresPreC : ∀ q m, G.modeAt q = some m → m.repoPreOK = true →
-    RegionInvAllOn gs
-      (Formula.and m.region (Formula.and (cutF cutL) (cutF (cutR q))))
-  repoPresPostC : ∀ q m, G.modeAt q = some m → m.repoPostOK = true →
-    RegionInvAllOn gs
-      (Formula.and m.regionPost (Formula.and (cutF cutL) (cutF (cutR q))))
   repoDynPresPreC : ∀ q m, G.modeAt q = some m → m.repoDynPreOK = true →
     SegPreservesAllOn gs m.dynSys
       (Formula.and m.dynDomPre (Formula.and (cutF cutL) (cutF (cutR q))))
@@ -268,9 +242,9 @@ where
 
 /-- **The cut-threaded preservation.** Along every guard-triggered right reach from a
 jointly-invariant, cut-satisfying entry, every component holds throughout. The baton:
-left atoms persist by their staying facts through every flow and are untouched by the
-static steps; right atoms persist within a mode the same way and RE-ENTER at each
-switch from the recorded target guard (O1). -/
+left atoms persist by their staying facts through every flow; right atoms persist
+within a mode the same way and RE-ENTER at each switch from the recorded target guard
+(O1). -/
 theorem pres_multi_cut (G : SearchGraph (Var n)) (gs : List (Term (Var n)))
     (Gd : ℕ → Formula (Var n)) (cutL : List (CutAtomP n))
     (cutR : ℕ → List (CutAtomP n)) (cert : CoverCertMC G gs Gd cutL cutR) :
@@ -294,12 +268,6 @@ theorem pres_multi_cut (G : SearchGraph (Var n)) (gs : List (Term (Var n)))
       exact ih (cert.segPresC _ m hm hj _ hν _ hrun)
         (cutSat_endpoint cutL cert.hiffL (cert.stayJL _ m hm hj) hsem hL)
         (cert.entryR _ _ hGd)
-  | repositionPre m hm hrepo e he hsrc hB hregion hGd _ ih =>
-      intro hν hL hR
-      exact ih hν hL (cert.entryR _ _ hGd)
-  | repositionPost m hm hrepo e he hsrc hB hregion hGd _ ih =>
-      intro hν hL hR
-      exact ih hν hL (cert.entryR _ _ hGd)
   | repositionDynPre m hm hrepo e he hsrc hB hsem hGd _ ih =>
       intro hν hL hR
       have hrun := sem_ode_narrow2 cert.hiffL (cert.hiffR _)

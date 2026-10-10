@@ -1,0 +1,74 @@
+# charger_fast_setpoints: the fast charger against a certified profile whose bulk phase targets 90 %.
+# scenario: degraded-controller
+# mechanisms: M2 M4 M6 M6+
+#
+# State of charge x (%). The certified profile (right) is a two-set-point charger:
+#   BULK   (15 <= x < 80):  x' = 0.1 (90 - x)     fast phase toward a 90 % bulk target
+#   ABSORB (80 <= x < 99):  x' = 0.05 (100 - x)   taper toward 100 %
+#   FULL   (x >= 99):       x' = 0                hold
+# with the CELL FAULT below 10 % (x' = -0.01 x, sink). The deployed unit (left) runs
+# the same profile with its current limit raised 25 % (rate constants x 1.25).
+# Claim: x_L <= x_R + 5 in every phase.
+#
+# This is the three-set-point charger that docs/SUITE-REDESIGN.md section 6 dropped
+# under L1: the right-only BULK flow reverses above its set point 90, which lies
+# inside the envelope 0..100, so the whole-domain route-A reposition certificate
+# BULK -> ABSORB was sat and the ABSORB window DECLINED. With RELCERT_IMPLIED_CUT=1
+# the certifier keeps the guard-IMPLIED atom x <= 90 for BULK (O1: the guard cap
+# x < 80 is below the set point, a rational comparison; O2: contraction toward 90,
+# the shape route) and the reposition certifies on x_R <= 90. RELCERT_NO_IMPLIED_CUT=1
+# (legacy guard-conjunct cuts only) DECLINES: the implied atom is load-bearing (M6+).
+# The floors x >= 80 and x >= 99 are guard conjuncts kept as cuts (M6, NO_CUT
+# DECLINES); BULK -> FAULT is pruned and FAULT is not an admissible start (M4,
+# NO_PRUNE DECLINES). Units %, h; envelope 0 <= x <= 100.
+[problem]
+name = charger_fast_setpoints
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 4.0
+[Lsys]
+state_vars = [x]
+epsilon = 2.0
+[Lsys.mode.BULK]
+ode = x' = smt2:(* 0.125 (- 90.0 x));
+guard = x >= 15.0 and x < 80.0
+evolve = x >= 0.0 and x <= 100.0
+next = [ABSORB, BULK]
+[Lsys.mode.ABSORB]
+ode = x' = smt2:(* 0.0625 (- 100.0 x));
+guard = x >= 80.0 and x < 99.0
+evolve = x >= 0.0 and x <= 100.0
+next = [FULL, ABSORB]
+[Lsys.mode.FULL]
+ode = x' = smt2:0;
+guard = x >= 99.0
+evolve = x >= 0.0 and x <= 100.0
+next = [FULL]
+[Rsys]
+state_vars = [x]
+epsilon = 1.0
+[Rsys.mode.BULK]
+ode = x' = smt2:(* 0.1 (- 90.0 x));
+guard = x >= 15.0 and x < 80.0
+evolve = x >= 0.0 and x <= 100.0
+next = [ABSORB, BULK, FAULT]
+[Rsys.mode.ABSORB]
+ode = x' = smt2:(* 0.05 (- 100.0 x));
+guard = x >= 80.0 and x < 99.0
+evolve = x >= 0.0 and x <= 100.0
+next = [FULL, ABSORB]
+[Rsys.mode.FULL]
+ode = x' = smt2:0;
+guard = x >= 99.0
+evolve = x >= 0.0 and x <= 100.0
+next = [FULL]
+[Rsys.mode.FAULT]
+ode = x' = smt2:(* -0.01 x);
+guard = x < 10.0
+evolve = x >= 0.0 and x <= 100.0
+next = [FAULT]
+[relational_invariant]
+BULK   = x[l] <= x[r] + 5
+ABSORB = x[l] <= x[r] + 5
+FULL   = x[l] <= x[r] + 5

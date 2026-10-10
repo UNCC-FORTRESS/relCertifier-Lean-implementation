@@ -15,10 +15,9 @@ variable {V : Type*} [Fintype V] [DecidableEq V]
 def SearchGraph.edgesFrom (G : SearchGraph V) (q : ℕ) : List (REdge V) :=
   G.edges.filter (fun e => decide (e.src = q))
 
-/-- Joint fragment gate: no mode carries a reposition certificate. -/
+/-- Joint fragment gate: no mode carries a (dynamic) reposition certificate. -/
 def NoRepoModes (G : SearchGraph V) : Prop :=
   ∀ q m, G.modeAt q = some m →
-    m.repoPreOK = false ∧ m.repoPostOK = false ∧
     m.repoDynPreOK = false ∧ m.repoDynPostOK = false
 
 /-- `mode = q` test on the fresh mode variable `mv`. -/
@@ -157,14 +156,10 @@ theorem rightReach_is_R_real_run (G : SearchGraph V) (mv : V)
             exact List.getElem?_eq_some_iff.mp this |>.1)
         · rw [hm]; rfl
       exact ⟨qf, Relation.ReflTransGen.head hbody ihrun⟩
-  | @repositionPre q B ν ω m hm hrepo _ _ _ _ _ _ ih =>
-      exact absurd hrepo (by rw [(hnorepo q m hm).1]; simp)
-  | @repositionPost q B ν ω m hm hrepo _ _ _ _ _ _ ih =>
-      exact absurd hrepo (by rw [(hnorepo q m hm).2.1]; simp)
   | @repositionDynPre q B ν μ ω m hm hrepo _ _ _ _ _ _ ih =>
-      exact absurd hrepo (by rw [(hnorepo q m hm).2.2.1]; simp)
+      exact absurd hrepo (by rw [(hnorepo q m hm).1]; simp)
   | @repositionDynPost q B ν μ ω m hm hrepo _ _ _ _ _ _ ih =>
-      exact absurd hrepo (by rw [(hnorepo q m hm).2.2.2]; simp)
+      exact absurd hrepo (by rw [(hnorepo q m hm).2]; simp)
 
 
 /-! ## Piece 1 — the mode variable is invisible to the invariant (framing from freshness) -/

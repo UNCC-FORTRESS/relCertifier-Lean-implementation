@@ -1,0 +1,53 @@
+# quad_light_airframe_20: quadrotor climb with quadratic drag, deployed airframe 20 % lighter.
+# scenario: model-refinement
+# mechanisms: M1 M2 M4
+#
+# Climb-rate dynamics with quadratic aerodynamic drag: w' = a - c w^2, w = climb rate
+# (m/s), a = net specific thrust (m/s^2), c = drag per unit mass (1/m). Reference (right):
+# a = 4, c = 1, terminal climb rate 2 m/s. Deployed (left): the airframe is 20 % lighter
+# than the reference model assumed (payload released): the same motor thrust gives
+# T/m_L = 1.25 T/m, so a_L = 1.25 (a + g) - g = 7.45 (g = 9.81), and the drag per unit
+# mass is c_L = 1.25 c = 1.25; terminal climb rate 2.44 m/s.
+#
+# Relational claim: w_L <= w_R + 1  and  w_R <= w_L + 0.5 (the deployed never climbs more
+# than 1 m/s faster than the reference, and the reference never more than 0.5 m/s faster
+# than the deployed). The deployed loop is faster: the right certifies at lambda = 7/4
+# (lambda = 1, 5/4, 3/2 fail the first conjunct at low climb rates). Budget
+# ceil(7/4 * 2 / 1) = 4 right cycles per left window (M1 with polynomial dynamics, M2).
+#
+# Fallback (M4): the reference autopilot declares a climb-rate LIMITER above 3 m/s (motor
+# command cut, w' = -2 w, sink). CLIMB never reaches it (at w = 3 the drag wins, w' = -5
+# < 0; no CLIMB entry state is above 2.6), so the edge CLIMB -> LIMIT is pruned; LIMIT is
+# not an admissible start (w_L <= 2.5 and w_R <= w_L + 0.5 exclude w_R > 3).
+# RELCERT_NO_PRUNE=1 DECLINES.
+#
+# Envelope 0 <= w <= 3.5 both sides (climb only).
+[problem]
+name = quad_light_airframe_20
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 4.0
+[Lsys]
+state_vars = [w]
+epsilon = 2.0
+[Lsys.mode.CLIMB]
+ode = w' = smt2:(- 7.45 (* 1.25 (* w w)));
+guard = w >= 0.0 and w <= 2.5
+evolve = w >= 0.0 and w <= 3.5
+next = [CLIMB]
+[Rsys]
+state_vars = [w]
+epsilon = 1.0
+[Rsys.mode.CLIMB]
+ode = w' = smt2:(- 4.0 (* w w));
+guard = w >= 0.0 and w <= 2.6
+evolve = w >= 0.0 and w <= 3.5
+next = [CLIMB, LIMIT]
+[Rsys.mode.LIMIT]
+ode = w' = smt2:(* -2.0 w);
+guard = w > 3.0
+evolve = w >= 0.0 and w <= 3.5
+next = [LIMIT]
+[relational_invariant]
+CLIMB = smt2:(and (<= L_w (+ R_w 1.0)) (<= R_w (+ L_w 0.5)))

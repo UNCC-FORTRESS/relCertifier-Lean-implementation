@@ -1,0 +1,69 @@
+# quad_light_profiles: 40 %-lighter quadrotor against a reference autopilot with selectable climb-thrust profiles.
+# scenario: model-refinement
+# mechanisms: M1 M2 M3 M4
+#
+# Replaces quad_light_airframe_40 (pass 4; its cells M1 M2 M4 are a subset). Climb-rate
+# dynamics with quadratic drag, w' = a - c w^2 (w climb rate m/s, a net specific thrust
+# m/s^2, c drag per unit mass 1/m). Deployed (left): the airframe of
+# quad_light_airframe_40, 40 % lighter than the reference model assumed: a_L = 9.524,
+# c_L = 1.4 (terminal 2.61 m/s). Reference (right): the autopilot's climb profiles,
+# selectable in flight from NORMAL to either neighbour and back: NORMAL a = 4 (terminal
+# 2.0 m/s), ECO a = 3.6 (90 % thrust, terminal 1.90), SPORT a = 4.4 (110 %, terminal
+# 2.10), c = 1; plus the climb-rate LIMITER above 3.2 m/s (motor command cut, w' = -2 w,
+# sink).
+#
+# Guards: the deployed climb controller engages from hover or a slow climb,
+# 0 <= w <= 2.2 m/s; the reference climb modes 0 <= w <= 2.6 (the autopilot's climb
+# band); LIMIT is w > 3.2. Physical domain 0 <= w <= 3.5 m/s on both sides (climb only;
+# 3.5 m/s is the airframe's rated maximum climb rate).
+#
+# Claim: w_L <= w_R + 0.95 and w_R <= w_L + 0.8 -- the tightest pair that certifies
+# (0.9 / 0.75 are DECLINED). Covers (measured): lambda = 5/2 (the lighter airframe is
+# faster in time against every profile; on the grid SPORT passes from lambda = 2,
+# NORMAL from 9/4, ECO from 5/2, the first common point), budget 5; the cover from NORMAL takes
+# a joint step whose retained successors ECO and SPORT both cover (M1 with polynomial
+# dynamics, M2, M3).
+#
+# Fallback (M4): CLIMB never reaches the limiter (at w = 3.2 drag wins in every
+# profile; entered at w <= 2.6), so NORMAL/ECO/SPORT -> LIMIT are pruned; LIMIT is not an
+# admissible start (w_L <= 2.2 and w_R <= w_L + 0.8 give w_R <= 3.0 < 3.2; this is why
+# the deployed engagement ceiling is 2.2 m/s). RELCERT_NO_PRUNE=1 DECLINES.
+[problem]
+name = quad_light_profiles
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 4.0
+[Lsys]
+state_vars = [w]
+epsilon = 2.0
+[Lsys.mode.CLIMB]
+ode = w' = smt2:(- 9.524 (* 1.4 (* w w)));
+guard = w >= 0.0 and w <= 2.2
+evolve = w >= 0.0 and w <= 3.5
+next = [CLIMB]
+[Rsys]
+state_vars = [w]
+epsilon = 1.0
+[Rsys.mode.NORMAL]
+ode = w' = smt2:(- 4.0 (* w w));
+guard = w >= 0.0 and w <= 2.6
+evolve = w >= 0.0 and w <= 3.5
+next = [NORMAL, ECO, SPORT, LIMIT]
+[Rsys.mode.ECO]
+ode = w' = smt2:(- 3.6 (* w w));
+guard = w >= 0.0 and w <= 2.6
+evolve = w >= 0.0 and w <= 3.5
+next = [ECO, NORMAL, LIMIT]
+[Rsys.mode.SPORT]
+ode = w' = smt2:(- 4.4 (* w w));
+guard = w >= 0.0 and w <= 2.6
+evolve = w >= 0.0 and w <= 3.5
+next = [SPORT, NORMAL, LIMIT]
+[Rsys.mode.LIMIT]
+ode = w' = smt2:(* -2.0 w);
+guard = w > 3.2
+evolve = w >= 0.0 and w <= 3.5
+next = [LIMIT]
+[relational_invariant]
+CLIMB = smt2:(and (<= L_w (+ R_w 0.95)) (<= R_w (+ L_w 0.8)))

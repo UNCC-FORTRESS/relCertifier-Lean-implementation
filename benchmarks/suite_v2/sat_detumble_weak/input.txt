@@ -1,0 +1,89 @@
+# sat_detumble_weak: microsatellite detumbling with weakened actuators, against a design model with selectable power profiles.
+# scenario: degraded-actuator
+# mechanisms: M2 M3 M4 M6
+#
+# THE PLANT (both sides; a ~60 kg microsatellite, SI units). Body rates w1, w2, w3 (rad/s)
+# about the principal axes, inertia J = diag(2, 4, 5) kg m^2, and the momentum h (N m s)
+# of a reaction wheel on the z-axis. Euler's equations with the wheel (a gyrostat):
+#   J1 w1' = (J2 - J3) w2 w3 - w2 h + tau1,   J2 w2' = (J3 - J1) w3 w1 + w1 h + tau2,
+#   J3 w3' = (J1 - J2) w1 w2 - h',            h' = k J3 w3,
+# with rate-damping magnetorquers tau_i = -k J_i w_i on x, y and the wheel absorbing the
+# z-rate: w1' = -0.5 w2 w3 - 0.5 w2 h - k w1, w2' = 0.75 w3 w1 + 0.25 w1 h - k w2,
+# w3' = -0.4 w1 w2 - k w3, h' = 5 k w3. The gyroscopic and wheel-coupling terms are
+# genuine BILINEAR couplings (products w2 w3, w3 w1, w1 w2, w2 h, w1 h); they do no work,
+# so the body energy E = 2 w1^2 + 4 w2^2 + 5 w3^2 (twice the rotational kinetic energy)
+# obeys E' = -2 k E exactly -- but only through the cancellation of the cubic terms,
+# which every flow query has to establish (Z3, nonlinear real arithmetic).
+# The DESIGN MODEL (right) neglects the couplings: w_i' = -k w_i, h' = 5 k w3.
+# PHYSICAL DOMAIN (both sides): |w_i| <= 1 rad/s (the gyro's measurement range) and
+# |h| <= 2 N m s (the wheel's momentum capacity); no certificate stands on them
+# (widening test).
+# Guards (entry conditions): the detumble controller engages with the body energy inside
+# its authority envelope, E <= 1 (e.g. |w1| <= 0.71 rad/s about x alone). The design
+# model declares the FDIR SAFE mode on an ENERGY threshold, E > 1 (actuators inhibited,
+# free tumble: E conserved; a sink) -- a quadratic threshold, not a speed floor.
+#
+# Degraded deployed: a bus under-voltage limits the torquer dipole and the wheel torque
+# to 80 %: k_L = 0.4 /s. The design model (right) offers three ground-selectable
+# detumble power profiles, NOMINAL k = 0.5, ECONOMY 0.45 and SURVIVAL 0.42 (battery
+# states), switchable NOMINAL <-> ECONOMY / SURVIVAL; each declares SAFE.
+#
+# CLAIM, derived: E_R <= E_L (the weakened spacecraft never detumbles faster than the
+# design model) and E_L <= E_R + 0.205. On the boundary E_L = E_R + d the gap grows at
+# 2 k_R E_R - 2 k_L (E_R + d), which is <= 0 iff E_R <= d k_L / (k_R - k_L); with
+# E_R <= E_L <= 1 (the engagement envelope, a checked cut) the tight tolerance is
+# d* = 1 - k_L / k_R = 0.2 against NOMINAL (the slower profiles need less). At d* the
+# boundary is TANGENT. Measured (default settings): 0.205 CERTIFIED; 0.2 = d* ERROR --
+# the two tangent route queries are unsat in plain z3 but take about 17 s each (63.5 M
+# and 71.2 M resource units), above the per-query timeout of 10 s (RELCERT_Z3_TIMEOUT),
+# so they come back `unknown` and the run ends in the 40 s time budget; 0.195 and 0.15
+# DECLINED. With RELCERT_Z3_TIMEOUT=60000, RELCERT_TIME_BUDGET_MS=600000 and a resource
+# limit of 128 M (or none) 0.2 CERTIFIES in 44.7 s; the 6-D lift (sat3w_detumble_weak)
+# certifies at its d* under the default settings.
+# Covers (measured): lambda in [1, 1] (synchronous, as the nominal rung; a weaker
+# deployed gains nothing from a stretch), budget 2; the cover from NOMINAL takes a joint
+# step whose retained successors ECONOMY and SURVIVAL both cover (M2, M3). The
+# engagement envelope E <= 1 is a checked cut (a quadratic guard conjunct whose
+# invariance is a DI-boundary query with the cubic cancellation): RELCERT_NO_CUT=1
+# DECLINES (M6).
+# Fallback (M4): NOMINAL/ECONOMY/SURVIVAL -> SAFE pruned as in the nominal rung;
+# RELCERT_NO_PRUNE=1 DECLINES.
+[problem]
+name = sat_detumble_weak
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 4.0
+[Lsys]
+state_vars = [w1, w2, w3, h]
+epsilon = 2.0
+[Lsys.mode.DETUMBLE]
+ode = w1' = smt2:(- (- (* -0.5 (* w2 w3)) (* 0.5 (* w2 h))) (* 0.4 w1)); w2' = smt2:(- (+ (* 0.75 (* w3 w1)) (* 0.25 (* w1 h))) (* 0.4 w2)); w3' = smt2:(- (* -0.4 (* w1 w2)) (* 0.4 w3)); h' = smt2:(* 2.0 w3);
+guard = w1*w1*2 + w2*w2*4 + w3*w3*5 <= 1.0
+evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h >= -2.0 and h <= 2.0
+next = [DETUMBLE]
+[Rsys]
+state_vars = [w1, w2, w3, h]
+epsilon = 1.0
+[Rsys.mode.NOMINAL]
+ode = w1' = smt2:(* -0.5 w1); w2' = smt2:(* -0.5 w2); w3' = smt2:(* -0.5 w3); h' = smt2:(* 2.5 w3);
+guard = w1*w1*2 + w2*w2*4 + w3*w3*5 <= 1.0
+evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h >= -2.0 and h <= 2.0
+next = [NOMINAL, ECONOMY, SURVIVAL, SAFE]
+[Rsys.mode.ECONOMY]
+ode = w1' = smt2:(* -0.45 w1); w2' = smt2:(* -0.45 w2); w3' = smt2:(* -0.45 w3); h' = smt2:(* 2.25 w3);
+guard = w1*w1*2 + w2*w2*4 + w3*w3*5 <= 1.0
+evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h >= -2.0 and h <= 2.0
+next = [ECONOMY, NOMINAL, SAFE]
+[Rsys.mode.SURVIVAL]
+ode = w1' = smt2:(* -0.42 w1); w2' = smt2:(* -0.42 w2); w3' = smt2:(* -0.42 w3); h' = smt2:(* 2.1 w3);
+guard = w1*w1*2 + w2*w2*4 + w3*w3*5 <= 1.0
+evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h >= -2.0 and h <= 2.0
+next = [SURVIVAL, NOMINAL, SAFE]
+[Rsys.mode.SAFE]
+ode = w1' = smt2:0; w2' = smt2:0; w3' = smt2:0; h' = smt2:0;
+guard = w1*w1*2 + w2*w2*4 + w3*w3*5 > 1.0
+evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h >= -2.0 and h <= 2.0
+next = [SAFE]
+[relational_invariant]
+DETUMBLE = w1[l]*w1[l]*2 + w2[l]*w2[l]*4 + w3[l]*w3[l]*5 <= w1[r]*w1[r]*2 + w2[r]*w2[r]*4 + w3[r]*w3[r]*5 + 0.205 and w1[r]*w1[r]*2 + w2[r]*w2[r]*4 + w3[r]*w3[r]*5 <= w1[l]*w1[l]*2 + w2[l]*w2[l]*4 + w3[l]*w3[l]*5

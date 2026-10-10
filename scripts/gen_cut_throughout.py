@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-# STALE (2026-07-30 audit): this script reads a MONOLITHIC aggregator file, but the X0
-# modularization moved every literal into per-benchmark leaves under
-# RelCertifier/Instances/{BenchIR,BenchCovers,BenchCoversNC,EvolStrengthenings}/.
-# As written it finds zero definitions and would emit an empty battery. Do not run it
-# without first repointing it at the leaf directories. Kept because the emitted shapes
-# below are still the reference for what those batteries contain.
+# Repointed 2026-10-09 at the per-benchmark leaves (RelCertifier/Instances/{BenchIR,BenchCovers,
+# EvolStrengthenings}/<b>.lean) — the monolithic aggregators it originally read were split by the
+# X0 modularization; verified to reproduce the committed CutThroughout/ leaves byte for byte
+# before the 2026-10-09 static-reposition removal. `python3 scripts/gen_cut_throughout.py [name ...]`.
 """Generate cut-lifted throughout instances (S2) from BenchCovers + EvolStrengthenings.
 
 v1 scope: benchmarks with EMPTY left cuts and R-atom routes in
@@ -22,9 +20,12 @@ per-admissible-start window theorem (kernel decideCovered + check_sound_multi_cu
 import re, os, sys
 
 os.chdir(os.path.join(os.path.dirname(__file__), ".."))
-cov = open("RelCertifier/Instances/BenchCovers.lean").read()
-ir = open("RelCertifier/Instances/BenchIR.lean").read()
-cuts_src = open("RelCertifier/Instances/EvolStrengthenings.lean").read()
+import glob
+def _leaves(d):
+    return "".join(open(f).read() for f in sorted(glob.glob(f"RelCertifier/Instances/{d}/*.lean")))
+cov = _leaves("BenchCovers")
+ir = _leaves("BenchIR")
+cuts_src = _leaves("EvolStrengthenings")
 
 def parse_list(s):
     xs = [x for x in s.strip("[]").replace(" ", "").split(",") if x != ""]
@@ -38,9 +39,10 @@ for m in re.finditer(r'def (\w+)_cover : CoverEmitE :=\n  ⟨"(\w+)", (\[[^\]]*\
     for wm in re.finditer(r'⟨"(\w+)", \((\d+) : ℚ\) / (\d+), (\d+), \[(.*?)\], (\[[^\]]*\]), \[(.*?)\]⟩', body):
         mL, lamn, lamd, bud, flags_s, adm_s, strata_s = wm.groups()
         flags = []
-        for fm in re.finditer(r'⟨"(\w+)", (true|false), (true|false), (true|false), (true|false), (true|false)⟩', flags_s):
-            flags.append(dict(name=fm.group(1), j=fm.group(2)=="true", rp=fm.group(3)=="true",
-                              rpost=fm.group(4)=="true", dp=fm.group(5)=="true", dq=fm.group(6)=="true"))
+        # flag row ⟨name, jointOK, dynPre, dynPost⟩ (static reposition flags removed 2026-10-09)
+        for fm in re.finditer(r'⟨"(\w+)", (true|false), (true|false), (true|false)⟩', flags_s):
+            flags.append(dict(name=fm.group(1), j=fm.group(2)=="true",
+                              dp=fm.group(3)=="true", dq=fm.group(4)=="true"))
         adm = re.findall(r'"(\w+)"', adm_s)
         strata = {}
         for sm in re.finditer(r'⟨"(\w+)", (\[[0-9, ]*\]), (\[[0-9, ]*\]), (\[[0-9, ]*\])⟩', strata_s):
@@ -124,8 +126,8 @@ def gen_bench(name):
     A = L.append
     A(f"/- GENERATED (scripts/gen_cut_throughout.py) — do not edit. -/")
     A(f"import RelCertifier.Proofs.Soundness.CutCoverDischarge")
-    A(f"import RelCertifier.Instances.BenchCovers")
-    A(f"import RelCertifier.Instances.BenchIR")
+    A(f"import RelCertifier.Instances.BenchCovers.{name}")
+    A(f"import RelCertifier.Instances.BenchIR.{name}")
     A(f"")
     hb = 0 if n >= 8 else 4000000
     A(f"set_option maxHeartbeats {hb}")
@@ -141,7 +143,7 @@ def gen_bench(name):
     A(f"def mR{U} (q : ℕ) : Parse.PMode := {name}_IR.R.modes.getD q dummy{U}")
     A(f"def fRow{U} (l q : ℕ) : ModeFlagsE :=")
     A(f"  (({name}_cover.covers.getD l ⟨\"\", 1, 1, [], [], []⟩).flags.getD q")
-    A(f"    ⟨\"\", false, false, false, false, false⟩)")
+    A(f"    ⟨\"\", false, false, false⟩)")
     A(f"noncomputable def GW{U} (l : ℕ) : SearchGraph (Var {n}) :=")
     A(f"  realGraphOf vs{U} {n} {name}_IR (mL{U} l)")
     A(f"    (({name}_cover.covers.getD l ⟨\"\", 1, 1, [], [], []⟩).lamQ)")
@@ -176,7 +178,7 @@ def gen_bench(name):
         A(f"  hostComps vs{U} {n} ((({name}_IR.invariants.find? (fun r => r.1 == \"{w['mL']}\")).getD (\"\", Parse.PForm.tt)).2)")
         A(f"")
         nodes = [(qn, f) for qn, f in enumerate(w["flags"]) if
-                 f["j"] or f["rp"] or f["rpost"] or f["dp"] or f["dq"]]
+                 f["j"] or f["dp"] or f["dq"]]
         for f in [f for _, f in nodes]:
             for kind, key in (("seg", 0), ("dynPre", 1), ("dynPost", 2)):
                 so = w["strata"].get(f["name"], ([], [], []))[key]
@@ -240,23 +242,6 @@ def gen_bench(name):
                 disp.setdefault(pos, {})["segPresC"] = (
                     f"rw [realModeOf_sys, realModeOf_dom]; "
                     f"exact segPresAll_from_strata_verdicts' _ _ _ _ {gs} {hname}")
-            if f["rp"]:
-                hname = f"hr_{l}_{q}"
-                region = (f"(Formula.and (Formula.and (Formula.and (hostGuard vs{U} {n} Side.L (mL{U} {l})) "
-                          f"(hostGuard vs{U} {n} Side.R (mR{U} {q}))) {evLR}) {cutC})")
-                hyps.append((hname, f"  ∀ g ∈ {gs}, z3solve (Formula.and {region} "
-                                    f"(Formula.cmp .gt g (Term.const 0))) = Verdict.unsat"))
-                disp.setdefault(pos, {})["repoPresPreC"] = (
-                    f"rw [realModeOf_region]; exact regionInvAll_of_unsat' {gs} _ "
-                    f"(fun g hg => z3_unsat_sound ({hname} g hg))")
-            if f["rpost"]:
-                hname = f"hq_{l}_{q}"
-                region = (f"(Formula.and (Formula.and (hostGuard vs{U} {n} Side.R (mR{U} {q})) {evLR}) {cutC})")
-                hyps.append((hname, f"  ∀ g ∈ {gs}, z3solve (Formula.and {region} "
-                                    f"(Formula.cmp .gt g (Term.const 0))) = Verdict.unsat"))
-                disp.setdefault(pos, {})["repoPresPostC"] = (
-                    f"rw [realModeOf_regionPost]; exact regionInvAll_of_unsat' {gs} _ "
-                    f"(fun g hg => z3_unsat_sound ({hname} g hg))")
             if f["dp"]:
                 hname = f"hdp_{l}_{q}"
                 dom = (f"(Formula.and (Formula.and {evLR} (hostGuard vs{U} {n} Side.L (mL{U} {l}))) {cutC})")
@@ -324,7 +309,7 @@ def gen_bench(name):
         # cert theorem
         A(f"theorem cert{U}_{l} {binders} :")
         A(f"    CoverCertMC (GW{U} {l}) {gs} Gd{U}_{l} cutL{U}_{l} cutR{U}_{l} := by")
-        A(f"  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩")
+        A(f"  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩")
         # 1 hiffL
         if not latoms:
             A(f"  · exact atomsIff_nil")
@@ -468,8 +453,8 @@ def gen_bench(name):
         A(f"    | q + {len(nodes)} =>")
         A(f"        intro a ha")
         A(f"        exact absurd ha List.not_mem_nil")
-        # 10-14 preservation fields
-        for fk, flagkey in (("segPresC", "j"), ("repoPresPreC", "rp"), ("repoPresPostC", "rpost"),
+        # 10-12 preservation fields
+        for fk, flagkey in (("segPresC", "j"),
                             ("repoDynPresPreC", "dp"), ("repoDynPresPostC", "dq")):
             A(f"  · intro q m hm hflag")
             A(f"    unfold SearchGraph.modeAt at hm")
@@ -484,7 +469,7 @@ def gen_bench(name):
                 else:
                     A(f"        exact absurd hflag (by simp [fRow{U}, {name}_cover])")
             A(f"    | q + {len(nodes)}, hm => simp at hm")
-        # 15 weightPos
+        # 13 weightPos
         A(f"  · intro m hm")
         A(f"    rw [GW{U}{l}_modes_eq] at hm")
         A(f"    simp only [List.mem_cons, List.not_mem_nil, or_false] at hm")

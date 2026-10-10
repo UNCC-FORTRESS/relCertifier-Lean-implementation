@@ -1,0 +1,113 @@
+# arm_plateau_crit: critically damped PD arm tracking a leading ramp-to-plateau reference.
+# scenario: model-refinement
+# mechanisms: M2 M6 M6L
+#
+# The reference-tracking arm (redesign of the arm tower; repaired in the domain audit,
+# docs/SUITE-REDESIGN.md section 13). Deployed (left): a PD-controlled joint tracking
+# the step command theta = 0.5 rad from rest, state (theta, v): theta' = v,
+# v' = -k_p (theta - 0.5) - k_d v, with the modes Accelerate (rising toward the
+# command, v >= 0) and Brake (past the command, v <= 0). Reference (right): a coarse
+# leading reference that ramps up in three rate steps, ApproachA (0.5 rad/s) ->
+# ApproachB (0.35) -> ApproachC (0.2), to a plateau of 0.6 rad and then HOLDS there
+# (Hold: theta' = 0, guard theta >= 0.6), a sound envelope the arm tracks from below.
+# This rung: the nominal controller, k_p = 1, k_d = 2 (critically damped, eigenvalue
+# -1 double): the arm approaches the command without an oscillatory overshoot.
+#
+# PHYSICAL DOMAINS. The deployed arm's evolve domain is the joint's mechanical range
+# and its actuator's speed limit, theta in [0, 1.2] rad (the same range the reference
+# declares) and v in [-1, 1] rad/s; nothing in it is a reachable-set estimate. (The
+# earlier version of this family closed the Hold phase with the domain cap
+# theta <= 0.65, which was the arm's simulated peak, not a limit of the plant: the
+# certificate rested on the domain, not on the dynamics. The widening test of
+# scripts/domain_widening.py now passes: every evolve bound widened by half its range
+# still certifies.) Guards are ENTRY conditions: Accelerate is entered from rest or
+# from Brake below the command with the deployed controller's engagement velocity
+# v < 0.355 rad/s; Brake is entered past the command with v <= 0, and its entry cap
+# theta <= 0.855 is the bound the cut chain proves for its only predecessor,
+# Accelerate (below).
+#
+# THE CUT CHAIN (RELCERT_IMPLIED_CUT=1, Checker/EvolStrengtheningX.lean, L7). A
+# threshold cut on theta alone cannot bound the overshoot of a second-order loop, and
+# no quadratic form can bound it tightly (level sets are centrally symmetric about the
+# equilibrium). With k_p = 1, k_d = 2 the loop decouples along the LINEAR FORM
+# q = v + (theta - 0.5), which satisfies q' = -q, so q <= K is forward-invariant for
+# every K >= 0. Round 1: the Accelerate guard box (theta < 0.5, v < 0.355) gives
+# q < 0.355, the cut `v + 1*(theta - 0.5) <= 0.355` (kind linear-form, O1 rational,
+# O2 by the rational linear-shape route, no Z3). Round 2, stratified on it: theta' = v
+# = q - (theta - 0.5) <= 0 wherever theta >= 0.855, so `theta <= 0.855` (kind
+# derived-bound, O2 by the rational derived-shape route, given the q-cut). Brake
+# (guard theta <= 0.855, v <= 0) yields the same q <= 0.355 and theta <= 0.855. The
+# bound is the chain's, not the true peak (from the engagement corner the solution is
+# theta = 0.5 + 0.355 t e^-t, peak 0.631 rad at t = 1 s): linear cuts cannot see the
+# e^-t factor, and 0.855 is what is proved.
+#
+# CLAIM, derived: theta_L <= theta_R + 0.255 in both deployed modes. In the Hold phase
+# the reference holds theta_R >= 0.6 (its frozen guard conjunct, the legacy cut) and the
+# arm's chain gives theta_L <= 0.855 = 0.6 + 0.255: the row's boundary touches the
+# narrowed domain at the single tangent point (theta_L, theta_R) = (0.855, 0.6), where
+# v_L <= 0, which the superlevel route (C) of the main flow query decides. 0.255 is the
+# smallest slack the chain supports (0.25 is DECLINED); the earlier claim of 0.15 is
+# not provable from the dynamics with physical domains.
+#
+# Covers (measured): lambda = 1 with budget 2 right cycles per left window
+# (epsilon_L = 2 s, epsilon_R = 1 s); from an approach step the reference repositions
+# right-only up the ramp to Hold and the window is matched jointly against the plateau
+# (M2 with right-only segments). Counter-runs: RELCERT_NO_CUT=1 DECLINED (M6);
+# RELCERT_NO_LINEAR_CUT=1 (closures and implied atoms kept, the linear-form chain off)
+# DECLINED (M6L): the chain is load-bearing. No fallback is declared: the arm starts at
+# theta = 0 and the row is one-sided. Units rad, rad/s, s.
+[problem]
+name = arm_plateau_crit
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 4.0
+
+[Lsys]
+state_vars = [theta, v]
+epsilon = 2.0
+
+[Lsys.mode.Accelerate]
+ode = theta' = v; v' = smt2:(+ (* -1 (- theta 0.5)) (* -2.0 v));
+guard = theta >= 0.0 and theta < 0.5 and v >= 0.0 and v < 0.355
+evolve = theta >= 0.0 and theta <= 1.2 and v >= -1.0 and v <= 1.0
+next = [Brake, Accelerate]
+
+[Lsys.mode.Brake]
+ode = theta' = v; v' = smt2:(+ (* -1 (- theta 0.5)) (* -2.0 v));
+guard = theta >= 0.5 and theta <= 0.855 and v <= 0.0
+evolve = theta >= 0.0 and theta <= 1.2 and v >= -1.0 and v <= 1.0
+next = [Accelerate, Brake]
+
+[Rsys]
+state_vars = [theta]
+epsilon = 1.0
+
+[Rsys.mode.ApproachA]
+ode = theta' = smt2:0.5;
+guard = theta >= 0.0 and theta <= 0.35
+evolve = theta >= 0.0 and theta <= 1.2
+next = [ApproachB, ApproachA]
+
+[Rsys.mode.ApproachB]
+ode = theta' = smt2:0.35;
+guard = theta >= 0.35 and theta <= 0.5
+evolve = theta >= 0.0 and theta <= 1.2
+next = [ApproachC, ApproachB]
+
+[Rsys.mode.ApproachC]
+ode = theta' = smt2:0.2;
+guard = theta >= 0.5 and theta <= 0.6
+evolve = theta >= 0.0 and theta <= 1.2
+next = [Hold, ApproachC]
+
+[Rsys.mode.Hold]
+ode = theta' = smt2:0;
+guard = theta >= 0.6 and theta < 1.15
+evolve = theta >= 0.0 and theta <= 1.2
+next = [Hold]
+
+[relational_invariant]
+# theta_L <= theta_R + 0.255: the chain bound 0.855 against the 0.6 plateau.
+Accelerate = theta[l] <= theta[r] + 0.255
+Brake      = theta[l] <= theta[r] + 0.255

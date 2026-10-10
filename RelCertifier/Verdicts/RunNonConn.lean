@@ -38,12 +38,10 @@ namespace RelCertifier.Verdicts
 
 open RelCertifier RelCertifier.Parse RelCertifier.NonConn
 
-/-- Every emitted cover, in `benchIRTable` order (`CoveragePins` checks the names agree). -/
+/-- Every emitted cover, in `certifiedIRTable` order (`CoveragePins` checks the names agree):
+the declined benchmarks (`Parse.declinedIR`) have none. -/
 def benchCoverTable : List (String × CoverEmitE) := [
-   ("arm_chain_rung1", arm_chain_rung1_cover),
-   ("arm_chain_rung2", arm_chain_rung2_cover),
    ("arm_chain_rung3", arm_chain_rung3_cover),
-   ("arm_fidelity_low", arm_fidelity_low_cover),
    ("arm_fidelity_mid", arm_fidelity_mid_cover),
    ("attitude_rate", attitude_rate_cover),
    ("endurance_gain_M1", endurance_gain_M1_cover),
@@ -57,9 +55,7 @@ def benchCoverTable : List (String × CoverEmitE) := [
    ("refinement_ladder_rover_rung2c_6dof", refinement_ladder_rover_rung2c_6dof_cover),
    ("refinement_ladder_rover_rung3_6to8", refinement_ladder_rover_rung3_6to8_cover),
    ("refinement_ladder_rover_rung4_8to12", refinement_ladder_rover_rung4_8to12_cover),
-   ("robot_braking", robot_braking_cover),
    ("rover3_M1", rover3_M1_cover),
-   ("rover3tier_M1", rover3tier_M1_cover),
    ("rover3tier_rung12", rover3tier_rung12_cover),
    ("rover_4d_box", rover_4d_box_cover),
    ("rover_attitude_cone_12dof", rover_attitude_cone_12dof_cover),
@@ -78,8 +74,7 @@ def benchCoverTable : List (String × CoverEmitE) := [
    ("story2_lateral_rung_b_12dof", story2_lateral_rung_b_12dof_cover),
    ("story3_rollover_base_12dof", story3_rollover_base_12dof_cover),
    ("story3_rollover_ladder_rung_a", story3_rollover_ladder_rung_a_cover),
-   ("story3_rollover_ladder_rung_b", story3_rollover_ladder_rung_b_cover),
-   ("watertank", watertank_cover) ]
+   ("story3_rollover_ladder_rung_b", story3_rollover_ladder_rung_b_cover) ]
 
 /-- Every emitted checked-cut certificate, in `benchIRTable` order. -/
 def benchCutsTable : List (String × Oracle.EvolStrengthening) := [

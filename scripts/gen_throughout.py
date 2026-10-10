@@ -13,7 +13,7 @@ membership-permutation transport), the CoverCertM dispatch, and the per-admissib
 start window theorem (kernel decideCovered + check_sound_multi).
 
 Validated templates: ThroughoutPilot (single node), WatertankThroughout (multi-node,
-regions, dyn). This generator emits the same shapes.
+dyn; deleted 2026-10-09 with the static reposition). This generator emits the same shapes.
 """
 import re, os, sys
 
@@ -35,9 +35,11 @@ for m in re.finditer(r'def (\w+)_coverNC : CoverEmitE :=\n  ⟨"(\w+)", (\[[^\]]
     for wm in re.finditer(r'⟨"(\w+)", \((\d+) : ℚ\) / (\d+), (\d+), \[(.*?)\], (\[[^\]]*\]), \[(.*?)\]⟩', body):
         mL, lamn, lamd, bud, flags_s, adm_s, strata_s = wm.groups()
         flags = []
-        for fm in re.finditer(r'⟨"(\w+)", (true|false), (true|false), (true|false), (true|false), (true|false)⟩', flags_s):
-            flags.append(dict(name=fm.group(1), j=fm.group(2)=="true", rp=fm.group(3)=="true",
-                              rpost=fm.group(4)=="true", dp=fm.group(5)=="true", dq=fm.group(6)=="true"))
+        # flag row ⟨name, jointOK, dynPre, dynPost⟩ (the static reposition flags were removed
+        # 2026-10-09 together with the static reposition itself)
+        for fm in re.finditer(r'⟨"(\w+)", (true|false), (true|false), (true|false)⟩', flags_s):
+            flags.append(dict(name=fm.group(1), j=fm.group(2)=="true",
+                              dp=fm.group(3)=="true", dq=fm.group(4)=="true"))
         adm = re.findall(r'"(\w+)"', adm_s)
         strata = {}
         for sm in re.finditer(r'⟨"(\w+)", (\[[0-9, ]*\]), (\[[0-9, ]*\]), (\[[0-9, ]*\])⟩', strata_s):
@@ -89,17 +91,6 @@ def hyp_def(kind, uname, n, l, q, lamc, gs, comps_len):
             f"    ∨ z3solve (flowQueryStrict {ob}) = Verdict.unsat\n"
             f"    ∨ z3solve (flowQuerySuperlevel {ob}) = Verdict.unsat")
 
-def reg_def(uname, n, l, q, post):
-    U = uname
-    ev = f"(Formula.and (hostEvolve vs{U} {n} Side.L (mL{U} {l})) (hostEvolve vs{U} {n} Side.R (mR{U} {q})))"
-    if post:
-        region = f"(Formula.and (hostGuard vs{U} {n} Side.R (mR{U} {q})) {ev})"
-    else:
-        region = (f"(Formula.and (Formula.and (hostGuard vs{U} {n} Side.L (mL{U} {l})) "
-                  f"(hostGuard vs{U} {n} Side.R (mR{U} {q}))) {ev})")
-    return (f"  ∀ g ∈ gs{U}_{l}, z3solve (Formula.and {region} "
-            f"(Formula.cmp .gt g (Term.const 0))) = Verdict.unsat")
-
 def gen_bench(name):
     wins = covers[name]
     fi = ir_facts[name]
@@ -127,7 +118,7 @@ def gen_bench(name):
     L.append(f"def mR{U} (q : ℕ) : Parse.PMode := {name}_IR.R.modes.getD q dummy{U}")
     L.append(f"def fRow{U} (l q : ℕ) : ModeFlagsE :=")
     L.append(f"  (({name}_coverNC.covers.getD l ⟨\"\", 1, 1, [], [], []⟩).flags.getD q")
-    L.append(f"    ⟨\"\", false, false, false, false, false⟩)")
+    L.append(f"    ⟨\"\", false, false, false⟩)")
     L.append(f"noncomputable def GW{U} (l : ℕ) : SearchGraph (Var {n}) :=")
     L.append(f"  realGraphOf vs{U} {n} {name}_IR (mL{U} l)")
     L.append(f"    (({name}_coverNC.covers.getD l ⟨\"\", 1, 1, [], [], []⟩).lamQ)")
@@ -142,7 +133,7 @@ def gen_bench(name):
         L.append(f"  hostComps vs{U} {n} ((({name}_IR.invariants.find? (fun r => r.1 == \"{w['mL']}\")).getD (\"\", Parse.PForm.tt)).2)")
         L.append(f"")
         nodes = [(qn, f) for qn, f in enumerate(w["flags"]) if
-                 f["j"] or f["rp"] or f["rpost"] or f["dp"] or f["dq"]]
+                 f["j"] or f["dp"] or f["dq"]]
         # node list rfl
         L.append(f"theorem GW{U}{l}_modes_eq : (GW{U} {l}).modes =")
         lamq = f"(({w['lamn']} : ℚ) / {w['lamd']})"
@@ -179,16 +170,6 @@ def gen_bench(name):
                          f"exact segPresAll_of_mem_equiv (mem_equiv_of_index_perm {gsl} _ (by decide)) "
                          f"(segPresAll_from_strata_verdicts' _ _ _ _ {og} {hname}))")
                 disp.setdefault(qn, {})["segPres"] = d
-            if f["rp"]:
-                hname = f"hr_{l}_{q}"
-                hyps.append((hname, reg_def(U, n, l, q, False)))
-                disp.setdefault(qn, {})["repoPresPre"] = \
-                    f"(rw [realModeOf_region]; exact regionInvAll_of_unsat' {gsl} _ (fun g hg => z3_unsat_sound ({hname} g hg)))"
-            if f["rpost"]:
-                hname = f"hq_{l}_{q}"
-                hyps.append((hname, reg_def(U, n, l, q, True)))
-                disp.setdefault(qn, {})["repoPresPost"] = \
-                    f"(rw [realModeOf_regionPost]; exact regionInvAll_of_unsat' {gsl} _ (fun g hg => z3_unsat_sound ({hname} g hg)))"
             if f["dp"]:
                 hname = f"hdp_{l}_{q}"
                 ht, og = with_order(dpo, "dynPre", hname)
@@ -213,11 +194,11 @@ def gen_bench(name):
                 disp.setdefault(qn, {})["repoDynPresPost"] = d
         binders = " ".join(f"({h} : {t.strip()})" for h, t in
                            [(h, t.replace(chr(10), " ")) for h, t in hyps])
-        # cert theorem — six explicit field blocks, exact per-node dispatch (no `first` search)
+        # cert theorem — four explicit field blocks, exact per-node dispatch (no `first` search)
         L.append(f"theorem cert{U}_{l} {binders} :")
         L.append(f"    CoverCertM (GW{U} {l}) {gs} := by")
-        L.append(f"  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩")
-        FIELDS = ["segPres", "repoPresPre", "repoPresPost", "repoDynPresPre", "repoDynPresPost"]
+        L.append(f"  refine ⟨?_, ?_, ?_, ?_⟩")
+        FIELDS = ["segPres", "repoDynPresPre", "repoDynPresPost"]
         for fk in FIELDS:
             L.append(f"  · intro q m hm hflag")
             L.append(f"    unfold SearchGraph.modeAt at hm")

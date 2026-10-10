@@ -8,10 +8,15 @@ This module imports the modal (Theorem 3) instance of EVERY certified benchmark
 and re-emits its axiom audit. It is the single door for the end-to-end check
 described in `docs/CERTIFICATION-CHECK.md`:
 
-* importing it forces the kernel to check all 41 base modal theorems, across the 40
+* importing it forces the kernel to check all 35 base modal theorems, across the 34
   instance files imported below (`lake build`), plus the 7 mode-keyed and the 2
   cut-composed theorems, plus the pruning-suite theorem and its
-  non-connection certificate (52 theorems in all);
+  non-connection certificate (46 theorems in all);
+* six benchmarks left the battery on 2026-10-09 (41 → 35 base theorems, 52 → 46 in
+  all): `arm_chain_rung1`, `arm_chain_rung2`, `arm_fidelity_low`, `robot_braking`,
+  `rover3tier_M1` and `watertank` are DECLINED since the static (zero-duration)
+  reposition was removed from the certifier (`docs/COVER-AUDIT.md`, note of
+  2026-10-09); their input files stay in `benchmarks/suite_uniform`, marked declined;
 * the `#print axioms` lines below re-emit on every build, so the audit cannot
   drift from the theorems;
 * the benchmark ↔ theorem correspondence is the import list itself — each
@@ -28,19 +33,14 @@ name, hypotheses, verdict pack) is the table in `docs/CERTIFICATION-CHECK.md`.
 
 No `sorry`, no `native_decide`, no benchmark-specific axiom.
 -/
-import RelCertifier.Instances.ArmChainRung1Modal
-import RelCertifier.Instances.ArmChainRung2Modal
 import RelCertifier.Instances.ArmChainRung3Modal
-import RelCertifier.Instances.ArmFidelityLowModal
 import RelCertifier.Instances.ArmFidelityMidModal
 import RelCertifier.Instances.AttitudeRateModal
 import RelCertifier.Instances.EnduranceGainM1Modal
 import RelCertifier.Instances.EnduranceOrderlift1to2Modal
 import RelCertifier.Instances.EnduranceOrderlift2to3Modal
 import RelCertifier.Instances.MatchMultiRateModal
-import RelCertifier.Instances.RobotBrakingModal
 import RelCertifier.Instances.Rover3M1Modal
-import RelCertifier.Instances.Rover3tierM1Modal
 import RelCertifier.Instances.Rover3tierRung12Modal
 import RelCertifier.Instances.Rover4dBoxModal
 import RelCertifier.Instances.RoverAttitudeConeModal
@@ -67,7 +67,6 @@ import RelCertifier.Instances.Story2LateralBModal
 import RelCertifier.Instances.Story3RolloverBaseModal
 import RelCertifier.Instances.Story3RolloverRungAModal
 import RelCertifier.Instances.Story3RolloverRungBModal
-import RelCertifier.Instances.WatertankViability
 import RelCertifier.Instances.Rover3M1Handoff
 import RelCertifier.Instances.RoverCoupledHandoff
 import RelCertifier.Instances.RoverPositionHandoff
@@ -81,14 +80,8 @@ import RelCertifier.Instances.MatchMultiRatePruned
 
 namespace RelCertifier
 
--- arm_chain_rung1
-#print axioms ArmChainRung1Modal.arm_chain_rung1_modal
--- arm_chain_rung2
-#print axioms ArmChainRung2Modal.arm_chain_rung2_modal
 -- arm_chain_rung3
 #print axioms ArmChainRung3Modal.arm_chain_rung3_modal
--- arm_fidelity_low
-#print axioms ArmFidelityLowModal.arm_fidelity_low_modal
 -- arm_fidelity_mid
 #print axioms ArmFidelityMidModal.arm_fidelity_mid_modal
 -- attitude_rate
@@ -115,12 +108,8 @@ namespace RelCertifier
 #print axioms RoverLadderRung3Modal.rover_ladder_rung3_6to8_modal
 -- refinement_ladder_rover_rung4_8to12
 #print axioms RoverLadderRung4Modal.rover_ladder_rung4_8to12_modal
--- robot_braking
-#print axioms RobotBrakingModal.robot_braking_modal
 -- rover3_M1
 #print axioms Rover3M1Modal.rover3_M1_modal
--- rover3tier_M1
-#print axioms Rover3tierM1Modal.rover3tier_M1_modal
 -- rover3tier_rung12
 #print axioms Rover3tierRung12Modal.rover3tier_rung12_modal_ACCEL
 #print axioms Rover3tierRung12Modal.rover3tier_rung12_modal_COAST
@@ -160,8 +149,6 @@ namespace RelCertifier
 #print axioms Story3RolloverRungAModal.story3_rollover_rung_a_modal
 -- story3_rollover_ladder_rung_b
 #print axioms Story3RolloverRungBModal.story3_rollover_rung_b_modal
--- watertank
-#print axioms WatertankModal.watertank_modal_certified
 
 /-! ### The mode-keyed theorems — the DECLARED per-left-mode invariants, composed across
 left switches (`Proofs/Encoding/ModeHandoff.lean`; `docs/HANDOFF.md`). All seven

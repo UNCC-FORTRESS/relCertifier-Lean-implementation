@@ -1,0 +1,85 @@
+# acc_spoof_limp: spoofed cruise control with a fault-latched limp-home mode, against a reference with selectable set speeds.
+# scenario: sensor-attack
+# mechanisms: M1 M2 M3 M4 M5 M6
+#
+# Replaces acc_spoof_cruise (pass 4; its cells M1 M2 M4 are a subset). The deployed
+# cruise controller (left) is under a +25 % speed-sensor gain spoof (the fused speed
+# reads 1.25x the true speed; set speed 30 m/s, speed-loop gain 0.5 /s, so CRUISE:
+# v' = 0.5 (30 - 1.25 v) = 0.625 (24 - v)). (Pass 6: acc_spoof_modes, this CRUISE loop
+# against the same reference without the limp mode, was dropped; its cells were a
+# strict subset of this file's.) Its plausibility
+# monitor compares the fused speed with the wheel-speed sensor; when it flags the
+# mismatch, the controller LATCHES a limp-home mode until the next ignition cycle:
+# LIMP: v' = 0.3 (22 - v) -- the speed loop now reads the wheel-speed sensor (unspoofed),
+# with a reduced set speed of 22 m/s (80 km/h limp-home speed) and a soft gain of
+# 0.3 /s. CRUISE -> LIMP may happen at any time; there is no way back (latched).
+# The reference (right) is the unspoofed controller: the driver selects ECO 27,
+# NORMAL 30 or SPORT 33 m/s at any time (gain 0.5 /s), NORMAL <-> ECO / SPORT.
+#
+# Guards (entry conditions): CRUISE engages at 20 <= v < 40 (the ACC floor, as the
+# reference); LIMP is entered between 20 and 30 m/s (the monitor latches only while the
+# ACC is engaged in its band, at or below the nominal set speed). Physical domain
+# 0 <= v <= 40 m/s on both sides (the vehicle's speed range on this road class).
+#
+# Rows (MODE-DEPENDENT, M5): CRUISE: v_L <= v_R and v_R <= v_L + 9; LIMP: v_L <= v_R
+# and v_R <= v_L + 12. Each slack is the tightest that certifies for its mode on the
+# 0.5 grid (CRUISE 8.5 and LIMP 11.5 are DECLINED): the latched limp-home loop settles
+# lower and slower, so the reference (SPORT, 33 m/s) can lead it by up to 12 m/s. The
+# handoff CRUISE -> LIMP is a loosening (3 declared left transitions, --handoff 3/3
+# unsat); LIMP is latched, so no tightening switch exists.
+# Covers (measured): CRUISE at lambda = 5/4 (the spoofed loop is 1.25x faster), budget
+# 3; LIMP at lambda = 1, budget 2; in both windows the cover from NORMAL takes a joint
+# step whose retained successors ECO and SPORT both cover (M1, M2, M3). The LIMP band
+# 20 <= v <= 30 (flow-invariant guard conjuncts: the limp loop contracts toward 22) is
+# kept as a checked cut, and the LIMP windows need it: with RELCERT_NO_CUT=1 every
+# LIMP pairing fails at every lambda and the benchmark is DECLINED (M6).
+#
+# Fallback (M4): every reference mode declares DISENGAGE below the 20 m/s wheel-speed
+# floor (v' = -0.5 v, sink); each loop accelerates at the floor and is entered above
+# it, so the three edges are pruned; v_L >= 20 and v_L <= v_R (offset 0) exclude
+# DISENGAGE as a start. RELCERT_NO_PRUNE=1 DECLINES. Units m/s, s.
+[problem]
+name = acc_spoof_limp
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 4.0
+[Lsys]
+state_vars = [v]
+epsilon = 2.0
+[Lsys.mode.CRUISE]
+ode = v' = smt2:(* 0.5 (- 30.0 (* 1.25 v)));
+guard = v >= 20.0 and v < 40.0
+evolve = v >= 0.0 and v <= 40.0
+next = [CRUISE, LIMP]
+[Lsys.mode.LIMP]
+ode = v' = smt2:(* 0.3 (- 22.0 v));
+guard = v >= 20.0 and v <= 30.0
+evolve = v >= 0.0 and v <= 40.0
+next = [LIMP]
+[Rsys]
+state_vars = [v]
+epsilon = 1.0
+[Rsys.mode.NORMAL]
+ode = v' = smt2:(* 0.5 (- 30.0 v));
+guard = v >= 20.0 and v < 40.0
+evolve = v >= 0.0 and v <= 40.0
+next = [NORMAL, ECO, SPORT, DISENGAGE]
+[Rsys.mode.ECO]
+ode = v' = smt2:(* 0.5 (- 27.0 v));
+guard = v >= 20.0 and v < 40.0
+evolve = v >= 0.0 and v <= 40.0
+next = [ECO, NORMAL, DISENGAGE]
+[Rsys.mode.SPORT]
+ode = v' = smt2:(* 0.5 (- 33.0 v));
+guard = v >= 20.0 and v < 40.0
+evolve = v >= 0.0 and v <= 40.0
+next = [SPORT, NORMAL, DISENGAGE]
+[Rsys.mode.DISENGAGE]
+ode = v' = smt2:(* -0.5 v);
+guard = v < 20.0
+evolve = v >= 0.0 and v <= 40.0
+next = [DISENGAGE]
+[relational_invariant]
+CRUISE = smt2:(and (<= L_v R_v) (<= R_v (+ L_v 9.0)))
+LIMP   = smt2:(and (<= L_v R_v) (<= R_v (+ L_v 12.0)))

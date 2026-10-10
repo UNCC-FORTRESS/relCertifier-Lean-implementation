@@ -34,7 +34,7 @@ Read `README.md` first for what the theorems say. This document is only about
 > `sorryAx`, no other axiom. The five checked-cut benchmarks at their declared invariant:
 > `docs/CUT-COMPOSITION.md`, `docs/PAPER-MAPPING.md` §2c.
 >
-> **Branch `pruning-suite` (2026-10-08) — current:** `match_multi_rate` declares a pruned
+> **Branch `pruning-suite` (2026-10-08):** `match_multi_rate` declares a pruned
 > stall fallback (`docs/PRUNING.md`). `lake build` 8976 jobs, exit 0 (warm) ·
 > `--check-quick` **40 CERTIFIED, 1 DECLINED (`shield_unreachable`, now lowering and
 > declared as declined), 0 errors — matches the declared suite**, coverage
@@ -44,6 +44,16 @@ Read `README.md` first for what the theorems say. This document is only about
 > `z3_unsat_sound`, 10 standard-three, no `sorryAx`, no other axiom · `--handoff` 192
 > transitions over 41 inputs, 191 unsat, the documented `shield_unreachable` FAIL ·
 > `RELCERT_NO_PRUNE=1 relcert …/match_multi_rate/input.txt` DECLINED.
+>
+> **Branch `suite-redesign` (2026-10-09) — current: the static reposition removed**
+> (`docs/COVER-AUDIT.md`, note of 2026-10-09). `lake build` exit 0, `Build completed
+> successfully (8948 jobs)` (warm; the throughout batteries rebuilt, heavy files serially),
+> no `sorry` · `lake build relcert relcert-test` 17661 jobs · `--check-quick` **34
+> CERTIFIED, 7 DECLINED (`shield_unreachable` and the six declined after static-reposition
+> removal), 0 errors — matches the declared suite**, coverage 97/486/163/2 (+ 1 pruned
+> edge), QUICK CHECKS PASSED · `relcert-test` ALL PASS (with `BENCH_PATHS`; 40 IR
+> literals match their files) · axiom audit **46** theorems: 36 with `z3_unsat_sound`, 10
+> standard-three, no `sorryAx`, no other axiom.
 >
 > **Branch `dedupe-suite` (2026-10-08):** six duplicate benchmarks removed
 > (`docs/SUITE-DEDUPE.md`). `lake build` 8969 jobs, exit 0 (warm) · `--check-quick`
@@ -148,7 +158,8 @@ Checks 3 and the certification run are bundled by
 ```
 
 which certifies the suite, compares the tally against `Verdicts/Coverage.expectedSuite`
-(40 certified, 1 declined — the documented `shield_unreachable` — 0 errors), then
+(34 certified, 7 declined — the documented `shield_unreachable` and the six declined
+after the static-reposition removal of 2026-10-09 — 0 errors), then
 discharges every hypothesis with its coverage counts, and exits non-zero if either half
 fails. It deliberately does
 *not* run check 1 — a 13-hour build does not belong behind a flag named "quick" — and
@@ -247,10 +258,9 @@ Accel row issued 1 per pair instead of 2. So `Verdicts/Coverage.lean` declares t
 per-phase totals and `--run-verdicts` checks them:
 
 ```
-  [coverage] watertank: 6/6 hypotheses discharged
   [coverage] cut probes: 97/97 hypotheses discharged
-  [coverage] modal: 504/504 hypotheses discharged
-  [coverage] handoff: 191/191 hypotheses discharged
+  [coverage] modal: 486/486 hypotheses discharged
+  [coverage] handoff: 163/163 hypotheses discharged
   [coverage] non-connection: 2/2 hypotheses discharged
   [coverage] pruned edges: 1/1 hypotheses discharged
 ```
@@ -266,7 +276,10 @@ transition of every emitted benchmark, 215 in all before the deduplication; it i
 only on exactly the declared failure set, which is empty since the `rover3tier_rung12`
 row repair of 2026-10-08. `docs/HANDOFF.md`. The 2026-10-08 deduplication removed six
 benchmarks and with them 18 modal queries, 8 cut probes and 24 handoff transitions:
-6 / 97 / 504 / 191, re-derived by `CoveragePins`. `docs/SUITE-DEDUPE.md`.)
+6 / 97 / 504 / 191, re-derived by `CoveragePins`. `docs/SUITE-DEDUPE.md`. The 2026-10-09
+static-reposition removal made six benchmarks DECLINED and removed their packs: the
+`watertank` phase (6) is gone, modal 504 → 486, handoff 191 → 163; cut probes, pruned
+edges and non-connection unchanged. `docs/COVER-AUDIT.md`, note of 2026-10-09.)
 
 A mismatch either way fails the run. And the declared totals are themselves checked:
 `Verdicts/CoveragePins.lean` derives each from the table that generates the work —
@@ -287,11 +300,10 @@ see `docs/VERDICT-EVIDENCE-AUDIT.md`.)
 
 **What this covers today, precisely:**
 
-* the six `VerdW` hypotheses of `watertank_modal_certified`, each tied to the
-  runner's printed query by a *kernel identity theorem* in
-  `RelCertifier/Verdicts/Watertank.lean` (`hgW_id`, `hfLW_id`, `hfRW_id`,
-  `hdomLW_id`, …) — this is the drift-free form: the query Z3 answers is
-  provably the query the theorem names;
+* (until 2026-10-09: the six `VerdW` hypotheses of `watertank_modal_certified`, tied to
+  the runner's printed query by kernel identity theorems in `Verdicts/Watertank.lean`;
+  both files were deleted when `suite_uniform/watertank` became DECLINED after the
+  static-reposition removal);
 * the per-atom O2 route probes for the 11 cut-lifted benchmarks
   (`Verdicts/RunCut.lean`).
 
@@ -339,7 +351,7 @@ separate command.
 
 ```bash
 lake build relcert
-./.lake/build/bin/relcert benchmarks/suite_uniform/watertank/input.txt   # one
+./.lake/build/bin/relcert benchmarks/suite_uniform/match_multi_rate/input.txt   # one
 ./.lake/build/bin/relcert benchmarks/suite_uniform/*/input.txt           # all
 ```
 
@@ -347,7 +359,10 @@ This is the *search* side: the tool re-derives covers and certificates from the
 inputs. It is not needed to believe the theorems (the certificates the theorems
 consume are emitted data, checked by `decideCovered` and the kernel), but it
 confirms the emitted data in `Instances/Bench*.lean` is what the current tool
-produces. 40 of 41 benchmarks certify; `shield_unreachable` is DECLINED (since
+produces. 34 of 41 benchmarks certify. Six are DECLINED since the static (zero-duration)
+reposition was removed on 2026-10-09 (`arm_chain_rung1`, `arm_chain_rung2`,
+`arm_fidelity_low`, `robot_braking`, `rover3tier_M1`, `watertank`;
+`docs/COVER-AUDIT.md`), and `shield_unreachable` is DECLINED (since
 2026-10-08 it lowers — right-only variables are accepted — but its `Shield` guard is a
 closed compound band the non-connection certificate does not prune, and `Shield` is an
 admissible initial mode) and is therefore outside the certified suite. The pruned edge
@@ -359,18 +374,16 @@ of `match_multi_rate` is printed on every run (`[prune] match_multi_rate:
 
 ## Per-benchmark inventory
 
-40 benchmarks, 41 base modal theorems (50 rows with the mode-keyed and declared
-theorems). "std 3" = `[propext, Classical.choice, Quot.sound]`. Hypotheses are exactly the binders of the theorem: `dt` is the
+34 benchmarks, 35 base modal theorems (44 rows with the mode-keyed and declared
+theorems; the six benchmarks declined after the static-reposition removal of 2026-10-09
+lost their rows). "std 3" = `[propext, Classical.choice, Quot.sound]`. Hypotheses are exactly the binders of the theorem: `dt` is the
 window duration, `Verd…` are the Z3 verdict packs, `ESW` are existence
-obligations (watertank's are *proven*, in `WatertankViability.lean`).
+obligations.
 
 | benchmark | instance file | theorem | hypotheses | axioms |
 |---|---|---|---|---|
-| `arm_chain_rung1` | `ArmChainRung1Modal.lean` | `arm_chain_rung1_modal` | `0 ≤ dt`; `dt ≤ 1/5`; 3×`VerdC` | std 3 + `z3_unsat_sound` |
-| `arm_chain_rung2` | `ArmChainRung2Modal.lean` | `arm_chain_rung2_modal` | `0 ≤ dt`; `dt ≤ 1/5`; 4×`VerdD` | std 3 + `z3_unsat_sound` |
 | `arm_chain_rung3` | `ArmChainRung3Modal.lean` | `arm_chain_rung3_modal` | `0 ≤ dt`; 2×`Verd3` | std 3 + `z3_unsat_sound` |
 | `arm_chain_rung3` (declared invariant, `Hold` cut as mode region) | `ArmChainRung3Declared.lean` | `arm_chain_rung3_declared` | `0 ≤ dt` | **std 3 only** |
-| `arm_fidelity_low` | `ArmFidelityLowModal.lean` | `arm_fidelity_low_modal` | `0 ≤ dt`; `dt ≤ 1/5`; 2×`VerdF` | std 3 + `z3_unsat_sound` |
 | `arm_fidelity_mid` | `ArmFidelityMidModal.lean` | `arm_fidelity_mid_modal` | `0 ≤ dt`; 2×`Verd3` | std 3 + `z3_unsat_sound` |
 | `arm_fidelity_mid` (declared invariant, `Hold` cut as mode region) | `ArmFidelityMidDeclared.lean` | `arm_fidelity_mid_declared` | `0 ≤ dt` | **std 3 only** |
 | `attitude_rate` | `AttitudeRateModal.lean` | `attitude_rate_modal` | `0 ≤ dt`; 2×`VerdW` | std 3 + `z3_unsat_sound` |
@@ -387,10 +400,8 @@ obligations (watertank's are *proven*, in `WatertankViability.lean`).
 | `refinement_ladder_rover_rung2c_6dof` | `RoverRung2cModal.lean` | `rover_rung2c_modal` | `0 ≤ dt`; 3×`VerdR6` | std 3 + `z3_unsat_sound` |
 | `refinement_ladder_rover_rung3_6to8` | `RoverLadderRung3Modal.lean` | `rover_ladder_rung3_6to8_modal` | `0 ≤ dt`; 6×`VerdR` | std 3 + `z3_unsat_sound` |
 | `refinement_ladder_rover_rung4_8to12` | `RoverLadderRung4Modal.lean` | `rover_ladder_rung4_8to12_modal` | `0 ≤ dt`; 6×`VerdF` | std 3 + `z3_unsat_sound` |
-| `robot_braking` | `RobotBrakingModal.lean` | `robot_braking_modal` | `0 ≤ dt`; 1×`Verd3` | std 3 + `z3_unsat_sound` |
 | `rover3_M1` | `Rover3M1Modal.lean` | `rover3_M1_modal` | `0 ≤ dt` | **std 3 only** |
 | `rover3_M1` (declared per-mode rows, composed) | `Rover3M1Handoff.lean` | `rover3_M1_modeKeyed` | `0 ≤ dt` | **std 3 only** |
-| `rover3tier_M1` | `Rover3tierM1Modal.lean` | `rover3tier_M1_modal` | `0 ≤ dt`; 2×`Verd3` | std 3 + `z3_unsat_sound` |
 | `rover3tier_rung12` | `Rover3tierRung12Modal.lean` | `rover3tier_rung12_modal_ACCEL` | `0 ≤ dt`; 2×`VerdQA` | std 3 + `z3_unsat_sound` |
 | `rover3tier_rung12` | `Rover3tierRung12Modal.lean` | `rover3tier_rung12_modal_COAST` | `0 ≤ dt`; 2×`VerdQC` | std 3 + `z3_unsat_sound` |
 | `rover3tier_rung12` (declared per-mode rows, composed; ACCEL row repaired 2026-10-08) | `Rover3tierRung12Handoff.lean` | `rover3tier_rung12_modeKeyed` | `0 ≤ dt`; 2×`VerdQA` + 2×`VerdQC` | std 3 + `z3_unsat_sound` |
@@ -417,7 +428,6 @@ obligations (watertank's are *proven*, in `WatertankViability.lean`).
 | `story3_rollover_ladder_rung_a` | `Story3RolloverRungAModal.lean` | `story3_rollover_rung_a_modal` | `0 ≤ dt`; 6×`VerdA` | std 3 + `z3_unsat_sound` |
 | `story3_rollover_ladder_rung_b` | `Story3RolloverRungBModal.lean` | `story3_rollover_rung_b_modal` | `0 ≤ dt`; 9×`VerdV` | std 3 + `z3_unsat_sound` |
 | `story3_rollover_ladder_rung_b` (declared per-mode rows, composed) | `Story3RolloverRungBHandoff.lean` | `story3_rollover_rung_b_modeKeyed` | `0 ≤ dt`; 3×`VerdS` + 6×`VerdV` | std 3 + `z3_unsat_sound` |
-| `watertank` | `WatertankViability.lean` | `watertank_modal_certified` | `dt : ℝ` (unconstrained); 6×`VerdW` — the six pinned to the runner. Existence (`ESW`) is **proven**, not hypothesised | std 3 + `z3_unsat_sound` |
 
 Two rows deserve a note:
 
@@ -451,11 +461,11 @@ Two rows deserve a note:
   cut's entry (O1) and invariance (O2) obligations. Their responses are Z3-free
   right-only catch-ups (`Proofs/Encoding/CutComposition.lean`), so they add no
   verdict, no runner row and no pin; two more `#print axioms` lines in
-  `ModalBattery.lean`: **50 theorems in all**. The declared row with no region
+  `ModalBattery.lean`: **46 theorems in all** since 2026-10-09 (with the two pruning-suite theorems of `match_multi_rate`; 52 before the static-reposition removal). The declared row with no region
   anywhere is false for these automata (`docs/CUT-COMPOSITION.md` §3).
-* **`watertank`** is the flagship: existence is proven (not hypothesised) and
-  its verdicts are the ones wired into `--run-verdicts` with kernel identity
-  pins.
+* (`watertank`, the former flagship with proven existence and kernel identity pins, is
+  DECLINED since the static-reposition removal of 2026-10-09; its files are in the git
+  history, commit `3494c49`.)
 
 ---
 

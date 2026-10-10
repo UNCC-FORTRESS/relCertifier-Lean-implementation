@@ -39,21 +39,16 @@ variable {n : ℕ}
 joint-certified: the verified checker cannot accept a stay in an uncertified mode. -/
 theorem Covered.jointOK_head (G : SearchGraph (Var n)) {q B : ℕ} {σs : SrcSetting}
     (hnorepo : ∀ q' m, G.modeAt q' = some m →
-      m.repoPreOK = false ∧ m.repoPostOK = false ∧
       m.repoDynPreOK = false ∧ m.repoDynPostOK = false)
     (hcov : Covered G ⟨q, B, σs⟩) :
     ∃ m, G.modeAt q = some m ∧ m.jointOK = true := by
   cases hcov with
   | base m hm hj _ => exact ⟨m, hm, hj⟩
   | step m hm hj _ _ => exact ⟨m, hm, hj⟩
-  | stepRepositionPre m hm hrepo _ _ _ =>
-      exact absurd hrepo (by simp [(hnorepo q m hm).1])
-  | stepRepositionPost m hm hrepo _ _ _ =>
-      exact absurd hrepo (by simp [(hnorepo q m hm).2.1])
   | stepRepositionDynPre m hm hrepo _ _ _ =>
-      exact absurd hrepo (by simp [(hnorepo q m hm).2.2.1])
+      exact absurd hrepo (by simp [(hnorepo q m hm).1])
   | stepRepositionDynPost m hm hrepo _ _ _ =>
-      exact absurd hrepo (by simp [(hnorepo q m hm).2.2.2])
+      exact absurd hrepo (by simp [(hnorepo q m hm).2])
 
 /-! ## The self-stay window witness -/
 

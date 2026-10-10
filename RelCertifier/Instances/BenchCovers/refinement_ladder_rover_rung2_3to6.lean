@@ -14,8 +14,8 @@ namespace RelCertifier
 /-- `refinement_ladder_rover_rung2_3to6` (emitted). -/
 def refinement_ladder_rover_rung2_3to6_cover : CoverEmitE :=
   ⟨"refinement_ladder_rover_rung2_3to6", [], [
-    ⟨"STEEP", (1 : ℚ) / 1, 1, [⟨"STEEP", true, false, false, false, false⟩, ⟨"MODER", true, false, false, false, false⟩, ⟨"FLAT", true, false, false, false, false⟩], ["STEEP", "MODER", "FLAT"], [⟨"STEEP", [0, 2, 3, 1], [1], [1]⟩, ⟨"MODER", [0, 2, 3, 1], [1], [1]⟩, ⟨"FLAT", [0, 2, 3, 1], [1], [1]⟩]⟩,
-    ⟨"MODER", (1 : ℚ) / 1, 1, [⟨"STEEP", false, false, false, false, false⟩, ⟨"MODER", true, false, false, false, false⟩, ⟨"FLAT", true, false, false, false, false⟩], ["MODER", "FLAT"], [⟨"STEEP", [2, 3], [1], [1]⟩, ⟨"MODER", [0, 2, 3, 1], [1], [1]⟩, ⟨"FLAT", [0, 2, 3, 1], [1], [1]⟩]⟩,
-    ⟨"FLAT", (1 : ℚ) / 1, 1, [⟨"STEEP", false, false, false, false, false⟩, ⟨"MODER", false, false, false, false, false⟩, ⟨"FLAT", true, false, false, false, false⟩], ["FLAT"], [⟨"STEEP", [2, 3], [1], [1]⟩, ⟨"MODER", [2, 3], [1], [1]⟩, ⟨"FLAT", [0, 2, 3, 1], [1], [1]⟩]⟩]⟩
+    ⟨"STEEP", (1 : ℚ) / 1, 1, [⟨"STEEP", true, false, false⟩, ⟨"MODER", true, false, false⟩, ⟨"FLAT", true, false, false⟩], ["STEEP", "MODER", "FLAT"], [⟨"STEEP", [0, 2, 3, 1], [1], [1]⟩, ⟨"MODER", [0, 2, 3, 1], [1], [1]⟩, ⟨"FLAT", [0, 2, 3, 1], [1], [1]⟩]⟩,
+    ⟨"MODER", (1 : ℚ) / 1, 1, [⟨"STEEP", false, false, false⟩, ⟨"MODER", true, false, false⟩, ⟨"FLAT", true, false, false⟩], ["MODER", "FLAT"], [⟨"STEEP", [2, 3], [1], [1]⟩, ⟨"MODER", [0, 2, 3, 1], [1], [1]⟩, ⟨"FLAT", [0, 2, 3, 1], [1], [1]⟩]⟩,
+    ⟨"FLAT", (1 : ℚ) / 1, 1, [⟨"STEEP", false, false, false⟩, ⟨"MODER", false, false, false⟩, ⟨"FLAT", true, false, false⟩], ["FLAT"], [⟨"STEEP", [2, 3], [1], [1]⟩, ⟨"MODER", [2, 3], [1], [1]⟩, ⟨"FLAT", [0, 2, 3, 1], [1], [1]⟩]⟩]⟩
 
 end RelCertifier

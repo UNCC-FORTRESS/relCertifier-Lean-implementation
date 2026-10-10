@@ -14,8 +14,8 @@ namespace RelCertifier
 /-- `story2_lateral_rung_b_12dof` (cut-free emission). -/
 def story2_lateral_rung_b_12dof_coverNC : CoverEmitE :=
   ⟨"story2_lateral_rung_b_12dof", [], [
-    ⟨"STEEP", (1 : ℚ) / 1, 1, [⟨"STEEP", true, false, false, false, false⟩, ⟨"MODER", true, false, false, false, false⟩, ⟨"FLAT", true, false, false, false, false⟩], ["STEEP", "MODER", "FLAT"], [⟨"STEEP", [0, 1, 2, 4, 5, 6, 7, 3], [3], [3]⟩, ⟨"MODER", [0, 1, 2, 4, 5, 6, 7, 3], [3], [3]⟩, ⟨"FLAT", [0, 1, 2, 4, 5, 6, 7, 3], [3], [3]⟩]⟩,
-    ⟨"MODER", (1 : ℚ) / 1, 1, [⟨"STEEP", false, false, false, false, false⟩, ⟨"MODER", true, false, false, false, false⟩, ⟨"FLAT", true, false, false, false, false⟩], ["MODER", "FLAT"], [⟨"STEEP", [1, 2, 4, 5, 6, 7], [3], [3]⟩, ⟨"MODER", [0, 1, 2, 4, 5, 6, 7, 3], [3], [3]⟩, ⟨"FLAT", [0, 1, 2, 4, 5, 6, 7, 3], [3], [3]⟩]⟩,
-    ⟨"FLAT", (1 : ℚ) / 1, 1, [⟨"STEEP", false, false, false, false, false⟩, ⟨"MODER", false, false, false, false, false⟩, ⟨"FLAT", true, false, false, false, false⟩], ["FLAT"], [⟨"STEEP", [1, 2, 4, 5, 6, 7], [3], [3]⟩, ⟨"MODER", [1, 2, 4, 5, 6, 7], [3], [3]⟩, ⟨"FLAT", [0, 1, 2, 4, 5, 6, 7, 3], [3], [3]⟩]⟩]⟩
+    ⟨"STEEP", (1 : ℚ) / 1, 1, [⟨"STEEP", true, false, false⟩, ⟨"MODER", true, false, false⟩, ⟨"FLAT", true, false, false⟩], ["STEEP", "MODER", "FLAT"], [⟨"STEEP", [0, 1, 2, 4, 5, 6, 7, 3], [3], [3]⟩, ⟨"MODER", [0, 1, 2, 4, 5, 6, 7, 3], [3], [3]⟩, ⟨"FLAT", [0, 1, 2, 4, 5, 6, 7, 3], [3], [3]⟩]⟩,
+    ⟨"MODER", (1 : ℚ) / 1, 1, [⟨"STEEP", false, false, false⟩, ⟨"MODER", true, false, false⟩, ⟨"FLAT", true, false, false⟩], ["MODER", "FLAT"], [⟨"STEEP", [1, 2, 4, 5, 6, 7], [3], [3]⟩, ⟨"MODER", [0, 1, 2, 4, 5, 6, 7, 3], [3], [3]⟩, ⟨"FLAT", [0, 1, 2, 4, 5, 6, 7, 3], [3], [3]⟩]⟩,
+    ⟨"FLAT", (1 : ℚ) / 1, 1, [⟨"STEEP", false, false, false⟩, ⟨"MODER", false, false, false⟩, ⟨"FLAT", true, false, false⟩], ["FLAT"], [⟨"STEEP", [1, 2, 4, 5, 6, 7], [3], [3]⟩, ⟨"MODER", [1, 2, 4, 5, 6, 7], [3], [3]⟩, ⟨"FLAT", [0, 1, 2, 4, 5, 6, 7, 3], [3], [3]⟩]⟩]⟩
 
 end RelCertifier

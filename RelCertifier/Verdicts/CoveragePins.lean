@@ -23,8 +23,9 @@ declared one. So the two can only be changed together:
 * runner issues a different number than either → `--run-verdicts` fails at runtime.
 
 Three-way agreement: what the tables describe, what we declared, and what was actually
-sent to Z3. `watertank`'s six are a fixed literal list rather than a generated one, so
-there is nothing to derive there.
+sent to Z3. (The fixed six-query `watertank` phase left with the `watertank` modal
+theorem on 2026-10-09, when the benchmark was DECLINED after the static-reposition
+removal.)
 -/
 import RelCertifier.Verdicts.ModalTablePins
 import RelCertifier.Verdicts.RunCut
@@ -61,10 +62,10 @@ theorem derivedModal_eq_expected : derivedModal = expected.modal := by decide
 /-- Likewise for the cut probes, against `cutBenchmarks` and the emitted IR. -/
 theorem derivedCut_eq_expected : derivedCut = expected.cut := by decide
 
-/-- What the handoff phase owes: one query per declared left transition of every emitted
+/-- What the handoff phase owes: one query per declared left transition of every certified
 benchmark — the resolved pairs `Handoff.transitions` the runner actually visits. -/
 def derivedHandoff : ℕ :=
-  benchIRTable.foldl (fun acc r => acc + (Handoff.transitions r.2).length) 0
+  certifiedIRTable.foldl (fun acc r => acc + (Handoff.transitions r.2).length) 0
 
 /-- The handoff total is what the emitted IR declares, not a remembered number. -/
 theorem derivedHandoff_eq_expected : derivedHandoff = expected.handoff := by decide
@@ -91,11 +92,11 @@ theorem derivedPruned_eq_expected : derivedPruned = expected.prunedEdges := by d
 /-- Two queries per pruned edge: the declared query count is tied to the edge count. -/
 theorem nonconn_eq_two_pruned : expected.nonconn = 2 * expected.prunedEdges := by decide
 
-/-- The cover table walks exactly the emitted benchmarks, in the same order as the IR
+/-- The cover table walks exactly the certified benchmarks, in the same order as the IR
 table the queries are rebuilt from — a cover row for a benchmark with no IR (or a
-missing cover) fails here, not at runtime. -/
+missing cover, or a cover for a declined benchmark) fails here, not at runtime. -/
 theorem benchCoverTable_names :
-    benchCoverTable.map (·.1) = benchIRTable.map (·.1) := by decide
+    benchCoverTable.map (·.1) = certifiedIRTable.map (·.1) := by decide
 
 /-- Every pruned pair names a declared right edge of its benchmark's IR: the source and
 target are right modes and the target is in the source's `next` list. A stale pair (a

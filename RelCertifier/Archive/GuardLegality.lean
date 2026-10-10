@@ -22,17 +22,13 @@ variable {V : Type*} [Fintype V] [DecidableEq V]
 
 /-- **Guard–domain coherence (well-formedness, Finding 1).** At every declared edge, the source mode's
 evolution domain together with the real edge guard implies the target mode's evolution domain — plus
-the state-preserving/dynamic reposition analogues (`region`/`dynDom` coherence). Honest hypothesis:
+the dynamic reposition analogue (`dynDom` coherence; the static reposition was removed 2026-10-09). Honest hypothesis:
 true for well-specified automata (guards/regions are domain-consistent), stated not assumed. -/
 structure WellFormedGuards (G : SearchGraph V) : Prop where
   /-- flow-jump: source domain + edge guard ⟹ target domain. -/
   jump : ∀ (q : ℕ) (m : RMode V), G.modeAt q = some m → ∀ e ∈ G.edges, e.src = q →
     ∀ (mt : RMode V), G.modeAt e.tgt = some mt →
       ∀ μ, Formula.sat m.dom μ → Formula.sat e.guard μ → Formula.sat mt.dom μ
-  /-- static reposition: source region ⟹ target domain (state-preserving switch). -/
-  repo : ∀ (q : ℕ) (m : RMode V), G.modeAt q = some m → ∀ e ∈ G.edges, e.src = q →
-    ∀ (mt : RMode V), G.modeAt e.tgt = some mt →
-      ∀ ν, (Formula.sat m.region ν ∨ Formula.sat m.regionPost ν) → Formula.sat mt.dom ν
   /-- dynamic reposition: source dyn-domain ⟹ target domain. -/
   dyn : ∀ (q : ℕ) (m : RMode V), G.modeAt q = some m → ∀ e ∈ G.edges, e.src = q →
     ∀ (mt : RMode V), G.modeAt e.tgt = some mt →
@@ -71,14 +67,6 @@ theorem witness_is_guarded_execution (G : SearchGraph V) (hwf : WellFormedGuards
       obtain ⟨mt, hmt⟩ := hev e he
       have hμt : Formula.sat mt.dom μ := hwf.jump q m hm e he hsrc mt hmt μ hμ hguard
       exact ih ⟨mt, hmt, hμt⟩
-  | @repositionPre q B ν ω m hm hrepo e he hsrc hB hreg _ ih =>
-      rintro _
-      obtain ⟨mt, hmt⟩ := hev e he
-      exact ih ⟨mt, hmt, hwf.repo q m hm e he hsrc mt hmt ν (Or.inl hreg)⟩
-  | @repositionPost q B ν ω m hm hrepo e he hsrc hB hreg _ ih =>
-      rintro _
-      obtain ⟨mt, hmt⟩ := hev e he
-      exact ih ⟨mt, hmt, hwf.repo q m hm e he hsrc mt hmt ν (Or.inr hreg)⟩
   | @repositionDynPre q B ν μ ω m hm hrepo e he hsrc hB hsem _ ih =>
       rintro _
       obtain ⟨r, Φ, hr, hΦ0, hΦr, _, _, hdomΦ⟩ := hsem

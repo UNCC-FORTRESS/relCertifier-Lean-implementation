@@ -158,7 +158,7 @@ theorem hltP : ∀ q, ∀ e ∈ GrP.edgesFrom q, e.tgt < GrP.modes.length := by
 edge); weights positive. -/
 theorem coverCertP (hz3 : z3solve (flowQuery obligP) = Verdict.unsat) :
     CoverCert GjP gP := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨?_, ?_, ?_, ?_, ?_⟩
   · -- segPres: the joint flow certificate
     intro q m hm hjOK
     have hq : q = 0 ∧ m = jModeP := by
@@ -169,22 +169,8 @@ theorem coverCertP (hz3 : z3solve (flowQuery obligP) = Verdict.unsat) :
       | q + 1 => simp [SearchGraph.modeAt, GjP] at hm
     rw [hq.2]
     exact segPres_from_flowCert obligP hz3
-  · -- repoPresPre: no mode carries it
+  · -- repoDynPresPre: no mode carries it
     intro q m hm hflag
-    have : m = jModeP := by
-      match q with
-      | 0 => simpa [SearchGraph.modeAt, GjP] using hm.symm
-      | q + 1 => simp [SearchGraph.modeAt, GjP] at hm
-    subst this
-    simp [jModeP] at hflag
-  · intro q m hm hflag
-    have : m = jModeP := by
-      match q with
-      | 0 => simpa [SearchGraph.modeAt, GjP] using hm.symm
-      | q + 1 => simp [SearchGraph.modeAt, GjP] at hm
-    subst this
-    simp [jModeP] at hflag
-  · intro q m hm hflag
     have : m = jModeP := by
       match q with
       | 0 => simpa [SearchGraph.modeAt, GjP] using hm.symm

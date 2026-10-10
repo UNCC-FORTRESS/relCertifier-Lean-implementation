@@ -185,18 +185,13 @@ def runSpec (s : Z3Session) (spec : VerdSpec) (info : RunInfo)
 kernel-tied to the theorem by `modal_from_spec`. -/
 def modalTable : List (VerdSpec × RunInfo × List ℕ) :=
 [
-  (ArmChainRung1.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1, fixedOther := some 0, lamPerL := [(5,2),(3,2),(1,1)] }, [0]),
-  (ArmChainRung2.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1, fixedOther := some 1, lamPerL := [(7,4),(5,4),(1,1)] }, [0]),
   (ArmChainRung3.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1, region := some (3/5), fixedOther := some 3 }, [0]),
-  (ArmFidelityLow.spec, { dim := 2, invRow := 0, lamN := 5, lamD := 1, fixedOther := some 0 }, [0]),
   (ArmFidelityMid.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1, region := some (3/5), fixedOther := some 2 }, [0]),
   (AttitudeRate.spec, { dim := 6, invRow := 0, lamN := 2, lamD := 1, argIsRight := true, fixedOther := some 0 }, [0]),
   (EnduranceGainM1.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1 }, [0]),
   (EnduranceOrderlift1to2.spec, { dim := 3, invRow := 0, lamN := 2, lamD := 1 }, [0]),
   (EnduranceOrderlift2to3.spec, { dim := 4, invRow := 0, lamN := 1, lamD := 1 }, [0, 1]),
   (MatchMultiRate.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1, fixedOther := some 0, lamPerL := [(3,1),(2,1),(1,1)] }, [0]),
-  (RobotBraking.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1, fixedOther := some 2 }, [0]),
-  (Rover3tierM1.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1, fixedOther := some 0 }, [0]),
   -- two components, per `pin_Rover3tierRung12Accel` and the spec's own `order`
   (Rover3tierRung12Accel.spec, { dim := 3, invRow := 0, lamN := 2, lamD := 1, argIsRight := true, fixedOther := some 0 }, [0, 1]),
   (Rover3tierRung12Coast.spec, { dim := 3, invRow := 1, lamN := 1, lamD := 1, argIsRight := true, fixedOther := some 1 }, [0]),
@@ -227,7 +222,6 @@ def modalTable : List (VerdSpec × RunInfo × List ℕ) :=
   (Story3RolloverBase.spec, { dim := 12, invRow := 0, lamN := 5, lamD := 4, ceilCo := some 0, ceilFlip := false, ceilKs := [3/10, 1/2, 13/20] }, [0, 1, 2, 3, 4]),
   (Story3RolloverRungA.spec, { dim := 12, invRow := 0, lamN := 27, lamD := 20, ceilCo := some 0, ceilFlip := false, ceilKs := [3/10, 1/2, 13/20] }, [0, 1, 2]),
   (Story3RolloverRungB.spec, { dim := 12, invRow := 1, lamN := 1, lamD := 1 }, [0, 1]),
-  (Watertank.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1 }, [0]),
   -- the mode-keyed (handoff-composed) instances' own packs: the STEEP window at its full
   -- declared row (three components, `v` first), and `story1_attdist_rung_b`'s rows with the
   -- ceiling head, per `Instances/*Handoff.lean`

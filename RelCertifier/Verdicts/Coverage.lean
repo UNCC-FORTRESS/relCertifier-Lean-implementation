@@ -37,12 +37,11 @@ def counted : IO Unit := dischargedCount.modify (· + 1)
 
 /-- What a complete `--run-verdicts` owes, per phase.
 
-* `watertank` — 6: three routes over the six (window, right-mode) pairs it asserts.
 * `cut` — 97: per-atom O2 route probes across the 11 cut-reliant benchmarks.
-* `modal` — 504: every modal instance's verdict pack, one query per component per
-  asserted mode pair (465 for the 36 base packs, plus 39 for the five packs of the
+* `modal` — 486: every modal instance's verdict pack, one query per component per
+  asserted mode pair (447 for the 30 base packs, plus 39 for the five packs of the
   mode-keyed instances in `Instances/*Handoff.lean`).
-* `handoff` — one static query per declared LEFT transition of every certified
+* `handoff` — 163: one static query per declared LEFT transition of every certified
   benchmark (self-loops included), `φ_inv(m') ∧ evolve_{m'} ∧ guard_m ∧ evolve_R ∧
   ¬φ_inv(m)` (domain-conditioned) — the cross-mode
   handoff of the mode-keyed invariant (`Trusted/Handoff.lean`). Mode-independent
@@ -53,7 +52,6 @@ def counted : IO Unit := dischargedCount.modify (· + 1)
 * `nonconn` — the queries the non-connection phase owes: two per pruned edge (the source
   check and the barrier check, `Trusted/NonConnQuery.lean`, `Verdicts/RunNonConn.lean`). -/
 structure Expected where
-  watertank   : Nat
   cut         : Nat
   modal       : Nat
   handoff     : Nat
@@ -61,13 +59,18 @@ structure Expected where
   nonconn     : Nat
   deriving Repr
 
-/-- Measured 2026-07-31 (watertank/cut/modal) and 2026-10-07 (handoff); re-derived
-2026-10-08 after the suite deduplication (`docs/SUITE-DEDUPE.md`: six duplicate
-benchmarks removed — 18 modal queries, 8 cut probes, 24 handoff transitions). Edit
+/-- Measured 2026-07-31 (cut/modal) and 2026-10-07 (handoff); re-derived 2026-10-08 after
+the suite deduplication (`docs/SUITE-DEDUPE.md`: six duplicate benchmarks removed — 18
+modal queries, 8 cut probes, 24 handoff transitions); re-derived 2026-10-09 after the
+static (zero-duration) reposition was removed and six benchmarks became DECLINED
+(`Parse.declinedIR`): the `watertank` phase (6) is gone with the `watertank` modal
+theorem, modal 504 → 486 (−18: arm_chain_rung1 3, arm_chain_rung2 4, arm_fidelity_low 2,
+robot_braking 1, rover3tier_M1 2, watertank 6), handoff 191 → 163 (−28: 6 + 7 + 4 + 1 + 4
++ 6 declared left transitions); cut, pruned edges and non-connection unchanged. Edit
 deliberately when the suite changes; see the module docstring for why this is a
 declared constant rather than whatever the run produced. -/
 def expected : Expected :=
-  { watertank := 6, cut := 97, modal := 504, handoff := 191, prunedEdges := 1, nonconn := 2 }
+  { cut := 97, modal := 486, handoff := 163, prunedEdges := 1, nonconn := 2 }
 
 /-- The handoff transitions that are KNOWN to fail, declared as `(benchmark, m', m)`.
 A green handoff phase has exactly this failure set — a new failure fails the run, and so
@@ -80,6 +83,13 @@ def expectedHandoffFailures : List (String × Nat × Nat) := []
 
 /-- What a certification run over the standard suite produces.
 
+Six benchmarks are DECLINED since the static (zero-duration) reposition was removed
+(2026-10-09; `Parse.declinedIR`, `docs/COVER-AUDIT.md`): `arm_chain_rung1`,
+`arm_chain_rung2`, `arm_fidelity_low`, `robot_braking`, `rover3tier_M1`, `watertank`.
+Their covers needed a reposition that switches the right system at a single instant with
+no check that the successor's guard holds there. Until then the declared tally was
+40 certified / 1 declined.
+
 `shield_unreachable` is the 41st benchmark and is *documented* to be DECLINED: its right
 side declares a variable the left lacks (`w`), which the lowering accepts since
 2026-10-08 (`Trusted/JointVars.lean`; before that every query failed to lower and the
@@ -90,8 +100,8 @@ that here means a *second* benchmark starting to decline is a failure instead of
 blending into an expected one. -/
 structure ExpectedSuite where
   paths     : Nat := 41
-  certified : Nat := 40
-  declined  : Nat := 1
+  certified : Nat := 34
+  declined  : Nat := 7
   errors    : Nat := 0
   deriving Repr
 

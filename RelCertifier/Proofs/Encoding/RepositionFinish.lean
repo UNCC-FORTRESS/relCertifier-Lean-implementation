@@ -64,10 +64,10 @@ theorem theorem3_faithful_multi (G : SearchGraph (Var n)) (mv : Var n) (g : Term
 /-- **The reposition-inclusive multi Theorem 3, modulo the emit `Hmulti`.** Chains the assembled
 star-right hstep (`hstep_assembled_multi`) into `theorem3_faithful_multi`. `Hmulti` is the emit
 boundary: per current mode `q`, the right's genuine-multi-flow response — a `segs` mode-switch
-sequence (each seg a declared `G`-edge; a **reposition** appears as a `sys = []` zero-motion mode,
-a **flow** as a real ODE) and the `bigSeq`-response `faModal` over `invLe g` (from `multiseg_clocked`
-+ `clockLift_collapse` for flow segments, `reposition_step_pres`/`dynreposition_faModal` for
-reposition segments — the per-segment coupling **dispatch**). NO `jointOK` gate: the segments are
+sequence (each seg a declared `G`-edge; a **flow** a real ODE, a **reposition** the frozen-left
+right-only flow) and the `bigSeq`-response `faModal` over `invLe g` (from `multiseg_clocked`
++ `clockLift_collapse` for flow segments, `dynreposition_faModal` for reposition segments —
+the per-segment coupling **dispatch**). NO `jointOK` gate: the segments are
 flow-or-reposition, and the switch of each is still a declared `G`-edge (`faithful_rights_bridge`,
 `EdgeTargetsValid`). This puts reposition-using covers (Hold, story, rover, watertank, rung2) in
 scope of the transition-faithful ∀∃ modality. -/

@@ -18,9 +18,11 @@ hypothesis, no new axiom, the declared rows unchanged). The groups:
 
 * **Theorem 3, guarded, every window length: 39 benchmarks** (`#print` group 1).
 * **Theorem 3, guarded, windows `dt < 1`: `refinement_ladder_rover_rung2c`** (group 2); for
-  `dt ≥ 1` its guarded statement is false (`docs/GUARDED-SWITCHING.md` §4).
+  `dt > 2.12` its guarded statement is false by the argument of `docs/GUARDED-SWITCHING.md`
+  §4.5 (not kernel-checked), `1 ≤ dt ≤ 2.12` is open.
 * **Machine-checked refutations of the guarded statement** (group 3):
-  `platoon3_profiles` (every `dt ≥ 1`) and `platoon3_linkloss` (every `dt > 0`).
+  `platoon3_profiles` (every `dt ≥ 1`; `dt ≤ 0.575` open) and `platoon3_linkloss` (every
+  `dt > 0`).
 * **The `⊤`-guarded relaxation only** (group 4): the five benchmarks without a guarded
   theorem for every `dt` (`refinement_ladder_rover_rung2_3to6`, `story2_lateral_rung_a_8dof`,
   `story2_lateral_rung_b_12dof`, the two platoon3 benchmarks) and `rung2c`'s every-`dt`
@@ -155,8 +157,9 @@ edge of `G` testing `hostGuard … Side.R (m e.tgt)` and `gregion q = regionG gu
 /-! ## 2. Theorem 3 over the GUARDED right automaton, windows `dt < 1` (1 benchmark)
 
 `refinement_ladder_rover_rung2c`: the lockstep rows forbid a mid-window switch, so the
-response mirrors the window in the window's band; for `dt ≥ 1` a `STEEP` window from
-`s = 0.59` carries the odometer past `1.4` and the guarded statement is false. -/
+response mirrors the window in the window's band. For `dt > 2.12` a `STEEP` window can carry the
+odometer from below `0.6` past `1.4` and the guarded statement is false (argument,
+`docs/GUARDED-SWITCHING.md` §4.5). -/
 
 #print axioms RoverRung2cGuarded.rover_rung2c_guarded
 

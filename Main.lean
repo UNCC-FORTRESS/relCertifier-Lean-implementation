@@ -10,6 +10,9 @@ Released under Apache 2.0 license.
   (`InstancesV2/BatteryV2`) with declared per-phase counts (`runAllVerdictsV2`);
   `--check-quick-v2` certifies the 45 suite_v2 files first and checks the tally.
 * `relcert --handoff <input.txt>…` runs the cross-mode handoff check per benchmark.
+* `relcert --wellformed <input.txt>…` runs the Assumption 1 check of the right models
+  (`Trusted/WellFormedCheck.lean`, informational; `RELCERT_WELLFORMED_STRICT=1` makes an
+  `UNKNOWN` mode decline a certified benchmark).
 * `--emit-*` print the Lean literals the kernel-checked data layer is generated from.
 
 `unsat` is the only verdict the proofs consume (`z3_unsat_sound`). The kernel check is
@@ -19,6 +22,7 @@ import RelCertifier.Trusted.EmitIR
 import RelCertifier.Trusted.Run
 import RelCertifier.Trusted.Z3
 import RelCertifier.Trusted.OracleAPI
+import RelCertifier.Trusted.WellFormedCheck
 import RelCertifier.Trusted.ViabilityEmit
 import RelCertifier.Trusted.KeyAudit
 import RelCertifier.Verdicts.RunHandoff
@@ -49,7 +53,7 @@ def runBatchTally (paths : List String) : IO (Nat × Nat × Nat) := do
         let oc ← try
             match ← RelCertifier.Oracle.readProblemStrict path with
             | .error e => pure (Outcome.error s!"parse: {e}")
-            | .ok p => certify s p
+            | .ok p => RelCertifier.WellFormed.certifyWF s p
           catch e => pure (Outcome.error s!"io: {e}")
         let dt := (← IO.monoMsNow) - t0
         let name := (path.splitOn "/").reverse.getD 1 path
@@ -105,6 +109,21 @@ USAGE
                                           certified, 0 declined), then --run-verdicts-v2
   relcert --handoff <input.txt>...        the handoff check alone, per benchmark, with
                                           per-transition verdicts and wall time
+  relcert --wellformed <input.txt>...     the Assumption 1 check of the right model, per
+                                          right mode (informational, never a verdict):
+                                          `ok (invariant)` when the mode's guard atoms are
+                                          kept by its own flow (stratified DI routes B/A
+                                          over its evolve domain) and it has a self-loop;
+                                          `ok (exit→S)` when every run of at most one
+                                          control interval ε_r ends in the guard of a
+                                          declared successor in S (rate bounds on the
+                                          atoms that are not kept, then one coverage
+                                          query); `UNKNOWN` otherwise (the check is
+                                          sufficient, not necessary; it checks the
+                                          successor half of Assumption 1, not that a
+                                          full-interval run exists). The kernel's
+                                          per-benchmark result is WellFormedR
+                                          (lake build RelCertifier.InstancesV2.WellFormedBattery)
   relcert --help                          this text
 
 EMITTERS (regenerate committed Lean literals; each prints to stdout)
@@ -153,6 +172,10 @@ SWITCHES (environment)
   RELCERT_NO_CUT=1     disable the checked-cut channel (queries on the bare evolve domains)
   RELCERT_DEBUG=1      per-mode diagnostics on stderr (cuts, admissible starts, pruned
                        edges, per-λ segment status; [cut-x] lines for the widened atoms)
+  RELCERT_WELLFORMED_STRICT=1
+                       run the --wellformed check on every CERTIFIED benchmark and turn it
+                       into DECLINED when a right mode is UNKNOWN (off by default; off, no
+                       verdict and no emission changes)
   Solver and budget defaults (override per run):
   RELCERT_Z3=<path>               the Z3 binary (else the first of a fixed list of paths)
   RELCERT_Z3_TIMEOUT=<ms>         per-query wall-clock timeout, default 10000
@@ -335,6 +358,15 @@ def main (args : List String) : IO Unit := do
           s.close
           IO.println s!"handoff: {total} transition(s) checked over {paths.length} benchmark(s)"
           if anyFail then IO.Process.exit 1
+  | "--wellformed" :: paths => do
+      if paths.isEmpty then
+        IO.eprintln "ERROR: --wellformed needs benchmark paths (see --help)"
+        IO.Process.exit 2
+      match ← RelCertifier.Z3Config.discover with
+      | .error e => IO.eprintln s!"ERROR: {e}"; IO.Process.exit 2
+      | .ok cfg =>
+        let (_, okParse) ← RelCertifier.WellFormed.runWellformed cfg paths
+        if !okParse then IO.Process.exit 1
   | "--check-quick-v2" :: paths => do
       if paths.isEmpty then
         IO.eprintln "ERROR: --check-quick-v2 needs the suite_v2 paths (see --help)"
@@ -351,9 +383,16 @@ run it as RELCERT_IMPLIED_CUT=1 relcert --check-quick-v2 benchmarks/suite_v2/*/i
       let okVerd ← match ← RelCertifier.Z3Config.discover with
         | .error e => IO.eprintln s!"ERROR: {e}"; pure false
         | .ok cfg => runAllVerdictsV2 cfg
+      IO.println "\n== informational : the Assumption 1 check of the right models (--wellformed) =="
+      let wfLine ← match ← RelCertifier.Z3Config.discover with
+        | .error e => pure s!"not run ({e})"
+        | .ok cfg => do
+            let (t, _) ← RelCertifier.WellFormed.runWellformed cfg paths
+            pure s!"{t.inv} ok (invariant), {t.exit} ok (exit), {t.unknown} UNKNOWN of {t.modes} right modes"
       IO.println ""
       IO.println s!"  suite_v2: {if okSuite then "PASS" else "FAIL"}"
       IO.println s!"  verdicts: {if okVerd then "PASS" else "FAIL"}"
+      IO.println s!"  wellformed (informational): {wfLine}"
       if okSuite && okVerd then
         IO.println "SUITE_V2 QUICK CHECKS PASSED  (the kernel check is `lake build`)"
       else

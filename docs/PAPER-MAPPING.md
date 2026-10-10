@@ -94,7 +94,7 @@ Mechanized in `Proofs/Encoding/ModeHandoff.lean` as `theorem3_modeKeyed`:
 | the loop invariant | `psiK ul ϕ nL domL domR BkR = ((Φ ∧ envLR) ∧ BkR) ∧ ⌊u_L ∈ modes⌋_L`, `BkR` the right bookkeeping (`mvValidR` or `mvRegionR`) |
 | **(i)** per-mode cover | `hstepM`, the per-mode step the F- and R-chains consume, from the instance's own provider (`hstepMode_multiF` / `hstepMode_multiR`) |
 | **(ii)** the handoff, DOMAIN-CONDITIONED (at a switch the left state ends an `m'` residence and satisfies `guard_m`; the right state is in its evolve domain) | `hhand : ∀ m' < nL, ∀ t ∈ A.succ m', ∀ ω, sat (F m') ω → sat env ω → sat (A.guard t) ω → sat (F t) ω`. Two discharges exist: from Z3 on the runner's query (`handoff_of_unsat`, the `IForm` of `Trusted/Handoff.lean` that `relcert --handoff` and `--run-verdicts-v2` print), or in the kernel. **All twelve mode-keyed instances discharge it in the kernel** (no instance uses `handoff_of_unsat`), so they add no verdict beyond their per-mode packs; the runner's handoff phase is the tool-level check of the same implication |
-| **(iii)** well-formedness | the trust-base item (successor-completeness; for all 45 theorems guard-gated switching is kernel-checked on both sides and the response exhibits every switch, §2e); mechanized side conditions: freshness of `u_L` and the footprint disjointnesses (`hd_modeKeyed_G`, `hddF_modeKeyed_G`) |
+| **(iii)** well-formedness | not a hypothesis: for all 45 theorems guard-gated switching is kernel-checked on both sides and the response exhibits every switch (§2e); Assumption 1 itself is verified separately per right model (`WellFormedR`, §2f); mechanized side conditions: freshness of `u_L` and the footprint disjointnesses (`hd_modeKeyed_G`, `hddF_modeKeyed_G`) |
 | the conclusion | `rvalid (theorem3Form (leftAutomatonBody A ul) (rightAutomatonBody G mv) (psiK …))` |
 
 Mode-independent invariants are the special case `F m = F`. All 45 benchmarks are stated
@@ -210,7 +210,7 @@ response is built in the guarded layer (`Proofs/Encoding/GuardedSwitch.lean`):
 | the ∃-response of one round | `GResp G q P post σ` (segments chosen after the left run; the final successor is chosen at the end state); chains of `flow ; legal switch` as `RResp`/`RRespP` (`GuardedClimb.lean`) |
 | **mode-consistent states** (Theorem 3's loop invariant on the right) | `mvRegionR mv gregion k` with `gregion q = regionG guard cuts q = guard q ∧ cuts q`: the right satisfies the lowered guard of its current mode `q` and `q`'s checked cuts |
 | the loop step | `hstep_assembled_GR`, `hstepMode_GR` with `Hmulti_regionG` / `HMode_regionG` (feed `theorem3_faithful_multiR_LR` and `theorem3_modeKeyed`, unchanged) |
-| Assumption 1 (nonblocking / successor-completeness) at a response's end | no hypothesis: every response exhibits its switches and their enabled targets explicitly, or makes no step (the right is then still in its current mode's guard, `gresp_guard`) |
+| Assumption 1 (nonblocking / successor-completeness) at a response's end | no hypothesis: every response exhibits its switches and their enabled targets explicitly, or makes no step (the right is then still in its current mode's guard, `gresp_guard`); Assumption 1 of the whole model is verified separately (§2f) |
 | a zero-duration switch, a reposition's switch | `gresp_hop`, `faModalB_repoPrefixG`, `hopAG` (the switch test after the hop) |
 | switching inside a left window (the cover's per-segment demonic successor choice) | the ladder climbs (`LadderRun.climb`, `climbD`) and the synchronized climbs (`syncClimb`, `syncWindow`): the right switches at band floors, legal by the explicit end state |
 | footprints without `htt` | `vars_bodyG_sub`, `hddF_multiR_G`, `hddF_multiR_plain_G`, `hd_modeKeyed_G`, `hddF_modeKeyed_G`, `hdis_multi_G` |
@@ -251,6 +251,17 @@ repaired (operating-range guards, `docs/SUITE-REDESIGN.md` §20) and proved. The
 all-successors cover (the checker) is unaffected: the gaps were in the existential witnesses,
 in the stated invariant's right bookkeeping, and in one benchmark family's model. Record and
 per-benchmark table: `docs/GUARDED-SWITCHING.md`.
+
+## 2f. Assumption 1 (Well-Formedness), verified per benchmark
+
+| paper element | Lean / tool |
+|---|---|
+| Assumption 1: *the right model is nonblocking and complete with respect to its declared successor relation: from every state satisfying a source-mode guard, an evolution spanning the control interval `ε_r` exists, and every evolution of duration at most `ε_r`, including the empty one, ends in a state satisfying the guard of at least one declared successor mode* | `WellFormedR G guard ε` (`Proofs/Encoding/WellFormedR.lean`): for every mode `q` and state `x` in `q`'s lowered guard and evolve domain, (i) `∃ Φ, ODESol m.sys m.dom x ε Φ`, (ii) every `ODESol m.sys m.dom x t Φ` with `t ≤ ε` ends in `guard e.tgt` for some `e ∈ G.edgesFrom q`; `G` the Theorem 3's guarded right automaton, `ε = epsR p` (the file's `epsilon`) |
+| "states" of the model | the evolve domain (the predicate's conjunct `m.dom x`; a run exists only from a domain state, `ODESol.start_dom`) |
+| the remark (a self-loop whose guard contains the one-interval reach set, or a successor covering the rest) | proof styles (a) forward invariance then the self-loop, (b) exit into a successor's guard within one interval (`docs/WELLFORMED.md` §2) |
+| per benchmark | `<b>_wellFormedR` for 30; `<b>_wellFormedR_false` (with the exhibited blocking state) for 9 model defects, every other mode proved; `<b>_wellFormedR_onBand` + `<b>_band_invariant` for the 6 satellites (the literal predicate refuted); all in `InstancesV2/WellFormedBattery.lean`, Z3-free |
+| the tool | `relcert --wellformed`: a sufficient check of clause (ii) per right mode (`ok (invariant)` / `ok (exit→S)` / `UNKNOWN`), informational in `--check-quick-v2`; `RELCERT_WELLFORMED_STRICT=1` declines a certified benchmark with an `UNKNOWN` mode |
+| its use in Theorem 3 | none: no Theorem 3 takes it as a hypothesis (the responses exhibit their switches); it is a model-level sanity property the paper states, now checked rather than assumed |
 
 ## 3. The generic theorem families
 

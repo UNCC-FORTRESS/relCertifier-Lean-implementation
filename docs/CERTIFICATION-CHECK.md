@@ -51,6 +51,7 @@ theorems consume is in the repository.
 | 3 | the 45 files certify (declared 45 / 0 / 0), and every Z3 hypothesis of the battery holds, against declared counts | `RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt` |
 | 3' | the hypotheses alone | `./.lake/build/bin/relcert --run-verdicts-v2` |
 | 4 | each file parses to the literal the theorems quote; parser, printer, Z3-layer and determinism tests | `BENCH_PATHS=<manifest> ./.lake/build/bin/relcert-test` |
+| 5 | Assumption 1 of every right model (`WellFormedR`): 30 proved, 9 refuted with an exhibited state, 6 on the momentum band; axiom audit; the tool's informational check | `lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 \| grep -A3 "depends on axioms"`; `./.lake/build/bin/relcert --wellformed benchmarks/suite_v2/*/input.txt` |
 
 ## Check 1: the kernel checks every proof
 
@@ -127,10 +128,16 @@ DECLINE without the widened cut channel). Expected tail:
   [coverage] suite_v2 non-connection: 88/88 hypotheses discharged
   [coverage] suite_v2 pruned edges: 44/44 hypotheses discharged
   [coverage] suite_v2 copied benchmarks (legacy packs): 385/385 hypotheses discharged
+  [wellformed] summary: 45 benchmark(s), 146 right mode(s): 77 ok (invariant), 53 ok (exit), 16 UNKNOWN (9 benchmark(s) with an UNKNOWN mode); 2236 queries
+
   suite_v2: PASS
   verdicts: PASS
+  wellformed (informational): 77 ok (invariant), 53 ok (exit), 16 UNKNOWN of 146 right modes
 SUITE_V2 QUICK CHECKS PASSED  (the kernel check is `lake build`)
 ```
+
+The `[wellformed]` section (check 5's tool part) is informational: it changes neither the
+tally nor the exit code.
 
 What each phase is and what pins it to the theorems: `docs/VERDICTS.md`. A phase that
 discharged fewer (or more) queries than declared fails the run; anything the runner cannot
@@ -150,6 +157,31 @@ Without `BENCH_PATHS` the two determinism checks (`match_multi_rate` 8× CERTIFI
 `acc_spoof_lag`, which declines without the widened channel, 8× the same verdict) are
 skipped and the last line says `ALL PASS (2 SKIPPED …)`. The 19 carried-over legacy
 literals are covered by the same check through `SameIR`.
+
+## Check 5: Assumption 1, verified per benchmark
+
+```bash
+lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 | grep -A3 "depends on axioms"
+./.lake/build/bin/relcert --wellformed benchmarks/suite_v2/*/input.txt
+```
+
+Expected: 80 axiom lines, each exactly `[propext, Classical.choice, Quot.sound]` (no
+`z3_unsat_sound`: every proof is Z3-free): 30 `<b>_wellFormedR` (proved), for the 9 model
+defects `<b>_wellFormedR_false` and the per-mode positive results, for the 6 satellites
+`<b>_wellFormedR_onBand`, `<b>_band_invariant` and `<b>_wellFormedR_false`, and 11 generic
+lemmas including `WellFormedBattery.wf_coverage` (the declared counts `(30, 9, 6)` and the
+three name lists a permutation of the suite's IR table). The tool line:
+`[wellformed] summary: 45 benchmark(s), 146 right mode(s): 77 ok (invariant), 53 ok (exit),
+16 UNKNOWN (9 benchmark(s) with an UNKNOWN mode)`; the `UNKNOWN` modes are the blocking modes
+the kernel exhibits. What this establishes and what it does not (the tool checks only the
+successor half; the predicate's domain conjunct; the satellites' band):
+`docs/WELLFORMED.md`.
+
+**Switch-off regression** (`RELCERT_WELLFORMED_STRICT` unset, 2026-10-10): `--emit-ir`,
+`--emit-cover`, `--emit-cuts` (with `RELCERT_IMPLIED_CUT=1`) for all 45 files byte-identical
+to the binary before the check was added (135 outputs, stdout and stderr); `--check-quick-v2`
+output identical modulo timings and the new informational section; `--run-verdicts-v2`
+`ALL suite_v2 HYPOTHESES DISCHARGED`; `relcert-test` `ALL PASS`.
 
 ## Per-benchmark inventory
 
@@ -217,7 +249,8 @@ carried-over pack is pinned to a row of `Verdicts/RunModal.modalTable`.
 lake build && lake build relcert relcert-test \
   && lake build RelCertifier.InstancesV2.BatteryV2 2>&1 | grep -A3 "depends on axioms" \
   && RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt \
-  && BENCH_PATHS=/tmp/bench-paths-v2.tsv ./.lake/build/bin/relcert-test
+  && BENCH_PATHS=/tmp/bench-paths-v2.tsv ./.lake/build/bin/relcert-test \
+  && lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 | grep -A3 "depends on axioms"
 ```
 
 A green build, an axiom listing with nothing beyond the four axioms, `SUITE_V2 QUICK CHECKS

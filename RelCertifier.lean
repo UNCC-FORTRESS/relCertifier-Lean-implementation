@@ -27,6 +27,10 @@ suite_v2 battery with its axiom audit.
   region (`guard ∧ cuts` of the right's current mode) for all 45 (every window length;
   `rung2c` up to its control interval `dt ≤ 1`; the `platoon3` pair on the repaired model)
   (`docs/GUARDED-SWITCHING.md`).
+* `InstancesV2/WellFormedBattery`: the paper's Assumption 1 (Well-Formedness) of each right
+  model as a separate, axiom-audited result (`WellFormedR`, `Proofs/Encoding/WellFormedR`):
+  proved for 30 benchmarks, refuted with an exhibited blocking state for 9 (model defects),
+  proved on the conserved momentum band for the 6 satellites (`docs/WELLFORMED.md`).
   `VerdictsV2/`: the runner tables and the kernel pins tying each Z3 hypothesis to the
   query `relcert --run-verdicts-v2` sends.
 * `Instances/` and `Verdicts/`: the 19 theorems carried over from the retired legacy
@@ -91,6 +95,8 @@ import RelCertifier.Proofs.Encoding.SplitCoupling
 import RelCertifier.Proofs.Encoding.ToolLevel
 import RelCertifier.Proofs.Encoding.UniformFvDischarge
 import RelCertifier.Proofs.Encoding.UniformMultiflow
+import RelCertifier.Proofs.Encoding.WellFormedLadder
+import RelCertifier.Proofs.Encoding.WellFormedR
 import RelCertifier.Proofs.Encoding.WindowGrowth
 import RelCertifier.Proofs.Encoding.WindowRF
 import RelCertifier.Proofs.Flow.AffineFaces
@@ -131,8 +137,10 @@ import RelCertifier.Trusted.Parse
 import RelCertifier.Trusted.Run
 import RelCertifier.Trusted.Smt
 import RelCertifier.Trusted.ViabilityEmit
+import RelCertifier.Trusted.WellFormedCheck
 import RelCertifier.Trusted.Z3
 import RelCertifier.Instances.AxiomCheck
 import RelCertifier.Verdicts.ModalCodePins
 import RelCertifier.VerdictsV2.NonConnPinV2
 import RelCertifier.InstancesV2.BatteryV2
+import RelCertifier.InstancesV2.WellFormedBattery

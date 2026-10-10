@@ -12,6 +12,19 @@ check recipe: `docs/CERTIFICATION-CHECK.md`). The two `platoon3` files were repa
 full cycle; they are now the operating range (`docs/SUITE-REDESIGN.md` §20). Without the widened channel 10 of them
 DECLINE.
 
+**Assumption 1 of each right model** (the paper's Well-Formedness: from every guard state a
+full control interval of flow exists, and every evolution of at most `ε_r` ends in a declared
+successor's guard) is verified per file (`WellFormedR`, `docs/WELLFORMED.md`): it holds for
+30 files, on the conserved momentum band for the 6 satellite files, and it is FALSE for 9
+files, whose model has a blocking mode: `arm_plateau_{crit,profiles,slow}` (the ApproachA /
+ApproachB bands are narrower than one control interval of their own rate),
+`platoon_delay_{linkloss,profiles}` (the sink `BRAKE`), `platoon3_{linkloss,profiles}` (the
+sinks `BRAKE1`–`BRAKE3`) and `quad_light_{airframe_20,profiles}` (the sink `LIMIT`): each such
+sink's own flow leaves its guard and it declares no other successor. The blocking sinks are
+pruned (never entered by a certified response), so no Theorem 3 depends on them; repairing
+the files is a modelling decision left open. `relcert --wellformed <input.txt>…` runs the
+tool's sufficient check per right mode.
+
 The suite's design, the per-family rationale, the domain audit (every evolve bound is a
 physical limit of the plant; `scripts/domain_widening.py` re-runs the tool with every bound
 widened) and the mechanism matrix (which certifier mechanism each benchmark actually
@@ -125,8 +138,10 @@ Key points, each of which the parser enforces:
   `ode = px' = vx; py' = vy; vx' = 0.2; vy' = 0;`. A right-hand side is either infix
   arithmetic or an `smt2:`-prefixed S-expression (`vx' = smt2:(* -0.5 vx)`).
 * **`guard`** is the mode's entry condition, **`evolve`** the domain the flow may not
-  leave, **`next`** the declared successors (the transition relation; the trust base's
-  successor-completeness assumption quantifies over exactly this list).
+  leave, **`next`** the declared successors (the transition relation; Assumption 1's
+  successor-completeness, verified per file as `WellFormedR`, quantifies over exactly this
+  list; a mode with no catch-all successor must keep every one-interval evolution inside a
+  declared successor's guard).
 * **`state_vars`** is per system; the coordinate order is the order the Lean instances
   index by. A right list may be a sublist of the left one (four suite_v2 benchmarks); a
   right-only variable would get a coordinate after the left variables, held fixed on the

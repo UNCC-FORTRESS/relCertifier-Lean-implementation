@@ -13,6 +13,7 @@ so a wrong row does not compile; with `modalVerdX_of_queries` (the rebuild denot
 kernel-checked.
 -/
 import RelCertifier.VerdictsV2.RunV2
+import RelCertifier.Instances.RoverLadderRung3Guarded
 import RelCertifier.Instances.RoverLadderRung1Guarded
 import RelCertifier.Instances.RoverDofTerrainRung38dGuarded
 import RelCertifier.Instances.RoverDofTerrainRung3Guarded
@@ -441,5 +442,24 @@ theorem pin_rung1_d0 : RoverLadderRung1Guarded.VerdD 1 0 = dynPackVerd (dynPacks
   pin_dyn_row _ rfl irV2_rung1 cutV2_rung1
 theorem pin_rung1_d1 : RoverLadderRung1Guarded.VerdD 2 1 = dynPackVerd (dynPacksV2.getD 9 default) :=
   pin_dyn_row _ rfl irV2_rung1 cutV2_rung1
+
+theorem irV2_rung3 : irV2 "refinement_ladder_rover_rung3_6to8" = refinement_ladder_rover_rung3_6to8_IRv2 := by decide
+theorem cutV2_rung3 : cutV2 "refinement_ladder_rover_rung3_6to8" = Oracle.refinement_ladder_rover_rung3_6to8_cutsV2X := by decide
+theorem pin_rung3_j0 : RoverLadderRung3Guarded.Verd 0 0 = packVerd (packsV2.getD 134 default) :=
+  pin_row _ rfl irV2_rung3 cutV2_rung3 (by simp [packLam, packsV2])
+theorem pin_rung3_j1 : RoverLadderRung3Guarded.Verd 0 1 = packVerd (packsV2.getD 135 default) :=
+  pin_row _ rfl irV2_rung3 cutV2_rung3 (by simp [packLam, packsV2])
+theorem pin_rung3_j2 : RoverLadderRung3Guarded.Verd 0 2 = packVerd (packsV2.getD 136 default) :=
+  pin_row _ rfl irV2_rung3 cutV2_rung3 (by simp [packLam, packsV2])
+theorem pin_rung3_j3 : RoverLadderRung3Guarded.Verd 1 1 = packVerd (packsV2.getD 137 default) :=
+  pin_row _ rfl irV2_rung3 cutV2_rung3 (by simp [packLam, packsV2])
+theorem pin_rung3_j4 : RoverLadderRung3Guarded.Verd 1 2 = packVerd (packsV2.getD 138 default) :=
+  pin_row _ rfl irV2_rung3 cutV2_rung3 (by simp [packLam, packsV2])
+theorem pin_rung3_j5 : RoverLadderRung3Guarded.Verd 2 2 = packVerd (packsV2.getD 139 default) :=
+  pin_row _ rfl irV2_rung3 cutV2_rung3 (by simp [packLam, packsV2])
+theorem pin_rung3_d0 : RoverLadderRung3Guarded.VerdD 1 0 = dynPackVerd (dynPacksV2.getD 10 default) :=
+  pin_dyn_row _ rfl irV2_rung3 cutV2_rung3
+theorem pin_rung3_d1 : RoverLadderRung3Guarded.VerdD 2 1 = dynPackVerd (dynPacksV2.getD 11 default) :=
+  pin_dyn_row _ rfl irV2_rung3 cutV2_rung3
 
 end RelCertifier.VerdictsV2

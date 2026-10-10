@@ -167,12 +167,14 @@ theorem hgrdLA : ∀ g ∈ (List.range 3).map (fun l => hostGuard vsR 8 Side.L (
 (jump, then flow) against the guarded right automaton, the declared rows for every left mode,
 the right in its current mode's guard and cuts. From `rover_ladder_rung3_6to8_guarded` by the generic bridge
 `theorem3_leftAut_of_choiceR`. -/
-theorem rover_ladder_rung3_6to8_leftAut (dt : ℝ) :
+theorem rover_ladder_rung3_6to8_leftAut (dt : ℝ)
+    (h00 : Verd 0 0) (h01 : Verd 0 1) (h02 : Verd 0 2) (h11 : Verd 1 1) (h12 : Verd 1 2)
+    (h22 : Verd 2 2) (d10 : VerdD 1 0) (d21 : VerdD 2 1) :
     RFormula.rvalid (theorem3Form (leftAutomatonBody (AL dt) uLA) (rightAutomatonBody GrG mvR)
       (psiK uLA (fun _ => canonInvM gR gsR) (AL dt).numModes domLR domRR
         (mvRegionR mvR gregion GrG.modes.length))) :=
   theorem3_leftAut_of_choiceR (AL dt) 0 1 2 (by decide) _ _ _ domLR domRR gregion _
-    (rover_ladder_rung3_6to8_guarded dt)
+    (rover_ladder_rung3_6to8_guarded dt h00 h01 h02 h11 h12 h22 d10 d21)
     (fun q _ => gregion_fv q)
       (canonInvM_varsL gR gsR (by
         intro g' hg'
@@ -181,7 +183,7 @@ theorem rover_ladder_rung3_6to8_leftAut (dt : ℝ) :
       (canonInvM_varsR gR gsR) hdomLR hdomRR
     (LeftAut.ofGI_vars leftDataR _ 1 dt nextLA hLR hgrdLA).1 (fun t _ => (LeftAut.ofGI_vars leftDataR _ 1 dt nextLA hLR hgrdLA).2 t)
     (LeftAut.ofGI_hnext leftDataR _ tgR dt nextLA 3 rfl (by rw [nextLA_eq]; decide))
-    (LeftAut.ofGI_hsim leftDataR _ tgR dt nextLA)
+    (ofGI_hsim_gated leftDataR _ tgR dt nextLA rfl (by intro d hd; simp only [leftDataR, List.mem_cons, List.not_mem_nil, or_false] at hd; rcases hd with rfl | rfl | rfl <;> rfl))
 
 end RoverLadderRung3Guarded
 

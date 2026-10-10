@@ -879,6 +879,26 @@ theorem hmvenv : mv ∉ env.fv := fun h => by
   · exact aux_notin_range_Lv 0 (hdomL h)
   · exact aux_notin_range_Rv 0 (hdomR h)
 
+/-! ## The mode-consistent region: the right mode's guard and its kept cut atoms -/
+
+/-- **The mode-consistent region** of right mode `q`: its lowered guard (the state a guarded
+jump into `q` leaves the right in) and its checked cuts (`region`). -/
+noncomputable def gregion (q : ℕ) : Formula (Var 3) :=
+  regionG (fun q => hostGuard vs 3 Side.R (mR q)) region q
+
+theorem hguardR_all (q : ℕ) : (hostGuard vs 3 Side.R (mR q)).fv ⊆ range Rv :=
+  hostGuard_fv_R_getD vs _ dm rfl (by simp [platoon_delay_linkloss_IRv2, Parse.PForm.namesFree,
+    Parse.PExpr.namesFree]) q
+
+theorem gregion_fv (q : ℕ) (hq : q < 3) : (gregion q).fv ⊆ range Rv :=
+  regionG_fv_sub (hguardR_all q) (region_fv q hq)
+
+/-- The left windows leave the right guards' truth values unchanged. -/
+theorem frameG (dt : ℝ) (t : ℕ) (ht : t < 3) (q : ℕ) {σ ν : State (Var 3)}
+    (h : Program.sem ((A dt).window t) σ ν) :
+    Formula.sat (hostGuard vs 3 Side.R (mR q)) σ → Formula.sat (hostGuard vs 3 Side.R (mR q)) ν :=
+  frames_right (hwin dt t (by rw [A_numModes]; exact ht)) (hguardR_all q) h
+
 theorem hmvreg : ∀ q, mv ∉ (region q).fv := by
   intro q h
   by_cases hq : q < 3
@@ -888,6 +908,14 @@ theorem hmvreg : ∀ q, mv ∉ (region q).fv := by
 
 theorem hulBk : uL ∉ (mvRegion mv region Gr.modes.length).fv := fun h => by
   rcases mvRegion_fv_sub mv region Gr.modes.length (fun q hq => region_fv q hq) h with h | h
+  · exact absurd (Set.mem_singleton_iff.mp h) (by decide)
+  · exact aux_notin_range_Rv 2 h
+
+theorem hmvregG : ∀ q, mv ∉ (gregion q).fv := fun q =>
+  notMem_regionG_fv (fun h => aux_notin_range_Rv 0 (hguardR_all q h)) (hmvreg q)
+
+theorem hulBkG : uL ∉ (mvRegion mv gregion Gr.modes.length).fv := fun h => by
+  rcases mvRegion_fv_sub mv gregion Gr.modes.length (fun q hq => gregion_fv q hq) h with h | h
   · exact absurd (Set.mem_singleton_iff.mp h) (by decide)
   · exact aux_notin_range_Rv 2 h
 
@@ -956,18 +984,20 @@ theorem hstepM (dt : ℝ)
     (h20 : Verd 2 0) (h21 : Verd 2 1) :
     ∀ t < (A dt).numModes, ∀ σ,
     Formula.sat (Formula.and (Formula.and (FRow t) env)
-      (mvRegion mv region Gr.modes.length)) σ →
+      (mvRegion mv gregion Gr.modes.length)) σ →
     Formula.sat (faModal (Equiv.refl (Var 3)) ((A dt).window t)
       (Program.star (rightAutomatonBody Gr mv))
       (Formula.and (Formula.and (FRow t) env)
-        (mvRegion mv region Gr.modes.length))) σ := by
+        (mvRegion mv gregion Gr.modes.length))) σ := by
   intro t ht
   rw [A_numModes] at ht
   rw [A_window dt t ht]
   have hv0 : Verd t 0 := by interval_cases t <;> assumption
   have hv1 : Verd t 1 := by interval_cases t <;> assumption
-  exact hstepMode_GR Gr mv (FRow t) env region _ (aux_notin_FRow 0 t) hmvenv hmvreg
-    hfresh (guardsFresh_of_right Gr 0 hgR) hlt (framesGw t dt 0 (by decide)) (HmultiL t ht dt hv0 hv1)
+  exact hstepMode_GR Gr mv (FRow t) env gregion _ (aux_notin_FRow 0 t) hmvenv hmvregG
+    hfresh (guardsFresh_of_right Gr 0 hgR) hlt (framesGw t dt 0 (by decide)) (HMode_regionG Gr mv _ region Gr_guards (FRow t) env _
+      (fun q _ σ ν hrun => frameG dt t ht q (by rw [A_window dt t ht]; exact hrun))
+      (fun q hq σ hmv hσ _ hreg => (HmultiL t ht dt hv0 hv1) q hq σ hmv ⟨hσ, hreg⟩))
 
 /-! ## Theorem 3, mode-keyed -/
 
@@ -992,20 +1022,20 @@ theorem platoon_delay_linkloss_modeKeyed (dt : ℝ)
       (leftAutomatonBody (A dt) uL)
       (rightAutomatonBody Gr mv)
       (psiK uL ϕRow (A dt).numModes domL domR
-        (mvRegionR mv region Gr.modes.length))) := by
+        (mvRegionR mv gregion Gr.modes.length))) := by
   refine theorem3_modeKeyed (A dt) uL Gr mv FRow ϕRow domL domR
-    (mvRegion mv region Gr.modes.length) (mvRegionR mv region Gr.modes.length)
+    (mvRegion mv gregion Gr.modes.length) (mvRegionR mv gregion Gr.modes.length)
     encode_ϕRow (encode_mvRegionR _ _ _) ?_ ?_ ?_
   · exact hd_modeKeyed_G (A dt) Gr 0 1 2 (by decide) (by decide) (hwin dt) (hgrd dt)
       (hnext dt) hgR hRv
   · exact hstep_modeKeyed (A dt) uL (rightAutomatonBody Gr mv) FRow env
-      (mvRegion mv region Gr.modes.length) (aux_notin_FRow 2) hulenv hulBk (hulG dt)
+      (mvRegion mv gregion Gr.modes.length) (aux_notin_FRow 2) hulenv hulBkG (hulG dt)
       (hframesUl dt) hulR (hnext dt) (hstepM dt h00 h01 h10 h11 h20 h21) (handoff dt)
   · exact hddF_modeKeyed_G (A dt) Gr 0 1 2 (by decide) (by decide) ϕRow domL domR
-      (mvRegionR mv region Gr.modes.length) (hwin dt) (hgrd dt) (hnext dt) hgR hRv
+      (mvRegionR mv gregion Gr.modes.length) (hwin dt) (hgrd dt) (hnext dt) hgR hRv
       (fun m _ => canonInvM_varsL (g m) (gs m) (comps_fv_all m))
       (fun m _ => canonInvM_varsR (g m) (gs m)) hdomL hdomR rfl
-      (fun v hv => mvRegion_fv_sub mv region Gr.modes.length (fun q hq => region_fv q hq) hv)
+      (fun v hv => mvRegion_fv_sub mv gregion Gr.modes.length (fun q hq => gregion_fv q hq) hv)
 
 end V2PlatoonDelayLinkloss
 end RelCertifier

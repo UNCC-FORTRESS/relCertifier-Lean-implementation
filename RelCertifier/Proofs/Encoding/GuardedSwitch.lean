@@ -1117,4 +1117,169 @@ theorem hostGuard_fv_R (vars : List String) (m : Parse.PMode)
   · rw [hlow, Option.map_some, Option.getD_some] at hx
     exact side_eq_R_mem (Run.lowerF_fv_side (resolvesTo_R vars) hfree hlow x hx)
 
+/-! ## The mode-consistent region: the current mode's guard and its checked cuts
+
+At every loop boundary of the flow-then-jump right automaton the right has just taken a guarded
+jump (`modeStep`: flow, then `?e.guard ; mv := e.tgt`), so its state satisfies the lowered guard
+of its current mode `mv`. The loop invariant therefore carries, for the current mode `q`, the
+guard of `q` together with its checked cuts: `regionG guard cuts q = guard q ∧ cuts q`. This is a
+strengthening of the statement's hypothesis (and of its conclusion, which the guarded jump
+re-establishes), not of any invariant row. -/
+
+/-- **The mode-consistent region** of right mode `q`: its lowered guard and its checked cuts
+(`Formula.tt` where the statement keeps no cut; a false formula for a pruned sink). -/
+def regionG (guard cuts : ℕ → Formula (Var n)) (q : ℕ) : Formula (Var n) :=
+  Formula.and (guard q) (cuts q)
+
+theorem sat_regionG {guard cuts : ℕ → Formula (Var n)} {q : ℕ} {ν : State (Var n)} :
+    Formula.sat (regionG guard cuts q) ν ↔ Formula.sat (guard q) ν ∧ Formula.sat (cuts q) ν :=
+  Iff.rfl
+
+theorem regionG_fv_sub {guard cuts : ℕ → Formula (Var n)} {q : ℕ} {S : Set (Var n)}
+    (hg : (guard q).fv ⊆ S) (hc : (cuts q).fv ⊆ S) : (regionG guard cuts q).fv ⊆ S := by
+  intro x hx
+  rcases hx with hx | hx
+  · exact hg hx
+  · exact hc hx
+
+theorem notMem_regionG_fv {guard cuts : ℕ → Formula (Var n)} {q : ℕ} {x : Var n}
+    (hg : x ∉ (guard q).fv) (hc : x ∉ (cuts q).fv) : x ∉ (regionG guard cuts q).fv := by
+  rintro (h | h)
+  · exact hg h
+  · exact hc h
+
+/-- A run of guarded segments ends where the last segment's switch test held; with no segment
+it ends where it started. -/
+theorem bigSeq_gseg_end : ∀ (segs : List (ℕ × RMode (Var n) × REdge (Var n)))
+    {ν μ : State (Var n)}, Program.sem (bigSeq (segs.map gseg)) ν μ →
+      (segs = [] → μ = ν) ∧ ∀ s, segs.getLast? = some s → SwitchLegal s.2.2 μ := by
+  intro segs
+  induction segs with
+  | nil =>
+      intro ν μ h
+      rw [List.map_nil, bigSeq, sem_test] at h
+      obtain ⟨rfl, -⟩ := h
+      exact ⟨fun _ => rfl, fun s hs => by simp at hs⟩
+  | cons a rest ih =>
+      intro ν μ h
+      simp only [List.map_cons, bigSeq] at h
+      obtain ⟨κ, hseg, hrest⟩ := h
+      refine ⟨fun h => by simp at h, fun s hs => ?_⟩
+      rcases rest with - | ⟨r, rs⟩
+      · simp only [List.map_nil, bigSeq, sem_test] at hrest
+        obtain ⟨rfl, -⟩ := hrest
+        simp only [List.getLast?_singleton, Option.some.injEq] at hs
+        subst hs
+        exact (sem_gseg.mp hseg).2
+      · exact (ih hrest).2 s (by rw [List.getLast?_cons_cons] at hs; exact hs)
+
+/-- **The guarded jump re-establishes the entered mode's guard.** On a graph whose every edge
+tests the guard of the mode it enters (`hGg`), any guarded response also ends inside the guard
+of its final mode: the last switch's test gives it, and a response with no step ends where the
+left run ended, where the start mode's guard still holds (`hidle`, the left run does not touch
+the right coordinates). So the response's postcondition may be strengthened by the final
+mode's guard. -/
+theorem gresp_guard {G : SearchGraph (Var n)} (guard : ℕ → Formula (Var n))
+    (hGg : ∀ q, ∀ e ∈ G.edgesFrom q, e.guard = guard e.tgt)
+    {q : ℕ} {P : Program (Var n)} {post post' : ℕ → Formula (Var n)} {σ : State (Var n)}
+    (hidle : ∀ ν, Program.sem P σ ν → Formula.sat (guard q) ν)
+    (himp : ∀ q' μ, Formula.sat (post q') μ → Formula.sat (guard q') μ →
+      Formula.sat (post' q') μ)
+    (h : GResp G q P post σ) : GResp G q P post' σ := by
+  intro ν hν
+  obtain ⟨segs, ha, hc, hh, μ, hrun, hp⟩ := h ν hν
+  refine ⟨segs, ha, hc, hh, μ, hrun, himp _ μ hp ?_⟩
+  obtain ⟨hnil, hlast⟩ := bigSeq_gseg_end segs hrun
+  rcases hsl : segs.getLast? with _ | s
+  · have hsegs : segs = [] := List.getLast?_eq_none_iff.mp hsl
+    have hq : qfOf segs q = q := by simp [qfOf, hsl]
+    rw [hq, hnil hsegs]
+    exact hidle ν hν
+  · have hq : qfOf segs q = s.2.2.tgt := by simp [qfOf, hsl]
+    have hmem : s ∈ segs := List.mem_of_getLast? hsl
+    have hleg := hlast s hsl
+    unfold SwitchLegal at hleg
+    rw [hGg s.1 s.2.2 (ha s hmem).2] at hleg
+    rw [hq]
+    exact hleg
+
+/-- **The step provider over the mode-consistent region** (`hstep_assembled_GR`'s `Hmulti`
+for `regionG guard cuts`), from a provider over the cuts alone: the start mode's guard is in
+the hypothesis (and is not even needed by the provider), and the final mode's guard is
+re-established by the guarded jump (`gresp_guard`). -/
+theorem Hmulti_regionG (G : SearchGraph (Var n)) (mv : Var n) (guard cuts : ℕ → Formula (Var n))
+    (hGg : ∀ q, ∀ e ∈ G.edgesFrom q, e.guard = guard e.tgt)
+    (F env : Formula (Var n)) (leftProgs : List (Program (Var n)))
+    (hframeG : ∀ P ∈ leftProgs, ∀ q, q < G.modes.length → ∀ σ ν, Program.sem P σ ν →
+      Formula.sat (guard q) σ → Formula.sat (guard q) ν)
+    (Hmulti : ∀ P ∈ leftProgs, ∀ (q : ℕ), q < G.modes.length → ∀ σ, σ mv = (q : ℝ) →
+      Formula.sat (Formula.and F env) σ → Formula.sat (guard q) σ → Formula.sat (cuts q) σ →
+      GResp G q P (fun qf => Formula.and (Formula.and F env) (cuts qf)) σ) :
+    ∀ P ∈ leftProgs, ∀ (q : ℕ), q < G.modes.length → ∀ σ, σ mv = (q : ℝ) →
+      Formula.sat (Formula.and F env) σ → Formula.sat (regionG guard cuts q) σ →
+      GResp G q P (fun qf => Formula.and (Formula.and F env) (regionG guard cuts qf)) σ := by
+  intro P hP q hq σ hmv hσ hreg
+  refine gresp_guard guard hGg (fun ν hν => hframeG P hP q hq σ ν hν hreg.1) ?_
+    (Hmulti P hP q hq σ hmv hσ hreg.1 hreg.2)
+  intro q' μ hp hg
+  exact ⟨hp.1, hg, hp.2⟩
+
+/-- The per-left-mode form of `Hmulti_regionG` (for `hstepMode_GR`). -/
+theorem HMode_regionG (G : SearchGraph (Var n)) (mv : Var n) (guard cuts : ℕ → Formula (Var n))
+    (hGg : ∀ q, ∀ e ∈ G.edgesFrom q, e.guard = guard e.tgt)
+    (F env : Formula (Var n)) (P : Program (Var n))
+    (hframeG : ∀ q, q < G.modes.length → ∀ σ ν, Program.sem P σ ν →
+      Formula.sat (guard q) σ → Formula.sat (guard q) ν)
+    (H : ∀ (q : ℕ), q < G.modes.length → ∀ σ, σ mv = (q : ℝ) →
+      Formula.sat (Formula.and F env) σ → Formula.sat (guard q) σ → Formula.sat (cuts q) σ →
+      GResp G q P (fun qf => Formula.and (Formula.and F env) (cuts qf)) σ) :
+    ∀ (q : ℕ), q < G.modes.length → ∀ σ, σ mv = (q : ℝ) →
+      Formula.sat (Formula.and (Formula.and F env) (regionG guard cuts q)) σ →
+      GResp G q P (fun qf => Formula.and (Formula.and F env) (regionG guard cuts qf)) σ := by
+  intro q hq σ hmv hσ
+  refine gresp_guard guard hGg (fun ν hν => hframeG q hq σ ν hν hσ.2.1) ?_
+    (H q hq σ hmv hσ.1 hσ.2.1 hσ.2.2)
+  intro q' μ hp hg
+  exact ⟨hp.1, hg, hp.2⟩
+
+/-- The `mvValid`-chain providers (`GResp` to `F ∧ env` only) over the mode-consistent region:
+the guarded jump gives the final mode's guard, the cuts are `cuts` (typically `⊤`) wherever
+the provider's post implies them. -/
+theorem HMode_regionG_ofF (G : SearchGraph (Var n)) (mv : Var n) (guard cuts : ℕ → Formula (Var n))
+    (hGg : ∀ q, ∀ e ∈ G.edgesFrom q, e.guard = guard e.tgt)
+    (hcuts : ∀ q μ, Formula.sat (guard q) μ → Formula.sat (cuts q) μ)
+    (F env : Formula (Var n)) (P : Program (Var n))
+    (hframeG : ∀ q, q < G.modes.length → ∀ σ ν, Program.sem P σ ν →
+      Formula.sat (guard q) σ → Formula.sat (guard q) ν)
+    (H : ∀ (q : ℕ), q < G.modes.length → ∀ σ, σ mv = (q : ℝ) →
+      Formula.sat (Formula.and F env) σ → Formula.sat (guard q) σ →
+      GResp G q P (fun _ => Formula.and F env) σ) :
+    ∀ (q : ℕ), q < G.modes.length → ∀ σ, σ mv = (q : ℝ) →
+      Formula.sat (Formula.and (Formula.and F env) (regionG guard cuts q)) σ →
+      GResp G q P (fun qf => Formula.and (Formula.and F env) (regionG guard cuts qf)) σ := by
+  intro q hq σ hmv hσ
+  refine gresp_guard guard hGg (fun ν hν => hframeG q hq σ ν hν hσ.2.1) ?_
+    (H q hq σ hmv hσ.1 hσ.2.1)
+  intro q' μ hp hg
+  exact ⟨hp, hg, hcuts q' μ hg⟩
+
+/-- Every right mode's lowered guard, out-of-range indices included (they read the default
+mode), reads only right coordinates. -/
+theorem hostGuard_fv_R_getD (vars : List String) (ms : List Parse.PMode) (d : Parse.PMode)
+    (hd : Parse.PForm.namesFree "L_" d.guard = true)
+    (hms : ∀ m ∈ ms, Parse.PForm.namesFree "L_" m.guard = true) (q : ℕ) :
+    (hostGuard vars n Side.R (ms.getD q d)).fv ⊆ range Rv := by
+  apply hostGuard_fv_R
+  by_cases hq : q < ms.length
+  · rw [List.getD_eq_getElem _ _ hq]; exact hms _ (List.getElem_mem hq)
+  · rw [List.getD_eq_default _ _ (not_lt.mp hq)]; exact hd
+
+/-- A left program touching only its clock and left coordinates leaves every right-only
+formula's truth value unchanged (the right-only guards survive the left window). -/
+theorem frames_right {P : Program (Var n)} {b : Fin n}
+    (hP : Program.vars P ⊆ {((Side.Aux, b) : Var n)} ∪ range Lv)
+    {φ : Formula (Var n)} (hφ : φ.fv ⊆ range Rv) {σ ν : State (Var n)}
+    (h : Program.sem P σ ν) : Formula.sat φ σ → Formula.sat φ ν :=
+  (sat_framed (notMem_bv_of_vars hP hφ) h).mp
+
 end RelCertifier

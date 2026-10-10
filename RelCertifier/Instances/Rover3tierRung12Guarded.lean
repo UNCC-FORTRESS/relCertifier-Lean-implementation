@@ -277,19 +277,37 @@ theorem respondG (t : ℕ) (ht : t < 2) (k : ℕ) (hk : 0 < k) (dt : ℝ) (q : �
 
 /-! ## The composed theorem over the guarded automaton -/
 
+/-! ## The mode-consistent region: the right mode's guard -/
+
+/-- **The mode-consistent region** of right mode `q`: its lowered guard (no cut is kept on this
+benchmark, so the cut conjunct is `⊤`). -/
+noncomputable def gregionQ (q : ℕ) : Formula (Var 3) :=
+  regionG (fun q => hostGuard vsQ 3 Side.R (mRQ q)) (fun _ => Formula.tt) q
+
+theorem hguardRQ_all (q : ℕ) : (hostGuard vsQ 3 Side.R (mRQ q)).fv ⊆ range Rv :=
+  hostGuard_fv_R_getD vsQ _ dummyQ rfl (by simp [rover3tier_rung12_IR, Parse.PForm.namesFree,
+    Parse.PExpr.namesFree]) q
+
+theorem gregionQ_fv (q : ℕ) : (gregionQ q).fv ⊆ range Rv :=
+  regionG_fv_sub (hguardRQ_all q) (by simp [Formula.fv])
+
+theorem hmvregQ : ∀ q, mvQ ∉ (gregionQ q).fv := fun q h => aux_notin_range_Rv 0 (gregionQ_fv q h)
+
 theorem hulRG : ulQ ∉ (rightAutomatonBody GrG mvQ).bv :=
   notMem_bv_rightAutomatonBody_G GrG mvQ ulQ (by decide) (aux_notin_range_Rv 2) hgRG hRvG
 
-theorem hulBkG : ulQ ∉ (mvValid mvQ GrG.modes.length).fv := fun h => by
-  have := mvValid_fv_sub mvQ GrG.modes.length h
-  exact absurd (Set.mem_singleton_iff.mp this) (by decide)
+theorem hulBkG : ulQ ∉ (mvRegion mvQ gregionQ GrG.modes.length).fv := fun h => by
+  rcases mvRegion_fv_sub mvQ gregionQ GrG.modes.length (fun q _ => gregionQ_fv q) h with h | h
+  · exact absurd (Set.mem_singleton_iff.mp h) (by decide)
+  · exact aux_notin_range_Rv 2 h
 
 theorem hstepMG (dt : ℝ) :
     ∀ t < (AQ dt).numModes, ∀ σ,
-    Formula.sat (Formula.and (Formula.and (FRow t) envQ) (mvValid mvQ GrG.modes.length)) σ →
+    Formula.sat (Formula.and (Formula.and (FRow t) envQ)
+      (mvRegion mvQ gregionQ GrG.modes.length)) σ →
     Formula.sat (faModal (Equiv.refl (Var 3)) ((AQ dt).window t)
       (Program.star (rightAutomatonBody GrG mvQ))
-      (Formula.and (Formula.and (FRow t) envQ) (mvValid mvQ GrG.modes.length))) σ := by
+      (Formula.and (Formula.and (FRow t) envQ) (mvRegion mvQ gregionQ GrG.modes.length))) σ := by
   intro t ht
   rw [AQ_numModes] at ht
   have hframe : ∀ (l k : ℕ), FramesMv (windowSeg (leftBlock (fLQ l)) domLQ tgQ dt k) mvQ := by
@@ -298,39 +316,50 @@ theorem hstepMG (dt : ℝ) :
     intro h
     obtain ⟨i, hi⟩ := leftBlock_bound_sub (fLQ l) _ h
     exact aux_ne_Lv 0 i hi
+  have hframeG : ∀ (l k : ℕ), l < 2 → ∀ q, q < GrG.modes.length → ∀ σ ν,
+      Program.sem (windowSeg (leftBlock (fLQ l)) domLQ tgQ dt k) σ ν →
+      Formula.sat (hostGuard vsQ 3 Side.R (mRQ q)) σ →
+      Formula.sat (hostGuard vsQ 3 Side.R (mRQ q)) ν := fun l k hl q _ σ ν hrun =>
+    frames_right (vars_windowSegL_sub (fLQ l) domLQ 1 dt k (hfLQ l hl) hdomLQ)
+      (hguardRQ_all q) hrun
   interval_cases t
   · rw [AQ_window_zero]
-    exact hstepMode_GF GrG mvQ (FRow 0) envQ _ (aux_notin_FRow 0 0) hmvenvQ hfreshG
-      (guardsFresh_of_right GrG 0 hgRG) hltG (hframe 0 7)
-      (fun q hq σ _ hσ => respondG 0 (by norm_num) 7 (by norm_num) dt q hq hσ)
+    exact hstepMode_GR GrG mvQ (FRow 0) envQ gregionQ _ (aux_notin_FRow 0 0) hmvenvQ hmvregQ
+      hfreshG (guardsFresh_of_right GrG 0 hgRG) hltG (hframe 0 7)
+      (HMode_regionG_ofF GrG mvQ _ (fun _ => Formula.tt) GrG_guards (fun _ _ _ => trivial) (FRow 0) envQ _
+        (hframeG 0 7 (by norm_num))
+        (fun q hq σ _ hσ _ => respondG 0 (by norm_num) 7 (by norm_num) dt q hq hσ))
   · rw [AQ_window_one]
-    exact hstepMode_GF GrG mvQ (FRow 1) envQ _ (aux_notin_FRow 0 1) hmvenvQ hfreshG
-      (guardsFresh_of_right GrG 0 hgRG) hltG (hframe 1 4)
-      (fun q hq σ _ hσ => respondG 1 (by norm_num) 4 (by norm_num) dt q hq hσ)
+    exact hstepMode_GR GrG mvQ (FRow 1) envQ gregionQ _ (aux_notin_FRow 0 1) hmvenvQ hmvregQ
+      hfreshG (guardsFresh_of_right GrG 0 hgRG) hltG (hframe 1 4)
+      (HMode_regionG_ofF GrG mvQ _ (fun _ => Formula.tt) GrG_guards (fun _ _ _ => trivial) (FRow 1) envQ _
+        (hframeG 1 4 (by norm_num))
+        (fun q hq σ _ hσ _ => respondG 1 (by norm_num) 4 (by norm_num) dt q hq hσ))
 
 /-- **`rover3tier_rung12`, Theorem 3 at the DECLARED mode-dependent invariant, over the
 GUARDED right automaton.** `u_L`-keyed rows (`ACCEL`: `v[l] ≤ v[r] + 0.5 ∧ 3v[l] + a[l] ≤
 3v[r] + 1.2`; `COAST`: `3v[l] + a[l] ≤ 3v[r] + 1.2`) over the left automaton of the file
 (`ACCEL ↔ COAST`, guard-tested, windows of 7 and 4 clocked pieces), against the file's right
 automaton with every edge testing the entered mode's guard (`GrG_guards`). Loop invariant:
-the rows, the envelope, `mvValid`. Response: the explicit catch-up of `respondG`, every switch
-legal. Z3-free; for every window length `dt`. -/
+the rows, the envelope, and the right in the guard of its current mode (`mvRegionR` at
+`gregionQ`). Response: the explicit catch-up of `respondG`, every switch legal. Z3-free; for
+every window length `dt`. -/
 theorem rover3tier_rung12_modeKeyed_guarded (dt : ℝ) :
     RFormula.rvalid (theorem3Form
       (leftAutomatonBody (AQ dt) ulQ)
       (rightAutomatonBody GrG mvQ)
       (psiK ulQ ϕRow (AQ dt).numModes domLQ domRQ
-        (mvValidR mvQ GrG.modes.length))) := by
+        (mvRegionR mvQ gregionQ GrG.modes.length))) := by
   refine theorem3_modeKeyed (AQ dt) ulQ GrG mvQ FRow ϕRow domLQ domRQ
-    (mvValid mvQ GrG.modes.length) (mvValidR mvQ GrG.modes.length)
-    encode_ϕRow (encode_mvValidR _ _) ?_ ?_ ?_
+    (mvRegion mvQ gregionQ GrG.modes.length) (mvRegionR mvQ gregionQ GrG.modes.length)
+    encode_ϕRow (encode_mvRegionR _ _ _) ?_ ?_ ?_
   · exact hd_modeKeyed_G (AQ dt) GrG 0 1 2 (by decide) (by decide) (hwinQ dt) (hgrdQ dt)
       (hnextQ dt) hgRG hRvG
   · exact hstep_modeKeyed (AQ dt) ulQ (rightAutomatonBody GrG mvQ) FRow envQ
-      (mvValid mvQ GrG.modes.length) (aux_notin_FRow 2) hulenvQ hulBkG (hulGQ dt)
+      (mvRegion mvQ gregionQ GrG.modes.length) (aux_notin_FRow 2) hulenvQ hulBkG (hulGQ dt)
       (hframesUlQ dt) hulRG (hnextQ dt) (hstepMG dt) (handoffQ dt)
   · exact hddF_modeKeyed_G (AQ dt) GrG 0 1 2 (by decide) (by decide) ϕRow domLQ domRQ
-      (mvValidR mvQ GrG.modes.length) (hwinQ dt) (hgrdQ dt) (hnextQ dt) hgRG hRvG
+      (mvRegionR mvQ gregionQ GrG.modes.length) (hwinQ dt) (hgrdQ dt) (hnextQ dt) hgRG hRvG
       (fun m _ => by
         cases m with
         | zero => exact canonInvM_varsL gQ gsQ (fun g' hg' => by
@@ -344,7 +373,7 @@ theorem rover3tier_rung12_modeKeyed_guarded (dt : ℝ) :
         | zero => exact canonInvM_varsR gQ gsQ
         | succ m => exact canonInvM_varsR gQC gsQC)
       hdomLQ hdomRQ rfl
-      (fun v hv => Or.inl (mvValid_fv_sub mvQ GrG.modes.length hv))
+      (fun v hv => mvRegion_fv_sub mvQ gregionQ GrG.modes.length (fun q _ => gregionQ_fv q) hv)
 
 end Rover3tierRung12Guarded
 end RelCertifier

@@ -351,6 +351,17 @@ theorem respondG (l k : ℕ) (hl : l < 4) (hk : 0 < k) (dt : ℝ) {σ : State (V
     · rw [sat_domLM, hμL 0, hμL 1]; exact (sat_domLM ν).mp hdomLν
     · simpa [qfOf, edgeG] using sat_regionsP0 μ
 
+/-! ## The mode-consistent region: the right mode's guard, the right never in `STALL` -/
+
+/-- **The mode-consistent region** of right mode `q`: its lowered guard and `regionsP q`
+(`⊤` at `DRIVE`, `⊥` at the pruned sink `STALL`). -/
+noncomputable def gregionP (q : ℕ) : Formula (Var 2) :=
+  regionG (fun q => hostGuard vsM 2 Side.R (mRM q)) regionsP q
+
+theorem hguardRM_all (q : ℕ) : (hostGuard vsM 2 Side.R (mRM q)).fv ⊆ range Rv :=
+  hostGuard_fv_R_getD vsM _ dummyM rfl (by simp [match_multi_rate_IR, Parse.PForm.namesFree,
+    Parse.PExpr.namesFree]) q
+
 theorem Hmulti (dt : ℝ) :
     ∀ P ∈ leftProgsM dt, ∀ (q : ℕ), q < GrPG.modes.length → ∀ σ, σ mvM = (q : ℝ) →
       Formula.sat (Formula.and (FM gM gsM) envM) σ → Formula.sat (regionsP q) σ →
@@ -370,7 +381,8 @@ theorem Hmulti (dt : ℝ) :
 
 /-- **`match_multi_rate`, Theorem 3 over the two-mode GUARDED right automaton**, at the
 declared invariant `v_L ≤ v_R`, both envelopes, and the right never in `STALL`
-(`mvRegionR` at `regionsP`: `⊤` at `DRIVE`, `⊥` at `STALL`) — the statement of
+and the right in the guard of its current mode (`mvRegionR` at `gregionP`: the lowered guard,
+and `⊤` at `DRIVE`, `⊥` at `STALL`) — the statement of
 `match_multi_rate_pruned` with every edge testing the entered mode's guard (`GrPG_guards`).
 Response: the explicit catch-up of `respondG`, every switch legal. Z3-free; for every window
 length `dt`. -/
@@ -379,15 +391,24 @@ theorem match_multi_rate_guarded (dt : ℝ) :
       (bigChoice (leftProgsM dt))
       (rightAutomatonBody GrPG mvM)
       (RFormula.and (RFormula.and (canonInvM gM gsM) (envLR domLM domRM))
-        (mvRegionR mvM regionsP GrPG.modes.length))) := by
-  refine theorem3_faithful_multiR_LR GrPG mvM (FM gM gsM) domLM domRM regionsP
+        (mvRegionR mvM gregionP GrPG.modes.length))) := by
+  refine theorem3_faithful_multiR_LR GrPG mvM (FM gM gsM) domLM domRM gregionP
     (leftProgsM dt) (canonInvM gM gsM) (encode_canonInvM gM gsM) ?_ ?_ ?_
   · exact hdis_multi_G GrPG 0 1 dt leftDataM (by decide) hgRG hRvG hLM
-  · exact hstep_assembled_GR GrPG mvM (FM gM gsM) envM regionsP (leftProgsM dt)
-      hmvFM hmvenvM (fun q => notMem_sinkRegions_fv _ q mvM) hfreshG
-      (guardsFresh_of_right GrPG 0 hgRG) hltG (hframesM dt) (Hmulti dt)
-  · exact hddF_multiR_plain_G GrPG 0 1 dt leftDataM regionsP (canonInvM gM gsM) domLM domRM
-      (by decide) hgRG hRvG hLM (fun q _ => sinkRegions_fv_sub _ q)
+  · exact hstep_assembled_GR GrPG mvM (FM gM gsM) envM gregionP (leftProgsM dt)
+      hmvFM hmvenvM (fun q => notMem_regionG_fv
+        (fun h => aux_notin_range_Rv 0 (hguardRM_all q h)) (notMem_sinkRegions_fv _ q mvM))
+      hfreshG (guardsFresh_of_right GrPG 0 hgRG) hltG (hframesM dt)
+      (Hmulti_regionG GrPG mvM _ regionsP GrPG_guards (FM gM gsM) envM (leftProgsM dt)
+        (fun P hP q _ σ ν hrun => by
+          simp only [leftProgsM, List.mem_map] at hP
+          obtain ⟨d, hd, rfl⟩ := hP
+          exact frames_right (vars_windowSegL_sub d.1 d.2.1 1 dt d.2.2 (hLM d hd).1
+            (hLM d hd).2) (hguardRM_all q) hrun)
+        (fun P hP q hq σ hmv hσ _ hreg => Hmulti dt P hP q hq σ hmv hσ hreg))
+  · exact hddF_multiR_plain_G GrPG 0 1 dt leftDataM gregionP (canonInvM gM gsM) domLM domRM
+      (by decide) hgRG hRvG hLM
+      (fun q _ => regionG_fv_sub (hguardRM_all q) (sinkRegions_fv_sub _ q))
       (canonInvM_varsL gM gsM (by
         intro g' hg'
         simp only [gM, gsM, List.mem_cons, List.not_mem_nil, or_false] at hg'

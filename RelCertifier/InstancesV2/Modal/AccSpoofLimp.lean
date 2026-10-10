@@ -767,6 +767,26 @@ theorem hmvenv : mv ∉ env.fv := by
   · exact aux_notin_range_Lv 0 (hdomL h)
   · exact aux_notin_range_Rv 0 (hdomR h)
 
+/-! ## The mode-consistent region: the right mode's guard and its kept cut atoms -/
+
+/-- **The mode-consistent region** of right mode `q`: its lowered guard (the state a guarded
+jump into `q` leaves the right in) and its checked cuts (`region`). -/
+noncomputable def gregion (q : ℕ) : Formula (Var 3) :=
+  regionG (fun q => hostGuard vs 3 Side.R (mR q)) region q
+
+theorem hguardR_all (q : ℕ) : (hostGuard vs 3 Side.R (mR q)).fv ⊆ range Rv :=
+  hostGuard_fv_R_getD vs _ dm rfl (by simp [acc_spoof_limp_IRv2, Parse.PForm.namesFree,
+    Parse.PExpr.namesFree]) q
+
+theorem gregion_fv (q : ℕ) : (gregion q).fv ⊆ range Rv :=
+  regionG_fv_sub (hguardR_all q) (region_fv q)
+
+/-- The left windows leave the right guards' truth values unchanged. -/
+theorem frameG (dt : ℝ) (t : ℕ) (ht : t < 2) (q : ℕ) {σ ν : State (Var 3)}
+    (h : Program.sem ((A dt).window t) σ ν) :
+    Formula.sat (hostGuard vs 3 Side.R (mR q)) σ → Formula.sat (hostGuard vs 3 Side.R (mR q)) ν :=
+  frames_right (hwin dt t (by rw [A_numModes]; exact ht)) (hguardR_all q) h
+
 theorem hmvreg : ∀ q, mv ∉ (region q).fv := fun q h => aux_notin_range_Rv 0 (region_fv q h)
 
 theorem hulenv : uL ∉ env.fv := by
@@ -776,6 +796,14 @@ theorem hulenv : uL ∉ env.fv := by
 
 theorem hulBk : uL ∉ (mvRegion mv region Gr.modes.length).fv := fun h => by
   rcases mvRegion_fv_sub mv region Gr.modes.length (fun q _ => region_fv q) h with h | h
+  · exact absurd (Set.mem_singleton_iff.mp h) (by decide)
+  · exact aux_notin_range_Rv 2 h
+
+theorem hmvregG : ∀ q, mv ∉ (gregion q).fv := fun q =>
+  notMem_regionG_fv (fun h => aux_notin_range_Rv 0 (hguardR_all q h)) (hmvreg q)
+
+theorem hulBkG : uL ∉ (mvRegion mv gregion Gr.modes.length).fv := fun h => by
+  rcases mvRegion_fv_sub mv gregion Gr.modes.length (fun q _ => gregion_fv q) h with h | h
   · exact absurd (Set.mem_singleton_iff.mp h) (by decide)
   · exact aux_notin_range_Rv 2 h
 
@@ -905,11 +933,11 @@ theorem hstepM (dt : ℝ)
     (h10 : Verd 1 0) (h11 : Verd 1 1) (h12 : Verd 1 2) :
     ∀ t < (A dt).numModes, ∀ σ,
     Formula.sat (Formula.and (Formula.and (FRow t) env)
-      (mvRegion mv region Gr.modes.length)) σ →
+      (mvRegion mv gregion Gr.modes.length)) σ →
     Formula.sat (faModal (Equiv.refl (Var 3)) ((A dt).window t)
       (Program.star (rightAutomatonBody Gr mv))
       (Formula.and (Formula.and (FRow t) env)
-        (mvRegion mv region Gr.modes.length))) σ := by
+        (mvRegion mv gregion Gr.modes.length))) σ := by
   intro t ht
   rw [A_numModes] at ht
   rw [A_window dt t ht]
@@ -919,10 +947,14 @@ theorem hstepM (dt : ℝ)
     obtain ⟨i, hi⟩ := leftBlock_bound_sub (fL t) _ h
     exact aux_ne_Lv 0 i hi
   interval_cases t
-  · exact hstepMode_GR Gr mv (FRow 0) env region _ (aux_notin_FRow 0 0)
-      hmvenv hmvreg hfresh (guardsFresh_of_right Gr 0 hgR) hlt hframe (HmultiT 0 (by norm_num) dt h00 h01 h02)
-  · exact hstepMode_GR Gr mv (FRow 1) env region _ (aux_notin_FRow 0 1)
-      hmvenv hmvreg hfresh (guardsFresh_of_right Gr 0 hgR) hlt hframe (HmultiT 1 (by norm_num) dt h10 h11 h12)
+  · exact hstepMode_GR Gr mv (FRow 0) env gregion _ (aux_notin_FRow 0 0)
+      hmvenv hmvregG hfresh (guardsFresh_of_right Gr 0 hgR) hlt hframe (HMode_regionG Gr mv _ region Gr_guards (FRow 0) env _
+      (fun q _ σ ν hrun => frameG dt 0 ht q (by rw [A_window dt 0 ht]; exact hrun))
+      (fun q hq σ hmv hσ _ hreg => (HmultiT 0 (by norm_num) dt h00 h01 h02) q hq σ hmv ⟨hσ, hreg⟩))
+  · exact hstepMode_GR Gr mv (FRow 1) env gregion _ (aux_notin_FRow 0 1)
+      hmvenv hmvregG hfresh (guardsFresh_of_right Gr 0 hgR) hlt hframe (HMode_regionG Gr mv _ region Gr_guards (FRow 1) env _
+      (fun q _ σ ν hrun => frameG dt 1 ht q (by rw [A_window dt 1 ht]; exact hrun))
+      (fun q hq σ hmv hσ _ hreg => (HmultiT 1 (by norm_num) dt h10 h11 h12) q hq σ hmv ⟨hσ, hreg⟩))
 
 /-! ## The composed theorem -/
 
@@ -946,22 +978,22 @@ theorem acc_spoof_limp_modeKeyed (dt : ℝ)
     RFormula.rvalid (theorem3Form
       (leftAutomatonBody (A dt) uL)
       (rightAutomatonBody Gr mv)
-      (psiK uL ϕRow (A dt).numModes domL domR (mvRegionR mv region Gr.modes.length))) := by
+      (psiK uL ϕRow (A dt).numModes domL domR (mvRegionR mv gregion Gr.modes.length))) := by
   refine theorem3_modeKeyed (A dt) uL Gr mv FRow ϕRow domL domR
-    (mvRegion mv region Gr.modes.length) (mvRegionR mv region Gr.modes.length)
+    (mvRegion mv gregion Gr.modes.length) (mvRegionR mv gregion Gr.modes.length)
     encode_ϕRow (encode_mvRegionR _ _ _) ?_ ?_ ?_
   · exact hd_modeKeyed_G (A dt) Gr 0 1 2 (by decide) (by decide) (hwin dt) (hgrd dt)
       (hnext dt) hgR hRv
   · exact hstep_modeKeyed (A dt) uL (rightAutomatonBody Gr mv) FRow env
-      (mvRegion mv region Gr.modes.length)
+      (mvRegion mv gregion Gr.modes.length)
       (aux_notin_FRow 2)
-      hulenv hulBk (hulG dt)
+      hulenv hulBkG (hulG dt)
       (hframesUl dt) hulR (hnext dt) (hstepM dt h00 h01 h02 h10 h11 h12) (handoff dt)
   · exact hddF_modeKeyed_G (A dt) Gr 0 1 2 (by decide) (by decide) ϕRow domL domR
-      (mvRegionR mv region Gr.modes.length) (hwin dt) (hgrd dt) (hnext dt) hgR hRv
+      (mvRegionR mv gregion Gr.modes.length) (hwin dt) (hgrd dt) (hnext dt) hgR hRv
       (fun m hm => canonInvM_varsL (g m) (gs m) (comps_fv m hm))
       (fun m _ => canonInvM_varsR (g m) (gs m)) hdomL hdomR rfl
-      (fun v hv => mvRegion_fv_sub mv region Gr.modes.length (fun q _ => region_fv q) hv)
+      (fun v hv => mvRegion_fv_sub mv gregion Gr.modes.length (fun q _ => gregion_fv q) hv)
 
 end V2AccSpoofLimp
 end RelCertifier

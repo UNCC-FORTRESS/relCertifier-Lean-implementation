@@ -1097,6 +1097,20 @@ theorem respond (dt : ℝ) (hv : Verd 0 0) {σ : State (Var 6)}
 
 /-! ## The step provider: stay in `DETUMBLE` (the only non-sink right mode) -/
 
+/-! ## The mode-consistent region: the right mode's guard and its kept cut atoms -/
+
+/-- **The mode-consistent region** of right mode `q`: its lowered guard (the state a guarded
+jump into `q` leaves the right in) and its checked cuts (`region`). -/
+noncomputable def gregion (q : ℕ) : Formula (Var 6) :=
+  regionG (fun q => hostGuard vs 6 Side.R (mR q)) region q
+
+theorem hguardR_all (q : ℕ) : (hostGuard vs 6 Side.R (mR q)).fv ⊆ range Rv :=
+  hostGuard_fv_R_getD vs _ dm rfl (by simp [sat3w_detumble_nominal_IRv2, Parse.PForm.namesFree,
+    Parse.PExpr.namesFree]) q
+
+theorem gregion_fv (q : ℕ) : (gregion q).fv ⊆ range Rv :=
+  regionG_fv_sub (hguardR_all q) (region_fv q)
+
 noncomputable def leftData : List (Formula (Var 6) × (Fin 6 → Term (Var 6))
     × Formula (Var 6) × ℕ) :=
   [(hostGuard vs 6 Side.L (mL 0), fL 0, domL, 1)]
@@ -1202,7 +1216,7 @@ theorem sat3w_detumble_nominal_modal (dt : ℝ) (h00 : Verd 0 0) :
       (bigChoice (leftProgs dt))
       (rightAutomatonBody Gr mv)
       (RFormula.and (RFormula.and (canonInvM g gs) (envLR domL domR))
-        (mvRegionR mv region Gr.modes.length))) := by
+        (mvRegionR mv gregion Gr.modes.length))) := by
   have hmvF : mv ∉ (FM g gs).fv := notMem_FM_fv (fun g' hg' hx => by
     rcases comps_fv g' hg' hx with ⟨i, hi⟩ | ⟨i, hi⟩
     · exact absurd hi (by simp [Lv, Prod.ext_iff])
@@ -1211,9 +1225,11 @@ theorem sat3w_detumble_nominal_modal (dt : ℝ) (h00 : Verd 0 0) :
     rintro (h | h)
     · exact aux_notin_range_Lv 0 (hdomL h)
     · exact aux_notin_range_Rv 0 (hdomR h)
-  have hmvreg : ∀ q, mv ∉ (region q).fv := fun q h =>
+  have hmvreg0 : ∀ q, mv ∉ (region q).fv := fun q h =>
     aux_notin_range_Rv 0 (region_fv q h)
-  refine theorem3_faithful_multiR_LR Gr mv (FM g gs) domL domR region
+  have hmvreg : ∀ q, mv ∉ (gregion q).fv := fun q =>
+    notMem_regionG_fv (fun h => aux_notin_range_Rv 0 (hguardR_all q h)) (hmvreg0 q)
+  refine theorem3_faithful_multiR_LR Gr mv (FM g gs) domL domR gregion
     (leftProgs dt) (canonInvM g gs) (encode_canonInvM g gs) ?_ ?_ ?_
   · refine sides_disjoint 0 1 0 (by decide) (by decide) ?_ ?_
     · refine vars_bigChoice_sub _ _ ?_
@@ -1227,10 +1243,17 @@ theorem sat3w_detumble_nominal_modal (dt : ℝ) (h00 : Verd 0 0) :
       rcases vars_bodyG_sub Gr _ hgR hRv hx with hx | hx
       · exact Or.inl (Set.mem_insert_iff.mpr (Or.inl (Set.mem_singleton_iff.mp hx)))
       · exact Or.inr hx
-  · exact hstep_assembled_GR Gr mv (FM g gs) env region (leftProgs dt) hmvF hmvenv hmvreg
-      hfresh (guardsFresh_of_right Gr 0 hgR) hlt (hframes dt) (Hmulti dt h00)
-  · exact hddF_multiR_G Gr 0 1 dt leftData region (canonInvM g gs) domL domR
-      (by decide) hgR hRv hL (fun q _ => region_fv q)
+  · exact hstep_assembled_GR Gr mv (FM g gs) env gregion (leftProgs dt) hmvF hmvenv hmvreg
+      hfresh (guardsFresh_of_right Gr 0 hgR) hlt (hframes dt)
+      (Hmulti_regionG Gr mv _ region Gr_guards (FM g gs) env (leftProgs dt)
+        (fun P hP q _ σ ν hrun => by
+          simp only [leftProgs, List.mem_map] at hP
+          obtain ⟨d, hd, rfl⟩ := hP
+          exact frames_right (vars_gwindowSegL_sub d.1 d.2.1 d.2.2.1 1 dt d.2.2.2 (hL d hd).1
+            (hL d hd).2.1 (hL d hd).2.2) (hguardR_all q) hrun)
+        (fun P hP q hq σ hmv hσ _ hreg => (Hmulti dt h00) P hP q hq σ hmv hσ hreg))
+  · exact hddF_multiR_G Gr 0 1 dt leftData gregion (canonInvM g gs) domL domR
+      (by decide) hgR hRv hL (fun q hq => gregion_fv q)
       (canonInvM_varsL g gs comps_fv) (canonInvM_varsR g gs) hdomL hdomR
 
 end V2Sat3wDetumbleNominal

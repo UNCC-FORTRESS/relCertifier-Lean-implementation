@@ -24,8 +24,16 @@ the handoff query (`Trusted/Handoff.lean`).
 `checkedCutX` under `RELCERT_IMPLIED_CUT=1`, conjoined; `tt` when none), conjoined to both
 domains.
 
-Scope: strict scalar successor guards only (`a > b` / `a < b`). A closed or compound
-guard yields `none` and the edge is kept (incompleteness, never unsoundness).
+Scope: a strict scalar successor guard (`a > b` / `a < b`), or a conjunction whose
+LEADING conjunct is one (`a < b and …`, the parser's left-nested `and`): the barrier is
+then the leading conjunct alone, and since the guard implies it, a state outside
+`{g > 0}` is outside the guard (the conclusion of `nonconn_sound` is about `g > 0`, which
+the whole guard implies). Anything else (a closed leading conjunct, a disjunction) yields
+`none` and the edge is kept (incompleteness, never unsoundness). The conjunction case was
+added on 2026-10-10 for the multi-link AEB sinks of `platoon3_*`, whose guards must carry
+the other links' operating range (`docs/SUITE-REDESIGN.md` §21); no other file in
+`benchmarks/` has a compound guard with a strict leading conjunct, so no other pruning
+changed.
 -/
 import RelCertifier.Trusted.Run
 import RelCertifier.Checker.EvolStrengthening
@@ -34,8 +42,9 @@ namespace RelCertifier.NonConn
 
 open RelCertifier RelCertifier.Parse RelCertifier.Run
 
-/-- The successor guard's safe-side term `g`, with `guard = {g > 0}`: `a > b ↦ a − b`,
-`a < b ↦ b − a`; `none` for anything that is not a single strict comparison. -/
+/-- The successor guard's safe-side term `g`, with `guard ⊆ {g > 0}`: `a > b ↦ a − b`,
+`a < b ↦ b − a`; for a conjunction, the safe-side term of its leading conjunct (the guard
+implies it); `none` for anything else. -/
 def guardTerm (vars : List String) (n : ℕ) (guard : PForm) : Option (ITerm n) :=
   match guard with
   | PForm.cmp ">" a b =>
@@ -44,6 +53,7 @@ def guardTerm (vars : List String) (n : ℕ) (guard : PForm) : Option (ITerm n) 
   | PForm.cmp "<" a b =>
       (lowerE vars n Side.R a).bind fun ea =>
         (lowerE vars n Side.R b).map fun eb => ITerm.bin .sub eb ea
+  | PForm.and a _ => guardTerm vars n a
   | _ => none
 
 /-- The pruning queries `(sourceCheck, barrierCheck)` for the declared edge `mR → mSuc`

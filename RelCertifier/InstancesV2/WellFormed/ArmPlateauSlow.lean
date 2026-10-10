@@ -2,26 +2,29 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `arm_plateau_slow`: Assumption 1 of the right model — FALSE (model defect)
+# `arm_plateau_slow`: Assumption 1 of the right model — PROVED (repaired model)
 
 Over the instance's guarded right automaton `Gr`, the lowered right guards, `ε_r = 1`.
 Every mode is a constant rate `θ' = a` over the evolve domain `0 ≤ θ ≤ 1.2`.
 
-**`WellFormedR` is false** (`arm_plateau_slow_wellFormedR_false`): the approach bands are
-narrower than one control interval of their own rate.
-* `ApproachA` (guard `0 ≤ θ ≤ 0.35`, `θ' = 0.5`, successors `[ApproachB, ApproachA]`): from
-  `θ = 0.35` the run of duration 1 ends at `θ = 0.85`, outside `ApproachA` and `ApproachB`
-  (`0.35 ≤ θ ≤ 0.5`) (`arm_plateau_slow_approachA_blocks`).
-* `ApproachB` (guard `0.35 ≤ θ ≤ 0.5`, `θ' = 0.35`, successors `[ApproachC, ApproachB]`): from
-  `θ = 0.5` the run of duration 1 ends at `θ = 0.85`, outside `ApproachB` and `ApproachC`
-  (`0.5 ≤ θ ≤ 0.6`) (`arm_plateau_slow_approachB_blocks`).
-The nominal controller has no enabled mode after such an interval. (The Theorem 3 responses
-switch at the band boundaries inside the interval, so the certificate does not need the
-assumption; the model as a sampled controller with period `ε_r` violates it.)
+**`WellFormedR` holds** (`arm_plateau_slow_wellFormedR`, Z3-free). The planner is a SAMPLED
+controller (the 2026-10-10 repair, `docs/SUITE-REDESIGN.md` §21): a ramp segment held for a
+full interval can cross more than one band boundary, so the successor sets name every band a
+sample can find: `ApproachA → [ApproachB, ApproachA, ApproachC, Hold]`,
+`ApproachB → [ApproachC, ApproachB, Hold]`.
 
-**`ApproachC` and `Hold` satisfy Assumption 1** (`arm_plateau_slow_wellFormedR_modes`,
-Z3-free): `ApproachC` (style (b): a run ends in `[θ₀, θ₀ + 0.2] ⊆ [0.5, 0.8]`, inside
-`ApproachC` or `Hold` `[0.6, 1.15)`) and `Hold` (style (a): frozen).
+* `ApproachA` (`0 ≤ θ ≤ 0.35`, `θ' = 0.5`), style (b): a run ends in `[θ₀, θ₀ + 0.5] ⊆
+  [0, 0.85]`, inside `ApproachA`, `ApproachB` (`[0.35, 0.5]`), `ApproachC` (`[0.5, 0.6]`) or
+  `Hold` (`[0.6, 1.15)`), whichever band the end value lies in.
+* `ApproachB` (`0.35 ≤ θ ≤ 0.5`, `θ' = 0.35`), style (b): ends in `[0.35, 0.85]`, inside
+  `ApproachB`, `ApproachC` or `Hold`.
+* `ApproachC` (style (b): ends in `[0.5, 0.8]`, inside `ApproachC` or `Hold`) and `Hold`
+  (style (a): frozen).
+
+Existence: the constant-rate run, inside `[0, 1.2]` for one interval from every band.
+(Until 2026-10-10 the successor sets named only the next band, and the model was refuted
+here: from `θ = 0.35` (`ApproachA`) and from `θ = 0.5` (`ApproachB`) the run of duration 1
+ends at `θ = 0.85`, outside every declared successor's band.)
 -/
 import RelCertifier.InstancesV2.Modal.ArmPlateauSlow
 import RelCertifier.Proofs.Encoding.WellFormedR
@@ -66,8 +69,9 @@ theorem run_exists (q : ℕ) (hq : q < 4) (x : State (Var 2)) (ε : ℝ) (hε : 
       rw [sat_domR, trajJ_j]
       exact hdom t ht hte)
 
-/-- **Assumption 1 at `ApproachC` and `Hold`** (Z3-free). -/
-theorem arm_plateau_slow_wellFormedR_modes (q : ℕ) (hq2 : 2 ≤ q) (hq : q < 4) :
+/-- **Assumption 1 at every mode** (Z3-free): each band's run ends in the band its end value
+lies in, and that band is a declared successor. -/
+theorem arm_plateau_slow_wellFormedR_mode (q : ℕ) (hq : q < 4) :
     WellFormedRMode Gr guardR (epsR arm_plateau_slow_IRv2) q := by
   rw [epsR_eq]
   refine wellFormedRMode_intro (fun m hm x hg hd => ?_)
@@ -79,6 +83,29 @@ theorem arm_plateau_slow_wellFormedR_modes (q : ℕ) (hq2 : 2 ≤ q) (hq : q < 4
     have hex := run_exact q hq H
     have ht0 := H.hr
     interval_cases q
+    · -- ApproachA: ends in [θ₀, θ₀ + 0.5] ⊆ [0, 0.85]
+      simp [rate] at hgx hex
+      by_cases h1 : Φ t (Rv 0) ≤ 7/20
+      · exact ⟨edgeW 0 0, edge_mem 0 0 (by decide), (sat_guardR 0 (by norm_num) _).mpr
+          (by norm_num; exact ⟨by nlinarith, h1⟩)⟩
+      by_cases h2 : Φ t (Rv 0) ≤ 1/2
+      · exact ⟨edgeW 0 1, edge_mem 0 1 (by decide), (sat_guardR 1 (by norm_num) _).mpr
+          (by norm_num; exact ⟨by linarith, h2⟩)⟩
+      by_cases h3 : Φ t (Rv 0) ≤ 3/5
+      · exact ⟨edgeW 0 2, edge_mem 0 2 (by decide), (sat_guardR 2 (by norm_num) _).mpr
+          (by norm_num; exact ⟨by linarith, h3⟩)⟩
+      · exact ⟨edgeW 0 3, edge_mem 0 3 (by decide), (sat_guardR 3 (by norm_num) _).mpr
+          (by norm_num; exact ⟨by linarith, by nlinarith⟩)⟩
+    · -- ApproachB: ends in [θ₀, θ₀ + 0.35] ⊆ [0.35, 0.85]
+      simp [rate] at hgx hex
+      by_cases h2 : Φ t (Rv 0) ≤ 1/2
+      · exact ⟨edgeW 1 1, edge_mem 1 1 (by decide), (sat_guardR 1 (by norm_num) _).mpr
+          (by norm_num; exact ⟨by nlinarith, h2⟩)⟩
+      by_cases h3 : Φ t (Rv 0) ≤ 3/5
+      · exact ⟨edgeW 1 2, edge_mem 1 2 (by decide), (sat_guardR 2 (by norm_num) _).mpr
+          (by norm_num; exact ⟨by linarith, h3⟩)⟩
+      · exact ⟨edgeW 1 3, edge_mem 1 3 (by decide), (sat_guardR 3 (by norm_num) _).mpr
+          (by norm_num; exact ⟨by linarith, by nlinarith⟩)⟩
     · -- ApproachC: ends in [θ₀, θ₀ + 0.2] ⊆ [0.5, 0.8]
       simp [rate] at hgx hex
       by_cases h06 : Φ t (Rv 0) ≤ 3/5
@@ -91,56 +118,11 @@ theorem arm_plateau_slow_wellFormedR_modes (q : ℕ) (hq2 : 2 ≤ q) (hq : q < 4
       exact ⟨edgeW 3 3, edge_mem 3 3 (by decide), (sat_guardR 3 (by norm_num) _).mpr
         (by norm_num; rw [hex]; exact hgx)⟩
 
-/-- A state with angle `θ` (every other variable 0). -/
-noncomputable def xθ (θ : ℝ) : State (Var 2) := fun y => if y = Rv 0 then θ else 0
-
-/-- **Assumption 1 fails at `ApproachA`**: from `θ = 0.35` the run of duration 1 ends at
-`θ = 0.85`, outside the guards of `ApproachA` and `ApproachB`. -/
-theorem arm_plateau_slow_approachA_blocks :
-    ¬ WellFormedRMode Gr guardR (epsR arm_plateau_slow_IRv2) 0 := by
-  rw [epsR_eq]
-  have H := run_exists 0 (by norm_num) (xθ (7/20)) 1 (by norm_num)
-    (fun t ht ht1 => by simp [xθ, rate]; constructor <;> linarith)
-  refine not_wellFormedR_of_run (Gr_modeAt 0 (by norm_num)) ?_ ?_ le_rfl H ?_
-  · show Formula.sat (hostGuard vs 2 Side.R (mR 0)) _
-    rw [sat_guardR 0 (by norm_num)]; simp [xθ]; norm_num
-  · show Formula.sat domR _
-    rw [sat_domR]; simp [xθ]; norm_num
-  · intro e he hsat
-    have hl := edgesFrom_list he
-    simp [edgeList] at hl
-    rcases hl with ht | ht <;> rw [ht] at hsat
-    · have := (sat_guardR 1 (by norm_num) _).mp hsat
-      simp [xθ, rate] at this; linarith
-    · have := (sat_guardR 0 (by norm_num) _).mp hsat
-      simp [xθ, rate] at this; linarith
-
-/-- **Assumption 1 fails at `ApproachB`**: from `θ = 0.5` the run of duration 1 ends at
-`θ = 0.85`, outside the guards of `ApproachB` and `ApproachC`. -/
-theorem arm_plateau_slow_approachB_blocks :
-    ¬ WellFormedRMode Gr guardR (epsR arm_plateau_slow_IRv2) 1 := by
-  rw [epsR_eq]
-  have H := run_exists 1 (by norm_num) (xθ (1/2)) 1 (by norm_num)
-    (fun t ht ht1 => by simp [xθ, rate]; constructor <;> linarith)
-  refine not_wellFormedR_of_run (Gr_modeAt 1 (by norm_num)) ?_ ?_ le_rfl H ?_
-  · show Formula.sat (hostGuard vs 2 Side.R (mR 1)) _
-    rw [sat_guardR 1 (by norm_num)]; simp [xθ]; norm_num
-  · show Formula.sat domR _
-    rw [sat_domR]; simp [xθ]; norm_num
-  · intro e he hsat
-    have hl := edgesFrom_list he
-    simp [edgeList] at hl
-    rcases hl with ht | ht <;> rw [ht] at hsat
-    · have := (sat_guardR 2 (by norm_num) _).mp hsat
-      simp [xθ, rate] at this; linarith
-    · have := (sat_guardR 1 (by norm_num) _).mp hsat
-      simp [xθ, rate] at this; linarith
-
-/-- **`arm_plateau_slow` violates Assumption 1** (a model defect: the approach bands are
-left by one control interval of their own flow; see the module docstring). -/
-theorem arm_plateau_slow_wellFormedR_false :
-    ¬ WellFormedR Gr guardR (epsR arm_plateau_slow_IRv2) :=
-  not_wellFormedR_of_mode (by simp [Gr]) arm_plateau_slow_approachA_blocks
+/-- **`arm_plateau_slow` satisfies Assumption 1** (every mode, Z3-free). -/
+theorem arm_plateau_slow_wellFormedR :
+    WellFormedR Gr guardR (epsR arm_plateau_slow_IRv2) := by
+  intro q hq
+  exact arm_plateau_slow_wellFormedR_mode q (by simpa [Gr] using hq)
 
 end V2ArmPlateauSlow
 end RelCertifier

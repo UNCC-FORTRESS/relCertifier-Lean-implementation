@@ -59,7 +59,7 @@ def platoon_delay_linkloss_IRv2 : PProblem :=
           odes := [("g", (.num "1.5"))]
           guard := (.cmp "<" (.var "g") (.num "20.0"))
           evolve := (.and (.cmp ">=" (.var "g") (.num "0.0")) (.cmp "<=" (.var "g") (.num "60.0")))
-          next := ["BRAKE"] } ] }
+          next := ["BRAKE", "FOLLOW"] } ] }
     invariants := [
       ("FOLLOW", (.and (.cmp "<=" (.var "L_g") (.bin "+" (.var "R_g") (.num "1.0"))) (.cmp "<=" (.var "R_g") (.bin "+" (.var "L_g") (.num "3.0"))))),
       ("CATCH", (.and (.cmp "<=" (.var "L_g") (.bin "+" (.var "R_g") (.num "1.0"))) (.cmp "<=" (.var "R_g") (.bin "+" (.var "L_g") (.num "3.0"))))),

@@ -6,7 +6,8 @@ Released under Apache 2.0 license.
 
 `Trusted/NonConnQuery.lean` builds, at the SMT-IR level, the two pruning queries the
 certifier sends Z3 for a declared right edge `mR → mSuc` with a strict scalar successor
-guard `{g > 0}` (paper Section 4.3). `Checker/NonConn.lean` proves Theorem 2
+guard `{g > 0}`, or a conjunction whose leading conjunct is one (`g > 0` is then that
+conjunct, which the guard implies; paper Section 4.3). `Checker/NonConn.lean` proves Theorem 2
 (`nonconn_sound`): if `sourceCheck` and `barrierCheck` of a `NonConnObligation` are both
 unsatisfiable, no state the source mode's right flow reaches satisfies the successor
 guard. This leaf ties the two together, once, generically:

@@ -33,7 +33,7 @@ def quad_light_airframe_20_IRv2 : PProblem :=
         {
           name := "CLIMB"
           odes := [("w", (.bin "-" (.num "4.0") (.bin "*" (.var "w") (.var "w"))))]
-          guard := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "2.6")))
+          guard := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "3.0")))
           evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "3.5")))
           next := ["CLIMB", "LIMIT"] },
         {
@@ -41,7 +41,7 @@ def quad_light_airframe_20_IRv2 : PProblem :=
           odes := [("w", (.bin "*" (.num "-2.0") (.var "w")))]
           guard := (.cmp ">" (.var "w") (.num "3.0"))
           evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "3.5")))
-          next := ["LIMIT"] } ] }
+          next := ["LIMIT", "CLIMB"] } ] }
     invariants := [
       ("CLIMB", (.and (.cmp "<=" (.var "L_w") (.bin "+" (.var "R_w") (.num "1.0"))) (.cmp "<=" (.var "R_w") (.bin "+" (.var "L_w") (.num "0.5")))))] }
 

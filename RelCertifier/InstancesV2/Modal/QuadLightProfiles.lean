@@ -73,8 +73,8 @@ theorem hp35 : Run.parseRat "3.5" = some ((7:ℚ)/2) := by
 theorem hp22 : Run.parseRat "2.2" = some ((11:ℚ)/5) := by
   have h : parseQ "2.2" = some (⟨22, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
-theorem hp26 : Run.parseRat "2.6" = some ((13:ℚ)/5) := by
-  have h : parseQ "2.6" = some (⟨26, 10⟩ : QF) := by decide
+theorem hp32 : Run.parseRat "3.2" = some ((16:ℚ)/5) := by
+  have h : parseQ "3.2" = some (⟨32, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
 theorem hp095 : Run.parseRat "0.95" = some ((19:ℚ)/20) := by
   have h : parseQ "0.95" = some (⟨95, 100⟩ : QF) := by decide
@@ -166,9 +166,9 @@ theorem gL_thr0 : hostAtomG vs 2 Side.L (.cmp ">=" (.var "w") (.num "0.0")) = th
 theorem gR_thr0 : hostAtomG vs 2 Side.R (.cmp ">=" (.var "w") (.num "0.0")) = thrGe (Rv 0) 0 := by
   simp [hostAtomG, cutAtomG, Run.lowerE, hp00, vs, Run.resolveVar, List.findIdx?_cons,
     ITerm.toHost, thrGe, Rv]
-theorem gR_thr1 : hostAtomG vs 2 Side.R (.cmp "<=" (.var "w") (.num "2.6"))
-    = thrLe (Rv 0) (13/5) := by
-  simp [hostAtomG, cutAtomG, Run.lowerE, hp26, vs, Run.resolveVar, List.findIdx?_cons,
+theorem gR_thr1 : hostAtomG vs 2 Side.R (.cmp "<=" (.var "w") (.num "3.2"))
+    = thrLe (Rv 0) (16/5) := by
+  simp [hostAtomG, cutAtomG, Run.lowerE, hp32, vs, Run.resolveVar, List.findIdx?_cons,
     ITerm.toHost, thrLe, Rv]
 
 theorem cL_0 : cL 0 =
@@ -176,21 +176,21 @@ theorem cL_0 : cL 0 =
   rw [← gL_thr0]; rfl
 theorem cR_0 : cR 0 =
     [(hostAtomF vs 2 Side.R (.cmp ">=" (.var "w") (.num "0.0")), thrGe (Rv 0) 0),
-     (hostAtomF vs 2 Side.R (.cmp "<=" (.var "w") (.num "2.6")), thrLe (Rv 0) (13/5))] := by
+     (hostAtomF vs 2 Side.R (.cmp "<=" (.var "w") (.num "3.2")), thrLe (Rv 0) (16/5))] := by
   rw [← gR_thr0, ← gR_thr1]; rfl
 theorem cR_1 : cR 1 =
     [(hostAtomF vs 2 Side.R (.cmp ">=" (.var "w") (.num "0.0")), thrGe (Rv 0) 0),
-     (hostAtomF vs 2 Side.R (.cmp "<=" (.var "w") (.num "2.6")), thrLe (Rv 0) (13/5))] := by
+     (hostAtomF vs 2 Side.R (.cmp "<=" (.var "w") (.num "3.2")), thrLe (Rv 0) (16/5))] := by
   rw [← gR_thr0, ← gR_thr1]; rfl
 theorem cR_2 : cR 2 =
     [(hostAtomF vs 2 Side.R (.cmp ">=" (.var "w") (.num "0.0")), thrGe (Rv 0) 0),
-     (hostAtomF vs 2 Side.R (.cmp "<=" (.var "w") (.num "2.6")), thrLe (Rv 0) (13/5))] := by
+     (hostAtomF vs 2 Side.R (.cmp "<=" (.var "w") (.num "3.2")), thrLe (Rv 0) (16/5))] := by
   rw [← gR_thr0, ← gR_thr1]; rfl
 
 /-- The three climb profiles keep the same atoms. -/
 theorem cR_eq (q : ℕ) (hq : q < 3) : cR q =
     [(hostAtomF vs 2 Side.R (.cmp ">=" (.var "w") (.num "0.0")), thrGe (Rv 0) 0),
-     (hostAtomF vs 2 Side.R (.cmp "<=" (.var "w") (.num "2.6")), thrLe (Rv 0) (13/5))] := by
+     (hostAtomF vs 2 Side.R (.cmp "<=" (.var "w") (.num "3.2")), thrLe (Rv 0) (16/5))] := by
   interval_cases q
   · exact cR_0
   · exact cR_1
@@ -327,7 +327,7 @@ noncomputable def edgeW (s t : ℕ) : REdge (Var 2) :=
 
 /-- The declared transitions, as indices (NORMAL 0, ECO 1, SPORT 2, LIMIT 3). -/
 def edgeList : List (ℕ × ℕ) :=
-  [(0, 0), (0, 1), (0, 2), (0, 3), (1, 1), (1, 0), (1, 3), (2, 2), (2, 0), (2, 3), (3, 3)]
+  [(0, 0), (0, 1), (0, 2), (0, 3), (1, 1), (1, 0), (1, 3), (2, 2), (2, 0), (2, 3), (3, 3), (3, 0)]
 
 /-- **Faithfulness of the graph**: `edgeList` IS the file's `next` lists, resolved by name. -/
 theorem edgeList_eq_IR : edgeList =
@@ -360,7 +360,7 @@ theorem hlt : ∀ q, ∀ e ∈ Gr.edgesFrom q, e.tgt < Gr.modes.length := by
   simp only [Gr, List.mem_map] at hmem
   obtain ⟨p, hp, rfl⟩ := hmem
   simp only [edgeList, List.mem_cons, List.not_mem_nil, or_false] at hp
-  rcases hp with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
+  rcases hp with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
     simp [edgeW, Gr]
 
 theorem hRv : ∀ q m, Gr.modeAt q = some m →
@@ -411,7 +411,7 @@ theorem guard_of_region (q : ℕ) (hq : q < 3) (μ : State (Var 2)) (h : CutSat 
   · rw [cR_eq _ (by norm_num)] at hv
     simp only [List.mem_cons, List.not_mem_nil, or_false, forall_eq_or_imp, forall_eq,
       thrGe, thrLe, Term.eval, AOp.interp] at hv
-    simp [hostGuard, mR, quad_light_profiles_IRv2, Run.lowerF, Run.lowerE, hp00, hp26, vs, Run.resolveVar,
+    simp [hostGuard, mR, quad_light_profiles_IRv2, Run.lowerF, Run.lowerE, hp00, hp32, vs, Run.resolveVar,
       List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval,
       Rv]
     constructor <;> linarith [hv.1, hv.2]
@@ -499,7 +499,7 @@ theorem stayR (l q : ℕ) (hq : q < 3) :
   · exact boxle_thrGe_R 0 0 _ _ _ hc _ (Formula.and domL domR) (fun x h => h)
       (fun z hD hz => by
         rw [hf]; have := (sat_D z hD).2; nlinarith) hinit
-  · exact boxle_thrLe_R 0 (13/5) _ _ _ hc _ (Formula.and domL domR) (fun x h => h)
+  · exact boxle_thrLe_R 0 (16/5) _ _ _ hc _ (Formula.and domL domR) (fun x h => h)
       (fun z hD hz => by
         rw [hf]; have := (sat_D z hD).2; nlinarith) hinit
 
@@ -942,7 +942,7 @@ inside its guard); right: the four-mode automaton of the file (the climb profile
 `w' = 4 − w²`, `ECO` `3.6 − w²`, `SPORT` `4.4 − w²`, and the limiter sink `LIMIT`; declared
 edges, the pruned profile `→ LIMIT` edges included); the loop invariant is the declared row
 `w_L ≤ w_R + 0.95 ∧ w_R ≤ w_L + 0.8`, the evolve envelope `[0, 3.5]` on both sides, and the
-right mode's region — its kept cut atoms (`w_R ∈ [0, 2.6]` in every profile), `LIMIT`
+right mode's region — its kept cut atoms (`w_R ∈ [0, 3.2]` in every profile), `LIMIT`
 excluded (the pruned sink: the right is never in it). The response stays in the start profile
 on the certified joint segment at the cover's λ = 5/2. Existence is discharged Z3-free (both
 evolve faces strict for every stretched profile field). Residuals: three stratified verdict

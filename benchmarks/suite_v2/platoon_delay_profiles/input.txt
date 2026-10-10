@@ -6,7 +6,8 @@
 # 30 m, follower loops g' = -k (g - 30)). The reference follower (right) may re-engage
 # from a wide gap (>= 30 m) with either of two catch-up profiles, GENTLE (k = 0.6) or
 # ASSERTIVE (k = 0.7), selected when it leaves FOLLOW (k = 0.5, band 20..40 m); it
-# declares the BRAKE fallback below 20 m (gap opens at 1.5 m/s, sink). The deployed
+# declares the BRAKE fallback below 20 m (gap opens at 1.5 m/s; it re-engages FOLLOW at
+# 20 m). The deployed
 # follower (left) acts on the delayed link's 1 m gap overstatement (loops toward 29 m)
 # and, under its delay-mitigation policy, re-engages with the gentle profile only
 # (bands FOLLOW_L 24..40 m, GENTLE_L >= 30 m).
@@ -25,6 +26,16 @@
 # contraction atoms g >= 30 (R.GENTLE, R.ASSERTIVE) and g >= 29 (L.GENTLE), O1 rational,
 # O2 shape, are load-bearing (RELCERT_NO_IMPLIED_CUT=1 DECLINES, M6+). Units m, s;
 # physical domain 0 <= g <= 60 both sides.
+#
+# Assumption 1 (repaired 2026-10-10, docs/SUITE-REDESIGN.md section 21): the brake
+# RE-ENGAGES. BRAKE's own flow reopens the gap (g' = +1.5), so its guard g < 20 is left
+# within one control period (from g = 19 the 1 s run ends at 20.5); with BRAKE as its own
+# only successor the nominal controller blocked there. Physically the AEB releases once
+# its condition has cleared: BRAKE -> FOLLOW is declared, enabled at g >= 20 (FOLLOW's
+# guard). Every run of at most 1 s from g < 20 ends below 21.5 m, in BRAKE's guard or in
+# FOLLOW's (20 <= g <= 40). The return edge does not touch the pruning of FOLLOW -> BRAKE
+# (BRAKE is still never entered); every verdict, counter-run and matrix cell is unchanged
+# (relcert --wellformed: BRAKE ok (exit->FOLLOW)).
 [problem]
 name = platoon_delay_profiles
 max_depth = 8
@@ -66,7 +77,7 @@ next = [FOLLOW, ASSERTIVE]
 ode = g' = smt2:1.5;
 guard = g < 20.0
 evolve = g >= 0.0 and g <= 60.0
-next = [BRAKE]
+next = [BRAKE, FOLLOW]
 [relational_invariant]
 FOLLOW    = smt2:(and (<= L_g (+ R_g 4.0)) (<= R_g (+ L_g 3.0)))
 GENTLE    = smt2:(and (<= L_g (+ R_g 4.0)) (<= R_g (+ L_g 3.0)))

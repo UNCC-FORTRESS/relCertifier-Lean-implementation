@@ -33,19 +33,19 @@ def quad_light_profiles_IRv2 : PProblem :=
         {
           name := "NORMAL"
           odes := [("w", (.bin "-" (.num "4.0") (.bin "*" (.var "w") (.var "w"))))]
-          guard := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "2.6")))
+          guard := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "3.2")))
           evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "3.5")))
           next := ["NORMAL", "ECO", "SPORT", "LIMIT"] },
         {
           name := "ECO"
           odes := [("w", (.bin "-" (.num "3.6") (.bin "*" (.var "w") (.var "w"))))]
-          guard := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "2.6")))
+          guard := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "3.2")))
           evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "3.5")))
           next := ["ECO", "NORMAL", "LIMIT"] },
         {
           name := "SPORT"
           odes := [("w", (.bin "-" (.num "4.4") (.bin "*" (.var "w") (.var "w"))))]
-          guard := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "2.6")))
+          guard := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "3.2")))
           evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "3.5")))
           next := ["SPORT", "NORMAL", "LIMIT"] },
         {
@@ -53,7 +53,7 @@ def quad_light_profiles_IRv2 : PProblem :=
           odes := [("w", (.bin "*" (.num "-2.0") (.var "w")))]
           guard := (.cmp ">" (.var "w") (.num "3.2"))
           evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "3.5")))
-          next := ["LIMIT"] } ] }
+          next := ["LIMIT", "NORMAL"] } ] }
     invariants := [
       ("CLIMB", (.and (.cmp "<=" (.var "L_w") (.bin "+" (.var "R_w") (.num "0.95"))) (.cmp "<=" (.var "R_w") (.bin "+" (.var "L_w") (.num "0.8")))))] }
 

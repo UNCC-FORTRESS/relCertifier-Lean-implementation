@@ -2,23 +2,26 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `platoon3_linkloss`: Assumption 1 of the right model — FALSE (model defect)
+# `platoon3_linkloss`: Assumption 1 of the right model — PROVED (repaired model)
 
 Over the instance's guarded right automaton `Gr` (the repaired model,
-`docs/SUITE-REDESIGN.md` §20), the lowered right guards, `ε_r = 1`.
+`docs/SUITE-REDESIGN.md` §20, §21), the lowered right guards, `ε_r = 1`.
 
-**`WellFormedR` is false** (`platoon3_linkloss_wellFormedR_false`): the AEB sink `BRAKE1`
-(guard `g₁ < 20`, flow `g₁' = r₁`, `r₁' = 4`, the other links in `FOLLOW`; declared
-successors `[BRAKE1]` only) is left by its own flow. From `g₁ = 19`, `r₁ = 0`, the other
-links at rest at their set point (`g = 30`, `r = 0`), the run of duration 1 ends at
-`g₁ = 21`, `r₁ = 4`, where no declared successor of `BRAKE1` is enabled. (The `BRAKE` modes
-are pruned sinks: the certificate never enters them, and Theorem 3 does not depend on them.
-The same holds for `BRAKE2`, `BRAKE3` by symmetry; one blocking mode refutes the predicate.)
+**`WellFormedR` holds** (`platoon3_linkloss_wellFormedR`, Z3-free), style (a) at every mode:
 
-**`FOLLOW` satisfies Assumption 1** (`platoon3_linkloss_wellFormedR_follow`, style (a),
-Z3-free): its guard (the operating range) is forward invariant under the three damped links
-(`Platoon3Link.link_guard_Ronly`, plus the evolve box every run keeps). Existence: the
-explicit link solution (`solΦ`, `link_bounds`).
+* `FOLLOW` (`platoon3_linkloss_wellFormedR_follow`): its guard (the operating range) is forward
+  invariant under the three damped links (`Platoon3Link.link_guard_Ronly`, plus the evolve box
+  every run keeps). Existence: the explicit link solution (`solΦ`, `link_bounds`).
+* `BRAKE1`–`BRAKE3`, the LATCHED AEB sinks of the 2026-10-10 repair
+  (`platoon3_linkloss_wellFormedR_brake`): guard `g_k < 20`, `0 ≤ g_k + 2 r_k < 20`, the other
+  two links in their operating range; flow `r_k' = −r_k/2` (speed matching) on the braking
+  link, the damped links elsewhere. The braking link keeps its guard part
+  (`Platoon3Link.brake_guard_Ronly`: `g + 2r` conserved, `r` decaying), the other links keep
+  theirs (`link_guard_Ronly`). Existence: the explicit solution `Platoon3Link.solB_sol`.
+
+(Until 2026-10-10 the sinks braked at a constant `4 m/s²` on the guard `g_k < 20` alone, and
+the model was refuted here: from `g₁ = 19`, `r₁ = 0`, the other links at rest at 30, the run
+of duration 1 ends at `g₁ = 21`, outside `BRAKE1`'s guard, its only declared successor.)
 -/
 import RelCertifier.InstancesV2.Modal.Platoon3Linkloss
 import RelCertifier.InstancesV2.WellFormed.Platoon3Link
@@ -53,12 +56,6 @@ theorem sat_guardR0 (x : State (Var 6)) :
       tauto
   · rintro ⟨h1, h2, h3⟩
     exact guardR0_of x h1 h2 h3
-
-theorem sat_guardR1 (x : State (Var 6)) :
-    Formula.sat (hostGuard vs 6 Side.R (mR 1)) x ↔ x (Rv 0) < 20 := by
-  simp [hostGuard, mR, platoon3_linkloss_IRv2, Run.lowerF, Run.lowerE, hq20_0, vs,
-    Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
-    CompOp.interp, Term.eval, Rv]
 
 theorem edgesFrom_list {q : ℕ} {e : REdge (Var 6)} (he : e ∈ Gr.edgesFrom q) :
     (q, e.tgt) ∈ edgeList :=
@@ -108,94 +105,155 @@ theorem platoon3_linkloss_wellFormedR_follow :
       ⟨⟨k1.1, x1, y0, y1, k1.2.1, k1.2.2⟩, ⟨k2.1, x3, y2, y3, k2.2.1, k2.2.2⟩,
         ⟨k3.1, x5, y4, y5, k3.2.1, k3.2.2⟩⟩⟩
 
-/-! ## `BRAKE1` blocks -/
+/-! ## The latched AEB sinks -/
 
-theorem hq4_0 : Run.parseRat "4.0" = some (4 : ℚ) := by
-  have h : parseQ "4.0" = some (⟨40, 10⟩ : QF) := by decide
+theorem hqm0_5 : Run.parseRat "-0.5" = some (-(1:ℚ)/2) := by
+  have h : parseQ "-0.5" = some (⟨-5, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
 
-theorem fR_brake1 (z : State (Var 6)) :
-    Term.eval (fR 1 0) z = z (Rv 1) ∧ Term.eval (fR 1 1) z = 4 ∧
-    Term.eval (fR 1 2) z = z (Rv 3) ∧
-    Term.eval (fR 1 3) z = -(1/8) * (z (Rv 2) - 30) - 3/4 * z (Rv 3) ∧
-    Term.eval (fR 1 4) z = z (Rv 5) ∧
-    Term.eval (fR 1 5) z = -(1/8) * (z (Rv 4) - 30) - 3/4 * z (Rv 5) := by
+theorem fR_bfield1 : BField3 (fR 1) true false false := by
+  intro z
   simp [fR, hostDyn, mR, platoon3_linkloss_IRv2, vs, Run.dynOf, Run.lowerE, hqm0_125, hq0_75,
-    hq30_0, hq4_0, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
-    AOp.interp, Rv]
-  refine ⟨by ring, by ring⟩
+    hq30_0, hqm0_5, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
+    AOp.interp, Rv, lF]
+  refine ⟨by ring, by ring, by ring⟩
 
-/-- The witness: `g₁ = 19`, `r₁ = 0`; links 2, 3 at rest at 30; every other variable 0. -/
-noncomputable def xw : State (Var 6) := fun y =>
-  if y = Rv 0 then 19 else if y = Rv 2 then 30 else if y = Rv 4 then 30 else 0
+theorem fR_bfield2 : BField3 (fR 2) false true false := by
+  intro z
+  simp [fR, hostDyn, mR, platoon3_linkloss_IRv2, vs, Run.dynOf, Run.lowerE, hqm0_125, hq0_75,
+    hq30_0, hqm0_5, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
+    AOp.interp, Rv, lF]
+  refine ⟨by ring, by ring, by ring⟩
 
-/-- Its `BRAKE1` run: `g₁ = 19 + 2t²`, `r₁ = 4t`, the rest frozen. -/
-noncomputable def brakeφ : Fin 6 → ℝ → ℝ := fun i t =>
-  if i = 0 then 19 + 2 * t ^ 2 else if i = 1 then 4 * t else if i = 2 then 30
-  else if i = 4 then 30 else 0
+theorem fR_bfield3 : BField3 (fR 3) false false true := by
+  intro z
+  simp [fR, hostDyn, mR, platoon3_linkloss_IRv2, vs, Run.dynOf, Run.lowerE, hqm0_125, hq0_75,
+    hq30_0, hqm0_5, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
+    AOp.interp, Rv, lF]
+  refine ⟨by ring, by ring, by ring⟩
 
-theorem xw_R (i : Fin 6) : xw (Rv i) = brakeφ i 0 := by
-  fin_cases i <;> simp [xw, brakeφ, Rv]
+/-- The sink guards, evaluated (`BRAKEk`: the braking link's part, the other two links'
+operating range). -/
+theorem sat_guardB1 (x : State (Var 6)) :
+    Formula.sat (hostGuard vs 6 Side.R (mR 1)) x ↔ BrkR x 0 1 ∧ OpR x 2 3 ∧ OpR x 4 5 := by
+  simp only [BrkR, OpR, Rv]
+  simp [hostGuard, mR, platoon3_linkloss_IRv2, Run.lowerF, Run.lowerE, hq2_0, hq20_0, hq0_0,
+    hq59_0, hqm10_0, hq10_0, hq21_0, hq60_0, vs, Run.resolveVar, List.findIdx?_cons,
+    IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, AOp.interp, Rv]
+  constructor
+  · intro h; refine ⟨⟨?_, ?_, ?_⟩, ⟨?_, ?_, ?_, ?_, ?_, ?_⟩, ⟨?_, ?_, ?_, ?_, ?_, ?_⟩⟩ <;>
+      first | tauto | linarith [h]
+  · intro h
+    obtain ⟨⟨a1, a2, a3⟩, ⟨b1, b2, b3, b4, b5, b6⟩, ⟨d1, d2, d3, d4, d5, d6⟩⟩ := h
+    repeat' apply And.intro
+    all_goals linarith
 
-/-- **Assumption 1 fails at `BRAKE1`**: from the witness the run of duration 1 ends at
-`g₁ = 21`, outside `BRAKE1`'s guard; `BRAKE1`'s only declared successor is itself. -/
-theorem platoon3_linkloss_brake1_blocks :
-    ¬ WellFormedRMode Gr guardR (epsR platoon3_linkloss_IRv2) 1 := by
+theorem sat_guardB2 (x : State (Var 6)) :
+    Formula.sat (hostGuard vs 6 Side.R (mR 2)) x ↔ BrkR x 2 3 ∧ OpR x 0 1 ∧ OpR x 4 5 := by
+  simp only [BrkR, OpR, Rv]
+  simp [hostGuard, mR, platoon3_linkloss_IRv2, Run.lowerF, Run.lowerE, hq2_0, hq20_0, hq0_0,
+    hq59_0, hqm10_0, hq10_0, hq21_0, hq60_0, vs, Run.resolveVar, List.findIdx?_cons,
+    IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, AOp.interp, Rv]
+  constructor
+  · intro h; refine ⟨⟨?_, ?_, ?_⟩, ⟨?_, ?_, ?_, ?_, ?_, ?_⟩, ⟨?_, ?_, ?_, ?_, ?_, ?_⟩⟩ <;>
+      first | tauto | linarith [h]
+  · intro h
+    obtain ⟨⟨a1, a2, a3⟩, ⟨b1, b2, b3, b4, b5, b6⟩, ⟨d1, d2, d3, d4, d5, d6⟩⟩ := h
+    repeat' apply And.intro
+    all_goals linarith
+
+theorem sat_guardB3 (x : State (Var 6)) :
+    Formula.sat (hostGuard vs 6 Side.R (mR 3)) x ↔ BrkR x 4 5 ∧ OpR x 0 1 ∧ OpR x 2 3 := by
+  simp only [BrkR, OpR, Rv]
+  simp [hostGuard, mR, platoon3_linkloss_IRv2, Run.lowerF, Run.lowerE, hq2_0, hq20_0, hq0_0,
+    hq59_0, hqm10_0, hq10_0, hq21_0, hq60_0, vs, Run.resolveVar, List.findIdx?_cons,
+    IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, AOp.interp, Rv]
+  constructor
+  · intro h; refine ⟨⟨?_, ?_, ?_⟩, ⟨?_, ?_, ?_, ?_, ?_, ?_⟩, ⟨?_, ?_, ?_, ?_, ?_, ?_⟩⟩ <;>
+      first | tauto | linarith [h]
+  · intro h
+    obtain ⟨⟨a1, a2, a3⟩, ⟨b1, b2, b3, b4, b5, b6⟩, ⟨d1, d2, d3, d4, d5, d6⟩⟩ := h
+    repeat' apply And.intro
+    all_goals linarith
+
+/-- A link's operating range at the end of a run, from `link_guard_Ronly` and the box. -/
+theorem opR_end {fR' : Fin 6 → Term (Var 6)} {x : State (Var 6)} {t : ℝ}
+    {Φ : ℝ → State (Var 6)} (jx jy : Fin 6) (hF : LinkField Rv fR' jx jy 30)
+    (H : ODESol (rightBlock fR' (Term.const 1)) domR x t Φ) (h : OpR x jx jy)
+    (hx1 : Φ t (Rv jx) ≤ 60) (hy0 : -10 ≤ Φ t (Rv jy)) (hy1 : Φ t (Rv jy) ≤ 10) :
+    OpR (Φ t) jx jy := by
+  have k := link_guard_Ronly fR' domR jx jy 30 (by norm_num) (by norm_num) hF H h.1
+    h.2.2.2.2.1 h.2.2.2.2.2
+  exact ⟨k.1, hx1, hy0, hy1, k.2.1, k.2.2⟩
+
+/-- **Assumption 1 at the latched AEB sinks `BRAKE1`–`BRAKE3`** (style (a), Z3-free). -/
+theorem platoon3_linkloss_wellFormedR_brake (q : ℕ) (hq1 : 1 ≤ q) (hq : q < 4) :
+    WellFormedRMode Gr guardR (epsR platoon3_linkloss_IRv2) q := by
   rw [epsR_eq]
-  have H : ODESol (modeW 1).sys (modeW 1).dom xw 1 (trajR xw brakeφ) := by
-    refine explicit_sol xw brakeφ 1 (by norm_num) (fun i => (xw_R i).symm) ?_ ?_
-    · intro i t _ _
-      obtain ⟨f0, f1, f2, f3, f4, f5⟩ := fR_brake1 (trajR xw brakeφ t)
-      fin_cases i
-      · have hf : brakeφ 0 = fun u => 19 + 2 * u ^ 2 := by funext u; simp [brakeφ]
-        show HasDerivAt (brakeφ 0) _ t
-        rw [show ((⟨0, by norm_num⟩ : Fin 6)) = (0 : Fin 6) from rfl, f0, trajR_R, hf]
-        refine (((hasDerivAt_pow 2 t).const_mul 2).const_add 19).congr_deriv ?_
-        simp [brakeφ]; ring
-      · have hf : brakeφ 1 = fun u => 4 * u := by funext u; simp [brakeφ]
-        show HasDerivAt (brakeφ 1) _ t
-        rw [show ((⟨1, by norm_num⟩ : Fin 6)) = (1 : Fin 6) from rfl, f1, hf]
-        exact ((hasDerivAt_id t).const_mul 4).congr_deriv (by simp)
-      · show HasDerivAt (brakeφ 2) _ t
-        rw [show ((⟨2, by norm_num⟩ : Fin 6)) = (2 : Fin 6) from rfl, f2, trajR_R]
-        have hf : brakeφ 2 = fun _ => 30 := by funext u; simp [brakeφ]
-        rw [hf]; simpa [brakeφ] using hasDerivAt_const t (30:ℝ)
-      · show HasDerivAt (brakeφ 3) _ t
-        rw [show ((⟨3, by norm_num⟩ : Fin 6)) = (3 : Fin 6) from rfl, f3, trajR_R, trajR_R]
-        have hf : brakeφ 3 = fun _ => 0 := by funext u; simp [brakeφ]
-        rw [hf]; simpa [brakeφ] using hasDerivAt_const t (0:ℝ)
-      · show HasDerivAt (brakeφ 4) _ t
-        rw [show ((⟨4, by norm_num⟩ : Fin 6)) = (4 : Fin 6) from rfl, f4, trajR_R]
-        have hf : brakeφ 4 = fun _ => 30 := by funext u; simp [brakeφ]
-        rw [hf]; simpa [brakeφ] using hasDerivAt_const t (30:ℝ)
-      · show HasDerivAt (brakeφ 5) _ t
-        rw [show ((⟨5, by norm_num⟩ : Fin 6)) = (5 : Fin 6) from rfl, f5, trajR_R, trajR_R]
-        have hf : brakeφ 5 = fun _ => 0 := by funext u; simp [brakeφ]
-        rw [hf]; simpa [brakeφ] using hasDerivAt_const t (0:ℝ)
-    · intro t ht ht1
-      show Formula.sat domR _
-      rw [sat_domR]
-      simp only [Box, trajR_R]
-      simp [brakeφ]
-      refine ⟨⟨?_, ?_, ?_, ?_⟩, ?_⟩ <;> nlinarith
-  refine not_wellFormedR_of_run (Gr_modeAt 1 (by norm_num)) ?_ ?_ le_rfl H ?_
-  · show Formula.sat (hostGuard vs 6 Side.R (mR 1)) xw
-    rw [sat_guardR1]; simp [xw]; norm_num
-  · show Formula.sat domR xw
-    rw [sat_domR]; simp [Box, xw, Rv]; norm_num
-  · intro e he hsat
-    have hl := edgesFrom_list he
-    have ht : e.tgt = 1 := by simp [edgeList] at hl; exact hl
-    rw [ht] at hsat
-    have := (sat_guardR1 _).mp hsat
-    simp [trajR_R, brakeφ] at this
-    linarith
+  refine wellFormedRMode_intro (fun m hm x hg hd => ?_)
+  obtain ⟨-, rfl⟩ := Gr_modeAt_inv hm
+  have hbox := (sat_domR x).mp hd
+  have hdom : ∀ z, BoxR z → Formula.sat domR z := fun z hz => (sat_domR z).mpr hz
+  interval_cases q
+  · obtain ⟨hb, h2, h3⟩ := (sat_guardB1 x).mp hg
+    have hF := fR_bfield1
+    have hB : BrakeField (fR 1) 0 1 := ⟨fun z => (hF z).1, fun z => by simpa [lF] using (hF z).2.1⟩
+    have L2 : LinkField Rv (fR 1) 2 3 30 :=
+      ⟨fun z => (hF z).2.2.1, fun z => by simpa [lF] using (hF z).2.2.2.1⟩
+    have L3 : LinkField Rv (fR 1) 4 5 30 :=
+      ⟨fun z => (hF z).2.2.2.2.1, fun z => by simpa [lF] using (hF z).2.2.2.2.2⟩
+    refine ⟨⟨_, solB_sol true false false (fR 1) hF domR hdom x hbox
+      (by simp; constructor <;> linarith [hb.2.1, hb.2.2])
+      (by simp; constructor <;> linarith [h2.2.2.2.2.1, h2.2.2.2.2.2])
+      (by simp; constructor <;> linarith [h3.2.2.2.2.1, h3.2.2.2.2.2]) 1 (by norm_num)⟩, ?_⟩
+    intro t Φ _ H
+    obtain ⟨⟨_, _, _, _⟩, ⟨_, x3, y2, y3⟩, ⟨_, x5, y4, y5⟩⟩ := (sat_domR _).mp H.end_dom
+    exact ⟨edgeW 1 1, edge_mem 1 1 (by decide), (sat_guardB1 _).mpr
+      ⟨brake_guard_Ronly (fR 1) domR 0 1 hB H hb, opR_end 2 3 L2 H h2 x3 y2 y3,
+        opR_end 4 5 L3 H h3 x5 y4 y5⟩⟩
+  · obtain ⟨hb, h1, h3⟩ := (sat_guardB2 x).mp hg
+    have hF := fR_bfield2
+    have hB : BrakeField (fR 2) 2 3 :=
+      ⟨fun z => (hF z).2.2.1, fun z => by simpa [lF] using (hF z).2.2.2.1⟩
+    have L1 : LinkField Rv (fR 2) 0 1 30 :=
+      ⟨fun z => (hF z).1, fun z => by simpa [lF] using (hF z).2.1⟩
+    have L3 : LinkField Rv (fR 2) 4 5 30 :=
+      ⟨fun z => (hF z).2.2.2.2.1, fun z => by simpa [lF] using (hF z).2.2.2.2.2⟩
+    refine ⟨⟨_, solB_sol false true false (fR 2) hF domR hdom x hbox
+      (by simp; constructor <;> linarith [h1.2.2.2.2.1, h1.2.2.2.2.2])
+      (by simp; constructor <;> linarith [hb.2.1, hb.2.2])
+      (by simp; constructor <;> linarith [h3.2.2.2.2.1, h3.2.2.2.2.2]) 1 (by norm_num)⟩, ?_⟩
+    intro t Φ _ H
+    obtain ⟨⟨_, x1, y0, y1⟩, ⟨_, _, _, _⟩, ⟨_, x5, y4, y5⟩⟩ := (sat_domR _).mp H.end_dom
+    exact ⟨edgeW 2 2, edge_mem 2 2 (by decide), (sat_guardB2 _).mpr
+      ⟨brake_guard_Ronly (fR 2) domR 2 3 hB H hb, opR_end 0 1 L1 H h1 x1 y0 y1,
+        opR_end 4 5 L3 H h3 x5 y4 y5⟩⟩
+  · obtain ⟨hb, h1, h2⟩ := (sat_guardB3 x).mp hg
+    have hF := fR_bfield3
+    have hB : BrakeField (fR 3) 4 5 :=
+      ⟨fun z => (hF z).2.2.2.2.1, fun z => by simpa [lF] using (hF z).2.2.2.2.2⟩
+    have L1 : LinkField Rv (fR 3) 0 1 30 :=
+      ⟨fun z => (hF z).1, fun z => by simpa [lF] using (hF z).2.1⟩
+    have L2 : LinkField Rv (fR 3) 2 3 30 :=
+      ⟨fun z => (hF z).2.2.1, fun z => by simpa [lF] using (hF z).2.2.2.1⟩
+    refine ⟨⟨_, solB_sol false false true (fR 3) hF domR hdom x hbox
+      (by simp; constructor <;> linarith [h1.2.2.2.2.1, h1.2.2.2.2.2])
+      (by simp; constructor <;> linarith [h2.2.2.2.2.1, h2.2.2.2.2.2])
+      (by simp; constructor <;> linarith [hb.2.1, hb.2.2]) 1 (by norm_num)⟩, ?_⟩
+    intro t Φ _ H
+    obtain ⟨⟨_, x1, y0, y1⟩, ⟨_, x3, y2, y3⟩, ⟨_, _, _, _⟩⟩ := (sat_domR _).mp H.end_dom
+    exact ⟨edgeW 3 3, edge_mem 3 3 (by decide), (sat_guardB3 _).mpr
+      ⟨brake_guard_Ronly (fR 3) domR 4 5 hB H hb, opR_end 0 1 L1 H h1 x1 y0 y1,
+        opR_end 2 3 L2 H h2 x3 y2 y3⟩⟩
 
-/-- **`platoon3_linkloss` violates Assumption 1** (a model defect: the AEB sink `BRAKE1`
-blocks; see the module docstring). -/
-theorem platoon3_linkloss_wellFormedR_false :
-    ¬ WellFormedR Gr guardR (epsR platoon3_linkloss_IRv2) :=
-  not_wellFormedR_of_mode (by simp [Gr]) platoon3_linkloss_brake1_blocks
+/-- **`platoon3_linkloss` satisfies Assumption 1** (every mode, Z3-free). -/
+theorem platoon3_linkloss_wellFormedR :
+    WellFormedR Gr guardR (epsR platoon3_linkloss_IRv2) := by
+  intro q hq
+  rw [Gr_len] at hq
+  rcases (by omega : q = 0 ∨ 1 ≤ q) with rfl | h
+  · exact platoon3_linkloss_wellFormedR_follow
+  · exact platoon3_linkloss_wellFormedR_brake q h hq
 
 end V2Platoon3Linkloss
 end RelCertifier

@@ -2,20 +2,22 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `platoon_delay_linkloss`: Assumption 1 of the right model — FALSE (model defect)
+# `platoon_delay_linkloss`: Assumption 1 of the right model — PROVED (repaired model)
 
 Over the instance's guarded right automaton `Gr`, the lowered right guards, `ε_r = 1`.
 
-**`WellFormedR` is false** (`platoon_delay_linkloss_wellFormedR_false`): the AEB sink `BRAKE`
-(guard `g < 20`, flow `g' = 1.5`, declared successors `[BRAKE]` only) is left by its own
-flow. From `g = 19` (inside the guard and the evolve domain `0 ≤ g ≤ 60`) the run of
-duration `ε_r = 1` ends at `g = 20.5`, where no declared successor of `BRAKE` is enabled:
-the nominal controller blocks. (`BRAKE` is a pruned sink: the certificate never enters it
-from the region of the Theorem 3 statement, which therefore does not depend on it.)
+**`WellFormedR` holds** (`platoon_delay_linkloss_wellFormedR`, Z3-free):
 
-**Every other mode satisfies Assumption 1** (`platoon_delay_linkloss_wellFormedR_modes`,
-style (a), Z3-free): `FOLLOW` (`20 ≤ g < 40`, `g' = −0.5 (g − 30)`) and `CATCH` (`g ≥ 30`,
-`g' = −0.6 (g − 30)`) are contractions toward 30 whose guard sets are forward invariant.
+* `FOLLOW` (`20 ≤ g < 40`, `g' = −0.5 (g − 30)`) and `CATCH` (`g ≥ 30`, `g' = −0.6 (g − 30)`):
+  contractions toward 30 whose guard sets are forward invariant (style (a));
+* `BRAKE` (`g < 20`, `g' = 1.5`, declared successors `[BRAKE, FOLLOW]`; the brake
+  re-engages `FOLLOW` once the gap is back at 20 m, the 2026-10-10 repair,
+  `docs/SUITE-REDESIGN.md` §21): style (b). A run of duration `t ≤ 1` from `g < 20` ends at
+  `g₀ ≤ g(t) ≤ g₀ + 1.5 t < 21.5`: in `BRAKE`'s guard if below 20, else in `FOLLOW`'s
+  (`20 ≤ g < 40`). Existence: the linear motion `g₀ + 1.5 t` stays in `0 ≤ g ≤ 60`.
+
+(Until 2026-10-10 `BRAKE`'s only successor was itself and the model was refuted here, from
+`g = 19`: the run of duration 1 ends at `g = 20.5`.)
 -/
 import RelCertifier.InstancesV2.Modal.PlatoonDelayLinkloss
 import RelCertifier.Proofs.Encoding.WellFormedR
@@ -83,39 +85,39 @@ theorem platoon_delay_linkloss_wellFormedR_modes (q : ℕ) (hq : q < 2) :
       exact ⟨edgeW 1 1, edge_mem 1 1 (by decide), (sat_guardR 1 (by norm_num) _).mpr
         (by norm_num; exact le_trans (le_min hgx le_rfl) hb.1)⟩
 
-/-- The witness state: `g = 19` (every other variable 0). -/
-noncomputable def x19 : State (Var 3) := fun y => if y = Rv 0 then 19 else 0
-
-/-- **Assumption 1 fails at `BRAKE`**: from `g = 19` the run of duration 1 ends at
-`g = 20.5`, outside `BRAKE`'s guard, and `BRAKE`'s only declared successor is itself. -/
-theorem platoon_delay_linkloss_brake_blocks :
-    ¬ WellFormedRMode Gr guardR (epsR platoon_delay_linkloss_IRv2) 2 := by
+/-- **Assumption 1 at `BRAKE`** (style (b)): the gap reopens at `1.5 m/s`; every run of at
+most one interval ends below `21.5`, in `BRAKE`'s guard or in `FOLLOW`'s. -/
+theorem platoon_delay_linkloss_wellFormedR_brake :
+    WellFormedRMode Gr guardR (epsR platoon_delay_linkloss_IRv2) 2 := by
   rw [epsR_eq]
-  have H := exists_rate_run (fR := fR 2) (domR := domR) x19 0 (3/2) fR0_brake
-    (fun i hi s => fR_pad 2 (by norm_num) i hi s) 1 (by norm_num)
-    (fun t ht ht1 => by
-      show Formula.sat domR _
-      rw [sat_domR, trajJ_j]
-      simp only [x19, if_true]
-      constructor <;> linarith)
-  refine not_wellFormedR_of_run (Gr_modeAt 2 (by norm_num)) ?_ ?_ le_rfl H ?_
-  · show Formula.sat (hostGuard vs 3 Side.R (mR 2)) x19
-    rw [sat_guardR2]; simp [x19]; norm_num
-  · show Formula.sat domR x19
-    rw [sat_domR]; simp [x19]; norm_num
-  · intro e he hsat
-    have hl := edgesFrom_list he
-    have ht : e.tgt = 2 := by simp [edgeList] at hl; exact hl
-    rw [ht] at hsat
-    have := (sat_guardR2 _).mp hsat
-    simp [x19] at this
-    linarith
+  refine wellFormedRMode_intro (fun m hm x hg hd => ?_)
+  obtain ⟨-, rfl⟩ := Gr_modeAt_inv hm
+  have hdx := (sat_domR x).mp hd
+  have hgx := (sat_guardR2 x).mp hg
+  refine ⟨⟨_, exists_rate_run (fR := fR 2) (domR := domR) x 0 (3/2) fR0_brake
+    (fun i hi s => fR_pad 2 (by norm_num) i hi s) 1 (by norm_num) (fun t ht ht1 => ?_)⟩, ?_⟩
+  · show Formula.sat domR _
+    rw [sat_domR, trajJ_j]
+    constructor <;> nlinarith [hdx.1, hdx.2]
+  · intro t Φ ht H
+    have hup := H.rate_le (memR 2) (3/2) (fun s _ => by rw [eval_unit_mul, fR0_brake])
+    have hlo := H.mono (memR 2) (fun s _ => by rw [eval_unit_mul, fR0_brake]; norm_num)
+    have ht0 := H.hr
+    by_cases h20 : Φ t (Rv 0) < 20
+    · exact ⟨edgeW 2 2, edge_mem 2 2 (by decide), (sat_guardR2 _).mpr h20⟩
+    · push_neg at h20
+      refine ⟨edgeW 2 0, edge_mem 2 0 (by decide), (sat_guardR 0 (by norm_num) _).mpr ?_⟩
+      rw [if_pos rfl]
+      exact ⟨h20, by nlinarith⟩
 
-/-- **`platoon_delay_linkloss` violates Assumption 1** (a model defect: the AEB sink `BRAKE`
-blocks; see the module docstring). -/
-theorem platoon_delay_linkloss_wellFormedR_false :
-    ¬ WellFormedR Gr guardR (epsR platoon_delay_linkloss_IRv2) :=
-  not_wellFormedR_of_mode (by simp [Gr]) platoon_delay_linkloss_brake_blocks
+/-- **`platoon_delay_linkloss` satisfies Assumption 1** (every mode, Z3-free). -/
+theorem platoon_delay_linkloss_wellFormedR :
+    WellFormedR Gr guardR (epsR platoon_delay_linkloss_IRv2) := by
+  intro q hq
+  rw [Gr_len] at hq
+  rcases (by omega : q < 2 ∨ q = 2) with h | rfl
+  · exact platoon_delay_linkloss_wellFormedR_modes q h
+  · exact platoon_delay_linkloss_wellFormedR_brake
 
 end V2PlatoonDelayLinkloss
 end RelCertifier

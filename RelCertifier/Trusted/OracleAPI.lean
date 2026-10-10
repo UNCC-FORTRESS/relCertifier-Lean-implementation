@@ -530,15 +530,17 @@ prune ONLY when BOTH checks are definitive `unsat` (`| .ok .unsat, .ok .unsat =>
 other pair (`sat`/`unknown`/`error`), an over-long script, or an unbuildable / non-strict-scalar
 guard keeps the edge (`| _, _ => false`). A query bug can then only fail to prune (over-decline),
 never wrongly prune (false-certify). The drop's soundness is the proven `nonconn_sound`; here we
-supply its two UNSAT hypotheses. Only STRICT scalar successor guards (`a > b` / `a < b`) are
-prunable — a CLOSED guard (`≥`/`≤`) has a boundary the strict barrier cannot exclude, so it is
-kept (scope, not unsoundness). -/
+supply its two UNSAT hypotheses. Only a STRICT scalar successor guard (`a > b` / `a < b`), or a
+conjunction whose LEADING conjunct is one (the barrier is that conjunct; the guard implies it;
+added 2026-10-10 for the latched multi-link AEB sinks of `platoon3_*`), is prunable — a CLOSED
+guard (`≥`/`≤`) has a boundary the strict barrier cannot exclude, so it is kept (scope, not
+unsoundness). -/
 def nonConnPrune (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     (vars : List String) (n : ℕ) (coord : Fin n → String) (cutR : IForm n)
     (mR mSuc : PMode) : IO Bool := do
   -- The two queries are built ONCE, in `Trusted/NonConnQuery.lean` (shared with the
-  -- verdict runner and the kernel bridge); `none` = closed/compound guard or a part that
-  -- does not lower ⟹ keep the edge.
+  -- verdict runner and the kernel bridge); `none` = a closed guard (or a compound one whose
+  -- leading conjunct is not strict) or a part that does not lower ⟹ keep the edge.
   match NonConn.queries vars n cutR mR mSuc with
   | none => pure false
   | some (srcCheck, barCheck) =>

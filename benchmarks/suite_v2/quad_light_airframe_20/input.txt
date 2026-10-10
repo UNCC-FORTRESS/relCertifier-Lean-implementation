@@ -16,10 +16,25 @@
 # ceil(7/4 * 2 / 1) = 4 right cycles per left window (M1 with polynomial dynamics, M2).
 #
 # Fallback (M4): the reference autopilot declares a climb-rate LIMITER above 3 m/s (motor
-# command cut, w' = -2 w, sink). CLIMB never reaches it (at w = 3 the drag wins, w' = -5
-# < 0; no CLIMB entry state is above 2.6), so the edge CLIMB -> LIMIT is pruned; LIMIT is
-# not an admissible start (w_L <= 2.5 and w_R <= w_L + 0.5 exclude w_R > 3).
-# RELCERT_NO_PRUNE=1 DECLINES.
+# command cut, w' = -2 w; it hands back to CLIMB once w <= 3). CLIMB never reaches it (at
+# w = 3 the drag wins, w' = -5 < 0, and CLIMB's guard ends at the threshold), so the edge
+# CLIMB -> LIMIT is pruned; LIMIT is not an admissible start (w_L <= 2.5 and
+# w_R <= w_L + 0.5 exclude w_R > 3). RELCERT_NO_PRUNE=1 DECLINES.
+#
+# Assumption 1 (repaired 2026-10-10, docs/SUITE-REDESIGN.md section 21): the limiter
+# RE-ENGAGES the climb controller. The limiter's own flow decays the climb rate below its
+# guard within one control period (from w = 3.1 the 1 s run ends at 3.1 e^-2 = 0.42), and
+# with LIMIT as its own only successor the nominal controller blocked there. Physically
+# the motor command is restored once the climb rate is back at the limit: LIMIT -> CLIMB
+# is declared. For the hand-back to land in a mode, CLIMB's guard (the climb controller's
+# OPERATING RANGE, guard change) now reaches the limiter threshold, 0 <= w <= 3.0 (was
+# 0 <= w <= 2.6, a narrower engagement band that left 2.6 < w <= 3 in no mode): below the
+# limiter the climb controller is engaged, above it the limiter is. Every run of at most
+# 1 s from w > 3 ends in LIMIT's guard or in CLIMB's (the decay stays in [0, 3.5]). The
+# guard is still forward invariant under CLIMB's flow (w' = 4 - w^2 < 0 at w = 3, > 0 at
+# w = 0), CLIMB -> LIMIT is still pruned, LIMIT is still no admissible start; the verdict,
+# the cover (lambda = 7/4, budget 4) and every counter-run are unchanged (relcert
+# --wellformed: LIMIT ok (exit->CLIMB)).
 #
 # Envelope 0 <= w <= 3.5 both sides (climb only).
 [problem]
@@ -41,13 +56,13 @@ state_vars = [w]
 epsilon = 1.0
 [Rsys.mode.CLIMB]
 ode = w' = smt2:(- 4.0 (* w w));
-guard = w >= 0.0 and w <= 2.6
+guard = w >= 0.0 and w <= 3.0
 evolve = w >= 0.0 and w <= 3.5
 next = [CLIMB, LIMIT]
 [Rsys.mode.LIMIT]
 ode = w' = smt2:(* -2.0 w);
 guard = w > 3.0
 evolve = w >= 0.0 and w <= 3.5
-next = [LIMIT]
+next = [LIMIT, CLIMB]
 [relational_invariant]
 CLIMB = smt2:(and (<= L_w (+ R_w 1.0)) (<= R_w (+ L_w 0.5)))

@@ -21,8 +21,10 @@ suite_v2 battery with its axiom audit.
 * `Trusted/`: the IO shell the proofs do not cover (parser, lowering, SMT printer, Z3
   session, the certifier `OracleAPI.certify`, emitters); its single proof-facing interface
   is `z3_unsat_sound`.
-* `InstancesV2/BatteryV2`: **the headline**, Theorem 3 for every one of the 45
-  `benchmarks/suite_v2` benchmarks, with `#print axioms` re-emitted on every build.
+* `InstancesV2/BatteryV2`: **the headline**, the battery of the 45 `benchmarks/suite_v2`
+  benchmarks with `#print axioms` re-emitted on every build: Theorem 3 over the guarded
+  right automaton for 22, two machine-checked refutations of the guarded statement, and the
+  `⊤`-guarded relaxation for the other 23 (`docs/GUARDED-SWITCHING.md`).
   `VerdictsV2/`: the runner tables and the kernel pins tying each Z3 hypothesis to the
   query `relcert --run-verdicts-v2` sends.
 * `Instances/` and `Verdicts/`: the 19 theorems carried over from the retired legacy

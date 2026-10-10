@@ -7,7 +7,7 @@ Released under Apache 2.0 license.
 `benchmarks/suite_v2` (45 benchmarks, all CERTIFIED with `RELCERT_IMPLIED_CUT=1`). Every
 theorem is imported here and its axioms are re-emitted on every build (`lake build
 RelCertifier.InstancesV2.BatteryV2 2>&1 | grep -A3 "depends on axioms"`), so the audit cannot
-drift from the theorems. 55 `#print axioms` lines, in four groups:
+drift from the theorems. 56 `#print axioms` lines, in four groups:
 
 * **Theorem 3 over the GUARDED right automaton: 22 benchmarks.** Every right edge tests the
   lowered guard of the mode it enters (the paper's `?guard_m(x)`), proved per instance
@@ -15,8 +15,10 @@ drift from the theorems. 55 `#print axioms` lines, in four groups:
   (`Proofs/Encoding/GuardedSwitch.lean`). 20 suite_v2 instances (`Modal/`) and two carried-over
   benchmarks restated over the guarded automaton by an explicit catch-up
   (`Instances/Rover3tierRung12Guarded`, `Instances/MatchMultiRateGuarded`, both Z3-free).
-* **A machine-checked refutation**: `rover_ladder_rung1_guarded_false`, the guarded statement
-  of `refinement_ladder_rover_rung1_2to3` is false for every window length `dt > 0`.
+* **Machine-checked refutations**: `rover_ladder_rung1_guarded_false` and
+  `rover_patrol_zones_guarded_false`, the guarded statements of
+  `refinement_ladder_rover_rung1_2to3` and `rover_patrol_zones` are false for every window
+  length `dt > 0`.
 * **Theorem 3 over the `⊤`-guarded relaxation only: 23 benchmarks.** For 21 the guarded
   statement is false as stated (a right state inside the invariant from which the guarded
   automaton has no step, while a left window breaks the row); for `platoon3_profiles` and
@@ -69,6 +71,7 @@ import RelCertifier.InstancesV2.Modal.Sat3wDetumbleWeak
 import RelCertifier.InstancesV2.Modal.SatDetumblePhases
 import RelCertifier.InstancesV2.Modal.Sat3wDetumblePhases
 import RelCertifier.InstancesV2.Modal.RoverPatrolZones
+import RelCertifier.InstancesV2.RoverPatrolZonesCounterexample
 import RelCertifier.InstancesV2.Modal.RoverPatrolRefine
 -- the 19 carried-over benchmarks: legacy theorems (their literal is the suite_v2 literal)
 import RelCertifier.Instances.MatchMultiRatePruned
@@ -125,14 +128,18 @@ Every right edge tests the lowered guard of the mode it enters (each instance's 
 #print axioms Rover3tierRung12Guarded.rover3tier_rung12_modeKeyed_guarded
 #print axioms MatchMultiRateGuarded.match_multi_rate_guarded
 
-/-! ## The guarded statement is false as stated (machine-checked representative)
+/-! ## The guarded statement is false as stated (machine-checked representatives)
 
-`refinement_ladder_rover_rung1_2to3`: the statement of `rover_ladder_rung1_modal` over the
-guarded right automaton fails for every `dt > 0` (the right in `STEEP` at `s_R = 5` has no
-step; the left `STEEP` window breaks `v_L ≤ v_R`). The same mechanism refutes the guarded
-statements of the other twenty benchmarks listed below (`docs/GUARDED-SWITCHING.md` §4.3). -/
+`refinement_ladder_rover_rung1_2to3` (carried over) and `rover_patrol_zones` (suite_v2,
+mode-keyed): the statements of `rover_ladder_rung1_modal` and `rover_patrol_zones_modeKeyed`
+over the guarded right automaton fail for every `dt > 0` (a right state inside the invariant
+from which the guarded automaton has no step; one left window breaks the row `v_L ≤ v_R`).
+The same mechanism refutes the guarded statements of the other benchmarks of the
+relaxation-only group below except the two platoon3 benchmarks
+(`docs/GUARDED-SWITCHING.md` §4.3). -/
 
 #print axioms RoverLadderRung1Counterexample.rover_ladder_rung1_guarded_false
+#print axioms V2RoverPatrolZonesCounterexample.rover_patrol_zones_guarded_false
 
 /-! ## Theorem 3 over the `⊤`-guarded relaxation only (23 benchmarks)
 

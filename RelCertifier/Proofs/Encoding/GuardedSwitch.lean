@@ -622,6 +622,45 @@ theorem windowSeg_preserve (leftSys : ODESystem (Var n)) (domL : Formula (Var n)
       obtain ⟨mid, hseg, hrest⟩ := h
       exact ih mid ν (hpiece σ mid hP hseg) hrest
 
+/-- A coordinate whose field is nonnegative on the domain does not decrease along a run. -/
+theorem ode_coord_mono {sys : ODESystem (Var n)} {dom : Formula (Var n)} {ν μ : State (Var n)}
+    (h : Program.sem (Program.ode sys dom) ν μ) {x : Var n} {f : Term (Var n)}
+    (hx : (x, f) ∈ sys) (hnn : ∀ s, Formula.sat dom s → 0 ≤ Term.eval f s) : ν x ≤ μ x := by
+  obtain ⟨r, Φ, hr, hΦ0, hΦr, hder, -, hdom⟩ := h
+  have hderiv : ∀ t ∈ Set.Icc (0:ℝ) r,
+      HasDerivWithinAt (fun s => Φ s x) (Term.eval f (Φ t)) (Set.Icc 0 r) t :=
+    fun t ht => hder t ht (x, f) hx
+  have hcont : ContinuousOn (fun s => Φ s x) (Set.Icc 0 r) :=
+    fun t ht => (hderiv t ht).continuousWithinAt
+  have hmono : MonotoneOn (fun s => Φ s x) (Set.Icc 0 r) := by
+    refine monotoneOn_of_deriv_nonneg (convex_Icc 0 r) hcont (fun t ht => ?_) (fun t ht => ?_)
+    · rw [interior_Icc] at ht
+      exact ((hderiv t (Set.Ioo_subset_Icc_self ht)).hasDerivAt
+        (Icc_mem_nhds ht.1 ht.2)).differentiableAt.differentiableWithinAt
+    · rw [interior_Icc] at ht
+      rw [((hderiv t (Set.Ioo_subset_Icc_self ht)).hasDerivAt (Icc_mem_nhds ht.1 ht.2)).deriv]
+      exact hnn _ (hdom t (Set.Ioo_subset_Icc_self ht))
+  have := hmono ⟨le_refl 0, hr⟩ ⟨hr, le_refl r⟩ hr
+  simpa [hΦ0, hΦr] using this
+
+/-- The side-split term at a bi-state reads each variable on its own side. -/
+theorem rsplit_eval (t : Term (Var n)) (a b : State (Var n)) :
+    RTerm.eval (rsplit t) (a, b) = Term.eval t (fun x => if x.1 = Side.R then b x else a x) := by
+  induction t with
+  | var v =>
+      unfold rsplit
+      match hv : v.1 with
+      | Side.R => simp [RTerm.eval, Term.eval, hv]
+      | Side.L => simp [RTerm.eval, Term.eval, hv]
+      | Side.Aux => simp [RTerm.eval, Term.eval, hv]
+  | const c => simp [rsplit, RTerm.eval, Term.eval]
+  | binop op a' b' iha ihb => simp [rsplit, RTerm.eval, Term.eval, iha, ihb]
+
+theorem sat_canonInv_bi (g : Term (Var n)) (a b : State (Var n)) :
+    RFormula.sat (canonInv g) (a, b) ↔
+      Term.eval g (fun x => if x.1 = Side.R then b x else a x) ≤ 0 := by
+  simp [canonInv, RFormula.sat, rsplit_eval, RTerm.eval, Term.eval, CompOp.interp]
+
 /-- Right-only facts survive a left program that binds no right coordinate. -/
 theorem sat_framed {P : Program (Var n)} {φ : Formula (Var n)}
     (hdis : ∀ x ∈ φ.fv, x ∉ P.bv) {σ ν : State (Var n)} (hrun : Program.sem P σ ν) :

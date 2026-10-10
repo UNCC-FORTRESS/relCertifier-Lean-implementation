@@ -288,4 +288,31 @@ theorem windowSeg_coord_le_or_lt (fL : Fin n → Term (Var n)) (domL : Formula (
     · left; nlinarith
     · exact absurd hP (not_lt.mpr hge)
 
+/-- **Right responses leave the left coordinates alone.** A run of declared right flows (each
+binding only right coordinates) ends with the start state's left coordinates. -/
+theorem bigSeq_odes_left (G : SearchGraph (Var n))
+    (hRv : ∀ q m, G.modeAt q = some m →
+      m.sys.boundSet ∪ m.sys.readVars ∪ m.dom.fv ⊆ range Rv) :
+    ∀ (segs : List (ℕ × RMode (Var n) × REdge (Var n))),
+      (∀ s ∈ segs, G.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ G.edgesFrom s.1) →
+      ∀ {ν μ : State (Var n)},
+        Program.sem (bigSeq (segs.map (fun s => Program.ode s.2.1.sys s.2.1.dom))) ν μ →
+        ∀ i, μ (Lv i) = ν (Lv i) := by
+  intro segs
+  induction segs with
+  | nil =>
+      intro _ ν μ h i
+      rw [List.map_nil, bigSeq, sem_test] at h
+      rw [h.1]
+  | cons a rest ih =>
+      intro halign ν μ h i
+      simp only [List.map_cons, bigSeq] at h
+      obtain ⟨κ, h1, h2⟩ := h
+      have hκ : κ (Lv i) = ν (Lv i) := by
+        refine sem_ode_mask h1 (fun hb => ?_)
+        have := hRv a.1 a.2.1 (halign a List.mem_cons_self).1 (Or.inl (Or.inl hb))
+        obtain ⟨j, hj⟩ := this
+        exact absurd hj (by simp [Lv, Rv, Prod.ext_iff])
+      rw [ih (fun s hs => halign s (List.mem_cons_of_mem _ hs)) h2 i, hκ]
+
 end RelCertifier

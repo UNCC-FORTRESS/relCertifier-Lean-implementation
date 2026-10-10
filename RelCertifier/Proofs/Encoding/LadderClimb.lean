@@ -378,4 +378,227 @@ theorem phiLin_other_between (a b : Fin (n+2) → ℝ) (q : ℕ) (ρ : State (Va
     min (ρ (Rv i)) (b i) ≤ phiLin a b q ρ i t ∧ phiLin a b q ρ i t ≤ max (ρ (Rv i)) (b i) := by
   rw [phiLin_other a b q ρ i h0 h1]; exact exp_approach_between _ _ _ t ha ht
 
+/-! ## The ladder with an attitude-weighted odometer: `s' = v · κ(t)`
+
+On the 12-DOF rungs the reference's odometer integrates `v · κ` with `κ = 1 − ψ²/2 − 0.3 θ²`,
+and the attitude coordinates follow their own explicit laws. The odometer is then the
+primitive `s₀ + ∫₀ᵗ v κ`, whose derivative is its integrand (FTC); its growth is bounded
+below through `κ ≥ κ_min > 0` on the envelope. -/
+
+/-- The `v` law of band `q`. -/
+noncomputable def vLaw (q : ℕ) (ρ : State (Var (n+2))) (t : ℝ) : ℝ :=
+  ladC q + (ρ (Rv 0) - ladC q) * Real.exp (-(3 * t))
+
+/-- The explicit coordinates: `v` its law, `s` the primitive of `v · κ`, the others `φo`. -/
+noncomputable def phiK (φo : State (Var (n+2)) → Fin (n+2) → ℝ → ℝ)
+    (kapT : State (Var (n+2)) → ℝ → ℝ) (q : ℕ) (ρ : State (Var (n+2))) :
+    Fin (n+2) → ℝ → ℝ := fun i t =>
+  if i = 0 then vLaw q ρ t
+  else if i = 1 then ρ (Rv 1) + ∫ u in (0:ℝ)..t, vLaw q ρ u * kapT ρ u
+  else φo ρ i t
+
+theorem phiK_v (φo : State (Var (n+2)) → Fin (n+2) → ℝ → ℝ)
+    (kapT : State (Var (n+2)) → ℝ → ℝ) (q : ℕ) (ρ : State (Var (n+2))) (t : ℝ) :
+    phiK φo kapT q ρ 0 t = vLaw q ρ t := by simp [phiK]
+
+theorem phiK_s (φo : State (Var (n+2)) → Fin (n+2) → ℝ → ℝ)
+    (kapT : State (Var (n+2)) → ℝ → ℝ) (q : ℕ) (ρ : State (Var (n+2))) (t : ℝ) :
+    phiK φo kapT q ρ 1 t = ρ (Rv 1) + ∫ u in (0:ℝ)..t, vLaw q ρ u * kapT ρ u := by
+  simp [phiK]
+
+theorem phiK_other (φo : State (Var (n+2)) → Fin (n+2) → ℝ → ℝ)
+    (kapT : State (Var (n+2)) → ℝ → ℝ) (q : ℕ) (ρ : State (Var (n+2))) (i : Fin (n+2))
+    (h0 : i ≠ 0) (h1 : i ≠ 1) (t : ℝ) : phiK φo kapT q ρ i t = φo ρ i t := by
+  simp [phiK, h0, h1]
+
+theorem vLaw_cont (q : ℕ) (ρ : State (Var (n+2))) : Continuous (vLaw q ρ) := by
+  unfold vLaw; fun_prop
+
+theorem vLaw_between (q : ℕ) (ρ : State (Var (n+2))) {t : ℝ} (ht : 0 ≤ t) :
+    min (ρ (Rv 0)) (ladC q) ≤ vLaw q ρ t ∧ vLaw q ρ t ≤ max (ρ (Rv 0)) (ladC q) :=
+  exp_approach_between 3 _ _ t (by norm_num) ht
+
+/-- `∫₀ᵗ v = c t + (v₀ − c)(1 − e^{−3t})/3`. -/
+theorem integral_vLaw (q : ℕ) (ρ : State (Var (n+2))) (t : ℝ) :
+    ∫ u in (0:ℝ)..t, vLaw q ρ u =
+      ladC q * t + (ρ (Rv 0) - ladC q) * (1 - Real.exp (-(3 * t))) / 3 := by
+  have h := intervalIntegral.integral_eq_sub_of_hasDerivAt
+    (f := fun u => 0 + ladC q * u + (ρ (Rv 0) - ladC q) * (1 - Real.exp (-(3 * u))) / 3)
+    (f' := vLaw q ρ) (a := 0) (b := t)
+    (fun x _ => by
+      have := hasDerivAt_expIntegral 3 (ladC q) (ρ (Rv 0)) 0 x (by norm_num)
+      exact this)
+    ((vLaw_cont q ρ).intervalIntegrable 0 t)
+  rw [h]; simp
+
+/-- **The odometer's growth.** With `v₀ ≥ 0` and `κ ≥ κ_min ≥ 0` on `[0, t]`, the primitive of
+`v κ` is at least `κ_min (c t − c/3)`, and nonnegative. -/
+theorem integral_vk_low (q : ℕ) (ρ : State (Var (n+2))) (kap : ℝ → ℝ) (hkc : Continuous kap)
+    (κmin : ℝ) (hκ : 0 ≤ κmin) (hv0 : 0 ≤ ρ (Rv 0)) {t : ℝ} (ht : 0 ≤ t)
+    (hkb : ∀ u, 0 ≤ u → u ≤ t → κmin ≤ kap u) :
+    κmin * (ladC q * t - ladC q / 3) ≤ ∫ u in (0:ℝ)..t, vLaw q ρ u * kap u ∧
+      0 ≤ ∫ u in (0:ℝ)..t, vLaw q ρ u * kap u := by
+  have hc := ladC_bounds q
+  have hvnn : ∀ u, 0 ≤ u → 0 ≤ vLaw q ρ u := fun u hu =>
+    le_trans (le_min hv0 (by linarith)) (vLaw_between q ρ hu).1
+  have hmono : ∫ u in (0:ℝ)..t, κmin * vLaw q ρ u ≤ ∫ u in (0:ℝ)..t, vLaw q ρ u * kap u := by
+    apply intervalIntegral.integral_mono_on ht
+    · exact ((vLaw_cont q ρ).const_smul κmin).intervalIntegrable 0 t
+    · exact ((vLaw_cont q ρ).mul hkc).intervalIntegrable 0 t
+    · intro u hu
+      have := hkb u hu.1 hu.2
+      have := hvnn u hu.1
+      nlinarith
+  rw [intervalIntegral.integral_const_mul, integral_vLaw] at hmono
+  have he0 : 0 < Real.exp (-(3 * t)) := Real.exp_pos _
+  have he1 : Real.exp (-(3 * t)) ≤ 1 := by rw [Real.exp_le_one_iff]; linarith
+  have he2 : 1 - 3 * t ≤ Real.exp (-(3 * t)) := by
+    have := Real.add_one_le_exp (-(3 * t)); linarith
+  have hlow : ladC q * t - ladC q / 3 ≤
+      ladC q * t + (ρ (Rv 0) - ladC q) * (1 - Real.exp (-(3 * t))) / 3 := by nlinarith
+  have hnn : 0 ≤ ladC q * t + (ρ (Rv 0) - ladC q) * (1 - Real.exp (-(3 * t))) / 3 := by
+    rcases le_total (ρ (Rv 0)) (ladC q) with h | h
+    · nlinarith
+    · nlinarith
+  constructor
+  · nlinarith
+  · nlinarith
+
+/-- **The attitude-weighted ladder run.** -/
+noncomputable def LadderRun.ofKappa (G : SearchGraph (Var (n+2))) (dom : Formula (Var (n+2)))
+    (m : ℕ → RMode (Var (n+2))) (fR : ℕ → Fin (n+2) → Term (Var (n+2)))
+    (φo : State (Var (n+2)) → Fin (n+2) → ℝ → ℝ) (kapT : State (Var (n+2)) → ℝ → ℝ)
+    (κmin : ℝ) (hκmin : 0 < κmin)
+    (hmodeAt : ∀ q < 3, G.modeAt q = some (m q))
+    (hsys : ∀ q < 3, (m q).sys = rightBlock (fR q) (Term.const 1))
+    (hdomm : ∀ q < 3, (m q).dom = dom)
+    (hfv : ∀ q < 3, ∀ x, Term.eval (fR q 0) x = 3 * (ladC q - x (Rv 0)))
+    (hφo0 : ∀ ρ (i : Fin (n+2)), i ≠ 0 → i ≠ 1 → φo ρ i 0 = ρ (Rv i))
+    (hfo : ∀ q < 3, ∀ ρ, Formula.sat dom ρ → ∀ (i : Fin (n+2)), i ≠ 0 → i ≠ 1 → ∀ t, 0 ≤ t →
+      HasDerivAt (φo ρ i) (Term.eval (fR q i) (trajR ρ (phiK φo kapT q ρ) t)) t)
+    (hfs : ∀ q < 3, ∀ ρ, Formula.sat dom ρ → ∀ t, 0 ≤ t →
+      Term.eval (fR q 1) (trajR ρ (phiK φo kapT q ρ) t) = vLaw q ρ t * kapT ρ t)
+    (hkc : ∀ ρ, Continuous (kapT ρ))
+    (hkb : ∀ ρ, Formula.sat dom ρ → ∀ t, 0 ≤ t → κmin ≤ kapT ρ t)
+    (hdomrun : ∀ q < 3, ∀ ρ, Formula.sat dom ρ → ∀ t, 0 ≤ t →
+      Formula.sat dom (trajR ρ (phiK φo kapT q ρ) t))
+    (hv0 : ∀ ρ, Formula.sat dom ρ → 0 ≤ ρ (Rv 0))
+    (e01 e12 e22 : REdge (Var (n+2)))
+    (e01_mem : e01 ∈ G.edgesFrom 0) (e12_mem : e12 ∈ G.edgesFrom 1)
+    (e22_mem : e22 ∈ G.edgesFrom 2)
+    (e01_tgt : e01.tgt = 1) (e12_tgt : e12.tgt = 2) (e22_tgt : e22.tgt = 2)
+    (leg01 : ∀ x, x (Rv 1) = 3/5 → x (Rv 0) ≤ 3/10 → SwitchLegal e01 x)
+    (leg12 : ∀ x, x (Rv 1) = 7/5 → x (Rv 0) ≤ 1/2 → SwitchLegal e12 x)
+    (leg22 : ∀ x, 7/5 ≤ x (Rv 1) → x (Rv 0) ≤ 13/20 → SwitchLegal e22 x) :
+    LadderRun G dom where
+  m := m
+  run := fun q ρ t => trajR ρ (phiK φo kapT q ρ) t
+  κ := κmin
+  hκ := hκmin
+  modeAt := hmodeAt
+  sem := by
+    intro q hq ρ hρ τ hτ
+    rw [hsys q hq, hdomm q hq]
+    refine explicit_run ρ (phiK φo kapT q ρ) τ hτ ?_ ?_ ?_
+    · intro i
+      by_cases h0 : i = 0
+      · subst h0; simp [phiK, vLaw]
+      by_cases h1 : i = 1
+      · subst h1; simp [phiK]
+      · rw [phiK_other φo kapT q ρ i h0 h1]; exact hφo0 ρ i h0 h1
+    · intro i t ht _
+      by_cases h0 : i = 0
+      · subst h0
+        rw [hfv q hq, trajR_R]
+        have h := hasDerivAt_expApproach 3 (ladC q) (ρ (Rv 0)) t
+        convert h using 1
+        · funext u; simp [phiK, vLaw]
+        · simp [phiK, vLaw]
+      by_cases h1 : i = 1
+      · subst h1
+        rw [hfs q hq ρ hρ t ht]
+        have hcont : Continuous (fun u => vLaw q ρ u * kapT ρ u) :=
+          (vLaw_cont q ρ).mul (hkc ρ)
+        have h := (hcont.integral_hasStrictDerivAt 0 t).hasDerivAt.const_add (ρ (Rv 1))
+        have hf : phiK φo kapT q ρ 1 = fun u => ρ (Rv 1) + ∫ x in (0:ℝ)..u, vLaw q ρ x * kapT ρ x := by
+          funext u; simp [phiK]
+        rw [hf]
+        exact h
+      · have hf : phiK φo kapT q ρ i = φo ρ i := by
+          funext u; exact phiK_other φo kapT q ρ i h0 h1 u
+        rw [hf]
+        exact hfo q hq ρ hρ i h0 h1 t ht
+    · intro t ht _
+      exact hdomrun q hq ρ hρ t ht
+  v_eq := by
+    intro q _ ρ τ
+    simp [trajR_R, phiK, vLaw]
+  s_low := by
+    intro q _ ρ hρ τ hτ
+    rw [trajR_R, phiK_s]
+    have h := integral_vk_low q ρ (kapT ρ) (hkc ρ) κmin hκmin.le (hv0 ρ hρ) hτ
+      (fun u hu _ => hkb ρ hρ u hu)
+    constructor <;> linarith [h.1, h.2]
+  s_cont := by
+    intro q _ ρ
+    simp only [trajR_R, phiK_s]
+    refine continuous_const.add (continuous_iff_continuousAt.mpr (fun t => ?_))
+    exact (((vLaw_cont q ρ).mul (hkc ρ)).integral_hasStrictDerivAt 0 t).hasDerivAt.continuousAt
+  left := fun q ρ τ i => trajR_L _ _ _ _
+  zero := by
+    intro q ρ
+    simp [trajR_R, phiK]
+  v_nonneg := hv0
+  dom_m := hdomm
+  e01 := e01
+  e12 := e12
+  e22 := e22
+  e01_mem := e01_mem
+  e12_mem := e12_mem
+  e22_mem := e22_mem
+  e01_tgt := e01_tgt
+  e12_tgt := e12_tgt
+  e22_tgt := e22_tgt
+  leg01 := leg01
+  leg12 := leg12
+  leg22 := leg22
+
+/-! ## Explicit laws of the attitude coordinates -/
+
+/-- `a e^{−d t}` solves `x' = −d x`. -/
+theorem hasDerivAt_decay (a d t : ℝ) :
+    HasDerivAt (fun u => a * Real.exp (-(d * u))) (-d * (a * Real.exp (-(d * t)))) t := by
+  have h1 : HasDerivAt (fun u => -(d * u)) (-(d * 1)) t := ((hasDerivAt_id t).const_mul d).neg
+  exact (h1.exp.const_mul a).congr_deriv (by ring)
+
+/-- `(a + b t) e^{−t}` solves `x' = ω − x` with `ω = b e^{−t}`. -/
+theorem hasDerivAt_coupled (a b t : ℝ) :
+    HasDerivAt (fun u => (a + b * u) * Real.exp (-u))
+      (b * Real.exp (-t) - (a + b * t) * Real.exp (-t)) t := by
+  have h1 : HasDerivAt (fun u => a + b * u) (b * 1) t := ((hasDerivAt_id t).const_mul b).const_add a
+  have h2 : HasDerivAt (fun u => Real.exp (-u)) (Real.exp (-t) * (-1)) t := (hasDerivAt_id t).neg.exp
+  exact (h1.mul h2).congr_deriv (by ring)
+
+theorem decay_between (a d t : ℝ) (hd : 0 ≤ d) (ht : 0 ≤ t) :
+    min a 0 ≤ a * Real.exp (-(d * t)) ∧ a * Real.exp (-(d * t)) ≤ max a 0 := by
+  have he0 : 0 < Real.exp (-(d * t)) := Real.exp_pos _
+  have he1 : Real.exp (-(d * t)) ≤ 1 := by rw [Real.exp_le_one_iff]; nlinarith
+  rcases le_total a 0 with h | h
+  · rw [min_eq_left h, max_eq_right h]; constructor <;> nlinarith
+  · rw [min_eq_right h, max_eq_left h]; constructor <;> nlinarith
+
+/-- `(a + b t) e^{−t}` stays in `[−M, M]` when `a` and `b` do. -/
+theorem coupled_bound (a b M t : ℝ) (ha : -M ≤ a ∧ a ≤ M) (hb : -M ≤ b ∧ b ≤ M) (ht : 0 ≤ t) :
+    -M ≤ (a + b * t) * Real.exp (-t) ∧ (a + b * t) * Real.exp (-t) ≤ M := by
+  have he0 : 0 < Real.exp (-t) := Real.exp_pos _
+  have h1 : 1 + t ≤ Real.exp t := by have := Real.add_one_le_exp t; linarith
+  have hinv : Real.exp (-t) * Real.exp t = 1 := by rw [← Real.exp_add]; simp
+  have hM : 0 ≤ M := by linarith [ha.1, ha.2]
+  have hup : a + b * t ≤ M * (1 + t) := by nlinarith [hb.2]
+  have hlo : -(M * (1 + t)) ≤ a + b * t := by nlinarith [hb.1]
+  have hk : M * (1 + t) * Real.exp (-t) ≤ M := by
+    have : (1 + t) * Real.exp (-t) ≤ 1 := by nlinarith
+    nlinarith
+  constructor <;> nlinarith
+
 end RelCertifier

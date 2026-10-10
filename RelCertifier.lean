@@ -85,6 +85,7 @@ import RelCertifier.Checker.EvolStrengthening
 import RelCertifier.Proofs.Soundness.CutLift
 import RelCertifier.Proofs.Soundness.CutCover
 import RelCertifier.Proofs.Soundness.CutCoverDischarge
+import RelCertifier.Proofs.Soundness.CutLiftX
 import RelCertifier.Instances.CutThroughoutBattery
 import RelCertifier.Instances.EvolStrengthenings
 import RelCertifier.Checker.Faithful

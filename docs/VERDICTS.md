@@ -1,5 +1,27 @@
 # Verdict report — empirical discharge of theorem hypotheses
 
+## suite_v2 (2026-10-10, branch `suite-v2-lean`): every hypothesis of the 45-benchmark battery
+
+`./.lake/build/bin/relcert --run-verdicts-v2` (also the second half of
+`RELCERT_IMPLIED_CUT=1 relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt`) discharges
+every Z3 hypothesis of `InstancesV2/BatteryV2.lean`, in five phases with DECLARED counts
+(`VerdictsV2/RunV2.lean`), each derived from the table that generates the work
+(`VerdictsV2/CoveragePinsV2.lean`, kernel-checked):
+
+| phase | declared | discharged (2026-10-10) | what pins it to the theorems |
+|---|---|---|---|
+| modal (the 26 new `Modal/` instances) | 262 component queries, 104 packs | 262/262 `unsat` | 104 `pin_<bench>_<i>` theorems in `VerdictsV2/PinsV2.lean` (each instance's `Verd l q` IS `packVerd` of its row; 23 `irV2_`/`cutV2_` pairs resolve the IR literal and the extended certificate by name), `ModalX.modalVerdX_of_queries` (the rebuilt queries denote the hypothesis), `derivedModalV2_eq` |
+| handoff (all 45 files) | 186 transitions | 186/186 `unsat`, no declared failure | `derivedHandoffV2_eq` (one query per declared left transition) |
+| non-connection (pruned edges of the emitted covers) | 44 edges, 88 queries | 88/88 `unsat` | `derivedPrunedV2_eq`, `derivedNonConnV2_eq` |
+| copied benchmarks (19 files identical to `suite_uniform`) | 385 queries (22 legacy specs, 98 mode pairs) | 385/385 `unsat` | `InstancesV2/SameIR.lean` (`rfl`: the v2 literal IS the legacy literal), the legacy `Verdicts/ModalPinTable`, `derivedSameModalV2_eq` |
+
+Totals: 262 + 186 + 88 + 385 = **921 queries, all `unsat`**, `ALL suite_v2 HYPOTHESES
+DISCHARGED`; the suite tally `45 certified, 0 declined, 0 error(s) — matches the declared
+suite`. Three of the 26 new instances (`arm_plateau_{crit,profiles,slow}`) and two copied ones
+(`refinement_ladder_rover_rung2_6dof`, `rung2b_6dof`) are Z3-free and owe no pack. The modal
+count grew 120 → 200 (platoon3) → 222 (the five remaining satellite files) → 262
+(`rover_patrol_zones`, `rover_patrol_refine`, ten packs each) on 2026-10-09/10.
+
 ## The non-connection phase (2026-10-08, branch `pruning-suite`)
 
 `--run-verdicts` gained a fifth phase: for every pruned edge the emitted covers record

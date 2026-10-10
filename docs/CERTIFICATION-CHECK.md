@@ -68,6 +68,17 @@ Read `README.md` first for what the theorems say. This document is only about
 
 ## suite_v2 — the paper's suite (2026-10-09/10, branch `suite-v2-lean`)
 
+> **Last run (2026-10-10, branch `suite-v2-lean`): all four checks green, all 45 benchmarks
+> with Theorem 3.** `lake build` exit 0, `Build completed successfully (9122 jobs)` (warm),
+> no `sorry` · `RELCERT_IMPLIED_CUT=1 relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt`:
+> `[suite_v2] 45 certified, 0 declined, 0 error(s) — matches the declared suite`, coverage
+> modal 262/262, handoff 186/186, non-connection 88/88, pruned edges 44/44, copied benchmarks
+> 385/385, `SUITE_V2 QUICK CHECKS PASSED` · `BENCH_PATHS=<manifest> relcert-test`: `ALL PASS`
+> (`[ir-drift-v2]` all 45 suite_v2 IR literals match their files) · axiom audit over
+> `BatteryV2`: 51 lines (46 benchmark theorems + 5 generic lemmas), 42 with `z3_unsat_sound`,
+> 9 with the standard three alone (Z3-free benchmarks: `arm_plateau_{crit,profiles,slow}`,
+> `refinement_ladder_rover_rung2_6dof`, `rung2b_6dof`), nothing else.
+
 `benchmarks/suite_v2/` (45 benchmarks) is the suite the paper reports. Its checks mirror
 the legacy ones, with their own entry points; the legacy `suite_uniform` battery stays
 buildable and is not extended.

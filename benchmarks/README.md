@@ -49,9 +49,14 @@ IR literals, extended cut certificates, covers, kernel replays, Theorem-3 instan
 `RelCertifier/VerdictsV2/` (runner, pins, declared counts); its check recipe is the
 *suite_v2* section of `docs/CERTIFICATION-CHECK.md`
 (`RELCERT_IMPLIED_CUT=1 relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt`,
-`relcert-test` `[ir-drift-v2]`, `lake build RelCertifier.InstancesV2.BatteryV2`). Which
-`suite_v2` benchmarks carry their Theorem 3, and why the others do not: `README.md`,
-*suite_v2*.
+`relcert-test` `[ir-drift-v2]`, `lake build RelCertifier.InstancesV2.BatteryV2`). **All 45
+`suite_v2` benchmarks carry a kernel-checked Theorem 3** (2026-10-10): 26 new instances and
+19 copied legacy theorems; 12 mode-keyed, 12 needing the widened cut channel, 5 Z3-free, 6
+(the satellite family) stated on the nonblocking region; `relcert --check-quick-v2`: 45
+certified / 0 declined, 262 modal + 186 handoff + 88 non-connection + 385 copied-benchmark
+queries discharged — `README.md`, *suite_v2*. On 2026-10-10 the odometer wall `s ≤ 100` was
+removed from `rover_patrol_zones` and `rover_patrol_refine` (a blocking constraint, not a
+physical limit; `docs/SUITE-REDESIGN.md` §19.1).
 
 ## File format
 

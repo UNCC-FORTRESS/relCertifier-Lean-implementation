@@ -54,6 +54,7 @@ import RelCertifier.InstancesV2.Modal.Sat3wDetumbleWeak
 import RelCertifier.InstancesV2.Modal.SatDetumblePhases
 import RelCertifier.InstancesV2.Modal.Sat3wDetumblePhases
 import RelCertifier.InstancesV2.Modal.RoverPatrolZones
+import RelCertifier.InstancesV2.Modal.RoverPatrolRefine
 -- the 19 copied benchmarks: legacy theorems (their literal is the suite_v2 literal)
 import RelCertifier.Instances.MatchMultiRatePruned
 import RelCertifier.Instances.RoverLadderRung1Modal
@@ -104,6 +105,7 @@ namespace RelCertifier
 #print axioms V2SatDetumblePhases.sat_detumble_phases_modeKeyed
 #print axioms V2Sat3wDetumblePhases.sat3w_detumble_phases_modeKeyed
 #print axioms V2RoverPatrolZones.rover_patrol_zones_modeKeyed
+#print axioms V2RoverPatrolRefine.rover_patrol_refine_modeKeyed
 
 /-! ## Copied benchmarks (legacy theorems; `SameIR` ties the literals) -/
 

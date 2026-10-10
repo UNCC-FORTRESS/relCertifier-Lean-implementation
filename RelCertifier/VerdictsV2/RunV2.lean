@@ -168,10 +168,21 @@ def packsV2 : List PackV2 :=
     ⟨"rover_patrol_zones", 3, 1, [0, 1], 1, 1, 1, 3⟩,
     ⟨"rover_patrol_zones", 3, 2, [0, 1], 1, 1, 2, 2⟩,
     ⟨"rover_patrol_zones", 3, 2, [0, 1], 1, 1, 2, 3⟩,
-    ⟨"rover_patrol_zones", 3, 3, [0, 1], 1, 1, 3, 3⟩ ]
+    ⟨"rover_patrol_zones", 3, 3, [0, 1], 1, 1, 3, 3⟩,
+    -- rover_patrol_refine
+    ⟨"rover_patrol_refine", 3, 0, [0, 1], 9, 4, 0, 0⟩,
+    ⟨"rover_patrol_refine", 3, 0, [0, 1], 9, 4, 0, 1⟩,
+    ⟨"rover_patrol_refine", 3, 0, [0, 1], 9, 4, 0, 2⟩,
+    ⟨"rover_patrol_refine", 3, 0, [0, 1], 9, 4, 0, 3⟩,
+    ⟨"rover_patrol_refine", 3, 1, [0, 1], 9, 4, 1, 1⟩,
+    ⟨"rover_patrol_refine", 3, 1, [0, 1], 9, 4, 1, 2⟩,
+    ⟨"rover_patrol_refine", 3, 1, [0, 1], 9, 4, 1, 3⟩,
+    ⟨"rover_patrol_refine", 3, 2, [0, 1], 9, 4, 2, 2⟩,
+    ⟨"rover_patrol_refine", 3, 2, [0, 1], 9, 4, 2, 3⟩,
+    ⟨"rover_patrol_refine", 3, 3, [0, 1], 9, 4, 3, 3⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 242
+def expectedModalV2 : Nat := 262
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do

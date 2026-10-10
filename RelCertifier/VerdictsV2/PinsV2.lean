@@ -13,6 +13,7 @@ so a wrong row does not compile; with `modalVerdX_of_queries` (the rebuild denot
 kernel-checked.
 -/
 import RelCertifier.VerdictsV2.RunV2
+import RelCertifier.InstancesV2.Modal.RoverPatrolRefine
 import RelCertifier.InstancesV2.Modal.RoverPatrolZones
 import RelCertifier.InstancesV2.Modal.Sat3wDetumblePhases
 import RelCertifier.InstancesV2.Modal.SatDetumblePhases
@@ -308,5 +309,28 @@ theorem pin_rover_patrol_zones_8 : V2RoverPatrolZones.Verd 2 3 = packVerd (packs
   pin_row _ rfl irV2_rover_patrol_zones cutV2_rover_patrol_zones (by simp [packLam, packsV2])
 theorem pin_rover_patrol_zones_9 : V2RoverPatrolZones.Verd 3 3 = packVerd (packsV2.getD 93 default) :=
   pin_row _ rfl irV2_rover_patrol_zones cutV2_rover_patrol_zones (by simp [packLam, packsV2])
+
+theorem irV2_rover_patrol_refine : irV2 "rover_patrol_refine" = rover_patrol_refine_IRv2 := by decide
+theorem cutV2_rover_patrol_refine : cutV2 "rover_patrol_refine" = Oracle.rover_patrol_refine_cutsV2X := by decide
+theorem pin_rover_patrol_refine_0 : V2RoverPatrolRefine.Verd 0 0 = packVerd (packsV2.getD 94 default) :=
+  pin_row _ rfl irV2_rover_patrol_refine cutV2_rover_patrol_refine (by simp [packLam, packsV2])
+theorem pin_rover_patrol_refine_1 : V2RoverPatrolRefine.Verd 0 1 = packVerd (packsV2.getD 95 default) :=
+  pin_row _ rfl irV2_rover_patrol_refine cutV2_rover_patrol_refine (by simp [packLam, packsV2])
+theorem pin_rover_patrol_refine_2 : V2RoverPatrolRefine.Verd 0 2 = packVerd (packsV2.getD 96 default) :=
+  pin_row _ rfl irV2_rover_patrol_refine cutV2_rover_patrol_refine (by simp [packLam, packsV2])
+theorem pin_rover_patrol_refine_3 : V2RoverPatrolRefine.Verd 0 3 = packVerd (packsV2.getD 97 default) :=
+  pin_row _ rfl irV2_rover_patrol_refine cutV2_rover_patrol_refine (by simp [packLam, packsV2])
+theorem pin_rover_patrol_refine_4 : V2RoverPatrolRefine.Verd 1 1 = packVerd (packsV2.getD 98 default) :=
+  pin_row _ rfl irV2_rover_patrol_refine cutV2_rover_patrol_refine (by simp [packLam, packsV2])
+theorem pin_rover_patrol_refine_5 : V2RoverPatrolRefine.Verd 1 2 = packVerd (packsV2.getD 99 default) :=
+  pin_row _ rfl irV2_rover_patrol_refine cutV2_rover_patrol_refine (by simp [packLam, packsV2])
+theorem pin_rover_patrol_refine_6 : V2RoverPatrolRefine.Verd 1 3 = packVerd (packsV2.getD 100 default) :=
+  pin_row _ rfl irV2_rover_patrol_refine cutV2_rover_patrol_refine (by simp [packLam, packsV2])
+theorem pin_rover_patrol_refine_7 : V2RoverPatrolRefine.Verd 2 2 = packVerd (packsV2.getD 101 default) :=
+  pin_row _ rfl irV2_rover_patrol_refine cutV2_rover_patrol_refine (by simp [packLam, packsV2])
+theorem pin_rover_patrol_refine_8 : V2RoverPatrolRefine.Verd 2 3 = packVerd (packsV2.getD 102 default) :=
+  pin_row _ rfl irV2_rover_patrol_refine cutV2_rover_patrol_refine (by simp [packLam, packsV2])
+theorem pin_rover_patrol_refine_9 : V2RoverPatrolRefine.Verd 3 3 = packVerd (packsV2.getD 103 default) :=
+  pin_row _ rfl irV2_rover_patrol_refine cutV2_rover_patrol_refine (by simp [packLam, packsV2])
 
 end RelCertifier.VerdictsV2

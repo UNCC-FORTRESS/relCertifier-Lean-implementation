@@ -94,12 +94,18 @@ Mechanized in `Proofs/Encoding/ModeHandoff.lean` as `theorem3_modeKeyed`:
 | the loop invariant | `psiK ul ϕ nL domL domR BkR = ((Φ ∧ envLR) ∧ BkR) ∧ ⌊u_L ∈ modes⌋_L`, `BkR` the right bookkeeping (`mvValidR` or `mvRegionR`) |
 | **(i)** per-mode cover | `hstepM`, the per-mode step the F- and R-chains consume, from the instance's own provider (`hstepMode_multiF` / `hstepMode_multiR`) |
 | **(ii)** the handoff, DOMAIN-CONDITIONED (at a switch the left state ends an `m'` residence and satisfies `guard_m`; the right state is in its evolve domain) | `hhand : ∀ m' < nL, ∀ t ∈ A.succ m', ∀ ω, sat (F m') ω → sat env ω → sat (A.guard t) ω → sat (F t) ω`. Two discharges exist: from Z3 on the runner's query (`handoff_of_unsat`, the `IForm` of `Trusted/Handoff.lean` that `relcert --handoff` and `--run-verdicts-v2` print), or in the kernel. **All twelve mode-keyed instances discharge it in the kernel** (no instance uses `handoff_of_unsat`), so they add no verdict beyond their per-mode packs; the runner's handoff phase is the tool-level check of the same implication |
-| **(iii)** well-formedness | the trust-base item (successor-completeness with guard-gated switching); mechanized side conditions: freshness of `u_L` and the footprint disjointnesses (`hd_modeKeyed`, `hddF_modeKeyed`) |
+| **(iii)** well-formedness | the trust-base item (successor-completeness; for all 45 theorems guard-gated switching is kernel-checked on both sides and the response exhibits every switch, §2e); mechanized side conditions: freshness of `u_L` and the footprint disjointnesses (`hd_modeKeyed_G`, `hddF_modeKeyed_G`) |
 | the conclusion | `rvalid (theorem3Form (leftAutomatonBody A ul) (rightAutomatonBody G mv) (psiK …))` |
 
-Mode-independent invariants are the special case `F m = F`; the 33 mode-independent
-suite_v2 instances keep the `bigChoice leftProgs` left form, which over-approximates the
-left automaton and so is the stronger claim (the left is ∀-quantified).
+Mode-independent invariants are the special case `F m = F`. All 45 benchmarks are stated
+over `leftAutomatonBody`: the 33 mode-independent ones are proved over the choice of their
+windows (`bigChoice leftProgs`) and carried to the left automaton by the generic bridge
+`theorem3_leftAut_of_choice` (`Proofs/Encoding/LeftAutUniform.lean`): the left automaton only
+removes left runs (a declared successor, its guard tested, its window) and adds `u_L`. The
+choice form is not always the stronger claim WORTH stating: for
+`refinement_ladder_rover_rung2_3to6` and the two story2 ladders the choice of PLAIN windows
+(no guard test) is false over the guarded right automaton, while the paper's left program is
+proved (`docs/GUARDED-SWITCHING.md` §4.5).
 
 **The twelve mode-keyed benchmarks** (tool handoff: `relcert --handoff`, all transitions
 `unsat`; the other 33 benchmarks' handoffs are vacuous, their rows being identical):
@@ -109,18 +115,19 @@ left automaton and so is the stronger claim (the left is ∀-quantified).
 | `acc_spoof_limp` | `V2AccSpoofLimp.acc_spoof_limp_modeKeyed` | 3 | 6 (12) |
 | `acc_tune_limp` | `V2AccTuneLimp.acc_tune_limp_modeKeyed` | 3 | 6 (12) |
 | `platoon_delay_linkloss` | `V2PlatoonDelayLinkloss.platoon_delay_linkloss_modeKeyed` | 7 | 6 (12) |
-| `platoon3_linkloss` | `V2Platoon3Linkloss.platoon3_linkloss_modeKeyed` | 3 | 2 (26) |
-| `rover_patrol_zones` | `V2RoverPatrolZones.rover_patrol_zones_modeKeyed` | 10 | 10 (20) |
-| `rover_patrol_refine` | `V2RoverPatrolRefine.rover_patrol_refine_modeKeyed` | 10 | 10 (20) |
+| `platoon3_linkloss` | `V2Platoon3Linkloss.platoon3_linkloss_modeKeyed` (guarded, on the repaired model: operating-range guards, `docs/SUITE-REDESIGN.md` §20) | 3 | 2 (26) |
+| `rover_patrol_zones` | `V2RoverPatrolZonesGuarded.rover_patrol_zones_guarded` (guarded, Z3-free; the `⊤` theorem `rover_patrol_zones_modeKeyed` took 10 packs) | 10 | none |
+| `rover_patrol_refine` | `V2RoverPatrolRefineGuarded.rover_patrol_refine_guarded` (guarded, Z3-free; the `⊤` theorem took 10 packs) | 10 | none |
 | `sat_detumble_phases` | `V2SatDetumblePhases.sat_detumble_phases_modeKeyed` | 3 | 2 (4) |
 | `sat3w_detumble_phases` | `V2Sat3wDetumblePhases.sat3w_detumble_phases_modeKeyed` | 3 | 2 (4) |
-| `story3_rollover_ladder_rung_b` | `V2Story3RolloverRungB.story3_rollover_ladder_rung_b_modeKeyed` | 5 | 9 (21) |
-| `rover3tier_rung12` (carried over) | `Rover3tierRung12Handoff.rover3tier_rung12_modeKeyed` | 4 | the two per-left-mode packs `VerdQA`, `VerdQC` of `Rover3tierRung12Modal` |
-| `story1_attdist_rung_a_6to8` (carried over) | `Story1AttdistRungAHandoff.story1_attdist_rung_a_modeKeyed` | 5 | 3 `VerdS` (the STEEP window at its full row) + 6 base `VerdD` |
-| `story1_attdist_rung_b_12dof` (carried over) | `Story1AttdistRungBHandoff.story1_attdist_rung_b_modeKeyed` | 5 | 6 `VerdR r m` (`r ≤ m`) |
+| `story3_rollover_ladder_rung_b` | `V2Story3RolloverRungBGuarded.story3_rollover_ladder_rung_b_guarded` | 5 | 9 (21) |
+| `rover3tier_rung12` (carried over) | `Rover3tierRung12Guarded.rover3tier_rung12_modeKeyed_guarded` (guarded, Z3-free; the `⊤` theorem `Rover3tierRung12Handoff.rover3tier_rung12_modeKeyed` used the packs `VerdQA`, `VerdQC`) | 4 | none |
+| `story1_attdist_rung_a_6to8` (carried over) | `Story1AttdistRungAGuarded.story1_attdist_rung_a_guarded` | 5 | 3 `VerdS` (the STEEP window at its full row) + 6 base `VerdD` |
+| `story1_attdist_rung_b_12dof` (carried over) | `Story1AttdistRungBGuarded.story1_attdist_rung_b_guarded` | 5 | 6 `VerdR r m` (`r ≤ m`) |
 
 `rover3tier_rung12`'s ACCEL row was re-stated on 2026-10-08 (rows only) because its
 original row failed the handoff; the countermodel is in `docs/HANDOFF.md`.
+Every row is guarded at the mode-consistent region (`docs/GUARDED-SWITCHING.md` §6).
 
 ## 2c. Checked cuts (closed: both channels are lifted to the kernel)
 
@@ -183,42 +190,67 @@ strictly down.
 | the per-edge instance | `MatchMultiRatePruned.match_multi_rate_nonconn` (Theorem 2 for `match_multi_rate`'s `DRIVE → STALL`), its hypothesis pinned to the suite_v2 runner's rebuilt pair by `VerdictsV2/NonConnPinV2.lean` |
 | suite_v2 | 44 pruned edges in the emitted covers, both queries of each re-sent by `--run-verdicts-v2` (88 `unsat`); pruning is load-bearing (`RELCERT_NO_PRUNE=1` declines) for 19 benchmarks (matrix column M4) |
 
-## 2e. The right automaton's ⊤ edge guards
+## 2e. Guard-gated switching on the right (closed on branch `guarded-right`)
 
-**The certifier's two step kinds.** The cover (`Checker/Cover.lean`, `Covered`) uses two
-kinds of right step: the **joint segment** (both systems flow, the right time-stretched by
-λ; `Covered.step`) and the **dynamic right-only reposition** (`checkDynRepo`,
-`Covered.stepRepositionDynPre/Post`, `RightReach.repositionDynPre/Post`; Lean:
-`dynreposition_faModal`, `BridgeReposition.lean`): the right flows under its own field for
-a full interval while the left is held, the invariant kept by the whole-domain flow
-certificate (route A over the frozen-left field). The dynamic reposition is the paper's
-**right-only segment**. The certificate has no zero-duration right switch (a static
-reposition existed until 2026-10-09 and was removed because nothing checked that the
-successor's guard held at its switch instant; record in `docs/history/COVER-AUDIT.md`).
+**The paper.** `cpsProg`'s right loop body is `?(m ∈ next(mv)) ; ?guard_m(x) ; mv := m ;
+flow_m`: a switch (and a stay, `m = mv`) is possible only where the entered mode's guard holds.
 
-**The ⊤-model.** Every right automaton the instances build sets `e.guard := ⊤` (the
-chain theorems take this as a hypothesis, `htt`, proved per instance or by the instance a
-mode-keyed theorem reuses), whereas the paper's `cpsProg` tests
-`?guard_m(x)` on each transition. For the two step kinds above this abstraction is
-justified under the paper's Assumption 1: every mode change the certificate makes follows
-a joint segment or a full-interval right-only flow, and after either the cover demands
-that **every** declared, unpruned successor covers (`retainedSucc … .all`), so whichever
-successor the guarded automaton actually enables is among those certified; Assumption 1
-(nonblocking) supplies that some enabled successor exists. The guard is not discarded: it
-does its work in the certificate, as the source of the cut atoms (O1) and of the
-non-connection pruning.
+**The mechanization.** `modeStep` (`Proofs/Encoding/JointBridge.lean`) is the same body up to
+rotation, `?(mv = q) ; flow_q ; ⋃_e (?e.guard ; mv := e.tgt)`. Until this branch every graph
+the instances built set `e.guard := ⊤` (and the bridge lemmas took `htt : e.guard = ⊤`), so
+the theorems were about the declared-successor relaxation of `R`. Now, for all 45
+theorems, every edge carries the lowered guard of the mode it enters (`hostGuard vars n
+Side.R (mR e.tgt)`, the left guards' lowering; each instance proves it as `Gr_guards`), and the
+response is built in the guarded layer (`Proofs/Encoding/GuardedSwitch.lean`):
 
-**Scope of that argument in the instances.** The argument is about the certificate's step
-kinds. The kernel witnesses of the instances are built over the `⊤`-guarded automaton, and
-several response constructions include zero-duration right runs followed by a switch
-(`static_hop_existsR` in `RepoPrefixR.lean`, or a local `static_hop*` lemma): 19 of the 24
-legacy instance modules under `Instances/` (written before the static-reposition removal)
-and 10 of the 26 suite_v2 instances (`Watertank`, `ChargerFastSetpoints`,
-`ChargerFastTapers`, `PlatoonDelayProfiles`, `Platoon3Profiles`, `QuadLightAirframe20`,
-`QuadLightLag`, `QuadLightProfiles`, `RoverPatrolZones`, `RoverPatrolRefine`). Whether each
-such switch happens at a state where the successor's guard holds is not checked by the
-kernel (the guards are `⊤`) and is not argued in this document; it is an open point about
-those instance witnesses, separate from the certificate's step kinds.
+| paper element | Lean |
+|---|---|
+| `?guard_m(x)` at a switch | `SwitchLegal e ω := Formula.sat e.guard ω`; the segment `gseg s = flow ; ?s.edge.guard` |
+| a right run is a sequence of legal switches | `guarded_rights_bridge` (a run of `bigSeq (segs.map gseg)` is a run of `star (rightAutomatonBody G mv)`) |
+| the ∃-response of one round | `GResp G q P post σ` (segments chosen after the left run; the final successor is chosen at the end state); chains of `flow ; legal switch` as `RResp`/`RRespP` (`GuardedClimb.lean`) |
+| **mode-consistent states** (Theorem 3's loop invariant on the right) | `mvRegionR mv gregion k` with `gregion q = regionG guard cuts q = guard q ∧ cuts q`: the right satisfies the lowered guard of its current mode `q` and `q`'s checked cuts |
+| the loop step | `hstep_assembled_GR`, `hstepMode_GR` with `Hmulti_regionG` / `HMode_regionG` (feed `theorem3_faithful_multiR_LR` and `theorem3_modeKeyed`, unchanged) |
+| Assumption 1 (nonblocking / successor-completeness) at a response's end | no hypothesis: every response exhibits its switches and their enabled targets explicitly, or makes no step (the right is then still in its current mode's guard, `gresp_guard`) |
+| a zero-duration switch, a reposition's switch | `gresp_hop`, `faModalB_repoPrefixG`, `hopAG` (the switch test after the hop) |
+| switching inside a left window (the cover's per-segment demonic successor choice) | the ladder climbs (`LadderRun.climb`, `climbD`) and the synchronized climbs (`syncClimb`, `syncWindow`): the right switches at band floors, legal by the explicit end state |
+| footprints without `htt` | `vars_bodyG_sub`, `hddF_multiR_G`, `hddF_multiR_plain_G`, `hd_modeKeyed_G`, `hddF_modeKeyed_G`, `hdis_multi_G` |
+
+**Theorem 3, mode-consistent states.** In the flow-then-jump rotation every loop iteration
+ends with a guarded jump into the right's current mode, so at every loop boundary the right
+satisfies that mode's guard; the mechanized loop invariant states exactly this
+(`guard q ∧ cuts q` of the current mode `q`), uniformly for all 45 benchmarks. **The wording
+for the paper's Theorem 3:** *a bi-state is mode-consistent when the right component satisfies
+the guard of its current mode and that mode's checked cuts; this is what the flow-then-jump
+rotation guarantees at every loop boundary, since the right has just taken a guarded jump into
+its mode.*
+
+**Theorem 3, the left side.** The left is the paper's own program, jump then flow
+(`leftAutomatonBody`, §2b): a left window is entered only where the entered left mode's
+lowered guard holds, and the left's mode variable `u_L` selects the declared successors.
+At a loop boundary the left has just FLOWED, so it is not in general in its current mode's
+guard; the invariant carries `u_L ∈ modes`, the rows keyed by `u_L` and the left envelope,
+and the next window's guard is tested by the program before that window. **The wording for
+the paper's Theorem 3 (both sides):** *a bi-state is mode-consistent when the right component
+satisfies the guard and checked cuts of its current mode; the left component's mode is a
+declared mode and its next window is entered only inside that window's guard. This is what the
+two rotations guarantee at every loop boundary: the right has just taken a guarded jump into
+its mode (flow, then jump), the left takes its guarded jump before its next flow (jump, then
+flow).*
+
+**What the migration found.** At the old invariants (rows, envelopes, kept cuts; no guard) the
+statement was false for 23 benchmarks: the invariant admitted right states outside their
+mode's guard from which the guarded automaton has no move (history:
+`docs/GUARDED-SWITCHING.md` §4.3). With mode-consistent states and the paper's left program
+all 45 are proved, 44 for every window length and `rung2c` for every window up to its control
+interval (`dt ≤ ε_L = 1`). The earlier "refuted by argument" entries
+(`refinement_ladder_rover_rung2_3to6`, the two story2 ladders) refuted only the left form with
+no guard test. The earlier kernel-checked refutations of the two `platoon3` benchmarks were
+real: their nominal controller BLOCKED after a full cycle (engagement-band stay guards, no
+catch-all mode: a violation of Assumption 1 the certificate cannot detect); the benchmarks are
+repaired (operating-range guards, `docs/SUITE-REDESIGN.md` §20) and proved. The demonic
+all-successors cover (the checker) is unaffected: the gaps were in the existential witnesses,
+in the stated invariant's right bookkeeping, and in one benchmark family's model. Record and
+per-benchmark table: `docs/GUARDED-SWITCHING.md`.
 
 ## 3. The generic theorem families
 
@@ -240,10 +272,10 @@ evidence is the matrix of `docs/SUITE-REDESIGN.md`.
 
 | paper `cpsProg` | mechanized | direction |
 |---|---|---|
-| left has guards, `u_L`, clock | mode-independent instances: `bigChoice leftProgs` (left flattened, windows clock-capped); mode-keyed instances: `leftAutomatonBody` with guards and `u_L` (§2b) | the flattened left over-approximates the ∀-side, so it is the stronger claim |
-| `?guard_m(x)` on right transitions | `e.guard = ⊤` | §2e |
+| left has guards, `u_L`, clock | `leftAutomatonBody` with the lowered left guards, the declared `next` lists and `u_L`, windows clock-capped, for all 45 (§2b; mode-independent instances through `theorem3_leftAut_of_choice`) | exact (jump then flow, as the paper writes it) |
+| `?guard_m(x)` on right transitions | `e.guard = hostGuard … (mR e.tgt)` for all 45 | §2e |
 | `t := 0; {…, t' = 1 & t ≤ ε_R}` on the right | unclocked in `rightAutomatonBody` | permissive (the ∃-side chooses durations) |
-| invariant `φInv` | `φInv ∧ envLR ∧` right bookkeeping (`mvValidR` or `mvRegionR`) | bookkeeping conjuncts on both sides of the implication |
+| invariant `φInv` | `φInv ∧ envLR ∧ mvRegionR mv gregion` (mode-consistent states: the current mode's guard and checked cuts) | bookkeeping conjuncts on both sides of the implication; the guard part is what the rotation maintains |
 | jump-then-flow (right) | flow-then-jump (`modeStep`) | a rotation (`docs/history/ROTATION-SCOPE.md`) |
 | budgets `B = ε_L`, `w = ε_R/λ` (real) | `weight : ℕ`, budget `⌈ε_L/δ_L⌉` | ℕ-discretization |
 | resets | identities | matches the paper's Limitations (`docs/history/RESET-MAPS-SCOPE.md`) |

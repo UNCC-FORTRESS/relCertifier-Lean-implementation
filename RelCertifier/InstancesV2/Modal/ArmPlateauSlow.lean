@@ -13,11 +13,17 @@ linear-form chain `q = v + 2(θ − 0.5) ≤ 0.355` (`q' = −0.5q`) and its der
 hold at the window's start (the guard's arithmetic) and stay along the clocked left flow
 (differential invariants through the `lie_clk_left` adapter, CutLiftX's `linearShape` /
 `derivedShape` superlevel conditions); after the window the right, untouched by it, stays
-in its mode and flows at its constant rate until `θ_R = θ_L − 0.0775 ≤ 0.6` (or does
-nothing when already there; in `Hold` its region gives `θ_R ≥ 0.6`). No verdict pack;
-Z3-free.
+flows at the constant rates of the bands it crosses up to `θ_R = θ_L − 0.0775 ≤ 0.6` (or does
+nothing when already there; in `Hold` its guard gives `θ_R ≥ 0.6`). The right automaton is
+GUARDED (every edge tests the lowered guard of the band it enters, `Gr_guards`): the climb
+switches at each band floor (`0.35`, `0.5`) and at the target, every switch legal by the
+explicit end state; the loop invariant's right region is the current band's guard and kept
+cut atoms (`gregion`). Until 2026-10-10 the statement over the cut-only region was false
+(`θ_R = 0.51` in `ApproachA`, admitted by its cut `θ_R ≥ 0`, has no step); the guard
+conjunct excludes it. No verdict pack; Z3-free.
 -/
 import RelCertifier.Proofs.Encoding.CutRespond
+import RelCertifier.Proofs.Encoding.GuardedClimb
 import RelCertifier.Proofs.Encoding.WindowGrowth
 import RelCertifier.Proofs.Encoding.RepoPrefixR
 import RelCertifier.Proofs.Flow.FaceBridge
@@ -344,8 +350,11 @@ theorem region_fv (q : ℕ) : (region q).fv ⊆ range Rv := by
 noncomputable def modeW (q : ℕ) : RMode (Var 2) :=
   { sys := rightBlock (fR q) (Term.const 1), dom := domR, weight := 1 }
 
-def edgeW (s t : ℕ) : REdge (Var 2) :=
-  { src := s, tgt := t, guard := Formula.tt, pruned := false }
+/-- The declared edge `s → t` carries the ENTERED mode's lowered guard (`hostGuard` of the
+right mode `t`, lowered exactly as the left windows' guards are): the right switches into
+`t` only where `t`'s guard holds. -/
+noncomputable def edgeW (s t : ℕ) : REdge (Var 2) :=
+  { src := s, tgt := t, guard := hostGuard vs 2 Side.R (mR t), pruned := false }
 
 /-- The declared transitions (ApproachA 0, ApproachB 1, ApproachC 2, Hold 3). -/
 def edgeList : List (ℕ × ℕ) :=
@@ -376,13 +385,6 @@ theorem Gr_modeAt_inv {q : ℕ} {m : RMode (Var 2)} (hm : Gr.modeAt q = some m) 
   | 3 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
   | q + 4 => exact absurd hm (by simp [SearchGraph.modeAt, Gr])
 
-theorem htt : ∀ q, ∀ e ∈ Gr.edgesFrom q, e.guard = Formula.tt := by
-  intro q e he
-  have hmem : e ∈ Gr.edges := List.mem_of_mem_filter he
-  simp only [Gr, List.mem_map] at hmem
-  obtain ⟨p, -, rfl⟩ := hmem
-  rfl
-
 theorem hlt : ∀ q, ∀ e ∈ Gr.edgesFrom q, e.tgt < Gr.modes.length := by
   intro q e he
   have hmem : e ∈ Gr.edges := List.mem_of_mem_filter he
@@ -407,6 +409,29 @@ theorem edge_mem (s t : ℕ) (h : (s, t) ∈ edgeList) : edgeW s t ∈ Gr.edgesF
 theorem hfresh : ∀ q m, Gr.modeAt q = some m → mv ∉ (Program.ode m.sys m.dom).fv := by
   intro q m hm hmv
   exact aux_notin_range_Rv 0 (hRv q m hm (vars_ode_sub _ _ (Or.inl hmv)))
+
+theorem hguardR (q : ℕ) (hq : q < 4) : (hostGuard vs 2 Side.R (mR q)).fv ⊆ range Rv :=
+  hostGuard_fv_R vs (mR q) (by
+    interval_cases q <;> simp [mR, arm_plateau_slow_IRv2, Parse.PForm.namesFree,
+      Parse.PExpr.namesFree])
+
+theorem edgeList_tgt : ∀ p ∈ edgeList, p.2 < 4 := by decide
+
+theorem hgR : GuardsRight Gr := by
+  intro q e he
+  have hmem : e ∈ Gr.edges := List.mem_of_mem_filter he
+  simp only [Gr, List.mem_map] at hmem
+  obtain ⟨p, hp, rfl⟩ := hmem
+  exact hguardR p.2 (edgeList_tgt p hp)
+
+/-- **The graph is the guarded automaton**: every declared edge tests the lowered guard of
+the mode it enters. -/
+theorem Gr_guards : ∀ q, ∀ e ∈ Gr.edgesFrom q, e.guard = hostGuard vs 2 Side.R (mR e.tgt) := by
+  intro q e he
+  have hmem : e ∈ Gr.edges := List.mem_of_mem_filter he
+  simp only [Gr, List.mem_map] at hmem
+  obtain ⟨p, -, rfl⟩ := hmem
+  rfl
 
 /-! ## O2 along the left window: the linear-form chain on the clocked left flow -/
 
@@ -605,6 +630,20 @@ theorem sem_right_run (q : ℕ) (hq : q < 4) (τ : ℝ) (hτ : 0 ≤ τ) {μ : S
 
 /-! ## The left windows (guard-gated, one clocked piece) -/
 
+/-! ## The mode-consistent region: the right mode's guard and its kept cut atoms -/
+
+/-- **The mode-consistent region** of right mode `q`: its lowered guard (the state a guarded
+jump into `q` leaves the right in) and its checked cuts (`region`). -/
+noncomputable def gregion (q : ℕ) : Formula (Var 2) :=
+  regionG (fun q => hostGuard vs 2 Side.R (mR q)) region q
+
+theorem hguardR_all (q : ℕ) : (hostGuard vs 2 Side.R (mR q)).fv ⊆ range Rv :=
+  hostGuard_fv_R_getD vs _ dm rfl (by simp [arm_plateau_slow_IRv2, Parse.PForm.namesFree,
+    Parse.PExpr.namesFree]) q
+
+theorem gregion_fv (q : ℕ) : (gregion q).fv ⊆ range Rv :=
+  regionG_fv_sub (hguardR_all q) (region_fv q)
+
 noncomputable def leftData : List (Formula (Var 2) × (Fin 2 → Term (Var 2))
     × Formula (Var 2) × ℕ) :=
   [(hostGuard vs 2 Side.L (mL 0), fL 0, domL, 1), (hostGuard vs 2 Side.L (mL 1), fL 1, domL, 1)]
@@ -707,62 +746,213 @@ theorem catchUp (l : ℕ) (hl : l < 2) (q : ℕ) (hq : q < 4) (dt : ℝ) {σ : S
     rw [this, zero_mul, add_zero]
     exact hlow.2 rfl
 
+/-! ## The guarded climb -/
+
+/-- The right state with `θ_R` set to `b`. -/
+noncomputable def setR (ρ : State (Var 2)) (b : ℝ) : State (Var 2) :=
+  fun x => if x = Rv 0 then b else ρ x
+
+@[simp] theorem setR_R0 (ρ : State (Var 2)) (b : ℝ) : setR ρ b (Rv 0) = b := by simp [setR]
+theorem setR_ne (ρ : State (Var 2)) (b : ℝ) {x : Var 2} (hx : x ≠ Rv 0) :
+    setR ρ b x = ρ x := by simp [setR, hx]
+@[simp] theorem setR_L (ρ : State (Var 2)) (b : ℝ) (i : Fin 2) : setR ρ b (Lv i) = ρ (Lv i) :=
+  setR_ne ρ b (by simp [Lv, Rv, Prod.ext_iff])
+theorem setR_setR (ρ : State (Var 2)) (a b : ℝ) : setR (setR ρ a) b = setR ρ b := by
+  funext x; by_cases hx : x = Rv 0 <;> simp [setR, hx]
+theorem setR_self (ρ : State (Var 2)) : setR ρ (ρ (Rv 0)) = ρ := by
+  funext x; by_cases hx : x = Rv 0 <;> simp [setR, hx]
+
+theorem rate_pos (q : ℕ) (hq : q < 3) : 0 < rate q := by
+  interval_cases q <;> norm_num [rate]
+
+/-- One leg: a charging mode (`q < 3`) runs from `ρ` up to `θ_R = b`. -/
+theorem leg (q : ℕ) (hq : q < 3) {ρ : State (Var 2)} (hdom : Formula.sat domR ρ) {b : ℝ}
+    (hab : ρ (Rv 0) ≤ b) (hb : b ≤ 6/5) :
+    Program.sem (Program.ode (modeW q).sys (modeW q).dom) ρ (setR ρ b) := by
+  have hr := rate_pos q hq
+  have h := sem_right_run q (by omega) ((b - ρ (Rv 0)) / rate q)
+    (div_nonneg (by linarith) hr.le) hdom (by rw [mul_div_cancel₀ _ hr.ne']; linarith)
+  have heq : (fun x => if x = Rv 0 then ρ (Rv 0) + rate q * ((b - ρ (Rv 0)) / rate q)
+      else ρ x) = setR ρ b := by
+    funext x
+    by_cases hx : x = Rv 0
+    · simp [setR, hx, mul_div_cancel₀ _ hr.ne']
+    · simp [setR, hx]
+  rw [heq] at h
+  exact h
+
+/-- The right guards, evaluated. -/
+theorem sat_guardR (q : ℕ) (hq : q < 4) (ν : State (Var 2)) :
+    Formula.sat (hostGuard vs 2 Side.R (mR q)) ν ↔
+      (if q = 0 then 0 ≤ ν (Rv 0) ∧ ν (Rv 0) ≤ 7/20
+       else if q = 1 then 7/20 ≤ ν (Rv 0) ∧ ν (Rv 0) ≤ 1/2
+       else if q = 2 then 1/2 ≤ ν (Rv 0) ∧ ν (Rv 0) ≤ 3/5
+       else 3/5 ≤ ν (Rv 0) ∧ ν (Rv 0) < 23/20) := by
+  interval_cases q <;>
+    simp [hostGuard, mR, arm_plateau_slow_IRv2, Run.lowerF, Run.lowerE, hp00, hp035, hp05, hp06, hp115, vs,
+      Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
+      CompOp.interp, Term.eval, Rv]
+
+/-- **The guarded response.** After the left window the right either makes no step (it is
+already within `0.0775` of the left), or climbs from its start mode through the bands it
+crosses — each band run up to the next band's floor (`0.35`, `0.5`), the switch into the next
+band (legal: the floor is in the entered band's guard), the last band up to the target
+`θ_L − 0.0775` — and switches at the target into the band that contains it. The chain bound
+`θ_L ≤ 0.6775` makes the target at most `0.6`, the top of `ApproachC`'s band, so `Hold` (whose
+guard puts `θ_R ≥ 0.6`) never has to move. Every switch is legal by the explicit end state of
+its leg. -/
+theorem respondG (l : ℕ) (hl : l < 2) (q : ℕ) (hq : q < 4) (dt : ℝ) {σ : State (Var 2)}
+    (hσ : Formula.sat (Formula.and (FM g gs) env) σ) (hreg : Formula.sat (region q) σ)
+    (hgR : Formula.sat (hostGuard vs 2 Side.R (mR q)) σ)
+    (hguard : Formula.sat (hostGuard vs 2 Side.L (mL l)) σ) :
+    GResp Gr q (windowSeg (leftBlock (fL l)) domL tg dt 1)
+      (fun qf => Formula.and (Formula.and (FM g gs) env) (region qf)) σ := by
+  refine gresp_of_rresp (fun ν hleft => ?_)
+  have hch := chain_of_guard l hl hguard
+  have hθL : ν (Lv 0) ≤ 271/400 := window_end l hl dt hleft hch.1 hch.2
+  have hRν : ν (Rv 0) = σ (Rv 0) := window_maskR l dt hleft 0
+  have hdomLν : Formula.sat domL ν :=
+    windowSeg_end_domL (leftBlock (fL l)) domL tg dt 1 (by norm_num) hleft
+  have hdR : 0 ≤ σ (Rv 0) ∧ σ (Rv 0) ≤ 6/5 := (sat_domR σ).mp hσ.2.2
+  have hdomRν : Formula.sat domR ν := by rw [sat_domR, hRν]; exact hdR
+  have hlow := (sat_region q hq σ).mp hreg
+  have hgq := (sat_guardR q hq σ).mp hgR
+  have hrow : σ (Lv 0) ≤ σ (Rv 0) + 31/400 := by
+    have := (sat_FM_iff g gs σ).mp hσ.1 g List.mem_cons_self
+    rw [eval_g] at this; linarith
+  -- the loop postcondition at `setR ν b`
+  have postAt : ∀ qf, qf < 4 → ∀ b : ℝ, ν (Lv 0) - 31/400 ≤ b → 0 ≤ b → b ≤ 6/5 →
+      lowR qf ≤ b → (qf = 3 → b ≤ 23/20) →
+      Formula.sat (Formula.and (Formula.and (FM g gs) env) (region qf)) (setR ν b) := by
+    intro qf hqf b h1 h2 h3 h4 h5
+    refine ⟨⟨?_, ?_, (sat_domR _).mpr (by simp; exact ⟨h2, h3⟩)⟩,
+      (sat_region qf hqf _).mpr (by simp; exact ⟨h4, h5⟩)⟩
+    · rw [sat_FM_iff]
+      intro g' hg'
+      simp only [gs, List.mem_cons, List.not_mem_nil, or_false] at hg'
+      subst hg'
+      rw [eval_g]; simp; linarith
+    · rw [sat_domL]; simp; exact (sat_domL ν).mp hdomLν
+  have guardAt : ∀ t, t < 4 → ∀ b : ℝ,
+      (if t = 0 then 0 ≤ b ∧ b ≤ 7/20
+       else if t = 1 then 7/20 ≤ b ∧ b ≤ 1/2
+       else if t = 2 then 1/2 ≤ b ∧ b ≤ 3/5 else 3/5 ≤ b ∧ b < 23/20) →
+      ∀ s, SwitchLegal (edgeW s t) (setR ν b) := by
+    intro t ht b hb s
+    show Formula.sat (hostGuard vs 2 Side.R (mR t)) (setR ν b)
+    rw [sat_guardR t ht]; simpa using hb
+  by_cases hc : ν (Lv 0) - 31/400 ≤ ν (Rv 0)
+  · -- no step
+    refine ⟨[], by simp, by simp, by simp, ν, ?_, ?_⟩
+    · show Program.sem (Program.test Formula.tt) ν ν
+      exact ⟨rfl, trivial⟩
+    · have := postAt q hq (ν (Rv 0)) hc (by rw [hRν]; exact hdR.1) (by rw [hRν]; exact hdR.2)
+        (by rw [hRν]; exact hlow.1) (fun h3 => by rw [hRν]; exact hlow.2 h3)
+      rw [setR_self] at this
+      simpa [qfOf] using this
+  -- the right lags: the target is at most 0.6
+  replace hc := not_le.mp hc
+  set T := ν (Lv 0) - 31/400 with hTdef
+  have hT : T ≤ 3/5 := by linarith
+  have hdomS : ∀ b : ℝ, 0 ≤ b → b ≤ 6/5 → Formula.sat domR (setR ν b) := fun b h0 h1 =>
+    (sat_domR _).mpr (by simp; exact ⟨h0, h1⟩)
+  -- the final legs: band `t ∈ {B, C}` from `θ = a` up to `T`, ending with the self-loop
+  have finB : ∀ a : ℝ, 7/20 ≤ a → a ≤ T → T ≤ 1/2 →
+      RResp Gr 1 (fun qf => Formula.and (Formula.and (FM g gs) env) (region qf)) (setR ν a) := by
+    intro a ha1 ha2 hT2
+    have h2 := leg 1 (by norm_num) (hdomS a (by linarith) (by linarith)) (b := T)
+      (by simp; exact ha2) (by linarith)
+    rw [setR_setR] at h2
+    refine rresp_step (Gr_modeAt 1 (by norm_num)) (edge_mem 1 1 (by decide)) h2
+      (guardAt 1 (by norm_num) T (by simp; constructor <;> linarith) 1) (rresp_stop ?_)
+    simpa [edgeW] using postAt 1 (by norm_num) T le_rfl (by linarith) (by linarith)
+      (by simp [lowR]; linarith) (by norm_num)
+  have finC : ∀ a : ℝ, 1/2 ≤ a → a ≤ T →
+      RResp Gr 2 (fun qf => Formula.and (Formula.and (FM g gs) env) (region qf)) (setR ν a) := by
+    intro a ha1 ha2
+    have h2 := leg 2 (by norm_num) (hdomS a (by linarith) (by linarith)) (b := T)
+      (by simp; exact ha2) (by linarith)
+    rw [setR_setR] at h2
+    refine rresp_step (Gr_modeAt 2 (by norm_num)) (edge_mem 2 2 (by decide)) h2
+      (guardAt 2 (by norm_num) T (by simp; constructor <;> linarith) 2) (rresp_stop ?_)
+    simpa [edgeW] using postAt 2 (by norm_num) T le_rfl (by linarith) (by linarith)
+      (by simp [lowR]; linarith) (by norm_num)
+  -- `ApproachB` from `θ = a ≤ 0.5`: to the target, or to `0.5` and on into `ApproachC`
+  have fromB : ∀ a : ℝ, 7/20 ≤ a → a ≤ 1/2 → a ≤ T →
+      RResp Gr 1 (fun qf => Formula.and (Formula.and (FM g gs) env) (region qf)) (setR ν a) := by
+    intro a ha1 ha2 ha3
+    by_cases hT2 : T ≤ 1/2
+    · exact finB a ha1 ha3 hT2
+    · replace hT2 := not_le.mp hT2
+      have h2 := leg 1 (by norm_num) (hdomS a (by linarith) (by linarith)) (b := 1/2)
+        (by simp; linarith) (by norm_num)
+      rw [setR_setR] at h2
+      refine rresp_step (Gr_modeAt 1 (by norm_num)) (edge_mem 1 2 (by decide)) h2
+        (guardAt 2 (by norm_num) (1/2) (by simp; norm_num) 1) ?_
+      exact finC (1/2) le_rfl (le_of_lt hT2)
+  have hθq : ν (Rv 0) = σ (Rv 0) := hRν
+  rw [← hRν] at hgq hlow
+  interval_cases q
+  · -- `ApproachA` (`θ_R ≤ 0.35`)
+    simp only [if_true] at hgq
+    by_cases hT35 : T ≤ 7/20
+    · have h1 := leg 0 (by norm_num) hdomRν (b := T) (by linarith) (by linarith)
+      refine rresp_step (Gr_modeAt 0 (by norm_num)) (edge_mem 0 0 (by decide)) h1
+        (guardAt 0 (by norm_num) T (by simp; constructor <;> linarith [hgq.1]) 0)
+        (rresp_stop ?_)
+      simpa [edgeW] using postAt 0 (by norm_num) T le_rfl (by linarith [hgq.1])
+        (by linarith) (by simp [lowR]; linarith [hgq.1]) (by norm_num)
+    · replace hT35 := not_le.mp hT35
+      have h1 := leg 0 (by norm_num) hdomRν (b := 7/20) hgq.2 (by norm_num)
+      refine rresp_step (Gr_modeAt 0 (by norm_num)) (edge_mem 0 1 (by decide)) h1
+        (guardAt 1 (by norm_num) (7/20) (by simp; norm_num) 0) ?_
+      exact fromB (7/20) le_rfl (by norm_num) (le_of_lt hT35)
+  · -- `ApproachB` (`0.35 ≤ θ_R ≤ 0.5`)
+    simp only [show (1:ℕ) ≠ 0 from by decide, if_false, if_true] at hgq
+    have := fromB (ν (Rv 0)) hgq.1 hgq.2 (le_of_lt hc)
+    rwa [setR_self] at this
+  · -- `ApproachC` (`0.5 ≤ θ_R ≤ 0.6`)
+    simp only [show (2:ℕ) ≠ 0 from by decide, show (2:ℕ) ≠ 1 from by decide, if_false,
+      if_true] at hgq
+    have := finC (ν (Rv 0)) hgq.1 (le_of_lt hc)
+    rwa [setR_self] at this
+  · -- `Hold` (`θ_R ≥ 0.6 ≥ T`): the right never lags
+    simp only [show (3:ℕ) ≠ 0 from by decide, show (3:ℕ) ≠ 1 from by decide,
+      show (3:ℕ) ≠ 2 from by decide, if_false] at hgq
+    exfalso; linarith [hgq.1]
+
 theorem Hmulti (dt : ℝ) :
     ∀ P ∈ leftProgs dt, ∀ (q : ℕ), q < Gr.modes.length → ∀ σ, σ mv = (q : ℝ) →
-      Formula.sat (Formula.and (FM g gs) env) σ → Formula.sat (region q) σ →
-      ∃ segs : List (ℕ × RMode (Var 2) × REdge (Var 2)),
-        (∀ s ∈ segs, Gr.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ Gr.edgesFrom s.1) ∧
-        List.IsChain (fun a b => a.2.2.tgt = b.1) segs ∧
-        (∀ s, segs.head? = some s → s.1 = q) ∧
-        Formula.sat (faModal (Equiv.refl (Var 2)) P
-          (bigSeq (segs.map (fun s => Program.ode s.2.1.sys s.2.1.dom)))
-          (Formula.and (Formula.and (FM g gs) env) (region (qfOf segs q)))) σ := by
-  intro P hP q hq σ _ hσ hreg
+      Formula.sat (Formula.and (FM g gs) env) σ →
+      Formula.sat (hostGuard vs 2 Side.R (mR q)) σ → Formula.sat (region q) σ →
+      GResp Gr q P (fun qf => Formula.and (Formula.and (FM g gs) env) (region qf)) σ := by
+  intro P hP q hq σ _ hσ hgR hreg
   rw [Gr_len] at hq
-  have hbuild : ∀ l, l < 2 → P = gwindowSeg (hostGuard vs 2 Side.L (mL l))
-      (leftBlock (fL l)) domL tg dt 1 →
-      ∃ segs : List (ℕ × RMode (Var 2) × REdge (Var 2)),
-        (∀ s ∈ segs, Gr.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ Gr.edgesFrom s.1) ∧
-        List.IsChain (fun a b => a.2.2.tgt = b.1) segs ∧
-        (∀ s, segs.head? = some s → s.1 = q) ∧
-        Formula.sat (faModal (Equiv.refl (Var 2)) P
-          (bigSeq (segs.map (fun s => Program.ode s.2.1.sys s.2.1.dom)))
-          (Formula.and (Formula.and (FM g gs) env) (region (qfOf segs q)))) σ := by
-    intro l hl hPeq
-    subst hPeq
-    refine ⟨[(q, modeW q, edgeW q q)], ?_, by simp, by simp, ?_⟩
-    · intro s hs
-      rw [List.mem_singleton] at hs
-      subst hs
-      refine ⟨Gr_modeAt q hq, edge_mem q q ?_⟩
-      interval_cases q <;> simp [edgeList]
-    · refine gate l dt _ _ (fun hguard => ?_)
-      have := catchUp l hl q hq dt hσ hreg hguard
-      simpa [modeW, qfOf, edgeW] using this
   simp only [leftProgs, leftData, List.map_cons, List.map_nil, List.mem_cons,
     List.not_mem_nil, or_false] at hP
   rcases hP with rfl | rfl
-  · exact hbuild 0 (by norm_num) rfl
-  · exact hbuild 1 (by norm_num) rfl
+  · exact gresp_gate (fun hguard => respondG 0 (by norm_num) q hq dt hσ hreg hgR hguard)
+  · exact gresp_gate (fun hguard => respondG 1 (by norm_num) q hq dt hσ hreg hgR hguard)
 
 /-! ## Theorem 3 -/
 
-/-- **`arm_plateau_slow` (suite_v2), modal Theorem 3 at the declared invariant**, by
-CATCH-UP. Left: the two guard-gated PD windows (`Accelerate`, `Brake`; each entered inside
-its guard); right: the four-mode reference automaton of the file (declared edges); the loop
-invariant is the declared row `θ_L ≤ θ_R + 0.0775`, the evolve envelope, and the right mode's
-region (its kept cut atoms: `θ_R ≥ 0`, `≥ 0.35`, `≥ 0.5`, `∈ [0.6, 1.15]`). The response
+/-- **`arm_plateau_slow` (suite_v2), modal Theorem 3 at the declared invariant over the
+GUARDED right automaton**, by CATCH-UP. Left: the two guard-gated PD windows (`Accelerate`,
+`Brake`; each entered inside its guard); right: the four-mode reference automaton of the file
+(declared edges, each testing the entered band's guard); the loop invariant is the declared
+row `θ_L ≤ θ_R + 0.0775`, the evolve envelope, and the right band's guard and kept cut atoms
+(`gregion`; cuts `θ_R ≥ 0`, `≥ 0.35`, `≥ 0.5`, `∈ [0.6, 1.15]`). The response
 lets the left window run first; the linear-form chain (`q = v + 2(θ − 0.5) ≤ 0.355`, then
 `θ ≤ 0.6775`, both entered from the guard and kept along the clocked left flow by DI) caps
-`θ_L ≤ 0.6775` at the window's end; the right then stays in its mode and catches up at its
-constant rate to `θ_L − 0.0775 ≤ 0.6` (never needed in `Hold`, whose region has
-`θ_R ≥ 0.6`). No verdict hypotheses. -/
+`θ_L ≤ 0.6775` at the window's end; the right then climbs the bands (legal switches at
+`0.35`, `0.5` and at the target) to `θ_L − 0.0775 ≤ 0.6` (never needed in `Hold`, whose guard
+has `θ_R ≥ 0.6`). No verdict hypotheses. -/
 theorem arm_plateau_slow_modal (dt : ℝ) :
     RFormula.rvalid (theorem3Form
       (bigChoice (leftProgs dt))
       (rightAutomatonBody Gr mv)
       (RFormula.and (RFormula.and (canonInvM g []) (envLR domL domR))
-        (mvRegionR mv region Gr.modes.length))) := by
+        (mvRegionR mv gregion Gr.modes.length))) := by
   have hmvF : mv ∉ (FM g gs).fv := notMem_FM_fv (fun g' hg' hx => by
     rcases comps_fv g' hg' hx with ⟨i, hi⟩ | ⟨i, hi⟩
     · exact absurd hi (by simp [Lv, Prod.ext_iff])
@@ -771,8 +961,10 @@ theorem arm_plateau_slow_modal (dt : ℝ) :
     rintro (h | h)
     · exact aux_notin_range_Lv 0 (hdomL h)
     · exact aux_notin_range_Rv 0 (hdomR h)
-  have hmvreg : ∀ q, mv ∉ (region q).fv := fun q h => aux_notin_range_Rv 0 (region_fv q h)
-  refine theorem3_faithful_multiR_LR Gr mv (FM g gs) domL domR region
+  have hmvreg0 : ∀ q, mv ∉ (region q).fv := fun q h => aux_notin_range_Rv 0 (region_fv q h)
+  have hmvreg : ∀ q, mv ∉ (gregion q).fv := fun q =>
+    notMem_regionG_fv (fun h => aux_notin_range_Rv 0 (hguardR_all q h)) (hmvreg0 q)
+  refine theorem3_faithful_multiR_LR Gr mv (FM g gs) domL domR gregion
     (leftProgs dt) (canonInvM g gs) (encode_canonInvM g gs) ?_ ?_ ?_
   · refine sides_disjoint 0 1 0 (by decide) (by decide) ?_ ?_
     · refine vars_bigChoice_sub _ _ ?_
@@ -783,13 +975,20 @@ theorem arm_plateau_slow_modal (dt : ℝ) :
         (hL d hd).2.1 (hL d hd).2.2
     · intro x hx
       rw [Program.rename_refl] at hx
-      rcases vars_bodyU_sub Gr _ htt hRv hx with hx | hx
+      rcases vars_bodyG_sub Gr _ hgR hRv hx with hx | hx
       · exact Or.inl (Set.mem_insert_iff.mpr (Or.inl (Set.mem_singleton_iff.mp hx)))
       · exact Or.inr hx
-  · exact hstep_assembled_multiR Gr mv (FM g gs) env region (leftProgs dt) hmvF hmvenv hmvreg
-      hfresh htt hlt (hframes dt) (Hmulti dt)
-  · exact hddF_multiR Gr 0 1 dt leftData region (canonInvM g gs) domL domR
-      (by decide) htt hRv hL (fun q _ => region_fv q)
+  · exact hstep_assembled_GR Gr mv (FM g gs) env gregion (leftProgs dt) hmvF hmvenv hmvreg
+      hfresh (guardsFresh_of_right Gr 0 hgR) hlt (hframes dt)
+      (Hmulti_regionG Gr mv _ region Gr_guards (FM g gs) env (leftProgs dt)
+        (fun P hP q _ σ ν hrun => by
+          simp only [leftProgs, List.mem_map] at hP
+          obtain ⟨d, hd, rfl⟩ := hP
+          exact frames_right (vars_gwindowSegL_sub d.1 d.2.1 d.2.2.1 1 dt d.2.2.2 (hL d hd).1
+            (hL d hd).2.1 (hL d hd).2.2) (hguardR_all q) hrun)
+        (fun P hP q hq σ hmv hσ hg hreg => (Hmulti dt) P hP q hq σ hmv hσ hg hreg))
+  · exact hddF_multiR_G Gr 0 1 dt leftData gregion (canonInvM g gs) domL domR
+      (by decide) hgR hRv hL (fun q hq => gregion_fv q)
       (canonInvM_varsL g gs comps_fv) (canonInvM_varsR g gs) hdomL hdomR
 
 end V2ArmPlateauSlow

@@ -21,8 +21,12 @@ suite_v2 battery with its axiom audit.
 * `Trusted/`: the IO shell the proofs do not cover (parser, lowering, SMT printer, Z3
   session, the certifier `OracleAPI.certify`, emitters); its single proof-facing interface
   is `z3_unsat_sound`.
-* `InstancesV2/BatteryV2`: **the headline**, Theorem 3 for every one of the 45
-  `benchmarks/suite_v2` benchmarks, with `#print axioms` re-emitted on every build.
+* `InstancesV2/BatteryV2`: **the headline**, the battery of the 45 `benchmarks/suite_v2`
+  benchmarks with `#print axioms` re-emitted on every build: Theorem 3 with the paper's
+  guard-gated left automaton against the guarded right automaton at the mode-consistent
+  region (`guard ∧ cuts` of the right's current mode) for all 45 (every window length;
+  `rung2c` up to its control interval `dt ≤ 1`; the `platoon3` pair on the repaired model)
+  (`docs/GUARDED-SWITCHING.md`).
   `VerdictsV2/`: the runner tables and the kernel pins tying each Z3 hypothesis to the
   query `relcert --run-verdicts-v2` sends.
 * `Instances/` and `Verdicts/`: the 19 theorems carried over from the retired legacy
@@ -69,6 +73,8 @@ import RelCertifier.Proofs.Encoding.EnvelopeChainR
 import RelCertifier.Proofs.Encoding.FvDischarge
 import RelCertifier.Proofs.Encoding.JointBridge
 import RelCertifier.Proofs.Encoding.LoweringSide
+import RelCertifier.Proofs.Encoding.GuardedSwitch
+import RelCertifier.Proofs.Encoding.LeftAutUniform
 import RelCertifier.Proofs.Encoding.ModeHandoff
 import RelCertifier.Proofs.Encoding.ModeRegion
 import RelCertifier.Proofs.Encoding.MultiSeg

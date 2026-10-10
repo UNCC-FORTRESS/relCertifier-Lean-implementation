@@ -29,6 +29,7 @@ The right region of `DETUMBLE` carries, besides the kept atom, the NONBLOCKING c
 `sat_detumble_phases_modeKeyed`.
 -/
 import RelCertifier.Proofs.Encoding.CutRespond
+import RelCertifier.Proofs.Encoding.GuardedSwitch
 import RelCertifier.Proofs.Encoding.ModeHandoff
 import RelCertifier.Proofs.Flow.FaceBridge
 import RelCertifier.InstancesV2.Cuts.sat_detumble_phases
@@ -566,8 +567,11 @@ theorem anchor_fv (l : ℕ) (hl : l < 2) :
 noncomputable def modeW (q : ℕ) : RMode (Var 4) :=
   { sys := rightBlock (fR q) (Term.const 1), dom := domR, weight := 1 }
 
-def edgeW (s t : ℕ) : REdge (Var 4) :=
-  { src := s, tgt := t, guard := Formula.tt, pruned := false }
+/-- The declared edge `s → t` carries the ENTERED mode's lowered guard (`hostGuard` of the
+right mode `t`, lowered exactly as the left windows' guards are): the right switches into
+`t` only where `t`'s guard holds. -/
+noncomputable def edgeW (s t : ℕ) : REdge (Var 4) :=
+  { src := s, tgt := t, guard := hostGuard vs 4 Side.R (mR t), pruned := false }
 
 /-- The declared transitions, as indices (`DETUMBLE` 0, `SAFE` 1). -/
 def edgeList : List (ℕ × ℕ) := [(0, 0), (0, 1), (1, 1)]
@@ -595,13 +599,6 @@ theorem Gr_modeAt_inv {q : ℕ} {m : RMode (Var 4)} (hm : Gr.modeAt q = some m) 
   | 1 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
   | q + 2 => exact absurd hm (by simp [SearchGraph.modeAt, Gr])
 
-theorem htt : ∀ q, ∀ e ∈ Gr.edgesFrom q, e.guard = Formula.tt := by
-  intro q e he
-  have hmem : e ∈ Gr.edges := List.mem_of_mem_filter he
-  simp only [Gr, List.mem_map] at hmem
-  obtain ⟨p, -, rfl⟩ := hmem
-  rfl
-
 theorem hlt : ∀ q, ∀ e ∈ Gr.edgesFrom q, e.tgt < Gr.modes.length := by
   intro q e he
   have hmem : e ∈ Gr.edges := List.mem_of_mem_filter he
@@ -626,6 +623,37 @@ theorem edge_mem (s t : ℕ) (h : (s, t) ∈ edgeList) : edgeW s t ∈ Gr.edgesF
 theorem hfresh : ∀ q m, Gr.modeAt q = some m → mv ∉ (Program.ode m.sys m.dom).fv := by
   intro q m hm hmv
   exact aux_notin_range_Rv 0 (hRv q m hm (vars_ode_sub _ _ (Or.inl hmv)))
+
+theorem hguardR (q : ℕ) (hq : q < 2) : (hostGuard vs 4 Side.R (mR q)).fv ⊆ range Rv :=
+  hostGuard_fv_R vs (mR q) (by
+    interval_cases q <;> simp [mR, sat_detumble_phases_IRv2, Parse.PForm.namesFree,
+      Parse.PExpr.namesFree])
+
+theorem edgeList_tgt : ∀ p ∈ edgeList, p.2 < 2 := by decide
+
+theorem hgR : GuardsRight Gr := by
+  intro q e he
+  have hmem : e ∈ Gr.edges := List.mem_of_mem_filter he
+  simp only [Gr, List.mem_map] at hmem
+  obtain ⟨p, hp, rfl⟩ := hmem
+  exact hguardR p.2 (edgeList_tgt p hp)
+
+/-- **The graph is the guarded automaton**: every declared edge tests the lowered guard of
+the mode it enters. -/
+theorem Gr_guards : ∀ q, ∀ e ∈ Gr.edgesFrom q, e.guard = hostGuard vs 4 Side.R (mR e.tgt) := by
+  intro q e he
+  have hmem : e ∈ Gr.edges := List.mem_of_mem_filter he
+  simp only [Gr, List.mem_map] at hmem
+  obtain ⟨p, -, rfl⟩ := hmem
+  rfl
+
+/-- The non-sink right mode's region implies its guard: the kept atom IS the lowered guard
+(`E_R ≤ 1`). -/
+theorem guard_of_region (μ : State (Var 4)) (h : CutSat (cR 0) μ) :
+    Formula.sat (hostGuard vs 4 Side.R (mR 0)) μ := by
+  have hg : (mR 0).guard = Aen1 := by rfl
+  have h1 := h _ (by rw [cR_0]; exact List.mem_cons_self)
+  unfold hostGuard; rw [hg]; exact h1
 
 /-! ## Regions -/
 
@@ -1128,6 +1156,26 @@ theorem hmvenv : mv ∉ env.fv := by
   · exact aux_notin_range_Lv 0 (hdomL h)
   · exact aux_notin_range_Rv 0 (hdomR h)
 
+/-! ## The mode-consistent region: the right mode's guard and its kept cut atoms -/
+
+/-- **The mode-consistent region** of right mode `q`: its lowered guard (the state a guarded
+jump into `q` leaves the right in) and its checked cuts (`region`). -/
+noncomputable def gregion (q : ℕ) : Formula (Var 4) :=
+  regionG (fun q => hostGuard vs 4 Side.R (mR q)) region q
+
+theorem hguardR_all (q : ℕ) : (hostGuard vs 4 Side.R (mR q)).fv ⊆ range Rv :=
+  hostGuard_fv_R_getD vs _ dm rfl (by simp [sat_detumble_phases_IRv2, Parse.PForm.namesFree,
+    Parse.PExpr.namesFree]) q
+
+theorem gregion_fv (q : ℕ) : (gregion q).fv ⊆ range Rv :=
+  regionG_fv_sub (hguardR_all q) (region_fv q)
+
+/-- The left windows leave the right guards' truth values unchanged. -/
+theorem frameG (dt : ℝ) (t : ℕ) (ht : t < 2) (q : ℕ) {σ ν : State (Var 4)}
+    (h : Program.sem ((A dt).window t) σ ν) :
+    Formula.sat (hostGuard vs 4 Side.R (mR q)) σ → Formula.sat (hostGuard vs 4 Side.R (mR q)) ν :=
+  frames_right (hwin dt t (by rw [A_numModes]; exact ht)) (hguardR_all q) h
+
 theorem hmvreg : ∀ q, mv ∉ (region q).fv := fun q h => aux_notin_range_Rv 0 (region_fv q h)
 
 theorem hulenv : uL ∉ env.fv := by
@@ -1137,6 +1185,14 @@ theorem hulenv : uL ∉ env.fv := by
 
 theorem hulBk : uL ∉ (mvRegion mv region Gr.modes.length).fv := fun h => by
   rcases mvRegion_fv_sub mv region Gr.modes.length (fun q _ => region_fv q) h with h | h
+  · exact absurd (Set.mem_singleton_iff.mp h) (by decide)
+  · exact aux_notin_range_Rv 2 h
+
+theorem hmvregG : ∀ q, mv ∉ (gregion q).fv := fun q =>
+  notMem_regionG_fv (fun h => aux_notin_range_Rv 0 (hguardR_all q h)) (hmvreg q)
+
+theorem hulBkG : uL ∉ (mvRegion mv gregion Gr.modes.length).fv := fun h => by
+  rcases mvRegion_fv_sub mv gregion Gr.modes.length (fun q _ => gregion_fv q) h with h | h
   · exact absurd (Set.mem_singleton_iff.mp h) (by decide)
   · exact aux_notin_range_Rv 2 h
 
@@ -1169,7 +1225,7 @@ theorem hframesUl (dt : ℝ) : ∀ t, FramesMv ((A dt).window t) uL := by
     exact framesMv_test _ _
 
 theorem hulR : uL ∉ (rightAutomatonBody Gr mv).bv :=
-  notMem_bv_rightAutomatonBody Gr mv uL (by decide) (aux_notin_range_Rv 2) htt hRv
+  notMem_bv_rightAutomatonBody_G Gr mv uL (by decide) (aux_notin_range_Rv 2) hgR hRv
 
 /-! ## The handoff, in-kernel: `DETUMBLE → FINE` loosens the row -/
 
@@ -1205,38 +1261,32 @@ theorem gate (l : ℕ) (dt : ℝ) (R : Program (Var 4)) (ψ : Formula (Var 4))
   obtain ⟨rfl, hg⟩ := hν
   exact hbody hg
 
+/-- **Nonblocking at the end of a response**, discharged from the explicit end state: the
+region of `DETUMBLE` contains its guard's atom, so the stay is enabled wherever the response
+ends. -/
+theorem nonblock {F' : Formula (Var 4)} (q : ℕ) (hq : q < 1) :
+    NonblockingAt Gr q (Formula.and F' (region q)) (fun qf => Formula.and F' (region qf)) := by
+  obtain rfl : q = 0 := by omega
+  intro μ hμ
+  exact ⟨edgeW 0 0, edge_mem 0 0 (by decide), guard_of_region μ ((sat_region0 μ).mp hμ.2).1, hμ⟩
+
 theorem stayCase (l : ℕ) (hl : l < 2) (dt : ℝ) (hv : Verd l 0)
     {σ : State (Var 4)} (hσ : Formula.sat (Formula.and (FRow l) env) σ)
     (hreg : Formula.sat (region 0) σ) :
-    ∃ segs : List (ℕ × RMode (Var 4) × REdge (Var 4)),
-      (∀ s ∈ segs, Gr.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ Gr.edgesFrom s.1) ∧
-      List.IsChain (fun a b => a.2.2.tgt = b.1) segs ∧
-      (∀ s, segs.head? = some s → s.1 = 0) ∧
-      Formula.sat (faModal (Equiv.refl (Var 4)) (gw dt l)
-        (bigSeq (segs.map (fun s => Program.ode s.2.1.sys s.2.1.dom)))
-        (Formula.and (Formula.and (FRow l) env) (region (qfOf segs 0)))) σ := by
-  refine ⟨[(0, modeW 0, edgeW 0 0)], ?_, by simp, by simp, ?_⟩
-  · intro s hs
-    rw [List.mem_singleton] at hs
-    subst hs
-    exact ⟨Gr_modeAt 0 (by norm_num), edge_mem 0 0 (by simp [edgeList])⟩
-  · refine gate l dt _ _ (fun hguard => ?_)
-    obtain ⟨hRσ, hnbσ⟩ := (sat_region0 σ).mp hreg
-    have hanchor : Formula.sat (Formula.and (anc l) (Formula.and domL domR)) σ :=
-      ⟨(anc_split l hl σ).mpr ⟨⟨hσ.1, (nb_iff σ).mpr hnbσ⟩, hO1L l hl σ hguard, hRσ⟩, hσ.2⟩
-    have := respond l hl dt hv hanchor
-    simpa [modeW, qfOf, edgeW] using this
+    GResp Gr 0 (gw dt l)
+        (fun qf => Formula.and (Formula.and (FRow l) env) (region qf)) σ := by
+  refine gresp_gate (fun hguard => ?_)
+  obtain ⟨hRσ, hnbσ⟩ := (sat_region0 σ).mp hreg
+  have hanchor : Formula.sat (Formula.and (anc l) (Formula.and domL domR)) σ :=
+    ⟨(anc_split l hl σ).mpr ⟨⟨hσ.1, (nb_iff σ).mpr hnbσ⟩, hO1L l hl σ hguard, hRσ⟩, hσ.2⟩
+  exact gresp_final (Gr_modeAt 0 (by omega)) (respond l hl dt hv hanchor)
+    (nonblock 0 (by omega))
 
 theorem HmultiT (l : ℕ) (hl : l < 2) (dt : ℝ) (h0 : Verd l 0) :
     ∀ (q : ℕ), q < Gr.modes.length → ∀ σ, σ mv = (q : ℝ) →
       Formula.sat (Formula.and (Formula.and (FRow l) env) (region q)) σ →
-      ∃ segs : List (ℕ × RMode (Var 4) × REdge (Var 4)),
-        (∀ s ∈ segs, Gr.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ Gr.edgesFrom s.1) ∧
-        List.IsChain (fun a b => a.2.2.tgt = b.1) segs ∧
-        (∀ s, segs.head? = some s → s.1 = q) ∧
-        Formula.sat (faModal (Equiv.refl (Var 4)) (gw dt l)
-          (bigSeq (segs.map (fun s => Program.ode s.2.1.sys s.2.1.dom)))
-          (Formula.and (Formula.and (FRow l) env) (region (qfOf segs q)))) σ := by
+      GResp Gr q (gw dt l)
+        (fun qf => Formula.and (Formula.and (FRow l) env) (region qf)) σ := by
   intro q hq σ _ hσ
   rw [Gr_len] at hq
   match q, hq with
@@ -1246,11 +1296,11 @@ theorem HmultiT (l : ℕ) (hl : l < 2) (dt : ℝ) (h0 : Verd l 0) :
 theorem hstepM (dt : ℝ) (h00 : Verd 0 0) (h10 : Verd 1 0) :
     ∀ t < (A dt).numModes, ∀ σ,
     Formula.sat (Formula.and (Formula.and (FRow t) env)
-      (mvRegion mv region Gr.modes.length)) σ →
+      (mvRegion mv gregion Gr.modes.length)) σ →
     Formula.sat (faModal (Equiv.refl (Var 4)) ((A dt).window t)
       (Program.star (rightAutomatonBody Gr mv))
       (Formula.and (Formula.and (FRow t) env)
-        (mvRegion mv region Gr.modes.length))) σ := by
+        (mvRegion mv gregion Gr.modes.length))) σ := by
   intro t ht
   rw [A_numModes] at ht
   rw [A_window dt t ht]
@@ -1260,10 +1310,14 @@ theorem hstepM (dt : ℝ) (h00 : Verd 0 0) (h10 : Verd 1 0) :
     obtain ⟨i, hi⟩ := leftBlock_bound_sub (fL t) _ h
     exact aux_ne_Lv 0 i hi
   interval_cases t
-  · exact hstepMode_multiR Gr mv (FRow 0) env region _ (aux_notin_FRow 0 0)
-      hmvenv hmvreg hfresh htt hlt hframe (HmultiT 0 (by norm_num) dt h00)
-  · exact hstepMode_multiR Gr mv (FRow 1) env region _ (aux_notin_FRow 0 1)
-      hmvenv hmvreg hfresh htt hlt hframe (HmultiT 1 (by norm_num) dt h10)
+  · exact hstepMode_GR Gr mv (FRow 0) env gregion _ (aux_notin_FRow 0 0)
+      hmvenv hmvregG hfresh (guardsFresh_of_right Gr 0 hgR) hlt hframe (HMode_regionG Gr mv _ region Gr_guards (FRow 0) env _
+      (fun q _ σ ν hrun => frameG dt 0 ht q (by rw [A_window dt 0 ht]; exact hrun))
+      (fun q hq σ hmv hσ _ hreg => (HmultiT 0 (by norm_num) dt h00) q hq σ hmv ⟨hσ, hreg⟩))
+  · exact hstepMode_GR Gr mv (FRow 1) env gregion _ (aux_notin_FRow 0 1)
+      hmvenv hmvregG hfresh (guardsFresh_of_right Gr 0 hgR) hlt hframe (HMode_regionG Gr mv _ region Gr_guards (FRow 1) env _
+      (fun q _ σ ν hrun => frameG dt 1 ht q (by rw [A_window dt 1 ht]; exact hrun))
+      (fun q hq σ hmv hσ _ hreg => (HmultiT 1 (by norm_num) dt h10) q hq σ hmv ⟨hσ, hreg⟩))
 
 /-! ## The composed theorem -/
 
@@ -1301,22 +1355,22 @@ theorem sat_detumble_phases_modeKeyed (dt : ℝ) (h00 : Verd 0 0) (h10 : Verd 1 
     RFormula.rvalid (theorem3Form
       (leftAutomatonBody (A dt) uL)
       (rightAutomatonBody Gr mv)
-      (psiK uL ϕRow (A dt).numModes domL domR (mvRegionR mv region Gr.modes.length))) := by
+      (psiK uL ϕRow (A dt).numModes domL domR (mvRegionR mv gregion Gr.modes.length))) := by
   refine theorem3_modeKeyed (A dt) uL Gr mv FRow ϕRow domL domR
-    (mvRegion mv region Gr.modes.length) (mvRegionR mv region Gr.modes.length)
+    (mvRegion mv gregion Gr.modes.length) (mvRegionR mv gregion Gr.modes.length)
     encode_ϕRow (encode_mvRegionR _ _ _) ?_ ?_ ?_
-  · exact hd_modeKeyed (A dt) Gr 0 1 2 (by decide) (by decide) (hwin dt) (hgrd dt)
-      (hnext dt) htt hRv
+  · exact hd_modeKeyed_G (A dt) Gr 0 1 2 (by decide) (by decide) (hwin dt) (hgrd dt)
+      (hnext dt) hgR hRv
   · exact hstep_modeKeyed (A dt) uL (rightAutomatonBody Gr mv) FRow env
-      (mvRegion mv region Gr.modes.length)
+      (mvRegion mv gregion Gr.modes.length)
       (aux_notin_FRow 2)
-      hulenv hulBk (hulG dt)
+      hulenv hulBkG (hulG dt)
       (hframesUl dt) hulR (hnext dt) (hstepM dt h00 h10) (handoff dt)
-  · exact hddF_modeKeyed (A dt) Gr 0 1 2 (by decide) (by decide) ϕRow domL domR
-      (mvRegionR mv region Gr.modes.length) (hwin dt) (hgrd dt) (hnext dt) htt hRv
+  · exact hddF_modeKeyed_G (A dt) Gr 0 1 2 (by decide) (by decide) ϕRow domL domR
+      (mvRegionR mv gregion Gr.modes.length) (hwin dt) (hgrd dt) (hnext dt) hgR hRv
       (fun m _ => canonInvM_varsL (g m) (gs m) (comps_fv_all m))
       (fun m _ => canonInvM_varsR (g m) (gs m)) hdomL hdomR rfl
-      (fun v hv => mvRegion_fv_sub mv region Gr.modes.length (fun q _ => region_fv q) hv)
+      (fun v hv => mvRegion_fv_sub mv gregion Gr.modes.length (fun q _ => gregion_fv q) hv)
 
 end V2SatDetumblePhases
 end RelCertifier

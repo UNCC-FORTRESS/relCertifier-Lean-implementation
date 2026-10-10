@@ -39,6 +39,18 @@ evidence about the theorems and not about lookalikes:
 Total: 262 + 186 + 88 + 385 = **921 queries**. "pruned edges 44/44" in the output is a
 count check of the work list, not a fifth set of queries.
 
+**Which packs the headline statements use.** The phases re-send every pack of every theorem
+kept in the tree, including the choice-form and `⊤`-relaxation theorems that the headline
+files import for their shared definitions; the declared counts did not change with the move to
+the guarded statement or with the `platoon3` repair (the two benchmarks keep two and three
+packs, re-run on the repaired model, `docs/SUITE-REDESIGN.md` §20). The 45 headline theorems
+take 132 packs; the theorems before branch `guarded-right` took 194. The 62 packs no longer
+used by any headline statement are those of `refinement_ladder_rover_rung1_2to3`,
+`rung3_6to8`, `rung4_8to12` and the four `rover_dof_terrain` rungs (6 each, legacy table) and of
+`rover_patrol_zones`, `rover_patrol_refine` (10 each, `RunV2.packsV2`): their guarded theorems
+are Z3-free. They are still discharged because the relaxation theorems that take them remain
+in the tree.
+
 Each pack component is tried with up to three route queries (A: non-strict DI on the whole
 domain, B: strict DI on the boundary, C: superlevel); the output line records which route
 came back `unsat` (`UNSAT (A=sat B=unsat)` means route B discharged it). The hypothesis is
@@ -46,7 +58,7 @@ the disjunction over the three routes, so one `unsat` suffices.
 
 ## Last run
 
-2026-10-10, branch `cleanup`, Apple M2 Max (12 cores, 64 GB), Z3 4.15.1. `lake build`: `Build completed successfully (8922 jobs)`, no `sorry` (after a full rebuild of every `RelCertifier` module, see *Cost*); `lake build relcert relcert-test`: 17723 jobs. Axiom audit: 51 lines, 42 with `z3_unsat_sound`, 9 at the three standard axioms, nothing else. `--check-quick-v2`: 45 certified / 0 declined / 0 errors, modal 262/262, handoff 186/186, non-connection 88/88, pruned edges 44/44, copied benchmarks 385/385, `SUITE_V2 QUICK CHECKS PASSED` (about 2 minutes). `relcert-test` with the suite_v2 manifest: 45 IR literals match, bare `ALL PASS`.
+2026-10-10, branch `guarded-right`, Apple M2 Max (12 cores, 64 GB), Z3 4.15.1. `lake build`: `Build completed successfully (8955 jobs)`, no `sorry`; `lake build relcert relcert-test`: 17723 jobs. Axiom audit: 71 lines, 31 with `z3_unsat_sound`, 40 at the three standard axioms, nothing else. `--check-quick-v2`: 45 certified / 0 declined / 0 errors, modal 262/262, handoff 186/186, non-connection 88/88, pruned edges 44/44, copied benchmarks 385/385, `SUITE_V2 QUICK CHECKS PASSED`. `--run-verdicts-v2`: the same counts, `ALL suite_v2 HYPOTHESES DISCHARGED`. `relcert-test` with the suite_v2 manifest: 45 IR literals match, bare `ALL PASS`.
 
 ## Earlier runners
 

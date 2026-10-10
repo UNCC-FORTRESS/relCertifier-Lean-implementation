@@ -4,8 +4,12 @@
 (ideal) and right (implementation) hybrid automata, the relational invariant (one row per
 left mode) and the time-stretch range. **45 benchmarks.** With the widened cut channel on
 (`RELCERT_IMPLIED_CUT=1`, as every suite_v2 run sets it) the tool CERTIFIES all 45, and
-every one carries a kernel-checked Theorem 3 (`RelCertifier/InstancesV2/BatteryV2.lean`;
-check recipe: `docs/CERTIFICATION-CHECK.md`). Without the widened channel 12 of them
+every one carries a kernel-checked Theorem 3 with the paper's left program over the
+guard-gated right automaton, at the mode-consistent region (`RelCertifier/InstancesV2/BatteryV2.lean`;
+`refinement_ladder_rover_rung2c_6dof` for windows up to its control interval `dt ≤ 1`;
+check recipe: `docs/CERTIFICATION-CHECK.md`). The two `platoon3` files were repaired on
+2026-10-10: their stay guards were engagement bands, so the nominal controller blocked after a
+full cycle; they are now the operating range (`docs/SUITE-REDESIGN.md` §20). Without the widened channel 10 of them
 DECLINE.
 
 The suite's design, the per-family rationale, the domain audit (every evolve bound is a
@@ -48,8 +52,8 @@ band of the model; `docs/SUITE-REDESIGN.md` §19.2).
 | `charger_fast_setpoints` | 1 / 1 | 3 / 4 | degraded-controller | widened cuts |
 | `charger_fast_tapers` | 1 / 1 | 3 / 5 | degraded-controller |  |
 | `match_multi_rate` | 2 / 2 | 4 / 2 |  | carried over |
-| `platoon3_linkloss` | 6 / 6 | 2 / 4 | sensor-attack | mode-keyed, widened cuts |
-| `platoon3_profiles` | 6 / 6 | 1 / 6 | sensor-attack | widened cuts |
+| `platoon3_linkloss` | 6 / 6 | 2 / 4 | sensor-attack | mode-keyed; guards repaired (operating range, `docs/SUITE-REDESIGN.md` §20) |
+| `platoon3_profiles` | 6 / 6 | 1 / 6 | sensor-attack | guards repaired (operating range, `docs/SUITE-REDESIGN.md` §20) |
 | `platoon_delay_linkloss` | 1 / 1 | 3 / 3 | sensor-attack | mode-keyed, widened cuts |
 | `platoon_delay_profiles` | 1 / 1 | 2 / 4 | sensor-attack | widened cuts |
 | `quad_light_airframe_20` | 1 / 1 | 1 / 2 | model-refinement |  |

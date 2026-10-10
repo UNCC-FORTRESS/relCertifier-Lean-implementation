@@ -10,6 +10,7 @@ DYNAMIC right-only reposition in `BULK` (the explicit contraction solution, run 
 `x_R = 80`), the declared edge `BULK → ABSORB`, and the certified joint piece in `ABSORB`.
 -/
 import RelCertifier.Proofs.Encoding.CutRespond
+import RelCertifier.Proofs.Encoding.GuardedSwitch
 import RelCertifier.Proofs.Flow.FaceBridge
 import RelCertifier.Proofs.Soundness.UniformEvol
 import RelCertifier.InstancesV2.Cuts.charger_fast_setpoints
@@ -357,8 +358,11 @@ theorem anchor_fv (l q : ℕ) (hl : l < 3) (hq : q < 3) :
 noncomputable def modeW (q : ℕ) : RMode (Var 2) :=
   { sys := rightBlock (fR q) (Term.const 1), dom := domR, weight := 1 }
 
-def edgeW (s t : ℕ) : REdge (Var 2) :=
-  { src := s, tgt := t, guard := Formula.tt, pruned := false }
+/-- The declared edge `s → t` carries the ENTERED mode's lowered guard (`hostGuard` of the
+right mode `t`, lowered exactly as the left windows' guards are): the right switches into
+`t` only where `t`'s guard holds. -/
+noncomputable def edgeW (s t : ℕ) : REdge (Var 2) :=
+  { src := s, tgt := t, guard := hostGuard vs 2 Side.R (mR t), pruned := false }
 
 /-- The declared transitions, as indices (BULK 0, ABSORB 1, FULL 2, FAULT 3). -/
 def edgeList : List (ℕ × ℕ) :=
@@ -389,13 +393,6 @@ theorem Gr_modeAt_inv {q : ℕ} {m : RMode (Var 2)} (hm : Gr.modeAt q = some m) 
   | 3 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
   | q + 4 => exact absurd hm (by simp [SearchGraph.modeAt, Gr])
 
-theorem htt : ∀ q, ∀ e ∈ Gr.edgesFrom q, e.guard = Formula.tt := by
-  intro q e he
-  have hmem : e ∈ Gr.edges := List.mem_of_mem_filter he
-  simp only [Gr, List.mem_map] at hmem
-  obtain ⟨p, -, rfl⟩ := hmem
-  rfl
-
 theorem hlt : ∀ q, ∀ e ∈ Gr.edgesFrom q, e.tgt < Gr.modes.length := by
   intro q e he
   have hmem : e ∈ Gr.edges := List.mem_of_mem_filter he
@@ -420,6 +417,40 @@ theorem edge_mem (s t : ℕ) (h : (s, t) ∈ edgeList) : edgeW s t ∈ Gr.edgesF
 theorem hfresh : ∀ q m, Gr.modeAt q = some m → mv ∉ (Program.ode m.sys m.dom).fv := by
   intro q m hm hmv
   exact aux_notin_range_Rv 0 (hRv q m hm (vars_ode_sub _ _ (Or.inl hmv)))
+
+theorem hguardR (q : ℕ) (hq : q < 4) : (hostGuard vs 2 Side.R (mR q)).fv ⊆ range Rv :=
+  hostGuard_fv_R vs (mR q) (by
+    interval_cases q <;> simp [mR, charger_fast_setpoints_IRv2, Parse.PForm.namesFree,
+      Parse.PExpr.namesFree])
+
+theorem edgeList_tgt : ∀ p ∈ edgeList, p.2 < 4 := by decide
+
+theorem hgR : GuardsRight Gr := by
+  intro q e he
+  have hmem : e ∈ Gr.edges := List.mem_of_mem_filter he
+  simp only [Gr, List.mem_map] at hmem
+  obtain ⟨p, hp, rfl⟩ := hmem
+  exact hguardR p.2 (edgeList_tgt p hp)
+
+/-- **The graph is the guarded automaton**: every declared edge tests the lowered guard of
+the mode it enters. -/
+theorem Gr_guards : ∀ q, ∀ e ∈ Gr.edgesFrom q, e.guard = hostGuard vs 2 Side.R (mR e.tgt) := by
+  intro q e he
+  have hmem : e ∈ Gr.edges := List.mem_of_mem_filter he
+  simp only [Gr, List.mem_map] at hmem
+  obtain ⟨p, -, rfl⟩ := hmem
+  rfl
+
+/-- The non-sink right guards, evaluated (`BULK`: `[15, 80)`; `ABSORB`: `[80, 99)`;
+`FULL`: `x ≥ 99`). -/
+theorem sat_guardR (q : ℕ) (hq : q < 3) (ν : State (Var 2)) :
+    Formula.sat (hostGuard vs 2 Side.R (mR q)) ν ↔
+      (if q = 0 then 15 ≤ ν (Rv 0) ∧ ν (Rv 0) < 80
+       else if q = 1 then 80 ≤ ν (Rv 0) ∧ ν (Rv 0) < 99 else 99 ≤ ν (Rv 0)) := by
+  interval_cases q <;>
+    simp [hostGuard, mR, charger_fast_setpoints_IRv2, Run.lowerF, Run.lowerE, hp150, hp800,
+      hp990, vs, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
+      CompOp.interp, Term.eval, Rv]
 
 /-! ## Regions: the right mode's kept cut atoms; the pruned sink `FAULT` is excluded -/
 
@@ -770,6 +801,49 @@ theorem window1_hop (fL' : Fin 2 → Term (Var 2)) (domL' : Formula (Var 2))
   exact sat_faModal_monoL
     (fun ν μ h => (sem_windowSeg_one (leftBlock fL') domL' tg dt).mp h) hcong
 
+/-- `window1_hop` with the switch test after the hop (the entered mode's guard `γ`, which
+the hop's end state satisfies). -/
+theorem window1_hopG (fL' : Fin 2 → Term (Var 2)) (domL' : Formula (Var 2))
+    (fRh : Fin 2 → Term (Var 2)) (lamh : Term (Var 2)) (domRh : Formula (Var 2))
+    (γ : Formula (Var 2)) (Q : Program (Var 2)) (φ : Formula (Var 2)) (dt : ℝ)
+    (hfL' : ∀ i, (fL' i).fv ⊆ range Lv) (hdomL' : domL'.fv ⊆ range Lv)
+    (hfRh : ∀ i, (fRh i).fv ⊆ range Rv) (hlamh : lamh.fv ⊆ range Rv)
+    (hdomRh : domRh.fv ⊆ range Rv) (hγ : γ.fv ⊆ range Rv)
+    {σ : State (Var 2)} (hdomLσ : Formula.sat domL' σ)
+    (hR : ∃ ρ₁, Program.sem (Program.ode (rightBlock fRh lamh) domRh)
+        (Function.update σ tg 0) ρ₁ ∧ Formula.sat φ ρ₁ ∧ Formula.sat γ ρ₁)
+    (hQ : ∀ τ, Formula.sat φ τ → τ tg = 0 →
+      faModalB (Equiv.refl (Var 2))
+        (Program.ode (DLCalTiming.clk tg (leftBlock fL')) domL') Q φ tg dt τ) :
+    Formula.sat (faModal (Equiv.refl (Var 2))
+      (windowSeg (leftBlock fL') domL' tg dt 1)
+      (bigSeq [Program.seq (Program.ode (rightBlock fRh lamh) domRh) (Program.test γ), Q])
+      φ) σ := by
+  have htgL : tg ∉ domL'.fv := fun h => aux_notin_range_Lv 1 (hdomL' h)
+  have hdomL0 : Formula.sat domL' (Function.update σ tg 0) := by
+    rwa [(Formula.coincidence domL' (fun v hv =>
+      Function.update_of_ne (fun hc => htgL (by rw [← hc]; exact hv)) _ _) :
+        Formula.sat domL' _ ↔ Formula.sat domL' σ)]
+  obtain ⟨ρ₁, hrun, hρ₁, hγρ⟩ := hR
+  have hj := faModalB_repoPrefixG (fL := fL') (fR := fRh) (lam := lamh) (domL := domL')
+    (domR := domRh) (γ := γ) (φ := φ) (Q := Q) (a := 1) (dt := dt) hfL' hdomL' hfRh hlamh
+    hdomRh hγ (Function.update_self _ _ _)
+    ⟨ρ₁, hop_run_toJoint hfRh hlamh hdomL' hdomL0 hrun, hρ₁, hγρ⟩ hQ
+  have hb : faModalB (Equiv.refl (Var 2))
+      (Program.ode (DLCalTiming.clk tg (leftBlock fL')) domL')
+      (Program.seq (Program.seq (Program.ode (rightBlock fRh lamh) domRh) (Program.test γ)) Q)
+      φ tg dt (Function.update σ tg 0) := by
+    refine faModalB_monoQ ?_ hj
+    rintro ν μ ⟨κ, ⟨κ', hhop, htest⟩, hQrun⟩
+    exact ⟨κ, ⟨κ', joint_run_toR hfRh hlamh hhop, htest⟩, hQrun⟩
+  have hseg := (faModalB_clockedSeg_iff (leftBlock fL') domL' _ φ tg dt σ).mpr hb
+  have hcong := sat_faModal_congrR
+    (Q' := bigSeq [Program.seq (Program.ode (rightBlock fRh lamh) domRh) (Program.test γ), Q])
+    (fun ν μ => sem_foldr_seq_bigSeq
+      [Program.seq (Program.ode (rightBlock fRh lamh) domRh) (Program.test γ)] Q ν μ) hseg
+  exact sat_faModal_monoL
+    (fun ν μ h => (sem_windowSeg_one (leftBlock fL') domL' tg dt).mp h) hcong
+
 /-- **The reposition's existence.** From a `BULK` right start (`x_R ∈ [15, 90]`) with the
 loop invariant, the envelope and window `l`'s left atoms: the right-only `BULK` run (zero
 duration if `x_R ≥ 80`, else the contraction up to exactly `x_R = 80`) ends in `ABSORB`'s
@@ -778,7 +852,8 @@ theorem bulk_hop_exists (l : ℕ) (hl : l < 3) {σ : State (Var 2)}
     (hσ : Formula.sat (Formula.and (FM g gs) env) σ) (hreg : Formula.sat (region 0) σ)
     (hLat : CutSat (cL l) σ) :
     ∃ ρ₁, Program.sem (Program.ode (rightBlock (fR 0) (Term.const 1)) domR)
-      (Function.update σ tg 0) ρ₁ ∧ Formula.sat (anchor l 1) ρ₁ := by
+      (Function.update σ tg 0) ρ₁ ∧ Formula.sat (anchor l 1) ρ₁ ∧
+        Formula.sat (hostGuard vs 2 Side.R (mR 1)) ρ₁ := by
   set ω₀ := Function.update σ tg 0 with hω₀
   have hωL : ω₀ (Lv 0) = σ (Lv 0) :=
     Function.update_of_ne (by simp [Lv, Prod.ext_iff]) _ _
@@ -812,22 +887,40 @@ theorem bulk_hop_exists (l : ℕ) (hl : l < 3) {σ : State (Var 2)}
   · obtain ⟨ρ, hsem, hρ⟩ := static_hop_existsR (fR := fR 0) (lam := Term.const 1)
       (domR := domR) hdomRω
     subst hρ
-    exact ⟨ω₀, hsem, key ω₀ hωL (by rw [hωR]) (by rw [hωR]; exact h80)
-      (by rw [hωR]; linarith)⟩
+    refine ⟨ω₀, hsem, key ω₀ hωL (by rw [hωR]) (by rw [hωR]; exact h80)
+      (by rw [hωR]; linarith), ?_⟩
+    rw [sat_guardR 1 (by norm_num), hωR]
+    norm_num
+    exact ⟨h80, by linarith⟩
   · replace h80 : σ (Rv 0) < 80 := not_le.mp h80
     have hy1 : 1 ≤ (90 - ω₀ (Rv 0)) / 10 := by rw [hωR]; linarith
     have hτ : 0 ≤ 10 * Real.log ((90 - ω₀ (Rv 0)) / 10) :=
       mul_nonneg (by norm_num) (Real.log_nonneg hy1)
     have hend := bulk_end ω₀ (by rw [hωR]; exact h80)
-    refine ⟨_, bulk_run ω₀ _ hτ hdomRω, key _ ?_ ?_ ?_ ?_⟩
+    refine ⟨_, bulk_run ω₀ _ hτ hdomRω, key _ ?_ ?_ ?_ ?_, ?_⟩
     · rw [contractΦ_other 0 (1/10) 90 ω₀ _ (by simp [Lv, Rv, Prod.ext_iff]), hωL]
     · rw [hend]; exact le_of_lt h80
     · rw [hend]
     · rw [hend]; norm_num
+    · rw [sat_guardR 1 (by norm_num), hend]; norm_num
 
 /-! ## The step provider: stay in a certified start mode; for a `BULK` right start of the
 `BULK` / `ABSORB` window, reposition dynamically in `BULK` and switch along the declared edge
 `BULK → ABSORB` -/
+
+/-! ## The mode-consistent region: the right mode's guard and its kept cut atoms -/
+
+/-- **The mode-consistent region** of right mode `q`: its lowered guard (the state a guarded
+jump into `q` leaves the right in) and its checked cuts (`region`). -/
+noncomputable def gregion (q : ℕ) : Formula (Var 2) :=
+  regionG (fun q => hostGuard vs 2 Side.R (mR q)) region q
+
+theorem hguardR_all (q : ℕ) : (hostGuard vs 2 Side.R (mR q)).fv ⊆ range Rv :=
+  hostGuard_fv_R_getD vs _ dm rfl (by simp [charger_fast_setpoints_IRv2, Parse.PForm.namesFree,
+    Parse.PExpr.namesFree]) q
+
+theorem gregion_fv (q : ℕ) (hq : q < 4) : (gregion q).fv ⊆ range Rv :=
+  regionG_fv_sub (hguardR_all q) (region_fv q hq)
 
 noncomputable def leftData : List (Formula (Var 2) × (Fin 2 → Term (Var 2))
     × Formula (Var 2) × ℕ) :=
@@ -869,30 +962,52 @@ theorem gate (l : ℕ) (dt : ℝ) (R : Program (Var 2)) (ψ : Formula (Var 2))
   obtain ⟨rfl, hg⟩ := hν
   exact hbody hg
 
+/-- **Nonblocking at the end of a response**, discharged from the explicit end state:
+`BULK`'s region `[15, 90]` is covered by `BULK` `[15, 80)` and `ABSORB` `[80, 99)`;
+`ABSORB`'s `[80, 100]` by `ABSORB` and `FULL` `x ≥ 99`; `FULL`'s region is its guard. -/
+theorem nonblock {F' : Formula (Var 2)} (q : ℕ) (hq : q < 3) :
+    NonblockingAt Gr q (Formula.and F' (region q)) (fun qf => Formula.and F' (region qf)) := by
+  intro μ ⟨hF, hreg⟩
+  have hr := (cutSatR_val q hq μ).mp ((sat_region_lt q hq μ).mp hreg)
+  have pick : ∀ t, (q, t) ∈ edgeList → t < 3 → Formula.sat (hostGuard vs 2 Side.R (mR t)) μ →
+      CutSat (cR t) μ →
+      ∃ e ∈ Gr.edgesFrom q, SwitchLegal e μ ∧ Formula.sat (Formula.and F' (region e.tgt)) μ :=
+    fun t ht ht3 hg hc => ⟨edgeW q t, edge_mem q t ht, hg, hF, (sat_region_lt t ht3 μ).mpr hc⟩
+  interval_cases q
+  · simp only [if_true] at hr
+    by_cases hx : μ (Rv 0) < 80
+    · exact pick 0 (by decide) (by norm_num) ((sat_guardR 0 (by norm_num) μ).mpr
+        (by simp only [if_true]; exact ⟨hr.1, hx⟩))
+        ((cutSatR_val 0 (by norm_num) μ).mpr (by simp only [if_true]; exact hr))
+    · replace hx := not_lt.mp hx
+      exact pick 1 (by decide) (by norm_num) ((sat_guardR 1 (by norm_num) μ).mpr
+        (by norm_num; constructor <;> linarith))
+        ((cutSatR_val 1 (by norm_num) μ).mpr (by norm_num; constructor <;> linarith))
+  · simp only [show (1:ℕ) ≠ 0 from by decide, if_false, if_true] at hr
+    by_cases hx : μ (Rv 0) < 99
+    · exact pick 1 (by decide) (by norm_num) ((sat_guardR 1 (by norm_num) μ).mpr
+        (by norm_num; exact ⟨hr.1, hx⟩))
+        ((cutSatR_val 1 (by norm_num) μ).mpr (by norm_num; exact hr))
+    · replace hx := not_lt.mp hx
+      exact pick 2 (by decide) (by norm_num) ((sat_guardR 2 (by norm_num) μ).mpr
+        (by norm_num; exact hx))
+        ((cutSatR_val 2 (by norm_num) μ).mpr (by norm_num; exact hx))
+  · simp only [show (2:ℕ) ≠ 0 from by decide, show (2:ℕ) ≠ 1 from by decide, if_false] at hr
+    exact pick 2 (by decide) (by norm_num) ((sat_guardR 2 (by norm_num) μ).mpr
+      (by norm_num; exact hr))
+      ((cutSatR_val 2 (by norm_num) μ).mpr (by norm_num; exact hr))
+
 theorem stayCase (l q : ℕ) (hl : l < 3) (hq : q < 3) (dt : ℝ) (hv : Verd l q)
     {σ : State (Var 2)} (hσ : Formula.sat (Formula.and (FM g gs) env) σ)
     (hreg : Formula.sat (region q) σ) :
-    ∃ segs : List (ℕ × RMode (Var 2) × REdge (Var 2)),
-      (∀ s ∈ segs, Gr.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ Gr.edgesFrom s.1) ∧
-      List.IsChain (fun a b => a.2.2.tgt = b.1) segs ∧
-      (∀ s, segs.head? = some s → s.1 = q) ∧
-      Formula.sat (faModal (Equiv.refl (Var 2))
-        (gwindowSeg (hostGuard vs 2 Side.L (mL l)) (leftBlock (fL l)) domL tg dt 1)
-        (bigSeq (segs.map (fun s => Program.ode s.2.1.sys s.2.1.dom)))
-        (Formula.and (Formula.and (FM g gs) env) (region (qfOf segs q)))) σ := by
-  refine ⟨[(q, modeW q, edgeW q q)], ?_, by simp, by simp, ?_⟩
-  · intro s hs
-    rw [List.mem_singleton] at hs
-    subst hs
-    refine ⟨Gr_modeAt q (by omega), edge_mem q q ?_⟩
-    interval_cases q <;> simp [edgeList]
-  · refine gate l dt _ _ (fun hguard => ?_)
-    have hanchor : Formula.sat (anchor l q) σ := by
-      refine ⟨(sat_FM_append g gs _ σ).mpr ⟨hσ.1, ?_⟩, hσ.2⟩
-      exact (atomTerms_iff (hiffL l hl) (hiffR q hq) σ).mpr
-        ⟨hO1L l hl σ hguard, (sat_region_lt q hq σ).mp hreg⟩
-    have := respond l q hl hq dt hv hanchor
-    simpa [modeW, qfOf, edgeW] using this
+    GResp Gr q (gwindowSeg (hostGuard vs 2 Side.L (mL l)) (leftBlock (fL l)) domL tg dt 1)
+        (fun qf => Formula.and (Formula.and (FM g gs) env) (region qf)) σ := by
+  refine gresp_gate (fun hguard => ?_)
+  have hanchor : Formula.sat (anchor l q) σ := by
+    refine ⟨(sat_FM_append g gs _ σ).mpr ⟨hσ.1, ?_⟩, hσ.2⟩
+    exact (atomTerms_iff (hiffL l hl) (hiffR q hq) σ).mpr
+      ⟨hO1L l hl σ hguard, (sat_region_lt q hq σ).mp hreg⟩
+  exact gresp_final (Gr_modeAt q (by omega)) (respond l q hl hq dt hv hanchor) (nonblock q hq)
 
 /-- **The dynamic-reposition case.** A `BULK` right start of window `l ∈ {BULK, ABSORB}`:
 segments `BULK →(edge BULK→ABSORB) ABSORB →(self) ABSORB`; the right first runs `BULK`
@@ -900,56 +1015,41 @@ alone (the left frozen in the coupling, `faModalB_repoPrefix`) up to `x_R = 80`,
 certified joint piece `(l, ABSORB)` tracks the window. -/
 theorem hopCase (l : ℕ) (hl : l < 2) (dt : ℝ) (hv : Verd l 1) {σ : State (Var 2)}
     (hσ : Formula.sat (Formula.and (FM g gs) env) σ) (hreg : Formula.sat (region 0) σ) :
-    ∃ segs : List (ℕ × RMode (Var 2) × REdge (Var 2)),
-      (∀ s ∈ segs, Gr.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ Gr.edgesFrom s.1) ∧
-      List.IsChain (fun a b => a.2.2.tgt = b.1) segs ∧
-      (∀ s, segs.head? = some s → s.1 = 0) ∧
-      Formula.sat (faModal (Equiv.refl (Var 2))
-        (gwindowSeg (hostGuard vs 2 Side.L (mL l)) (leftBlock (fL l)) domL tg dt 1)
-        (bigSeq (segs.map (fun s => Program.ode s.2.1.sys s.2.1.dom)))
-        (Formula.and (Formula.and (FM g gs) env) (region (qfOf segs 0)))) σ := by
-  refine ⟨[(0, modeW 0, edgeW 0 1), (1, modeW 1, edgeW 1 1)], ?_, ?_, by simp, ?_⟩
-  · intro s hs
-    simp only [List.mem_cons, List.not_mem_nil, or_false] at hs
-    rcases hs with rfl | rfl
-    · exact ⟨Gr_modeAt 0 (by norm_num), edge_mem 0 1 (by simp [edgeList])⟩
-    · exact ⟨Gr_modeAt 1 (by norm_num), edge_mem 1 1 (by simp [edgeList])⟩
-  · exact (show List.IsChain (fun a b : ℕ × RMode (Var 2) × REdge (Var 2) => a.2.2.tgt = b.1)
-        [(1, modeW 1, edgeW 1 1)] from by simp).cons (by
-      intro y hy
-      rw [List.head?_cons, Option.mem_some_iff] at hy
-      subst hy
-      rfl)
-  · refine gate l dt _ _ (fun hguard => ?_)
-    have hl3 : l < 3 := by omega
-    have hw := window1_hop (fL l) domL (fR 0) (Term.const 1) domR
-      (Program.ode (rightBlock (fR 1) (Term.const 1)) domR) (anchor l 1) dt
-      (hfL l hl3) hdomL (hfR 0 (by norm_num)) (by simp [Term.fv]) hdomR hσ.2.1
-      (bulk_hop_exists l hl3 hσ hreg (hO1L l hl3 σ hguard))
-      (by
-        intro τ hτ hτtg
-        have hupd : Function.update τ tg 0 = τ := by
-          funext x
-          by_cases hx : x = tg
-          · subst hx; rw [Function.update_self, hτtg]
-          · rw [Function.update_of_ne hx]
-        have := couple l 1 hl3 (by norm_num) dt hv τ hτ
-        rwa [hupd] at this)
-    have := sat_faModal_monoPost (anchor_post l 1 hl3 (by norm_num)) hw
-    simpa [modeW, qfOf, edgeW] using this
+    GResp Gr 0 (gwindowSeg (hostGuard vs 2 Side.L (mL l)) (leftBlock (fL l)) domL tg dt 1)
+        (fun qf => Formula.and (Formula.and (FM g gs) env) (region qf)) σ := by
+  refine gresp_gate (fun hguard => ?_)
+  have hl3 : l < 3 := by omega
+  have hw := window1_hopG (fL l) domL (fR 0) (Term.const 1) domR
+    (hostGuard vs 2 Side.R (mR 1))
+    (Program.ode (rightBlock (fR 1) (Term.const 1)) domR) (anchor l 1) dt
+    (hfL l hl3) hdomL (hfR 0 (by norm_num)) (by simp [Term.fv]) hdomR
+    (hguardR 1 (by norm_num)) hσ.2.1
+    (bulk_hop_exists l hl3 hσ hreg (hO1L l hl3 σ hguard))
+    (by
+      intro τ hτ hτtg
+      have hupd : Function.update τ tg 0 = τ := by
+        funext x
+        by_cases hx : x = tg
+        · subst hx; rw [Function.update_self, hτtg]
+        · rw [Function.update_of_ne hx]
+      have := couple l 1 hl3 (by norm_num) dt hv τ hτ
+      rwa [hupd] at this)
+  exact gresp_final_pre (Gr_modeAt 1 (by norm_num)) [(0, modeW 0, edgeW 0 1)]
+    (by
+      intro s hs
+      rw [List.mem_singleton] at hs
+      subst hs
+      exact ⟨Gr_modeAt 0 (by norm_num), edge_mem 0 1 (by decide)⟩)
+    (by simp) (by simp) (by simp [qfOf, edgeW])
+    (sat_faModal_monoPost (anchor_post l 1 hl3 (by norm_num)) hw) (nonblock 1 (by norm_num))
 
 theorem Hmulti (dt : ℝ)
     (h01 : Verd 0 1) (h02 : Verd 0 2) (h11 : Verd 1 1) (h12 : Verd 1 2)
     (h20 : Verd 2 0) (h21 : Verd 2 1) (h22 : Verd 2 2) :
     ∀ P ∈ leftProgs dt, ∀ (q : ℕ), q < Gr.modes.length → ∀ σ, σ mv = (q : ℝ) →
       Formula.sat (Formula.and (FM g gs) env) σ → Formula.sat (region q) σ →
-      ∃ segs : List (ℕ × RMode (Var 2) × REdge (Var 2)),
-        (∀ s ∈ segs, Gr.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ Gr.edgesFrom s.1) ∧
-        List.IsChain (fun a b => a.2.2.tgt = b.1) segs ∧
-        (∀ s, segs.head? = some s → s.1 = q) ∧
-        Formula.sat (faModal (Equiv.refl (Var 2)) P
-          (bigSeq (segs.map (fun s => Program.ode s.2.1.sys s.2.1.dom)))
-          (Formula.and (Formula.and (FM g gs) env) (region (qfOf segs q)))) σ := by
+      GResp Gr q P
+        (fun qf => Formula.and (Formula.and (FM g gs) env) (region qf)) σ := by
   intro P hP q hq σ _ hσ hreg
   rw [Gr_len] at hq
   simp only [leftProgs, leftData, List.map_cons, List.map_nil, List.mem_cons,
@@ -995,7 +1095,7 @@ theorem charger_fast_setpoints_modal (dt : ℝ)
       (bigChoice (leftProgs dt))
       (rightAutomatonBody Gr mv)
       (RFormula.and (RFormula.and (canonInvM g gs) (envLR domL domR))
-        (mvRegionR mv region Gr.modes.length))) := by
+        (mvRegionR mv gregion Gr.modes.length))) := by
   have hmvF : mv ∉ (FM g gs).fv := notMem_FM_fv (fun g' hg' hx => by
     rcases comps_fv g' hg' hx with ⟨i, hi⟩ | ⟨i, hi⟩
     · exact absurd hi (by simp [Lv, Prod.ext_iff])
@@ -1004,13 +1104,15 @@ theorem charger_fast_setpoints_modal (dt : ℝ)
     rintro (h | h)
     · exact aux_notin_range_Lv 0 (hdomL h)
     · exact aux_notin_range_Rv 0 (hdomR h)
-  have hmvreg : ∀ q, mv ∉ (region q).fv := by
+  have hmvreg0 : ∀ q, mv ∉ (region q).fv := by
     intro q h
     by_cases hq : q < 4
     · exact aux_notin_range_Rv 0 (region_fv q hq h)
     · simp only [region, show ¬ q < 3 from by omega, if_false] at h
       simp [Formula.fv, Term.fv] at h
-  refine theorem3_faithful_multiR_LR Gr mv (FM g gs) domL domR region
+  have hmvreg : ∀ q, mv ∉ (gregion q).fv := fun q =>
+    notMem_regionG_fv (fun h => aux_notin_range_Rv 0 (hguardR_all q h)) (hmvreg0 q)
+  refine theorem3_faithful_multiR_LR Gr mv (FM g gs) domL domR gregion
     (leftProgs dt) (canonInvM g gs) (encode_canonInvM g gs) ?_ ?_ ?_
   · refine sides_disjoint 0 1 0 (by decide) (by decide) ?_ ?_
     · refine vars_bigChoice_sub _ _ ?_
@@ -1021,14 +1123,20 @@ theorem charger_fast_setpoints_modal (dt : ℝ)
         (hL d hd).2.1 (hL d hd).2.2
     · intro x hx
       rw [Program.rename_refl] at hx
-      rcases vars_bodyU_sub Gr _ htt hRv hx with hx | hx
+      rcases vars_bodyG_sub Gr _ hgR hRv hx with hx | hx
       · exact Or.inl (Set.mem_insert_iff.mpr (Or.inl (Set.mem_singleton_iff.mp hx)))
       · exact Or.inr hx
-  · exact hstep_assembled_multiR Gr mv (FM g gs) env region (leftProgs dt) hmvF hmvenv hmvreg
-      hfresh htt hlt (hframes dt)
-      (Hmulti dt h01 h02 h11 h12 h20 h21 h22)
-  · exact hddF_multiR Gr 0 1 dt leftData region (canonInvM g gs) domL domR
-      (by decide) htt hRv hL (fun q hq => region_fv q hq)
+  · exact hstep_assembled_GR Gr mv (FM g gs) env gregion (leftProgs dt) hmvF hmvenv hmvreg
+      hfresh (guardsFresh_of_right Gr 0 hgR) hlt (hframes dt)
+      (Hmulti_regionG Gr mv _ region Gr_guards (FM g gs) env (leftProgs dt)
+        (fun P hP q _ σ ν hrun => by
+          simp only [leftProgs, List.mem_map] at hP
+          obtain ⟨d, hd, rfl⟩ := hP
+          exact frames_right (vars_gwindowSegL_sub d.1 d.2.1 d.2.2.1 1 dt d.2.2.2 (hL d hd).1
+            (hL d hd).2.1 (hL d hd).2.2) (hguardR_all q) hrun)
+        (fun P hP q hq σ hmv hσ _ hreg => (Hmulti dt h01 h02 h11 h12 h20 h21 h22) P hP q hq σ hmv hσ hreg))
+  · exact hddF_multiR_G Gr 0 1 dt leftData gregion (canonInvM g gs) domL domR
+      (by decide) hgR hRv hL (fun q hq => gregion_fv q hq)
       (canonInvM_varsL g gs comps_fv) (canonInvM_varsR g gs) hdomL hdomR
 
 end V2ChargerFastSetpoints

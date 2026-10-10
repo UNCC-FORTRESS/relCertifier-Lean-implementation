@@ -243,6 +243,169 @@ theorem climb {post : ℕ → Formula (Var (n+2))} (q : ℕ) (hq : q < 3) (ρ : 
   · exact LR.climbModer ρ hdom (hg.2.1 rfl) V S hV hpost
   · exact LR.climbFlat ρ hdom (hg.2.2 rfl) V S hV hpost
 
+/-! ### The climb with a decay budget
+
+Some ladders keep rows on right coordinates that decay along every band (`x' = −x`). The
+variants below hold `FLAT` for at least `Dmin` more, so every such coordinate ends at most
+`e^{−Dmin}` times its value at the start of the response. -/
+
+/-- The `FLAT` hold with a decay budget `Dmin`. -/
+theorem climbFlatD {post : ℕ → Formula (Var (n+2))} (I : Fin (n+2) → Prop)
+    (hdec : ∀ q < 3, ∀ ρ τ, 0 ≤ τ → ∀ i, I i →
+      |LR.run q ρ τ (Rv i)| ≤ |ρ (Rv i)| * Real.exp (-τ))
+    (Dmin : ℝ) (hDmin : 0 ≤ Dmin) (ρ : State (Var (n+2))) (hdom : Formula.sat dom ρ)
+    (hg : 7/5 ≤ ρ (Rv 1) ∧ ρ (Rv 0) ≤ 13/20) (V S : ℝ) (hV : V < 13/20 ∨ V ≤ ρ (Rv 0))
+    (hpost : ∀ μ, (∀ i, μ (Lv i) = ρ (Lv i)) → Formula.sat dom μ →
+      7/5 ≤ μ (Rv 1) → μ (Rv 0) ≤ 13/20 → ρ (Rv 0) ≤ μ (Rv 0) → V ≤ μ (Rv 0) →
+      S ≤ μ (Rv 1) → (∀ i, I i → |μ (Rv i)| ≤ |ρ (Rv i)| * Real.exp (-Dmin)) →
+      Formula.sat (post 2) μ) :
+    RResp G 2 post ρ := by
+  have hc2 : ladC 2 = 13/20 := by norm_num [ladC]
+  have hv0 := LR.v_nonneg ρ hdom
+  have hκ := LR.hκ
+  set δ : ℝ := if V < 13/20 then 13/20 - V else 1 with hδ
+  have hδpos : 0 < δ := by
+    rw [hδ]; split_ifs with h
+    · linarith
+    · norm_num
+  set τ : ℝ := (13/20) / (3 * δ) + max 0 ((S - ρ (Rv 1)) / LR.κ * (20/13) + 1) + Dmin with hτ
+  have hτ1 : 0 ≤ (13/20) / (3 * δ) := by positivity
+  have hτ2 : 0 ≤ max 0 ((S - ρ (Rv 1)) / LR.κ * (20/13) + 1) := le_max_left _ _
+  have hτ0 : 0 ≤ τ := by linarith
+  have hrun := LR.sem 2 (by norm_num) ρ hdom τ hτ0
+  set μ := LR.run 2 ρ τ with hμ
+  have hmono := LR.v_mono 2 (by norm_num) ρ (by rw [hc2]; exact hg.2) hτ0
+  rw [hc2] at hmono
+  have hslow := LR.s_low 2 (by norm_num) ρ hdom τ hτ0
+  rw [hc2] at hslow
+  have hμdom : Formula.sat dom μ := LR.end_dom 2 (by norm_num) ρ hdom τ hτ0
+  have hμL : ∀ i, μ (Lv i) = ρ (Lv i) := LR.left 2 ρ τ
+  have hvV : V ≤ μ (Rv 0) := by
+    rcases hV with hV | hV
+    · have hδV : δ = 13/20 - V := by rw [hδ, if_pos hV]
+      have he := Real.add_one_le_exp (3 * τ)
+      have hinv : Real.exp (-(3 * τ)) * Real.exp (3 * τ) = 1 := by
+        rw [← Real.exp_add]; simp
+      have h3τ : (13/20) / δ ≤ 3 * τ := by
+        have : 3 * ((13/20) / (3 * δ)) = (13/20) / δ := by field_simp
+        linarith
+      have h1 : (13/20) < δ * Real.exp (3 * τ) := by
+        have : (13/20) / δ * δ = 13/20 := by field_simp
+        nlinarith
+      have hle : Real.exp (-(3 * τ)) * (13/20) < δ := by
+        nlinarith [Real.exp_pos (-(3 * τ))]
+      rw [hμ, LR.v_eq 2 (by norm_num), hc2]
+      nlinarith [Real.exp_pos (-(3 * τ))]
+    · exact le_trans hV hmono.1
+  have hsS : S ≤ μ (Rv 1) := by
+    have hm : (S - ρ (Rv 1)) / LR.κ * (20/13) + 1 ≤ max 0 ((S - ρ (Rv 1)) / LR.κ * (20/13) + 1) :=
+      le_max_right _ _
+    have hτge : (S - ρ (Rv 1)) / LR.κ * (20/13) + 1 ≤ τ := by linarith
+    have h13 : 13/20 * τ - 13/20/3 ≥ (S - ρ (Rv 1)) / LR.κ := by nlinarith
+    have hkk : LR.κ * ((S - ρ (Rv 1)) / LR.κ) = S - ρ (Rv 1) := by field_simp
+    nlinarith [hslow.1]
+  have hs14 : 7/5 ≤ μ (Rv 1) := le_trans hg.1 hslow.2
+  have hdecμ : ∀ i, I i → |μ (Rv i)| ≤ |ρ (Rv i)| * Real.exp (-Dmin) := by
+    intro i hi
+    have h1 := hdec 2 (by norm_num) ρ τ hτ0 i hi
+    have h2 : Real.exp (-τ) ≤ Real.exp (-Dmin) := Real.exp_le_exp.mpr (by linarith)
+    exact le_trans h1 (mul_le_mul_of_nonneg_left h2 (abs_nonneg _))
+  have hleg := LR.leg22 μ hs14 hmono.2
+  have hstep := rresp_step (post := post) (LR.modeAt 2 (by norm_num)) LR.e22_mem hrun hleg
+  rw [LR.e22_tgt] at hstep
+  exact hstep (rresp_stop (hpost μ hμL hμdom hs14 hmono.2 hmono.1 hvV hsS hdecμ))
+
+/-- A band run never grows a decaying coordinate. -/
+theorem dec_le {I : Fin (n+2) → Prop}
+    (hdec : ∀ q < 3, ∀ ρ τ, 0 ≤ τ → ∀ i, I i →
+      |LR.run q ρ τ (Rv i)| ≤ |ρ (Rv i)| * Real.exp (-τ))
+    (q : ℕ) (hq : q < 3) (ρ : State (Var (n+2))) {τ : ℝ} (hτ : 0 ≤ τ) (i : Fin (n+2))
+    (hi : I i) (D : ℝ) (μ : State (Var (n+2)))
+    (hμ : |μ (Rv i)| ≤ |LR.run q ρ τ (Rv i)| * Real.exp (-D)) :
+    |μ (Rv i)| ≤ |ρ (Rv i)| * Real.exp (-D) := by
+  have h1 := hdec q hq ρ τ hτ i hi
+  have h2 : Real.exp (-τ) ≤ 1 := by rw [Real.exp_le_one_iff]; linarith
+  have h3 : |LR.run q ρ τ (Rv i)| ≤ |ρ (Rv i)| :=
+    le_trans h1 (by nlinarith [abs_nonneg (ρ (Rv i))])
+  exact le_trans hμ (mul_le_mul_of_nonneg_right h3 (Real.exp_pos _).le)
+
+/-- The climb from `MODER` with a decay budget. -/
+theorem climbModerD {post : ℕ → Formula (Var (n+2))} (I : Fin (n+2) → Prop)
+    (hdec : ∀ q < 3, ∀ ρ τ, 0 ≤ τ → ∀ i, I i →
+      |LR.run q ρ τ (Rv i)| ≤ |ρ (Rv i)| * Real.exp (-τ))
+    (Dmin : ℝ) (hDmin : 0 ≤ Dmin) (ρ : State (Var (n+2))) (hdom : Formula.sat dom ρ)
+    (hg : 3/5 ≤ ρ (Rv 1) ∧ ρ (Rv 1) < 7/5 ∧ ρ (Rv 0) ≤ 1/2) (V S : ℝ)
+    (hV : V < 13/20 ∨ V ≤ ρ (Rv 0))
+    (hpost : ∀ μ, (∀ i, μ (Lv i) = ρ (Lv i)) → Formula.sat dom μ →
+      7/5 ≤ μ (Rv 1) → μ (Rv 0) ≤ 13/20 → ρ (Rv 0) ≤ μ (Rv 0) → V ≤ μ (Rv 0) →
+      S ≤ μ (Rv 1) → (∀ i, I i → |μ (Rv i)| ≤ |ρ (Rv i)| * Real.exp (-Dmin)) →
+      Formula.sat (post 2) μ) :
+    RResp G 1 post ρ := by
+  have hc1 : ladC 1 = 1/2 := by norm_num [ladC]
+  obtain ⟨τ, hτ, hτs⟩ := LR.reach 1 (by norm_num) ρ hdom (7/5) (le_of_lt hg.2.1)
+  have hrun := LR.sem 1 (by norm_num) ρ hdom τ hτ
+  set κ := LR.run 1 ρ τ with hκdef
+  have hmono := LR.v_mono 1 (by norm_num) ρ (by rw [hc1]; exact hg.2.2) hτ
+  rw [hc1] at hmono
+  have hκdom : Formula.sat dom κ := LR.end_dom 1 (by norm_num) ρ hdom τ hτ
+  have hleg := LR.leg12 κ hτs (by linarith [hmono.2])
+  have hstep := rresp_step (post := post) (LR.modeAt 1 (by norm_num)) LR.e12_mem hrun hleg
+  rw [LR.e12_tgt] at hstep
+  refine hstep (LR.climbFlatD I hdec Dmin hDmin κ hκdom ⟨le_of_eq hτs.symm, by linarith [hmono.2]⟩
+    V S (hV.imp_right (fun h => le_trans h hmono.1)) ?_)
+  intro μ hμL hμd h1 h2 h3 h4 h5 h6
+  exact hpost μ (fun i => (hμL i).trans (LR.left 1 ρ τ i)) hμd h1 h2 (le_trans hmono.1 h3) h4 h5
+    (fun i hi => LR.dec_le hdec 1 (by norm_num) ρ hτ i hi Dmin μ (h6 i hi))
+
+/-- The climb from `STEEP` with a decay budget. -/
+theorem climbSteepD {post : ℕ → Formula (Var (n+2))} (I : Fin (n+2) → Prop)
+    (hdec : ∀ q < 3, ∀ ρ τ, 0 ≤ τ → ∀ i, I i →
+      |LR.run q ρ τ (Rv i)| ≤ |ρ (Rv i)| * Real.exp (-τ))
+    (Dmin : ℝ) (hDmin : 0 ≤ Dmin) (ρ : State (Var (n+2))) (hdom : Formula.sat dom ρ)
+    (hg : ρ (Rv 1) < 3/5 ∧ ρ (Rv 0) ≤ 3/10) (V S : ℝ)
+    (hV : V < 13/20 ∨ V ≤ ρ (Rv 0))
+    (hpost : ∀ μ, (∀ i, μ (Lv i) = ρ (Lv i)) → Formula.sat dom μ →
+      7/5 ≤ μ (Rv 1) → μ (Rv 0) ≤ 13/20 → ρ (Rv 0) ≤ μ (Rv 0) → V ≤ μ (Rv 0) →
+      S ≤ μ (Rv 1) → (∀ i, I i → |μ (Rv i)| ≤ |ρ (Rv i)| * Real.exp (-Dmin)) →
+      Formula.sat (post 2) μ) :
+    RResp G 0 post ρ := by
+  have hc0 : ladC 0 = 3/10 := by norm_num [ladC]
+  obtain ⟨τ, hτ, hτs⟩ := LR.reach 0 (by norm_num) ρ hdom (3/5) (le_of_lt hg.1)
+  have hrun := LR.sem 0 (by norm_num) ρ hdom τ hτ
+  set κ := LR.run 0 ρ τ with hκdef
+  have hmono := LR.v_mono 0 (by norm_num) ρ (by rw [hc0]; exact hg.2) hτ
+  rw [hc0] at hmono
+  have hκdom : Formula.sat dom κ := LR.end_dom 0 (by norm_num) ρ hdom τ hτ
+  have hleg := LR.leg01 κ hτs hmono.2
+  have hstep := rresp_step (post := post) (LR.modeAt 0 (by norm_num)) LR.e01_mem hrun hleg
+  rw [LR.e01_tgt] at hstep
+  refine hstep (LR.climbModerD I hdec Dmin hDmin κ hκdom ⟨le_of_eq hτs.symm, by rw [hτs]; norm_num,
+    by linarith [hmono.2]⟩ V S (hV.imp_right (fun h => le_trans h hmono.1)) ?_)
+  intro μ hμL hμd h1 h2 h3 h4 h5 h6
+  exact hpost μ (fun i => (hμL i).trans (LR.left 0 ρ τ i)) hμd h1 h2 (le_trans hmono.1 h3) h4 h5
+    (fun i hi => LR.dec_le hdec 0 (by norm_num) ρ hτ i hi Dmin μ (h6 i hi))
+
+/-- **The climb from any band with a decay budget `Dmin`.** -/
+theorem climbD {post : ℕ → Formula (Var (n+2))} (I : Fin (n+2) → Prop)
+    (hdec : ∀ q < 3, ∀ ρ τ, 0 ≤ τ → ∀ i, I i →
+      |LR.run q ρ τ (Rv i)| ≤ |ρ (Rv i)| * Real.exp (-τ))
+    (Dmin : ℝ) (hDmin : 0 ≤ Dmin) (q : ℕ) (hq : q < 3) (ρ : State (Var (n+2)))
+    (hdom : Formula.sat dom ρ)
+    (hg : (q = 0 → ρ (Rv 1) < 3/5 ∧ ρ (Rv 0) ≤ 3/10) ∧
+      (q = 1 → 3/5 ≤ ρ (Rv 1) ∧ ρ (Rv 1) < 7/5 ∧ ρ (Rv 0) ≤ 1/2) ∧
+      (q = 2 → 7/5 ≤ ρ (Rv 1) ∧ ρ (Rv 0) ≤ 13/20))
+    (V S : ℝ) (hV : V < 13/20 ∨ V ≤ ρ (Rv 0))
+    (hpost : ∀ μ, (∀ i, μ (Lv i) = ρ (Lv i)) → Formula.sat dom μ →
+      7/5 ≤ μ (Rv 1) → μ (Rv 0) ≤ 13/20 → ρ (Rv 0) ≤ μ (Rv 0) → V ≤ μ (Rv 0) →
+      S ≤ μ (Rv 1) → (∀ i, I i → |μ (Rv i)| ≤ |ρ (Rv i)| * Real.exp (-Dmin)) →
+      Formula.sat (post 2) μ) :
+    RResp G q post ρ := by
+  interval_cases q
+  · exact LR.climbSteepD I hdec Dmin hDmin ρ hdom (hg.1 rfl) V S hV hpost
+  · exact LR.climbModerD I hdec Dmin hDmin ρ hdom (hg.2.1 rfl) V S hV hpost
+  · exact LR.climbFlatD I hdec Dmin hDmin ρ hdom (hg.2.2 rfl) V S hV hpost
+
+
 end LadderRun
 
 /-! ## The decoupled-linear ladder: explicit runs

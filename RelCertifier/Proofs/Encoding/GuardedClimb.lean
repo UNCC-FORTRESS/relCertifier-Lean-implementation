@@ -82,6 +82,98 @@ theorem rresp_step {G : SearchGraph (Var n)} {q : ℕ} {m : RMode (Var n)} {e : 
   · rw [qfOf_cons]
     exact hp
 
+/-! ## Right-only guarded responses to a predicate, and their composition -/
+
+/-- `RResp` with a predicate postcondition (to chain responses across left pieces). -/
+def RRespP (G : SearchGraph (Var n)) (q : ℕ) (P : ℕ → State (Var n) → Prop)
+    (ν : State (Var n)) : Prop :=
+  ∃ segs : List (ℕ × RMode (Var n) × REdge (Var n)),
+    (∀ s ∈ segs, G.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ G.edgesFrom s.1) ∧
+    List.IsChain (fun a b => a.2.2.tgt = b.1) segs ∧
+    (∀ s, segs.head? = some s → s.1 = q) ∧
+    ∃ μ, Program.sem (bigSeq (segs.map gseg)) ν μ ∧ P (qfOf segs q) μ
+
+theorem rresp_of_rrespP {G : SearchGraph (Var n)} {q : ℕ} {post : ℕ → Formula (Var n)}
+    {ν : State (Var n)} (h : RRespP G q (fun q μ => Formula.sat (post q) μ) ν) :
+    RResp G q post ν := h
+
+theorem rrespP_of_rresp {G : SearchGraph (Var n)} {q : ℕ} {post : ℕ → Formula (Var n)}
+    {ν : State (Var n)} (h : RResp G q post ν) :
+    RRespP G q (fun q μ => Formula.sat (post q) μ) ν := h
+
+theorem rrespP_mono {G : SearchGraph (Var n)} {q : ℕ} {P Q : ℕ → State (Var n) → Prop}
+    {ν : State (Var n)} (himp : ∀ q' μ, P q' μ → Q q' μ) (h : RRespP G q P ν) :
+    RRespP G q Q ν := by
+  obtain ⟨segs, ha, hc, hh, μ, hrun, hp⟩ := h
+  exact ⟨segs, ha, hc, hh, μ, hrun, himp _ μ hp⟩
+
+theorem rrespP_stop {G : SearchGraph (Var n)} {q : ℕ} {P : ℕ → State (Var n) → Prop}
+    {ν : State (Var n)} (h : P q ν) : RRespP G q P ν := by
+  refine ⟨[], by simp, by simp, by simp, ν, ?_, by simpa [qfOf] using h⟩
+  show Program.sem (Program.test Formula.tt) ν ν
+  exact ⟨rfl, trivial⟩
+
+theorem rrespP_step {G : SearchGraph (Var n)} {q : ℕ} {m : RMode (Var n)} {e : REdge (Var n)}
+    {P : ℕ → State (Var n) → Prop} {ν κ : State (Var n)}
+    (hm : G.modeAt q = some m) (he : e ∈ G.edgesFrom q)
+    (hflow : Program.sem (Program.ode m.sys m.dom) ν κ) (hleg : SwitchLegal e κ)
+    (hrest : RRespP G e.tgt P κ) : RRespP G q P ν := by
+  obtain ⟨segs, ha, hc, hh, μ, hrun, hp⟩ := hrest
+  refine ⟨(q, m, e) :: segs, ?_, ?_, by simp, μ, ?_, ?_⟩
+  · intro s hs
+    rcases List.mem_cons.mp hs with rfl | hs
+    · exact ⟨hm, he⟩
+    · exact ha s hs
+  · rcases segs with - | ⟨r, rs⟩
+    · simp
+    · exact hc.cons (by
+        intro y hy
+        rw [List.head?_cons, Option.mem_some_iff] at hy
+        subst hy
+        exact (hh r rfl).symm)
+  · simp only [List.map_cons, bigSeq]
+    exact ⟨κ, sem_gseg.mpr ⟨hflow, hleg⟩, hrun⟩
+  · rw [qfOf_cons]
+    exact hp
+
+/-- **Responses compose**: a response to `P`, from every `P`-state a response to `Q`. -/
+theorem rrespP_bind {G : SearchGraph (Var n)} {P Q : ℕ → State (Var n) → Prop} :
+    ∀ (segs : List (ℕ × RMode (Var n) × REdge (Var n))) {q : ℕ} {ν μ : State (Var n)},
+      (∀ s ∈ segs, G.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ G.edgesFrom s.1) →
+      List.IsChain (fun a b => a.2.2.tgt = b.1) segs →
+      (∀ s, segs.head? = some s → s.1 = q) →
+      Program.sem (bigSeq (segs.map gseg)) ν μ → P (qfOf segs q) μ →
+      (∀ q' μ', P q' μ' → RRespP G q' Q μ') → RRespP G q Q ν := by
+  intro segs
+  induction segs with
+  | nil =>
+      intro q ν μ _ _ _ hrun hp hk
+      rw [List.map_nil, bigSeq, sem_test] at hrun
+      obtain ⟨rfl, -⟩ := hrun
+      simpa [qfOf] using hk _ _ hp
+  | cons a rest ih =>
+      intro q ν μ ha hc hh hrun hp hk
+      have hq : a.1 = q := hh a rfl
+      simp only [List.map_cons, bigSeq] at hrun
+      obtain ⟨κ, hseg, hrest⟩ := hrun
+      obtain ⟨hflow, hleg⟩ := sem_gseg.mp hseg
+      obtain ⟨hm, he⟩ := ha a List.mem_cons_self
+      rw [← hq]
+      refine rrespP_step hm he hflow hleg (ih (q := a.2.2.tgt)
+        (fun s hs => ha s (List.mem_cons_of_mem _ hs)) hc.of_cons ?_ hrest
+        (by rw [← qfOf_cons]; exact hp) hk)
+      intro t ht
+      rcases rest with - | ⟨r, rs⟩
+      · simp at ht
+      · simp only [List.head?_cons, Option.some.injEq] at ht
+        subst ht; exact hc.rel.symm
+
+theorem rrespP_bind' {G : SearchGraph (Var n)} {q : ℕ} {P Q : ℕ → State (Var n) → Prop}
+    {ν : State (Var n)} (h : RRespP G q P ν) (hk : ∀ q' μ', P q' μ' → RRespP G q' Q μ') :
+    RRespP G q Q ν := by
+  obtain ⟨segs, ha, hc, hh, μ, hrun, hp⟩ := h
+  exact rrespP_bind segs ha hc hh hrun hp hk
+
 /-! ## Left-window bounds on a linear coordinate -/
 
 theorem clockedSeg_runs {leftSys : ODESystem (Var n)} {domL : Formula (Var n)} {tg : Var n}

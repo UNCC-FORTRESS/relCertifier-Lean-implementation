@@ -34,6 +34,18 @@ noncomputable def ladC (q : ℕ) : ℝ := if q = 0 then 3/10 else if q = 1 then 
 theorem ladC_bounds (q : ℕ) : 3/10 ≤ ladC q ∧ ladC q ≤ 13/20 := by
   unfold ladC; split_ifs <;> norm_num
 
+theorem ladC_mono_le (q q' : ℕ) (h : q ≤ q') : ladC q ≤ ladC q' := by
+  unfold ladC
+  by_cases h0 : q = 0
+  · subst h0; simp only [if_true]; split_ifs <;> norm_num
+  · by_cases h1 : q = 1
+    · subst h1
+      have : q' ≠ 0 := by omega
+      simp only [h0, if_false, if_true, this]; split_ifs <;> norm_num
+    · have h0' : q' ≠ 0 := by omega
+      have h1' : q' ≠ 1 := by omega
+      simp [h0, h1, h0', h1']
+
 /-- **What a ladder benchmark supplies for the climb.** `v = Rv 0`, `s = Rv 1`. -/
 structure LadderRun (G : SearchGraph (Var (n+2))) (dom : Formula (Var (n+2))) where
   m : ℕ → RMode (Var (n+2))

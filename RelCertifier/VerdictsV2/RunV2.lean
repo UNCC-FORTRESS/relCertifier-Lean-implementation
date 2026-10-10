@@ -134,10 +134,17 @@ def packsV2 : List PackV2 :=
     ⟨"story3_rollover_ladder_rung_b", 12, 2, [0, 1], 1, 1, 2, 1⟩,
     ⟨"story3_rollover_ladder_rung_b", 12, 2, [0, 1], 1, 1, 2, 2⟩,
     -- sat_detumble_nominal
-    ⟨"sat_detumble_nominal", 4, 0, [0, 1], 1, 1, 0, 0⟩ ]
+    ⟨"sat_detumble_nominal", 4, 0, [0, 1], 1, 1, 0, 0⟩,
+    -- platoon3_profiles
+    ⟨"platoon3_profiles", 6, 0, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17], 1, 1, 0, 0⟩,
+    ⟨"platoon3_profiles", 6, 0, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17], 1, 1, 0, 1⟩,
+    ⟨"platoon3_profiles", 6, 0, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17], 1, 1, 0, 2⟩,
+    -- platoon3_linkloss
+    ⟨"platoon3_linkloss", 6, 0, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], 1, 1, 0, 0⟩,
+    ⟨"platoon3_linkloss", 6, 1, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], 1, 1, 1, 0⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 120
+def expectedModalV2 : Nat := 200
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do

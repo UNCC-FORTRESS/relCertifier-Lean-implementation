@@ -46,6 +46,8 @@ import RelCertifier.InstancesV2.Modal.ArmPlateauProfiles
 import RelCertifier.InstancesV2.Modal.ArmPlateauSlow
 import RelCertifier.InstancesV2.Modal.Story3RolloverRungB
 import RelCertifier.InstancesV2.Modal.SatDetumbleNominal
+import RelCertifier.InstancesV2.Modal.Platoon3Profiles
+import RelCertifier.InstancesV2.Modal.Platoon3Linkloss
 -- the 19 copied benchmarks: legacy theorems (their literal is the suite_v2 literal)
 import RelCertifier.Instances.MatchMultiRatePruned
 import RelCertifier.Instances.RoverLadderRung1Modal
@@ -88,6 +90,8 @@ namespace RelCertifier
 #print axioms V2ArmPlateauSlow.arm_plateau_slow_modal
 #print axioms V2Story3RolloverRungB.story3_rollover_ladder_rung_b_modeKeyed
 #print axioms V2SatDetumbleNominal.sat_detumble_nominal_modal
+#print axioms V2Platoon3Profiles.platoon3_profiles_modal
+#print axioms V2Platoon3Linkloss.platoon3_linkloss_modeKeyed
 
 /-! ## Copied benchmarks (legacy theorems; `SameIR` ties the literals) -/
 

@@ -11,7 +11,7 @@ Released under Apache 2.0 license.
   (`anchor_budget_from_verdict` with `M·dt = 0`);
 * `growth<M>` — the positive-bound growth route (`UNSAT(box ∧ ġ > M)`, doubling sweep
   `M ∈ {1,…,32}`): anchors within budget `g₀ + M·dt < 0` keep the face for `dt`
-  (e.g. watertank `Mid`'s equilibrium face `x ≤ 25`, `ġ = 3(1−0.04x)`);
+  (e.g. an equilibrium face `x ≤ 25` under `x' = 3(1 − 0.04x)`);
 * `fail`    — no probe closes (model-margin fix — the tool-improvement loop).
 
 Lean consumers: `face_strict_from_verdict` / `face_growth_from_verdict` →

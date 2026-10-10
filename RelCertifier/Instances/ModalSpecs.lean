@@ -9,7 +9,7 @@ only *implicitly* in the instance file: which `(left, right)` mode arguments the
 theorem asserts (readable only from binder names) and the stratified-DC order of
 the invariant components (readable only from the order `gs` happens to be written
 in). A runner had to reverse-engineer both, and doing that by hand is error-prone
-in exactly the ways `docs/VERDICT-EVIDENCE-AUDIT.md` §4 records.
+in exactly the ways `docs/history/VERDICT-EVIDENCE-AUDIT.md` §4 records.
 
 This module makes both **data**, tied to the instances by kernel-checked facts:
 
@@ -19,13 +19,18 @@ This module makes both **data**, tied to the instances by kernel-checked facts:
   hypothesis — a spec missing an argument the theorem needs does not compile.
 
 Instance files are untouched: this module sits above them and the original
-theorems are unchanged. `Verdicts/` iterates `specs` instead of hard-coding tables.
+theorems are unchanged. The runner's table (`Verdicts/RunModal.modalTable`) pairs each
+spec with its rebuild data; `specs` lists them all.
 
 Shapes covered: **A** multi-component with a static component list (`spec.order`
 pinned by `rfl`); **C** single-component (no strata, `order = []`). Shape **B**
 (component list built per right mode, `ceilX m :: gsVX m`) carries `modeDep := true`
 and no order pin — its component terms are instance-specific constructions rather
-than plain invariant atoms. The six Z3-free theorems need no spec at all.
+than plain invariant atoms. The two Z3-free theorems (`rung2_6dof_modal`,
+`rung2b_6dof_modal`) need no spec at all.
+
+Scope: the 19 theorems carried over from the retired legacy suite and re-exported by
+`InstancesV2/BatteryV2` (22 specs, one per row of `Verdicts/RunModal.modalTable`).
 -/
 import RelCertifier.Instances.MatchMultiRateModal
 import RelCertifier.Instances.Rover3tierRung12Modal
@@ -500,9 +505,10 @@ end Story3RolloverRungA
 
 /-! ## The mode-keyed (handoff-composed) instances
 
-The three story benchmarks with nested per-mode rows carry, beside the base theorem at
-the common row, a composed theorem at the DECLARED per-mode invariant
-(`Instances/*Handoff.lean`). Their new packs — the STEEP window at its full row, and for
+The two carried-over story benchmarks with nested per-mode rows (`story1_attdist_rung_a`,
+`_rung_b`) carry, beside the base theorem at the common row, a composed theorem at the
+DECLARED per-mode invariant (`Instances/*Handoff.lean`); `rover3tier_rung12`'s composed
+theorem needs no pack of its own (below). Their new packs — the STEEP window at its full row, and for
 `story1_attdist_rung_b` every row with its ceiling — are specs of their own; the
 composed theorem is re-derived from them plus the base packs it reuses. -/
 

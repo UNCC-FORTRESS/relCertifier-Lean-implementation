@@ -4,10 +4,10 @@ Released under Apache 2.0 license.
 
 # Generic kernel pins — runtime-built queries ARE the hypothesized queries
 
-The cut-instance hypotheses quote `getD`-lowered components (`hostDyn`, `hostEvolve`,
-`hostGuard`, `hostComps`, `hostAtomF/G`). The verdict runner rebuilds the same queries
-at runtime from the emitted IR (`benchIRTable`) and cut certificates
-(`EvolStrengthenings`) — the pins below prove, ONCE and generically, that whenever the
+Verdict hypotheses quote `getD`-lowered components (`hostDyn`, `hostEvolve`,
+`hostGuard`, `hostComps`, `hostAtomF/G`). A verdict runner rebuilds the same queries at
+runtime from the emitted IR and cut certificates; the pins below prove, ONCE and
+generically, that whenever the
 lowerings succeed (`some`-facts, observable at runtime and kernel-established per
 instance), the printed IR query denotes exactly the hypothesized host query. No
 per-benchmark literals; every benchmark rides the same five lemmas.

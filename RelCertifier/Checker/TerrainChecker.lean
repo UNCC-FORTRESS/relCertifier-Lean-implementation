@@ -1,6 +1,13 @@
 /-
 # EXT 3 — the terrain checker: box guards over a driven position coordinate
 
+**Status.** Part of the settling / `Faithful` route (per-benchmark settling, terrain and
+affine models of the legacy suite, kernel-certified against the parsed IR). Its
+per-benchmark batteries (`SettlingInstances`, `TerrainInstances`, `AffineInstances`,
+`FaithfulCerts`, `RealInstances`) were retired with the legacy suite (git history); the
+suite_v2 theorems use the modal chain instead. The generic definitions and lemmas stay
+compiled as part of the soundness development.
+
 The s-guarded terrain class: each mode's guard constrains TWO coordinates — the active
 velocity `v` (contract toward the cap, with `ghi = c` exactly: the cap-at-equilibrium
 discipline from Arc 3) and a position `s` DRIVEN by it (`s' = v`), banded into terrain

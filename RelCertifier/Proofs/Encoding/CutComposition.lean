@@ -4,17 +4,24 @@ Released under Apache 2.0 license.
 
 # Cut composition — the declared invariant with the checked cut carried as a MODE REGION
 
-Two benchmarks (`arm_chain_rung3`, `arm_fidelity_mid`) are certified by the tool at a CHECKED CUT: the right
+**Status.** Written for two legacy benchmarks (`arm_chain_rung3`, `arm_fidelity_mid`) whose
+cut-composed theorems were retired with the legacy suite (record:
+`docs/history/CUT-COMPOSITION.md`). The live consumer today is `hddF_multiR_plain`, used by
+`Instances/MatchMultiRatePruned.lean`;
+`sem_bigSeq_identity` and `sem_rightBlock_rate` have no live consumer and are kept as
+generic lemmas. The rest of this note is the original rationale.
+
+Those two benchmarks were certified by the tool at a CHECKED CUT: the right
 `Hold` mode's flow certificate is discharged on the domain narrowed by `Hold`'s guard
 atom `θ_R ≥ 0.6` (entry by O1, invariance by O2 — `Trusted/OracleAPI.lean`
 `checkedCut`/`andCuts`). Their first modal statements carried that cut as a conjunct of
-the invariant for EVERY right mode (`docs/VERDICT-EVIDENCE-AUDIT.md` Part II), which
+the invariant for EVERY right mode (`docs/history/VERDICT-EVIDENCE-AUDIT.md` Part II), which
 reads: from states where the right is already inside `Hold`'s region.
 
 The statement with the plain `mvValid` bookkeeping — the declared invariant from EVERY
 state satisfying it, the right in any declared mode — is FALSE for these benchmarks:
 at `(mv = Hold, θ_R < 0.6)` the right is frozen (`θ' = 0`) or decays (`θ' = ½(0.6 − θ)`)
-while the left can still rise, so no response exists (`docs/CUT-COMPOSITION.md`,
+while the left can still rise, so no response exists (`docs/history/CUT-COMPOSITION.md`,
 countermodel). What IS true, and what the cut certificate supports, is the declared
 invariant with the cut carried ONLY at the mode it was checked for: the mode-region
 bookkeeping `mvRegion mv regions k` (`EnvelopeChainR.lean`) with `regions Hold = ⌊θ_R ≥
@@ -24,8 +31,8 @@ guard-gated switching), O2 says `Hold`'s own flow keeps it — so the region is 
 per-mode bookkeeping fact, and the declared invariant is unconditioned at the three
 approach modes.
 
-This leaf supplies the generic pieces the five `Instances/<Name>Declared.lean` leaves
-compose:
+This leaf supplied the generic pieces the (retired) `Instances/<Name>Declared.lean` leaves
+composed:
 
 * `hddF_multiR_plain` — the `hddF` discharger for the region-carrying postcondition
   over PLAIN (not guard-gated) left windows: `hddF_multiE`'s window side with

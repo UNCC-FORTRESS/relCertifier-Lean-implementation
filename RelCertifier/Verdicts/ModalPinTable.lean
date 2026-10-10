@@ -11,13 +11,12 @@ in that table was checked by the kernel: a wrong field simply made the runner te
 — a wrong λ, a wrong `invRow`, and `rover_rung2c`'s mode pairing — and the first two
 were caught only because the wrong query happened to come back `sat`. One that happens
 to be `unsat` passes silently, which is exactly the vacuous-hypothesis failure the
-2026-07-31 audit (`docs/VERDICT-EVIDENCE-AUDIT.md`) was about.
+2026-07-31 audit (`docs/history/VERDICT-EVIDENCE-AUDIT.md`) was about.
 
-This file removes that gap. For each of the 30 base verdict packs (and the 5 packs of the mode-keyed instances; 36 base
-packs until the six benchmarks DECLINED after the 2026-10-09 static-reposition removal left)
-it states, and proves by
-`rfl`, that the instance's own `Verd` **is** `modalVerd`/`modalVerd1` at the arguments
-the runner uses. A wrong field no longer type-checks.
+This file removes that gap. For each of the 22 rows of `modalTable` (the packs of the 19
+carried-over theorems: 18 base packs and the 4 packs of the mode-keyed instances,
+`Instances/*Handoff.lean`) it states, and proves by `rfl`, that the instance's own `Verd`
+**is** `modalVerd` at the arguments the runner uses. A wrong field no longer type-checks.
 
 Composed with the two links either side, the chain is closed end to end:
 
@@ -28,12 +27,10 @@ Composed with the two links either side, the chain is closed end to end:
 ## Reading an entry
 
 `modalVerd p n invRow order pre post lam l m` is the ∀-over-components form; `pre`
-prepends a component ahead of the invariant's own (ceiling head, or the repaired
-`Hold` region) and `post` appends one behind them. `modalVerd1 p n invRow lam l m` is
-the bare three-route disjunction over the whole invariant row, which two instances
-use; for those a companion `comps_*` pin states as a plain `List` equality that the
-runner's component list really is that single row, so the two shapes agree on what
-gets sent to Z3.
+prepends a component ahead of the invariant's own (the ceiling head) and `post` appends
+one behind them (`rover_rung2c`'s tail face). (`ModalVerd` also defines `modalVerd1`,
+the bare three-route disjunction over a whole invariant row; no carried-over pack uses
+it.)
 -/
 import RelCertifier.Verdicts.ModalVerd
 import RelCertifier.Instances.ModalSpecs
@@ -48,7 +45,7 @@ set_option autoImplicit false
 /-- The runner's own table row. Quoting `dim`, `invRow` and `order` from here rather
 than restating them means those three fields exist in exactly one place: change the
 table and the pin stops compiling. λ and the region/ceiling heads cannot be quoted
-this way — see `docs/VERDICT-EVIDENCE-AUDIT.md` — so they stay written out, with
+this way (see `docs/history/VERDICT-EVIDENCE-AUDIT.md`), so they stay written out, with
 `ModalTablePins` tying the rest of the row. -/
 noncomputable def row (i : ℕ) : ModalSpecs.VerdSpec × RunInfo × List ℕ :=
   modalTable.getD i (ModalSpecs.MatchMultiRate.spec, { dim := 0 }, [])

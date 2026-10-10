@@ -2,26 +2,25 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The modal verdict runner — one route for every theorem's hypotheses
+# The legacy-pack runner: the hypotheses of the 19 carried-over theorems
 
-Before this, hypotheses were discharged two ways: `Verdicts/Run.lean` re-ran
-watertank's six and `Verdicts/RunCut.lean` the cut probes, while the remaining
-modal instances' packs were left to "the tool's own certification run" — a coarse
-`CERTIFIED` line with no per-hypothesis output and no pin tying it to the theorem.
-That split is what let six vacuous theorems sit unnoticed until the 2026-07-31
-audit (`docs/VERDICT-EVIDENCE-AUDIT.md`).
+`InstancesV2/BatteryV2` re-exports 19 theorems carried over from the retired legacy suite
+(`Instances/`; their suite_v2 files are byte-identical copies, `InstancesV2/SameIR`).
+Their Z3 hypotheses are verdict packs in the legacy instance shape. This runner walks
+`modalTable`, one row per pack, whose argument sets are tied to the theorems by
+`ModalSpecs.modal_from_spec`; it rebuilds each query from the emitted IR (`benchIRTable`)
+through the same `Run.*` lowering the instances use, prints it with the tool's own
+`toScript`, and reports Z3's verdict per hypothesis. Its caller is the "copied
+benchmarks" phase of `relcert --run-verdicts-v2` (`VerdictsV2.runSameModalV2`), whose
+total is declared (`expectedSameModalV2` = 385) and derived from this table
+(`VerdictsV2/CoveragePinsV2`).
 
-This runner closes it. It walks `ModalSpecs.specs` — whose argument sets are tied
-to the theorems by `modal_from_spec`, so they cannot drift — rebuilds each query
-from the emitted IR through the same `Run.*` lowering the instances use, prints it
-with the tool's own `toScript`, and reports Z3's verdict per hypothesis.
+**It never falls back.** Anything it cannot rebuild is reported as `SKIP` with a reason
+and makes the run non-green, so a gap is visible rather than silent.
 
-**It never falls back.** Anything it cannot rebuild is reported as `SKIP` with a
-reason and makes the run non-green, so a gap is visible rather than silent.
-
-`Verdicts/ModalPins.lean` proves the rebuilt query denotes the host-level term the
-hypothesis names, so a green line here is evidence about the theorem's own query
-and not about a lookalike.
+The kernel chain from a theorem's `Verd…` to the printed query: `ModalSpecs` (argument
+set), `ModalPinTable` / `ModalTablePins` (the row's fields), `ModalCodePins` (the code
+that turns fields into terms), `ModalPins` (the IR rebuild denotes the host query).
 -/
 import RelCertifier.Verdicts.ModalPins
 import RelCertifier.Verdicts.ModalVerd
@@ -37,7 +36,7 @@ open RelCertifier RelCertifier.Parse RelCertifier.ModalSpecs
 
 /-- What the runner needs beyond `VerdSpec` to rebuild an instance's queries:
 the ambient dimension, the invariant row, λ, and the optional landing-mode region
-(`some k` prepends `k − R₀`, the repaired `Hold` region). Every field is checked
+(`some k` prepends `k − R₀`; no current row uses it). Every field is checked
 against the instance by a `rfl` pin in `ModalSpecs` or by the audit's per-instance
 pins; nothing here is inferred by pattern-matching source text. -/
 structure RunInfo where
@@ -48,8 +47,8 @@ structure RunInfo where
   /-- λ numerator and denominator. -/
   lamN    : ℕ := 1
   lamD    : ℕ := 1
-  /-- Landing-mode region constant `k`, prepending `k − R₀` (the repaired `Hold`
-  region). -/
+  /-- Landing-mode region constant `k`, prepending `k − R₀` (a landing-mode region
+  head; no current row uses it). -/
   region  : Option ℚ := none
   /-- Ceiling head `R_c − k_m` (or `k − R_c` when `ceilFlip`), per right mode. -/
   ceilCo  : Option ℕ := none
@@ -75,8 +74,8 @@ Factored out of `runSpec` so that `Verdicts/ModalTablePins.lean` can state, per
 instance, which pairs the runner actually visits — a theorem about a transcription of
 this code would not constrain the runner, so the runner must call the same function
 the pins talk about. Getting this wrong is not hypothetical: `rover_rung2c` was being
-checked at `(0, l)` instead of `(l, l)`, and `rover_drag` came out empty and was
-checked at nothing at all. -/
+checked at `(0, l)` instead of `(l, l)`, and another pack's pair list came out empty and
+was checked at nothing at all. -/
 def modalPairs (spec : VerdSpec) (info : RunInfo) : List (ℕ × ℕ) :=
   if spec.nullary then [(0, 0)]
   else if !spec.pairs.isEmpty then spec.pairs
@@ -218,19 +217,5 @@ def modalTable : List (VerdSpec × RunInfo × List ℕ) :=
   (Story1AttdistRungBRow1.spec, { dim := 12, invRow := 1, lamN := 1, lamD := 1, ceilCo := some 0, ceilFlip := false, ceilKs := [3/10, 1/2, 13/20] }, [0, 1]),
   (Story1AttdistRungBRow2.spec, { dim := 12, invRow := 2, lamN := 1, lamD := 1, ceilCo := some 0, ceilFlip := false, ceilKs := [3/10, 1/2, 13/20] }, [0, 1])
 ]
-
-/-- `--run-verdicts`' modal pass: every theorem's hypotheses, one route, no fallback. -/
-def runModal (cfg : Z3Config) : IO Bool := do
-  match ← Z3Session.start cfg with
-  | .error e => IO.eprintln s!"ERROR: z3: {e}"; return false
-  | .ok s =>
-      IO.println s!"== modal instances : {modalTable.length} verdict packs =="
-      let mut ok := true
-      for (spec, info, order) in modalTable do
-        ok := (← runSpec s spec info order) && ok
-      s.close
-      if ok then IO.println "ALL MODAL HYPOTHESES DISCHARGED"
-      else IO.println "MODAL PASS INCOMPLETE (see FAIL/SKIP above)"
-      pure ok
 
 end RelCertifier.Verdicts

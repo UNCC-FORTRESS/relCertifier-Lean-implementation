@@ -26,10 +26,11 @@ guard. This leaf ties the two together, once, generically:
 
 What this does NOT claim: that the pruned edge is never taken by the modal witness — the
 witness never takes it by construction (`Proofs/Encoding/SinkExtension.lean`), so the
-modal Theorem 3 of a pruning-suite benchmark does not consume this leaf. It is the
-kernel-checked content of the certificate the tool emits (`CoverEmitE.pruned`), stated
-per benchmark in `Instances/<Name>Pruned.lean` with the runner's query names, and
-discharged by `relcert --run-verdicts` (phase 5, `Verdicts/RunNonConn.lean`).
+modal Theorem 3 of a benchmark with a pruned edge does not consume this leaf. It is the
+kernel-checked content of the certificate the tool emits (`CoverEmitE.pruned`), stated for
+`match_multi_rate`'s pruned edge in `Instances/MatchMultiRatePruned.lean` with the runner's
+query names, and discharged by the non-connection phase of `relcert --run-verdicts-v2`
+(pinned by `VerdictsV2/NonConnPinV2.lean`).
 
 New leaf; the three standard axioms plus `z3_unsat_sound` where the verdicts enter.
 -/

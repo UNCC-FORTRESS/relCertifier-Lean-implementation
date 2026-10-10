@@ -14,15 +14,15 @@ threshold `{g > 0}` on one variable and two Z3 checks are both `unsat`:
   right flow moves `g` strictly down, with the left frozen).
 
 This leaf defines the two queries ONCE, at the SMT-IR level, so that the certifier's
-pruning step (`OracleAPI.nonConnPrune`), the verdict runner (`Verdicts/RunNonConn.lean`)
-and the kernel bridge (`Proofs/Encoding/NonConnBridge.lean`, which consumes
+pruning step (`OracleAPI.nonConnPrune`), the verdict runner (the non-connection phase of
+`relcert --run-verdicts-v2`, `VerdictsV2.runNonConnAllV2`) and the kernel bridge (`Proofs/Encoding/NonConnBridge.lean`, which consumes
 `z3solve (q).toHost = unsat` for exactly these two `IForm`s and yields the hypotheses of
 `nonconn_sound`) cannot drift — the same "mechanization follows the code" discipline as
 the handoff query (`Trusted/Handoff.lean`).
 
-`cutR` is the source mode's checked cut (`OracleAPI.checkedCut`, the kept guard atoms
-conjoined; `tt` when none), conjoined to both domains exactly as `nonConnPrune` did
-before this leaf existed — the queries below are that code, moved, not changed.
+`cutR` is the source mode's checked cut (the kept atoms of `OracleAPI.checkedCut`, or of
+`checkedCutX` under `RELCERT_IMPLIED_CUT=1`, conjoined; `tt` when none), conjoined to both
+domains.
 
 Scope: strict scalar successor guards only (`a > b` / `a < b`). A closed or compound
 guard yields `none` and the edge is kept (incompleteness, never unsoundness).

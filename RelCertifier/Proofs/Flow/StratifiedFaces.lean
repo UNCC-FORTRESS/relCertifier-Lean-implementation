@@ -6,7 +6,8 @@ Released under Apache 2.0 license.
 
 The bounded viability layer (`BoxViabilityBounded`) admits two face classes: STRICT
 (box-conditioned strict inflow on the face) and GROWTH (Lie bound `≤ M` with an entry
-budget). The suite-wide face census (docs/VIABILITY-FACE-CENSUS.md) shows the dominant
+budget). The face census of the legacy suite (`docs/history/VIABILITY-FACE-CENSUS.md`)
+showed the dominant
 class is neither: NON-STRICT inward faces — `Lie ≤ 0` over a region, `= 0` allowed on
 the face — 519 of 1133 faces, present at nearly every benchmark's landing modes.
 
@@ -25,10 +26,9 @@ and no Nagumo sub-tangency is needed.
 then re-derives the full face box — including the non-strict faces — post hoc on that
 run, and only then concludes the evolve domain. No re-proof of the Picard/chain layer.
 
-Measured grounding (docs/history/LEMMA-SCOPE.md): the stratification closes for every
-benchmark measured — 47/47 at census time, i.e. the 46 certified ones plus the
-tool-inconclusive `shield_unreachable` — with strata depth ≤ 3 beyond the strict core and
-zero stuck faces.
+Measured grounding (`docs/history/LEMMA-SCOPE.md`): at census time (legacy suite,
+47 benchmarks) the stratification closed for every benchmark measured, with strata depth
+≤ 3 beyond the strict core and zero stuck faces.
 -/
 import RelCertifier.Proofs.Flow.ViabilityWiring
 

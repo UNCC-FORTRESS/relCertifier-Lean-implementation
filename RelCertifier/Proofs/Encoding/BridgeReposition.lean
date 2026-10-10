@@ -23,9 +23,12 @@ trajectory exits a domain). Contents, in composition order:
   whole fold via `faithful_rights_bridge`), and compose over left modes with `faModal_bigChoiceL` into
   the star-right hstep that `relational_loop_multi` consumes.
 * Repositions — `dynreposition_faModal` (dynamic: `segment_faModal` at `fL = 0`, the
-  frozen-left flow; the only right-only move, there is no static zero-duration reposition).
+  frozen-left flow: the paper's right-only segment, and the only right-only move).
 
-⊤-edge model / clock are mechanization devices with no direct paper analog; the soundness lines
+The ⊤-edge model (right edges carry guard `⊤`; justified for the two step kinds, joint
+segments and the dynamic right-only reposition, under the paper's Assumption 1:
+`docs/PAPER-MAPPING.md`) and the clock are mechanization devices with no direct paper
+analog; the soundness lines
 (`plantT`-predicate not domain-narrowing, `tg`/`mv`-invisibility, declared-edge faithfulness) are
 load-bearing and called out at each lemma.
 -/
@@ -337,7 +340,8 @@ theorem dynreposition_faModal (g : Term (Var n)) (fR : Fin n → Term (Var n)) (
 into two runs (`ν → Φt`, `Φt → μ`). Reverse of the banked `sem_ode_glue`; proven by restricting the
 integral curve to `[0,t]` and shifting it to `[t,r]`. This is the general form; the zero-padding
 `sem_ode_sub_piter` (one real factor) is its `t = 0` / `t = r` degenerate case. Flow segments split
-off a `t > 0` piece; reposition segments are the `t = 0` (zero-duration) case. -/
+off a `t > 0` piece of the left flow; a reposition segment takes the `t = 0` piece of the left
+(the left is held while the right flows). -/
 theorem sem_ode_split {sys : ODESystem (Var n)} {dom : Formula (Var n)} (hwf : sys.WellFormed)
     {ν μ : State (Var n)} (h : Program.sem (Program.ode sys dom) ν μ) :
     ∀ {r : ℝ} {Φ : ℝ → State (Var n)}, 0 ≤ r → Φ 0 = ν → Φ r = μ →
@@ -382,7 +386,8 @@ theorem disjoint_vars_bigSeq {A : Set (Var n)} :
 
 /-- **Piece 1 — the general MULTI composition.** A single left flow couples with a right segment
 sequence `bigSeq (map snd pairs)`, where each segment couples with its OWN left factor `p.1`
-(`p.1 = ode leftBlock` for a flow segment, `test ⊤` for a zero-time reposition). Composed
+(`p.1 = ode leftBlock` for a flow segment, `test ⊤` for a reposition, where the left is held
+for zero time while the right flows). Composed
 segment-by-segment via `faModal_seq` — the per-segment coupling, replacing `multiseg_het`'s
 over-restrictive uniform hypothesis. Flow and reposition are the two `p.1` shapes; no class split. -/
 theorem multiseg_gen (φinv : Formula (Var n)) :

@@ -4,7 +4,8 @@ Released under Apache 2.0 license.
 
 # S2 — the guard-threaded cut lift for the cover chain
 
-13 of the 46 benchmarks certify only with the checked-cut channel: their cover queries
+Many benchmarks certify only with the checked-cut channel (in suite_v2: 29 of 45, matrix
+column M6 of `docs/SUITE-REDESIGN.md`): their cover queries
 (joint segments and dynamic repositions) are NARROWED by guard-derived cut
 atoms, so the emitted UNSATs establish preservation over `dom ∧ cut`, not `dom` — outside
 `CoverCertM`'s fields. This file lifts them: the CUT BATON.
@@ -27,14 +28,14 @@ the O2 probe checked). Entry:
 The mechanized reach relation `RightReach` does not record switch guards (emitted cover
 edges carry `⊤`), so the lifted theorem is stated over the SUBRELATION `RightReachG` —
 `RightReach` plus the target-guard fact at each switch. `RightReachG ⊆ RightReach`
-(`rightReachG_forget`), so the cut-free battery's theorems subsume their `G`-versions;
-the 13 get theirs over `RightReachG`, with guard-triggered switching the documented
+(`rightReachG_forget`), so a theorem over `RightReach` subsumes its `G`-version;
+the cut-reliant ones get theirs over `RightReachG`, with guard-triggered switching the documented
 model assumption. No change to `Checker/` (no battery invalidation).
 
 ## The certificate
 
 `CoverCertMC`: the narrowed preservation fields (exactly the queries the tool sent for
-the 13) + per-atom `hiff`/staying facts (from the O2 probes via `CutLift`'s per-route
+the cut-reliant benchmarks) + per-atom `hiff`/staying facts (from the O2 probes via `CutLift`'s per-route
 constructors) + the O1 entry fact (mode guard ⟹ its atoms — `cutAtoms_sat`, kernel).
 `pres_multi_cut` threads everything; `check_sound_multi_cut` is the
 runner↔theorem connection, mirroring `check_sound_multi`.
@@ -174,7 +175,7 @@ theorem rightReachG_forget {G : SearchGraph (Var n)} {Gd : ℕ → Formula (Var 
 /-- **The cut-narrowed multi-component certificate.** `cutL` — the window's left atoms
 (entered once, at the window start); `cutR q` — right mode `q`'s atoms (entered at each
 switch via `Gd q`). Preservation fields carry the NARROWED domains — exactly the queries
-the tool sent for the 13 cut-reliant benchmarks. Staying fields per system kind: the
+the tool sent for the cut-reliant benchmarks. Staying fields per system kind: the
 joint flow and the frozen-left dynamic flows (one-sided O2 covers both; left atoms are
 frozen along the dynamic flows). -/
 structure CoverCertMC (G : SearchGraph (Var n)) (gs : List (Term (Var n)))

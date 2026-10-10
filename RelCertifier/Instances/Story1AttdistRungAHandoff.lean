@@ -21,8 +21,8 @@ invariant of the left automaton over the file's `next` lists. Ingredients:
   identical row, self-loops are trivial (`FM_mono`).
 
 Residuals: the base instance's nine `VerdD` packs for the `MODER`/`FLAT` windows (six
-used) plus three `VerdS` packs — every one re-run by `relcert --run-verdicts` and pinned
-to the runner's query in `Verdicts/ModalPinTable.lean`.
+used) plus three `VerdS` packs — every one re-run by `relcert --run-verdicts-v2` (phase
+"copied benchmarks") and pinned to the runner's query in `Verdicts/ModalPinTable.lean`.
 -/
 import RelCertifier.Instances.Story1AttdistRungAModal
 import RelCertifier.Proofs.Encoding.ModeHandoff

@@ -19,8 +19,8 @@ certificate (`flow_certified`, and anything constructing a `CoverCert` from it):
   flow_certified                         : [propext, Classical.choice, Quot.sound, z3_unsat_sound]
   segPres_from_flowCert                  : [propext, Classical.choice, Quot.sound, z3_unsat_sound]
 
-For the per-benchmark audit — every certified benchmark's modal Theorem 3 and its axioms — see
-`Instances/ModalBattery.lean`; for what to run and what to expect, `docs/CERTIFICATION-CHECK.md`.
+For the per-benchmark audit (every suite_v2 benchmark's Theorem 3 and its axioms) see
+`InstancesV2/BatteryV2.lean`; for what to run and what to expect, `docs/CERTIFICATION-CHECK.md`.
 
 `decideCovered_implies_theorem3_faithful` is parametric in `cert : CoverCert` (a `Prop`), so it does
 NOT itself apply `z3_unsat_sound` — the leaf enters when that certificate is constructed per-mode via

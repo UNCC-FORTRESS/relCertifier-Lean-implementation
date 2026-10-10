@@ -121,7 +121,7 @@ NOT PART OF THIS BINARY
   The trusted-layer tests are a separate executable:
     BENCH_PATHS=<manifest> ./.lake/build/bin/relcert-test
   `relcert-test` skips its two Z3-determinism checks unless BENCH_PATHS points at a TSV
-  of `<benchmark name>\t<absolute path to input.txt>` covering benchmarks/suite_v2; a
+  of `<benchmark name>\\t<absolute path to input.txt>` covering benchmarks/suite_v2; a
   complete run prints a bare `ALL PASS`, a skipping one says so in the final line.
 
   The full recipe is docs/CERTIFICATION-CHECK.md.

@@ -26,8 +26,9 @@ structural link. See the acceptance discussion in the composed theorem's doc.
 Scope of this discharge (each an honest boundary — see the module note at the bottom):
 * ONE fixed left mode (`leftProgs = [ode (leftBlock fL0) domL0]`) — a single `CoverCert` fixes one
   left mode; the full left automaton is a family of covers.
-* ALL-`jointOK` right modes (flow segments) — reposition modes (`jointOK = false`) carry a static
-  `repoPres`, not a flow `faModal`, so the flow wrap does not reach them.
+* ALL-`jointOK` right modes (joint flow segments) — the dynamic right-only reposition is not a
+  joint segment; it is handled by the multi-flow chain (`dynreposition_faModal`,
+  `BridgeReposition.lean`), not by this single-flow discharge.
 * The reification alignment (`Gr` mode ↔ `Gj` joint mode ↔ reified `leftBlock`/`rightBlock`), the
   `segment_faModal` footprint side-conditions, and per-segment `hExist` are carried as hypotheses —
   the framework side-conditions, exactly as `certified_relational` carries `hExist`/`hdisj`/`Bridges`.

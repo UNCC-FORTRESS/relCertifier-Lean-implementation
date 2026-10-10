@@ -11,7 +11,7 @@ import RelCertifier.Trusted.Parse
 
 namespace RelCertifier.Parse
 
-/-- Parser-emitted IR of `benchmarks/suite_uniform/match_multi_rate/input.txt` (do not edit). -/
+/-- Parser-emitted IR of `benchmarks/suite_v2/match_multi_rate/input.txt` (byte-identical to the retired legacy file it was emitted from; do not edit). -/
 def match_multi_rate_IR : PProblem :=
   {
     name := "match_multi_rate"

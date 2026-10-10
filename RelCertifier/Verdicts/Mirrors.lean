@@ -2,24 +2,17 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The verdict column — IR mirrors of the theorem hypotheses
+# The route-C mirror
 
-The theorems' hypotheses are `z3solve (query) = unsat` facts over HOST formulas;
-`z3solve` is opaque, operationally realized as "print the IR mirror, run Z3"
-(the trust wording: parser + printer + Z3-on-unsat + kernel). This directory is the
-EMPIRICAL column, kept separate from `Instances/` (the kernel column): the IR mirrors of
-the hypothesis queries, kernel identity theorems `mirror.toHost = hypothesis-query` (so
-what Z3 sees IS what the theorem assumes), and the `--run-verdicts` runner producing the
-dated report (docs/VERDICTS.md).
+The theorems' hypotheses are `z3solve (query) = unsat` facts over host formulas;
+`z3solve` is opaque, operationally realized as "print the IR mirror, run Z3" (the trust
+wording: parser + printer + Z3-on-unsat + kernel). A runner therefore needs, per query
+shape, an IR mirror with a kernel identity `mirror.toHost = hypothesis-query`, so what Z3
+sees IS what the theorem assumes.
 
-COVERAGE (2026-07-30): identity theorems exist per benchmark for watertank
-(`Watertank.lean`) and per query SHAPE generically (`GenericPins.lean`, used by the cut
-probes). The verdict packs of the other modal instances are measured through the same
-printer but are not yet pinned here — recorded as the open item in
-`docs/CERTIFICATION-CHECK.md` § Check 3.
-
-This file: the missing route-C mirror (`iflowQuerySuperlevel`), completing the
-route-A/B mirrors from `Smt.lean`/`CutLift.lean`.
+Routes A and B have their mirrors in `Trusted/Smt.lean` / `Proofs/Soundness/CutLift.lean`;
+this file supplies route C (`iflowQuerySuperlevel`, the superlevel route), used by the
+legacy-pack runner (`Verdicts/RunModal`) and the suite_v2 runner (`VerdictsV2/ModalX`).
 -/
 import RelCertifier.Proofs.Soundness.CutLift
 

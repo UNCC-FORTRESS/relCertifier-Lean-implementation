@@ -20,17 +20,19 @@ The oracle's determinism and honesty depend on this layer:
 
 namespace RelCertifier
 
-/-- Solver configuration: the pinned absolute binary path and per-query timeout (ms). -/
+/-- Solver configuration: the pinned absolute binary path, the per-query timeout (ms,
+default 10 000) and the per-query rlimit (default 64 000 000). -/
 structure Z3Config where
   binary    : String
   timeoutMs : Nat := 10000
   /-- Deterministic solver work-unit bound (machine-independent, unlike a wall timeout):
   a hard NRA query hits it and returns `unknown` at the SAME point on every machine, so
   the verdict is reproducible. This is what actually bounds pathological queries `z3`'s
-  `:timeout` may ignore in preprocessing. `0` disables it. Default 64 000 000 (was
-  8 000 000): the heaviest tangent-boundary flow queries of the 6-D gyrostat need about
-  33 000 000 units; the per-query `:timeout` stays the wall-clock safety net (a timeout
-  is `unknown`, hence an error, never a verdict). -/
+  `:timeout` may ignore in preprocessing. `0` disables it. Default 64 000 000
+  (`RELCERT_Z3_RLIMIT`): the heaviest tangent-boundary flow queries of the suite_v2 6-D
+  gyrostat (`sat3w_*`) need about 33 000 000 units; the per-query `:timeout` (default
+  10 s, `RELCERT_Z3_TIMEOUT`) stays the wall-clock safety net (a timeout is `unknown`,
+  hence an error, never a verdict). -/
   rlimit    : Nat := 64000000
   deriving Repr
 

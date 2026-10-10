@@ -2,13 +2,17 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The widened cut channel, lifted (Task B): `EvolStrengtheningX` is sound
+# The widened cut channel, lifted: `EvolStrengtheningX` is sound
 
 `Checker/EvolStrengtheningX.lean` (tool side, `RELCERT_IMPLIED_CUT=1`) keeps, per mode,
 cut atoms of five KINDS, each with its O1 (entry) justification and its O2 (invariance)
 route, and the conditioning list `given` of the stratified kinds. The legacy lift
 (`CutLift.lean`, `CutCover.lean`) covers only `guardConj` atoms with O1 by membership and
-O2 unconditioned per atom. This file lifts the rest.
+O2 unconditioned per atom. This file lifts the rest. The 23 new suite_v2 instances with
+verdict packs (`InstancesV2/Modal/`; the three Z3-free `arm_plateau_*` instances need no
+coupling) consume it through `couple_cutX` (`Proofs/Encoding/CutRespond.lean`) against
+their emitted extended certificate (`InstancesV2/Cuts/<b>.lean`); 12 of the 45 suite_v2
+benchmarks are certified only with the widened channel on.
 
 **O1 — entry** (the mode's guard implies the atom), one lemma per `CutEntry`, stated over
 the very lowerings the tool uses (`Run.lowerF` of the guard and of the atom):

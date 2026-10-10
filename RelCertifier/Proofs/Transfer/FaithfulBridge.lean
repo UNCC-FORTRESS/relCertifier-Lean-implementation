@@ -4,6 +4,13 @@ Released under Apache 2.0 license.
 
 # The Faithful-soundness bridge, part 1: `QF` denotation
 
+**Status.** Part of the settling / `Faithful` route (per-benchmark settling, terrain and
+affine models of the legacy suite, kernel-certified against the parsed IR). Its
+per-benchmark batteries (`SettlingInstances`, `TerrainInstances`, `AffineInstances`,
+`FaithfulCerts`, `RealInstances`) were retired with the legacy suite (git history); the
+suite_v2 theorems use the modal chain instead. The generic definitions and lemmas stay
+compiled as part of the soundness development.
+
 `Faithful.lean` computes with raw `ℤ × ℤ` fractions (`QF`) so its verdicts kernel-reduce.
 This file gives those computations meaning: `QF.val` denotes a fraction in ℝ, every
 operation is sound for positive-denominator inputs, and positivity is closed under the

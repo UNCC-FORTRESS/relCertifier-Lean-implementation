@@ -4,6 +4,13 @@ Released under Apache 2.0 license.
 
 # The Faithful bridge, padded models (`vs.length < n`)
 
+**Status.** Part of the settling / `Faithful` route (per-benchmark settling, terrain and
+affine models of the legacy suite, kernel-certified against the parsed IR). Its
+per-benchmark batteries (`SettlingInstances`, `TerrainInstances`, `AffineInstances`,
+`FaithfulCerts`, `RealInstances`) were retired with the legacy suite (git history); the
+suite_v2 theorems use the modal chain instead. The generic definitions and lemmas stay
+compiled as part of the soundness development.
+
 Eight settling benchmarks carry a padded model: `SettlingModel 2` over one parsed state
 variable. The padded coordinates are frozen with unconstrained envelope bands (enforced
 by `modeCore`'s padding clause, part of the kernel fidelity certificate), the guarded

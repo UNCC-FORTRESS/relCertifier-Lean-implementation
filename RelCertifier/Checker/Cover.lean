@@ -42,11 +42,11 @@ variable {V : Type*} [Fintype V] [DecidableEq V]
   under the frozen-left field `dynSys` for a full interval while the left is held, consuming
   **zero** budget, and the invariant is preserved by the whole-domain flow certificate.
 
-There is **no static (zero-duration) reposition**: it was removed on 2026-10-09. It let the
-right switch modes at a single instant with no check that the successor's guard held at the
-switch state; the right automaton carries `⊤` edge guards, so nothing in the program caught
-it (`docs/COVER-AUDIT.md`, note of 2026-10-09). The certificate makes no zero-duration switch:
-every right mode change follows a joint segment or a full-interval right-only flow. -/
+These are the only two kinds: the certificate makes no zero-duration right switch (one at a
+single instant with no check that the successor's guard holds there); every right mode change
+follows a joint segment or a full-interval right-only flow. The right automaton's edges carry
+`⊤` guards; that abstraction is justified for exactly these two step kinds under the paper's
+Assumption 1 (`docs/PAPER-MAPPING.md`, "The right automaton's ⊤ edge guards"). -/
 structure RMode (V : Type*) where
   sys       : ODESystem V
   dom       : Formula V

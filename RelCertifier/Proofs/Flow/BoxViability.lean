@@ -24,8 +24,8 @@ Z3-checkable face certificates:
   `odeField_lipschitzOnWith`), the step staying in the box by the faces argument,
   glued to ANY duration by `chainN`.
 
-Equilibrium-on-a-face modes (the face query legitimately declines — e.g. watertank
-`Mid`, `3(1 − 0.04x)` vanishing at the evolve bound) take per-shape closed-form lemmas
+Equilibrium-on-a-face modes (the face query legitimately declines — e.g. the legacy
+watertank's `Mid`, `3(1 − 0.04x)` vanishing at the evolve bound) take per-shape closed-form lemmas
 (affine chase; follow-up), or remain a named per-mode single-system hypothesis —
 within the frozen contract either way.
 -/

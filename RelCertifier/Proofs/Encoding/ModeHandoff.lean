@@ -637,7 +637,7 @@ theorem FM_mono {g₁ g₂ : Term (Var n)} {gs₁ gs₂ : List (Term (Var n))}
 
 /-! ## The handoff hypothesis from the runner's query
 
-`Trusted/Handoff.lean`'s `ihandoffQuery` is what `relcert --run-verdicts` prints to Z3 for
+`Trusted/Handoff.lean`'s `ihandoffQuery` is what `relcert --run-verdicts-v2` (and `--handoff`) prints to Z3 for
 each declared left transition. Its host denotation says: no state satisfies the source
 row, the target guard, and the negated target row — i.e. the handoff implication. -/
 

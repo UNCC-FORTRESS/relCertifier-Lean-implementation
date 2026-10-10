@@ -4,7 +4,7 @@ Released under Apache 2.0 license.
 
 # R1 — the window witness from the graph structure; the cover from the checker
 
-Replaces the ASSUMED `EmitWindows` device (docs/ROADMAP.md R1). Two honest halves,
+Replaces the ASSUMED `EmitWindows` device (docs/history/ROADMAP.md R1). Two honest halves,
 mirroring `rvalid_from_cert`'s finding:
 
 * **The modal witness needs no budget walk.** For an all-joint graph, the per-window

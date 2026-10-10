@@ -4,7 +4,9 @@ Released under Apache 2.0 license.
 
 # `story3_rollover_ladder_rung_b` (suite_v2) — mode-keyed Theorem 3 at the declared rows
 
-The suite_v2 file differs from the suite_uniform one ONLY on the left: every left guard
+The suite_v2 file differs from the retired legacy file (whose literal,
+`Instances/BenchIR/story3_rollover_ladder_rung_b`, the reused legacy instance quotes) ONLY
+on the left: every left guard
 carries the settled-attitude entry condition `ψ, ω_ψ, θ_p, ω_θ ≥ −0.25`, and the left
 attitude domains are the physical `[−1, 1]` (were `[−0.5, 0.5]`); the right system, all
 odes, the invariant rows and the `next` lists are the legacy ones (`R_eq`, `inv_eq`, by

@@ -7,7 +7,7 @@ Released under Apache 2.0 license.
 `ModalPinTable` quotes `dim`, `invRow` and `order` straight out of `modalTable`, so
 those three fields live in one place. The remaining `RunInfo` fields cannot be quoted
 into a pin: λ and the region/ceiling heads have to cross into `ℝ` and `Term`, and
-`List.getD` is stuck at a symbolic mode index (see `docs/VERDICT-EVIDENCE-AUDIT.md`).
+`List.getD` is stuck at a symbolic mode index (see `docs/history/VERDICT-EVIDENCE-AUDIT.md`).
 
 This file pins them as data instead. For each row it states, by `rfl`:
 
@@ -15,9 +15,9 @@ This file pins them as data instead. For each row it states, by `rfl`:
   rather than silently pinning a different benchmark;
 * `modalPairs (row i).1 (row i).2.1` — the `(left, right)` pairs the runner actually
   visits. This is `RunModal`'s own function, not a copy of it, so the theorem
-  constrains the runner. Two of the three defects found on 2026-07-31 were here:
-  `rover_rung2c` was visiting `(0, l)` instead of `(l, l)`, and `rover_drag`'s list
-  came out empty so it was checked at nothing;
+  constrains the runner. Two of the three runner defects found on 2026-07-31 were
+  here: `rover_rung2c`'s pack was visiting `(0, l)` instead of `(l, l)`, and another
+  pack's pair list came out empty so it was checked at nothing;
 * the λ and head fields, as a change-detector: they still have to agree with the
   literals `ModalPinTable` writes out, and that agreement is by inspection, but a
   table edit that forgets the pin now breaks the build here.

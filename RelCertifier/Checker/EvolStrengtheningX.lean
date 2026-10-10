@@ -49,15 +49,18 @@ incompleteness gaps (docs/SUITE-REDESIGN.md §7, §13):
 
 Every kept atom — the legacy guard conjuncts included, tagged `CutKind.guardConj` /
 `CutEntry.membership` with their legacy routes — is listed in one `EvolStrengtheningX`
-certificate (`atom`, `kind`, `entry`, `route`, `given`), so the later Lean lift sees,
+certificate (`atom`, `kind`, `entry`, `route`, `given`), so the Lean lift
+(`Proofs/Soundness/CutLiftX.lean`, kernel-checked well-formedness `evolStrengtheningWFX`
+then `evolStrengtheningWFX_entryL/R`) sees,
 per atom, WHAT it must prove for O1, by WHICH route O2 was discharged and on WHICH
 earlier atoms the O2 domain was conditioned (sequential differential cuts, as
 `strataDomIR` for the invariant components).
 
 Compatibility: this module ADDS definitions only. `EvolStrengthening`, `cutAtoms`,
-`contractShapeOK`, `modeCutWF` and `evolStrengtheningWF` are unchanged, and the legacy
-certificate the `suite_uniform` instances `rfl`-pin is emitted exactly as before; the
-extended channel is off unless `RELCERT_IMPLIED_CUT=1` (`OracleAPI.impliedCutsOn`), and
+`contractShapeOK`, `modeCutWF` and `evolStrengtheningWF` are unchanged, and the
+guard-conjunct certificate (the one the 19 carried-over legacy instances quote) is emitted
+exactly as before; the extended channel is off unless `RELCERT_IMPLIED_CUT=1`
+(`OracleAPI.impliedCutsOn`; every suite_v2 run sets it, 12 suite_v2 benchmarks need it), and
 the L7 candidates can be switched off on their own with `RELCERT_NO_LINEAR_CUT=1`
 (`OracleAPI.linearCutsOn`).
 -/

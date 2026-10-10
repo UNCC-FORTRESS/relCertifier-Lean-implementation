@@ -4,7 +4,8 @@ Released under Apache 2.0 license.
 
 # Sink extension — a pruned emergency mode in the right automaton
 
-A benchmark of the pruning suite (`docs/PRUNING.md`) declares one extra right mode (an
+A benchmark with a pruned fallback (e.g. `match_multi_rate`; record of the pruning
+exhibit in `docs/history/PRUNING.md`) declares one extra right mode (an
 emergency / fallback sink: self-loop only, uncertifiable if entered) and one edge from an
 existing right mode to it. The certifier prunes that edge by a non-connection
 certificate (paper Section 4.3; `Trusted/NonConnQuery.lean`, `Checker/NonConn.lean`), so

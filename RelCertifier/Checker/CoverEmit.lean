@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The emitted cover record (R5 — docs/ROADMAP.md)
+# The emitted cover record (R5 — docs/history/ROADMAP.md)
 
 What the tool's successful cover search found, per benchmark — the data the Lean
 instances rebuild and re-verify in kernel: the chosen λ and budget, each right mode's

@@ -11,7 +11,7 @@ import RelCertifier.Trusted.Parse
 
 namespace RelCertifier.Parse
 
-/-- Parser-emitted IR of `benchmarks/suite_uniform/story3_rollover_ladder_rung_b/input.txt` (do not edit). -/
+/-- Parser-emitted IR of the retired legacy `story3_rollover_ladder_rung_b` file (`benchmarks/suite_uniform/`, removed from the tree; git history keeps it). Not the suite_v2 file: only its right system and invariant rows are used, by `rfl` identities in `InstancesV2/Modal/Story3RolloverRungB` (do not edit). -/
 def story3_rollover_ladder_rung_b_IR : PProblem :=
   {
     name := "story3_rollover_ladder_rung_b"

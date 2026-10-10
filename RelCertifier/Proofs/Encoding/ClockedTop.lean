@@ -26,11 +26,11 @@ separate claim-fidelity upgrade (task C, right).
 Hypotheses relative to `theorem3_faithful_settling`: `hbudgetAll`, `htgb`, `htgr`, `htgϕ`,
 `htgR`, `htgφ`, `hdMULTI`, and `k` all GONE; what remains is the settling hypothesis
 itself, the invariant encoding, and the two variable-hygiene facts (task B's targets). 
-RETIRED (R7 decision (b); parity reached 2026-07-30). The cadenced chain has no live
-consumer: the settling battery is a standalone claim (docs/READING-GUIDE.md §5), and
-every certified benchmark now carries the modal form instead (Instances/ModalBattery.lean,
-docs/CERTIFICATION-CHECK.md). Kept compiled for the record; build no new work here — the
-modal chain (EnvelopeChain*) and the cut-lifted throughout chain are its replacements.
+RETIRED (R7 decision (b), 2026-07-30). The cadenced chain has no live consumer: every
+suite_v2 benchmark carries the modal form instead (`InstancesV2/BatteryV2.lean`,
+`docs/CERTIFICATION-CHECK.md`), and the settling battery that used this chain was retired
+with the legacy suite (record: `docs/history/READING-GUIDE.md` §4–5). Kept compiled as part of
+the generic development; the modal chain (`EnvelopeChain*`) is its replacement.
 -/
 import RelCertifier.Proofs.Soundness.GuardThreaded
 

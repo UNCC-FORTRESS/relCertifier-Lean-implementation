@@ -1,6 +1,6 @@
 # rover_patrol_zones: patrol rover with a worn drivetrain on a three-zone route.
 # scenario: degraded-actuator
-# mechanisms: M2 M3 M4 M5 M6
+# mechanisms: M2 M3 M5 M6
 #
 # A patrol rover drives a route whose speed zones are keyed to the odometer s (m):
 #   SLOW    s <  20         commanded speed 0.6 m/s (leaving the depot)
@@ -29,7 +29,10 @@
 # Fallback (M4): the reference declares a STALL fallback below 0.2 m/s (drive cut,
 # v' = -2 v, odometer keeps integrating, sink) from every driving zone; every zone floor
 # is 0.3 m/s and every loop accelerates at 0.2 m/s, so all four STALL edges are pruned;
-# v_L >= 0.3 and v_L <= v_R exclude STALL as a start. RELCERT_NO_PRUNE=1 DECLINES.
+# v_L >= 0.3 and v_L <= v_R exclude STALL as a start. Pruning is NOT load-bearing on
+# this rung: RELCERT_NO_PRUNE=1 still CERTIFIES (the STALL pairings close without it), so
+# the matrix scores M4 as vacuous here; the pruning exhibit of this family is rover_patrol_refine's
+# sibling scenarios, not this file.
 # Envelope (physical domain, both sides): v in [0, 1.6] m/s (the drive's speed range);
 # s >= 0 m (the odometer counts up from the depot). The odometer has NO upper wall: the
 # patrol continues past the last zone boundary (FAST's guard s >= 50 already covers every

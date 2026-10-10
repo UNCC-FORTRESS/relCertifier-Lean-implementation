@@ -13,6 +13,7 @@ so a wrong row does not compile; with `modalVerdX_of_queries` (the rebuild denot
 kernel-checked.
 -/
 import RelCertifier.VerdictsV2.RunV2
+import RelCertifier.InstancesV2.Modal.ChargerFastTapers
 import RelCertifier.InstancesV2.Modal.AccSpoofLag
 import RelCertifier.InstancesV2.Modal.AccTuneLag
 import RelCertifier.InstancesV2.Modal.ChargerFastSetpoints
@@ -174,5 +175,26 @@ theorem irV2_acc_spoof_lag : irV2 "acc_spoof_lag" = acc_spoof_lag_IRv2 := by dec
 theorem cutV2_acc_spoof_lag : cutV2 "acc_spoof_lag" = Oracle.acc_spoof_lag_cutsV2X := by decide
 theorem pin_acc_spoof_lag_0 : V2AccSpoofLag.Verd 0 = packVerd (packsV2.getD 48 default) :=
   pin_row _ rfl irV2_acc_spoof_lag cutV2_acc_spoof_lag (by simp [packLam, packsV2])
+
+theorem irV2_charger_fast_tapers : irV2 "charger_fast_tapers" = charger_fast_tapers_IRv2 := by decide
+theorem cutV2_charger_fast_tapers : cutV2 "charger_fast_tapers" = Oracle.charger_fast_tapers_cutsV2X := by decide
+theorem pin_charger_fast_tapers_0 : V2ChargerFastTapers.Verd 0 3 = packVerd (packsV2.getD 49 default) :=
+  pin_row _ rfl irV2_charger_fast_tapers cutV2_charger_fast_tapers (by simp [packLam, packsV2, V2ChargerFastTapers.lam])
+theorem pin_charger_fast_tapers_1 : V2ChargerFastTapers.Verd 1 0 = packVerd (packsV2.getD 50 default) :=
+  pin_row _ rfl irV2_charger_fast_tapers cutV2_charger_fast_tapers (by simp [packLam, packsV2, V2ChargerFastTapers.lam])
+theorem pin_charger_fast_tapers_2 : V2ChargerFastTapers.Verd 1 1 = packVerd (packsV2.getD 51 default) :=
+  pin_row _ rfl irV2_charger_fast_tapers cutV2_charger_fast_tapers (by simp [packLam, packsV2, V2ChargerFastTapers.lam])
+theorem pin_charger_fast_tapers_3 : V2ChargerFastTapers.Verd 1 2 = packVerd (packsV2.getD 52 default) :=
+  pin_row _ rfl irV2_charger_fast_tapers cutV2_charger_fast_tapers (by simp [packLam, packsV2, V2ChargerFastTapers.lam])
+theorem pin_charger_fast_tapers_4 : V2ChargerFastTapers.Verd 1 3 = packVerd (packsV2.getD 53 default) :=
+  pin_row _ rfl irV2_charger_fast_tapers cutV2_charger_fast_tapers (by simp [packLam, packsV2, V2ChargerFastTapers.lam])
+theorem pin_charger_fast_tapers_5 : V2ChargerFastTapers.Verd 2 0 = packVerd (packsV2.getD 54 default) :=
+  pin_row _ rfl irV2_charger_fast_tapers cutV2_charger_fast_tapers (by simp [packLam, packsV2, V2ChargerFastTapers.lam])
+theorem pin_charger_fast_tapers_6 : V2ChargerFastTapers.Verd 2 1 = packVerd (packsV2.getD 55 default) :=
+  pin_row _ rfl irV2_charger_fast_tapers cutV2_charger_fast_tapers (by simp [packLam, packsV2, V2ChargerFastTapers.lam])
+theorem pin_charger_fast_tapers_7 : V2ChargerFastTapers.Verd 2 2 = packVerd (packsV2.getD 56 default) :=
+  pin_row _ rfl irV2_charger_fast_tapers cutV2_charger_fast_tapers (by simp [packLam, packsV2, V2ChargerFastTapers.lam])
+theorem pin_charger_fast_tapers_8 : V2ChargerFastTapers.Verd 2 3 = packVerd (packsV2.getD 57 default) :=
+  pin_row _ rfl irV2_charger_fast_tapers cutV2_charger_fast_tapers (by simp [packLam, packsV2, V2ChargerFastTapers.lam])
 
 end RelCertifier.VerdictsV2

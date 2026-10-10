@@ -4,7 +4,7 @@ Released under Apache 2.0 license.
 
 # Carried-over benchmarks, mode-independent invariant: Theorem 3 with the paper's left program
 
-The twelve carried-over modules below state their guarded Theorem 3 over the plain choice of
+The thirteen carried-over modules below state their guarded Theorem 3 over the plain choice of
 their left windows (`bigChoice (leftProgs… dt)`; plain clock-capped windows, or guarded
 windows whose own guard is `⊤`). Here each is restated over the paper's left program, the
 guard-gated LEFT AUTOMATON `leftAutomatonBody (AL dt) uLA`: each left edge tests the entered
@@ -23,6 +23,7 @@ import RelCertifier.Instances.RoverDofTerrainRung3Guarded
 import RelCertifier.Instances.RoverDofTerrainRung38dGuarded
 import RelCertifier.Instances.RoverRung26dofGuarded
 import RelCertifier.Instances.RoverRung2b6dofGuarded
+import RelCertifier.Instances.RoverRung2cGuarded
 import RelCertifier.Instances.Story3RolloverBaseGuarded
 import RelCertifier.Instances.Story3RolloverRungAGuarded
 
@@ -537,6 +538,50 @@ theorem rung2b_6dof_leftAut (dt : ℝ) :
     (LeftAut.ofP_hsim leftDataB2 _ tgB2 dt nextLA)
 
 end RoverRung2b6dofGuarded
+
+namespace RoverRung2cGuarded
+open DL DLCalTiming DLRel Parse Set RoverRung2cModal GPins
+
+/-- `refinement_ladder_rover_rung2c_6dof`: the file's left `next` lists, resolved to indices (STEEP, MODER, FLAT). -/
+def nextLA : List (List ℕ) :=
+  (List.range 3).map (fun l => (mL6 l).next.filterMap (Handoff.leftModeIndex refinement_ladder_rover_rung2c_6dof_IR))
+
+theorem nextLA_eq : nextLA = [[1, 0], [2, 1], [2]] := by decide
+
+/-- The guard-gated left automaton: mode `l`'s window (`leftData6`, its own guard test
+first), its lowered guard, its declared successors. -/
+noncomputable def AL (dt : ℝ) : LeftAut 6 := LeftAut.ofG leftData6 tg6 dt nextLA
+
+/-- The left mode variable (the left execution's auxiliary slot 2). -/
+abbrev uLA : Var 6 := (Side.Aux, 2)
+
+theorem AL_guards (dt : ℝ) : (AL dt).guards =
+    (List.range 3).map (fun l => hostGuard vs6 6 Side.L (mL6 l)) := rfl
+
+theorem AL_numModes (dt : ℝ) : (AL dt).numModes = 3 := rfl
+
+/-- **`refinement_ladder_rover_rung2c_6dof`, Theorem 3 with the paper's left program**: the guard-gated left automaton
+(jump, then flow) against the guarded right automaton, the declared rows for every left mode,
+the right in its current mode's guard and cuts. From `rover_rung2c_guarded` by the generic bridge
+`theorem3_leftAut_of_choiceR`. -/
+theorem rover_rung2c_leftAut (dt : ℝ) (hdt : 0 ≤ dt) (hdt1 : dt ≤ 1)
+    (hv0 : VerdR6 0) (hv1 : VerdR6 1) (hv2 : VerdR6 2) :
+    RFormula.rvalid (theorem3Form (leftAutomatonBody (AL dt) uLA) (rightAutomatonBody GrG mv6)
+      (psiK uLA (fun _ => canonInvM g6 gs6) (AL dt).numModes domL6 domR6
+        (mvRegionR mv6 gregion GrG.modes.length))) :=
+  theorem3_leftAut_of_choiceR (AL dt) 0 1 2 (by decide) _ _ _ domL6 domR6 gregion _
+    (rover_rung2c_guarded dt hdt hdt1 hv0 hv1 hv2)
+    (fun q _ => gregion_fv q)
+      (canonInvM_varsL g6 gs6 (by
+        intro g' hg'
+        simp only [g6, gs6, List.mem_cons, List.not_mem_nil, or_false] at hg'
+        rcases hg' with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> exact hgAt _))
+      (canonInvM_varsR g6 gs6) hdomL6 hdomR6
+    (LeftAut.ofG_vars leftData6 1 dt nextLA hL6).1 (LeftAut.ofG_vars leftData6 1 dt nextLA hL6).2
+    (LeftAut.ofG_hnext leftData6 tg6 dt nextLA 3 rfl (by rw [nextLA_eq]; decide))
+    (LeftAut.ofG_hsim leftData6 tg6 dt nextLA)
+
+end RoverRung2cGuarded
 
 namespace Story3RolloverBaseGuarded
 open DL DLCalTiming DLRel Parse Set Story3RolloverBaseModal GPins

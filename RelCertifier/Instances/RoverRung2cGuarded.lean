@@ -14,8 +14,9 @@ certified coupling of the pair, `VerdR6 l`), and switches at the window's end in
 its odometer has reached. A `STEEP` window that carries the odometer from below `0.6` past
 `1.4` would leave the right with no legal switch (`STEEP`'s successors are `MODER` and
 `STEEP`), and any switch inside the window would break the lockstep (the bands' `v` set points
-differ): the guarded statement is FALSE for windows that long. It holds when `dt < 1`: the
-odometer grows by at most `0.8 dt < 0.8`, the width of `MODER`'s band.
+differ): the guarded statement is FALSE for windows that long (`dt > 2.12`). It holds for every
+window up to the model's control interval, `dt ≤ ε_L = 1`: the odometer grows by at most
+`0.8 dt ≤ 0.8`, the width of `MODER`'s band, from strictly below `STEEP`'s ceiling `0.6`.
 -/
 import RelCertifier.Instances.RoverRung2cModal
 import RelCertifier.Proofs.Encoding.LadderSync
@@ -298,9 +299,9 @@ theorem window_right (l : ℕ) (hl : l < 3) (dt : ℝ) {σ ν : State (Var 6)}
   · exact absurd hj (by simp [Lv, Rv, Prod.ext_iff])
 
 /-- **The mirror response** of left window `l` from right band `q` (in its guard and above its
-floor), for windows shorter than `1`: the right mirrors the window in band `l = q` and switches
+floor), for windows up to the control interval `ε_L = 1`: the right mirrors the window in band `l = q` and switches
 at its end into the band its odometer has reached (`l` or `l + 1`). -/
-theorem respondG (l : ℕ) (hl : l < 3) (dt : ℝ) (hdt1 : dt < 1) (q : ℕ) (hq : q < 3)
+theorem respondG (l : ℕ) (hl : l < 3) (dt : ℝ) (hdt1 : dt ≤ 1) (q : ℕ) (hq : q < 3)
     (hv : VerdR6 l) {σ : State (Var 6)}
     (hσ : Formula.sat (Formula.and (FM g6 gs6) env6) σ)
     (hgR : Formula.sat (hostGuard vs6 6 Side.R (mR6 q)) σ)
@@ -413,13 +414,14 @@ theorem gregion_fv (q : ℕ) : (gregion q).fv ⊆ range Rv :=
 theorem hmvregG : ∀ q, mv6 ∉ (gregion q).fv := fun q h => aux_notin_range_Rv 0 (gregion_fv q h)
 
 /-- **`refinement_ladder_rover_rung2c_6dof`, Theorem 3 over the GUARDED right automaton, at
-the mode-consistent region, for windows shorter than `1`.** The statement of
+the mode-consistent region, for every window up to the control interval (`dt ≤ ε_L = 1`).** The statement of
 `rover_rung2c_modal` (the lockstep rows, both envelopes, the file's three guard-gated left
 windows) with every right edge testing the entered band's guard (`GrG_guards`) and the loop
 invariant's right region the current band's guard and odometer floor (`mvRegionR` at
 `gregion`). Response: the mirror (`respondG`). Residuals: the three packs `VerdR6 l`
-(unchanged). For `dt ≥ 1` the statement is false (`docs/GUARDED-SWITCHING.md`). -/
-theorem rover_rung2c_guarded (dt : ℝ) (hdt : 0 ≤ dt) (hdt1 : dt < 1)
+(unchanged). For `dt > 2.12` the statement is false (`docs/GUARDED-SWITCHING.md` §4.5, by
+argument); the windows beyond the control interval are outside the model. -/
+theorem rover_rung2c_guarded (dt : ℝ) (hdt : 0 ≤ dt) (hdt1 : dt ≤ 1)
     (hv0 : VerdR6 0) (hv1 : VerdR6 1) (hv2 : VerdR6 2) :
     RFormula.rvalid (theorem3Form
       (bigChoice (leftProgs6 dt))

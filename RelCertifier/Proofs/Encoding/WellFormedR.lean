@@ -331,6 +331,38 @@ theorem _root_.DLCalTiming.ODESol.restrict {sys : ODESystem (Var n)} {dom : Form
   exact ⟨hs, H.hΦ0, fun t ht p hp => (H.hder t (hsub ht) p hp).mono hsub,
     fun t ht y hy => H.hmask t (hsub ht) y hy, fun t ht => H.hdom t (hsub ht)⟩
 
+/-- **A conserved affine combination of two coordinates**: if `a f₁ + b f₂ = 0` on the
+domain, `a y₁ + b y₂` is constant along the run. -/
+theorem _root_.DLCalTiming.ODESol.affine_const {sys : ODESystem (Var n)}
+    {dom : Formula (Var n)} {x : State (Var n)} {r : ℝ} {Φ : ℝ → State (Var n)}
+    (H : ODESol sys dom x r Φ) {y₁ y₂ : Var n} {f₁ f₂ : Term (Var n)}
+    (h₁ : (y₁, f₁) ∈ sys) (h₂ : (y₂, f₂) ∈ sys) (a b : ℝ)
+    (h0 : ∀ s, Formula.sat dom s → a * Term.eval f₁ s + b * Term.eval f₂ s = 0) :
+    a * Φ r y₁ + b * Φ r y₂ = a * x y₁ + b * x y₂ := by
+  set G : ℝ → ℝ := fun t => a * Φ t y₁ + b * Φ t y₂ with hG
+  have hGder : ∀ t ∈ Set.Icc (0:ℝ) r, HasDerivWithinAt G 0 (Set.Icc 0 r) t := by
+    intro t ht
+    have d1 := (H.hder t ht (y₁, f₁) h₁).const_mul a
+    have d2 := (H.hder t ht (y₂, f₂) h₂).const_mul b
+    exact (d1.add d2).congr_deriv (h0 _ (H.hdom t ht))
+  have hcont : ContinuousOn G (Set.Icc 0 r) := fun t ht => (hGder t ht).continuousWithinAt
+  have hconst := constant_of_has_deriv_right_zero hcont (fun t ht =>
+    (hGder t (Set.Ico_subset_Icc_self ht)).mono_of_mem_nhdsWithin (Icc_mem_nhdsGE_of_mem ht))
+    r ⟨H.hr, le_refl r⟩
+  simp only [hG, H.hΦ0] at hconst
+  exact hconst
+
+/-- A coordinate with field `−k y` (`k ≥ 0`) does not grow in magnitude. -/
+theorem _root_.DLCalTiming.ODESol.decay_sq_le {sys : ODESystem (Var n)}
+    {dom : Formula (Var n)} {x : State (Var n)} {r : ℝ} {Φ : ℝ → State (Var n)}
+    (H : ODESol sys dom x r Φ) {y : Var n} {f : Term (Var n)} (hy : (y, f) ∈ sys) (k : ℝ)
+    (hk : 0 ≤ k) (hf : ∀ s, Formula.sat dom s → Term.eval f s = -k * s y) :
+    Φ r y * Φ r y ≤ x y * x y := by
+  have hb := H.linear_between hy k 0 hk (fun s hs => by rw [hf s hs]; ring)
+  rcases le_total (x y) 0 with h | h
+  · rw [min_eq_left h, max_eq_right h] at hb; nlinarith [hb.1, hb.2]
+  · rw [min_eq_right h, max_eq_left h] at hb; nlinarith [hb.1, hb.2]
+
 /-! ## The right block -/
 
 theorem rightBlock_mem' (fR : Fin n → Term (Var n)) (lam : Term (Var n)) (i : Fin n) :
@@ -472,6 +504,17 @@ theorem exists_of_HExistSegB_zero {fR : Fin n → Term (Var n)} {lam : ℝ} (hla
   have H' := H.reparam lam 1 hlam one_pos
   rw [div_one] at H'
   exact ⟨_, H'⟩
+
+/-- **The frozen run**: a right block whose every field vanishes holds the state still. -/
+theorem const_sol {fR : Fin n → Term (Var n)} {dom : Formula (Var n)}
+    (h0 : ∀ i s, Term.eval (fR i) s = 0) {x : State (Var n)} (hx : Formula.sat dom x)
+    {r : ℝ} (hr : 0 ≤ r) : ODESol (rightBlock fR (Term.const 1)) dom x r (fun _ => x) := by
+  refine ⟨hr, rfl, ?_, fun _ _ _ _ => rfl, fun _ _ => hx⟩
+  intro t _ p hp
+  simp only [rightBlock, List.mem_map, List.mem_finRange, true_and] at hp
+  obtain ⟨i, rfl⟩ := hp
+  rw [eval_unit_mul, h0]
+  exact hasDerivWithinAt_const _ _ _
 
 /-! ## One-coordinate trajectories (explicit runs) -/
 

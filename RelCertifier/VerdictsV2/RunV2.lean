@@ -208,10 +208,17 @@ def packsV2 : List PackV2 :=
     ⟨"rover_dof_terrain_rung3_8d", 8, 0, [0, 1], 1, 1, 0, 2⟩,
     ⟨"rover_dof_terrain_rung3_8d", 8, 0, [0, 1], 1, 1, 1, 1⟩,
     ⟨"rover_dof_terrain_rung3_8d", 8, 0, [0, 1], 1, 1, 1, 2⟩,
-    ⟨"rover_dof_terrain_rung3_8d", 8, 0, [0, 1], 1, 1, 2, 2⟩ ]
+    ⟨"rover_dof_terrain_rung3_8d", 8, 0, [0, 1], 1, 1, 2, 2⟩,
+    -- refinement_ladder_rover_rung1_2to3 (cover replay)
+    ⟨"refinement_ladder_rover_rung1_2to3", 3, 0, [0, 1], 1, 1, 0, 0⟩,
+    ⟨"refinement_ladder_rover_rung1_2to3", 3, 0, [0, 1], 1, 1, 0, 1⟩,
+    ⟨"refinement_ladder_rover_rung1_2to3", 3, 0, [0, 1], 1, 1, 0, 2⟩,
+    ⟨"refinement_ladder_rover_rung1_2to3", 3, 0, [0, 1], 1, 1, 1, 1⟩,
+    ⟨"refinement_ladder_rover_rung1_2to3", 3, 0, [0, 1], 1, 1, 1, 2⟩,
+    ⟨"refinement_ladder_rover_rung1_2to3", 3, 0, [0, 1], 1, 1, 2, 2⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 310
+def expectedModalV2 : Nat := 322
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
@@ -296,10 +303,13 @@ def dynPacksV2 : List DynPackV2 :=
     ⟨"rover_dof_terrain_rung3", 12, 0, [0, 1], true, 2, 1⟩,
     -- rover_dof_terrain_rung3_8d
     ⟨"rover_dof_terrain_rung3_8d", 8, 0, [0, 1], true, 1, 0⟩,
-    ⟨"rover_dof_terrain_rung3_8d", 8, 0, [0, 1], true, 2, 1⟩ ]
+    ⟨"rover_dof_terrain_rung3_8d", 8, 0, [0, 1], true, 2, 1⟩,
+    -- refinement_ladder_rover_rung1_2to3
+    ⟨"refinement_ladder_rover_rung1_2to3", 3, 0, [0, 1], true, 1, 0⟩,
+    ⟨"refinement_ladder_rover_rung1_2to3", 3, 0, [0, 1], true, 2, 1⟩ ]
 
 /-- Declared: the number of component queries the reposition packs owe. -/
-def expectedDynV2 : Nat := 16
+def expectedDynV2 : Nat := 20
 
 def runDynPack (s : Z3Session) (r : DynPackV2) : IO Bool := do
   let p := irV2 r.bench

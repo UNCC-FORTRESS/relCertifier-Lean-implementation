@@ -13,6 +13,7 @@ so a wrong row does not compile; with `modalVerdX_of_queries` (the rebuild denot
 kernel-checked.
 -/
 import RelCertifier.VerdictsV2.RunV2
+import RelCertifier.Instances.RoverLadderRung1Guarded
 import RelCertifier.Instances.RoverDofTerrainRung38dGuarded
 import RelCertifier.Instances.RoverDofTerrainRung3Guarded
 import RelCertifier.Instances.RoverDofTerrainRung2Guarded
@@ -421,5 +422,24 @@ theorem pin_terrain38d_d0 : RoverDofTerrainRung38dGuarded.VerdD 1 0 = dynPackVer
   pin_dyn_row _ rfl irV2_terrain38d cutV2_terrain38d
 theorem pin_terrain38d_d1 : RoverDofTerrainRung38dGuarded.VerdD 2 1 = dynPackVerd (dynPacksV2.getD 7 default) :=
   pin_dyn_row _ rfl irV2_terrain38d cutV2_terrain38d
+
+theorem irV2_rung1 : irV2 "refinement_ladder_rover_rung1_2to3" = refinement_ladder_rover_rung1_2to3_IRv2 := by decide
+theorem cutV2_rung1 : cutV2 "refinement_ladder_rover_rung1_2to3" = Oracle.refinement_ladder_rover_rung1_2to3_cutsV2X := by decide
+theorem pin_rung1_j0 : RoverLadderRung1Guarded.Verd 0 0 = packVerd (packsV2.getD 128 default) :=
+  pin_row _ rfl irV2_rung1 cutV2_rung1 (by simp [packLam, packsV2])
+theorem pin_rung1_j1 : RoverLadderRung1Guarded.Verd 0 1 = packVerd (packsV2.getD 129 default) :=
+  pin_row _ rfl irV2_rung1 cutV2_rung1 (by simp [packLam, packsV2])
+theorem pin_rung1_j2 : RoverLadderRung1Guarded.Verd 0 2 = packVerd (packsV2.getD 130 default) :=
+  pin_row _ rfl irV2_rung1 cutV2_rung1 (by simp [packLam, packsV2])
+theorem pin_rung1_j3 : RoverLadderRung1Guarded.Verd 1 1 = packVerd (packsV2.getD 131 default) :=
+  pin_row _ rfl irV2_rung1 cutV2_rung1 (by simp [packLam, packsV2])
+theorem pin_rung1_j4 : RoverLadderRung1Guarded.Verd 1 2 = packVerd (packsV2.getD 132 default) :=
+  pin_row _ rfl irV2_rung1 cutV2_rung1 (by simp [packLam, packsV2])
+theorem pin_rung1_j5 : RoverLadderRung1Guarded.Verd 2 2 = packVerd (packsV2.getD 133 default) :=
+  pin_row _ rfl irV2_rung1 cutV2_rung1 (by simp [packLam, packsV2])
+theorem pin_rung1_d0 : RoverLadderRung1Guarded.VerdD 1 0 = dynPackVerd (dynPacksV2.getD 8 default) :=
+  pin_dyn_row _ rfl irV2_rung1 cutV2_rung1
+theorem pin_rung1_d1 : RoverLadderRung1Guarded.VerdD 2 1 = dynPackVerd (dynPacksV2.getD 9 default) :=
+  pin_dyn_row _ rfl irV2_rung1 cutV2_rung1
 
 end RelCertifier.VerdictsV2

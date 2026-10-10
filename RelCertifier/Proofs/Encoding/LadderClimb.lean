@@ -669,4 +669,26 @@ theorem coupled_bound (a b M t : ℝ) (ha : -M ≤ a ∧ a ≤ M) (hb : -M ≤ b
     nlinarith
   constructor <;> nlinarith
 
+/-- `(a + b t) e^{−k t}` solves `x' = ω − k x` with `ω = b e^{−k t}`. -/
+theorem hasDerivAt_coupledK (a b k t : ℝ) :
+    HasDerivAt (fun u => (a + b * u) * Real.exp (-(k * u)))
+      (b * Real.exp (-(k * t)) - k * ((a + b * t) * Real.exp (-(k * t)))) t := by
+  have h1 : HasDerivAt (fun u => a + b * u) (b * 1) t := ((hasDerivAt_id t).const_mul b).const_add a
+  have h2 : HasDerivAt (fun u => -(k * u)) (-(k * 1)) t := ((hasDerivAt_id t).const_mul k).neg
+  exact (h1.mul h2.exp).congr_deriv (by ring)
+
+/-- `(a + b t) e^{−k t}` stays in `[−M, M]` when `a ∈ [−M, M]` and `b ∈ [−kM, kM]` (`k > 0`). -/
+theorem coupled_boundK (a b k M t : ℝ) (hk : 0 < k) (ha : -M ≤ a ∧ a ≤ M)
+    (hb : -(k * M) ≤ b ∧ b ≤ k * M) (ht : 0 ≤ t) :
+    -M ≤ (a + b * t) * Real.exp (-(k * t)) ∧ (a + b * t) * Real.exp (-(k * t)) ≤ M := by
+  have he0 : 0 < Real.exp (-(k * t)) := Real.exp_pos _
+  have h1 : 1 + k * t ≤ Real.exp (k * t) := by have := Real.add_one_le_exp (k * t); linarith
+  have hinv : Real.exp (-(k * t)) * Real.exp (k * t) = 1 := by rw [← Real.exp_add]; simp
+  have hM : 0 ≤ M := by linarith [ha.1, ha.2]
+  have hkt : 0 ≤ k * t := mul_nonneg hk.le ht
+  have hup : a + b * t ≤ M * (1 + k * t) := by nlinarith [hb.2]
+  have hlo : -(M * (1 + k * t)) ≤ a + b * t := by nlinarith [hb.1]
+  have hk1 : (1 + k * t) * Real.exp (-(k * t)) ≤ 1 := by nlinarith
+  constructor <;> nlinarith
+
 end RelCertifier

@@ -1,6 +1,6 @@
 # platoon3_profiles: three-follower CACC string on a delayed link, against a design model with driver-selectable gap profiles.
 # scenario: sensor-attack
-# mechanisms: M2 M3 M4 M6 M6+ M6L
+# mechanisms: M2 M3 M4 M6
 #
 # Dimension lift (pass 6) of platoon_delay_profiles: a lead vehicle cruising at constant
 # speed and THREE automated followers; per link i = 1, 2, 3 the gap g_i (m) and the
@@ -18,11 +18,26 @@
 #
 # PHYSICAL DOMAIN (both sides): 0 <= g_i <= 60 m (the radar's range), |r_i| <= 10 m/s
 # (the closing-rate range); no certificate stands on them (widening test).
-# Guards (entry conditions, controller design): a profile engages when every MEASURED gap
-# is within 4 m of its set point and every closing rate within 1 m/s (CLOSE 24..32,
-# NORMAL 26..34, FAR 28..36; the deployed 25..33 true); per follower k the design model
-# declares an AEB fallback BRAKEk below a 20 m gap (g_k < 20, a controller-design floor):
-# follower k brakes at 4 m/s^2, the followers behind it keep the CACC law; sinks.
+# Guards (OPERATING RANGE, controller design; changed 2026-10-10, docs/SUITE-REDESIGN.md
+# section 20). The controller stays engaged throughout its operating range under every
+# profile; the guards are not the engagement bands. Reference CLOSE / NORMAL / FAR (the same
+# guard; the driver may select any profile anywhere in the range): 20 <= g_i <= 60 (above
+# the AEB floor, within the radar's range), |r_i| <= 10 (the rated closing rate), and the
+# AEB not imminent, g_i + 2 r_i >= 21 (the gap projected 2 s ahead stays 1 m above the
+# floor; r_i + 0.5 (g_i - c_k) >= 10.5 - c_k / 2 is the decaying slow form of profile k,
+# so the guard is forward invariant under every profile and the flow repels at g_i = 20).
+# Deployed FOLLOW: 21 <= g_i <= 59, |r_i| <= 10, g_i + 2 r_i >= 20 (the rows let the
+# reference's gap be up to 1 m below the deployed's, g_i^R >= g_i^L - 1, so the floor 21
+# keeps every row-related reference state above the AEB floor; with 19 or 20 the brake
+# sinks are admissible starts and the run DECLINES).
+# Why: the old guards were the ENGAGEMENT bands (CLOSE 24..32, NORMAL 26..34, FAR 28..36,
+# |r_i| <= 1; deployed 25..33): a sampled controller whose stay guards are bands, with no
+# catch-all mode, BLOCKS after a cycle that leaves every band, violating Assumption 1
+# (nonblocking); the mechanization found it (the guarded Theorem 3 was false on the old
+# model, kernel-checked). The plain operating range DECLINES (pruning lost). Per follower k
+# the design model declares an AEB fallback BRAKEk below a 20 m gap (g_k < 20, a
+# controller-design floor): follower k brakes at 4 m/s^2, the followers behind it keep the
+# CACC law; sinks.
 #
 # CLAIM, derived (Delta = L - R, e_i = Delta g_i + 1 the deviation from the deployed's
 # 1 m offset against NORMAL): for every link
@@ -34,18 +49,13 @@
 # three; |e_i| <= 2 is stratified on the proven Q_1 rows. One step tighter (measured on
 # the stretch grid): the Q box at 1.9 rho_j DECLINED (27.9 s); |e_i| <= 1.9 DECLINED
 # (28.9 s).
-# Covers (measured): stretch grid lambda in [1, 6]; the cover is found at lambda = 1 (the
-# same gains on both sides; no M1), budget 2; the cover from NORMAL takes a joint step
-# whose retained successors CLOSE and FAR both cover (M2, M3). On the grid the
-# counter-runs re-try the failing segments at every grid point: NO_PRUNE needs 8 824
-# Z3 queries (DECLINED in 27.3 s), NO_CUT / NO_IMPLIED_CUT / NO_LINEAR_CUT about 7 200
-# (DECLINED in 16.2-16.5 s), within the default query budget of 20 000
-# (RELCERT_MAX_QUERIES; it was 5 000 before pass 7, which ended these runs in ERROR).
-# Fallback (M4): every profile -> BRAKE1/2/3 pruned (nine edges): the L7 chain on each
-# profile's engagement box keeps r + 0.5 (g - c_k) >= -3, so g_i >= c_k - 6 >= 22 > 20;
-# RELCERT_NO_PRUNE=1 DECLINES. The chain is what proves the non-connection, so
-# RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1 and RELCERT_NO_LINEAR_CUT=1 all DECLINE
-# (M6, M6+, M6L; enabling).
+# Covers (measured, operating-range guards): the cover is found at lambda = 1 (no M1),
+# budget 2. Counter-runs: NO_PRUNE DECLINED (23.2 s), NO_CUT DECLINED (15.6 s),
+# NO_IMPLIED_CUT CERTIFIED (1.7 s), NO_LINEAR_CUT CERTIFIED (1.7 s).
+# Fallback (M4): every profile -> BRAKE1/2/3 pruned (nine edges): the projected-gap guard
+# conjunct is a kept cut (DI-strict under every profile) and makes the flow repel at the
+# AEB threshold; RELCERT_NO_PRUNE=1 and RELCERT_NO_CUT=1 DECLINE (M4, M6). The L7 chain is
+# no longer load-bearing (M6+, M6L lost with the engagement bands).
 [problem]
 name = platoon3_profiles
 max_depth = 8
@@ -57,7 +67,7 @@ state_vars = [g1, r1, g2, r2, g3, r3]
 epsilon = 2.0
 [Lsys.mode.FOLLOW]
 ode = g1' = smt2:r1; r1' = smt2:(- (* -0.125 (- g1 29.0)) (* 0.75 r1)); g2' = smt2:r2; r2' = smt2:(- (* -0.125 (- g2 29.0)) (* 0.75 r2)); g3' = smt2:r3; r3' = smt2:(- (* -0.125 (- g3 29.0)) (* 0.75 r3));
-guard = g1 >= 25.0 and g1 <= 33.0 and r1 >= -1.0 and r1 <= 1.0 and g2 >= 25.0 and g2 <= 33.0 and r2 >= -1.0 and r2 <= 1.0 and g3 >= 25.0 and g3 <= 33.0 and r3 >= -1.0 and r3 <= 1.0
+guard = g1 >= 21.0 and g1 <= 59.0 and r1 >= -10.0 and r1 <= 10.0 and g1 + 2.0 * r1 >= 20.0 and g1 + 2.0 * r1 <= 58.0 and g2 >= 21.0 and g2 <= 59.0 and r2 >= -10.0 and r2 <= 10.0 and g2 + 2.0 * r2 >= 20.0 and g2 + 2.0 * r2 <= 58.0 and g3 >= 21.0 and g3 <= 59.0 and r3 >= -10.0 and r3 <= 10.0 and g3 + 2.0 * r3 >= 20.0 and g3 + 2.0 * r3 <= 58.0
 evolve = g1 >= 0.0 and g1 <= 60.0 and r1 >= -10.0 and r1 <= 10.0 and g2 >= 0.0 and g2 <= 60.0 and r2 >= -10.0 and r2 <= 10.0 and g3 >= 0.0 and g3 <= 60.0 and r3 >= -10.0 and r3 <= 10.0
 next = [FOLLOW]
 [Rsys]
@@ -65,17 +75,17 @@ state_vars = [g1, r1, g2, r2, g3, r3]
 epsilon = 1.0
 [Rsys.mode.NORMAL]
 ode = g1' = smt2:r1; r1' = smt2:(- (* -0.125 (- g1 30.0)) (* 0.75 r1)); g2' = smt2:r2; r2' = smt2:(- (* -0.125 (- g2 30.0)) (* 0.75 r2)); g3' = smt2:r3; r3' = smt2:(- (* -0.125 (- g3 30.0)) (* 0.75 r3));
-guard = g1 >= 26.0 and g1 <= 34.0 and r1 >= -1.0 and r1 <= 1.0 and g2 >= 26.0 and g2 <= 34.0 and r2 >= -1.0 and r2 <= 1.0 and g3 >= 26.0 and g3 <= 34.0 and r3 >= -1.0 and r3 <= 1.0
+guard = g1 >= 20.0 and g1 <= 60.0 and r1 >= -10.0 and r1 <= 10.0 and g1 + 2.0 * r1 >= 21.0 and g1 + 2.0 * r1 <= 59.0 and g2 >= 20.0 and g2 <= 60.0 and r2 >= -10.0 and r2 <= 10.0 and g2 + 2.0 * r2 >= 21.0 and g2 + 2.0 * r2 <= 59.0 and g3 >= 20.0 and g3 <= 60.0 and r3 >= -10.0 and r3 <= 10.0 and g3 + 2.0 * r3 >= 21.0 and g3 + 2.0 * r3 <= 59.0
 evolve = g1 >= 0.0 and g1 <= 60.0 and r1 >= -10.0 and r1 <= 10.0 and g2 >= 0.0 and g2 <= 60.0 and r2 >= -10.0 and r2 <= 10.0 and g3 >= 0.0 and g3 <= 60.0 and r3 >= -10.0 and r3 <= 10.0
 next = [NORMAL, CLOSE, FAR, BRAKE1, BRAKE2, BRAKE3]
 [Rsys.mode.CLOSE]
 ode = g1' = smt2:r1; r1' = smt2:(- (* -0.125 (- g1 28.0)) (* 0.75 r1)); g2' = smt2:r2; r2' = smt2:(- (* -0.125 (- g2 28.0)) (* 0.75 r2)); g3' = smt2:r3; r3' = smt2:(- (* -0.125 (- g3 28.0)) (* 0.75 r3));
-guard = g1 >= 24.0 and g1 <= 32.0 and r1 >= -1.0 and r1 <= 1.0 and g2 >= 24.0 and g2 <= 32.0 and r2 >= -1.0 and r2 <= 1.0 and g3 >= 24.0 and g3 <= 32.0 and r3 >= -1.0 and r3 <= 1.0
+guard = g1 >= 20.0 and g1 <= 60.0 and r1 >= -10.0 and r1 <= 10.0 and g1 + 2.0 * r1 >= 21.0 and g1 + 2.0 * r1 <= 59.0 and g2 >= 20.0 and g2 <= 60.0 and r2 >= -10.0 and r2 <= 10.0 and g2 + 2.0 * r2 >= 21.0 and g2 + 2.0 * r2 <= 59.0 and g3 >= 20.0 and g3 <= 60.0 and r3 >= -10.0 and r3 <= 10.0 and g3 + 2.0 * r3 >= 21.0 and g3 + 2.0 * r3 <= 59.0
 evolve = g1 >= 0.0 and g1 <= 60.0 and r1 >= -10.0 and r1 <= 10.0 and g2 >= 0.0 and g2 <= 60.0 and r2 >= -10.0 and r2 <= 10.0 and g3 >= 0.0 and g3 <= 60.0 and r3 >= -10.0 and r3 <= 10.0
 next = [CLOSE, NORMAL, BRAKE1, BRAKE2, BRAKE3]
 [Rsys.mode.FAR]
 ode = g1' = smt2:r1; r1' = smt2:(- (* -0.125 (- g1 32.0)) (* 0.75 r1)); g2' = smt2:r2; r2' = smt2:(- (* -0.125 (- g2 32.0)) (* 0.75 r2)); g3' = smt2:r3; r3' = smt2:(- (* -0.125 (- g3 32.0)) (* 0.75 r3));
-guard = g1 >= 28.0 and g1 <= 36.0 and r1 >= -1.0 and r1 <= 1.0 and g2 >= 28.0 and g2 <= 36.0 and r2 >= -1.0 and r2 <= 1.0 and g3 >= 28.0 and g3 <= 36.0 and r3 >= -1.0 and r3 <= 1.0
+guard = g1 >= 20.0 and g1 <= 60.0 and r1 >= -10.0 and r1 <= 10.0 and g1 + 2.0 * r1 >= 21.0 and g1 + 2.0 * r1 <= 59.0 and g2 >= 20.0 and g2 <= 60.0 and r2 >= -10.0 and r2 <= 10.0 and g2 + 2.0 * r2 >= 21.0 and g2 + 2.0 * r2 <= 59.0 and g3 >= 20.0 and g3 <= 60.0 and r3 >= -10.0 and r3 <= 10.0 and g3 + 2.0 * r3 >= 21.0 and g3 + 2.0 * r3 <= 59.0
 evolve = g1 >= 0.0 and g1 <= 60.0 and r1 >= -10.0 and r1 <= 10.0 and g2 >= 0.0 and g2 <= 60.0 and r2 >= -10.0 and r2 <= 10.0 and g3 >= 0.0 and g3 <= 60.0 and r3 >= -10.0 and r3 <= 10.0
 next = [FAR, NORMAL, BRAKE1, BRAKE2, BRAKE3]
 [Rsys.mode.BRAKE1]

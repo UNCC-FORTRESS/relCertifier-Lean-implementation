@@ -2,31 +2,35 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `platoon3_linkloss` (suite_v2) — mode-keyed Theorem 3 at the declared rows
+# `platoon3_linkloss` (suite_v2) — mode-keyed Theorem 3 over the GUARDED automata
 
 Three-follower CACC string (`n = 6`: `g1, r1, g2, r2, g3, r3`), linear damped links on both
 sides (roots `ρ = 1/4, 1/2`). The file declares one row per LEFT mode (FOLLOW: 12
 components, the exact refinement up to the 1 m offset; LOST: 14 components, link 1
-loosened after the latch to the radar stand-off 35). This leaf composes the per-left-mode
-modal statements over the file's left automaton (`ModeHandoff.theorem3_modeKeyed`), with
-`mv = (Aux, 0)`, the window clock `tg = (Aux, 1)` and the left mode variable `u_L = (Aux, 2)`.
-Adapted from `InstancesV2/Modal/PlatoonDelayLinkloss.lean` (same generic layer, same
-structure). Ingredients: the suite_v2 cut layer (`CutRespond`), O2 for all 24 kept atoms
-per mode through the `CutLiftX` shape lemmas (`super_linear_*`, `super_derived_*` under
-`stay_given`), existence Z3-free by the EXPLICIT closed-form solution of the linear right
-`FOLLOW` mode, and the in-kernel handoff FOLLOW → LOST.
+loosened after the latch to the radar stand-off 35). The guards are the OPERATING RANGE
+(`docs/SUITE-REDESIGN.md` §20; the engagement band of the earlier model made the nominal
+controller block after a full cycle, violating Assumption 1). This leaf composes the
+per-left-mode modal statements over the file's left automaton
+(`ModeHandoff.theorem3_modeKeyed`), with `mv = (Aux, 0)`, the window clock `tg = (Aux, 1)`
+and the left mode variable `u_L = (Aux, 2)`, against the GUARDED right automaton (every edge
+tests the entered mode's lowered guard) at the mode-consistent region (guard ∧ kept cuts).
+Ingredients: the suite_v2 cut layer (`CutRespond`), O2 for every kept atom through
+`Platoon3Link` (guard atoms, linear forms, LOST's derived floor), existence Z3-free by the
+explicit closed-form solution of the linear right `FOLLOW` mode (`link_bounds`), the gap
+floor along the reference's own run (`gap_floor_Ronly`), and the in-kernel handoff
+FOLLOW → LOST.
 -/
 import RelCertifier.Proofs.Encoding.CutRespond
 import RelCertifier.Proofs.Encoding.ModeHandoff
 import RelCertifier.Proofs.Flow.FaceBridge
 import RelCertifier.InstancesV2.Cuts.platoon3_linkloss
+import RelCertifier.InstancesV2.Modal.Platoon3Link
 
 set_option linter.unusedSimpArgs false
-
 namespace RelCertifier
 namespace V2Platoon3Linkloss
 
-open DL DLCalTiming DLRel Parse Set RelCertifier.Oracle
+open DL DLCalTiming DLRel Parse Set RelCertifier.Oracle Platoon3Link
 
 def vs : List String := ["g1", "r1", "g2", "r2", "g3", "r3"]
 def dm : PMode := ⟨"", [], .tt, .tt, []⟩
@@ -153,6 +157,43 @@ theorem hq3_0 : Run.parseRat "3.0" = some (3 : ℚ) := by
 theorem hq6_0 : Run.parseRat "6.0" = some (6 : ℚ) := by
   have h : parseQ "6.0" = some (⟨60, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; try norm_num
+theorem hq17_5 : Run.parseRat "17.5" = some ((35:ℚ)/2) := by
+  have h : parseQ "17.5" = some (⟨175, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; try norm_num
+theorem hqm12_5 : Run.parseRat "-12.5" = some ((-25:ℚ)/2) := by
+  have h : parseQ "-12.5" = some (⟨-125, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; try norm_num
+theorem hq25 : Run.parseRat "25" = some (25 : ℚ) := by
+  have h : parseQ "25" = some (⟨25, 1⟩ : QF) := by decide
+  simp [Run.parseRat, h]; try norm_num
+theorem hqm15 : Run.parseRat "-15" = some (-15 : ℚ) := by
+  have h : parseQ "-15" = some (⟨-15, 1⟩ : QF) := by decide
+  simp [Run.parseRat, h]; try norm_num
+theorem hq16 : Run.parseRat "16" = some (16 : ℚ) := by
+  have h : parseQ "16" = some (⟨16, 1⟩ : QF) := by decide
+  simp [Run.parseRat, h]; try norm_num
+theorem hq5 : Run.parseRat "5" = some (5 : ℚ) := by
+  have h : parseQ "5" = some (⟨5, 1⟩ : QF) := by decide
+  simp [Run.parseRat, h]; try norm_num
+theorem hq2_0 : Run.parseRat "2.0" = some (2 : ℚ) := by
+  have h : parseQ "2.0" = some (⟨20, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; try norm_num
+theorem hq20_0 : Run.parseRat "20.0" = some (20 : ℚ) := by
+  have h : parseQ "20.0" = some (⟨200, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; try norm_num
+theorem hq58_0 : Run.parseRat "58.0" = some (58 : ℚ) := by
+  have h : parseQ "58.0" = some (⟨580, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; try norm_num
+theorem hq21_0 : Run.parseRat "21.0" = some (21 : ℚ) := by
+  have h : parseQ "21.0" = some (⟨210, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; try norm_num
+theorem hq59_0 : Run.parseRat "59.0" = some (59 : ℚ) := by
+  have h : parseQ "59.0" = some (⟨590, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; try norm_num
+theorem hq19_0 : Run.parseRat "19.0" = some (19 : ℚ) := by
+  have h : parseQ "19.0" = some (⟨190, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; try norm_num
+
 
 /-! ## Evaluations of the lowered data -/
 
@@ -200,6 +241,12 @@ theorem sat_domR (x : State (Var 6)) : Formula.sat domR x ↔ Box Rv x := by
     List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv,
     Box, and_assoc]
 
+theorem sat_domL (x : State (Var 6)) : Formula.sat domL x ↔ Box Lv x := by
+  simp only [domL, hostEvolve, mL, platoon3_linkloss_IRv2, vs]
+  simp [Run.lowerF, Run.lowerE, hq0_0, hq60_0, hqm10_0, hq10_0, Run.resolveVar,
+    List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Lv,
+    Box, and_assoc]
+
 theorem domL_univ (l : ℕ) (hl : l < 2) : hostEvolve vs 6 Side.L (mL l) = domL := by
   interval_cases l <;> rfl
 theorem domR_univ (q : ℕ) (hq : q < 4) : hostEvolve vs 6 Side.R (mR q) = domR := by
@@ -212,61 +259,35 @@ noncomputable def cL (l : ℕ) : List (CutAtomP 6) :=
 noncomputable def cR (q : ℕ) : List (CutAtomP 6) :=
   cutPairsX vs 6 Side.R (cutAtomsOfX platoon3_linkloss_cutsV2X.R (mR q).name)
 
-/-- One link's kept-atom constants: set point `c`; linear-form boxes `[b, a]` (ρ = 1/4) and
-`[e, d]` (ρ = 1/2); derived gap bounds `u1, l1` (from the ρ = 1/4 forms), `u2, l2`
-(from the ρ = 1/2 forms). -/
-structure LinkC where
-  c : ℝ
-  a : ℝ
-  b : ℝ
-  d : ℝ
-  e : ℝ
-  u1 : ℝ
-  l1 : ℝ
-  u2 : ℝ
-  l2 : ℝ
-
-/-- The shape conditions the `CutLiftX` lemmas need (nonnegative upper / nonpositive lower
-boxes; each derived bound at its given form's root). -/
-def LinkOK (p : LinkC) : Prop :=
-  0 ≤ p.a ∧ p.b ≤ 0 ∧ 0 ≤ p.d ∧ p.e ≤ 0 ∧
-  p.a ≤ 1/4 * (p.u1 - p.c) ∧ 1/4 * (p.l1 - p.c) ≤ p.b ∧
-  p.d ≤ 1/2 * (p.u2 - p.c) ∧ 1/2 * (p.l2 - p.c) ≤ p.e
-
-noncomputable def linT (W : Fin 6 → Var 6) (jx jy : Fin 6) (p : LinkC) : List (Term (Var 6)) :=
-  [linLe (W jx) (W jy) (1/4) p.c p.a, linGe (W jx) (W jy) (1/4) p.c p.b,
-   linLe (W jx) (W jy) (1/2) p.c p.d, linGe (W jx) (W jy) (1/2) p.c p.e]
-
-noncomputable def derT (W : Fin 6 → Var 6) (jx : Fin 6) (p : LinkC) : List (Term (Var 6)) :=
-  [thrLe (W jx) p.u1, thrGe (W jx) p.l1, thrLe (W jx) p.u2, thrGe (W jx) p.l2]
-
-/-- A mode's 24 kept atoms (safe-side terms), in the certificate's order. -/
-noncomputable def termsW (W : Fin 6 → Var 6) (p1 p2 p3 : LinkC) : List (Term (Var 6)) :=
-  linT W 0 1 p1 ++ linT W 2 3 p2 ++ linT W 4 5 p3 ++ derT W 0 p1 ++ derT W 2 p2 ++ derT W 4 p3
-
-/-- Left `FOLLOW` links, left `LOST` link 1, right `FOLLOW` links. -/
-noncomputable def pF : LinkC := ⟨29, 2, -2, 3, -3, 37, 21, 35, 23⟩
-noncomputable def pLost : LinkC := ⟨35, 1/2, -7/2, 0, -6, 37, 21, 35, 23⟩
-noncomputable def pR : LinkC := ⟨30, 2, -2, 3, -3, 38, 22, 36, 24⟩
+/-- Left `FOLLOW` links (set point 29; projected gap `[20, 58]`), left `LOST` link 1 (the
+radar stand-off 35), right `FOLLOW` links (set point 30; projected gap `[21, 59]`). The
+linear-form boxes are the tool's, read off the operating-range guard box. -/
+noncomputable def pF : LinkC := ⟨29, 35/2, -25/2, 25, -15, 20, 58⟩
+noncomputable def pLost : LinkC := ⟨35, 16, -25/2, 22, -15, 20, 58⟩
+noncomputable def pR : LinkC := ⟨30, 35/2, -25/2, 25, -15, 21, 59⟩
 
 theorem pF_ok : LinkOK pF := by simp only [LinkOK, pF]; norm_num
 theorem pLost_ok : LinkOK pLost := by simp only [LinkOK, pLost]; norm_num
 theorem pR_ok : LinkOK pR := by simp only [LinkOK, pR]; norm_num
 
-theorem cL_terms0 : (cL 0).map Prod.snd = termsW Lv pF pF pF := by
-  simp [cL, cutPairsX, cutAtomsOfX, platoon3_linkloss_cutsV2X, mL, platoon3_linkloss_IRv2,
-    hostAtomG, cutAtomG, Run.lowerE, vs, Run.resolveVar, List.findIdx?_cons, hq0_25, hq0_5, hq29, hq30, hq35, hq2, hqm2, hq3, hqm3, hqm3_5, hq0, hqm6, hq37, hq21, hq38, hq22, hq36, hq24, hq23,
-    ITerm.toHost, termsW, linT, derT, linLe, linGe, linQ, thrLe, thrGe, Lv, pF]
+/-- LOST's derived floor on link 1, `g₁ ≥ 5` (from the ρ = 1/2 form's lower bound). -/
+noncomputable def lostExtra : List (Term (Var 6)) := [thrGe (Lv 0) 5]
 
-theorem cL_terms1 : (cL 1).map Prod.snd = termsW Lv pLost pF pF := by
+theorem cL_terms0 : (cL 0).map Prod.snd = termsW Lv pF pF pF [] := by
   simp [cL, cutPairsX, cutAtomsOfX, platoon3_linkloss_cutsV2X, mL, platoon3_linkloss_IRv2,
-    hostAtomG, cutAtomG, Run.lowerE, vs, Run.resolveVar, List.findIdx?_cons, hq0_25, hq0_5, hq29, hq30, hq35, hq2, hqm2, hq3, hqm3, hqm3_5, hq0, hqm6, hq37, hq21, hq38, hq22, hq36, hq24, hq23,
-    ITerm.toHost, termsW, linT, derT, linLe, linGe, linQ, thrLe, thrGe, Lv, pF, pLost]
+    hostAtomG, cutAtomG, Run.lowerE, vs, Run.resolveVar, List.findIdx?_cons, hq0_25, hq0_5, hq29, hq30, hq35, hq17_5, hqm12_5, hq25, hqm15, hq16, hq22, hq5, hqm10_0, hq10_0, hq2_0, hq20_0, hq58_0, hq21_0, hq59_0,
+    ITerm.toHost, termsW, guardT, linT, pgGe, pgLe, linLe, linGe, linQ, thrLe, thrGe, Lv, pF]
 
-theorem cR_terms0 : (cR 0).map Prod.snd = termsW Rv pR pR pR := by
+theorem cL_terms1 : (cL 1).map Prod.snd = termsW Lv pLost pF pF lostExtra := by
+  simp [cL, cutPairsX, cutAtomsOfX, platoon3_linkloss_cutsV2X, mL, platoon3_linkloss_IRv2,
+    hostAtomG, cutAtomG, Run.lowerE, vs, Run.resolveVar, List.findIdx?_cons, hq0_25, hq0_5, hq29, hq30, hq35, hq17_5, hqm12_5, hq25, hqm15, hq16, hq22, hq5, hqm10_0, hq10_0, hq2_0, hq20_0, hq58_0, hq21_0, hq59_0,
+    ITerm.toHost, termsW, guardT, linT, pgGe, pgLe, linLe, linGe, linQ, thrLe, thrGe, Lv, pF,
+    pLost, lostExtra]
+
+theorem cR_terms0 : (cR 0).map Prod.snd = termsW Rv pR pR pR [] := by
   simp [cR, cutPairsX, cutAtomsOfX, platoon3_linkloss_cutsV2X, mR, platoon3_linkloss_IRv2,
-    hostAtomG, cutAtomG, Run.lowerE, vs, Run.resolveVar, List.findIdx?_cons, hq0_25, hq0_5, hq29, hq30, hq35, hq2, hqm2, hq3, hqm3, hqm3_5, hq0, hqm6, hq37, hq21, hq38, hq22, hq36, hq24, hq23,
-    ITerm.toHost, termsW, linT, derT, linLe, linGe, linQ, thrLe, thrGe, Rv, pR]
+    hostAtomG, cutAtomG, Run.lowerE, vs, Run.resolveVar, List.findIdx?_cons, hq0_25, hq0_5, hq29, hq30, hq35, hq17_5, hqm12_5, hq25, hqm15, hq16, hq22, hq5, hqm10_0, hq10_0, hq2_0, hq20_0, hq58_0, hq21_0, hq59_0,
+    ITerm.toHost, termsW, guardT, linT, pgGe, pgLe, linLe, linGe, linQ, thrLe, thrGe, Rv, pR]
 
 theorem atomsNonstrictL (l : ℕ) (hl : l < 2) :
     ∀ x ∈ cutAtomsOfX platoon3_linkloss_cutsV2X.L (mL l).name,
@@ -275,8 +296,7 @@ theorem atomsNonstrictL (l : ℕ) (hl : l < 2) :
   · intro x hx
     simp only [cutAtomsOfX, platoon3_linkloss_cutsV2X, mL, platoon3_linkloss_IRv2] at hx
     simp at hx
-    rcases hx with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl |
-      rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
+    rcases hx with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
       exact ⟨_, _, _, rfl, by simp⟩
 
 theorem atomsNonstrictR (q : ℕ) (hq : q < 1) :
@@ -286,8 +306,7 @@ theorem atomsNonstrictR (q : ℕ) (hq : q < 1) :
   intro x hx
   simp only [cutAtomsOfX, platoon3_linkloss_cutsV2X, mR, platoon3_linkloss_IRv2] at hx
   simp at hx
-  rcases hx with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl |
-    rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
+  rcases hx with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
     exact ⟨_, _, _, rfl, by simp⟩
 
 theorem hiffL (l : ℕ) (hl : l < 2) : AtomsIff (cL l) :=
@@ -306,275 +325,83 @@ theorem hO1L (l : ℕ) (hl : l < 2) :
     · intro x hx
       simp only [cutAtomsOfX, platoon3_linkloss_cutsV2X, mL, platoon3_linkloss_IRv2] at hx
       simp at hx
-      rcases hx with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl |
-        rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> simp
+      rcases hx with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> simp
   · interval_cases l <;>
     · intro x hx
       simp only [cutAtomsOfX, platoon3_linkloss_cutsV2X, mL, platoon3_linkloss_IRv2] at hx
       simp at hx
-      rcases hx with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl |
-        rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
-        simp [Run.lowerF, Run.lowerE, hq0_25, hq0_5, hq29, hq30, hq35, hq2, hqm2, hq3, hqm3, hqm3_5, hq0, hqm6, hq37, hq21, hq38, hq22, hq36, hq24, hq23, vs, Run.resolveVar, List.findIdx?_cons]
+      rcases hx with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
+        simp [Run.lowerF, Run.lowerE, hq0_25, hq0_5, hq29, hq30, hq35, hq17_5, hqm12_5, hq25, hqm15, hq16, hq22, hq5, hqm10_0, hq10_0, hq2_0, hq20_0, hq58_0, hq21_0, hq59_0, vs, Run.resolveVar, List.findIdx?_cons]
   · interval_cases l <;>
-      simp [mL, platoon3_linkloss_IRv2, Run.lowerF, Run.lowerE, hq25_0, hq33_0, hqm1_0, hq1_0,
+      simp [mL, platoon3_linkloss_IRv2, Run.lowerF, Run.lowerE, hq19_0, hq59_0, hqm10_0, hq10_0, hq2_0, hq20_0, hq58_0, hq25_0, hq21_0, hq60_0,
         vs, Run.resolveVar, List.findIdx?_cons]
 
-/-! ## O2: the kept atoms stay along the joint flows (`CutLiftX` linear/derived shapes) -/
+/-! ## O2: the kept atoms stay along the joint flows (`Platoon3Link` shape lemmas) -/
 
-theorem hroot4 : (1/4 : ℝ) * (1/4) - 3/4 * (1/4) + 1/8 = 0 := by norm_num
-theorem hroot2 : (1/2 : ℝ) * (1/2) - 3/4 * (1/2) + 1/8 = 0 := by norm_num
+theorem linkFields {W : Fin 6 → Var 6} {f : Fin 6 → Term (Var 6)} {c1 c2 c3 : ℝ}
+    (h : PairField3 W f c1 c2 c3) :
+    LinkField W f 0 1 c1 ∧ LinkField W f 2 3 c2 ∧ LinkField W f 4 5 c3 :=
+  ⟨⟨fun z => (h z).1, fun z => (h z).2.1⟩, ⟨fun z => (h z).2.2.1, fun z => (h z).2.2.2.1⟩,
+    ⟨fun z => (h z).2.2.2.2.1, fun z => (h z).2.2.2.2.2⟩⟩
 
-/-- The narrowing formula of a given linear form (`q − K ≤ 0` / `K − q ≤ 0`). -/
-def leF (t : Term (Var 6)) : Formula (Var 6) := Formula.cmp CompOp.le t (Term.const 0)
-
-theorem sat_leF (t : Term (Var 6)) (z : State (Var 6)) :
-    Formula.sat (leF t) z ↔ Term.eval t z ≤ 0 := by
-  simp [leF, Formula.sat, CompOp.interp, Term.eval]
-
-
-theorem stayR_linLe (fL fR : Fin 6 → Term (Var 6)) (lamv : ℝ) (hlam : 0 ≤ lamv) (dom : Formula (Var 6))
-    (jx jy : Fin 6) (r c K : ℝ) (hroot : r * r - 3/4 * r + 1/8 = 0)
-    (hσ : 0 ≤ 3/4 - r) (hK : 0 ≤ K)
-    (hfx : ∀ z, Term.eval (fR jx) z = z (Rv jy))
-    (hfy : ∀ z, Term.eval (fR jy) z = -(1/8) * (z (Rv jx) - c) - 3/4 * z (Rv jy))
-    (ν : State (Var 6)) (h : Term.eval (linLe (Rv jx) (Rv jy) r c K) ν ≤ 0) :
-    BoxLe (Program.ode (jointSys fL fR (Term.const lamv)) dom)
-      (fun ω => Term.eval (linLe (Rv jx) (Rv jy) r c K) ω) ν :=
-  boxle_R_of_super _ fL fR lamv hlam dom dom
-    (fun i hi => by simp [linLe, linQ, Term.fv, Lv, Rv] at hi) (fun x hx => hx)
-    (super_linear_le_R (a := 1/8) (b := 3/4) hroot hσ hK fR dom (fun z _ => hfx z)
-      (fun z _ => hfy z)) h
-
-theorem stayR_linGe (fL fR : Fin 6 → Term (Var 6)) (lamv : ℝ) (hlam : 0 ≤ lamv) (dom : Formula (Var 6))
-    (jx jy : Fin 6) (r c K : ℝ) (hroot : r * r - 3/4 * r + 1/8 = 0)
-    (hσ : 0 ≤ 3/4 - r) (hK : K ≤ 0)
-    (hfx : ∀ z, Term.eval (fR jx) z = z (Rv jy))
-    (hfy : ∀ z, Term.eval (fR jy) z = -(1/8) * (z (Rv jx) - c) - 3/4 * z (Rv jy))
-    (ν : State (Var 6)) (h : Term.eval (linGe (Rv jx) (Rv jy) r c K) ν ≤ 0) :
-    BoxLe (Program.ode (jointSys fL fR (Term.const lamv)) dom)
-      (fun ω => Term.eval (linGe (Rv jx) (Rv jy) r c K) ω) ν :=
-  boxle_R_of_super _ fL fR lamv hlam dom dom
-    (fun i hi => by simp [linGe, linQ, Term.fv, Lv, Rv] at hi) (fun x hx => hx)
-    (super_linear_ge_R (a := 1/8) (b := 3/4) hroot hσ hK fR dom (fun z _ => hfx z)
-      (fun z _ => hfy z)) h
-
-theorem stayR_derLe (fL fR : Fin 6 → Term (Var 6)) (lamv : ℝ) (hlam : 0 ≤ lamv) (dom : Formula (Var 6))
-    (jx jy : Fin 6) (r c K K' : ℝ) (hroot : r * r - 3/4 * r + 1/8 = 0)
-    (hσ : 0 ≤ 3/4 - r) (hK : 0 ≤ K) (hr : 0 ≤ r) (hKK : K ≤ r * (K' - c))
-    (hfx : ∀ z, Term.eval (fR jx) z = z (Rv jy))
-    (hfy : ∀ z, Term.eval (fR jy) z = -(1/8) * (z (Rv jx) - c) - 3/4 * z (Rv jy))
-    (ν : State (Var 6)) (hq : Term.eval (linLe (Rv jx) (Rv jy) r c K) ν ≤ 0)
-    (h : Term.eval (thrLe (Rv jx) K') ν ≤ 0) :
-    BoxLe (Program.ode (jointSys fL fR (Term.const lamv)) dom)
-      (fun ω => Term.eval (thrLe (Rv jx) K') ω) ν :=
-  stay_given (Fq := leF (linLe (Rv jx) (Rv jy) r c K)) (fun z => sat_leF _ z)
-    (fun ν' h' => stayR_linLe fL fR lamv hlam dom jx jy r c K hroot hσ hK hfx hfy ν' h')
-    (fun ν' h' => boxle_R_of_super _ fL fR lamv hlam _ _
-      (fun i hi => by simp [thrLe, Term.fv, Lv, Rv] at hi) (fun x hx => hx)
-      (super_derived_le_R hr hKK fR (Formula.and dom (leF (linLe (Rv jx) (Rv jy) r c K)))
-        (fun z _ => hfx z) (fun z hz => (sat_leF _ z).mp hz.2)) h') ν hq h
-
-theorem stayR_derGe (fL fR : Fin 6 → Term (Var 6)) (lamv : ℝ) (hlam : 0 ≤ lamv) (dom : Formula (Var 6))
-    (jx jy : Fin 6) (r c K K' : ℝ) (hroot : r * r - 3/4 * r + 1/8 = 0)
-    (hσ : 0 ≤ 3/4 - r) (hK : K ≤ 0) (hr : 0 ≤ r) (hKK : r * (K' - c) ≤ K)
-    (hfx : ∀ z, Term.eval (fR jx) z = z (Rv jy))
-    (hfy : ∀ z, Term.eval (fR jy) z = -(1/8) * (z (Rv jx) - c) - 3/4 * z (Rv jy))
-    (ν : State (Var 6)) (hq : Term.eval (linGe (Rv jx) (Rv jy) r c K) ν ≤ 0)
-    (h : Term.eval (thrGe (Rv jx) K') ν ≤ 0) :
-    BoxLe (Program.ode (jointSys fL fR (Term.const lamv)) dom)
-      (fun ω => Term.eval (thrGe (Rv jx) K') ω) ν :=
-  stay_given (Fq := leF (linGe (Rv jx) (Rv jy) r c K)) (fun z => sat_leF _ z)
-    (fun ν' h' => stayR_linGe fL fR lamv hlam dom jx jy r c K hroot hσ hK hfx hfy ν' h')
-    (fun ν' h' => boxle_R_of_super _ fL fR lamv hlam _ _
-      (fun i hi => by simp [thrGe, Term.fv, Lv, Rv] at hi) (fun x hx => hx)
-      (super_derived_ge_R hr hKK fR (Formula.and dom (leF (linGe (Rv jx) (Rv jy) r c K)))
-        (fun z _ => hfx z) (fun z hz => (sat_leF _ z).mp hz.2)) h') ν hq h
-
-
-/-- One link's eight atoms stay (each from a base where the link's four linear forms and the
-atom itself hold). Right side. -/
-theorem stayR_link (fL fR : Fin 6 → Term (Var 6)) (lamv : ℝ) (hlam : 0 ≤ lamv)
-    (dom : Formula (Var 6)) (jx jy : Fin 6) (p : LinkC) (ok : LinkOK p)
-    (hfx : ∀ z, Term.eval (fR jx) z = z (Rv jy))
-    (hfy : ∀ z, Term.eval (fR jy) z = -(1/8) * (z (Rv jx) - p.c) - 3/4 * z (Rv jy)) :
-    ∀ t ∈ linT Rv jx jy p ++ derT Rv jx p, ∀ ν,
-      (∀ t' ∈ linT Rv jx jy p, Term.eval t' ν ≤ 0) → Term.eval t ν ≤ 0 →
-      BoxLe (Program.ode (jointSys fL fR (Term.const lamv)) dom)
-        (fun ω => Term.eval t ω) ν := by
-  obtain ⟨ka, kb, kd, ke, k1, k2, k3, k4⟩ := ok
-  intro t ht ν hlin ht0
-  have hm : ∀ t', t' ∈ linT Rv jx jy p → Term.eval t' ν ≤ 0 := hlin
-  simp only [linT, List.mem_cons, List.not_mem_nil, or_false] at hm
-  simp only [linT, derT, List.mem_append, List.mem_cons, List.not_mem_nil, or_false] at ht
-  have hs4 : (0:ℝ) ≤ 3/4 - 1/4 := by norm_num
-  have hs2 : (0:ℝ) ≤ 3/4 - 1/2 := by norm_num
-  have hr4 : (0:ℝ) ≤ 1/4 := by norm_num
-  have hr2 : (0:ℝ) ≤ 1/2 := by norm_num
-  rcases ht with (rfl | rfl | rfl | rfl) | (rfl | rfl | rfl | rfl)
-  · exact stayR_linLe fL fR lamv hlam dom jx jy _ p.c _ hroot4 hs4 ka hfx hfy ν ht0
-  · exact stayR_linGe fL fR lamv hlam dom jx jy _ p.c _ hroot4 hs4 kb hfx hfy ν ht0
-  · exact stayR_linLe fL fR lamv hlam dom jx jy _ p.c _ hroot2 hs2 kd hfx hfy ν ht0
-  · exact stayR_linGe fL fR lamv hlam dom jx jy _ p.c _ hroot2 hs2 ke hfx hfy ν ht0
-  · exact stayR_derLe fL fR lamv hlam dom jx jy _ p.c _ _ hroot4 hs4 ka hr4 k1 hfx hfy ν
-      (hm _ (Or.inl rfl)) ht0
-  · exact stayR_derGe fL fR lamv hlam dom jx jy _ p.c _ _ hroot4 hs4 kb hr4 k2 hfx hfy ν
-      (hm _ (Or.inr (Or.inl rfl))) ht0
-  · exact stayR_derLe fL fR lamv hlam dom jx jy _ p.c _ _ hroot2 hs2 kd hr2 k3 hfx hfy ν
-      (hm _ (Or.inr (Or.inr (Or.inl rfl)))) ht0
-  · exact stayR_derGe fL fR lamv hlam dom jx jy _ p.c _ _ hroot2 hs2 ke hr2 k4 hfx hfy ν
-      (hm _ (Or.inr (Or.inr (Or.inr rfl)))) ht0
-
-/-- **All 24 right atoms stay** (each from a base where the whole family holds). -/
+/-- **The right family stays** (each atom from a base where the whole family holds). -/
 theorem stayR_terms (fL fR : Fin 6 → Term (Var 6)) (lamv : ℝ) (hlam : 0 ≤ lamv)
-    (dom : Formula (Var 6)) (p1 p2 p3 : LinkC) (ok1 : LinkOK p1) (ok2 : LinkOK p2)
-    (ok3 : LinkOK p3) (hF : PairField3 Rv fR p1.c p2.c p3.c) :
-    ∀ t ∈ termsW Rv p1 p2 p3, ∀ ν, (∀ t' ∈ termsW Rv p1 p2 p3, Term.eval t' ν ≤ 0) →
+    (dom : Formula (Var 6)) (hbox : ∀ z, Formula.sat dom z → Box Rv z)
+    (p1 p2 p3 : LinkC) (ok1 : LinkOK p1) (ok2 : LinkOK p2) (ok3 : LinkOK p3)
+    (hF : PairField3 Rv fR p1.c p2.c p3.c) :
+    ∀ t ∈ termsW Rv p1 p2 p3 [], ∀ ν, (∀ t' ∈ termsW Rv p1 p2 p3 [], Term.eval t' ν ≤ 0) →
       BoxLe (Program.ode (jointSys fL fR (Term.const lamv)) dom)
         (fun ω => Term.eval t ω) ν := by
+  obtain ⟨F1, F2, F3⟩ := linkFields hF
   intro t ht ν hall
-  have sub : ∀ L : List (Term (Var 6)), (∀ t' ∈ L, t' ∈ termsW Rv p1 p2 p3) → ∀ t' ∈ L, Term.eval t' ν ≤ 0 :=
-    fun L hL t' ht' => hall t' (hL t' ht')
   have own := hall t ht
-  simp only [termsW, List.mem_append] at ht
-  rcases ht with ((((ht | ht) | ht) | ht) | ht) | ht
-  · exact stayR_link fL fR lamv hlam dom 0 1 p1 ok1 (fun z => (hF z).1) (fun z => (hF z).2.1)
-      t (List.mem_append_left _ ht) ν (sub _ (fun t' h => by simp [termsW, h])) own
-  · exact stayR_link fL fR lamv hlam dom 2 3 p2 ok2 (fun z => (hF z).2.2.1)
-      (fun z => (hF z).2.2.2.1)
-      t (List.mem_append_left _ ht) ν (sub _ (fun t' h => by simp [termsW, h])) own
-  · exact stayR_link fL fR lamv hlam dom 4 5 p3 ok3 (fun z => (hF z).2.2.2.2.1)
-      (fun z => (hF z).2.2.2.2.2)
-      t (List.mem_append_left _ ht) ν (sub _ (fun t' h => by simp [termsW, h])) own
-  · exact stayR_link fL fR lamv hlam dom 0 1 p1 ok1 (fun z => (hF z).1) (fun z => (hF z).2.1)
-      t (List.mem_append_right _ ht) ν (sub _ (fun t' h => by simp [termsW, h])) own
-  · exact stayR_link fL fR lamv hlam dom 2 3 p2 ok2 (fun z => (hF z).2.2.1)
-      (fun z => (hF z).2.2.2.1)
-      t (List.mem_append_right _ ht) ν (sub _ (fun t' h => by simp [termsW, h])) own
-  · exact stayR_link fL fR lamv hlam dom 4 5 p3 ok3 (fun z => (hF z).2.2.2.2.1)
-      (fun z => (hF z).2.2.2.2.2)
-      t (List.mem_append_right _ ht) ν (sub _ (fun t' h => by simp [termsW, h])) own
+  simp only [termsW, List.append_nil, List.mem_append] at ht
+  rcases ht with (((((ht | ht) | ht) | ht) | ht) | ht)
+  · exact stayR_link fL fR lamv hlam dom 0 1 p1 ok1 F1
+      (fun z hz => ⟨(hbox z hz).1.1, (hbox z hz).1.2.1⟩) t (List.mem_append_left _ ht) ν own
+  · exact stayR_link fL fR lamv hlam dom 2 3 p2 ok2 F2
+      (fun z hz => ⟨(hbox z hz).2.1.1, (hbox z hz).2.1.2.1⟩) t (List.mem_append_left _ ht) ν own
+  · exact stayR_link fL fR lamv hlam dom 4 5 p3 ok3 F3
+      (fun z hz => ⟨(hbox z hz).2.2.1, (hbox z hz).2.2.2.1⟩) t (List.mem_append_left _ ht) ν own
+  · exact stayR_link fL fR lamv hlam dom 0 1 p1 ok1 F1
+      (fun z hz => ⟨(hbox z hz).1.1, (hbox z hz).1.2.1⟩) t (List.mem_append_right _ ht) ν own
+  · exact stayR_link fL fR lamv hlam dom 2 3 p2 ok2 F2
+      (fun z hz => ⟨(hbox z hz).2.1.1, (hbox z hz).2.1.2.1⟩) t (List.mem_append_right _ ht) ν own
+  · exact stayR_link fL fR lamv hlam dom 4 5 p3 ok3 F3
+      (fun z hz => ⟨(hbox z hz).2.2.1, (hbox z hz).2.2.2.1⟩) t (List.mem_append_right _ ht) ν own
 
-theorem stayL_linLe (fL fR : Fin 6 → Term (Var 6)) (lam : Term (Var 6)) (dom : Formula (Var 6))
-    (jx jy : Fin 6) (r c K : ℝ) (hroot : r * r - 3/4 * r + 1/8 = 0)
-    (hσ : 0 ≤ 3/4 - r) (hK : 0 ≤ K)
-    (hfx : ∀ z, Term.eval (fL jx) z = z (Lv jy))
-    (hfy : ∀ z, Term.eval (fL jy) z = -(1/8) * (z (Lv jx) - c) - 3/4 * z (Lv jy))
-    (ν : State (Var 6)) (h : Term.eval (linLe (Lv jx) (Lv jy) r c K) ν ≤ 0) :
-    BoxLe (Program.ode (jointSys fL fR lam) dom)
-      (fun ω => Term.eval (linLe (Lv jx) (Lv jy) r c K) ω) ν :=
-  boxle_L_of_super _ fL fR lam dom dom
-    (fun i hi => by simp [linLe, linQ, Term.fv, Lv, Rv] at hi) (fun x hx => hx)
-    (super_linear_le_L (a := 1/8) (b := 3/4) hroot hσ hK fL dom (fun z _ => hfx z)
-      (fun z _ => hfy z)) h
-
-theorem stayL_linGe (fL fR : Fin 6 → Term (Var 6)) (lam : Term (Var 6)) (dom : Formula (Var 6))
-    (jx jy : Fin 6) (r c K : ℝ) (hroot : r * r - 3/4 * r + 1/8 = 0)
-    (hσ : 0 ≤ 3/4 - r) (hK : K ≤ 0)
-    (hfx : ∀ z, Term.eval (fL jx) z = z (Lv jy))
-    (hfy : ∀ z, Term.eval (fL jy) z = -(1/8) * (z (Lv jx) - c) - 3/4 * z (Lv jy))
-    (ν : State (Var 6)) (h : Term.eval (linGe (Lv jx) (Lv jy) r c K) ν ≤ 0) :
-    BoxLe (Program.ode (jointSys fL fR lam) dom)
-      (fun ω => Term.eval (linGe (Lv jx) (Lv jy) r c K) ω) ν :=
-  boxle_L_of_super _ fL fR lam dom dom
-    (fun i hi => by simp [linGe, linQ, Term.fv, Lv, Rv] at hi) (fun x hx => hx)
-    (super_linear_ge_L (a := 1/8) (b := 3/4) hroot hσ hK fL dom (fun z _ => hfx z)
-      (fun z _ => hfy z)) h
-
-theorem stayL_derLe (fL fR : Fin 6 → Term (Var 6)) (lam : Term (Var 6)) (dom : Formula (Var 6))
-    (jx jy : Fin 6) (r c K K' : ℝ) (hroot : r * r - 3/4 * r + 1/8 = 0)
-    (hσ : 0 ≤ 3/4 - r) (hK : 0 ≤ K) (hr : 0 ≤ r) (hKK : K ≤ r * (K' - c))
-    (hfx : ∀ z, Term.eval (fL jx) z = z (Lv jy))
-    (hfy : ∀ z, Term.eval (fL jy) z = -(1/8) * (z (Lv jx) - c) - 3/4 * z (Lv jy))
-    (ν : State (Var 6)) (hq : Term.eval (linLe (Lv jx) (Lv jy) r c K) ν ≤ 0)
-    (h : Term.eval (thrLe (Lv jx) K') ν ≤ 0) :
-    BoxLe (Program.ode (jointSys fL fR lam) dom)
-      (fun ω => Term.eval (thrLe (Lv jx) K') ω) ν :=
-  stay_given (Fq := leF (linLe (Lv jx) (Lv jy) r c K)) (fun z => sat_leF _ z)
-    (fun ν' h' => stayL_linLe fL fR lam dom jx jy r c K hroot hσ hK hfx hfy ν' h')
-    (fun ν' h' => boxle_L_of_super _ fL fR lam _ _
-      (fun i hi => by simp [thrLe, Term.fv, Lv, Rv] at hi) (fun x hx => hx)
-      (super_derived_le_L hr hKK fL (Formula.and dom (leF (linLe (Lv jx) (Lv jy) r c K)))
-        (fun z _ => hfx z) (fun z hz => (sat_leF _ z).mp hz.2)) h') ν hq h
-
-theorem stayL_derGe (fL fR : Fin 6 → Term (Var 6)) (lam : Term (Var 6)) (dom : Formula (Var 6))
-    (jx jy : Fin 6) (r c K K' : ℝ) (hroot : r * r - 3/4 * r + 1/8 = 0)
-    (hσ : 0 ≤ 3/4 - r) (hK : K ≤ 0) (hr : 0 ≤ r) (hKK : r * (K' - c) ≤ K)
-    (hfx : ∀ z, Term.eval (fL jx) z = z (Lv jy))
-    (hfy : ∀ z, Term.eval (fL jy) z = -(1/8) * (z (Lv jx) - c) - 3/4 * z (Lv jy))
-    (ν : State (Var 6)) (hq : Term.eval (linGe (Lv jx) (Lv jy) r c K) ν ≤ 0)
-    (h : Term.eval (thrGe (Lv jx) K') ν ≤ 0) :
-    BoxLe (Program.ode (jointSys fL fR lam) dom)
-      (fun ω => Term.eval (thrGe (Lv jx) K') ω) ν :=
-  stay_given (Fq := leF (linGe (Lv jx) (Lv jy) r c K)) (fun z => sat_leF _ z)
-    (fun ν' h' => stayL_linGe fL fR lam dom jx jy r c K hroot hσ hK hfx hfy ν' h')
-    (fun ν' h' => boxle_L_of_super _ fL fR lam _ _
-      (fun i hi => by simp [thrGe, Term.fv, Lv, Rv] at hi) (fun x hx => hx)
-      (super_derived_ge_L hr hKK fL (Formula.and dom (leF (linGe (Lv jx) (Lv jy) r c K)))
-        (fun z _ => hfx z) (fun z hz => (sat_leF _ z).mp hz.2)) h') ν hq h
-
-
-/-- One link's eight atoms stay (each from a base where the link's four linear forms and the
-atom itself hold). Left side. -/
-theorem stayL_link (fL fR : Fin 6 → Term (Var 6)) (lam : Term (Var 6))
-    (dom : Formula (Var 6)) (jx jy : Fin 6) (p : LinkC) (ok : LinkOK p)
-    (hfx : ∀ z, Term.eval (fL jx) z = z (Lv jy))
-    (hfy : ∀ z, Term.eval (fL jy) z = -(1/8) * (z (Lv jx) - p.c) - 3/4 * z (Lv jy)) :
-    ∀ t ∈ linT Lv jx jy p ++ derT Lv jx p, ∀ ν,
-      (∀ t' ∈ linT Lv jx jy p, Term.eval t' ν ≤ 0) → Term.eval t ν ≤ 0 →
-      BoxLe (Program.ode (jointSys fL fR lam) dom)
-        (fun ω => Term.eval t ω) ν := by
-  obtain ⟨ka, kb, kd, ke, k1, k2, k3, k4⟩ := ok
-  intro t ht ν hlin ht0
-  have hm : ∀ t', t' ∈ linT Lv jx jy p → Term.eval t' ν ≤ 0 := hlin
-  simp only [linT, List.mem_cons, List.not_mem_nil, or_false] at hm
-  simp only [linT, derT, List.mem_append, List.mem_cons, List.not_mem_nil, or_false] at ht
-  have hs4 : (0:ℝ) ≤ 3/4 - 1/4 := by norm_num
-  have hs2 : (0:ℝ) ≤ 3/4 - 1/2 := by norm_num
-  have hr4 : (0:ℝ) ≤ 1/4 := by norm_num
-  have hr2 : (0:ℝ) ≤ 1/2 := by norm_num
-  rcases ht with (rfl | rfl | rfl | rfl) | (rfl | rfl | rfl | rfl)
-  · exact stayL_linLe fL fR lam dom jx jy _ p.c _ hroot4 hs4 ka hfx hfy ν ht0
-  · exact stayL_linGe fL fR lam dom jx jy _ p.c _ hroot4 hs4 kb hfx hfy ν ht0
-  · exact stayL_linLe fL fR lam dom jx jy _ p.c _ hroot2 hs2 kd hfx hfy ν ht0
-  · exact stayL_linGe fL fR lam dom jx jy _ p.c _ hroot2 hs2 ke hfx hfy ν ht0
-  · exact stayL_derLe fL fR lam dom jx jy _ p.c _ _ hroot4 hs4 ka hr4 k1 hfx hfy ν
-      (hm _ (Or.inl rfl)) ht0
-  · exact stayL_derGe fL fR lam dom jx jy _ p.c _ _ hroot4 hs4 kb hr4 k2 hfx hfy ν
-      (hm _ (Or.inr (Or.inl rfl))) ht0
-  · exact stayL_derLe fL fR lam dom jx jy _ p.c _ _ hroot2 hs2 kd hr2 k3 hfx hfy ν
-      (hm _ (Or.inr (Or.inr (Or.inl rfl)))) ht0
-  · exact stayL_derGe fL fR lam dom jx jy _ p.c _ _ hroot2 hs2 ke hr2 k4 hfx hfy ν
-      (hm _ (Or.inr (Or.inr (Or.inr rfl)))) ht0
-
-/-- **All 24 left atoms stay** (each from a base where the whole family holds). -/
+/-- **The left family stays**; the extra derived floor `g ≥ K'` on link 1 is stratified on
+the link's `ρ = 1/2` lower form (`hder`). -/
 theorem stayL_terms (fL fR : Fin 6 → Term (Var 6)) (lam : Term (Var 6))
-    (dom : Formula (Var 6)) (p1 p2 p3 : LinkC) (ok1 : LinkOK p1) (ok2 : LinkOK p2)
-    (ok3 : LinkOK p3) (hF : PairField3 Lv fL p1.c p2.c p3.c) :
-    ∀ t ∈ termsW Lv p1 p2 p3, ∀ ν, (∀ t' ∈ termsW Lv p1 p2 p3, Term.eval t' ν ≤ 0) →
+    (dom : Formula (Var 6)) (hbox : ∀ z, Formula.sat dom z → Box Lv z)
+    (p1 p2 p3 : LinkC) (ok1 : LinkOK p1) (ok2 : LinkOK p2) (ok3 : LinkOK p3)
+    (hF : PairField3 Lv fL p1.c p2.c p3.c) (extra : List (Term (Var 6)))
+    (hder : ∀ t ∈ extra, ∃ K', t = thrGe (Lv 0) K' ∧ 1/2 * (K' - p1.c) ≤ p1.e) :
+    ∀ t ∈ termsW Lv p1 p2 p3 extra, ∀ ν, (∀ t' ∈ termsW Lv p1 p2 p3 extra, Term.eval t' ν ≤ 0) →
       BoxLe (Program.ode (jointSys fL fR lam) dom)
         (fun ω => Term.eval t ω) ν := by
+  obtain ⟨F1, F2, F3⟩ := linkFields hF
   intro t ht ν hall
-  have sub : ∀ L : List (Term (Var 6)), (∀ t' ∈ L, t' ∈ termsW Lv p1 p2 p3) → ∀ t' ∈ L, Term.eval t' ν ≤ 0 :=
-    fun L hL t' ht' => hall t' (hL t' ht')
   have own := hall t ht
   simp only [termsW, List.mem_append] at ht
-  rcases ht with ((((ht | ht) | ht) | ht) | ht) | ht
-  · exact stayL_link fL fR lam dom 0 1 p1 ok1 (fun z => (hF z).1) (fun z => (hF z).2.1)
-      t (List.mem_append_left _ ht) ν (sub _ (fun t' h => by simp [termsW, h])) own
-  · exact stayL_link fL fR lam dom 2 3 p2 ok2 (fun z => (hF z).2.2.1)
-      (fun z => (hF z).2.2.2.1)
-      t (List.mem_append_left _ ht) ν (sub _ (fun t' h => by simp [termsW, h])) own
-  · exact stayL_link fL fR lam dom 4 5 p3 ok3 (fun z => (hF z).2.2.2.2.1)
-      (fun z => (hF z).2.2.2.2.2)
-      t (List.mem_append_left _ ht) ν (sub _ (fun t' h => by simp [termsW, h])) own
-  · exact stayL_link fL fR lam dom 0 1 p1 ok1 (fun z => (hF z).1) (fun z => (hF z).2.1)
-      t (List.mem_append_right _ ht) ν (sub _ (fun t' h => by simp [termsW, h])) own
-  · exact stayL_link fL fR lam dom 2 3 p2 ok2 (fun z => (hF z).2.2.1)
-      (fun z => (hF z).2.2.2.1)
-      t (List.mem_append_right _ ht) ν (sub _ (fun t' h => by simp [termsW, h])) own
-  · exact stayL_link fL fR lam dom 4 5 p3 ok3 (fun z => (hF z).2.2.2.2.1)
-      (fun z => (hF z).2.2.2.2.2)
-      t (List.mem_append_right _ ht) ν (sub _ (fun t' h => by simp [termsW, h])) own
+  rcases ht with ((((((ht | ht) | ht) | ht) | ht) | ht) | ht)
+  · exact stayL_link fL fR lam dom 0 1 p1 ok1 F1
+      (fun z hz => ⟨(hbox z hz).1.1, (hbox z hz).1.2.1⟩) t (List.mem_append_left _ ht) ν own
+  · exact stayL_link fL fR lam dom 2 3 p2 ok2 F2
+      (fun z hz => ⟨(hbox z hz).2.1.1, (hbox z hz).2.1.2.1⟩) t (List.mem_append_left _ ht) ν own
+  · exact stayL_link fL fR lam dom 4 5 p3 ok3 F3
+      (fun z hz => ⟨(hbox z hz).2.2.1, (hbox z hz).2.2.2.1⟩) t (List.mem_append_left _ ht) ν own
+  · exact stayL_link fL fR lam dom 0 1 p1 ok1 F1
+      (fun z hz => ⟨(hbox z hz).1.1, (hbox z hz).1.2.1⟩) t (List.mem_append_right _ ht) ν own
+  · exact stayL_link fL fR lam dom 2 3 p2 ok2 F2
+      (fun z hz => ⟨(hbox z hz).2.1.1, (hbox z hz).2.1.2.1⟩) t (List.mem_append_right _ ht) ν own
+  · exact stayL_link fL fR lam dom 4 5 p3 ok3 F3
+      (fun z hz => ⟨(hbox z hz).2.2.1, (hbox z hz).2.2.2.1⟩) t (List.mem_append_right _ ht) ν own
+  · obtain ⟨K', rfl, hK'⟩ := hder t ht
+    have hq : Term.eval (linGe (Lv 0) (Lv 1) (1/2) p1.c p1.e) ν ≤ 0 :=
+      hall _ (by simp [termsW, linT])
+    exact stayL_derGe fL fR lam dom 0 1 (1/2) p1.c p1.e K' hroot2 (by norm_num) ok1.2.2.2.1
+      (by norm_num) hK' F1 ν hq own
 
 /-! ## The declared rows (one per left mode) -/
 
@@ -724,86 +551,6 @@ theorem invRow_faithful (l : ℕ) (hl : l < 2) :
 
 /-! ## Existence: the explicit solution of the (linear) right `FOLLOW` mode -/
 
-noncomputable def E1 (t : ℝ) : ℝ := Real.exp (-(1/2) * t)
-noncomputable def E2 (t : ℝ) : ℝ := Real.exp (-(1/4) * t)
-
-theorem hasDerivAt_E1 (t : ℝ) : HasDerivAt E1 (-(1/2) * E1 t) t := by
-  have hin : HasDerivAt (fun u : ℝ => -(1/2) * u) (-(1/2)) t := by
-    have h := (hasDerivAt_id t).const_mul (-(1/2 : ℝ))
-    simp only [id, mul_one] at h
-    exact h
-  have h := (Real.hasDerivAt_exp (-(1/2) * t)).comp t hin
-  rw [mul_comm] at h
-  exact h
-
-theorem hasDerivAt_E2 (t : ℝ) : HasDerivAt E2 (-(1/4) * E2 t) t := by
-  have hin : HasDerivAt (fun u : ℝ => -(1/4) * u) (-(1/4)) t := by
-    have h := (hasDerivAt_id t).const_mul (-(1/4 : ℝ))
-    simp only [id, mul_one] at h
-    exact h
-  have h := (Real.hasDerivAt_exp (-(1/4) * t)).comp t hin
-  rw [mul_comm] at h
-  exact h
-
-theorem E1_pos (t : ℝ) : 0 < E1 t := Real.exp_pos _
-theorem E2_pos (t : ℝ) : 0 < E2 t := Real.exp_pos _
-theorem E1_le (t : ℝ) (ht : 0 ≤ t) : E1 t ≤ 1 := by
-  unfold E1; rw [Real.exp_le_one_iff]; linarith
-theorem E2_le (t : ℝ) (ht : 0 ≤ t) : E2 t ≤ 1 := by
-  unfold E2; rw [Real.exp_le_one_iff]; linarith
-theorem E1_zero : E1 0 = 1 := by simp [E1]
-theorem E2_zero : E2 0 = 1 := by simp [E2]
-
-/-- The two modal coordinates of a link at set point `c`. -/
-noncomputable def Q1 (c x y : ℝ) : ℝ := y + 1/4 * (x - c)
-noncomputable def Q2 (c x y : ℝ) : ℝ := y + 1/2 * (x - c)
-
-/-- The explicit link solution. -/
-noncomputable def gS (c x y t : ℝ) : ℝ := c + 4 * (Q2 c x y * E2 t - Q1 c x y * E1 t)
-noncomputable def rS (c x y t : ℝ) : ℝ := 2 * Q1 c x y * E1 t - Q2 c x y * E2 t
-
-theorem gS_zero (c x y : ℝ) : gS c x y 0 = x := by
-  simp only [gS, Q1, Q2, E1_zero, E2_zero]; ring
-theorem rS_zero (c x y : ℝ) : rS c x y 0 = y := by
-  simp only [rS, Q1, Q2, E1_zero, E2_zero]; ring
-
-theorem gS_hasDeriv (c x y t : ℝ) : HasDerivAt (fun u => gS c x y u) (rS c x y t) t := by
-  have h : HasDerivAt (fun u => c + 4 * (Q2 c x y * E2 u - Q1 c x y * E1 u))
-      (4 * (Q2 c x y * (-(1/4) * E2 t) - Q1 c x y * (-(1/2) * E1 t))) t :=
-    ((((hasDerivAt_E2 t).const_mul (Q2 c x y)).sub
-      ((hasDerivAt_E1 t).const_mul (Q1 c x y))).const_mul 4).const_add c
-  have e : rS c x y t = 4 * (Q2 c x y * (-(1/4) * E2 t) - Q1 c x y * (-(1/2) * E1 t)) := by
-    simp only [rS]; ring
-  rw [e]
-  exact h
-
-theorem rS_hasDeriv (c x y t : ℝ) : HasDerivAt (fun u => rS c x y u)
-    (-(1/8) * (gS c x y t - c) - 3/4 * rS c x y t) t := by
-  have h : HasDerivAt (fun u => 2 * Q1 c x y * E1 u - Q2 c x y * E2 u)
-      (2 * Q1 c x y * (-(1/2) * E1 t) - Q2 c x y * (-(1/4) * E2 t)) t :=
-    ((hasDerivAt_E1 t).const_mul (2 * Q1 c x y)).sub ((hasDerivAt_E2 t).const_mul (Q2 c x y))
-  have e : -(1/8) * (gS c x y t - c) - 3/4 * rS c x y t
-      = 2 * Q1 c x y * (-(1/2) * E1 t) - Q2 c x y * (-(1/4) * E2 t) := by
-    simp only [gS, rS]; ring
-  rw [e]
-  exact h
-
-theorem link_box (c x y t : ℝ) (ht : 0 ≤ t) (hc1 : 20 ≤ c) (hc2 : c ≤ 40)
-    (a1 : Q1 c x y ≤ 2) (a2 : -2 ≤ Q1 c x y) (a3 : Q2 c x y ≤ 3) (a4 : -3 ≤ Q2 c x y) :
-    (0 ≤ gS c x y t ∧ gS c x y t ≤ 60) ∧ (-10 ≤ rS c x y t ∧ rS c x y t ≤ 10) := by
-  have e1p := E1_pos t
-  have e2p := E2_pos t
-  have e1l := E1_le t ht
-  have e2l := E2_le t ht
-  have b1 : Q1 c x y * E1 t ≤ 2 := by nlinarith
-  have b2 : -2 ≤ Q1 c x y * E1 t := by nlinarith
-  have b3 : Q2 c x y * E2 t ≤ 3 := by nlinarith
-  have b4 : -3 ≤ Q2 c x y * E2 t := by nlinarith
-  simp only [gS, rS]
-  refine ⟨⟨by nlinarith, by nlinarith⟩, by nlinarith, by nlinarith⟩
-
-/-- The explicit right solution at set point `c` from base `b` (left and Aux coordinates
-frozen). -/
 noncomputable def solC (c : ℝ) (b : State (Var 6)) (t : ℝ) : Fin 6 → ℝ
   | ⟨0, _⟩ => gS c (b (Rv 0)) (b (Rv 1)) t
   | ⟨1, _⟩ => rS c (b (Rv 0)) (b (Rv 1)) t
@@ -830,21 +577,21 @@ theorem solΦ_zero (c : ℝ) (b : State (Var 6)) : solΦ c b 0 = b := by
 theorem solΦ_frozen (c : ℝ) (b : State (Var 6)) (t : ℝ) (x : Var 6) (hx : x.1 ≠ Side.R) :
     solΦ c b t x = b x := by simp [solΦ, hx]
 
-/-- The anchor's modal-coordinate bounds (the kept linear-form atoms of the right mode). -/
-def QBounds (c : ℝ) (b : State (Var 6)) : Prop :=
-  (Q1 c (b (Rv 0)) (b (Rv 1)) ≤ 2 ∧ -2 ≤ Q1 c (b (Rv 0)) (b (Rv 1)) ∧
-    Q2 c (b (Rv 0)) (b (Rv 1)) ≤ 3 ∧ -3 ≤ Q2 c (b (Rv 0)) (b (Rv 1))) ∧
-  (Q1 c (b (Rv 2)) (b (Rv 3)) ≤ 2 ∧ -2 ≤ Q1 c (b (Rv 2)) (b (Rv 3)) ∧
-    Q2 c (b (Rv 2)) (b (Rv 3)) ≤ 3 ∧ -3 ≤ Q2 c (b (Rv 2)) (b (Rv 3))) ∧
-  (Q1 c (b (Rv 4)) (b (Rv 5)) ≤ 2 ∧ -2 ≤ Q1 c (b (Rv 4)) (b (Rv 5)) ∧
-    Q2 c (b (Rv 4)) (b (Rv 5)) ≤ 3 ∧ -3 ≤ Q2 c (b (Rv 4)) (b (Rv 5)))
+/-- The link's own box and slow form at the anchor (the evolve box, the projected-gap
+guard). -/
+def LinkStart (c : ℝ) (x y : ℝ) : Prop :=
+  0 ≤ x ∧ x ≤ 60 ∧ -10 ≤ y ∧ y ≤ 10 ∧ -(9/2) ≤ Q2 c x y ∧ 2 * Q2 c x y ≤ 60 - c
 
-theorem solΦ_box (c : ℝ) (hc1 : 20 ≤ c) (hc2 : c ≤ 40) (b : State (Var 6)) (hb : QBounds c b)
+def QBounds (c : ℝ) (b : State (Var 6)) : Prop :=
+  LinkStart c (b (Rv 0)) (b (Rv 1)) ∧ LinkStart c (b (Rv 2)) (b (Rv 3)) ∧
+    LinkStart c (b (Rv 4)) (b (Rv 5))
+
+theorem solΦ_box (c : ℝ) (hc1 : 20 ≤ c) (hc2 : c ≤ 60) (b : State (Var 6)) (hb : QBounds c b)
     (t : ℝ) (ht : 0 ≤ t) : Box Rv (solΦ c b t) := by
-  obtain ⟨⟨a1, a2, a3, a4⟩, ⟨b1, b2, b3, b4⟩, ⟨d1, d2, d3, d4⟩⟩ := hb
-  have k0 := link_box c _ _ t ht hc1 hc2 a1 a2 a3 a4
-  have k1 := link_box c _ _ t ht hc1 hc2 b1 b2 b3 b4
-  have k2 := link_box c _ _ t ht hc1 hc2 d1 d2 d3 d4
+  obtain ⟨⟨a1, a2, a3, a4, a5, a6⟩, ⟨b1, b2, b3, b4, b5, b6⟩, ⟨d1, d2, d3, d4, d5, d6⟩⟩ := hb
+  have k0 := link_bounds c (9/2) _ _ t ht hc1 hc2 (by linarith) (by norm_num) a1 a2 a3 a4 a5 a6
+  have k1 := link_bounds c (9/2) _ _ t ht hc1 hc2 (by linarith) (by norm_num) b1 b2 b3 b4 b5 b6
+  have k2 := link_bounds c (9/2) _ _ t ht hc1 hc2 (by linarith) (by norm_num) d1 d2 d3 d4 d5 d6
   simp only [Box, solΦ_R]
   exact ⟨⟨k0.1.1, k0.1.2, k0.2.1, k0.2.2⟩, ⟨k1.1.1, k1.1.2, k1.2.1, k1.2.2⟩,
     ⟨k2.1.1, k2.1.2, k2.2.1, k2.2.2⟩⟩
@@ -877,22 +624,24 @@ theorem solΦ_deriv (c : ℝ) (fR : Fin 6 → Term (Var 6)) (hF : PairField3 Rv 
     exact rS_hasDeriv c _ _ t
 
 
+
 /-- **The existence residual, discharged Z3-free by the explicit solution.** From any anchor
-satisfying the right `FOLLOW` mode's kept atoms, the closed-form solution of the three damped
-links (set point 30) solves the right block, freezes every other coordinate, and stays in
-the evolve box. -/
+satisfying the right `FOLLOW` mode's kept atoms (the rated closing rate and the projected
+gap) and the evolve box, the closed-form solution of the three damped links (set point 30)
+solves the right block, freezes every other coordinate, and stays in the evolve box. -/
 theorem es (l : ℕ) (dt : ℝ) :
     ∀ σ, Formula.sat (Formula.and (FM (g l) (gs l ++ atomTerms (cL l) (cR 0)))
         (Formula.and domL domR)) σ →
       HExistSegB (fL l) (fR 0) (Term.const 1) domL domR dt (Function.update σ tg 0) := by
   intro σ hσ s ΦL hs0 _ _ _ hmaskL _
   have hatoms := ((sat_FM_append (g l) (gs l) _ σ).mp hσ.1).2
-  have hR : ∀ t ∈ termsW Rv pR pR pR, Term.eval t σ ≤ 0 := by
+  have hR : ∀ t ∈ termsW Rv pR pR pR [], Term.eval t σ ≤ 0 := by
     intro t ht
     apply hatoms
     unfold atomTerms
     rw [List.map_append, cR_terms0]
     exact List.mem_append_right _ ht
+  have hbox : Box Rv σ := (sat_domR σ).mp hσ.2.2
   have hbR : ∀ j : Fin 6, ΦL s (Rv j) = σ (Rv j) := by
     intro j
     rw [hmaskL s ⟨hs0, le_rfl⟩ (Rv j) (fun h => by
@@ -900,25 +649,27 @@ theorem es (l : ℕ) (dt : ℝ) :
       simp [Lv, Rv, Prod.ext_iff] at hi)]
     exact Function.update_of_ne (by simp [Rv, Prod.ext_iff]) _ _
   have hQ : QBounds 30 (ΦL s) := by
-    have m : ∀ t, t ∈ termsW Rv pR pR pR → Term.eval t σ ≤ 0 := hR
-    simp only [termsW, linT, derT, pR, List.mem_append, List.mem_cons, List.not_mem_nil,
-      or_false] at m
-    have a1 := m (linLe (Rv 0) (Rv 1) (1/4) 30 2) (by simp)
-    have a2 := m (linGe (Rv 0) (Rv 1) (1/4) 30 (-2)) (by simp)
-    have a3 := m (linLe (Rv 0) (Rv 1) (1/2) 30 3) (by simp)
-    have a4 := m (linGe (Rv 0) (Rv 1) (1/2) 30 (-3)) (by simp)
-    have b1 := m (linLe (Rv 2) (Rv 3) (1/4) 30 2) (by simp)
-    have b2 := m (linGe (Rv 2) (Rv 3) (1/4) 30 (-2)) (by simp)
-    have b3 := m (linLe (Rv 2) (Rv 3) (1/2) 30 3) (by simp)
-    have b4 := m (linGe (Rv 2) (Rv 3) (1/2) 30 (-3)) (by simp)
-    have d1 := m (linLe (Rv 4) (Rv 5) (1/4) 30 2) (by simp)
-    have d2 := m (linGe (Rv 4) (Rv 5) (1/4) 30 (-2)) (by simp)
-    have d3 := m (linLe (Rv 4) (Rv 5) (1/2) 30 3) (by simp)
-    have d4 := m (linGe (Rv 4) (Rv 5) (1/2) 30 (-3)) (by simp)
-    simp only [linLe, linGe, eval_linQ, Term.eval, AOp.interp] at a1 a2 a3 a4 b1 b2 b3 b4
-    simp only [linLe, linGe, eval_linQ, Term.eval, AOp.interp] at d1 d2 d3 d4
-    simp only [QBounds, Q1, Q2, hbR]
-    refine ⟨⟨?_, ?_, ?_, ?_⟩, ⟨?_, ?_, ?_, ?_⟩, ⟨?_, ?_, ?_, ?_⟩⟩ <;> linarith
+    have m : ∀ t, t ∈ termsW Rv pR pR pR [] → Term.eval t σ ≤ 0 := hR
+    simp only [termsW, guardT, linT, pR, List.append_nil, List.mem_append, List.mem_cons,
+      List.not_mem_nil, or_false] at m
+    have a1 := m (thrGe (Rv 1) (-10)) (by simp)
+    have a2 := m (thrLe (Rv 1) 10) (by simp)
+    have a3 := m (pgGe (Rv 0) (Rv 1) 21) (by simp)
+    have a4 := m (pgLe (Rv 0) (Rv 1) 59) (by simp)
+    have b1 := m (thrGe (Rv 3) (-10)) (by simp)
+    have b2 := m (thrLe (Rv 3) 10) (by simp)
+    have b3 := m (pgGe (Rv 2) (Rv 3) 21) (by simp)
+    have b4 := m (pgLe (Rv 2) (Rv 3) 59) (by simp)
+    have d1 := m (thrGe (Rv 5) (-10)) (by simp)
+    have d2 := m (thrLe (Rv 5) 10) (by simp)
+    have d3 := m (pgGe (Rv 4) (Rv 5) 21) (by simp)
+    have d4 := m (pgLe (Rv 4) (Rv 5) 59) (by simp)
+    simp only [thrGe, thrLe, pgGe, pgLe, Term.eval, AOp.interp] at a1 a2 a3 a4 b1 b2 b3 b4
+    simp only [thrGe, thrLe, pgGe, pgLe, Term.eval, AOp.interp] at d1 d2 d3 d4
+    obtain ⟨⟨x0, x1, y0, y1⟩, ⟨x2, x3, y2, y3⟩, ⟨x4, x5, y4, y5⟩⟩ := hbox
+    simp only [QBounds, LinkStart, Q2, hbR]
+    refine ⟨⟨?_, ?_, ?_, ?_, ?_, ?_⟩, ⟨?_, ?_, ?_, ?_, ?_, ?_⟩, ⟨?_, ?_, ?_, ?_, ?_, ?_⟩⟩ <;>
+      linarith
   refine ⟨solΦ 30 (ΦL s), solΦ_zero _ _, ?_, ?_, ?_⟩
   · intro t _
     exact solΦ_deriv 30 (fR 0) fR_field (ΦL s) s t
@@ -943,12 +694,18 @@ theorem stayL (l q : ℕ) (hl : l < 2) :
     obtain ⟨a', ha', rfl⟩ := List.mem_map.mp ht'
     exact (hiffL l hl a' ha' ν).mp (hν a' ha')
   have ha2 : a.2 ∈ (cL l).map Prod.snd := List.mem_map_of_mem ha
+  have hbox : ∀ z, Formula.sat (Formula.and domL domR) z → Box Lv z :=
+    fun z hz => (sat_domL z).mp hz.1
   interval_cases l
   · rw [cL_terms0] at hmem ha2
-    exact stayL_terms (fL 0) (fR q) _ _ pF pF pF pF_ok pF_ok pF_ok fL_field0 a.2 ha2 ν hmem
+    exact stayL_terms (fL 0) (fR q) _ _ hbox pF pF pF pF_ok pF_ok pF_ok fL_field0 []
+      (by simp) a.2 ha2 ν hmem
   · rw [cL_terms1] at hmem ha2
-    exact stayL_terms (fL 1) (fR q) _ _ pLost pF pF pLost_ok pF_ok pF_ok fL_field1 a.2 ha2 ν
-      hmem
+    exact stayL_terms (fL 1) (fR q) _ _ hbox pLost pF pF pLost_ok pF_ok pF_ok fL_field1
+      lostExtra (by
+        intro t ht
+        simp only [lostExtra, List.mem_singleton] at ht
+        exact ⟨5, ht, by simp only [pLost]; norm_num⟩) a.2 ha2 ν hmem
 
 theorem stayR (l q : ℕ) (hq : q < 1) :
     AtomsStayC (cR q) (jointSys (fL l) (fR q) (Term.const 1)) (Formula.and domL domR) := by
@@ -960,8 +717,8 @@ theorem stayR (l q : ℕ) (hq : q < 1) :
     exact (hiffR 0 hq a' ha' ν).mp (hν a' ha')
   have ha2 : a.2 ∈ (cR 0).map Prod.snd := List.mem_map_of_mem ha
   rw [cR_terms0] at hmem ha2
-  exact stayR_terms (fL l) (fR 0) 1 zero_le_one _ pR pR pR pR_ok pR_ok pR_ok fR_field a.2 ha2 ν
-    hmem
+  exact stayR_terms (fL l) (fR 0) 1 zero_le_one (Formula.and domL domR) (fun z hz => (sat_domR z).mp hz.2)
+    pR pR pR pR_ok pR_ok pR_ok fR_field a.2 ha2 ν hmem
 
 /-! ## Side splits -/
 
@@ -999,21 +756,33 @@ theorem hguardL (l : ℕ) (hl : l < 2) : (hostGuard vs 6 Side.L (mL l)).fv ⊆ r
     (by interval_cases l <;>
       simp [mL, platoon3_linkloss_IRv2, Parse.PForm.namesFree, Parse.PExpr.namesFree]) x hx)
 
-theorem termsW_fv (W : Fin 6 → Var 6) (p1 p2 p3 : LinkC) :
-    ∀ t ∈ termsW W p1 p2 p3, ∀ x ∈ t.fv, ∃ j, x = W j := by
+theorem termsW_fv (W : Fin 6 → Var 6) (p1 p2 p3 : LinkC) (extra : List (Term (Var 6)))
+    (hex : ∀ t ∈ extra, ∀ x ∈ t.fv, ∃ j, x = W j) :
+    ∀ t ∈ termsW W p1 p2 p3 extra, ∀ x ∈ t.fv, ∃ j, x = W j := by
   intro t ht x hx
-  simp only [termsW, linT, derT, List.mem_append, List.mem_cons, List.not_mem_nil,
+  simp only [termsW, guardT, linT, List.mem_append, List.mem_cons, List.not_mem_nil,
     or_false] at ht
   rcases ht with ((((((h | h | h | h) | (h | h | h | h)) | (h | h | h | h)) | (h | h | h | h)) |
-    (h | h | h | h)) | (h | h | h | h)) <;> subst h <;>
-    simp only [linLe, linGe, linQ, thrLe, thrGe, Term.fv, Set.mem_union, Set.mem_singleton_iff,
-      Set.mem_empty_iff_false, or_false, false_or] at hx <;>
-    first | exact ⟨_, hx⟩ | (rcases hx with hx | hx <;> exact ⟨_, hx⟩)
+    (h | h | h | h)) | (h | h | h | h)) | h
+  all_goals first
+    | exact hex t h x hx
+    | (subst h
+       simp only [linLe, linGe, linQ, thrLe, thrGe, pgGe, pgLe, Term.fv, Set.mem_union,
+         Set.mem_singleton_iff, Set.mem_empty_iff_false, or_false, false_or] at hx
+       first | exact ⟨_, hx⟩ | (rcases hx with hx | hx <;> exact ⟨_, hx⟩))
 
-theorem cL_terms (l : ℕ) (hl : l < 2) : ∃ p1 p2 p3, (cL l).map Prod.snd = termsW Lv p1 p2 p3 := by
+theorem cL_terms (l : ℕ) (hl : l < 2) : ∃ p1 p2 p3 extra,
+    (cL l).map Prod.snd = termsW Lv p1 p2 p3 extra ∧
+      ∀ t ∈ extra, ∀ x ∈ t.fv, ∃ j, x = Lv j := by
   interval_cases l
-  · exact ⟨_, _, _, cL_terms0⟩
-  · exact ⟨_, _, _, cL_terms1⟩
+  · exact ⟨_, _, _, _, cL_terms0, by simp⟩
+  · refine ⟨_, _, _, _, cL_terms1, ?_⟩
+    intro t ht x hx
+    simp only [lostExtra, List.mem_singleton] at ht
+    subst ht
+    simp only [thrGe, Term.fv, Set.mem_union, Set.mem_singleton_iff,
+      Set.mem_empty_iff_false, false_or] at hx
+    exact ⟨_, hx⟩
 
 theorem anchor_fv (l q : ℕ) (hl : l < 2) (hq : q < 1) :
     ∀ c ∈ g l :: gs l ++ atomTerms (cL l) (cR q), c.fv ⊆ range Lv ∪ range Rv := by
@@ -1025,22 +794,23 @@ theorem anchor_fv (l q : ℕ) (hl : l < 2) (hq : q < 1) :
   rcases List.mem_append.mp hc with hc | hc
   · exact comps_fv_all l _ (List.mem_cons_of_mem _ hc)
   unfold atomTerms at hc
-  obtain ⟨p1, p2, p3, hLt⟩ := cL_terms l hl
+  obtain ⟨p1, p2, p3, ex, hLt, hex⟩ := cL_terms l hl
   rw [List.map_append, hLt, cR_terms0] at hc
   intro x hx
   rcases List.mem_append.mp hc with hc | hc
-  · obtain ⟨j, rfl⟩ := termsW_fv Lv _ _ _ c hc x hx
+  · obtain ⟨j, rfl⟩ := termsW_fv Lv _ _ _ ex hex c hc x hx
     exact Or.inl ⟨j, rfl⟩
-  · obtain ⟨j, rfl⟩ := termsW_fv Rv _ _ _ c hc x hx
+  · obtain ⟨j, rfl⟩ := termsW_fv Rv _ _ _ [] (by simp) c hc x hx
     exact Or.inr ⟨j, rfl⟩
 
-/-! ## The right automaton (the file's modes and declared `next` lists) -/
+/-! ## The GUARDED right automaton (the file's modes, declared `next` lists, entered guards) -/
 
 noncomputable def modeW (q : ℕ) : RMode (Var 6) :=
   { sys := rightBlock (fR q) (Term.const 1), dom := domR, weight := 1 }
 
-def edgeW (s t : ℕ) : REdge (Var 6) :=
-  { src := s, tgt := t, guard := Formula.tt, pruned := false }
+/-- An edge tests the lowered guard of the mode it ENTERS (the paper's `?guard_m(x)`). -/
+noncomputable def edgeW (s t : ℕ) : REdge (Var 6) :=
+  { src := s, tgt := t, guard := hostGuard vs 6 Side.R (mR t), pruned := false }
 
 /-- The declared transitions, as indices (FOLLOW 0, BRAKE1 1, BRAKE2 2, BRAKE3 3). -/
 def edgeList : List (ℕ × ℕ) :=
@@ -1071,7 +841,7 @@ theorem Gr_modeAt_inv {q : ℕ} {m : RMode (Var 6)} (hm : Gr.modeAt q = some m) 
   | 3 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
   | q + 4 => exact absurd hm (by simp [SearchGraph.modeAt, Gr])
 
-theorem htt : ∀ q, ∀ e ∈ Gr.edgesFrom q, e.guard = Formula.tt := by
+theorem Gr_guards : ∀ q, ∀ e ∈ Gr.edgesFrom q, e.guard = hostGuard vs 6 Side.R (mR e.tgt) := by
   intro q e he
   have hmem : e ∈ Gr.edges := List.mem_of_mem_filter he
   simp only [Gr, List.mem_map] at hmem
@@ -1103,6 +873,43 @@ theorem hfresh : ∀ q m, Gr.modeAt q = some m → mv ∉ (Program.ode m.sys m.d
   intro q m hm hmv
   exact aux_notin_range_Rv 0 (hRv q m hm (vars_ode_sub _ _ (Or.inl hmv)))
 
+theorem hguardR_all (q : ℕ) : (hostGuard vs 6 Side.R (mR q)).fv ⊆ range Rv :=
+  hostGuard_fv_R_getD vs _ dm rfl (by simp [platoon3_linkloss_IRv2, Parse.PForm.namesFree,
+    Parse.PExpr.namesFree]) q
+
+theorem hgR : GuardsRight Gr := by
+  intro q e he
+  rw [Gr_guards q e he]
+  exact hguardR_all e.tgt
+
+/-- The reference's `FOLLOW` guard (the operating range), from its parts. -/
+theorem guardR0_of (x : State (Var 6))
+    (h1 : 20 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 60 ∧ -10 ≤ x (Rv 1) ∧ x (Rv 1) ≤ 10 ∧
+      21 ≤ x (Rv 0) + 2 * x (Rv 1) ∧ x (Rv 0) + 2 * x (Rv 1) ≤ 59)
+    (h2 : 20 ≤ x (Rv 2) ∧ x (Rv 2) ≤ 60 ∧ -10 ≤ x (Rv 3) ∧ x (Rv 3) ≤ 10 ∧
+      21 ≤ x (Rv 2) + 2 * x (Rv 3) ∧ x (Rv 2) + 2 * x (Rv 3) ≤ 59)
+    (h3 : 20 ≤ x (Rv 4) ∧ x (Rv 4) ≤ 60 ∧ -10 ≤ x (Rv 5) ∧ x (Rv 5) ≤ 10 ∧
+      21 ≤ x (Rv 4) + 2 * x (Rv 5) ∧ x (Rv 4) + 2 * x (Rv 5) ≤ 59) :
+    Formula.sat (hostGuard vs 6 Side.R (mR 0)) x := by
+  simp [hostGuard, mR, platoon3_linkloss_IRv2, Run.lowerF, Run.lowerE, hq19_0, hq59_0, hqm10_0, hq10_0, hq2_0, hq20_0, hq58_0, hq25_0, hq21_0, hq60_0, vs,
+    Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
+    CompOp.interp, Term.eval, AOp.interp, Rv]
+  simp only [Rv] at h1 h2 h3
+  obtain ⟨a1, a2, a3, a4, a5, a6⟩ := h1
+  obtain ⟨b1, b2, b3, b4, b5, b6⟩ := h2
+  obtain ⟨d1, d2, d3, d4, d5, d6⟩ := h3
+  repeat' apply And.intro
+  all_goals linarith
+
+/-- The reference's `FOLLOW` guard gives the gap floor. -/
+theorem guardR0_floor (x : State (Var 6)) (h : Formula.sat (hostGuard vs 6 Side.R (mR 0)) x) :
+    20 ≤ x (Rv 0) ∧ 20 ≤ x (Rv 2) ∧ 20 ≤ x (Rv 4) := by
+  simp [hostGuard, mR, platoon3_linkloss_IRv2, Run.lowerF, Run.lowerE, hq19_0, hq59_0, hqm10_0, hq10_0, hq2_0, hq20_0, hq58_0, hq25_0, hq21_0, hq60_0, vs,
+    Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
+    CompOp.interp, Term.eval, AOp.interp, Rv] at h
+  simp only [Rv]
+  exact ⟨h.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1, h.1.1.1.1.1.1.1.1.1.1.1.2, h.1.1.1.1.1.2⟩
+
 /-! ## Regions: the right `FOLLOW` mode's kept cut atoms; the pruned sinks are excluded -/
 
 noncomputable def region (q : ℕ) : Formula (Var 6) :=
@@ -1123,8 +930,7 @@ theorem atomsFreeR (q : ℕ) (hq : q < 1) :
   intro x hx
   simp only [cutAtomsOfX, platoon3_linkloss_cutsV2X, mR, platoon3_linkloss_IRv2] at hx
   simp at hx
-  rcases hx with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl |
-    rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
+  rcases hx with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
     simp [Parse.PForm.namesFree, Parse.PExpr.namesFree]
 
 theorem region_fv (q : ℕ) (_hq : q < 4) : (region q).fv ⊆ range Rv := by
@@ -1260,53 +1066,97 @@ theorem gate (l : ℕ) (dt : ℝ) (R : Program (Var 6)) (ψ : Formula (Var 6))
   obtain ⟨rfl, hg⟩ := hν
   exact hbody hg
 
-theorem stayCase (l q : ℕ) (hl : l < 2) (hq : q < 1) (dt : ℝ) (hv : Verd l q)
+/-- `FOLLOW`'s window, the GUARDED response: stay in `FOLLOW` on the certified joint segment,
+then take the self-loop, legal at the end state: the kept cuts give the rated closing rate
+and the projected gap, the envelope gives `g_i ≤ 60`, and the gap floor `g_i ≥ 20` holds
+along the reference's own run (`gap_floor_Ronly`: the projected-gap conjunct makes the flow
+repel at the AEB floor). -/
+theorem stayCaseG (l : ℕ) (hl : l < 2) (dt : ℝ) (hv : Verd l 0)
     {σ : State (Var 6)} (hσ : Formula.sat (Formula.and (FM (g l) (gs l)) env) σ)
-    (hreg : Formula.sat (region q) σ) :
-    ∃ segs : List (ℕ × RMode (Var 6) × REdge (Var 6)),
-      (∀ s ∈ segs, Gr.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ Gr.edgesFrom s.1) ∧
-      List.IsChain (fun a b => a.2.2.tgt = b.1) segs ∧
-      (∀ s, segs.head? = some s → s.1 = q) ∧
-      Formula.sat (faModal (Equiv.refl (Var 6))
-        (gwindowSeg (hostGuard vs 6 Side.L (mL l)) (leftBlock (fL l)) domL tg dt 1)
-        (bigSeq (segs.map (fun s => Program.ode s.2.1.sys s.2.1.dom)))
-        (Formula.and (Formula.and (FM (g l) (gs l)) env) (region (qfOf segs q)))) σ := by
-  refine ⟨[(q, modeW q, edgeW q q)], ?_, by simp, by simp, ?_⟩
-  · intro s hs
-    rw [List.mem_singleton] at hs
-    subst hs
-    refine ⟨Gr_modeAt q (by omega), edge_mem q q ?_⟩
-    interval_cases q
-    simp [edgeList]
-  · refine gate l dt _ _ (fun hguard => ?_)
-    have hanchor : Formula.sat (Formula.and (FM (g l) (gs l ++ atomTerms (cL l) (cR q)))
-        (Formula.and domL domR)) σ := by
-      refine ⟨(sat_FM_append (g l) (gs l) _ σ).mpr ⟨hσ.1, ?_⟩, hσ.2⟩
-      exact (atomTerms_iff (hiffL l hl) (hiffR q hq) σ).mpr
-        ⟨hO1L l hl σ hguard, (sat_region_lt q hq σ).mp hreg⟩
-    have := respond l q hl hq dt hv hanchor
-    simpa [modeW, qfOf, edgeW] using this
+    (hgd : Formula.sat (hostGuard vs 6 Side.R (mR 0)) σ) (hreg : Formula.sat (region 0) σ) :
+    GResp Gr 0 (gwindowSeg (hostGuard vs 6 Side.L (mL l)) (leftBlock (fL l)) domL tg dt 1)
+      (fun qf => Formula.and (Formula.and (FM (g l) (gs l)) env) (region qf)) σ := by
+  refine gresp_gate (fun hguard => ?_)
+  have hanchor : Formula.sat (Formula.and (FM (g l) (gs l ++ atomTerms (cL l) (cR 0)))
+      (Formula.and domL domR)) σ := by
+    refine ⟨(sat_FM_append (g l) (gs l) _ σ).mpr ⟨hσ.1, ?_⟩, hσ.2⟩
+    exact (atomTerms_iff (hiffL l hl) (hiffR 0 (by norm_num)) σ).mpr
+      ⟨hO1L l hl σ hguard, (sat_region_lt 0 (by norm_num) σ).mp hreg⟩
+  have hresp := respond l 0 hl (by norm_num) dt hv hanchor
+  simp only [List.map_nil, List.nil_append] at hresp
+  refine gresp_final_run (ms := modeW 0) (Gr_modeAt 0 (by norm_num)) hresp ?_
+  intro ν hν μ hflow hpost
+  -- the window leaves the right untouched
+  have hRν : ∀ i, ν (Rv i) = σ (Rv i) := by
+    intro i
+    have hP := vars_windowSegL_sub (fL l) domL 1 dt 1 (hfL l hl) hdomL
+    refine (Program.bound_effect _ hν (Rv i) ?_).symm
+    intro hb
+    rcases hP (Or.inr hb) with h' | ⟨j, hj⟩
+    · exact absurd (Set.mem_singleton_iff.mp h') (by simp [Rv, Prod.ext_iff])
+    · exact absurd hj (by simp [Lv, Rv, Prod.ext_iff])
+  -- the right's kept atoms at the start (σ) and at the end (μ)
+  have hRσ : ∀ t ∈ termsW Rv pR pR pR [], Term.eval t σ ≤ 0 := by
+    have h := (sat_region_lt 0 (by norm_num) σ).mp hreg
+    intro t ht
+    rw [← cR_terms0] at ht
+    obtain ⟨a, ha, rfl⟩ := List.mem_map.mp ht
+    exact (hiffR 0 (by norm_num) a ha σ).mp (h a ha)
+  have hRμ : ∀ t ∈ termsW Rv pR pR pR [], Term.eval t μ ≤ 0 := by
+    have h := (sat_region_lt 0 (by norm_num) μ).mp hpost.2
+    intro t ht
+    rw [← cR_terms0] at ht
+    obtain ⟨a, ha, rfl⟩ := List.mem_map.mp ht
+    exact (hiffR 0 (by norm_num) a ha μ).mp (h a ha)
+  have hfl := guardR0_floor σ hgd
+  obtain ⟨F1, F2, F3⟩ := linkFields fR_field
+  have hflow' : Program.sem (Program.ode (rightBlock (fR 0) (Term.const 1)) domR) ν μ := hflow
+  have tr : ∀ t ∈ termsW Rv pR pR pR [], Term.eval t ν ≤ 0 := by
+    intro t ht
+    have hfv := termsW_fv Rv pR pR pR [] (by simp) t ht
+    rw [Term.coincidence t (ν := ν) (w := σ) (fun x hx => by
+      obtain ⟨j, rfl⟩ := hfv x hx
+      exact hRν j)]
+    exact hRσ t ht
+  have floor : ∀ (jx jy : Fin 6), LinkField Rv (fR 0) jx jy 30 →
+      pgGe (Rv jx) (Rv jy) 21 ∈ termsW Rv pR pR pR [] → 20 ≤ σ (Rv jx) → 20 ≤ μ (Rv jx) :=
+    fun jx jy hF hmem h0 => gap_floor_Ronly (fR 0) domR jx jy 30 20 21 (by norm_num)
+      (by norm_num) hF hflow' (tr _ hmem) (by rw [hRν]; exact h0)
+  have g1 := floor 0 1 F1 (by simp [termsW, guardT, pR]) hfl.1
+  have g2 := floor 2 3 F2 (by simp [termsW, guardT, pR]) hfl.2.1
+  have g3 := floor 4 5 F3 (by simp [termsW, guardT, pR]) hfl.2.2
+  have hboxμ : Box Rv μ := (sat_domR μ).mp hpost.1.2.2
+  have m := hRμ
+  simp only [termsW, guardT, linT, pR, List.append_nil, List.mem_append, List.mem_cons,
+    List.not_mem_nil, or_false] at m
+  have a3 := m (pgGe (Rv 0) (Rv 1) 21) (by simp)
+  have a4 := m (pgLe (Rv 0) (Rv 1) 59) (by simp)
+  have b3 := m (pgGe (Rv 2) (Rv 3) 21) (by simp)
+  have b4 := m (pgLe (Rv 2) (Rv 3) 59) (by simp)
+  have d3 := m (pgGe (Rv 4) (Rv 5) 21) (by simp)
+  have d4 := m (pgLe (Rv 4) (Rv 5) 59) (by simp)
+  simp only [pgGe, pgLe, Term.eval, AOp.interp] at a3 a4 b3 b4 d3 d4
+  obtain ⟨⟨x0, x1, y0, y1⟩, ⟨x2, x3, y2, y3⟩, ⟨x4, x5, y4, y5⟩⟩ := hboxμ
+  refine ⟨edgeW 0 0, edge_mem 0 0 (by simp [edgeList]), ?_, hpost⟩
+  show Formula.sat (hostGuard vs 6 Side.R (mR 0)) μ
+  exact guardR0_of μ ⟨g1, x1, y0, y1, by linarith, by linarith⟩
+    ⟨g2, x3, y2, y3, by linarith, by linarith⟩ ⟨g3, x5, y4, y5, by linarith, by linarith⟩
 
-/-- Left mode `l`'s window, every admissible right start: FOLLOW stays (the cover's
-response), the BRAKE sinks are excluded by their (false) regions. -/
-theorem HmultiL (l : ℕ) (hl : l < 2) (dt : ℝ) (h0 : Verd l 0) :
+/-- Left mode `l`'s window, every admissible right start (in its guard and cuts): FOLLOW
+stays and takes its legal self-loop; the BRAKE sinks are excluded by their (false) regions. -/
+theorem HmultiG (l : ℕ) (hl : l < 2) (dt : ℝ) (h0 : Verd l 0) :
     ∀ (q : ℕ), q < Gr.modes.length → ∀ σ, σ mv = (q : ℝ) →
-      Formula.sat (Formula.and (Formula.and (FM (g l) (gs l)) env) (region q)) σ →
-      ∃ segs : List (ℕ × RMode (Var 6) × REdge (Var 6)),
-        (∀ s ∈ segs, Gr.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ Gr.edgesFrom s.1) ∧
-        List.IsChain (fun a b => a.2.2.tgt = b.1) segs ∧
-        (∀ s, segs.head? = some s → s.1 = q) ∧
-        Formula.sat (faModal (Equiv.refl (Var 6))
-          (gwindowSeg (hostGuard vs 6 Side.L (mL l)) (leftBlock (fL l)) domL tg dt 1)
-          (bigSeq (segs.map (fun s => Program.ode s.2.1.sys s.2.1.dom)))
-          (Formula.and (Formula.and (FM (g l) (gs l)) env) (region (qfOf segs q)))) σ := by
-  intro q hq σ _ hσ
+      Formula.sat (Formula.and (FM (g l) (gs l)) env) σ →
+      Formula.sat (hostGuard vs 6 Side.R (mR q)) σ → Formula.sat (region q) σ →
+      GResp Gr q (gwindowSeg (hostGuard vs 6 Side.L (mL l)) (leftBlock (fL l)) domL tg dt 1)
+        (fun qf => Formula.and (Formula.and (FM (g l) (gs l)) env) (region qf)) σ := by
+  intro q hq σ _ hσ hg hreg
   rw [Gr_len] at hq
-  match q, hq, hσ with
-  | 0, _, hσ => exact stayCase l 0 hl (by norm_num) dt h0 hσ.1 hσ.2
-  | 1, _, hσ => exact absurd hσ.2 (not_sat_region_sink 1 (by norm_num) σ)
-  | 2, _, hσ => exact absurd hσ.2 (not_sat_region_sink 2 (by norm_num) σ)
-  | 3, _, hσ => exact absurd hσ.2 (not_sat_region_sink 3 (by norm_num) σ)
+  match q, hq, hg, hreg with
+  | 0, _, hg, hreg => exact stayCaseG l hl dt h0 hσ hg hreg
+  | 1, _, _, hreg => exact absurd hreg (not_sat_region_sink 1 (by norm_num) σ)
+  | 2, _, _, hreg => exact absurd hreg (not_sat_region_sink 2 (by norm_num) σ)
+  | 3, _, _, hreg => exact absurd hreg (not_sat_region_sink 3 (by norm_num) σ)
 
 /-! ## The declared rows, per left mode -/
 
@@ -1403,7 +1253,7 @@ theorem hwin (dt : ℝ) : ∀ t < (A dt).numModes,
   rw [A_window dt t ht]
   exact vars_gwindowSegL_sub _ (fL t) domL 1 dt 1 (hguardL t ht) (hfL t ht) hdomL
 
-/-! ## Freshness of `u_L` and `mv` -/
+/-! ## Freshness of `u_L` and `mv`; the mode-consistent region -/
 
 theorem hulenv : uL ∉ env.fv := fun h => by
   rcases h with h | h
@@ -1422,10 +1272,27 @@ theorem hmvreg : ∀ q, mv ∉ (region q).fv := by
   · simp only [region, show ¬ q < 1 from by omega, if_false] at h
     simp [Formula.fv, Term.fv] at h
 
-theorem hulBk : uL ∉ (mvRegion mv region Gr.modes.length).fv := fun h => by
-  rcases mvRegion_fv_sub mv region Gr.modes.length (fun q hq => region_fv q hq) h with h | h
+/-- **The mode-consistent region** of right mode `q`: its lowered guard (the operating range
+for `FOLLOW`) and its kept cut atoms. -/
+noncomputable def gregion (q : ℕ) : Formula (Var 6) :=
+  regionG (fun q => hostGuard vs 6 Side.R (mR q)) region q
+
+theorem gregion_fv (q : ℕ) (hq : q < 4) : (gregion q).fv ⊆ range Rv :=
+  regionG_fv_sub (hguardR_all q) (region_fv q hq)
+
+theorem hmvregG : ∀ q, mv ∉ (gregion q).fv := fun q =>
+  notMem_regionG_fv (fun h => aux_notin_range_Rv 0 (hguardR_all q h)) (hmvreg q)
+
+theorem hulBkG : uL ∉ (mvRegion mv gregion Gr.modes.length).fv := fun h => by
+  rcases mvRegion_fv_sub mv gregion Gr.modes.length (fun q hq => gregion_fv q hq) h with h | h
   · exact absurd (Set.mem_singleton_iff.mp h) (by decide)
   · exact aux_notin_range_Rv 2 h
+
+/-- The left windows leave the right guards' truth values unchanged. -/
+theorem frameG (dt : ℝ) (t : ℕ) (ht : t < 2) (q : ℕ) {σ ν : State (Var 6)}
+    (h : Program.sem ((A dt).window t) σ ν) :
+    Formula.sat (hostGuard vs 6 Side.R (mR q)) σ → Formula.sat (hostGuard vs 6 Side.R (mR q)) ν :=
+  frames_right (hwin dt t (by rw [A_numModes]; exact ht)) (hguardR_all q) h
 
 theorem hulG (dt : ℝ) : ∀ t, uL ∉ ((A dt).guard t).fv := by
   intro t h
@@ -1461,7 +1328,7 @@ theorem hframesUl (dt : ℝ) : ∀ t, FramesMv ((A dt).window t) uL := by
     exact framesMv_test _ _
 
 theorem hulR : uL ∉ (rightAutomatonBody Gr mv).bv :=
-  notMem_bv_rightAutomatonBody Gr mv uL (by decide) (aux_notin_range_Rv 2) htt hRv
+  notMem_bv_rightAutomatonBody_G Gr mv uL (by decide) (aux_notin_range_Rv 2) hgR hRv
 
 /-! ## The handoffs, in-kernel -/
 
@@ -1479,61 +1346,64 @@ theorem handoff (dt : ℝ) : ∀ m' < (A dt).numModes, ∀ t ∈ (A dt).succ m',
   · subst ht
     exact hF
 
+
 /-! ## The per-mode steps -/
 
 theorem hstepM (dt : ℝ) (h00 : Verd 0 0) (h10 : Verd 1 0) :
     ∀ t < (A dt).numModes, ∀ σ,
     Formula.sat (Formula.and (Formula.and (FRow t) env)
-      (mvRegion mv region Gr.modes.length)) σ →
+      (mvRegion mv gregion Gr.modes.length)) σ →
     Formula.sat (faModal (Equiv.refl (Var 6)) ((A dt).window t)
       (Program.star (rightAutomatonBody Gr mv))
       (Formula.and (Formula.and (FRow t) env)
-        (mvRegion mv region Gr.modes.length))) σ := by
+        (mvRegion mv gregion Gr.modes.length))) σ := by
   intro t ht
   rw [A_numModes] at ht
-  rw [A_window dt t ht]
   have hv0 : Verd t 0 := by interval_cases t <;> assumption
-  exact hstepMode_multiR Gr mv (FRow t) env region _ (aux_notin_FRow 0 t) hmvenv hmvreg
-    hfresh htt hlt (framesGw t dt 0 (by decide)) (HmultiL t ht dt hv0)
+  have hframe := frameG dt t ht
+  rw [A_window dt t ht] at hframe ⊢
+  exact hstepMode_GR Gr mv (FRow t) env gregion _ (aux_notin_FRow 0 t) hmvenv hmvregG
+    hfresh (guardsFresh_of_right Gr 0 hgR) hlt (framesGw t dt 0 (by decide))
+    (HMode_regionG Gr mv _ region Gr_guards (FRow t) env _
+      (fun q _ σ ν hrun => hframe q hrun)
+      (fun q hq σ hmv hσ hg hreg => HmultiG t ht dt hv0 q hq σ hmv hσ hg hreg))
 
-/-! ## Theorem 3, mode-keyed -/
+/-! ## Theorem 3, mode-keyed, over the guarded right automaton -/
 
-/-- **`platoon3_linkloss` (suite_v2), Theorem 3 at the DECLARED mode-dependent invariant.**
-Left: the automaton of the file (`FOLLOW → [FOLLOW, LOST]`, `LOST → [LOST]`; three follower
-links `g_i' = r_i`, `r_i' = −0.125 (g_i − c_i) − 0.75 r_i`, FOLLOW at 29 on every link, LOST
-latching link 1 at the radar stand-off 35), each step `?guard_t ; u_L := t ; ?guard_t ;
-window_t` with `u_L = (Aux, 2)` the left mode variable; right: the four-mode automaton of the
-file (`FOLLOW` at set point 30 and the AEB sinks `BRAKE1..3`; declared edges, the three pruned
-`FOLLOW → BRAKE` edges included). The loop invariant keys the declared rows by `u_L` (FOLLOW:
-12 components, the exact refinement `Δr_i + ρ_j (Δg_i + 1) = 0`; LOST: 14 components, link 1
-loosened to `Δr₁ + ρ_j (e₁ − 6) ∈ [−6 ρ_j, 0]` and `0 ≤ e₁ ≤ 6`), plus the evolve envelope
-(`g_i ∈ [0, 60]`, `r_i ∈ [−10, 10]`) on both sides and the right mode's region — its 24 kept
-cut atoms — the sinks excluded (the right is never in them). Response: in every left window,
-STAY in `FOLLOW` on the certified joint segment at the cover's λ = 1. Handoff FOLLOW → LOST
-in-kernel (no Z3). Staying of every kept atom (linear forms and derived gap bounds) through
-the `CutLiftX` shape lemmas; existence Z3-free by the explicit closed-form solution of the
-linear right mode. Residuals: two stratified verdict packs `Verd l 0` (left window `l` at its
-own row and strata order, right mode `FOLLOW`; `modalVerdX`, the tool's own narrowed
-queries). -/
+/-- **`platoon3_linkloss` (suite_v2), Theorem 3 at the declared mode-dependent invariant, over
+the GUARDED automata, at the mode-consistent region.** Left: the automaton of the file
+(`FOLLOW → [FOLLOW, LOST]`, `LOST → [LOST]`), each step `?guard_t ; u_L := t ; ?guard_t ;
+window_t` (`u_L = (Aux, 2)`); the left guards are the deployed's operating range (links
+`19 ≤ g_i ≤ 59`, `|r_i| ≤ 10`, `20 ≤ g_i + 2 r_i ≤ 58`; LOST link 1 `g₁ ≥ 25`). Right: the
+four-mode automaton of the file with every edge testing the lowered guard of the mode it
+enters (`Gr_guards`): `FOLLOW` (the reference's operating range `20 ≤ g_i ≤ 60`,
+`|r_i| ≤ 10`, `21 ≤ g_i + 2 r_i ≤ 59`) and the AEB sinks `BRAKE1..3` (`g_k < 20`; the three
+`FOLLOW → BRAKE` edges pruned: the sinks have the empty region). Loop invariant: the
+declared rows keyed by `u_L`, the evolve envelope on both sides, and the right in the guard
+and the kept cuts of its current mode (`gregion`). Response: in every left window, the
+certified joint segment in `FOLLOW` at the cover's λ = 1, then the self-loop, legal at its
+end state (the kept cuts and the gap floor `g_i ≥ 20` along the reference's own run,
+`gap_floor_Ronly`). Handoff FOLLOW → LOST in-kernel. Existence Z3-free (`link_bounds`).
+Residuals: two stratified verdict packs `Verd l 0`. -/
 theorem platoon3_linkloss_modeKeyed (dt : ℝ) (h00 : Verd 0 0) (h10 : Verd 1 0) :
     RFormula.rvalid (theorem3Form
       (leftAutomatonBody (A dt) uL)
       (rightAutomatonBody Gr mv)
       (psiK uL ϕRow (A dt).numModes domL domR
-        (mvRegionR mv region Gr.modes.length))) := by
+        (mvRegionR mv gregion Gr.modes.length))) := by
   refine theorem3_modeKeyed (A dt) uL Gr mv FRow ϕRow domL domR
-    (mvRegion mv region Gr.modes.length) (mvRegionR mv region Gr.modes.length)
+    (mvRegion mv gregion Gr.modes.length) (mvRegionR mv gregion Gr.modes.length)
     encode_ϕRow (encode_mvRegionR _ _ _) ?_ ?_ ?_
-  · exact hd_modeKeyed (A dt) Gr 0 1 2 (by decide) (by decide) (hwin dt) (hgrd dt)
-      (hnext dt) htt hRv
+  · exact hd_modeKeyed_G (A dt) Gr 0 1 2 (by decide) (by decide) (hwin dt) (hgrd dt)
+      (hnext dt) hgR hRv
   · exact hstep_modeKeyed (A dt) uL (rightAutomatonBody Gr mv) FRow env
-      (mvRegion mv region Gr.modes.length) (aux_notin_FRow 2) hulenv hulBk (hulG dt)
+      (mvRegion mv gregion Gr.modes.length) (aux_notin_FRow 2) hulenv hulBkG (hulG dt)
       (hframesUl dt) hulR (hnext dt) (hstepM dt h00 h10) (handoff dt)
-  · exact hddF_modeKeyed (A dt) Gr 0 1 2 (by decide) (by decide) ϕRow domL domR
-      (mvRegionR mv region Gr.modes.length) (hwin dt) (hgrd dt) (hnext dt) htt hRv
+  · exact hddF_modeKeyed_G (A dt) Gr 0 1 2 (by decide) (by decide) ϕRow domL domR
+      (mvRegionR mv gregion Gr.modes.length) (hwin dt) (hgrd dt) (hnext dt) hgR hRv
       (fun m _ => canonInvM_varsL (g m) (gs m) (comps_fv_all m))
       (fun m _ => canonInvM_varsR (g m) (gs m)) hdomL hdomR rfl
-      (fun v hv => mvRegion_fv_sub mv region Gr.modes.length (fun q hq => region_fv q hq) hv)
+      (fun v hv => mvRegion_fv_sub mv gregion Gr.modes.length (fun q hq => gregion_fv q hq) hv)
 
 end V2Platoon3Linkloss
 end RelCertifier

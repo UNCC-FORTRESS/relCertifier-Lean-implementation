@@ -9,26 +9,24 @@ theorem is imported here and its axioms are re-emitted on every build (`lake bui
 RelCertifier.InstancesV2.BatteryV2 2>&1 | grep -A3 "depends on axioms"`), so the audit cannot
 drift from the theorems.
 
-**The statement.** Theorem 3 over the GUARDED right automaton: every right edge tests the
-lowered guard of the mode it enters (the paper's `?guard_m(x)`), proved per instance
-(`Gr_guards` / `GrG_guards` / `GrPG_guards`), with the loop invariant carrying the
-MODE-CONSISTENT region `regionG guard cuts q = guard q ∧ cuts q` of the right's current mode
-(`Proofs/Encoding/GuardedSwitch.lean`; one uniform shape for all 45; no Assumption-1
-hypothesis, no new axiom, the declared rows unchanged). The groups:
+**The statement (all 45, one shape).** Theorem 3 with the paper's LEFT program, the
+guard-gated left automaton `leftAutomatonBody A u_L` (`?(u_L = m') ; ⋃_{t ∈ next m'} ?guard_t ;
+u_L := t ; window_t`, jump then flow, the declared successors and lowered guards read from the
+IR), against the GUARDED right automaton (every edge tests the lowered guard of the mode it
+enters, `Gr_guards`; flow then jump), with the loop invariant `psiK u_L ϕ … (mvRegionR mv
+gregion …)`: the declared rows keyed by `u_L` (one row for every left mode in the
+mode-independent benchmarks), both evolve envelopes, `u_L` a declared left mode, and the right
+in the MODE-CONSISTENT region `regionG guard cuts q = guard q ∧ cuts q` of its current mode
+(`Proofs/Encoding/GuardedSwitch.lean`). No Assumption-1 hypothesis, no new axiom. The
+mode-independent benchmarks are first proved over the choice of their (guard-gated or plain)
+windows and carried to the left automaton by the generic bridge
+`theorem3_leftAut_of_choice` (`Proofs/Encoding/LeftAutUniform.lean`, proved once): the left
+automaton only removes left runs and adds `u_L`. Window lengths: every `dt` for 44
+benchmarks; `refinement_ladder_rover_rung2c` for every window up to its control interval,
+`dt ≤ ε_L = 1`. The two `platoon3` benchmarks are stated on their repaired model (operating-range
+guards, `docs/SUITE-REDESIGN.md` §20).
 
-* **Theorem 3, guarded, every window length: 39 benchmarks** (`#print` group 1).
-* **Theorem 3, guarded, windows `dt < 1`: `refinement_ladder_rover_rung2c`** (group 2); for
-  `dt > 2.12` its guarded statement is false by the argument of `docs/GUARDED-SWITCHING.md`
-  §4.5 (not kernel-checked), `1 ≤ dt ≤ 2.12` is open.
-* **Machine-checked refutations of the guarded statement** (group 3):
-  `platoon3_profiles` (every `dt ≥ 1`; `dt ≤ 0.575` open) and `platoon3_linkloss` (every
-  `dt > 0`).
-* **The `⊤`-guarded relaxation only** (group 4): the five benchmarks without a guarded
-  theorem for every `dt` (`refinement_ladder_rover_rung2_3to6`, `story2_lateral_rung_a_8dof`,
-  `story2_lateral_rung_b_12dof`, the two platoon3 benchmarks) and `rung2c`'s every-`dt`
-  relaxation. For the first three the guarded statement is false for every `dt > 0` by the
-  argument of `docs/GUARDED-SWITCHING.md` §4 (not kernel-checked).
-* Theorem 2 of `match_multi_rate`'s pruned edge, and the generic lemmas.
+* Generic lemmas the instances rest on, and Theorem 2 of `match_multi_rate`'s pruned edge.
 
 Expected and observed axioms: the three standard ones plus `z3_unsat_sound` where a verdict
 pack enters.
@@ -92,94 +90,75 @@ import RelCertifier.Instances.Story1AttdistRungAGuarded
 import RelCertifier.Instances.Story1AttdistRungBGuarded
 import RelCertifier.Instances.Story3RolloverBaseGuarded
 import RelCertifier.Instances.Story3RolloverRungAGuarded
--- machine-checked refutations of the guarded statement
-import RelCertifier.InstancesV2.Platoon3ProfilesGuardedRefuted
-import RelCertifier.InstancesV2.Platoon3LinklossGuardedRefuted
--- the `⊤`-guarded relaxation only
+import RelCertifier.Instances.RoverLadderRung2Guarded
+import RelCertifier.Instances.Story2LateralAGuarded
+import RelCertifier.Instances.Story2LateralBGuarded
 import RelCertifier.InstancesV2.Modal.Platoon3Profiles
 import RelCertifier.InstancesV2.Modal.Platoon3Linkloss
-import RelCertifier.Instances.RoverLadderRung2Modal
-import RelCertifier.Instances.RoverRung2cModal
-import RelCertifier.Instances.Story2LateralAModal
-import RelCertifier.Instances.Story2LateralBModal
+-- the paper's left program for the mode-independent benchmarks (the generic bridge)
+import RelCertifier.InstancesV2.LeftAutV2
+import RelCertifier.Instances.LeftAutLegacy
 
 namespace RelCertifier
 
-/-! ## 1. Theorem 3 over the GUARDED right automaton, every window length (39 benchmarks)
+/-! ## Theorem 3 with the paper's left program, over the guarded automata (all 45)
 
-Statement shape (all 39): `RFormula.rvalid (theorem3Form L (rightAutomatonBody G mv)
-(… (mvRegionR mv gregion G.modes.length)))` (mode-keyed instances: inside `psiK`) with every
-edge of `G` testing `hostGuard … Side.R (m e.tgt)` and `gregion q = regionG guard cuts q`
-(`guard q ∧ cuts q`). Every switch of every response is kernel-checked legal. -/
+Statement shape (all 45): `RFormula.rvalid (theorem3Form (leftAutomatonBody A u_L)
+(rightAutomatonBody G mv) (psiK u_L ϕ A.numModes domL domR (mvRegionR mv gregion …)))` with
+every edge of `G` testing `hostGuard … Side.R (m e.tgt)`, every left edge testing the entered
+left mode's lowered guard, and `gregion q = regionG guard cuts q` (`guard q ∧ cuts q`). -/
 
--- the 22 benchmarks whose certificate response was already legal
-#print axioms V2Watertank.watertank_modal
-#print axioms V2PlatoonDelayProfiles.platoon_delay_profiles_modal
+-- mode-independent invariant, suite_v2 (16), by the generic bridge
+#print axioms V2Watertank.watertank_leftAut
+#print axioms V2PlatoonDelayProfiles.platoon_delay_profiles_leftAut
+#print axioms V2QuadLightAirframe20.quad_light_airframe_20_leftAut
+#print axioms V2QuadLightProfiles.quad_light_profiles_leftAut
+#print axioms V2QuadLightLag.quad_light_lag_leftAut
+#print axioms V2ChargerFastSetpoints.charger_fast_setpoints_leftAut
+#print axioms V2AccTuneLag.acc_tune_lag_leftAut
+#print axioms V2AccSpoofLag.acc_spoof_lag_leftAut
+#print axioms V2ChargerFastTapers.charger_fast_tapers_leftAut
+#print axioms V2ArmPlateauCrit.arm_plateau_crit_leftAut
+#print axioms V2ArmPlateauProfiles.arm_plateau_profiles_leftAut
+#print axioms V2ArmPlateauSlow.arm_plateau_slow_leftAut
+#print axioms V2SatDetumbleNominal.sat_detumble_nominal_leftAut
+#print axioms V2SatDetumbleWeak.sat_detumble_weak_leftAut
+#print axioms V2Sat3wDetumbleNominal.sat3w_detumble_nominal_leftAut
+#print axioms V2Sat3wDetumbleWeak.sat3w_detumble_weak_leftAut
+-- mode-independent invariant, carried-over (13), by the generic bridge
+#print axioms MatchMultiRateGuarded.match_multi_rate_leftAut
+#print axioms RoverLadderRung1Guarded.rover_ladder_rung1_leftAut
+#print axioms RoverLadderRung3Guarded.rover_ladder_rung3_6to8_leftAut
+#print axioms RoverLadderRung4Guarded.rover_ladder_rung4_8to12_leftAut
+#print axioms RoverDofTerrainRung1Guarded.rover_dof_terrain_rung1_leftAut
+#print axioms RoverDofTerrainRung2Guarded.rover_dof_terrain_rung2_leftAut
+#print axioms RoverDofTerrainRung3Guarded.rover_dof_terrain_rung3_leftAut
+#print axioms RoverDofTerrainRung38dGuarded.rover_dof_terrain_rung3_8d_leftAut
+#print axioms RoverRung26dofGuarded.rung2_6dof_leftAut
+#print axioms RoverRung2b6dofGuarded.rung2b_6dof_leftAut
+#print axioms Story3RolloverBaseGuarded.story3_rollover_base_leftAut
+#print axioms Story3RolloverRungAGuarded.story3_rollover_rung_a_leftAut
+-- `refinement_ladder_rover_rung2c`: every window up to the control interval, `dt ≤ ε_L = 1`
+#print axioms RoverRung2cGuarded.rover_rung2c_leftAut
+-- mode-independent invariant, with the guard-gated left windows newly proved (3)
+#print axioms RoverLadderRung2Guarded.rover_ladder_rung2_3to6_leftAut
+#print axioms Story2LateralAGuarded.story2_lateral_rung_a_leftAut
+#print axioms Story2LateralBGuarded.story2_lateral_rung_b_leftAut
+-- `platoon3_profiles` (repaired model, §20 of docs/SUITE-REDESIGN.md)
+#print axioms V2Platoon3Profiles.platoon3_profiles_leftAut
+-- mode-keyed invariant (12)
 #print axioms V2AccSpoofLimp.acc_spoof_limp_modeKeyed
 #print axioms V2AccTuneLimp.acc_tune_limp_modeKeyed
 #print axioms V2PlatoonDelayLinkloss.platoon_delay_linkloss_modeKeyed
-#print axioms V2QuadLightAirframe20.quad_light_airframe_20_modal
-#print axioms V2QuadLightProfiles.quad_light_profiles_modal
-#print axioms V2QuadLightLag.quad_light_lag_modal
-#print axioms V2ChargerFastSetpoints.charger_fast_setpoints_modal
-#print axioms V2AccTuneLag.acc_tune_lag_modal
-#print axioms V2AccSpoofLag.acc_spoof_lag_modal
-#print axioms V2ChargerFastTapers.charger_fast_tapers_modal
-#print axioms V2ArmPlateauCrit.arm_plateau_crit_modal
-#print axioms V2ArmPlateauProfiles.arm_plateau_profiles_modal
-#print axioms V2SatDetumbleNominal.sat_detumble_nominal_modal
-#print axioms V2SatDetumbleWeak.sat_detumble_weak_modal
-#print axioms V2Sat3wDetumbleNominal.sat3w_detumble_nominal_modal
-#print axioms V2Sat3wDetumbleWeak.sat3w_detumble_weak_modal
 #print axioms V2SatDetumblePhases.sat_detumble_phases_modeKeyed
 #print axioms V2Sat3wDetumblePhases.sat3w_detumble_phases_modeKeyed
 #print axioms Rover3tierRung12Guarded.rover3tier_rung12_modeKeyed_guarded
-#print axioms MatchMultiRateGuarded.match_multi_rate_guarded
--- the 17 benchmarks with a new legal response (climbs, synchronized climbs, catch-ups)
-#print axioms V2ArmPlateauSlow.arm_plateau_slow_modal
 #print axioms V2RoverPatrolZonesGuarded.rover_patrol_zones_guarded
 #print axioms V2RoverPatrolRefineGuarded.rover_patrol_refine_guarded
 #print axioms V2Story3RolloverRungBGuarded.story3_rollover_ladder_rung_b_guarded
-#print axioms RoverLadderRung1Guarded.rover_ladder_rung1_guarded
-#print axioms RoverLadderRung3Guarded.rover_ladder_rung3_6to8_guarded
-#print axioms RoverLadderRung4Guarded.rover_ladder_rung4_8to12_guarded
-#print axioms RoverDofTerrainRung1Guarded.rover_dof_terrain_rung1_guarded
-#print axioms RoverDofTerrainRung2Guarded.rover_dof_terrain_rung2_guarded
-#print axioms RoverDofTerrainRung3Guarded.rover_dof_terrain_rung3_guarded
-#print axioms RoverDofTerrainRung38dGuarded.rover_dof_terrain_rung3_8d_guarded
-#print axioms RoverRung26dofGuarded.rung2_6dof_guarded
-#print axioms RoverRung2b6dofGuarded.rung2b_6dof_guarded
 #print axioms Story1AttdistRungAGuarded.story1_attdist_rung_a_guarded
 #print axioms Story1AttdistRungBGuarded.story1_attdist_rung_b_guarded
-#print axioms Story3RolloverBaseGuarded.story3_rollover_base_guarded
-#print axioms Story3RolloverRungAGuarded.story3_rollover_rung_a_guarded
-
-/-! ## 2. Theorem 3 over the GUARDED right automaton, windows `dt < 1` (1 benchmark)
-
-`refinement_ladder_rover_rung2c`: the lockstep rows forbid a mid-window switch, so the
-response mirrors the window in the window's band. For `dt > 2.12` a `STEEP` window can carry the
-odometer from below `0.6` past `1.4` and the guarded statement is false (argument,
-`docs/GUARDED-SWITCHING.md` §4.5). -/
-
-#print axioms RoverRung2cGuarded.rover_rung2c_guarded
-
-/-! ## 3. The guarded statement is false: machine-checked refutations (2 benchmarks) -/
-
-#print axioms V2Platoon3ProfilesRefuted.platoon3_profiles_guarded_false
-#print axioms V2Platoon3LinklossRefuted.platoon3_linkloss_guarded_false
-
-/-! ## 4. Theorem 3 over the `⊤`-guarded relaxation only
-
-About the declared-successor relaxation of `R` (edge guards `⊤`, invariant without the
-guard): the five benchmarks with no guarded theorem for every `dt`, and `rung2c` for every
-`dt`. -/
-
-#print axioms RoverLadderRung2Modal.rover_ladder_rung2_3to6_modal
-#print axioms Story2LateralAModal.story2_lateral_rung_a_modal
-#print axioms Story2LateralBModal.story2_lateral_rung_b_modal
-#print axioms V2Platoon3Profiles.platoon3_profiles_modal
 #print axioms V2Platoon3Linkloss.platoon3_linkloss_modeKeyed
-#print axioms RoverRung2cModal.rover_rung2c_modal
 
 /-! ## Theorem 2 of `match_multi_rate`'s pruned edge -/
 
@@ -195,10 +174,16 @@ guard): the five benchmarks with no guarded theorem for every `dt`, and `rung2c`
 #print axioms guarded_rights_bridge
 #print axioms hstep_assembled_GR
 #print axioms gresp_final_choose
+#print axioms gresp_final_run
 #print axioms Hmulti_regionG
 #print axioms HMode_regionG
 #print axioms hddF_multiR_G
 #print axioms hddF_modeKeyed_G
+#print axioms theorem3_leftAut_of_choice
+#print axioms theorem3_leftAut_of_choiceR
+#print axioms boxle_Ronly_of_super
+#print axioms Platoon3Link.link_bounds
+#print axioms Platoon3Link.gap_floor_Ronly
 #print axioms gresp_of_rresp
 #print axioms explicit_sol
 #print axioms LadderRun.climb

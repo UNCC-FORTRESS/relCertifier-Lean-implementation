@@ -45,6 +45,8 @@
 # the counter-runs are unchanged (NO_CUT, NO_IMPLIED_CUT, NO_LINEAR_CUT all DECLINE).
 # relcert --wellformed: every mode ok (ApproachA, ApproachB exit, ApproachC* exit->Hold,
 # Hold invariant).
+# The wider successor sets add branching (the largest joint step now has 4 retained
+# successors, each covering, was 2; M3 was already credited).
 [problem]
 name = arm_plateau_profiles
 max_depth = 8

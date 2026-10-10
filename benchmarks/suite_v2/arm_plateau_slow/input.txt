@@ -1,6 +1,6 @@
 # arm_plateau_slow: over-damped PD arm (worn joint, extra friction) tracking the leading reference.
 # scenario: degraded-actuator
-# mechanisms: M2 M6 M6L
+# mechanisms: M2 M3 M6 M6L
 #
 # The reference-tracking arm (redesign of the arm tower; repaired in the domain audit,
 # docs/SUITE-REDESIGN.md section 13). Deployed (left): a PD-controlled joint tracking
@@ -58,6 +58,8 @@
 # the counter-runs are unchanged (NO_CUT, NO_IMPLIED_CUT, NO_LINEAR_CUT all DECLINE).
 # relcert --wellformed: every mode ok (ApproachA, ApproachB exit, ApproachC* exit->Hold,
 # Hold invariant).
+# The wider successor sets add branching: a joint step from ApproachA now has
+# ApproachB, ApproachC and Hold as retained successors, each covering (M3 credited, new).
 [problem]
 name = arm_plateau_slow
 max_depth = 8

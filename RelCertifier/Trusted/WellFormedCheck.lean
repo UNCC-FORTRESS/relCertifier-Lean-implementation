@@ -2,15 +2,18 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The Assumption 1 check of the right model (TRUSTED harness layer, informational)
+# The Assumption 1 check of the right model (TRUSTED harness layer; strict in the recipe)
 
 The paper's Assumption 1 (Well-Formedness): from every state satisfying a source-mode guard,
 an evolution spanning the control interval `ε_r` exists, and every evolution of duration at
 most `ε_r` ends in a state satisfying the guard of at least one declared successor mode.
 The kernel states and proves (or refutes) it per benchmark (`WellFormedR`,
 `InstancesV2/WellFormedBattery.lean`). This file is the tool's CHEAP, SUFFICIENT check of
-its successor-completeness half (clause (ii)); it is reported per right mode, counted, and
-changes no verdict unless `RELCERT_WELLFORMED_STRICT=1`.
+its successor-completeness half (clause (ii)); it is reported per right mode and counted.
+It only ever declines: a single `relcert` run changes no verdict unless
+`RELCERT_WELLFORMED_STRICT=1`; `--check-quick-v2` certifies in the strict mode
+(`certifyWFWith true`) and gates the report against declared counts (146 right modes,
+0 `UNKNOWN`, `VerdictsV2.ExpectedSuiteV2`), since 2026-10-10.
 
 Per right mode `q` (guard `G_q`, a conjunction of comparison atoms `gₐ ≤ 0` / `gₐ < 0`,
 lowered on the right; field `f_q`; evolve domain `D_q`):

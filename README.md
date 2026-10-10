@@ -19,10 +19,12 @@ benchmarks the nominal controller blocked after a full cycle (engagement-band gu
 catch-all mode), a violation of the certificate's Assumption 1 that the certificate itself
 cannot detect; the guards are now the operating range and both are proved
 (`docs/SUITE-REDESIGN.md` §20). Assumption 1 itself is now a separately verified model fact
-per benchmark (`WellFormedR`): proved for 30 right models, refuted with an exhibited blocking
-state for 9 (model defects in modes no Theorem 3 depends on, or an approach band narrower
-than one control interval), proved on the conserved momentum band for the 6 satellites; and
-the tool checks its successor half (`relcert --wellformed`). See
+per benchmark (`WellFormedR`): **proved for all 45 right models**, 39 in its literal form and
+the 6 satellites on their conserved momentum band. Nine models violated it until 2026-10-10
+(refuted in the kernel with exhibited blocking states: fallback sinks whose own flow left
+their guard, approach bands narrower than one control interval) and were repaired
+(`docs/SUITE-REDESIGN.md` §21). The tool checks its successor half (`relcert --wellformed`),
+STRICT in the certification recipe: `--check-quick-v2` fails on any `UNKNOWN` right mode. See
 [Assumption 1 is verified per benchmark](#assumption-1-is-verified-per-benchmark).
 
 Everything except Z3 is Lean: the parser, the lowering, the SMT printer, the search, the
@@ -114,7 +116,7 @@ declared counts; `docs/VERDICTS.md`). The axiom audit of every theorem is a subs
 | **Z3's `unsat`** answers are correct | the one oracle: axiom `z3_unsat_sound` (`Trusted/Oracle.lean`) |
 | the **Lean kernel** | checks everything else |
 | the **lowering of the right guards** onto the edges (`hostGuard … Side.R (mR t)`, the same lowering as the left guards) | part of the lowering item above; each instance proves its edges carry exactly these guards (`Gr_guards`) |
-| (not an item) Assumption 1 of the right model | not assumed: stated as `WellFormedR` and proved (30), refuted with an exhibited state (9) or proved on the satellites' momentum band (6), all Z3-free; no Theorem 3 uses it (`docs/WELLFORMED.md`) |
+| (not an item) Assumption 1 of the right model | not assumed: stated as `WellFormedR` and proved for all 45 (39 literally, the 6 satellites on their momentum band), all Z3-free, kernel-only (no trust-base item beyond the parser and lowering that produce the automata); no Theorem 3 uses it (`docs/WELLFORMED.md`) |
 
 The search (cover exploration, checked-cut search, route and λ selection) is untrusted: it
 only proposes. Every accepted output is either re-decided in the kernel (the cover replay
@@ -129,8 +131,9 @@ the statement, not an assumption: the theorem's premise and conclusion both carr
 Nonblocking (the paper's Assumption 1) enters no theorem as a hypothesis: every response
 exhibits its switches and their enabled targets explicitly, or makes no step. Assumption 1
 itself is a separately verified model fact (`WellFormedR`, [below](#assumption-1-is-verified-per-benchmark));
-the tool's `--wellformed` check of it is informational and untrusted (it changes no verdict
-unless `RELCERT_WELLFORMED_STRICT=1`, and then only to decline).
+the tool's `--wellformed` check of it is untrusted and only ever declines: strict in
+`--check-quick-v2` (an `UNKNOWN` right mode fails the recipe), informational as
+`relcert --wellformed`, and per run under `RELCERT_WELLFORMED_STRICT=1`.
 
 The search (cover exploration, checked-cut search, route and λ selection) is untrusted: it
 only proposes. Every accepted output is either re-decided in the kernel (the cover replay
@@ -147,6 +150,7 @@ All counts read off `InstancesV2/BatteryV2.lean` and its build output.
 | mode-independent rows, carried to the left automaton by the generic bridge `theorem3_leftAut_of_choice` | **33** | 16 suite_v2 (`InstancesV2/LeftAutV2.lean`), 13 carried-over (`Instances/LeftAutLegacy.lean`), `rung2_3to6` and the two story2 ladders (`Instances/*Guarded.lean`), `platoon3_profiles` |
 | mode-keyed (per-left-mode rows composed through handoffs, `ModeHandoff.theorem3_modeKeyed`) | **12** | `acc_spoof_limp`, `acc_tune_limp`, `platoon_delay_linkloss`, `platoon3_linkloss`, `sat_detumble_phases`, `sat3w_detumble_phases`, `rover3tier_rung12`, `rover_patrol_zones`, `rover_patrol_refine`, `story3_rollover_ladder_rung_b`, `story1_attdist_rung_a_6to8`, `story1_attdist_rung_b_12dof` |
 | model repaired by this mechanization (the nominal controller blocked after a full cycle; `docs/SUITE-REDESIGN.md` §20) | **2** | `platoon3_linkloss`, `platoon3_profiles` |
+| model repaired for Assumption 1 (`WellFormedR` refuted in the kernel, then proved; `docs/SUITE-REDESIGN.md` §21) | **9** | `arm_plateau_{crit,profiles,slow}`, `platoon_delay_{linkloss,profiles}`, `platoon3_{linkloss,profiles}`, `quad_light_{airframe_20,profiles}` |
 | widened cut channel needed (`RELCERT_IMPLIED_CUT=1`; closures, implied contractions, linear-form chains; lifted to the kernel by `Proofs/Soundness/CutLiftX.lean`) | **10** | `acc_spoof_lag`, `arm_plateau_{crit,profiles,slow}`, `charger_fast_setpoints`, `platoon_delay_{linkloss,profiles}`, `rover_patrol_refine`, `story3_rollover_ladder_rung_b`, `watertank` (each DECLINES without the channel) |
 | Z3-free (the three standard axioms only, no verdict hypothesis) | **16** | `arm_plateau_{crit,profiles,slow}`, `rover3tier_rung12`, `match_multi_rate`, `rover_patrol_{zones,refine}`, `refinement_ladder_rover_rung{1_2to3,3_6to8,4_8to12,2_6dof,2b_6dof}`, `rover_dof_terrain_rung{1,2,3,3_8d}` (explicit responses: catch-ups and climbs) |
 | stated on the nonblocking region (a conserved-momentum band of the model in the right region; it enters no verdict query) | **6** | `sat_detumble_{nominal,weak,phases}`, `sat3w_detumble_{nominal,weak,phases}` (`docs/SUITE-REDESIGN.md` §19.2) |
@@ -169,10 +173,11 @@ lake build relcert relcert-test
 # 2. the axiom audit of the battery (71 lines)
 lake build RelCertifier.InstancesV2.BatteryV2 2>&1 | grep -A3 "depends on axioms"
 
-# 2b. the Assumption 1 battery (80 lines, the three standard axioms only)
+# 2b. the Assumption 1 battery (76 lines, the three standard axioms only)
 lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 | grep -A3 "depends on axioms"
 
-# 3. certify the 45 files and re-send every Z3 hypothesis, with declared counts
+# 3. certify the 45 files (strict well-formedness), re-send every Z3 hypothesis, and run the
+#    strict Assumption 1 gate, all with declared counts
 RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt
 
 # 4. the trusted-layer tests (IR drift of all 45 literals, parser, printer, Z3 layer,
@@ -184,11 +189,12 @@ BENCH_PATHS=/tmp/bench-paths-v2.tsv ./.lake/build/bin/relcert-test
 ```
 
 Expected: `Build completed successfully`; 71 axiom lines (BatteryV2), each a subset of the
-four axioms above; 80 axiom lines (WellFormedBattery), each exactly the three standard
+four axioms above; 76 axiom lines (WellFormedBattery), each exactly the three standard
 axioms; `[suite_v2] 45 certified, 0 declined, 0 error(s)`, coverage `modal 262/262`,
 `handoff 186/186`, `non-connection 88/88`, `pruned edges 44/44`, `copied benchmarks (legacy
-packs) 385/385`, the informational Assumption 1 line `wellformed (informational): 77 ok
-(invariant), 53 ok (exit), 16 UNKNOWN of 146 right modes`, `SUITE_V2 QUICK CHECKS PASSED`;
+packs) 385/385`, the strict Assumption 1 gate `[wellformed] STRICT: 146/146 right modes ok
+(83 invariant, 63 exit), 0 UNKNOWN — matches the declared suite`, `wellformed (strict): PASS`,
+`SUITE_V2 QUICK CHECKS PASSED`;
 `relcert-test`: a bare `ALL PASS`.
 
 **Heavy files.** A handful of instance files (the 12-dimensional rover and rollover
@@ -256,7 +262,8 @@ RelCertifier/
     BenchIR/ BenchCovers/ Cuts/   45 files each   emitted data, one leaf per benchmark
     Modal/      26 files   the new Theorem 3 instances
     WellFormed/ 27 files   Assumption 1 (`WellFormedR`) per suite_v2 instance (26) and the
-                           shared platoon link lemma; `Instances/WellFormed/` holds the 19
+                           shared platoon link lemmas (operating range, latched AEB sink);
+                           `Instances/WellFormed/` holds the 19
                            carried-over benchmarks
     SameIR.lean, CoverReplay.lean, BatteryV2.lean, WellFormedBattery.lean
   VerdictsV2/    5 files   runner (RunV2), pins (PinsV2, NonConnPinV2), query rebuild
@@ -287,7 +294,7 @@ Environment variables of `relcert` (`relcert --help` prints the same list):
 | `RELCERT_NO_PRUNE=1` | disable non-connection pruning (the M4 counter-run) |
 | `RELCERT_NO_CUT=1` | disable the checked-cut channel (the M6 counter-run) |
 | `RELCERT_DEBUG=1` | per-mode diagnostics on stderr |
-| `RELCERT_WELLFORMED_STRICT=1` | run the `--wellformed` check on every CERTIFIED benchmark and DECLINE it when a right mode is `UNKNOWN` (off by default; off, no verdict and no emission changes; on, the 9 suite_v2 benchmarks with a blocking mode decline) |
+| `RELCERT_WELLFORMED_STRICT=1` | run the `--wellformed` check on every CERTIFIED benchmark and DECLINE it when a right mode is `UNKNOWN` (off by default for a single run, no verdict and no emission changes; `--check-quick-v2` forces it on; on the repaired suite no benchmark declines, before the 2026-10-10 repairs 9 did) |
 | `RELCERT_Z3=<path>` | the Z3 binary |
 | `RELCERT_Z3_TIMEOUT=<ms>` | per-query timeout, default 10000 |
 | `RELCERT_Z3_RLIMIT=<n>` | per-query deterministic resource limit, default 64000000 |
@@ -342,30 +349,35 @@ def WellFormedR G guard ε := ∀ q < G.modes.length, WellFormedRModeIn G guard 
 (the evolve-domain conjunct `m.dom x`: a run, even the empty one, exists only from a domain
 state; `docs/WELLFORMED.md` §1).
 
-**Results** (`InstancesV2/WellFormedBattery.lean`, declared counts `(30, 9, 6)` checked
-against the suite's IR table; 80 axiom lines, each `[propext, Classical.choice, Quot.sound]`;
-no Z3):
+**Results** (`InstancesV2/WellFormedBattery.lean`, declared counts `(39, 0, 6)` checked
+against the suite's IR table, `(30, 9, 6)` until the 2026-10-10 repairs; 76 axiom lines, each
+`[propext, Classical.choice, Quot.sound]`; no Z3):
 
 | result | count | benchmarks |
 |---|---|---|
-| proved, every mode (`<b>_wellFormedR`) | **30** | the acc, charger, ladder, terrain, story, rover patrol files, `quad_light_lag`, `match_multi_rate`, `rover3tier_rung12`, `watertank` |
-| **false**: a mode blocks; refuted in the kernel with the exhibited state, every other mode proved (`<b>_wellFormedR_false`) | **9** | `arm_plateau_{crit,profiles,slow}` (ApproachA from `θ = 0.35` reaches `0.85` within one interval, past ApproachB's band), `platoon_delay_{linkloss,profiles}` (sink BRAKE leaves `g < 20`), `platoon3_{linkloss,profiles}` (sink BRAKE1 leaves `g₁ < 20`), `quad_light_{airframe_20,profiles}` (sink LIMIT decays below its guard) |
+| proved, every mode (`<b>_wellFormedR`) | **39** | the acc, charger, ladder, terrain, story, rover patrol files, `quad_light_lag`, `match_multi_rate`, `rover3tier_rung12`, `watertank`, and the nine repaired models below |
+| of which repaired 2026-10-10 (refuted until then, with the exhibited state) | 9 | `arm_plateau_{crit,profiles,slow}` (ApproachA from `θ = 0.35` reached `0.85` within one interval, past ApproachB's band: the sampled planner's successor sets now name every reachable band), `platoon_delay_{linkloss,profiles}` (sink BRAKE left `g < 20`: it now re-engages FOLLOW), `platoon3_{linkloss,profiles}` (sink BRAKE1 left `g₁ < 20`: the AEB sinks are now latched, speed matching with an invariant guard), `quad_light_{airframe_20,profiles}` (sink LIMIT decayed below its guard: it now hands back to the climb controller, whose operating range reaches the limiter threshold) |
+| false | **0** | — |
 | proved on the conserved momentum band, which every mode keeps (`<b>_wellFormedR_onBand`, `<b>_band_invariant`); the literal predicate refuted (`DETUMBLE` from `w3 = 0.4`, `h = 2` has no full-interval run) | **6** | `sat_detumble_{nominal,weak,phases}`, `sat3w_detumble_{nominal,weak,phases}` |
 
 Proof styles: (a) forward invariance of the guard, then the self-loop; (b) exit into a
 successor's guard within one interval; (c) on the momentum band. The 18 terrain ladders share
-one theorem (`wellFormedR_ladder`). Per-benchmark table, the defects and their states:
-`docs/WELLFORMED.md`.
+one theorem (`wellFormedR_ladder`). Per-benchmark table, the repaired defects and their
+states: `docs/WELLFORMED.md`; the repairs and their tool evidence: `docs/SUITE-REDESIGN.md`
+§21. The trust base is unchanged: these are kernel theorems about the automata the parser
+and the lowering produce, with no Z3 leaf.
 
 **The tool check** (`relcert --wellformed <inputs>`, `Trusted/WellFormedCheck.lean`): a cheap
 sufficient check of clause (ii) per right mode: the guard atoms are kept by the mode's own
 flow (stratified cut routes) and the mode has a self-loop (`ok (invariant)`), or every run of
 at most `ε_r` ends in a declared successor's guard (rate bounds on the atoms that are not
-kept, then one coverage query: `ok (exit→S)`), else `UNKNOWN`. On the suite: 77 ok
-(invariant), 53 ok (exit), 16 UNKNOWN, exactly the blocking modes above (`platoon3`'s
-`BRAKE2`/`BRAKE3` included: they block by the same argument as `BRAKE1`); on the old
-`platoon3` model (commit `1a3507f`) every mode is `UNKNOWN`. `--check-quick-v2` prints the
-same section, informational. `RELCERT_WELLFORMED_STRICT=1` turns an `UNKNOWN` into a DECLINE.
+kept, then one coverage query: `ok (exit→S)`), else `UNKNOWN`. On the suite: 146 right
+modes, 83 ok (invariant), 63 ok (exit), **0 UNKNOWN** (before the repairs: 77 / 53 / 16
+UNKNOWN, exactly the blocking modes of the nine models; on the old `platoon3` model, commit
+`1a3507f`, every mode is `UNKNOWN`). **Strict in the recipe:** `--check-quick-v2` certifies in
+the strict mode and gates the `--wellformed` report against declared counts (146 modes, 0
+`UNKNOWN`; the mode count is kernel-checked against the IR table): any `UNKNOWN` fails the
+run. `RELCERT_WELLFORMED_STRICT=1` does the same per `relcert` run.
 
 ## The 19 carried-over theorems
 
@@ -391,7 +403,7 @@ nineteen are restated over the guarded automata at the mode-consistent region in
 * [`docs/GUARDED-SWITCHING.md`](docs/GUARDED-SWITCHING.md): the guarded automata (left and
   right), the mode-consistent region, the per-benchmark responses, the history.
 * [`docs/WELLFORMED.md`](docs/WELLFORMED.md): Assumption 1 per benchmark (`WellFormedR`),
-  the defects, the tool check and its switch.
+  the repaired defects, the tool check and its strict use in the recipe.
 * [`docs/VERDICTS.md`](docs/VERDICTS.md): the verdict runner, its phases, counts and pins.
 * [`docs/HANDOFF.md`](docs/HANDOFF.md): mode-dependent invariants and the handoff check.
 * [`docs/SUITE-REDESIGN.md`](docs/SUITE-REDESIGN.md): the design record of suite_v2 and its

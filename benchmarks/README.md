@@ -15,15 +15,17 @@ DECLINE.
 **Assumption 1 of each right model** (the paper's Well-Formedness: from every guard state a
 full control interval of flow exists, and every evolution of at most `ε_r` ends in a declared
 successor's guard) is verified per file (`WellFormedR`, `docs/WELLFORMED.md`): it holds for
-30 files, on the conserved momentum band for the 6 satellite files, and it is FALSE for 9
-files, whose model has a blocking mode: `arm_plateau_{crit,profiles,slow}` (the ApproachA /
-ApproachB bands are narrower than one control interval of their own rate),
-`platoon_delay_{linkloss,profiles}` (the sink `BRAKE`), `platoon3_{linkloss,profiles}` (the
-sinks `BRAKE1`–`BRAKE3`) and `quad_light_{airframe_20,profiles}` (the sink `LIMIT`): each such
-sink's own flow leaves its guard and it declares no other successor. The blocking sinks are
-pruned (never entered by a certified response), so no Theorem 3 depends on them; repairing
-the files is a modelling decision left open. `relcert --wellformed <input.txt>…` runs the
-tool's sufficient check per right mode.
+all 45, literally for 39 files and on the conserved momentum band for the 6 satellite files.
+Nine files had a blocking mode until 2026-10-10 and were repaired (`docs/SUITE-REDESIGN.md`
+§21; each header says how and why): `arm_plateau_{crit,profiles,slow}` (the ApproachA /
+ApproachB bands are narrower than one control interval of their own rate: the sampled
+planner's successor sets now name every band a sample can find), `platoon_delay_{linkloss,
+profiles}` (the sink `BRAKE` left its guard: it now re-engages `FOLLOW`),
+`platoon3_{linkloss,profiles}` (the sinks `BRAKE1`–`BRAKE3`: now latched, speed-matching, with
+an invariant guard) and `quad_light_{airframe_20,profiles}` (the sink `LIMIT`: it now hands
+back to the climb controller, whose operating range reaches the limiter threshold).
+`relcert --wellformed <input.txt>…` runs the tool's sufficient check per right mode (every one
+of the 146 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN`.
 
 The suite's design, the per-family rationale, the domain audit (every evolve bound is a
 physical limit of the plant; `scripts/domain_widening.py` re-runs the tool with every bound
@@ -59,19 +61,19 @@ band of the model; `docs/SUITE-REDESIGN.md` §19.2).
 | `acc_spoof_limp` | 1 / 1 | 2 / 4 | sensor-attack | mode-keyed |
 | `acc_tune_lag` | 2 / 2 | 1 / 2 | model-refinement |  |
 | `acc_tune_limp` | 1 / 1 | 2 / 4 | degraded-controller | mode-keyed |
-| `arm_plateau_crit` | 2 / 1 | 2 / 4 | model-refinement | widened cuts, Z3-free |
-| `arm_plateau_profiles` | 2 / 1 | 2 / 5 | degraded-controller | widened cuts, Z3-free |
-| `arm_plateau_slow` | 2 / 1 | 2 / 4 | degraded-actuator | widened cuts, Z3-free |
+| `arm_plateau_crit` | 2 / 1 | 2 / 4 | model-refinement | widened cuts, Z3-free; successor sets repaired (§21) |
+| `arm_plateau_profiles` | 2 / 1 | 2 / 5 | degraded-controller | widened cuts, Z3-free; successor sets repaired (§21) |
+| `arm_plateau_slow` | 2 / 1 | 2 / 4 | degraded-actuator | widened cuts, Z3-free; successor sets repaired (§21) |
 | `charger_fast_setpoints` | 1 / 1 | 3 / 4 | degraded-controller | widened cuts |
 | `charger_fast_tapers` | 1 / 1 | 3 / 5 | degraded-controller |  |
 | `match_multi_rate` | 2 / 2 | 4 / 2 |  | carried over |
-| `platoon3_linkloss` | 6 / 6 | 2 / 4 | sensor-attack | mode-keyed; guards repaired (operating range, `docs/SUITE-REDESIGN.md` §20) |
-| `platoon3_profiles` | 6 / 6 | 1 / 6 | sensor-attack | guards repaired (operating range, `docs/SUITE-REDESIGN.md` §20) |
-| `platoon_delay_linkloss` | 1 / 1 | 3 / 3 | sensor-attack | mode-keyed, widened cuts |
-| `platoon_delay_profiles` | 1 / 1 | 2 / 4 | sensor-attack | widened cuts |
-| `quad_light_airframe_20` | 1 / 1 | 1 / 2 | model-refinement |  |
+| `platoon3_linkloss` | 6 / 6 | 2 / 4 | sensor-attack | mode-keyed; guards repaired (operating range, `docs/SUITE-REDESIGN.md` §20); latched AEB sinks (§21) |
+| `platoon3_profiles` | 6 / 6 | 1 / 6 | sensor-attack | guards repaired (operating range, `docs/SUITE-REDESIGN.md` §20); latched AEB sinks (§21) |
+| `platoon_delay_linkloss` | 1 / 1 | 3 / 3 | sensor-attack | mode-keyed, widened cuts; BRAKE re-engages (§21) |
+| `platoon_delay_profiles` | 1 / 1 | 2 / 4 | sensor-attack | widened cuts; BRAKE re-engages (§21) |
+| `quad_light_airframe_20` | 1 / 1 | 1 / 2 | model-refinement | LIMIT hands back (§21) |
 | `quad_light_lag` | 2 / 2 | 1 / 1 | model-refinement |  |
-| `quad_light_profiles` | 1 / 1 | 1 / 4 | model-refinement |  |
+| `quad_light_profiles` | 1 / 1 | 1 / 4 | model-refinement | LIMIT hands back (§21) |
 | `refinement_ladder_rover_rung1_2to3` | 3 / 2 | 3 / 3 |  | carried over |
 | `refinement_ladder_rover_rung2_3to6` | 6 / 6 | 3 / 3 |  | carried over |
 | `refinement_ladder_rover_rung2_6dof` | 4 / 4 | 3 / 3 |  | carried over, Z3-free |

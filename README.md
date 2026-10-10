@@ -5,10 +5,14 @@ artifact that accompanies the paper.
 
 Given two hybrid automata, an ideal system `L` and an implementation `R`, written in a
 small textual format, the tool `relcert` certifies that `R` refines `L` up to a relational
-invariant (bounds such as `x_L ≤ x_R + 3`). For each benchmark of the paper's suite the
-repository contains a **kernel-checked Theorem 3** (the paper's relational ∀∃ statement)
-whose only assumptions are a small trust base and a finite list of named Z3 `unsat`
-verdicts, each of which the tool re-sends on demand.
+invariant (bounds such as `x_L ≤ x_R + 3`). For 22 of the 45 benchmarks of the paper's suite
+the repository contains a **kernel-checked Theorem 3** (the paper's relational ∀∃ statement)
+over the right automaton with **guard-gated switching** (every right mode change enters a
+declared successor whose guard holds at that instant), whose only assumptions are a small
+trust base and a finite list of named Z3 `unsat` verdicts, each of which the tool re-sends on
+demand. For the other 23 the theorem holds only over the `⊤`-guarded relaxation of `R`; for
+21 of those the guarded statement is false as stated (two refutations are machine-checked),
+for 2 it is open (`docs/GUARDED-SWITCHING.md`).
 
 Everything except Z3 is Lean: the parser, the lowering, the SMT printer, the search, the
 certificate checker, the proofs and the per-benchmark theorems. Z3 is consulted only
@@ -24,6 +28,7 @@ through printed SMT scripts, and only its `unsat` answers are trusted.
 * [How one benchmark becomes a theorem](#how-one-benchmark-becomes-a-theorem)
 * [Repository layout](#repository-layout)
 * [Switches](#switches)
+* [Guard-gated switching](#guard-gated-switching)
 * [The 19 carried-over theorems](#the-19-carried-over-theorems)
 * [Further reading](#further-reading)
 
@@ -43,13 +48,13 @@ The parts of the artifact:
 | the tool (certifier, verdict runner, emitters) | `relcert` (`Main.lean`, `RelCertifier/Trusted/`) |
 | the trusted-layer tests | `relcert-test` (`Test.lean`) |
 | the generic soundness development | `RelCertifier/Core/`, `Checker/`, `Proofs/`, `Trusted/` |
-| the suite_v2 battery: one Theorem 3 per benchmark, axiom-audited on every build | `RelCertifier/InstancesV2/BatteryV2.lean` |
+| the suite_v2 battery: one Theorem 3 per benchmark (22 over the guarded automaton), two refutations, axiom-audited on every build | `RelCertifier/InstancesV2/BatteryV2.lean` |
 | the runner tables and the pins tying every hypothesis to the query the runner sends | `RelCertifier/VerdictsV2/` (and `Verdicts/` for the carried-over theorems) |
 | the suite evaluation scripts | `scripts/suite_v2_matrix.py` (mechanism matrix), `scripts/domain_widening.py` (load-bearing domain bounds) |
 
 ## The headline claim
 
-For each of the 45 suite_v2 benchmarks there is a Lean theorem
+For each of 22 suite_v2 benchmarks there is a Lean theorem
 
 ```lean
 RFormula.rvalid (theorem3Form  L_program            -- the left system: its window family,
@@ -59,15 +64,26 @@ RFormula.rvalid (theorem3Form  L_program            -- the left system: its wind
 
 with `theorem3Form L R Φ = Φ → [|(L*, R*)⟩⟩ Φ`: from every state satisfying `Φ`, whatever
 the left system does, the right system can respond so that `Φ` holds again, through every
-round. `Φ` is the declared relational invariant (for mode-dependent rows, the mode-keyed
+round. The right automaton is the file's, **guard-gated**: every declared edge tests the
+lowered guard of the mode it enters (`Gr_guards` in each instance), so every switch of the
+response is a legal move of the paper's model `R` (`?(m ∈ next(mv)) ; ?guard_m(x) ; mv := m`).
+`Φ` is the declared relational invariant (for mode-dependent rows, the mode-keyed
 conjunction `⋀_m (u_L = m → φ_inv(m))`), the joint evolve domains, and the right mode
-bookkeeping (for the 26 new instances: the right mode's kept cut atoms as its region,
-pruned sink modes excluded).
+bookkeeping (the right mode's kept cut atoms as its region, pruned sink modes excluded; for
+`rover3tier_rung12`, `mvValid`).
 The theorem's hypotheses are named Z3 verdict packs, and every one of them is re-sent by
 `relcert --run-verdicts-v2` and comes back `unsat` (921 queries in four phases, against
 declared counts; `docs/VERDICTS.md`). The axiom audit of every theorem is a subset of
-`{propext, Classical.choice, Quot.sound, z3_unsat_sound}`; five theorems are Z3-free. No
+`{propext, Classical.choice, Quot.sound, z3_unsat_sound}`; four of the 22 are Z3-free. No
 `sorry`, no `admit`, no `native_decide`.
+
+For the other 23 benchmarks the battery keeps the Theorem 3 proved over the `⊤`-guarded
+relaxation of `R` (edge guards `⊤`: the right may switch, or stay, anywhere). For 21 of them
+the guarded statement is **false as stated**: the invariant admits a right state from which the
+guarded automaton has no move while a left window breaks the row; two such refutations are
+kernel-checked (`rover_patrol_zones_guarded_false`, `rover_ladder_rung1_guarded_false`). For
+`platoon3_profiles` and `platoon3_linkloss` it is open. See
+[Guard-gated switching](#guard-gated-switching).
 
 ## Trust base
 
@@ -78,18 +94,22 @@ declared counts; `docs/VERDICTS.md`). The axiom audit of every theorem is a subs
 | the **printer** (`toScript`) renders formulas to SMT-LIB faithfully | Z3 reads text |
 | **Z3's `unsat`** answers are correct | the one oracle: axiom `z3_unsat_sound` (`Trusted/Oracle.lean`) |
 | the **Lean kernel** | checks everything else |
-| **the model's transition semantics**: every right mode change enters a declared successor, and at that instant the successor's guard holds (successor-completeness with guard-gated switching); right flows inside the invariant are not blocked for a window's duration (the paper's Assumption 1, nonblocking) | facts about the modeled system, not about formulas |
+| the **lowering of the right guards** onto the edges (`hostGuard … Side.R (mR t)`, the same lowering as the left guards) | part of the lowering item above; each instance proves its edges carry exactly these guards (`Gr_guards`) |
 
 The search (cover exploration, checked-cut search, route and λ selection) is untrusted: it
 only proposes. Every accepted output is either re-decided in the kernel (the cover replay
 `decideCovered`, the cut certificates' well-formedness) or becomes a named Z3 fact.
 
-The certifier uses exactly two step kinds for the right system: **joint segments** (both
-systems flow, the right time-stretched by λ) and the **dynamic right-only reposition** (the
-right flows under its own field while the left is held: the paper's right-only segment).
-There is no zero-duration right switch. The Lean right automaton carries `⊤` edge guards;
-that abstraction is justified for these two step kinds under Assumption 1
-(`docs/PAPER-MAPPING.md`, "The right automaton's ⊤ edge guards").
+Guard-gated switching is no longer a trusted item: for the 22 guarded theorems the right
+automaton tests each entered mode's guard in the program, and every switch of each response
+is kernel-checked legal (`Proofs/Encoding/GuardedSwitch.lean`: `SwitchLegal`, `gseg`,
+`guarded_rights_bridge`, `GResp`). Nonblocking (the paper's Assumption 1) enters no theorem
+as a hypothesis: at every end state of a response the proofs exhibit an enabled successor
+(`NonblockingAt`, discharged per instance from the explicit end state) or make no step.
+
+The search (cover exploration, checked-cut search, route and λ selection) is untrusted: it
+only proposes. Every accepted output is either re-decided in the kernel (the cover replay
+`decideCovered`, the cut certificates' well-formedness) or becomes a named Z3 fact.
 
 ## Theorem families
 
@@ -97,17 +117,18 @@ All counts read off `InstancesV2/BatteryV2.lean` and its build output.
 
 | family | count | which |
 |---|---|---|
-| Theorem 3, one per benchmark | **45** | 26 new instances (`InstancesV2/Modal/`); 19 carried over from the retired legacy suite ([below](#the-19-carried-over-theorems)) |
-| mode-keyed (per-left-mode rows composed through handoffs, `ModeHandoff.theorem3_modeKeyed`) | **12** | `acc_spoof_limp`, `acc_tune_limp`, `platoon_delay_linkloss`, `platoon3_linkloss`, `rover_patrol_zones`, `rover_patrol_refine`, `sat_detumble_phases`, `sat3w_detumble_phases`, `story3_rollover_ladder_rung_b`; carried over: `rover3tier_rung12`, `story1_attdist_rung_a_6to8`, `story1_attdist_rung_b_12dof` |
+| Theorem 3 over the guarded right automaton | **22** | 20 suite_v2 instances (`InstancesV2/Modal/`: all except `arm_plateau_slow`, `platoon3_{profiles,linkloss}`, `rover_patrol_{zones,refine}`, `story3_rollover_ladder_rung_b`); `rover3tier_rung12` and `match_multi_rate` restated over the guarded automaton (`Instances/Rover3tierRung12Guarded`, `Instances/MatchMultiRateGuarded`) |
+| refutations of the guarded statement (kernel-checked) | **2** | `rover_patrol_zones`, `refinement_ladder_rover_rung1_2to3` |
+| Theorem 3 over the `⊤`-guarded relaxation only | **23** | the 6 suite_v2 instances above and 17 carried-over theorems (all but `rover3tier_rung12`, `match_multi_rate`); guarded statement false as stated for 21, open for the two platoon3 benchmarks |
+| mode-keyed (per-left-mode rows composed through handoffs, `ModeHandoff.theorem3_modeKeyed`) | **12** | guarded: `acc_spoof_limp`, `acc_tune_limp`, `platoon_delay_linkloss`, `sat_detumble_phases`, `sat3w_detumble_phases`, `rover3tier_rung12`; relaxation only: `platoon3_linkloss`, `rover_patrol_zones`, `rover_patrol_refine`, `story3_rollover_ladder_rung_b`, `story1_attdist_rung_a_6to8`, `story1_attdist_rung_b_12dof` |
 | widened cut channel needed (`RELCERT_IMPLIED_CUT=1`; closures, implied contractions, linear-form chains; lifted to the kernel by `Proofs/Soundness/CutLiftX.lean`) | **12** | `acc_spoof_lag`, `arm_plateau_{crit,profiles,slow}`, `charger_fast_setpoints`, `platoon3_{linkloss,profiles}`, `platoon_delay_{linkloss,profiles}`, `rover_patrol_refine`, `story3_rollover_ladder_rung_b`, `watertank` (each DECLINES without the channel) |
-| Z3-free (the three standard axioms only, no verdict hypothesis) | **5** | `arm_plateau_{crit,profiles,slow}`, `refinement_ladder_rover_rung2_6dof`, `refinement_ladder_rover_rung2b_6dof` |
+| Z3-free guarded theorems (the three standard axioms only, no verdict hypothesis) | **4** | `arm_plateau_{crit,profiles}`, `rover3tier_rung12`, `match_multi_rate` (the latter two by an explicit catch-up; their `⊤` theorems took 4 packs each) |
 | stated on the nonblocking region (a conserved-momentum band of the model in the right region; it enters no verdict query) | **6** | `sat_detumble_{nominal,weak,phases}`, `sat3w_detumble_{nominal,weak,phases}` (`docs/SUITE-REDESIGN.md` §19.2) |
 | Theorem 2 (non-connection certificate of a pruned edge) | **1** | `match_multi_rate_nonconn`, the edge `DRIVE → STALL` |
 
-The axiom audit has 51 lines: 46 benchmark theorems (45 Theorem 3 plus
-`match_multi_rate_nonconn`) and 5 generic lemmas of the widened channel; 42 carry
-`z3_unsat_sound`, 9 are at the three standard axioms alone (the 5 Z3-free benchmarks and
-4 of the generic lemmas).
+The axiom audit has 56 lines: 22 guarded theorems, 2 refutations, 23 relaxation-only
+theorems, `match_multi_rate_nonconn`, and 8 generic lemmas; 40 carry `z3_unsat_sound`, 16
+are at the three standard axioms alone.
 
 ## Build and check
 
@@ -120,7 +141,7 @@ dependency, dL-rel, is pinned by tag in `lakefile.toml`) and Z3 (the tool looks 
 lake build
 lake build relcert relcert-test
 
-# 2. the axiom audit of the battery (51 lines)
+# 2. the axiom audit of the battery (56 lines)
 lake build RelCertifier.InstancesV2.BatteryV2 2>&1 | grep -A3 "depends on axioms"
 
 # 3. certify the 45 files and re-send every Z3 hypothesis, with declared counts
@@ -134,7 +155,7 @@ done > /tmp/bench-paths-v2.tsv
 BENCH_PATHS=/tmp/bench-paths-v2.tsv ./.lake/build/bin/relcert-test
 ```
 
-Expected: `Build completed successfully`; 51 axiom lines, each a subset of the four axioms
+Expected: `Build completed successfully`; 56 axiom lines, each a subset of the four axioms
 above; `[suite_v2] 45 certified, 0 declined, 0 error(s)`, coverage `modal 262/262`,
 `handoff 186/186`, `non-connection 88/88`, `pruned edges 44/44`, `copied benchmarks (legacy
 packs) 385/385`, `SUITE_V2 QUICK CHECKS PASSED`; `relcert-test`: a bare `ALL PASS`.
@@ -235,6 +256,20 @@ Environment variables of `relcert` (`relcert --help` prints the same list):
 | `RELCERT_MAX_QUERIES=<n>` | per-benchmark query budget, default 20000 |
 | `RELCERT_TIME_BUDGET_MS=<ms>` | per-benchmark wall-clock budget, default 40000 |
 
+## Guard-gated switching
+
+The paper's model `R` switches only into a declared successor whose guard holds at the switch
+state. Until branch `guarded-right` every right graph the instances built carried `⊤` edge
+guards, so the theorems were about the declared-successor relaxation of `R`. The guarded
+generic layer (`Proofs/Encoding/GuardedSwitch.lean`) states the step obligation `GResp` over
+segments that each end with their switch test, and `guarded_rights_bridge` turns such a
+response into a run of the guarded automaton; the top-level assemblies are unchanged. The
+migration found that the stated invariants of 21 benchmarks admit right states from which
+the guarded automaton cannot move (a band-structured right whose region bounds the position
+only from below, or a mode whose successors' guards end below the region's reach), so their
+guarded Theorem 3 is false as stated; two are refuted in the kernel. Record, per-benchmark
+switch classification and the final table: `docs/GUARDED-SWITCHING.md`.
+
 ## The 19 carried-over theorems
 
 Nineteen suite_v2 benchmarks (the rover refinement ladder, the rover terrain rungs,
@@ -247,18 +282,19 @@ Their verdict packs are the 22 rows of `Verdicts/RunModal.modalTable` (pinned by
 `Verdicts/ModalPinTable`, `ModalTablePins`, `ModalCodePins`), re-sent by the "copied
 benchmarks" phase of `--run-verdicts-v2` (385 queries); the Theorem 2 hypothesis of
 `match_multi_rate_nonconn` is pinned to the suite_v2 non-connection phase
-(`VerdictsV2/NonConnPinV2.lean`). These proofs predate the 2026-10-09 removal of the static
-reposition from the certifier, and 19 of the 24 legacy instance modules build their window
-responses with zero-duration right hops along the `⊤`-guarded edges (`static_hop_existsR` or
-a local `static_hop*` lemma), as do 10 of the 26 new instances. Whether each such switch
-happens where the successor's guard holds is not checked by the kernel; this is an open
-point about those witnesses, discussed in `docs/PAPER-MAPPING.md` §2e.
+(`VerdictsV2/NonConnPinV2.lean`). These proofs are over the `⊤`-guarded relaxation; two of the
+benchmarks (`rover3tier_rung12`, `match_multi_rate`) are restated over the guarded automaton
+in new files with a Z3-free explicit response, and for the other 17 the guarded statement is
+false as stated (`docs/GUARDED-SWITCHING.md` §4.3; `rover_ladder_rung1_guarded_false` is the
+kernel-checked instance).
 
 ## Further reading
 
 * [`docs/CERTIFICATION-CHECK.md`](docs/CERTIFICATION-CHECK.md): the check recipe, what each
   check establishes, the cost, the last recorded run.
 * [`docs/PAPER-MAPPING.md`](docs/PAPER-MAPPING.md): paper ↔ mechanization, element by element.
+* [`docs/GUARDED-SWITCHING.md`](docs/GUARDED-SWITCHING.md): the guarded right automaton, the
+  per-benchmark switch classification, the refutations.
 * [`docs/VERDICTS.md`](docs/VERDICTS.md): the verdict runner, its phases, counts and pins.
 * [`docs/HANDOFF.md`](docs/HANDOFF.md): mode-dependent invariants and the handoff check.
 * [`docs/SUITE-REDESIGN.md`](docs/SUITE-REDESIGN.md): the design record of suite_v2 and its

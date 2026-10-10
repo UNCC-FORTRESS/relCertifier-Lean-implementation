@@ -1,7 +1,8 @@
 # Guard-gated switching on the right (branch `guarded-right`)
 
-**Status: in progress.** This record is written first as the Phase 0 analysis and is
-updated as the migration proceeds; the final table is at the end (section 6).
+**Status (2026-10-10, branch `guarded-right`): done.** 22 of the 45 benchmarks carry Theorem 3
+over the guarded right automaton; for 21 the guarded statement is false as stated (two
+refutations are machine-checked); for 2 it is open. Summary table: section 6.
 
 ## 1. The problem
 
@@ -78,6 +79,15 @@ lemmas of the legacy modules.
   duration), `gresp_idle` (no step at all), `gresp_mono`, `sat_framed`/`notMem_bv_of_vars`
   (right-only facts survive the left window), `ode_coord_end_lt_or_eq` (a flow cannot end on
   an upper face it pushes away from, unless it has zero duration).
+* **More building blocks** (added during the migration): `gresp_final_choose` (the general
+  one-flow response: no step, or the same mode's run from the left run's end to a chosen
+  point, then an enabled switch), `gresp_final_pre` (a legal prefix of guarded segments before
+  the final flow), `faModalB_repoPrefixG` / `hopAG` (the dynamic right-only reposition with its
+  switch test, the guarded counterparts of `faModalB_repoPrefix` and the instances' `hopA`),
+  `ode_run_hits` (cut a run where a coordinate reaches a level), `ode_linear_coord` (a linear
+  coordinate along a run is `c + (x₀ − c) e^{−k r}`), `ode_coord_mono`, `windowSeg_preserve`,
+  `hdis_multi_G`, `hddF_multiR_plain_G`, `rsplit_eval`/`sat_canonInv_bi` (relational
+  semantics at a bi-state, used by the refutations).
 * **`NonblockingAt G qs Post' post`**: from every state `Post'` describes, some declared
   successor of `qs` is enabled and the loop postcondition holds for it. This is Assumption 1
   (successor-completeness / nonblocking) restricted to the end states of the response; every
@@ -110,10 +120,11 @@ inside their `respond` lemmas is vacuous). Their live switches:
 | `platoon_delay_linkloss` | (b) | `FOLLOW` at `g_R = 40` illegal as a stay, `CATCH` (`g ≥ 30`) enabled | (d) |
 | `quad_light_airframe_20`, `quad_light_lag`, `quad_light_profiles` | (b) | legal (region = guard `[0, 2.6]`) | (d) |
 | `charger_fast_setpoints` | (b); (c) `BULK` run to `x_R = max(x0, 80)` then `BULK → ABSORB` | (c) legal (lands in `[80,90] ⊆ [80,99)`); (b) `BULK` at `[80,90]` and `ABSORB` at `[99,100]` illegal as stays, successors enabled | (d) |
-| `charger_fast_tapers` | (b); (c) paths `BULK → ABSORB_FAST → FULL`, `ABSORB_* → FULL` | (c) `BULK → ABSORB_FAST` illegal when `x0 ≥ 99` (lands at `x0`); (b) `BULK` stays end anywhere in `[15,100]`, no successor enabled at `x_R ≥ 99` | rebuild (idle where `x_R` is already high; truncate the flow at a level below 99) |
-| `arm_plateau_crit/profiles/slow` | (b) after an explicit catch-up run in the start mode | illegal: the catch-up crosses the band boundaries `0.35`, `0.5`, `0.6` inside one mode; `ApproachA` above `0.5` has no enabled successor | rebuild as a chain of explicit runs through the bands; idle where the right is already ahead |
+| `charger_fast_tapers` | (b); (c) paths `BULK → ABSORB_FAST → FULL`, `ABSORB_* → FULL` | (c) `BULK → ABSORB_FAST` illegal when `x0 ≥ 99` (lands at `x0`); (b) `BULK` stays end anywhere in `[15,100]`, no successor enabled at `x_R ≥ 99` | rebuilt: no step when `x_R ≥ 96` (the row holds since `x_L ≤ 100`); otherwise the paths with their switch tests (`hopAG`), and a `BULK` stay that ends at `x_R ≥ 99` is cut at `x_R = 96` (`ode_run_hits`) and switches into `ABSORB_SLOW` |
+| `arm_plateau_crit`, `arm_plateau_profiles` | (b) after an explicit catch-up run in the start mode | illegal: the catch-up crosses the band boundaries inside one mode; `ApproachA` above `0.5` has no enabled successor | rebuilt: a climb `ApproachA` → (switch at 0.35) → `ApproachB` → (switch at the target) or no step; a sharp end-of-window bound (`Accelerate` ends below `0.755`, `Brake` below its start: two more DI links of the chain) shows the target is at most `0.5` whenever the right lags |
+| `arm_plateau_slow` | as above | illegal | the guarded statement is false: §4.3 |
 | `sat_detumble_{nominal,weak,phases}`, `sat3w_detumble_{nominal,weak,phases}` | (b) | legal: the region contains `E_R ≤ 1`, the guard | (d) |
-| `platoon3_profiles`, `platoon3_linkloss` | (b) | illegal as constructed: the region (linear-form atoms, `g ∈ [24,36]`, `|r|` up to 2) is not covered by the successors' guards (`|r_i| ≤ 1` in every non-sink mode) | see 4.3 |
+| `platoon3_profiles`, `platoon3_linkloss` | (b) | illegal as constructed: the region (linear-form atoms, `g ∈ [24,36]`, `|r|` up to 2) is not covered by the successors' guards (`|r_i| ≤ 1` in every non-sink mode) | open: see 4.4 |
 | `rover_patrol_zones`, `rover_patrol_refine` | (b); (c) zone runs to `s_R = max(s0, lo_{q'})` then `q → q'` | (c) illegal when `s0 ≥ hi_{q'}`; (b) illegal: zone regions bound `s_R` only from below | see 4.2 (counterexample) |
 | `story3_rollover_ladder_rung_b` | (b) | illegal: regions `s_R ≥ sK q` only | see 4.2 (counterexample) |
 
@@ -130,6 +141,13 @@ explicit catch-up to `FLAT` for `rung2_6dof`/`rung2b_6dof`).
   bookkeeping implies.
 * (b) self-loops between pieces and after the last piece are illegal in general: the bands
   `s < 0.6`, `s < 1.4` are left by the flow.
+* `rover3tier_rung12` and `match_multi_rate`: restated over the guarded automaton in new files
+  (`Instances/Rover3tierRung12Guarded.lean`, `Instances/MatchMultiRateGuarded.lean`) with an
+  explicit catch-up response (both right modes accelerate monotonically and both rows bound
+  the left from above by an increasing function of the right): flow to the least value that
+  restores the row (and lies in a guard), then switch there; no step when the right is
+  already ahead. Both are Z3-free; the statements are those of the `⊤` theorems
+  (`rover3tier_rung12_modeKeyed`, `match_multi_rate_pruned`) with the graph guarded.
 
 ### 4.3 Benchmarks whose guarded Theorem 3 is false as stated
 
@@ -137,48 +155,119 @@ For a benchmark below, the stated loop invariant `Φ` admits a state from which 
 right automaton has no step at all (every outgoing guard is false along the whole flow of the
 current mode), while some left window run breaks `Φ` if the right does not move. Then
 `Φ → [|(L*, R*)⟩⟩ Φ` fails at that state over the guarded automaton (the right's only run is
-the empty one), for every window bound `dt > 0`. Under the `⊤`-guarded relaxation the right
-could flow and "stay", which is why the old theorems hold.
+the empty one). Under the `⊤`-guarded relaxation the right could flow and "stay", which is
+why the old theorems hold.
 
-* `rover_patrol_zones` (mode-keyed): `u_L = SLOW`, `s_L = 10`, `v_L = 0.35`; `mv = SLOW`,
-  `s_R = 60`, `v_R = 0.35`. `Φ` holds (row `v_L ≤ v_R ∧ s_L ≤ s_R + 0.5`, envelope, `SLOW`'s
-  region `s_R ≥ 0 ∧ 0.3 ≤ v_R ≤ 0.6`). Along `SLOW`'s flow `s_R ≥ 60` (`s' = v ≥ 0`) and
-  `v_R ≥ 0.35` (`v' = 0.6 − v > 0`), so the guards of `MEDIUM_*` and `SLOW` (`s < 50`,
-  `s < 20`) and `STALL` (`v < 0.2`) never hold: no step. The left `SLOW` window
-  (`v' = 1.25 (0.48 − v) > 0`) raises `v_L` above `0.35 = v_R`.
+Machine-checked (`¬ RFormula.rvalid (theorem3Form …)` over the guarded graph, for every
+`dt > 0`, at the three standard axioms):
+
+* `rover_patrol_zones` — `InstancesV2/RoverPatrolZonesCounterexample.lean`,
+  `rover_patrol_zones_guarded_false`. `u_L = SLOW`, `s_L = 10`, `v_L = 0.35`; `mv = SLOW`,
+  `s_R = 60`, `v_R = 0.35`. `Φ` holds (row `v_L ≤ v_R ∧ s_L ≤ s_R + 0.5`, envelopes, `SLOW`'s
+  region `s_R ≥ 0 ∧ 0.3 ≤ v_R ≤ 0.6`). Along `SLOW`'s flow `s_R ≥ 60` and `v_R ≥ 0.35`, so
+  the guards of `MEDIUM_*`/`SLOW` (`s < 50`, `s < 20`) and `STALL` (`v < 0.2`) never hold. The
+  left iteration `SLOW → SLOW` (window `v' = 1.25 (0.48 − v)`) ends at
+  `v_L = 0.48 − 0.13 e^{−1.25 dt} > 0.35`.
+* `refinement_ladder_rover_rung1_2to3` — `Instances/RoverLadderRung1Counterexample.lean`,
+  `rover_ladder_rung1_guarded_false`. `mv = STEEP`, `s_R = 5`, `v_R = 0.1`; `v_L = 0.1`,
+  `s_L = 0.3`, `ψ_L = 0`. `STEEP`'s flow keeps `s_R ≥ 5`; `STEEP` (`s < 0.6`) and `MODER`
+  (`s < 1.4`) are never enabled. The left `STEEP` window ends at
+  `v_L = 0.3 − 0.2 e^{−3 dt} > 0.1`.
+
+By the same argument (stated here, not machine-checked):
+
 * `rover_patrol_refine`: the same state shape (`SLOW` has no `STALL` edge); the left window
-  raises `a_L + 5 v_L` (row 1).
-* `story3_rollover_ladder_rung_b` (mode-keyed): `mv = STEEP`, `s_R = 5`, `v_R = v_L = 0.1`,
-  `u_L = STEEP`, `s_L = 0.3`. `STEEP`'s region is `s_R ≥ 0`; along `STEEP`'s flow `s_R`
-  does not decrease (`s' = v (1 − 0.5ψ² − 0.3θ²) ≥ 0` on the domain), so `STEEP` (`s < 0.6`)
-  and `MODER` (`s < 1.4`) are never enabled. The left `STEEP` window (`v' = 3 (0.3 − v)`)
-  raises `v_L` above `v_R`.
-* The seventeen legacy ladder benchmarks (`refinement_ladder_rover_rung1_2to3`, `rung2_3to6`,
+  raises `a_L + 5 v_L` (row `a_L + 5 v_L ≤ 5 v_R + 0.35`, start at equality with `a_L = 0.35`,
+  `v_L = 0.35`: `(a + 5v)' = 6.25 (0.48 − v) > 0`).
+* `story3_rollover_ladder_rung_b`: `mv = STEEP`, `s_R = 5`, `v_R = v_L = 0.1`, `u_L = STEEP`,
+  `s_L = 0.3`; `STEEP`'s region is `s_R ≥ 0`; along `STEEP`'s flow
+  `s' = v (1 − 0.5ψ² − 0.3θ²) ≥ 0` (the domain bounds `|ψ|, |θ| ≤ 0.6`), so `STEEP` and
+  `MODER` are never enabled; the left `STEEP` window (`v' = 3 (0.3 − v)`) raises `v_L` above
+  `v_R`.
+* `arm_plateau_slow`: `mv = ApproachA`, `θ_R = 0.51` (`ApproachA`'s region is `θ_R ≥ 0`; its
+  successors' guards end at `0.35` and `0.5`, and its flow increases `θ_R`: no step);
+  `Accelerate` at `θ_L = 0.49`, `v_L = 0.354` (row `θ_L ≤ θ_R + 0.0775` holds). The left flow
+  `e'' + 2.5 e' + e = 0` (`e = θ − 0.5`) is `e(t) = 0.2227 e^{−t/2} − 0.2327 e^{−2t}`, so
+  `θ_L(1) ≈ 0.6036 > 0.5875 = θ_R + 0.0775` (numerically, maximum `0.6037` at `t ≈ 0.95`): for
+  `dt ≥ 1` the row breaks. (For `arm_plateau_crit` and `_profiles` the analogous maximum is
+  `≈ 0.623` resp. `≈ 0.67`, below `0.755`, and the guarded theorems are proved.)
+* The sixteen other carried-over ladder benchmarks (`refinement_ladder_rover_rung2_3to6`,
   `rung2_6dof`, `rung2b_6dof`, `rung2c_6dof`, `rung3_6to8`, `rung4_8to12`,
   `rover_dof_terrain_rung1/2/3/3_8d`, `story1_attdist_rung_a/b`, `story2_lateral_rung_a/b`,
-  `story3_rollover_base_12dof`, `story3_rollover_ladder_rung_a`): the same state, `mv =
-  STEEP` at `s_R = 5`, is in `Φ` (bookkeeping `mvValid`, or the `CEIL` region `v_R ≤ 0.3`, or
-  `rung2c`'s `s_R ≥ 0`); the right has no step; a left window breaks a row that the frozen
-  right cannot follow (`v_L ≤ v_R` with `v_L = v_R < 0.3` in a `STEEP` window; for
-  `rung2_6dof`/`2b` the row `s_L − s_R − 0.2 + (v_L − v_R)/3 ≤ 0` with the left advancing over
-  a long window; for `rung2c` the equality rows in a `FLAT` window at `s_L = s_R = 5`).
+  `story3_rollover_base_12dof`, `story3_rollover_ladder_rung_a`): `mv = STEEP` at `s_R ≥ 1.4`
+  is in `Φ` (bookkeeping `mvValid`, or the `CEIL` region `v_R ≤ c_STEEP`, or `rung2c`'s
+  `s_R ≥ 0`); `STEEP` has no step; a left window breaks a row that the frozen right cannot
+  follow: `v_L ≤ v_R` with `v_L = v_R < 0.3` in a `STEEP` window (all rows with the velocity
+  conjunct); for `rung2_6dof`/`2b` (`s_L − s_R − 0.2 + (v_L − v_R)/3 ≤ 0`) start at equality
+  with `s_R = 1.4`, `s_L = 1.6`, `v_L = v_R = 0.5` in a `FLAT` window; for `rung2c` (equality
+  rows) `s_L = s_R = 5`, `v_L = v_R = 0.3` in a `FLAT` window.
 
 These are not proof-engineering gaps: the invariant's right bookkeeping (kept cut atoms, or
 none) does not exclude right states that the guarded model can never leave. A guarded
 Theorem 3 for these benchmarks needs a different statement: a right region that carries the
-guard's upper caps (the guard held at the last switch), a window bound `dt ≤ ε`, and
-responses that switch inside a window when the right crosses a band (the cover's per-segment
-demonic successor choice). That is a redesign of the statement and of the witnesses, not a
-migration; it is recorded here and not attempted on this branch.
+entered mode's guard (the bookkeeping the guarded automaton maintains by construction: every
+round ends with a legal switch), and, for the ladders, responses that switch inside a window
+when the right crosses a band (the cover's per-segment demonic successor choice) with a
+window bound tied to `ε`. That is a redesign of the statement and of the witnesses, not a
+migration; it is not attempted on this branch.
 
-## 5. Pilot cost (Phase 2)
+### 4.4 The open benchmarks: `platoon3_profiles`, `platoon3_linkloss`
 
-* `watertank`: about 15 minutes of editing; the file compiles in 12 s
-  (`lake env lean`). Legality proofs: `sat_guardR` (the five right guards evaluated by
-  `simp` on the IR literal), `nonblock` (per non-sink mode, a two-way case split on the end
-  state, `linarith`), the hop's guard at the start state transported to the window's end by
-  `right_framed`.
+The right never gets stuck (every non-sink mode's flow is a damped oscillator converging into
+its own guard), so the refutation above does not apply. But the certified response ends where
+the region (linear-form atoms) allows `|r_R|` up to 2 while every non-sink successor's guard
+needs `|r_i| ≤ 1`, so `NonblockingAt` fails at those end states (e.g. `g = 30`, `r = 1.5` on
+every link, consistent with the row, both envelopes and the left atoms); a legal response
+would have to run the right past the coupled duration until it re-enters a guard while keeping
+the two-sided relational row against the fixed left state, which the certificate does not
+provide. Whether the guarded statement holds is not settled here; these two theorems stay
+over the `⊤` relaxation.
+
+## 5. Cost
+
+* Pilot (`watertank`): about 15 minutes of editing; the file compiles in 12 s
+  (`lake env lean`). Legality proofs: `sat_guardR` (the right guards evaluated by `simp` on the
+  IR literal), `nonblock` (per non-sink mode, a case split on the end state, `linarith`), the
+  hop's guard at the start state transported to the window's end by `right_framed`.
+* The mechanical part of every suite_v2 instance (guarded edges, `Gr_guards`, footprints,
+  `GResp` signatures, the step and assembly lemmas) is uniform; the per-instance content is the
+  guard evaluation and `nonblock`/`nonblockI`/`pickStay` (5–60 lines). Each file still compiles
+  in seconds to a minute with `lake env lean`; the whole battery rebuilds in about a minute
+  (`lake build RelCertifier.InstancesV2.BatteryV2`, 75 s wall).
+* Rebuilt witnesses: `charger_fast_tapers` (≈ 200 lines), `arm_plateau_crit/profiles`
+  (≈ 330 lines each: two DI links and the band climb), `rover3tier_rung12` and
+  `match_multi_rate` (new files, ≈ 300 lines each, explicit solutions). Refutations: ≈ 400
+  lines each.
 
 ## 6. Final table
 
-(filled in at the end of the migration)
+Kinds as in section 4. "guarded" = Theorem 3 stated over the guarded right automaton, every
+switch kernel-checked legal; "refuted" = the guarded statement is false as stated
+(machine-checked where marked ✓); "open" = no legal witness from the certificate, truth not
+settled. Z3 = the theorem's verdict hypotheses (unchanged from the `⊤` theorem unless noted).
+
+| benchmark | switches in the new witness | legality proof | rebuilt? | status |
+|---|---|---|---|---|
+| `watertank` | (d) after every joint segment; (a) `Low → MidBoost` | `nonblock` by cases on `x_R`; hop guard from the row, `Mid` guard, `Low` region | no | guarded |
+| `acc_tune_limp` | (d) stays | region = closed guard | no | guarded |
+| `acc_spoof_limp`, `acc_spoof_lag`, `acc_tune_lag` | (d) stays, or no step | `ode_coord_end_lt_or_eq` at `v_R = 40`; zero-duration → `gresp_final_idle` | no | guarded |
+| `platoon_delay_profiles` | (d) stays | region = closed guard | no | guarded |
+| `platoon_delay_linkloss` | (d) stay or `FOLLOW → CATCH` | cases on `g_R < 40` | no | guarded |
+| `quad_light_airframe_20`, `quad_light_lag`, `quad_light_profiles` | (d) stays | region = guard | no | guarded |
+| `charger_fast_setpoints` | (c) `BULK → ABSORB` after the `BULK` run; (d) | landing `[80, 90]`; `nonblock` by cases | hop carries its test (`faModalB_repoPrefixG`) | guarded |
+| `charger_fast_tapers` | (c) `BULK → ABSORB_FAST → FULL`, `ABSORB_* → FULL`; (d); cut runs; no step | explicit landings; `pickStay` (cut at 96) | yes | guarded |
+| `arm_plateau_crit`, `arm_plateau_profiles` | band climb `A → B`, final switch at the target; no step | explicit runs; sharp end bound | yes (Z3-free, unchanged) | guarded |
+| `sat_detumble_{nominal,weak,phases}`, `sat3w_detumble_{nominal,weak,phases}` | (d) stays | the kept atom is the guard | no | guarded |
+| `rover3tier_rung12` | one run to the target, switch into `ACCEL`/`COAST` | explicit end state | yes, new file; now Z3-free (was 4 packs) | guarded |
+| `match_multi_rate` | one `DRIVE` run to the target, stay; no step | explicit end state; left bounds from `ode_linear_coord` | yes, new file; now Z3-free (was 4 packs) | guarded |
+| `rover_patrol_zones` | — | — | — | refuted ✓ |
+| `refinement_ladder_rover_rung1_2to3` | — | — | — | refuted ✓ |
+| `rover_patrol_refine`, `story3_rollover_ladder_rung_b`, `arm_plateau_slow` | — | — | — | refuted |
+| 16 other carried-over ladder benchmarks (§4.3) | — | — | — | refuted |
+| `platoon3_profiles`, `platoon3_linkloss` | — | — | — | open |
+
+Totals: 22 guarded (20 suite_v2 instances, 2 carried over), 21 refuted (2 machine-checked), 2
+open. No theorem carries an Assumption-1 (nonblocking) hypothesis: every `NonblockingAt`
+obligation is discharged from the explicit end state. No new axiom; the guarded theorems are
+at the three standard axioms plus `z3_unsat_sound` exactly where their `⊤` versions were
+(`arm_plateau_crit/profiles`, `rover3tier_rung12`, `match_multi_rate` at the standard three).

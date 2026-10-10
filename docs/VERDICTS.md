@@ -46,7 +46,7 @@ the disjunction over the three routes, so one `unsat` suffices.
 
 ## Last run
 
-2026-10-10, branch `cleanup`, Apple M2 Max (12 cores, 64 GB), Z3 4.15.1. `lake build`: `Build completed successfully (8922 jobs)`, no `sorry` (after a full rebuild of every `RelCertifier` module, see *Cost*); `lake build relcert relcert-test`: 17723 jobs. Axiom audit: 51 lines, 42 with `z3_unsat_sound`, 9 at the three standard axioms, nothing else. `--check-quick-v2`: 45 certified / 0 declined / 0 errors, modal 262/262, handoff 186/186, non-connection 88/88, pruned edges 44/44, copied benchmarks 385/385, `SUITE_V2 QUICK CHECKS PASSED` (about 2 minutes). `relcert-test` with the suite_v2 manifest: 45 IR literals match, bare `ALL PASS`.
+2026-10-10, branch `guarded-right`, Apple M2 Max (12 cores, 64 GB), Z3 4.15.1. `lake build`: `Build completed successfully (8927 jobs)`, no `sorry`; `lake build relcert relcert-test`: 17723 jobs. Axiom audit: 56 lines, 40 with `z3_unsat_sound`, 16 at the three standard axioms, nothing else. `--check-quick-v2`: 45 certified / 0 declined / 0 errors, modal 262/262, handoff 186/186, non-connection 88/88, pruned edges 44/44, copied benchmarks 385/385, `SUITE_V2 QUICK CHECKS PASSED` (about 2 minutes). `--run-verdicts-v2`: the same counts, `ALL suite_v2 HYPOTHESES DISCHARGED` (42 s). `relcert-test` with the suite_v2 manifest: 45 IR literals match, bare `ALL PASS`.
 
 ## Earlier runners
 

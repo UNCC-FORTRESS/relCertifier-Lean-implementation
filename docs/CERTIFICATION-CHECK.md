@@ -4,7 +4,7 @@ This is the reproduction recipe: starting from the benchmark files, what to run,
 you should see, to confirm that every suite_v2 benchmark carries a machine-checked
 Theorem 3 whose hypotheses all hold. Read `README.md` first for what the theorems say.
 
-> **Last run:** 2026-10-10, branch `cleanup`, Apple M2 Max (12 cores, 64 GB), Z3 4.15.1. `lake build`: `Build completed successfully (8922 jobs)`, no `sorry` (after a full rebuild of every `RelCertifier` module, see *Cost*); `lake build relcert relcert-test`: 17723 jobs. Axiom audit: 51 lines, 42 with `z3_unsat_sound`, 9 at the three standard axioms, nothing else. `--check-quick-v2`: 45 certified / 0 declined / 0 errors, modal 262/262, handoff 186/186, non-connection 88/88, pruned edges 44/44, copied benchmarks 385/385, `SUITE_V2 QUICK CHECKS PASSED` (about 2 minutes). `relcert-test` with the suite_v2 manifest: 45 IR literals match, bare `ALL PASS`.
+> **Last run:** 2026-10-10, branch `guarded-right`, Apple M2 Max (12 cores, 64 GB), Z3 4.15.1. `lake build`: `Build completed successfully (8927 jobs)`, no `sorry`; `lake build relcert relcert-test`: 17723 jobs. Axiom audit: 56 lines, 40 with `z3_unsat_sound`, 16 at the three standard axioms, nothing else. `--check-quick-v2`: 45 certified / 0 declined / 0 errors, modal 262/262, handoff 186/186, non-connection 88/88, pruned edges 44/44, copied benchmarks 385/385, `SUITE_V2 QUICK CHECKS PASSED` (about 2 minutes). `--run-verdicts-v2`: the same counts, `ALL suite_v2 HYPOTHESES DISCHARGED` (42 s). `relcert-test` with the suite_v2 manifest: 45 IR literals match, bare `ALL PASS`.
 
 ---
 
@@ -96,13 +96,19 @@ Practical notes:
 lake build RelCertifier.InstancesV2.BatteryV2 2>&1 | grep -A3 "depends on axioms"
 ```
 
-Use `-A3`: a four-axiom list prints over four lines. Expected: 51 lines (46 benchmark
-theorems: 45 Theorem 3 plus `match_multi_rate_nonconn`; and 5 generic lemmas of the widened
-cut channel). Every list is a subset of `[propext, Classical.choice, Quot.sound,
-z3_unsat_sound]`; 42 carry `z3_unsat_sound`; 9 are at the three standard axioms alone (the
-5 Z3-free benchmark theorems `arm_plateau_{crit,profiles,slow}`,
-`refinement_ladder_rover_rung2_6dof`, `rung2b_6dof`, and `modalVerdX_of_queries`,
-`check_sound_multi_cutX`, `evolStrengtheningWFX_entryL/R`). No `sorryAx`, no other axiom.
+Use `-A3`: a four-axiom list prints over four lines. Expected: 56 lines, in the groups of
+`BatteryV2`: 22 Theorem 3 over the guarded right automaton, 2 refutations of the guarded
+statement, 23 Theorem 3 over the `⊤`-guarded relaxation only, `match_multi_rate_nonconn`, and
+8 generic lemmas (5 of the widened cut channel, 3 of the guarded layer). Every list is a subset
+of `[propext, Classical.choice, Quot.sound, z3_unsat_sound]`; 40 carry `z3_unsat_sound`; 16 are
+at the three standard axioms alone: the 4 Z3-free guarded theorems
+(`arm_plateau_{crit,profiles}_modal`, `rover3tier_rung12_modeKeyed_guarded`,
+`match_multi_rate_guarded`), the 2 refutations (`rover_patrol_zones_guarded_false`,
+`rover_ladder_rung1_guarded_false`), the 3 Z3-free relaxation-only theorems
+(`arm_plateau_slow_modal`, `rung2_6dof_modal`, `rung2b_6dof_modal`), and 7 generic lemmas
+(`modalVerdX_of_queries`, `check_sound_multi_cutX`, `evolStrengtheningWFX_entryL/R`,
+`guarded_rights_bridge`, `hstep_assembled_GR`, `gresp_final_choose`). No `sorryAx`, no other
+axiom.
 The generic theorems' audit is `Instances/AxiomCheck.lean`, re-emitted by `lake build`.
 
 ## Check 3: certify the suite and discharge the verdict hypotheses
@@ -149,58 +155,62 @@ literals are covered by the same check through `SameIR`.
 
 "std 3" = `[propext, Classical.choice, Quot.sound]`. The hypotheses are the theorem's
 binders besides the window duration `dt` (and `0 ≤ dt` for the carried-over theorems):
-named Z3 verdict packs. Each `InstancesV2/Modal/` pack `Verd l q` is one row of
+named Z3 verdict packs. "guarded" = stated over the guarded right automaton, every switch
+kernel-checked legal; "`⊤` relaxation" = stated over the `⊤`-guarded right automaton, the
+guarded statement refuted or open (`docs/GUARDED-SWITCHING.md` §6). Each `InstancesV2/Modal/` pack `Verd l q` is one row of
 `VerdictsV2/RunV2.packsV2`; each carried-over pack is pinned to a row of
 `Verdicts/RunModal.modalTable`.
 
-| benchmark | file | theorem | verdict packs | axioms |
-|---|---|---|---|---|
-| `watertank` | `InstancesV2/Modal/Watertank.lean` | `V2Watertank.watertank_modal` | 11×`Verd` | std 3 + `z3_unsat_sound` |
-| `platoon_delay_profiles` | `InstancesV2/Modal/PlatoonDelayProfiles.lean` | `V2PlatoonDelayProfiles.platoon_delay_profiles_modal` | 6×`Verd` | std 3 + `z3_unsat_sound` |
-| `acc_spoof_limp` | `InstancesV2/Modal/AccSpoofLimp.lean` | `V2AccSpoofLimp.acc_spoof_limp_modeKeyed` | 6×`Verd` | std 3 + `z3_unsat_sound` |
-| `acc_tune_limp` | `InstancesV2/Modal/AccTuneLimp.lean` | `V2AccTuneLimp.acc_tune_limp_modeKeyed` | 6×`Verd` | std 3 + `z3_unsat_sound` |
-| `platoon_delay_linkloss` | `InstancesV2/Modal/PlatoonDelayLinkloss.lean` | `V2PlatoonDelayLinkloss.platoon_delay_linkloss_modeKeyed` | 6×`Verd` | std 3 + `z3_unsat_sound` |
-| `quad_light_airframe_20` | `InstancesV2/Modal/QuadLightAirframe20.lean` | `V2QuadLightAirframe20.quad_light_airframe_20_modal` | 1×`Verd` | std 3 + `z3_unsat_sound` |
-| `quad_light_profiles` | `InstancesV2/Modal/QuadLightProfiles.lean` | `V2QuadLightProfiles.quad_light_profiles_modal` | 3×`Verd` | std 3 + `z3_unsat_sound` |
-| `quad_light_lag` | `InstancesV2/Modal/QuadLightLag.lean` | `V2QuadLightLag.quad_light_lag_modal` | 1×`Verd` | std 3 + `z3_unsat_sound` |
-| `charger_fast_setpoints` | `InstancesV2/Modal/ChargerFastSetpoints.lean` | `V2ChargerFastSetpoints.charger_fast_setpoints_modal` | 7×`Verd` | std 3 + `z3_unsat_sound` |
-| `acc_tune_lag` | `InstancesV2/Modal/AccTuneLag.lean` | `V2AccTuneLag.acc_tune_lag_modal` | 1×`Verd` | std 3 + `z3_unsat_sound` |
-| `acc_spoof_lag` | `InstancesV2/Modal/AccSpoofLag.lean` | `V2AccSpoofLag.acc_spoof_lag_modal` | 1×`Verd` | std 3 + `z3_unsat_sound` |
-| `charger_fast_tapers` | `InstancesV2/Modal/ChargerFastTapers.lean` | `V2ChargerFastTapers.charger_fast_tapers_modal` | 9×`Verd` | std 3 + `z3_unsat_sound` |
-| `arm_plateau_crit` | `InstancesV2/Modal/ArmPlateauCrit.lean` | `V2ArmPlateauCrit.arm_plateau_crit_modal` | none | std 3 |
-| `arm_plateau_profiles` | `InstancesV2/Modal/ArmPlateauProfiles.lean` | `V2ArmPlateauProfiles.arm_plateau_profiles_modal` | none | std 3 |
-| `arm_plateau_slow` | `InstancesV2/Modal/ArmPlateauSlow.lean` | `V2ArmPlateauSlow.arm_plateau_slow_modal` | none | std 3 |
-| `story3_rollover_ladder_rung_b` | `InstancesV2/Modal/Story3RolloverRungB.lean` | `V2Story3RolloverRungB.story3_rollover_ladder_rung_b_modeKeyed` | 9×`Verd` | std 3 + `z3_unsat_sound` |
-| `sat_detumble_nominal` | `InstancesV2/Modal/SatDetumbleNominal.lean` | `V2SatDetumbleNominal.sat_detumble_nominal_modal` | 1×`Verd` | std 3 + `z3_unsat_sound` |
-| `platoon3_profiles` | `InstancesV2/Modal/Platoon3Profiles.lean` | `V2Platoon3Profiles.platoon3_profiles_modal` | 3×`Verd` | std 3 + `z3_unsat_sound` |
-| `platoon3_linkloss` | `InstancesV2/Modal/Platoon3Linkloss.lean` | `V2Platoon3Linkloss.platoon3_linkloss_modeKeyed` | 2×`Verd` | std 3 + `z3_unsat_sound` |
-| `sat_detumble_weak` | `InstancesV2/Modal/SatDetumbleWeak.lean` | `V2SatDetumbleWeak.sat_detumble_weak_modal` | 3×`Verd` | std 3 + `z3_unsat_sound` |
-| `sat3w_detumble_nominal` | `InstancesV2/Modal/Sat3wDetumbleNominal.lean` | `V2Sat3wDetumbleNominal.sat3w_detumble_nominal_modal` | 1×`Verd` | std 3 + `z3_unsat_sound` |
-| `sat3w_detumble_weak` | `InstancesV2/Modal/Sat3wDetumbleWeak.lean` | `V2Sat3wDetumbleWeak.sat3w_detumble_weak_modal` | 3×`Verd` | std 3 + `z3_unsat_sound` |
-| `sat_detumble_phases` | `InstancesV2/Modal/SatDetumblePhases.lean` | `V2SatDetumblePhases.sat_detumble_phases_modeKeyed` | 2×`Verd` | std 3 + `z3_unsat_sound` |
-| `sat3w_detumble_phases` | `InstancesV2/Modal/Sat3wDetumblePhases.lean` | `V2Sat3wDetumblePhases.sat3w_detumble_phases_modeKeyed` | 2×`Verd` | std 3 + `z3_unsat_sound` |
-| `rover_patrol_zones` | `InstancesV2/Modal/RoverPatrolZones.lean` | `V2RoverPatrolZones.rover_patrol_zones_modeKeyed` | 10×`Verd` | std 3 + `z3_unsat_sound` |
-| `rover_patrol_refine` | `InstancesV2/Modal/RoverPatrolRefine.lean` | `V2RoverPatrolRefine.rover_patrol_refine_modeKeyed` | 10×`Verd` | std 3 + `z3_unsat_sound` |
-| `match_multi_rate` | `Instances/MatchMultiRatePruned.lean` | `MatchMultiRatePruned.match_multi_rate_pruned` | 4×`VerdM` | std 3 + `z3_unsat_sound` |
-| `match_multi_rate` | `Instances/MatchMultiRatePruned.lean` | `MatchMultiRatePruned.match_multi_rate_nonconn` | 1×`VerdNC` | std 3 + `z3_unsat_sound` |
-| `refinement_ladder_rover_rung1_2to3` | `Instances/RoverLadderRung1Modal.lean` | `RoverLadderRung1Modal.rover_ladder_rung1_modal` | 6×`VerdE` | std 3 + `z3_unsat_sound` |
-| `refinement_ladder_rover_rung2_3to6` | `Instances/RoverLadderRung2Modal.lean` | `RoverLadderRung2Modal.rover_ladder_rung2_3to6_modal` | 6×`Verd36` | std 3 + `z3_unsat_sound` |
-| `refinement_ladder_rover_rung2_6dof` | `Instances/RoverRung26dofModal.lean` | `RoverRung26dofModal.rung2_6dof_modal` | none | std 3 |
-| `refinement_ladder_rover_rung2b_6dof` | `Instances/RoverRung2b6dofModal.lean` | `RoverRung2b6dofModal.rung2b_6dof_modal` | none | std 3 |
-| `refinement_ladder_rover_rung2c_6dof` | `Instances/RoverRung2cModal.lean` | `RoverRung2cModal.rover_rung2c_modal` | 3×`VerdR6` | std 3 + `z3_unsat_sound` |
-| `refinement_ladder_rover_rung3_6to8` | `Instances/RoverLadderRung3Modal.lean` | `RoverLadderRung3Modal.rover_ladder_rung3_6to8_modal` | 6×`VerdR` | std 3 + `z3_unsat_sound` |
-| `refinement_ladder_rover_rung4_8to12` | `Instances/RoverLadderRung4Modal.lean` | `RoverLadderRung4Modal.rover_ladder_rung4_8to12_modal` | 6×`VerdF` | std 3 + `z3_unsat_sound` |
-| `rover3tier_rung12` | `Instances/Rover3tierRung12Handoff.lean` | `Rover3tierRung12Handoff.rover3tier_rung12_modeKeyed` | 2×`VerdQA`, 2×`VerdQC` | std 3 + `z3_unsat_sound` |
-| `rover_dof_terrain_rung1` | `Instances/RoverDofTerrainRung1Modal.lean` | `RoverDofTerrainRung1Modal.rover_dof_terrain_rung1_modal` | 6×`VerdE` | std 3 + `z3_unsat_sound` |
-| `rover_dof_terrain_rung2` | `Instances/RoverDofTerrainRung2Modal.lean` | `RoverDofTerrainRung2Modal.rover_dof_terrain_rung2_modal` | 6×`VerdT` | std 3 + `z3_unsat_sound` |
-| `rover_dof_terrain_rung3` | `Instances/RoverDofTerrainRung3Modal.lean` | `RoverDofTerrainRung3Modal.rover_dof_terrain_rung3_modal` | 6×`VerdW` | std 3 + `z3_unsat_sound` |
-| `rover_dof_terrain_rung3_8d` | `Instances/RoverDofTerrainRung38dModal.lean` | `RoverDofTerrainRung38dModal.rover_dof_terrain_rung3_8d_modal` | 6×`VerdU` | std 3 + `z3_unsat_sound` |
-| `story1_attdist_rung_a_6to8` | `Instances/Story1AttdistRungAHandoff.lean` | `Story1AttdistRungAHandoff.story1_attdist_rung_a_modeKeyed` | 3×`VerdS`, 6×`VerdD` | std 3 + `z3_unsat_sound` |
-| `story1_attdist_rung_b_12dof` | `Instances/Story1AttdistRungBHandoff.lean` | `Story1AttdistRungBHandoff.story1_attdist_rung_b_modeKeyed` | 6×`VerdR` | std 3 + `z3_unsat_sound` |
-| `story2_lateral_rung_a_8dof` | `Instances/Story2LateralAModal.lean` | `Story2LateralAModal.story2_lateral_rung_a_modal` | 6×`VerdY` | std 3 + `z3_unsat_sound` |
-| `story2_lateral_rung_b_12dof` | `Instances/Story2LateralBModal.lean` | `Story2LateralBModal.story2_lateral_rung_b_modal` | 6×`VerdZ` | std 3 + `z3_unsat_sound` |
-| `story3_rollover_base_12dof` | `Instances/Story3RolloverBaseModal.lean` | `Story3RolloverBaseModal.story3_rollover_base_modal` | 6×`VerdB` | std 3 + `z3_unsat_sound` |
-| `story3_rollover_ladder_rung_a` | `Instances/Story3RolloverRungAModal.lean` | `Story3RolloverRungAModal.story3_rollover_rung_a_modal` | 6×`VerdA` | std 3 + `z3_unsat_sound` |
+| benchmark | file | theorem | verdict packs | axioms | right automaton |
+|---|---|---|---|---|---|
+| `watertank` | `InstancesV2/Modal/Watertank.lean` | `V2Watertank.watertank_modal` | 11×`Verd` | std 3 + `z3_unsat_sound` | guarded |
+| `platoon_delay_profiles` | `InstancesV2/Modal/PlatoonDelayProfiles.lean` | `V2PlatoonDelayProfiles.platoon_delay_profiles_modal` | 6×`Verd` | std 3 + `z3_unsat_sound` | guarded |
+| `acc_spoof_limp` | `InstancesV2/Modal/AccSpoofLimp.lean` | `V2AccSpoofLimp.acc_spoof_limp_modeKeyed` | 6×`Verd` | std 3 + `z3_unsat_sound` | guarded |
+| `acc_tune_limp` | `InstancesV2/Modal/AccTuneLimp.lean` | `V2AccTuneLimp.acc_tune_limp_modeKeyed` | 6×`Verd` | std 3 + `z3_unsat_sound` | guarded |
+| `platoon_delay_linkloss` | `InstancesV2/Modal/PlatoonDelayLinkloss.lean` | `V2PlatoonDelayLinkloss.platoon_delay_linkloss_modeKeyed` | 6×`Verd` | std 3 + `z3_unsat_sound` | guarded |
+| `quad_light_airframe_20` | `InstancesV2/Modal/QuadLightAirframe20.lean` | `V2QuadLightAirframe20.quad_light_airframe_20_modal` | 1×`Verd` | std 3 + `z3_unsat_sound` | guarded |
+| `quad_light_profiles` | `InstancesV2/Modal/QuadLightProfiles.lean` | `V2QuadLightProfiles.quad_light_profiles_modal` | 3×`Verd` | std 3 + `z3_unsat_sound` | guarded |
+| `quad_light_lag` | `InstancesV2/Modal/QuadLightLag.lean` | `V2QuadLightLag.quad_light_lag_modal` | 1×`Verd` | std 3 + `z3_unsat_sound` | guarded |
+| `charger_fast_setpoints` | `InstancesV2/Modal/ChargerFastSetpoints.lean` | `V2ChargerFastSetpoints.charger_fast_setpoints_modal` | 7×`Verd` | std 3 + `z3_unsat_sound` | guarded |
+| `acc_tune_lag` | `InstancesV2/Modal/AccTuneLag.lean` | `V2AccTuneLag.acc_tune_lag_modal` | 1×`Verd` | std 3 + `z3_unsat_sound` | guarded |
+| `acc_spoof_lag` | `InstancesV2/Modal/AccSpoofLag.lean` | `V2AccSpoofLag.acc_spoof_lag_modal` | 1×`Verd` | std 3 + `z3_unsat_sound` | guarded |
+| `charger_fast_tapers` | `InstancesV2/Modal/ChargerFastTapers.lean` | `V2ChargerFastTapers.charger_fast_tapers_modal` | 9×`Verd` | std 3 + `z3_unsat_sound` | guarded |
+| `arm_plateau_crit` | `InstancesV2/Modal/ArmPlateauCrit.lean` | `V2ArmPlateauCrit.arm_plateau_crit_modal` | none | std 3 | guarded |
+| `arm_plateau_profiles` | `InstancesV2/Modal/ArmPlateauProfiles.lean` | `V2ArmPlateauProfiles.arm_plateau_profiles_modal` | none | std 3 | guarded |
+| `arm_plateau_slow` | `InstancesV2/Modal/ArmPlateauSlow.lean` | `V2ArmPlateauSlow.arm_plateau_slow_modal` | none | std 3 | `⊤` relaxation (guarded refuted) |
+| `story3_rollover_ladder_rung_b` | `InstancesV2/Modal/Story3RolloverRungB.lean` | `V2Story3RolloverRungB.story3_rollover_ladder_rung_b_modeKeyed` | 9×`Verd` | std 3 + `z3_unsat_sound` | `⊤` relaxation (guarded refuted) |
+| `sat_detumble_nominal` | `InstancesV2/Modal/SatDetumbleNominal.lean` | `V2SatDetumbleNominal.sat_detumble_nominal_modal` | 1×`Verd` | std 3 + `z3_unsat_sound` | guarded |
+| `platoon3_profiles` | `InstancesV2/Modal/Platoon3Profiles.lean` | `V2Platoon3Profiles.platoon3_profiles_modal` | 3×`Verd` | std 3 + `z3_unsat_sound` | `⊤` relaxation (guarded open) |
+| `platoon3_linkloss` | `InstancesV2/Modal/Platoon3Linkloss.lean` | `V2Platoon3Linkloss.platoon3_linkloss_modeKeyed` | 2×`Verd` | std 3 + `z3_unsat_sound` | `⊤` relaxation (guarded open) |
+| `sat_detumble_weak` | `InstancesV2/Modal/SatDetumbleWeak.lean` | `V2SatDetumbleWeak.sat_detumble_weak_modal` | 3×`Verd` | std 3 + `z3_unsat_sound` | guarded |
+| `sat3w_detumble_nominal` | `InstancesV2/Modal/Sat3wDetumbleNominal.lean` | `V2Sat3wDetumbleNominal.sat3w_detumble_nominal_modal` | 1×`Verd` | std 3 + `z3_unsat_sound` | guarded |
+| `sat3w_detumble_weak` | `InstancesV2/Modal/Sat3wDetumbleWeak.lean` | `V2Sat3wDetumbleWeak.sat3w_detumble_weak_modal` | 3×`Verd` | std 3 + `z3_unsat_sound` | guarded |
+| `sat_detumble_phases` | `InstancesV2/Modal/SatDetumblePhases.lean` | `V2SatDetumblePhases.sat_detumble_phases_modeKeyed` | 2×`Verd` | std 3 + `z3_unsat_sound` | guarded |
+| `sat3w_detumble_phases` | `InstancesV2/Modal/Sat3wDetumblePhases.lean` | `V2Sat3wDetumblePhases.sat3w_detumble_phases_modeKeyed` | 2×`Verd` | std 3 + `z3_unsat_sound` | guarded |
+| `rover_patrol_zones` | `InstancesV2/Modal/RoverPatrolZones.lean` | `V2RoverPatrolZones.rover_patrol_zones_modeKeyed` | 10×`Verd` | std 3 + `z3_unsat_sound` | `⊤` relaxation (guarded refuted) |
+| `rover_patrol_refine` | `InstancesV2/Modal/RoverPatrolRefine.lean` | `V2RoverPatrolRefine.rover_patrol_refine_modeKeyed` | 10×`Verd` | std 3 + `z3_unsat_sound` | `⊤` relaxation (guarded refuted) |
+| `match_multi_rate` | `Instances/MatchMultiRateGuarded.lean` | `MatchMultiRateGuarded.match_multi_rate_guarded` | none | std 3 | guarded |
+| `match_multi_rate` | `Instances/MatchMultiRatePruned.lean` | `MatchMultiRatePruned.match_multi_rate_nonconn` | 1×`VerdNC` | std 3 + `z3_unsat_sound` | Theorem 2 (pruned edge) |
+| `refinement_ladder_rover_rung1_2to3` | `Instances/RoverLadderRung1Modal.lean` | `RoverLadderRung1Modal.rover_ladder_rung1_modal` | 6×`VerdE` | std 3 + `z3_unsat_sound` | `⊤` relaxation (guarded refuted) |
+| `refinement_ladder_rover_rung2_3to6` | `Instances/RoverLadderRung2Modal.lean` | `RoverLadderRung2Modal.rover_ladder_rung2_3to6_modal` | 6×`Verd36` | std 3 + `z3_unsat_sound` | `⊤` relaxation (guarded refuted) |
+| `refinement_ladder_rover_rung2_6dof` | `Instances/RoverRung26dofModal.lean` | `RoverRung26dofModal.rung2_6dof_modal` | none | std 3 | `⊤` relaxation (guarded refuted) |
+| `refinement_ladder_rover_rung2b_6dof` | `Instances/RoverRung2b6dofModal.lean` | `RoverRung2b6dofModal.rung2b_6dof_modal` | none | std 3 | `⊤` relaxation (guarded refuted) |
+| `refinement_ladder_rover_rung2c_6dof` | `Instances/RoverRung2cModal.lean` | `RoverRung2cModal.rover_rung2c_modal` | 3×`VerdR6` | std 3 + `z3_unsat_sound` | `⊤` relaxation (guarded refuted) |
+| `refinement_ladder_rover_rung3_6to8` | `Instances/RoverLadderRung3Modal.lean` | `RoverLadderRung3Modal.rover_ladder_rung3_6to8_modal` | 6×`VerdR` | std 3 + `z3_unsat_sound` | `⊤` relaxation (guarded refuted) |
+| `refinement_ladder_rover_rung4_8to12` | `Instances/RoverLadderRung4Modal.lean` | `RoverLadderRung4Modal.rover_ladder_rung4_8to12_modal` | 6×`VerdF` | std 3 + `z3_unsat_sound` | `⊤` relaxation (guarded refuted) |
+| `rover3tier_rung12` | `Instances/Rover3tierRung12Guarded.lean` | `Rover3tierRung12Guarded.rover3tier_rung12_modeKeyed_guarded` | none | std 3 | guarded |
+| `rover_dof_terrain_rung1` | `Instances/RoverDofTerrainRung1Modal.lean` | `RoverDofTerrainRung1Modal.rover_dof_terrain_rung1_modal` | 6×`VerdE` | std 3 + `z3_unsat_sound` | `⊤` relaxation (guarded refuted) |
+| `rover_dof_terrain_rung2` | `Instances/RoverDofTerrainRung2Modal.lean` | `RoverDofTerrainRung2Modal.rover_dof_terrain_rung2_modal` | 6×`VerdT` | std 3 + `z3_unsat_sound` | `⊤` relaxation (guarded refuted) |
+| `rover_dof_terrain_rung3` | `Instances/RoverDofTerrainRung3Modal.lean` | `RoverDofTerrainRung3Modal.rover_dof_terrain_rung3_modal` | 6×`VerdW` | std 3 + `z3_unsat_sound` | `⊤` relaxation (guarded refuted) |
+| `rover_dof_terrain_rung3_8d` | `Instances/RoverDofTerrainRung38dModal.lean` | `RoverDofTerrainRung38dModal.rover_dof_terrain_rung3_8d_modal` | 6×`VerdU` | std 3 + `z3_unsat_sound` | `⊤` relaxation (guarded refuted) |
+| `story1_attdist_rung_a_6to8` | `Instances/Story1AttdistRungAHandoff.lean` | `Story1AttdistRungAHandoff.story1_attdist_rung_a_modeKeyed` | 3×`VerdS`, 6×`VerdD` | std 3 + `z3_unsat_sound` | `⊤` relaxation (guarded refuted) |
+| `story1_attdist_rung_b_12dof` | `Instances/Story1AttdistRungBHandoff.lean` | `Story1AttdistRungBHandoff.story1_attdist_rung_b_modeKeyed` | 6×`VerdR` | std 3 + `z3_unsat_sound` | `⊤` relaxation (guarded refuted) |
+| `story2_lateral_rung_a_8dof` | `Instances/Story2LateralAModal.lean` | `Story2LateralAModal.story2_lateral_rung_a_modal` | 6×`VerdY` | std 3 + `z3_unsat_sound` | `⊤` relaxation (guarded refuted) |
+| `story2_lateral_rung_b_12dof` | `Instances/Story2LateralBModal.lean` | `Story2LateralBModal.story2_lateral_rung_b_modal` | 6×`VerdZ` | std 3 + `z3_unsat_sound` | `⊤` relaxation (guarded refuted) |
+| `story3_rollover_base_12dof` | `Instances/Story3RolloverBaseModal.lean` | `Story3RolloverBaseModal.story3_rollover_base_modal` | 6×`VerdB` | std 3 + `z3_unsat_sound` | `⊤` relaxation (guarded refuted) |
+| `story3_rollover_ladder_rung_a` | `Instances/Story3RolloverRungAModal.lean` | `Story3RolloverRungAModal.story3_rollover_rung_a_modal` | 6×`VerdA` | std 3 + `z3_unsat_sound` | `⊤` relaxation (guarded refuted) |
+| `rover_patrol_zones` | `InstancesV2/RoverPatrolZonesCounterexample.lean` | `V2RoverPatrolZonesCounterexample.rover_patrol_zones_guarded_false` | none | std 3 | refutation of the guarded statement |
+| `refinement_ladder_rover_rung1_2to3` | `Instances/RoverLadderRung1Counterexample.lean` | `RoverLadderRung1Counterexample.rover_ladder_rung1_guarded_false` | none | std 3 | refutation of the guarded statement |
 
 ## One-shot (after creating the manifest of check 4)
 

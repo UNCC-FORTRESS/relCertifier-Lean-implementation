@@ -36,6 +36,7 @@ import RelCertifier.InstancesV2.Modal.AccTuneLimp
 import RelCertifier.InstancesV2.Modal.AccSpoofLimp
 import RelCertifier.InstancesV2.Modal.Watertank
 import RelCertifier.InstancesV2.Modal.PlatoonDelayProfiles
+import RelCertifier.Instances.RoverDofTerrainRung1Guarded
 
 namespace RelCertifier.VerdictsV2
 
@@ -47,6 +48,12 @@ theorem pin_row {P : Prop} (r : PackV2) {p : PProblem} {c : Oracle.EvolStrengthe
     (hp : irV2 r.bench = p) (hc : cutV2 r.bench = c) (hlam : lam = ((packLam r : ℚ) : ℝ)) :
     P = packVerd r := by
   rw [hP, packVerd, hp, hc, hlam]
+
+/-- Pin helper for a reposition pack: same IR, same certificate, same arguments. -/
+theorem pin_dyn_row {P : Prop} (r : DynPackV2) {p : PProblem} {c : Oracle.EvolStrengtheningX}
+    (hP : P = modalVerdDynX p c r.dim r.invRow r.order r.pre r.l r.m)
+    (hp : irV2 r.bench = p) (hc : cutV2 r.bench = c) : P = dynPackVerd r := by
+  rw [hP, dynPackVerd, hp, hc]
 
 theorem irV2_watertank : irV2 "watertank" = watertank_IRv2 := by decide
 theorem cutV2_watertank : cutV2 "watertank" = Oracle.watertank_cutsV2X := by decide
@@ -332,5 +339,27 @@ theorem pin_rover_patrol_refine_8 : V2RoverPatrolRefine.Verd 2 3 = packVerd (pac
   pin_row _ rfl irV2_rover_patrol_refine cutV2_rover_patrol_refine (by simp [packLam, packsV2])
 theorem pin_rover_patrol_refine_9 : V2RoverPatrolRefine.Verd 3 3 = packVerd (packsV2.getD 103 default) :=
   pin_row _ rfl irV2_rover_patrol_refine cutV2_rover_patrol_refine (by simp [packLam, packsV2])
+
+/-! ## Cover replays of the carried-over benchmarks -/
+
+theorem irV2_terrain1 : irV2 "rover_dof_terrain_rung1" = rover_dof_terrain_rung1_IRv2 := by decide
+theorem cutV2_terrain1 : cutV2 "rover_dof_terrain_rung1" = Oracle.rover_dof_terrain_rung1_cutsV2X := by
+  decide
+theorem pin_terrain1_00 : RoverDofTerrainRung1Guarded.Verd 0 0 = packVerd (packsV2.getD 104 default) :=
+  pin_row _ rfl irV2_terrain1 cutV2_terrain1 (by simp [packLam, packsV2])
+theorem pin_terrain1_01 : RoverDofTerrainRung1Guarded.Verd 0 1 = packVerd (packsV2.getD 105 default) :=
+  pin_row _ rfl irV2_terrain1 cutV2_terrain1 (by simp [packLam, packsV2])
+theorem pin_terrain1_02 : RoverDofTerrainRung1Guarded.Verd 0 2 = packVerd (packsV2.getD 106 default) :=
+  pin_row _ rfl irV2_terrain1 cutV2_terrain1 (by simp [packLam, packsV2])
+theorem pin_terrain1_11 : RoverDofTerrainRung1Guarded.Verd 1 1 = packVerd (packsV2.getD 107 default) :=
+  pin_row _ rfl irV2_terrain1 cutV2_terrain1 (by simp [packLam, packsV2])
+theorem pin_terrain1_12 : RoverDofTerrainRung1Guarded.Verd 1 2 = packVerd (packsV2.getD 108 default) :=
+  pin_row _ rfl irV2_terrain1 cutV2_terrain1 (by simp [packLam, packsV2])
+theorem pin_terrain1_22 : RoverDofTerrainRung1Guarded.Verd 2 2 = packVerd (packsV2.getD 109 default) :=
+  pin_row _ rfl irV2_terrain1 cutV2_terrain1 (by simp [packLam, packsV2])
+theorem pin_terrain1_d10 : RoverDofTerrainRung1Guarded.VerdD 1 0 = dynPackVerd (dynPacksV2.getD 0 default) :=
+  pin_dyn_row _ rfl irV2_terrain1 cutV2_terrain1
+theorem pin_terrain1_d21 : RoverDofTerrainRung1Guarded.VerdD 2 1 = dynPackVerd (dynPacksV2.getD 1 default) :=
+  pin_dyn_row _ rfl irV2_terrain1 cutV2_terrain1
 
 end RelCertifier.VerdictsV2

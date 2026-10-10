@@ -15,6 +15,7 @@ table in `VerdictsV2/CoveragePinsV2.lean`. Anything it cannot rebuild is a SKIP 
 the run non-green.
 -/
 import RelCertifier.VerdictsV2.ModalX
+import RelCertifier.VerdictsV2.ModalDynX
 import RelCertifier.InstancesV2.BenchIR
 import RelCertifier.InstancesV2.Cuts
 import RelCertifier.Trusted.Z3
@@ -179,10 +180,17 @@ def packsV2 : List PackV2 :=
     ⟨"rover_patrol_refine", 3, 1, [0, 1], 9, 4, 1, 3⟩,
     ⟨"rover_patrol_refine", 3, 2, [0, 1], 9, 4, 2, 2⟩,
     ⟨"rover_patrol_refine", 3, 2, [0, 1], 9, 4, 2, 3⟩,
-    ⟨"rover_patrol_refine", 3, 3, [0, 1], 9, 4, 3, 3⟩ ]
+    ⟨"rover_patrol_refine", 3, 3, [0, 1], 9, 4, 3, 3⟩,
+    -- rover_dof_terrain_rung1 (cover replay): the joint nodes of each window, λ = 1
+    ⟨"rover_dof_terrain_rung1", 3, 0, [0, 1], 1, 1, 0, 0⟩,
+    ⟨"rover_dof_terrain_rung1", 3, 0, [0, 1], 1, 1, 0, 1⟩,
+    ⟨"rover_dof_terrain_rung1", 3, 0, [0, 1], 1, 1, 0, 2⟩,
+    ⟨"rover_dof_terrain_rung1", 3, 0, [0, 1], 1, 1, 1, 1⟩,
+    ⟨"rover_dof_terrain_rung1", 3, 0, [0, 1], 1, 1, 1, 2⟩,
+    ⟨"rover_dof_terrain_rung1", 3, 0, [0, 1], 1, 1, 2, 2⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 262
+def expectedModalV2 : Nat := 274
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
@@ -226,6 +234,78 @@ def runModalV2 (cfg : Z3Config) : IO Bool := do
       let mut ok := true
       for r in packsV2 do
         ok := (← runPack s r) && ok
+      s.close
+      pure ok
+
+/-! ## The reposition packs (certificate 3) of the cover replays
+
+One row per dynamic-reposition pack a replaying instance assumes: the reposition of right
+mode `m` against left window `l`, before the window's first joint segment (`pre = true`: the
+left guard conjoined) or after it, the invariant row's components in the cover's reposition
+strata order (`dynPreOrder` / `dynPostOrder` of the emitted cover). The runner rebuilds each
+pack with `modalVerdDynXQueries` (the builder `modalVerdDynX_of_queries` proves denotes the
+instance's hypothesis), prints it with `toScript`, and owes one `unsat` per component. -/
+
+structure DynPackV2 where
+  bench  : String
+  dim    : ℕ
+  invRow : ℕ := 0
+  order  : List ℕ
+  pre    : Bool := true
+  l      : ℕ
+  m      : ℕ
+  deriving Repr, Inhabited
+
+def dynPackQueries (r : DynPackV2) : Option (List (IForm r.dim)) :=
+  modalVerdDynXQueries (irV2 r.bench) (cutV2 r.bench) r.dim r.invRow r.order r.pre r.l r.m
+
+noncomputable def dynPackVerd (r : DynPackV2) : Prop :=
+  modalVerdDynX (irV2 r.bench) (cutV2 r.bench) r.dim r.invRow r.order r.pre r.l r.m
+
+/-- The reposition packs. -/
+def dynPacksV2 : List DynPackV2 :=
+  [ -- rover_dof_terrain_rung1: MODER window from STEEP, FLAT window from MODER
+    ⟨"rover_dof_terrain_rung1", 3, 0, [0, 1], true, 1, 0⟩,
+    ⟨"rover_dof_terrain_rung1", 3, 0, [0, 1], true, 2, 1⟩ ]
+
+/-- Declared: the number of component queries the reposition packs owe. -/
+def expectedDynV2 : Nat := 4
+
+def runDynPack (s : Z3Session) (r : DynPackV2) : IO Bool := do
+  let p := irV2 r.bench
+  let vars := p.L.stateVars
+  let coord := fun (i : Fin r.dim) => vars.getD i.val s!"pad{i.val}"
+  match dynPackQueries r with
+  | none =>
+      IO.println s!"  SKIP  {r.bench} (l={r.l},m={r.m},pre={r.pre})  (rebuild failed)"
+      pure false
+  | some qs =>
+      if qs.isEmpty then
+        IO.println s!"  SKIP  {r.bench} (l={r.l},m={r.m},pre={r.pre})  (no component)"
+        return false
+      let mut ok := true
+      for i in List.range qs.length do
+        let q := qs.getD i IForm.tt
+        match ← s.check (q.toScript coord) with
+        | .ok .unsat =>
+            IO.println s!"  UNSAT (A=unsat)  {r.bench} (l={r.l},m={r.m},pre={r.pre}) comp={i}"
+            RelCertifier.Verdicts.counted
+        | .ok v =>
+            IO.println s!"  FAIL  {r.bench} (l={r.l},m={r.m},pre={r.pre}) comp={i} : A={reprStr v}"
+            ok := false
+        | .error e =>
+            IO.println s!"  FAIL  {r.bench} (l={r.l},m={r.m},pre={r.pre}) comp={i} : A=err({e})"
+            ok := false
+      pure ok
+
+def runDynV2 (cfg : Z3Config) : IO Bool := do
+  match ← Z3Session.start cfg with
+  | .error e => IO.eprintln s!"ERROR: z3: {e}"; return false
+  | .ok s =>
+      IO.println s!"== suite_v2 reposition packs : {dynPacksV2.length} verdict packs =="
+      let mut ok := true
+      for r in dynPacksV2 do
+        ok := (← runDynPack s r) && ok
       s.close
       pure ok
 

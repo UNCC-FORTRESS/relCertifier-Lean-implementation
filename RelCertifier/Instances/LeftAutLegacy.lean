@@ -13,6 +13,7 @@ every left mode (`psiK` with a constant row), same envelope, same right side. Pr
 generic bridge `theorem3_leftAut_of_choiceR` (`Proofs/Encoding/LeftAutUniform.lean`).
 -/
 import RelCertifier.Proofs.Encoding.LeftAutUniform
+import RelCertifier.Proofs.Encoding.ReplayBridge
 import RelCertifier.Instances.MatchMultiRateGuarded
 import RelCertifier.Instances.RoverLadderRung1Guarded
 import RelCertifier.Instances.RoverLadderRung3Guarded
@@ -266,12 +267,14 @@ theorem hgrdLA : ∀ g ∈ (List.range 3).map (fun l => hostGuard vsE 3 Side.L (
 (jump, then flow) against the guarded right automaton, the declared rows for every left mode,
 the right in its current mode's guard and cuts. From `rover_dof_terrain_rung1_guarded` by the generic bridge
 `theorem3_leftAut_of_choiceR`. -/
-theorem rover_dof_terrain_rung1_leftAut (dt : ℝ) :
+theorem rover_dof_terrain_rung1_leftAut (dt : ℝ)
+    (h00 : Verd 0 0) (h01 : Verd 0 1) (h02 : Verd 0 2) (h11 : Verd 1 1) (h12 : Verd 1 2)
+    (h22 : Verd 2 2) (d10 : VerdD 1 0) (d21 : VerdD 2 1) :
     RFormula.rvalid (theorem3Form (leftAutomatonBody (AL dt) uLA) (rightAutomatonBody GrG mvE)
       (psiK uLA (fun _ => canonInvM gE gsE) (AL dt).numModes domLE domRE
         (mvRegionR mvE gregion GrG.modes.length))) :=
   theorem3_leftAut_of_choiceR (AL dt) 0 1 2 (by decide) _ _ _ domLE domRE gregion _
-    (rover_dof_terrain_rung1_guarded dt)
+    (rover_dof_terrain_rung1_guarded dt h00 h01 h02 h11 h12 h22 d10 d21)
     (fun q _ => gregion_fv q)
       (canonInvM_varsL gE gsE (by
         intro g' hg'
@@ -280,7 +283,7 @@ theorem rover_dof_terrain_rung1_leftAut (dt : ℝ) :
       (canonInvM_varsR gE gsE) hdomLE hdomRE
     (LeftAut.ofP_vars leftDataE _ 1 dt nextLA hLE hgrdLA).1 (fun t _ => (LeftAut.ofP_vars leftDataE _ 1 dt nextLA hLE hgrdLA).2 t)
     (LeftAut.ofP_hnext leftDataE _ tgE dt nextLA 3 rfl (by rw [nextLA_eq]; decide))
-    (LeftAut.ofP_hsim leftDataE _ tgE dt nextLA)
+    (ofP_hsim_gated leftDataE _ tgE dt nextLA rfl)
 
 end RoverDofTerrainRung1Guarded
 

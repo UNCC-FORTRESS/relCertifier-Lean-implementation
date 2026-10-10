@@ -28,6 +28,18 @@ theorem packQueries_length (r : PackV2) {qss : List (List (IForm r.dim))}
 theorem derivedModalV2_eq : (packsV2.map (fun r => r.order.length)).sum = expectedModalV2 := by
   decide
 
+/-- The reposition phase owes one query per component. -/
+theorem dynPackQueries_length (r : DynPackV2) {qs : List (IForm r.dim)}
+    (h : dynPackQueries r = some qs) : qs.length = r.order.length := by
+  unfold dynPackQueries modalVerdDynXQueries at h
+  simp only [Option.bind_eq_bind, Option.bind_eq_some_iff, Option.pure_def,
+    Option.some.injEq] at h
+  obtain ⟨_, _, _, _, _, _, _, _, _, _, _, _, rfl⟩ := h
+  simp
+
+theorem derivedDynV2_eq : (dynPacksV2.map (fun r => r.order.length)).sum = expectedDynV2 := by
+  decide
+
 theorem derivedHandoffV2_eq :
     (benchIRTableV2.map (fun r => RelCertifier.Handoff.declaredTransitions r.2)).sum
       = expectedHandoffV2 := by

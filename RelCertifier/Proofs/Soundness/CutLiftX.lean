@@ -719,11 +719,21 @@ theorem modeCutWFX_mem {m : PMode} : ∀ {prev xs : List CutAtomX},
       · exact ⟨prev, h.1⟩
       · exact ih h.2 x hx
 
-/-- The Z3 entry verdict of one atom: `UNSAT(guard ∧ g > 0)` for its safe-side term. -/
-def EntryZ3Verdict (vars : List String) (n : ℕ) (side : Side) (gI : IForm n)
+/-- The Z3 entry fact of one atom, semantically: its safe-side term is `≤ 0` wherever the
+guard's lowering holds. Supplied from the tool's counted entry query by
+`entryZ3Fact_of_unsat` (the only place the oracle enters O1), so the assembly below is
+axiom-free for certificates without `z3` entries. -/
+def EntryZ3Fact (vars : List String) (n : ℕ) (side : Side) (gI : IForm n)
     (a : PForm) : Prop :=
   ∃ g, cutAtomG vars n side a = some g ∧
-    z3solve (entryZ3Query gI g).toHost = Verdict.unsat
+    ∀ ν, Formula.sat gI.toHost ν → Term.eval g.toHost ν ≤ 0
+
+/-- The entry query's `unsat` verdict gives the entry fact (`z3_unsat_sound`). -/
+theorem entryZ3Fact_of_unsat {vars : List String} {side : Side} {gI : IForm n} {a : PForm}
+    {g : ITerm n} (hg : cutAtomG vars n side a = some g)
+    (hz3 : z3solve (entryZ3Query gI g).toHost = Verdict.unsat) :
+    EntryZ3Fact vars n side gI a :=
+  ⟨g, hg, fun ν hsat => entry_z3 hz3 ν hsat⟩
 
 /-- A nonstrict threshold or linear atom's lowering is `g ≤ 0` for its `cutAtomG` term. -/
 theorem atom_sat_of_g {vars : List String} {side : Side} {op : String} {x y : PExpr}
@@ -765,7 +775,7 @@ theorem atomWFX_entry {vars : List String} {side : Side} {m : PMode} {prev : Lis
     {x : CutAtomX} (h : atomWFX m prev x = true) {gI aI : IForm n}
     (hg : Run.lowerF vars n side m.guard = some gI)
     (haI : Run.lowerF vars n side x.atom = some aI)
-    (hz3 : x.entry = CutEntry.z3 → EntryZ3Verdict vars n side gI x.atom)
+    (hz3 : x.entry = CutEntry.z3 → EntryZ3Fact vars n side gI x.atom)
     (ν : DL.State (Var n)) (hsat : Formula.sat gI.toHost ν) : Formula.sat aI.toHost ν := by
   -- the `z3` branch, shared by the two kinds that admit it
   have hz3case : x.entry = CutEntry.z3 →
@@ -774,7 +784,7 @@ theorem atomWFX_entry {vars : List String} {side : Side} {m : PMode} {prev : Lis
     intro he ⟨op, e1, e2, hat, hop⟩
     obtain ⟨g, hgdef, hv⟩ := hz3 he
     rw [hat] at haI hgdef
-    exact atom_sat_of_g hop haI hgdef ν (entry_z3 hv ν hsat)
+    exact atom_sat_of_g hop haI hgdef ν (hv ν hsat)
   unfold atomWFX at h
   split at h
   · -- guardConj: membership
@@ -829,7 +839,7 @@ kept atom holds wherever the mode guard's lowering holds (given the `z3`-entry v
 theorem modeCutWFX_entry {vars : List String} {side : Side} {m : PMode}
     {atoms : List CutAtomX} (h : modeCutWFX m [] atoms = true) {gI : IForm n}
     (hg : Run.lowerF vars n side m.guard = some gI)
-    (hz3 : ∀ x ∈ atoms, x.entry = CutEntry.z3 → EntryZ3Verdict vars n side gI x.atom)
+    (hz3 : ∀ x ∈ atoms, x.entry = CutEntry.z3 → EntryZ3Fact vars n side gI x.atom)
     (ν : DL.State (Var n)) (hsat : Formula.sat gI.toHost ν) :
     ∀ x ∈ atoms, ∀ aI, Run.lowerF vars n side x.atom = some aI →
       Formula.sat aI.toHost ν := by
@@ -1398,14 +1408,14 @@ theorem sideCutWFX_mem {modes : List PMode} {mcs : List (String × List CutAtomX
 
 /-- **O1 for a whole extended certificate** (right side): from the kernel-checked
 `evolStrengtheningWFX p c = true`, for every right-mode entry of `c`, the lowered guard of
-that mode implies every kept atom (given the `z3`-entry verdicts, none in `suite_v2`). -/
+that mode implies every kept atom (given the `z3`-entry facts, none in `suite_v2`). -/
 theorem evolStrengtheningWFX_entryR {p : PProblem} {c : EvolStrengtheningX}
     (h : evolStrengtheningWFX p c = true) {name : String} {atoms : List CutAtomX}
     (hmem : (name, atoms) ∈ c.R) :
     ∃ m, p.R.modes.find? (·.name == name) = some m ∧
       ∀ (vars : List String) (side : Side) (gI : IForm n),
         Run.lowerF vars n side m.guard = some gI →
-        (∀ x ∈ atoms, x.entry = CutEntry.z3 → EntryZ3Verdict vars n side gI x.atom) →
+        (∀ x ∈ atoms, x.entry = CutEntry.z3 → EntryZ3Fact vars n side gI x.atom) →
         ∀ ν, Formula.sat gI.toHost ν →
           ∀ x ∈ atoms, ∀ aI, Run.lowerF vars n side x.atom = some aI →
             Formula.sat aI.toHost ν := by
@@ -1421,7 +1431,7 @@ theorem evolStrengtheningWFX_entryL {p : PProblem} {c : EvolStrengtheningX}
     ∃ m, p.L.modes.find? (·.name == name) = some m ∧
       ∀ (vars : List String) (side : Side) (gI : IForm n),
         Run.lowerF vars n side m.guard = some gI →
-        (∀ x ∈ atoms, x.entry = CutEntry.z3 → EntryZ3Verdict vars n side gI x.atom) →
+        (∀ x ∈ atoms, x.entry = CutEntry.z3 → EntryZ3Fact vars n side gI x.atom) →
         ∀ ν, Formula.sat gI.toHost ν →
           ∀ x ∈ atoms, ∀ aI, Run.lowerF vars n side x.atom = some aI →
             Formula.sat aI.toHost ν := by
@@ -1441,5 +1451,7 @@ theorem evolStrengtheningWFX_entryL {p : PProblem} {c : EvolStrengtheningX}
 #print axioms check_sound_multi_cutX
 #print axioms segPresAll_cut_liftX
 #print axioms entry_z3
+#print axioms entryZ3Fact_of_unsat
+#print axioms evolStrengtheningWFX_entryL
 
 end RelCertifier

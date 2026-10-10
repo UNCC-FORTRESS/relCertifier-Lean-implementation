@@ -22,6 +22,7 @@ import RelCertifier.Verdicts.RunModal
 import RelCertifier.Verdicts.RunCut
 import RelCertifier.Verdicts.RunHandoff
 import RelCertifier.Verdicts.RunNonConn
+import RelCertifier.VerdictsV2.RunV2
 
 open RelCertifier DL
 
@@ -160,6 +161,16 @@ def runAllVerdicts (cfg : RelCertifier.Z3Config) : IO Bool := do
   let c5' ← RelCertifier.Verdicts.checkPhase "pruned edges"
     RelCertifier.Verdicts.prunedEdges.length exp.prunedEdges
   pure (ok2 && ok3 && ok4 && ok5 && c2 && c3 && c4 && c5 && c5')
+
+/-- Every suite_v2 verdict phase, with its declared coverage checked (`--run-verdicts-v2`,
+`--check-quick-v2`). -/
+def runAllVerdictsV2 (cfg : RelCertifier.Z3Config) : IO Bool := do
+  let n0 ← RelCertifier.Verdicts.dischargedCount.get
+  let ok1 ← RelCertifier.VerdictsV2.runModalV2 cfg
+  let n1 ← RelCertifier.Verdicts.dischargedCount.get
+  let c1 ← RelCertifier.Verdicts.checkPhase "suite_v2 modal" (n1 - n0)
+    RelCertifier.VerdictsV2.expectedModalV2
+  pure (ok1 && c1)
 
 def usage : String :=
 "relcert — the relCertifier certification tool
@@ -352,6 +363,14 @@ def main (args : List String) : IO Unit := do
             IO.println "ALL HYPOTHESES DISCHARGED"
           else
             IO.eprintln "SOME HYPOTHESIS NOT DISCHARGED"; IO.Process.exit 1
+  | ["--run-verdicts-v2"] => do
+      match ← RelCertifier.Z3Config.discover with
+      | .error e => IO.eprintln s!"ERROR: {e}"; IO.Process.exit 1
+      | .ok cfg =>
+          if ← runAllVerdictsV2 cfg then
+            IO.println "ALL suite_v2 HYPOTHESES DISCHARGED"
+          else
+            IO.eprintln "SOME suite_v2 HYPOTHESIS NOT DISCHARGED"; IO.Process.exit 1
   | ["--emit-viability3", path, defname] => do
       match ← RelCertifier.Z3Config.discover with
       | .error e => IO.eprintln s!"ERROR: {e}"; IO.Process.exit 1

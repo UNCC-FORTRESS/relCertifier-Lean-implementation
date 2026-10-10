@@ -141,10 +141,20 @@ def packsV2 : List PackV2 :=
     ⟨"platoon3_profiles", 6, 0, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17], 1, 1, 0, 2⟩,
     -- platoon3_linkloss
     ⟨"platoon3_linkloss", 6, 0, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], 1, 1, 0, 0⟩,
-    ⟨"platoon3_linkloss", 6, 1, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], 1, 1, 1, 0⟩ ]
+    ⟨"platoon3_linkloss", 6, 1, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], 1, 1, 1, 0⟩,
+    -- sat_detumble_weak
+    ⟨"sat_detumble_weak", 4, 0, [0, 1], 1, 1, 0, 0⟩,
+    ⟨"sat_detumble_weak", 4, 0, [0, 1], 1, 1, 0, 1⟩,
+    ⟨"sat_detumble_weak", 4, 0, [0, 1], 1, 1, 0, 2⟩,
+    -- sat3w_detumble_nominal
+    ⟨"sat3w_detumble_nominal", 6, 0, [0, 1], 1, 1, 0, 0⟩,
+    -- sat3w_detumble_weak
+    ⟨"sat3w_detumble_weak", 6, 0, [0, 1], 1, 1, 0, 0⟩,
+    ⟨"sat3w_detumble_weak", 6, 0, [0, 1], 1, 1, 0, 1⟩,
+    ⟨"sat3w_detumble_weak", 6, 0, [0, 1], 1, 1, 0, 2⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 200
+def expectedModalV2 : Nat := 214
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do

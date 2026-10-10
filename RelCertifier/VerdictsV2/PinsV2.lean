@@ -13,6 +13,9 @@ so a wrong row does not compile; with `modalVerdX_of_queries` (the rebuild denot
 kernel-checked.
 -/
 import RelCertifier.VerdictsV2.RunV2
+import RelCertifier.InstancesV2.Modal.Sat3wDetumbleWeak
+import RelCertifier.InstancesV2.Modal.Sat3wDetumbleNominal
+import RelCertifier.InstancesV2.Modal.SatDetumbleWeak
 import RelCertifier.InstancesV2.Modal.Platoon3Linkloss
 import RelCertifier.InstancesV2.Modal.Platoon3Profiles
 import RelCertifier.InstancesV2.Modal.SatDetumbleNominal
@@ -242,5 +245,28 @@ theorem pin_platoon3_linkloss_0 : V2Platoon3Linkloss.Verd 0 0 = packVerd (packsV
   pin_row _ rfl irV2_platoon3_linkloss cutV2_platoon3_linkloss (by simp [packLam, packsV2])
 theorem pin_platoon3_linkloss_1 : V2Platoon3Linkloss.Verd 1 0 = packVerd (packsV2.getD 72 default) :=
   pin_row _ rfl irV2_platoon3_linkloss cutV2_platoon3_linkloss (by simp [packLam, packsV2])
+
+theorem irV2_sat_detumble_weak : irV2 "sat_detumble_weak" = sat_detumble_weak_IRv2 := by decide
+theorem cutV2_sat_detumble_weak : cutV2 "sat_detumble_weak" = Oracle.sat_detumble_weak_cutsV2X := by decide
+theorem pin_sat_detumble_weak_0 : V2SatDetumbleWeak.Verd 0 0 = packVerd (packsV2.getD 73 default) :=
+  pin_row _ rfl irV2_sat_detumble_weak cutV2_sat_detumble_weak (by simp [packLam, packsV2])
+theorem pin_sat_detumble_weak_1 : V2SatDetumbleWeak.Verd 0 1 = packVerd (packsV2.getD 74 default) :=
+  pin_row _ rfl irV2_sat_detumble_weak cutV2_sat_detumble_weak (by simp [packLam, packsV2])
+theorem pin_sat_detumble_weak_2 : V2SatDetumbleWeak.Verd 0 2 = packVerd (packsV2.getD 75 default) :=
+  pin_row _ rfl irV2_sat_detumble_weak cutV2_sat_detumble_weak (by simp [packLam, packsV2])
+
+theorem irV2_sat3w_detumble_nominal : irV2 "sat3w_detumble_nominal" = sat3w_detumble_nominal_IRv2 := by decide
+theorem cutV2_sat3w_detumble_nominal : cutV2 "sat3w_detumble_nominal" = Oracle.sat3w_detumble_nominal_cutsV2X := by decide
+theorem pin_sat3w_detumble_nominal_0 : V2Sat3wDetumbleNominal.Verd 0 0 = packVerd (packsV2.getD 76 default) :=
+  pin_row _ rfl irV2_sat3w_detumble_nominal cutV2_sat3w_detumble_nominal (by simp [packLam, packsV2])
+
+theorem irV2_sat3w_detumble_weak : irV2 "sat3w_detumble_weak" = sat3w_detumble_weak_IRv2 := by decide
+theorem cutV2_sat3w_detumble_weak : cutV2 "sat3w_detumble_weak" = Oracle.sat3w_detumble_weak_cutsV2X := by decide
+theorem pin_sat3w_detumble_weak_0 : V2Sat3wDetumbleWeak.Verd 0 0 = packVerd (packsV2.getD 77 default) :=
+  pin_row _ rfl irV2_sat3w_detumble_weak cutV2_sat3w_detumble_weak (by simp [packLam, packsV2])
+theorem pin_sat3w_detumble_weak_1 : V2Sat3wDetumbleWeak.Verd 0 1 = packVerd (packsV2.getD 78 default) :=
+  pin_row _ rfl irV2_sat3w_detumble_weak cutV2_sat3w_detumble_weak (by simp [packLam, packsV2])
+theorem pin_sat3w_detumble_weak_2 : V2Sat3wDetumbleWeak.Verd 0 2 = packVerd (packsV2.getD 79 default) :=
+  pin_row _ rfl irV2_sat3w_detumble_weak cutV2_sat3w_detumble_weak (by simp [packLam, packsV2])
 
 end RelCertifier.VerdictsV2

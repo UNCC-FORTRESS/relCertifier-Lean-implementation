@@ -41,6 +41,9 @@ import RelCertifier.InstancesV2.Modal.ChargerFastSetpoints
 import RelCertifier.InstancesV2.Modal.AccTuneLag
 import RelCertifier.InstancesV2.Modal.AccSpoofLag
 import RelCertifier.InstancesV2.Modal.ChargerFastTapers
+import RelCertifier.InstancesV2.Modal.ArmPlateauCrit
+import RelCertifier.InstancesV2.Modal.ArmPlateauProfiles
+import RelCertifier.InstancesV2.Modal.ArmPlateauSlow
 -- the 19 copied benchmarks: legacy theorems (their literal is the suite_v2 literal)
 import RelCertifier.Instances.MatchMultiRatePruned
 import RelCertifier.Instances.RoverLadderRung1Modal
@@ -78,6 +81,9 @@ namespace RelCertifier
 #print axioms V2AccTuneLag.acc_tune_lag_modal
 #print axioms V2AccSpoofLag.acc_spoof_lag_modal
 #print axioms V2ChargerFastTapers.charger_fast_tapers_modal
+#print axioms V2ArmPlateauCrit.arm_plateau_crit_modal
+#print axioms V2ArmPlateauProfiles.arm_plateau_profiles_modal
+#print axioms V2ArmPlateauSlow.arm_plateau_slow_modal
 
 /-! ## Copied benchmarks (legacy theorems; `SameIR` ties the literals) -/
 

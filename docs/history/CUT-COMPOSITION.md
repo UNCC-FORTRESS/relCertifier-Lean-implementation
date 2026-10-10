@@ -1,3 +1,7 @@
+> **HISTORY (moved to `docs/history/` on 2026-10-10).** A superseded record, kept for
+> provenance; `docs/history/README.md` says what replaced it. Paths, file names and counts
+> below describe the repository at the time of writing, not the current artifact.
+
 # Cut composition — the declared invariant of the checked-cut benchmarks
 
 Status: landed 2026-10-08, branch `cut-composition`. Five new leaves

@@ -1,3 +1,7 @@
+> **HISTORY (moved to `docs/history/` on 2026-10-10).** A superseded record, kept for
+> provenance; `docs/history/README.md` says what replaced it. Paths, file names and counts
+> below describe the repository at the time of writing, not the current artifact.
+
 # Scope: proving the two automaton shapes equivalent on admissible starts
 
 Status: SCOPING ONLY (2026-07-19, against main = be3765f). Nothing implemented, nothing

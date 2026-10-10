@@ -22,14 +22,14 @@ reads the evidence off the tool's own output (never off the file's header):
 Every run except 4b sets RELCERT_IMPLIED_CUT=1: the suite_v2 runs use the widened cut
 channel (closures of strict guard conjuncts, implied-contraction atoms, and the
 linear-form chain of recognized second-order pairs; Checker/EvolStrengtheningX.lean),
-which is off by default so that the suite_uniform pins keep reading the legacy
-certificate. The `[cut-x]` debug lines list the widened atoms (kind, O1 justification,
+which is off by default (a run without it searches with the guard-conjunct certificate
+alone, the one the 19 carried-over legacy instances quote). The `[cut-x]` debug lines list the widened atoms (kind, O1 justification,
 O2 route, conditioning atoms).
 
 From (2) the script REPLAYS the verified checker's structural cover (`decideCovered`,
 RelCertifier/Checker/Checker.lean) on the emitted flags and the file's declared
 successor lists minus the pruned edges, in the checker's own alternative order
-(base, joint step, dynamic reposition; the static reposition was removed 2026-10-09),
+(base, joint step, dynamic reposition),
 and records the derivation
 it finds: which right modes the cover path visits, whether a right-only reposition
 step is on it, and the largest number of distinct non-self retained successors at a
@@ -63,7 +63,7 @@ Usage:
   scripts/suite_v2_matrix.py [--bench DIR] [--relcert BIN] [--json OUT.json] [--md OUT.md]
                              [--only name1,name2] [--timeout SEC]
 
-The normalized-hash duplicate check of docs/SUITE-DEDUPE.md is run over the whole set.
+The normalized-hash duplicate check of docs/history/SUITE-DEDUPE.md is run over the whole set.
 """
 import argparse, hashlib, json, os, re, subprocess, sys, time
 from fractions import Fraction
@@ -71,8 +71,9 @@ from fractions import Fraction
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, ".."))
 
-# Family of a benchmark (by name prefix) and the scenario kind of the benchmarks that
-# were copied unchanged from suite_uniform (their headers carry no `# scenario:` line).
+# Family of a benchmark (by name prefix) and the scenario kind of the 19 benchmarks that
+# were copied unchanged from the retired legacy suite (their headers carry no
+# `# scenario:` line).
 FAMILIES = [
     ("acc_", "ACC under sensor spoofing / retune"),
     ("quad_", "Quadrotor climb, lighter airframe"),
@@ -161,7 +162,7 @@ def parse_input(path):
     return prob
 
 def tolerance_masked_hash(path):
-    """docs/SUITE-DEDUPE.md tolerance-only variants: the normalized text with every numeric
+    """docs/history/SUITE-DEDUPE.md tolerance-only variants: the normalized text with every numeric
     literal of the [relational_invariant] rows masked -- two files with the same masked hash
     differ at most in their tolerance constants."""
     out, inrows = [], False
@@ -177,7 +178,7 @@ def tolerance_masked_hash(path):
     return hashlib.md5(("\n".join(out) + "\n").encode()).hexdigest()
 
 def normalized_hash(path):
-    """docs/SUITE-DEDUPE.md: comments, trailing blanks, blank lines and the `name =` line removed."""
+    """docs/history/SUITE-DEDUPE.md: comments, trailing blanks, blank lines and the `name =` line removed."""
     out = []
     for raw in open(path, encoding="utf-8"):
         s = re.sub(r"#.*$", "", raw).rstrip()

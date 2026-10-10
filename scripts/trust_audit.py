@@ -2,7 +2,8 @@
 """Import-direction audit for the trust boundary.
 
 Files under RelCertifier/Trusted/ may import: other Trusted modules, Core, Checker,
-and non-RelCertifier packages. They must NEVER import Proofs, Instances, or Archive —
+and non-RelCertifier packages. They must NEVER import Proofs, Instances, InstancesV2,
+Verdicts or VerdictsV2 —
 the trusted surface cannot depend on the things it is supposed to justify.
 Exit 1 on any violation.
 """

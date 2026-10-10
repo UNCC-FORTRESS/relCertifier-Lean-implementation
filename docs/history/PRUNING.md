@@ -1,3 +1,7 @@
+> **HISTORY (moved to `docs/history/` on 2026-10-10).** A superseded record, kept for
+> provenance; `docs/history/README.md` says what replaced it. Paths, file names and counts
+> below describe the repository at the time of writing, not the current artifact.
+
 # Non-connection pruning — the suite exhibit (2026-10-08, branch `pruning-suite`)
 
 Status: landed 2026-10-08. One benchmark (`match_multi_rate`) exercises the paper's

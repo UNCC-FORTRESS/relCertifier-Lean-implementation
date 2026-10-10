@@ -1,5 +1,20 @@
 # Suite redesign — `benchmarks/suite_v2` (2026-10-08, branch `suite-redesign`)
 
+> **Current state (2026-10-10).** `benchmarks/suite_v2` has **45 benchmarks**, all CERTIFIED
+> with `RELCERT_IMPLIED_CUT=1` (12 DECLINE without it), and every one carries a
+> kernel-checked Theorem 3 (`RelCertifier/InstancesV2/BatteryV2.lean`; `README.md`). The
+> mechanism matrix, re-run on 2026-10-10 with `scripts/suite_v2_matrix.py`, gives the totals
+> **M1 17, M2 33, M3 12, M4 19, M5 12, M6 29, M6+ 12, M6L 8**, no per-mode evolve domains,
+> no duplicates, no tolerance-only variants (the same totals as §18; §3, §8 and §9 below
+> are the generated tables of that pass). The legacy suite `suite_uniform` that §12 and
+> several passes compare against was removed from the tree on 2026-10-10 (git history
+> keeps it); the docs this file cites as `docs/PRUNING.md`, `docs/SUITE-DEDUPE.md`,
+> `docs/COVER-AUDIT.md` and `docs/proposals/*` now live in `docs/history/`. Where things are:
+> the check recipe is `docs/CERTIFICATION-CHECK.md`, the verdict runner `docs/VERDICTS.md`,
+> the paper mapping `docs/PAPER-MAPPING.md`. The sections below are the design record,
+> pass by pass, and are not rewritten.
+
+
 Status: tool-side, landed on `suite-redesign` in two passes. Pass 1 (`1830a12`,
 `910ae8e`): the suite and this document, no tool change. Pass 2 (2026-10-08, from
 `7c5a11c`): the tool's cut channel widened (§7 L1, L2 — implied-contraction atoms and

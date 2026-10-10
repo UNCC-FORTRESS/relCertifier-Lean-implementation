@@ -1,3 +1,11 @@
+> **HISTORY (moved to `docs/history/` on 2026-10-10; superseded).** The live findings this
+> file used to carry are now stated elsewhere: the account of the right automaton's `⊤`
+> edge guards and of the two step kinds is `docs/PAPER-MAPPING.md` §2e; the static
+> reposition removed on 2026-10-09 (the last note below) no longer exists in the code; the
+> parser-key gate is `RelCertifier/Trusted/KeyAudit.lean`; stratified differential cuts are
+> `Trusted/Run.lean` `strataDomIR` and `Proofs/Flow/StratifiedBarrier.lean`. Paths and counts
+> below describe the repository at the time (the legacy suite).
+
 # Audit: the tool's cover search vs. the mechanization (task H realign)
 
 > **STATUS BANNER (2026-07-30).** This file is chronological. Two findings below are

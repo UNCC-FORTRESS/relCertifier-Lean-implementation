@@ -1,3 +1,7 @@
+> **HISTORY (moved to `docs/history/` on 2026-10-10).** A superseded record, kept for
+> provenance; `docs/history/README.md` says what replaced it. Paths, file names and counts
+> below describe the repository at the time of writing, not the current artifact.
+
 # Verdict-hypothesis evidence audit — 2026-07-31
 
 > **Note (2026-10-08).** This audit was performed on the 46-benchmark suite. `arm_fidelity_high`, `plant_fan_high`, `arm_refinement`, `plant_fan_low`, `match_multi_eps` and `plant_fan_mid` were removed as duplicates afterwards (`SUITE-DEDUPE.md`); rows naming them describe the suite as it was.

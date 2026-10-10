@@ -1,3 +1,7 @@
+> **HISTORY (moved to `docs/history/` on 2026-10-10).** A superseded record, kept for
+> provenance; `docs/history/README.md` says what replaced it. Paths, file names and counts
+> below describe the repository at the time of writing, not the current artifact.
+
 # Design: the winning-region fixpoint — "the automaton refines L" for every benchmark
 
 > **PREMISE SUPERSEDED (2026-07-30).** This design was scoped to buy the suite-wide modal

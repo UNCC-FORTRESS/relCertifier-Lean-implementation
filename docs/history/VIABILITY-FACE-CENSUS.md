@@ -1,3 +1,7 @@
+> **HISTORY (moved to `docs/history/` on 2026-10-10).** A superseded record, kept for
+> provenance; `docs/history/README.md` says what replaced it. Paths, file names and counts
+> below describe the repository at the time of writing, not the current artifact.
+
 # Viability face census — measured, 47 benchmarks
 
 > **Note (2026-10-08).** Census taken on the 46-benchmark suite. After the removal of six duplicate benchmarks (`SUITE-DEDUPE.md`) the committed `BenchViability2.lean` lists 1085 faces (36 fewer: 8 + 4 + 6 + 8 + 4 + 6 for `arm_fidelity_high`, `arm_refinement`, `match_multi_eps`, `plant_fan_high`, `plant_fan_low`, `plant_fan_mid`); the per-face findings below are unchanged.

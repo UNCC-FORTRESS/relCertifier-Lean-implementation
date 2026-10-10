@@ -185,23 +185,14 @@ def runSpec (s : Z3Session) (spec : VerdSpec) (info : RunInfo)
 kernel-tied to the theorem by `modal_from_spec`. -/
 def modalTable : List (VerdSpec × RunInfo × List ℕ) :=
 [
-  (ArmChainRung3.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1, region := some (3/5), fixedOther := some 3 }, [0]),
-  (ArmFidelityMid.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1, region := some (3/5), fixedOther := some 2 }, [0]),
-  (AttitudeRate.spec, { dim := 6, invRow := 0, lamN := 2, lamD := 1, argIsRight := true, fixedOther := some 0 }, [0]),
-  (EnduranceGainM1.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1 }, [0]),
-  (EnduranceOrderlift1to2.spec, { dim := 3, invRow := 0, lamN := 2, lamD := 1 }, [0]),
-  (EnduranceOrderlift2to3.spec, { dim := 4, invRow := 0, lamN := 1, lamD := 1 }, [0, 1]),
   (MatchMultiRate.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1, fixedOther := some 0, lamPerL := [(3,1),(2,1),(1,1)] }, [0]),
   -- two components, per `pin_Rover3tierRung12Accel` and the spec's own `order`
   (Rover3tierRung12Accel.spec, { dim := 3, invRow := 0, lamN := 2, lamD := 1, argIsRight := true, fixedOther := some 0 }, [0, 1]),
   (Rover3tierRung12Coast.spec, { dim := 3, invRow := 1, lamN := 1, lamD := 1, argIsRight := true, fixedOther := some 1 }, [0]),
-  (Rover4dBox.spec, { dim := 4, invRow := 0, lamN := 1, lamD := 1, fixedOther := some 1 }, [0]),
-  (RoverAttitudeCone.spec, { dim := 12, invRow := 0, lamN := 17, lamD := 10, ceilCo := some 0, ceilFlip := false, ceilKs := [3/10, 1/2, 13/20] }, [0, 1, 2, 3]),
   (RoverDofTerrainRung1.spec, { dim := 3, invRow := 0, lamN := 1, lamD := 1 }, [0, 1]),
   (RoverDofTerrainRung2.spec, { dim := 6, invRow := 0, lamN := 1, lamD := 1 }, [0, 1]),
   (RoverDofTerrainRung38d.spec, { dim := 8, invRow := 0, lamN := 1, lamD := 1 }, [0, 1]),
   (RoverDofTerrainRung3.spec, { dim := 12, invRow := 0, lamN := 1, lamD := 1 }, [0, 1]),
-  (RoverDrag.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1 }, [0]),
   (RoverLadderRung1.spec, { dim := 3, invRow := 0, lamN := 1, lamD := 1 }, [0, 1]),
   (RoverLadderRung2.spec, { dim := 6, invRow := 0, lamN := 1, lamD := 1 }, [0, 2, 3, 1]),
   (RoverLadderRung3.spec, { dim := 8, invRow := 0, lamN := 9, lamD := 4, ceilCo := some 0, ceilFlip := false, ceilKs := [3/10, 1/2, 13/20] }, [0, 1, 2, 3]),
@@ -213,20 +204,16 @@ def modalTable : List (VerdSpec × RunInfo × List ℕ) :=
   (RoverRung2c.spec, { dim := 6, invRow := 0, lamN := 1, lamD := 1,
                        tailCo := some 1, tailFlip := true,
                        tailKs := [0, 3/5, 7/5] }, [0, 1, 4, 5, 6, 7, 2, 3]),
-  (RoverTerrainM1.spec, { dim := 2, invRow := 0, lamN := 1, lamD := 1 }, [0]),
-  (RoverTierR1.spec, { dim := 3, invRow := 0, lamN := 19, lamD := 4, ceilCo := some 1, ceilFlip := true, ceilKs := [3/10] }, [0]),
   (Story1AttdistRungA.spec, { dim := 8, invRow := 1, lamN := 1, lamD := 1 }, [0, 1]),
   (Story1AttdistRungB.spec, { dim := 12, invRow := 0, lamN := 1, lamD := 1, ceilCo := some 0, ceilFlip := false, ceilKs := [3/10, 1/2, 13/20] }, [0, 1]),
   (Story2LateralA.spec, { dim := 8, invRow := 0, lamN := 1, lamD := 1 }, [0, 1, 3, 4, 5, 6, 2]),
   (Story2LateralB.spec, { dim := 12, invRow := 0, lamN := 1, lamD := 1 }, [0, 1, 2, 4, 5, 6, 7, 3]),
   (Story3RolloverBase.spec, { dim := 12, invRow := 0, lamN := 5, lamD := 4, ceilCo := some 0, ceilFlip := false, ceilKs := [3/10, 1/2, 13/20] }, [0, 1, 2, 3, 4]),
   (Story3RolloverRungA.spec, { dim := 12, invRow := 0, lamN := 27, lamD := 20, ceilCo := some 0, ceilFlip := false, ceilKs := [3/10, 1/2, 13/20] }, [0, 1, 2]),
-  (Story3RolloverRungB.spec, { dim := 12, invRow := 1, lamN := 1, lamD := 1 }, [0, 1]),
   -- the mode-keyed (handoff-composed) instances' own packs: the STEEP window at its full
   -- declared row (three components, `v` first), and `story1_attdist_rung_b`'s rows with the
   -- ceiling head, per `Instances/*Handoff.lean`
   (Story1AttdistRungASteep.spec, { dim := 8, invRow := 0, lamN := 1, lamD := 1, argIsRight := true, fixedOther := some 0 }, [0, 1, 2]),
-  (Story3RolloverRungBSteep.spec, { dim := 12, invRow := 0, lamN := 1, lamD := 1, argIsRight := true, fixedOther := some 0 }, [0, 1, 2]),
   (Story1AttdistRungBRow0.spec, { dim := 12, invRow := 0, lamN := 1, lamD := 1, ceilCo := some 0, ceilFlip := false, ceilKs := [3/10, 1/2, 13/20], argIsRight := true, fixedOther := some 0 }, [0, 1, 2]),
   (Story1AttdistRungBRow1.spec, { dim := 12, invRow := 1, lamN := 1, lamD := 1, ceilCo := some 0, ceilFlip := false, ceilKs := [3/10, 1/2, 13/20] }, [0, 1]),
   (Story1AttdistRungBRow2.spec, { dim := 12, invRow := 2, lamN := 1, lamD := 1, ceilCo := some 0, ceilFlip := false, ceilKs := [3/10, 1/2, 13/20] }, [0, 1])

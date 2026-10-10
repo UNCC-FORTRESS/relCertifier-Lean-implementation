@@ -10,7 +10,6 @@ if any assertion fails. These are the anti-flakiness / anti-masquerade guarantee
 synthesis loop depends on.
 -/
 import RelCertifier.Trusted.OracleAPI
-import RelCertifier.Instances.BenchIR
 import RelCertifier.InstancesV2.BenchIR
 import RelCertifier.Trusted.Z3
 
@@ -177,20 +176,10 @@ def testPrinter (cfg : Z3Config) : IO Unit := do
         (.and (eq x (r (-2))) (.cmp .ne (.bin .mul x x) (r 4))) true
       s.close
 
-/-! ## IR drift check: every embedded literal must equal a fresh parse of its file -/
-def testIRDrift : IO Unit := do
-  IO.println "[ir-drift]"
-  let mut bad := 0
-  for (nm, p) in RelCertifier.Parse.benchIRTable do
-    let path := s!"benchmarks/suite_uniform/{nm}/input.txt"
-    let txt ← try IO.FS.readFile path catch _ => pure ""
-    match RelCertifier.Parse.parseProblemE txt with
-    | .error e => bad := bad + 1; check s!"{nm}: parse ({e})" false
-    | .ok q =>
-        if q == p then pure ()
-        else bad := bad + 1; check s!"{nm}: literal == fresh parse" false
-  check s!"all {RelCertifier.Parse.benchIRTable.length} IR literals match their files"
-    (bad == 0)
+/-! ## IR drift check: every embedded literal must equal a fresh parse of its file
+
+The 19 carried-over legacy literals (`Instances/BenchIR`) are tied to these by
+`InstancesV2/SameIR.lean` (`rfl`), so this one check covers them too. -/
 
 /-- The suite_v2 drift check: every `benchIRTableV2` literal equals a fresh parse of
 `benchmarks/suite_v2/<name>/input.txt`, and the table covers all 45 files. -/
@@ -242,21 +231,21 @@ def testDeterminism (cfg : Z3Config) : IO Unit := do
   match ← Z3Session.start cfg with
   | .error e => check s!"session ({e})" false
   | .ok s =>
-      -- a CERTIFIED benchmark, 8× on one warm session (`watertank` until 2026-10-09; it is
-      -- DECLINED since the static reposition was removed)
+      -- a CERTIFIED benchmark, 8× on one warm session
       match ← loadProblem "match_multi_rate" with
       | none => skip "match_multi_rate: 8× identical CERTIFIED" "BENCH_PATHS not set"
       | some p => do
           let mut outs : List Bool := []
           for _ in [0:8] do outs := outs ++ [isCert (← certify s p)]
           check "match_multi_rate: 8× identical CERTIFIED" (outs.all id)
-      -- a DECLINED benchmark, 8× identical verdict (stability, not the value)
-      match ← loadProblem "rover_terrain_M1" with
-      | none => skip "declined benchmark: 8× identical verdict" "BENCH_PATHS not set"
+      -- a DECLINED benchmark, 8× identical verdict (stability, not the value):
+      -- `acc_spoof_lag` declines unless `RELCERT_IMPLIED_CUT=1` widens the cut channel
+      match ← loadProblem "acc_spoof_lag" with
+      | none => skip "acc_spoof_lag: 8× identical verdict" "BENCH_PATHS not set"
       | some p => do
           let mut tags : List String := []
           for _ in [0:8] do tags := tags ++ [(← certify s p).tag]
-          check "declined benchmark: 8× identical verdict" (tags.eraseDups.length == 1)
+          check "acc_spoof_lag: 8× identical verdict" (tags.eraseDups.length == 1)
       s.close
 
 def main : IO Unit := do
@@ -266,7 +255,6 @@ def main : IO Unit := do
   | .ok cfg =>
       testZ3Layer cfg
       testParser
-      testIRDrift
       testIRDriftV2
       testPrinter cfg
       testLowering

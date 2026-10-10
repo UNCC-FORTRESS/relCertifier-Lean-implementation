@@ -2,105 +2,35 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# Runnable Stage-1 tool
+# `relcert`: the certification tool and its verdict runner
 
-Builds a relational flow obligation (the `rover_position` benchmark),
-computes the verified `lieDeriv` (via the IR mirror, pinned to it by
-`ilieDeriv_toHost`), emits SMT-LIB for the flow query `domain ∧ ġ > 0`, calls Z3, and
-reports certified / not. `unsat` is the only trusted verdict:
-`unsat ⟹ flow_certified ⟹ the invariant component is preserved along the flow`.
+* `relcert <input.txt>…` runs the certifier (`Trusted/OracleAPI.certify`) on each benchmark
+  on one warm Z3 session and prints CERTIFIED / DECLINED / ERROR per file.
+* `relcert --run-verdicts-v2` re-sends every Z3 hypothesis of the suite_v2 battery
+  (`InstancesV2/BatteryV2`) with declared per-phase counts (`runAllVerdictsV2`);
+  `--check-quick-v2` certifies the 45 suite_v2 files first and checks the tally.
+* `relcert --handoff <input.txt>…` runs the cross-mode handoff check per benchmark.
+* `--emit-*` print the Lean literals the kernel-checked data layer is generated from.
+
+`unsat` is the only verdict the proofs consume (`z3_unsat_sound`). The kernel check is
+`lake build`, not a flag of this binary.
 -/
-import RelCertifier.Trusted.Smt
 import RelCertifier.Trusted.EmitIR
-import RelCertifier.Trusted.Oracle
 import RelCertifier.Trusted.Run
 import RelCertifier.Trusted.Z3
 import RelCertifier.Trusted.OracleAPI
 import RelCertifier.Trusted.ViabilityEmit
 import RelCertifier.Trusted.KeyAudit
-import RelCertifier.Verdicts.RunModal
-import RelCertifier.Verdicts.RunCut
 import RelCertifier.Verdicts.RunHandoff
-import RelCertifier.Verdicts.RunNonConn
 import RelCertifier.VerdictsV2.RunV2
 
 open RelCertifier DL
-
-/-- Coordinate names for the 2-D rover state: `px` (position), `vx` (velocity). -/
-def coord : Fin 2 → String := fun i => if i = 0 then "px" else "vx"
-
-def iL (i : Fin 2) : ITerm 2 := .var (Lv i)
-def iR (i : Fin 2) : ITerm 2 := .var (Rv i)
-
-/-- `L_px − R_px − 2`  (the invariant component `g ≤ 0`, offset `d = 2`). -/
-def gRover : ITerm 2 := .bin .sub (.bin .sub (iL 0) (iR 0)) (.rat 2)
-
-/-- Left dynamics `Stop_L`: `px' = L_vx`,  `vx' = −½·L_vx`. -/
-def fL_stop : Fin 2 → ITerm 2 :=
-  fun i => if i = 0 then iL 1 else .bin .mul (.rat (-1/2)) (iL 1)
-
-/-- Right dynamics `Safe_R`: `px' = R_vx`,  `vx' = 0`. -/
-def fR_safe : Fin 2 → ITerm 2 :=
-  fun i => if i = 0 then iR 1 else .rat 0
-
-/-- `lo ≤ t ≤ hi`. -/
-def between (t : ITerm 2) (lo hi : ℚ) : IForm 2 :=
-  .and (.cmp .ge t (.rat lo)) (.cmp .le t (.rat hi))
-
-/-- Domain box: `px ∈ [0,15]` (both sides), `vx ∈ [vlo,vhi]` (both sides). -/
-def domainBox (vlo vhi : ℚ) : IForm 2 :=
-  .and (between (iL 0) 0 15)
-    (.and (between (iR 0) 0 15)
-      (.and (between (iL 1) vlo vhi) (between (iR 1) vlo vhi)))
-
-/-- Parse a verdict string from Z3 stdout. -/
-def parseVerdict (s : String) : Verdict :=
-  let s := s.trim
-  if s.startsWith "unsat" then .unsat
-  else if s.startsWith "sat" then .sat
-  else .unknown
-
-def runObligation (name : String) (g : ITerm 2) (fL fR : Fin 2 → ITerm 2)
-    (lam : ITerm 2) (domain : IForm 2) (expect : Verdict) : IO Bool := do
-  let q := iflowQuery g fL fR lam domain
-  let script := q.toScript coord
-  let tmp := s!"/tmp/relcert_flow_{name}.smt2"
-  IO.FS.writeFile tmp script
-  let out ← IO.Process.output { cmd := "z3", args := #[tmp] }
-  let v := parseVerdict out.stdout
-  let tag := match v with
-    | .unsat => "CERTIFIED  (unsat ⇒ ġ ≤ 0 on domain ⇒ invariant preserved, via flow_certified)"
-    | .sat => "not certified (sat: ġ > 0 somewhere on domain)"
-    | .unknown => s!"unknown ({out.stdout.trim})"
-  IO.println s!"  [{name}]  ġ-query → z3: {repr v}"
-  IO.println s!"      {tag}"
-  pure (v == expect)
-
-def demoStage1 : IO Unit := do
-  IO.println "relCertifier-lean — Stage 1: verified flow certificate"
-  IO.println "  invariant component g = L_px − R_px − 2   (g ≤ 0)"
-  IO.println "  soundness: flow_certified = z3_unsat_sound + flow_cert_sound (dL-lean DI_nonstrict_domain)"
-  IO.println "  UNSAT of  domain ∧ ġ>0  is the only trusted verdict"
-  IO.println ""
-  IO.println "rover_position  Stop_L / Safe_R :"
-  -- λ=4: ġ = L_vx − 4·R_vx, vx∈[0.3,1] ⇒ ġ ≤ −0.2 < 0 ⇒ unsat (PASS)
-  let r1 ← runObligation "stop_safe_lam4" gRover fL_stop fR_safe (.rat 4)
-              (domainBox (3/10) 1) Verdict.unsat
-  -- λ=1: ġ = L_vx − R_vx, vx∈[0,1] ⇒ ġ can be +1 ⇒ sat (FAIL, rate gap)
-  let r2 ← runObligation "stop_safe_lam1" gRover fL_stop fR_safe (.rat 1)
-              (domainBox 0 1) Verdict.sat
-  IO.println ""
-  if r1 && r2 then
-    IO.println "✓ both verdicts match the expected flow-certificate results"
-  else do
-    IO.println "✗ verdict mismatch"
-    IO.Process.exit 1
 
 open RelCertifier.Oracle in
 /-- Run the oracle over `paths` on ONE warm Z3 session; print `path: TAG (Δms)` per file
 and an ERROR count, returning the `(certified, declined, errors)` tally.
 
-Split out from `runBatch` so `--check-quick` can consume the tally instead of
+Split out from `runBatch` so `--check-quick-v2` can consume the tally instead of
 re-implementing the loop; a check that reasons about a copy of this code would not be
 checking what the tool does. -/
 def runBatchTally (paths : List String) : IO (Nat × Nat × Nat) := do
@@ -135,33 +65,6 @@ def runBatch (paths : List String) : IO Unit := do
   let (_, _, errs) ← runBatchTally paths
   if errs > 0 then IO.Process.exit 1
 
-/-- Every verdict phase, with its declared coverage checked. Shared by `--run-verdicts`
-and `--check-quick`. -/
-def runAllVerdicts (cfg : RelCertifier.Z3Config) : IO Bool := do
-  let exp := RelCertifier.Verdicts.expected
-  let n1 ← RelCertifier.Verdicts.dischargedCount.get
-  let ok2 ← RelCertifier.Verdicts.runCutProbes cfg
-  let n2 ← RelCertifier.Verdicts.dischargedCount.get
-  let ok3 ← RelCertifier.Verdicts.runModal cfg
-  let n3 ← RelCertifier.Verdicts.dischargedCount.get
-  let ok4 ← RelCertifier.Verdicts.runHandoffAll cfg
-  let n4 ← RelCertifier.Verdicts.dischargedCount.get
-  let ok5 ← RelCertifier.Verdicts.runNonConnAll cfg
-  let n5 ← RelCertifier.Verdicts.dischargedCount.get
-  -- a phase that issued fewer queries than it owes is not a green run, however clean
-  -- its own output looked (Verdicts/Coverage.lean)
-  let c2 ← RelCertifier.Verdicts.checkPhase "cut probes" (n2 - n1) exp.cut
-  let c3 ← RelCertifier.Verdicts.checkPhase "modal" (n3 - n2) exp.modal
-  -- the handoff phase counts its `unsat`s; the declared failures are not discharged, so
-  -- the owed count is the total minus the declared failure list
-  let c4 ← RelCertifier.Verdicts.checkPhase "handoff" (n4 - n3)
-    (exp.handoff - RelCertifier.Verdicts.expectedHandoffFailures.length)
-  -- the non-connection phase: two queries per pruned edge, both counts declared
-  let c5 ← RelCertifier.Verdicts.checkPhase "non-connection" (n5 - n4) exp.nonconn
-  let c5' ← RelCertifier.Verdicts.checkPhase "pruned edges"
-    RelCertifier.Verdicts.prunedEdges.length exp.prunedEdges
-  pure (ok2 && ok3 && ok4 && ok5 && c2 && c3 && c4 && c5 && c5')
-
 /-- Every suite_v2 verdict phase, with its declared coverage checked (`--run-verdicts-v2`,
 `--check-quick-v2`). -/
 def runAllVerdictsV2 (cfg : RelCertifier.Z3Config) : IO Bool := do
@@ -192,19 +95,16 @@ def usage : String :=
 
 USAGE
   relcert <benchmark input.txt>...        certify benchmarks (CERTIFIED/DECLINED/ERROR)
-  relcert --run-verdicts                  re-run every theorem's Z3 hypotheses
-                                          (incl. the cross-mode handoff phase and the
-                                          non-connection phase: both pruning queries
-                                          of every pruned edge)
+  relcert --run-verdicts-v2               re-send every Z3 hypothesis of the suite_v2
+                                          battery, with declared per-phase counts:
+                                          modal packs, handoff, non-connection (both
+                                          pruning queries of every pruned edge), and the
+                                          packs of the 19 carried-over theorems
+  RELCERT_IMPLIED_CUT=1 relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt
+                                          certify the 45 suite_v2 files (declared 45
+                                          certified, 0 declined), then --run-verdicts-v2
   relcert --handoff <input.txt>...        the handoff check alone, per benchmark, with
                                           per-transition verdicts and wall time
-  relcert --check-quick <input.txt>...    the fast checks: certify, then --run-verdicts
-  relcert --run-verdicts-v2               the suite_v2 hypotheses: modal packs of the
-                                          InstancesV2 theorems, handoff and
-                                          non-connection phases (declared counts)
-  RELCERT_IMPLIED_CUT=1 relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt
-                                          the suite_v2 fast checks (45 certified,
-                                          0 declined), then --run-verdicts-v2
   relcert --help                          this text
 
 EMITTERS (regenerate committed Lean literals; each prints to stdout)
@@ -212,26 +112,24 @@ EMITTERS (regenerate committed Lean literals; each prints to stdout)
   relcert --emit-cover      <input.txt> <defname>
   relcert --emit-cuts       <input.txt> <defname>
   relcert --emit-viability  <input.txt> <defname>     (also --emit-viability2, -3)
+  scripts/gen_v2_data.py drives the first three over benchmarks/suite_v2.
 
 NOT PART OF THIS BINARY
   The kernel check is the Lean toolchain, not a flag here:
-    lake build                                      kernel-checks everything (~13 h)
-    lake build RelCertifier.Instances.ModalBattery  the 46 theorems + axiom audit
+    lake build                                       kernel-checks everything
+    lake build RelCertifier.InstancesV2.BatteryV2    the suite_v2 battery + axiom audit
   The trusted-layer tests are a separate executable:
     BENCH_PATHS=<manifest> ./.lake/build/bin/relcert-test
-  `relcert-test` silently skips its two Z3-determinism checks unless BENCH_PATHS
-  points at a TSV of `<benchmark name>\\t<absolute path to input.txt>`; a complete run
-  prints a bare `ALL PASS`, a skipping one says so in the final line.
+  `relcert-test` skips its two Z3-determinism checks unless BENCH_PATHS points at a TSV
+  of `<benchmark name>\t<absolute path to input.txt>` covering benchmarks/suite_v2; a
+  complete run prints a bare `ALL PASS`, a skipping one says so in the final line.
 
-  The full four-check recipe is docs/CERTIFICATION-CHECK.md.
+  The full recipe is docs/CERTIFICATION-CHECK.md.
 
 SWITCHES (environment)
-  RELCERT_NO_PRUNE=1   disable non-connection pruning (the paper's Section 4.3 device):
-                       every declared right edge stays in the cover's all-successors
-                       obligation; docs/PRUNING.md shows the benchmark it flips
-  RELCERT_NO_CUT=1     disable the checked-cut channel (queries on the bare evolve domains)
   RELCERT_IMPLIED_CUT=1
-                       widen the cut candidates (off by default): the closure of a strict
+                       widen the cut candidates (off by default; the suite_v2 runs set it,
+                       12 suite_v2 benchmarks decline without it): the closure of a strict
                        guard conjunct (O1 by weakening) and, for a contraction field
                        x' = k (c - x), the atoms x <= c / x >= c (O1 by rational
                        comparison with a threshold guard conjunct, else one Z3 query
@@ -241,16 +139,27 @@ SWITCHES (environment)
                        box (O1 rational, O2 by the rational linear shape), then the
                        derived bound x <= c + K/r stratified on it; --emit-cuts then
                        also prints the extended certificate `<defname>X` (atom, kind,
-                       O1, O2 route, conditioning atoms). The suite_uniform pins read
-                       the default (legacy) certificate.
+                       O1, O2 route, conditioning atoms) that Proofs/Soundness/CutLiftX
+                       lifts to the kernel
   RELCERT_NO_IMPLIED_CUT=1
                        force the widened candidates off (the counter-run of the suite_v2
-                       matrix, legacy guard-conjunct cuts only)
+                       matrix: guard-conjunct cuts only)
   RELCERT_NO_LINEAR_CUT=1
                        keep the closures and implied-contraction atoms but switch the
                        linear-form chain off (the matrix's M6L counter-run)
+  RELCERT_NO_PRUNE=1   disable non-connection pruning (the paper's Section 4.3 device):
+                       every declared right edge stays in the cover's all-successors
+                       obligation
+  RELCERT_NO_CUT=1     disable the checked-cut channel (queries on the bare evolve domains)
   RELCERT_DEBUG=1      per-mode diagnostics on stderr (cuts, admissible starts, pruned
                        edges, per-λ segment status; [cut-x] lines for the widened atoms)
+  Solver and budget defaults (override per run):
+  RELCERT_Z3=<path>               the Z3 binary (else the first of a fixed list of paths)
+  RELCERT_Z3_TIMEOUT=<ms>         per-query wall-clock timeout, default 10000
+  RELCERT_Z3_RLIMIT=<units>       per-query deterministic rlimit, default 64000000
+                                  (0 disables it)
+  RELCERT_MAX_QUERIES=<n>         per-benchmark query budget, default 20000
+  RELCERT_TIME_BUDGET_MS=<ms>     per-benchmark wall-clock budget, default 40000
 
 EXIT
   0 success · 1 a check failed · 2 environment problem (no z3, bad usage)"
@@ -376,14 +285,6 @@ def main (args : List String) : IO Unit := do
   | ["--emit-ir", path, defname] => emitIR path defname
   | ["--help"] => IO.println usage
   | ["-h"] => IO.println usage
-  | ["--run-verdicts"] => do
-      match ← RelCertifier.Z3Config.discover with
-      | .error e => IO.eprintln s!"ERROR: {e}"; IO.Process.exit 1
-      | .ok cfg =>
-          if ← runAllVerdicts cfg then
-            IO.println "ALL HYPOTHESES DISCHARGED"
-          else
-            IO.eprintln "SOME HYPOTHESIS NOT DISCHARGED"; IO.Process.exit 1
   | ["--run-verdicts-v2"] => do
       match ← RelCertifier.Z3Config.discover with
       | .error e => IO.eprintln s!"ERROR: {e}"; IO.Process.exit 1
@@ -409,7 +310,7 @@ def main (args : List String) : IO Unit := do
       | .error e => IO.eprintln s!"ERROR: {e}"; IO.Process.exit 1
       | .ok cfg => RelCertifier.Oracle.emitCoverFile cfg path defname
   | ["--emit-cuts", path, defname] => emitCuts path defname
-  | [] => demoStage1
+  | [] => IO.println usage
   | "--handoff" :: paths => do
       if paths.isEmpty then
         IO.eprintln "ERROR: --handoff needs benchmark paths (see --help)"
@@ -457,24 +358,6 @@ run it as RELCERT_IMPLIED_CUT=1 relcert --check-quick-v2 benchmarks/suite_v2/*/i
         IO.println "SUITE_V2 QUICK CHECKS PASSED  (the kernel check is `lake build`)"
       else
         IO.eprintln "SUITE_V2 QUICK CHECKS FAILED"; IO.Process.exit 1
-  | "--check-quick" :: paths => do
-      if paths.isEmpty then
-        IO.eprintln "ERROR: --check-quick needs benchmark paths (see --help)"
-        IO.Process.exit 2
-      IO.println "== check 1/2 : certify the benchmarks =="
-      let (cert, decl, errs) ← runBatchTally paths
-      let okSuite ← RelCertifier.Verdicts.checkSuite paths.length cert decl errs
-      IO.println "\n== check 2/2 : discharge the verdict hypotheses =="
-      let okVerd ← match ← RelCertifier.Z3Config.discover with
-        | .error e => IO.eprintln s!"ERROR: {e}"; pure false
-        | .ok cfg => runAllVerdicts cfg
-      IO.println ""
-      IO.println s!"  suite:    {if okSuite then "PASS" else "FAIL"}"
-      IO.println s!"  verdicts: {if okVerd then "PASS" else "FAIL"}"
-      if okSuite && okVerd then
-        IO.println "QUICK CHECKS PASSED  (the kernel check is `lake build` — see --help)"
-      else
-        IO.eprintln "QUICK CHECKS FAILED"; IO.Process.exit 1
   -- Reject unknown flags rather than treating them as benchmark paths: a mistyped
   -- `--run-verdict` used to be reported as a missing *file*, which reads like a bad
   -- path rather than a bad command.

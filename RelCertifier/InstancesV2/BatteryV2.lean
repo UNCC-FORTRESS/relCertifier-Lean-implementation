@@ -28,6 +28,7 @@ import RelCertifier.InstancesV2.SameIR
 import RelCertifier.InstancesV2.CoverReplay
 import RelCertifier.VerdictsV2.PinsV2
 import RelCertifier.VerdictsV2.CoveragePinsV2
+import RelCertifier.VerdictsV2.NonConnPinV2
 -- new suite_v2 instances
 import RelCertifier.InstancesV2.Modal.Watertank
 import RelCertifier.InstancesV2.Modal.PlatoonDelayProfiles

@@ -53,127 +53,78 @@ this way — see `docs/VERDICT-EVIDENCE-AUDIT.md` — so they stay written out, 
 noncomputable def row (i : ℕ) : ModalSpecs.VerdSpec × RunInfo × List ℕ :=
   modalTable.getD i (ModalSpecs.MatchMultiRate.spec, { dim := 0 }, [])
 
-/-! ## One-component instances
-
-Their `Verd` is a bare disjunction over the whole invariant row. The `comps_*` pin
-beside each one states that the runner's rebuilt component list is exactly that row,
-so its single loop iteration issues these same three queries. -/
-
-open RelCertifier.Rover4dBoxModal in
-theorem pin_Rover4dBox (l : ℕ) :
-    Verd3 l = modalVerd1 rover_4d_box_IR (row 9).2.1.dim (row 9).2.1.invRow (1 : ℝ) l 1 := pin1_of rfl
-
-theorem comps_Rover4dBox :
-    modalComps rover_4d_box_IR (row 9).2.1.invRow (row 9).2.1.dim (row 9).2.2 none none
-      = [modalRowG rover_4d_box_IR (row 9).2.1.invRow (row 9).2.1.dim] := by rfl
-
-open RelCertifier.RoverDragModal in
-theorem pin_RoverDrag :
-    VerdRD = modalVerd1 rover_drag_IR (row 15).2.1.dim (row 15).2.1.invRow (1 : ℝ) 0 0 := pin1_of rfl
-
-theorem comps_RoverDrag :
-    modalComps rover_drag_IR (row 15).2.1.invRow (row 15).2.1.dim (row 15).2.2 none none
-      = [modalRowG rover_drag_IR (row 15).2.1.invRow (row 15).2.1.dim] := by rfl
-
 /-! ## Multi-component instances, no extra head -/
-
-open RelCertifier.AttitudeRateModal in
-theorem pin_AttitudeRate (m : ℕ) :
-    VerdW m = modalVerd attitude_rate_IR
-        (row 2).2.1.dim (row 2).2.1.invRow (row 2).2.2 none none (2 : ℝ) 0 m := pin_of rfl
-
-open RelCertifier.EnduranceGainM1Modal in
-theorem pin_EnduranceGainM1 (l m : ℕ) :
-    VerdG l m = modalVerd endurance_gain_M1_IR
-        (row 3).2.1.dim (row 3).2.1.invRow (row 3).2.2 none none (1 : ℝ) l m := pin_of rfl
-
-open RelCertifier.EnduranceOrderlift1to2Modal in
-theorem pin_EnduranceOrderlift1to2 (l m : ℕ) :
-    VerdO l m = modalVerd endurance_orderlift_1to2_IR
-        (row 4).2.1.dim (row 4).2.1.invRow (row 4).2.2 none none (2 : ℝ) l m :=
-  pin_of rfl
-
-open RelCertifier.EnduranceOrderlift2to3Modal in
-theorem pin_EnduranceOrderlift2to3 (l m : ℕ) :
-    VerdJ l m = modalVerd endurance_orderlift_2to3_IR
-        (row 5).2.1.dim (row 5).2.1.invRow (row 5).2.2 none none (1 : ℝ) l m :=
-  pin_of rfl
 
 open RelCertifier.MatchMultiRateModal in
 theorem pin_MatchMultiRate (l : ℕ) :
     VerdM l = modalVerd match_multi_rate_IR
-        (row 6).2.1.dim (row 6).2.1.invRow (row 6).2.2 none none (lamM l : ℝ) l 0 :=
+        (row 0).2.1.dim (row 0).2.1.invRow (row 0).2.2 none none (lamM l : ℝ) l 0 :=
   pin_of rfl
 
 open RelCertifier.Rover3tierRung12Modal in
 theorem pin_Rover3tierRung12Accel (m : ℕ) :
     VerdQA m = modalVerd rover3tier_rung12_IR
-        (row 7).2.1.dim (row 7).2.1.invRow (row 7).2.2 none none (2 : ℝ) 0 m :=
+        (row 1).2.1.dim (row 1).2.1.invRow (row 1).2.2 none none (2 : ℝ) 0 m :=
   pin_of rfl
 
 open RelCertifier.Rover3tierRung12Modal in
 theorem pin_Rover3tierRung12Coast (m : ℕ) :
     VerdQC m = modalVerd rover3tier_rung12_IR
-        (row 8).2.1.dim (row 8).2.1.invRow (row 8).2.2 none none (1 : ℝ) 1 m :=
+        (row 2).2.1.dim (row 2).2.1.invRow (row 2).2.2 none none (1 : ℝ) 1 m :=
   pin_of rfl
 
 open RelCertifier.RoverDofTerrainRung1Modal in
 theorem pin_RoverDofTerrainRung1 (l m : ℕ) :
     VerdE l m = modalVerd rover_dof_terrain_rung1_IR
-        (row 11).2.1.dim (row 11).2.1.invRow (row 11).2.2 none none (1 : ℝ) l m :=
+        (row 3).2.1.dim (row 3).2.1.invRow (row 3).2.2 none none (1 : ℝ) l m :=
   pin_of rfl
 
 open RelCertifier.RoverDofTerrainRung2Modal in
 theorem pin_RoverDofTerrainRung2 (l m : ℕ) :
     VerdT l m = modalVerd rover_dof_terrain_rung2_IR
-        (row 12).2.1.dim (row 12).2.1.invRow (row 12).2.2 none none (1 : ℝ) l m :=
+        (row 4).2.1.dim (row 4).2.1.invRow (row 4).2.2 none none (1 : ℝ) l m :=
   pin_of rfl
 
 open RelCertifier.RoverDofTerrainRung38dModal in
 theorem pin_RoverDofTerrainRung38d (l m : ℕ) :
     VerdU l m =
       modalVerd rover_dof_terrain_rung3_8d_IR
-        (row 13).2.1.dim (row 13).2.1.invRow (row 13).2.2 none none (1 : ℝ) l m :=
+        (row 5).2.1.dim (row 5).2.1.invRow (row 5).2.2 none none (1 : ℝ) l m :=
   pin_of rfl
 
 open RelCertifier.RoverDofTerrainRung3Modal in
 theorem pin_RoverDofTerrainRung3 (l m : ℕ) :
     VerdW l m = modalVerd rover_dof_terrain_rung3_IR
-        (row 14).2.1.dim (row 14).2.1.invRow (row 14).2.2 none none (1 : ℝ) l m :=
+        (row 6).2.1.dim (row 6).2.1.invRow (row 6).2.2 none none (1 : ℝ) l m :=
   pin_of rfl
 
 open RelCertifier.RoverLadderRung1Modal in
 theorem pin_RoverLadderRung1 (l m : ℕ) :
     VerdE l m =
       modalVerd refinement_ladder_rover_rung1_2to3_IR
-        (row 16).2.1.dim (row 16).2.1.invRow (row 16).2.2 none none (1 : ℝ) l m :=
+        (row 7).2.1.dim (row 7).2.1.invRow (row 7).2.2 none none (1 : ℝ) l m :=
   pin_of rfl
 
 open RelCertifier.RoverLadderRung2Modal in
 theorem pin_RoverLadderRung2 (l m : ℕ) :
     Verd36 l m =
       modalVerd refinement_ladder_rover_rung2_3to6_IR
-        (row 17).2.1.dim (row 17).2.1.invRow (row 17).2.2 none none
+        (row 8).2.1.dim (row 8).2.1.invRow (row 8).2.2 none none
         (1 : ℝ) l m :=
   pin_of rfl
-
-open RelCertifier.RoverTerrainM1Modal in
-theorem pin_RoverTerrainM1 (l m : ℕ) :
-    VerdT l m = modalVerd rover_terrain_M1_IR
-        (row 21).2.1.dim (row 21).2.1.invRow (row 21).2.2 none none (1 : ℝ) l m := pin_of rfl
 
 open RelCertifier.Story1AttdistRungAModal in
 theorem pin_Story1AttdistRungA (l m : ℕ) :
     VerdD l m =
       modalVerd story1_attdist_rung_a_6to8_IR
-        (row 23).2.1.dim (row 23).2.1.invRow (row 23).2.2 none none (1 : ℝ) l m :=
+        (row 12).2.1.dim (row 12).2.1.invRow (row 12).2.2 none none (1 : ℝ) l m :=
   pin_of rfl
 
 open RelCertifier.Story2LateralAModal in
 theorem pin_Story2LateralA (l m : ℕ) :
     VerdY l m =
       modalVerd story2_lateral_rung_a_8dof_IR
-        (row 25).2.1.dim (row 25).2.1.invRow (row 25).2.2 none none
+        (row 14).2.1.dim (row 14).2.1.invRow (row 14).2.2 none none
         (1 : ℝ) l m :=
   pin_of rfl
 
@@ -181,15 +132,8 @@ open RelCertifier.Story2LateralBModal in
 theorem pin_Story2LateralB (l m : ℕ) :
     VerdZ l m =
       modalVerd story2_lateral_rung_b_12dof_IR
-        (row 26).2.1.dim (row 26).2.1.invRow (row 26).2.2 none none
+        (row 15).2.1.dim (row 15).2.1.invRow (row 15).2.2 none none
         (1 : ℝ) l m :=
-  pin_of rfl
-
-open RelCertifier.Story3RolloverRungBModal in
-theorem pin_Story3RolloverRungB (l m : ℕ) :
-    VerdV l m =
-      modalVerd story3_rollover_ladder_rung_b_IR
-        (row 29).2.1.dim (row 29).2.1.invRow (row 29).2.2 none none (1 : ℝ) l m :=
   pin_of rfl
 
 /-! ## Ceiling-head instances
@@ -197,19 +141,11 @@ theorem pin_Story3RolloverRungB (l m : ℕ) :
 The head `R_c − k_m` is per right mode, so it is a function of the pin's own `m`
 rather than a constant. -/
 
-open RelCertifier.RoverAttitudeConeModal in
-theorem pin_RoverAttitudeCone (l m : ℕ) :
-    VerdC l m =
-      modalVerd rover_attitude_cone_12dof_IR
-        (row 10).2.1.dim (row 10).2.1.invRow (row 10).2.2 (some (ceilC m)) none
-        ((17 : ℝ) / 10) l m :=
-  pin_of rfl
-
 open RelCertifier.RoverLadderRung3Modal in
 theorem pin_RoverLadderRung3 (l m : ℕ) :
     VerdR l m =
       modalVerd refinement_ladder_rover_rung3_6to8_IR
-        (row 18).2.1.dim (row 18).2.1.invRow (row 18).2.2 (some (ceilR m))
+        (row 9).2.1.dim (row 9).2.1.invRow (row 9).2.2 (some (ceilR m))
         none ((9 : ℝ) / 4) l m :=
   pin_of rfl
 
@@ -217,22 +153,15 @@ open RelCertifier.RoverLadderRung4Modal in
 theorem pin_RoverLadderRung4 (l m : ℕ) :
     VerdF l m =
       modalVerd refinement_ladder_rover_rung4_8to12_IR
-        (row 19).2.1.dim (row 19).2.1.invRow (row 19).2.2 (some (ceilF m)) none
+        (row 10).2.1.dim (row 10).2.1.invRow (row 10).2.2 (some (ceilF m)) none
         ((17 : ℝ) / 10) l m :=
-  pin_of rfl
-
-open RelCertifier.RoverTierR1Modal in
-theorem pin_RoverTierR1 (l m : ℕ) :
-    VerdX l m =
-      modalVerd rover_tier_r1_IR
-        (row 22).2.1.dim (row 22).2.1.invRow (row 22).2.2 (some (ceilX m)) none ((19 : ℝ) / 4) l m :=
   pin_of rfl
 
 open RelCertifier.Story1AttdistRungBModal in
 theorem pin_Story1AttdistRungB (l m : ℕ) :
     VerdF l m =
       modalVerd story1_attdist_rung_b_12dof_IR
-        (row 24).2.1.dim (row 24).2.1.invRow (row 24).2.2 (some (ceilF m)) none
+        (row 13).2.1.dim (row 13).2.1.invRow (row 13).2.2 (some (ceilF m)) none
         (1 : ℝ) l m :=
   pin_of rfl
 
@@ -240,7 +169,7 @@ open RelCertifier.Story3RolloverBaseModal in
 theorem pin_Story3RolloverBase (l m : ℕ) :
     VerdB l m =
       modalVerd story3_rollover_base_12dof_IR
-        (row 27).2.1.dim (row 27).2.1.invRow (row 27).2.2 (some (ceilB m)) none
+        (row 16).2.1.dim (row 16).2.1.invRow (row 16).2.2 (some (ceilB m)) none
         ((5 : ℝ) / 4) l m :=
   pin_of rfl
 
@@ -248,26 +177,8 @@ open RelCertifier.Story3RolloverRungAModal in
 theorem pin_Story3RolloverRungA (l m : ℕ) :
     VerdA l m =
       modalVerd story3_rollover_ladder_rung_a_IR
-        (row 28).2.1.dim (row 28).2.1.invRow (row 28).2.2 (some (ceilA m)) none
+        (row 17).2.1.dim (row 17).2.1.invRow (row 17).2.2 (some (ceilA m)) none
         ((27 : ℝ) / 20) l m :=
-  pin_of rfl
-
-/-! ## Region-head instances
-
-The five whose `Hold` case the audit found vacuous. The repair added the landing
-region `3/5 − θ_R` as component 0, so the invariant's own component is narrowed by it
-— which is what makes the `Hold` query discharge. -/
-
-open RelCertifier.ArmChainRung3Modal in
-theorem pin_ArmChainRung3 (l : ℕ) :
-    Verd3 l = modalVerd arm_chain_rung3_IR
-        (row 0).2.1.dim (row 0).2.1.invRow (row 0).2.2 (some regA) none (1 : ℝ) l 3 :=
-  pin_of rfl
-
-open RelCertifier.ArmFidelityMidModal in
-theorem pin_ArmFidelityMid (l : ℕ) :
-    Verd3 l = modalVerd arm_fidelity_mid_IR
-        (row 1).2.1.dim (row 1).2.1.invRow (row 1).2.2 (some regA) none (1 : ℝ) l 2 :=
   pin_of rfl
 
 /-! ## Tail-face instance
@@ -279,7 +190,7 @@ open RelCertifier.RoverRung2cModal in
 theorem pin_RoverRung2c (l : ℕ) :
     VerdR6 l =
       modalVerd refinement_ladder_rover_rung2c_6dof_IR
-        (row 20).2.1.dim (row 20).2.1.invRow (row 20).2.2
+        (row 11).2.1.dim (row 11).2.1.invRow (row 11).2.2
         none (some (lowFace (b6 l) (Rv (1 : Fin 6)))) (1 : ℝ) l l :=
   pin_of rfl
 
@@ -291,31 +202,25 @@ and `story1_attdist_rung_b`'s three rows, each with the right mode's ceiling hea
 open RelCertifier.Story1AttdistRungAHandoff in
 theorem pin_Story1AttdistRungASteep (m : ℕ) :
     VerdS m = modalVerd story1_attdist_rung_a_6to8_IR
-        (row 30).2.1.dim (row 30).2.1.invRow (row 30).2.2 none none (1 : ℝ) 0 m :=
-  pin_of rfl
-
-open RelCertifier.Story3RolloverRungBHandoff in
-theorem pin_Story3RolloverRungBSteep (m : ℕ) :
-    VerdS m = modalVerd story3_rollover_ladder_rung_b_IR
-        (row 31).2.1.dim (row 31).2.1.invRow (row 31).2.2 none none (1 : ℝ) 0 m :=
+        (row 18).2.1.dim (row 18).2.1.invRow (row 18).2.2 none none (1 : ℝ) 0 m :=
   pin_of rfl
 
 open RelCertifier.Story1AttdistRungBHandoff RelCertifier.Story1AttdistRungBModal in
 theorem pin_Story1AttdistRungBRow0 (m : ℕ) :
     VerdR 0 m = modalVerd story1_attdist_rung_b_12dof_IR
-        (row 32).2.1.dim (row 32).2.1.invRow (row 32).2.2 (some (ceilF m)) none (1 : ℝ) 0 m :=
+        (row 19).2.1.dim (row 19).2.1.invRow (row 19).2.2 (some (ceilF m)) none (1 : ℝ) 0 m :=
   pin_of rfl
 
 open RelCertifier.Story1AttdistRungBHandoff RelCertifier.Story1AttdistRungBModal in
 theorem pin_Story1AttdistRungBRow1 (m : ℕ) :
     VerdR 1 m = modalVerd story1_attdist_rung_b_12dof_IR
-        (row 33).2.1.dim (row 33).2.1.invRow (row 33).2.2 (some (ceilF m)) none (1 : ℝ) 1 m :=
+        (row 20).2.1.dim (row 20).2.1.invRow (row 20).2.2 (some (ceilF m)) none (1 : ℝ) 1 m :=
   pin_of rfl
 
 open RelCertifier.Story1AttdistRungBHandoff RelCertifier.Story1AttdistRungBModal in
 theorem pin_Story1AttdistRungBRow2 (m : ℕ) :
     VerdR 2 m = modalVerd story1_attdist_rung_b_12dof_IR
-        (row 34).2.1.dim (row 34).2.1.invRow (row 34).2.2 (some (ceilF m)) none (1 : ℝ) 2 m :=
+        (row 21).2.1.dim (row 21).2.1.invRow (row 21).2.2 (some (ceilF m)) none (1 : ℝ) 2 m :=
   pin_of rfl
 
 end RelCertifier.Verdicts

@@ -2,31 +2,31 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The handoff runner — the cross-mode implication, per declared left transition
+# The handoff check: the cross-mode implication, per declared left transition
 
-For every certified benchmark and every declared left transition `m' → m` (self-loops
-included) this runner builds the domain-conditioned handoff query of
-`Trusted/Handoff.lean`,
+`runHandoffBench` builds, for one benchmark and every declared left transition `m' → m`
+(self-loops included), the domain-conditioned handoff query of `Trusted/Handoff.lean`,
 
     UNSAT( φ_inv(m') ∧ evolve_{m'}(x_L) ∧ guard_m(x_L) ∧ evolve_R(x_R) ∧ ¬φ_inv(m) ),
 
 prints it through the tool's own `toScript`, and reports Z3's verdict. The query is the
 one the composition theorem's handoff hypothesis denotes (`ModeHandoff.handoff_of_unsat`
-takes `z3solve (ihandoffQuery …).toHost = unsat`), so a green line here is evidence
-about that hypothesis and not about a lookalike.
+takes `z3solve (ihandoffQuery …).toHost = unsat`), so a green line is evidence about that
+hypothesis and not about a lookalike.
 
-Coverage is declared, not inferred (`Verdicts/Coverage.lean`): the phase owes
-`expected.handoff` queries in total and must fail on exactly the transitions listed in
-`expectedHandoffFailures`. A benchmark whose `next` lists do not all resolve shows up
-as a per-benchmark count mismatch. A mode-independent invariant (all rows identical) is
-reported as `vacuous`, and its queries are still issued and counted.
+Two callers: `relcert --handoff <input.txt>…` (per-benchmark report), and the suite_v2
+handoff phase `VerdictsV2.runHandoffAllV2` of `--run-verdicts-v2`, which walks all 45
+suite_v2 files and checks the total against the declared `expectedHandoffV2` and the
+failure set against `expectedHandoffFailuresV2` (empty). A benchmark whose `next` lists do
+not all resolve shows up as a per-benchmark count mismatch. A mode-independent invariant
+(all rows identical) is reported as `vacuous`, and its queries are still issued and
+counted.
 
-On a failing transition the runner also prints a Z3 model of the query — the
-countermodel — obtained from a one-shot `z3` process on the same script.
+On a failing transition the runner also prints a Z3 model of the query (the
+countermodel), obtained from a one-shot `z3` process on the same script.
 -/
 import RelCertifier.Trusted.Handoff
 import RelCertifier.Trusted.Z3
-import RelCertifier.Instances.BenchIR
 import RelCertifier.Verdicts.Coverage
 
 namespace RelCertifier.Verdicts
@@ -108,39 +108,5 @@ def HandoffReport.line (r : HandoffReport) : String :=
     String.intercalate ", " (r.failing.map (fun f => s!"{f.1.1}->{f.1.2}"))
   s!"  [handoff] {r.bench}: {r.checked}/{r.declared} transitions checked, {r.passed} passed, \
 failing: {fails}{if r.vacuous then " (vacuous: mode-independent invariant)" else ""} ({r.ms}ms)"
-
-/-- The handoff phase of `--run-verdicts` over the whole certified suite: every benchmark in
-`certifiedIRTable` (`benchIRTable` minus the declined `declinedIR`), every declared left
-transition. Green iff every per-benchmark count
-matches its declaration, the failure set is exactly `expectedHandoffFailures`, and the
-total equals `expected.handoff` (checked by the caller via `checkPhase`). -/
-def runHandoffAll (cfg : Z3Config) : IO Bool := do
-  match ← Z3Session.start cfg with
-  | .error e => IO.eprintln s!"ERROR: z3: {e}"; return false
-  | .ok s =>
-      IO.println s!"== handoff : {certifiedIRTable.length} benchmarks, one query per declared left transition =="
-      let mut ok := true
-      let mut fails : List (String × ℕ × ℕ) := []
-      for (name, p) in certifiedIRTable do
-        let r ← runHandoffBench s cfg name p
-        IO.println r.line
-        if r.checked != r.declared then
-          IO.eprintln s!"  [handoff] {name}: {r.checked} transitions checked but {r.declared} \
-declared — a `next` entry did not resolve"
-          ok := false
-        fails := fails ++ r.failing.map (fun f => (name, f.1.1, f.1.2))
-      s.close
-      let exp := expectedHandoffFailures
-      let extra := fails.filter (fun f => !exp.contains f)
-      let stale := exp.filter (fun f => !fails.contains f)
-      if !extra.isEmpty then
-        IO.eprintln s!"  [handoff] UNDECLARED failures: {extra}"
-        ok := false
-      if !stale.isEmpty then
-        IO.eprintln s!"  [handoff] declared failures that did not fail (stale declaration): {stale}"
-        ok := false
-      if ok then IO.println s!"HANDOFF PHASE COMPLETE ({fails.length} declared failure(s), as expected)"
-      else IO.println "HANDOFF PHASE INCOMPLETE (see above)"
-      pure ok
 
 end RelCertifier.Verdicts

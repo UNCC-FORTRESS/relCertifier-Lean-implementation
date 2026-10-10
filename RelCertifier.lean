@@ -69,6 +69,7 @@ import RelCertifier.Proofs.Encoding.EnvelopeChainR
 import RelCertifier.Proofs.Encoding.FvDischarge
 import RelCertifier.Proofs.Encoding.JointBridge
 import RelCertifier.Proofs.Encoding.LoweringSide
+import RelCertifier.Proofs.Encoding.GuardedSwitch
 import RelCertifier.Proofs.Encoding.ModeHandoff
 import RelCertifier.Proofs.Encoding.ModeRegion
 import RelCertifier.Proofs.Encoding.MultiSeg

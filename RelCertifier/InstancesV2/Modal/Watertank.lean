@@ -7,6 +7,7 @@ Released under Apache 2.0 license.
 Stage 1: data, pins, evaluations.
 -/
 import RelCertifier.Proofs.Encoding.CutRespond
+import RelCertifier.Proofs.Encoding.GuardedSwitch
 import RelCertifier.Proofs.Flow.FaceBridge
 import RelCertifier.InstancesV2.Cuts.watertank
 
@@ -371,8 +372,11 @@ theorem anchor_fv (l q : ℕ) (hl : l < 3) (hq : q < 4) :
 noncomputable def modeW (q : ℕ) : RMode (Var 2) :=
   { sys := rightBlock (fR q) (Term.const 1), dom := domR, weight := 1 }
 
-def edgeW (s t : ℕ) : REdge (Var 2) :=
-  { src := s, tgt := t, guard := Formula.tt, pruned := false }
+/-- The declared edge `s → t` carries the ENTERED mode's lowered guard (`hostGuard` of the
+right mode `t`, exactly as the left windows' guards are lowered): the right switches into
+`t` only where `t`'s guard holds. -/
+noncomputable def edgeW (s t : ℕ) : REdge (Var 2) :=
+  { src := s, tgt := t, guard := hostGuard vs 2 Side.R (mR t), pruned := false }
 
 /-- The declared transitions, as indices (Low 0, MidEco 1, MidBoost 2, High 3, PumpOff 4). -/
 def edgeList : List (ℕ × ℕ) :=
@@ -405,12 +409,21 @@ theorem Gr_modeAt_inv {q : ℕ} {m : RMode (Var 2)} (hm : Gr.modeAt q = some m) 
   | 4 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
   | q + 5 => exact absurd hm (by simp [SearchGraph.modeAt, Gr])
 
-theorem htt : ∀ q, ∀ e ∈ Gr.edgesFrom q, e.guard = Formula.tt := by
-  intro q e he
-  have hmem : e ∈ Gr.edges := List.mem_of_mem_filter he
-  simp only [Gr, List.mem_map] at hmem
-  obtain ⟨p, -, rfl⟩ := hmem
-  rfl
+/-- The right guards, evaluated (Low `[2, 10)`, MidEco and MidBoost `[10, 17)`, High
+`x ≥ 17`, PumpOff `x < 2`). -/
+theorem sat_guardR (q : ℕ) (hq : q < 5) (ν : State (Var 2)) :
+    Formula.sat (hostGuard vs 2 Side.R (mR q)) ν ↔
+      (if q = 0 then 2 ≤ ν (Rv 0) ∧ ν (Rv 0) < 10
+       else if q = 3 then 17 ≤ ν (Rv 0)
+       else if q = 4 then ν (Rv 0) < 2 else 10 ≤ ν (Rv 0) ∧ ν (Rv 0) < 17) := by
+  interval_cases q <;>
+    simp [hostGuard, mR, watertank_IRv2, Run.lowerF, Run.lowerE, hp20, hp100, hp170, vs,
+      Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
+      CompOp.interp, Term.eval, Rv]
+
+theorem hguardR (q : ℕ) (hq : q < 5) : (hostGuard vs 2 Side.R (mR q)).fv ⊆ range Rv :=
+  hostGuard_fv_R vs (mR q) (by
+    interval_cases q <;> simp [mR, watertank_IRv2, Parse.PForm.namesFree, Parse.PExpr.namesFree])
 
 theorem hlt : ∀ q, ∀ e ∈ Gr.edgesFrom q, e.tgt < Gr.modes.length := by
   intro q e he
@@ -437,6 +450,24 @@ theorem edge_mem (s t : ℕ) (h : (s, t) ∈ edgeList) : edgeW s t ∈ Gr.edgesF
 theorem hfresh : ∀ q m, Gr.modeAt q = some m → mv ∉ (Program.ode m.sys m.dom).fv := by
   intro q m hm hmv
   exact aux_notin_range_Rv 0 (hRv q m hm (vars_ode_sub _ _ (Or.inl hmv)))
+
+theorem edgeList_tgt : ∀ p ∈ edgeList, p.2 < 5 := by decide
+
+/-- **The graph is the guarded automaton**: every declared edge tests the lowered guard of
+the mode it enters. -/
+theorem Gr_guards : ∀ q, ∀ e ∈ Gr.edgesFrom q, e.guard = hostGuard vs 2 Side.R (mR e.tgt) := by
+  intro q e he
+  have hmem : e ∈ Gr.edges := List.mem_of_mem_filter he
+  simp only [Gr, List.mem_map] at hmem
+  obtain ⟨p, -, rfl⟩ := hmem
+  rfl
+
+theorem hgR : GuardsRight Gr := by
+  intro q e he
+  have hmem : e ∈ Gr.edges := List.mem_of_mem_filter he
+  simp only [Gr, List.mem_map] at hmem
+  obtain ⟨p, hp, rfl⟩ := hmem
+  exact hguardR p.2 (edgeList_tgt p hp)
 
 /-! ## Regions: the right mode's kept cut atoms; the pruned sink is excluded -/
 
@@ -733,71 +764,120 @@ theorem gate (l : ℕ) (dt : ℝ) (R : Program (Var 2)) (ψ : Formula (Var 2))
   obtain ⟨rfl, hg⟩ := hν
   exact hbody hg
 
+/-- **Nonblocking at the end of a response** (Assumption 1 at the states the response
+reaches, discharged from the explicit end state): wherever the right ends inside a mode's
+region, some declared successor of that mode is enabled there, and the loop postcondition
+holds for it (its region is implied by its guard). Low `[2, 12.5]` is covered by Low
+`[2, 10)` and MidEco `[10, 17)`; MidEco / MidBoost `[10, 17]` by themselves and High
+`x ≥ 17`; High by itself. -/
+theorem nonblock (q : ℕ) (hq : q < 4) :
+    NonblockingAt Gr q (Formula.and (Formula.and (FM g gs) env) (region q))
+      (fun qf => Formula.and (Formula.and (FM g gs) env) (region qf)) := by
+  intro μ ⟨hFe, hreg⟩
+  have hr := (cutSatR_val q hq μ).mp ((sat_region_lt q hq μ).mp hreg)
+  have pick : ∀ t, (q, t) ∈ edgeList → t < 4 → Formula.sat (hostGuard vs 2 Side.R (mR t)) μ →
+      (CutSat (cR t) μ) →
+      ∃ e ∈ Gr.edgesFrom q, SwitchLegal e μ ∧
+        Formula.sat (Formula.and (Formula.and (FM g gs) env) (region e.tgt)) μ :=
+    fun t ht ht4 hg hc => ⟨edgeW q t, edge_mem q t ht, hg, hFe, (sat_region_lt t ht4 μ).mpr hc⟩
+  interval_cases q
+  · simp only [if_true] at hr
+    by_cases hx : μ (Rv 0) < 10
+    · exact pick 0 (by decide) (by norm_num) ((sat_guardR 0 (by norm_num) μ).mpr
+        (by simp only [if_true]; exact ⟨hr.1, hx⟩))
+        ((cutSatR_val 0 (by norm_num) μ).mpr (by simp only [if_true]; exact hr))
+    · replace hx := not_lt.mp hx
+      exact pick 1 (by decide) (by norm_num) ((sat_guardR 1 (by norm_num) μ).mpr
+        (by norm_num; constructor <;> linarith))
+        ((cutSatR_val 1 (by norm_num) μ).mpr (by norm_num; constructor <;> linarith))
+  · simp only [show (1:ℕ) ≠ 0 from by decide, show (1:ℕ) ≠ 3 from by decide, if_false] at hr
+    by_cases hx : μ (Rv 0) < 17
+    · exact pick 1 (by decide) (by norm_num) ((sat_guardR 1 (by norm_num) μ).mpr
+        (by norm_num; exact ⟨hr.1, hx⟩))
+        ((cutSatR_val 1 (by norm_num) μ).mpr (by norm_num; exact hr))
+    · replace hx := not_lt.mp hx
+      exact pick 3 (by decide) (by norm_num) ((sat_guardR 3 (by norm_num) μ).mpr
+        (by norm_num; exact hx))
+        ((cutSatR_val 3 (by norm_num) μ).mpr (by norm_num; exact hx))
+  · simp only [show (2:ℕ) ≠ 0 from by decide, show (2:ℕ) ≠ 3 from by decide, if_false] at hr
+    by_cases hx : μ (Rv 0) < 17
+    · exact pick 2 (by decide) (by norm_num) ((sat_guardR 2 (by norm_num) μ).mpr
+        (by norm_num; exact ⟨hr.1, hx⟩))
+        ((cutSatR_val 2 (by norm_num) μ).mpr (by norm_num; exact hr))
+    · replace hx := not_lt.mp hx
+      exact pick 3 (by decide) (by norm_num) ((sat_guardR 3 (by norm_num) μ).mpr
+        (by norm_num; exact hx))
+        ((cutSatR_val 3 (by norm_num) μ).mpr (by norm_num; exact hx))
+  · simp only [show (3:ℕ) ≠ 0 from by decide, if_false, if_true] at hr
+    exact pick 3 (by decide) (by norm_num) ((sat_guardR 3 (by norm_num) μ).mpr
+      (by norm_num; exact hr))
+      ((cutSatR_val 3 (by norm_num) μ).mpr (by norm_num; exact hr))
+
+/-- The response from the anchor of `(l, q)`: the certified joint segment in `q`, then a
+legal switch into an enabled successor of `q`. -/
+theorem flowCase (l q : ℕ) (hl : l < 3) (hq : q < 4) (dt : ℝ) (hv : Verd l q)
+    {σ : State (Var 2)}
+    (hanchor : Formula.sat (Formula.and (FM g (gs ++ atomTerms (cL l) (cR q)))
+        (Formula.and domL domR)) σ) :
+    GResp Gr q (windowSeg (leftBlock (fL l)) domL tg dt 1)
+      (fun qf => Formula.and (Formula.and (FM g gs) env) (region qf)) σ :=
+  gresp_final (Gr_modeAt q (by omega)) (respond l q hl hq dt hv [] (by simp) hanchor)
+    (nonblock q hq)
+
+/-- The left window touches only its clock and left coordinates, so right-only facts of
+the start state hold at the window's end. -/
+theorem right_framed (l : ℕ) (hl : l < 3) (dt : ℝ) {φ : Formula (Var 2)}
+    (hφ : φ.fv ⊆ range Rv) {σ ν : State (Var 2)}
+    (hrun : Program.sem (windowSeg (leftBlock (fL l)) domL tg dt 1) σ ν) :
+    Formula.sat φ σ ↔ Formula.sat φ ν :=
+  sat_framed (notMem_bv_of_vars (vars_windowSegL_sub (fL l) domL 1 dt 1 (hfL l hl) hdomL) hφ)
+    hrun
+
 theorem stayCase (l q : ℕ) (hl : l < 3) (hq : q < 4) (dt : ℝ) (hv : Verd l q)
     {σ : State (Var 2)} (hσ : Formula.sat (Formula.and (FM g gs) env) σ)
     (hreg : Formula.sat (region q) σ) :
-    ∃ segs : List (ℕ × RMode (Var 2) × REdge (Var 2)),
-      (∀ s ∈ segs, Gr.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ Gr.edgesFrom s.1) ∧
-      List.IsChain (fun a b => a.2.2.tgt = b.1) segs ∧
-      (∀ s, segs.head? = some s → s.1 = q) ∧
-      Formula.sat (faModal (Equiv.refl (Var 2))
-        (gwindowSeg (hostGuard vs 2 Side.L (mL l)) (leftBlock (fL l)) domL tg dt 1)
-        (bigSeq (segs.map (fun s => Program.ode s.2.1.sys s.2.1.dom)))
-        (Formula.and (Formula.and (FM g gs) env) (region (qfOf segs q)))) σ := by
-  refine ⟨[(q, modeW q, edgeW q q)], ?_, by simp, by simp, ?_⟩
-  · intro s hs
-    rw [List.mem_singleton] at hs
-    subst hs
-    refine ⟨Gr_modeAt q (by omega), edge_mem q q ?_⟩
-    interval_cases q <;> simp [edgeList]
-  · refine gate l dt _ _ (fun hguard => ?_)
-    have hanchor : Formula.sat (Formula.and (FM g (gs ++ atomTerms (cL l) (cR q)))
-        (Formula.and domL domR)) σ := by
-      refine ⟨(sat_FM_append g gs _ σ).mpr ⟨hσ.1, ?_⟩, hσ.2⟩
-      exact (atomTerms_iff (hiffL l hl) (hiffR q hq) σ).mpr
-        ⟨hO1L l hl σ hguard, (sat_region_lt q hq σ).mp hreg⟩
-    have := respond l q hl hq dt hv [] (by simp) hanchor
-    simpa [modeW, qfOf, edgeW] using this
+    GResp Gr q (gwindowSeg (hostGuard vs 2 Side.L (mL l)) (leftBlock (fL l)) domL tg dt 1)
+      (fun qf => Formula.and (Formula.and (FM g gs) env) (region qf)) σ := by
+  refine gresp_gate (fun hguard => ?_)
+  have hanchor : Formula.sat (Formula.and (FM g (gs ++ atomTerms (cL l) (cR q)))
+      (Formula.and domL domR)) σ := by
+    refine ⟨(sat_FM_append g gs _ σ).mpr ⟨hσ.1, ?_⟩, hσ.2⟩
+    exact (atomTerms_iff (hiffL l hl) (hiffR q hq) σ).mpr
+      ⟨hO1L l hl σ hguard, (sat_region_lt q hq σ).mp hreg⟩
+  exact flowCase l q hl hq dt hv hanchor
 
+/-- A `Low` start of the `Mid` window: a zero-duration switch `Low → MidBoost`, LEGAL
+because `MidBoost`'s guard `10 ≤ x_R < 17` holds there (`x_R ≥ x_L − 3 ≥ 10` by the
+invariant and the `Mid` guard, `x_R ≤ 12.5` by `Low`'s region), then the certified joint
+segment in `MidBoost` and a legal switch at its end. -/
 theorem hopCase (dt : ℝ) (hv : Verd 1 2) {σ : State (Var 2)}
     (hσ : Formula.sat (Formula.and (FM g gs) env) σ) (hreg : Formula.sat (region 0) σ) :
-    ∃ segs : List (ℕ × RMode (Var 2) × REdge (Var 2)),
-      (∀ s ∈ segs, Gr.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ Gr.edgesFrom s.1) ∧
-      List.IsChain (fun a b => a.2.2.tgt = b.1) segs ∧
-      (∀ s, segs.head? = some s → s.1 = 0) ∧
-      Formula.sat (faModal (Equiv.refl (Var 2))
-        (gwindowSeg (hostGuard vs 2 Side.L (mL 1)) (leftBlock (fL 1)) domL tg dt 1)
-        (bigSeq (segs.map (fun s => Program.ode s.2.1.sys s.2.1.dom)))
-        (Formula.and (Formula.and (FM g gs) env) (region (qfOf segs 0)))) σ := by
-  refine ⟨[(0, modeW 0, edgeW 0 2), (2, modeW 2, edgeW 2 2)], ?_, ?_, by simp, ?_⟩
-  · intro s hs
-    simp only [List.mem_cons, List.not_mem_nil, or_false] at hs
-    rcases hs with rfl | rfl
-    · exact ⟨Gr_modeAt 0 (by norm_num), edge_mem 0 2 (by simp [edgeList])⟩
-    · exact ⟨Gr_modeAt 2 (by norm_num), edge_mem 2 2 (by simp [edgeList])⟩
-  · exact (show List.IsChain (fun a b : ℕ × RMode (Var 2) × REdge (Var 2) => a.2.2.tgt = b.1)
-        [(2, modeW 2, edgeW 2 2)] from by simp).cons (by
-      intro y hy
-      rw [List.head?_cons, Option.mem_some_iff] at hy
-      subst hy
-      rfl)
-  · refine gate 1 dt _ _ (fun hguard => ?_)
-    have hx := (sat_guardL 1 (by norm_num) σ).mp hguard
-    simp only [show (1:ℕ) ≠ 0 from by decide, if_false, if_true] at hx
-    have hr0 := (cutSatR_val 0 (by norm_num) σ).mp ((sat_region_lt 0 (by norm_num) σ).mp hreg)
-    simp only [if_true] at hr0
-    have hg0 := (sat_FM_iff g gs σ).mp hσ.1 g List.mem_cons_self
-    rw [eval_g] at hg0
-    have hanchor : Formula.sat (Formula.and (FM g (gs ++ atomTerms (cL 1) (cR 2)))
-        (Formula.and domL domR)) σ := by
-      refine ⟨(sat_FM_append g gs _ σ).mpr ⟨hσ.1, ?_⟩, hσ.2⟩
-      refine (atomTerms_iff (hiffL 1 (by norm_num)) (hiffR 2 (by norm_num)) σ).mpr
-        ⟨hO1L 1 (by norm_num) σ hguard, ?_⟩
-      rw [cutSatR_val 2 (by norm_num)]
-      simp only [show (2:ℕ) ≠ 0 from by decide, show (2:ℕ) ≠ 3 from by decide, if_false]
-      constructor <;> linarith
-    have := respond 1 2 (by norm_num) (by norm_num) dt hv [0] (by simp) hanchor
-    simpa [modeW, qfOf, edgeW] using this
+    GResp Gr 0 (gwindowSeg (hostGuard vs 2 Side.L (mL 1)) (leftBlock (fL 1)) domL tg dt 1)
+      (fun qf => Formula.and (Formula.and (FM g gs) env) (region qf)) σ := by
+  refine gresp_gate (fun hguard => ?_)
+  have hx := (sat_guardL 1 (by norm_num) σ).mp hguard
+  simp only [show (1:ℕ) ≠ 0 from by decide, if_false, if_true] at hx
+  have hr0 := (cutSatR_val 0 (by norm_num) σ).mp ((sat_region_lt 0 (by norm_num) σ).mp hreg)
+  simp only [if_true] at hr0
+  have hg0 := (sat_FM_iff g gs σ).mp hσ.1 g List.mem_cons_self
+  rw [eval_g] at hg0
+  have hanchor : Formula.sat (Formula.and (FM g (gs ++ atomTerms (cL 1) (cR 2)))
+      (Formula.and domL domR)) σ := by
+    refine ⟨(sat_FM_append g gs _ σ).mpr ⟨hσ.1, ?_⟩, hσ.2⟩
+    refine (atomTerms_iff (hiffL 1 (by norm_num)) (hiffR 2 (by norm_num)) σ).mpr
+      ⟨hO1L 1 (by norm_num) σ hguard, ?_⟩
+    rw [cutSatR_val 2 (by norm_num)]
+    simp only [show (2:ℕ) ≠ 0 from by decide, show (2:ℕ) ≠ 3 from by decide, if_false]
+    constructor <;> linarith
+  -- the switch `Low → MidBoost`: legal at the start, hence (right-only) at the window's end
+  have hg2σ : Formula.sat (hostGuard vs 2 Side.R (mR 2)) σ := by
+    rw [sat_guardR 2 (by norm_num)]
+    norm_num
+    constructor <;> linarith
+  refine gresp_hop (e := edgeW 0 2) (Gr_modeAt 0 (by norm_num)) (edge_mem 0 2 (by decide))
+    (fun ν hν => ⟨(right_framed 1 (by norm_num) dt hdomR hν).mp hσ.2.2,
+      (right_framed 1 (by norm_num) dt (hguardR 2 (by norm_num)) hν).mp hg2σ⟩) ?_
+  exact flowCase 1 2 (by norm_num) (by norm_num) dt hv hanchor
 
 theorem Hmulti (dt : ℝ)
     (h00 : Verd 0 0) (h01 : Verd 0 1) (h02 : Verd 0 2) (h03 : Verd 0 3)
@@ -805,13 +885,7 @@ theorem Hmulti (dt : ℝ)
     (h20 : Verd 2 0) (h21 : Verd 2 1) (h22 : Verd 2 2) (h23 : Verd 2 3) :
     ∀ P ∈ leftProgs dt, ∀ (q : ℕ), q < Gr.modes.length → ∀ σ, σ mv = (q : ℝ) →
       Formula.sat (Formula.and (FM g gs) env) σ → Formula.sat (region q) σ →
-      ∃ segs : List (ℕ × RMode (Var 2) × REdge (Var 2)),
-        (∀ s ∈ segs, Gr.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ Gr.edgesFrom s.1) ∧
-        List.IsChain (fun a b => a.2.2.tgt = b.1) segs ∧
-        (∀ s, segs.head? = some s → s.1 = q) ∧
-        Formula.sat (faModal (Equiv.refl (Var 2)) P
-          (bigSeq (segs.map (fun s => Program.ode s.2.1.sys s.2.1.dom)))
-          (Formula.and (Formula.and (FM g gs) env) (region (qfOf segs q)))) σ := by
+      GResp Gr q P (fun qf => Formula.and (Formula.and (FM g gs) env) (region qf)) σ := by
   intro P hP q hq σ _ hσ hreg
   rw [Gr_len] at hq
   simp only [leftProgs, leftData, List.map_cons, List.map_nil, List.mem_cons,
@@ -844,11 +918,15 @@ five-mode automaton of the file (declared edges, the pruned `Low → PumpOff` in
 loop invariant is the declared row `|x_L − x_R| ≤ 3`, the evolve envelope, and the right
 mode's region — its kept cut atoms (`x_R ∈ [2, 12.5]` in `Low`, `[10, 17]` in `MidEco` and
 `MidBoost`, `x_R ≥ 17` in `High`), `PumpOff` excluded (the pruned sink: the right is never
-in it). The response stays in the start mode on the certified joint segment at the cover's
-λ (2 for `Low` and `Mid`, 1 for `High`), except a `Low` start of a `Mid` window, which
-switches along the declared edge `Low → MidBoost` inside `MidBoost`'s guard (`x_R ≥ 10`,
-forced by the invariant and the `Mid` guard). Residuals: eleven stratified verdict packs
-over the cut-narrowed domains (`modalVerdX`, the tool's own queries). -/
+in it). The right automaton is the GUARDED one: every edge carries the entered mode's
+lowered guard (`Gr_guards`), so every switch of the response is kernel-checked legal. The
+response runs the certified joint segment in the start mode at the cover's λ (2 for `Low`
+and `Mid`, 1 for `High`) and then switches into a successor enabled at its end state
+(`nonblock`: the region of every non-sink mode is covered by its successors' guards), except
+a `Low` start of a `Mid` window, which first switches along `Low → MidBoost` in zero time,
+inside `MidBoost`'s guard (`10 ≤ x_R ≤ 12.5`, forced by the invariant, the `Mid` guard and
+`Low`'s region). Residuals: eleven stratified verdict packs over the cut-narrowed domains
+(`modalVerdX`, the tool's own queries). -/
 theorem watertank_modal (dt : ℝ)
     (h00 : Verd 0 0) (h01 : Verd 0 1) (h02 : Verd 0 2) (h03 : Verd 0 3)
     (h11 : Verd 1 1) (h12 : Verd 1 2) (h13 : Verd 1 3)
@@ -883,14 +961,14 @@ theorem watertank_modal (dt : ℝ)
         (hL d hd).2.1 (hL d hd).2.2
     · intro x hx
       rw [Program.rename_refl] at hx
-      rcases vars_bodyU_sub Gr _ htt hRv hx with hx | hx
+      rcases vars_bodyG_sub Gr _ hgR hRv hx with hx | hx
       · exact Or.inl (Set.mem_insert_iff.mpr (Or.inl (Set.mem_singleton_iff.mp hx)))
       · exact Or.inr hx
-  · exact hstep_assembled_multiR Gr mv (FM g gs) env region (leftProgs dt) hmvF hmvenv hmvreg
-      hfresh htt hlt (hframes dt)
+  · exact hstep_assembled_GR Gr mv (FM g gs) env region (leftProgs dt) hmvF hmvenv hmvreg
+      hfresh (guardsFresh_of_right Gr 0 hgR) hlt (hframes dt)
       (Hmulti dt h00 h01 h02 h03 h11 h12 h13 h20 h21 h22 h23)
-  · exact hddF_multiR Gr 0 1 dt leftData region (canonInvM g gs) domL domR
-      (by decide) htt hRv hL (fun q hq => region_fv q hq)
+  · exact hddF_multiR_G Gr 0 1 dt leftData region (canonInvM g gs) domL domR
+      (by decide) hgR hRv hL (fun q hq => region_fv q hq)
       (canonInvM_varsL g gs comps_fv) (canonInvM_varsR g gs) hdomL hdomR
 
 end V2Watertank

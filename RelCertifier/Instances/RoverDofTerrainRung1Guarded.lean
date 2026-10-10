@@ -309,14 +309,15 @@ theorem fLE1_eval (l : ℕ) (hl : l < 3) (x : State (Var 3)) :
       Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp,
       Lv]
 
-theorem sat_domLE (x : State (Var 3)) : Formula.sat domLE x ↔
-    (-(1:ℝ)/2 ≤ x (Lv 2) ∧ x (Lv 2) ≤ 3/20 ∧ 0 ≤ x (Lv 1) ∧ x (Lv 1) ≤ 1000 ∧ 0 ≤ x (Lv 0)
-      ∧ x (Lv 0) ≤ 4/5) := by
-  simp only [domLE, hostEvolve, mLE, rover_dof_terrain_rung1_IR, vsE]
+/-- The left envelope's bounds the odometer's sign needs. -/
+theorem domL_bnd (z : State (Var 3)) (hz : Formula.sat domLE z) :
+    0 ≤ z (Lv 0) ∧ -(1:ℝ)/2 ≤ z (Lv 2) ∧ z (Lv 2) ≤ 1/2 := by
+  simp only [domLE, hostEvolve, mLE, rover_dof_terrain_rung1_IR, vsE] at hz
   simp [Run.lowerF, Run.lowerE, gp_0_0, gp_0_8, gp_m0_5, gp_0_15, gp_1000_0, Run.resolveVar,
     List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp,
-    Term.eval, Lv]
-  tauto
+    Term.eval, Lv] at hz
+  casesm* _ ∧ _
+  exact ⟨by linarith, by linarith, by linarith⟩
 
 /-! ## O2: the kept atoms stay along the flows the cover certifies -/
 
@@ -324,9 +325,9 @@ theorem sat_domLE (x : State (Var 3)) : Formula.sat domLE x ↔
 theorem sdotL_nonneg (l : ℕ) (hl : l < 3) (z : State (Var 3)) (hz : Formula.sat domLE z) :
     0 ≤ Term.eval (fLE l 1) z := by
   rw [fLE1_eval l hl]
-  obtain ⟨h1, h2, -, -, h3, -⟩ := (sat_domLE z).mp hz
+  obtain ⟨h0, h1, h2⟩ := domL_bnd z hz
   have : (0:ℝ) ≤ 1 - 1/2 * (z (Lv 2) * z (Lv 2)) := by nlinarith
-  exact mul_nonneg h3 this
+  exact mul_nonneg h0 this
 
 theorem stayL (l q : ℕ) (hl : l < 3) :
     AtomsStayC (cL l) (jointSys (fLE l) (fRE q) (Term.const 1)) (Formula.and domLE domRE) := by
@@ -349,7 +350,7 @@ theorem stayR_gen (q : ℕ) (hq : q < 3) (fL : Fin 3 → Term (Var 3)) (c : ℝ)
   simp only [List.mem_cons, List.not_mem_nil, or_false] at ha
   rcases ha with rfl | rfl
   · exact boxle_thrGe_R 1 (sK q) _ _ c hc D D (fun x h => h)
-      (fun z hz _ => by rw [fRE1_eval q hq]; exact ((sat_domRE z).mp (hD z hz)).2.2.2.1) hinit
+      (fun z hz _ => by rw [fRE1_eval q hq]; exact LR.v_nonneg z (hD z hz)) hinit
   · exact boxle_thrLe_R 0 (ladC q) _ _ c hc D D (fun x h => h)
       (fun z hz hK => by rw [fRE0_eval q hq, cstE_eq]; linarith) hinit
 

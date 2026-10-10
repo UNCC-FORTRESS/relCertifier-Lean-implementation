@@ -320,12 +320,14 @@ theorem hgrdLA : ∀ g ∈ (List.range 3).map (fun l => hostGuard vsT 6 Side.L (
 (jump, then flow) against the guarded right automaton, the declared rows for every left mode,
 the right in its current mode's guard and cuts. From `rover_dof_terrain_rung2_guarded` by the generic bridge
 `theorem3_leftAut_of_choiceR`. -/
-theorem rover_dof_terrain_rung2_leftAut (dt : ℝ) :
+theorem rover_dof_terrain_rung2_leftAut (dt : ℝ)
+    (h00 : Verd 0 0) (h01 : Verd 0 1) (h02 : Verd 0 2) (h11 : Verd 1 1) (h12 : Verd 1 2)
+    (h22 : Verd 2 2) (d10 : VerdD 1 0) (d21 : VerdD 2 1) :
     RFormula.rvalid (theorem3Form (leftAutomatonBody (AL dt) uLA) (rightAutomatonBody GrG mvT)
       (psiK uLA (fun _ => canonInvM gT gsT) (AL dt).numModes domLT domRT
         (mvRegionR mvT gregion GrG.modes.length))) :=
   theorem3_leftAut_of_choiceR (AL dt) 0 1 2 (by decide) _ _ _ domLT domRT gregion _
-    (rover_dof_terrain_rung2_guarded dt)
+    (rover_dof_terrain_rung2_guarded dt h00 h01 h02 h11 h12 h22 d10 d21)
     (fun q _ => gregion_fv q)
       (canonInvM_varsL gT gsT (by
         intro g' hg'
@@ -334,7 +336,7 @@ theorem rover_dof_terrain_rung2_leftAut (dt : ℝ) :
       (canonInvM_varsR gT gsT) hdomLT hdomRT
     (LeftAut.ofP_vars leftDataT _ 1 dt nextLA hLT hgrdLA).1 (fun t _ => (LeftAut.ofP_vars leftDataT _ 1 dt nextLA hLT hgrdLA).2 t)
     (LeftAut.ofP_hnext leftDataT _ tgT dt nextLA 3 rfl (by rw [nextLA_eq]; decide))
-    (LeftAut.ofP_hsim leftDataT _ tgT dt nextLA)
+    (ofP_hsim_gated leftDataT _ tgT dt nextLA rfl)
 
 end RoverDofTerrainRung2Guarded
 
@@ -371,12 +373,14 @@ theorem hgrdLA : ∀ g ∈ (List.range 3).map (fun l => hostGuard vsW 12 Side.L 
 (jump, then flow) against the guarded right automaton, the declared rows for every left mode,
 the right in its current mode's guard and cuts. From `rover_dof_terrain_rung3_guarded` by the generic bridge
 `theorem3_leftAut_of_choiceR`. -/
-theorem rover_dof_terrain_rung3_leftAut (dt : ℝ) :
+theorem rover_dof_terrain_rung3_leftAut (dt : ℝ)
+    (h00 : Verd 0 0) (h01 : Verd 0 1) (h02 : Verd 0 2) (h11 : Verd 1 1) (h12 : Verd 1 2)
+    (h22 : Verd 2 2) (d10 : VerdD 1 0) (d21 : VerdD 2 1) :
     RFormula.rvalid (theorem3Form (leftAutomatonBody (AL dt) uLA) (rightAutomatonBody GrG mvW)
       (psiK uLA (fun _ => canonInvM gW gsW) (AL dt).numModes domLW domRW
         (mvRegionR mvW gregion GrG.modes.length))) :=
   theorem3_leftAut_of_choiceR (AL dt) 0 1 2 (by decide) _ _ _ domLW domRW gregion _
-    (rover_dof_terrain_rung3_guarded dt)
+    (rover_dof_terrain_rung3_guarded dt h00 h01 h02 h11 h12 h22 d10 d21)
     (fun q _ => gregion_fv q)
       (canonInvM_varsL gW gsW (by
         intro g' hg'
@@ -385,7 +389,7 @@ theorem rover_dof_terrain_rung3_leftAut (dt : ℝ) :
       (canonInvM_varsR gW gsW) hdomLW hdomRW
     (LeftAut.ofP_vars leftDataW _ 1 dt nextLA hLW hgrdLA).1 (fun t _ => (LeftAut.ofP_vars leftDataW _ 1 dt nextLA hLW hgrdLA).2 t)
     (LeftAut.ofP_hnext leftDataW _ tgW dt nextLA 3 rfl (by rw [nextLA_eq]; decide))
-    (LeftAut.ofP_hsim leftDataW _ tgW dt nextLA)
+    (ofP_hsim_gated leftDataW _ tgW dt nextLA rfl)
 
 end RoverDofTerrainRung3Guarded
 
@@ -422,12 +426,14 @@ theorem hgrdLA : ∀ g ∈ (List.range 3).map (fun l => hostGuard vsU 8 Side.L (
 (jump, then flow) against the guarded right automaton, the declared rows for every left mode,
 the right in its current mode's guard and cuts. From `rover_dof_terrain_rung3_8d_guarded` by the generic bridge
 `theorem3_leftAut_of_choiceR`. -/
-theorem rover_dof_terrain_rung3_8d_leftAut (dt : ℝ) :
+theorem rover_dof_terrain_rung3_8d_leftAut (dt : ℝ)
+    (h00 : Verd 0 0) (h01 : Verd 0 1) (h02 : Verd 0 2) (h11 : Verd 1 1) (h12 : Verd 1 2)
+    (h22 : Verd 2 2) (d10 : VerdD 1 0) (d21 : VerdD 2 1) :
     RFormula.rvalid (theorem3Form (leftAutomatonBody (AL dt) uLA) (rightAutomatonBody GrG mvU)
       (psiK uLA (fun _ => canonInvM gU gsU) (AL dt).numModes domLU domRU
         (mvRegionR mvU gregion GrG.modes.length))) :=
   theorem3_leftAut_of_choiceR (AL dt) 0 1 2 (by decide) _ _ _ domLU domRU gregion _
-    (rover_dof_terrain_rung3_8d_guarded dt)
+    (rover_dof_terrain_rung3_8d_guarded dt h00 h01 h02 h11 h12 h22 d10 d21)
     (fun q _ => gregion_fv q)
       (canonInvM_varsL gU gsU (by
         intro g' hg'
@@ -436,7 +442,7 @@ theorem rover_dof_terrain_rung3_8d_leftAut (dt : ℝ) :
       (canonInvM_varsR gU gsU) hdomLU hdomRU
     (LeftAut.ofP_vars leftDataU _ 1 dt nextLA hLU hgrdLA).1 (fun t _ => (LeftAut.ofP_vars leftDataU _ 1 dt nextLA hLU hgrdLA).2 t)
     (LeftAut.ofP_hnext leftDataU _ tgU dt nextLA 3 rfl (by rw [nextLA_eq]; decide))
-    (LeftAut.ofP_hsim leftDataU _ tgU dt nextLA)
+    (ofP_hsim_gated leftDataU _ tgU dt nextLA rfl)
 
 end RoverDofTerrainRung38dGuarded
 

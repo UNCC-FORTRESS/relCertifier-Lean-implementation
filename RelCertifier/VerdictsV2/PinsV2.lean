@@ -13,6 +13,9 @@ so a wrong row does not compile; with `modalVerdX_of_queries` (the rebuild denot
 kernel-checked.
 -/
 import RelCertifier.VerdictsV2.RunV2
+import RelCertifier.Instances.RoverDofTerrainRung38dGuarded
+import RelCertifier.Instances.RoverDofTerrainRung3Guarded
+import RelCertifier.Instances.RoverDofTerrainRung2Guarded
 import RelCertifier.InstancesV2.Modal.RoverPatrolRefine
 import RelCertifier.InstancesV2.Modal.RoverPatrolZones
 import RelCertifier.InstancesV2.Modal.Sat3wDetumblePhases
@@ -361,5 +364,62 @@ theorem pin_terrain1_d10 : RoverDofTerrainRung1Guarded.VerdD 1 0 = dynPackVerd (
   pin_dyn_row _ rfl irV2_terrain1 cutV2_terrain1
 theorem pin_terrain1_d21 : RoverDofTerrainRung1Guarded.VerdD 2 1 = dynPackVerd (dynPacksV2.getD 1 default) :=
   pin_dyn_row _ rfl irV2_terrain1 cutV2_terrain1
+
+theorem irV2_terrain2 : irV2 "rover_dof_terrain_rung2" = rover_dof_terrain_rung2_IRv2 := by decide
+theorem cutV2_terrain2 : cutV2 "rover_dof_terrain_rung2" = Oracle.rover_dof_terrain_rung2_cutsV2X := by decide
+theorem pin_terrain2_j0 : RoverDofTerrainRung2Guarded.Verd 0 0 = packVerd (packsV2.getD 110 default) :=
+  pin_row _ rfl irV2_terrain2 cutV2_terrain2 (by simp [packLam, packsV2])
+theorem pin_terrain2_j1 : RoverDofTerrainRung2Guarded.Verd 0 1 = packVerd (packsV2.getD 111 default) :=
+  pin_row _ rfl irV2_terrain2 cutV2_terrain2 (by simp [packLam, packsV2])
+theorem pin_terrain2_j2 : RoverDofTerrainRung2Guarded.Verd 0 2 = packVerd (packsV2.getD 112 default) :=
+  pin_row _ rfl irV2_terrain2 cutV2_terrain2 (by simp [packLam, packsV2])
+theorem pin_terrain2_j3 : RoverDofTerrainRung2Guarded.Verd 1 1 = packVerd (packsV2.getD 113 default) :=
+  pin_row _ rfl irV2_terrain2 cutV2_terrain2 (by simp [packLam, packsV2])
+theorem pin_terrain2_j4 : RoverDofTerrainRung2Guarded.Verd 1 2 = packVerd (packsV2.getD 114 default) :=
+  pin_row _ rfl irV2_terrain2 cutV2_terrain2 (by simp [packLam, packsV2])
+theorem pin_terrain2_j5 : RoverDofTerrainRung2Guarded.Verd 2 2 = packVerd (packsV2.getD 115 default) :=
+  pin_row _ rfl irV2_terrain2 cutV2_terrain2 (by simp [packLam, packsV2])
+theorem pin_terrain2_d0 : RoverDofTerrainRung2Guarded.VerdD 1 0 = dynPackVerd (dynPacksV2.getD 2 default) :=
+  pin_dyn_row _ rfl irV2_terrain2 cutV2_terrain2
+theorem pin_terrain2_d1 : RoverDofTerrainRung2Guarded.VerdD 2 1 = dynPackVerd (dynPacksV2.getD 3 default) :=
+  pin_dyn_row _ rfl irV2_terrain2 cutV2_terrain2
+
+theorem irV2_terrain3 : irV2 "rover_dof_terrain_rung3" = rover_dof_terrain_rung3_IRv2 := by decide
+theorem cutV2_terrain3 : cutV2 "rover_dof_terrain_rung3" = Oracle.rover_dof_terrain_rung3_cutsV2X := by decide
+theorem pin_terrain3_j0 : RoverDofTerrainRung3Guarded.Verd 0 0 = packVerd (packsV2.getD 116 default) :=
+  pin_row _ rfl irV2_terrain3 cutV2_terrain3 (by simp [packLam, packsV2])
+theorem pin_terrain3_j1 : RoverDofTerrainRung3Guarded.Verd 0 1 = packVerd (packsV2.getD 117 default) :=
+  pin_row _ rfl irV2_terrain3 cutV2_terrain3 (by simp [packLam, packsV2])
+theorem pin_terrain3_j2 : RoverDofTerrainRung3Guarded.Verd 0 2 = packVerd (packsV2.getD 118 default) :=
+  pin_row _ rfl irV2_terrain3 cutV2_terrain3 (by simp [packLam, packsV2])
+theorem pin_terrain3_j3 : RoverDofTerrainRung3Guarded.Verd 1 1 = packVerd (packsV2.getD 119 default) :=
+  pin_row _ rfl irV2_terrain3 cutV2_terrain3 (by simp [packLam, packsV2])
+theorem pin_terrain3_j4 : RoverDofTerrainRung3Guarded.Verd 1 2 = packVerd (packsV2.getD 120 default) :=
+  pin_row _ rfl irV2_terrain3 cutV2_terrain3 (by simp [packLam, packsV2])
+theorem pin_terrain3_j5 : RoverDofTerrainRung3Guarded.Verd 2 2 = packVerd (packsV2.getD 121 default) :=
+  pin_row _ rfl irV2_terrain3 cutV2_terrain3 (by simp [packLam, packsV2])
+theorem pin_terrain3_d0 : RoverDofTerrainRung3Guarded.VerdD 1 0 = dynPackVerd (dynPacksV2.getD 4 default) :=
+  pin_dyn_row _ rfl irV2_terrain3 cutV2_terrain3
+theorem pin_terrain3_d1 : RoverDofTerrainRung3Guarded.VerdD 2 1 = dynPackVerd (dynPacksV2.getD 5 default) :=
+  pin_dyn_row _ rfl irV2_terrain3 cutV2_terrain3
+
+theorem irV2_terrain38d : irV2 "rover_dof_terrain_rung3_8d" = rover_dof_terrain_rung3_8d_IRv2 := by decide
+theorem cutV2_terrain38d : cutV2 "rover_dof_terrain_rung3_8d" = Oracle.rover_dof_terrain_rung3_8d_cutsV2X := by decide
+theorem pin_terrain38d_j0 : RoverDofTerrainRung38dGuarded.Verd 0 0 = packVerd (packsV2.getD 122 default) :=
+  pin_row _ rfl irV2_terrain38d cutV2_terrain38d (by simp [packLam, packsV2])
+theorem pin_terrain38d_j1 : RoverDofTerrainRung38dGuarded.Verd 0 1 = packVerd (packsV2.getD 123 default) :=
+  pin_row _ rfl irV2_terrain38d cutV2_terrain38d (by simp [packLam, packsV2])
+theorem pin_terrain38d_j2 : RoverDofTerrainRung38dGuarded.Verd 0 2 = packVerd (packsV2.getD 124 default) :=
+  pin_row _ rfl irV2_terrain38d cutV2_terrain38d (by simp [packLam, packsV2])
+theorem pin_terrain38d_j3 : RoverDofTerrainRung38dGuarded.Verd 1 1 = packVerd (packsV2.getD 125 default) :=
+  pin_row _ rfl irV2_terrain38d cutV2_terrain38d (by simp [packLam, packsV2])
+theorem pin_terrain38d_j4 : RoverDofTerrainRung38dGuarded.Verd 1 2 = packVerd (packsV2.getD 126 default) :=
+  pin_row _ rfl irV2_terrain38d cutV2_terrain38d (by simp [packLam, packsV2])
+theorem pin_terrain38d_j5 : RoverDofTerrainRung38dGuarded.Verd 2 2 = packVerd (packsV2.getD 127 default) :=
+  pin_row _ rfl irV2_terrain38d cutV2_terrain38d (by simp [packLam, packsV2])
+theorem pin_terrain38d_d0 : RoverDofTerrainRung38dGuarded.VerdD 1 0 = dynPackVerd (dynPacksV2.getD 6 default) :=
+  pin_dyn_row _ rfl irV2_terrain38d cutV2_terrain38d
+theorem pin_terrain38d_d1 : RoverDofTerrainRung38dGuarded.VerdD 2 1 = dynPackVerd (dynPacksV2.getD 7 default) :=
+  pin_dyn_row _ rfl irV2_terrain38d cutV2_terrain38d
 
 end RelCertifier.VerdictsV2

@@ -187,10 +187,31 @@ def packsV2 : List PackV2 :=
     ⟨"rover_dof_terrain_rung1", 3, 0, [0, 1], 1, 1, 0, 2⟩,
     ⟨"rover_dof_terrain_rung1", 3, 0, [0, 1], 1, 1, 1, 1⟩,
     ⟨"rover_dof_terrain_rung1", 3, 0, [0, 1], 1, 1, 1, 2⟩,
-    ⟨"rover_dof_terrain_rung1", 3, 0, [0, 1], 1, 1, 2, 2⟩ ]
+    ⟨"rover_dof_terrain_rung1", 3, 0, [0, 1], 1, 1, 2, 2⟩,
+    -- rover_dof_terrain_rung2 (cover replay)
+    ⟨"rover_dof_terrain_rung2", 6, 0, [0, 1], 1, 1, 0, 0⟩,
+    ⟨"rover_dof_terrain_rung2", 6, 0, [0, 1], 1, 1, 0, 1⟩,
+    ⟨"rover_dof_terrain_rung2", 6, 0, [0, 1], 1, 1, 0, 2⟩,
+    ⟨"rover_dof_terrain_rung2", 6, 0, [0, 1], 1, 1, 1, 1⟩,
+    ⟨"rover_dof_terrain_rung2", 6, 0, [0, 1], 1, 1, 1, 2⟩,
+    ⟨"rover_dof_terrain_rung2", 6, 0, [0, 1], 1, 1, 2, 2⟩,
+    -- rover_dof_terrain_rung3 (cover replay)
+    ⟨"rover_dof_terrain_rung3", 12, 0, [0, 1], 1, 1, 0, 0⟩,
+    ⟨"rover_dof_terrain_rung3", 12, 0, [0, 1], 1, 1, 0, 1⟩,
+    ⟨"rover_dof_terrain_rung3", 12, 0, [0, 1], 1, 1, 0, 2⟩,
+    ⟨"rover_dof_terrain_rung3", 12, 0, [0, 1], 1, 1, 1, 1⟩,
+    ⟨"rover_dof_terrain_rung3", 12, 0, [0, 1], 1, 1, 1, 2⟩,
+    ⟨"rover_dof_terrain_rung3", 12, 0, [0, 1], 1, 1, 2, 2⟩,
+    -- rover_dof_terrain_rung3_8d (cover replay)
+    ⟨"rover_dof_terrain_rung3_8d", 8, 0, [0, 1], 1, 1, 0, 0⟩,
+    ⟨"rover_dof_terrain_rung3_8d", 8, 0, [0, 1], 1, 1, 0, 1⟩,
+    ⟨"rover_dof_terrain_rung3_8d", 8, 0, [0, 1], 1, 1, 0, 2⟩,
+    ⟨"rover_dof_terrain_rung3_8d", 8, 0, [0, 1], 1, 1, 1, 1⟩,
+    ⟨"rover_dof_terrain_rung3_8d", 8, 0, [0, 1], 1, 1, 1, 2⟩,
+    ⟨"rover_dof_terrain_rung3_8d", 8, 0, [0, 1], 1, 1, 2, 2⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 274
+def expectedModalV2 : Nat := 310
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
@@ -266,10 +287,19 @@ noncomputable def dynPackVerd (r : DynPackV2) : Prop :=
 def dynPacksV2 : List DynPackV2 :=
   [ -- rover_dof_terrain_rung1: MODER window from STEEP, FLAT window from MODER
     ⟨"rover_dof_terrain_rung1", 3, 0, [0, 1], true, 1, 0⟩,
-    ⟨"rover_dof_terrain_rung1", 3, 0, [0, 1], true, 2, 1⟩ ]
+    ⟨"rover_dof_terrain_rung1", 3, 0, [0, 1], true, 2, 1⟩,
+    -- rover_dof_terrain_rung2
+    ⟨"rover_dof_terrain_rung2", 6, 0, [0, 1], true, 1, 0⟩,
+    ⟨"rover_dof_terrain_rung2", 6, 0, [0, 1], true, 2, 1⟩,
+    -- rover_dof_terrain_rung3
+    ⟨"rover_dof_terrain_rung3", 12, 0, [0, 1], true, 1, 0⟩,
+    ⟨"rover_dof_terrain_rung3", 12, 0, [0, 1], true, 2, 1⟩,
+    -- rover_dof_terrain_rung3_8d
+    ⟨"rover_dof_terrain_rung3_8d", 8, 0, [0, 1], true, 1, 0⟩,
+    ⟨"rover_dof_terrain_rung3_8d", 8, 0, [0, 1], true, 2, 1⟩ ]
 
 /-- Declared: the number of component queries the reposition packs owe. -/
-def expectedDynV2 : Nat := 4
+def expectedDynV2 : Nat := 16
 
 def runDynPack (s : Z3Session) (r : DynPackV2) : IO Bool := do
   let p := irV2 r.bench

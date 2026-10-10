@@ -25,6 +25,7 @@ theorem packQueries_length (r : PackV2) {qss : List (List (IForm r.dim))}
   obtain ⟨_, _, _, _, _, _, _, _, _, _, _, _, _, _, rfl⟩ := h
   simp
 
+set_option maxRecDepth 100000 in
 theorem derivedModalV2_eq : (packsV2.map (fun r => r.order.length)).sum = expectedModalV2 := by
   decide
 
@@ -37,6 +38,7 @@ theorem dynPackQueries_length (r : DynPackV2) {qs : List (IForm r.dim)}
   obtain ⟨_, _, _, _, _, _, _, _, _, _, _, _, rfl⟩ := h
   simp
 
+set_option maxRecDepth 100000 in
 theorem derivedDynV2_eq : (dynPacksV2.map (fun r => r.order.length)).sum = expectedDynV2 := by
   decide
 

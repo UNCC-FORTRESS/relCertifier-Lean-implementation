@@ -182,4 +182,84 @@ theorem joint_of_sols {fL fR : Fin n → Term (Var n)} {domL domR : Formula (Var
       obtain ⟨j, rfl⟩ := hdomR hv
       exact mergeLR_R ω₀ _ _ j
 
+/-- **The joint run of two solutions, the right stretched by `λ > 0`.** A clocked left solution
+of duration `r` and a right solution of duration `λ r` make a run of the joint system with the
+right field stretched by `λ` (the right read at time `λ t`). -/
+theorem joint_of_sols_lam {fL fR : Fin n → Term (Var n)} {domL domR : Formula (Var n)}
+    (tg : Var n) (lam : ℝ) (hlam : 0 < lam)
+    (hfL : ∀ i, (fL i).fv ⊆ range Lv) (hfR : ∀ i, (fR i).fv ⊆ range Rv)
+    (hdomL : domL.fv ⊆ range Lv) (hdomR : domR.fv ⊆ range Rv)
+    {x y : State (Var n)} {r : ℝ} {ΦL ΦR : ℝ → State (Var n)}
+    (hL : ODESol (clk tg (leftBlock fL)) domL x r ΦL)
+    (hR : ODESol (rightBlock fR (Term.const 1)) domR y (lam * r) ΦR) (ω₀ : State (Var n)) :
+    Program.sem (Program.ode (jointSys fL fR (Term.const lam)) (Formula.and domL domR))
+      (mergeLR ω₀ (ΦL 0) (ΦR 0)) (mergeLR ω₀ (ΦL r) (ΦR (lam * r))) := by
+  have hmaps : Set.MapsTo (fun u : ℝ => lam * u) (Icc 0 r) (Icc 0 (lam * r)) :=
+    fun u hu => ⟨mul_nonneg hlam.le hu.1, mul_le_mul_of_nonneg_left hu.2 hlam.le⟩
+  refine ⟨r, fun t => mergeLR ω₀ (ΦL t) (ΦR (lam * t)), hL.hr, by simp, rfl, ?_, ?_, ?_⟩
+  · intro t ht p hp
+    rw [jointSys_split] at hp
+    rcases List.mem_append.mp hp with hp | hp
+    · simp only [leftBlock, List.mem_map, List.mem_finRange, true_and] at hp
+      obtain ⟨i, rfl⟩ := hp
+      have hmem : ((Lv i : Var n), fL i) ∈ clk tg (leftBlock fL) := by
+        simp only [clk, List.mem_append]
+        exact Or.inl (List.mem_map.mpr ⟨i, List.mem_finRange i, rfl⟩)
+      have hd := hL.hder t ht _ hmem
+      have hf : (fun u => mergeLR ω₀ (ΦL u) (ΦR (lam * u)) (Lv i)) = fun u => ΦL u (Lv i) := by
+        funext u; exact mergeLR_L ω₀ _ _ i
+      have hval : Term.eval (fL i) (mergeLR ω₀ (ΦL t) (ΦR (lam * t))) =
+          Term.eval (fL i) (ΦL t) := by
+        refine Term.coincidence (fL i) (fun v hv => ?_)
+        obtain ⟨j, rfl⟩ := hfL i hv
+        exact mergeLR_L ω₀ _ _ j
+      show HasDerivWithinAt (fun u => mergeLR ω₀ (ΦL u) (ΦR (lam * u)) (Lv i))
+        (Term.eval (fL i) (mergeLR ω₀ (ΦL t) (ΦR (lam * t)))) (Icc 0 r) t
+      rw [hf, hval]
+      exact hd
+    · simp only [rightBlock, List.mem_map, List.mem_finRange, true_and] at hp
+      obtain ⟨i, rfl⟩ := hp
+      have hmem : ((Rv i : Var n), Term.binop .mul (Term.const 1) (fR i)) ∈
+          rightBlock fR (Term.const 1) := List.mem_map.mpr ⟨i, List.mem_finRange i, rfl⟩
+      have hd := hR.hder (lam * t) (hmaps ht) _ hmem
+      have hc : HasDerivWithinAt (fun u : ℝ => lam * u) lam (Icc 0 r) t := by
+        simpa using (hasDerivWithinAt_id t (Icc (0:ℝ) r)).const_mul lam
+      have hcomp := hd.comp t hc hmaps
+      have hf : (fun u => mergeLR ω₀ (ΦL u) (ΦR (lam * u)) (Rv i)) =
+          (fun u => ΦR u (Rv i)) ∘ (fun u => lam * u) := by
+        funext u; exact mergeLR_R ω₀ _ _ i
+      have hval : Term.eval (Term.binop .mul (Term.const lam) (fR i))
+          (mergeLR ω₀ (ΦL t) (ΦR (lam * t))) =
+          Term.eval (Term.binop .mul (Term.const 1) (fR i)) (ΦR (lam * t)) * lam := by
+        have hco : Term.eval (fR i) (mergeLR ω₀ (ΦL t) (ΦR (lam * t))) =
+            Term.eval (fR i) (ΦR (lam * t)) := by
+          refine Term.coincidence (fR i) (fun v hv => ?_)
+          obtain ⟨j, rfl⟩ := hfR i hv
+          exact mergeLR_R ω₀ _ _ j
+        simp only [Term.eval, AOp.interp, hco]
+        ring
+      show HasDerivWithinAt (fun u => mergeLR ω₀ (ΦL u) (ΦR (lam * u)) (Rv i))
+        (Term.eval (Term.binop .mul (Term.const lam) (fR i))
+          (mergeLR ω₀ (ΦL t) (ΦR (lam * t)))) (Icc 0 r) t
+      rw [hf, hval]
+      exact hcomp
+  · intro t _ v hv
+    obtain ⟨sd, i⟩ := v
+    cases sd with
+    | L =>
+        exfalso; apply hv
+        simp [ODESystem.bound, jointSys, Lv]
+    | R =>
+        exfalso; apply hv
+        simp [ODESystem.bound, jointSys, Rv]
+    | Aux => simp [mergeLR]
+  · intro t ht
+    refine ⟨?_, ?_⟩
+    · refine (Formula.coincidence domL (fun v hv => ?_)).mpr (hL.hdom t ht)
+      obtain ⟨j, rfl⟩ := hdomL hv
+      exact mergeLR_L ω₀ _ _ j
+    · refine (Formula.coincidence domR (fun v hv => ?_)).mpr (hR.hdom (lam * t) (hmaps ht))
+      obtain ⟨j, rfl⟩ := hdomR hv
+      exact mergeLR_R ω₀ _ _ j
+
 end RelCertifier

@@ -13,6 +13,7 @@ so a wrong row does not compile; with `modalVerdX_of_queries` (the rebuild denot
 kernel-checked.
 -/
 import RelCertifier.VerdictsV2.RunV2
+import RelCertifier.InstancesV2.Modal.SatDetumblePhases
 import RelCertifier.InstancesV2.Modal.Sat3wDetumbleWeak
 import RelCertifier.InstancesV2.Modal.Sat3wDetumbleNominal
 import RelCertifier.InstancesV2.Modal.SatDetumbleWeak
@@ -268,5 +269,12 @@ theorem pin_sat3w_detumble_weak_1 : V2Sat3wDetumbleWeak.Verd 0 1 = packVerd (pac
   pin_row _ rfl irV2_sat3w_detumble_weak cutV2_sat3w_detumble_weak (by simp [packLam, packsV2])
 theorem pin_sat3w_detumble_weak_2 : V2Sat3wDetumbleWeak.Verd 0 2 = packVerd (packsV2.getD 79 default) :=
   pin_row _ rfl irV2_sat3w_detumble_weak cutV2_sat3w_detumble_weak (by simp [packLam, packsV2])
+
+theorem irV2_sat_detumble_phases : irV2 "sat_detumble_phases" = sat_detumble_phases_IRv2 := by decide
+theorem cutV2_sat_detumble_phases : cutV2 "sat_detumble_phases" = Oracle.sat_detumble_phases_cutsV2X := by decide
+theorem pin_sat_detumble_phases_0 : V2SatDetumblePhases.Verd 0 0 = packVerd (packsV2.getD 80 default) :=
+  pin_row _ rfl irV2_sat_detumble_phases cutV2_sat_detumble_phases (by simp [packLam, packsV2])
+theorem pin_sat_detumble_phases_1 : V2SatDetumblePhases.Verd 1 0 = packVerd (packsV2.getD 81 default) :=
+  pin_row _ rfl irV2_sat_detumble_phases cutV2_sat_detumble_phases (by simp [packLam, packsV2])
 
 end RelCertifier.VerdictsV2

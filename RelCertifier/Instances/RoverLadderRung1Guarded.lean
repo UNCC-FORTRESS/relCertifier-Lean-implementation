@@ -5,9 +5,9 @@ Released under Apache 2.0 license.
 # `refinement_ladder_rover_rung1_2to3` over the GUARDED right automaton — Theorem 3 by a climb
 
 `RoverLadderRung1Modal.rover_ladder_rung1_modal` states Theorem 3 over the `⊤`-guarded right
-chain `STEEP → MODER → FLAT` with the bookkeeping `mvValid`. Over the guarded chain that
-statement is false (`RoverLadderRung1Counterexample`: a `STEEP` right at `s_R = 5` has no
-step). This file states Theorem 3 over the GUARDED graph `GrG` (every edge tests the lowered
+chain `STEEP → MODER → FLAT` with the bookkeeping `mvValid`. Over the guarded chain with that
+cut-only invariant the statement is false (a `STEEP` right at `s_R = 5` has no step; history
+in `docs/GUARDED-SWITCHING.md`). This file states Theorem 3 over the GUARDED graph `GrG` (every edge tests the lowered
 guard of the mode it enters, `GrG_guards`) at the mode-consistent region: the right in the
 guard of its current mode (`gregion`; no cut is kept on this benchmark).
 

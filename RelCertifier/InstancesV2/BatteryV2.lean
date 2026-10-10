@@ -37,6 +37,7 @@ import RelCertifier.InstancesV2.Modal.PlatoonDelayLinkloss
 import RelCertifier.InstancesV2.Modal.QuadLightAirframe20
 import RelCertifier.InstancesV2.Modal.QuadLightProfiles
 import RelCertifier.InstancesV2.Modal.QuadLightLag
+import RelCertifier.InstancesV2.Modal.ChargerFastSetpoints
 -- the 19 copied benchmarks: legacy theorems (their literal is the suite_v2 literal)
 import RelCertifier.Instances.MatchMultiRatePruned
 import RelCertifier.Instances.RoverLadderRung1Modal
@@ -70,6 +71,7 @@ namespace RelCertifier
 #print axioms V2QuadLightAirframe20.quad_light_airframe_20_modal
 #print axioms V2QuadLightProfiles.quad_light_profiles_modal
 #print axioms V2QuadLightLag.quad_light_lag_modal
+#print axioms V2ChargerFastSetpoints.charger_fast_setpoints_modal
 
 /-! ## Copied benchmarks (legacy theorems; `SameIR` ties the literals) -/
 

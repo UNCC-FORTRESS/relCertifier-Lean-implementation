@@ -13,6 +13,7 @@ so a wrong row does not compile; with `modalVerdX_of_queries` (the rebuild denot
 kernel-checked.
 -/
 import RelCertifier.VerdictsV2.RunV2
+import RelCertifier.InstancesV2.Modal.ChargerFastSetpoints
 import RelCertifier.InstancesV2.Modal.QuadLightLag
 import RelCertifier.InstancesV2.Modal.QuadLightProfiles
 import RelCertifier.InstancesV2.Modal.QuadLightAirframe20
@@ -144,5 +145,22 @@ theorem irV2_quad_light_lag : irV2 "quad_light_lag" = quad_light_lag_IRv2 := by 
 theorem cutV2_quad_light_lag : cutV2 "quad_light_lag" = Oracle.quad_light_lag_cutsV2X := by decide
 theorem pin_quad_light_lag_0 : V2QuadLightLag.Verd 0 0 = packVerd (packsV2.getD 39 default) :=
   pin_row _ rfl irV2_quad_light_lag cutV2_quad_light_lag (by simp [packLam, packsV2, V2QuadLightLag.lam])
+
+theorem irV2_charger_fast_setpoints : irV2 "charger_fast_setpoints" = charger_fast_setpoints_IRv2 := by decide
+theorem cutV2_charger_fast_setpoints : cutV2 "charger_fast_setpoints" = Oracle.charger_fast_setpoints_cutsV2X := by decide
+theorem pin_charger_fast_setpoints_0 : V2ChargerFastSetpoints.Verd 0 1 = packVerd (packsV2.getD 40 default) :=
+  pin_row _ rfl irV2_charger_fast_setpoints cutV2_charger_fast_setpoints (by simp [packLam, packsV2, V2ChargerFastSetpoints.lam])
+theorem pin_charger_fast_setpoints_1 : V2ChargerFastSetpoints.Verd 0 2 = packVerd (packsV2.getD 41 default) :=
+  pin_row _ rfl irV2_charger_fast_setpoints cutV2_charger_fast_setpoints (by simp [packLam, packsV2, V2ChargerFastSetpoints.lam])
+theorem pin_charger_fast_setpoints_2 : V2ChargerFastSetpoints.Verd 1 1 = packVerd (packsV2.getD 42 default) :=
+  pin_row _ rfl irV2_charger_fast_setpoints cutV2_charger_fast_setpoints (by simp [packLam, packsV2, V2ChargerFastSetpoints.lam])
+theorem pin_charger_fast_setpoints_3 : V2ChargerFastSetpoints.Verd 1 2 = packVerd (packsV2.getD 43 default) :=
+  pin_row _ rfl irV2_charger_fast_setpoints cutV2_charger_fast_setpoints (by simp [packLam, packsV2, V2ChargerFastSetpoints.lam])
+theorem pin_charger_fast_setpoints_4 : V2ChargerFastSetpoints.Verd 2 0 = packVerd (packsV2.getD 44 default) :=
+  pin_row _ rfl irV2_charger_fast_setpoints cutV2_charger_fast_setpoints (by simp [packLam, packsV2, V2ChargerFastSetpoints.lam])
+theorem pin_charger_fast_setpoints_5 : V2ChargerFastSetpoints.Verd 2 1 = packVerd (packsV2.getD 45 default) :=
+  pin_row _ rfl irV2_charger_fast_setpoints cutV2_charger_fast_setpoints (by simp [packLam, packsV2, V2ChargerFastSetpoints.lam])
+theorem pin_charger_fast_setpoints_6 : V2ChargerFastSetpoints.Verd 2 2 = packVerd (packsV2.getD 46 default) :=
+  pin_row _ rfl irV2_charger_fast_setpoints cutV2_charger_fast_setpoints (by simp [packLam, packsV2, V2ChargerFastSetpoints.lam])
 
 end RelCertifier.VerdictsV2

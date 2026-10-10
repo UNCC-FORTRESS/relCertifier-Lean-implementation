@@ -100,10 +100,18 @@ def packsV2 : List PackV2 :=
     ⟨"quad_light_profiles", 2, 0, [0, 1], 5, 2, 0, 1⟩,
     ⟨"quad_light_profiles", 2, 0, [0, 1], 5, 2, 0, 2⟩,
     -- quad_light_lag
-    ⟨"quad_light_lag", 2, 0, [0], 7, 4, 0, 0⟩ ]
+    ⟨"quad_light_lag", 2, 0, [0], 7, 4, 0, 0⟩,
+    -- charger_fast_setpoints
+    ⟨"charger_fast_setpoints", 2, 0, [0], 1, 1, 0, 1⟩,
+    ⟨"charger_fast_setpoints", 2, 0, [0], 1, 1, 0, 2⟩,
+    ⟨"charger_fast_setpoints", 2, 1, [0], 1, 1, 1, 1⟩,
+    ⟨"charger_fast_setpoints", 2, 1, [0], 1, 1, 1, 2⟩,
+    ⟨"charger_fast_setpoints", 2, 2, [0], 1, 1, 2, 0⟩,
+    ⟨"charger_fast_setpoints", 2, 2, [0], 1, 1, 2, 1⟩,
+    ⟨"charger_fast_setpoints", 2, 2, [0], 1, 1, 2, 2⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 79
+def expectedModalV2 : Nat := 86
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do

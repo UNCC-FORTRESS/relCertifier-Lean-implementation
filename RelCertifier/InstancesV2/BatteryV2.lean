@@ -5,35 +5,38 @@ Released under Apache 2.0 license.
 # The suite_v2 battery: the paper's Theorem 3 per benchmark, axiom-audited on every build
 
 `benchmarks/suite_v2` (45 benchmarks, all CERTIFIED with `RELCERT_IMPLIED_CUT=1`). Every
-benchmark carries Theorem 3; each theorem is imported here and its axioms are re-emitted on
-every build (`lake build RelCertifier.InstancesV2.BatteryV2 2>&1 | grep -A3 "depends on
-axioms"`), so the audit cannot drift from the theorems. 51 `#print axioms` lines: 46
-benchmark theorems (26 new instances, 19 carried-over benchmarks of which
-`match_multi_rate` has two: Theorem 3 and the Theorem 2 certificate of its pruned edge) and
-5 generic lemmas. Expected and observed: the three standard axioms plus `z3_unsat_sound`
-where a verdict pack enters; five benchmark theorems are Z3-free
-(`arm_plateau_crit/profiles/slow`, `refinement_ladder_rover_rung2_6dof`, `rung2b_6dof`).
-12 of the 45 are mode-keyed (`*_modeKeyed`: the invariant row depends on the left mode,
-composed through in-kernel handoffs).
+theorem is imported here and its axioms are re-emitted on every build (`lake build
+RelCertifier.InstancesV2.BatteryV2 2>&1 | grep -A3 "depends on axioms"`), so the audit cannot
+drift from the theorems. 55 `#print axioms` lines, in four groups:
+
+* **Theorem 3 over the GUARDED right automaton: 22 benchmarks.** Every right edge tests the
+  lowered guard of the mode it enters (the paper's `?guard_m(x)`), proved per instance
+  (`Gr_guards`); the response's every switch is kernel-checked legal
+  (`Proofs/Encoding/GuardedSwitch.lean`). 20 suite_v2 instances (`Modal/`) and two carried-over
+  benchmarks restated over the guarded automaton by an explicit catch-up
+  (`Instances/Rover3tierRung12Guarded`, `Instances/MatchMultiRateGuarded`, both Z3-free).
+* **A machine-checked refutation**: `rover_ladder_rung1_guarded_false`, the guarded statement
+  of `refinement_ladder_rover_rung1_2to3` is false for every window length `dt > 0`.
+* **Theorem 3 over the `⊤`-guarded relaxation only: 23 benchmarks.** For 21 the guarded
+  statement is false as stated (a right state inside the invariant from which the guarded
+  automaton has no step, while a left window breaks the row); for `platoon3_profiles` and
+  `platoon3_linkloss` it is open (`docs/GUARDED-SWITCHING.md`).
+* Theorem 2 of `match_multi_rate`'s pruned edge, and 8 generic lemmas.
+
+Expected and observed axioms: the three standard ones plus `z3_unsat_sound` where a verdict
+pack enters.
 
 * Data, kernel-checked for all 45: the IR literals (`BenchIR/`, drift-checked against the
   files by `relcert-test` `[ir-drift-v2]`), the extended cut certificates
   (`Cuts/<b>.lean`, `evolStrengtheningWFX … = true` by `rfl`), the cover replays
   (`CoverReplay.lean`, `decideCovered` by `decide`).
-* The 26 new suite_v2 instances (`Modal/`): Theorem 3 at the declared invariant over the
-  file's right automaton, the right mode's kept cut atoms as its region (the widened cut
-  channel lifted by `Proofs/Soundness/CutLiftX`), pruned sinks excluded; the six satellite
-  instances state it on the conserved-momentum nonblocking region (a model property that
-  enters no verdict query). Packs are rows of `VerdictsV2.RunV2.packsV2`, pinned in
-  `VerdictsV2/PinsV2`.
-* The 19 carried-over benchmarks: their suite_v2 files are byte-identical copies of files
-  of the retired legacy suite, and their literal IS the legacy literal (`SameIR.lean`,
-  `rfl`), so the legacy theorems below (`Instances/`) are theorems about the suite_v2
-  files. Their packs are the rows of `Verdicts/RunModal.modalTable`, re-run by
-  `relcert --run-verdicts-v2` (phase "copied benchmarks"); `match_multi_rate_nonconn`'s
-  hypothesis is pinned to the suite_v2 non-connection phase by `VerdictsV2/NonConnPinV2`.
-* Declared counts: `VerdictsV2/CoveragePinsV2` derives every declared phase count from
-  the tables.
+* Packs are rows of `VerdictsV2.RunV2.packsV2` (pinned in `VerdictsV2/PinsV2`) and, for the
+  carried-over benchmarks, of `Verdicts/RunModal.modalTable` (re-run by `relcert
+  --run-verdicts-v2`, phase "copied benchmarks"); `match_multi_rate_nonconn`'s hypothesis is
+  pinned to the suite_v2 non-connection phase by `VerdictsV2/NonConnPinV2`. The guarded
+  theorems of `rover3tier_rung12` and `match_multi_rate` take no pack.
+* Declared counts: `VerdictsV2/CoveragePinsV2` derives every declared phase count from the
+  tables.
 -/
 import RelCertifier.InstancesV2.SameIR
 import RelCertifier.InstancesV2.CoverReplay
@@ -69,7 +72,9 @@ import RelCertifier.InstancesV2.Modal.RoverPatrolZones
 import RelCertifier.InstancesV2.Modal.RoverPatrolRefine
 -- the 19 carried-over benchmarks: legacy theorems (their literal is the suite_v2 literal)
 import RelCertifier.Instances.MatchMultiRatePruned
+import RelCertifier.Instances.MatchMultiRateGuarded
 import RelCertifier.Instances.RoverLadderRung1Modal
+import RelCertifier.Instances.RoverLadderRung1Counterexample
 import RelCertifier.Instances.RoverLadderRung2Modal
 import RelCertifier.Instances.RoverRung26dofModal
 import RelCertifier.Instances.RoverRung2b6dofModal
@@ -77,6 +82,7 @@ import RelCertifier.Instances.RoverRung2cModal
 import RelCertifier.Instances.RoverLadderRung3Modal
 import RelCertifier.Instances.RoverLadderRung4Modal
 import RelCertifier.Instances.Rover3tierRung12Handoff
+import RelCertifier.Instances.Rover3tierRung12Guarded
 import RelCertifier.Instances.RoverDofTerrainRung1Modal
 import RelCertifier.Instances.RoverDofTerrainRung2Modal
 import RelCertifier.Instances.RoverDofTerrainRung3Modal
@@ -90,7 +96,11 @@ import RelCertifier.Instances.Story3RolloverRungAModal
 
 namespace RelCertifier
 
-/-! ## New suite_v2 instances -/
+/-! ## Theorem 3 over the GUARDED right automaton (22 benchmarks)
+
+Every right edge tests the lowered guard of the mode it enters (each instance's `Gr_guards`
+/ `GrG_guards` / `GrPG_guards`); every switch of the response is kernel-checked legal
+(`Proofs/Encoding/GuardedSwitch.lean`, `docs/GUARDED-SWITCHING.md`). -/
 
 #print axioms V2Watertank.watertank_modal
 #print axioms V2PlatoonDelayProfiles.platoon_delay_profiles_modal
@@ -106,23 +116,37 @@ namespace RelCertifier
 #print axioms V2ChargerFastTapers.charger_fast_tapers_modal
 #print axioms V2ArmPlateauCrit.arm_plateau_crit_modal
 #print axioms V2ArmPlateauProfiles.arm_plateau_profiles_modal
-#print axioms V2ArmPlateauSlow.arm_plateau_slow_modal
-#print axioms V2Story3RolloverRungB.story3_rollover_ladder_rung_b_modeKeyed
 #print axioms V2SatDetumbleNominal.sat_detumble_nominal_modal
-#print axioms V2Platoon3Profiles.platoon3_profiles_modal
-#print axioms V2Platoon3Linkloss.platoon3_linkloss_modeKeyed
 #print axioms V2SatDetumbleWeak.sat_detumble_weak_modal
 #print axioms V2Sat3wDetumbleNominal.sat3w_detumble_nominal_modal
 #print axioms V2Sat3wDetumbleWeak.sat3w_detumble_weak_modal
 #print axioms V2SatDetumblePhases.sat_detumble_phases_modeKeyed
 #print axioms V2Sat3wDetumblePhases.sat3w_detumble_phases_modeKeyed
+#print axioms Rover3tierRung12Guarded.rover3tier_rung12_modeKeyed_guarded
+#print axioms MatchMultiRateGuarded.match_multi_rate_guarded
+
+/-! ## The guarded statement is false as stated (machine-checked representative)
+
+`refinement_ladder_rover_rung1_2to3`: the statement of `rover_ladder_rung1_modal` over the
+guarded right automaton fails for every `dt > 0` (the right in `STEEP` at `s_R = 5` has no
+step; the left `STEEP` window breaks `v_L ≤ v_R`). The same mechanism refutes the guarded
+statements of the other twenty benchmarks listed below (`docs/GUARDED-SWITCHING.md` §4.3). -/
+
+#print axioms RoverLadderRung1Counterexample.rover_ladder_rung1_guarded_false
+
+/-! ## Theorem 3 over the `⊤`-guarded relaxation only (23 benchmarks)
+
+These theorems are about the declared-successor relaxation of `R` (edge guards `⊤`). For 21
+of them the guarded statement is false as stated (a stuck right state inside the invariant,
+`docs/GUARDED-SWITCHING.md` §4.3); for `platoon3_profiles` and `platoon3_linkloss` no legal
+witness could be built from the certificate's response, and the guarded statement is open. -/
+
+#print axioms V2ArmPlateauSlow.arm_plateau_slow_modal
+#print axioms V2Story3RolloverRungB.story3_rollover_ladder_rung_b_modeKeyed
+#print axioms V2Platoon3Profiles.platoon3_profiles_modal
+#print axioms V2Platoon3Linkloss.platoon3_linkloss_modeKeyed
 #print axioms V2RoverPatrolZones.rover_patrol_zones_modeKeyed
 #print axioms V2RoverPatrolRefine.rover_patrol_refine_modeKeyed
-
-/-! ## Carried-over benchmarks (legacy theorems; `SameIR` ties the literals) -/
-
-#print axioms MatchMultiRatePruned.match_multi_rate_pruned
-#print axioms MatchMultiRatePruned.match_multi_rate_nonconn
 #print axioms RoverLadderRung1Modal.rover_ladder_rung1_modal
 #print axioms RoverLadderRung2Modal.rover_ladder_rung2_3to6_modal
 #print axioms RoverRung26dofModal.rung2_6dof_modal
@@ -130,7 +154,6 @@ namespace RelCertifier
 #print axioms RoverRung2cModal.rover_rung2c_modal
 #print axioms RoverLadderRung3Modal.rover_ladder_rung3_6to8_modal
 #print axioms RoverLadderRung4Modal.rover_ladder_rung4_8to12_modal
-#print axioms Rover3tierRung12Handoff.rover3tier_rung12_modeKeyed
 #print axioms RoverDofTerrainRung1Modal.rover_dof_terrain_rung1_modal
 #print axioms RoverDofTerrainRung2Modal.rover_dof_terrain_rung2_modal
 #print axioms RoverDofTerrainRung3Modal.rover_dof_terrain_rung3_modal
@@ -142,12 +165,19 @@ namespace RelCertifier
 #print axioms Story3RolloverBaseModal.story3_rollover_base_modal
 #print axioms Story3RolloverRungAModal.story3_rollover_rung_a_modal
 
-/-! ## The generic layer the new instances rest on -/
+/-! ## Theorem 2 of `match_multi_rate`'s pruned edge -/
+
+#print axioms MatchMultiRatePruned.match_multi_rate_nonconn
+
+/-! ## The generic layer the instances rest on -/
 
 #print axioms couple_cutX
 #print axioms modalVerdX_of_queries
 #print axioms check_sound_multi_cutX
 #print axioms evolStrengtheningWFX_entryL
 #print axioms evolStrengtheningWFX_entryR
+#print axioms guarded_rights_bridge
+#print axioms hstep_assembled_GR
+#print axioms gresp_final_choose
 
 end RelCertifier

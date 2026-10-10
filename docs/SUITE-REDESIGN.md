@@ -31,8 +31,13 @@ trade-offs); the open user decisions recorded as resolved. Suite size stays 42. 
 `suite_uniform` byte-identical); the 6-D gyrostat rungs restated at their ANALYTIC
 tolerances (`sat3w_detumble_phases` back on the 4-D constants), the three-follower
 string on the stretch grid, `sat3w_detumble_nominal` added; L8 resolved (§7);
-**suite size 45**, 45 / 45 CERTIFIED under the new defaults.
-`benchmarks/suite_uniform/` and every Lean instance, pin and coverage constant are
+**suite size 45**, 45 / 45 CERTIFIED under the new defaults. Pass 8 (2026-10-09, §18):
+`watertank` redesigned as the paper's running example (set-point pumps, sensor offset 3,
+tampered Low pump; certified by joint segments only), and the tool's static
+(zero-duration) reposition REMOVED from the certifier and the checker; still **45 / 45
+CERTIFIED**. Pass 8 is the one pass that touches the Lean side and `suite_uniform`'s
+results (six `suite_uniform` benchmarks are declined after the removal, §18.3); before it,
+`benchmarks/suite_uniform/` and every Lean instance, pin and coverage constant were
 untouched (the Lean build reads `suite_uniform`; the regression record is §12); the Lean
 mechanization of the new suite — including the lift of the two new atom kinds and of
 per-mode domains — is a separate later task. Every number below was measured with
@@ -91,7 +96,10 @@ domains. (Pass 4: M3 10, M4 14, M6 26, M6+ 10, M6L 7.) **Pass 6 (§16): 44 bench
 three-wheel gyrostat (`sat3w_*`, dim 6, polynomial) joins the rigid-body family and the
 three-follower CACC string (`platoon3_*`, dim 6, linear) is a new family. **Pass 7
 (§17): 45 benchmarks, 45 / 45 CERTIFIED; M1 16, M2 32, M3 11, M4 18, M5 12, M6 28, M6+
-11, M6L 8** (+`sat3w_detumble_nominal`: M2 M4; no other cell changed).
+11, M6L 8** (+`sat3w_detumble_nominal`: M2 M4; no other cell changed). **Pass 8
+(§18): 45 benchmarks, 45 / 45 CERTIFIED; M1 17, M2 33, M3 12, M4 19, M5 12, M6 29, M6+
+12, M6L 8** (the redesigned `watertank` exercises M1 M2 M3 M4 M6 M6+, where the old one
+exercised none non-vacuously; no other benchmark's cells changed).
 
 ## 2. Method — how a cell is earned
 
@@ -100,13 +108,14 @@ three-follower CACC string (`platoon3_*`, dim 6, linear) is a new family. **Pass
 1. `RELCERT_DEBUG=1 relcert <input>` — verdict and wall time; the `[prune]`,
    `[admissible]`, `[cut]` lines.
 2. `relcert --emit-cover <input> x` — the emitted cover: per left mode the λ, the
-   budget `⌈λ εL / εR⌉`, the flag row of every right mode (`jointOK, repoPre, repoPost,
-   dynPre, dynPost`) and the admissible starts. The script then REPLAYS the verified
+   budget `⌈λ εL / εR⌉`, the flag row of every right mode (`jointOK, dynPre, dynPost`; until 2026-10-09 also
+   the static `repoPre, repoPost`, §18) and the admissible starts. The script then REPLAYS the verified
    checker's structural cover (`decideCovered`, `RelCertifier/Checker/Checker.lean`,
    over `buildCoverGraph` of `Checker/CoverEmit.lean`: nodes = flag rows with any
    certificate, edges = the file's declared successors minus the pruned ones, the
    sentinel for an uncertified target) from every admissible start, in the checker's
-   alternative order (base, joint step, static reposition, dynamic reposition), and
+   alternative order (base, joint step, dynamic reposition; the static reposition was
+   removed on 2026-10-09, §18), and
    records the derivation it finds: the right modes on the path, the right-only
    (reposition) steps, and the largest number of distinct non-self retained successors
    at a joint step.
@@ -148,51 +157,51 @@ vacuous` (one is: `rover_patrol_zones`, §5 finding 9).
 
 | benchmark | verdict (ms) | M1 λ≠1 | M2 multi-step | M3 branch | M4 prune | M5 mode-dep | M6 cut | M6+ widened cut | M6L linear-form chain | M7 scenario; dim; invariant; domains |
 |---|---|---|---|---|---|---|---|---|---|---|
-| `acc_spoof_lag` | CERTIFIED (228) | yes: CRUISE λ=5/2 (affine dynamics) | yes: CRUISE B=5 via CRUISE | no (max non-self successors at a joint step = 0) | vacuous: pruned CRUISE->DISENGAGE but NO_PRUNE=CERTIFIED | no (rows identical; handoff vacuous) | yes: L.CRUISE: 4 conjunct(s); R.CRUISE: 2 conjunct(s); R.DISENGAGE:... | yes: L.CRUISE: (a + (1.25 * (v - 24))) <= 9.5 kind=linear-form entr... | yes: L.CRUISE: (a + (1.25 * (v - 24))) <= 9.5 kind=linear-form entr... | model-refinement; dim 2; linear |
-| `acc_spoof_limp` | CERTIFIED (256) | yes: CRUISE λ=5/4 (affine dynamics) | yes: CRUISE B=3 via ECO/NORMAL/SPORT, LIMP B=2 via ECO/NORMAL/SPORT | yes: CRUISE branch=2, LIMP branch=2 | yes: pruned NORMAL->DISENGAGE, ECO->DISENGAGE, SPORT->DISENGAGE; NO... | yes: 3/3 handoffs unsat, rows differ | yes: L.CRUISE: 2 conjunct(s); L.LIMP: 2 conjunct(s); R.NORMAL: 2 co... | vacuous: widened atoms kept (L.CRUISE: v <= 40.0 kind=closure entry... | no (no linear-form atom kept) | sensor-attack; dim 1; conjunctive |
-| `acc_tune_lag` | CERTIFIED (143) | yes: CRUISE λ=5/4 (affine dynamics) | yes: CRUISE B=3 via CRUISE | no (max non-self successors at a joint step = 0) | yes: pruned CRUISE->DISENGAGE; NO_PRUNE=DECLINED | no (rows identical; handoff vacuous) | vacuous: cuts kept (L.CRUISE: 6 conjunct(s); R.CRUISE: 2 conjunct(s... | vacuous: widened atoms kept (L.CRUISE: (a + (1 * (v - 30))) <= 2 ki... | vacuous: linear-form atoms kept (L.CRUISE: (a + (1 * (v - 30))) <= ... | model-refinement; dim 2; linear |
-| `acc_tune_limp` | CERTIFIED (355) | yes: CRUISE λ=3/2 (affine dynamics) | yes: CRUISE B=3 via COMFORT/NORMAL/SPORT, LIMP B=2 via COMFORT/NORM... | yes: CRUISE branch=2, LIMP branch=2 | yes: pruned NORMAL->DISENGAGE, COMFORT->DISENGAGE, SPORT->DISENGAGE... | yes: 3/3 handoffs unsat, rows differ | yes: L.CRUISE: 2 conjunct(s); L.LIMP: 2 conjunct(s); R.NORMAL: 2 co... | vacuous: widened atoms kept (R.DISENGAGE: v <= 20.0 kind=closure en... | no (no linear-form atom kept) | degraded-controller; dim 1; conjunctive |
-| `arm_plateau_crit` | CERTIFIED (228) | no (λ=1 everywhere) | yes: Accelerate B=2 via ApproachA/ApproachB/ApproachC/Hold, Brake B... | no (max non-self successors at a joint step = 1) | no (nothing pruned) | no (rows identical; handoff vacuous) | yes: L.Accelerate: 4 conjunct(s); L.Brake: 2 conjunct(s); R.Approac... | yes: L.Accelerate: v <= 0.355 kind=closure entry=weakening route=di... | yes: L.Accelerate: (v + (1 * (theta - 0.5))) <= 0.355 kind=linear-f... | model-refinement; dim 2+-1; linear |
-| `arm_plateau_profiles` | CERTIFIED (227) | no (λ=1 everywhere) | yes: Accelerate B=2 via ApproachA/ApproachB/ApproachCfast/ApproachC... | yes: Accelerate branch=2, Brake branch=2 | no (nothing pruned) | no (rows identical; handoff vacuous) | yes: L.Accelerate: 6 conjunct(s); L.Brake: 3 conjunct(s); R.Approac... | yes: L.Accelerate: v <= 0.355 kind=closure entry=weakening route=di... | yes: L.Accelerate: (v + (0.5 * (theta - 0.5))) <= 0.355 kind=linear... | degraded-controller; dim 2+-1; linear |
-| `arm_plateau_slow` | CERTIFIED (211) | no (λ=1 everywhere) | yes: Accelerate B=2 via ApproachA/ApproachC/Hold +RO, Brake B=2 via... | no (max non-self successors at a joint step = 1) | no (nothing pruned) | no (rows identical; handoff vacuous) | yes: L.Accelerate: 6 conjunct(s); L.Brake: 3 conjunct(s); R.Approac... | yes: L.Accelerate: v <= 0.355 kind=closure entry=weakening route=di... | yes: L.Accelerate: (v + (0.5 * (theta - 0.5))) <= 0.355 kind=linear... | degraded-actuator; dim 2+-1; linear |
-| `charger_fast_setpoints` | CERTIFIED (260) | no (λ=1 everywhere) | yes: BULK B=2 via ABSORB/FULL +RO, ABSORB B=2 via ABSORB/FULL +RO, ... | no (max non-self successors at a joint step = 1) | yes: pruned BULK->FAULT; NO_PRUNE=DECLINED | no (rows identical; handoff vacuous) | yes: L.BULK: 2 conjunct(s); L.ABSORB: 2 conjunct(s); L.FULL: 1 conj... | yes: L.BULK: x <= 90.0 kind=implied-contraction entry=rational rout... | no (no linear-form atom kept) | degraded-controller; dim 1; linear |
-| `charger_fast_tapers` | CERTIFIED (210) | no (λ=1 everywhere) | yes: BULK B=2 via FULL +RO, ABSORB B=2 via ABSORB_FAST/ABSORB_SLOW/... | yes: ABSORB branch=2 | yes: pruned BULK->FAULT; NO_PRUNE=DECLINED | no (rows identical; handoff vacuous) | yes: L.BULK: 2 conjunct(s); L.ABSORB: 2 conjunct(s); L.FULL: 1 conj... | vacuous: widened atoms kept (L.BULK: x <= 100.0 kind=implied-contra... | no (no linear-form atom kept) | degraded-controller; dim 1; linear |
-| `match_multi_rate` | CERTIFIED (368) | yes: FAST λ=3, MEDIUM λ=2 (affine dynamics) | yes: FAST B=3 via DRIVE, MEDIUM B=2 via DRIVE | no (max non-self successors at a joint step = 0) | yes: pruned DRIVE->STALL; NO_PRUNE=DECLINED | no (rows identical; handoff vacuous) | vacuous: cuts kept (L.FAST: 2 conjunct(s); L.MEDIUM: 2 conjunct(s);... | vacuous: widened atoms kept (L.FAST: v <= 1.0 kind=implied-contract... | no (no linear-form atom kept) | model-refinement; dim 2; linear |
-| `platoon3_linkloss` | CERTIFIED (2156) | no (λ=1 everywhere) | yes: FOLLOW B=2 via FOLLOW, LOST B=2 via FOLLOW | no (max non-self successors at a joint step = 0) | yes: pruned FOLLOW->BRAKE1, FOLLOW->BRAKE2, FOLLOW->BRAKE3; NO_PRUN... | yes: 3/3 handoffs unsat, rows differ | yes: L.FOLLOW: 24 conjunct(s); L.LOST: 24 conjunct(s); R.FOLLOW: 24... | yes: L.FOLLOW: (r1 + (0.25 * (g1 - 29))) <= 2 kind=linear-form entr... | yes: L.FOLLOW: (r1 + (0.25 * (g1 - 29))) <= 2 kind=linear-form entr... | sensor-attack; dim 6; conjunctive |
-| `platoon3_profiles` | CERTIFIED (2271) | no (λ=1 everywhere) | yes: FOLLOW B=2 via CLOSE/FAR/NORMAL | yes: FOLLOW branch=2 | yes: pruned NORMAL->BRAKE1, NORMAL->BRAKE2, NORMAL->BRAKE3, CLOSE->... | no (rows identical; handoff vacuous) | yes: L.FOLLOW: 24 conjunct(s); R.NORMAL: 24 conjunct(s); R.CLOSE: 2... | yes: L.FOLLOW: (r1 + (0.25 * (g1 - 29))) <= 2 kind=linear-form entr... | yes: L.FOLLOW: (r1 + (0.25 * (g1 - 29))) <= 2 kind=linear-form entr... | sensor-attack; dim 6; conjunctive |
-| `platoon_delay_linkloss` | CERTIFIED (317) | no (λ=1 everywhere) | yes: FOLLOW B=2 via CATCH/FOLLOW, CATCH B=2 via CATCH/FOLLOW, LOST ... | no (max non-self successors at a joint step = 1) | yes: pruned FOLLOW->BRAKE; NO_PRUNE=DECLINED | yes: 7/7 handoffs unsat, rows differ | yes: L.FOLLOW: 2 conjunct(s); L.CATCH: 1 conjunct(s); L.LOST: 2 con... | yes: L.FOLLOW: g <= 40.0 kind=closure entry=weakening route=shape; ... | no (no linear-form atom kept) | sensor-attack; dim 1; conjunctive |
-| `platoon_delay_profiles` | CERTIFIED (286) | no (λ=1 everywhere) | yes: FOLLOW B=2 via ASSERTIVE/FOLLOW/GENTLE, GENTLE B=2 via ASSERTI... | yes: FOLLOW branch=2, GENTLE branch=2 | yes: pruned FOLLOW->BRAKE; NO_PRUNE=DECLINED | no (rows identical; handoff vacuous) | yes: L.FOLLOW: 2 conjunct(s); L.GENTLE: 1 conjunct(s); R.FOLLOW: 2 ... | yes: L.GENTLE: g >= 29.0 kind=implied-contraction entry=rational ro... | no (no linear-form atom kept) | sensor-attack; dim 1; conjunctive |
-| `quad_light_airframe_20` | CERTIFIED (234) | yes: CLIMB λ=7/4 (polynomial dynamics) | yes: CLIMB B=4 via CLIMB | no (max non-self successors at a joint step = 0) | yes: pruned CLIMB->LIMIT; NO_PRUNE=DECLINED | no (rows identical; handoff vacuous) | vacuous: cuts kept (L.CLIMB: 2 conjunct(s); R.CLIMB: 2 conjunct(s);... | vacuous: widened atoms kept (R.LIMIT: w >= 0 kind=implied-contracti... | no (no linear-form atom kept) | model-refinement; dim 1; conjunctive |
-| `quad_light_lag` | CERTIFIED (115) | yes: CLIMB λ=7/4 (polynomial dynamics) | yes: CLIMB B=4 via CLIMB | no (max non-self successors at a joint step = 0) | no (nothing pruned) | no (rows identical; handoff vacuous) | vacuous: cuts kept (L.CLIMB: 3 conjunct(s); R.CLIMB: 2 conjunct(s))... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 2; linear |
-| `quad_light_profiles` | CERTIFIED (534) | yes: CLIMB λ=5/2 (polynomial dynamics) | yes: CLIMB B=5 via ECO/NORMAL/SPORT | yes: CLIMB branch=2 | yes: pruned NORMAL->LIMIT, ECO->LIMIT, SPORT->LIMIT; NO_PRUNE=DECLI... | no (rows identical; handoff vacuous) | vacuous: cuts kept (L.CLIMB: 1 conjunct(s); R.NORMAL: 2 conjunct(s)... | vacuous: widened atoms kept (R.LIMIT: w >= 0 kind=implied-contracti... | no (no linear-form atom kept) | model-refinement; dim 1; conjunctive |
-| `refinement_ladder_rover_rung1_2to3` | CERTIFIED (304) | no (λ=1 everywhere) | no (single segment, RO used) | no (max non-self successors at a joint step = 0) | no (nothing pruned) | no (rows identical; handoff vacuous) | yes: L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s); L.FLAT: 1 conj... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 3+-1; conjunctive |
-| `refinement_ladder_rover_rung2_3to6` | CERTIFIED (755) | no (λ=1 everywhere) | no (single segment) | no (max non-self successors at a joint step = 0) | no (nothing pruned) | no (rows identical; handoff vacuous) | vacuous: cuts kept (L.STEEP: 2 conjunct(s); L.MODER: 2 conjunct(s);... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 6; conjunctive |
-| `refinement_ladder_rover_rung2_6dof` | CERTIFIED (285) | yes: STEEP λ=1001/1000, MODER λ=1001/1000, FLAT λ=1001/1000 (polyno... | yes: STEEP B=2 via FLAT/MODER/STEEP, MODER B=2 via FLAT/MODER +RO, ... | no (max non-self successors at a joint step = 1) | no (nothing pruned) | no (rows identical; handoff vacuous) | vacuous: cuts kept (L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s);... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 4; linear |
-| `refinement_ladder_rover_rung2b_6dof` | CERTIFIED (307) | yes: STEEP λ=1001/1000, MODER λ=1001/1000, FLAT λ=1001/1000 (polyno... | yes: STEEP B=2 via FLAT/MODER/STEEP, MODER B=2 via FLAT/MODER +RO, ... | no (max non-self successors at a joint step = 1) | no (nothing pruned) | no (rows identical; handoff vacuous) | vacuous: cuts kept (L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s);... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 6; linear |
-| `refinement_ladder_rover_rung2c_6dof` | CERTIFIED (1413) | no (λ=1 everywhere) | no (single segment) | no (max non-self successors at a joint step = 0) | no (nothing pruned) | no (rows identical; handoff vacuous) | vacuous: cuts kept (L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s);... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 6; conjunctive |
-| `refinement_ladder_rover_rung3_6to8` | CERTIFIED (3104) | yes: STEEP λ=9/4, MODER λ=9/4, FLAT λ=9/4 (polynomial dynamics) | yes: STEEP B=3 via FLAT/MODER/STEEP, MODER B=3 via FLAT/MODER +RO, ... | no (max non-self successors at a joint step = 1) | no (nothing pruned) | no (rows identical; handoff vacuous) | yes: L.STEEP: 2 conjunct(s); L.MODER: 2 conjunct(s); L.FLAT: 2 conj... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 8; quadratic |
-| `refinement_ladder_rover_rung4_8to12` | CERTIFIED (972) | yes: STEEP λ=17/10, MODER λ=17/10, FLAT λ=17/10 (polynomial dynamics) | yes: STEEP B=2 via FLAT/MODER/STEEP, MODER B=2 via FLAT/MODER +RO, ... | no (max non-self successors at a joint step = 1) | no (nothing pruned) | no (rows identical; handoff vacuous) | yes: L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s); L.FLAT: 1 conj... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 12; conjunctive |
-| `rover3tier_rung12` | CERTIFIED (225) | yes: ACCEL λ=7/4 (affine dynamics) | yes: ACCEL B=6 via ACCEL/COAST, COAST B=4 via ACCEL/COAST | no (max non-self successors at a joint step = 1) | no (nothing pruned) | yes: 4/4 handoffs unsat, rows differ | vacuous: cuts kept (R.ACCEL: 1 conjunct(s); R.COAST: 1 conjunct(s))... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 3; conjunctive+linear |
-| `rover_dof_terrain_rung1` | CERTIFIED (241) | no (λ=1 everywhere) | no (single segment, RO used) | no (max non-self successors at a joint step = 0) | no (nothing pruned) | no (rows identical; handoff vacuous) | yes: L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s); L.FLAT: 1 conj... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 3; conjunctive |
-| `rover_dof_terrain_rung2` | CERTIFIED (363) | no (λ=1 everywhere) | no (single segment, RO used) | no (max non-self successors at a joint step = 0) | no (nothing pruned) | no (rows identical; handoff vacuous) | yes: L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s); L.FLAT: 1 conj... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 6; conjunctive |
-| `rover_dof_terrain_rung3` | CERTIFIED (349) | no (λ=1 everywhere) | no (single segment, RO used) | no (max non-self successors at a joint step = 0) | no (nothing pruned) | no (rows identical; handoff vacuous) | yes: L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s); L.FLAT: 1 conj... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 12; conjunctive |
-| `rover_dof_terrain_rung3_8d` | CERTIFIED (390) | no (λ=1 everywhere) | no (single segment, RO used) | no (max non-self successors at a joint step = 0) | no (nothing pruned) | no (rows identical; handoff vacuous) | yes: L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s); L.FLAT: 1 conj... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 8; conjunctive |
-| `rover_patrol_refine` | CERTIFIED (1640) | yes: SLOW λ=9/4, MEDIUM_ECO λ=9/4, MEDIUM_BRISK λ=9/4, FAST λ=9/4 (... | yes: SLOW B=5 via FAST/MEDIUM_BRISK/MEDIUM_ECO/SLOW, MEDIUM_ECO B=5... | yes: SLOW branch=2 | no (nothing pruned) | yes: 10/10 handoffs unsat, rows differ | yes: L.SLOW: 5 conjunct(s); L.MEDIUM_ECO: 5 conjunct(s); L.MEDIUM_B... | yes: L.SLOW: (a + (2.5 * (v - 0.48))) <= 0.8 kind=linear-form entry... | yes: L.SLOW: (a + (2.5 * (v - 0.48))) <= 0.8 kind=linear-form entry... | model-refinement; dim 3; conjunctive |
-| `rover_patrol_zones` | CERTIFIED (424) | no (λ=1 everywhere) | yes: SLOW B=2 via FAST/MEDIUM_BRISK/MEDIUM_ECO/SLOW, MEDIUM_ECO B=2... | yes: SLOW branch=2 | vacuous: pruned SLOW->STALL, MEDIUM_ECO->STALL, MEDIUM_BRISK->STALL... | yes: 10/10 handoffs unsat, rows differ | yes: L.SLOW: 3 conjunct(s); L.MEDIUM_ECO: 3 conjunct(s); L.MEDIUM_B... | vacuous: widened atoms kept (R.STALL: v <= 0.2 kind=closure entry=w... | no (no linear-form atom kept) | degraded-actuator; dim 2; conjunctive |
-| `sat3w_detumble_nominal` | CERTIFIED (1629) | no (λ=1 everywhere) | yes: DETUMBLE B=2 via DETUMBLE | no (max non-self successors at a joint step = 0) | yes: pruned DETUMBLE->SAFE; NO_PRUNE=DECLINED | no (rows identical; handoff vacuous) | vacuous: cuts kept (L.DETUMBLE: 1 conjunct(s); R.DETUMBLE: 1 conjun... | vacuous: widened atoms kept (R.SAFE: ((((w1 * w1) * 2) + ((w2 * w2)... | no (no linear-form atom kept) | model-refinement; dim 6; quadratic |
-| `sat3w_detumble_phases` | CERTIFIED (12173) | no (λ=1 everywhere) | yes: DETUMBLE B=2 via DETUMBLE, FINE B=2 via DETUMBLE | no (max non-self successors at a joint step = 0) | yes: pruned DETUMBLE->SAFE; NO_PRUNE=DECLINED | yes: 3/3 handoffs unsat, rows differ | yes: L.DETUMBLE: 1 conjunct(s); L.FINE: 1 conjunct(s); R.DETUMBLE: ... | vacuous: widened atoms kept (R.SAFE: ((((w1 * w1) * 2) + ((w2 * w2)... | no (no linear-form atom kept) | model-refinement; dim 6; quadratic |
-| `sat3w_detumble_weak` | CERTIFIED (11982) | no (λ=1 everywhere) | yes: DETUMBLE B=2 via ECONOMY/NOMINAL/SURVIVAL | yes: DETUMBLE branch=2 | yes: pruned NOMINAL->SAFE, ECONOMY->SAFE, SURVIVAL->SAFE; NO_PRUNE=... | no (rows identical; handoff vacuous) | yes: L.DETUMBLE: 1 conjunct(s); R.NOMINAL: 1 conjunct(s); R.ECONOMY... | vacuous: widened atoms kept (R.SAFE: ((((w1 * w1) * 2) + ((w2 * w2)... | no (no linear-form atom kept) | degraded-actuator; dim 6; quadratic |
-| `sat_detumble_nominal` | CERTIFIED (1707) | no (λ=1 everywhere) | yes: DETUMBLE B=2 via DETUMBLE | no (max non-self successors at a joint step = 0) | yes: pruned DETUMBLE->SAFE; NO_PRUNE=DECLINED | no (rows identical; handoff vacuous) | vacuous: cuts kept (L.DETUMBLE: 1 conjunct(s); R.DETUMBLE: 1 conjun... | vacuous: widened atoms kept (R.SAFE: ((((w1 * w1) * 2) + ((w2 * w2)... | no (no linear-form atom kept) | model-refinement; dim 4; quadratic |
-| `sat_detumble_phases` | CERTIFIED (6973) | no (λ=1 everywhere) | yes: DETUMBLE B=2 via DETUMBLE, FINE B=2 via DETUMBLE | no (max non-self successors at a joint step = 0) | yes: pruned DETUMBLE->SAFE; NO_PRUNE=DECLINED | yes: 3/3 handoffs unsat, rows differ | yes: L.DETUMBLE: 1 conjunct(s); L.FINE: 1 conjunct(s); R.DETUMBLE: ... | vacuous: widened atoms kept (R.SAFE: ((((w1 * w1) * 2) + ((w2 * w2)... | no (no linear-form atom kept) | model-refinement; dim 4; quadratic |
-| `sat_detumble_weak` | CERTIFIED (12640) | no (λ=1 everywhere) | yes: DETUMBLE B=2 via ECONOMY/NOMINAL/SURVIVAL | yes: DETUMBLE branch=2 | yes: pruned NOMINAL->SAFE, ECONOMY->SAFE, SURVIVAL->SAFE; NO_PRUNE=... | no (rows identical; handoff vacuous) | yes: L.DETUMBLE: 1 conjunct(s); R.NOMINAL: 1 conjunct(s); R.ECONOMY... | vacuous: widened atoms kept (R.SAFE: ((((w1 * w1) * 2) + ((w2 * w2)... | no (no linear-form atom kept) | degraded-actuator; dim 4; quadratic |
-| `story1_attdist_rung_a_6to8` | CERTIFIED (20577) | no (λ=1 everywhere) | no (single segment) | no (max non-self successors at a joint step = 0) | no (nothing pruned) | yes: 5/5 handoffs unsat, rows differ | vacuous: cuts kept (L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s);... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 8; conjunctive |
-| `story1_attdist_rung_b_12dof` | CERTIFIED (495) | no (λ=1 everywhere) | no (single segment) | no (max non-self successors at a joint step = 0) | no (nothing pruned) | yes: 5/5 handoffs unsat, rows differ | vacuous: cuts kept (L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s);... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 12; conjunctive |
-| `story2_lateral_rung_a_8dof` | CERTIFIED (1127) | no (λ=1 everywhere) | no (single segment) | no (max non-self successors at a joint step = 0) | no (nothing pruned) | no (rows identical; handoff vacuous) | vacuous: cuts kept (L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s);... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 8; conjunctive |
-| `story2_lateral_rung_b_12dof` | CERTIFIED (1401) | no (λ=1 everywhere) | no (single segment) | no (max non-self successors at a joint step = 0) | no (nothing pruned) | no (rows identical; handoff vacuous) | vacuous: cuts kept (L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s);... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 12; conjunctive |
-| `story3_rollover_base_12dof` | CERTIFIED (1214) | yes: STEEP λ=5/4, MODER λ=5/4, FLAT λ=5/4 (polynomial dynamics) | yes: STEEP B=2 via FLAT/MODER/STEEP, MODER B=2 via FLAT/MODER +RO, ... | no (max non-self successors at a joint step = 1) | no (nothing pruned) | no (rows identical; handoff vacuous) | yes: L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s); L.FLAT: 1 conj... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 12; quadratic |
-| `story3_rollover_ladder_rung_a` | CERTIFIED (852) | yes: STEEP λ=27/20, MODER λ=27/20, FLAT λ=27/20 (polynomial dynamics) | yes: STEEP B=2 via FLAT/MODER/STEEP, MODER B=2 via FLAT/MODER +RO, ... | no (max non-self successors at a joint step = 1) | no (nothing pruned) | no (rows identical; handoff vacuous) | yes: L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s); L.FLAT: 1 conj... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 12; quadratic |
-| `story3_rollover_ladder_rung_b` | CERTIFIED (675) | no (λ=1 everywhere) | no (single segment) | no (max non-self successors at a joint step = 0) | no (nothing pruned) | yes: 5/5 handoffs unsat, rows differ | yes: L.STEEP: 5 conjunct(s); L.MODER: 5 conjunct(s); L.FLAT: 5 conj... | yes: L.STEEP: (omega_psi + (1 * (psi - 0))) >= -0.5 kind=linear-for... | yes: L.STEEP: (omega_psi + (1 * (psi - 0))) >= -0.5 kind=linear-for... | model-refinement; dim 12; quadratic |
-| `watertank` | CERTIFIED (142) | no (λ=1 everywhere) | no (single segment, RO used) | no (max non-self successors at a joint step = 0) | no (nothing pruned) | no (rows identical; handoff vacuous) | vacuous: cuts kept (L.Low: 1 conjunct(s); L.Mid: 1 conjunct(s); L.H... | vacuous: widened atoms kept (L.High: x <= 22.45 kind=closure entry=... | no (no linear-form atom kept) | sensor-attack; dim 1; linear |
+| `acc_spoof_lag` | CERTIFIED (170) | yes: CRUISE λ=5/2 (affine dynamics) | yes: CRUISE B=5 via CRUISE | no (max non-self successors at a joint step = 0) | vacuous: pruned CRUISE->DISENGAGE but NO_PRUNE=CERTIFIED | no (rows identical; handoff vacuous) | yes: L.CRUISE: 4 conjunct(s); R.CRUISE: 2 conjunct(s); R.DISENGAGE:... | yes: L.CRUISE: (a + (1.25 * (v - 24))) <= 9.5 kind=linear-form entr... | yes: L.CRUISE: (a + (1.25 * (v - 24))) <= 9.5 kind=linear-form entr... | model-refinement; dim 2; linear |
+| `acc_spoof_limp` | CERTIFIED (291) | yes: CRUISE λ=5/4 (affine dynamics) | yes: CRUISE B=3 via ECO/NORMAL/SPORT, LIMP B=2 via ECO/NORMAL/SPORT | yes: CRUISE branch=2, LIMP branch=2 | yes: pruned NORMAL->DISENGAGE, ECO->DISENGAGE, SPORT->DISENGAGE; NO... | yes: 3/3 handoffs unsat, rows differ | yes: L.CRUISE: 2 conjunct(s); L.LIMP: 2 conjunct(s); R.NORMAL: 2 co... | vacuous: widened atoms kept (L.CRUISE: v <= 40.0 kind=closure entry... | no (no linear-form atom kept) | sensor-attack; dim 1; conjunctive |
+| `acc_tune_lag` | CERTIFIED (83) | yes: CRUISE λ=5/4 (affine dynamics) | yes: CRUISE B=3 via CRUISE | no (max non-self successors at a joint step = 0) | yes: pruned CRUISE->DISENGAGE; NO_PRUNE=DECLINED | no (rows identical; handoff vacuous) | vacuous: cuts kept (L.CRUISE: 6 conjunct(s); R.CRUISE: 2 conjunct(s... | vacuous: widened atoms kept (L.CRUISE: (a + (1 * (v - 30))) <= 2 ki... | vacuous: linear-form atoms kept (L.CRUISE: (a + (1 * (v - 30))) <= ... | model-refinement; dim 2; linear |
+| `acc_tune_limp` | CERTIFIED (333) | yes: CRUISE λ=3/2 (affine dynamics) | yes: CRUISE B=3 via COMFORT/NORMAL/SPORT, LIMP B=2 via COMFORT/NORM... | yes: CRUISE branch=2, LIMP branch=2 | yes: pruned NORMAL->DISENGAGE, COMFORT->DISENGAGE, SPORT->DISENGAGE... | yes: 3/3 handoffs unsat, rows differ | yes: L.CRUISE: 2 conjunct(s); L.LIMP: 2 conjunct(s); R.NORMAL: 2 co... | vacuous: widened atoms kept (R.DISENGAGE: v <= 20.0 kind=closure en... | no (no linear-form atom kept) | degraded-controller; dim 1; conjunctive |
+| `arm_plateau_crit` | CERTIFIED (177) | no (λ=1 everywhere) | yes: Accelerate B=2 via ApproachA/ApproachB/ApproachC/Hold, Brake B... | no (max non-self successors at a joint step = 1) | no (nothing pruned) | no (rows identical; handoff vacuous) | yes: L.Accelerate: 4 conjunct(s); L.Brake: 2 conjunct(s); R.Approac... | yes: L.Accelerate: v <= 0.355 kind=closure entry=weakening route=di... | yes: L.Accelerate: (v + (1 * (theta - 0.5))) <= 0.355 kind=linear-f... | model-refinement; dim 2+-1; linear |
+| `arm_plateau_profiles` | CERTIFIED (125) | no (λ=1 everywhere) | yes: Accelerate B=2 via ApproachA/ApproachB/ApproachCfast/ApproachC... | yes: Accelerate branch=2, Brake branch=2 | no (nothing pruned) | no (rows identical; handoff vacuous) | yes: L.Accelerate: 6 conjunct(s); L.Brake: 3 conjunct(s); R.Approac... | yes: L.Accelerate: v <= 0.355 kind=closure entry=weakening route=di... | yes: L.Accelerate: (v + (0.5 * (theta - 0.5))) <= 0.355 kind=linear... | degraded-controller; dim 2+-1; linear |
+| `arm_plateau_slow` | CERTIFIED (174) | no (λ=1 everywhere) | yes: Accelerate B=2 via ApproachA/ApproachC/Hold +RO, Brake B=2 via... | no (max non-self successors at a joint step = 1) | no (nothing pruned) | no (rows identical; handoff vacuous) | yes: L.Accelerate: 6 conjunct(s); L.Brake: 3 conjunct(s); R.Approac... | yes: L.Accelerate: v <= 0.355 kind=closure entry=weakening route=di... | yes: L.Accelerate: (v + (0.5 * (theta - 0.5))) <= 0.355 kind=linear... | degraded-actuator; dim 2+-1; linear |
+| `charger_fast_setpoints` | CERTIFIED (196) | no (λ=1 everywhere) | yes: BULK B=2 via ABSORB/FULL +RO, ABSORB B=2 via ABSORB/FULL +RO, ... | no (max non-self successors at a joint step = 1) | yes: pruned BULK->FAULT; NO_PRUNE=DECLINED | no (rows identical; handoff vacuous) | yes: L.BULK: 2 conjunct(s); L.ABSORB: 2 conjunct(s); L.FULL: 1 conj... | yes: L.BULK: x <= 90.0 kind=implied-contraction entry=rational rout... | no (no linear-form atom kept) | degraded-controller; dim 1; linear |
+| `charger_fast_tapers` | CERTIFIED (222) | no (λ=1 everywhere) | yes: BULK B=2 via FULL +RO, ABSORB B=2 via ABSORB_FAST/ABSORB_SLOW/... | yes: ABSORB branch=2 | yes: pruned BULK->FAULT; NO_PRUNE=DECLINED | no (rows identical; handoff vacuous) | yes: L.BULK: 2 conjunct(s); L.ABSORB: 2 conjunct(s); L.FULL: 1 conj... | vacuous: widened atoms kept (L.BULK: x <= 100.0 kind=implied-contra... | no (no linear-form atom kept) | degraded-controller; dim 1; linear |
+| `match_multi_rate` | CERTIFIED (298) | yes: FAST λ=3, MEDIUM λ=2 (affine dynamics) | yes: FAST B=3 via DRIVE, MEDIUM B=2 via DRIVE | no (max non-self successors at a joint step = 0) | yes: pruned DRIVE->STALL; NO_PRUNE=DECLINED | no (rows identical; handoff vacuous) | vacuous: cuts kept (L.FAST: 2 conjunct(s); L.MEDIUM: 2 conjunct(s);... | vacuous: widened atoms kept (L.FAST: v <= 1.0 kind=implied-contract... | no (no linear-form atom kept) | model-refinement; dim 2; linear |
+| `platoon3_linkloss` | CERTIFIED (2159) | no (λ=1 everywhere) | yes: FOLLOW B=2 via FOLLOW, LOST B=2 via FOLLOW | no (max non-self successors at a joint step = 0) | yes: pruned FOLLOW->BRAKE1, FOLLOW->BRAKE2, FOLLOW->BRAKE3; NO_PRUN... | yes: 3/3 handoffs unsat, rows differ | yes: L.FOLLOW: 24 conjunct(s); L.LOST: 24 conjunct(s); R.FOLLOW: 24... | yes: L.FOLLOW: (r1 + (0.25 * (g1 - 29))) <= 2 kind=linear-form entr... | yes: L.FOLLOW: (r1 + (0.25 * (g1 - 29))) <= 2 kind=linear-form entr... | sensor-attack; dim 6; conjunctive |
+| `platoon3_profiles` | CERTIFIED (2227) | no (λ=1 everywhere) | yes: FOLLOW B=2 via CLOSE/FAR/NORMAL | yes: FOLLOW branch=2 | yes: pruned NORMAL->BRAKE1, NORMAL->BRAKE2, NORMAL->BRAKE3, CLOSE->... | no (rows identical; handoff vacuous) | yes: L.FOLLOW: 24 conjunct(s); R.NORMAL: 24 conjunct(s); R.CLOSE: 2... | yes: L.FOLLOW: (r1 + (0.25 * (g1 - 29))) <= 2 kind=linear-form entr... | yes: L.FOLLOW: (r1 + (0.25 * (g1 - 29))) <= 2 kind=linear-form entr... | sensor-attack; dim 6; conjunctive |
+| `platoon_delay_linkloss` | CERTIFIED (263) | no (λ=1 everywhere) | yes: FOLLOW B=2 via CATCH/FOLLOW, CATCH B=2 via CATCH/FOLLOW, LOST ... | no (max non-self successors at a joint step = 1) | yes: pruned FOLLOW->BRAKE; NO_PRUNE=DECLINED | yes: 7/7 handoffs unsat, rows differ | yes: L.FOLLOW: 2 conjunct(s); L.CATCH: 1 conjunct(s); L.LOST: 2 con... | yes: L.FOLLOW: g <= 40.0 kind=closure entry=weakening route=shape; ... | no (no linear-form atom kept) | sensor-attack; dim 1; conjunctive |
+| `platoon_delay_profiles` | CERTIFIED (267) | no (λ=1 everywhere) | yes: FOLLOW B=2 via ASSERTIVE/FOLLOW/GENTLE, GENTLE B=2 via ASSERTI... | yes: FOLLOW branch=2, GENTLE branch=2 | yes: pruned FOLLOW->BRAKE; NO_PRUNE=DECLINED | no (rows identical; handoff vacuous) | yes: L.FOLLOW: 2 conjunct(s); L.GENTLE: 1 conjunct(s); R.FOLLOW: 2 ... | yes: L.GENTLE: g >= 29.0 kind=implied-contraction entry=rational ro... | no (no linear-form atom kept) | sensor-attack; dim 1; conjunctive |
+| `quad_light_airframe_20` | CERTIFIED (219) | yes: CLIMB λ=7/4 (polynomial dynamics) | yes: CLIMB B=4 via CLIMB | no (max non-self successors at a joint step = 0) | yes: pruned CLIMB->LIMIT; NO_PRUNE=DECLINED | no (rows identical; handoff vacuous) | vacuous: cuts kept (L.CLIMB: 2 conjunct(s); R.CLIMB: 2 conjunct(s);... | vacuous: widened atoms kept (R.LIMIT: w >= 0 kind=implied-contracti... | no (no linear-form atom kept) | model-refinement; dim 1; conjunctive |
+| `quad_light_lag` | CERTIFIED (129) | yes: CLIMB λ=7/4 (polynomial dynamics) | yes: CLIMB B=4 via CLIMB | no (max non-self successors at a joint step = 0) | no (nothing pruned) | no (rows identical; handoff vacuous) | vacuous: cuts kept (L.CLIMB: 3 conjunct(s); R.CLIMB: 2 conjunct(s))... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 2; linear |
+| `quad_light_profiles` | CERTIFIED (497) | yes: CLIMB λ=5/2 (polynomial dynamics) | yes: CLIMB B=5 via ECO/NORMAL/SPORT | yes: CLIMB branch=2 | yes: pruned NORMAL->LIMIT, ECO->LIMIT, SPORT->LIMIT; NO_PRUNE=DECLI... | no (rows identical; handoff vacuous) | vacuous: cuts kept (L.CLIMB: 1 conjunct(s); R.NORMAL: 2 conjunct(s)... | vacuous: widened atoms kept (R.LIMIT: w >= 0 kind=implied-contracti... | no (no linear-form atom kept) | model-refinement; dim 1; conjunctive |
+| `refinement_ladder_rover_rung1_2to3` | CERTIFIED (256) | no (λ=1 everywhere) | no (single segment, RO used) | no (max non-self successors at a joint step = 0) | no (nothing pruned) | no (rows identical; handoff vacuous) | yes: L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s); L.FLAT: 1 conj... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 3+-1; conjunctive |
+| `refinement_ladder_rover_rung2_3to6` | CERTIFIED (714) | no (λ=1 everywhere) | no (single segment) | no (max non-self successors at a joint step = 0) | no (nothing pruned) | no (rows identical; handoff vacuous) | vacuous: cuts kept (L.STEEP: 2 conjunct(s); L.MODER: 2 conjunct(s);... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 6; conjunctive |
+| `refinement_ladder_rover_rung2_6dof` | CERTIFIED (221) | yes: STEEP λ=1001/1000, MODER λ=1001/1000, FLAT λ=1001/1000 (polyno... | yes: STEEP B=2 via FLAT/MODER/STEEP, MODER B=2 via FLAT/MODER +RO, ... | no (max non-self successors at a joint step = 1) | no (nothing pruned) | no (rows identical; handoff vacuous) | vacuous: cuts kept (L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s);... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 4; linear |
+| `refinement_ladder_rover_rung2b_6dof` | CERTIFIED (216) | yes: STEEP λ=1001/1000, MODER λ=1001/1000, FLAT λ=1001/1000 (polyno... | yes: STEEP B=2 via FLAT/MODER/STEEP, MODER B=2 via FLAT/MODER +RO, ... | no (max non-self successors at a joint step = 1) | no (nothing pruned) | no (rows identical; handoff vacuous) | vacuous: cuts kept (L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s);... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 6; linear |
+| `refinement_ladder_rover_rung2c_6dof` | CERTIFIED (1368) | no (λ=1 everywhere) | no (single segment) | no (max non-self successors at a joint step = 0) | no (nothing pruned) | no (rows identical; handoff vacuous) | vacuous: cuts kept (L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s);... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 6; conjunctive |
+| `refinement_ladder_rover_rung3_6to8` | CERTIFIED (3079) | yes: STEEP λ=9/4, MODER λ=9/4, FLAT λ=9/4 (polynomial dynamics) | yes: STEEP B=3 via FLAT/MODER/STEEP, MODER B=3 via FLAT/MODER +RO, ... | no (max non-self successors at a joint step = 1) | no (nothing pruned) | no (rows identical; handoff vacuous) | yes: L.STEEP: 2 conjunct(s); L.MODER: 2 conjunct(s); L.FLAT: 2 conj... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 8; quadratic |
+| `refinement_ladder_rover_rung4_8to12` | CERTIFIED (971) | yes: STEEP λ=17/10, MODER λ=17/10, FLAT λ=17/10 (polynomial dynamics) | yes: STEEP B=2 via FLAT/MODER/STEEP, MODER B=2 via FLAT/MODER +RO, ... | no (max non-self successors at a joint step = 1) | no (nothing pruned) | no (rows identical; handoff vacuous) | yes: L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s); L.FLAT: 1 conj... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 12; conjunctive |
+| `rover3tier_rung12` | CERTIFIED (230) | yes: ACCEL λ=7/4 (affine dynamics) | yes: ACCEL B=6 via ACCEL/COAST, COAST B=4 via ACCEL/COAST | no (max non-self successors at a joint step = 1) | no (nothing pruned) | yes: 4/4 handoffs unsat, rows differ | vacuous: cuts kept (R.ACCEL: 1 conjunct(s); R.COAST: 1 conjunct(s))... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 3; conjunctive+linear |
+| `rover_dof_terrain_rung1` | CERTIFIED (242) | no (λ=1 everywhere) | no (single segment, RO used) | no (max non-self successors at a joint step = 0) | no (nothing pruned) | no (rows identical; handoff vacuous) | yes: L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s); L.FLAT: 1 conj... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 3; conjunctive |
+| `rover_dof_terrain_rung2` | CERTIFIED (318) | no (λ=1 everywhere) | no (single segment, RO used) | no (max non-self successors at a joint step = 0) | no (nothing pruned) | no (rows identical; handoff vacuous) | yes: L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s); L.FLAT: 1 conj... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 6; conjunctive |
+| `rover_dof_terrain_rung3` | CERTIFIED (317) | no (λ=1 everywhere) | no (single segment, RO used) | no (max non-self successors at a joint step = 0) | no (nothing pruned) | no (rows identical; handoff vacuous) | yes: L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s); L.FLAT: 1 conj... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 12; conjunctive |
+| `rover_dof_terrain_rung3_8d` | CERTIFIED (325) | no (λ=1 everywhere) | no (single segment, RO used) | no (max non-self successors at a joint step = 0) | no (nothing pruned) | no (rows identical; handoff vacuous) | yes: L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s); L.FLAT: 1 conj... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 8; conjunctive |
+| `rover_patrol_refine` | CERTIFIED (1562) | yes: SLOW λ=9/4, MEDIUM_ECO λ=9/4, MEDIUM_BRISK λ=9/4, FAST λ=9/4 (... | yes: SLOW B=5 via FAST/MEDIUM_BRISK/MEDIUM_ECO/SLOW, MEDIUM_ECO B=5... | yes: SLOW branch=2 | no (nothing pruned) | yes: 10/10 handoffs unsat, rows differ | yes: L.SLOW: 5 conjunct(s); L.MEDIUM_ECO: 5 conjunct(s); L.MEDIUM_B... | yes: L.SLOW: (a + (2.5 * (v - 0.48))) <= 0.8 kind=linear-form entry... | yes: L.SLOW: (a + (2.5 * (v - 0.48))) <= 0.8 kind=linear-form entry... | model-refinement; dim 3; conjunctive |
+| `rover_patrol_zones` | CERTIFIED (319) | no (λ=1 everywhere) | yes: SLOW B=2 via FAST/MEDIUM_BRISK/MEDIUM_ECO/SLOW, MEDIUM_ECO B=2... | yes: SLOW branch=2 | vacuous: pruned SLOW->STALL, MEDIUM_ECO->STALL, MEDIUM_BRISK->STALL... | yes: 10/10 handoffs unsat, rows differ | yes: L.SLOW: 3 conjunct(s); L.MEDIUM_ECO: 3 conjunct(s); L.MEDIUM_B... | vacuous: widened atoms kept (R.STALL: v <= 0.2 kind=closure entry=w... | no (no linear-form atom kept) | degraded-actuator; dim 2; conjunctive |
+| `sat3w_detumble_nominal` | CERTIFIED (960) | no (λ=1 everywhere) | yes: DETUMBLE B=2 via DETUMBLE | no (max non-self successors at a joint step = 0) | yes: pruned DETUMBLE->SAFE; NO_PRUNE=DECLINED | no (rows identical; handoff vacuous) | vacuous: cuts kept (L.DETUMBLE: 1 conjunct(s); R.DETUMBLE: 1 conjun... | vacuous: widened atoms kept (R.SAFE: ((((w1 * w1) * 2) + ((w2 * w2)... | no (no linear-form atom kept) | model-refinement; dim 6; quadratic |
+| `sat3w_detumble_phases` | CERTIFIED (11049) | no (λ=1 everywhere) | yes: DETUMBLE B=2 via DETUMBLE, FINE B=2 via DETUMBLE | no (max non-self successors at a joint step = 0) | yes: pruned DETUMBLE->SAFE; NO_PRUNE=DECLINED | yes: 3/3 handoffs unsat, rows differ | yes: L.DETUMBLE: 1 conjunct(s); L.FINE: 1 conjunct(s); R.DETUMBLE: ... | vacuous: widened atoms kept (R.SAFE: ((((w1 * w1) * 2) + ((w2 * w2)... | no (no linear-form atom kept) | model-refinement; dim 6; quadratic |
+| `sat3w_detumble_weak` | CERTIFIED (11776) | no (λ=1 everywhere) | yes: DETUMBLE B=2 via ECONOMY/NOMINAL/SURVIVAL | yes: DETUMBLE branch=2 | yes: pruned NOMINAL->SAFE, ECONOMY->SAFE, SURVIVAL->SAFE; NO_PRUNE=... | no (rows identical; handoff vacuous) | yes: L.DETUMBLE: 1 conjunct(s); R.NOMINAL: 1 conjunct(s); R.ECONOMY... | vacuous: widened atoms kept (R.SAFE: ((((w1 * w1) * 2) + ((w2 * w2)... | no (no linear-form atom kept) | degraded-actuator; dim 6; quadratic |
+| `sat_detumble_nominal` | CERTIFIED (893) | no (λ=1 everywhere) | yes: DETUMBLE B=2 via DETUMBLE | no (max non-self successors at a joint step = 0) | yes: pruned DETUMBLE->SAFE; NO_PRUNE=DECLINED | no (rows identical; handoff vacuous) | vacuous: cuts kept (L.DETUMBLE: 1 conjunct(s); R.DETUMBLE: 1 conjun... | vacuous: widened atoms kept (R.SAFE: ((((w1 * w1) * 2) + ((w2 * w2)... | no (no linear-form atom kept) | model-refinement; dim 4; quadratic |
+| `sat_detumble_phases` | CERTIFIED (5406) | no (λ=1 everywhere) | yes: DETUMBLE B=2 via DETUMBLE, FINE B=2 via DETUMBLE | no (max non-self successors at a joint step = 0) | yes: pruned DETUMBLE->SAFE; NO_PRUNE=DECLINED | yes: 3/3 handoffs unsat, rows differ | yes: L.DETUMBLE: 1 conjunct(s); L.FINE: 1 conjunct(s); R.DETUMBLE: ... | vacuous: widened atoms kept (R.SAFE: ((((w1 * w1) * 2) + ((w2 * w2)... | no (no linear-form atom kept) | model-refinement; dim 4; quadratic |
+| `sat_detumble_weak` | CERTIFIED (12129) | no (λ=1 everywhere) | yes: DETUMBLE B=2 via ECONOMY/NOMINAL/SURVIVAL | yes: DETUMBLE branch=2 | yes: pruned NOMINAL->SAFE, ECONOMY->SAFE, SURVIVAL->SAFE; NO_PRUNE=... | no (rows identical; handoff vacuous) | yes: L.DETUMBLE: 1 conjunct(s); R.NOMINAL: 1 conjunct(s); R.ECONOMY... | vacuous: widened atoms kept (R.SAFE: ((((w1 * w1) * 2) + ((w2 * w2)... | no (no linear-form atom kept) | degraded-actuator; dim 4; quadratic |
+| `story1_attdist_rung_a_6to8` | CERTIFIED (21702) | no (λ=1 everywhere) | no (single segment) | no (max non-self successors at a joint step = 0) | no (nothing pruned) | yes: 5/5 handoffs unsat, rows differ | vacuous: cuts kept (L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s);... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 8; conjunctive |
+| `story1_attdist_rung_b_12dof` | CERTIFIED (426) | no (λ=1 everywhere) | no (single segment) | no (max non-self successors at a joint step = 0) | no (nothing pruned) | yes: 5/5 handoffs unsat, rows differ | vacuous: cuts kept (L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s);... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 12; conjunctive |
+| `story2_lateral_rung_a_8dof` | CERTIFIED (1106) | no (λ=1 everywhere) | no (single segment) | no (max non-self successors at a joint step = 0) | no (nothing pruned) | no (rows identical; handoff vacuous) | vacuous: cuts kept (L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s);... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 8; conjunctive |
+| `story2_lateral_rung_b_12dof` | CERTIFIED (1488) | no (λ=1 everywhere) | no (single segment) | no (max non-self successors at a joint step = 0) | no (nothing pruned) | no (rows identical; handoff vacuous) | vacuous: cuts kept (L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s);... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 12; conjunctive |
+| `story3_rollover_base_12dof` | CERTIFIED (1197) | yes: STEEP λ=5/4, MODER λ=5/4, FLAT λ=5/4 (polynomial dynamics) | yes: STEEP B=2 via FLAT/MODER/STEEP, MODER B=2 via FLAT/MODER +RO, ... | no (max non-self successors at a joint step = 1) | no (nothing pruned) | no (rows identical; handoff vacuous) | yes: L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s); L.FLAT: 1 conj... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 12; quadratic |
+| `story3_rollover_ladder_rung_a` | CERTIFIED (878) | yes: STEEP λ=27/20, MODER λ=27/20, FLAT λ=27/20 (polynomial dynamics) | yes: STEEP B=2 via FLAT/MODER/STEEP, MODER B=2 via FLAT/MODER +RO, ... | no (max non-self successors at a joint step = 1) | no (nothing pruned) | no (rows identical; handoff vacuous) | yes: L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s); L.FLAT: 1 conj... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 12; quadratic |
+| `story3_rollover_ladder_rung_b` | CERTIFIED (673) | no (λ=1 everywhere) | no (single segment) | no (max non-self successors at a joint step = 0) | no (nothing pruned) | yes: 5/5 handoffs unsat, rows differ | yes: L.STEEP: 5 conjunct(s); L.MODER: 5 conjunct(s); L.FLAT: 5 conj... | yes: L.STEEP: (omega_psi + (1 * (psi - 0))) >= -0.5 kind=linear-for... | yes: L.STEEP: (omega_psi + (1 * (psi - 0))) >= -0.5 kind=linear-for... | model-refinement; dim 12; quadratic |
+| `watertank` | CERTIFIED (743) | yes: Low λ=2, Mid λ=2 (affine dynamics) | yes: Low B=2 via Low/MidBoost/MidEco, Mid B=2 via High/MidBoost/Mid... | yes: Low branch=2, Mid branch=2 | yes: pruned Low->PumpOff; NO_PRUNE=DECLINED | no (rows identical; handoff vacuous) | yes: L.Low: 2 conjunct(s); L.Mid: 2 conjunct(s); L.High: 1 conjunct... | yes: L.Low: x <= 15.5 kind=implied-contraction entry=rational route... | no (no linear-form atom kept) | sensor-attack; dim 1; conjunctive |
 
 ## 4. The families — stories, parameters, measured covers
 
@@ -404,9 +413,10 @@ encode event-triggered switching, which the user chose not to claim (§13). The 
 ### 4.8 Kept groups (19 + 2)
 
 Terrain/position ladder (11), story ladders (7), watertank (1): unchanged files, their
-cells measured like the rest. Five of them exercise no mechanism of M1–M6 non-vacuously
-(`watertank`, `refinement_ladder_rover_rung2_3to6`, `rung2c_6dof`, `story2_lateral_*`
-×2) and `story1_*` exercise only M5 — they are kept by the user's rule and reported as measured.
+cells measured like the rest (except `watertank`, redesigned in pass 8 as the paper's
+running example, §18; it now exercises M1 M2 M3 M4 M6 M6+). Four of them exercise no
+mechanism of M1–M6 non-vacuously (`refinement_ladder_rover_rung2_3to6`, `rung2c_6dof`,
+`story2_lateral_*` ×2) and `story1_*` exercise only M5 — they are kept by the user's rule and reported as measured.
 
 ### 4.9 Pass-6 / pass-7 lifts at 6 D (5) — details in §16, §17
 
@@ -680,13 +690,13 @@ inputs certify in under 0.6 s except the 6–12-dof ladders (`story1_attdist_run
 
 | mechanism | benchmarks (non-vacuous) | count |
 |---|---|---|
-| M1 | `acc_spoof_lag`, `acc_spoof_limp`, `acc_tune_lag`, `acc_tune_limp`, `match_multi_rate`, `quad_light_airframe_20`, `quad_light_lag`, `quad_light_profiles`, `refinement_ladder_rover_rung2_6dof`, `refinement_ladder_rover_rung2b_6dof`, `refinement_ladder_rover_rung3_6to8`, `refinement_ladder_rover_rung4_8to12`, `rover3tier_rung12`, `rover_patrol_refine`, `story3_rollover_base_12dof`, `story3_rollover_ladder_rung_a` | 16 |
-| M2 | `acc_spoof_lag`, `acc_spoof_limp`, `acc_tune_lag`, `acc_tune_limp`, `arm_plateau_crit`, `arm_plateau_profiles`, `arm_plateau_slow`, `charger_fast_setpoints`, `charger_fast_tapers`, `match_multi_rate`, `platoon3_linkloss`, `platoon3_profiles`, `platoon_delay_linkloss`, `platoon_delay_profiles`, `quad_light_airframe_20`, `quad_light_lag`, `quad_light_profiles`, `refinement_ladder_rover_rung2_6dof`, `refinement_ladder_rover_rung2b_6dof`, `refinement_ladder_rover_rung3_6to8`, `refinement_ladder_rover_rung4_8to12`, `rover3tier_rung12`, `rover_patrol_refine`, `rover_patrol_zones`, `sat3w_detumble_nominal`, `sat3w_detumble_phases`, `sat3w_detumble_weak`, `sat_detumble_nominal`, `sat_detumble_phases`, `sat_detumble_weak`, `story3_rollover_base_12dof`, `story3_rollover_ladder_rung_a` | 32 |
-| M3 | `acc_spoof_limp`, `acc_tune_limp`, `arm_plateau_profiles`, `charger_fast_tapers`, `platoon3_profiles`, `platoon_delay_profiles`, `quad_light_profiles`, `rover_patrol_refine`, `rover_patrol_zones`, `sat3w_detumble_weak`, `sat_detumble_weak` | 11 |
-| M4 | `acc_spoof_limp`, `acc_tune_lag`, `acc_tune_limp`, `charger_fast_setpoints`, `charger_fast_tapers`, `match_multi_rate`, `platoon3_linkloss`, `platoon3_profiles`, `platoon_delay_linkloss`, `platoon_delay_profiles`, `quad_light_airframe_20`, `quad_light_profiles`, `sat3w_detumble_nominal`, `sat3w_detumble_phases`, `sat3w_detumble_weak`, `sat_detumble_nominal`, `sat_detumble_phases`, `sat_detumble_weak` | 18 |
+| M1 | `acc_spoof_lag`, `acc_spoof_limp`, `acc_tune_lag`, `acc_tune_limp`, `match_multi_rate`, `quad_light_airframe_20`, `quad_light_lag`, `quad_light_profiles`, `refinement_ladder_rover_rung2_6dof`, `refinement_ladder_rover_rung2b_6dof`, `refinement_ladder_rover_rung3_6to8`, `refinement_ladder_rover_rung4_8to12`, `rover3tier_rung12`, `rover_patrol_refine`, `story3_rollover_base_12dof`, `story3_rollover_ladder_rung_a`, `watertank` | 17 |
+| M2 | `acc_spoof_lag`, `acc_spoof_limp`, `acc_tune_lag`, `acc_tune_limp`, `arm_plateau_crit`, `arm_plateau_profiles`, `arm_plateau_slow`, `charger_fast_setpoints`, `charger_fast_tapers`, `match_multi_rate`, `platoon3_linkloss`, `platoon3_profiles`, `platoon_delay_linkloss`, `platoon_delay_profiles`, `quad_light_airframe_20`, `quad_light_lag`, `quad_light_profiles`, `refinement_ladder_rover_rung2_6dof`, `refinement_ladder_rover_rung2b_6dof`, `refinement_ladder_rover_rung3_6to8`, `refinement_ladder_rover_rung4_8to12`, `rover3tier_rung12`, `rover_patrol_refine`, `rover_patrol_zones`, `sat3w_detumble_nominal`, `sat3w_detumble_phases`, `sat3w_detumble_weak`, `sat_detumble_nominal`, `sat_detumble_phases`, `sat_detumble_weak`, `story3_rollover_base_12dof`, `story3_rollover_ladder_rung_a`, `watertank` | 33 |
+| M3 | `acc_spoof_limp`, `acc_tune_limp`, `arm_plateau_profiles`, `charger_fast_tapers`, `platoon3_profiles`, `platoon_delay_profiles`, `quad_light_profiles`, `rover_patrol_refine`, `rover_patrol_zones`, `sat3w_detumble_weak`, `sat_detumble_weak`, `watertank` | 12 |
+| M4 | `acc_spoof_limp`, `acc_tune_lag`, `acc_tune_limp`, `charger_fast_setpoints`, `charger_fast_tapers`, `match_multi_rate`, `platoon3_linkloss`, `platoon3_profiles`, `platoon_delay_linkloss`, `platoon_delay_profiles`, `quad_light_airframe_20`, `quad_light_profiles`, `sat3w_detumble_nominal`, `sat3w_detumble_phases`, `sat3w_detumble_weak`, `sat_detumble_nominal`, `sat_detumble_phases`, `sat_detumble_weak`, `watertank` | 19 |
 | M5 | `acc_spoof_limp`, `acc_tune_limp`, `platoon3_linkloss`, `platoon_delay_linkloss`, `rover3tier_rung12`, `rover_patrol_refine`, `rover_patrol_zones`, `sat3w_detumble_phases`, `sat_detumble_phases`, `story1_attdist_rung_a_6to8`, `story1_attdist_rung_b_12dof`, `story3_rollover_ladder_rung_b` | 12 |
-| M6 | `acc_spoof_lag`, `acc_spoof_limp`, `acc_tune_limp`, `arm_plateau_crit`, `arm_plateau_profiles`, `arm_plateau_slow`, `charger_fast_setpoints`, `charger_fast_tapers`, `platoon3_linkloss`, `platoon3_profiles`, `platoon_delay_linkloss`, `platoon_delay_profiles`, `refinement_ladder_rover_rung1_2to3`, `refinement_ladder_rover_rung3_6to8`, `refinement_ladder_rover_rung4_8to12`, `rover_dof_terrain_rung1`, `rover_dof_terrain_rung2`, `rover_dof_terrain_rung3`, `rover_dof_terrain_rung3_8d`, `rover_patrol_refine`, `rover_patrol_zones`, `sat3w_detumble_phases`, `sat3w_detumble_weak`, `sat_detumble_phases`, `sat_detumble_weak`, `story3_rollover_base_12dof`, `story3_rollover_ladder_rung_a`, `story3_rollover_ladder_rung_b` | 28 |
-| M6+ | `acc_spoof_lag`, `arm_plateau_crit`, `arm_plateau_profiles`, `arm_plateau_slow`, `charger_fast_setpoints`, `platoon3_linkloss`, `platoon3_profiles`, `platoon_delay_linkloss`, `platoon_delay_profiles`, `rover_patrol_refine`, `story3_rollover_ladder_rung_b` | 11 |
+| M6 | `acc_spoof_lag`, `acc_spoof_limp`, `acc_tune_limp`, `arm_plateau_crit`, `arm_plateau_profiles`, `arm_plateau_slow`, `charger_fast_setpoints`, `charger_fast_tapers`, `platoon3_linkloss`, `platoon3_profiles`, `platoon_delay_linkloss`, `platoon_delay_profiles`, `refinement_ladder_rover_rung1_2to3`, `refinement_ladder_rover_rung3_6to8`, `refinement_ladder_rover_rung4_8to12`, `rover_dof_terrain_rung1`, `rover_dof_terrain_rung2`, `rover_dof_terrain_rung3`, `rover_dof_terrain_rung3_8d`, `rover_patrol_refine`, `rover_patrol_zones`, `sat3w_detumble_phases`, `sat3w_detumble_weak`, `sat_detumble_phases`, `sat_detumble_weak`, `story3_rollover_base_12dof`, `story3_rollover_ladder_rung_a`, `story3_rollover_ladder_rung_b`, `watertank` | 29 |
+| M6+ | `acc_spoof_lag`, `arm_plateau_crit`, `arm_plateau_profiles`, `arm_plateau_slow`, `charger_fast_setpoints`, `platoon3_linkloss`, `platoon3_profiles`, `platoon_delay_linkloss`, `platoon_delay_profiles`, `rover_patrol_refine`, `story3_rollover_ladder_rung_b`, `watertank` | 12 |
 | M6L | `acc_spoof_lag`, `arm_plateau_crit`, `arm_plateau_profiles`, `arm_plateau_slow`, `platoon3_linkloss`, `platoon3_profiles`, `rover_patrol_refine`, `story3_rollover_ladder_rung_b` | 8 |
 | per-mode domains |  | 0 |
 
@@ -702,7 +712,7 @@ inputs certify in under 0.6 s except the 6–12-dof ladders (`story1_attdist_run
 | Rigid-body detumbling (polynomial) | 6 | 4, 6 | quadratic | polynomial | modes 1-2 / 2-4; 6 with a pruned fallback; 2 mode-dependent; 4 cut-reliant; 0 widened-cut-reliant; 0 linear-form-reliant; 0 per-mode domains |
 | Terrain/position ladder | 11 | 3/2, 3, 4, 6, 8, 12 | conjunctive, linear, quadratic | polynomial | modes 3-3 / 3-3; 0 with a pruned fallback; 0 mode-dependent; 7 cut-reliant; 0 widened-cut-reliant; 0 linear-form-reliant; 0 per-mode domains |
 | Story ladders | 7 | 8, 12 | conjunctive, quadratic | polynomial | modes 3-3 / 3-3; 0 with a pruned fallback; 3 mode-dependent; 3 cut-reliant; 1 widened-cut-reliant; 1 linear-form-reliant; 0 per-mode domains |
-| Watertank | 1 | 1 | linear | affine | modes 3-3 / 3-3; 0 with a pruned fallback; 0 mode-dependent; 0 cut-reliant; 0 widened-cut-reliant; 0 linear-form-reliant; 0 per-mode domains |
+| Watertank | 1 | 1 | conjunctive | affine | modes 3-3 / 5-5; 1 with a pruned fallback; 0 mode-dependent; 1 cut-reliant; 1 widened-cut-reliant; 0 linear-form-reliant; 0 per-mode domains |
 | **total** | **45** | | | | |
 
 Duplicate check: no two benchmarks normalize to the same model; no two benchmarks differ only in tolerance constants (rows' numerals masked)
@@ -712,7 +722,7 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 ### `acc_spoof_lag`
 
 * family: ACC under sensor spoofing / retune; scenario: model-refinement; dims L/R 2/2; modes L/R 1/2; εL/εR 2.0/1.0; λ ∈ [1.0, 6.0]; invariant shape linear; rows identical: True; normalized md5 `c6dd3244026b`
-* `relcert`: **CERTIFIED** (228 ms); `[prune] acc_spoof_lag: [CRUISE->DISENGAGE]`; NO_PRUNE: **CERTIFIED** (220 ms); NO_CUT: **DECLINED** (361 ms); NO_IMPLIED_CUT: **DECLINED** (368 ms); NO_LINEAR_CUT: **DECLINED** (313 ms); domains: uniform
+* `relcert`: **CERTIFIED** (170 ms); `[prune] acc_spoof_lag: [CRUISE->DISENGAGE]`; NO_PRUNE: **CERTIFIED** (191 ms); NO_CUT: **DECLINED** (322 ms); NO_IMPLIED_CUT: **DECLINED** (358 ms); NO_LINEAR_CUT: **DECLINED** (361 ms); domains: uniform
 * `[cut] L.CRUISE: 4 conjunct(s)`
 * `[cut] R.CRUISE: 2 conjunct(s)`
 * `[cut] R.DISENGAGE: 1 conjunct(s)`
@@ -723,15 +733,15 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[cut-x] R.CRUISE: v <= 40.0 kind=closure entry=weakening route=shape`
 * `[cut-x] R.DISENGAGE: v <= 20.0 kind=closure entry=weakening route=shape`
 * `[admissible] CRUISE_L: [CRUISE]`
-* `--handoff`: 1/1 checked, 1 passed, failing -, VACUOUS (identical rows) (90 ms)
-* cover `CRUISE_L`: λ = 5/2, budget 5, admissible ['CRUISE'], flags {'CRUISE': 'j----', 'DISENGAGE': 'j----'}, kinds ['base', 'joint'], path modes ['CRUISE'], branching 0, right-only False
+* `--handoff`: 1/1 checked, 1 passed, failing -, VACUOUS (identical rows) (91 ms)
+* cover `CRUISE_L`: λ = 5/2, budget 5, admissible ['CRUISE'], flags {'CRUISE': 'j--', 'DISENGAGE': 'j--'}, kinds ['base', 'joint'], path modes ['CRUISE'], branching 0, right-only False
     * from `CRUISE`: `CRUISE:joint(B=5)->[CRUISE@4, CRUISE@4]; CRUISE:joint(B=4)->[CRUISE@3, CRUISE@3]; CRUISE:joint(B=3)->[CRUISE@2, CRUISE@2]; CRUISE:joint(B=2)->[CRUISE@1, CRUISE@1]; CRUISE:base(B=1)`
 * cells: **M1** yes: CRUISE λ=5/2 (affine dynamics); **M2** yes: CRUISE B=5 via CRUISE; **M3** no (max non-self successors at a joint step = 0); **M4** vacuous: pruned CRUISE->DISENGAGE but NO_PRUNE=CERTIFIED; **M5** no (rows identical; handoff vacuous); **M6** yes: L.CRUISE: 4 conjunct(s); R.CRUISE: 2 conjunct(s); R.DISENGAGE: 1 conjunct(s); NO_CUT=DECLINED; **M6+** yes: L.CRUISE: (a + (1.25 * (v - 24))) <= 9.5 kind=linear-form entry=rational route=linear-shape; L.CRUISE: (a + (1.25 * (v - 24))) >= -3.25 kind=linear-form entry=rational route=linear-shape; L.CRUISE: v <= 31.6 kind=derived-bound entry=rational route=derived-shape given=[(a + (1.25 * (v - 24))) <= 9.5]; L.CRUISE: v >= 21.4 kind=derived-bound entry=rational route=derived-shape given=[(a + (1.25 * (v - 24))) >= -3.25]; R.CRUISE: v <= 40.0 kind=closure entry=weakening route=shape; R.DISENGAGE: v <= 20.0 kind=closure entry=weakening route=shape; NO_IMPLIED=DECLINED; **M6L** yes: L.CRUISE: (a + (1.25 * (v - 24))) <= 9.5 kind=linear-form entry=rational route=linear-shape; L.CRUISE: (a + (1.25 * (v - 24))) >= -3.25 kind=linear-form entry=rational route=linear-shape; L.CRUISE: v <= 31.6 kind=derived-bound entry=rational route=derived-shape given=[(a + (1.25 * (v - 24))) <= 9.5]; L.CRUISE: v >= 21.4 kind=derived-bound entry=rational route=derived-shape given=[(a + (1.25 * (v - 24))) >= -3.25]; NO_LINEAR=DECLINED
 
 ### `acc_spoof_limp`
 
 * family: ACC under sensor spoofing / retune; scenario: sensor-attack; dims L/R 1/1; modes L/R 2/4; εL/εR 2.0/1.0; λ ∈ [1.0, 6.0]; invariant shape conjunctive; rows identical: False; normalized md5 `900d3e553813`
-* `relcert`: **CERTIFIED** (256 ms); `[prune] acc_spoof_limp: [NORMAL->DISENGAGE, ECO->DISENGAGE, SPORT->DISENGAGE]`; NO_PRUNE: **DECLINED** (1131 ms); NO_CUT: **DECLINED** (1167 ms); NO_IMPLIED_CUT: **CERTIFIED** (285 ms); NO_LINEAR_CUT: **CERTIFIED** (326 ms); domains: uniform
+* `relcert`: **CERTIFIED** (291 ms); `[prune] acc_spoof_limp: [NORMAL->DISENGAGE, ECO->DISENGAGE, SPORT->DISENGAGE]`; NO_PRUNE: **DECLINED** (1178 ms); NO_CUT: **DECLINED** (1167 ms); NO_IMPLIED_CUT: **CERTIFIED** (278 ms); NO_LINEAR_CUT: **CERTIFIED** (278 ms); domains: uniform
 * `[cut] L.CRUISE: 2 conjunct(s)`
 * `[cut] L.LIMP: 2 conjunct(s)`
 * `[cut] R.NORMAL: 2 conjunct(s)`
@@ -745,12 +755,12 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[cut-x] R.DISENGAGE: v <= 20.0 kind=closure entry=weakening route=shape`
 * `[admissible] CRUISE_L: [NORMAL, ECO, SPORT]`
 * `[admissible] LIMP_L: [NORMAL, ECO, SPORT]`
-* `--handoff`: 3/3 checked, 3 passed, failing -, non-vacuous (51 ms)
-* cover `CRUISE_L`: λ = 5/4, budget 3, admissible ['NORMAL', 'ECO', 'SPORT'], flags {'NORMAL': 'j----', 'ECO': 'j----', 'SPORT': 'j----', 'DISENGAGE': '-----'}, kinds ['base', 'joint'], path modes ['ECO', 'NORMAL', 'SPORT'], branching 2, right-only False
+* `--handoff`: 3/3 checked, 3 passed, failing -, non-vacuous (92 ms)
+* cover `CRUISE_L`: λ = 5/4, budget 3, admissible ['NORMAL', 'ECO', 'SPORT'], flags {'NORMAL': 'j--', 'ECO': 'j--', 'SPORT': 'j--', 'DISENGAGE': '---'}, kinds ['base', 'joint'], path modes ['ECO', 'NORMAL', 'SPORT'], branching 2, right-only False
     * from `NORMAL`: `NORMAL:joint(B=3)->[NORMAL@2, NORMAL@2, ECO@2, SPORT@2]; NORMAL:joint(B=2)->[NORMAL@1, NORMAL@1, ECO@1, SPORT@1]; NORMAL:base(B=1); ECO:base(B=1); SPORT:base(B=1); ECO:joint(B=2)->[ECO@1, ECO@1, NORMAL@1]; SPORT:joint(B=2)->[SPORT@1, SPORT@1, NORMAL@1]`
     * from `ECO`: `ECO:joint(B=3)->[ECO@2, ECO@2, NORMAL@2]; ECO:joint(B=2)->[ECO@1, ECO@1, NORMAL@1]; ECO:base(B=1); NORMAL:base(B=1); NORMAL:joint(B=2)->[NORMAL@1, NORMAL@1, ECO@1, SPORT@1]; SPORT:base(B=1)`
     * from `SPORT`: `SPORT:joint(B=3)->[SPORT@2, SPORT@2, NORMAL@2]; SPORT:joint(B=2)->[SPORT@1, SPORT@1, NORMAL@1]; SPORT:base(B=1); NORMAL:base(B=1); NORMAL:joint(B=2)->[NORMAL@1, NORMAL@1, ECO@1, SPORT@1]; ECO:base(B=1)`
-* cover `LIMP_L`: λ = 1, budget 2, admissible ['NORMAL', 'ECO', 'SPORT'], flags {'NORMAL': 'j----', 'ECO': 'j----', 'SPORT': 'j----', 'DISENGAGE': '-----'}, kinds ['base', 'joint'], path modes ['ECO', 'NORMAL', 'SPORT'], branching 2, right-only False
+* cover `LIMP_L`: λ = 1, budget 2, admissible ['NORMAL', 'ECO', 'SPORT'], flags {'NORMAL': 'j--', 'ECO': 'j--', 'SPORT': 'j--', 'DISENGAGE': '---'}, kinds ['base', 'joint'], path modes ['ECO', 'NORMAL', 'SPORT'], branching 2, right-only False
     * from `NORMAL`: `NORMAL:joint(B=2)->[NORMAL@1, NORMAL@1, ECO@1, SPORT@1]; NORMAL:base(B=1); ECO:base(B=1); SPORT:base(B=1)`
     * from `ECO`: `ECO:joint(B=2)->[ECO@1, ECO@1, NORMAL@1]; ECO:base(B=1); NORMAL:base(B=1)`
     * from `SPORT`: `SPORT:joint(B=2)->[SPORT@1, SPORT@1, NORMAL@1]; SPORT:base(B=1); NORMAL:base(B=1)`
@@ -759,7 +769,7 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 ### `acc_tune_lag`
 
 * family: ACC under sensor spoofing / retune; scenario: model-refinement; dims L/R 2/2; modes L/R 1/2; εL/εR 2.0/1.0; λ ∈ [1.0, 6.0]; invariant shape linear; rows identical: True; normalized md5 `c6109b9b9468`
-* `relcert`: **CERTIFIED** (143 ms); `[prune] acc_tune_lag: [CRUISE->DISENGAGE]`; NO_PRUNE: **DECLINED** (362 ms); NO_CUT: **CERTIFIED** (139 ms); NO_IMPLIED_CUT: **CERTIFIED** (177 ms); NO_LINEAR_CUT: **CERTIFIED** (165 ms); domains: uniform
+* `relcert`: **CERTIFIED** (83 ms); `[prune] acc_tune_lag: [CRUISE->DISENGAGE]`; NO_PRUNE: **DECLINED** (336 ms); NO_CUT: **CERTIFIED** (114 ms); NO_IMPLIED_CUT: **CERTIFIED** (148 ms); NO_LINEAR_CUT: **CERTIFIED** (157 ms); domains: uniform
 * `[cut] L.CRUISE: 6 conjunct(s)`
 * `[cut] R.CRUISE: 2 conjunct(s)`
 * `[cut] R.DISENGAGE: 1 conjunct(s)`
@@ -772,15 +782,15 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[cut-x] R.CRUISE: v <= 40.0 kind=closure entry=weakening route=shape`
 * `[cut-x] R.DISENGAGE: v <= 20.0 kind=closure entry=weakening route=shape`
 * `[admissible] CRUISE_L: [CRUISE]`
-* `--handoff`: 1/1 checked, 1 passed, failing -, VACUOUS (identical rows) (32 ms)
-* cover `CRUISE_L`: λ = 5/4, budget 3, admissible ['CRUISE'], flags {'CRUISE': 'j----', 'DISENGAGE': '-----'}, kinds ['base', 'joint'], path modes ['CRUISE'], branching 0, right-only False
+* `--handoff`: 1/1 checked, 1 passed, failing -, VACUOUS (identical rows) (93 ms)
+* cover `CRUISE_L`: λ = 5/4, budget 3, admissible ['CRUISE'], flags {'CRUISE': 'j--', 'DISENGAGE': '---'}, kinds ['base', 'joint'], path modes ['CRUISE'], branching 0, right-only False
     * from `CRUISE`: `CRUISE:joint(B=3)->[CRUISE@2, CRUISE@2]; CRUISE:joint(B=2)->[CRUISE@1, CRUISE@1]; CRUISE:base(B=1)`
 * cells: **M1** yes: CRUISE λ=5/4 (affine dynamics); **M2** yes: CRUISE B=3 via CRUISE; **M3** no (max non-self successors at a joint step = 0); **M4** yes: pruned CRUISE->DISENGAGE; NO_PRUNE=DECLINED; **M5** no (rows identical; handoff vacuous); **M6** vacuous: cuts kept (L.CRUISE: 6 conjunct(s); R.CRUISE: 2 conjunct(s); R.DISENGAGE: 1 conjunct(s)) but NO_CUT=CERTIFIED; **M6+** vacuous: widened atoms kept (L.CRUISE: (a + (1 * (v - 30))) <= 2 kind=linear-form entry=rational route=linear-shape; L.CRUISE: (a + (1 * (v - 30))) >= -7 kind=linear-form entry=rational route=linear-shape; L.CRUISE: (a + (3 * (v - 30))) <= 2 kind=linear-form entry=rational route=linear-shape; L.CRUISE: (a + (3 * (v - 30))) >= -17 kind=linear-form entry=rational route=linear-shape; L.CRUISE: v <= 32 kind=derived-bound entry=rational route=derived-shape given=[(a + (1 * (v - 30))) <= 2]; L.CRUISE: v >= 23 kind=derived-bound entry=rational route=derived-shape given=[(a + (1 * (v - 30))) >= -7]; R.CRUISE: v <= 40.0 kind=closure entry=weakening route=shape; R.DISENGAGE: v <= 20.0 kind=closure entry=weakening route=shape) but NO_IMPLIED=CERTIFIED; **M6L** vacuous: linear-form atoms kept (L.CRUISE: (a + (1 * (v - 30))) <= 2 kind=linear-form entry=rational route=linear-shape; L.CRUISE: (a + (1 * (v - 30))) >= -7 kind=linear-form entry=rational route=linear-shape; L.CRUISE: (a + (3 * (v - 30))) <= 2 kind=linear-form entry=rational route=linear-shape; L.CRUISE: (a + (3 * (v - 30))) >= -17 kind=linear-form entry=rational route=linear-shape; L.CRUISE: v <= 32 kind=derived-bound entry=rational route=derived-shape given=[(a + (1 * (v - 30))) <= 2]; L.CRUISE: v >= 23 kind=derived-bound entry=rational route=derived-shape given=[(a + (1 * (v - 30))) >= -7]) but NO_LINEAR=CERTIFIED
 
 ### `acc_tune_limp`
 
 * family: ACC under sensor spoofing / retune; scenario: degraded-controller; dims L/R 1/1; modes L/R 2/4; εL/εR 2.0/1.0; λ ∈ [1.0, 6.0]; invariant shape conjunctive; rows identical: False; normalized md5 `68a8a66b01d8`
-* `relcert`: **CERTIFIED** (355 ms); `[prune] acc_tune_limp: [NORMAL->DISENGAGE, COMFORT->DISENGAGE, SPORT->DISENGAGE]`; NO_PRUNE: **DECLINED** (1103 ms); NO_CUT: **DECLINED** (1083 ms); NO_IMPLIED_CUT: **CERTIFIED** (285 ms); NO_LINEAR_CUT: **CERTIFIED** (378 ms); domains: uniform
+* `relcert`: **CERTIFIED** (333 ms); `[prune] acc_tune_limp: [NORMAL->DISENGAGE, COMFORT->DISENGAGE, SPORT->DISENGAGE]`; NO_PRUNE: **DECLINED** (1072 ms); NO_CUT: **DECLINED** (1011 ms); NO_IMPLIED_CUT: **CERTIFIED** (255 ms); NO_LINEAR_CUT: **CERTIFIED** (342 ms); domains: uniform
 * `[cut] L.CRUISE: 2 conjunct(s)`
 * `[cut] L.LIMP: 2 conjunct(s)`
 * `[cut] R.NORMAL: 2 conjunct(s)`
@@ -790,12 +800,12 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[cut-x] R.DISENGAGE: v <= 20.0 kind=closure entry=weakening route=shape`
 * `[admissible] CRUISE_L: [NORMAL, COMFORT, SPORT]`
 * `[admissible] LIMP_L: [NORMAL, COMFORT, SPORT]`
-* `--handoff`: 3/3 checked, 3 passed, failing -, non-vacuous (72 ms)
-* cover `CRUISE_L`: λ = 3/2, budget 3, admissible ['NORMAL', 'COMFORT', 'SPORT'], flags {'NORMAL': 'j----', 'COMFORT': 'j----', 'SPORT': 'j----', 'DISENGAGE': '-----'}, kinds ['base', 'joint'], path modes ['COMFORT', 'NORMAL', 'SPORT'], branching 2, right-only False
+* `--handoff`: 3/3 checked, 3 passed, failing -, non-vacuous (35 ms)
+* cover `CRUISE_L`: λ = 3/2, budget 3, admissible ['NORMAL', 'COMFORT', 'SPORT'], flags {'NORMAL': 'j--', 'COMFORT': 'j--', 'SPORT': 'j--', 'DISENGAGE': '---'}, kinds ['base', 'joint'], path modes ['COMFORT', 'NORMAL', 'SPORT'], branching 2, right-only False
     * from `NORMAL`: `NORMAL:joint(B=3)->[NORMAL@2, NORMAL@2, COMFORT@2, SPORT@2]; NORMAL:joint(B=2)->[NORMAL@1, NORMAL@1, COMFORT@1, SPORT@1]; NORMAL:base(B=1); COMFORT:base(B=1); SPORT:base(B=1); COMFORT:joint(B=2)->[COMFORT@1, COMFORT@1, NORMAL@1]; SPORT:joint(B=2)->[SPORT@1, SPORT@1, NORMAL@1]`
     * from `COMFORT`: `COMFORT:joint(B=3)->[COMFORT@2, COMFORT@2, NORMAL@2]; COMFORT:joint(B=2)->[COMFORT@1, COMFORT@1, NORMAL@1]; COMFORT:base(B=1); NORMAL:base(B=1); NORMAL:joint(B=2)->[NORMAL@1, NORMAL@1, COMFORT@1, SPORT@1]; SPORT:base(B=1)`
     * from `SPORT`: `SPORT:joint(B=3)->[SPORT@2, SPORT@2, NORMAL@2]; SPORT:joint(B=2)->[SPORT@1, SPORT@1, NORMAL@1]; SPORT:base(B=1); NORMAL:base(B=1); NORMAL:joint(B=2)->[NORMAL@1, NORMAL@1, COMFORT@1, SPORT@1]; COMFORT:base(B=1)`
-* cover `LIMP_L`: λ = 1, budget 2, admissible ['NORMAL', 'COMFORT', 'SPORT'], flags {'NORMAL': 'j----', 'COMFORT': 'j----', 'SPORT': 'j----', 'DISENGAGE': '-----'}, kinds ['base', 'joint'], path modes ['COMFORT', 'NORMAL', 'SPORT'], branching 2, right-only False
+* cover `LIMP_L`: λ = 1, budget 2, admissible ['NORMAL', 'COMFORT', 'SPORT'], flags {'NORMAL': 'j--', 'COMFORT': 'j--', 'SPORT': 'j--', 'DISENGAGE': '---'}, kinds ['base', 'joint'], path modes ['COMFORT', 'NORMAL', 'SPORT'], branching 2, right-only False
     * from `NORMAL`: `NORMAL:joint(B=2)->[NORMAL@1, NORMAL@1, COMFORT@1, SPORT@1]; NORMAL:base(B=1); COMFORT:base(B=1); SPORT:base(B=1)`
     * from `COMFORT`: `COMFORT:joint(B=2)->[COMFORT@1, COMFORT@1, NORMAL@1]; COMFORT:base(B=1); NORMAL:base(B=1)`
     * from `SPORT`: `SPORT:joint(B=2)->[SPORT@1, SPORT@1, NORMAL@1]; SPORT:base(B=1); NORMAL:base(B=1)`
@@ -804,7 +814,7 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 ### `arm_plateau_crit`
 
 * family: Arm, leading reference; scenario: model-refinement; dims L/R 2/1; modes L/R 2/4; εL/εR 2.0/1.0; λ ∈ [1.0, 6.0]; invariant shape linear; rows identical: True; normalized md5 `90ef24b3b08e`
-* `relcert`: **CERTIFIED** (228 ms); `[prune] arm_plateau_crit: []`; NO_PRUNE: **CERTIFIED** (226 ms); NO_CUT: **DECLINED** (349 ms); NO_IMPLIED_CUT: **DECLINED** (473 ms); NO_LINEAR_CUT: **DECLINED** (397 ms); domains: uniform
+* `relcert`: **CERTIFIED** (177 ms); `[prune] arm_plateau_crit: []`; NO_PRUNE: **CERTIFIED** (176 ms); NO_CUT: **DECLINED** (407 ms); NO_IMPLIED_CUT: **DECLINED** (443 ms); NO_LINEAR_CUT: **DECLINED** (371 ms); domains: uniform
 * `[cut] L.Accelerate: 4 conjunct(s)`
 * `[cut] L.Brake: 2 conjunct(s)`
 * `[cut] R.ApproachA: 1 conjunct(s)`
@@ -820,13 +830,13 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[cut-x] R.Hold: theta <= 1.15 kind=closure entry=weakening route=frozen`
 * `[admissible] Accelerate_L: [ApproachA, ApproachB, ApproachC, Hold]`
 * `[admissible] Brake_L: [ApproachA, ApproachB, ApproachC, Hold]`
-* `--handoff`: 4/4 checked, 4 passed, failing -, VACUOUS (identical rows) (18 ms)
-* cover `Accelerate_L`: λ = 1, budget 2, admissible ['ApproachA', 'ApproachB', 'ApproachC', 'Hold'], flags {'ApproachA': 'j--dd', 'ApproachB': 'jr-dd', 'ApproachC': 'jr-dd', 'Hold': 'jrrdd'}, kinds ['base', 'joint'], path modes ['ApproachA', 'ApproachB', 'ApproachC', 'Hold'], branching 1, right-only False
+* `--handoff`: 4/4 checked, 4 passed, failing -, VACUOUS (identical rows) (22 ms)
+* cover `Accelerate_L`: λ = 1, budget 2, admissible ['ApproachA', 'ApproachB', 'ApproachC', 'Hold'], flags {'ApproachA': 'jdd', 'ApproachB': 'jdd', 'ApproachC': 'jdd', 'Hold': 'jdd'}, kinds ['base', 'joint'], path modes ['ApproachA', 'ApproachB', 'ApproachC', 'Hold'], branching 1, right-only False
     * from `ApproachA`: `ApproachA:joint(B=2)->[ApproachA@1, ApproachB@1, ApproachA@1]; ApproachA:base(B=1); ApproachB:base(B=1)`
     * from `ApproachB`: `ApproachB:joint(B=2)->[ApproachB@1, ApproachC@1, ApproachB@1]; ApproachB:base(B=1); ApproachC:base(B=1)`
     * from `ApproachC`: `ApproachC:joint(B=2)->[ApproachC@1, Hold@1, ApproachC@1]; ApproachC:base(B=1); Hold:base(B=1)`
     * from `Hold`: `Hold:joint(B=2)->[Hold@1, Hold@1]; Hold:base(B=1)`
-* cover `Brake_L`: λ = 1, budget 2, admissible ['ApproachA', 'ApproachB', 'ApproachC', 'Hold'], flags {'ApproachA': '---dd', 'ApproachB': 'j--dd', 'ApproachC': 'j--dd', 'Hold': 'jrrdd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['ApproachA', 'ApproachB', 'ApproachC', 'Hold'], branching 1, right-only True
+* cover `Brake_L`: λ = 1, budget 2, admissible ['ApproachA', 'ApproachB', 'ApproachC', 'Hold'], flags {'ApproachA': '-dd', 'ApproachB': 'jdd', 'ApproachC': 'jdd', 'Hold': 'jdd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['ApproachA', 'ApproachB', 'ApproachC', 'Hold'], branching 1, right-only True
     * from `ApproachA`: `ApproachA:repoDyn(B=2,preJ)->[ApproachB@2]; ApproachB:joint(B=2)->[ApproachB@1, ApproachC@1, ApproachB@1]; ApproachB:base(B=1); ApproachC:base(B=1)`
     * from `ApproachB`: `ApproachB:joint(B=2)->[ApproachB@1, ApproachC@1, ApproachB@1]; ApproachB:base(B=1); ApproachC:base(B=1)`
     * from `ApproachC`: `ApproachC:joint(B=2)->[ApproachC@1, Hold@1, ApproachC@1]; ApproachC:base(B=1); Hold:base(B=1)`
@@ -836,7 +846,7 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 ### `arm_plateau_profiles`
 
 * family: Arm, leading reference; scenario: degraded-controller; dims L/R 2/1; modes L/R 2/5; εL/εR 2.0/1.0; λ ∈ [1.0, 6.0]; invariant shape linear; rows identical: True; normalized md5 `a1d06af51c8d`
-* `relcert`: **CERTIFIED** (227 ms); `[prune] arm_plateau_profiles: []`; NO_PRUNE: **CERTIFIED** (252 ms); NO_CUT: **DECLINED** (539 ms); NO_IMPLIED_CUT: **DECLINED** (495 ms); NO_LINEAR_CUT: **DECLINED** (431 ms); domains: uniform
+* `relcert`: **CERTIFIED** (125 ms); `[prune] arm_plateau_profiles: []`; NO_PRUNE: **CERTIFIED** (185 ms); NO_CUT: **DECLINED** (449 ms); NO_IMPLIED_CUT: **DECLINED** (540 ms); NO_LINEAR_CUT: **DECLINED** (423 ms); domains: uniform
 * `[cut] L.Accelerate: 6 conjunct(s)`
 * `[cut] L.Brake: 3 conjunct(s)`
 * `[cut] R.ApproachA: 1 conjunct(s)`
@@ -856,14 +866,14 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[cut-x] R.Hold: theta <= 1.15 kind=closure entry=weakening route=frozen`
 * `[admissible] Accelerate_L: [ApproachA, ApproachB, ApproachCfast, ApproachCslow, Hold]`
 * `[admissible] Brake_L: [ApproachA, ApproachB, ApproachCfast, ApproachCslow, Hold]`
-* `--handoff`: 4/4 checked, 4 passed, failing -, VACUOUS (identical rows) (100 ms)
-* cover `Accelerate_L`: λ = 1, budget 2, admissible ['ApproachA', 'ApproachB', 'ApproachCfast', 'ApproachCslow', 'Hold'], flags {'ApproachA': 'j--dd', 'ApproachB': 'jr-dd', 'ApproachCfast': 'jr-dd', 'ApproachCslow': 'jr-dd', 'Hold': 'jrrdd'}, kinds ['base', 'joint'], path modes ['ApproachA', 'ApproachB', 'ApproachCfast', 'ApproachCslow', 'Hold'], branching 2, right-only False
+* `--handoff`: 4/4 checked, 4 passed, failing -, VACUOUS (identical rows) (90 ms)
+* cover `Accelerate_L`: λ = 1, budget 2, admissible ['ApproachA', 'ApproachB', 'ApproachCfast', 'ApproachCslow', 'Hold'], flags {'ApproachA': 'jdd', 'ApproachB': 'jdd', 'ApproachCfast': 'jdd', 'ApproachCslow': 'jdd', 'Hold': 'jdd'}, kinds ['base', 'joint'], path modes ['ApproachA', 'ApproachB', 'ApproachCfast', 'ApproachCslow', 'Hold'], branching 2, right-only False
     * from `ApproachA`: `ApproachA:joint(B=2)->[ApproachA@1, ApproachB@1, ApproachA@1]; ApproachA:base(B=1); ApproachB:base(B=1)`
     * from `ApproachB`: `ApproachB:joint(B=2)->[ApproachB@1, ApproachCfast@1, ApproachCslow@1, ApproachB@1]; ApproachB:base(B=1); ApproachCfast:base(B=1); ApproachCslow:base(B=1)`
     * from `ApproachCfast`: `ApproachCfast:joint(B=2)->[ApproachCfast@1, Hold@1, ApproachCfast@1]; ApproachCfast:base(B=1); Hold:base(B=1)`
     * from `ApproachCslow`: `ApproachCslow:joint(B=2)->[ApproachCslow@1, Hold@1, ApproachCslow@1]; ApproachCslow:base(B=1); Hold:base(B=1)`
     * from `Hold`: `Hold:joint(B=2)->[Hold@1, Hold@1]; Hold:base(B=1)`
-* cover `Brake_L`: λ = 1, budget 2, admissible ['ApproachA', 'ApproachB', 'ApproachCfast', 'ApproachCslow', 'Hold'], flags {'ApproachA': 'j--dd', 'ApproachB': 'j--dd', 'ApproachCfast': 'j--dd', 'ApproachCslow': 'j--dd', 'Hold': 'jrrdd'}, kinds ['base', 'joint'], path modes ['ApproachA', 'ApproachB', 'ApproachCfast', 'ApproachCslow', 'Hold'], branching 2, right-only False
+* cover `Brake_L`: λ = 1, budget 2, admissible ['ApproachA', 'ApproachB', 'ApproachCfast', 'ApproachCslow', 'Hold'], flags {'ApproachA': 'jdd', 'ApproachB': 'jdd', 'ApproachCfast': 'jdd', 'ApproachCslow': 'jdd', 'Hold': 'jdd'}, kinds ['base', 'joint'], path modes ['ApproachA', 'ApproachB', 'ApproachCfast', 'ApproachCslow', 'Hold'], branching 2, right-only False
     * from `ApproachA`: `ApproachA:joint(B=2)->[ApproachA@1, ApproachB@1, ApproachA@1]; ApproachA:base(B=1); ApproachB:base(B=1)`
     * from `ApproachB`: `ApproachB:joint(B=2)->[ApproachB@1, ApproachCfast@1, ApproachCslow@1, ApproachB@1]; ApproachB:base(B=1); ApproachCfast:base(B=1); ApproachCslow:base(B=1)`
     * from `ApproachCfast`: `ApproachCfast:joint(B=2)->[ApproachCfast@1, Hold@1, ApproachCfast@1]; ApproachCfast:base(B=1); Hold:base(B=1)`
@@ -874,7 +884,7 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 ### `arm_plateau_slow`
 
 * family: Arm, leading reference; scenario: degraded-actuator; dims L/R 2/1; modes L/R 2/4; εL/εR 2.0/1.0; λ ∈ [1.0, 6.0]; invariant shape linear; rows identical: True; normalized md5 `19259816447b`
-* `relcert`: **CERTIFIED** (211 ms); `[prune] arm_plateau_slow: []`; NO_PRUNE: **CERTIFIED** (144 ms); NO_CUT: **DECLINED** (413 ms); NO_IMPLIED_CUT: **DECLINED** (428 ms); NO_LINEAR_CUT: **DECLINED** (381 ms); domains: uniform
+* `relcert`: **CERTIFIED** (174 ms); `[prune] arm_plateau_slow: []`; NO_PRUNE: **CERTIFIED** (133 ms); NO_CUT: **DECLINED** (409 ms); NO_IMPLIED_CUT: **DECLINED** (426 ms); NO_LINEAR_CUT: **DECLINED** (355 ms); domains: uniform
 * `[cut] L.Accelerate: 6 conjunct(s)`
 * `[cut] L.Brake: 3 conjunct(s)`
 * `[cut] R.ApproachA: 1 conjunct(s)`
@@ -893,13 +903,13 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[cut-x] R.Hold: theta <= 1.15 kind=closure entry=weakening route=frozen`
 * `[admissible] Accelerate_L: [ApproachA, ApproachB, ApproachC, Hold]`
 * `[admissible] Brake_L: [ApproachB, ApproachC, Hold]`
-* `--handoff`: 4/4 checked, 4 passed, failing -, VACUOUS (identical rows) (99 ms)
-* cover `Accelerate_L`: λ = 1, budget 2, admissible ['ApproachA', 'ApproachB', 'ApproachC', 'Hold'], flags {'ApproachA': 'j--dd', 'ApproachB': '---dd', 'ApproachC': 'jr-dd', 'Hold': 'jrrdd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['ApproachA', 'ApproachB', 'ApproachC', 'Hold'], branching 1, right-only True
+* `--handoff`: 4/4 checked, 4 passed, failing -, VACUOUS (identical rows) (83 ms)
+* cover `Accelerate_L`: λ = 1, budget 2, admissible ['ApproachA', 'ApproachB', 'ApproachC', 'Hold'], flags {'ApproachA': 'jdd', 'ApproachB': '-dd', 'ApproachC': 'jdd', 'Hold': 'jdd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['ApproachA', 'ApproachB', 'ApproachC', 'Hold'], branching 1, right-only True
     * from `ApproachA`: `ApproachA:joint(B=2)->[ApproachA@1, ApproachB@1, ApproachA@1]; ApproachA:base(B=1); ApproachB:repoDyn(B=1,postJ)->[ApproachC@1]; ApproachC:base(B=1)`
     * from `ApproachB`: `ApproachB:repoDyn(B=2,preJ)->[ApproachC@2]; ApproachC:joint(B=2)->[ApproachC@1, Hold@1, ApproachC@1]; ApproachC:base(B=1); Hold:base(B=1)`
     * from `ApproachC`: `ApproachC:joint(B=2)->[ApproachC@1, Hold@1, ApproachC@1]; ApproachC:base(B=1); Hold:base(B=1)`
     * from `Hold`: `Hold:joint(B=2)->[Hold@1, Hold@1]; Hold:base(B=1)`
-* cover `Brake_L`: λ = 1, budget 2, admissible ['ApproachB', 'ApproachC', 'Hold'], flags {'ApproachA': 'j--dd', 'ApproachB': 'j--dd', 'ApproachC': 'j--dd', 'Hold': 'jrrdd'}, kinds ['base', 'joint'], path modes ['ApproachB', 'ApproachC', 'Hold'], branching 1, right-only False
+* cover `Brake_L`: λ = 1, budget 2, admissible ['ApproachB', 'ApproachC', 'Hold'], flags {'ApproachA': 'jdd', 'ApproachB': 'jdd', 'ApproachC': 'jdd', 'Hold': 'jdd'}, kinds ['base', 'joint'], path modes ['ApproachB', 'ApproachC', 'Hold'], branching 1, right-only False
     * from `ApproachB`: `ApproachB:joint(B=2)->[ApproachB@1, ApproachC@1, ApproachB@1]; ApproachB:base(B=1); ApproachC:base(B=1)`
     * from `ApproachC`: `ApproachC:joint(B=2)->[ApproachC@1, Hold@1, ApproachC@1]; ApproachC:base(B=1); Hold:base(B=1)`
     * from `Hold`: `Hold:joint(B=2)->[Hold@1, Hold@1]; Hold:base(B=1)`
@@ -908,7 +918,7 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 ### `charger_fast_setpoints`
 
 * family: Battery charger; scenario: degraded-controller; dims L/R 1/1; modes L/R 3/4; εL/εR 2.0/1.0; λ ∈ [1.0, 6.0]; invariant shape linear; rows identical: True; normalized md5 `a4fc327fbdea`
-* `relcert`: **CERTIFIED** (260 ms); `[prune] charger_fast_setpoints: [BULK->FAULT]`; NO_PRUNE: **DECLINED** (459 ms); NO_CUT: **DECLINED** (523 ms); NO_IMPLIED_CUT: **DECLINED** (474 ms); NO_LINEAR_CUT: **CERTIFIED** (201 ms); domains: uniform
+* `relcert`: **CERTIFIED** (196 ms); `[prune] charger_fast_setpoints: [BULK->FAULT]`; NO_PRUNE: **DECLINED** (464 ms); NO_CUT: **DECLINED** (496 ms); NO_IMPLIED_CUT: **DECLINED** (514 ms); NO_LINEAR_CUT: **CERTIFIED** (187 ms); domains: uniform
 * `[cut] L.BULK: 2 conjunct(s)`
 * `[cut] L.ABSORB: 2 conjunct(s)`
 * `[cut] L.FULL: 1 conjunct(s)`
@@ -924,16 +934,16 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[admissible] BULK_L: [BULK, ABSORB, FULL]`
 * `[admissible] ABSORB_L: [BULK, ABSORB, FULL]`
 * `[admissible] FULL_L: [ABSORB, FULL]`
-* `--handoff`: 5/5 checked, 5 passed, failing -, VACUOUS (identical rows) (67 ms)
-* cover `BULK_L`: λ = 1, budget 2, admissible ['BULK', 'ABSORB', 'FULL'], flags {'BULK': '---dd', 'ABSORB': 'jr-dd', 'FULL': 'jrrdd', 'FAULT': '-----'}, kinds ['base', 'joint', 'repoDyn'], path modes ['ABSORB', 'BULK', 'FULL'], branching 1, right-only True
+* `--handoff`: 5/5 checked, 5 passed, failing -, VACUOUS (identical rows) (79 ms)
+* cover `BULK_L`: λ = 1, budget 2, admissible ['BULK', 'ABSORB', 'FULL'], flags {'BULK': '-dd', 'ABSORB': 'jdd', 'FULL': 'jdd', 'FAULT': '---'}, kinds ['base', 'joint', 'repoDyn'], path modes ['ABSORB', 'BULK', 'FULL'], branching 1, right-only True
     * from `BULK`: `BULK:repoDyn(B=2,preJ)->[ABSORB@2]; ABSORB:joint(B=2)->[ABSORB@1, FULL@1, ABSORB@1]; ABSORB:base(B=1); FULL:base(B=1)`
     * from `ABSORB`: `ABSORB:joint(B=2)->[ABSORB@1, FULL@1, ABSORB@1]; ABSORB:base(B=1); FULL:base(B=1)`
     * from `FULL`: `FULL:joint(B=2)->[FULL@1, FULL@1]; FULL:base(B=1)`
-* cover `ABSORB_L`: λ = 1, budget 2, admissible ['BULK', 'ABSORB', 'FULL'], flags {'BULK': '---dd', 'ABSORB': 'j--dd', 'FULL': 'jrrdd', 'FAULT': 'j----'}, kinds ['base', 'joint', 'repoDyn'], path modes ['ABSORB', 'BULK', 'FULL'], branching 1, right-only True
+* cover `ABSORB_L`: λ = 1, budget 2, admissible ['BULK', 'ABSORB', 'FULL'], flags {'BULK': '-dd', 'ABSORB': 'jdd', 'FULL': 'jdd', 'FAULT': 'j--'}, kinds ['base', 'joint', 'repoDyn'], path modes ['ABSORB', 'BULK', 'FULL'], branching 1, right-only True
     * from `BULK`: `BULK:repoDyn(B=2,preJ)->[ABSORB@2]; ABSORB:joint(B=2)->[ABSORB@1, FULL@1, ABSORB@1]; ABSORB:base(B=1); FULL:base(B=1)`
     * from `ABSORB`: `ABSORB:joint(B=2)->[ABSORB@1, FULL@1, ABSORB@1]; ABSORB:base(B=1); FULL:base(B=1)`
     * from `FULL`: `FULL:joint(B=2)->[FULL@1, FULL@1]; FULL:base(B=1)`
-* cover `FULL_L`: λ = 1, budget 2, admissible ['ABSORB', 'FULL'], flags {'BULK': 'j--dd', 'ABSORB': 'j--dd', 'FULL': 'jrrdd', 'FAULT': 'j----'}, kinds ['base', 'joint'], path modes ['ABSORB', 'FULL'], branching 1, right-only False
+* cover `FULL_L`: λ = 1, budget 2, admissible ['ABSORB', 'FULL'], flags {'BULK': 'jdd', 'ABSORB': 'jdd', 'FULL': 'jdd', 'FAULT': 'j--'}, kinds ['base', 'joint'], path modes ['ABSORB', 'FULL'], branching 1, right-only False
     * from `ABSORB`: `ABSORB:joint(B=2)->[ABSORB@1, FULL@1, ABSORB@1]; ABSORB:base(B=1); FULL:base(B=1)`
     * from `FULL`: `FULL:joint(B=2)->[FULL@1, FULL@1]; FULL:base(B=1)`
 * cells: **M1** no (λ=1 everywhere); **M2** yes: BULK B=2 via ABSORB/FULL +RO, ABSORB B=2 via ABSORB/FULL +RO, FULL B=2 via ABSORB/FULL; **M3** no (max non-self successors at a joint step = 1); **M4** yes: pruned BULK->FAULT; NO_PRUNE=DECLINED; **M5** no (rows identical; handoff vacuous); **M6** yes: L.BULK: 2 conjunct(s); L.ABSORB: 2 conjunct(s); L.FULL: 1 conjunct(s); R.BULK: 2 conjunct(s); R.ABSORB: 2 conjunct(s); R.FULL: 1 conjunct(s); R.FAULT: 1 conjunct(s); NO_CUT=DECLINED; **M6+** yes: L.BULK: x <= 90.0 kind=implied-contraction entry=rational route=shape; L.ABSORB: x <= 100.0 kind=implied-contraction entry=rational route=shape; R.BULK: x <= 90.0 kind=implied-contraction entry=rational route=shape; R.ABSORB: x <= 100.0 kind=implied-contraction entry=rational route=shape; R.FAULT: x <= 10.0 kind=closure entry=weakening route=shape; NO_IMPLIED=DECLINED; **M6L** no (no linear-form atom kept)
@@ -941,7 +951,7 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 ### `charger_fast_tapers`
 
 * family: Battery charger; scenario: degraded-controller; dims L/R 1/1; modes L/R 3/5; εL/εR 2.0/1.0; λ ∈ [1.0, 6.0]; invariant shape linear; rows identical: True; normalized md5 `956f8ffbe687`
-* `relcert`: **CERTIFIED** (210 ms); `[prune] charger_fast_tapers: [BULK->FAULT]`; NO_PRUNE: **DECLINED** (584 ms); NO_CUT: **DECLINED** (566 ms); NO_IMPLIED_CUT: **CERTIFIED** (257 ms); NO_LINEAR_CUT: **CERTIFIED** (280 ms); domains: uniform
+* `relcert`: **CERTIFIED** (222 ms); `[prune] charger_fast_tapers: [BULK->FAULT]`; NO_PRUNE: **DECLINED** (550 ms); NO_CUT: **DECLINED** (552 ms); NO_IMPLIED_CUT: **CERTIFIED** (193 ms); NO_LINEAR_CUT: **CERTIFIED** (224 ms); domains: uniform
 * `[cut] L.BULK: 2 conjunct(s)`
 * `[cut] L.ABSORB: 2 conjunct(s)`
 * `[cut] L.FULL: 1 conjunct(s)`
@@ -959,18 +969,18 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[admissible] BULK_L: [BULK, ABSORB_SLOW, ABSORB_FAST, FULL]`
 * `[admissible] ABSORB_L: [BULK, ABSORB_SLOW, ABSORB_FAST, FULL]`
 * `[admissible] FULL_L: [ABSORB_SLOW, ABSORB_FAST, FULL]`
-* `--handoff`: 5/5 checked, 5 passed, failing -, VACUOUS (identical rows) (101 ms)
-* cover `BULK_L`: λ = 1, budget 2, admissible ['BULK', 'ABSORB_SLOW', 'ABSORB_FAST', 'FULL'], flags {'BULK': '---dd', 'ABSORB_SLOW': '-r-dd', 'ABSORB_FAST': '-r-dd', 'FULL': 'jrrdd', 'FAULT': '-----'}, kinds ['base', 'joint', 'repoDyn', 'repoStatic'], path modes ['ABSORB_FAST', 'ABSORB_SLOW', 'BULK', 'FULL'], branching 0, right-only True
-    * from `BULK`: `BULK:repoDyn(B=2,preJ)->[ABSORB_SLOW@2, ABSORB_FAST@2]; ABSORB_SLOW:repoStatic(B=2,preJ)->[FULL@2]; FULL:joint(B=2)->[FULL@1, FULL@1]; FULL:base(B=1); ABSORB_FAST:repoStatic(B=2,preJ)->[FULL@2]`
-    * from `ABSORB_SLOW`: `ABSORB_SLOW:repoStatic(B=2,preJ)->[FULL@2]; FULL:joint(B=2)->[FULL@1, FULL@1]; FULL:base(B=1)`
-    * from `ABSORB_FAST`: `ABSORB_FAST:repoStatic(B=2,preJ)->[FULL@2]; FULL:joint(B=2)->[FULL@1, FULL@1]; FULL:base(B=1)`
+* `--handoff`: 5/5 checked, 5 passed, failing -, VACUOUS (identical rows) (95 ms)
+* cover `BULK_L`: λ = 1, budget 2, admissible ['BULK', 'ABSORB_SLOW', 'ABSORB_FAST', 'FULL'], flags {'BULK': '-dd', 'ABSORB_SLOW': '-dd', 'ABSORB_FAST': '-dd', 'FULL': 'jdd', 'FAULT': '---'}, kinds ['base', 'joint', 'repoDyn'], path modes ['ABSORB_FAST', 'ABSORB_SLOW', 'BULK', 'FULL'], branching 0, right-only True
+    * from `BULK`: `BULK:repoDyn(B=2,preJ)->[ABSORB_SLOW@2, ABSORB_FAST@2]; ABSORB_SLOW:repoDyn(B=2,preJ)->[FULL@2]; FULL:joint(B=2)->[FULL@1, FULL@1]; FULL:base(B=1); ABSORB_FAST:repoDyn(B=2,preJ)->[FULL@2]`
+    * from `ABSORB_SLOW`: `ABSORB_SLOW:repoDyn(B=2,preJ)->[FULL@2]; FULL:joint(B=2)->[FULL@1, FULL@1]; FULL:base(B=1)`
+    * from `ABSORB_FAST`: `ABSORB_FAST:repoDyn(B=2,preJ)->[FULL@2]; FULL:joint(B=2)->[FULL@1, FULL@1]; FULL:base(B=1)`
     * from `FULL`: `FULL:joint(B=2)->[FULL@1, FULL@1]; FULL:base(B=1)`
-* cover `ABSORB_L`: λ = 1, budget 2, admissible ['BULK', 'ABSORB_SLOW', 'ABSORB_FAST', 'FULL'], flags {'BULK': 'j--dd', 'ABSORB_SLOW': 'j--dd', 'ABSORB_FAST': 'j--dd', 'FULL': 'jrrdd', 'FAULT': 'j----'}, kinds ['base', 'joint'], path modes ['ABSORB_FAST', 'ABSORB_SLOW', 'BULK', 'FULL'], branching 2, right-only False
+* cover `ABSORB_L`: λ = 1, budget 2, admissible ['BULK', 'ABSORB_SLOW', 'ABSORB_FAST', 'FULL'], flags {'BULK': 'jdd', 'ABSORB_SLOW': 'jdd', 'ABSORB_FAST': 'jdd', 'FULL': 'jdd', 'FAULT': 'j--'}, kinds ['base', 'joint'], path modes ['ABSORB_FAST', 'ABSORB_SLOW', 'BULK', 'FULL'], branching 2, right-only False
     * from `BULK`: `BULK:joint(B=2)->[BULK@1, ABSORB_SLOW@1, ABSORB_FAST@1, BULK@1]; BULK:base(B=1); ABSORB_SLOW:base(B=1); ABSORB_FAST:base(B=1)`
     * from `ABSORB_SLOW`: `ABSORB_SLOW:joint(B=2)->[ABSORB_SLOW@1, FULL@1, ABSORB_SLOW@1]; ABSORB_SLOW:base(B=1); FULL:base(B=1)`
     * from `ABSORB_FAST`: `ABSORB_FAST:joint(B=2)->[ABSORB_FAST@1, FULL@1, ABSORB_FAST@1]; ABSORB_FAST:base(B=1); FULL:base(B=1)`
     * from `FULL`: `FULL:joint(B=2)->[FULL@1, FULL@1]; FULL:base(B=1)`
-* cover `FULL_L`: λ = 1, budget 2, admissible ['ABSORB_SLOW', 'ABSORB_FAST', 'FULL'], flags {'BULK': 'j--dd', 'ABSORB_SLOW': 'j--dd', 'ABSORB_FAST': 'j--dd', 'FULL': 'jrrdd', 'FAULT': 'j----'}, kinds ['base', 'joint'], path modes ['ABSORB_FAST', 'ABSORB_SLOW', 'FULL'], branching 1, right-only False
+* cover `FULL_L`: λ = 1, budget 2, admissible ['ABSORB_SLOW', 'ABSORB_FAST', 'FULL'], flags {'BULK': 'jdd', 'ABSORB_SLOW': 'jdd', 'ABSORB_FAST': 'jdd', 'FULL': 'jdd', 'FAULT': 'j--'}, kinds ['base', 'joint'], path modes ['ABSORB_FAST', 'ABSORB_SLOW', 'FULL'], branching 1, right-only False
     * from `ABSORB_SLOW`: `ABSORB_SLOW:joint(B=2)->[ABSORB_SLOW@1, FULL@1, ABSORB_SLOW@1]; ABSORB_SLOW:base(B=1); FULL:base(B=1)`
     * from `ABSORB_FAST`: `ABSORB_FAST:joint(B=2)->[ABSORB_FAST@1, FULL@1, ABSORB_FAST@1]; ABSORB_FAST:base(B=1); FULL:base(B=1)`
     * from `FULL`: `FULL:joint(B=2)->[FULL@1, FULL@1]; FULL:base(B=1)`
@@ -979,7 +989,7 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 ### `match_multi_rate`
 
 * family: Rover patrol (zones); scenario: model-refinement; dims L/R 2/2; modes L/R 4/2; εL/εR 0.3/0.3; λ ∈ [1.0, 6.0]; invariant shape linear; rows identical: True; normalized md5 `8ea18edaad94`
-* `relcert`: **CERTIFIED** (368 ms); `[prune] match_multi_rate: [DRIVE->STALL]`; NO_PRUNE: **DECLINED** (367 ms); NO_CUT: **CERTIFIED** (334 ms); NO_IMPLIED_CUT: **CERTIFIED** (310 ms); NO_LINEAR_CUT: **CERTIFIED** (354 ms); domains: uniform
+* `relcert`: **CERTIFIED** (298 ms); `[prune] match_multi_rate: [DRIVE->STALL]`; NO_PRUNE: **DECLINED** (347 ms); NO_CUT: **CERTIFIED** (277 ms); NO_IMPLIED_CUT: **CERTIFIED** (284 ms); NO_LINEAR_CUT: **CERTIFIED** (311 ms); domains: uniform
 * `[cut] L.FAST: 2 conjunct(s)`
 * `[cut] L.MEDIUM: 2 conjunct(s)`
 * `[cut] L.SLOW: 2 conjunct(s)`
@@ -996,21 +1006,21 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[admissible] MEDIUM_L: [DRIVE]`
 * `[admissible] SLOW_L: [DRIVE]`
 * `[admissible] RESET_L: [DRIVE]`
-* `--handoff`: 8/8 checked, 8 passed, failing -, VACUOUS (identical rows) (102 ms)
-* cover `FAST_L`: λ = 3, budget 3, admissible ['DRIVE'], flags {'DRIVE': 'j--dd', 'STALL': '-----'}, kinds ['base', 'joint'], path modes ['DRIVE'], branching 0, right-only False
+* `--handoff`: 8/8 checked, 8 passed, failing -, VACUOUS (identical rows) (30 ms)
+* cover `FAST_L`: λ = 3, budget 3, admissible ['DRIVE'], flags {'DRIVE': 'jdd', 'STALL': '---'}, kinds ['base', 'joint'], path modes ['DRIVE'], branching 0, right-only False
     * from `DRIVE`: `DRIVE:joint(B=3)->[DRIVE@2, DRIVE@2]; DRIVE:joint(B=2)->[DRIVE@1, DRIVE@1]; DRIVE:base(B=1)`
-* cover `MEDIUM_L`: λ = 2, budget 2, admissible ['DRIVE'], flags {'DRIVE': 'j--dd', 'STALL': 'j----'}, kinds ['base', 'joint'], path modes ['DRIVE'], branching 0, right-only False
+* cover `MEDIUM_L`: λ = 2, budget 2, admissible ['DRIVE'], flags {'DRIVE': 'jdd', 'STALL': 'j--'}, kinds ['base', 'joint'], path modes ['DRIVE'], branching 0, right-only False
     * from `DRIVE`: `DRIVE:joint(B=2)->[DRIVE@1, DRIVE@1]; DRIVE:base(B=1)`
-* cover `SLOW_L`: λ = 1, budget 1, admissible ['DRIVE'], flags {'DRIVE': 'j--dd', 'STALL': 'j----'}, kinds ['base'], path modes ['DRIVE'], branching 0, right-only False
+* cover `SLOW_L`: λ = 1, budget 1, admissible ['DRIVE'], flags {'DRIVE': 'jdd', 'STALL': 'j--'}, kinds ['base'], path modes ['DRIVE'], branching 0, right-only False
     * from `DRIVE`: `DRIVE:base(B=1)`
-* cover `RESET_L`: λ = 1, budget 1, admissible ['DRIVE'], flags {'DRIVE': 'j--dd', 'STALL': '-----'}, kinds ['base'], path modes ['DRIVE'], branching 0, right-only False
+* cover `RESET_L`: λ = 1, budget 1, admissible ['DRIVE'], flags {'DRIVE': 'jdd', 'STALL': '---'}, kinds ['base'], path modes ['DRIVE'], branching 0, right-only False
     * from `DRIVE`: `DRIVE:base(B=1)`
 * cells: **M1** yes: FAST λ=3, MEDIUM λ=2 (affine dynamics); **M2** yes: FAST B=3 via DRIVE, MEDIUM B=2 via DRIVE; **M3** no (max non-self successors at a joint step = 0); **M4** yes: pruned DRIVE->STALL; NO_PRUNE=DECLINED; **M5** no (rows identical; handoff vacuous); **M6** vacuous: cuts kept (L.FAST: 2 conjunct(s); L.MEDIUM: 2 conjunct(s); L.SLOW: 2 conjunct(s); L.RESET: 2 conjunct(s); R.DRIVE: 2 conjunct(s); R.STALL: 1 conjunct(s)) but NO_CUT=CERTIFIED; **M6+** vacuous: widened atoms kept (L.FAST: v <= 1.0 kind=implied-contraction entry=rational route=shape; L.MEDIUM: v <= 1.0 kind=implied-contraction entry=rational route=shape; L.SLOW: v <= 1.0 kind=implied-contraction entry=rational route=shape; L.RESET: v <= 1.0 kind=closure entry=weakening route=shape; L.RESET: v >= 0.1 kind=implied-contraction entry=rational route=shape; R.STALL: v <= 0.2 kind=closure entry=weakening route=shape) but NO_IMPLIED=CERTIFIED; **M6L** no (no linear-form atom kept)
 
 ### `platoon3_linkloss`
 
 * family: Platoon string, three followers; scenario: sensor-attack; dims L/R 6/6; modes L/R 2/4; εL/εR 2.0/1.0; λ ∈ [1.0, 6.0]; invariant shape conjunctive; rows identical: False; normalized md5 `eeb34fa84a9e`
-* `relcert`: **CERTIFIED** (2156 ms); `[prune] platoon3_linkloss: [FOLLOW->BRAKE1, FOLLOW->BRAKE2, FOLLOW->BRAKE3]`; NO_PRUNE: **DECLINED** (11487 ms); NO_CUT: **DECLINED** (7679 ms); NO_IMPLIED_CUT: **DECLINED** (7936 ms); NO_LINEAR_CUT: **DECLINED** (7964 ms); domains: uniform
+* `relcert`: **CERTIFIED** (2159 ms); `[prune] platoon3_linkloss: [FOLLOW->BRAKE1, FOLLOW->BRAKE2, FOLLOW->BRAKE3]`; NO_PRUNE: **DECLINED** (11706 ms); NO_CUT: **DECLINED** (7847 ms); NO_IMPLIED_CUT: **DECLINED** (7952 ms); NO_LINEAR_CUT: **DECLINED** (8028 ms); domains: uniform
 * `[cut] L.FOLLOW: 24 conjunct(s)`
 * `[cut] L.LOST: 24 conjunct(s)`
 * `[cut] R.FOLLOW: 24 conjunct(s)`
@@ -1088,17 +1098,17 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[cut-x] R.FOLLOW: g3 >= 24 kind=derived-bound entry=rational route=derived-shape given=[(r3 + (0.5 * (g3 - 30))) >= -3]`
 * `[admissible] FOLLOW_L: [FOLLOW]`
 * `[admissible] LOST_L: [FOLLOW]`
-* `--handoff`: 3/3 checked, 3 passed, failing -, non-vacuous (94 ms)
-* cover `FOLLOW_L`: λ = 1, budget 2, admissible ['FOLLOW'], flags {'FOLLOW': 'j----', 'BRAKE1': '-----', 'BRAKE2': '-----', 'BRAKE3': '-----'}, kinds ['base', 'joint'], path modes ['FOLLOW'], branching 0, right-only False
+* `--handoff`: 3/3 checked, 3 passed, failing -, non-vacuous (84 ms)
+* cover `FOLLOW_L`: λ = 1, budget 2, admissible ['FOLLOW'], flags {'FOLLOW': 'j--', 'BRAKE1': '---', 'BRAKE2': '---', 'BRAKE3': '---'}, kinds ['base', 'joint'], path modes ['FOLLOW'], branching 0, right-only False
     * from `FOLLOW`: `FOLLOW:joint(B=2)->[FOLLOW@1, FOLLOW@1]; FOLLOW:base(B=1)`
-* cover `LOST_L`: λ = 1, budget 2, admissible ['FOLLOW'], flags {'FOLLOW': 'j----', 'BRAKE1': '-----', 'BRAKE2': '-----', 'BRAKE3': '-----'}, kinds ['base', 'joint'], path modes ['FOLLOW'], branching 0, right-only False
+* cover `LOST_L`: λ = 1, budget 2, admissible ['FOLLOW'], flags {'FOLLOW': 'j--', 'BRAKE1': '---', 'BRAKE2': '---', 'BRAKE3': '---'}, kinds ['base', 'joint'], path modes ['FOLLOW'], branching 0, right-only False
     * from `FOLLOW`: `FOLLOW:joint(B=2)->[FOLLOW@1, FOLLOW@1]; FOLLOW:base(B=1)`
 * cells: **M1** no (λ=1 everywhere); **M2** yes: FOLLOW B=2 via FOLLOW, LOST B=2 via FOLLOW; **M3** no (max non-self successors at a joint step = 0); **M4** yes: pruned FOLLOW->BRAKE1, FOLLOW->BRAKE2, FOLLOW->BRAKE3; NO_PRUNE=DECLINED; **M5** yes: 3/3 handoffs unsat, rows differ; **M6** yes: L.FOLLOW: 24 conjunct(s); L.LOST: 24 conjunct(s); R.FOLLOW: 24 conjunct(s); NO_CUT=DECLINED; **M6+** yes: L.FOLLOW: (r1 + (0.25 * (g1 - 29))) <= 2 kind=linear-form entry=rational route=linear-shape; L.FOLLOW: (r1 + (0.25 * (g1 - 29))) >= -2 kind=linear-form entry=rational route=linear-shape; L.FOLLOW: (r1 + (0.5 * (g1 - 29))) <= 3 kind=linear-form entry=rational route=linear-shape; L.FOLLOW: (r1 + (0.5 * (g1 - 29))) >= -3 kind=linear-form entry=rational route=linear-shape; L.FOLLOW: (r2 + (0.25 * (g2 - 29))) <= 2 kind=linear-form entry=rational route=linear-shape; L.FOLLOW: (r2 + (0.25 * (g2 - 29))) >= -2 kind=linear-form entry=rational route=linear-shape; L.FOLLOW: (r2 + (0.5 * (g2 - 29))) <= 3 kind=linear-form entry=rational route=linear-shape; L.FOLLOW: (r2 + (0.5 * (g2 - 29))) >= -3 kind=linear-form entry=rational route=linear-shape; L.FOLLOW: (r3 + (0.25 * (g3 - 29))) <= 2 kind=linear-form entry=rational route=linear-shape; L.FOLLOW: (r3 + (0.25 * (g3 - 29))) >= -2 kind=linear-form entry=rational route=linear-shape; L.FOLLOW: (r3 + (0.5 * (g3 - 29))) <= 3 kind=linear-form entry=rational route=linear-shape; L.FOLLOW: (r3 + (0.5 * (g3 - 29))) >= -3 kind=linear-form entry=rational route=linear-shape; L.FOLLOW: g1 <= 37 kind=derived-bound entry=rational route=derived-shape given=[(r1 + (0.25 * (g1 - 29))) <= 2]; L.FOLLOW: g1 >= 21 kind=derived-bound entry=rational route=derived-shape given=[(r1 + (0.25 * (g1 - 29))) >= -2]; L.FOLLOW: g1 <= 35 kind=derived-bound entry=rational route=derived-shape given=[(r1 + (0.5 * (g1 - 29))) <= 3]; L.FOLLOW: g1 >= 23 kind=derived-bound entry=rational route=derived-shape given=[(r1 + (0.5 * (g1 - 29))) >= -3]; L.FOLLOW: g2 <= 37 kind=derived-bound entry=rational route=derived-shape given=[(r2 + (0.25 * (g2 - 29))) <= 2]; L.FOLLOW: g2 >= 21 kind=derived-bound entry=rational route=derived-shape given=[(r2 + (0.25 * (g2 - 29))) >= -2]; L.FOLLOW: g2 <= 35 kind=derived-bound entry=rational route=derived-shape given=[(r2 + (0.5 * (g2 - 29))) <= 3]; L.FOLLOW: g2 >= 23 kind=derived-bound entry=rational route=derived-shape given=[(r2 + (0.5 * (g2 - 29))) >= -3]; L.FOLLOW: g3 <= 37 kind=derived-bound entry=rational route=derived-shape given=[(r3 + (0.25 * (g3 - 29))) <= 2]; L.FOLLOW: g3 >= 21 kind=derived-bound entry=rational route=derived-shape given=[(r3 + (0.25 * (g3 - 29))) >= -2]; L.FOLLOW: g3 <= 35 kind=derived-bound entry=rational route=derived-shape given=[(r3 + (0.5 * (g3 - 29))) <= 3]; L.FOLLOW: g3 >= 23 kind=derived-bound entry=rational route=derived-shape given=[(r3 + (0.5 * (g3 - 29))) >= -3]; L.LOST: (r1 + (0.25 * (g1 - 35))) <= 0.5 kind=linear-form entry=rational route=linear-shape; L.LOST: (r1 + (0.25 * (g1 - 35))) >= -3.5 kind=linear-form entry=rational route=linear-shape; L.LOST: (r1 + (0.5 * (g1 - 35))) <= 0 kind=linear-form entry=rational route=linear-shape; L.LOST: (r1 + (0.5 * (g1 - 35))) >= -6 kind=linear-form entry=rational route=linear-shape; L.LOST: (r2 + (0.25 * (g2 - 29))) <= 2 kind=linear-form entry=rational route=linear-shape; L.LOST: (r2 + (0.25 * (g2 - 29))) >= -2 kind=linear-form entry=rational route=linear-shape; L.LOST: (r2 + (0.5 * (g2 - 29))) <= 3 kind=linear-form entry=rational route=linear-shape; L.LOST: (r2 + (0.5 * (g2 - 29))) >= -3 kind=linear-form entry=rational route=linear-shape; L.LOST: (r3 + (0.25 * (g3 - 29))) <= 2 kind=linear-form entry=rational route=linear-shape; L.LOST: (r3 + (0.25 * (g3 - 29))) >= -2 kind=linear-form entry=rational route=linear-shape; L.LOST: (r3 + (0.5 * (g3 - 29))) <= 3 kind=linear-form entry=rational route=linear-shape; L.LOST: (r3 + (0.5 * (g3 - 29))) >= -3 kind=linear-form entry=rational route=linear-shape; L.LOST: g1 <= 37 kind=derived-bound entry=rational route=derived-shape given=[(r1 + (0.25 * (g1 - 35))) <= 0.5]; L.LOST: g1 >= 21 kind=derived-bound entry=rational route=derived-shape given=[(r1 + (0.25 * (g1 - 35))) >= -3.5]; L.LOST: g1 <= 35 kind=derived-bound entry=rational route=derived-shape given=[(r1 + (0.5 * (g1 - 35))) <= 0]; L.LOST: g1 >= 23 kind=derived-bound entry=rational route=derived-shape given=[(r1 + (0.5 * (g1 - 35))) >= -6]; L.LOST: g2 <= 37 kind=derived-bound entry=rational route=derived-shape given=[(r2 + (0.25 * (g2 - 29))) <= 2]; L.LOST: g2 >= 21 kind=derived-bound entry=rational route=derived-shape given=[(r2 + (0.25 * (g2 - 29))) >= -2]; L.LOST: g2 <= 35 kind=derived-bound entry=rational route=derived-shape given=[(r2 + (0.5 * (g2 - 29))) <= 3]; L.LOST: g2 >= 23 kind=derived-bound entry=rational route=derived-shape given=[(r2 + (0.5 * (g2 - 29))) >= -3]; L.LOST: g3 <= 37 kind=derived-bound entry=rational route=derived-shape given=[(r3 + (0.25 * (g3 - 29))) <= 2]; L.LOST: g3 >= 21 kind=derived-bound entry=rational route=derived-shape given=[(r3 + (0.25 * (g3 - 29))) >= -2]; L.LOST: g3 <= 35 kind=derived-bound entry=rational route=derived-shape given=[(r3 + (0.5 * (g3 - 29))) <= 3]; L.LOST: g3 >= 23 kind=derived-bound entry=rational route=derived-shape given=[(r3 + (0.5 * (g3 - 29))) >= -3]; R.FOLLOW: (r1 + (0.25 * (g1 - 30))) <= 2 kind=linear-form entry=rational route=linear-shape; R.FOLLOW: (r1 + (0.25 * (g1 - 30))) >= -2 kind=linear-form entry=rational route=linear-shape; R.FOLLOW: (r1 + (0.5 * (g1 - 30))) <= 3 kind=linear-form entry=rational route=linear-shape; R.FOLLOW: (r1 + (0.5 * (g1 - 30))) >= -3 kind=linear-form entry=rational route=linear-shape; R.FOLLOW: (r2 + (0.25 * (g2 - 30))) <= 2 kind=linear-form entry=rational route=linear-shape; R.FOLLOW: (r2 + (0.25 * (g2 - 30))) >= -2 kind=linear-form entry=rational route=linear-shape; R.FOLLOW: (r2 + (0.5 * (g2 - 30))) <= 3 kind=linear-form entry=rational route=linear-shape; R.FOLLOW: (r2 + (0.5 * (g2 - 30))) >= -3 kind=linear-form entry=rational route=linear-shape; R.FOLLOW: (r3 + (0.25 * (g3 - 30))) <= 2 kind=linear-form entry=rational route=linear-shape; R.FOLLOW: (r3 + (0.25 * (g3 - 30))) >= -2 kind=linear-form entry=rational route=linear-shape; R.FOLLOW: (r3 + (0.5 * (g3 - 30))) <= 3 kind=linear-form entry=rational route=linear-shape; R.FOLLOW: (r3 + (0.5 * (g3 - 30))) >= -3 kind=linear-form entry=rational route=linear-shape; R.FOLLOW: g1 <= 38 kind=derived-bound entry=rational route=derived-shape given=[(r1 + (0.25 * (g1 - 30))) <= 2]; R.FOLLOW: g1 >= 22 kind=derived-bound entry=rational route=derived-shape given=[(r1 + (0.25 * (g1 - 30))) >= -2]; R.FOLLOW: g1 <= 36 kind=derived-bound entry=rational route=derived-shape given=[(r1 + (0.5 * (g1 - 30))) <= 3]; R.FOLLOW: g1 >= 24 kind=derived-bound entry=rational route=derived-shape given=[(r1 + (0.5 * (g1 - 30))) >= -3]; R.FOLLOW: g2 <= 38 kind=derived-bound entry=rational route=derived-shape given=[(r2 + (0.25 * (g2 - 30))) <= 2]; R.FOLLOW: g2 >= 22 kind=derived-bound entry=rational route=derived-shape given=[(r2 + (0.25 * (g2 - 30))) >= -2]; R.FOLLOW: g2 <= 36 kind=derived-bound entry=rational route=derived-shape given=[(r2 + (0.5 * (g2 - 30))) <= 3]; R.FOLLOW: g2 >= 24 kind=derived-bound entry=rational route=derived-shape given=[(r2 + (0.5 * (g2 - 30))) >= -3]; R.FOLLOW: g3 <= 38 kind=derived-bound entry=rational route=derived-shape given=[(r3 + (0.25 * (g3 - 30))) <= 2]; R.FOLLOW: g3 >= 22 kind=derived-bound entry=rational route=derived-shape given=[(r3 + (0.25 * (g3 - 30))) >= -2]; R.FOLLOW: g3 <= 36 kind=derived-bound entry=rational route=derived-shape given=[(r3 + (0.5 * (g3 - 30))) <= 3]; R.FOLLOW: g3 >= 24 kind=derived-bound entry=rational route=derived-shape given=[(r3 + (0.5 * (g3 - 30))) >= -3]; NO_IMPLIED=DECLINED; **M6L** yes: L.FOLLOW: (r1 + (0.25 * (g1 - 29))) <= 2 kind=linear-form entry=rational route=linear-shape; L.FOLLOW: (r1 + (0.25 * (g1 - 29))) >= -2 kind=linear-form entry=rational route=linear-shape; L.FOLLOW: (r1 + (0.5 * (g1 - 29))) <= 3 kind=linear-form entry=rational route=linear-shape; L.FOLLOW: (r1 + (0.5 * (g1 - 29))) >= -3 kind=linear-form entry=rational route=linear-shape; L.FOLLOW: (r2 + (0.25 * (g2 - 29))) <= 2 kind=linear-form entry=rational route=linear-shape; L.FOLLOW: (r2 + (0.25 * (g2 - 29))) >= -2 kind=linear-form entry=rational route=linear-shape; L.FOLLOW: (r2 + (0.5 * (g2 - 29))) <= 3 kind=linear-form entry=rational route=linear-shape; L.FOLLOW: (r2 + (0.5 * (g2 - 29))) >= -3 kind=linear-form entry=rational route=linear-shape; L.FOLLOW: (r3 + (0.25 * (g3 - 29))) <= 2 kind=linear-form entry=rational route=linear-shape; L.FOLLOW: (r3 + (0.25 * (g3 - 29))) >= -2 kind=linear-form entry=rational route=linear-shape; L.FOLLOW: (r3 + (0.5 * (g3 - 29))) <= 3 kind=linear-form entry=rational route=linear-shape; L.FOLLOW: (r3 + (0.5 * (g3 - 29))) >= -3 kind=linear-form entry=rational route=linear-shape; L.FOLLOW: g1 <= 37 kind=derived-bound entry=rational route=derived-shape given=[(r1 + (0.25 * (g1 - 29))) <= 2]; L.FOLLOW: g1 >= 21 kind=derived-bound entry=rational route=derived-shape given=[(r1 + (0.25 * (g1 - 29))) >= -2]; L.FOLLOW: g1 <= 35 kind=derived-bound entry=rational route=derived-shape given=[(r1 + (0.5 * (g1 - 29))) <= 3]; L.FOLLOW: g1 >= 23 kind=derived-bound entry=rational route=derived-shape given=[(r1 + (0.5 * (g1 - 29))) >= -3]; L.FOLLOW: g2 <= 37 kind=derived-bound entry=rational route=derived-shape given=[(r2 + (0.25 * (g2 - 29))) <= 2]; L.FOLLOW: g2 >= 21 kind=derived-bound entry=rational route=derived-shape given=[(r2 + (0.25 * (g2 - 29))) >= -2]; L.FOLLOW: g2 <= 35 kind=derived-bound entry=rational route=derived-shape given=[(r2 + (0.5 * (g2 - 29))) <= 3]; L.FOLLOW: g2 >= 23 kind=derived-bound entry=rational route=derived-shape given=[(r2 + (0.5 * (g2 - 29))) >= -3]; L.FOLLOW: g3 <= 37 kind=derived-bound entry=rational route=derived-shape given=[(r3 + (0.25 * (g3 - 29))) <= 2]; L.FOLLOW: g3 >= 21 kind=derived-bound entry=rational route=derived-shape given=[(r3 + (0.25 * (g3 - 29))) >= -2]; L.FOLLOW: g3 <= 35 kind=derived-bound entry=rational route=derived-shape given=[(r3 + (0.5 * (g3 - 29))) <= 3]; L.FOLLOW: g3 >= 23 kind=derived-bound entry=rational route=derived-shape given=[(r3 + (0.5 * (g3 - 29))) >= -3]; L.LOST: (r1 + (0.25 * (g1 - 35))) <= 0.5 kind=linear-form entry=rational route=linear-shape; L.LOST: (r1 + (0.25 * (g1 - 35))) >= -3.5 kind=linear-form entry=rational route=linear-shape; L.LOST: (r1 + (0.5 * (g1 - 35))) <= 0 kind=linear-form entry=rational route=linear-shape; L.LOST: (r1 + (0.5 * (g1 - 35))) >= -6 kind=linear-form entry=rational route=linear-shape; L.LOST: (r2 + (0.25 * (g2 - 29))) <= 2 kind=linear-form entry=rational route=linear-shape; L.LOST: (r2 + (0.25 * (g2 - 29))) >= -2 kind=linear-form entry=rational route=linear-shape; L.LOST: (r2 + (0.5 * (g2 - 29))) <= 3 kind=linear-form entry=rational route=linear-shape; L.LOST: (r2 + (0.5 * (g2 - 29))) >= -3 kind=linear-form entry=rational route=linear-shape; L.LOST: (r3 + (0.25 * (g3 - 29))) <= 2 kind=linear-form entry=rational route=linear-shape; L.LOST: (r3 + (0.25 * (g3 - 29))) >= -2 kind=linear-form entry=rational route=linear-shape; L.LOST: (r3 + (0.5 * (g3 - 29))) <= 3 kind=linear-form entry=rational route=linear-shape; L.LOST: (r3 + (0.5 * (g3 - 29))) >= -3 kind=linear-form entry=rational route=linear-shape; L.LOST: g1 <= 37 kind=derived-bound entry=rational route=derived-shape given=[(r1 + (0.25 * (g1 - 35))) <= 0.5]; L.LOST: g1 >= 21 kind=derived-bound entry=rational route=derived-shape given=[(r1 + (0.25 * (g1 - 35))) >= -3.5]; L.LOST: g1 <= 35 kind=derived-bound entry=rational route=derived-shape given=[(r1 + (0.5 * (g1 - 35))) <= 0]; L.LOST: g1 >= 23 kind=derived-bound entry=rational route=derived-shape given=[(r1 + (0.5 * (g1 - 35))) >= -6]; L.LOST: g2 <= 37 kind=derived-bound entry=rational route=derived-shape given=[(r2 + (0.25 * (g2 - 29))) <= 2]; L.LOST: g2 >= 21 kind=derived-bound entry=rational route=derived-shape given=[(r2 + (0.25 * (g2 - 29))) >= -2]; L.LOST: g2 <= 35 kind=derived-bound entry=rational route=derived-shape given=[(r2 + (0.5 * (g2 - 29))) <= 3]; L.LOST: g2 >= 23 kind=derived-bound entry=rational route=derived-shape given=[(r2 + (0.5 * (g2 - 29))) >= -3]; L.LOST: g3 <= 37 kind=derived-bound entry=rational route=derived-shape given=[(r3 + (0.25 * (g3 - 29))) <= 2]; L.LOST: g3 >= 21 kind=derived-bound entry=rational route=derived-shape given=[(r3 + (0.25 * (g3 - 29))) >= -2]; L.LOST: g3 <= 35 kind=derived-bound entry=rational route=derived-shape given=[(r3 + (0.5 * (g3 - 29))) <= 3]; L.LOST: g3 >= 23 kind=derived-bound entry=rational route=derived-shape given=[(r3 + (0.5 * (g3 - 29))) >= -3]; R.FOLLOW: (r1 + (0.25 * (g1 - 30))) <= 2 kind=linear-form entry=rational route=linear-shape; R.FOLLOW: (r1 + (0.25 * (g1 - 30))) >= -2 kind=linear-form entry=rational route=linear-shape; R.FOLLOW: (r1 + (0.5 * (g1 - 30))) <= 3 kind=linear-form entry=rational route=linear-shape; R.FOLLOW: (r1 + (0.5 * (g1 - 30))) >= -3 kind=linear-form entry=rational route=linear-shape; R.FOLLOW: (r2 + (0.25 * (g2 - 30))) <= 2 kind=linear-form entry=rational route=linear-shape; R.FOLLOW: (r2 + (0.25 * (g2 - 30))) >= -2 kind=linear-form entry=rational route=linear-shape; R.FOLLOW: (r2 + (0.5 * (g2 - 30))) <= 3 kind=linear-form entry=rational route=linear-shape; R.FOLLOW: (r2 + (0.5 * (g2 - 30))) >= -3 kind=linear-form entry=rational route=linear-shape; R.FOLLOW: (r3 + (0.25 * (g3 - 30))) <= 2 kind=linear-form entry=rational route=linear-shape; R.FOLLOW: (r3 + (0.25 * (g3 - 30))) >= -2 kind=linear-form entry=rational route=linear-shape; R.FOLLOW: (r3 + (0.5 * (g3 - 30))) <= 3 kind=linear-form entry=rational route=linear-shape; R.FOLLOW: (r3 + (0.5 * (g3 - 30))) >= -3 kind=linear-form entry=rational route=linear-shape; R.FOLLOW: g1 <= 38 kind=derived-bound entry=rational route=derived-shape given=[(r1 + (0.25 * (g1 - 30))) <= 2]; R.FOLLOW: g1 >= 22 kind=derived-bound entry=rational route=derived-shape given=[(r1 + (0.25 * (g1 - 30))) >= -2]; R.FOLLOW: g1 <= 36 kind=derived-bound entry=rational route=derived-shape given=[(r1 + (0.5 * (g1 - 30))) <= 3]; R.FOLLOW: g1 >= 24 kind=derived-bound entry=rational route=derived-shape given=[(r1 + (0.5 * (g1 - 30))) >= -3]; R.FOLLOW: g2 <= 38 kind=derived-bound entry=rational route=derived-shape given=[(r2 + (0.25 * (g2 - 30))) <= 2]; R.FOLLOW: g2 >= 22 kind=derived-bound entry=rational route=derived-shape given=[(r2 + (0.25 * (g2 - 30))) >= -2]; R.FOLLOW: g2 <= 36 kind=derived-bound entry=rational route=derived-shape given=[(r2 + (0.5 * (g2 - 30))) <= 3]; R.FOLLOW: g2 >= 24 kind=derived-bound entry=rational route=derived-shape given=[(r2 + (0.5 * (g2 - 30))) >= -3]; R.FOLLOW: g3 <= 38 kind=derived-bound entry=rational route=derived-shape given=[(r3 + (0.25 * (g3 - 30))) <= 2]; R.FOLLOW: g3 >= 22 kind=derived-bound entry=rational route=derived-shape given=[(r3 + (0.25 * (g3 - 30))) >= -2]; R.FOLLOW: g3 <= 36 kind=derived-bound entry=rational route=derived-shape given=[(r3 + (0.5 * (g3 - 30))) <= 3]; R.FOLLOW: g3 >= 24 kind=derived-bound entry=rational route=derived-shape given=[(r3 + (0.5 * (g3 - 30))) >= -3]; NO_LINEAR=DECLINED
 
 ### `platoon3_profiles`
 
 * family: Platoon string, three followers; scenario: sensor-attack; dims L/R 6/6; modes L/R 1/6; εL/εR 2.0/1.0; λ ∈ [1.0, 6.0]; invariant shape conjunctive; rows identical: True; normalized md5 `fcf76a121d4b`
-* `relcert`: **CERTIFIED** (2271 ms); `[prune] platoon3_profiles: [NORMAL->BRAKE1, NORMAL->BRAKE2, NORMAL->BRAKE3, CLOSE->BRAKE1, CLOSE->BRAKE2, CLOSE->BRAKE3, FAR->BRAKE1, FAR->BRAKE2, FAR->BRAKE3]`; NO_PRUNE: **DECLINED** (28226 ms); NO_CUT: **DECLINED** (16948 ms); NO_IMPLIED_CUT: **DECLINED** (17219 ms); NO_LINEAR_CUT: **DECLINED** (17208 ms); domains: uniform
+* `relcert`: **CERTIFIED** (2227 ms); `[prune] platoon3_profiles: [NORMAL->BRAKE1, NORMAL->BRAKE2, NORMAL->BRAKE3, CLOSE->BRAKE1, CLOSE->BRAKE2, CLOSE->BRAKE3, FAR->BRAKE1, FAR->BRAKE2, FAR->BRAKE3]`; NO_PRUNE: **DECLINED** (29404 ms); NO_CUT: **DECLINED** (18040 ms); NO_IMPLIED_CUT: **DECLINED** (18026 ms); NO_LINEAR_CUT: **DECLINED** (18204 ms); domains: uniform
 * `[cut] L.FOLLOW: 24 conjunct(s)`
 * `[cut] R.NORMAL: 24 conjunct(s)`
 * `[cut] R.CLOSE: 24 conjunct(s)`
@@ -1200,8 +1210,8 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[cut-x] R.FAR: g3 <= 38 kind=derived-bound entry=rational route=derived-shape given=[(r3 + (0.5 * (g3 - 32))) <= 3]`
 * `[cut-x] R.FAR: g3 >= 26 kind=derived-bound entry=rational route=derived-shape given=[(r3 + (0.5 * (g3 - 32))) >= -3]`
 * `[admissible] FOLLOW_L: [NORMAL, CLOSE, FAR]`
-* `--handoff`: 1/1 checked, 1 passed, failing -, VACUOUS (identical rows) (52 ms)
-* cover `FOLLOW_L`: λ = 1, budget 2, admissible ['NORMAL', 'CLOSE', 'FAR'], flags {'NORMAL': 'j----', 'CLOSE': 'j----', 'FAR': 'j----', 'BRAKE1': '-----', 'BRAKE2': '-----', 'BRAKE3': '-----'}, kinds ['base', 'joint'], path modes ['CLOSE', 'FAR', 'NORMAL'], branching 2, right-only False
+* `--handoff`: 1/1 checked, 1 passed, failing -, VACUOUS (identical rows) (88 ms)
+* cover `FOLLOW_L`: λ = 1, budget 2, admissible ['NORMAL', 'CLOSE', 'FAR'], flags {'NORMAL': 'j--', 'CLOSE': 'j--', 'FAR': 'j--', 'BRAKE1': '---', 'BRAKE2': '---', 'BRAKE3': '---'}, kinds ['base', 'joint'], path modes ['CLOSE', 'FAR', 'NORMAL'], branching 2, right-only False
     * from `NORMAL`: `NORMAL:joint(B=2)->[NORMAL@1, NORMAL@1, CLOSE@1, FAR@1]; NORMAL:base(B=1); CLOSE:base(B=1); FAR:base(B=1)`
     * from `CLOSE`: `CLOSE:joint(B=2)->[CLOSE@1, CLOSE@1, NORMAL@1]; CLOSE:base(B=1); NORMAL:base(B=1)`
     * from `FAR`: `FAR:joint(B=2)->[FAR@1, FAR@1, NORMAL@1]; FAR:base(B=1); NORMAL:base(B=1)`
@@ -1210,7 +1220,7 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 ### `platoon_delay_linkloss`
 
 * family: Platoon follower, delayed link; scenario: sensor-attack; dims L/R 1/1; modes L/R 3/3; εL/εR 2.0/1.0; λ ∈ [1.0, 6.0]; invariant shape conjunctive; rows identical: False; normalized md5 `547981de689a`
-* `relcert`: **CERTIFIED** (317 ms); `[prune] platoon_delay_linkloss: [FOLLOW->BRAKE]`; NO_PRUNE: **DECLINED** (859 ms); NO_CUT: **DECLINED** (773 ms); NO_IMPLIED_CUT: **DECLINED** (830 ms); NO_LINEAR_CUT: **CERTIFIED** (236 ms); domains: uniform
+* `relcert`: **CERTIFIED** (263 ms); `[prune] platoon_delay_linkloss: [FOLLOW->BRAKE]`; NO_PRUNE: **DECLINED** (952 ms); NO_CUT: **DECLINED** (802 ms); NO_IMPLIED_CUT: **DECLINED** (772 ms); NO_LINEAR_CUT: **CERTIFIED** (220 ms); domains: uniform
 * `[cut] L.FOLLOW: 2 conjunct(s)`
 * `[cut] L.CATCH: 1 conjunct(s)`
 * `[cut] L.LOST: 2 conjunct(s)`
@@ -1223,14 +1233,14 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[admissible] FOLLOW_L: [FOLLOW, CATCH]`
 * `[admissible] CATCH_L: [FOLLOW, CATCH]`
 * `[admissible] LOST_L: [FOLLOW, CATCH]`
-* `--handoff`: 7/7 checked, 7 passed, failing -, non-vacuous (88 ms)
-* cover `FOLLOW_L`: λ = 1, budget 2, admissible ['FOLLOW', 'CATCH'], flags {'FOLLOW': 'j----', 'CATCH': 'j----', 'BRAKE': '-----'}, kinds ['base', 'joint'], path modes ['CATCH', 'FOLLOW'], branching 1, right-only False
+* `--handoff`: 7/7 checked, 7 passed, failing -, non-vacuous (79 ms)
+* cover `FOLLOW_L`: λ = 1, budget 2, admissible ['FOLLOW', 'CATCH'], flags {'FOLLOW': 'j--', 'CATCH': 'j--', 'BRAKE': '---'}, kinds ['base', 'joint'], path modes ['CATCH', 'FOLLOW'], branching 1, right-only False
     * from `FOLLOW`: `FOLLOW:joint(B=2)->[FOLLOW@1, CATCH@1, FOLLOW@1]; FOLLOW:base(B=1); CATCH:base(B=1)`
     * from `CATCH`: `CATCH:joint(B=2)->[CATCH@1, FOLLOW@1, CATCH@1]; CATCH:base(B=1); FOLLOW:base(B=1)`
-* cover `CATCH_L`: λ = 1, budget 2, admissible ['FOLLOW', 'CATCH'], flags {'FOLLOW': 'j----', 'CATCH': 'j----', 'BRAKE': '-----'}, kinds ['base', 'joint'], path modes ['CATCH', 'FOLLOW'], branching 1, right-only False
+* cover `CATCH_L`: λ = 1, budget 2, admissible ['FOLLOW', 'CATCH'], flags {'FOLLOW': 'j--', 'CATCH': 'j--', 'BRAKE': '---'}, kinds ['base', 'joint'], path modes ['CATCH', 'FOLLOW'], branching 1, right-only False
     * from `FOLLOW`: `FOLLOW:joint(B=2)->[FOLLOW@1, CATCH@1, FOLLOW@1]; FOLLOW:base(B=1); CATCH:base(B=1)`
     * from `CATCH`: `CATCH:joint(B=2)->[CATCH@1, FOLLOW@1, CATCH@1]; CATCH:base(B=1); FOLLOW:base(B=1)`
-* cover `LOST_L`: λ = 1, budget 2, admissible ['FOLLOW', 'CATCH'], flags {'FOLLOW': 'j----', 'CATCH': 'j----', 'BRAKE': '-----'}, kinds ['base', 'joint'], path modes ['CATCH', 'FOLLOW'], branching 1, right-only False
+* cover `LOST_L`: λ = 1, budget 2, admissible ['FOLLOW', 'CATCH'], flags {'FOLLOW': 'j--', 'CATCH': 'j--', 'BRAKE': '---'}, kinds ['base', 'joint'], path modes ['CATCH', 'FOLLOW'], branching 1, right-only False
     * from `FOLLOW`: `FOLLOW:joint(B=2)->[FOLLOW@1, CATCH@1, FOLLOW@1]; FOLLOW:base(B=1); CATCH:base(B=1)`
     * from `CATCH`: `CATCH:joint(B=2)->[CATCH@1, FOLLOW@1, CATCH@1]; CATCH:base(B=1); FOLLOW:base(B=1)`
 * cells: **M1** no (λ=1 everywhere); **M2** yes: FOLLOW B=2 via CATCH/FOLLOW, CATCH B=2 via CATCH/FOLLOW, LOST B=2 via CATCH/FOLLOW; **M3** no (max non-self successors at a joint step = 1); **M4** yes: pruned FOLLOW->BRAKE; NO_PRUNE=DECLINED; **M5** yes: 7/7 handoffs unsat, rows differ; **M6** yes: L.FOLLOW: 2 conjunct(s); L.CATCH: 1 conjunct(s); L.LOST: 2 conjunct(s); R.FOLLOW: 2 conjunct(s); R.CATCH: 1 conjunct(s); NO_CUT=DECLINED; **M6+** yes: L.FOLLOW: g <= 40.0 kind=closure entry=weakening route=shape; L.CATCH: g >= 29.0 kind=implied-contraction entry=rational route=shape; R.FOLLOW: g <= 40.0 kind=closure entry=weakening route=shape; R.CATCH: g >= 30.0 kind=implied-contraction entry=rational route=shape; NO_IMPLIED=DECLINED; **M6L** no (no linear-form atom kept)
@@ -1238,7 +1248,7 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 ### `platoon_delay_profiles`
 
 * family: Platoon follower, delayed link; scenario: sensor-attack; dims L/R 1/1; modes L/R 2/4; εL/εR 2.0/1.0; λ ∈ [1.0, 6.0]; invariant shape conjunctive; rows identical: True; normalized md5 `4a4d185cf637`
-* `relcert`: **CERTIFIED** (286 ms); `[prune] platoon_delay_profiles: [FOLLOW->BRAKE]`; NO_PRUNE: **DECLINED** (1196 ms); NO_CUT: **DECLINED** (988 ms); NO_IMPLIED_CUT: **DECLINED** (1092 ms); NO_LINEAR_CUT: **CERTIFIED** (279 ms); domains: uniform
+* `relcert`: **CERTIFIED** (267 ms); `[prune] platoon_delay_profiles: [FOLLOW->BRAKE]`; NO_PRUNE: **DECLINED** (1197 ms); NO_CUT: **DECLINED** (1041 ms); NO_IMPLIED_CUT: **DECLINED** (1067 ms); NO_LINEAR_CUT: **CERTIFIED** (262 ms); domains: uniform
 * `[cut] L.FOLLOW: 2 conjunct(s)`
 * `[cut] L.GENTLE: 1 conjunct(s)`
 * `[cut] R.FOLLOW: 2 conjunct(s)`
@@ -1249,12 +1259,12 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[cut-x] R.ASSERTIVE: g >= 30.0 kind=implied-contraction entry=rational route=shape`
 * `[admissible] FOLLOW_L: [FOLLOW, GENTLE, ASSERTIVE]`
 * `[admissible] GENTLE_L: [FOLLOW, GENTLE, ASSERTIVE]`
-* `--handoff`: 4/4 checked, 4 passed, failing -, VACUOUS (identical rows) (55 ms)
-* cover `FOLLOW_L`: λ = 1, budget 2, admissible ['FOLLOW', 'GENTLE', 'ASSERTIVE'], flags {'FOLLOW': 'j----', 'GENTLE': 'j----', 'ASSERTIVE': 'j----', 'BRAKE': '-----'}, kinds ['base', 'joint'], path modes ['ASSERTIVE', 'FOLLOW', 'GENTLE'], branching 2, right-only False
+* `--handoff`: 4/4 checked, 4 passed, failing -, VACUOUS (identical rows) (96 ms)
+* cover `FOLLOW_L`: λ = 1, budget 2, admissible ['FOLLOW', 'GENTLE', 'ASSERTIVE'], flags {'FOLLOW': 'j--', 'GENTLE': 'j--', 'ASSERTIVE': 'j--', 'BRAKE': '---'}, kinds ['base', 'joint'], path modes ['ASSERTIVE', 'FOLLOW', 'GENTLE'], branching 2, right-only False
     * from `FOLLOW`: `FOLLOW:joint(B=2)->[FOLLOW@1, GENTLE@1, ASSERTIVE@1, FOLLOW@1]; FOLLOW:base(B=1); GENTLE:base(B=1); ASSERTIVE:base(B=1)`
     * from `GENTLE`: `GENTLE:joint(B=2)->[GENTLE@1, FOLLOW@1, GENTLE@1]; GENTLE:base(B=1); FOLLOW:base(B=1)`
     * from `ASSERTIVE`: `ASSERTIVE:joint(B=2)->[ASSERTIVE@1, FOLLOW@1, ASSERTIVE@1]; ASSERTIVE:base(B=1); FOLLOW:base(B=1)`
-* cover `GENTLE_L`: λ = 1, budget 2, admissible ['FOLLOW', 'GENTLE', 'ASSERTIVE'], flags {'FOLLOW': 'j----', 'GENTLE': 'j----', 'ASSERTIVE': 'j----', 'BRAKE': '-----'}, kinds ['base', 'joint'], path modes ['ASSERTIVE', 'FOLLOW', 'GENTLE'], branching 2, right-only False
+* cover `GENTLE_L`: λ = 1, budget 2, admissible ['FOLLOW', 'GENTLE', 'ASSERTIVE'], flags {'FOLLOW': 'j--', 'GENTLE': 'j--', 'ASSERTIVE': 'j--', 'BRAKE': '---'}, kinds ['base', 'joint'], path modes ['ASSERTIVE', 'FOLLOW', 'GENTLE'], branching 2, right-only False
     * from `FOLLOW`: `FOLLOW:joint(B=2)->[FOLLOW@1, GENTLE@1, ASSERTIVE@1, FOLLOW@1]; FOLLOW:base(B=1); GENTLE:base(B=1); ASSERTIVE:base(B=1)`
     * from `GENTLE`: `GENTLE:joint(B=2)->[GENTLE@1, FOLLOW@1, GENTLE@1]; GENTLE:base(B=1); FOLLOW:base(B=1)`
     * from `ASSERTIVE`: `ASSERTIVE:joint(B=2)->[ASSERTIVE@1, FOLLOW@1, ASSERTIVE@1]; ASSERTIVE:base(B=1); FOLLOW:base(B=1)`
@@ -1263,33 +1273,33 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 ### `quad_light_airframe_20`
 
 * family: Quadrotor climb, lighter airframe; scenario: model-refinement; dims L/R 1/1; modes L/R 1/2; εL/εR 2.0/1.0; λ ∈ [1.0, 6.0]; invariant shape conjunctive; rows identical: True; normalized md5 `9a7b144d8b09`
-* `relcert`: **CERTIFIED** (234 ms); `[prune] quad_light_airframe_20: [CLIMB->LIMIT]`; NO_PRUNE: **DECLINED** (672 ms); NO_CUT: **CERTIFIED** (233 ms); NO_IMPLIED_CUT: **CERTIFIED** (246 ms); NO_LINEAR_CUT: **CERTIFIED** (232 ms); domains: uniform
+* `relcert`: **CERTIFIED** (219 ms); `[prune] quad_light_airframe_20: [CLIMB->LIMIT]`; NO_PRUNE: **DECLINED** (724 ms); NO_CUT: **CERTIFIED** (218 ms); NO_IMPLIED_CUT: **CERTIFIED** (158 ms); NO_LINEAR_CUT: **CERTIFIED** (164 ms); domains: uniform
 * `[cut] L.CLIMB: 2 conjunct(s)`
 * `[cut] R.CLIMB: 2 conjunct(s)`
 * `[cut] R.LIMIT: 1 conjunct(s)`
 * `[cut-x] R.LIMIT: w >= 0 kind=implied-contraction entry=rational route=shape`
 * `[admissible] CLIMB_L: [CLIMB]`
-* `--handoff`: 1/1 checked, 1 passed, failing -, VACUOUS (identical rows) (79 ms)
-* cover `CLIMB_L`: λ = 7/4, budget 4, admissible ['CLIMB'], flags {'CLIMB': 'j----', 'LIMIT': '-----'}, kinds ['base', 'joint'], path modes ['CLIMB'], branching 0, right-only False
+* `--handoff`: 1/1 checked, 1 passed, failing -, VACUOUS (identical rows) (41 ms)
+* cover `CLIMB_L`: λ = 7/4, budget 4, admissible ['CLIMB'], flags {'CLIMB': 'j--', 'LIMIT': '---'}, kinds ['base', 'joint'], path modes ['CLIMB'], branching 0, right-only False
     * from `CLIMB`: `CLIMB:joint(B=4)->[CLIMB@3, CLIMB@3]; CLIMB:joint(B=3)->[CLIMB@2, CLIMB@2]; CLIMB:joint(B=2)->[CLIMB@1, CLIMB@1]; CLIMB:base(B=1)`
 * cells: **M1** yes: CLIMB λ=7/4 (polynomial dynamics); **M2** yes: CLIMB B=4 via CLIMB; **M3** no (max non-self successors at a joint step = 0); **M4** yes: pruned CLIMB->LIMIT; NO_PRUNE=DECLINED; **M5** no (rows identical; handoff vacuous); **M6** vacuous: cuts kept (L.CLIMB: 2 conjunct(s); R.CLIMB: 2 conjunct(s); R.LIMIT: 1 conjunct(s)) but NO_CUT=CERTIFIED; **M6+** vacuous: widened atoms kept (R.LIMIT: w >= 0 kind=implied-contraction entry=rational route=shape) but NO_IMPLIED=CERTIFIED; **M6L** no (no linear-form atom kept)
 
 ### `quad_light_lag`
 
 * family: Quadrotor climb, lighter airframe; scenario: model-refinement; dims L/R 2/2; modes L/R 1/1; εL/εR 2.0/1.0; λ ∈ [1.0, 6.0]; invariant shape linear; rows identical: True; normalized md5 `e06b31eeeac1`
-* `relcert`: **CERTIFIED** (115 ms); `[prune] quad_light_lag: []`; NO_PRUNE: **CERTIFIED** (149 ms); NO_CUT: **CERTIFIED** (114 ms); NO_IMPLIED_CUT: **CERTIFIED** (133 ms); NO_LINEAR_CUT: **CERTIFIED** (71 ms); domains: uniform
+* `relcert`: **CERTIFIED** (129 ms); `[prune] quad_light_lag: []`; NO_PRUNE: **CERTIFIED** (131 ms); NO_CUT: **CERTIFIED** (122 ms); NO_IMPLIED_CUT: **CERTIFIED** (130 ms); NO_LINEAR_CUT: **CERTIFIED** (125 ms); domains: uniform
 * `[cut] L.CLIMB: 3 conjunct(s)`
 * `[cut] R.CLIMB: 2 conjunct(s)`
 * `[admissible] CLIMB_L: [CLIMB]`
-* `--handoff`: 1/1 checked, 1 passed, failing -, VACUOUS (identical rows) (76 ms)
-* cover `CLIMB_L`: λ = 7/4, budget 4, admissible ['CLIMB'], flags {'CLIMB': 'j----'}, kinds ['base', 'joint'], path modes ['CLIMB'], branching 0, right-only False
+* `--handoff`: 1/1 checked, 1 passed, failing -, VACUOUS (identical rows) (91 ms)
+* cover `CLIMB_L`: λ = 7/4, budget 4, admissible ['CLIMB'], flags {'CLIMB': 'j--'}, kinds ['base', 'joint'], path modes ['CLIMB'], branching 0, right-only False
     * from `CLIMB`: `CLIMB:joint(B=4)->[CLIMB@3, CLIMB@3]; CLIMB:joint(B=3)->[CLIMB@2, CLIMB@2]; CLIMB:joint(B=2)->[CLIMB@1, CLIMB@1]; CLIMB:base(B=1)`
 * cells: **M1** yes: CLIMB λ=7/4 (polynomial dynamics); **M2** yes: CLIMB B=4 via CLIMB; **M3** no (max non-self successors at a joint step = 0); **M4** no (nothing pruned); **M5** no (rows identical; handoff vacuous); **M6** vacuous: cuts kept (L.CLIMB: 3 conjunct(s); R.CLIMB: 2 conjunct(s)) but NO_CUT=CERTIFIED; **M6+** no (no widened atom kept); **M6L** no (no linear-form atom kept)
 
 ### `quad_light_profiles`
 
 * family: Quadrotor climb, lighter airframe; scenario: model-refinement; dims L/R 1/1; modes L/R 1/4; εL/εR 2.0/1.0; λ ∈ [1.0, 6.0]; invariant shape conjunctive; rows identical: True; normalized md5 `4449578e8cfc`
-* `relcert`: **CERTIFIED** (534 ms); `[prune] quad_light_profiles: [NORMAL->LIMIT, ECO->LIMIT, SPORT->LIMIT]`; NO_PRUNE: **DECLINED** (1149 ms); NO_CUT: **CERTIFIED** (520 ms); NO_IMPLIED_CUT: **CERTIFIED** (466 ms); NO_LINEAR_CUT: **CERTIFIED** (528 ms); domains: uniform
+* `relcert`: **CERTIFIED** (497 ms); `[prune] quad_light_profiles: [NORMAL->LIMIT, ECO->LIMIT, SPORT->LIMIT]`; NO_PRUNE: **DECLINED** (1124 ms); NO_CUT: **CERTIFIED** (488 ms); NO_IMPLIED_CUT: **CERTIFIED** (485 ms); NO_LINEAR_CUT: **CERTIFIED** (495 ms); domains: uniform
 * `[cut] L.CLIMB: 1 conjunct(s)`
 * `[cut] R.NORMAL: 2 conjunct(s)`
 * `[cut] R.ECO: 2 conjunct(s)`
@@ -1297,8 +1307,8 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[cut] R.LIMIT: 1 conjunct(s)`
 * `[cut-x] R.LIMIT: w >= 0 kind=implied-contraction entry=rational route=shape`
 * `[admissible] CLIMB_L: [NORMAL, ECO, SPORT]`
-* `--handoff`: 1/1 checked, 1 passed, failing -, VACUOUS (identical rows) (60 ms)
-* cover `CLIMB_L`: λ = 5/2, budget 5, admissible ['NORMAL', 'ECO', 'SPORT'], flags {'NORMAL': 'j----', 'ECO': 'j----', 'SPORT': 'j----', 'LIMIT': '-----'}, kinds ['base', 'joint'], path modes ['ECO', 'NORMAL', 'SPORT'], branching 2, right-only False
+* `--handoff`: 1/1 checked, 1 passed, failing -, VACUOUS (identical rows) (70 ms)
+* cover `CLIMB_L`: λ = 5/2, budget 5, admissible ['NORMAL', 'ECO', 'SPORT'], flags {'NORMAL': 'j--', 'ECO': 'j--', 'SPORT': 'j--', 'LIMIT': '---'}, kinds ['base', 'joint'], path modes ['ECO', 'NORMAL', 'SPORT'], branching 2, right-only False
     * from `NORMAL`: `NORMAL:joint(B=5)->[NORMAL@4, NORMAL@4, ECO@4, SPORT@4]; NORMAL:joint(B=4)->[NORMAL@3, NORMAL@3, ECO@3, SPORT@3]; NORMAL:joint(B=3)->[NORMAL@2, NORMAL@2, ECO@2, SPORT@2]; NORMAL:joint(B=2)->[NORMAL@1, NORMAL@1, ECO@1, SPORT@1]; NORMAL:base(B=1); ECO:base(B=1); SPORT:base(B=1); ECO:joint(B=2)->[ECO@1, ECO@1, NORMAL@1]; SPORT:joint(B=2)->[SPORT@1, SPORT@1, NORMAL@1]; ECO:joint(B=3)->[ECO@2, ECO@2, NORMAL@2]; SPORT:joint(B=3)->[SPORT@2, SPORT@2, NORMAL@2]; ECO:joint(B=4)->[ECO@3, ECO@3, NORMAL@3]; SPORT:joint(B=4)->[SPORT@3, SPORT@3, NORMAL@3]`
     * from `ECO`: `ECO:joint(B=5)->[ECO@4, ECO@4, NORMAL@4]; ECO:joint(B=4)->[ECO@3, ECO@3, NORMAL@3]; ECO:joint(B=3)->[ECO@2, ECO@2, NORMAL@2]; ECO:joint(B=2)->[ECO@1, ECO@1, NORMAL@1]; ECO:base(B=1); NORMAL:base(B=1); NORMAL:joint(B=2)->[NORMAL@1, NORMAL@1, ECO@1, SPORT@1]; SPORT:base(B=1); NORMAL:joint(B=3)->[NORMAL@2, NORMAL@2, ECO@2, SPORT@2]; SPORT:joint(B=2)->[SPORT@1, SPORT@1, NORMAL@1]; NORMAL:joint(B=4)->[NORMAL@3, NORMAL@3, ECO@3, SPORT@3]; SPORT:joint(B=3)->[SPORT@2, SPORT@2, NORMAL@2]`
     * from `SPORT`: `SPORT:joint(B=5)->[SPORT@4, SPORT@4, NORMAL@4]; SPORT:joint(B=4)->[SPORT@3, SPORT@3, NORMAL@3]; SPORT:joint(B=3)->[SPORT@2, SPORT@2, NORMAL@2]; SPORT:joint(B=2)->[SPORT@1, SPORT@1, NORMAL@1]; SPORT:base(B=1); NORMAL:base(B=1); NORMAL:joint(B=2)->[NORMAL@1, NORMAL@1, ECO@1, SPORT@1]; ECO:base(B=1); NORMAL:joint(B=3)->[NORMAL@2, NORMAL@2, ECO@2, SPORT@2]; ECO:joint(B=2)->[ECO@1, ECO@1, NORMAL@1]; NORMAL:joint(B=4)->[NORMAL@3, NORMAL@3, ECO@3, SPORT@3]; ECO:joint(B=3)->[ECO@2, ECO@2, NORMAL@2]`
@@ -1307,7 +1317,7 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 ### `refinement_ladder_rover_rung1_2to3`
 
 * family: Terrain/position ladder; scenario: model-refinement; dims L/R 3/2; modes L/R 3/3; εL/εR 1.0/1.0; λ ∈ [1.0, 6.0]; invariant shape conjunctive; rows identical: True; normalized md5 `a55b07fd35ff`
-* `relcert`: **CERTIFIED** (304 ms); `[prune] refinement_ladder_rover_rung1_2to3: []`; NO_PRUNE: **CERTIFIED** (305 ms); NO_CUT: **DECLINED** (780 ms); NO_IMPLIED_CUT: **CERTIFIED** (180 ms); NO_LINEAR_CUT: **CERTIFIED** (281 ms); domains: uniform
+* `relcert`: **CERTIFIED** (256 ms); `[prune] refinement_ladder_rover_rung1_2to3: []`; NO_PRUNE: **CERTIFIED** (259 ms); NO_CUT: **DECLINED** (820 ms); NO_IMPLIED_CUT: **CERTIFIED** (210 ms); NO_LINEAR_CUT: **CERTIFIED** (239 ms); domains: uniform
 * `[cut] L.STEEP: 1 conjunct(s)`
 * `[cut] L.MODER: 1 conjunct(s)`
 * `[cut] L.FLAT: 1 conjunct(s)`
@@ -1317,16 +1327,16 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[admissible] STEEP_L: [STEEP, MODER, FLAT]`
 * `[admissible] MODER_L: [STEEP, MODER, FLAT]`
 * `[admissible] FLAT_L: [MODER, FLAT]`
-* `--handoff`: 5/5 checked, 5 passed, failing -, VACUOUS (identical rows) (57 ms)
-* cover `STEEP_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j--dd', 'MODER': 'j--dd', 'FLAT': 'j--dd'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
+* `--handoff`: 5/5 checked, 5 passed, failing -, VACUOUS (identical rows) (60 ms)
+* cover `STEEP_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'jdd', 'MODER': 'jdd', 'FLAT': 'jdd'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
     * from `STEEP`: `STEEP:base(B=1)`
     * from `MODER`: `MODER:base(B=1)`
     * from `FLAT`: `FLAT:base(B=1)`
-* cover `MODER_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': '---dd', 'MODER': 'j--dd', 'FLAT': 'j--dd'}, kinds ['base', 'repoDyn'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only True
+* cover `MODER_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': '-dd', 'MODER': 'jdd', 'FLAT': 'jdd'}, kinds ['base', 'repoDyn'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only True
     * from `STEEP`: `STEEP:repoDyn(B=1,preJ)->[MODER@1]; MODER:base(B=1)`
     * from `MODER`: `MODER:base(B=1)`
     * from `FLAT`: `FLAT:base(B=1)`
-* cover `FLAT_L`: λ = 1, budget 1, admissible ['MODER', 'FLAT'], flags {'STEEP': '---dd', 'MODER': '---dd', 'FLAT': 'j--dd'}, kinds ['base', 'repoDyn'], path modes ['FLAT', 'MODER'], branching 0, right-only True
+* cover `FLAT_L`: λ = 1, budget 1, admissible ['MODER', 'FLAT'], flags {'STEEP': '-dd', 'MODER': '-dd', 'FLAT': 'jdd'}, kinds ['base', 'repoDyn'], path modes ['FLAT', 'MODER'], branching 0, right-only True
     * from `MODER`: `MODER:repoDyn(B=1,preJ)->[FLAT@1]; FLAT:base(B=1)`
     * from `FLAT`: `FLAT:base(B=1)`
 * cells: **M1** no (λ=1 everywhere); **M2** no (single segment, RO used); **M3** no (max non-self successors at a joint step = 0); **M4** no (nothing pruned); **M5** no (rows identical; handoff vacuous); **M6** yes: L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s); L.FLAT: 1 conjunct(s); R.STEEP: 2 conjunct(s); R.MODER: 2 conjunct(s); R.FLAT: 2 conjunct(s); NO_CUT=DECLINED; **M6+** no (no widened atom kept); **M6L** no (no linear-form atom kept)
@@ -1334,7 +1344,7 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 ### `refinement_ladder_rover_rung2_3to6`
 
 * family: Terrain/position ladder; scenario: model-refinement; dims L/R 6/6; modes L/R 3/3; εL/εR 1.0/1.0; λ ∈ [1.0, 6.0]; invariant shape conjunctive; rows identical: True; normalized md5 `1b9081f9b111`
-* `relcert`: **CERTIFIED** (755 ms); `[prune] refinement_ladder_rover_rung2_3to6: []`; NO_PRUNE: **CERTIFIED** (764 ms); NO_CUT: **CERTIFIED** (593 ms); NO_IMPLIED_CUT: **CERTIFIED** (655 ms); NO_LINEAR_CUT: **CERTIFIED** (755 ms); domains: uniform
+* `relcert`: **CERTIFIED** (714 ms); `[prune] refinement_ladder_rover_rung2_3to6: []`; NO_PRUNE: **CERTIFIED** (708 ms); NO_CUT: **CERTIFIED** (560 ms); NO_IMPLIED_CUT: **CERTIFIED** (622 ms); NO_LINEAR_CUT: **CERTIFIED** (711 ms); domains: uniform
 * `[cut] L.STEEP: 2 conjunct(s)`
 * `[cut] L.MODER: 2 conjunct(s)`
 * `[cut] L.FLAT: 2 conjunct(s)`
@@ -1344,22 +1354,50 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[admissible] STEEP_L: [STEEP, MODER, FLAT]`
 * `[admissible] MODER_L: [MODER, FLAT]`
 * `[admissible] FLAT_L: [FLAT]`
-* `--handoff`: 5/5 checked, 5 passed, failing -, VACUOUS (identical rows) (91 ms)
-* cover `STEEP_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j----', 'MODER': 'j----', 'FLAT': 'j----'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
+* `--handoff`: 5/5 checked, 5 passed, failing -, VACUOUS (identical rows) (93 ms)
+* cover `STEEP_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j--', 'MODER': 'j--', 'FLAT': 'j--'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
     * from `STEEP`: `STEEP:base(B=1)`
     * from `MODER`: `MODER:base(B=1)`
     * from `FLAT`: `FLAT:base(B=1)`
-* cover `MODER_L`: λ = 1, budget 1, admissible ['MODER', 'FLAT'], flags {'STEEP': '-----', 'MODER': 'j----', 'FLAT': 'j----'}, kinds ['base'], path modes ['FLAT', 'MODER'], branching 0, right-only False
+* cover `MODER_L`: λ = 1, budget 1, admissible ['MODER', 'FLAT'], flags {'STEEP': '---', 'MODER': 'j--', 'FLAT': 'j--'}, kinds ['base'], path modes ['FLAT', 'MODER'], branching 0, right-only False
     * from `MODER`: `MODER:base(B=1)`
     * from `FLAT`: `FLAT:base(B=1)`
-* cover `FLAT_L`: λ = 1, budget 1, admissible ['FLAT'], flags {'STEEP': '-----', 'MODER': '-----', 'FLAT': 'j----'}, kinds ['base'], path modes ['FLAT'], branching 0, right-only False
+* cover `FLAT_L`: λ = 1, budget 1, admissible ['FLAT'], flags {'STEEP': '---', 'MODER': '---', 'FLAT': 'j--'}, kinds ['base'], path modes ['FLAT'], branching 0, right-only False
     * from `FLAT`: `FLAT:base(B=1)`
 * cells: **M1** no (λ=1 everywhere); **M2** no (single segment); **M3** no (max non-self successors at a joint step = 0); **M4** no (nothing pruned); **M5** no (rows identical; handoff vacuous); **M6** vacuous: cuts kept (L.STEEP: 2 conjunct(s); L.MODER: 2 conjunct(s); L.FLAT: 2 conjunct(s); R.STEEP: 1 conjunct(s); R.MODER: 1 conjunct(s); R.FLAT: 1 conjunct(s)) but NO_CUT=CERTIFIED; **M6+** no (no widened atom kept); **M6L** no (no linear-form atom kept)
 
 ### `refinement_ladder_rover_rung2_6dof`
 
 * family: Terrain/position ladder; scenario: model-refinement; dims L/R 4/4; modes L/R 3/3; εL/εR 1.0/1.0; λ ∈ [1.001, 6.0]; invariant shape linear; rows identical: True; normalized md5 `238c061085aa`
-* `relcert`: **CERTIFIED** (285 ms); `[prune] refinement_ladder_rover_rung2_6dof: []`; NO_PRUNE: **CERTIFIED** (273 ms); NO_CUT: **CERTIFIED** (200 ms); NO_IMPLIED_CUT: **CERTIFIED** (200 ms); NO_LINEAR_CUT: **CERTIFIED** (280 ms); domains: uniform
+* `relcert`: **CERTIFIED** (221 ms); `[prune] refinement_ladder_rover_rung2_6dof: []`; NO_PRUNE: **CERTIFIED** (221 ms); NO_CUT: **CERTIFIED** (154 ms); NO_IMPLIED_CUT: **CERTIFIED** (96 ms); NO_LINEAR_CUT: **CERTIFIED** (224 ms); domains: uniform
+* `[cut] L.STEEP: 1 conjunct(s)`
+* `[cut] L.MODER: 1 conjunct(s)`
+* `[cut] L.FLAT: 1 conjunct(s)`
+* `[cut] R.STEEP: 1 conjunct(s)`
+* `[cut] R.MODER: 1 conjunct(s)`
+* `[cut] R.FLAT: 1 conjunct(s)`
+* `[admissible] STEEP_L: [STEEP, MODER, FLAT]`
+* `[admissible] MODER_L: [STEEP, MODER, FLAT]`
+* `[admissible] FLAT_L: [STEEP, MODER, FLAT]`
+* `--handoff`: 5/5 checked, 5 passed, failing -, VACUOUS (identical rows) (87 ms)
+* cover `STEEP_L`: λ = 1001/1000, budget 2, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'jdd', 'MODER': 'jdd', 'FLAT': 'jdd'}, kinds ['base', 'joint'], path modes ['FLAT', 'MODER', 'STEEP'], branching 1, right-only False
+    * from `STEEP`: `STEEP:joint(B=2)->[STEEP@1, MODER@1, STEEP@1]; STEEP:base(B=1); MODER:base(B=1)`
+    * from `MODER`: `MODER:joint(B=2)->[MODER@1, FLAT@1, MODER@1]; MODER:base(B=1); FLAT:base(B=1)`
+    * from `FLAT`: `FLAT:joint(B=2)->[FLAT@1, FLAT@1]; FLAT:base(B=1)`
+* cover `MODER_L`: λ = 1001/1000, budget 2, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': '-dd', 'MODER': 'jdd', 'FLAT': 'jdd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FLAT', 'MODER', 'STEEP'], branching 1, right-only True
+    * from `STEEP`: `STEEP:repoDyn(B=2,preJ)->[MODER@2]; MODER:joint(B=2)->[MODER@1, FLAT@1, MODER@1]; MODER:base(B=1); FLAT:base(B=1)`
+    * from `MODER`: `MODER:joint(B=2)->[MODER@1, FLAT@1, MODER@1]; MODER:base(B=1); FLAT:base(B=1)`
+    * from `FLAT`: `FLAT:joint(B=2)->[FLAT@1, FLAT@1]; FLAT:base(B=1)`
+* cover `FLAT_L`: λ = 1001/1000, budget 2, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': '-dd', 'MODER': '-dd', 'FLAT': 'jdd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only True
+    * from `STEEP`: `STEEP:repoDyn(B=2,preJ)->[MODER@2]; MODER:repoDyn(B=2,preJ)->[FLAT@2]; FLAT:joint(B=2)->[FLAT@1, FLAT@1]; FLAT:base(B=1)`
+    * from `MODER`: `MODER:repoDyn(B=2,preJ)->[FLAT@2]; FLAT:joint(B=2)->[FLAT@1, FLAT@1]; FLAT:base(B=1)`
+    * from `FLAT`: `FLAT:joint(B=2)->[FLAT@1, FLAT@1]; FLAT:base(B=1)`
+* cells: **M1** yes: STEEP λ=1001/1000, MODER λ=1001/1000, FLAT λ=1001/1000 (polynomial dynamics); **M2** yes: STEEP B=2 via FLAT/MODER/STEEP, MODER B=2 via FLAT/MODER +RO, FLAT B=2 via FLAT +RO; **M3** no (max non-self successors at a joint step = 1); **M4** no (nothing pruned); **M5** no (rows identical; handoff vacuous); **M6** vacuous: cuts kept (L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s); L.FLAT: 1 conjunct(s); R.STEEP: 1 conjunct(s); R.MODER: 1 conjunct(s); R.FLAT: 1 conjunct(s)) but NO_CUT=CERTIFIED; **M6+** no (no widened atom kept); **M6L** no (no linear-form atom kept)
+
+### `refinement_ladder_rover_rung2b_6dof`
+
+* family: Terrain/position ladder; scenario: model-refinement; dims L/R 6/6; modes L/R 3/3; εL/εR 1.0/1.0; λ ∈ [1.001, 6.0]; invariant shape linear; rows identical: True; normalized md5 `b1ae87a5c1db`
+* `relcert`: **CERTIFIED** (216 ms); `[prune] refinement_ladder_rover_rung2b_6dof: []`; NO_PRUNE: **CERTIFIED** (209 ms); NO_CUT: **CERTIFIED** (159 ms); NO_IMPLIED_CUT: **CERTIFIED** (174 ms); NO_LINEAR_CUT: **CERTIFIED** (254 ms); domains: uniform
 * `[cut] L.STEEP: 1 conjunct(s)`
 * `[cut] L.MODER: 1 conjunct(s)`
 * `[cut] L.FLAT: 1 conjunct(s)`
@@ -1370,43 +1408,15 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[admissible] MODER_L: [STEEP, MODER, FLAT]`
 * `[admissible] FLAT_L: [STEEP, MODER, FLAT]`
 * `--handoff`: 5/5 checked, 5 passed, failing -, VACUOUS (identical rows) (94 ms)
-* cover `STEEP_L`: λ = 1001/1000, budget 2, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j--dd', 'MODER': 'j--dd', 'FLAT': 'jr-dd'}, kinds ['base', 'joint'], path modes ['FLAT', 'MODER', 'STEEP'], branching 1, right-only False
+* cover `STEEP_L`: λ = 1001/1000, budget 2, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'jdd', 'MODER': 'jdd', 'FLAT': 'jdd'}, kinds ['base', 'joint'], path modes ['FLAT', 'MODER', 'STEEP'], branching 1, right-only False
     * from `STEEP`: `STEEP:joint(B=2)->[STEEP@1, MODER@1, STEEP@1]; STEEP:base(B=1); MODER:base(B=1)`
     * from `MODER`: `MODER:joint(B=2)->[MODER@1, FLAT@1, MODER@1]; MODER:base(B=1); FLAT:base(B=1)`
     * from `FLAT`: `FLAT:joint(B=2)->[FLAT@1, FLAT@1]; FLAT:base(B=1)`
-* cover `MODER_L`: λ = 1001/1000, budget 2, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': '---dd', 'MODER': 'j--dd', 'FLAT': 'j--dd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FLAT', 'MODER', 'STEEP'], branching 1, right-only True
+* cover `MODER_L`: λ = 1001/1000, budget 2, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': '-dd', 'MODER': 'jdd', 'FLAT': 'jdd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FLAT', 'MODER', 'STEEP'], branching 1, right-only True
     * from `STEEP`: `STEEP:repoDyn(B=2,preJ)->[MODER@2]; MODER:joint(B=2)->[MODER@1, FLAT@1, MODER@1]; MODER:base(B=1); FLAT:base(B=1)`
     * from `MODER`: `MODER:joint(B=2)->[MODER@1, FLAT@1, MODER@1]; MODER:base(B=1); FLAT:base(B=1)`
     * from `FLAT`: `FLAT:joint(B=2)->[FLAT@1, FLAT@1]; FLAT:base(B=1)`
-* cover `FLAT_L`: λ = 1001/1000, budget 2, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': '---dd', 'MODER': '---dd', 'FLAT': 'j--dd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only True
-    * from `STEEP`: `STEEP:repoDyn(B=2,preJ)->[MODER@2]; MODER:repoDyn(B=2,preJ)->[FLAT@2]; FLAT:joint(B=2)->[FLAT@1, FLAT@1]; FLAT:base(B=1)`
-    * from `MODER`: `MODER:repoDyn(B=2,preJ)->[FLAT@2]; FLAT:joint(B=2)->[FLAT@1, FLAT@1]; FLAT:base(B=1)`
-    * from `FLAT`: `FLAT:joint(B=2)->[FLAT@1, FLAT@1]; FLAT:base(B=1)`
-* cells: **M1** yes: STEEP λ=1001/1000, MODER λ=1001/1000, FLAT λ=1001/1000 (polynomial dynamics); **M2** yes: STEEP B=2 via FLAT/MODER/STEEP, MODER B=2 via FLAT/MODER +RO, FLAT B=2 via FLAT +RO; **M3** no (max non-self successors at a joint step = 1); **M4** no (nothing pruned); **M5** no (rows identical; handoff vacuous); **M6** vacuous: cuts kept (L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s); L.FLAT: 1 conjunct(s); R.STEEP: 1 conjunct(s); R.MODER: 1 conjunct(s); R.FLAT: 1 conjunct(s)) but NO_CUT=CERTIFIED; **M6+** no (no widened atom kept); **M6L** no (no linear-form atom kept)
-
-### `refinement_ladder_rover_rung2b_6dof`
-
-* family: Terrain/position ladder; scenario: model-refinement; dims L/R 6/6; modes L/R 3/3; εL/εR 1.0/1.0; λ ∈ [1.001, 6.0]; invariant shape linear; rows identical: True; normalized md5 `b1ae87a5c1db`
-* `relcert`: **CERTIFIED** (307 ms); `[prune] refinement_ladder_rover_rung2b_6dof: []`; NO_PRUNE: **CERTIFIED** (245 ms); NO_CUT: **CERTIFIED** (162 ms); NO_IMPLIED_CUT: **CERTIFIED** (229 ms); NO_LINEAR_CUT: **CERTIFIED** (220 ms); domains: uniform
-* `[cut] L.STEEP: 1 conjunct(s)`
-* `[cut] L.MODER: 1 conjunct(s)`
-* `[cut] L.FLAT: 1 conjunct(s)`
-* `[cut] R.STEEP: 1 conjunct(s)`
-* `[cut] R.MODER: 1 conjunct(s)`
-* `[cut] R.FLAT: 1 conjunct(s)`
-* `[admissible] STEEP_L: [STEEP, MODER, FLAT]`
-* `[admissible] MODER_L: [STEEP, MODER, FLAT]`
-* `[admissible] FLAT_L: [STEEP, MODER, FLAT]`
-* `--handoff`: 5/5 checked, 5 passed, failing -, VACUOUS (identical rows) (100 ms)
-* cover `STEEP_L`: λ = 1001/1000, budget 2, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j--dd', 'MODER': 'j--dd', 'FLAT': 'jr-dd'}, kinds ['base', 'joint'], path modes ['FLAT', 'MODER', 'STEEP'], branching 1, right-only False
-    * from `STEEP`: `STEEP:joint(B=2)->[STEEP@1, MODER@1, STEEP@1]; STEEP:base(B=1); MODER:base(B=1)`
-    * from `MODER`: `MODER:joint(B=2)->[MODER@1, FLAT@1, MODER@1]; MODER:base(B=1); FLAT:base(B=1)`
-    * from `FLAT`: `FLAT:joint(B=2)->[FLAT@1, FLAT@1]; FLAT:base(B=1)`
-* cover `MODER_L`: λ = 1001/1000, budget 2, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': '---dd', 'MODER': 'j--dd', 'FLAT': 'j--dd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FLAT', 'MODER', 'STEEP'], branching 1, right-only True
-    * from `STEEP`: `STEEP:repoDyn(B=2,preJ)->[MODER@2]; MODER:joint(B=2)->[MODER@1, FLAT@1, MODER@1]; MODER:base(B=1); FLAT:base(B=1)`
-    * from `MODER`: `MODER:joint(B=2)->[MODER@1, FLAT@1, MODER@1]; MODER:base(B=1); FLAT:base(B=1)`
-    * from `FLAT`: `FLAT:joint(B=2)->[FLAT@1, FLAT@1]; FLAT:base(B=1)`
-* cover `FLAT_L`: λ = 1001/1000, budget 2, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': '---dd', 'MODER': '---dd', 'FLAT': 'j--dd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only True
+* cover `FLAT_L`: λ = 1001/1000, budget 2, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': '-dd', 'MODER': '-dd', 'FLAT': 'jdd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only True
     * from `STEEP`: `STEEP:repoDyn(B=2,preJ)->[MODER@2]; MODER:repoDyn(B=2,preJ)->[FLAT@2]; FLAT:joint(B=2)->[FLAT@1, FLAT@1]; FLAT:base(B=1)`
     * from `MODER`: `MODER:repoDyn(B=2,preJ)->[FLAT@2]; FLAT:joint(B=2)->[FLAT@1, FLAT@1]; FLAT:base(B=1)`
     * from `FLAT`: `FLAT:joint(B=2)->[FLAT@1, FLAT@1]; FLAT:base(B=1)`
@@ -1415,7 +1425,7 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 ### `refinement_ladder_rover_rung2c_6dof`
 
 * family: Terrain/position ladder; scenario: model-refinement; dims L/R 6/6; modes L/R 3/3; εL/εR 1.0/1.0; λ ∈ [1.0, 6.0]; invariant shape conjunctive; rows identical: True; normalized md5 `724831255028`
-* `relcert`: **CERTIFIED** (1413 ms); `[prune] refinement_ladder_rover_rung2c_6dof: []`; NO_PRUNE: **CERTIFIED** (1409 ms); NO_CUT: **CERTIFIED** (1282 ms); NO_IMPLIED_CUT: **CERTIFIED** (1266 ms); NO_LINEAR_CUT: **CERTIFIED** (1396 ms); domains: uniform
+* `relcert`: **CERTIFIED** (1368 ms); `[prune] refinement_ladder_rover_rung2c_6dof: []`; NO_PRUNE: **CERTIFIED** (1303 ms); NO_CUT: **CERTIFIED** (1254 ms); NO_IMPLIED_CUT: **CERTIFIED** (1271 ms); NO_LINEAR_CUT: **CERTIFIED** (1365 ms); domains: uniform
 * `[cut] L.STEEP: 1 conjunct(s)`
 * `[cut] L.MODER: 1 conjunct(s)`
 * `[cut] L.FLAT: 1 conjunct(s)`
@@ -1425,19 +1435,19 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[admissible] STEEP_L: [STEEP]`
 * `[admissible] MODER_L: [MODER]`
 * `[admissible] FLAT_L: [FLAT]`
-* `--handoff`: 5/5 checked, 5 passed, failing -, VACUOUS (identical rows) (95 ms)
-* cover `STEEP_L`: λ = 1, budget 1, admissible ['STEEP'], flags {'STEEP': 'j----', 'MODER': '-----', 'FLAT': '-----'}, kinds ['base'], path modes ['STEEP'], branching 0, right-only False
+* `--handoff`: 5/5 checked, 5 passed, failing -, VACUOUS (identical rows) (90 ms)
+* cover `STEEP_L`: λ = 1, budget 1, admissible ['STEEP'], flags {'STEEP': 'j--', 'MODER': '---', 'FLAT': '---'}, kinds ['base'], path modes ['STEEP'], branching 0, right-only False
     * from `STEEP`: `STEEP:base(B=1)`
-* cover `MODER_L`: λ = 1, budget 1, admissible ['MODER'], flags {'STEEP': '-----', 'MODER': 'j----', 'FLAT': '-----'}, kinds ['base'], path modes ['MODER'], branching 0, right-only False
+* cover `MODER_L`: λ = 1, budget 1, admissible ['MODER'], flags {'STEEP': '---', 'MODER': 'j--', 'FLAT': '---'}, kinds ['base'], path modes ['MODER'], branching 0, right-only False
     * from `MODER`: `MODER:base(B=1)`
-* cover `FLAT_L`: λ = 1, budget 1, admissible ['FLAT'], flags {'STEEP': '-----', 'MODER': '-----', 'FLAT': 'j----'}, kinds ['base'], path modes ['FLAT'], branching 0, right-only False
+* cover `FLAT_L`: λ = 1, budget 1, admissible ['FLAT'], flags {'STEEP': '---', 'MODER': '---', 'FLAT': 'j--'}, kinds ['base'], path modes ['FLAT'], branching 0, right-only False
     * from `FLAT`: `FLAT:base(B=1)`
 * cells: **M1** no (λ=1 everywhere); **M2** no (single segment); **M3** no (max non-self successors at a joint step = 0); **M4** no (nothing pruned); **M5** no (rows identical; handoff vacuous); **M6** vacuous: cuts kept (L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s); L.FLAT: 1 conjunct(s); R.STEEP: 1 conjunct(s); R.MODER: 1 conjunct(s); R.FLAT: 1 conjunct(s)) but NO_CUT=CERTIFIED; **M6+** no (no widened atom kept); **M6L** no (no linear-form atom kept)
 
 ### `refinement_ladder_rover_rung3_6to8`
 
 * family: Terrain/position ladder; scenario: model-refinement; dims L/R 8/8; modes L/R 3/3; εL/εR 1.0/1.0; λ ∈ [1.0, 6.0]; invariant shape quadratic; rows identical: True; normalized md5 `848946e281b6`
-* `relcert`: **CERTIFIED** (3104 ms); `[prune] refinement_ladder_rover_rung3_6to8: []`; NO_PRUNE: **CERTIFIED** (3096 ms); NO_CUT: **DECLINED** (3250 ms); NO_IMPLIED_CUT: **CERTIFIED** (2990 ms); NO_LINEAR_CUT: **CERTIFIED** (3092 ms); domains: uniform
+* `relcert`: **CERTIFIED** (3079 ms); `[prune] refinement_ladder_rover_rung3_6to8: []`; NO_PRUNE: **CERTIFIED** (3077 ms); NO_CUT: **DECLINED** (3217 ms); NO_IMPLIED_CUT: **CERTIFIED** (2978 ms); NO_LINEAR_CUT: **CERTIFIED** (3077 ms); domains: uniform
 * `[cut] L.STEEP: 2 conjunct(s)`
 * `[cut] L.MODER: 2 conjunct(s)`
 * `[cut] L.FLAT: 2 conjunct(s)`
@@ -1447,16 +1457,16 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[admissible] STEEP_L: [STEEP, MODER, FLAT]`
 * `[admissible] MODER_L: [STEEP, MODER, FLAT]`
 * `[admissible] FLAT_L: [MODER, FLAT]`
-* `--handoff`: 5/5 checked, 5 passed, failing -, VACUOUS (identical rows) (91 ms)
-* cover `STEEP_L`: λ = 9/4, budget 3, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j--dd', 'MODER': 'j--dd', 'FLAT': 'j--dd'}, kinds ['base', 'joint'], path modes ['FLAT', 'MODER', 'STEEP'], branching 1, right-only False
+* `--handoff`: 5/5 checked, 5 passed, failing -, VACUOUS (identical rows) (88 ms)
+* cover `STEEP_L`: λ = 9/4, budget 3, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'jdd', 'MODER': 'jdd', 'FLAT': 'jdd'}, kinds ['base', 'joint'], path modes ['FLAT', 'MODER', 'STEEP'], branching 1, right-only False
     * from `STEEP`: `STEEP:joint(B=3)->[STEEP@2, MODER@2, STEEP@2]; STEEP:joint(B=2)->[STEEP@1, MODER@1, STEEP@1]; STEEP:base(B=1); MODER:base(B=1); MODER:joint(B=2)->[MODER@1, FLAT@1, MODER@1]; FLAT:base(B=1)`
     * from `MODER`: `MODER:joint(B=3)->[MODER@2, FLAT@2, MODER@2]; MODER:joint(B=2)->[MODER@1, FLAT@1, MODER@1]; MODER:base(B=1); FLAT:base(B=1); FLAT:joint(B=2)->[FLAT@1, FLAT@1]`
     * from `FLAT`: `FLAT:joint(B=3)->[FLAT@2, FLAT@2]; FLAT:joint(B=2)->[FLAT@1, FLAT@1]; FLAT:base(B=1)`
-* cover `MODER_L`: λ = 9/4, budget 3, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': '---dd', 'MODER': 'j--dd', 'FLAT': 'j--dd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FLAT', 'MODER', 'STEEP'], branching 1, right-only True
+* cover `MODER_L`: λ = 9/4, budget 3, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': '-dd', 'MODER': 'jdd', 'FLAT': 'jdd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FLAT', 'MODER', 'STEEP'], branching 1, right-only True
     * from `STEEP`: `STEEP:repoDyn(B=3,preJ)->[MODER@3]; MODER:joint(B=3)->[MODER@2, FLAT@2, MODER@2]; MODER:joint(B=2)->[MODER@1, FLAT@1, MODER@1]; MODER:base(B=1); FLAT:base(B=1); FLAT:joint(B=2)->[FLAT@1, FLAT@1]`
     * from `MODER`: `MODER:joint(B=3)->[MODER@2, FLAT@2, MODER@2]; MODER:joint(B=2)->[MODER@1, FLAT@1, MODER@1]; MODER:base(B=1); FLAT:base(B=1); FLAT:joint(B=2)->[FLAT@1, FLAT@1]`
     * from `FLAT`: `FLAT:joint(B=3)->[FLAT@2, FLAT@2]; FLAT:joint(B=2)->[FLAT@1, FLAT@1]; FLAT:base(B=1)`
-* cover `FLAT_L`: λ = 9/4, budget 3, admissible ['MODER', 'FLAT'], flags {'STEEP': '---dd', 'MODER': '---dd', 'FLAT': 'j--dd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FLAT', 'MODER'], branching 0, right-only True
+* cover `FLAT_L`: λ = 9/4, budget 3, admissible ['MODER', 'FLAT'], flags {'STEEP': '-dd', 'MODER': '-dd', 'FLAT': 'jdd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FLAT', 'MODER'], branching 0, right-only True
     * from `MODER`: `MODER:repoDyn(B=3,preJ)->[FLAT@3]; FLAT:joint(B=3)->[FLAT@2, FLAT@2]; FLAT:joint(B=2)->[FLAT@1, FLAT@1]; FLAT:base(B=1)`
     * from `FLAT`: `FLAT:joint(B=3)->[FLAT@2, FLAT@2]; FLAT:joint(B=2)->[FLAT@1, FLAT@1]; FLAT:base(B=1)`
 * cells: **M1** yes: STEEP λ=9/4, MODER λ=9/4, FLAT λ=9/4 (polynomial dynamics); **M2** yes: STEEP B=3 via FLAT/MODER/STEEP, MODER B=3 via FLAT/MODER +RO, FLAT B=3 via FLAT +RO; **M3** no (max non-self successors at a joint step = 1); **M4** no (nothing pruned); **M5** no (rows identical; handoff vacuous); **M6** yes: L.STEEP: 2 conjunct(s); L.MODER: 2 conjunct(s); L.FLAT: 2 conjunct(s); R.STEEP: 2 conjunct(s); R.MODER: 2 conjunct(s); R.FLAT: 2 conjunct(s); NO_CUT=DECLINED; **M6+** no (no widened atom kept); **M6L** no (no linear-form atom kept)
@@ -1464,7 +1474,7 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 ### `refinement_ladder_rover_rung4_8to12`
 
 * family: Terrain/position ladder; scenario: model-refinement; dims L/R 12/12; modes L/R 3/3; εL/εR 1.0/1.0; λ ∈ [1.0, 8.0]; invariant shape conjunctive; rows identical: True; normalized md5 `9f1c06c6a52c`
-* `relcert`: **CERTIFIED** (972 ms); `[prune] refinement_ladder_rover_rung4_8to12: []`; NO_PRUNE: **CERTIFIED** (1028 ms); NO_CUT: **DECLINED** (1324 ms); NO_IMPLIED_CUT: **CERTIFIED** (951 ms); NO_LINEAR_CUT: **CERTIFIED** (1037 ms); domains: uniform
+* `relcert`: **CERTIFIED** (971 ms); `[prune] refinement_ladder_rover_rung4_8to12: []`; NO_PRUNE: **CERTIFIED** (949 ms); NO_CUT: **DECLINED** (1305 ms); NO_IMPLIED_CUT: **CERTIFIED** (881 ms); NO_LINEAR_CUT: **CERTIFIED** (980 ms); domains: uniform
 * `[cut] L.STEEP: 1 conjunct(s)`
 * `[cut] L.MODER: 1 conjunct(s)`
 * `[cut] L.FLAT: 1 conjunct(s)`
@@ -1474,16 +1484,16 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[admissible] STEEP_L: [STEEP, MODER, FLAT]`
 * `[admissible] MODER_L: [STEEP, MODER, FLAT]`
 * `[admissible] FLAT_L: [MODER, FLAT]`
-* `--handoff`: 5/5 checked, 5 passed, failing -, VACUOUS (identical rows) (72 ms)
-* cover `STEEP_L`: λ = 17/10, budget 2, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j--dd', 'MODER': 'j--dd', 'FLAT': 'j--dd'}, kinds ['base', 'joint'], path modes ['FLAT', 'MODER', 'STEEP'], branching 1, right-only False
+* `--handoff`: 5/5 checked, 5 passed, failing -, VACUOUS (identical rows) (75 ms)
+* cover `STEEP_L`: λ = 17/10, budget 2, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'jdd', 'MODER': 'jdd', 'FLAT': 'jdd'}, kinds ['base', 'joint'], path modes ['FLAT', 'MODER', 'STEEP'], branching 1, right-only False
     * from `STEEP`: `STEEP:joint(B=2)->[STEEP@1, MODER@1, STEEP@1]; STEEP:base(B=1); MODER:base(B=1)`
     * from `MODER`: `MODER:joint(B=2)->[MODER@1, FLAT@1, MODER@1]; MODER:base(B=1); FLAT:base(B=1)`
     * from `FLAT`: `FLAT:joint(B=2)->[FLAT@1, FLAT@1]; FLAT:base(B=1)`
-* cover `MODER_L`: λ = 17/10, budget 2, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': '---dd', 'MODER': 'j--dd', 'FLAT': 'j--dd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FLAT', 'MODER', 'STEEP'], branching 1, right-only True
+* cover `MODER_L`: λ = 17/10, budget 2, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': '-dd', 'MODER': 'jdd', 'FLAT': 'jdd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FLAT', 'MODER', 'STEEP'], branching 1, right-only True
     * from `STEEP`: `STEEP:repoDyn(B=2,preJ)->[MODER@2]; MODER:joint(B=2)->[MODER@1, FLAT@1, MODER@1]; MODER:base(B=1); FLAT:base(B=1)`
     * from `MODER`: `MODER:joint(B=2)->[MODER@1, FLAT@1, MODER@1]; MODER:base(B=1); FLAT:base(B=1)`
     * from `FLAT`: `FLAT:joint(B=2)->[FLAT@1, FLAT@1]; FLAT:base(B=1)`
-* cover `FLAT_L`: λ = 17/10, budget 2, admissible ['MODER', 'FLAT'], flags {'STEEP': '---dd', 'MODER': '---dd', 'FLAT': 'j--dd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FLAT', 'MODER'], branching 0, right-only True
+* cover `FLAT_L`: λ = 17/10, budget 2, admissible ['MODER', 'FLAT'], flags {'STEEP': '-dd', 'MODER': '-dd', 'FLAT': 'jdd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FLAT', 'MODER'], branching 0, right-only True
     * from `MODER`: `MODER:repoDyn(B=2,preJ)->[FLAT@2]; FLAT:joint(B=2)->[FLAT@1, FLAT@1]; FLAT:base(B=1)`
     * from `FLAT`: `FLAT:joint(B=2)->[FLAT@1, FLAT@1]; FLAT:base(B=1)`
 * cells: **M1** yes: STEEP λ=17/10, MODER λ=17/10, FLAT λ=17/10 (polynomial dynamics); **M2** yes: STEEP B=2 via FLAT/MODER/STEEP, MODER B=2 via FLAT/MODER +RO, FLAT B=2 via FLAT +RO; **M3** no (max non-self successors at a joint step = 1); **M4** no (nothing pruned); **M5** no (rows identical; handoff vacuous); **M6** yes: L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s); L.FLAT: 1 conjunct(s); R.STEEP: 2 conjunct(s); R.MODER: 2 conjunct(s); R.FLAT: 2 conjunct(s); NO_CUT=DECLINED; **M6+** no (no widened atom kept); **M6L** no (no linear-form atom kept)
@@ -1491,16 +1501,16 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 ### `rover3tier_rung12`
 
 * family: Rover patrol (zones); scenario: model-refinement; dims L/R 3/3; modes L/R 2/2; εL/εR 1.0/0.3; λ ∈ [1.0, 6.0]; invariant shape conjunctive+linear; rows identical: False; normalized md5 `4b65ad8433aa`
-* `relcert`: **CERTIFIED** (225 ms); `[prune] rover3tier_rung12: []`; NO_PRUNE: **CERTIFIED** (277 ms); NO_CUT: **CERTIFIED** (239 ms); NO_IMPLIED_CUT: **CERTIFIED** (223 ms); NO_LINEAR_CUT: **CERTIFIED** (216 ms); domains: uniform
+* `relcert`: **CERTIFIED** (230 ms); `[prune] rover3tier_rung12: []`; NO_PRUNE: **CERTIFIED** (231 ms); NO_CUT: **CERTIFIED** (173 ms); NO_IMPLIED_CUT: **CERTIFIED** (216 ms); NO_LINEAR_CUT: **CERTIFIED** (233 ms); domains: uniform
 * `[cut] R.ACCEL: 1 conjunct(s)`
 * `[cut] R.COAST: 1 conjunct(s)`
 * `[admissible] ACCEL_L: [ACCEL, COAST]`
 * `[admissible] COAST_L: [ACCEL, COAST]`
-* `--handoff`: 4/4 checked, 4 passed, failing -, non-vacuous (94 ms)
-* cover `ACCEL_L`: λ = 7/4, budget 6, admissible ['ACCEL', 'COAST'], flags {'ACCEL': 'j--dd', 'COAST': 'j--dd'}, kinds ['base', 'joint'], path modes ['ACCEL', 'COAST'], branching 1, right-only False
+* `--handoff`: 4/4 checked, 4 passed, failing -, non-vacuous (86 ms)
+* cover `ACCEL_L`: λ = 7/4, budget 6, admissible ['ACCEL', 'COAST'], flags {'ACCEL': 'jdd', 'COAST': 'jdd'}, kinds ['base', 'joint'], path modes ['ACCEL', 'COAST'], branching 1, right-only False
     * from `ACCEL`: `ACCEL:joint(B=6)->[ACCEL@5, COAST@5, ACCEL@5]; ACCEL:joint(B=5)->[ACCEL@4, COAST@4, ACCEL@4]; ACCEL:joint(B=4)->[ACCEL@3, COAST@3, ACCEL@3]; ACCEL:joint(B=3)->[ACCEL@2, COAST@2, ACCEL@2]; ACCEL:joint(B=2)->[ACCEL@1, COAST@1, ACCEL@1]; ACCEL:base(B=1); COAST:base(B=1); COAST:joint(B=2)->[COAST@1, ACCEL@1, COAST@1]; COAST:joint(B=3)->[COAST@2, ACCEL@2, COAST@2]; COAST:joint(B=4)->[COAST@3, ACCEL@3, COAST@3]; COAST:joint(B=5)->[COAST@4, ACCEL@4, COAST@4]`
     * from `COAST`: `COAST:joint(B=6)->[COAST@5, ACCEL@5, COAST@5]; COAST:joint(B=5)->[COAST@4, ACCEL@4, COAST@4]; COAST:joint(B=4)->[COAST@3, ACCEL@3, COAST@3]; COAST:joint(B=3)->[COAST@2, ACCEL@2, COAST@2]; COAST:joint(B=2)->[COAST@1, ACCEL@1, COAST@1]; COAST:base(B=1); ACCEL:base(B=1); ACCEL:joint(B=2)->[ACCEL@1, COAST@1, ACCEL@1]; ACCEL:joint(B=3)->[ACCEL@2, COAST@2, ACCEL@2]; ACCEL:joint(B=4)->[ACCEL@3, COAST@3, ACCEL@3]; ACCEL:joint(B=5)->[ACCEL@4, COAST@4, ACCEL@4]`
-* cover `COAST_L`: λ = 1, budget 4, admissible ['ACCEL', 'COAST'], flags {'ACCEL': 'j--dd', 'COAST': 'j--dd'}, kinds ['base', 'joint'], path modes ['ACCEL', 'COAST'], branching 1, right-only False
+* cover `COAST_L`: λ = 1, budget 4, admissible ['ACCEL', 'COAST'], flags {'ACCEL': 'jdd', 'COAST': 'jdd'}, kinds ['base', 'joint'], path modes ['ACCEL', 'COAST'], branching 1, right-only False
     * from `ACCEL`: `ACCEL:joint(B=4)->[ACCEL@3, COAST@3, ACCEL@3]; ACCEL:joint(B=3)->[ACCEL@2, COAST@2, ACCEL@2]; ACCEL:joint(B=2)->[ACCEL@1, COAST@1, ACCEL@1]; ACCEL:base(B=1); COAST:base(B=1); COAST:joint(B=2)->[COAST@1, ACCEL@1, COAST@1]; COAST:joint(B=3)->[COAST@2, ACCEL@2, COAST@2]`
     * from `COAST`: `COAST:joint(B=4)->[COAST@3, ACCEL@3, COAST@3]; COAST:joint(B=3)->[COAST@2, ACCEL@2, COAST@2]; COAST:joint(B=2)->[COAST@1, ACCEL@1, COAST@1]; COAST:base(B=1); ACCEL:base(B=1); ACCEL:joint(B=2)->[ACCEL@1, COAST@1, ACCEL@1]; ACCEL:joint(B=3)->[ACCEL@2, COAST@2, ACCEL@2]`
 * cells: **M1** yes: ACCEL λ=7/4 (affine dynamics); **M2** yes: ACCEL B=6 via ACCEL/COAST, COAST B=4 via ACCEL/COAST; **M3** no (max non-self successors at a joint step = 1); **M4** no (nothing pruned); **M5** yes: 4/4 handoffs unsat, rows differ; **M6** vacuous: cuts kept (R.ACCEL: 1 conjunct(s); R.COAST: 1 conjunct(s)) but NO_CUT=CERTIFIED; **M6+** no (no widened atom kept); **M6L** no (no linear-form atom kept)
@@ -1508,7 +1518,34 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 ### `rover_dof_terrain_rung1`
 
 * family: Terrain/position ladder; scenario: model-refinement; dims L/R 3/3; modes L/R 3/3; εL/εR 1.0/1.0; λ ∈ [1.0, 6.0]; invariant shape conjunctive; rows identical: True; normalized md5 `0b323c73c8d9`
-* `relcert`: **CERTIFIED** (241 ms); `[prune] rover_dof_terrain_rung1: []`; NO_PRUNE: **CERTIFIED** (277 ms); NO_CUT: **DECLINED** (892 ms); NO_IMPLIED_CUT: **CERTIFIED** (262 ms); NO_LINEAR_CUT: **CERTIFIED** (301 ms); domains: uniform
+* `relcert`: **CERTIFIED** (242 ms); `[prune] rover_dof_terrain_rung1: []`; NO_PRUNE: **CERTIFIED** (267 ms); NO_CUT: **DECLINED** (854 ms); NO_IMPLIED_CUT: **CERTIFIED** (220 ms); NO_LINEAR_CUT: **CERTIFIED** (261 ms); domains: uniform
+* `[cut] L.STEEP: 1 conjunct(s)`
+* `[cut] L.MODER: 1 conjunct(s)`
+* `[cut] L.FLAT: 1 conjunct(s)`
+* `[cut] R.STEEP: 2 conjunct(s)`
+* `[cut] R.MODER: 2 conjunct(s)`
+* `[cut] R.FLAT: 2 conjunct(s)`
+* `[admissible] STEEP_L: [STEEP, MODER, FLAT]`
+* `[admissible] MODER_L: [STEEP, MODER, FLAT]`
+* `[admissible] FLAT_L: [MODER, FLAT]`
+* `--handoff`: 5/5 checked, 5 passed, failing -, VACUOUS (identical rows) (93 ms)
+* cover `STEEP_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'jdd', 'MODER': 'jdd', 'FLAT': 'jdd'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
+    * from `STEEP`: `STEEP:base(B=1)`
+    * from `MODER`: `MODER:base(B=1)`
+    * from `FLAT`: `FLAT:base(B=1)`
+* cover `MODER_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': '-dd', 'MODER': 'jdd', 'FLAT': 'jdd'}, kinds ['base', 'repoDyn'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only True
+    * from `STEEP`: `STEEP:repoDyn(B=1,preJ)->[MODER@1]; MODER:base(B=1)`
+    * from `MODER`: `MODER:base(B=1)`
+    * from `FLAT`: `FLAT:base(B=1)`
+* cover `FLAT_L`: λ = 1, budget 1, admissible ['MODER', 'FLAT'], flags {'STEEP': '-dd', 'MODER': '-dd', 'FLAT': 'jdd'}, kinds ['base', 'repoDyn'], path modes ['FLAT', 'MODER'], branching 0, right-only True
+    * from `MODER`: `MODER:repoDyn(B=1,preJ)->[FLAT@1]; FLAT:base(B=1)`
+    * from `FLAT`: `FLAT:base(B=1)`
+* cells: **M1** no (λ=1 everywhere); **M2** no (single segment, RO used); **M3** no (max non-self successors at a joint step = 0); **M4** no (nothing pruned); **M5** no (rows identical; handoff vacuous); **M6** yes: L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s); L.FLAT: 1 conjunct(s); R.STEEP: 2 conjunct(s); R.MODER: 2 conjunct(s); R.FLAT: 2 conjunct(s); NO_CUT=DECLINED; **M6+** no (no widened atom kept); **M6L** no (no linear-form atom kept)
+
+### `rover_dof_terrain_rung2`
+
+* family: Terrain/position ladder; scenario: model-refinement; dims L/R 6/6; modes L/R 3/3; εL/εR 1.0/1.0; λ ∈ [1.0, 6.0]; invariant shape conjunctive; rows identical: True; normalized md5 `05e0216a07ff`
+* `relcert`: **CERTIFIED** (318 ms); `[prune] rover_dof_terrain_rung2: []`; NO_PRUNE: **CERTIFIED** (301 ms); NO_CUT: **DECLINED** (958 ms); NO_IMPLIED_CUT: **CERTIFIED** (187 ms); NO_LINEAR_CUT: **CERTIFIED** (319 ms); domains: uniform
 * `[cut] L.STEEP: 1 conjunct(s)`
 * `[cut] L.MODER: 1 conjunct(s)`
 * `[cut] L.FLAT: 1 conjunct(s)`
@@ -1519,42 +1556,15 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[admissible] MODER_L: [STEEP, MODER, FLAT]`
 * `[admissible] FLAT_L: [MODER, FLAT]`
 * `--handoff`: 5/5 checked, 5 passed, failing -, VACUOUS (identical rows) (90 ms)
-* cover `STEEP_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j--dd', 'MODER': 'j--dd', 'FLAT': 'j--dd'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
+* cover `STEEP_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'jdd', 'MODER': 'jdd', 'FLAT': 'jdd'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
     * from `STEEP`: `STEEP:base(B=1)`
     * from `MODER`: `MODER:base(B=1)`
     * from `FLAT`: `FLAT:base(B=1)`
-* cover `MODER_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': '---dd', 'MODER': 'j--dd', 'FLAT': 'j--dd'}, kinds ['base', 'repoDyn'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only True
+* cover `MODER_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': '-dd', 'MODER': 'jdd', 'FLAT': 'jdd'}, kinds ['base', 'repoDyn'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only True
     * from `STEEP`: `STEEP:repoDyn(B=1,preJ)->[MODER@1]; MODER:base(B=1)`
     * from `MODER`: `MODER:base(B=1)`
     * from `FLAT`: `FLAT:base(B=1)`
-* cover `FLAT_L`: λ = 1, budget 1, admissible ['MODER', 'FLAT'], flags {'STEEP': '---dd', 'MODER': '---dd', 'FLAT': 'j--dd'}, kinds ['base', 'repoDyn'], path modes ['FLAT', 'MODER'], branching 0, right-only True
-    * from `MODER`: `MODER:repoDyn(B=1,preJ)->[FLAT@1]; FLAT:base(B=1)`
-    * from `FLAT`: `FLAT:base(B=1)`
-* cells: **M1** no (λ=1 everywhere); **M2** no (single segment, RO used); **M3** no (max non-self successors at a joint step = 0); **M4** no (nothing pruned); **M5** no (rows identical; handoff vacuous); **M6** yes: L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s); L.FLAT: 1 conjunct(s); R.STEEP: 2 conjunct(s); R.MODER: 2 conjunct(s); R.FLAT: 2 conjunct(s); NO_CUT=DECLINED; **M6+** no (no widened atom kept); **M6L** no (no linear-form atom kept)
-
-### `rover_dof_terrain_rung2`
-
-* family: Terrain/position ladder; scenario: model-refinement; dims L/R 6/6; modes L/R 3/3; εL/εR 1.0/1.0; λ ∈ [1.0, 6.0]; invariant shape conjunctive; rows identical: True; normalized md5 `05e0216a07ff`
-* `relcert`: **CERTIFIED** (363 ms); `[prune] rover_dof_terrain_rung2: []`; NO_PRUNE: **CERTIFIED** (373 ms); NO_CUT: **DECLINED** (994 ms); NO_IMPLIED_CUT: **CERTIFIED** (230 ms); NO_LINEAR_CUT: **CERTIFIED** (312 ms); domains: uniform
-* `[cut] L.STEEP: 1 conjunct(s)`
-* `[cut] L.MODER: 1 conjunct(s)`
-* `[cut] L.FLAT: 1 conjunct(s)`
-* `[cut] R.STEEP: 2 conjunct(s)`
-* `[cut] R.MODER: 2 conjunct(s)`
-* `[cut] R.FLAT: 2 conjunct(s)`
-* `[admissible] STEEP_L: [STEEP, MODER, FLAT]`
-* `[admissible] MODER_L: [STEEP, MODER, FLAT]`
-* `[admissible] FLAT_L: [MODER, FLAT]`
-* `--handoff`: 5/5 checked, 5 passed, failing -, VACUOUS (identical rows) (21 ms)
-* cover `STEEP_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j--dd', 'MODER': 'j--dd', 'FLAT': 'j--dd'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
-    * from `STEEP`: `STEEP:base(B=1)`
-    * from `MODER`: `MODER:base(B=1)`
-    * from `FLAT`: `FLAT:base(B=1)`
-* cover `MODER_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': '---dd', 'MODER': 'j--dd', 'FLAT': 'j--dd'}, kinds ['base', 'repoDyn'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only True
-    * from `STEEP`: `STEEP:repoDyn(B=1,preJ)->[MODER@1]; MODER:base(B=1)`
-    * from `MODER`: `MODER:base(B=1)`
-    * from `FLAT`: `FLAT:base(B=1)`
-* cover `FLAT_L`: λ = 1, budget 1, admissible ['MODER', 'FLAT'], flags {'STEEP': '---dd', 'MODER': '---dd', 'FLAT': 'j--dd'}, kinds ['base', 'repoDyn'], path modes ['FLAT', 'MODER'], branching 0, right-only True
+* cover `FLAT_L`: λ = 1, budget 1, admissible ['MODER', 'FLAT'], flags {'STEEP': '-dd', 'MODER': '-dd', 'FLAT': 'jdd'}, kinds ['base', 'repoDyn'], path modes ['FLAT', 'MODER'], branching 0, right-only True
     * from `MODER`: `MODER:repoDyn(B=1,preJ)->[FLAT@1]; FLAT:base(B=1)`
     * from `FLAT`: `FLAT:base(B=1)`
 * cells: **M1** no (λ=1 everywhere); **M2** no (single segment, RO used); **M3** no (max non-self successors at a joint step = 0); **M4** no (nothing pruned); **M5** no (rows identical; handoff vacuous); **M6** yes: L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s); L.FLAT: 1 conjunct(s); R.STEEP: 2 conjunct(s); R.MODER: 2 conjunct(s); R.FLAT: 2 conjunct(s); NO_CUT=DECLINED; **M6+** no (no widened atom kept); **M6L** no (no linear-form atom kept)
@@ -1562,7 +1572,7 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 ### `rover_dof_terrain_rung3`
 
 * family: Terrain/position ladder; scenario: model-refinement; dims L/R 12/12; modes L/R 3/3; εL/εR 1.0/1.0; λ ∈ [1.0, 6.0]; invariant shape conjunctive; rows identical: True; normalized md5 `8d149b9ca736`
-* `relcert`: **CERTIFIED** (349 ms); `[prune] rover_dof_terrain_rung3: []`; NO_PRUNE: **CERTIFIED** (386 ms); NO_CUT: **DECLINED** (1137 ms); NO_IMPLIED_CUT: **CERTIFIED** (325 ms); NO_LINEAR_CUT: **CERTIFIED** (307 ms); domains: uniform
+* `relcert`: **CERTIFIED** (317 ms); `[prune] rover_dof_terrain_rung3: []`; NO_PRUNE: **CERTIFIED** (266 ms); NO_CUT: **DECLINED** (1171 ms); NO_IMPLIED_CUT: **CERTIFIED** (227 ms); NO_LINEAR_CUT: **CERTIFIED** (331 ms); domains: uniform
 * `[cut] L.STEEP: 1 conjunct(s)`
 * `[cut] L.MODER: 1 conjunct(s)`
 * `[cut] L.FLAT: 1 conjunct(s)`
@@ -1572,16 +1582,16 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[admissible] STEEP_L: [STEEP, MODER, FLAT]`
 * `[admissible] MODER_L: [STEEP, MODER, FLAT]`
 * `[admissible] FLAT_L: [MODER, FLAT]`
-* `--handoff`: 5/5 checked, 5 passed, failing -, VACUOUS (identical rows) (89 ms)
-* cover `STEEP_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j--dd', 'MODER': 'j--dd', 'FLAT': 'j--dd'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
+* `--handoff`: 5/5 checked, 5 passed, failing -, VACUOUS (identical rows) (47 ms)
+* cover `STEEP_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'jdd', 'MODER': 'jdd', 'FLAT': 'jdd'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
     * from `STEEP`: `STEEP:base(B=1)`
     * from `MODER`: `MODER:base(B=1)`
     * from `FLAT`: `FLAT:base(B=1)`
-* cover `MODER_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': '---dd', 'MODER': 'j--dd', 'FLAT': 'j--dd'}, kinds ['base', 'repoDyn'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only True
+* cover `MODER_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': '-dd', 'MODER': 'jdd', 'FLAT': 'jdd'}, kinds ['base', 'repoDyn'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only True
     * from `STEEP`: `STEEP:repoDyn(B=1,preJ)->[MODER@1]; MODER:base(B=1)`
     * from `MODER`: `MODER:base(B=1)`
     * from `FLAT`: `FLAT:base(B=1)`
-* cover `FLAT_L`: λ = 1, budget 1, admissible ['MODER', 'FLAT'], flags {'STEEP': '---dd', 'MODER': '---dd', 'FLAT': 'j--dd'}, kinds ['base', 'repoDyn'], path modes ['FLAT', 'MODER'], branching 0, right-only True
+* cover `FLAT_L`: λ = 1, budget 1, admissible ['MODER', 'FLAT'], flags {'STEEP': '-dd', 'MODER': '-dd', 'FLAT': 'jdd'}, kinds ['base', 'repoDyn'], path modes ['FLAT', 'MODER'], branching 0, right-only True
     * from `MODER`: `MODER:repoDyn(B=1,preJ)->[FLAT@1]; FLAT:base(B=1)`
     * from `FLAT`: `FLAT:base(B=1)`
 * cells: **M1** no (λ=1 everywhere); **M2** no (single segment, RO used); **M3** no (max non-self successors at a joint step = 0); **M4** no (nothing pruned); **M5** no (rows identical; handoff vacuous); **M6** yes: L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s); L.FLAT: 1 conjunct(s); R.STEEP: 2 conjunct(s); R.MODER: 2 conjunct(s); R.FLAT: 2 conjunct(s); NO_CUT=DECLINED; **M6+** no (no widened atom kept); **M6L** no (no linear-form atom kept)
@@ -1589,7 +1599,7 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 ### `rover_dof_terrain_rung3_8d`
 
 * family: Terrain/position ladder; scenario: model-refinement; dims L/R 8/8; modes L/R 3/3; εL/εR 1.0/1.0; λ ∈ [1.0, 6.0]; invariant shape conjunctive; rows identical: True; normalized md5 `675e7eb3a84a`
-* `relcert`: **CERTIFIED** (390 ms); `[prune] rover_dof_terrain_rung3_8d: []`; NO_PRUNE: **CERTIFIED** (405 ms); NO_CUT: **DECLINED** (1065 ms); NO_IMPLIED_CUT: **CERTIFIED** (280 ms); NO_LINEAR_CUT: **CERTIFIED** (385 ms); domains: uniform
+* `relcert`: **CERTIFIED** (325 ms); `[prune] rover_dof_terrain_rung3_8d: []`; NO_PRUNE: **CERTIFIED** (298 ms); NO_CUT: **DECLINED** (1112 ms); NO_IMPLIED_CUT: **CERTIFIED** (225 ms); NO_LINEAR_CUT: **CERTIFIED** (361 ms); domains: uniform
 * `[cut] L.STEEP: 1 conjunct(s)`
 * `[cut] L.MODER: 1 conjunct(s)`
 * `[cut] L.FLAT: 1 conjunct(s)`
@@ -1599,16 +1609,16 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[admissible] STEEP_L: [STEEP, MODER, FLAT]`
 * `[admissible] MODER_L: [STEEP, MODER, FLAT]`
 * `[admissible] FLAT_L: [MODER, FLAT]`
-* `--handoff`: 5/5 checked, 5 passed, failing -, VACUOUS (identical rows) (69 ms)
-* cover `STEEP_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j--dd', 'MODER': 'j--dd', 'FLAT': 'j--dd'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
+* `--handoff`: 5/5 checked, 5 passed, failing -, VACUOUS (identical rows) (92 ms)
+* cover `STEEP_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'jdd', 'MODER': 'jdd', 'FLAT': 'jdd'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
     * from `STEEP`: `STEEP:base(B=1)`
     * from `MODER`: `MODER:base(B=1)`
     * from `FLAT`: `FLAT:base(B=1)`
-* cover `MODER_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': '---dd', 'MODER': 'j--dd', 'FLAT': 'j--dd'}, kinds ['base', 'repoDyn'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only True
+* cover `MODER_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': '-dd', 'MODER': 'jdd', 'FLAT': 'jdd'}, kinds ['base', 'repoDyn'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only True
     * from `STEEP`: `STEEP:repoDyn(B=1,preJ)->[MODER@1]; MODER:base(B=1)`
     * from `MODER`: `MODER:base(B=1)`
     * from `FLAT`: `FLAT:base(B=1)`
-* cover `FLAT_L`: λ = 1, budget 1, admissible ['MODER', 'FLAT'], flags {'STEEP': '---dd', 'MODER': '---dd', 'FLAT': 'j--dd'}, kinds ['base', 'repoDyn'], path modes ['FLAT', 'MODER'], branching 0, right-only True
+* cover `FLAT_L`: λ = 1, budget 1, admissible ['MODER', 'FLAT'], flags {'STEEP': '-dd', 'MODER': '-dd', 'FLAT': 'jdd'}, kinds ['base', 'repoDyn'], path modes ['FLAT', 'MODER'], branching 0, right-only True
     * from `MODER`: `MODER:repoDyn(B=1,preJ)->[FLAT@1]; FLAT:base(B=1)`
     * from `FLAT`: `FLAT:base(B=1)`
 * cells: **M1** no (λ=1 everywhere); **M2** no (single segment, RO used); **M3** no (max non-self successors at a joint step = 0); **M4** no (nothing pruned); **M5** no (rows identical; handoff vacuous); **M6** yes: L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s); L.FLAT: 1 conjunct(s); R.STEEP: 2 conjunct(s); R.MODER: 2 conjunct(s); R.FLAT: 2 conjunct(s); NO_CUT=DECLINED; **M6+** no (no widened atom kept); **M6L** no (no linear-form atom kept)
@@ -1616,7 +1626,7 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 ### `rover_patrol_refine`
 
 * family: Rover patrol (zones); scenario: model-refinement; dims L/R 3/3; modes L/R 4/4; εL/εR 2.0/1.0; λ ∈ [1.0, 6.0]; invariant shape conjunctive; rows identical: False; normalized md5 `f3bdf93f8f88`
-* `relcert`: **CERTIFIED** (1640 ms); `[prune] rover_patrol_refine: []`; NO_PRUNE: **CERTIFIED** (1618 ms); NO_CUT: **DECLINED** (1224 ms); NO_IMPLIED_CUT: **DECLINED** (2585 ms); NO_LINEAR_CUT: **DECLINED** (2612 ms); domains: uniform
+* `relcert`: **CERTIFIED** (1562 ms); `[prune] rover_patrol_refine: []`; NO_PRUNE: **CERTIFIED** (1622 ms); NO_CUT: **DECLINED** (1207 ms); NO_IMPLIED_CUT: **DECLINED** (2537 ms); NO_LINEAR_CUT: **DECLINED** (2512 ms); domains: uniform
 * `[cut] L.SLOW: 5 conjunct(s)`
 * `[cut] L.MEDIUM_ECO: 5 conjunct(s)`
 * `[cut] L.MEDIUM_BRISK: 5 conjunct(s)`
@@ -1644,23 +1654,23 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[admissible] MEDIUM_ECO_L: [SLOW, MEDIUM_ECO, MEDIUM_BRISK, FAST]`
 * `[admissible] MEDIUM_BRISK_L: [SLOW, MEDIUM_ECO, MEDIUM_BRISK, FAST]`
 * `[admissible] FAST_L: [MEDIUM_ECO, MEDIUM_BRISK, FAST]`
-* `--handoff`: 10/10 checked, 10 passed, failing -, non-vacuous (36 ms)
-* cover `SLOW_L`: λ = 9/4, budget 5, admissible ['SLOW', 'MEDIUM_ECO', 'MEDIUM_BRISK', 'FAST'], flags {'SLOW': 'j--dd', 'MEDIUM_ECO': 'j--dd', 'MEDIUM_BRISK': 'j--dd', 'FAST': 'j--dd'}, kinds ['base', 'joint'], path modes ['FAST', 'MEDIUM_BRISK', 'MEDIUM_ECO', 'SLOW'], branching 2, right-only False
+* `--handoff`: 10/10 checked, 10 passed, failing -, non-vacuous (105 ms)
+* cover `SLOW_L`: λ = 9/4, budget 5, admissible ['SLOW', 'MEDIUM_ECO', 'MEDIUM_BRISK', 'FAST'], flags {'SLOW': 'jdd', 'MEDIUM_ECO': 'jdd', 'MEDIUM_BRISK': 'jdd', 'FAST': 'jdd'}, kinds ['base', 'joint'], path modes ['FAST', 'MEDIUM_BRISK', 'MEDIUM_ECO', 'SLOW'], branching 2, right-only False
     * from `SLOW`: `SLOW:joint(B=5)->[SLOW@4, MEDIUM_ECO@4, MEDIUM_BRISK@4, SLOW@4]; SLOW:joint(B=4)->[SLOW@3, MEDIUM_ECO@3, MEDIUM_BRISK@3, SLOW@3]; SLOW:joint(B=3)->[SLOW@2, MEDIUM_ECO@2, MEDIUM_BRISK@2, SLOW@2]; SLOW:joint(B=2)->[SLOW@1, MEDIUM_ECO@1, MEDIUM_BRISK@1, SLOW@1]; SLOW:base(B=1); MEDIUM_ECO:base(B=1); MEDIUM_BRISK:base(B=1); MEDIUM_ECO:joint(B=2)->[MEDIUM_ECO@1, FAST@1, MEDIUM_ECO@1]; FAST:base(B=1); MEDIUM_BRISK:joint(B=2)->[MEDIUM_BRISK@1, FAST@1, MEDIUM_BRISK@1]; MEDIUM_ECO:joint(B=3)->[MEDIUM_ECO@2, FAST@2, MEDIUM_ECO@2]; FAST:joint(B=2)->[FAST@1, FAST@1]; MEDIUM_BRISK:joint(B=3)->[MEDIUM_BRISK@2, FAST@2, MEDIUM_BRISK@2]; MEDIUM_ECO:joint(B=4)->[MEDIUM_ECO@3, FAST@3, MEDIUM_ECO@3]; FAST:joint(B=3)->[FAST@2, FAST@2]; MEDIUM_BRISK:joint(B=4)->[MEDIUM_BRISK@3, FAST@3, MEDIUM_BRISK@3]`
     * from `MEDIUM_ECO`: `MEDIUM_ECO:joint(B=5)->[MEDIUM_ECO@4, FAST@4, MEDIUM_ECO@4]; MEDIUM_ECO:joint(B=4)->[MEDIUM_ECO@3, FAST@3, MEDIUM_ECO@3]; MEDIUM_ECO:joint(B=3)->[MEDIUM_ECO@2, FAST@2, MEDIUM_ECO@2]; MEDIUM_ECO:joint(B=2)->[MEDIUM_ECO@1, FAST@1, MEDIUM_ECO@1]; MEDIUM_ECO:base(B=1); FAST:base(B=1); FAST:joint(B=2)->[FAST@1, FAST@1]; FAST:joint(B=3)->[FAST@2, FAST@2]; FAST:joint(B=4)->[FAST@3, FAST@3]`
     * from `MEDIUM_BRISK`: `MEDIUM_BRISK:joint(B=5)->[MEDIUM_BRISK@4, FAST@4, MEDIUM_BRISK@4]; MEDIUM_BRISK:joint(B=4)->[MEDIUM_BRISK@3, FAST@3, MEDIUM_BRISK@3]; MEDIUM_BRISK:joint(B=3)->[MEDIUM_BRISK@2, FAST@2, MEDIUM_BRISK@2]; MEDIUM_BRISK:joint(B=2)->[MEDIUM_BRISK@1, FAST@1, MEDIUM_BRISK@1]; MEDIUM_BRISK:base(B=1); FAST:base(B=1); FAST:joint(B=2)->[FAST@1, FAST@1]; FAST:joint(B=3)->[FAST@2, FAST@2]; FAST:joint(B=4)->[FAST@3, FAST@3]`
     * from `FAST`: `FAST:joint(B=5)->[FAST@4, FAST@4]; FAST:joint(B=4)->[FAST@3, FAST@3]; FAST:joint(B=3)->[FAST@2, FAST@2]; FAST:joint(B=2)->[FAST@1, FAST@1]; FAST:base(B=1)`
-* cover `MEDIUM_ECO_L`: λ = 9/4, budget 5, admissible ['SLOW', 'MEDIUM_ECO', 'MEDIUM_BRISK', 'FAST'], flags {'SLOW': '---dd', 'MEDIUM_ECO': 'j--dd', 'MEDIUM_BRISK': 'j--dd', 'FAST': 'j--dd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FAST', 'MEDIUM_BRISK', 'MEDIUM_ECO', 'SLOW'], branching 1, right-only True
+* cover `MEDIUM_ECO_L`: λ = 9/4, budget 5, admissible ['SLOW', 'MEDIUM_ECO', 'MEDIUM_BRISK', 'FAST'], flags {'SLOW': '-dd', 'MEDIUM_ECO': 'jdd', 'MEDIUM_BRISK': 'jdd', 'FAST': 'jdd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FAST', 'MEDIUM_BRISK', 'MEDIUM_ECO', 'SLOW'], branching 1, right-only True
     * from `SLOW`: `SLOW:repoDyn(B=5,preJ)->[MEDIUM_ECO@5, MEDIUM_BRISK@5]; MEDIUM_ECO:joint(B=5)->[MEDIUM_ECO@4, FAST@4, MEDIUM_ECO@4]; MEDIUM_ECO:joint(B=4)->[MEDIUM_ECO@3, FAST@3, MEDIUM_ECO@3]; MEDIUM_ECO:joint(B=3)->[MEDIUM_ECO@2, FAST@2, MEDIUM_ECO@2]; MEDIUM_ECO:joint(B=2)->[MEDIUM_ECO@1, FAST@1, MEDIUM_ECO@1]; MEDIUM_ECO:base(B=1); FAST:base(B=1); FAST:joint(B=2)->[FAST@1, FAST@1]; FAST:joint(B=3)->[FAST@2, FAST@2]; FAST:joint(B=4)->[FAST@3, FAST@3]; MEDIUM_BRISK:joint(B=5)->[MEDIUM_BRISK@4, FAST@4, MEDIUM_BRISK@4]; MEDIUM_BRISK:joint(B=4)->[MEDIUM_BRISK@3, FAST@3, MEDIUM_BRISK@3]; MEDIUM_BRISK:joint(B=3)->[MEDIUM_BRISK@2, FAST@2, MEDIUM_BRISK@2]; MEDIUM_BRISK:joint(B=2)->[MEDIUM_BRISK@1, FAST@1, MEDIUM_BRISK@1]; MEDIUM_BRISK:base(B=1)`
     * from `MEDIUM_ECO`: `MEDIUM_ECO:joint(B=5)->[MEDIUM_ECO@4, FAST@4, MEDIUM_ECO@4]; MEDIUM_ECO:joint(B=4)->[MEDIUM_ECO@3, FAST@3, MEDIUM_ECO@3]; MEDIUM_ECO:joint(B=3)->[MEDIUM_ECO@2, FAST@2, MEDIUM_ECO@2]; MEDIUM_ECO:joint(B=2)->[MEDIUM_ECO@1, FAST@1, MEDIUM_ECO@1]; MEDIUM_ECO:base(B=1); FAST:base(B=1); FAST:joint(B=2)->[FAST@1, FAST@1]; FAST:joint(B=3)->[FAST@2, FAST@2]; FAST:joint(B=4)->[FAST@3, FAST@3]`
     * from `MEDIUM_BRISK`: `MEDIUM_BRISK:joint(B=5)->[MEDIUM_BRISK@4, FAST@4, MEDIUM_BRISK@4]; MEDIUM_BRISK:joint(B=4)->[MEDIUM_BRISK@3, FAST@3, MEDIUM_BRISK@3]; MEDIUM_BRISK:joint(B=3)->[MEDIUM_BRISK@2, FAST@2, MEDIUM_BRISK@2]; MEDIUM_BRISK:joint(B=2)->[MEDIUM_BRISK@1, FAST@1, MEDIUM_BRISK@1]; MEDIUM_BRISK:base(B=1); FAST:base(B=1); FAST:joint(B=2)->[FAST@1, FAST@1]; FAST:joint(B=3)->[FAST@2, FAST@2]; FAST:joint(B=4)->[FAST@3, FAST@3]`
     * from `FAST`: `FAST:joint(B=5)->[FAST@4, FAST@4]; FAST:joint(B=4)->[FAST@3, FAST@3]; FAST:joint(B=3)->[FAST@2, FAST@2]; FAST:joint(B=2)->[FAST@1, FAST@1]; FAST:base(B=1)`
-* cover `MEDIUM_BRISK_L`: λ = 9/4, budget 5, admissible ['SLOW', 'MEDIUM_ECO', 'MEDIUM_BRISK', 'FAST'], flags {'SLOW': '---dd', 'MEDIUM_ECO': '---dd', 'MEDIUM_BRISK': 'j--dd', 'FAST': 'j--dd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FAST', 'MEDIUM_BRISK', 'MEDIUM_ECO', 'SLOW'], branching 1, right-only True
+* cover `MEDIUM_BRISK_L`: λ = 9/4, budget 5, admissible ['SLOW', 'MEDIUM_ECO', 'MEDIUM_BRISK', 'FAST'], flags {'SLOW': '-dd', 'MEDIUM_ECO': '-dd', 'MEDIUM_BRISK': 'jdd', 'FAST': 'jdd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FAST', 'MEDIUM_BRISK', 'MEDIUM_ECO', 'SLOW'], branching 1, right-only True
     * from `SLOW`: `SLOW:repoDyn(B=5,preJ)->[MEDIUM_ECO@5, MEDIUM_BRISK@5]; MEDIUM_ECO:repoDyn(B=5,preJ)->[FAST@5]; FAST:joint(B=5)->[FAST@4, FAST@4]; FAST:joint(B=4)->[FAST@3, FAST@3]; FAST:joint(B=3)->[FAST@2, FAST@2]; FAST:joint(B=2)->[FAST@1, FAST@1]; FAST:base(B=1); MEDIUM_BRISK:joint(B=5)->[MEDIUM_BRISK@4, FAST@4, MEDIUM_BRISK@4]; MEDIUM_BRISK:joint(B=4)->[MEDIUM_BRISK@3, FAST@3, MEDIUM_BRISK@3]; MEDIUM_BRISK:joint(B=3)->[MEDIUM_BRISK@2, FAST@2, MEDIUM_BRISK@2]; MEDIUM_BRISK:joint(B=2)->[MEDIUM_BRISK@1, FAST@1, MEDIUM_BRISK@1]; MEDIUM_BRISK:base(B=1)`
     * from `MEDIUM_ECO`: `MEDIUM_ECO:repoDyn(B=5,preJ)->[FAST@5]; FAST:joint(B=5)->[FAST@4, FAST@4]; FAST:joint(B=4)->[FAST@3, FAST@3]; FAST:joint(B=3)->[FAST@2, FAST@2]; FAST:joint(B=2)->[FAST@1, FAST@1]; FAST:base(B=1)`
     * from `MEDIUM_BRISK`: `MEDIUM_BRISK:joint(B=5)->[MEDIUM_BRISK@4, FAST@4, MEDIUM_BRISK@4]; MEDIUM_BRISK:joint(B=4)->[MEDIUM_BRISK@3, FAST@3, MEDIUM_BRISK@3]; MEDIUM_BRISK:joint(B=3)->[MEDIUM_BRISK@2, FAST@2, MEDIUM_BRISK@2]; MEDIUM_BRISK:joint(B=2)->[MEDIUM_BRISK@1, FAST@1, MEDIUM_BRISK@1]; MEDIUM_BRISK:base(B=1); FAST:base(B=1); FAST:joint(B=2)->[FAST@1, FAST@1]; FAST:joint(B=3)->[FAST@2, FAST@2]; FAST:joint(B=4)->[FAST@3, FAST@3]`
     * from `FAST`: `FAST:joint(B=5)->[FAST@4, FAST@4]; FAST:joint(B=4)->[FAST@3, FAST@3]; FAST:joint(B=3)->[FAST@2, FAST@2]; FAST:joint(B=2)->[FAST@1, FAST@1]; FAST:base(B=1)`
-* cover `FAST_L`: λ = 9/4, budget 5, admissible ['MEDIUM_ECO', 'MEDIUM_BRISK', 'FAST'], flags {'SLOW': '---dd', 'MEDIUM_ECO': '---dd', 'MEDIUM_BRISK': '---dd', 'FAST': 'j--dd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FAST', 'MEDIUM_BRISK', 'MEDIUM_ECO'], branching 0, right-only True
+* cover `FAST_L`: λ = 9/4, budget 5, admissible ['MEDIUM_ECO', 'MEDIUM_BRISK', 'FAST'], flags {'SLOW': '-dd', 'MEDIUM_ECO': '-dd', 'MEDIUM_BRISK': '-dd', 'FAST': 'jdd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FAST', 'MEDIUM_BRISK', 'MEDIUM_ECO'], branching 0, right-only True
     * from `MEDIUM_ECO`: `MEDIUM_ECO:repoDyn(B=5,preJ)->[FAST@5]; FAST:joint(B=5)->[FAST@4, FAST@4]; FAST:joint(B=4)->[FAST@3, FAST@3]; FAST:joint(B=3)->[FAST@2, FAST@2]; FAST:joint(B=2)->[FAST@1, FAST@1]; FAST:base(B=1)`
     * from `MEDIUM_BRISK`: `MEDIUM_BRISK:repoDyn(B=5,preJ)->[FAST@5]; FAST:joint(B=5)->[FAST@4, FAST@4]; FAST:joint(B=4)->[FAST@3, FAST@3]; FAST:joint(B=3)->[FAST@2, FAST@2]; FAST:joint(B=2)->[FAST@1, FAST@1]; FAST:base(B=1)`
     * from `FAST`: `FAST:joint(B=5)->[FAST@4, FAST@4]; FAST:joint(B=4)->[FAST@3, FAST@3]; FAST:joint(B=3)->[FAST@2, FAST@2]; FAST:joint(B=2)->[FAST@1, FAST@1]; FAST:base(B=1)`
@@ -1669,7 +1679,7 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 ### `rover_patrol_zones`
 
 * family: Rover patrol (zones); scenario: degraded-actuator; dims L/R 2/2; modes L/R 4/5; εL/εR 2.0/1.0; λ ∈ [1.0, 6.0]; invariant shape conjunctive; rows identical: False; normalized md5 `088224fb0842`
-* `relcert`: **CERTIFIED** (424 ms); `[prune] rover_patrol_zones: [SLOW->STALL, MEDIUM_ECO->STALL, MEDIUM_BRISK->STALL, FAST->STALL]`; NO_PRUNE: **CERTIFIED** (449 ms); NO_CUT: **DECLINED** (1226 ms); NO_IMPLIED_CUT: **CERTIFIED** (396 ms); NO_LINEAR_CUT: **CERTIFIED** (490 ms); domains: uniform
+* `relcert`: **CERTIFIED** (319 ms); `[prune] rover_patrol_zones: [SLOW->STALL, MEDIUM_ECO->STALL, MEDIUM_BRISK->STALL, FAST->STALL]`; NO_PRUNE: **CERTIFIED** (382 ms); NO_CUT: **DECLINED** (1159 ms); NO_IMPLIED_CUT: **CERTIFIED** (373 ms); NO_LINEAR_CUT: **CERTIFIED** (392 ms); domains: uniform
 * `[cut] L.SLOW: 3 conjunct(s)`
 * `[cut] L.MEDIUM_ECO: 3 conjunct(s)`
 * `[cut] L.MEDIUM_BRISK: 3 conjunct(s)`
@@ -1684,23 +1694,23 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[admissible] MEDIUM_ECO_L: [SLOW, MEDIUM_ECO, MEDIUM_BRISK, FAST]`
 * `[admissible] MEDIUM_BRISK_L: [SLOW, MEDIUM_ECO, MEDIUM_BRISK, FAST]`
 * `[admissible] FAST_L: [MEDIUM_ECO, MEDIUM_BRISK, FAST]`
-* `--handoff`: 10/10 checked, 10 passed, failing -, non-vacuous (103 ms)
-* cover `SLOW_L`: λ = 1, budget 2, admissible ['SLOW', 'MEDIUM_ECO', 'MEDIUM_BRISK', 'FAST'], flags {'SLOW': 'j--dd', 'MEDIUM_ECO': 'j--dd', 'MEDIUM_BRISK': 'j--dd', 'FAST': 'j--dd', 'STALL': 'j----'}, kinds ['base', 'joint'], path modes ['FAST', 'MEDIUM_BRISK', 'MEDIUM_ECO', 'SLOW'], branching 2, right-only False
+* `--handoff`: 10/10 checked, 10 passed, failing -, non-vacuous (99 ms)
+* cover `SLOW_L`: λ = 1, budget 2, admissible ['SLOW', 'MEDIUM_ECO', 'MEDIUM_BRISK', 'FAST'], flags {'SLOW': 'jdd', 'MEDIUM_ECO': 'jdd', 'MEDIUM_BRISK': 'jdd', 'FAST': 'jdd', 'STALL': 'j--'}, kinds ['base', 'joint'], path modes ['FAST', 'MEDIUM_BRISK', 'MEDIUM_ECO', 'SLOW'], branching 2, right-only False
     * from `SLOW`: `SLOW:joint(B=2)->[SLOW@1, MEDIUM_ECO@1, MEDIUM_BRISK@1, SLOW@1]; SLOW:base(B=1); MEDIUM_ECO:base(B=1); MEDIUM_BRISK:base(B=1)`
     * from `MEDIUM_ECO`: `MEDIUM_ECO:joint(B=2)->[MEDIUM_ECO@1, FAST@1, MEDIUM_ECO@1]; MEDIUM_ECO:base(B=1); FAST:base(B=1)`
     * from `MEDIUM_BRISK`: `MEDIUM_BRISK:joint(B=2)->[MEDIUM_BRISK@1, FAST@1, MEDIUM_BRISK@1]; MEDIUM_BRISK:base(B=1); FAST:base(B=1)`
     * from `FAST`: `FAST:joint(B=2)->[FAST@1, FAST@1]; FAST:base(B=1)`
-* cover `MEDIUM_ECO_L`: λ = 1, budget 2, admissible ['SLOW', 'MEDIUM_ECO', 'MEDIUM_BRISK', 'FAST'], flags {'SLOW': '---dd', 'MEDIUM_ECO': 'j--dd', 'MEDIUM_BRISK': 'j--dd', 'FAST': 'j--dd', 'STALL': 'j----'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FAST', 'MEDIUM_BRISK', 'MEDIUM_ECO', 'SLOW'], branching 1, right-only True
+* cover `MEDIUM_ECO_L`: λ = 1, budget 2, admissible ['SLOW', 'MEDIUM_ECO', 'MEDIUM_BRISK', 'FAST'], flags {'SLOW': '-dd', 'MEDIUM_ECO': 'jdd', 'MEDIUM_BRISK': 'jdd', 'FAST': 'jdd', 'STALL': 'j--'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FAST', 'MEDIUM_BRISK', 'MEDIUM_ECO', 'SLOW'], branching 1, right-only True
     * from `SLOW`: `SLOW:repoDyn(B=2,preJ)->[MEDIUM_ECO@2, MEDIUM_BRISK@2]; MEDIUM_ECO:joint(B=2)->[MEDIUM_ECO@1, FAST@1, MEDIUM_ECO@1]; MEDIUM_ECO:base(B=1); FAST:base(B=1); MEDIUM_BRISK:joint(B=2)->[MEDIUM_BRISK@1, FAST@1, MEDIUM_BRISK@1]; MEDIUM_BRISK:base(B=1)`
     * from `MEDIUM_ECO`: `MEDIUM_ECO:joint(B=2)->[MEDIUM_ECO@1, FAST@1, MEDIUM_ECO@1]; MEDIUM_ECO:base(B=1); FAST:base(B=1)`
     * from `MEDIUM_BRISK`: `MEDIUM_BRISK:joint(B=2)->[MEDIUM_BRISK@1, FAST@1, MEDIUM_BRISK@1]; MEDIUM_BRISK:base(B=1); FAST:base(B=1)`
     * from `FAST`: `FAST:joint(B=2)->[FAST@1, FAST@1]; FAST:base(B=1)`
-* cover `MEDIUM_BRISK_L`: λ = 1, budget 2, admissible ['SLOW', 'MEDIUM_ECO', 'MEDIUM_BRISK', 'FAST'], flags {'SLOW': '---dd', 'MEDIUM_ECO': '---dd', 'MEDIUM_BRISK': 'j--dd', 'FAST': 'j--dd', 'STALL': 'j----'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FAST', 'MEDIUM_BRISK', 'MEDIUM_ECO', 'SLOW'], branching 1, right-only True
+* cover `MEDIUM_BRISK_L`: λ = 1, budget 2, admissible ['SLOW', 'MEDIUM_ECO', 'MEDIUM_BRISK', 'FAST'], flags {'SLOW': '-dd', 'MEDIUM_ECO': '-dd', 'MEDIUM_BRISK': 'jdd', 'FAST': 'jdd', 'STALL': 'j--'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FAST', 'MEDIUM_BRISK', 'MEDIUM_ECO', 'SLOW'], branching 1, right-only True
     * from `SLOW`: `SLOW:repoDyn(B=2,preJ)->[MEDIUM_ECO@2, MEDIUM_BRISK@2]; MEDIUM_ECO:repoDyn(B=2,preJ)->[FAST@2]; FAST:joint(B=2)->[FAST@1, FAST@1]; FAST:base(B=1); MEDIUM_BRISK:joint(B=2)->[MEDIUM_BRISK@1, FAST@1, MEDIUM_BRISK@1]; MEDIUM_BRISK:base(B=1)`
     * from `MEDIUM_ECO`: `MEDIUM_ECO:repoDyn(B=2,preJ)->[FAST@2]; FAST:joint(B=2)->[FAST@1, FAST@1]; FAST:base(B=1)`
     * from `MEDIUM_BRISK`: `MEDIUM_BRISK:joint(B=2)->[MEDIUM_BRISK@1, FAST@1, MEDIUM_BRISK@1]; MEDIUM_BRISK:base(B=1); FAST:base(B=1)`
     * from `FAST`: `FAST:joint(B=2)->[FAST@1, FAST@1]; FAST:base(B=1)`
-* cover `FAST_L`: λ = 1, budget 2, admissible ['MEDIUM_ECO', 'MEDIUM_BRISK', 'FAST'], flags {'SLOW': '---dd', 'MEDIUM_ECO': '---dd', 'MEDIUM_BRISK': '---dd', 'FAST': 'j--dd', 'STALL': 'j----'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FAST', 'MEDIUM_BRISK', 'MEDIUM_ECO'], branching 0, right-only True
+* cover `FAST_L`: λ = 1, budget 2, admissible ['MEDIUM_ECO', 'MEDIUM_BRISK', 'FAST'], flags {'SLOW': '-dd', 'MEDIUM_ECO': '-dd', 'MEDIUM_BRISK': '-dd', 'FAST': 'jdd', 'STALL': 'j--'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FAST', 'MEDIUM_BRISK', 'MEDIUM_ECO'], branching 0, right-only True
     * from `MEDIUM_ECO`: `MEDIUM_ECO:repoDyn(B=2,preJ)->[FAST@2]; FAST:joint(B=2)->[FAST@1, FAST@1]; FAST:base(B=1)`
     * from `MEDIUM_BRISK`: `MEDIUM_BRISK:repoDyn(B=2,preJ)->[FAST@2]; FAST:joint(B=2)->[FAST@1, FAST@1]; FAST:base(B=1)`
     * from `FAST`: `FAST:joint(B=2)->[FAST@1, FAST@1]; FAST:base(B=1)`
@@ -1709,21 +1719,21 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 ### `sat3w_detumble_nominal`
 
 * family: Rigid-body detumbling (polynomial); scenario: model-refinement; dims L/R 6/6; modes L/R 1/2; εL/εR 2.0/1.0; λ ∈ [1.0, 6.0]; invariant shape quadratic; rows identical: True; normalized md5 `15fa00d81959`
-* `relcert`: **CERTIFIED** (1629 ms); `[prune] sat3w_detumble_nominal: [DETUMBLE->SAFE]`; NO_PRUNE: **DECLINED** (14877 ms); NO_CUT: **CERTIFIED** (1208 ms); NO_IMPLIED_CUT: **CERTIFIED** (1815 ms); NO_LINEAR_CUT: **CERTIFIED** (1587 ms); domains: uniform
+* `relcert`: **CERTIFIED** (960 ms); `[prune] sat3w_detumble_nominal: [DETUMBLE->SAFE]`; NO_PRUNE: **DECLINED** (14439 ms); NO_CUT: **CERTIFIED** (940 ms); NO_IMPLIED_CUT: **CERTIFIED** (919 ms); NO_LINEAR_CUT: **CERTIFIED** (916 ms); domains: uniform
 * `[cut] L.DETUMBLE: 1 conjunct(s)`
 * `[cut] R.DETUMBLE: 1 conjunct(s)`
 * `[cut] R.SAFE: 1 conjunct(s)`
 * `[cut-x] R.SAFE: ((((w1 * w1) * 2) + ((w2 * w2) * 4)) + ((w3 * w3) * 5)) >= 1.0 kind=closure entry=weakening route=frozen`
 * `[admissible] DETUMBLE_L: [DETUMBLE]`
-* `--handoff`: 1/1 checked, 1 passed, failing -, VACUOUS (identical rows) (93 ms)
-* cover `DETUMBLE_L`: λ = 1, budget 2, admissible ['DETUMBLE'], flags {'DETUMBLE': 'j----', 'SAFE': '---dd'}, kinds ['base', 'joint'], path modes ['DETUMBLE'], branching 0, right-only False
+* `--handoff`: 1/1 checked, 1 passed, failing -, VACUOUS (identical rows) (17 ms)
+* cover `DETUMBLE_L`: λ = 1, budget 2, admissible ['DETUMBLE'], flags {'DETUMBLE': 'j--', 'SAFE': '-dd'}, kinds ['base', 'joint'], path modes ['DETUMBLE'], branching 0, right-only False
     * from `DETUMBLE`: `DETUMBLE:joint(B=2)->[DETUMBLE@1, DETUMBLE@1]; DETUMBLE:base(B=1)`
 * cells: **M1** no (λ=1 everywhere); **M2** yes: DETUMBLE B=2 via DETUMBLE; **M3** no (max non-self successors at a joint step = 0); **M4** yes: pruned DETUMBLE->SAFE; NO_PRUNE=DECLINED; **M5** no (rows identical; handoff vacuous); **M6** vacuous: cuts kept (L.DETUMBLE: 1 conjunct(s); R.DETUMBLE: 1 conjunct(s); R.SAFE: 1 conjunct(s)) but NO_CUT=CERTIFIED; **M6+** vacuous: widened atoms kept (R.SAFE: ((((w1 * w1) * 2) + ((w2 * w2) * 4)) + ((w3 * w3) * 5)) >= 1.0 kind=closure entry=weakening route=frozen) but NO_IMPLIED=CERTIFIED; **M6L** no (no linear-form atom kept)
 
 ### `sat3w_detumble_phases`
 
 * family: Rigid-body detumbling (polynomial); scenario: model-refinement; dims L/R 6/6; modes L/R 2/2; εL/εR 2.0/1.0; λ ∈ [1.0, 1.0]; invariant shape quadratic; rows identical: False; normalized md5 `a867cf0e315d`
-* `relcert`: **CERTIFIED** (12173 ms); `[prune] sat3w_detumble_phases: [DETUMBLE->SAFE]`; NO_PRUNE: **DECLINED** (1625 ms); NO_CUT: **DECLINED** (2536 ms); NO_IMPLIED_CUT: **CERTIFIED** (13431 ms); NO_LINEAR_CUT: **CERTIFIED** (12303 ms); domains: uniform
+* `relcert`: **CERTIFIED** (11049 ms); `[prune] sat3w_detumble_phases: [DETUMBLE->SAFE]`; NO_PRUNE: **DECLINED** (953 ms); NO_CUT: **DECLINED** (1876 ms); NO_IMPLIED_CUT: **CERTIFIED** (11190 ms); NO_LINEAR_CUT: **CERTIFIED** (11208 ms); domains: uniform
 * `[cut] L.DETUMBLE: 1 conjunct(s)`
 * `[cut] L.FINE: 1 conjunct(s)`
 * `[cut] R.DETUMBLE: 1 conjunct(s)`
@@ -1731,17 +1741,17 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[cut-x] R.SAFE: ((((w1 * w1) * 2) + ((w2 * w2) * 4)) + ((w3 * w3) * 5)) >= 1.0 kind=closure entry=weakening route=frozen`
 * `[admissible] DETUMBLE_L: [DETUMBLE]`
 * `[admissible] FINE_L: [DETUMBLE]`
-* `--handoff`: 3/3 checked, 3 passed, failing -, non-vacuous (787 ms)
-* cover `DETUMBLE_L`: λ = 1, budget 2, admissible ['DETUMBLE'], flags {'DETUMBLE': 'j----', 'SAFE': '---dd'}, kinds ['base', 'joint'], path modes ['DETUMBLE'], branching 0, right-only False
+* `--handoff`: 3/3 checked, 3 passed, failing -, non-vacuous (775 ms)
+* cover `DETUMBLE_L`: λ = 1, budget 2, admissible ['DETUMBLE'], flags {'DETUMBLE': 'j--', 'SAFE': '-dd'}, kinds ['base', 'joint'], path modes ['DETUMBLE'], branching 0, right-only False
     * from `DETUMBLE`: `DETUMBLE:joint(B=2)->[DETUMBLE@1, DETUMBLE@1]; DETUMBLE:base(B=1)`
-* cover `FINE_L`: λ = 1, budget 2, admissible ['DETUMBLE'], flags {'DETUMBLE': 'j----', 'SAFE': 'j--dd'}, kinds ['base', 'joint'], path modes ['DETUMBLE'], branching 0, right-only False
+* cover `FINE_L`: λ = 1, budget 2, admissible ['DETUMBLE'], flags {'DETUMBLE': 'j--', 'SAFE': 'jdd'}, kinds ['base', 'joint'], path modes ['DETUMBLE'], branching 0, right-only False
     * from `DETUMBLE`: `DETUMBLE:joint(B=2)->[DETUMBLE@1, DETUMBLE@1]; DETUMBLE:base(B=1)`
 * cells: **M1** no (λ=1 everywhere); **M2** yes: DETUMBLE B=2 via DETUMBLE, FINE B=2 via DETUMBLE; **M3** no (max non-self successors at a joint step = 0); **M4** yes: pruned DETUMBLE->SAFE; NO_PRUNE=DECLINED; **M5** yes: 3/3 handoffs unsat, rows differ; **M6** yes: L.DETUMBLE: 1 conjunct(s); L.FINE: 1 conjunct(s); R.DETUMBLE: 1 conjunct(s); R.SAFE: 1 conjunct(s); NO_CUT=DECLINED; **M6+** vacuous: widened atoms kept (R.SAFE: ((((w1 * w1) * 2) + ((w2 * w2) * 4)) + ((w3 * w3) * 5)) >= 1.0 kind=closure entry=weakening route=frozen) but NO_IMPLIED=CERTIFIED; **M6L** no (no linear-form atom kept)
 
 ### `sat3w_detumble_weak`
 
 * family: Rigid-body detumbling (polynomial); scenario: degraded-actuator; dims L/R 6/6; modes L/R 1/4; εL/εR 2.0/1.0; λ ∈ [1.0, 1.0]; invariant shape quadratic; rows identical: True; normalized md5 `9aabd998b0d7`
-* `relcert`: **CERTIFIED** (11982 ms); `[prune] sat3w_detumble_weak: [NOMINAL->SAFE, ECONOMY->SAFE, SURVIVAL->SAFE]`; NO_PRUNE: **DECLINED** (12504 ms); NO_CUT: **DECLINED** (2678 ms); NO_IMPLIED_CUT: **CERTIFIED** (12854 ms); NO_LINEAR_CUT: **CERTIFIED** (12356 ms); domains: uniform
+* `relcert`: **CERTIFIED** (11776 ms); `[prune] sat3w_detumble_weak: [NOMINAL->SAFE, ECONOMY->SAFE, SURVIVAL->SAFE]`; NO_PRUNE: **DECLINED** (11864 ms); NO_CUT: **DECLINED** (2462 ms); NO_IMPLIED_CUT: **CERTIFIED** (11825 ms); NO_LINEAR_CUT: **CERTIFIED** (11881 ms); domains: uniform
 * `[cut] L.DETUMBLE: 1 conjunct(s)`
 * `[cut] R.NOMINAL: 1 conjunct(s)`
 * `[cut] R.ECONOMY: 1 conjunct(s)`
@@ -1749,8 +1759,8 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[cut] R.SAFE: 1 conjunct(s)`
 * `[cut-x] R.SAFE: ((((w1 * w1) * 2) + ((w2 * w2) * 4)) + ((w3 * w3) * 5)) >= 1.0 kind=closure entry=weakening route=frozen`
 * `[admissible] DETUMBLE_L: [NOMINAL, ECONOMY, SURVIVAL]`
-* `--handoff`: 1/1 checked, 1 passed, failing -, VACUOUS (identical rows) (78 ms)
-* cover `DETUMBLE_L`: λ = 1, budget 2, admissible ['NOMINAL', 'ECONOMY', 'SURVIVAL'], flags {'NOMINAL': 'j----', 'ECONOMY': 'j----', 'SURVIVAL': 'j----', 'SAFE': '---dd'}, kinds ['base', 'joint'], path modes ['ECONOMY', 'NOMINAL', 'SURVIVAL'], branching 2, right-only False
+* `--handoff`: 1/1 checked, 1 passed, failing -, VACUOUS (identical rows) (86 ms)
+* cover `DETUMBLE_L`: λ = 1, budget 2, admissible ['NOMINAL', 'ECONOMY', 'SURVIVAL'], flags {'NOMINAL': 'j--', 'ECONOMY': 'j--', 'SURVIVAL': 'j--', 'SAFE': '-dd'}, kinds ['base', 'joint'], path modes ['ECONOMY', 'NOMINAL', 'SURVIVAL'], branching 2, right-only False
     * from `NOMINAL`: `NOMINAL:joint(B=2)->[NOMINAL@1, NOMINAL@1, ECONOMY@1, SURVIVAL@1]; NOMINAL:base(B=1); ECONOMY:base(B=1); SURVIVAL:base(B=1)`
     * from `ECONOMY`: `ECONOMY:joint(B=2)->[ECONOMY@1, ECONOMY@1, NOMINAL@1]; ECONOMY:base(B=1); NOMINAL:base(B=1)`
     * from `SURVIVAL`: `SURVIVAL:joint(B=2)->[SURVIVAL@1, SURVIVAL@1, NOMINAL@1]; SURVIVAL:base(B=1); NOMINAL:base(B=1)`
@@ -1759,21 +1769,21 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 ### `sat_detumble_nominal`
 
 * family: Rigid-body detumbling (polynomial); scenario: model-refinement; dims L/R 4/4; modes L/R 1/2; εL/εR 2.0/1.0; λ ∈ [1.0, 1.0]; invariant shape quadratic; rows identical: True; normalized md5 `477dd8b85d3b`
-* `relcert`: **CERTIFIED** (1707 ms); `[prune] sat_detumble_nominal: [DETUMBLE->SAFE]`; NO_PRUNE: **DECLINED** (1678 ms); NO_CUT: **CERTIFIED** (2425 ms); NO_IMPLIED_CUT: **CERTIFIED** (3594 ms); NO_LINEAR_CUT: **CERTIFIED** (1780 ms); domains: uniform
+* `relcert`: **CERTIFIED** (893 ms); `[prune] sat_detumble_nominal: [DETUMBLE->SAFE]`; NO_PRUNE: **DECLINED** (871 ms); NO_CUT: **CERTIFIED** (919 ms); NO_IMPLIED_CUT: **CERTIFIED** (898 ms); NO_LINEAR_CUT: **CERTIFIED** (942 ms); domains: uniform
 * `[cut] L.DETUMBLE: 1 conjunct(s)`
 * `[cut] R.DETUMBLE: 1 conjunct(s)`
 * `[cut] R.SAFE: 1 conjunct(s)`
 * `[cut-x] R.SAFE: ((((w1 * w1) * 2) + ((w2 * w2) * 4)) + ((w3 * w3) * 5)) >= 1.0 kind=closure entry=weakening route=frozen`
 * `[admissible] DETUMBLE_L: [DETUMBLE]`
-* `--handoff`: 1/1 checked, 1 passed, failing -, VACUOUS (identical rows) (84 ms)
-* cover `DETUMBLE_L`: λ = 1, budget 2, admissible ['DETUMBLE'], flags {'DETUMBLE': 'j----', 'SAFE': '---dd'}, kinds ['base', 'joint'], path modes ['DETUMBLE'], branching 0, right-only False
+* `--handoff`: 1/1 checked, 1 passed, failing -, VACUOUS (identical rows) (87 ms)
+* cover `DETUMBLE_L`: λ = 1, budget 2, admissible ['DETUMBLE'], flags {'DETUMBLE': 'j--', 'SAFE': '-dd'}, kinds ['base', 'joint'], path modes ['DETUMBLE'], branching 0, right-only False
     * from `DETUMBLE`: `DETUMBLE:joint(B=2)->[DETUMBLE@1, DETUMBLE@1]; DETUMBLE:base(B=1)`
 * cells: **M1** no (λ=1 everywhere); **M2** yes: DETUMBLE B=2 via DETUMBLE; **M3** no (max non-self successors at a joint step = 0); **M4** yes: pruned DETUMBLE->SAFE; NO_PRUNE=DECLINED; **M5** no (rows identical; handoff vacuous); **M6** vacuous: cuts kept (L.DETUMBLE: 1 conjunct(s); R.DETUMBLE: 1 conjunct(s); R.SAFE: 1 conjunct(s)) but NO_CUT=CERTIFIED; **M6+** vacuous: widened atoms kept (R.SAFE: ((((w1 * w1) * 2) + ((w2 * w2) * 4)) + ((w3 * w3) * 5)) >= 1.0 kind=closure entry=weakening route=frozen) but NO_IMPLIED=CERTIFIED; **M6L** no (no linear-form atom kept)
 
 ### `sat_detumble_phases`
 
 * family: Rigid-body detumbling (polynomial); scenario: model-refinement; dims L/R 4/4; modes L/R 2/2; εL/εR 2.0/1.0; λ ∈ [1.0, 1.0]; invariant shape quadratic; rows identical: False; normalized md5 `83a2563381e9`
-* `relcert`: **CERTIFIED** (6973 ms); `[prune] sat_detumble_phases: [DETUMBLE->SAFE]`; NO_PRUNE: **DECLINED** (1617 ms); NO_CUT: **DECLINED** (6827 ms); NO_IMPLIED_CUT: **CERTIFIED** (22643 ms); NO_LINEAR_CUT: **CERTIFIED** (6798 ms); domains: uniform
+* `relcert`: **CERTIFIED** (5406 ms); `[prune] sat_detumble_phases: [DETUMBLE->SAFE]`; NO_PRUNE: **DECLINED** (899 ms); NO_CUT: **DECLINED** (3880 ms); NO_IMPLIED_CUT: **CERTIFIED** (5347 ms); NO_LINEAR_CUT: **CERTIFIED** (5358 ms); domains: uniform
 * `[cut] L.DETUMBLE: 1 conjunct(s)`
 * `[cut] L.FINE: 1 conjunct(s)`
 * `[cut] R.DETUMBLE: 1 conjunct(s)`
@@ -1781,17 +1791,17 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[cut-x] R.SAFE: ((((w1 * w1) * 2) + ((w2 * w2) * 4)) + ((w3 * w3) * 5)) >= 1.0 kind=closure entry=weakening route=frozen`
 * `[admissible] DETUMBLE_L: [DETUMBLE]`
 * `[admissible] FINE_L: [DETUMBLE]`
-* `--handoff`: 3/3 checked, 3 passed, failing -, non-vacuous (793 ms)
-* cover `DETUMBLE_L`: λ = 1, budget 2, admissible ['DETUMBLE'], flags {'DETUMBLE': 'j----', 'SAFE': '---dd'}, kinds ['base', 'joint'], path modes ['DETUMBLE'], branching 0, right-only False
+* `--handoff`: 3/3 checked, 3 passed, failing -, non-vacuous (785 ms)
+* cover `DETUMBLE_L`: λ = 1, budget 2, admissible ['DETUMBLE'], flags {'DETUMBLE': 'j--', 'SAFE': '-dd'}, kinds ['base', 'joint'], path modes ['DETUMBLE'], branching 0, right-only False
     * from `DETUMBLE`: `DETUMBLE:joint(B=2)->[DETUMBLE@1, DETUMBLE@1]; DETUMBLE:base(B=1)`
-* cover `FINE_L`: λ = 1, budget 2, admissible ['DETUMBLE'], flags {'DETUMBLE': 'j----', 'SAFE': 'j--dd'}, kinds ['base', 'joint'], path modes ['DETUMBLE'], branching 0, right-only False
+* cover `FINE_L`: λ = 1, budget 2, admissible ['DETUMBLE'], flags {'DETUMBLE': 'j--', 'SAFE': 'jdd'}, kinds ['base', 'joint'], path modes ['DETUMBLE'], branching 0, right-only False
     * from `DETUMBLE`: `DETUMBLE:joint(B=2)->[DETUMBLE@1, DETUMBLE@1]; DETUMBLE:base(B=1)`
 * cells: **M1** no (λ=1 everywhere); **M2** yes: DETUMBLE B=2 via DETUMBLE, FINE B=2 via DETUMBLE; **M3** no (max non-self successors at a joint step = 0); **M4** yes: pruned DETUMBLE->SAFE; NO_PRUNE=DECLINED; **M5** yes: 3/3 handoffs unsat, rows differ; **M6** yes: L.DETUMBLE: 1 conjunct(s); L.FINE: 1 conjunct(s); R.DETUMBLE: 1 conjunct(s); R.SAFE: 1 conjunct(s); NO_CUT=DECLINED; **M6+** vacuous: widened atoms kept (R.SAFE: ((((w1 * w1) * 2) + ((w2 * w2) * 4)) + ((w3 * w3) * 5)) >= 1.0 kind=closure entry=weakening route=frozen) but NO_IMPLIED=CERTIFIED; **M6L** no (no linear-form atom kept)
 
 ### `sat_detumble_weak`
 
 * family: Rigid-body detumbling (polynomial); scenario: degraded-actuator; dims L/R 4/4; modes L/R 1/4; εL/εR 2.0/1.0; λ ∈ [1.0, 1.0]; invariant shape quadratic; rows identical: True; normalized md5 `403efd551ba5`
-* `relcert`: **CERTIFIED** (12640 ms); `[prune] sat_detumble_weak: [NOMINAL->SAFE, ECONOMY->SAFE, SURVIVAL->SAFE]`; NO_PRUNE: **DECLINED** (12668 ms); NO_CUT: **DECLINED** (10479 ms); NO_IMPLIED_CUT: **CERTIFIED** (16225 ms); NO_LINEAR_CUT: **CERTIFIED** (12436 ms); domains: uniform
+* `relcert`: **CERTIFIED** (12129 ms); `[prune] sat_detumble_weak: [NOMINAL->SAFE, ECONOMY->SAFE, SURVIVAL->SAFE]`; NO_PRUNE: **DECLINED** (12210 ms); NO_CUT: **DECLINED** (8675 ms); NO_IMPLIED_CUT: **CERTIFIED** (12185 ms); NO_LINEAR_CUT: **CERTIFIED** (12250 ms); domains: uniform
 * `[cut] L.DETUMBLE: 1 conjunct(s)`
 * `[cut] R.NOMINAL: 1 conjunct(s)`
 * `[cut] R.ECONOMY: 1 conjunct(s)`
@@ -1799,8 +1809,8 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[cut] R.SAFE: 1 conjunct(s)`
 * `[cut-x] R.SAFE: ((((w1 * w1) * 2) + ((w2 * w2) * 4)) + ((w3 * w3) * 5)) >= 1.0 kind=closure entry=weakening route=frozen`
 * `[admissible] DETUMBLE_L: [NOMINAL, ECONOMY, SURVIVAL]`
-* `--handoff`: 1/1 checked, 1 passed, failing -, VACUOUS (identical rows) (75 ms)
-* cover `DETUMBLE_L`: λ = 1, budget 2, admissible ['NOMINAL', 'ECONOMY', 'SURVIVAL'], flags {'NOMINAL': 'j----', 'ECONOMY': 'j----', 'SURVIVAL': 'j----', 'SAFE': '---dd'}, kinds ['base', 'joint'], path modes ['ECONOMY', 'NOMINAL', 'SURVIVAL'], branching 2, right-only False
+* `--handoff`: 1/1 checked, 1 passed, failing -, VACUOUS (identical rows) (85 ms)
+* cover `DETUMBLE_L`: λ = 1, budget 2, admissible ['NOMINAL', 'ECONOMY', 'SURVIVAL'], flags {'NOMINAL': 'j--', 'ECONOMY': 'j--', 'SURVIVAL': 'j--', 'SAFE': '-dd'}, kinds ['base', 'joint'], path modes ['ECONOMY', 'NOMINAL', 'SURVIVAL'], branching 2, right-only False
     * from `NOMINAL`: `NOMINAL:joint(B=2)->[NOMINAL@1, NOMINAL@1, ECONOMY@1, SURVIVAL@1]; NOMINAL:base(B=1); ECONOMY:base(B=1); SURVIVAL:base(B=1)`
     * from `ECONOMY`: `ECONOMY:joint(B=2)->[ECONOMY@1, ECONOMY@1, NOMINAL@1]; ECONOMY:base(B=1); NOMINAL:base(B=1)`
     * from `SURVIVAL`: `SURVIVAL:joint(B=2)->[SURVIVAL@1, SURVIVAL@1, NOMINAL@1]; SURVIVAL:base(B=1); NOMINAL:base(B=1)`
@@ -1809,7 +1819,7 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 ### `story1_attdist_rung_a_6to8`
 
 * family: Story ladders; scenario: model-refinement; dims L/R 8/8; modes L/R 3/3; εL/εR 1.0/1.0; λ ∈ [1.0, 6.0]; invariant shape conjunctive; rows identical: False; normalized md5 `34c422712676`
-* `relcert`: **CERTIFIED** (20577 ms); `[prune] story1_attdist_rung_a_6to8: []`; NO_PRUNE: **CERTIFIED** (20412 ms); NO_CUT: **CERTIFIED** (1605 ms); NO_IMPLIED_CUT: **CERTIFIED** (19942 ms); NO_LINEAR_CUT: **CERTIFIED** (19893 ms); domains: uniform
+* `relcert`: **CERTIFIED** (21702 ms); `[prune] story1_attdist_rung_a_6to8: []`; NO_PRUNE: **CERTIFIED** (21717 ms); NO_CUT: **CERTIFIED** (1637 ms); NO_IMPLIED_CUT: **CERTIFIED** (21557 ms); NO_LINEAR_CUT: **CERTIFIED** (21711 ms); domains: uniform
 * `[cut] L.STEEP: 1 conjunct(s)`
 * `[cut] L.MODER: 1 conjunct(s)`
 * `[cut] L.FLAT: 1 conjunct(s)`
@@ -1819,16 +1829,16 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[admissible] STEEP_L: [STEEP, MODER, FLAT]`
 * `[admissible] MODER_L: [STEEP, MODER, FLAT]`
 * `[admissible] FLAT_L: [STEEP, MODER, FLAT]`
-* `--handoff`: 5/5 checked, 5 passed, failing -, non-vacuous (93 ms)
-* cover `STEEP_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j----', 'MODER': 'j----', 'FLAT': 'j----'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
+* `--handoff`: 5/5 checked, 5 passed, failing -, non-vacuous (83 ms)
+* cover `STEEP_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j--', 'MODER': 'j--', 'FLAT': 'j--'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
     * from `STEEP`: `STEEP:base(B=1)`
     * from `MODER`: `MODER:base(B=1)`
     * from `FLAT`: `FLAT:base(B=1)`
-* cover `MODER_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j----', 'MODER': 'j----', 'FLAT': 'j----'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
+* cover `MODER_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j--', 'MODER': 'j--', 'FLAT': 'j--'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
     * from `STEEP`: `STEEP:base(B=1)`
     * from `MODER`: `MODER:base(B=1)`
     * from `FLAT`: `FLAT:base(B=1)`
-* cover `FLAT_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j----', 'MODER': 'j----', 'FLAT': 'j----'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
+* cover `FLAT_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j--', 'MODER': 'j--', 'FLAT': 'j--'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
     * from `STEEP`: `STEEP:base(B=1)`
     * from `MODER`: `MODER:base(B=1)`
     * from `FLAT`: `FLAT:base(B=1)`
@@ -1837,7 +1847,7 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 ### `story1_attdist_rung_b_12dof`
 
 * family: Story ladders; scenario: model-refinement; dims L/R 12/12; modes L/R 3/3; εL/εR 1.0/1.0; λ ∈ [1.0, 8.0]; invariant shape conjunctive; rows identical: False; normalized md5 `d5633710e2d8`
-* `relcert`: **CERTIFIED** (495 ms); `[prune] story1_attdist_rung_b_12dof: []`; NO_PRUNE: **CERTIFIED** (487 ms); NO_CUT: **CERTIFIED** (387 ms); NO_IMPLIED_CUT: **CERTIFIED** (401 ms); NO_LINEAR_CUT: **CERTIFIED** (488 ms); domains: uniform
+* `relcert`: **CERTIFIED** (426 ms); `[prune] story1_attdist_rung_b_12dof: []`; NO_PRUNE: **CERTIFIED** (404 ms); NO_CUT: **CERTIFIED** (343 ms); NO_IMPLIED_CUT: **CERTIFIED** (370 ms); NO_LINEAR_CUT: **CERTIFIED** (447 ms); domains: uniform
 * `[cut] L.STEEP: 1 conjunct(s)`
 * `[cut] L.MODER: 1 conjunct(s)`
 * `[cut] L.FLAT: 1 conjunct(s)`
@@ -1847,16 +1857,16 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[admissible] STEEP_L: [STEEP, MODER, FLAT]`
 * `[admissible] MODER_L: [STEEP, MODER, FLAT]`
 * `[admissible] FLAT_L: [STEEP, MODER, FLAT]`
-* `--handoff`: 5/5 checked, 5 passed, failing -, non-vacuous (89 ms)
-* cover `STEEP_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j----', 'MODER': 'j----', 'FLAT': 'j----'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
+* `--handoff`: 5/5 checked, 5 passed, failing -, non-vacuous (47 ms)
+* cover `STEEP_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j--', 'MODER': 'j--', 'FLAT': 'j--'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
     * from `STEEP`: `STEEP:base(B=1)`
     * from `MODER`: `MODER:base(B=1)`
     * from `FLAT`: `FLAT:base(B=1)`
-* cover `MODER_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j----', 'MODER': 'j----', 'FLAT': 'j----'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
+* cover `MODER_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j--', 'MODER': 'j--', 'FLAT': 'j--'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
     * from `STEEP`: `STEEP:base(B=1)`
     * from `MODER`: `MODER:base(B=1)`
     * from `FLAT`: `FLAT:base(B=1)`
-* cover `FLAT_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j----', 'MODER': 'j----', 'FLAT': 'j----'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
+* cover `FLAT_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j--', 'MODER': 'j--', 'FLAT': 'j--'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
     * from `STEEP`: `STEEP:base(B=1)`
     * from `MODER`: `MODER:base(B=1)`
     * from `FLAT`: `FLAT:base(B=1)`
@@ -1865,7 +1875,7 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 ### `story2_lateral_rung_a_8dof`
 
 * family: Story ladders; scenario: model-refinement; dims L/R 8/8; modes L/R 3/3; εL/εR 1.0/1.0; λ ∈ [1.0, 8.0]; invariant shape conjunctive; rows identical: True; normalized md5 `cb0ec6031104`
-* `relcert`: **CERTIFIED** (1127 ms); `[prune] story2_lateral_rung_a_8dof: []`; NO_PRUNE: **CERTIFIED** (1127 ms); NO_CUT: **CERTIFIED** (965 ms); NO_IMPLIED_CUT: **CERTIFIED** (958 ms); NO_LINEAR_CUT: **CERTIFIED** (1157 ms); domains: uniform
+* `relcert`: **CERTIFIED** (1106 ms); `[prune] story2_lateral_rung_a_8dof: []`; NO_PRUNE: **CERTIFIED** (1155 ms); NO_CUT: **CERTIFIED** (1003 ms); NO_IMPLIED_CUT: **CERTIFIED** (1036 ms); NO_LINEAR_CUT: **CERTIFIED** (1157 ms); domains: uniform
 * `[cut] L.STEEP: 1 conjunct(s)`
 * `[cut] L.MODER: 1 conjunct(s)`
 * `[cut] L.FLAT: 1 conjunct(s)`
@@ -1875,22 +1885,22 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[admissible] STEEP_L: [STEEP, MODER, FLAT]`
 * `[admissible] MODER_L: [MODER, FLAT]`
 * `[admissible] FLAT_L: [FLAT]`
-* `--handoff`: 5/5 checked, 5 passed, failing -, VACUOUS (identical rows) (85 ms)
-* cover `STEEP_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j----', 'MODER': 'j----', 'FLAT': 'j----'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
+* `--handoff`: 5/5 checked, 5 passed, failing -, VACUOUS (identical rows) (92 ms)
+* cover `STEEP_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j--', 'MODER': 'j--', 'FLAT': 'j--'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
     * from `STEEP`: `STEEP:base(B=1)`
     * from `MODER`: `MODER:base(B=1)`
     * from `FLAT`: `FLAT:base(B=1)`
-* cover `MODER_L`: λ = 1, budget 1, admissible ['MODER', 'FLAT'], flags {'STEEP': '-----', 'MODER': 'j----', 'FLAT': 'j----'}, kinds ['base'], path modes ['FLAT', 'MODER'], branching 0, right-only False
+* cover `MODER_L`: λ = 1, budget 1, admissible ['MODER', 'FLAT'], flags {'STEEP': '---', 'MODER': 'j--', 'FLAT': 'j--'}, kinds ['base'], path modes ['FLAT', 'MODER'], branching 0, right-only False
     * from `MODER`: `MODER:base(B=1)`
     * from `FLAT`: `FLAT:base(B=1)`
-* cover `FLAT_L`: λ = 1, budget 1, admissible ['FLAT'], flags {'STEEP': '-----', 'MODER': '-----', 'FLAT': 'j----'}, kinds ['base'], path modes ['FLAT'], branching 0, right-only False
+* cover `FLAT_L`: λ = 1, budget 1, admissible ['FLAT'], flags {'STEEP': '---', 'MODER': '---', 'FLAT': 'j--'}, kinds ['base'], path modes ['FLAT'], branching 0, right-only False
     * from `FLAT`: `FLAT:base(B=1)`
 * cells: **M1** no (λ=1 everywhere); **M2** no (single segment); **M3** no (max non-self successors at a joint step = 0); **M4** no (nothing pruned); **M5** no (rows identical; handoff vacuous); **M6** vacuous: cuts kept (L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s); L.FLAT: 1 conjunct(s); R.STEEP: 1 conjunct(s); R.MODER: 1 conjunct(s); R.FLAT: 1 conjunct(s)) but NO_CUT=CERTIFIED; **M6+** no (no widened atom kept); **M6L** no (no linear-form atom kept)
 
 ### `story2_lateral_rung_b_12dof`
 
 * family: Story ladders; scenario: model-refinement; dims L/R 12/12; modes L/R 3/3; εL/εR 1.0/1.0; λ ∈ [1.0, 8.0]; invariant shape conjunctive; rows identical: True; normalized md5 `5e62b7ea6ff9`
-* `relcert`: **CERTIFIED** (1401 ms); `[prune] story2_lateral_rung_b_12dof: []`; NO_PRUNE: **CERTIFIED** (1496 ms); NO_CUT: **CERTIFIED** (1242 ms); NO_IMPLIED_CUT: **CERTIFIED** (1299 ms); NO_LINEAR_CUT: **CERTIFIED** (1414 ms); domains: uniform
+* `relcert`: **CERTIFIED** (1488 ms); `[prune] story2_lateral_rung_b_12dof: []`; NO_PRUNE: **CERTIFIED** (1515 ms); NO_CUT: **CERTIFIED** (1259 ms); NO_IMPLIED_CUT: **CERTIFIED** (1329 ms); NO_LINEAR_CUT: **CERTIFIED** (1529 ms); domains: uniform
 * `[cut] L.STEEP: 1 conjunct(s)`
 * `[cut] L.MODER: 1 conjunct(s)`
 * `[cut] L.FLAT: 1 conjunct(s)`
@@ -1900,22 +1910,22 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[admissible] STEEP_L: [STEEP, MODER, FLAT]`
 * `[admissible] MODER_L: [MODER, FLAT]`
 * `[admissible] FLAT_L: [FLAT]`
-* `--handoff`: 5/5 checked, 5 passed, failing -, VACUOUS (identical rows) (93 ms)
-* cover `STEEP_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j----', 'MODER': 'j----', 'FLAT': 'j----'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
+* `--handoff`: 5/5 checked, 5 passed, failing -, VACUOUS (identical rows) (41 ms)
+* cover `STEEP_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j--', 'MODER': 'j--', 'FLAT': 'j--'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
     * from `STEEP`: `STEEP:base(B=1)`
     * from `MODER`: `MODER:base(B=1)`
     * from `FLAT`: `FLAT:base(B=1)`
-* cover `MODER_L`: λ = 1, budget 1, admissible ['MODER', 'FLAT'], flags {'STEEP': '-----', 'MODER': 'j----', 'FLAT': 'j----'}, kinds ['base'], path modes ['FLAT', 'MODER'], branching 0, right-only False
+* cover `MODER_L`: λ = 1, budget 1, admissible ['MODER', 'FLAT'], flags {'STEEP': '---', 'MODER': 'j--', 'FLAT': 'j--'}, kinds ['base'], path modes ['FLAT', 'MODER'], branching 0, right-only False
     * from `MODER`: `MODER:base(B=1)`
     * from `FLAT`: `FLAT:base(B=1)`
-* cover `FLAT_L`: λ = 1, budget 1, admissible ['FLAT'], flags {'STEEP': '-----', 'MODER': '-----', 'FLAT': 'j----'}, kinds ['base'], path modes ['FLAT'], branching 0, right-only False
+* cover `FLAT_L`: λ = 1, budget 1, admissible ['FLAT'], flags {'STEEP': '---', 'MODER': '---', 'FLAT': 'j--'}, kinds ['base'], path modes ['FLAT'], branching 0, right-only False
     * from `FLAT`: `FLAT:base(B=1)`
 * cells: **M1** no (λ=1 everywhere); **M2** no (single segment); **M3** no (max non-self successors at a joint step = 0); **M4** no (nothing pruned); **M5** no (rows identical; handoff vacuous); **M6** vacuous: cuts kept (L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s); L.FLAT: 1 conjunct(s); R.STEEP: 1 conjunct(s); R.MODER: 1 conjunct(s); R.FLAT: 1 conjunct(s)) but NO_CUT=CERTIFIED; **M6+** no (no widened atom kept); **M6L** no (no linear-form atom kept)
 
 ### `story3_rollover_base_12dof`
 
 * family: Story ladders; scenario: model-refinement; dims L/R 12/12; modes L/R 3/3; εL/εR 1.0/1.0; λ ∈ [1.0, 6.0]; invariant shape quadratic; rows identical: True; normalized md5 `cf68fbeeef5c`
-* `relcert`: **CERTIFIED** (1214 ms); `[prune] story3_rollover_base_12dof: []`; NO_PRUNE: **CERTIFIED** (1211 ms); NO_CUT: **DECLINED** (2914 ms); NO_IMPLIED_CUT: **CERTIFIED** (1134 ms); NO_LINEAR_CUT: **CERTIFIED** (1237 ms); domains: uniform
+* `relcert`: **CERTIFIED** (1197 ms); `[prune] story3_rollover_base_12dof: []`; NO_PRUNE: **CERTIFIED** (1257 ms); NO_CUT: **DECLINED** (3078 ms); NO_IMPLIED_CUT: **CERTIFIED** (1134 ms); NO_LINEAR_CUT: **CERTIFIED** (1200 ms); domains: uniform
 * `[cut] L.STEEP: 1 conjunct(s)`
 * `[cut] L.MODER: 1 conjunct(s)`
 * `[cut] L.FLAT: 1 conjunct(s)`
@@ -1925,16 +1935,16 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[admissible] STEEP_L: [STEEP, MODER, FLAT]`
 * `[admissible] MODER_L: [STEEP, MODER, FLAT]`
 * `[admissible] FLAT_L: [MODER, FLAT]`
-* `--handoff`: 5/5 checked, 5 passed, failing -, VACUOUS (identical rows) (59 ms)
-* cover `STEEP_L`: λ = 5/4, budget 2, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j--dd', 'MODER': 'j--dd', 'FLAT': 'j--dd'}, kinds ['base', 'joint'], path modes ['FLAT', 'MODER', 'STEEP'], branching 1, right-only False
+* `--handoff`: 5/5 checked, 5 passed, failing -, VACUOUS (identical rows) (30 ms)
+* cover `STEEP_L`: λ = 5/4, budget 2, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'jdd', 'MODER': 'jdd', 'FLAT': 'jdd'}, kinds ['base', 'joint'], path modes ['FLAT', 'MODER', 'STEEP'], branching 1, right-only False
     * from `STEEP`: `STEEP:joint(B=2)->[STEEP@1, MODER@1, STEEP@1]; STEEP:base(B=1); MODER:base(B=1)`
     * from `MODER`: `MODER:joint(B=2)->[MODER@1, FLAT@1, MODER@1]; MODER:base(B=1); FLAT:base(B=1)`
     * from `FLAT`: `FLAT:joint(B=2)->[FLAT@1, FLAT@1]; FLAT:base(B=1)`
-* cover `MODER_L`: λ = 5/4, budget 2, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': '---dd', 'MODER': 'j--dd', 'FLAT': 'j--dd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FLAT', 'MODER', 'STEEP'], branching 1, right-only True
+* cover `MODER_L`: λ = 5/4, budget 2, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': '-dd', 'MODER': 'jdd', 'FLAT': 'jdd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FLAT', 'MODER', 'STEEP'], branching 1, right-only True
     * from `STEEP`: `STEEP:repoDyn(B=2,preJ)->[MODER@2]; MODER:joint(B=2)->[MODER@1, FLAT@1, MODER@1]; MODER:base(B=1); FLAT:base(B=1)`
     * from `MODER`: `MODER:joint(B=2)->[MODER@1, FLAT@1, MODER@1]; MODER:base(B=1); FLAT:base(B=1)`
     * from `FLAT`: `FLAT:joint(B=2)->[FLAT@1, FLAT@1]; FLAT:base(B=1)`
-* cover `FLAT_L`: λ = 5/4, budget 2, admissible ['MODER', 'FLAT'], flags {'STEEP': '---dd', 'MODER': '---dd', 'FLAT': 'j--dd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FLAT', 'MODER'], branching 0, right-only True
+* cover `FLAT_L`: λ = 5/4, budget 2, admissible ['MODER', 'FLAT'], flags {'STEEP': '-dd', 'MODER': '-dd', 'FLAT': 'jdd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FLAT', 'MODER'], branching 0, right-only True
     * from `MODER`: `MODER:repoDyn(B=2,preJ)->[FLAT@2]; FLAT:joint(B=2)->[FLAT@1, FLAT@1]; FLAT:base(B=1)`
     * from `FLAT`: `FLAT:joint(B=2)->[FLAT@1, FLAT@1]; FLAT:base(B=1)`
 * cells: **M1** yes: STEEP λ=5/4, MODER λ=5/4, FLAT λ=5/4 (polynomial dynamics); **M2** yes: STEEP B=2 via FLAT/MODER/STEEP, MODER B=2 via FLAT/MODER +RO, FLAT B=2 via FLAT +RO; **M3** no (max non-self successors at a joint step = 1); **M4** no (nothing pruned); **M5** no (rows identical; handoff vacuous); **M6** yes: L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s); L.FLAT: 1 conjunct(s); R.STEEP: 2 conjunct(s); R.MODER: 2 conjunct(s); R.FLAT: 2 conjunct(s); NO_CUT=DECLINED; **M6+** no (no widened atom kept); **M6L** no (no linear-form atom kept)
@@ -1942,7 +1952,7 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 ### `story3_rollover_ladder_rung_a`
 
 * family: Story ladders; scenario: model-refinement; dims L/R 12/12; modes L/R 3/3; εL/εR 1.0/1.0; λ ∈ [1.0, 8.0]; invariant shape quadratic; rows identical: True; normalized md5 `af17da3f1b89`
-* `relcert`: **CERTIFIED** (852 ms); `[prune] story3_rollover_ladder_rung_a: []`; NO_PRUNE: **CERTIFIED** (865 ms); NO_CUT: **DECLINED** (2267 ms); NO_IMPLIED_CUT: **CERTIFIED** (776 ms); NO_LINEAR_CUT: **CERTIFIED** (1080 ms); domains: uniform
+* `relcert`: **CERTIFIED** (878 ms); `[prune] story3_rollover_ladder_rung_a: []`; NO_PRUNE: **CERTIFIED** (896 ms); NO_CUT: **DECLINED** (2406 ms); NO_IMPLIED_CUT: **CERTIFIED** (767 ms); NO_LINEAR_CUT: **CERTIFIED** (887 ms); domains: uniform
 * `[cut] L.STEEP: 1 conjunct(s)`
 * `[cut] L.MODER: 1 conjunct(s)`
 * `[cut] L.FLAT: 1 conjunct(s)`
@@ -1952,16 +1962,16 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[admissible] STEEP_L: [STEEP, MODER, FLAT]`
 * `[admissible] MODER_L: [STEEP, MODER, FLAT]`
 * `[admissible] FLAT_L: [MODER, FLAT]`
-* `--handoff`: 5/5 checked, 5 passed, failing -, VACUOUS (identical rows) (57 ms)
-* cover `STEEP_L`: λ = 27/20, budget 2, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j--dd', 'MODER': 'j--dd', 'FLAT': 'j--dd'}, kinds ['base', 'joint'], path modes ['FLAT', 'MODER', 'STEEP'], branching 1, right-only False
+* `--handoff`: 5/5 checked, 5 passed, failing -, VACUOUS (identical rows) (25 ms)
+* cover `STEEP_L`: λ = 27/20, budget 2, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'jdd', 'MODER': 'jdd', 'FLAT': 'jdd'}, kinds ['base', 'joint'], path modes ['FLAT', 'MODER', 'STEEP'], branching 1, right-only False
     * from `STEEP`: `STEEP:joint(B=2)->[STEEP@1, MODER@1, STEEP@1]; STEEP:base(B=1); MODER:base(B=1)`
     * from `MODER`: `MODER:joint(B=2)->[MODER@1, FLAT@1, MODER@1]; MODER:base(B=1); FLAT:base(B=1)`
     * from `FLAT`: `FLAT:joint(B=2)->[FLAT@1, FLAT@1]; FLAT:base(B=1)`
-* cover `MODER_L`: λ = 27/20, budget 2, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': '---dd', 'MODER': 'j--dd', 'FLAT': 'j--dd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FLAT', 'MODER', 'STEEP'], branching 1, right-only True
+* cover `MODER_L`: λ = 27/20, budget 2, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': '-dd', 'MODER': 'jdd', 'FLAT': 'jdd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FLAT', 'MODER', 'STEEP'], branching 1, right-only True
     * from `STEEP`: `STEEP:repoDyn(B=2,preJ)->[MODER@2]; MODER:joint(B=2)->[MODER@1, FLAT@1, MODER@1]; MODER:base(B=1); FLAT:base(B=1)`
     * from `MODER`: `MODER:joint(B=2)->[MODER@1, FLAT@1, MODER@1]; MODER:base(B=1); FLAT:base(B=1)`
     * from `FLAT`: `FLAT:joint(B=2)->[FLAT@1, FLAT@1]; FLAT:base(B=1)`
-* cover `FLAT_L`: λ = 27/20, budget 2, admissible ['MODER', 'FLAT'], flags {'STEEP': '---dd', 'MODER': '---dd', 'FLAT': 'j--dd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FLAT', 'MODER'], branching 0, right-only True
+* cover `FLAT_L`: λ = 27/20, budget 2, admissible ['MODER', 'FLAT'], flags {'STEEP': '-dd', 'MODER': '-dd', 'FLAT': 'jdd'}, kinds ['base', 'joint', 'repoDyn'], path modes ['FLAT', 'MODER'], branching 0, right-only True
     * from `MODER`: `MODER:repoDyn(B=2,preJ)->[FLAT@2]; FLAT:joint(B=2)->[FLAT@1, FLAT@1]; FLAT:base(B=1)`
     * from `FLAT`: `FLAT:joint(B=2)->[FLAT@1, FLAT@1]; FLAT:base(B=1)`
 * cells: **M1** yes: STEEP λ=27/20, MODER λ=27/20, FLAT λ=27/20 (polynomial dynamics); **M2** yes: STEEP B=2 via FLAT/MODER/STEEP, MODER B=2 via FLAT/MODER +RO, FLAT B=2 via FLAT +RO; **M3** no (max non-self successors at a joint step = 1); **M4** no (nothing pruned); **M5** no (rows identical; handoff vacuous); **M6** yes: L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s); L.FLAT: 1 conjunct(s); R.STEEP: 2 conjunct(s); R.MODER: 2 conjunct(s); R.FLAT: 2 conjunct(s); NO_CUT=DECLINED; **M6+** no (no widened atom kept); **M6L** no (no linear-form atom kept)
@@ -1969,7 +1979,7 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 ### `story3_rollover_ladder_rung_b`
 
 * family: Story ladders; scenario: model-refinement; dims L/R 12/12; modes L/R 3/3; εL/εR 1.0/1.0; λ ∈ [1.0, 8.0]; invariant shape quadratic; rows identical: False; normalized md5 `afd0663422a6`
-* `relcert`: **CERTIFIED** (675 ms); `[prune] story3_rollover_ladder_rung_b: []`; NO_PRUNE: **CERTIFIED** (741 ms); NO_CUT: **DECLINED** (2418 ms); NO_IMPLIED_CUT: **DECLINED** (2428 ms); NO_LINEAR_CUT: **DECLINED** (2536 ms); domains: uniform
+* `relcert`: **CERTIFIED** (673 ms); `[prune] story3_rollover_ladder_rung_b: []`; NO_PRUNE: **CERTIFIED** (732 ms); NO_CUT: **DECLINED** (2603 ms); NO_IMPLIED_CUT: **DECLINED** (2551 ms); NO_LINEAR_CUT: **DECLINED** (2639 ms); domains: uniform
 * `[cut] L.STEEP: 5 conjunct(s)`
 * `[cut] L.MODER: 5 conjunct(s)`
 * `[cut] L.FLAT: 5 conjunct(s)`
@@ -1991,16 +2001,16 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 * `[admissible] STEEP_L: [STEEP, MODER, FLAT]`
 * `[admissible] MODER_L: [STEEP, MODER, FLAT]`
 * `[admissible] FLAT_L: [STEEP, MODER, FLAT]`
-* `--handoff`: 5/5 checked, 5 passed, failing -, non-vacuous (66 ms)
-* cover `STEEP_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j----', 'MODER': 'j----', 'FLAT': 'j----'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
+* `--handoff`: 5/5 checked, 5 passed, failing -, non-vacuous (38 ms)
+* cover `STEEP_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j--', 'MODER': 'j--', 'FLAT': 'j--'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
     * from `STEEP`: `STEEP:base(B=1)`
     * from `MODER`: `MODER:base(B=1)`
     * from `FLAT`: `FLAT:base(B=1)`
-* cover `MODER_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j----', 'MODER': 'j----', 'FLAT': 'j----'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
+* cover `MODER_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j--', 'MODER': 'j--', 'FLAT': 'j--'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
     * from `STEEP`: `STEEP:base(B=1)`
     * from `MODER`: `MODER:base(B=1)`
     * from `FLAT`: `FLAT:base(B=1)`
-* cover `FLAT_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j----', 'MODER': 'j----', 'FLAT': 'j----'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
+* cover `FLAT_L`: λ = 1, budget 1, admissible ['STEEP', 'MODER', 'FLAT'], flags {'STEEP': 'j--', 'MODER': 'j--', 'FLAT': 'j--'}, kinds ['base'], path modes ['FLAT', 'MODER', 'STEEP'], branching 0, right-only False
     * from `STEEP`: `STEEP:base(B=1)`
     * from `MODER`: `MODER:base(B=1)`
     * from `FLAT`: `FLAT:base(B=1)`
@@ -2008,30 +2018,37 @@ Duplicate check: no two benchmarks normalize to the same model; no two benchmark
 
 ### `watertank`
 
-* family: Watertank; scenario: sensor-attack; dims L/R 1/1; modes L/R 3/3; εL/εR 1.0/1.0; λ ∈ [1.0, 10.0]; invariant shape linear; rows identical: True; normalized md5 `a301828a2f41`
-* `relcert`: **CERTIFIED** (142 ms); `[prune] watertank: []`; NO_PRUNE: **CERTIFIED** (163 ms); NO_CUT: **CERTIFIED** (162 ms); NO_IMPLIED_CUT: **CERTIFIED** (206 ms); NO_LINEAR_CUT: **CERTIFIED** (158 ms); domains: uniform
-* `[cut] L.Low: 1 conjunct(s)`
-* `[cut] L.Mid: 1 conjunct(s)`
+* family: Watertank; scenario: sensor-attack; dims L/R 1/1; modes L/R 3/5; εL/εR 1.0/1.0; λ ∈ [1.0, 6.0]; invariant shape conjunctive; rows identical: True; normalized md5 `094c7ee69d35`
+* `relcert`: **CERTIFIED** (743 ms); `[prune] watertank: [Low->PumpOff]`; NO_PRUNE: **DECLINED** (1121 ms); NO_CUT: **DECLINED** (1241 ms); NO_IMPLIED_CUT: **DECLINED** (1288 ms); NO_LINEAR_CUT: **CERTIFIED** (705 ms); domains: uniform
+* `[cut] L.Low: 2 conjunct(s)`
+* `[cut] L.Mid: 2 conjunct(s)`
 * `[cut] L.High: 1 conjunct(s)`
-* `[cut] R.Low: 1 conjunct(s)`
-* `[cut] R.Mid: 1 conjunct(s)`
+* `[cut] R.Low: 2 conjunct(s)`
+* `[cut] R.MidEco: 2 conjunct(s)`
+* `[cut] R.MidBoost: 2 conjunct(s)`
 * `[cut] R.High: 1 conjunct(s)`
-* `[cut-x] L.High: x <= 22.45 kind=closure entry=weakening route=diB`
-* `[cut-x] R.High: x <= 22.45 kind=closure entry=weakening route=diB`
-* `[admissible] Low_L: [Low, Mid, High]`
-* `[admissible] Mid_L: [Mid, High]`
+* `[cut] R.PumpOff: 1 conjunct(s)`
+* `[cut-x] L.Low: x <= 15.5 kind=implied-contraction entry=rational route=shape`
+* `[cut-x] L.Mid: x <= 20.0 kind=closure entry=weakening route=shape`
+* `[cut-x] R.Low: x <= 12.5 kind=implied-contraction entry=rational route=shape`
+* `[cut-x] R.MidEco: x <= 17.0 kind=closure entry=weakening route=shape`
+* `[cut-x] R.MidBoost: x <= 17.0 kind=closure entry=weakening route=shape`
+* `[cut-x] R.PumpOff: x <= 2.0 kind=closure entry=weakening route=frozen`
+* `[admissible] Low_L: [Low, MidEco, MidBoost]`
+* `[admissible] Mid_L: [MidEco, MidBoost, High]`
 * `[admissible] High_L: [High]`
-* `--handoff`: 6/6 checked, 6 passed, failing -, VACUOUS (identical rows) (90 ms)
-* cover `Low_L`: λ = 1, budget 1, admissible ['Low', 'Mid', 'High'], flags {'Low': 'j----', 'Mid': 'jr-dd', 'High': '-r---'}, kinds ['base', 'repoStatic'], path modes ['High', 'Low', 'Mid'], branching 0, right-only True
-    * from `Low`: `Low:base(B=1)`
-    * from `Mid`: `Mid:base(B=1)`
-    * from `High`: `High:repoStatic(B=1,preJ)->[Mid@1]; Mid:base(B=1)`
-* cover `Mid_L`: λ = 1, budget 1, admissible ['Mid', 'High'], flags {'Low': '-----', 'Mid': 'j--dd', 'High': '-r---'}, kinds ['base', 'repoStatic'], path modes ['High', 'Mid'], branching 0, right-only True
-    * from `Mid`: `Mid:base(B=1)`
-    * from `High`: `High:repoStatic(B=1,preJ)->[Mid@1]; Mid:base(B=1)`
-* cover `High_L`: λ = 1, budget 1, admissible ['High'], flags {'Low': 'j----', 'Mid': 'j--dd', 'High': 'j----'}, kinds ['base'], path modes ['High'], branching 0, right-only False
+* `--handoff`: 6/6 checked, 6 passed, failing -, VACUOUS (identical rows) (81 ms)
+* cover `Low_L`: λ = 2, budget 2, admissible ['Low', 'MidEco', 'MidBoost'], flags {'Low': 'j--', 'MidEco': 'j--', 'MidBoost': 'j--', 'High': 'jd-', 'PumpOff': '-dd'}, kinds ['base', 'joint'], path modes ['High', 'Low', 'MidBoost', 'MidEco'], branching 2, right-only False
+    * from `Low`: `Low:joint(B=2)->[Low@1, Low@1, MidEco@1, MidBoost@1]; Low:base(B=1); MidEco:base(B=1); MidBoost:base(B=1)`
+    * from `MidEco`: `MidEco:joint(B=2)->[MidEco@1, MidEco@1, MidBoost@1, High@1]; MidEco:base(B=1); MidBoost:base(B=1); High:base(B=1)`
+    * from `MidBoost`: `MidBoost:joint(B=2)->[MidBoost@1, MidBoost@1, MidEco@1, High@1]; MidBoost:base(B=1); MidEco:base(B=1); High:base(B=1)`
+* cover `Mid_L`: λ = 2, budget 2, admissible ['MidEco', 'MidBoost', 'High'], flags {'Low': '---', 'MidEco': 'j--', 'MidBoost': 'j--', 'High': 'j--', 'PumpOff': 'jdd'}, kinds ['base', 'joint'], path modes ['High', 'MidBoost', 'MidEco'], branching 2, right-only False
+    * from `MidEco`: `MidEco:joint(B=2)->[MidEco@1, MidEco@1, MidBoost@1, High@1]; MidEco:base(B=1); MidBoost:base(B=1); High:base(B=1)`
+    * from `MidBoost`: `MidBoost:joint(B=2)->[MidBoost@1, MidBoost@1, MidEco@1, High@1]; MidBoost:base(B=1); MidEco:base(B=1); High:base(B=1)`
+    * from `High`: `High:joint(B=2)->[High@1, High@1, MidEco@1, MidBoost@1]; High:base(B=1); MidEco:base(B=1); MidBoost:base(B=1)`
+* cover `High_L`: λ = 1, budget 1, admissible ['High'], flags {'Low': 'jdd', 'MidEco': 'jdd', 'MidBoost': 'jdd', 'High': 'j--', 'PumpOff': 'jdd'}, kinds ['base'], path modes ['High'], branching 0, right-only False
     * from `High`: `High:base(B=1)`
-* cells: **M1** no (λ=1 everywhere); **M2** no (single segment, RO used); **M3** no (max non-self successors at a joint step = 0); **M4** no (nothing pruned); **M5** no (rows identical; handoff vacuous); **M6** vacuous: cuts kept (L.Low: 1 conjunct(s); L.Mid: 1 conjunct(s); L.High: 1 conjunct(s); R.Low: 1 conjunct(s); R.Mid: 1 conjunct(s); R.High: 1 conjunct(s)) but NO_CUT=CERTIFIED; **M6+** vacuous: widened atoms kept (L.High: x <= 22.45 kind=closure entry=weakening route=diB; R.High: x <= 22.45 kind=closure entry=weakening route=diB) but NO_IMPLIED=CERTIFIED; **M6L** no (no linear-form atom kept)
+* cells: **M1** yes: Low λ=2, Mid λ=2 (affine dynamics); **M2** yes: Low B=2 via Low/MidBoost/MidEco, Mid B=2 via High/MidBoost/MidEco; **M3** yes: Low branch=2, Mid branch=2; **M4** yes: pruned Low->PumpOff; NO_PRUNE=DECLINED; **M5** no (rows identical; handoff vacuous); **M6** yes: L.Low: 2 conjunct(s); L.Mid: 2 conjunct(s); L.High: 1 conjunct(s); R.Low: 2 conjunct(s); R.MidEco: 2 conjunct(s); R.MidBoost: 2 conjunct(s); R.High: 1 conjunct(s); R.PumpOff: 1 conjunct(s); NO_CUT=DECLINED; **M6+** yes: L.Low: x <= 15.5 kind=implied-contraction entry=rational route=shape; L.Mid: x <= 20.0 kind=closure entry=weakening route=shape; R.Low: x <= 12.5 kind=implied-contraction entry=rational route=shape; R.MidEco: x <= 17.0 kind=closure entry=weakening route=shape; R.MidBoost: x <= 17.0 kind=closure entry=weakening route=shape; R.PumpOff: x <= 2.0 kind=closure entry=weakening route=frozen; NO_IMPLIED=DECLINED; **M6L** no (no linear-form atom kept)
 
 ## 10. Re-running
 
@@ -2056,9 +2073,11 @@ with `--z3time` and the 6-D polynomial files: about 30 minutes; pass 7, 45 files
 `--z3time`: 14 minutes). The
 widening script runs `relcert` once per (side, variable, direction) group plus the base
 and the all-widened file (about 750 runs, 25 minutes at `--jobs 6`). Without
-`RELCERT_IMPLIED_CUT=1` the six M6+ members (`arm_plateau_*` ×3,
-`charger_fast_setpoints`, `platoon_delay_band`, `platoon_delay_profiles`) are DECLINED;
-everything else certifies either way.
+`RELCERT_IMPLIED_CUT=1` the twelve M6+ members of §8 are DECLINED (measured in pass 8:
+`acc_spoof_lag`, `arm_plateau_*` ×3, `charger_fast_setpoints`, `platoon3_*` ×2,
+`platoon_delay_*` ×2, `rover_patrol_refine`, `story3_rollover_ladder_rung_b`,
+`watertank`); everything else certifies either way. (Pass 2 listed six; the list grew
+with the later passes.)
 
 ## 11. Not done here
 
@@ -3304,3 +3323,138 @@ long ones are `story1_attdist_rung_a_6to8` (20.6 s), `sat_detumble_weak` (12.6 s
 | `watertank` | 1/1 | CERTIFIED | 142 | 0.29 | 84 | 216 | 84 | A-or-static 3, A-or-static/R 6, B 6, B/L 3, B/R 3, other 3 |
 | **total** | | | **92758** | | | **93507** | | |
 
+
+## 18. Pass 8 (2026-10-09): the redesigned watertank; the static reposition removed
+
+Two changes. (1) `watertank` is redesigned as the paper's running example (commit
+`bc5357d`, `benchmarks/suite_v2/watertank/input.txt`; the header's attack wording aligned
+with the paper in this pass). (2) The certifier's **static reposition** is removed from the
+tool, the verified checker and every proof (user decision, 2026-10-09;
+`docs/COVER-AUDIT.md`, note of that date). Every number below: Z3 4.15.1, the `relcert`
+binary built from this pass's tree, `RELCERT_IMPLIED_CUT=1` (except the
+`RELCERT_NO_IMPLIED_CUT=1` counter-run), default solver settings (§10).
+
+### 18.1 The redesigned `watertank`
+
+A tank of capacity 25 dm; every mode a proportional pump `x' = k (c − x)`, `k = 0.3`.
+Nominal (right, 5 modes): `PumpOff` (`x < 2`, a latched dry-run interlock, `x' = 0`),
+`Low` (`2 ≤ x < 10`, toward 12.5), `Mid` in two pump profiles chosen on entry, `MidEco`
+(gain 0.15) and `MidBoost` (gain 0.3), both toward 17 on `10 ≤ x < 17`, and `High`
+(`x ≥ 17`, toward 17). Deployed (left, 3 modes): the level sensor reads 3 dm low, so every
+threshold and set point is 3 dm higher in true level (`Low` `5 ≤ x < 13` toward 15.5,
+`Mid` `13 ≤ x < 20` toward 20, `High` `x ≥ 20` toward 20), and the actuation attack makes
+the pump aggressive: it doubles the low-fill gain to 0.6 and locks mid-fill to the boost
+profile; levels whose reading is below the interlock threshold (`x_L < 5`) are outside the
+model. Claim: `|x_L − x_R| ≤ 3` in every left mode (two rows, identical across modes);
+evolve domain `0 ≤ x ≤ 25` in every mode on both sides; `εL = εR = 1`, λ grid `[1, 6]`.
+
+Measured (the matrix run of §18.4 and separate runs):
+
+* **CERTIFIED by joint segments only.** The replayed cover derivation of every left mode
+  consists of base and joint steps; no reposition of either kind is on any path
+  (`kinds ['base', 'joint']` for `Low_L` and `Mid_L`, `['base']` for `High_L`,
+  `right-only False` everywhere, §9).
+* **λ and budget.** `Low_L` and `Mid_L` certify at **λ = 2 with budget 2** (two right
+  segments per left window); `High_L` at λ = 1, budget 1. `RELCERT_DEBUG=1` segment rows:
+  for `Low_L` the nominal `Low` fails at λ = 1, 5/4, 3/2, 7/4 and passes first at λ = 2
+  (the speed ratio of the tampered pump, gain 0.6 against 0.3).
+* **Branching (M3).** A joint step from `Low` retains both `MidEco` and `MidBoost`, and
+  from `MidEco`/`MidBoost`/`High` the other profiles; both profiles cover (branch = 2 in
+  `Low_L` and `Mid_L`). For the deployed `Mid` the per-λ rows show **`MidEco` passing only
+  at λ = 2** (fail at 1, 5/4, 3/2, 7/4) and **`MidBoost` passing at λ = 1** and every grid
+  point after it: the full-gain deployed `Mid` against the half-gain `MidEco` needs the
+  stretch, against `MidBoost` it does not.
+* **Pruning (M4).** `[prune] watertank: [Low->PumpOff]`: the nominal `Low` flow from its
+  entry `x ≥ 2` never reaches `x < 2`. `RELCERT_NO_PRUNE=1`: **DECLINED** (the `Low_L`
+  segment against `PumpOff` fails at every λ).
+* **Cuts (M6, M6+).** The kept atoms are the set points: deployed `Low` `x ≤ 15.5`
+  (implied contraction, O1 rational, O2 shape), deployed `Mid` `x ≤ 20` (closure of the
+  strict guard cap, shape), nominal `Low` `x ≤ 12.5` (implied), `MidEco`/`MidBoost`
+  `x ≤ 17` (closures), `PumpOff` `x ≤ 2` (closure, frozen). `RELCERT_NO_CUT=1`
+  **DECLINED**, `RELCERT_NO_IMPLIED_CUT=1` **DECLINED**, `RELCERT_NO_LINEAR_CUT=1`
+  CERTIFIED (no linear-form atom is kept). Cells: **M1 M2 M3 M4 M6 M6+** (the old
+  watertank exercised none non-vacuously).
+* **Tolerance 3 is tight.** With both rows at 2.9 (`x[l] <= x[r] + 2.9 and x[r] <= x[l] +
+  2.9` in every mode, nothing else changed): **DECLINED**.
+* **Domains.** `scripts/domain_widening.py` on the file: base CERTIFIED, all-widened
+  CERTIFIED, no load-bearing evolve bound. Widened by hand to `0 ≤ x ≤ 60` in every mode:
+  CERTIFIED; to `−60 ≤ x ≤ 60`: CERTIFIED.
+* Handoff: 6/6 unsat, vacuous (identical rows). Duplicate check: none (normalized md5
+  `094c7ee69d35`).
+
+### 18.2 The static reposition: what it was, why it is removed
+
+The tool's cover had two right-only moves besides the joint step. The **dynamic**
+reposition (`checkDynRepo`, flags `dynPre`/`dynPost`, `Covered.stepRepositionDynPre/Post`):
+the right system flows alone, under its own field, for a full interval while the left is
+held, and the invariant is certified along that flow (route A, whole domain); at its end
+the cover demands that every declared, unpruned successor covers. This is the paper's
+right-only segment, and it stays. The **static** reposition (`repoRegions`/`regionUnsat`,
+flags `repoPre`/`repoPost`, `Covered.stepRepositionPre/Post`): a switch of the right system
+into a declared successor in **zero time**, at the current state, chosen by the witness,
+whose only obligation was that the invariant holds in the source mode's region
+(`guardL ∧ guardR ∧ evolve ⟹ φ_inv`, post-j without `guardL`). Nothing checked that the
+**successor's guard holds at the switch state**. For the paper's guarded nominal model a
+guarded automaton cannot make that switch where the successor's guard is false, so a
+certificate built on it can describe a response the modeled system does not have. The
+demonic-successor argument of the 2026-07-19 audit note covers the switches the certificate
+makes after a flow (joint step, dynamic reposition), not an ∃-chosen instantaneous switch.
+The certificate now makes no zero-duration switch.
+
+Removed: `RMode.region/repoPreOK/regionPost/repoPostOK`, `CoverCert(M/MC)`'s
+`repoPresPre/Post` fields, the `Covered` and `RightReach(G)` constructors and every proof
+case on them, `reposition_step_pres` and the region-invariant discharge lemmas, the tool's
+`repoRegions`/`regionUnsat`/`repoMap` and its `[repo-pre]`/`[repo-post]` debug output
+(`RELCERT_DEBUG=1` now prints `[repo-dyn-pre] … [repo-dyn-post]`). **Emitted literal:
+the two static flags are DROPPED** from the emitted cover rows: `ModeFlagsE` is
+`⟨name, jointOK, dynPre, dynPost⟩` (four fields, was six), every `Instances/BenchCovers*`
+literal was regenerated in that form, and `scripts/suite_v2_matrix.py` parses it (the flag
+strings in §9 are now three characters, `j`/`d`/`d`).
+
+### 18.3 Casualties
+
+* **`suite_uniform`: six benchmarks declined after static-reposition removal** —
+  `arm_chain_rung1`, `arm_chain_rung2`, `arm_fidelity_low`, `robot_braking`,
+  `rover3tier_M1`, `watertank` (each needed a static step on its cover path). Their input
+  files are kept unchanged; their modal theorems, throughout instances, emitted covers,
+  cover replays and verdict packs left the battery. Declared tally (`Coverage.expectedSuite`)
+  40 certified / 1 declined → **34 / 7**; declared coverage `watertank` 6 → (phase removed),
+  `modal` 504 → **486**, `handoff` 191 → **163**; `cut probes` 97, `non-connection` 2,
+  `pruned edges` 1 unchanged. `ModalBattery` 52 → **46** theorems.
+* Five more `suite_uniform` benchmarks carried static flags in their emitted covers
+  (`arm_chain_rung3`, `arm_fidelity_mid`, `attitude_rate`,
+  `refinement_ladder_rover_rung2_6dof`, `refinement_ladder_rover_rung2b_6dof`) and still
+  certify with the regenerated cover.
+* **`suite_v2`:** only the old `watertank` (pass 1–7; identical up to comments to
+  `suite_uniform/watertank`) needs it: its file from `3494c49` is DECLINED by this pass's
+  binary. One more file had static steps on its derivation, `charger_fast_tapers`
+  (`BULK_L`: `ABSORB_SLOW`/`ABSORB_FAST` → `FULL`); the same derivation is now found with
+  dynamic repositions in their place, at the same λ = 1, budget 2 and cells. Every other
+  §9 derivation is unchanged.
+
+### 18.4 Regression evidence
+
+* `RELCERT_IMPLIED_CUT=1 relcert benchmarks/suite_v2/*/input.txt` over all 45 inputs:
+  **45 CERTIFIED**, 0 DECLINED, `errors=0`.
+* `scripts/suite_v2_matrix.py --z3time`: 45 / 45 CERTIFIED; §3, §8, §9 regenerated from it.
+  Totals before (pass 7) → after: M1 16 → **17**, M2 32 → **33**, M3 11 → **12**, M4 18 →
+  **19**, M5 12, M6 28 → **29**, M6+ 11 → **12**, M6L 8; the only row that changed in §3 is
+  `watertank`'s. Duplicate check: none; tolerance-only variant check: none. Timing totals:
+  tool 88 394 ms, Z3 88 540 ms (pass 7: 92 758 / 93 507); taken while one Lean elaboration
+  process of the battery rebuild ran on 1 of 12 cores; per-benchmark rows in the script's
+  `--md` output, not reproduced here (§17.6 keeps the pass-7 table).
+* `relcert --check-quick benchmarks/suite_uniform/*/input.txt`: `[suite] 34 certified, 7
+  declined, 0 error(s) — matches the declared suite`; `[coverage] cut probes: 97/97`,
+  `modal: 486/486`, `handoff: 163/163`, `non-connection: 2/2`, `pruned edges: 1/1`;
+  `QUICK CHECKS PASSED` (before: 40 / 1, watertank 6/6, 97/97, 504/504, 191/191, 2/2, 1/1).
+* Without `RELCERT_IMPLIED_CUT=1` the twelve M6+ members DECLINE, `watertank` among them
+  (33 CERTIFIED, 12 DECLINED; §10).
+* Cover drift: every committed emitted cover (`Instances/BenchCovers/*`, 34 leaves, and
+  `Instances/BenchCoversNC/*`, 23 leaves, the latter under `RELCERT_NO_CUT=1`) is
+  byte-identical to what `relcert --emit-cover` prints for its `suite_uniform` input.
+* `lake build` (the removal tree, `07e4df9` + `adc86b3`): exit 0, `Build completed
+  successfully (8948 jobs)`, no `sorry`; `lake build relcert relcert-test` 17661 jobs.
+  `ModalBattery`: **46 theorems** (52 before), 36 with `z3_unsat_sound`, 10 with the three
+  standard axioms alone, no other axiom. `BENCH_PATHS=<manifest of the 41> relcert-test`:
+  `ALL PASS` (40 IR literals match their files; the IR literals of the six declined
+  benchmarks are kept and still drift-checked).

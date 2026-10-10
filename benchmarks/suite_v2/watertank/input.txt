@@ -24,11 +24,14 @@
 #   1. Sensor offset: the level sensor reads 3 dm LOW (x_measured = x - 3), so every
 #      threshold and every set point the controller acts on is 3 dm higher in true level:
 #        Low  5 <= x < 13   toward 15.5 (= 12.5 + 3)
-#        Mid  13 <= x < 20  toward 20   (= 17 + 3), gain k
+#        Mid  13 <= x < 20  toward 20   (= 17 + 3)
 #        High x >= 20       regulate down to 20
-#   2. Pump tamper: the Low pump runs at TWICE the nominal gain, x' = 0.6 (15.5 - x).
-#   The deployed controller has a single Mid profile and no dry-run mode: its Low floor
-#   5 = 2 + 3 is the nominal intake threshold shifted by the offset.
+#   2. Actuation attack: the attack makes the pump aggressive: it doubles the low-fill
+#      gain to 0.6, x' = 0.6 (15.5 - x), and locks mid-fill to the boost profile
+#      (gain 0.3; the deployed controller has a single Mid profile).
+#   Levels whose reading is below the interlock threshold (x_L < 5, i.e. a reading below
+#   2) are outside the model: the deployed controller has no dry-run mode, and its Low
+#   floor 5 = 2 + 3 is the nominal interlock threshold shifted by the offset.
 #
 # CLAIM (two rows per mode): |x_L - x_R| <= 3, i.e. x_L <= x_R + 3 and x_R <= x_L + 3 in
 # every left mode: the true levels of the deployed and the reference tank never differ

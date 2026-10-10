@@ -43,6 +43,8 @@ structure LadderRun (G : SearchGraph (Var (n+2))) (dom : Formula (Var (n+2))) wh
   modeAt : ∀ q < 3, G.modeAt q = some (m q)
   sem : ∀ q < 3, ∀ ρ, Formula.sat dom ρ → ∀ τ, 0 ≤ τ →
     Program.sem (Program.ode (m q).sys (m q).dom) ρ (run q ρ τ)
+  sol : ∀ q < 3, ∀ ρ, Formula.sat dom ρ → ∀ τ, 0 ≤ τ →
+    ODESol (m q).sys (m q).dom ρ τ (fun t => run q ρ t)
   v_eq : ∀ q < 3, ∀ ρ τ, run q ρ τ (Rv 0) = ladC q + (ρ (Rv 0) - ladC q) * Real.exp (-(3 * τ))
   s_low : ∀ q < 3, ∀ ρ, Formula.sat dom ρ → ∀ τ, 0 ≤ τ →
     ρ (Rv 1) + κ * (ladC q * τ - ladC q / 3) ≤ run q ρ τ (Rv 1) ∧ ρ (Rv 1) ≤ run q ρ τ (Rv 1)
@@ -320,6 +322,38 @@ noncomputable def LadderRun.ofLinear (G : SearchGraph (Var (n+2))) (dom : Formul
         · simp [phiLin, h0, h1]
     · intro t ht _
       exact hdomrun q hq ρ hρ t ht
+  sol := by
+    intro q hq ρ hρ τ hτ
+    rw [hsys q hq, hdomm q hq]
+    refine explicit_sol ρ (phiLin a b q ρ) τ hτ ?_ ?_ ?_
+    · intro i
+      by_cases h0 : i = 0
+      · subst h0; simp [phiLin]
+      by_cases h1 : i = 1
+      · subst h1; simp [phiLin]
+      · simp [phiLin, h0, h1]
+    · intro i t _ _
+      by_cases h0 : i = 0
+      · subst h0
+        rw [hfv q hq, trajR_R]
+        have h := hasDerivAt_expApproach 3 (ladC q) (ρ (Rv 0)) t
+        convert h using 1
+        · funext u; simp [phiLin]
+        · simp [phiLin]
+      by_cases h1 : i = 1
+      · subst h1
+        rw [hfs q hq, trajR_R]
+        have h := hasDerivAt_expIntegral 3 (ladC q) (ρ (Rv 0)) (ρ (Rv 1)) t (by norm_num)
+        convert h using 1
+        · funext u; simp [phiLin]
+        · simp [phiLin]
+      · rw [hfo q hq i h0 h1, trajR_R]
+        have h := hasDerivAt_expApproach (a i) (b i) (ρ (Rv i)) t
+        convert h using 1
+        · funext u; simp [phiLin, h0, h1]
+        · simp [phiLin, h0, h1]
+    · intro t ht _
+      exact hdomrun q hq ρ hρ t ht
   v_eq := by
     intro q _ ρ τ
     simp [trajR_R, phiLin]
@@ -500,6 +534,40 @@ noncomputable def LadderRun.ofKappa (G : SearchGraph (Var (n+2))) (dom : Formula
     intro q hq ρ hρ τ hτ
     rw [hsys q hq, hdomm q hq]
     refine explicit_run ρ (phiK φo kapT q ρ) τ hτ ?_ ?_ ?_
+    · intro i
+      by_cases h0 : i = 0
+      · subst h0; simp [phiK, vLaw]
+      by_cases h1 : i = 1
+      · subst h1; simp [phiK]
+      · rw [phiK_other φo kapT q ρ i h0 h1]; exact hφo0 ρ i h0 h1
+    · intro i t ht _
+      by_cases h0 : i = 0
+      · subst h0
+        rw [hfv q hq, trajR_R]
+        have h := hasDerivAt_expApproach 3 (ladC q) (ρ (Rv 0)) t
+        convert h using 1
+        · funext u; simp [phiK, vLaw]
+        · simp [phiK, vLaw]
+      by_cases h1 : i = 1
+      · subst h1
+        rw [hfs q hq ρ hρ t ht]
+        have hcont : Continuous (fun u => vLaw q ρ u * kapT ρ u) :=
+          (vLaw_cont q ρ).mul (hkc ρ)
+        have h := (hcont.integral_hasStrictDerivAt 0 t).hasDerivAt.const_add (ρ (Rv 1))
+        have hf : phiK φo kapT q ρ 1 = fun u => ρ (Rv 1) + ∫ x in (0:ℝ)..u, vLaw q ρ x * kapT ρ x := by
+          funext u; simp [phiK]
+        rw [hf]
+        exact h
+      · have hf : phiK φo kapT q ρ i = φo ρ i := by
+          funext u; exact phiK_other φo kapT q ρ i h0 h1 u
+        rw [hf]
+        exact hfo q hq ρ hρ i h0 h1 t ht
+    · intro t ht _
+      exact hdomrun q hq ρ hρ t ht
+  sol := by
+    intro q hq ρ hρ τ hτ
+    rw [hsys q hq, hdomm q hq]
+    refine explicit_sol ρ (phiK φo kapT q ρ) τ hτ ?_ ?_ ?_
     · intro i
       by_cases h0 : i = 0
       · subst h0; simp [phiK, vLaw]

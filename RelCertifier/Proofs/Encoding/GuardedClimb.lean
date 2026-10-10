@@ -189,16 +189,16 @@ theorem trajR_aux (ρ : State (Var n)) (φ : Fin n → ℝ → ℝ) (t : ℝ) (i
     trajR ρ φ t ((Side.Aux, i) : Var n) = ρ ((Side.Aux, i) : Var n) := by
   simp [trajR]
 
-/-- **An explicit right run.** If every coordinate function starts at `ρ`'s right coordinate
-and has the right field's derivative along the trajectory, and the domain holds along it,
-the trajectory is a run of the right block (unit stretch) of any duration `τ ≥ 0`. -/
-theorem explicit_run {fR : Fin n → Term (Var n)} {dom : Formula (Var n)} (ρ : State (Var n))
+/-- **An explicit right solution.** If every coordinate function starts at `ρ`'s right
+coordinate and has the right field's derivative along the trajectory, and the domain holds
+along it, the trajectory solves the right block (unit stretch) on `[0, τ]`. -/
+theorem explicit_sol {fR : Fin n → Term (Var n)} {dom : Formula (Var n)} (ρ : State (Var n))
     (φ : Fin n → ℝ → ℝ) (τ : ℝ) (hτ : 0 ≤ τ) (h0 : ∀ i, φ i 0 = ρ (Rv i))
     (hder : ∀ i, ∀ t, 0 ≤ t → t ≤ τ →
       HasDerivAt (φ i) (Term.eval (fR i) (trajR ρ φ t)) t)
     (hdom : ∀ t, 0 ≤ t → t ≤ τ → Formula.sat dom (trajR ρ φ t)) :
-    Program.sem (Program.ode (rightBlock fR (Term.const 1)) dom) ρ (trajR ρ φ τ) := by
-  refine ⟨τ, trajR ρ φ, hτ, ?_, rfl, ?_, ?_, fun t ht => hdom t ht.1 ht.2⟩
+    ODESol (rightBlock fR (Term.const 1)) dom ρ τ (trajR ρ φ) := by
+  refine ⟨hτ, ?_, ?_, ?_, fun t ht => hdom t ht.1 ht.2⟩
   · funext x
     obtain ⟨sd, i⟩ := x
     cases sd with
@@ -223,6 +223,16 @@ theorem explicit_run {fR : Fin n → Term (Var n)} {dom : Formula (Var n)} (ρ :
           List.mem_map.mpr ⟨i, List.mem_finRange i, rfl⟩, rfl⟩) hx
     | L => rfl
     | Aux => rfl
+
+/-- **An explicit right run.** The run of `explicit_sol`. -/
+theorem explicit_run {fR : Fin n → Term (Var n)} {dom : Formula (Var n)} (ρ : State (Var n))
+    (φ : Fin n → ℝ → ℝ) (τ : ℝ) (hτ : 0 ≤ τ) (h0 : ∀ i, φ i 0 = ρ (Rv i))
+    (hder : ∀ i, ∀ t, 0 ≤ t → t ≤ τ →
+      HasDerivAt (φ i) (Term.eval (fR i) (trajR ρ φ t)) t)
+    (hdom : ∀ t, 0 ≤ t → t ≤ τ → Formula.sat dom (trajR ρ φ t)) :
+    Program.sem (Program.ode (rightBlock fR (Term.const 1)) dom) ρ (trajR ρ φ τ) := by
+  have H := explicit_sol ρ φ τ hτ h0 hder hdom
+  exact ⟨τ, trajR ρ φ, H.hr, H.hΦ0, rfl, H.hder, H.hmask, H.hdom⟩
 
 /-- The exponential approach `c + (x₀ − c) e^{−k t}` solves `x' = k (c − x)`. -/
 theorem hasDerivAt_expApproach (k c x0 t : ℝ) :

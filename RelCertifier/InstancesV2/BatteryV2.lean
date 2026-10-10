@@ -31,6 +31,11 @@ import RelCertifier.VerdictsV2.CoveragePinsV2
 -- new suite_v2 instances
 import RelCertifier.InstancesV2.Modal.Watertank
 import RelCertifier.InstancesV2.Modal.PlatoonDelayProfiles
+import RelCertifier.InstancesV2.Modal.AccSpoofLimp
+import RelCertifier.InstancesV2.Modal.AccTuneLimp
+import RelCertifier.InstancesV2.Modal.PlatoonDelayLinkloss
+import RelCertifier.InstancesV2.Modal.QuadLightAirframe20
+import RelCertifier.InstancesV2.Modal.QuadLightProfiles
 -- the 19 copied benchmarks: legacy theorems (their literal is the suite_v2 literal)
 import RelCertifier.Instances.MatchMultiRatePruned
 import RelCertifier.Instances.RoverLadderRung1Modal
@@ -58,6 +63,11 @@ namespace RelCertifier
 
 #print axioms V2Watertank.watertank_modal
 #print axioms V2PlatoonDelayProfiles.platoon_delay_profiles_modal
+#print axioms V2AccSpoofLimp.acc_spoof_limp_modeKeyed
+#print axioms V2AccTuneLimp.acc_tune_limp_modeKeyed
+#print axioms V2PlatoonDelayLinkloss.platoon_delay_linkloss_modeKeyed
+#print axioms V2QuadLightAirframe20.quad_light_airframe_20_modal
+#print axioms V2QuadLightProfiles.quad_light_profiles_modal
 
 /-! ## Copied benchmarks (legacy theorems; `SameIR` ties the literals) -/
 

@@ -13,6 +13,11 @@ so a wrong row does not compile; with `modalVerdX_of_queries` (the rebuild denot
 kernel-checked.
 -/
 import RelCertifier.VerdictsV2.RunV2
+import RelCertifier.InstancesV2.Modal.QuadLightProfiles
+import RelCertifier.InstancesV2.Modal.QuadLightAirframe20
+import RelCertifier.InstancesV2.Modal.PlatoonDelayLinkloss
+import RelCertifier.InstancesV2.Modal.AccTuneLimp
+import RelCertifier.InstancesV2.Modal.AccSpoofLimp
 import RelCertifier.InstancesV2.Modal.Watertank
 import RelCertifier.InstancesV2.Modal.PlatoonDelayProfiles
 
@@ -74,5 +79,64 @@ theorem pin_platoon_delay_profiles_11 : V2PlatoonDelayProfiles.Verd 1 1 = packVe
   pin_row _ rfl irV2_pdp cutV2_pdp (by simp [packLam, packsV2, V2PlatoonDelayProfiles.lam])
 theorem pin_platoon_delay_profiles_12 : V2PlatoonDelayProfiles.Verd 1 2 = packVerd (packsV2.getD 16 default) :=
   pin_row _ rfl irV2_pdp cutV2_pdp (by simp [packLam, packsV2, V2PlatoonDelayProfiles.lam])
+
+theorem irV2_acc_spoof_limp : irV2 "acc_spoof_limp" = acc_spoof_limp_IRv2 := by decide
+theorem cutV2_acc_spoof_limp : cutV2 "acc_spoof_limp" = Oracle.acc_spoof_limp_cutsV2X := by decide
+theorem pin_acc_spoof_limp_0 : V2AccSpoofLimp.Verd 0 0 = packVerd (packsV2.getD 17 default) :=
+  pin_row _ rfl irV2_acc_spoof_limp cutV2_acc_spoof_limp (by simp [packLam, packsV2, V2AccSpoofLimp.lam])
+theorem pin_acc_spoof_limp_1 : V2AccSpoofLimp.Verd 0 1 = packVerd (packsV2.getD 18 default) :=
+  pin_row _ rfl irV2_acc_spoof_limp cutV2_acc_spoof_limp (by simp [packLam, packsV2, V2AccSpoofLimp.lam])
+theorem pin_acc_spoof_limp_2 : V2AccSpoofLimp.Verd 0 2 = packVerd (packsV2.getD 19 default) :=
+  pin_row _ rfl irV2_acc_spoof_limp cutV2_acc_spoof_limp (by simp [packLam, packsV2, V2AccSpoofLimp.lam])
+theorem pin_acc_spoof_limp_3 : V2AccSpoofLimp.Verd 1 0 = packVerd (packsV2.getD 20 default) :=
+  pin_row _ rfl irV2_acc_spoof_limp cutV2_acc_spoof_limp (by simp [packLam, packsV2, V2AccSpoofLimp.lam])
+theorem pin_acc_spoof_limp_4 : V2AccSpoofLimp.Verd 1 1 = packVerd (packsV2.getD 21 default) :=
+  pin_row _ rfl irV2_acc_spoof_limp cutV2_acc_spoof_limp (by simp [packLam, packsV2, V2AccSpoofLimp.lam])
+theorem pin_acc_spoof_limp_5 : V2AccSpoofLimp.Verd 1 2 = packVerd (packsV2.getD 22 default) :=
+  pin_row _ rfl irV2_acc_spoof_limp cutV2_acc_spoof_limp (by simp [packLam, packsV2, V2AccSpoofLimp.lam])
+
+theorem irV2_acc_tune_limp : irV2 "acc_tune_limp" = acc_tune_limp_IRv2 := by decide
+theorem cutV2_acc_tune_limp : cutV2 "acc_tune_limp" = Oracle.acc_tune_limp_cutsV2X := by decide
+theorem pin_acc_tune_limp_0 : V2AccTuneLimp.Verd 0 0 = packVerd (packsV2.getD 23 default) :=
+  pin_row _ rfl irV2_acc_tune_limp cutV2_acc_tune_limp (by simp [packLam, packsV2, V2AccTuneLimp.lam])
+theorem pin_acc_tune_limp_1 : V2AccTuneLimp.Verd 0 1 = packVerd (packsV2.getD 24 default) :=
+  pin_row _ rfl irV2_acc_tune_limp cutV2_acc_tune_limp (by simp [packLam, packsV2, V2AccTuneLimp.lam])
+theorem pin_acc_tune_limp_2 : V2AccTuneLimp.Verd 0 2 = packVerd (packsV2.getD 25 default) :=
+  pin_row _ rfl irV2_acc_tune_limp cutV2_acc_tune_limp (by simp [packLam, packsV2, V2AccTuneLimp.lam])
+theorem pin_acc_tune_limp_3 : V2AccTuneLimp.Verd 1 0 = packVerd (packsV2.getD 26 default) :=
+  pin_row _ rfl irV2_acc_tune_limp cutV2_acc_tune_limp (by simp [packLam, packsV2, V2AccTuneLimp.lam])
+theorem pin_acc_tune_limp_4 : V2AccTuneLimp.Verd 1 1 = packVerd (packsV2.getD 27 default) :=
+  pin_row _ rfl irV2_acc_tune_limp cutV2_acc_tune_limp (by simp [packLam, packsV2, V2AccTuneLimp.lam])
+theorem pin_acc_tune_limp_5 : V2AccTuneLimp.Verd 1 2 = packVerd (packsV2.getD 28 default) :=
+  pin_row _ rfl irV2_acc_tune_limp cutV2_acc_tune_limp (by simp [packLam, packsV2, V2AccTuneLimp.lam])
+
+theorem irV2_platoon_delay_linkloss : irV2 "platoon_delay_linkloss" = platoon_delay_linkloss_IRv2 := by decide
+theorem cutV2_platoon_delay_linkloss : cutV2 "platoon_delay_linkloss" = Oracle.platoon_delay_linkloss_cutsV2X := by decide
+theorem pin_platoon_delay_linkloss_0 : V2PlatoonDelayLinkloss.Verd 0 0 = packVerd (packsV2.getD 29 default) :=
+  pin_row _ rfl irV2_platoon_delay_linkloss cutV2_platoon_delay_linkloss (by simp [packLam, packsV2])
+theorem pin_platoon_delay_linkloss_1 : V2PlatoonDelayLinkloss.Verd 0 1 = packVerd (packsV2.getD 30 default) :=
+  pin_row _ rfl irV2_platoon_delay_linkloss cutV2_platoon_delay_linkloss (by simp [packLam, packsV2])
+theorem pin_platoon_delay_linkloss_2 : V2PlatoonDelayLinkloss.Verd 1 0 = packVerd (packsV2.getD 31 default) :=
+  pin_row _ rfl irV2_platoon_delay_linkloss cutV2_platoon_delay_linkloss (by simp [packLam, packsV2])
+theorem pin_platoon_delay_linkloss_3 : V2PlatoonDelayLinkloss.Verd 1 1 = packVerd (packsV2.getD 32 default) :=
+  pin_row _ rfl irV2_platoon_delay_linkloss cutV2_platoon_delay_linkloss (by simp [packLam, packsV2])
+theorem pin_platoon_delay_linkloss_4 : V2PlatoonDelayLinkloss.Verd 2 0 = packVerd (packsV2.getD 33 default) :=
+  pin_row _ rfl irV2_platoon_delay_linkloss cutV2_platoon_delay_linkloss (by simp [packLam, packsV2])
+theorem pin_platoon_delay_linkloss_5 : V2PlatoonDelayLinkloss.Verd 2 1 = packVerd (packsV2.getD 34 default) :=
+  pin_row _ rfl irV2_platoon_delay_linkloss cutV2_platoon_delay_linkloss (by simp [packLam, packsV2])
+
+theorem irV2_quad_light_airframe_20 : irV2 "quad_light_airframe_20" = quad_light_airframe_20_IRv2 := by decide
+theorem cutV2_quad_light_airframe_20 : cutV2 "quad_light_airframe_20" = Oracle.quad_light_airframe_20_cutsV2X := by decide
+theorem pin_quad_light_airframe_20_0 : V2QuadLightAirframe20.Verd 0 0 = packVerd (packsV2.getD 35 default) :=
+  pin_row _ rfl irV2_quad_light_airframe_20 cutV2_quad_light_airframe_20 (by simp [packLam, packsV2, V2QuadLightAirframe20.lam])
+
+theorem irV2_quad_light_profiles : irV2 "quad_light_profiles" = quad_light_profiles_IRv2 := by decide
+theorem cutV2_quad_light_profiles : cutV2 "quad_light_profiles" = Oracle.quad_light_profiles_cutsV2X := by decide
+theorem pin_quad_light_profiles_0 : V2QuadLightProfiles.Verd 0 0 = packVerd (packsV2.getD 36 default) :=
+  pin_row _ rfl irV2_quad_light_profiles cutV2_quad_light_profiles (by simp [packLam, packsV2, V2QuadLightProfiles.lam])
+theorem pin_quad_light_profiles_1 : V2QuadLightProfiles.Verd 0 1 = packVerd (packsV2.getD 37 default) :=
+  pin_row _ rfl irV2_quad_light_profiles cutV2_quad_light_profiles (by simp [packLam, packsV2, V2QuadLightProfiles.lam])
+theorem pin_quad_light_profiles_2 : V2QuadLightProfiles.Verd 0 2 = packVerd (packsV2.getD 38 default) :=
+  pin_row _ rfl irV2_quad_light_profiles cutV2_quad_light_profiles (by simp [packLam, packsV2, V2QuadLightProfiles.lam])
 
 end RelCertifier.VerdictsV2

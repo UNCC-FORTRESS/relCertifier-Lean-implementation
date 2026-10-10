@@ -71,10 +71,37 @@ def packsV2 : List PackV2 :=
     ⟨"platoon_delay_profiles", 2, 0, [0, 1], 1, 1, 0, 2⟩,
     ⟨"platoon_delay_profiles", 2, 1, [0, 1], 1, 1, 1, 0⟩,
     ⟨"platoon_delay_profiles", 2, 1, [0, 1], 1, 1, 1, 1⟩,
-    ⟨"platoon_delay_profiles", 2, 1, [0, 1], 1, 1, 1, 2⟩ ]
+    ⟨"platoon_delay_profiles", 2, 1, [0, 1], 1, 1, 1, 2⟩,
+    -- acc_spoof_limp
+    ⟨"acc_spoof_limp", 3, 0, [0, 1], 5, 4, 0, 0⟩,
+    ⟨"acc_spoof_limp", 3, 0, [0, 1], 5, 4, 0, 1⟩,
+    ⟨"acc_spoof_limp", 3, 0, [0, 1], 5, 4, 0, 2⟩,
+    ⟨"acc_spoof_limp", 3, 1, [0, 1], 1, 1, 1, 0⟩,
+    ⟨"acc_spoof_limp", 3, 1, [0, 1], 1, 1, 1, 1⟩,
+    ⟨"acc_spoof_limp", 3, 1, [0, 1], 1, 1, 1, 2⟩,
+    -- acc_tune_limp
+    ⟨"acc_tune_limp", 3, 0, [0, 1], 3, 2, 0, 0⟩,
+    ⟨"acc_tune_limp", 3, 0, [0, 1], 3, 2, 0, 1⟩,
+    ⟨"acc_tune_limp", 3, 0, [0, 1], 3, 2, 0, 2⟩,
+    ⟨"acc_tune_limp", 3, 1, [0, 1], 1, 1, 1, 0⟩,
+    ⟨"acc_tune_limp", 3, 1, [0, 1], 1, 1, 1, 1⟩,
+    ⟨"acc_tune_limp", 3, 1, [0, 1], 1, 1, 1, 2⟩,
+    -- platoon_delay_linkloss
+    ⟨"platoon_delay_linkloss", 3, 0, [0, 1], 1, 1, 0, 0⟩,
+    ⟨"platoon_delay_linkloss", 3, 0, [0, 1], 1, 1, 0, 1⟩,
+    ⟨"platoon_delay_linkloss", 3, 1, [0, 1], 1, 1, 1, 0⟩,
+    ⟨"platoon_delay_linkloss", 3, 1, [0, 1], 1, 1, 1, 1⟩,
+    ⟨"platoon_delay_linkloss", 3, 2, [0, 1], 1, 1, 2, 0⟩,
+    ⟨"platoon_delay_linkloss", 3, 2, [0, 1], 1, 1, 2, 1⟩,
+    -- quad_light_airframe_20
+    ⟨"quad_light_airframe_20", 2, 0, [0, 1], 7, 4, 0, 0⟩,
+    -- quad_light_profiles
+    ⟨"quad_light_profiles", 2, 0, [0, 1], 5, 2, 0, 0⟩,
+    ⟨"quad_light_profiles", 2, 0, [0, 1], 5, 2, 0, 1⟩,
+    ⟨"quad_light_profiles", 2, 0, [0, 1], 5, 2, 0, 2⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 34
+def expectedModalV2 : Nat := 78
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do

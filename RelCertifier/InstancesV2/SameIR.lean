@@ -2,11 +2,13 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The 19 suite_v2 benchmarks copied unchanged from suite_uniform (GENERATED)
+# The 19 suite_v2 benchmarks carried over from the retired legacy suite (GENERATED)
 
-For each, the suite_v2 file's parser-emitted literal IS the suite_uniform literal every
-legacy instance quotes (`rfl`), so the legacy theorems are theorems about the suite_v2
-file (the file-to-literal tie is `relcert-test`'s drift check over the suite_v2 manifest).
+Each of these suite_v2 files is a byte-identical copy of a file of the retired legacy suite
+(`suite_uniform`, removed from the tree; git history keeps it). Its parser-emitted literal
+IS the literal the carried-over legacy instance quotes (`rfl` below), so the legacy
+theorems (`Instances/`, re-exported by `InstancesV2/BatteryV2`) are theorems about the
+suite_v2 file; the file-to-literal tie is `relcert-test`'s `[ir-drift-v2]`.
 -/
 import RelCertifier.InstancesV2.BenchIR.match_multi_rate
 import RelCertifier.Instances.BenchIR.match_multi_rate

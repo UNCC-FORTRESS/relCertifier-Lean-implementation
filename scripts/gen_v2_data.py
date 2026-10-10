@@ -8,8 +8,9 @@ Per benchmark `<b>` of benchmarks/suite_v2 (all 45):
                          both kernel-checked well-formed against the IR literal by `rfl`
 Aggregators: BenchIR.lean (`benchIRTableV2`), BenchCovers.lean (`coverTableV2`),
 Cuts.lean (`cutTableV2`), CoverReplay.lean (kernel replay of every emitted cover,
-`by decide`), SameIR.lean (the 19 benchmarks copied unchanged from suite_uniform: their v2
-literal IS the legacy literal, `rfl`).
+`by decide`), SameIR.lean (the 19 benchmarks whose suite_v2 file is a byte-identical copy
+of a file of the retired legacy suite: their v2 literal IS the literal the carried-over
+legacy theorem quotes, `rfl`).
 
 Usage: python3 scripts/gen_v2_data.py [bench ...]   (default: all of benchmarks/suite_v2)
 Every generated file is overwritten; the aggregators always list the whole suite.
@@ -45,7 +46,7 @@ def run(args, env_extra=None):
 def all_benches():
     return sorted(d for d in os.listdir(SUITE) if os.path.isfile(f"{SUITE}/{d}/input.txt"))
 
-# the 19 benchmarks whose suite_v2 file normalizes to the suite_uniform one
+# the 19 benchmarks whose suite_v2 file is a byte-identical copy of a retired legacy file
 SAME = ["match_multi_rate", "refinement_ladder_rover_rung1_2to3",
         "refinement_ladder_rover_rung2_3to6", "refinement_ladder_rover_rung2_6dof",
         "refinement_ladder_rover_rung2b_6dof", "refinement_ladder_rover_rung2c_6dof",
@@ -58,8 +59,7 @@ SAME = ["match_multi_rate", "refinement_ladder_rover_rung1_2to3",
 
 def emit_leaves(b):
     path = f"{SUITE}/{b}/input.txt"
-    ir = run([RELCERT, "--emit-ir", path, f"{b}_IRv2"]).replace(
-        "benchmarks/suite_uniform/", "benchmarks/suite_v2/")
+    ir = run([RELCERT, "--emit-ir", path, f"{b}_IRv2"])
     with open(f"{OUT}/BenchIR/{b}.lean", "w") as f:
         f.write(HDR.format(b=b, what="parser-emitted IR literal"))
         f.write("import RelCertifier.Trusted.Parse\n\nnamespace RelCertifier.Parse\n\n")
@@ -160,11 +160,13 @@ def coverReplays (p : Parse.PProblem) (c : CoverEmitE) : Bool :=
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The 19 suite_v2 benchmarks copied unchanged from suite_uniform (GENERATED)
+# The 19 suite_v2 benchmarks carried over from the retired legacy suite (GENERATED)
 
-For each, the suite_v2 file's parser-emitted literal IS the suite_uniform literal every
-legacy instance quotes (`rfl`), so the legacy theorems are theorems about the suite_v2
-file (the file-to-literal tie is `relcert-test`'s drift check over the suite_v2 manifest).
+Each of these suite_v2 files is a byte-identical copy of a file of the retired legacy suite
+(`suite_uniform`, removed from the tree; git history keeps it). Its parser-emitted literal
+IS the literal the carried-over legacy instance quotes (`rfl` below), so the legacy
+theorems (`Instances/`, re-exported by `InstancesV2/BatteryV2`) are theorems about the
+suite_v2 file; the file-to-literal tie is `relcert-test`'s `[ir-drift-v2]`.
 -/
 """)
         for b in SAME:

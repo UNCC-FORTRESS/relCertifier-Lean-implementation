@@ -3476,8 +3476,8 @@ wall is a *blocking* constraint, not a physical limit of the rover: at `s_R = 10
 reference cannot flow (its odometer would leave the domain), while a deployed rover up to
 2 m behind (`s_L ≤ s_R + 2`) still moves. The modal claim with the right zone's kept cut
 atoms as its region is then FALSE as modeled (found while proving it, 2026-10-09), although
-the tool CERTIFIED (the covers' flow queries are posed over the domain, not over the
-existence of the right run).
+the tool CERTIFIED (nonblocking is the paper's Assumption 1 on the model; the tool's queries
+do not check it).
 
 **Change** (benchmark rule: domains are physical limits, never restrictions to force a
 match). The odometer wall is removed from both sides' evolve domains of every mode in both

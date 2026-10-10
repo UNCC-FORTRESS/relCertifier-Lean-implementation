@@ -13,7 +13,9 @@ their REPAIRED model (section 4.5: the old model's nominal controller blocked af
 cycle, violating Assumption 1; the earlier kernel-checked refutations are of that model).
 The three ladders `rung2_3to6`, `story2_lateral_rung_{a,b}`, earlier recorded as "refuted by
 argument", are proved: that argument used a left window with no guard test (section 4.5).
-Summary table: section 6.
+Summary table: section 6. Assumption 1 of each right model (nonblocking and
+successor-completeness), which no statement here assumes, is verified separately per
+benchmark (`WellFormedR`): `docs/WELLFORMED.md`.
 
 ## 1. The problem
 
@@ -455,3 +457,9 @@ for the same 45 benchmarks' theorems before this branch (−62: `rung1`, `rung3_
 `rover_patrol_refine` at 10 each). The verdict runner's tables are unchanged (the choice-form
 and relaxation theorems, still built and imported for their shared definitions, take those
 packs; the platoon3 packs are re-run on the repaired model).
+
+Assumption 1 is not a hypothesis of any row; it is verified per benchmark as a separate model
+fact (`WellFormedR`, `InstancesV2/WellFormedBattery.lean`, `docs/WELLFORMED.md`): proved for 30,
+false for 9 (blocking modes exhibited: the `arm_plateau` approach bands, the BRAKE / LIMIT
+sinks of the `platoon_delay`, `platoon3` and `quad_light` files), proved on the conserved
+momentum band for the 6 satellites.

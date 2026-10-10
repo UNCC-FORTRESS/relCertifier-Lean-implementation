@@ -122,10 +122,22 @@ def packsV2 : List PackV2 :=
     ⟨"charger_fast_tapers", 2, 2, [0], 1, 1, 2, 0⟩,
     ⟨"charger_fast_tapers", 2, 2, [0], 1, 1, 2, 1⟩,
     ⟨"charger_fast_tapers", 2, 2, [0], 1, 1, 2, 2⟩,
-    ⟨"charger_fast_tapers", 2, 2, [0], 1, 1, 2, 3⟩ ]
+    ⟨"charger_fast_tapers", 2, 2, [0], 1, 1, 2, 3⟩,
+    -- story3_rollover_ladder_rung_b
+    ⟨"story3_rollover_ladder_rung_b", 12, 0, [0, 1, 2], 1, 1, 0, 0⟩,
+    ⟨"story3_rollover_ladder_rung_b", 12, 0, [0, 1, 2], 1, 1, 0, 1⟩,
+    ⟨"story3_rollover_ladder_rung_b", 12, 0, [0, 1, 2], 1, 1, 0, 2⟩,
+    ⟨"story3_rollover_ladder_rung_b", 12, 1, [0, 1], 1, 1, 1, 0⟩,
+    ⟨"story3_rollover_ladder_rung_b", 12, 1, [0, 1], 1, 1, 1, 1⟩,
+    ⟨"story3_rollover_ladder_rung_b", 12, 1, [0, 1], 1, 1, 1, 2⟩,
+    ⟨"story3_rollover_ladder_rung_b", 12, 2, [0, 1], 1, 1, 2, 0⟩,
+    ⟨"story3_rollover_ladder_rung_b", 12, 2, [0, 1], 1, 1, 2, 1⟩,
+    ⟨"story3_rollover_ladder_rung_b", 12, 2, [0, 1], 1, 1, 2, 2⟩,
+    -- sat_detumble_nominal
+    ⟨"sat_detumble_nominal", 4, 0, [0, 1], 1, 1, 0, 0⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 97
+def expectedModalV2 : Nat := 120
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do

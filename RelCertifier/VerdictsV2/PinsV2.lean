@@ -13,6 +13,8 @@ so a wrong row does not compile; with `modalVerdX_of_queries` (the rebuild denot
 kernel-checked.
 -/
 import RelCertifier.VerdictsV2.RunV2
+import RelCertifier.InstancesV2.Modal.SatDetumbleNominal
+import RelCertifier.InstancesV2.Modal.Story3RolloverRungB
 import RelCertifier.InstancesV2.Modal.ChargerFastTapers
 import RelCertifier.InstancesV2.Modal.AccSpoofLag
 import RelCertifier.InstancesV2.Modal.AccTuneLag
@@ -196,5 +198,31 @@ theorem pin_charger_fast_tapers_7 : V2ChargerFastTapers.Verd 2 2 = packVerd (pac
   pin_row _ rfl irV2_charger_fast_tapers cutV2_charger_fast_tapers (by simp [packLam, packsV2, V2ChargerFastTapers.lam])
 theorem pin_charger_fast_tapers_8 : V2ChargerFastTapers.Verd 2 3 = packVerd (packsV2.getD 57 default) :=
   pin_row _ rfl irV2_charger_fast_tapers cutV2_charger_fast_tapers (by simp [packLam, packsV2, V2ChargerFastTapers.lam])
+
+theorem irV2_story3_rollover_ladder_rung_b : irV2 "story3_rollover_ladder_rung_b" = story3_rollover_ladder_rung_b_IRv2 := by decide
+theorem cutV2_story3_rollover_ladder_rung_b : cutV2 "story3_rollover_ladder_rung_b" = Oracle.story3_rollover_ladder_rung_b_cutsV2X := by decide
+theorem pin_story3_rollover_ladder_rung_b_0 : V2Story3RolloverRungB.Verd 0 0 = packVerd (packsV2.getD 58 default) :=
+  pin_row _ rfl irV2_story3_rollover_ladder_rung_b cutV2_story3_rollover_ladder_rung_b (by simp [packLam, packsV2])
+theorem pin_story3_rollover_ladder_rung_b_1 : V2Story3RolloverRungB.Verd 0 1 = packVerd (packsV2.getD 59 default) :=
+  pin_row _ rfl irV2_story3_rollover_ladder_rung_b cutV2_story3_rollover_ladder_rung_b (by simp [packLam, packsV2])
+theorem pin_story3_rollover_ladder_rung_b_2 : V2Story3RolloverRungB.Verd 0 2 = packVerd (packsV2.getD 60 default) :=
+  pin_row _ rfl irV2_story3_rollover_ladder_rung_b cutV2_story3_rollover_ladder_rung_b (by simp [packLam, packsV2])
+theorem pin_story3_rollover_ladder_rung_b_3 : V2Story3RolloverRungB.Verd 1 0 = packVerd (packsV2.getD 61 default) :=
+  pin_row _ rfl irV2_story3_rollover_ladder_rung_b cutV2_story3_rollover_ladder_rung_b (by simp [packLam, packsV2])
+theorem pin_story3_rollover_ladder_rung_b_4 : V2Story3RolloverRungB.Verd 1 1 = packVerd (packsV2.getD 62 default) :=
+  pin_row _ rfl irV2_story3_rollover_ladder_rung_b cutV2_story3_rollover_ladder_rung_b (by simp [packLam, packsV2])
+theorem pin_story3_rollover_ladder_rung_b_5 : V2Story3RolloverRungB.Verd 1 2 = packVerd (packsV2.getD 63 default) :=
+  pin_row _ rfl irV2_story3_rollover_ladder_rung_b cutV2_story3_rollover_ladder_rung_b (by simp [packLam, packsV2])
+theorem pin_story3_rollover_ladder_rung_b_6 : V2Story3RolloverRungB.Verd 2 0 = packVerd (packsV2.getD 64 default) :=
+  pin_row _ rfl irV2_story3_rollover_ladder_rung_b cutV2_story3_rollover_ladder_rung_b (by simp [packLam, packsV2])
+theorem pin_story3_rollover_ladder_rung_b_7 : V2Story3RolloverRungB.Verd 2 1 = packVerd (packsV2.getD 65 default) :=
+  pin_row _ rfl irV2_story3_rollover_ladder_rung_b cutV2_story3_rollover_ladder_rung_b (by simp [packLam, packsV2])
+theorem pin_story3_rollover_ladder_rung_b_8 : V2Story3RolloverRungB.Verd 2 2 = packVerd (packsV2.getD 66 default) :=
+  pin_row _ rfl irV2_story3_rollover_ladder_rung_b cutV2_story3_rollover_ladder_rung_b (by simp [packLam, packsV2])
+
+theorem irV2_sat_detumble_nominal : irV2 "sat_detumble_nominal" = sat_detumble_nominal_IRv2 := by decide
+theorem cutV2_sat_detumble_nominal : cutV2 "sat_detumble_nominal" = Oracle.sat_detumble_nominal_cutsV2X := by decide
+theorem pin_sat_detumble_nominal_0 : V2SatDetumbleNominal.Verd 0 0 = packVerd (packsV2.getD 67 default) :=
+  pin_row _ rfl irV2_sat_detumble_nominal cutV2_sat_detumble_nominal (by simp [packLam, packsV2])
 
 end RelCertifier.VerdictsV2

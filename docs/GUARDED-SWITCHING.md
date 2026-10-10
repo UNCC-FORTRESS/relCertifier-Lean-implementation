@@ -1,14 +1,19 @@
 # Guard-gated switching on the right (branch `guarded-right`)
 
-**Status (2026-10-10, branch `guarded-right`): done.** The statement is strengthened to one
-uniform shape for all 45 benchmarks: Theorem 3 over the guarded right automaton with the loop
-invariant carrying the MODE-CONSISTENT region `regionG guard cuts q = guard q ∧ cuts q` of the
-right's current mode (section 3.1). 39 benchmarks carry it for every window length,
-`refinement_ladder_rover_rung2c` for windows `dt < 1` (false for `dt > 2.12` by argument); it is
-false for `platoon3_linkloss` (every `dt > 0`, kernel-checked), `platoon3_profiles` (every
-`dt ≥ 1` kernel-checked, every `dt > 0.575` by argument, `dt ≤ 0.575` open), and `refinement_ladder_rover_rung2_3to6`, `story2_lateral_rung_a_8dof`,
-`story2_lateral_rung_b_12dof` (every `dt > 0`, by the argument of section 4.5, not
-kernel-checked). Summary table: section 6.
+**Status (2026-10-10, branch `guarded-right`): done, all 45.** One uniform statement for all
+45 benchmarks: Theorem 3 with the paper's LEFT program, the guard-gated left automaton
+`leftAutomatonBody A u_L` (jump, then flow: each left edge tests the entered left mode's
+lowered guard), against the GUARDED right automaton (flow, then jump: each right edge tests
+the entered right mode's lowered guard), with the loop invariant carrying the declared rows
+keyed by `u_L`, both envelopes, `u_L ∈ modes`, and the MODE-CONSISTENT region
+`regionG guard cuts q = guard q ∧ cuts q` of the right's current mode (sections 3.1, 3.3).
+44 benchmarks carry it for every window length, `refinement_ladder_rover_rung2c` for every
+window up to its control interval, `dt ≤ ε_L = 1`. The two `platoon3` benchmarks carry it on
+their REPAIRED model (section 4.5: the old model's nominal controller blocked after a full
+cycle, violating Assumption 1; the earlier kernel-checked refutations are of that model).
+The three ladders `rung2_3to6`, `story2_lateral_rung_{a,b}`, earlier recorded as "refuted by
+argument", are proved: that argument used a left window with no guard test (section 4.5).
+Summary table: section 6.
 
 ## 1. The problem
 
@@ -163,6 +168,53 @@ axiom. Generic support: `sat_regionG`, `regionG_fv_sub`, `notMem_regionG_fv`, `g
   pair's anchor preserved across the switch; `sync_stretch` (virtual-band stretch for the
   pairs the certificate does not cover).
 
+### 3.3 The paper's left program (all 45)
+
+The paper's `cpsProg` body is the same on both sides: `?(m ∈ next(mv)) ; ?guard_m(x) ;
+mv := m ; flow_m`. On the left it is mechanized as `leftAutomatonBody A u_L`
+(`ModeHandoff.lean`), jump then flow: `?(u_L = m') ; ⋃_{t ∈ next m'} ?guard_t ; u_L := t ;
+window_t`; on the right as `rightAutomatonBody G mv`, the rotation flow then jump (section 1).
+The final statement, for every benchmark:
+
+```lean
+RFormula.rvalid (theorem3Form (leftAutomatonBody A u_L) (rightAutomatonBody G mv)
+  (psiK u_L ϕ A.numModes domL domR (mvRegionR mv gregion G.modes.length)))
+-- psiK = ⋀_m (⌊u_L = m⌋_L → ϕ m) ∧ ⌊domL⌋_L ∧ ⌊domR⌋_R ∧ (right in gregion (mv)) ∧ ⌊u_L ∈ modes⌋_L
+-- gregion q = guard q ∧ cuts q
+```
+
+`A` is read from the file: `A.guards` are the lowered left guards
+(`hostGuard … Side.L (mL l)`, checked per instance by `AL_guards … := rfl`), `A.next` the
+`next` lists resolved by name (`nextLA_eq … := by decide`), `A.window l` mode `l`'s clock-capped
+window (for the V2 instances it begins with its own guard test, idempotent with the edge's).
+For a mode-independent invariant `ϕ m = ϕ` for every `m`.
+
+**What each side of the invariant carries, and why.** The two rotations differ, and the
+invariant carries exactly what each guarantees at a loop boundary:
+
+* the RIGHT has just taken a guarded jump into its current mode `q` (flow then jump), so it
+  is in `q`'s guard: the invariant carries `guard q ∧ cuts q`;
+* the LEFT has just flowed in its current mode `u_L` (jump then flow), so nothing places it
+  in `u_L`'s guard (a window may leave it); the invariant carries `u_L ∈ modes`, the rows
+  keyed by `u_L`, and the left envelope `domL`. The NEXT window's guard is not an invariant
+  fact: it is tested by the program (`?guard_t`) before that window, and the step proof
+  receives it from the left run (`gwindowSeg_runs`, `gresp_gate`).
+
+**The generic bridge** (`Proofs/Encoding/LeftAutUniform.lean`, new leaf, proved once):
+`theorem3_leftAut_of_choice` turns a Theorem 3 over the plain choice of windows
+`bigChoice Ps` into the statement above with `ϕ m = ϕ`, provided every guard-gated left edge
+is a run of `bigChoice Ps` (`hsim`) and `u_L` is not read by the windows, the guards or the
+invariant's left side. A run of `L_A*` with `u_L` reset to its start value is a run of
+`(bigChoice Ps)*` (`leftStar_project`); the invariant's truth does not depend on the left
+`u_L` (`rsat_congr_left`). The proof is relational (bi-state semantics), so `u_L` only needs
+to be fresh on the LEFT: the `Var 2` instances use the left execution's auxiliary slot 0
+(the right execution's slot 0 is its `mv`, a different state). `theorem3_leftAut_of_choiceR`
+is the bridge in the instances' vocabulary; `LeftAut.ofG` / `ofGI` / `ofP` build `A` from an
+instance's window data and prove `hsim` and the footprints once. 29 mode-independent instances
+are restated through it in `InstancesV2/LeftAutV2.lean` (16) and `Instances/LeftAutLegacy.lean`
+(13); `rung2_3to6`, the two story2 ladders and `platoon3_profiles` are restated in their own
+files; the 12 mode-keyed instances were already over the left automaton.
+
 ## 4. Classification of the switches in the witnesses (Phase 0)
 
 Sections 4.1 and 4.2 record the first pass (the old invariants); the plans marked "refuted"
@@ -236,10 +288,11 @@ about the cut-only statement, not the final one; their last version is at `a96a3
   left `STEEP` window ends at `v_L = 0.3 − 0.2 e^{−3 dt} > 0.1`.
 
 Every such witness has the right OUTSIDE its current mode's guard (`s_R = 60` in `SLOW`,
-`s_R = 5` in `STEEP`). The mode-consistent region (section 3.1) excludes them, and with it 39
-of the 45 statements are provable for every window length (section 4.4).
+`s_R = 5` in `STEEP`). The mode-consistent region (section 3.1) excludes them; with it and the
+paper's left program (section 3.3) all 45 statements are proved (section 4.4; `rung2c` up to
+its control interval, the `platoon3` pair on the repaired model, section 4.5).
 
-### 4.4 The new responses (17 benchmarks)
+### 4.4 The new responses (22 benchmarks)
 
 All responses below are explicit: the right's runs are closed-form solutions (`trajR`,
 `explicit_run`), every switch is at a state where the entered guard holds by the explicit end
@@ -257,59 +310,60 @@ state, and the response ends in the final mode's guard.
 | `arm_plateau_slow` | three-band climb (merged with `arm_plateau_crit`'s two-band climb), in place | none (unchanged) |
 | `rover_patrol_zones` | climb to `FAST` (zone runs to each zone's floor, switch, hold) | none (was 10) |
 | `rover_patrol_refine` | the same climb; the deployed's `a + 5 v` capped by a linear-form chain (`w_L ≤ max(start, 29/4)`) | none (was 10) |
-| `refinement_ladder_rover_rung2c_6dof` | mirror: the lockstep (equality) rows forbid a mid-window switch, so the right mirrors the window in the window's band; switches only at window ends | 3 packs (unchanged); `0 ≤ dt < 1` |
+| `refinement_ladder_rover_rung2c_6dof` | mirror: the lockstep (equality) rows forbid a mid-window switch, so the right mirrors the window in the window's band; switches only at window ends | 3 packs (unchanged); `0 ≤ dt ≤ ε_L = 1` |
+| `refinement_ladder_rover_rung2_3to6`, `story2_lateral_rung_a_8dof`, `story2_lateral_rung_b_12dof` | synchronized climb with ordered bands (`Instances/RoverLadderRung2Guarded.lean`, `Story2Lateral{A,B}Guarded.lean`): the heading (and pitch) equality rows tie the reference to the deployed's clock; the left window's guard puts `s_L` in band `l`, the right's mode-consistent region puts `s_R` in band `q`, and `s_L ≤ s_R` gives `l ≤ q` (`band_le`); the reference only climbs, so every stretch is a forward or same-band pair `(l, q')`, `l ≤ q'`, whose certified coupling keeps the rows (anchor `if l ≤ q' then rows else ⊥`) | 6 packs each (the forward and same-band pairs, unchanged) |
+| `platoon3_linkloss`, `platoon3_profiles` (repaired model, section 4.5) | stay in the start mode on the certified joint segment, then the self-loop; legal at the end state: the kept cuts give the rated closing rate and the projected gap, the envelope `g_i ≤ 60`, and the gap floor `g_i ≥ 20` holds along the reference's own run (`Platoon3Link.gap_floor_Ronly`, the projected-gap conjunct makes the flow repel at the AEB floor); existence by the explicit link solution (`link_bounds`) | 2 resp. 3 packs |
 
-### 4.5 Benchmarks without a guarded theorem for every window length
+### 4.5 History: the earlier "refuted" entries, and what they refuted
 
-Each item gives the exact state; in each the start satisfies the full loop invariant
-(rows, envelopes, the right in its current mode's guard and cuts, the left in its window's
-guard where the window has one).
+The previous status of this branch listed six benchmarks without a guarded theorem for every
+window length. All six are now proved; what the earlier arguments and refutations showed:
 
-* **`platoon3_linkloss`: false for every `dt > 0` (kernel-checked,
-  `InstancesV2/Platoon3LinklossGuardedRefuted.lean`, `platoon3_linkloss_guarded_false`).**
-  Deployed links `(33, 1)`, `(25, −1)`, `(29, 0)` in `FOLLOW` (`u_L = 0`), reference links
-  `(34, 1)`, `(26, −1)`, `(30, 0)` in `FOLLOW` (`mv = 0`). The `FOLLOW` row is the exact
-  refinement up to the 1 m offset, so after any `FOLLOW` window the reference's end state is
-  determined (`g_i^R = g_i^L + 1`, `r_i^R = r_i^L`) whatever the reference did. The left edge
-  tests its guard before the window, so the deployed may leave its box: a window of length
-  `T = min(dt, 1)` carries `g₁^L = 29 + 12 u − 8 u²` (`u = e^{−T/4} ∈ (3/4, 1)`) above 33,
-  hence `g₁^R > 34`, outside `FOLLOW`'s guard; the AEB sinks have the empty region.
-* **`platoon3_profiles`: false for every `dt ≥ 1` (kernel-checked,
-  `InstancesV2/Platoon3ProfilesGuardedRefuted.lean`, `platoon3_profiles_guarded_false`);
-  `dt < 1` open.** Deployed links `(33, 1)`, `(25, −1)`, `(29, 0)`; reference `(34, 1)`,
-  `(26, −1)`, `(30, 0)` in `NORMAL`. The profiles share one loop per link, so the reference's
-  link difference `x = g₁ − g₂`, `y = r₁ − r₂` has profile-independent dynamics; its forms
-  `P = y + x/2`, `W = y + x/4` decay as `e^{−t/4}`, `e^{−t/2}` in every profile, so
-  `9 W = P²` with `0 < P ≤ 6` holds along every run of the guarded automaton (`star_J`).
-  Every profile guard bounds `x ≤ 8`, leaving `W = 4` (`P = 6`) or `W ≤ 1` (`P ≤ 3`). A
-  `FOLLOW` window of length 1 ends with `W_L = 4 e^{−1/2} ∈ (2, 3)`; the `ρ = 1/4` rows of
-  links 1 and 2 give `|W_R − W_L| ≤ 1`. With a window of length `T` instead of 1,
-  `W_L = 4 e^{−T/2}` and the same two conditions refute every `T ∈ (2 ln(4/3), 2 ln 2) ≈
-  (0.575, 1.386)`, so the statement is false for every `dt > 0.575` (kernel-checked for
-  `dt ≥ 1`); for `dt ≤ 0.575` it is open (with this witness the empty response keeps the two
-  rows used). The `⊤`-relaxation theorem is kept.
-* **`refinement_ladder_rover_rung2c_6dof`: guarded for `dt < 1`; false for `dt > 2.12`
-  (argument, not kernel-checked); `1 ≤ dt ≤ 2.12` open.** The rows are equalities on
-  `v, s, ψ, θ`, so the response must end exactly at the deployed's end state. A `STEEP`
-  window (the left guard tests `s < 0.6` at its start) from `s = 0.6 − ε`, `v = 0.8`,
-  `ψ = θ = 0` grows the odometer by `0.3 t + (1 − e^{−3t})/6`, past `1.4` once `t > 2.12`.
-  If the reference never leaves `STEEP` its last switch is out of `STEEP` (guards `s < 0.6`,
-  `s < 1.4`), impossible at `s_R = s_L ≥ 1.4`; if it leaves `STEEP` (at `s_R = 0.6`, after
-  flowing for the time `t₁ < t` it needs to grow its odometer by `ε`), its `v` stays at least
-  `min(0.3 + 0.5 e^{−3 t₁}, 0.5)` (`MODER`/`FLAT` pull `v` toward `0.5`/`0.65`), above the
-  deployed's `0.3 + 0.5 e^{−3t}`; the empty response leaves `s_R < 0.6`.
-  For `dt < 1` the odometer grows by at most `0.8 dt < 0.8`, the width of `MODER`'s band, and
-  the mirror response is proved (`rover_rung2c_guarded`).
 * **`refinement_ladder_rover_rung2_3to6`, `story2_lateral_rung_a_8dof`,
-  `story2_lateral_rung_b_12dof`: false for every `dt > 0` (argument, not kernel-checked).**
-  The left windows are plain (no left guard test); the rows contain heading equality
-  `ψ_L = ψ_R` (and pitch equality where present) and `v_L ≤ v_R`. State: right in `STEEP`,
-  `s_L = s_R = 0.1`, `v_L = v_R = 0.3`, `ψ_L = ψ_R = 0.1`, every other attitude coordinate
-  0. Left `FLAT` window of length `δ = min(dt, 0.1)`: `v_L = 0.65 − 0.35 e^{−3δ} > 0.3` and
-  `ψ_L = 0.1 e^{−δ}`. Every reference mode has `ψ' = −ψ`, so the row `ψ_R = ψ_L` forces the
-  reference's total flow time to be exactly `δ`; within `δ ≤ 0.1` the reference's odometer
-  stays below `0.1 + 0.3 δ < 0.6`, so `MODER`'s guard is never enabled and the reference stays
-  in `STEEP` at `v_R = 0.3 < v_L`. The `⊤`-relaxation theorems are kept.
+  `story2_lateral_rung_b_12dof`: the argument refuted the UNGUARDED-LEFT form only.** The
+  state was: right in `STEEP`, `s_L = s_R = 0.1`, `v_L = v_R = 0.3`, `ψ_L = ψ_R = 0.1`, and a
+  left `FLAT` window of length `δ = min(dt, 0.1)`; then `v_L` rises above `v_R` while the
+  heading equality forces the reference's total flow time to be `δ`, too short to leave
+  `STEEP`. That window was a run of the flattened left program `bigChoice (leftProgs dt)`,
+  whose windows carry NO guard test: the deployed runs a `FLAT` window from `s = 0.1`
+  although `FLAT`'s left guard is `s ≥ 1.4`. Against the paper's left program (each window
+  entered inside its lowered guard; `leftAutomatonBody`, section 3.3) that state is not a
+  window start, and the statement is proved for every `dt` (section 4.4: the band order
+  `l ≤ q` makes every stretch a certified forward or same-band pair). The argument was never
+  about the paper's Theorem 3.
+* **`refinement_ladder_rover_rung2c_6dof`: guarded for every window up to the control
+  interval, `0 ≤ dt ≤ ε_L = 1`** (`rover_rung2c_guarded`, `rover_rung2c_leftAut`; the
+  earlier proof stopped at `dt < 1`). The mirror response's only use of the window length is
+  that a `STEEP` window cannot carry the odometer past `MODER`'s band: it grows by at most
+  `0.8 r ≤ 0.8` from strictly below `0.6`, so it ends strictly below `1.4` also at `r = 1`.
+  For `dt > 2.12` the statement is false by the earlier argument (a `STEEP` window from
+  `s = 0.6 − ε`, `v = 0.8` carries the odometer past `1.4`; the equality rows forbid a
+  mid-window switch and `STEEP`'s successors are `MODER`, `STEEP`); windows longer than the
+  control interval are outside the model, and `1 < dt ≤ 2.12` is not claimed.
+* **`platoon3_linkloss`, `platoon3_profiles`: the refutations were kernel-checked and REAL,
+  of the old model; the model is repaired.** The old reference `FOLLOW` guard (and the
+  profiles' guards) was the ENGAGEMENT band `26 ≤ g_i ≤ 34 ∧ |r_i| ≤ 1`, and `FOLLOW`'s only
+  successors are `FOLLOW` and the AEB sinks `BRAKEk` (`g_k < 20`): a cycle ending at
+  `g > 34` (or `20 ≤ g < 26`, or `|r| > 1`) leaves the nominal controller with no enabled
+  mode. That is a violation of Assumption 1 (nonblocking) by the benchmark, which the
+  certificate cannot detect (its Assumption 1 is a hypothesis, never checked); the
+  mechanization found it. The refutations (`platoon3_linkloss_guarded_false`, every
+  `dt > 0`: deployed links `(33, 1)`, `(25, −1)`, `(29, 0)`, reference `(34, 1)`, `(26, −1)`,
+  `(30, 0)`, a `FOLLOW` window carries `g₁^L` above 33 and the exact row pins `g₁^R` above 34;
+  `platoon3_profiles_guarded_false`, every `dt ≥ 1`, through the profile-independent
+  link-difference invariant `9W = P²`) are files of that model and were removed with it;
+  their last version is at commit `1a3507f`. The repair (`docs/SUITE-REDESIGN.md` §20):
+  every guard is the controller's OPERATING RANGE, not its engagement band, so the
+  controller stays engaged and each guard is forward invariant under its own flow. The plain
+  operating range (`20 ≤ g_i ≤ 60`, `|r_i| ≤ 10`) DECLINES: from `g = 20`, `r = −10` the
+  reference reaches the AEB floor within one period, the pruning `FOLLOW → BRAKE` is lost,
+  and no floor in `[21, 35]` restores it with `|r| ≤ 10`. What restores it is the
+  projected-gap conjunct `21 ≤ g_i + 2 r_i ≤ 59` (the decaying slow form `r + (g − c)/2`;
+  at `g = 20` it forces `r ≥ 0.5`: the repelling flow the non-connection check needs; its
+  upper half keeps the exact `FOLLOW` refinement inside the evolve box), and, on the
+  deployed side, floors that keep every row-related reference state above the AEB floor
+  (`LOST` link 1 `g₁ ≥ 25`, the profiles' deployed `g_i ≥ 21`); with them both benchmarks
+  are CERTIFIED and both guarded Theorem 3s are proved.
 
 ## 5. Cost
 
@@ -323,72 +377,81 @@ guard where the window has one).
   instance is ≈ 450 to 600 lines (generated for the four `rover_dof_terrain` rungs); the
   synchronized climbs share `SyncSwitch.lean` / `LadderSync.lean` (≈ 700 lines), an
   instance ≈ 500 to 650 lines. Refutations: ≈ 450 lines each.
+* The paper's left program (section 3.3): the generic bridge `LeftAutUniform.lean` (≈ 500
+  lines, proved once); the 29 mode-independent restatements are generated
+  (`InstancesV2/LeftAutV2.lean`, `Instances/LeftAutLegacy.lean`, ≈ 25 lines each, every one
+  compiles in seconds); the three synchronized ladders ≈ 550 lines each
+  (`RoverLadderRung2Guarded`, `Story2Lateral{A,B}Guarded`, generated from one template).
+* The `platoon3` repair: `InstancesV2/Modal/Platoon3Link.lean` (the shared link: guard-atom
+  O2, explicit link box, gap floor along the reference's own run, ≈ 600 lines) and the two
+  instance files reworked in place; `Proofs/Encoding/RightOnlyStay.lean` (superlevel O2 along
+  a right-only flow).
 * Whole battery: `lake build RelCertifier.InstancesV2.BatteryV2` rebuilds the new leaves in a
   few minutes; the full `lake build` is incremental.
 
 ## 6. Final table
 
-"guarded" = Theorem 3 at the mode-consistent region over the guarded right automaton (section
-3.1), every switch kernel-checked legal, for every window length unless noted; "refuted ✓" =
-`¬ rvalid` of that statement kernel-checked; "refuted (arg.)" = false by the argument of
-section 4.5, not kernel-checked; those benchmarks keep their `⊤`-relaxation theorem. Packs =
-verdict-pack hypotheses of the final theorem (Z3-free when 0).
+Every row: Theorem 3 with the paper's left program (the guard-gated left automaton,
+section 3.3) against the guarded right automaton, at the mode-consistent region (section
+3.1), every switch on both sides kernel-checked legal, for every window length unless noted.
+"bridge" = proved over the window choice and carried to the left automaton by
+`theorem3_leftAut_of_choiceR`; the others are mode-keyed instances stated over the left
+automaton directly. Packs = verdict-pack hypotheses of the final theorem (Z3-free when 0).
 
-| # | benchmark | status | response | packs | theorem |
-|---|---|---|---|---|---|
-| 1 | `acc_spoof_lag` | guarded | (d) stays, or no step | 1 | `V2AccSpoofLag.acc_spoof_lag_modal` |
-| 2 | `acc_spoof_limp` | guarded | (d) stays, or no step | 6 | `V2AccSpoofLimp.acc_spoof_limp_modeKeyed` |
-| 3 | `acc_tune_lag` | guarded | (d) stays, or no step | 1 | `V2AccTuneLag.acc_tune_lag_modal` |
-| 4 | `acc_tune_limp` | guarded | (d) stays | 6 | `V2AccTuneLimp.acc_tune_limp_modeKeyed` |
-| 5 | `arm_plateau_crit` | guarded | band climb `A → B` | 0 | `V2ArmPlateauCrit.arm_plateau_crit_modal` |
-| 6 | `arm_plateau_profiles` | guarded | band climb | 0 | `V2ArmPlateauProfiles.arm_plateau_profiles_modal` |
-| 7 | `arm_plateau_slow` | guarded | three-band climb | 0 | `V2ArmPlateauSlow.arm_plateau_slow_modal` |
-| 8 | `charger_fast_setpoints` | guarded | (c) `BULK → ABSORB`; (d) | 7 | `V2ChargerFastSetpoints.charger_fast_setpoints_modal` |
-| 9 | `charger_fast_tapers` | guarded | (c) paths; cut runs; no step | 9 | `V2ChargerFastTapers.charger_fast_tapers_modal` |
-| 10 | `match_multi_rate` | guarded | one `DRIVE` run to the target | 0 | `MatchMultiRateGuarded.match_multi_rate_guarded` |
-| 11 | `platoon3_linkloss` | refuted ✓ (every `dt > 0`) | — | — | `V2Platoon3LinklossRefuted.platoon3_linkloss_guarded_false` |
-| 12 | `platoon3_profiles` | refuted ✓ (`dt ≥ 1`), by arg. for `dt > 0.575`; `dt ≤ 0.575` open | — | — | `V2Platoon3ProfilesRefuted.platoon3_profiles_guarded_false` |
-| 13 | `platoon_delay_linkloss` | guarded | (d) stay or `FOLLOW → CATCH` | 6 | `V2PlatoonDelayLinkloss.platoon_delay_linkloss_modeKeyed` |
-| 14 | `platoon_delay_profiles` | guarded | (d) stays | 6 | `V2PlatoonDelayProfiles.platoon_delay_profiles_modal` |
-| 15 | `quad_light_airframe_20` | guarded | (d) stays | 1 | `V2QuadLightAirframe20.quad_light_airframe_20_modal` |
-| 16 | `quad_light_lag` | guarded | (d) stays | 1 | `V2QuadLightLag.quad_light_lag_modal` |
-| 17 | `quad_light_profiles` | guarded | (d) stays | 3 | `V2QuadLightProfiles.quad_light_profiles_modal` |
-| 18 | `refinement_ladder_rover_rung1_2to3` | guarded | ladder climb | 0 | `RoverLadderRung1Guarded.rover_ladder_rung1_guarded` |
-| 19 | `refinement_ladder_rover_rung2_3to6` | refuted (arg.) | — | — | (`⊤`: `RoverLadderRung2Modal.rover_ladder_rung2_3to6_modal`) |
-| 20 | `refinement_ladder_rover_rung2_6dof` | guarded | combined-coordinate climb | 0 | `RoverRung26dofGuarded.rung2_6dof_guarded` |
-| 21 | `refinement_ladder_rover_rung2b_6dof` | guarded | combined-coordinate climb | 0 | `RoverRung2b6dofGuarded.rung2b_6dof_guarded` |
-| 22 | `refinement_ladder_rover_rung2c_6dof` | guarded for `dt < 1`; refuted (arg.) for `dt > 2.12`; open between | mirror | 3 | `RoverRung2cGuarded.rover_rung2c_guarded` |
-| 23 | `refinement_ladder_rover_rung3_6to8` | guarded | ladder climb, decay budget | 0 | `RoverLadderRung3Guarded.rover_ladder_rung3_6to8_guarded` |
-| 24 | `refinement_ladder_rover_rung4_8to12` | guarded | ladder climb, weighted odometer | 0 | `RoverLadderRung4Guarded.rover_ladder_rung4_8to12_guarded` |
-| 25 | `rover3tier_rung12` | guarded | one run to the target | 0 | `Rover3tierRung12Guarded.rover3tier_rung12_modeKeyed_guarded` |
-| 26 | `rover_dof_terrain_rung1` | guarded | ladder climb | 0 | `RoverDofTerrainRung1Guarded.rover_dof_terrain_rung1_guarded` |
-| 27 | `rover_dof_terrain_rung2` | guarded | ladder climb | 0 | `RoverDofTerrainRung2Guarded.rover_dof_terrain_rung2_guarded` |
-| 28 | `rover_dof_terrain_rung3` | guarded | ladder climb | 0 | `RoverDofTerrainRung3Guarded.rover_dof_terrain_rung3_guarded` |
-| 29 | `rover_dof_terrain_rung3_8d` | guarded | ladder climb | 0 | `RoverDofTerrainRung38dGuarded.rover_dof_terrain_rung3_8d_guarded` |
-| 30 | `rover_patrol_refine` | guarded | climb to `FAST`, linear-form cap | 0 | `V2RoverPatrolRefineGuarded.rover_patrol_refine_guarded` |
-| 31 | `rover_patrol_zones` | guarded | climb to `FAST` | 0 | `V2RoverPatrolZonesGuarded.rover_patrol_zones_guarded` |
-| 32 | `sat3w_detumble_nominal` | guarded | (d) stays | 1 | `V2Sat3wDetumbleNominal.sat3w_detumble_nominal_modal` |
-| 33 | `sat3w_detumble_phases` | guarded | (d) stays | 2 | `V2Sat3wDetumblePhases.sat3w_detumble_phases_modeKeyed` |
-| 34 | `sat3w_detumble_weak` | guarded | (d) stays | 3 | `V2Sat3wDetumbleWeak.sat3w_detumble_weak_modal` |
-| 35 | `sat_detumble_nominal` | guarded | (d) stays | 1 | `V2SatDetumbleNominal.sat_detumble_nominal_modal` |
-| 36 | `sat_detumble_phases` | guarded | (d) stays | 2 | `V2SatDetumblePhases.sat_detumble_phases_modeKeyed` |
-| 37 | `sat_detumble_weak` | guarded | (d) stays | 3 | `V2SatDetumbleWeak.sat_detumble_weak_modal` |
-| 38 | `story1_attdist_rung_a_6to8` | guarded | synchronized climb | 9 | `Story1AttdistRungAGuarded.story1_attdist_rung_a_guarded` |
-| 39 | `story1_attdist_rung_b_12dof` | guarded | synchronized climb, two-piece windows | 6 | `Story1AttdistRungBGuarded.story1_attdist_rung_b_guarded` |
-| 40 | `story2_lateral_rung_a_8dof` | refuted (arg.) | — | — | (`⊤`: `Story2LateralAModal.story2_lateral_rung_a_modal`) |
-| 41 | `story2_lateral_rung_b_12dof` | refuted (arg.) | — | — | (`⊤`: `Story2LateralBModal.story2_lateral_rung_b_modal`) |
-| 42 | `story3_rollover_base_12dof` | guarded (`0 ≤ dt`) | ladder climb | 6 | `Story3RolloverBaseGuarded.story3_rollover_base_guarded` |
-| 43 | `story3_rollover_ladder_rung_a` | guarded (`0 ≤ dt`) | ladder climb | 6 | `Story3RolloverRungAGuarded.story3_rollover_rung_a_guarded` |
-| 44 | `story3_rollover_ladder_rung_b` | guarded | synchronized climb | 9 | `V2Story3RolloverRungBGuarded.story3_rollover_ladder_rung_b_guarded` |
-| 45 | `watertank` | guarded | (d); (a) `Low → MidBoost` | 11 | `V2Watertank.watertank_modal` |
+| # | benchmark | response | packs | theorem |
+|---|---|---|---|---|
+| 1 | `acc_spoof_lag` | bridge; (d) stays, or no step | 1 | `V2AccSpoofLag.acc_spoof_lag_leftAut` |
+| 2 | `acc_spoof_limp` | (d) stays, or no step | 6 | `V2AccSpoofLimp.acc_spoof_limp_modeKeyed` |
+| 3 | `acc_tune_lag` | bridge; (d) stays, or no step | 1 | `V2AccTuneLag.acc_tune_lag_leftAut` |
+| 4 | `acc_tune_limp` | (d) stays | 6 | `V2AccTuneLimp.acc_tune_limp_modeKeyed` |
+| 5 | `arm_plateau_crit` | bridge; band climb `A → B` | 0 | `V2ArmPlateauCrit.arm_plateau_crit_leftAut` |
+| 6 | `arm_plateau_profiles` | bridge; band climb | 0 | `V2ArmPlateauProfiles.arm_plateau_profiles_leftAut` |
+| 7 | `arm_plateau_slow` | bridge; three-band climb | 0 | `V2ArmPlateauSlow.arm_plateau_slow_leftAut` |
+| 8 | `charger_fast_setpoints` | bridge; (c) `BULK → ABSORB`; (d) | 7 | `V2ChargerFastSetpoints.charger_fast_setpoints_leftAut` |
+| 9 | `charger_fast_tapers` | bridge; (c) paths; cut runs; no step | 9 | `V2ChargerFastTapers.charger_fast_tapers_leftAut` |
+| 10 | `match_multi_rate` | bridge; one `DRIVE` run to the target | 0 | `MatchMultiRateGuarded.match_multi_rate_leftAut` |
+| 11 | `platoon3_linkloss` | repaired model; stay, legal self-loop (gap floor) | 2 | `V2Platoon3Linkloss.platoon3_linkloss_modeKeyed` |
+| 12 | `platoon3_profiles` | repaired model; bridge; stay, legal self-loop | 3 | `V2Platoon3Profiles.platoon3_profiles_leftAut` |
+| 13 | `platoon_delay_linkloss` | (d) stay or `FOLLOW → CATCH` | 6 | `V2PlatoonDelayLinkloss.platoon_delay_linkloss_modeKeyed` |
+| 14 | `platoon_delay_profiles` | bridge; (d) stays | 6 | `V2PlatoonDelayProfiles.platoon_delay_profiles_leftAut` |
+| 15 | `quad_light_airframe_20` | bridge; (d) stays | 1 | `V2QuadLightAirframe20.quad_light_airframe_20_leftAut` |
+| 16 | `quad_light_lag` | bridge; (d) stays | 1 | `V2QuadLightLag.quad_light_lag_leftAut` |
+| 17 | `quad_light_profiles` | bridge; (d) stays | 3 | `V2QuadLightProfiles.quad_light_profiles_leftAut` |
+| 18 | `refinement_ladder_rover_rung1_2to3` | bridge; ladder climb | 0 | `RoverLadderRung1Guarded.rover_ladder_rung1_leftAut` |
+| 19 | `refinement_ladder_rover_rung2_3to6` | bridge; synchronized climb, ordered bands | 6 | `RoverLadderRung2Guarded.rover_ladder_rung2_3to6_leftAut` |
+| 20 | `refinement_ladder_rover_rung2_6dof` | bridge; combined-coordinate climb | 0 | `RoverRung26dofGuarded.rung2_6dof_leftAut` |
+| 21 | `refinement_ladder_rover_rung2b_6dof` | bridge; combined-coordinate climb | 0 | `RoverRung2b6dofGuarded.rung2b_6dof_leftAut` |
+| 22 | `refinement_ladder_rover_rung2c_6dof` | `dt ≤ ε_L = 1`; bridge; mirror | 3 | `RoverRung2cGuarded.rover_rung2c_leftAut` |
+| 23 | `refinement_ladder_rover_rung3_6to8` | bridge; ladder climb, decay budget | 0 | `RoverLadderRung3Guarded.rover_ladder_rung3_6to8_leftAut` |
+| 24 | `refinement_ladder_rover_rung4_8to12` | bridge; ladder climb, weighted odometer | 0 | `RoverLadderRung4Guarded.rover_ladder_rung4_8to12_leftAut` |
+| 25 | `rover3tier_rung12` | one run to the target | 0 | `Rover3tierRung12Guarded.rover3tier_rung12_modeKeyed_guarded` |
+| 26 | `rover_dof_terrain_rung1` | bridge; ladder climb | 0 | `RoverDofTerrainRung1Guarded.rover_dof_terrain_rung1_leftAut` |
+| 27 | `rover_dof_terrain_rung2` | bridge; ladder climb | 0 | `RoverDofTerrainRung2Guarded.rover_dof_terrain_rung2_leftAut` |
+| 28 | `rover_dof_terrain_rung3` | bridge; ladder climb | 0 | `RoverDofTerrainRung3Guarded.rover_dof_terrain_rung3_leftAut` |
+| 29 | `rover_dof_terrain_rung3_8d` | bridge; ladder climb | 0 | `RoverDofTerrainRung38dGuarded.rover_dof_terrain_rung3_8d_leftAut` |
+| 30 | `rover_patrol_refine` | climb to `FAST`, linear-form cap | 0 | `V2RoverPatrolRefineGuarded.rover_patrol_refine_guarded` |
+| 31 | `rover_patrol_zones` | climb to `FAST` | 0 | `V2RoverPatrolZonesGuarded.rover_patrol_zones_guarded` |
+| 32 | `sat3w_detumble_nominal` | bridge; (d) stays | 1 | `V2Sat3wDetumbleNominal.sat3w_detumble_nominal_leftAut` |
+| 33 | `sat3w_detumble_phases` | (d) stays | 2 | `V2Sat3wDetumblePhases.sat3w_detumble_phases_modeKeyed` |
+| 34 | `sat3w_detumble_weak` | bridge; (d) stays | 3 | `V2Sat3wDetumbleWeak.sat3w_detumble_weak_leftAut` |
+| 35 | `sat_detumble_nominal` | bridge; (d) stays | 1 | `V2SatDetumbleNominal.sat_detumble_nominal_leftAut` |
+| 36 | `sat_detumble_phases` | (d) stays | 2 | `V2SatDetumblePhases.sat_detumble_phases_modeKeyed` |
+| 37 | `sat_detumble_weak` | bridge; (d) stays | 3 | `V2SatDetumbleWeak.sat_detumble_weak_leftAut` |
+| 38 | `story1_attdist_rung_a_6to8` | synchronized climb | 9 | `Story1AttdistRungAGuarded.story1_attdist_rung_a_guarded` |
+| 39 | `story1_attdist_rung_b_12dof` | synchronized climb, two-piece windows | 6 | `Story1AttdistRungBGuarded.story1_attdist_rung_b_guarded` |
+| 40 | `story2_lateral_rung_a_8dof` | bridge; synchronized climb, ordered bands | 6 | `Story2LateralAGuarded.story2_lateral_rung_a_leftAut` |
+| 41 | `story2_lateral_rung_b_12dof` | bridge; synchronized climb, ordered bands | 6 | `Story2LateralBGuarded.story2_lateral_rung_b_leftAut` |
+| 42 | `story3_rollover_base_12dof` | bridge; ladder climb (`0 ≤ dt`) | 6 | `Story3RolloverBaseGuarded.story3_rollover_base_leftAut` |
+| 43 | `story3_rollover_ladder_rung_a` | bridge; ladder climb (`0 ≤ dt`) | 6 | `Story3RolloverRungAGuarded.story3_rollover_rung_a_leftAut` |
+| 44 | `story3_rollover_ladder_rung_b` | synchronized climb | 9 | `V2Story3RolloverRungBGuarded.story3_rollover_ladder_rung_b_guarded` |
+| 45 | `watertank` | bridge; (d); (a) `Low → MidBoost` | 11 | `V2Watertank.watertank_leftAut` |
 
-Totals: 39 guarded for every window length (`0 ≤ dt` for the two story3 ladders, which is no
-restriction: a negative `dt` admits no window), `rung2c` guarded for `dt < 1`, 2 refuted ✓
-(`platoon3_profiles` only for `dt ≥ 1`), 3 refuted by argument for every `dt > 0`. No theorem carries an
-Assumption-1 hypothesis; no new axiom. Z3-free final theorems: 16 guarded ones (rows with
-packs 0) and both refutations. Pack hypotheses of the 40 guarded statements: 109, against 171
-for the same 40 benchmarks' theorems before this branch (−62: `rung1`, `rung3_6to8`,
+Totals: 45 of 45; 44 for every window length (`0 ≤ dt` for the two story3 ladders, no
+restriction: a negative `dt` admits no window), `rung2c` for `0 ≤ dt ≤ ε_L = 1`; the two
+`platoon3` benchmarks on their repaired model. No theorem carries an Assumption-1 hypothesis;
+no new axiom. Z3-free: 16 (rows with packs 0). Pack hypotheses of the 45 statements: 132, against 194
+for the same 45 benchmarks' theorems before this branch (−62: `rung1`, `rung3_6to8`,
 `rung4_8to12`, the four `rover_dof_terrain` rungs at 6 each, `rover_patrol_zones` and
-`rover_patrol_refine` at 10 each). The verdict runner's tables are unchanged (the relaxation
-theorems, still built and imported by the guarded files for their shared definitions, take
-those packs).
+`rover_patrol_refine` at 10 each). The verdict runner's tables are unchanged (the choice-form
+and relaxation theorems, still built and imported for their shared definitions, take those
+packs; the platoon3 packs are re-run on the repaired model).

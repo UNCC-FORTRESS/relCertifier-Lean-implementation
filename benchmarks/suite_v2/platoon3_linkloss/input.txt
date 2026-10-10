@@ -30,13 +30,14 @@
 # not the engagement band. Reference FOLLOW: every gap above the AEB floor and within the
 # radar's range, 20 <= g_i <= 60, every closing rate within the rated limit |r_i| <= 10,
 # and the AEB not imminent: the gap projected 2 s ahead at the current closing rate stays
-# 1 m above the floor, g_i + 2 r_i >= 21 (i.e. r_i + 0.5 (g_i - 30) >= -4.5, the slow
-# decoupling form p_2, which only decays under FOLLOW: the guard is forward invariant, the
-# controller never leaves it, and at the floor g_i = 20 it gives r_i >= 0.5 > 0, the
-# repelling flow the non-connection check needs). Deployed FOLLOW, the same with the 1 m
-# overstatement: 19 <= g_i <= 59, |r_i| <= 10, g_i + 2 r_i >= 20. LOST (radar-only on
+# 1 m above the floor and 1 m inside the range, 21 <= g_i + 2 r_i <= 59 (i.e.
+# -4.5 <= r_i + 0.5 (g_i - 30) <= 14.5, the slow decoupling form p_2, which only decays
+# under FOLLOW: the guard is forward invariant, the controller never leaves it; at the floor
+# g_i = 20 it gives r_i >= 0.5 > 0, the repelling flow the non-connection check needs, and at
+# the range g_i = 60 it gives r_i <= -0.5). Deployed FOLLOW, the same with the 1 m
+# overstatement: 19 <= g_i <= 59, |r_i| <= 10, 20 <= g_i + 2 r_i <= 58. LOST (radar-only on
 # link 1, latched): links 2, 3 as FOLLOW; link 1 25 <= g1 <= 59, |r1| <= 10,
-# g1 + 2 r1 >= 20 (the LOST row lets the reference's gap be up to 5 m below the
+# 20 <= g1 + 2 r1 <= 58 (the LOST row lets the reference's gap be up to 5 m below the
 # deployed's, g1_R >= g1_L - 5, so the floor 25 keeps every row-related reference state
 # above the AEB floor; with 19, BRAKE1 is an admissible start and the run DECLINES).
 # Why: the old guards were the ENGAGEMENT band (reference 26 <= g_i <= 34, |r_i| <= 1;
@@ -73,8 +74,12 @@
 # handoff FOLLOW -> LOST is a loosening on link 1 only (--handoff 3/3 unsat).
 # Covers (measured, operating-range guards): the cover is found at lambda = 1 (both sides
 # run the same gains; no M1), budget 2 in both left modes (M2). Counter-runs: NO_PRUNE
-# DECLINED (10.0 s), NO_CUT DECLINED (7.1 s), NO_IMPLIED_CUT CERTIFIED (1.6 s),
-# NO_LINEAR_CUT CERTIFIED (1.6 s).
+# DECLINED (11.5 s), NO_CUT DECLINED (8.1 s), NO_IMPLIED_CUT CERTIFIED (1.9 s),
+# NO_LINEAR_CUT CERTIFIED (1.9 s); --handoff 3/3 unsat; widening: CERTIFIED with every
+# evolve bound widened at once, no load-bearing group. The upper projected-gap conjunct is
+# what keeps the exact FOLLOW refinement inside the evolve box (without it the deployed at
+# g = 59, r = 10 pushes the reference past the radar range; the tool does not see this, the
+# Lean existence step does).
 # Fallback (M4): FOLLOW -> BRAKE1/2/3 pruned: the guard's projected-gap conjunct is a kept
 # cut (DI-strict: p_2' = -0.25 p_2 > 0 at p_2 = -4.5) and makes the flow repel at the AEB
 # threshold (g_k = 20 forces r_k >= 0.5); RELCERT_NO_PRUNE=1 DECLINES and RELCERT_NO_CUT=1

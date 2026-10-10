@@ -22,11 +22,11 @@ suite_v2 battery with its axiom audit.
   session, the certifier `OracleAPI.certify`, emitters); its single proof-facing interface
   is `z3_unsat_sound`.
 * `InstancesV2/BatteryV2`: **the headline**, the battery of the 45 `benchmarks/suite_v2`
-  benchmarks with `#print axioms` re-emitted on every build: Theorem 3 over the guarded
-  right automaton at the mode-consistent region (`guard ∧ cuts` of the right's current mode)
-  for 39 (every window length) and `rung2c` (windows `dt < 1`), two machine-checked
-  refutations of that statement (`platoon3_*`), and the `⊤`-guarded relaxation for the six
-  without a guarded theorem for every `dt` (`docs/GUARDED-SWITCHING.md`).
+  benchmarks with `#print axioms` re-emitted on every build: Theorem 3 with the paper's
+  guard-gated left automaton against the guarded right automaton at the mode-consistent
+  region (`guard ∧ cuts` of the right's current mode) for all 45 (every window length;
+  `rung2c` up to its control interval `dt ≤ 1`; the `platoon3` pair on the repaired model)
+  (`docs/GUARDED-SWITCHING.md`).
   `VerdictsV2/`: the runner tables and the kernel pins tying each Z3 hypothesis to the
   query `relcert --run-verdicts-v2` sends.
 * `Instances/` and `Verdicts/`: the 19 theorems carried over from the retired legacy

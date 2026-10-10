@@ -23,10 +23,11 @@
 # profile; the guards are not the engagement bands. Reference CLOSE / NORMAL / FAR (the same
 # guard; the driver may select any profile anywhere in the range): 20 <= g_i <= 60 (above
 # the AEB floor, within the radar's range), |r_i| <= 10 (the rated closing rate), and the
-# AEB not imminent, g_i + 2 r_i >= 21 (the gap projected 2 s ahead stays 1 m above the
-# floor; r_i + 0.5 (g_i - c_k) >= 10.5 - c_k / 2 is the decaying slow form of profile k,
-# so the guard is forward invariant under every profile and the flow repels at g_i = 20).
-# Deployed FOLLOW: 21 <= g_i <= 59, |r_i| <= 10, g_i + 2 r_i >= 20 (the rows let the
+# AEB not imminent, 21 <= g_i + 2 r_i <= 59 (the gap projected 2 s ahead stays 1 m above
+# the floor and 1 m inside the range; r_i + 0.5 (g_i - c_k) is the decaying slow form of
+# profile k, so the guard is forward invariant under every profile and the flow repels at
+# g_i = 20 and at g_i = 60). Deployed FOLLOW: 21 <= g_i <= 59, |r_i| <= 10,
+# 20 <= g_i + 2 r_i <= 58 (the rows let the
 # reference's gap be up to 1 m below the deployed's, g_i^R >= g_i^L - 1, so the floor 21
 # keeps every row-related reference state above the AEB floor; with 19 or 20 the brake
 # sinks are admissible starts and the run DECLINES).
@@ -50,8 +51,10 @@
 # the stretch grid): the Q box at 1.9 rho_j DECLINED (27.9 s); |e_i| <= 1.9 DECLINED
 # (28.9 s).
 # Covers (measured, operating-range guards): the cover is found at lambda = 1 (no M1),
-# budget 2. Counter-runs: NO_PRUNE DECLINED (23.2 s), NO_CUT DECLINED (15.6 s),
-# NO_IMPLIED_CUT CERTIFIED (1.7 s), NO_LINEAR_CUT CERTIFIED (1.7 s).
+# budget 2, the joint step from NORMAL with CLOSE and FAR both covering (M2, M3).
+# Counter-runs: NO_PRUNE DECLINED (26.2 s), NO_CUT DECLINED (16.8 s), NO_IMPLIED_CUT
+# CERTIFIED (1.8 s), NO_LINEAR_CUT CERTIFIED (1.9 s); widening: CERTIFIED with every evolve
+# bound widened at once, no load-bearing group.
 # Fallback (M4): every profile -> BRAKE1/2/3 pruned (nine edges): the projected-gap guard
 # conjunct is a kept cut (DI-strict under every profile) and makes the flow repel at the
 # AEB threshold; RELCERT_NO_PRUNE=1 and RELCERT_NO_CUT=1 DECLINE (M4, M6). The L7 chain is

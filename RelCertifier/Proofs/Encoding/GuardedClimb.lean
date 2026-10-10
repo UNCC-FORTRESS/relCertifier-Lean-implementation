@@ -325,4 +325,30 @@ theorem bigSeq_odes_left (G : SearchGraph (Var n))
         exact absurd hj (by simp [Lv, Rv, Prod.ext_iff])
       rw [ih (fun s hs => halign s (List.mem_cons_of_mem _ hs)) h2 i, hκ]
 
+/-- **A clocked piece is a solution of bounded duration.** A run of `clockedSeg` is the clocked
+left system's solution from the clock-reset start, of duration at most `dt` (read off the
+clock and the closing test). -/
+theorem clockedSeg_sol {leftSys : ODESystem (Var n)} {domL : Formula (Var n)} {tg : Var n}
+    {dt : ℝ} {σ ν : State (Var n)} (h : Program.sem (clockedSeg leftSys domL tg dt) σ ν) :
+    ∃ r Φ, ODESol (clk tg leftSys) domL (Function.update σ tg 0) r Φ ∧ Φ r = ν ∧ r ≤ dt := by
+  obtain ⟨κ, hκ, κ', hode, hκ'⟩ := h
+  rw [sem_assign] at hκ
+  rw [sem_test] at hκ'
+  obtain ⟨rfl, hle⟩ := hκ'
+  have hκeq : κ = Function.update σ tg 0 := by
+    funext y
+    by_cases hy : y = tg
+    · subst hy; rw [Function.update_self, hκ.1]; rfl
+    · rw [Function.update_of_ne hy, hκ.2 y hy]
+  subst hκeq
+  obtain ⟨r, Φ, hr, hΦ0, hΦr, hder, hmask, hdom⟩ := hode
+  have H : ODESol (clk tg leftSys) domL (Function.update σ tg 0) r Φ :=
+    ⟨hr, hΦ0, hder, hmask, hdom⟩
+  refine ⟨r, Φ, H, hΦr, ?_⟩
+  have htrack := tg_track H (tg := tg) (by simp [clk]) r ⟨hr, le_rfl⟩
+  rw [hΦ0, Function.update_self] at htrack
+  have : κ' tg ≤ dt := by simpa [clkGuard, Formula.sat, CompOp.interp, Term.eval] using hle
+  rw [← hΦr] at this
+  linarith
+
 end RelCertifier

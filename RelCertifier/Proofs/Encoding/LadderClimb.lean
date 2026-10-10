@@ -691,4 +691,24 @@ theorem coupled_boundK (a b k M t : ℝ) (hk : 0 < k) (ha : -M ≤ a ∧ a ≤ M
   have hk1 : (1 + k * t) * Real.exp (-(k * t)) ≤ 1 := by nlinarith
   constructor <;> nlinarith
 
+/-- **The odometer's growth from above.** With `0 ≤ v₀ ≤ 0.8` and `0 ≤ κ ≤ 1` on `[0, t]`, the
+primitive of `v κ` is at most `0.8 t`. -/
+theorem integral_vk_high (q : ℕ) (ρ : State (Var (n+2))) (kap : ℝ → ℝ) (hkc : Continuous kap)
+    (hv0 : 0 ≤ ρ (Rv 0)) (hv8 : ρ (Rv 0) ≤ 4/5) {t : ℝ} (ht : 0 ≤ t)
+    (hkb : ∀ u, 0 ≤ u → u ≤ t → 0 ≤ kap u ∧ kap u ≤ 1) :
+    ∫ u in (0:ℝ)..t, vLaw q ρ u * kap u ≤ 4/5 * t := by
+  have hc := ladC_bounds q
+  have hmono : ∫ u in (0:ℝ)..t, vLaw q ρ u * kap u ≤ ∫ u in (0:ℝ)..t, (4/5 : ℝ) := by
+    apply intervalIntegral.integral_mono_on ht
+    · exact ((vLaw_cont q ρ).mul hkc).intervalIntegrable 0 t
+    · exact continuous_const.intervalIntegrable 0 t
+    · intro u hu
+      have hb := vLaw_between q ρ hu.1
+      have hv1 : 0 ≤ vLaw q ρ u := le_trans (le_min hv0 (by linarith)) hb.1
+      have hv2 : vLaw q ρ u ≤ 4/5 := le_trans hb.2 (max_le hv8 (by linarith))
+      have hk := hkb u hu.1 hu.2
+      nlinarith
+  rw [intervalIntegral.integral_const] at hmono
+  simpa [smul_eq_mul, mul_comm] using hmono
+
 end RelCertifier

@@ -13,6 +13,7 @@ so a wrong row does not compile; with `modalVerdX_of_queries` (the rebuild denot
 kernel-checked.
 -/
 import RelCertifier.VerdictsV2.RunV2
+import RelCertifier.InstancesV2.Modal.QuadLightLag
 import RelCertifier.InstancesV2.Modal.QuadLightProfiles
 import RelCertifier.InstancesV2.Modal.QuadLightAirframe20
 import RelCertifier.InstancesV2.Modal.PlatoonDelayLinkloss
@@ -138,5 +139,10 @@ theorem pin_quad_light_profiles_1 : V2QuadLightProfiles.Verd 0 1 = packVerd (pac
   pin_row _ rfl irV2_quad_light_profiles cutV2_quad_light_profiles (by simp [packLam, packsV2, V2QuadLightProfiles.lam])
 theorem pin_quad_light_profiles_2 : V2QuadLightProfiles.Verd 0 2 = packVerd (packsV2.getD 38 default) :=
   pin_row _ rfl irV2_quad_light_profiles cutV2_quad_light_profiles (by simp [packLam, packsV2, V2QuadLightProfiles.lam])
+
+theorem irV2_quad_light_lag : irV2 "quad_light_lag" = quad_light_lag_IRv2 := by decide
+theorem cutV2_quad_light_lag : cutV2 "quad_light_lag" = Oracle.quad_light_lag_cutsV2X := by decide
+theorem pin_quad_light_lag_0 : V2QuadLightLag.Verd 0 0 = packVerd (packsV2.getD 39 default) :=
+  pin_row _ rfl irV2_quad_light_lag cutV2_quad_light_lag (by simp [packLam, packsV2, V2QuadLightLag.lam])
 
 end RelCertifier.VerdictsV2

@@ -13,6 +13,8 @@ so a wrong row does not compile; with `modalVerdX_of_queries` (the rebuild denot
 kernel-checked.
 -/
 import RelCertifier.VerdictsV2.RunV2
+import RelCertifier.InstancesV2.Modal.AccSpoofLag
+import RelCertifier.InstancesV2.Modal.AccTuneLag
 import RelCertifier.InstancesV2.Modal.ChargerFastSetpoints
 import RelCertifier.InstancesV2.Modal.QuadLightLag
 import RelCertifier.InstancesV2.Modal.QuadLightProfiles
@@ -162,5 +164,15 @@ theorem pin_charger_fast_setpoints_5 : V2ChargerFastSetpoints.Verd 2 1 = packVer
   pin_row _ rfl irV2_charger_fast_setpoints cutV2_charger_fast_setpoints (by simp [packLam, packsV2, V2ChargerFastSetpoints.lam])
 theorem pin_charger_fast_setpoints_6 : V2ChargerFastSetpoints.Verd 2 2 = packVerd (packsV2.getD 46 default) :=
   pin_row _ rfl irV2_charger_fast_setpoints cutV2_charger_fast_setpoints (by simp [packLam, packsV2, V2ChargerFastSetpoints.lam])
+
+theorem irV2_acc_tune_lag : irV2 "acc_tune_lag" = acc_tune_lag_IRv2 := by decide
+theorem cutV2_acc_tune_lag : cutV2 "acc_tune_lag" = Oracle.acc_tune_lag_cutsV2X := by decide
+theorem pin_acc_tune_lag_0 : V2AccTuneLag.Verd 0 = packVerd (packsV2.getD 47 default) :=
+  pin_row _ rfl irV2_acc_tune_lag cutV2_acc_tune_lag (by simp [packLam, packsV2])
+
+theorem irV2_acc_spoof_lag : irV2 "acc_spoof_lag" = acc_spoof_lag_IRv2 := by decide
+theorem cutV2_acc_spoof_lag : cutV2 "acc_spoof_lag" = Oracle.acc_spoof_lag_cutsV2X := by decide
+theorem pin_acc_spoof_lag_0 : V2AccSpoofLag.Verd 0 = packVerd (packsV2.getD 48 default) :=
+  pin_row _ rfl irV2_acc_spoof_lag cutV2_acc_spoof_lag (by simp [packLam, packsV2])
 
 end RelCertifier.VerdictsV2

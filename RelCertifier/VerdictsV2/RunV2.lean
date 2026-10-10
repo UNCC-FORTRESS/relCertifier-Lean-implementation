@@ -108,10 +108,14 @@ def packsV2 : List PackV2 :=
     ⟨"charger_fast_setpoints", 2, 1, [0], 1, 1, 1, 2⟩,
     ⟨"charger_fast_setpoints", 2, 2, [0], 1, 1, 2, 0⟩,
     ⟨"charger_fast_setpoints", 2, 2, [0], 1, 1, 2, 1⟩,
-    ⟨"charger_fast_setpoints", 2, 2, [0], 1, 1, 2, 2⟩ ]
+    ⟨"charger_fast_setpoints", 2, 2, [0], 1, 1, 2, 2⟩,
+    -- acc_tune_lag
+    ⟨"acc_tune_lag", 2, 0, [0], 5, 4, 0, 0⟩,
+    -- acc_spoof_lag
+    ⟨"acc_spoof_lag", 2, 0, [0], 5, 2, 0, 0⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 86
+def expectedModalV2 : Nat := 88
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do

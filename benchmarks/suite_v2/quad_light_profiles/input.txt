@@ -9,12 +9,13 @@
 # c_L = 1.4 (terminal 2.61 m/s). Reference (right): the autopilot's climb profiles,
 # selectable in flight from NORMAL to either neighbour and back: NORMAL a = 4 (terminal
 # 2.0 m/s), ECO a = 3.6 (90 % thrust, terminal 1.90), SPORT a = 4.4 (110 %, terminal
-# 2.10), c = 1; plus the climb-rate LIMITER above 3.2 m/s (motor command cut, w' = -2 w,
-# sink).
+# 2.10), c = 1; plus the climb-rate LIMITER above 3.2 m/s (motor command cut, w' = -2 w;
+# it hands back to NORMAL once w <= 3.2).
 #
 # Guards: the deployed climb controller engages from hover or a slow climb,
-# 0 <= w <= 2.2 m/s; the reference climb modes 0 <= w <= 2.6 (the autopilot's climb
-# band); LIMIT is w > 3.2. Physical domain 0 <= w <= 3.5 m/s on both sides (climb only;
+# 0 <= w <= 2.2 m/s; the reference climb modes 0 <= w <= 3.2 (the autopilot's climb
+# controller's operating range, up to the limiter threshold; 2.6 until 2026-10-10, see
+# below); LIMIT is w > 3.2. Physical domain 0 <= w <= 3.5 m/s on both sides (climb only;
 # 3.5 m/s is the airframe's rated maximum climb rate).
 #
 # Claim: w_L <= w_R + 0.95 and w_R <= w_L + 0.8 -- the tightest pair that certifies
@@ -25,9 +26,22 @@
 # dynamics, M2, M3).
 #
 # Fallback (M4): CLIMB never reaches the limiter (at w = 3.2 drag wins in every
-# profile; entered at w <= 2.6), so NORMAL/ECO/SPORT -> LIMIT are pruned; LIMIT is not an
+# profile; entered at w <= 3.2), so NORMAL/ECO/SPORT -> LIMIT are pruned; LIMIT is not an
 # admissible start (w_L <= 2.2 and w_R <= w_L + 0.8 give w_R <= 3.0 < 3.2; this is why
 # the deployed engagement ceiling is 2.2 m/s). RELCERT_NO_PRUNE=1 DECLINES.
+#
+# Assumption 1 (repaired 2026-10-10, docs/SUITE-REDESIGN.md section 21): the limiter
+# RE-ENGAGES the climb controller. The limiter's own flow decays the climb rate below its
+# guard within one control period (from w = 3.3 the 1 s run ends at 3.3 e^-2 = 0.45), and
+# with LIMIT as its own only successor the nominal controller blocked there. Physically
+# the motor command is restored, on the NORMAL profile, once the climb rate is back at
+# the limit: LIMIT -> NORMAL is declared. For the hand-back to land in a mode, the climb
+# modes' guard (the operating range, guard change) now reaches the limiter threshold,
+# 0 <= w <= 3.2 (was 0 <= w <= 2.6, a narrower band that left 2.6 < w <= 3.2 in no mode).
+# Every run of at most 1 s from w > 3.2 ends in LIMIT's guard or in NORMAL's. The guard is
+# forward invariant under every profile (w' < 0 at 3.2: 4.4 - 10.24 < 0); the prune, the
+# admissible starts, the verdict, the cover (lambda = 5/2, budget 5) and every counter-run
+# are unchanged (relcert --wellformed: LIMIT ok (exit->NORMAL)).
 [problem]
 name = quad_light_profiles
 max_depth = 8
@@ -47,23 +61,23 @@ state_vars = [w]
 epsilon = 1.0
 [Rsys.mode.NORMAL]
 ode = w' = smt2:(- 4.0 (* w w));
-guard = w >= 0.0 and w <= 2.6
+guard = w >= 0.0 and w <= 3.2
 evolve = w >= 0.0 and w <= 3.5
 next = [NORMAL, ECO, SPORT, LIMIT]
 [Rsys.mode.ECO]
 ode = w' = smt2:(- 3.6 (* w w));
-guard = w >= 0.0 and w <= 2.6
+guard = w >= 0.0 and w <= 3.2
 evolve = w >= 0.0 and w <= 3.5
 next = [ECO, NORMAL, LIMIT]
 [Rsys.mode.SPORT]
 ode = w' = smt2:(- 4.4 (* w w));
-guard = w >= 0.0 and w <= 2.6
+guard = w >= 0.0 and w <= 3.2
 evolve = w >= 0.0 and w <= 3.5
 next = [SPORT, NORMAL, LIMIT]
 [Rsys.mode.LIMIT]
 ode = w' = smt2:(* -2.0 w);
 guard = w > 3.2
 evolve = w >= 0.0 and w <= 3.5
-next = [LIMIT]
+next = [LIMIT, NORMAL]
 [relational_invariant]
 CLIMB = smt2:(and (<= L_w (+ R_w 0.95)) (<= R_w (+ L_w 0.8)))

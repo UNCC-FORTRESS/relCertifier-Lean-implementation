@@ -60,12 +60,12 @@ def platoon3_linkloss_IRv2 : PProblem :=
         {
           name := "BRAKE1"
           odes := [("g1", (.var "r1")),
-            ("r1", (.num "4.0")),
+            ("r1", (.bin "*" (.num "-0.5") (.var "r1"))),
             ("g2", (.var "r2")),
             ("r2", (.bin "-" (.bin "*" (.num "-0.125") (.bin "-" (.var "g2") (.num "30.0"))) (.bin "*" (.num "0.75") (.var "r2")))),
             ("g3", (.var "r3")),
             ("r3", (.bin "-" (.bin "*" (.num "-0.125") (.bin "-" (.var "g3") (.num "30.0"))) (.bin "*" (.num "0.75") (.var "r3"))))]
-          guard := (.cmp "<" (.var "g1") (.num "20.0"))
+          guard := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp "<" (.var "g1") (.num "20.0")) (.cmp "<" (.bin "+" (.var "g1") (.bin "*" (.num "2.0") (.var "r1"))) (.num "20.0"))) (.cmp ">=" (.bin "+" (.var "g1") (.bin "*" (.num "2.0") (.var "r1"))) (.num "0.0"))) (.cmp ">=" (.var "g2") (.num "20.0"))) (.cmp "<=" (.var "g2") (.num "60.0"))) (.cmp ">=" (.var "r2") (.num "-10.0"))) (.cmp "<=" (.var "r2") (.num "10.0"))) (.cmp ">=" (.bin "+" (.var "g2") (.bin "*" (.num "2.0") (.var "r2"))) (.num "21.0"))) (.cmp "<=" (.bin "+" (.var "g2") (.bin "*" (.num "2.0") (.var "r2"))) (.num "59.0"))) (.cmp ">=" (.var "g3") (.num "20.0"))) (.cmp "<=" (.var "g3") (.num "60.0"))) (.cmp ">=" (.var "r3") (.num "-10.0"))) (.cmp "<=" (.var "r3") (.num "10.0"))) (.cmp ">=" (.bin "+" (.var "g3") (.bin "*" (.num "2.0") (.var "r3"))) (.num "21.0"))) (.cmp "<=" (.bin "+" (.var "g3") (.bin "*" (.num "2.0") (.var "r3"))) (.num "59.0")))
           evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "g1") (.num "0.0")) (.cmp "<=" (.var "g1") (.num "60.0"))) (.cmp ">=" (.var "r1") (.num "-10.0"))) (.cmp "<=" (.var "r1") (.num "10.0"))) (.cmp ">=" (.var "g2") (.num "0.0"))) (.cmp "<=" (.var "g2") (.num "60.0"))) (.cmp ">=" (.var "r2") (.num "-10.0"))) (.cmp "<=" (.var "r2") (.num "10.0"))) (.cmp ">=" (.var "g3") (.num "0.0"))) (.cmp "<=" (.var "g3") (.num "60.0"))) (.cmp ">=" (.var "r3") (.num "-10.0"))) (.cmp "<=" (.var "r3") (.num "10.0")))
           next := ["BRAKE1"] },
         {
@@ -73,10 +73,10 @@ def platoon3_linkloss_IRv2 : PProblem :=
           odes := [("g1", (.var "r1")),
             ("r1", (.bin "-" (.bin "*" (.num "-0.125") (.bin "-" (.var "g1") (.num "30.0"))) (.bin "*" (.num "0.75") (.var "r1")))),
             ("g2", (.var "r2")),
-            ("r2", (.bin "+" (.bin "+" (.bin "*" (.num "0.125") (.bin "-" (.var "g1") (.num "30.0"))) (.bin "*" (.num "0.75") (.var "r1"))) (.num "4.0"))),
+            ("r2", (.bin "*" (.num "-0.5") (.var "r2"))),
             ("g3", (.var "r3")),
             ("r3", (.bin "-" (.bin "*" (.num "-0.125") (.bin "-" (.var "g3") (.num "30.0"))) (.bin "*" (.num "0.75") (.var "r3"))))]
-          guard := (.cmp "<" (.var "g2") (.num "20.0"))
+          guard := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp "<" (.var "g2") (.num "20.0")) (.cmp "<" (.bin "+" (.var "g2") (.bin "*" (.num "2.0") (.var "r2"))) (.num "20.0"))) (.cmp ">=" (.bin "+" (.var "g2") (.bin "*" (.num "2.0") (.var "r2"))) (.num "0.0"))) (.cmp ">=" (.var "g1") (.num "20.0"))) (.cmp "<=" (.var "g1") (.num "60.0"))) (.cmp ">=" (.var "r1") (.num "-10.0"))) (.cmp "<=" (.var "r1") (.num "10.0"))) (.cmp ">=" (.bin "+" (.var "g1") (.bin "*" (.num "2.0") (.var "r1"))) (.num "21.0"))) (.cmp "<=" (.bin "+" (.var "g1") (.bin "*" (.num "2.0") (.var "r1"))) (.num "59.0"))) (.cmp ">=" (.var "g3") (.num "20.0"))) (.cmp "<=" (.var "g3") (.num "60.0"))) (.cmp ">=" (.var "r3") (.num "-10.0"))) (.cmp "<=" (.var "r3") (.num "10.0"))) (.cmp ">=" (.bin "+" (.var "g3") (.bin "*" (.num "2.0") (.var "r3"))) (.num "21.0"))) (.cmp "<=" (.bin "+" (.var "g3") (.bin "*" (.num "2.0") (.var "r3"))) (.num "59.0")))
           evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "g1") (.num "0.0")) (.cmp "<=" (.var "g1") (.num "60.0"))) (.cmp ">=" (.var "r1") (.num "-10.0"))) (.cmp "<=" (.var "r1") (.num "10.0"))) (.cmp ">=" (.var "g2") (.num "0.0"))) (.cmp "<=" (.var "g2") (.num "60.0"))) (.cmp ">=" (.var "r2") (.num "-10.0"))) (.cmp "<=" (.var "r2") (.num "10.0"))) (.cmp ">=" (.var "g3") (.num "0.0"))) (.cmp "<=" (.var "g3") (.num "60.0"))) (.cmp ">=" (.var "r3") (.num "-10.0"))) (.cmp "<=" (.var "r3") (.num "10.0")))
           next := ["BRAKE2"] },
         {
@@ -86,8 +86,8 @@ def platoon3_linkloss_IRv2 : PProblem :=
             ("g2", (.var "r2")),
             ("r2", (.bin "-" (.bin "*" (.num "-0.125") (.bin "-" (.var "g2") (.num "30.0"))) (.bin "*" (.num "0.75") (.var "r2")))),
             ("g3", (.var "r3")),
-            ("r3", (.bin "+" (.bin "+" (.bin "+" (.bin "+" (.bin "*" (.num "0.125") (.bin "-" (.var "g1") (.num "30.0"))) (.bin "*" (.num "0.75") (.var "r1"))) (.bin "*" (.num "0.125") (.bin "-" (.var "g2") (.num "30.0")))) (.bin "*" (.num "0.75") (.var "r2"))) (.num "4.0")))]
-          guard := (.cmp "<" (.var "g3") (.num "20.0"))
+            ("r3", (.bin "*" (.num "-0.5") (.var "r3")))]
+          guard := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp "<" (.var "g3") (.num "20.0")) (.cmp "<" (.bin "+" (.var "g3") (.bin "*" (.num "2.0") (.var "r3"))) (.num "20.0"))) (.cmp ">=" (.bin "+" (.var "g3") (.bin "*" (.num "2.0") (.var "r3"))) (.num "0.0"))) (.cmp ">=" (.var "g1") (.num "20.0"))) (.cmp "<=" (.var "g1") (.num "60.0"))) (.cmp ">=" (.var "r1") (.num "-10.0"))) (.cmp "<=" (.var "r1") (.num "10.0"))) (.cmp ">=" (.bin "+" (.var "g1") (.bin "*" (.num "2.0") (.var "r1"))) (.num "21.0"))) (.cmp "<=" (.bin "+" (.var "g1") (.bin "*" (.num "2.0") (.var "r1"))) (.num "59.0"))) (.cmp ">=" (.var "g2") (.num "20.0"))) (.cmp "<=" (.var "g2") (.num "60.0"))) (.cmp ">=" (.var "r2") (.num "-10.0"))) (.cmp "<=" (.var "r2") (.num "10.0"))) (.cmp ">=" (.bin "+" (.var "g2") (.bin "*" (.num "2.0") (.var "r2"))) (.num "21.0"))) (.cmp "<=" (.bin "+" (.var "g2") (.bin "*" (.num "2.0") (.var "r2"))) (.num "59.0")))
           evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "g1") (.num "0.0")) (.cmp "<=" (.var "g1") (.num "60.0"))) (.cmp ">=" (.var "r1") (.num "-10.0"))) (.cmp "<=" (.var "r1") (.num "10.0"))) (.cmp ">=" (.var "g2") (.num "0.0"))) (.cmp "<=" (.var "g2") (.num "60.0"))) (.cmp ">=" (.var "r2") (.num "-10.0"))) (.cmp "<=" (.var "r2") (.num "10.0"))) (.cmp ">=" (.var "g3") (.num "0.0"))) (.cmp "<=" (.var "g3") (.num "60.0"))) (.cmp ">=" (.var "r3") (.num "-10.0"))) (.cmp "<=" (.var "r3") (.num "10.0")))
           next := ["BRAKE3"] } ] }
     invariants := [

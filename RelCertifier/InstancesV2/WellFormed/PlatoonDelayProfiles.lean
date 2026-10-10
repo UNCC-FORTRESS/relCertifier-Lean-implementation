@@ -2,18 +2,21 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `platoon_delay_profiles`: Assumption 1 of the right model — FALSE (model defect)
+# `platoon_delay_profiles`: Assumption 1 of the right model — PROVED (repaired model)
 
 Over the instance's guarded right automaton `Gr`, the lowered right guards, `ε_r = 1`.
 
-**`WellFormedR` is false** (`platoon_delay_profiles_wellFormedR_false`): the AEB sink `BRAKE`
-(guard `g < 20`, flow `g' = 1.5`, declared successors `[BRAKE]` only) is left by its own
-flow: from `g = 19` the run of duration 1 ends at `g = 20.5`, where no declared successor of
-`BRAKE` is enabled. (`BRAKE` is a pruned sink, never entered by the Theorem 3 responses.)
+**`WellFormedR` holds** (`platoon_delay_profiles_wellFormedR`, Z3-free):
 
-**Every other mode satisfies Assumption 1** (`platoon_delay_profiles_wellFormedR_modes`,
-style (a), Z3-free): `FOLLOW` (`20 ≤ g ≤ 40`), `GENTLE`, `ASSERTIVE` (`g ≥ 30`) are
-contractions toward 30 whose guard sets are forward invariant.
+* `FOLLOW` (`20 ≤ g ≤ 40`), `GENTLE`, `ASSERTIVE` (`g ≥ 30`): contractions toward 30 whose
+  guard sets are forward invariant (style (a));
+* `BRAKE` (`g < 20`, `g' = 1.5`, declared successors `[BRAKE, FOLLOW]`: the brake re-engages
+  `FOLLOW` once the gap is back at 20 m, the 2026-10-10 repair, `docs/SUITE-REDESIGN.md`
+  §21): style (b). A run of duration `t ≤ 1` from `g < 20` ends below `21.5`: in `BRAKE`'s
+  guard if below 20, else in `FOLLOW`'s.
+
+(Until 2026-10-10 `BRAKE`'s only successor was itself and the model was refuted here, from
+`g = 19`: the run of duration 1 ends at `g = 20.5`.)
 -/
 import RelCertifier.InstancesV2.Modal.PlatoonDelayProfiles
 import RelCertifier.Proofs.Encoding.WellFormedR
@@ -94,41 +97,43 @@ theorem platoon_delay_profiles_wellFormedR_modes (q : ℕ) (hq : q < 3) :
       exact ⟨edgeW 2 2, edge_mem 2 2 (by decide), (sat_guardR' 2 (by norm_num) _).mpr
         (by norm_num; exact le_trans (le_min hgx le_rfl) hb.1)⟩
 
-/-- The witness state: `g = 19` (every other variable 0). -/
-noncomputable def x19 : State (Var 2) := fun y => if y = Rv 0 then 19 else 0
-
-/-- **Assumption 1 fails at `BRAKE`**: from `g = 19` the run of duration 1 ends at
-`g = 20.5`, outside `BRAKE`'s guard; `BRAKE`'s only declared successor is itself. -/
-theorem platoon_delay_profiles_brake_blocks :
-    ¬ WellFormedRMode Gr guardR (epsR platoon_delay_profiles_IRv2) 3 := by
+/-- **Assumption 1 at `BRAKE`** (style (b)): the gap reopens at `1.5 m/s`; every run of at
+most one interval ends below `21.5`, in `BRAKE`'s guard or in `FOLLOW`'s. -/
+theorem platoon_delay_profiles_wellFormedR_brake :
+    WellFormedRMode Gr guardR (epsR platoon_delay_profiles_IRv2) 3 := by
   rw [epsR_eq]
-  have H := exists_rate_run (fR := fR 3) (domR := domR) x19 0 (3/2) fR0_brake
+  refine wellFormedRMode_intro (fun m hm x hg hd => ?_)
+  obtain ⟨-, rfl⟩ := Gr_modeAt_inv hm
+  have hdx := (sat_domR x).mp hd
+  have hgx : x (Rv 0) < 20 := by
+    have := (sat_guardR' 3 (by norm_num) x).mp hg; simpa using this
+  refine ⟨⟨_, exists_rate_run (fR := fR 3) (domR := domR) x 0 (3/2) fR0_brake
     (fun i hi s => by
       match i, hi with
-      | 1, _ => exact fR1_eval 3 (by norm_num) s) 1 (by norm_num)
-    (fun t ht ht1 => by
-      show Formula.sat domR _
-      rw [sat_domR, trajJ_j]
-      simp only [x19, if_true]
-      constructor <;> linarith)
-  refine not_wellFormedR_of_run (Gr_modeAt 3 (by norm_num)) ?_ ?_ le_rfl H ?_
-  · show Formula.sat (hostGuard vs 2 Side.R (mR 3)) x19
-    rw [sat_guardR' 3 (by norm_num)]; simp [x19]; norm_num
-  · show Formula.sat domR x19
-    rw [sat_domR]; simp [x19]; norm_num
-  · intro e he hsat
-    have hl := edgesFrom_list he
-    have ht : e.tgt = 3 := by simp [edgeList] at hl; exact hl
-    rw [ht] at hsat
-    have := (sat_guardR' 3 (by norm_num) _).mp hsat
-    simp [x19] at this
-    linarith
+      | 1, _ => exact fR1_eval 3 (by norm_num) s) 1 (by norm_num) (fun t ht ht1 => ?_)⟩, ?_⟩
+  · show Formula.sat domR _
+    rw [sat_domR, trajJ_j]
+    constructor <;> nlinarith [hdx.1, hdx.2]
+  · intro t Φ ht H
+    have hup := H.rate_le (memR 3) (3/2) (fun s _ => by rw [eval_unit_mul, fR0_brake])
+    have hlo := H.mono (memR 3) (fun s _ => by rw [eval_unit_mul, fR0_brake]; norm_num)
+    have ht0 := H.hr
+    by_cases h20 : Φ t (Rv 0) < 20
+    · exact ⟨edgeW 3 3, edge_mem 3 3 (by decide), (sat_guardR' 3 (by norm_num) _).mpr
+        (by simpa using h20)⟩
+    · push_neg at h20
+      refine ⟨edgeW 3 0, edge_mem 3 0 (by decide), (sat_guardR' 0 (by norm_num) _).mpr ?_⟩
+      rw [if_pos rfl]
+      exact ⟨h20, by nlinarith⟩
 
-/-- **`platoon_delay_profiles` violates Assumption 1** (a model defect: the AEB sink `BRAKE`
-blocks). -/
-theorem platoon_delay_profiles_wellFormedR_false :
-    ¬ WellFormedR Gr guardR (epsR platoon_delay_profiles_IRv2) :=
-  not_wellFormedR_of_mode (by simp [Gr]) platoon_delay_profiles_brake_blocks
+/-- **`platoon_delay_profiles` satisfies Assumption 1** (every mode, Z3-free). -/
+theorem platoon_delay_profiles_wellFormedR :
+    WellFormedR Gr guardR (epsR platoon_delay_profiles_IRv2) := by
+  intro q hq
+  have hq4 : q < 4 := by simpa [Gr] using hq
+  rcases (by omega : q < 3 ∨ q = 3) with h | rfl
+  · exact platoon_delay_profiles_wellFormedR_modes q h
+  · exact platoon_delay_profiles_wellFormedR_brake
 
 end V2PlatoonDelayProfiles
 end RelCertifier

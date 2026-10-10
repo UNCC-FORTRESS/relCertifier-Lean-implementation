@@ -18,7 +18,7 @@ def quad_light_airframe_20_cutsV2 : EvolStrengthening :=
       ("CLIMB", [((.cmp ">=" (.var "w") (.num "0.0")), CutRoute.diStrict), ((.cmp "<=" (.var "w") (.num "2.5")), CutRoute.diStrict)])
     ]
     R := [
-      ("CLIMB", [((.cmp ">=" (.var "w") (.num "0.0")), CutRoute.diStrict), ((.cmp "<=" (.var "w") (.num "2.6")), CutRoute.diStrict)]),
+      ("CLIMB", [((.cmp ">=" (.var "w") (.num "0.0")), CutRoute.diStrict), ((.cmp "<=" (.var "w") (.num "3.0")), CutRoute.diStrict)]),
       ("LIMIT", [])
     ] }
 
@@ -27,7 +27,7 @@ def quad_light_airframe_20_cutsV2X : EvolStrengtheningX :=
       ("CLIMB", [⟨(.cmp ">=" (.var "w") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "w") (.num "2.5")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩])
     ]
     R := [
-      ("CLIMB", [⟨(.cmp ">=" (.var "w") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "w") (.num "2.6")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
+      ("CLIMB", [⟨(.cmp ">=" (.var "w") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "w") (.num "3.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
       ("LIMIT", [⟨(.cmp ">=" (.var "w") (.num "0")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩])
     ] }
 

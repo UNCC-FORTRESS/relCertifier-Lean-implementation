@@ -23,22 +23,19 @@ hypothesis); this battery is a separate audit.
 **Results (all 45 benchmarks; declared counts `wfDeclared`, kernel-checked against the
 suite's IR table by `wf_coverage`).**
 
-* **Proved, 30** (`<bench>_wellFormedR`): every mode. Z3-free (no verdict leaf).
-* **False, 9: model defects, each refuted in the kernel with an exhibited state**
-  (`<bench>_wellFormedR_false`), together with Assumption 1 at every other mode
-  (`…_wellFormedR_modes` / `_follow` / `_climb`):
-  - `arm_plateau_{crit,profiles,slow}`: `ApproachA` from `θ = 0.35` ends at `0.85` after one
-    interval (successors `ApproachB`, `ApproachA`: `[0.35, 0.5]`, `[0, 0.35]`); `ApproachB`
-    blocks likewise from `θ = 0.5`;
-  - `platoon_delay_{linkloss,profiles}`: the sink `BRAKE` (`g < 20`, `g' = 1.5`) from
-    `g = 19` ends at `20.5`;
-  - `platoon3_{linkloss,profiles}`: the sink `BRAKE1` (`g₁ < 20`, `r₁' = 4`) from `g₁ = 19`,
-    `r₁ = 0` (other links at rest at 30) ends at `g₁ = 21`;
-  - `quad_light_{airframe_20,profiles}`: the sink `LIMIT` (`w > 3` resp. `w > 3.2`,
-    `w' = −2w`) from `w = 3.1` resp. `3.3` ends below its guard.
-  In the sink cases the blocking mode is a pruned sink the certificate never enters, so no
-  Theorem 3 depends on it; the `arm_plateau` approach bands are entered (the Theorem 3
-  responses switch inside the interval, so the certificate does not need Assumption 1).
+* **Proved, 39** (`<bench>_wellFormedR`): every mode. Z3-free (no verdict leaf). Nine of them
+  are the models repaired on 2026-10-10 (`docs/SUITE-REDESIGN.md` §21; until then refuted
+  here with exhibited blocking states, declared counts `(30, 9, 6)`):
+  - `arm_plateau_{crit,profiles,slow}`: the planner is a sampled controller whose successor
+    sets name every band one interval can reach (`ApproachA → …, ApproachC*, Hold`,
+    `ApproachB → …, Hold`);
+  - `platoon_delay_{linkloss,profiles}`: the AEB sink `BRAKE` re-engages `FOLLOW` at 20 m;
+  - `platoon3_{linkloss,profiles}`: the AEB sinks `BRAKE1`–`BRAKE3` are latched
+    (speed-matching flow `r_k' = −r_k/2`, guard `g_k < 20`, `0 ≤ g_k + 2 r_k < 20`, the other
+    links in their operating range), and keep their guard;
+  - `quad_light_{airframe_20,profiles}`: the limiter `LIMIT` hands back to the climb
+    controller, whose operating range now reaches the limiter threshold.
+* **Refuted, 0.**
 * **On the conserved momentum band, 6** (`<bench>_wellFormedR_onBand` with
   `<bench>_band_invariant`; and `<bench>_wellFormedR_false` for the literal predicate):
   `sat_detumble_{nominal,weak,phases}`, `sat3w_detumble_{nominal,weak,phases}`. Clause (i)
@@ -102,7 +99,10 @@ namespace WellFormedBattery
 
 /-- The benchmarks whose right model satisfies Assumption 1 at every mode. -/
 def wfProved : List String :=
-  ["watertank", "acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp",
+  ["arm_plateau_crit", "arm_plateau_profiles", "arm_plateau_slow", "platoon_delay_linkloss",
+   "platoon_delay_profiles", "platoon3_linkloss", "platoon3_profiles",
+   "quad_light_airframe_20", "quad_light_profiles",
+   "watertank", "acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp",
    "charger_fast_setpoints", "charger_fast_tapers", "quad_light_lag", "rover_patrol_zones",
    "rover_patrol_refine", "story3_rollover_ladder_rung_b", "match_multi_rate",
    "rover3tier_rung12", "refinement_ladder_rover_rung1_2to3",
@@ -114,11 +114,9 @@ def wfProved : List String :=
    "story2_lateral_rung_a_8dof", "story2_lateral_rung_b_12dof", "story3_rollover_base_12dof",
    "story3_rollover_ladder_rung_a"]
 
-/-- The benchmarks whose right model violates Assumption 1 (a blocking mode, exhibited). -/
-def wfRefuted : List String :=
-  ["arm_plateau_crit", "arm_plateau_profiles", "arm_plateau_slow", "platoon_delay_linkloss",
-   "platoon_delay_profiles", "platoon3_linkloss", "platoon3_profiles",
-   "quad_light_airframe_20", "quad_light_profiles"]
+/-- The benchmarks whose right model violates Assumption 1 (none since the 2026-10-10
+repairs; the nine refuted until then are in `wfProved`). -/
+def wfRefuted : List String := []
 
 /-- The benchmarks where Assumption 1 holds on the conserved momentum band (and fails off
 it). -/
@@ -126,8 +124,9 @@ def wfBand : List String :=
   ["sat_detumble_nominal", "sat_detumble_weak", "sat_detumble_phases",
    "sat3w_detumble_nominal", "sat3w_detumble_weak", "sat3w_detumble_phases"]
 
-/-- **Declared counts**: proved, refuted (model defects), band-relative. -/
-def wfDeclared : ℕ × ℕ × ℕ := (30, 9, 6)
+/-- **Declared counts**: proved, refuted (model defects), band-relative. `(30, 9, 6)` until the
+2026-10-10 repairs of the nine refuted models; now `(39, 0, 6)`. -/
+def wfDeclared : ℕ × ℕ × ℕ := (39, 0, 6)
 
 /-- The suite's benchmark names, in the order of the IR table. -/
 def suiteNames : List String :=
@@ -161,7 +160,7 @@ theorem wf_coverage :
 
 end WellFormedBattery
 
-/-! ## Proved (30): Assumption 1 at every mode -/
+/-! ## Proved (39): Assumption 1 at every mode -/
 
 #print axioms V2Watertank.watertank_wellFormedR
 #print axioms V2AccSpoofLag.acc_spoof_lag_wellFormedR
@@ -194,29 +193,24 @@ end WellFormedBattery
 #print axioms Story3RolloverBaseGuarded.story3_rollover_base_12dof_wellFormedR
 #print axioms Story3RolloverRungAGuarded.story3_rollover_ladder_rung_a_wellFormedR
 
-/-! ## Refuted (9): the exhibited blocking state, and Assumption 1 at the other modes -/
+/-! ## Repaired 2026-10-10 (9, among the 39): Assumption 1 at every mode, and at the repaired
+modes -/
 
-#print axioms V2ArmPlateauCrit.arm_plateau_crit_wellFormedR_false
-#print axioms V2ArmPlateauCrit.arm_plateau_crit_approachB_blocks
-#print axioms V2ArmPlateauCrit.arm_plateau_crit_wellFormedR_modes
-#print axioms V2ArmPlateauProfiles.arm_plateau_profiles_wellFormedR_false
-#print axioms V2ArmPlateauProfiles.arm_plateau_profiles_approachB_blocks
-#print axioms V2ArmPlateauProfiles.arm_plateau_profiles_wellFormedR_modes
-#print axioms V2ArmPlateauSlow.arm_plateau_slow_wellFormedR_false
-#print axioms V2ArmPlateauSlow.arm_plateau_slow_approachB_blocks
-#print axioms V2ArmPlateauSlow.arm_plateau_slow_wellFormedR_modes
-#print axioms V2PlatoonDelayLinkloss.platoon_delay_linkloss_wellFormedR_false
-#print axioms V2PlatoonDelayLinkloss.platoon_delay_linkloss_wellFormedR_modes
-#print axioms V2PlatoonDelayProfiles.platoon_delay_profiles_wellFormedR_false
-#print axioms V2PlatoonDelayProfiles.platoon_delay_profiles_wellFormedR_modes
-#print axioms V2Platoon3Linkloss.platoon3_linkloss_wellFormedR_false
-#print axioms V2Platoon3Linkloss.platoon3_linkloss_wellFormedR_follow
-#print axioms V2Platoon3Profiles.platoon3_profiles_wellFormedR_false
-#print axioms V2Platoon3Profiles.platoon3_profiles_wellFormedR_modes
-#print axioms V2QuadLightAirframe20.quad_light_airframe_20_wellFormedR_false
-#print axioms V2QuadLightAirframe20.quad_light_airframe_20_wellFormedR_climb
-#print axioms V2QuadLightProfiles.quad_light_profiles_wellFormedR_false
-#print axioms V2QuadLightProfiles.quad_light_profiles_wellFormedR_modes
+#print axioms V2ArmPlateauCrit.arm_plateau_crit_wellFormedR
+#print axioms V2ArmPlateauProfiles.arm_plateau_profiles_wellFormedR
+#print axioms V2ArmPlateauSlow.arm_plateau_slow_wellFormedR
+#print axioms V2PlatoonDelayLinkloss.platoon_delay_linkloss_wellFormedR
+#print axioms V2PlatoonDelayLinkloss.platoon_delay_linkloss_wellFormedR_brake
+#print axioms V2PlatoonDelayProfiles.platoon_delay_profiles_wellFormedR
+#print axioms V2PlatoonDelayProfiles.platoon_delay_profiles_wellFormedR_brake
+#print axioms V2Platoon3Linkloss.platoon3_linkloss_wellFormedR
+#print axioms V2Platoon3Linkloss.platoon3_linkloss_wellFormedR_brake
+#print axioms V2Platoon3Profiles.platoon3_profiles_wellFormedR
+#print axioms V2Platoon3Profiles.platoon3_profiles_wellFormedR_brake
+#print axioms V2QuadLightAirframe20.quad_light_airframe_20_wellFormedR
+#print axioms V2QuadLightAirframe20.quad_light_airframe_20_wellFormedR_limit
+#print axioms V2QuadLightProfiles.quad_light_profiles_wellFormedR
+#print axioms V2QuadLightProfiles.quad_light_profiles_wellFormedR_limit
 
 /-! ## On the momentum band (6): Assumption 1 on the band, the band invariant, and the
 literal predicate refuted -/
@@ -252,6 +246,8 @@ literal predicate refuted -/
 #print axioms DLCalTiming.ODESol.coord_le_barrier
 #print axioms DLCalTiming.ODESol.affine_const
 #print axioms Platoon3Link.link_guard_Ronly
+#print axioms Platoon3Link.brake_guard_Ronly
+#print axioms Platoon3Link.solB_sol
 #print axioms WellFormedBattery.wf_coverage
 
 end RelCertifier

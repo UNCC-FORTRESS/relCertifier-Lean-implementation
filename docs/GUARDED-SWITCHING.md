@@ -459,7 +459,9 @@ and relaxation theorems, still built and imported for their shared definitions, 
 packs; the platoon3 packs are re-run on the repaired model).
 
 Assumption 1 is not a hypothesis of any row; it is verified per benchmark as a separate model
-fact (`WellFormedR`, `InstancesV2/WellFormedBattery.lean`, `docs/WELLFORMED.md`): proved for 30,
-false for 9 (blocking modes exhibited: the `arm_plateau` approach bands, the BRAKE / LIMIT
-sinks of the `platoon_delay`, `platoon3` and `quad_light` files), proved on the conserved
-momentum band for the 6 satellites.
+fact (`WellFormedR`, `InstancesV2/WellFormedBattery.lean`, `docs/WELLFORMED.md`): proved for 39,
+proved on the conserved momentum band for the 6 satellites, false for none. Until 2026-10-10
+it was false for 9 (blocking modes exhibited: the `arm_plateau` approach bands, the BRAKE /
+LIMIT sinks of the `platoon_delay`, `platoon3` and `quad_light` files); those models were
+repaired and their Theorem 3s re-proved over the repaired automata, statements unchanged in
+shape (`docs/SUITE-REDESIGN.md` §21).

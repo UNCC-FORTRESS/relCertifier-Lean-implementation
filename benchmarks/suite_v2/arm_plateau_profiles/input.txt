@@ -28,6 +28,25 @@
 # claim holds whichever final approach the planner picks. Counter-runs: RELCERT_NO_CUT=1,
 # RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1 all DECLINE (M6, M6+, M6L). No
 # fallback (the arm starts at theta = 0 and the row is one-sided). Units rad, rad/s, s.
+#
+# Assumption 1 (repaired 2026-10-10, docs/SUITE-REDESIGN.md section 21): the planner is a
+# SAMPLED controller with period epsilon_R = 1 s; at each sample it selects the segment of
+# the band the reference is in, and between samples the selected rate is held. A ramp
+# segment held for a full period can cross more than one band boundary: ApproachA
+# (0.5 rad/s) from theta = 0.35 ends at 0.85, past ApproachB's band and in Hold's;
+# ApproachB (0.35 rad/s) from 0.5 ends at 0.85, past the final approaches' band [0.5, 0.6]. With successor sets naming only
+# the next band (ApproachA -> ApproachB; ApproachB -> the final approaches' band [0.5, 0.6]) the nominal controller
+# blocked there (the earlier reading was event-triggered: a switch exactly at each band
+# boundary). The successor sets now name every band a sample can find: ApproachA ->
+# [ApproachB, ApproachA, ApproachCfast, ApproachCslow, Hold], ApproachB -> [ApproachCfast, ApproachCslow, ApproachB, Hold] (the planner
+# can skip a band between samples); every run of at most 1 s from a band ends in a
+# declared successor's band (theta <= 0.85 < 1.15). No dynamics, band, domain or tolerance
+# changed (the tightest-certifiable check is re-run: one step tighter is still DECLINED);
+# the counter-runs are unchanged (NO_CUT, NO_IMPLIED_CUT, NO_LINEAR_CUT all DECLINE).
+# relcert --wellformed: every mode ok (ApproachA, ApproachB exit, ApproachC* exit->Hold,
+# Hold invariant).
+# The wider successor sets add branching (the largest joint step now has 4 retained
+# successors, each covering, was 2; M3 was already credited).
 [problem]
 name = arm_plateau_profiles
 max_depth = 8
@@ -59,13 +78,13 @@ epsilon = 1.0
 ode = theta' = smt2:0.5;
 guard = theta >= 0.0 and theta <= 0.35
 evolve = theta >= 0.0 and theta <= 1.2
-next = [ApproachB, ApproachA]
+next = [ApproachB, ApproachA, ApproachCfast, ApproachCslow, Hold]
 
 [Rsys.mode.ApproachB]
 ode = theta' = smt2:0.35;
 guard = theta >= 0.35 and theta <= 0.5
 evolve = theta >= 0.0 and theta <= 1.2
-next = [ApproachCfast, ApproachCslow, ApproachB]
+next = [ApproachCfast, ApproachCslow, ApproachB, Hold]
 
 [Rsys.mode.ApproachCfast]
 ode = theta' = smt2:0.25;

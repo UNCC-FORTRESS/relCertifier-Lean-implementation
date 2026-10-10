@@ -18,9 +18,9 @@ def quad_light_profiles_cutsV2 : EvolStrengthening :=
       ("CLIMB", [((.cmp ">=" (.var "w") (.num "0.0")), CutRoute.diStrict)])
     ]
     R := [
-      ("NORMAL", [((.cmp ">=" (.var "w") (.num "0.0")), CutRoute.diStrict), ((.cmp "<=" (.var "w") (.num "2.6")), CutRoute.diStrict)]),
-      ("ECO", [((.cmp ">=" (.var "w") (.num "0.0")), CutRoute.diStrict), ((.cmp "<=" (.var "w") (.num "2.6")), CutRoute.diStrict)]),
-      ("SPORT", [((.cmp ">=" (.var "w") (.num "0.0")), CutRoute.diStrict), ((.cmp "<=" (.var "w") (.num "2.6")), CutRoute.diStrict)]),
+      ("NORMAL", [((.cmp ">=" (.var "w") (.num "0.0")), CutRoute.diStrict), ((.cmp "<=" (.var "w") (.num "3.2")), CutRoute.diStrict)]),
+      ("ECO", [((.cmp ">=" (.var "w") (.num "0.0")), CutRoute.diStrict), ((.cmp "<=" (.var "w") (.num "3.2")), CutRoute.diStrict)]),
+      ("SPORT", [((.cmp ">=" (.var "w") (.num "0.0")), CutRoute.diStrict), ((.cmp "<=" (.var "w") (.num "3.2")), CutRoute.diStrict)]),
       ("LIMIT", [])
     ] }
 
@@ -29,9 +29,9 @@ def quad_light_profiles_cutsV2X : EvolStrengtheningX :=
       ("CLIMB", [⟨(.cmp ">=" (.var "w") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩])
     ]
     R := [
-      ("NORMAL", [⟨(.cmp ">=" (.var "w") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "w") (.num "2.6")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
-      ("ECO", [⟨(.cmp ">=" (.var "w") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "w") (.num "2.6")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
-      ("SPORT", [⟨(.cmp ">=" (.var "w") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "w") (.num "2.6")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
+      ("NORMAL", [⟨(.cmp ">=" (.var "w") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "w") (.num "3.2")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
+      ("ECO", [⟨(.cmp ">=" (.var "w") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "w") (.num "3.2")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
+      ("SPORT", [⟨(.cmp ">=" (.var "w") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "w") (.num "3.2")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
       ("LIMIT", [⟨(.cmp ">=" (.var "w") (.num "0")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩])
     ] }
 

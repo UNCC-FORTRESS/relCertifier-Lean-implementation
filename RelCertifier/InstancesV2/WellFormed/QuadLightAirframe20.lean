@@ -2,21 +2,24 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `quad_light_airframe_20`: Assumption 1 of the right model — FALSE (model defect)
+# `quad_light_airframe_20`: Assumption 1 of the right model — PROVED (repaired model)
 
 Over the instance's guarded right automaton `Gr`, the lowered right guards, `ε_r = 1`.
 
-**`WellFormedR` is false** (`quad_light_airframe_20_wellFormedR_false`): the sink `LIMIT`
-(guard `w > 3`, flow `w' = −2 w`, declared successors `[LIMIT]` only) is left by its own
-flow: from `w = 3.1` (inside the evolve domain `0 ≤ w ≤ 3.5`) the run of duration 1 ends at
-`w = 3.1 e^{−2} < 3`, where no declared successor is enabled. (`LIMIT` is a pruned sink,
-never entered by the Theorem 3 responses.)
+**`WellFormedR` holds** (`quad_light_airframe_20_wellFormedR`, Z3-free):
 
-**`CLIMB` satisfies Assumption 1** (`quad_light_airframe_20_wellFormedR_climb`, style (a),
-Z3-free): the guard `0 ≤ w ≤ 2.6` is forward invariant under `w' = 4 − w²` (barriers at
-both faces: `4 − w² ≤ 0` at `w ≥ 2.6`, `4 − w² ≥ 0` at `w = 0`). Existence: the instance's
-viability route (both evolve faces strict, hand Lipschitz data), taken with the left held
-still, and a time rescaling of the stretched run.
+* `CLIMB` (style (a)): the guard `0 ≤ w ≤ 3` (the climb controller's operating range up to
+  the limiter threshold, the 2026-10-10 repair; it was `0 ≤ w ≤ 2.6`) is forward invariant
+  under `w' = 4 − w²` (barriers at both faces: `4 − w² ≤ 0` at `w ≥ 3`, `4 − w² ≥ 0` at
+  `w = 0`). Existence: the instance's viability route (both evolve faces strict, hand
+  Lipschitz data), taken with the left held still, and a time rescaling of the stretched run.
+* `LIMIT` (`w > 3`, `w' = −2 w`, declared successors `[LIMIT, CLIMB]`: the limiter hands
+  back to the climb controller, `docs/SUITE-REDESIGN.md` §21): style (b). A run decays
+  toward 0 and stays in `[0, w₀] ⊆ [0, 3.5]`: it ends in `LIMIT`'s guard if above 3, else in
+  `CLIMB`'s. Existence: the explicit exponential decay.
+
+(Until 2026-10-10 `LIMIT`'s only successor was itself and the model was refuted here, from
+`w = 3.1`: the run of duration 1 ends at `3.1 e^{−2} < 3`.)
 -/
 import RelCertifier.InstancesV2.Modal.QuadLightAirframe20
 import RelCertifier.Proofs.Encoding.WellFormedR
@@ -28,9 +31,6 @@ namespace V2QuadLightAirframe20
 
 open DL DLCalTiming DLRel Parse Set
 
-theorem hp30 : Run.parseRat "3.0" = some (3 : ℚ) := by
-  have h : parseQ "3.0" = some (⟨30, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
 theorem hpm20 : Run.parseRat "-2.0" = some (-2 : ℚ) := by
   have h : parseQ "-2.0" = some (⟨-20, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
@@ -41,8 +41,8 @@ theorem epsR_eq : epsR quad_light_airframe_20_IRv2 = 1 := by
 noncomputable def guardR (q : ℕ) : Formula (Var 2) := hostGuard vs 2 Side.R (mR q)
 
 theorem sat_guardR0 (ν : State (Var 2)) :
-    Formula.sat (hostGuard vs 2 Side.R (mR 0)) ν ↔ 0 ≤ ν (Rv 0) ∧ ν (Rv 0) ≤ 13/5 := by
-  simp [hostGuard, mR, quad_light_airframe_20_IRv2, Run.lowerF, Run.lowerE, hp00, hp26, vs,
+    Formula.sat (hostGuard vs 2 Side.R (mR 0)) ν ↔ 0 ≤ ν (Rv 0) ∧ ν (Rv 0) ≤ 3 := by
+  simp [hostGuard, mR, quad_light_airframe_20_IRv2, Run.lowerF, Run.lowerE, hp00, hp30, vs,
     Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
     CompOp.interp, Term.eval, Rv]
 
@@ -122,58 +122,51 @@ theorem quad_light_airframe_20_wellFormedR_climb :
     exact ⟨Φ, H⟩
   · intro t Φ _ H
     have hf := fR0_eval 0 (by norm_num)
-    have hup := H.coord_le_barrier 0 (13/5) (fun s _ hs => by
+    have hup := H.coord_le_barrier 0 3 (fun s _ hs => by
       rw [hf]; simp only [cRc]; nlinarith) hgx.2
     have hlo := H.coord_ge_barrier 0 0 (fun s hs hs0 => by
       have := ((sat_domR s).mp hs).1
       rw [hf]; simp only [cRc]; nlinarith) hgx.1
     exact ⟨edgeW 0 0, edge_mem 0 0 (by decide), (sat_guardR0 _).mpr ⟨hlo, hup⟩⟩
 
-/-- The witness state: `w = 3.1` (every other variable 0). -/
-noncomputable def x31 : State (Var 2) := fun y => if y = Rv 0 then 31/10 else 0
-
-/-- **Assumption 1 fails at `LIMIT`**: from `w = 3.1` the run of duration 1 ends at
-`3.1 e^{−2} < 3`, outside `LIMIT`'s guard; `LIMIT`'s only declared successor is itself. -/
-theorem quad_light_airframe_20_limit_blocks :
-    ¬ WellFormedRMode Gr guardR (epsR quad_light_airframe_20_IRv2) 1 := by
+/-- **Assumption 1 at `LIMIT`** (style (b)): the climb rate decays toward 0; every run of at
+most one interval ends in `LIMIT`'s guard (`w > 3`) or in `CLIMB`'s (`0 ≤ w ≤ 3`). -/
+theorem quad_light_airframe_20_wellFormedR_limit :
+    WellFormedRMode Gr guardR (epsR quad_light_airframe_20_IRv2) 1 := by
   rw [epsR_eq]
-  have he2 : Real.exp (-(2 * 1)) ≤ 1/3 := by
-    have h := Real.add_one_le_exp 2
-    rw [Real.exp_neg]
-    rw [inv_le_comm₀ (Real.exp_pos _) (by norm_num)]
-    norm_num at h ⊢; linarith
-  have H : ODESol (rightBlock (fR 1) (Term.const 1)) domR x31 1
-      (trajJ x31 0 (fun t => 0 + (x31 (Rv 0) - 0) * Real.exp (-(2 * t)))) :=
-    trajJ_sol x31 0 _ 1 (by norm_num) (by simp)
-      (fun t _ _ => by rw [fR0_limit]; simp only [trajJ_j]
-                       exact hasDerivAt_expApproach 2 0 (x31 (Rv 0)) t)
-      (fun i hi t _ _ => by
-        match i, hi with
-        | 1, _ => exact fR1_limit _)
-      (fun t ht _ => by
-        rw [sat_domR, trajJ_j]
-        have h1 := Real.exp_pos (-(2 * t))
-        have h2 : Real.exp (-(2 * t)) ≤ 1 := by rw [Real.exp_le_one_iff]; linarith
-        simp only [x31, if_true]
-        constructor <;> nlinarith)
-  refine not_wellFormedR_of_run (Gr_modeAt 1 (by norm_num)) ?_ ?_ le_rfl H ?_
-  · show Formula.sat (hostGuard vs 2 Side.R (mR 1)) x31
-    rw [sat_guardR1]; simp [x31]; norm_num
-  · show Formula.sat domR x31
-    rw [sat_domR]; simp [x31]; norm_num
-  · intro e he hsat
-    have hl := edgesFrom_list he
-    have ht : e.tgt = 1 := by simp [edgeList] at hl; exact hl
-    rw [ht] at hsat
-    have := (sat_guardR1 _).mp hsat
-    simp only [trajJ_j, x31, if_true] at this
-    nlinarith
+  refine wellFormedRMode_intro (fun m hm x hg hd => ?_)
+  obtain ⟨-, rfl⟩ := Gr_modeAt_inv hm
+  have hgx := (sat_guardR1 x).mp hg
+  have hdx := (sat_domR x).mp hd
+  refine ⟨?_, ?_⟩
+  · refine exists_contract_run x 0 2 0 (by norm_num) fR0_limit ?_ ?_ 1 (by norm_num)
+    · intro i hi s
+      match i, hi with
+      | 1, _ => exact fR1_limit s
+    · intro v h1 h2
+      show Formula.sat domR _
+      rw [sat_domR, trajJ_j]
+      rw [min_eq_right (by linarith)] at h1
+      rw [max_eq_left (by linarith)] at h2
+      exact ⟨h1, le_trans h2 hdx.2⟩
+  · intro t Φ _ H
+    have hmem : (Rv 0, Term.binop .mul (Term.const 1) (fR 1 0)) ∈ (modeW 1).sys :=
+      rightBlock_mem' _ _ 0
+    have hdn := H.linear_down hmem 2 0 (by norm_num)
+      (fun s _ => by rw [eval_unit_mul, fR0_limit]) (by linarith)
+    by_cases h3 : 3 < Φ t (Rv 0)
+    · exact ⟨edgeW 1 1, edge_mem 1 1 (by decide), (sat_guardR1 _).mpr h3⟩
+    · push_neg at h3
+      exact ⟨edgeW 1 0, edge_mem 1 0 (by decide), (sat_guardR0 _).mpr ⟨hdn.1, h3⟩⟩
 
-/-- **`quad_light_airframe_20` violates Assumption 1** (a model defect: the sink `LIMIT`
-blocks). -/
-theorem quad_light_airframe_20_wellFormedR_false :
-    ¬ WellFormedR Gr guardR (epsR quad_light_airframe_20_IRv2) :=
-  not_wellFormedR_of_mode (by simp [Gr]) quad_light_airframe_20_limit_blocks
+/-- **`quad_light_airframe_20` satisfies Assumption 1** (every mode, Z3-free). -/
+theorem quad_light_airframe_20_wellFormedR :
+    WellFormedR Gr guardR (epsR quad_light_airframe_20_IRv2) := by
+  intro q hq
+  have hq2 : q < 2 := by simpa [Gr] using hq
+  rcases (by omega : q = 0 ∨ q = 1) with rfl | rfl
+  · exact quad_light_airframe_20_wellFormedR_climb
+  · exact quad_light_airframe_20_wellFormedR_limit
 
 end V2QuadLightAirframe20
 end RelCertifier

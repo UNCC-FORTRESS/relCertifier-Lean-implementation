@@ -43,13 +43,13 @@ def arm_plateau_profiles_IRv2 : PProblem :=
           odes := [("theta", (.num "0.5"))]
           guard := (.and (.cmp ">=" (.var "theta") (.num "0.0")) (.cmp "<=" (.var "theta") (.num "0.35")))
           evolve := (.and (.cmp ">=" (.var "theta") (.num "0.0")) (.cmp "<=" (.var "theta") (.num "1.2")))
-          next := ["ApproachB", "ApproachA"] },
+          next := ["ApproachB", "ApproachA", "ApproachCfast", "ApproachCslow", "Hold"] },
         {
           name := "ApproachB"
           odes := [("theta", (.num "0.35"))]
           guard := (.and (.cmp ">=" (.var "theta") (.num "0.35")) (.cmp "<=" (.var "theta") (.num "0.5")))
           evolve := (.and (.cmp ">=" (.var "theta") (.num "0.0")) (.cmp "<=" (.var "theta") (.num "1.2")))
-          next := ["ApproachCfast", "ApproachCslow", "ApproachB"] },
+          next := ["ApproachCfast", "ApproachCslow", "ApproachB", "Hold"] },
         {
           name := "ApproachCfast"
           odes := [("theta", (.num "0.25"))]

@@ -332,7 +332,7 @@ noncomputable def edgeW (s t : ℕ) : REdge (Var 2) :=
 
 /-- The declared transitions, as indices (FOLLOW 0, GENTLE 1, ASSERTIVE 2, BRAKE 3). -/
 def edgeList : List (ℕ × ℕ) :=
-  [(0, 1), (0, 2), (0, 0), (0, 3), (1, 0), (1, 1), (2, 0), (2, 2), (3, 3)]
+  [(0, 1), (0, 2), (0, 0), (0, 3), (1, 0), (1, 1), (2, 0), (2, 2), (3, 3), (3, 0)]
 
 /-- **Faithfulness of the graph**: `edgeList` IS the file's `next` lists, resolved by name. -/
 theorem edgeList_eq_IR : edgeList =
@@ -365,7 +365,7 @@ theorem hlt : ∀ q, ∀ e ∈ Gr.edgesFrom q, e.tgt < Gr.modes.length := by
   simp only [Gr, List.mem_map] at hmem
   obtain ⟨p, hp, rfl⟩ := hmem
   simp only [edgeList, List.mem_cons, List.not_mem_nil, or_false] at hp
-  rcases hp with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> simp [edgeW, Gr]
+  rcases hp with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> simp [edgeW, Gr]
 
 theorem hRv : ∀ q m, Gr.modeAt q = some m →
     m.sys.boundSet ∪ m.sys.readVars ∪ m.dom.fv ⊆ range Rv := by

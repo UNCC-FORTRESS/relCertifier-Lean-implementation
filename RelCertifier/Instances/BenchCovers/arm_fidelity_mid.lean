@@ -14,7 +14,7 @@ namespace RelCertifier
 /-- `arm_fidelity_mid` (emitted). -/
 def arm_fidelity_mid_cover : CoverEmitE :=
   ⟨"arm_fidelity_mid", [], [
-    ⟨"Accelerate", (1 : ℚ) / 1, 1, [⟨"ApproachFast", true, false, false, true, true⟩, ⟨"ApproachSlow", false, true, false, true, true⟩, ⟨"Hold", true, true, true, false, false⟩], ["ApproachFast", "ApproachSlow", "Hold"], [⟨"ApproachFast", [0], [0], [0]⟩, ⟨"ApproachSlow", [], [0], [0]⟩, ⟨"Hold", [0], [], []⟩]⟩,
-    ⟨"Brake", (1 : ℚ) / 1, 1, [⟨"ApproachFast", true, false, false, true, true⟩, ⟨"ApproachSlow", false, true, false, true, true⟩, ⟨"Hold", true, true, true, false, false⟩], ["ApproachFast", "ApproachSlow", "Hold"], [⟨"ApproachFast", [0], [0], [0]⟩, ⟨"ApproachSlow", [], [0], [0]⟩, ⟨"Hold", [0], [], []⟩]⟩]⟩
+    ⟨"Accelerate", (1 : ℚ) / 1, 1, [⟨"ApproachFast", true, true, true⟩, ⟨"ApproachSlow", false, true, true⟩, ⟨"Hold", true, false, false⟩], ["ApproachFast", "ApproachSlow", "Hold"], [⟨"ApproachFast", [0], [0], [0]⟩, ⟨"ApproachSlow", [], [0], [0]⟩, ⟨"Hold", [0], [], []⟩]⟩,
+    ⟨"Brake", (1 : ℚ) / 1, 1, [⟨"ApproachFast", true, true, true⟩, ⟨"ApproachSlow", false, true, true⟩, ⟨"Hold", true, false, false⟩], ["ApproachFast", "ApproachSlow", "Hold"], [⟨"ApproachFast", [0], [0], [0]⟩, ⟨"ApproachSlow", [], [0], [0]⟩, ⟨"Hold", [0], [], []⟩]⟩]⟩
 
 end RelCertifier

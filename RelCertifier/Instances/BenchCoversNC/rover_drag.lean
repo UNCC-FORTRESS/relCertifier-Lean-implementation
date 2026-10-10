@@ -14,6 +14,6 @@ namespace RelCertifier
 /-- `rover_drag` (cut-free emission). -/
 def rover_drag_coverNC : CoverEmitE :=
   ⟨"rover_drag", [], [
-    ⟨"Cruise", (1 : ℚ) / 1, 1, [⟨"Track", true, false, false, false, false⟩], ["Track"], [⟨"Track", [0], [], []⟩]⟩]⟩
+    ⟨"Cruise", (1 : ℚ) / 1, 1, [⟨"Track", true, false, false⟩], ["Track"], [⟨"Track", [0], [], []⟩]⟩]⟩
 
 end RelCertifier

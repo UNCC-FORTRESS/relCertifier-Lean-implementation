@@ -22,8 +22,8 @@ trajectory exits a domain). Contents, in composition order:
   `star (rightAutomatonBody G mv)` (each switch a declared `G`-edge, mode-validity `mvValid` riding the
   whole fold via `faithful_rights_bridge`), and compose over left modes with `faModal_bigChoiceL` into
   the star-right hstep that `relational_loop_multi` consumes.
-* Repositions — `reposition_step_pres` (static: zero-motion + `mv`-invisibility) and
-  `dynreposition_faModal` (dynamic: `segment_faModal` at `fL = 0`, the frozen-left flow).
+* Repositions — `dynreposition_faModal` (dynamic: `segment_faModal` at `fL = 0`, the
+  frozen-left flow; the only right-only move, there is no static zero-duration reposition).
 
 ⊤-edge model / clock are mechanization devices with no direct paper analog; the soundness lines
 (`plantT`-predicate not domain-narrowing, `tg`/`mv`-invisibility, declared-edge faithfulness) are
@@ -301,38 +301,7 @@ theorem sem_ode_nil {dom : Formula (Var n)} {ν μ : State (Var n)}
   funext x
   rw [← hΦr, hmask r ⟨hr, le_refl r⟩ x (by simp [ODESystem.bound])]
 
-/-- **(A) — static reposition preserves `invLe g`.** A `modeStep` at a zero-motion (`m.sys = []`)
-mode is a state-preserving declared-edge mode switch; `invLe g` survives because the continuous
-state is unchanged and the `mv`-assign is invisible to `g` (`mv ∉ g.fv`). -/
-theorem reposition_step_pres (G : SearchGraph (Var n)) (mv : Var n) (q : ℕ) (m : RMode (Var n))
-    (g : Term (Var n)) (hg : mv ∉ g.fv) (hsys : m.sys = [])
-    {ν μ : State (Var n)} (hsem : Program.sem (modeStep G mv q m) ν μ)
-    (hinv : Formula.sat (invLe g) ν) : Formula.sat (invLe g) μ := by
-  -- modeStep = test(mode=q) ; ode m.sys dom ; bigChoiceP (edges)
-  obtain ⟨κ1, htest, κ2, hode, hjump⟩ := hsem
-  -- test passes: κ1 = ν
-  have e1 : κ1 = ν := htest.1.symm
-  -- empty ODE is the identity: κ2 = ν
-  rw [hsys, e1] at hode
-  have e2 : κ2 = ν := sem_ode_nil hode
-  rw [e2] at hjump
-  -- the jump is a declared edge's `test e.guard ; assign mv := e.tgt`
-  obtain ⟨p, hpmem, hpsem⟩ := bigChoiceP_sem_forward hjump
-  obtain ⟨e, _, rfl⟩ := List.mem_map.mp hpmem
-  obtain ⟨κ3, hg3, hasgn⟩ := hpsem
-  have e3 : κ3 = ν := hg3.1.symm
-  rw [e3] at hasgn
-  -- `assign` sem is pointwise: `hasgn.2 : ∀ y ≠ mv, μ y = ν y`; on `g.fv` (which excludes `mv`)
-  -- `μ` agrees with `ν`, so `invLe g` transfers by coincidence.
-  have heq : Set.EqOn ν μ (invLe g).fv := by
-    intro x hx
-    have hxne : x ≠ mv := by
-      rintro rfl
-      exact hg (by simpa only [invLe, Formula.fv, Term.fv, Set.union_empty] using hx)
-    exact (hasgn.2 x hxne).symm
-  exact (Formula.coincidence (invLe g) heq).mp hinv
-
-/-- **(B) — dynamic reposition = flow machinery with `fL = 0`.** The dynamic reposition's right
+/-- **Dynamic reposition = flow machinery with `fL = 0`.** The dynamic reposition's right
 segment evolves under the frozen-left field `m.dynSys = jointSys (0) fR lam` (`ṡ_L = 0`); its cert
 `repoDynPresPre : SegPreservesOn g m.dynSys m.dynDomPre` is exactly the joint `BoxLe` that
 `segment_faModal` consumes with `fL := 0`. So its modality image is the SAME `⟨ode rightBlock⟩`

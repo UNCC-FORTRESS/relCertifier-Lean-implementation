@@ -16,7 +16,7 @@ def mLRefinementLadderRoverRung2c6dof (l : ℕ) : Parse.PMode := refinement_ladd
 def mRRefinementLadderRoverRung2c6dof (q : ℕ) : Parse.PMode := refinement_ladder_rover_rung2c_6dof_IR.R.modes.getD q dummyRefinementLadderRoverRung2c6dof
 def fRowRefinementLadderRoverRung2c6dof (l q : ℕ) : ModeFlagsE :=
   ((refinement_ladder_rover_rung2c_6dof_coverNC.covers.getD l ⟨"", 1, 1, [], [], []⟩).flags.getD q
-    ⟨"", false, false, false, false, false⟩)
+    ⟨"", false, false, false⟩)
 noncomputable def GWRefinementLadderRoverRung2c6dof (l : ℕ) : SearchGraph (Var 6) :=
   realGraphOf vsRefinementLadderRoverRung2c6dof 6 refinement_ladder_rover_rung2c_6dof_IR (mLRefinementLadderRoverRung2c6dof l)
     ((refinement_ladder_rover_rung2c_6dof_coverNC.covers.getD l ⟨"", 1, 1, [], [], []⟩).lamQ)
@@ -31,7 +31,7 @@ theorem GWRefinementLadderRoverRung2c6dof0_modes_eq : (GWRefinementLadderRoverRu
 
 theorem certRefinementLadderRoverRung2c6dof_0 (hs_0_0 : ∀ i (hi : i < gsRefinementLadderRoverRung2c6dof_0.length),     z3solve (flowQuery ⟨gsRefinementLadderRoverRung2c6dof_0[i],       hostDyn vsRefinementLadderRoverRung2c6dof 6 Side.L (mLRefinementLadderRoverRung2c6dof 0), hostDyn vsRefinementLadderRoverRung2c6dof 6 Side.R (mRRefinementLadderRoverRung2c6dof 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRefinementLadderRoverRung2c6dof 6 Side.L (mLRefinementLadderRoverRung2c6dof 0)) (hostEvolve vsRefinementLadderRoverRung2c6dof 6 Side.R (mRRefinementLadderRoverRung2c6dof 0))) (gsRefinementLadderRoverRung2c6dof_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsRefinementLadderRoverRung2c6dof_0[i],       hostDyn vsRefinementLadderRoverRung2c6dof 6 Side.L (mLRefinementLadderRoverRung2c6dof 0), hostDyn vsRefinementLadderRoverRung2c6dof 6 Side.R (mRRefinementLadderRoverRung2c6dof 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRefinementLadderRoverRung2c6dof 6 Side.L (mLRefinementLadderRoverRung2c6dof 0)) (hostEvolve vsRefinementLadderRoverRung2c6dof 6 Side.R (mRRefinementLadderRoverRung2c6dof 0))) (gsRefinementLadderRoverRung2c6dof_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsRefinementLadderRoverRung2c6dof_0[i],       hostDyn vsRefinementLadderRoverRung2c6dof 6 Side.L (mLRefinementLadderRoverRung2c6dof 0), hostDyn vsRefinementLadderRoverRung2c6dof 6 Side.R (mRRefinementLadderRoverRung2c6dof 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRefinementLadderRoverRung2c6dof 6 Side.L (mLRefinementLadderRoverRung2c6dof 0)) (hostEvolve vsRefinementLadderRoverRung2c6dof 6 Side.R (mRRefinementLadderRoverRung2c6dof 0))) (gsRefinementLadderRoverRung2c6dof_0.take i)⟩) = Verdict.unsat) :
     CoverCertM (GWRefinementLadderRoverRung2c6dof 0) gsRefinementLadderRoverRung2c6dof_0 := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨?_, ?_, ?_, ?_⟩
   · intro q m hm hflag
     unfold SearchGraph.modeAt at hm
     rw [GWRefinementLadderRoverRung2c6dof0_modes_eq] at hm
@@ -40,24 +40,6 @@ theorem certRefinementLadderRoverRung2c6dof_0 (hs_0_0 : ∀ i (hi : i < gsRefine
         replace hm := Option.some.inj hm
         subst hm
         rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsRefinementLadderRoverRung2c6dof_0 hs_0_0
-    | q + 1, hm => simp at hm
-  · intro q m hm hflag
-    unfold SearchGraph.modeAt at hm
-    rw [GWRefinementLadderRoverRung2c6dof0_modes_eq] at hm
-    match q, hm with
-    | 0, hm =>
-        replace hm := Option.some.inj hm
-        subst hm
-        exact absurd hflag (by simp [fRowRefinementLadderRoverRung2c6dof, refinement_ladder_rover_rung2c_6dof_coverNC])
-    | q + 1, hm => simp at hm
-  · intro q m hm hflag
-    unfold SearchGraph.modeAt at hm
-    rw [GWRefinementLadderRoverRung2c6dof0_modes_eq] at hm
-    match q, hm with
-    | 0, hm =>
-        replace hm := Option.some.inj hm
-        subst hm
-        exact absurd hflag (by simp [fRowRefinementLadderRoverRung2c6dof, refinement_ladder_rover_rung2c_6dof_coverNC])
     | q + 1, hm => simp at hm
   · intro q m hm hflag
     unfold SearchGraph.modeAt at hm
@@ -100,7 +82,7 @@ theorem GWRefinementLadderRoverRung2c6dof1_modes_eq : (GWRefinementLadderRoverRu
 
 theorem certRefinementLadderRoverRung2c6dof_1 (hs_1_1 : ∀ i (hi : i < gsRefinementLadderRoverRung2c6dof_1.length),     z3solve (flowQuery ⟨gsRefinementLadderRoverRung2c6dof_1[i],       hostDyn vsRefinementLadderRoverRung2c6dof 6 Side.L (mLRefinementLadderRoverRung2c6dof 1), hostDyn vsRefinementLadderRoverRung2c6dof 6 Side.R (mRRefinementLadderRoverRung2c6dof 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRefinementLadderRoverRung2c6dof 6 Side.L (mLRefinementLadderRoverRung2c6dof 1)) (hostEvolve vsRefinementLadderRoverRung2c6dof 6 Side.R (mRRefinementLadderRoverRung2c6dof 1))) (gsRefinementLadderRoverRung2c6dof_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsRefinementLadderRoverRung2c6dof_1[i],       hostDyn vsRefinementLadderRoverRung2c6dof 6 Side.L (mLRefinementLadderRoverRung2c6dof 1), hostDyn vsRefinementLadderRoverRung2c6dof 6 Side.R (mRRefinementLadderRoverRung2c6dof 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRefinementLadderRoverRung2c6dof 6 Side.L (mLRefinementLadderRoverRung2c6dof 1)) (hostEvolve vsRefinementLadderRoverRung2c6dof 6 Side.R (mRRefinementLadderRoverRung2c6dof 1))) (gsRefinementLadderRoverRung2c6dof_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsRefinementLadderRoverRung2c6dof_1[i],       hostDyn vsRefinementLadderRoverRung2c6dof 6 Side.L (mLRefinementLadderRoverRung2c6dof 1), hostDyn vsRefinementLadderRoverRung2c6dof 6 Side.R (mRRefinementLadderRoverRung2c6dof 1), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRefinementLadderRoverRung2c6dof 6 Side.L (mLRefinementLadderRoverRung2c6dof 1)) (hostEvolve vsRefinementLadderRoverRung2c6dof 6 Side.R (mRRefinementLadderRoverRung2c6dof 1))) (gsRefinementLadderRoverRung2c6dof_1.take i)⟩) = Verdict.unsat) :
     CoverCertM (GWRefinementLadderRoverRung2c6dof 1) gsRefinementLadderRoverRung2c6dof_1 := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨?_, ?_, ?_, ?_⟩
   · intro q m hm hflag
     unfold SearchGraph.modeAt at hm
     rw [GWRefinementLadderRoverRung2c6dof1_modes_eq] at hm
@@ -109,24 +91,6 @@ theorem certRefinementLadderRoverRung2c6dof_1 (hs_1_1 : ∀ i (hi : i < gsRefine
         replace hm := Option.some.inj hm
         subst hm
         rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsRefinementLadderRoverRung2c6dof_1 hs_1_1
-    | q + 1, hm => simp at hm
-  · intro q m hm hflag
-    unfold SearchGraph.modeAt at hm
-    rw [GWRefinementLadderRoverRung2c6dof1_modes_eq] at hm
-    match q, hm with
-    | 0, hm =>
-        replace hm := Option.some.inj hm
-        subst hm
-        exact absurd hflag (by simp [fRowRefinementLadderRoverRung2c6dof, refinement_ladder_rover_rung2c_6dof_coverNC])
-    | q + 1, hm => simp at hm
-  · intro q m hm hflag
-    unfold SearchGraph.modeAt at hm
-    rw [GWRefinementLadderRoverRung2c6dof1_modes_eq] at hm
-    match q, hm with
-    | 0, hm =>
-        replace hm := Option.some.inj hm
-        subst hm
-        exact absurd hflag (by simp [fRowRefinementLadderRoverRung2c6dof, refinement_ladder_rover_rung2c_6dof_coverNC])
     | q + 1, hm => simp at hm
   · intro q m hm hflag
     unfold SearchGraph.modeAt at hm
@@ -169,7 +133,7 @@ theorem GWRefinementLadderRoverRung2c6dof2_modes_eq : (GWRefinementLadderRoverRu
 
 theorem certRefinementLadderRoverRung2c6dof_2 (hs_2_2 : ∀ i (hi : i < gsRefinementLadderRoverRung2c6dof_2.length),     z3solve (flowQuery ⟨gsRefinementLadderRoverRung2c6dof_2[i],       hostDyn vsRefinementLadderRoverRung2c6dof 6 Side.L (mLRefinementLadderRoverRung2c6dof 2), hostDyn vsRefinementLadderRoverRung2c6dof 6 Side.R (mRRefinementLadderRoverRung2c6dof 2), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRefinementLadderRoverRung2c6dof 6 Side.L (mLRefinementLadderRoverRung2c6dof 2)) (hostEvolve vsRefinementLadderRoverRung2c6dof 6 Side.R (mRRefinementLadderRoverRung2c6dof 2))) (gsRefinementLadderRoverRung2c6dof_2.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsRefinementLadderRoverRung2c6dof_2[i],       hostDyn vsRefinementLadderRoverRung2c6dof 6 Side.L (mLRefinementLadderRoverRung2c6dof 2), hostDyn vsRefinementLadderRoverRung2c6dof 6 Side.R (mRRefinementLadderRoverRung2c6dof 2), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRefinementLadderRoverRung2c6dof 6 Side.L (mLRefinementLadderRoverRung2c6dof 2)) (hostEvolve vsRefinementLadderRoverRung2c6dof 6 Side.R (mRRefinementLadderRoverRung2c6dof 2))) (gsRefinementLadderRoverRung2c6dof_2.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsRefinementLadderRoverRung2c6dof_2[i],       hostDyn vsRefinementLadderRoverRung2c6dof 6 Side.L (mLRefinementLadderRoverRung2c6dof 2), hostDyn vsRefinementLadderRoverRung2c6dof 6 Side.R (mRRefinementLadderRoverRung2c6dof 2), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsRefinementLadderRoverRung2c6dof 6 Side.L (mLRefinementLadderRoverRung2c6dof 2)) (hostEvolve vsRefinementLadderRoverRung2c6dof 6 Side.R (mRRefinementLadderRoverRung2c6dof 2))) (gsRefinementLadderRoverRung2c6dof_2.take i)⟩) = Verdict.unsat) :
     CoverCertM (GWRefinementLadderRoverRung2c6dof 2) gsRefinementLadderRoverRung2c6dof_2 := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨?_, ?_, ?_, ?_⟩
   · intro q m hm hflag
     unfold SearchGraph.modeAt at hm
     rw [GWRefinementLadderRoverRung2c6dof2_modes_eq] at hm
@@ -178,24 +142,6 @@ theorem certRefinementLadderRoverRung2c6dof_2 (hs_2_2 : ∀ i (hi : i < gsRefine
         replace hm := Option.some.inj hm
         subst hm
         rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsRefinementLadderRoverRung2c6dof_2 hs_2_2
-    | q + 1, hm => simp at hm
-  · intro q m hm hflag
-    unfold SearchGraph.modeAt at hm
-    rw [GWRefinementLadderRoverRung2c6dof2_modes_eq] at hm
-    match q, hm with
-    | 0, hm =>
-        replace hm := Option.some.inj hm
-        subst hm
-        exact absurd hflag (by simp [fRowRefinementLadderRoverRung2c6dof, refinement_ladder_rover_rung2c_6dof_coverNC])
-    | q + 1, hm => simp at hm
-  · intro q m hm hflag
-    unfold SearchGraph.modeAt at hm
-    rw [GWRefinementLadderRoverRung2c6dof2_modes_eq] at hm
-    match q, hm with
-    | 0, hm =>
-        replace hm := Option.some.inj hm
-        subst hm
-        exact absurd hflag (by simp [fRowRefinementLadderRoverRung2c6dof, refinement_ladder_rover_rung2c_6dof_coverNC])
     | q + 1, hm => simp at hm
   · intro q m hm hflag
     unfold SearchGraph.modeAt at hm

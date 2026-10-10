@@ -38,6 +38,16 @@ Measured with `RELCERT_DEBUG=1 relcert benchmarks/suite_uniform/<name>/input.txt
 flag order `jointOK, repoPre, repoPost, dynPre, dynPost`) and the emitted cut certificates
 (`Instances/EvolStrengthenings/<name>.lean`). All five certify at λ = 1, budget 1.
 
+*Note (2026-10-09).* The `repoPre`/`repoPost` columns below are the **static**
+(zero-duration) reposition flags of the cover emitted on 2026-10-08. The static reposition
+was removed from the certifier on 2026-10-09 (`docs/COVER-AUDIT.md`, note of that date);
+the emitted flag order is now `jointOK, dynPre, dynPost`, and `arm_chain_rung3` and
+`arm_fidelity_mid` still certify at λ = 1, budget 1 with the regenerated covers (their
+right-only steps are dynamic repositions). The columns are kept as the record of the
+earlier reading. The zero-duration hops into `Hold` described below belong to the two
+composed `…_declared` theorems (`sem_bigSeq_identity` over the `⊤`-guarded right
+program), not to the tool's cover; they are not affected by the removal.
+
 ### 2a. The high family — `arm_chain_rung3`, `arm_fidelity_high`, `plant_fan_high`
 
 Byte-identical dynamics, guards and evolves (the three files differ only in their

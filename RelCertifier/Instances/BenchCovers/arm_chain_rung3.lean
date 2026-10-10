@@ -14,7 +14,7 @@ namespace RelCertifier
 /-- `arm_chain_rung3` (emitted). -/
 def arm_chain_rung3_cover : CoverEmitE :=
   ⟨"arm_chain_rung3", [], [
-    ⟨"Accelerate", (1 : ℚ) / 1, 1, [⟨"ApproachA", true, false, false, true, true⟩, ⟨"ApproachB", false, true, false, true, true⟩, ⟨"ApproachC", false, true, true, true, true⟩, ⟨"Hold", true, true, true, true, true⟩], ["ApproachA", "ApproachB", "ApproachC", "Hold"], [⟨"ApproachA", [0], [0], [0]⟩, ⟨"ApproachB", [], [0], [0]⟩, ⟨"ApproachC", [], [0], [0]⟩, ⟨"Hold", [0], [0], [0]⟩]⟩,
-    ⟨"Brake", (1 : ℚ) / 1, 1, [⟨"ApproachA", true, false, false, true, true⟩, ⟨"ApproachB", false, false, false, true, true⟩, ⟨"ApproachC", false, true, true, true, true⟩, ⟨"Hold", true, true, true, true, true⟩], ["ApproachA", "ApproachB", "ApproachC", "Hold"], [⟨"ApproachA", [0], [0], [0]⟩, ⟨"ApproachB", [], [0], [0]⟩, ⟨"ApproachC", [], [0], [0]⟩, ⟨"Hold", [0], [0], [0]⟩]⟩]⟩
+    ⟨"Accelerate", (1 : ℚ) / 1, 1, [⟨"ApproachA", true, true, true⟩, ⟨"ApproachB", false, true, true⟩, ⟨"ApproachC", false, true, true⟩, ⟨"Hold", true, true, true⟩], ["ApproachA", "ApproachB", "ApproachC", "Hold"], [⟨"ApproachA", [0], [0], [0]⟩, ⟨"ApproachB", [], [0], [0]⟩, ⟨"ApproachC", [], [0], [0]⟩, ⟨"Hold", [0], [0], [0]⟩]⟩,
+    ⟨"Brake", (1 : ℚ) / 1, 1, [⟨"ApproachA", true, true, true⟩, ⟨"ApproachB", false, true, true⟩, ⟨"ApproachC", false, true, true⟩, ⟨"Hold", true, true, true⟩], ["ApproachA", "ApproachB", "ApproachC", "Hold"], [⟨"ApproachA", [0], [0], [0]⟩, ⟨"ApproachB", [], [0], [0]⟩, ⟨"ApproachC", [], [0], [0]⟩, ⟨"Hold", [0], [0], [0]⟩]⟩]⟩
 
 end RelCertifier

@@ -116,10 +116,7 @@ import RelCertifier.Instances.BenchCoverReplay
 import RelCertifier.Proofs.Encoding.CoverMulti
 import RelCertifier.Proofs.Encoding.RepoPrefix
 import RelCertifier.Proofs.Encoding.EnvelopeChain
-import RelCertifier.Instances.WatertankModal
-import RelCertifier.Instances.WatertankViability
 import RelCertifier.Verdicts.Coverage
-import RelCertifier.Verdicts.Run
 import RelCertifier.Verdicts.RunModal
 import RelCertifier.Verdicts.ModalPinTable
 import RelCertifier.Verdicts.ModalTablePins
@@ -131,7 +128,6 @@ import RelCertifier.Proofs.Encoding.CoverInstance
 import RelCertifier.Instances.BenchCoversNC
 import RelCertifier.Archive.ThroughoutPilot
 import RelCertifier.Instances.UniformPilot
-import RelCertifier.Archive.WatertankThroughout
 import RelCertifier.Instances.ThroughoutBattery
 
 -- The modal battery: every benchmark's Theorem 3 + its axiom audit (docs/CERTIFICATION-CHECK.md)

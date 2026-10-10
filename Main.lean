@@ -18,7 +18,6 @@ import RelCertifier.Trusted.Z3
 import RelCertifier.Trusted.OracleAPI
 import RelCertifier.Trusted.ViabilityEmit
 import RelCertifier.Trusted.KeyAudit
-import RelCertifier.Verdicts.Run
 import RelCertifier.Verdicts.RunModal
 import RelCertifier.Verdicts.RunCut
 import RelCertifier.Verdicts.RunHandoff
@@ -139,8 +138,6 @@ def runBatch (paths : List String) : IO Unit := do
 and `--check-quick`. -/
 def runAllVerdicts (cfg : RelCertifier.Z3Config) : IO Bool := do
   let exp := RelCertifier.Verdicts.expected
-  let n0 ← RelCertifier.Verdicts.dischargedCount.get
-  let ok1 ← RelCertifier.Verdicts.runVerdicts cfg
   let n1 ← RelCertifier.Verdicts.dischargedCount.get
   let ok2 ← RelCertifier.Verdicts.runCutProbes cfg
   let n2 ← RelCertifier.Verdicts.dischargedCount.get
@@ -152,7 +149,6 @@ def runAllVerdicts (cfg : RelCertifier.Z3Config) : IO Bool := do
   let n5 ← RelCertifier.Verdicts.dischargedCount.get
   -- a phase that issued fewer queries than it owes is not a green run, however clean
   -- its own output looked (Verdicts/Coverage.lean)
-  let c1 ← RelCertifier.Verdicts.checkPhase "watertank" (n1 - n0) exp.watertank
   let c2 ← RelCertifier.Verdicts.checkPhase "cut probes" (n2 - n1) exp.cut
   let c3 ← RelCertifier.Verdicts.checkPhase "modal" (n3 - n2) exp.modal
   -- the handoff phase counts its `unsat`s; the declared failures are not discharged, so
@@ -163,7 +159,7 @@ def runAllVerdicts (cfg : RelCertifier.Z3Config) : IO Bool := do
   let c5 ← RelCertifier.Verdicts.checkPhase "non-connection" (n5 - n4) exp.nonconn
   let c5' ← RelCertifier.Verdicts.checkPhase "pruned edges"
     RelCertifier.Verdicts.prunedEdges.length exp.prunedEdges
-  pure (ok1 && ok2 && ok3 && ok4 && ok5 && c1 && c2 && c3 && c4 && c5 && c5')
+  pure (ok2 && ok3 && ok4 && ok5 && c2 && c3 && c4 && c5 && c5')
 
 def usage : String :=
 "relcert — the relCertifier certification tool
@@ -188,7 +184,7 @@ EMITTERS (regenerate committed Lean literals; each prints to stdout)
 NOT PART OF THIS BINARY
   The kernel check is the Lean toolchain, not a flag here:
     lake build                                      kernel-checks everything (~13 h)
-    lake build RelCertifier.Instances.ModalBattery  the 50 theorems + axiom audit
+    lake build RelCertifier.Instances.ModalBattery  the 46 theorems + axiom audit
   The trusted-layer tests are a separate executable:
     BENCH_PATHS=<manifest> ./.lake/build/bin/relcert-test
   `relcert-test` silently skips its two Z3-determinism checks unless BENCH_PATHS

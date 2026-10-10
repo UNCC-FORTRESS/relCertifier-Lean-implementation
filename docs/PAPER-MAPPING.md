@@ -182,8 +182,9 @@ as a CUT when two obligations hold (`Trusted/OracleAPI.lean` `checkedCut`):
 
 **How the cut narrows the flow query.** The kept atoms of the left mode `m_L` and the right
 mode `m_R` are conjoined to the domain of every query of that pairing (`andCuts`): the joint
-flow queries (`checkSeg`, all three routes), the static reposition regions (`repoRegions`)
-and the dynamic reposition queries (`checkDynRepo`). `evolve` itself is never modified; the
+flow queries (`checkSeg`, all three routes) and the dynamic reposition queries
+(`checkDynRepo`). (Until 2026-10-09 also the static reposition regions, `repoRegions`; the
+static reposition is removed, see *Repositions* below.) `evolve` itself is never modified; the
 model, and the Lean statement (uniform evolve as every mode's domain), see only `evolve`.
 The emitted certificate is `Instances/EvolStrengthenings/<name>.lean` (atom + route per
 mode), kernel-checked well-formed by `rfl` (`evolStrengtheningWF`: every atom is a guard
@@ -681,15 +682,17 @@ obligations. **Not built** — the risk is matching the lowered data (`realField
 
 | family | benchmarks | conclusion |
 |---|---|---|
-| `Instances/Throughout/*.lean` | 29 | `Covered … ∧ CoexecInvAllThroughout …`, per left mode, from named Z3 verdicts |
+| `Instances/Throughout/*.lean` | 23 | `Covered … ∧ CoexecInvAllThroughout …`, per left mode, from named Z3 verdicts |
 | `Instances/CutThroughout/*.lean` | 11 | same, guard-threaded via `RightReachG` |
-| `Instances/*Modal.lean` (40 files) | **40** | **`rvalid (theorem3Form …)`** — 41 base theorems (+ 7 `*Handoff.lean` mode-keyed, + 2 `*Declared.lean` cut-composed), all imported and axiom-audited by `Instances/ModalBattery.lean` |
+| `Instances/*Modal.lean` (34 files) | **34** | **`rvalid (theorem3Form …)`** — 35 base theorems (+ 7 `*Handoff.lean` mode-keyed, + 2 `*Declared.lean` cut-composed), all imported and axiom-audited by `Instances/ModalBattery.lean` |
 | `Archive/EndToEnd.lean` | watertank | `rvalid (theorem3Form …)` ×3 — **via the settling route, hence vacuous (§3b)**; archived 2026-07-30 |
 | `Archive/Mega.lean` | arm_refinement | fidelity ∧ settling in one term — **same settling route, same vacuity (§3b)**; archived 2026-07-30, **deleted 2026-10-08** with the `arm_refinement` benchmark (a duplicate of `arm_fidelity_low`) |
 | `Instances/UniformPilot.lean` | rover_drag | **`rvalid (theorem3Form …)`** from **one** Z3 verdict + `hES`; kept as the only instantiation of `theorem3_uniform_multiflow` (the benchmark's live instance is `RoverDragModal.lean`) |
-| `Instances/WatertankModal` + `WatertankViability` | watertank | **`rvalid (theorem3Form …)`**, multi-mode with repositions, existence proven in-kernel; the six verdicts are pinned to the runner's printed queries |
+| ~~`Instances/WatertankModal` + `WatertankViability`~~ | watertank | deleted 2026-10-09: `suite_uniform/watertank` is DECLINED since the static reposition was removed (its cover needed it); with it went the six pinned `VerdW` verdicts (`Verdicts/Watertank.lean`, `Run.lean`) |
 
-So `rvalid (theorem3Form …)` is written out for **all 40 certified benchmarks**
+So `rvalid (theorem3Form …)` is written out for **all 34 certified benchmarks** (40 until
+2026-10-09; six are DECLINED since the static reposition was removed: `arm_chain_rung1`,
+`arm_chain_rung2`, `arm_fidelity_low`, `robot_braking`, `rover3tier_M1`, `watertank`)
 (`Instances/ModalBattery.lean`), non-vacuously: each instance carries a joint certificate
 or a right-only response, existence is proven rather than hypothesised, and five carry no
 Z3 verdict at all. The `EndToEnd` form remains vacuous (§3b) and is archived (`Mega` was deleted with its benchmark).
@@ -750,7 +753,7 @@ have been weaker than the paper.
 
 | item | what it removed / established | gate | Lean artifact | paper element it supports |
 |---|---|---|---|---|
-| **R1** witness extraction | the assumed `EmitSegs`/`EmitWindows` devices — hypotheses asserting *a chain of response segments exists*. Replaced by induction on the `Covered` derivation (joint cases → pieces; the four reposition cases → frozen-left segments; staying backed by declared self-edges) | *"`theorem3_faithful_multi{,_reposition}` restated without any `Emit*` hypothesis; rover_drag pilot re-based on it; axioms unchanged"* | `theorem3_uniform_from_covered` (`CoverExtract.lean:122`) | **Theorem 3** and **Definition 5 (Witness Strategy)** — makes "the cover *induces* a certified witness strategy" an inference rather than an assumption. Without R1 the mechanization would assume exactly what §4 constructs |
+| **R1** witness extraction | the assumed `EmitSegs`/`EmitWindows` devices — hypotheses asserting *a chain of response segments exists*. Replaced by induction on the `Covered` derivation (joint cases → pieces; the reposition cases → frozen-left segments — four until 2026-10-09, two since the static reposition was removed; staying backed by declared self-edges) | *"`theorem3_faithful_multi{,_reposition}` restated without any `Emit*` hypothesis; rover_drag pilot re-based on it; axioms unchanged"* | `theorem3_uniform_from_covered` (`CoverExtract.lean:122`) | **Theorem 3** and **Definition 5 (Witness Strategy)** — makes "the cover *induces* a certified witness strategy" an inference rather than an assumption. Without R1 the mechanization would assume exactly what §4 constructs |
 | **R2** statement conditioning | quantification over more initial configurations than the tool certifies (instances demanded "phantom pairs"). Entry conditioned on `admissible` (SAT `guardL ∧ guardR ∧ inv`), `mv = q₀`, `σ = preJ`; left family = all modes' windows, each `test(guardL)`-gated | *"top theorem's start set provably matches `coverMode`'s admissible-start ∀; a watertank-shaped 3-mode toy goes through where it previously demanded phantom pairs"* | `theorem3_uniform_guarded` (`CoverExtract.lean:218`) | **§4.3 admissibility** (*"an initial right mode is admissible for `m_L` if some initial state pair satisfies `φInv`"*) and **eq. (mode-inv)**'s per-mode, guard-entered decomposition |
 | **R3** canonical `ϕinv` + encoding identity | the per-instance `hψ`/`hinvL`/`hinvR` residuals — a builder from the lowered invariant components plus a generic `encode … = invLe g` proof | *"pilot instance carries NO encoding hypotheses"* | `canonInv`, `encode_canonInv` | **eq. (polynomial-invariant)** — the invariant language `⋀ᵢ p_i ≤ 0` — and the encoding step into dL-rel's Theorem 2 |
 | **R4** multi-component invariants | certification of only the primary component. Per-component certificates via three routes (A domain / B strict / C superlevel), each component's domain narrowed by the others `≤ 0` (multi-barrier coupling) and by the checked cuts | *"a multi-component benchmark's full conjunction invariant certified, not just the primary component"* | route adapters + the multi-barrier lemma; `CoverCertM` | **Definition 2 (Flow Certificate)** and **Theorem 1** — the paper's *"when this condition holds for every component, no boundary of the conjunction can be crossed outward"* |
@@ -802,3 +805,16 @@ derived from two `HybridAut`s via `graphOf_Gr` — instantiated non-vacuously at
 §2's cover-based, Emit-free theorems. Its one surviving contribution is packaging:
 deriving the programs from an automaton rather than taking `leftProgs`/`G` as given,
 which is worth borrowing only if an automaton-parametric statement is ever wanted.
+
+## Repositions (2026-10-09)
+
+The certifier's only right-only move is the **dynamic reposition** (`checkDynRepo`,
+`Covered.stepRepositionDynPre/Post`, `RightReach.repositionDynPre/Post`): the right system
+flows under its own field for a full interval while the left is held, and the invariant is
+kept by the whole-domain flow certificate (route A over the frozen-left field). This is the
+paper's **right-only segment**. The **static reposition** (`repoPreOK`/`repoPostOK`,
+`Covered.stepRepositionPre/Post`, the Z3 region checks `repoRegions`/`regionUnsat`), which
+switched the right into a declared successor at a single instant, is **removed**: no check
+established that the successor's guard held at the switch state, and the right automaton's
+`⊤` edge guards meant nothing in the program caught it (`docs/COVER-AUDIT.md`, note of
+2026-10-09). The paper has no zero-duration switch, so no paper element maps to it any more.

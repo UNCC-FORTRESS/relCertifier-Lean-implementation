@@ -29,13 +29,7 @@ def coverReplays (p : Parse.PProblem) (c : CoverEmitE) : Bool :=
         (coverFuel lc.flags lc.bBudget)
         ⟨nodeIdx lc.flags q0, lc.bBudget, SrcSetting.preJ⟩))
 
-theorem arm_chain_rung1_cover_replay : coverReplays Parse.arm_chain_rung1_IR arm_chain_rung1_cover = true := by decide
-
-theorem arm_chain_rung2_cover_replay : coverReplays Parse.arm_chain_rung2_IR arm_chain_rung2_cover = true := by decide
-
 theorem arm_chain_rung3_cover_replay : coverReplays Parse.arm_chain_rung3_IR arm_chain_rung3_cover = true := by decide
-
-theorem arm_fidelity_low_cover_replay : coverReplays Parse.arm_fidelity_low_IR arm_fidelity_low_cover = true := by decide
 
 theorem arm_fidelity_mid_cover_replay : coverReplays Parse.arm_fidelity_mid_IR arm_fidelity_mid_cover = true := by decide
 
@@ -63,11 +57,7 @@ theorem refinement_ladder_rover_rung3_6to8_cover_replay : coverReplays Parse.ref
 
 theorem refinement_ladder_rover_rung4_8to12_cover_replay : coverReplays Parse.refinement_ladder_rover_rung4_8to12_IR refinement_ladder_rover_rung4_8to12_cover = true := by decide
 
-theorem robot_braking_cover_replay : coverReplays Parse.robot_braking_IR robot_braking_cover = true := by decide
-
 theorem rover3_M1_cover_replay : coverReplays Parse.rover3_M1_IR rover3_M1_cover = true := by decide
-
-theorem rover3tier_M1_cover_replay : coverReplays Parse.rover3tier_M1_IR rover3tier_M1_cover = true := by decide
 
 theorem rover3tier_rung12_cover_replay : coverReplays Parse.rover3tier_rung12_IR rover3tier_rung12_cover = true := by decide
 
@@ -106,7 +96,5 @@ theorem story3_rollover_base_12dof_cover_replay : coverReplays Parse.story3_roll
 theorem story3_rollover_ladder_rung_a_cover_replay : coverReplays Parse.story3_rollover_ladder_rung_a_IR story3_rollover_ladder_rung_a_cover = true := by decide
 
 theorem story3_rollover_ladder_rung_b_cover_replay : coverReplays Parse.story3_rollover_ladder_rung_b_IR story3_rollover_ladder_rung_b_cover = true := by decide
-
-theorem watertank_cover_replay : coverReplays Parse.watertank_IR watertank_cover = true := by decide
 
 end RelCertifier

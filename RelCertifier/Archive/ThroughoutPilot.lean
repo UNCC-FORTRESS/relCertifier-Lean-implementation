@@ -48,13 +48,13 @@ noncomputable def GT : SearchGraph (Var 1) :=
 /-- The node list, evaluated (kernel defeq through the emitted literal). -/
 theorem GT_modes_eq : GT.modes =
     [realModeOf vsT 1 (rover_drag_IR.L.modes.getD 0 dummyMode) 1
-      ⟨"Track", true, false, false, false, false⟩
+      ⟨"Track", true, false, false⟩
       (rover_drag_IR.R.modes.getD 0 dummyMode)] := rfl
 
 /-- Graph inversion (single node). -/
 theorem GT_modeAt {q : ℕ} {m : RMode (Var 1)} (hm : GT.modeAt q = some m) :
     q = 0 ∧ m = realModeOf vsT 1 (rover_drag_IR.L.modes.getD 0 dummyMode) 1
-      ⟨"Track", true, false, false, false, false⟩
+      ⟨"Track", true, false, false⟩
       (rover_drag_IR.R.modes.getD 0 dummyMode) := by
   unfold SearchGraph.modeAt at hm
   rw [GT_modes_eq] at hm
@@ -92,7 +92,7 @@ theorem certT
           (hostEvolve vsT 1 Side.R (rover_drag_IR.R.modes.getD 0 dummyMode)))
           (gsT.take i)⟩) = Verdict.unsat) :
     CoverCertM GT gsT := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨?_, ?_, ?_, ?_⟩
   · intro q m hm hjOK
     obtain ⟨rfl, rfl⟩ := GT_modeAt hm
     rw [realModeOf_sys, realModeOf_dom]
@@ -106,12 +106,6 @@ theorem certT
         (hostEvolve vsT 1 Side.L (rover_drag_IR.L.modes.getD 0 dummyMode))
         (hostEvolve vsT 1 Side.R (rover_drag_IR.R.modes.getD 0 dummyMode)))
       gsT hz3
-  · intro q m hm hflag
-    obtain ⟨rfl, rfl⟩ := GT_modeAt hm
-    simp [realModeOf] at hflag
-  · intro q m hm hflag
-    obtain ⟨rfl, rfl⟩ := GT_modeAt hm
-    simp [realModeOf] at hflag
   · intro q m hm hflag
     obtain ⟨rfl, rfl⟩ := GT_modeAt hm
     simp [realModeOf] at hflag

@@ -7,9 +7,6 @@ Released under Apache 2.0 license.
 Per-benchmark leaf module (X0 modularization): editing one benchmark no longer
 re-elaborates the whole instance battery. Import only from whole-suite consumers.
 -/
-import RelCertifier.Instances.BenchCoversNC.arm_chain_rung1
-import RelCertifier.Instances.BenchCoversNC.arm_chain_rung2
-import RelCertifier.Instances.BenchCoversNC.arm_fidelity_low
 import RelCertifier.Instances.BenchCoversNC.arm_fidelity_mid
 import RelCertifier.Instances.BenchCoversNC.attitude_rate
 import RelCertifier.Instances.BenchCoversNC.endurance_gain_M1
@@ -20,9 +17,7 @@ import RelCertifier.Instances.BenchCoversNC.refinement_ladder_rover_rung2_3to6
 import RelCertifier.Instances.BenchCoversNC.refinement_ladder_rover_rung2_6dof
 import RelCertifier.Instances.BenchCoversNC.refinement_ladder_rover_rung2b_6dof
 import RelCertifier.Instances.BenchCoversNC.refinement_ladder_rover_rung2c_6dof
-import RelCertifier.Instances.BenchCoversNC.robot_braking
 import RelCertifier.Instances.BenchCoversNC.rover3_M1
-import RelCertifier.Instances.BenchCoversNC.rover3tier_M1
 import RelCertifier.Instances.BenchCoversNC.rover3tier_rung12
 import RelCertifier.Instances.BenchCoversNC.rover_4d_box
 import RelCertifier.Instances.BenchCoversNC.rover_coupled
@@ -35,4 +30,3 @@ import RelCertifier.Instances.BenchCoversNC.story1_attdist_rung_b_12dof
 import RelCertifier.Instances.BenchCoversNC.story2_lateral_rung_a_8dof
 import RelCertifier.Instances.BenchCoversNC.story2_lateral_rung_b_12dof
 import RelCertifier.Instances.BenchCoversNC.story3_rollover_ladder_rung_b
-import RelCertifier.Instances.BenchCoversNC.watertank

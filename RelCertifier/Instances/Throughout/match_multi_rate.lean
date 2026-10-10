@@ -16,7 +16,7 @@ def mLMatchMultiRate (l : ℕ) : Parse.PMode := match_multi_rate_IR.L.modes.getD
 def mRMatchMultiRate (q : ℕ) : Parse.PMode := match_multi_rate_IR.R.modes.getD q dummyMatchMultiRate
 def fRowMatchMultiRate (l q : ℕ) : ModeFlagsE :=
   ((match_multi_rate_coverNC.covers.getD l ⟨"", 1, 1, [], [], []⟩).flags.getD q
-    ⟨"", false, false, false, false, false⟩)
+    ⟨"", false, false, false⟩)
 noncomputable def GWMatchMultiRate (l : ℕ) : SearchGraph (Var 2) :=
   realGraphOf vsMatchMultiRate 2 match_multi_rate_IR (mLMatchMultiRate l)
     ((match_multi_rate_coverNC.covers.getD l ⟨"", 1, 1, [], [], []⟩).lamQ)
@@ -31,7 +31,7 @@ theorem GWMatchMultiRate0_modes_eq : (GWMatchMultiRate 0).modes =
 
 theorem certMatchMultiRate_0 (hs_0_0 : ∀ i (hi : i < gsMatchMultiRate_0.length),     z3solve (flowQuery ⟨gsMatchMultiRate_0[i],       hostDyn vsMatchMultiRate 2 Side.L (mLMatchMultiRate 0), hostDyn vsMatchMultiRate 2 Side.R (mRMatchMultiRate 0), Term.const (((3 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsMatchMultiRate 2 Side.L (mLMatchMultiRate 0)) (hostEvolve vsMatchMultiRate 2 Side.R (mRMatchMultiRate 0))) (gsMatchMultiRate_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsMatchMultiRate_0[i],       hostDyn vsMatchMultiRate 2 Side.L (mLMatchMultiRate 0), hostDyn vsMatchMultiRate 2 Side.R (mRMatchMultiRate 0), Term.const (((3 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsMatchMultiRate 2 Side.L (mLMatchMultiRate 0)) (hostEvolve vsMatchMultiRate 2 Side.R (mRMatchMultiRate 0))) (gsMatchMultiRate_0.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsMatchMultiRate_0[i],       hostDyn vsMatchMultiRate 2 Side.L (mLMatchMultiRate 0), hostDyn vsMatchMultiRate 2 Side.R (mRMatchMultiRate 0), Term.const (((3 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsMatchMultiRate 2 Side.L (mLMatchMultiRate 0)) (hostEvolve vsMatchMultiRate 2 Side.R (mRMatchMultiRate 0))) (gsMatchMultiRate_0.take i)⟩) = Verdict.unsat) :
     CoverCertM (GWMatchMultiRate 0) gsMatchMultiRate_0 := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨?_, ?_, ?_, ?_⟩
   · intro q m hm hflag
     unfold SearchGraph.modeAt at hm
     rw [GWMatchMultiRate0_modes_eq] at hm
@@ -40,24 +40,6 @@ theorem certMatchMultiRate_0 (hs_0_0 : ∀ i (hi : i < gsMatchMultiRate_0.length
         replace hm := Option.some.inj hm
         subst hm
         rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsMatchMultiRate_0 hs_0_0
-    | q + 1, hm => simp at hm
-  · intro q m hm hflag
-    unfold SearchGraph.modeAt at hm
-    rw [GWMatchMultiRate0_modes_eq] at hm
-    match q, hm with
-    | 0, hm =>
-        replace hm := Option.some.inj hm
-        subst hm
-        exact absurd hflag (by simp [fRowMatchMultiRate, match_multi_rate_coverNC])
-    | q + 1, hm => simp at hm
-  · intro q m hm hflag
-    unfold SearchGraph.modeAt at hm
-    rw [GWMatchMultiRate0_modes_eq] at hm
-    match q, hm with
-    | 0, hm =>
-        replace hm := Option.some.inj hm
-        subst hm
-        exact absurd hflag (by simp [fRowMatchMultiRate, match_multi_rate_coverNC])
     | q + 1, hm => simp at hm
   · intro q m hm hflag
     unfold SearchGraph.modeAt at hm
@@ -100,7 +82,7 @@ theorem GWMatchMultiRate1_modes_eq : (GWMatchMultiRate 1).modes =
 
 theorem certMatchMultiRate_1 (hs_1_0 : ∀ i (hi : i < gsMatchMultiRate_1.length),     z3solve (flowQuery ⟨gsMatchMultiRate_1[i],       hostDyn vsMatchMultiRate 2 Side.L (mLMatchMultiRate 1), hostDyn vsMatchMultiRate 2 Side.R (mRMatchMultiRate 0), Term.const (((2 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsMatchMultiRate 2 Side.L (mLMatchMultiRate 1)) (hostEvolve vsMatchMultiRate 2 Side.R (mRMatchMultiRate 0))) (gsMatchMultiRate_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsMatchMultiRate_1[i],       hostDyn vsMatchMultiRate 2 Side.L (mLMatchMultiRate 1), hostDyn vsMatchMultiRate 2 Side.R (mRMatchMultiRate 0), Term.const (((2 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsMatchMultiRate 2 Side.L (mLMatchMultiRate 1)) (hostEvolve vsMatchMultiRate 2 Side.R (mRMatchMultiRate 0))) (gsMatchMultiRate_1.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsMatchMultiRate_1[i],       hostDyn vsMatchMultiRate 2 Side.L (mLMatchMultiRate 1), hostDyn vsMatchMultiRate 2 Side.R (mRMatchMultiRate 0), Term.const (((2 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsMatchMultiRate 2 Side.L (mLMatchMultiRate 1)) (hostEvolve vsMatchMultiRate 2 Side.R (mRMatchMultiRate 0))) (gsMatchMultiRate_1.take i)⟩) = Verdict.unsat) :
     CoverCertM (GWMatchMultiRate 1) gsMatchMultiRate_1 := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨?_, ?_, ?_, ?_⟩
   · intro q m hm hflag
     unfold SearchGraph.modeAt at hm
     rw [GWMatchMultiRate1_modes_eq] at hm
@@ -109,24 +91,6 @@ theorem certMatchMultiRate_1 (hs_1_0 : ∀ i (hi : i < gsMatchMultiRate_1.length
         replace hm := Option.some.inj hm
         subst hm
         rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsMatchMultiRate_1 hs_1_0
-    | q + 1, hm => simp at hm
-  · intro q m hm hflag
-    unfold SearchGraph.modeAt at hm
-    rw [GWMatchMultiRate1_modes_eq] at hm
-    match q, hm with
-    | 0, hm =>
-        replace hm := Option.some.inj hm
-        subst hm
-        exact absurd hflag (by simp [fRowMatchMultiRate, match_multi_rate_coverNC])
-    | q + 1, hm => simp at hm
-  · intro q m hm hflag
-    unfold SearchGraph.modeAt at hm
-    rw [GWMatchMultiRate1_modes_eq] at hm
-    match q, hm with
-    | 0, hm =>
-        replace hm := Option.some.inj hm
-        subst hm
-        exact absurd hflag (by simp [fRowMatchMultiRate, match_multi_rate_coverNC])
     | q + 1, hm => simp at hm
   · intro q m hm hflag
     unfold SearchGraph.modeAt at hm
@@ -169,7 +133,7 @@ theorem GWMatchMultiRate2_modes_eq : (GWMatchMultiRate 2).modes =
 
 theorem certMatchMultiRate_2 (hs_2_0 : ∀ i (hi : i < gsMatchMultiRate_2.length),     z3solve (flowQuery ⟨gsMatchMultiRate_2[i],       hostDyn vsMatchMultiRate 2 Side.L (mLMatchMultiRate 2), hostDyn vsMatchMultiRate 2 Side.R (mRMatchMultiRate 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsMatchMultiRate 2 Side.L (mLMatchMultiRate 2)) (hostEvolve vsMatchMultiRate 2 Side.R (mRMatchMultiRate 0))) (gsMatchMultiRate_2.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsMatchMultiRate_2[i],       hostDyn vsMatchMultiRate 2 Side.L (mLMatchMultiRate 2), hostDyn vsMatchMultiRate 2 Side.R (mRMatchMultiRate 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsMatchMultiRate 2 Side.L (mLMatchMultiRate 2)) (hostEvolve vsMatchMultiRate 2 Side.R (mRMatchMultiRate 0))) (gsMatchMultiRate_2.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsMatchMultiRate_2[i],       hostDyn vsMatchMultiRate 2 Side.L (mLMatchMultiRate 2), hostDyn vsMatchMultiRate 2 Side.R (mRMatchMultiRate 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsMatchMultiRate 2 Side.L (mLMatchMultiRate 2)) (hostEvolve vsMatchMultiRate 2 Side.R (mRMatchMultiRate 0))) (gsMatchMultiRate_2.take i)⟩) = Verdict.unsat) :
     CoverCertM (GWMatchMultiRate 2) gsMatchMultiRate_2 := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨?_, ?_, ?_, ?_⟩
   · intro q m hm hflag
     unfold SearchGraph.modeAt at hm
     rw [GWMatchMultiRate2_modes_eq] at hm
@@ -178,24 +142,6 @@ theorem certMatchMultiRate_2 (hs_2_0 : ∀ i (hi : i < gsMatchMultiRate_2.length
         replace hm := Option.some.inj hm
         subst hm
         rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsMatchMultiRate_2 hs_2_0
-    | q + 1, hm => simp at hm
-  · intro q m hm hflag
-    unfold SearchGraph.modeAt at hm
-    rw [GWMatchMultiRate2_modes_eq] at hm
-    match q, hm with
-    | 0, hm =>
-        replace hm := Option.some.inj hm
-        subst hm
-        exact absurd hflag (by simp [fRowMatchMultiRate, match_multi_rate_coverNC])
-    | q + 1, hm => simp at hm
-  · intro q m hm hflag
-    unfold SearchGraph.modeAt at hm
-    rw [GWMatchMultiRate2_modes_eq] at hm
-    match q, hm with
-    | 0, hm =>
-        replace hm := Option.some.inj hm
-        subst hm
-        exact absurd hflag (by simp [fRowMatchMultiRate, match_multi_rate_coverNC])
     | q + 1, hm => simp at hm
   · intro q m hm hflag
     unfold SearchGraph.modeAt at hm
@@ -238,7 +184,7 @@ theorem GWMatchMultiRate3_modes_eq : (GWMatchMultiRate 3).modes =
 
 theorem certMatchMultiRate_3 (hs_3_0 : ∀ i (hi : i < gsMatchMultiRate_3.length),     z3solve (flowQuery ⟨gsMatchMultiRate_3[i],       hostDyn vsMatchMultiRate 2 Side.L (mLMatchMultiRate 3), hostDyn vsMatchMultiRate 2 Side.R (mRMatchMultiRate 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsMatchMultiRate 2 Side.L (mLMatchMultiRate 3)) (hostEvolve vsMatchMultiRate 2 Side.R (mRMatchMultiRate 0))) (gsMatchMultiRate_3.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQueryStrict ⟨gsMatchMultiRate_3[i],       hostDyn vsMatchMultiRate 2 Side.L (mLMatchMultiRate 3), hostDyn vsMatchMultiRate 2 Side.R (mRMatchMultiRate 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsMatchMultiRate 2 Side.L (mLMatchMultiRate 3)) (hostEvolve vsMatchMultiRate 2 Side.R (mRMatchMultiRate 0))) (gsMatchMultiRate_3.take i)⟩) = Verdict.unsat     ∨ z3solve (flowQuerySuperlevel ⟨gsMatchMultiRate_3[i],       hostDyn vsMatchMultiRate 2 Side.L (mLMatchMultiRate 3), hostDyn vsMatchMultiRate 2 Side.R (mRMatchMultiRate 0), Term.const (((1 : ℚ) / 1 : ℚ) : ℝ),       strataDomHost (Formula.and (hostEvolve vsMatchMultiRate 2 Side.L (mLMatchMultiRate 3)) (hostEvolve vsMatchMultiRate 2 Side.R (mRMatchMultiRate 0))) (gsMatchMultiRate_3.take i)⟩) = Verdict.unsat) :
     CoverCertM (GWMatchMultiRate 3) gsMatchMultiRate_3 := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨?_, ?_, ?_, ?_⟩
   · intro q m hm hflag
     unfold SearchGraph.modeAt at hm
     rw [GWMatchMultiRate3_modes_eq] at hm
@@ -247,24 +193,6 @@ theorem certMatchMultiRate_3 (hs_3_0 : ∀ i (hi : i < gsMatchMultiRate_3.length
         replace hm := Option.some.inj hm
         subst hm
         rw [realModeOf_sys, realModeOf_dom]; exact segPresAll_from_strata_verdicts' _ _ _ _ gsMatchMultiRate_3 hs_3_0
-    | q + 1, hm => simp at hm
-  · intro q m hm hflag
-    unfold SearchGraph.modeAt at hm
-    rw [GWMatchMultiRate3_modes_eq] at hm
-    match q, hm with
-    | 0, hm =>
-        replace hm := Option.some.inj hm
-        subst hm
-        exact absurd hflag (by simp [fRowMatchMultiRate, match_multi_rate_coverNC])
-    | q + 1, hm => simp at hm
-  · intro q m hm hflag
-    unfold SearchGraph.modeAt at hm
-    rw [GWMatchMultiRate3_modes_eq] at hm
-    match q, hm with
-    | 0, hm =>
-        replace hm := Option.some.inj hm
-        subst hm
-        exact absurd hflag (by simp [fRowMatchMultiRate, match_multi_rate_coverNC])
     | q + 1, hm => simp at hm
   · intro q m hm hflag
     unfold SearchGraph.modeAt at hm

@@ -210,12 +210,6 @@ theorem segPresAll_dom_congr {gs : List (Term (Var n))} {sys : ODESystem (Var n)
     (hp : SegPreservesAllOn gs sys D') : SegPreservesAllOn gs sys D :=
   fun ν hν ω hsem => hp ν hν ω (sem_ode_congr h hsem)
 
-/-- Transport `RegionInvAllOn` across satisfaction-equivalent regions. -/
-theorem regionInvAll_congr {gs : List (Term (Var n))} {R R' : Formula (Var n)}
-    (h : ∀ x, Formula.sat R x ↔ Formula.sat R' x)
-    (hp : RegionInvAllOn gs R') : RegionInvAllOn gs R :=
-  fun ω hω => hp ω ((h ω).mp hω)
-
 /-! ## Frozen and contract-shape staying (Lean facts, no Z3)
 
 The tool's `frozen` and `shape` cut routes take no Z3 probe: frozen atoms read only

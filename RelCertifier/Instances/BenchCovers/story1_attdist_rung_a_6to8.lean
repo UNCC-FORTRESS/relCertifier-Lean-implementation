@@ -14,8 +14,8 @@ namespace RelCertifier
 /-- `story1_attdist_rung_a_6to8` (emitted). -/
 def story1_attdist_rung_a_6to8_cover : CoverEmitE :=
   ⟨"story1_attdist_rung_a_6to8", [], [
-    ⟨"STEEP", (1 : ℚ) / 1, 1, [⟨"STEEP", true, false, false, false, false⟩, ⟨"MODER", true, false, false, false, false⟩, ⟨"FLAT", true, false, false, false, false⟩], ["STEEP", "MODER", "FLAT"], [⟨"STEEP", [0, 1, 2], [], []⟩, ⟨"MODER", [0, 1, 2], [], []⟩, ⟨"FLAT", [0, 1, 2], [], []⟩]⟩,
-    ⟨"MODER", (1 : ℚ) / 1, 1, [⟨"STEEP", true, false, false, false, false⟩, ⟨"MODER", true, false, false, false, false⟩, ⟨"FLAT", true, false, false, false, false⟩], ["STEEP", "MODER", "FLAT"], [⟨"STEEP", [0, 1], [], []⟩, ⟨"MODER", [0, 1], [], []⟩, ⟨"FLAT", [0, 1], [], []⟩]⟩,
-    ⟨"FLAT", (1 : ℚ) / 1, 1, [⟨"STEEP", true, false, false, false, false⟩, ⟨"MODER", true, false, false, false, false⟩, ⟨"FLAT", true, false, false, false, false⟩], ["STEEP", "MODER", "FLAT"], [⟨"STEEP", [0, 1], [], []⟩, ⟨"MODER", [0, 1], [], []⟩, ⟨"FLAT", [0, 1], [], []⟩]⟩]⟩
+    ⟨"STEEP", (1 : ℚ) / 1, 1, [⟨"STEEP", true, false, false⟩, ⟨"MODER", true, false, false⟩, ⟨"FLAT", true, false, false⟩], ["STEEP", "MODER", "FLAT"], [⟨"STEEP", [0, 1, 2], [], []⟩, ⟨"MODER", [0, 1, 2], [], []⟩, ⟨"FLAT", [0, 1, 2], [], []⟩]⟩,
+    ⟨"MODER", (1 : ℚ) / 1, 1, [⟨"STEEP", true, false, false⟩, ⟨"MODER", true, false, false⟩, ⟨"FLAT", true, false, false⟩], ["STEEP", "MODER", "FLAT"], [⟨"STEEP", [0, 1], [], []⟩, ⟨"MODER", [0, 1], [], []⟩, ⟨"FLAT", [0, 1], [], []⟩]⟩,
+    ⟨"FLAT", (1 : ℚ) / 1, 1, [⟨"STEEP", true, false, false⟩, ⟨"MODER", true, false, false⟩, ⟨"FLAT", true, false, false⟩], ["STEEP", "MODER", "FLAT"], [⟨"STEEP", [0, 1], [], []⟩, ⟨"MODER", [0, 1], [], []⟩, ⟨"FLAT", [0, 1], [], []⟩]⟩]⟩
 
 end RelCertifier

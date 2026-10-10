@@ -14,6 +14,6 @@ namespace RelCertifier
 /-- `rover_4d_box` (emitted). -/
 def rover_4d_box_cover : CoverEmitE :=
   ⟨"rover_4d_box", [], [
-    ⟨"HOLD", (1 : ℚ) / 1, 1, [⟨"APPROACH", true, false, false, true, true⟩, ⟨"SETTLE", true, false, false, true, true⟩], ["APPROACH", "SETTLE"], [⟨"APPROACH", [0], [0], [0]⟩, ⟨"SETTLE", [0], [0], [0]⟩]⟩]⟩
+    ⟨"HOLD", (1 : ℚ) / 1, 1, [⟨"APPROACH", true, true, true⟩, ⟨"SETTLE", true, true, true⟩], ["APPROACH", "SETTLE"], [⟨"APPROACH", [0], [0], [0]⟩, ⟨"SETTLE", [0], [0], [0]⟩]⟩]⟩
 
 end RelCertifier

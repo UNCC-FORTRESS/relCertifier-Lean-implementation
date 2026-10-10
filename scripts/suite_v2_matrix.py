@@ -8,8 +8,8 @@ reads the evidence off the tool's own output (never off the file's header):
                                                  [admissible]/[cut] diagnostics
   2. `relcert --emit-cover <input> x`         -> the emitted cover: per left mode the
                                                  lambda, the budget, the per-right-mode
-                                                 flag rows (jointOK, repoPre, repoPost,
-                                                 dynPre, dynPost) and the admissible starts
+                                                 flag rows (jointOK, dynPre, dynPost) and
+                                                 the admissible starts
   3. RELCERT_NO_PRUNE=1 relcert <input>        -> the pruning counter-run
   4. RELCERT_NO_CUT=1 relcert <input>          -> the checked-cut counter-run
   4b. RELCERT_NO_IMPLIED_CUT=1 relcert <input> -> the implied-cut counter-run (legacy
@@ -29,7 +29,8 @@ O2 route, conditioning atoms).
 From (2) the script REPLAYS the verified checker's structural cover (`decideCovered`,
 RelCertifier/Checker/Checker.lean) on the emitted flags and the file's declared
 successor lists minus the pruned edges, in the checker's own alternative order
-(base, joint step, static reposition, dynamic reposition), and records the derivation
+(base, joint step, dynamic reposition; the static reposition was removed 2026-10-09),
+and records the derivation
 it finds: which right modes the cover path visits, whether a right-only reposition
 step is on it, and the largest number of distinct non-self retained successors at a
 joint step (branching). The mechanism columns are then DERIVED:
@@ -300,10 +301,9 @@ def parse_cover(text):
         lam = Fraction(int(lm.group(2)), int(lm.group(3)))
         budget = int(lm.group(4))
         flags = []
-        for fm in re.finditer(r'⟨"(\w+)", (true|false), (true|false), (true|false), (true|false), (true|false)⟩', lm.group(5)):
+        for fm in re.finditer(r'⟨"(\w+)", (true|false), (true|false), (true|false)⟩', lm.group(5)):
             flags.append({"name": fm.group(1), "jointOK": fm.group(2) == "true",
-                          "repoPre": fm.group(3) == "true", "repoPost": fm.group(4) == "true",
-                          "dynPre": fm.group(5) == "true", "dynPost": fm.group(6) == "true"})
+                          "dynPre": fm.group(3) == "true", "dynPost": fm.group(4) == "true"})
         adm = re.findall(r'"(\w+)"', lm.group(6))
         covers.append({"mL": mL, "lam": lam, "budget": budget, "flags": flags, "admissible": adm})
     return pruned, covers
@@ -311,7 +311,7 @@ def parse_cover(text):
 # ----------------------------------------------------------------------------- cover replay
 
 def is_node(f):
-    return f["jointOK"] or f["repoPre"] or f["repoPost"] or f["dynPre"] or f["dynPost"]
+    return f["jointOK"] or f["dynPre"] or f["dynPost"]
 
 class Replay:
     """`decideCovered` (Checker/Checker.lean) over `buildCoverGraph` (Checker/CoverEmit.lean),
@@ -362,8 +362,7 @@ class Replay:
                                "retained": [self.nodes[t]["name"] if t < self.k else "<sentinel>" for t in self.retained(q)],
                                "kids": kids}
                 if res is None:
-                    for kind, flag in (("repoStatic", "repoPre" if sigma == "preJ" else "repoPost"),
-                                       ("repoDyn", "dynPre" if sigma == "preJ" else "dynPost")):
+                    for kind, flag in (("repoDyn", "dynPre" if sigma == "preJ" else "dynPost"),):
                         if m[flag] and B > 0 and self.exits(q):
                             kids = []
                             ok = True
@@ -391,7 +390,7 @@ def summarize_derivation(d, acc):
         acc["branch"] = max(acc["branch"], len(nonself))
         acc["joint_steps"] += 1
         acc["joint_modes"].add(d["q"])
-    if d["kind"] in ("repoStatic", "repoDyn"):
+    if d["kind"] == "repoDyn":
         acc["ro"] = True
         acc["ro_modes"].add(d["q"])
     for k in d.get("kids", []):
@@ -518,7 +517,7 @@ def analyze(name, path, relcert, timeout, z3time=False):
     rec["cut_lines"] = [l.strip() for l in err.splitlines() if l.strip().startswith("[cut]") and "0 conjunct" not in l]
     rec["cutx_lines"] = [l.strip() for l in err.splitlines() if l.strip().startswith("[cut-x]")]
     rec["route_lines"] = [l.strip() for l in err.splitlines() if l.strip().startswith("[route]")]
-    rec["repo_lines"] = [l.strip() for l in err.splitlines() if l.strip().startswith("[repo-pre]")]
+    rec["repo_lines"] = [l.strip() for l in err.splitlines() if l.strip().startswith("[repo-dyn-pre]")]
     rec["debug_stderr"] = err
     rec["wall_s"] = round(wall, 2)
     if z3time:
@@ -550,7 +549,7 @@ def analyze(name, path, relcert, timeout, z3time=False):
             rec["covers"].append({
                 "mL": c["mL"], "lam": str(c["lam"]), "lam_float": float(c["lam"]), "budget": c["budget"],
                 "admissible": c["admissible"], "replay_ok": allok,
-                "flags": {f["name"]: "".join(k[0] if f[k] else "-" for k in ("jointOK", "repoPre", "repoPost", "dynPre", "dynPost")) for f in c["flags"]},
+                "flags": {f["name"]: "".join(k[0] if f[k] else "-" for k in ("jointOK", "dynPre", "dynPost")) for f in c["flags"]},
                 "kinds": sorted(acc["kinds"]), "modes_on_path": sorted(acc["modes"]),
                 "joint_modes": sorted(acc["joint_modes"]), "ro_modes": sorted(acc["ro_modes"]),
                 "branching": acc["branch"], "right_only": acc["ro"], "joint_steps": acc["joint_steps"],

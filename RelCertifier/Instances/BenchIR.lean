@@ -95,4 +95,17 @@ def benchIRTable : List (String × PProblem) := [
   ("story3_rollover_ladder_rung_b", story3_rollover_ladder_rung_b_IR),
   ("watertank", watertank_IR) ]
 
+/-- The benchmarks DECLINED since the static (zero-duration) reposition was removed from
+the certifier (2026-10-09, `docs/COVER-AUDIT.md`). Their input files are kept, so their IR
+literals stay here and `relcert-test`'s drift check still re-parses them; but no cover,
+modal theorem, verdict pack or handoff query is claimed for them any more. -/
+def declinedIR : List String :=
+  ["arm_chain_rung1", "arm_chain_rung2", "arm_fidelity_low", "robot_braking",
+   "rover3tier_M1", "watertank"]
+
+/-- The CERTIFIED benchmarks with an IR literal: `benchIRTable` minus `declinedIR`. The
+handoff phase and the cover table walk this list. -/
+def certifiedIRTable : List (String × PProblem) :=
+  benchIRTable.filter (fun r => !declinedIR.contains r.1)
+
 end RelCertifier.Parse

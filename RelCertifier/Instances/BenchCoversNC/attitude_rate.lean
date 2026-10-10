@@ -14,6 +14,6 @@ namespace RelCertifier
 /-- `attitude_rate` (cut-free emission). -/
 def attitude_rate_coverNC : CoverEmitE :=
   ⟨"attitude_rate", [], [
-    ⟨"CRUISE", (2 : ℚ) / 1, 2, [⟨"RECOVER", true, false, false, false, false⟩, ⟨"TRACK", true, true, true, false, false⟩], ["RECOVER", "TRACK"], [⟨"RECOVER", [0], [], []⟩, ⟨"TRACK", [0], [], []⟩]⟩]⟩
+    ⟨"CRUISE", (2 : ℚ) / 1, 2, [⟨"RECOVER", true, false, false⟩, ⟨"TRACK", true, false, false⟩], ["RECOVER", "TRACK"], [⟨"RECOVER", [0], [], []⟩, ⟨"TRACK", [0], [], []⟩]⟩]⟩
 
 end RelCertifier

@@ -368,47 +368,6 @@ def checkSeg (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
   return ((if proven.length == comps.length then Seg.pass
            else if lastIncon then Seg.incon else Seg.fail), proven)
 
-/-- **REPOSITION region-invariant check** over a supplied `region`. `true` ⟺ `rel_inv` holds
-everywhere in `region`: `¬rel_inv ∧ region` UNSAT iff **for every component** `gᵢ`,
-`UNSAT(region ∧ gᵢ > 0)`. STATIC — no ODE, no Lie, no `t²`. Used twice: with the **pre-j** region
-`guardL ∧ guardR ∧ evolveL ∧ evolveR` (obligation 1) and the **post-j** region
-`guardR ∧ evolveL ∧ evolveR` (obligation 2, no guardL — stronger).
-
-Discipline (soundness): returns `true` ONLY when **every** component is a definitive Z3 `unsat`;
-any `sat`/`unknown`/`error`/over-long → `false` (withhold reposition). A query bug can only
-withhold reposition (over-decline), never wrongly offer it. -/
-def regionUnsat {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
-    (coord : Fin n → String) (comps : List (ITerm n)) (region : IForm n) : IO Bool := do
-  let mut allUnsat := true
-  for g in comps do
-    if allUnsat then
-      let q := IForm.and region (IForm.cmp .gt g (.rat 0))     -- region ∧ (gᵢ > 0) = ¬rel_inv part
-      let script := q.toScript coord
-      if script.length > maxSmt then allUnsat := false
-      else do
-        cnt.modify (· + 1)
-        if (← cnt.get) > maxQ then throw (IO.userError "query budget exceeded")
-        if (← IO.monoMsNow) > deadline then throw (IO.userError "time budget exceeded")
-        match ← s.check script with
-        | .ok .unsat => pure ()
-        | _          => allUnsat := false
-  pure allUnsat
-
-/-- Build the (pre-j, post-j) reposition region `IForm`s for `(mL, mR)`:
-* pre-j: `guardL(mL) ∧ guardR(mR) ∧ evolveL(mL) ∧ evolveR(mR)` (obligation 1, left in guard);
-* post-j: `guardR(mR) ∧ evolveL(mL) ∧ evolveR(mR)` (obligation 2, NO guardL — false post-joint,
-  left carried by `evolveL`). Both include the evolve domains. -/
-def repoRegions (vars : List String) (n : ℕ) (cutL cutR : IForm n) (mL mR : PMode) :
-    Option (IForm n × IForm n) := do
-  let gL ← lowerF vars n Side.L mL.guard
-  let gR ← lowerF vars n Side.R mR.guard
-  let eL ← lowerF vars n Side.L mL.evolve
-  let eR ← lowerF vars n Side.R mR.evolve
-  -- CHECKED CUTS narrow the regions: every reachable σ-state satisfies the checked cuts
-  -- (entry by O1, invariance by O2), so the region-invariant obligation may assume them.
-  let ev := andCuts (IForm.and eL eR) cutL cutR
-  pure (IForm.and (IForm.and gL gR) ev, IForm.and gR ev)
-
 /-- **DYNAMIC REPOSITION check (certificate 3)** — the right-only FLOW cert via the **whole-domain**
 `DI_nonstrict_domain` route (route A: `UNSAT(ġ > 0 ∧ domain)`), left FROZEN (`fL=0`, `ġ` via
 `segPartsRO`). `withGuardL` selects σ: pre-j domain `guardL ∧ evolveL ∧ evolveR`, post-j
@@ -589,22 +548,10 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
   for mR in p.R.modes do
     if ← admissible s cnt maxQ maxSmt deadline vars n coord comps mL mR then
       admMods := admMods ++ [mR]
-  -- REPOSITION: BOTH source-setting region-invariants per right mode (left `mL` frozen).
-  -- λ-independent (guards + invariant only), computed ONCE. `repoPreOK` uses the pre-j region
-  -- (with guardL), `repoPostOK` the stronger post-j region (without guardL). σ selects between
-  -- them in the cover. For watertank `(Mid_L, High_R)`: pre-j PASSES (enables the initial-pair
-  -- reposition `High_R → Mid_R`).
-  let mut repoMap : List (String × Bool × Bool) := []   -- (name, preOK, postOK)
-  for mR in p.R.modes do
-    let (pre, post) ← (match repoRegions vars n cutL (cutOfR mR.name) mL mR with
-      | none => pure (false, false)                       -- unbuildable ⟹ no reposition
-      | some (rPre, rPost) => do
-          let pre  ← regionUnsat s cnt maxQ maxSmt deadline coord comps rPre
-          let post ← regionUnsat s cnt maxQ maxSmt deadline coord comps rPost
-          pure (pre, post))
-    repoMap := repoMap ++ [(mR.name, pre, post)]
-  let repoPreOK  := fun (nm : String) => (repoMap.find? (·.1 == nm)).map (·.2.1) |>.getD false
-  let repoPostOK := fun (nm : String) => (repoMap.find? (·.1 == nm)).map (·.2.2) |>.getD false
+  -- There is NO static (zero-duration) reposition (removed 2026-10-09): a right mode switch at a
+  -- single instant, with no check that the successor's guard holds at the switch state, is not
+  -- a move the guarded right automaton can make (docs/COVER-AUDIT.md, note of 2026-10-09). The
+  -- only right-only move is the DYNAMIC reposition below: a full-interval right-only flow.
   -- DYNAMIC reposition (certificate 3): right-only whole-domain flow cert (route A), σ-matched.
   -- λ-independent (fL=0, λ=1; sign λ-invariant), computed ONCE. For the rover cross-terrain hop,
   -- `ġ_s=−v_R≤0` and `ġ_v` on the terrain's v-evolve-cap ⟹ route-A UNSAT ⟹ the advancing reposition.
@@ -619,10 +566,9 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
   let repoDynPostOK := fun (nm : String) => (dynMap.find? (·.1 == nm)).map (·.2.2) |>.getD false
   if (← IO.getEnv "RELCERT_DEBUG").isSome then
     IO.eprintln s!"  [admissible] {mL.name}_L: {admMods.map (·.name)}"
-    let preL := repoMap.filterMap (fun p => if p.2.1 then some p.1 else none)
-    let postL := repoMap.filterMap (fun p => if p.2.2 then some p.1 else none)
     let dpreL := dynMap.filterMap (fun p => if p.2.1 then some p.1 else none)
-    IO.eprintln s!"  [repo-pre] {mL.name}_L: {preL} [repo-post]: {postL} [repo-dyn-pre]: {dpreL}"
+    let dpostL := dynMap.filterMap (fun p => if p.2.2 then some p.1 else none)
+    IO.eprintln s!"  [repo-dyn-pre] {mL.name}_L: {dpreL} [repo-dyn-post]: {dpostL}"
   for lam in lambdaCandidates lmin lmax epsL epsR do
     let deltaL := if lam == 0 then epsR else epsR / lam
     if deltaL ≤ 0 then continue
@@ -665,20 +611,16 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     -- successor cannot be silently stripped from the ∀. Weight 1 / budget `⌈εL/δL⌉` is the
     -- faithful ℕ-discretization of `(B = εL, w = εR/λ)`: base fires at `B ≤ 1 ⟺ εL ≤ εR/λ`
     -- (one segment closes the residence), matching the paper's real-valued base condition.
-    -- REPOSITION: NODES = modes joint-certified OR reposition-certified (pre-j OR post-j). Each
-    -- node carries `jointOK`, `repoPreOK`, `repoPostOK`; `decideCovered` offers base/joint-step
-    -- where `jointOK`, and the zero-budget reposition step σ-matched (pre-j → `repoPreOK`, post-j
-    -- → `repoPostOK`). `region`/`regionPost` are structural placeholders (`decideCovered` is
-    -- structural; the real `repoPresPre/Post` are the Z3-established region-invariants).
-    -- a mode is a node iff joint-certified OR reposition-certified by ANY of the 3 kinds
-    -- (static pre/post OR dynamic pre/post).
+    -- NODES = modes joint-certified OR dynamic-reposition-certified (pre-j OR post-j). Each node
+    -- carries `jointOK`, `dynPre`, `dynPost`; `decideCovered` offers base/joint-step where
+    -- `jointOK`, and the zero-budget dynamic reposition step σ-matched (pre-j → `dynPre`, post-j
+    -- → `dynPost`).
     -- the emitted flag rows (also what `--emit-cover` prints — ONE construction,
     -- `buildCoverGraph`, shared by this gate and the kernel replays)
     let flagRows : List ModeFlagsE := p.R.modes.map (fun m =>
       { name := m.name, jointOK := seg m.name == Seg.pass,
-        repoPre := repoPreOK m.name, repoPost := repoPostOK m.name,
         dynPre := repoDynPreOK m.name, dynPost := repoDynPostOK m.name })
-    let repoOK := fun nm => repoPreOK nm || repoPostOK nm || repoDynPreOK nm || repoDynPostOK nm
+    let repoOK := fun nm => repoDynPreOK nm || repoDynPostOK nm
     let idxOf := nodeIdx flagRows
     let cgReal : SearchGraph (Var n) := buildCoverGraph flagRows (succOf p) prunedOf
     -- fuel bounds `decideCovered`'s depth: joint steps decrease budget (≤ `bBudget`), reposition
@@ -842,7 +784,7 @@ pattern — the drift test re-runs the search and compares). Anonymous-construct
 form, consumable against `Checker/CoverEmit.lean`. -/
 def emitCoverE (defname : String) (c : CoverEmitE) : String :=
   let fl := fun (f : ModeFlagsE) =>
-    s!"⟨\"{f.name}\", {f.jointOK}, {f.repoPre}, {f.repoPost}, {f.dynPre}, {f.dynPost}⟩"
+    s!"⟨\"{f.name}\", {f.jointOK}, {f.dynPre}, {f.dynPost}⟩"
   let ps := fun (x : PairStrataE) =>
     s!"⟨\"{x.mR}\", {repr x.order}, {repr x.dynPreOrder}, {repr x.dynPostOrder}⟩"
   let lc := fun (l : LeftCoverE) =>

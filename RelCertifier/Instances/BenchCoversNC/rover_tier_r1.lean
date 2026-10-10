@@ -14,6 +14,6 @@ namespace RelCertifier
 /-- `rover_tier_r1` (cut-free emission). -/
 def rover_tier_r1_coverNC : CoverEmitE :=
   ⟨"rover_tier_r1", [], [
-    ⟨"Cruise", (23 : ℚ) / 4, 6, [⟨"Cruise", true, false, false, true, true⟩], ["Cruise"], [⟨"Cruise", [0], [0], [0]⟩]⟩]⟩
+    ⟨"Cruise", (23 : ℚ) / 4, 6, [⟨"Cruise", true, true, true⟩], ["Cruise"], [⟨"Cruise", [0], [0], [0]⟩]⟩]⟩
 
 end RelCertifier

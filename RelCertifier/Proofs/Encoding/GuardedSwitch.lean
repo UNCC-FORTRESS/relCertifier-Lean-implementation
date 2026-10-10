@@ -330,6 +330,127 @@ theorem ode_coord_end_lt_or_eq {sys : ODESystem (Var n)} {dom : Formula (Var n)}
     apply div_nonneg_of_nonpos <;> linarith [ht.2]
   linarith
 
+/-- **The response flow after a legal prefix.** As `gresp_final`, with a prefix of guarded
+segments (each flow followed by its switch test) run before the final flow in `qs`; the prefix
+is declared, chained, starts at `q` and ends in `qs`. -/
+theorem gresp_final_pre {G : SearchGraph (Var n)} {q qs : ℕ} {ms : RMode (Var n)}
+    (hm : G.modeAt qs = some ms)
+    (pre : List (ℕ × RMode (Var n) × REdge (Var n)))
+    (halign : ∀ s ∈ pre, G.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ G.edgesFrom s.1)
+    (hchain : List.IsChain (fun a b => a.2.2.tgt = b.1) pre)
+    (hhead : ∀ s, pre.head? = some s → s.1 = q) (hlast : qfOf pre q = qs)
+    {P : Program (Var n)} {Post' : Formula (Var n)} {post : ℕ → Formula (Var n)}
+    {σ : State (Var n)}
+    (hfa : Formula.sat (faModal (Equiv.refl (Var n)) P
+      (bigSeq (pre.map gseg ++ [Program.ode ms.sys ms.dom])) Post') σ)
+    (hnb : NonblockingAt G qs Post' post) : GResp G q P post σ := by
+  intro ν hν
+  rw [faModal_sat] at hfa
+  obtain ⟨μ, hrun, hpost⟩ := hfa ν hν
+  rw [Program.rename_refl] at hrun
+  obtain ⟨e, he, hleg, hp⟩ := hnb μ hpost
+  refine ⟨pre ++ [(qs, ms, e)], ?_, ?_, ?_, μ, ?_, ?_⟩
+  · intro s hs
+    rcases List.mem_append.mp hs with hs | hs
+    · exact halign s hs
+    · rw [List.mem_singleton] at hs; subst hs; exact ⟨hm, he⟩
+  · refine List.IsChain.append hchain (by simp) ?_
+    intro x hx y hy
+    rw [List.head?_cons, Option.mem_some_iff] at hy
+    subst hy
+    have : qfOf pre q = x.2.2.tgt := by
+      simp [qfOf, Option.mem_def.mp hx]
+    simpa [← this] using hlast
+  · intro s hs
+    rcases pre with - | ⟨r, rs⟩
+    · simp at hs; subst hs; simp [qfOf] at hlast; exact hlast.symm
+    · simp only [List.cons_append, List.head?_cons, Option.some.injEq] at hs
+      subst hs; exact hhead _ rfl
+  · -- split the run: the prefix, then the final flow; append its switch test
+    have key : ∀ (L : List (Program (Var n))) (A B : Program (Var n)) {x y : State (Var n)},
+        Program.sem (bigSeq (L ++ [A])) x y → (∀ z, Program.sem A z y →
+          Program.sem B z y) → Program.sem (bigSeq (L ++ [B])) x y := by
+      intro L
+      induction L with
+      | nil =>
+          intro A B x y h hAB
+          obtain ⟨z, hA, hz, -⟩ := h
+          subst hz
+          exact ⟨z, hAB x hA, rfl, trivial⟩
+      | cons c cs ih =>
+          intro A B x y h hAB
+          obtain ⟨z, hc, hrest⟩ := h
+          exact ⟨z, hc, ih A B hrest hAB⟩
+    rw [List.map_append, List.map_singleton]
+    exact key _ _ _ hrun (fun z hz => sem_gseg.mpr ⟨hz, hleg⟩)
+  · have : qfOf (pre ++ [(qs, ms, e)]) q = e.tgt := by simp [qfOf]
+    rw [this]; exact hp
+
+/-- **The guarded reposition prefix.** `faModalB_repoPrefix` with the switch test after the
+hop: if the hop (a frozen-left run of a right mode) ends where the right-only formula `γ`
+(the entered mode's guard) holds, the response program carries the test `?γ` between the
+hop and the continuation. The hop's end state, replayed after the left run, has the same
+right coordinates, so the test passes there. -/
+theorem faModalB_repoPrefixG {fL fR : Fin n → Term (Var n)} {lam : Term (Var n)}
+    {domL domR γ : Formula (Var n)} {φ : Formula (Var n)} {Q : Program (Var n)}
+    {a : Fin n} {dt : ℝ} {ω₀ : State (Var n)}
+    (hfL : ∀ i, (fL i).fv ⊆ range Lv) (hdomL : domL.fv ⊆ range Lv)
+    (hfR : ∀ i, (fR i).fv ⊆ range Rv) (hlam : lam.fv ⊆ range Rv)
+    (hdomR : domR.fv ⊆ range Rv) (hγ : γ.fv ⊆ range Rv)
+    (hω₀tg : ω₀ ((Side.Aux, a) : Var n) = 0)
+    (hR : ∃ ρ₁, Program.sem (Program.ode (jointSys (fun _ => Term.const 0) fR lam)
+        (Formula.and domL domR)) ω₀ ρ₁ ∧ Formula.sat φ ρ₁ ∧ Formula.sat γ ρ₁)
+    (hQ : ∀ σ, Formula.sat φ σ → σ ((Side.Aux, a) : Var n) = 0 →
+      faModalB (Equiv.refl (Var n))
+        (Program.ode (DLCalTiming.clk ((Side.Aux, a) : Var n) (leftBlock fL)) domL)
+        Q φ ((Side.Aux, a) : Var n) dt σ) :
+    faModalB (Equiv.refl (Var n))
+      (Program.ode (DLCalTiming.clk ((Side.Aux, a) : Var n) (leftBlock fL)) domL)
+      (Program.seq (Program.seq
+        (Program.ode (jointSys (fun _ => Term.const 0) fR lam) (Formula.and domL domR))
+        (Program.test γ)) Q)
+      φ ((Side.Aux, a) : Var n) dt ω₀ := by
+  intro ν hplant
+  obtain ⟨ρ₁, hhop, hρ₁sat, hρ₁γ⟩ := hR
+  have hrights : ∀ i : Fin n, ν (Rv i) = ω₀ (Rv i) := by
+    intro i
+    refine sem_ode_mask hplant.1 ?_
+    intro hb
+    rcases clk_boundSet_sub _ _ (by simpa [ODESystem.boundSet] using hb) with hx | hx
+    · obtain ⟨j, hj⟩ := leftBlock_boundSet_sub fL hx
+      exact absurd hj (by simp [Lv, Rv, Prod.ext_iff])
+    · rw [Set.mem_singleton_iff] at hx
+      exact absurd hx (by simp [Rv, Prod.ext_iff])
+  have hνdomL : Formula.sat domL ν := by
+    obtain ⟨r, Φ, hr, hΦ0, hΦr, hder, hmask, hdom⟩ := hplant.1
+    rw [← hΦr]
+    exact hdom r (Set.right_mem_Icc.mpr hr)
+  have hreplay := sem_frozen_replay hfR hlam hdomL hdomR hhop hrights hνdomL
+  have hρ₁eq : rpatch ω₀ ρ₁ = ρ₁ := by
+    funext v
+    obtain ⟨s, i⟩ := v
+    cases s with
+    | R => rfl
+    | L =>
+        show ω₀ (Lv i) = ρ₁ (Lv i)
+        exact (frozen_left_constant hhop i).symm
+    | Aux =>
+        show ω₀ ((Side.Aux, i) : Var n) = ρ₁ ((Side.Aux, i) : Var n)
+        exact (sem_ode_mask hhop (aux_not_jointSys_bound _ _ _ i)).symm
+  have hplant' := plantT_rpatch hfL hdomL (ρ := ρ₁) hplant
+  rw [hρ₁eq] at hplant'
+  have hρ₁tg : ρ₁ ((Side.Aux, a) : Var n) = 0 := by
+    rw [sem_ode_mask hhop (aux_not_jointSys_bound _ _ _ a)]
+    exact hω₀tg
+  obtain ⟨μ, hQμSem, hQμφ⟩ := hQ ρ₁ hρ₁sat hρ₁tg (rpatch ν ρ₁) hplant'
+  have hγpatch : Formula.sat γ (rpatch ν ρ₁) := by
+    refine (Formula.coincidence γ (fun v hv => ?_)).mpr hρ₁γ
+    obtain ⟨i, rfl⟩ := hγ hv
+    rfl
+  refine ⟨μ, ?_, hQμφ⟩
+  rw [Program.rename_refl] at hQμSem ⊢
+  exact ⟨rpatch ν ρ₁, ⟨rpatch ν ρ₁, hreplay, rfl, hγpatch⟩, hQμSem⟩
+
 /-- Right-only facts survive a left program that binds no right coordinate. -/
 theorem sat_framed {P : Program (Var n)} {φ : Formula (Var n)}
     (hdis : ∀ x ∈ φ.fv, x ∉ P.bv) {σ ν : State (Var n)} (hrun : Program.sem P σ ν) :

@@ -37,6 +37,9 @@
 # --wellformed: LIMIT ok (exit->CLIMB)).
 #
 # Envelope 0 <= w <= 3.5 both sides (climb only).
+# Tolerance remark: this pair is NOT the tightest certifiable pair; tightening one conjunct at a
+# time still certifies (w_L <= w_R + 0.95 with 0.5, or 1 with 0.45), so the pair is kept as a round,
+# stated tolerance rather than a derived bound (Section 6 of the paper qualifies such rungs).
 [problem]
 name = quad_light_airframe_20
 max_depth = 8

@@ -14,6 +14,9 @@ import RelCertifier.Proofs.Encoding.GuardedSwitch
 import RelCertifier.Proofs.Flow.FaceBridge
 import RelCertifier.Proofs.Soundness.UniformEvol
 import RelCertifier.InstancesV2.Cuts.charger_fast_setpoints
+import RelCertifier.Proofs.Encoding.ReplayOne
+import RelCertifier.Proofs.Encoding.ContractRun
+import RelCertifier.Proofs.Encoding.WindowGrowth
 
 set_option linter.unusedSimpArgs false
 
@@ -619,294 +622,276 @@ theorem verd_core (l q : ℕ) (hl : l < 3) (hq : q < 4) (h : Verd l q) :
   rw [← domL_univ l hl, ← domR_univ q hq]
   exact h'
 
-/-! ## The coupling, the window response -/
+/-! ## The reposition packs (the cover's `dynPre` nodes: `BULK` for the `BULK` and `ABSORB`
+windows) -/
 
-/-- The joint-piece anchor of the pair `(l, q)`: invariant, both modes' atoms, envelope. -/
-noncomputable def anchor (l q : ℕ) : Formula (Var 2) :=
-  Formula.and (FM g (gs ++ atomTerms (cL l) (cR q))) (Formula.and domL domR)
+/-- The reposition pack of window `l` at right mode `q` (the left held at the window's start,
+inside its guard; strata `[0]`). -/
+def VerdD (l q : ℕ) : Prop :=
+  modalVerdDynX charger_fast_setpoints_IRv2 charger_fast_setpoints_cutsV2X 2 l [0] true l q
 
-theorem couple (l q : ℕ) (hl : l < 3) (hq : q < 3) (dt : ℝ) (hv : Verd l q) :
-    ∀ σ, Formula.sat (anchor l q) σ →
-      faModalB (Equiv.refl (Var 2))
-        (Program.ode (DLCalTiming.clk tg (leftBlock (fL l))) domL)
-        (Program.ode (rightBlock (fR q) (Term.const 1)) domR)
-        (anchor l q) tg dt (Function.update σ tg 0) :=
-  couple_cutX g gs (g :: gs) (cL l) (cR q) (fL l) (fR q) (lam l) (lam_pos l) domL domR 1 dt
-    (hfL l hl) (hfR q (by omega)) hdomL hdomR (anchor_fv l q hl hq) (fun c hc => hc)
-    (fun c hc => hc) (hiffL l hl) (hiffR q hq) (stayL l q hl) (stayR l q hq)
-    (verd_core l q hl (by omega) hv) (es l q hq dt _)
+theorem verdD_core (l q : ℕ) (hl : l < 3) (hq : q < 4) (h : VerdD l q) :
+    VerdDynCore true (g :: gs) (fR q)
+      (domCutX (Formula.and domL domR) (cL l) (cR q)) (hostGuard vs 2 Side.L (mL l)) := by
+  have h' := h
+  unfold VerdD modalVerdDynX at h'
+  rw [row_eq l hl] at h'
+  rw [← domL_univ l hl, ← domR_univ q hq]
+  exact h'
 
-theorem sat_faModal_monoPost {P Q : Program (Var 2)} {A B : Formula (Var 2)}
-    (hAB : ∀ ν, Formula.sat A ν → Formula.sat B ν) {σ : State (Var 2)}
-    (h : Formula.sat (faModal (Equiv.refl (Var 2)) P Q A) σ) :
-    Formula.sat (faModal (Equiv.refl (Var 2)) P Q B) σ := by
-  rw [faModal_sat] at h ⊢
-  intro ν hν
-  obtain ⟨μ, hμ, hA⟩ := h ν hν
-  exact ⟨μ, hμ, hAB μ hA⟩
+/-! ## O2 for the right atoms along every flow of the right mode (joint at any stretch, or
+with the left frozen) -/
 
-theorem htg_anchor (l q : ℕ) (hl : l < 3) (hq : q < 3) :
-    tg ∉ (FM g (gs ++ atomTerms (cL l) (cR q))).fv :=
-  notMem_FM_fv (fun g' hg' hx => by
-    rcases anchor_fv l q hl hq g' (by simpa using hg') hx with ⟨i, hi⟩ | ⟨i, hi⟩
-    · exact absurd hi (by simp [Lv, Prod.ext_iff])
-    · exact absurd hi (by simp [Rv, Prod.ext_iff]))
+theorem stayR_gen (q : ℕ) (hq : q < 3) (fL' : Fin 2 → Term (Var 2)) (c : ℝ) (hc : 0 ≤ c)
+    (D : Formula (Var 2)) :
+    AtomsStayC (cR q) (jointSys fL' (fR q) (Term.const c)) D := by
+  intro a ha ν hν
+  have hinit := (hiffR q hq a ha ν).mp (hν a ha)
+  have hf := fR0_eval q hq
+  interval_cases q
+  · rw [cR_0] at ha
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at ha
+    rcases ha with rfl | rfl
+    · exact boxle_thrGe_R 0 15 _ _ _ hc _ D (fun x h => h)
+        (fun z _ hz => by rw [hf]; simp only [kR, cRc]; norm_num; linarith) hinit
+    · exact boxle_thrLe_R 0 90 _ _ _ hc _ D (fun x h => h)
+        (fun z _ hz => by rw [hf]; simp only [kR, cRc]; norm_num; linarith) hinit
+  · rw [cR_1] at ha
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at ha
+    rcases ha with rfl | rfl
+    · exact boxle_thrGe_R 0 80 _ _ _ hc _ D (fun x h => h)
+        (fun z _ hz => by rw [hf]; simp only [kR, cRc]; norm_num; linarith) hinit
+    · exact boxle_thrLe_R 0 100 _ _ _ hc _ D (fun x h => h)
+        (fun z _ hz => by rw [hf]; simp only [kR, cRc]; norm_num; linarith) hinit
+  · rw [cR_2] at ha
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at ha
+    rcases ha with rfl
+    exact boxle_thrGe_R 0 99 _ _ _ hc _ D (fun x h => h)
+      (fun z _ hz => by rw [hf]; simp [kR, cRc]) hinit
 
-theorem htg_env : tg ∉ (Formula.and domL domR).fv := by
-  rintro (h | h)
-  · exact aux_notin_range_Lv 1 (hdomL h)
-  · exact aux_notin_range_Rv 1 (hdomR h)
+/-! ## The anchors of the cover's pairs -/
 
-theorem anchor_post (l q : ℕ) (hl : l < 3) (hq : q < 3) (ν : State (Var 2))
-    (hν : Formula.sat (anchor l q) ν) :
-    Formula.sat (Formula.and (Formula.and (FM g gs) env) (region q)) ν := by
-  obtain ⟨hFν, hatν⟩ := (sat_FM_append g gs _ ν).mp hν.1
-  obtain ⟨-, hRν⟩ := (atomTerms_iff (hiffL l hl) (hiffR q hq) ν).mp hatν
-  exact ⟨⟨hFν, hν.2⟩, (sat_region_lt q hq ν).mpr hRν⟩
+/-- The right atoms of the cover's nodes (the non-sink modes; `FAULT` is never visited). -/
+noncomputable def cR' (q : ℕ) : List (CutAtomP 2) := if q < 3 then cR q else []
 
-theorem respond (l qs : ℕ) (hl : l < 3) (hqs : qs < 3) (dt : ℝ) (hv : Verd l qs)
-    {σ : State (Var 2)} (hσ : Formula.sat (anchor l qs) σ) :
-    Formula.sat (faModal (Equiv.refl (Var 2))
-      (windowSeg (leftBlock (fL l)) domL tg dt 1)
-      (bigSeq (([] : List ℕ).map (fun p => Program.ode (rightBlock (fR p) (Term.const 1)) domR)
-        ++ [Program.ode (rightBlock (fR qs) (Term.const 1)) domR]))
-      (Formula.and (Formula.and (FM g gs) env) (region qs))) σ := by
-  have hfa := Hmulti_windowRF_prefixed (fL l) domL (FM g (gs ++ atomTerms (cL l) (cR qs)))
-    (Formula.and domL domR) 1 dt 1 (htg_anchor l qs hl hqs) htg_env
-    ([] : List (RepoHop 2)) (by simp) (fun σ' hσ' => hσ'.2.1) (by simp)
-    (hfL l hl) hdomL
-    [Program.ode (rightBlock (fR qs) (Term.const 1)) domR] rfl (by norm_num)
-    (by
-      intro Q hQ
-      rw [List.mem_singleton] at hQ
-      subst hQ
-      rw [Program.rename_refl]
-      exact hdisH_progR (⟨fR qs, Term.const 1, domR⟩ : RepoHop 2)
-        (hfR qs (by omega)) (by simp [Term.fv]) hdomR (hfL l hl) hdomL)
-    (by
-      intro Q hQ σ' hσ'
-      rw [List.mem_singleton] at hQ
-      subst hQ
-      exact couple l qs hl hqs dt hv σ' hσ')
-    hσ
-  exact sat_faModal_monoPost (anchor_post l qs hl hqs) hfa
+noncomputable def anc (l q : ℕ) : Formula (Var 2) := FM g (gs ++ atomTerms (cL l) (cR' q))
 
-/-! ## The dynamic right-only reposition in `BULK` (the explicit contraction solution) -/
+theorem anc_eq (l q : ℕ) (hq : q < 3) : anc l q = FM g (gs ++ atomTerms (cL l) (cR q)) := by
+  unfold anc cR'; rw [if_pos hq]
 
-/-- The right `BULK` flow `x' = (90 − x)/10` from `ω`, run for any duration `τ ≥ 0`: the
-explicit solution `contractΦ 0 (1/10) 90 ω` is a run of the automaton's `BULK` mode program
-(it stays in the envelope `[0, 100]`: a convex combination of `x₀` and the set point 90). -/
-theorem bulk_run (ω : State (Var 2)) (τ : ℝ) (hτ : 0 ≤ τ) (hb : Formula.sat domR ω) :
-    Program.sem (Program.ode (rightBlock (fR 0) (Term.const 1)) domR) ω
-      (contractΦ 0 (1/10) 90 ω τ) := by
-  refine ⟨τ, contractΦ 0 (1/10) 90 ω, hτ, ?_, rfl, ?_, ?_, ?_⟩
-  · funext x
-    by_cases hx : x = Rv 0
-    · subst hx; simp [contractΦ]
-    · exact contractΦ_other 0 (1/10) 90 ω 0 hx
-  · intro t ht p hp
-    simp only [rightBlock, List.mem_map, List.mem_finRange] at hp
-    obtain ⟨i, -, rfl⟩ := hp
-    match i with
-    | 0 =>
-        have hd := (contractΦ_hasDeriv 0 (1/10) 90 ω t).hasDerivWithinAt (s := Icc 0 τ)
-        have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (fR 0 0))
-            (contractΦ 0 (1/10) 90 ω t) = 1/10 * (90 - contractΦ 0 (1/10) 90 ω t (Rv 0)) := by
-          simp only [Term.eval, AOp.interp]
-          rw [fR0_eval 0 (by norm_num)]
-          simp [kR, cRc]
-        rw [heval]
-        exact hd
-    | 1 =>
-        have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (fR 0 1))
-            (contractΦ 0 (1/10) 90 ω t) = 0 := by
-          simp only [Term.eval, AOp.interp]
-          rw [fR1_eval 0 (by norm_num)]
-          ring
-        rw [heval]
-        have hcurve : (fun u => contractΦ 0 (1/10) 90 ω u (Rv 1)) = fun _ => ω (Rv 1) := by
-          funext u
-          exact contractΦ_other 0 (1/10) 90 ω u (by simp [Rv, Prod.ext_iff])
-        rw [hcurve]
-        exact hasDerivWithinAt_const t _ _
-  · intro t ht x hx
-    have hxj : x ≠ Rv 0 := by
-      intro hc; subst hc
-      exact hx (by
-        simp only [rightBlock, ODESystem.bound, List.map_map]
-        exact List.mem_map.mpr ⟨0, List.mem_finRange 0, rfl⟩)
-    exact contractΦ_other 0 (1/10) 90 ω t hxj
-  · intro t ht
-    exact (domR_band _).mpr (contract_stays 0 (1/10) 90 0 100 (by norm_num) (by norm_num)
-      (by norm_num) ω ((domR_band ω).mp hb) t ht.1)
+theorem anc_fv (l q : ℕ) (hl : l < 3) : (anc l q).fv ⊆ range Lv ∪ range Rv := by
+  intro x hx
+  by_cases hq : q < 3
+  · rw [anc_eq l q hq] at hx
+    by_contra hS
+    exact notMem_FM_fv (fun g' hg' hxg => hS (anchor_fv l q hl hq g' (by simpa using hg') hxg)) hx
+  · unfold anc cR' at hx
+    rw [if_neg hq] at hx
+    by_contra hS
+    refine notMem_FM_fv (fun g' hg' hxg => hS ?_) hx
+    rcases List.mem_cons.mp hg' with rfl | hg'
+    · exact comps_fv _ List.mem_cons_self hxg
+    rcases List.mem_append.mp hg' with hg' | hg'
+    · exact comps_fv _ (List.mem_cons_of_mem _ hg') hxg
+    simp only [atomTerms, List.map_append, List.mem_append, List.mem_map, List.not_mem_nil,
+      false_and, exists_false, or_false] at hg'
+    obtain ⟨a, ha, rfl⟩ := hg'
+    exact anchor_fv l 0 hl (by norm_num) a.2 (by
+      simp only [List.cons_append, List.mem_cons, List.mem_append, atomTerms, List.map_append,
+        List.mem_map]
+      exact Or.inr (Or.inr (Or.inl ⟨a, ha, rfl⟩))) hxg
 
-/-- The contraction reaches `x_R = 80` at `τ = 10·log((90 − x₀)/10)`. -/
-theorem bulk_end (ω : State (Var 2)) (h80 : ω (Rv 0) < 80) :
-    contractΦ 0 (1/10) 90 ω (10 * Real.log ((90 - ω (Rv 0)) / 10)) (Rv 0) = 80 := by
-  have hy : 0 < (90 - ω (Rv 0)) / 10 := by linarith
-  rw [contractΦ_Rvj]
-  have he : Real.exp (-(1 / 10 * (10 * Real.log ((90 - ω (Rv 0)) / 10))))
-      = ((90 - ω (Rv 0)) / 10)⁻¹ := by
-    rw [show -(1 / 10 * (10 * Real.log ((90 - ω (Rv 0)) / 10)))
-        = -Real.log ((90 - ω (Rv 0)) / 10) from by ring, Real.exp_neg, Real.exp_log hy]
-  rw [he]
-  have hne : (90 - ω (Rv 0)) ≠ 0 := by linarith
-  field_simp
-  ring
+theorem anc_box (l q : ℕ) (hl : l < 3) (hq : q < 3) (hv : Verd l q) :
+    ∀ σ ω, Formula.sat (anc l q) σ →
+      Program.sem (Program.ode (jointSys (fL l) (fR q) (Term.const 1))
+        (Formula.and domL domR)) σ ω → Formula.sat (anc l q) ω := by
+  rw [anc_eq l q hq]
+  exact couple_box_cutX g gs (g :: gs) (cL l) (cR q) (fL l) (fR q) 1 domL domR
+    (fun c hc => hc) (fun c hc => hc) (hiffL l hl) (hiffR q hq) (stayL l q hl)
+    (stayR_gen q hq (fL l) 1 (by norm_num) _) (verd_core l q hl (by omega) hv)
 
-/-! ## The k = 1 window with a right-only prefix and DIFFERENT pre/post anchors
+theorem cL_fvL (l : ℕ) (hl : l < 3) : ∀ a ∈ cL l, a.2.fv ⊆ range Lv := by
+  intro a ha
+  interval_cases l
+  · rw [cL_0] at ha
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at ha
+    rcases ha with rfl | rfl <;> intro x hx <;> simp [thrGe, thrLe, Term.fv] at hx <;>
+      subst hx <;> simp
+  · rw [cL_1] at ha
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at ha
+    rcases ha with rfl | rfl <;> intro x hx <;> simp [thrGe, thrLe, Term.fv] at hx <;>
+      subst hx <;> simp
+  · rw [cL_2] at ha
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at ha
+    subst ha; intro x hx; simp [thrGe, Term.fv] at hx; subst hx; simp
 
-`Hmulti_windowRF_prefixed` holds one anchor across the hop. Here the window starts at a
-state that need NOT satisfy the joint piece's anchor `φ` (the right is still in `BULK`,
-below `ABSORB`'s floor); only the hop's END satisfies `φ`. `faModalB_repoPrefix` needs `φ`
-only at the hop's end, the hop run converts to the frozen-left joint form from `domL` at
-the start (`hop_run_toJoint`), and the k = 1 window plumbing of `Hmulti_window1_prefixedF`
-closes the assembly. -/
-theorem window1_hop (fL' : Fin 2 → Term (Var 2)) (domL' : Formula (Var 2))
-    (fRh : Fin 2 → Term (Var 2)) (lamh : Term (Var 2)) (domRh : Formula (Var 2))
-    (Q : Program (Var 2)) (φ : Formula (Var 2)) (dt : ℝ)
-    (hfL' : ∀ i, (fL' i).fv ⊆ range Lv) (hdomL' : domL'.fv ⊆ range Lv)
-    (hfRh : ∀ i, (fRh i).fv ⊆ range Rv) (hlamh : lamh.fv ⊆ range Rv)
-    (hdomRh : domRh.fv ⊆ range Rv)
-    {σ : State (Var 2)} (hdomLσ : Formula.sat domL' σ)
-    (hR : ∃ ρ₁, Program.sem (Program.ode (rightBlock fRh lamh) domRh)
-        (Function.update σ tg 0) ρ₁ ∧ Formula.sat φ ρ₁)
-    (hQ : ∀ τ, Formula.sat φ τ → τ tg = 0 →
-      faModalB (Equiv.refl (Var 2))
-        (Program.ode (DLCalTiming.clk tg (leftBlock fL')) domL') Q φ tg dt τ) :
-    Formula.sat (faModal (Equiv.refl (Var 2))
-      (windowSeg (leftBlock fL') domL' tg dt 1)
-      (bigSeq [Program.ode (rightBlock fRh lamh) domRh, Q]) φ) σ := by
-  have htgL : tg ∉ domL'.fv := fun h => aux_notin_range_Lv 1 (hdomL' h)
-  have hdomL0 : Formula.sat domL' (Function.update σ tg 0) := by
-    rwa [(Formula.coincidence domL' (fun v hv =>
-      Function.update_of_ne (fun hc => htgL (by rw [← hc]; exact hv)) _ _) :
-        Formula.sat domL' _ ↔ Formula.sat domL' σ)]
-  obtain ⟨ρ₁, hrun, hρ₁⟩ := hR
-  have hj := faModalB_repoPrefix (fL := fL') (fR := fRh) (lam := lamh) (domL := domL')
-    (domR := domRh) (φ := φ) (Q := Q) (a := 1) (dt := dt) hfL' hdomL' hfRh hlamh hdomRh
-    (Function.update_self _ _ _)
-    ⟨ρ₁, hop_run_toJoint hfRh hlamh hdomL' hdomL0 hrun, hρ₁⟩ hQ
-  have hb : faModalB (Equiv.refl (Var 2))
-      (Program.ode (DLCalTiming.clk tg (leftBlock fL')) domL')
-      (Program.seq (Program.ode (rightBlock fRh lamh) domRh) Q) φ tg dt
-      (Function.update σ tg 0) := by
-    refine faModalB_monoQ ?_ hj
-    rintro ν μ ⟨κ, hhop, hQrun⟩
-    exact ⟨κ, joint_run_toR hfRh hlamh hhop, hQrun⟩
-  have hseg := (faModalB_clockedSeg_iff (leftBlock fL') domL' _ φ tg dt σ).mpr hb
-  have hcong := sat_faModal_congrR
-    (Q' := bigSeq [Program.ode (rightBlock fRh lamh) domRh, Q])
-    (fun ν μ => sem_foldr_seq_bigSeq [Program.ode (rightBlock fRh lamh) domRh] Q ν μ) hseg
-  exact sat_faModal_monoL
-    (fun ν μ h => (sem_windowSeg_one (leftBlock fL') domL' tg dt).mp h) hcong
+theorem anc_boxD (l q : ℕ) (hl : l < 3) (hq : q < 3) (hv : VerdD l q) :
+    ∀ σ ω, Formula.sat (anc l q) σ → Formula.sat (hostGuard vs 2 Side.L (mL l)) σ →
+      Program.sem (Program.ode (jointSys (fun _ => Term.const 0) (fR q) (Term.const 1))
+        (Formula.and domL domR)) σ ω → Formula.sat (anc l q) ω := by
+  rw [anc_eq l q hq]
+  intro σ ω h1 h2 h3
+  exact couple_box_dyn true g gs (g :: gs) (cL l) (cR q) (fR q) domL domR
+    (hostGuard vs 2 Side.L (mL l)) (fun c hc => hc) (fun c hc => hc) (hiffL l hl) (hiffR q hq)
+    (cL_fvL l hl) (hguardL l hl) (stayR_gen q hq _ 1 (by norm_num) _)
+    (verdD_core l q hl (by omega) hv) σ ω h1 (fun _ => h2) h3
 
-/-- `window1_hop` with the switch test after the hop (the entered mode's guard `γ`, which
-the hop's end state satisfies). -/
-theorem window1_hopG (fL' : Fin 2 → Term (Var 2)) (domL' : Formula (Var 2))
-    (fRh : Fin 2 → Term (Var 2)) (lamh : Term (Var 2)) (domRh : Formula (Var 2))
-    (γ : Formula (Var 2)) (Q : Program (Var 2)) (φ : Formula (Var 2)) (dt : ℝ)
-    (hfL' : ∀ i, (fL' i).fv ⊆ range Lv) (hdomL' : domL'.fv ⊆ range Lv)
-    (hfRh : ∀ i, (fRh i).fv ⊆ range Rv) (hlamh : lamh.fv ⊆ range Rv)
-    (hdomRh : domRh.fv ⊆ range Rv) (hγ : γ.fv ⊆ range Rv)
-    {σ : State (Var 2)} (hdomLσ : Formula.sat domL' σ)
-    (hR : ∃ ρ₁, Program.sem (Program.ode (rightBlock fRh lamh) domRh)
-        (Function.update σ tg 0) ρ₁ ∧ Formula.sat φ ρ₁ ∧ Formula.sat γ ρ₁)
-    (hQ : ∀ τ, Formula.sat φ τ → τ tg = 0 →
-      faModalB (Equiv.refl (Var 2))
-        (Program.ode (DLCalTiming.clk tg (leftBlock fL')) domL') Q φ tg dt τ) :
-    Formula.sat (faModal (Equiv.refl (Var 2))
-      (windowSeg (leftBlock fL') domL' tg dt 1)
-      (bigSeq [Program.seq (Program.ode (rightBlock fRh lamh) domRh) (Program.test γ), Q])
-      φ) σ := by
-  have htgL : tg ∉ domL'.fv := fun h => aux_notin_range_Lv 1 (hdomL' h)
-  have hdomL0 : Formula.sat domL' (Function.update σ tg 0) := by
-    rwa [(Formula.coincidence domL' (fun v hv =>
-      Function.update_of_ne (fun hc => htgL (by rw [← hc]; exact hv)) _ _) :
-        Formula.sat domL' _ ↔ Formula.sat domL' σ)]
-  obtain ⟨ρ₁, hrun, hρ₁, hγρ⟩ := hR
-  have hj := faModalB_repoPrefixG (fL := fL') (fR := fRh) (lam := lamh) (domL := domL')
-    (domR := domRh) (γ := γ) (φ := φ) (Q := Q) (a := 1) (dt := dt) hfL' hdomL' hfRh hlamh
-    hdomRh hγ (Function.update_self _ _ _)
-    ⟨ρ₁, hop_run_toJoint hfRh hlamh hdomL' hdomL0 hrun, hρ₁, hγρ⟩ hQ
-  have hb : faModalB (Equiv.refl (Var 2))
-      (Program.ode (DLCalTiming.clk tg (leftBlock fL')) domL')
-      (Program.seq (Program.seq (Program.ode (rightBlock fRh lamh) domRh) (Program.test γ)) Q)
-      φ tg dt (Function.update σ tg 0) := by
-    refine faModalB_monoQ ?_ hj
-    rintro ν μ ⟨κ, ⟨κ', hhop, htest⟩, hQrun⟩
-    exact ⟨κ, ⟨κ', joint_run_toR hfRh hlamh hhop, htest⟩, hQrun⟩
-  have hseg := (faModalB_clockedSeg_iff (leftBlock fL') domL' _ φ tg dt σ).mpr hb
-  have hcong := sat_faModal_congrR
-    (Q' := bigSeq [Program.seq (Program.ode (rightBlock fRh lamh) domRh) (Program.test γ), Q])
-    (fun ν μ => sem_foldr_seq_bigSeq
-      [Program.seq (Program.ode (rightBlock fRh lamh) domRh) (Program.test γ)] Q ν μ) hseg
-  exact sat_faModal_monoL
-    (fun ν μ h => (sem_windowSeg_one (leftBlock fL') domL' tg dt).mp h) hcong
+/-- O1 for the right: a non-sink mode's guard implies its kept atoms (`BULK` `[15, 80)` ⊆
+`[15, 90]`; `ABSORB` `[80, 99)` ⊆ `[80, 100]`; `FULL`). -/
+theorem hO1R (q : ℕ) (hq : q < 3) (ν : State (Var 2))
+    (hg : Formula.sat (hostGuard vs 2 Side.R (mR q)) ν) : CutSat (cR q) ν := by
+  have h := (sat_guardR q hq ν).mp hg
+  rw [cutSatR_val q hq ν]
+  interval_cases q
+  · simp only [if_true] at h ⊢; exact ⟨h.1, by linarith [h.2]⟩
+  · simp only [show (1:ℕ) ≠ 0 from by decide, if_false, if_true] at h ⊢
+    exact ⟨h.1, by linarith [h.2]⟩
+  · simp only [show (2:ℕ) ≠ 0 from by decide, show (2:ℕ) ≠ 1 from by decide, if_false] at h ⊢
+    exact h
 
-/-- **The reposition's existence.** From a `BULK` right start (`x_R ∈ [15, 90]`) with the
-loop invariant, the envelope and window `l`'s left atoms: the right-only `BULK` run (zero
-duration if `x_R ≥ 80`, else the contraction up to exactly `x_R = 80`) ends in `ABSORB`'s
-joint anchor — `x_R` only grew (the invariant `x_L ≤ x_R + 5` survives), lefts are frozen. -/
-theorem bulk_hop_exists (l : ℕ) (hl : l < 3) {σ : State (Var 2)}
-    (hσ : Formula.sat (Formula.and (FM g gs) env) σ) (hreg : Formula.sat (region 0) σ)
-    (hLat : CutSat (cL l) σ) :
-    ∃ ρ₁, Program.sem (Program.ode (rightBlock (fR 0) (Term.const 1)) domR)
-      (Function.update σ tg 0) ρ₁ ∧ Formula.sat (anchor l 1) ρ₁ ∧
-        Formula.sat (hostGuard vs 2 Side.R (mR 1)) ρ₁ := by
-  set ω₀ := Function.update σ tg 0 with hω₀
-  have hωL : ω₀ (Lv 0) = σ (Lv 0) :=
-    Function.update_of_ne (by simp [Lv, Prod.ext_iff]) _ _
-  have hωR : ω₀ (Rv 0) = σ (Rv 0) :=
-    Function.update_of_ne (by simp [Rv, Prod.ext_iff]) _ _
-  have hx0 := (cutSatR_val 0 (by norm_num) σ).mp ((sat_region_lt 0 (by norm_num) σ).mp hreg)
-  simp only [if_true] at hx0
-  have hinv : σ (Lv 0) ≤ σ (Rv 0) + 5 := by
-    have := (sat_FM_iff g gs σ).mp hσ.1 g List.mem_cons_self
-    rw [eval_g] at this; linarith
-  have hdL := (sat_domL σ).mp hσ.2.1
-  have hLv := (cutSatL_val l hl σ).mp hLat
-  have key : ∀ ρ : State (Var 2), ρ (Lv 0) = σ (Lv 0) → σ (Rv 0) ≤ ρ (Rv 0) →
-      80 ≤ ρ (Rv 0) → ρ (Rv 0) ≤ 100 → Formula.sat (anchor l 1) ρ := by
-    intro ρ hρL hρR h1 h2
-    refine ⟨(sat_FM_append g gs _ ρ).mpr ⟨(sat_FM_iff g gs ρ).mpr ?_,
-      (atomTerms_iff (hiffL l hl) (hiffR 1 (by norm_num)) ρ).mpr ⟨?_, ?_⟩⟩,
-      (sat_domL ρ).mpr ?_, (sat_domR ρ).mpr ⟨by linarith, h2⟩⟩
-    · intro g' hg'
-      simp only [gs, List.mem_cons, List.not_mem_nil, or_false] at hg'
-      subst hg'
-      rw [eval_g]; linarith
-    · rw [cutSatL_val l hl ρ, hρL]; exact hLv
-    · rw [cutSatR_val 1 (by norm_num) ρ]
-      simp only [show (1:ℕ) ≠ 0 from by decide, if_false, if_true]
-      exact ⟨h1, h2⟩
-    · rw [hρL]; exact hdL
-  have hdomRω : Formula.sat domR ω₀ := by
-    rw [sat_domR, hωR]; exact (sat_domR σ).mp hσ.2.2
-  by_cases h80 : 80 ≤ σ (Rv 0)
-  · obtain ⟨ρ, hsem, hρ⟩ := static_hop_existsR (fR := fR 0) (lam := Term.const 1)
-      (domR := domR) hdomRω
-    subst hρ
-    refine ⟨ω₀, hsem, key ω₀ hωL (by rw [hωR]) (by rw [hωR]; exact h80)
-      (by rw [hωR]; linarith), ?_⟩
-    rw [sat_guardR 1 (by norm_num), hωR]
-    norm_num
-    exact ⟨h80, by linarith⟩
-  · replace h80 : σ (Rv 0) < 80 := not_le.mp h80
-    have hy1 : 1 ≤ (90 - ω₀ (Rv 0)) / 10 := by rw [hωR]; linarith
-    have hτ : 0 ≤ 10 * Real.log ((90 - ω₀ (Rv 0)) / 10) :=
-      mul_nonneg (by norm_num) (Real.log_nonneg hy1)
-    have hend := bulk_end ω₀ (by rw [hωR]; exact h80)
-    refine ⟨_, bulk_run ω₀ _ hτ hdomRω, key _ ?_ ?_ ?_ ?_, ?_⟩
-    · rw [contractΦ_other 0 (1/10) 90 ω₀ _ (by simp [Lv, Rv, Prod.ext_iff]), hωL]
-    · rw [hend]; exact le_of_lt h80
-    · rw [hend]
-    · rw [hend]; norm_num
-    · rw [sat_guardR 1 (by norm_num), hend]; norm_num
+theorem anc_hand (l q : ℕ) (hl : l < 3) (hq : q < 3) :
+    ∀ e ∈ Gr.edgesFrom q, ∀ y, Formula.sat (anc l q) y → SwitchLegal e y →
+      Formula.sat (anc l e.tgt) y := by
+  intro e he y hA hleg
+  have hg : Formula.sat (hostGuard vs 2 Side.R (mR e.tgt)) y := by
+    have := hleg; unfold SwitchLegal at this; rwa [Gr_guards q e he] at this
+  rw [anc_eq l q hq] at hA
+  by_cases ht : e.tgt < 3
+  · rw [anc_eq l e.tgt ht]
+    exact anchor_hand (hiffL l hl) (hiffR q hq) (hiffR e.tgt ht) hA (hO1R e.tgt ht y hg)
+  · unfold anc cR'
+    rw [if_neg ht]
+    exact anchor_hand (cR' := []) (hiffL l hl) (hiffR q hq) (fun a ha => by simp at ha) hA
+      (fun a ha => by simp at ha)
 
-/-! ## The step provider: stay in a certified start mode; for a `BULK` right start of the
-`BULK` / `ABSORB` window, reposition dynamically in `BULK` and switch along the declared edge
-`BULK → ABSORB` -/
+theorem anc_iff (l q : ℕ) (hl : l < 3) (hq : q < 3) (x : State (Var 2)) :
+    Formula.sat (anc l q) x ↔ Formula.sat (FM g gs) x ∧ CutSat (cL l) x ∧ CutSat (cR q) x := by
+  rw [anc_eq l q hq, sat_FM_append, atomTerms_iff (hiffL l hl) (hiffR q hq)]
+
+theorem FM_fv : (FM g gs).fv ⊆ range Lv ∪ range Rv := by
+  intro v hv
+  by_contra hn
+  exact notMem_FM_fv (fun c hc hvc => hn (comps_fv c hc hvc)) hv
+
+/-! ## The right's moves: `BULK → ABSORB` at `80`, `ABSORB → FULL` at `99` (the explicit
+contractions give only the runs' existence and the switch instants) -/
+
+/-- A right state of a non-sink mode: in its guard and the envelope. -/
+def Pre (q : ℕ) (x : State (Var 2)) : Prop :=
+  q < 3 ∧ Formula.sat (hostGuard vs 2 Side.R (mR q)) x ∧ Formula.sat domR x
+
+theorem pre_R (q : ℕ) (x y : State (Var 2)) (hxy : ∀ i, x (Rv i) = y (Rv i))
+    (h : Pre q x) : Pre q y := by
+  obtain ⟨hq, hg, hd⟩ := h
+  refine ⟨hq, ?_, ?_⟩
+  · refine (Formula.coincidence _ (fun v hv => ?_)).mp hg
+    obtain ⟨i, rfl⟩ := hguardR q (by omega) hv
+    exact hxy i
+  · refine (Formula.coincidence domR (fun v hv => ?_)).mp hd
+    obtain ⟨i, rfl⟩ := hdomR hv
+    exact hxy i
+
+theorem g0 (y : State (Var 2)) : Formula.sat (hostGuard vs 2 Side.R (mR 0)) y ↔
+    15 ≤ y (Rv 0) ∧ y (Rv 0) < 80 := by rw [sat_guardR 0 (by norm_num)]; simp
+theorem g1 (y : State (Var 2)) : Formula.sat (hostGuard vs 2 Side.R (mR 1)) y ↔
+    80 ≤ y (Rv 0) ∧ y (Rv 0) < 99 := by rw [sat_guardR 1 (by norm_num)]; simp
+theorem g2 (y : State (Var 2)) : Formula.sat (hostGuard vs 2 Side.R (mR 2)) y ↔
+    99 ≤ y (Rv 0) := by rw [sat_guardR 2 (by norm_num)]; simp
+
+/-- The explicit run of right mode `q < 3` (its contraction). -/
+noncomputable def runΦ (q : ℕ) (ρ : State (Var 2)) : ℝ → State (Var 2) :=
+  cΦ ρ 0 (kR q) (cRc q)
+
+theorem run_sol (q : ℕ) (hq : q < 3) (ρ : State (Var 2)) (hd : Formula.sat domR ρ)
+    (ε : ℝ) (hε : 0 ≤ ε) : ODESol (modeW q).sys (modeW q).dom ρ ε (runΦ q ρ) := by
+  have hD := (sat_domR ρ).mp hd
+  have hc : cRc q ≤ 100 ∧ 0 ≤ cRc q := by unfold cRc; split_ifs <;> norm_num
+  exact contract_sol (fR := fR q) (domR := domR) ρ 0 (kR q) (cRc q)
+    (by unfold kR; split_ifs <;> norm_num) (fR0_eval q hq)
+    (fun i hi s => by
+      match i, hi with
+      | 1, _ => exact fR1_eval q hq s)
+    (fun v h1 h2 => by
+      rw [sat_domR, trajJ_j]
+      constructor
+      · exact le_trans (le_min hD.1 hc.2) h1
+      · exact le_trans h2 (max_le hD.2 hc.1)) ε hε
+
+theorem run_val (q : ℕ) (ρ : State (Var 2)) (t : ℝ) :
+    runΦ q ρ t (Rv 0) = cRc q + (ρ (Rv 0) - cRc q) * Real.exp (-(kR q * t)) := by
+  simp [runΦ, cΦ_j]
+
+theorem run_dom (q : ℕ) (hq : q < 3) (ρ : State (Var 2)) (hd : Formula.sat domR ρ)
+    (ε : ℝ) (hε : 0 ≤ ε) : Formula.sat domR (runΦ q ρ ε) := by
+  simpa [modeW] using (run_sol q hq ρ hd ε hε).hdom ε ⟨hε, le_rfl⟩
+
+theorem run_ge (q : ℕ) (ρ : State (Var 2)) (t : ℝ) (ht : 0 ≤ t) (hρ : ρ (Rv 0) ≤ cRc q) :
+    ρ (Rv 0) ≤ runΦ q ρ t (Rv 0) := by
+  rw [run_val]
+  have := (exp_approach_between (kR q) (cRc q) (ρ (Rv 0)) t
+    (by unfold kR; split_ifs <;> norm_num) ht).1
+  rwa [min_eq_left hρ] at this
+
+/-- The cover's joint nodes (every window: `ABSORB`, `FULL`) and reposition node (`BULK`, for
+the `BULK` and `ABSORB` windows; a `BULK` start of the `FULL` window is inadmissible). -/
+def J (q : ℕ) : Prop := 1 ≤ q ∧ q < 3
+def D (l q : ℕ) : Prop := l < 2 ∧ q = 0
+
+theorem hmove (E : ℕ → State (Var 2) → Prop) (hE : ∀ q x, Pre q x → E q x) :
+    HMove Gr modeW J (fun q => q) Pre E := by
+  intro q hJ ρ hpre T hT
+  obtain ⟨hq1, hq3⟩ := hJ
+  obtain ⟨-, hg, hd⟩ := hpre
+  interval_cases q
+  · -- `ABSORB` climbs toward 100; it switches into `FULL` at 99
+    have hg' := (g1 ρ).mp hg
+    have hk : (0:ℝ) < kR 1 := by simp [kR]
+    have hc : cRc 1 = 100 := by simp [cRc]
+    by_cases hlo : runΦ 1 ρ T (Rv 0) < 99
+    · have hge := run_ge 1 ρ T hT (by rw [hc]; linarith [hg'.2])
+      have hgT : Formula.sat (hostGuard vs 2 Side.R (mR 1)) (runΦ 1 ρ T) :=
+        (g1 _).mpr ⟨by linarith [hg'.1], hlo⟩
+      exact Or.inl ⟨runΦ 1 ρ, run_sol 1 (by norm_num) ρ hd T hT, edgeW 1 1,
+        edge_mem 1 1 (by decide), hgT, hE 1 _ ⟨by norm_num, hgT, run_dom 1 (by norm_num) ρ hd T hT⟩⟩
+    · push Not at hlo
+      rw [run_val, hc] at hlo
+      have hhit := contract_hit_up (kR 1) 100 (ρ (Rv 0)) 99 hk hg'.2.le (by norm_num)
+      have hτT := contract_hit_le_up (kR 1) 100 (ρ (Rv 0)) 99 T hk hg'.2.le (by norm_num) hlo
+      set τ := hitTime (kR 1) 100 (ρ (Rv 0)) 99
+      have hend : runΦ 1 ρ τ (Rv 0) = 99 := by rw [run_val, hc]; exact hhit.2
+      have hgF : Formula.sat (hostGuard vs 2 Side.R (mR 2)) (runΦ 1 ρ τ) := by
+        rw [g2, hend]
+      exact Or.inr ⟨τ, hhit.1, hτT, runΦ 1 ρ, run_sol 1 (by norm_num) ρ hd τ hhit.1, edgeW 1 2,
+        edge_mem 1 2 (by decide), hgF, ⟨by simp [edgeW], by simp [edgeW]⟩,
+        (by show (1:ℕ) < 2; norm_num),
+        ⟨by simp [edgeW], hgF, run_dom 1 (by norm_num) ρ hd τ hhit.1⟩⟩
+  · -- `FULL` is frozen
+    have hg' := (g2 ρ).mp hg
+    have hk : kR 2 = 0 := by simp [kR]
+    have hend : runΦ 2 ρ T (Rv 0) = ρ (Rv 0) := by rw [run_val, hk]; simp
+    have hgT : Formula.sat (hostGuard vs 2 Side.R (mR 2)) (runΦ 2 ρ T) := by
+      rw [g2, hend]; exact hg'
+    exact Or.inl ⟨runΦ 2 ρ, run_sol 2 (by norm_num) ρ hd T hT, edgeW 2 2,
+      edge_mem 2 2 (by decide), hgT, hE 2 _ ⟨by norm_num, hgT, run_dom 2 (by norm_num) ρ hd T hT⟩⟩
+
+/-- The reposition exit of `BULK`: the right alone climbs toward 90 and switches into
+`ABSORB` at 80, a joint node. -/
+theorem hexit (l : ℕ) : HExit Gr modeW J (D l) (fun q => 2 - q) Pre Pre := by
+  intro q hD hnJ ρ hpre
+  obtain ⟨-, rfl⟩ := hD
+  obtain ⟨-, hg, hd⟩ := hpre
+  have hg' := (g0 ρ).mp hg
+  have hk : (0:ℝ) < kR 0 := by simp [kR]
+  have hc : cRc 0 = 90 := by simp [cRc]
+  have hhit := contract_hit_up (kR 0) 90 (ρ (Rv 0)) 80 hk hg'.2.le (by norm_num)
+  set τ := hitTime (kR 0) 90 (ρ (Rv 0)) 80
+  have hend : runΦ 0 ρ τ (Rv 0) = 80 := by rw [run_val, hc]; exact hhit.2
+  have hgA : Formula.sat (hostGuard vs 2 Side.R (mR 1)) (runΦ 0 ρ τ) := by
+    rw [g1, hend]; norm_num
+  exact ⟨τ, runΦ 0 ρ, run_sol 0 (by norm_num) ρ hd τ hhit.1, edgeW 0 1, edge_mem 0 1 (by decide),
+    hgA, by simp [edgeW], by simp [edgeW],
+    Or.inl ⟨⟨by simp [edgeW], by simp [edgeW]⟩,
+      ⟨by simp [edgeW], hgA, run_dom 0 (by norm_num) ρ hd τ hhit.1⟩⟩⟩
 
 /-! ## The mode-consistent region: the right mode's guard and its kept cut atoms -/
 
@@ -948,154 +933,128 @@ theorem hframes (dt : ℝ) : ∀ P ∈ leftProgs dt, FramesMv P mv := by
   obtain ⟨i, hi⟩ := leftBlock_bound_sub d.2.1 _ h
   exact aux_ne_Lv 0 i hi
 
-theorem gate (l : ℕ) (dt : ℝ) (R : Program (Var 2)) (ψ : Formula (Var 2))
-    {σ : State (Var 2)}
-    (hbody : Formula.sat (hostGuard vs 2 Side.L (mL l)) σ →
-      Formula.sat (faModal (Equiv.refl (Var 2))
-        (windowSeg (leftBlock (fL l)) domL tg dt 1) R ψ) σ) :
-    Formula.sat (faModal (Equiv.refl (Var 2))
-      (gwindowSeg (hostGuard vs 2 Side.L (mL l)) (leftBlock (fL l)) domL tg dt 1) R ψ) σ := by
-  refine faModal_seqL _ _ _ _ _ _ ?_
-  rw [sat_box]
-  intro ν hν
-  rw [sem_test] at hν
-  obtain ⟨rfl, hg⟩ := hν
-  exact hbody hg
+/-! ## The response to one gated window: the cover's derivation, replayed -/
 
-/-- **Nonblocking at the end of a response**, discharged from the explicit end state:
-`BULK`'s region `[15, 90]` is covered by `BULK` `[15, 80)` and `ABSORB` `[80, 99)`;
-`ABSORB`'s `[80, 100]` by `ABSORB` and `FULL` `x ≥ 99`; `FULL`'s region is its guard. -/
-theorem nonblock {F' : Formula (Var 2)} (q : ℕ) (hq : q < 3) :
-    NonblockingAt Gr q (Formula.and F' (region q)) (fun qf => Formula.and F' (region qf)) := by
-  intro μ ⟨hF, hreg⟩
-  have hr := (cutSatR_val q hq μ).mp ((sat_region_lt q hq μ).mp hreg)
-  have pick : ∀ t, (q, t) ∈ edgeList → t < 3 → Formula.sat (hostGuard vs 2 Side.R (mR t)) μ →
-      CutSat (cR t) μ →
-      ∃ e ∈ Gr.edgesFrom q, SwitchLegal e μ ∧ Formula.sat (Formula.and F' (region e.tgt)) μ :=
-    fun t ht ht3 hg hc => ⟨edgeW q t, edge_mem q t ht, hg, hF, (sat_region_lt t ht3 μ).mpr hc⟩
-  interval_cases q
-  · simp only [if_true] at hr
-    by_cases hx : μ (Rv 0) < 80
-    · exact pick 0 (by decide) (by norm_num) ((sat_guardR 0 (by norm_num) μ).mpr
-        (by simp only [if_true]; exact ⟨hr.1, hx⟩))
-        ((cutSatR_val 0 (by norm_num) μ).mpr (by simp only [if_true]; exact hr))
-    · replace hx := not_lt.mp hx
-      exact pick 1 (by decide) (by norm_num) ((sat_guardR 1 (by norm_num) μ).mpr
-        (by norm_num; constructor <;> linarith))
-        ((cutSatR_val 1 (by norm_num) μ).mpr (by norm_num; constructor <;> linarith))
-  · simp only [show (1:ℕ) ≠ 0 from by decide, if_false, if_true] at hr
-    by_cases hx : μ (Rv 0) < 99
-    · exact pick 1 (by decide) (by norm_num) ((sat_guardR 1 (by norm_num) μ).mpr
-        (by norm_num; exact ⟨hr.1, hx⟩))
-        ((cutSatR_val 1 (by norm_num) μ).mpr (by norm_num; exact hr))
-    · replace hx := not_lt.mp hx
-      exact pick 2 (by decide) (by norm_num) ((sat_guardR 2 (by norm_num) μ).mpr
-        (by norm_num; exact hx))
-        ((cutSatR_val 2 (by norm_num) μ).mpr (by norm_num; exact hx))
-  · simp only [show (2:ℕ) ≠ 0 from by decide, show (2:ℕ) ≠ 1 from by decide, if_false] at hr
-    exact pick 2 (by decide) (by norm_num) ((sat_guardR 2 (by norm_num) μ).mpr
-      (by norm_num; exact hr))
-      ((cutSatR_val 2 (by norm_num) μ).mpr (by norm_num; exact hr))
+theorem respondR (l : ℕ) (hl : l < 3) (dt : ℝ) (hJv : ∀ q, J q → Verd l q)
+    (hDv : ∀ q, D l q → VerdD l q) (q : ℕ) (hq : q < 3) {σ : State (Var 2)}
+    (hσ : Formula.sat (Formula.and (FM g gs) env) σ)
+    (hg : Formula.sat (hostGuard vs 2 Side.R (mR q)) σ) :
+    GResp Gr q (gwindowSeg (hostGuard vs 2 Side.L (mL l)) (leftBlock (fL l)) domL tg dt (0 + 1))
+      (fun qf => Formula.and (Formula.and (FM g gs) env) (region qf)) σ := by
+  have hJD : ∀ q, J q ∨ D l q → q < 3 := by
+    intro q h; rcases h with h | h
+    · exact h.2
+    · rw [h.2]; norm_num
+  refine replay_gresp_k Gr modeW fR domR (fL l) domL (hostGuard vs 2 Side.L (mL l)) 1
+    hgR (hfL l hl) hdomL hdomR (hguardL l hl) 1 one_pos J (D l)
+    (fun q h => hfR q (by have := hJD q h; omega)) (fun q => q) (fun q => 2 - q) 3
+    (fun q h => h.2)
+    (fun q h => Gr_modeAt q (by have := hJD q h; omega)) (fun _ _ => rfl) (fun _ _ => rfl)
+    (anc l) (fun q => anc_fv l q hl)
+    (fun q h => by
+      have hb := anc_box l q hl h.2 (hJv q h)
+      simpa [lam] using hb)
+    (fun q h => anc_boxD l q hl (hJD q (Or.inr h)) (hDv q h))
+    (fun q h => anc_hand l q hl (hJD q h))
+    Pre Pre Pre pre_R pre_R
+    (hmove _ (fun _ _ h => h)) (hexit l) dt 0 (fun h => absurd h (lt_irrefl 0)) q σ ?_
+    hσ.2.1 _ ?_
+  · intro hgL
+    have hpre : Pre q σ := ⟨hq, hg, hσ.2.2⟩
+    have hA : Formula.sat (anc l q) σ :=
+      (anc_iff l q hl hq σ).mpr ⟨hσ.1, hO1L l hl σ hgL, hO1R q hq σ hg⟩
+    refine ⟨?_, hA⟩
+    by_cases hq0 : q = 0
+    · subst hq0
+      by_cases hl2 : l < 2
+      · exact Or.inr ⟨⟨hl2, rfl⟩, fun h => absurd h.1 (by norm_num), hpre⟩
+      · -- the `FULL` window from `BULK` is inadmissible: `x_L ≥ 99`, `x_R < 80`,
+        -- `x_L ≤ x_R + 5`
+        exfalso
+        have hl2' : l = 2 := by omega
+        subst hl2'
+        have hL := (cutSatL_val 2 (by norm_num) σ).mp (hO1L 2 (by norm_num) σ hgL)
+        simp only [show (2:ℕ) ≠ 0 from by decide, show (2:ℕ) ≠ 1 from by decide,
+          if_false] at hL
+        have hR := (g0 σ).mp hg
+        have hrow := (sat_FM_iff g gs σ).mp hσ.1 g List.mem_cons_self
+        rw [eval_g] at hrow
+        linarith [hR.2]
+    · exact Or.inl ⟨⟨by omega, hq⟩, hpre⟩
+  · intro ν hwin q' μ hμL hpre hA
+    have hdomLν : Formula.sat domL ν :=
+      windowSeg_end_domL (leftBlock (fL l)) domL tg dt (0 + 1) (by norm_num) hwin
+    obtain ⟨hq', hgq, hdR⟩ := hpre
+    have hA' := (anc_iff l q' hl hq' _).mp hA
+    have hF : Formula.sat (FM g gs) μ := by
+      refine (sat_of_agree FM_fv (fun i => ?_) (fun i => ?_)).mp hA'.1
+      · rw [mergeLR_L, hμL i]
+      · rw [mergeLR_R]
+    refine ⟨⟨hF, ?_, hdR⟩, (sat_region_lt q' hq' μ).mpr (hO1R q' hq' μ hgq)⟩
+    refine (Formula.coincidence domL (fun v hv => ?_)).mpr hdomLν
+    obtain ⟨i, rfl⟩ := hdomL hv
+    exact hμL i
 
-theorem stayCase (l q : ℕ) (hl : l < 3) (hq : q < 3) (dt : ℝ) (hv : Verd l q)
-    {σ : State (Var 2)} (hσ : Formula.sat (Formula.and (FM g gs) env) σ)
-    (hreg : Formula.sat (region q) σ) :
-    GResp Gr q (gwindowSeg (hostGuard vs 2 Side.L (mL l)) (leftBlock (fL l)) domL tg dt 1)
-        (fun qf => Formula.and (Formula.and (FM g gs) env) (region qf)) σ := by
-  refine gresp_gate (fun hguard => ?_)
-  have hanchor : Formula.sat (anchor l q) σ := by
-    refine ⟨(sat_FM_append g gs _ σ).mpr ⟨hσ.1, ?_⟩, hσ.2⟩
-    exact (atomTerms_iff (hiffL l hl) (hiffR q hq) σ).mpr
-      ⟨hO1L l hl σ hguard, (sat_region_lt q hq σ).mp hreg⟩
-  exact gresp_final (Gr_modeAt q (by omega)) (respond l q hl hq dt hv hanchor) (nonblock q hq)
-
-/-- **The dynamic-reposition case.** A `BULK` right start of window `l ∈ {BULK, ABSORB}`:
-segments `BULK →(edge BULK→ABSORB) ABSORB →(self) ABSORB`; the right first runs `BULK`
-alone (the left frozen in the coupling, `faModalB_repoPrefix`) up to `x_R = 80`, then the
-certified joint piece `(l, ABSORB)` tracks the window. -/
-theorem hopCase (l : ℕ) (hl : l < 2) (dt : ℝ) (hv : Verd l 1) {σ : State (Var 2)}
-    (hσ : Formula.sat (Formula.and (FM g gs) env) σ) (hreg : Formula.sat (region 0) σ) :
-    GResp Gr 0 (gwindowSeg (hostGuard vs 2 Side.L (mL l)) (leftBlock (fL l)) domL tg dt 1)
-        (fun qf => Formula.and (Formula.and (FM g gs) env) (region qf)) σ := by
-  refine gresp_gate (fun hguard => ?_)
-  have hl3 : l < 3 := by omega
-  have hw := window1_hopG (fL l) domL (fR 0) (Term.const 1) domR
-    (hostGuard vs 2 Side.R (mR 1))
-    (Program.ode (rightBlock (fR 1) (Term.const 1)) domR) (anchor l 1) dt
-    (hfL l hl3) hdomL (hfR 0 (by norm_num)) (by simp [Term.fv]) hdomR
-    (hguardR 1 (by norm_num)) hσ.2.1
-    (bulk_hop_exists l hl3 hσ hreg (hO1L l hl3 σ hguard))
-    (by
-      intro τ hτ hτtg
-      have hupd : Function.update τ tg 0 = τ := by
-        funext x
-        by_cases hx : x = tg
-        · subst hx; rw [Function.update_self, hτtg]
-        · rw [Function.update_of_ne hx]
-      have := couple l 1 hl3 (by norm_num) dt hv τ hτ
-      rwa [hupd] at this)
-  exact gresp_final_pre (Gr_modeAt 1 (by norm_num)) [(0, modeW 0, edgeW 0 1)]
-    (by
-      intro s hs
-      rw [List.mem_singleton] at hs
-      subst hs
-      exact ⟨Gr_modeAt 0 (by norm_num), edge_mem 0 1 (by decide)⟩)
-    (by simp) (by simp) (by simp [qfOf, edgeW])
-    (sat_faModal_monoPost (anchor_post l 1 hl3 (by norm_num)) hw) (nonblock 1 (by norm_num))
-
-theorem Hmulti (dt : ℝ)
-    (h01 : Verd 0 1) (h02 : Verd 0 2) (h11 : Verd 1 1) (h12 : Verd 1 2)
-    (h20 : Verd 2 0) (h21 : Verd 2 1) (h22 : Verd 2 2) :
+theorem Hmulti (dt : ℝ) (hJv : ∀ l < 3, ∀ q, J q → Verd l q)
+    (hDv : ∀ l < 3, ∀ q, D l q → VerdD l q) :
     ∀ P ∈ leftProgs dt, ∀ (q : ℕ), q < Gr.modes.length → ∀ σ, σ mv = (q : ℝ) →
-      Formula.sat (Formula.and (FM g gs) env) σ → Formula.sat (region q) σ →
-      GResp Gr q P
-        (fun qf => Formula.and (Formula.and (FM g gs) env) (region qf)) σ := by
-  intro P hP q hq σ _ hσ hreg
+      Formula.sat (Formula.and (FM g gs) env) σ →
+      Formula.sat (hostGuard vs 2 Side.R (mR q)) σ → Formula.sat (region q) σ →
+      GResp Gr q P (fun qf => Formula.and (Formula.and (FM g gs) env) (region qf)) σ := by
+  intro P hP q hq σ _ hσ hg hreg
   rw [Gr_len] at hq
+  by_cases hq3 : q = 3
+  · subst hq3; exact absurd hreg (not_sat_region3 σ)
+  have hq3' : q < 3 := by omega
   simp only [leftProgs, leftData, List.map_cons, List.map_nil, List.mem_cons,
     List.not_mem_nil, or_false] at hP
   rcases hP with rfl | rfl | rfl
-  · match q, hq, hreg with
-    | 0, _, hreg => exact hopCase 0 (by norm_num) dt h01 hσ hreg
-    | 1, _, hreg => exact stayCase 0 1 (by norm_num) (by norm_num) dt h01 hσ hreg
-    | 2, _, hreg => exact stayCase 0 2 (by norm_num) (by norm_num) dt h02 hσ hreg
-    | 3, _, hreg => exact absurd hreg (not_sat_region3 σ)
-  · match q, hq, hreg with
-    | 0, _, hreg => exact hopCase 1 (by norm_num) dt h11 hσ hreg
-    | 1, _, hreg => exact stayCase 1 1 (by norm_num) (by norm_num) dt h11 hσ hreg
-    | 2, _, hreg => exact stayCase 1 2 (by norm_num) (by norm_num) dt h12 hσ hreg
-    | 3, _, hreg => exact absurd hreg (not_sat_region3 σ)
-  · match q, hq, hreg with
-    | 0, _, hreg => exact stayCase 2 0 (by norm_num) (by norm_num) dt h20 hσ hreg
-    | 1, _, hreg => exact stayCase 2 1 (by norm_num) (by norm_num) dt h21 hσ hreg
-    | 2, _, hreg => exact stayCase 2 2 (by norm_num) (by norm_num) dt h22 hσ hreg
-    | 3, _, hreg => exact absurd hreg (not_sat_region3 σ)
+  · exact respondR 0 (by norm_num) dt (hJv 0 (by norm_num)) (hDv 0 (by norm_num)) q hq3' hσ hg
+  · exact respondR 1 (by norm_num) dt (hJv 1 (by norm_num)) (hDv 1 (by norm_num)) q hq3' hσ hg
+  · exact respondR 2 (by norm_num) dt (hJv 2 (by norm_num)) (hDv 2 (by norm_num)) q hq3' hσ hg
 
 /-! ## Theorem 3 -/
 
-/-- **`charger_fast_setpoints` (suite_v2), modal Theorem 3 at the declared invariant.**
-Left: the three guard-gated charger windows `BULK`, `ABSORB`, `FULL` (each window's left mode
-entered inside its guard); right: the four-mode certified profile of the file (declared
-edges, the pruned `BULK → FAULT` included); the loop invariant is the declared row
-`x_L ≤ x_R + 5` (all three rows equal), the evolve envelope `[0, 100]` on both sides, and
-the right mode's region — its kept cut atoms (`x_R ∈ [15, 90]` in `BULK`, the guard-implied
-cap 90 included; `[80, 100]` in `ABSORB`; `x_R ≥ 99` in `FULL`), `FAULT` excluded (the
-pruned sink: the right is never in it). The response stays in the start mode on the
-certified joint segment at the cover's λ = 1, except a `BULK` right start of the `BULK` or
-`ABSORB` window (not jointOK): there the right repositions ALONE in `BULK` (the explicit
-contraction `x(t) = 90 + (x₀ − 90)e^{−t/10}`, run until `x_R = 80`, zero duration if
-already `x_R ≥ 80`), takes the declared edge `BULK → ABSORB`, and the certified joint piece
-`(window, ABSORB)` tracks the window. Residuals: seven stratified verdict packs over the
-cut-narrowed domains (`modalVerdX`, the tool's own queries, each window's own invariant
-row). -/
+/-- **`charger_fast_setpoints` (suite_v2), modal Theorem 3 at the declared invariant, by
+replaying the emitted cover** (`InstancesV2/BenchCovers/charger_fast_setpoints.lean`, λ = 1).
+Left: the three guard-gated charger windows `BULK`, `ABSORB`, `FULL`; right: the four-mode
+certified profile of the file (declared edges, the pruned `BULK → FAULT` included); loop
+invariant: the declared row `x_L ≤ x_R + 5`, the evolve envelope `[0, 100]` on both sides,
+and the right mode's guard and region (its kept cut atoms; `FAULT` excluded). Response: the
+right keeps time with the window in the joint nodes `ABSORB` and `FULL`, switching
+`ABSORB → FULL` at 99, every stretch preserved by its joint pack `Verd l q`; a `BULK` start
+of the `BULK` or `ABSORB` window (a reposition node only) first repositions the right alone
+to 80 under the reposition pack `VerdD l 0` and switches into `ABSORB`; a `BULK` start of
+the `FULL` window is contradictory (inadmissible). Every switch is legal against the
+entered mode's guard; the explicit contractions give only the runs' existence and the switch
+instants. -/
 theorem charger_fast_setpoints_modal (dt : ℝ)
     (h01 : Verd 0 1) (h02 : Verd 0 2) (h11 : Verd 1 1) (h12 : Verd 1 2)
-    (h20 : Verd 2 0) (h21 : Verd 2 1) (h22 : Verd 2 2) :
+    (h21 : Verd 2 1) (h22 : Verd 2 2) (d00 : VerdD 0 0) (d10 : VerdD 1 0) :
     RFormula.rvalid (theorem3Form
       (bigChoice (leftProgs dt))
       (rightAutomatonBody Gr mv)
       (RFormula.and (RFormula.and (canonInvM g gs) (envLR domL domR))
         (mvRegionR mv gregion Gr.modes.length))) := by
+  have hJv : ∀ l < 3, ∀ q, J q → Verd l q := by
+    intro l hl q hJ
+    obtain ⟨h1, h3⟩ := hJ
+    match l, q, hl, h1, h3 with
+    | 0, 1, _, _, _ => exact h01
+    | 0, 2, _, _, _ => exact h02
+    | 1, 1, _, _, _ => exact h11
+    | 1, 2, _, _, _ => exact h12
+    | 2, 1, _, _, _ => exact h21
+    | 2, 2, _, _, _ => exact h22
+    | _, 0, _, h1, _ => exact absurd h1 (by norm_num)
+    | _ + 3, _, hl, _, _ => exact absurd hl (by omega)
+    | _, _ + 3, _, _, h3 => exact absurd h3 (by omega)
+  have hDv : ∀ l < 3, ∀ q, D l q → VerdD l q := by
+    intro l _ q hD
+    obtain ⟨hl2, rfl⟩ := hD
+    match l, hl2 with
+    | 0, _ => exact d00
+    | 1, _ => exact d10
   have hmvF : mv ∉ (FM g gs).fv := notMem_FM_fv (fun g' hg' hx => by
     rcases comps_fv g' hg' hx with ⟨i, hi⟩ | ⟨i, hi⟩
     · exact absurd hi (by simp [Lv, Prod.ext_iff])
@@ -1134,7 +1093,7 @@ theorem charger_fast_setpoints_modal (dt : ℝ)
           obtain ⟨d, hd, rfl⟩ := hP
           exact frames_right (vars_gwindowSegL_sub d.1 d.2.1 d.2.2.1 1 dt d.2.2.2 (hL d hd).1
             (hL d hd).2.1 (hL d hd).2.2) (hguardR_all q) hrun)
-        (fun P hP q hq σ hmv hσ _ hreg => (Hmulti dt h01 h02 h11 h12 h20 h21 h22) P hP q hq σ hmv hσ hreg))
+        (fun P hP q hq σ hmv hσ hg hreg => Hmulti dt hJv hDv P hP q hq σ hmv hσ hg hreg))
   · exact hddF_multiR_G Gr 0 1 dt leftData gregion (canonInvM g gs) domL domR
       (by decide) hgR hRv hL (fun q hq => gregion_fv q hq)
       (canonInvM_varsL g gs comps_fv) (canonInvM_varsR g gs) hdomL hdomR

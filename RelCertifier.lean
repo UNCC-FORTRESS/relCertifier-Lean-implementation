@@ -97,6 +97,7 @@ import RelCertifier.Proofs.Encoding.ReplayBridge
 import RelCertifier.Proofs.Encoding.ReplayComps
 import RelCertifier.Proofs.Encoding.ReplayModeKeyed
 import RelCertifier.Proofs.Encoding.ReplayOne
+import RelCertifier.Proofs.Encoding.ContractRun
 import RelCertifier.Proofs.Encoding.SinkExtension
 import RelCertifier.Proofs.Encoding.SplitCoupling
 import RelCertifier.Proofs.Encoding.ToolLevel

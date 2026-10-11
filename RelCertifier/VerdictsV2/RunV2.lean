@@ -458,10 +458,16 @@ def dynPacksV2 : List DynPackV2 :=
     -- charger_fast_tapers
     ⟨"charger_fast_tapers", 2, 0, [0], true, 0, 0⟩,
     ⟨"charger_fast_tapers", 2, 0, [0], true, 0, 1⟩,
-    ⟨"charger_fast_tapers", 2, 0, [0], true, 0, 2⟩ ]
+    ⟨"charger_fast_tapers", 2, 0, [0], true, 0, 2⟩,
+    -- rover_patrol_zones
+    ⟨"rover_patrol_zones", 3, 1, [0, 1], true, 1, 0⟩,
+    ⟨"rover_patrol_zones", 3, 2, [0, 1], true, 2, 0⟩,
+    ⟨"rover_patrol_zones", 3, 2, [0, 1], true, 2, 1⟩,
+    ⟨"rover_patrol_zones", 3, 3, [0, 1], true, 3, 1⟩,
+    ⟨"rover_patrol_zones", 3, 3, [0, 1], true, 3, 2⟩ ]
 
 /-- Declared: the number of component queries the reposition packs owe. -/
-def expectedDynV2 : Nat := 61
+def expectedDynV2 : Nat := 71
 
 def runDynPack (s : Z3Session) (r : DynPackV2) : IO Bool := do
   let p := irV2 r.bench

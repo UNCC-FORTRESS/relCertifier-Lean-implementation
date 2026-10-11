@@ -13,6 +13,7 @@ so a wrong row does not compile; with `modalVerdX_of_queries` (the rebuild denot
 kernel-checked.
 -/
 import RelCertifier.VerdictsV2.RunV2
+import RelCertifier.InstancesV2.Modal.RoverPatrolZonesGuarded
 import RelCertifier.InstancesV2.Modal.ArmPlateauSlow
 import RelCertifier.InstancesV2.Modal.ArmPlateauProfiles
 import RelCertifier.InstancesV2.Modal.ArmPlateauCrit
@@ -759,5 +760,18 @@ theorem pin_cft_d1 : V2ChargerFastTapers.VerdD 0 1 = dynPackVerd (dynPacksV2.get
   pin_dyn_row _ rfl irV2_cft cutV2_cft
 theorem pin_cft_d2 : V2ChargerFastTapers.VerdD 0 2 = dynPackVerd (dynPacksV2.getD 30 default) :=
   pin_dyn_row _ rfl irV2_cft cutV2_cft
+
+theorem irV2_rpz : irV2 "rover_patrol_zones" = rover_patrol_zones_IRv2 := by decide
+theorem cutV2_rpz : cutV2 "rover_patrol_zones" = Oracle.rover_patrol_zones_cutsV2X := by decide
+theorem pin_rpz_d0 : V2RoverPatrolZonesGuarded.VerdD 1 0 = dynPackVerd (dynPacksV2.getD 31 default) :=
+  pin_dyn_row _ rfl irV2_rpz cutV2_rpz
+theorem pin_rpz_d1 : V2RoverPatrolZonesGuarded.VerdD 2 0 = dynPackVerd (dynPacksV2.getD 32 default) :=
+  pin_dyn_row _ rfl irV2_rpz cutV2_rpz
+theorem pin_rpz_d2 : V2RoverPatrolZonesGuarded.VerdD 2 1 = dynPackVerd (dynPacksV2.getD 33 default) :=
+  pin_dyn_row _ rfl irV2_rpz cutV2_rpz
+theorem pin_rpz_d3 : V2RoverPatrolZonesGuarded.VerdD 3 1 = dynPackVerd (dynPacksV2.getD 34 default) :=
+  pin_dyn_row _ rfl irV2_rpz cutV2_rpz
+theorem pin_rpz_d4 : V2RoverPatrolZonesGuarded.VerdD 3 2 = dynPackVerd (dynPacksV2.getD 35 default) :=
+  pin_dyn_row _ rfl irV2_rpz cutV2_rpz
 
 end RelCertifier.VerdictsV2

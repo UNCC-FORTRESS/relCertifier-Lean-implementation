@@ -257,10 +257,31 @@ def packsV2 : List PackV2 :=
     ⟨"refinement_ladder_rover_rung2b_6dof", 6, 0, [0], 1001, 1000, 0, 2⟩,
     ⟨"refinement_ladder_rover_rung2b_6dof", 6, 0, [0], 1001, 1000, 1, 1⟩,
     ⟨"refinement_ladder_rover_rung2b_6dof", 6, 0, [0], 1001, 1000, 1, 2⟩,
-    ⟨"refinement_ladder_rover_rung2b_6dof", 6, 0, [0], 1001, 1000, 2, 2⟩ ]
+    ⟨"refinement_ladder_rover_rung2b_6dof", 6, 0, [0], 1001, 1000, 2, 2⟩,
+    -- refinement_ladder_rover_rung2_3to6 (cover replay)
+    ⟨"refinement_ladder_rover_rung2_3to6", 6, 0, [0, 2, 3, 1], 1, 1, 0, 0⟩,
+    ⟨"refinement_ladder_rover_rung2_3to6", 6, 0, [0, 2, 3, 1], 1, 1, 0, 1⟩,
+    ⟨"refinement_ladder_rover_rung2_3to6", 6, 0, [0, 2, 3, 1], 1, 1, 0, 2⟩,
+    ⟨"refinement_ladder_rover_rung2_3to6", 6, 0, [0, 2, 3, 1], 1, 1, 1, 1⟩,
+    ⟨"refinement_ladder_rover_rung2_3to6", 6, 0, [0, 2, 3, 1], 1, 1, 1, 2⟩,
+    ⟨"refinement_ladder_rover_rung2_3to6", 6, 0, [0, 2, 3, 1], 1, 1, 2, 2⟩,
+    -- story2_lateral_rung_a_8dof (cover replay)
+    ⟨"story2_lateral_rung_a_8dof", 8, 0, [0, 1, 3, 4, 5, 6, 2], 1, 1, 0, 0⟩,
+    ⟨"story2_lateral_rung_a_8dof", 8, 0, [0, 1, 3, 4, 5, 6, 2], 1, 1, 0, 1⟩,
+    ⟨"story2_lateral_rung_a_8dof", 8, 0, [0, 1, 3, 4, 5, 6, 2], 1, 1, 0, 2⟩,
+    ⟨"story2_lateral_rung_a_8dof", 8, 0, [0, 1, 3, 4, 5, 6, 2], 1, 1, 1, 1⟩,
+    ⟨"story2_lateral_rung_a_8dof", 8, 0, [0, 1, 3, 4, 5, 6, 2], 1, 1, 1, 2⟩,
+    ⟨"story2_lateral_rung_a_8dof", 8, 0, [0, 1, 3, 4, 5, 6, 2], 1, 1, 2, 2⟩,
+    -- story2_lateral_rung_b_12dof (cover replay)
+    ⟨"story2_lateral_rung_b_12dof", 12, 0, [0, 1, 2, 4, 5, 6, 7, 3], 1, 1, 0, 0⟩,
+    ⟨"story2_lateral_rung_b_12dof", 12, 0, [0, 1, 2, 4, 5, 6, 7, 3], 1, 1, 0, 1⟩,
+    ⟨"story2_lateral_rung_b_12dof", 12, 0, [0, 1, 2, 4, 5, 6, 7, 3], 1, 1, 0, 2⟩,
+    ⟨"story2_lateral_rung_b_12dof", 12, 0, [0, 1, 2, 4, 5, 6, 7, 3], 1, 1, 1, 1⟩,
+    ⟨"story2_lateral_rung_b_12dof", 12, 0, [0, 1, 2, 4, 5, 6, 7, 3], 1, 1, 1, 2⟩,
+    ⟨"story2_lateral_rung_b_12dof", 12, 0, [0, 1, 2, 4, 5, 6, 7, 3], 1, 1, 2, 2⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 418
+def expectedModalV2 : Nat := 532
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do

@@ -13,6 +13,9 @@ so a wrong row does not compile; with `modalVerdX_of_queries` (the rebuild denot
 kernel-checked.
 -/
 import RelCertifier.VerdictsV2.RunV2
+import RelCertifier.Instances.Story2LateralBGuarded
+import RelCertifier.Instances.Story2LateralAGuarded
+import RelCertifier.Instances.RoverLadderRung2Guarded
 import RelCertifier.Instances.RoverRung2b6dofGuarded
 import RelCertifier.Instances.RoverRung26dofGuarded
 import RelCertifier.Instances.Story3RolloverRungAGuarded
@@ -567,5 +570,50 @@ theorem pin_rung2b6_d1 : RoverRung2b6dofGuarded.VerdD 2 0 = dynPackVerd (dynPack
   pin_dyn_row _ rfl irV2_rung2b6 cutV2_rung2b6
 theorem pin_rung2b6_d2 : RoverRung2b6dofGuarded.VerdD 2 1 = dynPackVerd (dynPacksV2.getD 23 default) :=
   pin_dyn_row _ rfl irV2_rung2b6 cutV2_rung2b6
+
+theorem irV2_rung236 : irV2 "refinement_ladder_rover_rung2_3to6" = refinement_ladder_rover_rung2_3to6_IRv2 := by decide
+theorem cutV2_rung236 : cutV2 "refinement_ladder_rover_rung2_3to6" = Oracle.refinement_ladder_rover_rung2_3to6_cutsV2X := by decide
+theorem pin_rung236_j0 : RoverLadderRung2Guarded.Verd 0 0 = packVerd (packsV2.getD 170 default) :=
+  pin_row _ rfl irV2_rung236 cutV2_rung236 (by simp [packLam, packsV2])
+theorem pin_rung236_j1 : RoverLadderRung2Guarded.Verd 0 1 = packVerd (packsV2.getD 171 default) :=
+  pin_row _ rfl irV2_rung236 cutV2_rung236 (by simp [packLam, packsV2])
+theorem pin_rung236_j2 : RoverLadderRung2Guarded.Verd 0 2 = packVerd (packsV2.getD 172 default) :=
+  pin_row _ rfl irV2_rung236 cutV2_rung236 (by simp [packLam, packsV2])
+theorem pin_rung236_j3 : RoverLadderRung2Guarded.Verd 1 1 = packVerd (packsV2.getD 173 default) :=
+  pin_row _ rfl irV2_rung236 cutV2_rung236 (by simp [packLam, packsV2])
+theorem pin_rung236_j4 : RoverLadderRung2Guarded.Verd 1 2 = packVerd (packsV2.getD 174 default) :=
+  pin_row _ rfl irV2_rung236 cutV2_rung236 (by simp [packLam, packsV2])
+theorem pin_rung236_j5 : RoverLadderRung2Guarded.Verd 2 2 = packVerd (packsV2.getD 175 default) :=
+  pin_row _ rfl irV2_rung236 cutV2_rung236 (by simp [packLam, packsV2])
+
+theorem irV2_s2a : irV2 "story2_lateral_rung_a_8dof" = story2_lateral_rung_a_8dof_IRv2 := by decide
+theorem cutV2_s2a : cutV2 "story2_lateral_rung_a_8dof" = Oracle.story2_lateral_rung_a_8dof_cutsV2X := by decide
+theorem pin_s2a_j0 : Story2LateralAGuarded.Verd 0 0 = packVerd (packsV2.getD 176 default) :=
+  pin_row _ rfl irV2_s2a cutV2_s2a (by simp [packLam, packsV2])
+theorem pin_s2a_j1 : Story2LateralAGuarded.Verd 0 1 = packVerd (packsV2.getD 177 default) :=
+  pin_row _ rfl irV2_s2a cutV2_s2a (by simp [packLam, packsV2])
+theorem pin_s2a_j2 : Story2LateralAGuarded.Verd 0 2 = packVerd (packsV2.getD 178 default) :=
+  pin_row _ rfl irV2_s2a cutV2_s2a (by simp [packLam, packsV2])
+theorem pin_s2a_j3 : Story2LateralAGuarded.Verd 1 1 = packVerd (packsV2.getD 179 default) :=
+  pin_row _ rfl irV2_s2a cutV2_s2a (by simp [packLam, packsV2])
+theorem pin_s2a_j4 : Story2LateralAGuarded.Verd 1 2 = packVerd (packsV2.getD 180 default) :=
+  pin_row _ rfl irV2_s2a cutV2_s2a (by simp [packLam, packsV2])
+theorem pin_s2a_j5 : Story2LateralAGuarded.Verd 2 2 = packVerd (packsV2.getD 181 default) :=
+  pin_row _ rfl irV2_s2a cutV2_s2a (by simp [packLam, packsV2])
+
+theorem irV2_s2b : irV2 "story2_lateral_rung_b_12dof" = story2_lateral_rung_b_12dof_IRv2 := by decide
+theorem cutV2_s2b : cutV2 "story2_lateral_rung_b_12dof" = Oracle.story2_lateral_rung_b_12dof_cutsV2X := by decide
+theorem pin_s2b_j0 : Story2LateralBGuarded.Verd 0 0 = packVerd (packsV2.getD 182 default) :=
+  pin_row _ rfl irV2_s2b cutV2_s2b (by simp [packLam, packsV2])
+theorem pin_s2b_j1 : Story2LateralBGuarded.Verd 0 1 = packVerd (packsV2.getD 183 default) :=
+  pin_row _ rfl irV2_s2b cutV2_s2b (by simp [packLam, packsV2])
+theorem pin_s2b_j2 : Story2LateralBGuarded.Verd 0 2 = packVerd (packsV2.getD 184 default) :=
+  pin_row _ rfl irV2_s2b cutV2_s2b (by simp [packLam, packsV2])
+theorem pin_s2b_j3 : Story2LateralBGuarded.Verd 1 1 = packVerd (packsV2.getD 185 default) :=
+  pin_row _ rfl irV2_s2b cutV2_s2b (by simp [packLam, packsV2])
+theorem pin_s2b_j4 : Story2LateralBGuarded.Verd 1 2 = packVerd (packsV2.getD 186 default) :=
+  pin_row _ rfl irV2_s2b cutV2_s2b (by simp [packLam, packsV2])
+theorem pin_s2b_j5 : Story2LateralBGuarded.Verd 2 2 = packVerd (packsV2.getD 187 default) :=
+  pin_row _ rfl irV2_s2b cutV2_s2b (by simp [packLam, packsV2])
 
 end RelCertifier.VerdictsV2

@@ -94,6 +94,8 @@ import RelCertifier.Proofs.Encoding.ReplayDyn
 import RelCertifier.Proofs.Encoding.ReplayEngine
 import RelCertifier.Proofs.Encoding.LadderReplay
 import RelCertifier.Proofs.Encoding.ReplayBridge
+import RelCertifier.Proofs.Encoding.ReplayComps
+import RelCertifier.Proofs.Encoding.ReplayModeKeyed
 import RelCertifier.Proofs.Encoding.SinkExtension
 import RelCertifier.Proofs.Encoding.SplitCoupling
 import RelCertifier.Proofs.Encoding.ToolLevel

@@ -278,10 +278,20 @@ def packsV2 : List PackV2 :=
     ⟨"story2_lateral_rung_b_12dof", 12, 0, [0, 1, 2, 4, 5, 6, 7, 3], 1, 1, 0, 2⟩,
     ⟨"story2_lateral_rung_b_12dof", 12, 0, [0, 1, 2, 4, 5, 6, 7, 3], 1, 1, 1, 1⟩,
     ⟨"story2_lateral_rung_b_12dof", 12, 0, [0, 1, 2, 4, 5, 6, 7, 3], 1, 1, 1, 2⟩,
-    ⟨"story2_lateral_rung_b_12dof", 12, 0, [0, 1, 2, 4, 5, 6, 7, 3], 1, 1, 2, 2⟩ ]
+    ⟨"story2_lateral_rung_b_12dof", 12, 0, [0, 1, 2, 4, 5, 6, 7, 3], 1, 1, 2, 2⟩,
+    -- story1_attdist_rung_a_6to8 (cover replay)
+    ⟨"story1_attdist_rung_a_6to8", 8, 0, [0, 1, 2], 1, 1, 0, 0⟩,
+    ⟨"story1_attdist_rung_a_6to8", 8, 0, [0, 1, 2], 1, 1, 0, 1⟩,
+    ⟨"story1_attdist_rung_a_6to8", 8, 0, [0, 1, 2], 1, 1, 0, 2⟩,
+    ⟨"story1_attdist_rung_a_6to8", 8, 1, [0, 1], 1, 1, 1, 0⟩,
+    ⟨"story1_attdist_rung_a_6to8", 8, 1, [0, 1], 1, 1, 1, 1⟩,
+    ⟨"story1_attdist_rung_a_6to8", 8, 1, [0, 1], 1, 1, 1, 2⟩,
+    ⟨"story1_attdist_rung_a_6to8", 8, 2, [0, 1], 1, 1, 2, 0⟩,
+    ⟨"story1_attdist_rung_a_6to8", 8, 2, [0, 1], 1, 1, 2, 1⟩,
+    ⟨"story1_attdist_rung_a_6to8", 8, 2, [0, 1], 1, 1, 2, 2⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 532
+def expectedModalV2 : Nat := 553
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do

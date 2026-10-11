@@ -632,13 +632,13 @@ theorem hgrdLA : ∀ g ∈ (List.range 3).map (fun l => hostGuard vsB 12 Side.L 
 the right in its current mode's guard and cuts. From `story3_rollover_base_guarded` by the generic bridge
 `theorem3_leftAut_of_choiceR`. -/
 theorem story3_rollover_base_leftAut (dt : ℝ) (hdt : 0 ≤ dt)
-    (hv00 : VerdB 0 0) (hv01 : VerdB 0 1) (hv02 : VerdB 0 2)
-    (hv11 : VerdB 1 1) (hv12 : VerdB 1 2) (hv22 : VerdB 2 2) :
+    (h00 : Verd 0 0) (h01 : Verd 0 1) (h02 : Verd 0 2) (h11 : Verd 1 1) (h12 : Verd 1 2)
+    (h22 : Verd 2 2) (d10 : VerdD 1 0) (d21 : VerdD 2 1) :
     RFormula.rvalid (theorem3Form (leftAutomatonBody (AL dt) uLA) (rightAutomatonBody GrG mvB)
       (psiK uLA (fun _ => canonInvM gB gsB) (AL dt).numModes domLB domRB
         (mvRegionR mvB gregion GrG.modes.length))) :=
   theorem3_leftAut_of_choiceR (AL dt) 0 1 2 (by decide) _ _ _ domLB domRB gregion _
-    (story3_rollover_base_guarded dt hdt hv00 hv01 hv02 hv11 hv12 hv22)
+    (story3_rollover_base_guarded dt hdt h00 h01 h02 h11 h12 h22 d10 d21)
     (fun q _ => gregion_fv q)
       (canonInvM_varsL gB gsB (by
         intro g' hg'
@@ -647,7 +647,7 @@ theorem story3_rollover_base_leftAut (dt : ℝ) (hdt : 0 ≤ dt)
       (canonInvM_varsR gB gsB) hdomLB hdomRB
     (LeftAut.ofGI_vars leftDataB _ 1 dt nextLA hLB hgrdLA).1 (fun t _ => (LeftAut.ofGI_vars leftDataB _ 1 dt nextLA hLB hgrdLA).2 t)
     (LeftAut.ofGI_hnext leftDataB _ tgB dt nextLA 3 rfl (by rw [nextLA_eq]; decide))
-    (LeftAut.ofGI_hsim leftDataB _ tgB dt nextLA)
+    (ofGI_hsim_gated leftDataB _ tgB dt nextLA rfl (by intro d hd; simp only [leftDataB, List.mem_cons, List.not_mem_nil, or_false] at hd; rcases hd with rfl | rfl | rfl <;> rfl))
 
 end Story3RolloverBaseGuarded
 
@@ -685,13 +685,13 @@ theorem hgrdLA : ∀ g ∈ (List.range 3).map (fun l => hostGuard vsA 12 Side.L 
 the right in its current mode's guard and cuts. From `story3_rollover_rung_a_guarded` by the generic bridge
 `theorem3_leftAut_of_choiceR`. -/
 theorem story3_rollover_rung_a_leftAut (dt : ℝ) (hdt : 0 ≤ dt)
-    (hv00 : VerdA 0 0) (hv01 : VerdA 0 1) (hv02 : VerdA 0 2)
-    (hv11 : VerdA 1 1) (hv12 : VerdA 1 2) (hv22 : VerdA 2 2) :
+    (h00 : Verd 0 0) (h01 : Verd 0 1) (h02 : Verd 0 2) (h11 : Verd 1 1) (h12 : Verd 1 2)
+    (h22 : Verd 2 2) (d10 : VerdD 1 0) (d21 : VerdD 2 1) :
     RFormula.rvalid (theorem3Form (leftAutomatonBody (AL dt) uLA) (rightAutomatonBody GrG mvA)
       (psiK uLA (fun _ => canonInvM gA gsA) (AL dt).numModes domLA domRA
         (mvRegionR mvA gregion GrG.modes.length))) :=
   theorem3_leftAut_of_choiceR (AL dt) 0 1 2 (by decide) _ _ _ domLA domRA gregion _
-    (story3_rollover_rung_a_guarded dt hdt hv00 hv01 hv02 hv11 hv12 hv22)
+    (story3_rollover_rung_a_guarded dt hdt h00 h01 h02 h11 h12 h22 d10 d21)
     (fun q _ => gregion_fv q)
       (canonInvM_varsL gA gsA (by
         intro g' hg'
@@ -700,7 +700,7 @@ theorem story3_rollover_rung_a_leftAut (dt : ℝ) (hdt : 0 ≤ dt)
       (canonInvM_varsR gA gsA) hdomLA hdomRA
     (LeftAut.ofGI_vars leftDataA _ 1 dt nextLA hLA hgrdLA).1 (fun t _ => (LeftAut.ofGI_vars leftDataA _ 1 dt nextLA hLA hgrdLA).2 t)
     (LeftAut.ofGI_hnext leftDataA _ tgA dt nextLA 3 rfl (by rw [nextLA_eq]; decide))
-    (LeftAut.ofGI_hsim leftDataA _ tgA dt nextLA)
+    (ofGI_hsim_gated leftDataA _ tgA dt nextLA rfl (by intro d hd; simp only [leftDataA, List.mem_cons, List.not_mem_nil, or_false] at hd; rcases hd with rfl | rfl | rfl <;> rfl))
 
 end Story3RolloverRungAGuarded
 

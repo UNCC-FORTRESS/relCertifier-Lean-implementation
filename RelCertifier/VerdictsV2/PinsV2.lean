@@ -13,6 +13,8 @@ so a wrong row does not compile; with `modalVerdX_of_queries` (the rebuild denot
 kernel-checked.
 -/
 import RelCertifier.VerdictsV2.RunV2
+import RelCertifier.Instances.Story3RolloverRungAGuarded
+import RelCertifier.Instances.Story3RolloverBaseGuarded
 import RelCertifier.Instances.RoverLadderRung4Guarded
 import RelCertifier.Instances.RoverLadderRung3Guarded
 import RelCertifier.Instances.RoverLadderRung1Guarded
@@ -43,6 +45,8 @@ import RelCertifier.InstancesV2.Modal.AccSpoofLimp
 import RelCertifier.InstancesV2.Modal.Watertank
 import RelCertifier.InstancesV2.Modal.PlatoonDelayProfiles
 import RelCertifier.Instances.RoverDofTerrainRung1Guarded
+
+set_option maxRecDepth 100000
 
 namespace RelCertifier.VerdictsV2
 
@@ -481,5 +485,43 @@ theorem pin_rung4_d0 : RoverLadderRung4Guarded.VerdD 1 0 = dynPackVerd (dynPacks
   pin_dyn_row _ rfl irV2_rung4 cutV2_rung4
 theorem pin_rung4_d1 : RoverLadderRung4Guarded.VerdD 2 1 = dynPackVerd (dynPacksV2.getD 13 default) :=
   pin_dyn_row _ rfl irV2_rung4 cutV2_rung4
+
+theorem irV2_s3base : irV2 "story3_rollover_base_12dof" = story3_rollover_base_12dof_IRv2 := by decide
+theorem cutV2_s3base : cutV2 "story3_rollover_base_12dof" = Oracle.story3_rollover_base_12dof_cutsV2X := by decide
+theorem pin_s3base_j0 : Story3RolloverBaseGuarded.Verd 0 0 = packVerd (packsV2.getD 146 default) :=
+  pin_row _ rfl irV2_s3base cutV2_s3base (by simp [packLam, packsV2])
+theorem pin_s3base_j1 : Story3RolloverBaseGuarded.Verd 0 1 = packVerd (packsV2.getD 147 default) :=
+  pin_row _ rfl irV2_s3base cutV2_s3base (by simp [packLam, packsV2])
+theorem pin_s3base_j2 : Story3RolloverBaseGuarded.Verd 0 2 = packVerd (packsV2.getD 148 default) :=
+  pin_row _ rfl irV2_s3base cutV2_s3base (by simp [packLam, packsV2])
+theorem pin_s3base_j3 : Story3RolloverBaseGuarded.Verd 1 1 = packVerd (packsV2.getD 149 default) :=
+  pin_row _ rfl irV2_s3base cutV2_s3base (by simp [packLam, packsV2])
+theorem pin_s3base_j4 : Story3RolloverBaseGuarded.Verd 1 2 = packVerd (packsV2.getD 150 default) :=
+  pin_row _ rfl irV2_s3base cutV2_s3base (by simp [packLam, packsV2])
+theorem pin_s3base_j5 : Story3RolloverBaseGuarded.Verd 2 2 = packVerd (packsV2.getD 151 default) :=
+  pin_row _ rfl irV2_s3base cutV2_s3base (by simp [packLam, packsV2])
+theorem pin_s3base_d0 : Story3RolloverBaseGuarded.VerdD 1 0 = dynPackVerd (dynPacksV2.getD 14 default) :=
+  pin_dyn_row _ rfl irV2_s3base cutV2_s3base
+theorem pin_s3base_d1 : Story3RolloverBaseGuarded.VerdD 2 1 = dynPackVerd (dynPacksV2.getD 15 default) :=
+  pin_dyn_row _ rfl irV2_s3base cutV2_s3base
+
+theorem irV2_s3a : irV2 "story3_rollover_ladder_rung_a" = story3_rollover_ladder_rung_a_IRv2 := by decide
+theorem cutV2_s3a : cutV2 "story3_rollover_ladder_rung_a" = Oracle.story3_rollover_ladder_rung_a_cutsV2X := by decide
+theorem pin_s3a_j0 : Story3RolloverRungAGuarded.Verd 0 0 = packVerd (packsV2.getD 152 default) :=
+  pin_row _ rfl irV2_s3a cutV2_s3a (by simp [packLam, packsV2])
+theorem pin_s3a_j1 : Story3RolloverRungAGuarded.Verd 0 1 = packVerd (packsV2.getD 153 default) :=
+  pin_row _ rfl irV2_s3a cutV2_s3a (by simp [packLam, packsV2])
+theorem pin_s3a_j2 : Story3RolloverRungAGuarded.Verd 0 2 = packVerd (packsV2.getD 154 default) :=
+  pin_row _ rfl irV2_s3a cutV2_s3a (by simp [packLam, packsV2])
+theorem pin_s3a_j3 : Story3RolloverRungAGuarded.Verd 1 1 = packVerd (packsV2.getD 155 default) :=
+  pin_row _ rfl irV2_s3a cutV2_s3a (by simp [packLam, packsV2])
+theorem pin_s3a_j4 : Story3RolloverRungAGuarded.Verd 1 2 = packVerd (packsV2.getD 156 default) :=
+  pin_row _ rfl irV2_s3a cutV2_s3a (by simp [packLam, packsV2])
+theorem pin_s3a_j5 : Story3RolloverRungAGuarded.Verd 2 2 = packVerd (packsV2.getD 157 default) :=
+  pin_row _ rfl irV2_s3a cutV2_s3a (by simp [packLam, packsV2])
+theorem pin_s3a_d0 : Story3RolloverRungAGuarded.VerdD 1 0 = dynPackVerd (dynPacksV2.getD 16 default) :=
+  pin_dyn_row _ rfl irV2_s3a cutV2_s3a
+theorem pin_s3a_d1 : Story3RolloverRungAGuarded.VerdD 2 1 = dynPackVerd (dynPacksV2.getD 17 default) :=
+  pin_dyn_row _ rfl irV2_s3a cutV2_s3a
 
 end RelCertifier.VerdictsV2

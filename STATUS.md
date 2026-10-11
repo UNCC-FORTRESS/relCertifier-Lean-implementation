@@ -1,4 +1,4 @@
-# Status (2026-10-10, branch `wellformed-models`)
+# Status (2026-10-10, branch `replay`)
 
 **The artifact.** `benchmarks/suite_v2` (45 benchmarks), the tool `relcert`, the generic
 soundness development (`RelCertifier/Core`, `Checker`, `Proofs`, `Trusted`) and the suite_v2
@@ -15,7 +15,11 @@ cuts q` of the right's current mode (`docs/GUARDED-SWITCHING.md` §3.1, §3.3). 
 for every window length, `refinement_ladder_rover_rung2c_6dof` for every window up to its
 control interval (`dt ≤ ε_L = 1`); every switch on both sides kernel-checked legal. 12
 mode-keyed, 33 mode-independent (carried to the left automaton by the generic bridge
-`theorem3_leftAut_of_choice`, proved once); 16 Z3-free; 6 stated on the conserved-momentum
+`theorem3_leftAut_of_choice`, proved once); **every one of the 45 proofs replays the cover the
+tool emits** (`docs/REPLAY.md`: joint segments at `jointOK` nodes at the cover's stretch, each
+preserved by its pack; right-only repositions at `dynPre` nodes, each preserved by its
+reposition pack; legal switches along retained edges; inadmissible starts contradictory), so
+none is Z3-free (was 16; 234 joint + 41 reposition pack hypotheses); 6 stated on the conserved-momentum
 nonblocking region. No theorem carries a nonblocking (Assumption 1) hypothesis; no new
 axiom; the declared rows unchanged. Plus the Theorem 2 instance of `match_multi_rate`'s
 pruned edge. Axioms of every battery theorem ⊆ `{propext, Classical.choice, Quot.sound,
@@ -52,19 +56,19 @@ sufficient check (`relcert --wellformed`) reports 146 right modes: 83 ok (invari
 certifies in the strict mode and fails on any `UNKNOWN` against the declared 146 modes.
 
 **Discharged.** Every Z3 hypothesis is re-sent by `relcert --run-verdicts-v2` against
-declared counts (modal 262, handoff 186, non-connection 88 over 44 pruned edges, legacy
-packs 385), each query pinned in the kernel to the hypothesis it discharges. The runner's
-tables are unchanged in shape (the platoon3 packs re-run on the repaired model); the 45
-statements take 132 packs where the theorems before this branch took 194 (`rung1`,
-`rung3_6to8`, `rung4_8to12`, the four `rover_dof_terrain` rungs, `rover_patrol_zones`,
-`rover_patrol_refine` became Z3-free); those packs are still re-sent because the choice-form
-and relaxation theorems that stay in the tree take them.
+declared counts (modal 621, handoff 186, non-connection 88 over 44 pruned edges, legacy
+packs 385, reposition 81), each query pinned in the kernel to the hypothesis it discharges.
+On branch `replay` every proof was made to replay the emitted cover (`docs/REPLAY.md`): the 45
+statements take 234 joint packs (every row of `RunV2.packsV2`, was 104 rows) and 41 reposition
+packs (the new table `RunV2.dynPacksV2` and runner phase); 132 pack hypotheses before. No
+headline statement takes a legacy pack any more; the legacy phase re-sends the packs of the
+choice-form and relaxation theorems that stay in the tree.
 
 **Assumed.** The trust base: parser, lowering (including the right guards placed on the
 edges), SMT printer, Z3's `unsat`, the Lean kernel. Guard-gated switching is no longer
 assumed (both sides) (`README.md`, "Trust base").
 
-**Last verified run.** 2026-10-10, branch `wellformed-models`, Apple M2 Max (12 cores, 64 GB), Z3 4.15.1. `lake build`: `Build completed successfully (9005 jobs)`, no `sorry`; `lake build relcert relcert-test`: 17725 jobs. Axiom audit: BatteryV2 71 lines, 31 with `z3_unsat_sound`, 40 at the three standard axioms; WellFormedBattery 76 lines, all at the three standard axioms; nothing else. `--check-quick-v2`: 45 certified / 0 declined / 0 errors (strict well-formedness mode), modal 262/262, handoff 186/186, non-connection 88/88, pruned edges 44/44, copied benchmarks 385/385, `[wellformed] STRICT: 146/146 right modes ok (83 invariant, 63 exit), 0 UNKNOWN — matches the declared suite`, `SUITE_V2 QUICK CHECKS PASSED`. `--run-verdicts-v2`: the same counts, `ALL suite_v2 HYPOTHESES DISCHARGED`. `relcert-test` with the suite_v2 manifest: 45 IR literals match, bare `ALL PASS`. Repair-pass regression: `--emit-ir/--emit-cover/--emit-cuts` of the 36 untouched files byte-identical (stdout and stderr, 108 outputs) against the binary of `5dd8798`.
+**Last verified run.** 2026-10-10, branch `replay`, Apple M2 Max (12 cores, 64 GB), Z3 4.15.1. `lake build`: `Build completed successfully (9014 jobs)`, no `sorry`; `lake build relcert relcert-test`: 17737 jobs. Axiom audit: BatteryV2 71 lines, 47 with `z3_unsat_sound` (the 45 Theorem 3s, `match_multi_rate_nonconn`, `couple_cutX`), 24 at the three standard axioms; WellFormedBattery 76 lines, all at the three standard axioms; nothing else. `--check-quick-v2`: 45 certified / 0 declined / 0 errors (strict well-formedness mode), modal 621/621, handoff 186/186, non-connection 88/88, pruned edges 44/44, copied benchmarks 385/385, reposition (dyn) 81/81, `[wellformed] STRICT: 146/146 right modes ok (83 invariant, 63 exit), 0 UNKNOWN — matches the declared suite`, `SUITE_V2 QUICK CHECKS PASSED`. `--run-verdicts-v2`: the same counts, `ALL suite_v2 HYPOTHESES DISCHARGED`. `relcert-test` with the suite_v2 manifest: 45 IR literals match, bare `ALL PASS`.
 
 **Open (other).**
 

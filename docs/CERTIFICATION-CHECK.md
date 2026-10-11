@@ -4,7 +4,7 @@ This is the reproduction recipe: starting from the benchmark files, what to run,
 you should see, to confirm that every suite_v2 benchmark carries a machine-checked
 Theorem 3 whose hypotheses all hold. Read `README.md` first for what the theorems say.
 
-> **Last run:** 2026-10-10, branch `wellformed-models`, Apple M2 Max (12 cores, 64 GB), Z3 4.15.1. `lake build`: `Build completed successfully (9005 jobs)`, no `sorry`; `lake build relcert relcert-test`: 17725 jobs. Axiom audit: 71 lines, 31 with `z3_unsat_sound`, 40 at the three standard axioms, nothing else; Assumption 1 battery: 76 lines, all at the three standard axioms. `--check-quick-v2`: 45 certified / 0 declined / 0 errors (strict well-formedness mode), modal 262/262, handoff 186/186, non-connection 88/88, pruned edges 44/44, copied benchmarks 385/385, `[wellformed] STRICT: 146/146 right modes ok (83 invariant, 63 exit), 0 UNKNOWN`, `SUITE_V2 QUICK CHECKS PASSED`. `--run-verdicts-v2`: the same counts, `ALL suite_v2 HYPOTHESES DISCHARGED`. `relcert-test` with the suite_v2 manifest: 45 IR literals match, bare `ALL PASS`.
+> **Last run:** 2026-10-10, branch `replay`, Apple M2 Max (12 cores, 64 GB), Z3 4.15.1. `lake build`: `Build completed successfully (9014 jobs)`, no `sorry`; `lake build relcert relcert-test`: 17737 jobs. Axiom audit: BatteryV2 71 lines, 47 with `z3_unsat_sound` (the 45 Theorem 3s, `match_multi_rate_nonconn`, `couple_cutX`), 24 at the three standard axioms; WellFormedBattery 76 lines, all at the three standard axioms; nothing else. `--check-quick-v2`: 45 certified / 0 declined / 0 errors (strict well-formedness mode), modal 621/621, handoff 186/186, non-connection 88/88, pruned edges 44/44, copied benchmarks 385/385, reposition (dyn) 81/81, `[wellformed] STRICT: 146/146 right modes ok (83 invariant, 63 exit), 0 UNKNOWN — matches the declared suite`, `SUITE_V2 QUICK CHECKS PASSED`. `--run-verdicts-v2`: the same counts, `ALL suite_v2 HYPOTHESES DISCHARGED`. `relcert-test` with the suite_v2 manifest: 45 IR literals match, bare `ALL PASS`.
 
 ---
 
@@ -101,14 +101,11 @@ Use `-A3`: a four-axiom list prints over four lines. Expected: 71 lines, in the 
 `BatteryV2`: (1) the 45 Theorem 3s with the paper's left program over the guarded automata at
 the mode-consistent region (`rung2c` for `dt ≤ ε_L = 1`, the `platoon3` pair on the repaired
 model); `match_multi_rate_nonconn`; and 25 generic lemmas. Every list is a subset of
-`[propext, Classical.choice, Quot.sound, z3_unsat_sound]`; 31 carry `z3_unsat_sound` (29 of
-the 45, `couple_cutX`, `match_multi_rate_nonconn`); 40 are at the three standard axioms alone:
-the 16 Z3-free theorems (`arm_plateau_{crit,profiles,slow}_leftAut`,
-`rover3tier_rung12_modeKeyed_guarded`, `match_multi_rate_leftAut`,
-`rover_patrol_{zones,refine}_guarded`, `rover_ladder_rung1_leftAut`,
-`rover_ladder_rung3_6to8_leftAut`, `rover_ladder_rung4_8to12_leftAut`,
-`rover_dof_terrain_rung{1,2,3,3_8d}_leftAut`, `rung2{,b}_6dof_leftAut`) and 24 generic lemmas
-(all but `couple_cutX`).
+`[propext, Classical.choice, Quot.sound, z3_unsat_sound]`; 47 carry `z3_unsat_sound` (all 45
+Theorem 3s, `couple_cutX`, `match_multi_rate_nonconn`); 24 are at the three standard axioms
+alone (24 generic lemmas: all but `couple_cutX`). Since branch `replay` no Theorem 3 is
+Z3-free: every proof replays the emitted cover, every flow fact a pack (`docs/REPLAY.md`);
+until then 16 were.
 No `sorryAx`, no other axiom.
 The generic theorems' audit is `Instances/AxiomCheck.lean`, re-emitted by `lake build`.
 
@@ -126,11 +123,12 @@ gated. Expected tail:
 
 ```
   [suite_v2] 45 certified, 0 declined, 0 error(s) — matches the declared suite
-  [coverage] suite_v2 modal: 262/262 hypotheses discharged
+  [coverage] suite_v2 modal: 621/621 hypotheses discharged
   [coverage] suite_v2 handoff: 186/186 hypotheses discharged
   [coverage] suite_v2 non-connection: 88/88 hypotheses discharged
   [coverage] suite_v2 pruned edges: 44/44 hypotheses discharged
   [coverage] suite_v2 copied benchmarks (legacy packs): 385/385 hypotheses discharged
+  [coverage] suite_v2 reposition (dyn): 81/81 hypotheses discharged
   [wellformed] summary: 45 benchmark(s), 146 right mode(s): 83 ok (invariant), 63 ok (exit), 0 UNKNOWN (0 benchmark(s) with an UNKNOWN mode); 2279 queries
   [wellformed] STRICT: 146/146 right modes ok (83 invariant, 63 exit), 0 UNKNOWN — matches the declared suite (146 modes, 0 UNKNOWN)
 

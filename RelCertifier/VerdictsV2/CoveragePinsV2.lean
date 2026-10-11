@@ -71,12 +71,12 @@ def derivedSameModalV2 : ℕ :=
 
 theorem derivedSameModalV2_eq : derivedSameModalV2 = expectedSameModalV2 := by decide
 
+set_option maxRecDepth 100000 in
 /-- **Every pack queries the window's own row.** For every joint pack and every reposition
 pack, the invariant row the runner quotes (`invRow`) is the row the tool reads for the
 window's left mode, by name (`Handoff.invRowOf`, the same lookup as `certifyWithData`). Several
 replays quote row 0 for every window of a benchmark whose rows are syntactically equal; this
 pins that choice to the tool's lookup. -/
-set_option maxRecDepth 100000 in
 theorem packsV2_rowOfWindow :
     packsV2.all (fun r => decide (Handoff.invRowOf (irV2 r.bench)
       ((irV2 r.bench).L.modes.getD r.l ⟨"", [], .tt, .tt, []⟩)

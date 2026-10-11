@@ -58,14 +58,14 @@ def packQueries (r : PackV2) : Option (List (List (IForm r.dim))) :=
 noncomputable def packVerd (r : PackV2) : Prop :=
   modalVerdX (irV2 r.bench) (cutV2 r.bench) r.dim r.invRow r.order ((packLam r : ℚ) : ℝ) r.l r.m
 
-/-- The packs. Watertank: eleven (window, right mode) pairs, order `[0, 1]`. -/
+/-- The packs. Watertank: the seven admissible jointOK (window, right mode) pairs the replay
+consumes, order `[0, 1]`. -/
 def packsV2 : List PackV2 :=
   [ ⟨"watertank", 2, 0, [0, 1], 2, 1, 0, 0⟩, ⟨"watertank", 2, 0, [0, 1], 2, 1, 0, 1⟩,
-    ⟨"watertank", 2, 0, [0, 1], 2, 1, 0, 2⟩, ⟨"watertank", 2, 0, [0, 1], 2, 1, 0, 3⟩,
+    ⟨"watertank", 2, 0, [0, 1], 2, 1, 0, 2⟩,
     ⟨"watertank", 2, 0, [0, 1], 2, 1, 1, 1⟩, ⟨"watertank", 2, 0, [0, 1], 2, 1, 1, 2⟩,
     ⟨"watertank", 2, 0, [0, 1], 2, 1, 1, 3⟩,
-    ⟨"watertank", 2, 0, [0, 1], 1, 1, 2, 0⟩, ⟨"watertank", 2, 0, [0, 1], 1, 1, 2, 1⟩,
-    ⟨"watertank", 2, 0, [0, 1], 1, 1, 2, 2⟩, ⟨"watertank", 2, 0, [0, 1], 1, 1, 2, 3⟩,
+    ⟨"watertank", 2, 0, [0, 1], 1, 1, 2, 3⟩,
     -- platoon_delay_profiles: two windows (rows 0, 1), right FOLLOW/GENTLE/ASSERTIVE, λ = 1
     ⟨"platoon_delay_profiles", 2, 0, [0, 1], 1, 1, 0, 0⟩,
     ⟨"platoon_delay_profiles", 2, 0, [0, 1], 1, 1, 0, 1⟩,
@@ -339,7 +339,7 @@ def packsV2 : List PackV2 :=
     ⟨"arm_plateau_slow", 2, 1, [0], 1, 1, 1, 3⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 629
+def expectedModalV2 : Nat := 621
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do

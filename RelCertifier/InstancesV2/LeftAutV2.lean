@@ -504,14 +504,13 @@ theorem AL_numModes (dt : ℝ) : (AL dt).numModes = 3 := rfl
 the right in its current mode's guard and cuts. From `watertank_modal` by the generic bridge
 `theorem3_leftAut_of_choiceR`. -/
 theorem watertank_leftAut (dt : ℝ)
-    (h00 : Verd 0 0) (h01 : Verd 0 1) (h02 : Verd 0 2) (h03 : Verd 0 3)
-    (h11 : Verd 1 1) (h12 : Verd 1 2) (h13 : Verd 1 3)
-    (h20 : Verd 2 0) (h21 : Verd 2 1) (h22 : Verd 2 2) (h23 : Verd 2 3) :
+    (h00 : Verd 0 0) (h01 : Verd 0 1) (h02 : Verd 0 2)
+    (h11 : Verd 1 1) (h12 : Verd 1 2) (h13 : Verd 1 3) (h23 : Verd 2 3) :
     RFormula.rvalid (theorem3Form (leftAutomatonBody (AL dt) uLA) (rightAutomatonBody Gr mv)
       (psiK uLA (fun _ => canonInvM g gs) (AL dt).numModes domL domR
         (mvRegionR mv gregion Gr.modes.length))) :=
   theorem3_leftAut_of_choiceR (AL dt) 0 1 0 (by decide) _ _ _ domL domR gregion _
-    (watertank_modal dt h00 h01 h02 h03 h11 h12 h13 h20 h21 h22 h23)
+    (watertank_modal dt h00 h01 h02 h11 h12 h13 h23)
     (fun q hq => gregion_fv q hq)
       (canonInvM_varsL g gs comps_fv) (canonInvM_varsR g gs) hdomL hdomR
     (LeftAut.ofG_vars leftData 1 dt nextLA hL).1 (LeftAut.ofG_vars leftData 1 dt nextLA hL).2

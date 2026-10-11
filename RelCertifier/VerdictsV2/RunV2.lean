@@ -320,10 +320,21 @@ def packsV2 : List PackV2 :=
     ⟨"arm_plateau_crit", 2, 0, [0], 1, 1, 0, 3⟩,
     ⟨"arm_plateau_crit", 2, 1, [0], 1, 1, 1, 1⟩,
     ⟨"arm_plateau_crit", 2, 1, [0], 1, 1, 1, 2⟩,
-    ⟨"arm_plateau_crit", 2, 1, [0], 1, 1, 1, 3⟩ ]
+    ⟨"arm_plateau_crit", 2, 1, [0], 1, 1, 1, 3⟩,
+    -- arm_plateau_profiles (cover replay)
+    ⟨"arm_plateau_profiles", 2, 0, [0], 1, 1, 0, 0⟩,
+    ⟨"arm_plateau_profiles", 2, 0, [0], 1, 1, 0, 1⟩,
+    ⟨"arm_plateau_profiles", 2, 0, [0], 1, 1, 0, 2⟩,
+    ⟨"arm_plateau_profiles", 2, 0, [0], 1, 1, 0, 3⟩,
+    ⟨"arm_plateau_profiles", 2, 0, [0], 1, 1, 0, 4⟩,
+    ⟨"arm_plateau_profiles", 2, 1, [0], 1, 1, 1, 0⟩,
+    ⟨"arm_plateau_profiles", 2, 1, [0], 1, 1, 1, 1⟩,
+    ⟨"arm_plateau_profiles", 2, 1, [0], 1, 1, 1, 2⟩,
+    ⟨"arm_plateau_profiles", 2, 1, [0], 1, 1, 1, 3⟩,
+    ⟨"arm_plateau_profiles", 2, 1, [0], 1, 1, 1, 4⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 615
+def expectedModalV2 : Nat := 625
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do

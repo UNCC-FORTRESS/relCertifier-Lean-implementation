@@ -13,6 +13,7 @@ so a wrong row does not compile; with `modalVerdX_of_queries` (the rebuild denot
 kernel-checked.
 -/
 import RelCertifier.VerdictsV2.RunV2
+import RelCertifier.InstancesV2.Modal.ArmPlateauProfiles
 import RelCertifier.InstancesV2.Modal.ArmPlateauCrit
 import RelCertifier.Instances.MatchMultiRateGuarded
 import RelCertifier.Instances.Rover3tierRung12Guarded
@@ -713,5 +714,28 @@ theorem pin_armc_j6 : V2ArmPlateauCrit.Verd 1 3 = packVerd (packsV2.getD 223 def
   pin_row _ rfl irV2_armc cutV2_armc (by simp [packLam, packsV2])
 theorem pin_armc_d0 : V2ArmPlateauCrit.VerdD 1 0 = dynPackVerd (dynPacksV2.getD 24 default) :=
   pin_dyn_row _ rfl irV2_armc cutV2_armc
+
+theorem irV2_armp : irV2 "arm_plateau_profiles" = arm_plateau_profiles_IRv2 := by decide
+theorem cutV2_armp : cutV2 "arm_plateau_profiles" = Oracle.arm_plateau_profiles_cutsV2X := by decide
+theorem pin_armp_j0 : V2ArmPlateauProfiles.Verd 0 0 = packVerd (packsV2.getD 224 default) :=
+  pin_row _ rfl irV2_armp cutV2_armp (by simp [packLam, packsV2])
+theorem pin_armp_j1 : V2ArmPlateauProfiles.Verd 0 1 = packVerd (packsV2.getD 225 default) :=
+  pin_row _ rfl irV2_armp cutV2_armp (by simp [packLam, packsV2])
+theorem pin_armp_j2 : V2ArmPlateauProfiles.Verd 0 2 = packVerd (packsV2.getD 226 default) :=
+  pin_row _ rfl irV2_armp cutV2_armp (by simp [packLam, packsV2])
+theorem pin_armp_j3 : V2ArmPlateauProfiles.Verd 0 3 = packVerd (packsV2.getD 227 default) :=
+  pin_row _ rfl irV2_armp cutV2_armp (by simp [packLam, packsV2])
+theorem pin_armp_j4 : V2ArmPlateauProfiles.Verd 0 4 = packVerd (packsV2.getD 228 default) :=
+  pin_row _ rfl irV2_armp cutV2_armp (by simp [packLam, packsV2])
+theorem pin_armp_j5 : V2ArmPlateauProfiles.Verd 1 0 = packVerd (packsV2.getD 229 default) :=
+  pin_row _ rfl irV2_armp cutV2_armp (by simp [packLam, packsV2])
+theorem pin_armp_j6 : V2ArmPlateauProfiles.Verd 1 1 = packVerd (packsV2.getD 230 default) :=
+  pin_row _ rfl irV2_armp cutV2_armp (by simp [packLam, packsV2])
+theorem pin_armp_j7 : V2ArmPlateauProfiles.Verd 1 2 = packVerd (packsV2.getD 231 default) :=
+  pin_row _ rfl irV2_armp cutV2_armp (by simp [packLam, packsV2])
+theorem pin_armp_j8 : V2ArmPlateauProfiles.Verd 1 3 = packVerd (packsV2.getD 232 default) :=
+  pin_row _ rfl irV2_armp cutV2_armp (by simp [packLam, packsV2])
+theorem pin_armp_j9 : V2ArmPlateauProfiles.Verd 1 4 = packVerd (packsV2.getD 233 default) :=
+  pin_row _ rfl irV2_armp cutV2_armp (by simp [packLam, packsV2])
 
 end RelCertifier.VerdictsV2

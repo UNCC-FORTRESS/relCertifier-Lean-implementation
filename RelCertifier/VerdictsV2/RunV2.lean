@@ -307,10 +307,15 @@ def packsV2 : List PackV2 :=
     ⟨"rover3tier_rung12", 3, 0, [1, 0], 7, 4, 0, 0⟩,
     ⟨"rover3tier_rung12", 3, 0, [1, 0], 7, 4, 0, 1⟩,
     ⟨"rover3tier_rung12", 3, 1, [0], 1, 1, 1, 0⟩,
-    ⟨"rover3tier_rung12", 3, 1, [0], 1, 1, 1, 1⟩ ]
+    ⟨"rover3tier_rung12", 3, 1, [0], 1, 1, 1, 1⟩,
+    -- match_multi_rate (cover replay)
+    ⟨"match_multi_rate", 2, 0, [0], 3, 1, 0, 0⟩,
+    ⟨"match_multi_rate", 2, 0, [0], 2, 1, 1, 0⟩,
+    ⟨"match_multi_rate", 2, 0, [0], 1, 1, 2, 0⟩,
+    ⟨"match_multi_rate", 2, 0, [0], 1, 1, 3, 0⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 604
+def expectedModalV2 : Nat := 608
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do

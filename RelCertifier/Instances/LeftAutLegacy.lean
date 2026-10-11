@@ -63,12 +63,13 @@ theorem hgrdLA : ∀ g ∈ (List.range 4).map (fun l => hostGuard vsM 2 Side.L (
 (jump, then flow) against the guarded right automaton, the declared rows for every left mode,
 the right in its current mode's guard and cuts. From `match_multi_rate_guarded` by the generic bridge
 `theorem3_leftAut_of_choiceR`. -/
-theorem match_multi_rate_leftAut (dt : ℝ) :
+theorem match_multi_rate_leftAut (dt : ℝ)
+    (h0 : Verd 0 0) (h1 : Verd 1 0) (h2 : Verd 2 0) (h3 : Verd 3 0) :
     RFormula.rvalid (theorem3Form (leftAutomatonBody (AL dt) uLA) (rightAutomatonBody GrPG mvM)
       (psiK uLA (fun _ => canonInvM gM gsM) (AL dt).numModes domLM domRM
         (mvRegionR mvM gregionP GrPG.modes.length))) :=
   theorem3_leftAut_of_choiceR (AL dt) 0 1 0 (by decide) _ _ _ domLM domRM gregionP _
-    (match_multi_rate_guarded dt)
+    (match_multi_rate_guarded dt h0 h1 h2 h3)
     (fun q _ => regionG_fv_sub (hguardRM_all q) (sinkRegions_fv_sub _ q))
       (canonInvM_varsL gM gsM (by
         intro g' hg'
@@ -77,7 +78,7 @@ theorem match_multi_rate_leftAut (dt : ℝ) :
       (canonInvM_varsR gM gsM) hdomLM hdomRM
     (LeftAut.ofP_vars leftDataM _ 1 dt nextLA hLM hgrdLA).1 (fun t _ => (LeftAut.ofP_vars leftDataM _ 1 dt nextLA hLM hgrdLA).2 t)
     (LeftAut.ofP_hnext leftDataM _ tgM dt nextLA 4 rfl (by rw [nextLA_eq]; decide))
-    (LeftAut.ofP_hsim leftDataM _ tgM dt nextLA)
+    (ofP_hsim_gated leftDataM _ tgM dt nextLA rfl)
 
 end MatchMultiRateGuarded
 

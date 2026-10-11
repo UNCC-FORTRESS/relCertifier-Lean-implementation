@@ -13,6 +13,7 @@ so a wrong row does not compile; with `modalVerdX_of_queries` (the rebuild denot
 kernel-checked.
 -/
 import RelCertifier.VerdictsV2.RunV2
+import RelCertifier.Instances.MatchMultiRateGuarded
 import RelCertifier.Instances.Rover3tierRung12Guarded
 import RelCertifier.Instances.RoverRung2cGuarded
 import RelCertifier.Instances.Story1AttdistRungBGuarded
@@ -681,5 +682,16 @@ theorem pin_r3t_j2 : Rover3tierRung12Guarded.Verd 1 0 = packVerd (packsV2.getD 2
   pin_row _ rfl irV2_r3t cutV2_r3t (by simp [packLam, packsV2])
 theorem pin_r3t_j3 : Rover3tierRung12Guarded.Verd 1 1 = packVerd (packsV2.getD 212 default) :=
   pin_row _ rfl irV2_r3t cutV2_r3t (by simp [packLam, packsV2])
+
+theorem irV2_mmr : irV2 "match_multi_rate" = match_multi_rate_IRv2 := by decide
+theorem cutV2_mmr : cutV2 "match_multi_rate" = Oracle.match_multi_rate_cutsV2X := by decide
+theorem pin_mmr_j0 : MatchMultiRateGuarded.Verd 0 0 = packVerd (packsV2.getD 213 default) :=
+  pin_row _ rfl irV2_mmr cutV2_mmr (by simp [packLam, packsV2])
+theorem pin_mmr_j1 : MatchMultiRateGuarded.Verd 1 0 = packVerd (packsV2.getD 214 default) :=
+  pin_row _ rfl irV2_mmr cutV2_mmr (by simp [packLam, packsV2])
+theorem pin_mmr_j2 : MatchMultiRateGuarded.Verd 2 0 = packVerd (packsV2.getD 215 default) :=
+  pin_row _ rfl irV2_mmr cutV2_mmr (by simp [packLam, packsV2])
+theorem pin_mmr_j3 : MatchMultiRateGuarded.Verd 3 0 = packVerd (packsV2.getD 216 default) :=
+  pin_row _ rfl irV2_mmr cutV2_mmr (by simp [packLam, packsV2])
 
 end RelCertifier.VerdictsV2

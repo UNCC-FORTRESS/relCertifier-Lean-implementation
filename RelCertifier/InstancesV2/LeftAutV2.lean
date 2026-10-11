@@ -305,12 +305,13 @@ the right in its current mode's guard and cuts. From `charger_fast_tapers_modal`
 `theorem3_leftAut_of_choiceR`. -/
 theorem charger_fast_tapers_leftAut (dt : ℝ) (h03 : Verd 0 3)
     (h10 : Verd 1 0) (h11 : Verd 1 1) (h12 : Verd 1 2) (h13 : Verd 1 3)
-    (h20 : Verd 2 0) (h21 : Verd 2 1) (h22 : Verd 2 2) (h23 : Verd 2 3) :
+    (h21 : Verd 2 1) (h22 : Verd 2 2) (h23 : Verd 2 3)
+    (d00 : VerdD 0 0) (d01 : VerdD 0 1) (d02 : VerdD 0 2) :
     RFormula.rvalid (theorem3Form (leftAutomatonBody (AL dt) uLA) (rightAutomatonBody Gr mv)
       (psiK uLA (fun _ => canonInvM g gs) (AL dt).numModes domL domR
         (mvRegionR mv gregion Gr.modes.length))) :=
   theorem3_leftAut_of_choiceR (AL dt) 0 1 0 (by decide) _ _ _ domL domR gregion _
-    (charger_fast_tapers_modal dt h03 h10 h11 h12 h13 h20 h21 h22 h23)
+    (charger_fast_tapers_modal dt h03 h10 h11 h12 h13 h21 h22 h23 d00 d01 d02)
     (fun q hq => gregion_fv q hq)
       (canonInvM_varsL g gs comps_fv) (canonInvM_varsR g gs) hdomL hdomR
     (LeftAut.ofG_vars leftData 1 dt nextLA hL).1 (LeftAut.ofG_vars leftData 1 dt nextLA hL).2

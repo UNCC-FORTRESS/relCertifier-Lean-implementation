@@ -119,7 +119,6 @@ def packsV2 : List PackV2 :=
     ⟨"charger_fast_tapers", 2, 1, [0], 1, 1, 1, 1⟩,
     ⟨"charger_fast_tapers", 2, 1, [0], 1, 1, 1, 2⟩,
     ⟨"charger_fast_tapers", 2, 1, [0], 1, 1, 1, 3⟩,
-    ⟨"charger_fast_tapers", 2, 2, [0], 1, 1, 2, 0⟩,
     ⟨"charger_fast_tapers", 2, 2, [0], 1, 1, 2, 1⟩,
     ⟨"charger_fast_tapers", 2, 2, [0], 1, 1, 2, 2⟩,
     ⟨"charger_fast_tapers", 2, 2, [0], 1, 1, 2, 3⟩,
@@ -340,7 +339,7 @@ def packsV2 : List PackV2 :=
     ⟨"arm_plateau_slow", 2, 1, [0], 1, 1, 1, 3⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 630
+def expectedModalV2 : Nat := 629
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
@@ -455,10 +454,14 @@ def dynPacksV2 : List DynPackV2 :=
     ⟨"arm_plateau_slow", 2, 0, [0], true, 0, 1⟩,
     -- charger_fast_setpoints
     ⟨"charger_fast_setpoints", 2, 0, [0], true, 0, 0⟩,
-    ⟨"charger_fast_setpoints", 2, 1, [0], true, 1, 0⟩ ]
+    ⟨"charger_fast_setpoints", 2, 1, [0], true, 1, 0⟩,
+    -- charger_fast_tapers
+    ⟨"charger_fast_tapers", 2, 0, [0], true, 0, 0⟩,
+    ⟨"charger_fast_tapers", 2, 0, [0], true, 0, 1⟩,
+    ⟨"charger_fast_tapers", 2, 0, [0], true, 0, 2⟩ ]
 
 /-- Declared: the number of component queries the reposition packs owe. -/
-def expectedDynV2 : Nat := 58
+def expectedDynV2 : Nat := 61
 
 def runDynPack (s : Z3Session) (r : DynPackV2) : IO Bool := do
   let p := irV2 r.bench

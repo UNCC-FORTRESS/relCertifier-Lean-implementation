@@ -10,6 +10,7 @@ produces, so the constants and the suite (or the pack table) can only change tog
 import RelCertifier.VerdictsV2.RunV2
 import RelCertifier.Verdicts.ModalTablePins
 import RelCertifier.Verdicts.ModalCodePins
+import RelCertifier.Trusted.Handoff
 
 namespace RelCertifier.VerdictsV2
 
@@ -69,5 +70,22 @@ def derivedSameModalV2 : ℕ :=
     acc + (RelCertifier.Verdicts.modalPairs spec info).length * (order.length + heads)) 0
 
 theorem derivedSameModalV2_eq : derivedSameModalV2 = expectedSameModalV2 := by decide
+
+/-- **Every pack queries the window's own row.** For every joint pack and every reposition
+pack, the invariant row the runner quotes (`invRow`) is the row the tool reads for the
+window's left mode, by name (`Handoff.invRowOf`, the same lookup as `certifyWithData`). Several
+replays quote row 0 for every window of a benchmark whose rows are syntactically equal; this
+pins that choice to the tool's lookup. -/
+set_option maxRecDepth 100000 in
+theorem packsV2_rowOfWindow :
+    packsV2.all (fun r => decide (Handoff.invRowOf (irV2 r.bench)
+      ((irV2 r.bench).L.modes.getD r.l ⟨"", [], .tt, .tt, []⟩)
+        = some ((irV2 r.bench).invariants.getD r.invRow ("", PForm.tt)).2)) = true := by decide
+
+set_option maxRecDepth 100000 in
+theorem dynPacksV2_rowOfWindow :
+    dynPacksV2.all (fun r => decide (Handoff.invRowOf (irV2 r.bench)
+      ((irV2 r.bench).L.modes.getD r.l ⟨"", [], .tt, .tt, []⟩)
+        = some ((irV2 r.bench).invariants.getD r.invRow ("", PForm.tt)).2)) = true := by decide
 
 end RelCertifier.VerdictsV2

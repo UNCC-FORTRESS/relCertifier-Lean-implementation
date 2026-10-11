@@ -584,7 +584,7 @@ theorem AL_numModes (dt : ℝ) : (AL dt).numModes = 3 := rfl
 the right in its current mode's guard and cuts. From `rover_rung2c_guarded` by the generic bridge
 `theorem3_leftAut_of_choiceR`. -/
 theorem rover_rung2c_leftAut (dt : ℝ) (hdt : 0 ≤ dt) (hdt1 : dt ≤ 1)
-    (hv0 : VerdR6 0) (hv1 : VerdR6 1) (hv2 : VerdR6 2) :
+    (hv0 : Verd 0 0) (hv1 : Verd 1 1) (hv2 : Verd 2 2) :
     RFormula.rvalid (theorem3Form (leftAutomatonBody (AL dt) uLA) (rightAutomatonBody GrG mv6)
       (psiK uLA (fun _ => canonInvM g6 gs6) (AL dt).numModes domL6 domR6
         (mvRegionR mv6 gregion GrG.modes.length))) :=

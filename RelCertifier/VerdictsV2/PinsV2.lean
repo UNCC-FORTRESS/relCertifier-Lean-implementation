@@ -13,6 +13,7 @@ so a wrong row does not compile; with `modalVerdX_of_queries` (the rebuild denot
 kernel-checked.
 -/
 import RelCertifier.VerdictsV2.RunV2
+import RelCertifier.Instances.RoverRung2cGuarded
 import RelCertifier.Instances.Story1AttdistRungBGuarded
 import RelCertifier.Instances.Story1AttdistRungAGuarded
 import RelCertifier.Instances.Story2LateralBGuarded
@@ -659,5 +660,14 @@ theorem pin_s1b_j7 : Story1AttdistRungBGuarded.Verd 2 1 = packVerd (packsV2.getD
   pin_row _ rfl irV2_s1b cutV2_s1b (by simp [packLam, packsV2])
 theorem pin_s1b_j8 : Story1AttdistRungBGuarded.Verd 2 2 = packVerd (packsV2.getD 205 default) :=
   pin_row _ rfl irV2_s1b cutV2_s1b (by simp [packLam, packsV2])
+
+theorem irV2_r2c : irV2 "refinement_ladder_rover_rung2c_6dof" = refinement_ladder_rover_rung2c_6dof_IRv2 := by decide
+theorem cutV2_r2c : cutV2 "refinement_ladder_rover_rung2c_6dof" = Oracle.refinement_ladder_rover_rung2c_6dof_cutsV2X := by decide
+theorem pin_r2c_j0 : RoverRung2cGuarded.Verd 0 0 = packVerd (packsV2.getD 206 default) :=
+  pin_row _ rfl irV2_r2c cutV2_r2c (by simp [packLam, packsV2])
+theorem pin_r2c_j1 : RoverRung2cGuarded.Verd 1 1 = packVerd (packsV2.getD 207 default) :=
+  pin_row _ rfl irV2_r2c cutV2_r2c (by simp [packLam, packsV2])
+theorem pin_r2c_j2 : RoverRung2cGuarded.Verd 2 2 = packVerd (packsV2.getD 208 default) :=
+  pin_row _ rfl irV2_r2c cutV2_r2c (by simp [packLam, packsV2])
 
 end RelCertifier.VerdictsV2

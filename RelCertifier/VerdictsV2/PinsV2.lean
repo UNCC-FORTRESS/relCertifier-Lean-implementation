@@ -13,6 +13,7 @@ so a wrong row does not compile; with `modalVerdX_of_queries` (the rebuild denot
 kernel-checked.
 -/
 import RelCertifier.VerdictsV2.RunV2
+import RelCertifier.InstancesV2.Modal.ArmPlateauCrit
 import RelCertifier.Instances.MatchMultiRateGuarded
 import RelCertifier.Instances.Rover3tierRung12Guarded
 import RelCertifier.Instances.RoverRung2cGuarded
@@ -693,5 +694,24 @@ theorem pin_mmr_j2 : MatchMultiRateGuarded.Verd 2 0 = packVerd (packsV2.getD 215
   pin_row _ rfl irV2_mmr cutV2_mmr (by simp [packLam, packsV2])
 theorem pin_mmr_j3 : MatchMultiRateGuarded.Verd 3 0 = packVerd (packsV2.getD 216 default) :=
   pin_row _ rfl irV2_mmr cutV2_mmr (by simp [packLam, packsV2])
+
+theorem irV2_armc : irV2 "arm_plateau_crit" = arm_plateau_crit_IRv2 := by decide
+theorem cutV2_armc : cutV2 "arm_plateau_crit" = Oracle.arm_plateau_crit_cutsV2X := by decide
+theorem pin_armc_j0 : V2ArmPlateauCrit.Verd 0 0 = packVerd (packsV2.getD 217 default) :=
+  pin_row _ rfl irV2_armc cutV2_armc (by simp [packLam, packsV2])
+theorem pin_armc_j1 : V2ArmPlateauCrit.Verd 0 1 = packVerd (packsV2.getD 218 default) :=
+  pin_row _ rfl irV2_armc cutV2_armc (by simp [packLam, packsV2])
+theorem pin_armc_j2 : V2ArmPlateauCrit.Verd 0 2 = packVerd (packsV2.getD 219 default) :=
+  pin_row _ rfl irV2_armc cutV2_armc (by simp [packLam, packsV2])
+theorem pin_armc_j3 : V2ArmPlateauCrit.Verd 0 3 = packVerd (packsV2.getD 220 default) :=
+  pin_row _ rfl irV2_armc cutV2_armc (by simp [packLam, packsV2])
+theorem pin_armc_j4 : V2ArmPlateauCrit.Verd 1 1 = packVerd (packsV2.getD 221 default) :=
+  pin_row _ rfl irV2_armc cutV2_armc (by simp [packLam, packsV2])
+theorem pin_armc_j5 : V2ArmPlateauCrit.Verd 1 2 = packVerd (packsV2.getD 222 default) :=
+  pin_row _ rfl irV2_armc cutV2_armc (by simp [packLam, packsV2])
+theorem pin_armc_j6 : V2ArmPlateauCrit.Verd 1 3 = packVerd (packsV2.getD 223 default) :=
+  pin_row _ rfl irV2_armc cutV2_armc (by simp [packLam, packsV2])
+theorem pin_armc_d0 : V2ArmPlateauCrit.VerdD 1 0 = dynPackVerd (dynPacksV2.getD 24 default) :=
+  pin_dyn_row _ rfl irV2_armc cutV2_armc
 
 end RelCertifier.VerdictsV2

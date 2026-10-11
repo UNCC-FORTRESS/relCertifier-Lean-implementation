@@ -2,20 +2,31 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `rung2_6dof` over the GUARDED right automaton — Theorem 3 by the ladder climb
+# `refinement_ladder_rover_rung2_6dof` over the GUARDED right automaton — Theorem 3 by
+replaying the cover
 
-`RoverRung26dofModal.rung2_6dof_modal` states Theorem 3 over the `⊤`-guarded
-chain `STEEP → MODER → FLAT` with the bookkeeping `mvValid`. This file states it over the
-GUARDED chain (every edge tests the lowered guard of the band it enters, `GrG_guards`) at the
-mode-consistent region (the right in the guard of its current band; no cut is kept), with the
-response of `Proofs/Encoding/LadderClimb.lean`: after the left window the reference climbs the
-chain (explicit runs, each switch at the next band's floor, legal) and holds `FLAT` until
-the declared combined-coordinate row holds. Z3-free.
+`RoverRung26dofModal` states Theorem 3 over the `⊤`-guarded chain `STEEP → MODER → FLAT`. This
+file states it over the GUARDED chain (every edge tests the lowered guard of the band it
+enters, `GrG_guards`) at the mode-consistent region (the right in the guard of its current
+band), against the gated left windows (two clocked pieces; carried to the paper's left
+automaton in `Instances/LeftAutLegacy.lean`), and proves it by REPLAYING THE EMITTED COVER
+(`InstancesV2/BenchCovers/refinement_ladder_rover_rung2_6dof.lean`, λ = 1001/1000 for every
+window): a band below the window's (`dynPre`) repositions alone up the chain to the window's
+band, every reposition preserved by its pack `VerdD l q`; in the joint nodes (the bands at or
+above the window's, `jointOK`) the right keeps time with the window at the cover's stretch,
+switching up at each floor it reaches, every stretch preserved by the joint pack `Verd l q`
+(the combined row `s_L − s_R − 0.2 + (v_L − v_R)/3 ≤ 0`). Every switch is legal against the
+entered band's guard; the explicit band runs (`LR`) supply only the existence of the right's
+runs. Hypotheses: six joint packs and three reposition packs (`modalVerdX`, `modalVerdDynX`).
 -/
 import RelCertifier.Instances.RoverRung26dofModal
 import RelCertifier.Instances.GuardedPins
 import RelCertifier.Proofs.Encoding.LadderClimb
 import RelCertifier.Proofs.Encoding.WindowGrowth
+import RelCertifier.Proofs.Encoding.LadderReplay
+import RelCertifier.Proofs.Encoding.ReplayBridge
+import RelCertifier.Proofs.Encoding.ReplayComps
+import RelCertifier.InstancesV2.Cuts.refinement_ladder_rover_rung2_6dof
 
 set_option linter.unusedSimpArgs false
 set_option maxHeartbeats 3200000
@@ -23,7 +34,7 @@ set_option maxHeartbeats 3200000
 namespace RelCertifier
 namespace RoverRung26dofGuarded
 
-open DL DLCalTiming DLRel Parse Set RoverRung26dofModal GPins
+open DL DLCalTiming DLRel Parse Set RoverRung26dofModal GPins RelCertifier.Oracle
 
 /-! ## The guarded right graph -/
 
@@ -175,150 +186,528 @@ noncomputable def LR : LadderRun GrG domRQ2 :=
       show Formula.sat (hostGuard vsQ2 4 Side.R (mRQ2 2)) x
       rw [sat_guardR2]; exact hs)
 
-/-! ## The guarded response to a left window: the combined coordinate `w = s + v/3`
+/-! ## The emitted cover's data: the extended cut certificate, concretely -/
 
-Along every right band `w` grows at exactly the band's set point (`ṡ + v̇/3 = v + (c − v)`),
-and the declared row is `w_L ≤ w_R + 0.2`. -/
+def aS (k : String) : PForm := .cmp ">=" (.var "s") (.num k)
+def aV (k : String) : PForm := .cmp "<=" (.var "v") (.num k)
+def sStr (l : ℕ) : String := if l = 0 then "0.0" else if l = 1 then "0.6" else "1.4"
+def vStr (q : ℕ) : String := if q = 0 then "0.3" else if q = 1 then "0.5" else "0.65"
+noncomputable def sK (l : ℕ) : ℝ := if l = 0 then 0 else if l = 1 then 3/5 else 7/5
 
-noncomputable def wR (x : State (Var 4)) : ℝ := x (Rv 1) + x (Rv 0) / 3
+noncomputable def cL (l : ℕ) : List (CutAtomP 4) :=
+  cutPairsX vsQ2 4 Side.L (cutAtomsOfX refinement_ladder_rover_rung2_6dof_cutsV2X.L (mLQ2 l).name)
+noncomputable def cR (q : ℕ) : List (CutAtomP 4) :=
+  cutPairsX vsQ2 4 Side.R (cutAtomsOfX refinement_ladder_rover_rung2_6dof_cutsV2X.R (mRQ2 q).name)
 
-theorem run_w (q : ℕ) (ρ : State (Var 4)) (t : ℝ) :
-    wR (LR.run q ρ t) = wR ρ + ladC q * t := by
-  show wR (trajR ρ (phiLin aR bR q ρ) t) = wR ρ + ladC q * t
-  simp only [wR, trajR_R, phiLin, one_ne_zero, if_false, if_true]
-  ring
+theorem gL_s (l : ℕ) (hl : l < 3) : hostAtomG vsQ2 4 Side.L (aS (sStr l)) = thrGe (Lv 1) (sK l) := by
+  interval_cases l <;>
+  simp [aS, sStr, sK, hostAtomG, cutAtomG, Run.lowerE, gp_0_0, gp_0_6, gp_1_4, vsQ2,
+    Run.resolveVar, List.findIdx?_cons, ITerm.toHost, thrGe, Lv]
+theorem gR_s (q : ℕ) (hq : q < 3) : hostAtomG vsQ2 4 Side.R (aS (sStr q)) = thrGe (Rv 1) (sK q) := by
+  interval_cases q <;>
+  simp [aS, sStr, sK, hostAtomG, cutAtomG, Run.lowerE, gp_0_0, gp_0_6, gp_1_4, vsQ2,
+    Run.resolveVar, List.findIdx?_cons, ITerm.toHost, thrGe, Rv]
 
-/-- **The climb by the combined coordinate**: from band `q` (in its odometer band), climb to
-`FLAT` and hold it until `w_R ≥ W`; every switch at the next band's floor (legal). -/
-theorem climbW (q : ℕ) (hq : q < 3) (ρ : State (Var 4)) (hdom : Formula.sat domRQ2 ρ)
-    (hg : (q = 0 → ρ (Rv 1) < 3/5) ∧ (q = 1 → 3/5 ≤ ρ (Rv 1) ∧ ρ (Rv 1) < 7/5) ∧
-      (q = 2 → 7/5 ≤ ρ (Rv 1))) (W : ℝ) {post : ℕ → Formula (Var 4)}
-    (hpost : ∀ μ, (∀ i, μ (Lv i) = ρ (Lv i)) → Formula.sat domRQ2 μ → 7/5 ≤ μ (Rv 1) →
-      W ≤ wR μ → Formula.sat (post 2) μ) :
-    RResp GrG q post ρ := by
-  -- the FLAT hold, from any FLAT state
-  have hflat : ∀ κ, Formula.sat domRQ2 κ → 7/5 ≤ κ (Rv 1) → (∀ i, κ (Lv i) = ρ (Lv i)) →
-      RResp GrG 2 post κ := by
-    intro κ hκ hs hκL
-    set τ : ℝ := max 0 ((W - wR κ) * (20/13)) with hτ
-    have hτ0 : 0 ≤ τ := le_max_left _ _
-    have hrun := LR.sem 2 (by norm_num) κ hκ τ hτ0
-    set μ := LR.run 2 κ τ with hμ
-    have hμs : 7/5 ≤ μ (Rv 1) := le_trans hs (LR.s_low 2 (by norm_num) κ hκ τ hτ0).2
-    have hw : W ≤ wR μ := by
-      rw [hμ, run_w]
-      have : (W - wR κ) * (20/13) ≤ τ := le_max_right _ _
-      have hc : ladC 2 = 13/20 := by norm_num [ladC]
-      rw [hc]; nlinarith
-    have hleg : SwitchLegal (edgeG 2 2) μ := by
-      show Formula.sat (hostGuard vsQ2 4 Side.R (mRQ2 2)) μ
-      rw [sat_guardR2]; exact hμs
-    exact rresp_step (post := post) (LR.modeAt 2 (by norm_num))
-      (edgeG_mem 2 2 (by simp [GrG])) hrun hleg (rresp_stop (hpost μ (fun i => (LR.left 2 κ τ i).trans (hκL i))
-      (LR.end_dom 2 (by norm_num) κ hκ τ hτ0) hμs hw))
-  have hmoder : ∀ κ, Formula.sat domRQ2 κ → κ (Rv 1) < 7/5 → (∀ i, κ (Lv i) = ρ (Lv i)) →
-      RResp GrG 1 post κ := by
-    intro κ hκ hs hκL
-    obtain ⟨τ, hτ, hτs⟩ := LR.reach 1 (by norm_num) κ hκ (7/5) (le_of_lt hs)
-    have hrun := LR.sem 1 (by norm_num) κ hκ τ hτ
-    have hleg : SwitchLegal (edgeG 1 2) (LR.run 1 κ τ) := by
-      show Formula.sat (hostGuard vsQ2 4 Side.R (mRQ2 2)) (LR.run 1 κ τ)
-      rw [sat_guardR2]; exact le_of_eq hτs.symm
-    exact rresp_step (post := post) (LR.modeAt 1 (by norm_num))
-      (edgeG_mem 1 2 (by simp [GrG])) hrun hleg (hflat _ (LR.end_dom 1 (by norm_num) κ hκ τ hτ) (le_of_eq hτs.symm)
-      (fun i => (LR.left 1 κ τ i).trans (hκL i)))
+theorem cL_eq (l : ℕ) (hl : l < 3) :
+    cL l = [(hostAtomF vsQ2 4 Side.L (aS (sStr l)), thrGe (Lv 1) (sK l))] := by
+  rw [← gL_s l hl]; interval_cases l <;> rfl
+theorem cR_eq (q : ℕ) (hq : q < 3) :
+    cR q = [(hostAtomF vsQ2 4 Side.R (aS (sStr q)), thrGe (Rv 1) (sK q))] := by
+  rw [← gR_s q hq]; interval_cases q <;> rfl
+
+theorem hiffL (l : ℕ) (hl : l < 3) : AtomsIff (cL l) := by
+  rw [cL_eq l hl]
+  intro a ha ν
+  simp only [List.mem_cons, List.not_mem_nil, or_false] at ha
+  subst ha
+  rw [← gL_s l hl]; exact hostAtom_iff (Or.inr rfl) ν
+theorem hiffR (q : ℕ) (hq : q < 3) : AtomsIff (cR q) := by
+  rw [cR_eq q hq]
+  intro a ha ν
+  simp only [List.mem_cons, List.not_mem_nil, or_false] at ha
+  subst ha
+  rw [← gR_s q hq]; exact hostAtom_iff (Or.inr rfl) ν
+
+theorem cutSatL_iff (l : ℕ) (hl : l < 3) (ν : State (Var 4)) :
+    CutSat (cL l) ν ↔ sK l ≤ ν (Lv 1) := by
+  constructor
+  · intro h
+    have := (hiffL l hl _ (by rw [cL_eq l hl]; exact List.mem_cons_self) ν).mp
+      (h _ (by rw [cL_eq l hl]; exact List.mem_cons_self))
+    simp [thrGe, Term.eval, AOp.interp] at this; linarith
+  · intro h a ha
+    rw [cL_eq l hl] at ha
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at ha
+    subst ha
+    refine (hiffL l hl _ (by rw [cL_eq l hl]; exact List.mem_cons_self) ν).mpr ?_
+    simp [thrGe, Term.eval, AOp.interp]; linarith
+
+/-! ## O1: guards imply the kept atoms (the extended certificate, kernel-checked) -/
+
+theorem hO1L (l : ℕ) (hl : l < 3) :
+    ∀ ν, Formula.sat (hostGuard vsQ2 4 Side.L (mLQ2 l)) ν → CutSat (cL l) ν := by
+  intro ν hν
+  refine cutSatL_of_guard refinement_ladder_rover_rung2_6dof_cutsV2X_wf (mLQ2 l) ?_ ?_ ?_ ?_ ν hν
+  · interval_cases l <;> rfl
+  · interval_cases l <;>
+    · intro x hx
+      simp [cutAtomsOfX, refinement_ladder_rover_rung2_6dof_cutsV2X, mLQ2, refinement_ladder_rover_rung2_6dof_IR] at hx
+      rcases hx with rfl <;> simp
+  · interval_cases l <;>
+    · intro x hx
+      simp [cutAtomsOfX, refinement_ladder_rover_rung2_6dof_cutsV2X, mLQ2, refinement_ladder_rover_rung2_6dof_IR] at hx
+      rcases hx with rfl <;>
+        simp [Run.lowerF, Run.lowerE, gp_0_0, gp_0_6, gp_1_4, vsQ2, Run.resolveVar,
+          List.findIdx?_cons]
+  · interval_cases l <;>
+      simp [mLQ2, refinement_ladder_rover_rung2_6dof_IR, Run.lowerF, Run.lowerE, gp_0_0, gp_0_6, gp_1_4,
+        gp_899_95, vsQ2, Run.resolveVar, List.findIdx?_cons]
+
+theorem hO1R (q : ℕ) (hq : q < 3) :
+    ∀ ν, Formula.sat (hostGuard vsQ2 4 Side.R (mRQ2 q)) ν → CutSat (cR q) ν := by
+  intro ν hν
+  refine cutSatR_of_guard refinement_ladder_rover_rung2_6dof_cutsV2X_wf (mRQ2 q) ?_ ?_ ?_ ?_ ν hν
+  · interval_cases q <;> rfl
+  · interval_cases q <;>
+    · intro x hx
+      simp [cutAtomsOfX, refinement_ladder_rover_rung2_6dof_cutsV2X, mRQ2, refinement_ladder_rover_rung2_6dof_IR] at hx
+      rcases hx with rfl <;> simp
+  · interval_cases q <;>
+    · intro x hx
+      simp [cutAtomsOfX, refinement_ladder_rover_rung2_6dof_cutsV2X, mRQ2, refinement_ladder_rover_rung2_6dof_IR] at hx
+      rcases hx with rfl <;>
+        simp [Run.lowerF, Run.lowerE, gp_0_0, gp_0_6, gp_1_4, gp_0_3, gp_0_5, gp_0_65, vsQ2,
+          Run.resolveVar, List.findIdx?_cons]
+  · interval_cases q <;>
+      simp [mRQ2, refinement_ladder_rover_rung2_6dof_IR, Run.lowerF, Run.lowerE, gp_0_0, gp_0_6, gp_1_4,
+        gp_0_3, gp_0_5, gp_0_65, vsQ2, Run.resolveVar, List.findIdx?_cons]
+
+/-! ## The left field and envelope, evaluated -/
+
+theorem gp_1000_0 : Run.parseRat "1000.0" = some (1000:ℚ) := by
+  have h : parseQ "1000.0" = some (⟨10000, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
+
+theorem fLQ21_eval (l : ℕ) (hl : l < 3) (x : State (Var 4)) :
+    Term.eval (fLQ2 l 1) x =
+      x (Lv 0) * ((1 - 1/2 * (x (Lv 2) * x (Lv 2))) - 3/10 * (x (Lv 3) * x (Lv 3))) := by
+  interval_cases l <;>
+    simp [fLQ2, hostDyn, mLQ2, refinement_ladder_rover_rung2_6dof_IR, vsQ2, Run.dynOf,
+      Run.lowerE, gp_0, gp_0_0, gp_0_1, gp_0_15, gp_0_2, gp_0_25, gp_0_3, gp_0_30, gp_0_35, gp_0_4, gp_0_5, gp_0_50, gp_0_6, gp_0_65, gp_0_7, gp_0_75, gp_0_8, gp_0_9, gp_1, gp_1_0, gp_1_1, gp_1_2, gp_1_4, gp_1_5, gp_1_6, gp_2, gp_2_0, gp_3, gp_4, gp_5, gp_10, gp_m0_5, gp_m0_25, gp_m1, gp_m1_0, gp_m2, gp_m0_3, gp_m0_6, gp_m0_4, gp_899_95, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
+      Term.eval, AOp.interp, Lv]
+
+/-- The left envelope's bounds the odometer's sign needs. -/
+theorem domL_bnd (z : State (Var 4)) (hz : Formula.sat domLQ2 z) :
+    0 ≤ z (Lv 0) ∧ -(1:ℝ)/2 ≤ z (Lv 2) ∧ z (Lv 2) ≤ 1/2 ∧ -(1:ℝ)/2 ≤ z (Lv 3) ∧
+      z (Lv 3) ≤ 1/2 := by
+  have h := (sat_domLQ2 z).mp hz
+  casesm* _ ∧ _
+  exact ⟨by linarith, by linarith, by linarith, by linarith, by linarith⟩
+
+/-! ## O2: the kept atoms stay along the flows the cover certifies -/
+
+/-- The left odometer is non-decreasing on the left envelope (`v ≥ 0`, `|ψ| ≤ 1/2`). -/
+theorem sdotL_nonneg (l : ℕ) (hl : l < 3) (z : State (Var 4)) (hz : Formula.sat domLQ2 z) :
+    0 ≤ Term.eval (fLQ2 l 1) z := by
+  rw [fLQ21_eval l hl]
+  obtain ⟨h0, h1, h2, h3, h4⟩ := domL_bnd z hz
+  have : (0:ℝ) ≤ (1 - 1/2 * (z (Lv 2) * z (Lv 2))) - 3/10 * (z (Lv 3) * z (Lv 3)) := by
+    nlinarith
+  exact mul_nonneg h0 this
+
+theorem stayL (l q : ℕ) (hl : l < 3) {c : ℝ} :
+    AtomsStayC (cL l) (jointSys (fLQ2 l) (fRQ2 q) (Term.const c)) (Formula.and domLQ2 domRQ2) := by
+  intro a ha ν hν
+  have hinit := (hiffL l hl a ha ν).mp (hν a ha)
+  rw [cL_eq l hl] at ha
+  simp only [List.mem_cons, List.not_mem_nil, or_false] at ha
+  subst ha
+  exact boxle_thrGe_L 1 (sK l) _ _ _ _ (Formula.and domLQ2 domRQ2) (fun x h => h)
+    (fun z hz _ => sdotL_nonneg l hl z hz.1) hinit
+
+/-- The right atoms stay along every flow of the right mode (joint, or with the left frozen):
+`s_R' = v_R ≥ 0`, and `v_R' = 3 (c_q − v_R) ≤ 0` at the cap `v_R = c_q`. -/
+theorem stayR_gen (q : ℕ) (hq : q < 3) (fL : Fin 4 → Term (Var 4)) (c : ℝ) (hc : 0 ≤ c)
+    (D : Formula (Var 4)) (hD : ∀ z, Formula.sat D z → Formula.sat domRQ2 z) :
+    AtomsStayC (cR q) (jointSys fL (fRQ2 q) (Term.const c)) D := by
+  intro a ha ν hν
+  have hinit := (hiffR q hq a ha ν).mp (hν a ha)
+  rw [cR_eq q hq] at ha
+  simp only [List.mem_cons, List.not_mem_nil, or_false] at ha
+  subst ha
+  exact boxle_thrGe_R 1 (sK q) _ _ c hc D D (fun x h => h)
+    (fun z hz _ => by rw [fRQ21_eval q hq]; exact LR.v_nonneg z (hD z hz)) hinit
+
+/-! ## The invariant's components, as the tool lowers them -/
+
+theorem comps_eq : hostComps vsQ2 4
+    (refinement_ladder_rover_rung2_6dof_IRv2.invariants.getD 0 ("", PForm.tt)).2 = gQ2 :: gsQ2 := by
+  have hrow : (refinement_ladder_rover_rung2_6dof_IRv2.invariants.getD 0 ("", PForm.tt)).2 = invQ2PF := rfl
+  have hlist : pAtoms invQ2PF = [(atomsOf invQ2PF).getD 0 .tt] := by decide
+  rw [hrow, hostComps_atoms vsQ2 invQ2PF ?_, hlist]
+  · rfl
+  · rw [hlist]
+    intro a ha
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at ha
+    have hdrops : ("L_v".drop 2).copy = "v" ∧ ("R_v".drop 2).copy = "v" ∧ ("L_s".drop 2).copy = "s" ∧
+        ("R_s".drop 2).copy = "s" := by decide
+    rcases ha with rfl <;>
+      exact ⟨⟨_, _, _, rfl⟩, by
+        simp [atomsOf, invQ2PF, refinement_ladder_rover_rung2_6dof_IR, Run.invToG, Run.lowerE, vsQ2, gp_0, gp_0_0, gp_0_1, gp_0_15, gp_0_2, gp_0_25, gp_0_3, gp_0_30, gp_0_35, gp_0_4, gp_0_5, gp_0_50, gp_0_6, gp_0_65, gp_0_7, gp_0_75, gp_0_8, gp_0_9, gp_1, gp_1_0, gp_1_1, gp_1_2, gp_1_4, gp_1_5, gp_1_6, gp_2, gp_2_0, gp_3, gp_4, gp_5, gp_10, gp_m0_5, gp_m0_25, gp_m1, gp_m1_0, gp_m2, gp_m0_3, gp_m0_6, gp_m0_4, gp_899_95,
+          Run.resolveVar, Parse.dr, hdrops, List.findIdx?_cons]⟩
+
+theorem comps_fv : ∀ c ∈ gQ2 :: gsQ2, c.fv ⊆ range Lv ∪ range Rv := by
+  intro c hc
+  simp only [gQ2, gsQ2, List.mem_cons, List.not_mem_nil, or_false] at hc
+  rcases hc with rfl <;> exact hgAt _
+
+/-! ## The verdict packs (the emitted cover's queries) -/
+
+/-- The joint pack of window `l` at right mode `q` (the cover's λ = 1001/1000, strata `[0]`). -/
+def Verd (l q : ℕ) : Prop :=
+  modalVerdX refinement_ladder_rover_rung2_6dof_IRv2 refinement_ladder_rover_rung2_6dof_cutsV2X 4 0 [0] (1001/1000) l q
+
+/-- The pre-joint reposition pack of window `l` at right mode `q` (`dynPreOrder = [0]`). -/
+def VerdD (l q : ℕ) : Prop :=
+  modalVerdDynX refinement_ladder_rover_rung2_6dof_IRv2 refinement_ladder_rover_rung2_6dof_cutsV2X 4 0 [0] true l q
+
+theorem domL_univ (l : ℕ) (hl : l < 3) : hostEvolve vsQ2 4 Side.L (mLQ2 l) = domLQ2 := by
+  interval_cases l <;> rfl
+theorem domR_univ (q : ℕ) (hq : q < 3) : hostEvolve vsQ2 4 Side.R (mRQ2 q) = domRQ2 := by
+  interval_cases q <;> rfl
+
+theorem verd_core (l q : ℕ) (hl : l < 3) (hq : q < 3) (h : Verd l q) :
+    VerdXCore (gQ2 :: gsQ2) (fLQ2 l) (fRQ2 q) (1001/1000)
+      (domCutX (Formula.and domLQ2 domRQ2) (cL l) (cR q)) := by
+  have h' := h
+  unfold Verd modalVerdX at h'
+  rw [← domL_univ l hl, ← domR_univ q hq]
+  have hc := comps_eq
+  change VerdXCore (([0] : List ℕ).map (fun i => (hostComps vsQ2 4
+      (refinement_ladder_rover_rung2_6dof_IRv2.invariants.getD 0 ("", PForm.tt)).2).getD i (Term.const 0)))
+    (fLQ2 l) (fRQ2 q) ((1001/1000 : ℝ)) (domCutX (Formula.and (hostEvolve vsQ2 4 Side.L (mLQ2 l))
+      (hostEvolve vsQ2 4 Side.R (mRQ2 q))) (cL l) (cR q)) at h'
+  rw [hc] at h'
+  simpa [gsQ2] using h'
+
+theorem verdD_core (l q : ℕ) (hl : l < 3) (hq : q < 3) (h : VerdD l q) :
+    VerdDynCore true (gQ2 :: gsQ2) (fRQ2 q)
+      (domCutX (Formula.and domLQ2 domRQ2) (cL l) (cR q)) (hostGuard vsQ2 4 Side.L (mLQ2 l)) := by
+  have h' := h
+  unfold VerdD modalVerdDynX at h'
+  rw [← domL_univ l hl, ← domR_univ q hq]
+  have hc := comps_eq
+  change VerdDynCore true (([0] : List ℕ).map (fun i => (hostComps vsQ2 4
+      (refinement_ladder_rover_rung2_6dof_IRv2.invariants.getD 0 ("", PForm.tt)).2).getD i (Term.const 0)))
+    (fRQ2 q) (domCutX (Formula.and (hostEvolve vsQ2 4 Side.L (mLQ2 l))
+      (hostEvolve vsQ2 4 Side.R (mRQ2 q))) (cL l) (cR q)) (hostGuard vsQ2 4 Side.L (mLQ2 l)) at h'
+  rw [hc] at h'
+  simpa [gsQ2] using h'
+
+
+/-! ## The anchors of the cover's pairs -/
+
+theorem cR_nil (q : ℕ) (hq : 3 ≤ q) : cR q = [] := by
+  have : mRQ2 q = dummyQ2 :=
+    List.getD_eq_default _ _ (by simp [refinement_ladder_rover_rung2_6dof_IR]; omega)
+  simp only [cR, this]
+  rfl
+
+/-- The anchor of the pair `(l, q)`: the tool's row components and both modes' kept atoms. -/
+noncomputable def anc (l q : ℕ) : Formula (Var 4) := FM gQ2 (gsQ2 ++ atomTerms (cL l) (cR q))
+
+theorem hguardL (l : ℕ) (hl : l < 3) : (hostGuard vsQ2 4 Side.L (mLQ2 l)).fv ⊆ range Lv :=
+  hostGuard_fv_L vsQ2 (mLQ2 l) (by interval_cases l <;> decide)
+
+theorem cL_fv (l : ℕ) (hl : l < 3) : ∀ a ∈ cL l, a.2.fv ⊆ range Lv := by
+  intro a ha
+  rw [cL_eq l hl] at ha
+  simp only [List.mem_cons, List.not_mem_nil, or_false] at ha
+  subst ha
+  intro x hx; simp [thrGe, Term.fv] at hx; subst hx; simp
+
+theorem cR_fv (q : ℕ) : ∀ a ∈ cR q, a.2.fv ⊆ range Rv := by
+  intro a ha
+  by_cases hq : q < 3
+  · rw [cR_eq q hq] at ha
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at ha
+    rcases ha with rfl | rfl <;>
+    · intro x hx; simp [thrGe, thrLe, Term.fv] at hx; subst hx; simp
+  · rw [cR_nil q (by omega)] at ha; simp at ha
+
+theorem anc_fv (l q : ℕ) (hl : l < 3) : (anc l q).fv ⊆ range Lv ∪ range Rv := by
+  intro x hx
+  by_contra hS
+  refine notMem_FM_fv (fun g' hg' hxg => hS ?_) hx
+  rcases List.mem_cons.mp hg' with rfl | hg'
+  · exact comps_fv _ List.mem_cons_self hxg
+  rcases List.mem_append.mp hg' with hg' | hg'
+  · exact comps_fv _ (List.mem_cons_of_mem _ hg') hxg
+  simp only [atomTerms, List.map_append, List.mem_append, List.mem_map] at hg'
+  rcases hg' with ⟨a, ha, rfl⟩ | ⟨a, ha, rfl⟩
+  · exact Or.inl (cL_fv l hl a ha hxg)
+  · exact Or.inr (cR_fv q a ha hxg)
+
+theorem anc_box (l q : ℕ) (hl : l < 3) (hq : q < 3) (hv : Verd l q) :
+    ∀ σ ω, Formula.sat (anc l q) σ →
+      Program.sem (Program.ode (jointSys (fLQ2 l) (fRQ2 q) (Term.const (1001/1000)))
+        (Formula.and domLQ2 domRQ2)) σ ω → Formula.sat (anc l q) ω :=
+  couple_box_cutX gQ2 gsQ2 (gQ2 :: gsQ2) (cL l) (cR q) (fLQ2 l) (fRQ2 q) (1001/1000) domLQ2 domRQ2
+    (fun c hc => hc) (fun c hc => hc) (hiffL l hl) (hiffR q hq) (stayL l q hl)
+    (stayR_gen q hq (fLQ2 l) (1001/1000) (by norm_num) _ (fun z hz => hz.2)) (verd_core l q hl hq hv)
+
+theorem anc_boxD (l q : ℕ) (hl : l < 3) (hq : q < 3) (hv : VerdD l q) :
+    ∀ σ ω, Formula.sat (anc l q) σ → Formula.sat (hostGuard vsQ2 4 Side.L (mLQ2 l)) σ →
+      Program.sem (Program.ode (jointSys (fun _ => Term.const 0) (fRQ2 q) (Term.const 1))
+        (Formula.and domLQ2 domRQ2)) σ ω → Formula.sat (anc l q) ω := by
+  intro σ ω h1 h2 h3
+  exact couple_box_dyn true gQ2 gsQ2 (gQ2 :: gsQ2) (cL l) (cR q) (fRQ2 q) domLQ2 domRQ2
+    (hostGuard vsQ2 4 Side.L (mLQ2 l)) (fun c hc => hc) (fun c hc => hc) (hiffL l hl) (hiffR q hq)
+    (cL_fv l hl) (hguardL l hl)
+    (stayR_gen q hq _ 1 (by norm_num) _ (fun z hz => by
+      simp only [dynBase, if_true] at hz; exact hz.1.2))
+    (verdD_core l q hl hq hv) σ ω h1 (fun _ => h2) h3
+
+theorem anc_hand (l q : ℕ) (hl : l < 3) (hq : q < 3) :
+    ∀ e ∈ GrG.edgesFrom q, ∀ y, Formula.sat (anc l q) y → SwitchLegal e y →
+      Formula.sat (anc l e.tgt) y := by
+  intro e he y hA hleg
+  have ht : e.tgt < 3 := hltG q e he
+  have hg : Formula.sat (hostGuard vsQ2 4 Side.R (mRQ2 e.tgt)) y := by
+    have := hleg; unfold SwitchLegal at this; rwa [GrG_guards q e he] at this
+  exact anchor_hand (hiffL l hl) (hiffR q hq) (hiffR e.tgt ht) hA (hO1R e.tgt ht y hg)
+
+/-! ## The ladder's switching choreography and the cover's node sets -/
+
+/-- No speed cap: the bands' guards read the odometer only. -/
+abbrev Cap (_q : ℕ) (_x : State (Var 4)) : Prop := True
+
+theorem pre_of_guard (q : ℕ) (hq : q < 3) (x : State (Var 4))
+    (hg : Formula.sat (hostGuard vsQ2 4 Side.R (mRQ2 q)) x) (hd : Formula.sat domRQ2 x) :
+    ladPre Cap domRQ2 q x := by
+  refine ⟨hq, ?_, trivial, hd⟩
   interval_cases q
-  · obtain ⟨τ, hτ, hτs⟩ := LR.reach 0 (by norm_num) ρ hdom (3/5) (le_of_lt (hg.1 rfl))
-    have hrun := LR.sem 0 (by norm_num) ρ hdom τ hτ
-    have hleg : SwitchLegal (edgeG 0 1) (LR.run 0 ρ τ) := by
-      show Formula.sat (hostGuard vsQ2 4 Side.R (mRQ2 1)) (LR.run 0 ρ τ)
-      rw [sat_guardR1]; exact ⟨le_of_eq hτs.symm, by rw [hτs]; norm_num⟩
-    exact rresp_step (post := post) (LR.modeAt 0 (by norm_num))
-      (edgeG_mem 0 1 (by simp [GrG])) hrun hleg (hmoder _ (LR.end_dom 0 (by norm_num) ρ hdom τ hτ) (by rw [hτs]; norm_num)
-      (fun i => LR.left 0 ρ τ i))
-  · exact hmoder ρ hdom (hg.2.1 rfl).2 (fun _ => rfl)
-  · exact hflat ρ hdom (hg.2.2 rfl) (fun _ => rfl)
+  · rw [sat_guardR0] at hg
+    exact ⟨fun _ => ⟨hg.1, hg.2⟩, fun h => absurd h (by norm_num), fun h => absurd h (by norm_num)⟩
+  · rw [sat_guardR1] at hg
+    exact ⟨fun h => absurd h (by norm_num), fun _ => ⟨hg.1, hg.2⟩, fun h => absurd h (by norm_num)⟩
+  · rw [sat_guardR2] at hg
+    exact ⟨fun h => absurd h (by norm_num), fun h => absurd h (by norm_num), fun _ => hg⟩
 
-theorem window_right (l : ℕ) (hl : l < 3) (dt : ℝ) {σ ν : State (Var 4)}
-    (h : Program.sem (windowSeg (leftBlock (fLQ2 l)) domLQ2 tgQ2 dt 2) σ ν) (i : Fin 4) :
-    ν (Rv i) = σ (Rv i) := by
-  have hP := vars_windowSegL_sub (fLQ2 l) domLQ2 1 dt 2 (hfLQ2 l hl) hdomLQ2
-  refine (Program.bound_effect _ h (Rv i) ?_).symm
-  intro hb
-  rcases hP (Or.inr hb) with h' | ⟨j, hj⟩
-  · exact absurd (Set.mem_singleton_iff.mp h') (by simp [Rv, Prod.ext_iff])
-  · exact absurd hj (by simp [Lv, Rv, Prod.ext_iff])
+theorem ladPre_R (q : ℕ) (x y : State (Var 4)) (hxy : ∀ i, x (Rv i) = y (Rv i))
+    (h : ladPre Cap domRQ2 q x) : ladPre Cap domRQ2 q y := by
+  obtain ⟨hq, ⟨h0, h1, h2⟩, -, hd⟩ := h
+  refine ⟨hq, ⟨fun h => ?_, fun h => ?_, fun h => ?_⟩, trivial, ?_⟩
+  · rw [← hxy 1]; exact h0 h
+  · rw [← hxy 1]; exact h1 h
+  · rw [← hxy 1]; exact h2 h
+  · refine (Formula.coincidence domRQ2 (fun v hv => ?_)).mp hd
+    obtain ⟨i, rfl⟩ := hdomRQ2 hv
+    exact hxy i
 
-theorem sat_FQ2 (x : State (Var 4)) : Formula.sat (FM gQ2 gsQ2) x ↔
-    (x (Lv 1) - x (Rv 1) - 1/5) + 1/3 * (x (Lv 0) - x (Rv 0)) ≤ 0 := by
-  rw [sat_FM_iff]
-  simp only [gsQ2, List.mem_cons, List.not_mem_nil, or_false, forall_eq, eval_gQ2]
+theorem leg00 : ∀ x : State (Var 4), 0 ≤ x (Rv 1) → x (Rv 1) < 3/5 → Cap 0 x →
+    SwitchLegal (edgeG 0 0) x := by
+  intro x h1 h2 _
+  show Formula.sat (hostGuard vsQ2 4 Side.R (mRQ2 0)) x
+  rw [sat_guardR0]; exact ⟨h1, h2⟩
+theorem leg11 : ∀ x : State (Var 4), 3/5 ≤ x (Rv 1) → x (Rv 1) < 7/5 → Cap 1 x →
+    SwitchLegal (edgeG 1 1) x := by
+  intro x h1 h2 _
+  show Formula.sat (hostGuard vsQ2 4 Side.R (mRQ2 1)) x
+  rw [sat_guardR1]; exact ⟨h1, h2⟩
+theorem leg01 : ∀ x : State (Var 4), x (Rv 1) = 3/5 → Cap 0 x → SwitchLegal LR.e01 x := by
+  intro x hs _
+  show Formula.sat (hostGuard vsQ2 4 Side.R (mRQ2 1)) x
+  rw [sat_guardR1]; exact ⟨le_of_eq hs.symm, by rw [hs]; norm_num⟩
+theorem leg12 : ∀ x : State (Var 4), x (Rv 1) = 7/5 → Cap 1 x → SwitchLegal LR.e12 x := by
+  intro x hs _
+  show Formula.sat (hostGuard vsQ2 4 Side.R (mRQ2 2)) x
+  rw [sat_guardR2]; exact le_of_eq hs.symm
+theorem leg22 : ∀ x : State (Var 4), 7/5 ≤ x (Rv 1) → Cap 2 x → SwitchLegal LR.e22 x := by
+  intro x hs _
+  show Formula.sat (hostGuard vsQ2 4 Side.R (mRQ2 2)) x
+  rw [sat_guardR2]; exact hs
 
-/-- **The guarded response** of left window `l` from right band `q` (in its guard): climb to
-`FLAT` and hold until `w_R ≥ w_L − 0.2`. -/
-theorem respondG (l : ℕ) (hl : l < 3) (dt : ℝ) (q : ℕ) (hq : q < 3) {σ : State (Var 4)}
+/-- The cover's joint nodes of window `l` (`jointOK`: the bands at or above the window's band)
+and the reposition nodes its derivation uses from the admissible starts (`dynPre`: the band
+just below). -/
+def J (l q : ℕ) : Prop := l ≤ q ∧ q < 3
+def D (l q : ℕ) : Prop := q < l
+
+theorem hmoveR (l : ℕ) (E : ℕ → State (Var 4) → Prop)
+    (hE : ∀ q x, J l q → ladPre Cap domRQ2 q x → E q x) :
+    HMove GrG LR.m (J l) (fun q => q) (ladPre Cap domRQ2) E :=
+  ladder_hmove LR Cap (fun _ _ _ _ _ _ _ => trivial) (fun _ _ _ _ => trivial) (edgeG 0 0)
+    (edgeG 1 1) (edgeG_mem 0 0 (by simp [GrG])) (edgeG_mem 1 1 (by simp [GrG])) rfl rfl leg00
+    leg01 leg11 leg12 leg22 (J l) (fun q hJ hq2 => ⟨by have := hJ.1; omega, by omega⟩) E hE
+
+theorem hexitR (l : ℕ) (hl : l < 3) :
+    HExit GrG LR.m (J l) (D l) (fun q => 2 - q) (ladPre Cap domRQ2) (ladPre Cap domRQ2) :=
+  ladder_hexit LR Cap (fun _ _ _ _ _ _ _ => trivial) (fun _ _ _ _ => trivial) leg01 leg12 (J l) (D l)
+    (fun q hD hnJ => by
+      unfold D at hD; unfold J at hnJ ⊢
+      refine ⟨by omega, ?_⟩
+      by_cases h : l ≤ q + 1
+      · exact Or.inl ⟨h, by omega⟩
+      · exact Or.inr ⟨by unfold D; omega, fun h' => h h'.1⟩)
+
+/-! ## The response to one gated window: the cover's derivation, replayed -/
+
+theorem anc_iff (l q : ℕ) (hl : l < 3) (hq : q < 3) (x : State (Var 4)) :
+    Formula.sat (anc l q) x ↔ Formula.sat (FM gQ2 gsQ2) x ∧ CutSat (cL l) x ∧ CutSat (cR q) x := by
+  unfold anc
+  rw [sat_FM_append, atomTerms_iff (hiffL l hl) (hiffR q hq)]
+
+theorem respondR (l : ℕ) (hl : l < 3) (dt : ℝ) (hJv : ∀ q, J l q → Verd l q)
+    (hDv : ∀ q, D l q → VerdD l q) (q : ℕ) (hq : q < 3) {σ : State (Var 4)}
     (hσ : Formula.sat (Formula.and (FM gQ2 gsQ2) envQ2) σ)
-    (hguard : Formula.sat (hostGuard vsQ2 4 Side.R (mRQ2 q)) σ) :
-    GResp GrG q (windowSeg (leftBlock (fLQ2 l)) domLQ2 tgQ2 dt 2)
-      (fun _ => Formula.and (Formula.and (FM gQ2 gsQ2) envQ2) Formula.tt) σ := by
-  refine gresp_of_rresp (fun ν hwin => ?_)
-  have hR := window_right l hl dt hwin
-  have hdomLν : Formula.sat domLQ2 ν :=
-    windowSeg_end_domL (leftBlock (fLQ2 l)) domLQ2 tgQ2 dt 2 (by norm_num) hwin
-  have hdomRν : Formula.sat domRQ2 ν := by
-    refine (Formula.coincidence domRQ2 (fun x hx => ?_)).mp hσ.2.2
-    obtain ⟨i, rfl⟩ := hdomRQ2 hx
-    exact (hR i).symm
-  have hgν : Formula.sat (hostGuard vsQ2 4 Side.R (mRQ2 q)) ν :=
-    frames_right (vars_windowSegL_sub (fLQ2 l) domLQ2 1 dt 2 (hfLQ2 l hl) hdomLQ2)
-      (hguardR_all q) hwin hguard
-  refine climbW q hq ν hdomRν ⟨?_, ?_, ?_⟩ (ν (Lv 1) + ν (Lv 0) / 3 - 1/5) ?_
-  · rintro rfl; rw [sat_guardR0] at hgν; exact hgν.2
-  · rintro rfl; rw [sat_guardR1] at hgν; exact hgν
-  · rintro rfl; rw [sat_guardR2] at hgν; exact hgν
-  · intro μ hμL hμd _ hw
-    refine ⟨⟨(sat_FQ2 μ).mpr ?_, ?_, hμd⟩, trivial⟩
-    · rw [hμL 0, hμL 1]; unfold wR at hw; linarith
-    · refine (Formula.coincidence domLQ2 (fun x hx => ?_)).mpr hdomLν
-      obtain ⟨i, rfl⟩ := hdomLQ2 hx
-      exact hμL i
+    (hg : Formula.sat (hostGuard vsQ2 4 Side.R (mRQ2 q)) σ) :
+    GResp GrG q (gwindowSeg (hostGuard vsQ2 4 Side.L (mLQ2 l)) (leftBlock (fLQ2 l)) domLQ2 tgQ2 dt
+      (1 + 1)) (fun _ => Formula.and (Formula.and (FM gQ2 gsQ2) envQ2) Formula.tt) σ := by
+  have hJD3 : ∀ q, J l q ∨ D l q → q < 3 := by
+    intro q h; rcases h with h | h
+    · exact h.2
+    · unfold D at h; omega
+  refine replay_gresp GrG LR.m fRQ2 domRQ2 (fLQ2 l) domLQ2 (hostGuard vsQ2 4 Side.L (mLQ2 l)) aQ2
+    hgRG (hfLQ2 l hl) hdomLQ2 hdomRQ2 (hguardL l hl) (1001/1000) (by norm_num) (J l) (D l)
+    (fun q h => hfRQ2 q (hJD3 q h)) (fun q => q) (fun q => 2 - q) 3 (fun q h => h.2)
+    (fun q h => LR.modeAt q (hJD3 q h)) (fun _ _ => rfl) (fun q h => LR.dom_m q (hJD3 q h))
+    (anc l) (fun q => anc_fv l q hl)
+    (fun q h => anc_box l q hl h.2 (hJv q h))
+    (fun q h => anc_boxD l q hl (by unfold D at h; omega) (hDv q h))
+    (fun q h => anc_hand l q hl (hJD3 q h))
+    (ladPre Cap domRQ2) (ladPre Cap domRQ2) (ladPre Cap domRQ2) ladPre_R ladPre_R
+    (hmoveR l _ (fun _ _ _ h => h)) (fun _ _ => hmoveR l _ (fun _ _ hJ h => ⟨hJ, h⟩))
+    (hexitR l hl) dt 1 q σ ?_ hσ.2.1 _ ?_
+  · intro hgL
+    have hpre := pre_of_guard q hq σ hg hσ.2.2
+    have hA : Formula.sat (anc l q) σ :=
+      (anc_iff l q hl hq σ).mpr ⟨hσ.1, hO1L l hl σ hgL, hO1R q hq σ hg⟩
+    refine ⟨?_, hA⟩
+    by_cases hlq : l ≤ q
+    · exact Or.inl ⟨⟨hlq, hq⟩, hpre⟩
+    · exact Or.inr ⟨by unfold D; omega, fun h => hlq h.1, hpre⟩
+  · intro ν hwin q' μ hμL hpre hA
+    have hdomLν : Formula.sat domLQ2 ν :=
+      windowSeg_end_domL (leftBlock (fLQ2 l)) domLQ2 tgQ2 dt (1 + 1) (by norm_num) hwin
+    have hq' : q' < 3 := hpre.1
+    have hA' := ((anc_iff l q' hl hq' _).mp hA).1
+    have hF : Formula.sat (FM gQ2 gsQ2) μ := by
+      refine (sat_of_agree (fun x hx => ?_) (fun i => ?_) (fun i => ?_)).mp hA'
+      · by_contra hS
+        exact notMem_FM_fv (fun g' hg' hxg => hS (comps_fv g' hg' hxg)) hx
+      · rw [mergeLR_L, hμL i]
+      · rw [mergeLR_R]
+    refine ⟨⟨hF, ?_, hpre.2.2.2⟩, trivial⟩
+    refine (Formula.coincidence domLQ2 (fun v hv => ?_)).mpr hdomLν
+    obtain ⟨i, rfl⟩ := hdomLQ2 hv
+    exact hμL i
 
-/-! ## Theorem 3 over the guarded automaton -/
+/-! ## Theorem 3 over the gated windows, by replaying the cover -/
 
-/-- **`rung2_6dof`, Theorem 3 over the GUARDED right automaton, at the
-mode-consistent region.** The left: the file's three windows (`bigChoice`, two clocked pieces of
-at most `dt` each); the right: the chain `STEEP → MODER → FLAT` of the file with every edge
-testing the entered band's guard (`GrG_guards`). Loop invariant: the declared rows
-`(s_L − s_R − 0.2) + (v_L − v_R)/3 ≤ 0`, both envelopes, the right in the guard of its current band
-(`mvRegionR` at `gregion`). Response: climb to `FLAT` and hold until `s_R + v_R/3 ≥ s_L + v_L/3 − 0.2` (`climbW`). Z3-free; every window length `dt`. -/
-theorem rung2_6dof_guarded (dt : ℝ) :
+/-- The left windows, each behind its lowered IR guard (the left automaton's edge test). -/
+noncomputable def guardsL : List (Formula (Var 4)) :=
+  (List.range 3).map (fun l => hostGuard vsQ2 4 Side.L (mLQ2 l))
+
+noncomputable def leftDataG : List (Formula (Var 4) × (Fin 4 → Term (Var 4)) × Formula (Var 4) × ℕ) :=
+  gatedData guardsL leftDataQ2
+
+theorem leftDataG_eq : leftDataG =
+    [(hostGuard vsQ2 4 Side.L (mLQ2 0), fLQ2 0, domLQ2, 2),
+     (hostGuard vsQ2 4 Side.L (mLQ2 1), fLQ2 1, domLQ2, 2),
+     (hostGuard vsQ2 4 Side.L (mLQ2 2), fLQ2 2, domLQ2, 2)] := rfl
+
+noncomputable def leftProgsG (dt : ℝ) : List (Program (Var 4)) :=
+  leftDataG.map (fun d => gwindowSeg d.1 (leftBlock d.2.1) d.2.2.1 tgQ2 dt d.2.2.2)
+
+theorem hLG : ∀ d ∈ leftDataG, d.1.fv ⊆ range Lv ∧ (∀ i, (d.2.1 i).fv ⊆ range Lv) ∧
+    d.2.2.1.fv ⊆ range Lv := by
+  intro d hd
+  rw [leftDataG_eq] at hd
+  simp only [List.mem_cons, List.not_mem_nil, or_false] at hd
+  rcases hd with rfl | rfl | rfl
+  · exact ⟨hguardL 0 (by norm_num), hfLQ2 0 (by norm_num), hdomLQ2⟩
+  · exact ⟨hguardL 1 (by norm_num), hfLQ2 1 (by norm_num), hdomLQ2⟩
+  · exact ⟨hguardL 2 (by norm_num), hfLQ2 2 (by norm_num), hdomLQ2⟩
+
+theorem hframesG (dt : ℝ) : ∀ P ∈ leftProgsG dt, FramesMv P mvQ2 := by
+  intro P hP
+  simp only [leftProgsG, List.mem_map] at hP
+  obtain ⟨d, hd, rfl⟩ := hP
+  refine framesMv_gwindow d.1 d.2.1 d.2.2.1 tgQ2 dt d.2.2.2 mvQ2 (by decide) ?_
+  intro h
+  obtain ⟨i, hi⟩ := leftBlock_bound_sub d.2.1 _ h
+  exact aux_ne_Lv 0 i hi
+
+/-- **`refinement_ladder_rover_rung2_6dof`, Theorem 3 by replaying the emitted cover** (over the gated
+windows; carried to the paper's left automaton by `theorem3_leftAut_of_choiceR`). The right
+answers window `l` from band `q` as the cover's derivation does: a band below the window's
+(`dynPre`) repositions alone to the next floor (the reposition pack `VerdD l q`), then the
+right keeps time with the window at the cover's λ = 1 in the joint nodes (`jointOK`: the
+bands at or above the window's), switching up at each floor it reaches, the anchor of each
+pair preserved by its joint pack `Verd l q`; every switch is legal against the entered
+band's guard; the `FLAT` window from `STEEP` is inadmissible. -/
+theorem rung2_6dof_guarded (dt : ℝ)
+    (h00 : Verd 0 0) (h01 : Verd 0 1) (h02 : Verd 0 2) (h11 : Verd 1 1) (h12 : Verd 1 2)
+    (h22 : Verd 2 2) (d10 : VerdD 1 0) (d20 : VerdD 2 0) (d21 : VerdD 2 1) :
     RFormula.rvalid (theorem3Form
-      (bigChoice (leftProgsQ2 dt))
+      (bigChoice (leftProgsG dt))
       (rightAutomatonBody GrG mvQ2)
       (RFormula.and (RFormula.and (canonInvM gQ2 gsQ2) (envLR domLQ2 domRQ2))
         (mvRegionR mvQ2 gregion GrG.modes.length))) := by
   refine theorem3_faithful_multiR_LR GrG mvQ2 (FM gQ2 gsQ2) domLQ2 domRQ2 gregion
-    (leftProgsQ2 dt) (canonInvM gQ2 gsQ2) (encode_canonInvM gQ2 gsQ2) ?_ ?_ ?_
-  · exact hdis_multi_G GrG 0 1 dt leftDataQ2 (by decide) hgRG hRvG hLQ2
-  · refine hstep_assembled_GR GrG mvQ2 (FM gQ2 gsQ2) envQ2 gregion (leftProgsQ2 dt)
-      hmvFQ2 hmvenvQ2 hmvregG hfreshG (guardsFresh_of_right GrG 0 hgRG) hltG (hframesQ2 dt) ?_
+    (leftProgsG dt) (canonInvM gQ2 gsQ2) (encode_canonInvM gQ2 gsQ2) ?_ ?_ ?_
+  · refine sides_disjoint 0 1 0 (by decide) (by decide) ?_ ?_
+    · refine vars_bigChoice_sub _ _ ?_
+      intro p hp
+      simp only [leftProgsG, List.mem_map] at hp
+      obtain ⟨d, hd, rfl⟩ := hp
+      exact vars_gwindowSegL_sub d.1 d.2.1 d.2.2.1 1 dt d.2.2.2 (hLG d hd).1
+        (hLG d hd).2.1 (hLG d hd).2.2
+    · intro x hx
+      rw [Program.rename_refl] at hx
+      rcases vars_bodyG_sub GrG _ hgRG hRvG hx with hx | hx
+      · exact Or.inl (Set.mem_insert_iff.mpr (Or.inl (Set.mem_singleton_iff.mp hx)))
+      · exact Or.inr hx
+  · refine hstep_assembled_GR GrG mvQ2 (FM gQ2 gsQ2) envQ2 gregion (leftProgsG dt)
+      hmvFQ2 hmvenvQ2 hmvregG hfreshG (guardsFresh_of_right GrG 0 hgRG) hltG (hframesG dt) ?_
     refine Hmulti_regionG GrG mvQ2 _ (fun _ => Formula.tt) GrG_guards (FM gQ2 gsQ2) envQ2
-      (leftProgsQ2 dt) ?_ ?_
+      (leftProgsG dt) ?_ ?_
     · intro P hP q _ σ ν hrun
-      simp only [leftProgsQ2, List.mem_map] at hP
+      simp only [leftProgsG, List.mem_map] at hP
       obtain ⟨d, hd, rfl⟩ := hP
-      exact frames_right (vars_windowSegL_sub d.1 d.2.1 1 dt d.2.2 (hLQ2 d hd).1 (hLQ2 d hd).2)
-        (hguardR_all q) hrun
+      exact frames_right (vars_gwindowSegL_sub d.1 d.2.1 d.2.2.1 1 dt d.2.2.2 (hLG d hd).1
+        (hLG d hd).2.1 (hLG d hd).2.2) (hguardR_all q) hrun
     · intro P hP q hq σ _ hσ hg _
       rw [GrG_len] at hq
-      simp only [leftProgsQ2, leftDataQ2, List.map_cons, List.map_nil, List.mem_cons,
+      simp only [leftProgsG, leftDataG_eq, List.map_cons, List.map_nil, List.mem_cons,
         List.not_mem_nil, or_false] at hP
       rcases hP with rfl | rfl | rfl
-      · exact respondG 0 (by norm_num) dt q hq hσ hg
-      · exact respondG 1 (by norm_num) dt q hq hσ hg
-      · exact respondG 2 (by norm_num) dt q hq hσ hg
-  · exact hddF_multiR_plain_G GrG 0 1 dt leftDataQ2 gregion (canonInvM gQ2 gsQ2) domLQ2 domRQ2
-      (by decide) hgRG hRvG hLQ2 (fun q _ => gregion_fv q)
+      · refine respondR 0 (by norm_num) dt (fun q h => ?_) (fun q h => ?_) q hq hσ hg
+        · obtain ⟨-, h3⟩ := h
+          interval_cases q
+          · exact h00
+          · exact h01
+          · exact h02
+        · unfold D at h; omega
+      · refine respondR 1 (by norm_num) dt (fun q h => ?_) (fun q h => ?_) q hq hσ hg
+        · obtain ⟨h1, h3⟩ := h
+          interval_cases q
+          · exact h11
+          · exact h12
+        · unfold D at h
+          have : q = 0 := by omega
+          subst this; exact d10
+      · refine respondR 2 (by norm_num) dt (fun q h => ?_) (fun q h => ?_) q hq hσ hg
+        · obtain ⟨h1, h3⟩ := h
+          interval_cases q
+          exact h22
+        · unfold D at h
+          interval_cases q
+          · exact d20
+          · exact d21
+  · exact hddF_multiR_G GrG 0 1 dt leftDataG gregion (canonInvM gQ2 gsQ2) domLQ2 domRQ2
+      (by decide) hgRG hRvG hLG (fun q _ => gregion_fv q)
       (canonInvM_varsL gQ2 gsQ2 (by
         intro g' hg'
         simp only [gQ2, gsQ2, List.mem_cons, List.not_mem_nil, or_false] at hg'

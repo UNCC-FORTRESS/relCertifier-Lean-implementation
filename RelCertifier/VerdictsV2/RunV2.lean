@@ -243,10 +243,24 @@ def packsV2 : List PackV2 :=
     ⟨"story3_rollover_ladder_rung_a", 12, 0, [0, 1, 2], 27, 20, 0, 2⟩,
     ⟨"story3_rollover_ladder_rung_a", 12, 0, [0, 1, 2], 27, 20, 1, 1⟩,
     ⟨"story3_rollover_ladder_rung_a", 12, 0, [0, 1, 2], 27, 20, 1, 2⟩,
-    ⟨"story3_rollover_ladder_rung_a", 12, 0, [0, 1, 2], 27, 20, 2, 2⟩ ]
+    ⟨"story3_rollover_ladder_rung_a", 12, 0, [0, 1, 2], 27, 20, 2, 2⟩,
+    -- refinement_ladder_rover_rung2_6dof (cover replay)
+    ⟨"refinement_ladder_rover_rung2_6dof", 4, 0, [0], 1001, 1000, 0, 0⟩,
+    ⟨"refinement_ladder_rover_rung2_6dof", 4, 0, [0], 1001, 1000, 0, 1⟩,
+    ⟨"refinement_ladder_rover_rung2_6dof", 4, 0, [0], 1001, 1000, 0, 2⟩,
+    ⟨"refinement_ladder_rover_rung2_6dof", 4, 0, [0], 1001, 1000, 1, 1⟩,
+    ⟨"refinement_ladder_rover_rung2_6dof", 4, 0, [0], 1001, 1000, 1, 2⟩,
+    ⟨"refinement_ladder_rover_rung2_6dof", 4, 0, [0], 1001, 1000, 2, 2⟩,
+    -- refinement_ladder_rover_rung2b_6dof (cover replay)
+    ⟨"refinement_ladder_rover_rung2b_6dof", 6, 0, [0], 1001, 1000, 0, 0⟩,
+    ⟨"refinement_ladder_rover_rung2b_6dof", 6, 0, [0], 1001, 1000, 0, 1⟩,
+    ⟨"refinement_ladder_rover_rung2b_6dof", 6, 0, [0], 1001, 1000, 0, 2⟩,
+    ⟨"refinement_ladder_rover_rung2b_6dof", 6, 0, [0], 1001, 1000, 1, 1⟩,
+    ⟨"refinement_ladder_rover_rung2b_6dof", 6, 0, [0], 1001, 1000, 1, 2⟩,
+    ⟨"refinement_ladder_rover_rung2b_6dof", 6, 0, [0], 1001, 1000, 2, 2⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 406
+def expectedModalV2 : Nat := 418
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
@@ -346,10 +360,18 @@ def dynPacksV2 : List DynPackV2 :=
     ⟨"story3_rollover_base_12dof", 12, 0, [0, 1, 2, 3, 4], true, 2, 1⟩,
     -- story3_rollover_ladder_rung_a
     ⟨"story3_rollover_ladder_rung_a", 12, 0, [0, 1, 2], true, 1, 0⟩,
-    ⟨"story3_rollover_ladder_rung_a", 12, 0, [0, 1, 2], true, 2, 1⟩ ]
+    ⟨"story3_rollover_ladder_rung_a", 12, 0, [0, 1, 2], true, 2, 1⟩,
+    -- refinement_ladder_rover_rung2_6dof
+    ⟨"refinement_ladder_rover_rung2_6dof", 4, 0, [0], true, 1, 0⟩,
+    ⟨"refinement_ladder_rover_rung2_6dof", 4, 0, [0], true, 2, 0⟩,
+    ⟨"refinement_ladder_rover_rung2_6dof", 4, 0, [0], true, 2, 1⟩,
+    -- refinement_ladder_rover_rung2b_6dof
+    ⟨"refinement_ladder_rover_rung2b_6dof", 6, 0, [0], true, 1, 0⟩,
+    ⟨"refinement_ladder_rover_rung2b_6dof", 6, 0, [0], true, 2, 0⟩,
+    ⟨"refinement_ladder_rover_rung2b_6dof", 6, 0, [0], true, 2, 1⟩ ]
 
 /-- Declared: the number of component queries the reposition packs owe. -/
-def expectedDynV2 : Nat := 48
+def expectedDynV2 : Nat := 54
 
 def runDynPack (s : Z3Session) (r : DynPackV2) : IO Bool := do
   let p := irV2 r.bench

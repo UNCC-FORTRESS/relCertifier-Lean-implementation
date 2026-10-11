@@ -485,12 +485,14 @@ theorem hgrdLA : ∀ g ∈ (List.range 3).map (fun l => hostGuard vsQ2 4 Side.L 
 (jump, then flow) against the guarded right automaton, the declared rows for every left mode,
 the right in its current mode's guard and cuts. From `rung2_6dof_guarded` by the generic bridge
 `theorem3_leftAut_of_choiceR`. -/
-theorem rung2_6dof_leftAut (dt : ℝ) :
+theorem rung2_6dof_leftAut (dt : ℝ)
+    (h00 : Verd 0 0) (h01 : Verd 0 1) (h02 : Verd 0 2) (h11 : Verd 1 1) (h12 : Verd 1 2)
+    (h22 : Verd 2 2) (d10 : VerdD 1 0) (d20 : VerdD 2 0) (d21 : VerdD 2 1) :
     RFormula.rvalid (theorem3Form (leftAutomatonBody (AL dt) uLA) (rightAutomatonBody GrG mvQ2)
       (psiK uLA (fun _ => canonInvM gQ2 gsQ2) (AL dt).numModes domLQ2 domRQ2
         (mvRegionR mvQ2 gregion GrG.modes.length))) :=
   theorem3_leftAut_of_choiceR (AL dt) 0 1 2 (by decide) _ _ _ domLQ2 domRQ2 gregion _
-    (rung2_6dof_guarded dt)
+    (rung2_6dof_guarded dt h00 h01 h02 h11 h12 h22 d10 d20 d21)
     (fun q _ => gregion_fv q)
       (canonInvM_varsL gQ2 gsQ2 (by
         intro g' hg'
@@ -499,7 +501,7 @@ theorem rung2_6dof_leftAut (dt : ℝ) :
       (canonInvM_varsR gQ2 gsQ2) hdomLQ2 hdomRQ2
     (LeftAut.ofP_vars leftDataQ2 _ 1 dt nextLA hLQ2 hgrdLA).1 (fun t _ => (LeftAut.ofP_vars leftDataQ2 _ 1 dt nextLA hLQ2 hgrdLA).2 t)
     (LeftAut.ofP_hnext leftDataQ2 _ tgQ2 dt nextLA 3 rfl (by rw [nextLA_eq]; decide))
-    (LeftAut.ofP_hsim leftDataQ2 _ tgQ2 dt nextLA)
+    (ofP_hsim_gated leftDataQ2 _ tgQ2 dt nextLA rfl)
 
 end RoverRung26dofGuarded
 
@@ -536,12 +538,14 @@ theorem hgrdLA : ∀ g ∈ (List.range 3).map (fun l => hostGuard vsB2 6 Side.L 
 (jump, then flow) against the guarded right automaton, the declared rows for every left mode,
 the right in its current mode's guard and cuts. From `rung2b_6dof_guarded` by the generic bridge
 `theorem3_leftAut_of_choiceR`. -/
-theorem rung2b_6dof_leftAut (dt : ℝ) :
+theorem rung2b_6dof_leftAut (dt : ℝ)
+    (h00 : Verd 0 0) (h01 : Verd 0 1) (h02 : Verd 0 2) (h11 : Verd 1 1) (h12 : Verd 1 2)
+    (h22 : Verd 2 2) (d10 : VerdD 1 0) (d20 : VerdD 2 0) (d21 : VerdD 2 1) :
     RFormula.rvalid (theorem3Form (leftAutomatonBody (AL dt) uLA) (rightAutomatonBody GrG mvB2)
       (psiK uLA (fun _ => canonInvM gB2 gsB2) (AL dt).numModes domLB2 domRB2
         (mvRegionR mvB2 gregion GrG.modes.length))) :=
   theorem3_leftAut_of_choiceR (AL dt) 0 1 2 (by decide) _ _ _ domLB2 domRB2 gregion _
-    (rung2b_6dof_guarded dt)
+    (rung2b_6dof_guarded dt h00 h01 h02 h11 h12 h22 d10 d20 d21)
     (fun q _ => gregion_fv q)
       (canonInvM_varsL gB2 gsB2 (by
         intro g' hg'
@@ -550,7 +554,7 @@ theorem rung2b_6dof_leftAut (dt : ℝ) :
       (canonInvM_varsR gB2 gsB2) hdomLB2 hdomRB2
     (LeftAut.ofP_vars leftDataB2 _ 1 dt nextLA hLB2 hgrdLA).1 (fun t _ => (LeftAut.ofP_vars leftDataB2 _ 1 dt nextLA hLB2 hgrdLA).2 t)
     (LeftAut.ofP_hnext leftDataB2 _ tgB2 dt nextLA 3 rfl (by rw [nextLA_eq]; decide))
-    (LeftAut.ofP_hsim leftDataB2 _ tgB2 dt nextLA)
+    (ofP_hsim_gated leftDataB2 _ tgB2 dt nextLA rfl)
 
 end RoverRung2b6dofGuarded
 

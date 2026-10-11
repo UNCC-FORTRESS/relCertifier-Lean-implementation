@@ -13,6 +13,7 @@ so a wrong row does not compile; with `modalVerdX_of_queries` (the rebuild denot
 kernel-checked.
 -/
 import RelCertifier.VerdictsV2.RunV2
+import RelCertifier.InstancesV2.Modal.ArmPlateauSlow
 import RelCertifier.InstancesV2.Modal.ArmPlateauProfiles
 import RelCertifier.InstancesV2.Modal.ArmPlateauCrit
 import RelCertifier.Instances.MatchMultiRateGuarded
@@ -737,5 +738,22 @@ theorem pin_armp_j8 : V2ArmPlateauProfiles.Verd 1 3 = packVerd (packsV2.getD 232
   pin_row _ rfl irV2_armp cutV2_armp (by simp [packLam, packsV2])
 theorem pin_armp_j9 : V2ArmPlateauProfiles.Verd 1 4 = packVerd (packsV2.getD 233 default) :=
   pin_row _ rfl irV2_armp cutV2_armp (by simp [packLam, packsV2])
+
+theorem irV2_arms : irV2 "arm_plateau_slow" = arm_plateau_slow_IRv2 := by decide
+theorem cutV2_arms : cutV2 "arm_plateau_slow" = Oracle.arm_plateau_slow_cutsV2X := by decide
+theorem pin_arms_j0 : V2ArmPlateauSlow.Verd 0 0 = packVerd (packsV2.getD 234 default) :=
+  pin_row _ rfl irV2_arms cutV2_arms (by simp [packLam, packsV2])
+theorem pin_arms_j1 : V2ArmPlateauSlow.Verd 0 2 = packVerd (packsV2.getD 235 default) :=
+  pin_row _ rfl irV2_arms cutV2_arms (by simp [packLam, packsV2])
+theorem pin_arms_j2 : V2ArmPlateauSlow.Verd 0 3 = packVerd (packsV2.getD 236 default) :=
+  pin_row _ rfl irV2_arms cutV2_arms (by simp [packLam, packsV2])
+theorem pin_arms_j3 : V2ArmPlateauSlow.Verd 1 1 = packVerd (packsV2.getD 237 default) :=
+  pin_row _ rfl irV2_arms cutV2_arms (by simp [packLam, packsV2])
+theorem pin_arms_j4 : V2ArmPlateauSlow.Verd 1 2 = packVerd (packsV2.getD 238 default) :=
+  pin_row _ rfl irV2_arms cutV2_arms (by simp [packLam, packsV2])
+theorem pin_arms_j5 : V2ArmPlateauSlow.Verd 1 3 = packVerd (packsV2.getD 239 default) :=
+  pin_row _ rfl irV2_arms cutV2_arms (by simp [packLam, packsV2])
+theorem pin_arms_d0 : V2ArmPlateauSlow.VerdD 0 1 = dynPackVerd (dynPacksV2.getD 25 default) :=
+  pin_dyn_row _ rfl irV2_arms cutV2_arms
 
 end RelCertifier.VerdictsV2

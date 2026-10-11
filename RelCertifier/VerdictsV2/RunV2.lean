@@ -331,10 +331,17 @@ def packsV2 : List PackV2 :=
     ⟨"arm_plateau_profiles", 2, 1, [0], 1, 1, 1, 1⟩,
     ⟨"arm_plateau_profiles", 2, 1, [0], 1, 1, 1, 2⟩,
     ⟨"arm_plateau_profiles", 2, 1, [0], 1, 1, 1, 3⟩,
-    ⟨"arm_plateau_profiles", 2, 1, [0], 1, 1, 1, 4⟩ ]
+    ⟨"arm_plateau_profiles", 2, 1, [0], 1, 1, 1, 4⟩,
+    -- arm_plateau_slow (cover replay)
+    ⟨"arm_plateau_slow", 2, 0, [0], 1, 1, 0, 0⟩,
+    ⟨"arm_plateau_slow", 2, 0, [0], 1, 1, 0, 2⟩,
+    ⟨"arm_plateau_slow", 2, 0, [0], 1, 1, 0, 3⟩,
+    ⟨"arm_plateau_slow", 2, 1, [0], 1, 1, 1, 1⟩,
+    ⟨"arm_plateau_slow", 2, 1, [0], 1, 1, 1, 2⟩,
+    ⟨"arm_plateau_slow", 2, 1, [0], 1, 1, 1, 3⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 625
+def expectedModalV2 : Nat := 631
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
@@ -444,10 +451,12 @@ def dynPacksV2 : List DynPackV2 :=
     ⟨"refinement_ladder_rover_rung2b_6dof", 6, 0, [0], true, 2, 0⟩,
     ⟨"refinement_ladder_rover_rung2b_6dof", 6, 0, [0], true, 2, 1⟩,
     -- arm_plateau_crit
-    ⟨"arm_plateau_crit", 2, 1, [0], true, 1, 0⟩ ]
+    ⟨"arm_plateau_crit", 2, 1, [0], true, 1, 0⟩,
+    -- arm_plateau_slow
+    ⟨"arm_plateau_slow", 2, 0, [0], true, 0, 1⟩ ]
 
 /-- Declared: the number of component queries the reposition packs owe. -/
-def expectedDynV2 : Nat := 55
+def expectedDynV2 : Nat := 56
 
 def runDynPack (s : Z3Session) (r : DynPackV2) : IO Bool := do
   let p := irV2 r.bench

@@ -22,6 +22,10 @@ import RelCertifier.Instances.Story1AttdistRungBHandoff
 import RelCertifier.Proofs.Encoding.LadderSync
 import RelCertifier.Instances.GuardedPins
 import RelCertifier.Proofs.Encoding.WindowGrowth
+import RelCertifier.Proofs.Encoding.LadderReplay
+import RelCertifier.Proofs.Encoding.ReplayComps
+import RelCertifier.Proofs.Encoding.ReplayModeKeyed
+import RelCertifier.InstancesV2.Cuts.story1_attdist_rung_b_12dof
 
 set_option linter.unusedSimpArgs false
 set_option maxHeartbeats 3200000
@@ -29,7 +33,7 @@ set_option maxHeartbeats 3200000
 namespace RelCertifier
 namespace Story1AttdistRungBGuarded
 
-open DL DLCalTiming DLRel Parse Set Story1AttdistRungBModal Story1AttdistRungBHandoff GPins
+open DL DLCalTiming DLRel Parse Set Story1AttdistRungBModal Story1AttdistRungBHandoff GPins RelCertifier.Oracle
 
 /-! ## The guarded right graph -/
 
@@ -326,140 +330,304 @@ theorem LR_run_attitude (q q' : ℕ) (ρ : State (Var 12)) (t : ℝ) (i : Fin 12
     (h1 : i ≠ 1) : LR.run q ρ t (Rv i) = LR.run q' ρ t (Rv i) := by
   rw [LR_run, LR_run, trajR_R, trajR_R, phiK_other _ _ q ρ i h0 h1, phiK_other _ _ q' ρ i h0 h1]
 
-/-! ## The anchors: row `r` and the ceiling of band `m` -/
+/-! ## The emitted cover's data: the extended cut certificate, concretely -/
 
-noncomputable def anc (r m : ℕ) : Formula (Var 12) := FM (gR r) (gs9R r m)
+noncomputable def guardF (l : ℕ) : Formula (Var 12) := hostGuard vsF 12 Side.L (mLF l)
 
-theorem anc_fv (r m : ℕ) : (anc r m).fv ⊆ range Lv ∪ range Rv := by
+theorem hguardL (l : ℕ) (hl : l < 3) : (guardF l).fv ⊆ range Lv :=
+  hostGuard_fv_L vsF (mLF l) (by interval_cases l <;> decide)
+
+def aS (k : String) : PForm := .cmp ">=" (.var "s") (.num k)
+def sStr (l : ℕ) : String := if l = 0 then "0.0" else if l = 1 then "0.6" else "1.4"
+noncomputable def sK (l : ℕ) : ℝ := if l = 0 then 0 else if l = 1 then 3/5 else 7/5
+
+noncomputable def cL (l : ℕ) : List (CutAtomP 12) :=
+  cutPairsX vsF 12 Side.L (cutAtomsOfX story1_attdist_rung_b_12dof_cutsV2X.L (mLF l).name)
+noncomputable def cR (q : ℕ) : List (CutAtomP 12) :=
+  cutPairsX vsF 12 Side.R (cutAtomsOfX story1_attdist_rung_b_12dof_cutsV2X.R (mRF q).name)
+
+theorem gL_s (l : ℕ) (hl : l < 3) : hostAtomG vsF 12 Side.L (aS (sStr l)) = thrGe (Lv 1) (sK l) := by
+  interval_cases l <;>
+  simp [aS, sStr, sK, hostAtomG, cutAtomG, Run.lowerE, gp_0_0, gp_0_6, gp_1_4, vsF,
+    Run.resolveVar, List.findIdx?_cons, ITerm.toHost, thrGe, Lv]
+theorem gR_s (q : ℕ) (hq : q < 3) : hostAtomG vsF 12 Side.R (aS (sStr q)) = thrGe (Rv 1) (sK q) := by
+  interval_cases q <;>
+  simp [aS, sStr, sK, hostAtomG, cutAtomG, Run.lowerE, gp_0_0, gp_0_6, gp_1_4, vsF,
+    Run.resolveVar, List.findIdx?_cons, ITerm.toHost, thrGe, Rv]
+
+theorem cL_eq (l : ℕ) (hl : l < 3) :
+    cL l = [(hostAtomF vsF 12 Side.L (aS (sStr l)), thrGe (Lv 1) (sK l))] := by
+  rw [← gL_s l hl]; interval_cases l <;> rfl
+theorem cR_eq (q : ℕ) (hq : q < 3) :
+    cR q = [(hostAtomF vsF 12 Side.R (aS (sStr q)), thrGe (Rv 1) (sK q))] := by
+  rw [← gR_s q hq]; interval_cases q <;> rfl
+
+theorem hiffL (l : ℕ) (hl : l < 3) : AtomsIff (cL l) := by
+  rw [cL_eq l hl]
+  intro a ha ν
+  simp only [List.mem_cons, List.not_mem_nil, or_false] at ha
+  subst ha
+  rw [← gL_s l hl]; exact hostAtom_iff (Or.inr rfl) ν
+theorem hiffR (q : ℕ) (hq : q < 3) : AtomsIff (cR q) := by
+  rw [cR_eq q hq]
+  intro a ha ν
+  simp only [List.mem_cons, List.not_mem_nil, or_false] at ha
+  subst ha
+  rw [← gR_s q hq]; exact hostAtom_iff (Or.inr rfl) ν
+
+/-! ## O1: guards imply the kept atoms (the extended certificate, kernel-checked) -/
+
+theorem hO1L (l : ℕ) (hl : l < 3) :
+    ∀ ν, Formula.sat (hostGuard vsF 12 Side.L (mLF l)) ν → CutSat (cL l) ν := by
+  intro ν hν
+  refine cutSatL_of_guard story1_attdist_rung_b_12dof_cutsV2X_wf (mLF l) ?_ ?_ ?_ ?_ ν hν
+  · interval_cases l <;> rfl
+  · interval_cases l <;>
+    · intro x hx
+      simp [cutAtomsOfX, story1_attdist_rung_b_12dof_cutsV2X, mLF,
+        story1_attdist_rung_b_12dof_IR] at hx
+      rcases hx with rfl <;> simp
+  · interval_cases l <;>
+    · intro x hx
+      simp [cutAtomsOfX, story1_attdist_rung_b_12dof_cutsV2X, mLF,
+        story1_attdist_rung_b_12dof_IR] at hx
+      rcases hx with rfl <;>
+        simp [Run.lowerF, Run.lowerE, gp_0_0, gp_0_6, gp_1_4, vsF,
+          Run.resolveVar, List.findIdx?_cons]
+  · interval_cases l <;>
+      simp [mLF, story1_attdist_rung_b_12dof_IR, Run.lowerF, Run.lowerE, gp_0, gp_0_0, gp_0_05, gp_0_06, gp_0_0625, gp_0_07, gp_0_0775, gp_0_08, gp_0_085, gp_0_1, gp_0_125, gp_0_15, gp_0_156, gp_0_2, gp_0_205, gp_0_25, gp_0_255, gp_0_3, gp_0_30, gp_0_33, gp_0_35, gp_0_355, gp_0_4, gp_0_45, gp_0_48, gp_0_5, gp_0_50, gp_0_55, gp_0_6, gp_0_65, gp_0_6775, gp_0_7, gp_0_72, gp_0_75, gp_0_8, gp_0_84, gp_0_855, gp_0_88, gp_0_9, gp_0_95, gp_1, gp_10, gp_1000_0, gp_100_0, gp_10_0, gp_12_0, gp_12_45, gp_12_5, gp_13_0, gp_15_0, gp_15_5, gp_16, gp_16_0, gp_17_0, gp_1_0, gp_1_001, gp_1_1, gp_1_125, gp_1_15, gp_1_2, gp_1_25, gp_1_3, gp_1_4, gp_1_5, gp_1_52, gp_1_6, gp_1_62, gp_1_68, gp_1_8, gp_2, gp_20_0, gp_21_0, gp_22_0, gp_23_0, gp_24_0, gp_25_0, gp_26_0, gp_27_0, gp_28_0, gp_29_0, gp_2_0, gp_2_1, gp_2_2, gp_2_25, gp_2_5, gp_2_6, gp_3, gp_30_0, gp_32_0, gp_33_0, gp_34_0, gp_35_0, gp_36_0, gp_3_0, gp_3_04, gp_3_2, gp_3_5, gp_3_6, gp_4, gp_40_0, gp_4_0, gp_4_4, gp_5, gp_50_0, gp_5_0, gp_5_5, gp_60_0, gp_6_0, gp_6_5, gp_7_45, gp_8, gp_80_0, gp_899_95, gp_8_0, gp_8_45, gp_90_0, gp_99_0, gp_9_0, gp_9_524, gp_m0_01, gp_m0_125, gp_m0_2, gp_m0_25, gp_m0_3, gp_m0_4, gp_m0_42, gp_m0_45, gp_m0_5, gp_m0_6, gp_m0_7, gp_m0_75, gp_m0_8, gp_m1, gp_m10_0, gp_m1_0, gp_m1_5, gp_m1_52, gp_m2, gp_m2_0, gp_m2_5, gp_m3_04, gp_m4, vsF,
+        Run.resolveVar, List.findIdx?_cons]
+
+theorem hO1R (q : ℕ) (hq : q < 3) :
+    ∀ ν, Formula.sat (hostGuard vsF 12 Side.R (mRF q)) ν → CutSat (cR q) ν := by
+  intro ν hν
+  refine cutSatR_of_guard story1_attdist_rung_b_12dof_cutsV2X_wf (mRF q) ?_ ?_ ?_ ?_ ν hν
+  · interval_cases q <;> rfl
+  · interval_cases q <;>
+    · intro x hx
+      simp [cutAtomsOfX, story1_attdist_rung_b_12dof_cutsV2X, mRF,
+        story1_attdist_rung_b_12dof_IR] at hx
+      rcases hx with rfl <;> simp
+  · interval_cases q <;>
+    · intro x hx
+      simp [cutAtomsOfX, story1_attdist_rung_b_12dof_cutsV2X, mRF,
+        story1_attdist_rung_b_12dof_IR] at hx
+      rcases hx with rfl <;>
+        simp [Run.lowerF, Run.lowerE, gp_0_0, gp_0_6, gp_1_4, vsF, Run.resolveVar,
+          List.findIdx?_cons]
+  · interval_cases q <;>
+      simp [mRF, story1_attdist_rung_b_12dof_IR, Run.lowerF, Run.lowerE, gp_0, gp_0_0, gp_0_05, gp_0_06, gp_0_0625, gp_0_07, gp_0_0775, gp_0_08, gp_0_085, gp_0_1, gp_0_125, gp_0_15, gp_0_156, gp_0_2, gp_0_205, gp_0_25, gp_0_255, gp_0_3, gp_0_30, gp_0_33, gp_0_35, gp_0_355, gp_0_4, gp_0_45, gp_0_48, gp_0_5, gp_0_50, gp_0_55, gp_0_6, gp_0_65, gp_0_6775, gp_0_7, gp_0_72, gp_0_75, gp_0_8, gp_0_84, gp_0_855, gp_0_88, gp_0_9, gp_0_95, gp_1, gp_10, gp_1000_0, gp_100_0, gp_10_0, gp_12_0, gp_12_45, gp_12_5, gp_13_0, gp_15_0, gp_15_5, gp_16, gp_16_0, gp_17_0, gp_1_0, gp_1_001, gp_1_1, gp_1_125, gp_1_15, gp_1_2, gp_1_25, gp_1_3, gp_1_4, gp_1_5, gp_1_52, gp_1_6, gp_1_62, gp_1_68, gp_1_8, gp_2, gp_20_0, gp_21_0, gp_22_0, gp_23_0, gp_24_0, gp_25_0, gp_26_0, gp_27_0, gp_28_0, gp_29_0, gp_2_0, gp_2_1, gp_2_2, gp_2_25, gp_2_5, gp_2_6, gp_3, gp_30_0, gp_32_0, gp_33_0, gp_34_0, gp_35_0, gp_36_0, gp_3_0, gp_3_04, gp_3_2, gp_3_5, gp_3_6, gp_4, gp_40_0, gp_4_0, gp_4_4, gp_5, gp_50_0, gp_5_0, gp_5_5, gp_60_0, gp_6_0, gp_6_5, gp_7_45, gp_8, gp_80_0, gp_899_95, gp_8_0, gp_8_45, gp_90_0, gp_99_0, gp_9_0, gp_9_524, gp_m0_01, gp_m0_125, gp_m0_2, gp_m0_25, gp_m0_3, gp_m0_4, gp_m0_42, gp_m0_45, gp_m0_5, gp_m0_6, gp_m0_7, gp_m0_75, gp_m0_8, gp_m1, gp_m10_0, gp_m1_0, gp_m1_5, gp_m1_52, gp_m2, gp_m2_0, gp_m2_5, gp_m3_04, gp_m4, vsF,
+        Run.resolveVar, List.findIdx?_cons]
+
+/-! ## The fields and envelopes the atoms' staying needs -/
+
+theorem fLF_eval1 (l : ℕ) (hl : l < 3) (x : State (Var 12)) :
+    Term.eval (fLF l 1) x =
+      x (Lv 0) * ((1 - 1/2 * (x (Lv 2) * x (Lv 2))) - 3/10 * (x (Lv 4) * x (Lv 4))) := by
+  interval_cases l <;>
+    simp [fLF, hostDyn, mLF, story1_attdist_rung_b_12dof_IR, vsF, Run.dynOf,
+      Run.lowerE, gp_0, gp_0_0, gp_0_05, gp_0_06, gp_0_0625, gp_0_07, gp_0_0775, gp_0_08, gp_0_085, gp_0_1, gp_0_125, gp_0_15, gp_0_156, gp_0_2, gp_0_205, gp_0_25, gp_0_255, gp_0_3, gp_0_30, gp_0_33, gp_0_35, gp_0_355, gp_0_4, gp_0_45, gp_0_48, gp_0_5, gp_0_50, gp_0_55, gp_0_6, gp_0_65, gp_0_6775, gp_0_7, gp_0_72, gp_0_75, gp_0_8, gp_0_84, gp_0_855, gp_0_88, gp_0_9, gp_0_95, gp_1, gp_10, gp_1000_0, gp_100_0, gp_10_0, gp_12_0, gp_12_45, gp_12_5, gp_13_0, gp_15_0, gp_15_5, gp_16, gp_16_0, gp_17_0, gp_1_0, gp_1_001, gp_1_1, gp_1_125, gp_1_15, gp_1_2, gp_1_25, gp_1_3, gp_1_4, gp_1_5, gp_1_52, gp_1_6, gp_1_62, gp_1_68, gp_1_8, gp_2, gp_20_0, gp_21_0, gp_22_0, gp_23_0, gp_24_0, gp_25_0, gp_26_0, gp_27_0, gp_28_0, gp_29_0, gp_2_0, gp_2_1, gp_2_2, gp_2_25, gp_2_5, gp_2_6, gp_3, gp_30_0, gp_32_0, gp_33_0, gp_34_0, gp_35_0, gp_36_0, gp_3_0, gp_3_04, gp_3_2, gp_3_5, gp_3_6, gp_4, gp_40_0, gp_4_0, gp_4_4, gp_5, gp_50_0, gp_5_0, gp_5_5, gp_60_0, gp_6_0, gp_6_5, gp_7_45, gp_8, gp_80_0, gp_899_95, gp_8_0, gp_8_45, gp_90_0, gp_99_0, gp_9_0, gp_9_524, gp_m0_01, gp_m0_125, gp_m0_2, gp_m0_25, gp_m0_3, gp_m0_4, gp_m0_42, gp_m0_45, gp_m0_5, gp_m0_6, gp_m0_7, gp_m0_75, gp_m0_8, gp_m1, gp_m10_0, gp_m1_0, gp_m1_5, gp_m1_52, gp_m2, gp_m2_0, gp_m2_5, gp_m3_04, gp_m4, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
+      Term.eval, AOp.interp, Lv]
+
+theorem domL_bnd (z : State (Var 12)) (hz : Formula.sat domLF z) :
+    0 ≤ z (Lv 0) ∧ -(3:ℝ)/5 ≤ z (Lv 2) ∧ z (Lv 2) ≤ 3/5 ∧ -(3:ℝ)/5 ≤ z (Lv 4) ∧
+      z (Lv 4) ≤ 3/5 := by
+  simp only [domLF, hostEvolve, mLF, story1_attdist_rung_b_12dof_IR, vsF] at hz
+  simp [Run.lowerF, Run.lowerE, gp_0, gp_0_0, gp_0_05, gp_0_06, gp_0_0625, gp_0_07, gp_0_0775, gp_0_08, gp_0_085, gp_0_1, gp_0_125, gp_0_15, gp_0_156, gp_0_2, gp_0_205, gp_0_25, gp_0_255, gp_0_3, gp_0_30, gp_0_33, gp_0_35, gp_0_355, gp_0_4, gp_0_45, gp_0_48, gp_0_5, gp_0_50, gp_0_55, gp_0_6, gp_0_65, gp_0_6775, gp_0_7, gp_0_72, gp_0_75, gp_0_8, gp_0_84, gp_0_855, gp_0_88, gp_0_9, gp_0_95, gp_1, gp_10, gp_1000_0, gp_100_0, gp_10_0, gp_12_0, gp_12_45, gp_12_5, gp_13_0, gp_15_0, gp_15_5, gp_16, gp_16_0, gp_17_0, gp_1_0, gp_1_001, gp_1_1, gp_1_125, gp_1_15, gp_1_2, gp_1_25, gp_1_3, gp_1_4, gp_1_5, gp_1_52, gp_1_6, gp_1_62, gp_1_68, gp_1_8, gp_2, gp_20_0, gp_21_0, gp_22_0, gp_23_0, gp_24_0, gp_25_0, gp_26_0, gp_27_0, gp_28_0, gp_29_0, gp_2_0, gp_2_1, gp_2_2, gp_2_25, gp_2_5, gp_2_6, gp_3, gp_30_0, gp_32_0, gp_33_0, gp_34_0, gp_35_0, gp_36_0, gp_3_0, gp_3_04, gp_3_2, gp_3_5, gp_3_6, gp_4, gp_40_0, gp_4_0, gp_4_4, gp_5, gp_50_0, gp_5_0, gp_5_5, gp_60_0, gp_6_0, gp_6_5, gp_7_45, gp_8, gp_80_0, gp_899_95, gp_8_0, gp_8_45, gp_90_0, gp_99_0, gp_9_0, gp_9_524, gp_m0_01, gp_m0_125, gp_m0_2, gp_m0_25, gp_m0_3, gp_m0_4, gp_m0_42, gp_m0_45, gp_m0_5, gp_m0_6, gp_m0_7, gp_m0_75, gp_m0_8, gp_m1, gp_m10_0, gp_m1_0, gp_m1_5, gp_m1_52, gp_m2, gp_m2_0, gp_m2_5, gp_m3_04, gp_m4, Run.resolveVar, List.findIdx?_cons, IForm.toHost,
+    ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Lv] at hz
+  casesm* _ ∧ _
+  exact ⟨by linarith, by linarith, by linarith, by linarith, by linarith⟩
+
+theorem sdotL_nonneg (l : ℕ) (hl : l < 3) (z : State (Var 12)) (hz : Formula.sat domLF z) :
+    0 ≤ Term.eval (fLF l 1) z := by
+  rw [fLF_eval1 l hl]
+  obtain ⟨h0, h1, h2, h3, h4⟩ := domL_bnd z hz
+  have : (0:ℝ) ≤ (1 - 1/2 * (z (Lv 2) * z (Lv 2))) - 3/10 * (z (Lv 4) * z (Lv 4)) := by nlinarith
+  exact mul_nonneg h0 this
+
+theorem sdotR_nonneg (q : ℕ) (hq : q < 3) (z : State (Var 12)) (hz : Formula.sat domRF z) :
+    0 ≤ Term.eval (fRF q 1) z := by
+  rw [fRF1_eval q hq]
+  have hD := (sat_domRF z).mp hz
+  casesm* _ ∧ _
+  have : (0:ℝ) ≤ (1 - 1/2 * (z (Rv 2) * z (Rv 2))) - 3/10 * (z (Rv 4) * z (Rv 4)) := by nlinarith
+  exact mul_nonneg (by assumption) this
+
+/-! ## O2: the kept atoms stay along the flows the cover certifies -/
+
+theorem stayL (l q : ℕ) (hl : l < 3) (c : ℝ) :
+    AtomsStayC (cL l) (jointSys (fLF l) (fRF q) (Term.const c)) (Formula.and domLF domRF) := by
+  intro a ha ν hν
+  have hinit := (hiffL l hl a ha ν).mp (hν a ha)
+  rw [cL_eq l hl] at ha
+  simp only [List.mem_cons, List.not_mem_nil, or_false] at ha
+  subst ha
+  exact boxle_thrGe_L 1 (sK l) _ _ _ _ (Formula.and domLF domRF) (fun x h => h)
+    (fun z hz _ => sdotL_nonneg l hl z hz.1) hinit
+
+theorem stayR_gen (q : ℕ) (hq : q < 3) (fL : Fin 12 → Term (Var 12)) (c : ℝ) (hc : 0 ≤ c)
+    (D : Formula (Var 12)) (hD : ∀ z, Formula.sat D z → Formula.sat domRF z) :
+    AtomsStayC (cR q) (jointSys fL (fRF q) (Term.const c)) D := by
+  intro a ha ν hν
+  have hinit := (hiffR q hq a ha ν).mp (hν a ha)
+  rw [cR_eq q hq] at ha
+  simp only [List.mem_cons, List.not_mem_nil, or_false] at ha
+  subst ha
+  exact boxle_thrGe_R 1 (sK q) _ _ c hc D D (fun x h => h)
+    (fun z hz _ => sdotR_nonneg q hq z (hD z hz)) hinit
+
+/-! ## The invariant's components, as the tool lowers them: the statement's own rows -/
+
+/-- The cover's strata order of window `l` (`STEEP`: `[0, 1, 2]`; `MODER`, `FLAT`: `[0, 1]`). -/
+def ordOf (l : ℕ) : List ℕ := if l = 0 then [0, 1, 2] else [0, 1]
+
+theorem pAtoms_row (l : ℕ) (hl : l < 3) :
+    pAtoms (story1_attdist_rung_b_12dof_IRv2.invariants.getD l ("", PForm.tt)).2 =
+      (ordOf l).map (fun i => (atomsOf (invRowPF l)).getD i .tt) := by
+  interval_cases l <;> decide
+
+theorem comps_eq (l : ℕ) (hl : l < 3) : hostComps vsF 12
+    (story1_attdist_rung_b_12dof_IRv2.invariants.getD l ("", PForm.tt)).2 =
+      (ordOf l).map (fun i => gRowAt l i) := by
+  rw [hostComps_atoms vsF _ ?_, pAtoms_row l hl, List.map_map]
+  · rfl
+  · rw [pAtoms_row l hl]
+    intro a ha
+    have hdrops : ("L_v".drop 2).copy = "v" ∧ ("R_v".drop 2).copy = "v" ∧
+        ("L_psi".drop 2).copy = "psi" ∧ ("R_psi".drop 2).copy = "psi" ∧
+        ("L_omega_psi".drop 2).copy = "omega_psi" ∧
+        ("L_theta_p".drop 2).copy = "theta_p" ∧ ("R_theta_p".drop 2).copy = "theta_p" ∧
+        ("L_omega_theta".drop 2).copy = "omega_theta" ∧
+        ("R_omega_psi".drop 2).copy = "omega_psi" ∧
+        ("R_omega_theta".drop 2).copy = "omega_theta" := by decide
+    interval_cases l <;>
+    · simp only [ordOf, List.map_cons, List.map_nil, List.mem_cons, List.not_mem_nil,
+        or_false, if_true, show (1:ℕ) ≠ 0 by decide, show (2:ℕ) ≠ 0 by decide,
+        if_false] at ha
+      rcases ha with rfl | rfl | rfl <;>
+        exact ⟨⟨_, _, _, rfl⟩, by
+          simp [atomsOf, invRowPF, story1_attdist_rung_b_12dof_IR, Run.invToG, Run.lowerE,
+            vsF, gp_2, gp_0_25, Run.resolveVar, Parse.dr, hdrops, List.findIdx?_cons]⟩
+
+theorem rowList (l : ℕ) (hl : l < 3) :
+    (ordOf l).map (fun i => gRowAt l i) = gR l :: gsR l := by
+  interval_cases l <;> rfl
+
+theorem comps_fv (l : ℕ) : ∀ c ∈ gR l :: gsR l, c.fv ⊆ range Lv ∪ range Rv := by
+  intro c hc
+  obtain ⟨i, rfl⟩ := mem_gsR hc
+  exact hgRowAt l i
+
+/-! ## The verdict packs (the emitted cover's queries) -/
+
+/-- The joint pack of window `l` at right mode `q` (the cover's λ = 1, the declared row of
+`l`, strata `ordOf l`). -/
+def Verd (l q : ℕ) : Prop :=
+  modalVerdX story1_attdist_rung_b_12dof_IRv2 story1_attdist_rung_b_12dof_cutsV2X 12 l
+    (ordOf l) 1 l q
+
+theorem domL_univ (l : ℕ) (hl : l < 3) : hostEvolve vsF 12 Side.L (mLF l) = domLF := by
+  interval_cases l <;> rfl
+theorem domR_univ (q : ℕ) (hq : q < 3) : hostEvolve vsF 12 Side.R (mRF q) = domRF := by
+  interval_cases q <;> rfl
+
+theorem verd_core (l q : ℕ) (hl : l < 3) (hq : q < 3) (h : Verd l q) :
+    VerdXCore (gR l :: gsR l) (fLF l) (fRF q) 1
+      (domCutX (Formula.and domLF domRF) (cL l) (cR q)) := by
+  have h' := h
+  unfold Verd modalVerdX at h'
+  rw [← domL_univ l hl, ← domR_univ q hq]
+  change VerdXCore ((ordOf l).map (fun i => (hostComps vsF 12
+      (story1_attdist_rung_b_12dof_IRv2.invariants.getD l ("", PForm.tt)).2).getD i
+        (Term.const 0)))
+    (fLF l) (fRF q) 1 (domCutX (Formula.and (hostEvolve vsF 12 Side.L (mLF l))
+      (hostEvolve vsF 12 Side.R (mRF q))) (cL l) (cR q)) at h'
+  rw [comps_eq l hl] at h'
+  rw [← rowList l hl]
+  interval_cases l <;> simpa [ordOf] using h'
+
+/-! ## The anchors of the cover's pairs -/
+
+theorem cR_nil (q : ℕ) (hq : 3 ≤ q) : cR q = [] := by
+  have : mRF q = dummyF :=
+    List.getD_eq_default _ _ (by simp [story1_attdist_rung_b_12dof_IR]; omega)
+  simp only [cR, this]
+  rfl
+
+noncomputable def anc (l q : ℕ) : Formula (Var 12) :=
+  FM (gR l) (gsR l ++ atomTerms (cL l) (cR q))
+
+theorem cL_fv (l : ℕ) (hl : l < 3) : ∀ a ∈ cL l, a.2.fv ⊆ range Lv := by
+  intro a ha
+  rw [cL_eq l hl] at ha
+  simp only [List.mem_cons, List.not_mem_nil, or_false] at ha
+  subst ha
+  intro x hx; simp [thrGe, Term.fv] at hx; subst hx; simp
+
+theorem cR_fv (q : ℕ) : ∀ a ∈ cR q, a.2.fv ⊆ range Rv := by
+  intro a ha
+  by_cases hq : q < 3
+  · rw [cR_eq q hq] at ha
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at ha
+    subst ha
+    intro x hx; simp [thrGe, Term.fv] at hx; subst hx; simp
+  · rw [cR_nil q (by omega)] at ha; simp at ha
+
+theorem anc_fv (l q : ℕ) (hl : l < 3) : (anc l q).fv ⊆ range Lv ∪ range Rv := by
+  intro x hx
+  by_contra hS
+  refine notMem_FM_fv (fun g' hg' hxg => hS ?_) hx
+  rcases List.mem_cons.mp hg' with rfl | hg'
+  · exact comps_fv l _ List.mem_cons_self hxg
+  rcases List.mem_append.mp hg' with hg' | hg'
+  · exact comps_fv l _ (List.mem_cons_of_mem _ hg') hxg
+  simp only [atomTerms, List.map_append, List.mem_append, List.mem_map] at hg'
+  rcases hg' with ⟨a, ha, rfl⟩ | ⟨a, ha, rfl⟩
+  · exact Or.inl (cL_fv l hl a ha hxg)
+  · exact Or.inr (cR_fv q a ha hxg)
+
+theorem anc_box (l q : ℕ) (hl : l < 3) (hq : q < 3) (hv : Verd l q) :
+    ∀ σ ω, Formula.sat (anc l q) σ →
+      Program.sem (Program.ode (jointSys (fLF l) (fRF q) (Term.const 1))
+        (Formula.and domLF domRF)) σ ω → Formula.sat (anc l q) ω :=
+  couple_box_cutX (gR l) (gsR l) (gR l :: gsR l) (cL l) (cR q) (fLF l) (fRF q)
+    1 domLF domRF (fun c hc => hc) (fun c hc => hc) (hiffL l hl) (hiffR q hq) (stayL l q hl _)
+    (stayR_gen q hq (fLF l) 1 (by norm_num) _ (fun z hz => hz.2)) (verd_core l q hl hq hv)
+
+theorem anc_hand (l q : ℕ) (hl : l < 3) (hq : q < 3) :
+    ∀ e ∈ GrG.edgesFrom q, ∀ y, Formula.sat (anc l q) y → SwitchLegal e y →
+      Formula.sat (anc l e.tgt) y := by
+  intro e he y hA hleg
+  have ht : e.tgt < 3 := hltG q e he
+  have hg : Formula.sat (hostGuard vsF 12 Side.R (mRF e.tgt)) y := by
+    have := hleg; unfold SwitchLegal at this; rwa [GrG_guards q e he] at this
+  exact anchor_hand (hiffL l hl) (hiffR q hq) (hiffR e.tgt ht) hA (hO1R e.tgt ht y hg)
+
+theorem anc_iff (l q : ℕ) (hl : l < 3) (hq : q < 3) (x : State (Var 12)) :
+    Formula.sat (anc l q) x ↔ Formula.sat (FRow l) x ∧ CutSat (cL l) x ∧ CutSat (cR q) x := by
+  unfold anc FRow
+  rw [sat_FM_append, atomTerms_iff (hiffL l hl) (hiffR q hq)]
+
+theorem FRow_fv (l : ℕ) : (FRow l).fv ⊆ range Lv ∪ range Rv := by
   intro v hv
-  unfold anc at hv
   by_contra hn
-  refine notMem_FM_fv (fun c hc hvc => hn ?_) hv
-  rcases List.mem_cons.mp hc with rfl | hc
-  · exact hgRowAt r 0 hvc
-  · rcases List.mem_append.mp hc with hc | hc
-    · obtain ⟨i, rfl⟩ := mem_gsR (List.mem_cons_of_mem _ hc)
-      exact hgRowAt r i hvc
-    · rw [List.mem_singleton] at hc
-      subst hc
-      simp only [ceilF, Term.fv, Set.mem_union, Set.mem_singleton_iff, Set.mem_empty_iff_false,
-        or_false] at hvc
-      subst hvc; exact Or.inr ⟨0, rfl⟩
+  exact notMem_FM_fv (fun c hc hvc => hn (comps_fv l c hc hvc)) hv
+
+/-! ## The band ceilings (the region's checked cut) -/
 
 theorem eval_ceilF (m : ℕ) (x : State (Var 12)) :
     Term.eval (ceilF m) x = x (Rv 0) - (if m = 0 then 3/10 else if m = 1 then 1/2 else 13/20) := by
   simp [ceilF, Term.eval, AOp.interp]
 
-/-- The anchor, split: row `r` and `v_R ≤ c_m`. -/
-theorem anc_iff (r m : ℕ) (x : State (Var 12)) :
-    Formula.sat (anc r m) x ↔ Formula.sat (FRow r) x ∧ x (Rv 0) ≤ ladC m := by
-  unfold anc FRow gs9R
-  rw [sat_FM_iff, sat_FM_iff]
-  constructor
-  · intro h
-    refine ⟨fun c hc => h c ?_, ?_⟩
-    · rcases List.mem_cons.mp hc with rfl | hc
-      · exact List.mem_cons_self
-      · exact List.mem_cons_of_mem _ (List.mem_append_left _ hc)
-    · have := h (ceilF m) (List.mem_cons_of_mem _ (List.mem_append_right _ List.mem_cons_self))
-      rw [eval_ceilF] at this
-      unfold ladC; linarith
-  · rintro ⟨h1, h2⟩ c hc
-    rcases List.mem_cons.mp hc with rfl | hc
-    · exact h1 _ List.mem_cons_self
-    · rcases List.mem_append.mp hc with hc | hc
-      · exact h1 c (List.mem_cons_of_mem _ hc)
-      · rw [List.mem_singleton] at hc
-        subst hc
-        rw [eval_ceilF]; unfold ladC at h2; linarith
+theorem sat_regionF (m : ℕ) (x : State (Var 12)) :
+    Formula.sat (regionF m) x ↔ x (Rv 0) ≤ ladC m := by
+  simp only [regionF, Formula.sat, CompOp.interp, eval_ceilF, Term.eval]
+  unfold ladC; constructor <;> intro h <;> linarith
 
-/-- The certified pair `(r, m)` (`r ≤ m`): its anchor is a box invariant of the joint flow. -/
-theorem anc_box (r m : ℕ) (hv : VerdR r m) :
-    ∀ σ ω, Formula.sat (anc r m) σ →
-      Program.sem (Program.ode (jointSys (fLF r) (fRF m) (Term.const 1))
-        (Formula.and domLF domRF)) σ ω → Formula.sat (anc r m) ω := by
-  intro σ ω hσ hω
-  have hAll := segPresAll_from_strata_verdicts' (fLF r) (fRF m) (Term.const 1)
-    (Formula.and domLF domRF) (ceilF m :: gR r :: gsR r) hv
-  have hmem : ∀ c, c ∈ ceilF m :: gR r :: gsR r ↔ c ∈ gR r :: gs9R r m := by
-    intro c
-    simp only [gs9R, List.mem_cons, List.mem_append, List.mem_singleton]
-    tauto
-  have hσ' := (sat_FM_iff (gR r) (gs9R r m) σ).mp hσ
-  refine (sat_FM_iff (gR r) (gs9R r m) ω).mpr (fun c hc => ?_)
-  exact hAll σ (fun c' hc' => hσ' c' ((hmem c').mp hc')) ω hω c ((hmem c).mpr hc)
 
-/-- The energy rows (`r ≥ 1`) read no `v_R`, `s_R`. -/
-theorem FRow_attitude (r : ℕ) (hr : 1 ≤ r) (hr3 : r < 3) (x y : State (Var 12))
-    (hL : ∀ i, x (Lv i) = y (Lv i)) (hR : ∀ i : Fin 12, i ≠ 0 → i ≠ 1 → x (Rv i) = y (Rv i)) :
-    Formula.sat (FRow r) x ↔ Formula.sat (FRow r) y := by
-  have hrow : FRow r = FRow 1 := by
-    interval_cases r
-    · rfl
-    · exact FRow_two_eq_one
-  rw [hrow]
-  unfold FRow
-  rw [sat_FM_iff, sat_FM_iff]
-  have hdL : ("L_psi".drop 2).copy = "psi" := by decide
-  have hdR : ("R_psi".drop 2).copy = "psi" := by decide
-  have hdLo : ("L_omega_psi".drop 2).copy = "omega_psi" := by decide
-  have hdRo : ("R_omega_psi".drop 2).copy = "omega_psi" := by decide
-  have hdLt : ("L_theta_p".drop 2).copy = "theta_p" := by decide
-  have hdRt : ("R_theta_p".drop 2).copy = "theta_p" := by decide
-  have hdLw : ("L_omega_theta".drop 2).copy = "omega_theta" := by decide
-  have hdRw : ("R_omega_theta".drop 2).copy = "omega_theta" := by decide
-  have e2 := hR 2 (by decide) (by decide)
-  have e3 := hR 3 (by decide) (by decide)
-  have e4 := hR 4 (by decide) (by decide)
-  have e5 := hR 5 (by decide) (by decide)
-  simp only [Lv, Rv] at hL e2 e3 e4 e5
-  simp [gR, gsR, gRowAt, atomsOf, invRowPF, story1_attdist_rung_b_12dof_IR, Run.invToG,
-    Run.lowerE, vsF, gp_0, gp_0_0, gp_0_05, gp_0_06, gp_0_0625, gp_0_07, gp_0_0775, gp_0_08, gp_0_085, gp_0_1, gp_0_125, gp_0_15, gp_0_156, gp_0_2, gp_0_205, gp_0_25, gp_0_255, gp_0_3, gp_0_30, gp_0_33, gp_0_35, gp_0_355, gp_0_4, gp_0_45, gp_0_48, gp_0_5, gp_0_50, gp_0_55, gp_0_6, gp_0_65, gp_0_6775, gp_0_7, gp_0_72, gp_0_75, gp_0_8, gp_0_84, gp_0_855, gp_0_88, gp_0_9, gp_0_95, gp_1, gp_10, gp_1000_0, gp_100_0, gp_10_0, gp_12_0, gp_12_45, gp_12_5, gp_13_0, gp_15_0, gp_15_5, gp_16, gp_16_0, gp_17_0, gp_1_0, gp_1_001, gp_1_1, gp_1_125, gp_1_15, gp_1_2, gp_1_25, gp_1_3, gp_1_4, gp_1_5, gp_1_52, gp_1_6, gp_1_62, gp_1_68, gp_1_8, gp_2, gp_20_0, gp_21_0, gp_22_0, gp_23_0, gp_24_0, gp_25_0, gp_26_0, gp_27_0, gp_28_0, gp_29_0, gp_2_0, gp_2_1, gp_2_2, gp_2_25, gp_2_5, gp_2_6, gp_3, gp_30_0, gp_32_0, gp_33_0, gp_34_0, gp_35_0, gp_36_0, gp_3_0, gp_3_04, gp_3_2, gp_3_5, gp_3_6, gp_4, gp_40_0, gp_4_0, gp_4_4, gp_5, gp_50_0, gp_5_0, gp_5_5, gp_60_0, gp_6_0, gp_6_5, gp_7_45, gp_8, gp_80_0, gp_899_95, gp_8_0, gp_8_45, gp_90_0, gp_99_0, gp_9_0, gp_9_524, gp_m0_01, gp_m0_125, gp_m0_2, gp_m0_25, gp_m0_3, gp_m0_4, gp_m0_42, gp_m0_45, gp_m0_5, gp_m0_6, gp_m0_7, gp_m0_75, gp_m0_8, gp_m1, gp_m10_0, gp_m1_0, gp_m1_5, gp_m1_52, gp_m2, gp_m2_0, gp_m2_5, gp_m3_04, gp_m4, Run.resolveVar, Parse.dr, hdL, hdR, hdLo, hdRo, hdLt, hdRt,
-    hdLw, hdRw, List.findIdx?_cons, ITerm.toHost, Term.eval, AOp.interp, hL, e2, e3, e4, e5]
+/-! ## The ladder's switching choreography (odometer bands, the band's ceiling carried) -/
 
-/-! ## The stretch invariance of the anchors (certified, or along the virtual band) -/
-
-theorem anc_stretch (r : ℕ) (hr : r < 3) (hvs : ∀ m < 3, r ≤ m → VerdR r m)
-    {x : State (Var 12)} {rr : ℝ} {ΦL : ℝ → State (Var 12)}
-    (hL : ODESol (clk tgF (leftBlock (fLF r))) domLF x rr ΦL) (ω₀ : State (Var 12)) :
-    ∀ m < 3, ∀ a b, 0 ≤ a → a ≤ b → b ≤ rr → ∀ ρ, Formula.sat domRF ρ →
-      Formula.sat (anc r m) (mergeLR ω₀ (ΦL a) ρ) →
-      Formula.sat (anc r m) (mergeLR ω₀ (ΦL b) (LR.run m ρ (b - a))) := by
-  intro m hm a b ha hab hb ρ hρ hA
-  have htgL : ∀ i, tgF ≠ Lv i := fun i => by simp [Lv, Prod.ext_iff]
-  have htgR : ∀ i, tgF ≠ Rv i := fun i => by simp [Rv, Prod.ext_iff]
-  have hLs := odeSol_shift hL ha hab hb
-  -- a stretch of band `m'` from `ρ`, as a joint run of the pair `(r, m')`
-  have joint : ∀ m' < 3, Program.sem (Program.ode (jointSys (fLF r) (fRF m') (Term.const 1))
-      (Formula.and domLF domRF)) (mergeLR ω₀ (ΦL a) ρ)
-      (mergeLR ω₀ (ΦL b) (LR.run m' ρ (b - a))) := by
-    intro m' hm'
-    have hRs := LR.sol m' hm' ρ hρ (b - a) (by linarith)
-    have hj := joint_of_sols tgF htgL htgR (hfLF r hr) (hfRF m' hm') hdomLF hdomRF hLs hRs ω₀
-    have h0 : (fun t => ΦL (a + t)) 0 = ΦL a := by simp
-    have h1 : (fun t => ΦL (a + t)) (b - a) = ΦL b := by simp
-    have h2 : (fun t => LR.run m' ρ t) 0 = ρ := hRs.hΦ0
-    simp only [h0, h1, h2] at hj
-    exact hj
-  by_cases hrm : r ≤ m
-  · exact anc_box r m (hvs m hm hrm) _ _ hA (joint m hm)
-  · -- the virtual band `r`
-    have hmr : m < r := by omega
-    obtain ⟨hrow, hceil⟩ := (anc_iff r m _).mp hA
-    have hAr : Formula.sat (anc r r) (mergeLR ω₀ (ΦL a) ρ) := by
-      refine (anc_iff r r _).mpr ⟨hrow, ?_⟩
-      have := (ladC_mono_le m r (by omega))
-      linarith
-    have hEnd := (anc_iff r r _).mp (anc_box r r (hvs r hr le_rfl) _ _ hAr (joint r hr))
-    refine (anc_iff r m _).mpr ⟨?_, ?_⟩
-    · refine (FRow_attitude r (by omega) hr _ _ (fun i => ?_) (fun i h0 h1 => ?_)).mp hEnd.1
-      · rw [mergeLR_L, mergeLR_L]
-      · rw [mergeLR_R, mergeLR_R, LR_run_attitude r m ρ (b - a) i h0 h1]
-    · rw [mergeLR_R] at hceil ⊢
-      have := (LR.v_mono m hm ρ (by linarith) (t := b - a) (by linarith)).2
-      exact this
-
-/-! ## The synchronized guarded response -/
+abbrev Cap (q : ℕ) (x : State (Var 12)) : Prop := x (Rv 0) ≤ ladC q
 
 theorem band_of_guard (q : ℕ) (hq : q < 3) (x : State (Var 12))
     (h : Formula.sat (hostGuard vsF 12 Side.R (mRF q)) x) : ladBand q x := by
@@ -471,87 +639,104 @@ theorem band_of_guard (q : ℕ) (hq : q < 3) (x : State (Var 12))
   · rw [sat_guardR2] at h
     exact ⟨fun h' => absurd h' (by norm_num), fun h' => absurd h' (by norm_num), fun _ => h⟩
 
-theorem window_right (l : ℕ) (hl : l < 3) (dt : ℝ) {σ ν : State (Var 12)}
-    (h : Program.sem (windowSeg (leftBlock (fLF l)) domLF tgF dt 2) σ ν) (i : Fin 12) :
-    ν (Rv i) = σ (Rv i) := by
-  have hP := vars_windowSegL_sub (fLF l) domLF 1 dt 2 (hfLF l hl) hdomLF
-  refine (Program.bound_effect _ h (Rv i) ?_).symm
-  intro hb
-  rcases hP (Or.inr hb) with h' | ⟨j, hj⟩
-  · exact absurd (Set.mem_singleton_iff.mp h') (by simp [Rv, Prod.ext_iff])
-  · exact absurd hj (by simp [Lv, Rv, Prod.ext_iff])
+theorem pre_of_guard (q : ℕ) (hq : q < 3) (x : State (Var 12))
+    (hg : Formula.sat (hostGuard vsF 12 Side.R (mRF q)) x) (hreg : Formula.sat (regionF q) x)
+    (hd : Formula.sat domRF x) :
+    ladPre Cap domRF q x := ⟨hq, band_of_guard q hq x hg, (sat_regionF q x).mp hreg, hd⟩
 
-theorem sat_regionF (m : ℕ) (x : State (Var 12)) :
-    Formula.sat (regionF m) x ↔ x (Rv 0) ≤ ladC m := by
-  simp only [regionF, Formula.sat, CompOp.interp, eval_ceilF, Term.eval]
-  unfold ladC; constructor <;> intro h <;> linarith
+theorem ladPre_R (q : ℕ) (x y : State (Var 12)) (hxy : ∀ i, x (Rv i) = y (Rv i))
+    (h : ladPre Cap domRF q x) : ladPre Cap domRF q y := by
+  obtain ⟨hq, ⟨h0, h1, h2⟩, hc, hd⟩ := h
+  refine ⟨hq, ⟨fun h => ?_, fun h => ?_, fun h => ?_⟩, ?_, ?_⟩
+  · rw [← hxy 1]; exact h0 h
+  · rw [← hxy 1]; exact h1 h
+  · rw [← hxy 1]; exact h2 h
+  · show y (Rv 0) ≤ ladC q
+    rw [← hxy 0]; exact hc
+  · refine (Formula.coincidence domRF (fun v hv => ?_)).mp hd
+    obtain ⟨i, rfl⟩ := hdomRF hv
+    exact hxy i
 
-/-- **The guarded response** of left window `l` from right band `q` (in its guard, under its
-ceiling): the synchronized climb across the window's two pieces. -/
-theorem respondG (l : ℕ) (hl : l < 3) (dt : ℝ) (q : ℕ) (hq : q < 3)
-    (hvs : ∀ m < 3, l ≤ m → VerdR l m) {σ : State (Var 12)}
+theorem leg00 : ∀ x : State (Var 12), 0 ≤ x (Rv 1) → x (Rv 1) < 3/5 → Cap 0 x →
+    SwitchLegal (edgeG 0 0) x := by
+  intro x h1 h2 _
+  show Formula.sat (hostGuard vsF 12 Side.R (mRF 0)) x
+  rw [sat_guardR0]; exact ⟨h1, h2⟩
+theorem leg11 : ∀ x : State (Var 12), 3/5 ≤ x (Rv 1) → x (Rv 1) < 7/5 → Cap 1 x →
+    SwitchLegal (edgeG 1 1) x := by
+  intro x h1 h2 _
+  show Formula.sat (hostGuard vsF 12 Side.R (mRF 1)) x
+  rw [sat_guardR1]; exact ⟨h1, h2⟩
+theorem leg01 : ∀ x : State (Var 12), x (Rv 1) = 3/5 → Cap 0 x → SwitchLegal LR.e01 x := by
+  intro x hs _
+  show Formula.sat (hostGuard vsF 12 Side.R (mRF 1)) x
+  rw [sat_guardR1]; exact ⟨le_of_eq hs.symm, by rw [hs]; norm_num⟩
+theorem leg12 : ∀ x : State (Var 12), x (Rv 1) = 7/5 → Cap 1 x → SwitchLegal LR.e12 x := by
+  intro x hs _
+  show Formula.sat (hostGuard vsF 12 Side.R (mRF 2)) x
+  rw [sat_guardR2]; exact le_of_eq hs.symm
+theorem leg22 : ∀ x : State (Var 12), 7/5 ≤ x (Rv 1) → Cap 2 x → SwitchLegal LR.e22 x := by
+  intro x hs _
+  show Formula.sat (hostGuard vsF 12 Side.R (mRF 2)) x
+  rw [sat_guardR2]; exact hs
+
+/-- The cover's joint nodes of window `l`: every band (all nine pairs are `jointOK`, every
+start admissible); no reposition node. The ceiling of the current band is carried along. -/
+def J (_l q : ℕ) : Prop := q < 3
+def D (_l _q : ℕ) : Prop := False
+
+theorem hmoveR (l : ℕ) (E : ℕ → State (Var 12) → Prop)
+    (hE : ∀ q x, J l q → ladPre Cap domRF q x → E q x) :
+    HMove GrG LR.m (J l) (fun q => q) (ladPre Cap domRF) E :=
+  ladder_hmove LR Cap (ladCap_run LR) ladCap_up (edgeG 0 0)
+    (edgeG 1 1) (edgeG_mem 0 0 (by simp [GrG])) (edgeG_mem 1 1 (by simp [GrG])) rfl rfl leg00
+    leg01 leg11 leg12 leg22 (J l) (fun q _ hq2 => by show q + 1 < 3; omega) E hE
+
+theorem hexitR (l : ℕ) :
+    HExit GrG LR.m (J l) (D l) (fun q => 2 - q) (ladPre Cap domRF) (ladPre Cap domRF) :=
+  fun _ hD => hD.elim
+
+/-! ## The response to one gated window: the cover's derivation, replayed -/
+
+theorem respondR (l : ℕ) (hl : l < 3) (dt : ℝ) (hJv : ∀ q, J l q → Verd l q)
+    (q : ℕ) (hq : q < 3) {σ : State (Var 12)}
     (hσ : Formula.sat (Formula.and (FRow l) envF) σ)
-    (hgR : Formula.sat (hostGuard vsF 12 Side.R (mRF q)) σ)
-    (hreg : Formula.sat (regionF q) σ) :
-    GResp GrG q (windowSeg (leftBlock (fLF l)) domLF tgF dt 2)
+    (hg : Formula.sat (hostGuard vsF 12 Side.R (mRF q)) σ) (hreg : Formula.sat (regionF q) σ) :
+    GResp GrG q (gwindowSeg (guardF l) (leftBlock (fLF l)) domLF tgF dt (1 + 1))
       (fun qf => Formula.and (Formula.and (FRow l) envF) (regionF qf)) σ := by
-  refine gresp_of_rresp (fun ν hwin => ?_)
-  have hR := window_right l hl dt hwin
-  have hdomLν : Formula.sat domLF ν :=
-    windowSeg_end_domL (leftBlock (fLF l)) domLF tgF dt 2 (by norm_num) hwin
-  have hgν : Formula.sat (hostGuard vsF 12 Side.R (mRF q)) ν :=
-    frames_right (vars_windowSegL_sub (fLF l) domLF 1 dt 2 (hfLF l hl) hdomLF)
-      (hguardR_all q) hwin hgR
-  have hdomRν : Formula.sat domRF ν := by
-    refine (Formula.coincidence domRF (fun x hx => ?_)).mp hσ.2.2
-    obtain ⟨i, rfl⟩ := hdomRF hx
-    exact (hR i).symm
-  have hA0 : Formula.sat (anc l q) (mergeLR σ σ ν) := by
-    have hσA : Formula.sat (anc l q) σ :=
-      (anc_iff l q σ).mpr ⟨hσ.1, (sat_regionF q σ).mp hreg⟩
-    refine (sat_of_agree (anc_fv l q) (y := σ) (fun i => ?_) (fun i => ?_)).mpr hσA
-    · rw [mergeLR_L]
-    · rw [mergeLR_R, hR i]
-  have h := syncWindow LR fRF (fun _ _ => rfl) (fLF l) domLF tgF
-    (fun i => by simp [Lv, Prod.ext_iff]) (fun i => by simp [Rv, Prod.ext_iff]) (hfLF l hl)
-    (fun q' hq' => hfRF q' hq') hdomLF hdomRF dt (anc l) (fun m => anc_fv l m)
-    (fun x rr ΦL hL ω₀ => anc_stretch l hl hvs hL ω₀)
-    (fun m hm y hy hs => by
-      obtain ⟨h1, h2⟩ := (anc_iff l m y).mp hy
-      refine (anc_iff l (m+1) y).mpr ⟨h1, ?_⟩
-      have := ladC_mono_le m (m+1) (by omega)
-      linarith)
-    (edgeG 0 0) (edgeG 0 1) (edgeG 1 1) (edgeG 1 2) (edgeG 2 2)
-    (edgeG_mem 0 0 (by simp [GrG])) (edgeG_mem 0 1 (by simp [GrG]))
-    (edgeG_mem 1 1 (by simp [GrG])) (edgeG_mem 1 2 (by simp [GrG]))
-    (edgeG_mem 2 2 (by simp [GrG])) rfl rfl rfl rfl rfl
-    (fun y h0 h1 => by
-      show Formula.sat (hostGuard vsF 12 Side.R (mRF 0)) y
-      rw [sat_guardR0]; exact ⟨h0, h1⟩)
-    (fun y hs => by
-      show Formula.sat (hostGuard vsF 12 Side.R (mRF 1)) y
-      rw [sat_guardR1]; exact ⟨le_of_eq hs.symm, by rw [hs]; norm_num⟩)
-    (fun y h0 h1 => by
-      show Formula.sat (hostGuard vsF 12 Side.R (mRF 1)) y
-      rw [sat_guardR1]; exact ⟨h0, h1⟩)
-    (fun y hs => by
-      show Formula.sat (hostGuard vsF 12 Side.R (mRF 2)) y
-      rw [sat_guardR2]; exact le_of_eq hs.symm)
-    (fun y hs => by
-      show Formula.sat (hostGuard vsF 12 Side.R (mRF 2)) y
-      rw [sat_guardR2]; exact hs)
-    ν σ 2 σ ν hwin q hq ν (fun _ => rfl) hdomRν (band_of_guard q hq ν hgν) hA0
-  refine rresp_of_rrespP (rrespP_mono ?_ h)
-  rintro qf μ ⟨_, hμL, hμd, _, hA⟩
-  have hAμ : Formula.sat (anc l qf) μ := by
-    refine (sat_of_agree (anc_fv l qf) (y := mergeLR σ ν μ) (fun i => ?_) (fun i => ?_)).mpr hA
-    · rw [mergeLR_L, hμL i]
-    · rw [mergeLR_R]
-  obtain ⟨hrow, hceil⟩ := (anc_iff l qf μ).mp hAμ
-  refine ⟨⟨hrow, ?_, hμd⟩, (sat_regionF qf μ).mpr hceil⟩
-  refine (Formula.coincidence domLF (fun x hx => ?_)).mpr hdomLν
-  obtain ⟨i, rfl⟩ := hdomLF hx
-  exact hμL i
+  have hJD3 : ∀ q, J l q ∨ D l q → q < 3 := by
+    intro q h; rcases h with h | h
+    · exact h
+    · exact h.elim
+  refine replay_gresp GrG LR.m fRF domRF (fLF l) domLF (guardF l) 1
+    hgRG (hfLF l hl) hdomLF hdomRF (hguardL l hl) 1 one_pos (J l) (D l)
+    (fun q h => hfRF q (hJD3 q h)) (fun q => q) (fun q => 2 - q) 3 (fun q h => h)
+    (fun q h => LR.modeAt q (hJD3 q h)) (fun _ _ => rfl) (fun q h => LR.dom_m q (hJD3 q h))
+    (anc l) (fun q => anc_fv l q hl)
+    (fun q h => anc_box l q hl h (hJv q h))
+    (fun q h => (h : False).elim)
+    (fun q h => anc_hand l q hl (hJD3 q h))
+    (ladPre Cap domRF) (ladPre Cap domRF) (ladPre Cap domRF) ladPre_R ladPre_R
+    (hmoveR l _ (fun _ _ _ h => h)) (fun _ _ => hmoveR l _ (fun _ _ hJ h => ⟨hJ, h⟩))
+    (hexitR l) dt 1 q σ ?_ hσ.2.1 _ ?_
+  · intro hgL
+    have hpre := pre_of_guard q hq σ hg hreg hσ.2.2
+    have hA : Formula.sat (anc l q) σ :=
+      (anc_iff l q hl hq σ).mpr ⟨hσ.1, hO1L l hl σ hgL, hO1R q hq σ hg⟩
+    exact ⟨Or.inl ⟨hq, hpre⟩, hA⟩
+  · intro ν hwin q' μ hμL hpre hA
+    have hdomLν : Formula.sat domLF ν :=
+      windowSeg_end_domL (leftBlock (fLF l)) domLF tgF dt (1 + 1) (by norm_num) hwin
+    have hq' : q' < 3 := hpre.1
+    have hA' := ((anc_iff l q' hl hq' _).mp hA).1
+    have hF : Formula.sat (FRow l) μ := by
+      refine (sat_of_agree (FRow_fv l) (fun i => ?_) (fun i => ?_)).mp hA'
+      · rw [mergeLR_L, hμL i]
+      · rw [mergeLR_R]
+    refine ⟨⟨hF, ?_, hpre.2.2.2⟩, (sat_regionF q' μ).mpr hpre.2.2.1⟩
+    refine (Formula.coincidence domLF (fun v hv => ?_)).mpr hdomLν
+    obtain ⟨i, rfl⟩ := hdomLF hv
+    exact hμL i
 
 /-! ## The mode-consistent region and Theorem 3 -/
 
@@ -571,64 +756,79 @@ theorem hulBkG : ulF ∉ (mvRegion mvF gregion GrG.modes.length).fv := fun h => 
   · exact absurd (Set.mem_singleton_iff.mp h) (by decide)
   · exact aux_notin_range_Rv 2 h
 
-theorem hstepMG (dt : ℝ) (hv : ∀ r m, r < 3 → m < 3 → r ≤ m → VerdR r m) :
+/-- The per-left-mode step: the gated window's replay, carried to the plain window at the
+entered mode's guard. -/
+theorem hstepMG (dt : ℝ) (hJv : ∀ l < 3, ∀ q, J l q → Verd l q) :
     ∀ t < (AF dt).numModes, ∀ σ,
     Formula.sat (Formula.and (Formula.and (FRow t) envF)
       (mvRegion mvF gregion GrG.modes.length)) σ →
+    Formula.sat ((AF dt).guard t) σ →
     Formula.sat (faModal (Equiv.refl (Var 12)) ((AF dt).window t)
       (Program.star (rightAutomatonBody GrG mvF))
       (Formula.and (Formula.and (FRow t) envF)
         (mvRegion mvF gregion GrG.modes.length))) σ := by
-  intro t ht
+  intro t ht σ hσ hgL
   rw [AF_numModes] at ht
+  rw [AF_guard dt t ht] at hgL
   rw [AF_window dt t ht]
-  have hframe : FramesMv (windowSeg (leftBlock (fLF t)) domLF tgF dt 2) mvF := by
-    refine framesMv_window (leftBlock (fLF t)) domLF tgF dt 2 mvF (by decide) ?_
+  refine faModal_ungate (φ := guardF t) hgL ?_
+  have hframe : FramesMv (gwindowSeg (guardF t) (leftBlock (fLF t)) domLF tgF dt 2) mvF := by
+    refine framesMv_gwindow (guardF t) (fLF t) domLF tgF dt 2 mvF (by decide) ?_
     intro h
     obtain ⟨i, hi⟩ := leftBlock_bound_sub (fLF t) _ h
     exact aux_ne_Lv 0 i hi
   refine hstepMode_GR GrG mvF (FRow t) envF gregion _ (aux_notin_FRow 0 t) hmvenvF hmvregG
-    hfreshG (guardsFresh_of_right GrG 0 hgRG) hltG hframe ?_
+    hfreshG (guardsFresh_of_right GrG 0 hgRG) hltG hframe ?_ σ hσ
   refine HMode_regionG GrG mvF _ regionF GrG_guards (FRow t) envF _ ?_ ?_
   · intro q _ σ ν hrun
-    exact frames_right (vars_windowSegL_sub (fLF t) domLF 1 dt 2 (hfLF t ht) hdomLF)
-      (hguardR_all q) hrun
+    exact frames_right (vars_gwindowSegL_sub (guardF t) (fLF t) domLF 1 dt 2 (hguardL t ht)
+      (hfLF t ht) hdomLF) (hguardR_all q) hrun
   · intro q hq σ _ hσ hg hreg
     rw [GrG_len] at hq
-    exact respondG t ht dt q hq (fun m hm htm => hv t m ht hm htm) hσ hg hreg
+    exact respondR t ht dt (hJv t ht) q hq hσ hg hreg
 
 /-- **`story1_attdist_rung_b_12dof`, Theorem 3 over the GUARDED right automaton, at the
-mode-consistent region.** The statement of `story1_attdist_rung_b_modeKeyed` (the declared
-rows keyed by `u_L`, the file's left automaton with windows of two clocked pieces, both
-envelopes) with every right edge testing the entered band's guard (`GrG_guards`) and the loop
-invariant's right region the current band's guard and ceiling (`mvRegionR` at `gregion`).
-Response: the synchronized climb (`syncWindow`). Residuals: the six packs `VerdR r m`
-(`r ≤ m`, unchanged). -/
+mode-consistent region, by replaying the emitted cover.** The statement of
+`story1_attdist_rung_b_modeKeyed` (the declared rows keyed by `u_L`, the file's left
+automaton, both envelopes) with every right edge testing the entered band's guard
+(`GrG_guards`) and the loop invariant's right region the current band's guard (`mvRegionR` at
+`gregion`: the band's guard and its ceiling). Response
+(`InstancesV2/BenchCovers/story1_attdist_rung_b_12dof.lean`, λ = 1, budget 1, all nine pairs
+`jointOK`, every start admissible): the right keeps time with the window (two clocked pieces)
+entered inside its guard, switching up at each floor it reaches (the ceiling carried along
+the band's own run and across the switch), every stretch
+preserved by its joint pack `Verd l q` (the emitted cover's queries at the declared row of
+`l`, strata `[0, 1, 2]` for `STEEP`, `[0, 1]` for `MODER`/`FLAT`). -/
 theorem story1_attdist_rung_b_guarded (dt : ℝ)
-    (hv00 : VerdR 0 0) (hv01 : VerdR 0 1) (hv02 : VerdR 0 2)
-    (hv11 : VerdR 1 1) (hv12 : VerdR 1 2) (hv22 : VerdR 2 2) :
+    (h00 : Verd 0 0) (h01 : Verd 0 1) (h02 : Verd 0 2)
+    (h10 : Verd 1 0) (h11 : Verd 1 1) (h12 : Verd 1 2)
+    (h20 : Verd 2 0) (h21 : Verd 2 1) (h22 : Verd 2 2) :
     RFormula.rvalid (theorem3Form
       (leftAutomatonBody (AF dt) ulF)
       (rightAutomatonBody GrG mvF)
       (psiK ulF ϕRow (AF dt).numModes domLF domRF
         (mvRegionR mvF gregion GrG.modes.length))) := by
-  have hv : ∀ r m, r < 3 → m < 3 → r ≤ m → VerdR r m := by
-    intro r m hr hm hrm
-    match r, m, hr, hm, hrm with
-    | 0, 0, _, _, _ => exact hv00
-    | 0, 1, _, _, _ => exact hv01
-    | 0, 2, _, _, _ => exact hv02
-    | 1, 1, _, _, _ => exact hv11
-    | 1, 2, _, _, _ => exact hv12
-    | 2, 2, _, _, _ => exact hv22
+  have hJv : ∀ l < 3, ∀ q, J l q → Verd l q := by
+    intro l hl q hq
+    change q < 3 at hq
+    match l, q, hl, hq with
+    | 0, 0, _, _ => exact h00
+    | 0, 1, _, _ => exact h01
+    | 0, 2, _, _ => exact h02
+    | 1, 0, _, _ => exact h10
+    | 1, 1, _, _ => exact h11
+    | 1, 2, _, _ => exact h12
+    | 2, 0, _, _ => exact h20
+    | 2, 1, _, _ => exact h21
+    | 2, 2, _, _ => exact h22
   refine theorem3_modeKeyed (AF dt) ulF GrG mvF FRow ϕRow domLF domRF
     (mvRegion mvF gregion GrG.modes.length) (mvRegionR mvF gregion GrG.modes.length)
     encode_ϕRow (encode_mvRegionR _ _ _) ?_ ?_ ?_
   · exact hd_modeKeyed_G (AF dt) GrG 0 1 2 (by decide) (by decide) (hwinF dt) (hgrdF dt)
       (hnextF dt) hgRG hRvG
-  · exact hstep_modeKeyed (AF dt) ulF (rightAutomatonBody GrG mvF) FRow envF
+  · exact hstep_modeKeyed_g (AF dt) ulF (rightAutomatonBody GrG mvF) FRow envF
       (mvRegion mvF gregion GrG.modes.length) (aux_notin_FRow 2) hulenvF hulBkG (hulGF dt)
-      (hframesUlF dt) hulRG (hnextF dt) (hstepMG dt hv) (handoffF dt)
+      (hframesUlF dt) hulRG (hnextF dt) (hstepMG dt hJv) (handoffF dt)
   · exact hddF_modeKeyed_G (AF dt) GrG 0 1 2 (by decide) (by decide) ϕRow domLF domRF
       (mvRegionR mvF gregion GrG.modes.length) (hwinF dt) (hgrdF dt) (hnextF dt) hgRG hRvG
       (fun m _ => canonInvM_varsL (gR m) (gsR m) (fun g' hg' => by

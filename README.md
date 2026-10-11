@@ -12,7 +12,12 @@ only inside its mode's guard (the left automaton, jump then flow) and every righ
 enters a declared successor whose guard holds at that instant (flow then jump), at the
 **mode-consistent region** (the right in the guard of its current mode and its checked cuts),
 whose only assumptions are a small trust base and a finite list of named Z3 `unsat` verdicts,
-each of which the tool re-sends on demand (16 of the 45 take none). 44 hold for every window
+each of which the tool re-sends on demand. **Every one of the 45 proofs replays the cover the
+tool emits** (`docs/REPLAY.md`): every joint segment of the response is at a node the cover
+certified, at the cover's stretch, preserved by that node's verdict pack; every right-only
+reposition is at a node the cover flags, preserved by its reposition pack; every switch is a
+declared, non-pruned edge into an enabled successor; every start the cover drops as
+inadmissible is contradictory. 44 hold for every window
 length; `refinement_ladder_rover_rung2c_6dof` for every window up to its control interval
 (`dt ≤ ε_L = 1`). The mechanization also found a modelling defect: in the two `platoon3`
 benchmarks the nominal controller blocked after a full cycle (engagement-band guards, no
@@ -97,9 +102,11 @@ not carried. The mode-independent benchmarks are proved over the choice of their
 carried to the left automaton by one generic bridge (`theorem3_leftAut_of_choice`,
 `Proofs/Encoding/LeftAutUniform.lean`).
 The theorem's hypotheses are named Z3 verdict packs, and every one of them is re-sent by
-`relcert --run-verdicts-v2` and comes back `unsat` (921 queries in four phases, against
+`relcert --run-verdicts-v2` and comes back `unsat` (1361 queries in five phases, against
 declared counts; `docs/VERDICTS.md`). The axiom audit of every theorem is a subset of
-`{propext, Classical.choice, Quot.sound, z3_unsat_sound}`; 16 of the 45 are Z3-free. No
+`{propext, Classical.choice, Quot.sound, z3_unsat_sound}`; none of the 45 is Z3-free (every
+flow fact of every response is a pack of the emitted cover: 234 joint packs, 41 reposition
+packs). No
 `sorry`, no `admit`, no `native_decide`.
 
 `refinement_ladder_rover_rung2c_6dof` carries the statement for windows `0 ≤ dt ≤ ε_L = 1`
@@ -152,12 +159,15 @@ All counts read off `InstancesV2/BatteryV2.lean` and its build output.
 | model repaired by this mechanization (the nominal controller blocked after a full cycle; `docs/SUITE-REDESIGN.md` §20) | **2** | `platoon3_linkloss`, `platoon3_profiles` |
 | model repaired for Assumption 1 (`WellFormedR` refuted in the kernel, then proved; `docs/SUITE-REDESIGN.md` §21) | **9** | `arm_plateau_{crit,profiles,slow}`, `platoon_delay_{linkloss,profiles}`, `platoon3_{linkloss,profiles}`, `quad_light_{airframe_20,profiles}` |
 | widened cut channel needed (`RELCERT_IMPLIED_CUT=1`; closures, implied contractions, linear-form chains; lifted to the kernel by `Proofs/Soundness/CutLiftX.lean`) | **10** | `acc_spoof_lag`, `arm_plateau_{crit,profiles,slow}`, `charger_fast_setpoints`, `platoon_delay_{linkloss,profiles}`, `rover_patrol_refine`, `story3_rollover_ladder_rung_b`, `watertank` (each DECLINES without the channel) |
-| Z3-free (the three standard axioms only, no verdict hypothesis) | **16** | `arm_plateau_{crit,profiles,slow}`, `rover3tier_rung12`, `match_multi_rate`, `rover_patrol_{zones,refine}`, `refinement_ladder_rover_rung{1_2to3,3_6to8,4_8to12,2_6dof,2b_6dof}`, `rover_dof_terrain_rung{1,2,3,3_8d}` (explicit responses: catch-ups and climbs) |
+| every proof replays the emitted cover (joint segments at `jointOK` nodes with their packs, repositions at `dynPre` nodes with their reposition packs, legal switches, inadmissible starts contradictory; `docs/REPLAY.md`) | **45** | all |
+| responses with right-only repositions (reposition packs `modalVerdDynX`) | **17** | `arm_plateau_{crit,slow}`, `charger_fast_{setpoints,tapers}`, `refinement_ladder_rover_rung{1_2to3,3_6to8,4_8to12,2_6dof,2b_6dof}`, `rover_dof_terrain_rung{1,2,3,3_8d}`, `story3_rollover_{base_12dof,ladder_rung_a}`, `rover_patrol_{zones,refine}` |
+| Z3-free (the three standard axioms only, no verdict hypothesis) | **0** | none: every flow fact is a pack (until branch `replay`, 16 were Z3-free with explicit catch-ups and climbs; `docs/REPLAY.md` §1) |
 | stated on the nonblocking region (a conserved-momentum band of the model in the right region; it enters no verdict query) | **6** | `sat_detumble_{nominal,weak,phases}`, `sat3w_detumble_{nominal,weak,phases}` (`docs/SUITE-REDESIGN.md` §19.2) |
 | Theorem 2 (non-connection certificate of a pruned edge) | **1** | `match_multi_rate_nonconn`, the edge `DRIVE → STALL` |
 
 The axiom audit has 71 lines: the 45 Theorem 3s, `match_multi_rate_nonconn`, and 25 generic
-lemmas; 31 carry `z3_unsat_sound`, 40 are at the three standard axioms alone.
+lemmas; 47 carry `z3_unsat_sound` (the 45 Theorem 3s, `match_multi_rate_nonconn`,
+`couple_cutX`), 24 are at the three standard axioms alone.
 
 ## Build and check
 
@@ -190,9 +200,9 @@ BENCH_PATHS=/tmp/bench-paths-v2.tsv ./.lake/build/bin/relcert-test
 
 Expected: `Build completed successfully`; 71 axiom lines (BatteryV2), each a subset of the
 four axioms above; 76 axiom lines (WellFormedBattery), each exactly the three standard
-axioms; `[suite_v2] 45 certified, 0 declined, 0 error(s)`, coverage `modal 262/262`,
+axioms; `[suite_v2] 45 certified, 0 declined, 0 error(s)`, coverage `modal 621/621`,
 `handoff 186/186`, `non-connection 88/88`, `pruned edges 44/44`, `copied benchmarks (legacy
-packs) 385/385`, the strict Assumption 1 gate `[wellformed] STRICT: 146/146 right modes ok
+packs) 385/385`, `reposition (dyn) 81/81`, the strict Assumption 1 gate `[wellformed] STRICT: 146/146 right modes ok
 (83 invariant, 63 exit), 0 UNKNOWN — matches the declared suite`, `wellformed (strict): PASS`,
 `SUITE_V2 QUICK CHECKS PASSED`;
 `relcert-test`: a bare `ALL PASS`.
@@ -393,7 +403,9 @@ benchmarks" phase of `--run-verdicts-v2` (385 queries); the Theorem 2 hypothesis
 `match_multi_rate_nonconn` is pinned to the suite_v2 non-connection phase
 (`VerdictsV2/NonConnPinV2.lean`). These proofs are over the `⊤`-guarded relaxation. All
 nineteen are restated over the guarded automata at the mode-consistent region in new files
-(`Instances/*Guarded.lean`, `Instances/LeftAutLegacy.lean`), `rung2c` for windows `dt ≤ 1`.
+(`Instances/*Guarded.lean`, `Instances/LeftAutLegacy.lean`), `rung2c` for windows `dt ≤ 1`, and
+since branch `replay` these restatements replay the emitted cover with the suite_v2 packs
+(`RunV2.packsV2`, `RunV2.dynPacksV2`): no headline theorem takes a legacy pack.
 
 ## Further reading
 
@@ -405,6 +417,8 @@ nineteen are restated over the guarded automata at the mode-consistent region in
 * [`docs/WELLFORMED.md`](docs/WELLFORMED.md): Assumption 1 per benchmark (`WellFormedR`),
   the repaired defects, the tool check and its strict use in the recipe.
 * [`docs/VERDICTS.md`](docs/VERDICTS.md): the verdict runner, its phases, counts and pins.
+* [`docs/REPLAY.md`](docs/REPLAY.md): what "the proof replays the emitted cover" means, the
+  replay layer, and the per-benchmark replays of all 45.
 * [`docs/HANDOFF.md`](docs/HANDOFF.md): mode-dependent invariants and the handoff check.
 * [`docs/SUITE-REDESIGN.md`](docs/SUITE-REDESIGN.md): the design record of suite_v2 and its
   mechanism matrix.

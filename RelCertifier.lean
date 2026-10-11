@@ -90,6 +90,14 @@ import RelCertifier.Proofs.Encoding.RepoPrefixR
 import RelCertifier.Proofs.Encoding.RepositionDischarge
 import RelCertifier.Proofs.Encoding.RepositionEndToEnd
 import RelCertifier.Proofs.Encoding.RepositionFinish
+import RelCertifier.Proofs.Encoding.ReplayDyn
+import RelCertifier.Proofs.Encoding.ReplayEngine
+import RelCertifier.Proofs.Encoding.LadderReplay
+import RelCertifier.Proofs.Encoding.ReplayBridge
+import RelCertifier.Proofs.Encoding.ReplayComps
+import RelCertifier.Proofs.Encoding.ReplayModeKeyed
+import RelCertifier.Proofs.Encoding.ReplayOne
+import RelCertifier.Proofs.Encoding.ContractRun
 import RelCertifier.Proofs.Encoding.SinkExtension
 import RelCertifier.Proofs.Encoding.SplitCoupling
 import RelCertifier.Proofs.Encoding.ToolLevel
@@ -142,5 +150,6 @@ import RelCertifier.Trusted.Z3
 import RelCertifier.Instances.AxiomCheck
 import RelCertifier.Verdicts.ModalCodePins
 import RelCertifier.VerdictsV2.NonConnPinV2
+import RelCertifier.VerdictsV2.ModalDynX
 import RelCertifier.InstancesV2.BatteryV2
 import RelCertifier.InstancesV2.WellFormedBattery

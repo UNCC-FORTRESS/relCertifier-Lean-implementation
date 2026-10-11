@@ -49,61 +49,6 @@ theorem fRM_stall1 (x : State (Var 2)) : Term.eval (fRM 1 1) x = x (Rv 0) := by
     Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
     AOp.interp, Rv]
 
-/-- The instance's explicit `DRIVE` run (`drive_sem`), with its duration kept. -/
-theorem drive_sol (ρ : State (Var 2)) (hdom : Formula.sat domRM ρ) (hw1 : ρ (Rv 0) ≤ 1)
-    (τ : ℝ) (hτ : 0 ≤ τ) :
-    ODESol (modeM 0).sys (modeM 0).dom ρ τ (fun t => driveEnd ρ t) := by
-  have hD := (sat_domRM ρ).mp hdom
-  refine ⟨hτ, ?_, ?_, ?_, ?_⟩
-  · funext x
-    by_cases h0 : x = Rv 0
-    · subst h0; simp [driveEnd]
-    · by_cases h1 : x = Rv 1
-      · subst h1; simp [driveEnd_R1]
-      · exact driveEnd_ne ρ 0 h0 h1
-  · intro t ht p hp
-    simp only [modeM, rightBlock, List.mem_map, List.mem_finRange, true_and] at hp
-    obtain ⟨i, rfl⟩ := hp
-    have hexp : HasDerivWithinAt (fun u : ℝ => Real.exp (-u)) (Real.exp (-t) * (-1))
-        (Set.Icc 0 τ) t := by
-      have := (hasDerivAt_id t).neg.exp
-      simpa using this.hasDerivWithinAt
-    fin_cases i
-    · show HasDerivWithinAt (fun u => driveEnd ρ u (Rv 0))
-        (Term.eval (Term.binop AOp.mul (Term.const 1) (fRM 0 0)) (driveEnd ρ t)) _ t
-      simp only [Term.eval, AOp.interp]
-      rw [fRM0_eval 0 (by norm_num), driveEnd_R0]
-      have h := (hexp.const_mul (1 - ρ (Rv 0))).const_sub 1
-      refine (h.congr (fun y _ => driveEnd_R0 ρ y) (driveEnd_R0 ρ t)).congr_deriv ?_
-      simp [cstM]
-    · show HasDerivWithinAt (fun u => driveEnd ρ u (Rv 1))
-        (Term.eval (Term.binop AOp.mul (Term.const 1) (fRM 0 1)) (driveEnd ρ t)) _ t
-      simp only [Term.eval, AOp.interp]
-      rw [fRM1_eval 0 (by norm_num), driveEnd_R0]
-      have hid := hasDerivWithinAt_id t (Set.Icc (0:ℝ) τ)
-      have h := ((hid.const_add (ρ (Rv 1))).sub ((hexp.const_sub 1).const_mul (1 - ρ (Rv 0))))
-      refine (h.congr (fun y _ => by rw [driveEnd_R1]; simp) (by rw [driveEnd_R1]; simp)).congr_deriv
-        ?_
-      simp
-  · intro t ht x hx
-    have h0 : x ≠ Rv 0 := by
-      rintro rfl; exact hx (by simp [modeM, rightBlock, ODESystem.bound])
-    have h1 : x ≠ Rv 1 := by
-      rintro rfl; exact hx (by simp [modeM, rightBlock, ODESystem.bound])
-    exact driveEnd_ne ρ t h0 h1
-  · intro t ht
-    have he0 := Real.exp_pos (-t)
-    have he1 : Real.exp (-t) ≤ 1 := Real.exp_le_one_iff.mpr (by linarith [ht.1])
-    have hlin : 1 - Real.exp (-t) ≤ t := by linarith [Real.add_one_le_exp (-t)]
-    refine (sat_domRM _).mpr ⟨?_, ?_, ?_⟩
-    · show 0 ≤ driveEnd ρ t (Rv 1)
-      rw [driveEnd_R1]
-      nlinarith [hD.1, hD.2.1]
-    · show 0 ≤ driveEnd ρ t (Rv 0)
-      rw [driveEnd_R0]; nlinarith [hD.2.1]
-    · show driveEnd ρ t (Rv 0) ≤ 23/20
-      rw [driveEnd_R0]; nlinarith [hD.2.1]
-
 /-- The explicit `STALL` run: `v = v₀ e^{−2t}`, `s = s₀ + v₀ (1 − e^{−2t}) / 2`. -/
 noncomputable def stallφ (ρ : State (Var 2)) : Fin 2 → ℝ → ℝ := fun i t =>
   if i = 0 then 0 + (ρ (Rv 0) - 0) * Real.exp (-(2 * t))

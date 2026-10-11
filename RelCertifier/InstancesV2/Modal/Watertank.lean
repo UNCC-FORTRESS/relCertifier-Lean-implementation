@@ -860,69 +860,77 @@ theorem stayCase (l q : ℕ) (hl : l < 3) (hq : q < 4) (dt : ℝ) (hv : Verd l q
       ⟨hO1L l hl σ hguard, (sat_region_lt q hq σ).mp hreg⟩
   exact flowCase l q hl hq dt hv hanchor
 
-/-- A `Low` start of the `Mid` window: a zero-duration switch `Low → MidBoost`, LEGAL
-because `MidBoost`'s guard `10 ≤ x_R < 17` holds there (`x_R ≥ x_L − 3 ≥ 10` by the
-invariant and the `Mid` guard, `x_R ≤ 12.5` by `Low`'s region), then the certified joint
-segment in `MidBoost` and a legal switch at its end. -/
-theorem hopCase (dt : ℝ) (hv : Verd 1 2) {σ : State (Var 2)}
-    (hσ : Formula.sat (Formula.and (FM g gs) env) σ) (hreg : Formula.sat (region 0) σ) :
-    GResp Gr 0 (gwindowSeg (hostGuard vs 2 Side.L (mL 1)) (leftBlock (fL 1)) domL tg dt 1)
-      (fun qf => Formula.and (Formula.and (FM g gs) env) (region qf)) σ := by
-  refine gresp_gate (fun hguard => ?_)
-  have hx := (sat_guardL 1 (by norm_num) σ).mp hguard
-  simp only [show (1:ℕ) ≠ 0 from by decide, if_false, if_true] at hx
-  have hr0 := (cutSatR_val 0 (by norm_num) σ).mp ((sat_region_lt 0 (by norm_num) σ).mp hreg)
-  simp only [if_true] at hr0
-  have hg0 := (sat_FM_iff g gs σ).mp hσ.1 g List.mem_cons_self
-  rw [eval_g] at hg0
-  have hanchor : Formula.sat (Formula.and (FM g (gs ++ atomTerms (cL 1) (cR 2)))
-      (Formula.and domL domR)) σ := by
-    refine ⟨(sat_FM_append g gs _ σ).mpr ⟨hσ.1, ?_⟩, hσ.2⟩
-    refine (atomTerms_iff (hiffL 1 (by norm_num)) (hiffR 2 (by norm_num)) σ).mpr
-      ⟨hO1L 1 (by norm_num) σ hguard, ?_⟩
-    rw [cutSatR_val 2 (by norm_num)]
-    simp only [show (2:ℕ) ≠ 0 from by decide, show (2:ℕ) ≠ 3 from by decide, if_false]
-    constructor <;> linarith
-  -- the switch `Low → MidBoost`: legal at the start, hence (right-only) at the window's end
-  have hg2σ : Formula.sat (hostGuard vs 2 Side.R (mR 2)) σ := by
-    rw [sat_guardR 2 (by norm_num)]
-    norm_num
-    constructor <;> linarith
-  refine gresp_hop (e := edgeW 0 2) (Gr_modeAt 0 (by norm_num)) (edge_mem 0 2 (by decide))
-    (fun ν hν => ⟨(right_framed 1 (by norm_num) dt hdomR hν).mp hσ.2.2,
-      (right_framed 1 (by norm_num) dt (hguardR 2 (by norm_num)) hν).mp hg2σ⟩) ?_
-  exact flowCase 1 2 (by norm_num) (by norm_num) dt hv hanchor
+/-- **The inadmissible starts** (the cover drops them): the `Low` window from `High`, the
+`Mid` window from `Low`, the `High` window from any mode but `High`. The left guard, the right
+mode's guard and the row `|x_L − x_R| ≤ 3` contradict. -/
+theorem inadm (l q : ℕ) (hbad : (l = 0 ∧ q = 3) ∨ (l = 1 ∧ q = 0) ∨ (l = 2 ∧ q < 3))
+    {σ : State (Var 2)} (hσ : Formula.sat (Formula.and (FM g gs) env) σ)
+    (hgL : Formula.sat (hostGuard vs 2 Side.L (mL l)) σ)
+    (hgR : Formula.sat (hostGuard vs 2 Side.R (mR q)) σ) : False := by
+  have h1 := (sat_FM_iff g gs σ).mp hσ.1 g List.mem_cons_self
+  have h2 := (sat_FM_iff g gs σ).mp hσ.1 (gs.getD 0 (Term.const 0)) (by simp [gs])
+  rw [eval_g] at h1
+  rw [eval_gs0] at h2
+  rcases hbad with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, hq⟩
+  · have hl := (sat_guardL 0 (by norm_num) σ).mp hgL
+    have hr := (sat_guardR 3 (by norm_num) σ).mp hgR
+    simp only [if_true] at hl
+    simp only [show (3:ℕ) ≠ 0 from by decide, if_false, if_true] at hr
+    linarith [hl.2]
+  · have hl := (sat_guardL 1 (by norm_num) σ).mp hgL
+    have hr := (sat_guardR 0 (by norm_num) σ).mp hgR
+    simp only [show (1:ℕ) ≠ 0 from by decide, if_false, if_true] at hl
+    simp only [if_true] at hr
+    linarith [hl.1, hr.2]
+  · have hl := (sat_guardL 2 (by norm_num) σ).mp hgL
+    simp only [show (2:ℕ) ≠ 0 from by decide, show (2:ℕ) ≠ 1 from by decide, if_false] at hl
+    have hr := (sat_guardR q (by omega) σ).mp hgR
+    have hx : σ (Rv 0) < 17 := by
+      interval_cases q
+      · simp only [if_true] at hr; linarith [hr.2]
+      · simp only [show (1:ℕ) ≠ 0 from by decide, show (1:ℕ) ≠ 3 from by decide,
+          show (1:ℕ) ≠ 4 from by decide, if_false] at hr; exact hr.2
+      · simp only [show (2:ℕ) ≠ 0 from by decide, show (2:ℕ) ≠ 3 from by decide,
+          show (2:ℕ) ≠ 4 from by decide, if_false] at hr; exact hr.2
+    linarith
+
+theorem inadmCase (l q : ℕ) (hbad : (l = 0 ∧ q = 3) ∨ (l = 1 ∧ q = 0) ∨ (l = 2 ∧ q < 3))
+    (dt : ℝ) {σ : State (Var 2)} (hσ : Formula.sat (Formula.and (FM g gs) env) σ)
+    (hgR : Formula.sat (hostGuard vs 2 Side.R (mR q)) σ) :
+    GResp Gr q (gwindowSeg (hostGuard vs 2 Side.L (mL l)) (leftBlock (fL l)) domL tg dt 1)
+      (fun qf => Formula.and (Formula.and (FM g gs) env) (region qf)) σ :=
+  gresp_gate (fun hguard => (inadm l q hbad hσ hguard hgR).elim)
 
 theorem Hmulti (dt : ℝ)
-    (h00 : Verd 0 0) (h01 : Verd 0 1) (h02 : Verd 0 2) (h03 : Verd 0 3)
-    (h11 : Verd 1 1) (h12 : Verd 1 2) (h13 : Verd 1 3)
-    (h20 : Verd 2 0) (h21 : Verd 2 1) (h22 : Verd 2 2) (h23 : Verd 2 3) :
+    (h00 : Verd 0 0) (h01 : Verd 0 1) (h02 : Verd 0 2)
+    (h11 : Verd 1 1) (h12 : Verd 1 2) (h13 : Verd 1 3) (h23 : Verd 2 3) :
     ∀ P ∈ leftProgs dt, ∀ (q : ℕ), q < Gr.modes.length → ∀ σ, σ mv = (q : ℝ) →
-      Formula.sat (Formula.and (FM g gs) env) σ → Formula.sat (region q) σ →
+      Formula.sat (Formula.and (FM g gs) env) σ →
+      Formula.sat (hostGuard vs 2 Side.R (mR q)) σ → Formula.sat (region q) σ →
       GResp Gr q P (fun qf => Formula.and (Formula.and (FM g gs) env) (region qf)) σ := by
-  intro P hP q hq σ _ hσ hreg
+  intro P hP q hq σ _ hσ hg hreg
   rw [Gr_len] at hq
   simp only [leftProgs, leftData, List.map_cons, List.map_nil, List.mem_cons,
     List.not_mem_nil, or_false] at hP
   rcases hP with rfl | rfl | rfl
-  · match q, hq, hreg with
-    | 0, _, hreg => exact stayCase 0 0 (by norm_num) (by norm_num) dt h00 hσ hreg
-    | 1, _, hreg => exact stayCase 0 1 (by norm_num) (by norm_num) dt h01 hσ hreg
-    | 2, _, hreg => exact stayCase 0 2 (by norm_num) (by norm_num) dt h02 hσ hreg
-    | 3, _, hreg => exact stayCase 0 3 (by norm_num) (by norm_num) dt h03 hσ hreg
-    | 4, _, hreg => exact absurd hreg (not_sat_region4 σ)
-  · match q, hq, hreg with
-    | 0, _, hreg => exact hopCase dt h12 hσ hreg
-    | 1, _, hreg => exact stayCase 1 1 (by norm_num) (by norm_num) dt h11 hσ hreg
-    | 2, _, hreg => exact stayCase 1 2 (by norm_num) (by norm_num) dt h12 hσ hreg
-    | 3, _, hreg => exact stayCase 1 3 (by norm_num) (by norm_num) dt h13 hσ hreg
-    | 4, _, hreg => exact absurd hreg (not_sat_region4 σ)
-  · match q, hq, hreg with
-    | 0, _, hreg => exact stayCase 2 0 (by norm_num) (by norm_num) dt h20 hσ hreg
-    | 1, _, hreg => exact stayCase 2 1 (by norm_num) (by norm_num) dt h21 hσ hreg
-    | 2, _, hreg => exact stayCase 2 2 (by norm_num) (by norm_num) dt h22 hσ hreg
-    | 3, _, hreg => exact stayCase 2 3 (by norm_num) (by norm_num) dt h23 hσ hreg
-    | 4, _, hreg => exact absurd hreg (not_sat_region4 σ)
+  · match q, hq, hreg, hg with
+    | 0, _, hreg, _ => exact stayCase 0 0 (by norm_num) (by norm_num) dt h00 hσ hreg
+    | 1, _, hreg, _ => exact stayCase 0 1 (by norm_num) (by norm_num) dt h01 hσ hreg
+    | 2, _, hreg, _ => exact stayCase 0 2 (by norm_num) (by norm_num) dt h02 hσ hreg
+    | 3, _, _, hg => exact inadmCase 0 3 (Or.inl ⟨rfl, rfl⟩) dt hσ hg
+    | 4, _, hreg, _ => exact absurd hreg (not_sat_region4 σ)
+  · match q, hq, hreg, hg with
+    | 0, _, _, hg => exact inadmCase 1 0 (Or.inr (Or.inl ⟨rfl, rfl⟩)) dt hσ hg
+    | 1, _, hreg, _ => exact stayCase 1 1 (by norm_num) (by norm_num) dt h11 hσ hreg
+    | 2, _, hreg, _ => exact stayCase 1 2 (by norm_num) (by norm_num) dt h12 hσ hreg
+    | 3, _, hreg, _ => exact stayCase 1 3 (by norm_num) (by norm_num) dt h13 hσ hreg
+    | 4, _, hreg, _ => exact absurd hreg (not_sat_region4 σ)
+  · match q, hq, hreg, hg with
+    | 0, _, _, hg => exact inadmCase 2 0 (Or.inr (Or.inr ⟨rfl, by norm_num⟩)) dt hσ hg
+    | 1, _, _, hg => exact inadmCase 2 1 (Or.inr (Or.inr ⟨rfl, by norm_num⟩)) dt hσ hg
+    | 2, _, _, hg => exact inadmCase 2 2 (Or.inr (Or.inr ⟨rfl, by norm_num⟩)) dt hσ hg
+    | 3, _, hreg, _ => exact stayCase 2 3 (by norm_num) (by norm_num) dt h23 hσ hreg
+    | 4, _, hreg, _ => exact absurd hreg (not_sat_region4 σ)
 
 /-! ## Theorem 3 -/
 
@@ -936,15 +944,16 @@ in it). The right automaton is the GUARDED one: every edge carries the entered m
 lowered guard (`Gr_guards`), so every switch of the response is kernel-checked legal. The
 response runs the certified joint segment in the start mode at the cover's λ (2 for `Low`
 and `Mid`, 1 for `High`) and then switches into a successor enabled at its end state
-(`nonblock`: the region of every non-sink mode is covered by its successors' guards), except
-a `Low` start of a `Mid` window, which first switches along `Low → MidBoost` in zero time,
-inside `MidBoost`'s guard (`10 ≤ x_R ≤ 12.5`, forced by the invariant, the `Mid` guard and
-`Low`'s region). Residuals: eleven stratified verdict packs over the cut-narrowed domains
-(`modalVerdX`, the tool's own queries). -/
+(`nonblock`: the region of every non-sink mode is covered by its successors' guards): the
+emitted cover's derivation (`InstancesV2/BenchCovers/watertank.lean`), every joint segment at a
+`jointOK` node with its pack. The starts the cover drops as inadmissible (the `Low` window from
+`High`, the `Mid` window from `Low`, the `High` window from any mode but `High`) are
+contradictory: the left guard, the right mode's guard and the row (`inadm`). Residuals: seven
+stratified verdict packs over the cut-narrowed domains (`modalVerdX`, the tool's own
+queries). -/
 theorem watertank_modal (dt : ℝ)
-    (h00 : Verd 0 0) (h01 : Verd 0 1) (h02 : Verd 0 2) (h03 : Verd 0 3)
-    (h11 : Verd 1 1) (h12 : Verd 1 2) (h13 : Verd 1 3)
-    (h20 : Verd 2 0) (h21 : Verd 2 1) (h22 : Verd 2 2) (h23 : Verd 2 3) :
+    (h00 : Verd 0 0) (h01 : Verd 0 1) (h02 : Verd 0 2)
+    (h11 : Verd 1 1) (h12 : Verd 1 2) (h13 : Verd 1 3) (h23 : Verd 2 3) :
     RFormula.rvalid (theorem3Form
       (bigChoice (leftProgs dt))
       (rightAutomatonBody Gr mv)
@@ -988,8 +997,8 @@ theorem watertank_modal (dt : ℝ)
           obtain ⟨d, hd, rfl⟩ := hP
           exact frames_right (vars_gwindowSegL_sub d.1 d.2.1 d.2.2.1 1 dt d.2.2.2 (hL d hd).1
             (hL d hd).2.1 (hL d hd).2.2) (hguardR_all q) hrun)
-        (fun P hP q hq σ hmv hσ _ hreg =>
-          Hmulti dt h00 h01 h02 h03 h11 h12 h13 h20 h21 h22 h23 P hP q hq σ hmv hσ hreg))
+        (fun P hP q hq σ hmv hσ hg hreg =>
+          Hmulti dt h00 h01 h02 h11 h12 h13 h23 P hP q hq σ hmv hσ hg hreg))
   · exact hddF_multiR_G Gr 0 1 dt leftData gregion (canonInvM g gs) domL domR
       (by decide) hgR hRv hL (fun q hq => gregion_fv q hq)
       (canonInvM_varsL g gs comps_fv) (canonInvM_varsR g gs) hdomL hdomR

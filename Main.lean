@@ -98,7 +98,11 @@ def runAllVerdictsV2 (cfg : RelCertifier.Z3Config) : IO Bool := do
   let n4 ← RelCertifier.Verdicts.dischargedCount.get
   let c4 ← RelCertifier.Verdicts.checkPhase "suite_v2 copied benchmarks (legacy packs)"
     (n4 - n3) RelCertifier.VerdictsV2.expectedSameModalV2
-  pure (ok1 && c1 && ok2 && c2 && ok3 && c3 && c3' && ok4 && c4)
+  let ok5 ← RelCertifier.VerdictsV2.runDynV2 cfg
+  let n5 ← RelCertifier.Verdicts.dischargedCount.get
+  let c5 ← RelCertifier.Verdicts.checkPhase "suite_v2 reposition (dyn)" (n5 - n4)
+    RelCertifier.VerdictsV2.expectedDynV2
+  pure (ok1 && c1 && ok2 && c2 && ok3 && c3 && c3' && ok4 && c4 && ok5 && c5)
 
 def usage : String :=
 "relcert — the relCertifier certification tool

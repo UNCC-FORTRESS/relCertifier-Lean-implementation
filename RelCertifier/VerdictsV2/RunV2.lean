@@ -15,6 +15,7 @@ table in `VerdictsV2/CoveragePinsV2.lean`. Anything it cannot rebuild is a SKIP 
 the run non-green.
 -/
 import RelCertifier.VerdictsV2.ModalX
+import RelCertifier.VerdictsV2.ModalDynX
 import RelCertifier.InstancesV2.BenchIR
 import RelCertifier.InstancesV2.Cuts
 import RelCertifier.Trusted.Z3
@@ -57,14 +58,14 @@ def packQueries (r : PackV2) : Option (List (List (IForm r.dim))) :=
 noncomputable def packVerd (r : PackV2) : Prop :=
   modalVerdX (irV2 r.bench) (cutV2 r.bench) r.dim r.invRow r.order ((packLam r : ℚ) : ℝ) r.l r.m
 
-/-- The packs. Watertank: eleven (window, right mode) pairs, order `[0, 1]`. -/
+/-- The packs. Watertank: the seven admissible jointOK (window, right mode) pairs the replay
+consumes, order `[0, 1]`. -/
 def packsV2 : List PackV2 :=
   [ ⟨"watertank", 2, 0, [0, 1], 2, 1, 0, 0⟩, ⟨"watertank", 2, 0, [0, 1], 2, 1, 0, 1⟩,
-    ⟨"watertank", 2, 0, [0, 1], 2, 1, 0, 2⟩, ⟨"watertank", 2, 0, [0, 1], 2, 1, 0, 3⟩,
+    ⟨"watertank", 2, 0, [0, 1], 2, 1, 0, 2⟩,
     ⟨"watertank", 2, 0, [0, 1], 2, 1, 1, 1⟩, ⟨"watertank", 2, 0, [0, 1], 2, 1, 1, 2⟩,
     ⟨"watertank", 2, 0, [0, 1], 2, 1, 1, 3⟩,
-    ⟨"watertank", 2, 0, [0, 1], 1, 1, 2, 0⟩, ⟨"watertank", 2, 0, [0, 1], 1, 1, 2, 1⟩,
-    ⟨"watertank", 2, 0, [0, 1], 1, 1, 2, 2⟩, ⟨"watertank", 2, 0, [0, 1], 1, 1, 2, 3⟩,
+    ⟨"watertank", 2, 0, [0, 1], 1, 1, 2, 3⟩,
     -- platoon_delay_profiles: two windows (rows 0, 1), right FOLLOW/GENTLE/ASSERTIVE, λ = 1
     ⟨"platoon_delay_profiles", 2, 0, [0, 1], 1, 1, 0, 0⟩,
     ⟨"platoon_delay_profiles", 2, 0, [0, 1], 1, 1, 0, 1⟩,
@@ -106,7 +107,6 @@ def packsV2 : List PackV2 :=
     ⟨"charger_fast_setpoints", 2, 0, [0], 1, 1, 0, 2⟩,
     ⟨"charger_fast_setpoints", 2, 1, [0], 1, 1, 1, 1⟩,
     ⟨"charger_fast_setpoints", 2, 1, [0], 1, 1, 1, 2⟩,
-    ⟨"charger_fast_setpoints", 2, 2, [0], 1, 1, 2, 0⟩,
     ⟨"charger_fast_setpoints", 2, 2, [0], 1, 1, 2, 1⟩,
     ⟨"charger_fast_setpoints", 2, 2, [0], 1, 1, 2, 2⟩,
     -- acc_tune_lag
@@ -119,7 +119,6 @@ def packsV2 : List PackV2 :=
     ⟨"charger_fast_tapers", 2, 1, [0], 1, 1, 1, 1⟩,
     ⟨"charger_fast_tapers", 2, 1, [0], 1, 1, 1, 2⟩,
     ⟨"charger_fast_tapers", 2, 1, [0], 1, 1, 1, 3⟩,
-    ⟨"charger_fast_tapers", 2, 2, [0], 1, 1, 2, 0⟩,
     ⟨"charger_fast_tapers", 2, 2, [0], 1, 1, 2, 1⟩,
     ⟨"charger_fast_tapers", 2, 2, [0], 1, 1, 2, 2⟩,
     ⟨"charger_fast_tapers", 2, 2, [0], 1, 1, 2, 3⟩,
@@ -179,10 +178,168 @@ def packsV2 : List PackV2 :=
     ⟨"rover_patrol_refine", 3, 1, [0, 1], 9, 4, 1, 3⟩,
     ⟨"rover_patrol_refine", 3, 2, [0, 1], 9, 4, 2, 2⟩,
     ⟨"rover_patrol_refine", 3, 2, [0, 1], 9, 4, 2, 3⟩,
-    ⟨"rover_patrol_refine", 3, 3, [0, 1], 9, 4, 3, 3⟩ ]
+    ⟨"rover_patrol_refine", 3, 3, [0, 1], 9, 4, 3, 3⟩,
+    -- rover_dof_terrain_rung1 (cover replay): the joint nodes of each window, λ = 1
+    ⟨"rover_dof_terrain_rung1", 3, 0, [0, 1], 1, 1, 0, 0⟩,
+    ⟨"rover_dof_terrain_rung1", 3, 0, [0, 1], 1, 1, 0, 1⟩,
+    ⟨"rover_dof_terrain_rung1", 3, 0, [0, 1], 1, 1, 0, 2⟩,
+    ⟨"rover_dof_terrain_rung1", 3, 0, [0, 1], 1, 1, 1, 1⟩,
+    ⟨"rover_dof_terrain_rung1", 3, 0, [0, 1], 1, 1, 1, 2⟩,
+    ⟨"rover_dof_terrain_rung1", 3, 0, [0, 1], 1, 1, 2, 2⟩,
+    -- rover_dof_terrain_rung2 (cover replay)
+    ⟨"rover_dof_terrain_rung2", 6, 0, [0, 1], 1, 1, 0, 0⟩,
+    ⟨"rover_dof_terrain_rung2", 6, 0, [0, 1], 1, 1, 0, 1⟩,
+    ⟨"rover_dof_terrain_rung2", 6, 0, [0, 1], 1, 1, 0, 2⟩,
+    ⟨"rover_dof_terrain_rung2", 6, 0, [0, 1], 1, 1, 1, 1⟩,
+    ⟨"rover_dof_terrain_rung2", 6, 0, [0, 1], 1, 1, 1, 2⟩,
+    ⟨"rover_dof_terrain_rung2", 6, 0, [0, 1], 1, 1, 2, 2⟩,
+    -- rover_dof_terrain_rung3 (cover replay)
+    ⟨"rover_dof_terrain_rung3", 12, 0, [0, 1], 1, 1, 0, 0⟩,
+    ⟨"rover_dof_terrain_rung3", 12, 0, [0, 1], 1, 1, 0, 1⟩,
+    ⟨"rover_dof_terrain_rung3", 12, 0, [0, 1], 1, 1, 0, 2⟩,
+    ⟨"rover_dof_terrain_rung3", 12, 0, [0, 1], 1, 1, 1, 1⟩,
+    ⟨"rover_dof_terrain_rung3", 12, 0, [0, 1], 1, 1, 1, 2⟩,
+    ⟨"rover_dof_terrain_rung3", 12, 0, [0, 1], 1, 1, 2, 2⟩,
+    -- rover_dof_terrain_rung3_8d (cover replay)
+    ⟨"rover_dof_terrain_rung3_8d", 8, 0, [0, 1], 1, 1, 0, 0⟩,
+    ⟨"rover_dof_terrain_rung3_8d", 8, 0, [0, 1], 1, 1, 0, 1⟩,
+    ⟨"rover_dof_terrain_rung3_8d", 8, 0, [0, 1], 1, 1, 0, 2⟩,
+    ⟨"rover_dof_terrain_rung3_8d", 8, 0, [0, 1], 1, 1, 1, 1⟩,
+    ⟨"rover_dof_terrain_rung3_8d", 8, 0, [0, 1], 1, 1, 1, 2⟩,
+    ⟨"rover_dof_terrain_rung3_8d", 8, 0, [0, 1], 1, 1, 2, 2⟩,
+    -- refinement_ladder_rover_rung1_2to3 (cover replay)
+    ⟨"refinement_ladder_rover_rung1_2to3", 3, 0, [0, 1], 1, 1, 0, 0⟩,
+    ⟨"refinement_ladder_rover_rung1_2to3", 3, 0, [0, 1], 1, 1, 0, 1⟩,
+    ⟨"refinement_ladder_rover_rung1_2to3", 3, 0, [0, 1], 1, 1, 0, 2⟩,
+    ⟨"refinement_ladder_rover_rung1_2to3", 3, 0, [0, 1], 1, 1, 1, 1⟩,
+    ⟨"refinement_ladder_rover_rung1_2to3", 3, 0, [0, 1], 1, 1, 1, 2⟩,
+    ⟨"refinement_ladder_rover_rung1_2to3", 3, 0, [0, 1], 1, 1, 2, 2⟩,
+    -- refinement_ladder_rover_rung3_6to8 (cover replay)
+    ⟨"refinement_ladder_rover_rung3_6to8", 8, 0, [0, 1, 2, 3], 9, 4, 0, 0⟩,
+    ⟨"refinement_ladder_rover_rung3_6to8", 8, 0, [0, 1, 2, 3], 9, 4, 0, 1⟩,
+    ⟨"refinement_ladder_rover_rung3_6to8", 8, 0, [0, 1, 2, 3], 9, 4, 0, 2⟩,
+    ⟨"refinement_ladder_rover_rung3_6to8", 8, 0, [0, 1, 2, 3], 9, 4, 1, 1⟩,
+    ⟨"refinement_ladder_rover_rung3_6to8", 8, 0, [0, 1, 2, 3], 9, 4, 1, 2⟩,
+    ⟨"refinement_ladder_rover_rung3_6to8", 8, 0, [0, 1, 2, 3], 9, 4, 2, 2⟩,
+    -- refinement_ladder_rover_rung4_8to12 (cover replay)
+    ⟨"refinement_ladder_rover_rung4_8to12", 12, 0, [0, 1], 17, 10, 0, 0⟩,
+    ⟨"refinement_ladder_rover_rung4_8to12", 12, 0, [0, 1], 17, 10, 0, 1⟩,
+    ⟨"refinement_ladder_rover_rung4_8to12", 12, 0, [0, 1], 17, 10, 0, 2⟩,
+    ⟨"refinement_ladder_rover_rung4_8to12", 12, 0, [0, 1], 17, 10, 1, 1⟩,
+    ⟨"refinement_ladder_rover_rung4_8to12", 12, 0, [0, 1], 17, 10, 1, 2⟩,
+    ⟨"refinement_ladder_rover_rung4_8to12", 12, 0, [0, 1], 17, 10, 2, 2⟩,
+    -- story3_rollover_base_12dof (cover replay)
+    ⟨"story3_rollover_base_12dof", 12, 0, [0, 1, 2, 3, 4], 5, 4, 0, 0⟩,
+    ⟨"story3_rollover_base_12dof", 12, 0, [0, 1, 2, 3, 4], 5, 4, 0, 1⟩,
+    ⟨"story3_rollover_base_12dof", 12, 0, [0, 1, 2, 3, 4], 5, 4, 0, 2⟩,
+    ⟨"story3_rollover_base_12dof", 12, 0, [0, 1, 2, 3, 4], 5, 4, 1, 1⟩,
+    ⟨"story3_rollover_base_12dof", 12, 0, [0, 1, 2, 3, 4], 5, 4, 1, 2⟩,
+    ⟨"story3_rollover_base_12dof", 12, 0, [0, 1, 2, 3, 4], 5, 4, 2, 2⟩,
+    -- story3_rollover_ladder_rung_a (cover replay)
+    ⟨"story3_rollover_ladder_rung_a", 12, 0, [0, 1, 2], 27, 20, 0, 0⟩,
+    ⟨"story3_rollover_ladder_rung_a", 12, 0, [0, 1, 2], 27, 20, 0, 1⟩,
+    ⟨"story3_rollover_ladder_rung_a", 12, 0, [0, 1, 2], 27, 20, 0, 2⟩,
+    ⟨"story3_rollover_ladder_rung_a", 12, 0, [0, 1, 2], 27, 20, 1, 1⟩,
+    ⟨"story3_rollover_ladder_rung_a", 12, 0, [0, 1, 2], 27, 20, 1, 2⟩,
+    ⟨"story3_rollover_ladder_rung_a", 12, 0, [0, 1, 2], 27, 20, 2, 2⟩,
+    -- refinement_ladder_rover_rung2_6dof (cover replay)
+    ⟨"refinement_ladder_rover_rung2_6dof", 4, 0, [0], 1001, 1000, 0, 0⟩,
+    ⟨"refinement_ladder_rover_rung2_6dof", 4, 0, [0], 1001, 1000, 0, 1⟩,
+    ⟨"refinement_ladder_rover_rung2_6dof", 4, 0, [0], 1001, 1000, 0, 2⟩,
+    ⟨"refinement_ladder_rover_rung2_6dof", 4, 0, [0], 1001, 1000, 1, 1⟩,
+    ⟨"refinement_ladder_rover_rung2_6dof", 4, 0, [0], 1001, 1000, 1, 2⟩,
+    ⟨"refinement_ladder_rover_rung2_6dof", 4, 0, [0], 1001, 1000, 2, 2⟩,
+    -- refinement_ladder_rover_rung2b_6dof (cover replay)
+    ⟨"refinement_ladder_rover_rung2b_6dof", 6, 0, [0], 1001, 1000, 0, 0⟩,
+    ⟨"refinement_ladder_rover_rung2b_6dof", 6, 0, [0], 1001, 1000, 0, 1⟩,
+    ⟨"refinement_ladder_rover_rung2b_6dof", 6, 0, [0], 1001, 1000, 0, 2⟩,
+    ⟨"refinement_ladder_rover_rung2b_6dof", 6, 0, [0], 1001, 1000, 1, 1⟩,
+    ⟨"refinement_ladder_rover_rung2b_6dof", 6, 0, [0], 1001, 1000, 1, 2⟩,
+    ⟨"refinement_ladder_rover_rung2b_6dof", 6, 0, [0], 1001, 1000, 2, 2⟩,
+    -- refinement_ladder_rover_rung2_3to6 (cover replay)
+    ⟨"refinement_ladder_rover_rung2_3to6", 6, 0, [0, 2, 3, 1], 1, 1, 0, 0⟩,
+    ⟨"refinement_ladder_rover_rung2_3to6", 6, 0, [0, 2, 3, 1], 1, 1, 0, 1⟩,
+    ⟨"refinement_ladder_rover_rung2_3to6", 6, 0, [0, 2, 3, 1], 1, 1, 0, 2⟩,
+    ⟨"refinement_ladder_rover_rung2_3to6", 6, 0, [0, 2, 3, 1], 1, 1, 1, 1⟩,
+    ⟨"refinement_ladder_rover_rung2_3to6", 6, 0, [0, 2, 3, 1], 1, 1, 1, 2⟩,
+    ⟨"refinement_ladder_rover_rung2_3to6", 6, 0, [0, 2, 3, 1], 1, 1, 2, 2⟩,
+    -- story2_lateral_rung_a_8dof (cover replay)
+    ⟨"story2_lateral_rung_a_8dof", 8, 0, [0, 1, 3, 4, 5, 6, 2], 1, 1, 0, 0⟩,
+    ⟨"story2_lateral_rung_a_8dof", 8, 0, [0, 1, 3, 4, 5, 6, 2], 1, 1, 0, 1⟩,
+    ⟨"story2_lateral_rung_a_8dof", 8, 0, [0, 1, 3, 4, 5, 6, 2], 1, 1, 0, 2⟩,
+    ⟨"story2_lateral_rung_a_8dof", 8, 0, [0, 1, 3, 4, 5, 6, 2], 1, 1, 1, 1⟩,
+    ⟨"story2_lateral_rung_a_8dof", 8, 0, [0, 1, 3, 4, 5, 6, 2], 1, 1, 1, 2⟩,
+    ⟨"story2_lateral_rung_a_8dof", 8, 0, [0, 1, 3, 4, 5, 6, 2], 1, 1, 2, 2⟩,
+    -- story2_lateral_rung_b_12dof (cover replay)
+    ⟨"story2_lateral_rung_b_12dof", 12, 0, [0, 1, 2, 4, 5, 6, 7, 3], 1, 1, 0, 0⟩,
+    ⟨"story2_lateral_rung_b_12dof", 12, 0, [0, 1, 2, 4, 5, 6, 7, 3], 1, 1, 0, 1⟩,
+    ⟨"story2_lateral_rung_b_12dof", 12, 0, [0, 1, 2, 4, 5, 6, 7, 3], 1, 1, 0, 2⟩,
+    ⟨"story2_lateral_rung_b_12dof", 12, 0, [0, 1, 2, 4, 5, 6, 7, 3], 1, 1, 1, 1⟩,
+    ⟨"story2_lateral_rung_b_12dof", 12, 0, [0, 1, 2, 4, 5, 6, 7, 3], 1, 1, 1, 2⟩,
+    ⟨"story2_lateral_rung_b_12dof", 12, 0, [0, 1, 2, 4, 5, 6, 7, 3], 1, 1, 2, 2⟩,
+    -- story1_attdist_rung_a_6to8 (cover replay)
+    ⟨"story1_attdist_rung_a_6to8", 8, 0, [0, 1, 2], 1, 1, 0, 0⟩,
+    ⟨"story1_attdist_rung_a_6to8", 8, 0, [0, 1, 2], 1, 1, 0, 1⟩,
+    ⟨"story1_attdist_rung_a_6to8", 8, 0, [0, 1, 2], 1, 1, 0, 2⟩,
+    ⟨"story1_attdist_rung_a_6to8", 8, 1, [0, 1], 1, 1, 1, 0⟩,
+    ⟨"story1_attdist_rung_a_6to8", 8, 1, [0, 1], 1, 1, 1, 1⟩,
+    ⟨"story1_attdist_rung_a_6to8", 8, 1, [0, 1], 1, 1, 1, 2⟩,
+    ⟨"story1_attdist_rung_a_6to8", 8, 2, [0, 1], 1, 1, 2, 0⟩,
+    ⟨"story1_attdist_rung_a_6to8", 8, 2, [0, 1], 1, 1, 2, 1⟩,
+    ⟨"story1_attdist_rung_a_6to8", 8, 2, [0, 1], 1, 1, 2, 2⟩,
+    -- story1_attdist_rung_b_12dof (cover replay)
+    ⟨"story1_attdist_rung_b_12dof", 12, 0, [0, 1, 2], 1, 1, 0, 0⟩,
+    ⟨"story1_attdist_rung_b_12dof", 12, 0, [0, 1, 2], 1, 1, 0, 1⟩,
+    ⟨"story1_attdist_rung_b_12dof", 12, 0, [0, 1, 2], 1, 1, 0, 2⟩,
+    ⟨"story1_attdist_rung_b_12dof", 12, 1, [0, 1], 1, 1, 1, 0⟩,
+    ⟨"story1_attdist_rung_b_12dof", 12, 1, [0, 1], 1, 1, 1, 1⟩,
+    ⟨"story1_attdist_rung_b_12dof", 12, 1, [0, 1], 1, 1, 1, 2⟩,
+    ⟨"story1_attdist_rung_b_12dof", 12, 2, [0, 1], 1, 1, 2, 0⟩,
+    ⟨"story1_attdist_rung_b_12dof", 12, 2, [0, 1], 1, 1, 2, 1⟩,
+    ⟨"story1_attdist_rung_b_12dof", 12, 2, [0, 1], 1, 1, 2, 2⟩,
+    -- refinement_ladder_rover_rung2c_6dof (cover replay)
+    ⟨"refinement_ladder_rover_rung2c_6dof", 6, 0, [0, 1, 4, 5, 6, 7, 2, 3], 1, 1, 0, 0⟩,
+    ⟨"refinement_ladder_rover_rung2c_6dof", 6, 0, [0, 1, 4, 5, 6, 7, 2, 3], 1, 1, 1, 1⟩,
+    ⟨"refinement_ladder_rover_rung2c_6dof", 6, 0, [0, 1, 4, 5, 6, 7, 2, 3], 1, 1, 2, 2⟩,
+    -- rover3tier_rung12 (cover replay)
+    ⟨"rover3tier_rung12", 3, 0, [1, 0], 7, 4, 0, 0⟩,
+    ⟨"rover3tier_rung12", 3, 0, [1, 0], 7, 4, 0, 1⟩,
+    ⟨"rover3tier_rung12", 3, 1, [0], 1, 1, 1, 0⟩,
+    ⟨"rover3tier_rung12", 3, 1, [0], 1, 1, 1, 1⟩,
+    -- match_multi_rate (cover replay)
+    ⟨"match_multi_rate", 2, 0, [0], 3, 1, 0, 0⟩,
+    ⟨"match_multi_rate", 2, 0, [0], 2, 1, 1, 0⟩,
+    ⟨"match_multi_rate", 2, 0, [0], 1, 1, 2, 0⟩,
+    ⟨"match_multi_rate", 2, 0, [0], 1, 1, 3, 0⟩,
+    -- arm_plateau_crit (cover replay)
+    ⟨"arm_plateau_crit", 2, 0, [0], 1, 1, 0, 0⟩,
+    ⟨"arm_plateau_crit", 2, 0, [0], 1, 1, 0, 1⟩,
+    ⟨"arm_plateau_crit", 2, 0, [0], 1, 1, 0, 2⟩,
+    ⟨"arm_plateau_crit", 2, 0, [0], 1, 1, 0, 3⟩,
+    ⟨"arm_plateau_crit", 2, 1, [0], 1, 1, 1, 1⟩,
+    ⟨"arm_plateau_crit", 2, 1, [0], 1, 1, 1, 2⟩,
+    ⟨"arm_plateau_crit", 2, 1, [0], 1, 1, 1, 3⟩,
+    -- arm_plateau_profiles (cover replay)
+    ⟨"arm_plateau_profiles", 2, 0, [0], 1, 1, 0, 0⟩,
+    ⟨"arm_plateau_profiles", 2, 0, [0], 1, 1, 0, 1⟩,
+    ⟨"arm_plateau_profiles", 2, 0, [0], 1, 1, 0, 2⟩,
+    ⟨"arm_plateau_profiles", 2, 0, [0], 1, 1, 0, 3⟩,
+    ⟨"arm_plateau_profiles", 2, 0, [0], 1, 1, 0, 4⟩,
+    ⟨"arm_plateau_profiles", 2, 1, [0], 1, 1, 1, 0⟩,
+    ⟨"arm_plateau_profiles", 2, 1, [0], 1, 1, 1, 1⟩,
+    ⟨"arm_plateau_profiles", 2, 1, [0], 1, 1, 1, 2⟩,
+    ⟨"arm_plateau_profiles", 2, 1, [0], 1, 1, 1, 3⟩,
+    ⟨"arm_plateau_profiles", 2, 1, [0], 1, 1, 1, 4⟩,
+    -- arm_plateau_slow (cover replay)
+    ⟨"arm_plateau_slow", 2, 0, [0], 1, 1, 0, 0⟩,
+    ⟨"arm_plateau_slow", 2, 0, [0], 1, 1, 0, 2⟩,
+    ⟨"arm_plateau_slow", 2, 0, [0], 1, 1, 0, 3⟩,
+    ⟨"arm_plateau_slow", 2, 1, [0], 1, 1, 1, 1⟩,
+    ⟨"arm_plateau_slow", 2, 1, [0], 1, 1, 1, 2⟩,
+    ⟨"arm_plateau_slow", 2, 1, [0], 1, 1, 1, 3⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 262
+def expectedModalV2 : Nat := 621
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
@@ -226,6 +383,133 @@ def runModalV2 (cfg : Z3Config) : IO Bool := do
       let mut ok := true
       for r in packsV2 do
         ok := (← runPack s r) && ok
+      s.close
+      pure ok
+
+/-! ## The reposition packs (certificate 3) of the cover replays
+
+One row per dynamic-reposition pack a replaying instance assumes: the reposition of right
+mode `m` against left window `l`, before the window's first joint segment (`pre = true`: the
+left guard conjoined) or after it, the invariant row's components in the cover's reposition
+strata order (`dynPreOrder` / `dynPostOrder` of the emitted cover). The runner rebuilds each
+pack with `modalVerdDynXQueries` (the builder `modalVerdDynX_of_queries` proves denotes the
+instance's hypothesis), prints it with `toScript`, and owes one `unsat` per component. -/
+
+structure DynPackV2 where
+  bench  : String
+  dim    : ℕ
+  invRow : ℕ := 0
+  order  : List ℕ
+  pre    : Bool := true
+  l      : ℕ
+  m      : ℕ
+  deriving Repr, Inhabited
+
+def dynPackQueries (r : DynPackV2) : Option (List (IForm r.dim)) :=
+  modalVerdDynXQueries (irV2 r.bench) (cutV2 r.bench) r.dim r.invRow r.order r.pre r.l r.m
+
+noncomputable def dynPackVerd (r : DynPackV2) : Prop :=
+  modalVerdDynX (irV2 r.bench) (cutV2 r.bench) r.dim r.invRow r.order r.pre r.l r.m
+
+/-- The reposition packs. -/
+def dynPacksV2 : List DynPackV2 :=
+  [ -- rover_dof_terrain_rung1: MODER window from STEEP, FLAT window from MODER
+    ⟨"rover_dof_terrain_rung1", 3, 0, [0, 1], true, 1, 0⟩,
+    ⟨"rover_dof_terrain_rung1", 3, 0, [0, 1], true, 2, 1⟩,
+    -- rover_dof_terrain_rung2
+    ⟨"rover_dof_terrain_rung2", 6, 0, [0, 1], true, 1, 0⟩,
+    ⟨"rover_dof_terrain_rung2", 6, 0, [0, 1], true, 2, 1⟩,
+    -- rover_dof_terrain_rung3
+    ⟨"rover_dof_terrain_rung3", 12, 0, [0, 1], true, 1, 0⟩,
+    ⟨"rover_dof_terrain_rung3", 12, 0, [0, 1], true, 2, 1⟩,
+    -- rover_dof_terrain_rung3_8d
+    ⟨"rover_dof_terrain_rung3_8d", 8, 0, [0, 1], true, 1, 0⟩,
+    ⟨"rover_dof_terrain_rung3_8d", 8, 0, [0, 1], true, 2, 1⟩,
+    -- refinement_ladder_rover_rung1_2to3
+    ⟨"refinement_ladder_rover_rung1_2to3", 3, 0, [0, 1], true, 1, 0⟩,
+    ⟨"refinement_ladder_rover_rung1_2to3", 3, 0, [0, 1], true, 2, 1⟩,
+    -- refinement_ladder_rover_rung3_6to8
+    ⟨"refinement_ladder_rover_rung3_6to8", 8, 0, [0, 1, 2, 3], true, 1, 0⟩,
+    ⟨"refinement_ladder_rover_rung3_6to8", 8, 0, [0, 1, 2, 3], true, 2, 1⟩,
+    -- refinement_ladder_rover_rung4_8to12
+    ⟨"refinement_ladder_rover_rung4_8to12", 12, 0, [0, 1], true, 1, 0⟩,
+    ⟨"refinement_ladder_rover_rung4_8to12", 12, 0, [0, 1], true, 2, 1⟩,
+    -- story3_rollover_base_12dof
+    ⟨"story3_rollover_base_12dof", 12, 0, [0, 1, 2, 3, 4], true, 1, 0⟩,
+    ⟨"story3_rollover_base_12dof", 12, 0, [0, 1, 2, 3, 4], true, 2, 1⟩,
+    -- story3_rollover_ladder_rung_a
+    ⟨"story3_rollover_ladder_rung_a", 12, 0, [0, 1, 2], true, 1, 0⟩,
+    ⟨"story3_rollover_ladder_rung_a", 12, 0, [0, 1, 2], true, 2, 1⟩,
+    -- refinement_ladder_rover_rung2_6dof
+    ⟨"refinement_ladder_rover_rung2_6dof", 4, 0, [0], true, 1, 0⟩,
+    ⟨"refinement_ladder_rover_rung2_6dof", 4, 0, [0], true, 2, 0⟩,
+    ⟨"refinement_ladder_rover_rung2_6dof", 4, 0, [0], true, 2, 1⟩,
+    -- refinement_ladder_rover_rung2b_6dof
+    ⟨"refinement_ladder_rover_rung2b_6dof", 6, 0, [0], true, 1, 0⟩,
+    ⟨"refinement_ladder_rover_rung2b_6dof", 6, 0, [0], true, 2, 0⟩,
+    ⟨"refinement_ladder_rover_rung2b_6dof", 6, 0, [0], true, 2, 1⟩,
+    -- arm_plateau_crit
+    ⟨"arm_plateau_crit", 2, 1, [0], true, 1, 0⟩,
+    -- arm_plateau_slow
+    ⟨"arm_plateau_slow", 2, 0, [0], true, 0, 1⟩,
+    -- charger_fast_setpoints
+    ⟨"charger_fast_setpoints", 2, 0, [0], true, 0, 0⟩,
+    ⟨"charger_fast_setpoints", 2, 1, [0], true, 1, 0⟩,
+    -- charger_fast_tapers
+    ⟨"charger_fast_tapers", 2, 0, [0], true, 0, 0⟩,
+    ⟨"charger_fast_tapers", 2, 0, [0], true, 0, 1⟩,
+    ⟨"charger_fast_tapers", 2, 0, [0], true, 0, 2⟩,
+    -- rover_patrol_zones
+    ⟨"rover_patrol_zones", 3, 1, [0, 1], true, 1, 0⟩,
+    ⟨"rover_patrol_zones", 3, 2, [0, 1], true, 2, 0⟩,
+    ⟨"rover_patrol_zones", 3, 2, [0, 1], true, 2, 1⟩,
+    ⟨"rover_patrol_zones", 3, 3, [0, 1], true, 3, 1⟩,
+    ⟨"rover_patrol_zones", 3, 3, [0, 1], true, 3, 2⟩,
+    -- rover_patrol_refine
+    ⟨"rover_patrol_refine", 3, 1, [0, 1], true, 1, 0⟩,
+    ⟨"rover_patrol_refine", 3, 2, [0, 1], true, 2, 0⟩,
+    ⟨"rover_patrol_refine", 3, 2, [0, 1], true, 2, 1⟩,
+    ⟨"rover_patrol_refine", 3, 3, [0, 1], true, 3, 1⟩,
+    ⟨"rover_patrol_refine", 3, 3, [0, 1], true, 3, 2⟩ ]
+
+/-- Declared: the number of component queries the reposition packs owe. -/
+def expectedDynV2 : Nat := 81
+
+def runDynPack (s : Z3Session) (r : DynPackV2) : IO Bool := do
+  let p := irV2 r.bench
+  let vars := p.L.stateVars
+  let coord := fun (i : Fin r.dim) => vars.getD i.val s!"pad{i.val}"
+  match dynPackQueries r with
+  | none =>
+      IO.println s!"  SKIP  {r.bench} (l={r.l},m={r.m},pre={r.pre})  (rebuild failed)"
+      pure false
+  | some qs =>
+      if qs.isEmpty then
+        IO.println s!"  SKIP  {r.bench} (l={r.l},m={r.m},pre={r.pre})  (no component)"
+        return false
+      let mut ok := true
+      for i in List.range qs.length do
+        let q := qs.getD i IForm.tt
+        match ← s.check (q.toScript coord) with
+        | .ok .unsat =>
+            IO.println s!"  UNSAT (A=unsat)  {r.bench} (l={r.l},m={r.m},pre={r.pre}) comp={i}"
+            RelCertifier.Verdicts.counted
+        | .ok v =>
+            IO.println s!"  FAIL  {r.bench} (l={r.l},m={r.m},pre={r.pre}) comp={i} : A={reprStr v}"
+            ok := false
+        | .error e =>
+            IO.println s!"  FAIL  {r.bench} (l={r.l},m={r.m},pre={r.pre}) comp={i} : A=err({e})"
+            ok := false
+      pure ok
+
+def runDynV2 (cfg : Z3Config) : IO Bool := do
+  match ← Z3Session.start cfg with
+  | .error e => IO.eprintln s!"ERROR: z3: {e}"; return false
+  | .ok s =>
+      IO.println s!"== suite_v2 reposition packs : {dynPacksV2.length} verdict packs =="
+      let mut ok := true
+      for r in dynPacksV2 do
+        ok := (← runDynPack s r) && ok
       s.close
       pure ok
 

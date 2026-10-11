@@ -24,6 +24,7 @@ import RelCertifier.InstancesV2.Modal.RoverPatrolRefine
 import RelCertifier.Proofs.Encoding.GuardedClimb
 import RelCertifier.Proofs.Encoding.WindowGrowth
 import RelCertifier.Proofs.Flow.DISuperlevel
+import RelCertifier.Proofs.Encoding.ReplayOne
 
 set_option linter.unusedSimpArgs false
 
@@ -132,327 +133,441 @@ theorem hmvregG : ∀ q, mv ∉ (gregion q).fv := by
   intro q
   exact notMem_regionG_fv (fun h => aux_notin_range_Rv 0 (hguardR_all q h)) (hmvreg q)
 
-/-! ## The climb -/
+/-! ## The reposition packs (the cover's `dynPre` nodes: the zones below the window's) -/
 
-theorem capL3 : capL 3 = 3/2 := by norm_num [capL, capQ]
+/-- The reposition pack of window `l` at right zone `q` (the left held at the window's start,
+inside its guard; strata `[0, 1]`). -/
+def VerdD (l q : ℕ) : Prop :=
+  modalVerdDynX rover_patrol_refine_IRv2 rover_patrol_refine_cutsV2X 3 l [0, 1] true l q
 
-theorem exp_neg_two_le : Real.exp (-2) ≤ 1/4 := by
-  have h1 : (2:ℝ) ≤ Real.exp 1 := by have := Real.add_one_le_exp (1:ℝ); linarith
-  have h2 : Real.exp 2 = Real.exp 1 * Real.exp 1 := by rw [← Real.exp_add]; norm_num
-  have h4 : (4:ℝ) ≤ Real.exp 2 := by rw [h2]; nlinarith
-  have hpos : 0 < Real.exp 2 := Real.exp_pos 2
-  rw [Real.exp_neg]
-  rw [inv_le_comm₀ hpos (by norm_num)]
-  linarith
+theorem verdD_core (l q : ℕ) (hl : l < 4) (hq : q < 4) (h : VerdD l q) :
+    VerdDynCore true (g l :: gs l) (fR q)
+      (domCutX (Formula.and domL domR) (cL l) (cR q)) (hostGuard vs 3 Side.L (mL l)) := by
+  have h' := h
+  unfold VerdD modalVerdDynX at h'
+  rw [← domL_univ l hl, ← domR_univ q hq]
+  exact h'
 
-theorem exp_neg_four_le : Real.exp (-4) ≤ 1/16 := by
-  have h := exp_neg_two_le
-  have h2 : Real.exp (-4) = Real.exp (-2) * Real.exp (-2) := by rw [← Real.exp_add]; norm_num
-  rw [h2]
-  have hp := Real.exp_pos (-2)
-  nlinarith
+/-! ## O2 for the right atoms along every flow of a driving zone (joint, or with the left
+frozen): `s_R' = v_R ≥ 0`, and `v_R` contracts toward the zone's command inside the band -/
 
-/-- **The `FAST` run**: long enough that `v_R ≥ max(v_R, 1.425)` and `s_R ≥ S`, then the
-self-loop (legal). -/
-theorem climbFast (ρ : State (Var 3)) (hdom : Formula.sat domR ρ)
-    (hg : 50 ≤ ρ (Rv 1) ∧ 3/10 ≤ ρ (Rv 0) ∧ ρ (Rv 0) ≤ 3/2) (S : ℝ)
-    {post : ℕ → Formula (Var 3)}
-    (hpost : ∀ μ, (∀ i, μ (Lv i) = ρ (Lv i)) → Formula.sat domR μ →
-      50 ≤ μ (Rv 1) → 3/10 ≤ μ (Rv 0) → μ (Rv 0) ≤ 3/2 → ρ (Rv 0) ≤ μ (Rv 0) →
-      57/40 ≤ μ (Rv 0) → S ≤ μ (Rv 1) → Formula.sat (post 3) μ) :
-    RResp GrG 3 post ρ := by
-  obtain ⟨hs50, hv3, hv15⟩ := hg
-  set τ : ℝ := 4 + max 0 (S - ρ (Rv 1)) * (10/3) with hτ
-  have hτ4 : 4 ≤ τ := by
-    have : 0 ≤ max 0 (S - ρ (Rv 1)) * (10/3) := mul_nonneg (le_max_left _ _) (by norm_num)
-    linarith
-  have hτ0 : 0 ≤ τ := by linarith
-  have hrun := mode_run 3 (by norm_num) ρ τ hτ0 hdom
-  set μ := solR (capL 3) 1 ρ τ with hμ
-  have hex0 := ex_pos 1 τ
-  have hex1 : ex 1 τ ≤ 1/16 := by
-    have : ex 1 τ ≤ Real.exp (-4) := by
-      unfold ex; exact Real.exp_le_exp.mpr (by linarith)
-    linarith [exp_neg_four_le]
-  have hge := ex_ge 1 τ
-  have hμv : μ (Rv 0) = 3/2 + (ρ (Rv 0) - 3/2) * ex 1 τ := by rw [hμ, solR_0, capL3]
-  have hμs : μ (Rv 1) = ρ (Rv 1) + 1 * (3/2) * τ + (ρ (Rv 0) - 3/2) * (1 - ex 1 τ) := by
-    rw [hμ, solR_1, capL3]
-  have hμL : ∀ i, μ (Lv i) = ρ (Lv i) := fun i =>
-    solR_other _ 1 ρ τ (by simp [Lv, Rv, Prod.ext_iff]) (by simp [Lv, Rv, Prod.ext_iff])
-  have hv_ge : ρ (Rv 0) ≤ μ (Rv 0) := by rw [hμv]; nlinarith
-  have hv_le : μ (Rv 0) ≤ 3/2 := by rw [hμv]; nlinarith
-  have hv_hi : 57/40 ≤ μ (Rv 0) := by rw [hμv]; nlinarith
-  have hs_low : ρ (Rv 1) + 3/10 * τ ≤ μ (Rv 1) := by
-    rw [hμs]
-    have h1 : 0 ≤ (3/2 - ρ (Rv 0)) * (τ - 1 + ex 1 τ) := by
-      apply mul_nonneg (by linarith); linarith
-    nlinarith
-  have hs_S : S ≤ μ (Rv 1) := by
-    have hm : S - ρ (Rv 1) ≤ max 0 (S - ρ (Rv 1)) := le_max_right _ _
-    have : 3/10 * τ = 6/5 + max 0 (S - ρ (Rv 1)) := by rw [hτ]; ring
-    linarith
-  have hs50' : 50 ≤ μ (Rv 1) := by
-    have : 0 ≤ 3/10 * τ := by positivity
-    linarith
-  have hdomμ : Formula.sat domR μ := solR_stays 3 (by norm_num) 1 zero_le_one ρ hdom hτ0
-  refine rresp_step (GrG_modeAt 3 (by norm_num)) (edgeG_mem 3 3 (by simp [edgeList])) hrun ?_
-    (rresp_stop ?_)
-  · show Formula.sat (hostGuard vs 3 Side.R (mR 3)) μ
-    rw [sat_guardR3]
-    exact ⟨hs50', by linarith, hv_le⟩
-  · exact hpost μ hμL hdomμ hs50' (by linarith) hv_le hv_ge hv_hi hs_S
+theorem stayR_gen (q : ℕ) (hq : q < 4) (fL' : Fin 3 → Term (Var 3)) (c : ℝ) (hc : 0 ≤ c)
+    (D : Formula (Var 3)) (hD : ∀ z, Formula.sat D z → Formula.sat domR z) :
+    AtomsStayC (cR q) (jointSys fL' (fR q) (Term.const c)) D := by
+  intro a ha ν hν
+  have hinit := (hiffR q hq a ha ν).mp (hν a ha)
+  have hcb := cap_bounds q hq
+  rw [cR_eq q hq] at ha
+  simp only [zoneAtoms, List.mem_cons, List.not_mem_nil, or_false] at ha
+  rcases ha with rfl | rfl | rfl
+  · exact boxle_thrGe_R 1 _ _ _ _ hc _ D (fun x h => h)
+      (fun z hz _ => by rw [fR1_eval q (by omega)]; exact ((sat_domR z).mp (hD z hz)).1) hinit
+  · exact boxle_thrGe_R 0 _ _ _ _ hc _ D (fun x h => h)
+      (fun z _ hz => by rw [fR0_eval q hq]; linarith) hinit
+  · exact boxle_thrLe_R 0 _ _ _ _ hc _ D (fun x h => h)
+      (fun z _ hz => by rw [fR0_eval q hq]; linarith) hinit
 
-/-- **The climb from `MEDIUM_*`** (`q = 1, 2`): run to `s = 50`, switch into `FAST`. -/
-theorem climbMed (q : ℕ) (hq1 : 1 ≤ q) (hq2 : q ≤ 2) (ρ : State (Var 3))
-    (hdom : Formula.sat domR ρ) (hs : ρ (Rv 1) < 50) (hv3 : 3/10 ≤ ρ (Rv 0))
-    (hvc : ρ (Rv 0) ≤ capL q) (S : ℝ) {post : ℕ → Formula (Var 3)}
-    (hpost : ∀ μ, (∀ i, μ (Lv i) = ρ (Lv i)) → Formula.sat domR μ →
-      50 ≤ μ (Rv 1) → 3/10 ≤ μ (Rv 0) → μ (Rv 0) ≤ 3/2 → ρ (Rv 0) ≤ μ (Rv 0) →
-      57/40 ≤ μ (Rv 0) → S ≤ μ (Rv 1) → Formula.sat (post 3) μ) :
-    RResp GrG q post ρ := by
-  have hq4 : q < 4 := by omega
-  have hcq : capL q ≤ 11/10 := by
-    interval_cases q <;> norm_num [capL, capQ]
-  obtain ⟨κ, hrun, hκs, hκv1, hκv2, hκo⟩ := mode_reach q hq4 50 ρ hdom hv3 hvc
-  have hκs' : κ (Rv 1) = 50 := by rw [hκs]; exact max_eq_right (le_of_lt hs)
-  have hκL : ∀ i, κ (Lv i) = ρ (Lv i) := fun i =>
-    hκo (Lv i) ⟨by simp [Lv, Rv, Prod.ext_iff], by simp [Lv, Rv, Prod.ext_iff]⟩
-  have hκdom : Formula.sat domR κ := sem_ode_ends_in_domain hrun
-  have hedge : (q, 3) ∈ edgeList := by interval_cases q <;> simp [edgeList]
-  refine rresp_step (GrG_modeAt q (by omega)) (edgeG_mem q 3 hedge) hrun ?_ ?_
-  · show Formula.sat (hostGuard vs 3 Side.R (mR 3)) κ
-    rw [sat_guardR3]
-    exact ⟨le_of_eq hκs'.symm, by linarith, by linarith⟩
-  · refine climbFast κ hκdom ⟨le_of_eq hκs'.symm, by linarith, by linarith⟩ S ?_
-    intro μ hμL hμd h1 h2 h3 h4 h5 h6
-    exact hpost μ (fun i => (hμL i).trans (hκL i)) hμd h1 h2 h3 (le_trans hκv1 h4) h5 h6
+/-! ## The anchors of the cover's pairs -/
 
-/-- **The climb from `SLOW`**: run to `s = 20`, switch into `MEDIUM_ECO`, then `climbMed`. -/
-theorem climbSlow (ρ : State (Var 3)) (hdom : Formula.sat domR ρ) (hs : ρ (Rv 1) < 20)
-    (hv3 : 3/10 ≤ ρ (Rv 0)) (hvc : ρ (Rv 0) ≤ 3/5) (S : ℝ) {post : ℕ → Formula (Var 3)}
-    (hpost : ∀ μ, (∀ i, μ (Lv i) = ρ (Lv i)) → Formula.sat domR μ →
-      50 ≤ μ (Rv 1) → 3/10 ≤ μ (Rv 0) → μ (Rv 0) ≤ 3/2 → ρ (Rv 0) ≤ μ (Rv 0) →
-      57/40 ≤ μ (Rv 0) → S ≤ μ (Rv 1) → Formula.sat (post 3) μ) :
-    RResp GrG 0 post ρ := by
-  have hc0 : capL 0 = 3/5 := by norm_num [capL, capQ]
-  have hc1 : capL 1 = 9/10 := by norm_num [capL, capQ]
-  obtain ⟨κ, hrun, hκs, hκv1, hκv2, hκo⟩ := mode_reach 0 (by norm_num) 20 ρ hdom hv3
-    (by rw [hc0]; exact hvc)
-  have hκs' : κ (Rv 1) = 20 := by rw [hκs]; exact max_eq_right (le_of_lt hs)
-  have hκL : ∀ i, κ (Lv i) = ρ (Lv i) := fun i =>
-    hκo (Lv i) ⟨by simp [Lv, Rv, Prod.ext_iff], by simp [Lv, Rv, Prod.ext_iff]⟩
-  have hκdom : Formula.sat domR κ := sem_ode_ends_in_domain hrun
-  rw [hc0] at hκv2
-  refine rresp_step (GrG_modeAt 0 (by norm_num)) (edgeG_mem 0 1 (by simp [edgeList])) hrun ?_ ?_
-  · show Formula.sat (hostGuard vs 3 Side.R (mR 1)) κ
-    rw [sat_guardR1]
-    exact ⟨le_of_eq hκs'.symm, by linarith, by linarith, by linarith⟩
-  · refine climbMed 1 le_rfl (by norm_num) κ hκdom (by linarith) (by linarith)
-      (by rw [hc1]; linarith) S ?_
-    intro μ hμL hμd h1 h2 h3 h4 h5 h6
-    exact hpost μ (fun i => (hμL i).trans (hκL i)) hμd h1 h2 h3 (le_trans hκv1 h4) h5 h6
+/-- The right atoms of the cover's nodes (the four zones). -/
+noncomputable def cR' (q : ℕ) : List (CutAtomP 3) := if q < 4 then cR q else []
 
-/-! ## The deployed's `w = a + 5 v` across a window: the linear-form chain -/
+noncomputable def anc (l q : ℕ) : Formula (Var 3) := FM (g l) (gs l ++ atomTerms (cL l) (cR' q))
 
-theorem cLv_eq (l : ℕ) (hl : l < 4) : cLv l = 4/5 * capL l := by
-  interval_cases l <;> norm_num [cLv, cLQ, capL, capQ]
+theorem anc_eq (l q : ℕ) (hq : q < 4) :
+    anc l q = FM (g l) (gs l ++ atomTerms (cL l) (cR q)) := by
+  unfold anc cR'; rw [if_pos hq]
 
-/-- The left guard's caps: `a ≤ 0.5`, `v ≤ cap`. -/
-theorem guardL_caps (l : ℕ) (hl : l < 4) (x : State (Var 3))
-    (h : Formula.sat (hostGuard vs 3 Side.L (mL l)) x) :
-    x (Lv 2) ≤ 1/2 ∧ x (Lv 0) ≤ capL l := by
-  interval_cases l <;>
-    simp [hostGuard, mL, rover_patrol_refine_IRv2, Run.lowerF, Run.lowerE, hp0_0, hp20_0,
-      hp50_0, hp0_3, hp0_6, hp0_9, hp1_1, hp1_5, hp0_5, hpm0_5, vs, Run.resolveVar,
-      List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Lv,
-      capL, capQ] at h ⊢ <;>
-    exact ⟨by linarith [h], by linarith [h]⟩
+theorem anc_fv (l q : ℕ) (hl : l < 4) : (anc l q).fv ⊆ range Lv ∪ range Rv := by
+  intro x hx
+  by_cases hq : q < 4
+  · rw [anc_eq l q hq] at hx
+    by_contra hS
+    exact notMem_FM_fv (fun g' hg' hxg =>
+      hS (anchor_fv l q hl hq g' (by simpa using hg') hxg)) hx
+  · unfold anc cR' at hx
+    rw [if_neg hq] at hx
+    by_contra hS
+    refine notMem_FM_fv (fun g' hg' hxg => hS ?_) hx
+    rcases List.mem_cons.mp hg' with rfl | hg'
+    · exact comps_fv_all l _ List.mem_cons_self hxg
+    rcases List.mem_append.mp hg' with hg' | hg'
+    · exact comps_fv_all l _ (List.mem_cons_of_mem _ hg') hxg
+    simp only [atomTerms, List.map_append, List.mem_append, List.mem_map, List.not_mem_nil,
+      false_and, exists_false, or_false] at hg'
+    obtain ⟨a, ha, rfl⟩ := hg'
+    exact anchor_fv l 0 hl (by norm_num) a.2 (by
+      simp only [List.cons_append, List.mem_cons, List.mem_append, atomTerms, List.map_append,
+        List.mem_map]
+      exact Or.inr (Or.inr (Or.inl ⟨a, ha, rfl⟩))) hxg
 
-theorem leftBlock_wf (f : Fin 3 → Term (Var 3)) : (leftBlock f).WellFormed := by
-  have hLinj : Function.Injective (Lv (n := 3)) := by
-    intro a b h; simpa [Lv, Prod.ext_iff] using h
-  unfold ODESystem.WellFormed leftBlock
-  simp only [List.map_map, Function.comp_def]
-  exact (List.nodup_finRange 3).map hLinj
+theorem cL_fvL (l : ℕ) (hl : l < 4) : ∀ a ∈ cL l, a.2.fv ⊆ range Lv := by
+  intro a ha x hx
+  interval_cases l
+  · rw [cL_0] at ha
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at ha
+    rcases ha with h | h | h | h | h <;> subst h <;>
+      simp [thrGe, thrLe, linLe, linGe, linQ, Term.fv] at hx <;>
+      first | (rcases hx with rfl | rfl <;> simp [Lv]) | (subst hx; simp [Lv])
+  · rw [cL_1] at ha
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at ha
+    rcases ha with h | h | h | h | h <;> subst h <;>
+      simp [thrGe, thrLe, linLe, linGe, linQ, Term.fv] at hx <;>
+      first | (rcases hx with rfl | rfl <;> simp [Lv]) | (subst hx; simp [Lv])
+  · rw [cL_2] at ha
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at ha
+    rcases ha with h | h | h | h | h <;> subst h <;>
+      simp [thrGe, thrLe, linLe, linGe, linQ, Term.fv] at hx <;>
+      first | (rcases hx with rfl | rfl <;> simp [Lv]) | (subst hx; simp [Lv])
+  · rw [cL_3] at ha
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at ha
+    rcases ha with h | h | h | h <;> subst h <;>
+      simp [thrGe, thrLe, linLe, linGe, linQ, Term.fv] at hx <;>
+      first | (rcases hx with rfl | rfl <;> simp [Lv]) | (subst hx; simp [Lv])
 
-theorem htg_leftBlock (f : Fin 3 → Term (Var 3)) : tg ∉ (leftBlock f).bound := by
-  intro h
-  obtain ⟨i, hi⟩ := leftBlock_bound_sub f _ h
-  exact aux_ne_Lv 1 i hi
+theorem anc_box (l q : ℕ) (hl : l < 4) (hq : q < 4) (hv : Verd l q) :
+    ∀ σ ω, Formula.sat (anc l q) σ →
+      Program.sem (Program.ode (jointSys (fL l) (fR q) (Term.const lam))
+        (Formula.and domL domR)) σ ω → Formula.sat (anc l q) ω := by
+  rw [anc_eq l q hq]
+  exact couple_box_cutX (g l) (gs l) (g l :: gs l) (cL l) (cR q) (fL l) (fR q) lam domL domR
+    (fun c hc => hc) (fun c hc => hc) (hiffL l hl) (hiffR q hq) (stayL l q hl)
+    (stayR_gen q hq (fL l) lam lam_pos.le _ (fun z hz => hz.2)) (verd_core l q hl (by omega) hv)
 
-theorem lie_clk_left (f : Fin 3 → Term (Var 3)) (t : Term (Var 3)) (ht : tg ∉ t.fv)
-    (x : State (Var 3)) :
-    Lie (DLCalTiming.clk tg (leftBlock f)) (fun ω => Term.eval t ω) x
-      = Term.eval (lie1L t f) x := by
-  rw [eval_lie1L]
-  unfold Lie DLCalTiming.clk leftBlock
-  rw [List.map_append, List.sum_append]
-  simp only [List.map_cons, List.map_nil, List.sum_cons, List.sum_nil, List.map_map,
-    Function.comp_def]
-  rw [tderiv_fderiv t tg x, tderiv_not_free ht x, Fin.sum_univ_def]
-  simp only [Term.eval, zero_mul, add_zero]
-  congr 1
-  refine List.map_congr_left ?_
-  intro i _
-  rw [tderiv_fderiv]
+theorem anc_boxD (l q : ℕ) (hl : l < 4) (hq : q < 4) (hv : VerdD l q) :
+    ∀ σ ω, Formula.sat (anc l q) σ → Formula.sat (hostGuard vs 3 Side.L (mL l)) σ →
+      Program.sem (Program.ode (jointSys (fun _ => Term.const 0) (fR q) (Term.const 1))
+        (Formula.and domL domR)) σ ω → Formula.sat (anc l q) ω := by
+  rw [anc_eq l q hq]
+  intro σ ω h1 h2 h3
+  exact couple_box_dyn true (g l) (gs l) (g l :: gs l) (cL l) (cR q) (fR q) domL domR
+    (hostGuard vs 3 Side.L (mL l)) (fun c hc => hc) (fun c hc => hc) (hiffL l hl) (hiffR q hq)
+    (cL_fvL l hl) (hguardL l hl)
+    (stayR_gen q hq _ 1 (by norm_num) _ (fun z hz => by
+      simp only [dynBase, if_true] at hz; exact hz.1.2))
+    (verdD_core l q hl hq hv) σ ω h1 (fun _ => h2) h3
 
-theorem wf_clk (l : ℕ) : (DLCalTiming.clk tg (leftBlock (fL l))).WellFormed :=
-  clk_wellFormed tg _ (leftBlock_wf _) (htg_leftBlock _)
+/-- The right guards (driving zones), as one statement: the zone's odometer band and speed
+band `[0.3, cap]`. -/
+def hiS (q : ℕ) : ℝ := if q = 0 then 20 else 50
 
-theorem tg_lin (r c K : ℝ) : tg ∉ (linLe (Lv (0 : Fin 3)) (Lv 2) r c K).fv := by
-  simp [linLe, linQ, Term.fv, Lv, Prod.ext_iff]
+theorem sat_guardRz (q : ℕ) (hq : q < 4) (x : State (Var 3)) :
+    Formula.sat (hostGuard vs 3 Side.R (mR q)) x ↔
+      loL q ≤ x (Rv 1) ∧ (q < 3 → x (Rv 1) < hiS q) ∧ 3/10 ≤ x (Rv 0) ∧
+        x (Rv 0) ≤ capL q :=
+  sat_guardR q hq x
 
-/-- `y ≤ M` along the left flow, given `q ≤ M` (`y' = −2.5 (y − q)`). -/
-theorem super_y (l : ℕ) (hl : l < 4) (M : ℝ) (D : Formula (Var 3))
-    (hgiven : ∀ z, Formula.sat D z →
-      Term.eval (linLe (Lv (0 : Fin 3)) (Lv 2) (5/2) (cLv l) M) z ≤ 0) :
-    ∀ z, Formula.sat D z → 0 ≤ Term.eval (linLe (Lv (0 : Fin 3)) (Lv 2) 5 (cLv l) M) z →
-      Term.eval (lie1L (linLe (Lv (0 : Fin 3)) (Lv 2) 5 (cLv l) M) (fL l)) z ≤ 0 := by
-  intro z hz hge
-  have hlie : Term.eval (lie1L (linLe (Lv (0 : Fin 3)) (Lv 2) 5 (cLv l) M) (fL l)) z
-      = Term.eval (lie1L (linQ (Lv (0 : Fin 3)) (Lv 2) 5 (cLv l)) (fL l)) z := by
-    rw [eval_lie1L, eval_lie1L]
-    refine Finset.sum_congr rfl (fun i _ => ?_)
-    simp [linLe, tderiv, Term.eval, AOp.interp]
-  rw [hlie, eval_lie1L_linQ 0 2, fL2_eval l hl, fL0_eval l hl]
-  have hq := hgiven z hz
-  simp only [linLe, eval_linQ, Term.eval, AOp.interp] at hq hge
-  nlinarith
+/-- O1 for the right: a driving zone's guard implies its kept atoms. -/
+theorem hO1R (q : ℕ) (hq : q < 4) (ν : State (Var 3))
+    (hg : Formula.sat (hostGuard vs 3 Side.R (mR q)) ν) : CutSat (cR q) ν := by
+  have h := (sat_guardRz q hq ν).mp hg
+  rw [cutSatR_val q hq ν]
+  exact ⟨h.1, h.2.2.1, h.2.2.2⟩
 
-/-- **The window's end bound on `w`**: from a start inside the left guard (`|a| ≤ 0.5`,
-`v ≤ cap`), the single clocked piece ends with `a + 5 v ≤ max(start, 7.25)`. -/
-theorem window_w (l : ℕ) (hl : l < 4) (dt : ℝ) {σ ν : State (Var 3)}
-    (hsem : Program.sem (windowSeg (leftBlock (fL l)) domL tg dt 1) σ ν)
-    (hq0 : σ (Lv 2) + 5/2 * (σ (Lv 0) - cLv l) ≤ 5/4) :
-    ν (Lv 2) + 5 * ν (Lv 0) ≤ max (σ (Lv 2) + 5 * σ (Lv 0)) (29/4) := by
-  simp only [windowSeg, List.replicate_succ, List.replicate_zero, bigSeq] at hsem
-  obtain ⟨mid, hseg, hrest⟩ := hsem
-  rw [sem_test] at hrest
-  obtain ⟨rfl, -⟩ := hrest
-  have hode := clockedSeg_runs hseg
-  set σ' := Function.update σ tg 0 with hσ'
-  have hL : ∀ i, σ' (Lv i) = σ (Lv i) := fun i => Function.update_of_ne (by simp [Lv, Prod.ext_iff]) _ _
-  set c := cLv l with hcdef
-  set Q : ℝ := max (σ (Lv 2) + 5/2 * (σ (Lv 0) - c)) 0 with hQ
-  set M : ℝ := max (σ (Lv 2) + 5 * (σ (Lv 0) - c)) Q with hM
-  have hQ0 : 0 ≤ Q := le_max_right _ _
-  have hQM : Q ≤ M := le_max_right _ _
-  -- q ≤ Q along the flow
-  have hboxq : ∀ ν0, Term.eval (linLe (Lv (0 : Fin 3)) (Lv 2) (5/2) c Q) ν0 ≤ 0 →
-      BoxLe (Program.ode (DLCalTiming.clk tg (leftBlock (fL l))) domL)
-        (fun ω => Term.eval (linLe (Lv (0 : Fin 3)) (Lv 2) (5/2) c Q) ω) ν0 := by
-    intro ν0 hν0
-    refine DI_nonstrict_superlevel (wf_clk l) (term_differentiable _) ?_ hν0
-    intro x hx hge
-    rw [lie_clk_left _ _ (tg_lin _ _ _)]
-    exact super_linear_le_L (jx := 0) (jy := 2) (a := 25/4) (b := 5) (c := c) (r := 5/2) (K := Q)
-      (by norm_num) (by norm_num) hQ0 (fL l) domL (fun z _ => fL0_eval l hl z)
-      (fun z _ => by rw [fL2_eval l hl]) x hx hge
-  -- y ≤ M along the flow, stratified on q ≤ Q
-  have hboxy : ∀ ν0, Term.eval (linLe (Lv (0 : Fin 3)) (Lv 2) (5/2) c Q) ν0 ≤ 0 →
-      Term.eval (linLe (Lv (0 : Fin 3)) (Lv 2) 5 c M) ν0 ≤ 0 →
-      BoxLe (Program.ode (DLCalTiming.clk tg (leftBlock (fL l))) domL)
-        (fun ω => Term.eval (linLe (Lv (0 : Fin 3)) (Lv 2) 5 c M) ω) ν0 := by
-    refine stay_given (Fq := Formula.cmp CompOp.le (linLe (Lv (0 : Fin 3)) (Lv 2) (5/2) c Q)
-      (Term.const 0)) (gq := linLe (Lv (0 : Fin 3)) (Lv 2) (5/2) c Q)
-      (fun z => by simp [Formula.sat, CompOp.interp, Term.eval]) hboxq ?_
-    intro ν0 hν0
-    refine DI_nonstrict_superlevel (wf_clk l) (term_differentiable _) ?_ hν0
-    intro x hx hge
-    rw [lie_clk_left _ _ (tg_lin _ _ _)]
-    refine super_y l hl M _ (fun z hz => ?_) x hx hge
-    have h2 := hz.2
-    simp only [Formula.sat, CompOp.interp, Term.eval] at h2
-    simp only [linLe, eval_linQ, Term.eval, AOp.interp] at h2 ⊢
-    linarith
-  have hq0' : Term.eval (linLe (Lv (0 : Fin 3)) (Lv 2) (5/2) c Q) σ' ≤ 0 := by
-    simp only [linLe, eval_linQ, Term.eval, AOp.interp, hL]
-    linarith [le_max_left (σ (Lv 2) + 5/2 * (σ (Lv 0) - c)) 0]
-  have hy0' : Term.eval (linLe (Lv (0 : Fin 3)) (Lv 2) 5 c M) σ' ≤ 0 := by
-    simp only [linLe, eval_linQ, Term.eval, AOp.interp, hL]
-    linarith [le_max_left (σ (Lv 2) + 5 * (σ (Lv 0) - c)) Q]
-  have hend := hboxy σ' hq0' hy0' mid hode
-  simp only [linLe, eval_linQ, Term.eval, AOp.interp] at hend
-  -- `w = y + 5c ≤ M + 5c`
-  have hcap : c ≤ 6/5 := by
-    rw [hcdef, cLv_eq l hl]; have h3 := (cap_bounds l hl).2; linarith
-  rcases le_total (σ (Lv 2) + 5 * (σ (Lv 0) - c)) Q with h1 | h1
-  · rw [hM, max_eq_right h1] at hend
-    rcases le_total (σ (Lv 2) + 5/2 * (σ (Lv 0) - c)) 0 with h2 | h2
-    · rw [hQ, max_eq_right h2] at hend
-      have : 5 * c ≤ 6 := by linarith
-      exact le_trans (by linarith) (le_max_right _ _)
-    · rw [hQ, max_eq_left h2] at hend
-      exact le_trans (by linarith) (le_max_right _ _)
-  · rw [hM, max_eq_left h1] at hend
-    exact le_trans (by linarith) (le_max_left _ _)
+theorem anc_hand (l q : ℕ) (hl : l < 4) (hq : q < 4) :
+    ∀ e ∈ GrG.edgesFrom q, ∀ y, Formula.sat (anc l q) y → SwitchLegal e y →
+      Formula.sat (anc l e.tgt) y := by
+  intro e he y hA hleg
+  have hg : Formula.sat (hostGuard vs 3 Side.R (mR e.tgt)) y := by
+    have := hleg; unfold SwitchLegal at this; rwa [GrG_guards q e he] at this
+  rw [anc_eq l q hq] at hA
+  by_cases ht : e.tgt < 4
+  · rw [anc_eq l e.tgt ht]
+    exact anchor_hand (hiffL l hl) (hiffR q hq) (hiffR e.tgt ht) hA (hO1R e.tgt ht y hg)
+  · unfold anc cR'
+    rw [if_neg ht]
+    exact anchor_hand (cR' := []) (hiffL l hl) (hiffR q hq) (fun a ha => by simp at ha) hA
+      (fun a ha => by simp at ha)
 
-/-! ## The guarded response to a left window -/
+theorem anc_iff (l q : ℕ) (hl : l < 4) (hq : q < 4) (x : State (Var 3)) :
+    Formula.sat (anc l q) x ↔
+      Formula.sat (FM (g l) (gs l)) x ∧ CutSat (cL l) x ∧ CutSat (cR q) x := by
+  rw [anc_eq l q hq, sat_FM_append, atomTerms_iff (hiffL l hl) (hiffR q hq)]
 
-theorem window_right (l : ℕ) (hl : l < 4) (dt : ℝ) {σ ν : State (Var 3)}
-    (h : Program.sem (windowSeg (leftBlock (fL l)) domL tg dt 1) σ ν) (i : Fin 3) :
-    ν (Rv i) = σ (Rv i) := by
-  have hP := vars_windowSegL_sub (fL l) domL 1 dt 1 (hfL l hl) hdomL
-  refine (Program.bound_effect _ h (Rv i) ?_).symm
-  intro hb
-  rcases hP (Or.inr hb) with h' | ⟨j, hj⟩
-  · exact absurd (Set.mem_singleton_iff.mp h') (by simp [Rv, Prod.ext_iff])
-  · exact absurd hj (by simp [Lv, Rv, Prod.ext_iff])
+theorem FM_fv (l : ℕ) : (FM (g l) (gs l)).fv ⊆ range Lv ∪ range Rv := by
+  intro v hv
+  by_contra hn
+  exact notMem_FM_fv (fun c hc hvc => hn (comps_fv_all l c hc hvc)) hv
 
-/-- **The guarded catch-up response** of left zone `l`'s window from right zone `q` (in its
-guard and its kept atoms): climb the route and run in `FAST` until both rows hold. -/
-theorem respondG (l : ℕ) (hl : l < 4) (dt : ℝ) (q : ℕ) (hq : q < 4) {σ : State (Var 3)}
-    (hσ : Formula.sat (Formula.and (FM (g l) (gs l)) env) σ)
-    (hguard : Formula.sat (hostGuard vs 3 Side.R (mR q)) σ)
-    (hreg : Formula.sat (region q) σ) :
-    GResp GrG q (gwindowSeg (hostGuard vs 3 Side.L (mL l)) (leftBlock (fL l)) domL tg dt 1)
-      (fun qf => Formula.and (Formula.and (FM (g l) (gs l)) env) (region qf)) σ := by
-  refine gresp_of_rresp (fun ν hν => ?_)
-  obtain ⟨hgl, hwin⟩ := gwindowSeg_runs hν
-  have hR := window_right l hl dt hwin
-  have hrow := (sat_FRow l hl σ).mp hσ.1
-  -- the left guard at the window's start: `|a| ≤ 0.5`, `v ≤ cap`
-  have hq0 : σ (Lv 2) + 5/2 * (σ (Lv 0) - cLv l) ≤ 5/4 := by
-    obtain ⟨ha, hv⟩ := guardL_caps l hl σ hgl
-    rw [cLv_eq l hl]
-    have h3 := (cap_bounds l hl).2
-    nlinarith
-  have hw := window_w l hl dt hwin hq0
-  have hdomLν : Formula.sat domL ν :=
-    windowSeg_end_domL (leftBlock (fL l)) domL tg dt 1 (by norm_num) hwin
-  have hdomRν : Formula.sat domR ν := by
-    rw [sat_domR, hR 0, hR 1, hR 2]; exact (sat_domR σ).mp hσ.2.2
-  have hx := (cutSatR_val q hq σ).mp ((sat_region_lt q hq σ).mp hreg)
-  have hfin : ∀ μ, (∀ i, μ (Lv i) = ν (Lv i)) → Formula.sat domR μ →
-      50 ≤ μ (Rv 1) → 3/10 ≤ μ (Rv 0) → μ (Rv 0) ≤ 3/2 → ν (Rv 0) ≤ μ (Rv 0) →
-      57/40 ≤ μ (Rv 0) → ν (Lv 1) ≤ μ (Rv 1) →
-      Formula.sat (Formula.and (Formula.and (FM (g l) (gs l)) env) (region 3)) μ := by
-    intro μ hμL hμd h50 h3 h15 hv h12 hs
-    have hm := (show 0 ≤ mL' l by interval_cases l <;> norm_num [mL', mQ])
-    refine ⟨⟨(sat_FRow l hl μ).mpr ⟨?_, ?_⟩, ?_, hμd⟩, ?_⟩
-    · rw [hμL 0, hμL 2]
-      rw [hR 0] at hv
-      rcases le_total (σ (Lv 2) + 5 * σ (Lv 0)) (29/4) with h | h
-      · rw [max_eq_right h] at hw; linarith
-      · rw [max_eq_left h] at hw; linarith [hrow.1]
-    · rw [hμL 1]; linarith
-    · rw [sat_domL, hμL 0, hμL 1, hμL 2]; exact (sat_domL ν).mp hdomLν
-    · rw [sat_region_lt 3 (by norm_num), cutSatR_val 3 (by norm_num)]
-      exact ⟨by norm_num [loL, loQ]; linarith, h3, by rw [capL3]; exact h15⟩
-  have hgν : Formula.sat (hostGuard vs 3 Side.R (mR q)) ν :=
-    frames_right (vars_windowSegL_sub (fL l) domL 1 dt 1 (hfL l hl) hdomL) (hguardR_all q) hwin
-      hguard
-  rw [sat_guardR q hq] at hgν
+/-! ## The right's moves: the route `SLOW → MEDIUM_* → FAST` at the odometer floors (the
+explicit zone solutions give only the runs' existence; the crossing instants by the
+intermediate value theorem) -/
+
+/-- A right state of a driving zone: in its guard and the envelope. -/
+def Pre (q : ℕ) (x : State (Var 3)) : Prop :=
+  q < 4 ∧ Formula.sat (hostGuard vs 3 Side.R (mR q)) x ∧ Formula.sat domR x
+
+theorem pre_R (q : ℕ) (x y : State (Var 3)) (hxy : ∀ i, x (Rv i) = y (Rv i))
+    (h : Pre q x) : Pre q y := by
+  obtain ⟨hq, hg, hd⟩ := h
+  refine ⟨hq, ?_, ?_⟩
+  · refine (Formula.coincidence _ (fun v hv => ?_)).mp hg
+    obtain ⟨i, rfl⟩ := hguardR_all q hv
+    exact hxy i
+  · refine (Formula.coincidence domR (fun v hv => ?_)).mp hd
+    obtain ⟨i, rfl⟩ := hdomR hv
+    exact hxy i
+
+theorem run_sol (q : ℕ) (hq : q < 4) (ρ : State (Var 3)) (hd : Formula.sat domR ρ)
+    (τ : ℝ) (hτ : 0 ≤ τ) : ODESol (modeW q).sys (modeW q).dom ρ τ (solR (capL q) 1 ρ) := by
+  obtain ⟨h0, hder, hmask, hdom⟩ := flowR_run q hq 1 zero_le_one ρ hd τ
+  exact ⟨hτ, h0, hder, hmask, hdom⟩
+
+/-- Along a zone's run from inside its speed band: the speed stays in `[v₀, cap]`, the
+odometer only grows. -/
+theorem run_bounds (q : ℕ) (hq : q < 4) (ρ : State (Var 3)) (hv0 : 3/10 ≤ ρ (Rv 0))
+    (hvc : ρ (Rv 0) ≤ capL q) {t : ℝ} (ht : 0 ≤ t) :
+    ρ (Rv 0) ≤ solR (capL q) 1 ρ t (Rv 0) ∧ solR (capL q) 1 ρ t (Rv 0) ≤ capL q ∧
+      ρ (Rv 1) ≤ solR (capL q) 1 ρ t (Rv 1) := by
+  have he0 := ex_pos 1 t
+  have he1 := ex_le_one zero_le_one ht
+  have he2 := ex_ge 1 t
+  rw [solR_0, solR_1]
+  refine ⟨by nlinarith, by nlinarith, by nlinarith⟩
+
+/-- **The odometer crosses `h`** within a stretch whose end is past it. -/
+theorem run_cross (q : ℕ) (ρ : State (Var 3)) (h T : ℝ) (hT : 0 ≤ T)
+    (h0 : ρ (Rv 1) ≤ h) (hT' : h ≤ solR (capL q) 1 ρ T (Rv 1)) :
+    ∃ τ, 0 ≤ τ ∧ τ ≤ T ∧ solR (capL q) 1 ρ τ (Rv 1) = h := by
+  have hcont : ContinuousOn (fun t => solR (capL q) 1 ρ t (Rv 1)) (Icc 0 T) := by
+    have : (fun t => solR (capL q) 1 ρ t (Rv 1)) =
+        fun t => ρ (Rv 1) + 1 * capL q * t + (ρ (Rv 0) - capL q) * (1 - Real.exp (-(1 * t))) := by
+      funext t; rw [solR_1]; rfl
+    rw [this]
+    exact Continuous.continuousOn (by fun_prop)
+  have hz : solR (capL q) 1 ρ 0 (Rv 1) = ρ (Rv 1) := by rw [solR_1, ex_zero]; ring
+  obtain ⟨τ, hτI, hτ⟩ := intermediate_value_Icc hT hcont ⟨by rw [hz]; exact h0, hT'⟩
+  exact ⟨τ, hτI.1, hτI.2, hτ⟩
+
+/-- The switch ranks: `SLOW` 0, `MEDIUM_*` 1, `FAST` 2. -/
+def rk (q : ℕ) : ℕ := if q = 0 then 0 else if q < 3 then 1 else 2
+
+/-- **One climbing zone** `q → tgt` (`q < 3`): the run either stays below the zone's odometer
+ceiling for the whole stretch (the self-loop is legal at its end) or crosses it within the
+stretch, where `tgt`'s guard holds. -/
+theorem climbZ (q tgt : ℕ) (hq : q < 3) (htgt : tgt < 4)
+    (hb' : ∀ y : State (Var 3), y (Rv 1) = hiS q → 3/10 ≤ y (Rv 0) → y (Rv 0) ≤ capL q →
+      Formula.sat (hostGuard vs 3 Side.R (mR tgt)) y)
+    (hstay : (q, q) ∈ edgeList) (hup : (q, tgt) ∈ edgeList)
+    (J : ℕ → Prop) (hJt : J tgt) (hrk : rk q < rk tgt)
+    (E : ℕ → State (Var 3) → Prop) (hE : ∀ x, Pre q x → E q x)
+    (ρ : State (Var 3)) (hpre : Pre q ρ) (T : ℝ) (hT : 0 ≤ T) :
+    (∃ Φ, ODESol (modeW q).sys (modeW q).dom ρ T Φ ∧
+      ∃ e ∈ GrG.edgesFrom q, SwitchLegal e (Φ T) ∧ E e.tgt (Φ T)) ∨
+    (∃ τ, 0 ≤ τ ∧ τ ≤ T ∧ ∃ Φ, ODESol (modeW q).sys (modeW q).dom ρ τ Φ ∧
+      ∃ e ∈ GrG.edgesFrom q, SwitchLegal e (Φ τ) ∧ J e.tgt ∧ rk q < rk e.tgt ∧
+        Pre e.tgt (Φ τ)) := by
+  obtain ⟨-, hg, hd⟩ := hpre
+  have hg' := (sat_guardRz q (by omega) ρ).mp hg
+  have hhi := hg'.2.1 hq
+  by_cases hin : solR (capL q) 1 ρ T (Rv 1) < hiS q
+  · have hbT := run_bounds q (by omega) ρ hg'.2.2.1 hg'.2.2.2 hT
+    have hgT : Formula.sat (hostGuard vs 3 Side.R (mR q)) (solR (capL q) 1 ρ T) :=
+      (sat_guardRz q (by omega) _).mpr ⟨by linarith [hg'.1], fun _ => hin,
+        by linarith [hg'.2.2.1], hbT.2.1⟩
+    exact Or.inl ⟨solR (capL q) 1 ρ, run_sol q (by omega) ρ hd T hT, edgeG q q,
+      edgeG_mem q q hstay, hgT,
+      hE _ ⟨by omega, hgT, solR_stays q (by omega) 1 zero_le_one ρ hd hT⟩⟩
+  · push Not at hin
+    obtain ⟨τ, hτ0, hτT, hτ⟩ := run_cross q ρ (hiS q) T hT hhi.le hin
+    have hbτ := run_bounds q (by omega) ρ hg'.2.2.1 hg'.2.2.2 hτ0
+    have hgt := hb' _ hτ (by linarith [hg'.2.2.1]) hbτ.2.1
+    exact Or.inr ⟨τ, hτ0, hτT, solR (capL q) 1 ρ, run_sol q (by omega) ρ hd τ hτ0, edgeG q tgt,
+      edgeG_mem q tgt hup, hgt, hJt, hrk, ⟨htgt, hgt, solR_stays q (by omega) 1 zero_le_one ρ hd hτ0⟩⟩
+
+theorem enter1 (y : State (Var 3)) (hs : y (Rv 1) = hiS 0) (h3 : 3/10 ≤ y (Rv 0))
+    (hc : y (Rv 0) ≤ capL 0) : Formula.sat (hostGuard vs 3 Side.R (mR 1)) y := by
+  rw [sat_guardRz 1 (by norm_num)]
+  simp only [hiS, if_true] at hs
+  have : capL 0 = 3/5 := by norm_num [capL, capQ]
+  refine ⟨by rw [hs]; norm_num [loL, loQ], fun _ => by rw [hs]; norm_num [hiS], h3,
+    by norm_num [capL, capQ]; linarith⟩
+theorem enter2 (y : State (Var 3)) (hs : y (Rv 1) = hiS 0) (h3 : 3/10 ≤ y (Rv 0))
+    (hc : y (Rv 0) ≤ capL 0) : Formula.sat (hostGuard vs 3 Side.R (mR 2)) y := by
+  rw [sat_guardRz 2 (by norm_num)]
+  simp only [hiS, if_true] at hs
+  have : capL 0 = 3/5 := by norm_num [capL, capQ]
+  refine ⟨by rw [hs]; norm_num [loL, loQ], fun _ => by rw [hs]; norm_num [hiS], h3,
+    by norm_num [capL, capQ]; linarith⟩
+theorem enter3 (q : ℕ) (hq1 : 1 ≤ q) (hq2 : q ≤ 2) (y : State (Var 3)) (hs : y (Rv 1) = hiS q)
+    (h3 : 3/10 ≤ y (Rv 0)) (hc : y (Rv 0) ≤ capL q) :
+    Formula.sat (hostGuard vs 3 Side.R (mR 3)) y := by
+  rw [sat_guardR3]
+  have hh : hiS q = 50 := by simp only [hiS, show q ≠ 0 by omega, if_false]
+  have : capL q ≤ 3/2 := (cap_bounds q (by omega)).2
+  exact ⟨by rw [hs, hh], h3, by linarith⟩
+
+/-- The cover's joint nodes and reposition nodes per window: `SLOW` window every zone joint;
+`MEDIUM_ECO` window `SLOW` a reposition node; `MEDIUM_BRISK` window `SLOW` and `MEDIUM_ECO`
+reposition nodes; `FAST` window `MEDIUM_*` reposition nodes (its `SLOW` start is
+inadmissible). -/
+def J (l q : ℕ) : Prop := q < 4 ∧ (l = 0 ∨ (l = 1 ∧ 1 ≤ q) ∨ (l = 2 ∧ 2 ≤ q) ∨ (3 ≤ l ∧ q = 3))
+def D (l q : ℕ) : Prop := (l = 1 ∧ q = 0) ∨ (l = 2 ∧ q < 2) ∨ (l = 3 ∧ 1 ≤ q ∧ q < 3)
+
+theorem hmove (l : ℕ) (E : ℕ → State (Var 3) → Prop) (hE : ∀ q x, Pre q x → E q x) :
+    HMove GrG modeW (J l) rk Pre E := by
+  intro q hJ ρ hpre T hT
+  have hq4 : q < 4 := hJ.1
   interval_cases q
-  · exact climbSlow ν hdomRν (hgν.2.1 (by norm_num)) hgν.2.2.1
-      (by have := hgν.2.2.2; norm_num [capL, capQ] at this; linarith) (ν (Lv 1)) hfin
-  · exact climbMed 1 le_rfl (by norm_num) ν hdomRν (hgν.2.1 (by norm_num)) hgν.2.2.1
-      hgν.2.2.2 (ν (Lv 1)) hfin
-  · exact climbMed 2 (by norm_num) le_rfl ν hdomRν (hgν.2.1 (by norm_num)) hgν.2.2.1
-      hgν.2.2.2 (ν (Lv 1)) hfin
-  · exact climbFast ν hdomRν ⟨by have := hgν.1; norm_num [loL, loQ] at this; linarith,
-      hgν.2.2.1, by have := hgν.2.2.2; rw [capL3] at this; exact this⟩ (ν (Lv 1)) hfin
+  · exact climbZ 0 1 (by norm_num) (by norm_num) enter1 (by decide) (by decide) (J l)
+      ⟨by norm_num, by
+        rcases hJ.2 with h | ⟨-, h⟩ | ⟨-, h⟩ | ⟨-, h⟩
+        · exact Or.inl h
+        · omega
+        · omega
+        · omega⟩ (by decide) E (fun x hx => hE 0 x hx) ρ hpre T hT
+  · exact climbZ 1 3 (by norm_num) (by norm_num) (enter3 1 le_rfl (by norm_num)) (by decide)
+      (by decide) (J l) ⟨by norm_num, by
+        rcases hJ.2 with h | ⟨h, -⟩ | ⟨-, h⟩ | ⟨-, h⟩
+        · exact Or.inl h
+        · exact Or.inr (Or.inl ⟨h, by norm_num⟩)
+        · omega
+        · omega⟩ (by decide) E (fun x hx => hE 1 x hx) ρ hpre T hT
+  · exact climbZ 2 3 (by norm_num) (by norm_num) (enter3 2 (by norm_num) le_rfl) (by decide)
+      (by decide) (J l) ⟨by norm_num, by
+        rcases hJ.2 with h | ⟨h, -⟩ | ⟨h, -⟩ | ⟨-, h⟩
+        · exact Or.inl h
+        · exact Or.inr (Or.inl ⟨h, by norm_num⟩)
+        · exact Or.inr (Or.inr (Or.inl ⟨h, by norm_num⟩))
+        · omega⟩ (by decide) E (fun x hx => hE 2 x hx) ρ hpre T hT
+  · -- `FAST`: the odometer has no ceiling; the self-loop is legal at the end
+    obtain ⟨-, hg, hd⟩ := hpre
+    have hg' := (sat_guardRz 3 (by norm_num) ρ).mp hg
+    have hbT := run_bounds 3 (by norm_num) ρ hg'.2.2.1 hg'.2.2.2 hT
+    have hgT : Formula.sat (hostGuard vs 3 Side.R (mR 3)) (solR (capL 3) 1 ρ T) :=
+      (sat_guardRz 3 (by norm_num) _).mpr ⟨by linarith [hg'.1], fun h => absurd h (by norm_num),
+        by linarith [hg'.2.2.1], hbT.2.1⟩
+    exact Or.inl ⟨solR (capL 3) 1 ρ, run_sol 3 (by norm_num) ρ hd T hT, edgeG 3 3,
+      edgeG_mem 3 3 (by decide), hgT,
+      hE 3 _ ⟨by norm_num, hgT, solR_stays 3 (by norm_num) 1 zero_le_one ρ hd hT⟩⟩
+
+/-- The reposition ranks: `SLOW` 2, `MEDIUM_*` 1, `FAST` 0. -/
+def rkD (q : ℕ) : ℕ := if q = 0 then 2 else if q < 3 then 1 else 0
+
+/-- **One reposition** `q → tgt` (the left frozen): the zone alone climbs to its odometer
+ceiling and switches into `tgt`, a joint node of the window. -/
+theorem repoZ (q tgt : ℕ) (hq : q < 3) (htgt : tgt < 4)
+    (hb' : ∀ y : State (Var 3), y (Rv 1) = hiS q → 3/10 ≤ y (Rv 0) → y (Rv 0) ≤ capL q →
+      Formula.sat (hostGuard vs 3 Side.R (mR tgt)) y)
+    (hup : (q, tgt) ∈ edgeList) (hne : tgt ≠ q) (hrk : rkD tgt < rkD q)
+    (J : ℕ → Prop) (hJt : J tgt) (D : ℕ → Prop) (ρ : State (Var 3)) (hpre : Pre q ρ) :
+    ∃ τ Φ, ODESol (modeW q).sys (modeW q).dom ρ τ Φ ∧
+      ∃ e ∈ GrG.edgesFrom q, SwitchLegal e (Φ τ) ∧ e.tgt ≠ q ∧ rkD e.tgt < rkD q ∧
+        ((J e.tgt ∧ Pre e.tgt (Φ τ)) ∨ (D e.tgt ∧ ¬ J e.tgt ∧ Pre e.tgt (Φ τ))) := by
+  obtain ⟨-, hg, hd⟩ := hpre
+  have hg' := (sat_guardRz q (by omega) ρ).mp hg
+  have hhi := hg'.2.1 hq
+  -- the odometer grows at least `0.3` per unit time: past the ceiling by `T₀`
+  set T₀ := (hiS q - ρ (Rv 1)) / (3/10) with hT₀
+  have hT₀0 : 0 ≤ T₀ := div_nonneg (by linarith) (by norm_num)
+  have hpast : hiS q ≤ solR (capL q) 1 ρ T₀ (Rv 1) := by
+    have he := ex_ge 1 T₀
+    have hc := cap_bounds q (by omega)
+    rw [solR_1]
+    have h1 : ρ (Rv 1) + ρ (Rv 0) * T₀ ≤
+        ρ (Rv 1) + 1 * capL q * T₀ + (ρ (Rv 0) - capL q) * (1 - ex 1 T₀) := by
+      have : 0 ≤ (capL q - ρ (Rv 0)) * (T₀ - 1 + ex 1 T₀) :=
+        mul_nonneg (by linarith [hg'.2.2.2]) (by linarith)
+      nlinarith
+    have h2 : (3/10) * T₀ ≤ ρ (Rv 0) * T₀ := mul_le_mul_of_nonneg_right hg'.2.2.1 hT₀0
+    have h3 : (3/10) * T₀ = hiS q - ρ (Rv 1) := by rw [hT₀]; field_simp
+    linarith
+  obtain ⟨τ, hτ0, -, hτ⟩ := run_cross q ρ (hiS q) T₀ hT₀0 hhi.le hpast
+  have hbτ := run_bounds q (by omega) ρ hg'.2.2.1 hg'.2.2.2 hτ0
+  have hgt := hb' _ hτ (by linarith [hg'.2.2.1]) hbτ.2.1
+  exact ⟨τ, solR (capL q) 1 ρ, run_sol q (by omega) ρ hd τ hτ0, edgeG q tgt, edgeG_mem q tgt hup,
+    hgt, hne, hrk, Or.inl ⟨hJt, ⟨htgt, hgt, solR_stays q (by omega) 1 zero_le_one ρ hd hτ0⟩⟩⟩
+
+theorem hexit (l : ℕ) : HExit GrG modeW (J l) (D l) rkD Pre Pre := by
+  intro q hD hnJ ρ hpre
+  have hq3 : q < 3 := by rcases hD with ⟨-, rfl⟩ | ⟨-, h⟩ | ⟨-, -, h⟩ <;> omega
+  interval_cases q
+  · -- `SLOW` (a reposition node of the `MEDIUM_*` windows): to 20, into the window's zone
+    rcases hD with ⟨rfl, -⟩ | ⟨rfl, -⟩ | ⟨-, h, -⟩
+    · exact repoZ 0 1 (by norm_num) (by norm_num) enter1 (by decide) (by decide) (by decide)
+        (J 1) ⟨by norm_num, Or.inr (Or.inl ⟨rfl, le_rfl⟩)⟩ (D 1) ρ hpre
+    · exact repoZ 0 2 (by norm_num) (by norm_num) enter2 (by decide) (by decide) (by decide)
+        (J 2) ⟨by norm_num, Or.inr (Or.inr (Or.inl ⟨rfl, le_rfl⟩))⟩ (D 2) ρ hpre
+    · omega
+  · exact repoZ 1 3 (by norm_num) (by norm_num) (enter3 1 le_rfl (by norm_num)) (by decide)
+      (by decide) (by decide) (J l) ⟨by norm_num, by
+        rcases hD with ⟨h, -⟩ | ⟨h, -⟩ | ⟨h, -⟩
+        · exact Or.inr (Or.inl ⟨h, by norm_num⟩)
+        · exact Or.inr (Or.inr (Or.inl ⟨h, by norm_num⟩))
+        · exact Or.inr (Or.inr (Or.inr ⟨by omega, rfl⟩))⟩ (D l) ρ hpre
+  · exact repoZ 2 3 (by norm_num) (by norm_num) (enter3 2 (by norm_num) le_rfl) (by decide)
+      (by decide) (by decide) (J l) ⟨by norm_num, by
+        rcases hD with ⟨h, -⟩ | ⟨h, -⟩ | ⟨h, -⟩
+        · exact Or.inr (Or.inl ⟨h, by norm_num⟩)
+        · exact Or.inr (Or.inr (Or.inl ⟨h, by norm_num⟩))
+        · exact Or.inr (Or.inr (Or.inr ⟨by omega, rfl⟩))⟩ (D l) ρ hpre
+
+/-! ## The response to one gated window: the cover's derivation, replayed -/
+
+theorem respondR (l : ℕ) (hl : l < 4) (dt : ℝ) (hJv : ∀ q, J l q → Verd l q)
+    (hDv : ∀ q, D l q → VerdD l q) (q : ℕ) (hq : q < 4) {σ : State (Var 3)}
+    (hσ : Formula.sat (Formula.and (FM (g l) (gs l)) env) σ)
+    (hg : Formula.sat (hostGuard vs 3 Side.R (mR q)) σ) :
+    GResp GrG q (gwindowSeg (hostGuard vs 3 Side.L (mL l)) (leftBlock (fL l)) domL tg dt (0 + 1))
+      (fun qf => Formula.and (Formula.and (FM (g l) (gs l)) env) (region qf)) σ := by
+  have hJD : ∀ q, J l q ∨ D l q → q < 4 := by
+    intro q h; rcases h with h | h
+    · exact h.1
+    · rcases h with ⟨-, rfl⟩ | ⟨-, h⟩ | ⟨-, -, h⟩ <;> omega
+  refine replay_gresp_k GrG modeW fR domR (fL l) domL (hostGuard vs 3 Side.L (mL l)) 1
+    hgRG (hfL l hl) hdomL hdomR (hguardL l hl) lam lam_pos (J l) (D l)
+    (fun q h => hfR q (by have := hJD q h; omega)) rk rkD 3
+    (fun q _ => by unfold rk; split_ifs <;> norm_num)
+    (fun q h => GrG_modeAt q (by have := hJD q h; omega)) (fun _ _ => rfl) (fun _ _ => rfl)
+    (anc l) (fun q => anc_fv l q hl)
+    (fun q h => anc_box l q hl h.1 (hJv q h))
+    (fun q h => anc_boxD l q hl (hJD q (Or.inr h)) (hDv q h))
+    (fun q h => anc_hand l q hl (hJD q h))
+    Pre Pre Pre pre_R pre_R
+    (hmove l _ (fun _ _ h => h)) (hexit l) dt 0 (fun h => absurd h (lt_irrefl 0)) q σ ?_
+    hσ.2.1 _ ?_
+  · intro hgL
+    have hpre : Pre q σ := ⟨hq, hg, hσ.2.2⟩
+    have hA : Formula.sat (anc l q) σ :=
+      (anc_iff l q hl hq σ).mpr ⟨hσ.1, hO1L l hl σ hgL, hO1R q hq σ hg⟩
+    refine ⟨?_, hA⟩
+    by_cases hJq : J l q
+    · exact Or.inl ⟨hJq, hpre⟩
+    · by_cases hDq : D l q
+      · exact Or.inr ⟨hDq, hJq, hpre⟩
+      · -- the only remaining start, the `FAST` window from `SLOW`, is inadmissible:
+        -- `s_L ≥ 50`, `s_R < 20`, `s_L ≤ s_R + 2`
+        exfalso
+        have hl3 : l = 3 := by
+          by_contra h
+          interval_cases l <;> interval_cases q <;> simp_all [J, D]
+        subst hl3
+        have hq0 : q = 0 := by
+          by_contra h
+          interval_cases q <;> simp_all [J, D]
+        subst hq0
+        have hmem : (hostAtomF vs 3 Side.L (.cmp ">=" (.var "s") (.num "50.0")),
+            thrGe (Lv 1) 50) ∈ cL 3 := by rw [cL_3]; simp
+        have hL := (hiffL 3 (by norm_num) _ hmem σ).mp (hO1L 3 (by norm_num) σ hgL _ hmem)
+        have hR := (sat_guardRz 0 (by norm_num) σ).mp hg
+        have hrow := (sat_FRow 3 (by norm_num) σ).mp hσ.1
+        have h20 := hR.2.1 (by norm_num)
+        simp only [thrGe, Term.eval, AOp.interp] at hL
+        norm_num [hiS, mL', mQ] at h20 hrow
+        linarith [hrow.2]
+  · intro ν hwin q' μ hμL hpre hA
+    have hdomLν : Formula.sat domL ν :=
+      windowSeg_end_domL (leftBlock (fL l)) domL tg dt (0 + 1) (by norm_num) hwin
+    obtain ⟨hq', hgq, hdR⟩ := hpre
+    have hA' := (anc_iff l q' hl hq' _).mp hA
+    have hF : Formula.sat (FM (g l) (gs l)) μ := by
+      refine (sat_of_agree (FM_fv l) (fun i => ?_) (fun i => ?_)).mp hA'.1
+      · rw [mergeLR_L, hμL i]
+      · rw [mergeLR_R]
+    refine ⟨⟨hF, ?_, hdR⟩, (sat_region_lt q' hq' μ).mpr (hO1R q' hq' μ hgq)⟩
+    refine (Formula.coincidence domL (fun v hv => ?_)).mpr hdomLν
+    obtain ⟨i, rfl⟩ := hdomL hv
+    exact hμL i
 
 /-! ## The per-mode steps and Theorem 3 -/
 
@@ -464,7 +579,8 @@ theorem hulBkG : uL ∉ (mvRegion mv gregion GrG.modes.length).fv := fun h => by
   · exact absurd (Set.mem_singleton_iff.mp h) (by decide)
   · exact aux_notin_range_Rv 2 h
 
-theorem hstepMG (dt : ℝ) :
+theorem hstepMG (dt : ℝ) (hJv : ∀ l < 4, ∀ q, J l q → Verd l q)
+    (hDv : ∀ l < 4, ∀ q, D l q → VerdD l q) :
     ∀ t < (A dt).numModes, ∀ σ,
     Formula.sat (Formula.and (Formula.and (FRow t) env)
       (mvRegion mv gregion GrG.modes.length)) σ →
@@ -483,19 +599,64 @@ theorem hstepMG (dt : ℝ) :
       hdomL) (hguardR_all q) hrun
   · intro q hq σ _ hσ hg hreg
     rw [GrG_len] at hq
-    exact respondG t ht dt q hq hσ hg hreg
+    by_cases h4 : q < 4
+    · exact respondR t ht dt (hJv t ht) (hDv t ht) q h4 hσ hg
+    · exact absurd hreg (not_sat_region_sink q h4 σ)
 
 /-- **`rover_patrol_refine` (suite_v2), Theorem 3 over the GUARDED right automaton, at the
-mode-consistent region.** The statement of `rover_patrol_refine_modeKeyed` with every right
-edge testing the entered zone's guard (`GrG_guards`) and the loop invariant's right region the
-current zone's guard and kept cut atoms (`mvRegionR` at `gregion`). Response: the climb, with
-the deployed's `a + 5 v` capped by the linear-form chain. Z3-free; every window length. -/
-theorem rover_patrol_refine_guarded (dt : ℝ) :
+mode-consistent region, by replaying the emitted cover**
+(`InstancesV2/BenchCovers/rover_patrol_refine.lean`, λ = 9/4). The statement of
+`rover_patrol_refine_modeKeyed` (the declared rows keyed by `u_L`, the file's left automaton,
+the envelope) with every right edge testing the entered mode's guard (`GrG_guards`) and the
+loop invariant's right region the current mode's guard and kept cut atoms (`mvRegionR` at
+`gregion`). Response: the right keeps time with the window in the joint
+zones, climbing the route `SLOW → MEDIUM_ECO → FAST` (`MEDIUM_BRISK → FAST`) at the odometer
+floors, every stretch preserved by its joint pack `Verd l q`; a start in a zone below the
+window's (a reposition node) first repositions the right alone up the route under the
+reposition pack `VerdD l q`; the `FAST` window's `SLOW` start is contradictory
+(inadmissible). Every switch is legal against the entered zone's guard; the explicit zone
+solutions give only the runs' existence (the crossing instants by the intermediate value
+theorem). -/
+theorem rover_patrol_refine_guarded (dt : ℝ)
+    (h00 : Verd 0 0) (h01 : Verd 0 1) (h02 : Verd 0 2) (h03 : Verd 0 3)
+    (h11 : Verd 1 1) (h12 : Verd 1 2) (h13 : Verd 1 3) (h22 : Verd 2 2) (h23 : Verd 2 3)
+    (h33 : Verd 3 3) (d10 : VerdD 1 0) (d20 : VerdD 2 0) (d21 : VerdD 2 1)
+    (d31 : VerdD 3 1) (d32 : VerdD 3 2) :
     RFormula.rvalid (theorem3Form
       (leftAutomatonBody (A dt) uL)
       (rightAutomatonBody GrG mv)
       (psiK uL ϕRow (A dt).numModes domL domR
         (mvRegionR mv gregion GrG.modes.length))) := by
+  have hJv : ∀ l < 4, ∀ q, J l q → Verd l q := by
+    intro l hl q hJ
+    obtain ⟨hq, hlq⟩ := hJ
+    match l, q, hl, hq with
+    | 0, 0, _, _ => exact h00
+    | 0, 1, _, _ => exact h01
+    | 0, 2, _, _ => exact h02
+    | 0, 3, _, _ => exact h03
+    | 1, 1, _, _ => exact h11
+    | 1, 2, _, _ => exact h12
+    | 1, 3, _, _ => exact h13
+    | 2, 2, _, _ => exact h22
+    | 2, 3, _, _ => exact h23
+    | 3, 3, _, _ => exact h33
+    | 1, 0, _, _ => exfalso; omega
+    | 2, 0, _, _ => exfalso; omega
+    | 2, 1, _, _ => exfalso; omega
+    | 3, 0, _, _ => exfalso; omega
+    | 3, 1, _, _ => exfalso; omega
+    | 3, 2, _, _ => exfalso; omega
+  have hDv : ∀ l < 4, ∀ q, D l q → VerdD l q := by
+    intro l _ q hD
+    rcases hD with ⟨rfl, rfl⟩ | ⟨rfl, hq⟩ | ⟨rfl, hq1, hq3⟩
+    · exact d10
+    · interval_cases q
+      · exact d20
+      · exact d21
+    · interval_cases q
+      · exact d31
+      · exact d32
   refine theorem3_modeKeyed (A dt) uL GrG mv FRow ϕRow domL domR
     (mvRegion mv gregion GrG.modes.length) (mvRegionR mv gregion GrG.modes.length)
     encode_ϕRow (encode_mvRegionR _ _ _) ?_ ?_ ?_
@@ -503,7 +664,7 @@ theorem rover_patrol_refine_guarded (dt : ℝ) :
       (hnext dt) hgRG hRvG
   · exact hstep_modeKeyed (A dt) uL (rightAutomatonBody GrG mv) FRow env
       (mvRegion mv gregion GrG.modes.length) (aux_notin_FRow 2) hulenv hulBkG (hulG dt)
-      (hframesUl dt) hulRG (hnext dt) (hstepMG dt) (handoff dt)
+      (hframesUl dt) hulRG (hnext dt) (hstepMG dt hJv hDv) (handoff dt)
   · exact hddF_modeKeyed_G (A dt) GrG 0 1 2 (by decide) (by decide) ϕRow domL domR
       (mvRegionR mv gregion GrG.modes.length) (hwin dt) (hgrd dt) (hnext dt) hgRG hRvG
       (fun m _ => canonInvM_varsL (g m) (gs m) (comps_fv_all m))

@@ -398,65 +398,67 @@ section 3.3) against the guarded right automaton, at the mode-consistent region 
 3.1), every switch on both sides kernel-checked legal, for every window length unless noted.
 "bridge" = proved over the window choice and carried to the left automaton by
 `theorem3_leftAut_of_choiceR`; the others are mode-keyed instances stated over the left
-automaton directly. Packs = verdict-pack hypotheses of the final theorem (Z3-free when 0).
+automaton directly. Packs = verdict-pack hypotheses of the final theorem: joint packs
+(`modalVerdX`) + reposition packs (`modalVerdDynX`). "Replays cover" = the proof replays the
+emitted cover (`docs/REPLAY.md`: every joint segment at a `jointOK` node with its pack, every
+reposition at a `dynPre` node with its pack, every switch along a retained edge into an enabled
+successor, every inadmissible start contradictory).
 
-| # | benchmark | response | packs | theorem |
-|---|---|---|---|---|
-| 1 | `acc_spoof_lag` | bridge; (d) stays, or no step | 1 | `V2AccSpoofLag.acc_spoof_lag_leftAut` |
-| 2 | `acc_spoof_limp` | (d) stays, or no step | 6 | `V2AccSpoofLimp.acc_spoof_limp_modeKeyed` |
-| 3 | `acc_tune_lag` | bridge; (d) stays, or no step | 1 | `V2AccTuneLag.acc_tune_lag_leftAut` |
-| 4 | `acc_tune_limp` | (d) stays | 6 | `V2AccTuneLimp.acc_tune_limp_modeKeyed` |
-| 5 | `arm_plateau_crit` | bridge; band climb `A → B` | 0 | `V2ArmPlateauCrit.arm_plateau_crit_leftAut` |
-| 6 | `arm_plateau_profiles` | bridge; band climb | 0 | `V2ArmPlateauProfiles.arm_plateau_profiles_leftAut` |
-| 7 | `arm_plateau_slow` | bridge; three-band climb | 0 | `V2ArmPlateauSlow.arm_plateau_slow_leftAut` |
-| 8 | `charger_fast_setpoints` | bridge; (c) `BULK → ABSORB`; (d) | 7 | `V2ChargerFastSetpoints.charger_fast_setpoints_leftAut` |
-| 9 | `charger_fast_tapers` | bridge; (c) paths; cut runs; no step | 9 | `V2ChargerFastTapers.charger_fast_tapers_leftAut` |
-| 10 | `match_multi_rate` | bridge; one `DRIVE` run to the target | 0 | `MatchMultiRateGuarded.match_multi_rate_leftAut` |
-| 11 | `platoon3_linkloss` | repaired model; stay, legal self-loop (gap floor) | 2 | `V2Platoon3Linkloss.platoon3_linkloss_modeKeyed` |
-| 12 | `platoon3_profiles` | repaired model; bridge; stay, legal self-loop | 3 | `V2Platoon3Profiles.platoon3_profiles_leftAut` |
-| 13 | `platoon_delay_linkloss` | (d) stay or `FOLLOW → CATCH` | 6 | `V2PlatoonDelayLinkloss.platoon_delay_linkloss_modeKeyed` |
-| 14 | `platoon_delay_profiles` | bridge; (d) stays | 6 | `V2PlatoonDelayProfiles.platoon_delay_profiles_leftAut` |
-| 15 | `quad_light_airframe_20` | bridge; (d) stays | 1 | `V2QuadLightAirframe20.quad_light_airframe_20_leftAut` |
-| 16 | `quad_light_lag` | bridge; (d) stays | 1 | `V2QuadLightLag.quad_light_lag_leftAut` |
-| 17 | `quad_light_profiles` | bridge; (d) stays | 3 | `V2QuadLightProfiles.quad_light_profiles_leftAut` |
-| 18 | `refinement_ladder_rover_rung1_2to3` | bridge; ladder climb | 0 | `RoverLadderRung1Guarded.rover_ladder_rung1_leftAut` |
-| 19 | `refinement_ladder_rover_rung2_3to6` | bridge; synchronized climb, ordered bands | 6 | `RoverLadderRung2Guarded.rover_ladder_rung2_3to6_leftAut` |
-| 20 | `refinement_ladder_rover_rung2_6dof` | bridge; combined-coordinate climb | 0 | `RoverRung26dofGuarded.rung2_6dof_leftAut` |
-| 21 | `refinement_ladder_rover_rung2b_6dof` | bridge; combined-coordinate climb | 0 | `RoverRung2b6dofGuarded.rung2b_6dof_leftAut` |
-| 22 | `refinement_ladder_rover_rung2c_6dof` | `dt ≤ ε_L = 1`; bridge; mirror | 3 | `RoverRung2cGuarded.rover_rung2c_leftAut` |
-| 23 | `refinement_ladder_rover_rung3_6to8` | bridge; ladder climb, decay budget | 0 | `RoverLadderRung3Guarded.rover_ladder_rung3_6to8_leftAut` |
-| 24 | `refinement_ladder_rover_rung4_8to12` | bridge; ladder climb, weighted odometer | 0 | `RoverLadderRung4Guarded.rover_ladder_rung4_8to12_leftAut` |
-| 25 | `rover3tier_rung12` | one run to the target | 0 | `Rover3tierRung12Guarded.rover3tier_rung12_modeKeyed_guarded` |
-| 26 | `rover_dof_terrain_rung1` | bridge; ladder climb | 0 | `RoverDofTerrainRung1Guarded.rover_dof_terrain_rung1_leftAut` |
-| 27 | `rover_dof_terrain_rung2` | bridge; ladder climb | 0 | `RoverDofTerrainRung2Guarded.rover_dof_terrain_rung2_leftAut` |
-| 28 | `rover_dof_terrain_rung3` | bridge; ladder climb | 0 | `RoverDofTerrainRung3Guarded.rover_dof_terrain_rung3_leftAut` |
-| 29 | `rover_dof_terrain_rung3_8d` | bridge; ladder climb | 0 | `RoverDofTerrainRung38dGuarded.rover_dof_terrain_rung3_8d_leftAut` |
-| 30 | `rover_patrol_refine` | climb to `FAST`, linear-form cap | 0 | `V2RoverPatrolRefineGuarded.rover_patrol_refine_guarded` |
-| 31 | `rover_patrol_zones` | climb to `FAST` | 0 | `V2RoverPatrolZonesGuarded.rover_patrol_zones_guarded` |
-| 32 | `sat3w_detumble_nominal` | bridge; (d) stays | 1 | `V2Sat3wDetumbleNominal.sat3w_detumble_nominal_leftAut` |
-| 33 | `sat3w_detumble_phases` | (d) stays | 2 | `V2Sat3wDetumblePhases.sat3w_detumble_phases_modeKeyed` |
-| 34 | `sat3w_detumble_weak` | bridge; (d) stays | 3 | `V2Sat3wDetumbleWeak.sat3w_detumble_weak_leftAut` |
-| 35 | `sat_detumble_nominal` | bridge; (d) stays | 1 | `V2SatDetumbleNominal.sat_detumble_nominal_leftAut` |
-| 36 | `sat_detumble_phases` | (d) stays | 2 | `V2SatDetumblePhases.sat_detumble_phases_modeKeyed` |
-| 37 | `sat_detumble_weak` | bridge; (d) stays | 3 | `V2SatDetumbleWeak.sat_detumble_weak_leftAut` |
-| 38 | `story1_attdist_rung_a_6to8` | synchronized climb | 9 | `Story1AttdistRungAGuarded.story1_attdist_rung_a_guarded` |
-| 39 | `story1_attdist_rung_b_12dof` | synchronized climb, two-piece windows | 6 | `Story1AttdistRungBGuarded.story1_attdist_rung_b_guarded` |
-| 40 | `story2_lateral_rung_a_8dof` | bridge; synchronized climb, ordered bands | 6 | `Story2LateralAGuarded.story2_lateral_rung_a_leftAut` |
-| 41 | `story2_lateral_rung_b_12dof` | bridge; synchronized climb, ordered bands | 6 | `Story2LateralBGuarded.story2_lateral_rung_b_leftAut` |
-| 42 | `story3_rollover_base_12dof` | bridge; ladder climb (`0 ≤ dt`) | 6 | `Story3RolloverBaseGuarded.story3_rollover_base_leftAut` |
-| 43 | `story3_rollover_ladder_rung_a` | bridge; ladder climb (`0 ≤ dt`) | 6 | `Story3RolloverRungAGuarded.story3_rollover_rung_a_leftAut` |
-| 44 | `story3_rollover_ladder_rung_b` | synchronized climb | 9 | `V2Story3RolloverRungBGuarded.story3_rollover_ladder_rung_b_guarded` |
-| 45 | `watertank` | bridge; (d); (a) `Low → MidBoost` | 11 | `V2Watertank.watertank_leftAut` |
+| # | benchmark | response | packs (joint + repo) | replays cover | theorem |
+|---|---|---|---|---|---|
+| 1 | `acc_spoof_lag` | bridge; (d) stays, or no step | 1 + 0 | yes | `V2AccSpoofLag.acc_spoof_lag_leftAut` |
+| 2 | `acc_spoof_limp` | (d) stays, or no step | 6 + 0 | yes | `V2AccSpoofLimp.acc_spoof_limp_modeKeyed` |
+| 3 | `acc_tune_lag` | bridge; (d) stays, or no step | 1 + 0 | yes | `V2AccTuneLag.acc_tune_lag_leftAut` |
+| 4 | `acc_tune_limp` | (d) stays | 6 + 0 | yes | `V2AccTuneLimp.acc_tune_limp_modeKeyed` |
+| 5 | `arm_plateau_crit` | bridge; replay: ramp `A → B → C → Hold`; `Brake`/`ApproachA` repositions | 7 + 1 | yes | `V2ArmPlateauCrit.arm_plateau_crit_leftAut` |
+| 6 | `arm_plateau_profiles` | bridge; replay: ramp `A → B → Cfast/Cslow → Hold` | 10 + 0 | yes | `V2ArmPlateauProfiles.arm_plateau_profiles_leftAut` |
+| 7 | `arm_plateau_slow` | bridge; replay: ramp, `ApproachB` repositions in `Accelerate`; one inadmissible start | 6 + 1 | yes | `V2ArmPlateauSlow.arm_plateau_slow_leftAut` |
+| 8 | `charger_fast_setpoints` | bridge; replay: `ABSORB → FULL`; `BULK` repositions; one inadmissible start | 6 + 2 | yes | `V2ChargerFastSetpoints.charger_fast_setpoints_leftAut` |
+| 9 | `charger_fast_tapers` | bridge; replay: `BULK → ABSORB_FAST → FULL`; repositions in the `BULK` window; one inadmissible start | 8 + 3 | yes | `V2ChargerFastTapers.charger_fast_tapers_leftAut` |
+| 10 | `match_multi_rate` | bridge; replay: joint `DRIVE`, stay | 4 + 0 | yes | `MatchMultiRateGuarded.match_multi_rate_leftAut` |
+| 11 | `platoon3_linkloss` | repaired model; stay, legal self-loop (gap floor) | 2 + 0 | yes | `V2Platoon3Linkloss.platoon3_linkloss_modeKeyed` |
+| 12 | `platoon3_profiles` | repaired model; bridge; stay, legal self-loop | 3 + 0 | yes | `V2Platoon3Profiles.platoon3_profiles_leftAut` |
+| 13 | `platoon_delay_linkloss` | (d) stay or `FOLLOW → CATCH` | 6 + 0 | yes | `V2PlatoonDelayLinkloss.platoon_delay_linkloss_modeKeyed` |
+| 14 | `platoon_delay_profiles` | bridge; (d) stays | 6 + 0 | yes | `V2PlatoonDelayProfiles.platoon_delay_profiles_leftAut` |
+| 15 | `quad_light_airframe_20` | bridge; (d) stays | 1 + 0 | yes | `V2QuadLightAirframe20.quad_light_airframe_20_leftAut` |
+| 16 | `quad_light_lag` | bridge; (d) stays | 1 + 0 | yes | `V2QuadLightLag.quad_light_lag_leftAut` |
+| 17 | `quad_light_profiles` | bridge; (d) stays | 3 + 0 | yes | `V2QuadLightProfiles.quad_light_profiles_leftAut` |
+| 18 | `refinement_ladder_rover_rung1_2to3` | bridge; replay: ladder climb, repositions; one inadmissible start | 6 + 2 | yes | `RoverLadderRung1Guarded.rover_ladder_rung1_leftAut` |
+| 19 | `refinement_ladder_rover_rung2_3to6` | bridge; replay: synchronized climb, ordered bands | 6 + 0 | yes | `RoverLadderRung2Guarded.rover_ladder_rung2_3to6_leftAut` |
+| 20 | `refinement_ladder_rover_rung2_6dof` | bridge; replay: two-piece windows, repositions | 6 + 3 | yes | `RoverRung26dofGuarded.rung2_6dof_leftAut` |
+| 21 | `refinement_ladder_rover_rung2b_6dof` | bridge; replay: two-piece windows, repositions | 6 + 3 | yes | `RoverRung2b6dofGuarded.rung2b_6dof_leftAut` |
+| 22 | `refinement_ladder_rover_rung2c_6dof` | `dt ≤ ε_L = 1`; bridge; replay: one joint segment at `(l, l)` | 3 + 0 | yes | `RoverRung2cGuarded.rover_rung2c_leftAut` |
+| 23 | `refinement_ladder_rover_rung3_6to8` | bridge; replay: λ 9/4 ladder climb, repositions | 6 + 2 | yes | `RoverLadderRung3Guarded.rover_ladder_rung3_6to8_leftAut` |
+| 24 | `refinement_ladder_rover_rung4_8to12` | bridge; replay: λ 17/10 ladder climb, repositions | 6 + 2 | yes | `RoverLadderRung4Guarded.rover_ladder_rung4_8to12_leftAut` |
+| 25 | `rover3tier_rung12` | replay: λ 7/4 / 1, `ACCEL → COAST` | 4 + 0 | yes | `Rover3tierRung12Guarded.rover3tier_rung12_modeKeyed_guarded` |
+| 26 | `rover_dof_terrain_rung1` | bridge; replay: ladder climb, repositions | 6 + 2 | yes | `RoverDofTerrainRung1Guarded.rover_dof_terrain_rung1_leftAut` |
+| 27 | `rover_dof_terrain_rung2` | bridge; replay: ladder climb, repositions | 6 + 2 | yes | `RoverDofTerrainRung2Guarded.rover_dof_terrain_rung2_leftAut` |
+| 28 | `rover_dof_terrain_rung3` | bridge; replay: ladder climb, repositions | 6 + 2 | yes | `RoverDofTerrainRung3Guarded.rover_dof_terrain_rung3_leftAut` |
+| 29 | `rover_dof_terrain_rung3_8d` | bridge; replay: ladder climb, repositions | 6 + 2 | yes | `RoverDofTerrainRung38dGuarded.rover_dof_terrain_rung3_8d_leftAut` |
+| 30 | `rover_patrol_refine` | replay: the route at the odometer floors, λ 9/4; repositions | 10 + 5 | yes | `V2RoverPatrolRefineGuarded.rover_patrol_refine_guarded` |
+| 31 | `rover_patrol_zones` | replay: the route at the odometer floors; repositions | 10 + 5 | yes | `V2RoverPatrolZonesGuarded.rover_patrol_zones_guarded` |
+| 32 | `sat3w_detumble_nominal` | bridge; (d) stays | 1 + 0 | yes | `V2Sat3wDetumbleNominal.sat3w_detumble_nominal_leftAut` |
+| 33 | `sat3w_detumble_phases` | (d) stays | 2 + 0 | yes | `V2Sat3wDetumblePhases.sat3w_detumble_phases_modeKeyed` |
+| 34 | `sat3w_detumble_weak` | bridge; (d) stays | 3 + 0 | yes | `V2Sat3wDetumbleWeak.sat3w_detumble_weak_leftAut` |
+| 35 | `sat_detumble_nominal` | bridge; (d) stays | 1 + 0 | yes | `V2SatDetumbleNominal.sat_detumble_nominal_leftAut` |
+| 36 | `sat_detumble_phases` | (d) stays | 2 + 0 | yes | `V2SatDetumblePhases.sat_detumble_phases_modeKeyed` |
+| 37 | `sat_detumble_weak` | bridge; (d) stays | 3 + 0 | yes | `V2SatDetumbleWeak.sat_detumble_weak_leftAut` |
+| 38 | `story1_attdist_rung_a_6to8` | replay: synchronized climb, all nine pairs joint | 9 + 0 | yes | `Story1AttdistRungAGuarded.story1_attdist_rung_a_guarded` |
+| 39 | `story1_attdist_rung_b_12dof` | replay: synchronized climb, two-piece windows, all nine pairs joint | 9 + 0 | yes | `Story1AttdistRungBGuarded.story1_attdist_rung_b_guarded` |
+| 40 | `story2_lateral_rung_a_8dof` | bridge; replay: synchronized climb, ordered bands | 6 + 0 | yes | `Story2LateralAGuarded.story2_lateral_rung_a_leftAut` |
+| 41 | `story2_lateral_rung_b_12dof` | bridge; replay: synchronized climb, ordered bands | 6 + 0 | yes | `Story2LateralBGuarded.story2_lateral_rung_b_leftAut` |
+| 42 | `story3_rollover_base_12dof` | bridge; replay: ladder climb, repositions (`0 ≤ dt`) | 6 + 2 | yes | `Story3RolloverBaseGuarded.story3_rollover_base_leftAut` |
+| 43 | `story3_rollover_ladder_rung_a` | bridge; replay: ladder climb, repositions (`0 ≤ dt`) | 6 + 2 | yes | `Story3RolloverRungAGuarded.story3_rollover_rung_a_leftAut` |
+| 44 | `story3_rollover_ladder_rung_b` | synchronized climb | 9 + 0 | yes | `V2Story3RolloverRungBGuarded.story3_rollover_ladder_rung_b_guarded` |
+| 45 | `watertank` | bridge; replay: (d); the inadmissible starts contradictory | 7 + 0 | yes | `V2Watertank.watertank_leftAut` |
 
 Totals: 45 of 45; 44 for every window length (`0 ≤ dt` for the two story3 ladders, no
 restriction: a negative `dt` admits no window), `rung2c` for `0 ≤ dt ≤ ε_L = 1`; the two
 `platoon3` benchmarks on their repaired model. No theorem carries an Assumption-1 hypothesis;
-no new axiom. Z3-free: 16 (rows with packs 0). Pack hypotheses of the 45 statements: 132, against 194
-for the same 45 benchmarks' theorems before this branch (−62: `rung1`, `rung3_6to8`,
-`rung4_8to12`, the four `rover_dof_terrain` rungs at 6 each, `rover_patrol_zones` and
-`rover_patrol_refine` at 10 each). The verdict runner's tables are unchanged (the choice-form
-and relaxation theorems, still built and imported for their shared definitions, take those
-packs; the platoon3 packs are re-run on the repaired model).
+no new axiom. All 45 replay the emitted cover (branch `replay`, `docs/REPLAY.md`); none is
+Z3-free (was 16). Pack hypotheses of the 45 statements: 234 joint + 41 reposition = 275
+(was 132): every flow fact of every response is a pack of the emitted cover, pinned to a row of
+`RunV2.packsV2` / `RunV2.dynPacksV2`.
 
 Assumption 1 is not a hypothesis of any row; it is verified per benchmark as a separate model
 fact (`WellFormedR`, `InstancesV2/WellFormedBattery.lean`, `docs/WELLFORMED.md`): proved for 39,

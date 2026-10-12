@@ -46,9 +46,11 @@ import RelCertifier.InstancesV2.SameIR
 import RelCertifier.InstancesV2.CoverReplay
 import RelCertifier.VerdictsV2.PinsV2
 import RelCertifier.VerdictsV2.CoveragePinsV2
+import RelCertifier.VerdictsV2.LamPinV2
 import RelCertifier.VerdictsV2.NonConnPinV2
 -- Theorem 3 over the guarded right automaton: suite_v2 instances
 import RelCertifier.InstancesV2.Modal.Watertank
+import RelCertifier.InstancesV2.Modal.WatertankTwospeed
 import RelCertifier.InstancesV2.Modal.PlatoonDelayProfiles
 import RelCertifier.InstancesV2.Modal.AccSpoofLimp
 import RelCertifier.InstancesV2.Modal.AccTuneLimp
@@ -108,8 +110,10 @@ Statement shape (all 45): `RFormula.rvalid (theorem3Form (leftAutomatonBody A u_
 every edge of `G` testing `hostGuard … Side.R (m e.tgt)`, every left edge testing the entered
 left mode's lowered guard, and `gregion q = regionG guard cuts q` (`guard q ∧ cuts q`). -/
 
--- mode-independent invariant, suite_v2 (16), by the generic bridge
+-- mode-independent invariant, suite_v2 (17), by the generic bridge
 #print axioms V2Watertank.watertank_leftAut
+-- `watertank_twospeed`: a stretch per pairing (the per-pairing fallback's exhibit)
+#print axioms V2WatertankTwospeed.watertank_twospeed_leftAut
 #print axioms V2PlatoonDelayProfiles.platoon_delay_profiles_leftAut
 #print axioms V2QuadLightAirframe20.quad_light_airframe_20_leftAut
 #print axioms V2QuadLightProfiles.quad_light_profiles_leftAut

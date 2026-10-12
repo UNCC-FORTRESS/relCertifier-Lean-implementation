@@ -58,6 +58,7 @@ import RelCertifier.InstancesV2.Modal.PlatoonDelayLinkloss
 import RelCertifier.InstancesV2.Modal.AccTuneLimp
 import RelCertifier.InstancesV2.Modal.AccSpoofLimp
 import RelCertifier.InstancesV2.Modal.Watertank
+import RelCertifier.InstancesV2.Modal.WatertankTwospeed
 import RelCertifier.InstancesV2.Modal.PlatoonDelayProfiles
 import RelCertifier.Instances.RoverDofTerrainRung1Guarded
 
@@ -787,5 +788,15 @@ theorem pin_rpr_d3 : V2RoverPatrolRefineGuarded.VerdD 3 1 = dynPackVerd (dynPack
   pin_dyn_row _ rfl irV2_rpr cutV2_rpr
 theorem pin_rpr_d4 : V2RoverPatrolRefineGuarded.VerdD 3 2 = dynPackVerd (dynPacksV2.getD 40 default) :=
   pin_dyn_row _ rfl irV2_rpr cutV2_rpr
+
+
+/-! ## `watertank_twospeed`: one window, a stretch per pairing (`Fast` 1, `Slow` 2) -/
+
+theorem irV2_wts : irV2 "watertank_twospeed" = watertank_twospeed_IRv2 := by decide
+theorem cutV2_wts : cutV2 "watertank_twospeed" = Oracle.watertank_twospeed_cutsV2X := by decide
+theorem pin_watertank_twospeed_00 : V2WatertankTwospeed.Verd 0 0 = packVerd (packsV2.getD 234 default) :=
+  pin_row _ rfl irV2_wts cutV2_wts (by norm_num [packLam, packsV2, V2WatertankTwospeed.lam])
+theorem pin_watertank_twospeed_01 : V2WatertankTwospeed.Verd 0 1 = packVerd (packsV2.getD 235 default) :=
+  pin_row _ rfl irV2_wts cutV2_wts (by norm_num [packLam, packsV2, V2WatertankTwospeed.lam])
 
 end RelCertifier.VerdictsV2

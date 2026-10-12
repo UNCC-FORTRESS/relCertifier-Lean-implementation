@@ -53,6 +53,7 @@ import RelCertifier.InstancesV2.BenchIR.story3_rollover_base_12dof
 import RelCertifier.InstancesV2.BenchIR.story3_rollover_ladder_rung_a
 import RelCertifier.InstancesV2.BenchIR.story3_rollover_ladder_rung_b
 import RelCertifier.InstancesV2.BenchIR.watertank
+import RelCertifier.InstancesV2.BenchIR.watertank_twospeed
 
 namespace RelCertifier.Parse
 
@@ -101,6 +102,7 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("story3_rollover_base_12dof", story3_rollover_base_12dof_IRv2),
   ("story3_rollover_ladder_rung_a", story3_rollover_ladder_rung_a_IRv2),
   ("story3_rollover_ladder_rung_b", story3_rollover_ladder_rung_b_IRv2),
-  ("watertank", watertank_IRv2) ]
+  ("watertank", watertank_IRv2),
+  ("watertank_twospeed", watertank_twospeed_IRv2) ]
 
 end RelCertifier.Parse

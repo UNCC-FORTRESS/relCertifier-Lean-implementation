@@ -20,10 +20,10 @@ mode `q`, `ε = epsR` (the file's `epsilon`, read as the tool reads it). A model
 independent of the relational invariant and of every Theorem 3 (none takes it as a
 hypothesis); this battery is a separate audit.
 
-**Results (all 45 benchmarks; declared counts `wfDeclared`, kernel-checked against the
+**Results (all 46 benchmarks; declared counts `wfDeclared`, kernel-checked against the
 suite's IR table by `wf_coverage`).**
 
-* **Proved, 39** (`<bench>_wellFormedR`): every mode. Z3-free (no verdict leaf). Nine of them
+* **Proved, 40** (`<bench>_wellFormedR`): every mode (`watertank_twospeed` added 2026-10-11). Z3-free (no verdict leaf). Nine of them
   are the models repaired on 2026-10-10 (`docs/SUITE-REDESIGN.md` §21; until then refuted
   here with exhibited blocking states, declared counts `(30, 9, 6)`):
   - `arm_plateau_{crit,profiles,slow}`: the planner is a sampled controller whose successor
@@ -93,6 +93,7 @@ import RelCertifier.InstancesV2.WellFormed.SatDetumblePhases
 import RelCertifier.InstancesV2.WellFormed.Sat3wDetumbleNominal
 import RelCertifier.InstancesV2.WellFormed.Sat3wDetumbleWeak
 import RelCertifier.InstancesV2.WellFormed.Sat3wDetumblePhases
+import RelCertifier.InstancesV2.WellFormed.WatertankTwospeed
 
 namespace RelCertifier
 namespace WellFormedBattery
@@ -112,7 +113,7 @@ def wfProved : List String :=
    "rover_dof_terrain_rung1", "rover_dof_terrain_rung2", "rover_dof_terrain_rung3",
    "rover_dof_terrain_rung3_8d", "story1_attdist_rung_a_6to8", "story1_attdist_rung_b_12dof",
    "story2_lateral_rung_a_8dof", "story2_lateral_rung_b_12dof", "story3_rollover_base_12dof",
-   "story3_rollover_ladder_rung_a"]
+   "story3_rollover_ladder_rung_a", "watertank_twospeed"]
 
 /-- The benchmarks whose right model violates Assumption 1 (none since the 2026-10-10
 repairs; the nine refuted until then are in `wfProved`). -/
@@ -125,8 +126,9 @@ def wfBand : List String :=
    "sat3w_detumble_nominal", "sat3w_detumble_weak", "sat3w_detumble_phases"]
 
 /-- **Declared counts**: proved, refuted (model defects), band-relative. `(30, 9, 6)` until the
-2026-10-10 repairs of the nine refuted models; now `(39, 0, 6)`. -/
-def wfDeclared : ℕ × ℕ × ℕ := (39, 0, 6)
+2026-10-10 repairs of the nine refuted models; `(39, 0, 6)` then, `(40, 0, 6)` with
+`watertank_twospeed` (2026-10-11). -/
+def wfDeclared : ℕ × ℕ × ℕ := (40, 0, 6)
 
 /-- The suite's benchmark names, in the order of the IR table. -/
 def suiteNames : List String :=
@@ -145,13 +147,13 @@ def suiteNames : List String :=
    "sat_detumble_weak", "story1_attdist_rung_a_6to8", "story1_attdist_rung_b_12dof",
    "story2_lateral_rung_a_8dof", "story2_lateral_rung_b_12dof",
    "story3_rollover_base_12dof", "story3_rollover_ladder_rung_a",
-   "story3_rollover_ladder_rung_b", "watertank"]
+   "story3_rollover_ladder_rung_b", "watertank", "watertank_twospeed"]
 
 /-- `suiteNames` IS the name column of the kernel-checked IR table of the suite. -/
 theorem suiteNames_eq : Parse.benchIRTableV2.map Prod.fst = suiteNames := rfl
 
 /-- The declared counts are the lists' lengths, and the three lists together are a
-permutation of the suite's 45 benchmarks (disjoint, nothing missing). -/
+permutation of the suite's 46 benchmarks (disjoint, nothing missing). -/
 theorem wf_coverage :
     (wfProved.length, wfRefuted.length, wfBand.length) = wfDeclared ∧
     (wfProved ++ wfRefuted ++ wfBand).Perm (Parse.benchIRTableV2.map Prod.fst) := by
@@ -160,9 +162,10 @@ theorem wf_coverage :
 
 end WellFormedBattery
 
-/-! ## Proved (39): Assumption 1 at every mode -/
+/-! ## Proved (40): Assumption 1 at every mode -/
 
 #print axioms V2Watertank.watertank_wellFormedR
+#print axioms V2WatertankTwospeed.watertank_twospeed_wellFormedR
 #print axioms V2AccSpoofLag.acc_spoof_lag_wellFormedR
 #print axioms V2AccSpoofLimp.acc_spoof_limp_wellFormedR
 #print axioms V2AccTuneLag.acc_tune_lag_wellFormedR
@@ -193,7 +196,7 @@ end WellFormedBattery
 #print axioms Story3RolloverBaseGuarded.story3_rollover_base_12dof_wellFormedR
 #print axioms Story3RolloverRungAGuarded.story3_rollover_ladder_rung_a_wellFormedR
 
-/-! ## Repaired 2026-10-10 (9, among the 39): Assumption 1 at every mode, and at the repaired
+/-! ## Repaired 2026-10-10 (9, among the 40): Assumption 1 at every mode, and at the repaired
 modes -/
 
 #print axioms V2ArmPlateauCrit.arm_plateau_crit_wellFormedR

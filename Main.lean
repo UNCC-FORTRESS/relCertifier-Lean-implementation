@@ -8,7 +8,7 @@ Released under Apache 2.0 license.
   on one warm Z3 session and prints CERTIFIED / DECLINED / ERROR per file.
 * `relcert --run-verdicts-v2` re-sends every Z3 hypothesis of the suite_v2 battery
   (`InstancesV2/BatteryV2`) with declared per-phase counts (`runAllVerdictsV2`);
-  `--check-quick-v2` certifies the 45 suite_v2 files first (in the strict well-formedness
+  `--check-quick-v2` certifies the 46 suite_v2 files first (in the strict well-formedness
   mode) and checks the tally, then runs the verdicts, then the strict Assumption 1 gate
   (declared 146 right modes, 0 UNKNOWN).
 * `relcert --handoff <input.txt>…` runs the cross-mode handoff check per benchmark.
@@ -115,8 +115,8 @@ USAGE
                                           pruning queries of every pruned edge), and the
                                           packs of the 19 carried-over theorems
   RELCERT_IMPLIED_CUT=1 relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt
-                                          certify the 45 suite_v2 files in the strict
-                                          well-formedness mode (declared 45 certified,
+                                          certify the 46 suite_v2 files in the strict
+                                          well-formedness mode (declared 46 certified,
                                           0 declined), then --run-verdicts-v2, then the
                                           strict --wellformed gate (declared 146 right
                                           modes, 0 UNKNOWN; any UNKNOWN fails the run)

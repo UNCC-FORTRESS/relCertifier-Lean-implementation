@@ -1,0 +1,61 @@
+# watertank_twospeed: the attacked tank of the running example against a nominal two-speed pump.
+# scenario: sensor-attack
+# mechanisms: M1 M2 M3 M6 M6+
+#
+# The deployed tank (left) is the running example's attacked low-fill mode: the sensor reads
+# 3 units low, so the controller regulates toward 15.5 instead of 12.5 and runs the pump at the
+# boost gain 0.6 (x' = 0.6 (15.5 - x), guard 5 <= x < 13 in true level, the nominal low-fill band
+# 2 <= x < 10 shifted by the offset). The nominal controller (right) fills in two speeds: FAST
+# below 8 (x' = 0.6 (12.5 - x), guard 2 <= x < 8) and a trickle SLOW above (x' = 0.2 (12.5 - x),
+# guard x >= 8), both toward the same set point 12.5. Claim: |x_L - x_R| <= 3 (the running example's
+# tolerance). Units are tank levels and minutes; the envelope 0 <= x <= 25 is the tank's capacity.
+#
+# WHY IT IS HERE (per-pairing stretch). The deployed low-fill pairs with FAST at stretches 1 to
+# 2.2 (same gain as the attacked pump: at 1 the difference converges to the tolerance, route C;
+# above 2.2 the stretched FAST overshoots the lower row) and with SLOW only from stretch 3 (the
+# gain ratio 0.6 / 0.2). No single stretch certifies both, and the deployed window needs both: a
+# nominal pump that starts in FAST crosses 8 within the window and continues in SLOW. With one
+# stretch per left mode the certifier DECLINES (RELCERT_NO_PAIR_STRETCH=1 DECLINES, measured);
+# the per-pairing fallback certifies with lambda_FAST = 1 and lambda_SLOW = 3.1 (the grid point),
+# every joint segment cut to the common span eps_R / 3.1 of left time, budget 4.
+#
+# Covers (measured): deployed Low, lambda per pairing (FAST 1, SLOW 31/10), budget 4; admissible
+# starts FAST and SLOW; from FAST a joint step retains FAST and SLOW (M3), both joint-certified,
+# chained to the budget (M2). Cuts: FAST's set-point atom x <= 12.5 (implied contraction, M6+)
+# and the guard floors x >= 2, x >= 8 (M6). Tolerance 3 is tight: the difference x_L - x_R
+# converges to 3 from any admissible start.
+[problem]
+name = watertank_twospeed
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 4.0
+bound_T = 40.0
+
+[Lsys]
+state_vars = [x]
+epsilon = 1.0
+
+[Lsys.mode.Low]
+ode = x' = smt2:(* 0.6 (- 15.5 x));
+guard = x >= 5.0 and x < 13.0
+evolve = x >= 0.0 and x <= 25.0
+next = [Low]
+
+[Rsys]
+state_vars = [x]
+epsilon = 1.0
+
+[Rsys.mode.Fast]
+ode = x' = smt2:(* 0.6 (- 12.5 x));
+guard = x >= 2.0 and x < 8.0
+evolve = x >= 0.0 and x <= 25.0
+next = [Fast, Slow]
+
+[Rsys.mode.Slow]
+ode = x' = smt2:(* 0.2 (- 12.5 x));
+guard = x >= 8.0
+evolve = x >= 0.0 and x <= 25.0
+next = [Slow]
+
+[relational_invariant]
+Low = x[l] <= x[r] + 3 and x[r] <= x[l] + 3

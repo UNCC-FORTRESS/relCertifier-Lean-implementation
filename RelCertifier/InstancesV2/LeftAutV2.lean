@@ -29,6 +29,7 @@ import RelCertifier.InstancesV2.Modal.QuadLightAirframe20
 import RelCertifier.InstancesV2.Modal.QuadLightLag
 import RelCertifier.InstancesV2.Modal.QuadLightProfiles
 import RelCertifier.InstancesV2.Modal.Watertank
+import RelCertifier.InstancesV2.Modal.WatertankTwospeed
 import RelCertifier.InstancesV2.Modal.SatDetumbleNominal
 import RelCertifier.InstancesV2.Modal.SatDetumbleWeak
 import RelCertifier.InstancesV2.Modal.Sat3wDetumbleNominal
@@ -518,6 +519,43 @@ theorem watertank_leftAut (dt : ℝ)
     (LeftAut.ofG_hsim leftData tg dt nextLA)
 
 end V2Watertank
+
+namespace V2WatertankTwospeed
+open DL DLCalTiming DLRel Parse Set RelCertifier.Oracle
+
+/-- `watertank_twospeed`: the file's left `next` list, resolved to indices (Low). -/
+def nextLA : List (List ℕ) :=
+  (List.range 1).map (fun l => (mL l).next.filterMap (Handoff.leftModeIndex watertank_twospeed_IRv2))
+
+theorem nextLA_eq : nextLA = [[0]] := by decide
+
+/-- The guard-gated left automaton: the window (`leftData`, its own guard test first), its
+lowered guard, its declared successor. -/
+noncomputable def AL (dt : ℝ) : LeftAut 2 := LeftAut.ofG leftData tg dt nextLA
+
+abbrev uLA : Var 2 := (Side.Aux, 0)
+
+theorem AL_guards (dt : ℝ) : (AL dt).guards =
+    (List.range 1).map (fun l => hostGuard vs 2 Side.L (mL l)) := rfl
+
+theorem AL_numModes (dt : ℝ) : (AL dt).numModes = 1 := rfl
+
+/-- **`watertank_twospeed`, Theorem 3 with the paper's left program**: from
+`watertank_twospeed_modal` by the generic bridge `theorem3_leftAut_of_choiceR`; the two
+packs are at the pairings' own stretches (`Fast` 1, `Slow` 2). -/
+theorem watertank_twospeed_leftAut (dt : ℝ) (h00 : Verd 0 0) (h01 : Verd 0 1) :
+    RFormula.rvalid (theorem3Form (leftAutomatonBody (AL dt) uLA) (rightAutomatonBody Gr mv)
+      (psiK uLA (fun _ => canonInvM g gs) (AL dt).numModes domL domR
+        (mvRegionR mv gregion Gr.modes.length))) :=
+  theorem3_leftAut_of_choiceR (AL dt) 0 1 0 (by decide) _ _ _ domL domR gregion _
+    (watertank_twospeed_modal dt h00 h01)
+    (fun q _ => gregion_fv q)
+      (canonInvM_varsL g gs comps_fv) (canonInvM_varsR g gs) hdomL hdomR
+    (LeftAut.ofG_vars leftData 1 dt nextLA hL).1 (LeftAut.ofG_vars leftData 1 dt nextLA hL).2
+    (LeftAut.ofG_hnext leftData tg dt nextLA 1 rfl (by rw [nextLA_eq]; decide))
+    (LeftAut.ofG_hsim leftData tg dt nextLA)
+
+end V2WatertankTwospeed
 
 namespace V2SatDetumbleNominal
 open DL DLCalTiming DLRel Parse Set RelCertifier.Oracle

@@ -117,4 +117,6 @@ theorem story3_rollover_ladder_rung_b_coverV2_replay : coverReplays Parse.story3
 
 theorem watertank_coverV2_replay : coverReplays Parse.watertank_IRv2 watertank_coverV2 = true := by decide
 
+theorem watertank_twospeed_coverV2_replay : coverReplays Parse.watertank_twospeed_IRv2 watertank_twospeed_coverV2 = true := by decide
+
 end RelCertifier

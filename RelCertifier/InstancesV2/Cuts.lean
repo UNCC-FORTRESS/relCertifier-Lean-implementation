@@ -44,6 +44,7 @@ import RelCertifier.InstancesV2.Cuts.story3_rollover_base_12dof
 import RelCertifier.InstancesV2.Cuts.story3_rollover_ladder_rung_a
 import RelCertifier.InstancesV2.Cuts.story3_rollover_ladder_rung_b
 import RelCertifier.InstancesV2.Cuts.watertank
+import RelCertifier.InstancesV2.Cuts.watertank_twospeed
 
 namespace RelCertifier.Oracle
 
@@ -92,6 +93,7 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("story3_rollover_base_12dof", story3_rollover_base_12dof_cutsV2, story3_rollover_base_12dof_cutsV2X),
   ("story3_rollover_ladder_rung_a", story3_rollover_ladder_rung_a_cutsV2, story3_rollover_ladder_rung_a_cutsV2X),
   ("story3_rollover_ladder_rung_b", story3_rollover_ladder_rung_b_cutsV2, story3_rollover_ladder_rung_b_cutsV2X),
-  ("watertank", watertank_cutsV2, watertank_cutsV2X) ]
+  ("watertank", watertank_cutsV2, watertank_cutsV2X),
+  ("watertank_twospeed", watertank_twospeed_cutsV2, watertank_twospeed_cutsV2X) ]
 
 end RelCertifier.Oracle

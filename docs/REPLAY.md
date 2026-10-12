@@ -8,8 +8,11 @@ the conversion of every proof that did not.
 
 The tool's witness strategy for a left window `l` is its emitted cover
 (`relcert --emit-cover`, frozen in `InstancesV2/BenchCovers/<b>.lean` and re-decided in the
-kernel by `InstancesV2/CoverReplay.lean`): the stretch `λ_l`, the budget `B_l`, per right mode
-the certificates it established (`jointOK`: the joint segment of the pair `(l, q)` at `λ_l`;
+kernel by `InstancesV2/CoverReplay.lean`): the window's stretch `λ_l` (the common stretch, or
+with the per-pairing fallback of 2026-10-11 the largest of the pairings' stretches `λ_{l,q}`,
+each recorded per pairing and pinned to the pairing's pack by `VerdictsV2/LamPinV2.lean`),
+the budget `B_l`, per right mode
+the certificates it established (`jointOK`: the joint segment of the pair `(l, q)` at `λ_{l,q}`;
 `dynPre`/`dynPost`: the right-only reposition of `q` with the left held), the admissible starts,
 the pruned edges, and the strata orders of every pack. Its derivation (`decideCovered`) answers
 an admissible start `q` with a joint segment at a `jointOK` node followed by a switch into a
@@ -19,7 +22,7 @@ a start that is only a reposition node first moves alone along its exits.
 A Theorem 3 proof **REPLAYS** the cover when, for every left window `l` and every start `q`:
 
 * **R1** every joint segment of the response is at a `jointOK` node of `l`, at the cover's
-  `λ_l`, and its flow fact (preservation of the rows and both sides' kept cut atoms) is the
+  stretch of that pairing `λ_{l,q}` (kernel-pinned to the pack since 2026-10-11), and its flow fact (preservation of the rows and both sides' kept cut atoms) is the
   tool's verdict pack of that pair (`modalVerdX`, pinned to a row of
   `VerdictsV2/RunV2.packsV2`);
 * **R2** every right-only reposition is at a node the cover flags `dynPre` (before the first
@@ -38,7 +41,8 @@ switches (they are not flow facts). They may not replace a pack as the preservat
 On the budget. The mechanized right automaton has no control-interval clock on its flows (a
 joint segment at a node is a time-unbounded run, the `evolve` step of `RightReach`), and
 Theorem 3 is stated for every window length `dt`, also beyond `ε_L`, the left residence the
-cover's budget `B_l = ⌈ε_L λ_l / ε_R⌉` measures. A replay therefore uses one joint segment per
+cover's budget `B_l = ⌈ε_L λ_l / ε_R⌉` measures (with per-pairing stretches `λ_l = max_q λ_{l,q}`,
+the common cut span `ε_R / λ_l`). A replay therefore uses one joint segment per
 stretch the guards allow, and switches (R3) where the right would otherwise leave every
 successor's guard; on windows within the cover's horizon this is the derivation's own
 segment/switch structure, on longer windows the same structure iterated (every node it visits

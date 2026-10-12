@@ -4,7 +4,7 @@ This is the reproduction recipe: starting from the benchmark files, what to run,
 you should see, to confirm that every suite_v2 benchmark carries a machine-checked
 Theorem 3 whose hypotheses all hold. Read `README.md` first for what the theorems say.
 
-> **Last run:** 2026-10-10, branch `replay`, Apple M2 Max (12 cores, 64 GB), Z3 4.15.1. `lake build`: `Build completed successfully (9014 jobs)`, no `sorry`; `lake build relcert relcert-test`: 17737 jobs. Axiom audit: BatteryV2 71 lines, 47 with `z3_unsat_sound` (the 45 Theorem 3s, `match_multi_rate_nonconn`, `couple_cutX`), 24 at the three standard axioms; WellFormedBattery 76 lines, all at the three standard axioms; nothing else. `--check-quick-v2`: 45 certified / 0 declined / 0 errors (strict well-formedness mode), modal 621/621, handoff 186/186, non-connection 88/88, pruned edges 44/44, copied benchmarks 385/385, reposition (dyn) 81/81, `[wellformed] STRICT: 146/146 right modes ok (83 invariant, 63 exit), 0 UNKNOWN — matches the declared suite`, `SUITE_V2 QUICK CHECKS PASSED`. `--run-verdicts-v2`: the same counts, `ALL suite_v2 HYPOTHESES DISCHARGED`. `relcert-test` with the suite_v2 manifest: 45 IR literals match, bare `ALL PASS`.
+> **Last run:** 2026-10-11, branch `per-pairing-stretch`, Apple M2 Max (12 cores, 64 GB), Z3 4.15.1. `lake build RelCertifier relcert relcert-test`: `Build completed successfully (17885 jobs)`, no `sorry`. Axiom audit: BatteryV2 72 lines, 48 with `z3_unsat_sound` (the 46 Theorem 3s, `match_multi_rate_nonconn`, `couple_cutX`), 24 at the three standard axioms; WellFormedBattery 77 lines, all at the three standard axioms; nothing else. `--check-quick-v2`: 46 certified / 0 declined / 0 errors (strict well-formedness mode), modal 625/625, handoff 187/187, non-connection 88/88, pruned edges 44/44, copied benchmarks 385/385, reposition (dyn) 81/81, `[wellformed] STRICT: 148/148 right modes ok (84 invariant, 64 exit), 0 UNKNOWN — matches the declared suite`, `SUITE_V2 QUICK CHECKS PASSED`. `relcert-test` with the suite_v2 manifest: 46 IR literals match, bare `ALL PASS`. The stretch pin `VerdictsV2/LamPinV2.lean` (every pack row's stretch is the emitted cover's stretch of that pairing) decides for all 236 rows.
 
 ---
 
@@ -48,7 +48,7 @@ theorems consume is in the repository.
 |---|---|---|
 | 1 | every proof kernel-checks | `lake build` (see *Cost*), then `lake build relcert relcert-test` |
 | 2 | the axiom audit of every battery theorem | `lake build RelCertifier.InstancesV2.BatteryV2 2>&1 \| grep -A3 "depends on axioms"` |
-| 3 | the 45 files certify in the strict well-formedness mode (declared 45 / 0 / 0), every Z3 hypothesis of the battery holds, and the tool's Assumption 1 check finds no `UNKNOWN` right mode (declared 146 modes, 0 `UNKNOWN`), all against declared counts | `RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt` |
+| 3 | the 46 files certify in the strict well-formedness mode (declared 46 / 0 / 0), every Z3 hypothesis of the battery holds, and the tool's Assumption 1 check finds no `UNKNOWN` right mode (declared 146 modes, 0 `UNKNOWN`), all against declared counts | `RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt` |
 | 3' | the hypotheses alone | `./.lake/build/bin/relcert --run-verdicts-v2` |
 | 4 | each file parses to the literal the theorems quote; parser, printer, Z3-layer and determinism tests | `BENCH_PATHS=<manifest> ./.lake/build/bin/relcert-test` |
 | 5 | Assumption 1 of every right model (`WellFormedR`): 39 proved, 6 proved on the momentum band, none refuted; axiom audit; the tool's check, strict in check 3 | `lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 \| grep -A3 "depends on axioms"`; `./.lake/build/bin/relcert --wellformed benchmarks/suite_v2/*/input.txt` |
@@ -97,11 +97,11 @@ Practical notes:
 lake build RelCertifier.InstancesV2.BatteryV2 2>&1 | grep -A3 "depends on axioms"
 ```
 
-Use `-A3`: a four-axiom list prints over four lines. Expected: 71 lines, in the groups of
-`BatteryV2`: (1) the 45 Theorem 3s with the paper's left program over the guarded automata at
+Use `-A3`: a four-axiom list prints over four lines. Expected: 72 lines, in the groups of
+`BatteryV2`: (1) the 46 Theorem 3s with the paper's left program over the guarded automata at
 the mode-consistent region (`rung2c` for `dt ≤ ε_L = 1`, the `platoon3` pair on the repaired
 model); `match_multi_rate_nonconn`; and 25 generic lemmas. Every list is a subset of
-`[propext, Classical.choice, Quot.sound, z3_unsat_sound]`; 47 carry `z3_unsat_sound` (all 45
+`[propext, Classical.choice, Quot.sound, z3_unsat_sound]`; 48 carry `z3_unsat_sound` (all 46
 Theorem 3s, `couple_cutX`, `match_multi_rate_nonconn`); 24 are at the three standard axioms
 alone (24 generic lemmas: all but `couple_cutX`). Since branch `replay` no Theorem 3 is
 Z3-free: every proof replays the emitted cover, every flow fact a pack (`docs/REPLAY.md`);
@@ -122,25 +122,25 @@ DECLINED, a `[wellformed]` line per file on stderr); check 3/3 is the `--wellfor
 gated. Expected tail:
 
 ```
-  [suite_v2] 45 certified, 0 declined, 0 error(s) — matches the declared suite
-  [coverage] suite_v2 modal: 621/621 hypotheses discharged
-  [coverage] suite_v2 handoff: 186/186 hypotheses discharged
+  [suite_v2] 46 certified, 0 declined, 0 error(s) — matches the declared suite
+  [coverage] suite_v2 modal: 625/625 hypotheses discharged
+  [coverage] suite_v2 handoff: 187/187 hypotheses discharged
   [coverage] suite_v2 non-connection: 88/88 hypotheses discharged
   [coverage] suite_v2 pruned edges: 44/44 hypotheses discharged
   [coverage] suite_v2 copied benchmarks (legacy packs): 385/385 hypotheses discharged
   [coverage] suite_v2 reposition (dyn): 81/81 hypotheses discharged
-  [wellformed] summary: 45 benchmark(s), 146 right mode(s): 83 ok (invariant), 63 ok (exit), 0 UNKNOWN (0 benchmark(s) with an UNKNOWN mode); 2279 queries
-  [wellformed] STRICT: 146/146 right modes ok (83 invariant, 63 exit), 0 UNKNOWN — matches the declared suite (146 modes, 0 UNKNOWN)
+  [wellformed] summary: 46 benchmark(s), 148 right mode(s): 84 ok (invariant), 64 ok (exit), 0 UNKNOWN (0 benchmark(s) with an UNKNOWN mode); 2308 queries
+  [wellformed] STRICT: 148/148 right modes ok (84 invariant, 64 exit), 0 UNKNOWN — matches the declared suite (148 modes, 0 UNKNOWN)
 
   suite_v2: PASS
   verdicts: PASS
-  wellformed (strict): PASS (146/146 right modes ok (83 invariant, 63 exit), 0 UNKNOWN)
+  wellformed (strict): PASS (148/148 right modes ok (84 invariant, 64 exit), 0 UNKNOWN)
 SUITE_V2 QUICK CHECKS PASSED  (the kernel check is `lake build`)
 ```
 
 The well-formedness gate (check 5's tool part, strict since 2026-10-10; it was informational
-while 9 models blocked): the declared mode count `ExpectedSuiteV2.wfModes = 146` is
-kernel-checked to be the right-mode count of the 45 IR literals
+while 9 models blocked): the declared mode count `ExpectedSuiteV2.wfModes = 148` is
+kernel-checked to be the right-mode count of the 46 IR literals
 (`VerdictsV2/CoveragePinsV2.suiteV2_wfModes`), and `wfUnknown = 0`; any `UNKNOWN` mode, a
 mode count off the declared one, or a file that does not parse fails the run.
 
@@ -157,7 +157,7 @@ done > /tmp/bench-paths-v2.tsv
 BENCH_PATHS=/tmp/bench-paths-v2.tsv ./.lake/build/bin/relcert-test
 ```
 
-Expected: `ok   all 45 suite_v2 IR literals match their files` and a bare `ALL PASS`.
+Expected: `ok   all 46 suite_v2 IR literals match their files` and a bare `ALL PASS`.
 Without `BENCH_PATHS` the two determinism checks (`match_multi_rate` 8× CERTIFIED;
 `acc_spoof_lag`, which declines without the widened channel, 8× the same verdict) are
 skipped and the last line says `ALL PASS (2 SKIPPED …)`. The 19 carried-over legacy
@@ -177,7 +177,7 @@ satellites `<b>_wellFormedR_onBand`, `<b>_band_invariant` and `<b>_wellFormedR_f
 literal predicate), and 13 generic lemmas including `Platoon3Link.brake_guard_Ronly`,
 `Platoon3Link.solB_sol` and `WellFormedBattery.wf_coverage` (the declared counts `(39, 0, 6)`,
 `(30, 9, 6)` before the repairs, and the three name lists a permutation of the suite's IR
-table). The tool line: `[wellformed] summary: 45 benchmark(s), 146 right mode(s): 83 ok
+table). The tool line: `[wellformed] summary: 46 benchmark(s), 148 right mode(s): 84 ok
 (invariant), 63 ok (exit), 0 UNKNOWN (0 benchmark(s) with an UNKNOWN mode)`; check 3 gates it.
 What this establishes and what it does not (the tool checks only the successor half; the
 predicate's domain conjunct; the satellites' band): `docs/WELLFORMED.md`. The repairs:
@@ -192,7 +192,7 @@ exit 1.
 **Regression of the repair pass** (2026-10-10): `--emit-ir`, `--emit-cover`, `--emit-cuts`
 (the last two with `RELCERT_IMPLIED_CUT=1`) of the 36 untouched files byte-identical, stdout
 and stderr, against the binary of `5dd8798` (108 outputs); regenerating every data leaf
-(`scripts/gen_v2_data.py` over all 45) leaves the committed leaves unchanged; the
+(`scripts/gen_v2_data.py` over all 46) leaves the committed leaves unchanged; the
 non-connection pruning extension (a compound successor guard pruned on its strict leading
 conjunct) touches no other file (none has such a guard); the full matrix re-run changes no
 cell of the 36.

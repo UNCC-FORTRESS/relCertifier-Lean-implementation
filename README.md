@@ -5,14 +5,14 @@ artifact that accompanies the paper.
 
 Given two hybrid automata, an ideal system `L` and an implementation `R`, written in a
 small textual format, the tool `relcert` certifies that `R` refines `L` up to a relational
-invariant (bounds such as `x_L ≤ x_R + 3`). For **all 45** benchmarks of the paper's suite
+invariant (bounds such as `x_L ≤ x_R + 3`). For **all 46** benchmarks of the paper's suite
 the repository contains a **kernel-checked Theorem 3** (the paper's relational ∀∃ statement)
 with the paper's own automata on both sides, **guard-gated**: every left window is entered
 only inside its mode's guard (the left automaton, jump then flow) and every right mode change
 enters a declared successor whose guard holds at that instant (flow then jump), at the
 **mode-consistent region** (the right in the guard of its current mode and its checked cuts),
 whose only assumptions are a small trust base and a finite list of named Z3 `unsat` verdicts,
-each of which the tool re-sends on demand. **Every one of the 45 proofs replays the cover the
+each of which the tool re-sends on demand. **Every one of the 46 proofs replays the cover the
 tool emits** (`docs/REPLAY.md`): every joint segment of the response is at a node the cover
 certified, at the cover's stretch, preserved by that node's verdict pack; every right-only
 reposition is at a node the cover flags, preserved by its reposition pack; every switch is a
@@ -24,7 +24,7 @@ benchmarks the nominal controller blocked after a full cycle (engagement-band gu
 catch-all mode), a violation of the certificate's Assumption 1 that the certificate itself
 cannot detect; the guards are now the operating range and both are proved
 (`docs/SUITE-REDESIGN.md` §20). Assumption 1 itself is now a separately verified model fact
-per benchmark (`WellFormedR`): **proved for all 45 right models**, 39 in its literal form and
+per benchmark (`WellFormedR`): **proved for all 46 right models**, 40 in its literal form and
 the 6 satellites on their conserved momentum band. Nine models violated it until 2026-10-10
 (refuted in the kernel with exhibited blocking states: fallback sinks whose own flow left
 their guard, approach bands narrower than one control interval) and were repaired
@@ -53,11 +53,11 @@ through printed SMT scripts, and only its `unsat` answers are trusted.
 
 ## What the artifact certifies
 
-`benchmarks/suite_v2/` holds the paper's suite: **45 benchmarks** (adaptive cruise control,
+`benchmarks/suite_v2/` holds the paper's suite: **46 benchmarks** (adaptive cruise control,
 quadrotor climb, battery charger, robot-arm plateau, vehicle platoons, satellite
 detumbling, rover patrol, and the rover refinement ladders and story benchmarks up to 12
 degrees of freedom; `benchmarks/README.md`). With the widened cut channel on
-(`RELCERT_IMPLIED_CUT=1`) the tool CERTIFIES all 45; without it, 10 of them DECLINE.
+(`RELCERT_IMPLIED_CUT=1`) the tool CERTIFIES all 46; without it, 10 of them DECLINE. One of them, `watertank_twospeed`, needs a different stretch per pairing (`RELCERT_NO_PAIR_STRETCH=1` DECLINES it; §22 of `docs/SUITE-REDESIGN.md`).
 
 The parts of the artifact:
 
@@ -67,14 +67,14 @@ The parts of the artifact:
 | the tool (certifier, verdict runner, emitters) | `relcert` (`Main.lean`, `RelCertifier/Trusted/`) |
 | the trusted-layer tests | `relcert-test` (`Test.lean`) |
 | the generic soundness development | `RelCertifier/Core/`, `Checker/`, `Proofs/`, `Trusted/` |
-| the suite_v2 battery: Theorem 3 with the guard-gated left and right automata for all 45 benchmarks (`rung2c` for `dt ≤ 1`), axiom-audited on every build | `RelCertifier/InstancesV2/BatteryV2.lean` |
+| the suite_v2 battery: Theorem 3 with the guard-gated left and right automata for all 46 benchmarks (`rung2c` for `dt ≤ 1`), axiom-audited on every build | `RelCertifier/InstancesV2/BatteryV2.lean` |
 | the runner tables and the pins tying every hypothesis to the query the runner sends | `RelCertifier/VerdictsV2/` (and `Verdicts/` for the carried-over theorems) |
 | Assumption 1 of every right model (`WellFormedR`), axiom-audited on every build | `RelCertifier/InstancesV2/WellFormedBattery.lean` (`docs/WELLFORMED.md`) |
 | the suite evaluation scripts | `scripts/suite_v2_matrix.py` (mechanism matrix), `scripts/domain_widening.py` (load-bearing domain bounds) |
 
 ## The headline claim
 
-For each of the 45 suite_v2 benchmarks there is a Lean theorem
+For each of the 46 suite_v2 benchmarks there is a Lean theorem
 
 ```lean
 RFormula.rvalid (theorem3Form (leftAutomatonBody A uL)     -- the left automaton (jump, then flow)
@@ -104,7 +104,7 @@ carried to the left automaton by one generic bridge (`theorem3_leftAut_of_choice
 The theorem's hypotheses are named Z3 verdict packs, and every one of them is re-sent by
 `relcert --run-verdicts-v2` and comes back `unsat` (1361 queries in five phases, against
 declared counts; `docs/VERDICTS.md`). The axiom audit of every theorem is a subset of
-`{propext, Classical.choice, Quot.sound, z3_unsat_sound}`; none of the 45 is Z3-free (every
+`{propext, Classical.choice, Quot.sound, z3_unsat_sound}`; none of the 46 is Z3-free (every
 flow fact of every response is a pack of the emitted cover: 234 joint packs, 41 reposition
 packs). No
 `sorry`, no `admit`, no `native_decide`.
@@ -123,17 +123,17 @@ packs). No
 | **Z3's `unsat`** answers are correct | the one oracle: axiom `z3_unsat_sound` (`Trusted/Oracle.lean`) |
 | the **Lean kernel** | checks everything else |
 | the **lowering of the right guards** onto the edges (`hostGuard … Side.R (mR t)`, the same lowering as the left guards) | part of the lowering item above; each instance proves its edges carry exactly these guards (`Gr_guards`) |
-| (not an item) Assumption 1 of the right model | not assumed: stated as `WellFormedR` and proved for all 45 (39 literally, the 6 satellites on their momentum band), all Z3-free, kernel-only (no trust-base item beyond the parser and lowering that produce the automata); no Theorem 3 uses it (`docs/WELLFORMED.md`) |
+| (not an item) Assumption 1 of the right model | not assumed: stated as `WellFormedR` and proved for all 46 (40 literally, the 6 satellites on their momentum band), all Z3-free, kernel-only (no trust-base item beyond the parser and lowering that produce the automata); no Theorem 3 uses it (`docs/WELLFORMED.md`) |
 
 The search (cover exploration, checked-cut search, route and λ selection) is untrusted: it
 only proposes. Every accepted output is either re-decided in the kernel (the cover replay
 `decideCovered`, the cut certificates' well-formedness) or becomes a named Z3 fact.
 
-Guard-gated switching is no longer a trusted item: for all 45 theorems both automata test
+Guard-gated switching is no longer a trusted item: for all 46 theorems both automata test
 each entered mode's guard in the program, and every switch of each response
 is kernel-checked legal (`Proofs/Encoding/GuardedSwitch.lean`: `SwitchLegal`, `gseg`,
 `guarded_rights_bridge`, `GResp`). The region of the loop invariant is `guard ∧ cuts` of the
-right's current mode (`regionG`), the same shape for all 45 benchmarks; it is a property of
+right's current mode (`regionG`), the same shape for all 46 benchmarks; it is a property of
 the statement, not an assumption: the theorem's premise and conclusion both carry it.
 Nonblocking (the paper's Assumption 1) enters no theorem as a hypothesis: every response
 exhibits its switches and their enabled targets explicitly, or makes no step. Assumption 1
@@ -165,8 +165,8 @@ All counts read off `InstancesV2/BatteryV2.lean` and its build output.
 | stated on the nonblocking region (a conserved-momentum band of the model in the right region; it enters no verdict query) | **6** | `sat_detumble_{nominal,weak,phases}`, `sat3w_detumble_{nominal,weak,phases}` (`docs/SUITE-REDESIGN.md` §19.2) |
 | Theorem 2 (non-connection certificate of a pruned edge) | **1** | `match_multi_rate_nonconn`, the edge `DRIVE → STALL` |
 
-The axiom audit has 71 lines: the 45 Theorem 3s, `match_multi_rate_nonconn`, and 25 generic
-lemmas; 47 carry `z3_unsat_sound` (the 45 Theorem 3s, `match_multi_rate_nonconn`,
+The axiom audit has 72 lines: the 46 Theorem 3s, `match_multi_rate_nonconn`, and 25 generic
+lemmas; 48 carry `z3_unsat_sound` (the 46 Theorem 3s, `match_multi_rate_nonconn`,
 `couple_cutX`), 24 are at the three standard axioms alone.
 
 ## Build and check
@@ -186,11 +186,11 @@ lake build RelCertifier.InstancesV2.BatteryV2 2>&1 | grep -A3 "depends on axioms
 # 2b. the Assumption 1 battery (76 lines, the three standard axioms only)
 lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 | grep -A3 "depends on axioms"
 
-# 3. certify the 45 files (strict well-formedness), re-send every Z3 hypothesis, and run the
+# 3. certify the 46 files (strict well-formedness), re-send every Z3 hypothesis, and run the
 #    strict Assumption 1 gate, all with declared counts
 RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt
 
-# 4. the trusted-layer tests (IR drift of all 45 literals, parser, printer, Z3 layer,
+# 4. the trusted-layer tests (IR drift of all 46 literals, parser, printer, Z3 layer,
 #    determinism); the manifest lets the two determinism checks run
 for d in benchmarks/suite_v2/*/; do
   printf '%s\t%s\n' "$(basename "$d")" "$PWD/${d}input.txt"
@@ -200,9 +200,9 @@ BENCH_PATHS=/tmp/bench-paths-v2.tsv ./.lake/build/bin/relcert-test
 
 Expected: `Build completed successfully`; 71 axiom lines (BatteryV2), each a subset of the
 four axioms above; 76 axiom lines (WellFormedBattery), each exactly the three standard
-axioms; `[suite_v2] 45 certified, 0 declined, 0 error(s)`, coverage `modal 621/621`,
-`handoff 186/186`, `non-connection 88/88`, `pruned edges 44/44`, `copied benchmarks (legacy
-packs) 385/385`, `reposition (dyn) 81/81`, the strict Assumption 1 gate `[wellformed] STRICT: 146/146 right modes ok
+axioms; `[suite_v2] 46 certified, 0 declined, 0 error(s)`, coverage `modal 625/625`,
+`handoff 187/187`, `non-connection 88/88`, `pruned edges 44/44`, `copied benchmarks (legacy
+packs) 385/385`, `reposition (dyn) 81/81`, the strict Assumption 1 gate `[wellformed] STRICT: 148/148 right modes ok
 (83 invariant, 63 exit), 0 UNKNOWN — matches the declared suite`, `wellformed (strict): PASS`,
 `SUITE_V2 QUICK CHECKS PASSED`;
 `relcert-test`: a bare `ALL PASS`.
@@ -269,7 +269,7 @@ RelCertifier/
                            (OracleAPI), handoff and non-connection queries, emitters,
                            the Assumption 1 check (WellFormedCheck)
   InstancesV2/  the suite_v2 battery
-    BenchIR/ BenchCovers/ Cuts/   45 files each   emitted data, one leaf per benchmark
+    BenchIR/ BenchCovers/ Cuts/   46 files each   emitted data, one leaf per benchmark
     Modal/      26 files   the new Theorem 3 instances
     WellFormed/ 27 files   Assumption 1 (`WellFormedR`) per suite_v2 instance (26) and the
                            shared platoon link lemmas (operating range, latched AEB sink);
@@ -284,7 +284,7 @@ RelCertifier/
   Verdicts/     11 files   the carried-over packs: runner (RunModal), pins, shared pin lemmas
 Main.lean                  relcert
 Test.lean                  relcert-test
-benchmarks/suite_v2/       the 45 inputs
+benchmarks/suite_v2/       the 46 inputs
 scripts/                   gen_v2_data.py, suite_v2_matrix.py, domain_widening.py,
                            z3_timing_proxy.py, trust_audit.py, gen_multif_*.py
 docs/                      see Further reading; docs/history/ holds superseded records
@@ -324,7 +324,7 @@ cuts, no guard) 23 statements were false: the invariant admitted right states th
 automaton never reaches and cannot leave. The final statement carries the mode-consistent
 region `guard ∧ cuts` of the right's current mode (`regionG`), which the flow-then-jump
 rotation maintains, and states the left as the paper's guard-gated automaton (one generic
-bridge, `theorem3_leftAut_of_choice`). With them all 45 are proved, mostly by explicit
+bridge, `theorem3_leftAut_of_choice`). With them all 46 are proved, mostly by explicit
 responses that switch at band floors (ladder climbs, synchronized climbs inside the window, a
 decay budget for attitude rows: `GuardedClimb`, `LadderClimb`, `SyncSwitch`, `LadderSync`).
 Two findings: three ladders (`rung2_3to6`, the story2 pair) are false with a left window that
@@ -359,7 +359,7 @@ def WellFormedR G guard ε := ∀ q < G.modes.length, WellFormedRModeIn G guard 
 (the evolve-domain conjunct `m.dom x`: a run, even the empty one, exists only from a domain
 state; `docs/WELLFORMED.md` §1).
 
-**Results** (`InstancesV2/WellFormedBattery.lean`, declared counts `(39, 0, 6)` checked
+**Results** (`InstancesV2/WellFormedBattery.lean`, declared counts `(40, 0, 6)` checked
 against the suite's IR table, `(30, 9, 6)` until the 2026-10-10 repairs; 76 axiom lines, each
 `[propext, Classical.choice, Quot.sound]`; no Z3):
 
@@ -381,11 +381,11 @@ and the lowering produce, with no Z3 leaf.
 sufficient check of clause (ii) per right mode: the guard atoms are kept by the mode's own
 flow (stratified cut routes) and the mode has a self-loop (`ok (invariant)`), or every run of
 at most `ε_r` ends in a declared successor's guard (rate bounds on the atoms that are not
-kept, then one coverage query: `ok (exit→S)`), else `UNKNOWN`. On the suite: 146 right
+kept, then one coverage query: `ok (exit→S)`), else `UNKNOWN`. On the suite: 148 right
 modes, 83 ok (invariant), 63 ok (exit), **0 UNKNOWN** (before the repairs: 77 / 53 / 16
 UNKNOWN, exactly the blocking modes of the nine models; on the old `platoon3` model, commit
 `1a3507f`, every mode is `UNKNOWN`). **Strict in the recipe:** `--check-quick-v2` certifies in
-the strict mode and gates the `--wellformed` report against declared counts (146 modes, 0
+the strict mode and gates the `--wellformed` report against declared counts (148 modes, 0
 `UNKNOWN`; the mode count is kernel-checked against the IR table): any `UNKNOWN` fails the
 run. `RELCERT_WELLFORMED_STRICT=1` does the same per `relcert` run.
 
@@ -418,7 +418,7 @@ since branch `replay` these restatements replay the emitted cover with the suite
   the repaired defects, the tool check and its strict use in the recipe.
 * [`docs/VERDICTS.md`](docs/VERDICTS.md): the verdict runner, its phases, counts and pins.
 * [`docs/REPLAY.md`](docs/REPLAY.md): what "the proof replays the emitted cover" means, the
-  replay layer, and the per-benchmark replays of all 45.
+  replay layer, and the per-benchmark replays of all 46.
 * [`docs/HANDOFF.md`](docs/HANDOFF.md): mode-dependent invariants and the handoff check.
 * [`docs/SUITE-REDESIGN.md`](docs/SUITE-REDESIGN.md): the design record of suite_v2 and its
   mechanism matrix.

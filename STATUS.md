@@ -1,12 +1,12 @@
 # Status (2026-10-10, branch `replay`)
 
-**The artifact.** `benchmarks/suite_v2` (45 benchmarks), the tool `relcert`, the generic
+**The artifact.** `benchmarks/suite_v2` (46 benchmarks), the tool `relcert`, the generic
 soundness development (`RelCertifier/Core`, `Checker`, `Proofs`, `Trusted`) and the suite_v2
 battery (`RelCertifier/InstancesV2/BatteryV2.lean`). The legacy suite `suite_uniform` and its
 batteries were retired on 2026-10-10; the 19 theorems the battery carries over from it are
 kept with exactly what they need (`README.md`, "The 19 carried-over theorems").
 
-**Proved, all 45, one statement.** Theorem 3 with the paper's LEFT program (the guard-gated
+**Proved, all 46, one statement.** Theorem 3 with the paper's LEFT program (the guard-gated
 left automaton `leftAutomatonBody A u_L`: each left window entered inside its lowered guard,
 the declared successors and `u_L` read from the file) against the GUARDED right automaton
 (every edge tests the lowered guard of the mode it enters), with the loop invariant carrying
@@ -15,7 +15,7 @@ cuts q` of the right's current mode (`docs/GUARDED-SWITCHING.md` §3.1, §3.3). 
 for every window length, `refinement_ladder_rover_rung2c_6dof` for every window up to its
 control interval (`dt ≤ ε_L = 1`); every switch on both sides kernel-checked legal. 12
 mode-keyed, 33 mode-independent (carried to the left automaton by the generic bridge
-`theorem3_leftAut_of_choice`, proved once); **every one of the 45 proofs replays the cover the
+`theorem3_leftAut_of_choice`, proved once); **every one of the 46 proofs replays the cover the
 tool emits** (`docs/REPLAY.md`: joint segments at `jointOK` nodes at the cover's stretch, each
 preserved by its pack; right-only repositions at `dynPre` nodes, each preserved by its
 reposition pack; legal switches along retained edges; inadmissible starts contradictory), so
@@ -37,8 +37,8 @@ pair) refuted only a left program without guard tests; they are proved
 **Assumption 1, verified per benchmark** (`docs/WELLFORMED.md`). The paper's Assumption 1
 (the right model is nonblocking and complete for its declared successors over one control
 interval `ε_r`) is stated once as `WellFormedR` (`Proofs/Encoding/WellFormedR.lean`) and
-**proved for all 45 right models**, Z3-free (`InstancesV2/WellFormedBattery.lean`, declared
-counts `(39, 0, 6)`, 76 axiom lines, the three standard axioms only): **literally for 39**,
+**proved for all 46 right models**, Z3-free (`InstancesV2/WellFormedBattery.lean`, declared
+counts `(40, 0, 6)`, 77 axiom lines, the three standard axioms only): **literally for 40**,
 and **on the conserved momentum band for the 6 satellites** (the band is invariant; off it
 `DETUMBLE` has no full-interval run, refuted). Nine models violated it until 2026-10-10
 (refuted in the kernel with exhibited blocking states, declared counts `(30, 9, 6)`) and were
@@ -51,14 +51,14 @@ tool's pruning now accepts a compound sink guard on its strict leading conjunct)
 interval can reach). Each re-certifies, every counter-run and prune unchanged; matrix change
 M3 12 → 14 (`arm_plateau_crit`, `_slow` now branch); widening unchanged except
 `quad_light_profiles` (the deployed's rated 3.5 m/s climb cap is now load-bearing). The tool's
-sufficient check (`relcert --wellformed`) reports 146 right modes: 83 ok (invariant), 63 ok
+sufficient check (`relcert --wellformed`) reports 148 right modes: 84 ok (invariant), 64 ok
 (exit), 0 UNKNOWN (was 77 / 53 / 16), and is STRICT in the recipe: `--check-quick-v2`
-certifies in the strict mode and fails on any `UNKNOWN` against the declared 146 modes.
+certifies in the strict mode and fails on any `UNKNOWN` against the declared 148 modes.
 
 **Discharged.** Every Z3 hypothesis is re-sent by `relcert --run-verdicts-v2` against
-declared counts (modal 621, handoff 186, non-connection 88 over 44 pruned edges, legacy
+declared counts (modal 625, handoff 187, non-connection 88 over 44 pruned edges, legacy
 packs 385, reposition 81), each query pinned in the kernel to the hypothesis it discharges.
-On branch `replay` every proof was made to replay the emitted cover (`docs/REPLAY.md`): the 45
+On branch `replay` every proof was made to replay the emitted cover (`docs/REPLAY.md`): the 46
 statements take 234 joint packs (every row of `RunV2.packsV2`, was 104 rows) and 41 reposition
 packs (the new table `RunV2.dynPacksV2` and runner phase); 132 pack hypotheses before. No
 headline statement takes a legacy pack any more; the legacy phase re-sends the packs of the
@@ -68,7 +68,7 @@ choice-form and relaxation theorems that stay in the tree.
 edges), SMT printer, Z3's `unsat`, the Lean kernel. Guard-gated switching is no longer
 assumed (both sides) (`README.md`, "Trust base").
 
-**Last verified run.** 2026-10-10, branch `replay`, Apple M2 Max (12 cores, 64 GB), Z3 4.15.1. `lake build`: `Build completed successfully (9014 jobs)`, no `sorry`; `lake build relcert relcert-test`: 17737 jobs. Axiom audit: BatteryV2 71 lines, 47 with `z3_unsat_sound` (the 45 Theorem 3s, `match_multi_rate_nonconn`, `couple_cutX`), 24 at the three standard axioms; WellFormedBattery 76 lines, all at the three standard axioms; nothing else. `--check-quick-v2`: 45 certified / 0 declined / 0 errors (strict well-formedness mode), modal 621/621, handoff 186/186, non-connection 88/88, pruned edges 44/44, copied benchmarks 385/385, reposition (dyn) 81/81, `[wellformed] STRICT: 146/146 right modes ok (83 invariant, 63 exit), 0 UNKNOWN — matches the declared suite`, `SUITE_V2 QUICK CHECKS PASSED`. `--run-verdicts-v2`: the same counts, `ALL suite_v2 HYPOTHESES DISCHARGED`. `relcert-test` with the suite_v2 manifest: 45 IR literals match, bare `ALL PASS`.
+**Last verified run.** 2026-10-11, branch `per-pairing-stretch`, Apple M2 Max (12 cores, 64 GB), Z3 4.15.1. `lake build RelCertifier relcert relcert-test`: `Build completed successfully (17885 jobs)`, no `sorry`. Axiom audit: BatteryV2 72 lines, 48 with `z3_unsat_sound`, 24 at the three standard axioms; WellFormedBattery 77 lines, all standard. `--check-quick-v2`: 46 certified / 0 / 0, modal 625/625, handoff 187/187, non-connection 88/88, pruned 44/44, legacy 385/385, reposition 81/81, strict well-formedness 148/148 (84 invariant, 64 exit), `SUITE_V2 QUICK CHECKS PASSED`; `relcert-test`: 46 IR literals match, `ALL PASS`. New in this run: a stretch per pairing (`docs/SUITE-REDESIGN.md` §22; the tool's fallback when no common stretch closes a left mode's cover, the exhibit `watertank_twospeed`, the kernel pin `VerdictsV2/LamPinV2.lean` tying every pack row's stretch to the emitted cover's, the per-pairing replay engine `Proofs/Encoding/ReplayEngineQ.lean`).
 
 **Open (other).**
 

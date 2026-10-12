@@ -125,7 +125,8 @@ exercised none non-vacuously; no other benchmark's cells changed).
 
 1. `RELCERT_DEBUG=1 relcert <input>` — verdict and wall time; the `[prune]`,
    `[admissible]`, `[cut]` lines.
-2. `relcert --emit-cover <input> x` — the emitted cover: per left mode the λ, the
+2. `relcert --emit-cover <input> x` — the emitted cover: per left mode the λ (since
+   2026-10-11 the window's stretch; per pairing its own, see §22), the
    budget `⌈λ εL / εR⌉`, the flag row of every right mode (`jointOK, dynPre, dynPost`; until 2026-10-09 also
    the static `repoPre, repoPost`, §18) and the admissible starts. The script then REPLAYS the verified
    checker's structural cover (`decideCovered`, `RelCertifier/Checker/Checker.lean`,
@@ -3739,3 +3740,71 @@ a gated `--wellformed` phase: declared 146 right modes (`ExpectedSuiteV2.wfModes
 kernel-checked against the IR table by `CoveragePinsV2.suiteV2_wfModes`), 0 `UNKNOWN`; any
 `UNKNOWN` fails the run. Suite result: 146 modes, 83 ok (invariant), 63 ok (exit), 0 UNKNOWN,
 2279 queries (was 77 / 53 / 16 UNKNOWN in 9 benchmarks, 2236 queries).
+
+## 22. Pass 12 (2026-10-11): a stretch per pairing; `watertank_twospeed`
+
+**The restriction.** Until this pass `coverMode` kept ONE stretch per left mode: the outer
+loop ran over the λ candidates and every right mode's joint segment was checked at that λ;
+the first λ whose cover closed was kept. The paper's Theorem 3 (Section 5, weights
+`w(m_r, κ) = ε_r / λ`) admits a different stretch per pairing, so the tool was incomplete
+against its own theory: a left mode whose needed pairings have disjoint feasible stretch
+windows was DECLINED although a witness strategy exists.
+
+**The change** (`Trusted/OracleAPI.lean`, `coverMode`). The common pass is unchanged and
+runs first. During it, per right mode, the smallest candidate at which its joint segment
+passed is recorded (`firstPass`; the fallback asks Z3 nothing new). If no common λ closes the
+cover, the fallback uses, per right mode, that stretch, cuts every joint segment to the common
+left span `δ = ε_R / λ_max` (`λ_max` the largest chosen stretch: a segment of mode `q` at
+`λ_q` lasting `δ` of left time reaches `τ_R = λ_q δ ≤ ε_R`), keeps the budget as the integer
+count `⌈ε_L / δ⌉` with unit weights, and runs the same verified gate `decideCovered`. The
+fallback is attempted only when the chosen stretches are not all equal (otherwise the common
+pass at that stretch already failed with the same nodes). `RELCERT_NO_PAIR_STRETCH=1` disables
+it (ablation). Soundness: each pairing's flow obligation is the pack at its own stretch
+(`couple_cutX` takes λ per coupling; the kernel's cover theorem is per mode); the shorter span
+only cuts segments short, which Theorem 1 (throughout) and Assumption 1 (every duration up to
+`ε_R` ends in a successor's guard) admit; partial right cycles are what the unclocked right
+automaton already models. The reposition certificates are stretch-free.
+
+**The data.** `PairStrataE` carries `lamN / lamD`, the stretch each pairing was certified at;
+`LeftCoverE.lamQ` is the window's stretch (the common one, or `λ_max`), so `bBudget =
+⌈ε_L · lamQ / ε_R⌉` in both cases. The 45 existing covers are byte-identical to the previous
+ones apart from the new fields (every pairing's stretch equals its window's): the common pass
+is first, so nothing changed for them.
+
+**The pin** (`VerdictsV2/LamPinV2.lean`, kernel `decide`). For every `packsV2` row, the row's
+left index names the emitted window, its right index names the strata entry of the right mode
+of that index, and the row's stretch is that entry's stretch. Until this pass the agreement
+between the emitted stretch and the instances' stretch literals was a hand convention
+(docs/REPLAY.md R1); it is now kernel-checked for all 236 rows, per pairing.
+
+**The replay engine.** `Proofs/Encoding/ReplayEngineQ.lean`: `replay_piece_q`,
+`replay_pieces_q`, `replay_pieces_k_q`, `replay_gresp_q`, `replay_gresp_k_q`, the
+`ReplayEngine` / `ReplayOne` replay with `lam : ℕ → ℝ` (the stretch of the right mode of each
+joint segment). Same proofs, λ read at the current node; a new leaf so that the 45 instance
+leaves under `ReplayEngine` are not rebuilt. The instances that do not go through the engine
+(`couple_cutX` per pairing, `Hmulti_windowRF_prefixed`) needed nothing: their stretch was
+already per coupling.
+
+**The exhibit** `watertank_twospeed` (46th benchmark). The running example's attacked low-fill
+tank (`x' = 0.6 (15.5 − x)`, `5 ≤ x < 13`) against a nominal two-speed pump: `Fast` below 8
+(`x' = 0.6 (12.5 − x)`) and a trickle `Slow` above (`x' = 0.2 (12.5 − x)`, `x ≥ 8`), claim
+`|x_L − x_R| ≤ 3`. Measured: `Fast` passes at stretches 1 to 2.2 (above, the stretched fast
+pump overshoots the lower row), `Slow` from 3.1 (the gain ratio 3; the first grid point); no
+common stretch, `RELCERT_NO_PAIR_STRETCH=1` DECLINES (570 ms); the fallback CERTIFIES (621 ms)
+with `Fast` at 1, `Slow` at 31/10, span `ε_R / 3.1`, budget 4; admissible starts `Fast`,
+`Slow`; from `Fast` a joint step retains both (M3), chained to the budget (M2). Cuts: `Fast`'s
+set-point atom `x ≤ 12.5` (implied contraction, M6+), the guard floors (M6). Mechanized:
+`InstancesV2/Modal/WatertankTwospeed.lean` (the watertank's response with `lam l q`: the
+certified joint segment in the start mode at the PAIRING's stretch, then a switch into an
+enabled successor), `InstancesV2/WellFormed/WatertankTwospeed.lean` (Assumption 1, Z3-free),
+`LeftAutV2.watertank_twospeed_leftAut`; packs `packsV2[234]` (`Fast`, 1) and `[235]`
+(`Slow`, 31/10), pinned by `PinsV2` to the rows and by `LamPinV2` to the emitted cover.
+
+**Counts.** Suite 46; modal packs 625 (621 + 2 × 2); handoff 187 (one more declared left
+transition, the self-loop); reposition 81, non-connection 88, pruned 44, legacy 385 unchanged;
+strict well-formedness 148 right modes; `WellFormedBattery` (40, 0, 6).
+
+**Not done.** Per-pairing stretches WITHOUT the common cut (weights `ε_R / λ_q` per mode in the
+checker, which already carries per-mode ℕ weights): it would avoid cutting a transient right
+mode's segment short where it has no self-loop, at the price of unequal pieces in the replayed
+window. Candidate for a later pass.

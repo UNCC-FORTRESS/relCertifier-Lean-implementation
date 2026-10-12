@@ -3804,6 +3804,15 @@ enabled successor), `InstancesV2/WellFormed/WatertankTwospeed.lean` (Assumption 
 transition, the self-loop); reposition 81, non-connection 88, pruned 44, legacy 385 unchanged;
 strict well-formedness 148 right modes; `WellFormedBattery` (40, 0, 6).
 
+**Matrix (re-run 2026-10-11, `scripts/suite_v2_matrix.py`, 89.6 s of tool time, 33 under 1 s,
+slowest `story1_attdist_rung_a_6to8` 21.1 s).** M1 18, M2 34, M3 14, M4 19, M5 12, M6 29,
+M6+ 10, M6L 6. One cell moved: with the fallback on, `RELCERT_NO_CUT=1` and
+`RELCERT_NO_IMPLIED_CUT=1` now CERTIFY `watertank` (a stretch per pairing recovers what the
+cut-narrowed domains gave), so `watertank` no longer earns M6 / M6+; `watertank_twospeed` earns
+both (and M1, M2), so the suite totals of M6 and M6+ are unchanged. The ablation runs with the
+fallback on, as the tool now is; `RELCERT_NO_PAIR_STRETCH=1` is the fallback's own ablation
+(DECLINES exactly `watertank_twospeed`).
+
 **Not done.** Per-pairing stretches WITHOUT the common cut (weights `ε_R / λ_q` per mode in the
 checker, which already carries per-mode ℕ weights): it would avoid cutting a transient right
 mode's segment short where it has no self-loop, at the price of unequal pieces in the replayed

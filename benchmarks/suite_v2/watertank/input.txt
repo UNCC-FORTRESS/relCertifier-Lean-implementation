@@ -1,6 +1,6 @@
 # watertank: set-point level controller under a sensor offset and a tampered fill pump.
 # scenario: sensor-attack
-# mechanisms: M1 M2 M3 M4 M6 M6+
+# mechanisms: M1 M2 M3 M4
 #
 # THE PAPER'S RUNNING EXAMPLE (redesigned 2026-10-09, supersedes the fill-speedup
 # watertank of the earlier passes; docs/SUITE-REDESIGN.md section 18).
@@ -65,9 +65,12 @@
 #     deployed Low.
 #   * Cuts: the set-point atoms x <= c are the cuts (deployed Low x <= 15.5, an implied
 #     contraction atom; deployed Mid x <= 20, nominal MidEco / MidBoost x <= 17, the
-#     closures of the strict guard caps; nominal Low x <= 12.5, implied). RELCERT_NO_CUT=1
-#     and RELCERT_NO_IMPLIED_CUT=1 both DECLINE; RELCERT_NO_LINEAR_CUT=1 still CERTIFIES
-#     (no linear-form atom is kept).
+#     closures of the strict guard caps; nominal Low x <= 12.5, implied). Until 2026-10-11
+#     RELCERT_NO_CUT=1 and RELCERT_NO_IMPLIED_CUT=1 both DECLINED; with the per-pairing
+#     stretch fallback (docs/SUITE-REDESIGN.md section 22) both CERTIFY (a different stretch
+#     per pairing recovers what the cut-narrowed domains gave), so the cuts are no longer
+#     load-bearing here (M6 / M6+ not credited; the two-speed variant watertank_twospeed
+#     carries them). RELCERT_NO_LINEAR_CUT=1 CERTIFIES (no linear-form atom is kept).
 [problem]
 name = watertank
 max_depth = 8

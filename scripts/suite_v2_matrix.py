@@ -306,7 +306,12 @@ def parse_cover(text):
             flags.append({"name": fm.group(1), "jointOK": fm.group(2) == "true",
                           "dynPre": fm.group(3) == "true", "dynPost": fm.group(4) == "true"})
         adm = re.findall(r'"(\w+)"', lm.group(6))
-        covers.append({"mL": mL, "lam": lam, "budget": budget, "flags": flags, "admissible": adm})
+        # per-pairing stretch (2026-10-11): the strata entry's `lamN, lamD`; equal to the window's
+        # λ unless the per-pairing fallback chose the cover
+        lam_pairs = {pm.group(1): Fraction(int(pm.group(2)), int(pm.group(3)))
+                     for pm in re.finditer(r'⟨"(\w+)", \[[^\]]*\], \[[^\]]*\], \[[^\]]*\], (\d+), (\d+)⟩', lm.group(7))}
+        covers.append({"mL": mL, "lam": lam, "budget": budget, "flags": flags, "admissible": adm,
+                       "lam_pairs": lam_pairs})
     return pruned, covers
 
 # ----------------------------------------------------------------------------- cover replay
@@ -547,8 +552,10 @@ def analyze(name, path, relcert, timeout, z3time=False):
                     allok = False
                 paths[start] = path_string(d)
                 summarize_derivation(d, acc)
+            per_pair = {m: str(v) for m, v in c.get("lam_pairs", {}).items() if v != c["lam"]}
             rec["covers"].append({
                 "mL": c["mL"], "lam": str(c["lam"]), "lam_float": float(c["lam"]), "budget": c["budget"],
+                "lam_pairs": per_pair,
                 "admissible": c["admissible"], "replay_ok": allok,
                 "flags": {f["name"]: "".join(k[0] if f[k] else "-" for k in ("jointOK", "dynPre", "dynPost")) for f in c["flags"]},
                 "kinds": sorted(acc["kinds"]), "modes_on_path": sorted(acc["modes"]),
@@ -587,7 +594,7 @@ def analyze(name, path, relcert, timeout, z3time=False):
     lams = [c for c in rec["covers"] if c["lam_float"] != 1.0]
     if cert and lams:
         nl = rec["nonlinear_L"] or rec["nonlinear_R"]
-        cells["M1"] = "yes: " + ", ".join(f"{c['mL']} λ={c['lam']}" for c in lams) + (" (polynomial dynamics)" if nl else " (affine dynamics)")
+        cells["M1"] = "yes: " + ", ".join(f"{c['mL']} λ={c['lam']}" + (f" (per pairing: {c['lam_pairs']})" if c.get("lam_pairs") else "") for c in lams) + (" (polynomial dynamics)" if nl else " (affine dynamics)")
     else:
         cells["M1"] = "no (λ=1 everywhere)" if cert else "no"
     multi = [c for c in rec["covers"] if c["budget"] >= 2 and c["joint_steps"] >= 1]

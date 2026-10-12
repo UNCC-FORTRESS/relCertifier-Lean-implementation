@@ -13,7 +13,7 @@ namespace RelCertifier
 /-- `sat3w_detumble_phases` (emitted, suite_v2, widened cut channel on). -/
 def sat3w_detumble_phases_coverV2 : CoverEmitE :=
   ⟨"sat3w_detumble_phases", [("DETUMBLE", "SAFE")], [
-    ⟨"DETUMBLE", (1 : ℚ) / 1, 2, [⟨"DETUMBLE", true, false, false⟩, ⟨"SAFE", false, true, true⟩], ["DETUMBLE"], [⟨"DETUMBLE", [0, 1], [1], [1]⟩, ⟨"SAFE", [0], [0, 1], [0, 1]⟩]⟩,
-    ⟨"FINE", (1 : ℚ) / 1, 2, [⟨"DETUMBLE", true, false, false⟩, ⟨"SAFE", true, true, true⟩], ["DETUMBLE"], [⟨"DETUMBLE", [0, 1], [1], [1]⟩, ⟨"SAFE", [0, 1], [0, 1], [0, 1]⟩]⟩]⟩
+    ⟨"DETUMBLE", (1 : ℚ) / 1, 2, [⟨"DETUMBLE", true, false, false⟩, ⟨"SAFE", false, true, true⟩], ["DETUMBLE"], [⟨"DETUMBLE", [0, 1], [1], [1], 1, 1⟩, ⟨"SAFE", [0], [0, 1], [0, 1], 1, 1⟩]⟩,
+    ⟨"FINE", (1 : ℚ) / 1, 2, [⟨"DETUMBLE", true, false, false⟩, ⟨"SAFE", true, true, true⟩], ["DETUMBLE"], [⟨"DETUMBLE", [0, 1], [1], [1], 1, 1⟩, ⟨"SAFE", [0, 1], [0, 1], [0, 1], 1, 1⟩]⟩]⟩
 
 end RelCertifier

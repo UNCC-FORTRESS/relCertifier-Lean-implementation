@@ -13,8 +13,8 @@ namespace RelCertifier
 /-- `charger_fast_setpoints` (emitted, suite_v2, widened cut channel on). -/
 def charger_fast_setpoints_coverV2 : CoverEmitE :=
   ⟨"charger_fast_setpoints", [("BULK", "FAULT")], [
-    ⟨"BULK", (1 : ℚ) / 1, 2, [⟨"BULK", false, true, true⟩, ⟨"ABSORB", true, true, true⟩, ⟨"FULL", true, true, true⟩, ⟨"FAULT", false, false, false⟩], ["BULK", "ABSORB", "FULL"], [⟨"BULK", [], [0], [0]⟩, ⟨"ABSORB", [0], [0], [0]⟩, ⟨"FULL", [0], [0], [0]⟩, ⟨"FAULT", [], [], []⟩]⟩,
-    ⟨"ABSORB", (1 : ℚ) / 1, 2, [⟨"BULK", false, true, true⟩, ⟨"ABSORB", true, true, true⟩, ⟨"FULL", true, true, true⟩, ⟨"FAULT", true, false, false⟩], ["BULK", "ABSORB", "FULL"], [⟨"BULK", [], [0], [0]⟩, ⟨"ABSORB", [0], [0], [0]⟩, ⟨"FULL", [0], [0], [0]⟩, ⟨"FAULT", [0], [], []⟩]⟩,
-    ⟨"FULL", (1 : ℚ) / 1, 2, [⟨"BULK", true, true, true⟩, ⟨"ABSORB", true, true, true⟩, ⟨"FULL", true, true, true⟩, ⟨"FAULT", true, false, false⟩], ["ABSORB", "FULL"], [⟨"BULK", [0], [0], [0]⟩, ⟨"ABSORB", [0], [0], [0]⟩, ⟨"FULL", [0], [0], [0]⟩, ⟨"FAULT", [0], [], []⟩]⟩]⟩
+    ⟨"BULK", (1 : ℚ) / 1, 2, [⟨"BULK", false, true, true⟩, ⟨"ABSORB", true, true, true⟩, ⟨"FULL", true, true, true⟩, ⟨"FAULT", false, false, false⟩], ["BULK", "ABSORB", "FULL"], [⟨"BULK", [], [0], [0], 1, 1⟩, ⟨"ABSORB", [0], [0], [0], 1, 1⟩, ⟨"FULL", [0], [0], [0], 1, 1⟩, ⟨"FAULT", [], [], [], 1, 1⟩]⟩,
+    ⟨"ABSORB", (1 : ℚ) / 1, 2, [⟨"BULK", false, true, true⟩, ⟨"ABSORB", true, true, true⟩, ⟨"FULL", true, true, true⟩, ⟨"FAULT", true, false, false⟩], ["BULK", "ABSORB", "FULL"], [⟨"BULK", [], [0], [0], 1, 1⟩, ⟨"ABSORB", [0], [0], [0], 1, 1⟩, ⟨"FULL", [0], [0], [0], 1, 1⟩, ⟨"FAULT", [0], [], [], 1, 1⟩]⟩,
+    ⟨"FULL", (1 : ℚ) / 1, 2, [⟨"BULK", true, true, true⟩, ⟨"ABSORB", true, true, true⟩, ⟨"FULL", true, true, true⟩, ⟨"FAULT", true, false, false⟩], ["ABSORB", "FULL"], [⟨"BULK", [0], [0], [0], 1, 1⟩, ⟨"ABSORB", [0], [0], [0], 1, 1⟩, ⟨"FULL", [0], [0], [0], 1, 1⟩, ⟨"FAULT", [0], [], [], 1, 1⟩]⟩]⟩
 
 end RelCertifier

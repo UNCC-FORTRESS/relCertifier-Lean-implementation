@@ -13,7 +13,7 @@ namespace RelCertifier
 /-- `arm_plateau_slow` (emitted, suite_v2, widened cut channel on). -/
 def arm_plateau_slow_coverV2 : CoverEmitE :=
   ⟨"arm_plateau_slow", [], [
-    ⟨"Accelerate", (1 : ℚ) / 1, 2, [⟨"ApproachA", true, true, true⟩, ⟨"ApproachB", false, true, true⟩, ⟨"ApproachC", true, true, true⟩, ⟨"Hold", true, true, true⟩], ["ApproachA", "ApproachB", "ApproachC", "Hold"], [⟨"ApproachA", [0], [0], [0]⟩, ⟨"ApproachB", [], [0], [0]⟩, ⟨"ApproachC", [0], [0], [0]⟩, ⟨"Hold", [0], [0], [0]⟩]⟩,
-    ⟨"Brake", (1 : ℚ) / 1, 2, [⟨"ApproachA", true, true, true⟩, ⟨"ApproachB", true, true, true⟩, ⟨"ApproachC", true, true, true⟩, ⟨"Hold", true, true, true⟩], ["ApproachB", "ApproachC", "Hold"], [⟨"ApproachA", [0], [0], [0]⟩, ⟨"ApproachB", [0], [0], [0]⟩, ⟨"ApproachC", [0], [0], [0]⟩, ⟨"Hold", [0], [0], [0]⟩]⟩]⟩
+    ⟨"Accelerate", (1 : ℚ) / 1, 2, [⟨"ApproachA", true, true, true⟩, ⟨"ApproachB", false, true, true⟩, ⟨"ApproachC", true, true, true⟩, ⟨"Hold", true, true, true⟩], ["ApproachA", "ApproachB", "ApproachC", "Hold"], [⟨"ApproachA", [0], [0], [0], 1, 1⟩, ⟨"ApproachB", [], [0], [0], 1, 1⟩, ⟨"ApproachC", [0], [0], [0], 1, 1⟩, ⟨"Hold", [0], [0], [0], 1, 1⟩]⟩,
+    ⟨"Brake", (1 : ℚ) / 1, 2, [⟨"ApproachA", true, true, true⟩, ⟨"ApproachB", true, true, true⟩, ⟨"ApproachC", true, true, true⟩, ⟨"Hold", true, true, true⟩], ["ApproachB", "ApproachC", "Hold"], [⟨"ApproachA", [0], [0], [0], 1, 1⟩, ⟨"ApproachB", [0], [0], [0], 1, 1⟩, ⟨"ApproachC", [0], [0], [0], 1, 1⟩, ⟨"Hold", [0], [0], [0], 1, 1⟩]⟩]⟩
 
 end RelCertifier

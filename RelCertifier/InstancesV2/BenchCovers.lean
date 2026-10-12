@@ -44,6 +44,7 @@ import RelCertifier.InstancesV2.BenchCovers.story3_rollover_base_12dof
 import RelCertifier.InstancesV2.BenchCovers.story3_rollover_ladder_rung_a
 import RelCertifier.InstancesV2.BenchCovers.story3_rollover_ladder_rung_b
 import RelCertifier.InstancesV2.BenchCovers.watertank
+import RelCertifier.InstancesV2.BenchCovers.watertank_twospeed
 
 namespace RelCertifier
 
@@ -92,6 +93,7 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("story3_rollover_base_12dof", story3_rollover_base_12dof_coverV2),
   ("story3_rollover_ladder_rung_a", story3_rollover_ladder_rung_a_coverV2),
   ("story3_rollover_ladder_rung_b", story3_rollover_ladder_rung_b_coverV2),
-  ("watertank", watertank_coverV2) ]
+  ("watertank", watertank_coverV2),
+  ("watertank_twospeed", watertank_twospeed_coverV2) ]
 
 end RelCertifier

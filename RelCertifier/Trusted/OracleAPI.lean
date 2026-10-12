@@ -20,6 +20,11 @@ through `z3_unsat_sound`) and the cover decision, which is made by the verified 
   the left jump); per λ on the grid and per right mode the joint segment (`checkSeg`: every
   invariant component certified by route A, B or C over the cut-narrowed, stratified
   domain). The cover closes when `decideCovered` accepts from every admissible start.
+  One stretch per left mode when one closes the cover; otherwise the per-pairing fallback
+  (each right mode at the smallest stretch its joint segment passed, every joint segment
+  cut to the common left span `εR / max λ`, same integer budget; `RELCERT_NO_PAIR_STRETCH=1`
+  disables it). The emitted cover records the stretch of every pairing
+  (`PairStrataE.lamN / lamD`), pinned to the verdict packs by `VerdictsV2/LamPinV2.lean`.
   These are the only two step kinds: joint segments and dynamic right-only reposition.
   There is no zero-duration right switch.
 
@@ -594,6 +599,44 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     let dpreL := dynMap.filterMap (fun p => if p.2.1 then some p.1 else none)
     let dpostL := dynMap.filterMap (fun p => if p.2.2 then some p.1 else none)
     IO.eprintln s!"  [repo-dyn-pre] {mL.name}_L: {dpreL} [repo-dyn-post]: {dpostL}"
+  -- PER-PAIRING STRETCH (fallback). The common pass below keeps one λ per left mode. When no
+  -- common λ closes the cover, each right mode may use its own stretch: the smallest candidate
+  -- at which its joint segment passed (`firstPass`, recorded during the common pass, so the
+  -- fallback asks Z3 nothing new). Every joint segment is then cut to the common left span
+  -- δ = εR / λmax (λmax the largest chosen stretch): a segment of mode `mR` at stretch λ_mR
+  -- lasting δ of left time reaches τ_R = λ_mR·δ ≤ εR, inside the right interval, and the
+  -- budget stays the integer count ⌈εL/δ⌉ with unit weights, so the verified `decideCovered`
+  -- gate and its soundness proof are unchanged. Soundness: each pairing's flow obligation is
+  -- certified at its own λ (the per-pair `Verd` the instance replays, `couple_cutX` takes λ
+  -- per coupling); the shorter span only cuts segments short, which Theorem 1 (throughout)
+  -- and Assumption 1 (every duration ≤ εR ends in a successor's guard) admit. Partial right
+  -- cycles are what the kernel's unclocked right automaton already models.
+  -- `RELCERT_NO_PAIR_STRETCH=1` disables the fallback (ablation: one stretch per left mode).
+  let mut firstPass : List (String × ℚ × List Nat) := []   -- per mR: smallest passing λ, its order
+  let mut lastOrder : List (String × List Nat) := []       -- per mR: the last computed order
+  let mut everIncon : List String := []                      -- mR inconclusive at some λ
+  let dpairOf := fun (nm : String) => match dynOrders.find? (fun t => t.1 == nm) with
+    | some t => (t.2.1, t.2.2)
+    | none => ([], [])
+  -- the structural gate at a given segment status / strata / window stretch: `.cov` iff every
+  -- admissible initial mode covers (shared by the common pass and the fallback)
+  let gate := fun (seg : String → Seg) (strataMap : List PairStrataE) (lamQ deltaL : ℚ) =>
+    -- segment budget B = ⌈εL/δL⌉ (weight 1 per segment), capped; single-sync ⟺ B ≤ 1
+    let bBudget := min (epsL / deltaL).ceil.toNat 256
+    let flagRows : List ModeFlagsE := p.R.modes.map (fun m =>
+      { name := m.name, jointOK := seg m.name == Seg.pass,
+        dynPre := repoDynPreOK m.name, dynPost := repoDynPostOK m.name })
+    let repoOK := fun nm => repoDynPreOK nm || repoDynPostOK nm
+    let idxOf := nodeIdx flagRows
+    let cgReal : SearchGraph (Var n) := buildCoverGraph flagRows (succOf p) prunedOf
+    let fuel := coverFuel flagRows bBudget
+    let startCovers := fun (mR : PMode) =>
+      (seg mR.name == Seg.pass || repoOK mR.name) &&
+        decideCovered cgReal fuel ⟨idxOf mR.name, bBudget, SrcSetting.preJ⟩
+    if !admMods.isEmpty && admMods.all startCovers then
+      some ({ mL := mL.name, lamQ := lamQ, bBudget := bBudget, flags := flagRows,
+              admissible := admMods.map (·.name), strata := strataMap } : LeftCoverE)
+    else none
   for lam in lambdaCandidates lmin lmax epsL epsR do
     let deltaL := if lam == 0 then epsR else epsR / lam
     if deltaL ≤ 0 then continue
@@ -604,18 +647,21 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
       let (st, order) ←
         checkSeg s cnt maxQ maxSmt deadline vars n coord comps cutL (cutOfR mR.name) mL mR lam
       segMap := segMap ++ [(mR.name, st)]
-      let dpair := match dynOrders.find? (fun t => t.1 == mR.name) with
-        | some t => (t.2.1, t.2.2)
-        | none => ([], [])
+      lastOrder := (mR.name, order) :: lastOrder.filter (·.1 != mR.name)
+      if st == Seg.pass then
+        match firstPass.find? (·.1 == mR.name) with
+        | some t => if lam < t.2.1 then
+            firstPass := (mR.name, lam, order) :: firstPass.filter (·.1 != mR.name)
+        | none => firstPass := firstPass ++ [(mR.name, lam, order)]
+      if st == Seg.incon && !everIncon.contains mR.name then everIncon := everIncon ++ [mR.name]
+      let dpair := dpairOf mR.name
       strataMap := strataMap ++
         [({ mR := mR.name, order := order, dynPreOrder := dpair.1,
-            dynPostOrder := dpair.2 } : PairStrataE)]
+            dynPostOrder := dpair.2, lamN := lam.num.toNat, lamD := lam.den } : PairStrataE)]
     let seg := fun q => (segMap.find? (·.1 == q)).map (·.2) |>.getD Seg.incon
     if (← IO.getEnv "RELCERT_DEBUG").isSome then
       IO.eprintln (s!"  [{mL.name}_L λ={lam} #comps={comps.length}] " ++
         String.intercalate " " (segMap.map (fun p => s!"{p.1}={repr p.2}")))
-    -- segment budget B = ⌈εL/δL⌉ (weight 1 per segment), capped; single-sync ⟺ B ≤ 1
-    let bBudget := min (epsL / deltaL).ceil.toNat 256
     -- VERIFIED structural gate (Step 4 + Def-4 fidelity): CERTIFIED flows through the verified
     -- computable `decideCovered`, not the untrusted `dfsCov3`. For each start, `coverVisit`
     -- runs Definition 4 (certified-aware) to find the visited mode set; we build `decideCovered`'s
@@ -639,36 +685,44 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     -- NODES = modes joint-certified OR dynamic-reposition-certified (pre-j OR post-j). Each node
     -- carries `jointOK`, `dynPre`, `dynPost`; `decideCovered` offers base/joint-step where
     -- `jointOK`, and the zero-budget dynamic reposition step σ-matched (pre-j → `dynPre`, post-j
-    -- → `dynPost`).
-    -- the emitted flag rows (also what `--emit-cover` prints — ONE construction,
-    -- `buildCoverGraph`, shared by this gate and the kernel replays)
-    let flagRows : List ModeFlagsE := p.R.modes.map (fun m =>
-      { name := m.name, jointOK := seg m.name == Seg.pass,
-        dynPre := repoDynPreOK m.name, dynPost := repoDynPostOK m.name })
-    let repoOK := fun nm => repoDynPreOK nm || repoDynPostOK nm
-    let idxOf := nodeIdx flagRows
-    let cgReal : SearchGraph (Var n) := buildCoverGraph flagRows (succOf p) prunedOf
-    -- fuel bounds `decideCovered`'s depth: joint steps decrease budget (≤ `bBudget`), reposition
-    -- steps keep budget but recurse only through repo-OK nodes' non-self exits. A budget-decrement
-    -- can be interleaved with a zero-budget reposition through EACH node (Approach→Return→Approach
-    -- alternation at high λ ⟹ high `bBudget`), so the worst-case depth is `bBudget·(nodeMods+1)`, not
-    -- `bBudget + nodeMods`. Fuel only bounds the checker's search depth — larger is always sound
-    -- (`decideCovered_sound` is fuel-generic); too-small merely over-declines.
-    let fuel := coverFuel flagRows bBudget
-    let startCovers := fun (mR : PMode) =>
-      -- a start is usable iff it is a node; the verified checker decides base / joint-step /
-      -- reposition-step on the real graph. Initial source setting σ = **preJ** (no joint yet).
-      (seg mR.name == Seg.pass || repoOK mR.name) &&
-        decideCovered cgReal fuel ⟨idxOf mR.name, bBudget, SrcSetting.preJ⟩
-    -- `.cov` for this λ iff every admissible initial mode covers. Empty `admMods` ⟹ do NOT
-    -- certify (safe: a possibly-buggy all-drop cannot vacuously certify; over-decline instead).
-    if !admMods.isEmpty && admMods.all startCovers then
-      return (.cov, some {
-        mL := mL.name, lamQ := lam, bBudget := bBudget,
-        flags := flagRows,
-        admissible := admMods.map (·.name),
-        strata := strataMap })
+    -- → `dynPost`). The emitted flag rows are what `--emit-cover` prints — ONE construction,
+    -- `buildCoverGraph`, shared by the gate and the kernel replays. The fuel bounds
+    -- `decideCovered`'s depth: joint steps decrease budget (≤ `bBudget`), reposition steps keep
+    -- budget but recurse only through repo-OK nodes' non-self exits; a budget-decrement can be
+    -- interleaved with a zero-budget reposition through EACH node, so the worst-case depth is
+    -- `bBudget·(nodeMods+1)`. Fuel only bounds the checker's search depth — larger is always
+    -- sound (`decideCovered_sound` is fuel-generic); too-small merely over-declines. A start is
+    -- usable iff it is a node; the initial source setting is **preJ** (no joint yet). Empty
+    -- `admMods` ⟹ do NOT certify (a possibly-buggy all-drop cannot vacuously certify).
+    match gate seg strataMap lam deltaL with
+    | some lc => return (.cov, some lc)
+    | none => pure ()
     if admMods.any (fun mR => seg mR.name == Seg.incon) then sawIncon := true
+  -- the per-pairing fallback (see above): only when the passing stretches are not all equal
+  -- (otherwise the common pass at that stretch has already failed with the same nodes)
+  let pairOn := (← IO.getEnv "RELCERT_NO_PAIR_STRETCH").isNone
+  if pairOn && !firstPass.isEmpty then
+    let lams := firstPass.map (·.2.1)
+    let lamMax := lams.foldl max (lams.headD 1)
+    let allEq := lams.all (· == lamMax)
+    let deltaL := epsR / lamMax
+    if !allEq && deltaL > 0 then
+      let seg := fun q => if firstPass.any (·.1 == q) then Seg.pass
+        else if everIncon.contains q then Seg.incon else Seg.fail
+      let strataMap : List PairStrataE := p.R.modes.map (fun mR =>
+        let dpair := dpairOf mR.name
+        match firstPass.find? (·.1 == mR.name) with
+        | some t => { mR := mR.name, order := t.2.2, dynPreOrder := dpair.1,
+                      dynPostOrder := dpair.2, lamN := t.2.1.num.toNat, lamD := t.2.1.den }
+        | none => { mR := mR.name, order := (lastOrder.find? (·.1 == mR.name)).map (·.2) |>.getD [],
+                    dynPreOrder := dpair.1, dynPostOrder := dpair.2,
+                    lamN := lamMax.num.toNat, lamD := lamMax.den })
+      if (← IO.getEnv "RELCERT_DEBUG").isSome then
+        IO.eprintln (s!"  [{mL.name}_L pair-stretch δ=εR/{lamMax}] " ++
+          String.intercalate " " (firstPass.map (fun t => s!"{t.1}@λ={t.2.1}")))
+      match gate seg strataMap lamMax deltaL with
+      | some lc => return (.cov, some lc)
+      | none => pure ()
   return ((if sawIncon then .incon else .nocov), none)
 
 /-- Core cover, parameterized by a query counter/budget (`throw`s on overrun). -/
@@ -811,7 +865,7 @@ def emitCoverE (defname : String) (c : CoverEmitE) : String :=
   let fl := fun (f : ModeFlagsE) =>
     s!"⟨\"{f.name}\", {f.jointOK}, {f.dynPre}, {f.dynPost}⟩"
   let ps := fun (x : PairStrataE) =>
-    s!"⟨\"{x.mR}\", {repr x.order}, {repr x.dynPreOrder}, {repr x.dynPostOrder}⟩"
+    s!"⟨\"{x.mR}\", {repr x.order}, {repr x.dynPreOrder}, {repr x.dynPostOrder}, {x.lamN}, {x.lamD}⟩"
   let lc := fun (l : LeftCoverE) =>
     s!"⟨\"{l.mL}\", ({l.lamQ.num} : ℚ) / {l.lamQ.den}, {l.bBudget}, [" ++
       String.intercalate ", " (l.flags.map fl) ++ "], " ++ reprStr l.admissible ++ ", [" ++

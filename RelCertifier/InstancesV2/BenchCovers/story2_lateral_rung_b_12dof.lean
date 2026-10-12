@@ -13,8 +13,8 @@ namespace RelCertifier
 /-- `story2_lateral_rung_b_12dof` (emitted, suite_v2, widened cut channel on). -/
 def story2_lateral_rung_b_12dof_coverV2 : CoverEmitE :=
   ⟨"story2_lateral_rung_b_12dof", [], [
-    ⟨"STEEP", (1 : ℚ) / 1, 1, [⟨"STEEP", true, false, false⟩, ⟨"MODER", true, false, false⟩, ⟨"FLAT", true, false, false⟩], ["STEEP", "MODER", "FLAT"], [⟨"STEEP", [0, 1, 2, 4, 5, 6, 7, 3], [3], [3]⟩, ⟨"MODER", [0, 1, 2, 4, 5, 6, 7, 3], [3], [3]⟩, ⟨"FLAT", [0, 1, 2, 4, 5, 6, 7, 3], [3], [3]⟩]⟩,
-    ⟨"MODER", (1 : ℚ) / 1, 1, [⟨"STEEP", false, false, false⟩, ⟨"MODER", true, false, false⟩, ⟨"FLAT", true, false, false⟩], ["MODER", "FLAT"], [⟨"STEEP", [1, 2, 4, 5, 6, 7], [3], [3]⟩, ⟨"MODER", [0, 1, 2, 4, 5, 6, 7, 3], [3], [3]⟩, ⟨"FLAT", [0, 1, 2, 4, 5, 6, 7, 3], [3], [3]⟩]⟩,
-    ⟨"FLAT", (1 : ℚ) / 1, 1, [⟨"STEEP", false, false, false⟩, ⟨"MODER", false, false, false⟩, ⟨"FLAT", true, false, false⟩], ["FLAT"], [⟨"STEEP", [1, 2, 4, 5, 6, 7], [3], [3]⟩, ⟨"MODER", [1, 2, 4, 5, 6, 7], [3], [3]⟩, ⟨"FLAT", [0, 1, 2, 4, 5, 6, 7, 3], [3], [3]⟩]⟩]⟩
+    ⟨"STEEP", (1 : ℚ) / 1, 1, [⟨"STEEP", true, false, false⟩, ⟨"MODER", true, false, false⟩, ⟨"FLAT", true, false, false⟩], ["STEEP", "MODER", "FLAT"], [⟨"STEEP", [0, 1, 2, 4, 5, 6, 7, 3], [3], [3], 1, 1⟩, ⟨"MODER", [0, 1, 2, 4, 5, 6, 7, 3], [3], [3], 1, 1⟩, ⟨"FLAT", [0, 1, 2, 4, 5, 6, 7, 3], [3], [3], 1, 1⟩]⟩,
+    ⟨"MODER", (1 : ℚ) / 1, 1, [⟨"STEEP", false, false, false⟩, ⟨"MODER", true, false, false⟩, ⟨"FLAT", true, false, false⟩], ["MODER", "FLAT"], [⟨"STEEP", [1, 2, 4, 5, 6, 7], [3], [3], 1, 1⟩, ⟨"MODER", [0, 1, 2, 4, 5, 6, 7, 3], [3], [3], 1, 1⟩, ⟨"FLAT", [0, 1, 2, 4, 5, 6, 7, 3], [3], [3], 1, 1⟩]⟩,
+    ⟨"FLAT", (1 : ℚ) / 1, 1, [⟨"STEEP", false, false, false⟩, ⟨"MODER", false, false, false⟩, ⟨"FLAT", true, false, false⟩], ["FLAT"], [⟨"STEEP", [1, 2, 4, 5, 6, 7], [3], [3], 1, 1⟩, ⟨"MODER", [1, 2, 4, 5, 6, 7], [3], [3], 1, 1⟩, ⟨"FLAT", [0, 1, 2, 4, 5, 6, 7, 3], [3], [3], 1, 1⟩]⟩]⟩
 
 end RelCertifier

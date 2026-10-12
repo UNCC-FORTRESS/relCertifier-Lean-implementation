@@ -5,10 +5,12 @@ Released under Apache 2.0 license.
 # The emitted cover record (R5 — docs/history/ROADMAP.md)
 
 What the tool's successful cover search found, per benchmark — the data the Lean
-instances rebuild and re-verify in kernel: the chosen λ and budget, each right mode's
-certificate flags, the pruned edges, the admissible starts, and the per-(left, right)
-STRATA ORDER of the invariant components (the order `checkSeg`'s fixpoint proved them
-in — the exact narrowing discipline `stratified_barrier_sound` consumes).
+instances rebuild and re-verify in kernel: the window's λ and budget, each right mode's
+certificate flags, the pruned edges, the admissible starts, and per (left, right) pairing
+the STRATA ORDER of the invariant components (the order `checkSeg`'s fixpoint proved them
+in — the exact narrowing discipline `stratified_barrier_sound` consumes) and the STRETCH the
+pairing was certified at (equal to the window's λ unless the per-pairing fallback chose the
+cover; `VerdictsV2/LamPinV2.lean` pins it to the verdict pack of the pairing).
 
 Pure data, no IO: lives in `Checker/` so instances and the drift test can consume it;
 the printer (`--emit-cover`) is the trusted door in `Trusted/`.
@@ -35,9 +37,18 @@ structure PairStrataE where
   order : List Nat
   dynPreOrder  : List Nat := []
   dynPostOrder : List Nat := []
+  /-- The stretch at which this pairing's joint segment was certified, as a reduced fraction
+  `lamN / lamD`. With one stretch per left mode it equals the window's `lamQ`; the per-pairing
+  fallback (`RELCERT_NO_PAIR_STRETCH` unset) lets it differ per right mode. The kernel pin
+  `VerdictsV2/LamPinV2.lean` ties it to the verdict pack row of the same pairing. -/
+  lamN  : Nat := 1
+  lamD  : Nat := 1
   deriving Repr, DecidableEq
 
-/-- Per left mode: the successful cover's data. -/
+/-- Per left mode: the successful cover's data. `lamQ` is the window's stretch: the common
+stretch when one closes the cover, otherwise (per-pairing fallback) the largest stretch among
+the certified pairings, so that the common segment span is `εR / lamQ` and
+`bBudget = ⌈εL · lamQ / εR⌉` in both cases. -/
 structure LeftCoverE where
   mL         : String
   lamQ       : ℚ

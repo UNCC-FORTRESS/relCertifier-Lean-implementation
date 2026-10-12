@@ -13,6 +13,6 @@ namespace RelCertifier
 /-- `sat_detumble_weak` (emitted, suite_v2, widened cut channel on). -/
 def sat_detumble_weak_coverV2 : CoverEmitE :=
   ⟨"sat_detumble_weak", [("NOMINAL", "SAFE"), ("ECONOMY", "SAFE"), ("SURVIVAL", "SAFE")], [
-    ⟨"DETUMBLE", (1 : ℚ) / 1, 2, [⟨"NOMINAL", true, false, false⟩, ⟨"ECONOMY", true, false, false⟩, ⟨"SURVIVAL", true, false, false⟩, ⟨"SAFE", false, true, true⟩], ["NOMINAL", "ECONOMY", "SURVIVAL"], [⟨"NOMINAL", [0, 1], [1], [1]⟩, ⟨"ECONOMY", [0, 1], [1], [1]⟩, ⟨"SURVIVAL", [0, 1], [1], [1]⟩, ⟨"SAFE", [0], [0, 1], [0, 1]⟩]⟩]⟩
+    ⟨"DETUMBLE", (1 : ℚ) / 1, 2, [⟨"NOMINAL", true, false, false⟩, ⟨"ECONOMY", true, false, false⟩, ⟨"SURVIVAL", true, false, false⟩, ⟨"SAFE", false, true, true⟩], ["NOMINAL", "ECONOMY", "SURVIVAL"], [⟨"NOMINAL", [0, 1], [1], [1], 1, 1⟩, ⟨"ECONOMY", [0, 1], [1], [1], 1, 1⟩, ⟨"SURVIVAL", [0, 1], [1], [1], 1, 1⟩, ⟨"SAFE", [0], [0, 1], [0, 1], 1, 1⟩]⟩]⟩
 
 end RelCertifier

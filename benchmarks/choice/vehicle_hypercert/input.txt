@@ -1,0 +1,76 @@
+# vehicle_hypercert: continuous-time counterpart of the vehicle case study of Murali et al.
+# (HyperCertificates, arXiv 2605.00752, Sec. 9.2): velocity v in [0, 0.6], acceleration chosen
+# each cycle from {-0.04, -0.02, 0, 0.02, 0.04}; the observer sees the velocity. Their discrete
+# step s' = s + v + w/2, v' = v + w is the unit-period sampling of s' = v, v' = w with w held.
+# Opacity (secret start s in [0,1]) is encoded by the precondition v_L = v_R with the right's
+# position free (any non-secret start with the same velocity). Claim: v_L = v_R (implies their
+# delta-closeness for every delta >= 0). Position omitted: unobserved and unconstrained.
+# Guards keep the velocity in [0, 0.6] over one cycle. EXPERIMENTAL (RELCERT_CHOICE=1).
+[problem]
+name = vehicle_hypercert
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 2.0
+bound_T = 40.0
+[Lsys]
+state_vars = [v]
+epsilon = 1.0
+[Lsys.mode.Am4]
+ode = v' = smt2:(- 0.0 0.04);
+guard = v >= 0.04 and v <= 0.6
+evolve = v >= 0.0 and v <= 0.6
+next = [Am4, Am2, A0, Ap2, Ap4]
+[Lsys.mode.Am2]
+ode = v' = smt2:(- 0.0 0.02);
+guard = v >= 0.02 and v <= 0.6
+evolve = v >= 0.0 and v <= 0.6
+next = [Am4, Am2, A0, Ap2, Ap4]
+[Lsys.mode.A0]
+ode = v' = smt2:0.0;
+guard = v >= 0.0 and v <= 0.6
+evolve = v >= 0.0 and v <= 0.6
+next = [Am4, Am2, A0, Ap2, Ap4]
+[Lsys.mode.Ap2]
+ode = v' = smt2:0.02;
+guard = v >= 0.0 and v <= 0.58
+evolve = v >= 0.0 and v <= 0.6
+next = [Am4, Am2, A0, Ap2, Ap4]
+[Lsys.mode.Ap4]
+ode = v' = smt2:0.04;
+guard = v >= 0.0 and v <= 0.56
+evolve = v >= 0.0 and v <= 0.6
+next = [Am4, Am2, A0, Ap2, Ap4]
+[Rsys]
+state_vars = [v]
+epsilon = 1.0
+[Rsys.mode.Am4]
+ode = v' = smt2:(- 0.0 0.04);
+guard = v >= 0.04 and v <= 0.6
+evolve = v >= 0.0 and v <= 0.6
+next = [Am4, Am2, A0, Ap2, Ap4]
+[Rsys.mode.Am2]
+ode = v' = smt2:(- 0.0 0.02);
+guard = v >= 0.02 and v <= 0.6
+evolve = v >= 0.0 and v <= 0.6
+next = [Am4, Am2, A0, Ap2, Ap4]
+[Rsys.mode.A0]
+ode = v' = smt2:0.0;
+guard = v >= 0.0 and v <= 0.6
+evolve = v >= 0.0 and v <= 0.6
+next = [Am4, Am2, A0, Ap2, Ap4]
+[Rsys.mode.Ap2]
+ode = v' = smt2:0.02;
+guard = v >= 0.0 and v <= 0.58
+evolve = v >= 0.0 and v <= 0.6
+next = [Am4, Am2, A0, Ap2, Ap4]
+[Rsys.mode.Ap4]
+ode = v' = smt2:0.04;
+guard = v >= 0.0 and v <= 0.56
+evolve = v >= 0.0 and v <= 0.6
+next = [Am4, Am2, A0, Ap2, Ap4]
+[relational_invariant]
+Am4 = v[l] <= v[r] and v[r] <= v[l]
+Am2 = v[l] <= v[r] and v[r] <= v[l]
+A0 = v[l] <= v[r] and v[r] <= v[l]
+Ap2 = v[l] <= v[r] and v[r] <= v[l]
+Ap4 = v[l] <= v[r] and v[r] <= v[l]

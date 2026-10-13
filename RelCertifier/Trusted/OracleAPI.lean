@@ -592,8 +592,11 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     let (post, postOrd) ← checkDynRepo s cnt maxQ maxSmt deadline vars n coord comps cutL (cutOfR mR.name) mL mR false
     dynMap := dynMap ++ [(mR.name, pre, post)]
     dynOrders := dynOrders ++ [(mR.name, preOrd, postOrd)]
-  let repoDynPreOK  := fun (nm : String) => (dynMap.find? (·.1 == nm)).map (·.2.1) |>.getD false
-  let repoDynPostOK := fun (nm : String) => (dynMap.find? (·.1 == nm)).map (·.2.2) |>.getD false
+  -- BASELINE `RELCERT_SYNC=1` (time-synchronous matching): λ = 1 only, no right-only
+  -- reposition, no per-pairing fallback; multi-step joint covers stay allowed.
+  let sync := (← IO.getEnv "RELCERT_SYNC").isSome
+  let repoDynPreOK  := fun (nm : String) => !sync && ((dynMap.find? (·.1 == nm)).map (·.2.1) |>.getD false)
+  let repoDynPostOK := fun (nm : String) => !sync && ((dynMap.find? (·.1 == nm)).map (·.2.2) |>.getD false)
   if (← IO.getEnv "RELCERT_DEBUG").isSome then
     IO.eprintln s!"  [admissible] {mL.name}_L: {admMods.map (·.name)}"
     let dpreL := dynMap.filterMap (fun p => if p.2.1 then some p.1 else none)
@@ -637,7 +640,7 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
       some ({ mL := mL.name, lamQ := lamQ, bBudget := bBudget, flags := flagRows,
               admissible := admMods.map (·.name), strata := strataMap } : LeftCoverE)
     else none
-  for lam in lambdaCandidates lmin lmax epsL epsR do
+  for lam in (if sync then [(1 : ℚ)] else lambdaCandidates lmin lmax epsL epsR) do
     let deltaL := if lam == 0 then epsR else epsR / lam
     if deltaL ≤ 0 then continue
     -- precompute per-right-mode segment status at this λ
@@ -700,7 +703,7 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     if admMods.any (fun mR => seg mR.name == Seg.incon) then sawIncon := true
   -- the per-pairing fallback (see above): only when the passing stretches are not all equal
   -- (otherwise the common pass at that stretch has already failed with the same nodes)
-  let pairOn := (← IO.getEnv "RELCERT_NO_PAIR_STRETCH").isNone
+  let pairOn := (← IO.getEnv "RELCERT_NO_PAIR_STRETCH").isNone && !sync
   if pairOn && !firstPass.isEmpty then
     let lams := firstPass.map (·.2.1)
     let lamMax := lams.foldl max (lams.headD 1)

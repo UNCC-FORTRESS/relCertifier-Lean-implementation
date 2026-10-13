@@ -26,3 +26,7 @@ root = "Main"
 [[lean_exe]]
 name = "relcert-test"
 root = "Test"
+
+[[lean_exe]]
+name = "relcert-slim"
+root = "SlimMain"

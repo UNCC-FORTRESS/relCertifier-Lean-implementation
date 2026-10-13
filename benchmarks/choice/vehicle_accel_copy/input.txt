@@ -1,0 +1,56 @@
+# vehicle_accel_copy: a vehicle with three selectable accelerations, matched by copying the mode.
+# scenario: model-refinement
+#
+# EXPERIMENTAL (existential mode choice, RELCERT_CHOICE=1). Continuous-time counterpart of the
+# velocity part of the vehicle case studies of Anand et al. (TAC 2024) and Murali et al.
+# (HyperCertificates, 2026): both sides choose an acceleration each cycle; the observer sees the
+# velocity. Claim: |v_L - v_R| <= 1. The witness must COPY the left's mode (hop at entry); with
+# the all-successors rule the right may pick any acceleration and the gap grows.
+# The right's guards are wider than the left's by the tolerance, so the copy is always enabled.
+# Expected: DECLINED without choice, CERTIFIED with RELCERT_CHOICE=1 (unverified choice cover).
+[problem]
+name = vehicle_accel_copy
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 2.0
+bound_T = 40.0
+[Lsys]
+state_vars = [v]
+epsilon = 1.0
+[Lsys.mode.Accel]
+ode = v' = smt2:1.0;
+guard = v >= 0.0 and v <= 25.0
+evolve = v >= 0.0 and v <= 30.0
+next = [Accel, Coast, Brake]
+[Lsys.mode.Coast]
+ode = v' = smt2:0.0;
+guard = v >= 0.0 and v <= 30.0
+evolve = v >= 0.0 and v <= 30.0
+next = [Accel, Coast, Brake]
+[Lsys.mode.Brake]
+ode = v' = smt2:(- 0.0 1.0);
+guard = v >= 5.0 and v <= 30.0
+evolve = v >= 0.0 and v <= 30.0
+next = [Accel, Coast, Brake]
+[Rsys]
+state_vars = [v]
+epsilon = 1.0
+[Rsys.mode.Accel]
+ode = v' = smt2:1.0;
+guard = v >= 0.0 and v <= 27.0
+evolve = v >= 0.0 and v <= 30.0
+next = [Accel, Coast, Brake]
+[Rsys.mode.Coast]
+ode = v' = smt2:0.0;
+guard = v >= 0.0 and v <= 30.0
+evolve = v >= 0.0 and v <= 30.0
+next = [Accel, Coast, Brake]
+[Rsys.mode.Brake]
+ode = v' = smt2:(- 0.0 1.0);
+guard = v >= 3.0 and v <= 30.0
+evolve = v >= 0.0 and v <= 30.0
+next = [Accel, Coast, Brake]
+[relational_invariant]
+Accel = v[l] <= v[r] + 1 and v[r] <= v[l] + 1
+Coast = v[l] <= v[r] + 1 and v[r] <= v[l] + 1
+Brake = v[l] <= v[r] + 1 and v[r] <= v[l] + 1

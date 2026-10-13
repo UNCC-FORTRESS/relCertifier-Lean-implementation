@@ -562,6 +562,98 @@ def nonConnPrune (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
       | .ok .unsat, .ok .unsat => pure true    -- BOTH UNSAT ⟹ Def-3 non-connection ⟹ PRUNE
       | _, _                   => pure false   -- anything else ⟹ keep the edge required
 
+/-! ## Existential mode choice (EXPERIMENTAL, `RELCERT_CHOICE=1`, NOT verified)
+
+Definition 4 extended with two moves in which the witness CHOOSES the right system's next
+mode instead of covering every successor:
+
+* **chosen successors**: after a joint (resp. right-only) segment in `q`, cover only a
+  subset `S` of the retained (resp. exit) successors, provided the coverage query
+  `EndRegion(q) ∧ ⋀_{q'∈S} ¬guard(q')` is `unsat` (wherever the segment ends, some
+  successor in `S` is enabled);
+* **entry hop**: a zero-duration switch from `q` into a successor `q'`, provided the
+  coverage query over `StartRegion(q)` is `unsat`; at most one hop before each segment.
+
+Coverage is monotone in `S`, so only the maximal coverable subset is queried. This search
+is tried only after the verified `decideCovered` gate has failed, so it can only add
+certificates; a cover it accepts is reported on stderr as `[choice] … (unverified)`. Its
+soundness rests on the paper argument (docs: EXISTENTIAL-CHOICE.md), not on Lean. -/
+
+/-- One choice-cover decision context (per left mode and stretch). -/
+structure ChoiceCtx (n : ℕ) where
+  node      : String → Bool
+  jointOK   : String → Bool
+  dynOK     : String → Bool → Bool          -- σ: true = pre-joint
+  retained  : String → List String          -- self-loop + non-pruned declared successors
+  exits     : String → List String          -- non-pruned, non-self declared successors
+  hopTgts   : String → List String          -- non-pruned, non-self declared successors
+  guardR    : String → Option (IForm n)
+  jointEnd  : String → IForm n
+  repoEnd   : String → Bool → IForm n
+  startReg  : String → Bool → IForm n
+
+/-- Coverage query: `region ∧ ⋀_{q'∈S} ¬guard(q')`; `true` iff definitively `unsat`. -/
+def coverageUnsat {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
+    (coord : Fin n → String) (cx : ChoiceCtx n) (region : IForm n) (S : List String) :
+    IO Bool := do
+  let negs := S.map (fun q' => (cx.guardR q').map IForm.neg)
+  if S.isEmpty || negs.any Option.isNone then return false
+  let q := (negs.filterMap id).foldl IForm.and region
+  probeUnsat s cnt maxQ maxSmt deadline coord q
+
+/-- The extended Definition 4 (name-based, memoized). `path` rejects budget-neutral cycles
+(a revisit of an in-progress configuration is uncovered, as in Definition 4). -/
+partial def choiceCover {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
+    (coord : Fin n → String) (cx : ChoiceCtx n)
+    (memo : IO.Ref (Std.HashMap (String × Nat × Bool × Bool) Bool))
+    (log : IO.Ref (List String))
+    (path : List (String × Nat × Bool × Bool))
+    (q : String) (B : Nat) (pre hop : Bool) : IO Bool := do
+  let key := (q, B, pre, hop)
+  if path.contains key then return false
+  if let some r := (← memo.get)[key]? then return r
+  let path := key :: path
+  let rec' := fun (q' : String) (B' : Nat) (pre' hop' : Bool) =>
+    choiceCover s cnt maxQ maxSmt deadline coord cx memo log path q' B' pre' hop'
+  let mut ok := false
+  -- base: a joint segment closes the remaining budget
+  if cx.node q && cx.jointOK q && B ≤ 1 then ok := true
+  -- joint step: all retained successors (old rule), else a chosen covered subset
+  if !ok && cx.node q && cx.jointOK q && 1 < B then
+    let R := cx.retained q
+    let mut C : List String := []
+    for q' in R do
+      if ← rec' q' (B - 1) false true then C := C ++ [q']
+    if C.length == R.length then ok := true
+    else if !C.isEmpty then
+      if ← coverageUnsat s cnt maxQ maxSmt deadline coord cx (cx.jointEnd q) C then
+        ok := true
+        log.modify (· ++ [s!"joint {q} B={B} chose {C} of {R}"])
+  -- right-only reposition: all exits (old rule), else a chosen covered subset
+  if !ok && cx.node q && cx.dynOK q pre && 0 < B then
+    let E := cx.exits q
+    if !E.isEmpty then
+      let mut C : List String := []
+      for q' in E do
+        if ← rec' q' B pre true then C := C ++ [q']
+      if C.length == E.length then ok := true
+      else if !C.isEmpty then
+        if ← coverageUnsat s cnt maxQ maxSmt deadline coord cx (cx.repoEnd q pre) C then
+          ok := true
+          log.modify (· ++ [s!"repo {q} B={B} pre={pre} chose {C} of {E}"])
+  -- entry hop: zero-duration switch into a chosen covered successor
+  if !ok && hop && 0 < B then
+    let T := cx.hopTgts q
+    let mut C : List String := []
+    for q' in T do
+      if ← rec' q' B pre false then C := C ++ [q']
+    if !C.isEmpty then
+      if ← coverageUnsat s cnt maxQ maxSmt deadline coord cx (cx.startReg q pre) C then
+        ok := true
+        log.modify (· ++ [s!"hop {q} B={B} pre={pre} into {C}"])
+  memo.modify (·.insert key ok)
+  return ok
+
 /-- Cover a single left mode: `cov` if some (start,λ) closes definitively; `incon` if none
 close but a route was inconclusive; `nocov` if all routes are definitive fails. -/
 def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p : PProblem)
@@ -640,6 +732,32 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
       some ({ mL := mL.name, lamQ := lamQ, bBudget := bBudget, flags := flagRows,
               admissible := admMods.map (·.name), strata := strataMap } : LeftCoverE)
     else none
+  -- EXPERIMENTAL existential mode choice context (`RELCERT_CHOICE=1`; see `choiceCover`)
+  let choiceOn := (← IO.getEnv "RELCERT_CHOICE").isSome
+  let lowL := fun (f : PForm) => (lowerF vars n Side.L f).getD IForm.tt
+  let lowR := fun (f : PForm) => (lowerF vars n Side.R f).getD IForm.tt
+  let modeOf := fun (nm : String) => p.R.modes.find? (·.name == nm)
+  let invI : IForm n := comps.foldl (fun d g => IForm.and d (IForm.cmp .le g (.rat 0))) IForm.tt
+  let leftFacts := fun (pre : Bool) =>
+    let b := IForm.and (IForm.and (lowL mL.evolve) cutL) invI
+    if pre then IForm.and b (lowL mL.guard) else b
+  let rightFacts := fun (nm : String) => match modeOf nm with
+    | some m => IForm.and (lowR m.evolve) (cutOfR nm)
+    | none => IForm.tt
+  let declared := fun (nm : String) =>
+    ((succOf p nm).filter (fun t => !prunedOf nm t)).eraseDups
+  let mkCtx := fun (seg : String → Seg) => ({
+      node := fun nm => seg nm == Seg.pass || repoDynPreOK nm || repoDynPostOK nm
+      jointOK := fun nm => seg nm == Seg.pass
+      dynOK := fun nm pre => if pre then repoDynPreOK nm else repoDynPostOK nm
+      retained := fun nm => (nm :: declared nm).eraseDups
+      exits := fun nm => (declared nm).filter (· != nm)
+      hopTgts := fun nm => (declared nm).filter (· != nm)
+      guardR := fun nm => (modeOf nm).bind (fun m => lowerF vars n Side.R m.guard)
+      jointEnd := fun nm => IForm.and (leftFacts false) (rightFacts nm)
+      repoEnd := fun nm pre => IForm.and (leftFacts pre) (rightFacts nm)
+      startReg := fun nm pre => IForm.and (IForm.and (leftFacts pre) (rightFacts nm))
+        ((modeOf nm).map (fun m => lowR m.guard) |>.getD IForm.tt) } : ChoiceCtx n)
   for lam in (if sync then [(1 : ℚ)] else lambdaCandidates lmin lmax epsL epsR) do
     let deltaL := if lam == 0 then epsR else epsR / lam
     if deltaL ≤ 0 then continue
@@ -700,6 +818,29 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     match gate seg strataMap lam deltaL with
     | some lc => return (.cov, some lc)
     | none => pure ()
+    -- EXPERIMENTAL existential mode choice (unverified), only after the verified gate failed
+    if choiceOn && !admMods.isEmpty then
+      let bBudget := min (epsL / deltaL).ceil.toNat 256
+      let memo ← IO.mkRef ({} : Std.HashMap (String × Nat × Bool × Bool) Bool)
+      let log ← IO.mkRef ([] : List String)
+      let cx := mkCtx seg
+      let mut allOk := true
+      for mR in admMods do
+        if allOk then
+          if !(← choiceCover s cnt maxQ maxSmt deadline coord cx memo log [] mR.name bBudget true true) then
+            allOk := false
+      if allOk then
+        IO.eprintln s!"  [choice] {p.name} {mL.name}_L λ={lam} B={bBudget}: certified by choice cover (unverified)"
+        let lines ← log.get
+        for line in lines do
+          IO.eprintln s!"    [choice] {line}"
+        let flagRows : List ModeFlagsE := p.R.modes.map (fun m =>
+          { name := m.name, jointOK := seg m.name == Seg.pass,
+            dynPre := repoDynPreOK m.name, dynPost := repoDynPostOK m.name })
+        let lc : LeftCoverE :=
+          { mL := mL.name, lamQ := lam, bBudget := bBudget, flags := flagRows,
+            admissible := admMods.map (·.name), strata := strataMap }
+        return (.cov, some lc)
     if admMods.any (fun mR => seg mR.name == Seg.incon) then sawIncon := true
   -- the per-pairing fallback (see above): only when the passing stretches are not all equal
   -- (otherwise the common pass at that stretch has already failed with the same nodes)

@@ -1,0 +1,75 @@
+# watertank_choice: the running example with a nominal economy profile that holds the level lower.
+# scenario: sensor-attack
+#
+# EXPERIMENTAL (existential mode choice, RELCERT_CHOICE=1). Identical to `watertank` except that the
+# nominal MidEco profile regulates toward 13 instead of 17 (an energy-saving set point). Against the
+# attacked mid-fill mode (toward 20) MidEco falls behind at every stretch, so a cover that must also
+# continue along MidEco cannot close; the witness must CHOOSE MidBoost.
+# Expected: DECLINED without choice, CERTIFIED with RELCERT_CHOICE=1 (unverified choice cover).
+[problem]
+name = watertank_choice
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 40.0
+
+[Lsys]
+state_vars = [x]
+epsilon = 1.0
+
+[Lsys.mode.Low]
+ode = x' = smt2:(* 0.6 (- 15.5 x));
+guard = x >= 5.0 and x < 13.0
+evolve = x >= 0.0 and x <= 25.0
+next = [Low, Mid]
+
+[Lsys.mode.Mid]
+ode = x' = smt2:(* 0.3 (- 20.0 x));
+guard = x >= 13.0 and x < 20.0
+evolve = x >= 0.0 and x <= 25.0
+next = [Mid, High]
+
+[Lsys.mode.High]
+ode = x' = smt2:(* 0.3 (- 20.0 x));
+guard = x >= 20.0
+evolve = x >= 0.0 and x <= 25.0
+next = [High, Mid]
+
+[Rsys]
+state_vars = [x]
+epsilon = 1.0
+
+[Rsys.mode.Low]
+ode = x' = smt2:(* 0.3 (- 12.5 x));
+guard = x >= 2.0 and x < 10.0
+evolve = x >= 0.0 and x <= 25.0
+next = [Low, MidEco, MidBoost, PumpOff]
+
+[Rsys.mode.MidEco]
+ode = x' = smt2:(* 0.15 (- 13.0 x));
+guard = x >= 10.0 and x < 17.0
+evolve = x >= 0.0 and x <= 25.0
+next = [MidEco, MidBoost, High]
+
+[Rsys.mode.MidBoost]
+ode = x' = smt2:(* 0.3 (- 17.0 x));
+guard = x >= 10.0 and x < 17.0
+evolve = x >= 0.0 and x <= 25.0
+next = [MidBoost, MidEco, High]
+
+[Rsys.mode.High]
+ode = x' = smt2:(* 0.3 (- 17.0 x));
+guard = x >= 17.0
+evolve = x >= 0.0 and x <= 25.0
+next = [High, MidEco, MidBoost]
+
+[Rsys.mode.PumpOff]
+ode = x' = smt2:0.0;
+guard = x < 2.0
+evolve = x >= 0.0 and x <= 25.0
+next = [PumpOff]
+
+[relational_invariant]
+Low  = x[l] <= x[r] + 3 and x[r] <= x[l] + 3
+Mid  = x[l] <= x[r] + 3 and x[r] <= x[l] + 3
+High = x[l] <= x[r] + 3 and x[r] <= x[l] + 3

@@ -17,10 +17,6 @@ namespace RelCertifier.VerdictsV2
 
 open RelCertifier RelCertifier.Parse RelCertifier.Oracle RelCertifier.Progress
 
-/-- The row index of a mode name in a mode list (sentinel: the length). -/
-def modeIdx (ms : List PMode) (nm : String) : Nat :=
-  (ms.findIdx (·.name == nm))
-
 /-- The emitted certificates of the suite (one row per certificate). -/
 def expectedProgressV2 : Nat :=
   progressTableV2.foldl (fun k p => k + p.2.certs.length) 0
@@ -28,14 +24,13 @@ def expectedProgressV2 : Nat :=
 def runProgressCert (s : Z3Session) (b : String) (c : ProgressE) : IO Bool := do
   let p := irV2 b
   let cX := cutV2 b
-  let vars := p.jointVars
+  let vars := p.L.stateVars
   let n := vars.length
   let coord := fun (i : Fin n) => vars.getD i.val s!"pad{i.val}"
   let l := modeIdx p.L.modes c.mL
   let m := modeIdx p.R.modes c.mR
-  -- the invariant row is the left mode's own when rows are per mode, else row 0
-  let invRow := if p.invariants.length > l then l else 0
-  match progressQueriesOf p cX n invRow l m c with
+  -- exactly the queries `ProgressVerd` quantifies over
+  match progressQueriesOf p cX n (invRowOf p l) l m c with
   | none =>
       IO.println s!"  SKIP  {b} {c.mL}_L/{c.mR} pre={c.pre} (rebuild failed)"
       pure false

@@ -93,23 +93,25 @@ def landQueries (R guardq : IForm n) (v : Var n) (st : ProgressStageE)
   let neg := fun (base : IForm n) => guards.foldl (fun d g => IForm.and d (IForm.neg g)) base
   [neg (IForm.and R (onLine v st)), neg (IForm.and (IForm.and R guardq) (crossed v st))]
 
-/-- The queries of a certificate, in order: per stage its rate query and (non-last) keep
-query, then the landing queries. `none` if a variable or an exit guard does not lower. -/
-def progressQueries (vars : List String) (R : IForm n) (fR : Fin n → ITerm n)
+/-- The queries of a resolved stage list (one or two stages): per stage its rate query and
+(non-last) keep query, then the landing queries. -/
+def stageQueries (R guardq : IForm n) (fR : Fin n → ITerm n) (vs : List (Var n × ProgressStageE))
+    (guards : List (IForm n)) : Option (List (IForm n)) :=
+  match vs with
+  | [(v, st)] => some ([rateQuery R fR [(v, st)] 0 v st] ++ landQueries R guardq v st guards)
+  | [(w, sth), (v, st)] =>
+      some ([rateQuery R fR [(w, sth), (v, st)] 0 w sth, keepQuery R fR [(w, sth), (v, st)] 0 w sth,
+        rateQuery R fR [(w, sth), (v, st)] 1 v st] ++ landQueries R guardq v st guards)
+  | _ => none
+
+/-- The queries of a certificate: its stages resolved to right coordinates, its exits' guards
+and the node's guard lowered. `none` if a variable or a guard does not lower, or the stage
+list is not one or two stages. -/
+def progressQueries (vars : List String) (R guardq : IForm n) (fR : Fin n → ITerm n)
     (guardOf : String → Option (IForm n)) (c : ProgressE) : Option (List (IForm n)) := do
   let vs ← c.stages.mapM (fun st => (resolveVar vars n Side.R st.var).map (fun v => (v, st)))
   let guards ← c.exits.mapM guardOf
-  let guardq ← guardOf c.mR
-  if vs.isEmpty then none
-  let last := vs.length - 1
-  let perStage := (List.range vs.length).flatMap (fun i =>
-    match vs[i]? with
-    | some (v, st) =>
-        rateQuery R fR vs i v st :: (if i < last then [keepQuery R fR vs i v st] else [])
-    | none => [])
-  match vs[last]? with
-  | some (v, st) => pure (perStage ++ landQueries R guardq v st guards)
-  | none => none
+  stageQueries R guardq fR vs guards
 
 /-! ## Emission -/
 

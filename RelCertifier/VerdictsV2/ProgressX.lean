@@ -25,7 +25,7 @@ variable {n : ℕ}
 /-- The region of reposition node `m` in window `l` (setting `pre`), as the tool builds it. -/
 def regionOf (p : PProblem) (cX : EvolStrengtheningX) (n invRow : ℕ) (pre : Bool) (l m : ℕ) :
     Option (IForm n) := do
-  let vars := p.jointVars
+  let vars := p.L.stateVars
   let dm : PMode := ⟨"", [], .tt, .tt, []⟩
   let mL := p.L.modes.getD l dm
   let mR := p.R.modes.getD m dm
@@ -43,14 +43,27 @@ def regionOf (p : PProblem) (cX : EvolStrengtheningX) (n invRow : ℕ) (pre : Bo
 /-- The certificate's queries, rebuilt. -/
 def progressQueriesOf (p : PProblem) (cX : EvolStrengtheningX) (n invRow : ℕ) (l m : ℕ)
     (c : ProgressE) : Option (List (IForm n)) := do
-  let vars := p.jointVars
+  let vars := p.L.stateVars
   let dm : PMode := ⟨"", [], .tt, .tt, []⟩
   let mR := p.R.modes.getD m dm
   let R ← regionOf p cX n invRow c.pre l m
   let fR ← dynOf vars n Side.R mR
+  let gq ← lowerF vars n Side.R mR.guard
   let guardOf := fun (nm : String) =>
     (p.R.modes.find? (·.name == nm)).bind (fun md => lowerF vars n Side.R md.guard)
-  progressQueries vars R fR guardOf c
+  progressQueries vars R gq fR guardOf c
+
+/-- The row index of a mode name in a mode list (sentinel: the length). -/
+def modeIdx (ms : List PMode) (nm : String) : Nat := ms.findIdx (·.name == nm)
+
+/-- The invariant row of a window: the left mode's own when rows are per mode, else row 0. -/
+def invRowOf (p : PProblem) (l : ℕ) : ℕ := if p.invariants.length > l then l else 0
+
+/-- **The progress verdict of one emitted certificate**: every query the runner rebuilds for
+it (`progressQueriesOf` at the runner's indices) is `unsat`. -/
+def ProgressVerd (p : PProblem) (cX : EvolStrengtheningX) (n : ℕ) (c : ProgressE) : Prop :=
+  ∀ qs, progressQueriesOf p cX n (invRowOf p (modeIdx p.L.modes c.mL)) (modeIdx p.L.modes c.mL)
+    (modeIdx p.R.modes c.mR) c = some qs → ∀ q ∈ qs, z3solve q.toHost = Verdict.unsat
 
 /-! ## Reading `unsat` answers -/
 

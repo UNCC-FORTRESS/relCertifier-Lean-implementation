@@ -64,6 +64,16 @@ explicit solutions (`HExit`). The paper must state it with Theorem 3 (as part of
 or as a condition on right-only kinds). With the chosen-exits rule (case 3) the premise is not
 needed: the coverage certificate holds at duration zero.
 
+**Can the all-successors right-only rule be dropped?** No, not without losing results.
+`RELCERT_NO_REPO=1` disables it (the chosen-exits form, a zero-duration hop, stays available
+under `RELCERT_CHOICE=1`); the suite then certifies 34 of 46. The 12 declines
+(`charger_fast_setpoints`, the five terrain/position ladder rungs, `rover_dof_terrain_rung3_8d`,
+`rover_patrol_refine`, `rover_patrol_zones`, `story3_rollover_base_12dof`,
+`story3_rollover_ladder_rung_a`) need a right-only segment of positive duration: the exit's
+guard is not enabled at the start, only after the right has moved. A static coverage
+certificate cannot see that motion; the premise is what says the motion arrives. So the
+right-only rule stays, with the premise stated, and the chosen-exits rule is added beside it.
+
 ## 4. Instances
 
 | benchmark | windows | cover | discharged here |

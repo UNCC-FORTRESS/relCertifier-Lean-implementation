@@ -687,8 +687,11 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
   -- BASELINE `RELCERT_SYNC=1` (time-synchronous matching): λ = 1 only, no right-only
   -- reposition, no per-pairing fallback; multi-step joint covers stay allowed.
   let sync := (← IO.getEnv "RELCERT_SYNC").isSome
-  let repoDynPreOK  := fun (nm : String) => !sync && ((dynMap.find? (·.1 == nm)).map (·.2.1) |>.getD false)
-  let repoDynPostOK := fun (nm : String) => !sync && ((dynMap.find? (·.1 == nm)).map (·.2.2) |>.getD false)
+  -- `RELCERT_NO_REPO=1`: no right-only reposition nodes of the all-successors kind (the
+  -- chosen-exits form, `RELCERT_CHOICE=1`, is the hop, which needs no reposition node).
+  let noRepo := (← IO.getEnv "RELCERT_NO_REPO").isSome
+  let repoDynPreOK  := fun (nm : String) => !sync && !noRepo && ((dynMap.find? (·.1 == nm)).map (·.2.1) |>.getD false)
+  let repoDynPostOK := fun (nm : String) => !sync && !noRepo && ((dynMap.find? (·.1 == nm)).map (·.2.2) |>.getD false)
   if (← IO.getEnv "RELCERT_DEBUG").isSome then
     IO.eprintln s!"  [admissible] {mL.name}_L: {admMods.map (·.name)}"
     let dpreL := dynMap.filterMap (fun p => if p.2.1 then some p.1 else none)

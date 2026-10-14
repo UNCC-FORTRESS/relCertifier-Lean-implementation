@@ -232,7 +232,7 @@ theorem replay_pieces_k_q (dt : ℝ) (Pre Efin : ℕ → State (Var n) → Prop)
       rintro q'' μ' ⟨hE, hA'', hμ'L⟩
       exact ⟨hE, hA'', fun i => (hμ'L i).trans (hμL i)⟩
 
-end PieceQK
+end PieceKQ
 
 theorem replay_gresp_q (G : SearchGraph (Var n)) (M : ℕ → RMode (Var n))
     (fR : ℕ → Fin n → Term (Var n)) (domR : Formula (Var n)) (fL : Fin n → Term (Var n))

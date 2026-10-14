@@ -734,6 +734,14 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     else none
   -- EXPERIMENTAL existential mode choice context (`RELCERT_CHOICE=1`; see `choiceCover`)
   let choiceOn := (← IO.getEnv "RELCERT_CHOICE").isSome
+  let mut choiceCands : List (ℚ × ℚ × List (String × Seg) × List PairStrataE) := []
+  -- MEASUREMENT `RELCERT_LAMBDA_SCAN=1`: evaluate every λ candidate (no early exit at the first
+  -- closing cover) and print, per pairing, the candidates at which its joint segment passed.
+  -- The verdict and the emitted cover are those of the first closing λ, as without the switch.
+  let scan := (← IO.getEnv "RELCERT_LAMBDA_SCAN").isSome
+  let mut scanCover : Option LeftCoverE := none
+  let mut scanPass : List (String × List ℚ) := []
+  let mut scanGrid : List ℚ := []
   let lowL := fun (f : PForm) => (lowerF vars n Side.L f).getD IForm.tt
   let lowR := fun (f : PForm) => (lowerF vars n Side.R f).getD IForm.tt
   let modeOf := fun (nm : String) => p.R.modes.find? (·.name == nm)
@@ -775,6 +783,10 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
             firstPass := (mR.name, lam, order) :: firstPass.filter (·.1 != mR.name)
         | none => firstPass := firstPass ++ [(mR.name, lam, order)]
       if st == Seg.incon && !everIncon.contains mR.name then everIncon := everIncon ++ [mR.name]
+      if scan && st == Seg.pass then
+        scanPass := match scanPass.find? (·.1 == mR.name) with
+          | some t => (mR.name, t.2 ++ [lam]) :: scanPass.filter (·.1 != mR.name)
+          | none => scanPass ++ [(mR.name, [lam])]
       let dpair := dpairOf mR.name
       strataMap := strataMap ++
         [({ mR := mR.name, order := order, dynPreOrder := dpair.1,
@@ -815,33 +827,27 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     -- sound (`decideCovered_sound` is fuel-generic); too-small merely over-declines. A start is
     -- usable iff it is a node; the initial source setting is **preJ** (no joint yet). Empty
     -- `admMods` ⟹ do NOT certify (a possibly-buggy all-drop cannot vacuously certify).
+    if scan then scanGrid := scanGrid ++ [lam]
     match gate seg strataMap lam deltaL with
-    | some lc => return (.cov, some lc)
+    | some lc =>
+        if scan then
+          if scanCover.isNone then scanCover := some lc
+        else return (.cov, some lc)
     | none => pure ()
-    -- EXPERIMENTAL existential mode choice (unverified), only after the verified gate failed
-    if choiceOn && !admMods.isEmpty then
-      let bBudget := min (epsL / deltaL).ceil.toNat 256
-      let memo ← IO.mkRef ({} : Std.HashMap (String × Nat × Bool × Bool) Bool)
-      let log ← IO.mkRef ([] : List String)
-      let cx := mkCtx seg
-      let mut allOk := true
-      for mR in admMods do
-        if allOk then
-          if !(← choiceCover s cnt maxQ maxSmt deadline coord cx memo log [] mR.name bBudget true true) then
-            allOk := false
-      if allOk then
-        IO.eprintln s!"  [choice] {p.name} {mL.name}_L λ={lam} B={bBudget}: certified by choice cover (unverified)"
-        let lines ← log.get
-        for line in lines do
-          IO.eprintln s!"    [choice] {line}"
-        let flagRows : List ModeFlagsE := p.R.modes.map (fun m =>
-          { name := m.name, jointOK := seg m.name == Seg.pass,
-            dynPre := repoDynPreOK m.name, dynPost := repoDynPostOK m.name })
-        let lc : LeftCoverE :=
-          { mL := mL.name, lamQ := lam, bBudget := bBudget, flags := flagRows,
-            admissible := admMods.map (·.name), strata := strataMap }
-        return (.cov, some lc)
+    -- existential mode choice is NOT tried here: it runs only after the whole λ loop and the
+    -- per-pairing fallback have failed with the old rule (below), so every cover the old rule
+    -- finds is emitted unchanged. Record this λ's segment status for the choice pass.
+    if choiceOn then choiceCands := choiceCands ++ [(lam, deltaL, segMap, strataMap)]
     if admMods.any (fun mR => seg mR.name == Seg.incon) then sawIncon := true
+  if scan then
+    let grid := (scanGrid.toArray.qsort (· < ·)).toList
+    let idx := fun (l : ℚ) => grid.findIdx (· == l)
+    IO.eprintln s!"  [lambda-scan] {p.name} {mL.name}_L grid={grid.length} points {grid.headD 0}..{grid.getLastD 0}"
+    for mR in p.R.modes do
+      let ls := ((scanPass.find? (·.1 == mR.name)).map (·.2)).getD []
+      let ixs := ((ls.map idx).toArray.qsort (· < ·)).toList
+      IO.eprintln s!"  [lambda-scan] {p.name} {mL.name}_L/{mR.name}: pass at {ixs.length} of {grid.length} grid steps {ixs}"
+    if let some lc := scanCover then return (.cov, some lc)
   -- the per-pairing fallback (see above): only when the passing stretches are not all equal
   -- (otherwise the common pass at that stretch has already failed with the same nodes)
   let pairOn := (← IO.getEnv "RELCERT_NO_PAIR_STRETCH").isNone && !sync
@@ -867,6 +873,33 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
       match gate seg strataMap lamMax deltaL with
       | some lc => return (.cov, some lc)
       | none => pure ()
+  -- EXPERIMENTAL existential mode choice (unverified; argument: docs/CHOICE-SOUNDNESS.md).
+  -- Reached only when no λ and no per-pairing stretch closed the cover with the old rule;
+  -- tries the λ candidates in the same order as the old rule.
+  if choiceOn && !admMods.isEmpty then
+    for (lam, deltaL, segMap, strataMap) in choiceCands do
+      let seg := fun q => (segMap.find? (·.1 == q)).map (·.2) |>.getD Seg.incon
+      let bBudget := min (epsL / deltaL).ceil.toNat 256
+      let memo ← IO.mkRef ({} : Std.HashMap (String × Nat × Bool × Bool) Bool)
+      let log ← IO.mkRef ([] : List String)
+      let cx := mkCtx seg
+      let mut allOk := true
+      for mR in admMods do
+        if allOk then
+          if !(← choiceCover s cnt maxQ maxSmt deadline coord cx memo log [] mR.name bBudget true true) then
+            allOk := false
+      if allOk then
+        IO.eprintln s!"  [choice] {p.name} {mL.name}_L λ={lam} B={bBudget}: certified by choice cover (unverified)"
+        let lines ← log.get
+        for line in lines do
+          IO.eprintln s!"    [choice] {line}"
+        let flagRows : List ModeFlagsE := p.R.modes.map (fun m =>
+          { name := m.name, jointOK := seg m.name == Seg.pass,
+            dynPre := repoDynPreOK m.name, dynPost := repoDynPostOK m.name })
+        let lc : LeftCoverE :=
+          { mL := mL.name, lamQ := lam, bBudget := bBudget, flags := flagRows,
+            admissible := admMods.map (·.name), strata := strataMap }
+        return (.cov, some lc)
   return ((if sawIncon then .incon else .nocov), none)
 
 /-- Core cover, parameterized by a query counter/budget (`throw`s on overrun). -/
@@ -964,6 +997,24 @@ def certifyWithData (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : N
         match invComponents vars n f with
         | none => return (.error s!"unlowerable invariant for mode {mL.name}", none)
         | some comps =>
+            -- DIAGNOSTIC `RELCERT_OPREGION=1` (no effect on the verdict): does the invariant row
+            -- admit a start with the left in its guard and both sides in their domains, but the
+            -- right state in NO right guard? Such starts lie outside the right's operating
+            -- region and are excluded by Theorem 3's premise. One query per left mode.
+            if (← IO.getEnv "RELCERT_OPREGION").isSome then
+              let low := fun (side : Side) (f : PForm) => (lowerF vars n side f).getD IForm.tt
+              let inv : IForm n := comps.foldl (fun d g => IForm.and d (IForm.cmp .le g (.rat 0))) IForm.tt
+              let noGuardR : IForm n := p.R.modes.foldl
+                (fun d m => IForm.and d (IForm.neg (low Side.R m.guard))) IForm.tt
+              let domR : IForm n := (p.R.modes.head?.map (fun m => low Side.R m.evolve)).getD IForm.tt
+              let q : IForm n := IForm.and (IForm.and (IForm.and (IForm.and
+                (low Side.L mL.guard) (low Side.L mL.evolve)) domR) inv) noGuardR
+              let lowersAll := p.R.modes.all (fun m => (lowerF vars n Side.R m.guard).isSome)
+                && (lowerF vars n Side.L mL.guard).isSome
+              -- an unlowerable guard would default to `tt` and make the query vacuous: report it
+              let covered ← if lowersAll then probeUnsat s cnt maxQ maxSmt deadline coord q
+                else pure false
+              IO.eprintln s!"  [opregion] {p.name} {mL.name}_L: {if covered then "every admitted start in some right guard" else "starts OUTSIDE every right guard (sat or unknown)"}"
             match ← coverMode s cnt maxQ maxSmt deadline p vars n coord comps prunedOf
                 (cutOfL mL.name) cutOfR epsL epsR lmin lmax mL with
             | (.cov, some lc) => covers := covers ++ [lc]

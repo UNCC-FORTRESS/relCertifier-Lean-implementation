@@ -6,10 +6,10 @@ declared non-self successor is enabled; the reposition flow certificate (certifi
 nothing about that. The **progress certificate** does, by a staged rate argument: a list of
 stages `(x, θ, up, r)`, each "while the earlier thresholds are crossed and `x` has not yet
 crossed `θ`, the field of `x` moves it toward `θ` at rate at least `r > 0`" (`rateQuery`), each
-non-last stage "once crossed, stays crossed" (`keepQuery`), and at the last crossing (where
-`x = θ` by continuity) some exit's guard holds (`landQuery`). All three are static queries
-over the node's region (the facts the reposition flow preserves), the shape of every other
-certificate of the tool. `Proofs/Encoding/Progress.lean` proves that `unsat` answers to these
+non-last stage "once crossed, stays crossed" (`keepQuery`), and wherever the last threshold is
+crossed some exit's guard holds (`landQuery`; on the crossed region, so a start already past the
+threshold switches at once). All three are static queries over the node's region (the facts
+the reposition flow preserves), the shape of every other certificate of the tool. `Proofs/Encoding/Progress.lean` proves that `unsat` answers to these
 queries give the reposition-progress premise of `theorem3_of_coverX`.
 
 The emitted data (`ProgressE`) is what the verdict runner rebuilds the queries from, with the
@@ -79,12 +79,13 @@ def keepQuery (R : IForm n) (fR : Fin n → ITerm n) (vs : List (Var n × Progre
   let bad : IForm n := if st.up then .cmp .lt dot (.rat 0) else .cmp .gt dot (.rat 0)
   IForm.and (IForm.and (IForm.and R (crossedBefore vs i)) side) bad
 
-/-- **land** (unsat expected): `R ∧ crossed_{<last} ∧ x_last = θ_last ∧ ⋀_{e ∈ exits} ¬guard(e)`. -/
+/-- **land** (unsat expected): `R ∧ crossed_{<last} ∧ crossed_last ∧ ⋀_{e ∈ exits} ¬guard(e)`:
+wherever the last coordinate has crossed (the first such state of the run, or the start),
+some exit is enabled. -/
 def landQuery (R : IForm n) (vs : List (Var n × ProgressStageE)) (v : Var n)
     (st : ProgressStageE) (guards : List (IForm n)) : IForm n :=
-  let at_ : IForm n := .cmp .eq (.var v) (.rat st.theta)
   guards.foldl (fun d g => IForm.and d (IForm.neg g))
-    (IForm.and (IForm.and R (crossedBefore vs (vs.length - 1))) at_)
+    (IForm.and (IForm.and R (crossedBefore vs (vs.length - 1))) (crossed v st))
 
 /-- The queries of a certificate, in order: per stage its rate query and (non-last) keep
 query, then the landing query. `none` if a variable or an exit guard does not lower. -/

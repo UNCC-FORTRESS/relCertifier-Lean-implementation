@@ -245,12 +245,9 @@ theorem coverHyps (l : ℕ) (hl : l < 5) (hv : Verd l) :
   hAfv := AG_fv l hl
   hAdom := fun q y h => h.2.2
   hbox := AG_box l hl hv
-  hboxDpre := fun q m _ h => by simp [chG] at h
-  hboxDpost := fun q m _ h => by simp [chG] at h
   hhand := AG_hand l hl
   hprune := fun q m _ e he hp => by rw [edge_pruned_false he] at hp; cases hp
-  hpruneD := fun q m _ e he hp => by rw [edge_pruned_false he] at hp; cases hp
-  hrepoProg := fun q m _ h => by simp [chG] at h
+  hrepoProg := fun q m _ pre h => by cases pre <;> simp [chG] at h
   hRJ := fun _ _ _ => trivial
   hcovJ := fun q S hS => by simp [chG] at hS
   hRR := fun _ _ _ _ _ => trivial

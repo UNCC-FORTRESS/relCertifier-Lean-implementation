@@ -50,29 +50,15 @@ structure CoverHyps (G : SearchGraph (Var n)) (ch : ChoiceData)
   hbox : ∀ q m, G.modeAt q = some m → ch.jointOK q = true → ∀ σ ω, Formula.sat (A q) σ →
     Program.sem (Program.ode (jointSys fL (fR q) (Term.const (lam q))) (Formula.and domL domR))
       σ ω → Formula.sat (A q) ω
-  hboxDpre : ∀ q m, G.modeAt q = some m → ch.repoPre q = true → ∀ σ ω,
-    Formula.sat (A q) σ → Formula.sat gL σ →
-    Program.sem (Program.ode (jointSys (fun _ => Term.const 0) (fR q) (Term.const 1))
-      (Formula.and domL domR)) σ ω → Formula.sat (A q) ω
-  hboxDpost : ∀ q m, G.modeAt q = some m → ch.repoPost q = true → ∀ σ ω,
-    Formula.sat (A q) σ →
-    Program.sem (Program.ode (jointSys (fun _ => Term.const 0) (fR q) (Term.const 1))
-      (Formula.and domL domR)) σ ω → Formula.sat (A q) ω
   hhand : ∀ q, ∀ e ∈ G.edgesFrom q, ∀ y, Formula.sat (A q) y → SwitchLegal e y →
     Formula.sat (A e.tgt) y
   hprune : ∀ q m, G.modeAt q = some m → ∀ e ∈ G.edgesFrom q, e.pruned = true →
     ∀ σ ω, Formula.sat (A q) σ →
     Program.sem (Program.ode (jointSys fL (fR q) (Term.const (lam q))) (Formula.and domL domR))
       σ ω → ¬ Formula.sat e.guard ω
-  hpruneD : ∀ q m, G.modeAt q = some m → ∀ e ∈ G.edgesFrom q, e.pruned = true →
-    ∀ σ ω, Formula.sat (A q) σ →
-    Program.sem (Program.ode (jointSys (fun _ => Term.const 0) (fR q) (Term.const 1))
-      (Formula.and domL domR)) σ ω → ¬ Formula.sat e.guard ω
-  hrepoProg : ∀ q m, G.modeAt q = some m →
-    (ch.repoPre q = true ∨ ch.repoPost q = true) →
-    ∀ ρ, Formula.sat (guard q) ρ → Formula.sat domR ρ →
-    ∃ τ Φ, ODESol (rightBlock (fR q) (Term.const 1)) domR ρ τ Φ ∧
-      ∃ e ∈ G.edgesFrom q, SwitchLegal e (Φ τ) ∧ e.tgt ≠ q
+  hrepoProg : ∀ q m, G.modeAt q = some m → ∀ pre : Bool,
+    (if pre then ch.repoPre q else ch.repoPost q) = true →
+    RepoProgress G A gL (guard q) q pre
   hRJ : ∀ q y, Formula.sat (A q) y → Formula.sat (RJ q) y
   hcovJ : ∀ q S, S ∈ ch.jointS q → ∀ y, Formula.sat (RJ q) y → ∃ q' ∈ S, Formula.sat (guard q') y
   hRR : ∀ q σ y, Formula.sat (A q) y → (σ = SrcSetting.preJ → Formula.sat gL y) →
@@ -150,7 +136,7 @@ theorem Hmulti_of_coverX :
   have Hl := H l hl
   refine coverX_gresp Gr (ch l) fR domR (fL l) domL (gL l) b guard hgR hguards hguardR (hfL l hl)
     hdomL hdomR (hgLv l hl) hfR hsys hdomM hweight epsR (δ l) Hl.hδ (lam l) Hl.hlam Hl.hspan (A l)
-    Hl.hAfv Hl.hAdom Hl.hbox Hl.hboxDpre Hl.hboxDpost Hl.hhand hwf Hl.hprune Hl.hpruneD
+    Hl.hAfv Hl.hAdom Hl.hbox Hl.hhand hwf Hl.hprune
     Hl.hrepoProg (RJ l) Hl.hRJ Hl.hcovJ (RR l) Hl.hRR Hl.hcovR (RS l) Hl.hRS Hl.hcovS dt (B l)
     (hdt l hl) q σ hg (fun hgate => hcov l hl q hq ⟨σ, hgate, hσ, hg, hc⟩)
     (fun hgate => hAstart l hl q σ hgate hσ hg hc) _ ?_

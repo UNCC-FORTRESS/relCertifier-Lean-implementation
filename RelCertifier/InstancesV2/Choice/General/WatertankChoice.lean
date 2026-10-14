@@ -375,18 +375,12 @@ theorem coverHyps (l : ℕ) (hl : l < 3) (hv : Packs) :
   hAfv := AG_fv l hl
   hAdom := fun q y h => h.2.2
   hbox := AG_box l hl hv
-  hboxDpre := fun q m _ h => by simp [chW] at h
-  hboxDpost := fun q m _ h => by simp [chW] at h
   hhand := AG_hand l hl
   hprune := fun q m hm e he hp σ ω hA hω => by
     obtain ⟨rfl, ht⟩ := pruned_iff he hp
     rw [GrP_guards _ e he, ht]
     exact not_pumpoff (level_stays l hl (fL l) (lam l 0) (le_of_lt (lam_pos l 0)) σ ω hA hω)
-  hpruneD := fun q m hm e he hp σ ω hA hω => by
-    obtain ⟨rfl, ht⟩ := pruned_iff he hp
-    rw [GrP_guards _ e he, ht]
-    exact not_pumpoff (level_stays l hl (fun _ => Term.const 0) 1 zero_le_one σ ω hA hω)
-  hrepoProg := fun q m _ h => by simp [chW] at h
+  hrepoProg := fun q m _ pre h => by cases pre <;> simp [chW] at h
   hRJ := fun _ _ _ => trivial
   hcovJ := fun q S hS => by simp [chW] at hS
   hRR := fun _ _ _ _ _ => trivial

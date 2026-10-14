@@ -125,3 +125,23 @@ start mode, so choice never has to look across a left-cycle boundary.
    choice search, so the 46 emitted covers are unchanged.
 3. Hop targets are declared, non-self successors; requiring them non-pruned is conservative
    and harmless (a hop has no flow).
+
+## 8. Lean status (the three exhibits)
+
+`RelCertifier/InstancesV2/Choice/Modal/` proves modal Theorem 3 for `vehicle_hypercert`,
+`vehicle_accel_copy` and `watertank_choice`, standalone (not replayed from the tool's choice
+cover). Each response is case 4 then case 1: a hop (`gresp_hop`) into one chosen mode, then
+that mode's certified joint segment for the whole window. The hop's domain premise is S3
+(`envLR`; every exhibit has a uniform right evolution domain), its guard premise is the left
+guard plus the invariant at the start (the left run frames the right).
+
+Existence of the right segment: `WellFormedFlowB` (existence from every domain state) is false
+for constant fields at the domain edge they point to. `vehicle_hypercert` uses the mirror
+argument (`hExistSegB_constMirror`: the right copies the left run). `vehicle_accel_copy` needs
+the right guard at the start and one control period (`dt ≤ 1`), facts that hold at the start
+but are not invariant, so it couples through `couple_cutX_at`, which takes the existence
+premise at the start state only (the same proof as `couple_cutX`).
+
+Residuals: 14 verdict packs, pinned to the instances' hypotheses (`Choice/Verdicts.lean`);
+`relcert-choice-verdicts` reports all 28 components `unsat`. Axioms: `propext`,
+`Classical.choice`, `Quot.sound`, `z3_unsat_sound`.

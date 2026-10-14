@@ -50,29 +50,34 @@ piece response to the gated window; `Hmulti_of_coverX` and `theorem3_of_coverX` 
 windows into the loop through `Hmulti_regionG`, `hstep_assembled_GR` and
 `theorem3_faithful_multiR_LR`, exactly as every per-benchmark instance did.
 
-## 3. The reposition-progress premise (a gap in the paper's proof sketch)
+## 3. Reposition progress: the certificate the paper's proof sketch was missing
 
 The proof sketch of Theorem 3 says Assumption 1 "continues every segment along a retained
-edge". For a joint segment that is right: Assumption 1 gives an enabled declared successor, and
-Theorem 2 excludes the pruned ones, so the enabled one is retained. For a **right-only**
-segment of the all-successors rule it is not: Assumption 1 may only enable the self-loop, and
-the rule requires a non-self exit (`exitSucc`) to be covered; nothing in the tool checks that an
-exit is ever reached. The general theorem therefore carries `hrepoProg`: from every start state
-of a reposition node (its guard and the envelope), some right-only run reaches a state where a
-declared non-self successor is enabled. The per-benchmark instances always discharged it from
-explicit solutions (`HExit`). The paper must state it with Theorem 3 (as part of Assumption 1
-or as a condition on right-only kinds). With the chosen-exits rule (case 3) the premise is not
-needed: the coverage certificate holds at duration zero.
+edge". For a joint segment that is right. For a **right-only** segment it is not: Assumption 1
+may enable only the self-loop, the rule requires a non-self exit, and the tool never checked
+that an exit is reached. The 12 benchmarks whose covers use right-only steps rest on exactly
+that (with the all-successors right-only rule disabled, `RELCERT_NO_REPO=1`, they decline:
+34/46). Their standalone Lean proofs had discharged it from explicit solutions (`HExit`).
 
-**Can the all-successors right-only rule be dropped?** No, not without losing results.
-`RELCERT_NO_REPO=1` disables it (the chosen-exits form, a zero-duration hop, stays available
-under `RELCERT_CHOICE=1`); the suite then certifies 34 of 46. The 12 declines
-(`charger_fast_setpoints`, the five terrain/position ladder rungs, `rover_dof_terrain_rung3_8d`,
-`rover_patrol_refine`, `rover_patrol_zones`, `story3_rollover_base_12dof`,
-`story3_rollover_ladder_rung_a`) need a right-only segment of positive duration: the exit's
-guard is not enabled at the start, only after the right has moved. A static coverage
-certificate cannot see that motion; the premise is what says the motion arrives. So the
-right-only rule stays, with the premise stated, and the chosen-exits rule is added beside it.
+The fix is a **progress certificate** (`Trusted/ProgressEmit.lean`, `RELCERT_PROGRESS=1`),
+checked by the tool per reposition node like every other certificate: a stage
+`(x, θ, r)` says "while `x < θ` (on the node's region, the facts the reposition flow keeps)
+the field of `x` is at least `r > 0`"; an optional helper stage `(y, y₀, r₁)` first (its
+crossed fact `y ≥ y₀` is kept, and the main rate holds under it); and the landing: on the
+crossing line `x = θ` and at a start already crossed (`guard(q) ∧ x ≥ θ`) some exit's guard
+holds. With the certificate required the suite certifies 46/46 (261 certificates, 110 with a
+helper stage; the four nodes without one are never used). The right-only rule and Assumption
+1 are unchanged; the right-only kind is now *certified*: preservation (certificate 3) plus
+progress.
+
+`Proofs/Encoding/Progress.lean` proves the certificate sound: `repoProgress_one` and
+`repoProgress_two` give `RepoProgress` (the general theorem's premise: from a reposition start,
+cycles of the node until an exit is enabled, the anchor kept) from the certificate's facts,
+Assumption 1 (each cycle's run, and an enabled successor at its end), the reposition flow
+certificate (the anchor is kept) and the right-only non-connection certificate (a pruned exit
+is never enabled). Each cycle without crossing advances the stage coordinate by `r ε_R`, so the
+cycles are bounded; a crossing lands by the intermediate value theorem. Axioms: the standard
+three.
 
 ## 4. Instances
 
@@ -103,5 +108,8 @@ remain; the general instances are new theorems (`*_general`) with the same concl
   row-generic; the assembly through `theorem3_modeKeyed` is not written.
 * Replay of the tool's emitted choice covers: the tool does not emit them yet (D5); the
   instances above write their covers by hand and decide them in the kernel.
+* The progress verdict runner and pins (the emitted `ProgressE` rebuilt into the queries the
+  tool issued, their `unsat` answers bridged to the semantic facts `repoProgress_*` take), and
+  an instance with a reposition node through the general theorem.
 * The remaining 43 suite benchmarks are not re-derived through the general theorem (their
   standalone proofs stand).

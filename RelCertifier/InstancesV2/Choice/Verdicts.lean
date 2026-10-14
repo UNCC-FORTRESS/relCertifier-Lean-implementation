@@ -18,6 +18,7 @@ import RelCertifier.Verdicts.Coverage
 import RelCertifier.InstancesV2.Choice.Modal.VehicleHypercert
 import RelCertifier.InstancesV2.Choice.Modal.VehicleAccelCopy
 import RelCertifier.InstancesV2.Choice.Modal.WatertankChoice
+import RelCertifier.InstancesV2.Modal.Watertank
 
 namespace RelCertifier.ChoiceVerdicts
 
@@ -52,6 +53,11 @@ def hyp (l : ℕ) : PackC :=
 def acc (l : ℕ) : PackC :=
   { bench := "vehicle_accel_copy", p := vehicle_accel_copy_IRc, c := vehicle_accel_copy_cutsCX,
     invRow := l, l := l, m := l }
+/-- The suite's `watertank`, the pairing its emitted `Low` cover reaches that the suite runner
+does not carry (`Low/High` at 2): consumed by the general-theorem instance. -/
+def wt (l m lamN lamD : ℕ) : PackC :=
+  { bench := "watertank", p := watertank_IRv2, c := watertank_cutsV2X,
+    invRow := 0, lamN := lamN, lamD := lamD, l := l, m := m }
 def wtc (l m lamN lamD : ℕ) : PackC :=
   { bench := "watertank_choice", p := watertank_choice_IRc, c := watertank_choice_cutsCX,
     invRow := 0, lamN := lamN, lamD := lamD, l := l, m := m }
@@ -61,10 +67,11 @@ def wtc (l m lamN lamD : ℕ) : PackC :=
 def packsC : List PackC :=
   [hyp 0, hyp 1, hyp 2, hyp 3, hyp 4,
    acc 0, acc 1, acc 2,
-   wtc 0 0 2 1, wtc 0 1 7 2, wtc 0 2 1 1, wtc 0 3 1 1, wtc 1 2 1 1, wtc 1 3 1 1, wtc 2 3 1 1]
+   wtc 0 0 2 1, wtc 0 1 7 2, wtc 0 2 1 1, wtc 0 3 1 1, wtc 1 2 1 1, wtc 1 3 1 1, wtc 2 3 1 1,
+   wt 0 3 2 1]
 
 /-- Two components per pack (the invariant row has two). -/
-def expectedChoice : Nat := 30
+def expectedChoice : Nat := 32
 
 /-! ## Pins -/
 
@@ -82,6 +89,8 @@ theorem pin_wtc_02 : ChoiceWatertank.Verd 0 2 = packVerd (wtc 0 2 1 1) := by
   simp [ChoiceWatertank.Verd, packVerd, wtc, packLam, ChoiceWatertank.lam]
 theorem pin_wtc_03 : ChoiceWatertank.Verd 0 3 = packVerd (wtc 0 3 1 1) := by
   simp [ChoiceWatertank.Verd, packVerd, wtc, packLam, ChoiceWatertank.lam]
+theorem pin_wt_03 : V2Watertank.Verd 0 3 = packVerd (wt 0 3 2 1) := by
+  simp [V2Watertank.Verd, packVerd, wt, packLam, V2Watertank.lam]
 theorem pin_wtc_12 : ChoiceWatertank.Verd 1 2 = packVerd (wtc 1 2 1 1) := by
   simp [ChoiceWatertank.Verd, packVerd, wtc, packLam, ChoiceWatertank.lam]
 theorem pin_wtc_13 : ChoiceWatertank.Verd 1 3 = packVerd (wtc 1 3 1 1) := by

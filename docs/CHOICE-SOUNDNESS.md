@@ -145,3 +145,10 @@ premise at the start state only (the same proof as `couple_cutX`).
 Residuals: 14 verdict packs, pinned to the instances' hypotheses (`Choice/Verdicts.lean`);
 `relcert-choice-verdicts` reports all 28 components `unsat`. Axioms: `propext`,
 `Classical.choice`, `Quot.sound`, `z3_unsat_sound`.
+
+## 9. The general theorem
+
+`docs/THEOREM3-GENERAL.md`: cases 1 to 4 are the inductive `CoveredX`; `coverX_piece` is the
+existence proof of §5 in Lean, generically; `theorem3_of_coverX` is Theorem 3 with choice.
+The reposition-progress premise (§3 there) is the one fact §5's case 2 (right-only) glossed
+over.

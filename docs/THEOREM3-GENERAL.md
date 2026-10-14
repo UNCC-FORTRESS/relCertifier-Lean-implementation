@@ -2,8 +2,9 @@
 
 Status: the general theorem is proved (`Proofs/Encoding/Theorem3General.lean`,
 `theorem3_of_coverX`, axioms `propext`, `Classical.choice`, `Quot.sound`); instances for
-`vehicle_hypercert`, `vehicle_accel_copy` and `watertank_choice` go through it
-(`InstancesV2/Choice/General/`). Before this branch the paper's Theorem 3 was mechanized per
+`vehicle_hypercert`, `vehicle_accel_copy`, `watertank_choice` and the suite's `watertank` go
+through it (`InstancesV2/Choice/General/`), each with the standard three axioms plus
+`z3_unsat_sound`. Before this branch the paper's Theorem 3 was mechanized per
 benchmark: generic lemmas (the outer loop rule, the replay engine, guarded switching) and a
 per-benchmark construction of the response. Now the construction is one theorem whose
 hypotheses are Theorem 3's conditions.
@@ -70,6 +71,17 @@ needed: the coverage certificate holds at duration zero.
 | `vehicle_hypercert` | 5, `dt ≤ 1` | hop into the left's mode, then base | hop certificate by arithmetic; Assumption 1 (`odeSol_constRight`); 5 packs |
 | `vehicle_accel_copy` | 3, `dt ≤ 1` | the same | hop certificate (`guardR_of_guardL`); 3 packs |
 | `watertank_choice` | 3, `dt ≤ 1` | `Low` at the per-pairing stretches (δ = 2/7, B = 4), all-successors with `Low → PumpOff` pruned; `Mid` from `MidEco` by a hop into `MidBoost`; decided by `decideCoveredX` in the kernel | Theorem 2 for the pruned edge by arithmetic; hop certificate; Assumption 1 with the economy set point; 7 packs |
+| `watertank` (suite) | 3, `dt ≤ 1` | the tool's emitted cover: `Low` and `Mid` at stretch 2 (δ = 1/2, B = 2), all-successors with `Low → PumpOff` pruned; no choice; decided in the kernel | Theorem 2 by arithmetic; Assumption 1 transported from the suite's lemma; the suite's 7 packs plus `Low/High` at 2 (see below) |
+
+**A finding on the suite's replay.** The tool's emitted `Low` cover of `watertank` marks `High`
+joint-certified (a `MidEco` start may continue in `High` after one segment), so the tool issued
+and discharged the `Low/High` flow query at stretch 2. The suite's verdict runner (`packsV2`)
+never re-checked that pack: the standalone Lean proof's response stays in the start mode for
+the whole window, so it does not need it. The general instance replays the tool's cover, needs
+the pack, and the choice verdict runner now carries it (`wt 0 3 2 1`, unsat). The lesson: a
+hand-built response can be simpler than the tool's cover, and then the pins cover the proof,
+not the tool's decision. Replaying emitted covers through `decideCoveredX` (D5) closes this
+for every benchmark.
 
 The per-benchmark standalone proofs (`InstancesV2/Choice/Modal/`, `InstancesV2/Modal/`)
 remain; the general instances are new theorems (`*_general`) with the same conclusion shape

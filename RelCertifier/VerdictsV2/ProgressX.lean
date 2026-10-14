@@ -59,11 +59,12 @@ def modeIdx (ms : List PMode) (nm : String) : Nat := ms.findIdx (·.name == nm)
 /-- The invariant row of a window: the left mode's own when rows are per mode, else row 0. -/
 def invRowOf (p : PProblem) (l : ℕ) : ℕ := if p.invariants.length > l then l else 0
 
-/-- **The progress verdict of one emitted certificate**: every query the runner rebuilds for
-it (`progressQueriesOf` at the runner's indices) is `unsat`. -/
+/-- **The progress verdict of one emitted certificate**: the runner's rebuild succeeds
+(`progressQueriesOf` at the runner's indices; a failed rebuild is a SKIP, non-green) and every
+rebuilt query is `unsat`. -/
 def ProgressVerd (p : PProblem) (cX : EvolStrengtheningX) (n : ℕ) (c : ProgressE) : Prop :=
-  ∀ qs, progressQueriesOf p cX n (invRowOf p (modeIdx p.L.modes c.mL)) (modeIdx p.L.modes c.mL)
-    (modeIdx p.R.modes c.mR) c = some qs → ∀ q ∈ qs, z3solve q.toHost = Verdict.unsat
+  ∃ qs, progressQueriesOf p cX n (invRowOf p (modeIdx p.L.modes c.mL)) (modeIdx p.L.modes c.mL)
+    (modeIdx p.R.modes c.mR) c = some qs ∧ ∀ q ∈ qs, z3solve q.toHost = Verdict.unsat
 
 /-! ## Reading `unsat` answers -/
 

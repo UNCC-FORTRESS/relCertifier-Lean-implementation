@@ -70,6 +70,12 @@ helper stage; the four nodes without one are never used). The right-only rule an
 1 are unchanged; the right-only kind is now *certified*: preservation (certificate 3) plus
 progress.
 
+The emitted certificates (`InstancesV2/BenchProgress`, 261 over the suite) are rebuilt into
+their queries by `VerdictsV2/ProgressX.lean` and discharged by `relcert-progress-verdicts`
+(261/261 unsat); `VerdictsV2/ProgressPin.lean` reads a certificate's verdict as the host-level
+facts, and `charger_fast_setpoints` goes through the general theorem with its `BULK` reposition
+node discharged that way.
+
 `Proofs/Encoding/Progress.lean` proves the certificate sound: `repoProgress_one` and
 `repoProgress_two` give `RepoProgress` (the general theorem's premise: from a reposition start,
 cycles of the node until an exit is enabled, the anchor kept) from the certificate's facts,
@@ -87,6 +93,8 @@ three.
 | `vehicle_accel_copy` | 3, `dt ≤ 1` | the same | hop certificate (`guardR_of_guardL`); 3 packs |
 | `watertank_choice` | 3, `dt ≤ 1` | `Low` at the per-pairing stretches (δ = 2/7, B = 4), all-successors with `Low → PumpOff` pruned; `Mid` from `MidEco` by a hop into `MidBoost`; decided by `decideCoveredX` in the kernel | Theorem 2 for the pruned edge by arithmetic; hop certificate; Assumption 1 with the economy set point; 7 packs |
 | `watertank` (suite) | 3, `dt ≤ 1` | the tool's emitted cover: `Low` and `Mid` at stretch 2 (δ = 1/2, B = 2), all-successors with `Low → PumpOff` pruned; no choice; decided in the kernel | Theorem 2 by arithmetic; Assumption 1 transported from the suite's lemma; the suite's 7 packs plus `Low/High` at 2 (see below) |
+
+| `charger_fast_setpoints` (suite) | 3, `dt ≤ 2` | the tool's emitted cover: `BULK` a reposition node in the `BULK` and `ABSORB` windows (the right charges at the bulk rate until `ABSORB`'s guard opens), `BULK → FAULT` pruned; decided in the kernel | **reposition progress from the emitted progress certificate** (`progressVerd_one`, the queries the progress verdict runner discharges) with Assumption 1, the reposition packs (`VerdD`) and Theorem 2 for the pruned edge; the suite's 6 joint packs |
 
 **A finding on the suite's replay.** The tool's emitted `Low` cover of `watertank` marks `High`
 joint-certified (a `MidEco` start may continue in `High` after one segment), so the tool issued
@@ -108,8 +116,7 @@ remain; the general instances are new theorems (`*_general`) with the same concl
   row-generic; the assembly through `theorem3_modeKeyed` is not written.
 * Replay of the tool's emitted choice covers: the tool does not emit them yet (D5); the
   instances above write their covers by hand and decide them in the kernel.
-* The progress verdict runner and pins (the emitted `ProgressE` rebuilt into the queries the
-  tool issued, their `unsat` answers bridged to the semantic facts `repoProgress_*` take), and
-  an instance with a reposition node through the general theorem.
+* The two-stage progress pin (`progressVerd_two`, the rover family); the single-stage one is
+  `progressVerd_one`, used by the charger instance.
 * The remaining 43 suite benchmarks are not re-derived through the general theorem (their
   standalone proofs stand).

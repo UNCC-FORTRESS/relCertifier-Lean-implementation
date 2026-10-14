@@ -9,8 +9,7 @@ queries all `unsat`) into the facts `repoProgress_one` consumes, stated over the
 denotations the instances use (`hostEvolve`, `hostGuard`, the checked cuts as `cutPairsX`,
 the invariant components as `hostComps`, the field as `hostDyn`): the rate on the region, and
 the landing on the crossing line and at an already-crossed start. The rebuild's `Option`
-binds are unpacked symbolically (as `modalVerdDynX_of_queries` does), so the instance only
-has to know that the rebuild succeeds (`(progressQueriesOf …).isSome`, decided in the kernel).
+binds are unpacked symbolically (as `modalVerdDynX_of_queries` does).
 -/
 import RelCertifier.VerdictsV2.ProgressX
 import RelCertifier.Verdicts.GenericPins
@@ -55,9 +54,7 @@ theorem sat_cutF_iff (cs : List (CutAtomP n)) (y : State (Var n)) :
 /-- **The single-stage pin.** -/
 theorem progressVerd_one {p : PProblem} {cX : EvolStrengtheningX} {c : ProgressE}
     (hv : ProgressVerd p cX n c) (st : ProgressStageE) (hst : c.stages = [st])
-    (hup : st.up = true)
-    (hsome : (progressQueriesOf p cX n (invRowOf p (modeIdx p.L.modes c.mL))
-      (modeIdx p.L.modes c.mL) (modeIdx p.R.modes c.mR) c).isSome = true) :
+    (hup : st.up = true) :
     let vars := p.L.stateVars
     let dm : PMode := ⟨"", [], .tt, .tt, []⟩
     let mL := p.L.modes.getD (modeIdx p.L.modes c.mL) dm
@@ -74,8 +71,7 @@ theorem progressVerd_one {p : PProblem} {cX : EvolStrengtheningX} {c : ProgressE
         ∃ nm ∈ c.exits, ∃ md ∈ p.R.modes, md.name = nm ∧
           Formula.sat (hostGuard vars n Side.R md) y) := by
   intro vars dm mL mR row
-  obtain ⟨qs, hqs⟩ := Option.isSome_iff_exists.mp hsome
-  have hz3 := hv qs hqs
+  obtain ⟨qs, hqs, hz3⟩ := hv
   unfold progressQueriesOf at hqs
   simp only [Option.bind_eq_bind] at hqs
   rcases hreg : regionOf p cX n (invRowOf p (modeIdx p.L.modes c.mL)) c.pre

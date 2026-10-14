@@ -79,20 +79,27 @@ def keepQuery (R : IForm n) (fR : Fin n → ITerm n) (vs : List (Var n × Progre
   let bad : IForm n := if st.up then .cmp .lt dot (.rat 0) else .cmp .gt dot (.rat 0)
   IForm.and (IForm.and (IForm.and R (crossedBefore vs i)) side) bad
 
-/-- **land** (unsat expected): `R ∧ crossed_{<last} ∧ crossed_last ∧ ⋀_{e ∈ exits} ¬guard(e)`:
-wherever the last coordinate has crossed (the first such state of the run, or the start),
-some exit is enabled. -/
-def landQuery (R : IForm n) (vs : List (Var n × ProgressStageE)) (v : Var n)
-    (st : ProgressStageE) (guards : List (IForm n)) : IForm n :=
-  guards.foldl (fun d g => IForm.and d (IForm.neg g))
-    (IForm.and (IForm.and R (crossedBefore vs (vs.length - 1))) (crossed v st))
+/-- `x = θ`: the crossing line. -/
+def onLine (v : Var n) (st : ProgressStageE) : IForm n := .cmp .eq (.var v) (.rat st.theta)
+
+/-- **land** (each unsat expected). The last stage's coordinate first satisfies its crossed
+fact either on the crossing line (some point of the run with `x = θ`, by continuity) or at the
+node's start, already crossed. At every such state of the region some exit's guard must hold:
+* `R ∧ x_last = θ_last ∧ ⋀ ¬guard(e)`;
+* `R ∧ guard(q) ∧ crossed_last ∧ ⋀ ¬guard(e)`.
+Neither needs the helper stages' crossed facts: those only feed the last stage's rate. -/
+def landQueries (R guardq : IForm n) (v : Var n) (st : ProgressStageE)
+    (guards : List (IForm n)) : List (IForm n) :=
+  let neg := fun (base : IForm n) => guards.foldl (fun d g => IForm.and d (IForm.neg g)) base
+  [neg (IForm.and R (onLine v st)), neg (IForm.and (IForm.and R guardq) (crossed v st))]
 
 /-- The queries of a certificate, in order: per stage its rate query and (non-last) keep
-query, then the landing query. `none` if a variable or an exit guard does not lower. -/
+query, then the landing queries. `none` if a variable or an exit guard does not lower. -/
 def progressQueries (vars : List String) (R : IForm n) (fR : Fin n → ITerm n)
     (guardOf : String → Option (IForm n)) (c : ProgressE) : Option (List (IForm n)) := do
   let vs ← c.stages.mapM (fun st => (resolveVar vars n Side.R st.var).map (fun v => (v, st)))
   let guards ← c.exits.mapM guardOf
+  let guardq ← guardOf c.mR
   if vs.isEmpty then none
   let last := vs.length - 1
   let perStage := (List.range vs.length).flatMap (fun i =>
@@ -101,7 +108,7 @@ def progressQueries (vars : List String) (R : IForm n) (fR : Fin n → ITerm n)
         rateQuery R fR vs i v st :: (if i < last then [keepQuery R fR vs i v st] else [])
     | none => [])
   match vs[last]? with
-  | some (v, st) => pure (perStage ++ [landQuery R vs v st guards])
+  | some (v, st) => pure (perStage ++ landQueries R guardq v st guards)
   | none => none
 
 /-! ## Emission -/

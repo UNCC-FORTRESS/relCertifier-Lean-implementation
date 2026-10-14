@@ -688,12 +688,17 @@ last stage (its landing query first, then its rate on a geometric grid); failing
 helper stage on a coordinate the field reads (its keep query, its rate, then the last stage's
 rate under the helper's crossed fact). Two stages at most. -/
 def checkProgress {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
-    (vars : List String) (coord : Fin n → String) (R : IForm n) (fR : Fin n → ITerm n)
+    (vars : List String) (coord : Fin n → String) (R guardq : IForm n) (fR : Fin n → ITerm n)
     (exits : List PMode) : IO (Option (List Progress.ProgressStageE)) := do
   let guards := exits.map (fun m => lowerF vars n Side.R m.guard)
   if exits.isEmpty || guards.any Option.isNone then return none
   let gs := guards.filterMap id
   let probe := fun (q : IForm n) => probeUnsat s cnt maxQ maxSmt deadline coord q
+  let probeAll := fun (qs : List (IForm n)) => do
+    let mut ok := true
+    for q in qs do
+      if ok then ok := ← probe q
+    pure ok
   let cands := (exits.flatMap (fun m => thresholdAtoms m.guard)).eraseDups
   let rates : List ℚ := [1, 1/2, 1/4, 1/8, 1/16, 1/32, 1/64, 1/128]
   let y0s : List ℚ := [5, 2, 1, 1/2, 3/10, 1/5, 1/10, 1/20]
@@ -702,7 +707,7 @@ def checkProgress {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt dead
     | none => pure ()
     | some v =>
       let stLast := fun (r : ℚ) => ({ var := x, theta := θ, up := up, rate := r } : Progress.ProgressStageE)
-      if !(← probe (Progress.landQuery R [(v, stLast 1)] v (stLast 1) gs)) then continue
+      if !(← probeAll (Progress.landQueries R guardq v (stLast 1) gs)) then continue
       let mut found : Option (List Progress.ProgressStageE) := none
       for r in rates do
         if found.isSome then break
@@ -728,8 +733,7 @@ def checkProgress {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt dead
                 if found.isSome then break
                 let vs := [(w, stY r1v), (v, stLast r)]
                 if ← probe (Progress.rateQuery R fR vs 1 v (stLast r)) then
-                  if ← probe (Progress.landQuery R vs v (stLast r) gs) then
-                    found := some [stY r1v, stLast r]
+                  found := some [stY r1v, stLast r]
       if found.isSome then return found
   return none
 
@@ -794,7 +798,8 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
           | none => pure ()
           | some fRm =>
             let R := IForm.and (leftFacts pre) (rightFacts mR.name)
-            match ← checkProgress s cnt maxQ maxSmt deadline vars coord R fRm exitModes with
+            let guardq := (lowerF vars n Side.R mR.guard).getD IForm.tt
+            match ← checkProgress s cnt maxQ maxSmt deadline vars coord R guardq fRm exitModes with
             | some stages =>
                 IO.eprintln s!"  [progress] {p.name} {mL.name}_L/{mR.name} pre={pre}: {stages.map (fun st => s!"{st.var}{if st.up then "≥" else "≤"}{st.theta}@{st.rate}")} exits={exitsL}"
                 progressLog.modify (· ++ [⟨mL.name, mR.name, pre, stages, exitsL⟩])

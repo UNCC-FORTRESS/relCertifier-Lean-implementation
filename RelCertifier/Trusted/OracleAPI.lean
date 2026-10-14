@@ -57,6 +57,7 @@ import RelCertifier.Checker.EvolStrengtheningX
 import RelCertifier.Trusted.Z3
 import RelCertifier.Checker.Checker
 import RelCertifier.Checker.CoverEmit
+import RelCertifier.Trusted.ProgressEmit
 import Std.Data.HashMap
 
 namespace RelCertifier.Oracle
@@ -654,6 +655,84 @@ partial def choiceCover {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSm
   memo.modify (·.insert key ok)
   return ok
 
+
+/-! ## The progress certificate search (`Trusted/ProgressEmit.lean`) -/
+
+/-- The progress certificates found in the current run (per benchmark; reset by
+`certifyWithData`), for emission. -/
+initialize progressLog : IO.Ref (List Progress.ProgressE) ← IO.mkRef []
+
+/-- The variables of an IR term. -/
+def itermVars {n : ℕ} : ITerm n → List (Var n)
+  | .var v => [v]
+  | .rat _ => []
+  | .bin _ a b => itermVars a ++ itermVars b
+
+/-- The nonstrict threshold atoms `x ≥ c` / `x ≤ c` of a guard (a strict one cannot hold at the
+crossing state `x = c`). -/
+partial def thresholdAtoms : PForm → List (String × ℚ × Bool)
+  | .cmp op (.var x) (.num c) =>
+      match parseRat c with
+      | some q => if op == ">=" then [(x, q, true)] else if op == "<=" then [(x, q, false)] else []
+      | none => []
+  | .cmp op (.num c) (.var x) =>
+      match parseRat c with
+      | some q => if op == "<=" then [(x, q, true)] else if op == ">=" then [(x, q, false)] else []
+      | none => []
+  | .and a b => thresholdAtoms a ++ thresholdAtoms b
+  | _ => []
+
+/-- **The progress search** at a reposition node with region `R` (the facts its right-only
+flow preserves), field `fR`, and exits. Candidates: a threshold atom of an exit guard as the
+last stage (its landing query first, then its rate on a geometric grid); failing that, one
+helper stage on a coordinate the field reads (its keep query, its rate, then the last stage's
+rate under the helper's crossed fact). Two stages at most. -/
+def checkProgress {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
+    (vars : List String) (coord : Fin n → String) (R : IForm n) (fR : Fin n → ITerm n)
+    (exits : List PMode) : IO (Option (List Progress.ProgressStageE)) := do
+  let guards := exits.map (fun m => lowerF vars n Side.R m.guard)
+  if exits.isEmpty || guards.any Option.isNone then return none
+  let gs := guards.filterMap id
+  let probe := fun (q : IForm n) => probeUnsat s cnt maxQ maxSmt deadline coord q
+  let cands := (exits.flatMap (fun m => thresholdAtoms m.guard)).eraseDups
+  let rates : List ℚ := [1, 1/2, 1/4, 1/8, 1/16, 1/32, 1/64, 1/128]
+  let y0s : List ℚ := [5, 2, 1, 1/2, 3/10, 1/5, 1/10, 1/20]
+  for (x, θ, up) in cands do
+    match resolveVar vars n Side.R x with
+    | none => pure ()
+    | some v =>
+      let stLast := fun (r : ℚ) => ({ var := x, theta := θ, up := up, rate := r } : Progress.ProgressStageE)
+      if !(← probe (Progress.landQuery R [(v, stLast 1)] v (stLast 1) gs)) then continue
+      let mut found : Option (List Progress.ProgressStageE) := none
+      for r in rates do
+        if found.isSome then break
+        let st := stLast r
+        if ← probe (Progress.rateQuery R fR [(v, st)] 0 v st) then found := some [st]
+      if found.isSome then return found
+      let ys := (itermVars (fR v.2)).eraseDups.filter (fun w => w.1 == Side.R && w != v)
+      for w in ys do
+        for upY in [true, false] do
+          for y0 in y0s do
+            if found.isSome then break
+            let stY := fun (r1 : ℚ) =>
+              ({ var := coord w.2, theta := y0, up := upY, rate := r1 } : Progress.ProgressStageE)
+            if !(← probe (Progress.keepQuery R fR [(w, stY 1)] 0 w (stY 1))) then continue
+            let mut r1 : Option ℚ := none
+            for r in rates do
+              if r1.isSome then break
+              if ← probe (Progress.rateQuery R fR [(w, stY r)] 0 w (stY r)) then r1 := some r
+            match r1 with
+            | none => pure ()
+            | some r1v =>
+              for r in rates do
+                if found.isSome then break
+                let vs := [(w, stY r1v), (v, stLast r)]
+                if ← probe (Progress.rateQuery R fR vs 1 v (stLast r)) then
+                  if ← probe (Progress.landQuery R vs v (stLast r) gs) then
+                    found := some [stY r1v, stLast r]
+      if found.isSome then return found
+  return none
+
 /-- Cover a single left mode: `cov` if some (start,λ) closes definitively; `incon` if none
 close but a route was inconclusive; `nocov` if all routes are definitive fails. -/
 def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p : PProblem)
@@ -671,6 +750,18 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
   for mR in p.R.modes do
     if ← admissible s cnt maxQ maxSmt deadline vars n coord comps mL mR then
       admMods := admMods ++ [mR]
+  let lowL := fun (f : PForm) => (lowerF vars n Side.L f).getD IForm.tt
+  let lowR := fun (f : PForm) => (lowerF vars n Side.R f).getD IForm.tt
+  let modeOf := fun (nm : String) => p.R.modes.find? (·.name == nm)
+  let invI : IForm n := comps.foldl (fun d g => IForm.and d (IForm.cmp .le g (.rat 0))) IForm.tt
+  let leftFacts := fun (pre : Bool) =>
+    let b := IForm.and (IForm.and (lowL mL.evolve) cutL) invI
+    if pre then IForm.and b (lowL mL.guard) else b
+  let rightFacts := fun (nm : String) => match modeOf nm with
+    | some m => IForm.and (lowR m.evolve) (cutOfR nm)
+    | none => IForm.tt
+  let declared := fun (nm : String) =>
+    ((succOf p nm).filter (fun t => !prunedOf nm t)).eraseDups
   -- The only right-only move is the DYNAMIC reposition below: a full-interval right-only flow.
   -- There is no zero-duration right switch (one that would switch at a single instant with no
   -- check that the successor's guard holds there).
@@ -684,14 +775,45 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     let (post, postOrd) ← checkDynRepo s cnt maxQ maxSmt deadline vars n coord comps cutL (cutOfR mR.name) mL mR false
     dynMap := dynMap ++ [(mR.name, pre, post)]
     dynOrders := dynOrders ++ [(mR.name, preOrd, postOrd)]
+  -- PROGRESS (`RELCERT_PROGRESS=1`): a reposition node must also certify that its right-only
+  -- flow reaches an exit (`checkProgress`, `Trusted/ProgressEmit.lean`); otherwise it is not
+  -- a node. The certificates found are logged for emission (`RELCERT_PROGRESS_OUT`).
+  let progressOn := (← IO.getEnv "RELCERT_PROGRESS").isSome
+  let mut progMap : List (String × Bool × Bool) := []
+  if progressOn then
+    for mR in p.R.modes do
+      let dyn := (dynMap.find? (·.1 == mR.name)).getD (mR.name, false, false)
+      let exitsL := (declared mR.name).filter (· != mR.name)
+      let exitModes := exitsL.filterMap modeOf
+      let mut pp := false
+      let mut qq := false
+      for pre in [true, false] do
+        let dynOK := if pre then dyn.2.1 else dyn.2.2
+        if dynOK && !exitModes.isEmpty then
+          match dynOf vars n Side.R mR with
+          | none => pure ()
+          | some fRm =>
+            let R := IForm.and (leftFacts pre) (rightFacts mR.name)
+            match ← checkProgress s cnt maxQ maxSmt deadline vars coord R fRm exitModes with
+            | some stages =>
+                IO.eprintln s!"  [progress] {p.name} {mL.name}_L/{mR.name} pre={pre}: {stages.map (fun st => s!"{st.var}{if st.up then "≥" else "≤"}{st.theta}@{st.rate}")} exits={exitsL}"
+                progressLog.modify (· ++ [⟨mL.name, mR.name, pre, stages, exitsL⟩])
+                if pre then pp := true else qq := true
+            | none =>
+                IO.eprintln s!"  [progress] {p.name} {mL.name}_L/{mR.name} pre={pre}: NONE exits={exitsL}"
+      progMap := progMap ++ [(mR.name, pp, qq)]
+  let progOK := fun (nm : String) (pre : Bool) =>
+    !progressOn || (((progMap.find? (·.1 == nm)).map (fun t => if pre then t.2.1 else t.2.2)).getD false)
   -- BASELINE `RELCERT_SYNC=1` (time-synchronous matching): λ = 1 only, no right-only
   -- reposition, no per-pairing fallback; multi-step joint covers stay allowed.
   let sync := (← IO.getEnv "RELCERT_SYNC").isSome
   -- `RELCERT_NO_REPO=1`: no right-only reposition nodes of the all-successors kind (the
   -- chosen-exits form, `RELCERT_CHOICE=1`, is the hop, which needs no reposition node).
   let noRepo := (← IO.getEnv "RELCERT_NO_REPO").isSome
-  let repoDynPreOK  := fun (nm : String) => !sync && !noRepo && ((dynMap.find? (·.1 == nm)).map (·.2.1) |>.getD false)
-  let repoDynPostOK := fun (nm : String) => !sync && !noRepo && ((dynMap.find? (·.1 == nm)).map (·.2.2) |>.getD false)
+  let repoDynPreOK  := fun (nm : String) => !sync && !noRepo && progOK nm true &&
+    ((dynMap.find? (·.1 == nm)).map (·.2.1) |>.getD false)
+  let repoDynPostOK := fun (nm : String) => !sync && !noRepo && progOK nm false &&
+    ((dynMap.find? (·.1 == nm)).map (·.2.2) |>.getD false)
   if (← IO.getEnv "RELCERT_DEBUG").isSome then
     IO.eprintln s!"  [admissible] {mL.name}_L: {admMods.map (·.name)}"
     let dpreL := dynMap.filterMap (fun p => if p.2.1 then some p.1 else none)
@@ -745,18 +867,6 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
   let mut scanCover : Option LeftCoverE := none
   let mut scanPass : List (String × List ℚ) := []
   let mut scanGrid : List ℚ := []
-  let lowL := fun (f : PForm) => (lowerF vars n Side.L f).getD IForm.tt
-  let lowR := fun (f : PForm) => (lowerF vars n Side.R f).getD IForm.tt
-  let modeOf := fun (nm : String) => p.R.modes.find? (·.name == nm)
-  let invI : IForm n := comps.foldl (fun d g => IForm.and d (IForm.cmp .le g (.rat 0))) IForm.tt
-  let leftFacts := fun (pre : Bool) =>
-    let b := IForm.and (IForm.and (lowL mL.evolve) cutL) invI
-    if pre then IForm.and b (lowL mL.guard) else b
-  let rightFacts := fun (nm : String) => match modeOf nm with
-    | some m => IForm.and (lowR m.evolve) (cutOfR nm)
-    | none => IForm.tt
-  let declared := fun (nm : String) =>
-    ((succOf p nm).filter (fun t => !prunedOf nm t)).eraseDups
   let mkCtx := fun (seg : String → Seg) => ({
       node := fun nm => seg nm == Seg.pass || repoDynPreOK nm || repoDynPostOK nm
       jointOK := fun nm => seg nm == Seg.pass
@@ -908,6 +1018,7 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
 /-- Core cover, parameterized by a query counter/budget (`throw`s on overrun). -/
 def certifyWithData (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     (p : PProblem) : IO (Outcome × Option CoverEmitE) := do
+  progressLog.set []
   -- the joint variable list: the left variables, then any right-only ones (a right-only
   -- variable is held fixed on the left; `Trusted/JointVars.lean`)
   let vars := p.jointVars
@@ -1089,7 +1200,16 @@ def emitCoverFile (cfg : Z3Config) (path defname : String) : IO Unit := do
             catch e => pure (.error s!"budget exceeded ({e})", none)
           s.close
           match r with
-          | (.certified, some c) => IO.println (emitCoverE defname c)
+          | (.certified, some c) =>
+              IO.println (emitCoverE defname c)
+              match ← IO.getEnv "RELCERT_PROGRESS_OUT" with
+              | some out =>
+                  let certs ← progressLog.get
+                  IO.FS.writeFile out ("import RelCertifier.Trusted.ProgressEmit\n\n" ++
+                    "namespace RelCertifier.Progress\n\n" ++
+                    Progress.emitProgressE (defname ++ "_progress") ⟨p.name, certs⟩ ++
+                    "\n\nend RelCertifier.Progress\n")
+              | none => pure ()
           | (o, _) => IO.eprintln s!"ERROR: not certified: {o.tag}"; IO.Process.exit 1
 
 /-- R-side face terms of an evolve conjunction (safe-side `g ≤ 0` per comparison). -/

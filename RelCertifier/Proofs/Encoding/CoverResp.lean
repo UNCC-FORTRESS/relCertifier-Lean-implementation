@@ -99,7 +99,7 @@ variable (G : SearchGraph (Var n)) (ch : ChoiceData)
   (hgR : GuardsRight G) (hguards : ∀ q, ∀ e ∈ G.edgesFrom q, e.guard = guard e.tgt)
   (hguardR : ∀ q, (guard q).fv ⊆ range Rv)
   (hfL : ∀ i, (fL i).fv ⊆ range Lv) (hdomL : domL.fv ⊆ range Lv) (hdomR : domR.fv ⊆ range Rv)
-  (hgL : gL.fv ⊆ range Lv) (hfR : ∀ q, ∀ i, (fR q i).fv ⊆ range Rv)
+  (hgL : gL.fv ⊆ range Lv) (hfR : ∀ q, q < G.modes.length → ∀ i, (fR q i).fv ⊆ range Rv)
   (hsys : ∀ q m, G.modeAt q = some m → m.sys = rightBlock (fR q) (Term.const 1))
   (hdomM : ∀ q m, G.modeAt q = some m → m.dom = domR)
   (hweight : ∀ q m, G.modeAt q = some m → m.weight = 1)
@@ -110,15 +110,15 @@ variable (G : SearchGraph (Var n)) (ch : ChoiceData)
   (A : ℕ → Formula (Var n)) (hAfv : ∀ q, (A q).fv ⊆ range Lv ∪ range Rv)
   (hAdom : ∀ q y, Formula.sat (A q) y → Formula.sat domR y)
   -- Theorem 1 at each pairing (the joint flow at the pairing's stretch keeps the anchor)
-  (hbox : ∀ q m, G.modeAt q = some m → m.jointOK = true → ∀ σ ω, Formula.sat (A q) σ →
+  (hbox : ∀ q m, G.modeAt q = some m → ch.jointOK q = true → ∀ σ ω, Formula.sat (A q) σ →
     Program.sem (Program.ode (jointSys fL (fR q) (Term.const (lam q))) (Formula.and domL domR))
       σ ω → Formula.sat (A q) ω)
   -- the reposition certificates (the frozen-left flow keeps the anchor; pre-joint with `gL`)
-  (hboxDpre : ∀ q m, G.modeAt q = some m → m.repoDynPreOK = true → ∀ σ ω,
+  (hboxDpre : ∀ q m, G.modeAt q = some m → ch.repoPre q = true → ∀ σ ω,
     Formula.sat (A q) σ → Formula.sat gL σ →
     Program.sem (Program.ode (jointSys (fun _ => Term.const 0) (fR q) (Term.const 1))
       (Formula.and domL domR)) σ ω → Formula.sat (A q) ω)
-  (hboxDpost : ∀ q m, G.modeAt q = some m → m.repoDynPostOK = true → ∀ σ ω,
+  (hboxDpost : ∀ q m, G.modeAt q = some m → ch.repoPost q = true → ∀ σ ω,
     Formula.sat (A q) σ →
     Program.sem (Program.ode (jointSys (fun _ => Term.const 0) (fR q) (Term.const 1))
       (Formula.and domL domR)) σ ω → Formula.sat (A q) ω)
@@ -137,7 +137,7 @@ variable (G : SearchGraph (Var n)) (ch : ChoiceData)
     Program.sem (Program.ode (jointSys (fun _ => Term.const 0) (fR q) (Term.const 1))
       (Formula.and domL domR)) σ ω → ¬ Formula.sat e.guard ω)
   -- reposition progress: a right-only run of a reposition node reaches an exit's guard
-  (hrepoProg : ∀ q m, G.modeAt q = some m → (m.repoDynPreOK = true ∨ m.repoDynPostOK = true) →
+  (hrepoProg : ∀ q m, G.modeAt q = some m → (ch.repoPre q = true ∨ ch.repoPost q = true) →
     ∀ ρ, Formula.sat (guard q) ρ → Formula.sat domR ρ →
     ∃ τ Φ, ODESol (rightBlock (fR q) (Term.const 1)) domR ρ τ Φ ∧
       ∃ e ∈ G.edgesFrom q, SwitchLegal e (Φ τ) ∧ e.tgt ≠ q)
@@ -160,7 +160,7 @@ include hgR hguards hfL hdomL hdomR hfR hsys hdomM hlam hspan hAdom hbox hhand h
 (`r − a ≤ δ`), the right runs to the piece's end and switches into an enabled successor. -/
 theorem coverX_finish {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
     (hL : ODESol (clk tg (leftBlock fL)) domL x r ΦL) (ω₀ : State (Var n))
-    {q : ℕ} {m : RMode (Var n)} (hm : G.modeAt q = some m) (hj : m.jointOK = true)
+    {q : ℕ} {m : RMode (Var n)} (hm : G.modeAt q = some m) (hj : ch.jointOK q = true)
     {a : ℝ} (ha : 0 ≤ a) (har : a ≤ r) (hfit : r - a ≤ δ) {ρ : State (Var n)}
     (hPre : Formula.sat (guard q) ρ) (hA : Formula.sat (A q) (mergeLR ω₀ (ΦL a) ρ)) :
     RRespP G q (fun q' μ => Formula.sat (guard q') μ ∧
@@ -175,7 +175,7 @@ theorem coverX_finish {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)
   have hΦT : ODESol m.sys m.dom ρ T Φ := ODESol_restrict hΦ hT0 hTε
   have hΦ' : ODESol (rightBlock (fR q) (Term.const 1)) domR ρ T Φ := by
     rw [← hsys q m hm, ← hdomM q m hm]; exact hΦT
-  have hAend := joint_stretch tg (lam q) hlq hfL (hfR q) hdomL hdomR hL ω₀ (A q)
+  have hAend := joint_stretch tg (lam q) hlq hfL (hfR q (modeAt_lt hm)) hdomL hdomR hL ω₀ (A q)
     (hbox q m hm hj) ha har le_rfl hΦ' hA
   obtain ⟨e, he, hge⟩ := hcomp T Φ hTε hΦT
   have hleg : SwitchLegal e (Φ T) := by unfold SwitchLegal; rw [hguards q e he]; exact hge
@@ -206,14 +206,14 @@ theorem coverX_piece {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
         calc r - a ≤ (B : ℝ) * δ := hbud
           _ ≤ 1 * δ := mul_le_mul_of_nonneg_right this hδ.le
           _ = δ := one_mul δ
-      exact coverX_finish G fR domR fL domL tg guard hgR hguards hfL hdomL hdomR hfR
+      exact coverX_finish G ch fR domR fL domL tg guard hgR hguards hfL hdomL hdomR hfR
         hsys hdomM epsR δ lam hlam hspan A hAdom hbox hhand hwf hL ω₀ hm hj ha har hfit hPre hA
   | @step q B σ m hm hj hlt _ ih =>
       intro a ha har hbud _ ρ hPre hA
       have hw := hweight q m hm
       rw [hw] at hlt ih
       by_cases hfit : r - a ≤ δ
-      · exact coverX_finish G fR domR fL domL tg guard hgR hguards hfL hdomL hdomR hfR
+      · exact coverX_finish G ch fR domR fL domL tg guard hgR hguards hfL hdomL hdomR hfR
           hsys hdomM epsR δ lam hlam hspan A hAdom hbox hhand hwf hL ω₀ hm hj ha har hfit hPre hA
       · push Not at hfit
         -- run the segment's span `δ`
@@ -233,7 +233,7 @@ theorem coverX_piece {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
           rw [← hsys q m hm, ← hdomM q m hm]; exact hΦT
         -- the joint run and the anchor at the segment's end
         have hLs := odeSol_shift hL ha hab hbr
-        have hj' := joint_of_sols_lam tg (lam q) hlq hfL (hfR q) hdomL hdomR hLs hΦ' ω₀
+        have hj' := joint_of_sols_lam tg (lam q) hlq hfL (hfR q (modeAt_lt hm)) hdomL hdomR hLs hΦ' ω₀
         simp only [add_zero, add_sub_cancel, hΦ'.hΦ0] at hj'
         have hAb : Formula.sat (A q) (mergeLR ω₀ (ΦL b) (Φ T)) := hbox q m hm hj _ _ hA hj'
         -- an enabled declared successor, not pruned
@@ -263,7 +263,7 @@ theorem coverX_piece {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
       subst ha0
       have hρdom : Formula.sat domR ρ := (sat_merge_R hdomR ω₀ (ΦL 0) ρ).mp (hAdom q _ hA)
       obtain ⟨τ, Φ, hΦ, e, he, hleg, hneq⟩ := hrepoProg q m hm (Or.inl hrepo) ρ hPre hρdom
-      have hjoint := right_sol_merge_joint (hfR q) hdomL hdomR hΦ ω₀ (ΦL 0) (hL.hdom 0 ⟨le_rfl, hL.hr⟩)
+      have hjoint := right_sol_merge_joint (hfR q (modeAt_lt hm)) hdomL hdomR hΦ ω₀ (ΦL 0) (hL.hdom 0 ⟨le_rfl, hL.hr⟩)
       have hgLm : Formula.sat gL (mergeLR ω₀ (ΦL 0) ρ) := (sat_merge_L hgL ω₀ _ ρ).mpr hx
       have hAτ := hboxDpre q m hm hrepo _ _ hA hgLm hjoint
       have hlegm : SwitchLegal e (mergeLR ω₀ (ΦL 0) (Φ τ)) :=
@@ -285,7 +285,7 @@ theorem coverX_piece {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
       intro a ha har hbud _ ρ hPre hA
       have hρdom : Formula.sat domR ρ := (sat_merge_R hdomR ω₀ (ΦL a) ρ).mp (hAdom q _ hA)
       obtain ⟨τ, Φ, hΦ, e, he, hleg, hneq⟩ := hrepoProg q m hm (Or.inr hrepo) ρ hPre hρdom
-      have hjoint := right_sol_merge_joint (hfR q) hdomL hdomR hΦ ω₀ (ΦL a) (hL.hdom a ⟨ha, har⟩)
+      have hjoint := right_sol_merge_joint (hfR q (modeAt_lt hm)) hdomL hdomR hΦ ω₀ (ΦL a) (hL.hdom a ⟨ha, har⟩)
       have hAτ := hboxDpost q m hm hrepo _ _ hA hjoint
       have hlegm : SwitchLegal e (mergeLR ω₀ (ΦL a) (Φ τ)) :=
         (switchLegal_merge hgR he ω₀ (ΦL a)).mpr hleg
@@ -307,7 +307,7 @@ theorem coverX_piece {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
       have hw := hweight q m hm
       rw [hw] at hlt ih
       by_cases hfit : r - a ≤ δ
-      · exact coverX_finish G fR domR fL domL tg guard hgR hguards hfL hdomL hdomR hfR
+      · exact coverX_finish G ch fR domR fL domL tg guard hgR hguards hfL hdomL hdomR hfR
           hsys hdomM epsR δ lam hlam hspan A hAdom hbox hhand hwf hL ω₀ hm hj ha har hfit hPre hA
       · push Not at hfit
         have hlq := hlam q
@@ -325,7 +325,7 @@ theorem coverX_piece {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
         have hΦ' : ODESol (rightBlock (fR q) (Term.const 1)) domR ρ T Φ := by
           rw [← hsys q m hm, ← hdomM q m hm]; exact hΦT
         have hLs := odeSol_shift hL ha hab hbr
-        have hj' := joint_of_sols_lam tg (lam q) hlq hfL (hfR q) hdomL hdomR hLs hΦ' ω₀
+        have hj' := joint_of_sols_lam tg (lam q) hlq hfL (hfR q (modeAt_lt hm)) hdomL hdomR hLs hΦ' ω₀
         simp only [add_zero, add_sub_cancel, hΦ'.hΦ0] at hj'
         have hAb : Formula.sat (A q) (mergeLR ω₀ (ΦL b) (Φ T)) := hbox q m hm hj _ _ hA hj'
         -- the chosen successor from the coverage certificate
@@ -397,7 +397,7 @@ theorem coverX_gresp (G : SearchGraph (Var n)) (ch : ChoiceData)
     (hgR : GuardsRight G) (hguards : ∀ q, ∀ e ∈ G.edgesFrom q, e.guard = guard e.tgt)
     (hguardR : ∀ q, (guard q).fv ⊆ range Rv)
     (hfL : ∀ i, (fL i).fv ⊆ range Lv) (hdomL : domL.fv ⊆ range Lv) (hdomR : domR.fv ⊆ range Rv)
-    (hgL : gL.fv ⊆ range Lv) (hfR : ∀ q, ∀ i, (fR q i).fv ⊆ range Rv)
+    (hgL : gL.fv ⊆ range Lv) (hfR : ∀ q, q < G.modes.length → ∀ i, (fR q i).fv ⊆ range Rv)
     (hsys : ∀ q m, G.modeAt q = some m → m.sys = rightBlock (fR q) (Term.const 1))
     (hdomM : ∀ q m, G.modeAt q = some m → m.dom = domR)
     (hweight : ∀ q m, G.modeAt q = some m → m.weight = 1)
@@ -405,14 +405,14 @@ theorem coverX_gresp (G : SearchGraph (Var n)) (ch : ChoiceData)
     (hspan : ∀ q, lam q * δ ≤ epsR)
     (A : ℕ → Formula (Var n)) (hAfv : ∀ q, (A q).fv ⊆ range Lv ∪ range Rv)
     (hAdom : ∀ q y, Formula.sat (A q) y → Formula.sat domR y)
-    (hbox : ∀ q m, G.modeAt q = some m → m.jointOK = true → ∀ σ ω, Formula.sat (A q) σ →
+    (hbox : ∀ q m, G.modeAt q = some m → ch.jointOK q = true → ∀ σ ω, Formula.sat (A q) σ →
       Program.sem (Program.ode (jointSys fL (fR q) (Term.const (lam q))) (Formula.and domL domR))
         σ ω → Formula.sat (A q) ω)
-    (hboxDpre : ∀ q m, G.modeAt q = some m → m.repoDynPreOK = true → ∀ σ ω,
+    (hboxDpre : ∀ q m, G.modeAt q = some m → ch.repoPre q = true → ∀ σ ω,
       Formula.sat (A q) σ → Formula.sat gL σ →
       Program.sem (Program.ode (jointSys (fun _ => Term.const 0) (fR q) (Term.const 1))
         (Formula.and domL domR)) σ ω → Formula.sat (A q) ω)
-    (hboxDpost : ∀ q m, G.modeAt q = some m → m.repoDynPostOK = true → ∀ σ ω,
+    (hboxDpost : ∀ q m, G.modeAt q = some m → ch.repoPost q = true → ∀ σ ω,
       Formula.sat (A q) σ →
       Program.sem (Program.ode (jointSys (fun _ => Term.const 0) (fR q) (Term.const 1))
         (Formula.and domL domR)) σ ω → Formula.sat (A q) ω)
@@ -428,7 +428,7 @@ theorem coverX_gresp (G : SearchGraph (Var n)) (ch : ChoiceData)
       Program.sem (Program.ode (jointSys (fun _ => Term.const 0) (fR q) (Term.const 1))
         (Formula.and domL domR)) σ ω → ¬ Formula.sat e.guard ω)
     (hrepoProg : ∀ q m, G.modeAt q = some m →
-      (m.repoDynPreOK = true ∨ m.repoDynPostOK = true) →
+      (ch.repoPre q = true ∨ ch.repoPost q = true) →
       ∀ ρ, Formula.sat (guard q) ρ → Formula.sat domR ρ →
       ∃ τ Φ, ODESol (rightBlock (fR q) (Term.const 1)) domR ρ τ Φ ∧
         ∃ e ∈ G.edgesFrom q, SwitchLegal e (Φ τ) ∧ e.tgt ≠ q)

@@ -12,6 +12,7 @@ the right domain because the left run stays in the left one. `hExistSegB_constMi
 argument; it needs no bound on the duration.
 -/
 import RelCertifier.Proofs.Flow.WellFormedFlow
+import RelCertifier.Proofs.Encoding.SyncSwitch
 
 namespace RelCertifier
 open DL DLCalTiming Set
@@ -156,5 +157,47 @@ theorem hExistSegB_constRight (fL fR : Fin n → Term (Var n)) (lam : Term (Var 
     exact hx (List.mem_map.mpr ⟨(Rv i, _), List.mem_map.mpr ⟨i, List.mem_finRange i, rfl⟩, rfl⟩)
   · intro t ht
     exact hdom t ht.1 (le_trans ht.2 hsdt) (ΦR t) (fun i => rfl)
+
+/-- **The affine right run of a constant field.** From `ρ`, for duration `r`, if every right
+translate `ρ + c·t` (`0 ≤ t ≤ r`) is in the domain. -/
+theorem odeSol_constRight (fR : Fin n → Term (Var n)) (domR : Formula (Var n))
+    (ρ : State (Var n)) (r : ℝ) (hr : 0 ≤ r) (c : Fin n → ℝ)
+    (hfR : ∀ i x, (fR i).eval x = c i)
+    (hdom : ∀ t, 0 ≤ t → t ≤ r → ∀ y : State (Var n),
+      (∀ i, y (Rv i) = ρ (Rv i) + c i * t) → Formula.sat domR y) :
+    ∃ Φ, ODESol (rightBlock fR (Term.const 1)) domR ρ r Φ := by
+  let ΦR : ℝ → State (Var n) := fun t x =>
+    match x with
+    | (Side.R, i) => ρ (Rv i) + c i * t
+    | x => ρ x
+  have hΦR_other : ∀ t x, x.1 ≠ Side.R → ΦR t x = ρ x := by
+    intro t x hx
+    rcases x with ⟨sd, i⟩
+    cases sd
+    · rfl
+    · exact absurd rfl hx
+    · rfl
+  refine ⟨ΦR, hr, ?_, ?_, ?_, ?_⟩
+  · funext x
+    rcases x with ⟨sd, i⟩
+    cases sd
+    · rfl
+    · show ρ (Rv i) + c i * 0 = ρ (Rv i)
+      ring
+    · rfl
+  · intro t _ p hp
+    obtain ⟨i, -, rfl⟩ := List.mem_map.mp hp
+    simp only [Term.eval, AOp.interp, hfR, one_mul]
+    show HasDerivWithinAt (fun u => ρ (Rv i) + c i * u) (c i) (Icc 0 r) t
+    simpa using (((hasDerivAt_id t).const_mul (c i)).const_add (ρ (Rv i))).hasDerivWithinAt
+  · intro t _ x hx
+    refine hΦR_other t x ?_
+    intro hR
+    rcases x with ⟨sd, i⟩
+    simp only at hR
+    subst hR
+    exact hx (List.mem_map.mpr ⟨(Rv i, _), List.mem_map.mpr ⟨i, List.mem_finRange i, rfl⟩, rfl⟩)
+  · intro t ht
+    exact hdom t ht.1 ht.2 (ΦR t) (fun i => rfl)
 
 end RelCertifier

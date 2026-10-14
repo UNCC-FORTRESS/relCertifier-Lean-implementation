@@ -47,14 +47,14 @@ structure CoverHyps (G : SearchGraph (Var n)) (ch : ChoiceData)
   hspan : ∀ q, lam q * δ ≤ epsR
   hAfv : ∀ q, (A q).fv ⊆ range Lv ∪ range Rv
   hAdom : ∀ q y, Formula.sat (A q) y → Formula.sat domR y
-  hbox : ∀ q m, G.modeAt q = some m → m.jointOK = true → ∀ σ ω, Formula.sat (A q) σ →
+  hbox : ∀ q m, G.modeAt q = some m → ch.jointOK q = true → ∀ σ ω, Formula.sat (A q) σ →
     Program.sem (Program.ode (jointSys fL (fR q) (Term.const (lam q))) (Formula.and domL domR))
       σ ω → Formula.sat (A q) ω
-  hboxDpre : ∀ q m, G.modeAt q = some m → m.repoDynPreOK = true → ∀ σ ω,
+  hboxDpre : ∀ q m, G.modeAt q = some m → ch.repoPre q = true → ∀ σ ω,
     Formula.sat (A q) σ → Formula.sat gL σ →
     Program.sem (Program.ode (jointSys (fun _ => Term.const 0) (fR q) (Term.const 1))
       (Formula.and domL domR)) σ ω → Formula.sat (A q) ω
-  hboxDpost : ∀ q m, G.modeAt q = some m → m.repoDynPostOK = true → ∀ σ ω,
+  hboxDpost : ∀ q m, G.modeAt q = some m → ch.repoPost q = true → ∀ σ ω,
     Formula.sat (A q) σ →
     Program.sem (Program.ode (jointSys (fun _ => Term.const 0) (fR q) (Term.const 1))
       (Formula.and domL domR)) σ ω → Formula.sat (A q) ω
@@ -69,7 +69,7 @@ structure CoverHyps (G : SearchGraph (Var n)) (ch : ChoiceData)
     Program.sem (Program.ode (jointSys (fun _ => Term.const 0) (fR q) (Term.const 1))
       (Formula.and domL domR)) σ ω → ¬ Formula.sat e.guard ω
   hrepoProg : ∀ q m, G.modeAt q = some m →
-    (m.repoDynPreOK = true ∨ m.repoDynPostOK = true) →
+    (ch.repoPre q = true ∨ ch.repoPost q = true) →
     ∀ ρ, Formula.sat (guard q) ρ → Formula.sat domR ρ →
     ∃ τ Φ, ODESol (rightBlock (fR q) (Term.const 1)) domR ρ τ Φ ∧
       ∃ e ∈ G.edgesFrom q, SwitchLegal e (Φ τ) ∧ e.tgt ≠ q
@@ -100,13 +100,14 @@ variable (Gr : SearchGraph (Var n)) (a b : Fin n) (hab : a ≠ b) (dt : ℝ)
   (hguards : ∀ q, ∀ e ∈ Gr.edgesFrom q, e.guard = guard e.tgt)
   (hgR : GuardsRight Gr) (hguardR : ∀ q, (guard q).fv ⊆ range Rv)
   (hcutsR : ∀ q, (cuts q).fv ⊆ range Rv)
-  (fR : ℕ → Fin n → Term (Var n)) (hfR : ∀ q, ∀ i, (fR q i).fv ⊆ range Rv)
+  (fR : ℕ → Fin n → Term (Var n))
+  (hfR : ∀ q, q < Gr.modes.length → ∀ i, (fR q i).fv ⊆ range Rv)
   (hsys : ∀ q m, Gr.modeAt q = some m → m.sys = rightBlock (fR q) (Term.const 1))
   (hdomM : ∀ q m, Gr.modeAt q = some m → m.dom = domR)
   (hweight : ∀ q m, Gr.modeAt q = some m → m.weight = 1)
   (hlt : ∀ q, ∀ e ∈ Gr.edgesFrom q, e.tgt < Gr.modes.length)
   (L : ℕ) (gL : ℕ → Formula (Var n)) (fL : ℕ → Fin n → Term (Var n))
-  (hgLv : ∀ l, (gL l).fv ⊆ range Lv) (hfL : ∀ l i, (fL l i).fv ⊆ range Lv)
+  (hgLv : ∀ l, l < L → (gL l).fv ⊆ range Lv) (hfL : ∀ l, l < L → ∀ i, (fL l i).fv ⊆ range Lv)
   (epsR : ℝ) (hwf : WellFormedR Gr guard epsR)
   (ch : ℕ → ChoiceData) (B : ℕ → ℕ) (δ : ℕ → ℝ) (lam : ℕ → ℕ → ℝ)
   (A : ℕ → ℕ → Formula (Var n)) (RJ : ℕ → ℕ → Formula (Var n))
@@ -117,10 +118,10 @@ variable (Gr : SearchGraph (Var n)) (a b : Fin n) (hab : a ≠ b) (dt : ℝ)
   (hcov : ∀ l, l < L → ∀ q, q < Gr.modes.length →
     AdmissibleStart (gL l) (FM g gs) (Formula.and domL domR) (guard q) (cuts q) →
     CoveredX Gr (ch l) ⟨q, B l, SrcSetting.preJ⟩)
-  (hAstart : ∀ l q σ, Formula.sat (gL l) σ →
+  (hAstart : ∀ l, l < L → ∀ q σ, Formula.sat (gL l) σ →
     Formula.sat (Formula.and (FM g gs) (Formula.and domL domR)) σ →
     Formula.sat (guard q) σ → Formula.sat (cuts q) σ → Formula.sat (A l q) σ)
-  (hApost : ∀ l q' y, Formula.sat (A l q') y →
+  (hApost : ∀ l, l < L → ∀ q' y, Formula.sat (A l q') y →
     Formula.sat (Formula.and (Formula.and (FM g gs) (Formula.and domL domR)) (cuts q')) y)
 
 /-- The left data of the windows: each left mode's guard, field and domain, one piece. -/
@@ -147,14 +148,14 @@ theorem Hmulti_of_coverX :
   obtain ⟨l, hl, rfl⟩ := hP
   simp only [Function.comp]
   have Hl := H l hl
-  refine coverX_gresp Gr (ch l) fR domR (fL l) domL (gL l) b guard hgR hguards hguardR (hfL l)
-    hdomL hdomR (hgLv l) hfR hsys hdomM hweight epsR (δ l) Hl.hδ (lam l) Hl.hlam Hl.hspan (A l)
+  refine coverX_gresp Gr (ch l) fR domR (fL l) domL (gL l) b guard hgR hguards hguardR (hfL l hl)
+    hdomL hdomR (hgLv l hl) hfR hsys hdomM hweight epsR (δ l) Hl.hδ (lam l) Hl.hlam Hl.hspan (A l)
     Hl.hAfv Hl.hAdom Hl.hbox Hl.hboxDpre Hl.hboxDpost Hl.hhand hwf Hl.hprune Hl.hpruneD
     Hl.hrepoProg (RJ l) Hl.hRJ Hl.hcovJ (RR l) Hl.hRR Hl.hcovR (RS l) Hl.hRS Hl.hcovS dt (B l)
     (hdt l hl) q σ hg (fun hgate => hcov l hl q hq ⟨σ, hgate, hσ, hg, hc⟩)
-    (fun hgate => hAstart l q σ hgate hσ hg hc) _ ?_
+    (fun hgate => hAstart l hl q σ hgate hσ hg hc) _ ?_
   intro ν _ q' μ hμL hgq' hAq'
-  have hpostm := hApost l q' _ hAq'
+  have hpostm := hApost l hl q' _ hAq'
   have hfv : (Formula.and (Formula.and (FM g gs) (Formula.and domL domR)) (cuts q')).fv ⊆
       range Lv ∪ range Rv := by
     intro v hv
@@ -169,14 +170,14 @@ theorem Hmulti_of_coverX :
   · rw [mergeLR_R]
 
 /-- The left-data hygiene facts of the windows. -/
-theorem hL_of (hgLv : ∀ l, (gL l).fv ⊆ range Lv) (hfL : ∀ l i, (fL l i).fv ⊆ range Lv)
-    (hdomL : domL.fv ⊆ range Lv) :
+theorem hL_of (hgLv : ∀ l, l < L → (gL l).fv ⊆ range Lv)
+    (hfL : ∀ l, l < L → ∀ i, (fL l i).fv ⊆ range Lv) (hdomL : domL.fv ⊆ range Lv) :
     ∀ d ∈ leftDataOf domL L gL fL, d.1.fv ⊆ range Lv ∧
       (∀ i, (d.2.1 i).fv ⊆ range Lv) ∧ d.2.2.1.fv ⊆ range Lv := by
   intro d hd
   simp only [leftDataOf, List.mem_map, List.mem_range] at hd
-  obtain ⟨l, -, rfl⟩ := hd
-  exact ⟨hgLv l, hfL l, hdomL⟩
+  obtain ⟨l, hl, rfl⟩ := hd
+  exact ⟨hgLv l hl, hfL l hl, hdomL⟩
 
 include hab hgR hguards hguardR hcutsR hfR hsys hdomM hweight hlt hgLv hfL hdomL hdomR hwf H hdt
   hcov hAstart hApost comps_fv in
@@ -209,7 +210,7 @@ theorem theorem3_of_coverX :
     rw [hsys q m hm, hdomM q m hm] at hy
     rcases hy with (hy | hy) | hy
     · exact rightBlock_boundSet_sub (fR q) (Term.const 1) hy
-    · exact rightBlock_readVars_sub (fR q) (Term.const 1) (hfR q) (by simp [Term.fv]) hy
+    · exact rightBlock_readVars_sub (fR q) (Term.const 1) (hfR q (modeAt_lt hm)) (by simp [Term.fv]) hy
     · exact hdomR hy
   have hfresh : ∀ q m, Gr.modeAt q = some m → mv ∉ (Program.ode m.sys m.dom).fv := by
     intro q m hm hmv'

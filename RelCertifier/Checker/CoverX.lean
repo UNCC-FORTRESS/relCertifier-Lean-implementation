@@ -35,12 +35,14 @@ segment of `q`, `repoS q σ` after a right-only segment of `q` in setting `σ`, 
 configuration start in `q`. Each listed set is one certificate; the semantic theorem assumes
 each certificate's unsat answer. -/
 structure ChoiceData where
+  /-- The pairings certified for this window: the joint segment of `q`, the pre-joint and
+  post-joint right-only segments of `q` (the tool's per-window mode flags). -/
+  jointOK  : ℕ → Bool
+  repoPre  : ℕ → Bool
+  repoPost : ℕ → Bool
   jointS : ℕ → List (List ℕ)
   repoS  : ℕ → SrcSetting → List (List ℕ)
   hopS   : ℕ → SrcSetting → List (List ℕ)
-
-/-- The empty choice data: `CoveredX` then coincides with `Covered`. -/
-def ChoiceData.none : ChoiceData := ⟨fun _ => [], fun _ _ => [], fun _ _ => []⟩
 
 /-- The declared non-pruned successors of `q` (the retained ones without the implicit
 self-loop): the targets a chosen set after a joint segment may name, each with an edge. -/
@@ -50,24 +52,24 @@ def SearchGraph.declSucc (G : SearchGraph V) (q : ℕ) : List ℕ :=
 /-- **Definition 4, extended** (cases 1 to 4 of `docs/CHOICE-SOUNDNESS.md` §4). -/
 inductive CoveredX (G : SearchGraph V) (ch : ChoiceData) : Config → Prop
   -- 1. base: one joint segment closes the budget
-  | base {q B σ} (m : RMode V) (hm : G.modeAt q = some m) (hj : m.jointOK = true)
+  | base {q B σ} (m : RMode V) (hm : G.modeAt q = some m) (hj : ch.jointOK q = true)
       (hle : B ≤ m.weight) : CoveredX G ch ⟨q, B, σ⟩
   -- 2. joint step, all retained successors
-  | step {q B σ} (m : RMode V) (hm : G.modeAt q = some m) (hj : m.jointOK = true)
+  | step {q B σ} (m : RMode V) (hm : G.modeAt q = some m) (hj : ch.jointOK q = true)
       (hlt : m.weight < B) :
       (∀ q' ∈ G.retainedSucc q, CoveredX G ch ⟨q', B - m.weight, SrcSetting.postJ⟩) →
       CoveredX G ch ⟨q, B, σ⟩
   -- 2. right-only step, all retained exits (σ-matched)
   | stepRepoPre {q B} (m : RMode V) (hm : G.modeAt q = some m)
-      (hrepo : m.repoDynPreOK = true) (hB : 0 < B) (hne : G.exitSucc q ≠ []) :
+      (hrepo : ch.repoPre q = true) (hB : 0 < B) (hne : G.exitSucc q ≠ []) :
       (∀ q' ∈ G.exitSucc q, CoveredX G ch ⟨q', B, SrcSetting.preJ⟩) →
       CoveredX G ch ⟨q, B, SrcSetting.preJ⟩
   | stepRepoPost {q B} (m : RMode V) (hm : G.modeAt q = some m)
-      (hrepo : m.repoDynPostOK = true) (hB : 0 < B) (hne : G.exitSucc q ≠ []) :
+      (hrepo : ch.repoPost q = true) (hB : 0 < B) (hne : G.exitSucc q ≠ []) :
       (∀ q' ∈ G.exitSucc q, CoveredX G ch ⟨q', B, SrcSetting.postJ⟩) →
       CoveredX G ch ⟨q, B, SrcSetting.postJ⟩
   -- 3. joint step, chosen successors (a certified subset of the retained ones)
-  | stepChosen {q B σ} (m : RMode V) (hm : G.modeAt q = some m) (hj : m.jointOK = true)
+  | stepChosen {q B σ} (m : RMode V) (hm : G.modeAt q = some m) (hj : ch.jointOK q = true)
       (hlt : m.weight < B) (S : List ℕ) (hS : S ∈ ch.jointS q) (hne : S ≠ [])
       (hsub : ∀ q' ∈ S, q' ∈ G.declSucc q) :
       (∀ q' ∈ S, CoveredX G ch ⟨q', B - m.weight, SrcSetting.postJ⟩) →
@@ -86,17 +88,6 @@ inductive CoveredX (G : SearchGraph V) (ch : ChoiceData) : Config → Prop
       (∀ q' ∈ S, CoveredX G ch ⟨q', B, σ⟩) →
       CoveredX G ch ⟨q, B, σ⟩
 
-/-- Every all-successors derivation is an extended one. -/
-theorem coveredX_of_covered (G : SearchGraph V) (ch : ChoiceData) :
-    ∀ cfg, Covered G cfg → CoveredX G ch cfg := by
-  intro cfg h
-  induction h with
-  | base m hm hj hle => exact CoveredX.base m hm hj hle
-  | step m hm hj hlt _ ih => exact CoveredX.step m hm hj hlt ih
-  | stepRepositionDynPre m hm hrepo hB hne _ ih => exact CoveredX.stepRepoPre m hm hrepo hB hne ih
-  | stepRepositionDynPost m hm hrepo hB hne _ ih =>
-      exact CoveredX.stepRepoPost m hm hrepo hB hne ih
-
 /-! ## The checker -/
 
 /-- The chosen sets of `q` in setting `σ` usable after a right-only segment or at a start. -/
@@ -111,14 +102,14 @@ def decideCoveredX (G : SearchGraph V) (ch : ChoiceData) : ℕ → Config → Bo
       match G.modeAt q with
       | none   => false
       | some m =>
-          (m.jointOK && decide (B ≤ m.weight))
-          || (m.jointOK && decide (m.weight < B) &&
+          (ch.jointOK q && decide (B ≤ m.weight))
+          || (ch.jointOK q && decide (m.weight < B) &&
                 (G.retainedSucc q).all (fun q' =>
                    decideCoveredX G ch fuel ⟨q', B - m.weight, SrcSetting.postJ⟩))
-          || ((match σ with | .preJ => m.repoDynPreOK | .postJ => m.repoDynPostOK)
+          || ((match σ with | .preJ => ch.repoPre q | .postJ => ch.repoPost q)
                 && decide (0 < B) && !(G.exitSucc q).isEmpty &&
                 (G.exitSucc q).all (fun q' => decideCoveredX G ch fuel ⟨q', B, σ⟩))
-          || (m.jointOK && decide (m.weight < B) &&
+          || (ch.jointOK q && decide (m.weight < B) &&
                 (ch.jointS q).any (fun S => !S.isEmpty &&
                   S.all (fun q' => decide (q' ∈ G.declSucc q) &&
                     decideCoveredX G ch fuel ⟨q', B - m.weight, SrcSetting.postJ⟩)))

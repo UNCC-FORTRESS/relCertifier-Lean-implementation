@@ -537,10 +537,10 @@ theorem gregion_fv (q : ℕ) (hq : q < 5) : (gregion q).fv ⊆ range Rv :=
 
 /-! ## The stretch of each pairing (the emitted cover's λ per right mode) -/
 
-/-- `Low` pairs with `Low` at 2, `MidEco` at 7/2, `MidBoost` at 1 (the per-pairing fallback);
-`Mid` and `High` at 1. -/
+/-- `Low` pairs with `Low` at 2, `MidEco` at 7/2, `MidBoost` and `High` at 1 (the per-pairing
+fallback); `Mid` and `High` at 1. -/
 noncomputable def lam (l q : ℕ) : ℝ :=
-  if l = 0 then (if q = 1 then 7/2 else if q = 2 then 1 else 2) else 1
+  if l = 0 then (if q = 0 then 2 else if q = 1 then 7/2 else 1) else 1
 
 theorem lam_pos (l q : ℕ) : 0 < lam l q := by unfold lam; split_ifs <;> norm_num
 

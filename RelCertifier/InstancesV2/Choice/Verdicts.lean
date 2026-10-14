@@ -56,14 +56,15 @@ def wtc (l m lamN lamD : ℕ) : PackC :=
   { bench := "watertank_choice", p := watertank_choice_IRc, c := watertank_choice_cutsCX,
     invRow := 0, lamN := lamN, lamD := lamD, l := l, m := m }
 
-/-- The packs: the emitted covers' pairings the instances consume (λ and order as emitted). -/
+/-- The packs: the emitted covers' pairings the instances consume (λ and order as emitted;
+`watertank_choice` `Low/High` at 1 is consumed by the general-theorem instance). -/
 def packsC : List PackC :=
   [hyp 0, hyp 1, hyp 2, hyp 3, hyp 4,
    acc 0, acc 1, acc 2,
-   wtc 0 0 2 1, wtc 0 1 7 2, wtc 0 2 1 1, wtc 1 2 1 1, wtc 1 3 1 1, wtc 2 3 1 1]
+   wtc 0 0 2 1, wtc 0 1 7 2, wtc 0 2 1 1, wtc 0 3 1 1, wtc 1 2 1 1, wtc 1 3 1 1, wtc 2 3 1 1]
 
 /-- Two components per pack (the invariant row has two). -/
-def expectedChoice : Nat := 28
+def expectedChoice : Nat := 30
 
 /-! ## Pins -/
 
@@ -78,6 +79,8 @@ theorem pin_wtc_00 : ChoiceWatertank.Verd 0 0 = packVerd (wtc 0 0 2 1) := by
 theorem pin_wtc_01 : ChoiceWatertank.Verd 0 1 = packVerd (wtc 0 1 7 2) := by
   simp [ChoiceWatertank.Verd, packVerd, wtc, packLam, ChoiceWatertank.lam]
 theorem pin_wtc_02 : ChoiceWatertank.Verd 0 2 = packVerd (wtc 0 2 1 1) := by
+  simp [ChoiceWatertank.Verd, packVerd, wtc, packLam, ChoiceWatertank.lam]
+theorem pin_wtc_03 : ChoiceWatertank.Verd 0 3 = packVerd (wtc 0 3 1 1) := by
   simp [ChoiceWatertank.Verd, packVerd, wtc, packLam, ChoiceWatertank.lam]
 theorem pin_wtc_12 : ChoiceWatertank.Verd 1 2 = packVerd (wtc 1 2 1 1) := by
   simp [ChoiceWatertank.Verd, packVerd, wtc, packLam, ChoiceWatertank.lam]

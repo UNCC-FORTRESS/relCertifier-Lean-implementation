@@ -93,16 +93,16 @@ theorem mem_exitSucc_of_edge {G : SearchGraph (Var n)} {q : ℕ} {e : REdge (Var
 
 /-- **Reposition progress** at `q` (setting `pre`): from a start whose merged state `y` carries
 the anchor (and the left guard, pre-joint) and whose right part `ρ` is in `q`'s guard, the right
-runs declared segments of `q` (self-loops, each a right cycle) to a state where some non-self,
-non-pruned successor is enabled, the anchor kept and the left untouched. Discharged per node
-from the progress certificate (`Proofs/Encoding/Progress.lean`) or from an explicit solution. -/
+runs declared segments of `q` (self-loops, each a right cycle) and finally switches along a
+non-self, non-pruned exit `e`, the anchor of `q` holding at the switch state and the left
+untouched. Discharged per node from the progress certificate
+(`Proofs/Encoding/Progress.lean`) or from an explicit solution. -/
 def RepoProgress (G : SearchGraph (Var n)) (A : ℕ → Formula (Var n)) (gL guardq : Formula (Var n))
     (q : ℕ) (pre : Bool) : Prop :=
   ∀ ρ y : State (Var n), (∀ i, y (Rv i) = ρ (Rv i)) → Formula.sat (A q) y →
     Formula.sat guardq ρ → (pre = true → Formula.sat gL y) →
-    RRespP G q (fun q' μ => q' = q ∧ Formula.sat (A q) (mergeLR y y μ) ∧
-      (∀ i, μ (Lv i) = ρ (Lv i)) ∧
-      ∃ e ∈ G.edgesFrom q, SwitchLegal e μ ∧ e.tgt ≠ q ∧ e.pruned = false) ρ
+    RRespP G q (fun q' μ => ∃ e ∈ G.edgesFrom q, e.tgt ≠ q ∧ e.pruned = false ∧ q' = e.tgt ∧
+      SwitchLegal e μ ∧ Formula.sat (A q) (mergeLR y y μ) ∧ ∀ i, μ (Lv i) = ρ (Lv i)) ρ
 
 section Piece
 
@@ -182,7 +182,7 @@ theorem coverX_finish {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)
     (rrespP_stop ⟨hge, ?_, fun i => right_sol_left hΦ' i⟩)
   exact hhand q e he _ hAend ((switchLegal_merge hgR he ω₀ (ΦL r)).mpr hleg)
 
-include hgR hguards hguardR hfL hdomL hdomR hgL hfR hsys hdomM hAfv hAdom hhand hrepoProg in
+include hgR hguards hfL hdomL hdomR hgL hfR hsys hdomM hAfv hhand hrepoProg in
 /-- **The right-only step.** From a reposition node, the right cycles in `q` until a non-self
 retained exit is enabled (`RepoProgress`), switches into it (the entered anchor by entry), and
 continues from the exit's covered configuration. -/
@@ -207,22 +207,18 @@ theorem repoStep {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
     exact (sat_merge_L hgL ω₀ _ ρ).mpr hx
   have hchain := hrepoProg q m hm pre hflag ρ y (fun i => by rw [hy, mergeLR_R]) hA hPre hgLy
   refine rrespP_bind' hchain ?_
-  rintro q' μ ⟨rfl, hAμ, hμL, e, he, hleg, hneq, hnp⟩
-  have hAm : Formula.sat (A q') (mergeLR ω₀ (ΦL a) μ) := by
-    refine (sat_of_agree (hAfv q') (y := mergeLR y y μ) (fun i => ?_) (fun i => ?_)).mpr hAμ
+  rintro q' μ ⟨e, he, hneq, hnp, rfl, hleg, hAμ, hμL⟩
+  have hAm : Formula.sat (A q) (mergeLR ω₀ (ΦL a) μ) := by
+    refine (sat_of_agree (hAfv q) (y := mergeLR y y μ) (fun i => ?_) (fun i => ?_)).mpr hAμ
     · rw [mergeLR_L, mergeLR_L, hy, mergeLR_L]
     · rw [mergeLR_R, mergeLR_R]
   have hlegm : SwitchLegal e (mergeLR ω₀ (ΦL a) μ) :=
     (switchLegal_merge hgR he ω₀ (ΦL a)).mpr hleg
-  have hAe := hhand q' e he _ hAm hlegm
-  have hexit : e.tgt ∈ G.exitSucc q' := mem_exitSucc_of_edge he hnp hneq
-  have hμdom : Formula.sat m.dom μ := by
-    rw [hdomM q' m hm]
-    exact (sat_merge_R hdomR ω₀ (ΦL a) μ).mp (hAdom q' _ hAm)
+  have hAe := hhand q e he _ hAm hlegm
+  have hexit : e.tgt ∈ G.exitSucc q := mem_exitSucc_of_edge he hnp hneq
   have hge : Formula.sat (guard e.tgt) μ := by
-    unfold SwitchLegal at hleg; rwa [hguards q' e he] at hleg
-  refine rrespP_step hm he (sem_ode_zero m.sys m.dom hμdom) hleg
-    (rrespP_mono ?_ (hrest e.tgt hexit μ hge hAe))
+    unfold SwitchLegal at hleg; rwa [hguards q e he] at hleg
+  refine rrespP_mono ?_ (hrest e.tgt hexit μ hge hAe)
   rintro q'' μ' ⟨h1, h2, hμ'L⟩
   exact ⟨h1, h2, fun i => (hμ'L i).trans (hμL i)⟩
 
@@ -304,14 +300,14 @@ theorem coverX_piece {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
       intro a ha har hbud hpre ρ hPre hA
       have ha0 : a = 0 := hpre rfl
       subst ha0
-      exact repoStep G ch fR domR fL domL gL tg guard hgR hguards hguardR hfL hdomL hdomR hgL hfR
-        hsys hdomM A hAfv hAdom hhand hrepoProg hL ω₀ hx hm true (by simpa using hrepo) le_rfl
+      exact repoStep G ch fR domR fL domL gL tg guard hgR hguards hfL hdomL hdomR hgL hfR
+        hsys hdomM A hAfv hhand hrepoProg hL ω₀ hx hm true (by simpa using hrepo) le_rfl
         hL.hr (fun _ => rfl) hPre hA (fun q' hq' ρ' hg' hA' => ih q' hq' 0 le_rfl hL.hr hbud
           (fun _ => rfl) ρ' hg' hA')
   | @stepRepoPost q B m hm hrepo hB hne _ ih =>
       intro a ha har hbud _ ρ hPre hA
-      exact repoStep G ch fR domR fL domL gL tg guard hgR hguards hguardR hfL hdomL hdomR hgL hfR
-        hsys hdomM A hAfv hAdom hhand hrepoProg hL ω₀ hx hm false (by simpa using hrepo) ha har
+      exact repoStep G ch fR domR fL domL gL tg guard hgR hguards hfL hdomL hdomR hgL hfR
+        hsys hdomM A hAfv hhand hrepoProg hL ω₀ hx hm false (by simpa using hrepo) ha har
         (fun h => by cases h) hPre hA (fun q' hq' ρ' hg' hA' => ih q' hq' a ha har hbud
           (by intro h; cases h) ρ' hg' hA')
   | @stepChosen q B σ m hm hj hlt S hS hneS hsub _ ih =>

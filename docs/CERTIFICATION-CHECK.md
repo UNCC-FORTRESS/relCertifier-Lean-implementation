@@ -52,7 +52,7 @@ theorems consume is in the repository.
 | 3' | the hypotheses alone | `./.lake/build/bin/relcert --run-verdicts-v2` |
 | 4 | each file parses to the literal the theorems quote; parser, printer, Z3-layer and determinism tests | `BENCH_PATHS=<manifest> ./.lake/build/bin/relcert-test` |
 | 5 | Assumption 1 of every right model (`WellFormedR`): proved for all 50, none refuted; axiom audit; the tool's check, strict in check 3 | `lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 \| grep -A3 "depends on axioms"`; `./.lake/build/bin/relcert --wellformed benchmarks/suite_v2/*/input.txt` |
-| 6 | every Z3 hypothesis of the generic bridge instances (`InstancesV2/Bridge/`, 51 `*_bridge` theorems: stays, non-connection pairs, flow and reposition packs, admissibility, handoffs, progress, coverage) holds, against the declared total 4457 over the 50 suite benchmarks and the 2 choice exhibits | `./.lake/build/bin/relcert-bridge-verdicts` |
+| 6 | every Z3 hypothesis of the generic bridge instances (`InstancesV2/Bridge/`, 52 `*_bridge` theorems: stays, non-connection pairs, flow and reposition packs, admissibility, handoffs, progress, coverage) holds, against the declared total 4457 over the 50 suite benchmarks and the 2 choice exhibits | `./.lake/build/bin/relcert-bridge-verdicts` |
 | 7 | the progress certificates of every reposition node (261 queries) and the coverage queries of the choice exhibits (32) hold, against declared counts | `./.lake/build/bin/relcert-progress-verdicts`, `./.lake/build/bin/relcert-choice-verdicts` |
 
 ## Check 1: the kernel checks every proof

@@ -230,22 +230,29 @@ PProblem  ──(relcert --emit-ir)──▶ InstancesV2/BenchIR/<b>.lean   the 
   │ Trusted/Run.lean                               lower to SMT-IR             TRUSTED
   │ Trusted/OracleAPI.lean                         search                      UNTRUSTED
   ▼
-a cover (λ, budgets, flags, admissible starts, strata orders, pruned edges)
-and a checked-cut certificate
+a cover (stretches, budgets, flags, admissible starts, strata orders, pruned edges),
+a checked-cut certificate, the progress certificates of its reposition nodes
   ├─(--emit-cover)─▶ InstancesV2/BenchCovers/<b>.lean
   │                   ▲ CoverReplay.lean: decideCovered accepts, by `decide`
-  └─(--emit-cuts)──▶ InstancesV2/Cuts/<b>.lean
-                      ▲ evolStrengtheningWFX … = true, by `rfl`
+  ├─(--emit-cuts)──▶ InstancesV2/Cuts/<b>.lean
+  │                   ▲ evolStrengtheningWFX … = true, by `rfl`
+  └─(RELCERT_PROGRESS_OUT)─▶ InstancesV2/BenchProgress/<b>.lean
   ▼
-InstancesV2/Modal/<B>.lean                         the Theorem 3 instance, composed from
-  │                                                 Proofs/Encoding (the ∀∃ chain) and
-  │                                                 Proofs/Soundness/CutLiftX (the cut lift)
+InstancesV2/Bridge/<B>.lean  (generated)           the generic-bridge instance: the general
+  │                                                 Theorem 3 (Proofs/Encoding/Theorem3General)
+  │                                                 applied to the records through
+  │                                                 Proofs/Encoding/Emitted; structural facts
+  │                                                 by `decide +kernel`, Assumption 1 from
+  │                                                 InstancesV2/WellFormed/<B>.lean
   ▼
-rvalid (theorem3Form …) under named `Verd l m` packs
-  │ VerdictsV2/PinsV2.lean: each `Verd` IS a row of RunV2.packsV2  (kernel)
-  │ VerdictsV2/ModalX.lean: the rebuilt queries denote the hypothesis (kernel)
+<b>_bridge : Verdicts p n cX cov prog → dt ≤ εL → windowClaim … (or keyedClaim …)
+  │ Emitted/Run.lean: `Verdicts` IS the group list the runner issues (verdicts_of_groups)
   ▼
-relcert --run-verdicts-v2: rebuilds each query, prints it with toScript, Z3 says `unsat`
+relcert-bridge-verdicts: rebuilds every group, prints it with toScript, Z3 says `unsat`
+
+(the standalone route, kept: InstancesV2/Modal/<B>.lean composes an explicit response
+ from Proofs/Encoding and Proofs/Soundness/CutLiftX under named `Verd l m` packs, each
+ pinned to a row of RunV2.packsV2 and discharged by relcert --run-verdicts-v2)
 ```
 
 `scripts/gen_v2_data.py` regenerates the three data leaves of every benchmark (IR literal,
@@ -256,39 +263,53 @@ cover, cut certificates) and the aggregators from the tool's emitters.
 ```
 RelCertifier/
   Core/          3 files   flow certificates (DI routes A/B/C), rational reification
-  Checker/      12 files   verified cover checker (decideCovered, cover_sound, check_sound),
-                           emitted-cover types, checked-cut certificates (EvolStrengthening,
-                           EvolStrengtheningX), non-connection (Theorem 2); the settling
-                           and Faithful checkers of a retired route
+  Checker/      13 files   verified cover checkers (decideCovered, decideCoveredX with the
+                           existential mode choice), emitted-cover types, checked-cut
+                           certificates (EvolStrengthening, EvolStrengtheningX),
+                           non-connection (Theorem 2)
   Proofs/
-    Encoding/   49 files   the ∀∃ chain: CSF/NFM'25 bridge, joint segments, dynamic
-                           reposition prefixes, envelope and window chains, mode handoffs,
-                           sink regions, the non-connection bridge, Assumption 1
-                           (WellFormedR, WellFormedLadder)
+    Encoding/   61 files   the ∀∃ chain: CSF/NFM'25 bridge, joint segments, repositions,
+                           envelope and window chains, mode handoffs, guarded switching,
+                           the non-connection bridge, Assumption 1 (WellFormedR),
+                           the general Theorem 3 (Theorem3General, CoverResp, Progress)
+      Emitted/  11 files   the generic bridge: a benchmark's Theorem 3 from its emitted
+                           records (Data, Stay, Barrier, Anchor, Progress, Keyed, Window,
+                           Transport, Choice, Region, Run)
     Flow/       14 files   DI routes, Picard existence, viability faces
     Soundness/   7 files   the cut lift (CutLift; CutLiftX for the widened channel)
     Transfer/    5 files   scaled-model transfer (retired Faithful route)
-  Trusted/      14 files   parser, key audit, lowering, printer, Z3 session, the certifier
-                           (OracleAPI), handoff and non-connection queries, emitters,
-                           the Assumption 1 check (WellFormedCheck)
+  Trusted/      17 files   parser, key audit, lowering, printer, Z3 session, the certifier
+                           (OracleAPI), the query builders (handoff, non-connection,
+                           bridge stays and admissibility, progress, choice), emitters,
+                           the Assumption 1 check (WellFormedCheck); Trusted/README.md
   InstancesV2/  the suite_v2 battery
-    BenchIR/ BenchCovers/ Cuts/   46 files each   emitted data, one leaf per benchmark
-    Modal/      26 files   the new Theorem 3 instances
-    WellFormed/ 27 files   Assumption 1 (`WellFormedR`) per suite_v2 instance (26) and the
-                           shared platoon link lemmas (operating range, latched AEB sink);
-                           `Instances/WellFormed/` holds the 19
+    BenchIR/ BenchCovers/ BenchProgress/ Cuts/   46 files each   emitted data, one leaf
+                           per benchmark (IR literal, cover, progress certificates, cuts)
+    Bridge/     48 files   the generated generic-bridge instances (`<b>_bridge`): all 46
+                           suite benchmarks and two choice exhibits (docs/BRIDGE.md)
+    Modal/      31 files   the standalone Theorem 3 instances (explicit responses)
+    WellFormed/ 28 files   Assumption 1 (`WellFormedR`) per suite_v2 instance and the
+                           shared platoon link lemmas; `Instances/WellFormed/` holds the 19
                            carried-over benchmarks
-    SameIR.lean, CoverReplay.lean, BatteryV2.lean, WellFormedBattery.lean
-  VerdictsV2/    5 files   runner (RunV2), pins (PinsV2, NonConnPinV2), query rebuild
-                           (ModalX), declared counts derived from the tables (CoveragePinsV2)
-  Instances/    27 files   the 19 carried-over theorems and their dependencies, their 20
-                           IR leaves, ModalSpecs, AxiomCheck (generic axiom audit);
+    Choice/                the three choice exhibits: their leaves, standalone (Modal/) and
+                           general (General/) instances, verdict pins
+    SameIR.lean, CoverReplay.lean, BatteryV2.lean, WellFormedBattery.lean, Bridge.lean
+  VerdictsV2/   11 files   runners (RunV2, RunBridge, RunProgress), pins (PinsV2,
+                           NonConnPinV2, LamPinV2, ProgressPin), query rebuild (ModalX,
+                           ModalDynX, ProgressX), declared counts (CoveragePinsV2)
+  Instances/    48 files   the 19 carried-over theorems and their dependencies, their IR
+                           leaves, ModalSpecs, AxiomCheck (generic axiom audit);
                            WellFormed/ (19 files): their Assumption 1
   Verdicts/     11 files   the carried-over packs: runner (RunModal), pins, shared pin lemmas
 Main.lean                  relcert
 Test.lean                  relcert-test
-benchmarks/suite_v2/       the 46 inputs
-scripts/                   gen_v2_data.py, suite_v2_matrix.py, domain_widening.py,
+BridgeVerdictsMain.lean, ProgressVerdictsMain.lean, ChoiceVerdictsMain.lean
+                           relcert-bridge-verdicts, relcert-progress-verdicts,
+                           relcert-choice-verdicts
+SlimMain.lean              relcert-slim (certification only, no instance imports)
+benchmarks/suite_v2/       the 46 inputs; benchmarks/choice/ the 3 choice exhibits
+scripts/                   gen_v2_data.py, gen_bridge.py, paper_numbers.sh (the frozen
+                           paper numbers), suite_v2_matrix.py, domain_widening.py,
                            z3_timing_proxy.py, trust_audit.py, gen_multif_*.py
 docs/                      see Further reading; docs/history/ holds superseded records
 ```
@@ -416,7 +437,9 @@ since branch `replay` these restatements replay the emitted cover with the suite
 
 * [`docs/CERTIFICATION-CHECK.md`](docs/CERTIFICATION-CHECK.md): the check recipe, what each
   check establishes, the cost, the last recorded run.
-* [`docs/PAPER-MAPPING.md`](docs/PAPER-MAPPING.md): paper ↔ mechanization, element by element.
+* [`docs/PAPER-MAPPING.md`](docs/PAPER-MAPPING.md): **start here with the paper open**: every
+  definition, theorem and assumption of the paper, its Lean name, file, how its hypotheses are
+  discharged, and the axioms.
 * [`docs/GUARDED-SWITCHING.md`](docs/GUARDED-SWITCHING.md): the guarded automata (left and
   right), the mode-consistent region, the per-benchmark responses, the history.
 * [`docs/WELLFORMED.md`](docs/WELLFORMED.md): Assumption 1 per benchmark (`WellFormedR`),

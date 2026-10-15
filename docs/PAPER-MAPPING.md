@@ -1,331 +1,201 @@
-# Paper ↔ mechanization
+# Paper ↔ mechanization: the map
 
-How the paper's formal elements map onto the Lean development, for the artifact as it
-stands (suite_v2, 46 benchmarks, `RelCertifier/InstancesV2/BatteryV2.lean`). The full
-2026-07 inventory of every generic `rvalid (theorem3Form …)` theorem, with the findings of
-a complete read of `Proofs/` and the legacy-suite counts of that time, is kept as
-`docs/history/PAPER-MAPPING-INVENTORY.md`.
+Read this with the paper open. One section per formal element of the paper, in the paper's
+order; each says what the Lean name is, where it lives, how its hypotheses are discharged, and
+which axioms it rests on. Paper references are to *Certifying Forall-Exists Invariants for
+Cyber-Physical Systems via Witness Construction* (HSCC+ICCPS'27 submission; numbering as of
+2026-10-15). The repository layout and the build and check recipe are in `README.md` and
+`docs/CERTIFICATION-CHECK.md`; the historical, branch-by-branch account that this file
+replaces is `docs/history/PAPER-MAPPING-2026-10-10.md`.
 
----
+**The claim, in one sentence.** For every benchmark of the suite, Theorem 3 at the declared
+invariant is a kernel-checked Lean theorem whose only non-standard axiom is Z3's `unsat`
+(`z3_unsat_sound`), produced by one generic theorem (`theorem3_of_coverX`) instantiated from
+the records the tool emits; and Assumption 1 of every right model is a separate kernel
+theorem with no Z3 leaf.
 
-## 1. What the paper asks for
+## 0. Two routes to the same statement
 
-The paper states its obligation in the ∀∃ modality over the `cpsProg` programs:
+Every suite benchmark has its Theorem 3 twice, with the same conclusion shape:
 
-- **Definition 1**: `φInv → [|(L, R)⟩⟩ φInv`
-- **Eq. (relational-invariant)**: one-iteration preservation, `φInv → [|(Lsysi, Rsys)⟩⟩ φInv`
-- **Eq. (mode-inv)**: the same, decomposed per left mode
-- **Theorem 3** (Soundness of Synthesis): an all-successors cover induces a certified
-  witness strategy, hence `φInv → [|(L,R)⟩⟩ φInv`
-
-Target Lean shape: `rvalid (theorem3Form L R φ)`, where `theorem3Form`
-(`Checker/Cover/Encoding.lean`) is `φ → [|(L*, R*)⟩⟩ φ`, both loop bodies starred, bridged
-into dL-rel's relational dL by `RFormula.encoding_correct`.
-
----
-
-## 2. Theorem 3, generically, from the checker's own decision
-
-Three generic theorems take `decideCovered` (the function the tool runs) plus a Z3-backed
-`CoverCert` and conclude `rvalid (theorem3Form …)`; none assumes an emission device.
-
-| theorem | where | left shape |
-|---|---|---|
-| `decideCovered_implies_theorem3_faithful` | `Proofs/Encoding/BridgeDischarge.lean` | one ODE program; also yields the throughout conjunct |
-| `theorem3_uniform_from_covered` | `Proofs/Encoding/CoverExtract.lean` | list of `windowSeg`s; the witness is *derived* from `Covered` (the R1 gate) |
-| `theorem3_uniform_guarded` | `Proofs/Encoding/CoverExtract.lean` | guard-gated windows, one per left mode (the R2 gate) |
-
-`decideCovered_implies_theorem3_faithful` records what is load-bearing: `cert` (the flow
-certificates at every mode) is required for the `rvalid` conjunct; `hchk`
-(`decideCovered`) is load-bearing for the duration-coverage (throughout) conjunct. Axioms:
-the standard three, parametric in `cert`; `z3_unsat_sound` enters only where a certificate
-is constructed from a verdict (`segPres_from_flowCert`, `flow_certified`). These are
-re-emitted on every build by `Instances/AxiomCheck.lean`.
-
-**The per-benchmark instances use the list-invariant chain.** The suite_v2 instances state
-Theorem 3 through `theorem3_faithful_multiF_LR` (`EnvelopeChainM.lean`; list-valued
-invariants), `theorem3_faithful_multiR_LR` (`EnvelopeChainR.lean`; the same with a
-mode-region loop invariant) and `theorem3_modeKeyed` (`ModeHandoff.lean`; §2b), with the
-per-window step assembled per benchmark: the certified joint coupling at the cover's λ
-(`CutRespond.couple_cutX`, the cut-narrowed stratified pack), right-only prefixes where
-the right must first reach a certified mode (`RepoPrefixR.lean`, `WindowRF.lean`), λ
-reparametrization (`Reparam.lean`), and existence of the right response (explicit
-solutions, or the viability faces of `Proofs/Flow/`). The response strategy and existence
-are per benchmark; the cover decision itself is replayed in the kernel for all 45
-(`InstancesV2/CoverReplay.lean`).
-
-## 2a. Theorem 3, clause by clause
-
-> **Theorem 3 (Soundness of Synthesis).** For a left mode `m_L`, if every admissible
-> initial right mode `q₀` admits an all-successors cover from `(q₀, ε_L, pre-joint)`,
-> then the cover induces a certified witness strategy for `m_L`. If such a cover exists
-> for every `m_L ∈ modes_L`, then `φInv` is a ∀∃ invariant:
-> `φInv → [|(L,R)⟩⟩ φInv`.
-
-Against `theorem3_uniform_from_covered`:
-
-| paper clause | Lean |
-|---|---|
-| *"every admissible initial right mode `q₀` admits an all-successors cover from `(q₀, ε_L, pre-joint)`"* | `hchk : ∀ q, q < Gj.modes.length → decideCovered Gj fuel ⟨q, B, SrcSetting.preJ⟩ = true`: `q₀ ↔ q`, `ε_L ↔ B` (ℕ-discretized), *pre-joint* `↔ SrcSetting.preJ`, and *all-successors* is `decideCovered`'s successor case `(G.retainedSucc q).all (…)`, i.e. Definition 4 |
-| *"the cover induces a certified witness strategy for `m_L`"* | not a hypothesis but the proof: the window response is built from the declared self-edges and the `Covered` derivation (Definition 5) |
-| *"if such a cover exists for every `m_L ∈ modes_L`"* | one entry of `leftData` per left mode; the left program is `bigChoice (leftData.map (windowSeg …))` |
-| *"`φInv → [|(L,R)⟩⟩ φInv`"* | `rvalid (theorem3Form (bigChoice …) (rightAutomatonBody Gr mv) (ϕinv ∧ mvValidR mv Gr.modes.length))` |
-
-The Lean takes the flow certificates `cert : CoverCert Gj g` as a separate argument; the
-paper folds them into the graph construction (§4.2: *"If no flow certificate is available
-at `m_R`, none of its candidate edges is retained"*). The Lean also yields a second
-conjunct, the invariant *throughout* the co-execution (`CoexecInvThroughout`).
-
-## 2b. Mode-dependent invariants: the composition lemma
-
-> **Theorem 3 (general form).** Let `Φ ≡ ⋀_m (u_L = m → φ_inv(m))`. If (i) for every left
-> mode `m_L` every admissible initial right mode admits an all-successors cover at
-> `φ_inv(m_L)`, (ii) for every declared left transition `m' → m`,
-> `φ_inv(m') ∧ guard_m(x_L) → φ_inv(m)`, and (iii) the well-formedness assumption holds,
-> then `Φ → [|(L*, R*)⟩⟩ Φ`.
-
-Mechanized in `Proofs/Encoding/ModeHandoff.lean` as `theorem3_modeKeyed`:
-
-| paper element | Lean |
-|---|---|
-| the left program with mode variable `u_L`, body `⋃_m ?(m ∈ next(u_L)) ; ?guard_m ; u_L := m ; flow_m` | `leftAutomatonBody A ul`: `?(u_L = m') ; ⋃_{t ∈ next m'} (?guard_t ; u_L := t ; window_t)`, jump-then-flow as the paper writes it. `A : LeftAut n` is built per benchmark from the IR (windows, guards, `next` lists resolved by the handoff runner's own `Handoff.leftModeIndex`), and each instance proves by `decide` that its transition list IS `Handoff.transitions IR` |
-| `u_L` | a third auxiliary coordinate `(Aux, 2)` beside `mv = (Aux, 0)` and the clock `tg = (Aux, 1)` |
-| `Φ` | `modeKeyedR ul ϕ nL = ⋀_{m < nL} (⌊u_L = m⌋_L → ϕ m)` |
-| the loop invariant | `psiK ul ϕ nL domL domR BkR = ((Φ ∧ envLR) ∧ BkR) ∧ ⌊u_L ∈ modes⌋_L`, `BkR` the right bookkeeping (`mvValidR` or `mvRegionR`) |
-| **(i)** per-mode cover | `hstepM`, the per-mode step the F- and R-chains consume, from the instance's own provider (`hstepMode_multiF` / `hstepMode_multiR`) |
-| **(ii)** the handoff, DOMAIN-CONDITIONED (at a switch the left state ends an `m'` residence and satisfies `guard_m`; the right state is in its evolve domain) | `hhand : ∀ m' < nL, ∀ t ∈ A.succ m', ∀ ω, sat (F m') ω → sat env ω → sat (A.guard t) ω → sat (F t) ω`. Two discharges exist: from Z3 on the runner's query (`handoff_of_unsat`, the `IForm` of `Trusted/Handoff.lean` that `relcert --handoff` and `--run-verdicts-v2` print), or in the kernel. **All twelve mode-keyed instances discharge it in the kernel** (no instance uses `handoff_of_unsat`), so they add no verdict beyond their per-mode packs; the runner's handoff phase is the tool-level check of the same implication |
-| **(iii)** well-formedness | not a hypothesis: for all 45 theorems guard-gated switching is kernel-checked on both sides and the response exhibits every switch (§2e); Assumption 1 itself is verified separately per right model (`WellFormedR`, §2f); mechanized side conditions: freshness of `u_L` and the footprint disjointnesses (`hd_modeKeyed_G`, `hddF_modeKeyed_G`) |
-| the conclusion | `rvalid (theorem3Form (leftAutomatonBody A ul) (rightAutomatonBody G mv) (psiK …))` |
-
-Mode-independent invariants are the special case `F m = F`. All 46 benchmarks are stated
-over `leftAutomatonBody`: the 33 mode-independent ones are proved over the choice of their
-windows (`bigChoice leftProgs`) and carried to the left automaton by the generic bridge
-`theorem3_leftAut_of_choice` (`Proofs/Encoding/LeftAutUniform.lean`): the left automaton only
-removes left runs (a declared successor, its guard tested, its window) and adds `u_L`. The
-choice form is not always the stronger claim WORTH stating: for
-`refinement_ladder_rover_rung2_3to6` and the two story2 ladders the choice of PLAIN windows
-(no guard test) is false over the guarded right automaton, while the paper's left program is
-proved (`docs/GUARDED-SWITCHING.md` §4.5).
-
-**The twelve mode-keyed benchmarks** (tool handoff: `relcert --handoff`, all transitions
-`unsat`; the other 33 benchmarks' handoffs are vacuous, their rows being identical):
-
-| benchmark | theorem | handoff transitions | per-mode packs (queries) |
+| route | theorem per benchmark | how the proof is produced | status |
 |---|---|---|---|
-| `acc_spoof_limp` | `V2AccSpoofLimp.acc_spoof_limp_modeKeyed` | 3 | 6 (12) |
-| `acc_tune_limp` | `V2AccTuneLimp.acc_tune_limp_modeKeyed` | 3 | 6 (12) |
-| `platoon_delay_linkloss` | `V2PlatoonDelayLinkloss.platoon_delay_linkloss_modeKeyed` | 7 | 6 (12) |
-| `platoon3_linkloss` | `V2Platoon3Linkloss.platoon3_linkloss_modeKeyed` (guarded, on the repaired model: operating-range guards, `docs/SUITE-REDESIGN.md` §20) | 3 | 2 (26) |
-| `rover_patrol_zones` | `V2RoverPatrolZonesGuarded.rover_patrol_zones_guarded` (guarded, Z3-free; the `⊤` theorem `rover_patrol_zones_modeKeyed` took 10 packs) | 10 | none |
-| `rover_patrol_refine` | `V2RoverPatrolRefineGuarded.rover_patrol_refine_guarded` (guarded, Z3-free; the `⊤` theorem took 10 packs) | 10 | none |
-| `sat_detumble_phases` | `V2SatDetumblePhases.sat_detumble_phases_modeKeyed` | 3 | 2 (4) |
-| `sat3w_detumble_phases` | `V2Sat3wDetumblePhases.sat3w_detumble_phases_modeKeyed` | 3 | 2 (4) |
-| `story3_rollover_ladder_rung_b` | `V2Story3RolloverRungBGuarded.story3_rollover_ladder_rung_b_guarded` | 5 | 9 (21) |
-| `rover3tier_rung12` (carried over) | `Rover3tierRung12Guarded.rover3tier_rung12_modeKeyed_guarded` (guarded, Z3-free; the `⊤` theorem `Rover3tierRung12Handoff.rover3tier_rung12_modeKeyed` used the packs `VerdQA`, `VerdQC`) | 4 | none |
-| `story1_attdist_rung_a_6to8` (carried over) | `Story1AttdistRungAGuarded.story1_attdist_rung_a_guarded` | 5 | 3 `VerdS` (the STEEP window at its full row) + 6 base `VerdD` |
-| `story1_attdist_rung_b_12dof` (carried over) | `Story1AttdistRungBGuarded.story1_attdist_rung_b_guarded` | 5 | 6 `VerdR r m` (`r ≤ m`) |
+| **generic bridge** (the paper's route) | `InstancesV2/Bridge/<B>.lean`, `<b>_bridge` (46 suite + 2 choice exhibits) | generated by `scripts/gen_bridge.py` from the emitted records; structural facts by `decide +kernel`, Assumption 1 transported from the benchmark's `WellFormedR` lemma, every Z3 fact as one `Verdicts` hypothesis discharged by `relcert-bridge-verdicts` | `docs/BRIDGE.md`; axioms: standard three + `z3_unsat_sound` |
+| standalone instances (the earlier route, kept) | `InstancesV2/Modal/<B>.lean` (and `LeftAutV2.lean`, `Instances/` for the carried-over ones), listed in `BatteryV2.lean` | hand-written per benchmark: an explicit response that replays the emitted cover, each flow fact a named pack `Verd l q` discharged by `relcert --run-verdicts-v2` | `docs/REPLAY.md`, `docs/CERTIFICATION-CHECK.md` "Per-benchmark inventory"; same axioms |
 
-`rover3tier_rung12`'s ACCEL row was re-stated on 2026-10-08 (rows only) because its
-original row failed the handoff; the countermodel is in `docs/HANDOFF.md`.
-Every row is guarded at the mode-consistent region (`docs/GUARDED-SWITCHING.md` §6).
+The bridge is what the sentences of this map point at. The standalone route is the historical
+evidence (its responses are explicit and readable) and the home of the per-benchmark findings
+(`docs/GUARDED-SWITCHING.md`, `docs/SUITE-REDESIGN.md`).
 
-## 2c. Checked cuts (closed: both channels are lifted to the kernel)
+## 1. Section 2: the problem
 
-**What a checked cut is.** For each mode (either side) the tool keeps an atom as a CUT
-when two obligations hold:
-
-* **O1 (entry)**: the mode's guard implies the atom, so a guard-gated switch into the mode
-  lands inside it;
-* **O2 (invariance)**: the atom is forward-invariant along this mode's own field, the
-  other side frozen.
-
-The kept atoms of a pairing narrow the domain of every query of that pairing (`andCuts`:
-the joint flow queries `checkSeg` and the dynamic reposition queries `checkDynRepo`), never
-the model. **The wording for Section 4.2:** *a cut is an atom implied by the mode's guard
-and preserved by its own flow.*
-
-**The candidates.** By default (`checkedCut`) the candidates are the closed guard
-conjuncts, O1 by membership; O2 by the `shape` route (a contraction `x' = k(c − x)` with
-the equilibrium on the safe side, no Z3), `frozen`, or the DI routes (B: boundary,
-A: whole domain). With `RELCERT_IMPLIED_CUT=1` (`checkedCutX`,
-`Checker/EvolStrengtheningX.lean`) three more kinds are offered and each kept atom records
-its kind, its O1 justification, its O2 route and its conditioning atoms:
-
-| kind | candidate | O1 | O2 |
-|---|---|---|---|
-| `guardConj` | a closed guard conjunct | `membership` | `shape`, `frozen`, DI-B, DI-A |
-| `closure` | `x ≤ k` from a strict guard conjunct `x < k` (and symmetrically) | `weakening` | as above |
-| `impliedContract` | `x ≤ c` / `x ≥ c` for a field `x' = k (c − x)`, `k > 0` | `rational` (a threshold conjunct at least as tight), else `z3` (`UNSAT(guard ∧ ¬atom)`) | as above |
-| `linearForm` | `y + r (x − c) ≤ sup` / `≥ inf` over the guard box, for a recognized critically or over-damped pair `x' = y`, `y' = −a (x − c) − b y` with rational roots | `rational` (interval arithmetic) | `linearShape` (`q' = −(b − r) q`), else DI-B, DI-A, DI-C |
-| `derivedBound` | `x ≤ c + K/r` from a kept `q ≤ K` (stratified: conditioned on that atom) | `rational`, else `z3` | `derivedShape`, else DI routes over `evolve ∧ q ≤ K` |
-
-**The lift.** The guard-conjunct channel is lifted by `Proofs/Soundness/CutLift.lean` and
-`CutCover.lean`; the widened channel by `Proofs/Soundness/CutLiftX.lean` (one lemma per O1
-entry kind, `linQ_rate` and `super_linear_*` for the linear shape, `super_derived_*` for
-derived bounds, `stay_given` for the stratification, `check_sound_multi_cutX` for the
-threading, and `CutRespond.couple_cutX`, the per-segment form the instances consume). All
-45 suite_v2 extended certificates are kernel-checked well formed
-(`InstancesV2/Cuts/<b>.lean`, `evolStrengtheningWFX … = true := rfl`), and the 23
-instances with verdict packs discharge the kept atoms' O1 through
-`cutSatL_of_guard`/`cutSatR_of_guard` on that certificate (the three Z3-free
-`arm_plateau_*` instances use no cut). In suite_v2 the checked cuts are load-bearing (`RELCERT_NO_CUT=1` declines)
-for 29 benchmarks, the widened kinds for 12 (`RELCERT_NO_IMPLIED_CUT=1` declines) and
-the linear-form chain for 8 (`RELCERT_NO_LINEAR_CUT=1` declines); matrix columns M6,
-M6+, M6L of `docs/SUITE-REDESIGN.md`.
-
-## 2d. Non-connection certificates: Section 4.3 / Theorem 2
-
-A declared right edge `mR → mSuc` whose successor guard is a single strict threshold
-`{g > 0}` is pruned from the cover's all-successors obligation when (source) no entry
-state of `mR` satisfies the guard and (barrier) on `g = 0` the right flow of `mR` moves `g`
-strictly down.
-
-| paper element | Lean / tool |
-|---|---|
-| Theorem 2 (the certificate is sound) | `nonconn_sound` (`Checker/NonConn.lean`): dL-lean `DI_strict` on the safe-side term |
-| the two checks, as the tool sends them | `Trusted/NonConnQuery.lean` `queries`, the one definition the certifier (`nonConnPrune`), the runner and the kernel bridge share; the source mode's checked cut conjoined to both domains |
-| the runner's queries ARE Theorem 2's hypotheses | `Proofs/Encoding/NonConnBridge.lean`: `sourceCheck_iff`, `barrierCheck_iff`, `nonconn_of_unsat` |
-| where a pruned edge enters the cover | `retainedSucc` (`Checker/Cover.lean`) drops it; `InstancesV2/CoverReplay.lean` replays `decideCovered` with the emitted `pruned` list |
-| where it enters Theorem 3 | the witness never takes a pruned edge; pruned sink modes carry the region `⊥` in the right bookkeeping (`mvRegionR`, `Proofs/Encoding/SinkExtension.lean`) |
-| the per-edge instance | `MatchMultiRatePruned.match_multi_rate_nonconn` (Theorem 2 for `match_multi_rate`'s `DRIVE → STALL`), its hypothesis pinned to the suite_v2 runner's rebuilt pair by `VerdictsV2/NonConnPinV2.lean` |
-| suite_v2 | 44 pruned edges in the emitted covers, both queries of each re-sent by `--run-verdicts-v2` (88 `unsat`); pruning is load-bearing (`RELCERT_NO_PRUNE=1` declines) for 19 benchmarks (matrix column M4) |
-
-## 2e. Guard-gated switching on the right (closed on branch `guarded-right`)
-
-**The paper.** `cpsProg`'s right loop body is `?(m ∈ next(mv)) ; ?guard_m(x) ; mv := m ;
-flow_m`: a switch (and a stay, `m = mv`) is possible only where the entered mode's guard holds.
-
-**The mechanization.** `modeStep` (`Proofs/Encoding/JointBridge.lean`) is the same body up to
-rotation, `?(mv = q) ; flow_q ; ⋃_e (?e.guard ; mv := e.tgt)`. Until this branch every graph
-the instances built set `e.guard := ⊤` (and the bridge lemmas took `htt : e.guard = ⊤`), so
-the theorems were about the declared-successor relaxation of `R`. Now, for all 45
-theorems, every edge carries the lowered guard of the mode it enters (`hostGuard vars n
-Side.R (mR e.tgt)`, the left guards' lowering; each instance proves it as `Gr_guards`), and the
-response is built in the guarded layer (`Proofs/Encoding/GuardedSwitch.lean`):
-
-| paper element | Lean |
-|---|---|
-| `?guard_m(x)` at a switch | `SwitchLegal e ω := Formula.sat e.guard ω`; the segment `gseg s = flow ; ?s.edge.guard` |
-| a right run is a sequence of legal switches | `guarded_rights_bridge` (a run of `bigSeq (segs.map gseg)` is a run of `star (rightAutomatonBody G mv)`) |
-| the ∃-response of one round | `GResp G q P post σ` (segments chosen after the left run; the final successor is chosen at the end state); chains of `flow ; legal switch` as `RResp`/`RRespP` (`GuardedClimb.lean`) |
-| **mode-consistent states** (Theorem 3's loop invariant on the right) | `mvRegionR mv gregion k` with `gregion q = regionG guard cuts q = guard q ∧ cuts q`: the right satisfies the lowered guard of its current mode `q` and `q`'s checked cuts |
-| the loop step | `hstep_assembled_GR`, `hstepMode_GR` with `Hmulti_regionG` / `HMode_regionG` (feed `theorem3_faithful_multiR_LR` and `theorem3_modeKeyed`, unchanged) |
-| Assumption 1 (nonblocking / successor-completeness) at a response's end | no hypothesis: every response exhibits its switches and their enabled targets explicitly, or makes no step (the right is then still in its current mode's guard, `gresp_guard`); Assumption 1 of the whole model is verified separately (§2f) |
-| a zero-duration switch, a reposition's switch | `gresp_hop`, `faModalB_repoPrefixG`, `hopAG` (the switch test after the hop) |
-| switching inside a left window (the cover's per-segment demonic successor choice) | the ladder climbs (`LadderRun.climb`, `climbD`) and the synchronized climbs (`syncClimb`, `syncWindow`): the right switches at band floors, legal by the explicit end state |
-| footprints without `htt` | `vars_bodyG_sub`, `hddF_multiR_G`, `hddF_multiR_plain_G`, `hd_modeKeyed_G`, `hddF_modeKeyed_G`, `hdis_multi_G` |
-
-**Theorem 3, mode-consistent states.** In the flow-then-jump rotation every loop iteration
-ends with a guarded jump into the right's current mode, so at every loop boundary the right
-satisfies that mode's guard; the mechanized loop invariant states exactly this
-(`guard q ∧ cuts q` of the current mode `q`), uniformly for all 46 benchmarks. **The wording
-for the paper's Theorem 3:** *a bi-state is mode-consistent when the right component satisfies
-the guard of its current mode and that mode's checked cuts; this is what the flow-then-jump
-rotation guarantees at every loop boundary, since the right has just taken a guarded jump into
-its mode.*
-
-**Theorem 3, the left side.** The left is the paper's own program, jump then flow
-(`leftAutomatonBody`, §2b): a left window is entered only where the entered left mode's
-lowered guard holds, and the left's mode variable `u_L` selects the declared successors.
-At a loop boundary the left has just FLOWED, so it is not in general in its current mode's
-guard; the invariant carries `u_L ∈ modes`, the rows keyed by `u_L` and the left envelope,
-and the next window's guard is tested by the program before that window. **The wording for
-the paper's Theorem 3 (both sides):** *a bi-state is mode-consistent when the right component
-satisfies the guard and checked cuts of its current mode; the left component's mode is a
-declared mode and its next window is entered only inside that window's guard. This is what the
-two rotations guarantee at every loop boundary: the right has just taken a guarded jump into
-its mode (flow, then jump), the left takes its guarded jump before its next flow (jump, then
-flow).*
-
-**What the migration found.** At the old invariants (rows, envelopes, kept cuts; no guard) the
-statement was false for 23 benchmarks: the invariant admitted right states outside their
-mode's guard from which the guarded automaton has no move (history:
-`docs/GUARDED-SWITCHING.md` §4.3). With mode-consistent states and the paper's left program
-all 45 are proved, 44 for every window length and `rung2c` for every window up to its control
-interval (`dt ≤ ε_L = 1`). The earlier "refuted by argument" entries
-(`refinement_ladder_rover_rung2_3to6`, the two story2 ladders) refuted only the left form with
-no guard test. The earlier kernel-checked refutations of the two `platoon3` benchmarks were
-real: their nominal controller BLOCKED after a full cycle (engagement-band stay guards, no
-catch-all mode: a violation of Assumption 1 the certificate cannot detect); the benchmarks are
-repaired (operating-range guards, `docs/SUITE-REDESIGN.md` §20) and proved. The demonic
-all-successors cover (the checker) is unaffected: the gaps were in the existential witnesses,
-in the stated invariant's right bookkeeping, and in one benchmark family's model. Record and
-per-benchmark table: `docs/GUARDED-SWITCHING.md`.
-
-## 2f. Assumption 1 (Well-Formedness), verified per benchmark
-
-| paper element | Lean / tool |
-|---|---|
-| Assumption 1: *the right model is nonblocking and complete with respect to its declared successor relation: from every state satisfying a source-mode guard, an evolution spanning the control interval `ε_r` exists, and every evolution of duration at most `ε_r`, including the empty one, ends in a state satisfying the guard of at least one declared successor mode* | `WellFormedR G guard ε` (`Proofs/Encoding/WellFormedR.lean`): for every mode `q` and state `x` in `q`'s lowered guard and evolve domain, (i) `∃ Φ, ODESol m.sys m.dom x ε Φ`, (ii) every `ODESol m.sys m.dom x t Φ` with `t ≤ ε` ends in `guard e.tgt` for some `e ∈ G.edgesFrom q`; `G` the Theorem 3's guarded right automaton, `ε = epsR p` (the file's `epsilon`) |
-| "states" of the model | the evolve domain (the predicate's conjunct `m.dom x`; a run exists only from a domain state, `ODESol.start_dom`) |
-| the remark (a self-loop whose guard contains the one-interval reach set, or a successor covering the rest) | proof styles (a) forward invariance then the self-loop, (b) exit into a successor's guard within one interval (`docs/WELLFORMED.md` §2) |
-| per benchmark | `<b>_wellFormedR` for all 46 since 2026-10-15 (the detumble family's momentum band entered the right evolve domains; before, 39, nine of them repaired on 2026-10-10: until then `<b>_wellFormedR_false` with the exhibited blocking state, `docs/SUITE-REDESIGN.md` §21); `<b>_wellFormedR_onBand` + `<b>_band_invariant` for the 6 satellites (the literal predicate refuted); all in `InstancesV2/WellFormedBattery.lean`, Z3-free |
-| the tool | `relcert --wellformed`: a sufficient check of clause (ii) per right mode (`ok (invariant)` / `ok (exit→S)` / `UNKNOWN`), strict in `--check-quick-v2` (certification in the strict mode, then a gate: declared 146 right modes, 0 `UNKNOWN`); `RELCERT_WELLFORMED_STRICT=1` declines a certified benchmark with an `UNKNOWN` mode |
-| its use in Theorem 3 | none: no Theorem 3 takes it as a hypothesis (the responses exhibit their switches); it is a model-level sanity property the paper states, now checked rather than assumed |
-
-## 2g. The generic bridge (branch `theorem3-general`, 2026-10-14/15)
-
-The per-benchmark derivations of §2–2f are superseded by one generic layer
-(`Proofs/Encoding/Emitted/`, `docs/BRIDGE.md`): `theorem3_window_of_records` (one declared row)
-and `theorem3_keyed_of_records` (per-mode rows) state Theorem 3 of a benchmark from its emitted
-records (IR, extended cut certificate, cover, progress certificates, chosen sets), with every
-hypothesis either decided in the kernel (`structOK`, `progOK`, `coversOK`) or read from one Z3
-run (`relcert-bridge-verdicts`, `Emitted.verdicts_of_groups`), and Assumption 1 transported from
-the suite's `WellFormedR` lemma. Generated instances `InstancesV2/Bridge/<B>.lean` for all 46
-suite benchmarks and two choice exhibits (`scripts/gen_bridge.py`); axioms of every `*_bridge`:
-the standard three and `z3_unsat_sound`.
-
-| paper | mechanized |
-|---|---|
-| Theorem 3 | `theorem3_of_coverX` (`Theorem3General.lean`, standard axioms only; covers by `CoveredX`, Definition 4 with the chosen-set cases vacuous for the suite) |
-| Assumption 1 | `WellFormedR G guard ε`, unconditional for every instance (the general form admits a region `R`; every instance takes `R = ⊤`) |
-| certificate 3 (right-only segment) | preservation (`modalVerdDynX`) **and progress** (`Progress.ProgressE`: staged rate bounds, kept thresholds, landing on the crossing line and at an already-crossed start; `repoProgress_one/two`); without it the right-only kind is unsound (a sink mode satisfies Assumption 1 and never exits) |
-| Theorem 2 (pruned edges) | the barrier term of each pruned exit is carried in the anchor: `≤ 0` on entry (source check), kept by joint and frozen flows (barrier check), `> 0` under the target's guard |
-| the kept atoms (O2) | per mode and side, the route query of each atom (`Bridge.stayQueryOf`), lifted by induction on the index |
-| admissible starts | the dropped starts' `unsat` (`Bridge.admQueryOf`); the covered starts decided by `decideCoveredX` |
-| the choice cover (tool feature, not in the main text) | `Emitted/Choice.lean`: chosen sets from the record, coverage queries, `cov_of_entry`; exercised by the exhibits only |
-
-## 3. The generic theorem families
-
-| family | theorems | status |
+| paper | Lean | where |
 |---|---|---|
-| cover-based, Emit-free | `decideCovered_implies_theorem3_faithful`, `theorem3_uniform_from_covered`, `theorem3_uniform_guarded` | live (§2) |
-| `hstep`-parametric (the instances' route) | `theorem3_faithful`, `theorem3_faithful_multiE_LR`, `_multiF_LR`, `_multiR_LR`, `theorem3_modeKeyed` | live; `hstep` assembled per instance |
-| Emit-carrying | `theorem3_faithful_multi_reposition`, `theorem3_uniform_multiflow`, `uniform_multiflow_end_to_end`, the `*_of_emit` forms | superseded by the cover-based family; compiled |
-| settling / cadenced | `theorem3_faithful_settling` and its clocked and cadenced variants (`ClockedTop.lean`, `GuardThreaded.lean`) | **retired**: their `GBoxAll` hypothesis is unsatisfiable for relational invariants (stated left-context-free), so the statements are vacuous; kept compiled, do not cite |
-| encoding | `theorem3_encoded` / `rvalid_of_encoded_unsat` (`Checker/Cover/Encoding.lean`) | Z3 on the encoded negation ⟹ `rvalid`, via dL-rel's `encoding_correct` |
+| the model (Eq. model-timed): modes with dynamics, evolve domain, guards, declared successors `next`, a clock | the parsed `PProblem` (`Trusted/Parse.lean`), one literal per benchmark (`InstancesV2/BenchIR/<b>.lean`, re-parsed and compared by `relcert-test`); the search graph `SearchGraph` of right modes and edges, the left automaton `LeftAut` | `Trusted/Parse.lean`, `Checker/Cover.lean`, `Proofs/Encoding/ModeHandoff.lean` |
+| the two-system program `(L, R)` of the relational formulation: the left runs its guard-gated program, the right responds | `theorem3Form L R Φ = Φ → [|(L*, R*)⟩⟩ Φ` with `L = leftAutomatonBody A u_L` (jump then flow: `?(u_L = m') ; ⋃_{t ∈ next m'} ?guard_t ; u_L := t ; window_t`) and `R = rightAutomatonBody Gr mv` (flow then jump: `?(mv = q) ; flow_q ; ⋃_e ?e.guard ; mv := e.tgt`); the ∀∃ modality is dL-rel's, bridged by `RFormula.encoding_correct` | `Checker/Cover/Encoding.lean`, `Proofs/Encoding/ModeHandoff.lean`, `Proofs/Encoding/JointBridge.lean` |
+| **Definition 1** (∀∃ relational invariance): `φInv → [|(L,R)⟩⟩ φInv` | `RFormula.rvalid (theorem3Form L R Ψ)`, the conclusion of every Theorem 3 instance | `Checker/Cover/Encoding.lean` |
+| Eq. (relational-invariant), Eq. (mode-inv): one iteration, per left mode | the per-window step `GResp` (one left window, the right's guarded response) and its assembly into the loop | `Proofs/Encoding/GuardedSwitch.lean`, `EnvelopeChainR.lean` |
+| Eq. (polynomial-invariant): `φInv` a conjunction of polynomial inequalities `g_i ≤ 0` | `canonInvM g gs` (the list of components as one canonical formula; its encoding theorem `encode_canonInv`) | `Proofs/Encoding/CanonicalInv.lean`, `EnvelopeChainM.lean` |
+| Eq. (mode-dependent-inv-global): `Φ = ⋀_m (u_L = m → φ_inv(m))` | `psiK u_L ϕ nL domL domR BkR`: the rows keyed by `u_L`, both envelopes, the right bookkeeping, `u_L ∈ modes` | `Proofs/Encoding/ModeHandoff.lean` |
 
-## 4. Per benchmark
+What the mechanized loop invariant carries beyond `φInv`: the evolve envelope `envLR` of both
+sides and the right's **mode-consistent region** `regionG guard cuts q = guard q ∧ cuts q`
+(the guard of the right's current mode and that mode's checked cuts; the paper's operating
+region `op_R`), bookkeeping that the flow-then-jump rotation maintains at every loop boundary.
+This is the `(φInv ∧ op_R) → [|(L,R)⟩⟩ (φInv ∧ op_R)` form of Theorem 3.
 
-The per-benchmark theorem table (theorem name, file, hypotheses, axioms) for all 45 is in
-`docs/CERTIFICATION-CHECK.md`, "Per-benchmark inventory"; the per-benchmark mechanism
-evidence is the matrix of `docs/SUITE-REDESIGN.md`.
+## 2. Section 3: witness strategies
 
-## 5. Modelling choices to state in the paper
+| paper | Lean | where |
+|---|---|---|
+| a witness strategy: for each left window a chain of right segments (joint, right-only, and switches), chosen after the left run | `GResp G q P post σ` (the segments are chosen after the left run; the final successor at the end state) and the chain lemmas `RResp`/`RRespP` | `Proofs/Encoding/GuardedSwitch.lean`, `GuardedClimb.lean` |
+| the strategy read from a cover (Section 5) | `coverX_piece`: from `CoveredX` the right answers one clocked left piece; `coverX_gresp` lifts it to `GResp` | `Proofs/Encoding/CoverResp.lean` |
+| a reposition (the right moves alone, the left frozen) | the right-only steps of `CoveredX` (`stepRepoPre`, `stepRepoPost`), the frozen left in `couple_box_dyn` | `Checker/CoverX.lean`, `Proofs/Encoding/ReplayDyn.lean` |
+| every mode switch of the witness passes the entered mode's guard | `SwitchLegal e ω := Formula.sat e.guard ω`; a right run is a sequence of legal switches (`guarded_rights_bridge`); every edge of the instance's graph carries the lowered guard of the mode it enters (`grOf_guards` in the bridge, `Gr_guards` in each standalone instance) | `Proofs/Encoding/GuardedSwitch.lean`, `Proofs/Encoding/Emitted/Data.lean` |
+
+## 3. Section 4.1: flow certificates (Definition 2, Lemma Time Stretching, Theorem 1)
+
+| paper | Lean | where |
+|---|---|---|
+| the joint segment at stretch `λ` (Eq. joint-dynamic-stretched): `ẋ_L = f_L`, `ẋ_R = λ f_R`, under both evolve domains | `Program.ode (jointSys fL fR (Term.const λ)) (domL ∧ domR)` | `Core/FlowCert.lean` |
+| the right-only segment (Eq. rightonly-product): left frozen | `rightBlock fR` with the left coordinates unmoved (`mergeLR`), the dynamic reposition program | `Proofs/Encoding/ReplayDyn.lean`, `RepoPrefixR.lean` |
+| **Lemma (Time Stretching)**: `φ` solves `ẋ = f` on `[0, λτ]` iff `s ↦ φ(λs)` solves `ẋ = λf` on `[0, τ]` | `sem_rightBlock_reparam`, `sem_rightBlock_reparam_iff`; the right projection of a joint run time-rescaled, `odeSol_right_of_joint` | `Proofs/Encoding/Reparam.lean`, `Emitted/Region.lean` |
+| Eq. (boundary-preservation), Eq. (domain-preservation): the Lie-derivative conditions | the three query routes of one component: whole-domain `dom ∧ ġ > 0` (route A), boundary `dom ∧ g = 0 ∧ ġ ≥ 0` (route B), superlevel `dom ∧ g ≥ 0 ∧ ġ > 0` (route C), each `unsat` | `Core/FlowCert.lean` (`flowQuery`, `flowQueryStrict`, `lieDeriv`, `tderiv_correct`), `Proofs/Flow/DISuperlevel.lean` |
+| **Definition 2** (flow certificate): every component of `φ_inv(m_L)` satisfies one of them over the segment domain at the chosen stretch | the **pack** of a pairing `(l, q)` at its stretch: one `unsat` per component by any of the three routes, over the segment domain narrowed by the kept atoms (Section 4.3), in the strata order the tool recorded (`modalVerdXQueries`); the reposition pack `modalVerdDynXQueries` for the right-only kind | `VerdictsV2/ModalX.lean`, `ModalDynX.lean` |
+| **Theorem 1** (soundness of flow certification): `φ_inv(m_L) → [P_kind] φ_inv(m_L)` | `flow_cert_sound` (one component: an `unsat` route query gives `BoxLe` along the stretched joint flow, through dL-lean's `DI_nonstrict_domain`); threaded over the components with the kept atoms by `check_sound_multi_cutX`; consumed per segment as `couple_box_cutX` (joint) and `couple_box_dyn` (right-only) | `Core/FlowCert.lean`, `Proofs/Soundness/CutLiftX.lean`, `Proofs/Encoding/SyncSwitch.lean`, `ReplayDyn.lean` |
+| the tool's query, the runner's query and the theorem's hypothesis are the same formula | the runner rebuilds each query from the committed records with the tool's own lowering and printer; the verdict pins (`VerdictsV2/PinsV2.lean`, `LamPinV2.lean`) tie each pack and its stretch to the emitted cover; in the bridge, `Verdicts` is by definition the runner's group list (`Emitted.verdicts_of_groups`) | `VerdictsV2/`, `Proofs/Encoding/Emitted/Run.lean` |
+
+Existence of the right flow for the needed duration is not part of Theorem 1 in the paper; in
+Lean it is Assumption 1's clause (i) (Section 6 below), used by the general theorem, and in the
+standalone instances an explicit solution or a viability argument (`Proofs/Flow/`).
+
+## 4. Section 4.2: non-connection certificates (Definition 3, Theorem 2)
+
+| paper | Lean | where |
+|---|---|---|
+| **Definition 3**: a non-connection certificate for `m_R → m_R'` proves `Source(σ) → [P_kind] ¬Entry(m_R')` | the two checks as the tool sends them, `NonConn.queries` (source: no entry state of `m_R` satisfies the threshold guard; barrier: on the threshold the flow moves the variable away), defined once for the certifier, the runner and the kernel | `Trusted/NonConnQuery.lean` |
+| **Theorem 2**: the declared change is never taken under `(σ, kind)` | `nonconn_sound` (dL-lean `DI_strict` on the safe-side term); `nonconn_of_unsat`: the runner's two `unsat` answers are its hypotheses | `Checker/NonConn.lean`, `Proofs/Encoding/NonConnBridge.lean` |
+| where a pruned edge leaves the cover | `retainedSucc` drops it; the cover record carries the `pruned` list the kernel replays | `Checker/Cover.lean`, `Checker/CoverX.lean` |
+| where it enters Theorem 3 | the bridge keeps the barrier term of every pruned exit of the current right mode in the anchor: `≤ 0` on entry (source check), kept along joint and frozen flows (barrier check), `> 0` under the target's guard, so the target's guard never holds at a segment end (`nonconn_entry`, `nonconn_keep`, `guard_pos_of_barrier`; the general theorem's `hprune`, `hpruneD`) | `Proofs/Encoding/Emitted/Barrier.lean` |
+| suite | 44 pruned edges, both queries of each discharged (`--run-verdicts-v2`, and as groups of `relcert-bridge-verdicts`); the per-edge Theorem 2 instance `match_multi_rate_nonconn` for `DRIVE → STALL` | `VerdictsV2/NonConnPinV2.lean`, `Instances/MatchMultiRatePruned.lean` |
+
+## 5. Section 5: the cover and Theorem 3
+
+### 5.1 Definition 4 (all-successors cover)
+
+| paper | Lean | where |
+|---|---|---|
+| configuration `(m_R, B, σ)` with budget `B` and source setting `σ ∈ {pre-joint, post-joint}` | `Config = ⟨q, B, SrcSetting⟩`, `B : ℕ` segments (the budget `⌈ε_L/δ⌉`, `δ = ε_R/λ` the common span) | `Checker/Cover.lean` |
+| case 1: a prefix of the certified joint segment finishes the residence | `CoveredX.base` | `Checker/CoverX.lean` |
+| case 2, joint kind: every retained successor covered at `B − w` with `σ' = post-joint` | `CoveredX.step` | |
+| case 2, right-only kind: every retained exit covered, `σ` unchanged | `CoveredX.stepRepoPre`, `stepRepoPost` | |
+| "only configurations reached by finitely many applications" | `CoveredX` is inductive; the checker `decideCoveredX` is fuel-bounded (`fuelOf`); `decideCoveredX_sound` says an accepted configuration is covered | `Checker/CoverX.lean` |
+| the search graph: certified kinds, weights, retained edges | the emitted cover record `CoverEmitE` (flags per node: `jointOK`, `dynPre`/`dynPost`; stretches; pruned edges; admissible starts; strata orders) replayed in the kernel: `CoverReplay.lean` (standalone, `decide`) and `coversOK` (bridge, `decide +kernel`) | `Checker/CoverEmit.lean`, `InstancesV2/CoverReplay.lean`, `Emitted/Keyed.lean` |
+| admissible initial right mode `q₀` for `m_L` | `AdmissibleStart gL φ env (guard q) (cuts q)`: some joint state in the left guard, the invariant, the envelope and the right region; the dropped starts are those whose admissibility query is `unsat` (`Bridge.admQueryOf`, `adm_sound`) | `Proofs/Encoding/Theorem3General.lean`, `Emitted/Barrier.lean` |
+| the tool's cover (Section 6.1) | `OracleAPI.certifyWithData`: the same recursion over configurations, untrusted; its output is replayed as above | `Trusted/OracleAPI.lean` |
+
+Two more cases, `stepChosen`, `repoChosen` and `hop`, are the existential mode choice (a
+subset of successors with a coverage certificate, an entry hop). They are a tool feature
+(`RELCERT_CHOICE=1`, one sentence in the paper's Section 6.1), vacuous for every suite
+benchmark (the 46 covers are byte-identical with the feature on and off) and exercised by the
+three exhibits of `benchmarks/choice/`; `docs/CHOICE-SOUNDNESS.md`.
+
+### 5.2 Assumption 1 (well-formedness)
+
+| paper | Lean | where |
+|---|---|---|
+| **Assumption 1**: from every state in a source-mode guard an evolution spanning `ε_R` exists, and every evolution of duration at most `ε_R`, the empty one included, ends in the guard of a declared successor | `WellFormedR G guard ε`: for every mode `q` and state `x` in `q`'s lowered guard and evolve domain, (i) `∃ Φ, ODESol m.sys m.dom x ε Φ`, (ii) every run of duration `t ≤ ε` ends in `guard e.tgt` for some `e ∈ G.edgesFrom q` (the self-loop included); `G` the benchmark's guarded right automaton, `ε` the file's `epsilon` | `Proofs/Encoding/WellFormedR.lean` |
+| its use in Theorem 3 | the hypothesis `hwf` of `theorem3_of_coverX` (stated as `WellFormedRIn G guard reg ε`, Assumption 1 relative to a right-only region `reg` kept by the right flows; every instance takes `reg = ⊤`, the paper's form) | `Proofs/Encoding/Theorem3General.lean`, `Emitted/Region.lean` |
+| verified, not assumed, per benchmark | `<ns>.<b>_wellFormedR` for all 46 right models, Z3-free (the three standard axioms), audited on every build by `InstancesV2/WellFormedBattery.lean`; transported onto the bridge's graph by `wellFormedR_transport` (same modes, every standalone edge a declared successor, decided) | `InstancesV2/WellFormed/`, `Instances/WellFormed/`, `Emitted/Transport.lean`; `docs/WELLFORMED.md` |
+| the remark (self-loop whose guard contains the one-interval reach set, or a successor covering the rest) | the proof styles: (a) forward invariance of the guard then the self-loop, (b) exit into a successor's guard within one interval | `docs/WELLFORMED.md` §2 |
+| the tool's sufficient check | `relcert --wellformed`: clause (ii) per right mode (`ok (invariant)` / `ok (exit→S)` / `UNKNOWN`), strict in `--check-quick-v2` | `Trusted/WellFormedCheck.lean` |
+| the six satellites | since 2026-10-15 their right evolve domains carry the conserved momentum band (total angular momentum about each wheel axis within the wheel's capacity), and Assumption 1 holds literally; before, it was proved on that band only | `docs/WELLFORMED.md` §3, `docs/SUITE-REDESIGN.md` §19.2 |
+
+### 5.3 Theorem 3 (soundness of synthesis)
+
+> `φInv ∧ op_R → [|(L,R)⟩⟩ (φInv ∧ op_R)` if (1) `R` satisfies Assumption 1; (2) for every
+> `m_L` every admissible `q₀` admits an all-successors cover from `(q₀, ε_L, pre-joint)` at
+> `φ_inv(m_L)`; (3) every declared left mode change satisfies the handoff condition
+> (Eq. handoff).
+
+Mechanized as `theorem3_of_coverX` (`Proofs/Encoding/Theorem3General.lean`, standard axioms
+only; the Z3 axiom enters only through the instances' verdict hypotheses):
+
+| paper condition | Lean hypothesis | discharged in an instance by |
+|---|---|---|
+| (1) Assumption 1 | `hwf : WellFormedRIn Gr guard reg epsR` | the benchmark's `WellFormedR` lemma (§5.2) |
+| (2) the covers, per `m_L` and admissible `q₀` | `hcov : ∀ l q, AdmissibleStart … → CoveredX Gr (ch l) ⟨q, B l, preJ⟩`, with `hdt : dt ≤ B l · δ l` (the window fits the budget) | covered starts by `decideCoveredX` on the emitted record (`coversOK`), the other starts inadmissible by their `unsat` (`adm_sound`) |
+| (2), what each cover step consumes (Theorem 1, Theorem 2, and the segment-level facts) | `H : ∀ l, CoverHyps …`: the flow certificate of every certified pairing at its stretch (`hbox`), the reposition certificates (`hboxDpre/Post`), the non-connection certificates of the pruned edges (`hprune`, `hpruneD`), the coverage certificates of chosen sets (`hcovJ/R/S`, vacuous for the suite), the entry condition (`hhand`: the anchor of `q` and the guard of `q'` give the anchor of `q'`), the reposition-progress premise (`hrepoProg`, §5.4) | the bridge's `coverHyps_of` from the `Verdicts` structure (`Emitted/Keyed.lean`) |
+| the loop invariant's right bookkeeping (`op_R`) | the anchor `A l q` (`hAstart`, `hApost`): the row, the kept atoms of both modes, the barrier terms of `q`'s pruned exits, the envelope; its region part `regionG guard cuts q` | `Emitted/Anchor.lean` (`AG`, `AG_start`, `AG_post`) |
+| (3) the handoff condition (Eq. handoff): `φ_inv(m_L') ∧ dom_{m_L'} ∧ guard_{m_L} ∧ dom_{m_R} → φ_inv(m_L)` | for mode-dependent rows, the hypothesis `hhand` of `theorem3_modeKeyed`; the runner's query `Handoff.queryOf` is exactly this implication with the declared domains conjoined (`handoff_of_unsat`, `handoff_sound`) | `Proofs/Encoding/ModeHandoff.lean`, `Trusted/Handoff.lean`, `Emitted/Barrier.lean` |
+| the conclusion | `rvalid (theorem3Form (bigChoice (leftProgsOf …)) (rightAutomatonBody Gr mv) ((canonInvM g gs ∧ envLR domL domR) ∧ mvRegionR mv (regionG guard cuts) …))`: one declared row (`theorem3_window_of_records`, `windowClaim`); for per-mode rows the composition through `theorem3_modeKeyed` over `leftAutomatonBody` with `psiK` (`theorem3_keyed_of_records`, `keyedClaim`) | `Emitted/Window.lean`, `Emitted/Keyed.lean` |
+| the proof sketch (induction on the finite cover) | `coverX_piece` (`CoverResp.lean`): per case of `CoveredX`, the segment runs (Assumption 1 clause (i)), the anchor is preserved (Theorem 1), the end state enables a declared successor (clause (ii)) that is not pruned (Theorem 2), the switch is legal and the entered anchor holds (`hhand`); the budget decreases | `Proofs/Encoding/CoverResp.lean`; `docs/THEOREM3-GENERAL.md` §2 |
+
+The mode-dependent case (the paper's twelve benchmarks): `theorem3_modeKeyed` composes the
+per-mode window responses with the handoff condition and the side conditions on `u_L`
+(freshness, footprints); the bridge supplies the per-mode responses through `hstepMode_GR` and
+`HMode_regionG`. Mode-independent rows take the window form directly (`rowsSame` decided).
+
+### 5.4 The reposition-progress premise (not in the paper's proof sketch)
+
+The sketch says Assumption 1 "continues every segment along a retained edge". For a right-only
+segment that is not enough: Assumption 1 may enable only the self-loop, the right-only case of
+Definition 4 needs a non-self exit, and nothing in Definition 2 or 3 says one is reached. The
+general theorem therefore takes `hrepoProg : RepoProgress …` (from a reposition start, cycles
+of the node until a retained exit is enabled, the anchor kept). The tool discharges it with a
+**progress certificate** per reposition node (`Trusted/ProgressEmit.lean`, emitted by default):
+staged rate bounds (`rateQuery`), kept thresholds (`keepQuery`) and the landing (`landQueries`:
+on the crossing line and at an already-crossed start some exit's guard holds). `repoProgress_one`
+and `repoProgress_two` (`Proofs/Encoding/Progress.lean`) prove the certificate sound (standard
+axioms); `progressVerd_one/two` (`VerdictsV2/ProgressPin.lean`) read the runner's `unsat`
+answers as its facts. Suite: 261 certificates, all discharged (`relcert-progress-verdicts`).
+`docs/THEOREM3-GENERAL.md` §3. **For the paper**: this is certificate 3's second half
+(preservation and progress) and belongs in Sections 4.1 and 6.1.
+
+## 6. Section 6: implementation and evaluation
+
+| paper | Lean / tool | where |
+|---|---|---|
+| "a Lean 4 executable; its search is untrusted and only proposes; every cover it proposes is replayed by a kernel-verified checker; a small trusted layer parses, lowers, prints and talks to Z3" | `relcert` (`Main.lean`); the trusted surface, file by file, in `RelCertifier/Trusted/README.md`: parser (`Parse.lean`, `KeyAudit.lean`), lowering (`Run.lean`, `JointVars.lean`, `InvComponents.lean`, the query builders `Handoff.lean`, `NonConnQuery.lean`, `BridgeQueries.lean`, `ProgressEmit.lean`, `ChoiceEmit.lean`), printer (`Smt.lean`), Z3 (`Z3.lean`, `Oracle.lean` with the axiom), the untrusted certifier `OracleAPI.lean` | `RelCertifier/Trusted/` |
+| flow certificates and the stretch: three routes per component; one stretch per left mode, else a stretch per pairing with the common span `ε_R/λ̂` | the routes as in §3; the stretch per pairing `lam l q`, the common span `δ l = ε_R / lamQ l`, the budget `⌈ε_L/δ⌉` (`Emitted/Data.lean`); the stretch of every pack kernel-checked against the emitted cover (`LamPinV2.lean`) | `Trusted/OracleAPI.lean`, `VerdictsV2/LamPinV2.lean` |
+| non-connection pruning (threshold guards, two checks) | §4 | |
+| handoff check (negation of Eq. handoff `unsat`, issued and counted for every declared left transition) | `Handoff.queryOf`; 187 transitions over the suite, all `unsat` (`docs/HANDOFF.md`) | `Trusted/Handoff.lean` |
+| the cover and its budget (depth-first recursion, budget-neutral cycles rejected) | §5.1; `decideCoveredX` with fuel is the kernel's replay of the same recursion | `Checker/CoverX.lean` |
+| checked cuts (Section 4.3 of the paper's Definition 2 discussion: atoms implied by a mode's guard and preserved by its own flow narrow the segment domain) | O1 (entry) and O2 (invariance) per kept atom; the extended certificate `EvolStrengtheningX` kernel-checked well formed (`InstancesV2/Cuts/<b>.lean`, `cutsOK_wfX`); O2 in the bridge as the stay verdicts by the certificate's route (`Bridge.stayQueryOf`, `atomsStayC_L/R`); the lift `Proofs/Soundness/CutLiftX.lean` | `Checker/EvolStrengtheningX.lean`, `Emitted/Stay.lean` |
+| "Mechanization" paragraph: a kernel-checked theorem per benchmark over the guard-gated programs; Z3 hypotheses tied to the exact queries; trust base = parser, lowering, printer, Z3 `unsat`, kernel; twelve mode-dependent benchmarks composed with handoffs; Assumption 1 verified separately | §0 (both routes), §5.3, §5.2. Counts to quote: 46 benchmarks; bridge verdicts 3512 groups over 46 + 3 exhibits (`relcert-bridge-verdicts`); standalone packs 234 joint + 41 reposition over 1410 verdict hypotheses (`--run-verdicts-v2`); handoff 187; non-connection 88 over 44 pruned edges; progress 261; Assumption 1: 46 of 46 | `STATUS.md`, `docs/VERDICTS.md` |
+| the benchmark table (tab:benchmarks) and the mechanism matrix | `scripts/suite_v2_matrix.py`, `scripts/paper_numbers.sh` (the frozen numbers the paper quotes) | `docs/SUITE-REDESIGN.md` |
+
+**Paper text to update (as of 2026-10-15, paper commit `da28aa9`).** The Mechanization
+paragraph still says (a) that for the six satellite benchmarks both the theorem and
+Assumption 1 "hold on the momentum-feasible region" and that "their theorems state that
+region": now the band is part of the right evolve domains and every statement is literal
+(§5.2); (b) that Assumption 1 "is not assumed but verified: each proof constructs the nominal
+response explicitly": in the generic route Assumption 1 is a hypothesis of
+`theorem3_of_coverX`, discharged by the per-benchmark `WellFormedR` lemma, which is the
+cleaner sentence (verified, then used); (c) nothing about the progress certificate (§5.4).
+The 1410 count and "replays the witness strategy segment by segment" describe the standalone
+route; the bridge is one generic theorem over the emitted records.
+
+## 7. Where the numbers come from
+
+| number | source |
+|---|---|
+| 46 benchmarks, all CERTIFIED with `RELCERT_IMPLIED_CUT=1` | `scripts/paper_numbers.sh` (frozen), `benchmarks/suite_v2/` |
+| 48 bridge instances, 3512 verdict groups | `InstancesV2/Bridge.lean`, `relcert-bridge-verdicts`, `expectedBridgeGroupsV2` |
+| 46 standalone instances, 234 joint + 41 reposition packs, 1410 hypotheses | `InstancesV2/BatteryV2.lean`, `relcert --run-verdicts-v2`, `docs/VERDICTS.md` |
+| 44 pruned edges, 88 non-connection queries; 187 handoff queries; 261 progress queries | the same runner; `relcert-progress-verdicts` |
+| Assumption 1: 46 of 46, Z3-free | `InstancesV2/WellFormedBattery.lean` |
+| axioms of every instance: `propext`, `Classical.choice`, `Quot.sound`, `z3_unsat_sound` | `lake build … 2>&1 | grep -A3 "depends on axioms"`; `docs/CERTIFICATION-CHECK.md` check 2 |
+
+## 8. Modelling choices to state in the paper
 
 | paper `cpsProg` | mechanized | direction |
 |---|---|---|
-| left has guards, `u_L`, clock | `leftAutomatonBody` with the lowered left guards, the declared `next` lists and `u_L`, windows clock-capped, for all 45 (§2b; mode-independent instances through `theorem3_leftAut_of_choice`) | exact (jump then flow, as the paper writes it) |
-| `?guard_m(x)` on right transitions | `e.guard = hostGuard … (mR e.tgt)` for all 45 | §2e |
-| `t := 0; {…, t' = 1 & t ≤ ε_R}` on the right | unclocked in `rightAutomatonBody` | permissive (the ∃-side chooses durations) |
-| invariant `φInv` | `φInv ∧ envLR ∧ mvRegionR mv gregion` (mode-consistent states: the current mode's guard and checked cuts) | bookkeeping conjuncts on both sides of the implication; the guard part is what the rotation maintains |
-| jump-then-flow (right) | flow-then-jump (`modeStep`) | a rotation (`docs/history/ROTATION-SCOPE.md`) |
-| budgets `B = ε_L`, `w = ε_R/λ` (real) | `weight : ℕ`, budget `⌈ε_L/δ_L⌉` | ℕ-discretization |
+| left has guards, `u_L`, clock | `leftAutomatonBody` with the lowered left guards, the declared `next` lists and `u_L`, windows clock-capped (mode-independent rows through `bigChoice` of the windows, carried by `theorem3_leftAut_of_choice`) | exact (jump then flow, as the paper writes it) |
+| `?guard_m(x)` on right transitions | every edge carries `hostGuard … (mR e.tgt)`, the same lowering as the left guards | exact |
+| `t := 0; {…, t' = 1 & t ≤ ε_R}` on the right | unclocked in `rightAutomatonBody`; durations are the ∃-side's choice, bounded by the budget | permissive |
+| budgets `B = ε_L`, weights `w = ε_R/λ` (real) | `B : ℕ` segments of the common span `δ`, `B = ⌈ε_L/δ⌉` | ℕ-discretization |
+| jump-then-flow (right) | flow-then-jump (`modeStep`): the same body up to rotation; the loop invariant therefore carries the right's current-mode guard (`op_R`) | rotation (`docs/history/ROTATION-SCOPE.md`) |
 | resets | identities | matches the paper's Limitations (`docs/history/RESET-MAPS-SCOPE.md`) |
-| evolve domains | the instances' Lean statement uses each side's uniform evolve domain; every suite_v2 benchmark declares the same evolve in all modes of a side (the matrix's "domains" column, all "uniform") | per-mode domains (the paper's Eq. 2) are not covered by the Lean lift yet |
-
-## 6. The R-series gates (glossary)
-
-The development was built as an ordered arc, R1 to R7 (record:
-`docs/history/ROADMAP.md`). Each removed a way the mechanization could have been weaker
-than the paper:
-
-| gate | what it established | Lean artifact | paper element |
-|---|---|---|---|
-| R1 witness extraction | the witness is derived from the `Covered` derivation, not assumed | `theorem3_uniform_from_covered` | Theorem 3, Definition 5 |
-| R2 statement conditioning | the ∀ ranges over exactly the admissible entries the tool certifies | `theorem3_uniform_guarded` | §4.3 admissibility, Eq. (mode-inv) |
-| R3 canonical invariant | no per-instance encoding hypotheses | `canonInv`, `encode_canonInv` | Eq. (polynomial-invariant), the dL-rel encoding |
-| R4 multi-component invariants | the full conjunction certified by sequential (stratified) differential cuts; mutual narrowing was found unsound and replaced | `StratifiedBarrier.lean`, `CoverCertM` | Definition 2, Theorem 1 |
-| R5 emission door | what the tool reports CERTIFIED is what the kernel replays | `--emit-cover`, `InstancesV2/CoverReplay.lean` | the evaluation claim |
-| R6 viability | the response flows exist for the needed durations | `Proofs/Flow/BoxViability*`, `StratifiedFaces.lean` | existence side of Definition 5 |
-| R7 closure | the documented assumptions match the proofs; the settling chain retired | `Instances/AxiomCheck.lean` | the trust-base claim |
+| evolve domains | each side's uniform evolve domain (every suite benchmark declares the same evolve in all modes of a side); per-mode domains (the paper's Eq. 2) are outside the Lean lift | scope |
+| invariant `φInv` | `φInv ∧ envLR ∧ mvRegionR mv (regionG guard cuts)`: the envelope and the mode-consistent region are bookkeeping on both sides of the implication | the `(φInv ∧ op_R)` form of Theorem 3 |

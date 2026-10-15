@@ -22,6 +22,7 @@ the same cleanup unless one of the 19 carried-over theorems needs them.
 | `KGT1-ASSEMBLY-SCOPE.md` | scope of the k > 1 window assembly | completed 2026-07-30 (`Proofs/Encoding/RepoPrefixR.lean`, `WindowRF.lean`) |
 | `LEMMA-SCOPE.md` | scope of the response-structure lemma groups L1 to L7 | completed 2026-07-30 |
 | `MULTIFLOW-REALIGN.md` | task H: realigning the legacy suite onto the multi-flow chain | completed 2026-07 |
+| `PAPER-MAPPING-2026-10-10.md` | the paper ↔ mechanization account as it stood on 2026-10-10, organized by development branch (checked cuts, non-connection, guarded switching, Assumption 1, the first bridge section) | 2026-10-15, by the paper-ordered `docs/PAPER-MAPPING.md` |
 | `PAPER-MAPPING-INVENTORY.md` | the 2026-07-19 paper ↔ mechanization inventory: every generic `rvalid (theorem3Form …)` theorem, the findings of a full read of `Proofs/`, the per-benchmark tables of the legacy suite, the R-series gates in detail | 2026-10-10, by the current `docs/PAPER-MAPPING.md` |
 | `PRUNING.md` | the non-connection pruning exhibit of the legacy suite (`match_multi_rate`'s `STALL` fallback, thirteen dropped candidates) | 2026-10-10: the pruning record of the paper's suite is `docs/SUITE-REDESIGN.md` (matrix column M4) |
 | `READING-GUIDE.md` | reading guide to the legacy-era repository: live vs historical routes, vacuity traps | 2026-10-10, by `README.md` and `docs/PAPER-MAPPING.md` |

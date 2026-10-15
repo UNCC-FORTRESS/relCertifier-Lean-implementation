@@ -3862,9 +3862,11 @@ keeps the level in `[0, 10]`, grid modes always). Claim: Definition 1 at `E_L = 
 pair of battery levels admissible, so the secret level is not deducible from the meter. The
 tool's witness is the source's: copy the left's source and inputs when the battery allows,
 otherwise a grid mode with `d = r` (zero net draw); the chosen set after a left battery mode is
-every battery mode plus `GridD0R0` and `GridD1R1`. The leaky controller `batI` (battery while
-`B < Bmax`, grid at `Bmax`) is `benchmarks/negative/freedm_meter_leaky`, DECLINED in 1.6 s as the
-source's Proposition 10 predicts; a decline is not a proof of insecurity.
+every battery mode plus `GridD0R0` and `GridD1R1`. The leaky controller `batI` (the battery
+whenever it can still charge or discharge, `(n ≤ 0 ∧ B < Bmax) ∨ (n > 0 ∧ B > 0)`, the grid
+otherwise; in sampled form one period of charge or discharge) is
+`benchmarks/negative/freedm_meter_leaky`, DECLINED as the source's Proposition 10 predicts; a
+decline is not a proof of insecurity.
 
 **What they exercise.** All four need the existential mode choice: the right hops into the
 left's mode at the start of every window (the left's guard and the identity relation put the

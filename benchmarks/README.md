@@ -183,7 +183,9 @@ a file and its theorem cannot drift apart silently.
 
 Files the tool is expected to DECLINE, kept beside the suite to show what a decline looks like;
 they enter no declared count. `freedm_meter_leaky`: the deterministic controller `batI` of the
-FREEDM case study on both sides of `freedm_meter`; a run from a full battery draws from the grid
-while a run from a lower level cannot, so no matching run keeps the meters equal. A DECLINE is
+FREEDM case study on both sides of `freedm_meter` (the battery whenever it can still charge or
+discharge, the grid otherwise); a surplus at a full battery, or a demand at an empty one, goes to
+the grid while a run from another level keeps it on the battery, so no matching run keeps the
+meters equal. A DECLINE is
 not a proof of insecurity (the certifier is sound, not complete); the source proves the leak by
 exhibiting the two runs.

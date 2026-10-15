@@ -19,8 +19,11 @@
 #     all times are equal draws. (2) One transformer, no power migration: with migration the
 #     second run's compensation depends on the migrated power, which finite inputs cannot track.
 # (3) Demand d in {0, 1, 2} and renewable r in {0, 1} per cycle, a mode choice on both sides
-#     (reals in the source). Both sides run batS: a battery mode is enabled when one period of it
-#     keeps the level in [0, Bmax] (Bmax = 10), a grid mode always.
+#     (reals in the source). Both sides run batS, whose battery branch is guarded by the source's
+#     test "(B < Bmax) or (n > 0 and B > 0)" (the battery can still charge or still discharge) and
+#     whose grid branch is free: here a battery mode is enabled when one period of it keeps the
+#     level in [0, Bmax] (Bmax = 10), the sampled form of that test, and a grid mode always. The
+#     meter E has no domain (it may decrease when a surplus is sold).
 # PROPERTY. Definition 1 at E_L = E_R (two inequalities), every pair of battery levels an
 # admissible start: the secret B is unconstrained on either side. Witness: the right copies the
 # left's source and inputs when its battery allows, otherwise draws from the grid with d = r

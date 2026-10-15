@@ -4,7 +4,9 @@
 # mechanisms: M2
 #
 # SOURCE. Bohrer and Platzer, "A hybrid, dynamic logic for hybrid-dynamic information flow"
-# (LICS 2018), Section 2 and Section 8: a FREEDM microgrid transformer serves a demand d from a
+# (LICS 2018), the FREEDM model of Figure 2 (Section 3), nondeducibility (its Definition 5),
+# the leak of batI (Section 8, Proposition 10) and the security of batS (Section 9,
+# Proposition 11): a FREEDM microgrid transformer serves a demand d from a
 # renewable source r, its battery B, or the macrogrid; the battery level is private, the grid
 # draw gr and time are public. Nondeducibility: for every run from a state and every other
 # private battery level, a run from the other level with the same public values exists. The
@@ -22,9 +24,11 @@
 #     (reals in the source). Both sides run batS, whose battery branch is guarded by the source's
 #     test "(B < Bmax) or (n > 0 and B > 0)" (the battery can still charge or still discharge) and
 #     whose grid branch is free: here a battery mode is enabled when one period of it keeps the
-#     level in [0, Bmax] (Bmax = 10), the sampled form of that test, and a grid mode always. The
-#     meter E has no domain (it may decrease when a surplus is sold).
-# PROPERTY. Definition 1 at E_L = E_R (two inequalities), every pair of battery levels an
+#     level in [0, Bmax] (Bmax = 10), the sampled form of that test (it also admits a zero-net
+#     battery cycle at a full battery, which the source's test does not), and a grid mode
+#     always. The evolve domain adds the capacity B <= Bmax to the source's B >= 0; the meter E
+#     has no domain (it may decrease when a surplus is sold).
+# PROPERTY. The suite's Definition 1 (the source's nondeducibility) at E_L = E_R (two inequalities), every pair of battery levels an
 # admissible start: the secret B is unconstrained on either side. Witness: the right copies the
 # left's source and inputs when its battery allows, otherwise draws from the grid with d = r
 # (zero net draw). Existential mode choice (the tool's default): the right commits to one mode.

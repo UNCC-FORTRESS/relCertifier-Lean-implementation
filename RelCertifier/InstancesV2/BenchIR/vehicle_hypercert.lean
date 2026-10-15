@@ -15,7 +15,7 @@ def vehicle_hypercert_IRv2 : PProblem :=
   {
     name := "vehicle_hypercert"
     lambdaMin := "1.0"
-    lambdaMax := "2.0"
+    lambdaMax := "1.0"
     L := {
       stateVars := ["v"]
       epsilon := "1.0"

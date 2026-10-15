@@ -5,9 +5,12 @@
 #
 # SOURCE. Loos and Platzer, "Differential refinement logic" (LICS 2016), Section 6.4: the
 # local lane control of Loos, Platzer and Nistor (FM 2011), a follower behind a leader on a
-# straight lane, x_f' = v_f, v_f' = a_f, x_l' = v_l, v_l' = a_l, accelerations in {-B, A},
-# with the time-triggered follower (period eps, guard Safe_eps) shown to refine the
-# event-triggered one (guard Safe). Refinement in dRL is reachability inclusion, i.e. the
+# straight lane, x_f' = v_f, v_f' = a_f, x_l' = v_l, v_l' = a_l: the leader's acceleration is
+# any value in [-B, A]; the follower's is any value in [-B, A] under the safety condition
+# Safe_eps (eq. (7) of FM 2011, the time-triggered form), exactly -B when braking (dRL fixes
+# the braking power, FM 2011 allows [-B, -b]), and 0 when stopped; dRL shows the
+# time-triggered follower (period eps, guard Safe_eps) to refine the event-triggered one
+# (guard Safe, the safe-distance invariant of FM 2011), with b = B. Refinement in dRL is reachability inclusion, i.e. the
 # forall-exists relational invariance of this suite at the identity relation, stretch 1.
 #
 # STATE. The gap d = x_l - x_f and the two speeds: d' = v_l - v_f, v_f' = a_f, v_l' = a_l
@@ -20,8 +23,12 @@
 # dRL's refinement pattern between two sampled controllers: the conservative follower
 # (Safe_eps) refines the permissive one (Safe), since Safe_eps implies Safe. (2) The leader's
 # acceleration, an arbitrary value in [-B, A] in the source, is here one of {A, -B} per
-# cycle (a mode choice on both sides); the witness copies the left's leader. Both deviations
-# are stated once here and in the suite table.
+# cycle (a mode choice on both sides); the witness copies the left's leader. (3) The
+# follower's actions are the extremes: accelerate at A under Safe_eps (the source allows any
+# value in [-B, A] there), brake at -B from a speed >= 1 (the source's braking run stops at
+# v_f = 0), and coast (a = 0) unconditionally, which stands in for the source's stopped-car
+# branch and keeps the right model complete; guards are closed where the source's are strict.
+# All deviations are stated once here and in the suite table.
 #
 # PARAMETERS. A = 1, B = 1, eps = 1; speeds in [0, 10]; braking only from a speed >= 1 (a
 # full period of braking stays in v >= 0); a Coast action (a = 0) of the follower keeps the

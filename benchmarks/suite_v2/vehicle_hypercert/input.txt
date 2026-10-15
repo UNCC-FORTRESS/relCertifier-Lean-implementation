@@ -9,12 +9,17 @@
 # Opacity (secret start s in [0,1]) is encoded by the precondition v_L = v_R with the right's
 # position free (any non-secret start with the same velocity). Claim: v_L = v_R (implies their
 # delta-closeness for every delta >= 0). Position omitted: unobserved and unconstrained.
-# Guards keep the velocity in [0, 0.6] over one cycle. Existential mode choice (RELCERT_CHOICE=1).
+# Guards keep the velocity in [0, 0.6] over one cycle. The encoding rests on two facts of the
+# source model: the velocity never reads the position (so the secret cannot reach the
+# observable, which is why the witness copies the acceleration) and a non-secret start
+# s in (1, 8] with the same velocity keeps a constant offset to the secret one, so the matching
+# trace may leave s <= 8 before the left does; neither side bounds s here. Stretch pinned to 1:
+# opacity compares the observable step by step. Existential mode choice (the tool's default).
 [problem]
 name = vehicle_hypercert
 max_depth = 8
 lambda_min = 1.0
-lambda_max = 2.0
+lambda_max = 1.0
 bound_T = 40.0
 [Lsys]
 state_vars = [v]

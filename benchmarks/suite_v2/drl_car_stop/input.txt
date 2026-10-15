@@ -19,13 +19,17 @@
 # event-triggered right has runs of any length inside the event domain, which this suite's
 # models (fixed control interval on both sides, Assumption 1) cannot express. What is
 # certified is dRL's refinement pattern between two sampled controllers: the deterministic
-# conservative one (guard Safe_eps, Example 3 of the source) refines the permissive one
-# (guard Safe), because Safe_eps implies Safe. The witness copies the left's control.
+# conservative one (guard Safe_eps) refines the permissive one (guard Safe), because Safe_eps
+# implies Safe (dRL's Open Goal 1). Safe_eps is the time-triggered safety condition of Loos,
+# Platzer and Nistor (FM 2011), eq. (7), for a stationary leader at the stop line: the Safe of
+# the state one period of acceleration later. A Coast action (a = 0) is added on BOTH sides
+# (the source has brake or accelerate only); it keeps the right model complete (Assumption 1)
+# and does not affect the refinement, both sides having it. Guards are closed (<=) where the
+# source's are strict (<).
 #
 # PARAMETERS. A = 1 (acceleration), B = 1 (braking), eps = 1 (control period), m = 50 (stop
-# line). Physical range v in [0, 10]; a Coast mode (a = 0) keeps the right model complete
-# (Assumption 1: from every state some mode is enabled). Braking is allowed only from v >= 1
-# so that a full period of braking stays in v >= 0.
+# line). Physical range v in [0, 10] (ours). Braking is allowed only from v >= 1 so that a
+# full period of braking stays in v >= 0 (the source's braking run stops at v = 0 instead).
 #   Safe_eps (left Accel): x + v^2/(2B) + (A/B + 1)(A eps^2/2 + eps v) <= m,
 #                          i.e. x + v^2/2 + 2 v + 1 <= 50;
 #   Safe     (right Accel): x + v^2/(2B) <= m, i.e. x + v^2/2 <= 50.

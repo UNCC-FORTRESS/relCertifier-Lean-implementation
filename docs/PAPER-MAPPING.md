@@ -181,7 +181,7 @@ route; the bridge is one generic theorem over the emitted records.
 | number | source |
 |---|---|
 | 46 benchmarks, all CERTIFIED with `RELCERT_IMPLIED_CUT=1` | `scripts/paper_numbers.sh` (frozen), `benchmarks/suite_v2/` |
-| 48 bridge instances, 3512 verdict groups | `InstancesV2/Bridge.lean`, `relcert-bridge-verdicts`, `expectedBridgeGroupsV2` |
+| 48 bridge instances, 3512 verdict groups (3259 over the 46 suite benchmarks, 253 over the 3 exhibits) | `InstancesV2/Bridge.lean`, `relcert-bridge-verdicts`, `expectedBridgeGroupsV2` |
 | 46 standalone instances, 234 joint + 41 reposition packs, 1410 hypotheses | `InstancesV2/BatteryV2.lean`, `relcert --run-verdicts-v2`, `docs/VERDICTS.md` |
 | 44 pruned edges, 88 non-connection queries; 187 handoff queries; 261 progress queries | the same runner; `relcert-progress-verdicts` |
 | Assumption 1: 46 of 46, Z3-free | `InstancesV2/WellFormedBattery.lean` |

@@ -323,17 +323,25 @@ theorem evolveR_eq : Handoff.evolveR p = (mRof p 0).evolve := by
   · rw [hm] at h0; simp at h0
   · simp
 
+omit hs in
+/-- The claim of a benchmark with per-mode rows: Theorem 3 over the left automaton of the file
+(`u_L`-keyed rows) and the guarded right automaton, with the envelope and the right region. -/
+def keyedClaim (p : PProblem) (n : ℕ) (cX : EvolStrengtheningX) (cov : CoverEmitE)
+    (a b c : Fin n) (dt : ℝ) : Prop :=
+  RFormula.rvalid (theorem3Form
+    (leftAutomatonBody (leftAutOf p n ((Side.Aux, b) : Var n) dt) ((Side.Aux, c) : Var n))
+    (rightAutomatonBody (grOf p n (prunedOf cov)) ((Side.Aux, a) : Var n))
+    (psiK ((Side.Aux, c) : Var n) (ϕRow p n) (leftAutOf p n ((Side.Aux, b) : Var n) dt).numModes
+      (domL p n) (domR p n)
+      (mvRegionR ((Side.Aux, a) : Var n) (gregion p n cX) (grOf p n (prunedOf cov)).modes.length)))
+
 /-- **Theorem 3 of a benchmark, mode-keyed, from its records.** -/
 theorem theorem3_keyed_of_records (hv : Verdicts p n cX cov prog)
     (hpo : progOK p n cov prog = true) (hcovers : coversOK p n cov = true)
     (hwf : WellFormedR (grOf p n (prunedOf cov)) (guardR p n) (epsR p))
     (a b c : Fin n) (hba : b ≠ a) (hca : c ≠ a) (hcb : c ≠ b) (dt : ℝ) (hdt : dt ≤ epsL p) :
-    RFormula.rvalid (theorem3Form
-      (leftAutomatonBody (leftAutOf p n ((Side.Aux, b) : Var n) dt) ((Side.Aux, c) : Var n))
-      (rightAutomatonBody (grOf p n (prunedOf cov)) ((Side.Aux, a) : Var n))
-      (psiK ((Side.Aux, c) : Var n) (ϕRow p n) (leftAutOf p n ((Side.Aux, b) : Var n) dt).numModes
-        (domL p n) (domR p n)
-        (mvRegionR ((Side.Aux, a) : Var n) (gregion p n cX) (grOf p n (prunedOf cov)).modes.length))) := by
+    keyedClaim p n cX cov a b c dt := by
+  unfold keyedClaim
   set A := leftAutOf p n ((Side.Aux, b) : Var n) dt with hA
   set Gr := grOf p n (prunedOf cov) with hGr
   set mv : Var n := ((Side.Aux, a) : Var n) with hmv

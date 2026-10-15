@@ -3,7 +3,8 @@
 
 Per benchmark `<b>` of benchmarks/suite_v2 (all 45):
   BenchIR/<b>.lean       `Parse.<b>_IRv2`         (relcert --emit-ir; drift-checked by relcert-test)
-  BenchCovers/<b>.lean   `<b>_coverV2`            (RELCERT_IMPLIED_CUT=1 relcert --emit-cover)
+  BenchCovers/<b>.lean   `<b>_coverV2`            (RELCERT_IMPLIED_CUT=1 RELCERT_PROGRESS=1 relcert --emit-cover)
+  BenchProgress/<b>.lean `<b>_coverV2_progress`   (the same run, RELCERT_PROGRESS_OUT)
   Cuts/<b>.lean          `Oracle.<b>_cutsV2` (legacy part) and `Oracle.<b>_cutsV2X` (extended),
                          both kernel-checked well-formed against the IR literal by `rfl`
 Aggregators: BenchIR.lean (`benchIRTableV2`), BenchCovers.lean (`coverTableV2`),
@@ -64,9 +65,13 @@ def emit_leaves(b):
         f.write(HDR.format(b=b, what="parser-emitted IR literal"))
         f.write("import RelCertifier.Trusted.Parse\n\nnamespace RelCertifier.Parse\n\n")
         f.write(ir.rstrip() + "\n\nend RelCertifier.Parse\n")
-    cov = run([RELCERT, "--emit-cover", path, f"{b}_coverV2"], {"RELCERT_IMPLIED_CUT": "1"})
+    # the cover is searched with the progress certificates required of every reposition node
+    # (`RELCERT_PROGRESS=1`); the certificates found are written to the BenchProgress leaf
+    cov = run([RELCERT, "--emit-cover", path, f"{b}_coverV2"],
+              {"RELCERT_IMPLIED_CUT": "1", "RELCERT_PROGRESS": "1",
+               "RELCERT_PROGRESS_OUT": f"{OUT}/BenchProgress/{b}.lean"})
     with open(f"{OUT}/BenchCovers/{b}.lean", "w") as f:
-        f.write(HDR.format(b=b, what="emitted cover, `RELCERT_IMPLIED_CUT=1`"))
+        f.write(HDR.format(b=b, what="emitted cover, `RELCERT_IMPLIED_CUT=1 RELCERT_PROGRESS=1`"))
         f.write("import RelCertifier.Checker.CoverEmit\n\nnamespace RelCertifier\n\n")
         f.write(f"/-- `{b}` (emitted, suite_v2, widened cut channel on). -/\n")
         f.write(cov.rstrip() + "\n\nend RelCertifier\n")

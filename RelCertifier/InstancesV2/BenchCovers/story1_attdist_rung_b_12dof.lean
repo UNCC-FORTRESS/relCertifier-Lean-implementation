@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `story1_attdist_rung_b_12dof` (suite_v2) — emitted cover, `RELCERT_IMPLIED_CUT=1` (GENERATED leaf — do not edit)
+# `story1_attdist_rung_b_12dof` (suite_v2) — emitted cover, `RELCERT_IMPLIED_CUT=1 RELCERT_PROGRESS=1` (GENERATED leaf — do not edit)
 
 Regenerate with `scripts/gen_v2_data.py story1_attdist_rung_b_12dof`.
 -/

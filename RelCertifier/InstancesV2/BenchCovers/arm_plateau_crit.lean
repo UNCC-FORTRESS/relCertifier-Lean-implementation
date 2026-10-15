@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `arm_plateau_crit` (suite_v2) — emitted cover, `RELCERT_IMPLIED_CUT=1` (GENERATED leaf — do not edit)
+# `arm_plateau_crit` (suite_v2) — emitted cover, `RELCERT_IMPLIED_CUT=1 RELCERT_PROGRESS=1` (GENERATED leaf — do not edit)
 
 Regenerate with `scripts/gen_v2_data.py arm_plateau_crit`.
 -/
@@ -13,7 +13,7 @@ namespace RelCertifier
 /-- `arm_plateau_crit` (emitted, suite_v2, widened cut channel on). -/
 def arm_plateau_crit_coverV2 : CoverEmitE :=
   ⟨"arm_plateau_crit", [], [
-    ⟨"Accelerate", (1 : ℚ) / 1, 2, [⟨"ApproachA", true, true, true⟩, ⟨"ApproachB", true, true, true⟩, ⟨"ApproachC", true, true, true⟩, ⟨"Hold", true, true, true⟩], ["ApproachA", "ApproachB", "ApproachC", "Hold"], [⟨"ApproachA", [0], [0], [0], 1, 1⟩, ⟨"ApproachB", [0], [0], [0], 1, 1⟩, ⟨"ApproachC", [0], [0], [0], 1, 1⟩, ⟨"Hold", [0], [0], [0], 1, 1⟩]⟩,
-    ⟨"Brake", (1 : ℚ) / 1, 2, [⟨"ApproachA", false, true, true⟩, ⟨"ApproachB", true, true, true⟩, ⟨"ApproachC", true, true, true⟩, ⟨"Hold", true, true, true⟩], ["ApproachA", "ApproachB", "ApproachC", "Hold"], [⟨"ApproachA", [], [0], [0], 1, 1⟩, ⟨"ApproachB", [0], [0], [0], 1, 1⟩, ⟨"ApproachC", [0], [0], [0], 1, 1⟩, ⟨"Hold", [0], [0], [0], 1, 1⟩]⟩]⟩
+    ⟨"Accelerate", (1 : ℚ) / 1, 2, [⟨"ApproachA", true, true, true⟩, ⟨"ApproachB", true, true, true⟩, ⟨"ApproachC", true, true, true⟩, ⟨"Hold", true, false, false⟩], ["ApproachA", "ApproachB", "ApproachC", "Hold"], [⟨"ApproachA", [0], [0], [0], 1, 1⟩, ⟨"ApproachB", [0], [0], [0], 1, 1⟩, ⟨"ApproachC", [0], [0], [0], 1, 1⟩, ⟨"Hold", [0], [0], [0], 1, 1⟩]⟩,
+    ⟨"Brake", (1 : ℚ) / 1, 2, [⟨"ApproachA", false, true, true⟩, ⟨"ApproachB", true, true, true⟩, ⟨"ApproachC", true, true, true⟩, ⟨"Hold", true, false, false⟩], ["ApproachA", "ApproachB", "ApproachC", "Hold"], [⟨"ApproachA", [], [0], [0], 1, 1⟩, ⟨"ApproachB", [0], [0], [0], 1, 1⟩, ⟨"ApproachC", [0], [0], [0], 1, 1⟩, ⟨"Hold", [0], [0], [0], 1, 1⟩]⟩]⟩
 
 end RelCertifier

@@ -92,6 +92,9 @@ theorem hpm10 : Run.parseRat "-1.0" = some (-1 : ℚ) := by
 theorem hp20 : Run.parseRat "2.0" = some (2 : ℚ) := by
   have h : parseQ "2.0" = some (⟨20, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
+theorem hp50 : Run.parseRat "5.0" = some (5 : ℚ) := by
+  have h : parseQ "5.0" = some (⟨50, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
 theorem hpm20 : Run.parseRat "-2.0" = some (-2 : ℚ) := by
   have h : parseQ "-2.0" = some (⟨-20, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
@@ -152,11 +155,13 @@ theorem sat_domL (x : State (Var 4)) :
     List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Lv]
 
 theorem sat_domR (x : State (Var 4)) :
-    Formula.sat domR x ↔ ((((((((-1 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 1) ∧ -1 ≤ x (Rv 1)) ∧ x (Rv 1) ≤ 1)
-      ∧ -1 ≤ x (Rv 2)) ∧ x (Rv 2) ≤ 1) ∧ -2 ≤ x (Rv 3)) ∧ x (Rv 3) ≤ 2)) := by
+    Formula.sat domR x ↔ (-1 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 1 ∧ -1 ≤ x (Rv 1) ∧ x (Rv 1) ≤ 1 ∧
+      -1 ≤ x (Rv 2) ∧ x (Rv 2) ≤ 1 ∧ -2 ≤ x (Rv 3) ∧ x (Rv 3) ≤ 2 ∧
+      -2 ≤ x (Rv 3) + 5 * x (Rv 2) ∧ x (Rv 3) + 5 * x (Rv 2) ≤ 2) := by
   simp only [domR, hostEvolve, mR, sat_detumble_nominal_IRv2, vs]
-  simp [Run.lowerF, Run.lowerE, hpm10, hp10, hpm20, hp20, Run.resolveVar,
-    List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv]
+  simp [Run.lowerF, Run.lowerE, hpm10, hp10, hpm20, hp20, hp50, Run.resolveVar, AOp.interp,
+    List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv,
+    and_assoc]
 
 theorem domR_univ (q : ℕ) (hq : q < 2) : hostEvolve vs 4 Side.R (mR q) = domR := by
   interval_cases q <;> rfl
@@ -626,23 +631,23 @@ theorem ex_le_one {t : ℝ} (ht : 0 ≤ t) : ex t ≤ 1 := by
   unfold ex; rw [Real.exp_le_one_iff]; linarith
 
 theorem solR_stays (b : State (Var 4)) (hb : Formula.sat domR b)
-    (hnb : Formula.sat nbF b) {t : ℝ} (ht : 0 ≤ t) : Formula.sat domR (solR b t) := by
+    {t : ℝ} (ht : 0 ≤ t) : Formula.sat domR (solR b t) := by
   rw [sat_domR] at hb ⊢
-  rw [sat_nbF] at hnb
-  simp only [and_assoc] at hb ⊢
-  obtain ⟨h0l, h0u, h1l, h1u, h2l, h2u, h3l, h3u⟩ := hb
-  obtain ⟨hnu, hnl⟩ := hnb
+  obtain ⟨h0l, h0u, h1l, h1u, h2l, h2u, h3l, h3u, hc1l, hc1u⟩ := hb
   have he0 := ex_pos t
   have he1 := ex_le_one ht
   rw [solR_0, solR_1, solR_2, solR_3]
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩ <;> nlinarith
+  have e1 : b (Rv 3) + 5 * b (Rv 2) * (1 - ex t) + 5 * (b (Rv 2) * ex t) = b (Rv 3) + 5 * b (Rv 2) := by
+    ring
+  rw [e1]
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩ <;> nlinarith
 
 theorem rightBlock_bound_mem (i : Fin 4) : Rv i ∈ (rightBlock (fR 0) (Term.const 1)).bound := by
   simp only [rightBlock, ODESystem.bound, List.map_map]
   exact List.mem_map.mpr ⟨i, List.mem_finRange i, rfl⟩
 
 /-- **The right `DETUMBLE` flow exists, domain-staying, from every nonblocking start.** -/
-theorem flowR_exists (b : State (Var 4)) (hb : Formula.sat domR b) (hnb : Formula.sat nbF b)
+theorem flowR_exists (b : State (Var 4)) (hb : Formula.sat domR b)
     (s : ℝ) (_hs : 0 ≤ s) :
     ∃ ΦR : ℝ → State (Var 4), ΦR 0 = b ∧
       (∀ t ∈ Icc (0 : ℝ) s, ∀ p ∈ rightBlock (fR 0) (Term.const 1),
@@ -650,7 +655,7 @@ theorem flowR_exists (b : State (Var 4)) (hb : Formula.sat domR b) (hnb : Formul
       (∀ t ∈ Icc (0 : ℝ) s, ∀ x, x ∉ (rightBlock (fR 0) (Term.const 1)).bound →
         ΦR t x = b x) ∧
       (∀ t ∈ Icc (0 : ℝ) s, Formula.sat domR (ΦR t)) := by
-  refine ⟨solR b, ?_, ?_, ?_, fun t ht => solR_stays b hb hnb ht.1⟩
+  refine ⟨solR b, ?_, ?_, ?_, fun t ht => solR_stays b hb ht.1⟩
   · funext x
     by_cases h0 : x = Rv 0
     · subst h0; rw [solR_0, ex_zero, mul_one]
@@ -729,7 +734,7 @@ theorem es (dt : ℝ) (σ : State (Var 4)) (hdom : Formula.sat domR σ)
     rw [sat_nbF] at hnb ⊢
     rw [hagree 2, hagree 3]
     exact hnb
-  exact flowR_exists (ΦL s) hdom' hnb' s hs0
+  exact flowR_exists (ΦL s) hdom' s hs0
 
 /-! ## The coupling with the nonblocking conjunct riding along
 

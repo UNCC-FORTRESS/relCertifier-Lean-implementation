@@ -48,6 +48,13 @@
 # DECLINES (M6).
 # Fallback (M4): NOMINAL/ECONOMY/SURVIVAL -> SAFE pruned as in the nominal rung;
 # RELCERT_NO_PRUNE=1 DECLINES.
+# MOMENTUM BAND (right evolve domains): |h + 5 w3| <= 2 N m s, the z-axis total angular momentum
+# within the wheel's capacity. It is conserved by every design-model mode (h' = 5 k w3,
+# w3' = -k w3), so it is a constraint on the initial state: the wheel can absorb the body's
+# momentum. Off the band the wheel saturates before the body is stopped and the design model
+# has no run of a full period (its Assumption 1 fails); the momentum dump that would handle
+# that case is not modeled.
+
 [problem]
 name = sat_detumble_weak
 max_depth = 8
@@ -68,22 +75,22 @@ epsilon = 1.0
 [Rsys.mode.NOMINAL]
 ode = w1' = smt2:(* -0.5 w1); w2' = smt2:(* -0.5 w2); w3' = smt2:(* -0.5 w3); h' = smt2:(* 2.5 w3);
 guard = w1*w1*2 + w2*w2*4 + w3*w3*5 <= 1.0
-evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h >= -2.0 and h <= 2.0
+evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h >= -2.0 and h <= 2.0 and h + 5.0*w3 >= -2.0 and h + 5.0*w3 <= 2.0
 next = [NOMINAL, ECONOMY, SURVIVAL, SAFE]
 [Rsys.mode.ECONOMY]
 ode = w1' = smt2:(* -0.45 w1); w2' = smt2:(* -0.45 w2); w3' = smt2:(* -0.45 w3); h' = smt2:(* 2.25 w3);
 guard = w1*w1*2 + w2*w2*4 + w3*w3*5 <= 1.0
-evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h >= -2.0 and h <= 2.0
+evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h >= -2.0 and h <= 2.0 and h + 5.0*w3 >= -2.0 and h + 5.0*w3 <= 2.0
 next = [ECONOMY, NOMINAL, SAFE]
 [Rsys.mode.SURVIVAL]
 ode = w1' = smt2:(* -0.42 w1); w2' = smt2:(* -0.42 w2); w3' = smt2:(* -0.42 w3); h' = smt2:(* 2.1 w3);
 guard = w1*w1*2 + w2*w2*4 + w3*w3*5 <= 1.0
-evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h >= -2.0 and h <= 2.0
+evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h >= -2.0 and h <= 2.0 and h + 5.0*w3 >= -2.0 and h + 5.0*w3 <= 2.0
 next = [SURVIVAL, NOMINAL, SAFE]
 [Rsys.mode.SAFE]
 ode = w1' = smt2:0; w2' = smt2:0; w3' = smt2:0; h' = smt2:0;
 guard = w1*w1*2 + w2*w2*4 + w3*w3*5 > 1.0
-evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h >= -2.0 and h <= 2.0
+evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h >= -2.0 and h <= 2.0 and h + 5.0*w3 >= -2.0 and h + 5.0*w3 <= 2.0
 next = [SAFE]
 [relational_invariant]
 DETUMBLE = w1[l]*w1[l]*2 + w2[l]*w2[l]*4 + w3[l]*w3[l]*5 <= w1[r]*w1[r]*2 + w2[r]*w2[r]*4 + w3[r]*w3[r]*5 + 0.205 and w1[r]*w1[r]*2 + w2[r]*w2[r]*4 + w3[r]*w3[r]*5 <= w1[l]*w1[l]*2 + w2[l]*w2[l]*4 + w3[l]*w3[l]*5

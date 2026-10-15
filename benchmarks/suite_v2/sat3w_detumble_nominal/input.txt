@@ -54,6 +54,13 @@
 # (E_R <= E_L <= 1). Without pruning the cover owes SAFE, whose frozen energy breaks
 # E_R <= E_L as soon as the deployed's energy decays: RELCERT_NO_PRUNE=1 DECLINES.
 # Z3 (measured, Z3 4.15.1): 41 queries, 1.5 s in total, the largest 0.8 s.
+# MOMENTUM BAND (right evolve domains): |h_i + J_i w_i| <= 2 N m s, the total angular momentum of
+# each axis within one wheel's capacity. It is conserved by every design-model mode
+# (h_i' = k J_i w_i, w_i' = -k w_i), so it is a constraint on the initial state: the wheels can
+# absorb the body's momentum. Off the band a wheel saturates before the body is stopped and the
+# design model has no run of a full period (its Assumption 1 fails); the momentum dump that
+# would handle that case is not modeled.
+
 [problem]
 name = sat3w_detumble_nominal
 max_depth = 8
@@ -74,12 +81,12 @@ epsilon = 1.0
 [Rsys.mode.DETUMBLE]
 ode = w1' = smt2:(* -0.5 w1); w2' = smt2:(* -0.5 w2); w3' = smt2:(* -0.5 w3); h1' = smt2:(* 1.0 w1); h2' = smt2:(* 2.0 w2); h3' = smt2:(* 2.5 w3);
 guard = w1*w1*2 + w2*w2*4 + w3*w3*5 <= 1.0
-evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h1 >= -2.0 and h1 <= 2.0 and h2 >= -2.0 and h2 <= 2.0 and h3 >= -2.0 and h3 <= 2.0
+evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h1 >= -2.0 and h1 <= 2.0 and h2 >= -2.0 and h2 <= 2.0 and h3 >= -2.0 and h3 <= 2.0 and h1 + 2.0*w1 >= -2.0 and h1 + 2.0*w1 <= 2.0 and h2 + 4.0*w2 >= -2.0 and h2 + 4.0*w2 <= 2.0 and h3 + 5.0*w3 >= -2.0 and h3 + 5.0*w3 <= 2.0
 next = [DETUMBLE, SAFE]
 [Rsys.mode.SAFE]
 ode = w1' = smt2:0; w2' = smt2:0; w3' = smt2:0; h1' = smt2:0; h2' = smt2:0; h3' = smt2:0;
 guard = w1*w1*2 + w2*w2*4 + w3*w3*5 > 1.0
-evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h1 >= -2.0 and h1 <= 2.0 and h2 >= -2.0 and h2 <= 2.0 and h3 >= -2.0 and h3 <= 2.0
+evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h1 >= -2.0 and h1 <= 2.0 and h2 >= -2.0 and h2 <= 2.0 and h3 >= -2.0 and h3 <= 2.0 and h1 + 2.0*w1 >= -2.0 and h1 + 2.0*w1 <= 2.0 and h2 + 4.0*w2 >= -2.0 and h2 + 4.0*w2 <= 2.0 and h3 + 5.0*w3 >= -2.0 and h3 + 5.0*w3 <= 2.0
 next = [SAFE]
 [relational_invariant]
 DETUMBLE = w1[l]*w1[l]*2 + w2[l]*w2[l]*4 + w3[l]*w3[l]*5 <= w1[r]*w1[r]*2 + w2[r]*w2[r]*4 + w3[r]*w3[r]*5 and w1[r]*w1[r]*2 + w2[r]*w2[r]*4 + w3[r]*w3[r]*5 <= w1[l]*w1[l]*2 + w2[l]*w2[l]*4 + w3[l]*w3[l]*5

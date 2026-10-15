@@ -79,19 +79,22 @@ all discharged** (suite alone, 3259; the first run before the progress gate, 365
   `theorem3_of_coverX`). The mirrored downward lemma is the one remaining piece.
 
 * **46 of 46 suite benchmarks** are instantiated (`InstancesV2/Bridge/`): 34 in the window form,
-  12 in the mode-keyed form; plus 2 of the 3 choice exhibits (48 instances). Every `*_bridge`
-  theorem depends on exactly `propext`, `Classical.choice`, `Quot.sound`, `z3_unsat_sound`.
-* **Assumption 1 relative to a region.** The general theorem (and the whole chain:
-  `coverX_piece`, the progress lemmas, the bridge) now takes Assumption 1 on a region `reg`
-  kept by every right flow (`WellFormedRIn G guard reg ε` with `RegionInvariant G reg`), the
-  region carried in the anchor (`AGr = AG ∧ reg`) and in the right region of the claim
-  (`cutsR = cuts ∧ reg`). `Emitted/Region.lean` shows a right-only region kept by the right
-  flows is kept along joint segments at any stretch (the right projection of a joint run,
-  time-rescaled, is a unit-stretch right solution). The suite's benchmarks take `reg = ⊤`
-  (the unconditional form); the **detumble family** (`sat_detumble_*`, `sat3w_detumble_*`,
-  whose unconditional Assumption 1 is provably false, `*_wellFormedR_false`) takes the
-  momentum band `nbF` of its leaves (`*_wellFormedR_onBand`, `*_band_invariant`,
-  transported). All six are now bridged.
+  12 in the mode-keyed form; plus 2 of the 3 choice exhibits (48 instances), all with the
+  unconditional Assumption 1. Every `*_bridge` theorem depends on exactly `propext`,
+  `Classical.choice`, `Quot.sound`, `z3_unsat_sound`.
+* **Assumption 1 is unconditional for every instance (`R = ⊤`).** The chain
+  (`coverX_piece`, the progress lemmas, the general theorem, the bridge) is stated for
+  Assumption 1 relative to a region `R` kept by every right flow (`WellFormedRIn` +
+  `RegionInvariant`; `Emitted/Region.lean` shows such a region survives joint segments), but
+  every instance takes `R = ⊤`, the paper's Assumption 1. The detumble family
+  (`sat_detumble_*`, `sat3w_detumble_*`) had an unconditional Assumption 1 that was false:
+  its right evolve domain bounded each wheel's momentum (`|hᵢ| ≤ 2`, the wheel capacity) but
+  not the total angular momentum per axis, so from momentum states no wheel can absorb the
+  design model has no run of a full period. The models now carry the momentum band
+  `|hᵢ + Jᵢwᵢ| ≤ 2` in the right evolve domains (a constant of every design-model flow, the
+  statement that the wheels can absorb the body's momentum; the files' headers say so). The
+  tool certifies the six with byte-identical covers; their `WellFormedR` leaves are
+  unconditional (the explicit solution stays in the domain because the sums are constant).
 
 ## 5. Findings along the way
 

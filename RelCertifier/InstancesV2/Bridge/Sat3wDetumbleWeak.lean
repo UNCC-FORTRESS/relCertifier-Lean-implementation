@@ -40,22 +40,15 @@ theorem modes_eq : ∀ q m', (grOf IR 6 (prunedOf cov)).modeAt q = some m' →
   rw [nR_eq] at hq
   exact ⟨_, V2Sat3wDetumbleWeak.Gr_modeAt q hq, rfl, rfl⟩
 
-/-- Assumption 1 holds on the momentum band `V2Sat3wDetumbleWeak.nbF` (the unconditional form is false:
-`V2Sat3wDetumbleWeak.sat3w_detumble_weak_wellFormedR_false`); the band is kept by every right flow. -/
-noncomputable abbrev reg : Formula (Var 6) := V2Sat3wDetumbleWeak.nbF
-theorem reg_fv : reg.fv ⊆ range Rv := by
-  intro x hx
-  simp only [reg, V2Sat3wDetumbleWeak.nbF, V2Sat3wDetumbleWeak.bandF, V2Sat3wDetumbleWeak.c1T, V2Sat3wDetumbleWeak.c2T, V2Sat3wDetumbleWeak.c3T, Formula.fv, Term.fv, Set.mem_union,
-    Set.mem_singleton_iff, Set.mem_empty_iff_false, or_false, false_or] at hx
-  repeat' rcases hx with hx | hx
-  all_goals first | (subst hx; exact ⟨_, rfl⟩) | exact ⟨_, rfl⟩ | simp_all
-theorem reg_inv : RegionInvariant (grOf IR 6 (prunedOf cov)) reg :=
-  regionInvariant_transport V2Sat3wDetumbleWeak.sat3w_detumble_weak_band_invariant modes_eq
+/-- Assumption 1 holds unconditionally: the region is `⊤`. -/
+abbrev reg : Formula (Var 6) := Formula.tt
+theorem reg_fv : reg.fv ⊆ range Rv := fun _ h => by simp [Formula.fv] at h
+theorem reg_inv : RegionInvariant (grOf IR 6 (prunedOf cov)) reg := fun _ _ _ _ _ _ _ _ => trivial
 
-/-- Assumption 1 on the band, transported from `V2Sat3wDetumbleWeak.sat3w_detumble_weak_wellFormedR_onBand`. -/
+/-- Assumption 1, transported from `V2Sat3wDetumbleWeak.sat3w_detumble_weak_wellFormedR`. -/
 theorem wellFormedR : WellFormedRIn (grOf IR 6 (prunedOf cov)) (guardR IR 6) reg (epsR IR) :=
-  wellFormedRIn_transport V2Sat3wDetumbleWeak.sat3w_detumble_weak_wellFormedR_onBand (by rw [grOf_len, nR_eq]) modes_eq
-    (fun q => rfl) (edges_transport_check edges_ok (edgesSrcOK_sound src_ok))
+  wellFormedR_transport (V2Sat3wDetumbleWeak.sat3w_detumble_weak_wellFormedR) (by rw [grOf_len, nR_eq]) modes_eq (fun q => rfl)
+    (edges_transport_check edges_ok (edgesSrcOK_sound src_ok))
 
 /-- **Theorem 3 of `sat3w_detumble_weak`** (window form): every verdict group of the benchmark `unsat`. -/
 theorem sat3w_detumble_weak_bridge (hv : Verdicts IR 6 cX cov prog ce) (dt : ℝ) (hdt : dt ≤ epsL IR) :

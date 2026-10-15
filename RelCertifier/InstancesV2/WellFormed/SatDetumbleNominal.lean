@@ -6,7 +6,7 @@ Released under Apache 2.0 license.
 
 Over the instance's guarded right automaton `Gr`, the lowered right guards, `ε_r = 1`.
 
-**`WellFormedR` is false as stated** (`sat_detumble_nominal_wellFormedR_false`): the wheel
+**Without the momentum band in the evolve domain `WellFormedR` would be false** (the file carries the band `|h_i + J_i w_i| <= 2`, a constant of every design-model flow): the wheel
 momentum `h` is bounded by the evolve domain (`|h| ≤ 2`) but driven by `h' = 2.5 w3` in
 `DETUMBLE`, and `h + 5 w3` is conserved by that flow. From `w1 = w2 = 0`, `w3 = 0.4`,
 `h = 2` (energy `0.8`: inside `DETUMBLE`'s guard `2w1² + 4w2² + 5w3² ≤ 1`, inside the domain)
@@ -96,14 +96,14 @@ theorem sat_detumble_nominal_band_invariant : RegionInvariant Gr nbF := by
   · rw [safe_const H 3, safe_const H 2]; exact hx
 
 /-- **Assumption 1 for `sat_detumble_nominal` on the momentum band** (Z3-free). -/
-theorem sat_detumble_nominal_wellFormedR_onBand :
-    WellFormedRIn Gr guardR nbF (epsR sat_detumble_nominal_IRv2) := by
+theorem sat_detumble_nominal_wellFormedR :
+    WellFormedR Gr guardR (epsR sat_detumble_nominal_IRv2) := by
   rw [epsR_eq]
-  intro q hq m hm x hg hd hnb
+  intro q hq m hm x hg hd _
   obtain ⟨hq2, rfl⟩ := Gr_modeAt_inv hm
   interval_cases q
   · refine ⟨?_, ?_⟩
-    · obtain ⟨Φ, h0, hder, hmask, hdom⟩ := flowR_exists x hd hnb 1 (by norm_num)
+    · obtain ⟨Φ, h0, hder, hmask, hdom⟩ := flowR_exists x hd 1 (by norm_num)
       exact ⟨Φ, ⟨by norm_num, h0, hder, hmask, hdom⟩⟩
     · intro t Φ _ H
       have := detumble_En H
@@ -115,38 +115,6 @@ theorem sat_detumble_nominal_wellFormedR_onBand :
     have hE : En (Φ t) = En x := by
       simp only [En, safe_const H 0, safe_const H 1, safe_const H 2]
     exact ⟨edgeW 1 1, edge_mem 1 1 (by decide), (sat_guardR1 _).mpr (by rw [hE]; exact hgx)⟩
-
-/-- The witness: `w3 = 0.4`, `h = 2`, every other variable 0. -/
-noncomputable def xw : State (Var 4) := fun y =>
-  if y = Rv 2 then 2/5 else if y = Rv 3 then 2 else 0
-
-/-- **Assumption 1 fails off the band**: from the witness (in `DETUMBLE`'s guard and the
-evolve domain) no `DETUMBLE` run of duration 1 exists. -/
-theorem sat_detumble_nominal_detumble_blocks :
-    ¬ WellFormedRMode Gr guardR (epsR sat_detumble_nominal_IRv2) 0 := by
-  rw [epsR_eq]
-  refine not_wellFormedR_of_noRun (x := xw) (Gr_modeAt 0 (by norm_num)) ?_ ?_ ?_
-  · show Formula.sat (hostGuard vs 4 Side.R (mR 0)) xw
-    rw [sat_guardR0]; simp [En, xw, Rv]; norm_num
-  · show Formula.sat domR xw
-    rw [sat_domR]; simp [xw, Rv]; norm_num
-  · intro Φ H
-    have hc := detumble_hw H
-    have hw := H.linear_exact (memR 0 2) (1/2) 0
-      (fun s _ => by rw [eval_unit_mul, fR2_eval]; ring)
-    have hend := (sat_domR _).mp H.end_dom
-    have he : Real.exp (-(1/2 * 1)) < 1 := by
-      rw [Real.exp_lt_one_iff]; norm_num
-    simp [xw, Rv] at hc hw
-    have h3 := hend.2
-    rw [hw] at hc
-    nlinarith
-
-/-- **`sat_detumble_nominal` violates Assumption 1 as stated** (the controller blocks at the
-edge of the momentum band; see the module docstring). -/
-theorem sat_detumble_nominal_wellFormedR_false :
-    ¬ WellFormedR Gr guardR (epsR sat_detumble_nominal_IRv2) :=
-  not_wellFormedR_of_mode (by simp [Gr]) sat_detumble_nominal_detumble_blocks
 
 end V2SatDetumbleNominal
 end RelCertifier

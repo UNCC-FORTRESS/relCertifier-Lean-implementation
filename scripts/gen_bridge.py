@@ -21,16 +21,9 @@ WF_DIRS = [("RelCertifier/InstancesV2/WellFormed", "RelCertifier.InstancesV2.Wel
 
 # benchmarks whose left modes declare distinct rows (the keyed form); every other benchmark's
 # rows are identical (`rowsSame`, checked in the kernel by the window instance)
-# benchmarks whose Assumption 1 holds only on a region (`WellFormedRIn` + `RegionInvariant`):
-# the region, its fv lemma (or None: proved in the instance), the two lemma suffixes
-BAND = {
-    "sat3w_detumble_nominal": dict(reg="nbF", unfold="bandF, c1T, c2T, c3T"),
-    "sat3w_detumble_weak": dict(reg="nbF", unfold="bandF, c1T, c2T, c3T"),
-    "sat3w_detumble_phases": dict(reg="nbF", unfold="nbPair, c1, c2, c3"),
-    "sat_detumble_nominal": dict(reg="nbF", unfold="hw"),
-    "sat_detumble_phases": dict(reg="nbF", unfold="hw"),
-    "sat_detumble_weak": dict(reg="nbF", unfold="hw"),
-}
+# every suite benchmark's Assumption 1 is unconditional (the detumble family carries its momentum
+# band in the right evolve domain); no region-conditioned instances remain
+BAND = {}
 
 # the choice benchmarks (benchmarks/choice): records under InstancesV2/Choice, the general
 # instances' namespaces and Assumption 1 at ε = 1

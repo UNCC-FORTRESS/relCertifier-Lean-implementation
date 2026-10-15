@@ -40,7 +40,7 @@ def sat_detumble_weak_IRv2 : PProblem :=
             ("w3", (.bin "*" (.num "-0.5") (.var "w3"))),
             ("h", (.bin "*" (.num "2.5") (.var "w3")))]
           guard := (.cmp "<=" (.bin "+" (.bin "+" (.bin "*" (.bin "*" (.var "w1") (.var "w1")) (.num "2")) (.bin "*" (.bin "*" (.var "w2") (.var "w2")) (.num "4"))) (.bin "*" (.bin "*" (.var "w3") (.var "w3")) (.num "5"))) (.num "1.0"))
-          evolve := (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "w1") (.num "-1.0")) (.cmp "<=" (.var "w1") (.num "1.0"))) (.cmp ">=" (.var "w2") (.num "-1.0"))) (.cmp "<=" (.var "w2") (.num "1.0"))) (.cmp ">=" (.var "w3") (.num "-1.0"))) (.cmp "<=" (.var "w3") (.num "1.0"))) (.cmp ">=" (.var "h") (.num "-2.0"))) (.cmp "<=" (.var "h") (.num "2.0")))
+          evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "w1") (.num "-1.0")) (.cmp "<=" (.var "w1") (.num "1.0"))) (.cmp ">=" (.var "w2") (.num "-1.0"))) (.cmp "<=" (.var "w2") (.num "1.0"))) (.cmp ">=" (.var "w3") (.num "-1.0"))) (.cmp "<=" (.var "w3") (.num "1.0"))) (.cmp ">=" (.var "h") (.num "-2.0"))) (.cmp "<=" (.var "h") (.num "2.0"))) (.cmp ">=" (.bin "+" (.var "h") (.bin "*" (.num "5.0") (.var "w3"))) (.num "-2.0"))) (.cmp "<=" (.bin "+" (.var "h") (.bin "*" (.num "5.0") (.var "w3"))) (.num "2.0")))
           next := ["NOMINAL", "ECONOMY", "SURVIVAL", "SAFE"] },
         {
           name := "ECONOMY"
@@ -49,7 +49,7 @@ def sat_detumble_weak_IRv2 : PProblem :=
             ("w3", (.bin "*" (.num "-0.45") (.var "w3"))),
             ("h", (.bin "*" (.num "2.25") (.var "w3")))]
           guard := (.cmp "<=" (.bin "+" (.bin "+" (.bin "*" (.bin "*" (.var "w1") (.var "w1")) (.num "2")) (.bin "*" (.bin "*" (.var "w2") (.var "w2")) (.num "4"))) (.bin "*" (.bin "*" (.var "w3") (.var "w3")) (.num "5"))) (.num "1.0"))
-          evolve := (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "w1") (.num "-1.0")) (.cmp "<=" (.var "w1") (.num "1.0"))) (.cmp ">=" (.var "w2") (.num "-1.0"))) (.cmp "<=" (.var "w2") (.num "1.0"))) (.cmp ">=" (.var "w3") (.num "-1.0"))) (.cmp "<=" (.var "w3") (.num "1.0"))) (.cmp ">=" (.var "h") (.num "-2.0"))) (.cmp "<=" (.var "h") (.num "2.0")))
+          evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "w1") (.num "-1.0")) (.cmp "<=" (.var "w1") (.num "1.0"))) (.cmp ">=" (.var "w2") (.num "-1.0"))) (.cmp "<=" (.var "w2") (.num "1.0"))) (.cmp ">=" (.var "w3") (.num "-1.0"))) (.cmp "<=" (.var "w3") (.num "1.0"))) (.cmp ">=" (.var "h") (.num "-2.0"))) (.cmp "<=" (.var "h") (.num "2.0"))) (.cmp ">=" (.bin "+" (.var "h") (.bin "*" (.num "5.0") (.var "w3"))) (.num "-2.0"))) (.cmp "<=" (.bin "+" (.var "h") (.bin "*" (.num "5.0") (.var "w3"))) (.num "2.0")))
           next := ["ECONOMY", "NOMINAL", "SAFE"] },
         {
           name := "SURVIVAL"
@@ -58,7 +58,7 @@ def sat_detumble_weak_IRv2 : PProblem :=
             ("w3", (.bin "*" (.num "-0.42") (.var "w3"))),
             ("h", (.bin "*" (.num "2.1") (.var "w3")))]
           guard := (.cmp "<=" (.bin "+" (.bin "+" (.bin "*" (.bin "*" (.var "w1") (.var "w1")) (.num "2")) (.bin "*" (.bin "*" (.var "w2") (.var "w2")) (.num "4"))) (.bin "*" (.bin "*" (.var "w3") (.var "w3")) (.num "5"))) (.num "1.0"))
-          evolve := (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "w1") (.num "-1.0")) (.cmp "<=" (.var "w1") (.num "1.0"))) (.cmp ">=" (.var "w2") (.num "-1.0"))) (.cmp "<=" (.var "w2") (.num "1.0"))) (.cmp ">=" (.var "w3") (.num "-1.0"))) (.cmp "<=" (.var "w3") (.num "1.0"))) (.cmp ">=" (.var "h") (.num "-2.0"))) (.cmp "<=" (.var "h") (.num "2.0")))
+          evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "w1") (.num "-1.0")) (.cmp "<=" (.var "w1") (.num "1.0"))) (.cmp ">=" (.var "w2") (.num "-1.0"))) (.cmp "<=" (.var "w2") (.num "1.0"))) (.cmp ">=" (.var "w3") (.num "-1.0"))) (.cmp "<=" (.var "w3") (.num "1.0"))) (.cmp ">=" (.var "h") (.num "-2.0"))) (.cmp "<=" (.var "h") (.num "2.0"))) (.cmp ">=" (.bin "+" (.var "h") (.bin "*" (.num "5.0") (.var "w3"))) (.num "-2.0"))) (.cmp "<=" (.bin "+" (.var "h") (.bin "*" (.num "5.0") (.var "w3"))) (.num "2.0")))
           next := ["SURVIVAL", "NOMINAL", "SAFE"] },
         {
           name := "SAFE"
@@ -67,7 +67,7 @@ def sat_detumble_weak_IRv2 : PProblem :=
             ("w3", (.num "0")),
             ("h", (.num "0"))]
           guard := (.cmp ">" (.bin "+" (.bin "+" (.bin "*" (.bin "*" (.var "w1") (.var "w1")) (.num "2")) (.bin "*" (.bin "*" (.var "w2") (.var "w2")) (.num "4"))) (.bin "*" (.bin "*" (.var "w3") (.var "w3")) (.num "5"))) (.num "1.0"))
-          evolve := (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "w1") (.num "-1.0")) (.cmp "<=" (.var "w1") (.num "1.0"))) (.cmp ">=" (.var "w2") (.num "-1.0"))) (.cmp "<=" (.var "w2") (.num "1.0"))) (.cmp ">=" (.var "w3") (.num "-1.0"))) (.cmp "<=" (.var "w3") (.num "1.0"))) (.cmp ">=" (.var "h") (.num "-2.0"))) (.cmp "<=" (.var "h") (.num "2.0")))
+          evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "w1") (.num "-1.0")) (.cmp "<=" (.var "w1") (.num "1.0"))) (.cmp ">=" (.var "w2") (.num "-1.0"))) (.cmp "<=" (.var "w2") (.num "1.0"))) (.cmp ">=" (.var "w3") (.num "-1.0"))) (.cmp "<=" (.var "w3") (.num "1.0"))) (.cmp ">=" (.var "h") (.num "-2.0"))) (.cmp "<=" (.var "h") (.num "2.0"))) (.cmp ">=" (.bin "+" (.var "h") (.bin "*" (.num "5.0") (.var "w3"))) (.num "-2.0"))) (.cmp "<=" (.bin "+" (.var "h") (.bin "*" (.num "5.0") (.var "w3"))) (.num "2.0")))
           next := ["SAFE"] } ] }
     invariants := [
       ("DETUMBLE", (.and (.cmp "<=" (.bin "+" (.bin "+" (.bin "*" (.bin "*" (.var "L_w1") (.var "L_w1")) (.num "2")) (.bin "*" (.bin "*" (.var "L_w2") (.var "L_w2")) (.num "4"))) (.bin "*" (.bin "*" (.var "L_w3") (.var "L_w3")) (.num "5"))) (.bin "+" (.bin "+" (.bin "+" (.bin "*" (.bin "*" (.var "R_w1") (.var "R_w1")) (.num "2")) (.bin "*" (.bin "*" (.var "R_w2") (.var "R_w2")) (.num "4"))) (.bin "*" (.bin "*" (.var "R_w3") (.var "R_w3")) (.num "5"))) (.num "0.205"))) (.cmp "<=" (.bin "+" (.bin "+" (.bin "*" (.bin "*" (.var "R_w1") (.var "R_w1")) (.num "2")) (.bin "*" (.bin "*" (.var "R_w2") (.var "R_w2")) (.num "4"))) (.bin "*" (.bin "*" (.var "R_w3") (.var "R_w3")) (.num "5"))) (.bin "+" (.bin "+" (.bin "*" (.bin "*" (.var "L_w1") (.var "L_w1")) (.num "2")) (.bin "*" (.bin "*" (.var "L_w2") (.var "L_w2")) (.num "4"))) (.bin "*" (.bin "*" (.var "L_w3") (.var "L_w3")) (.num "5"))))))] }

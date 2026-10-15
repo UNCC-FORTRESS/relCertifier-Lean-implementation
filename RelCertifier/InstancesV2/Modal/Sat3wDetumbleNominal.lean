@@ -104,6 +104,12 @@ theorem hpm10 : Run.parseRat "-1.0" = some (-1 : ℚ) := by
 theorem hp20 : Run.parseRat "2.0" = some (2 : ℚ) := by
   have h : parseQ "2.0" = some (⟨20, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
+theorem hp40 : Run.parseRat "4.0" = some (4 : ℚ) := by
+  have h : parseQ "4.0" = some (⟨40, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
+theorem hp50 : Run.parseRat "5.0" = some (5 : ℚ) := by
+  have h : parseQ "5.0" = some (⟨50, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
 theorem hpm20 : Run.parseRat "-2.0" = some (-2 : ℚ) := by
   have h : parseQ "-2.0" = some (⟨-20, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
@@ -188,9 +194,12 @@ theorem sat_domL (x : State (Var 6)) :
 theorem sat_domR (x : State (Var 6)) :
     Formula.sat domR x ↔ (-1 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 1 ∧ -1 ≤ x (Rv 1) ∧ x (Rv 1) ≤ 1 ∧
       -1 ≤ x (Rv 2) ∧ x (Rv 2) ≤ 1 ∧ -2 ≤ x (Rv 3) ∧ x (Rv 3) ≤ 2 ∧
-      -2 ≤ x (Rv 4) ∧ x (Rv 4) ≤ 2 ∧ -2 ≤ x (Rv 5) ∧ x (Rv 5) ≤ 2) := by
+      -2 ≤ x (Rv 4) ∧ x (Rv 4) ≤ 2 ∧ -2 ≤ x (Rv 5) ∧ x (Rv 5) ≤ 2 ∧
+      -2 ≤ x (Rv 3) + 2 * x (Rv 0) ∧ x (Rv 3) + 2 * x (Rv 0) ≤ 2 ∧
+      -2 ≤ x (Rv 4) + 4 * x (Rv 1) ∧ x (Rv 4) + 4 * x (Rv 1) ≤ 2 ∧
+      -2 ≤ x (Rv 5) + 5 * x (Rv 2) ∧ x (Rv 5) + 5 * x (Rv 2) ≤ 2) := by
   simp only [domR, hostEvolve, mR, sat3w_detumble_nominal_IRv2, vs]
-  simp [Run.lowerF, Run.lowerE, hpm10, hp10, hpm20, hp20, Run.resolveVar,
+  simp [Run.lowerF, Run.lowerE, hpm10, hp10, hpm20, hp20, hp40, hp50, Run.resolveVar, AOp.interp,
     List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv,
     and_assoc]
 
@@ -712,11 +721,10 @@ theorem mom_band {h a w e : ℝ} (he0 : 0 < e) (he1 : e ≤ 1) (hl : -2 ≤ h) (
     mul_nonneg (by linarith : (0:ℝ) ≤ 1 - e) (by linarith : (0:ℝ) ≤ 2 - (h + a * w))]
 
 theorem solR_stays (b : State (Var 6)) (hb : Formula.sat domR b)
-    (hnb : Formula.sat nbF b) {t : ℝ} (ht : 0 ≤ t) : Formula.sat domR (solR b t) := by
+    {t : ℝ} (ht : 0 ≤ t) : Formula.sat domR (solR b t) := by
   rw [sat_domR] at hb ⊢
-  rw [sat_nbF] at hnb
-  obtain ⟨h0l, h0u, h1l, h1u, h2l, h2u, h3l, h3u, h4l, h4u, h5l, h5u⟩ := hb
-  obtain ⟨⟨⟨hc1u, hc1l⟩, ⟨hc2u, hc2l⟩⟩, ⟨hc3u, hc3l⟩⟩ := hnb
+  obtain ⟨h0l, h0u, h1l, h1u, h2l, h2u, h3l, h3u, h4l, h4u, h5l, h5u,
+    hc1l, hc1u, hc2l, hc2u, hc3l, hc3u⟩ := hb
   have he0 := ex_pos t
   have he1 := ex_le_one ht
   rw [solR_0, solR_1, solR_2, solR_3, solR_4, solR_5]
@@ -726,7 +734,15 @@ theorem solR_stays (b : State (Var 6)) (hb : Formula.sat domR b)
   obtain ⟨a3, b3⟩ := mom_band he0 he1 h3l h3u hc1u hc1l
   obtain ⟨a4, b4⟩ := mom_band he0 he1 h4l h4u hc2u hc2l
   obtain ⟨a5, b5⟩ := mom_band he0 he1 h5l h5u hc3u hc3l
-  exact ⟨a0, b0, a1, b1, a2, b2, a3, b3, a4, b4, a5, b5⟩
+  -- the momentum sums are constants of the solution
+  have e1 : b (Rv 3) + 2 * b (Rv 0) * (1 - ex t) + 2 * (b (Rv 0) * ex t) = b (Rv 3) + 2 * b (Rv 0) := by
+    ring
+  have e2 : b (Rv 4) + 4 * b (Rv 1) * (1 - ex t) + 4 * (b (Rv 1) * ex t) = b (Rv 4) + 4 * b (Rv 1) := by
+    ring
+  have e3 : b (Rv 5) + 5 * b (Rv 2) * (1 - ex t) + 5 * (b (Rv 2) * ex t) = b (Rv 5) + 5 * b (Rv 2) := by
+    ring
+  rw [e1, e2, e3]
+  exact ⟨a0, b0, a1, b1, a2, b2, a3, b3, a4, b4, a5, b5, hc1l, hc1u, hc2l, hc2u, hc3l, hc3u⟩
 
 theorem rightBlock_bound_mem (i : Fin 6) : Rv i ∈ (rightBlock (fR 0) (Term.const 1)).bound := by
   simp only [rightBlock, ODESystem.bound, List.map_map]
@@ -744,7 +760,7 @@ theorem mom_deriv (h0 a w0 : ℝ) (s t : ℝ) :
     (by ring)
 
 /-- **The right `DETUMBLE` flow exists, domain-staying, from every nonblocking start.** -/
-theorem flowR_exists (b : State (Var 6)) (hb : Formula.sat domR b) (hnb : Formula.sat nbF b)
+theorem flowR_exists (b : State (Var 6)) (hb : Formula.sat domR b)
     (s : ℝ) (_hs : 0 ≤ s) :
     ∃ ΦR : ℝ → State (Var 6), ΦR 0 = b ∧
       (∀ t ∈ Icc (0 : ℝ) s, ∀ p ∈ rightBlock (fR 0) (Term.const 1),
@@ -752,7 +768,7 @@ theorem flowR_exists (b : State (Var 6)) (hb : Formula.sat domR b) (hnb : Formul
       (∀ t ∈ Icc (0 : ℝ) s, ∀ x, x ∉ (rightBlock (fR 0) (Term.const 1)).bound →
         ΦR t x = b x) ∧
       (∀ t ∈ Icc (0 : ℝ) s, Formula.sat domR (ΦR t)) := by
-  refine ⟨solR b, ?_, ?_, ?_, fun t ht => solR_stays b hb hnb ht.1⟩
+  refine ⟨solR b, ?_, ?_, ?_, fun t ht => solR_stays b hb ht.1⟩
   · funext x
     by_cases h0 : x = Rv 0
     · subst h0; rw [solR_0, ex_zero, mul_one]
@@ -845,7 +861,7 @@ theorem es (dt : ℝ) (σ : State (Var 6)) (hdom : Formula.sat domR σ)
     refine (Formula.coincidence nbF (fun x hx => ?_)).mp hnb
     obtain ⟨i, rfl⟩ := nbF_fv hx
     exact (hagree i).symm
-  exact flowR_exists (ΦL s) hdom' hnb' s hs0
+  exact flowR_exists (ΦL s) hdom' s hs0
 
 /-! ## The coupling with the nonblocking conjunct riding along
 

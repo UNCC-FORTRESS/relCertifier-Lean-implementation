@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `rover_patrol_zones` (suite_v2) — emitted cover, `RELCERT_IMPLIED_CUT=1 RELCERT_PROGRESS=1` (GENERATED leaf — do not edit)
+# `rover_patrol_zones` (suite_v2) — emitted cover, `RELCERT_IMPLIED_CUT=1`, progress certificates by default (GENERATED leaf — do not edit)
 
 Regenerate with `scripts/gen_v2_data.py rover_patrol_zones`.
 -/

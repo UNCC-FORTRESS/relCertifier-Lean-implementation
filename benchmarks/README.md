@@ -15,7 +15,8 @@ DECLINE.
 **Assumption 1 of each right model** (the paper's Well-Formedness: from every guard state a
 full control interval of flow exists, and every evolution of at most `ε_r` ends in a declared
 successor's guard) is verified per file (`WellFormedR`, `docs/WELLFORMED.md`): it holds for
-all 45, literally for 39 files and on the conserved momentum band for the 6 satellite files.
+all 46 literally (the 6 satellite files carry their conserved momentum band in the right evolve
+domain since 2026-10-15).
 Nine files had a blocking mode until 2026-10-10 and were repaired (`docs/SUITE-REDESIGN.md`
 §21; each header says how and why): `arm_plateau_{crit,profiles,slow}` (the ApproachA /
 ApproachB bands are narrower than one control interval of their own rate: the sampled
@@ -52,8 +53,9 @@ running example; both carry new instances.
 State variables and modes are given as left / right. Notes: *carried over* (see above),
 *mode-keyed* (per-left-mode invariant rows, Theorem 3 at the mode-keyed invariant),
 *widened cuts* (DECLINES without `RELCERT_IMPLIED_CUT=1`), *Z3-free* (the theorem has no
-verdict hypothesis), *nonblocking region* (the theorem is stated on the conserved-momentum
-band of the model; `docs/SUITE-REDESIGN.md` §19.2).
+verdict hypothesis), *nonblocking region* (the standalone theorem carries the model's conserved-momentum
+band in its right region; since 2026-10-15 the band is also in the right evolve domain;
+`docs/SUITE-REDESIGN.md` §19.2).
 
 | benchmark | state vars | modes | scenario | notes |
 |---|---|---|---|---|

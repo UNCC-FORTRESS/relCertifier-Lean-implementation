@@ -1,11 +1,12 @@
 # watertank_choice: the running example with a nominal economy profile that holds the level lower.
 # scenario: sensor-attack
 #
-# EXPERIMENTAL (existential mode choice, RELCERT_CHOICE=1). Identical to `watertank` except that the
+# Existential mode choice (RELCERT_CHOICE=1). Identical to `watertank` except that the
 # nominal MidEco profile regulates toward 13 instead of 17 (an energy-saving set point). Against the
 # attacked mid-fill mode (toward 20) MidEco falls behind at every stretch, so a cover that must also
 # continue along MidEco cannot close; the witness must CHOOSE MidBoost.
-# Expected: DECLINED without choice, CERTIFIED with RELCERT_CHOICE=1 (unverified choice cover).
+# Expected: DECLINED without choice, CERTIFIED with RELCERT_CHOICE=1 (the chosen sets are emitted under
+# RELCERT_CHOICE_OUT and replayed by the generic bridge, docs/BRIDGE.md).
 [problem]
 name = watertank_choice
 max_depth = 8

@@ -11,7 +11,8 @@ zero-duration hop into the left's mode (legal: the left's guard and the claim pu
 the wider right guard), then the certified joint segment in that mode for the whole window,
 then a switch into `Coast`, whose guard is the whole envelope.
 
-Standalone: the response is written here, not replayed from the tool's choice cover.
+Standalone: the response is written here, not replayed from the tool's choice cover; the
+generated bridge instance `Bridge/VehicleAccelCopy.lean` replays the emitted chosen sets.
 Existence of the right segment holds from the start state only (the right guard and one control
 period, `dt ≤ 1`), so the coupling is the pointwise one (`couple_cutX_at`).
 -/

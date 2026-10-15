@@ -25,8 +25,9 @@ structural facts (`structOK`) and the verdict hypotheses.
 * the time model of a window: the window's stretch `lamQ`, the per-pairing stretches, the
   common span `εR / lamQ`, the budget.
 
-The dimension `n` is a parameter (at least the number of state variables; the keyed
-assembly needs three auxiliary coordinates, so instances take `n = max 3 #vars`).
+The dimension `n` is a parameter: the state variables plus the auxiliary coordinates (the
+window form needs two, the keyed form three); the generated instances take the pack table's
+dimension (`bridgeDimV2`).
 -/
 import RelCertifier.Proofs.Encoding.Theorem3General
 import RelCertifier.Proofs.Encoding.ModeHandoff

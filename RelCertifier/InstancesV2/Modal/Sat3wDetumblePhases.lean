@@ -26,6 +26,11 @@ The right region of `DETUMBLE` carries, besides the kept atom, the NONBLOCKING c
 `⋀ᵢ −2 ≤ c_i ≤ 2` over the three right momenta `c1 = h1 + 2 w1`, `c2 = h2 + 4 w2`,
 `c3 = h3 + 5 w3` (each conserved by the right flow): NOT a tool cut, kept out of every
 verdict query; see `sat3w_detumble_phases_modeKeyed`.
+
+Since 2026-10-15 the file carries the same band in the right evolve domain (Assumption 1
+holds literally: `WellFormed/Sat3wDetumblePhases.lean`), so the envelope already implies the conjunct;
+this proof keeps it in the region unchanged. The generic bridge instance (`Bridge/Sat3wDetumblePhases.lean`)
+takes the envelope alone.
 -/
 import RelCertifier.Proofs.Encoding.CutRespond
 import RelCertifier.Proofs.Encoding.GuardedSwitch
@@ -1461,7 +1466,8 @@ enter any verdict query. It is there because the benchmark MODEL's wheel-momentu
 `|h_j| ≤ 2` block right `DETUMBLE` flows: from `h3_R = 2, w3_R = 0.4` the right flow leaves
 `h3 ≤ 2` at once (`h3' = 2.5 w3 > 0`), so the right cannot move while the left flows and its
 energy decays, breaking `E_R ≤ E_L` — with the region equal to the cut atoms alone, this
-theorem is FALSE (in either left mode). Each `c_j` is conserved by the right `DETUMBLE` flow
+theorem was FALSE until the band entered the right evolve domain (2026-10-15; the envelope
+now carries it, the region keeps it unchanged) (in either left mode). Each `c_j` is conserved by the right `DETUMBLE` flow
 and `h_j(t)` stays between `h_j0` and `c_j`, so the conjunct is exactly what keeps the right
 flow inside the bands (existence: the explicit solution `flowR_exists`) and it is preserved by
 the stay response. A property of the benchmark MODEL (the total angular momentum about each

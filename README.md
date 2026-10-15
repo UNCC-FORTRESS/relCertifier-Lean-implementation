@@ -24,8 +24,9 @@ benchmarks the nominal controller blocked after a full cycle (engagement-band gu
 catch-all mode), a violation of the certificate's Assumption 1 that the certificate itself
 cannot detect; the guards are now the operating range and both are proved
 (`docs/SUITE-REDESIGN.md` §20). Assumption 1 itself is now a separately verified model fact
-per benchmark (`WellFormedR`): **proved for all 46 right models**, 40 in its literal form and
-the 6 satellites on their conserved momentum band. Nine models violated it until 2026-10-10
+per benchmark (`WellFormedR`): **proved for all 46 right models** in its literal form (the six
+satellites since 2026-10-15, when their conserved momentum band entered the right evolve
+domain; `docs/WELLFORMED.md`). Nine models violated it until 2026-10-10
 (refuted in the kernel with exhibited blocking states: fallback sinks whose own flow left
 their guard, approach bands narrower than one control interval) and were repaired
 (`docs/SUITE-REDESIGN.md` §21). The tool checks its successor half (`relcert --wellformed`),
@@ -70,6 +71,7 @@ The parts of the artifact:
 | the suite_v2 battery: Theorem 3 with the guard-gated left and right automata for all 46 benchmarks (`rung2c` for `dt ≤ 1`), axiom-audited on every build | `RelCertifier/InstancesV2/BatteryV2.lean` |
 | the runner tables and the pins tying every hypothesis to the query the runner sends | `RelCertifier/VerdictsV2/` (and `Verdicts/` for the carried-over theorems) |
 | Assumption 1 of every right model (`WellFormedR`), axiom-audited on every build | `RelCertifier/InstancesV2/WellFormedBattery.lean` (`docs/WELLFORMED.md`) |
+| the generic bridge: Theorem 3 of every benchmark from its emitted records, the choice exhibits included | `RelCertifier/Proofs/Encoding/Emitted/`, `RelCertifier/InstancesV2/Bridge/`, `relcert-bridge-verdicts` (`docs/BRIDGE.md`) |
 | the suite evaluation scripts | `scripts/suite_v2_matrix.py` (mechanism matrix), `scripts/domain_widening.py` (load-bearing domain bounds) |
 
 ## The headline claim
@@ -123,7 +125,7 @@ packs). No
 | **Z3's `unsat`** answers are correct | the one oracle: axiom `z3_unsat_sound` (`Trusted/Oracle.lean`) |
 | the **Lean kernel** | checks everything else |
 | the **lowering of the right guards** onto the edges (`hostGuard … Side.R (mR t)`, the same lowering as the left guards) | part of the lowering item above; each instance proves its edges carry exactly these guards (`Gr_guards`) |
-| (not an item) Assumption 1 of the right model | not assumed: stated as `WellFormedR` and proved for all 46 (40 literally, the 6 satellites on their momentum band), all Z3-free, kernel-only (no trust-base item beyond the parser and lowering that produce the automata); no Theorem 3 uses it (`docs/WELLFORMED.md`) |
+| (not an item) Assumption 1 of the right model | not assumed: stated as `WellFormedR` and proved for all 46 (the six satellites since their momentum band entered the right evolve domain, 2026-10-15), all Z3-free, kernel-only (no trust-base item beyond the parser and lowering that produce the automata); no Theorem 3 uses it (`docs/WELLFORMED.md`) |
 
 The search (cover exploration, checked-cut search, route and λ selection) is untrusted: it
 only proposes. Every accepted output is either re-decided in the kernel (the cover replay
@@ -162,8 +164,9 @@ All counts read off `InstancesV2/BatteryV2.lean` and its build output.
 | every proof replays the emitted cover (joint segments at `jointOK` nodes with their packs, repositions at `dynPre` nodes with their reposition packs, legal switches, inadmissible starts contradictory; `docs/REPLAY.md`) | **45** | all |
 | responses with right-only repositions (reposition packs `modalVerdDynX`) | **17** | `arm_plateau_{crit,slow}`, `charger_fast_{setpoints,tapers}`, `refinement_ladder_rover_rung{1_2to3,3_6to8,4_8to12,2_6dof,2b_6dof}`, `rover_dof_terrain_rung{1,2,3,3_8d}`, `story3_rollover_{base_12dof,ladder_rung_a}`, `rover_patrol_{zones,refine}` |
 | Z3-free (the three standard axioms only, no verdict hypothesis) | **0** | none: every flow fact is a pack (until branch `replay`, 16 were Z3-free with explicit catch-ups and climbs; `docs/REPLAY.md` §1) |
-| stated on the nonblocking region (a conserved-momentum band of the model in the right region; it enters no verdict query) | **6** | `sat_detumble_{nominal,weak,phases}`, `sat3w_detumble_{nominal,weak,phases}` (`docs/SUITE-REDESIGN.md` §19.2) |
+| standalone statement on the nonblocking region (the conserved-momentum band of the model in the right region; it enters no verdict query; since 2026-10-15 the band is also in the right evolve domain, so the envelope carries it) | **6** | `sat_detumble_{nominal,weak,phases}`, `sat3w_detumble_{nominal,weak,phases}` (`docs/SUITE-REDESIGN.md` §19.2) |
 | Theorem 2 (non-connection certificate of a pruned edge) | **1** | `match_multi_rate_nonconn`, the edge `DRIVE → STALL` |
+| the generic bridge: Theorem 3 of the benchmark from its emitted records (IR, cut certificate, cover, progress and choice records), the structural facts decided in the kernel, every verdict from one Z3 run (`InstancesV2/Bridge/`, `relcert-bridge-verdicts`, 3512 groups over 49 benchmarks; `docs/BRIDGE.md`) | **48** | all 46 suite benchmarks (34 window form, 12 mode-keyed) and the choice exhibits `vehicle_accel_copy`, `watertank_choice` (`vehicle_hypercert` keeps its hand-written general instance) |
 
 The axiom audit has 72 lines: the 46 Theorem 3s, `match_multi_rate_nonconn`, and 25 generic
 lemmas; 48 carry `z3_unsat_sound` (the 46 Theorem 3s, `match_multi_rate_nonconn`,
@@ -359,8 +362,9 @@ def WellFormedR G guard ε := ∀ q < G.modes.length, WellFormedRModeIn G guard 
 (the evolve-domain conjunct `m.dom x`: a run, even the empty one, exists only from a domain
 state; `docs/WELLFORMED.md` §1).
 
-**Results** (`InstancesV2/WellFormedBattery.lean`, declared counts `(40, 0, 6)` checked
-against the suite's IR table, `(30, 9, 6)` until the 2026-10-10 repairs; 76 axiom lines, each
+**Results** (`InstancesV2/WellFormedBattery.lean`, declared counts `(40, 0, 6)`: every mode
+outside the detumble family, refuted, the detumble family, checked against the suite's IR
+table, `(30, 9, 6)` until the 2026-10-10 repairs; 71 axiom lines, each
 `[propext, Classical.choice, Quot.sound]`; no Z3):
 
 | result | count | benchmarks |
@@ -368,10 +372,11 @@ against the suite's IR table, `(30, 9, 6)` until the 2026-10-10 repairs; 76 axio
 | proved, every mode (`<b>_wellFormedR`) | **39** | the acc, charger, ladder, terrain, story, rover patrol files, `quad_light_lag`, `match_multi_rate`, `rover3tier_rung12`, `watertank`, and the nine repaired models below |
 | of which repaired 2026-10-10 (refuted until then, with the exhibited state) | 9 | `arm_plateau_{crit,profiles,slow}` (ApproachA from `θ = 0.35` reached `0.85` within one interval, past ApproachB's band: the sampled planner's successor sets now name every reachable band), `platoon_delay_{linkloss,profiles}` (sink BRAKE left `g < 20`: it now re-engages FOLLOW), `platoon3_{linkloss,profiles}` (sink BRAKE1 left `g₁ < 20`: the AEB sinks are now latched, speed matching with an invariant guard), `quad_light_{airframe_20,profiles}` (sink LIMIT decayed below its guard: it now hands back to the climb controller, whose operating range reaches the limiter threshold) |
 | false | **0** | — |
-| proved on the conserved momentum band, which every mode keeps (`<b>_wellFormedR_onBand`, `<b>_band_invariant`); the literal predicate refuted (`DETUMBLE` from `w3 = 0.4`, `h = 2` has no full-interval run) | **6** | `sat_detumble_{nominal,weak,phases}`, `sat3w_detumble_{nominal,weak,phases}` |
+| proved, every mode, with the conserved momentum band `|h_i + J_i w_i| ≤ 2` in the right evolve domain since 2026-10-15 (`<b>_wellFormedR`; the band is kept by every mode's flow, `<b>_band_invariant`; without it `DETUMBLE` from `w3 = 0.4`, `h = 2` had no full-interval run) | **6** | `sat_detumble_{nominal,weak,phases}`, `sat3w_detumble_{nominal,weak,phases}` |
 
 Proof styles: (a) forward invariance of the guard, then the self-loop; (b) exit into a
-successor's guard within one interval; (c) on the momentum band. The 18 terrain ladders share
+successor's guard within one interval; the satellites are style (a) with the momentum band in
+the domain (the explicit solution keeps the conserved sums). The 18 terrain ladders share
 one theorem (`wellFormedR_ladder`). Per-benchmark table, the repaired defects and their
 states: `docs/WELLFORMED.md`; the repairs and their tool evidence: `docs/SUITE-REDESIGN.md`
 §21. The trust base is unchanged: these are kernel theorems about the automata the parser
@@ -420,6 +425,10 @@ since branch `replay` these restatements replay the emitted cover with the suite
 * [`docs/REPLAY.md`](docs/REPLAY.md): what "the proof replays the emitted cover" means, the
   replay layer, and the per-benchmark replays of all 46.
 * [`docs/HANDOFF.md`](docs/HANDOFF.md): mode-dependent invariants and the handoff check.
+* [`docs/BRIDGE.md`](docs/BRIDGE.md): the generic bridge, Theorem 3 of every benchmark from
+  its emitted records; [`docs/THEOREM3-GENERAL.md`](docs/THEOREM3-GENERAL.md): the general
+  theorem with existential mode choice and reposition progress;
+  [`docs/CHOICE-SOUNDNESS.md`](docs/CHOICE-SOUNDNESS.md): the choice argument.
 * [`docs/SUITE-REDESIGN.md`](docs/SUITE-REDESIGN.md): the design record of suite_v2 and its
   mechanism matrix.
 * [`benchmarks/README.md`](benchmarks/README.md): the input format and the suite.

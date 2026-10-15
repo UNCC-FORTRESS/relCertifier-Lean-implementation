@@ -3,8 +3,8 @@
 > **Current state (2026-10-10, pass 11, §21).** `benchmarks/suite_v2` has **45 benchmarks**,
 > all CERTIFIED with `RELCERT_IMPLIED_CUT=1` (10 DECLINE without it), every one carries a
 > kernel-checked Theorem 3 (`RelCertifier/InstancesV2/BatteryV2.lean`; `README.md`), and every
-> right model satisfies Assumption 1 (`WellFormedR`, 39 literally, the 6 satellites on their
-> momentum band; the nine models that violated it were repaired in §21). The mechanism matrix,
+> right model satisfies Assumption 1 (`WellFormedR`, all 46 literally since 2026-10-15, when the six satellites'
+> momentum band entered their right evolve domains, §19.2; the nine models that violated it were repaired in §21). The mechanism matrix,
 > re-run on 2026-10-10 with `scripts/suite_v2_matrix.py` after the repairs, gives the totals
 > **M1 17, M2 33, M3 14, M4 19, M5 12, M6 29, M6+ 10, M6L 6**, no per-mode evolve domains,
 > no duplicates, no tolerance-only variants (§3, §8 and §9 below are the generated tables of
@@ -3521,8 +3521,8 @@ The six detumbling benchmarks (`sat_detumble_{nominal,weak,phases}`,
 `w3_R = 0.4` (energy 0.8, inside the cut `E ≤ 1`) every right mode leaves `h ≤ 2` at once
 (`h' = 5 k w3 > 0`), so the right cannot move, while a left state of the same energy and
 `h_L = 0` flows and its energy decays — the modal claim with the cut atoms alone as the region
-is FALSE. The benchmark files are NOT changed (the band is the wheel's real capacity). The
-theorems are instead stated on the **nonblocking region**: the right region of every non-sink
+is FALSE. The theorems are stated on the **nonblocking region** (the files were not changed in this
+pass; see the 2026-10-15 update below): the right region of every non-sink
 mode carries, besides its kept cut atoms, the bands on the total angular momentum about each
 wheel axis (`J = diag(2, 4, 5)`):
 
@@ -3540,6 +3540,14 @@ wheel capacity — not a tool cut: it enters NO verdict query (the packs are the
 `modalVerdX` queries, narrowed by the kept cut atoms only) and is carried through the joint
 piece by a separate conservation lemma (`couple_cutX_nb`, `stayNB`). Every instance's
 docstring states this.
+
+**Update 2026-10-15 (branch `theorem3-general`).** The band is now part of the right evolve
+domains of the six files (the `MOMENTUM BAND` paragraph of each header): the body's momentum
+within the wheels' capacity is the physical condition under which the wheels can absorb it, and
+it is a constant of every design-model flow, so it narrows no reachable right run. The tool
+certifies the six with byte-identical covers; Assumption 1 (`WellFormedR`) holds literally
+(`docs/WELLFORMED.md`); the standalone theorems keep the conjunct in their region (now implied
+by the envelope), and the generic bridge instances (`docs/BRIDGE.md`) take the envelope alone.
 
 ## 20. Pass 10 (2026-10-10): the `platoon3` guards — engagement band → operating range
 

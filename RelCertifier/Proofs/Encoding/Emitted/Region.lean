@@ -5,7 +5,8 @@ Released under Apache 2.0 license.
 # A region kept by the right flows is kept along joint segments
 
 Assumption 1 relative to a region (`WellFormedRIn G guard reg ε` with `RegionInvariant G reg`,
-the form the detumble benchmarks' leaves prove on the momentum band): for the cover's
+the form the general theorem and the bridge are stated in; every generated instance takes
+`reg = ⊤`): for the cover's
 induction the region must also survive the joint segments, whose right part is the right flow
 at the pairing's stretch. The right coordinates of a joint run `Φ` solve `ẏ = λ f_R(y)`
 (`f_R` reads right coordinates only), so `u ↦ Φ(u/λ)`, merged over the start's left part, is a

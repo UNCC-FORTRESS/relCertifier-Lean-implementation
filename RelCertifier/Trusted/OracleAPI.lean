@@ -564,7 +564,7 @@ def nonConnPrune (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
       | .ok .unsat, .ok .unsat => pure true    -- BOTH UNSAT ⟹ Def-3 non-connection ⟹ PRUNE
       | _, _                   => pure false   -- anything else ⟹ keep the edge required
 
-/-! ## Existential mode choice (EXPERIMENTAL, `RELCERT_CHOICE=1`, NOT verified)
+/-! ## Existential mode choice (`RELCERT_CHOICE=1`)
 
 Definition 4 extended with two moves in which the witness CHOOSES the right system's next
 mode instead of covering every successor:
@@ -577,9 +577,13 @@ mode instead of covering every successor:
   coverage query over `StartRegion(q)` is `unsat`; at most one hop before each segment.
 
 Coverage is monotone in `S`, so only the maximal coverable subset is queried. This search
-is tried only after the verified `decideCovered` gate has failed, so it can only add
-certificates; a cover it accepts is reported on stderr as `[choice] … (unverified)`. Its
-soundness rests on the paper argument (docs: EXISTENTIAL-CHOICE.md), not on Lean. -/
+is tried only after the `decideCovered` gate has failed, so it can only add certificates; a
+cover it accepts is reported on stderr as `[choice] …`, and the chosen sets are emitted
+under `RELCERT_CHOICE_OUT` (`Trusted/ChoiceEmit.lean`). Soundness: the argument is
+`docs/CHOICE-SOUNDNESS.md`, mechanized as the general Theorem 3 with choice
+(`theorem3_of_coverX`, `docs/THEOREM3-GENERAL.md`); the generic bridge replays the emitted
+chosen sets through `decideCoveredX` and reads each coverage query's `unsat` as the
+coverage premise (`Proofs/Encoding/Emitted/Choice.lean`, `docs/BRIDGE.md`). -/
 
 /-- One choice-cover decision context (per left mode and stretch). -/
 structure ChoiceCtx (n : ℕ) where
@@ -872,7 +876,7 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
       some ({ mL := mL.name, lamQ := lamQ, bBudget := bBudget, flags := flagRows,
               admissible := admMods.map (·.name), strata := strataMap } : LeftCoverE)
     else none
-  -- EXPERIMENTAL existential mode choice context (`RELCERT_CHOICE=1`; see `choiceCover`)
+  -- existential mode choice context (`RELCERT_CHOICE=1`; see `choiceCover`)
   let choiceOn := (← IO.getEnv "RELCERT_CHOICE").isSome
   let mut choiceCands : List (ℚ × ℚ × List (String × Seg) × List PairStrataE) := []
   -- MEASUREMENT `RELCERT_LAMBDA_SCAN=1`: evaluate every λ candidate (no early exit at the first
@@ -1001,7 +1005,8 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
       match gate seg strataMap lamMax deltaL with
       | some lc => return (.cov, some lc)
       | none => pure ()
-  -- EXPERIMENTAL existential mode choice (unverified; argument: docs/CHOICE-SOUNDNESS.md).
+  -- existential mode choice (docs/CHOICE-SOUNDNESS.md; mechanized as `theorem3_of_coverX`,
+  -- the emitted chosen sets replayed by the generic bridge).
   -- Reached only when no λ and no per-pairing stretch closed the cover with the old rule;
   -- tries the λ candidates in the same order as the old rule.
   if choiceOn && !admMods.isEmpty then
@@ -1018,7 +1023,7 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
           if !(← choiceCover s cnt maxQ maxSmt deadline coord cx memo log clog [] mR.name bBudget true true) then
             allOk := false
       if allOk then
-        IO.eprintln s!"  [choice] {p.name} {mL.name}_L λ={lam} B={bBudget}: certified by choice cover (unverified)"
+        IO.eprintln s!"  [choice] {p.name} {mL.name}_L λ={lam} B={bBudget}: certified by choice cover"
         let entries ← clog.get
         choiceLog.modify (· ++ entries.map (fun e => { e with mL := mL.name }))
         let lines ← log.get

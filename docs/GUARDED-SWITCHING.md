@@ -461,8 +461,9 @@ Z3-free (was 16). Pack hypotheses of the 45 statements: 234 joint + 41 repositio
 `RunV2.packsV2` / `RunV2.dynPacksV2`.
 
 Assumption 1 is not a hypothesis of any row; it is verified per benchmark as a separate model
-fact (`WellFormedR`, `InstancesV2/WellFormedBattery.lean`, `docs/WELLFORMED.md`): proved for 39,
-proved on the conserved momentum band for the 6 satellites, false for none. Until 2026-10-10
+fact (`WellFormedR`, `InstancesV2/WellFormedBattery.lean`, `docs/WELLFORMED.md`): proved for all 46,
+false for none (the six satellites literally since 2026-10-15, their momentum band in the right
+evolve domain). Until 2026-10-10
 it was false for 9 (blocking modes exhibited: the `arm_plateau` approach bands, the BRAKE /
 LIMIT sinks of the `platoon_delay`, `platoon3` and `quad_light` files); those models were
 repaired and their Theorem 3s re-proved over the repaired automata, statements unchanged in

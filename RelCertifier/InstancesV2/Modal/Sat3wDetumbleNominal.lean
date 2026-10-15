@@ -22,6 +22,11 @@ not a tool cut, kept out of every verdict query; see `sat3w_detumble_nominal_mod
 along the segment anchor through `couple_cutX_nb`, a local copy of `CutRespond.couple_cutX`
 whose anchor may carry extra, separately preserved terms (here preserved because each `c_i`
 is conserved by the right flow).
+
+Since 2026-10-15 the file carries the same band in the right evolve domain (Assumption 1
+holds literally: `WellFormed/Sat3wDetumbleNominal.lean`), so the envelope already implies the conjunct;
+this proof keeps it in the region unchanged. The generic bridge instance (`Bridge/Sat3wDetumbleNominal.lean`)
+takes the envelope alone.
 -/
 import RelCertifier.Proofs.Encoding.CutRespond
 import RelCertifier.Proofs.Encoding.GuardedSwitch
@@ -1221,7 +1226,8 @@ wheel-momentum bands `|h_i| ≤ 2` block right `DETUMBLE` flows: from `h3_R = 2,
 (other coordinates 0; energy 0.8, inside the cut) the right flow leaves `h3 ≤ 2` at once
 (`h3' = 2.5 w3 > 0`), so the right cannot move, while a left state with the same energy and
 `h_L = 0` flows and its energy decays, breaking `E_R ≤ E_L` — with the region equal to the
-cut atoms alone, this theorem is FALSE. Each `c_i` is conserved by the right `DETUMBLE` flow
+cut atoms alone, this theorem was FALSE until the band entered the right evolve domain (2026-10-15; the envelope
+now carries it, the region keeps it unchanged). Each `c_i` is conserved by the right `DETUMBLE` flow
 (`c_i' = J_i k w_i − J_i k w_i = 0`) and `h_i(t)` stays between `h_i0` and `c_i`, so the
 conjunct is exactly what keeps the right flow inside the bands (existence: the explicit
 solution `flowR_exists`) and it is preserved by the stay response. A property of the

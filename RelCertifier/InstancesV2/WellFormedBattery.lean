@@ -36,12 +36,13 @@ suite's IR table by `wf_coverage`).**
   - `quad_light_{airframe_20,profiles}`: the limiter `LIMIT` hands back to the climb
     controller, whose operating range now reaches the limiter threshold.
 * **Refuted, 0.**
-* **On the conserved momentum band, 6** (`<bench>_wellFormedR_onBand` with
-  `<bench>_band_invariant`; and `<bench>_wellFormedR_false` for the literal predicate):
-  `sat_detumble_{nominal,weak,phases}`, `sat3w_detumble_{nominal,weak,phases}`. Clause (i)
-  fails at the edge of the wheel-momentum box (`h = 2`, `w3 = 0.4`: `h + 5 w3` is conserved
-  and would leave `|h| ≤ 2`); on the band `|h + 5 w3| ≤ 2` (three bands for `sat3w`), which
-  every mode's flow keeps, Assumption 1 holds.
+* **The detumble family, 6** (`<bench>_wellFormedR`, every mode; `<bench>_band_invariant`):
+  `sat_detumble_{nominal,weak,phases}`, `sat3w_detumble_{nominal,weak,phases}`. Their right
+  evolve domains carry the conserved momentum band `|h_i + J_i w_i| ≤ 2` (the body's momentum
+  within the wheels' capacity; since 2026-10-15). Without it clause (i) failed at the edge of
+  the wheel-momentum box (`h = 2`, `w3 = 0.4`: `h + 5 w3` is conserved and would leave
+  `|h| ≤ 2`); with it the explicit solution stays in the domain, and the band is kept by every
+  mode's flow.
 
 Expected axioms: `propext`, `Classical.choice`, `Quot.sound`, nothing else (every proof is
 Z3-free). `lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 | grep -A3 "depends on
@@ -119,13 +120,15 @@ def wfProved : List String :=
 repairs; the nine refuted until then are in `wfProved`). -/
 def wfRefuted : List String := []
 
-/-- The benchmarks where Assumption 1 holds on the conserved momentum band (and fails off
-it). -/
+/-- The detumble family: Assumption 1 holds at every mode (the conserved momentum band is in
+the right evolve domain since 2026-10-15; before, only on the band), and the band is kept by
+every flow (`_band_invariant`). -/
 def wfBand : List String :=
   ["sat_detumble_nominal", "sat_detumble_weak", "sat_detumble_phases",
    "sat3w_detumble_nominal", "sat3w_detumble_weak", "sat3w_detumble_phases"]
 
-/-- **Declared counts**: proved, refuted (model defects), band-relative. `(30, 9, 6)` until the
+/-- **Declared counts**: proved outside the detumble family, refuted (model defects), the
+detumble family (also proved, listed apart for its band audit). `(30, 9, 6)` until the
 2026-10-10 repairs of the nine refuted models; `(39, 0, 6)` then, `(40, 0, 6)` with
 `watertank_twospeed` (2026-10-11). -/
 def wfDeclared : ℕ × ℕ × ℕ := (40, 0, 6)
@@ -162,7 +165,7 @@ theorem wf_coverage :
 
 end WellFormedBattery
 
-/-! ## Proved (40): Assumption 1 at every mode -/
+/-! ## Proved (40, outside the detumble family): Assumption 1 at every mode -/
 
 #print axioms V2Watertank.watertank_wellFormedR
 #print axioms V2WatertankTwospeed.watertank_twospeed_wellFormedR

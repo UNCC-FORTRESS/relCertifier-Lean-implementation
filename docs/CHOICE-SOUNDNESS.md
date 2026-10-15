@@ -130,7 +130,7 @@ start mode, so choice never has to look across a left-cycle boundary.
 
 `RelCertifier/InstancesV2/Choice/Modal/` proves modal Theorem 3 for `vehicle_hypercert`,
 `vehicle_accel_copy` and `watertank_choice`, standalone (not replayed from the tool's choice
-cover). Each response is case 4 then case 1: a hop (`gresp_hop`) into one chosen mode, then
+cover; the generic bridge replays the emitted chosen sets of the last two, §10). Each response is case 4 then case 1: a hop (`gresp_hop`) into one chosen mode, then
 that mode's certified joint segment for the whole window. The hop's domain premise is S3
 (`envLR`; every exhibit has a uniform right evolution domain), its guard premise is the left
 guard plus the invariant at the start (the left run frames the right).
@@ -152,3 +152,16 @@ Residuals: 14 verdict packs, pinned to the instances' hypotheses (`Choice/Verdic
 existence proof of §5 in Lean, generically; `theorem3_of_coverX` is Theorem 3 with choice.
 The reposition-progress premise (§3 there) is the one fact §5's case 2 (right-only) glossed
 over.
+
+## 10. The bridge (2026-10-15)
+
+The tool emits the chosen sets (`RELCERT_CHOICE_OUT`, `Trusted/ChoiceEmit.lean`: per window and
+right mode, the chosen successors after a joint segment, the chosen exits after a right-only
+segment, the hop targets, each with its coverage query). `Proofs/Encoding/Emitted/Choice.lean`
+turns the record into the window's `ChoiceData`, rebuilds every coverage query from the tool's
+regions, and `coverage_sound` reads its `unsat` as the coverage premise (`hcovJ/hcovR/hcovS`
+of §9); the chosen cover is decided by `decideCoveredX`. `InstancesV2/Bridge/VehicleAccelCopy.lean`
+and `WatertankChoice.lean` are generated instances through `theorem3_window_of_records`;
+`vehicle_hypercert` stays on its hand-written general instance (§9), because its reposition
+node's progress stages cross their thresholds downward and the progress lemmas read upward
+stages. The coverage queries are among the groups of `relcert-bridge-verdicts` (`docs/BRIDGE.md`).

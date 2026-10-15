@@ -12,7 +12,9 @@ mode. Response: a zero-duration hop into the left's mode (legal because the left
 and the velocities agree), then the certified joint segment in that mode for the whole window,
 then a switch into `A0`, whose guard is the whole envelope.
 
-Standalone: the response is written here, not replayed from the tool's choice cover.
+Standalone: the response is written here, not replayed from the tool's choice cover; the
+general instance `Choice/General/VehicleHypercert.lean` replays the emitted cover (no generated
+bridge instance: the reposition node's progress stages cross their thresholds downward).
 Existence of the right segment is the mirror argument (`hExistSegB_constMirror`), since a
 constant field leaves the envelope from one of its edges and `WellFormedFlowB` does not hold.
 -/

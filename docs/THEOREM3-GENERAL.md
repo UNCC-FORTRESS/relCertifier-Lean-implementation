@@ -116,12 +116,16 @@ The per-benchmark instances of §4 are superseded for the suite by the generic b
 (`docs/BRIDGE.md`, `Proofs/Encoding/Emitted/`): one layer instantiates the general theorem
 from a benchmark's emitted records (IR, cut certificate, cover, progress certificates), the
 structural facts decided in the kernel, every verdict read from one Z3 run
-(`relcert-bridge-verdicts`, 3259 groups over the suite, all discharged). Mode-dependent rows
+(`relcert-bridge-verdicts`, 3512 groups over the 46 suite benchmarks and the 3 choice
+exhibits, all discharged). Mode-dependent rows
 are assembled through `theorem3_modeKeyed` (`Emitted/Keyed.lean`); the two-stage progress pin
 is `progressVerd_two`. Generated instances: `InstancesV2/Bridge/`, all 46 suite benchmarks
 (34 window form, 12 mode-keyed) and two of the three choice exhibits, every one with the
 paper's unconditional Assumption 1 (the detumble models carry their momentum band in the
 right evolve domain).
 
-Still not done: the tool's emission of choice covers and their coverage verdicts (D5); the
-three choice exhibits stay on the hand-written general instances of §4.
+The tool emits its choice covers (`RELCERT_CHOICE_OUT`, `Trusted/ChoiceEmit.lean`) and the
+bridge replays them (`Emitted/Choice.lean`): `vehicle_accel_copy` and `watertank_choice` are
+generated bridge instances; `vehicle_hypercert` stays on its hand-written general instance of §4
+(its reposition node's progress stages cross their thresholds downward, and the progress lemmas
+`repoProgress_one/two` read upward stages).

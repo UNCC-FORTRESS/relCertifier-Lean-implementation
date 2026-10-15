@@ -21,6 +21,11 @@ The right region carries, besides the kept atom, the NONBLOCKING conjunct
 the wheel axis stays within the wheel's capacity), not a tool cut, and enters no verdict
 query; see `sat_detumble_weak_modal`. It rides along the segment anchor through
 `V2SatDetumbleNominal.couple_cutX_nb`.
+
+Since 2026-10-15 the file carries the same band in the right evolve domain (Assumption 1
+holds literally: `WellFormed/SatDetumbleWeak.lean`), so the envelope already implies the conjunct;
+this proof keeps it in the region unchanged. The generic bridge instance (`Bridge/SatDetumbleWeak.lean`)
+takes the envelope alone.
 -/
 import RelCertifier.InstancesV2.Modal.SatDetumbleNominal
 import RelCertifier.Proofs.Encoding.GuardedSwitch
@@ -955,7 +960,8 @@ total angular momentum about the wheel axis (over `J3 = 5`), exactly conserved b
 profile (`(h + 5 w3)' = 5 k w3 − 5 k w3 = 0`), and the conjunct says it stays within the
 wheel's momentum capacity `|h| ≤ 2`. Without it the evolve wall `|h| ≤ 2` blocks right flows
 (from `h_R = 2`, `w3_R > 0` the right cannot move while the left does), and the theorem with
-the cut atoms alone as the region is FALSE. It is NOT a tool cut and enters NO verdict query;
+the cut atoms alone as the region was FALSE until the band entered the right evolve domain (2026-10-15; the envelope
+now carries it, the region keeps it unchanged). It is NOT a tool cut and enters NO verdict query;
 it keeps the explicit right solution inside the band (existence, `flowR_exists`) and is
 preserved by the stay response (`stayNB`). -/
 theorem sat_detumble_weak_modal (dt : ℝ) (h0 : Verd 0 0) (h1 : Verd 0 1) (h2 : Verd 0 2) :

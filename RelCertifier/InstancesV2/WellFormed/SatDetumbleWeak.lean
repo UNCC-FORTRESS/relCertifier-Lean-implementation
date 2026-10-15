@@ -2,11 +2,13 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `sat_detumble_weak`: Assumption 1 of the right model — on the momentum band (style (c))
+# `sat_detumble_weak`: Assumption 1 of the right model (style (a); the momentum band in the right evolve domain)
 
 Over the instance's guarded right automaton `Gr`, the lowered right guards, `ε_r = 1`.
 
-**Without the momentum band in the evolve domain `WellFormedR` would be false** (the file carries the band `|h_i + J_i w_i| <= 2`, a constant of every design-model flow): the wheel
+**The right evolve domain carries the momentum band `|h_i + J_i w_i| ≤ 2`** (the body's
+momentum within the wheels' capacity, a constant of every design-model flow; since
+2026-10-15). Without it `WellFormedR` would be false: the wheel
 momentum `h` is bounded by the evolve domain (`|h| ≤ 2`) but driven by `h' = 5 k w3` in the three
 active modes (`NOMINAL`, `ECONOMY`, `SURVIVAL`, `w' = −k w`, `k = 0.5, 0.45, 0.42`), and
 `h + 5 w3` is conserved by each of those flows. From `w1 = w2 = 0`, `w3 = 0.4`,
@@ -15,13 +17,11 @@ no `NOMINAL` run of duration 1 exists: it would end at `h = 4 − 2 e^{−1/2} >
 (clause (i) fails; the controller blocks). This is the model fact the Theorem 3 instance
 already records (its region carries the nonblocking conjunct `nbF`).
 
-**On the momentum band `nbF` (`−2 ≤ h + 5 w3 ≤ 2`) Assumption 1 holds**
-(`sat_detumble_weak_wellFormedR_onBand`, Z3-free), and the band is invariant under every
-mode's flow (`sat_detumble_weak_band_invariant`): the active modes' common guard is forward
-invariant
-(each rate decays, so the energy does not grow; style (a)); existence is the instance's
-explicit solution `flowR_exists`, which needs exactly the band. `SAFE` (`E > 1`, frozen)
-holds still.
+**With the band, Assumption 1 holds at every mode** (`sat_detumble_weak_wellFormedR`, Z3-free), and
+the band is kept by every mode's flow (`sat_detumble_weak_band_invariant`): the active guard (`E ≤ 1`)
+is forward invariant (each rate decays; style (a)); existence is the instance's explicit
+solution `flowR_exists`, which stays in the domain because the conserved sums are constant.
+`SAFE` (`E > 1`, frozen) holds still.
 -/
 import RelCertifier.InstancesV2.Modal.SatDetumbleWeak
 import RelCertifier.Proofs.Encoding.WellFormedR

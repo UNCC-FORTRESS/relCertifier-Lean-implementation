@@ -1,13 +1,14 @@
 # vehicle_accel_copy: a vehicle with three selectable accelerations, matched by copying the mode.
 # scenario: model-refinement
 #
-# EXPERIMENTAL (existential mode choice, RELCERT_CHOICE=1). Continuous-time counterpart of the
+# Existential mode choice (RELCERT_CHOICE=1). Continuous-time counterpart of the
 # velocity part of the vehicle case studies of Anand et al. (TAC 2024) and Murali et al.
 # (HyperCertificates, 2026): both sides choose an acceleration each cycle; the observer sees the
 # velocity. Claim: |v_L - v_R| <= 1. The witness must COPY the left's mode (hop at entry); with
 # the all-successors rule the right may pick any acceleration and the gap grows.
 # The right's guards are wider than the left's by the tolerance, so the copy is always enabled.
-# Expected: DECLINED without choice, CERTIFIED with RELCERT_CHOICE=1 (unverified choice cover).
+# Expected: DECLINED without choice, CERTIFIED with RELCERT_CHOICE=1 (the chosen sets are emitted under
+# RELCERT_CHOICE_OUT and replayed by the generic bridge, docs/BRIDGE.md).
 [problem]
 name = vehicle_accel_copy
 max_depth = 8

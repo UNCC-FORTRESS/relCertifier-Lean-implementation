@@ -2,11 +2,13 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `sat3w_detumble_weak`: Assumption 1 of the right model — on the momentum band (style (c))
+# `sat3w_detumble_weak`: Assumption 1 of the right model (style (a); the momentum band in the right evolve domain)
 
 Over the instance's guarded right automaton `Gr`, the lowered right guards, `ε_r = 1`.
 
-**Without the momentum band in the evolve domain `WellFormedR` would be false** (the file carries the band `|h_i + J_i w_i| <= 2`, a constant of every design-model flow): the three
+**The right evolve domain carries the momentum band `|h_i + J_i w_i| ≤ 2`** (the body's
+momentum within the wheels' capacity, a constant of every design-model flow; since
+2026-10-15). Without it `WellFormedR` would be false: the three
 wheel momenta are bounded by the evolve domain (`|hᵢ| ≤ 2`) but driven by the three active
 modes (`NOMINAL`, `ECONOMY`, `SURVIVAL`: `w' = −k w`, `h₁' = 2k w₁`, `h₂' = 4k w₂`,
 `h₃' = 5k w₃`, `k = 0.5, 0.45, 0.42`), each of which conserves `h₁ + 2w₁`, `h₂ + 4w₂`,
@@ -14,11 +16,11 @@ modes (`NOMINAL`, `ECONOMY`, `SURVIVAL`: `w' = −k w`, `h₁' = 2k w₁`, `h₂
 guard and the domain) no run of duration 1 exists: it would end at `h₃ = 4 − 2 e^{−1/2} > 2`
 (clause (i) fails).
 
-**On the momentum band `nbF` (the three conserved sums in `[−2, 2]`) Assumption 1 holds**
-(`sat3w_detumble_weak_wellFormedR_onBand`, Z3-free) and the band is invariant under every
-mode's flow (`sat3w_detumble_weak_band_invariant`): the active modes' common guard
-(`E ≤ 1`) is forward invariant (each rate decays; style (a)); existence is the instance's explicit
-solution `flowR_exists` on the band. `SAFE` (`E > 1`, frozen) holds still.
+**With the band, Assumption 1 holds at every mode** (`sat3w_detumble_weak_wellFormedR`, Z3-free), and
+the band is kept by every mode's flow (`sat3w_detumble_weak_band_invariant`): the active guard (`E ≤ 1`)
+is forward invariant (each rate decays; style (a)); existence is the instance's explicit
+solution `flowR_exists`, which stays in the domain because the conserved sums are constant.
+`SAFE` (`E > 1`, frozen) holds still.
 -/
 import RelCertifier.InstancesV2.Modal.Sat3wDetumbleWeak
 import RelCertifier.Proofs.Encoding.WellFormedR

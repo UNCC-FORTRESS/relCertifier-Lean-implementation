@@ -27,6 +27,11 @@ gyroscopic and wheel-coupling terms cancel, a ring identity).
 The right region of `DETUMBLE` carries, besides the kept atom, the NONBLOCKING conjunct
 `−2 ≤ h_R + 5 w3_R ≤ 2`: NOT a tool cut, kept out of every verdict query; see
 `sat_detumble_phases_modeKeyed`.
+
+Since 2026-10-15 the file carries the same band in the right evolve domain (Assumption 1
+holds literally: `WellFormed/SatDetumblePhases.lean`), so the envelope already implies the conjunct;
+this proof keeps it in the region unchanged. The generic bridge instance (`Bridge/SatDetumblePhases.lean`)
+takes the envelope alone.
 -/
 import RelCertifier.Proofs.Encoding.CutRespond
 import RelCertifier.Proofs.Encoding.GuardedSwitch
@@ -1350,7 +1355,8 @@ conjunct is NOT a tool cut and does NOT enter any verdict query. It is there bec
 benchmark MODEL's wheel-momentum band `|h| ≤ 2` blocks right `DETUMBLE` flows: from
 `h_R = 2, w3_R = 0.4` the right flow leaves `h ≤ 2` at once (`h' = 2.5 w3 > 0`), so the
 right cannot move while the left flows and its energy decays, breaking `E_R ≤ E_L` — with the
-region equal to the cut atoms alone, this theorem is FALSE (in either left mode).
+region equal to the cut atoms alone, this theorem was FALSE until the band entered the right evolve domain (2026-10-15; the envelope
+now carries it, the region keeps it unchanged) (in either left mode).
 `h + 5 w3` is conserved by the right `DETUMBLE` flow and `h(t)` stays between `h0` and
 `h0 + 5 w3_0`, so the conjunct is exactly what keeps the right flow inside the band
 (existence: the explicit solution `flowR_exists`) and it is preserved by the stay response.

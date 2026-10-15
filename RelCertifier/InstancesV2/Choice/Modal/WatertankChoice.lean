@@ -10,7 +10,8 @@ all-successors cover declines. Response: the watertank's (the certified joint se
 start mode for the whole window, then a switch into an enabled successor), except that the
 `Mid` window from `MidEco` first hops into `MidBoost` (the same guard, so the hop is legal
 wherever the start is admissible) and runs `MidBoost`'s certified segment. Standalone: the
-response is written here, not replayed from the tool's choice cover.
+response is written here, not replayed from the tool's choice cover; the generated bridge
+instance `Bridge/WatertankChoice.lean` replays the emitted chosen sets.
 -/
 import RelCertifier.Proofs.Encoding.CutRespond
 import RelCertifier.Proofs.Encoding.GuardedSwitch

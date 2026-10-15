@@ -1,10 +1,10 @@
 # Assumption 1, verified per benchmark (`WellFormedR`)
 
-**Status (2026-10-10, branch `wellformed-models`).** The paper's Assumption 1
-(Well-Formedness) is a separately stated, kernel-checked model fact for every one of the 45
-suite_v2 benchmarks: **proved for 39**, **proved on the conserved momentum band for the 6
-satellites** (the literal predicate is false for them, also refuted in the kernel), **false
-for none**. Until 2026-10-10 it was false for 9 models (refuted in the kernel with exhibited
+**Status (2026-10-15, branch `theorem3-general`).** The paper's Assumption 1
+(Well-Formedness) is a separately stated, kernel-checked model fact for every one of the 46
+suite_v2 benchmarks: **proved for all 46**, **false for none**. The six satellites are proved
+literally since 2026-10-15, when their conserved momentum band entered the right evolve
+domain (§3, §5); until then they were proved on the band, with the literal predicate refuted. Until 2026-10-10 it was false for 9 models (refuted in the kernel with exhibited
 blocking states); those nine were repaired (`docs/SUITE-REDESIGN.md` §21: the fallback sinks
 re-engage or are latched with an invariant guard, the arm planner's successor sets name every
 band a sampled interval can reach) and are now proved. No proof uses Z3. The tool's sufficient
@@ -61,7 +61,9 @@ def WellFormedR  G guard ε     : Prop := WellFormedRIn G guard Formula.tt ε
 * **(a) forward invariance** of the mode's guard under its own flow, then the self-loop.
 * **(b) exit into a successor's guard** within one interval (the band advances into the next
   band; a threshold is crossed into the next mode's guard).
-* **(c) on a region**: the six satellites, on the conserved momentum band.
+* **(c) the momentum band in the domain**: the six satellites, style (a) once the right
+  evolve domain carries the conserved momentum band (the explicit solution keeps the sums
+  constant, so it stays in the domain).
 
 Generic lemmas (`WellFormedR.lean`): closed form of a linear coordinate at the run's duration
 (`ODESol.linear_exact`, `linear_between`, `linear_up/down/lt/gt`), rate bounds
@@ -83,15 +85,17 @@ Existence (clause (i)) is always an explicit or instance-supplied run: the expon
 linear solutions, the ladders' `LadderRun.sol` (and `runE` / `run_sol` / `drive_sol`, the
 instances' explicit runs with their duration kept), the platoon link solution `solΦ` and the
 sinks' `solB`, the
-satellites' `flowR_exists` (on the band), and for `w' = c − w²` the instances' viability route
+satellites' `flowR_exists` (the conserved sums keep the band), and for `w' = c − w²` the instances' viability route
 (both faces strict, hand Lipschitz data). **No Z3 leaf** anywhere: the pinned-query discipline
 was not needed.
 
 ## 3. Per benchmark
 
 Theorems: `<ns>.<bench>_wellFormedR` (proved; for the nine repaired models also the
-per-mode theorems `…_brake`, `…_limit`, `…_mode`), `<ns>.<bench>_wellFormedR` (the detumble family: unconditional since the momentum band `|h_i + J_i w_i| ≤ 2` entered the right evolve domains, 2026-10-15; before, `_onBand`),
-`<ns>.<bench>_band_invariant` and `<ns>.<bench>_wellFormedR_false` (band). Files: `InstancesV2/WellFormed/<B>.lean`,
+per-mode theorems `…_brake`, `…_limit`, `…_mode`), for the detumble family also
+`<ns>.<bench>_band_invariant` (the band is kept by every mode's flow; the predicate itself is
+unconditional since the momentum band `|h_i + J_i w_i| ≤ 2` entered the right evolve domains,
+2026-10-15). Files: `InstancesV2/WellFormed/<B>.lean`,
 `Instances/WellFormed/<B>.lean`. Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 `relcert --wellformed` (§4). Z3 leaves: none for every row.
 
@@ -128,12 +132,12 @@ per-mode theorems `…_brake`, `…_limit`, `…_mode`), `<ns>.<bench>_wellForme
 | 29 | `rover_dof_terrain_rung3_8d` | proved | as 18 | as 18 |
 | 30 | `rover_patrol_refine` | proved | SLOW (b) → MEDIUM_ECO; MEDIUM_ECO, MEDIUM_BRISK (b) → FAST; FAST (a) | SLOW ok (exit→MEDIUM_BRISK); MEDIUM_* ok (exit→FAST); FAST ok (invariant) |
 | 31 | `rover_patrol_zones` | proved | as 30; STALL (a) | as 30; STALL ok (invariant) |
-| 32 | `sat3w_detumble_nominal` | band (c) | DETUMBLE (a) on the band, **blocks off it**; SAFE (a) | both ok (invariant) (clause (i) is not checked by the tool) |
-| 33 | `sat3w_detumble_phases` | band (c) | as 32 | as 32 |
-| 34 | `sat3w_detumble_weak` | band (c) | NOMINAL **blocks off the band**; NOMINAL, ECONOMY, SURVIVAL (a) on it; SAFE (a) | all ok (invariant) |
-| 35 | `sat_detumble_nominal` | band (c) | as 32 | as 32 |
-| 36 | `sat_detumble_phases` | band (c) | as 32 | as 32 |
-| 37 | `sat_detumble_weak` | band (c) | as 34 | as 34 |
+| 32 | `sat3w_detumble_nominal` | proved | DETUMBLE (a) (the band in the domain keeps the explicit run); SAFE (a) | both ok (invariant) (clause (i) is not checked by the tool) |
+| 33 | `sat3w_detumble_phases` | proved | as 32 | as 32 |
+| 34 | `sat3w_detumble_weak` | proved | NOMINAL, ECONOMY, SURVIVAL (a) (the band in the domain keeps the explicit runs); SAFE (a) | all ok (invariant) |
+| 35 | `sat_detumble_nominal` | proved | as 32 | as 32 |
+| 36 | `sat_detumble_phases` | proved | as 32 | as 32 |
+| 37 | `sat_detumble_weak` | proved | as 34 | as 34 |
 | 38 | `story1_attdist_rung_a_6to8` | proved | as 18 | as 18 |
 | 39 | `story1_attdist_rung_b_12dof` | proved | as 18 | as 18 |
 | 40 | `story2_lateral_rung_a_8dof` | proved | as 18 | as 18 |
@@ -158,15 +162,18 @@ IR table). Z3-free: 45/45. Region-relative: the 6 satellites.
 | `platoon3_{linkloss,profiles}` | BRAKE1 (`g₁ < 20`, `g₁' = r₁`, `r₁' = 4`), successors BRAKE1 only | `g₁ = 19`, `r₁ = 0`, links 2, 3 at rest at 30 → `g₁ = 21`, `r₁ = 4` | latched AEB: `r_k' = −r_k/2`, guard `g_k < 20 ∧ 0 ≤ g_k + 2r_k < 20 ∧` the other links' operating range (invariant) |
 | `quad_light_airframe_20` | LIMIT (`w > 3`, `w' = −2w`), successors LIMIT only | `w = 3.1` → `3.1 e^{−2} < 3` | `LIMIT → CLIMB`; CLIMB's guard `0 ≤ w ≤ 3` (was 2.6) |
 | `quad_light_profiles` | LIMIT (`w > 3.2`) | `w = 3.3` → `3.3 e^{−2} < 3.2` | `LIMIT → NORMAL`; the climb modes' guard `0 ≤ w ≤ 3.2` (was 2.6) |
-| the 6 satellites (literal predicate; unchanged) | DETUMBLE / NOMINAL | `w3 = 0.4`, `h = 2` (resp. `h3 = 2`), the rest 0 (energy `0.8 ≤ 1`): no run of duration 1 exists: `h + 5 w3` is conserved, so `h(1) = 4 − 2 e^{−1/2} > 2` would leave the domain `|h| ≤ 2` (clause (i)) | — (proved on the band) |
+| the 6 satellites (until 2026-10-15) | DETUMBLE / NOMINAL | `w3 = 0.4`, `h = 2` (resp. `h3 = 2`), the rest 0 (energy `0.8 ≤ 1`): no run of duration 1 exists: `h + 5 w3` is conserved, so `h(1) = 4 − 2 e^{−1/2} > 2` would leave the domain `|h| ≤ 2` (clause (i)) | the right evolve domains carry the momentum band `|h_i + J_i w_i| ≤ 2` (the body's momentum within the wheels' capacity, a constant of every design-model flow; each file's `MOMENTUM BAND` paragraph) |
 
 The sinks are pruned: the certificate never enters them, so no Theorem 3 depended on them,
 and the repairs left every prune, admissible start and cover unchanged. The arm approach
 bands are entered by the Theorem 3 responses, which switch at the band boundaries inside the
 interval; as a sampled controller with period `ε_r` the old model violated the assumption,
-the repaired one does not. The satellites' momentum band is the same band their Theorem 3
-regions already carry (`nbF`, `docs/SUITE-REDESIGN.md` §19.2); putting it into their evolve
-domain would be a reachable-set estimate, not a physical limit, so they stay band-relative.
+the repaired one does not. The satellites' momentum band is the band their standalone Theorem 3 regions carry (`nbF`,
+`docs/SUITE-REDESIGN.md` §19.2): the total angular momentum about each wheel axis,
+`h_i + J_i w_i`, within the wheel's capacity, the condition under which the wheel can absorb the
+body's momentum, and a constant of every design-model flow. Since 2026-10-15 it is part of the
+right evolve domains (each file's header says so), the tool certifies the six with byte-identical
+covers, and Assumption 1 holds literally.
 
 ## 4. The tool check (`relcert --wellformed`)
 

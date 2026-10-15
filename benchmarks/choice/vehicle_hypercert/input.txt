@@ -5,7 +5,7 @@
 # Opacity (secret start s in [0,1]) is encoded by the precondition v_L = v_R with the right's
 # position free (any non-secret start with the same velocity). Claim: v_L = v_R (implies their
 # delta-closeness for every delta >= 0). Position omitted: unobserved and unconstrained.
-# Guards keep the velocity in [0, 0.6] over one cycle. EXPERIMENTAL (RELCERT_CHOICE=1).
+# Guards keep the velocity in [0, 0.6] over one cycle. Existential mode choice (RELCERT_CHOICE=1).
 [problem]
 name = vehicle_hypercert
 max_depth = 8

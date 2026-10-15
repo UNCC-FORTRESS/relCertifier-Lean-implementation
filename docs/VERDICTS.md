@@ -60,6 +60,25 @@ the disjunction over the three routes, so one `unsat` suffices.
 
 2026-10-10, branch `replay`, Apple M2 Max (12 cores, 64 GB), Z3 4.15.1. `lake build`: `Build completed successfully (9014 jobs)`, no `sorry`; `lake build relcert relcert-test`: 17737 jobs. Axiom audit: BatteryV2 71 lines, 47 with `z3_unsat_sound` (the 45 Theorem 3s, `match_multi_rate_nonconn`, `couple_cutX`), 24 at the three standard axioms; WellFormedBattery 76 lines, all at the three standard axioms; nothing else. `--check-quick-v2`: 45 certified / 0 declined / 0 errors (strict well-formedness mode), modal 621/621, handoff 186/186, non-connection 88/88, pruned edges 44/44, copied benchmarks 385/385, reposition (dyn) 81/81, `[wellformed] STRICT: 146/146 right modes ok (83 invariant, 63 exit), 0 UNKNOWN — matches the declared suite`, `SUITE_V2 QUICK CHECKS PASSED`. `--run-verdicts-v2`: the same counts, `ALL suite_v2 HYPOTHESES DISCHARGED`. `relcert-test` with the suite_v2 manifest: 45 IR literals match, bare `ALL PASS`.
 
+## The bridge, progress and choice runners (branch `theorem3-general`, 2026-10-15)
+
+Three more executables discharge the hypotheses of the newer theorems, under the same two
+disciplines (pins, declared counts):
+
+* `relcert-bridge-verdicts` (`VerdictsV2/RunBridge.lean`): per benchmark, at the bridge
+  dimension, every group of `Emitted.bridgeGroups` (a flow pack's component by any of its three
+  routes, every other query alone): kept-atom stays, non-connection pairs, flow and reposition
+  packs, admissibility, handoffs, progress, coverage. A green run IS the `Verdicts` structure
+  the generated instances assume (`Emitted.verdicts_of_groups`); declared total
+  `expectedBridgeGroupsV2 = 3512` over the 46 suite benchmarks and the 3 choice exhibits
+  (`docs/BRIDGE.md` §3).
+* `relcert-progress-verdicts` (`VerdictsV2/RunProgress.lean`, pins in `ProgressPin.lean`): the rate, keep and landing
+  queries of every emitted progress certificate (261), pinned to `progressVerd_one/two`.
+* `relcert-choice-verdicts` (`InstancesV2/Choice/Verdicts.lean`): the packs of the three
+  choice exhibits' standalone and general instances, and their coverage queries (32).
+
+Last run: 2026-10-15, commit `12a0c6b`: 3512/3512, 261/261, 32/32 (`STATUS.md`).
+
 ## Earlier runners
 
 Until 2026-10-10 the binary also had `--run-verdicts` / `--check-quick` over the legacy

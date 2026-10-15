@@ -1,4 +1,4 @@
-# Status (2026-10-10, branch `replay`)
+# Status (2026-10-15, branch `theorem3-general`)
 
 **The artifact.** `benchmarks/suite_v2` (46 benchmarks), the tool `relcert`, the generic
 soundness development (`RelCertifier/Core`, `Checker`, `Proofs`, `Trusted`) and the suite_v2
@@ -19,8 +19,9 @@ mode-keyed, 33 mode-independent (carried to the left automaton by the generic br
 tool emits** (`docs/REPLAY.md`: joint segments at `jointOK` nodes at the cover's stretch, each
 preserved by its pack; right-only repositions at `dynPre` nodes, each preserved by its
 reposition pack; legal switches along retained edges; inadmissible starts contradictory), so
-none is Z3-free (was 16; 234 joint + 41 reposition pack hypotheses); 6 stated on the conserved-momentum
-nonblocking region. No theorem carries a nonblocking (Assumption 1) hypothesis; no new
+none is Z3-free (was 16; 234 joint + 41 reposition pack hypotheses); the 6 satellites' standalone
+statements carry the conserved-momentum band in their region (since 2026-10-15 also in the right
+evolve domain). No theorem carries a nonblocking (Assumption 1) hypothesis; no new
 axiom; the declared rows unchanged. Plus the Theorem 2 instance of `match_multi_rate`'s
 pruned edge. Axioms of every battery theorem ⊆ `{propext, Classical.choice, Quot.sound,
 z3_unsat_sound}`; no `sorry`.
@@ -38,9 +39,10 @@ pair) refuted only a left program without guard tests; they are proved
 (the right model is nonblocking and complete for its declared successors over one control
 interval `ε_r`) is stated once as `WellFormedR` (`Proofs/Encoding/WellFormedR.lean`) and
 **proved for all 46 right models**, Z3-free (`InstancesV2/WellFormedBattery.lean`, declared
-counts `(40, 0, 6)`, 77 axiom lines, the three standard axioms only): **literally for 40**,
-and **on the conserved momentum band for the 6 satellites** (the band is invariant; off it
-`DETUMBLE` has no full-interval run, refuted). Nine models violated it until 2026-10-10
+counts `(40, 0, 6)`: every mode outside the detumble family, refuted, the detumble family;
+the three standard axioms only): **literally for all 46** (the six satellites since 2026-10-15,
+when the conserved momentum band `|h_i + J_i w_i| ≤ 2`, kept by every mode's flow, entered
+their right evolve domains; without it `DETUMBLE` had no full-interval run). Nine models violated it until 2026-10-10
 (refuted in the kernel with exhibited blocking states, declared counts `(30, 9, 6)`) and were
 repaired (`docs/SUITE-REDESIGN.md` §21): `platoon_delay_{linkloss,profiles}` (the AEB sink
 re-engages FOLLOW at 20 m), `quad_light_{airframe_20,profiles}` (the limiter hands back to the
@@ -55,6 +57,21 @@ sufficient check (`relcert --wellformed`) reports 148 right modes: 84 ok (invari
 (exit), 0 UNKNOWN (was 77 / 53 / 16), and is STRICT in the recipe: `--check-quick-v2`
 certifies in the strict mode and fails on any `UNKNOWN` against the declared 148 modes.
 
+**The generic bridge (branch `theorem3-general`, 2026-10-14/15; `docs/BRIDGE.md`).** The
+general Theorem 3 (`theorem3_of_coverX`, `docs/THEOREM3-GENERAL.md`) is Definition 4 with the
+existential mode choice (chosen successor sets, entry hops; `docs/CHOICE-SOUNDNESS.md`) and the
+reposition-progress premise discharged by the tool's progress certificates (emitted by default;
+`RELCERT_NO_PROGRESS=1` disables them). One generic layer (`Proofs/Encoding/Emitted/`) turns a
+benchmark's emitted records (IR, cut certificate, cover, progress and choice records) into
+Theorem 3 of that benchmark: the structural facts decided in the kernel (`decide +kernel`),
+Assumption 1 transported from the benchmark's `WellFormedR` lemma, every verdict read from one
+Z3 run (`relcert-bridge-verdicts`: 3512 groups over the 46 suite benchmarks and the 3 choice
+exhibits, all discharged). Generated instances (`InstancesV2/Bridge/`, `scripts/gen_bridge.py`):
+all 46 suite benchmarks (34 window form, 12 mode-keyed) and the choice exhibits
+`vehicle_accel_copy`, `watertank_choice` (their chosen sets replayed); `vehicle_hypercert` keeps
+its hand-written general instance (its reposition node's progress stages cross downward). Axioms
+of every `*_bridge` theorem: the three standard ones and `z3_unsat_sound`.
+
 **Discharged.** Every Z3 hypothesis is re-sent by `relcert --run-verdicts-v2` against
 declared counts (modal 625, handoff 187, non-connection 88 over 44 pruned edges, legacy
 packs 385, reposition 81), each query pinned in the kernel to the hypothesis it discharges.
@@ -68,7 +85,13 @@ choice-form and relaxation theorems that stay in the tree.
 edges), SMT printer, Z3's `unsat`, the Lean kernel. Guard-gated switching is no longer
 assumed (both sides) (`README.md`, "Trust base").
 
-**Last verified run.** 2026-10-11, branch `per-pairing-stretch`, Apple M2 Max (12 cores, 64 GB), Z3 4.15.1. `lake build RelCertifier relcert relcert-test`: `Build completed successfully (17885 jobs)`, no `sorry`. Axiom audit: BatteryV2 72 lines, 48 with `z3_unsat_sound`, 24 at the three standard axioms; WellFormedBattery 77 lines, all standard. `--check-quick-v2`: 46 certified / 0 / 0, modal 625/625, handoff 187/187, non-connection 88/88, pruned 44/44, legacy 385/385, reposition 81/81, strict well-formedness 148/148 (84 invariant, 64 exit), `SUITE_V2 QUICK CHECKS PASSED`; `relcert-test`: 46 IR literals match, `ALL PASS`. New in this run: a stretch per pairing (`docs/SUITE-REDESIGN.md` §22; the tool's fallback when no common stretch closes a left mode's cover, the exhibit `watertank_twospeed`, the kernel pin `VerdictsV2/LamPinV2.lean` tying every pack row's stretch to the emitted cover's, the per-pairing replay engine `Proofs/Encoding/ReplayEngineQ.lean`).
+**Last verified run.** 2026-10-15, branch `theorem3-general` (commit `12a0c6b`), Apple M2 Max,
+Z3 4.15.1. Full `lake build` exit 0, no `sorry`; `relcert-test` `ALL PASS`; `relcert
+--run-verdicts-v2` all phases discharged (reposition 81/81); `relcert-progress-verdicts` 261/261;
+`relcert-choice-verdicts` 32/32; `relcert-bridge-verdicts` 3512/3512; `scripts/paper_numbers.sh`
+re-run on the clean commit (46 CERTIFIED, 18 sync, 19 without prune declarations, 3 choice
+exhibits, 32 choice verdicts unsat, covers identical with choice on and off). Previous run:
+2026-10-11, branch `per-pairing-stretch` (the stretch per pairing, `docs/SUITE-REDESIGN.md` §22).
 
 **Open (other).**
 

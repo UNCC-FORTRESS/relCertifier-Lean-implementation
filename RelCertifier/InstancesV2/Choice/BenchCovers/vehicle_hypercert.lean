@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `vehicle_hypercert` (choice) — emitted cover, `RELCERT_IMPLIED_CUT=1 RELCERT_PROGRESS=1 RELCERT_CHOICE=1` (GENERATED leaf)
+# `vehicle_hypercert` (choice) — emitted cover, `RELCERT_IMPLIED_CUT=1 RELCERT_CHOICE=1`, progress certificates by default (GENERATED leaf)
 -/
 import RelCertifier.Checker.CoverEmit
 

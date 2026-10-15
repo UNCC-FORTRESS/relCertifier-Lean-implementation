@@ -23,17 +23,18 @@ abbrev IR := Parse.rover_patrol_zones_IRv2
 abbrev cX := Oracle.rover_patrol_zones_cutsV2X
 abbrev cov := rover_patrol_zones_coverV2
 abbrev prog := Progress.rover_patrol_zones_coverV2_progress
+abbrev ce := Choice.ChoiceEmitE.empty "rover_patrol_zones"
 
 theorem struct_ok : structOK IR 3 cov cX = true := by decide +kernel
 theorem prog_ok : progOK IR 3 cov prog = true := by decide +kernel
-theorem covers_ok : coversOK IR 3 cov = true := by decide +kernel
+theorem covers_ok : coversOK IR 3 cov ce = true := by decide +kernel
 theorem nR_eq : nR IR = V2RoverPatrolZonesGuarded.GrG.modes.length := by decide +kernel
 theorem edges_ok : edgesCovered IR V2RoverPatrolZonesGuarded.GrG = true := by decide +kernel
 theorem src_ok : edgesSrcOK IR V2RoverPatrolZonesGuarded.GrG = true := by decide +kernel
 
 /-- Assumption 1, transported from `V2RoverPatrolZonesGuarded.rover_patrol_zones_wellFormedR`. -/
 theorem wellFormedR : WellFormedR (grOf IR 3 (prunedOf cov)) (guardR IR 3) (epsR IR) :=
-  wellFormedR_transport V2RoverPatrolZonesGuarded.rover_patrol_zones_wellFormedR (by rw [grOf_len, nR_eq])
+  wellFormedR_transport (V2RoverPatrolZonesGuarded.rover_patrol_zones_wellFormedR) (by rw [grOf_len, nR_eq])
     (fun q m' hm' => by
       obtain ⟨hq, rfl⟩ := grOf_modeAt_inv hm'
       rw [nR_eq] at hq
@@ -43,7 +44,7 @@ theorem wellFormedR : WellFormedR (grOf IR 3 (prunedOf cov)) (guardR IR 3) (epsR
 
 /-- **Theorem 3 of `rover_patrol_zones`** (mode-keyed form): every verdict group of the benchmark
 `unsat`. -/
-theorem rover_patrol_zones_bridge (hv : Verdicts IR 3 cX cov prog) (dt : ℝ) (hdt : dt ≤ epsL IR) :
+theorem rover_patrol_zones_bridge (hv : Verdicts IR 3 cX cov prog ce) (dt : ℝ) (hdt : dt ≤ epsL IR) :
     keyedClaim IR 3 cX cov 0 1 2 dt :=
   theorem3_keyed_of_records struct_ok hv prog_ok covers_ok wellFormedR 0 1 2
     (by decide) (by decide) (by decide) dt hdt

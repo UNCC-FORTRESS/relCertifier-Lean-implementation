@@ -23,10 +23,11 @@ abbrev IR := Parse.arm_plateau_slow_IRv2
 abbrev cX := Oracle.arm_plateau_slow_cutsV2X
 abbrev cov := arm_plateau_slow_coverV2
 abbrev prog := Progress.arm_plateau_slow_coverV2_progress
+abbrev ce := Choice.ChoiceEmitE.empty "arm_plateau_slow"
 
 theorem struct_ok : structOK IR 2 cov cX = true := by decide +kernel
 theorem prog_ok : progOK IR 2 cov prog = true := by decide +kernel
-theorem covers_ok : coversOK IR 2 cov = true := by decide +kernel
+theorem covers_ok : coversOK IR 2 cov ce = true := by decide +kernel
 theorem rows_same : rowsSame IR = true := by decide +kernel
 theorem nR_eq : nR IR = V2ArmPlateauSlow.Gr.modes.length := by decide +kernel
 theorem edges_ok : edgesCovered IR V2ArmPlateauSlow.Gr = true := by decide +kernel
@@ -34,7 +35,7 @@ theorem src_ok : edgesSrcOK IR V2ArmPlateauSlow.Gr = true := by decide +kernel
 
 /-- Assumption 1, transported from `V2ArmPlateauSlow.arm_plateau_slow_wellFormedR`. -/
 theorem wellFormedR : WellFormedR (grOf IR 2 (prunedOf cov)) (guardR IR 2) (epsR IR) :=
-  wellFormedR_transport V2ArmPlateauSlow.arm_plateau_slow_wellFormedR (by rw [grOf_len, nR_eq])
+  wellFormedR_transport (V2ArmPlateauSlow.arm_plateau_slow_wellFormedR) (by rw [grOf_len, nR_eq])
     (fun q m' hm' => by
       obtain ⟨hq, rfl⟩ := grOf_modeAt_inv hm'
       rw [nR_eq] at hq
@@ -43,7 +44,7 @@ theorem wellFormedR : WellFormedR (grOf IR 2 (prunedOf cov)) (guardR IR 2) (epsR
     (edges_transport_check edges_ok (edgesSrcOK_sound src_ok))
 
 /-- **Theorem 3 of `arm_plateau_slow`** (window form): every verdict group of the benchmark `unsat`. -/
-theorem arm_plateau_slow_bridge (hv : Verdicts IR 2 cX cov prog) (dt : ℝ) (hdt : dt ≤ epsL IR) :
+theorem arm_plateau_slow_bridge (hv : Verdicts IR 2 cX cov prog ce) (dt : ℝ) (hdt : dt ≤ epsL IR) :
     windowClaim IR 2 cX cov 0 1 dt :=
   theorem3_window_of_records struct_ok hv prog_ok covers_ok wellFormedR rows_same 0 1
     (by decide) dt hdt

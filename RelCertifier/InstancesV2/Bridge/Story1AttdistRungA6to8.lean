@@ -23,17 +23,18 @@ abbrev IR := Parse.story1_attdist_rung_a_6to8_IRv2
 abbrev cX := Oracle.story1_attdist_rung_a_6to8_cutsV2X
 abbrev cov := story1_attdist_rung_a_6to8_coverV2
 abbrev prog := Progress.story1_attdist_rung_a_6to8_coverV2_progress
+abbrev ce := Choice.ChoiceEmitE.empty "story1_attdist_rung_a_6to8"
 
 theorem struct_ok : structOK IR 8 cov cX = true := by decide +kernel
 theorem prog_ok : progOK IR 8 cov prog = true := by decide +kernel
-theorem covers_ok : coversOK IR 8 cov = true := by decide +kernel
+theorem covers_ok : coversOK IR 8 cov ce = true := by decide +kernel
 theorem nR_eq : nR IR = Story1AttdistRungAGuarded.GrG.modes.length := by decide +kernel
 theorem edges_ok : edgesCovered IR Story1AttdistRungAGuarded.GrG = true := by decide +kernel
 theorem src_ok : edgesSrcOK IR Story1AttdistRungAGuarded.GrG = true := by decide +kernel
 
 /-- Assumption 1, transported from `Story1AttdistRungAGuarded.story1_attdist_rung_a_6to8_wellFormedR`. -/
 theorem wellFormedR : WellFormedR (grOf IR 8 (prunedOf cov)) (guardR IR 8) (epsR IR) :=
-  wellFormedR_transport Story1AttdistRungAGuarded.story1_attdist_rung_a_6to8_wellFormedR (by rw [grOf_len, nR_eq])
+  wellFormedR_transport (Story1AttdistRungAGuarded.story1_attdist_rung_a_6to8_wellFormedR) (by rw [grOf_len, nR_eq])
     (fun q m' hm' => by
       obtain ⟨hq, rfl⟩ := grOf_modeAt_inv hm'
       rw [nR_eq] at hq
@@ -43,7 +44,7 @@ theorem wellFormedR : WellFormedR (grOf IR 8 (prunedOf cov)) (guardR IR 8) (epsR
 
 /-- **Theorem 3 of `story1_attdist_rung_a_6to8`** (mode-keyed form): every verdict group of the benchmark
 `unsat`. -/
-theorem story1_attdist_rung_a_6to8_bridge (hv : Verdicts IR 8 cX cov prog) (dt : ℝ) (hdt : dt ≤ epsL IR) :
+theorem story1_attdist_rung_a_6to8_bridge (hv : Verdicts IR 8 cX cov prog ce) (dt : ℝ) (hdt : dt ≤ epsL IR) :
     keyedClaim IR 8 cX cov 0 1 2 dt :=
   theorem3_keyed_of_records struct_ok hv prog_ok covers_ok wellFormedR 0 1 2
     (by decide) (by decide) (by decide) dt hdt

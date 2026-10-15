@@ -41,7 +41,8 @@ instance: the structural bundles by `decide +kernel`, Assumption 1 transported f
 | `Keyed.lean` | the `CoverHyps` of a window; covers of admissible starts decided (`coversOK`, the extended checker on the semantic automaton), other starts inadmissible by verdict; window responses through `coverX_gresp`; `theorem3_keyed_of_records` through `hstepMode_GR`, `HMode_regionG`, `hstep_modeKeyed`, `theorem3_modeKeyed`. |
 | `Window.lean` | `theorem3_window_of_records` through `theorem3_of_coverX` (rows identical, `rowsSame`). |
 | `Transport.lean` | `WellFormedR` transported from the standalone automaton: same modes (`Gr_modeAt` + `rfl`), every standalone edge a declared successor (`edgesCovered`, decided). |
-| `Run.lean` | `bridgeGroups`: every query of the benchmark as groups of alternatives; `verdicts_of_groups`: a run with an `unsat` member per group is the `Verdicts` structure. |
+| `Choice.lean` | the chosen sets of the existential mode choice from the emitted choice record (`Trusted/ChoiceEmit.lean`, written by the tool under `RELCERT_CHOICE_OUT`): `chOfC` (the window's `ChoiceData` with chosen successors, chosen exits and hop targets by index), the coverage query of each entry rebuilt from the tool's regions (`leftFacts`/`rightFacts`), `coverage_sound` (some chosen guard holds on the region); the general theorem's `hRJ/hRR/hRS` are the anchor's region facts (`AG_regionF`), its `hcovJ/hcovR/hcovS` are `cov_of_entry`. |
+| `Run.lean` | `bridgeGroups`: every query of the benchmark as groups of alternatives (the coverage queries included); `verdicts_of_groups`: a run with an `unsat` member per group is the `Verdicts` structure. |
 
 Axioms of `theorem3_keyed_of_records` and `theorem3_window_of_records`: `propext`,
 `Classical.choice`, `Quot.sound`, `z3_unsat_sound`.
@@ -57,16 +58,27 @@ Axioms of `theorem3_keyed_of_records` and `theorem3_window_of_records`: `propext
 | `adm` | per dropped start, `guardL ∧ guardR ∧ row` (`Bridge.admQueryOf`) | `adm_sound` |
 | `handoff` | per left transition, the domain-conditioned handoff query (`Handoff.queryOf`) | `handoff_sound` |
 | `prog` | per progress certificate, its rate/keep/landing queries (`progressQueriesOf`) | `progressVerd_one/two` |
+| `coverage` | per chosen set, `region ∧ ⋀_{q' ∈ S} ¬guard(q')` (`coverageQueryOf`) | `coverage_sound` |
 
 `relcert-bridge-verdicts` issues exactly `bridgeGroups` per benchmark at the bridge dimension
 and reports the group count against the declared total (`expectedBridgeGroupsV2`).
 
-Run on the regenerated records: **3259 groups over the 46 benchmarks, all discharged**
-(the first run, before the progress gate, 3657/3657).
+Run on the regenerated records: **3512 groups over the 49 benchmarks (46 suite, 3 choice),
+all discharged** (suite alone, 3259; the first run before the progress gate, 3657/3657).
 
 ## 4. Coverage
 
-* **40 of 46 benchmarks** are instantiated (`InstancesV2/Bridge/`): 30 in the window form, 10
+* **The choice exhibits.** The tool now emits the chosen sets (`RELCERT_CHOICE_OUT`;
+  `InstancesV2/Choice/BenchChoice/`), and the bridge replays them: `vehicle_accel_copy` (a
+  chosen exit set after a right-only segment, hops) and `watertank_choice` (a hop) go through
+  `theorem3_window_of_records` with their chosen sets decided by the extended checker and
+  their coverage queries among the verdicts. `vehicle_hypercert`'s cover uses a reposition node
+  (`A0`) whose progress certificate crosses its threshold **downward** (`up = false`); the
+  progress lemmas (`repoProgress_one/two`) are stated for upward stages only, so it keeps the
+  hand-written general instance (`InstancesV2/Choice/General/VehicleHypercert.lean`, through
+  `theorem3_of_coverX`). The mirrored downward lemma is the one remaining piece.
+
+* **40 of 46 suite benchmarks** are instantiated (`InstancesV2/Bridge/`): 30 in the window form, 10
   in the mode-keyed form (the 12 benchmarks with per-mode rows minus the two detumble
   `phases` ones below). Every `*_bridge` theorem depends on exactly `propext`,
   `Classical.choice`, `Quot.sound`, `z3_unsat_sound`.

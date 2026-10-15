@@ -39,3 +39,5 @@ import RelCertifier.InstancesV2.Bridge.Story3RolloverLadderRungA
 import RelCertifier.InstancesV2.Bridge.Story3RolloverLadderRungB
 import RelCertifier.InstancesV2.Bridge.Watertank
 import RelCertifier.InstancesV2.Bridge.WatertankTwospeed
+import RelCertifier.InstancesV2.Bridge.VehicleAccelCopy
+import RelCertifier.InstancesV2.Bridge.WatertankChoice

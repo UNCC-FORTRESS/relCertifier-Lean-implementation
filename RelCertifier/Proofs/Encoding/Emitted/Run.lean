@@ -18,7 +18,7 @@ set_option autoImplicit false
 namespace RelCertifier
 namespace Emitted
 
-open DL Parse Run Oracle Bridge Progress
+open DL Parse Run Oracle Bridge Progress Choice
 
 variable {n : ℕ}
 
@@ -41,7 +41,7 @@ theorem mapM_range {β : Type} {f : ℕ → Option β} {k : ℕ} {l' : List β}
 section Builders
 
 variable (p : PProblem) (n : ℕ) (cX : EvolStrengtheningX) (cov : CoverEmitE)
-  (prog : ProgressEmitE)
+  (prog : ProgressEmitE) (ce : ChoiceEmitE)
 
 def stayGroups (side : Side) (m : PMode) (atoms : List CutAtomX) : Option (List (List (IForm n))) :=
   (List.range atoms.length).mapM (fun i => (stayQueryOf (vars p) n side m atoms i).map ([·]))
@@ -76,6 +76,9 @@ def progGroups (c : ProgressE) : Option (List (List (IForm n))) :=
   (progressQueriesOf p cX n (invRowOf p (modeIdx p.L.modes c.mL)) (modeIdx p.L.modes c.mL)
     (modeIdx p.R.modes c.mR) c).map (·.map ([·]))
 
+def coverageGroups (e : ChoiceEntryE) : Option (List (List (IForm n))) :=
+  (coverageQueryOf p n cX e).map ([[·]])
+
 /-- **Every query of the benchmark**, in groups. -/
 def bridgeGroups : Option (List (List (IForm n))) := do
   let sL ← (List.range (nL p)).mapM (fun l =>
@@ -89,8 +92,9 @@ def bridgeGroups : Option (List (List (IForm n))) := do
   let ad ← (List.range (nL p)).mapM (admGroups p n cov)
   let ho ← (List.range (nL p)).mapM (handoffGroups p n)
   let pr ← prog.certs.mapM (progGroups p n cX)
+  let cv ← ce.entries.mapM (coverageGroups p n cX)
   pure (sL.flatten ++ sR.flatten ++ nc.flatten ++ jt.flatten.flatten ++
-    dy.flatten.flatten.flatten ++ ad.flatten ++ ho.flatten ++ pr.flatten)
+    dy.flatten.flatten.flatten ++ ad.flatten ++ ho.flatten ++ pr.flatten ++ cv.flatten)
 
 end Builders
 
@@ -99,6 +103,19 @@ end Builders
 section Link
 
 variable {p : PProblem} {cX : EvolStrengtheningX} {cov : CoverEmitE} {prog : ProgressEmitE}
+  {ce : ChoiceEmitE}
+
+theorem coverageVerd_of_groups {e : ChoiceEntryE} {gs : List (List (IForm n))}
+    (h : coverageGroups p n cX e = some gs) (hok : GroupsOK gs) : CoverageVerd p n cX e := by
+  unfold coverageGroups at h
+  rcases hq : coverageQueryOf p n cX e with _ | q
+  · rw [hq] at h; simp at h
+  · rw [hq] at h
+    simp only [Option.map_some, Option.some.injEq] at h
+    subst h
+    obtain ⟨a, ha, hz⟩ := hok [q] (by simp)
+    rw [List.mem_singleton] at ha; subst ha
+    exact ⟨_, hq, hz⟩
 
 theorem stayVerd_of_groups {side : Side} {m : PMode} {atoms : List CutAtomX}
     {gs : List (List (IForm n))} (h : stayGroups p n side m atoms = some gs) (hok : GroupsOK gs) :
@@ -209,20 +226,21 @@ theorem progVerd_of_groups {c : ProgressE} {gs : List (List (IForm n))}
 
 /-- **A green run is the `Verdicts` structure.** -/
 theorem verdicts_of_groups {gs : List (List (IForm n))}
-    (h : bridgeGroups p n cX cov prog = some gs) (hok : GroupsOK gs) :
-    Verdicts p n cX cov prog := by
+    (h : bridgeGroups p n cX cov prog ce = some gs) (hok : GroupsOK gs) :
+    Verdicts p n cX cov prog ce := by
   unfold bridgeGroups at h
   simp only [Option.bind_eq_bind, Option.pure_def, Option.bind_eq_some_iff, Option.some.injEq]
     at h
-  obtain ⟨sL, hsL, sR, hsR, nc, hnc, jt, hjt, dy, hdy, ad, had, ho, hho, pr, hpr, rfl⟩ := h
-  obtain ⟨h1, h8⟩ := groupsOK_append hok
+  obtain ⟨sL, hsL, sR, hsR, nc, hnc, jt, hjt, dy, hdy, ad, had, ho, hho, pr, hpr, cv, hcv, rfl⟩ := h
+  obtain ⟨h1, h9⟩ := groupsOK_append hok
+  obtain ⟨h1, h8⟩ := groupsOK_append h1
   obtain ⟨h1, h7⟩ := groupsOK_append h1
   obtain ⟨h1, h6⟩ := groupsOK_append h1
   obtain ⟨h1, h5⟩ := groupsOK_append h1
   obtain ⟨h1, h4⟩ := groupsOK_append h1
   obtain ⟨h1, h3⟩ := groupsOK_append h1
   obtain ⟨h1, h2⟩ := groupsOK_append h1
-  refine ⟨⟨?_, ?_⟩, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨⟨?_, ?_⟩, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · intro l hl
     obtain ⟨g, hg, hgl⟩ := mapM_range hsL l hl
     exact stayVerd_of_groups hgl (groupsOK_flatten h1 _ hg)
@@ -251,6 +269,9 @@ theorem verdicts_of_groups {gs : List (List (IForm n))}
   · intro c hc
     obtain ⟨g, hg, hgc⟩ := mapM_option_forall hpr c hc
     exact progVerd_of_groups hgc (groupsOK_flatten h8 _ hg)
+  · intro e he
+    obtain ⟨g, hg, hge⟩ := mapM_option_forall hcv e he
+    exact coverageVerd_of_groups hge (groupsOK_flatten h9 _ hg)
 
 end Link
 

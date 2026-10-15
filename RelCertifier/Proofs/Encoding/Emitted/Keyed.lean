@@ -22,21 +22,21 @@ Per window the cover's response is `coverX_gresp` (the general theorem's inducti
 window's anchor; the windows assemble through `hstepMode_GR`, `HMode_regionG`,
 `hstep_modeKeyed` and `theorem3_modeKeyed`, exactly as the per-benchmark keyed instances did.
 -/
-import RelCertifier.Proofs.Encoding.Emitted.Progress
+import RelCertifier.Proofs.Encoding.Emitted.Choice
 
 set_option autoImplicit false
 
 namespace RelCertifier
 namespace Emitted
 
-open DL DLRel DLCalTiming Parse Run Set Oracle Progress
+open DL DLRel DLCalTiming Parse Run Set Oracle Progress Choice
 
 variable {n : ℕ}
 
 section Defs
 
 variable (p : PProblem) (n : ℕ) (cX : EvolStrengtheningX) (cov : CoverEmitE)
-  (prog : ProgressEmitE)
+  (prog : ProgressEmitE) (ce : ChoiceEmitE)
 
 def JointAll : Prop :=
   ∀ l < nL p, ∀ q < nR p, (flagsOf p cov l q).jointOK = true → JointVerd p n cX cov l q
@@ -58,6 +58,7 @@ structure Verdicts : Prop where
   adm : AdmAll p n cov
   handoff : HandoffAll p n
   prog : ProgAll p n cX prog
+  coverage : CoverageAll p n cX ce
 
 /-- The checker's fuel for a window (`coverFuel`'s shape over the mode count). -/
 def fuelOf (l : ℕ) : ℕ := B p cov l * (nR p + 1) + 1
@@ -66,8 +67,17 @@ def fuelOf (l : ℕ) : ℕ := B p cov l * (nR p + 1) + 1
 semantic right automaton. -/
 noncomputable def coversOK : Bool :=
   (List.range (nL p)).all (fun l => (admissibleOf p cov l).all (fun q =>
-    decideCoveredX (grOf p n (prunedOf cov)) (chOf p cov l) (fuelOf p cov l)
+    decideCoveredX (grOf p n (prunedOf cov)) (chOfC p cov ce l) (fuelOf p cov l)
       ⟨q, B p cov l, SrcSetting.preJ⟩))
+
+/-- The regions of the chosen sets: after a joint segment, after a right-only segment, at a
+hop (the anchor's region facts). -/
+noncomputable def RJof (l q : ℕ) : Formula (Var n) :=
+  if q < nR p then regionF p n cX l q false else Formula.tt
+noncomputable def RRof (l q : ℕ) (σ : SrcSetting) : Formula (Var n) :=
+  if q < nR p then regionF p n cX l q (preOf σ) else Formula.tt
+noncomputable def RSof (l q : ℕ) (σ : SrcSetting) : Formula (Var n) :=
+  if q < nR p then Formula.and (regionF p n cX l q (preOf σ)) (guardR p n q) else Formula.tt
 
 /-- The stretch of a pairing, the window's own out of range. -/
 noncomputable def lamOf (l q : ℕ) : ℝ :=
@@ -81,7 +91,7 @@ end Defs
 section Proofs
 
 variable {p : PProblem} {cX : EvolStrengtheningX} {cov : CoverEmitE} {prog : ProgressEmitE}
-  (hs : structOK p n cov cX = true)
+  {ce : ChoiceEmitE} (hs : structOK p n cov cX = true)
 
 omit hs in
 theorem cutF_fv_sub {atoms : List (CutAtomP n)} {S : Set (Var n)}
@@ -193,13 +203,31 @@ theorem budget_span {l : ℕ} (hl : l < nL p) : epsL p ≤ (B p cov l : ℝ) * �
   rw [mul_div_assoc', le_div_iff₀ hlamQ]
   exact hbud
 
+/-- A chosen set's coverage premise, from its entry's verdict. -/
+theorem cov_of_entry (hv : Verdicts p n cX cov prog ce) (hpo : progOK p n cov prog = true)
+    {l q : ℕ} (hl : l < nL p) {k : ChoiceKind} {pre : Bool} {S : List ℕ}
+    (hS : S ∈ (entriesAt p ce l q k pre).map (fun e => e.S.map (tgtIdx p)))
+    (y : State (Var n)) (hreg : q < nR p → Formula.sat (regionF p n cX l q (if k = .joint then false else pre)) y)
+    (hg : k = .hop → Formula.sat (guardR p n q) y) :
+    ∃ q' ∈ S, Formula.sat (guardR p n q') y := by
+  obtain ⟨e, he, rfl⟩ := List.mem_map.mp hS
+  obtain ⟨hq, hmem, hmL, hq', hk, hpre⟩ := mem_entriesAt he
+  obtain ⟨hidxL, hidxR, -⟩ := progOK_at hpo hl hq
+  have hpre' : entryPre e = (if k = .joint then false else pre) := by
+    unfold entryPre
+    rcases hpre with rfl | rfl
+    · simp [hk]
+    · rcases hk' : e.kind <;> simp_all
+  refine guard_of_named hs hmL hq' hidxL hidxR (hv.coverage e hmem) y ?_ (fun hh => hg (hk ▸ hh))
+  rw [hpre']
+  exact regionSat_of_regionF hs hl _ y (hreg hq)
+
 /-- **The certificates of window `l`**, as `CoverHyps`. -/
-theorem coverHyps_of (hv : Verdicts p n cX cov prog) (hpo : progOK p n cov prog = true)
+theorem coverHyps_of (hv : Verdicts p n cX cov prog ce) (hpo : progOK p n cov prog = true)
     (hwf : WellFormedR (grOf p n (prunedOf cov)) (guardR p n) (epsR p)) {l : ℕ} (hl : l < nL p) :
-    CoverHyps (grOf p n (prunedOf cov)) (chOf p cov l) (fR p n) (domR p n) (fL p n l) (domL p n)
+    CoverHyps (grOf p n (prunedOf cov)) (chOfC p cov ce l) (fR p n) (domR p n) (fL p n l) (domL p n)
       (guardL p n l) (guardR p n) (epsR p) (δ p cov l) (lamOf p cov l) (AG p n cX cov l)
-      (fun _ => Formula.tt) (fun _ _ => Formula.tt)
-      (fun q _ => Formula.and (AG p n cX cov l q) (guardR p n q)) where
+      (RJof p n cX l) (RRof p n cX l) (RSof p n cX l) where
   hδ := δ_pos hs hl
   hlam := lamOf_pos hs hl
   hspan := lamOf_span hs hl
@@ -208,8 +236,8 @@ theorem coverHyps_of (hv : Verdicts p n cX cov prog) (hpo : progOK p n cov prog 
   hbox := fun q m hm hj σ ω hA hω => by
     obtain ⟨hq, -⟩ := grOf_modeAt_inv hm
     rw [lamOf_eq hq] at hω
-    exact AG_box hs hv.nonconn hv.stay hl hq (by simpa [chOf] using hj)
-      (hv.joint l hl q hq (by simpa [chOf] using hj)) σ ω hA hω
+    exact AG_box hs hv.nonconn hv.stay hl hq (by simpa [chOfC] using hj)
+      (hv.joint l hl q hq (by simpa [chOfC] using hj)) σ ω hA hω
   hhand := fun q e he y hA hleg => by
     obtain ⟨hq, -, -, -⟩ := edgesFrom_grOf he
     exact AG_hand hs hv.nonconn hl hq e he y hA hleg
@@ -217,20 +245,41 @@ theorem coverHyps_of (hv : Verdicts p n cX cov prog) (hpo : progOK p n cov prog 
     obtain ⟨hq, -⟩ := grOf_modeAt_inv hm
     rw [lamOf_eq hq] at hω
     exact AG_prune hs hv.nonconn hv.stay hl hq e he hp σ ω hA hω
-  hrepoProg := hrepoProg_of hs hv.nonconn hv.stay hv.prog hpo hwf hv.dyn hl
-  hRJ := fun _ _ _ => trivial
-  hcovJ := fun q S hS => by simp [chOf] at hS
-  hRR := fun _ _ _ _ _ => trivial
-  hcovR := fun q σ S hS => by simp [chOf] at hS
-  hRS := fun q σ y hA hg _ => ⟨hA, hg⟩
-  hcovS := fun q σ S hS => by simp [chOf] at hS
+  hrepoProg := fun q m hm pre hflag =>
+    hrepoProg_of hs hv.nonconn hv.stay hv.prog hpo hwf hv.dyn hl q m hm pre
+      (by cases pre <;> simpa [chOfC, chOf] using hflag)
+  hRJ := fun q y hA => by
+    unfold RJof; split_ifs with hq
+    · exact AG_regionF hs hl hq false y hA (by simp)
+    · trivial
+  hcovJ := fun q S hS y hy => by
+    refine cov_of_entry hs hv hpo hl hS y (fun hq => ?_) (by simp)
+    unfold RJof at hy; rw [if_pos hq] at hy; simpa using hy
+  hRR := fun q σ y hA hgL => by
+    unfold RRof; split_ifs with hq
+    · exact AG_regionF hs hl hq (preOf σ) y hA (fun hp => hgL (by cases σ <;> simp_all [preOf]))
+    · trivial
+  hcovR := fun q σ S hS y hy => by
+    refine cov_of_entry hs hv hpo hl hS y (fun hq => ?_) (by simp)
+    unfold RRof at hy; rw [if_pos hq] at hy; simpa using hy
+  hRS := fun q σ y hA hg hgL => by
+    unfold RSof; split_ifs with hq
+    · exact ⟨AG_regionF hs hl hq (preOf σ) y hA (fun hp => hgL (by cases σ <;> simp_all [preOf])), hg⟩
+    · trivial
+  hcovS := fun q σ S hS y hy => by
+    refine cov_of_entry hs hv hpo hl hS y (fun hq => ?_) (fun _ => ?_)
+    · unfold RSof at hy; rw [if_pos hq] at hy; simpa using hy.1
+    · by_cases hq : q < nR p
+      · unfold RSof at hy; rw [if_pos hq] at hy; exact hy.2
+      · obtain ⟨e, he, -⟩ := List.mem_map.mp hS
+        exact absurd (mem_entriesAt he).1 hq
 
 /-- **Every admissible start is covered** (decided) and every other start is inadmissible
 (its verdict). -/
-theorem hcov_of (hv : Verdicts p n cX cov prog) (hcovers : coversOK p n cov = true) {l : ℕ}
+theorem hcov_of (hv : Verdicts p n cX cov prog ce) (hcovers : coversOK p n cov ce = true) {l : ℕ}
     (hl : l < nL p) (q : ℕ) (hq : q < (grOf p n (prunedOf cov)).modes.length)
     (hadm : AdmissibleStart (guardL p n l) (FRow p n l) (env p n) (guardR p n q) (cuts p n cX q)) :
-    CoveredX (grOf p n (prunedOf cov)) (chOf p cov l) ⟨q, B p cov l, SrcSetting.preJ⟩ := by
+    CoveredX (grOf p n (prunedOf cov)) (chOfC p cov ce l) ⟨q, B p cov l, SrcSetting.preJ⟩ := by
   rw [grOf_len] at hq
   by_cases hmem : q ∈ admissibleOf p cov l
   · simp only [coversOK, List.all_eq_true, List.mem_range] at hcovers
@@ -244,8 +293,8 @@ theorem hcov_of (hv : Verdicts p n cX cov prog) (hcovers : coversOK p n cov = tr
 /-! ### The window responses -/
 
 /-- The response of window `l` from every admissible start of every right mode. -/
-theorem Hwindow (hv : Verdicts p n cX cov prog) (hpo : progOK p n cov prog = true)
-    (hcovers : coversOK p n cov = true)
+theorem Hwindow (hv : Verdicts p n cX cov prog ce) (hpo : progOK p n cov prog = true)
+    (hcovers : coversOK p n cov ce = true)
     (hwf : WellFormedR (grOf p n (prunedOf cov)) (guardR p n) (epsR p)) (b : Fin n) (dt : ℝ)
     (hdt : dt ≤ epsL p) {l : ℕ} (hl : l < nL p) :
     ∀ (q : ℕ), q < (grOf p n (prunedOf cov)).modes.length → ∀ σ,
@@ -256,7 +305,7 @@ theorem Hwindow (hv : Verdicts p n cX cov prog) (hpo : progOK p n cov prog = tru
   intro q hq σ hσ hg hc
   have H := coverHyps_of hs hv hpo hwf hl
   have hq' : q < nR p := by rwa [grOf_len] at hq
-  refine coverX_gresp (grOf p n (prunedOf cov)) (chOf p cov l) (fR p n) (domR p n) (fL p n l)
+  refine coverX_gresp (grOf p n (prunedOf cov)) (chOfC p cov ce l) (fR p n) (domR p n) (fL p n l)
     (domL p n) (guardL p n l) b (guardR p n) (grOf_guardsRight (hnames hs)) grOf_guards
     (guardR_fv (hnames hs)) (fL_fv (hnames hs) l) (domL_fv (hnames hs)) (domR_fv (hnames hs))
     (guardL_fv (hnames hs) l) (fun q _ => fR_fv (hnames hs) q) (fun _ _ hm => grOf_sys hm)
@@ -336,8 +385,8 @@ def keyedClaim (p : PProblem) (n : ℕ) (cX : EvolStrengtheningX) (cov : CoverEm
       (mvRegionR ((Side.Aux, a) : Var n) (gregion p n cX) (grOf p n (prunedOf cov)).modes.length)))
 
 /-- **Theorem 3 of a benchmark, mode-keyed, from its records.** -/
-theorem theorem3_keyed_of_records (hv : Verdicts p n cX cov prog)
-    (hpo : progOK p n cov prog = true) (hcovers : coversOK p n cov = true)
+theorem theorem3_keyed_of_records (hv : Verdicts p n cX cov prog ce)
+    (hpo : progOK p n cov prog = true) (hcovers : coversOK p n cov ce = true)
     (hwf : WellFormedR (grOf p n (prunedOf cov)) (guardR p n) (epsR p))
     (a b c : Fin n) (hba : b ≠ a) (hca : c ≠ a) (hcb : c ≠ b) (dt : ℝ) (hdt : dt ≤ epsL p) :
     keyedClaim p n cX cov a b c dt := by

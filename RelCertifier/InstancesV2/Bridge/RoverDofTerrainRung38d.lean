@@ -23,10 +23,11 @@ abbrev IR := Parse.rover_dof_terrain_rung3_8d_IRv2
 abbrev cX := Oracle.rover_dof_terrain_rung3_8d_cutsV2X
 abbrev cov := rover_dof_terrain_rung3_8d_coverV2
 abbrev prog := Progress.rover_dof_terrain_rung3_8d_coverV2_progress
+abbrev ce := Choice.ChoiceEmitE.empty "rover_dof_terrain_rung3_8d"
 
 theorem struct_ok : structOK IR 8 cov cX = true := by decide +kernel
 theorem prog_ok : progOK IR 8 cov prog = true := by decide +kernel
-theorem covers_ok : coversOK IR 8 cov = true := by decide +kernel
+theorem covers_ok : coversOK IR 8 cov ce = true := by decide +kernel
 theorem rows_same : rowsSame IR = true := by decide +kernel
 theorem nR_eq : nR IR = RoverDofTerrainRung38dGuarded.GrG.modes.length := by decide +kernel
 theorem edges_ok : edgesCovered IR RoverDofTerrainRung38dGuarded.GrG = true := by decide +kernel
@@ -34,7 +35,7 @@ theorem src_ok : edgesSrcOK IR RoverDofTerrainRung38dGuarded.GrG = true := by de
 
 /-- Assumption 1, transported from `RoverDofTerrainRung38dGuarded.rover_dof_terrain_rung3_8d_wellFormedR`. -/
 theorem wellFormedR : WellFormedR (grOf IR 8 (prunedOf cov)) (guardR IR 8) (epsR IR) :=
-  wellFormedR_transport RoverDofTerrainRung38dGuarded.rover_dof_terrain_rung3_8d_wellFormedR (by rw [grOf_len, nR_eq])
+  wellFormedR_transport (RoverDofTerrainRung38dGuarded.rover_dof_terrain_rung3_8d_wellFormedR) (by rw [grOf_len, nR_eq])
     (fun q m' hm' => by
       obtain ⟨hq, rfl⟩ := grOf_modeAt_inv hm'
       rw [nR_eq] at hq
@@ -43,7 +44,7 @@ theorem wellFormedR : WellFormedR (grOf IR 8 (prunedOf cov)) (guardR IR 8) (epsR
     (edges_transport_check edges_ok (edgesSrcOK_sound src_ok))
 
 /-- **Theorem 3 of `rover_dof_terrain_rung3_8d`** (window form): every verdict group of the benchmark `unsat`. -/
-theorem rover_dof_terrain_rung3_8d_bridge (hv : Verdicts IR 8 cX cov prog) (dt : ℝ) (hdt : dt ≤ epsL IR) :
+theorem rover_dof_terrain_rung3_8d_bridge (hv : Verdicts IR 8 cX cov prog ce) (dt : ℝ) (hdt : dt ≤ epsL IR) :
     windowClaim IR 8 cX cov 0 1 dt :=
   theorem3_window_of_records struct_ok hv prog_ok covers_ok wellFormedR rows_same 0 1
     (by decide) dt hdt

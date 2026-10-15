@@ -21,6 +21,14 @@ WF_DIRS = [("RelCertifier/InstancesV2/WellFormed", "RelCertifier.InstancesV2.Wel
 
 # benchmarks whose left modes declare distinct rows (the keyed form); every other benchmark's
 # rows are identical (`rowsSame`, checked in the kernel by the window instance)
+# the choice benchmarks (benchmarks/choice): records under InstancesV2/Choice, the general
+# instances' namespaces and Assumption 1 at ε = 1
+CHOICE = {
+    "vehicle_hypercert": dict(ns="ChoiceVehicleHypercert", G="Gr", n=2),
+    "vehicle_accel_copy": dict(ns="ChoiceVehicleAccelCopy", G="Gr", n=2),
+    "watertank_choice": dict(ns="ChoiceWatertank", G="GrP", n=2),
+}
+
 KEYED = {"acc_spoof_limp", "acc_tune_limp", "platoon3_linkloss", "platoon_delay_linkloss",
          "rover3tier_rung12", "rover_patrol_refine", "rover_patrol_zones",
          "sat3w_detumble_phases", "sat_detumble_phases", "story1_attdist_rung_a_6to8",
@@ -28,7 +36,8 @@ KEYED = {"acc_spoof_limp", "acc_tune_limp", "platoon3_linkloss", "platoon_delay_
 
 
 def all_benches():
-    return sorted(d for d in os.listdir(SUITE) if os.path.isfile(f"{SUITE}/{d}/input.txt"))
+    return sorted(d for d in os.listdir(SUITE) if os.path.isfile(f"{SUITE}/{d}/input.txt")) + \
+        sorted(CHOICE)
 
 def camel(b):
     return "".join(w.capitalize() for w in b.split("_"))
@@ -70,28 +79,27 @@ discharges, `Emitted.verdicts_of_groups`).
 import RelCertifier.Proofs.Encoding.Emitted.{form_mod}
 import RelCertifier.Proofs.Encoding.Emitted.Transport
 import {wfmod}
-import RelCertifier.InstancesV2.BenchCovers.{b}
-import RelCertifier.InstancesV2.BenchProgress.{b}
-
+{record_imports}
 namespace RelCertifier.Bridge.{camel}
 
 open RelCertifier RelCertifier.Emitted RelCertifier.Parse RelCertifier.Oracle
 
-abbrev IR := Parse.{b}_IRv2
-abbrev cX := Oracle.{b}_cutsV2X
+abbrev IR := Parse.{ir}
+abbrev cX := Oracle.{cuts}
 abbrev cov := {b}_coverV2
 abbrev prog := Progress.{b}_coverV2_progress
+abbrev ce := {cerec}
 
 theorem struct_ok : structOK IR {n} cov cX = true := by decide +kernel
 theorem prog_ok : progOK IR {n} cov prog = true := by decide +kernel
-theorem covers_ok : coversOK IR {n} cov = true := by decide +kernel
+theorem covers_ok : coversOK IR {n} cov ce = true := by decide +kernel
 {rows_thm}theorem nR_eq : nR IR = {ns}.{G}.modes.length := by decide +kernel
 theorem edges_ok : edgesCovered IR {ns}.{G} = true := by decide +kernel
 theorem src_ok : edgesSrcOK IR {ns}.{G} = true := by decide +kernel
-
-/-- Assumption 1, transported from `{ns}.{b}_wellFormedR`. -/
+{eps_thm}
+/-- Assumption 1, transported from `{ns}.{wfname}`. -/
 theorem wellFormedR : WellFormedR (grOf IR {n} (prunedOf cov)) (guardR IR {n}) (epsR IR) :=
-  wellFormedR_transport {ns}.{b}_wellFormedR (by rw [grOf_len, nR_eq])
+  wellFormedR_transport ({wfterm}) (by rw [grOf_len, nR_eq])
     (fun q m' hm' => by
       obtain ⟨hq, rfl⟩ := grOf_modeAt_inv hm'
       rw [nR_eq] at hq
@@ -104,7 +112,7 @@ end RelCertifier.Bridge.{camel}
 '''
 
 WINDOW_CLAIM = '''/-- **Theorem 3 of `{b}`** (window form): every verdict group of the benchmark `unsat`. -/
-theorem {b}_bridge (hv : Verdicts IR {n} cX cov prog) (dt : ℝ) (hdt : dt ≤ epsL IR) :
+theorem {b}_bridge (hv : Verdicts IR {n} cX cov prog ce) (dt : ℝ) (hdt : dt ≤ epsL IR) :
     windowClaim IR {n} cX cov 0 1 dt :=
   theorem3_window_of_records struct_ok hv prog_ok covers_ok wellFormedR rows_same 0 1
     (by decide) dt hdt
@@ -112,14 +120,33 @@ theorem {b}_bridge (hv : Verdicts IR {n} cX cov prog) (dt : ℝ) (hdt : dt ≤ e
 
 KEYED_CLAIM = '''/-- **Theorem 3 of `{b}`** (mode-keyed form): every verdict group of the benchmark
 `unsat`. -/
-theorem {b}_bridge (hv : Verdicts IR {n} cX cov prog) (dt : ℝ) (hdt : dt ≤ epsL IR) :
+theorem {b}_bridge (hv : Verdicts IR {n} cX cov prog ce) (dt : ℝ) (hdt : dt ≤ epsL IR) :
     keyedClaim IR {n} cX cov 0 1 2 dt :=
   theorem3_keyed_of_records struct_ok hv prog_ok covers_ok wellFormedR 0 1 2
     (by decide) (by decide) (by decide) dt hdt
 '''
 
 def emit(b, n):
-    info = wf_info(b)
+    if b in CHOICE:
+        c = CHOICE[b]
+        info = dict(module=f"RelCertifier.InstancesV2.Choice.General.{camel(b)}", ns=c["ns"],
+                    G=c["G"], guard="guardR")
+        n = c["n"]
+        rec = dict(record_imports=f"import RelCertifier.InstancesV2.Choice.BenchCovers.{b}\n"
+                   f"import RelCertifier.InstancesV2.Choice.BenchProgress.{b}\n"
+                   f"import RelCertifier.InstancesV2.Choice.BenchChoice.{b}\n",
+                   ir=f"{b}_IRc", cuts=f"{b}_cutsCX", cerec=f"Choice.{b}_coverV2_choice",
+                   eps_thm="theorem epsR_eq : epsR IR = 1 := by\n"
+                   "  have h : Run.parseRat IR.R.epsilon = some (1 : ℚ) := by decide +kernel\n"
+                   "  simp only [epsR, h, Option.getD_some, Rat.cast_one]\n",
+                   wfname="wellFormedR", wfterm=f"by rw [epsR_eq]; exact {c['ns']}.wellFormedR")
+    else:
+        info = wf_info(b)
+        rec = dict(record_imports=f"import RelCertifier.InstancesV2.BenchCovers.{b}\n"
+                   f"import RelCertifier.InstancesV2.BenchProgress.{b}\n",
+                   ir=f"{b}_IRv2", cuts=f"{b}_cutsV2X",
+                   cerec=f'Choice.ChoiceEmitE.empty "{b}"', eps_thm="",
+                   wfname=f"{b}_wellFormedR", wfterm=f"{info['ns'] if info else ''}.{b}_wellFormedR")
     if info is None:
         # Assumption 1 holds only on a region for this benchmark (`WellFormedRIn`); the
         # unconditional form the general theorem takes is not available: not bridged
@@ -132,7 +159,7 @@ def emit(b, n):
     txt = TEMPLATE.format(b=b, camel=camel(b), n=n, form_mod="Keyed" if keyed else "Window",
                           wfmod=info["module"], ns=info["ns"], G=info["G"], modeAt=modeAt,
                           rows_doc="" if keyed else ", `rows_same`", rows_thm=rows_thm,
-                          claim=claim)
+                          claim=claim, **rec)
     os.makedirs(OUT, exist_ok=True)
     with open(f"{OUT}/{camel(b)}.lean", "w") as f:
         f.write(txt)
@@ -150,7 +177,7 @@ def main():
     d = dims()
     done = []
     for b in benches:
-        n = d.get(b)
+        n = d.get(b, CHOICE.get(b, {}).get("n"))
         if n is None:
             sys.exit(f"{b}: no pack row (dimension unknown)")
         if b in todo:

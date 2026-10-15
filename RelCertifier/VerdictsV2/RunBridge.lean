@@ -13,10 +13,44 @@ three routes, every other group by its single query). The groups are exactly the
 import RelCertifier.Proofs.Encoding.Emitted.Run
 import RelCertifier.VerdictsV2.RunV2
 import RelCertifier.InstancesV2.BenchProgress
+import RelCertifier.InstancesV2.Choice.BenchIR.vehicle_hypercert
+import RelCertifier.InstancesV2.Choice.BenchIR.vehicle_accel_copy
+import RelCertifier.InstancesV2.Choice.BenchIR.watertank_choice
+import RelCertifier.InstancesV2.Choice.Cuts.vehicle_hypercert
+import RelCertifier.InstancesV2.Choice.Cuts.vehicle_accel_copy
+import RelCertifier.InstancesV2.Choice.Cuts.watertank_choice
+import RelCertifier.InstancesV2.Choice.BenchCovers.vehicle_hypercert
+import RelCertifier.InstancesV2.Choice.BenchCovers.vehicle_accel_copy
+import RelCertifier.InstancesV2.Choice.BenchCovers.watertank_choice
+import RelCertifier.InstancesV2.Choice.BenchProgress.vehicle_hypercert
+import RelCertifier.InstancesV2.Choice.BenchProgress.vehicle_accel_copy
+import RelCertifier.InstancesV2.Choice.BenchProgress.watertank_choice
+import RelCertifier.InstancesV2.Choice.BenchChoice.vehicle_hypercert
+import RelCertifier.InstancesV2.Choice.BenchChoice.vehicle_accel_copy
+import RelCertifier.InstancesV2.Choice.BenchChoice.watertank_choice
 
 namespace RelCertifier.VerdictsV2
 
-open RelCertifier RelCertifier.Parse RelCertifier.Emitted RelCertifier.Progress
+open RelCertifier RelCertifier.Parse RelCertifier.Oracle RelCertifier.Emitted RelCertifier.Progress RelCertifier.Choice
+
+/-- A benchmark's records at its bridge dimension. -/
+structure BridgeRec where
+  name : String
+  dim  : ℕ
+  ir   : PProblem
+  cuts : EvolStrengtheningX
+  cov  : CoverEmitE
+  prog : ProgressEmitE
+  ce   : ChoiceEmitE
+
+/-- The choice benchmarks (`benchmarks/choice`): the records emitted with `RELCERT_CHOICE=1`. -/
+def choiceRecsV2 : List BridgeRec :=
+  [ ⟨"vehicle_hypercert", 2, vehicle_hypercert_IRc, vehicle_hypercert_cutsCX, vehicle_hypercert_coverV2,
+      vehicle_hypercert_coverV2_progress, vehicle_hypercert_coverV2_choice⟩,
+    ⟨"vehicle_accel_copy", 2, vehicle_accel_copy_IRc, vehicle_accel_copy_cutsCX, vehicle_accel_copy_coverV2,
+      vehicle_accel_copy_coverV2_progress, vehicle_accel_copy_coverV2_choice⟩,
+    ⟨"watertank_choice", 2, watertank_choice_IRc, watertank_choice_cutsCX, watertank_choice_coverV2,
+      watertank_choice_coverV2_progress, watertank_choice_coverV2_choice⟩ ]
 
 def coverV2 (b : String) : CoverEmitE :=
   ((coverTableV2.find? (·.1 == b)).map (·.2)).getD ⟨b, [], []⟩
@@ -29,14 +63,19 @@ def bridgeDimV2 (b : String) : ℕ :=
   ((packsV2.find? (fun r => r.bench == b)).map (fun r => r.dim)).getD (irV2 b).L.stateVars.length
 
 /-- Declared: the number of query groups over the suite. -/
-def expectedBridgeGroupsV2 : Nat := 3259
+def expectedBridgeGroupsV2 : Nat := 3512
 
-def runBridgeBench (s : Z3Session) (b : String) : IO (Bool × Nat) := do
-  let p := irV2 b
-  let n := bridgeDimV2 b
+/-- The suite's records. -/
+def suiteRecV2 (b : String) : BridgeRec :=
+  ⟨b, bridgeDimV2 b, irV2 b, cutV2 b, coverV2 b, progV2 b, ChoiceEmitE.empty b⟩
+
+def runBridgeBench (s : Z3Session) (r : BridgeRec) : IO (Bool × Nat) := do
+  let b := r.name
+  let p := r.ir
+  let n := r.dim
   let vars := p.L.stateVars
   let coord := fun (i : Fin n) => vars.getD i.val s!"pad{i.val}"
-  match bridgeGroups p n (cutV2 b) (coverV2 b) (progV2 b) with
+  match bridgeGroups p n r.cuts r.cov r.prog r.ce with
   | none =>
       IO.println s!"  FAIL  {b}  (the query groups did not rebuild)"
       pure (false, 0)
@@ -63,8 +102,8 @@ def runBridgeV2 (cfg : Z3Config) : IO Bool := do
       IO.println s!"== suite_v2 bridge verdicts : {benchIRTableV2.length} benchmarks =="
       let mut ok := true
       let mut total := 0
-      for (b, _) in benchIRTableV2 do
-        let (r, k) ← runBridgeBench s b
+      for rec in benchIRTableV2.map (fun x => suiteRecV2 x.1) ++ choiceRecsV2 do
+        let (r, k) ← runBridgeBench s rec
         ok := r && ok
         total := total + k
       s.close

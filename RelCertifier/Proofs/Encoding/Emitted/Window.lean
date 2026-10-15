@@ -58,7 +58,7 @@ def windowClaim (p : PProblem) (n : ℕ) (cX : EvolStrengtheningX) (cov : CoverE
 section Proofs
 
 variable {p : PProblem} {cX : EvolStrengtheningX} {cov : CoverEmitE} {prog : ProgressEmitE}
-  (hs : structOK p n cov cX = true)
+  {ce : Choice.ChoiceEmitE} (hs : structOK p n cov cX = true)
 
 include hs
 
@@ -77,8 +77,8 @@ theorem AG_start_any (hnc : NonConnAll p n cX cov) {l : ℕ} (hl : l < nL p) (q 
   · rw [barriers_dm hq]; simp
 
 /-- **Theorem 3 of a benchmark with one declared row, from its records.** -/
-theorem theorem3_window_of_records (hv : Verdicts p n cX cov prog)
-    (hpo : progOK p n cov prog = true) (hcovers : coversOK p n cov = true)
+theorem theorem3_window_of_records (hv : Verdicts p n cX cov prog ce)
+    (hpo : progOK p n cov prog = true) (hcovers : coversOK p n cov ce = true)
     (hwf : WellFormedR (grOf p n (prunedOf cov)) (guardR p n) (epsR p))
     (hsame : rowsSame p = true) (a b : Fin n) (hab : a ≠ b) (dt : ℝ) (hdt : dt ≤ epsL p) :
     windowClaim p n cX cov a b dt := by
@@ -89,9 +89,8 @@ theorem theorem3_window_of_records (hv : Verdicts p n cX cov prog)
     (guardR_fv (hnames hs)) (cuts_fv hs) (fR p n) (fun q _ => fR_fv (hnames hs) q)
     (fun _ _ hm => grOf_sys hm) (fun _ _ hm => grOf_dom hm) (fun _ _ hm => grOf_weight hm)
     (grOf_lt (n := n) (hres hs)) (nL p) (guardL p n) (fL p n) (fun l _ => guardL_fv (hnames hs) l)
-    (fun l _ => fL_fv (hnames hs) l) (epsR p) hwf (chOf p cov) (B p cov) (δ p cov) (lamOf p cov)
-    (AG p n cX cov) (fun _ _ => Formula.tt) (fun _ _ _ => Formula.tt)
-    (fun l q _ => Formula.and (AG p n cX cov l q) (guardR p n q))
+    (fun l _ => fL_fv (hnames hs) l) (epsR p) hwf (chOfC p cov ce) (B p cov) (δ p cov) (lamOf p cov)
+    (AG p n cX cov) (RJof p n cX) (RRof p n cX) (RSof p n cX)
     (fun l hl => coverHyps_of hs hv hpo hwf hl) (fun l hl => hdt.trans (budget_span hs hl))
     ?_ ?_ ?_
   · intro l hl q hq hadm

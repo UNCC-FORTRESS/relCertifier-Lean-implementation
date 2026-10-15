@@ -23,10 +23,11 @@ abbrev IR := Parse.rover_dof_terrain_rung1_IRv2
 abbrev cX := Oracle.rover_dof_terrain_rung1_cutsV2X
 abbrev cov := rover_dof_terrain_rung1_coverV2
 abbrev prog := Progress.rover_dof_terrain_rung1_coverV2_progress
+abbrev ce := Choice.ChoiceEmitE.empty "rover_dof_terrain_rung1"
 
 theorem struct_ok : structOK IR 3 cov cX = true := by decide +kernel
 theorem prog_ok : progOK IR 3 cov prog = true := by decide +kernel
-theorem covers_ok : coversOK IR 3 cov = true := by decide +kernel
+theorem covers_ok : coversOK IR 3 cov ce = true := by decide +kernel
 theorem rows_same : rowsSame IR = true := by decide +kernel
 theorem nR_eq : nR IR = RoverDofTerrainRung1Guarded.GrG.modes.length := by decide +kernel
 theorem edges_ok : edgesCovered IR RoverDofTerrainRung1Guarded.GrG = true := by decide +kernel
@@ -34,7 +35,7 @@ theorem src_ok : edgesSrcOK IR RoverDofTerrainRung1Guarded.GrG = true := by deci
 
 /-- Assumption 1, transported from `RoverDofTerrainRung1Guarded.rover_dof_terrain_rung1_wellFormedR`. -/
 theorem wellFormedR : WellFormedR (grOf IR 3 (prunedOf cov)) (guardR IR 3) (epsR IR) :=
-  wellFormedR_transport RoverDofTerrainRung1Guarded.rover_dof_terrain_rung1_wellFormedR (by rw [grOf_len, nR_eq])
+  wellFormedR_transport (RoverDofTerrainRung1Guarded.rover_dof_terrain_rung1_wellFormedR) (by rw [grOf_len, nR_eq])
     (fun q m' hm' => by
       obtain ⟨hq, rfl⟩ := grOf_modeAt_inv hm'
       rw [nR_eq] at hq
@@ -43,7 +44,7 @@ theorem wellFormedR : WellFormedR (grOf IR 3 (prunedOf cov)) (guardR IR 3) (epsR
     (edges_transport_check edges_ok (edgesSrcOK_sound src_ok))
 
 /-- **Theorem 3 of `rover_dof_terrain_rung1`** (window form): every verdict group of the benchmark `unsat`. -/
-theorem rover_dof_terrain_rung1_bridge (hv : Verdicts IR 3 cX cov prog) (dt : ℝ) (hdt : dt ≤ epsL IR) :
+theorem rover_dof_terrain_rung1_bridge (hv : Verdicts IR 3 cX cov prog ce) (dt : ℝ) (hdt : dt ≤ epsL IR) :
     windowClaim IR 3 cX cov 0 1 dt :=
   theorem3_window_of_records struct_ok hv prog_ok covers_ok wellFormedR rows_same 0 1
     (by decide) dt hdt

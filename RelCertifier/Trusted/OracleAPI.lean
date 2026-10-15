@@ -58,6 +58,7 @@ import RelCertifier.Trusted.Z3
 import RelCertifier.Checker.Checker
 import RelCertifier.Checker.CoverEmit
 import RelCertifier.Trusted.ProgressEmit
+import RelCertifier.Trusted.ChoiceEmit
 import Std.Data.HashMap
 
 namespace RelCertifier.Oracle
@@ -607,7 +608,7 @@ def coverageUnsat {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt dead
 partial def choiceCover {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     (coord : Fin n → String) (cx : ChoiceCtx n)
     (memo : IO.Ref (Std.HashMap (String × Nat × Bool × Bool) Bool))
-    (log : IO.Ref (List String))
+    (log : IO.Ref (List String)) (clog : IO.Ref (List Choice.ChoiceEntryE))
     (path : List (String × Nat × Bool × Bool))
     (q : String) (B : Nat) (pre hop : Bool) : IO Bool := do
   let key := (q, B, pre, hop)
@@ -615,7 +616,7 @@ partial def choiceCover {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSm
   if let some r := (← memo.get)[key]? then return r
   let path := key :: path
   let rec' := fun (q' : String) (B' : Nat) (pre' hop' : Bool) =>
-    choiceCover s cnt maxQ maxSmt deadline coord cx memo log path q' B' pre' hop'
+    choiceCover s cnt maxQ maxSmt deadline coord cx memo log clog path q' B' pre' hop'
   let mut ok := false
   -- base: a joint segment closes the remaining budget
   if cx.node q && cx.jointOK q && B ≤ 1 then ok := true
@@ -630,6 +631,7 @@ partial def choiceCover {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSm
       if ← coverageUnsat s cnt maxQ maxSmt deadline coord cx (cx.jointEnd q) C then
         ok := true
         log.modify (· ++ [s!"joint {q} B={B} chose {C} of {R}"])
+        clog.modify (· ++ [⟨"", q, .joint, false, C⟩])
   -- right-only reposition: all exits (old rule), else a chosen covered subset
   if !ok && cx.node q && cx.dynOK q pre && 0 < B then
     let E := cx.exits q
@@ -642,6 +644,7 @@ partial def choiceCover {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSm
         if ← coverageUnsat s cnt maxQ maxSmt deadline coord cx (cx.repoEnd q pre) C then
           ok := true
           log.modify (· ++ [s!"repo {q} B={B} pre={pre} chose {C} of {E}"])
+          clog.modify (· ++ [⟨"", q, .repo, pre, C⟩])
   -- entry hop: zero-duration switch into a chosen covered successor
   if !ok && hop && 0 < B then
     let T := cx.hopTgts q
@@ -652,6 +655,7 @@ partial def choiceCover {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSm
       if ← coverageUnsat s cnt maxQ maxSmt deadline coord cx (cx.startReg q pre) C then
         ok := true
         log.modify (· ++ [s!"hop {q} B={B} pre={pre} into {C}"])
+        clog.modify (· ++ [⟨"", q, .hop, pre, C⟩])
   memo.modify (·.insert key ok)
   return ok
 
@@ -661,6 +665,10 @@ partial def choiceCover {n : ℕ} (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSm
 /-- The progress certificates found in the current run (per benchmark; reset by
 `certifyWithData`), for emission. -/
 initialize progressLog : IO.Ref (List Progress.ProgressE) ← IO.mkRef []
+
+/-- The chosen sets of the current run (per benchmark; reset by `certifyWithData`), for
+emission (`RELCERT_CHOICE_OUT`). -/
+initialize choiceLog : IO.Ref (List Choice.ChoiceEntryE) ← IO.mkRef []
 
 /-- The variables of an IR term. -/
 def itermVars {n : ℕ} : ITerm n → List (Var n)
@@ -1000,14 +1008,17 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
       let bBudget := min (epsL / deltaL).ceil.toNat 256
       let memo ← IO.mkRef ({} : Std.HashMap (String × Nat × Bool × Bool) Bool)
       let log ← IO.mkRef ([] : List String)
+      let clog ← IO.mkRef ([] : List Choice.ChoiceEntryE)
       let cx := mkCtx seg
       let mut allOk := true
       for mR in admMods do
         if allOk then
-          if !(← choiceCover s cnt maxQ maxSmt deadline coord cx memo log [] mR.name bBudget true true) then
+          if !(← choiceCover s cnt maxQ maxSmt deadline coord cx memo log clog [] mR.name bBudget true true) then
             allOk := false
       if allOk then
         IO.eprintln s!"  [choice] {p.name} {mL.name}_L λ={lam} B={bBudget}: certified by choice cover (unverified)"
+        let entries ← clog.get
+        choiceLog.modify (· ++ entries.map (fun e => { e with mL := mL.name }))
         let lines ← log.get
         for line in lines do
           IO.eprintln s!"    [choice] {line}"
@@ -1024,6 +1035,7 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
 def certifyWithData (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     (p : PProblem) : IO (Outcome × Option CoverEmitE) := do
   progressLog.set []
+  choiceLog.set []
   -- the joint variable list: the left variables, then any right-only ones (a right-only
   -- variable is held fixed on the left; `Trusted/JointVars.lean`)
   let vars := p.jointVars
@@ -1214,6 +1226,14 @@ def emitCoverFile (cfg : Z3Config) (path defname : String) : IO Unit := do
                     "namespace RelCertifier.Progress\n\n" ++
                     Progress.emitProgressE (defname ++ "_progress") ⟨p.name, certs⟩ ++
                     "\n\nend RelCertifier.Progress\n")
+              | none => pure ()
+              match ← IO.getEnv "RELCERT_CHOICE_OUT" with
+              | some out =>
+                  let entries ← choiceLog.get
+                  IO.FS.writeFile out ("import RelCertifier.Trusted.ChoiceEmit\n\n" ++
+                    "namespace RelCertifier.Choice\n\n" ++
+                    Choice.emitChoiceE (defname ++ "_choice") ⟨p.name, entries⟩ ++
+                    "\n\nend RelCertifier.Choice\n")
               | none => pure ()
           | (o, _) => IO.eprintln s!"ERROR: not certified: {o.tag}"; IO.Process.exit 1
 

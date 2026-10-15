@@ -10,6 +10,7 @@ import RelCertifier.InstancesV2.BenchCovers.charger_fast_setpoints
 import RelCertifier.InstancesV2.BenchCovers.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchCovers.drl_car_stop
 import RelCertifier.InstancesV2.BenchCovers.drl_lane_control
+import RelCertifier.InstancesV2.BenchCovers.freedm_meter
 import RelCertifier.InstancesV2.BenchCovers.match_multi_rate
 import RelCertifier.InstancesV2.BenchCovers.platoon3_linkloss
 import RelCertifier.InstancesV2.BenchCovers.platoon3_profiles
@@ -63,6 +64,7 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("charger_fast_tapers", charger_fast_tapers_coverV2),
   ("drl_car_stop", drl_car_stop_coverV2),
   ("drl_lane_control", drl_lane_control_coverV2),
+  ("freedm_meter", freedm_meter_coverV2),
   ("match_multi_rate", match_multi_rate_coverV2),
   ("platoon3_linkloss", platoon3_linkloss_coverV2),
   ("platoon3_profiles", platoon3_profiles_coverV2),

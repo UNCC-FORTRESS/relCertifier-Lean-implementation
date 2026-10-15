@@ -1,0 +1,155 @@
+# freedm_meter_leaky: the deterministic controller batI of the FREEDM case study, expected
+# DECLINED (the information leak). NOT part of the certified suite: a negative exhibit.
+# scenario: information-flow
+#
+# Same model as benchmarks/suite_v2/freedm_meter (see its header for the source and the form),
+# with batI on both sides: the battery serves the demand while B < Bmax, the grid only at
+# B = Bmax (Bohrer and Platzer, LICS 2018, Proposition 10). A run from B = Bmax draws from the
+# grid while a run from a lower level cannot, so no matching run keeps the meters equal; the
+# tool DECLINES. A DECLINE is not a proof of insecurity (the certifier is sound, not complete);
+# the source proves the leak by exhibiting the two runs.
+[problem]
+name = freedm_meter_leaky
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 40.0
+[Lsys]
+state_vars = [B, E]
+epsilon = 1.0
+[Lsys.mode.BatD0R0]
+ode = B' = smt2:0.0; E' = smt2:0.0;
+guard = B >= 0.0 and B < 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Lsys.mode.BatD0R1]
+ode = B' = smt2:1.0; E' = smt2:0.0;
+guard = B >= 0.0 and B < 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Lsys.mode.BatD1R0]
+ode = B' = smt2:-1.0; E' = smt2:0.0;
+guard = B >= 1.0 and B < 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Lsys.mode.BatD1R1]
+ode = B' = smt2:0.0; E' = smt2:0.0;
+guard = B >= 0.0 and B < 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Lsys.mode.BatD2R0]
+ode = B' = smt2:-2.0; E' = smt2:0.0;
+guard = B >= 2.0 and B < 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Lsys.mode.BatD2R1]
+ode = B' = smt2:-1.0; E' = smt2:0.0;
+guard = B >= 1.0 and B < 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Lsys.mode.GridD0R0]
+ode = B' = smt2:0.0; E' = smt2:0.0;
+guard = B >= 10.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Lsys.mode.GridD0R1]
+ode = B' = smt2:0.0; E' = smt2:-1.0;
+guard = B >= 10.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Lsys.mode.GridD1R0]
+ode = B' = smt2:0.0; E' = smt2:1.0;
+guard = B >= 10.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Lsys.mode.GridD1R1]
+ode = B' = smt2:0.0; E' = smt2:0.0;
+guard = B >= 10.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Lsys.mode.GridD2R0]
+ode = B' = smt2:0.0; E' = smt2:2.0;
+guard = B >= 10.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Lsys.mode.GridD2R1]
+ode = B' = smt2:0.0; E' = smt2:1.0;
+guard = B >= 10.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Rsys]
+state_vars = [B, E]
+epsilon = 1.0
+[Rsys.mode.BatD0R0]
+ode = B' = smt2:0.0; E' = smt2:0.0;
+guard = B >= 0.0 and B < 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Rsys.mode.BatD0R1]
+ode = B' = smt2:1.0; E' = smt2:0.0;
+guard = B >= 0.0 and B < 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Rsys.mode.BatD1R0]
+ode = B' = smt2:-1.0; E' = smt2:0.0;
+guard = B >= 1.0 and B < 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Rsys.mode.BatD1R1]
+ode = B' = smt2:0.0; E' = smt2:0.0;
+guard = B >= 0.0 and B < 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Rsys.mode.BatD2R0]
+ode = B' = smt2:-2.0; E' = smt2:0.0;
+guard = B >= 2.0 and B < 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Rsys.mode.BatD2R1]
+ode = B' = smt2:-1.0; E' = smt2:0.0;
+guard = B >= 1.0 and B < 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Rsys.mode.GridD0R0]
+ode = B' = smt2:0.0; E' = smt2:0.0;
+guard = B >= 10.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Rsys.mode.GridD0R1]
+ode = B' = smt2:0.0; E' = smt2:-1.0;
+guard = B >= 10.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Rsys.mode.GridD1R0]
+ode = B' = smt2:0.0; E' = smt2:1.0;
+guard = B >= 10.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Rsys.mode.GridD1R1]
+ode = B' = smt2:0.0; E' = smt2:0.0;
+guard = B >= 10.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Rsys.mode.GridD2R0]
+ode = B' = smt2:0.0; E' = smt2:2.0;
+guard = B >= 10.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Rsys.mode.GridD2R1]
+ode = B' = smt2:0.0; E' = smt2:1.0;
+guard = B >= 10.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[relational_invariant]
+BatD0R0 = E[l] <= E[r] and E[r] <= E[l]
+BatD0R1 = E[l] <= E[r] and E[r] <= E[l]
+BatD1R0 = E[l] <= E[r] and E[r] <= E[l]
+BatD1R1 = E[l] <= E[r] and E[r] <= E[l]
+BatD2R0 = E[l] <= E[r] and E[r] <= E[l]
+BatD2R1 = E[l] <= E[r] and E[r] <= E[l]
+GridD0R0 = E[l] <= E[r] and E[r] <= E[l]
+GridD0R1 = E[l] <= E[r] and E[r] <= E[l]
+GridD1R0 = E[l] <= E[r] and E[r] <= E[l]
+GridD1R1 = E[l] <= E[r] and E[r] <= E[l]
+GridD2R0 = E[l] <= E[r] and E[r] <= E[l]
+GridD2R1 = E[l] <= E[r] and E[r] <= E[l]

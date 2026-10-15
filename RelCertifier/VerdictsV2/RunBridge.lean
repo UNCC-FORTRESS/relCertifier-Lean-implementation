@@ -61,7 +61,7 @@ def bridgeDimV2 (b : String) : ℕ :=
   ((packsV2.find? (fun r => r.bench == b)).map (fun r => r.dim)).getD (max (irV2 b).L.stateVars.length 3)
 
 /-- Declared: the number of query groups over the suite. -/
-def expectedBridgeGroupsV2 : Nat := 3647
+def expectedBridgeGroupsV2 : Nat := 4457
 
 /-- The suite's records. -/
 def suiteRecV2 (b : String) : BridgeRec :=

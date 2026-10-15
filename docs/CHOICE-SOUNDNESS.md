@@ -167,6 +167,7 @@ node's progress stages cross their thresholds downward and the progress lemmas r
 stages. The coverage queries are among the groups of `relcert-bridge-verdicts` (`docs/BRIDGE.md`).
 
 Since 2026-10-15 the choice is the tool's default (`RELCERT_NO_CHOICE=1` disables it): the 46
-original suite covers are byte-identical with it on or off, and three suite benchmarks need it,
-`vehicle_hypercert` (moved from the exhibits) and the two dRL refinement benchmarks
-`drl_car_stop`, `drl_lane_control`, whose witness hops into the left's mode at every window.
+original suite covers are byte-identical with it on or off, and four suite benchmarks need it,
+`vehicle_hypercert` (moved from the exhibits), the two dRL refinement benchmarks
+`drl_car_stop`, `drl_lane_control`, whose witness hops into the left's mode at every window, and
+`freedm_meter`, whose witness hops into the left's mode or a zero-net grid mode.

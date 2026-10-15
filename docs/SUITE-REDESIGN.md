@@ -1,9 +1,9 @@
 # Suite redesign — `benchmarks/suite_v2` (2026-10-08, branch `suite-redesign`)
 
-> **Current state (2026-10-10, pass 11, §21).** `benchmarks/suite_v2` has **49 benchmarks** (`watertank_twospeed` added 2026-10-11, §22; three literature benchmarks 2026-10-15, §23),
+> **Current state (2026-10-10, pass 11, §21).** `benchmarks/suite_v2` has **50 benchmarks** (`watertank_twospeed` added 2026-10-11, §22; four literature benchmarks 2026-10-15, §23),
 > all CERTIFIED with `RELCERT_IMPLIED_CUT=1` (10 DECLINE without it), every one carries a
 > kernel-checked Theorem 3 (`RelCertifier/InstancesV2/BatteryV2.lean`; `README.md`), and every
-> right model satisfies Assumption 1 (`WellFormedR`, all 49 literally since 2026-10-15, when the six satellites'
+> right model satisfies Assumption 1 (`WellFormedR`, all 50 literally since 2026-10-15, when the six satellites'
 > momentum band entered their right evolve domains, §19.2; the nine models that violated it were repaired in §21). The mechanism matrix,
 > re-run on 2026-10-10 with `scripts/suite_v2_matrix.py` after the repairs, gives the totals
 > **M1 17, M2 33, M3 14, M4 19, M5 12, M6 29, M6+ 10, M6L 6**, no per-mode evolve domains,
@@ -3826,7 +3826,7 @@ checker, which already carries per-mode ℕ weights): it would avoid cutting a t
 mode's segment short where it has no self-loop, at the price of unequal pieces in the replayed
 window. Candidate for a later pass.
 
-## 23. Pass 13 (2026-10-15): three benchmarks from the literature
+## 23. Pass 13 (2026-10-15): four benchmarks from the literature
 
 **Finding.** The relational and refinement logics for dL have worked examples that fit the suite's
 format once sampled: dRL's refinement of a time-triggered controller by an event-triggered one
@@ -3834,8 +3834,7 @@ format once sampled: dRL's refinement of a time-triggered controller by an event
 HyperCertificates opacity vehicle (Murali et al., arXiv 2605.00752, Section 9.2, already an
 exhibit). Not migratable: rel-dL's examples (Kolčák et al., TACAS 2020: no control, comparison at
 equal position with a state-dependent stretch), dARL's (Hellwig, Qian, Platzer, IJCAR 2026:
-equal-time DAE index reductions), dHL's FREEDM grid (Bohrer and Platzer, LICS 2018: the controller
-resets state variables each cycle, outside the format), and the ∀∀ robustness examples of Nguyen
+equal-time DAE index reductions), and the ∀∀ robustness examples of Nguyen
 et al. (MEMOCODE 2017) and Anand et al. (TAC 2024, room temperature), whose two traces are both
 universal.
 
@@ -3851,17 +3850,34 @@ Assumption 1), so the certified refinement is dRL's pattern between two sampled 
 conservative one (`Safe_ε`) refining the permissive one (`Safe`); and the leader's interval
 acceleration is a finite choice. `vehicle_hypercert` moved from `benchmarks/choice` unchanged.
 
-**What they exercise.** All three need the existential mode choice: the right hops into the
-left's mode at the start of every window (the left's guard and the identity relation put the
-right in the permissive guard), then runs the certified joint segment; under the all-successors
-rule the equality rows are false. The choice is therefore the tool's default since this pass
-(`RELCERT_NO_CHOICE=1` disables it); the 46 original covers are byte-identical either way; the
-three DECLINE without it. Matrix: M2 for all three (mode choice), no cuts, no pruning.
+**The FREEDM meter.** dHL's FREEDM grid (Bohrer and Platzer, LICS 2018) resets its state variables
+by assignment every cycle (the grid draw `gr := 0; gr := gr + n_i`, the battery rate `b_i := −n_i`),
+outside the format. `freedm_meter` keeps the property by changing the observable: the utility
+METER `E` (cumulative grid energy, `E' = d − r` on the grid, `E' = 0` on the battery) is a state
+with no reset, and equal meters at all times are equal draws. One transformer, no migration
+(with migration the second run's compensation depends on the migrated power, which finite
+inputs cannot track); demand `d ∈ {0, 1, 2}` and renewable `r ∈ {0, 1}` per cycle as mode
+choices; both sides the free-source controller `batS` (battery modes enabled when one period
+keeps the level in `[0, 10]`, grid modes always). Claim: Definition 1 at `E_L = E_R`, every
+pair of battery levels admissible, so the secret level is not deducible from the meter. The
+tool's witness is the source's: copy the left's source and inputs when the battery allows,
+otherwise a grid mode with `d = r` (zero net draw); the chosen set after a left battery mode is
+every battery mode plus `GridD0R0` and `GridD1R1`. The leaky controller `batI` (battery while
+`B < Bmax`, grid at `Bmax`) is `benchmarks/negative/freedm_meter_leaky`, DECLINED in 1.6 s as the
+source's Proposition 10 predicts; a decline is not a proof of insecurity.
 
-**Lean.** Generic-bridge instances for the two dRL benchmarks (window form, `n = 3`), with
-Assumption 1 proved directly over the bridge's automaton (`InstancesV2/WellFormed/DrlCarStop.lean`,
-`DrlLaneControl.lean`: `trajRs_sol`, the explicit polynomial run of one period; completeness by
+**What they exercise.** All four need the existential mode choice: the right hops into the
+left's mode at the start of every window (the left's guard and the identity relation put the
+right in the permissive guard, or a zero-net grid mode keeps the meters equal), then runs the
+certified joint segment; under the all-successors rule the equality rows are false. The choice is therefore the tool's default since this pass
+(`RELCERT_NO_CHOICE=1` disables it); the 46 original covers are byte-identical either way; the
+four DECLINE without it. Matrix: no stretch, cuts or pruning for any of them; the mode
+choice is their mechanism.
+
+**Lean.** Generic-bridge instances for the two dRL benchmarks and `freedm_meter` (window form,
+`n = 3`), with Assumption 1 proved directly over the bridge's automaton
+(`InstancesV2/WellFormed/DrlCarStop.lean`, `DrlLaneControl.lean`, `FreedmMeter.lean`: `trajRs_sol`, the explicit polynomial run of one period; completeness by
 the always-enabled Coast action, or one of the two leader actions by the leader's speed); the
 generator's `DIRECT_REGION` variant. `vehicle_hypercert` keeps its hand-written general instance
-(downward progress stages). Counts: 49 files, 162 right modes (86 invariant, 76 exit), handoff
-257, bridge groups 3647 (3511 over the suite), `WellFormedBattery` `(43, 0, 6)`.
+(downward progress stages). Counts: 50 files, 174 right modes (94 invariant, 80 exit), handoff
+401, bridge groups 4457 (4321 over the suite), `WellFormedBattery` `(44, 0, 6)`.

@@ -2,8 +2,8 @@
 
 `suite_v2/<name>/input.txt` is the complete specification of one benchmark: the left
 (ideal) and right (implementation) hybrid automata, the relational invariant (one row per
-left mode) and the time-stretch range. **49 benchmarks.** With the widened cut channel on
-(`RELCERT_IMPLIED_CUT=1`, as every suite_v2 run sets it) the tool CERTIFIES all 49, and
+left mode) and the time-stretch range. **50 benchmarks.** With the widened cut channel on
+(`RELCERT_IMPLIED_CUT=1`, as every suite_v2 run sets it) the tool CERTIFIES all 50, and
 every one carries a kernel-checked Theorem 3 with the paper's left program over the
 guard-gated right automaton, at the mode-consistent region (`RelCertifier/InstancesV2/BatteryV2.lean`;
 `refinement_ladder_rover_rung2c_6dof` for windows up to its control interval `dt ≤ 1`;
@@ -15,7 +15,7 @@ DECLINE.
 **Assumption 1 of each right model** (the paper's Well-Formedness: from every guard state a
 full control interval of flow exists, and every evolution of at most `ε_r` ends in a declared
 successor's guard) is verified per file (`WellFormedR`, `docs/WELLFORMED.md`): it holds for
-all 49 literally (the 6 satellite files carry their conserved momentum band in the right evolve
+all 50 literally (the 6 satellite files carry their conserved momentum band in the right evolve
 domain since 2026-10-15).
 Nine files had a blocking mode until 2026-10-10 and were repaired (`docs/SUITE-REDESIGN.md`
 §21; each header says how and why): `arm_plateau_{crit,profiles,slow}` (the ApproachA /
@@ -73,6 +73,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `charger_fast_tapers` | 1 / 1 | 3 / 5 | degraded-controller |  |
 | `drl_car_stop` | 2 / 2 | 3 / 3 | controller-refinement | literature (dRL), mode choice |
 | `drl_lane_control` | 3 / 3 | 6 / 6 | controller-refinement | literature (dRL), mode choice |
+| `freedm_meter` | 2 / 2 | 12 / 12 | information-flow | literature (dHL, FREEDM), mode choice |
 | `match_multi_rate` | 2 / 2 | 4 / 2 |  | carried over |
 | `platoon3_linkloss` | 6 / 6 | 2 / 4 | sensor-attack | mode-keyed; guards repaired (operating range, `docs/SUITE-REDESIGN.md` §20); latched AEB sinks (§21) |
 | `platoon3_profiles` | 6 / 6 | 1 / 6 | sensor-attack | guards repaired (operating range, `docs/SUITE-REDESIGN.md` §20); latched AEB sinks (§21) |
@@ -161,7 +162,7 @@ Key points, each of which the parser enforces:
   handoff at every declared left transition (`docs/HANDOFF.md`).
 * **`lambda_min` / `lambda_max`** bound the time stretch the right side may use.
 
-**`max_depth` and `bound_T`** are present in all 49 files and read by no stage: search
+**`max_depth` and `bound_T`** are present in all 50 files and read by no stage: search
 depth is a tool parameter, not part of the specification. They are whitelisted so that the
 key audit can still reject genuinely unknown keys.
 
@@ -177,3 +178,12 @@ The tool parses, lowers, searches for a cover and prints CERTIFIED / DECLINED / 
 kernel-checked data layer is generated from (`scripts/gen_v2_data.py`), and
 `relcert-test`'s `[ir-drift-v2]` re-parses every file and compares it with its literal, so
 a file and its theorem cannot drift apart silently.
+
+## Negative exhibits (`benchmarks/negative/`)
+
+Files the tool is expected to DECLINE, kept beside the suite to show what a decline looks like;
+they enter no declared count. `freedm_meter_leaky`: the deterministic controller `batI` of the
+FREEDM case study on both sides of `freedm_meter`; a run from a full battery draws from the grid
+while a run from a lower level cannot, so no matching run keeps the meters equal. A DECLINE is
+not a proof of insecurity (the certifier is sound, not complete); the source proves the leak by
+exhibiting the two runs.

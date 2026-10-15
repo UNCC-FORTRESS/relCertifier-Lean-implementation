@@ -48,11 +48,11 @@ theorems consume is in the repository.
 |---|---|---|
 | 1 | every proof kernel-checks | `lake build` (see *Cost*), then `lake build relcert relcert-test` |
 | 2 | the axiom audit of every battery theorem | `lake build RelCertifier.InstancesV2.BatteryV2 2>&1 \| grep -A3 "depends on axioms"` |
-| 3 | the 49 files certify in the strict well-formedness mode (declared 49 / 0 / 0), every Z3 hypothesis of the battery holds, and the tool's Assumption 1 check finds no `UNKNOWN` right mode (declared 146 modes, 0 `UNKNOWN`), all against declared counts | `RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt` |
+| 3 | the 50 files certify in the strict well-formedness mode (declared 50 / 0 / 0), every Z3 hypothesis of the battery holds, and the tool's Assumption 1 check finds no `UNKNOWN` right mode (declared 146 modes, 0 `UNKNOWN`), all against declared counts | `RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt` |
 | 3' | the hypotheses alone | `./.lake/build/bin/relcert --run-verdicts-v2` |
 | 4 | each file parses to the literal the theorems quote; parser, printer, Z3-layer and determinism tests | `BENCH_PATHS=<manifest> ./.lake/build/bin/relcert-test` |
-| 5 | Assumption 1 of every right model (`WellFormedR`): proved for all 49, none refuted; axiom audit; the tool's check, strict in check 3 | `lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 \| grep -A3 "depends on axioms"`; `./.lake/build/bin/relcert --wellformed benchmarks/suite_v2/*/input.txt` |
-| 6 | every Z3 hypothesis of the generic bridge instances (`InstancesV2/Bridge/`, 50 `*_bridge` theorems: stays, non-connection pairs, flow and reposition packs, admissibility, handoffs, progress, coverage) holds, against the declared total 3647 over the 49 suite benchmarks and the 2 choice exhibits | `./.lake/build/bin/relcert-bridge-verdicts` |
+| 5 | Assumption 1 of every right model (`WellFormedR`): proved for all 50, none refuted; axiom audit; the tool's check, strict in check 3 | `lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 \| grep -A3 "depends on axioms"`; `./.lake/build/bin/relcert --wellformed benchmarks/suite_v2/*/input.txt` |
+| 6 | every Z3 hypothesis of the generic bridge instances (`InstancesV2/Bridge/`, 51 `*_bridge` theorems: stays, non-connection pairs, flow and reposition packs, admissibility, handoffs, progress, coverage) holds, against the declared total 4457 over the 50 suite benchmarks and the 2 choice exhibits | `./.lake/build/bin/relcert-bridge-verdicts` |
 | 7 | the progress certificates of every reposition node (261 queries) and the coverage queries of the choice exhibits (32) hold, against declared counts | `./.lake/build/bin/relcert-progress-verdicts`, `./.lake/build/bin/relcert-choice-verdicts` |
 
 ## Check 1: the kernel checks every proof
@@ -125,25 +125,25 @@ DECLINED, a `[wellformed]` line per file on stderr); check 3/3 is the `--wellfor
 gated. Expected tail:
 
 ```
-  [suite_v2] 49 certified, 0 declined, 0 error(s) — matches the declared suite
+  [suite_v2] 50 certified, 0 declined, 0 error(s) — matches the declared suite
   [coverage] suite_v2 modal: 625/625 hypotheses discharged
-  [coverage] suite_v2 handoff: 257/257 hypotheses discharged
+  [coverage] suite_v2 handoff: 401/401 hypotheses discharged
   [coverage] suite_v2 non-connection: 88/88 hypotheses discharged
   [coverage] suite_v2 pruned edges: 44/44 hypotheses discharged
   [coverage] suite_v2 copied benchmarks (legacy packs): 385/385 hypotheses discharged
   [coverage] suite_v2 reposition (dyn): 81/81 hypotheses discharged
-  [wellformed] summary: 49 benchmark(s), 162 right mode(s): 86 ok (invariant), 76 ok (exit), 0 UNKNOWN (0 benchmark(s) with an UNKNOWN mode); 2308 queries
-  [wellformed] STRICT: 162/162 right modes ok (86 invariant, 76 exit), 0 UNKNOWN — matches the declared suite (162 modes, 0 UNKNOWN)
+  [wellformed] summary: 50 benchmark(s), 174 right mode(s): 94 ok (invariant), 80 ok (exit), 0 UNKNOWN (0 benchmark(s) with an UNKNOWN mode); 2308 queries
+  [wellformed] STRICT: 174/174 right modes ok (94 invariant, 80 exit), 0 UNKNOWN — matches the declared suite (174 modes, 0 UNKNOWN)
 
   suite_v2: PASS
   verdicts: PASS
-  wellformed (strict): PASS (162/162 right modes ok (86 invariant, 76 exit), 0 UNKNOWN)
+  wellformed (strict): PASS (174/174 right modes ok (94 invariant, 80 exit), 0 UNKNOWN)
 SUITE_V2 QUICK CHECKS PASSED  (the kernel check is `lake build`)
 ```
 
 The well-formedness gate (check 5's tool part, strict since 2026-10-10; it was informational
-while 9 models blocked): the declared mode count `ExpectedSuiteV2.wfModes = 162` is
-kernel-checked to be the right-mode count of the 49 IR literals
+while 9 models blocked): the declared mode count `ExpectedSuiteV2.wfModes = 174` is
+kernel-checked to be the right-mode count of the 50 IR literals
 (`VerdictsV2/CoveragePinsV2.suiteV2_wfModes`), and `wfUnknown = 0`; any `UNKNOWN` mode, a
 mode count off the declared one, or a file that does not parse fails the run.
 
@@ -160,7 +160,7 @@ done > /tmp/bench-paths-v2.tsv
 BENCH_PATHS=/tmp/bench-paths-v2.tsv ./.lake/build/bin/relcert-test
 ```
 
-Expected: `ok   all 49 suite_v2 IR literals match their files` and a bare `ALL PASS`.
+Expected: `ok   all 50 suite_v2 IR literals match their files` and a bare `ALL PASS`.
 Without `BENCH_PATHS` the two determinism checks (`match_multi_rate` 8× CERTIFIED;
 `acc_spoof_lag`, which declines without the widened channel, 8× the same verdict) are
 skipped and the last line says `ALL PASS (2 SKIPPED …)`. The 19 carried-over legacy
@@ -180,7 +180,7 @@ satellites `<b>_wellFormedR` (unconditional since 2026-10-15: the momentum band 
 literal predicate), and 13 generic lemmas including `Platoon3Link.brake_guard_Ronly`,
 `Platoon3Link.solB_sol` and `WellFormedBattery.wf_coverage` (the declared counts `(39, 0, 6)`,
 `(30, 9, 6)` before the repairs, and the three name lists a permutation of the suite's IR
-table). The tool line: `[wellformed] summary: 49 benchmark(s), 162 right mode(s): 86 ok
+table). The tool line: `[wellformed] summary: 50 benchmark(s), 174 right mode(s): 94 ok
 (invariant), 63 ok (exit), 0 UNKNOWN (0 benchmark(s) with an UNKNOWN mode)`; check 3 gates it.
 What this establishes and what it does not (the tool checks only the successor half; the
 predicate's domain conjunct; the satellites' band): `docs/WELLFORMED.md`. The repairs:
@@ -195,7 +195,7 @@ exit 1.
 **Regression of the repair pass** (2026-10-10): `--emit-ir`, `--emit-cover`, `--emit-cuts`
 (the last two with `RELCERT_IMPLIED_CUT=1`) of the 36 untouched files byte-identical, stdout
 and stderr, against the binary of `5dd8798` (108 outputs); regenerating every data leaf
-(`scripts/gen_v2_data.py` over all 49) leaves the committed leaves unchanged; the
+(`scripts/gen_v2_data.py` over all 50) leaves the committed leaves unchanged; the
 non-connection pruning extension (a compound successor guard pruned on its strict leading
 conjunct) touches no other file (none has such a guard); the full matrix re-run changes no
 cell of the 36.

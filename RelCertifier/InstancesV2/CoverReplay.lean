@@ -56,6 +56,9 @@ theorem drl_car_stop_coverV2_replay : Emitted.coversOK Parse.drl_car_stop_IRv2 3
 /-- `drl_lane_control` uses the existential mode choice (30 chosen sets): the extended checker. -/
 theorem drl_lane_control_coverV2_replay : Emitted.coversOK Parse.drl_lane_control_IRv2 3 drl_lane_control_coverV2 Choice.drl_lane_control_coverV2_choice = true := by decide +kernel
 
+/-- `freedm_meter` uses the existential mode choice (102 chosen sets): the extended checker. -/
+theorem freedm_meter_coverV2_replay : Emitted.coversOK Parse.freedm_meter_IRv2 3 freedm_meter_coverV2 Choice.freedm_meter_coverV2_choice = true := by decide +kernel
+
 theorem match_multi_rate_coverV2_replay : coverReplays Parse.match_multi_rate_IRv2 match_multi_rate_coverV2 = true := by decide
 
 theorem platoon3_linkloss_coverV2_replay : coverReplays Parse.platoon3_linkloss_IRv2 platoon3_linkloss_coverV2 = true := by decide

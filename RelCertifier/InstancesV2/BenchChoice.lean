@@ -12,6 +12,7 @@ import RelCertifier.InstancesV2.BenchChoice.charger_fast_setpoints
 import RelCertifier.InstancesV2.BenchChoice.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchChoice.drl_car_stop
 import RelCertifier.InstancesV2.BenchChoice.drl_lane_control
+import RelCertifier.InstancesV2.BenchChoice.freedm_meter
 import RelCertifier.InstancesV2.BenchChoice.match_multi_rate
 import RelCertifier.InstancesV2.BenchChoice.platoon3_linkloss
 import RelCertifier.InstancesV2.BenchChoice.platoon3_profiles
@@ -65,6 +66,7 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("charger_fast_tapers", charger_fast_tapers_coverV2_choice),
   ("drl_car_stop", drl_car_stop_coverV2_choice),
   ("drl_lane_control", drl_lane_control_coverV2_choice),
+  ("freedm_meter", freedm_meter_coverV2_choice),
   ("match_multi_rate", match_multi_rate_coverV2_choice),
   ("platoon3_linkloss", platoon3_linkloss_coverV2_choice),
   ("platoon3_profiles", platoon3_profiles_coverV2_choice),

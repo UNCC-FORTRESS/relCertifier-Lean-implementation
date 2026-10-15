@@ -1,0 +1,173 @@
+# freedm_meter: initial-state nondeducibility of a battery level through the grid meter
+# (sampled, single-transformer form of the FREEDM case study of hybrid-dynamic information flow).
+# scenario: information-flow
+# mechanisms: M2
+#
+# SOURCE. Bohrer and Platzer, "A hybrid, dynamic logic for hybrid-dynamic information flow"
+# (LICS 2018), Section 2 and Section 8: a FREEDM microgrid transformer serves a demand d from a
+# renewable source r, its battery B, or the macrogrid; the battery level is private, the grid
+# draw gr and time are public. Nondeducibility: for every run from a state and every other
+# private battery level, a run from the other level with the same public values exists. The
+# deterministic controller batI (battery while B < Bmax, grid otherwise) leaks B = Bmax; the
+# controller batS, whose source choice is free, is proved secure because the grid branch is
+# always available and the second run compensates with its own demand and renewable inputs.
+#
+# THE FORM HERE (the deviations from the source, each a modelling choice stated once).
+# (1) The public quantity is the utility METER, the cumulative grid energy E (E' = d - r on the
+#     grid, E' = 0 on the battery), instead of the instantaneous draw gr, which the source
+#     resets by assignment at every cycle; the draw is the meter's derivative, so equal meters at
+#     all times are equal draws. (2) One transformer, no power migration: with migration the
+#     second run's compensation depends on the migrated power, which finite inputs cannot track.
+# (3) Demand d in {0, 1, 2} and renewable r in {0, 1} per cycle, a mode choice on both sides
+#     (reals in the source). Both sides run batS: a battery mode is enabled when one period of it
+#     keeps the level in [0, Bmax] (Bmax = 10), a grid mode always.
+# PROPERTY. Definition 1 at E_L = E_R (two inequalities), every pair of battery levels an
+# admissible start: the secret B is unconstrained on either side. Witness: the right copies the
+# left's source and inputs when its battery allows, otherwise draws from the grid with d = r
+# (zero net draw). Existential mode choice (the tool's default): the right commits to one mode.
+# The leaky controller batI is benchmarks/negative/freedm_meter_leaky (expected DECLINED).
+[problem]
+name = freedm_meter
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 40.0
+[Lsys]
+state_vars = [B, E]
+epsilon = 1.0
+[Lsys.mode.BatD0R0]
+ode = B' = smt2:0.0; E' = smt2:0.0;
+guard = B >= 0.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Lsys.mode.BatD0R1]
+ode = B' = smt2:1.0; E' = smt2:0.0;
+guard = B >= 0.0 and B <= 9.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Lsys.mode.BatD1R0]
+ode = B' = smt2:-1.0; E' = smt2:0.0;
+guard = B >= 1.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Lsys.mode.BatD1R1]
+ode = B' = smt2:0.0; E' = smt2:0.0;
+guard = B >= 0.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Lsys.mode.BatD2R0]
+ode = B' = smt2:-2.0; E' = smt2:0.0;
+guard = B >= 2.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Lsys.mode.BatD2R1]
+ode = B' = smt2:-1.0; E' = smt2:0.0;
+guard = B >= 1.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Lsys.mode.GridD0R0]
+ode = B' = smt2:0.0; E' = smt2:0.0;
+guard = B >= 0.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Lsys.mode.GridD0R1]
+ode = B' = smt2:0.0; E' = smt2:-1.0;
+guard = B >= 0.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Lsys.mode.GridD1R0]
+ode = B' = smt2:0.0; E' = smt2:1.0;
+guard = B >= 0.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Lsys.mode.GridD1R1]
+ode = B' = smt2:0.0; E' = smt2:0.0;
+guard = B >= 0.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Lsys.mode.GridD2R0]
+ode = B' = smt2:0.0; E' = smt2:2.0;
+guard = B >= 0.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Lsys.mode.GridD2R1]
+ode = B' = smt2:0.0; E' = smt2:1.0;
+guard = B >= 0.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Rsys]
+state_vars = [B, E]
+epsilon = 1.0
+[Rsys.mode.BatD0R0]
+ode = B' = smt2:0.0; E' = smt2:0.0;
+guard = B >= 0.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Rsys.mode.BatD0R1]
+ode = B' = smt2:1.0; E' = smt2:0.0;
+guard = B >= 0.0 and B <= 9.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Rsys.mode.BatD1R0]
+ode = B' = smt2:-1.0; E' = smt2:0.0;
+guard = B >= 1.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Rsys.mode.BatD1R1]
+ode = B' = smt2:0.0; E' = smt2:0.0;
+guard = B >= 0.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Rsys.mode.BatD2R0]
+ode = B' = smt2:-2.0; E' = smt2:0.0;
+guard = B >= 2.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Rsys.mode.BatD2R1]
+ode = B' = smt2:-1.0; E' = smt2:0.0;
+guard = B >= 1.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Rsys.mode.GridD0R0]
+ode = B' = smt2:0.0; E' = smt2:0.0;
+guard = B >= 0.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Rsys.mode.GridD0R1]
+ode = B' = smt2:0.0; E' = smt2:-1.0;
+guard = B >= 0.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Rsys.mode.GridD1R0]
+ode = B' = smt2:0.0; E' = smt2:1.0;
+guard = B >= 0.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Rsys.mode.GridD1R1]
+ode = B' = smt2:0.0; E' = smt2:0.0;
+guard = B >= 0.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Rsys.mode.GridD2R0]
+ode = B' = smt2:0.0; E' = smt2:2.0;
+guard = B >= 0.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[Rsys.mode.GridD2R1]
+ode = B' = smt2:0.0; E' = smt2:1.0;
+guard = B >= 0.0 and B <= 10.0
+evolve = B >= 0.0 and B <= 10.0
+next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
+[relational_invariant]
+BatD0R0 = E[l] <= E[r] and E[r] <= E[l]
+BatD0R1 = E[l] <= E[r] and E[r] <= E[l]
+BatD1R0 = E[l] <= E[r] and E[r] <= E[l]
+BatD1R1 = E[l] <= E[r] and E[r] <= E[l]
+BatD2R0 = E[l] <= E[r] and E[r] <= E[l]
+BatD2R1 = E[l] <= E[r] and E[r] <= E[l]
+GridD0R0 = E[l] <= E[r] and E[r] <= E[l]
+GridD0R1 = E[l] <= E[r] and E[r] <= E[l]
+GridD1R0 = E[l] <= E[r] and E[r] <= E[l]
+GridD1R1 = E[l] <= E[r] and E[r] <= E[l]
+GridD2R0 = E[l] <= E[r] and E[r] <= E[l]
+GridD2R1 = E[l] <= E[r] and E[r] <= E[l]

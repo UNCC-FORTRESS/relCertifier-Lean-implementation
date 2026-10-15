@@ -19,6 +19,7 @@ import RelCertifier.InstancesV2.BenchIR.charger_fast_setpoints
 import RelCertifier.InstancesV2.BenchIR.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchIR.drl_car_stop
 import RelCertifier.InstancesV2.BenchIR.drl_lane_control
+import RelCertifier.InstancesV2.BenchIR.freedm_meter
 import RelCertifier.InstancesV2.BenchIR.match_multi_rate
 import RelCertifier.InstancesV2.BenchIR.platoon3_linkloss
 import RelCertifier.InstancesV2.BenchIR.platoon3_profiles
@@ -72,6 +73,7 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("charger_fast_tapers", charger_fast_tapers_IRv2),
   ("drl_car_stop", drl_car_stop_IRv2),
   ("drl_lane_control", drl_lane_control_IRv2),
+  ("freedm_meter", freedm_meter_IRv2),
   ("match_multi_rate", match_multi_rate_IRv2),
   ("platoon3_linkloss", platoon3_linkloss_IRv2),
   ("platoon3_profiles", platoon3_profiles_IRv2),

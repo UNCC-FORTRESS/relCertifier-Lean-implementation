@@ -10,6 +10,7 @@ import RelCertifier.InstancesV2.Bridge.ChargerFastSetpoints
 import RelCertifier.InstancesV2.Bridge.ChargerFastTapers
 import RelCertifier.InstancesV2.Bridge.DrlCarStop
 import RelCertifier.InstancesV2.Bridge.DrlLaneControl
+import RelCertifier.InstancesV2.Bridge.FreedmMeter
 import RelCertifier.InstancesV2.Bridge.MatchMultiRate
 import RelCertifier.InstancesV2.Bridge.Platoon3Linkloss
 import RelCertifier.InstancesV2.Bridge.Platoon3Profiles

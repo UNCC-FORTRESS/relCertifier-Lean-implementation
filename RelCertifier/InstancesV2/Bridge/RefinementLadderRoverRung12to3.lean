@@ -12,8 +12,10 @@ discharges, `Emitted.verdicts_of_groups`).
 import RelCertifier.Proofs.Encoding.Emitted.Window
 import RelCertifier.Proofs.Encoding.Emitted.Transport
 import RelCertifier.Instances.WellFormed.RoverLadderRung1
+import RelCertifier.InstancesV2.Cuts.refinement_ladder_rover_rung1_2to3
 import RelCertifier.InstancesV2.BenchCovers.refinement_ladder_rover_rung1_2to3
 import RelCertifier.InstancesV2.BenchProgress.refinement_ladder_rover_rung1_2to3
+import RelCertifier.InstancesV2.BenchChoice.refinement_ladder_rover_rung1_2to3
 
 namespace RelCertifier.Bridge.RefinementLadderRoverRung12to3
 
@@ -23,7 +25,7 @@ abbrev IR := Parse.refinement_ladder_rover_rung1_2to3_IRv2
 abbrev cX := Oracle.refinement_ladder_rover_rung1_2to3_cutsV2X
 abbrev cov := refinement_ladder_rover_rung1_2to3_coverV2
 abbrev prog := Progress.refinement_ladder_rover_rung1_2to3_coverV2_progress
-abbrev ce := Choice.ChoiceEmitE.empty "refinement_ladder_rover_rung1_2to3"
+abbrev ce := Choice.refinement_ladder_rover_rung1_2to3_coverV2_choice
 
 theorem struct_ok : structOK IR 3 cov cX = true := by decide +kernel
 theorem prog_ok : progOK IR 3 cov prog = true := by decide +kernel

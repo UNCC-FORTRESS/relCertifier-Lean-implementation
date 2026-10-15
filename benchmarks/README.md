@@ -2,8 +2,8 @@
 
 `suite_v2/<name>/input.txt` is the complete specification of one benchmark: the left
 (ideal) and right (implementation) hybrid automata, the relational invariant (one row per
-left mode) and the time-stretch range. **46 benchmarks.** With the widened cut channel on
-(`RELCERT_IMPLIED_CUT=1`, as every suite_v2 run sets it) the tool CERTIFIES all 46, and
+left mode) and the time-stretch range. **49 benchmarks.** With the widened cut channel on
+(`RELCERT_IMPLIED_CUT=1`, as every suite_v2 run sets it) the tool CERTIFIES all 49, and
 every one carries a kernel-checked Theorem 3 with the paper's left program over the
 guard-gated right automaton, at the mode-consistent region (`RelCertifier/InstancesV2/BatteryV2.lean`;
 `refinement_ladder_rover_rung2c_6dof` for windows up to its control interval `dt ≤ 1`;
@@ -15,7 +15,7 @@ DECLINE.
 **Assumption 1 of each right model** (the paper's Well-Formedness: from every guard state a
 full control interval of flow exists, and every evolution of at most `ε_r` ends in a declared
 successor's guard) is verified per file (`WellFormedR`, `docs/WELLFORMED.md`): it holds for
-all 46 literally (the 6 satellite files carry their conserved momentum band in the right evolve
+all 49 literally (the 6 satellite files carry their conserved momentum band in the right evolve
 domain since 2026-10-15).
 Nine files had a blocking mode until 2026-10-10 and were repaired (`docs/SUITE-REDESIGN.md`
 §21; each header says how and why): `arm_plateau_{crit,profiles,slow}` (the ApproachA /
@@ -55,7 +55,10 @@ State variables and modes are given as left / right. Notes: *carried over* (see 
 *widened cuts* (DECLINES without `RELCERT_IMPLIED_CUT=1`), *Z3-free* (the theorem has no
 verdict hypothesis), *nonblocking region* (the standalone theorem carries the model's conserved-momentum
 band in its right region; since 2026-10-15 the band is also in the right evolve domain;
-`docs/SUITE-REDESIGN.md` §19.2).
+`docs/SUITE-REDESIGN.md` §19.2), *literature* (a model taken from a cited paper; its header
+states the source and what changed in the sampled form), *mode choice* (the cover needs the
+existential mode choice: the right commits to the left's mode; DECLINES with
+`RELCERT_NO_CHOICE=1`).
 
 | benchmark | state vars | modes | scenario | notes |
 |---|---|---|---|---|
@@ -68,6 +71,8 @@ band in its right region; since 2026-10-15 the band is also in the right evolve 
 | `arm_plateau_slow` | 2 / 1 | 2 / 4 | degraded-actuator | widened cuts, Z3-free; successor sets repaired (§21) |
 | `charger_fast_setpoints` | 1 / 1 | 3 / 4 | degraded-controller | widened cuts |
 | `charger_fast_tapers` | 1 / 1 | 3 / 5 | degraded-controller |  |
+| `drl_car_stop` | 2 / 2 | 3 / 3 | controller-refinement | literature (dRL), mode choice |
+| `drl_lane_control` | 3 / 3 | 6 / 6 | controller-refinement | literature (dRL), mode choice |
 | `match_multi_rate` | 2 / 2 | 4 / 2 |  | carried over |
 | `platoon3_linkloss` | 6 / 6 | 2 / 4 | sensor-attack | mode-keyed; guards repaired (operating range, `docs/SUITE-REDESIGN.md` §20); latched AEB sinks (§21) |
 | `platoon3_profiles` | 6 / 6 | 1 / 6 | sensor-attack | guards repaired (operating range, `docs/SUITE-REDESIGN.md` §20); latched AEB sinks (§21) |
@@ -103,6 +108,7 @@ band in its right region; since 2026-10-15 the band is also in the right evolve 
 | `story3_rollover_base_12dof` | 12 / 12 | 3 / 3 |  | carried over |
 | `story3_rollover_ladder_rung_a` | 12 / 12 | 3 / 3 |  | carried over |
 | `story3_rollover_ladder_rung_b` | 12 / 12 | 3 / 3 |  | mode-keyed, widened cuts |
+| `vehicle_hypercert` | 1 / 1 | 5 / 5 | opacity | literature (HyperCertificates), mode choice |
 | `watertank` | 1 / 1 | 3 / 5 | sensor-attack | widened cuts |
 
 ## File format
@@ -155,7 +161,7 @@ Key points, each of which the parser enforces:
   handoff at every declared left transition (`docs/HANDOFF.md`).
 * **`lambda_min` / `lambda_max`** bound the time stretch the right side may use.
 
-**`max_depth` and `bound_T`** are present in all 46 files and read by no stage: search
+**`max_depth` and `bound_T`** are present in all 49 files and read by no stage: search
 depth is a tool parameter, not part of the specification. They are whitelisted so that the
 key audit can still reject genuinely unknown keys.
 

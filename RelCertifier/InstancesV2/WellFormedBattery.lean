@@ -20,10 +20,12 @@ mode `q`, `ε = epsR` (the file's `epsilon`, read as the tool reads it). A model
 independent of the relational invariant and of every Theorem 3 (none takes it as a
 hypothesis); this battery is a separate audit.
 
-**Results (all 46 benchmarks; declared counts `wfDeclared`, kernel-checked against the
+**Results (all 49 benchmarks; declared counts `wfDeclared`, kernel-checked against the
 suite's IR table by `wf_coverage`).**
 
-* **Proved, 40** (`<bench>_wellFormedR`): every mode (`watertank_twospeed` added 2026-10-11). Z3-free (no verdict leaf). Nine of them
+* **Proved, 43** (`<bench>_wellFormedR`): every mode (`watertank_twospeed` added 2026-10-11;
+  the literature benchmarks `drl_car_stop`, `drl_lane_control` and `vehicle_hypercert` added
+  2026-10-15, the first two proved directly over the bridge's automaton, `_wellFormedR_direct`). Z3-free (no verdict leaf). Nine of them
   are the models repaired on 2026-10-10 (`docs/SUITE-REDESIGN.md` §21; until then refuted
   here with exhibited blocking states, declared counts `(30, 9, 6)`):
   - `arm_plateau_{crit,profiles,slow}`: the planner is a sampled controller whose successor
@@ -49,6 +51,9 @@ Z3-free). `lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 | grep -A3
 axioms"`.
 -/
 import RelCertifier.InstancesV2.BenchIR
+import RelCertifier.InstancesV2.WellFormed.DrlCarStop
+import RelCertifier.InstancesV2.WellFormed.DrlLaneControl
+import RelCertifier.InstancesV2.Choice.General.VehicleHypercert
 import RelCertifier.InstancesV2.WellFormed.Watertank
 import RelCertifier.InstancesV2.WellFormed.AccSpoofLag
 import RelCertifier.InstancesV2.WellFormed.AccSpoofLimp
@@ -114,7 +119,8 @@ def wfProved : List String :=
    "rover_dof_terrain_rung1", "rover_dof_terrain_rung2", "rover_dof_terrain_rung3",
    "rover_dof_terrain_rung3_8d", "story1_attdist_rung_a_6to8", "story1_attdist_rung_b_12dof",
    "story2_lateral_rung_a_8dof", "story2_lateral_rung_b_12dof", "story3_rollover_base_12dof",
-   "story3_rollover_ladder_rung_a", "watertank_twospeed"]
+   "story3_rollover_ladder_rung_a", "watertank_twospeed", "drl_car_stop", "drl_lane_control",
+   "vehicle_hypercert"]
 
 /-- The benchmarks whose right model violates Assumption 1 (none since the 2026-10-10
 repairs; the nine refuted until then are in `wfProved`). -/
@@ -131,13 +137,13 @@ def wfBand : List String :=
 detumble family (also proved, listed apart for its band audit). `(30, 9, 6)` until the
 2026-10-10 repairs of the nine refuted models; `(39, 0, 6)` then, `(40, 0, 6)` with
 `watertank_twospeed` (2026-10-11). -/
-def wfDeclared : ℕ × ℕ × ℕ := (40, 0, 6)
+def wfDeclared : ℕ × ℕ × ℕ := (43, 0, 6)
 
 /-- The suite's benchmark names, in the order of the IR table. -/
 def suiteNames : List String :=
   ["acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp", "arm_plateau_crit",
    "arm_plateau_profiles", "arm_plateau_slow", "charger_fast_setpoints",
-   "charger_fast_tapers", "match_multi_rate", "platoon3_linkloss", "platoon3_profiles",
+   "charger_fast_tapers", "drl_car_stop", "drl_lane_control", "match_multi_rate", "platoon3_linkloss", "platoon3_profiles",
    "platoon_delay_linkloss", "platoon_delay_profiles", "quad_light_airframe_20",
    "quad_light_lag", "quad_light_profiles", "refinement_ladder_rover_rung1_2to3",
    "refinement_ladder_rover_rung2_3to6", "refinement_ladder_rover_rung2_6dof",
@@ -150,13 +156,13 @@ def suiteNames : List String :=
    "sat_detumble_weak", "story1_attdist_rung_a_6to8", "story1_attdist_rung_b_12dof",
    "story2_lateral_rung_a_8dof", "story2_lateral_rung_b_12dof",
    "story3_rollover_base_12dof", "story3_rollover_ladder_rung_a",
-   "story3_rollover_ladder_rung_b", "watertank", "watertank_twospeed"]
+   "story3_rollover_ladder_rung_b", "vehicle_hypercert", "watertank", "watertank_twospeed"]
 
 /-- `suiteNames` IS the name column of the kernel-checked IR table of the suite. -/
 theorem suiteNames_eq : Parse.benchIRTableV2.map Prod.fst = suiteNames := rfl
 
 /-- The declared counts are the lists' lengths, and the three lists together are a
-permutation of the suite's 46 benchmarks (disjoint, nothing missing). -/
+permutation of the suite's 49 benchmarks (disjoint, nothing missing). -/
 theorem wf_coverage :
     (wfProved.length, wfRefuted.length, wfBand.length) = wfDeclared ∧
     (wfProved ++ wfRefuted ++ wfBand).Perm (Parse.benchIRTableV2.map Prod.fst) := by
@@ -165,7 +171,11 @@ theorem wf_coverage :
 
 end WellFormedBattery
 
-/-! ## Proved (40, outside the detumble family): Assumption 1 at every mode -/
+/-! ## Proved (43, outside the detumble family): Assumption 1 at every mode -/
+
+#print axioms V2DrlCarStop.drl_car_stop_wellFormedR_direct
+#print axioms V2DrlLaneControl.drl_lane_control_wellFormedR_direct
+#print axioms ChoiceVehicleHypercert.wellFormedR
 
 #print axioms V2Watertank.watertank_wellFormedR
 #print axioms V2WatertankTwospeed.watertank_twospeed_wellFormedR

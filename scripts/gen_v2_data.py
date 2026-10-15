@@ -69,7 +69,8 @@ def emit_leaves(b):
     # (the tool's default); the certificates found are written to the BenchProgress leaf
     cov = run([RELCERT, "--emit-cover", path, f"{b}_coverV2"],
               {"RELCERT_IMPLIED_CUT": "1",
-               "RELCERT_PROGRESS_OUT": f"{OUT}/BenchProgress/{b}.lean"})
+               "RELCERT_PROGRESS_OUT": f"{OUT}/BenchProgress/{b}.lean",
+               "RELCERT_CHOICE_OUT": f"{OUT}/BenchChoice/{b}.lean"})
     with open(f"{OUT}/BenchCovers/{b}.lean", "w") as f:
         f.write(HDR.format(b=b, what="emitted cover, `RELCERT_IMPLIED_CUT=1`, progress certificates by default"))
         f.write("import RelCertifier.Checker.CoverEmit\n\nnamespace RelCertifier\n\n")
@@ -118,6 +119,16 @@ compares it with the literal of the same name in `benchIRTableV2`.
         f.write("def coverTableV2 : List (String × CoverEmitE) := [\n")
         f.write(",\n".join(f"  (\"{b}\", {b}_coverV2)" for b in benches))
         f.write(" ]\n\nend RelCertifier\n")
+    with open(f"{OUT}/BenchChoice.lean", "w") as f:
+        f.write("/- suite_v2 choice-record aggregator (GENERATED — `scripts/gen_v2_data.py`): the chosen\n")
+        f.write("sets of the existential mode choice per benchmark (empty for a benchmark whose cover\n")
+        f.write("needs none). -/\n")
+        for b in benches:
+            f.write(f"import RelCertifier.InstancesV2.BenchChoice.{b}\n")
+        f.write("\nnamespace RelCertifier.Choice\n\n")
+        f.write("def choiceTableV2 : List (String × ChoiceEmitE) := [\n")
+        f.write(",\n".join(f"  (\"{b}\", {b}_coverV2_choice)" for b in benches))
+        f.write(" ]\n\nend RelCertifier.Choice\n")
     with open(f"{OUT}/Cuts.lean", "w") as f:
         f.write("/- suite_v2 cut-certificate aggregator (GENERATED — `scripts/gen_v2_data.py`). -/\n")
         for b in benches:
@@ -137,12 +148,17 @@ Per benchmark, for every emitted left-mode cover and every admissible start, the
 `decideCovered`, run on the same structural graph the tool built (`buildCoverGraph` over
 the emitted flags, successors and pruned edges, same fuel, same budget, σ = preJ), accepts,
 by kernel computation (`decide`). This replays the tool's CERTIFIED gate inside the kernel:
-three standard axioms, no Z3, no IO.
+three standard axioms, no Z3, no IO. A benchmark whose cover uses the existential mode choice
+(a non-empty choice record) is replayed by the extended checker `decideCoveredX` on the
+bridge's semantic automaton with its chosen sets (`Emitted.coversOK`, `decide +kernel`), the
+same replay its generated bridge instance performs.
 -/
 import RelCertifier.Checker.Checker
 import RelCertifier.Trusted.Run
+import RelCertifier.Proofs.Encoding.Emitted.Keyed
 import RelCertifier.InstancesV2.BenchIR
 import RelCertifier.InstancesV2.BenchCovers
+import RelCertifier.InstancesV2.BenchChoice
 
 namespace RelCertifier
 
@@ -158,7 +174,12 @@ def coverReplays (p : Parse.PProblem) (c : CoverEmitE) : Bool :=
 
 """)
         for b in benches:
-            f.write(f"theorem {b}_coverV2_replay : coverReplays Parse.{b}_IRv2 {b}_coverV2 = true := by decide\n\n")
+            if choice_entries(b) > 0:
+                n = max(nvars(b), 3)
+                f.write(f"/-- `{b}` uses the existential mode choice ({choice_entries(b)} chosen sets): the extended checker. -/\n")
+                f.write(f"theorem {b}_coverV2_replay : Emitted.coversOK Parse.{b}_IRv2 {n} {b}_coverV2 Choice.{b}_coverV2_choice = true := by decide +kernel\n\n")
+            else:
+                f.write(f"theorem {b}_coverV2_replay : coverReplays Parse.{b}_IRv2 {b}_coverV2 = true := by decide\n\n")
         f.write("end RelCertifier\n")
     with open(f"{OUT}/SameIR.lean", "w") as f:
         f.write("""/-
@@ -182,8 +203,20 @@ suite_v2 file; the file-to-literal tie is `relcert-test`'s `[ir-drift-v2]`.
             f.write(f"theorem {b}_IRv2_eq : {b}_IRv2 = {b}_IR := rfl\n")
         f.write("\nend RelCertifier.Parse\n")
 
+def choice_entries(b):
+    """Number of chosen-set entries in the emitted choice record of `b`."""
+    src = open(f"{OUT}/BenchChoice/{b}.lean").read()
+    return max(src.count("⟨\"") - 1, 0)   # the record header `⟨"<b>", [...]⟩` is not an entry
+
+def nvars(b):
+    """The left state variables of `b` (its IR literal's `state_vars`)."""
+    for line in open(f"{SUITE}/{b}/input.txt"):
+        if line.startswith("state_vars"):
+            return len([v for v in line.split("[", 1)[1].split("]")[0].split(",") if v.strip()])
+    return 1
+
 def main():
-    for d in ["BenchIR", "BenchCovers", "Cuts"]:
+    for d in ["BenchIR", "BenchCovers", "Cuts", "BenchProgress", "BenchChoice"]:
         os.makedirs(f"{OUT}/{d}", exist_ok=True)
     benches = all_benches()
     todo = sys.argv[1:] or benches

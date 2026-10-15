@@ -48,7 +48,7 @@ noncomputable def packVerd (r : PackC) : Prop :=
   modalVerdX r.p r.c r.dim r.invRow r.order ((packLam r : ℚ) : ℝ) r.l r.m
 
 def hyp (l : ℕ) : PackC :=
-  { bench := "vehicle_hypercert", p := vehicle_hypercert_IRc, c := vehicle_hypercert_cutsCX,
+  { bench := "vehicle_hypercert", p := vehicle_hypercert_IRv2, c := vehicle_hypercert_cutsV2X,
     invRow := l, l := l, m := l }
 def acc (l : ℕ) : PackC :=
   { bench := "vehicle_accel_copy", p := vehicle_accel_copy_IRc, c := vehicle_accel_copy_cutsCX,

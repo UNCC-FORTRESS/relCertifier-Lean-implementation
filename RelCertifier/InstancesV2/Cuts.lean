@@ -8,6 +8,8 @@ import RelCertifier.InstancesV2.Cuts.arm_plateau_profiles
 import RelCertifier.InstancesV2.Cuts.arm_plateau_slow
 import RelCertifier.InstancesV2.Cuts.charger_fast_setpoints
 import RelCertifier.InstancesV2.Cuts.charger_fast_tapers
+import RelCertifier.InstancesV2.Cuts.drl_car_stop
+import RelCertifier.InstancesV2.Cuts.drl_lane_control
 import RelCertifier.InstancesV2.Cuts.match_multi_rate
 import RelCertifier.InstancesV2.Cuts.platoon3_linkloss
 import RelCertifier.InstancesV2.Cuts.platoon3_profiles
@@ -43,6 +45,7 @@ import RelCertifier.InstancesV2.Cuts.story2_lateral_rung_b_12dof
 import RelCertifier.InstancesV2.Cuts.story3_rollover_base_12dof
 import RelCertifier.InstancesV2.Cuts.story3_rollover_ladder_rung_a
 import RelCertifier.InstancesV2.Cuts.story3_rollover_ladder_rung_b
+import RelCertifier.InstancesV2.Cuts.vehicle_hypercert
 import RelCertifier.InstancesV2.Cuts.watertank
 import RelCertifier.InstancesV2.Cuts.watertank_twospeed
 
@@ -58,6 +61,8 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("arm_plateau_slow", arm_plateau_slow_cutsV2, arm_plateau_slow_cutsV2X),
   ("charger_fast_setpoints", charger_fast_setpoints_cutsV2, charger_fast_setpoints_cutsV2X),
   ("charger_fast_tapers", charger_fast_tapers_cutsV2, charger_fast_tapers_cutsV2X),
+  ("drl_car_stop", drl_car_stop_cutsV2, drl_car_stop_cutsV2X),
+  ("drl_lane_control", drl_lane_control_cutsV2, drl_lane_control_cutsV2X),
   ("match_multi_rate", match_multi_rate_cutsV2, match_multi_rate_cutsV2X),
   ("platoon3_linkloss", platoon3_linkloss_cutsV2, platoon3_linkloss_cutsV2X),
   ("platoon3_profiles", platoon3_profiles_cutsV2, platoon3_profiles_cutsV2X),
@@ -93,6 +98,7 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("story3_rollover_base_12dof", story3_rollover_base_12dof_cutsV2, story3_rollover_base_12dof_cutsV2X),
   ("story3_rollover_ladder_rung_a", story3_rollover_ladder_rung_a_cutsV2, story3_rollover_ladder_rung_a_cutsV2X),
   ("story3_rollover_ladder_rung_b", story3_rollover_ladder_rung_b_cutsV2, story3_rollover_ladder_rung_b_cutsV2X),
+  ("vehicle_hypercert", vehicle_hypercert_cutsV2, vehicle_hypercert_cutsV2X),
   ("watertank", watertank_cutsV2, watertank_cutsV2X),
   ("watertank_twospeed", watertank_twospeed_cutsV2, watertank_twospeed_cutsV2X) ]
 

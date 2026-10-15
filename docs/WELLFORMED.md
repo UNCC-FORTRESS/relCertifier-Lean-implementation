@@ -1,14 +1,16 @@
 # Assumption 1, verified per benchmark (`WellFormedR`)
 
 **Status (2026-10-15, branch `theorem3-general`).** The paper's Assumption 1
-(Well-Formedness) is a separately stated, kernel-checked model fact for every one of the 46
-suite_v2 benchmarks: **proved for all 46**, **false for none**. The six satellites are proved
+(Well-Formedness) is a separately stated, kernel-checked model fact for every one of the 49
+suite_v2 benchmarks: **proved for all 49**, **false for none** (the three literature benchmarks
+of 2026-10-15 included; the two dRL ones are proved directly over the bridge's automaton,
+`<b>_wellFormedR_direct`, with explicit polynomial runs, `trajRs_sol`). The six satellites are proved
 literally since 2026-10-15, when their conserved momentum band entered the right evolve
 domain (§3, §5); until then they were proved on the band, with the literal predicate refuted. Until 2026-10-10 it was false for 9 models (refuted in the kernel with exhibited
 blocking states); those nine were repaired (`docs/SUITE-REDESIGN.md` §21: the fallback sinks
 re-engage or are latched with an invariant guard, the arm planner's successor sets name every
 band a sampled interval can reach) and are now proved. No proof uses Z3. The tool's sufficient
-check of the successor half (`relcert --wellformed`) finds every one of the 146 right modes
+check of the successor half (`relcert --wellformed`) finds every one of the 162 right modes
 `ok`, and `--check-quick-v2` now runs it STRICT, against a declared count (§4). No Theorem 3
 changed in shape; none takes Assumption 1 as a hypothesis.
 
@@ -146,6 +148,9 @@ unconditional since the momentum band `|h_i + J_i w_i| ≤ 2` entered the right 
 | 43 | `story3_rollover_ladder_rung_a` | proved | as 18 | as 18 |
 | 44 | `story3_rollover_ladder_rung_b` | proved | as 18 | as 18 |
 | 45 | `watertank` | proved | Low (b) → MidEco; MidEco, MidBoost, High, PumpOff (a) | Low ok (exit→MidBoost, same guard); the others ok (invariant) |
+| 47 | `drl_car_stop` | proved (direct) | Accel, Brake (b) → Coast; Coast (a); explicit run `x + v t + c t²/2` | Accel, Brake ok (exit→Coast); Coast ok (invariant) |
+| 48 | `drl_lane_control` | proved (direct) | every mode (b) → CoastLAccel or CoastLBrake by the leader's speed; explicit run | all six ok (exit) |
+| 49 | `vehicle_hypercert` | proved (`ChoiceVehicleHypercert.wellFormedR`) | A0 (a); the others (b) → A0 or Ap4 | A0 ok (invariant); the others ok (exit) |
 
 Totals: proved 39, false 0, band 6 (`WellFormedBattery.wfDeclared = (39, 0, 6)`, was
 `(30, 9, 6)` until the 2026-10-10 repairs;

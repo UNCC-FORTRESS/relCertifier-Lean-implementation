@@ -12,8 +12,10 @@ discharges, `Emitted.verdicts_of_groups`).
 import RelCertifier.Proofs.Encoding.Emitted.Window
 import RelCertifier.Proofs.Encoding.Emitted.Transport
 import RelCertifier.InstancesV2.WellFormed.Sat3wDetumbleWeak
+import RelCertifier.InstancesV2.Cuts.sat3w_detumble_weak
 import RelCertifier.InstancesV2.BenchCovers.sat3w_detumble_weak
 import RelCertifier.InstancesV2.BenchProgress.sat3w_detumble_weak
+import RelCertifier.InstancesV2.BenchChoice.sat3w_detumble_weak
 
 namespace RelCertifier.Bridge.Sat3wDetumbleWeak
 
@@ -23,7 +25,7 @@ abbrev IR := Parse.sat3w_detumble_weak_IRv2
 abbrev cX := Oracle.sat3w_detumble_weak_cutsV2X
 abbrev cov := sat3w_detumble_weak_coverV2
 abbrev prog := Progress.sat3w_detumble_weak_coverV2_progress
-abbrev ce := Choice.ChoiceEmitE.empty "sat3w_detumble_weak"
+abbrev ce := Choice.sat3w_detumble_weak_coverV2_choice
 
 theorem struct_ok : structOK IR 6 cov cX = true := by decide +kernel
 theorem prog_ok : progOK IR 6 cov prog = true := by decide +kernel

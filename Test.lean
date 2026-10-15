@@ -182,7 +182,7 @@ The 19 carried-over legacy literals (`Instances/BenchIR`) are tied to these by
 `InstancesV2/SameIR.lean` (`rfl`), so this one check covers them too. -/
 
 /-- The suite_v2 drift check: every `benchIRTableV2` literal equals a fresh parse of
-`benchmarks/suite_v2/<name>/input.txt`, and the table covers all 46 files. -/
+`benchmarks/suite_v2/<name>/input.txt`, and the table covers all 49 files. -/
 def testIRDriftV2 : IO Unit := do
   IO.println "[ir-drift-v2]"
   let mut bad := 0
@@ -195,7 +195,7 @@ def testIRDriftV2 : IO Unit := do
         if q == p then pure ()
         else bad := bad + 1; check s!"{nm}: literal == fresh parse (suite_v2)" false
   check s!"all {RelCertifier.Parse.benchIRTableV2.length} suite_v2 IR literals match their files"
-    (bad == 0 && RelCertifier.Parse.benchIRTableV2.length == 46)
+    (bad == 0 && RelCertifier.Parse.benchIRTableV2.length == 49)
 
 /-! ## Invariant-lowering tests: each shape → expected component count -/
 def testLowering : IO Unit := do

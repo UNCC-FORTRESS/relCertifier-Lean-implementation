@@ -12,8 +12,10 @@ discharges, `Emitted.verdicts_of_groups`).
 import RelCertifier.Proofs.Encoding.Emitted.Window
 import RelCertifier.Proofs.Encoding.Emitted.Transport
 import RelCertifier.InstancesV2.WellFormed.ChargerFastTapers
+import RelCertifier.InstancesV2.Cuts.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchCovers.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchProgress.charger_fast_tapers
+import RelCertifier.InstancesV2.BenchChoice.charger_fast_tapers
 
 namespace RelCertifier.Bridge.ChargerFastTapers
 
@@ -23,7 +25,7 @@ abbrev IR := Parse.charger_fast_tapers_IRv2
 abbrev cX := Oracle.charger_fast_tapers_cutsV2X
 abbrev cov := charger_fast_tapers_coverV2
 abbrev prog := Progress.charger_fast_tapers_coverV2_progress
-abbrev ce := Choice.ChoiceEmitE.empty "charger_fast_tapers"
+abbrev ce := Choice.charger_fast_tapers_coverV2_choice
 
 theorem struct_ok : structOK IR 2 cov cX = true := by decide +kernel
 theorem prog_ok : progOK IR 2 cov prog = true := by decide +kernel

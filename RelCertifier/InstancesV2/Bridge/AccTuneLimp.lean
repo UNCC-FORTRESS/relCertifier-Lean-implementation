@@ -12,8 +12,10 @@ discharges, `Emitted.verdicts_of_groups`).
 import RelCertifier.Proofs.Encoding.Emitted.Keyed
 import RelCertifier.Proofs.Encoding.Emitted.Transport
 import RelCertifier.InstancesV2.WellFormed.AccTuneLimp
+import RelCertifier.InstancesV2.Cuts.acc_tune_limp
 import RelCertifier.InstancesV2.BenchCovers.acc_tune_limp
 import RelCertifier.InstancesV2.BenchProgress.acc_tune_limp
+import RelCertifier.InstancesV2.BenchChoice.acc_tune_limp
 
 namespace RelCertifier.Bridge.AccTuneLimp
 
@@ -23,7 +25,7 @@ abbrev IR := Parse.acc_tune_limp_IRv2
 abbrev cX := Oracle.acc_tune_limp_cutsV2X
 abbrev cov := acc_tune_limp_coverV2
 abbrev prog := Progress.acc_tune_limp_coverV2_progress
-abbrev ce := Choice.ChoiceEmitE.empty "acc_tune_limp"
+abbrev ce := Choice.acc_tune_limp_coverV2_choice
 
 theorem struct_ok : structOK IR 3 cov cX = true := by decide +kernel
 theorem prog_ok : progOK IR 3 cov prog = true := by decide +kernel

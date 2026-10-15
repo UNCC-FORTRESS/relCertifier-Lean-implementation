@@ -1,9 +1,9 @@
 # Suite redesign — `benchmarks/suite_v2` (2026-10-08, branch `suite-redesign`)
 
-> **Current state (2026-10-10, pass 11, §21).** `benchmarks/suite_v2` has **46 benchmarks** (`watertank_twospeed` added 2026-10-11, §22),
+> **Current state (2026-10-10, pass 11, §21).** `benchmarks/suite_v2` has **49 benchmarks** (`watertank_twospeed` added 2026-10-11, §22; three literature benchmarks 2026-10-15, §23),
 > all CERTIFIED with `RELCERT_IMPLIED_CUT=1` (10 DECLINE without it), every one carries a
 > kernel-checked Theorem 3 (`RelCertifier/InstancesV2/BatteryV2.lean`; `README.md`), and every
-> right model satisfies Assumption 1 (`WellFormedR`, all 46 literally since 2026-10-15, when the six satellites'
+> right model satisfies Assumption 1 (`WellFormedR`, all 49 literally since 2026-10-15, when the six satellites'
 > momentum band entered their right evolve domains, §19.2; the nine models that violated it were repaired in §21). The mechanism matrix,
 > re-run on 2026-10-10 with `scripts/suite_v2_matrix.py` after the repairs, gives the totals
 > **M1 17, M2 33, M3 14, M4 19, M5 12, M6 29, M6+ 10, M6L 6**, no per-mode evolve domains,
@@ -3825,3 +3825,43 @@ fallback on, as the tool now is; `RELCERT_NO_PAIR_STRETCH=1` is the fallback's o
 checker, which already carries per-mode ℕ weights): it would avoid cutting a transient right
 mode's segment short where it has no self-loop, at the price of unequal pieces in the replayed
 window. Candidate for a later pass.
+
+## 23. Pass 13 (2026-10-15): three benchmarks from the literature
+
+**Finding.** The relational and refinement logics for dL have worked examples that fit the suite's
+format once sampled: dRL's refinement of a time-triggered controller by an event-triggered one
+(Loos and Platzer, LICS 2016, Section 6; Prebet and Platzer, IJCAR 2024, Example 1) and the
+HyperCertificates opacity vehicle (Murali et al., arXiv 2605.00752, Section 9.2, already an
+exhibit). Not migratable: rel-dL's examples (Kolčák et al., TACAS 2020: no control, comparison at
+equal position with a state-dependent stretch), dARL's (Hellwig, Qian, Platzer, IJCAR 2026:
+equal-time DAE index reductions), dHL's FREEDM grid (Bohrer and Platzer, LICS 2018: the controller
+resets state variables each cycle, outside the format), and the ∀∀ robustness examples of Nguyen
+et al. (MEMOCODE 2017) and Anand et al. (TAC 2024, room temperature), whose two traces are both
+universal.
+
+**The files.** `drl_car_stop` (2 variables, 3 modes a side: a car before a stop line, Accel /
+Coast / Brake; left guard `Safe_ε`, right guard `Safe`) and `drl_lane_control` (3 variables: the
+gap and two speeds; 6 modes a side, follower action × leader action in `{A, −B}`). The claim is
+dRL's refinement, reachability inclusion at equal durations: the identity relation on the state,
+stretch 1 (`lambda_min = lambda_max = 1`; the 21-value grid exceeded the query budget on the
+6 × 6 pairing table). The deviation from the source, stated in each header: the right is sampled
+at the left's period with the event guard tested at each switch (the event-triggered right of the
+source, whose runs may stop anywhere inside the event domain, has no fixed cycle and fails
+Assumption 1), so the certified refinement is dRL's pattern between two sampled controllers, the
+conservative one (`Safe_ε`) refining the permissive one (`Safe`); and the leader's interval
+acceleration is a finite choice. `vehicle_hypercert` moved from `benchmarks/choice` unchanged.
+
+**What they exercise.** All three need the existential mode choice: the right hops into the
+left's mode at the start of every window (the left's guard and the identity relation put the
+right in the permissive guard), then runs the certified joint segment; under the all-successors
+rule the equality rows are false. The choice is therefore the tool's default since this pass
+(`RELCERT_NO_CHOICE=1` disables it); the 46 original covers are byte-identical either way; the
+three DECLINE without it. Matrix: M2 for all three (mode choice), no cuts, no pruning.
+
+**Lean.** Generic-bridge instances for the two dRL benchmarks (window form, `n = 3`), with
+Assumption 1 proved directly over the bridge's automaton (`InstancesV2/WellFormed/DrlCarStop.lean`,
+`DrlLaneControl.lean`: `trajRs_sol`, the explicit polynomial run of one period; completeness by
+the always-enabled Coast action, or one of the two leader actions by the leader's speed); the
+generator's `DIRECT_REGION` variant. `vehicle_hypercert` keeps its hand-written general instance
+(downward progress stages). Counts: 49 files, 162 right modes (86 invariant, 76 exit), handoff
+257, bridge groups 3647 (3511 over the suite), `WellFormedBattery` `(43, 0, 6)`.

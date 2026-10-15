@@ -8,12 +8,17 @@ Per benchmark, for every emitted left-mode cover and every admissible start, the
 `decideCovered`, run on the same structural graph the tool built (`buildCoverGraph` over
 the emitted flags, successors and pruned edges, same fuel, same budget, σ = preJ), accepts,
 by kernel computation (`decide`). This replays the tool's CERTIFIED gate inside the kernel:
-three standard axioms, no Z3, no IO.
+three standard axioms, no Z3, no IO. A benchmark whose cover uses the existential mode choice
+(a non-empty choice record) is replayed by the extended checker `decideCoveredX` on the
+bridge's semantic automaton with its chosen sets (`Emitted.coversOK`, `decide +kernel`), the
+same replay its generated bridge instance performs.
 -/
 import RelCertifier.Checker.Checker
 import RelCertifier.Trusted.Run
+import RelCertifier.Proofs.Encoding.Emitted.Keyed
 import RelCertifier.InstancesV2.BenchIR
 import RelCertifier.InstancesV2.BenchCovers
+import RelCertifier.InstancesV2.BenchChoice
 
 namespace RelCertifier
 
@@ -44,6 +49,12 @@ theorem arm_plateau_slow_coverV2_replay : coverReplays Parse.arm_plateau_slow_IR
 theorem charger_fast_setpoints_coverV2_replay : coverReplays Parse.charger_fast_setpoints_IRv2 charger_fast_setpoints_coverV2 = true := by decide
 
 theorem charger_fast_tapers_coverV2_replay : coverReplays Parse.charger_fast_tapers_IRv2 charger_fast_tapers_coverV2 = true := by decide
+
+/-- `drl_car_stop` uses the existential mode choice (6 chosen sets): the extended checker. -/
+theorem drl_car_stop_coverV2_replay : Emitted.coversOK Parse.drl_car_stop_IRv2 3 drl_car_stop_coverV2 Choice.drl_car_stop_coverV2_choice = true := by decide +kernel
+
+/-- `drl_lane_control` uses the existential mode choice (30 chosen sets): the extended checker. -/
+theorem drl_lane_control_coverV2_replay : Emitted.coversOK Parse.drl_lane_control_IRv2 3 drl_lane_control_coverV2 Choice.drl_lane_control_coverV2_choice = true := by decide +kernel
 
 theorem match_multi_rate_coverV2_replay : coverReplays Parse.match_multi_rate_IRv2 match_multi_rate_coverV2 = true := by decide
 
@@ -114,6 +125,9 @@ theorem story3_rollover_base_12dof_coverV2_replay : coverReplays Parse.story3_ro
 theorem story3_rollover_ladder_rung_a_coverV2_replay : coverReplays Parse.story3_rollover_ladder_rung_a_IRv2 story3_rollover_ladder_rung_a_coverV2 = true := by decide
 
 theorem story3_rollover_ladder_rung_b_coverV2_replay : coverReplays Parse.story3_rollover_ladder_rung_b_IRv2 story3_rollover_ladder_rung_b_coverV2 = true := by decide
+
+/-- `vehicle_hypercert` uses the existential mode choice (20 chosen sets): the extended checker. -/
+theorem vehicle_hypercert_coverV2_replay : Emitted.coversOK Parse.vehicle_hypercert_IRv2 3 vehicle_hypercert_coverV2 Choice.vehicle_hypercert_coverV2_choice = true := by decide +kernel
 
 theorem watertank_coverV2_replay : coverReplays Parse.watertank_IRv2 watertank_coverV2 = true := by decide
 

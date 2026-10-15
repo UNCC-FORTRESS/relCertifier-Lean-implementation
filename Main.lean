@@ -8,9 +8,9 @@ Released under Apache 2.0 license.
   on one warm Z3 session and prints CERTIFIED / DECLINED / ERROR per file.
 * `relcert --run-verdicts-v2` re-sends every Z3 hypothesis of the suite_v2 battery
   (`InstancesV2/BatteryV2`) with declared per-phase counts (`runAllVerdictsV2`);
-  `--check-quick-v2` certifies the 46 suite_v2 files first (in the strict well-formedness
+  `--check-quick-v2` certifies the 49 suite_v2 files first (in the strict well-formedness
   mode) and checks the tally, then runs the verdicts, then the strict Assumption 1 gate
-  (declared 146 right modes, 0 UNKNOWN).
+  (declared 162 right modes, 0 UNKNOWN).
 * `relcert --handoff <input.txt>…` runs the cross-mode handoff check per benchmark.
 * `relcert --wellformed <input.txt>…` runs the Assumption 1 check of the right models
   (`Trusted/WellFormedCheck.lean`, informational; `RELCERT_WELLFORMED_STRICT=1` makes an
@@ -115,10 +115,10 @@ USAGE
                                           pruning queries of every pruned edge), and the
                                           packs of the 19 carried-over theorems
   RELCERT_IMPLIED_CUT=1 relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt
-                                          certify the 46 suite_v2 files in the strict
-                                          well-formedness mode (declared 46 certified,
+                                          certify the 49 suite_v2 files in the strict
+                                          well-formedness mode (declared 49 certified,
                                           0 declined), then --run-verdicts-v2, then the
-                                          strict --wellformed gate (declared 146 right
+                                          strict --wellformed gate (declared 162 right
                                           modes, 0 UNKNOWN; any UNKNOWN fails the run)
   relcert --handoff <input.txt>...        the handoff check alone, per benchmark, with
                                           per-transition verdicts and wall time
@@ -195,6 +195,8 @@ SWITCHES (environment)
   RELCERT_Z3_RLIMIT=<units>       per-query deterministic rlimit, default 64000000
                                   (0 disables it)
   RELCERT_MAX_QUERIES=<n>         per-benchmark query budget, default 20000
+  RELCERT_NO_PROGRESS=1           no progress certificates at reposition nodes (ablation)
+  RELCERT_NO_CHOICE=1             no existential mode choice after the all-successors rule fails (ablation)
   RELCERT_TIME_BUDGET_MS=<ms>     per-benchmark wall-clock budget, default 40000
 
 EXIT

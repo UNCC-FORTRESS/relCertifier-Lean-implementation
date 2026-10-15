@@ -611,6 +611,53 @@ theorem exists_rate_run {fR : Fin n → Term (Var n)} {domR : Formula (Var n)}
       funext y; simp [trajJ]
     rwa [he] at h
 
+/-! ## Right-block trajectories (several coordinates) -/
+
+/-- The trajectory that moves the right coordinates along `φ`, every other variable frozen at
+`x`. -/
+noncomputable def trajRs (x : State (Var n)) (φ : Fin n → ℝ → ℝ) (t : ℝ) : State (Var n) :=
+  fun y => if y.1 = Side.R then φ y.2 t else x y
+
+@[simp] theorem trajRs_R (x : State (Var n)) (φ : Fin n → ℝ → ℝ) (t : ℝ) (i : Fin n) :
+    trajRs x φ t (Rv i) = φ i t := by simp [trajRs]
+
+theorem trajRs_ne (x : State (Var n)) (φ : Fin n → ℝ → ℝ) (t : ℝ) {y : Var n}
+    (hy : y.1 ≠ Side.R) : trajRs x φ t y = x y := by simp [trajRs, hy]
+
+/-- **An explicit run of the right block** at unit stretch: every right coordinate `i` follows
+`φ i`, starting at `x_i` with the field's derivative along the trajectory, and the domain
+holds along it. -/
+theorem trajRs_sol {fR : Fin n → Term (Var n)} {domR : Formula (Var n)} (x : State (Var n))
+    (φ : Fin n → ℝ → ℝ) (ε : ℝ) (hε : 0 ≤ ε) (h0 : ∀ i, φ i 0 = x (Rv i))
+    (hder : ∀ i t, 0 ≤ t → t ≤ ε → HasDerivAt (φ i) (Term.eval (fR i) (trajRs x φ t)) t)
+    (hdom : ∀ t, 0 ≤ t → t ≤ ε → Formula.sat domR (trajRs x φ t)) :
+    ODESol (rightBlock fR (Term.const 1)) domR x ε (trajRs x φ) := by
+  refine ⟨hε, ?_, ?_, ?_, fun t ht => hdom t ht.1 ht.2⟩
+  · funext y
+    rcases y with ⟨s, i⟩
+    cases s
+    · rfl
+    · exact h0 i
+    · rfl
+  · intro t ht p hp
+    simp only [rightBlock, List.mem_map, List.mem_finRange, true_and] at hp
+    obtain ⟨i, rfl⟩ := hp
+    show HasDerivWithinAt (fun u => trajRs x φ u (Rv i))
+      (Term.eval (Term.binop .mul (Term.const 1) (fR i)) (trajRs x φ t)) (Icc 0 ε) t
+    rw [eval_unit_mul]
+    have hf : (fun u => trajRs x φ u (Rv i)) = φ i := by funext u; simp [trajRs]
+    rw [hf]
+    exact (hder i t ht.1 ht.2).hasDerivWithinAt
+  · intro t _ y hy
+    rcases y with ⟨s, i⟩
+    cases s
+    · rfl
+    · exfalso
+      apply hy
+      simp only [rightBlock, ODESystem.bound, List.map_map]
+      exact List.mem_map.mpr ⟨i, List.mem_finRange i, rfl⟩
+    · rfl
+
 /-! ## Graphs built from an index list -/
 
 /-- In a graph whose edges are an index list mapped through an edge constructor (every

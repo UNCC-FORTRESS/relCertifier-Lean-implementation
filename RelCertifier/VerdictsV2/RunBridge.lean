@@ -13,19 +13,15 @@ three routes, every other group by its single query). The groups are exactly the
 import RelCertifier.Proofs.Encoding.Emitted.Run
 import RelCertifier.VerdictsV2.RunV2
 import RelCertifier.InstancesV2.BenchProgress
-import RelCertifier.InstancesV2.Choice.BenchIR.vehicle_hypercert
+import RelCertifier.InstancesV2.BenchChoice
 import RelCertifier.InstancesV2.Choice.BenchIR.vehicle_accel_copy
 import RelCertifier.InstancesV2.Choice.BenchIR.watertank_choice
-import RelCertifier.InstancesV2.Choice.Cuts.vehicle_hypercert
 import RelCertifier.InstancesV2.Choice.Cuts.vehicle_accel_copy
 import RelCertifier.InstancesV2.Choice.Cuts.watertank_choice
-import RelCertifier.InstancesV2.Choice.BenchCovers.vehicle_hypercert
 import RelCertifier.InstancesV2.Choice.BenchCovers.vehicle_accel_copy
 import RelCertifier.InstancesV2.Choice.BenchCovers.watertank_choice
-import RelCertifier.InstancesV2.Choice.BenchProgress.vehicle_hypercert
 import RelCertifier.InstancesV2.Choice.BenchProgress.vehicle_accel_copy
 import RelCertifier.InstancesV2.Choice.BenchProgress.watertank_choice
-import RelCertifier.InstancesV2.Choice.BenchChoice.vehicle_hypercert
 import RelCertifier.InstancesV2.Choice.BenchChoice.vehicle_accel_copy
 import RelCertifier.InstancesV2.Choice.BenchChoice.watertank_choice
 
@@ -43,11 +39,9 @@ structure BridgeRec where
   prog : ProgressEmitE
   ce   : ChoiceEmitE
 
-/-- The choice benchmarks (`benchmarks/choice`): the records emitted with `RELCERT_CHOICE=1`. -/
+/-- The choice exhibits (`benchmarks/choice`): their records. -/
 def choiceRecsV2 : List BridgeRec :=
-  [ ⟨"vehicle_hypercert", 2, vehicle_hypercert_IRc, vehicle_hypercert_cutsCX, vehicle_hypercert_coverV2,
-      vehicle_hypercert_coverV2_progress, vehicle_hypercert_coverV2_choice⟩,
-    ⟨"vehicle_accel_copy", 2, vehicle_accel_copy_IRc, vehicle_accel_copy_cutsCX, vehicle_accel_copy_coverV2,
+  [ ⟨"vehicle_accel_copy", 2, vehicle_accel_copy_IRc, vehicle_accel_copy_cutsCX, vehicle_accel_copy_coverV2,
       vehicle_accel_copy_coverV2_progress, vehicle_accel_copy_coverV2_choice⟩,
     ⟨"watertank_choice", 2, watertank_choice_IRc, watertank_choice_cutsCX, watertank_choice_coverV2,
       watertank_choice_coverV2_progress, watertank_choice_coverV2_choice⟩ ]
@@ -58,16 +52,20 @@ def coverV2 (b : String) : CoverEmitE :=
 def progV2 (b : String) : ProgressEmitE :=
   ((progressTableV2.find? (·.1 == b)).map (·.2)).getD ⟨b, []⟩
 
-/-- The bridge dimension of a benchmark: the pack table's. -/
+def choiceV2 (b : String) : ChoiceEmitE :=
+  ((choiceTableV2.find? (·.1 == b)).map (·.2)).getD (ChoiceEmitE.empty b)
+
+/-- The bridge dimension of a benchmark: the pack table's; without a standalone pack row, the
+state variables padded to the three auxiliary coordinates the keyed form needs. -/
 def bridgeDimV2 (b : String) : ℕ :=
-  ((packsV2.find? (fun r => r.bench == b)).map (fun r => r.dim)).getD (irV2 b).L.stateVars.length
+  ((packsV2.find? (fun r => r.bench == b)).map (fun r => r.dim)).getD (max (irV2 b).L.stateVars.length 3)
 
 /-- Declared: the number of query groups over the suite. -/
-def expectedBridgeGroupsV2 : Nat := 3512
+def expectedBridgeGroupsV2 : Nat := 3647
 
 /-- The suite's records. -/
 def suiteRecV2 (b : String) : BridgeRec :=
-  ⟨b, bridgeDimV2 b, irV2 b, cutV2 b, coverV2 b, progV2 b, ChoiceEmitE.empty b⟩
+  ⟨b, bridgeDimV2 b, irV2 b, cutV2 b, coverV2 b, progV2 b, choiceV2 b⟩
 
 def runBridgeBench (s : Z3Session) (r : BridgeRec) : IO (Bool × Nat) := do
   let b := r.name

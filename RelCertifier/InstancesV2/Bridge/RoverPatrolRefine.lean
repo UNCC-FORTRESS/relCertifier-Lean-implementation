@@ -12,8 +12,10 @@ discharges, `Emitted.verdicts_of_groups`).
 import RelCertifier.Proofs.Encoding.Emitted.Keyed
 import RelCertifier.Proofs.Encoding.Emitted.Transport
 import RelCertifier.InstancesV2.WellFormed.RoverPatrolRefine
+import RelCertifier.InstancesV2.Cuts.rover_patrol_refine
 import RelCertifier.InstancesV2.BenchCovers.rover_patrol_refine
 import RelCertifier.InstancesV2.BenchProgress.rover_patrol_refine
+import RelCertifier.InstancesV2.BenchChoice.rover_patrol_refine
 
 namespace RelCertifier.Bridge.RoverPatrolRefine
 
@@ -23,7 +25,7 @@ abbrev IR := Parse.rover_patrol_refine_IRv2
 abbrev cX := Oracle.rover_patrol_refine_cutsV2X
 abbrev cov := rover_patrol_refine_coverV2
 abbrev prog := Progress.rover_patrol_refine_coverV2_progress
-abbrev ce := Choice.ChoiceEmitE.empty "rover_patrol_refine"
+abbrev ce := Choice.rover_patrol_refine_coverV2_choice
 
 theorem struct_ok : structOK IR 3 cov cX = true := by decide +kernel
 theorem prog_ok : progOK IR 3 cov prog = true := by decide +kernel

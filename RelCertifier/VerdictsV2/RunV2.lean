@@ -521,7 +521,7 @@ def runDynV2 (cfg : Z3Config) : IO Bool := do
 
 /-- Declared: one handoff query per declared left transition over the 46 suite_v2 files
 (self-loops included; `CoveragePinsV2.derivedHandoffV2_eq` derives it from the IR table). -/
-def expectedHandoffV2 : Nat := 187
+def expectedHandoffV2 : Nat := 257
 
 /-- Declared handoff failures in suite_v2: none. -/
 def expectedHandoffFailuresV2 : List (String × Nat × Nat) := []
@@ -595,17 +595,17 @@ def runNonConnAllV2 (cfg : Z3Config) : IO Bool := do
 /-! ## The suite tally -/
 
 /-- What a certification run over `benchmarks/suite_v2/*/input.txt` must produce, with
-`RELCERT_IMPLIED_CUT=1`: all 46 certified (in the strict well-formedness mode of
+`RELCERT_IMPLIED_CUT=1`: all 49 certified (in the strict well-formedness mode of
 `--check-quick-v2`); and what the strict Assumption 1 check of the right models must produce:
-every one of the 148 right modes `ok` (`wfModes`, kernel-checked against the IR table by
+every one of the 162 right modes `ok` (`wfModes`, kernel-checked against the IR table by
 `CoveragePinsV2.suiteV2_wfModes`), none `UNKNOWN` (`wfUnknown`; 16 UNKNOWN in 9 benchmarks
 until the 2026-10-10 repairs, when the check was informational). -/
 structure ExpectedSuiteV2 where
-  paths     : Nat := 46
-  certified : Nat := 46
+  paths     : Nat := 49
+  certified : Nat := 49
   declined  : Nat := 0
   errors    : Nat := 0
-  wfModes   : Nat := 148
+  wfModes   : Nat := 162
   wfUnknown : Nat := 0
   deriving Repr
 

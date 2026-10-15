@@ -21,7 +21,7 @@ constant field leaves the envelope from one of its edges and `WellFormedFlowB` d
 import RelCertifier.Proofs.Encoding.CutRespond
 import RelCertifier.Proofs.Encoding.GuardedSwitch
 import RelCertifier.Proofs.Flow.FaceBridge
-import RelCertifier.InstancesV2.Choice.Cuts.vehicle_hypercert
+import RelCertifier.InstancesV2.Cuts.vehicle_hypercert
 import RelCertifier.InstancesV2.Choice.ConstMirror
 
 set_option linter.unusedSimpArgs false
@@ -33,8 +33,8 @@ open DL DLCalTiming DLRel Parse Set RelCertifier.Oracle
 
 def vs : List String := ["v"]
 def dm : PMode := ⟨"", [], .tt, .tt, []⟩
-def mL (l : ℕ) : PMode := vehicle_hypercert_IRc.L.modes.getD l dm
-def mR (q : ℕ) : PMode := vehicle_hypercert_IRc.R.modes.getD q dm
+def mL (l : ℕ) : PMode := vehicle_hypercert_IRv2.L.modes.getD l dm
+def mR (q : ℕ) : PMode := vehicle_hypercert_IRv2.R.modes.getD q dm
 
 abbrev mv : Var 2 := (Side.Aux, 0)
 abbrev tg : Var 2 := (Side.Aux, 1)
@@ -47,14 +47,14 @@ noncomputable def env : Formula (Var 2) := Formula.and domL domR
 
 /-- The declared invariant's components (row 0; every row is the same). -/
 noncomputable def comps : List (Term (Var 2)) :=
-  hostComps vs 2 (vehicle_hypercert_IRc.invariants.getD 0 ("", PForm.tt)).2
+  hostComps vs 2 (vehicle_hypercert_IRv2.invariants.getD 0 ("", PForm.tt)).2
 noncomputable def g : Term (Var 2) := comps.getD 0 (Term.const 0)
 noncomputable def gs : List (Term (Var 2)) := [comps.getD 1 (Term.const 0)]
 
 noncomputable def cL (l : ℕ) : List (CutAtomP 2) :=
-  cutPairsX vs 2 Side.L (cutAtomsOfX vehicle_hypercert_cutsCX.L (mL l).name)
+  cutPairsX vs 2 Side.L (cutAtomsOfX vehicle_hypercert_cutsV2X.L (mL l).name)
 noncomputable def cR (q : ℕ) : List (CutAtomP 2) :=
-  cutPairsX vs 2 Side.R (cutAtomsOfX vehicle_hypercert_cutsCX.R (mR q).name)
+  cutPairsX vs 2 Side.R (cutAtomsOfX vehicle_hypercert_cutsV2X.R (mR q).name)
 
 /-! ## Parse pins -/
 
@@ -95,26 +95,26 @@ noncomputable def cf (q : ℕ) : Fin 2 → ℝ := fun i => if i = 0 then acc q e
 theorem fL_eval (l : ℕ) (hl : l < 5) (i : Fin 2) (x : State (Var 2)) :
     Term.eval (fL l i) x = cf l i := by
   fin_cases i <;> interval_cases l <;>
-    simp [fL, hostDyn, mL, vehicle_hypercert_IRc, vs, Run.dynOf, Run.lowerE, hp00, hp004,
+    simp [fL, hostDyn, mL, vehicle_hypercert_IRv2, vs, Run.dynOf, Run.lowerE, hp00, hp004,
       hp002, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
       AOp.interp, Lv, cf, acc] <;> norm_num
 
 theorem fR_eval (q : ℕ) (hq : q < 5) (i : Fin 2) (x : State (Var 2)) :
     Term.eval (fR q i) x = cf q i := by
   fin_cases i <;> interval_cases q <;>
-    simp [fR, hostDyn, mR, vehicle_hypercert_IRc, vs, Run.dynOf, Run.lowerE, hp00, hp004,
+    simp [fR, hostDyn, mR, vehicle_hypercert_IRv2, vs, Run.dynOf, Run.lowerE, hp00, hp004,
       hp002, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
       AOp.interp, Rv, cf, acc] <;> norm_num
 
 theorem sat_domL (x : State (Var 2)) :
     Formula.sat domL x ↔ (0 ≤ x (Lv 0) ∧ x (Lv 0) ≤ 3/5) := by
-  simp only [domL, hostEvolve, mL, vehicle_hypercert_IRc, vs]
+  simp only [domL, hostEvolve, mL, vehicle_hypercert_IRv2, vs]
   simp [Run.lowerF, Run.lowerE, hp00, hp06, Run.resolveVar, List.findIdx?_cons,
     IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Lv]
 
 theorem sat_domR (x : State (Var 2)) :
     Formula.sat domR x ↔ (0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 3/5) := by
-  simp only [domR, hostEvolve, mR, vehicle_hypercert_IRc, vs]
+  simp only [domR, hostEvolve, mR, vehicle_hypercert_IRv2, vs]
   simp [Run.lowerF, Run.lowerE, hp00, hp06, Run.resolveVar, List.findIdx?_cons,
     IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv]
 
@@ -128,12 +128,12 @@ theorem comps_eq : comps =
      Term.binop .sub (Term.var (Rv 0)) (Term.var (Lv 0))] := by
   have hdL : ("L_v".drop 2).copy = "v" := by decide
   have hdR : ("R_v".drop 2).copy = "v" := by decide
-  simp [comps, hostComps, vehicle_hypercert_IRc, Oracle.invComponents, Run.lowerE, vs,
+  simp [comps, hostComps, vehicle_hypercert_IRv2, Oracle.invComponents, Run.lowerE, vs,
     Run.resolveVar, Parse.dr, hdL, hdR, List.findIdx?_cons, ITerm.toHost, Lv, Rv]
 
 /-- Every invariant row is row 0. -/
 theorem comps_row (l : ℕ) (hl : l < 5) :
-    hostComps vs 2 (vehicle_hypercert_IRc.invariants.getD l ("", PForm.tt)).2 = comps := by
+    hostComps vs 2 (vehicle_hypercert_IRv2.invariants.getD l ("", PForm.tt)).2 = comps := by
   interval_cases l <;> rfl
 
 theorem sat_FMgs (x : State (Var 2)) : Formula.sat (FM g gs) x ↔ x (Lv 0) = x (Rv 0) := by
@@ -187,19 +187,19 @@ theorem cR_34 (q : ℕ) (hq : q = 3 ∨ q = 4) : cR q =
   rw [← gR_ge0]; rcases hq with rfl | rfl <;> rfl
 
 theorem atomsNonstrictL (l : ℕ) (hl : l < 5) :
-    ∀ x ∈ cutAtomsOfX vehicle_hypercert_cutsCX.L (mL l).name,
+    ∀ x ∈ cutAtomsOfX vehicle_hypercert_cutsV2X.L (mL l).name,
       ∃ op e1 e2, x.atom = PForm.cmp op e1 e2 ∧ (op = "<=" ∨ op = ">=") := by
   intro x hx
   interval_cases l <;>
-    simp [cutAtomsOfX, vehicle_hypercert_cutsCX, mL, vehicle_hypercert_IRc] at hx <;>
+    simp [cutAtomsOfX, vehicle_hypercert_cutsV2X, mL, vehicle_hypercert_IRv2] at hx <;>
     (try rcases hx with rfl | rfl) <;> (try subst hx) <;> exact ⟨_, _, _, rfl, by simp⟩
 
 theorem atomsNonstrictR (q : ℕ) (hq : q < 5) :
-    ∀ x ∈ cutAtomsOfX vehicle_hypercert_cutsCX.R (mR q).name,
+    ∀ x ∈ cutAtomsOfX vehicle_hypercert_cutsV2X.R (mR q).name,
       ∃ op e1 e2, x.atom = PForm.cmp op e1 e2 ∧ (op = "<=" ∨ op = ">=") := by
   intro x hx
   interval_cases q <;>
-    simp [cutAtomsOfX, vehicle_hypercert_cutsCX, mR, vehicle_hypercert_IRc] at hx <;>
+    simp [cutAtomsOfX, vehicle_hypercert_cutsV2X, mR, vehicle_hypercert_IRv2] at hx <;>
     (try rcases hx with rfl | rfl) <;> (try subst hx) <;> exact ⟨_, _, _, rfl, by simp⟩
 
 theorem hiffL (l : ℕ) (hl : l < 5) : AtomsIff (cL l) :=
@@ -242,14 +242,14 @@ theorem cutP_of_env (q : ℕ) (v : ℝ) (h0 : 0 ≤ v) (h1 : v ≤ 3/5) : cutP q
 theorem sat_guardL (l : ℕ) (hl : l < 5) (ν : State (Var 2)) :
     Formula.sat (hostGuard vs 2 Side.L (mL l)) ν ↔ (lo l ≤ ν (Lv 0) ∧ ν (Lv 0) ≤ hi l) := by
   interval_cases l <;>
-    simp [hostGuard, mL, vehicle_hypercert_IRc, Run.lowerF, Run.lowerE, hp00, hp06, hp004,
+    simp [hostGuard, mL, vehicle_hypercert_IRv2, Run.lowerF, Run.lowerE, hp00, hp06, hp004,
       hp002, hp058, hp056, vs, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost,
       Formula.sat, CompOp.interp, Term.eval, Lv, lo, hi]
 
 theorem sat_guardR (q : ℕ) (hq : q < 5) (ν : State (Var 2)) :
     Formula.sat (hostGuard vs 2 Side.R (mR q)) ν ↔ (lo q ≤ ν (Rv 0) ∧ ν (Rv 0) ≤ hi q) := by
   interval_cases q <;>
-    simp [hostGuard, mR, vehicle_hypercert_IRc, Run.lowerF, Run.lowerE, hp00, hp06, hp004,
+    simp [hostGuard, mR, vehicle_hypercert_IRv2, Run.lowerF, Run.lowerE, hp00, hp06, hp004,
       hp002, hp058, hp056, vs, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost,
       Formula.sat, CompOp.interp, Term.eval, Rv, lo, hi]
 
@@ -270,24 +270,24 @@ theorem domR_pipe : domR =
 
 theorem hfL (l : ℕ) (hl : l < 5) : ∀ i, (fL l i).fv ⊆ range Lv := fun i x hx =>
   side_eq_L_mem (field_pipeline_side (resolvesTo_L vs) (some (mL l))
-    (by interval_cases l <;> simp [mL, vehicle_hypercert_IRc, Parse.PExpr.namesFree]) i x
+    (by interval_cases l <;> simp [mL, vehicle_hypercert_IRv2, Parse.PExpr.namesFree]) i x
     (fL_pipe l i ▸ hx))
 theorem hfR (q : ℕ) (hq : q < 5) : ∀ i, (fR q i).fv ⊆ range Rv := fun i x hx =>
   side_eq_R_mem (field_pipeline_side (resolvesTo_R vs) (some (mR q))
-    (by interval_cases q <;> simp [mR, vehicle_hypercert_IRc, Parse.PExpr.namesFree]) i x
+    (by interval_cases q <;> simp [mR, vehicle_hypercert_IRv2, Parse.PExpr.namesFree]) i x
     (fR_pipe q i ▸ hx))
 theorem hdomL : domL.fv ⊆ range Lv := fun x hx =>
   side_eq_L_mem (form_pipeline_side (resolvesTo_L vs) (some (mL 0))
-    (by simp [mL, vehicle_hypercert_IRc, Parse.PForm.namesFree, Parse.PExpr.namesFree]) x
+    (by simp [mL, vehicle_hypercert_IRv2, Parse.PForm.namesFree, Parse.PExpr.namesFree]) x
     (domL_pipe ▸ hx))
 theorem hdomR : domR.fv ⊆ range Rv := fun x hx =>
   side_eq_R_mem (form_pipeline_side (resolvesTo_R vs) (some (mR 0))
-    (by simp [mR, vehicle_hypercert_IRc, Parse.PForm.namesFree, Parse.PExpr.namesFree]) x
+    (by simp [mR, vehicle_hypercert_IRv2, Parse.PForm.namesFree, Parse.PExpr.namesFree]) x
     (domR_pipe ▸ hx))
 theorem hguardL (l : ℕ) (hl : l < 5) : (hostGuard vs 2 Side.L (mL l)).fv ⊆ range Lv :=
   fun x hx => side_eq_L_mem (hostForm_side (resolvesTo_L vs) (mL l).guard
     (by interval_cases l <;>
-        simp [mL, vehicle_hypercert_IRc, Parse.PForm.namesFree, Parse.PExpr.namesFree]) x hx)
+        simp [mL, vehicle_hypercert_IRv2, Parse.PForm.namesFree, Parse.PExpr.namesFree]) x hx)
 
 theorem comps_fv : ∀ c ∈ g :: gs, c.fv ⊆ range Lv ∪ range Rv := by
   intro c hc
@@ -345,9 +345,9 @@ def edgeList : List (ℕ × ℕ) :=
 
 /-- **Faithfulness of the graph**: `edgeList` IS the file's `next` lists, resolved by name. -/
 theorem edgeList_eq_IR : edgeList =
-    (List.range vehicle_hypercert_IRc.R.modes.length).flatMap (fun q =>
+    (List.range vehicle_hypercert_IRv2.R.modes.length).flatMap (fun q =>
       (mR q).next.map (fun nm =>
-        (q, (vehicle_hypercert_IRc.R.modes.findIdx (·.name == nm))))) := by
+        (q, (vehicle_hypercert_IRv2.R.modes.findIdx (·.name == nm))))) := by
   decide
 
 theorem edgeList_mem (s t : ℕ) (hs : s < 5) (ht : t < 5) : (s, t) ∈ edgeList := by
@@ -375,7 +375,7 @@ theorem Gr_modeAt_inv {q : ℕ} {m : RMode (Var 2)} (hm : Gr.modeAt q = some m) 
 theorem hguardR (q : ℕ) (hq : q < 5) : (hostGuard vs 2 Side.R (mR q)).fv ⊆ range Rv :=
   hostGuard_fv_R vs (mR q) (by
     interval_cases q <;>
-      simp [mR, vehicle_hypercert_IRc, Parse.PForm.namesFree, Parse.PExpr.namesFree])
+      simp [mR, vehicle_hypercert_IRv2, Parse.PForm.namesFree, Parse.PExpr.namesFree])
 
 theorem edgeList_tgt : ∀ p ∈ edgeList, p.2 < 5 := by decide
 
@@ -463,7 +463,7 @@ noncomputable def gregion (q : ℕ) : Formula (Var 2) :=
   regionG (fun q => hostGuard vs 2 Side.R (mR q)) region q
 
 theorem hguardR_all (q : ℕ) : (hostGuard vs 2 Side.R (mR q)).fv ⊆ range Rv :=
-  hostGuard_fv_R_getD vs _ dm rfl (by simp [vehicle_hypercert_IRc, Parse.PForm.namesFree,
+  hostGuard_fv_R_getD vs _ dm rfl (by simp [vehicle_hypercert_IRv2, Parse.PForm.namesFree,
     Parse.PExpr.namesFree]) q
 
 theorem gregion_fv (q : ℕ) : (gregion q).fv ⊆ range Rv :=
@@ -575,14 +575,14 @@ theorem es (l : ℕ) (hl : l < 5) (dt : ℝ) (A : Formula (Var 2))
 /-- One pack: left mode `l`, right mode `l` (the chosen one), stretch 1, strata order
 `[0, 1]`, the invariant row of `l`. -/
 def Verd (l : ℕ) : Prop :=
-  modalVerdX vehicle_hypercert_IRc vehicle_hypercert_cutsCX 2 l [0, 1] (lam l l) l l
+  modalVerdX vehicle_hypercert_IRv2 vehicle_hypercert_cutsV2X 2 l [0, 1] (lam l l) l l
 
 theorem verd_core (l : ℕ) (hl : l < 5) (h : Verd l) :
     VerdXCore (g :: gs) (fL l) (fR l) (lam l l)
       (domCutX (Formula.and domL domR) (cL l) (cR l)) := by
   have h' := h
   unfold Verd modalVerdX at h'
-  have hvs : vehicle_hypercert_IRc.L.stateVars = vs := rfl
+  have hvs : vehicle_hypercert_IRv2.L.stateVars = vs := rfl
   simp only [hvs, comps_row l hl] at h'
   rw [← domL_univ l hl, ← domR_univ l hl]
   exact h'

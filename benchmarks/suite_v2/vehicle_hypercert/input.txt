@@ -1,5 +1,8 @@
 # vehicle_hypercert: continuous-time counterpart of the vehicle case study of Murali et al.
-# (HyperCertificates, arXiv 2605.00752, Sec. 9.2): velocity v in [0, 0.6], acceleration chosen
+# (HyperCertificates, arXiv 2605.00752, Sec. 9.2).
+# scenario: opacity
+# mechanisms: M2
+# SOURCE AND FORM: velocity v in [0, 0.6], acceleration chosen
 # each cycle from {-0.04, -0.02, 0, 0.02, 0.04}; the observer sees the velocity. Their discrete
 # step s' = s + v + w/2, v' = v + w is the unit-period sampling of s' = v, v' = w with w held.
 # Opacity (secret start s in [0,1]) is encoded by the precondition v_L = v_R with the right's

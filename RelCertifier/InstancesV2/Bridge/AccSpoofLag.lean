@@ -12,8 +12,10 @@ discharges, `Emitted.verdicts_of_groups`).
 import RelCertifier.Proofs.Encoding.Emitted.Window
 import RelCertifier.Proofs.Encoding.Emitted.Transport
 import RelCertifier.InstancesV2.WellFormed.AccSpoofLag
+import RelCertifier.InstancesV2.Cuts.acc_spoof_lag
 import RelCertifier.InstancesV2.BenchCovers.acc_spoof_lag
 import RelCertifier.InstancesV2.BenchProgress.acc_spoof_lag
+import RelCertifier.InstancesV2.BenchChoice.acc_spoof_lag
 
 namespace RelCertifier.Bridge.AccSpoofLag
 
@@ -23,7 +25,7 @@ abbrev IR := Parse.acc_spoof_lag_IRv2
 abbrev cX := Oracle.acc_spoof_lag_cutsV2X
 abbrev cov := acc_spoof_lag_coverV2
 abbrev prog := Progress.acc_spoof_lag_coverV2_progress
-abbrev ce := Choice.ChoiceEmitE.empty "acc_spoof_lag"
+abbrev ce := Choice.acc_spoof_lag_coverV2_choice
 
 theorem struct_ok : structOK IR 2 cov cX = true := by decide +kernel
 theorem prog_ok : progOK IR 2 cov prog = true := by decide +kernel

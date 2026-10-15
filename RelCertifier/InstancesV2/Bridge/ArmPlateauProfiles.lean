@@ -12,8 +12,10 @@ discharges, `Emitted.verdicts_of_groups`).
 import RelCertifier.Proofs.Encoding.Emitted.Window
 import RelCertifier.Proofs.Encoding.Emitted.Transport
 import RelCertifier.InstancesV2.WellFormed.ArmPlateauProfiles
+import RelCertifier.InstancesV2.Cuts.arm_plateau_profiles
 import RelCertifier.InstancesV2.BenchCovers.arm_plateau_profiles
 import RelCertifier.InstancesV2.BenchProgress.arm_plateau_profiles
+import RelCertifier.InstancesV2.BenchChoice.arm_plateau_profiles
 
 namespace RelCertifier.Bridge.ArmPlateauProfiles
 
@@ -23,7 +25,7 @@ abbrev IR := Parse.arm_plateau_profiles_IRv2
 abbrev cX := Oracle.arm_plateau_profiles_cutsV2X
 abbrev cov := arm_plateau_profiles_coverV2
 abbrev prog := Progress.arm_plateau_profiles_coverV2_progress
-abbrev ce := Choice.ChoiceEmitE.empty "arm_plateau_profiles"
+abbrev ce := Choice.arm_plateau_profiles_coverV2_choice
 
 theorem struct_ok : structOK IR 2 cov cX = true := by decide +kernel
 theorem prog_ok : progOK IR 2 cov prog = true := by decide +kernel

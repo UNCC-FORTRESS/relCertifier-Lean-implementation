@@ -1,0 +1,81 @@
+# drl_car_stop: a time-triggered car controller refines a permissive one (sampled form of the
+# refinement example of differential refinement logic).
+# scenario: controller-refinement
+# mechanisms: M2 M4
+#
+# SOURCE. Loos and Platzer, "Differential refinement logic" (LICS 2016), Section 6, Models 1
+# and 2, and Prebet and Platzer, "Uniform substitution for differential refinement logic"
+# (IJCAR 2024), Example 1: a car on a line, x' = v, v' = a, must stop before the line x = m;
+# the controller either brakes (a = -B) or, if a safety guard holds, accelerates (a = A).
+# The claim there is the refinement carT <= carE: every run of the time-triggered controller
+# (period T, guard Safe_T) is a run of the event-triggered one (guard Safe, evolution confined
+# to the event domain). Refinement alpha <= beta in dRL is reachability inclusion: for every run
+# of alpha there is a run of beta reaching the same state, with a shared clock forcing equal
+# durations. That is the forall-exists relational invariance of this suite at the identity
+# relation x_L = x_R, v_L = v_R, stretch 1.
+#
+# THE SAMPLED FORM (the deviation from the source). The right system here is sampled at the
+# same period as the left, with the event guard Safe tested at each switch; the source's
+# event-triggered right has runs of any length inside the event domain, which this suite's
+# models (fixed control interval on both sides, Assumption 1) cannot express. What is
+# certified is dRL's refinement pattern between two sampled controllers: the deterministic
+# conservative one (guard Safe_eps, Example 3 of the source) refines the permissive one
+# (guard Safe), because Safe_eps implies Safe. The witness copies the left's control.
+#
+# PARAMETERS. A = 1 (acceleration), B = 1 (braking), eps = 1 (control period), m = 50 (stop
+# line). Physical range v in [0, 10]; a Coast mode (a = 0) keeps the right model complete
+# (Assumption 1: from every state some mode is enabled). Braking is allowed only from v >= 1
+# so that a full period of braking stays in v >= 0.
+#   Safe_eps (left Accel): x + v^2/(2B) + (A/B + 1)(A eps^2/2 + eps v) <= m,
+#                          i.e. x + v^2/2 + 2 v + 1 <= 50;
+#   Safe     (right Accel): x + v^2/(2B) <= m, i.e. x + v^2/2 <= 50.
+# Claim (every left mode): x_L = x_R and v_L = v_R, written as two inequalities each.
+# Existential mode choice (RELCERT_CHOICE=1): the right hops into the left's mode at the start
+# of each window (the left's guard and the identity relation put the right in the permissive
+# guard), then runs the certified joint segment.
+[problem]
+name = drl_car_stop
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 40.0
+[Lsys]
+state_vars = [x, v]
+epsilon = 1.0
+[Lsys.mode.Accel]
+ode = x' = v; v' = smt2:1.0;
+guard = smt2:(and (>= v 0.0) (<= v 9.0) (<= (+ x (* 0.5 v v) (* 2.0 v) 1.0) 50.0))
+evolve = v >= 0.0 and v <= 10.0
+next = [Accel, Coast, Brake]
+[Lsys.mode.Coast]
+ode = x' = v; v' = smt2:0.0;
+guard = v >= 0.0 and v <= 10.0
+evolve = v >= 0.0 and v <= 10.0
+next = [Accel, Coast, Brake]
+[Lsys.mode.Brake]
+ode = x' = v; v' = smt2:(- 0.0 1.0);
+guard = v >= 1.0 and v <= 10.0
+evolve = v >= 0.0 and v <= 10.0
+next = [Accel, Coast, Brake]
+[Rsys]
+state_vars = [x, v]
+epsilon = 1.0
+[Rsys.mode.Accel]
+ode = x' = v; v' = smt2:1.0;
+guard = smt2:(and (>= v 0.0) (<= v 9.0) (<= (+ x (* 0.5 v v)) 50.0))
+evolve = v >= 0.0 and v <= 10.0
+next = [Accel, Coast, Brake]
+[Rsys.mode.Coast]
+ode = x' = v; v' = smt2:0.0;
+guard = v >= 0.0 and v <= 10.0
+evolve = v >= 0.0 and v <= 10.0
+next = [Accel, Coast, Brake]
+[Rsys.mode.Brake]
+ode = x' = v; v' = smt2:(- 0.0 1.0);
+guard = v >= 1.0 and v <= 10.0
+evolve = v >= 0.0 and v <= 10.0
+next = [Accel, Coast, Brake]
+[relational_invariant]
+Accel = x[l] <= x[r] and x[r] <= x[l] and v[l] <= v[r] and v[r] <= v[l]
+Coast = x[l] <= x[r] and x[r] <= x[l] and v[l] <= v[r] and v[r] <= v[l]
+Brake = x[l] <= x[r] and x[r] <= x[l] and v[l] <= v[r] and v[r] <= v[l]

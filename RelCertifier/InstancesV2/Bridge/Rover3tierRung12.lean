@@ -12,8 +12,10 @@ discharges, `Emitted.verdicts_of_groups`).
 import RelCertifier.Proofs.Encoding.Emitted.Keyed
 import RelCertifier.Proofs.Encoding.Emitted.Transport
 import RelCertifier.Instances.WellFormed.Rover3tierRung12
+import RelCertifier.InstancesV2.Cuts.rover3tier_rung12
 import RelCertifier.InstancesV2.BenchCovers.rover3tier_rung12
 import RelCertifier.InstancesV2.BenchProgress.rover3tier_rung12
+import RelCertifier.InstancesV2.BenchChoice.rover3tier_rung12
 
 namespace RelCertifier.Bridge.Rover3tierRung12
 
@@ -23,7 +25,7 @@ abbrev IR := Parse.rover3tier_rung12_IRv2
 abbrev cX := Oracle.rover3tier_rung12_cutsV2X
 abbrev cov := rover3tier_rung12_coverV2
 abbrev prog := Progress.rover3tier_rung12_coverV2_progress
-abbrev ce := Choice.ChoiceEmitE.empty "rover3tier_rung12"
+abbrev ce := Choice.rover3tier_rung12_coverV2_choice
 
 theorem struct_ok : structOK IR 3 cov cX = true := by decide +kernel
 theorem prog_ok : progOK IR 3 cov prog = true := by decide +kernel

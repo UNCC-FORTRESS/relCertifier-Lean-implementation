@@ -63,13 +63,19 @@ Axioms of `theorem3_keyed_of_records` and `theorem3_window_of_records`: `propext
 `relcert-bridge-verdicts` issues exactly `bridgeGroups` per benchmark at the bridge dimension
 and reports the group count against the declared total (`expectedBridgeGroupsV2`).
 
-Run on the regenerated records: **3512 groups over the 49 benchmarks (46 suite, 3 choice),
-all discharged** (suite alone, 3259; the first run before the progress gate, 3657/3657).
+Run on the regenerated records: **3647 groups over the 49 suite benchmarks and the 2 choice
+exhibits, all discharged** (suite alone 3511: 3259 over the 46 original benchmarks, 35 + 130 + 87
+over `drl_car_stop`, `drl_lane_control`, `vehicle_hypercert`; the first run before the progress
+gate, 3657/3657 over 46 + 3).
 
 ## 4. Coverage
 
-* **The choice exhibits.** The tool now emits the chosen sets (`RELCERT_CHOICE_OUT`;
-  `InstancesV2/Choice/BenchChoice/`), and the bridge replays them: `vehicle_accel_copy` (a
+* **The choice records.** The tool emits the chosen sets (`RELCERT_CHOICE_OUT`; a leaf per suite
+  benchmark in `InstancesV2/BenchChoice/`, empty for the 46 original benchmarks), and the bridge
+  replays them. The three literature benchmarks need them (`drl_car_stop`, `drl_lane_control`:
+  a hop into the left's mode per window; `vehicle_hypercert`); their Assumption 1 lemmas are
+  stated directly over the bridge's automaton (`<b>_wellFormedR_direct`, generator variant
+  `DIRECT_REGION`). The exhibits: `vehicle_accel_copy` (a
   chosen exit set after a right-only segment, hops) and `watertank_choice` (a hop) go through
   `theorem3_window_of_records` with their chosen sets decided by the extended checker and
   their coverage queries among the verdicts. `vehicle_hypercert`'s cover uses a reposition node
@@ -78,8 +84,8 @@ all discharged** (suite alone, 3259; the first run before the progress gate, 365
   hand-written general instance (`InstancesV2/Choice/General/VehicleHypercert.lean`, through
   `theorem3_of_coverX`). The mirrored downward lemma is the one remaining piece.
 
-* **46 of 46 suite benchmarks** are instantiated (`InstancesV2/Bridge/`): 34 in the window form,
-  12 in the mode-keyed form; plus 2 of the 3 choice exhibits (48 instances), all with the
+* **48 of 49 suite benchmarks** are instantiated (`InstancesV2/Bridge/`): 36 in the window form,
+  12 in the mode-keyed form; plus the 2 choice exhibits (50 instances), all with the
   unconditional Assumption 1. Every `*_bridge` theorem depends on exactly `propext`,
   `Classical.choice`, `Quot.sound`, `z3_unsat_sound`.
 * **Assumption 1 is unconditional for every instance (`R = ⊤`).** The chain

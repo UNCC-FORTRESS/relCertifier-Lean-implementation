@@ -12,8 +12,10 @@ discharges, `Emitted.verdicts_of_groups`).
 import RelCertifier.Proofs.Encoding.Emitted.Window
 import RelCertifier.Proofs.Encoding.Emitted.Transport
 import RelCertifier.InstancesV2.WellFormed.AccTuneLag
+import RelCertifier.InstancesV2.Cuts.acc_tune_lag
 import RelCertifier.InstancesV2.BenchCovers.acc_tune_lag
 import RelCertifier.InstancesV2.BenchProgress.acc_tune_lag
+import RelCertifier.InstancesV2.BenchChoice.acc_tune_lag
 
 namespace RelCertifier.Bridge.AccTuneLag
 
@@ -23,7 +25,7 @@ abbrev IR := Parse.acc_tune_lag_IRv2
 abbrev cX := Oracle.acc_tune_lag_cutsV2X
 abbrev cov := acc_tune_lag_coverV2
 abbrev prog := Progress.acc_tune_lag_coverV2_progress
-abbrev ce := Choice.ChoiceEmitE.empty "acc_tune_lag"
+abbrev ce := Choice.acc_tune_lag_coverV2_choice
 
 theorem struct_ok : structOK IR 2 cov cX = true := by decide +kernel
 theorem prog_ok : progOK IR 2 cov prog = true := by decide +kernel

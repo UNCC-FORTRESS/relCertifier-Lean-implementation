@@ -12,8 +12,10 @@ discharges, `Emitted.verdicts_of_groups`).
 import RelCertifier.Proofs.Encoding.Emitted.Keyed
 import RelCertifier.Proofs.Encoding.Emitted.Transport
 import RelCertifier.InstancesV2.WellFormed.SatDetumblePhases
+import RelCertifier.InstancesV2.Cuts.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchCovers.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchProgress.sat_detumble_phases
+import RelCertifier.InstancesV2.BenchChoice.sat_detumble_phases
 
 namespace RelCertifier.Bridge.SatDetumblePhases
 
@@ -23,7 +25,7 @@ abbrev IR := Parse.sat_detumble_phases_IRv2
 abbrev cX := Oracle.sat_detumble_phases_cutsV2X
 abbrev cov := sat_detumble_phases_coverV2
 abbrev prog := Progress.sat_detumble_phases_coverV2_progress
-abbrev ce := Choice.ChoiceEmitE.empty "sat_detumble_phases"
+abbrev ce := Choice.sat_detumble_phases_coverV2_choice
 
 theorem struct_ok : structOK IR 4 cov cX = true := by decide +kernel
 theorem prog_ok : progOK IR 4 cov prog = true := by decide +kernel

@@ -564,7 +564,7 @@ def nonConnPrune (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
       | .ok .unsat, .ok .unsat => pure true    -- BOTH UNSAT ⟹ Def-3 non-connection ⟹ PRUNE
       | _, _                   => pure false   -- anything else ⟹ keep the edge required
 
-/-! ## Existential mode choice (`RELCERT_CHOICE=1`)
+/-! ## Existential mode choice (default; `RELCERT_NO_CHOICE=1` disables it)
 
 Definition 4 extended with two moves in which the witness CHOOSES the right system's next
 mode instead of covering every successor:
@@ -827,7 +827,7 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
   -- reposition, no per-pairing fallback; multi-step joint covers stay allowed.
   let sync := (← IO.getEnv "RELCERT_SYNC").isSome
   -- `RELCERT_NO_REPO=1`: no right-only reposition nodes of the all-successors kind (the
-  -- chosen-exits form, `RELCERT_CHOICE=1`, is the hop, which needs no reposition node).
+  -- chosen-exits form of the choice cover is the hop, which needs no reposition node).
   let noRepo := (← IO.getEnv "RELCERT_NO_REPO").isSome
   let repoDynPreOK  := fun (nm : String) => !sync && !noRepo && progOK nm true &&
     ((dynMap.find? (·.1 == nm)).map (·.2.1) |>.getD false)
@@ -876,8 +876,8 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
       some ({ mL := mL.name, lamQ := lamQ, bBudget := bBudget, flags := flagRows,
               admissible := admMods.map (·.name), strata := strataMap } : LeftCoverE)
     else none
-  -- existential mode choice context (`RELCERT_CHOICE=1`; see `choiceCover`)
-  let choiceOn := (← IO.getEnv "RELCERT_CHOICE").isSome
+  -- existential mode choice context (default, `RELCERT_NO_CHOICE=1` disables; see `choiceCover`)
+  let choiceOn := (← IO.getEnv "RELCERT_NO_CHOICE").isNone
   let mut choiceCands : List (ℚ × ℚ × List (String × Seg) × List PairStrataE) := []
   -- MEASUREMENT `RELCERT_LAMBDA_SCAN=1`: evaluate every λ candidate (no early exit at the first
   -- closing cover) and print, per pairing, the candidates at which its joint segment passed.

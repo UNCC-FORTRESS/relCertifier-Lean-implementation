@@ -12,8 +12,10 @@ discharges, `Emitted.verdicts_of_groups`).
 import RelCertifier.Proofs.Encoding.Emitted.Window
 import RelCertifier.Proofs.Encoding.Emitted.Transport
 import RelCertifier.Instances.WellFormed.RoverDofTerrainRung3
+import RelCertifier.InstancesV2.Cuts.rover_dof_terrain_rung3
 import RelCertifier.InstancesV2.BenchCovers.rover_dof_terrain_rung3
 import RelCertifier.InstancesV2.BenchProgress.rover_dof_terrain_rung3
+import RelCertifier.InstancesV2.BenchChoice.rover_dof_terrain_rung3
 
 namespace RelCertifier.Bridge.RoverDofTerrainRung3
 
@@ -23,7 +25,7 @@ abbrev IR := Parse.rover_dof_terrain_rung3_IRv2
 abbrev cX := Oracle.rover_dof_terrain_rung3_cutsV2X
 abbrev cov := rover_dof_terrain_rung3_coverV2
 abbrev prog := Progress.rover_dof_terrain_rung3_coverV2_progress
-abbrev ce := Choice.ChoiceEmitE.empty "rover_dof_terrain_rung3"
+abbrev ce := Choice.rover_dof_terrain_rung3_coverV2_choice
 
 theorem struct_ok : structOK IR 12 cov cX = true := by decide +kernel
 theorem prog_ok : progOK IR 12 cov prog = true := by decide +kernel

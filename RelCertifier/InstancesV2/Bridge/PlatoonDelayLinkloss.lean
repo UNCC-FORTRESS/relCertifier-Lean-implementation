@@ -12,8 +12,10 @@ discharges, `Emitted.verdicts_of_groups`).
 import RelCertifier.Proofs.Encoding.Emitted.Keyed
 import RelCertifier.Proofs.Encoding.Emitted.Transport
 import RelCertifier.InstancesV2.WellFormed.PlatoonDelayLinkloss
+import RelCertifier.InstancesV2.Cuts.platoon_delay_linkloss
 import RelCertifier.InstancesV2.BenchCovers.platoon_delay_linkloss
 import RelCertifier.InstancesV2.BenchProgress.platoon_delay_linkloss
+import RelCertifier.InstancesV2.BenchChoice.platoon_delay_linkloss
 
 namespace RelCertifier.Bridge.PlatoonDelayLinkloss
 
@@ -23,7 +25,7 @@ abbrev IR := Parse.platoon_delay_linkloss_IRv2
 abbrev cX := Oracle.platoon_delay_linkloss_cutsV2X
 abbrev cov := platoon_delay_linkloss_coverV2
 abbrev prog := Progress.platoon_delay_linkloss_coverV2_progress
-abbrev ce := Choice.ChoiceEmitE.empty "platoon_delay_linkloss"
+abbrev ce := Choice.platoon_delay_linkloss_coverV2_choice
 
 theorem struct_ok : structOK IR 3 cov cX = true := by decide +kernel
 theorem prog_ok : progOK IR 3 cov prog = true := by decide +kernel

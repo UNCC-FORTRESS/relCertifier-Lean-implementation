@@ -28,8 +28,8 @@ theorem hp10 : Run.parseRat "1.0" = some (1 : ℚ) := by
   have h : parseQ "1.0" = some (⟨10, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]
 
-theorem epsR_eq : epsR vehicle_hypercert_IRc = 1 := by
-  simp [epsR, vehicle_hypercert_IRc, hp10]
+theorem epsR_eq : epsR vehicle_hypercert_IRv2 = 1 := by
+  simp [epsR, vehicle_hypercert_IRv2, hp10]
 
 noncomputable def guardR (q : ℕ) : Formula (Var 2) := hostGuard vs 2 Side.R (mR q)
 

@@ -12,8 +12,10 @@ discharges, `Emitted.verdicts_of_groups`).
 import RelCertifier.Proofs.Encoding.Emitted.Window
 import RelCertifier.Proofs.Encoding.Emitted.Transport
 import RelCertifier.Instances.WellFormed.Story2LateralB
+import RelCertifier.InstancesV2.Cuts.story2_lateral_rung_b_12dof
 import RelCertifier.InstancesV2.BenchCovers.story2_lateral_rung_b_12dof
 import RelCertifier.InstancesV2.BenchProgress.story2_lateral_rung_b_12dof
+import RelCertifier.InstancesV2.BenchChoice.story2_lateral_rung_b_12dof
 
 namespace RelCertifier.Bridge.Story2LateralRungB12dof
 
@@ -23,7 +25,7 @@ abbrev IR := Parse.story2_lateral_rung_b_12dof_IRv2
 abbrev cX := Oracle.story2_lateral_rung_b_12dof_cutsV2X
 abbrev cov := story2_lateral_rung_b_12dof_coverV2
 abbrev prog := Progress.story2_lateral_rung_b_12dof_coverV2_progress
-abbrev ce := Choice.ChoiceEmitE.empty "story2_lateral_rung_b_12dof"
+abbrev ce := Choice.story2_lateral_rung_b_12dof_coverV2_choice
 
 theorem struct_ok : structOK IR 12 cov cX = true := by decide +kernel
 theorem prog_ok : progOK IR 12 cov prog = true := by decide +kernel

@@ -12,8 +12,10 @@ discharges, `Emitted.verdicts_of_groups`).
 import RelCertifier.Proofs.Encoding.Emitted.Window
 import RelCertifier.Proofs.Encoding.Emitted.Transport
 import RelCertifier.InstancesV2.WellFormed.Platoon3Profiles
+import RelCertifier.InstancesV2.Cuts.platoon3_profiles
 import RelCertifier.InstancesV2.BenchCovers.platoon3_profiles
 import RelCertifier.InstancesV2.BenchProgress.platoon3_profiles
+import RelCertifier.InstancesV2.BenchChoice.platoon3_profiles
 
 namespace RelCertifier.Bridge.Platoon3Profiles
 
@@ -23,7 +25,7 @@ abbrev IR := Parse.platoon3_profiles_IRv2
 abbrev cX := Oracle.platoon3_profiles_cutsV2X
 abbrev cov := platoon3_profiles_coverV2
 abbrev prog := Progress.platoon3_profiles_coverV2_progress
-abbrev ce := Choice.ChoiceEmitE.empty "platoon3_profiles"
+abbrev ce := Choice.platoon3_profiles_coverV2_choice
 
 theorem struct_ok : structOK IR 6 cov cX = true := by decide +kernel
 theorem prog_ok : progOK IR 6 cov prog = true := by decide +kernel

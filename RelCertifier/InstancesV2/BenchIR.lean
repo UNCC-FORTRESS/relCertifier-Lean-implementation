@@ -4,7 +4,7 @@ Released under Apache 2.0 license.
 
 # suite_v2 IR aggregator + `benchIRTableV2` (GENERATED — `scripts/gen_v2_data.py`)
 
-The 45 parser-emitted literals of `benchmarks/suite_v2`. `relcert-test`'s drift check
+The 46 parser-emitted literals of `benchmarks/suite_v2`. `relcert-test`'s drift check
 (`[ir-drift-v2]`) re-parses `benchmarks/suite_v2/<name>/input.txt` for every entry and
 compares it with the literal of the same name in `benchIRTableV2`.
 -/
@@ -17,6 +17,8 @@ import RelCertifier.InstancesV2.BenchIR.arm_plateau_profiles
 import RelCertifier.InstancesV2.BenchIR.arm_plateau_slow
 import RelCertifier.InstancesV2.BenchIR.charger_fast_setpoints
 import RelCertifier.InstancesV2.BenchIR.charger_fast_tapers
+import RelCertifier.InstancesV2.BenchIR.drl_car_stop
+import RelCertifier.InstancesV2.BenchIR.drl_lane_control
 import RelCertifier.InstancesV2.BenchIR.match_multi_rate
 import RelCertifier.InstancesV2.BenchIR.platoon3_linkloss
 import RelCertifier.InstancesV2.BenchIR.platoon3_profiles
@@ -52,6 +54,7 @@ import RelCertifier.InstancesV2.BenchIR.story2_lateral_rung_b_12dof
 import RelCertifier.InstancesV2.BenchIR.story3_rollover_base_12dof
 import RelCertifier.InstancesV2.BenchIR.story3_rollover_ladder_rung_a
 import RelCertifier.InstancesV2.BenchIR.story3_rollover_ladder_rung_b
+import RelCertifier.InstancesV2.BenchIR.vehicle_hypercert
 import RelCertifier.InstancesV2.BenchIR.watertank
 import RelCertifier.InstancesV2.BenchIR.watertank_twospeed
 
@@ -67,6 +70,8 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("arm_plateau_slow", arm_plateau_slow_IRv2),
   ("charger_fast_setpoints", charger_fast_setpoints_IRv2),
   ("charger_fast_tapers", charger_fast_tapers_IRv2),
+  ("drl_car_stop", drl_car_stop_IRv2),
+  ("drl_lane_control", drl_lane_control_IRv2),
   ("match_multi_rate", match_multi_rate_IRv2),
   ("platoon3_linkloss", platoon3_linkloss_IRv2),
   ("platoon3_profiles", platoon3_profiles_IRv2),
@@ -102,6 +107,7 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("story3_rollover_base_12dof", story3_rollover_base_12dof_IRv2),
   ("story3_rollover_ladder_rung_a", story3_rollover_ladder_rung_a_IRv2),
   ("story3_rollover_ladder_rung_b", story3_rollover_ladder_rung_b_IRv2),
+  ("vehicle_hypercert", vehicle_hypercert_IRv2),
   ("watertank", watertank_IRv2),
   ("watertank_twospeed", watertank_twospeed_IRv2) ]
 

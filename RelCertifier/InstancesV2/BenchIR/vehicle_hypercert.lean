@@ -2,14 +2,16 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `vehicle_hypercert` (choice exhibit) — parser-emitted IR literal (GENERATED leaf — do not edit)
+# `vehicle_hypercert` (suite_v2) — parser-emitted IR literal (GENERATED leaf — do not edit)
+
+Regenerate with `scripts/gen_v2_data.py vehicle_hypercert`.
 -/
 import RelCertifier.Trusted.Parse
 
 namespace RelCertifier.Parse
 
-/-- Parser-emitted IR of `benchmarks/choice/vehicle_hypercert/input.txt` (do not edit). -/
-def vehicle_hypercert_IRc : PProblem :=
+/-- Parser-emitted IR of `benchmarks/suite_v2/vehicle_hypercert/input.txt` (do not edit). -/
+def vehicle_hypercert_IRv2 : PProblem :=
   {
     name := "vehicle_hypercert"
     lambdaMin := "1.0"

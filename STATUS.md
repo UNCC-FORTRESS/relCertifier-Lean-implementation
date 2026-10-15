@@ -1,12 +1,12 @@
 # Status (2026-10-15, branch `theorem3-general`)
 
-**The artifact.** `benchmarks/suite_v2` (46 benchmarks), the tool `relcert`, the generic
+**The artifact.** `benchmarks/suite_v2` (49 benchmarks: 46 designed for the paper and three from the literature, 2026-10-15), the tool `relcert`, the generic
 soundness development (`RelCertifier/Core`, `Checker`, `Proofs`, `Trusted`) and the suite_v2
 battery (`RelCertifier/InstancesV2/BatteryV2.lean`). The legacy suite `suite_uniform` and its
 batteries were retired on 2026-10-10; the 19 theorems the battery carries over from it are
 kept with exactly what they need (`README.md`, "The 19 carried-over theorems").
 
-**Proved, all 46, one statement.** Theorem 3 with the paper's LEFT program (the guard-gated
+**Proved, all 49, one statement.** Theorem 3 with the paper's LEFT program (the guard-gated
 left automaton `leftAutomatonBody A u_L`: each left window entered inside its lowered guard,
 the declared successors and `u_L` read from the file) against the GUARDED right automaton
 (every edge tests the lowered guard of the mode it enters), with the loop invariant carrying
@@ -15,7 +15,7 @@ cuts q` of the right's current mode (`docs/GUARDED-SWITCHING.md` §3.1, §3.3). 
 for every window length, `refinement_ladder_rover_rung2c_6dof` for every window up to its
 control interval (`dt ≤ ε_L = 1`); every switch on both sides kernel-checked legal. 12
 mode-keyed, 33 mode-independent (carried to the left automaton by the generic bridge
-`theorem3_leftAut_of_choice`, proved once); **every one of the 46 proofs replays the cover the
+`theorem3_leftAut_of_choice`, proved once); **every one of the 46 standalone proofs replays the cover the
 tool emits** (`docs/REPLAY.md`: joint segments at `jointOK` nodes at the cover's stretch, each
 preserved by its pack; right-only repositions at `dynPre` nodes, each preserved by its
 reposition pack; legal switches along retained edges; inadmissible starts contradictory), so
@@ -38,9 +38,9 @@ pair) refuted only a left program without guard tests; they are proved
 **Assumption 1, verified per benchmark** (`docs/WELLFORMED.md`). The paper's Assumption 1
 (the right model is nonblocking and complete for its declared successors over one control
 interval `ε_r`) is stated once as `WellFormedR` (`Proofs/Encoding/WellFormedR.lean`) and
-**proved for all 46 right models**, Z3-free (`InstancesV2/WellFormedBattery.lean`, declared
-counts `(40, 0, 6)`: every mode outside the detumble family, refuted, the detumble family;
-the three standard axioms only): **literally for all 46** (the six satellites since 2026-10-15,
+**proved for all 49 right models**, Z3-free (`InstancesV2/WellFormedBattery.lean`, declared
+counts `(43, 0, 6)`: every mode outside the detumble family, refuted, the detumble family;
+the three standard axioms only): **literally for all 49** (the six satellites since 2026-10-15,
 when the conserved momentum band `|h_i + J_i w_i| ≤ 2`, kept by every mode's flow, entered
 their right evolve domains; without it `DETUMBLE` had no full-interval run). Nine models violated it until 2026-10-10
 (refuted in the kernel with exhibited blocking states, declared counts `(30, 9, 6)`) and were
@@ -53,9 +53,9 @@ tool's pruning now accepts a compound sink guard on its strict leading conjunct)
 interval can reach). Each re-certifies, every counter-run and prune unchanged; matrix change
 M3 12 → 14 (`arm_plateau_crit`, `_slow` now branch); widening unchanged except
 `quad_light_profiles` (the deployed's rated 3.5 m/s climb cap is now load-bearing). The tool's
-sufficient check (`relcert --wellformed`) reports 148 right modes: 84 ok (invariant), 64 ok
+sufficient check (`relcert --wellformed`) reports 162 right modes: 86 ok (invariant), 76 ok
 (exit), 0 UNKNOWN (was 77 / 53 / 16), and is STRICT in the recipe: `--check-quick-v2`
-certifies in the strict mode and fails on any `UNKNOWN` against the declared 148 modes.
+certifies in the strict mode and fails on any `UNKNOWN` against the declared 162 modes.
 
 **The generic bridge (branch `theorem3-general`, 2026-10-14/15; `docs/BRIDGE.md`).** The
 general Theorem 3 (`theorem3_of_coverX`, `docs/THEOREM3-GENERAL.md`) is Definition 4 with the
@@ -65,15 +65,25 @@ reposition-progress premise discharged by the tool's progress certificates (emit
 benchmark's emitted records (IR, cut certificate, cover, progress and choice records) into
 Theorem 3 of that benchmark: the structural facts decided in the kernel (`decide +kernel`),
 Assumption 1 transported from the benchmark's `WellFormedR` lemma, every verdict read from one
-Z3 run (`relcert-bridge-verdicts`: 3512 groups over the 46 suite benchmarks and the 3 choice
+Z3 run (`relcert-bridge-verdicts`: 3647 groups over the 49 suite benchmarks and the 2 choice
 exhibits, all discharged). Generated instances (`InstancesV2/Bridge/`, `scripts/gen_bridge.py`):
-all 46 suite benchmarks (34 window form, 12 mode-keyed) and the choice exhibits
+48 suite benchmarks (36 window form, 12 mode-keyed) and the choice exhibits
 `vehicle_accel_copy`, `watertank_choice` (their chosen sets replayed); `vehicle_hypercert` keeps
 its hand-written general instance (its reposition node's progress stages cross downward). Axioms
 of every `*_bridge` theorem: the three standard ones and `z3_unsat_sound`.
 
+**Literature benchmarks (2026-10-15).** Three models from cited papers joined the suite, each
+header stating the source and what the sampled form changed: `drl_car_stop` and
+`drl_lane_control` (differential refinement logic: a time-triggered controller refines the
+permissive sampled one, identity invariant, the leader's acceleration a finite choice) and
+`vehicle_hypercert` (HyperCertificates §9.2, formerly a choice exhibit). All three need the
+existential mode choice (the right commits to the left's mode), which is now the tool's default
+(`RELCERT_NO_CHOICE=1` disables it); the 46 original covers are byte-identical either way. Their
+Assumption 1 lemmas are proved directly over the bridge's automaton (`_wellFormedR_direct`,
+`trajRs_sol` explicit runs); `vehicle_hypercert` keeps its hand-written general instance.
+
 **Discharged.** Every Z3 hypothesis is re-sent by `relcert --run-verdicts-v2` against
-declared counts (modal 625, handoff 187, non-connection 88 over 44 pruned edges, legacy
+declared counts (modal 625, handoff 257, non-connection 88 over 44 pruned edges, legacy
 packs 385, reposition 81), each query pinned in the kernel to the hypothesis it discharges.
 On branch `replay` every proof was made to replay the emitted cover (`docs/REPLAY.md`): the 46
 statements take 234 joint packs (every row of `RunV2.packsV2`, was 104 rows) and 41 reposition

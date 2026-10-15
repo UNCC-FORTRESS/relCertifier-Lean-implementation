@@ -24,7 +24,6 @@ WF_DIRS = [("RelCertifier/InstancesV2/WellFormed", "RelCertifier.InstancesV2.Wel
 # the choice benchmarks (benchmarks/choice): records under InstancesV2/Choice, the general
 # instances' namespaces and Assumption 1 at ε = 1
 CHOICE = {
-    "vehicle_hypercert": dict(ns="ChoiceVehicleHypercert", G="Gr", n=2),
     "vehicle_accel_copy": dict(ns="ChoiceVehicleAccelCopy", G="Gr", n=2),
     "watertank_choice": dict(ns="ChoiceWatertank", G="GrP", n=2),
 }
@@ -59,6 +58,11 @@ def wf_info(b):
             src = open(f"{d}/{fn}").read()
             m = re.search(rf"theorem {b}_wellFormedR\s*:\s*WellFormedR (\w+) (\w+) \(epsR", src)
             if not m:
+                md = re.search(rf"theorem {b}_wellFormedR_direct\b", src)
+                if md:
+                    ns = re.findall(r"^namespace (\w+)", src, re.M)
+                    ns = [x for x in ns if x != "RelCertifier"]
+                    return dict(module=f"{modbase}.{fn[:-5]}", ns=ns[-1], G=None, guard=None, direct=True)
                 continue
             ns = re.findall(r"^namespace (\w+)", src, re.M)
             ns = [x for x in ns if x != "RelCertifier"]
@@ -93,18 +97,7 @@ abbrev ce := {cerec}
 theorem struct_ok : structOK IR {n} cov cX = true := by decide +kernel
 theorem prog_ok : progOK IR {n} cov prog = true := by decide +kernel
 theorem covers_ok : coversOK IR {n} cov ce = true := by decide +kernel
-{rows_thm}theorem nR_eq : nR IR = {ns}.{G}.modes.length := by decide +kernel
-theorem edges_ok : edgesCovered IR {ns}.{G} = true := by decide +kernel
-theorem src_ok : edgesSrcOK IR {ns}.{G} = true := by decide +kernel
-{eps_thm}
-/-- The same modes in the generic automaton. -/
-theorem modes_eq : ∀ q m', (grOf IR {n} (prunedOf cov)).modeAt q = some m' →
-    ∃ m, {ns}.{G}.modeAt q = some m ∧ m.sys = m'.sys ∧ m.dom = m'.dom := fun q m' hm' => by
-  obtain ⟨hq, rfl⟩ := grOf_modeAt_inv hm'
-  rw [nR_eq] at hq
-  exact ⟨_, {ns}.{modeAt} q hq, rfl, rfl⟩
-
-{region_block}
+{rows_thm}{transport_block}{region_block}
 
 {claim}
 end RelCertifier.Bridge.{camel}
@@ -124,6 +117,28 @@ theorem {b}_bridge (hv : Verdicts IR {n} cX cov prog ce) (dt : ℝ) (hdt : dt �
   theorem3_keyed_of_records struct_ok hv prog_ok covers_ok reg_fv reg_inv wellFormedR 0 1 2
     (by decide) (by decide) (by decide) dt hdt
 '''
+
+TRANSPORT_BLOCK = """theorem nR_eq : nR IR = {ns}.{G}.modes.length := by decide +kernel
+theorem edges_ok : edgesCovered IR {ns}.{G} = true := by decide +kernel
+theorem src_ok : edgesSrcOK IR {ns}.{G} = true := by decide +kernel
+{eps_thm}
+/-- The same modes in the generic automaton. -/
+theorem modes_eq : ∀ q m', (grOf IR {n} (prunedOf cov)).modeAt q = some m' →
+    ∃ m, {ns}.{G}.modeAt q = some m ∧ m.sys = m'.sys ∧ m.dom = m'.dom := fun q m' hm' => by
+  obtain ⟨hq, rfl⟩ := grOf_modeAt_inv hm'
+  rw [nR_eq] at hq
+  exact ⟨_, {ns}.{modeAt} q hq, rfl, rfl⟩
+
+"""
+
+DIRECT_REGION = """/-- Assumption 1 holds unconditionally: the region is `⊤`. -/
+abbrev reg : Formula (Var {n}) := Formula.tt
+theorem reg_fv : reg.fv ⊆ range Rv := fun _ h => by simp [Formula.fv] at h
+theorem reg_inv : RegionInvariant (grOf IR {n} (prunedOf cov)) reg := fun _ _ _ _ _ _ _ _ => trivial
+
+/-- Assumption 1, proved directly over the bridge's automaton (`{ns}.{b}_wellFormedR_direct`). -/
+theorem wellFormedR : WellFormedRIn (grOf IR {n} (prunedOf cov)) (guardR IR {n}) reg (epsR IR) :=
+  WellFormedRIn.of_tt ({ns}.{b}_wellFormedR_direct (prunedOf cov)) reg"""
 
 SUITE_REGION = """/-- Assumption 1 holds unconditionally: the region is `⊤`. -/
 abbrev reg : Formula (Var {n}) := Formula.tt
@@ -158,23 +173,32 @@ def emit(b, n):
                    wfname="wellFormedR", wfterm=f"by rw [epsR_eq]; exact {c['ns']}.wellFormedR")
     else:
         info = wf_info(b)
-        rec = dict(record_imports=f"import RelCertifier.InstancesV2.BenchCovers.{b}\n"
-                   f"import RelCertifier.InstancesV2.BenchProgress.{b}\n",
+        rec = dict(record_imports=f"import RelCertifier.InstancesV2.Cuts.{b}\n"
+                   f"import RelCertifier.InstancesV2.BenchCovers.{b}\n"
+                   f"import RelCertifier.InstancesV2.BenchProgress.{b}\n"
+                   f"import RelCertifier.InstancesV2.BenchChoice.{b}\n",
                    ir=f"{b}_IRv2", cuts=f"{b}_cutsV2X",
-                   cerec=f'Choice.ChoiceEmitE.empty "{b}"', eps_thm="",
+                   cerec=f"Choice.{b}_coverV2_choice", eps_thm="",
                    wfname=f"{b}_wellFormedR", wfterm=f"{info['ns'] if info else ''}.{b}_wellFormedR")
     if info is None:
         print(f"  skipped {b}: no WellFormedR lemma")
         return False
     keyed = b in KEYED
-    modeAt = f"{info['G']}_modeAt"
+    direct = info.get("direct", False)
+    modeAt = None if direct else f"{info['G']}_modeAt"
     rows_thm = "" if keyed else "theorem rows_same : rowsSame IR = true := by decide +kernel\n"
     claim = (KEYED_CLAIM if keyed else WINDOW_CLAIM).format(b=b, n=n)
-    region_block = SUITE_REGION.format(n=n, ns=info["ns"], wfname=rec["wfname"], wfterm=rec["wfterm"])
+    if direct:
+        region_block = DIRECT_REGION.format(n=n, ns=info["ns"], b=b)
+        transport_block = ""
+    else:
+        region_block = SUITE_REGION.format(n=n, ns=info["ns"], wfname=rec["wfname"], wfterm=rec["wfterm"])
+        transport_block = TRANSPORT_BLOCK.format(n=n, ns=info["ns"], G=info["G"], modeAt=modeAt, eps_thm=rec["eps_thm"])
     txt = TEMPLATE.format(b=b, camel=camel(b), n=n, form_mod="Keyed" if keyed else "Window",
                           wfmod=info["module"], ns=info["ns"], G=info["G"], modeAt=modeAt,
                           rows_doc="" if keyed else ", `rows_same`", rows_thm=rows_thm,
-                          claim=claim, region_block=region_block, **rec)
+                          claim=claim, region_block=region_block, transport_block=transport_block,
+                          **{k: v for k, v in rec.items() if k != "eps_thm"})
     os.makedirs(OUT, exist_ok=True)
     with open(f"{OUT}/{camel(b)}.lean", "w") as f:
         f.write(txt)
@@ -186,6 +210,13 @@ def aggregator(benches):
         for b in benches:
             f.write(f"import RelCertifier.InstancesV2.Bridge.{camel(b)}\n")
 
+def nvars(b):
+    """The left state variables of `b` (its input file's `state_vars`)."""
+    for line in open(f"{SUITE}/{b}/input.txt"):
+        if line.startswith("state_vars"):
+            return len([v for v in line.split("[", 1)[1].split("]")[0].split(",") if v.strip()])
+    return 1
+
 def main():
     benches = all_benches()
     todo = sys.argv[1:] or benches
@@ -194,7 +225,9 @@ def main():
     for b in benches:
         n = d.get(b, CHOICE.get(b, {}).get("n"))
         if n is None:
-            sys.exit(f"{b}: no pack row (dimension unknown)")
+            # no standalone pack row: the bridge runner's fallback, the state variables padded
+            # to the three auxiliary coordinates the keyed form needs (`bridgeDimV2`)
+            n = max(nvars(b), 3)
         if b in todo:
             if emit(b, n):
                 done.append(b)

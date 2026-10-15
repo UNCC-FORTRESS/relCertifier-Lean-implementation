@@ -12,8 +12,10 @@ discharges, `Emitted.verdicts_of_groups`).
 import RelCertifier.Proofs.Encoding.Emitted.Window
 import RelCertifier.Proofs.Encoding.Emitted.Transport
 import RelCertifier.InstancesV2.WellFormed.QuadLightLag
+import RelCertifier.InstancesV2.Cuts.quad_light_lag
 import RelCertifier.InstancesV2.BenchCovers.quad_light_lag
 import RelCertifier.InstancesV2.BenchProgress.quad_light_lag
+import RelCertifier.InstancesV2.BenchChoice.quad_light_lag
 
 namespace RelCertifier.Bridge.QuadLightLag
 
@@ -23,7 +25,7 @@ abbrev IR := Parse.quad_light_lag_IRv2
 abbrev cX := Oracle.quad_light_lag_cutsV2X
 abbrev cov := quad_light_lag_coverV2
 abbrev prog := Progress.quad_light_lag_coverV2_progress
-abbrev ce := Choice.ChoiceEmitE.empty "quad_light_lag"
+abbrev ce := Choice.quad_light_lag_coverV2_choice
 
 theorem struct_ok : structOK IR 2 cov cX = true := by decide +kernel
 theorem prog_ok : progOK IR 2 cov prog = true := by decide +kernel

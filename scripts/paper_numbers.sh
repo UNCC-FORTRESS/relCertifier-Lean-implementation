@@ -13,7 +13,7 @@ S=(benchmarks/suite_v2/*/input.txt)
 C=(benchmarks/choice/*/input.txt)
 export RELCERT_IMPLIED_CUT=1
 unset RELCERT_NO_PRUNE RELCERT_NO_CUT RELCERT_NO_IMPLIED_CUT RELCERT_NO_LINEAR_CUT \
-      RELCERT_CHOICE RELCERT_SYNC RELCERT_NO_PAIR_STRETCH RELCERT_DEBUG \
+      RELCERT_NO_CHOICE RELCERT_SYNC RELCERT_NO_PAIR_STRETCH RELCERT_DEBUG \
       RELCERT_LAMBDA_SCAN RELCERT_OPREGION RELCERT_TIME_BUDGET_MS RELCERT_MAX_QUERIES
 
 {
@@ -28,11 +28,7 @@ unset RELCERT_NO_PRUNE RELCERT_NO_CUT RELCERT_NO_IMPLIED_CUT RELCERT_NO_LINEAR_C
 for d in covers1 covers2; do
   for f in $S $C; do
     b=$(basename $(dirname $f))
-    if [[ $f == benchmarks/choice/* ]]; then
-      RELCERT_CHOICE=1 $B --emit-cover $f x > $OUT/$d/$b.lean 2>/dev/null
-    else
-      $B --emit-cover $f x > $OUT/$d/$b.lean 2>/dev/null
-    fi
+    $B --emit-cover $f x > $OUT/$d/$b.lean 2>/dev/null
   done
 done
 if diff -r $OUT/covers1 $OUT/covers2 > $OUT/covers.diff; then
@@ -45,16 +41,16 @@ fi
 run() { local name=$1; shift; env "$@" $B ${=FILES} > $OUT/$name.txt 2> $OUT/$name.err; }
 FILES="$S"
 run control
+run nochoice RELCERT_NO_CHOICE=1
 run sync RELCERT_SYNC=1
+run sync_nochoice RELCERT_SYNC=1 RELCERT_NO_CHOICE=1
 run noprune RELCERT_NO_PRUNE=1
-run noprune_choice RELCERT_NO_PRUNE=1 RELCERT_CHOICE=1
-run sync_choice RELCERT_SYNC=1 RELCERT_CHOICE=1
-run choice RELCERT_CHOICE=1
+run noprune_nochoice RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1
 run opregion RELCERT_OPREGION=1
 FILES="$C"
-run exhibits_off
-run exhibits_on RELCERT_CHOICE=1
-run exhibits_sync_on RELCERT_SYNC=1 RELCERT_CHOICE=1
+run exhibits_off RELCERT_NO_CHOICE=1
+run exhibits_on
+run exhibits_sync_on RELCERT_SYNC=1
 
 # 3. the choice exhibits' verdict packs (the Lean instances' hypotheses)
 ./.lake/build/bin/relcert-choice-verdicts > $OUT/choice_verdicts.txt 2>&1
@@ -94,9 +90,10 @@ mac = {
  "numbenchmarks": len(ctl), "numcertified": count(ctl, "CERTIFIED"),
  "numsync": count(syn, "CERTIFIED"), "numsyncdeclined": len(syn_decl),
  "numsyncstretch": nst, "numsyncrightonly": len(syn_decl) - nst, "numrightonly": nro,
+ "numnochoice": count(verdicts("nochoice"), "CERTIFIED"),
  "numnoprunedecl": count(verdicts("noprune"), "DECLINED"),
- "numnoprunechoicedecl": count(verdicts("noprune_choice"), "DECLINED"),
- "numsyncchoice": count(verdicts("sync_choice"), "CERTIFIED"),
+ "numnoprunenochoicedecl": count(verdicts("noprune_nochoice"), "DECLINED"),
+ "numsyncnochoice": count(verdicts("sync_nochoice"), "CERTIFIED"),
  "numexhibits": len(verdicts("exhibits_on")),
  "numexhibitsoff": count(verdicts("exhibits_off"), "CERTIFIED"),
  "numexhibitson": count(verdicts("exhibits_on"), "CERTIFIED"),

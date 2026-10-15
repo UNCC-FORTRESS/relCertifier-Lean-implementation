@@ -12,8 +12,10 @@ discharges, `Emitted.verdicts_of_groups`).
 import RelCertifier.Proofs.Encoding.Emitted.Window
 import RelCertifier.Proofs.Encoding.Emitted.Transport
 import RelCertifier.InstancesV2.WellFormed.Watertank
+import RelCertifier.InstancesV2.Cuts.watertank
 import RelCertifier.InstancesV2.BenchCovers.watertank
 import RelCertifier.InstancesV2.BenchProgress.watertank
+import RelCertifier.InstancesV2.BenchChoice.watertank
 
 namespace RelCertifier.Bridge.Watertank
 
@@ -23,7 +25,7 @@ abbrev IR := Parse.watertank_IRv2
 abbrev cX := Oracle.watertank_cutsV2X
 abbrev cov := watertank_coverV2
 abbrev prog := Progress.watertank_coverV2_progress
-abbrev ce := Choice.ChoiceEmitE.empty "watertank"
+abbrev ce := Choice.watertank_coverV2_choice
 
 theorem struct_ok : structOK IR 2 cov cX = true := by decide +kernel
 theorem prog_ok : progOK IR 2 cov prog = true := by decide +kernel

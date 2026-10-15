@@ -112,7 +112,7 @@ start mode, so choice never has to look across a left-cycle boundary.
   switch without flowing. Lean's `gresp_hop` requires the state to be in the source mode's
   evolution domain, which S3 gives. To check per model: the suite discipline gives every right
   mode the same evolution domain (`uniformEvolveR`), so S3 is the shared envelope; for the
-  three exhibits, confirm the same.
+  exhibits and the literature benchmarks, confirm the same.
 * **Assumption 1.** Nonblocking is still needed (a segment can run to its end). Completeness is
   needed only for case 2 and the residence-end switch.
 * Choice is within a residence plus the hop; no choice across left-cycle boundaries, no
@@ -126,7 +126,7 @@ start mode, so choice never has to look across a left-cycle boundary.
 3. Hop targets are declared, non-self successors; requiring them non-pruned is conservative
    and harmless (a hop has no flow).
 
-## 8. Lean status (the three exhibits)
+## 8. Lean status (the three exhibits of 2026-10-14; `vehicle_hypercert` is a suite benchmark since 2026-10-15)
 
 `RelCertifier/InstancesV2/Choice/Modal/` proves modal Theorem 3 for `vehicle_hypercert`,
 `vehicle_accel_copy` and `watertank_choice`, standalone (not replayed from the tool's choice
@@ -165,3 +165,8 @@ and `WatertankChoice.lean` are generated instances through `theorem3_window_of_r
 `vehicle_hypercert` stays on its hand-written general instance (§9), because its reposition
 node's progress stages cross their thresholds downward and the progress lemmas read upward
 stages. The coverage queries are among the groups of `relcert-bridge-verdicts` (`docs/BRIDGE.md`).
+
+Since 2026-10-15 the choice is the tool's default (`RELCERT_NO_CHOICE=1` disables it): the 46
+original suite covers are byte-identical with it on or off, and three suite benchmarks need it,
+`vehicle_hypercert` (moved from the exhibits) and the two dRL refinement benchmarks
+`drl_car_stop`, `drl_lane_control`, whose witness hops into the left's mode at every window.

@@ -12,8 +12,10 @@ discharges, `Emitted.verdicts_of_groups`).
 import RelCertifier.Proofs.Encoding.Emitted.Keyed
 import RelCertifier.Proofs.Encoding.Emitted.Transport
 import RelCertifier.Instances.WellFormed.Story1AttdistRungA
+import RelCertifier.InstancesV2.Cuts.story1_attdist_rung_a_6to8
 import RelCertifier.InstancesV2.BenchCovers.story1_attdist_rung_a_6to8
 import RelCertifier.InstancesV2.BenchProgress.story1_attdist_rung_a_6to8
+import RelCertifier.InstancesV2.BenchChoice.story1_attdist_rung_a_6to8
 
 namespace RelCertifier.Bridge.Story1AttdistRungA6to8
 
@@ -23,7 +25,7 @@ abbrev IR := Parse.story1_attdist_rung_a_6to8_IRv2
 abbrev cX := Oracle.story1_attdist_rung_a_6to8_cutsV2X
 abbrev cov := story1_attdist_rung_a_6to8_coverV2
 abbrev prog := Progress.story1_attdist_rung_a_6to8_coverV2_progress
-abbrev ce := Choice.ChoiceEmitE.empty "story1_attdist_rung_a_6to8"
+abbrev ce := Choice.story1_attdist_rung_a_6to8_coverV2_choice
 
 theorem struct_ok : structOK IR 8 cov cX = true := by decide +kernel
 theorem prog_ok : progOK IR 8 cov prog = true := by decide +kernel

@@ -12,8 +12,10 @@ discharges, `Emitted.verdicts_of_groups`).
 import RelCertifier.Proofs.Encoding.Emitted.Window
 import RelCertifier.Proofs.Encoding.Emitted.Transport
 import RelCertifier.Instances.WellFormed.MatchMultiRate
+import RelCertifier.InstancesV2.Cuts.match_multi_rate
 import RelCertifier.InstancesV2.BenchCovers.match_multi_rate
 import RelCertifier.InstancesV2.BenchProgress.match_multi_rate
+import RelCertifier.InstancesV2.BenchChoice.match_multi_rate
 
 namespace RelCertifier.Bridge.MatchMultiRate
 
@@ -23,7 +25,7 @@ abbrev IR := Parse.match_multi_rate_IRv2
 abbrev cX := Oracle.match_multi_rate_cutsV2X
 abbrev cov := match_multi_rate_coverV2
 abbrev prog := Progress.match_multi_rate_coverV2_progress
-abbrev ce := Choice.ChoiceEmitE.empty "match_multi_rate"
+abbrev ce := Choice.match_multi_rate_coverV2_choice
 
 theorem struct_ok : structOK IR 2 cov cX = true := by decide +kernel
 theorem prog_ok : progOK IR 2 cov prog = true := by decide +kernel

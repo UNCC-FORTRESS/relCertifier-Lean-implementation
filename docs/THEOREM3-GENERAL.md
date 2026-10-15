@@ -110,13 +110,16 @@ The per-benchmark standalone proofs (`InstancesV2/Choice/Modal/`, `InstancesV2/M
 remain; the general instances are new theorems (`*_general`) with the same conclusion shape
 (their region beyond the declared modes is `⊤` instead of `⊥`, immaterial under `mvRegionR`).
 
-## 5. Not yet done
+## 5. The generic bridge (2026-10-14/15)
 
-* Mode-dependent rows (one row per left mode): the per-window response `Hmulti_of_coverX` is
-  row-generic; the assembly through `theorem3_modeKeyed` is not written.
-* Replay of the tool's emitted choice covers: the tool does not emit them yet (D5); the
-  instances above write their covers by hand and decide them in the kernel.
-* The two-stage progress pin (`progressVerd_two`, the rover family); the single-stage one is
-  `progressVerd_one`, used by the charger instance.
-* The remaining 43 suite benchmarks are not re-derived through the general theorem (their
-  standalone proofs stand).
+The per-benchmark instances of §4 are superseded for the suite by the generic bridge
+(`docs/BRIDGE.md`, `Proofs/Encoding/Emitted/`): one layer instantiates the general theorem
+from a benchmark's emitted records (IR, cut certificate, cover, progress certificates), the
+structural facts decided in the kernel, every verdict read from one Z3 run
+(`relcert-bridge-verdicts`, 3259 groups over the suite, all discharged). Mode-dependent rows
+are assembled through `theorem3_modeKeyed` (`Emitted/Keyed.lean`); the two-stage progress pin
+is `progressVerd_two`. Generated instances: `InstancesV2/Bridge/` (40 of 46; the detumble
+family's Assumption 1 holds only on a band and is not bridged).
+
+Still not done: the tool's emission of choice covers and their coverage verdicts (D5); the
+three choice exhibits stay on the hand-written general instances of §4.

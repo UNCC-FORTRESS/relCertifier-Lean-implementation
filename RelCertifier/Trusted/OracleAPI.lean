@@ -787,10 +787,12 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     let (post, postOrd) ← checkDynRepo s cnt maxQ maxSmt deadline vars n coord comps cutL (cutOfR mR.name) mL mR false
     dynMap := dynMap ++ [(mR.name, pre, post)]
     dynOrders := dynOrders ++ [(mR.name, preOrd, postOrd)]
-  -- PROGRESS (`RELCERT_PROGRESS=1`): a reposition node must also certify that its right-only
+  -- PROGRESS (default; `RELCERT_NO_PROGRESS=1` disables): a reposition node must also certify that its right-only
   -- flow reaches an exit (`checkProgress`, `Trusted/ProgressEmit.lean`); otherwise it is not
   -- a node. The certificates found are logged for emission (`RELCERT_PROGRESS_OUT`).
-  let progressOn := (← IO.getEnv "RELCERT_PROGRESS").isSome
+  -- the progress certificate is required of every reposition node by default
+  -- (`RELCERT_NO_PROGRESS=1` disables it: the ablation of the right-only kind's progress)
+  let progressOn := (← IO.getEnv "RELCERT_NO_PROGRESS").isNone
   let mut progMap : List (String × Bool × Bool) := []
   if progressOn then
     for mR in p.R.modes do

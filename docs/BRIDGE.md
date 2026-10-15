@@ -9,7 +9,7 @@ benchmark, with every hypothesis either decided in the kernel or read from one Z
 ## 1. What an instance states
 
 For benchmark `b` with IR `p`, extended cut certificate `cX`, cover record `cov` (emitted with
-`RELCERT_IMPLIED_CUT=1 RELCERT_PROGRESS=1`), progress record `prog` (the same run) and the
+`RELCERT_IMPLIED_CUT=1`; progress certificates by default), progress record `prog` (the same run) and the
 bridge dimension `n` (the state variables plus the auxiliary coordinates; the pack table's
 `dim`):
 
@@ -99,7 +99,7 @@ all discharged** (suite alone, 3259; the first run before the progress gate, 365
 ## 5. Findings along the way
 
 * The cover leaves predated the progress gate: `watertank`'s `PumpOff` was flagged a
-  reposition node without a progress certificate. With `RELCERT_PROGRESS=1` the tool gates the
+  reposition node without a progress certificate. With the progress gate (now the default; `RELCERT_NO_PROGRESS=1` disables it) the tool gates the
   flags and the leaves are regenerated (40 of 46 changed); the kernel cover replay accepts every
   regenerated cover.
 * The rational O2 routes (shape, frozen, linear, derived) are all re-checkable by the

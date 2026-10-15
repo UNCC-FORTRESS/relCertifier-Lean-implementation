@@ -59,7 +59,7 @@ that an exit is reached. The 12 benchmarks whose covers use right-only steps res
 that (with the all-successors right-only rule disabled, `RELCERT_NO_REPO=1`, they decline:
 34/46). Their standalone Lean proofs had discharged it from explicit solutions (`HExit`).
 
-The fix is a **progress certificate** (`Trusted/ProgressEmit.lean`, `RELCERT_PROGRESS=1`),
+The fix is a **progress certificate** (`Trusted/ProgressEmit.lean`; the tool's default, `RELCERT_NO_PROGRESS=1` disables it),
 checked by the tool per reposition node like every other certificate: a stage
 `(x, θ, r)` says "while `x < θ` (on the node's region, the facts the reposition flow keeps)
 the field of `x` is at least `r > 0`"; an optional helper stage `(y, y₀, r₁)` first (its

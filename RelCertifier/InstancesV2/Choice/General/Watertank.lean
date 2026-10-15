@@ -356,7 +356,8 @@ theorem watertank_general (dt : ℝ) (hdt : dt ≤ 1) (hv : Packs) :
     cutsG GrP_guards hgRP hguardR_all cutsG_fv fR (fun q hq => hfR q (by rwa [GrP_len] at hq))
     GrP_sys GrP_dom GrP_weight hltP 3
     (fun l => hostGuard vs 2 Side.L (mL l)) fL (fun l hl => hguardL l hl) (fun l hl => hfL l hl)
-    1 wellFormedR chW Bw δw (fun l _ => lam l) AG (fun _ _ => Formula.tt) (fun _ _ _ => Formula.tt)
+    1 Formula.tt (fun _ h => by simp [Formula.fv] at h) wellFormedR chW Bw δw (fun l _ => lam l) AG (fun _ _ _ _ _ => trivial)
+    (fun _ _ => Formula.tt) (fun _ _ _ => Formula.tt)
     (fun l q _ => Formula.and (AG l q) (guardR q))
     (fun l hl => coverHyps l hl hv) ?_ ?_ ?_ ?_
   · intro l hl

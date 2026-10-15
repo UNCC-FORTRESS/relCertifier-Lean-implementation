@@ -17,7 +17,7 @@ import RelCertifier.InstancesV2.BenchProgress.rover3tier_rung12
 
 namespace RelCertifier.Bridge.Rover3tierRung12
 
-open RelCertifier RelCertifier.Emitted RelCertifier.Parse RelCertifier.Oracle
+open RelCertifier RelCertifier.Emitted RelCertifier.Parse RelCertifier.Oracle DL Set
 
 abbrev IR := Parse.rover3tier_rung12_IRv2
 abbrev cX := Oracle.rover3tier_rung12_cutsV2X
@@ -32,21 +32,28 @@ theorem nR_eq : nR IR = Rover3tierRung12Guarded.GrG.modes.length := by decide +k
 theorem edges_ok : edgesCovered IR Rover3tierRung12Guarded.GrG = true := by decide +kernel
 theorem src_ok : edgesSrcOK IR Rover3tierRung12Guarded.GrG = true := by decide +kernel
 
+/-- The same modes in the generic automaton. -/
+theorem modes_eq : ∀ q m', (grOf IR 3 (prunedOf cov)).modeAt q = some m' →
+    ∃ m, Rover3tierRung12Guarded.GrG.modeAt q = some m ∧ m.sys = m'.sys ∧ m.dom = m'.dom := fun q m' hm' => by
+  obtain ⟨hq, rfl⟩ := grOf_modeAt_inv hm'
+  rw [nR_eq] at hq
+  exact ⟨_, Rover3tierRung12Guarded.GrG_modeAt q hq, rfl, rfl⟩
+
+/-- Assumption 1 holds unconditionally: the region is `⊤`. -/
+abbrev reg : Formula (Var 3) := Formula.tt
+theorem reg_fv : reg.fv ⊆ range Rv := fun _ h => by simp [Formula.fv] at h
+theorem reg_inv : RegionInvariant (grOf IR 3 (prunedOf cov)) reg := fun _ _ _ _ _ _ _ _ => trivial
+
 /-- Assumption 1, transported from `Rover3tierRung12Guarded.rover3tier_rung12_wellFormedR`. -/
-theorem wellFormedR : WellFormedR (grOf IR 3 (prunedOf cov)) (guardR IR 3) (epsR IR) :=
-  wellFormedR_transport (Rover3tierRung12Guarded.rover3tier_rung12_wellFormedR) (by rw [grOf_len, nR_eq])
-    (fun q m' hm' => by
-      obtain ⟨hq, rfl⟩ := grOf_modeAt_inv hm'
-      rw [nR_eq] at hq
-      exact ⟨_, Rover3tierRung12Guarded.GrG_modeAt q hq, rfl, rfl⟩)
-    (fun q => rfl)
+theorem wellFormedR : WellFormedRIn (grOf IR 3 (prunedOf cov)) (guardR IR 3) reg (epsR IR) :=
+  wellFormedR_transport (Rover3tierRung12Guarded.rover3tier_rung12_wellFormedR) (by rw [grOf_len, nR_eq]) modes_eq (fun q => rfl)
     (edges_transport_check edges_ok (edgesSrcOK_sound src_ok))
 
 /-- **Theorem 3 of `rover3tier_rung12`** (mode-keyed form): every verdict group of the benchmark
 `unsat`. -/
 theorem rover3tier_rung12_bridge (hv : Verdicts IR 3 cX cov prog ce) (dt : ℝ) (hdt : dt ≤ epsL IR) :
-    keyedClaim IR 3 cX cov 0 1 2 dt :=
-  theorem3_keyed_of_records struct_ok hv prog_ok covers_ok wellFormedR 0 1 2
+    keyedClaim IR 3 cX cov reg 0 1 2 dt :=
+  theorem3_keyed_of_records struct_ok hv prog_ok covers_ok reg_fv reg_inv wellFormedR 0 1 2
     (by decide) (by decide) (by decide) dt hdt
 
 end RelCertifier.Bridge.Rover3tierRung12

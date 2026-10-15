@@ -490,5 +490,11 @@ theorem AG_pruneD (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX) {l q : �
 
 end Anchor
 
+/-- The anchor with the region Assumption 1 is relative to (`⊤` for the suite's benchmarks,
+the momentum band for the detumble family). -/
+noncomputable def AGr (p : PProblem) (n : ℕ) (cX : EvolStrengtheningX) (cov : CoverEmitE)
+    (reg : Formula (Var n)) (l q : ℕ) : Formula (Var n) :=
+  Formula.and (AG p n cX cov l q) reg
+
 end Emitted
 end RelCertifier

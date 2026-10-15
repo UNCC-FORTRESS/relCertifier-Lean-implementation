@@ -94,9 +94,12 @@ variable (Gr : SearchGraph (Var n)) (a b : Fin n) (hab : a ≠ b) (dt : ℝ)
   (hlt : ∀ q, ∀ e ∈ Gr.edgesFrom q, e.tgt < Gr.modes.length)
   (L : ℕ) (gL : ℕ → Formula (Var n)) (fL : ℕ → Fin n → Term (Var n))
   (hgLv : ∀ l, l < L → (gL l).fv ⊆ range Lv) (hfL : ∀ l, l < L → ∀ i, (fL l i).fv ⊆ range Lv)
-  (epsR : ℝ) (hwf : WellFormedR Gr guard epsR)
+  (epsR : ℝ) (reg : Formula (Var n)) (hregR : reg.fv ⊆ range Rv)
+  (hwf : WellFormedRIn Gr guard reg epsR)
   (ch : ℕ → ChoiceData) (B : ℕ → ℕ) (δ : ℕ → ℝ) (lam : ℕ → ℕ → ℝ)
-  (A : ℕ → ℕ → Formula (Var n)) (RJ : ℕ → ℕ → Formula (Var n))
+  (A : ℕ → ℕ → Formula (Var n))
+  (hAreg : ∀ l, l < L → ∀ q y, Formula.sat (A l q) y → Formula.sat reg y)
+  (RJ : ℕ → ℕ → Formula (Var n))
   (RR RS : ℕ → ℕ → SrcSetting → Formula (Var n))
   (H : ∀ l, l < L → CoverHyps Gr (ch l) fR domR (fL l) domL (gL l) guard epsR (δ l) (lam l)
     (A l) (RJ l) (RR l) (RS l))
@@ -119,7 +122,7 @@ noncomputable def leftProgsOf : List (Program (Var n)) :=
   (leftDataOf domL L gL fL).map (fun d =>
     gwindowSeg d.1 (leftBlock d.2.1) d.2.2.1 ((Side.Aux, b) : Var n) dt d.2.2.2)
 
-include hgR hguards hguardR hcutsR hfR hsys hdomM hweight hgLv hfL hdomL hdomR hwf H hdt hcov
+include hgR hguards hguardR hcutsR hfR hsys hdomM hweight hgLv hfL hdomL hdomR hregR hAreg hwf H hdt hcov
   hAstart hApost comps_fv in
 /-- **Every window answered from its cover** (the `Hmulti` of the instances). -/
 theorem Hmulti_of_coverX :
@@ -136,7 +139,7 @@ theorem Hmulti_of_coverX :
   have Hl := H l hl
   refine coverX_gresp Gr (ch l) fR domR (fL l) domL (gL l) b guard hgR hguards hguardR (hfL l hl)
     hdomL hdomR (hgLv l hl) hfR hsys hdomM hweight epsR (δ l) Hl.hδ (lam l) Hl.hlam Hl.hspan (A l)
-    Hl.hAfv Hl.hAdom Hl.hbox Hl.hhand hwf Hl.hprune
+    Hl.hAfv Hl.hAdom Hl.hbox Hl.hhand reg hregR (hAreg l hl) hwf Hl.hprune
     Hl.hrepoProg (RJ l) Hl.hRJ Hl.hcovJ (RR l) Hl.hRR Hl.hcovR (RS l) Hl.hRS Hl.hcovS dt (B l)
     (hdt l hl) q σ hg (fun hgate => hcov l hl q hq ⟨σ, hgate, hσ, hg, hc⟩)
     (fun hgate => hAstart l hl q σ hgate hσ hg hc) _ ?_
@@ -165,7 +168,7 @@ theorem hL_of (hgLv : ∀ l, l < L → (gL l).fv ⊆ range Lv)
   obtain ⟨l, hl, rfl⟩ := hd
   exact ⟨hgLv l hl, hfL l hl, hdomL⟩
 
-include hab hgR hguards hguardR hcutsR hfR hsys hdomM hweight hlt hgLv hfL hdomL hdomR hwf H hdt
+include hab hgR hguards hguardR hcutsR hfR hsys hdomM hweight hlt hgLv hfL hdomL hdomR hregR hAreg hwf H hdt
   hcov hAstart hApost comps_fv in
 /-- **Theorem 3 (Soundness of Synthesis), with the existential mode choice.** The ∀∃ relational
 invariance of the declared row with the evolve envelope and the right mode's region, over the
@@ -236,7 +239,7 @@ theorem theorem3_of_coverX :
           exact frames_right (vars_gwindowSegL_sub d.1 d.2.1 d.2.2.1 b dt d.2.2.2 (hL d hd).1
             (hL d hd).2.1 (hL d hd).2.2) (hguardR q) hrun)
         (Hmulti_of_coverX Gr a b dt g gs comps_fv domL domR hdomL hdomR guard cuts hguards hgR
-          hguardR hcutsR fR hfR hsys hdomM hweight L gL fL hgLv hfL epsR hwf ch B δ lam A RJ RR
+          hguardR hcutsR fR hfR hsys hdomM hweight L gL fL hgLv hfL epsR reg hregR hwf ch B δ lam A hAreg RJ RR
           RS H hdt hcov hAstart hApost))
   · exact hddF_multiR_G Gr a b dt (leftDataOf domL L gL fL) (regionG guard cuts)
       (canonInvM g gs) domL domR hab hgR hRv hL

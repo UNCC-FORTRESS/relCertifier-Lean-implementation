@@ -20,6 +20,34 @@ open DL DLCalTiming Parse Run Set
 
 variable {n : ℕ}
 
+theorem wellFormedRIn_transport {G G' : SearchGraph (Var n)} {guard guard' : ℕ → Formula (Var n)}
+    {reg : Formula (Var n)} {ε : ℝ} (h : WellFormedRIn G guard reg ε)
+    (hlen : G'.modes.length ≤ G.modes.length)
+    (hmode : ∀ q m', G'.modeAt q = some m' →
+      ∃ m, G.modeAt q = some m ∧ m.sys = m'.sys ∧ m.dom = m'.dom)
+    (hguard : ∀ q, guard' q = guard q)
+    (hedge : ∀ q e, e ∈ G.edgesFrom q → ∃ e' ∈ G'.edgesFrom q, e'.tgt = e.tgt) :
+    WellFormedRIn G' guard' reg ε := by
+  intro q hq m' hm' x hg hd hreg
+  obtain ⟨m, hm, hsys, hdom⟩ := hmode q m' hm'
+  have := h q (lt_of_lt_of_le hq hlen) m hm x (by rw [← hguard]; exact hg)
+    (by rw [hdom]; exact hd) hreg
+  rw [hsys, hdom] at this
+  refine ⟨this.1, fun t Φ ht H => ?_⟩
+  obtain ⟨e, he, hs⟩ := this.2 t Φ ht H
+  obtain ⟨e', he', htgt⟩ := hedge q e he
+  exact ⟨e', he', by rw [hguard, htgt]; exact hs⟩
+
+/-- A region kept by every mode's flow of one automaton is kept by the other's (same modes). -/
+theorem regionInvariant_transport {G G' : SearchGraph (Var n)} {reg : Formula (Var n)}
+    (h : RegionInvariant G reg)
+    (hmode : ∀ q m', G'.modeAt q = some m' →
+      ∃ m, G.modeAt q = some m ∧ m.sys = m'.sys ∧ m.dom = m'.dom) :
+    RegionInvariant G' reg := by
+  intro q m' hm' x t Φ hx H
+  obtain ⟨m, hm, hsys, hdom⟩ := hmode q m' hm'
+  exact h q m hm x t Φ hx (by rw [hsys, hdom]; exact H)
+
 theorem wellFormedR_transport {G G' : SearchGraph (Var n)} {guard guard' : ℕ → Formula (Var n)}
     {ε : ℝ} (h : WellFormedR G guard ε) (hlen : G'.modes.length ≤ G.modes.length)
     (hmode : ∀ q m', G'.modeAt q = some m' →

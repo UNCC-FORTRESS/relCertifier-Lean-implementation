@@ -391,8 +391,9 @@ theorem repoProgress_BULK (l : ℕ) (hl : l < 2) (hd : VerdD l 0)
   refine repoProgress_one GrP (fR 0) domL domR (hostGuard vs 2 Side.L (mL l)) guardR 0 (modeW 0)
     (GrP_modeAt 0 (by norm_num)) rfl rfl (hfR 0 (by norm_num)) hdomL hdomR (hguardL l hl3)
     hguardR_all hgRP (GrP_guards 0) (AG l) (AG_fv l hl3 0) (fun y h => ⟨h.2.1, h.2.2⟩) true 1
-    one_pos (fun x hg hd' => (hwf0 x hg hd' trivial).1)
-    (fun x hg hd' t Φ ht H => (hwf0 x hg hd' trivial).2 t Φ ht H) ?_ ?_ (regionF l)
+    one_pos Formula.tt (fun _ h => by simp [Formula.fv] at h) (fun _ _ => trivial)
+    (fun x hg hd' _ => (hwf0 x hg hd' trivial).1)
+    (fun x hg hd' _ t Φ ht H => (hwf0 x hg hd' trivial).2 t Φ ht H) ?_ ?_ (regionF l)
     (fun y hA hgL => AG_regionF l hl y hA (hgL rfl)) 0 80 ?_ ?_ 1 one_pos ?_
   · -- the reposition flow certificate keeps the anchor
     intro σ ω hA hgL hω
@@ -493,7 +494,8 @@ theorem charger_fast_setpoints_general (dt : ℝ) (hdt : dt ≤ 2) (hv : Packs)
     cutsG GrP_guards hgRP hguardR_all cutsG_fv fR (fun q hq => hfR q (by rwa [GrP_len] at hq))
     GrP_sys GrP_dom GrP_weight hltP 3
     (fun l => hostGuard vs 2 Side.L (mL l)) fL (fun l hl => hguardL l hl) (fun l hl => hfL l hl)
-    1 wellFormedR chW (fun _ => 2) (fun _ => 1) (fun _ _ => 1) AG (fun _ _ => Formula.tt)
+    1 Formula.tt (fun _ h => by simp [Formula.fv] at h) wellFormedR chW (fun _ => 2) (fun _ => 1) (fun _ _ => 1) AG
+    (fun _ _ _ _ _ => trivial) (fun _ _ => Formula.tt)
     (fun _ _ _ => Formula.tt)
     (fun l q _ => Formula.and (AG l q) (guardR q))
     (fun l hl => coverHyps l hl hv hd0 hd1 hprog) (fun l _ => by simpa using hdt) ?_ ?_ ?_

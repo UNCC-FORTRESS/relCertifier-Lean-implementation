@@ -129,8 +129,11 @@ variable (G : SearchGraph (Var n)) (ch : ChoiceData)
   -- entry: the anchor of `q` and the guard of the entered mode give its anchor
   (hhand : ∀ q, ∀ e ∈ G.edgesFrom q, ∀ y, Formula.sat (A q) y → SwitchLegal e y →
     Formula.sat (A e.tgt) y)
-  -- Assumption 1 (the right model is well formed)
-  (hwf : WellFormedR G guard epsR)
+  -- the region Assumption 1 is relative to (right-only, implied by every anchor)
+  (reg : Formula (Var n)) (hregR : reg.fv ⊆ range Rv)
+  (hAreg : ∀ q y, Formula.sat (A q) y → Formula.sat reg y)
+  -- Assumption 1 (the right model is well formed on `reg`)
+  (hwf : WellFormedRIn G guard reg epsR)
   -- Theorem 2: pruned edges are never enabled after the segment (joint and right-only kinds)
   (hprune : ∀ q m, G.modeAt q = some m → ∀ e ∈ G.edgesFrom q, e.pruned = true →
     ∀ σ ω, Formula.sat (A q) σ →
@@ -154,7 +157,7 @@ variable (G : SearchGraph (Var n)) (ch : ChoiceData)
   (hcovS : ∀ q σ S, S ∈ ch.hopS q σ → ∀ y, Formula.sat (RS q σ) y →
     ∃ q' ∈ S, Formula.sat (guard q') y)
 
-include hgR hguards hfL hdomL hdomR hfR hsys hdomM hlam hspan hAdom hbox hhand hwf in
+include hgR hguards hfL hdomL hdomR hfR hsys hdomM hlam hspan hAdom hbox hhand hregR hAreg hwf in
 /-- **The closing joint segment.** From a joint node whose segment covers the rest of the piece
 (`r − a ≤ δ`), the right runs to the piece's end and switches into an enabled successor. -/
 theorem coverX_finish {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
@@ -167,7 +170,7 @@ theorem coverX_finish {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)
   have hlq := hlam q
   have hρdom : Formula.sat domR ρ := (sat_merge_R hdomR ω₀ (ΦL a) ρ).mp (hAdom q _ hA)
   have hmdom : Formula.sat m.dom ρ := by rw [hdomM q m hm]; exact hρdom
-  obtain ⟨⟨Φ, hΦ⟩, hcomp⟩ := hwf q (modeAt_lt hm) m hm ρ hPre hmdom trivial
+  obtain ⟨⟨Φ, hΦ⟩, hcomp⟩ := hwf q (modeAt_lt hm) m hm ρ hPre hmdom ((sat_merge_R hregR ω₀ (ΦL a) ρ).mp (hAreg q _ hA))
   set T := lam q * (r - a) with hT
   have hT0 : 0 ≤ T := mul_nonneg hlq.le (by linarith)
   have hTε : T ≤ epsR := le_trans (mul_le_mul_of_nonneg_left hfit hlq.le) (hspan q)
@@ -223,7 +226,7 @@ theorem repoStep {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
   exact ⟨h1, h2, fun i => (hμ'L i).trans (hμL i)⟩
 
 include hgR hguards hguardR hfL hdomL hdomR hgL hfR hsys hdomM hweight hδ hlam hspan hAfv hAdom
-  hbox hhand hwf hprune hrepoProg hRJ hcovJ hRR hcovR hRS hcovS in
+  hbox hhand hregR hAreg hwf hprune hrepoProg hRJ hcovJ hRR hcovR hRS hcovS in
 /-- **The induction of Theorem 3's proof.** A covered configuration answers one clocked left
 piece from left time `a`, if the rest of the piece fits the budget. -/
 theorem coverX_piece {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
@@ -246,14 +249,14 @@ theorem coverX_piece {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
           _ ≤ 1 * δ := mul_le_mul_of_nonneg_right this hδ.le
           _ = δ := one_mul δ
       exact coverX_finish G ch fR domR fL domL tg guard hgR hguards hfL hdomL hdomR hfR
-        hsys hdomM epsR δ lam hlam hspan A hAdom hbox hhand hwf hL ω₀ hm hj ha har hfit hPre hA
+        hsys hdomM epsR δ lam hlam hspan A hAdom hbox hhand reg hregR hAreg hwf hL ω₀ hm hj ha har hfit hPre hA
   | @step q B σ m hm hj hlt _ ih =>
       intro a ha har hbud _ ρ hPre hA
       have hw := hweight q m hm
       rw [hw] at hlt ih
       by_cases hfit : r - a ≤ δ
       · exact coverX_finish G ch fR domR fL domL tg guard hgR hguards hfL hdomL hdomR hfR
-          hsys hdomM epsR δ lam hlam hspan A hAdom hbox hhand hwf hL ω₀ hm hj ha har hfit hPre hA
+          hsys hdomM epsR δ lam hlam hspan A hAdom hbox hhand reg hregR hAreg hwf hL ω₀ hm hj ha har hfit hPre hA
       · push Not at hfit
         -- run the segment's span `δ`
         have hlq := hlam q
@@ -262,7 +265,7 @@ theorem coverX_piece {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
         have hbr : b ≤ r := by linarith
         have hρdom : Formula.sat domR ρ := (sat_merge_R hdomR ω₀ (ΦL a) ρ).mp (hAdom q _ hA)
         have hmdom : Formula.sat m.dom ρ := by rw [hdomM q m hm]; exact hρdom
-        obtain ⟨⟨Φ, hΦ⟩, hcomp⟩ := hwf q (modeAt_lt hm) m hm ρ hPre hmdom trivial
+        obtain ⟨⟨Φ, hΦ⟩, hcomp⟩ := hwf q (modeAt_lt hm) m hm ρ hPre hmdom ((sat_merge_R hregR ω₀ (ΦL a) ρ).mp (hAreg q _ hA))
         set T := lam q * (b - a) with hT
         have hTδ : T = lam q * δ := by rw [hT, hbdef]; ring
         have hT0 : 0 ≤ T := by rw [hTδ]; exact mul_nonneg hlq.le hδ.le
@@ -316,7 +319,7 @@ theorem coverX_piece {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
       rw [hw] at hlt ih
       by_cases hfit : r - a ≤ δ
       · exact coverX_finish G ch fR domR fL domL tg guard hgR hguards hfL hdomL hdomR hfR
-          hsys hdomM epsR δ lam hlam hspan A hAdom hbox hhand hwf hL ω₀ hm hj ha har hfit hPre hA
+          hsys hdomM epsR δ lam hlam hspan A hAdom hbox hhand reg hregR hAreg hwf hL ω₀ hm hj ha har hfit hPre hA
       · push Not at hfit
         have hlq := hlam q
         set b := a + δ with hbdef
@@ -324,7 +327,7 @@ theorem coverX_piece {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
         have hbr : b ≤ r := by linarith
         have hρdom : Formula.sat domR ρ := (sat_merge_R hdomR ω₀ (ΦL a) ρ).mp (hAdom q _ hA)
         have hmdom : Formula.sat m.dom ρ := by rw [hdomM q m hm]; exact hρdom
-        obtain ⟨⟨Φ, hΦ⟩, -⟩ := hwf q (modeAt_lt hm) m hm ρ hPre hmdom trivial
+        obtain ⟨⟨Φ, hΦ⟩, -⟩ := hwf q (modeAt_lt hm) m hm ρ hPre hmdom ((sat_merge_R hregR ω₀ (ΦL a) ρ).mp (hAreg q _ hA))
         set T := lam q * (b - a) with hT
         have hTδ : T = lam q * δ := by rw [hT, hbdef]; ring
         have hT0 : 0 ≤ T := by rw [hTδ]; exact mul_nonneg hlq.le hδ.le
@@ -418,7 +421,9 @@ theorem coverX_gresp (G : SearchGraph (Var n)) (ch : ChoiceData)
         σ ω → Formula.sat (A q) ω)
     (hhand : ∀ q, ∀ e ∈ G.edgesFrom q, ∀ y, Formula.sat (A q) y → SwitchLegal e y →
       Formula.sat (A e.tgt) y)
-    (hwf : WellFormedR G guard epsR)
+    (reg : Formula (Var n)) (hregR : reg.fv ⊆ range Rv)
+    (hAreg : ∀ q y, Formula.sat (A q) y → Formula.sat reg y)
+    (hwf : WellFormedRIn G guard reg epsR)
     (hprune : ∀ q m, G.modeAt q = some m → ∀ e ∈ G.edgesFrom q, e.pruned = true →
       ∀ σ ω, Formula.sat (A q) σ →
       Program.sem (Program.ode (jointSys fL (fR q) (Term.const (lam q))) (Formula.and domL domR))
@@ -487,7 +492,7 @@ theorem coverX_gresp (G : SearchGraph (Var n)) (ch : ChoiceData)
   have hbud : r - 0 ≤ ((B : ℕ) : ℝ) * δ := by linarith
   have hpiece := coverX_piece G ch fR domR fL domL gL tg guard hgR hguards hguardR hfL hdomL
     hdomR hgL hfR hsys hdomM hweight epsR δ hδ lam hlam hspan A hAfv hAdom hbox
-    hhand hwf hprune hrepoProg RJ hRJ hcovJ RR hRR hcovR RS hRS hcovS hL σ hx
+    hhand reg hregR hAreg hwf hprune hrepoProg RJ hRJ hcovJ RR hRR hcovR RS hRS hcovS hL σ hx
     ⟨q, B, SrcSetting.preJ⟩ (hcov hg) 0 le_rfl hL.hr hbud (fun _ => rfl) ν hgν hA0
   rw [hΦr] at hpiece
   refine rresp_of_rrespP (rrespP_mono ?_ hpiece)

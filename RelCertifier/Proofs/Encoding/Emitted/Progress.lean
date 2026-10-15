@@ -17,6 +17,7 @@ kernel.
 import RelCertifier.Proofs.Encoding.Emitted.Anchor
 import RelCertifier.Proofs.Encoding.Progress
 import RelCertifier.VerdictsV2.ProgressPin
+import RelCertifier.Proofs.Encoding.Emitted.Region
 
 set_option autoImplicit false
 
@@ -189,14 +190,16 @@ theorem exit_edge {q : ℕ} (hq : q < nR p) {c : ProgressE} (hc : certOK p n cov
 /-- **The reposition-progress premise of every reposition node of window `l`.** -/
 theorem hrepoProg_of (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
     (hprog : ProgAll p n cX prog) (hpo : progOK p n cov prog = true)
-    (hwf : WellFormedR (grOf p n (prunedOf cov)) (guardR p n) (epsR p))
+    {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
+    (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
+    (hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg (epsR p))
     (hdyn : ∀ l < nL p, ∀ q < nR p, ∀ pre : Bool,
       (if pre then (flagsOf p cov l q).dynPre else (flagsOf p cov l q).dynPost) = true →
       DynVerd p n cX cov l q pre)
     {l : ℕ} (hl : l < nL p) :
     ∀ q m, (grOf p n (prunedOf cov)).modeAt q = some m → ∀ pre : Bool,
       (if pre then (chOf p cov l).repoPre q else (chOf p cov l).repoPost q) = true →
-      RepoProgress (grOf p n (prunedOf cov)) (AG p n cX cov l) (guardL p n l) (guardR p n q)
+      RepoProgress (grOf p n (prunedOf cov)) (AGr p n cX cov reg l) (guardL p n l) (guardR p n q)
         q pre := by
   intro q m hm pre hflag
   obtain ⟨hq, rfl⟩ := grOf_modeAt_inv hm
@@ -208,17 +211,30 @@ theorem hrepoProg_of (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
   have hv := hprog c hcmem
   -- Assumption 1 at `q`
   have hwfq := hwf q (by rw [grOf_len]; exact hq) (modeOf p n q) hm
-  have hex : ∀ x, Formula.sat (guardR p n q) x → Formula.sat (domR p n) x →
+  have hex : ∀ x, Formula.sat (guardR p n q) x → Formula.sat (domR p n) x → Formula.sat reg x →
       ∃ Φ, ODESol (rightBlock (fR p n q) (Term.const 1)) (domR p n) x (epsR p) Φ :=
-    fun x hg hd => (hwfq x hg hd trivial).1
-  have hcomp : ∀ x, Formula.sat (guardR p n q) x → Formula.sat (domR p n) x → ∀ t Φ, t ≤ epsR p →
+    fun x hg hd hr => (hwfq x hg hd hr).1
+  have hcomp : ∀ x, Formula.sat (guardR p n q) x → Formula.sat (domR p n) x → Formula.sat reg x →
+      ∀ t Φ, t ≤ epsR p →
       ODESol (rightBlock (fR p n q) (Term.const 1)) (domR p n) x t Φ →
       ∃ e ∈ (grOf p n (prunedOf cov)).edgesFrom q, Formula.sat (guardR p n e.tgt) (Φ t) :=
-    fun x hg hd t Φ ht H => (hwfq x hg hd trivial).2 t Φ ht H
+    fun x hg hd hr t Φ ht H => (hwfq x hg hd hr).2 t Φ ht H
+  -- the anchor with the region, kept along the frozen flow
+  have hAfv' : (AGr p n cX cov reg l q).fv ⊆ range Lv ∪ range Rv := by
+    intro v hv
+    rcases hv with hv | hv
+    · exact AG_fv hs hl hq hv
+    · exact Or.inr (hregR hv)
+  have hboxD' : ∀ σ ω, Formula.sat (AGr p n cX cov reg l q) σ →
+      (pre = true → Formula.sat (guardL p n l) σ) →
+      Program.sem (Program.ode (jointSys (fun _ => Term.const 0) (fR p n q) (Term.const 1))
+        (Formula.and (domL p n) (domR p n))) σ ω → Formula.sat (AGr p n cX cov reg l q) ω :=
+    fun σ ω hA hg hω => ⟨AG_boxD hs hnc hst hl hq pre hflag' (hdyn l hl q hq pre hflag') σ ω hA.1 hg hω,
+      reg_kept_joint hinv hregR (fR_fv (hnames hs) q) (domR_fv (hnames hs)) hm rfl rfl 1 one_pos hω hA.2⟩
   have hε : 0 < epsR p := (timeOK_at (htime hs) hl).1
   -- the region
-  have hR : ∀ y, Formula.sat (AG p n cX cov l q) y → (pre = true → Formula.sat (guardL p n l) y) →
-      Formula.sat (regionF p n cX l q pre) y := fun y hA hg => AG_regionF hs hl hq pre y hA hg
+  have hR : ∀ y, Formula.sat (AGr p n cX cov reg l q) y → (pre = true → Formula.sat (guardL p n l) y) →
+      Formula.sat (regionF p n cX l q pre) y := fun y hA hg => AG_regionF hs hl hq pre y hA.1 hg
   have hRsat : ∀ y, Formula.sat (regionF p n cX l q pre) y →
       RegionSat (vars p) n cX (mLof p l) (mRof p q) (rowOf p l) pre y :=
     fun y hy => regionSat_of_regionF hs hl pre y hy
@@ -231,10 +247,9 @@ theorem hrepoProg_of (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
     refine repoProgress_one (grOf p n (prunedOf cov)) (fR p n q) (domL p n) (domR p n)
       (guardL p n l) (guardR p n) q (modeOf p n q) hm rfl rfl (fR_fv (hnames hs) q)
       (domL_fv (hnames hs)) (domR_fv (hnames hs)) (guardL_fv (hnames hs) l) (guardR_fv (hnames hs))
-      (grOf_guardsRight (hnames hs)) (grOf_guards q) (AG p n cX cov l) (AG_fv hs hl hq)
-      (fun y h => ⟨h.2.1, h.2.2⟩) pre (epsR p) hε hex hcomp
-      (AG_boxD hs hnc hst hl hq pre hflag' (hdyn l hl q hq pre hflag'))
-      (fun e he hp => AG_pruneD hs hnc hst hl hq e he hp) (regionF p n cX l q pre) hR
+      (grOf_guardsRight (hnames hs)) (grOf_guards q) (AGr p n cX cov reg l) hAfv'
+      (fun y h => ⟨h.1.2.1, h.1.2.2⟩) pre (epsR p) hε reg hregR (fun y h => h.2) hex hcomp hboxD'
+      (fun e he hp σ ω hA hω => AG_pruneD hs hnc hst hl hq e he hp σ ω hA.1 hω) (regionF p n cX l q pre) hR
       v.2 (st.theta : ℝ) ?_ ?_ (st.rate : ℝ) hrpos ?_
     · intro y hy hθ
       exact exit_edge hs hq hok y (hline y (hRsat y hy) (by rw [hvR]; exact hθ))
@@ -253,10 +268,9 @@ theorem hrepoProg_of (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
     refine repoProgress_two (grOf p n (prunedOf cov)) (fR p n q) (domL p n) (domR p n)
       (guardL p n l) (guardR p n) q (modeOf p n q) hm rfl rfl (fR_fv (hnames hs) q)
       (domL_fv (hnames hs)) (domR_fv (hnames hs)) (guardL_fv (hnames hs) l) (guardR_fv (hnames hs))
-      (grOf_guardsRight (hnames hs)) (grOf_guards q) (AG p n cX cov l) (AG_fv hs hl hq)
-      (fun y h => ⟨h.2.1, h.2.2⟩) pre (epsR p) hε hex hcomp
-      (AG_boxD hs hnc hst hl hq pre hflag' (hdyn l hl q hq pre hflag'))
-      (fun e he hp => AG_pruneD hs hnc hst hl hq e he hp) (regionF p n cX l q pre) hR
+      (grOf_guardsRight (hnames hs)) (grOf_guards q) (AGr p n cX cov reg l) hAfv'
+      (fun y h => ⟨h.1.2.1, h.1.2.2⟩) pre (epsR p) hε reg hregR (fun y h => h.2) hex hcomp hboxD'
+      (fun e he hp σ ω hA hω => AG_pruneD hs hnc hst hl hq e he hp σ ω hA.1 hω) (regionF p n cX l q pre) hR
       v.2 (st.theta : ℝ) ?_ ?_ (st.rate : ℝ) hrpos w.2 (sth.theta : ℝ) (sth.rate : ℝ) hrhpos
       ?_ ?_ ?_
     · intro y hy hθ

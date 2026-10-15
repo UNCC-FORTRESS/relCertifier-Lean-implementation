@@ -17,7 +17,7 @@ import RelCertifier.InstancesV2.BenchProgress.story2_lateral_rung_b_12dof
 
 namespace RelCertifier.Bridge.Story2LateralRungB12dof
 
-open RelCertifier RelCertifier.Emitted RelCertifier.Parse RelCertifier.Oracle
+open RelCertifier RelCertifier.Emitted RelCertifier.Parse RelCertifier.Oracle DL Set
 
 abbrev IR := Parse.story2_lateral_rung_b_12dof_IRv2
 abbrev cX := Oracle.story2_lateral_rung_b_12dof_cutsV2X
@@ -33,20 +33,27 @@ theorem nR_eq : nR IR = Story2LateralBGuarded.GrG.modes.length := by decide +ker
 theorem edges_ok : edgesCovered IR Story2LateralBGuarded.GrG = true := by decide +kernel
 theorem src_ok : edgesSrcOK IR Story2LateralBGuarded.GrG = true := by decide +kernel
 
+/-- The same modes in the generic automaton. -/
+theorem modes_eq : ∀ q m', (grOf IR 12 (prunedOf cov)).modeAt q = some m' →
+    ∃ m, Story2LateralBGuarded.GrG.modeAt q = some m ∧ m.sys = m'.sys ∧ m.dom = m'.dom := fun q m' hm' => by
+  obtain ⟨hq, rfl⟩ := grOf_modeAt_inv hm'
+  rw [nR_eq] at hq
+  exact ⟨_, Story2LateralBGuarded.GrG_modeAt q hq, rfl, rfl⟩
+
+/-- Assumption 1 holds unconditionally: the region is `⊤`. -/
+abbrev reg : Formula (Var 12) := Formula.tt
+theorem reg_fv : reg.fv ⊆ range Rv := fun _ h => by simp [Formula.fv] at h
+theorem reg_inv : RegionInvariant (grOf IR 12 (prunedOf cov)) reg := fun _ _ _ _ _ _ _ _ => trivial
+
 /-- Assumption 1, transported from `Story2LateralBGuarded.story2_lateral_rung_b_12dof_wellFormedR`. -/
-theorem wellFormedR : WellFormedR (grOf IR 12 (prunedOf cov)) (guardR IR 12) (epsR IR) :=
-  wellFormedR_transport (Story2LateralBGuarded.story2_lateral_rung_b_12dof_wellFormedR) (by rw [grOf_len, nR_eq])
-    (fun q m' hm' => by
-      obtain ⟨hq, rfl⟩ := grOf_modeAt_inv hm'
-      rw [nR_eq] at hq
-      exact ⟨_, Story2LateralBGuarded.GrG_modeAt q hq, rfl, rfl⟩)
-    (fun q => rfl)
+theorem wellFormedR : WellFormedRIn (grOf IR 12 (prunedOf cov)) (guardR IR 12) reg (epsR IR) :=
+  wellFormedR_transport (Story2LateralBGuarded.story2_lateral_rung_b_12dof_wellFormedR) (by rw [grOf_len, nR_eq]) modes_eq (fun q => rfl)
     (edges_transport_check edges_ok (edgesSrcOK_sound src_ok))
 
 /-- **Theorem 3 of `story2_lateral_rung_b_12dof`** (window form): every verdict group of the benchmark `unsat`. -/
 theorem story2_lateral_rung_b_12dof_bridge (hv : Verdicts IR 12 cX cov prog ce) (dt : ℝ) (hdt : dt ≤ epsL IR) :
-    windowClaim IR 12 cX cov 0 1 dt :=
-  theorem3_window_of_records struct_ok hv prog_ok covers_ok wellFormedR rows_same 0 1
-    (by decide) dt hdt
+    windowClaim IR 12 cX cov reg 0 1 dt :=
+  theorem3_window_of_records struct_ok hv prog_ok covers_ok reg_fv reg_inv wellFormedR
+    rows_same 0 1 (by decide) dt hdt
 
 end RelCertifier.Bridge.Story2LateralRungB12dof

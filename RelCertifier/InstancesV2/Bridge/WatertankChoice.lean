@@ -18,7 +18,7 @@ import RelCertifier.InstancesV2.Choice.BenchChoice.watertank_choice
 
 namespace RelCertifier.Bridge.WatertankChoice
 
-open RelCertifier RelCertifier.Emitted RelCertifier.Parse RelCertifier.Oracle
+open RelCertifier RelCertifier.Emitted RelCertifier.Parse RelCertifier.Oracle DL Set
 
 abbrev IR := Parse.watertank_choice_IRc
 abbrev cX := Oracle.watertank_choice_cutsCX
@@ -37,20 +37,27 @@ theorem epsR_eq : epsR IR = 1 := by
   have h : Run.parseRat IR.R.epsilon = some (1 : ℚ) := by decide +kernel
   simp only [epsR, h, Option.getD_some, Rat.cast_one]
 
+/-- The same modes in the generic automaton. -/
+theorem modes_eq : ∀ q m', (grOf IR 2 (prunedOf cov)).modeAt q = some m' →
+    ∃ m, ChoiceWatertank.GrP.modeAt q = some m ∧ m.sys = m'.sys ∧ m.dom = m'.dom := fun q m' hm' => by
+  obtain ⟨hq, rfl⟩ := grOf_modeAt_inv hm'
+  rw [nR_eq] at hq
+  exact ⟨_, ChoiceWatertank.GrP_modeAt q hq, rfl, rfl⟩
+
+/-- Assumption 1 holds unconditionally: the region is `⊤`. -/
+abbrev reg : Formula (Var 2) := Formula.tt
+theorem reg_fv : reg.fv ⊆ range Rv := fun _ h => by simp [Formula.fv] at h
+theorem reg_inv : RegionInvariant (grOf IR 2 (prunedOf cov)) reg := fun _ _ _ _ _ _ _ _ => trivial
+
 /-- Assumption 1, transported from `ChoiceWatertank.wellFormedR`. -/
-theorem wellFormedR : WellFormedR (grOf IR 2 (prunedOf cov)) (guardR IR 2) (epsR IR) :=
-  wellFormedR_transport (by rw [epsR_eq]; exact ChoiceWatertank.wellFormedR) (by rw [grOf_len, nR_eq])
-    (fun q m' hm' => by
-      obtain ⟨hq, rfl⟩ := grOf_modeAt_inv hm'
-      rw [nR_eq] at hq
-      exact ⟨_, ChoiceWatertank.GrP_modeAt q hq, rfl, rfl⟩)
-    (fun q => rfl)
+theorem wellFormedR : WellFormedRIn (grOf IR 2 (prunedOf cov)) (guardR IR 2) reg (epsR IR) :=
+  wellFormedR_transport (by rw [epsR_eq]; exact ChoiceWatertank.wellFormedR) (by rw [grOf_len, nR_eq]) modes_eq (fun q => rfl)
     (edges_transport_check edges_ok (edgesSrcOK_sound src_ok))
 
 /-- **Theorem 3 of `watertank_choice`** (window form): every verdict group of the benchmark `unsat`. -/
 theorem watertank_choice_bridge (hv : Verdicts IR 2 cX cov prog ce) (dt : ℝ) (hdt : dt ≤ epsL IR) :
-    windowClaim IR 2 cX cov 0 1 dt :=
-  theorem3_window_of_records struct_ok hv prog_ok covers_ok wellFormedR rows_same 0 1
-    (by decide) dt hdt
+    windowClaim IR 2 cX cov reg 0 1 dt :=
+  theorem3_window_of_records struct_ok hv prog_ok covers_ok reg_fv reg_inv wellFormedR
+    rows_same 0 1 (by decide) dt hdt
 
 end RelCertifier.Bridge.WatertankChoice

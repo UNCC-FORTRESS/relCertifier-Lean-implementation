@@ -285,7 +285,8 @@ theorem vehicle_hypercert_general (dt : ℝ) (hdt : dt ≤ 1) (hv : ∀ l < 5, V
     cutsG Gr_guards hgR guardR_fv cutsG_fv fR (fun q hq => hfR q (by rwa [Gr_len] at hq))
     Gr_sys Gr_dom Gr_weight hlt 5
     (fun l => hostGuard vs 2 Side.L (mL l)) fL (fun l hl => hguardL l hl) (fun l hl => hfL l hl)
-    1 wellFormedR chG (fun _ => 1) (fun _ => 1) (fun _ _ => 1) AG (fun _ _ => Formula.tt)
+    1 Formula.tt (fun _ h => by simp [Formula.fv] at h) wellFormedR chG (fun _ => 1) (fun _ => 1) (fun _ _ => 1) AG
+    (fun _ _ _ _ _ => trivial) (fun _ _ => Formula.tt)
     (fun _ _ _ => Formula.tt)
     (fun l q σ => Formula.and (AG l q) (Formula.and (guardR q)
       (if σ = SrcSetting.preJ then hostGuard vs 2 Side.L (mL l) else Formula.tt)))

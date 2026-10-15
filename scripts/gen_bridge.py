@@ -21,6 +21,17 @@ WF_DIRS = [("RelCertifier/InstancesV2/WellFormed", "RelCertifier.InstancesV2.Wel
 
 # benchmarks whose left modes declare distinct rows (the keyed form); every other benchmark's
 # rows are identical (`rowsSame`, checked in the kernel by the window instance)
+# benchmarks whose Assumption 1 holds only on a region (`WellFormedRIn` + `RegionInvariant`):
+# the region, its fv lemma (or None: proved in the instance), the two lemma suffixes
+BAND = {
+    "sat3w_detumble_nominal": dict(reg="nbF", unfold="bandF, c1T, c2T, c3T"),
+    "sat3w_detumble_weak": dict(reg="nbF", unfold="bandF, c1T, c2T, c3T"),
+    "sat3w_detumble_phases": dict(reg="nbF", unfold="nbPair, c1, c2, c3"),
+    "sat_detumble_nominal": dict(reg="nbF", unfold="hw"),
+    "sat_detumble_phases": dict(reg="nbF", unfold="hw"),
+    "sat_detumble_weak": dict(reg="nbF", unfold="hw"),
+}
+
 # the choice benchmarks (benchmarks/choice): records under InstancesV2/Choice, the general
 # instances' namespaces and Assumption 1 at ε = 1
 CHOICE = {
@@ -59,6 +70,8 @@ def wf_info(b):
             src = open(f"{d}/{fn}").read()
             m = re.search(rf"theorem {b}_wellFormedR\s*:\s*WellFormedR (\w+) (\w+) \(epsR", src)
             if not m:
+                m = re.search(rf"theorem {b}_wellFormedR_onBand\s*:\s*WellFormedRIn (\w+) (\w+) \w+ \(epsR", src)
+            if not m:
                 continue
             ns = re.findall(r"^namespace (\w+)", src, re.M)
             ns = [x for x in ns if x != "RelCertifier"]
@@ -82,7 +95,7 @@ import {wfmod}
 {record_imports}
 namespace RelCertifier.Bridge.{camel}
 
-open RelCertifier RelCertifier.Emitted RelCertifier.Parse RelCertifier.Oracle
+open RelCertifier RelCertifier.Emitted RelCertifier.Parse RelCertifier.Oracle DL Set
 
 abbrev IR := Parse.{ir}
 abbrev cX := Oracle.{cuts}
@@ -97,15 +110,14 @@ theorem covers_ok : coversOK IR {n} cov ce = true := by decide +kernel
 theorem edges_ok : edgesCovered IR {ns}.{G} = true := by decide +kernel
 theorem src_ok : edgesSrcOK IR {ns}.{G} = true := by decide +kernel
 {eps_thm}
-/-- Assumption 1, transported from `{ns}.{wfname}`. -/
-theorem wellFormedR : WellFormedR (grOf IR {n} (prunedOf cov)) (guardR IR {n}) (epsR IR) :=
-  wellFormedR_transport ({wfterm}) (by rw [grOf_len, nR_eq])
-    (fun q m' hm' => by
-      obtain ⟨hq, rfl⟩ := grOf_modeAt_inv hm'
-      rw [nR_eq] at hq
-      exact ⟨_, {ns}.{modeAt} q hq, rfl, rfl⟩)
-    (fun q => rfl)
-    (edges_transport_check edges_ok (edgesSrcOK_sound src_ok))
+/-- The same modes in the generic automaton. -/
+theorem modes_eq : ∀ q m', (grOf IR {n} (prunedOf cov)).modeAt q = some m' →
+    ∃ m, {ns}.{G}.modeAt q = some m ∧ m.sys = m'.sys ∧ m.dom = m'.dom := fun q m' hm' => by
+  obtain ⟨hq, rfl⟩ := grOf_modeAt_inv hm'
+  rw [nR_eq] at hq
+  exact ⟨_, {ns}.{modeAt} q hq, rfl, rfl⟩
+
+{region_block}
 
 {claim}
 end RelCertifier.Bridge.{camel}
@@ -113,20 +125,54 @@ end RelCertifier.Bridge.{camel}
 
 WINDOW_CLAIM = '''/-- **Theorem 3 of `{b}`** (window form): every verdict group of the benchmark `unsat`. -/
 theorem {b}_bridge (hv : Verdicts IR {n} cX cov prog ce) (dt : ℝ) (hdt : dt ≤ epsL IR) :
-    windowClaim IR {n} cX cov 0 1 dt :=
-  theorem3_window_of_records struct_ok hv prog_ok covers_ok wellFormedR rows_same 0 1
-    (by decide) dt hdt
+    windowClaim IR {n} cX cov reg 0 1 dt :=
+  theorem3_window_of_records struct_ok hv prog_ok covers_ok reg_fv reg_inv wellFormedR
+    rows_same 0 1 (by decide) dt hdt
 '''
 
 KEYED_CLAIM = '''/-- **Theorem 3 of `{b}`** (mode-keyed form): every verdict group of the benchmark
 `unsat`. -/
 theorem {b}_bridge (hv : Verdicts IR {n} cX cov prog ce) (dt : ℝ) (hdt : dt ≤ epsL IR) :
-    keyedClaim IR {n} cX cov 0 1 2 dt :=
-  theorem3_keyed_of_records struct_ok hv prog_ok covers_ok wellFormedR 0 1 2
+    keyedClaim IR {n} cX cov reg 0 1 2 dt :=
+  theorem3_keyed_of_records struct_ok hv prog_ok covers_ok reg_fv reg_inv wellFormedR 0 1 2
     (by decide) (by decide) (by decide) dt hdt
 '''
 
+SUITE_REGION = """/-- Assumption 1 holds unconditionally: the region is `⊤`. -/
+abbrev reg : Formula (Var {n}) := Formula.tt
+theorem reg_fv : reg.fv ⊆ range Rv := fun _ h => by simp [Formula.fv] at h
+theorem reg_inv : RegionInvariant (grOf IR {n} (prunedOf cov)) reg := fun _ _ _ _ _ _ _ _ => trivial
+
+/-- Assumption 1, transported from `{ns}.{wfname}`. -/
+theorem wellFormedR : WellFormedRIn (grOf IR {n} (prunedOf cov)) (guardR IR {n}) reg (epsR IR) :=
+  wellFormedR_transport ({wfterm}) (by rw [grOf_len, nR_eq]) modes_eq (fun q => rfl)
+    (edges_transport_check edges_ok (edgesSrcOK_sound src_ok))"""
+
+BAND_REGION = """/-- Assumption 1 holds on the momentum band `{ns}.{regname}` (the unconditional form is false:
+`{ns}.{b}_wellFormedR_false`); the band is kept by every right flow. -/
+noncomputable abbrev reg : Formula (Var {n}) := {ns}.{regname}
+theorem reg_fv : reg.fv ⊆ range Rv := by
+  intro x hx
+  simp only [reg, {ns}.{regname}, {unfold}, Formula.fv, Term.fv, Set.mem_union,
+    Set.mem_singleton_iff, Set.mem_empty_iff_false, or_false, false_or] at hx
+  repeat' rcases hx with hx | hx
+  all_goals first | (subst hx; exact ⟨_, rfl⟩) | exact ⟨_, rfl⟩ | simp_all
+theorem reg_inv : RegionInvariant (grOf IR {n} (prunedOf cov)) reg :=
+  regionInvariant_transport {ns}.{b}_band_invariant modes_eq
+
+/-- Assumption 1 on the band, transported from `{ns}.{b}_wellFormedR_onBand`. -/
+theorem wellFormedR : WellFormedRIn (grOf IR {n} (prunedOf cov)) (guardR IR {n}) reg (epsR IR) :=
+  wellFormedRIn_transport {ns}.{b}_wellFormedR_onBand (by rw [grOf_len, nR_eq]) modes_eq
+    (fun q => rfl) (edges_transport_check edges_ok (edgesSrcOK_sound src_ok))"""
+
+# not bridged: its reposition node's progress stages cross their thresholds downward
+# (`up = false`); the progress lemmas read upward stages only (hand instance in Choice/General)
+SKIP = {"vehicle_hypercert"}
+
 def emit(b, n):
+    if b in SKIP:
+        print(f"  skipped {b}: downward progress stages (hand-written general instance)")
+        return False
     if b in CHOICE:
         c = CHOICE[b]
         info = dict(module=f"RelCertifier.InstancesV2.Choice.General.{camel(b)}", ns=c["ns"],
@@ -147,6 +193,8 @@ def emit(b, n):
                    ir=f"{b}_IRv2", cuts=f"{b}_cutsV2X",
                    cerec=f'Choice.ChoiceEmitE.empty "{b}"', eps_thm="",
                    wfname=f"{b}_wellFormedR", wfterm=f"{info['ns'] if info else ''}.{b}_wellFormedR")
+    if info is None and b in BAND:
+        info = None
     if info is None:
         # Assumption 1 holds only on a region for this benchmark (`WellFormedRIn`); the
         # unconditional form the general theorem takes is not available: not bridged
@@ -156,10 +204,15 @@ def emit(b, n):
     modeAt = f"{info['G']}_modeAt"
     rows_thm = "" if keyed else "theorem rows_same : rowsSame IR = true := by decide +kernel\n"
     claim = (KEYED_CLAIM if keyed else WINDOW_CLAIM).format(b=b, n=n)
+    if b in BAND:
+        region_block = BAND_REGION.format(b=b, n=n, ns=info["ns"], regname=BAND[b]["reg"],
+                                          unfold=", ".join(f"{info['ns']}.{u}" for u in BAND[b]["unfold"].split(", ")))
+    else:
+        region_block = SUITE_REGION.format(n=n, ns=info["ns"], wfname=rec["wfname"], wfterm=rec["wfterm"])
     txt = TEMPLATE.format(b=b, camel=camel(b), n=n, form_mod="Keyed" if keyed else "Window",
                           wfmod=info["module"], ns=info["ns"], G=info["G"], modeAt=modeAt,
                           rows_doc="" if keyed else ", `rows_same`", rows_thm=rows_thm,
-                          claim=claim, **rec)
+                          claim=claim, region_block=region_block, **rec)
     os.makedirs(OUT, exist_ok=True)
     with open(f"{OUT}/{camel(b)}.lean", "w") as f:
         f.write(txt)

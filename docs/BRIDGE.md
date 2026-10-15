@@ -78,16 +78,20 @@ all discharged** (suite alone, 3259; the first run before the progress gate, 365
   hand-written general instance (`InstancesV2/Choice/General/VehicleHypercert.lean`, through
   `theorem3_of_coverX`). The mirrored downward lemma is the one remaining piece.
 
-* **40 of 46 suite benchmarks** are instantiated (`InstancesV2/Bridge/`): 30 in the window form, 10
-  in the mode-keyed form (the 12 benchmarks with per-mode rows minus the two detumble
-  `phases` ones below). Every `*_bridge` theorem depends on exactly `propext`,
-  `Classical.choice`, `Quot.sound`, `z3_unsat_sound`.
-* **Not bridged (6): the detumble family** (`sat_detumble_*`, `sat3w_detumble_*`). Their
-  Assumption 1 is provably false as stated (`*_wellFormedR_false`) and holds only on the
-  momentum band (`WellFormedRIn` with `RegionInvariant`); the general theorem takes the
-  unconditional form. They keep their standalone proofs. Extending the bridge to the
-  region-conditioned Assumption 1 means carrying the band in the anchor and showing joint
-  segments keep it; not done.
+* **46 of 46 suite benchmarks** are instantiated (`InstancesV2/Bridge/`): 34 in the window form,
+  12 in the mode-keyed form; plus 2 of the 3 choice exhibits (48 instances). Every `*_bridge`
+  theorem depends on exactly `propext`, `Classical.choice`, `Quot.sound`, `z3_unsat_sound`.
+* **Assumption 1 relative to a region.** The general theorem (and the whole chain:
+  `coverX_piece`, the progress lemmas, the bridge) now takes Assumption 1 on a region `reg`
+  kept by every right flow (`WellFormedRIn G guard reg ε` with `RegionInvariant G reg`), the
+  region carried in the anchor (`AGr = AG ∧ reg`) and in the right region of the claim
+  (`cutsR = cuts ∧ reg`). `Emitted/Region.lean` shows a right-only region kept by the right
+  flows is kept along joint segments at any stretch (the right projection of a joint run,
+  time-rescaled, is a unit-stretch right solution). The suite's benchmarks take `reg = ⊤`
+  (the unconditional form); the **detumble family** (`sat_detumble_*`, `sat3w_detumble_*`,
+  whose unconditional Assumption 1 is provably false, `*_wellFormedR_false`) takes the
+  momentum band `nbF` of its leaves (`*_wellFormedR_onBand`, `*_band_invariant`,
+  transported). All six are now bridged.
 
 ## 5. Findings along the way
 

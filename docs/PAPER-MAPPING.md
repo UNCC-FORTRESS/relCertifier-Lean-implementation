@@ -1,7 +1,7 @@
 # Paper ↔ mechanization
 
 How the paper's formal elements map onto the Lean development, for the artifact as it
-stands (suite_v2, 45 benchmarks, `RelCertifier/InstancesV2/BatteryV2.lean`). The full
+stands (suite_v2, 46 benchmarks, `RelCertifier/InstancesV2/BatteryV2.lean`). The full
 2026-07 inventory of every generic `rvalid (theorem3Form …)` theorem, with the findings of
 a complete read of `Proofs/` and the legacy-suite counts of that time, is kept as
 `docs/history/PAPER-MAPPING-INVENTORY.md`.
@@ -97,7 +97,7 @@ Mechanized in `Proofs/Encoding/ModeHandoff.lean` as `theorem3_modeKeyed`:
 | **(iii)** well-formedness | not a hypothesis: for all 45 theorems guard-gated switching is kernel-checked on both sides and the response exhibits every switch (§2e); Assumption 1 itself is verified separately per right model (`WellFormedR`, §2f); mechanized side conditions: freshness of `u_L` and the footprint disjointnesses (`hd_modeKeyed_G`, `hddF_modeKeyed_G`) |
 | the conclusion | `rvalid (theorem3Form (leftAutomatonBody A ul) (rightAutomatonBody G mv) (psiK …))` |
 
-Mode-independent invariants are the special case `F m = F`. All 45 benchmarks are stated
+Mode-independent invariants are the special case `F m = F`. All 46 benchmarks are stated
 over `leftAutomatonBody`: the 33 mode-independent ones are proved over the choice of their
 windows (`bigChoice leftProgs`) and carried to the left automaton by the generic bridge
 `theorem3_leftAut_of_choice` (`Proofs/Encoding/LeftAutUniform.lean`): the left automaton only
@@ -218,7 +218,7 @@ response is built in the guarded layer (`Proofs/Encoding/GuardedSwitch.lean`):
 **Theorem 3, mode-consistent states.** In the flow-then-jump rotation every loop iteration
 ends with a guarded jump into the right's current mode, so at every loop boundary the right
 satisfies that mode's guard; the mechanized loop invariant states exactly this
-(`guard q ∧ cuts q` of the current mode `q`), uniformly for all 45 benchmarks. **The wording
+(`guard q ∧ cuts q` of the current mode `q`), uniformly for all 46 benchmarks. **The wording
 for the paper's Theorem 3:** *a bi-state is mode-consistent when the right component satisfies
 the guard of its current mode and that mode's checked cuts; this is what the flow-then-jump
 rotation guarantees at every loop boundary, since the right has just taken a guarded jump into

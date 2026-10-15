@@ -2,8 +2,8 @@
 
 `suite_v2/<name>/input.txt` is the complete specification of one benchmark: the left
 (ideal) and right (implementation) hybrid automata, the relational invariant (one row per
-left mode) and the time-stretch range. **45 benchmarks.** With the widened cut channel on
-(`RELCERT_IMPLIED_CUT=1`, as every suite_v2 run sets it) the tool CERTIFIES all 45, and
+left mode) and the time-stretch range. **46 benchmarks.** With the widened cut channel on
+(`RELCERT_IMPLIED_CUT=1`, as every suite_v2 run sets it) the tool CERTIFIES all 46, and
 every one carries a kernel-checked Theorem 3 with the paper's left program over the
 guard-gated right automaton, at the mode-consistent region (`RelCertifier/InstancesV2/BatteryV2.lean`;
 `refinement_ladder_rover_rung2c_6dof` for windows up to its control interval `dt ≤ 1`;
@@ -155,7 +155,7 @@ Key points, each of which the parser enforces:
   handoff at every declared left transition (`docs/HANDOFF.md`).
 * **`lambda_min` / `lambda_max`** bound the time stretch the right side may use.
 
-**`max_depth` and `bound_T`** are present in all 45 files and read by no stage: search
+**`max_depth` and `bound_T`** are present in all 46 files and read by no stage: search
 depth is a tool parameter, not part of the specification. They are whitelisted so that the
 key audit can still reject genuinely unknown keys.
 

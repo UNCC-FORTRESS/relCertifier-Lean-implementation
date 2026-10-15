@@ -181,7 +181,7 @@ cover (R1 to R4). No benchmark is Z3-free any more: every flow fact is a pack.
 | 44 | `story3_rollover_ladder_rung_b` | unchanged | 9 | 0 | yes |
 | 45 | `watertank` | λ 2, 2, 1; joint segment at the start node, enabled switch; the inadmissible starts (`Low` window from `High`, `Mid` window from `Low`, `High` window from any mode but `High`) contradictory: the zero-duration hop is gone | 7 | 0 | yes |
 
-Totals: **45 of 45 replay the emitted cover**; 0 Z3-free (was 16). The 45 headline theorems take
+Totals: **46 of 46 replay the emitted cover**; 0 Z3-free (was 16). The 46 headline theorems take
 **234 joint packs** (every row of `RunV2.packsV2`, each consumed by exactly one headline) and
 **41 reposition packs** (every row of `RunV2.dynPacksV2`): 275 pack hypotheses, against 132
 before. Runner phases: suite_v2 modal **621** component queries (was 262), reposition **81**

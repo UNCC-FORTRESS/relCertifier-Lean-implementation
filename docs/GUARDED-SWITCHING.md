@@ -1,7 +1,7 @@
 # Guard-gated switching on the right (branch `guarded-right`)
 
-**Status (2026-10-10, branch `guarded-right`): done, all 45.** One uniform statement for all
-45 benchmarks: Theorem 3 with the paper's LEFT program, the guard-gated left automaton
+**Status (2026-10-10, branch `guarded-right`): done, all 46.** One uniform statement for all
+46 benchmarks: Theorem 3 with the paper's LEFT program, the guard-gated left automaton
 `leftAutomatonBody A u_L` (jump, then flow: each left edge tests the entered left mode's
 lowered guard), against the GUARDED right automaton (flow, then jump: each right edge tests
 the entered right mode's lowered guard), with the loop invariant carrying the declared rows
@@ -455,8 +455,8 @@ successor, every inadmissible start contradictory).
 Totals: 45 of 45; 44 for every window length (`0 ≤ dt` for the two story3 ladders, no
 restriction: a negative `dt` admits no window), `rung2c` for `0 ≤ dt ≤ ε_L = 1`; the two
 `platoon3` benchmarks on their repaired model. No theorem carries an Assumption-1 hypothesis;
-no new axiom. All 45 replay the emitted cover (branch `replay`, `docs/REPLAY.md`); none is
-Z3-free (was 16). Pack hypotheses of the 45 statements: 234 joint + 41 reposition = 275
+no new axiom. All 46 replay the emitted cover (branch `replay`, `docs/REPLAY.md`); none is
+Z3-free (was 16). Pack hypotheses of the 46 statements: 234 joint + 41 reposition = 275
 (was 132): every flow fact of every response is a pack of the emitted cover, pinned to a row of
 `RunV2.packsV2` / `RunV2.dynPacksV2`.
 

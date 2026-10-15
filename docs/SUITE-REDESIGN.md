@@ -1,6 +1,6 @@
 # Suite redesign — `benchmarks/suite_v2` (2026-10-08, branch `suite-redesign`)
 
-> **Current state (2026-10-10, pass 11, §21).** `benchmarks/suite_v2` has **45 benchmarks**,
+> **Current state (2026-10-10, pass 11, §21).** `benchmarks/suite_v2` has **46 benchmarks** (`watertank_twospeed` added 2026-10-11, §22),
 > all CERTIFIED with `RELCERT_IMPLIED_CUT=1` (10 DECLINE without it), every one carries a
 > kernel-checked Theorem 3 (`RelCertifier/InstancesV2/BatteryV2.lean`; `README.md`), and every
 > right model satisfies Assumption 1 (`WellFormedR`, all 46 literally since 2026-10-15, when the six satellites'

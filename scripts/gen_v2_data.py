@@ -99,7 +99,7 @@ Released under Apache 2.0 license.
 
 # suite_v2 IR aggregator + `benchIRTableV2` (GENERATED — `scripts/gen_v2_data.py`)
 
-The 45 parser-emitted literals of `benchmarks/suite_v2`. `relcert-test`'s drift check
+The 46 parser-emitted literals of `benchmarks/suite_v2`. `relcert-test`'s drift check
 (`[ir-drift-v2]`) re-parses `benchmarks/suite_v2/<name>/input.txt` for every entry and
 compares it with the literal of the same name in `benchIRTableV2`.
 -/

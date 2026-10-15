@@ -173,7 +173,7 @@ lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 | grep -A3 "depends o
 Expected: 76 axiom lines, each exactly `[propext, Classical.choice, Quot.sound]` (no
 `z3_unsat_sound`: every proof is Z3-free): 39 `<b>_wellFormedR` (proved; the nine repaired
 on 2026-10-10 with their repaired modes' per-mode theorems `…_brake` / `…_limit`), for the 6
-satellites `<b>_wellFormedR_onBand`, `<b>_band_invariant` and `<b>_wellFormedR_false` (the
+satellites `<b>_wellFormedR` (unconditional since 2026-10-15: the momentum band is in the right evolve domain; before, `<b>_wellFormedR_onBand`, `<b>_band_invariant` and `<b>_wellFormedR_false`) (the
 literal predicate), and 13 generic lemmas including `Platoon3Link.brake_guard_Ronly`,
 `Platoon3Link.solB_sol` and `WellFormedBattery.wf_coverage` (the declared counts `(39, 0, 6)`,
 `(30, 9, 6)` before the repairs, and the three name lists a permutation of the suite's IR

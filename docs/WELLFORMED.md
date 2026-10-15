@@ -90,7 +90,7 @@ was not needed.
 ## 3. Per benchmark
 
 Theorems: `<ns>.<bench>_wellFormedR` (proved; for the nine repaired models also the
-per-mode theorems `…_brake`, `…_limit`, `…_mode`), `<ns>.<bench>_wellFormedR_onBand`,
+per-mode theorems `…_brake`, `…_limit`, `…_mode`), `<ns>.<bench>_wellFormedR` (the detumble family: unconditional since the momentum band `|h_i + J_i w_i| ≤ 2` entered the right evolve domains, 2026-10-15; before, `_onBand`),
 `<ns>.<bench>_band_invariant` and `<ns>.<bench>_wellFormedR_false` (band). Files: `InstancesV2/WellFormed/<B>.lean`,
 `Instances/WellFormed/<B>.lean`. Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 `relcert --wellformed` (§4). Z3 leaves: none for every row.

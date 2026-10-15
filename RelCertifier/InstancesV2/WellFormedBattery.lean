@@ -215,27 +215,21 @@ modes -/
 #print axioms V2QuadLightProfiles.quad_light_profiles_wellFormedR
 #print axioms V2QuadLightProfiles.quad_light_profiles_wellFormedR_limit
 
-/-! ## On the momentum band (6): Assumption 1 on the band, the band invariant, and the
-literal predicate refuted -/
+/-! ## The detumble family (6): Assumption 1 unconditional (the momentum band is part of the
+right evolve domain since 2026-10-15), and the band invariant as a model fact -/
 
-#print axioms V2SatDetumbleNominal.sat_detumble_nominal_wellFormedR_onBand
+#print axioms V2SatDetumbleNominal.sat_detumble_nominal_wellFormedR
 #print axioms V2SatDetumbleNominal.sat_detumble_nominal_band_invariant
-#print axioms V2SatDetumbleNominal.sat_detumble_nominal_wellFormedR_false
-#print axioms V2SatDetumbleWeak.sat_detumble_weak_wellFormedR_onBand
+#print axioms V2SatDetumbleWeak.sat_detumble_weak_wellFormedR
 #print axioms V2SatDetumbleWeak.sat_detumble_weak_band_invariant
-#print axioms V2SatDetumbleWeak.sat_detumble_weak_wellFormedR_false
-#print axioms V2SatDetumblePhases.sat_detumble_phases_wellFormedR_onBand
+#print axioms V2SatDetumblePhases.sat_detumble_phases_wellFormedR
 #print axioms V2SatDetumblePhases.sat_detumble_phases_band_invariant
-#print axioms V2SatDetumblePhases.sat_detumble_phases_wellFormedR_false
-#print axioms V2Sat3wDetumbleNominal.sat3w_detumble_nominal_wellFormedR_onBand
+#print axioms V2Sat3wDetumbleNominal.sat3w_detumble_nominal_wellFormedR
 #print axioms V2Sat3wDetumbleNominal.sat3w_detumble_nominal_band_invariant
-#print axioms V2Sat3wDetumbleNominal.sat3w_detumble_nominal_wellFormedR_false
-#print axioms V2Sat3wDetumbleWeak.sat3w_detumble_weak_wellFormedR_onBand
+#print axioms V2Sat3wDetumbleWeak.sat3w_detumble_weak_wellFormedR
 #print axioms V2Sat3wDetumbleWeak.sat3w_detumble_weak_band_invariant
-#print axioms V2Sat3wDetumbleWeak.sat3w_detumble_weak_wellFormedR_false
-#print axioms V2Sat3wDetumblePhases.sat3w_detumble_phases_wellFormedR_onBand
+#print axioms V2Sat3wDetumblePhases.sat3w_detumble_phases_wellFormedR
 #print axioms V2Sat3wDetumblePhases.sat3w_detumble_phases_band_invariant
-#print axioms V2Sat3wDetumblePhases.sat3w_detumble_phases_wellFormedR_false
 
 /-! ## The generic layer -/
 

@@ -118,8 +118,10 @@ from a benchmark's emitted records (IR, cut certificate, cover, progress certifi
 structural facts decided in the kernel, every verdict read from one Z3 run
 (`relcert-bridge-verdicts`, 3259 groups over the suite, all discharged). Mode-dependent rows
 are assembled through `theorem3_modeKeyed` (`Emitted/Keyed.lean`); the two-stage progress pin
-is `progressVerd_two`. Generated instances: `InstancesV2/Bridge/` (40 of 46; the detumble
-family's Assumption 1 holds only on a band and is not bridged).
+is `progressVerd_two`. Generated instances: `InstancesV2/Bridge/`, all 46 suite benchmarks
+(34 window form, 12 mode-keyed) and two of the three choice exhibits, every one with the
+paper's unconditional Assumption 1 (the detumble models carry their momentum band in the
+right evolve domain).
 
 Still not done: the tool's emission of choice covers and their coverage verdicts (D5); the
 three choice exhibits stay on the hand-written general instances of §4.

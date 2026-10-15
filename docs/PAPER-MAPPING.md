@@ -259,9 +259,31 @@ per-benchmark table: `docs/GUARDED-SWITCHING.md`.
 | Assumption 1: *the right model is nonblocking and complete with respect to its declared successor relation: from every state satisfying a source-mode guard, an evolution spanning the control interval `ε_r` exists, and every evolution of duration at most `ε_r`, including the empty one, ends in a state satisfying the guard of at least one declared successor mode* | `WellFormedR G guard ε` (`Proofs/Encoding/WellFormedR.lean`): for every mode `q` and state `x` in `q`'s lowered guard and evolve domain, (i) `∃ Φ, ODESol m.sys m.dom x ε Φ`, (ii) every `ODESol m.sys m.dom x t Φ` with `t ≤ ε` ends in `guard e.tgt` for some `e ∈ G.edgesFrom q`; `G` the Theorem 3's guarded right automaton, `ε = epsR p` (the file's `epsilon`) |
 | "states" of the model | the evolve domain (the predicate's conjunct `m.dom x`; a run exists only from a domain state, `ODESol.start_dom`) |
 | the remark (a self-loop whose guard contains the one-interval reach set, or a successor covering the rest) | proof styles (a) forward invariance then the self-loop, (b) exit into a successor's guard within one interval (`docs/WELLFORMED.md` §2) |
-| per benchmark | `<b>_wellFormedR` for 39 (nine of them repaired on 2026-10-10: until then `<b>_wellFormedR_false` with the exhibited blocking state, `docs/SUITE-REDESIGN.md` §21); `<b>_wellFormedR_onBand` + `<b>_band_invariant` for the 6 satellites (the literal predicate refuted); all in `InstancesV2/WellFormedBattery.lean`, Z3-free |
+| per benchmark | `<b>_wellFormedR` for all 46 since 2026-10-15 (the detumble family's momentum band entered the right evolve domains; before, 39, nine of them repaired on 2026-10-10: until then `<b>_wellFormedR_false` with the exhibited blocking state, `docs/SUITE-REDESIGN.md` §21); `<b>_wellFormedR_onBand` + `<b>_band_invariant` for the 6 satellites (the literal predicate refuted); all in `InstancesV2/WellFormedBattery.lean`, Z3-free |
 | the tool | `relcert --wellformed`: a sufficient check of clause (ii) per right mode (`ok (invariant)` / `ok (exit→S)` / `UNKNOWN`), strict in `--check-quick-v2` (certification in the strict mode, then a gate: declared 146 right modes, 0 `UNKNOWN`); `RELCERT_WELLFORMED_STRICT=1` declines a certified benchmark with an `UNKNOWN` mode |
 | its use in Theorem 3 | none: no Theorem 3 takes it as a hypothesis (the responses exhibit their switches); it is a model-level sanity property the paper states, now checked rather than assumed |
+
+## 2g. The generic bridge (branch `theorem3-general`, 2026-10-14/15)
+
+The per-benchmark derivations of §2–2f are superseded by one generic layer
+(`Proofs/Encoding/Emitted/`, `docs/BRIDGE.md`): `theorem3_window_of_records` (one declared row)
+and `theorem3_keyed_of_records` (per-mode rows) state Theorem 3 of a benchmark from its emitted
+records (IR, extended cut certificate, cover, progress certificates, chosen sets), with every
+hypothesis either decided in the kernel (`structOK`, `progOK`, `coversOK`) or read from one Z3
+run (`relcert-bridge-verdicts`, `Emitted.verdicts_of_groups`), and Assumption 1 transported from
+the suite's `WellFormedR` lemma. Generated instances `InstancesV2/Bridge/<B>.lean` for all 46
+suite benchmarks and two choice exhibits (`scripts/gen_bridge.py`); axioms of every `*_bridge`:
+the standard three and `z3_unsat_sound`.
+
+| paper | mechanized |
+|---|---|
+| Theorem 3 | `theorem3_of_coverX` (`Theorem3General.lean`, standard axioms only; covers by `CoveredX`, Definition 4 with the chosen-set cases vacuous for the suite) |
+| Assumption 1 | `WellFormedR G guard ε`, unconditional for every instance (the general form admits a region `R`; every instance takes `R = ⊤`) |
+| certificate 3 (right-only segment) | preservation (`modalVerdDynX`) **and progress** (`Progress.ProgressE`: staged rate bounds, kept thresholds, landing on the crossing line and at an already-crossed start; `repoProgress_one/two`); without it the right-only kind is unsound (a sink mode satisfies Assumption 1 and never exits) |
+| Theorem 2 (pruned edges) | the barrier term of each pruned exit is carried in the anchor: `≤ 0` on entry (source check), kept by joint and frozen flows (barrier check), `> 0` under the target's guard |
+| the kept atoms (O2) | per mode and side, the route query of each atom (`Bridge.stayQueryOf`), lifted by induction on the index |
+| admissible starts | the dropped starts' `unsat` (`Bridge.admQueryOf`); the covered starts decided by `decideCoveredX` |
+| the choice cover (tool feature, not in the main text) | `Emitted/Choice.lean`: chosen sets from the record, coverage queries, `cov_of_entry`; exercised by the exhibits only |
 
 ## 3. The generic theorem families
 

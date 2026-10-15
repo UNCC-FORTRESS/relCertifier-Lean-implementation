@@ -67,6 +67,18 @@ def wf_info(b):
             ns = re.findall(r"^namespace (\w+)", src, re.M)
             ns = [x for x in ns if x != "RelCertifier"]
             return dict(module=f"{modbase}.{fn[:-5]}", ns=ns[-1], G=m.group(1), guard=m.group(2))
+    # a hand-written general instance with Assumption 1 at the literal period 1
+    # (`theorem wellFormedR : WellFormedR G guardR 1`; the instance proves `epsR IR = 1`)
+    fn = f"RelCertifier/InstancesV2/Choice/General/{camel(b)}.lean"
+    if os.path.exists(fn):
+        src = open(fn).read()
+        m = re.search(r"theorem wellFormedR\s*:\s*WellFormedR (\w+) (\w+) 1\b", src)
+        if m:
+            ns = re.findall(r"^namespace (\w+)", src, re.M)
+            ns = [x for x in ns if x != "RelCertifier"]
+            mn = re.search(r"Formula \(Var (\d+)\)", src)
+            return dict(module=f"RelCertifier.InstancesV2.Choice.General.{camel(b)}", ns=ns[-1],
+                        G=m.group(1), guard=m.group(2), eps1=True, n=int(mn.group(1)) if mn else None)
     return None
 
 TEMPLATE = '''/-
@@ -150,9 +162,9 @@ theorem wellFormedR : WellFormedRIn (grOf IR {n} (prunedOf cov)) (guardR IR {n})
   wellFormedR_transport ({wfterm}) (by rw [grOf_len, nR_eq]) modes_eq (fun q => rfl)
     (edges_transport_check edges_ok (edgesSrcOK_sound src_ok))"""
 
-# not bridged: its reposition node's progress stages cross their thresholds downward
-# (`up = false`); the progress lemmas read upward stages only (hand instance in Choice/General)
-SKIP = {"vehicle_hypercert"}
+# benchmarks without a generated instance (none; a downward single progress stage is covered
+# by `repoProgress_one_down`, a two-stage certificate must be upward in both stages)
+SKIP = set()
 
 def emit(b, n):
     if b in SKIP:
@@ -180,6 +192,11 @@ def emit(b, n):
                    ir=f"{b}_IRv2", cuts=f"{b}_cutsV2X",
                    cerec=f"Choice.{b}_coverV2_choice", eps_thm="",
                    wfname=f"{b}_wellFormedR", wfterm=f"{info['ns'] if info else ''}.{b}_wellFormedR")
+        if info and info.get("eps1"):
+            rec.update(eps_thm="theorem epsR_eq : epsR IR = 1 := by\n"
+                       "  have h : Run.parseRat IR.R.epsilon = some (1 : ℚ) := by decide +kernel\n"
+                       "  simp only [epsR, h, Option.getD_some, Rat.cast_one]\n",
+                       wfname="wellFormedR", wfterm=f"by rw [epsR_eq]; exact {info['ns']}.wellFormedR")
     if info is None:
         print(f"  skipped {b}: no WellFormedR lemma")
         return False
@@ -225,9 +242,11 @@ def main():
     for b in benches:
         n = d.get(b, CHOICE.get(b, {}).get("n"))
         if n is None:
-            # no standalone pack row: the bridge runner's fallback, the state variables padded
-            # to the three auxiliary coordinates the keyed form needs (`bridgeDimV2`)
-            n = max(nvars(b), 3)
+            # no standalone pack row: the bridge runner's fallback (`bridgeDimV2`): a hand-written
+            # general instance's dimension, else the state variables padded to the three
+            # auxiliary coordinates the keyed form needs
+            info0 = wf_info(b)
+            n = info0.get("n") if info0 and info0.get("eps1") and info0.get("n") else max(nvars(b), 3)
         if b in todo:
             if emit(b, n):
                 done.append(b)

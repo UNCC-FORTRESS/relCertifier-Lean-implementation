@@ -55,10 +55,16 @@ def progV2 (b : String) : ProgressEmitE :=
 def choiceV2 (b : String) : ChoiceEmitE :=
   ((choiceTableV2.find? (·.1 == b)).map (·.2)).getD (ChoiceEmitE.empty b)
 
-/-- The bridge dimension of a benchmark: the pack table's; without a standalone pack row, the
-state variables padded to the three auxiliary coordinates the keyed form needs. -/
+/-- The dimensions of the benchmarks whose Assumption 1 lemma comes from a hand-written general
+instance (`InstancesV2/Choice/General/`), the instance's own dimension. -/
+def generalDimsV2 : List (String × ℕ) := [("vehicle_hypercert", 2)]
+
+/-- The bridge dimension of a benchmark: the pack table's; else a hand-written general instance's
+(`generalDimsV2`); else the state variables padded to the three auxiliary coordinates the keyed
+form needs. -/
 def bridgeDimV2 (b : String) : ℕ :=
-  ((packsV2.find? (fun r => r.bench == b)).map (fun r => r.dim)).getD (max (irV2 b).L.stateVars.length 3)
+  ((packsV2.find? (fun r => r.bench == b)).map (fun r => r.dim)).getD
+    (((generalDimsV2.find? (·.1 == b)).map (·.2)).getD (max (irV2 b).L.stateVars.length 3))
 
 /-- Declared: the number of query groups over the suite. -/
 def expectedBridgeGroupsV2 : Nat := 4457

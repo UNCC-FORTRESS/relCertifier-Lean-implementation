@@ -100,6 +100,14 @@ theorem sat_before_up (v : Var n) (st : ProgressStageE) (hup : st.up = true)
     (y : State (Var n)) : Formula.sat (before v st).toHost y ↔ y v < (st.theta : ℝ) := by
   simp [before, hup, IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval]
 
+theorem sat_crossed_down (v : Var n) (st : ProgressStageE) (hup : st.up = false)
+    (y : State (Var n)) : Formula.sat (crossed v st).toHost y ↔ y v ≤ (st.theta : ℝ) := by
+  simp [crossed, hup, IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval]
+
+theorem sat_before_down (v : Var n) (st : ProgressStageE) (hup : st.up = false)
+    (y : State (Var n)) : Formula.sat (before v st).toHost y ↔ (st.theta : ℝ) < y v := by
+  simp [before, hup, IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval]
+
 theorem sat_onLine (v : Var n) (st : ProgressStageE) (y : State (Var n)) :
     Formula.sat (onLine v st).toHost y ↔ y v = (st.theta : ℝ) := by
   simp [onLine, IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval]
@@ -119,6 +127,23 @@ theorem rate_of_unsat (R : IForm n) (fR : Fin n → ITerm n) (vs : List (Var n �
   unfold rateQuery
   simp only [hup, if_true]
   refine ⟨⟨⟨hR, hC⟩, (sat_before_up v st hup y).mpr hb⟩, ?_⟩
+  simpa [IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval] using hlt
+
+/-- **rate** (downward): on the region, under the earlier crossed facts and above the
+threshold, the field is at most the negated rate. -/
+theorem rate_of_unsat_down (R : IForm n) (fR : Fin n → ITerm n) (vs : List (Var n × ProgressStageE))
+    (i : ℕ) (v : Var n) (st : ProgressStageE) (hup : st.up = false)
+    (hz : z3solve (rateQuery R fR vs i v st).toHost = Verdict.unsat) :
+    ∀ y, Formula.sat R.toHost y → Formula.sat (crossedBefore vs i).toHost y →
+      (st.theta : ℝ) < y v → Term.eval (fR v.2).toHost y ≤ -(st.rate : ℝ) := by
+  intro y hR hC hb
+  have hns := z3_unsat_sound hz y
+  by_contra hlt
+  push Not at hlt
+  refine hns ?_
+  unfold rateQuery
+  simp only [hup, Bool.false_eq_true, if_false]
+  refine ⟨⟨⟨hR, hC⟩, (sat_before_down v st hup y).mpr hb⟩, ?_⟩
   simpa [IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval] using hlt
 
 /-- **keep** (upward): at or below the threshold the field is nonnegative. -/

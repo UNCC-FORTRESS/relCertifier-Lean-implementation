@@ -162,9 +162,10 @@ turns the record into the window's `ChoiceData`, rebuilds every coverage query f
 regions, and `coverage_sound` reads its `unsat` as the coverage premise (`hcovJ/hcovR/hcovS`
 of §9); the chosen cover is decided by `decideCoveredX`. `InstancesV2/Bridge/VehicleAccelCopy.lean`
 and `WatertankChoice.lean` are generated instances through `theorem3_window_of_records`;
-`vehicle_hypercert` stays on its hand-written general instance (§9), because its reposition
-node's progress stages cross their thresholds downward and the progress lemmas read upward
-stages. The coverage queries are among the groups of `relcert-bridge-verdicts` (`docs/BRIDGE.md`).
+`vehicle_hypercert`, whose reposition node's progress stage crosses its threshold downward, goes
+through the downward mirror `repoProgress_one_down`; its hand-written general instance (§9) stays
+as the standalone route. The coverage queries are among the groups of `relcert-bridge-verdicts`
+(`docs/BRIDGE.md`).
 
 Since 2026-10-15 the choice is the tool's default (`RELCERT_NO_CHOICE=1` disables it): the 46
 original suite covers are byte-identical with it on or off, and four suite benchmarks need it,

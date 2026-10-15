@@ -3880,6 +3880,7 @@ choice is their mechanism.
 `n = 3`), with Assumption 1 proved directly over the bridge's automaton
 (`InstancesV2/WellFormed/DrlCarStop.lean`, `DrlLaneControl.lean`, `FreedmMeter.lean`: `trajRs_sol`, the explicit polynomial run of one period; completeness by
 the always-enabled Coast action, or one of the two leader actions by the leader's speed); the
-generator's `DIRECT_REGION` variant. `vehicle_hypercert` keeps its hand-written general instance
-(downward progress stages). Counts: 50 files, 174 right modes (94 invariant, 80 exit), handoff
+generator's `DIRECT_REGION` variant; `vehicle_hypercert`'s single downward progress stage goes
+through the mirror lemma `repoProgress_one_down`, its Assumption 1 from the hand-written general
+instance. Counts: 50 files, 174 right modes (94 invariant, 80 exit), handoff
 401, bridge groups 4457 (4321 over the suite), `WellFormedBattery` `(44, 0, 6)`.

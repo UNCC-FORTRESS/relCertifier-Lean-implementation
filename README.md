@@ -168,7 +168,7 @@ All counts read off `InstancesV2/BatteryV2.lean` and its build output.
 | Z3-free (the three standard axioms only, no verdict hypothesis) | **0** | none: every flow fact is a pack (until branch `replay`, 16 were Z3-free with explicit catch-ups and climbs; `docs/REPLAY.md` §1) |
 | standalone statement on the nonblocking region (the conserved-momentum band of the model in the right region; it enters no verdict query; since 2026-10-15 the band is also in the right evolve domain, so the envelope carries it) | **6** | `sat_detumble_{nominal,weak,phases}`, `sat3w_detumble_{nominal,weak,phases}` (`docs/SUITE-REDESIGN.md` §19.2) |
 | Theorem 2 (non-connection certificate of a pruned edge) | **1** | `match_multi_rate_nonconn`, the edge `DRIVE → STALL` |
-| the generic bridge: Theorem 3 of the benchmark from its emitted records (IR, cut certificate, cover, progress and choice records), the structural facts decided in the kernel, every verdict from one Z3 run (`InstancesV2/Bridge/`, `relcert-bridge-verdicts`, 4457 groups over the 50 suite benchmarks and the 2 exhibits; `docs/BRIDGE.md`) | **51** | 49 suite benchmarks (37 window form, 12 mode-keyed) and the choice exhibits `vehicle_accel_copy`, `watertank_choice`; `vehicle_hypercert` keeps its hand-written general instance (`InstancesV2/Choice/General/`) |
+| the generic bridge: Theorem 3 of the benchmark from its emitted records (IR, cut certificate, cover, progress and choice records), the structural facts decided in the kernel, every verdict from one Z3 run (`InstancesV2/Bridge/`, `relcert-bridge-verdicts`, 4457 groups over the 50 suite benchmarks and the 2 exhibits; `docs/BRIDGE.md`) | **52** | all 50 suite benchmarks (38 window form, 12 mode-keyed) and the choice exhibits `vehicle_accel_copy`, `watertank_choice` |
 
 The axiom audit has 72 lines: the 46 Theorem 3s, `match_multi_rate_nonconn`, and 25 generic
 lemmas; 48 carry `z3_unsat_sound` (the 46 Theorem 3s, `match_multi_rate_nonconn`,
@@ -288,8 +288,8 @@ RelCertifier/
     BenchIR/ BenchCovers/ BenchProgress/ Cuts/ BenchChoice/   50 files each   emitted data,
                            one leaf per benchmark (IR literal, cover, progress certificates,
                            cuts, chosen sets)
-    Bridge/     51 files   the generated generic-bridge instances (`<b>_bridge`): 49 suite
-                           benchmarks and the two choice exhibits (docs/BRIDGE.md)
+    Bridge/     52 files   the generated generic-bridge instances (`<b>_bridge`): all 50
+                           suite benchmarks and the two choice exhibits (docs/BRIDGE.md)
     Modal/      31 files   the standalone Theorem 3 instances (explicit responses)
     WellFormed/ 28 files   Assumption 1 (`WellFormedR`) per suite_v2 instance and the
                            shared platoon link lemmas; `Instances/WellFormed/` holds the 19

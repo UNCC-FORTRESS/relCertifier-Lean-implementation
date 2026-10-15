@@ -67,9 +67,9 @@ Theorem 3 of that benchmark: the structural facts decided in the kernel (`decide
 Assumption 1 transported from the benchmark's `WellFormedR` lemma, every verdict read from one
 Z3 run (`relcert-bridge-verdicts`: 4457 groups over the 50 suite benchmarks and the 2 choice
 exhibits, all discharged). Generated instances (`InstancesV2/Bridge/`, `scripts/gen_bridge.py`):
-49 suite benchmarks (37 window form, 12 mode-keyed) and the choice exhibits
-`vehicle_accel_copy`, `watertank_choice` (their chosen sets replayed); `vehicle_hypercert` keeps
-its hand-written general instance (its reposition node's progress stages cross downward). Axioms
+all 50 suite benchmarks (38 window form, 12 mode-keyed) and the choice exhibits
+`vehicle_accel_copy`, `watertank_choice` (their chosen sets replayed); `vehicle_hypercert`'s
+downward progress stage goes through the mirror lemma `repoProgress_one_down`. Axioms
 of every `*_bridge` theorem: the three standard ones and `z3_unsat_sound`.
 
 **Literature benchmarks (2026-10-15).** Four models from cited papers joined the suite, each
@@ -83,7 +83,7 @@ the grid meter under the free-source controller `batS`; the leaky `batI` is the 
 existential mode choice (the right commits to the left's mode), which is now the tool's default
 (`RELCERT_NO_CHOICE=1` disables it); the 46 original covers are byte-identical either way. The
 Assumption 1 lemmas of the three new models are proved directly over the bridge's automaton (`_wellFormedR_direct`,
-`trajRs_sol` explicit runs); `vehicle_hypercert` keeps its hand-written general instance.
+`trajRs_sol` explicit runs); `vehicle_hypercert`'s comes from its hand-written general instance.
 
 **Discharged.** Every Z3 hypothesis is re-sent by `relcert --run-verdicts-v2` against
 declared counts (modal 625, handoff 401, non-connection 88 over 44 pruned edges, legacy

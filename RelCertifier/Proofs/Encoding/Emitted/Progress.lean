@@ -5,14 +5,15 @@ Released under Apache 2.0 license.
 # The generic bridge, part 5: reposition progress from the emitted certificates
 
 For every reposition node `(l, q, pre)` of a cover the tool emits a progress certificate
-(`ProgressE`: one or two upward stages and the exits the landing covers). Its verdict
-(`ProgressVerd`, the queries the progress runner rebuilds) is read as facts over the node's
-region by `progressVerd_one` / `progressVerd_two`; `repoProgress_one` / `repoProgress_two`
-turn them into the general theorem's `RepoProgress` premise, with Assumption 1 for the cycles,
-the anchor kept along the frozen flow (`AG_boxD`) and the pruned exits excluded
-(`AG_pruneD`). The certificate's shape facts (`progOK`: stages upward, variables right,
-exits declared non-self non-pruned successors, mode indices by name) are decided in the
-kernel.
+(`ProgressE`: one stage in either direction, or two upward stages, and the exits the landing
+covers). Its verdict (`ProgressVerd`, the queries the progress runner rebuilds) is read as
+facts over the node's region by `progressVerd_one` / `progressVerd_one_down` /
+`progressVerd_two`; `repoProgress_one` / `repoProgress_one_down` / `repoProgress_two` turn
+them into the general theorem's `RepoProgress` premise, with Assumption 1 for the cycles, the
+anchor kept along the frozen flow (`AG_boxD`) and the pruned exits excluded (`AG_pruneD`).
+The certificate's shape facts (`progOK`: positive rates, variables right, a two-stage
+certificate upward in both stages, exits declared non-self non-pruned successors, mode
+indices by name) are decided in the kernel.
 -/
 import RelCertifier.Proofs.Encoding.Emitted.Anchor
 import RelCertifier.Proofs.Encoding.Progress
@@ -40,15 +41,17 @@ def ProgAll : Prop := ∀ c ∈ prog.certs, ProgressVerd p cX n c
 def certFor (l q : ℕ) (pre : Bool) : Option ProgressE :=
   prog.certs.find? (fun c => c.mL == (mLof p l).name && c.mR == (mRof p q).name && c.pre == pre)
 
-/-- A stage is upward, positive-rate, on a right variable that resolves. -/
+/-- A stage is positive-rate, on a right variable that resolves (either direction). -/
 def stageOK (st : ProgressStageE) : Bool :=
-  st.up && (0 < st.rate) && (resolveVar (vars p) n Side.R st.var).isSome &&
+  (0 < st.rate) && (resolveVar (vars p) n Side.R st.var).isSome &&
     !st.var.startsWith "L_"
 
-/-- The certificate's stages (one or two) pass `stageOK`; its exits are declared non-self
+/-- The certificate's stages pass `stageOK`: one stage in either direction, or two stages
+both upward (the only two-stage form the lemmas cover); its exits are declared non-self
 non-pruned successors of `q`. -/
 def certOK (q : ℕ) (c : ProgressE) : Bool :=
-  (c.stages.length == 1 || c.stages.length == 2) && c.stages.all (stageOK p n) &&
+  (c.stages.length == 1 || (c.stages.length == 2 && c.stages.all (·.up))) &&
+  c.stages.all (stageOK p n) &&
   c.exits.all (fun nm => (mRof p q).next.contains nm && nm != (mRof p q).name &&
     !(prunedOf cov (mRof p q).name nm))
 
@@ -137,23 +140,24 @@ theorem certOK_exit {q : ℕ} {c : ProgressE} (h : certOK p n cov q c = true) {n
 omit hs in
 theorem certOK_stage {q : ℕ} {c : ProgressE} (h : certOK p n cov q c = true) {st : ProgressStageE}
     (hst : st ∈ c.stages) :
-    st.up = true ∧ 0 < (st.rate : ℝ) ∧ (resolveVar (vars p) n Side.R st.var).isSome = true ∧
+    0 < (st.rate : ℝ) ∧ (resolveVar (vars p) n Side.R st.var).isSome = true ∧
     st.var.startsWith "L_" = false := by
   simp only [certOK, Bool.and_eq_true, List.all_eq_true] at h
   have := h.1.2 st hst
   simp only [stageOK, Bool.and_eq_true, decide_eq_true_eq, Bool.not_eq_eq_eq_not,
     Bool.not_true] at this
-  exact ⟨this.1.1.1, by exact_mod_cast this.1.1.2, this.1.2, this.2⟩
+  exact ⟨by exact_mod_cast this.1.1, this.1.2, this.2⟩
 
 omit hs in
+/-- The shape: one stage (either direction), or two stages both upward. -/
 theorem certOK_shape {q : ℕ} {c : ProgressE} (h : certOK p n cov q c = true) :
-    (∃ st, c.stages = [st]) ∨ ∃ sth st, c.stages = [sth, st] := by
-  simp only [certOK, Bool.and_eq_true, Bool.or_eq_true, beq_iff_eq] at h
-  rcases h.1.1 with h1 | h2
+    (∃ st, c.stages = [st]) ∨ ∃ sth st, c.stages = [sth, st] ∧ sth.up = true ∧ st.up = true := by
+  simp only [certOK, Bool.and_eq_true, Bool.or_eq_true, beq_iff_eq, List.all_eq_true] at h
+  rcases h.1.1 with h1 | ⟨h2, hup⟩
   · obtain ⟨st, hst⟩ := List.length_eq_one_iff.mp h1
     exact Or.inl ⟨st, hst⟩
-  · rcases hc : c.stages with _ | ⟨a, _ | ⟨b, _ | _⟩⟩ <;> rw [hc] at h2 <;> simp at h2
-    exact Or.inr ⟨a, b, rfl⟩
+  · rcases hc : c.stages with _ | ⟨a, _ | ⟨b, _ | _⟩⟩ <;> rw [hc] at h2 hup <;> simp at h2
+    exact Or.inr ⟨a, b, rfl, hup a (by simp), hup b (by simp)⟩
 
 omit hs in
 /-- A resolved right variable is `Rv` of its index. -/
@@ -238,28 +242,47 @@ theorem hrepoProg_of (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
   have hRsat : ∀ y, Formula.sat (regionF p n cX l q pre) y →
       RegionSat (vars p) n cX (mLof p l) (mRof p q) (rowOf p l) pre y :=
     fun y hy => regionSat_of_regionF hs hl pre y hy
-  rcases certOK_shape hok with ⟨st, hstg⟩ | ⟨sth, st, hstg⟩
-  · -- one stage
-    obtain ⟨hup, hrpos, -, hfree⟩ := certOK_stage hok (st := st) (by rw [hstg]; simp)
-    obtain ⟨v, hv', hrate, hline, hstart⟩ := progressVerd_one hv st hstg hup
-    rw [hcL, hcR, hidxL, hidxR, hcpre] at hrate hline hstart
-    have hvR := resolve_Rv (p := p) hfree hv'
-    refine repoProgress_one (grOf p n (prunedOf cov)) (fR p n q) (domL p n) (domR p n)
-      (guardL p n l) (guardR p n) q (modeOf p n q) hm rfl rfl (fR_fv (hnames hs) q)
-      (domL_fv (hnames hs)) (domR_fv (hnames hs)) (guardL_fv (hnames hs) l) (guardR_fv (hnames hs))
-      (grOf_guardsRight (hnames hs)) (grOf_guards q) (AGr p n cX cov reg l) hAfv'
-      (fun y h => ⟨h.1.2.1, h.1.2.2⟩) pre (epsR p) hε reg hregR (fun y h => h.2) hex hcomp hboxD'
-      (fun e he hp σ ω hA hω => AG_pruneD hs hnc hst hl hq e he hp σ ω hA.1 hω) (regionF p n cX l q pre) hR
-      v.2 (st.theta : ℝ) ?_ ?_ (st.rate : ℝ) hrpos ?_
-    · intro y hy hθ
-      exact exit_edge hs hq hok y (hline y (hRsat y hy) (by rw [hvR]; exact hθ))
-    · intro y hy hg hθ
-      exact exit_edge hs hq hok y (hstart y (hRsat y hy) hg (by rw [hvR]; exact hθ))
-    · intro y hy hlt
-      exact hrate y (hRsat y hy) (by rw [hvR]; exact hlt)
-  · -- two stages
-    obtain ⟨huph, hrhpos, -, hfreeh⟩ := certOK_stage hok (st := sth) (by rw [hstg]; simp)
-    obtain ⟨hup, hrpos, -, hfree⟩ := certOK_stage hok (st := st) (by rw [hstg]; simp)
+  rcases certOK_shape hok with ⟨st, hstg⟩ | ⟨sth, st, hstg, huph, hup⟩
+  · -- one stage, in either direction
+    obtain ⟨hrpos, -, hfree⟩ := certOK_stage hok (st := st) (by rw [hstg]; simp)
+    cases hup : st.up
+    · -- downward
+      obtain ⟨v, hv', hrate, hline, hstart⟩ := progressVerd_one_down hv st hstg hup
+      rw [hcL, hcR, hidxL, hidxR, hcpre] at hrate hline hstart
+      have hvR := resolve_Rv (p := p) hfree hv'
+      refine repoProgress_one_down (grOf p n (prunedOf cov)) (fR p n q) (domL p n) (domR p n)
+        (guardL p n l) (guardR p n) q (modeOf p n q) hm rfl rfl (fR_fv (hnames hs) q)
+        (domL_fv (hnames hs)) (domR_fv (hnames hs)) (guardL_fv (hnames hs) l) (guardR_fv (hnames hs))
+        (grOf_guardsRight (hnames hs)) (grOf_guards q) (AGr p n cX cov reg l) hAfv'
+        (fun y h => ⟨h.1.2.1, h.1.2.2⟩) pre (epsR p) hε reg hregR (fun y h => h.2) hex hcomp hboxD'
+        (fun e he hp σ ω hA hω => AG_pruneD hs hnc hst hl hq e he hp σ ω hA.1 hω) (regionF p n cX l q pre) hR
+        v.2 (st.theta : ℝ) ?_ (st.rate : ℝ) hrpos ?_ ?_
+      · intro y hy hθ
+        exact exit_edge hs hq hok y (hline y (hRsat y hy) (by rw [hvR]; exact hθ))
+      · intro y hy hg hθ
+        exact exit_edge hs hq hok y (hstart y (hRsat y hy) hg (by rw [hvR]; exact hθ))
+      · intro y hy hlt
+        exact hrate y (hRsat y hy) (by rw [hvR]; exact hlt)
+    · -- upward
+      obtain ⟨v, hv', hrate, hline, hstart⟩ := progressVerd_one hv st hstg hup
+      rw [hcL, hcR, hidxL, hidxR, hcpre] at hrate hline hstart
+      have hvR := resolve_Rv (p := p) hfree hv'
+      refine repoProgress_one (grOf p n (prunedOf cov)) (fR p n q) (domL p n) (domR p n)
+        (guardL p n l) (guardR p n) q (modeOf p n q) hm rfl rfl (fR_fv (hnames hs) q)
+        (domL_fv (hnames hs)) (domR_fv (hnames hs)) (guardL_fv (hnames hs) l) (guardR_fv (hnames hs))
+        (grOf_guardsRight (hnames hs)) (grOf_guards q) (AGr p n cX cov reg l) hAfv'
+        (fun y h => ⟨h.1.2.1, h.1.2.2⟩) pre (epsR p) hε reg hregR (fun y h => h.2) hex hcomp hboxD'
+        (fun e he hp σ ω hA hω => AG_pruneD hs hnc hst hl hq e he hp σ ω hA.1 hω) (regionF p n cX l q pre) hR
+        v.2 (st.theta : ℝ) ?_ ?_ (st.rate : ℝ) hrpos ?_
+      · intro y hy hθ
+        exact exit_edge hs hq hok y (hline y (hRsat y hy) (by rw [hvR]; exact hθ))
+      · intro y hy hg hθ
+        exact exit_edge hs hq hok y (hstart y (hRsat y hy) hg (by rw [hvR]; exact hθ))
+      · intro y hy hlt
+        exact hrate y (hRsat y hy) (by rw [hvR]; exact hlt)
+  · -- two stages, both upward
+    obtain ⟨hrhpos, -, hfreeh⟩ := certOK_stage hok (st := sth) (by rw [hstg]; simp)
+    obtain ⟨hrpos, -, hfree⟩ := certOK_stage hok (st := st) (by rw [hstg]; simp)
     obtain ⟨w, v, hw', hv', hrate_h, hkeep_h, hrate, hline, hstart⟩ :=
       progressVerd_two hv sth st hstg huph hup
     rw [hcL, hcR, hidxL, hidxR, hcpre] at hrate_h hkeep_h hrate hline hstart

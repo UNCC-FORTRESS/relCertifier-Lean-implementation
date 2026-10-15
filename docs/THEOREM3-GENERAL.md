@@ -76,8 +76,8 @@ their queries by `VerdictsV2/ProgressX.lean` and discharged by `relcert-progress
 facts, and `charger_fast_setpoints` goes through the general theorem with its `BULK` reposition
 node discharged that way.
 
-`Proofs/Encoding/Progress.lean` proves the certificate sound: `repoProgress_one` and
-`repoProgress_two` give `RepoProgress` (the general theorem's premise: from a reposition start,
+`Proofs/Encoding/Progress.lean` proves the certificate sound: `repoProgress_one`,
+`repoProgress_one_down` (a single downward stage, the mirror) and `repoProgress_two` give `RepoProgress` (the general theorem's premise: from a reposition start,
 cycles of the node until an exit is enabled, the anchor kept) from the certificate's facts,
 Assumption 1 (each cycle's run, and an enabled successor at its end), the reposition flow
 certificate (the anchor is kept) and the right-only non-connection certificate (a pruned exit
@@ -119,13 +119,14 @@ structural facts decided in the kernel, every verdict read from one Z3 run
 (`relcert-bridge-verdicts`, 4457 groups over the 50 suite benchmarks and the 2 choice
 exhibits, all discharged). Mode-dependent rows
 are assembled through `theorem3_modeKeyed` (`Emitted/Keyed.lean`); the two-stage progress pin
-is `progressVerd_two`. Generated instances: `InstancesV2/Bridge/`, 49 of the 50 suite benchmarks
-(37 window form, 12 mode-keyed) and the two choice exhibits, every one with the
+is `progressVerd_two`. Generated instances: `InstancesV2/Bridge/`, all 50 suite benchmarks
+(38 window form, 12 mode-keyed) and the two choice exhibits, every one with the
 paper's unconditional Assumption 1 (the detumble models carry their momentum band in the
 right evolve domain).
 
 The tool emits its choice covers (`RELCERT_CHOICE_OUT`, `Trusted/ChoiceEmit.lean`) and the
 bridge replays them (`Emitted/Choice.lean`): `vehicle_accel_copy` and `watertank_choice` are
-generated bridge instances; `vehicle_hypercert` stays on its hand-written general instance of §4
-(its reposition node's progress stages cross their thresholds downward, and the progress lemmas
-`repoProgress_one/two` read upward stages).
+generated bridge instances, and so is `vehicle_hypercert`, whose reposition node's single progress
+stage crosses its threshold downward: `repoProgress_one_down` is the mirror of `repoProgress_one`
+(the only downward form the suite's records use); its hand-written general instance of §4 stays
+as the standalone route and supplies the Assumption 1 lemma.

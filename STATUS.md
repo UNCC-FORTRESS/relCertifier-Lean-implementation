@@ -6,7 +6,7 @@ battery (`RelCertifier/InstancesV2/BatteryV2.lean`). The legacy suite `suite_uni
 batteries were retired on 2026-10-10; the 19 theorems the battery carries over from it are
 kept with exactly what they need (`README.md`, "The 19 carried-over theorems").
 
-**Proved, all 50, one statement.** Theorem 3 (Lean docstring numbering; the paper's Theorem 2 as of 2026-10-16) with the paper's LEFT program (the guard-gated
+**Proved, all 50, one statement.** Theorem 3 (Lean docstring numbering; the paper's Theorem 3 as of 2026-10-16) with the paper's LEFT program (the guard-gated
 left automaton `leftAutomatonBody A u_L`: each left window entered inside its lowered guard,
 the declared successors and `u_L` read from the file) against the GUARDED right automaton
 (every edge tests the lowered guard of the mode it enters), with the loop invariant carrying

@@ -1,6 +1,6 @@
 # Verdicts: how every Z3 hypothesis of the battery is discharged
 
-Every Theorem 3 (Lean docstring numbering; the paper's Theorem 2 as of 2026-10-16) of `RelCertifier/InstancesV2/BatteryV2.lean` carries hypotheses of the form
+Every Theorem 3 (Lean docstring numbering; the paper's Theorem 3 as of 2026-10-16) of `RelCertifier/InstancesV2/BatteryV2.lean` carries hypotheses of the form
 `z3solve q = unsat`, grouped into named packs: joint packs `Verd l m` (left window `l`, right
 mode `m`: the cover's joint segment) and reposition packs `VerdD l m` (the cover's right-only
 reposition of `m` with the left held at window `l`'s start). Since branch `replay` every one of

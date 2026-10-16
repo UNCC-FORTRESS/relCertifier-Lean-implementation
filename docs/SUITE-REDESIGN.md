@@ -3754,7 +3754,7 @@ kernel-checked against the IR table by `CoveragePinsV2.suiteV2_wfModes`), 0 `UNK
 
 **The restriction.** Until this pass `coverMode` kept ONE stretch per left mode: the outer
 loop ran over the λ candidates and every right mode's joint segment was checked at that λ;
-the first λ whose cover closed was kept. The paper's Theorem 3 (its Theorem 2 as of 2026-10-16; Section 5, weights
+the first λ whose cover closed was kept. The paper's Theorem 3 (its Theorem 3 as of 2026-10-16; Section 5, weights
 `w(m_r, κ) = ε_r / λ`) admits a different stretch per pairing, so the tool was incomplete
 against its own theory: a left mode whose needed pairings have disjoint feasible stretch
 windows was DECLINED although a witness strategy exists.

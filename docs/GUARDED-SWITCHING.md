@@ -1,7 +1,7 @@
 # Guard-gated switching on the right (branch `guarded-right`)
 
 **Status (2026-10-10, branch `guarded-right`): done, all 46.** One uniform statement for all
-46 benchmarks: Theorem 3 (Lean docstring numbering; the paper's Theorem 2 as of 2026-10-16) with the paper's LEFT program, the guard-gated left automaton
+46 benchmarks: Theorem 3 (Lean docstring numbering; the paper's Theorem 3 as of 2026-10-16) with the paper's LEFT program, the guard-gated left automaton
 `leftAutomatonBody A u_L` (jump, then flow: each left edge tests the entered left mode's
 lowered guard), against the GUARDED right automaton (flow, then jump: each right edge tests
 the entered right mode's lowered guard), with the loop invariant carrying the declared rows
@@ -332,7 +332,7 @@ window length. All six are now proved; what the earlier arguments and refutation
   entered inside its lowered guard; `leftAutomatonBody`, section 3.3) that state is not a
   window start, and the statement is proved for every `dt` (section 4.4: the band order
   `l ≤ q` makes every stretch a certified forward or same-band pair). The argument was never
-  about the paper's Theorem 3 (its Theorem 2 as of 2026-10-16).
+  about the paper's Theorem 3 (its Theorem 3 as of 2026-10-16).
 * **`refinement_ladder_rover_rung2c_6dof`: guarded for every window up to the control
   interval, `0 ≤ dt ≤ ε_L = 1`** (`rover_rung2c_guarded`, `rover_rung2c_leftAut`; the
   earlier proof stopped at `dt < 1`). The mirror response's only use of the window length is

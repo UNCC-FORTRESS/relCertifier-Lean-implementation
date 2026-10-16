@@ -11,7 +11,7 @@ Theorem 1 (Soundness of Witness Strategies); Section 4.1 flow certificates (Lemm
 Stretching, Definition 5 Flow Certificate, Lemma 2 Lie Conditions, Lemma 3 Joint Segments,
 and "Finding mode invariants" under Discharging); Section 4.2 non-connection certificates (Definition 6); Section 4.3
 reposition certificates (Definition 7, Lemma 4 Stage Ladder, Lemma 5 Right-Only Segments);
-Section 5 the cover (Definition 8) and Theorem 2 (Soundness of Synthesis). The repository layout and the build and check recipe are in
+Section 5 the cover (Definition 8) and Theorem 3 (Soundness of Synthesis). The repository layout and the build and check recipe are in
 `README.md` and `docs/CERTIFICATION-CHECK.md`; the historical, branch-by-branch account that
 this file replaces is `docs/history/PAPER-MAPPING-2026-10-10.md`.
 
@@ -41,7 +41,7 @@ former `C_l`, `C_r` are `I_{m_l}`, `I_{m_r}`. The
 intermediate numbering of paper commit `4f9a85d` (earlier on 2026-10-16)
 differs from the current one in the composition result and the lemmas: composition result
 Lemma 1 (Composition) → Theorem 1 (Soundness of Witness Strategies); synthesis Theorem 1
-(Soundness of Synthesis) → Theorem 2; the lemmas renumber, Lemmas 2 to 6 → Lemmas 1 to 5
+(Soundness of Synthesis) → Theorem 2, then Theorem 3 once Theorem 2 (Composition) was split out of Theorem 1 (paper 85cce32); the lemmas renumber, Lemmas 2 to 6 → Lemmas 1 to 5
 (Time Stretching, Lie Conditions, Joint Segments, Stage Ladder, Right-Only Segments).
 New in the paper, with no Lean statement of their own: Assumption 1 moved into Section 3
 (same content, with the remark that `next(q)` is adequate; the operating region `op_R` and
@@ -51,10 +51,10 @@ Segments) and Lemma 5 (Right-Only Segments); Definition 2 (Mode Invariant) has o
 certificate (§2). Theorem 1 is the cover induction `coverX_piece`
 and Lemmas 3 and 5 are steps of it (§2.2 below), as the paper's Mechanization paragraph says.
 In this file "a benchmark's Theorem 3" or "a Theorem 3 instance" names that Lean statement,
-which is the paper's Theorem 2; every other Definition, Lemma and Theorem number is the
+which is the paper's Theorem 3; every other Definition, Lemma and Theorem number is the
 paper's.
 
-**The claim, in one sentence.** For every benchmark of the suite, the paper's Theorem 2 at
+**The claim, in one sentence.** For every benchmark of the suite, the paper's Theorem 3 at
 the declared invariant (the Lean "Theorem 3") is a kernel-checked Lean theorem whose only
 non-standard axiom is Z3's `unsat` (`z3_unsat_sound`), produced by one generic theorem
 (`theorem3_of_coverX`) instantiated from the records the tool emits; and Assumption 1 of
@@ -62,7 +62,7 @@ every right model is a separate kernel theorem with no Z3 leaf.
 
 ## 0. Two routes to the same statement
 
-Every suite benchmark has its Theorem 3 (the paper's Theorem 2) twice, with the same
+Every suite benchmark has its Theorem 3 (the paper's Theorem 3) twice, with the same
 conclusion shape:
 
 | route | theorem per benchmark | how the proof is produced | status |
@@ -90,7 +90,7 @@ sides and the right's **mode-consistent region** `regionG guard cuts q = guard q
 (the guard of the right's current mode and that mode's checked cuts, the paper's mode
 invariants `I_m` of Definition 2; the paper's operating region `op_R`), bookkeeping that the
 flow-then-jump rotation maintains at every loop boundary.
-This is the `(φInv ∧ op_R) → [|(L,R)⟩⟩ (φInv ∧ op_R)` form of the paper's Theorem 2.
+This is the `(φInv ∧ op_R) → [|(L,R)⟩⟩ (φInv ∧ op_R)` form of the paper's Theorem 3.
 
 ## 2. Section 3: mode invariants, segments, witness strategies, Assumption 1, composition
 
@@ -105,13 +105,14 @@ This is the `(φInv ∧ op_R) → [|(L,R)⟩⟩ (φInv ∧ op_R)` form of the pa
 | **Definition 4** (Witness Strategy): a finite tree of right modes labelled with segments, rooted at an initial right mode `q₀` | the tree is the cover `CoveredX` walked by `coverX_piece`, §2.2 below | `Checker/CoverX.lean`, `Proofs/Encoding/CoverResp.lean` |
 | **Assumption 1** (Well-Formedness), with the remark that `next(q)` is adequate | `WellFormedR`, §2.1 below; adequacy of `next(q)` is clause (ii) | `Proofs/Encoding/WellFormedR.lean` |
 | **Theorem 1** (Soundness of Witness Strategies): witness strategies for every admissible initial mode of every left mode, with the handoff condition Eq. 12 at left mode changes, give the forall-exists invariance within op_R; the residence case is obligation (8) for `m_l` within `op_R` | the cover induction `coverX_piece` and its window assembly, §2.2 below; no standalone ∀∃ statement | `Proofs/Encoding/CoverResp.lean`, `Theorem3General.lean` |
+| **Theorem 2** (Composition): the per-mode strategies of Theorem 1 for every left mode, plus the handoff condition Eq. 12 at every declared left mode change, give the forall-exists invariance within op_R | `theorem3_modeKeyed` (Proofs/Encoding/ModeHandoff.lean:360): the mode-keyed assembly with the conditioned handoff hypothesis; the paper's Theorem 3 (synthesis) instantiates it with covers | Proofs/Encoding/ModeHandoff.lean |
 
 ### 2.1 Assumption 1 (well-formedness)
 
 | paper | Lean | where |
 |---|---|---|
 | **Assumption 1**: the right model is nonblocking and complete with respect to its declared successors: from every state in a source-mode guard an evolution spanning `ε_R` exists, and every evolution of duration at most `ε_R`, the empty one included, ends in the guard of a declared successor | `WellFormedR G guard ε`: for every mode `q` and state `x` in `q`'s lowered guard and evolve domain, (i) `∃ Φ, ODESol m.sys m.dom x ε Φ`, (ii) every run of duration `t ≤ ε` ends in `guard e.tgt` for some `e ∈ G.edgesFrom q` (the self-loop included); `G` the benchmark's guarded right automaton, `ε` the file's `epsilon` | `Proofs/Encoding/WellFormedR.lean` |
-| its use in Theorem 2 | the hypothesis `hwf` of `theorem3_of_coverX` (stated as `WellFormedRIn G guard reg ε`, Assumption 1 relative to a right-only region `reg` kept by the right flows; every instance takes `reg = ⊤`, the paper's form) | `Proofs/Encoding/Theorem3General.lean`, `Emitted/Region.lean` |
+| its use in Theorem 3 | the hypothesis `hwf` of `theorem3_of_coverX` (stated as `WellFormedRIn G guard reg ε`, Assumption 1 relative to a right-only region `reg` kept by the right flows; every instance takes `reg = ⊤`, the paper's form) | `Proofs/Encoding/Theorem3General.lean`, `Emitted/Region.lean` |
 | verified, not assumed, per benchmark | `<ns>.<b>_wellFormedR` for all 50 right models, Z3-free (the three standard axioms), audited on every build by `InstancesV2/WellFormedBattery.lean`; transported onto the bridge's graph by `wellFormedR_transport` (same modes, every standalone edge a declared successor, decided), or stated over that graph directly (`<b>_wellFormedR_direct`, the two dRL benchmarks and `freedm_meter`) | `InstancesV2/WellFormed/`, `Instances/WellFormed/`, `Emitted/Transport.lean`; `docs/WELLFORMED.md` |
 | the remark (self-loop whose guard contains the one-interval reach set, or a successor covering the rest) | the proof styles: (a) forward invariance of the guard then the self-loop, (b) exit into a successor's guard within one interval | `docs/WELLFORMED.md` §2 |
 | the tool's sufficient check | `relcert --wellformed`: clause (ii) per right mode (`ok (invariant)` / `ok (exit→S)` / `UNKNOWN`), strict in `--check-quick-v2` | `Trusted/WellFormedCheck.lean` |
@@ -170,7 +171,7 @@ argument (`Proofs/Flow/`).
 | **Definition 6** (Non-Connection Certificate): a non-connection certificate for `m_R → m_R'` proves `C^σ → [β_kind^λ] ¬N` (no entry state of the target is reached) | the two checks as the tool sends them, `NonConn.queries` (source: no entry state of `m_R` satisfies the threshold guard; barrier: on the threshold the flow moves the variable away), defined once for the certifier, the runner and the kernel | `Trusted/NonConnQuery.lean` |
 | the consequence sentence after Definition 6 (the old Theorem 3; no numbered statement): the declared change is never taken under `(σ, kind)` | `nonconn_sound` (dL-lean `DI_strict` on the safe-side term); `nonconn_of_unsat`: the runner's two `unsat` answers are its hypotheses | `Checker/NonConn.lean`, `Proofs/Encoding/NonConnBridge.lean` |
 | the remark that removing a pruned successor keeps a set adequate; where a pruned edge leaves the cover | `SearchGraph.retainedSucc` (`Checker/Cover.lean:100`) drops it; the cover record carries the `pruned` list the kernel replays; in `coverX_piece` the end state of a joint segment enables a declared successor (Assumption 1 clause (ii)) whose guard is excluded for every pruned exit (`guard_pos_of_barrier`), so the retained set is still adequate | `Checker/Cover.lean`, `Checker/CoverX.lean`, `Proofs/Encoding/Emitted/Barrier.lean` |
-| where it enters Theorem 2 | the bridge keeps the barrier term of every pruned exit of the current right mode in the anchor: `≤ 0` on entry (source check), kept along joint and frozen flows (barrier check), `> 0` under the target's guard, so the target's guard never holds at a segment end (`nonconn_entry`, `nonconn_keep`, `guard_pos_of_barrier`; the general theorem's `hprune` field of `CoverHyps`, and `hpruneD` of the `repoProgress_*` lemmas for the right-only kind) | `Proofs/Encoding/Emitted/Barrier.lean` |
+| where it enters Theorem 3 | the bridge keeps the barrier term of every pruned exit of the current right mode in the anchor: `≤ 0` on entry (source check), kept along joint and frozen flows (barrier check), `> 0` under the target's guard, so the target's guard never holds at a segment end (`nonconn_entry`, `nonconn_keep`, `guard_pos_of_barrier`; the general theorem's `hprune` field of `CoverHyps`, and `hpruneD` of the `repoProgress_*` lemmas for the right-only kind) | `Proofs/Encoding/Emitted/Barrier.lean` |
 | suite | 44 pruned edges, both queries of each discharged (`--run-verdicts-v2`, and as groups of `relcert-bridge-verdicts`); the per-edge instance `match_multi_rate_nonconn` for `DRIVE → STALL` (its docstring says "Theorem 2", the Lean docstring numbering) | `VerdictsV2/NonConnPinV2.lean`, `Instances/MatchMultiRatePruned.lean` |
 
 ## 5. Section 4.3: reposition certificates (Definition 7, Lemma 4, Lemma 5)
@@ -194,7 +195,7 @@ Assumption 1 may enable only the self-loop, the right-only case of Definition 8 
 exit, and nothing in Definition 5 says one is reached. The general theorem therefore takes
 `hrepoProg : RepoProgress …`, which the reposition certificate discharges.
 
-## 6. Section 5: the cover and Theorem 2
+## 6. Section 5: the cover and Theorem 3
 
 ### 6.1 Definition 8 (all-successors cover)
 
@@ -219,7 +220,7 @@ the four literature benchmarks (`drl_car_stop`, `drl_lane_control`, `vehicle_hyp
 `freedm_meter`: the right commits to the left's mode, or to a zero-net grid mode) and the two exhibits of `benchmarks/choice/`;
 `docs/CHOICE-SOUNDNESS.md`.
 
-### 6.2 Theorem 2 (soundness of synthesis)
+### 6.2 Theorem 3 (soundness of synthesis)
 
 > `φInv ∧ op_R → [|(L,R)⟩⟩ (φInv ∧ op_R)` if (1) `R` satisfies Assumption 1; (2) for every
 > `m_L` every admissible `q₀` admits an all-successors cover from `(q₀, ε_L, pre-joint)` at
@@ -228,7 +229,7 @@ the four literature benchmarks (`drl_car_stop`, `drl_lane_control`, `vehicle_hyp
 
 Mechanized as `theorem3_of_coverX` (`Proofs/Encoding/Theorem3General.lean`, standard axioms
 only; the Z3 axiom enters only through the instances' verdict hypotheses). The paper proves
-Theorem 2 by Theorem 1 (Soundness of Witness Strategies) plus the handoff condition. The
+Theorem 3 by Theorem 2 (Composition), which applies Theorem 1 (Soundness of Witness Strategies) per residence and the handoff condition at left mode changes. The
 paper's Mechanization paragraph: the Lean theorem goes from the certificate facts to the
 matching directly; Theorem 1 is its cover induction and Lemmas 3 and 5 are steps of it, none a
 standalone statement (§2.2).
@@ -294,4 +295,4 @@ momentum bound. Nothing in the paper beyond Section 4.3 describes the reposition
 | jump-then-flow (right) | flow-then-jump (`modeStep`): the same body up to rotation; the loop invariant therefore carries the right's current-mode guard (`op_R`) | rotation (`docs/history/ROTATION-SCOPE.md`) |
 | resets | identities | matches the paper's Limitations (`docs/history/RESET-MAPS-SCOPE.md`) |
 | evolve domains | each side's uniform evolve domain (every suite benchmark declares the same evolve in all modes of a side); per-mode domains (the paper's Eq. 2) are outside the Lean lift | scope |
-| invariant `φInv` | `φInv ∧ envLR ∧ mvRegionR mv (regionG guard cuts)`: the envelope and the mode-consistent region are bookkeeping on both sides of the implication | the `(φInv ∧ op_R)` form of the paper's Theorem 2 |
+| invariant `φInv` | `φInv ∧ envLR ∧ mvRegionR mv (regionG guard cuts)`: the envelope and the mode-consistent region are bookkeeping on both sides of the implication | the `(φInv ∧ op_R)` form of the paper's Theorem 3 |

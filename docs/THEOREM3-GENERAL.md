@@ -4,7 +4,7 @@ Status: the general theorem is proved (`Proofs/Encoding/Theorem3General.lean`,
 `theorem3_of_coverX`, axioms `propext`, `Classical.choice`, `Quot.sound`); instances for
 `vehicle_hypercert`, `vehicle_accel_copy`, `watertank_choice` and the suite's `watertank` go
 through it (`InstancesV2/Choice/General/`), each with the standard three axioms plus
-`z3_unsat_sound`. Before this branch the paper's Theorem 3 (Lean docstring numbering; the paper's Theorem 2 as of 2026-10-16) was mechanized per
+`z3_unsat_sound`. Before this branch the paper's Theorem 3 (Lean docstring numbering; the paper's Theorem 3 as of 2026-10-16) was mechanized per
 benchmark: generic lemmas (the outer loop rule, the replay engine, guarded switching) and a
 per-benchmark construction of the response. Now the construction is one theorem whose
 hypotheses are Theorem 3's conditions.
@@ -54,7 +54,7 @@ windows into the loop through `Hmulti_regionG`, `hstep_assembled_GR` and
 
 ## 3. Reposition progress: the certificate the paper's proof sketch was missing
 
-The proof sketch of Theorem 3 (the paper's Theorem 2 as of 2026-10-16; the paper now states
+The proof sketch of Theorem 3 (the paper's Theorem 3 as of 2026-10-16; the paper now states
 the right-only obligation as Lemma 5 and the certificate as Definition 7 / Lemma 4) said
 Assumption 1 "continues every segment along a retained edge". For a joint segment that is right. For a **right-only** segment it is not: Assumption 1
 may enable only the self-loop, the rule requires a non-self exit, and the tool never checked

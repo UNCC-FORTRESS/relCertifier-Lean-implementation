@@ -12,7 +12,7 @@ re-engage or are latched with an invariant guard, the arm planner's successor se
 band a sampled interval can reach) and are now proved. No proof uses Z3. The tool's sufficient
 check of the successor half (`relcert --wellformed`) finds every one of the 174 right modes
 `ok`, and `--check-quick-v2` now runs it STRICT, against a declared count (§4). No Theorem 3
-(Lean docstring numbering; the paper's Theorem 2 as of 2026-10-16) changed in shape; none takes Assumption 1 as a hypothesis.
+(Lean docstring numbering; the paper's Theorem 3 as of 2026-10-16) changed in shape; none takes Assumption 1 as a hypothesis.
 
 ## 1. The paper's statement and the predicate
 

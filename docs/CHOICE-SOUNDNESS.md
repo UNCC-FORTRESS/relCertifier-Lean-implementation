@@ -5,7 +5,7 @@ Status: argument first, code second. The region builders in `Trusted/OracleAPI.l
 
 Numbering: Theorem 1, Theorem 2, Theorem 3 and Definition 4 below are the Lean docstring
 numbering (flow certificate, non-connection, synthesis, cover); in the paper's numbering as
-of 2026-10-16 they are Definition 5 / Lemma 2, Definition 6, Theorem 2 and Definition 8.
+of 2026-10-16 they are Definition 5 / Lemma 2, Definition 6, Theorem 3 and Definition 8.
 
 ## 1. Setting
 

@@ -25,9 +25,7 @@ namespace ChoiceWatertank
 
 open DL DLCalTiming DLRel Parse Set RelCertifier.Oracle
 
-theorem hp10 : Run.parseRat "1.0" = some (1 : ℚ) := by
-  have h : parseQ "1.0" = some (⟨10, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
+-- `hp10` comes from the standalone instance (the rates are 1, 2 and 1/2 since gain 1).
 
 theorem epsR_eq : epsR watertank_choice_IRc = 1 := by
   simp [epsR, watertank_choice_IRc, hp10]

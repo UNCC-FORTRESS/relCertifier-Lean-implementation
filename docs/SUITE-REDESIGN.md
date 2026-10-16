@@ -3335,14 +3335,15 @@ binary built from this pass's tree, `RELCERT_IMPLIED_CUT=1` (except the
 
 ### 18.1 The redesigned `watertank`
 
-A tank of capacity 25 dm; every mode a proportional pump `x' = k (c − x)`, `k = 0.3`.
+A tank of capacity 25 dm; every mode a proportional pump `x' = k (c − x)`, `k = 1` since
+pass 14 (`k = 0.3` until 2026-10-15; §24).
 Nominal (right, 5 modes): `PumpOff` (`x < 2`, a latched dry-run interlock, `x' = 0`),
 `Low` (`2 ≤ x < 10`, toward 12.5), `Mid` in two pump profiles chosen on entry, `MidEco`
-(gain 0.15) and `MidBoost` (gain 0.3), both toward 17 on `10 ≤ x < 17`, and `High`
+(gain `k/2`) and `MidBoost` (gain `k`), both toward 17 on `10 ≤ x < 17`, and `High`
 (`x ≥ 17`, toward 17). Deployed (left, 3 modes): the level sensor reads 3 dm low, so every
 threshold and set point is 3 dm higher in true level (`Low` `5 ≤ x < 13` toward 15.5,
 `Mid` `13 ≤ x < 20` toward 20, `High` `x ≥ 20` toward 20), and the actuation attack makes
-the pump aggressive: it doubles the low-fill gain to 0.6 and locks mid-fill to the boost
+the pump aggressive: it doubles the low-fill gain to `2k` and locks mid-fill to the boost
 profile; levels whose reading is below the interlock threshold (`x_L < 5`) are outside the
 model. Claim: `|x_L − x_R| ≤ 3` in every left mode (two rows, identical across modes);
 evolve domain `0 ≤ x ≤ 25` in every mode on both sides; `εL = εR = 1`, λ grid `[1, 6]`.
@@ -3356,7 +3357,7 @@ Measured (the matrix run of §18.4 and separate runs):
 * **λ and budget.** `Low_L` and `Mid_L` certify at **λ = 2 with budget 2** (two right
   segments per left window); `High_L` at λ = 1, budget 1. `RELCERT_DEBUG=1` segment rows:
   for `Low_L` the nominal `Low` fails at λ = 1, 5/4, 3/2, 7/4 and passes first at λ = 2
-  (the speed ratio of the tampered pump, gain 0.6 against 0.3).
+  (the speed ratio of the tampered pump, gain `2k` against `k`).
 * **Branching (M3).** A joint step from `Low` retains both `MidEco` and `MidBoost`, and
   from `MidEco`/`MidBoost`/`High` the other profiles; both profiles cover (branch = 2 in
   `Low_L` and `Mid_L`). For the deployed `Mid` the per-λ rows show **`MidEco` passing only
@@ -3884,3 +3885,17 @@ generator's `DIRECT_REGION` variant; `vehicle_hypercert`'s single downward progr
 through the mirror lemma `repoProgress_one_down`, its Assumption 1 from the hand-written general
 instance. Counts: 50 files, 174 right modes (94 invariant, 80 exit), handoff
 401, bridge groups 4457 (4321 over the suite), `WellFormedBattery` `(44, 0, 6)`.
+
+## 24. Pass 14 (2026-10-15): the running example at gain 1
+
+`watertank` (and its choice-exhibit copy `watertank_choice`) now has gain `k = 1` per minute:
+every pump rate scaled by `10/3` (nominal `1.0`, attacked low-fill `2.0`, `MidEco` `0.5`), set
+points, thresholds, tolerance and periods unchanged. Scaling every gain by a common factor with
+the control interval fixed is a time rescaling of both systems, so every certificate condition
+depends only on rate ratios: the emitted cover is byte-identical (stretch 2 and budget 2 for
+`Low_L` and `Mid_L`, stretch 1 for `High_L`), the synchronous baseline still declines, and the
+tolerance is still tight (`|x_L − x_R| ≤ 2.9` declines). What changes is the per-cycle motion:
+at `k = 1` the nominal tank closes 63% of its gap per control interval (26% at `k = 0.3`), the
+attacked one 86%. The standalone Lean instances only re-pin the three rate constants (`kL`, `kR`
+and the parse lemmas); the verdict pack rows, pins and declared counts are unchanged.
+`watertank_twospeed` (§22) keeps its own gains (attacked `0.6`, `Fast` `0.6`, `Slow` `0.2`).

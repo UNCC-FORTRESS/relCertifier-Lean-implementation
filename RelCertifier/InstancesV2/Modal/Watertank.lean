@@ -46,23 +46,20 @@ noncomputable def cR (q : ℕ) : List (CutAtomP 2) :=
 
 /-! ## Parse pins -/
 
-theorem hp06 : Run.parseRat "0.6" = some ((3:ℚ)/5) := by
-  have h : parseQ "0.6" = some (⟨6, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
+theorem hp10 : Run.parseRat "1.0" = some (1 : ℚ) := by
+  have h : parseQ "1.0" = some (⟨10, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]
 theorem hp155 : Run.parseRat "15.5" = some ((31:ℚ)/2) := by
   have h : parseQ "15.5" = some (⟨155, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
-theorem hp03 : Run.parseRat "0.3" = some ((3:ℚ)/10) := by
-  have h : parseQ "0.3" = some (⟨3, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
+theorem hp05 : Run.parseRat "0.5" = some ((1:ℚ)/2) := by
+  have h : parseQ "0.5" = some (⟨5, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
 theorem hp200 : Run.parseRat "20.0" = some (20 : ℚ) := by
   have h : parseQ "20.0" = some (⟨200, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
 theorem hp125 : Run.parseRat "12.5" = some ((25:ℚ)/2) := by
   have h : parseQ "12.5" = some (⟨125, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp015 : Run.parseRat "0.15" = some ((3:ℚ)/20) := by
-  have h : parseQ "0.15" = some (⟨15, 100⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
 theorem hp170 : Run.parseRat "17.0" = some (17 : ℚ) := by
   have h : parseQ "17.0" = some (⟨170, 10⟩ : QF) := by decide
@@ -92,38 +89,38 @@ theorem hp3 : Run.parseRat "3" = some (3 : ℚ) := by
 /-! ## Evaluations of the lowered data -/
 
 /-- Left fields: `x' = k_l (c_l − x)`. -/
-noncomputable def kL (l : ℕ) : ℝ := if l = 0 then 3/5 else 3/10
+noncomputable def kL (l : ℕ) : ℝ := if l = 0 then 2 else 1
 noncomputable def cLc (l : ℕ) : ℝ := if l = 0 then 31/2 else 20
 
 theorem fL0_eval (l : ℕ) (hl : l < 3) (x : State (Var 2)) :
     Term.eval (fL l 0) x = kL l * (cLc l - x (Lv 0)) := by
   interval_cases l <;>
-    simp [fL, hostDyn, mL, watertank_IRv2, vs, Run.dynOf, Run.lowerE, hp06, hp155, hp03,
+    simp [fL, hostDyn, mL, watertank_IRv2, vs, Run.dynOf, Run.lowerE, hp20, hp155, hp10,
       hp200, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
       AOp.interp, Lv, kL, cLc]
 
 theorem fL1_eval (l : ℕ) (hl : l < 3) (x : State (Var 2)) :
     Term.eval (fL l 1) x = 0 := by
   interval_cases l <;>
-    simp [fL, hostDyn, mL, watertank_IRv2, vs, Run.dynOf, Run.lowerE, hp06, hp155, hp03,
+    simp [fL, hostDyn, mL, watertank_IRv2, vs, Run.dynOf, Run.lowerE, hp20, hp155, hp10,
       hp200, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
       AOp.interp, Lv]
 
 /-- Right fields: `x' = k_q (c_q − x)` (PumpOff: `0`). -/
-noncomputable def kR (q : ℕ) : ℝ := if q = 1 then 3/20 else if q = 4 then 0 else 3/10
+noncomputable def kR (q : ℕ) : ℝ := if q = 1 then 1/2 else if q = 4 then 0 else 1
 noncomputable def cRc (q : ℕ) : ℝ := if q = 0 then 25/2 else if q = 4 then 0 else 17
 
 theorem fR0_eval (q : ℕ) (hq : q < 5) (x : State (Var 2)) :
     Term.eval (fR q 0) x = kR q * (cRc q - x (Rv 0)) := by
   interval_cases q <;>
-    simp [fR, hostDyn, mR, watertank_IRv2, vs, Run.dynOf, Run.lowerE, hp03, hp125, hp015,
+    simp [fR, hostDyn, mR, watertank_IRv2, vs, Run.dynOf, Run.lowerE, hp10, hp125, hp05,
       hp170, hp00, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
       Term.eval, AOp.interp, Rv, kR, cRc]
 
 theorem fR1_eval (q : ℕ) (hq : q < 5) (x : State (Var 2)) :
     Term.eval (fR q 1) x = 0 := by
   interval_cases q <;>
-    simp [fR, hostDyn, mR, watertank_IRv2, vs, Run.dynOf, Run.lowerE, hp03, hp125, hp015,
+    simp [fR, hostDyn, mR, watertank_IRv2, vs, Run.dynOf, Run.lowerE, hp10, hp125, hp05,
       hp170, hp00, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
       Term.eval, AOp.interp, Rv]
 

@@ -25,9 +25,7 @@ namespace V2Watertank
 
 open DL DLCalTiming DLRel Parse Set
 
-theorem hp10 : Run.parseRat "1.0" = some (1 : ℚ) := by
-  have h : parseQ "1.0" = some (⟨10, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
+-- `hp10` comes from the standalone instance (the rates are 1, 2 and 1/2 since gain 1).
 
 /-- `ε_r` of the file. -/
 theorem epsR_eq : epsR watertank_IRv2 = 1 := by

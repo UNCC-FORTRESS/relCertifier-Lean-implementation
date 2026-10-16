@@ -19,19 +19,19 @@ state_vars = [x]
 epsilon = 1.0
 
 [Lsys.mode.Low]
-ode = x' = smt2:(* 0.6 (- 15.5 x));
+ode = x' = smt2:(* 2.0 (- 15.5 x));
 guard = x >= 5.0 and x < 13.0
 evolve = x >= 0.0 and x <= 25.0
 next = [Low, Mid]
 
 [Lsys.mode.Mid]
-ode = x' = smt2:(* 0.3 (- 20.0 x));
+ode = x' = smt2:(* 1.0 (- 20.0 x));
 guard = x >= 13.0 and x < 20.0
 evolve = x >= 0.0 and x <= 25.0
 next = [Mid, High]
 
 [Lsys.mode.High]
-ode = x' = smt2:(* 0.3 (- 20.0 x));
+ode = x' = smt2:(* 1.0 (- 20.0 x));
 guard = x >= 20.0
 evolve = x >= 0.0 and x <= 25.0
 next = [High, Mid]
@@ -41,25 +41,25 @@ state_vars = [x]
 epsilon = 1.0
 
 [Rsys.mode.Low]
-ode = x' = smt2:(* 0.3 (- 12.5 x));
+ode = x' = smt2:(* 1.0 (- 12.5 x));
 guard = x >= 2.0 and x < 10.0
 evolve = x >= 0.0 and x <= 25.0
 next = [Low, MidEco, MidBoost, PumpOff]
 
 [Rsys.mode.MidEco]
-ode = x' = smt2:(* 0.15 (- 13.0 x));
+ode = x' = smt2:(* 0.5 (- 13.0 x));
 guard = x >= 10.0 and x < 17.0
 evolve = x >= 0.0 and x <= 25.0
 next = [MidEco, MidBoost, High]
 
 [Rsys.mode.MidBoost]
-ode = x' = smt2:(* 0.3 (- 17.0 x));
+ode = x' = smt2:(* 1.0 (- 17.0 x));
 guard = x >= 10.0 and x < 17.0
 evolve = x >= 0.0 and x <= 25.0
 next = [MidBoost, MidEco, High]
 
 [Rsys.mode.High]
-ode = x' = smt2:(* 0.3 (- 17.0 x));
+ode = x' = smt2:(* 1.0 (- 17.0 x));
 guard = x >= 17.0
 evolve = x >= 0.0 and x <= 25.0
 next = [High, MidEco, MidBoost]

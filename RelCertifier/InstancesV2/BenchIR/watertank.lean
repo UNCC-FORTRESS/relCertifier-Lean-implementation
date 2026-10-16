@@ -22,19 +22,19 @@ def watertank_IRv2 : PProblem :=
       modes := [
         {
           name := "Low"
-          odes := [("x", (.bin "*" (.num "0.6") (.bin "-" (.num "15.5") (.var "x"))))]
+          odes := [("x", (.bin "*" (.num "2.0") (.bin "-" (.num "15.5") (.var "x"))))]
           guard := (.and (.cmp ">=" (.var "x") (.num "5.0")) (.cmp "<" (.var "x") (.num "13.0")))
           evolve := (.and (.cmp ">=" (.var "x") (.num "0.0")) (.cmp "<=" (.var "x") (.num "25.0")))
           next := ["Low", "Mid"] },
         {
           name := "Mid"
-          odes := [("x", (.bin "*" (.num "0.3") (.bin "-" (.num "20.0") (.var "x"))))]
+          odes := [("x", (.bin "*" (.num "1.0") (.bin "-" (.num "20.0") (.var "x"))))]
           guard := (.and (.cmp ">=" (.var "x") (.num "13.0")) (.cmp "<" (.var "x") (.num "20.0")))
           evolve := (.and (.cmp ">=" (.var "x") (.num "0.0")) (.cmp "<=" (.var "x") (.num "25.0")))
           next := ["Mid", "High"] },
         {
           name := "High"
-          odes := [("x", (.bin "*" (.num "0.3") (.bin "-" (.num "20.0") (.var "x"))))]
+          odes := [("x", (.bin "*" (.num "1.0") (.bin "-" (.num "20.0") (.var "x"))))]
           guard := (.cmp ">=" (.var "x") (.num "20.0"))
           evolve := (.and (.cmp ">=" (.var "x") (.num "0.0")) (.cmp "<=" (.var "x") (.num "25.0")))
           next := ["High", "Mid"] } ] }
@@ -44,25 +44,25 @@ def watertank_IRv2 : PProblem :=
       modes := [
         {
           name := "Low"
-          odes := [("x", (.bin "*" (.num "0.3") (.bin "-" (.num "12.5") (.var "x"))))]
+          odes := [("x", (.bin "*" (.num "1.0") (.bin "-" (.num "12.5") (.var "x"))))]
           guard := (.and (.cmp ">=" (.var "x") (.num "2.0")) (.cmp "<" (.var "x") (.num "10.0")))
           evolve := (.and (.cmp ">=" (.var "x") (.num "0.0")) (.cmp "<=" (.var "x") (.num "25.0")))
           next := ["Low", "MidEco", "MidBoost", "PumpOff"] },
         {
           name := "MidEco"
-          odes := [("x", (.bin "*" (.num "0.15") (.bin "-" (.num "17.0") (.var "x"))))]
+          odes := [("x", (.bin "*" (.num "0.5") (.bin "-" (.num "17.0") (.var "x"))))]
           guard := (.and (.cmp ">=" (.var "x") (.num "10.0")) (.cmp "<" (.var "x") (.num "17.0")))
           evolve := (.and (.cmp ">=" (.var "x") (.num "0.0")) (.cmp "<=" (.var "x") (.num "25.0")))
           next := ["MidEco", "MidBoost", "High"] },
         {
           name := "MidBoost"
-          odes := [("x", (.bin "*" (.num "0.3") (.bin "-" (.num "17.0") (.var "x"))))]
+          odes := [("x", (.bin "*" (.num "1.0") (.bin "-" (.num "17.0") (.var "x"))))]
           guard := (.and (.cmp ">=" (.var "x") (.num "10.0")) (.cmp "<" (.var "x") (.num "17.0")))
           evolve := (.and (.cmp ">=" (.var "x") (.num "0.0")) (.cmp "<=" (.var "x") (.num "25.0")))
           next := ["MidBoost", "MidEco", "High"] },
         {
           name := "High"
-          odes := [("x", (.bin "*" (.num "0.3") (.bin "-" (.num "17.0") (.var "x"))))]
+          odes := [("x", (.bin "*" (.num "1.0") (.bin "-" (.num "17.0") (.var "x"))))]
           guard := (.cmp ">=" (.var "x") (.num "17.0"))
           evolve := (.and (.cmp ">=" (.var "x") (.num "0.0")) (.cmp "<=" (.var "x") (.num "25.0")))
           next := ["High", "MidEco", "MidBoost"] },

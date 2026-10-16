@@ -7,16 +7,16 @@
 #
 # THE PLANT. A tank of capacity 25 (level x in dm, so a 2.5 m tank; time in minutes).
 # Every mode is a proportional pump controller that drives the level toward a set point c,
-#   x' = k (c - x),   k = 0.3 /min   (a first-order relaxation, time constant ~3.3 min).
+#   x' = k (c - x),   k = 1.0 /min   (a first-order relaxation, time constant 1 min).
 # NOMINAL controller (right, the reference design):
 #   PumpOff  x < 2           x' = 0               dry-run interlock: below the 2 dm intake
 #                                                  the pump is switched off and latched
 #                                                  (a sink, PumpOff -> PumpOff only)
-#   Low      2 <= x < 10     x' = 0.3 (12.5 - x)  fill toward 12.5
+#   Low      2 <= x < 10     x' = 1.0 (12.5 - x)  fill toward 12.5
 #   Mid      10 <= x < 17    toward 17, in two selectable pump profiles chosen on entry:
-#              MidEco          x' = 0.15 (17 - x)   half gain k/2 (energy-saving)
-#              MidBoost        x' = 0.3 (17 - x)    full gain k
-#   High     x >= 17         x' = 0.3 (17 - x)    regulate (drain) down to 17
+#              MidEco          x' = 0.5 (17 - x)    half gain k/2 (energy-saving)
+#              MidBoost        x' = 1.0 (17 - x)    full gain k
+#   High     x >= 17         x' = 1.0 (17 - x)    regulate (drain) down to 17
 # The nominal controller may move between MidEco and MidBoost at any time while in Mid,
 # and returns from High into either profile.
 #
@@ -27,8 +27,8 @@
 #        Mid  13 <= x < 20  toward 20   (= 17 + 3)
 #        High x >= 20       regulate down to 20
 #   2. Actuation attack: the attack makes the pump aggressive: it doubles the low-fill
-#      gain to 0.6, x' = 0.6 (15.5 - x), and locks mid-fill to the boost profile
-#      (gain 0.3; the deployed controller has a single Mid profile).
+#      gain to 2.0, x' = 2.0 (15.5 - x), and locks mid-fill to the boost profile
+#      (gain 1.0; the deployed controller has a single Mid profile).
 #   Levels whose reading is below the interlock threshold (x_L < 5, i.e. a reading below
 #   2) are outside the model: the deployed controller has no dry-run mode, and its Low
 #   floor 5 = 2 + 3 is the nominal interlock threshold shifted by the offset.
@@ -38,7 +38,7 @@
 # by more than the sensor offset. The tolerance 3 IS the offset, and it is tight: with
 # tolerance 2.9 (both rows) the benchmark is DECLINED (measured). Why it is tight
 # (derived from the model): on the boundary x_L = x_R + 3 the deployed Low field is
-# 0.6 (15.5 - x_L) = 0.6 (12.5 - x_R), exactly the nominal Low field run at speed
+# 2.0 (15.5 - x_L) = 2.0 (12.5 - x_R), exactly the nominal Low field run at speed
 # ratio 2, so the gap is neutral there (zero Lie derivative), not contracting; the same
 # holds for Mid against MidEco at ratio 2 and against MidBoost at ratio 1.
 #
@@ -83,19 +83,19 @@ state_vars = [x]
 epsilon = 1.0
 
 [Lsys.mode.Low]
-ode = x' = smt2:(* 0.6 (- 15.5 x));
+ode = x' = smt2:(* 2.0 (- 15.5 x));
 guard = x >= 5.0 and x < 13.0
 evolve = x >= 0.0 and x <= 25.0
 next = [Low, Mid]
 
 [Lsys.mode.Mid]
-ode = x' = smt2:(* 0.3 (- 20.0 x));
+ode = x' = smt2:(* 1.0 (- 20.0 x));
 guard = x >= 13.0 and x < 20.0
 evolve = x >= 0.0 and x <= 25.0
 next = [Mid, High]
 
 [Lsys.mode.High]
-ode = x' = smt2:(* 0.3 (- 20.0 x));
+ode = x' = smt2:(* 1.0 (- 20.0 x));
 guard = x >= 20.0
 evolve = x >= 0.0 and x <= 25.0
 next = [High, Mid]
@@ -105,25 +105,25 @@ state_vars = [x]
 epsilon = 1.0
 
 [Rsys.mode.Low]
-ode = x' = smt2:(* 0.3 (- 12.5 x));
+ode = x' = smt2:(* 1.0 (- 12.5 x));
 guard = x >= 2.0 and x < 10.0
 evolve = x >= 0.0 and x <= 25.0
 next = [Low, MidEco, MidBoost, PumpOff]
 
 [Rsys.mode.MidEco]
-ode = x' = smt2:(* 0.15 (- 17.0 x));
+ode = x' = smt2:(* 0.5 (- 17.0 x));
 guard = x >= 10.0 and x < 17.0
 evolve = x >= 0.0 and x <= 25.0
 next = [MidEco, MidBoost, High]
 
 [Rsys.mode.MidBoost]
-ode = x' = smt2:(* 0.3 (- 17.0 x));
+ode = x' = smt2:(* 1.0 (- 17.0 x));
 guard = x >= 10.0 and x < 17.0
 evolve = x >= 0.0 and x <= 25.0
 next = [MidBoost, MidEco, High]
 
 [Rsys.mode.High]
-ode = x' = smt2:(* 0.3 (- 17.0 x));
+ode = x' = smt2:(* 1.0 (- 17.0 x));
 guard = x >= 17.0
 evolve = x >= 0.0 and x <= 25.0
 next = [High, MidEco, MidBoost]

@@ -1,6 +1,6 @@
 # Replaying the emitted cover (branch `replay`)
 
-The paper's §6 says of every benchmark's Theorem 3 (Lean docstring numbering; the paper's Theorem 1 as of 2026-10-16) that "its proof follows the witness strategy
+The paper's §6 says of every benchmark's Theorem 3 (Lean docstring numbering; the paper's Theorem 2 as of 2026-10-16) that "its proof follows the witness strategy
 the tool emits". This document records, per benchmark, whether the kernel proof does that, and
 the conversion of every proof that did not.
 

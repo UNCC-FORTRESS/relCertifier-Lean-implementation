@@ -4,7 +4,7 @@ Status: the general theorem is proved (`Proofs/Encoding/Theorem3General.lean`,
 `theorem3_of_coverX`, axioms `propext`, `Classical.choice`, `Quot.sound`); instances for
 `vehicle_hypercert`, `vehicle_accel_copy`, `watertank_choice` and the suite's `watertank` go
 through it (`InstancesV2/Choice/General/`), each with the standard three axioms plus
-`z3_unsat_sound`. Before this branch the paper's Theorem 3 (Lean docstring numbering; the paper's Theorem 1 as of 2026-10-16) was mechanized per
+`z3_unsat_sound`. Before this branch the paper's Theorem 3 (Lean docstring numbering; the paper's Theorem 2 as of 2026-10-16) was mechanized per
 benchmark: generic lemmas (the outer loop rule, the replay engine, guarded switching) and a
 per-benchmark construction of the response. Now the construction is one theorem whose
 hypotheses are Theorem 3's conditions.
@@ -54,15 +54,15 @@ windows into the loop through `Hmulti_regionG`, `hstep_assembled_GR` and
 
 ## 3. Reposition progress: the certificate the paper's proof sketch was missing
 
-The proof sketch of Theorem 3 (the paper's Theorem 1 as of 2026-10-16; the paper now states
-the right-only obligation as Lemma 6 and the certificate as Definition 6 / Lemma 5) said
+The proof sketch of Theorem 3 (the paper's Theorem 2 as of 2026-10-16; the paper now states
+the right-only obligation as Lemma 5 and the certificate as Definition 6 / Lemma 4) said
 Assumption 1 "continues every segment along a retained edge". For a joint segment that is right. For a **right-only** segment it is not: Assumption 1
 may enable only the self-loop, the rule requires a non-self exit, and the tool never checked
 that an exit is reached. The 12 benchmarks whose covers use right-only steps rest on exactly
 that (with the all-successors right-only rule disabled, `RELCERT_NO_REPO=1`, they decline:
 34/46). Their standalone Lean proofs had discharged it from explicit solutions (`HExit`).
 
-The fix is a **progress certificate** (the paper's reposition certificate, Definition 6 / Lemma 5 as of 2026-10-16; `Trusted/ProgressEmit.lean`; the tool's default, `RELCERT_NO_PROGRESS=1` disables it),
+The fix is a **progress certificate** (the paper's reposition certificate, Definition 6 / Lemma 4 as of 2026-10-16; `Trusted/ProgressEmit.lean`; the tool's default, `RELCERT_NO_PROGRESS=1` disables it),
 checked by the tool per reposition node like every other certificate: a stage
 `(x, θ, r)` says "while `x < θ` (on the node's region, the facts the reposition flow keeps)
 the field of `x` is at least `r > 0`"; an optional helper stage `(y, y₀, r₁)` first (its

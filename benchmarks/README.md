@@ -4,7 +4,7 @@
 (ideal) and right (implementation) hybrid automata, the relational invariant (one row per
 left mode) and the time-stretch range. **50 benchmarks.** With the widened cut channel on
 (`RELCERT_IMPLIED_CUT=1`, as every suite_v2 run sets it) the tool CERTIFIES all 50, and
-every one carries a kernel-checked Theorem 3 (Lean docstring numbering; the paper's Theorem 1 as of 2026-10-16) with the paper's left program over the
+every one carries a kernel-checked Theorem 3 (Lean docstring numbering; the paper's Theorem 2 as of 2026-10-16) with the paper's left program over the
 guard-gated right automaton, at the mode-consistent region (`RelCertifier/InstancesV2/BatteryV2.lean`;
 `refinement_ladder_rover_rung2c_6dof` for windows up to its control interval `dt ≤ 1`;
 check recipe: `docs/CERTIFICATION-CHECK.md`). The two `platoon3` files were repaired on

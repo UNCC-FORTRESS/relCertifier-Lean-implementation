@@ -7,7 +7,7 @@ Given two hybrid automata, an ideal system `L` and an implementation `R`, writte
 small textual format, the tool `relcert` certifies that `R` refines `L` up to a relational
 invariant (bounds such as `x_L ≤ x_R + 3`). For **all 50** benchmarks of the paper's suite
 (46 designed for it and four models taken from the literature (`drl_car_stop`, `drl_lane_control`: the sampled form of the refinement examples of differential refinement logic; `vehicle_hypercert`: the continuous-time counterpart of the HyperCertificates opacity vehicle; `freedm_meter`: the FREEDM transformer's battery-level nondeducibility through the grid meter), which need the existential mode choice)
-the repository contains a **kernel-checked Theorem 3** (the paper's relational ∀∃ statement; "Theorem 3" is the Lean docstring numbering, the paper's Theorem 1 as of 2026-10-16)
+the repository contains a **kernel-checked Theorem 3** (the paper's relational ∀∃ statement; "Theorem 3" is the Lean docstring numbering, the paper's Theorem 2 as of 2026-10-16)
 with the paper's own automata on both sides, **guard-gated**: every left window is entered
 only inside its mode's guard (the left automaton, jump then flow) and every right mode change
 enters a declared successor whose guard holds at that instant (flow then jump), at the

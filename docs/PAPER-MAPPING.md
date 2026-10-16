@@ -3,8 +3,11 @@
 Read this with the paper open. One section per formal element of the paper, in the paper's
 order; each says what the Lean name is, where it lives, how its hypotheses are discharged, and
 which axioms it rests on. Paper references are to *Certifying Forall-Exists Invariants for
-Cyber-Physical Systems via Witness Construction* (HSCC+ICCPS'27 submission; numbering as of
-2026-10-15). The repository layout and the build and check recipe are in `README.md` and
+Cyber-Physical Systems via Witness Construction* (HSCC+ICCPS'27 submission; numbering as of the
+evening of 2026-10-15: Definition 2 / Theorem 1 flow certificates, Definition 3 / Theorem 2
+progress certificates, Definition 4 / Theorem 3 non-connection, Definition 5 the cover,
+Theorem 4 synthesis. The Lean docstrings keep the earlier numbering, in which Theorem 2 is
+non-connection, Theorem 3 synthesis and Definition 4 the cover). The repository layout and the build and check recipe are in `README.md` and
 `docs/CERTIFICATION-CHECK.md`; the historical, branch-by-branch account that this file
 replaces is `docs/history/PAPER-MAPPING-2026-10-10.md`.
 
@@ -69,19 +72,19 @@ Existence of the right flow for the needed duration is not part of Theorem 1 in 
 Lean it is Assumption 1's clause (i) (Section 6 below), used by the general theorem, and in the
 standalone instances an explicit solution or a viability argument (`Proofs/Flow/`).
 
-## 4. Section 4.2: non-connection certificates (Definition 3, Theorem 2)
+## 4. Section 4.2: non-connection certificates (Definition 4, Theorem 3)
 
 | paper | Lean | where |
 |---|---|---|
-| **Definition 3**: a non-connection certificate for `m_R → m_R'` proves `Source(σ) → [P_kind] ¬Entry(m_R')` | the two checks as the tool sends them, `NonConn.queries` (source: no entry state of `m_R` satisfies the threshold guard; barrier: on the threshold the flow moves the variable away), defined once for the certifier, the runner and the kernel | `Trusted/NonConnQuery.lean` |
-| **Theorem 2**: the declared change is never taken under `(σ, kind)` | `nonconn_sound` (dL-lean `DI_strict` on the safe-side term); `nonconn_of_unsat`: the runner's two `unsat` answers are its hypotheses | `Checker/NonConn.lean`, `Proofs/Encoding/NonConnBridge.lean` |
+| **Definition 4**: a non-connection certificate for `m_R → m_R'` proves `Source(σ) → [P_kind] ¬Entry(m_R')` | the two checks as the tool sends them, `NonConn.queries` (source: no entry state of `m_R` satisfies the threshold guard; barrier: on the threshold the flow moves the variable away), defined once for the certifier, the runner and the kernel | `Trusted/NonConnQuery.lean` |
+| **Theorem 3**: the declared change is never taken under `(σ, kind)` | `nonconn_sound` (dL-lean `DI_strict` on the safe-side term); `nonconn_of_unsat`: the runner's two `unsat` answers are its hypotheses | `Checker/NonConn.lean`, `Proofs/Encoding/NonConnBridge.lean` |
 | where a pruned edge leaves the cover | `retainedSucc` drops it; the cover record carries the `pruned` list the kernel replays | `Checker/Cover.lean`, `Checker/CoverX.lean` |
 | where it enters Theorem 3 | the bridge keeps the barrier term of every pruned exit of the current right mode in the anchor: `≤ 0` on entry (source check), kept along joint and frozen flows (barrier check), `> 0` under the target's guard, so the target's guard never holds at a segment end (`nonconn_entry`, `nonconn_keep`, `guard_pos_of_barrier`; the general theorem's `hprune`, `hpruneD`) | `Proofs/Encoding/Emitted/Barrier.lean` |
 | suite | 44 pruned edges, both queries of each discharged (`--run-verdicts-v2`, and as groups of `relcert-bridge-verdicts`); the per-edge Theorem 2 instance `match_multi_rate_nonconn` for `DRIVE → STALL` | `VerdictsV2/NonConnPinV2.lean`, `Instances/MatchMultiRatePruned.lean` |
 
 ## 5. Section 5: the cover and Theorem 3
 
-### 5.1 Definition 4 (all-successors cover)
+### 5.1 Definition 5 (all-successors cover)
 
 | paper | Lean | where |
 |---|---|---|
@@ -113,7 +116,7 @@ the four literature benchmarks (`drl_car_stop`, `drl_lane_control`, `vehicle_hyp
 | the tool's sufficient check | `relcert --wellformed`: clause (ii) per right mode (`ok (invariant)` / `ok (exit→S)` / `UNKNOWN`), strict in `--check-quick-v2` | `Trusted/WellFormedCheck.lean` |
 | the six satellites | since 2026-10-15 their right evolve domains carry the conserved momentum band (total angular momentum about each wheel axis within the wheel's capacity), and Assumption 1 holds literally; before, it was proved on that band only | `docs/WELLFORMED.md` §3, `docs/SUITE-REDESIGN.md` §19.2 |
 
-### 5.3 Theorem 3 (soundness of synthesis)
+### 5.3 Theorem 4 (soundness of synthesis)
 
 > `φInv ∧ op_R → [|(L,R)⟩⟩ (φInv ∧ op_R)` if (1) `R` satisfies Assumption 1; (2) for every
 > `m_L` every admissible `q₀` admits an all-successors cover from `(q₀, ε_L, pre-joint)` at
@@ -138,7 +141,7 @@ per-mode window responses with the handoff condition and the side conditions on 
 (freshness, footprints); the bridge supplies the per-mode responses through `hstepMode_GR` and
 `HMode_regionG`. Mode-independent rows take the window form directly (`rowsSame` decided).
 
-### 5.4 The reposition-progress premise (not in the paper's proof sketch)
+### 5.4 Definition 3 / Theorem 2: the progress certificate
 
 The sketch says Assumption 1 "continues every segment along a retained edge". For a right-only
 segment that is not enough: Assumption 1 may enable only the self-loop, the right-only case of
@@ -151,8 +154,8 @@ on the crossing line and at an already-crossed start some exit's guard holds). `
 `repoProgress_one_down` (a single downward stage) and `repoProgress_two` (`Proofs/Encoding/Progress.lean`)
 prove the certificate sound (standard axioms); `progressVerd_one/one_down/two`
 (`VerdictsV2/ProgressPin.lean`) read the runner's `unsat` answers as its facts. Suite: 261 certificates, all discharged (`relcert-progress-verdicts`).
-`docs/THEOREM3-GENERAL.md` §3. **For the paper**: this is certificate 3's second half
-(preservation and progress) and belongs in Sections 4.1 and 6.1.
+`docs/THEOREM3-GENERAL.md` §3. In the paper: Definition 3 (the rate, keep and landing
+obligations over the mode's region) and Theorem 2 (soundness with the cycle bound), Section 4.1.
 
 ## 6. Section 6: implementation and evaluation
 

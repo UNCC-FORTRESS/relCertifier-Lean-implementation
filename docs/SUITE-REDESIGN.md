@@ -2084,12 +2084,12 @@ with the later passes.)
   `--run-verdicts` rows): a separate task. It needs two generalizations of the lift the
   tool side now exercises: the O1 case split of the extended cut certificate
   (`EvolStrengtheningX`: membership / weakening / rational / Z3 entries — §7, and
-  `docs/PAPER-MAPPING.md` §2c) and per-mode evolve domains (`UniformEvol.lean`, the
+  `docs/PAPER-MAPPING.md` §3 (the Lemma 3 row, checked cuts)) and per-mode evolve domains (`UniformEvol.lean`, the
   handoff runner's `uniformEvolveR`). Until then the kernel column still reads
   `suite_uniform`, and `relcert --check-quick benchmarks/suite_uniform/*/input.txt`
   is unchanged.
 * The L6 domain-corner incompleteness (met by the dropped `heater_cycle`).
-* The Lean lift of the linear-form chain (§7 L7; `docs/PAPER-MAPPING.md` §2c: the
+* The Lean lift of the linear-form chain (§7 L7; `docs/PAPER-MAPPING.md` §3 (the Lemma 3 row, checked cuts): the
   linear-shape and derived-shape lemmas and the SEQUENTIAL composition the `given` field
   records).
 * (Resolved in pass 4, §13.6: the flagged `story3_rollover_ladder_rung_b` and the
@@ -2098,7 +2098,7 @@ with the later passes.)
   kept files carry no `# scenario:` line; the script maps their kind.
 * `benchmarks/suite_uniform/arm_chain_rung3`, `arm_fidelity_low` and `arm_fidelity_mid`, read by the Lean
   pins, close their Hold phase with the same kind of evolve cap the domain audit removed
-  from `suite_v2` (`θ_L ≤ 0.65 ≤ 0.6 + tol`, `docs/PAPER-MAPPING.md` §2c); not touched
+  from `suite_v2` (`θ_L ≤ 0.65 ≤ 0.6 + tol`, `docs/PAPER-MAPPING.md` §3 (the Lemma 3 row, checked cuts)); not touched
   here (`suite_uniform` must stay byte-identical).
 * The paper's Table 1 / §6 rewrite from §8.
 * The Lean mechanization of the pass-4 files: the five replacements and the rigid-body
@@ -3462,7 +3462,7 @@ strings in §9 are now three characters, `j`/`d`/`d`).
 ## 19. Pass 9 (2026-10-10): the odometer wall removed; the satellite nonblocking regions
 
 Two model-level findings from the Theorem 3 mechanization of the last nine suite_v2
-benchmarks (`docs/PAPER-MAPPING.md` §2c; `RelCertifier/InstancesV2/Modal/`). Both concern
+benchmarks (`docs/PAPER-MAPPING.md` §2.1 (Assumption 1); `RelCertifier/InstancesV2/Modal/`). Both concern
 Assumption 1 of the paper (nonblocking: a right state inside the invariant can always flow
 for the window's duration). Every number below: Z3 4.15.1, `RELCERT_IMPLIED_CUT=1` except in
 the counter-runs, default solver settings (§10).

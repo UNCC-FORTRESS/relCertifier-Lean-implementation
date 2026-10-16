@@ -3,6 +3,10 @@
 Status: argument first, code second. The region builders in `Trusted/OracleAPI.lean`
 (`ChoiceCtx.jointEnd`, `repoEnd`, `startReg`) must match §3 exactly.
 
+Numbering: Theorem 1, Theorem 2, Theorem 3 and Definition 4 below are the Lean docstring
+numbering (flow certificate, non-connection, synthesis, cover); in the paper's numbering as
+of 2026-10-16 they are Definition 3 / Lemma 2, Definition 4, Theorem 1 and Definition 6.
+
 ## 1. Setting
 
 Fix a left mode `m_l` and its residence (one left control cycle, duration `τ_l ≤ ε_l`).

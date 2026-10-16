@@ -515,7 +515,7 @@ These are the facts the runs established; each is visible in a trace in §9.
    reachable on the sink pairing (`[FAST_L] STALL=fail` at every λ; `[BULK_L]
    FAULT=fail`: the deployed charges at 15 % while the fault self-discharges) and the
    non-connection certificate remains the only route (M4 `yes`). The paper's Section 4.3
-   exhibit is `match_multi_rate`; the M4 total is unchanged at 15.
+   (non-connection; Section 4.2 as of 2026-10-16) exhibit is `match_multi_rate`; the M4 total is unchanged at 15.
 10. **(Pass 2; the scenarios were dropped in pass 3, §13.) Per-mode domains are what
    hysteresis and early-switching scenarios need** (§7 L5): with each phase's band as its domain, cross-phase pairings become static
    (`x_L ≤ 75 < 80 ≤ x_R`) and the forced hand-over replaces the "unforced switching"
@@ -3670,7 +3670,7 @@ pruned without the cut: `RELCERT_NO_CUT=1` CERTIFIED, 1.7 s each). The latched s
 other mode and keeps every cell.
 
 **Tool change** (`Trusted/NonConnQuery.lean`, `guardTerm`). The non-connection pruning
-(paper §4.3) accepted only a single strict threshold as the successor guard; the latched
+(paper §4.3; §4.2 as of 2026-10-16) accepted only a single strict threshold as the successor guard; the latched
 `BRAKEk` guard is a conjunction. It now also accepts a conjunction whose LEADING conjunct is a
 strict threshold, with that conjunct as the barrier (`g_k < 20`, as before): the guard implies
 it, so a state outside `{g > 0}` is outside the guard, and `nonconn_sound`'s conclusion (about
@@ -3754,7 +3754,7 @@ kernel-checked against the IR table by `CoveragePinsV2.suiteV2_wfModes`), 0 `UNK
 
 **The restriction.** Until this pass `coverMode` kept ONE stretch per left mode: the outer
 loop ran over the λ candidates and every right mode's joint segment was checked at that λ;
-the first λ whose cover closed was kept. The paper's Theorem 3 (Section 5, weights
+the first λ whose cover closed was kept. The paper's Theorem 3 (its Theorem 1 as of 2026-10-16; Section 5, weights
 `w(m_r, κ) = ε_r / λ`) admits a different stretch per pairing, so the tool was incomplete
 against its own theory: a left mode whose needed pairings have disjoint feasible stretch
 windows was DECLINED although a witness strategy exists.
@@ -3770,7 +3770,7 @@ fallback is attempted only when the chosen stretches are not all equal (otherwis
 pass at that stretch already failed with the same nodes). `RELCERT_NO_PAIR_STRETCH=1` disables
 it (ablation). Soundness: each pairing's flow obligation is the pack at its own stretch
 (`couple_cutX` takes λ per coupling; the kernel's cover theorem is per mode); the shorter span
-only cuts segments short, which Theorem 1 (throughout) and Assumption 1 (every duration up to
+only cuts segments short, which Theorem 1 (throughout; Lean docstring numbering, the paper's Definition 3 / Lemma 2) and Assumption 1 (every duration up to
 `ε_R` ends in a successor's guard) admit; partial right cycles are what the unclocked right
 automaton already models. The reposition certificates are stretch-free.
 

@@ -4,7 +4,7 @@ Status: current for suite_v2 (2026-10-10). Every number below is from
 `RELCERT_IMPLIED_CUT=1 relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt` (its handoff
 phase) on 2026-10-10, Z3 4.15.1. The handoff check is a tool-level check: the twelve
 mode-keyed Theorem 3 instances discharge their handoffs in the kernel
-(`docs/PAPER-MAPPING.md` §2b), so no theorem consumes these verdicts; the phase confirms the
+(`docs/PAPER-MAPPING.md` §6.2), so no theorem consumes these verdicts; the phase confirms the
 implication the composition lemma needs, for every benchmark, including the 33 whose rows
 are identical (vacuous).
 

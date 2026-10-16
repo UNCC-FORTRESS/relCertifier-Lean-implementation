@@ -7,7 +7,7 @@ Given two hybrid automata, an ideal system `L` and an implementation `R`, writte
 small textual format, the tool `relcert` certifies that `R` refines `L` up to a relational
 invariant (bounds such as `x_L ≤ x_R + 3`). For **all 50** benchmarks of the paper's suite
 (46 designed for it and four models taken from the literature (`drl_car_stop`, `drl_lane_control`: the sampled form of the refinement examples of differential refinement logic; `vehicle_hypercert`: the continuous-time counterpart of the HyperCertificates opacity vehicle; `freedm_meter`: the FREEDM transformer's battery-level nondeducibility through the grid meter), which need the existential mode choice)
-the repository contains a **kernel-checked Theorem 3** (the paper's relational ∀∃ statement)
+the repository contains a **kernel-checked Theorem 3** (the paper's relational ∀∃ statement; "Theorem 3" is the Lean docstring numbering, the paper's Theorem 1 as of 2026-10-16)
 with the paper's own automata on both sides, **guard-gated**: every left window is entered
 only inside its mode's guard (the left automaton, jump then flow) and every right mode change
 enters a declared successor whose guard holds at that instant (flow then jump), at the
@@ -167,7 +167,7 @@ All counts read off `InstancesV2/BatteryV2.lean` and its build output.
 | responses with right-only repositions (reposition packs `modalVerdDynX`) | **17** | `arm_plateau_{crit,slow}`, `charger_fast_{setpoints,tapers}`, `refinement_ladder_rover_rung{1_2to3,3_6to8,4_8to12,2_6dof,2b_6dof}`, `rover_dof_terrain_rung{1,2,3,3_8d}`, `story3_rollover_{base_12dof,ladder_rung_a}`, `rover_patrol_{zones,refine}` |
 | Z3-free (the three standard axioms only, no verdict hypothesis) | **0** | none: every flow fact is a pack (until branch `replay`, 16 were Z3-free with explicit catch-ups and climbs; `docs/REPLAY.md` §1) |
 | standalone statement on the nonblocking region (the conserved-momentum band of the model in the right region; it enters no verdict query; since 2026-10-15 the band is also in the right evolve domain, so the envelope carries it) | **6** | `sat_detumble_{nominal,weak,phases}`, `sat3w_detumble_{nominal,weak,phases}` (`docs/SUITE-REDESIGN.md` §19.2) |
-| Theorem 2 (non-connection certificate of a pruned edge) | **1** | `match_multi_rate_nonconn`, the edge `DRIVE → STALL` |
+| Theorem 2 (Lean docstring numbering; the non-connection certificate of a pruned edge, the paper's Definition 4) | **1** | `match_multi_rate_nonconn`, the edge `DRIVE → STALL` |
 | the generic bridge: Theorem 3 of the benchmark from its emitted records (IR, cut certificate, cover, progress and choice records), the structural facts decided in the kernel, every verdict from one Z3 run (`InstancesV2/Bridge/`, `relcert-bridge-verdicts`, 4457 groups over the 50 suite benchmarks and the 2 exhibits; `docs/BRIDGE.md`) | **52** | all 50 suite benchmarks (38 window form, 12 mode-keyed) and the choice exhibits `vehicle_accel_copy`, `watertank_choice` |
 
 The axiom audit has 72 lines: the 46 Theorem 3s, `match_multi_rate_nonconn`, and 25 generic

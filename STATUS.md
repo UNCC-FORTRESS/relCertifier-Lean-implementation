@@ -6,7 +6,7 @@ battery (`RelCertifier/InstancesV2/BatteryV2.lean`). The legacy suite `suite_uni
 batteries were retired on 2026-10-10; the 19 theorems the battery carries over from it are
 kept with exactly what they need (`README.md`, "The 19 carried-over theorems").
 
-**Proved, all 50, one statement.** Theorem 3 with the paper's LEFT program (the guard-gated
+**Proved, all 50, one statement.** Theorem 3 (Lean docstring numbering; the paper's Theorem 1 as of 2026-10-16) with the paper's LEFT program (the guard-gated
 left automaton `leftAutomatonBody A u_L`: each left window entered inside its lowered guard,
 the declared successors and `u_L` read from the file) against the GUARDED right automaton
 (every edge tests the lowered guard of the mode it enters), with the loop invariant carrying
@@ -58,9 +58,9 @@ sufficient check (`relcert --wellformed`) reports 174 right modes: 94 ok (invari
 certifies in the strict mode and fails on any `UNKNOWN` against the declared 174 modes.
 
 **The generic bridge (branch `theorem3-general`, 2026-10-14/15; `docs/BRIDGE.md`).** The
-general Theorem 3 (`theorem3_of_coverX`, `docs/THEOREM3-GENERAL.md`) is Definition 4 with the
+general Theorem 3 (`theorem3_of_coverX`, `docs/THEOREM3-GENERAL.md`) is Definition 4 (Lean docstring numbering; the paper's Definition 6 as of 2026-10-16) with the
 existential mode choice (chosen successor sets, entry hops; `docs/CHOICE-SOUNDNESS.md`) and the
-reposition-progress premise discharged by the tool's progress certificates (emitted by default;
+reposition-progress premise discharged by the tool's progress certificates (the paper's reposition certificates; emitted by default;
 `RELCERT_NO_PROGRESS=1` disables them). One generic layer (`Proofs/Encoding/Emitted/`) turns a
 benchmark's emitted records (IR, cut certificate, cover, progress and choice records) into
 Theorem 3 of that benchmark: the structural facts decided in the kernel (`decide +kernel`),

@@ -24,10 +24,10 @@ envelope ∧ the right mode's region (its guard and its kept atoms: the paper's 
    (`AdmissibleStart`: some joint state satisfies the left guard, the row, the envelope and the
    right region), `CoveredX G (ch l) (q, B_l, preJ)`; and `dt ≤ B_l · δ_l`.
 3. **The certificates** (`CoverHyps`, per left mode): the flow certificate of every certified
-   pairing at its stretch (`hbox`, Theorem 1 in the Lean docstring numbering, the paper's Definition 3); the reposition-progress
+   pairing at its stretch (`hbox`, Theorem 1 in the Lean docstring numbering, the paper's Definition 4); the reposition-progress
    premise of every reposition node (`hrepoProg : RepoProgress …`, into which the reposition flow box `hboxD` and the right-only
    non-connection fact `hpruneD` are folded when `repoProgress_*` discharges it; they are not `CoverHyps` fields);
-   the non-connection certificates of the pruned edges (`hprune`, Theorem 2 in the Lean docstring numbering, the paper's Definition 4); the
+   the non-connection certificates of the pruned edges (`hprune`, Theorem 2 in the Lean docstring numbering, the paper's Definition 5); the
    coverage certificates of the chosen sets (`hcovJ`, `hcovR`, `hcovS`, with the regions
    implied by the anchor); the entry condition (`hhand`); and the reposition-progress premise
    (`hrepoProg`, §3).
@@ -37,7 +37,7 @@ pairing (`hspan`), unit weights, budget `B = ⌈ε_L / δ⌉`.
 
 ## 2. The proof
 
-`CoveredX` (`Checker/CoverX.lean`) is Definition 4 (Lean docstring numbering; the paper's Definition 6 as of 2026-10-16) with cases 3 and 4 of
+`CoveredX` (`Checker/CoverX.lean`) is Definition 4 (Lean docstring numbering; the paper's Definition 7 as of 2026-10-16) with cases 3 and 4 of
 `docs/CHOICE-SOUNDNESS.md`; `decideCoveredX` is the checker and `decideCoveredX_sound` its
 soundness. The cover flags (which pairings are certified) and the chosen sets are per window
 (`ChoiceData`), so one right automaton serves every window.
@@ -55,14 +55,14 @@ windows into the loop through `Hmulti_regionG`, `hstep_assembled_GR` and
 ## 3. Reposition progress: the certificate the paper's proof sketch was missing
 
 The proof sketch of Theorem 3 (the paper's Theorem 1 as of 2026-10-16; the paper now states
-the right-only obligation as Lemma 5 and the certificate as Definition 5 / Lemma 4) said
+the right-only obligation as Lemma 6 and the certificate as Definition 6 / Lemma 5) said
 Assumption 1 "continues every segment along a retained edge". For a joint segment that is right. For a **right-only** segment it is not: Assumption 1
 may enable only the self-loop, the rule requires a non-self exit, and the tool never checked
 that an exit is reached. The 12 benchmarks whose covers use right-only steps rest on exactly
 that (with the all-successors right-only rule disabled, `RELCERT_NO_REPO=1`, they decline:
 34/46). Their standalone Lean proofs had discharged it from explicit solutions (`HExit`).
 
-The fix is a **progress certificate** (the paper's reposition certificate, Definition 5 / Lemma 4 as of 2026-10-16; `Trusted/ProgressEmit.lean`; the tool's default, `RELCERT_NO_PROGRESS=1` disables it),
+The fix is a **progress certificate** (the paper's reposition certificate, Definition 6 / Lemma 5 as of 2026-10-16; `Trusted/ProgressEmit.lean`; the tool's default, `RELCERT_NO_PROGRESS=1` disables it),
 checked by the tool per reposition node like every other certificate: a stage
 `(x, θ, r)` says "while `x < θ` (on the node's region, the facts the reposition flow keeps)
 the field of `x` is at least `r > 0`"; an optional helper stage `(y, y₀, r₁)` first (its

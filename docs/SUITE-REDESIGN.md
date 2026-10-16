@@ -3770,7 +3770,7 @@ fallback is attempted only when the chosen stretches are not all equal (otherwis
 pass at that stretch already failed with the same nodes). `RELCERT_NO_PAIR_STRETCH=1` disables
 it (ablation). Soundness: each pairing's flow obligation is the pack at its own stretch
 (`couple_cutX` takes λ per coupling; the kernel's cover theorem is per mode); the shorter span
-only cuts segments short, which Theorem 1 (throughout; Lean docstring numbering, the paper's Definition 3 / Lemma 2) and Assumption 1 (every duration up to
+only cuts segments short, which Theorem 1 (throughout; Lean docstring numbering, the paper's Definition 4 / Lemma 3) and Assumption 1 (every duration up to
 `ε_R` ends in a successor's guard) admit; partial right cycles are what the unclocked right
 automaton already models. The reposition certificates are stretch-free.
 

@@ -55,14 +55,14 @@ windows into the loop through `Hmulti_regionG`, `hstep_assembled_GR` and
 ## 3. Reposition progress: the certificate the paper's proof sketch was missing
 
 The proof sketch of Theorem 3 (the paper's Theorem 3 as of 2026-10-16; the paper now states
-the right-only obligation as Lemma 5 and the certificate as Definition 7 / Lemma 4) said
+the right-only obligation as Lemma 4 and the certificate as Definition 7 / Lemma 5) said
 Assumption 1 "continues every segment along a retained edge". For a joint segment that is right. For a **right-only** segment it is not: Assumption 1
 may enable only the self-loop, the rule requires a non-self exit, and the tool never checked
 that an exit is reached. The 12 benchmarks whose covers use right-only steps rest on exactly
 that (with the all-successors right-only rule disabled, `RELCERT_NO_REPO=1`, they decline:
 34/46). Their standalone Lean proofs had discharged it from explicit solutions (`HExit`).
 
-The fix is a **progress certificate** (the paper's reposition certificate, Definition 7 / Lemma 4 as of 2026-10-16; `Trusted/ProgressEmit.lean`; the tool's default, `RELCERT_NO_PROGRESS=1` disables it),
+The fix is a **progress certificate** (the paper's reposition certificate, Definition 7 / Lemma 5 as of 2026-10-17; `Trusted/ProgressEmit.lean`; the tool's default, `RELCERT_NO_PROGRESS=1` disables it),
 checked by the tool per reposition node like every other certificate: a stage
 `(x, θ, r)` says "while `x < θ` (on the node's region, the facts the reposition flow keeps)
 the field of `x` is at least `r > 0`"; an optional helper stage `(y, y₀, r₁)` first (its

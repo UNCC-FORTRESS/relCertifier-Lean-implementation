@@ -197,7 +197,7 @@ exit, and nothing in Definition 5 says one is reached. The general theorem there
 
 ## 6. Section 5: the cover and Theorem 3
 
-### 6.1 Definition 8 (all-successors cover)
+### 6.1 Definition 8 (cover)
 
 | paper | Lean | where |
 |---|---|---|
@@ -223,7 +223,7 @@ the four literature benchmarks (`drl_car_stop`, `drl_lane_control`, `vehicle_hyp
 ### 6.2 Theorem 3 (soundness of synthesis)
 
 > `φInv ∧ op_R → [|(L,R)⟩⟩ (φInv ∧ op_R)` if (1) `R` satisfies Assumption 1; (2) for every
-> `m_L` every admissible `q₀` admits an all-successors cover from `(q₀, ε_L, pre-joint)` at
+> `m_L` every admissible `q₀` admits a cover from `(q₀, ε_L, pre-joint)` at
 > `φ_inv(m_L)`; (3) every declared left mode change satisfies the handoff condition
 > (Eq. handoff).
 

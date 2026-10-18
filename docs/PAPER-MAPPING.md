@@ -127,8 +127,9 @@ strategy (Definition 4, a finite tree), and derives each obligation from a certi
 Segments, Section 4.3) gives `seg_r-only(m_r, ret(m_r))` from `flowC(m_l, m_r, right-only, ·)`
 and `repoC(m_r)`, the retained successors as exits. Theorem 1 (Soundness of Witness
 Strategies, Section 3) says that witness strategies for every admissible initial mode give the
-per-mode obligation (8) within `op_R`; its proof splits the left execution by autonomy of the
-dynamics and walks the tree. In Lean none of the three statements is a standalone theorem with
+per-mode obligation (8) within `op_R`; its proof is an induction on node height with a per-node
+budget (`ε_l` minus the joint durations above), splitting the left flow by autonomy at joint
+nodes, which mirrors the induction on the `CoveredX` derivation in `coverX_piece`. In Lean none of the three statements is a standalone theorem with
 the paper's ∀∃ statement: `theorem3_of_coverX` goes from the certificate facts to the matching
 directly, Theorem 1 is its cover induction and Lemmas 3 and 4 are steps of it, as the paper's
 Mechanization paragraph says.

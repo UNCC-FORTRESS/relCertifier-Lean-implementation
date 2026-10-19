@@ -101,6 +101,7 @@ import RelCertifier.Proofs.Encoding.ContractRun
 import RelCertifier.Proofs.Encoding.SinkExtension
 import RelCertifier.Proofs.Encoding.SplitCoupling
 import RelCertifier.Proofs.Encoding.StrictInv
+import RelCertifier.Proofs.Encoding.StrictModal
 import RelCertifier.Proofs.Encoding.ToolLevel
 import RelCertifier.Proofs.Encoding.UniformFvDischarge
 import RelCertifier.Proofs.Encoding.UniformMultiflow
@@ -119,6 +120,8 @@ import RelCertifier.Proofs.Flow.MultisegLanding
 import RelCertifier.Proofs.Flow.MultisegLandingBridge
 import RelCertifier.Proofs.Flow.PicardBridge
 import RelCertifier.Proofs.Flow.StratifiedBarrier
+import RelCertifier.Proofs.Flow.StratifiedBarrierStrict
+import RelCertifier.Proofs.Flow.StrictAtoms
 import RelCertifier.Proofs.Flow.StratifiedFaces
 import RelCertifier.Proofs.Flow.ViabilityWiring
 import RelCertifier.Proofs.Flow.WFBoundary
@@ -129,6 +132,7 @@ import RelCertifier.Proofs.Soundness.CutCoverDischarge
 import RelCertifier.Proofs.Soundness.CutLift
 import RelCertifier.Proofs.Soundness.CutLiftX
 import RelCertifier.Proofs.Soundness.GuardThreaded
+import RelCertifier.Proofs.Soundness.StrictCover
 import RelCertifier.Proofs.Soundness.UniformEvol
 import RelCertifier.Proofs.Transfer.FaithfulBridge
 import RelCertifier.Proofs.Transfer.FaithfulBridgeGuards

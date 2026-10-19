@@ -1,0 +1,506 @@
+{
+ "frac": "0.25",
+ "total": {
+  "mutants": 99,
+  "declined": 36,
+  "certified": 57,
+  "other": 6,
+  "skipped": 65,
+  "sanity_fail": []
+ },
+ "per_benchmark": {
+  "acc_spoof_lag": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= (+ L_a (* 2.5 L_v)) (- (* 2.5 R_v) 5.5))": "DECLINED"
+   },
+   "skipped": []
+  },
+  "acc_spoof_limp": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= R_v (+ L_v 9.0))": "CERTIFIED",
+    "(<= R_v (+ L_v 12.0))": "CERTIFIED"
+   },
+   "skipped": [
+    "(<= L_v R_v)"
+   ]
+  },
+  "acc_tune_lag": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= (+ L_a (* 4.0 L_v)) (+ (* 4.0 R_v) 16.0))": "CERTIFIED"
+   },
+   "skipped": []
+  },
+  "acc_tune_limp": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= L_v (+ R_v 2.0))": "CERTIFIED",
+    "(<= R_v (+ L_v 2.0))": "CERTIFIED",
+    "(<= R_v (+ L_v 6.5))": "DECLINED"
+   },
+   "skipped": []
+  },
+  "arm_plateau_crit": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= L_theta (+ R_theta 0.255))": "DECLINED"
+   },
+   "skipped": []
+  },
+  "arm_plateau_profiles": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= L_theta (+ R_theta 0.255))": "DECLINED"
+   },
+   "skipped": []
+  },
+  "arm_plateau_slow": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= L_theta (+ R_theta 0.0775))": "DECLINED"
+   },
+   "skipped": []
+  },
+  "charger_fast_setpoints": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= L_x (+ R_x 5.0))": "CERTIFIED"
+   },
+   "skipped": []
+  },
+  "charger_fast_tapers": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= L_x (+ R_x 5.0))": "CERTIFIED"
+   },
+   "skipped": []
+  },
+  "drl_car_stop": {
+   "results": {
+    "__sanity__": "CERTIFIED"
+   },
+   "skipped": [
+    "(<= L_x R_x)",
+    "(<= R_x L_x)",
+    "(<= L_v R_v)",
+    "(<= R_v L_v)"
+   ]
+  },
+  "drl_lane_control": {
+   "results": {
+    "__sanity__": "CERTIFIED"
+   },
+   "skipped": [
+    "(<= L_d R_d)",
+    "(<= R_d L_d)",
+    "(<= L_vf R_vf)",
+    "(<= R_vf L_vf)",
+    "(<= L_vl R_vl)",
+    "(<= R_vl L_vl)"
+   ]
+  },
+  "freedm_meter": {
+   "results": {
+    "__sanity__": "CERTIFIED"
+   },
+   "skipped": [
+    "(<= L_E R_E)",
+    "(<= R_E L_E)"
+   ]
+  },
+  "match_multi_rate": {
+   "results": {
+    "__sanity__": "CERTIFIED"
+   },
+   "skipped": [
+    "(<= L_v R_v)"
+   ]
+  },
+  "platoon3_linkloss": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= (+ (- L_r1 R_r1) (* 0.25 (- (- L_g1 R_g1) (- 0.0 1.0)))) 0.0)": "DECLINED",
+    "(>= (+ (- L_r1 R_r1) (* 0.25 (- (- L_g1 R_g1) (- 0.0 1.0)))) 0.0)": "DECLINED",
+    "(<= (+ (- L_r1 R_r1) (* 0.5 (- (- L_g1 R_g1) (- 0.0 1.0)))) 0.0)": "DECLINED",
+    "(>= (+ (- L_r1 R_r1) (* 0.5 (- (- L_g1 R_g1) (- 0.0 1.0)))) 0.0)": "DECLINED",
+    "(<= (+ (- L_r2 R_r2) (* 0.25 (- (- L_g2 R_g2) (- 0.0 1.0)))) 0.0)": "DECLINED",
+    "(>= (+ (- L_r2 R_r2) (* 0.25 (- (- L_g2 R_g2) (- 0.0 1.0)))) 0.0)": "DECLINED",
+    "(<= (+ (- L_r2 R_r2) (* 0.5 (- (- L_g2 R_g2) (- 0.0 1.0)))) 0.0)": "DECLINED",
+    "(>= (+ (- L_r2 R_r2) (* 0.5 (- (- L_g2 R_g2) (- 0.0 1.0)))) 0.0)": "DECLINED",
+    "(<= (+ (- L_r3 R_r3) (* 0.25 (- (- L_g3 R_g3) (- 0.0 1.0)))) 0.0)": "DECLINED",
+    "(>= (+ (- L_r3 R_r3) (* 0.25 (- (- L_g3 R_g3) (- 0.0 1.0)))) 0.0)": "DECLINED",
+    "(<= (+ (- L_r3 R_r3) (* 0.5 (- (- L_g3 R_g3) (- 0.0 1.0)))) 0.0)": "DECLINED",
+    "(>= (+ (- L_r3 R_r3) (* 0.5 (- (- L_g3 R_g3) (- 0.0 1.0)))) 0.0)": "DECLINED",
+    "(<= (+ (- L_r1 R_r1) (* 0.25 (- (- L_g1 R_g1) 5.0))) 0.0)": "DECLINED",
+    "(>= (+ (- L_r1 R_r1) (* 0.25 (- (- L_g1 R_g1) 5.0))) (- 0.0 1.5))": "CERTIFIED",
+    "(<= (+ (- L_r1 R_r1) (* 0.5 (- (- L_g1 R_g1) 5.0))) 0.0)": "DECLINED",
+    "(>= (+ (- L_r1 R_r1) (* 0.5 (- (- L_g1 R_g1) 5.0))) (- 0.0 3.0))": "CERTIFIED",
+    "(<= (- (- L_g1 R_g1) (- 0.0 1.0)) 6.0)": "DECLINED",
+    "(>= (- (- L_g1 R_g1) (- 0.0 1.0)) 0.0)": "DECLINED"
+   },
+   "skipped": []
+  },
+  "platoon3_profiles": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= (+ (- L_r1 R_r1) (* 0.25 (- (- L_g1 R_g1) (- 0.0 1.0)))) 0.5)": "CERTIFIED",
+    "(>= (+ (- L_r1 R_r1) (* 0.25 (- (- L_g1 R_g1) (- 0.0 1.0)))) (- 0.0 0.5))": "ERROR",
+    "(<= (+ (- L_r1 R_r1) (* 0.5 (- (- L_g1 R_g1) (- 0.0 1.0)))) 1.0)": "ERROR",
+    "(>= (+ (- L_r1 R_r1) (* 0.5 (- (- L_g1 R_g1) (- 0.0 1.0)))) (- 0.0 1.0))": "ERROR",
+    "(<= (+ (- L_r2 R_r2) (* 0.25 (- (- L_g2 R_g2) (- 0.0 1.0)))) 0.5)": "CERTIFIED",
+    "(>= (+ (- L_r2 R_r2) (* 0.25 (- (- L_g2 R_g2) (- 0.0 1.0)))) (- 0.0 0.5))": "ERROR",
+    "(<= (+ (- L_r2 R_r2) (* 0.5 (- (- L_g2 R_g2) (- 0.0 1.0)))) 1.0)": "CERTIFIED",
+    "(>= (+ (- L_r2 R_r2) (* 0.5 (- (- L_g2 R_g2) (- 0.0 1.0)))) (- 0.0 1.0))": "ERROR",
+    "(<= (+ (- L_r3 R_r3) (* 0.25 (- (- L_g3 R_g3) (- 0.0 1.0)))) 0.5)": "CERTIFIED",
+    "(>= (+ (- L_r3 R_r3) (* 0.25 (- (- L_g3 R_g3) (- 0.0 1.0)))) (- 0.0 0.5))": "CERTIFIED",
+    "(<= (+ (- L_r3 R_r3) (* 0.5 (- (- L_g3 R_g3) (- 0.0 1.0)))) 1.0)": "CERTIFIED",
+    "(>= (+ (- L_r3 R_r3) (* 0.5 (- (- L_g3 R_g3) (- 0.0 1.0)))) (- 0.0 1.0))": "CERTIFIED",
+    "(<= (- (- L_g1 R_g1) (- 0.0 1.0)) 2.0)": "DECLINED",
+    "(>= (- (- L_g1 R_g1) (- 0.0 1.0)) (- 0.0 2.0))": "DECLINED",
+    "(<= (- (- L_g2 R_g2) (- 0.0 1.0)) 2.0)": "DECLINED",
+    "(>= (- (- L_g2 R_g2) (- 0.0 1.0)) (- 0.0 2.0))": "DECLINED",
+    "(<= (- (- L_g3 R_g3) (- 0.0 1.0)) 2.0)": "DECLINED",
+    "(>= (- (- L_g3 R_g3) (- 0.0 1.0)) (- 0.0 2.0))": "DECLINED"
+   },
+   "skipped": []
+  },
+  "platoon_delay_linkloss": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= L_g (+ R_g 1.0))": "DECLINED",
+    "(<= R_g (+ L_g 3.0))": "CERTIFIED",
+    "(<= (* 0.55 L_g) (- R_g 8.45))": "DECLINED"
+   },
+   "skipped": []
+  },
+  "platoon_delay_profiles": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= L_g (+ R_g 4.0))": "DECLINED",
+    "(<= R_g (+ L_g 3.0))": "CERTIFIED"
+   },
+   "skipped": []
+  },
+  "quad_light_airframe_20": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= L_w (+ R_w 1.0))": "CERTIFIED",
+    "(<= R_w (+ L_w 0.5))": "CERTIFIED"
+   },
+   "skipped": []
+  },
+  "quad_light_lag": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= (+ L_a (* 5.0 L_w)) (+ (* 5.0 R_w) 12.45))": "DECLINED"
+   },
+   "skipped": []
+  },
+  "quad_light_profiles": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= L_w (+ R_w 0.95))": "DECLINED",
+    "(<= R_w (+ L_w 0.8))": "CERTIFIED"
+   },
+   "skipped": []
+  },
+  "refinement_ladder_rover_rung1_2to3": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= L_s (+ R_s 0.2))": "CERTIFIED"
+   },
+   "skipped": [
+    "(<= L_v R_v)"
+   ]
+  },
+  "refinement_ladder_rover_rung2_3to6": {
+   "results": {
+    "__sanity__": "CERTIFIED"
+   },
+   "skipped": [
+    "(<= L_v R_v)",
+    "(<= L_s R_s)",
+    "(<= L_psi R_psi)",
+    "(<= R_psi L_psi)"
+   ]
+  },
+  "refinement_ladder_rover_rung2_6dof": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)": "CERTIFIED"
+   },
+   "skipped": []
+  },
+  "refinement_ladder_rover_rung2b_6dof": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)": "CERTIFIED"
+   },
+   "skipped": []
+  },
+  "refinement_ladder_rover_rung2c_6dof": {
+   "results": {
+    "__sanity__": "CERTIFIED"
+   },
+   "skipped": [
+    "(<= L_v R_v)",
+    "(<= R_v L_v)",
+    "(<= L_s R_s)",
+    "(<= R_s L_s)",
+    "(<= L_psi R_psi)",
+    "(<= R_psi L_psi)",
+    "(<= L_theta_p R_theta_p)",
+    "(<= R_theta_p L_theta_p)"
+   ]
+  },
+  "refinement_ladder_rover_rung3_6to8": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= L_s (+ R_s 0.2))": "CERTIFIED"
+   },
+   "skipped": [
+    "(<= L_v R_v)",
+    "(<= (* R_psi R_psi) (+ (* L_psi L_psi) (* (* 3.0 (- L_omega_psi L_psi)) (- L_omega_psi L_psi))))",
+    "(<= (* R_theta_p R_theta_p) (+ (* L_theta_p L_theta_p) (* (* 3.0 (- L_omega_theta L_theta_p)) (- L_omega_theta L_theta_p))))"
+   ]
+  },
+  "refinement_ladder_rover_rung4_8to12": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= L_s (+ R_s 0.2))": "CERTIFIED"
+   },
+   "skipped": [
+    "(<= L_v R_v)"
+   ]
+  },
+  "rover3tier_rung12": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= L_v (+ R_v 0.5))": "CERTIFIED",
+    "(<= (+ (* 3 L_v) L_a) (+ (* 3 R_v) 1.2))": "CERTIFIED"
+   },
+   "skipped": []
+  },
+  "rover_dof_terrain_rung1": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= L_s (+ R_s 0.2))": "CERTIFIED"
+   },
+   "skipped": [
+    "(<= L_v R_v)"
+   ]
+  },
+  "rover_dof_terrain_rung2": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= L_s (+ R_s 0.2))": "CERTIFIED"
+   },
+   "skipped": [
+    "(<= L_v R_v)"
+   ]
+  },
+  "rover_dof_terrain_rung3": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= L_s (+ R_s 0.2))": "CERTIFIED"
+   },
+   "skipped": [
+    "(<= L_v R_v)"
+   ]
+  },
+  "rover_dof_terrain_rung3_8d": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= L_s (+ R_s 0.2))": "CERTIFIED"
+   },
+   "skipped": [
+    "(<= L_v R_v)"
+   ]
+  },
+  "rover_patrol_refine": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= (+ L_a (* 5.0 L_v)) (+ (* 5.0 R_v) 0.35))": "CERTIFIED",
+    "(<= L_s (+ R_s 0.5))": "CERTIFIED",
+    "(<= L_s (+ R_s 1.0))": "CERTIFIED",
+    "(<= L_s (+ R_s 2.0))": "CERTIFIED"
+   },
+   "skipped": []
+  },
+  "rover_patrol_zones": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= L_s (+ R_s 0.5))": "CERTIFIED",
+    "(<= L_s (+ R_s 1.0))": "CERTIFIED",
+    "(<= L_s (+ R_s 2.0))": "CERTIFIED"
+   },
+   "skipped": [
+    "(<= L_v R_v)"
+   ]
+  },
+  "sat3w_detumble_nominal": {
+   "results": {
+    "__sanity__": "CERTIFIED"
+   },
+   "skipped": [
+    "(<= (+ (+ (* (* L_w1 L_w1) 2.0) (* (* L_w2 L_w2) 4.0)) (* (* L_w3 L_w3) 5.0)) (+ (+ (* (* R_w1 R_w1) 2.0) (* (* R_w2 R_w2) 4.0)) (* (* R_w3 R_w3) 5.0)))",
+    "(<= (+ (+ (* (* R_w1 R_w1) 2.0) (* (* R_w2 R_w2) 4.0)) (* (* R_w3 R_w3) 5.0)) (+ (+ (* (* L_w1 L_w1) 2.0) (* (* L_w2 L_w2) 4.0)) (* (* L_w3 L_w3) 5.0)))"
+   ]
+  },
+  "sat3w_detumble_phases": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= (+ (+ (* (* L_w1 L_w1) 2.0) (* (* L_w2 L_w2) 4.0)) (* (* L_w3 L_w3) 5.0)) (+ (+ (+ (* (* R_w1 R_w1) 2.0) (* (* R_w2 R_w2) 4.0)) (* (* R_w3 R_w3) 5.0)) 0.08))": "DECLINED"
+   },
+   "skipped": [
+    "(<= (+ (+ (* (* L_w1 L_w1) 2.0) (* (* L_w2 L_w2) 4.0)) (* (* L_w3 L_w3) 5.0)) (+ (+ (* (* R_w1 R_w1) 2.0) (* (* R_w2 R_w2) 4.0)) (* (* R_w3 R_w3) 5.0)))",
+    "(<= (+ (+ (* (* R_w1 R_w1) 2.0) (* (* R_w2 R_w2) 4.0)) (* (* R_w3 R_w3) 5.0)) (+ (+ (* (* L_w1 L_w1) 2.0) (* (* L_w2 L_w2) 4.0)) (* (* L_w3 L_w3) 5.0)))"
+   ]
+  },
+  "sat3w_detumble_weak": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= (+ (+ (* (* L_w1 L_w1) 2.0) (* (* L_w2 L_w2) 4.0)) (* (* L_w3 L_w3) 5.0)) (+ (+ (+ (* (* R_w1 R_w1) 2.0) (* (* R_w2 R_w2) 4.0)) (* (* R_w3 R_w3) 5.0)) 0.2))": "CERTIFIED"
+   },
+   "skipped": [
+    "(<= (+ (+ (* (* R_w1 R_w1) 2.0) (* (* R_w2 R_w2) 4.0)) (* (* R_w3 R_w3) 5.0)) (+ (+ (* (* L_w1 L_w1) 2.0) (* (* L_w2 L_w2) 4.0)) (* (* L_w3 L_w3) 5.0)))"
+   ]
+  },
+  "sat_detumble_nominal": {
+   "results": {
+    "__sanity__": "CERTIFIED"
+   },
+   "skipped": [
+    "(<= (+ (+ (* (* L_w1 L_w1) 2.0) (* (* L_w2 L_w2) 4.0)) (* (* L_w3 L_w3) 5.0)) (+ (+ (* (* R_w1 R_w1) 2.0) (* (* R_w2 R_w2) 4.0)) (* (* R_w3 R_w3) 5.0)))",
+    "(<= (+ (+ (* (* R_w1 R_w1) 2.0) (* (* R_w2 R_w2) 4.0)) (* (* R_w3 R_w3) 5.0)) (+ (+ (* (* L_w1 L_w1) 2.0) (* (* L_w2 L_w2) 4.0)) (* (* L_w3 L_w3) 5.0)))"
+   ]
+  },
+  "sat_detumble_phases": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= (+ (+ (* (* L_w1 L_w1) 2.0) (* (* L_w2 L_w2) 4.0)) (* (* L_w3 L_w3) 5.0)) (+ (+ (+ (* (* R_w1 R_w1) 2.0) (* (* R_w2 R_w2) 4.0)) (* (* R_w3 R_w3) 5.0)) 0.085))": "DECLINED"
+   },
+   "skipped": [
+    "(<= (+ (+ (* (* L_w1 L_w1) 2.0) (* (* L_w2 L_w2) 4.0)) (* (* L_w3 L_w3) 5.0)) (+ (+ (* (* R_w1 R_w1) 2.0) (* (* R_w2 R_w2) 4.0)) (* (* R_w3 R_w3) 5.0)))",
+    "(<= (+ (+ (* (* R_w1 R_w1) 2.0) (* (* R_w2 R_w2) 4.0)) (* (* R_w3 R_w3) 5.0)) (+ (+ (* (* L_w1 L_w1) 2.0) (* (* L_w2 L_w2) 4.0)) (* (* L_w3 L_w3) 5.0)))"
+   ]
+  },
+  "sat_detumble_weak": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= (+ (+ (* (* L_w1 L_w1) 2.0) (* (* L_w2 L_w2) 4.0)) (* (* L_w3 L_w3) 5.0)) (+ (+ (+ (* (* R_w1 R_w1) 2.0) (* (* R_w2 R_w2) 4.0)) (* (* R_w3 R_w3) 5.0)) 0.205))": "CERTIFIED"
+   },
+   "skipped": [
+    "(<= (+ (+ (* (* R_w1 R_w1) 2.0) (* (* R_w2 R_w2) 4.0)) (* (* R_w3 R_w3) 5.0)) (+ (+ (* (* L_w1 L_w1) 2.0) (* (* L_w2 L_w2) 4.0)) (* (* L_w3 L_w3) 5.0)))"
+   ]
+  },
+  "story1_attdist_rung_a_6to8": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= (+ (+ (* (* 2.0 (- L_psi R_psi)) (- L_psi R_psi)) (* (* 2.0 (- L_psi R_psi)) (- L_omega_psi L_psi))) (* (- L_omega_psi L_psi) (- L_omega_psi L_psi))) 0.25)": "ERROR",
+    "(<= (+ (+ (* (* 2.0 (- L_theta_p R_theta_p)) (- L_theta_p R_theta_p)) (* (* 2.0 (- L_theta_p R_theta_p)) (- L_omega_theta L_theta_p))) (* (- L_omega_theta L_theta_p) (- L_omega_theta L_theta_p))) 0.25)": "CERTIFIED"
+   },
+   "skipped": [
+    "(<= L_v R_v)"
+   ]
+  },
+  "story1_attdist_rung_b_12dof": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= (+ (+ (* (* 2.0 (- L_psi R_psi)) (- L_psi R_psi)) (* (* 2.0 (- L_psi R_psi)) (+ (- L_omega_psi R_omega_psi) R_psi))) (* (+ (- L_omega_psi R_omega_psi) R_psi) (+ (- L_omega_psi R_omega_psi) R_psi))) 0.25)": "CERTIFIED",
+    "(<= (+ (+ (* (* 2.0 (- L_theta_p R_theta_p)) (- L_theta_p R_theta_p)) (* (* 2.0 (- L_theta_p R_theta_p)) (+ (- L_omega_theta R_omega_theta) R_theta_p))) (* (+ (- L_omega_theta R_omega_theta) R_theta_p) (+ (- L_omega_theta R_omega_theta) R_theta_p))) 0.25)": "CERTIFIED"
+   },
+   "skipped": [
+    "(<= L_v R_v)"
+   ]
+  },
+  "story2_lateral_rung_a_8dof": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= L_y (+ R_y 0.3))": "CERTIFIED"
+   },
+   "skipped": [
+    "(<= L_v R_v)",
+    "(<= L_s R_s)",
+    "(<= L_psi R_psi)",
+    "(<= R_psi L_psi)",
+    "(<= L_theta_p R_theta_p)",
+    "(<= R_theta_p L_theta_p)"
+   ]
+  },
+  "story2_lateral_rung_b_12dof": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= L_y (+ R_y 0.3))": "CERTIFIED",
+    "(<= L_y2 (+ R_y2 0.3))": "CERTIFIED"
+   },
+   "skipped": [
+    "(<= L_v R_v)",
+    "(<= L_s R_s)",
+    "(<= L_psi R_psi)",
+    "(<= R_psi L_psi)",
+    "(<= L_theta_p R_theta_p)",
+    "(<= R_theta_p L_theta_p)"
+   ]
+  },
+  "story3_rollover_base_12dof": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= L_s (+ R_s 0.2))": "CERTIFIED",
+    "(<= (* L_v L_r) 1.0)": "CERTIFIED",
+    "(<= 0.0 (+ 1.0 (* L_v L_r)))": "CERTIFIED",
+    "(<= (+ (+ (* (* 1.125 L_e) L_e) (* (* 0.25 L_e) L_r)) (* (* 0.156 L_r) L_r)) 0.33)": "CERTIFIED"
+   },
+   "skipped": [
+    "(<= L_v R_v)"
+   ]
+  },
+  "story3_rollover_ladder_rung_a": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= L_s (+ R_s 0.2))": "CERTIFIED",
+    "(<= (+ (+ (* (* 1.125 L_e) L_e) (* (* 0.25 L_e) (- L_r (* 2.0 L_e)))) (* (* 0.156 (- L_r (* 2.0 L_e))) (- L_r (* 2.0 L_e)))) 0.33)": "CERTIFIED"
+   },
+   "skipped": [
+    "(<= L_v R_v)"
+   ]
+  },
+  "story3_rollover_ladder_rung_b": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= (+ (+ (* (* 2.0 (- L_psi R_psi)) (- L_psi R_psi)) (* (* 2.0 (- L_psi R_psi)) L_omega_psi)) (* L_omega_psi L_omega_psi)) 0.25)": "CERTIFIED",
+    "(<= (+ (+ (* (* 2.0 (- L_theta_p R_theta_p)) (- L_theta_p R_theta_p)) (* (* 2.0 (- L_theta_p R_theta_p)) L_omega_theta)) (* L_omega_theta L_omega_theta)) 0.25)": "CERTIFIED"
+   },
+   "skipped": [
+    "(<= L_v R_v)"
+   ]
+  },
+  "vehicle_hypercert": {
+   "results": {
+    "__sanity__": "CERTIFIED"
+   },
+   "skipped": [
+    "(<= L_v R_v)",
+    "(<= R_v L_v)"
+   ]
+  },
+  "watertank": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= L_x (+ R_x 3.0))": "DECLINED",
+    "(<= R_x (+ L_x 3.0))": "CERTIFIED"
+   },
+   "skipped": []
+  },
+  "watertank_twospeed": {
+   "results": {
+    "__sanity__": "CERTIFIED",
+    "(<= L_x (+ R_x 3.0))": "DECLINED",
+    "(<= R_x (+ L_x 3.0))": "CERTIFIED"
+   },
+   "skipped": []
+  }
+ }
+}

@@ -24,3 +24,16 @@ time; sanity (unmutated `smt2:` rewrite) is CERTIFIED for all 50.
 
 Reading: a still-certified mutant means the hand-written bound has more than 10% slack;
 a declined one is false or beyond the certifier. This profiles tightness, not falsity.
+
+## Sweep over the tightening fraction
+
+| fraction of slack removed | declined | still certified | error/timeout | benchmarks with a decline |
+|---|---|---|---|---|
+| 0.1 | 32 | 66 | 1 | 12 |
+| 0.25 | 36 | 57 | 6 | 15 |
+| 0.5 | 42 | 56 | 1 | 20 |
+| 1.0 (constant removed) | 54 | 36 | 9 | 26 |
+
+The profile is bimodal: about a third of the atoms are tight (declined already at 0.1),
+about a third certify even with their constant removed (the constant is not needed, often
+one side of a two-sided band), and the rest decline only under large tightening.

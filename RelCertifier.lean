@@ -100,6 +100,7 @@ import RelCertifier.Proofs.Encoding.ReplayOne
 import RelCertifier.Proofs.Encoding.ContractRun
 import RelCertifier.Proofs.Encoding.SinkExtension
 import RelCertifier.Proofs.Encoding.SplitCoupling
+import RelCertifier.Proofs.Encoding.StrictInv
 import RelCertifier.Proofs.Encoding.ToolLevel
 import RelCertifier.Proofs.Encoding.UniformFvDischarge
 import RelCertifier.Proofs.Encoding.UniformMultiflow
@@ -111,6 +112,7 @@ import RelCertifier.Proofs.Flow.AffineFaces
 import RelCertifier.Proofs.Flow.AffineFaces2
 import RelCertifier.Proofs.Flow.BoxViability
 import RelCertifier.Proofs.Flow.BoxViabilityBounded
+import RelCertifier.Proofs.Flow.DIStrictOpen
 import RelCertifier.Proofs.Flow.DISuperlevel
 import RelCertifier.Proofs.Flow.FaceBridge
 import RelCertifier.Proofs.Flow.MultisegLanding
@@ -136,6 +138,7 @@ import RelCertifier.Proofs.Transfer.Rescale
 import RelCertifier.Trusted.EmitIR
 import RelCertifier.Trusted.Handoff
 import RelCertifier.Trusted.InvComponents
+import RelCertifier.Trusted.InvStrictFlags
 import RelCertifier.Trusted.JointVars
 import RelCertifier.Trusted.KeyAudit
 import RelCertifier.Trusted.NonConnQuery

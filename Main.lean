@@ -5,7 +5,8 @@ Released under Apache 2.0 license.
 # `relcert`: the certification tool and its verdict runner
 
 * `relcert <input.txt>…` runs the certifier (`Trusted/OracleAPI.certify`) on each benchmark
-  on one warm Z3 session and prints CERTIFIED / DECLINED / ERROR per file.
+  on one warm Z3 session, then the handoff check (`Verdicts/RunHandoff`) on every covered
+  benchmark, and prints CERTIFIED / DECLINED / ERROR per file; CERTIFIED requires both.
 * `relcert --run-verdicts-v2` re-sends every Z3 hypothesis of the suite_v2 battery
   (`InstancesV2/BatteryV2`) with declared per-phase counts (`runAllVerdictsV2`);
   `--check-quick-v2` certifies the 50 suite_v2 files first (in the strict well-formedness
@@ -53,19 +54,33 @@ def runBatchTally (paths : List String) (strict : Option Bool := none) :
       let mut errs := 0
       for path in paths do
         let t0 ← IO.monoMsNow
-        let oc ← try
-            match ← RelCertifier.Oracle.readProblemStrict path with
-            | .error e => pure (Outcome.error s!"parse: {e}")
-            | .ok p =>
-                match strict with
-                | some b => RelCertifier.WellFormed.certifyWFWith b s p
-                | none => RelCertifier.WellFormed.certifyWF s p
-          catch e => pure (Outcome.error s!"io: {e}")
-        let dt := (← IO.monoMsNow) - t0
         let name := (path.splitOn "/").reverse.getD 1 path
+        -- CERTIFIED is Theorem 3's verdict: the cover and its certificates AND the handoff
+        -- condition (Eq. 12) at every declared left mode change. A cover without a passing
+        -- handoff is DECLINED, with the failing transitions named.
+        let (oc, why) ← try
+            match ← RelCertifier.Oracle.readProblemStrict path with
+            | .error e => pure (Outcome.error s!"parse: {e}", "")
+            | .ok p =>
+                let o ← match strict with
+                  | some b => RelCertifier.WellFormed.certifyWFWith b s p
+                  | none => RelCertifier.WellFormed.certifyWF s p
+                match o with
+                | .certified =>
+                    let h ← RelCertifier.Verdicts.runHandoffBench s cfg name p (verbose := false)
+                    if h.failing.isEmpty && h.checked == h.declared then
+                      pure (Outcome.certified, "")
+                    else
+                      let fs := String.intercalate ", "
+                        (h.failing.map (fun f => s!"{f.1.1}->{f.1.2}"))
+                      pure (Outcome.declined,
+                        s!" [handoff: {h.passed}/{h.declared} transitions pass; failing: {fs}]")
+                | o => pure (o, "")
+          catch e => pure (Outcome.error s!"io: {e}", "")
+        let dt := (← IO.monoMsNow) - t0
         match oc with
         | .certified => cert := cert + 1; IO.println s!"{name}: CERTIFIED ({dt}ms)"
-        | .declined  => decl := decl + 1; IO.println s!"{name}: DECLINED ({dt}ms)"
+        | .declined  => decl := decl + 1; IO.println s!"{name}: DECLINED{why} ({dt}ms)"
         | .error m   => errs := errs + 1; IO.println s!"{name}: ERROR [{m}] ({dt}ms)"
       s.close
       IO.println s!"errors={errs}"

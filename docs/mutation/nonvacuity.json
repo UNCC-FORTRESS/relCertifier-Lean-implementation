@@ -1,0 +1,237 @@
+{
+ "acc_spoof_lag": {
+  "CRUISE": "sat"
+ },
+ "acc_spoof_limp": {
+  "CRUISE": "sat",
+  "LIMP": "sat"
+ },
+ "acc_tune_lag": {
+  "CRUISE": "sat"
+ },
+ "acc_tune_limp": {
+  "CRUISE": "sat",
+  "LIMP": "sat"
+ },
+ "arm_plateau_crit": {
+  "Accelerate": "sat",
+  "Brake": "sat"
+ },
+ "arm_plateau_profiles": {
+  "Accelerate": "sat",
+  "Brake": "sat"
+ },
+ "arm_plateau_slow": {
+  "Accelerate": "sat",
+  "Brake": "sat"
+ },
+ "charger_fast_setpoints": {
+  "BULK": "sat",
+  "ABSORB": "sat",
+  "FULL": "sat"
+ },
+ "charger_fast_tapers": {
+  "BULK": "sat",
+  "ABSORB": "sat",
+  "FULL": "sat"
+ },
+ "drl_car_stop": {
+  "Accel": "sat",
+  "Coast": "sat",
+  "Brake": "sat"
+ },
+ "drl_lane_control": {
+  "AccelLAccel": "sat",
+  "AccelLBrake": "sat",
+  "CoastLAccel": "sat",
+  "CoastLBrake": "sat",
+  "BrakeLAccel": "sat",
+  "BrakeLBrake": "sat"
+ },
+ "freedm_meter": {
+  "BatD0R0": "sat",
+  "BatD0R1": "sat",
+  "BatD1R0": "sat",
+  "BatD1R1": "sat",
+  "BatD2R0": "sat",
+  "BatD2R1": "sat",
+  "GridD0R0": "sat",
+  "GridD0R1": "sat",
+  "GridD1R0": "sat",
+  "GridD1R1": "sat",
+  "GridD2R0": "sat",
+  "GridD2R1": "sat"
+ },
+ "match_multi_rate": {
+  "FAST": "sat",
+  "MEDIUM": "sat",
+  "SLOW": "sat",
+  "RESET": "sat"
+ },
+ "platoon3_linkloss": {
+  "FOLLOW": "sat",
+  "LOST": "sat"
+ },
+ "platoon3_profiles": {
+  "FOLLOW": "sat"
+ },
+ "platoon_delay_linkloss": {
+  "FOLLOW": "sat",
+  "CATCH": "sat",
+  "LOST": "sat"
+ },
+ "platoon_delay_profiles": {
+  "FOLLOW": "sat",
+  "GENTLE": "sat"
+ },
+ "quad_light_airframe_20": {
+  "CLIMB": "sat"
+ },
+ "quad_light_lag": {
+  "CLIMB": "sat"
+ },
+ "quad_light_profiles": {
+  "CLIMB": "sat"
+ },
+ "refinement_ladder_rover_rung1_2to3": {
+  "STEEP": "sat",
+  "MODER": "sat",
+  "FLAT": "sat"
+ },
+ "refinement_ladder_rover_rung2_3to6": {
+  "STEEP": "sat",
+  "MODER": "sat",
+  "FLAT": "sat"
+ },
+ "refinement_ladder_rover_rung2_6dof": {
+  "STEEP": "sat",
+  "MODER": "sat",
+  "FLAT": "sat"
+ },
+ "refinement_ladder_rover_rung2b_6dof": {
+  "STEEP": "sat",
+  "MODER": "sat",
+  "FLAT": "sat"
+ },
+ "refinement_ladder_rover_rung2c_6dof": {
+  "STEEP": "sat",
+  "MODER": "sat",
+  "FLAT": "sat"
+ },
+ "refinement_ladder_rover_rung3_6to8": {
+  "STEEP": "sat",
+  "MODER": "sat",
+  "FLAT": "sat"
+ },
+ "refinement_ladder_rover_rung4_8to12": {
+  "STEEP": "sat",
+  "MODER": "sat",
+  "FLAT": "sat"
+ },
+ "rover3tier_rung12": {
+  "ACCEL": "sat",
+  "COAST": "sat"
+ },
+ "rover_dof_terrain_rung1": {
+  "STEEP": "sat",
+  "MODER": "sat",
+  "FLAT": "sat"
+ },
+ "rover_dof_terrain_rung2": {
+  "STEEP": "sat",
+  "MODER": "sat",
+  "FLAT": "sat"
+ },
+ "rover_dof_terrain_rung3": {
+  "STEEP": "sat",
+  "MODER": "sat",
+  "FLAT": "sat"
+ },
+ "rover_dof_terrain_rung3_8d": {
+  "STEEP": "sat",
+  "MODER": "sat",
+  "FLAT": "sat"
+ },
+ "rover_patrol_refine": {
+  "SLOW": "sat",
+  "MEDIUM_ECO": "sat",
+  "MEDIUM_BRISK": "sat",
+  "FAST": "sat"
+ },
+ "rover_patrol_zones": {
+  "SLOW": "sat",
+  "MEDIUM_ECO": "sat",
+  "MEDIUM_BRISK": "sat",
+  "FAST": "sat"
+ },
+ "sat3w_detumble_nominal": {
+  "DETUMBLE": "sat"
+ },
+ "sat3w_detumble_phases": {
+  "DETUMBLE": "sat",
+  "FINE": "sat"
+ },
+ "sat3w_detumble_weak": {
+  "DETUMBLE": "sat"
+ },
+ "sat_detumble_nominal": {
+  "DETUMBLE": "sat"
+ },
+ "sat_detumble_phases": {
+  "DETUMBLE": "sat",
+  "FINE": "sat"
+ },
+ "sat_detumble_weak": {
+  "DETUMBLE": "sat"
+ },
+ "story1_attdist_rung_a_6to8": {
+  "STEEP": "sat",
+  "MODER": "sat",
+  "FLAT": "sat"
+ },
+ "story1_attdist_rung_b_12dof": {
+  "STEEP": "sat",
+  "MODER": "sat",
+  "FLAT": "sat"
+ },
+ "story2_lateral_rung_a_8dof": {
+  "STEEP": "sat",
+  "MODER": "sat",
+  "FLAT": "sat"
+ },
+ "story2_lateral_rung_b_12dof": {
+  "STEEP": "sat",
+  "MODER": "sat",
+  "FLAT": "sat"
+ },
+ "story3_rollover_base_12dof": {
+  "STEEP": "sat",
+  "MODER": "sat",
+  "FLAT": "sat"
+ },
+ "story3_rollover_ladder_rung_a": {
+  "STEEP": "sat",
+  "MODER": "sat",
+  "FLAT": "sat"
+ },
+ "story3_rollover_ladder_rung_b": {
+  "STEEP": "sat",
+  "MODER": "sat",
+  "FLAT": "sat"
+ },
+ "vehicle_hypercert": {
+  "Am4": "sat",
+  "Am2": "sat",
+  "A0": "sat",
+  "Ap2": "sat",
+  "Ap4": "sat"
+ },
+ "watertank": {
+  "Low": "sat",
+  "Mid": "sat",
+  "High": "sat"
+ },
+ "watertank_twospeed": {
+  "Low": "sat"
+ }
+}

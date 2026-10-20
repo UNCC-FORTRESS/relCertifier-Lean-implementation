@@ -196,5 +196,19 @@ theorem theorem3_keyed_strict_of_run {p : PProblem} {cX : EvolStrengtheningX}
   theorem3_keyed_strict_of_records hs (verdictsS_of_groups hrun hok) hpo hcovers hregR hinv hwf
     a b c hba hca hcb dt hdt
 
+/-- **Theorem 3 at a strict one-row benchmark from a green strict run** (window form). -/
+theorem theorem3_window_strict_of_run {p : PProblem} {cX : EvolStrengtheningX}
+    {cov : CoverEmitE} {prog : ProgressEmitE} {ce : ChoiceEmitE}
+    (hs : structOK p n cov cX = true) {gs : List (List (IForm n))}
+    (hrun : bridgeGroupsS p n cX cov prog ce = some gs) (hok : GroupsOK gs)
+    (hpo : progOK p n cov prog = true) (hcovers : coversOK p n cov ce = true)
+    {reg : Formula (Var n)} (hregR : reg.fv ⊆ Set.range Rv)
+    (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
+    (hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg (epsR p))
+    (hsame : rowsSame p = true) (a b : Fin n) (hab : a ≠ b) (dt : ℝ) (hdt : dt ≤ epsL p) :
+    windowClaimS p n cX cov reg a b dt :=
+  theorem3_window_strict_of_records hs (verdictsS_of_groups hrun hok) hpo hcovers hregR hinv hwf
+    hsame a b hab dt hdt
+
 end Emitted
 end RelCertifier

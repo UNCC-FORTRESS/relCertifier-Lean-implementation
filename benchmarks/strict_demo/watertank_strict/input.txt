@@ -1,0 +1,85 @@
+# watertank_strict: the strict-atoms demo (NOT part of suite_v2).
+#
+# The suite's running example (benchmarks/suite_v2/watertank: same plant, same deployed and
+# reference controllers, same domains) with an invariant row that carries a STRICT atom:
+#   x_L <= x_R + 3   (closure, the tight direction)   and   x_R < x_L + 3.5   (strict).
+# The tool reads the strict atom through its strictness flag (Oracle.invStrictFlags): its
+# component g = x_R - x_L - 3.5 must be certified by route A (domain, g' > 0 UNSAT) or route B
+# (boundary g = 0, g' >= 0 UNSAT), never by route C (superlevel), which does not preserve
+# g < 0. On the boundary x_R = x_L + 3.5 the nominal Low field at stretch 2 against the
+# deployed one gives g' = 2 (x_L - x_R - 3) = -13 < 0, the strict boundary (route B) shape.
+# (The strict atom on the other side, x_L < x_R + 3.5, is DECLINED with and without the
+# extension: it admits deployed Low starts with x_R < 2, i.e. a reference latched in PumpOff.)
+# The rows are identical in every left mode; the handoffs are the strict handoff queries
+# (Handoff.queryOfS, both rows at their masks). The kernel theorem is the strict
+# Theorem 3 of the generated instance InstancesV2/Bridge/WatertankStrict.lean.
+# MEASURED (RELCERT_IMPLIED_CUT=1): CERTIFIED; `--handoff` 6/6; the strict groups
+# (`bridgeGroupsS`, scripts/strict_demo_verdicts.lean) 90/90 unsat. The rows are the same in
+# every left mode, so the instance takes the window form (theorem3_window_strict_of_records).
+[problem]
+name = watertank_strict
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 40.0
+
+[Lsys]
+state_vars = [x]
+epsilon = 1.0
+
+[Lsys.mode.Low]
+ode = x' = smt2:(* 2.0 (- 15.5 x));
+guard = x >= 5.0 and x < 13.0
+evolve = x >= 0.0 and x <= 25.0
+next = [Low, Mid]
+
+[Lsys.mode.Mid]
+ode = x' = smt2:(* 1.0 (- 20.0 x));
+guard = x >= 13.0 and x < 20.0
+evolve = x >= 0.0 and x <= 25.0
+next = [Mid, High]
+
+[Lsys.mode.High]
+ode = x' = smt2:(* 1.0 (- 20.0 x));
+guard = x >= 20.0
+evolve = x >= 0.0 and x <= 25.0
+next = [High, Mid]
+
+[Rsys]
+state_vars = [x]
+epsilon = 1.0
+
+[Rsys.mode.Low]
+ode = x' = smt2:(* 1.0 (- 12.5 x));
+guard = x >= 2.0 and x < 10.0
+evolve = x >= 0.0 and x <= 25.0
+next = [Low, MidEco, MidBoost, PumpOff]
+
+[Rsys.mode.MidEco]
+ode = x' = smt2:(* 0.5 (- 17.0 x));
+guard = x >= 10.0 and x < 17.0
+evolve = x >= 0.0 and x <= 25.0
+next = [MidEco, MidBoost, High]
+
+[Rsys.mode.MidBoost]
+ode = x' = smt2:(* 1.0 (- 17.0 x));
+guard = x >= 10.0 and x < 17.0
+evolve = x >= 0.0 and x <= 25.0
+next = [MidBoost, MidEco, High]
+
+[Rsys.mode.High]
+ode = x' = smt2:(* 1.0 (- 17.0 x));
+guard = x >= 17.0
+evolve = x >= 0.0 and x <= 25.0
+next = [High, MidEco, MidBoost]
+
+[Rsys.mode.PumpOff]
+ode = x' = smt2:0.0;
+guard = x < 2.0
+evolve = x >= 0.0 and x <= 25.0
+next = [PumpOff]
+
+[relational_invariant]
+Low  = x[l] <= x[r] + 3 and x[r] < x[l] + 3.5
+Mid  = x[l] <= x[r] + 3 and x[r] < x[l] + 3.5
+High = x[l] <= x[r] + 3 and x[r] < x[l] + 3.5

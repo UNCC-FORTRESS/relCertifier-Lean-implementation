@@ -42,3 +42,7 @@ root = "ProgressVerdictsMain"
 [[lean_exe]]
 name = "relcert-bridge-verdicts"
 root = "BridgeVerdictsMain"
+
+[[lean_exe]]
+name = "relcert-refute-verdicts"
+root = "RefuteVerdictsMain"

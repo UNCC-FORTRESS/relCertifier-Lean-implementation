@@ -104,6 +104,7 @@ import RelCertifier.Proofs.Encoding.StrictInv
 import RelCertifier.Proofs.Encoding.StrictModal
 import RelCertifier.Proofs.Encoding.StrictCouple
 import RelCertifier.Proofs.Encoding.Emitted.StrictAnchor
+import RelCertifier.Proofs.Encoding.Emitted.StrictKeyed
 import RelCertifier.Proofs.Encoding.Theorem3GeneralS
 import RelCertifier.Proofs.Encoding.ModeHandoffStrict
 import RelCertifier.Proofs.Encoding.ToolLevel

@@ -26,6 +26,11 @@ lowered on the right; field `f_q`; evolve domain `D_q`):
    kept in EARLIER rounds (sequential differential cuts, never mutual). Every route keeps
    `gₐ ≤ 0` and `gₐ < 0` along every run inside `D_q ∧ I`. If every atom is kept and
    `q` declares its self-loop: **`ok (invariant)`**: every run from `G_q` stays in `G_q`.
+1b. **Successor-guard facts.** An atom of a declared successor's guard joins the facts when
+   `UNSAT(D_q ∧ G_q ∧ ¬c)` (it holds initially) and a step-1 route keeps it over the facts
+   so far. It only narrows step 2, so it never turns an `ok` into `UNKNOWN` (added
+   2026-10-20: `watertank`'s `Low`, whose crude rate bound overshot after the 10/3 pump-rate
+   rescale, is `ok (exit)` with `x < 17` from MidEco's guard).
 2. **Exit within one interval.** Otherwise, for each atom `a` not kept, a rate bound
    `Lₐ ≥ 0` with `UNSAT(D_q ∧ I ∧ ġₐ > Lₐ)` (bisection on the grid `k/100`, `k ≤ 10⁶`). A run
    of duration `t ≤ ε_r` from `G_q` stays in `D_q ∧ I` and ends with `gₐ ≤ gₐ(0) + Lₐ t ≤
@@ -142,11 +147,47 @@ def checkMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
         if !progress then break
       let selfLoop := m.next.contains m.name
       if kept.length == atoms.length && selfLoop then return .invariant
-      -- 2. exit within one interval
-      let inv := kept.foldl (fun d i =>
+      -- 1b. successor-guard facts: an atom of a declared successor's guard joins the
+      -- invariant facts when the mode's guard and domain imply it initially
+      -- (`UNSAT(D_q ∧ G_q ∧ ¬c)`) and a route keeps it along `q`'s flow, in rounds over
+      -- the facts kept so far (the same sequential cuts as step 1). Sound: every fact holds
+      -- along every run from `G_q` inside `D_q`, so it may narrow the rate bounds and the
+      -- reach box below. Only ever adds facts, so it can turn UNKNOWN into ok, never the
+      -- reverse.
+      let guardF := atoms.foldl (fun d a => IForm.and d a.toF) dom
+      let mut inv := kept.foldl (fun d i =>
         match atoms[i]? with
         | some a => IForm.and d a.toF
         | none => d) dom
+      let mut cands : List (GAtom n) := []
+      for nm in m.next do
+        match p.R.modes.find? (·.name == nm) with
+        | none => pure ()
+        | some ms =>
+            match guardAtoms vars n ms.guard with
+            | none => pure ()
+            | some cs => cands := cands ++ cs
+      let mut extra : List Nat := []
+      for _ in List.range (cands.length + 1) do
+        let mut progress := false
+        for i in List.range cands.length do
+          if extra.contains i then pure () else
+          match cands[i]? with
+          | none => pure ()
+          | some c =>
+              if ← probeUnsat s cnt maxQ maxSmt deadline coord
+                  (IForm.and guardF (IForm.neg c.toF)) then
+                let gd := gdotOf c
+                let rB := IForm.and inv (IForm.and (IForm.cmp .eq c.g (.rat 0))
+                  (IForm.cmp .ge gd (.rat 0)))
+                if contractShapeOK m c.form || contractShapeOKX m c.form ||
+                    (atomVars c.form).all (frozenIn m) ||
+                    (← probeUnsat s cnt maxQ maxSmt deadline coord rB) ||
+                    (← probeUnsat s cnt maxQ maxSmt deadline coord
+                      (IForm.and inv (IForm.cmp .gt gd (.rat 0)))) then
+                  extra := extra ++ [i]; inv := IForm.and inv c.toF; progress := true
+        if !progress then break
+      -- 2. exit within one interval
       let mut reach := inv
       for i in List.range atoms.length do
         if kept.contains i then pure () else

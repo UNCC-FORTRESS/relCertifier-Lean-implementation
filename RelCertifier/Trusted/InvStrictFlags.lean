@@ -63,4 +63,28 @@ theorem invStrictFlags_length (vars : List String) (n : ℕ) :
   | or x y _ _ => intro cs h; simp [invComponents] at h
   | not x _ => intro cs h; simp [invComponents] at h
 
+
+/-- The mask and the components have the same length whenever either lowers (and fail
+together). -/
+theorem invStrictFlags_map_length (vars : List String) (n : ℕ) :
+    ∀ (f : PForm), (invStrictFlags vars n f).map List.length =
+      (invComponents vars n f).map List.length := by
+  intro f
+  induction f with
+  | tt => rfl
+  | cmp op a b =>
+      unfold invComponents invStrictFlags
+      split_ifs <;>
+        rcases ha : lowerE vars n Side.L a with _ | ea <;>
+        rcases hb : lowerE vars n Side.L b with _ | eb <;> simp [ha, hb]
+  | and x y ihx ihy =>
+      simp only [invComponents, invStrictFlags]
+      rcases hfx : invStrictFlags vars n x with _ | fx <;>
+        rcases hcx : invComponents vars n x with _ | cx <;>
+        rcases hfy : invStrictFlags vars n y with _ | fy <;>
+        rcases hcy : invComponents vars n y with _ | cy <;>
+        simp_all
+  | or x y _ _ => rfl
+  | not x _ => rfl
+
 end RelCertifier.Oracle

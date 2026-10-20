@@ -195,6 +195,120 @@ def z3(decls, asserts, timeout=30, model=False):
     return "sat", vals
 
 
+GRIDS = (1000, 10, 100, 8, 64, 1024, 12, 360)
+
+
+def z3_grid(decls, asserts, timeout, den):
+    """A model on the grid `Z / den` (rational by construction; quadratic equalities often have
+    only algebraic solutions off a grid)."""
+    grid = [f"(= (* {den} {v}) (to_real N_{v}))" for v in decls]
+    q = "(set-option :pp.decimal false)\n" + "".join(
+        f"(declare-const {v} Real)\n(declare-const N_{v} Int)\n" for v in decls)
+    q += "".join(f"(assert {a})\n" for a in asserts + grid) + "(check-sat)\n(get-model)\n"
+    try:
+        r = subprocess.run([Z3, "-in", f"-T:{timeout}"], input=q, capture_output=True, text=True,
+                           timeout=timeout + 15)
+    except subprocess.TimeoutExpired:
+        return None
+    lines = r.stdout.strip().splitlines() or ["error"]
+    if lines[0].strip() != "sat":
+        return None
+    body = "\n".join(lines[1:])
+    vals = {}
+    for m in re.finditer(r"\(define-fun (N_\S+) \(\) Int\s+([^()]+|\(- \d+\))\)", body):
+        v = evq(I.parse_sexpr(m.group(2).strip()), {})
+        vals[m.group(1)[2:]] = Fraction(v) / den
+    return {v: vals.get(v, Fraction(0)) for v in decls}
+
+
+def approx_model(decls, asserts, timeout):
+    """Decimal approximations of a model (algebraic values included)."""
+    q = "(set-option :pp.decimal true)\n(set-option :pp.decimal_precision 15)\n"
+    q += "".join(f"(declare-const {v} Real)\n" for v in decls)
+    q += "".join(f"(assert {a})\n" for a in asserts) + "(check-sat)\n(get-model)\n"
+    try:
+        r = subprocess.run([Z3, "-in", f"-T:{timeout}"], input=q, capture_output=True, text=True,
+                           timeout=timeout + 15)
+    except subprocess.TimeoutExpired:
+        return None
+    out = {}
+    for m in re.finditer(r"\(define-fun (\S+) \(\) Real\s+(\(- [0-9.?]+\)|[0-9.?]+)\)", r.stdout):
+        t = m.group(2).replace("?", "")
+        neg = t.startswith("(-")
+        t = t.strip("()- ")
+        x = Fraction(t)
+        out[m.group(1)] = -x if neg else x
+    return {v: out.get(v, Fraction(0)) for v in decls}
+
+
+def isqrt_frac(x):
+    if x < 0:
+        return None
+    import math
+    a, b = x.numerator, x.denominator
+    ra, rb = math.isqrt(a), math.isqrt(b)
+    return Fraction(ra, rb) if ra * ra == a and rb * rb == b else None
+
+
+def quad_repair(approx, g, decls, check):
+    """Points on the quadric `g = 0` near an approximate model: round every coordinate, then solve
+    `g = 0` exactly for one coordinate (rational root when the discriminant is a square), varying
+    a second coordinate over nearby rationals."""
+    ge = I.parse_sexpr(g)
+    vs = sorted(v for v in vars_in(ge, set()) if v in approx)
+    base = {v: Fraction(approx[v]).limit_denominator(1000) for v in decls}
+    def roots(env, v):
+        f = lambda x: evq(ge, {**env, v: Fraction(x)})
+        c, p1, m1, p2 = f(0), f(1), f(-1), f(2)
+        a = (p1 + m1) / 2 - c
+        b = (p1 - m1) / 2
+        if a * 4 + b * 2 + c != p2:   # not quadratic in v
+            return []
+        if a == 0:
+            return [-c / b] if b != 0 else []
+        d = isqrt_frac(b * b - 4 * a * c)
+        return [] if d is None else [(-b + d) / (2 * a), (-b - d) / (2 * a)]
+    for v in vs:
+        for w in [None] + [x for x in vs if x != v]:
+            cands = [None] if w is None else sorted(
+                {Fraction(round(approx[w] * den + j), den) for den in (10, 100, 1000, 12, 8)
+                 for j in range(-20, 21)}, key=lambda x: abs(x - approx[w]))[:400]
+            for cw in cands:
+                env = dict(base)
+                if w is not None:
+                    env[w] = cw
+                for r in roots(env, v):
+                    env2 = {**env, v: r}
+                    if check(env2):
+                        return env2
+    return None
+
+
+def models(decls, asserts, timeout, eq=None, check=None):
+    """Candidate exact models: Z3's own, then grid models, then (for a quadric boundary `eq`)
+    repaired points."""
+    st, vals = z3(decls, asserts, timeout, model=True)
+    if st != "sat":
+        return
+    env = rationalize(vals, decls, None)
+    if env is not None:
+        yield env
+    for den in GRIDS[:3]:
+        env = z3_grid(decls, asserts, min(timeout, 20), den)
+        if env is not None:
+            yield env
+    if eq is not None and check is not None:
+        approx = approx_model(decls, asserts, timeout)
+        if approx is not None:
+            env = quad_repair(approx, eq, decls, check)
+            if env is not None:
+                yield env
+    for den in GRIDS[3:]:
+        env = z3_grid(decls, asserts, min(timeout, 20), den)
+        if env is not None:
+            yield env
+
+
 def rationalize(vals, decls, decls_env):
     """Exact values; irrational ones approximated (the exact checks decide)."""
     out = {}
@@ -305,11 +419,9 @@ def search(D, timeout, kinds="CAB"):
         for k, g in enumerate(Ls[m]["comps"]):
             if Ls[m]["leftLie"][k] is None or not rigid(m, k):
                 continue
-            st, vals = z3(decls, [P, sdomL, f"(>= {g} 0)", f"(> {Ls[m]['leftLie'][k]} 0)"], timeout,
-                          model=True)
-            if st == "sat":
-                env = rationalize(vals, decls, None)
-                if env is not None and exact(env) and exit_ok(env, m, k):
+            for env in models(decls, [P, sdomL, f"(>= {g} 0)", f"(> {Ls[m]['leftLie'][k]} 0)"],
+                              timeout, eq=g, check=lambda e: exact(e) and exit_ok(e, m, k)):
+                if exact(env) and exit_ok(env, m, k):
                     return k, env
         return None
     if h["rowsSame"]:
@@ -344,10 +456,8 @@ def search(D, timeout, kinds="CAB"):
                 for k, g in enumerate(Ls[m]["comps"]):
                     if not rigid(m, k):
                         continue
-                    st, vals = z3(decls, [P, f"(> {g} 0)"], timeout, model=True)
-                    if st == "sat":
-                        env = rationalize(vals, decls, None)
-                        if env is not None and exact_pre(env, u, m, q0) and evq(I.parse_sexpr(g), env) > 0:
+                    for env in models(decls, [P, f"(> {g} 0)"], timeout):
+                        if exact_pre(env, u, m, q0) and evq(I.parse_sexpr(g), env) > 0:
                             return wit("A", u, m, q0, k, env, coords), None
     if "B" in kinds:
         for u in range(len(Ls)):

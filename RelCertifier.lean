@@ -102,6 +102,8 @@ import RelCertifier.Proofs.Encoding.SinkExtension
 import RelCertifier.Proofs.Encoding.SplitCoupling
 import RelCertifier.Proofs.Encoding.StrictInv
 import RelCertifier.Proofs.Encoding.StrictModal
+import RelCertifier.Proofs.Encoding.Theorem3GeneralS
+import RelCertifier.Proofs.Encoding.ModeHandoffStrict
 import RelCertifier.Proofs.Encoding.ToolLevel
 import RelCertifier.Proofs.Encoding.UniformFvDischarge
 import RelCertifier.Proofs.Encoding.UniformMultiflow
@@ -141,6 +143,7 @@ import RelCertifier.Proofs.Transfer.RealEndToEnd
 import RelCertifier.Proofs.Transfer.Rescale
 import RelCertifier.Trusted.EmitIR
 import RelCertifier.Trusted.Handoff
+import RelCertifier.Trusted.HandoffStrict
 import RelCertifier.Trusted.InvComponents
 import RelCertifier.Trusted.InvStrictFlags
 import RelCertifier.Trusted.JointVars

@@ -30,6 +30,7 @@ open RelCertifier.Parse
 def checkViabilityFacesB (s : Z3Session) (cnt : IO.Ref Nat)
     (maxQ maxSmt deadline : Nat) (vars : List String) (n : ℕ)
     (coord : Fin n → String) (mR : PMode) : IO (List (Nat × String)) := do
+  if !evolveAllNonstrict mR.evolve then return []   -- strict evolve atom: no face tags
   match evolveFacesR vars n mR.evolve, Run.lowerF vars n Side.R mR.evolve,
       Run.dynOf vars n Side.R mR with
   | some faces, some box, some fR => do
@@ -104,6 +105,7 @@ def faceRegion {n : ℕ} (sel : List (ITerm n)) : IForm n :=
 def checkViabilityFacesStrat (s : Z3Session) (cnt : IO.Ref Nat)
     (maxQ maxSmt deadline : Nat) (vars : List String) (n : ℕ)
     (coord : Fin n → String) (mR : PMode) : IO (List (Nat × String)) := do
+  if !evolveAllNonstrict mR.evolve then return []   -- strict evolve atom: no face tags
   match evolveFacesR vars n mR.evolve, Run.dynOf vars n Side.R mR with
   | some faces, some fR => do
       let idxs := (List.range faces.length)

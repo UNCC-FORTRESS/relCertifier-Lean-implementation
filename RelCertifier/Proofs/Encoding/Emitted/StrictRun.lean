@@ -166,7 +166,8 @@ theorem handoffGroupsS_eq {p : PProblem} (h : noStrictRows p n = true) (m' : ℕ
   rcases hT : Handoff.invRowOf p (p.L.modes.getD (m', t).2 ⟨"", [], .tt, .tt, []⟩) with _ | rT
   · rfl
   simp only [Option.bind_some]
-  exact Handoff.ihandoffQueryS_eq_of_allFalse _ _ _ _ _ _ _ (invRow_allFalse h hT)
+  exact Handoff.ihandoffQueryS_eq_of_allFalse _ _ _ _ _ _ _ (invRow_allFalse h hS)
+    (invRow_allFalse h hT)
 
 /-- **Without strict atoms the strict run issues exactly the existing queries.** -/
 theorem bridgeGroupsS_eq_of_noStrict {p : PProblem} {cX : EvolStrengtheningX}

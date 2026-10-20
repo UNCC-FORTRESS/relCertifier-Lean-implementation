@@ -11,9 +11,9 @@ the closure is the handoff hypothesis's discharge:
 * in-kernel, `FM_mono` (nested rows) → `FMS_mono`: a target component may be strict only if
   the source carries it strict;
 * by Z3, `handoff_of_unsat` → `handoff_of_unsatS` on the strict query
-  (`Handoff.ihandoffQueryS`): the antecedent is the source's CLOSURE (a strict source row
-  enters through `FMS_weaken`), the negated target carries the target's mask, so the UNSAT
-  gives the target's strict row (`handoff_FMS_of_unsatS`).
+  (`Handoff.ihandoffQueryS`): the antecedent is the source row at its mask (it holds strictly
+  at the switch), the negated target carries the target's mask, so the UNSAT gives the
+  target's strict row (`handoff_FMS_of_unsatS`).
 
 New leaf; no upstream edits.
 -/
@@ -63,68 +63,68 @@ theorem sat_iinvConjS_toHost (comps : List (ITerm n)) (fs : List Bool) (base : I
       rw [hand, List.map_cons, tagS_cons, List.forall_mem_cons]
       tauto
 
-/-- **The strict handoff implication from a Z3 `unsat`.** The source enters as its
-closure; the conclusion is the target's flagged row. -/
-theorem handoff_of_unsatS (cs ct : List (ITerm n)) (ft : List Bool) (eL gT eR : IForm n)
-    (hz : z3solve (IForm.and (Handoff.iinvConj cs (IForm.and (IForm.and eL gT) eR))
+/-- **The strict handoff implication from a Z3 `unsat`.** The source enters at its own
+mask, the conclusion is the target's flagged row. -/
+theorem handoff_of_unsatS (cs ct : List (ITerm n)) (fs ft : List Bool) (eL gT eR : IForm n)
+    (hz : z3solve (IForm.and (Handoff.iinvConjS cs fs (IForm.and (IForm.and eL gT) eR))
       (IForm.neg (Handoff.iinvConjS ct ft IForm.tt))).toHost = Verdict.unsat) :
-    ∀ σ : State (Var n), (∀ g ∈ cs, Term.eval g.toHost σ ≤ 0) →
+    ∀ σ : State (Var n), (∀ c ∈ tagS (cs.map ITerm.toHost) fs, HoldsAt c.1 c.2 σ) →
       Formula.sat eL.toHost σ → Formula.sat gT.toHost σ → Formula.sat eR.toHost σ →
       ∀ c ∈ tagS (ct.map ITerm.toHost) ft, HoldsAt c.1 c.2 σ := by
   intro σ hsrc heL hg heR
   by_contra hneg
   apply z3_unsat_sound hz σ
-  refine ⟨(sat_iinvConj_toHost cs _ σ).mpr ⟨⟨⟨heL, hg⟩, heR⟩, hsrc⟩, ?_⟩
+  refine ⟨(sat_iinvConjS_toHost cs fs _ σ).mpr ⟨⟨⟨heL, hg⟩, heR⟩, hsrc⟩, ?_⟩
   show ¬ Formula.sat (Handoff.iinvConjS ct ft IForm.tt).toHost σ
   rw [sat_iinvConjS_toHost]
   exact fun h => hneg h.2
 
-/-- The strict handoff at the rows' formulas: a source `FMS` row (any mask, weakened to its
-closure), the source evolve, the target guard and the right evolve give the target's `FMS`
-row. -/
-theorem handoff_FMS_of_unsatS (cs ct : List (ITerm n)) (ft ms : List Bool)
+/-- The strict handoff at the rows' formulas: the source's `FMS` row, the source evolve, the
+target guard and the right evolve give the target's `FMS` row. -/
+theorem handoff_FMS_of_unsatS (cs ct : List (ITerm n)) (fs ft : List Bool)
     (eL gT eR : IForm n)
-    (hz : z3solve (IForm.and (Handoff.iinvConj cs (IForm.and (IForm.and eL gT) eR))
+    (hz : z3solve (IForm.and (Handoff.iinvConjS cs fs (IForm.and (IForm.and eL gT) eR))
       (IForm.neg (Handoff.iinvConjS ct ft IForm.tt))).toHost = Verdict.unsat)
     {gS gT' : Term (Var n)} {gsS gsT : List (Term (Var n))}
     (hS : gS :: gsS = cs.map ITerm.toHost) (hT : gT' :: gsT = ct.map ITerm.toHost) :
-    ∀ σ : State (Var n), Formula.sat (FMS gS gsS ms) σ →
+    ∀ σ : State (Var n), Formula.sat (FMS gS gsS fs) σ →
       Formula.sat eL.toHost σ → Formula.sat gT.toHost σ → Formula.sat eR.toHost σ →
       Formula.sat (FMS gT' gsT ft) σ := by
   intro σ hsrc heL hg heR
-  have hcl := (sat_FM_iff _ _ σ).mp (FMS_weaken hsrc)
-  rw [hS] at hcl
+  rw [sat_FMS_iff, hS] at hsrc
   rw [sat_FMS_iff, hT]
-  exact handoff_of_unsatS cs ct ft eL gT eR hz σ
-    (fun g hg => hcl _ (List.mem_map_of_mem hg)) heL hg heR
+  exact handoff_of_unsatS cs ct fs ft eL gT eR hz σ hsrc heL hg heR
 
 /-- `ihandoffQueryS` unfolded: its pieces, when it lowers. -/
 theorem ihandoffQueryS_eq {vars : List String}
     {invSrc evolveSrc guardT evolveR invTgt : Parse.PForm} {q : IForm n}
     (hq : Handoff.ihandoffQueryS vars n invSrc evolveSrc guardT evolveR invTgt = some q) :
-    ∃ cs eL gT eR ct ft, Oracle.invComponents vars n invSrc = some cs ∧
+    ∃ cs fs eL gT eR ct ft, Oracle.invComponents vars n invSrc = some cs ∧
+      Oracle.invStrictFlags vars n invSrc = some fs ∧
       Run.lowerF vars n Side.L evolveSrc = some eL ∧
       Run.lowerF vars n Side.L guardT = some gT ∧
       Run.lowerF vars n Side.R evolveR = some eR ∧
       Oracle.invComponents vars n invTgt = some ct ∧
       Oracle.invStrictFlags vars n invTgt = some ft ∧
-      q = IForm.and (Handoff.iinvConj cs (IForm.and (IForm.and eL gT) eR))
+      q = IForm.and (Handoff.iinvConjS cs fs (IForm.and (IForm.and eL gT) eR))
         (IForm.neg (Handoff.iinvConjS ct ft IForm.tt)) := by
   unfold Handoff.ihandoffQueryS at hq
   rcases h1 : Oracle.invComponents vars n invSrc with _ | cs
   · rw [h1] at hq; simp at hq
+  rcases h0 : Oracle.invStrictFlags vars n invSrc with _ | fs
+  · rw [h1, h0] at hq; simp at hq
   rcases h2 : Run.lowerF vars n Side.L evolveSrc with _ | eL
-  · rw [h1, h2] at hq; simp at hq
+  · rw [h1, h0, h2] at hq; simp at hq
   rcases h3 : Run.lowerF vars n Side.L guardT with _ | gT
-  · rw [h1, h2, h3] at hq; simp at hq
+  · rw [h1, h0, h2, h3] at hq; simp at hq
   rcases h4 : Run.lowerF vars n Side.R evolveR with _ | eR
-  · rw [h1, h2, h3, h4] at hq; simp at hq
+  · rw [h1, h0, h2, h3, h4] at hq; simp at hq
   rcases h5 : Oracle.invComponents vars n invTgt with _ | ct
-  · rw [h1, h2, h3, h4, h5] at hq; simp at hq
+  · rw [h1, h0, h2, h3, h4, h5] at hq; simp at hq
   rcases h6 : Oracle.invStrictFlags vars n invTgt with _ | ft
-  · rw [h1, h2, h3, h4, h5, h6] at hq; simp at hq
-  rw [h1, h2, h3, h4, h5, h6] at hq
+  · rw [h1, h0, h2, h3, h4, h5, h6] at hq; simp at hq
+  rw [h1, h0, h2, h3, h4, h5, h6] at hq
   simp only [Option.pure_def, Option.bind_eq_bind, Option.bind_some, Option.some.injEq] at hq
-  exact ⟨cs, eL, gT, eR, ct, ft, rfl, rfl, rfl, rfl, rfl, rfl, hq.symm⟩
+  exact ⟨cs, fs, eL, gT, eR, ct, ft, rfl, rfl, rfl, rfl, rfl, rfl, rfl, hq.symm⟩
 
 end RelCertifier

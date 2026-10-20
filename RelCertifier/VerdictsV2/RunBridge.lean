@@ -11,6 +11,7 @@ three routes, every other group by its single query). The groups are exactly the
 `Emitted.verdicts_of_groups` reads as the `Verdicts` structure the generic instances assume.
 -/
 import RelCertifier.Proofs.Encoding.Emitted.Run
+import RelCertifier.Proofs.Encoding.Emitted.StrictRun
 import RelCertifier.VerdictsV2.RunV2
 import RelCertifier.InstancesV2.BenchProgress
 import RelCertifier.InstancesV2.BenchChoice
@@ -79,7 +80,9 @@ def runBridgeBench (s : Z3Session) (r : BridgeRec) : IO (Bool × Nat) := do
   let n := r.dim
   let vars := p.L.stateVars
   let coord := fun (i : Fin n) => vars.getD i.val s!"pad{i.val}"
-  match bridgeGroups p n r.cuts r.cov r.prog r.ce with
+  -- the strict groups (`bridgeGroupsS`, read as `VerdictsS`); the existing groups exactly
+  -- when no row has a strict atom (`bridgeGroupsS_eq_of_noStrict`)
+  match bridgeGroupsS p n r.cuts r.cov r.prog r.ce with
   | none =>
       IO.println s!"  FAIL  {b}  (the query groups did not rebuild)"
       pure (false, 0)

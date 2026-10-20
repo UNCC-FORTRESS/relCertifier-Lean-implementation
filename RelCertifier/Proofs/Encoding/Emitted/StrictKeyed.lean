@@ -98,7 +98,8 @@ theorem VerdictsS.ofVerdicts (h : noStrictRows p n = true) (hv : Verdicts p n cX
   dyn := hv.dyn
   adm := hv.adm
   handoff := fun m' hm' t ht =>
-    handoffVerdS_of_allFalse (fun _ hT => invRow_allFalse h hT) (hv.handoff m' hm' t ht)
+    handoffVerdS_of_allFalse (fun _ hS => invRow_allFalse h hS) (fun _ hT => invRow_allFalse h hT)
+      (hv.handoff m' hm' t ht)
   prog := hv.prog
   coverage := hv.coverage
 
@@ -405,7 +406,7 @@ theorem theorem3_keyed_strict_of_records (hv : VerdictsS p n cX cov prog ce)
       have hcomps : ∀ c' ∈ tagS (hostComps (vars p) n (rowOf p t))
           (hostFlags (vars p) n (rowOf p t)), HoldsAt c'.1 c'.2 ω := by
         refine hres' ?_ ?_ hg ?_
-        · have := (sat_FM_iff _ _ ω).mp (FRowS_weaken hF)
+        · have := (sat_FMS_iff _ _ _ ω).mp hF
           rwa [hcg] at this
         · show Formula.sat (hostEvolve (vars p) n Side.L (mLof p m')) ω
           rw [hostEvolve_L (hu hs) hm']; exact henv.1

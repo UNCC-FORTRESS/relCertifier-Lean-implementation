@@ -50,6 +50,7 @@ it, the outcome is `error`, not `declined`. `certified` is only ever produced by
 -/
 import RelCertifier.Trusted.Run
 import RelCertifier.Trusted.InvComponents
+import RelCertifier.Trusted.InvStrictFlags
 import RelCertifier.Trusted.NonConnQuery
 import RelCertifier.Trusted.JointVars
 import RelCertifier.Checker.EvolStrengthening
@@ -343,7 +344,8 @@ def andCuts {n : ℕ} (base cutL cutR : IForm n) : IForm n :=
 error/`unknown` or unbuildable query. -/
 def checkSeg (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     (vars : List String) (n : ℕ) (coord : Fin n → String)
-    (comps : List (ITerm n)) (cutL cutR : IForm n) (mL mR : PMode) (lam : ℚ) :
+    (comps : List (ITerm n)) (cutL cutR : IForm n) (mL mR : PMode) (lam : ℚ)
+    (strict : List Bool := []) :
     IO (Seg × List Nat) := do
   -- STRATIFIED DIFFERENTIAL CUTS (soundness-critical, 2026-07-15). A component may
   -- narrow its query domain ONLY by components proven in EARLIER rounds (sequential,
@@ -377,7 +379,8 @@ def checkSeg (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
             let dom := strataDomIR comps proven baseDom
             let mut compPass := false
             let mut compIncon := false
-            for q in routeQueries dom g gdot do
+            -- a strict component (`invStrictFlags`) is certified by route A or B only
+            for q in routeQueriesS (strict.getD i false) dom g gdot do
               if compPass then pure () else do
                 cnt.modify (· + 1)
                 if (← cnt.get) > maxQ then throw (IO.userError "query budget exceeded")
@@ -756,7 +759,8 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     (coord : Fin n → String) (comps : List (ITerm n))
     (prunedOf : String → String → Bool)
     (cutL : IForm n) (cutOfR : String → IForm n)
-    (epsL epsR lmin lmax : ℚ) (mL : PMode) : IO (Cov3 × Option LeftCoverE) := do
+    (epsL epsR lmin lmax : ℚ) (mL : PMode) (strict : List Bool := []) :
+    IO (Cov3 × Option LeftCoverE) := do
   let mut sawIncon := false
   -- FIX 1 (precise admissibility): the admissible initial right modes for `mL` — those with an
   -- invariant-satisfying initial pair. λ-independent (guards + `ϕ_rel` only), so computed ONCE.
@@ -907,6 +911,7 @@ def coverMode (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat) (p
     for mR in p.R.modes do
       let (st, order) ←
         checkSeg s cnt maxQ maxSmt deadline vars n coord comps cutL (cutOfR mR.name) mL mR lam
+          strict
       segMap := segMap ++ [(mR.name, st)]
       lastOrder := (mR.name, order) :: lastOrder.filter (·.1 != mR.name)
       if st == Seg.pass then
@@ -1154,7 +1159,8 @@ def certifyWithData (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : N
                 else pure false
               IO.eprintln s!"  [opregion] {p.name} {mL.name}_L: {if covered then "every admitted start in some right guard" else "starts OUTSIDE every right guard (sat or unknown)"}"
             match ← coverMode s cnt maxQ maxSmt deadline p vars n coord comps prunedOf
-                (cutOfL mL.name) cutOfR epsL epsR lmin lmax mL with
+                (cutOfL mL.name) cutOfR epsL epsR lmin lmax mL
+                ((invStrictFlags vars n f).getD []) with
             | (.cov, some lc) => covers := covers ++ [lc]
             | (.cov, none) => pure ()      -- unreachable: .cov always carries data
             | (.incon, _) => sawIncon := true
@@ -1272,6 +1278,8 @@ variant (docs/history/COVER-AUDIT.md R6) or a named per-mode hypothesis. Used on
 `--emit-viability`. -/
 def checkViability (s : Z3Session) (cnt : IO.Ref Nat) (maxQ maxSmt deadline : Nat)
     (vars : List String) (n : ℕ) (coord : Fin n → String) (mR : PMode) : IO Bool := do
+  -- a strict evolve atom lowers to its closure face: never pass on a vacuous face probe
+  if !evolveAllNonstrict mR.evolve then return false
   match evolveFacesR vars n mR.evolve, lowerF vars n Side.R mR.evolve,
       dynOf vars n Side.R mR with
   | some faces, some box, some fR => do

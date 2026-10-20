@@ -7,8 +7,10 @@ Released under Apache 2.0 license.
 `ihandoffQuery` negates the target row's CLOSURE (`⋀ tgt ≤ 0`): an UNSAT gives the target
 row's closure only. For a target row with strict atoms the negated conjunction must carry the
 strictness: `iinvConjS` conjoins `g < 0` for a flagged component and `g ≤ 0` otherwise (the
-mask `Oracle.invStrictFlags`). The ANTECEDENT stays the source row's closure (`iinvConj`):
-a strict source atom only weakens the hypothesis, and the query stays meaningful.
+mask `Oracle.invStrictFlags`). The ANTECEDENT is the source row at its own mask (`iinvConjS`): the source row
+holds strictly at the switch (the loop invariant is `FMS`), and a pointwise implication has no
+boundary-vacuity issue (unlike route B, whose boundary antecedent must stay the closure). With
+the closure antecedent a strict row could never hand off to itself.
 
 With an all-false target mask the strict query is the existing one
 (`ihandoffQueryS_eq_of_allFalse`), so for every current benchmark (no strict atom) the
@@ -45,17 +47,18 @@ theorem iinvConjS_allFalse {n : ℕ} (comps : List (ITerm n)) {fs : List Bool}
       rw [ih htl]
       rfl
 
-/-- The strict handoff query: `(⋀ src ≤ 0 ∧ ((evolve_src ∧ guard_tgt) ∧ evolve_R)) ∧
-¬(⋀ tgt ∼ 0)`, `∼` per the target's strictness mask. -/
+/-- The strict handoff query: `(⋀ src ∼ 0 ∧ ((evolve_src ∧ guard_tgt) ∧ evolve_R)) ∧
+¬(⋀ tgt ∼ 0)`, each `∼` per its row's strictness mask. -/
 def ihandoffQueryS (vars : List String) (n : ℕ)
     (invSrc evolveSrc guardTgt evolveR invTgt : PForm) : Option (IForm n) := do
   let cs ← Oracle.invComponents vars n invSrc
+  let fs ← Oracle.invStrictFlags vars n invSrc
   let eL ← lowerF vars n Side.L evolveSrc
   let gT ← lowerF vars n Side.L guardTgt
   let eR ← lowerF vars n Side.R evolveR
   let ct ← Oracle.invComponents vars n invTgt
   let ft ← Oracle.invStrictFlags vars n invTgt
-  pure (IForm.and (iinvConj cs (IForm.and (IForm.and eL gT) eR))
+  pure (IForm.and (iinvConjS cs fs (IForm.and (IForm.and eL gT) eR))
     (IForm.neg (iinvConjS ct ft IForm.tt)))
 
 /-- The strict handoff query of one declared transition (`queryOf`, strict target). -/
@@ -67,15 +70,18 @@ def queryOfS (p : PProblem) (n : ℕ) (tr : ℕ × ℕ) : Option (IForm n) := do
   let invTgt ← invRowOf p mTgt
   ihandoffQueryS p.L.stateVars n invSrc mSrc.evolve mTgt.guard (evolveR p) invTgt
 
-/-- **Collapse**: a target row without strict atoms gives the existing query. -/
+/-- **Collapse**: rows without strict atoms give the existing query. -/
 theorem ihandoffQueryS_eq_of_allFalse (vars : List String) (n : ℕ)
     (invSrc evolveSrc guardTgt evolveR invTgt : PForm)
+    (hfsrc : ∀ fs, Oracle.invStrictFlags vars n invSrc = some fs → ∀ b ∈ fs, b = false)
     (hft : ∀ fs, Oracle.invStrictFlags vars n invTgt = some fs → ∀ b ∈ fs, b = false) :
     ihandoffQueryS vars n invSrc evolveSrc guardTgt evolveR invTgt
       = ihandoffQuery vars n invSrc evolveSrc guardTgt evolveR invTgt := by
   unfold ihandoffQueryS ihandoffQuery
   rcases h1 : Oracle.invComponents vars n invSrc with _ | cs
   · rfl
+  obtain ⟨fs0, hfs0, -⟩ := Oracle.invStrictFlags_length vars n invSrc cs h1
+  simp only [hfs0, Option.bind_eq_bind, Option.bind_some]
   rcases h2 : lowerF vars n Side.L evolveSrc with _ | eL
   · rfl
   rcases h3 : lowerF vars n Side.L guardTgt with _ | gT
@@ -85,6 +91,6 @@ theorem ihandoffQueryS_eq_of_allFalse (vars : List String) (n : ℕ)
   rcases h5 : Oracle.invComponents vars n invTgt with _ | ct
   · rfl
   obtain ⟨fs, hfs, -⟩ := Oracle.invStrictFlags_length vars n invTgt ct h5
-  simp [hfs, iinvConjS_allFalse ct (hft fs hfs)]
+  simp [hfs, iinvConjS_allFalse ct (hft fs hfs), iinvConjS_allFalse cs (hfsrc fs0 hfs0)]
 
 end RelCertifier.Handoff

@@ -87,4 +87,25 @@ theorem invStrictFlags_map_length (vars : List String) (n : ℕ) :
   | or x y _ _ => rfl
   | not x _ => rfl
 
+
+/-! ## The search's strict discipline -/
+
+/-- The route queries of a component: all three (A, B, C) for a closure component, only
+A and B for a strict one (route C does not preserve `< 0`, `routeC_counterexample`). -/
+def routeQueriesS {n : ℕ} (strict : Bool) (domain : IForm n) (g gdot : ITerm n) :
+    List (IForm n) :=
+  if strict then (routeQueries domain g gdot).take 2 else routeQueries domain g gdot
+
+theorem routeQueriesS_false {n : ℕ} (domain : IForm n) (g gdot : ITerm n) :
+    routeQueriesS false domain g gdot = routeQueries domain g gdot := rfl
+
+/-- An evolve form uses only nonstrict comparisons (the face lowering of a strict atom is
+its closure, so a strict evolve atom would make a face probe vacuous). The trusted copy of
+`FaceBridge.evolveNonstrict`. -/
+def evolveAllNonstrict : PForm → Bool
+  | .tt => true
+  | .cmp op _ _ => op == "<=" || op == ">="
+  | .and x y => evolveAllNonstrict x && evolveAllNonstrict y
+  | _ => false
+
 end RelCertifier.Oracle

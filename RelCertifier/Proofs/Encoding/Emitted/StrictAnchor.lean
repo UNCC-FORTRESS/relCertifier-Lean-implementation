@@ -14,7 +14,7 @@ the envelope), and the facts the cover consumes:
   `< 0`), `AGS_start`, `AGS_hand`, `AGS_post`;
 * ASSUMPTION sites, reused through the weakening `AGS → AG`: `AGS_prune`, `AGS_pruneD`,
   `AGS_regionF`, hygiene (`AGS_fv`, the free variables are those of `AG`);
-* `HandoffVerdS`/`handoff_soundS`: the strict handoff query (closure source, flagged target);
+* `HandoffVerdS`/`handoff_soundS`: the strict handoff query (both rows at their masks);
 * `hrepoProg_ofS`: the reposition-progress premise for the strict anchor.
 
 With an all-false mask every definition collapses to the existing one (`FRowS_allFalse`,
@@ -120,13 +120,14 @@ theorem hostFlags_of_lower {vars : List String} {f : PForm} {fs : List Bool}
     (h : invStrictFlags vars n f = some fs) : hostFlags vars n f = fs := by
   simp [hostFlags, h]
 
-/-- **The strict handoff**: the source row's closure, the source evolve, the target guard and
-the right evolve give the target row at its mask. -/
+/-- **The strict handoff**: the source row at its mask, the source evolve, the target guard
+and the right evolve give the target row at its mask. -/
 theorem handoff_soundS {p : PProblem} {tr : ℕ × ℕ} (hv : HandoffVerdS p n tr)
     {rowS rowT : PForm}
     (hS : Handoff.invRowOf p (p.L.modes.getD tr.1 dm) = some rowS)
     (hT : Handoff.invRowOf p (p.L.modes.getD tr.2 dm) = some rowT) :
-    ∀ ω, (∀ c ∈ hostComps p.L.stateVars n rowS, Term.eval c ω ≤ 0) →
+    ∀ ω, (∀ c ∈ tagS (hostComps p.L.stateVars n rowS) (hostFlags p.L.stateVars n rowS),
+        HoldsAt c.1 c.2 ω) →
       Formula.sat (hostEvolve p.L.stateVars n Side.L (p.L.modes.getD tr.1 dm)) ω →
       Formula.sat (hostGuard p.L.stateVars n Side.L (p.L.modes.getD tr.2 dm)) ω →
       Formula.sat (((lowerF p.L.stateVars n Side.R (Handoff.evolveR p)).map IForm.toHost).getD
@@ -135,25 +136,27 @@ theorem handoff_soundS {p : PProblem} {tr : ℕ × ℕ} (hv : HandoffVerdS p n t
         HoldsAt c.1 c.2 ω := by
   obtain ⟨q, hq, hz⟩ := hv
   unfold Handoff.queryOfS at hq
-  simp only [Option.bind_eq_bind, Option.pure_def, Option.bind_eq_some_iff] at hq
+  simp only [Option.bind_eq_bind, Option.bind_eq_some_iff] at hq
   obtain ⟨rS, hrS, rT, hrT, hq⟩ := hq
   have hdm : (⟨"", [], .tt, .tt, []⟩ : PMode) = dm := rfl
   rw [hdm] at hrS hrT hq
   rw [hS] at hrS; obtain rfl := Option.some.inj hrS
   rw [hT] at hrT; obtain rfl := Option.some.inj hrT
-  obtain ⟨cs, eL, gT, eR, ct, ft, hcs, heL, hgT, heR, hct, hft, rfl⟩ := ihandoffQueryS_eq hq
+  obtain ⟨cs, fs, eL, gT, eR, ct, ft, hcs, hfs, heL, hgT, heR, hct, hft, rfl⟩ :=
+    ihandoffQueryS_eq hq
   intro ω hrow hev hg heR'
-  rw [hostComps_of_lower hcs] at hrow
+  rw [hostComps_of_lower hcs, hostFlags_of_lower hfs] at hrow
   rw [hostComps_of_lower hct, hostFlags_of_lower hft]
   rw [hostEvolve_of_lower heL] at hev
   rw [hostGuard_of_lower hgT] at hg
   rw [heR] at heR'
   simp only [Option.map_some, Option.getD_some] at heR'
-  exact handoff_of_unsatS cs ct ft eL gT eR hz ω
-    (fun c hc => hrow _ (List.mem_map.mpr ⟨c, hc, rfl⟩)) hev hg heR'
+  exact handoff_of_unsatS cs ct fs ft eL gT eR hz ω hrow hev hg heR'
 
-/-- The existing verdict is the strict one when the target row has no strict atom. -/
+/-- The existing verdict is the strict one when neither row has a strict atom. -/
 theorem handoffVerdS_of_allFalse {p : PProblem} {tr : ℕ × ℕ}
+    (hfs : ∀ rowS, Handoff.invRowOf p (p.L.modes.getD tr.1 dm) = some rowS →
+      ∀ fs, invStrictFlags p.L.stateVars n rowS = some fs → ∀ b ∈ fs, b = false)
     (hft : ∀ rowT, Handoff.invRowOf p (p.L.modes.getD tr.2 dm) = some rowT →
       ∀ fs, invStrictFlags p.L.stateVars n rowT = some fs → ∀ b ∈ fs, b = false)
     (hv : HandoffVerd p n tr) : HandoffVerdS p n tr := by
@@ -169,7 +172,7 @@ theorem handoffVerdS_of_allFalse {p : PProblem} {tr : ℕ × ℕ}
   · rw [hS, hT] at hq; simp at hq
   rw [hS, hT] at hq
   simp only [Option.bind_eq_bind, Option.bind_some] at hq ⊢
-  rw [Handoff.ihandoffQueryS_eq_of_allFalse _ _ _ _ _ _ _ (hft rT hT)]
+  rw [Handoff.ihandoffQueryS_eq_of_allFalse _ _ _ _ _ _ _ (hfs rS hS) (hft rT hT)]
   exact hq
 
 /-! ## The strict anchor -/

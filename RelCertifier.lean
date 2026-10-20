@@ -100,6 +100,14 @@ import RelCertifier.Proofs.Encoding.ReplayOne
 import RelCertifier.Proofs.Encoding.ContractRun
 import RelCertifier.Proofs.Encoding.SinkExtension
 import RelCertifier.Proofs.Encoding.SplitCoupling
+import RelCertifier.Proofs.Encoding.StrictInv
+import RelCertifier.Proofs.Encoding.StrictModal
+import RelCertifier.Proofs.Encoding.StrictCouple
+import RelCertifier.Proofs.Encoding.Emitted.StrictAnchor
+import RelCertifier.Proofs.Encoding.Emitted.StrictKeyed
+import RelCertifier.Proofs.Encoding.Emitted.StrictRun
+import RelCertifier.Proofs.Encoding.Theorem3GeneralS
+import RelCertifier.Proofs.Encoding.ModeHandoffStrict
 import RelCertifier.Proofs.Encoding.ToolLevel
 import RelCertifier.Proofs.Encoding.UniformFvDischarge
 import RelCertifier.Proofs.Encoding.UniformMultiflow
@@ -111,12 +119,15 @@ import RelCertifier.Proofs.Flow.AffineFaces
 import RelCertifier.Proofs.Flow.AffineFaces2
 import RelCertifier.Proofs.Flow.BoxViability
 import RelCertifier.Proofs.Flow.BoxViabilityBounded
+import RelCertifier.Proofs.Flow.DIStrictOpen
 import RelCertifier.Proofs.Flow.DISuperlevel
 import RelCertifier.Proofs.Flow.FaceBridge
 import RelCertifier.Proofs.Flow.MultisegLanding
 import RelCertifier.Proofs.Flow.MultisegLandingBridge
 import RelCertifier.Proofs.Flow.PicardBridge
 import RelCertifier.Proofs.Flow.StratifiedBarrier
+import RelCertifier.Proofs.Flow.StratifiedBarrierStrict
+import RelCertifier.Proofs.Flow.StrictAtoms
 import RelCertifier.Proofs.Flow.StratifiedFaces
 import RelCertifier.Proofs.Flow.ViabilityWiring
 import RelCertifier.Proofs.Flow.WFBoundary
@@ -127,6 +138,7 @@ import RelCertifier.Proofs.Soundness.CutCoverDischarge
 import RelCertifier.Proofs.Soundness.CutLift
 import RelCertifier.Proofs.Soundness.CutLiftX
 import RelCertifier.Proofs.Soundness.GuardThreaded
+import RelCertifier.Proofs.Soundness.StrictCover
 import RelCertifier.Proofs.Soundness.UniformEvol
 import RelCertifier.Proofs.Transfer.FaithfulBridge
 import RelCertifier.Proofs.Transfer.FaithfulBridgeGuards
@@ -135,7 +147,9 @@ import RelCertifier.Proofs.Transfer.RealEndToEnd
 import RelCertifier.Proofs.Transfer.Rescale
 import RelCertifier.Trusted.EmitIR
 import RelCertifier.Trusted.Handoff
+import RelCertifier.Trusted.HandoffStrict
 import RelCertifier.Trusted.InvComponents
+import RelCertifier.Trusted.InvStrictFlags
 import RelCertifier.Trusted.JointVars
 import RelCertifier.Trusted.KeyAudit
 import RelCertifier.Trusted.NonConnQuery
@@ -151,5 +165,6 @@ import RelCertifier.Instances.AxiomCheck
 import RelCertifier.Verdicts.ModalCodePins
 import RelCertifier.VerdictsV2.NonConnPinV2
 import RelCertifier.VerdictsV2.ModalDynX
+import RelCertifier.VerdictsV2.ModalXStrict
 import RelCertifier.InstancesV2.BatteryV2
 import RelCertifier.InstancesV2.WellFormedBattery

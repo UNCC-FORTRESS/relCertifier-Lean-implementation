@@ -26,6 +26,7 @@ On a failing transition the runner also prints a Z3 model of the query (the
 countermodel), obtained from a one-shot `z3` process on the same script.
 -/
 import RelCertifier.Trusted.Handoff
+import RelCertifier.Trusted.HandoffStrict
 import RelCertifier.Trusted.Z3
 import RelCertifier.Verdicts.Coverage
 
@@ -77,7 +78,9 @@ def runHandoffBench (s : Z3Session) (cfg : Z3Config) (name : String) (p : PProbl
   for tr in trs do
     let src := (p.L.modes.getD tr.1 dm).name
     let tgt := (p.L.modes.getD tr.2 dm).name
-    match queryOf p n tr with
+    -- the strict handoff query: the target row negated with its strictness (`queryOfS`;
+    -- the existing `queryOf` string when the target row has no strict atom)
+    match queryOfS p n tr with
     | none =>
         failing := failing ++ [(tr, "query did not lower")]
         if verbose then IO.println s!"  FAIL  {name} {src} -> {tgt}  (handoff query did not lower)"

@@ -201,6 +201,11 @@ for d in benchmarks/suite_v2/*/; do
   printf '%s\t%s\n' "$(basename "$d")" "$PWD/${d}input.txt"
 done > /tmp/bench-paths-v2.tsv
 BENCH_PATHS=/tmp/bench-paths-v2.tsv ./.lake/build/bin/relcert-test
+
+# 5. the kernel-checked refutations of the 67 invariant variants (docs/REFUTATION-RESULTS.md):
+#    re-send their Z3 groups with the declared count, then build their instances
+./.lake/build/bin/relcert-refute-verdicts
+lake build $(ls RelCertifier/InstancesV2/Refute/*.lean | sed 's|/|.|g; s|\.lean$||')
 ```
 
 Expected: `Build completed successfully`; 71 axiom lines (BatteryV2), each a subset of the
@@ -208,9 +213,16 @@ four axioms above; 76 axiom lines (WellFormedBattery), each exactly the three st
 axioms; `[suite_v2] 50 certified, 0 declined, 0 error(s)`, coverage `modal 625/625`,
 `handoff 401/401`, `non-connection 88/88`, `pruned edges 44/44`, `copied benchmarks (legacy
 packs) 385/385`, `reposition (dyn) 81/81`, the strict Assumption 1 gate `[wellformed] STRICT: 174/174 right modes ok
-(83 invariant, 63 exit), 0 UNKNOWN — matches the declared suite`, `wellformed (strict): PASS`,
+(94 invariant, 80 exit), 0 UNKNOWN — matches the declared suite`, `wellformed (strict): PASS`,
 `SUITE_V2 QUICK CHECKS PASSED`;
-`relcert-test`: a bare `ALL PASS`.
+`relcert-test`: a bare `ALL PASS`; `refute: 188/188 hypotheses discharged`.
+
+The default `relcert <file>` verdict includes the handoff check (CERTIFIED requires the cover and
+Eq. 12 at every declared left mode change). Strict invariant atoms (`<`, `>`) are supported
+faithfully: a strict component is certified only by the whole-domain or strict-boundary route,
+and its Theorem 3 instance states the strict row (`theorem3_*_strict_of_records`,
+`benchmarks/strict_demo/`); a strict atom in an evolve domain is refused by the Assumption 1
+check.
 
 **Heavy files.** A handful of instance files (the 12-dimensional rover and rollover
 instances among the carried-over theorems, the larger suite_v2 instances) dominate the

@@ -1,0 +1,41 @@
+/-
+Copyright (c) 2026 relCertifier-lean contributors.
+Released under Apache 2.0 license.
+
+# `sat_detumble_phases_m001`: Theorem 3's claim of a mutant of `sat_detumble_phases` is false (GENERATED — `scripts/gen_refute.py`)
+
+Mutant MCO `(<= (+ (+ (* (* L_w1 L_w1) 2.0) (* (* L_w2 L_w2) 4.0)) (* (* L_w3 L_w3) 5.0)) (+ (+ (* (* R_w1 R_w1) 2.0) (* (* R_w2 R_w2) 4.0)) (* (* R_w3 R_w3) 5.0))) [del]`. Kind A (a component broken at the switch, right-rigid): the left switches
+from mode 0 to mode 1 with a zero-duration flow, the right starts in mode 0.
+-/
+import RelCertifier.Proofs.Encoding.Emitted.RefuteFlow
+import RelCertifier.InstancesV2.Refute.Data.sat_detumble_phases_m001
+import RelCertifier.InstancesV2.Cuts.sat_detumble_phases
+
+namespace RelCertifier.Refute.SatDetumblePhasesM001
+
+open RelCertifier RelCertifier.Emitted RelCertifier.Parse RelCertifier.Oracle DL
+
+abbrev IR := Refute.sat_detumble_phases_m001_IRm
+abbrev cX := Oracle.sat_detumble_phases_cutsV2X
+abbrev w := Refute.sat_detumble_phases_m001_wit
+
+/-- The mutant changes only the invariant: the model, hence its cut certificate, is the suite benchmark's. -/
+theorem same_model : IR.L = Parse.sat_detumble_phases_IRv2.L ∧ IR.R = Parse.sat_detumble_phases_IRv2.R := ⟨rfl, rfl⟩
+
+/-- The rows differ by mode: the claim is the mode-keyed one. -/
+theorem keyed_form : rowsSame IR = false := by decide +kernel
+
+/-- The witness's antecedent facts, decided in the kernel. -/
+theorem pre_ok : preOK IR 4 cX 0 1 2 w = true := by decide +kernel
+
+/-- The broken component, decided in the kernel. -/
+theorem pos_ok : compPosQ IR 4 (rowOf IR w.m) w.k (witState 4 0 2 w) = true := by
+  decide +kernel
+
+/-- **The claim of `sat_detumble_phases_m001` is false** for every cover record (every pruning), every `dt ≥ 0`:
+every query group `relcert-refute-verdicts` sends is `unsat`. -/
+theorem refuted (hv : RefVerdicts IR 4 cX w) (dt : ℝ) (hdt : 0 ≤ dt) (cov : CoverEmitE) :
+    ¬ keyedClaim IR 4 cX cov Formula.tt 0 1 2 dt :=
+  refute_keyed_A pre_ok (by decide) pos_ok hv (by decide) (by decide) dt hdt cov
+
+end RelCertifier.Refute.SatDetumblePhasesM001

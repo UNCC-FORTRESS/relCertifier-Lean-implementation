@@ -13,7 +13,9 @@ only inside its mode's guard (the left automaton, jump then flow) and every righ
 enters a declared successor whose guard holds at that instant (flow then jump), at the
 **mode-consistent region** (the right in the guard of its current mode and its checked cuts),
 whose only assumptions are a small trust base and a finite list of named Z3 `unsat` verdicts,
-each of which the tool re-sends on demand. The 50 generic-bridge instances replay the emitted
+each of which the tool re-sends on demand. In the generic-bridge instances (the paper's route)
+the right automaton is clocked: each right cycle flows for at most the control interval `ε_R`
+(`rightAutomatonBodyC`, the cap as a post-test; `docs/PAPER-MAPPING.md` §9). The 50 generic-bridge instances replay the emitted
 cover by the verified checker; **every one of the 46 standalone proofs replays the cover the
 tool emits** (`docs/REPLAY.md`): every joint segment of the response is at a node the cover
 certified, at the cover's stretch, preserved by that node's verdict pack; every right-only
@@ -117,6 +119,24 @@ packs). No
 (its control interval; false for `dt > 2.12` by a stated argument). See
 [Guard-gated switching](#guard-gated-switching).
 
+The statement above is the standalone instances' (`InstancesV2/Modal/`, the 46 original
+benchmarks), whose right automaton `rightAutomatonBody Gr mv` is unclocked. The generic-bridge
+instances (`InstancesV2/Bridge/`, all 50 suite benchmarks and the 2 choice exhibits; the
+paper's route, `docs/BRIDGE.md`) state the same form over the **clocked** right automaton
+`rightAutomatonBodyC Gr mv tr (epsR p)` (since 2026-10-21): per right mode `q`,
+`?(mv = q); tr := 0; {x' = f_q, tr' = 1 & Q_q}; ?(tr ≤ ε_R); switch`, the paper's
+`t := 0; {…, t' = 1 & t ≤ ε_R}` with the cap as a post-test (the same runs, the clock being
+monotone from `0`). The right clock is a fourth auxiliary coordinate `(Aux, d)` next to the
+right mode variable `(Aux, a)`, the left clock `(Aux, b)` and the stored left mode `(Aux, c)`,
+so a bridge instance lives at the Assumption 1 lemma's dimension plus one (`bridgeDimV2`,
+`VerdictsV2/RunBridge.lean:73`); the lemma is lifted by `Emitted.wellFormedR_lift` under the
+kernel-decided `padOK` (`Proofs/Encoding/Emitted/Lift.lean`). The clocked claim implies the
+unclocked one (`keyedClaim_to_unclocked`, `Proofs/Encoding/Emitted/Refute.lean:561`): the
+bridge statement is the stronger of the two. The theorems are
+`theorem3_keyed_of_records … (hwf : WellFormedRIn …) (a b c d : Fin n) … : keyedClaim p n cX cov reg a b c d dt`
+(`Emitted/Keyed.lean:427`) and `theorem3_window_of_records … (a b d : Fin n) … : windowClaim p n cX cov reg a b d dt`
+(`Emitted/Window.lean:83`); the generated instances take `0 1 2 3` resp. `0 1 2` and `reg = ⊤`.
+
 ## Trust base
 
 | item | why it cannot be removed |
@@ -127,7 +147,8 @@ packs). No
 | **Z3's `unsat`** answers are correct | the one oracle: axiom `z3_unsat_sound` (`Trusted/Oracle.lean`) |
 | the **Lean kernel** | checks everything else |
 | the **lowering of the right guards** onto the edges (`hostGuard … Side.R (mR t)`, the same lowering as the left guards) | part of the lowering item above; each instance proves its edges carry exactly these guards (`Gr_guards`) |
-| (not an item) Assumption 1 of the right model | not assumed: stated as `WellFormedR` and proved for all 50 (the six satellites since their momentum band entered the right evolve domain, 2026-10-15), all Z3-free, kernel-only (no trust-base item beyond the parser and lowering that produce the automata); no Theorem 3 uses it (`docs/WELLFORMED.md`) |
+| (not an item) Assumption 1 of the right model | not assumed: stated as `WellFormedR` and proved for all 50 (the six satellites since their momentum band entered the right evolve domain, 2026-10-15), all Z3-free, kernel-only (no trust-base item beyond the parser and lowering that produce the automata); the standalone instances do not use it, the generic-bridge instances take it as the hypothesis `hwf : WellFormedRIn …` of `theorem3_keyed_of_records` / `theorem3_window_of_records` and discharge it from the benchmark's proof, transported and lifted by one coordinate (`wellFormedR_lift`; `docs/WELLFORMED.md` §6) |
+| (not an item) the right clock coordinate `(Aux, d)` of the bridge instances | a padded coordinate of the lowering, unbound in every lowered formula (`padOK`, decided in the kernel); the runners send every query at the instance's dimension and the declared counts (4457, 188) are unchanged |
 
 The search (cover exploration, checked-cut search, route and λ selection) is untrusted: it
 only proposes. Every accepted output is either re-decided in the kernel (the cover replay
@@ -139,9 +160,10 @@ is kernel-checked legal (`Proofs/Encoding/GuardedSwitch.lean`: `SwitchLegal`, `g
 `guarded_rights_bridge`, `GResp`). The region of the loop invariant is `guard ∧ cuts` of the
 right's current mode (`regionG`), the same shape for all 50 benchmarks; it is a property of
 the statement, not an assumption: the theorem's premise and conclusion both carry it.
-Nonblocking (the paper's Assumption 1) enters no theorem as a hypothesis: every response
-exhibits its switches and their enabled targets explicitly, or makes no step. Assumption 1
-itself is a separately verified model fact (`WellFormedR`, [below](#assumption-1-is-verified-per-benchmark));
+Nonblocking (the paper's Assumption 1) enters no standalone theorem as a hypothesis: every
+standalone response exhibits its switches and their enabled targets explicitly, or makes no
+step. The generic-bridge theorems take it as `hwf` and discharge it from the per-benchmark
+proof. Assumption 1 itself is a separately verified model fact (`WellFormedR`, [below](#assumption-1-is-verified-per-benchmark));
 the tool's `--wellformed` check of it is untrusted and only ever declines: strict in
 `--check-quick-v2` (an `UNKNOWN` right mode fails the recipe), informational as
 `relcert --wellformed`, and per run under `RELCERT_WELLFORMED_STRICT=1`.
@@ -168,7 +190,7 @@ All counts read off `InstancesV2/BatteryV2.lean` and its build output.
 | Z3-free (the three standard axioms only, no verdict hypothesis) | **0** | none: every flow fact is a pack (until branch `replay`, 16 were Z3-free with explicit catch-ups and climbs; `docs/REPLAY.md` §1) |
 | standalone statement on the nonblocking region (the conserved-momentum band of the model in the right region; it enters no verdict query; since 2026-10-15 the band is also in the right evolve domain, so the envelope carries it) | **6** | `sat_detumble_{nominal,weak,phases}`, `sat3w_detumble_{nominal,weak,phases}` (`docs/SUITE-REDESIGN.md` §19.2) |
 | Theorem 2 (Lean docstring numbering; the non-connection certificate of a pruned edge, the paper's Definition 6) | **1** | `match_multi_rate_nonconn`, the edge `DRIVE → STALL` |
-| the generic bridge: Theorem 3 of the benchmark from its emitted records (IR, cut certificate, cover, progress and choice records), the structural facts decided in the kernel, every verdict from one Z3 run (`InstancesV2/Bridge/`, `relcert-bridge-verdicts`, 4457 groups over the 50 suite benchmarks and the 2 exhibits; `docs/BRIDGE.md`) | **52** | all 50 suite benchmarks (38 window form, 12 mode-keyed) and the choice exhibits `vehicle_accel_copy`, `watertank_choice` |
+| the generic bridge: Theorem 3 of the benchmark from its emitted records (IR, cut certificate, cover, progress and choice records), over the clocked right automaton `rightAutomatonBodyC` at dimension `bridgeDimV2 b` (the Assumption 1 lemma's dimension + 1, the right clock), Assumption 1 lifted by `wellFormedR_lift`, the structural facts decided in the kernel, every verdict from one Z3 run (`InstancesV2/Bridge/`, `relcert-bridge-verdicts`, 4457 groups over the 50 suite benchmarks and the 2 exhibits; `docs/BRIDGE.md`) | **52** | all 50 suite benchmarks (38 window form, 12 mode-keyed) and the choice exhibits `vehicle_accel_copy`, `watertank_choice` |
 
 The axiom audit has 72 lines: the 46 Theorem 3s, `match_multi_rate_nonconn`, and 25 generic
 lemmas; 48 carry `z3_unsat_sound` (the 46 Theorem 3s, `match_multi_rate_nonconn`,
@@ -203,7 +225,9 @@ done > /tmp/bench-paths-v2.tsv
 BENCH_PATHS=/tmp/bench-paths-v2.tsv ./.lake/build/bin/relcert-test
 
 # 5. the kernel-checked refutations of the 67 invariant variants (docs/REFUTATION-RESULTS.md):
-#    re-send their Z3 groups with the declared count, then build their instances
+#    re-send their Z3 groups with the declared count (each at the variant's bridge dimension,
+#    RefRec.dim + 1), then build their instances (each concludes the negation of the clocked
+#    bridge claim, refute_*_clocked)
 ./.lake/build/bin/relcert-refute-verdicts
 lake build $(ls RelCertifier/InstancesV2/Refute/*.lean | sed 's|/|.|g; s|\.lean$||')
 ```
@@ -215,10 +239,12 @@ axioms; `[suite_v2] 50 certified, 0 declined, 0 error(s)`, coverage `modal 625/6
 packs) 385/385`, `reposition (dyn) 81/81`, the strict Assumption 1 gate `[wellformed] STRICT: 174/174 right modes ok
 (94 invariant, 80 exit), 0 UNKNOWN — matches the declared suite`, `wellformed (strict): PASS`,
 `SUITE_V2 QUICK CHECKS PASSED`;
-`relcert-test`: a bare `ALL PASS`; `refute: 188/188 hypotheses discharged`.
+`relcert-test`: a bare `ALL PASS`; `relcert-bridge-verdicts`: `4457/4457` at the bridge
+dimensions; `refute: 188/188 hypotheses discharged` (both counts unchanged by the right-clock
+coordinate of 2026-10-21: no query reads it).
 
 The default `relcert <file>` verdict includes the handoff check (CERTIFIED requires the cover and
-Eq. 12 at every declared left mode change). Strict invariant atoms (`<`, `>`) are supported
+the handoff condition, the paper's Eq. 13, at every declared left mode change). Strict invariant atoms (`<`, `>`) are supported
 faithfully: a strict component is certified only by the whole-domain or strict-boundary route,
 and its Theorem 3 instance states the strict row (`theorem3_*_strict_of_records`,
 `benchmarks/strict_demo/`); a strict atom in an evolve domain is refused by the Assumption 1
@@ -252,17 +278,21 @@ a checked-cut certificate, the progress certificates of its reposition nodes
   │                   ▲ evolStrengtheningWFX … = true, by `rfl`
   └─(RELCERT_PROGRESS_OUT)─▶ InstancesV2/BenchProgress/<b>.lean
   ▼
-InstancesV2/Bridge/<B>.lean  (generated)           the generic-bridge instance: the general
-  │                                                 Theorem 3 (Proofs/Encoding/Theorem3General)
+InstancesV2/Bridge/<B>.lean  (generated)           the generic-bridge instance at dimension
+  │                                                 n = bridgeDimV2 b (the Assumption 1 lemma's
+  │                                                 dimension n0 + 1, the right clock): the general
+  │                                                 Theorem 3 (Proofs/Encoding/Theorem3General,
+  │                                                 right automaton rightAutomatonBodyC)
   │                                                 applied to the records through
   │                                                 Proofs/Encoding/Emitted; structural facts
-  │                                                 by `decide +kernel`, Assumption 1 from
-  │                                                 InstancesV2/WellFormed/<B>.lean
+  │                                                 by `decide +kernel` (incl. pad_ok : padOK IR n0),
+  │                                                 Assumption 1 from InstancesV2/WellFormed/<B>.lean
+  │                                                 transported, then lifted (Emitted/Lift.lean)
   ▼
-<b>_bridge : Verdicts p n cX cov prog → dt ≤ εL → windowClaim … (or keyedClaim …)
+<b>_bridge : Verdicts p n cX cov prog → dt ≤ εL → windowClaim … 0 1 2 dt (or keyedClaim … 0 1 2 3 dt)
   │ Emitted/Run.lean: `Verdicts` IS the group list the runner issues (verdicts_of_groups)
   ▼
-relcert-bridge-verdicts: rebuilds every group, prints it with toScript, Z3 says `unsat`
+relcert-bridge-verdicts: rebuilds every group at n, prints it with toScript, Z3 says `unsat`
 
 (the standalone route, kept: InstancesV2/Modal/<B>.lean composes an explicit response
  from Proofs/Encoding and Proofs/Soundness/CutLiftX under named `Verd l m` packs, each
@@ -382,7 +412,9 @@ The paper's Assumption 1 (Well-Formedness): *the right model is nonblocking and 
 respect to its declared successor relation: from every state satisfying a source-mode guard,
 an evolution spanning the control interval `ε_r` exists, and every evolution of duration at
 most `ε_r`, including the empty one, ends in a state satisfying the guard of at least one
-declared successor mode.* No Theorem 3 assumes it; it is now a separately audited model fact.
+declared successor mode.* No standalone Theorem 3 assumes it; the generic-bridge theorems
+take it as a hypothesis discharged from the per-benchmark proof (lifted by one coordinate,
+`docs/WELLFORMED.md` §6); it is a separately audited model fact.
 
 **The predicate** (`Proofs/Encoding/WellFormedR.lean`), over each benchmark's guarded right
 automaton `G` (the graph of its Theorem 3), the lowered right guards and `ε = epsR p` (the

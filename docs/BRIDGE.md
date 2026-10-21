@@ -10,8 +10,10 @@ benchmark, with every hypothesis either decided in the kernel or read from one Z
 
 For benchmark `b` with IR `p`, extended cut certificate `cX`, cover record `cov` (emitted with
 `RELCERT_IMPLIED_CUT=1`; progress certificates by default), progress record `prog` (the same run) and the
-bridge dimension `n` (the state variables plus the auxiliary coordinates; the pack table's
-`dim`):
+bridge dimension `n` (`bridgeDimV2 b`, `VerdictsV2/RunBridge.lean:73`: the Assumption 1
+lemma's dimension, the pack table's `dim`, plus one for the right clock `(Aux, d)` of the
+clocked right automaton `rightAutomatonBodyC`, since 2026-10-21; the lemma is lifted by
+`Emitted.wellFormedR_lift` under `padOK`, `Emitted/Lift.lean`):
 
 ```
 theorem b_bridge (hv : Verdicts p n cX cov prog) (dt : ℝ) (hdt : dt ≤ εL) :

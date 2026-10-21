@@ -1,8 +1,10 @@
 # Scope: the clocked right automaton (closing the "unclocked right" gap)
 
-Status: SCOPING ONLY (2026-10-21, against main = b30d15c). Nothing implemented.
-Companion: `docs/PAPER-MAPPING.md` §9 (the row "`t := 0; {…, t' = 1 & t ≤ ε_R}` on the right —
-unclocked — permissive"), `docs/history/ROTATION-SCOPE.md` (rotation, a different row).
+Status: DONE 2026-10-21, branch `clocked-right` (scoped the same day against main = b30d15c;
+outcome and deviations in §7). Companion: `docs/PAPER-MAPPING.md` §9 (the row
+"`t := 0; {…, t' = 1 & t ≤ ε_R}` on the right", now "exact (cap as post-test)"),
+`docs/history/ROTATION-SCOPE.md` (rotation, a different row). Sections 1 to 6 are the scope
+as written before the work; line numbers in them are those of main = b30d15c.
 
 ## 1. The gap
 
@@ -132,3 +134,41 @@ Total ≈ 5 agent-days; W1 ∥ W4's erasure lemma; W2 → W3 sequential.
 
 Nothing in `Trusted/` changes; the axiom set stays `propext`, `Classical.choice`, `Quot.sound`,
 `z3_unsat_sound`.
+
+## 7. Outcome (2026-10-21, branch `clocked-right`)
+
+Commits, in order:
+
+| commit | WP | content |
+|---|---|---|
+| `d171b02` | W1 | `Proofs/Encoding/ClockedRight.lean`: `sem_clockedSeg_of_flow_le` (`:90`), `gsegC` (`:207`), `RRespPC` (`:226`) with `rrespPC_stop/_mono/_step`, `guarded_rights_bridgeC` (`:325`) to `star (rightAutomatonBodyC G mv tg dt)`, the hygiene lemmas of the clocked body (`bv_rightAutomatonBodyC`, `vars_bodyCG_sub`, `fv_bodyCG_sub`), and the clock erasure `star_bodyC_to_body` (`:616`). `rightAutomatonBodyC`/`modeStepC` are reused from `ClockedTop.lean:101-112` |
+| `aa7ae33` | W2 | the general chain produces clocked right runs: `RepoProgress G tr epsR …` (`CoverResp.lean:145`), `coverX_*`, `Progress.lean` (`phase`, `phase_down`, `repoProgress_*`), `theorem3_of_coverX` (`Theorem3General.lean:181`) over `rightAutomatonBodyC Gr (Aux,a) (Aux,d) epsR`, `CoverHyps … tr …` |
+| `44c76da` | W3a | `keyedClaim … a b c d dt` (`Keyed.lean:416`), `windowClaim … a b d dt` (`Window.lean:51`), `keyedClaimS`/`windowClaimS`; `theorem3_keyed_of_records` (`Keyed.lean:427`) and twins with `d ≠ a, b, c`; `Proofs/Encoding/ClockedKeyed.lean` (the clocked mode-keyed assembly: `theorem3_modeKeyed_gen`, `hstepMode_GRC`, `HMode_regionGC`, `sides_disjoint4`) |
+| `f05b127` | W3b | `Proofs/Encoding/Emitted/Lift.lean`: `padOK` (`:108`), `odeSol_ext`/`odeSol_proj`, `wellFormedR_lift` (`:292`): Assumption 1 proofs at dimension `n` lift to `n+1` |
+| `61d7389` | W3c | `bridgeDimV2 = … + 1` (`RunBridge.lean:73`); `gen_bridge.py` emits `IR (n0+1)` with `pad_ok` and `wellFormedR_lift`; the 52 bridge instances regenerated; `relcert-bridge-verdicts` 4457/4457 |
+| `c32bdf3` | W4a | the unclocked claims kept as `keyedClaimU` (`Refute.lean:477`) / `windowClaimU` (`RefuteFlow.lean:320`); `t3_right_mono`, `erase_right_clock`, `keyedClaim_to_unclocked` (`Refute.lean:561`), `windowClaim_to_unclocked` (`RefuteFlow.lean:331`); `refute_keyed_C/A/B_clocked`, `refute_window_B_clocked` conclude the clocked claims by contraposition |
+| `b14f129` | W4b | `gen_refute.py` emits every instance at its benchmark's bridge dimension (`RefRec.dim + 1`), with the clock index and `names_ok`/`cuts_ok`; 67 refute instances regenerated; `relcert-refute-verdicts` 67/67, 188/188 |
+| `ec29603` | W3d | the Theorem-3 parts of the five `InstancesV2/Choice/General/` exhibits retired (Assumption 1 proofs kept and lifted into their bridge instances); aggregator builds |
+| (this commit) | W5 | docs: `PAPER-MAPPING.md` §9 exact, dimensions, lift, refutations, stale equation numbers; `WELLFORMED.md` §6; `VERDICTS.md`, `CERTIFICATION-CHECK.md`, `REFUTATION-*.md`, `README.md` |
+
+Deviations from §2 to §5:
+
+* **Hygiene** is two facts, `tr ∉ range Lv` and `tr ∉ range Rv` (`htrL`, `htrR`,
+  `CoverResp.lean:159`), discharged by `aux_notin_range_Lv d` / `aux_notin_range_Rv d`; the
+  three per-site facts of §3 (`tr ∉ sys.bound`, the right-hand sides, `dom.fv`) are derived
+  from `htrR` once (`CoverResp.lean:208-220`), not threaded per producer.
+* **The transfer** `keyedClaim_to_unclocked` needs only `d ≠ a` (plus `namesOK`, `cutsOK`,
+  `reg.fv ⊆ range Rv`), not `d ≠ a, b, c`; the top theorems keep all three.
+* **`ClockedKeyed.lean` is a separate file** (the clocked twin of `ModeHandoff`'s assembly),
+  additive; `ModeHandoff.lean` and the unclocked chain are untouched, as §4 planned.
+* **The five general exhibits were retired, not repadded** (§4 planned to regenerate every
+  instance): they were hand-written at `Var 2` with no slot for the right clock; their
+  Assumption 1 proofs are kept and lifted (`wellFormedR_lift`) into the bridge instances.
+  The 28 `InstancesV2/Modal/` standalone instances still state the unclocked claim.
+* **67 refute instances, not 70** (§4, §5 counted 70): the refutation arc landed 67
+  (`docs/REFUTATION-RESULTS.md`); all 67 regenerated.
+* The strict-demo instance (`scripts/gen_strict_demo.py`) regenerated with the others.
+* The paper sentence (W5's third item) is the paper's business; the repository side is done.
+
+Counts unchanged: 4457 bridge groups, 188 refute groups (no query reads the padded coordinate).
+Trust base unchanged. Axioms unchanged.

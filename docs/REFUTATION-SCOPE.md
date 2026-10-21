@@ -26,6 +26,16 @@ is `theorem3Form L* R* ψ`. Here ψ is the row, the envelope `domL ∧ domR`, an
 `mvRegionR (regionG guardR cutsR)`, which is the stored right mode's guard plus the right
 cuts. The right automaton is the PRUNED graph `grOf p n (prunedOf cov)`.
 
+Note (2026-10-21, branch `clocked-right`): since the right automaton of the bridge is clocked
+(`rightAutomatonBodyC`, right clock `(Aux, d)`; `docs/PAPER-MAPPING.md` §9), the refuted claim
+is the clocked `keyedClaim … a b c d dt` / `windowClaim … a b d dt` at the benchmark's bridge
+dimension. The arguments below are unchanged: they are stated against the unclocked claims
+`keyedClaimU` / `windowClaimU` (the pre-clock forms, `Refute.lean:477`, `RefuteFlow.lean:320`),
+and `keyedClaim_to_unclocked` / `windowClaim_to_unclocked` (`Refute.lean:561`,
+`RefuteFlow.lean:331`: fewer right runs make the claim harder; the clock is erased by
+`star_bodyC_to_body`) transfer each refutation by contraposition. Same 67 variants, same 188
+groups.
+
 The refutation target is the same claim with:
 
 - **No pruning** (`cov` with no pruned edges). Pruning only removes right runs, so the pruned

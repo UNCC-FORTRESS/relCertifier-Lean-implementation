@@ -16,9 +16,12 @@ which the kernel re-checks.
 
 ## What is refuted
 
-For a mutant with per-mode rows, `¬ keyedClaim IR n cX cov ⊤ 0 1 2 dt`; with one declared row,
-`¬ windowClaim IR n cX cov ⊤ 0 1 dt` (the forms of the bridge instances, at the bridge dimension
-`n` of the suite benchmark, `reg = ⊤`). Each instance proves the refutation
+For a mutant with per-mode rows, `¬ keyedClaim IR n cX cov ⊤ 0 1 2 3 dt`; with one declared row,
+`¬ windowClaim IR n cX cov ⊤ 0 1 2 dt` (the forms of the bridge instances, at the bridge dimension
+`n` of the suite benchmark, `reg = ⊤`; since 2026-10-21 the claims are the clocked ones, the
+right automaton `rightAutomatonBodyC` with the right clock `(Aux, 3)` resp. `(Aux, 2)`, and
+`n` is the Assumption 1 lemma's dimension plus one, `RefRec.dim + 1` in
+`InstancesV2/Refute/Table.lean`, the rule of `bridgeDimV2`). Each instance proves the refutation
 
 * **for every cover record `cov`**, hence for every pruning: the proofs never use the right
   automaton's edges (kind C does not use the right run at all; kinds A and B bound the right
@@ -35,10 +38,12 @@ For a mutant with per-mode rows, `¬ keyedClaim IR n cX cov ⊤ 0 1 2 dt`; with 
 
 | Theorem | Statement (one line) |
 |---|---|
-| `refute_keyed_C` (`Refute.lean`) | `preOK` (kernel) ∧ no-partner `unsat` per right mode ⟹ `∀ cov, ¬ keyedClaim … ⊤ … dt`, `dt ≥ 0` |
-| `refute_keyed_A` (`Refute.lean`) | `preOK` ∧ component `k` of the entered row `> 0` (kernel) ∧ rigidity `unsat` per right mode ⟹ same |
-| `refute_keyed_B` (`RefuteFlow.lean`) | `preOK` ∧ `bQ` (interior of the left envelope, component `≥ 0`, left Lie derivative `> 0`) ∧ `namesOK` ∧ `cutsOK` ∧ rigidity ⟹ same, `dt > 0` |
-| `refute_window_B` (`RefuteFlow.lean`) | `preOKW` ∧ `bQW` ∧ `rowsSame` ∧ `namesOK` ∧ `cutsOK` ∧ rigidity ⟹ `∀ cov, ¬ windowClaim … ⊤ … dt`, `dt > 0` |
+| `refute_keyed_C` (`Refute.lean:596`) | `preOK` (kernel) ∧ no-partner `unsat` per right mode ⟹ `∀ cov, ¬ keyedClaimU … ⊤ … dt`, `dt ≥ 0` (the unclocked claim, right automaton `rightAutomatonBody`) |
+| `refute_keyed_A` (`Refute.lean:617`) | `preOK` ∧ component `k` of the entered row `> 0` (kernel) ∧ rigidity `unsat` per right mode ⟹ same |
+| `refute_keyed_B` (`RefuteFlow.lean:418`) | `preOK` ∧ `bQ` (interior of the left envelope, component `≥ 0`, left Lie derivative `> 0`) ∧ `namesOK` ∧ `cutsOK` ∧ rigidity ⟹ same, `dt > 0` |
+| `refute_window_B` (`RefuteFlow.lean:494`) | `preOKW` ∧ `bQW` ∧ `rowsSame` ∧ `namesOK` ∧ `cutsOK` ∧ rigidity ⟹ `∀ cov, ¬ windowClaimU … ⊤ … dt`, `dt > 0` |
+| `keyedClaim_to_unclocked` (`Refute.lean:561`), `windowClaim_to_unclocked` (`RefuteFlow.lean:331`) | `namesOK` ∧ `cutsOK` ∧ `reg.fv ⊆ range Rv` ∧ `d ≠ a` ⟹ the clocked claim implies the unclocked one (`t3_right_mono`, `Refute.lean:491`: Theorem 3's form is monotone in the right program up to a post-condition transport; `erase_right_clock`, `Refute.lean:544`, by `star_bodyC_to_body`) |
+| `refute_keyed_C_clocked`, `refute_keyed_A_clocked` (`Refute.lean:653`, `:662`), `refute_keyed_B_clocked` (`RefuteFlow.lean:478`), `refute_window_B_clocked` (`RefuteFlow.lean:578`) | the same hypotheses plus `namesOK`, `cutsOK`, `d : Fin n`, `d ≠ a` ⟹ `∀ cov, ¬ keyedClaim … ⊤ a b c d dt` resp. `¬ windowClaim … ⊤ a b d dt`, the clocked claims the bridge instances prove; these are what the generated instances conclude (`gen_refute.py`, `d = 3` keyed, `2` window) |
 | `exit_run` (`RefuteExit.lean`) | short-time existence of the polynomial flow inside an open domain, with `G > 0` at the end when `G ≥ 0` and `Lie G > 0` at the start |
 | `rigid_star` (`Refute.lean`) | a component no right field decreases on the right envelope never decreases along any run of the right automaton (any pruning) |
 
@@ -73,8 +78,10 @@ elimination) is out of scope.
    parser-emitted IR (`relcert --emit-ir`) and the witness (`InstancesV2/Refute/Data/<id>.lean`),
    the instance (`InstancesV2/Refute/<Camel>.lean`), the runner table with its declared count.
 4. `relcert-refute-verdicts` (`VerdictsV2/RunRefute.lean`): every group `refGroups` builds, the
-   exact queries `RefVerdicts` reads. Run: **188/188 groups unsat** over the 67 instances
-   (`docs/refute/runner.log`).
+   exact queries `RefVerdicts` reads, each group at the instance's dimension `RefRec.dim + 1`.
+   Run: **188/188 groups unsat** over the 67 instances (`docs/refute/runner.log`); rerun
+   2026-10-21 at the +1 dimension, 67/67 instances, 188/188 groups (commit `b14f129`; the
+   queries do not read the padded coordinate, so the count is unchanged).
 5. `scripts/refute_experiment.py`: relcert on every mutant (this worktree's binary,
    `RELCERT_IMPLIED_CUT=1`; the default verdict includes the handoff check), the table below
    (`docs/refute/results.json`, `docs/refute/relcert.json`).

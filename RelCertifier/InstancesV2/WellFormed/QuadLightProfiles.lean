@@ -19,7 +19,11 @@ Over the instance's guarded right automaton `Gr`, the lowered right guards, `ε_
 (Until 2026-10-10 `LIMIT`'s only successor was itself and the model was refuted here, from
 `w = 3.3`: the run of duration 1 ends at `3.3 e^{−2} < 3.2`.)
 -/
-import RelCertifier.InstancesV2.Modal.QuadLightProfiles
+import RelCertifier.Proofs.Encoding.CutRespond
+import RelCertifier.Proofs.Encoding.GuardedSwitch
+import RelCertifier.Proofs.Flow.FaceBridge
+import RelCertifier.Proofs.Flow.StratifiedFaces
+import RelCertifier.InstancesV2.BenchIR.quad_light_profiles
 import RelCertifier.Proofs.Encoding.WellFormedR
 
 set_option linter.unusedSimpArgs false
@@ -28,6 +32,293 @@ namespace RelCertifier
 namespace V2QuadLightProfiles
 
 open DL DLCalTiming DLRel Parse Set
+
+
+def vs : List String := ["w"]
+def dm : PMode := ⟨"", [], .tt, .tt, []⟩
+def mR (q : ℕ) : PMode := quad_light_profiles_IRv2.R.modes.getD q dm
+
+noncomputable def fR (q : ℕ) : Fin 2 → Term (Var 2) := hostDyn vs 2 Side.R (mR q)
+noncomputable def domR : Formula (Var 2) := hostEvolve vs 2 Side.R (mR 0)
+theorem hp36 : Run.parseRat "3.6" = some ((18:ℚ)/5) := by
+  have h : parseQ "3.6" = some (⟨36, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
+theorem hp44 : Run.parseRat "4.4" = some ((22:ℚ)/5) := by
+  have h : parseQ "4.4" = some (⟨44, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
+theorem hp40 : Run.parseRat "4.0" = some (4 : ℚ) := by
+  have h : parseQ "4.0" = some (⟨40, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
+theorem hp00 : Run.parseRat "0.0" = some (0 : ℚ) := by
+  have h : parseQ "0.0" = some (⟨0, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+theorem hp35 : Run.parseRat "3.5" = some ((7:ℚ)/2) := by
+  have h : parseQ "3.5" = some (⟨35, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
+theorem hp32 : Run.parseRat "3.2" = some ((16:ℚ)/5) := by
+  have h : parseQ "3.2" = some (⟨32, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
+/-- Right climb fields: `w' = c_q − w²` (`NORMAL` 4, `ECO` 18/5, `SPORT` 22/5). -/
+noncomputable def cRc (q : ℕ) : ℝ := if q = 0 then 4 else if q = 1 then 18/5 else 22/5
+
+theorem cRc_pos (q : ℕ) (hq : q < 3) : 0 < cRc q := by
+  interval_cases q <;> norm_num [cRc]
+theorem cRc_lt (q : ℕ) (hq : q < 3) : cRc q < 49/4 := by
+  interval_cases q <;> norm_num [cRc]
+theorem cRc_le (q : ℕ) (hq : q < 3) : cRc q ≤ 22/5 := by
+  interval_cases q <;> norm_num [cRc]
+
+theorem fR0_eval (q : ℕ) (hq : q < 3) (x : State (Var 2)) :
+    Term.eval (fR q 0) x = cRc q - x (Rv 0) * x (Rv 0) := by
+  interval_cases q <;>
+  simp [fR, hostDyn, mR, quad_light_profiles_IRv2, vs, Run.dynOf, Run.lowerE, hp40, hp36, hp44,
+    Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
+    AOp.interp, Rv, cRc]
+
+theorem fR1_eval (q : ℕ) (hq : q < 3) (x : State (Var 2)) :
+    Term.eval (fR q 1) x = 0 := by
+  interval_cases q <;>
+  simp [fR, hostDyn, mR, quad_light_profiles_IRv2, vs, Run.dynOf, Run.lowerE, hp40, hp36, hp44,
+    Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
+    AOp.interp, Rv]
+
+theorem sat_domR (x : State (Var 2)) :
+    Formula.sat domR x ↔ (0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 7/2) := by
+  simp only [domR, hostEvolve, mR, quad_light_profiles_IRv2, vs]
+  simp [Run.lowerF, Run.lowerE, hp00, hp35, Run.resolveVar, List.findIdx?_cons,
+    IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv]
+
+/-! ## The right automaton (the file's modes and declared `next` lists) -/
+
+noncomputable def modeW (q : ℕ) : RMode (Var 2) :=
+  { sys := rightBlock (fR q) (Term.const 1), dom := domR, weight := 1 }
+
+/-- The declared edge `s → t` carries the ENTERED mode's lowered guard (`hostGuard` of the
+right mode `t`, lowered exactly as the left windows' guards are): the right switches into
+`t` only where `t`'s guard holds. -/
+noncomputable def edgeW (s t : ℕ) : REdge (Var 2) :=
+  { src := s, tgt := t, guard := hostGuard vs 2 Side.R (mR t), pruned := false }
+
+/-- The declared transitions, as indices (NORMAL 0, ECO 1, SPORT 2, LIMIT 3). -/
+def edgeList : List (ℕ × ℕ) :=
+  [(0, 0), (0, 1), (0, 2), (0, 3), (1, 1), (1, 0), (1, 3), (2, 2), (2, 0), (2, 3), (3, 3), (3, 0)]
+
+noncomputable def Gr : SearchGraph (Var 2) :=
+  { modes := [modeW 0, modeW 1, modeW 2, modeW 3]
+    edges := edgeList.map (fun e => edgeW e.1 e.2) }
+
+theorem Gr_modeAt (q : ℕ) (hq : q < 4) : Gr.modeAt q = some (modeW q) := by
+  interval_cases q <;> rfl
+
+theorem Gr_modeAt_inv {q : ℕ} {m : RMode (Var 2)} (hm : Gr.modeAt q = some m) :
+    q < 4 ∧ m = modeW q := by
+  match q with
+  | 0 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
+  | 1 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
+  | 2 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
+  | 3 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
+  | q + 4 => exact absurd hm (by simp [SearchGraph.modeAt, Gr])
+
+theorem edge_mem (s t : ℕ) (h : (s, t) ∈ edgeList) : edgeW s t ∈ Gr.edgesFrom s :=
+  List.mem_filter.mpr ⟨List.mem_map.mpr ⟨(s, t), h, rfl⟩, by simp [edgeW]⟩
+
+/-! ## The stretch of the left window (the emitted cover's λ) -/
+
+noncomputable def lam (_l : ℕ) : ℝ := 5/2
+
+theorem lam_pos (l : ℕ) : 0 < lam l := by unfold lam; norm_num
+
+/-! ## Existence: both evolve faces strict for the stretched drag field (Z3-free) -/
+
+/-- The faces (`w_R ∈ [0, 7/2]`): `−w_R` and `w_R − 7/2`. -/
+noncomputable def faceLo : Term (Var 2) :=
+  Term.binop AOp.sub (Term.const 0) (Term.var (Rv 0))
+noncomputable def faceHi : Term (Var 2) :=
+  Term.binop AOp.sub (Term.var (Rv 0)) (Term.const ((7:ℝ)/2))
+
+theorem faces_fv : ∀ gT ∈ [faceLo, faceHi], ∀ x ∈ gT.fv, x ∈ range Rv := by
+  intro gT hgT x hx
+  rcases List.mem_cons.mp hgT with rfl | hgT
+  · simp only [faceLo, Term.fv, Set.mem_union, Set.mem_empty_iff_false, false_or,
+      Set.mem_singleton_iff] at hx
+    exact ⟨0, hx.symm⟩
+  · rw [List.mem_singleton] at hgT
+    subst hgT
+    simp only [faceHi, Term.fv, Set.mem_union, Set.mem_empty_iff_false, or_false,
+      Set.mem_singleton_iff] at hx
+    exact ⟨0, hx.symm⟩
+
+theorem faces_val (x : State (Var 2)) (h : ∀ gT ∈ [faceLo, faceHi], Term.eval gT x ≤ 0) :
+    0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 7/2 := by
+  have h0 := h faceLo List.mem_cons_self
+  have h1 := h faceHi (by simp)
+  simp only [faceLo, faceHi, Term.eval, AOp.interp] at h0 h1
+  constructor <;> linarith
+
+/-- The frozen-left joint system at right mode `q`, stretched by `λ`: the `w_R` row is
+`λ (c_q − w_R²)`, every other row is zero. -/
+theorem odeField_R (l q : ℕ) (hq : q < 3) (x : State (Var 2)) :
+    odeField (jointSys (fun _ => Term.const 0) (fR q) (Term.const (lam l))) x
+      = fun c => if c = Rv 0 then lam l * (cRc q - x (Rv 0) * x (Rv 0)) else 0 := by
+  funext c
+  by_cases hc : c ∈ (jointSys (fun _ => Term.const 0) (fR q) (Term.const (lam l))).bound
+  · rw [show odeField (jointSys (fun _ => Term.const 0) (fR q) (Term.const (lam l))) x c
+        = ((jointSys (fun _ => Term.const 0) (fR q) (Term.const (lam l))).rhs c).eval x from by
+      simp only [odeField, if_pos hc]]
+    obtain ⟨p, hp, hfst⟩ : ∃ p ∈ jointSys (fun _ => Term.const 0) (fR q) (Term.const (lam l)),
+        p.1 = c := by simpa [ODESystem.bound, List.mem_map] using hc
+    rw [← hfst, ODESystem.rhs_eq_of_mem (jointSys_wellFormed _ _ _) hp]
+    rw [jointSys_split] at hp
+    rcases List.mem_append.mp hp with hp | hp
+    · obtain ⟨j, -, rfl⟩ := List.mem_map.mp hp
+      have : (Lv j : Var 2) ≠ Rv 0 := by simp [Lv, Rv, Prod.ext_iff]
+      simp [Term.eval, this]
+    · obtain ⟨j, -, rfl⟩ := List.mem_map.mp hp
+      fin_cases j
+      · simp [Term.eval, AOp.interp, fR0_eval q hq]
+      · have : (Rv (1 : Fin 2) : Var 2) ≠ Rv 0 := by simp [Rv, Prod.ext_iff]
+        simp [Term.eval, AOp.interp, fR1_eval q hq, this]
+  · have hcR : c ≠ Rv 0 := by
+      intro hceq
+      refine hc ?_
+      rw [hceq, jointSys_split]
+      simp only [ODESystem.bound, List.map_append, List.mem_append]
+      exact Or.inr (by
+        simp only [rightBlock, List.map_map, List.mem_map]
+        exact ⟨0, List.mem_finRange 0, rfl⟩)
+    simp only [odeField, if_neg hc, if_neg hcR]
+
+/-- Strict inflow on the lower face (`w_R = 0` ⟹ `Lie = −λ c_q < 0`). -/
+theorem hbndS_lo (l q : ℕ) (hq : q < 3) (x : State (Var 2))
+    (hface : Term.eval faceLo x = 0) :
+    Lie (jointSys (fun _ => Term.const 0) (fR q) (Term.const (lam l)))
+      (fun ω => Term.eval faceLo ω) x < 0 := by
+  have hx0 : x (Rv 0) = 0 := by
+    simp only [faceLo, Term.eval, AOp.interp] at hface
+    linarith
+  have hfun : (fun ω : State (Var 2) => Term.eval faceLo ω)
+      = fun y => (-1 : ℝ) * y (Rv 0) + 0 := by
+    funext y
+    simp [faceLo, Term.eval, AOp.interp]
+  rw [hfun, lie_affine_coord _ (jointSys_wellFormed _ _ _) (Rv 0) (-1) 0 x,
+    odeField_R l q hq]
+  simp only [if_pos rfl, if_true, hx0]
+  have h1 := lam_pos l
+  have h2 := cRc_pos q hq
+  nlinarith
+
+/-- Strict inflow on the upper face (`w_R = 7/2` ⟹ `Lie = λ (c_q − 49/4) < 0`). -/
+theorem hbndS_hi (l q : ℕ) (hq : q < 3) (x : State (Var 2))
+    (hface : Term.eval faceHi x = 0) :
+    Lie (jointSys (fun _ => Term.const 0) (fR q) (Term.const (lam l)))
+      (fun ω => Term.eval faceHi ω) x < 0 := by
+  have hx0 : x (Rv 0) = 7/2 := by
+    simp only [faceHi, Term.eval, AOp.interp] at hface
+    linarith
+  have hfun : (fun ω : State (Var 2) => Term.eval faceHi ω)
+      = fun y => (1 : ℝ) * y (Rv 0) + (-(7/2)) := by
+    funext y
+    simp [faceHi, Term.eval, AOp.interp]
+    ring
+  rw [hfun, lie_affine_coord _ (jointSys_wellFormed _ _ _) (Rv 0) 1 (-(7/2)) x,
+    odeField_R l q hq]
+  simp only [if_pos rfl, if_true, hx0]
+  have h1 := lam_pos l
+  have h2 := cRc_lt q hq
+  nlinarith
+
+/-- Hand Lipschitz bound: on unit balls around face-region anchors (`|w_R| ≤ 9/2`), the
+field is `23`-Lipschitz (`λ · 9 = 45/2`). -/
+theorem hLip (l q : ℕ) (hq : q < 3) (ν : State (Var 2))
+    (hν : ∀ gT ∈ [faceLo, faceHi], Term.eval gT ν ≤ 0) :
+    LipschitzOnWith 23 (odeField (jointSys (fun _ => Term.const 0) (fR q) (Term.const (lam l))))
+      (Metric.closedBall ν 1) := by
+  obtain ⟨hν0, hν1⟩ := faces_val ν hν
+  rw [lipschitzOnWith_iff_dist_le_mul]
+  intro x hx y hy
+  rw [odeField_R l q hq, odeField_R l q hq]
+  rw [Metric.mem_closedBall] at hx hy
+  have hxc : |x (Rv 0) - ν (Rv 0)| ≤ 1 := by
+    have h := dist_le_pi_dist x ν (Rv 0)
+    rw [Real.dist_eq] at h
+    exact le_trans h hx
+  have hyc : |y (Rv 0) - ν (Rv 0)| ≤ 1 := by
+    have h := dist_le_pi_dist y ν (Rv 0)
+    rw [Real.dist_eq] at h
+    exact le_trans h hy
+  have hνb : |ν (Rv 0)| ≤ 7/2 := abs_le.mpr ⟨by linarith, hν1⟩
+  have hxb : |x (Rv 0)| ≤ 9/2 := by
+    have h2 := abs_sub_abs_le_abs_sub (x (Rv 0)) (ν (Rv 0))
+    linarith
+  have hyb : |y (Rv 0)| ≤ 9/2 := by
+    have h2 := abs_sub_abs_le_abs_sub (y (Rv 0)) (ν (Rv 0))
+    linarith
+  refine dist_pi_le_iff (by positivity) |>.mpr ?_
+  intro c
+  by_cases hc : c = Rv 0
+  · subst hc
+    simp only [if_true]
+    rw [Real.dist_eq]
+    have hdiff : lam l * (cRc q - x (Rv 0) * x (Rv 0))
+        - lam l * (cRc q - y (Rv 0) * y (Rv 0))
+        = -(lam l) * (x (Rv 0) + y (Rv 0)) * (x (Rv 0) - y (Rv 0)) := by ring
+    rw [hdiff, abs_mul, abs_mul]
+    have h2 : |x (Rv 0) + y (Rv 0)| ≤ 9 := by
+      calc |x (Rv 0) + y (Rv 0)| ≤ |x (Rv 0)| + |y (Rv 0)| := abs_add_le _ _
+        _ ≤ 9 := by linarith
+    have h3 : |x (Rv 0) - y (Rv 0)| ≤ dist x y := by
+      have h := dist_le_pi_dist x y (Rv 0)
+      rwa [Real.dist_eq] at h
+    have hd : (0:ℝ) ≤ dist x y := dist_nonneg
+    have habs : |(-(lam l) : ℝ)| = 5/2 := by simp only [lam]; norm_num
+    have hstep : |(-(lam l) : ℝ)| * |x (Rv 0) + y (Rv 0)| * |x (Rv 0) - y (Rv 0)|
+        ≤ (5/2) * 9 * dist x y := by
+      rw [habs]
+      have hnn : (0:ℝ) ≤ |x (Rv 0) - y (Rv 0)| := abs_nonneg _
+      nlinarith [abs_nonneg (x (Rv 0) + y (Rv 0))]
+    have hcoe : ((23 : NNReal) : ℝ) = 23 := by norm_num
+    calc |(-(lam l) : ℝ)| * |x (Rv 0) + y (Rv 0)| * |x (Rv 0) - y (Rv 0)|
+        ≤ (5/2) * 9 * dist x y := hstep
+      _ ≤ ((23 : NNReal) : ℝ) * dist x y := by rw [hcoe]; nlinarith
+  · simp only [if_neg hc]
+    simp [dist_nonneg]
+
+/-- Hand field bound: `‖field‖ ≤ 62` on the same balls (`λ (c_q + 81/4) ≤ 5/2 · 493/20`). -/
+theorem hfbnd (l q : ℕ) (hq : q < 3) (ν : State (Var 2))
+    (hν : ∀ gT ∈ [faceLo, faceHi], Term.eval gT ν ≤ 0) :
+    ∀ x ∈ Metric.closedBall ν 1,
+      ‖odeField (jointSys (fun _ => Term.const 0) (fR q) (Term.const (lam l))) x‖
+        ≤ (62:NNReal) := by
+  intro x hx
+  obtain ⟨hν0, hν1⟩ := faces_val ν hν
+  rw [Metric.mem_closedBall] at hx
+  have hxc : |x (Rv 0) - ν (Rv 0)| ≤ 1 := by
+    have := dist_le_pi_dist x ν (Rv 0)
+    rw [Real.dist_eq] at this
+    linarith
+  have hxb : |x (Rv 0)| ≤ 9/2 := by
+    have := abs_sub_abs_le_abs_sub (x (Rv 0)) (ν (Rv 0))
+    have hνb : |ν (Rv 0)| ≤ 7/2 := abs_le.mpr ⟨by linarith, hν1⟩
+    linarith [abs_le.mp hνb]
+  rw [odeField_R l q hq]
+  refine pi_norm_le_iff_of_nonneg (by norm_num) |>.mpr ?_
+  intro c
+  by_cases hc : c = Rv 0
+  · subst hc
+    simp only [if_pos rfl, Real.norm_eq_abs]
+    have hsq : x (Rv 0) * x (Rv 0) ≤ (9/2) * (9/2) := by
+      have := abs_le.mp hxb
+      nlinarith
+    have hsq0 : 0 ≤ x (Rv 0) * x (Rv 0) := mul_self_nonneg _
+    have hc0 := cRc_pos q hq
+    have hc4 := cRc_le q hq
+    have hl : lam l = 5/2 := rfl
+    rw [abs_le, hl]
+    push_cast
+    refine ⟨by nlinarith [hsq, hsq0], by nlinarith [hsq, hsq0]⟩
+  · simp only [if_neg hc]
+    norm_num
+
 
 theorem hp10 : Run.parseRat "1.0" = some (1 : ℚ) := by
   have h : parseQ "1.0" = some (⟨10, 10⟩ : QF) := by decide

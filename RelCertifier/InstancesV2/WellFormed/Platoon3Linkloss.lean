@@ -23,7 +23,10 @@ Over the instance's guarded right automaton `Gr` (the repaired model,
 the model was refuted here: from `g₁ = 19`, `r₁ = 0`, the other links at rest at 30, the run
 of duration 1 ends at `g₁ = 21`, outside `BRAKE1`'s guard, its only declared successor.)
 -/
-import RelCertifier.InstancesV2.Modal.Platoon3Linkloss
+import RelCertifier.Proofs.Encoding.CutRespond
+import RelCertifier.Proofs.Encoding.ModeHandoff
+import RelCertifier.Proofs.Flow.FaceBridge
+import RelCertifier.InstancesV2.BenchIR.platoon3_linkloss
 import RelCertifier.InstancesV2.WellFormed.Platoon3Link
 
 set_option linter.unusedSimpArgs false
@@ -32,6 +35,229 @@ namespace RelCertifier
 namespace V2Platoon3Linkloss
 
 open DL DLCalTiming DLRel Parse Set Platoon3Link
+
+
+def vs : List String := ["g1", "r1", "g2", "r2", "g3", "r3"]
+def dm : PMode := ⟨"", [], .tt, .tt, []⟩
+def mR (q : ℕ) : PMode := platoon3_linkloss_IRv2.R.modes.getD q dm
+
+noncomputable def fR (q : ℕ) : Fin 6 → Term (Var 6) := hostDyn vs 6 Side.R (mR q)
+noncomputable def domR : Formula (Var 6) := hostEvolve vs 6 Side.R (mR 0)
+theorem hqm0_125 : Run.parseRat "-0.125" = some ((-1:ℚ)/8) := by
+  have h : parseQ "-0.125" = some (⟨-125, 1000⟩ : QF) := by decide
+  simp [Run.parseRat, h]; try norm_num
+theorem hq0_75 : Run.parseRat "0.75" = some ((3:ℚ)/4) := by
+  have h : parseQ "0.75" = some (⟨75, 100⟩ : QF) := by decide
+  simp [Run.parseRat, h]; try norm_num
+theorem hq30_0 : Run.parseRat "30.0" = some (30 : ℚ) := by
+  have h : parseQ "30.0" = some (⟨300, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; try norm_num
+theorem hq0_0 : Run.parseRat "0.0" = some (0 : ℚ) := by
+  have h : parseQ "0.0" = some (⟨0, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; try norm_num
+theorem hq60_0 : Run.parseRat "60.0" = some (60 : ℚ) := by
+  have h : parseQ "60.0" = some (⟨600, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; try norm_num
+theorem hqm10_0 : Run.parseRat "-10.0" = some (-10 : ℚ) := by
+  have h : parseQ "-10.0" = some (⟨-100, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; try norm_num
+theorem hq10_0 : Run.parseRat "10.0" = some (10 : ℚ) := by
+  have h : parseQ "10.0" = some (⟨100, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; try norm_num
+theorem hq25_0 : Run.parseRat "25.0" = some (25 : ℚ) := by
+  have h : parseQ "25.0" = some (⟨250, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; try norm_num
+theorem hq1_0 : Run.parseRat "1.0" = some (1 : ℚ) := by
+  have h : parseQ "1.0" = some (⟨10, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; try norm_num
+theorem hq2_0 : Run.parseRat "2.0" = some (2 : ℚ) := by
+  have h : parseQ "2.0" = some (⟨20, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; try norm_num
+theorem hq20_0 : Run.parseRat "20.0" = some (20 : ℚ) := by
+  have h : parseQ "20.0" = some (⟨200, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; try norm_num
+theorem hq58_0 : Run.parseRat "58.0" = some (58 : ℚ) := by
+  have h : parseQ "58.0" = some (⟨580, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; try norm_num
+theorem hq21_0 : Run.parseRat "21.0" = some (21 : ℚ) := by
+  have h : parseQ "21.0" = some (⟨210, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; try norm_num
+theorem hq59_0 : Run.parseRat "59.0" = some (59 : ℚ) := by
+  have h : parseQ "59.0" = some (⟨590, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; try norm_num
+theorem hq19_0 : Run.parseRat "19.0" = some (19 : ℚ) := by
+  have h : parseQ "19.0" = some (⟨190, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; try norm_num
+
+
+/-! ## Evaluations of the lowered data -/
+
+/-- Three damped links on side `W`, set points `c₁, c₂, c₃`. -/
+def PairField3 (W : Fin 6 → Var 6) (f : Fin 6 → Term (Var 6)) (c1 c2 c3 : ℝ) : Prop :=
+  ∀ z : State (Var 6),
+    Term.eval (f 0) z = z (W 1) ∧
+    Term.eval (f 1) z = -(1/8) * (z (W 0) - c1) - 3/4 * z (W 1) ∧
+    Term.eval (f 2) z = z (W 3) ∧
+    Term.eval (f 3) z = -(1/8) * (z (W 2) - c2) - 3/4 * z (W 3) ∧
+    Term.eval (f 4) z = z (W 5) ∧
+    Term.eval (f 5) z = -(1/8) * (z (W 4) - c3) - 3/4 * z (W 5)
+
+theorem fR_field : PairField3 Rv (fR 0) 30 30 30 := by
+  intro z
+  simp [fR, hostDyn, mR, platoon3_linkloss_IRv2, vs, Run.dynOf, Run.lowerE, hqm0_125, hq0_75,
+    hq30_0, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
+    AOp.interp, Rv]
+  refine ⟨by ring, by ring, by ring⟩
+
+/-- The evolve box (both sides): `g_i ∈ [0, 60]`, `r_i ∈ [−10, 10]`. -/
+def Box (W : Fin 6 → Var 6) (x : State (Var 6)) : Prop :=
+  (0 ≤ x (W 0) ∧ x (W 0) ≤ 60 ∧ -10 ≤ x (W 1) ∧ x (W 1) ≤ 10) ∧
+  (0 ≤ x (W 2) ∧ x (W 2) ≤ 60 ∧ -10 ≤ x (W 3) ∧ x (W 3) ≤ 10) ∧
+  (0 ≤ x (W 4) ∧ x (W 4) ≤ 60 ∧ -10 ≤ x (W 5) ∧ x (W 5) ≤ 10)
+
+theorem sat_domR (x : State (Var 6)) : Formula.sat domR x ↔ Box Rv x := by
+  simp only [domR, hostEvolve, mR, platoon3_linkloss_IRv2, vs]
+  simp [Run.lowerF, Run.lowerE, hq0_0, hq60_0, hqm10_0, hq10_0, Run.resolveVar,
+    List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv,
+    Box, and_assoc]
+
+/-! ## O2: the kept atoms stay along the joint flows (`Platoon3Link` shape lemmas) -/
+
+theorem linkFields {W : Fin 6 → Var 6} {f : Fin 6 → Term (Var 6)} {c1 c2 c3 : ℝ}
+    (h : PairField3 W f c1 c2 c3) :
+    LinkField W f 0 1 c1 ∧ LinkField W f 2 3 c2 ∧ LinkField W f 4 5 c3 :=
+  ⟨⟨fun z => (h z).1, fun z => (h z).2.1⟩, ⟨fun z => (h z).2.2.1, fun z => (h z).2.2.2.1⟩,
+    ⟨fun z => (h z).2.2.2.2.1, fun z => (h z).2.2.2.2.2⟩⟩
+
+/-! ## Existence: the explicit solution of the (linear) right `FOLLOW` mode -/
+
+noncomputable def solC (c : ℝ) (b : State (Var 6)) (t : ℝ) : Fin 6 → ℝ
+  | ⟨0, _⟩ => gS c (b (Rv 0)) (b (Rv 1)) t
+  | ⟨1, _⟩ => rS c (b (Rv 0)) (b (Rv 1)) t
+  | ⟨2, _⟩ => gS c (b (Rv 2)) (b (Rv 3)) t
+  | ⟨3, _⟩ => rS c (b (Rv 2)) (b (Rv 3)) t
+  | ⟨4, _⟩ => gS c (b (Rv 4)) (b (Rv 5)) t
+  | ⟨5, _⟩ => rS c (b (Rv 4)) (b (Rv 5)) t
+
+noncomputable def solΦ (c : ℝ) (b : State (Var 6)) (t : ℝ) : State (Var 6) :=
+  fun x => if x.1 = Side.R then solC c b t x.2 else b x
+
+theorem solΦ_R (c : ℝ) (b : State (Var 6)) (t : ℝ) (j : Fin 6) :
+    solΦ c b t (Rv j) = solC c b t j := by simp [solΦ, Rv]
+
+theorem solΦ_zero (c : ℝ) (b : State (Var 6)) : solΦ c b 0 = b := by
+  funext x
+  obtain ⟨s, j⟩ := x
+  by_cases hs : s = Side.R
+  · subst hs
+    rw [show ((Side.R, j) : Var 6) = Rv j from rfl, solΦ_R]
+    fin_cases j <;> simp [solC, gS_zero, rS_zero, Rv]
+  · simp [solΦ, hs]
+
+theorem solΦ_frozen (c : ℝ) (b : State (Var 6)) (t : ℝ) (x : Var 6) (hx : x.1 ≠ Side.R) :
+    solΦ c b t x = b x := by simp [solΦ, hx]
+
+/-- The link's own box and slow form at the anchor (the evolve box, the projected-gap
+guard). -/
+def LinkStart (c : ℝ) (x y : ℝ) : Prop :=
+  0 ≤ x ∧ x ≤ 60 ∧ -10 ≤ y ∧ y ≤ 10 ∧ -(9/2) ≤ Q2 c x y ∧ 2 * Q2 c x y ≤ 60 - c
+
+def QBounds (c : ℝ) (b : State (Var 6)) : Prop :=
+  LinkStart c (b (Rv 0)) (b (Rv 1)) ∧ LinkStart c (b (Rv 2)) (b (Rv 3)) ∧
+    LinkStart c (b (Rv 4)) (b (Rv 5))
+
+theorem solΦ_box (c : ℝ) (hc1 : 20 ≤ c) (hc2 : c ≤ 60) (b : State (Var 6)) (hb : QBounds c b)
+    (t : ℝ) (ht : 0 ≤ t) : Box Rv (solΦ c b t) := by
+  obtain ⟨⟨a1, a2, a3, a4, a5, a6⟩, ⟨b1, b2, b3, b4, b5, b6⟩, ⟨d1, d2, d3, d4, d5, d6⟩⟩ := hb
+  have k0 := link_bounds c (9/2) _ _ t ht hc1 hc2 (by linarith) (by norm_num) a1 a2 a3 a4 a5 a6
+  have k1 := link_bounds c (9/2) _ _ t ht hc1 hc2 (by linarith) (by norm_num) b1 b2 b3 b4 b5 b6
+  have k2 := link_bounds c (9/2) _ _ t ht hc1 hc2 (by linarith) (by norm_num) d1 d2 d3 d4 d5 d6
+  simp only [Box, solΦ_R]
+  exact ⟨⟨k0.1.1, k0.1.2, k0.2.1, k0.2.2⟩, ⟨k1.1.1, k1.1.2, k1.2.1, k1.2.2⟩,
+    ⟨k2.1.1, k2.1.2, k2.2.1, k2.2.2⟩⟩
+
+/-- The explicit solution solves the stretched right block (`λ = 1`). -/
+theorem solΦ_deriv (c : ℝ) (fR : Fin 6 → Term (Var 6)) (hF : PairField3 Rv fR c c c)
+    (b : State (Var 6)) (s t : ℝ) :
+    ∀ p ∈ rightBlock fR (Term.const 1),
+      HasDerivWithinAt (fun u => solΦ c b u p.1) (p.2.eval (solΦ c b t)) (Icc 0 s) t := by
+  intro p hp
+  simp only [rightBlock, List.mem_map, List.mem_finRange, true_and] at hp
+  obtain ⟨i, rfl⟩ := hp
+  have hfun : (fun u => solΦ c b u (Rv i)) = fun u => solC c b u i := by
+    funext u; exact solΦ_R c b u i
+  simp only [hfun, Term.eval, AOp.interp, one_mul]
+  refine HasDerivAt.hasDerivWithinAt ?_
+  obtain ⟨f0, f1, f2, f3, f4, f5⟩ := hF (solΦ c b t)
+  fin_cases i
+  · rw [show ((⟨0, by norm_num⟩ : Fin 6)) = (0 : Fin 6) from rfl, f0, solΦ_R]
+    exact gS_hasDeriv c _ _ t
+  · rw [show ((⟨1, by norm_num⟩ : Fin 6)) = (1 : Fin 6) from rfl, f1, solΦ_R, solΦ_R]
+    exact rS_hasDeriv c _ _ t
+  · rw [show ((⟨2, by norm_num⟩ : Fin 6)) = (2 : Fin 6) from rfl, f2, solΦ_R]
+    exact gS_hasDeriv c _ _ t
+  · rw [show ((⟨3, by norm_num⟩ : Fin 6)) = (3 : Fin 6) from rfl, f3, solΦ_R, solΦ_R]
+    exact rS_hasDeriv c _ _ t
+  · rw [show ((⟨4, by norm_num⟩ : Fin 6)) = (4 : Fin 6) from rfl, f4, solΦ_R]
+    exact gS_hasDeriv c _ _ t
+  · rw [show ((⟨5, by norm_num⟩ : Fin 6)) = (5 : Fin 6) from rfl, f5, solΦ_R, solΦ_R]
+    exact rS_hasDeriv c _ _ t
+
+
+
+/-! ## The GUARDED right automaton (the file's modes, declared `next` lists, entered guards) -/
+
+noncomputable def modeW (q : ℕ) : RMode (Var 6) :=
+  { sys := rightBlock (fR q) (Term.const 1), dom := domR, weight := 1 }
+
+/-- An edge tests the lowered guard of the mode it ENTERS (the paper's `?guard_m(x)`). -/
+noncomputable def edgeW (s t : ℕ) : REdge (Var 6) :=
+  { src := s, tgt := t, guard := hostGuard vs 6 Side.R (mR t), pruned := false }
+
+/-- The declared transitions, as indices (FOLLOW 0, BRAKE1 1, BRAKE2 2, BRAKE3 3). -/
+def edgeList : List (ℕ × ℕ) :=
+  [(0, 0), (0, 1), (0, 2), (0, 3), (1, 1), (2, 2), (3, 3)]
+
+noncomputable def Gr : SearchGraph (Var 6) :=
+  { modes := [modeW 0, modeW 1, modeW 2, modeW 3]
+    edges := edgeList.map (fun e => edgeW e.1 e.2) }
+
+theorem Gr_len : Gr.modes.length = 4 := rfl
+
+theorem Gr_modeAt (q : ℕ) (hq : q < 4) : Gr.modeAt q = some (modeW q) := by
+  interval_cases q <;> rfl
+
+theorem Gr_modeAt_inv {q : ℕ} {m : RMode (Var 6)} (hm : Gr.modeAt q = some m) :
+    q < 4 ∧ m = modeW q := by
+  match q with
+  | 0 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
+  | 1 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
+  | 2 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
+  | 3 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
+  | q + 4 => exact absurd hm (by simp [SearchGraph.modeAt, Gr])
+
+theorem edge_mem (s t : ℕ) (h : (s, t) ∈ edgeList) : edgeW s t ∈ Gr.edgesFrom s :=
+  List.mem_filter.mpr ⟨List.mem_map.mpr ⟨(s, t), h, rfl⟩, by simp [edgeW]⟩
+
+/-- The reference's `FOLLOW` guard (the operating range), from its parts. -/
+theorem guardR0_of (x : State (Var 6))
+    (h1 : 20 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 60 ∧ -10 ≤ x (Rv 1) ∧ x (Rv 1) ≤ 10 ∧
+      21 ≤ x (Rv 0) + 2 * x (Rv 1) ∧ x (Rv 0) + 2 * x (Rv 1) ≤ 59)
+    (h2 : 20 ≤ x (Rv 2) ∧ x (Rv 2) ≤ 60 ∧ -10 ≤ x (Rv 3) ∧ x (Rv 3) ≤ 10 ∧
+      21 ≤ x (Rv 2) + 2 * x (Rv 3) ∧ x (Rv 2) + 2 * x (Rv 3) ≤ 59)
+    (h3 : 20 ≤ x (Rv 4) ∧ x (Rv 4) ≤ 60 ∧ -10 ≤ x (Rv 5) ∧ x (Rv 5) ≤ 10 ∧
+      21 ≤ x (Rv 4) + 2 * x (Rv 5) ∧ x (Rv 4) + 2 * x (Rv 5) ≤ 59) :
+    Formula.sat (hostGuard vs 6 Side.R (mR 0)) x := by
+  simp [hostGuard, mR, platoon3_linkloss_IRv2, Run.lowerF, Run.lowerE, hq19_0, hq59_0, hqm10_0, hq10_0, hq2_0, hq20_0, hq58_0, hq25_0, hq21_0, hq60_0, vs,
+    Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
+    CompOp.interp, Term.eval, AOp.interp, Rv]
+  simp only [Rv] at h1 h2 h3
+  obtain ⟨a1, a2, a3, a4, a5, a6⟩ := h1
+  obtain ⟨b1, b2, b3, b4, b5, b6⟩ := h2
+  obtain ⟨d1, d2, d3, d4, d5, d6⟩ := h3
+  repeat' apply And.intro
+  all_goals linarith
+
 
 theorem epsR_eq : epsR platoon3_linkloss_IRv2 = 1 := by
   simp [epsR, platoon3_linkloss_IRv2, hq1_0]

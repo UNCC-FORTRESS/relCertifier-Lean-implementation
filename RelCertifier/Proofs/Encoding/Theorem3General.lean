@@ -39,7 +39,7 @@ variable {n : ℕ}
 per left mode). -/
 structure CoverHyps (G : SearchGraph (Var n)) (ch : ChoiceData)
     (fR : ℕ → Fin n → Term (Var n)) (domR : Formula (Var n)) (fL : Fin n → Term (Var n))
-    (domL gL : Formula (Var n)) (guard : ℕ → Formula (Var n))
+    (domL gL : Formula (Var n)) (guard : ℕ → Formula (Var n)) (tr : Var n)
     (epsR δ : ℝ) (lam : ℕ → ℝ) (A : ℕ → Formula (Var n))
     (RJ : ℕ → Formula (Var n)) (RR RS : ℕ → SrcSetting → Formula (Var n)) : Prop where
   hδ : 0 < δ
@@ -58,7 +58,7 @@ structure CoverHyps (G : SearchGraph (Var n)) (ch : ChoiceData)
       σ ω → ¬ Formula.sat e.guard ω
   hrepoProg : ∀ q m, G.modeAt q = some m → ∀ pre : Bool,
     (if pre then ch.repoPre q else ch.repoPost q) = true →
-    RepoProgress G A gL (guard q) q pre
+    RepoProgress G tr epsR A gL (guard q) q pre
   hRJ : ∀ q y, Formula.sat (A q) y → Formula.sat (RJ q) y
   hcovJ : ∀ q S, S ∈ ch.jointS q → ∀ y, Formula.sat (RJ q) y → ∃ q' ∈ S, Formula.sat (guard q') y
   hRR : ∀ q σ y, Formula.sat (A q) y → (σ = SrcSetting.preJ → Formula.sat gL y) →
@@ -78,7 +78,8 @@ def AdmissibleStart (gL F env guardq cutsq : Formula (Var n)) : Prop :=
 
 section Assembly
 
-variable (Gr : SearchGraph (Var n)) (a b : Fin n) (hab : a ≠ b) (dt : ℝ)
+variable (Gr : SearchGraph (Var n)) (a b d : Fin n) (hab : a ≠ b) (had : a ≠ d) (hbd : b ≠ d)
+  (dt : ℝ)
   (g : Term (Var n)) (gs : List (Term (Var n)))
   (comps_fv : ∀ c ∈ g :: gs, c.fv ⊆ range Lv ∪ range Rv)
   (domL domR : Formula (Var n)) (hdomL : domL.fv ⊆ range Lv) (hdomR : domR.fv ⊆ range Rv)
@@ -101,8 +102,8 @@ variable (Gr : SearchGraph (Var n)) (a b : Fin n) (hab : a ≠ b) (dt : ℝ)
   (hAreg : ∀ l, l < L → ∀ q y, Formula.sat (A l q) y → Formula.sat reg y)
   (RJ : ℕ → ℕ → Formula (Var n))
   (RR RS : ℕ → ℕ → SrcSetting → Formula (Var n))
-  (H : ∀ l, l < L → CoverHyps Gr (ch l) fR domR (fL l) domL (gL l) guard epsR (δ l) (lam l)
-    (A l) (RJ l) (RR l) (RS l))
+  (H : ∀ l, l < L → CoverHyps Gr (ch l) fR domR (fL l) domL (gL l) guard ((Side.Aux, d) : Var n)
+    epsR (δ l) (lam l) (A l) (RJ l) (RR l) (RS l))
   (hdt : ∀ l, l < L → dt ≤ (B l : ℝ) * δ l)
   (hcov : ∀ l, l < L → ∀ q, q < Gr.modes.length →
     AdmissibleStart (gL l) (FM g gs) (Formula.and domL domR) (guard q) (cuts q) →
@@ -130,14 +131,15 @@ theorem Hmulti_of_coverX :
       σ ((Side.Aux, a) : Var n) = (q : ℝ) →
       Formula.sat (Formula.and (FM g gs) (Formula.and domL domR)) σ →
       Formula.sat (guard q) σ → Formula.sat (cuts q) σ →
-      GResp Gr q P (fun qf => Formula.and (Formula.and (FM g gs) (Formula.and domL domR))
-        (cuts qf)) σ := by
+      GRespC Gr ((Side.Aux, d) : Var n) epsR q P
+        (fun qf => Formula.and (Formula.and (FM g gs) (Formula.and domL domR)) (cuts qf)) σ := by
   intro P hP q hq σ _ hσ hg hc
   simp only [leftProgsOf, leftDataOf, List.map_map, List.mem_map, List.mem_range] at hP
   obtain ⟨l, hl, rfl⟩ := hP
   simp only [Function.comp]
   have Hl := H l hl
-  refine coverX_gresp Gr (ch l) fR domR (fL l) domL (gL l) b guard hgR hguards hguardR (hfL l hl)
+  refine coverX_gresp Gr (ch l) fR domR (fL l) domL (gL l) b guard ((Side.Aux, d) : Var n)
+    (aux_notin_range_Lv d) (aux_notin_range_Rv d) hgR hguards hguardR (hfL l hl)
     hdomL hdomR (hgLv l hl) hfR hsys hdomM hweight epsR (δ l) Hl.hδ (lam l) Hl.hlam Hl.hspan (A l)
     Hl.hAfv Hl.hAdom Hl.hbox Hl.hhand reg hregR (hAreg l hl) hwf Hl.hprune
     Hl.hrepoProg (RJ l) Hl.hRJ Hl.hcovJ (RR l) Hl.hRR Hl.hcovR (RS l) Hl.hRS Hl.hcovS dt (B l)
@@ -168,20 +170,23 @@ theorem hL_of (hgLv : ∀ l, l < L → (gL l).fv ⊆ range Lv)
   obtain ⟨l, hl, rfl⟩ := hd
   exact ⟨hgLv l hl, hfL l hl, hdomL⟩
 
-include hab hgR hguards hguardR hcutsR hfR hsys hdomM hweight hlt hgLv hfL hdomL hdomR hregR hAreg hwf H hdt
-  hcov hAstart hApost comps_fv in
+include hab had hbd hgR hguards hguardR hcutsR hfR hsys hdomM hweight hlt hgLv hfL hdomL hdomR hregR hAreg
+  hwf H hdt hcov hAstart hApost comps_fv in
 /-- **Theorem 3 (Soundness of Synthesis), with the existential mode choice.** The ∀∃ relational
 invariance of the declared row with the evolve envelope and the right mode's region, over the
-guard-gated left windows and the guarded right automaton, from: Assumption 1 (`hwf`), a cover of
-every admissible start of every window (`hcov`), and the certificates each cover consumes (`H`).
--/
+guard-gated left windows and the CLOCKED guarded right automaton (each right cycle flows for at
+most `ε_R`, the paper's Eq. (1); mode variable `(Aux, a)`, left clock `(Aux, b)`, right clock
+`(Aux, d)`), from: Assumption 1 (`hwf`), a cover of every admissible start of every window
+(`hcov`), and the certificates each cover consumes (`H`). -/
 theorem theorem3_of_coverX :
     RFormula.rvalid (theorem3Form
       (bigChoice (leftProgsOf b dt domL L gL fL))
-      (rightAutomatonBody Gr ((Side.Aux, a) : Var n))
+      (rightAutomatonBodyC Gr ((Side.Aux, a) : Var n) ((Side.Aux, d) : Var n) epsR)
       (RFormula.and (RFormula.and (canonInvM g gs) (envLR domL domR))
         (mvRegionR ((Side.Aux, a) : Var n) (regionG guard cuts) Gr.modes.length))) := by
   set mv : Var n := ((Side.Aux, a) : Var n) with hmv
+  set tr : Var n := ((Side.Aux, d) : Var n) with htr
+  have hmvtr : mv ≠ tr := by simp [hmv, htr, Prod.ext_iff, had]
   have hmvF : mv ∉ (FM g gs).fv := notMem_FM_fv (fun g' hg' hx => by
     rcases comps_fv g' hg' hx with ⟨i, hi⟩ | ⟨i, hi⟩
     · exact aux_ne_Lv a i hi.symm
@@ -214,9 +219,10 @@ theorem theorem3_of_coverX :
     intro h
     obtain ⟨i, hi⟩ := leftBlock_bound_sub d.2.1 _ h
     exact aux_ne_Lv a i hi
-  refine theorem3_faithful_multiR_LR Gr mv (FM g gs) domL domR (regionG guard cuts)
-    (leftProgsOf b dt domL L gL fL) (canonInvM g gs) (encode_canonInvM g gs) ?_ ?_ ?_
-  · refine sides_disjoint a b a hab.symm hab.symm ?_ ?_
+  refine theorem3_faithful_multiR_LR_gen Gr mv (rightAutomatonBodyC Gr mv tr epsR) (FM g gs)
+    domL domR (regionG guard cuts) (leftProgsOf b dt domL L gL fL) (canonInvM g gs)
+    (encode_canonInvM g gs) ?_ ?_ ?_
+  · refine sides_disjoint a b d hab.symm hbd ?_ ?_
     · refine vars_bigChoice_sub _ _ ?_
       intro p hp
       simp only [leftProgsOf, List.mem_map] at hp
@@ -225,24 +231,24 @@ theorem theorem3_of_coverX :
         (hL d hd).2.1 (hL d hd).2.2
     · intro x hx
       rw [Program.rename_refl] at hx
-      rcases vars_bodyG_sub Gr _ hgR hRv hx with hx | hx
-      · exact Or.inl (Set.mem_insert_iff.mpr (Or.inl (Set.mem_singleton_iff.mp hx)))
+      rcases vars_bodyCG_sub Gr mv tr epsR hgR hRv hx with hx | hx
+      · exact Or.inl hx
       · exact Or.inr hx
-  · exact hstep_assembled_GR Gr mv (FM g gs) (Formula.and domL domR) (regionG guard cuts)
-      (leftProgsOf b dt domL L gL fL) hmvF hmvenv hmvreg hfresh
+  · exact hstep_assembled_GRC Gr mv tr epsR (FM g gs) (Formula.and domL domR) (regionG guard cuts)
+      (leftProgsOf b dt domL L gL fL) hmvF hmvenv hmvreg hmvtr hfresh
       (guardsFresh_of_right Gr a hgR) hlt hframes
-      (Hmulti_regionG Gr mv guard cuts hguards (FM g gs) (Formula.and domL domR)
+      (Hmulti_regionGC Gr mv tr epsR guard cuts hguards (FM g gs) (Formula.and domL domR)
         (leftProgsOf b dt domL L gL fL)
         (fun P hP q _ σ ν hrun => by
           simp only [leftProgsOf, List.mem_map] at hP
           obtain ⟨d, hd, rfl⟩ := hP
           exact frames_right (vars_gwindowSegL_sub d.1 d.2.1 d.2.2.1 b dt d.2.2.2 (hL d hd).1
             (hL d hd).2.1 (hL d hd).2.2) (hguardR q) hrun)
-        (Hmulti_of_coverX Gr a b dt g gs comps_fv domL domR hdomL hdomR guard cuts hguards hgR
-          hguardR hcutsR fR hfR hsys hdomM hweight L gL fL hgLv hfL epsR reg hregR hwf ch B δ lam A hAreg RJ RR
-          RS H hdt hcov hAstart hApost))
-  · exact hddF_multiR_G Gr a b dt (leftDataOf domL L gL fL) (regionG guard cuts)
-      (canonInvM g gs) domL domR hab hgR hRv hL
+        (Hmulti_of_coverX Gr a b d dt g gs comps_fv domL domR hdomL hdomR guard cuts hguards hgR
+          hguardR hcutsR fR hfR hsys hdomM hweight L gL fL hgLv hfL epsR reg hregR hwf ch B δ lam A
+          hAreg RJ RR RS H hdt hcov hAstart hApost))
+  · exact hddF_multiR_GC Gr a b d dt epsR (leftDataOf domL L gL fL) (regionG guard cuts)
+      (canonInvM g gs) domL domR hab hbd hgR hRv hL
       (fun q _ => regionG_fv_sub (hguardR q) (hcutsR q))
       (canonInvM_varsL g gs comps_fv) (canonInvM_varsR g gs) hdomL hdomR
 

@@ -630,4 +630,324 @@ theorem star_bodyC_to_body (G : SearchGraph (Var n)) (mv tg : Var n) (dt : ℝ)
         bodyC_to_body_step G mv tg dt hmvtg hfreshT hgfT hstep b' hagree
       exact ⟨κ', Relation.ReflTransGen.tail hb' hκ', hagree'⟩
 
+/-! ## W2: composition of clocked responses, the zero-duration segment -/
+
+/-- **Clocked responses compose** (mirror of `rrespP_bind`). -/
+theorem rrespPC_bind {G : SearchGraph (Var n)} {tg : Var n} {dt : ℝ}
+    {P Q : ℕ → State (Var n) → Prop} :
+    ∀ (segs : List (ℕ × RMode (Var n) × REdge (Var n))) {q : ℕ} {ν μ : State (Var n)},
+      (∀ s ∈ segs, G.modeAt s.1 = some s.2.1 ∧ s.2.2 ∈ G.edgesFrom s.1) →
+      List.IsChain (fun a b => a.2.2.tgt = b.1) segs →
+      (∀ s, segs.head? = some s → s.1 = q) →
+      Program.sem (bigSeq (segs.map (gsegC tg dt))) ν μ → P (qfOf segs q) μ →
+      (∀ q' μ', P q' μ' → RRespPC G tg dt q' Q μ') → RRespPC G tg dt q Q ν := by
+  intro segs
+  induction segs with
+  | nil =>
+      intro q ν μ _ _ _ hrun hp hk
+      rw [List.map_nil, bigSeq, sem_test] at hrun
+      obtain ⟨rfl, -⟩ := hrun
+      simpa [qfOf] using hk _ _ hp
+  | cons a rest ih =>
+      intro q ν μ ha hc hh hrun hp hk
+      have hq : a.1 = q := hh a rfl
+      simp only [List.map_cons, bigSeq] at hrun
+      obtain ⟨κ, hseg, hrest⟩ := hrun
+      obtain ⟨hflow, hleg⟩ := sem_gsegC.mp hseg
+      obtain ⟨hm, he⟩ := ha a List.mem_cons_self
+      rw [← hq]
+      refine rrespPC_step hm he hflow hleg (ih (q := a.2.2.tgt)
+        (fun s hs => ha s (List.mem_cons_of_mem _ hs)) hc.of_cons ?_ hrest
+        (by rw [← qfOf_cons]; exact hp) hk)
+      intro t ht
+      rcases rest with - | ⟨r, rs⟩
+      · simp at ht
+      · simp only [List.head?_cons, Option.some.injEq] at ht
+        subst ht; exact hc.rel.symm
+
+theorem rrespPC_bind' {G : SearchGraph (Var n)} {tg : Var n} {dt : ℝ} {q : ℕ}
+    {P Q : ℕ → State (Var n) → Prop} {ν : State (Var n)} (h : RRespPC G tg dt q P ν)
+    (hk : ∀ q' μ', P q' μ' → RRespPC G tg dt q' Q μ') : RRespPC G tg dt q Q ν := by
+  obtain ⟨segs, ha, hc, hh, μ, hrun, hp⟩ := h
+  exact rrespPC_bind segs ha hc hh hrun hp hk
+
+/-- **The zero-duration clocked segment**: from an in-domain state, reset the clock, flow for
+no time, pass the cap (`0 ≤ dt`). The end state is the start with the clock at `0`. Replaces
+`sem_ode_zero` at the hop sites of the chain. -/
+theorem sem_clockedSeg_zero (sys : ODESystem (Var n)) (dom : Formula (Var n)) (tg : Var n)
+    (dt : ℝ) {ν : State (Var n)} (hdt : 0 ≤ dt) (htgdom : tg ∉ dom.fv)
+    (hν : Formula.sat dom ν) :
+    Program.sem (clockedSeg sys dom tg dt) ν (Function.update ν tg 0) := by
+  refine ⟨Function.update ν tg 0,
+    ⟨by simp only [Term.eval, Function.update_self], fun y hy => Function.update_of_ne hy _ _⟩,
+    Function.update ν tg 0, sem_ode_zero _ _ ?_, rfl, ?_⟩
+  · refine (Formula.coincidence dom (fun x hx => ?_)).mp hν
+    exact (Function.update_of_ne (fun h : x = tg => htgdom (by rw [← h]; exact hx)) _ _).symm
+  · rw [sat_clkGuard, Function.update_self]
+    exact hdt
+
+/-! ## W2: the clocked guarded obligation and the loop step over the clocked automaton -/
+
+/-- `GResp` over clocked segments: for every run of the left program `P` from `σ`, the right
+responds from mode `q` with a chain of clocked segments ending where `post` of the final mode
+holds. Stated through `RRespPC`, so `coverX_gresp`'s response is this by definition. -/
+def GRespC (G : SearchGraph (Var n)) (tg : Var n) (dt : ℝ) (q : ℕ) (P : Program (Var n))
+    (post : ℕ → Formula (Var n)) (σ : State (Var n)) : Prop :=
+  ∀ ν, Program.sem P σ ν → RRespPC G tg dt q (fun q' μ => Formula.sat (post q') μ) ν
+
+/-- The left window's own guard test (mirror of `gresp_gate`). -/
+theorem grespC_gate {G : SearchGraph (Var n)} {tg : Var n} {dt : ℝ} {q : ℕ}
+    {φ : Formula (Var n)} {P' : Program (Var n)} {post : ℕ → Formula (Var n)}
+    {σ : State (Var n)} (h : Formula.sat φ σ → GRespC G tg dt q P' post σ) :
+    GRespC G tg dt q (Program.seq (Program.test φ) P') post σ := by
+  intro ν hν
+  obtain ⟨κ, ⟨rfl, hφ⟩, hrun⟩ := hν
+  exact h hφ ν hrun
+
+/-- The end of a chain of clocked segments: unchanged if empty, else legal for the last
+switch (mirror of `bigSeq_gseg_end`). -/
+theorem bigSeq_gsegC_end {tg : Var n} {dt : ℝ} :
+    ∀ (segs : List (ℕ × RMode (Var n) × REdge (Var n))) {ν μ : State (Var n)},
+      Program.sem (bigSeq (segs.map (gsegC tg dt))) ν μ →
+      (segs = [] → μ = ν) ∧ ∀ s, segs.getLast? = some s → SwitchLegal s.2.2 μ := by
+  intro segs
+  induction segs with
+  | nil =>
+      intro ν μ h
+      rw [List.map_nil, bigSeq, sem_test] at h
+      obtain ⟨rfl, -⟩ := h
+      exact ⟨fun _ => rfl, fun s hs => by simp at hs⟩
+  | cons a rest ih =>
+      intro ν μ h
+      simp only [List.map_cons, bigSeq] at h
+      obtain ⟨κ, hseg, hrest⟩ := h
+      refine ⟨fun h => by simp at h, fun s hs => ?_⟩
+      rcases rest with - | ⟨r, rs⟩
+      · simp only [List.map_nil, bigSeq, sem_test] at hrest
+        obtain ⟨rfl, -⟩ := hrest
+        simp only [List.getLast?_singleton, Option.some.injEq] at hs
+        subst hs
+        exact (sem_gsegC.mp hseg).2
+      · exact (ih hrest).2 s (by rw [List.getLast?_cons_cons] at hs; exact hs)
+
+/-- **The clocked guarded jump re-establishes the entered mode's guard** (mirror of
+`gresp_guard`). -/
+theorem grespC_guard {G : SearchGraph (Var n)} {tg : Var n} {dt : ℝ}
+    (guard : ℕ → Formula (Var n))
+    (hGg : ∀ q, ∀ e ∈ G.edgesFrom q, e.guard = guard e.tgt)
+    {q : ℕ} {P : Program (Var n)} {post post' : ℕ → Formula (Var n)} {σ : State (Var n)}
+    (hidle : ∀ ν, Program.sem P σ ν → Formula.sat (guard q) ν)
+    (himp : ∀ q' μ, Formula.sat (post q') μ → Formula.sat (guard q') μ →
+      Formula.sat (post' q') μ)
+    (h : GRespC G tg dt q P post σ) : GRespC G tg dt q P post' σ := by
+  intro ν hν
+  obtain ⟨segs, ha, hc, hh, μ, hrun, hp⟩ := h ν hν
+  refine ⟨segs, ha, hc, hh, μ, hrun, himp _ μ hp ?_⟩
+  obtain ⟨hnil, hlast⟩ := bigSeq_gsegC_end segs hrun
+  rcases hsl : segs.getLast? with _ | s
+  · have hsegs : segs = [] := List.getLast?_eq_none_iff.mp hsl
+    have hq : qfOf segs q = q := by simp [qfOf, hsl]
+    rw [hq, hnil hsegs]
+    exact hidle ν hν
+  · have hq : qfOf segs q = s.2.2.tgt := by simp [qfOf, hsl]
+    have hmem : s ∈ segs := List.mem_of_getLast? hsl
+    have hleg := hlast s hsl
+    unfold SwitchLegal at hleg
+    rw [hGg s.1 s.2.2 (ha s hmem).2] at hleg
+    rw [hq]
+    exact hleg
+
+/-- The clocked step provider over the mode-consistent region (mirror of `Hmulti_regionG`). -/
+theorem Hmulti_regionGC (G : SearchGraph (Var n)) (mv tg : Var n) (dt : ℝ)
+    (guard cuts : ℕ → Formula (Var n))
+    (hGg : ∀ q, ∀ e ∈ G.edgesFrom q, e.guard = guard e.tgt)
+    (F env : Formula (Var n)) (leftProgs : List (Program (Var n)))
+    (hframeG : ∀ P ∈ leftProgs, ∀ q, q < G.modes.length → ∀ σ ν, Program.sem P σ ν →
+      Formula.sat (guard q) σ → Formula.sat (guard q) ν)
+    (Hmulti : ∀ P ∈ leftProgs, ∀ (q : ℕ), q < G.modes.length → ∀ σ, σ mv = (q : ℝ) →
+      Formula.sat (Formula.and F env) σ → Formula.sat (guard q) σ → Formula.sat (cuts q) σ →
+      GRespC G tg dt q P (fun qf => Formula.and (Formula.and F env) (cuts qf)) σ) :
+    ∀ P ∈ leftProgs, ∀ (q : ℕ), q < G.modes.length → ∀ σ, σ mv = (q : ℝ) →
+      Formula.sat (Formula.and F env) σ → Formula.sat (regionG guard cuts q) σ →
+      GRespC G tg dt q P (fun qf => Formula.and (Formula.and F env) (regionG guard cuts qf)) σ := by
+  intro P hP q hq σ hmv hσ hreg
+  refine grespC_guard guard hGg (fun ν hν => hframeG P hP q hq σ ν hν hreg.1) ?_
+    (Hmulti P hP q hq σ hmv hσ hreg.1 hreg.2)
+  intro q' μ hp hg
+  exact ⟨hp.1, hg, hp.2⟩
+
+/-- **The clocked guarded step, region-carrying chain** (mirror of `hstep_single_GR`): the
+clocked obligation lifts to one loop step against `star (rightAutomatonBodyC G mv tg dt)`. -/
+theorem hstep_single_GRC (G : SearchGraph (Var n)) (mv tg : Var n) (dt : ℝ) (q : ℕ)
+    (F env : Formula (Var n)) (regions : ℕ → Formula (Var n)) (P : Program (Var n))
+    (hF : mv ∉ F.fv) (henv : mv ∉ env.fv) (hregf : ∀ q', mv ∉ (regions q').fv)
+    (hframe : FramesMv P mv) (hqlt : q < G.modes.length) (hmvtg : mv ≠ tg)
+    (hfresh : ∀ q m, G.modeAt q = some m → mv ∉ (Program.ode m.sys m.dom).fv)
+    (hgf : GuardsFresh G mv)
+    (hlt : ∀ q, ∀ e ∈ G.edgesFrom q, e.tgt < G.modes.length)
+    {σ : State (Var n)} (hmvq : σ mv = (q : ℝ))
+    (hresp : GRespC G tg dt q P (fun qf => Formula.and (Formula.and F env) (regions qf)) σ) :
+    Formula.sat (faModal (Equiv.refl (Var n)) P
+      (Program.star (rightAutomatonBodyC G mv tg dt))
+      (phiInvR F env mv regions G.modes.length)) σ := by
+  rw [faModal_sat]
+  intro ν hleft
+  obtain ⟨segs, halign, hchain, hhead, μ, hrun, hpostμ⟩ := hresp ν hleft
+  have hνmv : ν mv = (q : ℝ) := (hframe σ ν hleft).trans hmvq
+  have hstar := guarded_rights_bridgeC G mv tg dt hmvtg hfresh hgf segs halign hchain q hhead hrun
+  have hupdν : Function.update ν mv (q : ℝ) = ν := by
+    funext x
+    by_cases hx : x = mv
+    · subst hx; rw [Function.update_self, hνmv]
+    · rw [Function.update_of_ne hx]
+  rw [hupdν] at hstar
+  refine ⟨Function.update μ mv ((qfOf segs q) : ℝ),
+    by rw [Program.rename_refl]; exact hstar, ?_⟩
+  obtain ⟨⟨hFμ, henvμ⟩, hregμ⟩ := hpostμ
+  refine ⟨⟨?_, ?_⟩, ?_⟩
+  · rwa [(Formula.coincidence F (fun y hy =>
+      Function.update_of_ne (fun hc => hF (by rw [← hc]; exact hy)) _ _) :
+        Formula.sat F _ ↔ Formula.sat F μ)]
+  · rwa [(Formula.coincidence env (fun y hy =>
+      Function.update_of_ne (fun hc => henv (by rw [← hc]; exact hy)) _ _) :
+        Formula.sat env _ ↔ Formula.sat env μ)]
+  · rw [sat_mvRegion]
+    refine ⟨qfOf segs q, qfOf_lt G hlt segs halign q hqlt,
+      Function.update_self mv _ μ, ?_⟩
+    rwa [(Formula.coincidence (regions (qfOf segs q)) (fun y hy =>
+      Function.update_of_ne (fun hc => hregf _ (by rw [← hc]; exact hy)) _ _) :
+        Formula.sat (regions (qfOf segs q)) _ ↔ _)]
+
+/-- **The assembled clocked step, region-carrying chain** (mirror of `hstep_assembled_GR`). -/
+theorem hstep_assembled_GRC (G : SearchGraph (Var n)) (mv tg : Var n) (dt : ℝ)
+    (F env : Formula (Var n)) (regions : ℕ → Formula (Var n))
+    (leftProgs : List (Program (Var n))) (hF : mv ∉ F.fv) (henv : mv ∉ env.fv)
+    (hregf : ∀ q', mv ∉ (regions q').fv) (hmvtg : mv ≠ tg)
+    (hfresh : ∀ q m, G.modeAt q = some m → mv ∉ (Program.ode m.sys m.dom).fv)
+    (hgf : GuardsFresh G mv)
+    (hlt : ∀ q, ∀ e ∈ G.edgesFrom q, e.tgt < G.modes.length)
+    (hframes : ∀ P ∈ leftProgs, FramesMv P mv)
+    (Hmulti : ∀ P ∈ leftProgs, ∀ (q : ℕ), q < G.modes.length → ∀ σ, σ mv = (q : ℝ) →
+      Formula.sat (Formula.and F env) σ → Formula.sat (regions q) σ →
+      GRespC G tg dt q P (fun qf => Formula.and (Formula.and F env) (regions qf)) σ) :
+    ∀ σ, Formula.sat (phiInvR F env mv regions G.modes.length) σ →
+      Formula.sat (faModal (Equiv.refl (Var n)) (bigChoice leftProgs)
+        (Program.star (rightAutomatonBodyC G mv tg dt))
+        (phiInvR F env mv regions G.modes.length)) σ := by
+  intro σ hφ'
+  obtain ⟨q, hqlt, hmvq, hregq⟩ := sat_mvRegion.mp hφ'.2
+  refine faModal_bigChoiceL (Equiv.refl (Var n)) (Program.star (rightAutomatonBodyC G mv tg dt))
+    (phiInvR F env mv regions G.modes.length) σ leftProgs ?_
+  intro P hP
+  exact hstep_single_GRC G mv tg dt q F env regions P hF henv hregf (hframes P hP) hqlt hmvtg
+    hfresh hgf hlt hmvq (Hmulti P hP q hqlt σ hmvq hφ'.1 hregq)
+
+/-! ## W2: the Theorem 3 assembly with any right body, and its `hddF` discharger -/
+
+/-- `theorem3_faithful_multiR_LR` with the right body abstracted: the proof never looks
+inside it (the loop rule `relational_loop_multi` is generic). The clocked chain instantiates
+`Rb := rightAutomatonBodyC G mv tg dt`. -/
+theorem theorem3_faithful_multiR_LR_gen (G : SearchGraph (Var n)) (mv : Var n)
+    (Rb : Program (Var n))
+    (F : Formula (Var n)) (domL domR : Formula (Var n))
+    (regions : ℕ → Formula (Var n))
+    (leftProgs : List (Program (Var n))) (ϕinv : RFormula (Var n))
+    (hψ : encode (Equiv.refl (Var n)) ϕinv = F)
+    (hd : Disjoint (Program.vars (bigChoice leftProgs))
+        (Program.vars (Rb.rename (Equiv.refl (Var n)))))
+    (hstep : ∀ σ, Formula.sat (phiInvR F (Formula.and domL domR) mv regions
+        G.modes.length) σ →
+      Formula.sat (faModal (Equiv.refl (Var n)) (bigChoice leftProgs)
+        (Program.star Rb)
+        (phiInvR F (Formula.and domL domR) mv regions G.modes.length)) σ)
+    (hddF : Disjoint (faShape (Program.star (bigChoice leftProgs))
+          (Program.star Rb)
+          (RFormula.and (RFormula.and ϕinv (envLR domL domR))
+            (mvRegionR mv regions G.modes.length))).varsL
+        (Equiv.refl (Var n) '' (faShape (Program.star (bigChoice leftProgs))
+          (Program.star Rb)
+          (RFormula.and (RFormula.and ϕinv (envLR domL domR))
+            (mvRegionR mv regions G.modes.length))).varsR)) :
+    RFormula.rvalid (theorem3Form (bigChoice leftProgs) Rb
+      (RFormula.and (RFormula.and ϕinv (envLR domL domR))
+        (mvRegionR mv regions G.modes.length))) := by
+  set k := G.modes.length
+  set ψpost := RFormula.and (RFormula.and ϕinv (envLR domL domR))
+    (mvRegionR mv regions k) with hψpost
+  set Lp := Program.star (bigChoice leftProgs)
+  set Rp := Program.star Rb
+  have hencψ : encode (Equiv.refl (Var n)) ψpost
+      = phiInvR F (Formula.and domL domR) mv regions k := encode_phiInvR_LR hψ
+  intro bs
+  rw [theorem3Form]
+  refine (RFormula_sat_imp _ _ bs).mpr ?_
+  intro hpre
+  obtain ⟨ν, hbdg⟩ := exists_bridge (Equiv.refl (Var n))
+    (faShape Lp Rp ψpost).varsL (faShape Lp Rp ψpost).varsR hddF bs
+  have hbψ : Bridges (Equiv.refl (Var n)) ψpost.varsL ψpost.varsR bs ν :=
+    hbdg.mono (varsL_subset_faShape Lp Rp ψpost) (varsR_subset_faShape Lp Rp ψpost)
+  have hdψ : Disjoint ψpost.varsL (Equiv.refl (Var n) '' ψpost.varsR) :=
+    hddF.mono (varsL_subset_faShape Lp Rp ψpost)
+      (Set.image_mono (varsR_subset_faShape Lp Rp ψpost))
+  have hInvν : Formula.sat (phiInvR F (Formula.and domL domR) mv regions k) ν := by
+    rw [← hencψ]
+    exact (RFormula.encoding_correct (Equiv.refl (Var n)) ψpost hdψ bs ν hbψ).mp hpre
+  exact relational_loop_multi (bigChoice leftProgs) Rb ψpost ν bs hd
+    (by rw [hencψ]; exact hInvν)
+    (fun σ hσ => by rw [hencψ] at hσ ⊢; exact hstep σ hσ) hddF hbdg
+
+/-- The `hddF` discharger of the clocked chain (mirror of `hddF_multiR_G`): the left clock
+`(Aux, b)` is distinct from the mode variable `(Aux, a)` and the right clock `(Aux, d)`. -/
+theorem hddF_multiR_GC (Gr : SearchGraph (Var n)) (a b d : Fin n) (dt epsR : ℝ)
+    (leftData : List (Formula (Var n) × (Fin n → Term (Var n)) × Formula (Var n) × ℕ))
+    (regions : ℕ → Formula (Var n))
+    (ϕinv : RFormula (Var n)) (domL domR : Formula (Var n)) (hab : a ≠ b) (hbd : b ≠ d)
+    (hgR : GuardsRight Gr)
+    (hRv : ∀ q m, Gr.modeAt q = some m →
+      m.sys.boundSet ∪ m.sys.readVars ∪ m.dom.fv ⊆ range Rv)
+    (hL : ∀ d ∈ leftData, d.1.fv ⊆ range Lv ∧ (∀ i, (d.2.1 i).fv ⊆ range Lv) ∧
+      d.2.2.1.fv ⊆ range Lv)
+    (hreg : ∀ q < Gr.modes.length, (regions q).fv ⊆ range Rv)
+    (hinvL : ϕinv.varsL ⊆ range Lv) (hinvR : ϕinv.varsR ⊆ range Rv)
+    (hdomLv : domL.fv ⊆ range Lv) (hdomRv : domR.fv ⊆ range Rv) :
+    Disjoint (faShape (Program.star (bigChoice (leftData.map (fun d =>
+          gwindowSeg d.1 (leftBlock d.2.1) d.2.2.1 ((Side.Aux, b) : Var n) dt d.2.2.2))))
+        (Program.star (rightAutomatonBodyC Gr ((Side.Aux, a) : Var n) ((Side.Aux, d) : Var n)
+          epsR))
+        (RFormula.and (RFormula.and ϕinv (envLR domL domR))
+          (mvRegionR ((Side.Aux, a) : Var n) regions Gr.modes.length))).varsL
+      (Equiv.refl (Var n) '' (faShape (Program.star (bigChoice (leftData.map (fun d =>
+          gwindowSeg d.1 (leftBlock d.2.1) d.2.2.1 ((Side.Aux, b) : Var n) dt d.2.2.2))))
+        (Program.star (rightAutomatonBodyC Gr ((Side.Aux, a) : Var n) ((Side.Aux, d) : Var n)
+          epsR))
+        (RFormula.and (RFormula.and ϕinv (envLR domL domR))
+          (mvRegionR ((Side.Aux, a) : Var n) regions Gr.modes.length))).varsR) := by
+  rw [show ∀ S : Set (Var n), Equiv.refl (Var n) '' S = S by intro S; simp]
+  refine sides_disjoint a b d hab.symm hbd ?_ ?_
+  · rw [faShape_varsL', pvars_star']
+    refine Set.union_subset ?_ ?_
+    · refine vars_bigChoice_sub _ _ ?_
+      intro p hp
+      simp only [List.mem_map] at hp
+      obtain ⟨d, hd, rfl⟩ := hp
+      exact vars_gwindowSegL_sub d.1 d.2.1 d.2.2.1 b dt d.2.2.2 (hL d hd).1
+        (hL d hd).2.1 (hL d hd).2.2
+    · intro v hv
+      rcases ψmultiR_varsL_sub _ regions Gr.modes.length ϕinv domL domR hv with hv | hv
+      · exact Or.inr (hinvL hv)
+      · exact Or.inr (hdomLv hv)
+  · rw [faShape_varsR', pvars_star']
+    refine Set.union_subset ?_ ?_
+    · intro v hv
+      rcases vars_bodyCG_sub Gr _ _ _ hgR hRv hv with hv | hv
+      · exact Or.inl hv
+      · exact Or.inr hv
+    · intro v hv
+      rcases ψmultiR_varsR_sub _ regions Gr.modes.length ϕinv domL domR hreg hv
+        with (hv | hv) | (hv | hv)
+      · exact Or.inr (hinvR hv)
+      · exact Or.inr (hdomRv hv)
+      · exact Or.inl (Set.mem_insert_iff.mpr (Or.inl (Set.mem_singleton_iff.mp hv)))
+      · exact Or.inr hv
+
 end RelCertifier

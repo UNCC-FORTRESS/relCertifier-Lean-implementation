@@ -4,10 +4,15 @@ suite_v2 benchmark, and the aggregator RelCertifier/InstancesV2/Bridge.lean.
 
 Each instance states Theorem 3 of its benchmark through the generic bridge
 (`Proofs/Encoding/Emitted/`): the structural bundles decided in the kernel, Assumption 1
-transported from the suite's `WellFormedR` lemma, the verdicts assumed as `Verdicts` (the
-groups `relcert-bridge-verdicts` discharges). Benchmarks whose left modes declare one row take
-the window form (`windowClaim`, two auxiliary coordinates); those with per-mode rows take the
-mode-keyed form (`keyedClaim`, three).
+transported from the suite's `WellFormedR` lemma and lifted by one coordinate (the right
+clock of the clocked right automaton, `Emitted.wellFormedR_lift`), the verdicts assumed as
+`Verdicts` (the groups `relcert-bridge-verdicts` discharges). Benchmarks whose left modes
+declare one row take the window form (`windowClaim`, three auxiliary coordinates); those with
+per-mode rows take the mode-keyed form (`keyedClaim`, four).
+
+The instance's dimension is the Assumption 1 lemma's dimension plus one (`bridgeDimV2`); the
+runner sends every query at that dimension, so the instance's `Verdicts` hypothesis is
+exactly the runner's queries.
 
 Usage: python3 scripts/gen_bridge.py [bench ...]   (default: all of benchmarks/suite_v2)
 """
@@ -42,7 +47,8 @@ def camel(b):
     return "".join(w.capitalize() for w in b.split("_"))
 
 def dims():
-    """The bridge dimension of each benchmark: the pack table's `dim`."""
+    """The Assumption 1 dimension of each benchmark: the pack table's `dim` (the instance is
+    emitted one higher, `bridgeDimV2`)."""
     src = open("RelCertifier/VerdictsV2/RunV2.lean").read()
     d = {}
     for m in re.finditer(r'⟨"(\w+)", (\d+), \d+, \[', src):
@@ -88,12 +94,14 @@ Released under Apache 2.0 license.
 # `{b}` (suite_v2) through the generic bridge (GENERATED — `scripts/gen_bridge.py {b}`)
 
 Theorem 3 of the benchmark from its emitted records: the structural bundles decided in the
-kernel (`struct_ok`, `prog_ok`, `covers_ok`{rows_doc}), Assumption 1 transported from the
-suite's lemma, the verdicts assumed (`Verdicts`: the groups `relcert-bridge-verdicts`
-discharges, `Emitted.verdicts_of_groups`).
+kernel (`struct_ok`, `prog_ok`, `covers_ok`{rows_doc}, `pad_ok`), Assumption 1 transported
+from the suite's lemma at dimension {n0} and lifted to {n} (the right clock), the verdicts
+assumed (`Verdicts`: the groups `relcert-bridge-verdicts` discharges,
+`Emitted.verdicts_of_groups`).
 -/
 import RelCertifier.Proofs.Encoding.Emitted.{form_mod}
 import RelCertifier.Proofs.Encoding.Emitted.Transport
+import RelCertifier.Proofs.Encoding.Emitted.Lift
 import {wfmod}
 {record_imports}
 namespace RelCertifier.Bridge.{camel}
@@ -109,6 +117,7 @@ abbrev ce := {cerec}
 theorem struct_ok : structOK IR {n} cov cX = true := by decide +kernel
 theorem prog_ok : progOK IR {n} cov prog = true := by decide +kernel
 theorem covers_ok : coversOK IR {n} cov ce = true := by decide +kernel
+theorem pad_ok : padOK IR {n0} = true := by decide +kernel
 {rows_thm}{transport_block}{region_block}
 
 {claim}
@@ -117,25 +126,25 @@ end RelCertifier.Bridge.{camel}
 
 WINDOW_CLAIM = '''/-- **Theorem 3 of `{b}`** (window form): every verdict group of the benchmark `unsat`. -/
 theorem {b}_bridge (hv : Verdicts IR {n} cX cov prog ce) (dt : ℝ) (hdt : dt ≤ epsL IR) :
-    windowClaim IR {n} cX cov reg 0 1 dt :=
+    windowClaim IR {n} cX cov reg 0 1 2 dt :=
   theorem3_window_of_records struct_ok hv prog_ok covers_ok reg_fv reg_inv wellFormedR
-    rows_same 0 1 (by decide) dt hdt
+    rows_same 0 1 2 (by decide) (by decide) (by decide) dt hdt
 '''
 
 KEYED_CLAIM = '''/-- **Theorem 3 of `{b}`** (mode-keyed form): every verdict group of the benchmark
 `unsat`. -/
 theorem {b}_bridge (hv : Verdicts IR {n} cX cov prog ce) (dt : ℝ) (hdt : dt ≤ epsL IR) :
-    keyedClaim IR {n} cX cov reg 0 1 2 dt :=
-  theorem3_keyed_of_records struct_ok hv prog_ok covers_ok reg_fv reg_inv wellFormedR 0 1 2
-    (by decide) (by decide) (by decide) dt hdt
+    keyedClaim IR {n} cX cov reg 0 1 2 3 dt :=
+  theorem3_keyed_of_records struct_ok hv prog_ok covers_ok reg_fv reg_inv wellFormedR 0 1 2 3
+    (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) dt hdt
 '''
 
 TRANSPORT_BLOCK = """theorem nR_eq : nR IR = {ns}.{G}.modes.length := by decide +kernel
 theorem edges_ok : edgesCovered IR {ns}.{G} = true := by decide +kernel
 theorem src_ok : edgesSrcOK IR {ns}.{G} = true := by decide +kernel
 {eps_thm}
-/-- The same modes in the generic automaton. -/
-theorem modes_eq : ∀ q m', (grOf IR {n} (prunedOf cov)).modeAt q = some m' →
+/-- The same modes in the generic automaton (at the lemma's dimension). -/
+theorem modes_eq : ∀ q m', (grOf IR {n0} (prunedOf cov)).modeAt q = some m' →
     ∃ m, {ns}.{G}.modeAt q = some m ∧ m.sys = m'.sys ∧ m.dom = m'.dom := fun q m' hm' => by
   obtain ⟨hq, rfl⟩ := grOf_modeAt_inv hm'
   rw [nR_eq] at hq
@@ -148,25 +157,30 @@ abbrev reg : Formula (Var {n}) := Formula.tt
 theorem reg_fv : reg.fv ⊆ range Rv := fun _ h => by simp [Formula.fv] at h
 theorem reg_inv : RegionInvariant (grOf IR {n} (prunedOf cov)) reg := fun _ _ _ _ _ _ _ _ => trivial
 
-/-- Assumption 1, proved directly over the bridge's automaton (`{ns}.{b}_wellFormedR_direct`). -/
+/-- Assumption 1, proved directly over the bridge's automaton at dimension {n0}
+(`{ns}.{b}_wellFormedR_direct`), lifted to {n}. -/
 theorem wellFormedR : WellFormedRIn (grOf IR {n} (prunedOf cov)) (guardR IR {n}) reg (epsR IR) :=
-  WellFormedRIn.of_tt ({ns}.{b}_wellFormedR_direct (prunedOf cov)) reg"""
+  WellFormedRIn.of_tt (wellFormedR_lift (n := {n0}) pad_ok
+    ({ns}.{b}_wellFormedR_direct (prunedOf cov))) reg"""
 
 SUITE_REGION = """/-- Assumption 1 holds unconditionally: the region is `⊤`. -/
 abbrev reg : Formula (Var {n}) := Formula.tt
 theorem reg_fv : reg.fv ⊆ range Rv := fun _ h => by simp [Formula.fv] at h
 theorem reg_inv : RegionInvariant (grOf IR {n} (prunedOf cov)) reg := fun _ _ _ _ _ _ _ _ => trivial
 
-/-- Assumption 1, transported from `{ns}.{wfname}`. -/
+/-- Assumption 1, transported from `{ns}.{wfname}` at dimension {n0} and lifted to {n}. -/
 theorem wellFormedR : WellFormedRIn (grOf IR {n} (prunedOf cov)) (guardR IR {n}) reg (epsR IR) :=
-  wellFormedR_transport ({wfterm}) (by rw [grOf_len, nR_eq]) modes_eq (fun q => rfl)
-    (edges_transport_check edges_ok (edgesSrcOK_sound src_ok))"""
+  WellFormedRIn.of_tt (wellFormedR_lift (n := {n0}) pad_ok
+    (wellFormedR_transport ({wfterm}) (by rw [grOf_len, nR_eq]) modes_eq (fun q => rfl)
+      (edges_transport_check edges_ok (edgesSrcOK_sound src_ok)))) reg"""
 
 # benchmarks without a generated instance (none; a downward single progress stage is covered
 # by `repoProgress_one_down`, a two-stage certificate must be upward in both stages)
 SKIP = set()
 
-def emit(b, n):
+def emit(b, n0):
+    """Emit `b`'s instance at dimension `n0 + 1`, `n0` the dimension of its Assumption 1 lemma."""
+    n = n0 + 1
     if b in SKIP:
         print(f"  skipped {b}: downward progress stages (hand-written general instance)")
         return False
@@ -174,7 +188,8 @@ def emit(b, n):
         c = CHOICE[b]
         info = dict(module=f"RelCertifier.InstancesV2.Choice.General.{camel(b)}", ns=c["ns"],
                     G=c["G"], guard="guardR")
-        n = c["n"]
+        n0 = c["n"]
+        n = n0 + 1
         rec = dict(record_imports=f"import RelCertifier.InstancesV2.Choice.BenchCovers.{b}\n"
                    f"import RelCertifier.InstancesV2.Choice.BenchProgress.{b}\n"
                    f"import RelCertifier.InstancesV2.Choice.BenchChoice.{b}\n",
@@ -206,12 +221,12 @@ def emit(b, n):
     rows_thm = "" if keyed else "theorem rows_same : rowsSame IR = true := by decide +kernel\n"
     claim = (KEYED_CLAIM if keyed else WINDOW_CLAIM).format(b=b, n=n)
     if direct:
-        region_block = DIRECT_REGION.format(n=n, ns=info["ns"], b=b)
+        region_block = DIRECT_REGION.format(n=n, n0=n0, ns=info["ns"], b=b)
         transport_block = ""
     else:
-        region_block = SUITE_REGION.format(n=n, ns=info["ns"], wfname=rec["wfname"], wfterm=rec["wfterm"])
-        transport_block = TRANSPORT_BLOCK.format(n=n, ns=info["ns"], G=info["G"], modeAt=modeAt, eps_thm=rec["eps_thm"])
-    txt = TEMPLATE.format(b=b, camel=camel(b), n=n, form_mod="Keyed" if keyed else "Window",
+        region_block = SUITE_REGION.format(n=n, n0=n0, ns=info["ns"], wfname=rec["wfname"], wfterm=rec["wfterm"])
+        transport_block = TRANSPORT_BLOCK.format(n0=n0, ns=info["ns"], G=info["G"], modeAt=modeAt, eps_thm=rec["eps_thm"])
+    txt = TEMPLATE.format(b=b, camel=camel(b), n=n, n0=n0, form_mod="Keyed" if keyed else "Window",
                           wfmod=info["module"], ns=info["ns"], G=info["G"], modeAt=modeAt,
                           rows_doc="" if keyed else ", `rows_same`", rows_thm=rows_thm,
                           claim=claim, region_block=region_block, transport_block=transport_block,
@@ -242,9 +257,9 @@ def main():
     for b in benches:
         n = d.get(b, CHOICE.get(b, {}).get("n"))
         if n is None:
-            # no standalone pack row: the bridge runner's fallback (`bridgeDimV2`): a hand-written
-            # general instance's dimension, else the state variables padded to the three
-            # auxiliary coordinates the keyed form needs
+            # no standalone pack row: the bridge runner's fallback (`bridgeDimV2`, before its
+            # `+ 1`): a hand-written general instance's dimension, else the state variables
+            # padded to the three auxiliary coordinates the keyed form needs
             info0 = wf_info(b)
             n = info0.get("n") if info0 and info0.get("eps1") and info0.get("n") else max(nvars(b), 3)
         if b in todo:

@@ -66,18 +66,31 @@ Three more executables discharge the hypotheses of the newer theorems, under the
 disciplines (pins, declared counts):
 
 * `relcert-bridge-verdicts` (`VerdictsV2/RunBridge.lean`): per benchmark, at the bridge
-  dimension, every group of `Emitted.bridgeGroups` (a flow pack's component by any of its three
+  dimension `bridgeDimV2 b` (`RunBridge.lean:73`: the Assumption 1 lemma's dimension plus one,
+  the right clock `(Aux, d)` of the clocked right automaton, since 2026-10-21), every group of
+  `Emitted.bridgeGroups` (a flow pack's component by any of its three
   routes, every other query alone): kept-atom stays, non-connection pairs, flow and reposition
   packs, admissibility, handoffs, progress, coverage. A green run IS the `Verdicts` structure
   the generated instances assume (`Emitted.verdicts_of_groups`); declared total
   `expectedBridgeGroupsV2 = 4457` over the 50 suite benchmarks and the 2 choice exhibits
-  (`docs/BRIDGE.md` §3).
+  (`docs/BRIDGE.md` §3). The count did not change with the extra coordinate: no query reads
+  it (the padded coordinate is unbound in every lowered formula; `padOK`, `Emitted/Lift.lean`).
+* `relcert-refute-verdicts` (`VerdictsV2/RunRefute.lean`, table `InstancesV2/Refute/Table.lean`):
+  per refuted invariant variant, at its benchmark's bridge dimension (the table row carries
+  `RefRec.dim + 1`, `dim` the Assumption 1 lemma's dimension, the same rule as `bridgeDimV2`),
+  every group of `refGroups`, the queries `RefVerdicts` reads (no-partner per right mode for
+  kind C, rigidity per right mode for kinds A and B); declared `expectedRefuteGroups = 188`
+  over the 67 instances (`docs/REFUTATION-RESULTS.md`), likewise unchanged by the padded
+  coordinate.
 * `relcert-progress-verdicts` (`VerdictsV2/RunProgress.lean`, pins in `ProgressPin.lean`): the rate, keep and landing
   queries of every emitted progress certificate (261), pinned to `progressVerd_one/two`.
 * `relcert-choice-verdicts` (`InstancesV2/Choice/Verdicts.lean`): the packs of the three
   choice exhibits' standalone and general instances, and their coverage queries (32).
 
 Last run: 2026-10-15, branch `literature`: 4457/4457, 261/261, 32/32 (`STATUS.md`).
+2026-10-21, branch `clocked-right`, after the dimension change: `relcert-bridge-verdicts`
+4457/4457 over the 52 regenerated instances (commit `61d7389`), `relcert-refute-verdicts`
+67/67 instances, 188/188 groups (commit `b14f129`).
 
 ## Earlier runners
 

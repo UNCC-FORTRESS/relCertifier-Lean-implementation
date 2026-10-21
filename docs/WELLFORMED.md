@@ -11,8 +11,15 @@ blocking states); those nine were repaired (`docs/SUITE-REDESIGN.md` §21: the f
 re-engage or are latched with an invariant guard, the arm planner's successor sets name every
 band a sampled interval can reach) and are now proved. No proof uses Z3. The tool's sufficient
 check of the successor half (`relcert --wellformed`) finds every one of the 174 right modes
-`ok`, and `--check-quick-v2` now runs it STRICT, against a declared count (§4). No Theorem 3
-(Lean docstring numbering; the paper's Theorem 3 as of 2026-10-16) changed in shape; none takes Assumption 1 as a hypothesis.
+`ok`, and `--check-quick-v2` now runs it STRICT, against a declared count (§4). The standalone
+Theorem 3 instances (`InstancesV2/Modal/`, `BatteryV2.lean`; Lean docstring numbering, the
+paper's Theorem 3 as of 2026-10-16) take no Assumption 1 hypothesis. The generic-bridge
+instances (`InstancesV2/Bridge/`, the paper's route) do: `theorem3_keyed_of_records`
+(`Proofs/Encoding/Emitted/Keyed.lean:427`) and `theorem3_window_of_records`
+(`Emitted/Window.lean:83`) take `hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg
+(epsR p)`, which each generated instance discharges from the benchmark's `WellFormedR` lemma,
+transported and lifted by one coordinate (§6). Assumption 1 is therefore a hypothesis of the
+bridge theorems and a proved fact, never a trust item.
 
 ## 1. The paper's statement and the predicate
 
@@ -242,3 +249,30 @@ Expected: 76 axiom lines, each exactly `[propext, Classical.choice, Quot.sound]`
 `<b>_wellFormedR`, the repaired modes' per-mode theorems, the satellites' three each, 13
 generic lemmas including `Platoon3Link.brake_guard_Ronly`, `Platoon3Link.solB_sol` and
 `WellFormedBattery.wf_coverage`); the summary line of §4.
+
+## 6. The lift to the bridge dimension (2026-10-21, branch `clocked-right`)
+
+Each `WellFormedR` lemma is stated at a fixed dimension `n0` (the pack table's `dim`, or the
+state variables padded to the three auxiliary coordinates the keyed form needs). Since the
+right automaton of the bridge is clocked (`rightAutomatonBodyC`, the right clock `(Aux, d)`;
+`docs/PAPER-MAPPING.md` §9), the generated instances live at `n0 + 1` (`bridgeDimV2`,
+`VerdictsV2/RunBridge.lean:73`). `Proofs/Encoding/Emitted/Lift.lean` carries the lemma across:
+
+* `padOK p n : Bool` (`Lift.lean:108`): for every right mode `q ≤ nR p` (the out-of-range
+  default included), the lowered guard and evolve domain at `n+1` are the `IForm.embed` of
+  their lowering at `n`, and the dynamics pad with the new coordinate's derivative `0`
+  (`dynPadOK`). Each generated instance proves `pad_ok : padOK IR n0 = true` by
+  `decide +kernel`.
+* `wellFormedR_lift (hpad : padOK p n = true) (h : WellFormedR (grOf p n pr) (guardR p n) ε) :
+  WellFormedR (grOf p (n+1) pr) (guardR p (n+1)) ε` (`Lift.lean:292`): every solution at
+  `n+1` projects to one at `n` (`odeSol_proj`) and every solution at `n` extends with the new
+  coordinate constant (`odeSol_ext`), so both clauses transfer.
+
+The order in a generated instance (`scripts/gen_bridge.py`, e.g. `InstancesV2/Bridge/Watertank.lean:53`):
+transport at the lemma's dimension (`wellFormedR_transport`, or the `_direct` form), then
+`wellFormedR_lift (n := n0) pad_ok`, then `WellFormedRIn.of_tt` at `reg = ⊤`. The five
+hand-written `InstancesV2/Choice/General/` exhibits keep only their Assumption 1 proofs
+(their Theorem-3 parts were retired on 2026-10-21, fixed at `Var 2` with no slot for the
+right clock); those proofs are lifted the same way into the corresponding bridge instances.
+Nothing in this file's battery or audit (§5) changes: the lift is a generic lemma at the
+three standard axioms, applied inside the bridge instances.

@@ -53,16 +53,16 @@ theorem not_collapse : noStrictRows IR {n} = false := by decide +kernel
 /-- **Theorem 3 of `{b}` at its strict row** (window form): every strict verdict group of the
 benchmark `unsat`. The claim carries the strict row (`windowClaimS`, `canonInvMS`). -/
 theorem {b}_bridge (hv : VerdictsS IR {n} cX cov prog ce) (dt : ℝ) (hdt : dt ≤ epsL IR) :
-    windowClaimS IR {n} cX cov reg 0 1 dt :=
+    windowClaimS IR {n} cX cov reg 0 1 2 dt :=
   theorem3_window_strict_of_records struct_ok hv prog_ok covers_ok reg_fv reg_inv wellFormedR
-    rows_same 0 1 (by decide) dt hdt
+    rows_same 0 1 2 (by decide) (by decide) (by decide) dt hdt
 
 /-- The same from a green strict run of the benchmark's groups (`bridgeGroupsS`). -/
 theorem {b}_bridge_run {{gs : List (List (IForm {n}))}}
     (hrun : bridgeGroupsS IR {n} cX cov prog ce = some gs) (hok : GroupsOK gs) (dt : ℝ)
-    (hdt : dt ≤ epsL IR) : windowClaimS IR {n} cX cov reg 0 1 dt :=
+    (hdt : dt ≤ epsL IR) : windowClaimS IR {n} cX cov reg 0 1 2 dt :=
   theorem3_window_strict_of_run struct_ok hrun hok prog_ok covers_ok reg_fv reg_inv wellFormedR
-    rows_same 0 1 (by decide) dt hdt
+    rows_same 0 1 2 (by decide) (by decide) (by decide) dt hdt
 '''
 
 
@@ -71,14 +71,14 @@ def main():
         os.makedirs(f"{D.OUT}/{d}", exist_ok=True)
     D.emit_leaves(B)
     print(f"  emitted leaves of {B}")
-    n = 2          # the window form at the suite watertank's dimension (its Assumption 1 lemma)
+    n = 2          # the suite watertank's Assumption 1 dimension; the instance is emitted at n + 1 (the right clock)
     if not G.emit(B, n):
         sys.exit(f"{B}: bridge instance not emitted")
     # Assumption 1 is the suite watertank's lemma (the emitter names it after the benchmark)
     fn = f"{G.OUT}/{G.camel(B)}.lean"
     txt = open(fn).read().replace(f"{B}_wellFormedR", f"{WF_FROM}_wellFormedR")
     open(fn, "w").write(txt)
-    print(f"  emitted RelCertifier/InstancesV2/Bridge/{G.camel(B)}.lean (dim {n})")
+    print(f"  emitted RelCertifier/InstancesV2/Bridge/{G.camel(B)}.lean (dim {n + 1})")
 
 
 if __name__ == "__main__":

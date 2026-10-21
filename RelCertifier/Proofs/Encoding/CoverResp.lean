@@ -6,30 +6,39 @@ Released under Apache 2.0 license.
 
 `coverX_piece` is the induction of Theorem 3's proof: from a configuration covered by
 `CoveredX` (Definition 4 with chosen successors and hops, `Checker/CoverX.lean`), the right
-answers one clocked left piece of duration `r` with a chain of declared, guard-legal segments,
-provided the piece fits the budget (`r − a ≤ B · δ`, `δ` the common segment span). Per case:
+answers one clocked left piece of duration `r` with a chain of declared, guard-legal CLOCKED
+segments (`RRespPC`, `ClockedRight.lean`: each right cycle is `tr := 0 ; {flow, tr' = 1} ;
+?(tr ≤ ε_R)`), provided the piece fits the budget (`r − a ≤ B · δ`, `δ` the common segment
+span). Per case:
 
 * **base**: the joint segment of `q` runs to the piece's end (its right duration `λ_q (r − a)
-  ≤ λ_q δ ≤ ε_R`, so Assumption 1 gives the run and, at its end, an enabled declared
-  successor); the anchor is preserved by the pairing's flow certificate (`hbox`, Theorem 1);
-* **step**: the joint segment runs its span `δ`; Assumption 1 gives an enabled declared
-  successor at its end, the non-connection certificate (`hprune`, Theorem 2) excludes the
-  pruned ones, so the successor is retained and covered at budget `B − 1`;
+  ≤ λ_q δ ≤ ε_R`, so Assumption 1 gives the run, the cap passes, and at its end an enabled
+  declared successor); the anchor is preserved by the pairing's flow certificate (`hbox`,
+  Theorem 1);
+* **step**: the joint segment runs its span `δ` (right duration `λ_q δ ≤ ε_R`, `hspan`);
+  Assumption 1 gives an enabled declared successor at its end, the non-connection certificate
+  (`hprune`, Theorem 2) excludes the pruned ones, so the successor is retained and covered at
+  budget `B − 1`;
 * **chosen successors**: as step, but the successor comes from the coverage certificate: the
   end state satisfies the region `RJ q` (the anchor implies it), hence some chosen guard;
 * **right-only step**: the right runs alone (left frozen) until a retained exit is enabled
   (`hrepoProg`, the reposition-progress premise; Assumption 1 alone does not provide an exit),
   the anchor preserved by the reposition certificate (`hboxD`);
-* **chosen exits / hop**: a zero-duration run of `q`; the start state satisfies the region
-  (`RR`/`RS`), so a chosen guard holds and the switch is legal.
+* **chosen exits / hop**: a zero-duration clocked run of `q`; the start state satisfies the
+  region (`RR`/`RS`), so a chosen guard holds and the switch is legal.
+
+The right clock `tr` is a coordinate outside both sides (`htrL`, `htrR`); every fact the
+chain carries (guards, anchors at merged states, the frozen left coordinates) is insensitive
+to it (`post_update_tr`), so the clocked end state `Φ T [tr ↦ T]` carries what `Φ T` did.
 
 Every switch enters its target's guard (`SwitchLegal`), and the entered mode's anchor holds
 by the entry condition (`hhand`: the anchor of `q` and the guard of `q'` give the anchor of
-`q'`). `coverX_gresp` lifts the piece response to the guarded step obligation `GResp` of the
-gated one-piece window, the shape the outer loop rule consumes.
+`q'`). `coverX_gresp` lifts the piece response to the clocked guarded step obligation `GRespC`
+of the gated one-piece window, the shape the outer loop rule consumes.
 -/
 import RelCertifier.Proofs.Encoding.ReplayEngineQ
 import RelCertifier.Proofs.Encoding.WellFormedR
+import RelCertifier.Proofs.Encoding.ClockedRight
 import RelCertifier.Checker.CoverX
 
 namespace RelCertifier
@@ -50,6 +59,42 @@ theorem sat_merge_L {φ : Formula (Var n)} (hφ : φ.fv ⊆ range Lv) (ω₀ y �
   refine Formula.coincidence φ (fun v hv => ?_)
   obtain ⟨j, rfl⟩ := hφ hv
   exact mergeLR_L ω₀ _ _ j
+
+/-! ## The right clock is invisible to the chain's facts -/
+
+/-- A formula not reading `x` is insensitive to updating `x`. -/
+theorem sat_update_of_notMem {φ : Formula (Var n)} {x : Var n} (hx : x ∉ φ.fv)
+    (μ : State (Var n)) (c : ℝ) :
+    Formula.sat φ (Function.update μ x c) ↔ Formula.sat φ μ :=
+  Formula.coincidence φ (fun v hv =>
+    Function.update_of_ne (fun h : v = x => hx (by rw [← h]; exact hv)) _ _)
+
+/-- Updating a variable outside the right coordinates does not change the merged state. -/
+theorem mergeLR_update_R (ω₀ y ρ : State (Var n)) {x : Var n} (hx : x ∉ range Rv) (c : ℝ) :
+    mergeLR ω₀ y (Function.update ρ x c) = mergeLR ω₀ y ρ := by
+  funext v
+  simp only [mergeLR]
+  split_ifs with hL hR
+  · rfl
+  · have hvx : v ≠ x := fun h => hx ⟨v.2, (Prod.ext hR.symm rfl : Rv v.2 = v).trans h⟩
+    exact Function.update_of_ne hvx _ _
+  · rfl
+
+theorem update_Lv_of_notMem {x : Var n} (hx : x ∉ range Lv) (μ : State (Var n)) (c : ℝ)
+    (i : Fin n) : Function.update μ x c (Lv i) = μ (Lv i) :=
+  Function.update_of_ne (fun h => hx ⟨i, h⟩) _ _
+
+theorem update_Rv_of_notMem {x : Var n} (hx : x ∉ range Rv) (μ : State (Var n)) (c : ℝ)
+    (i : Fin n) : Function.update μ x c (Rv i) = μ (Rv i) :=
+  Function.update_of_ne (fun h => hx ⟨i, h⟩) _ _
+
+/-- A switch test (right-only guards) is insensitive to updating a non-right variable. -/
+theorem switchLegal_update {G : SearchGraph (Var n)} (hgR : GuardsRight G) {q : ℕ}
+    {e : REdge (Var n)} (he : e ∈ G.edgesFrom q) {x : Var n} (hx : x ∉ range Rv)
+    (μ : State (Var n)) (c : ℝ) :
+    SwitchLegal e (Function.update μ x c) ↔ SwitchLegal e μ := by
+  unfold SwitchLegal
+  exact sat_update_of_notMem (fun h => hx (hgR q e he h)) μ c
 
 theorem modeAt_lt {G : SearchGraph (Var n)} {q : ℕ} {m : RMode (Var n)}
     (hm : G.modeAt q = some m) : q < G.modes.length := by
@@ -93,22 +138,25 @@ theorem mem_exitSucc_of_edge {G : SearchGraph (Var n)} {q : ℕ} {e : REdge (Var
 
 /-- **Reposition progress** at `q` (setting `pre`): from a start whose merged state `y` carries
 the anchor (and the left guard, pre-joint) and whose right part `ρ` is in `q`'s guard, the right
-runs declared segments of `q` (self-loops, each a right cycle) and finally switches along a
-non-self, non-pruned exit `e`, the anchor of `q` holding at the switch state and the left
-untouched. Discharged per node from the progress certificate
-(`Proofs/Encoding/Progress.lean`) or from an explicit solution. -/
-def RepoProgress (G : SearchGraph (Var n)) (A : ℕ → Formula (Var n)) (gL guardq : Formula (Var n))
-    (q : ℕ) (pre : Bool) : Prop :=
+runs declared CLOCKED segments of `q` (self-loops, each a right cycle of duration `≤ ε_R`,
+the clock `tr`) and finally switches along a non-self, non-pruned exit `e`, the anchor of `q`
+holding at the switch state and the left untouched. Discharged per node from the progress
+certificate (`Proofs/Encoding/Progress.lean`) or from an explicit solution. -/
+def RepoProgress (G : SearchGraph (Var n)) (tr : Var n) (epsR : ℝ) (A : ℕ → Formula (Var n))
+    (gL guardq : Formula (Var n)) (q : ℕ) (pre : Bool) : Prop :=
   ∀ ρ y : State (Var n), (∀ i, y (Rv i) = ρ (Rv i)) → Formula.sat (A q) y →
     Formula.sat guardq ρ → (pre = true → Formula.sat gL y) →
-    RRespP G q (fun q' μ => ∃ e ∈ G.edgesFrom q, e.tgt ≠ q ∧ e.pruned = false ∧ q' = e.tgt ∧
-      SwitchLegal e μ ∧ Formula.sat (A q) (mergeLR y y μ) ∧ ∀ i, μ (Lv i) = ρ (Lv i)) ρ
+    RRespPC G tr epsR q (fun q' μ => ∃ e ∈ G.edgesFrom q, e.tgt ≠ q ∧ e.pruned = false ∧
+      q' = e.tgt ∧ SwitchLegal e μ ∧ Formula.sat (A q) (mergeLR y y μ) ∧
+      ∀ i, μ (Lv i) = ρ (Lv i)) ρ
 
 section Piece
 
 variable (G : SearchGraph (Var n)) (ch : ChoiceData)
   (fR : ℕ → Fin n → Term (Var n)) (domR : Formula (Var n)) (fL : Fin n → Term (Var n))
   (domL gL : Formula (Var n)) (tg : Var n) (guard : ℕ → Formula (Var n))
+  -- the right clock: a coordinate of neither side
+  (tr : Var n) (htrL : tr ∉ range Lv) (htrR : tr ∉ range Rv)
   (hgR : GuardsRight G) (hguards : ∀ q, ∀ e ∈ G.edgesFrom q, e.guard = guard e.tgt)
   (hguardR : ∀ q, (guard q).fv ⊆ range Rv)
   (hfL : ∀ i, (fL i).fv ⊆ range Lv) (hdomL : domL.fv ⊆ range Lv) (hdomR : domR.fv ⊆ range Rv)
@@ -142,7 +190,7 @@ variable (G : SearchGraph (Var n)) (ch : ChoiceData)
   -- reposition progress (`RepoProgress`): a reposition node's right-only cycles reach an exit
   (hrepoProg : ∀ q m, G.modeAt q = some m → ∀ pre : Bool,
     (if pre then ch.repoPre q else ch.repoPost q) = true →
-    RepoProgress G A gL (guard q) q pre)
+    RepoProgress G tr epsR A gL (guard q) q pre)
   -- the coverage certificates, as regions implied by the anchor and sets they cover
   (RJ : ℕ → Formula (Var n)) (hRJ : ∀ q y, Formula.sat (A q) y → Formula.sat (RJ q) y)
   (hcovJ : ∀ q S, S ∈ ch.jointS q → ∀ y, Formula.sat (RJ q) y → ∃ q' ∈ S, Formula.sat (guard q') y)
@@ -157,15 +205,46 @@ variable (G : SearchGraph (Var n)) (ch : ChoiceData)
   (hcovS : ∀ q σ S, S ∈ ch.hopS q σ → ∀ y, Formula.sat (RS q σ) y →
     ∃ q' ∈ S, Formula.sat (guard q') y)
 
-include hgR hguards hfL hdomL hdomR hfR hsys hdomM hlam hspan hAdom hbox hhand hregR hAreg hwf in
+include hfR hdomR hsys hdomM htrR in
+/-- The right clock is fresh for every mode's flow (evolved by nothing, read by nothing,
+absent from the domain): the modes are right blocks over `domR`. -/
+theorem tr_notMem_ode {q : ℕ} {m : RMode (Var n)} (hm : G.modeAt q = some m) :
+    tr ∉ (Program.ode m.sys m.dom).fv := by
+  intro h
+  have hy := vars_ode_sub _ _ (Or.inl h)
+  rw [hsys q m hm, hdomM q m hm] at hy
+  rcases hy with (hy | hy) | hy
+  · exact htrR (rightBlock_boundSet_sub (fR q) (Term.const 1) hy)
+  · exact htrR (rightBlock_readVars_sub (fR q) (Term.const 1) (hfR q (modeAt_lt hm))
+      (by simp [Term.fv]) hy)
+  · exact htrR (hdomR hy)
+
+include hguardR htrL htrR in
+/-- The piece postcondition (the entered guard, the entered anchor at the merged state, the
+frozen left coordinates) is insensitive to the right clock. -/
+theorem post_update_tr (ω₀ y ρ : State (Var n)) (q' : ℕ) (μ : State (Var n)) (c : ℝ) :
+    (Formula.sat (guard q') (Function.update μ tr c) ∧
+      Formula.sat (A q') (mergeLR ω₀ y (Function.update μ tr c)) ∧
+      ∀ i, Function.update μ tr c (Lv i) = ρ (Lv i)) ↔
+    (Formula.sat (guard q') μ ∧ Formula.sat (A q') (mergeLR ω₀ y μ) ∧
+      ∀ i, μ (Lv i) = ρ (Lv i)) := by
+  rw [sat_update_of_notMem (fun h => htrR (hguardR q' h)), mergeLR_update_R ω₀ y μ htrR c]
+  simp only [update_Lv_of_notMem htrL]
+
+include hδ hlam hspan in
+theorem epsR_nonneg : 0 ≤ epsR := (mul_pos (hlam 0) hδ).le.trans (hspan 0)
+
+include hgR hguards hguardR hfL hdomL hdomR hfR hsys hdomM hlam hspan hAdom hbox hhand hregR hAreg hwf
+  htrL htrR in
 /-- **The closing joint segment.** From a joint node whose segment covers the rest of the piece
-(`r − a ≤ δ`), the right runs to the piece's end and switches into an enabled successor. -/
+(`r − a ≤ δ`), the right runs to the piece's end (right duration `λ_q (r − a) ≤ λ_q δ ≤ ε_R`,
+so the clock cap passes) and switches into an enabled successor. -/
 theorem coverX_finish {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
     (hL : ODESol (clk tg (leftBlock fL)) domL x r ΦL) (ω₀ : State (Var n))
     {q : ℕ} {m : RMode (Var n)} (hm : G.modeAt q = some m) (hj : ch.jointOK q = true)
     {a : ℝ} (ha : 0 ≤ a) (har : a ≤ r) (hfit : r - a ≤ δ) {ρ : State (Var n)}
     (hPre : Formula.sat (guard q) ρ) (hA : Formula.sat (A q) (mergeLR ω₀ (ΦL a) ρ)) :
-    RRespP G q (fun q' μ => Formula.sat (guard q') μ ∧
+    RRespPC G tr epsR q (fun q' μ => Formula.sat (guard q') μ ∧
       Formula.sat (A q') (mergeLR ω₀ (ΦL r) μ) ∧ ∀ i, μ (Lv i) = ρ (Lv i)) ρ := by
   have hlq := hlam q
   have hρdom : Formula.sat domR ρ := (sat_merge_R hdomR ω₀ (ΦL a) ρ).mp (hAdom q _ hA)
@@ -181,8 +260,12 @@ theorem coverX_finish {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)
     (hbox q m hm hj) ha har le_rfl hΦ' hA
   obtain ⟨e, he, hge⟩ := hcomp T Φ hTε hΦT
   have hleg : SwitchLegal e (Φ T) := by unfold SwitchLegal; rw [hguards q e he]; exact hge
-  refine rrespP_step hm he (DLCalTiming.sem_ode_restrict hΦT hT0 le_rfl) hleg
-    (rrespP_stop ⟨hge, ?_, fun i => right_sol_left hΦ' i⟩)
+  refine rrespPC_step hm he
+    (sem_clockedSeg_of_odeSol_fv m.sys m.dom tr epsR hΦT hT0 le_rfl hTε
+      (tr_notMem_ode G fR domR tr htrR hdomR hfR hsys hdomM hm))
+    ((switchLegal_update hgR he htrR _ _).mpr hleg) (rrespPC_stop ?_)
+  refine (post_update_tr guard tr htrL htrR hguardR A ω₀ (ΦL r) ρ e.tgt (Φ T) T).mpr
+    ⟨hge, ?_, fun i => right_sol_left hΦ' i⟩
   exact hhand q e he _ hAend ((switchLegal_merge hgR he ω₀ (ΦL r)).mpr hleg)
 
 include hgR hguards hfL hdomL hdomR hgL hfR hsys hdomM hAfv hhand hrepoProg in
@@ -199,9 +282,9 @@ theorem repoStep {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
     (hA : Formula.sat (A q) (mergeLR ω₀ (ΦL a) ρ))
     (hrest : ∀ q' ∈ G.exitSucc q, ∀ ρ', Formula.sat (guard q') ρ' →
       Formula.sat (A q') (mergeLR ω₀ (ΦL a) ρ') →
-      RRespP G q' (fun q'' μ => Formula.sat (guard q'') μ ∧
+      RRespPC G tr epsR q' (fun q'' μ => Formula.sat (guard q'') μ ∧
         Formula.sat (A q'') (mergeLR ω₀ (ΦL r) μ) ∧ ∀ i, μ (Lv i) = ρ' (Lv i)) ρ') :
-    RRespP G q (fun q' μ => Formula.sat (guard q') μ ∧
+    RRespPC G tr epsR q (fun q' μ => Formula.sat (guard q') μ ∧
       Formula.sat (A q') (mergeLR ω₀ (ΦL r) μ) ∧ ∀ i, μ (Lv i) = ρ (Lv i)) ρ := by
   set y := mergeLR ω₀ (ΦL a) ρ with hy
   have hgLy : pre = true → Formula.sat gL y := by
@@ -209,7 +292,7 @@ theorem repoStep {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
     rw [hy, hpre hp]
     exact (sat_merge_L hgL ω₀ _ ρ).mpr hx
   have hchain := hrepoProg q m hm pre hflag ρ y (fun i => by rw [hy, mergeLR_R]) hA hPre hgLy
-  refine rrespP_bind' hchain ?_
+  refine rrespPC_bind' hchain ?_
   rintro q' μ ⟨e, he, hneq, hnp, rfl, hleg, hAμ, hμL⟩
   have hAm : Formula.sat (A q) (mergeLR ω₀ (ΦL a) μ) := by
     refine (sat_of_agree (hAfv q) (y := mergeLR y y μ) (fun i => ?_) (fun i => ?_)).mpr hAμ
@@ -221,12 +304,12 @@ theorem repoStep {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
   have hexit : e.tgt ∈ G.exitSucc q := mem_exitSucc_of_edge he hnp hneq
   have hge : Formula.sat (guard e.tgt) μ := by
     unfold SwitchLegal at hleg; rwa [hguards q e he] at hleg
-  refine rrespP_mono ?_ (hrest e.tgt hexit μ hge hAe)
+  refine rrespPC_mono ?_ (hrest e.tgt hexit μ hge hAe)
   rintro q'' μ' ⟨h1, h2, hμ'L⟩
   exact ⟨h1, h2, fun i => (hμ'L i).trans (hμL i)⟩
 
 include hgR hguards hguardR hfL hdomL hdomR hgL hfR hsys hdomM hweight hδ hlam hspan hAfv hAdom
-  hbox hhand hregR hAreg hwf hprune hrepoProg hRJ hcovJ hRR hcovR hRS hcovS in
+  hbox hhand hregR hAreg hwf hprune hrepoProg hRJ hcovJ hRR hcovR hRS hcovS htrL htrR in
 /-- **The induction of Theorem 3's proof.** A covered configuration answers one clocked left
 piece from left time `a`, if the rest of the piece fits the budget. -/
 theorem coverX_piece {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
@@ -235,8 +318,9 @@ theorem coverX_piece {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
     ∀ cfg, CoveredX G ch cfg → ∀ a, 0 ≤ a → a ≤ r → r - a ≤ (cfg.B : ℝ) * δ →
       (cfg.σ = SrcSetting.preJ → a = 0) →
       ∀ ρ, Formula.sat (guard cfg.q) ρ → Formula.sat (A cfg.q) (mergeLR ω₀ (ΦL a) ρ) →
-      RRespP G cfg.q (fun q' μ => Formula.sat (guard q') μ ∧
+      RRespPC G tr epsR cfg.q (fun q' μ => Formula.sat (guard q') μ ∧
         Formula.sat (A q') (mergeLR ω₀ (ΦL r) μ) ∧ ∀ i, μ (Lv i) = ρ (Lv i)) ρ := by
+  have hε0 : 0 ≤ epsR := epsR_nonneg epsR δ hδ lam hlam hspan
   intro cfg hcov
   induction hcov with
   | @base q B σ m hm hj hle =>
@@ -248,15 +332,17 @@ theorem coverX_piece {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
         calc r - a ≤ (B : ℝ) * δ := hbud
           _ ≤ 1 * δ := mul_le_mul_of_nonneg_right this hδ.le
           _ = δ := one_mul δ
-      exact coverX_finish G ch fR domR fL domL tg guard hgR hguards hfL hdomL hdomR hfR
-        hsys hdomM epsR δ lam hlam hspan A hAdom hbox hhand reg hregR hAreg hwf hL ω₀ hm hj ha har hfit hPre hA
+      exact coverX_finish G ch fR domR fL domL tg guard tr htrL htrR hgR hguards hguardR hfL
+        hdomL hdomR hfR hsys hdomM epsR δ lam hlam hspan A hAdom hbox hhand reg hregR hAreg hwf
+        hL ω₀ hm hj ha har hfit hPre hA
   | @step q B σ m hm hj hlt _ ih =>
       intro a ha har hbud _ ρ hPre hA
       have hw := hweight q m hm
       rw [hw] at hlt ih
       by_cases hfit : r - a ≤ δ
-      · exact coverX_finish G ch fR domR fL domL tg guard hgR hguards hfL hdomL hdomR hfR
-          hsys hdomM epsR δ lam hlam hspan A hAdom hbox hhand reg hregR hAreg hwf hL ω₀ hm hj ha har hfit hPre hA
+      · exact coverX_finish G ch fR domR fL domL tg guard tr htrL htrR hgR hguards hguardR hfL
+          hdomL hdomR hfR hsys hdomM epsR δ lam hlam hspan A hAdom hbox hhand reg hregR hAreg hwf
+          hL ω₀ hm hj ha har hfit hPre hA
       · push Not at hfit
         -- run the segment's span `δ`
         have hlq := hlam q
@@ -293,24 +379,30 @@ theorem coverX_piece {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
           have h1 : (1 : ℕ) ≤ B := hlt.le
           rw [Nat.cast_sub h1, Nat.cast_one, sub_mul, one_mul, hbdef]
           linarith
-        have hrest := ih e.tgt hret b (by linarith) hbr hbud' (by intro h; cases h) (Φ T)
-          (by rw [← hguards q e he]; exact hleg) hAe
-        refine rrespP_step hm he (DLCalTiming.sem_ode_restrict hΦT hT0 le_rfl) hleg
-          (rrespP_mono ?_ hrest)
+        -- the clocked end state carries the guard and the anchor
+        have hrest := ih e.tgt hret b (by linarith) hbr hbud' (by intro h; cases h)
+          (Function.update (Φ T) tr T)
+          ((sat_update_of_notMem (fun h => htrR (hguardR e.tgt h)) _ _).mpr hge)
+          (by rw [mergeLR_update_R ω₀ (ΦL b) (Φ T) htrR T]; exact hAe)
+        refine rrespPC_step hm he
+          (sem_clockedSeg_of_odeSol_fv m.sys m.dom tr epsR hΦT hT0 le_rfl hTε
+            (tr_notMem_ode G fR domR tr htrR hdomR hfR hsys hdomM hm))
+          ((switchLegal_update hgR he htrR _ _).mpr hleg) (rrespPC_mono ?_ hrest)
         rintro q' μ ⟨h1, h2, hμL⟩
-        exact ⟨h1, h2, fun i => (hμL i).trans (right_sol_left hΦ' i)⟩
+        exact ⟨h1, h2, fun i => (hμL i).trans
+          ((update_Lv_of_notMem htrL _ _ i).trans (right_sol_left hΦ' i))⟩
   | @stepRepoPre q B m hm hrepo hB hne _ ih =>
       intro a ha har hbud hpre ρ hPre hA
       have ha0 : a = 0 := hpre rfl
       subst ha0
-      exact repoStep G ch fR domR fL domL gL tg guard hgR hguards hfL hdomL hdomR hgL hfR
-        hsys hdomM A hAfv hhand hrepoProg hL ω₀ hx hm true (by simpa using hrepo) le_rfl
+      exact repoStep G ch fR domR fL domL gL tg guard tr hgR hguards hfL hdomL hdomR hgL hfR
+        hsys hdomM epsR A hAfv hhand hrepoProg hL ω₀ hx hm true (by simpa using hrepo) le_rfl
         hL.hr (fun _ => rfl) hPre hA (fun q' hq' ρ' hg' hA' => ih q' hq' 0 le_rfl hL.hr hbud
           (fun _ => rfl) ρ' hg' hA')
   | @stepRepoPost q B m hm hrepo hB hne _ ih =>
       intro a ha har hbud _ ρ hPre hA
-      exact repoStep G ch fR domR fL domL gL tg guard hgR hguards hfL hdomL hdomR hgL hfR
-        hsys hdomM A hAfv hhand hrepoProg hL ω₀ hx hm false (by simpa using hrepo) ha har
+      exact repoStep G ch fR domR fL domL gL tg guard tr hgR hguards hfL hdomL hdomR hgL hfR
+        hsys hdomM epsR A hAfv hhand hrepoProg hL ω₀ hx hm false (by simpa using hrepo) ha har
         (fun h => by cases h) hPre hA (fun q' hq' ρ' hg' hA' => ih q' hq' a ha har hbud
           (by intro h; cases h) ρ' hg' hA')
   | @stepChosen q B σ m hm hj hlt S hS hneS hsub _ ih =>
@@ -318,8 +410,9 @@ theorem coverX_piece {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
       have hw := hweight q m hm
       rw [hw] at hlt ih
       by_cases hfit : r - a ≤ δ
-      · exact coverX_finish G ch fR domR fL domL tg guard hgR hguards hfL hdomL hdomR hfR
-          hsys hdomM epsR δ lam hlam hspan A hAdom hbox hhand reg hregR hAreg hwf hL ω₀ hm hj ha har hfit hPre hA
+      · exact coverX_finish G ch fR domR fL domL tg guard tr htrL htrR hgR hguards hguardR hfL
+          hdomL hdomR hfR hsys hdomM epsR δ lam hlam hspan A hAdom hbox hhand reg hregR hAreg hwf
+          hL ω₀ hm hj ha har hfit hPre hA
       · push Not at hfit
         have hlq := hlam q
         set b := a + δ with hbdef
@@ -345,17 +438,24 @@ theorem coverX_piece {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
         have hlegm : SwitchLegal e (mergeLR ω₀ (ΦL b) (Φ T)) := by
           unfold SwitchLegal; rw [hguards q e he]; exact hgq'
         have hleg : SwitchLegal e (Φ T) := (switchLegal_merge hgR he ω₀ (ΦL b)).mp hlegm
+        have hge : Formula.sat (guard e.tgt) (Φ T) := by
+          rw [← hguards q e he]; exact hleg
         have hAe := hhand q e he _ hAb hlegm
         have hbud' : r - b ≤ ((B - 1 : ℕ) : ℝ) * δ := by
           have h1 : (1 : ℕ) ≤ B := hlt.le
           rw [Nat.cast_sub h1, Nat.cast_one, sub_mul, one_mul, hbdef]
           linarith
-        have hrest := ih e.tgt hq'S b (by linarith) hbr hbud' (by intro h; cases h) (Φ T)
-          (by rw [← hguards q e he]; exact hleg) hAe
-        refine rrespP_step hm he (DLCalTiming.sem_ode_restrict hΦT hT0 le_rfl) hleg
-          (rrespP_mono ?_ hrest)
+        have hrest := ih e.tgt hq'S b (by linarith) hbr hbud' (by intro h; cases h)
+          (Function.update (Φ T) tr T)
+          ((sat_update_of_notMem (fun h => htrR (hguardR e.tgt h)) _ _).mpr hge)
+          (by rw [mergeLR_update_R ω₀ (ΦL b) (Φ T) htrR T]; exact hAe)
+        refine rrespPC_step hm he
+          (sem_clockedSeg_of_odeSol_fv m.sys m.dom tr epsR hΦT hT0 le_rfl hTε
+            (tr_notMem_ode G fR domR tr htrR hdomR hfR hsys hdomM hm))
+          ((switchLegal_update hgR he htrR _ _).mpr hleg) (rrespPC_mono ?_ hrest)
         rintro q' μ ⟨h1, h2, hμL⟩
-        exact ⟨h1, h2, fun i => (hμL i).trans (right_sol_left hΦ' i)⟩
+        exact ⟨h1, h2, fun i => (hμL i).trans
+          ((update_Lv_of_notMem htrL _ _ i).trans (right_sol_left hΦ' i))⟩
   | @repoChosen q B σ m hm hB S hS hneS hsub _ ih =>
       intro a ha har hbud hpre ρ hPre hA
       have hρdom : Formula.sat domR ρ := (sat_merge_R hdomR ω₀ (ΦL a) ρ).mp (hAdom q _ hA)
@@ -366,11 +466,18 @@ theorem coverX_piece {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
       have hlegm : SwitchLegal e (mergeLR ω₀ (ΦL a) ρ) := by
         unfold SwitchLegal; rw [hguards q e he]; exact hgq'
       have hleg : SwitchLegal e ρ := (switchLegal_merge hgR he ω₀ (ΦL a)).mp hlegm
+      have hge : Formula.sat (guard e.tgt) ρ := by rw [← hguards q e he]; exact hleg
       have hAe := hhand q e he _ hA hlegm
       have hmdom : Formula.sat m.dom ρ := by rw [hdomM q m hm]; exact hρdom
-      have hrest := ih e.tgt hq'S a ha har hbud hpre ρ
-        (by rw [← hguards q e he]; exact hleg) hAe
-      exact rrespP_step hm he (sem_ode_zero m.sys m.dom hmdom) hleg hrest
+      have htrdom : tr ∉ m.dom.fv :=
+        ((notMem_ode_fv_iff _ _ _).mp (tr_notMem_ode G fR domR tr htrR hdomR hfR hsys hdomM hm)).2.2
+      have hrest := ih e.tgt hq'S a ha har hbud hpre (Function.update ρ tr 0)
+        ((sat_update_of_notMem (fun h => htrR (hguardR e.tgt h)) _ _).mpr hge)
+        (by rw [mergeLR_update_R ω₀ (ΦL a) ρ htrR 0]; exact hAe)
+      refine rrespPC_step hm he (sem_clockedSeg_zero m.sys m.dom tr epsR hε0 htrdom hmdom)
+        ((switchLegal_update hgR he htrR _ _).mpr hleg) (rrespPC_mono ?_ hrest)
+      rintro q' μ ⟨h1, h2, hμL⟩
+      exact ⟨h1, h2, fun i => (hμL i).trans (update_Lv_of_notMem htrL _ _ i)⟩
   | @hop q B σ m hm S hS hneS hsub _ ih =>
       intro a ha har hbud hpre ρ hPre hA
       have hρdom : Formula.sat domR ρ := (sat_merge_R hdomR ω₀ (ΦL a) ρ).mp (hAdom q _ hA)
@@ -383,11 +490,18 @@ theorem coverX_piece {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
       have hlegm : SwitchLegal e (mergeLR ω₀ (ΦL a) ρ) := by
         unfold SwitchLegal; rw [hguards q e he]; exact hgq'
       have hleg : SwitchLegal e ρ := (switchLegal_merge hgR he ω₀ (ΦL a)).mp hlegm
+      have hge : Formula.sat (guard e.tgt) ρ := by rw [← hguards q e he]; exact hleg
       have hAe := hhand q e he _ hA hlegm
       have hmdom : Formula.sat m.dom ρ := by rw [hdomM q m hm]; exact hρdom
-      have hrest := ih e.tgt hq'S a ha har hbud hpre ρ
-        (by rw [← hguards q e he]; exact hleg) hAe
-      exact rrespP_step hm he (sem_ode_zero m.sys m.dom hmdom) hleg hrest
+      have htrdom : tr ∉ m.dom.fv :=
+        ((notMem_ode_fv_iff _ _ _).mp (tr_notMem_ode G fR domR tr htrR hdomR hfR hsys hdomM hm)).2.2
+      have hrest := ih e.tgt hq'S a ha har hbud hpre (Function.update ρ tr 0)
+        ((sat_update_of_notMem (fun h => htrR (hguardR e.tgt h)) _ _).mpr hge)
+        (by rw [mergeLR_update_R ω₀ (ΦL a) ρ htrR 0]; exact hAe)
+      refine rrespPC_step hm he (sem_clockedSeg_zero m.sys m.dom tr epsR hε0 htrdom hmdom)
+        ((switchLegal_update hgR he htrR _ _).mpr hleg) (rrespPC_mono ?_ hrest)
+      rintro q' μ ⟨h1, h2, hμL⟩
+      exact ⟨h1, h2, fun i => (hμL i).trans (update_Lv_of_notMem htrL _ _ i)⟩
 
 end Piece
 
@@ -401,10 +515,12 @@ variable {n : ℕ}
 /-- **The gated one-piece window, answered from a cover.** The window's own guard test puts
 the left in its guard at the start; the start configuration `(q, B, preJ)` is covered and the
 window's duration fits the budget (`dt ≤ B · δ`); the instance turns the end facts (the entered
-guard and the entered mode's anchor at the merged end state) into the loop postcondition. -/
+guard and the entered mode's anchor at the merged end state) into the loop postcondition. The
+response is clocked (`GRespC`, right clock `tr`, cap `ε_R`). -/
 theorem coverX_gresp (G : SearchGraph (Var n)) (ch : ChoiceData)
     (fR : ℕ → Fin n → Term (Var n)) (domR : Formula (Var n)) (fL : Fin n → Term (Var n))
     (domL gL : Formula (Var n)) (b : Fin n) (guard : ℕ → Formula (Var n))
+    (tr : Var n) (htrL : tr ∉ range Lv) (htrR : tr ∉ range Rv)
     (hgR : GuardsRight G) (hguards : ∀ q, ∀ e ∈ G.edgesFrom q, e.guard = guard e.tgt)
     (hguardR : ∀ q, (guard q).fv ⊆ range Rv)
     (hfL : ∀ i, (fL i).fv ⊆ range Lv) (hdomL : domL.fv ⊆ range Lv) (hdomR : domR.fv ⊆ range Rv)
@@ -430,7 +546,7 @@ theorem coverX_gresp (G : SearchGraph (Var n)) (ch : ChoiceData)
         σ ω → ¬ Formula.sat e.guard ω)
     (hrepoProg : ∀ q m, G.modeAt q = some m → ∀ pre : Bool,
       (if pre then ch.repoPre q else ch.repoPost q) = true →
-      RepoProgress G A gL (guard q) q pre)
+      RepoProgress G tr epsR A gL (guard q) q pre)
     (RJ : ℕ → Formula (Var n)) (hRJ : ∀ q y, Formula.sat (A q) y → Formula.sat (RJ q) y)
     (hcovJ : ∀ q S, S ∈ ch.jointS q → ∀ y, Formula.sat (RJ q) y →
       ∃ q' ∈ S, Formula.sat (guard q') y)
@@ -452,8 +568,8 @@ theorem coverX_gresp (G : SearchGraph (Var n)) (ch : ChoiceData)
     (hpost : ∀ ν, Program.sem (windowSeg (leftBlock fL) domL ((Side.Aux, b) : Var n) dt 1) σ ν →
       ∀ q' μ, (∀ i, μ (Lv i) = ν (Lv i)) → Formula.sat (guard q') μ →
         Formula.sat (A q') (mergeLR σ ν μ) → Formula.sat (post q') μ) :
-    GResp G q (gwindowSeg gL (leftBlock fL) domL ((Side.Aux, b) : Var n) dt 1) post σ := by
-  refine gresp_gate (fun hg => gresp_of_rresp (fun ν hwin => ?_))
+    GRespC G tr epsR q (gwindowSeg gL (leftBlock fL) domL ((Side.Aux, b) : Var n) dt 1) post σ := by
+  refine grespC_gate (fun hg => fun ν hwin => ?_)
   set tg : Var n := ((Side.Aux, b) : Var n) with htg
   have hP := vars_windowSegL_sub fL domL b dt 1 hfL hdomL
   have hR : ∀ i, ν (Rv i) = σ (Rv i) := by
@@ -490,12 +606,12 @@ theorem coverX_gresp (G : SearchGraph (Var n)) (ch : ChoiceData)
         obtain ⟨j, rfl⟩ := hguardR q hv
         rw [mergeLR_R, mergeLR_R, hR j])
   have hbud : r - 0 ≤ ((B : ℕ) : ℝ) * δ := by linarith
-  have hpiece := coverX_piece G ch fR domR fL domL gL tg guard hgR hguards hguardR hfL hdomL
-    hdomR hgL hfR hsys hdomM hweight epsR δ hδ lam hlam hspan A hAfv hAdom hbox
+  have hpiece := coverX_piece G ch fR domR fL domL gL tg guard tr htrL htrR hgR hguards hguardR
+    hfL hdomL hdomR hgL hfR hsys hdomM hweight epsR δ hδ lam hlam hspan A hAfv hAdom hbox
     hhand reg hregR hAreg hwf hprune hrepoProg RJ hRJ hcovJ RR hRR hcovR RS hRS hcovS hL σ hx
     ⟨q, B, SrcSetting.preJ⟩ (hcov hg) 0 le_rfl hL.hr hbud (fun _ => rfl) ν hgν hA0
   rw [hΦr] at hpiece
-  refine rresp_of_rrespP (rrespP_mono ?_ hpiece)
+  refine rrespPC_mono ?_ hpiece
   rintro q' μ ⟨hgq', hAq', hμL⟩
   exact hpost ν hwin q' μ hμL hgq' hAq'
 

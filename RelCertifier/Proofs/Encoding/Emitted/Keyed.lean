@@ -24,6 +24,7 @@ window's anchor; the windows assemble through `hstepMode_GR`, `HMode_regionG`,
 -/
 import RelCertifier.Proofs.Encoding.Emitted.Choice
 import RelCertifier.Proofs.Encoding.Emitted.Region
+import RelCertifier.Proofs.Encoding.ClockedKeyed
 
 set_option autoImplicit false
 
@@ -247,10 +248,11 @@ theorem cov_of_entry (hv : Verdicts p n cX cov prog ce) (hpo : progOK p n cov pr
 theorem coverHyps_of (hv : Verdicts p n cX cov prog ce) (hpo : progOK p n cov prog = true)
     {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
     (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
-    (hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg (epsR p)) {l : ℕ}
+    (hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg (epsR p)) (d : Fin n) {l : ℕ}
     (hl : l < nL p) :
     CoverHyps (grOf p n (prunedOf cov)) (chOfC p cov ce l) (fR p n) (domR p n) (fL p n l) (domL p n)
-      (guardL p n l) (guardR p n) (epsR p) (δ p cov l) (lamOf p cov l) (AGr p n cX cov reg l)
+      (guardL p n l) (guardR p n) ((Side.Aux, d) : Var n) (epsR p) (δ p cov l) (lamOf p cov l)
+      (AGr p n cX cov reg l)
       (RJof p n cX l) (RRof p n cX l) (RSof p n cX l) where
   hδ := δ_pos hs hl
   hlam := lamOf_pos hs hl
@@ -272,7 +274,8 @@ theorem coverHyps_of (hv : Verdicts p n cX cov prog ce) (hpo : progOK p n cov pr
     rw [lamOf_eq hq] at hω
     exact AG_prune hs hv.nonconn hv.stay hl hq e he hp σ ω hA.1 hω
   hrepoProg := fun q m hm pre hflag =>
-    hrepoProg_of hs hv.nonconn hv.stay hv.prog hpo hregR hinv hwf hv.dyn hl q m hm pre
+    hrepoProg_of hs hv.nonconn hv.stay hv.prog hpo hregR hinv hwf hv.dyn ((Side.Aux, d) : Var n)
+      (aux_notin_range_Lv d) (aux_notin_range_Rv d) hl q m hm pre
       (by cases pre <;> simpa [chOfC, chOf] using hflag)
   hRJ := fun q y hA => by
     unfold RJof; split_ifs with hq
@@ -323,18 +326,20 @@ theorem hcov_of (hv : Verdicts p n cX cov prog ce) (hcovers : coversOK p n cov c
 theorem Hwindow (hv : Verdicts p n cX cov prog ce) (hpo : progOK p n cov prog = true)
     (hcovers : coversOK p n cov ce = true) {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
     (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
-    (hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg (epsR p)) (b : Fin n) (dt : ℝ)
+    (hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg (epsR p)) (b d : Fin n) (dt : ℝ)
     (hdt : dt ≤ epsL p) {l : ℕ} (hl : l < nL p) :
     ∀ (q : ℕ), q < (grOf p n (prunedOf cov)).modes.length → ∀ σ,
       Formula.sat (Formula.and (FRow p n l) (env p n)) σ →
       Formula.sat (guardR p n q) σ → Formula.sat (cutsR p n cX reg q) σ →
-      GResp (grOf p n (prunedOf cov)) q (windowOf p n ((Side.Aux, b) : Var n) dt l)
+      GRespC (grOf p n (prunedOf cov)) ((Side.Aux, d) : Var n) (epsR p) q
+        (windowOf p n ((Side.Aux, b) : Var n) dt l)
         (fun qf => Formula.and (Formula.and (FRow p n l) (env p n)) (cutsR p n cX reg qf)) σ := by
   intro q hq σ hσ hg hc
-  have H := coverHyps_of hs hv hpo hregR hinv hwf hl
+  have H := coverHyps_of hs hv hpo hregR hinv hwf d hl
   have hq' : q < nR p := by rwa [grOf_len] at hq
   refine coverX_gresp (grOf p n (prunedOf cov)) (chOfC p cov ce l) (fR p n) (domR p n) (fL p n l)
-    (domL p n) (guardL p n l) b (guardR p n) (grOf_guardsRight (hnames hs)) grOf_guards
+    (domL p n) (guardL p n l) b (guardR p n) ((Side.Aux, d) : Var n) (aux_notin_range_Lv d)
+    (aux_notin_range_Rv d) (grOf_guardsRight (hnames hs)) grOf_guards
     (guardR_fv (hnames hs)) (fL_fv (hnames hs) l) (domL_fv (hnames hs)) (domR_fv (hnames hs))
     (guardL_fv (hnames hs) l) (fun q _ => fR_fv (hnames hs) q) (fun _ _ hm => grOf_sys hm)
     (fun _ _ hm => grOf_dom hm) (fun _ _ hm => grOf_weight hm)
@@ -405,12 +410,15 @@ theorem evolveR_eq : Handoff.evolveR p = (mRof p 0).evolve := by
 
 omit hs in
 /-- The claim of a benchmark with per-mode rows: Theorem 3 over the left automaton of the file
-(`u_L`-keyed rows) and the guarded right automaton, with the envelope and the right region. -/
+(`u_L`-keyed rows) and the CLOCKED guarded right automaton (each right cycle flows for at most
+`ε_R`; mode variable `(Aux, a)`, left clock `(Aux, b)`, left mode variable `(Aux, c)`, right
+clock `(Aux, d)`), with the envelope and the right region. -/
 def keyedClaim (p : PProblem) (n : ℕ) (cX : EvolStrengtheningX) (cov : CoverEmitE)
-    (reg : Formula (Var n)) (a b c : Fin n) (dt : ℝ) : Prop :=
+    (reg : Formula (Var n)) (a b c d : Fin n) (dt : ℝ) : Prop :=
   RFormula.rvalid (theorem3Form
     (leftAutomatonBody (leftAutOf p n ((Side.Aux, b) : Var n) dt) ((Side.Aux, c) : Var n))
-    (rightAutomatonBody (grOf p n (prunedOf cov)) ((Side.Aux, a) : Var n))
+    (rightAutomatonBodyC (grOf p n (prunedOf cov)) ((Side.Aux, a) : Var n) ((Side.Aux, d) : Var n)
+      (epsR p))
     (psiK ((Side.Aux, c) : Var n) (ϕRow p n) (leftAutOf p n ((Side.Aux, b) : Var n) dt).numModes
       (domL p n) (domR p n)
       (mvRegionR ((Side.Aux, a) : Var n) (gregion p n cX reg) (grOf p n (prunedOf cov)).modes.length)))
@@ -421,14 +429,17 @@ theorem theorem3_keyed_of_records (hv : Verdicts p n cX cov prog ce)
     {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
     (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
     (hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg (epsR p))
-    (a b c : Fin n) (hba : b ≠ a) (hca : c ≠ a) (hcb : c ≠ b) (dt : ℝ) (hdt : dt ≤ epsL p) :
-    keyedClaim p n cX cov reg a b c dt := by
+    (a b c d : Fin n) (hba : b ≠ a) (hca : c ≠ a) (hcb : c ≠ b) (hda : d ≠ a) (hdb : d ≠ b)
+    (hdc : d ≠ c) (dt : ℝ) (hdt : dt ≤ epsL p) :
+    keyedClaim p n cX cov reg a b c d dt := by
   unfold keyedClaim
   set A := leftAutOf p n ((Side.Aux, b) : Var n) dt with hA
   set Gr := grOf p n (prunedOf cov) with hGr
   set mv : Var n := ((Side.Aux, a) : Var n) with hmv
   set uL : Var n := ((Side.Aux, c) : Var n) with huL
   set tg : Var n := ((Side.Aux, b) : Var n) with htg
+  set tr : Var n := ((Side.Aux, d) : Var n) with htr
+  have hmvtr : mv ≠ tr := by simp [hmv, htr, Prod.ext_iff, hda.symm]
   have hnum : A.numModes = nL p := leftAutOf_numModes _ _
   have hgR : GuardsRight Gr := grOf_guardsRight (hnames hs)
   have hRv := grOf_Rv (pr := prunedOf cov) hs
@@ -462,11 +473,12 @@ theorem theorem3_keyed_of_records (hv : Verdicts p n cX cov prog ce)
   have hfresh : ∀ q m, Gr.modeAt q = some m → mv ∉ (Program.ode m.sys m.dom).fv := by
     intro q m hm hmv'
     exact aux_notin_range_Rv a (hRv q m hm (vars_ode_sub _ _ (Or.inl hmv')))
-  refine theorem3_modeKeyed A uL Gr mv (FRow p n) (ϕRow p n) (domL p n) (domR p n)
+  refine theorem3_modeKeyed_gen A uL (rightAutomatonBodyC Gr mv tr (epsR p)) (FRow p n) (ϕRow p n)
+    (domL p n) (domR p n)
     (mvRegion mv (gregion p n cX reg) Gr.modes.length) (mvRegionR mv (gregion p n cX reg) Gr.modes.length)
     (encode_ϕRow p n) (encode_mvRegionR _ _ _) ?_ ?_ ?_
-  · exact hd_modeKeyed_G A Gr a b c hba hca hwin hgrd hnext hgR hRv
-  · refine hstep_modeKeyed A uL (rightAutomatonBody Gr mv) (FRow p n) (env p n)
+  · exact hd_modeKeyed_GC A Gr a b c d hba hca hdb.symm hdc.symm (epsR p) hwin hgrd hnext hgR hRv
+  · refine hstep_modeKeyed A uL (rightAutomatonBodyC Gr mv tr (epsR p)) (FRow p n) (env p n)
       (mvRegion mv (gregion p n cX reg) Gr.modes.length)
       (fun m h => aux_notin_range_Lv c (by
         rcases FRow_fv_any (p := p) (n := n) m h with h' | h'
@@ -498,7 +510,8 @@ theorem theorem3_keyed_of_records (hv : Verdicts p n cX cov prog ce)
         have : A.window t = Program.test (Formula.neg Formula.tt) := by
           simp [hA, leftAutOf, LeftAut.window, List.getD_eq_default, ht]
         rw [this]; exact framesMv_test _ _
-    · exact notMem_bv_rightAutomatonBody_G Gr mv uL (by simp [huL, hmv, Prod.ext_iff, hca])
+    · exact notMem_bv_rightAutomatonBodyC Gr mv tr (epsR p) uL
+        (by simp [huL, hmv, Prod.ext_iff, hca]) (by simp [huL, htr, Prod.ext_iff, hdc.symm])
         (aux_notin_range_Rv c) hgR hRv
     · -- the windows
       intro t ht σ hσ
@@ -510,18 +523,19 @@ theorem theorem3_keyed_of_records (hv : Verdicts p n cX cov prog ce)
         intro h
         obtain ⟨i, hi⟩ := leftBlock_bound_sub (fL p n t) _ h
         exact aux_ne_Lv a i hi
-      refine hstepMode_GR Gr mv (FRow p n t) (env p n) (gregion p n cX reg) _
+      refine hstepMode_GRC Gr mv tr (epsR p) (FRow p n t) (env p n) (gregion p n cX reg) _
         (fun h => aux_notin_range_Lv a (by
           rcases FRow_fv_any (p := p) (n := n) t h with h' | h'
           · exact h'
           · exact absurd h' (aux_notin_range_Rv a)))
-        hmvenv hmvreg hfresh (guardsFresh_of_right Gr a hgR) hlt hframe
-        (HMode_regionG Gr mv (guardR p n) (cutsR p n cX reg) grOf_guards (FRow p n t) (env p n) _
+        hmvenv hmvreg hmvtr hfresh (guardsFresh_of_right Gr a hgR) hlt hframe
+        (HMode_regionGC Gr mv tr (epsR p) (guardR p n) (cutsR p n cX reg) grOf_guards (FRow p n t)
+          (env p n) _
           (fun q _ σ' ν hrun => frames_right (b := b)
             (by have := hwin t (by rw [hnum]; exact ht); rwa [hA, leftAutOf_window _ _ ht] at this)
             (guardR_fv (hnames hs) q) hrun)
           (fun q hq σ' _ hσ' hg hc =>
-            Hwindow hs hv hpo hcovers hregR hinv hwf b dt hdt ht q hq σ' hσ' hg hc)) σ hσ
+            Hwindow hs hv hpo hcovers hregR hinv hwf b d dt hdt ht q hq σ' hσ' hg hc)) σ hσ
     · -- the handoffs
       intro m' hm' t ht ω hF henv hg
       rw [hnum] at hm'
@@ -544,7 +558,8 @@ theorem theorem3_keyed_of_records (hv : Verdicts p n cX cov prog ce)
       refine (sat_FM_iff _ _ ω).mpr ?_
       rw [hct]
       exact hcomps
-  · exact hddF_modeKeyed_G A Gr a b c hba hca (ϕRow p n) (domL p n) (domR p n)
+  · exact hddF_modeKeyed_GC A Gr a b c d hba hca hdb.symm hdc.symm (epsR p) (ϕRow p n) (domL p n)
+      (domR p n)
       (mvRegionR mv (gregion p n cX reg) Gr.modes.length) hwin hgrd hnext hgR hRv
       (fun m _ => canonInvM_varsL (g p n m) (gs p n m) (comps_fv_any (p := p) (n := n) m))
       (fun m _ => canonInvM_varsR (g p n m) (gs p n m)) (domL_fv (hnames hs))

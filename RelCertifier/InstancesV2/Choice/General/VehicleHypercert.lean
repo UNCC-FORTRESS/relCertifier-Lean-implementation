@@ -2,19 +2,18 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `vehicle_hypercert` through the general Theorem 3
+# `vehicle_hypercert`: Assumption 1 for the nominal model, and the window data
 
-The same claim as `Choice/Modal/VehicleHypercert.lean` (`v_L = v_R` over the five-mode
-copy), now an instance of `theorem3_of_coverX`: the cover of every window `l` is a hop into
-the left's mode from every other start, then the closing joint segment (`coverOf`); the hop's
-coverage certificate is discharged here by arithmetic (the left guard and the row put the right
-in the guard of `l`); Assumption 1 is proved for the nominal model (`wellFormedR`); the flow
-certificates are the five verdict packs (`Verd l`). Windows are bounded by the left interval
-(`dt ≤ 1`).
+Assumption 1 for the nominal model (`wellFormedR`, at dimension 2; the bridge instance
+`InstancesV2/Bridge/VehicleHypercert.lean` transports it and lifts it by one for the right
+clock, and `WellFormedBattery.lean` prints its axioms), with the window cover data (`chG`), the window data (`AG`, `cutsG`, `AG_box`) and the arithmetic hop certificate
+(`hop_cover`). The Theorem-3 part (`CoverHyps` and `theorem3_of_coverX`) was retired on
+2026-10-21 with the clocked right automaton: the file is fixed at `Var 2` and has no slot for
+the right clock.
 -/
 import RelCertifier.InstancesV2.Choice.Modal.VehicleHypercert
 import RelCertifier.InstancesV2.Choice.ConstMirror
-import RelCertifier.Proofs.Encoding.Theorem3General
+import RelCertifier.Checker.CoverX
 import RelCertifier.Proofs.Encoding.WellFormedR
 
 set_option linter.unusedSimpArgs false
@@ -78,22 +77,8 @@ def chG (l : ℕ) : ChoiceData :=
     jointS := fun _ => [], repoS := fun _ _ => [],
     hopS := fun q σ => if σ = SrcSetting.preJ ∧ q ≠ l then [[l]] else [] }
 
-theorem coverOf (l : ℕ) (hl : l < 5) : ∀ q, q < 5 →
-    CoveredX Gr (chG l) ⟨q, 1, SrcSetting.preJ⟩ := by
-  intro q hq
-  have hbase : CoveredX Gr (chG l) ⟨l, 1, SrcSetting.preJ⟩ :=
-    CoveredX.base (modeW l) (Gr_modeAt l hl) (by simp [chG]) le_rfl
-  by_cases hql : q = l
-  · subst hql; exact hbase
-  · refine CoveredX.hop (modeW q) (Gr_modeAt q hq) [l] (by simp [chG, hql]) (by simp) ?_ ?_
-    · intro q' hq'
-      simp only [List.mem_singleton] at hq'
-      subst hq'
-      exact mem_exitSucc_of_edge (edge_mem q q' hq hl) rfl (Ne.symm hql)
-    · intro q' hq'
-      simp only [List.mem_singleton] at hq'
-      subst hq'
-      exact hbase
+-- `coverOf` (the window covers for `theorem3_of_coverX`, through `CoverResp.mem_exitSucc_of_edge`)
+-- was retired with the Theorem-3 part; see the comment at the end of the file.
 
 /-! ## The window data -/
 
@@ -233,32 +218,7 @@ theorem edge_pruned_false {q : ℕ} {e : REdge (Var 2)} (he : e ∈ Gr.edgesFrom
   obtain ⟨t, -, rfl⟩ := edgesFrom_eq he
   rfl
 
-/-- The certificates of window `l`. -/
-theorem coverHyps (l : ℕ) (hl : l < 5) (hv : Verd l) :
-    CoverHyps Gr (chG l) fR domR (fL l) domL (hostGuard vs 2 Side.L (mL l)) guardR 1 1
-      (fun _ => 1) (AG l) (fun _ => Formula.tt) (fun _ _ => Formula.tt)
-      (fun q σ => Formula.and (AG l q) (Formula.and (guardR q)
-        (if σ = SrcSetting.preJ then hostGuard vs 2 Side.L (mL l) else Formula.tt))) where
-  hδ := one_pos
-  hlam := fun _ => one_pos
-  hspan := fun _ => by norm_num
-  hAfv := AG_fv l hl
-  hAdom := fun q y h => h.2.2
-  hbox := AG_box l hl hv
-  hhand := AG_hand l hl
-  hprune := fun q m _ e he hp => by rw [edge_pruned_false he] at hp; cases hp
-  hrepoProg := fun q m _ pre h => by cases pre <;> simp [chG] at h
-  hRJ := fun _ _ _ => trivial
-  hcovJ := fun q S hS => by simp [chG] at hS
-  hRR := fun _ _ _ _ _ => trivial
-  hcovR := fun q σ S hS => by simp [chG] at hS
-  hRS := fun q σ y hA hg hgL => ⟨hA, hg, by
-    split_ifs with hσ
-    · exact hgL hσ
-    · trivial⟩
-  hcovS := hop_cover l hl
-
-/-! ## Theorem 3 -/
+/-! ## The mode data of the search graph -/
 
 theorem guardR_fv (q : ℕ) : (guardR q).fv ⊆ range Rv := hguardR_all q
 
@@ -270,34 +230,10 @@ theorem Gr_dom (q : ℕ) (m : RMode (Var 2)) (hm : Gr.modeAt q = some m) : m.dom
 theorem Gr_weight (q : ℕ) (m : RMode (Var 2)) (hm : Gr.modeAt q = some m) : m.weight = 1 := by
   obtain ⟨-, rfl⟩ := Gr_modeAt_inv hm; rfl
 
-/-- **`vehicle_hypercert` by the general Theorem 3** (`theorem3_of_coverX`): windows of at most
-one left interval (`dt ≤ 1`), the five windows' covers (`coverOf`), Assumption 1
-(`wellFormedR`), the certificates (`coverHyps`: the five verdict packs and the arithmetic hop
-certificates). The loop invariant is the row, the envelope, and the right mode's guard with its
-kept atoms. -/
-theorem vehicle_hypercert_general (dt : ℝ) (hdt : dt ≤ 1) (hv : ∀ l < 5, Verd l) :
-    RFormula.rvalid (theorem3Form
-      (bigChoice (leftProgsOf 1 dt domL 5 (fun l => hostGuard vs 2 Side.L (mL l)) fL))
-      (rightAutomatonBody Gr mv)
-      (RFormula.and (RFormula.and (canonInvM g gs) (envLR domL domR))
-        (mvRegionR mv (regionG guardR cutsG) Gr.modes.length))) := by
-  refine theorem3_of_coverX Gr 0 1 (by decide) dt g gs comps_fv domL domR hdomL hdomR guardR
-    cutsG Gr_guards hgR guardR_fv cutsG_fv fR (fun q hq => hfR q (by rwa [Gr_len] at hq))
-    Gr_sys Gr_dom Gr_weight hlt 5
-    (fun l => hostGuard vs 2 Side.L (mL l)) fL (fun l hl => hguardL l hl) (fun l hl => hfL l hl)
-    1 Formula.tt (fun _ h => by simp [Formula.fv] at h) wellFormedR chG (fun _ => 1) (fun _ => 1) (fun _ _ => 1) AG
-    (fun _ _ _ _ _ => trivial) (fun _ _ => Formula.tt)
-    (fun _ _ _ => Formula.tt)
-    (fun l q σ => Formula.and (AG l q) (Formula.and (guardR q)
-      (if σ = SrcSetting.preJ then hostGuard vs 2 Side.L (mL l) else Formula.tt)))
-    (fun l hl => coverHyps l hl (hv l hl)) (fun l _ => by simpa using hdt) ?_ ?_ ?_
-  · intro l hl q hq _
-    rw [Gr_len] at hq
-    exact coverOf l hl q hq
-  · intro l hl q σ _ hσ _ hc
-    exact AG_start l hl q σ hσ hc
-  · intro l hl q' y hA
-    exact AG_post l hl q' y hA
+/- Theorem-3 part retired 2026-10-21 with the clocked right automaton (the file was fixed at
+`Var 2`, no slot for the right clock); the benchmark's Theorem 3 is the generated bridge
+instance `InstancesV2/Bridge/VehicleHypercert.lean`.
+History: git show 61d7389:RelCertifier/InstancesV2/Choice/General/VehicleHypercert.lean. -/
 
 end ChoiceVehicleHypercert
 end RelCertifier

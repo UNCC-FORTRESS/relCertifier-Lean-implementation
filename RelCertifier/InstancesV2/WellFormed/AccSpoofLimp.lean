@@ -9,7 +9,11 @@ Over the instance's guarded right automaton `Gr`, the lowered right guards, `ε_
 `DISENGAGE` (`v < 20`, `v' = −v/2`) are contractions whose guard sets are forward invariant
 (style (a)). Existence: the explicit exponential. Z3-free.
 -/
-import RelCertifier.InstancesV2.Modal.AccSpoofLimp
+import RelCertifier.Proofs.Encoding.CutRespond
+import RelCertifier.Proofs.Encoding.GuardedSwitch
+import RelCertifier.Proofs.Encoding.ModeHandoff
+import RelCertifier.Proofs.Flow.FaceBridge
+import RelCertifier.InstancesV2.BenchIR.acc_spoof_limp
 import RelCertifier.Proofs.Encoding.WellFormedR
 
 set_option linter.unusedSimpArgs false
@@ -18,6 +22,109 @@ namespace RelCertifier
 namespace V2AccSpoofLimp
 
 open DL DLCalTiming DLRel Parse Set
+
+
+def vs : List String := ["v"]
+def dm : PMode := ⟨"", [], .tt, .tt, []⟩
+def mR (q : ℕ) : PMode := acc_spoof_limp_IRv2.R.modes.getD q dm
+
+noncomputable def fR (q : ℕ) : Fin 3 → Term (Var 3) := hostDyn vs 3 Side.R (mR q)
+noncomputable def domR : Formula (Var 3) := hostEvolve vs 3 Side.R (mR 0)
+/-! ## Parse pins -/
+
+theorem hp05 : Run.parseRat "0.5" = some ((1:ℚ)/2) := by
+  have h : parseQ "0.5" = some (⟨5, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
+theorem hp270 : Run.parseRat "27.0" = some (27 : ℚ) := by
+  have h : parseQ "27.0" = some (⟨270, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
+theorem hp300 : Run.parseRat "30.0" = some (30 : ℚ) := by
+  have h : parseQ "30.0" = some (⟨300, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
+theorem hp330 : Run.parseRat "33.0" = some (33 : ℚ) := by
+  have h : parseQ "33.0" = some (⟨330, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
+theorem hp200 : Run.parseRat "20.0" = some (20 : ℚ) := by
+  have h : parseQ "20.0" = some (⟨200, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
+theorem hp400 : Run.parseRat "40.0" = some (40 : ℚ) := by
+  have h : parseQ "40.0" = some (⟨400, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
+theorem hp00 : Run.parseRat "0.0" = some (0 : ℚ) := by
+  have h : parseQ "0.0" = some (⟨0, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+/-- Right fields: `v' = 0.5 (c_q − v)` (`NORMAL` 30, `ECO` 27, `SPORT` 33). -/
+noncomputable def cRc (q : ℕ) : ℝ := if q = 0 then 30 else if q = 1 then 27 else 33
+
+theorem fR0_eval (q : ℕ) (hq : q < 3) (x : State (Var 3)) :
+    Term.eval (fR q 0) x = 1/2 * (cRc q - x (Rv 0)) := by
+  interval_cases q <;>
+    simp [fR, hostDyn, mR, acc_spoof_limp_IRv2, vs, Run.dynOf, Run.lowerE, hp05, hp300,
+      hp270, hp330, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
+      Term.eval, AOp.interp, Rv, cRc]
+
+theorem fR1_eval (q : ℕ) (hq : q < 3) (x : State (Var 3)) :
+    Term.eval (fR q 1) x = 0 := by
+  interval_cases q <;>
+    simp [fR, hostDyn, mR, acc_spoof_limp_IRv2, vs, Run.dynOf, Run.lowerE, hp05, hp300,
+      hp270, hp330, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
+      Term.eval, AOp.interp, Rv]
+
+theorem fR2_eval (q : ℕ) (hq : q < 3) (x : State (Var 3)) :
+    Term.eval (fR q 2) x = 0 := by
+  interval_cases q <;>
+    simp [fR, hostDyn, mR, acc_spoof_limp_IRv2, vs, Run.dynOf, Run.lowerE, hp05, hp300,
+      hp270, hp330, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
+      Term.eval, AOp.interp, Rv]
+
+theorem sat_domR (x : State (Var 3)) :
+    Formula.sat domR x ↔ (0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 40) := by
+  simp only [domR, hostEvolve, mR, acc_spoof_limp_IRv2, vs]
+  simp [Run.lowerF, Run.lowerE, hp00, hp400, Run.resolveVar, List.findIdx?_cons,
+    IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv]
+
+/-! ## The right automaton (the file's modes and declared `next` lists) -/
+
+noncomputable def modeW (q : ℕ) : RMode (Var 3) :=
+  { sys := rightBlock (fR q) (Term.const 1), dom := domR, weight := 1 }
+
+/-- The declared edge `s → t` carries the ENTERED mode's lowered guard (`hostGuard` of the
+right mode `t`, lowered exactly as the left windows' guards are): the right switches into
+`t` only where `t`'s guard holds. -/
+noncomputable def edgeW (s t : ℕ) : REdge (Var 3) :=
+  { src := s, tgt := t, guard := hostGuard vs 3 Side.R (mR t), pruned := false }
+
+/-- The declared transitions, as indices (NORMAL 0, ECO 1, SPORT 2, DISENGAGE 3). -/
+def edgeList : List (ℕ × ℕ) :=
+  [(0, 0), (0, 1), (0, 2), (0, 3), (1, 1), (1, 0), (1, 3), (2, 2), (2, 0), (2, 3), (3, 3)]
+
+noncomputable def Gr : SearchGraph (Var 3) :=
+  { modes := [modeW 0, modeW 1, modeW 2, modeW 3]
+    edges := edgeList.map (fun e => edgeW e.1 e.2) }
+
+theorem Gr_modeAt (q : ℕ) (hq : q < 4) : Gr.modeAt q = some (modeW q) := by
+  interval_cases q <;> rfl
+
+theorem Gr_modeAt_inv {q : ℕ} {m : RMode (Var 3)} (hm : Gr.modeAt q = some m) :
+    q < 4 ∧ m = modeW q := by
+  match q with
+  | 0 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
+  | 1 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
+  | 2 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
+  | 3 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
+  | q + 4 => exact absurd hm (by simp [SearchGraph.modeAt, Gr])
+
+theorem edge_mem (s t : ℕ) (h : (s, t) ∈ edgeList) : edgeW s t ∈ Gr.edgesFrom s :=
+  List.mem_filter.mpr ⟨List.mem_map.mpr ⟨(s, t), h, rfl⟩, by simp [edgeW]⟩
+
+/-- The non-sink right guards, evaluated (`NORMAL`, `ECO`, `SPORT`: `20 ≤ v < 40`). -/
+theorem sat_guardR (q : ℕ) (hq : q < 3) (ν : State (Var 3)) :
+    Formula.sat (hostGuard vs 3 Side.R (mR q)) ν ↔ 20 ≤ ν (Rv 0) ∧ ν (Rv 0) < 40 := by
+  interval_cases q <;>
+    simp [hostGuard, mR, acc_spoof_limp_IRv2, Run.lowerF, Run.lowerE, hp200, hp400, vs,
+      Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
+      CompOp.interp, Term.eval, Rv]
+
 
 theorem hp10 : Run.parseRat "1.0" = some (1 : ℚ) := by
   have h : parseQ "1.0" = some (⟨10, 10⟩ : QF) := by decide

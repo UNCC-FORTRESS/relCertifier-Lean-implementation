@@ -26,6 +26,7 @@ import RelCertifier.Proofs.Flow.FaceBridge
 import RelCertifier.InstancesV2.Cuts.arm_plateau_profiles
 import RelCertifier.Proofs.Encoding.ReplayOne
 import RelCertifier.Proofs.Encoding.WellFormedR
+import RelCertifier.InstancesV2.WellFormed.ArmPlateauProfiles
 
 set_option linter.unusedSimpArgs false
 
@@ -33,19 +34,12 @@ namespace RelCertifier
 namespace V2ArmPlateauProfiles
 
 open DL DLCalTiming DLRel Parse Set RelCertifier.Oracle
-
-def vs : List String := ["theta", "v"]
-def dm : PMode := ⟨"", [], .tt, .tt, []⟩
 def mL (l : ℕ) : PMode := arm_plateau_profiles_IRv2.L.modes.getD l dm
-def mR (q : ℕ) : PMode := arm_plateau_profiles_IRv2.R.modes.getD q dm
-
 abbrev mv : Var 2 := (Side.Aux, 0)
 abbrev tg : Var 2 := (Side.Aux, 1)
 
 noncomputable def fL (l : ℕ) : Fin 2 → Term (Var 2) := hostDyn vs 2 Side.L (mL l)
-noncomputable def fR (q : ℕ) : Fin 2 → Term (Var 2) := hostDyn vs 2 Side.R (mR q)
 noncomputable def domL : Formula (Var 2) := hostEvolve vs 2 Side.L (mL 0)
-noncomputable def domR : Formula (Var 2) := hostEvolve vs 2 Side.R (mR 0)
 noncomputable def env : Formula (Var 2) := Formula.and domL domR
 
 noncomputable def comps : List (Term (Var 2)) :=
@@ -56,52 +50,20 @@ noncomputable def gs : List (Term (Var 2)) := []
 noncomputable def cR (q : ℕ) : List (CutAtomP 2) :=
   cutPairsX vs 2 Side.R (cutAtomsOfX arm_plateau_profiles_cutsV2X.R (mR q).name)
 
-/-! ## Parse pins -/
-
-theorem hp05 : Run.parseRat "0.5" = some ((1:ℚ)/2) := by
-  have h : parseQ "0.5" = some (⟨5, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
 theorem hpm05 : Run.parseRat "-0.5" = some (-(1:ℚ)/2) := by
   have h : parseQ "-0.5" = some (⟨-5, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
 theorem hpm15 : Run.parseRat "-1.5" = some (-(3:ℚ)/2) := by
   have h : parseQ "-1.5" = some (⟨-15, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
-theorem hp00 : Run.parseRat "0.0" = some (0 : ℚ) := by
-  have h : parseQ "0.0" = some (⟨0, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hp12 : Run.parseRat "1.2" = some ((6:ℚ)/5) := by
-  have h : parseQ "1.2" = some (⟨12, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
 theorem hpm10 : Run.parseRat "-1.0" = some (-1 : ℚ) := by
   have h : parseQ "-1.0" = some (⟨-10, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hp10 : Run.parseRat "1.0" = some (1 : ℚ) := by
-  have h : parseQ "1.0" = some (⟨10, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]
 theorem hp0355 : Run.parseRat "0.355" = some ((71:ℚ)/200) := by
   have h : parseQ "0.355" = some (⟨355, 1000⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
 theorem hp0855 : Run.parseRat "0.855" = some ((171:ℚ)/200) := by
   have h : parseQ "0.855" = some (⟨855, 1000⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp035 : Run.parseRat "0.35" = some ((7:ℚ)/20) := by
-  have h : parseQ "0.35" = some (⟨35, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp025 : Run.parseRat "0.25" = some ((1:ℚ)/4) := by
-  have h : parseQ "0.25" = some (⟨25, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp015 : Run.parseRat "0.15" = some ((3:ℚ)/20) := by
-  have h : parseQ "0.15" = some (⟨15, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp0 : Run.parseRat "0" = some (0 : ℚ) := by
-  have h : parseQ "0" = some (⟨0, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hp06 : Run.parseRat "0.6" = some ((3:ℚ)/5) := by
-  have h : parseQ "0.6" = some (⟨6, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp115 : Run.parseRat "1.15" = some ((23:ℚ)/20) := by
-  have h : parseQ "1.15" = some (⟨115, 100⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
 theorem hp0255 : Run.parseRat "0.255" = some ((51:ℚ)/200) := by
   have h : parseQ "0.255" = some (⟨255, 1000⟩ : QF) := by decide
@@ -124,26 +86,6 @@ theorem fL1_eval (l : ℕ) (hl : l < 2) (x : State (Var 2)) :
       AOp.interp, Lv]
     ring
 
-/-- Right rates: ApproachA 0.5, ApproachB 0.35, ApproachCfast 0.25, ApproachCslow 0.15,
-Hold 0. -/
-noncomputable def rate (q : ℕ) : ℝ :=
-  if q = 0 then 1/2 else if q = 1 then 7/20 else if q = 2 then 1/4 else if q = 3 then 3/20
-  else 0
-
-theorem fR0_eval (q : ℕ) (hq : q < 5) (x : State (Var 2)) :
-    Term.eval (fR q 0) x = rate q := by
-  interval_cases q <;>
-    simp [fR, hostDyn, mR, arm_plateau_profiles_IRv2, vs, Run.dynOf, Run.lowerE, hp05, hp035,
-      hp025, hp015, hp0, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
-      AOp.interp, Rv, rate]
-
-theorem fR1_eval (q : ℕ) (hq : q < 5) (x : State (Var 2)) :
-    Term.eval (fR q 1) x = 0 := by
-  interval_cases q <;>
-    simp [fR, hostDyn, mR, arm_plateau_profiles_IRv2, vs, Run.dynOf, Run.lowerE, hp05, hp035,
-      hp025, hp015, hp0, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
-      AOp.interp, Rv]
-
 theorem sat_domL (x : State (Var 2)) :
     Formula.sat domL x ↔
       (0 ≤ x (Lv 0) ∧ x (Lv 0) ≤ 6/5 ∧ -1 ≤ x (Lv 1) ∧ x (Lv 1) ≤ 1) := by
@@ -151,12 +93,6 @@ theorem sat_domL (x : State (Var 2)) :
   simp [Run.lowerF, Run.lowerE, hp00, hp12, hpm10, hp10, Run.resolveVar, List.findIdx?_cons,
     IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Lv]
   tauto
-
-theorem sat_domR (x : State (Var 2)) :
-    Formula.sat domR x ↔ (0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 6/5) := by
-  simp only [domR, hostEvolve, mR, arm_plateau_profiles_IRv2, vs]
-  simp [Run.lowerF, Run.lowerE, hp00, hp12, Run.resolveVar, List.findIdx?_cons,
-    IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv]
 
 theorem domL_univ (l : ℕ) (hl : l < 2) : hostEvolve vs 2 Side.L (mL l) = domL := by
   interval_cases l <;> rfl
@@ -353,23 +289,6 @@ theorem region_fv (q : ℕ) : (region q).fv ⊆ range Rv := by
   · simp only [region, cR_nil q h4, cutF, List.foldl_nil]
     simp [Formula.fv]
 
-/-! ## The right automaton (the file's modes and declared `next` lists) -/
-
-noncomputable def modeW (q : ℕ) : RMode (Var 2) :=
-  { sys := rightBlock (fR q) (Term.const 1), dom := domR, weight := 1 }
-
-/-- The declared edge `s → t` carries the ENTERED mode's lowered guard (`hostGuard` of the
-right mode `t`, lowered exactly as the left windows' guards are): the right switches into
-`t` only where `t`'s guard holds. -/
-noncomputable def edgeW (s t : ℕ) : REdge (Var 2) :=
-  { src := s, tgt := t, guard := hostGuard vs 2 Side.R (mR t), pruned := false }
-
-/-- The declared transitions (ApproachA 0, ApproachB 1, ApproachCfast 2, ApproachCslow 3,
-Hold 4). -/
-def edgeList : List (ℕ × ℕ) :=
-  [(0, 1), (0, 0), (0, 2), (0, 3), (0, 4), (1, 2), (1, 3), (1, 1), (1, 4), (2, 4), (2, 2),
-   (3, 4), (3, 3), (4, 4)]
-
 /-- **Faithfulness of the graph**: `edgeList` IS the file's `next` lists, resolved by name. -/
 theorem edgeList_eq_IR : edgeList =
     (List.range arm_plateau_profiles_IRv2.R.modes.length).flatMap (fun q =>
@@ -377,24 +296,7 @@ theorem edgeList_eq_IR : edgeList =
         (q, (arm_plateau_profiles_IRv2.R.modes.findIdx (·.name == nm))))) := by
   decide
 
-noncomputable def Gr : SearchGraph (Var 2) :=
-  { modes := [modeW 0, modeW 1, modeW 2, modeW 3, modeW 4]
-    edges := edgeList.map (fun e => edgeW e.1 e.2) }
-
 theorem Gr_len : Gr.modes.length = 5 := rfl
-
-theorem Gr_modeAt (q : ℕ) (hq : q < 5) : Gr.modeAt q = some (modeW q) := by
-  interval_cases q <;> rfl
-
-theorem Gr_modeAt_inv {q : ℕ} {m : RMode (Var 2)} (hm : Gr.modeAt q = some m) :
-    q < 5 ∧ m = modeW q := by
-  match q with
-  | 0 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
-  | 1 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
-  | 2 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
-  | 3 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
-  | 4 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
-  | q + 5 => exact absurd hm (by simp [SearchGraph.modeAt, Gr])
 
 theorem hlt : ∀ q, ∀ e ∈ Gr.edgesFrom q, e.tgt < Gr.modes.length := by
   intro q e he
@@ -415,9 +317,6 @@ theorem hRv : ∀ q m, Gr.modeAt q = some m →
   · exact rightBlock_boundSet_sub (fR q) (Term.const 1) hy
   · exact rightBlock_readVars_sub (fR q) (Term.const 1) (hfR q hq) (by simp [Term.fv]) hy
   · exact hdomR hy
-
-theorem edge_mem (s t : ℕ) (h : (s, t) ∈ edgeList) : edgeW s t ∈ Gr.edgesFrom s :=
-  List.mem_filter.mpr ⟨List.mem_map.mpr ⟨(s, t), h, rfl⟩, by simp [edgeW]⟩
 
 theorem hfresh : ∀ q m, Gr.modeAt q = some m → mv ∉ (Program.ode m.sys m.dom).fv := by
   intro q m hm hmv
@@ -682,18 +581,6 @@ theorem hframes (dt : ℝ) : ∀ P ∈ leftProgs dt, FramesMv P mv := by
 
 theorem rate_pos (q : ℕ) (hq : q < 4) : 0 < rate q := by
   interval_cases q <;> norm_num [rate]
-
-/-- The right guards, evaluated. -/
-theorem sat_guardR (q : ℕ) (hq : q < 5) (ν : State (Var 2)) :
-    Formula.sat (hostGuard vs 2 Side.R (mR q)) ν ↔
-      (if q = 0 then 0 ≤ ν (Rv 0) ∧ ν (Rv 0) ≤ 7/20
-       else if q = 1 then 7/20 ≤ ν (Rv 0) ∧ ν (Rv 0) ≤ 1/2
-       else if q = 4 then 3/5 ≤ ν (Rv 0) ∧ ν (Rv 0) < 23/20
-       else 1/2 ≤ ν (Rv 0) ∧ ν (Rv 0) ≤ 3/5) := by
-  interval_cases q <;>
-    simp [hostGuard, mR, arm_plateau_profiles_IRv2, Run.lowerF, Run.lowerE, hp00, hp035, hp05, hp06, hp115, vs,
-      Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
-      CompOp.interp, Term.eval, Rv]
 
 /-! ## The emitted cover's data: the left windows' kept cut atoms -/
 

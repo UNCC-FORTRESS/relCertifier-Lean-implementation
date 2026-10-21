@@ -4,8 +4,9 @@ Released under Apache 2.0 license.
 
 # The bridge verdict runner
 
-Per benchmark, at the bridge dimension (the pack table's `dim`: the state variables plus the
-auxiliary coordinates the instance needs), every group of `Emitted.bridgeGroups` is sent to
+Per benchmark, at the bridge dimension (`bridgeDimV2`: the Assumption 1 lemma's dimension,
+the state variables plus the auxiliary coordinates the instance needs, plus one for the right
+clock), every group of `Emitted.bridgeGroups` is sent to
 Z3; a group is discharged when one member is `unsat` (a flow pack's component by any of its
 three routes, every other group by its single query). The groups are exactly the queries
 `Emitted.verdicts_of_groups` reads as the `Verdicts` structure the generic instances assume.
@@ -40,11 +41,12 @@ structure BridgeRec where
   prog : ProgressEmitE
   ce   : ChoiceEmitE
 
-/-- The choice exhibits (`benchmarks/choice`): their records. -/
+/-- The choice exhibits (`benchmarks/choice`): their records, at the hand-written general
+instance's dimension plus the right clock (`bridgeDimV2`'s rule). -/
 def choiceRecsV2 : List BridgeRec :=
-  [ ⟨"vehicle_accel_copy", 2, vehicle_accel_copy_IRc, vehicle_accel_copy_cutsCX, vehicle_accel_copy_coverV2,
+  [ ⟨"vehicle_accel_copy", 2 + 1, vehicle_accel_copy_IRc, vehicle_accel_copy_cutsCX, vehicle_accel_copy_coverV2,
       vehicle_accel_copy_coverV2_progress, vehicle_accel_copy_coverV2_choice⟩,
-    ⟨"watertank_choice", 2, watertank_choice_IRc, watertank_choice_cutsCX, watertank_choice_coverV2,
+    ⟨"watertank_choice", 2 + 1, watertank_choice_IRc, watertank_choice_cutsCX, watertank_choice_coverV2,
       watertank_choice_coverV2_progress, watertank_choice_coverV2_choice⟩ ]
 
 def coverV2 (b : String) : CoverEmitE :=
@@ -60,12 +62,14 @@ def choiceV2 (b : String) : ChoiceEmitE :=
 instance (`InstancesV2/Choice/General/`), the instance's own dimension. -/
 def generalDimsV2 : List (String × ℕ) := [("vehicle_hypercert", 2)]
 
-/-- The bridge dimension of a benchmark: the pack table's; else a hand-written general instance's
-(`generalDimsV2`); else the state variables padded to the three auxiliary coordinates the keyed
-form needs. -/
+/-- The bridge dimension of a benchmark: the dimension of its Assumption 1 lemma (the pack
+table's; else a hand-written general instance's, `generalDimsV2`; else the state variables
+padded to the three auxiliary coordinates the keyed form needs) PLUS ONE, the right clock of
+the clocked right automaton (`rightAutomatonBodyC`). Assumption 1 is lifted from the lemma's
+dimension by `Emitted.wellFormedR_lift`. -/
 def bridgeDimV2 (b : String) : ℕ :=
   ((packsV2.find? (fun r => r.bench == b)).map (fun r => r.dim)).getD
-    (((generalDimsV2.find? (·.1 == b)).map (·.2)).getD (max (irV2 b).L.stateVars.length 3))
+    (((generalDimsV2.find? (·.1 == b)).map (·.2)).getD (max (irV2 b).L.stateVars.length 3)) + 1
 
 /-- Declared: the number of query groups over the suite. -/
 def expectedBridgeGroupsV2 : Nat := 4457

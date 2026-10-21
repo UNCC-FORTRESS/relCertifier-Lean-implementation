@@ -13,7 +13,7 @@ import RelCertifier.InstancesV2.Bridge.WatertankStrict
 open RelCertifier RelCertifier.VerdictsV2 RelCertifier.Emitted
 
 def demoRec : BridgeRec :=
-  ⟨"watertank_strict", 2, Bridge.WatertankStrict.IR, Bridge.WatertankStrict.cX,
+  ⟨"watertank_strict", 2 + 1, Bridge.WatertankStrict.IR, Bridge.WatertankStrict.cX,
     Bridge.WatertankStrict.cov, Bridge.WatertankStrict.prog, Bridge.WatertankStrict.ce⟩
 
 def runDemo : IO Unit := do

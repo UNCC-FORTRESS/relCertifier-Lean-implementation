@@ -83,7 +83,7 @@ disciplines (pins, declared counts):
   over the 67 instances (`docs/REFUTATION-RESULTS.md`), likewise unchanged by the padded
   coordinate.
 * `relcert-progress-verdicts` (`VerdictsV2/RunProgress.lean`, pins in `ProgressPin.lean`): the rate, keep and landing
-  queries of every emitted progress certificate (261), pinned to `progressVerd_one/two`.
+  queries of every emitted progress certificate (the paper's reposition certificate, Definition 7; 261), pinned to `progressVerd_one/two`.
 * `relcert-choice-verdicts` (`InstancesV2/Choice/Verdicts.lean`): the packs of the three
   choice exhibits' standalone and general instances, and their coverage queries (32).
 

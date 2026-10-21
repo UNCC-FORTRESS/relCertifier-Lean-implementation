@@ -11,7 +11,8 @@ the repository contains a **kernel-checked Theorem 3** (the paper's relational �
 with the paper's own automata on both sides, **guard-gated**: every left window is entered
 only inside its mode's guard (the left automaton, jump then flow) and every right mode change
 enters a declared successor whose guard holds at that instant (flow then jump), at the
-**mode-consistent region** (the right in the guard of its current mode and its checked cuts),
+**mode-consistent region** (the right in the guard of its current mode and its checked cuts, the paper's mode facts of
+Definition 2; the paper's operating region `op_R`),
 whose only assumptions are a small trust base and a finite list of named Z3 `unsat` verdicts,
 each of which the tool re-sends on demand. In the generic-bridge instances (the paper's route)
 the right automaton is clocked: each right cycle flows for at most the control interval `ε_R`
@@ -271,7 +272,8 @@ PProblem  ──(relcert --emit-ir)──▶ InstancesV2/BenchIR/<b>.lean   the 
   │ Trusted/OracleAPI.lean                         search                      UNTRUSTED
   ▼
 a cover (stretches, budgets, flags, admissible starts, strata orders, pruned edges),
-a checked-cut certificate, the progress certificates of its reposition nodes
+a checked-cut certificate (the paper's mode facts, Definition 2), the progress certificates of
+its reposition nodes (the paper's reposition certificates, Definition 7)
   ├─(--emit-cover)─▶ InstancesV2/BenchCovers/<b>.lean
   │                   ▲ CoverReplay.lean: decideCovered accepts, by `decide`
   ├─(--emit-cuts)──▶ InstancesV2/Cuts/<b>.lean
@@ -338,7 +340,8 @@ RelCertifier/
                            carried-over benchmarks
     Choice/                the two choice exhibits (leaves, standalone and general instances,
                            verdict pins) and the standalone and general instances of
-                           `vehicle_hypercert`
+                           `vehicle_hypercert`; the General/ instances keep only their
+                           Assumption 1 proofs (Theorem-3 parts retired 2026-10-21, 61d7389)
     SameIR.lean, CoverReplay.lean, BatteryV2.lean, WellFormedBattery.lean, Bridge.lean
   VerdictsV2/   11 files   runners (RunV2, RunBridge, RunProgress), pins (PinsV2,
                            NonConnPinV2, LamPinV2, ProgressPin), query rebuild (ModalX,
@@ -488,7 +491,10 @@ since branch `replay` these restatements replay the emitted cover with the suite
   check establishes, the cost, the last recorded run.
 * [`docs/PAPER-MAPPING.md`](docs/PAPER-MAPPING.md): **start here with the paper open**: every
   definition, theorem and assumption of the paper, its Lean name, file, how its hypotheses are
-  discharged, and the axioms.
+  discharged, and the axioms; its vocabulary table maps the paper's terms (mode fact,
+  reposition certificate, landing set, committed subset, operating region, witness strategy,
+  stretch) to the tool's names (checked cut, progress certificate, retained successors or
+  chosen set, choice, `regionG`, cover, `lam`).
 * [`docs/GUARDED-SWITCHING.md`](docs/GUARDED-SWITCHING.md): the guarded automata (left and
   right), the mode-consistent region, the per-benchmark responses, the history.
 * [`docs/WELLFORMED.md`](docs/WELLFORMED.md): Assumption 1 per benchmark (`WellFormedR`),

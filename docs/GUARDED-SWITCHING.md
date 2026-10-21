@@ -6,7 +6,9 @@
 lowered guard), against the GUARDED right automaton (flow, then jump: each right edge tests
 the entered right mode's lowered guard), with the loop invariant carrying the declared rows
 keyed by `u_L`, both envelopes, `u_L ∈ modes`, and the MODE-CONSISTENT region
-`regionG guard cuts q = guard q ∧ cuts q` of the right's current mode (sections 3.1, 3.3).
+`regionG guard cuts q = guard q ∧ cuts q` of the right's current mode (its guard and its checked
+cuts, the paper's mode facts of Definition 2; the paper's operating region `op_R`; sections 3.1,
+3.3).
 44 benchmarks carry it for every window length, `refinement_ladder_rover_rung2c` for every
 window up to its control interval, `dt ≤ ε_L = 1`. The two `platoon3` benchmarks carry it on
 their REPAIRED model (section 4.5: the old model's nominal controller blocked after a full

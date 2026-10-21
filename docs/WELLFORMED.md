@@ -253,7 +253,9 @@ generic lemmas including `Platoon3Link.brake_guard_Ronly`, `Platoon3Link.solB_so
 ## 6. The lift to the bridge dimension (2026-10-21, branch `clocked-right`)
 
 Each `WellFormedR` lemma is stated at a fixed dimension `n0` (the pack table's `dim`, or the
-state variables padded to the three auxiliary coordinates the keyed form needs). Since the
+state variables padded to three coordinates: the right mode variable, the left clock and the
+stored left mode; the right clock, the keyed form's fourth auxiliary coordinate, is the `+ 1`
+below). Since the
 right automaton of the bridge is clocked (`rightAutomatonBodyC`, the right clock `(Aux, d)`;
 `docs/PAPER-MAPPING.md` §9), the generated instances live at `n0 + 1` (`bridgeDimV2`,
 `VerdictsV2/RunBridge.lean:73`). `Proofs/Encoding/Emitted/Lift.lean` carries the lemma across:

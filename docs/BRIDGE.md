@@ -9,7 +9,7 @@ benchmark, with every hypothesis either decided in the kernel or read from one Z
 ## 1. What an instance states
 
 For benchmark `b` with IR `p`, extended cut certificate `cX`, cover record `cov` (emitted with
-`RELCERT_IMPLIED_CUT=1`; progress certificates by default), progress record `prog` (the same run) and the
+`RELCERT_IMPLIED_CUT=1`; progress certificates, the paper's reposition certificates of Definition 7, by default), progress record `prog` (the same run) and the
 bridge dimension `n` (`bridgeDimV2 b`, `VerdictsV2/RunBridge.lean:73`: the Assumption 1
 lemma's dimension, the pack table's `dim`, plus one for the right clock `(Aux, d)` of the
 clocked right automaton `rightAutomatonBodyC`, since 2026-10-21; the lemma is lifted by
@@ -88,8 +88,8 @@ gate, 3657/3657 over 46 + 3).
   the pin `progressVerd_one_down`), the only downward form in the suite's records (a
   two-stage certificate must be upward in both stages, `certOK`). Its generated instance
   transports Assumption 1 from the hand-written general instance's lemma
-  (`ChoiceVehicleHypercert.wellFormedR` at the literal period, `epsR_eq`), which stays as the
-  standalone route.
+  (`ChoiceVehicleHypercert.wellFormedR` at the literal period, `epsR_eq`), the only part of that
+  instance kept: its Theorem-3 part was retired on 2026-10-21 (git 61d7389).
 
 * **50 of 50 suite benchmarks** are instantiated (`InstancesV2/Bridge/`): 38 in the window form,
   12 in the mode-keyed form; plus the 2 choice exhibits (52 instances), all with the

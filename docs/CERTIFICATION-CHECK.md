@@ -53,7 +53,7 @@ theorems consume is in the repository.
 | 4 | each file parses to the literal the theorems quote; parser, printer, Z3-layer and determinism tests | `BENCH_PATHS=<manifest> ./.lake/build/bin/relcert-test` |
 | 5 | Assumption 1 of every right model (`WellFormedR`): proved for all 50, none refuted; axiom audit; the tool's check, strict in check 3 | `lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 \| grep -A3 "depends on axioms"`; `./.lake/build/bin/relcert --wellformed benchmarks/suite_v2/*/input.txt` |
 | 6 | every Z3 hypothesis of the generic bridge instances (`InstancesV2/Bridge/`, 52 `*_bridge` theorems: stays, non-connection pairs, flow and reposition packs, admissibility, handoffs, progress, coverage) holds, against the declared total 4457 over the 50 suite benchmarks and the 2 choice exhibits; every query is sent at the instance's dimension `bridgeDimV2 b` (`VerdictsV2/RunBridge.lean:73`: the Assumption 1 lemma's dimension plus one, the right clock of the clocked right automaton `rightAutomatonBodyC`), which is the dimension the instance's `Verdicts` hypothesis names | `./.lake/build/bin/relcert-bridge-verdicts` |
-| 7 | the progress certificates of every reposition node (261 queries) and the coverage queries of the choice exhibits (32) hold, against declared counts | `./.lake/build/bin/relcert-progress-verdicts`, `./.lake/build/bin/relcert-choice-verdicts` |
+| 7 | the progress certificates (the paper's reposition certificates, Definition 7) of every reposition node (261 queries) and the coverage queries of the choice exhibits (32) hold, against declared counts | `./.lake/build/bin/relcert-progress-verdicts`, `./.lake/build/bin/relcert-choice-verdicts` |
 | 8 | the 67 kernel refutations (`InstancesV2/Refute/`, `docs/REFUTATION-RESULTS.md`): every Z3 group of `RefVerdicts` holds against the declared total 188, each instance at its benchmark's bridge dimension (`RefRec.dim + 1`, `InstancesV2/Refute/Table.lean`), and each instance concludes `¬ keyedClaim … 0 1 2 3 dt` / `¬ windowClaim … 0 1 2 dt`, the negation of the clocked bridge claim at that dimension (`refute_keyed_C/A/B_clocked`, `refute_window_B_clocked`) | `./.lake/build/bin/relcert-refute-verdicts`; `lake build RelCertifier.InstancesV2.Refute` |
 
 The totals 4457 and 188 are unchanged by the dimension change of 2026-10-21 (branch
@@ -213,7 +213,8 @@ cell of the 36.
 binders besides the window duration `dt` (and `0 ≤ dt` for some carried-over theorems,
 `0 ≤ dt ≤ 1` for `rung2c`): named Z3 verdict packs. Every statement: Theorem 3 with the
 paper's left program (`leftAutomatonBody`) over the guarded right automaton, the loop
-invariant carrying `guard ∧ cuts` of the right's current mode (`regionG`), every switch
+invariant carrying `guard ∧ cuts` of the right's current mode (`regionG`: the paper's operating
+region `op_R` with the mode facts of Definition 2, the tool's checked cuts), every switch
 kernel-checked legal (`docs/GUARDED-SWITCHING.md` §3.1, §3.3, §6). Mode-independent
 benchmarks are carried from their window-choice theorem by `theorem3_leftAut_of_choiceR`.
 Each `InstancesV2/Modal/` pack `Verd l q` is one row of `VerdictsV2/RunV2.packsV2`; each

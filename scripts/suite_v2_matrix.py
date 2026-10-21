@@ -50,7 +50,7 @@ joint step (branching). The mechanism columns are then DERIVED:
   M6L some mode keeps a linear-form or derived-bound atom AND RELCERT_NO_LINEAR_CUT=1
       DECLINES: the L7 chain (docs/SUITE-REDESIGN.md section 13) is load-bearing
   domains: "per-mode" if some side's modes declare different evolve domains (the
-      paper's Eq. 2 model; the uniform-evolve discipline of the Lean lift does not
+      paper's Eq. 1 model; the uniform-evolve discipline of the Lean lift does not
       cover these yet), else "uniform"
   M7  the scenario kind is read from the file's `# scenario:` line; the dimension and
       invariant shape are computed from the file

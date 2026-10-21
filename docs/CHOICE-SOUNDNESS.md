@@ -167,8 +167,8 @@ regions, and `coverage_sound` reads its `unsat` as the coverage premise (`hcovJ/
 of §9); the chosen cover is decided by `decideCoveredX`. `InstancesV2/Bridge/VehicleAccelCopy.lean`
 and `WatertankChoice.lean` are generated instances through `theorem3_window_of_records`;
 `vehicle_hypercert`, whose reposition node's progress stage crosses its threshold downward, goes
-through the downward mirror `repoProgress_one_down`; its hand-written general instance (§9) stays
-as the standalone route. The coverage queries are among the groups of `relcert-bridge-verdicts`
+through the downward mirror `repoProgress_one_down`; its hand-written general instance (§9) keeps
+only its Assumption 1 proof (its Theorem-3 part was retired on 2026-10-21, git 61d7389). The coverage queries are among the groups of `relcert-bridge-verdicts`
 (`docs/BRIDGE.md`).
 
 Since 2026-10-15 the choice is the tool's default (`RELCERT_NO_CHOICE=1` disables it): the 46

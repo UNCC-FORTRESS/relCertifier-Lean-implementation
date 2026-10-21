@@ -2,9 +2,11 @@
 
 Status: the general theorem is proved (`Proofs/Encoding/Theorem3General.lean`,
 `theorem3_of_coverX`, axioms `propext`, `Classical.choice`, `Quot.sound`); instances for
-`vehicle_hypercert`, `vehicle_accel_copy`, `watertank_choice` and the suite's `watertank` go
-through it (`InstancesV2/Choice/General/`), each with the standard three axioms plus
-`z3_unsat_sound`. Before this branch the paper's Theorem 3 (Lean docstring numbering; the paper's Theorem 3 as of 2026-10-16) was mechanized per
+`vehicle_hypercert`, `vehicle_accel_copy`, `watertank_choice` and the suite's `watertank` went
+through it as hand-written general instances (`InstancesV2/Choice/General/`), each with the
+standard three axioms plus `z3_unsat_sound`; their Theorem-3 parts were retired on 2026-10-21
+(git 61d7389) and only their Assumption 1 proofs remain, every benchmark and exhibit now going
+through the generated bridge instances of §5. Before this branch the paper's Theorem 3 (Lean docstring numbering; the paper's Theorem 3 as of 2026-10-16) was mechanized per
 benchmark: generic lemmas (the outer loop rule, the replay engine, guarded switching) and a
 per-benchmark construction of the response. Now the construction is one theorem whose
 hypotheses are Theorem 3's conditions.
@@ -55,14 +57,14 @@ windows into the loop through `Hmulti_regionG`, `hstep_assembled_GR` and
 ## 3. Reposition progress: the certificate the paper's proof sketch was missing
 
 The proof sketch of Theorem 3 (the paper's Theorem 3 as of 2026-10-16; the paper now states
-the right-only obligation as Lemma 4 and the certificate as Definition 7 / Lemma 5) said
+the right-only obligation as Lemma 4 and the certificate as Definition 7) said
 Assumption 1 "continues every segment along a retained edge". For a joint segment that is right. For a **right-only** segment it is not: Assumption 1
 may enable only the self-loop, the rule requires a non-self exit, and the tool never checked
 that an exit is reached. The 12 benchmarks whose covers use right-only steps rest on exactly
 that (with the all-successors right-only rule disabled, `RELCERT_NO_REPO=1`, they decline:
 34/46). Their standalone Lean proofs had discharged it from explicit solutions (`HExit`).
 
-The fix is a **progress certificate** (the paper's reposition certificate, Definition 7 / Lemma 5 as of 2026-10-17; `Trusted/ProgressEmit.lean`; the tool's default, `RELCERT_NO_PROGRESS=1` disables it),
+The fix is a **progress certificate** (the paper's reposition certificate, Definition 7, consumed by Lemma 4 Proving Right-Only Segments; `Trusted/ProgressEmit.lean`; the tool's default, `RELCERT_NO_PROGRESS=1` disables it),
 checked by the tool per reposition node like every other certificate: a stage
 `(x, θ, r)` says "while `x < θ` (on the node's region, the facts the reposition flow keeps)
 the field of `x` is at least `r > 0`"; an optional helper stage `(y, y₀, r₁)` first (its
@@ -90,6 +92,10 @@ three.
 
 ## 4. Instances
 
+Historical: the Theorem-3 parts of these hand-written general instances were retired on
+2026-10-21 (git 61d7389); their Assumption 1 proofs remain and are transported and lifted into
+the generated bridge instances (§5, `docs/WELLFORMED.md` §6).
+
 | benchmark | windows | cover | discharged here |
 |---|---|---|---|
 | `vehicle_hypercert` | 5, `dt ≤ 1` | hop into the left's mode, then base | hop certificate by arithmetic; Assumption 1 (`odeSol_constRight`); 5 packs |
@@ -110,8 +116,9 @@ not the tool's decision. Replaying emitted covers through `decideCoveredX` (D5) 
 for every benchmark.
 
 The per-benchmark standalone proofs (`InstancesV2/Choice/Modal/`, `InstancesV2/Modal/`)
-remain; the general instances are new theorems (`*_general`) with the same conclusion shape
-(their region beyond the declared modes is `⊤` instead of `⊥`, immaterial under `mvRegionR`).
+remain; the general instances were theorems (`*_general`) with the same conclusion shape
+(their region beyond the declared modes was `⊤` instead of `⊥`, immaterial under `mvRegionR`)
+until their retirement on 2026-10-21.
 
 ## 5. The generic bridge (2026-10-14/15)
 
@@ -131,5 +138,6 @@ The tool emits its choice covers (`RELCERT_CHOICE_OUT`, `Trusted/ChoiceEmit.lean
 bridge replays them (`Emitted/Choice.lean`): `vehicle_accel_copy` and `watertank_choice` are
 generated bridge instances, and so is `vehicle_hypercert`, whose reposition node's single progress
 stage crosses its threshold downward: `repoProgress_one_down` is the mirror of `repoProgress_one`
-(the only downward form the suite's records use); its hand-written general instance of §4 stays
-as the standalone route and supplies the Assumption 1 lemma.
+(the only downward form the suite's records use); its hand-written general instance of §4 keeps
+only its Assumption 1 lemma (its Theorem-3 part was retired on 2026-10-21, git 61d7389), which
+the bridge instance transports and lifts.

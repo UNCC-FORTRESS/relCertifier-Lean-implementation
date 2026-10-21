@@ -259,7 +259,8 @@ def main():
         if n is None:
             # no standalone pack row: the bridge runner's fallback (`bridgeDimV2`, before its
             # `+ 1`): a hand-written general instance's dimension, else the state variables
-            # padded to the three auxiliary coordinates the keyed form needs
+            # padded to three coordinates (right mode variable, left clock, stored left
+            # mode); the right clock, the keyed form's fourth, is the `+ 1`
             info0 = wf_info(b)
             n = info0.get("n") if info0 and info0.get("eps1") and info0.get("n") else max(nvars(b), 3)
         if b in todo:

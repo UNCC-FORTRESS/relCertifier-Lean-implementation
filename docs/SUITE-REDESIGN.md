@@ -165,7 +165,7 @@ shows the mechanism mattered; everything else is printed as `no` or `vacuous`):
 | M6 | some mode keeps a checked cut AND `RELCERT_NO_CUT=1` DECLINES |
 | M6+ | some mode keeps a WIDENED atom (closure / implied-contraction / linear-form / derived-bound, §7) AND `RELCERT_NO_IMPLIED_CUT=1` DECLINES: the cuts are load-bearing only with the widened atoms |
 | M6L | some mode keeps a linear-form or derived-bound atom (§7 L7) AND `RELCERT_NO_LINEAR_CUT=1` DECLINES: the linear-form chain is load-bearing |
-| M7 | the scenario kind from the file's `# scenario:` line (the kept files carry none; the script maps them: ladders and stories model-refinement, watertank sensor-attack); dimension and invariant shape computed from the file; `per-mode domains` if some side's modes declare different evolve domains (the paper's Eq. 2 model, §7 L5) |
+| M7 | the scenario kind from the file's `# scenario:` line (the kept files carry none; the script maps them: ladders and stories model-refinement, watertank sensor-attack); dimension and invariant shape computed from the file; `per-mode domains` if some side's modes declare different evolve domains (the paper's Eq. 1 model, §7 L5) |
 
 A benchmark that keeps cuts but still certifies without them is printed `M6 vacuous`
 (e.g. `match_multi_rate` keeps its band cuts but certifies without them);
@@ -651,7 +651,7 @@ incompleteness.
   mechanization discipline.** The first pass recorded "guards are entry-only, evolve is
   uniform per side" as the paper's model class and dropped the thermal charger, the
   estimator-bias charger and the heater cycle under it. That was wrong on the model: the
-  paper's Eq. 2 gives each mode its OWN evolution domain, the parser accepts per-mode
+  paper's Eq. 1 gives each mode its OWN evolution domain, the parser accepts per-mode
   domains, and the tool's flow queries already use them (`segParts`/`segPartsRO` take
   `mL.evolve ∧ mR.evolve` of the pair). Only the Lean lift's uniform-evolve discipline
   (`UniformEvol.lean`, the handoff runner's `uniformEvolveR`) does not cover per-mode
@@ -2084,12 +2084,12 @@ with the later passes.)
   `--run-verdicts` rows): a separate task. It needs two generalizations of the lift the
   tool side now exercises: the O1 case split of the extended cut certificate
   (`EvolStrengtheningX`: membership / weakening / rational / Z3 entries — §7, and
-  `docs/PAPER-MAPPING.md` §2 (the Definition 2 row, mode invariants, the tool's checked cuts)) and per-mode evolve domains (`UniformEvol.lean`, the
+  `docs/PAPER-MAPPING.md` §2 (the Definition 2 row, mode facts, the tool's checked cuts)) and per-mode evolve domains (`UniformEvol.lean`, the
   handoff runner's `uniformEvolveR`). Until then the kernel column still reads
   `suite_uniform`, and `relcert --check-quick benchmarks/suite_uniform/*/input.txt`
   is unchanged.
 * The L6 domain-corner incompleteness (met by the dropped `heater_cycle`).
-* The Lean lift of the linear-form chain (§7 L7; `docs/PAPER-MAPPING.md` §2 (the Definition 2 row, mode invariants, the tool's checked cuts): the
+* The Lean lift of the linear-form chain (§7 L7; `docs/PAPER-MAPPING.md` §2 (the Definition 2 row, mode facts, the tool's checked cuts): the
   linear-shape and derived-shape lemmas and the SEQUENTIAL composition the `given` field
   records).
 * (Resolved in pass 4, §13.6: the flagged `story3_rollover_ladder_rung_b` and the
@@ -2098,7 +2098,7 @@ with the later passes.)
   kept files carry no `# scenario:` line; the script maps their kind.
 * `benchmarks/suite_uniform/arm_chain_rung3`, `arm_fidelity_low` and `arm_fidelity_mid`, read by the Lean
   pins, close their Hold phase with the same kind of evolve cap the domain audit removed
-  from `suite_v2` (`θ_L ≤ 0.65 ≤ 0.6 + tol`, `docs/PAPER-MAPPING.md` §2 (the Definition 2 row, mode invariants, the tool's checked cuts)); not touched
+  from `suite_v2` (`θ_L ≤ 0.65 ≤ 0.6 + tol`, `docs/PAPER-MAPPING.md` §2 (the Definition 2 row, mode facts, the tool's checked cuts)); not touched
   here (`suite_uniform` must stay byte-identical).
 * The paper's Table 1 / §6 rewrite from §8.
 * The Lean mechanization of the pass-4 files: the five replacements and the rigid-body
@@ -3771,8 +3771,10 @@ pass at that stretch already failed with the same nodes). `RELCERT_NO_PAIR_STRET
 it (ablation). Soundness: each pairing's flow obligation is the pack at its own stretch
 (`couple_cutX` takes λ per coupling; the kernel's cover theorem is per mode); the shorter span
 only cuts segments short, which Theorem 1 (throughout; Lean docstring numbering, the paper's Definition 5 / Lemma 2) and Assumption 1 (every duration up to
-`ε_R` ends in a successor's guard) admit; partial right cycles are what the unclocked right
-automaton already models. The reposition certificates are stretch-free.
+`ε_R` ends in a successor's guard) admit; partial right cycles are what the right
+automaton already models (a cycle may stop at any duration `≤ ε_R`: the clocked automaton of
+the bridge route since 2026-10-21, and the unclocked one of the standalone instances). The
+reposition certificates are stretch-free.
 
 **The data.** `PairStrataE` carries `lamN / lamD`, the stretch each pairing was certified at;
 `LeftCoverE.lamQ` is the window's stretch (the common one, or `λ_max`), so `bBudget =

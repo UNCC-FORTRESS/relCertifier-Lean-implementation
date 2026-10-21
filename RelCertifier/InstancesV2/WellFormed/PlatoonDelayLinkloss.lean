@@ -19,7 +19,11 @@ Over the instance's guarded right automaton `Gr`, the lowered right guards, `ε_
 (Until 2026-10-10 `BRAKE`'s only successor was itself and the model was refuted here, from
 `g = 19`: the run of duration 1 ends at `g = 20.5`.)
 -/
-import RelCertifier.InstancesV2.Modal.PlatoonDelayLinkloss
+import RelCertifier.Proofs.Encoding.CutRespond
+import RelCertifier.Proofs.Encoding.GuardedSwitch
+import RelCertifier.Proofs.Encoding.ModeHandoff
+import RelCertifier.Proofs.Flow.FaceBridge
+import RelCertifier.InstancesV2.BenchIR.platoon_delay_linkloss
 import RelCertifier.Proofs.Encoding.WellFormedR
 
 set_option linter.unusedSimpArgs false
@@ -28,6 +32,113 @@ namespace RelCertifier
 namespace V2PlatoonDelayLinkloss
 
 open DL DLCalTiming DLRel Parse Set
+
+
+def vs : List String := ["g"]
+def dm : PMode := ⟨"", [], .tt, .tt, []⟩
+def mR (q : ℕ) : PMode := platoon_delay_linkloss_IRv2.R.modes.getD q dm
+
+noncomputable def fR (q : ℕ) : Fin 3 → Term (Var 3) := hostDyn vs 3 Side.R (mR q)
+noncomputable def domR : Formula (Var 3) := hostEvolve vs 3 Side.R (mR 0)
+noncomputable def comps (l : ℕ) : List (Term (Var 3)) :=
+  hostComps vs 3 (platoon_delay_linkloss_IRv2.invariants.getD l ("", PForm.tt)).2
+noncomputable def g (l : ℕ) : Term (Var 3) := (comps l).getD 0 (Term.const 0)
+theorem hp05m : Run.parseRat "-0.5" = some (-(1:ℚ)/2) := by
+  have h : parseQ "-0.5" = some (⟨-5, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
+theorem hp06m : Run.parseRat "-0.6" = some (-(3:ℚ)/5) := by
+  have h : parseQ "-0.6" = some (⟨-6, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
+theorem hp300 : Run.parseRat "30.0" = some (30 : ℚ) := by
+  have h : parseQ "30.0" = some (⟨300, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
+theorem hp15 : Run.parseRat "1.5" = some ((3:ℚ)/2) := by
+  have h : parseQ "1.5" = some (⟨15, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
+theorem hp00 : Run.parseRat "0.0" = some (0 : ℚ) := by
+  have h : parseQ "0.0" = some (⟨0, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+theorem hp600 : Run.parseRat "60.0" = some (60 : ℚ) := by
+  have h : parseQ "60.0" = some (⟨600, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
+theorem hp400 : Run.parseRat "40.0" = some (40 : ℚ) := by
+  have h : parseQ "40.0" = some (⟨400, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
+theorem hp200 : Run.parseRat "20.0" = some (20 : ℚ) := by
+  have h : parseQ "20.0" = some (⟨200, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
+theorem hp10 : Run.parseRat "1.0" = some (1 : ℚ) := by
+  have h : parseQ "1.0" = some (⟨10, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+/-- Right fields (FOLLOW, CATCH): `g' = k_q (30 − g)`. -/
+noncomputable def kR (q : ℕ) : ℝ := if q = 1 then 3/5 else 1/2
+
+theorem fR0_eval (q : ℕ) (hq : q < 2) (x : State (Var 3)) :
+    Term.eval (fR q 0) x = kR q * (30 - x (Rv 0)) := by
+  interval_cases q <;>
+    simp [fR, hostDyn, mR, platoon_delay_linkloss_IRv2, vs, Run.dynOf, Run.lowerE, hp05m,
+      hp06m, hp300, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
+      Term.eval, AOp.interp, Rv, kR] <;> ring
+
+theorem fR_pad (q : ℕ) (hq : q < 3) (i : Fin 3) (hi : i ≠ 0) (x : State (Var 3)) :
+    Term.eval (fR q i) x = 0 := by
+  fin_cases i
+  · exact absurd rfl hi
+  all_goals interval_cases q <;>
+    simp [fR, hostDyn, mR, platoon_delay_linkloss_IRv2, vs, Run.dynOf, Run.lowerE, hp05m,
+      hp06m, hp300, hp15, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
+      Term.eval, AOp.interp, Rv]
+
+theorem sat_domR (x : State (Var 3)) :
+    Formula.sat domR x ↔ (0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 60) := by
+  simp only [domR, hostEvolve, mR, platoon_delay_linkloss_IRv2, vs]
+  simp [Run.lowerF, Run.lowerE, hp00, hp600, Run.resolveVar, List.findIdx?_cons,
+    IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv]
+
+/-! ## The right automaton (the file's modes and declared `next` lists) -/
+
+noncomputable def modeW (q : ℕ) : RMode (Var 3) :=
+  { sys := rightBlock (fR q) (Term.const 1), dom := domR, weight := 1 }
+
+/-- The declared edge `s → t` carries the ENTERED mode's lowered guard (`hostGuard` of the
+right mode `t`, lowered exactly as the left windows' guards are): the right switches into
+`t` only where `t`'s guard holds. -/
+noncomputable def edgeW (s t : ℕ) : REdge (Var 3) :=
+  { src := s, tgt := t, guard := hostGuard vs 3 Side.R (mR t), pruned := false }
+
+/-- The declared transitions, as indices (FOLLOW 0, CATCH 1, BRAKE 2). -/
+def edgeList : List (ℕ × ℕ) :=
+  [(0, 1), (0, 0), (0, 2), (1, 0), (1, 1), (2, 2), (2, 0)]
+
+noncomputable def Gr : SearchGraph (Var 3) :=
+  { modes := [modeW 0, modeW 1, modeW 2]
+    edges := edgeList.map (fun e => edgeW e.1 e.2) }
+
+theorem Gr_len : Gr.modes.length = 3 := rfl
+
+theorem Gr_modeAt (q : ℕ) (hq : q < 3) : Gr.modeAt q = some (modeW q) := by
+  interval_cases q <;> rfl
+
+theorem Gr_modeAt_inv {q : ℕ} {m : RMode (Var 3)} (hm : Gr.modeAt q = some m) :
+    q < 3 ∧ m = modeW q := by
+  match q with
+  | 0 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
+  | 1 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
+  | 2 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
+  | q + 3 => exact absurd hm (by simp [SearchGraph.modeAt, Gr])
+
+theorem edge_mem (s t : ℕ) (h : (s, t) ∈ edgeList) : edgeW s t ∈ Gr.edgesFrom s :=
+  List.mem_filter.mpr ⟨List.mem_map.mpr ⟨(s, t), h, rfl⟩, by simp [edgeW]⟩
+
+/-- The non-sink right guards, evaluated (`FOLLOW`: `20 ≤ g < 40`; `CATCH`: `g ≥ 30`). -/
+theorem sat_guardR (q : ℕ) (hq : q < 2) (ν : State (Var 3)) :
+    Formula.sat (hostGuard vs 3 Side.R (mR q)) ν ↔
+      (if q = 0 then 20 ≤ ν (Rv 0) ∧ ν (Rv 0) < 40 else 30 ≤ ν (Rv 0)) := by
+  interval_cases q <;>
+    simp [hostGuard, mR, platoon_delay_linkloss_IRv2, Run.lowerF, Run.lowerE, hp200, hp400,
+      hp300, vs, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
+      CompOp.interp, Term.eval, Rv]
+
 
 theorem epsR_eq : epsR platoon_delay_linkloss_IRv2 = 1 := by
   simp [epsR, platoon_delay_linkloss_IRv2, hp10]

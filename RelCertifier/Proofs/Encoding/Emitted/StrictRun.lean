@@ -191,10 +191,11 @@ theorem theorem3_keyed_strict_of_run {p : PProblem} {cX : EvolStrengtheningX}
     {reg : Formula (Var n)} (hregR : reg.fv ⊆ Set.range Rv)
     (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
     (hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg (epsR p))
-    (a b c : Fin n) (hba : b ≠ a) (hca : c ≠ a) (hcb : c ≠ b) (dt : ℝ) (hdt : dt ≤ epsL p) :
-    keyedClaimS p n cX cov reg a b c dt :=
+    (a b c d : Fin n) (hba : b ≠ a) (hca : c ≠ a) (hcb : c ≠ b) (hda : d ≠ a) (hdb : d ≠ b)
+    (hdc : d ≠ c) (dt : ℝ) (hdt : dt ≤ epsL p) :
+    keyedClaimS p n cX cov reg a b c d dt :=
   theorem3_keyed_strict_of_records hs (verdictsS_of_groups hrun hok) hpo hcovers hregR hinv hwf
-    a b c hba hca hcb dt hdt
+    a b c d hba hca hcb hda hdb hdc dt hdt
 
 /-- **Theorem 3 at a strict one-row benchmark from a green strict run** (window form). -/
 theorem theorem3_window_strict_of_run {p : PProblem} {cX : EvolStrengtheningX}
@@ -205,10 +206,11 @@ theorem theorem3_window_strict_of_run {p : PProblem} {cX : EvolStrengtheningX}
     {reg : Formula (Var n)} (hregR : reg.fv ⊆ Set.range Rv)
     (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
     (hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg (epsR p))
-    (hsame : rowsSame p = true) (a b : Fin n) (hab : a ≠ b) (dt : ℝ) (hdt : dt ≤ epsL p) :
-    windowClaimS p n cX cov reg a b dt :=
+    (hsame : rowsSame p = true) (a b d : Fin n) (hab : a ≠ b) (hda : d ≠ a) (hdb : d ≠ b) (dt : ℝ)
+    (hdt : dt ≤ epsL p) :
+    windowClaimS p n cX cov reg a b d dt :=
   theorem3_window_strict_of_records hs (verdictsS_of_groups hrun hok) hpo hcovers hregR hinv hwf
-    hsame a b hab dt hdt
+    hsame a b d hab hda hdb dt hdt
 
 end Emitted
 end RelCertifier

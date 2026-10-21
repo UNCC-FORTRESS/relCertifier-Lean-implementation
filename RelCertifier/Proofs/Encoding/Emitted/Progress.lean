@@ -200,11 +200,12 @@ theorem hrepoProg_of (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
     (hdyn : ∀ l < nL p, ∀ q < nR p, ∀ pre : Bool,
       (if pre then (flagsOf p cov l q).dynPre else (flagsOf p cov l q).dynPost) = true →
       DynVerd p n cX cov l q pre)
+    (tr : Var n) (htrL : tr ∉ range Lv) (htrR : tr ∉ range Rv)
     {l : ℕ} (hl : l < nL p) :
     ∀ q m, (grOf p n (prunedOf cov)).modeAt q = some m → ∀ pre : Bool,
       (if pre then (chOf p cov l).repoPre q else (chOf p cov l).repoPost q) = true →
-      RepoProgress (grOf p n (prunedOf cov)) (AGr p n cX cov reg l) (guardL p n l) (guardR p n q)
-        q pre := by
+      RepoProgress (grOf p n (prunedOf cov)) tr (epsR p) (AGr p n cX cov reg l) (guardL p n l)
+        (guardR p n q) q pre := by
   intro q m hm pre hflag
   obtain ⟨hq, rfl⟩ := grOf_modeAt_inv hm
   have hflag' : (if pre then (flagsOf p cov l q).dynPre else (flagsOf p cov l q).dynPost) = true := by
@@ -254,7 +255,7 @@ theorem hrepoProg_of (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
         (guardL p n l) (guardR p n) q (modeOf p n q) hm rfl rfl (fR_fv (hnames hs) q)
         (domL_fv (hnames hs)) (domR_fv (hnames hs)) (guardL_fv (hnames hs) l) (guardR_fv (hnames hs))
         (grOf_guardsRight (hnames hs)) (grOf_guards q) (AGr p n cX cov reg l) hAfv'
-        (fun y h => ⟨h.1.2.1, h.1.2.2⟩) pre (epsR p) hε reg hregR (fun y h => h.2) hex hcomp hboxD'
+        (fun y h => ⟨h.1.2.1, h.1.2.2⟩) pre (epsR p) hε tr htrL htrR reg hregR (fun y h => h.2) hex hcomp hboxD'
         (fun e he hp σ ω hA hω => AG_pruneD hs hnc hst hl hq e he hp σ ω hA.1 hω) (regionF p n cX l q pre) hR
         v.2 (st.theta : ℝ) ?_ (st.rate : ℝ) hrpos ?_ ?_
       · intro y hy hθ
@@ -271,7 +272,7 @@ theorem hrepoProg_of (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
         (guardL p n l) (guardR p n) q (modeOf p n q) hm rfl rfl (fR_fv (hnames hs) q)
         (domL_fv (hnames hs)) (domR_fv (hnames hs)) (guardL_fv (hnames hs) l) (guardR_fv (hnames hs))
         (grOf_guardsRight (hnames hs)) (grOf_guards q) (AGr p n cX cov reg l) hAfv'
-        (fun y h => ⟨h.1.2.1, h.1.2.2⟩) pre (epsR p) hε reg hregR (fun y h => h.2) hex hcomp hboxD'
+        (fun y h => ⟨h.1.2.1, h.1.2.2⟩) pre (epsR p) hε tr htrL htrR reg hregR (fun y h => h.2) hex hcomp hboxD'
         (fun e he hp σ ω hA hω => AG_pruneD hs hnc hst hl hq e he hp σ ω hA.1 hω) (regionF p n cX l q pre) hR
         v.2 (st.theta : ℝ) ?_ ?_ (st.rate : ℝ) hrpos ?_
       · intro y hy hθ
@@ -292,7 +293,7 @@ theorem hrepoProg_of (hnc : NonConnAll p n cX cov) (hst : StayAll p n cX)
       (guardL p n l) (guardR p n) q (modeOf p n q) hm rfl rfl (fR_fv (hnames hs) q)
       (domL_fv (hnames hs)) (domR_fv (hnames hs)) (guardL_fv (hnames hs) l) (guardR_fv (hnames hs))
       (grOf_guardsRight (hnames hs)) (grOf_guards q) (AGr p n cX cov reg l) hAfv'
-      (fun y h => ⟨h.1.2.1, h.1.2.2⟩) pre (epsR p) hε reg hregR (fun y h => h.2) hex hcomp hboxD'
+      (fun y h => ⟨h.1.2.1, h.1.2.2⟩) pre (epsR p) hε tr htrL htrR reg hregR (fun y h => h.2) hex hcomp hboxD'
       (fun e he hp σ ω hA hω => AG_pruneD hs hnc hst hl hq e he hp σ ω hA.1 hω) (regionF p n cX l q pre) hR
       v.2 (st.theta : ℝ) ?_ ?_ (st.rate : ℝ) hrpos w.2 (sth.theta : ℝ) (sth.rate : ℝ) hrhpos
       ?_ ?_ ?_

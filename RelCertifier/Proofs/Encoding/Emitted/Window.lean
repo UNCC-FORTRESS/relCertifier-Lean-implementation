@@ -44,13 +44,16 @@ theorem FRow_same {p : PProblem} (h : rowsSame p = true) (l : ℕ) :
     FRow p n l = FRow p n 0 := by
   unfold FRow g gs comps; rw [rowOf_same h]
 
-/-- The claim of a one-row benchmark: Theorem 3 over the guard-gated windows and the guarded
-right automaton, loop invariant the row with the envelope and the right region. -/
+/-- The claim of a one-row benchmark: Theorem 3 over the guard-gated windows and the CLOCKED
+guarded right automaton (each right cycle flows for at most `ε_R`; mode variable `(Aux, a)`,
+left clock `(Aux, b)`, right clock `(Aux, d)`), loop invariant the row with the envelope and
+the right region. -/
 def windowClaim (p : PProblem) (n : ℕ) (cX : EvolStrengtheningX) (cov : CoverEmitE)
-    (reg : Formula (Var n)) (a b : Fin n) (dt : ℝ) : Prop :=
+    (reg : Formula (Var n)) (a b d : Fin n) (dt : ℝ) : Prop :=
   RFormula.rvalid (theorem3Form
     (bigChoice (leftProgsOf b dt (domL p n) (nL p) (guardL p n) (fL p n)))
-    (rightAutomatonBody (grOf p n (prunedOf cov)) ((Side.Aux, a) : Var n))
+    (rightAutomatonBodyC (grOf p n (prunedOf cov)) ((Side.Aux, a) : Var n) ((Side.Aux, d) : Var n)
+      (epsR p))
     (RFormula.and (RFormula.and (canonInvM (g p n 0) (gs p n 0)) (envLR (domL p n) (domR p n)))
       (mvRegionR ((Side.Aux, a) : Var n) (regionG (guardR p n) (cutsR p n cX reg))
         (grOf p n (prunedOf cov)).modes.length)))
@@ -82,10 +85,12 @@ theorem theorem3_window_of_records (hv : Verdicts p n cX cov prog ce)
     {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
     (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
     (hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg (epsR p))
-    (hsame : rowsSame p = true) (a b : Fin n) (hab : a ≠ b) (dt : ℝ) (hdt : dt ≤ epsL p) :
-    windowClaim p n cX cov reg a b dt := by
+    (hsame : rowsSame p = true) (a b d : Fin n) (hab : a ≠ b) (hda : d ≠ a) (hdb : d ≠ b) (dt : ℝ)
+    (hdt : dt ≤ epsL p) :
+    windowClaim p n cX cov reg a b d dt := by
   unfold windowClaim
-  refine theorem3_of_coverX (grOf p n (prunedOf cov)) a b hab dt (g p n 0) (gs p n 0)
+  refine theorem3_of_coverX (grOf p n (prunedOf cov)) a b d hab hda.symm hdb.symm dt (g p n 0)
+    (gs p n 0)
     (comps_fv_any (p := p) (n := n) 0) (domL p n) (domR p n) (domL_fv (hnames hs))
     (domR_fv (hnames hs)) (guardR p n) (cutsR p n cX reg) grOf_guards (grOf_guardsRight (hnames hs))
     (guardR_fv (hnames hs)) (cutsR_fv hs hregR) (fR p n) (fun q _ => fR_fv (hnames hs) q)
@@ -93,7 +98,7 @@ theorem theorem3_window_of_records (hv : Verdicts p n cX cov prog ce)
     (grOf_lt (n := n) (hres hs)) (nL p) (guardL p n) (fL p n) (fun l _ => guardL_fv (hnames hs) l)
     (fun l _ => fL_fv (hnames hs) l) (epsR p) reg hregR hwf (chOfC p cov ce) (B p cov) (δ p cov)
     (lamOf p cov) (AGr p n cX cov reg) (fun _ _ _ _ h => h.2) (RJof p n cX) (RRof p n cX) (RSof p n cX)
-    (fun l hl => coverHyps_of hs hv hpo hregR hinv hwf hl) (fun l hl => hdt.trans (budget_span hs hl))
+    (fun l hl => coverHyps_of hs hv hpo hregR hinv hwf d hl) (fun l hl => hdt.trans (budget_span hs hl))
     ?_ ?_ ?_
   · intro l hl q hq hadm
     refine hcov_of hs hv hcovers (reg := reg) hl q hq ?_

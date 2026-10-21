@@ -158,10 +158,11 @@ theorem cov_of_entryS (hcovg : CoverageAll p n cX ce) (hpo : progOK p n cov prog
 theorem coverHyps_ofS (hv : VerdictsS p n cX cov prog ce) (hpo : progOK p n cov prog = true)
     {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
     (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
-    (hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg (epsR p)) {l : ℕ}
+    (hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg (epsR p)) (d : Fin n) {l : ℕ}
     (hl : l < nL p) :
     CoverHyps (grOf p n (prunedOf cov)) (chOfC p cov ce l) (fR p n) (domR p n) (fL p n l) (domL p n)
-      (guardL p n l) (guardR p n) (epsR p) (δ p cov l) (lamOf p cov l) (AGrS p n cX cov reg l)
+      (guardL p n l) (guardR p n) ((Side.Aux, d) : Var n) (epsR p) (δ p cov l) (lamOf p cov l)
+      (AGrS p n cX cov reg l)
       (RJof p n cX l) (RRof p n cX l) (RSof p n cX l) where
   hδ := δ_pos hs hl
   hlam := lamOf_pos hs hl
@@ -183,7 +184,8 @@ theorem coverHyps_ofS (hv : VerdictsS p n cX cov prog ce) (hpo : progOK p n cov 
     rw [lamOf_eq hq] at hω
     exact AGS_prune hs hv.nonconn hv.stay hl hq e he hp σ ω hA.1 hω
   hrepoProg := fun q m hm pre hflag =>
-    hrepoProg_ofS hs hv.nonconn hv.stay hv.prog hpo hregR hinv hwf hv.dyn hl q m hm pre
+    hrepoProg_ofS hs hv.nonconn hv.stay hv.prog hpo hregR hinv hwf hv.dyn ((Side.Aux, d) : Var n)
+      (aux_notin_range_Lv d) (aux_notin_range_Rv d) hl q m hm pre
       (by cases pre <;> simpa [chOfC, chOf] using hflag)
   hRJ := fun q y hA => by
     unfold RJof; split_ifs with hq
@@ -232,18 +234,20 @@ theorem hcov_ofS (hv : VerdictsS p n cX cov prog ce) (hcovers : coversOK p n cov
 theorem HwindowS (hv : VerdictsS p n cX cov prog ce) (hpo : progOK p n cov prog = true)
     (hcovers : coversOK p n cov ce = true) {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
     (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
-    (hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg (epsR p)) (b : Fin n) (dt : ℝ)
+    (hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg (epsR p)) (b d : Fin n) (dt : ℝ)
     (hdt : dt ≤ epsL p) {l : ℕ} (hl : l < nL p) :
     ∀ (q : ℕ), q < (grOf p n (prunedOf cov)).modes.length → ∀ σ,
       Formula.sat (Formula.and (FRowS p n l) (env p n)) σ →
       Formula.sat (guardR p n q) σ → Formula.sat (cutsR p n cX reg q) σ →
-      GResp (grOf p n (prunedOf cov)) q (windowOf p n ((Side.Aux, b) : Var n) dt l)
+      GRespC (grOf p n (prunedOf cov)) ((Side.Aux, d) : Var n) (epsR p) q
+        (windowOf p n ((Side.Aux, b) : Var n) dt l)
         (fun qf => Formula.and (Formula.and (FRowS p n l) (env p n)) (cutsR p n cX reg qf)) σ := by
   intro q hq σ hσ hg hc
-  have H := coverHyps_ofS hs hv hpo hregR hinv hwf hl
+  have H := coverHyps_ofS hs hv hpo hregR hinv hwf d hl
   have hq' : q < nR p := by rwa [grOf_len] at hq
   refine coverX_gresp (grOf p n (prunedOf cov)) (chOfC p cov ce l) (fR p n) (domR p n) (fL p n l)
-    (domL p n) (guardL p n l) b (guardR p n) (grOf_guardsRight (hnames hs)) grOf_guards
+    (domL p n) (guardL p n l) b (guardR p n) ((Side.Aux, d) : Var n) (aux_notin_range_Lv d)
+    (aux_notin_range_Rv d) (grOf_guardsRight (hnames hs)) grOf_guards
     (guardR_fv (hnames hs)) (fL_fv (hnames hs) l) (domL_fv (hnames hs)) (domR_fv (hnames hs))
     (guardL_fv (hnames hs) l) (fun q _ => fR_fv (hnames hs) q) (fun _ _ hm => grOf_sys hm)
     (fun _ _ hm => grOf_dom hm) (fun _ _ hm => grOf_weight hm)
@@ -276,10 +280,11 @@ theorem HwindowS (hv : VerdictsS p n cX cov prog ce) (hpo : progOK p n cov prog 
 omit hs in
 /-- `keyedClaim` at the strict rows (`ϕRowS`). -/
 def keyedClaimS (p : PProblem) (n : ℕ) (cX : EvolStrengtheningX) (cov : CoverEmitE)
-    (reg : Formula (Var n)) (a b c : Fin n) (dt : ℝ) : Prop :=
+    (reg : Formula (Var n)) (a b c d : Fin n) (dt : ℝ) : Prop :=
   RFormula.rvalid (theorem3Form
     (leftAutomatonBody (leftAutOf p n ((Side.Aux, b) : Var n) dt) ((Side.Aux, c) : Var n))
-    (rightAutomatonBody (grOf p n (prunedOf cov)) ((Side.Aux, a) : Var n))
+    (rightAutomatonBodyC (grOf p n (prunedOf cov)) ((Side.Aux, a) : Var n) ((Side.Aux, d) : Var n)
+      (epsR p))
     (psiK ((Side.Aux, c) : Var n) (ϕRowS p n) (leftAutOf p n ((Side.Aux, b) : Var n) dt).numModes
       (domL p n) (domR p n)
       (mvRegionR ((Side.Aux, a) : Var n) (gregion p n cX reg) (grOf p n (prunedOf cov)).modes.length)))
@@ -291,14 +296,17 @@ theorem theorem3_keyed_strict_of_records (hv : VerdictsS p n cX cov prog ce)
     {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
     (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
     (hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg (epsR p))
-    (a b c : Fin n) (hba : b ≠ a) (hca : c ≠ a) (hcb : c ≠ b) (dt : ℝ) (hdt : dt ≤ epsL p) :
-    keyedClaimS p n cX cov reg a b c dt := by
+    (a b c d : Fin n) (hba : b ≠ a) (hca : c ≠ a) (hcb : c ≠ b) (hda : d ≠ a) (hdb : d ≠ b)
+    (hdc : d ≠ c) (dt : ℝ) (hdt : dt ≤ epsL p) :
+    keyedClaimS p n cX cov reg a b c d dt := by
   unfold keyedClaimS
   set A := leftAutOf p n ((Side.Aux, b) : Var n) dt with hA
   set Gr := grOf p n (prunedOf cov) with hGr
   set mv : Var n := ((Side.Aux, a) : Var n) with hmv
   set uL : Var n := ((Side.Aux, c) : Var n) with huL
   set tg : Var n := ((Side.Aux, b) : Var n) with htg
+  set tr : Var n := ((Side.Aux, d) : Var n) with htr
+  have hmvtr : mv ≠ tr := by simp [hmv, htr, Prod.ext_iff, hda.symm]
   have hnum : A.numModes = nL p := leftAutOf_numModes _ _
   have hgR : GuardsRight Gr := grOf_guardsRight (hnames hs)
   have hRv := grOf_Rv (pr := prunedOf cov) hs
@@ -332,11 +340,12 @@ theorem theorem3_keyed_strict_of_records (hv : VerdictsS p n cX cov prog ce)
   have hfresh : ∀ q m, Gr.modeAt q = some m → mv ∉ (Program.ode m.sys m.dom).fv := by
     intro q m hm hmv'
     exact aux_notin_range_Rv a (hRv q m hm (vars_ode_sub _ _ (Or.inl hmv')))
-  refine theorem3_modeKeyed A uL Gr mv (FRowS p n) (ϕRowS p n) (domL p n) (domR p n)
+  refine theorem3_modeKeyed_gen A uL (rightAutomatonBodyC Gr mv tr (epsR p)) (FRowS p n)
+    (ϕRowS p n) (domL p n) (domR p n)
     (mvRegion mv (gregion p n cX reg) Gr.modes.length) (mvRegionR mv (gregion p n cX reg) Gr.modes.length)
     (encode_ϕRowS p n) (encode_mvRegionR _ _ _) ?_ ?_ ?_
-  · exact hd_modeKeyed_G A Gr a b c hba hca hwin hgrd hnext hgR hRv
-  · refine hstep_modeKeyed A uL (rightAutomatonBody Gr mv) (FRowS p n) (env p n)
+  · exact hd_modeKeyed_GC A Gr a b c d hba hca hdb.symm hdc.symm (epsR p) hwin hgrd hnext hgR hRv
+  · refine hstep_modeKeyed A uL (rightAutomatonBodyC Gr mv tr (epsR p)) (FRowS p n) (env p n)
       (mvRegion mv (gregion p n cX reg) Gr.modes.length)
       (fun m h => aux_notin_range_Lv c (by
         rcases FRowS_fv_any (p := p) (n := n) m h with h' | h'
@@ -368,7 +377,8 @@ theorem theorem3_keyed_strict_of_records (hv : VerdictsS p n cX cov prog ce)
         have : A.window t = Program.test (Formula.neg Formula.tt) := by
           simp [hA, leftAutOf, LeftAut.window, List.getD_eq_default, ht]
         rw [this]; exact framesMv_test _ _
-    · exact notMem_bv_rightAutomatonBody_G Gr mv uL (by simp [huL, hmv, Prod.ext_iff, hca])
+    · exact notMem_bv_rightAutomatonBodyC Gr mv tr (epsR p) uL
+        (by simp [huL, hmv, Prod.ext_iff, hca]) (by simp [huL, htr, Prod.ext_iff, hdc.symm])
         (aux_notin_range_Rv c) hgR hRv
     · -- the windows
       intro t ht σ hσ
@@ -380,18 +390,19 @@ theorem theorem3_keyed_strict_of_records (hv : VerdictsS p n cX cov prog ce)
         intro h
         obtain ⟨i, hi⟩ := leftBlock_bound_sub (fL p n t) _ h
         exact aux_ne_Lv a i hi
-      refine hstepMode_GR Gr mv (FRowS p n t) (env p n) (gregion p n cX reg) _
+      refine hstepMode_GRC Gr mv tr (epsR p) (FRowS p n t) (env p n) (gregion p n cX reg) _
         (fun h => aux_notin_range_Lv a (by
           rcases FRowS_fv_any (p := p) (n := n) t h with h' | h'
           · exact h'
           · exact absurd h' (aux_notin_range_Rv a)))
-        hmvenv hmvreg hfresh (guardsFresh_of_right Gr a hgR) hlt hframe
-        (HMode_regionG Gr mv (guardR p n) (cutsR p n cX reg) grOf_guards (FRowS p n t) (env p n) _
+        hmvenv hmvreg hmvtr hfresh (guardsFresh_of_right Gr a hgR) hlt hframe
+        (HMode_regionGC Gr mv tr (epsR p) (guardR p n) (cutsR p n cX reg) grOf_guards (FRowS p n t)
+          (env p n) _
           (fun q _ σ' ν hrun => frames_right (b := b)
             (by have := hwin t (by rw [hnum]; exact ht); rwa [hA, leftAutOf_window _ _ ht] at this)
             (guardR_fv (hnames hs) q) hrun)
           (fun q hq σ' _ hσ' hg hc =>
-            HwindowS hs hv hpo hcovers hregR hinv hwf b dt hdt ht q hq σ' hσ' hg hc)) σ hσ
+            HwindowS hs hv hpo hcovers hregR hinv hwf b d dt hdt ht q hq σ' hσ' hg hc)) σ hσ
     · -- the handoffs
       intro m' hm' t ht ω hF henv hg
       rw [hnum] at hm'
@@ -415,7 +426,8 @@ theorem theorem3_keyed_strict_of_records (hv : VerdictsS p n cX cov prog ce)
       refine (sat_FMS_iff _ _ _ ω).mpr ?_
       rw [hct]
       exact hcomps
-  · exact hddF_modeKeyed_G A Gr a b c hba hca (ϕRowS p n) (domL p n) (domR p n)
+  · exact hddF_modeKeyed_GC A Gr a b c d hba hca hdb.symm hdc.symm (epsR p) (ϕRowS p n) (domL p n)
+      (domR p n)
       (mvRegionR mv (gregion p n cX reg) Gr.modes.length) hwin hgrd hnext hgR hRv
       (fun m _ => canonInvMS_varsL (g p n m) (gs p n m) (maskOf p n m)
         (comps_fv_any (p := p) (n := n) m))
@@ -434,10 +446,11 @@ theorem FRowS_same {p : PProblem} (h : rowsSame p = true) (l : ℕ) :
 
 /-- `windowClaim` at the strict row (`canonInvMS`). -/
 def windowClaimS (p : PProblem) (n : ℕ) (cX : EvolStrengtheningX) (cov : CoverEmitE)
-    (reg : Formula (Var n)) (a b : Fin n) (dt : ℝ) : Prop :=
+    (reg : Formula (Var n)) (a b d : Fin n) (dt : ℝ) : Prop :=
   RFormula.rvalid (theorem3Form
     (bigChoice (leftProgsOf b dt (domL p n) (nL p) (guardL p n) (fL p n)))
-    (rightAutomatonBody (grOf p n (prunedOf cov)) ((Side.Aux, a) : Var n))
+    (rightAutomatonBodyC (grOf p n (prunedOf cov)) ((Side.Aux, a) : Var n) ((Side.Aux, d) : Var n)
+      (epsR p))
     (RFormula.and (RFormula.and (canonInvMS (g p n 0) (gs p n 0) (maskOf p n 0))
       (envLR (domL p n) (domR p n)))
       (mvRegionR ((Side.Aux, a) : Var n) (regionG (guardR p n) (cutsR p n cX reg))
@@ -469,10 +482,12 @@ theorem theorem3_window_strict_of_records (hv : VerdictsS p n cX cov prog ce)
     {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
     (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
     (hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg (epsR p))
-    (hsame : rowsSame p = true) (a b : Fin n) (hab : a ≠ b) (dt : ℝ) (hdt : dt ≤ epsL p) :
-    windowClaimS p n cX cov reg a b dt := by
+    (hsame : rowsSame p = true) (a b d : Fin n) (hab : a ≠ b) (hda : d ≠ a) (hdb : d ≠ b) (dt : ℝ)
+    (hdt : dt ≤ epsL p) :
+    windowClaimS p n cX cov reg a b d dt := by
   unfold windowClaimS
-  refine theorem3_of_coverXS (grOf p n (prunedOf cov)) a b hab dt (g p n 0) (gs p n 0)
+  refine theorem3_of_coverXS (grOf p n (prunedOf cov)) a b d hab hda.symm hdb.symm dt (g p n 0)
+    (gs p n 0)
     (maskOf p n 0)
     (comps_fv_any (p := p) (n := n) 0) (domL p n) (domR p n) (domL_fv (hnames hs))
     (domR_fv (hnames hs)) (guardR p n) (cutsR p n cX reg) grOf_guards (grOf_guardsRight (hnames hs))
@@ -482,7 +497,7 @@ theorem theorem3_window_strict_of_records (hv : VerdictsS p n cX cov prog ce)
     (fun l _ => fL_fv (hnames hs) l) (epsR p) reg hregR hwf (chOfC p cov ce) (B p cov) (δ p cov)
     (lamOf p cov) (AGrS p n cX cov reg) (fun _ _ _ _ h => h.2) (RJof p n cX) (RRof p n cX)
     (RSof p n cX)
-    (fun l hl => coverHyps_ofS hs hv hpo hregR hinv hwf hl) (fun l hl => hdt.trans (budget_span hs hl))
+    (fun l hl => coverHyps_ofS hs hv hpo hregR hinv hwf d hl) (fun l hl => hdt.trans (budget_span hs hl))
     ?_ ?_ ?_
   · intro l hl q hq hadm
     refine hcov_ofS hs hv hcovers (reg := reg) hl q hq ?_
@@ -505,15 +520,15 @@ end WindowProofs
 /-! ## The strict claims collapse to the existing claims -/
 
 theorem keyedClaimS_iff {p : PProblem} {cX : EvolStrengtheningX} {cov : CoverEmitE}
-    (h : noStrictRows p n = true) (reg : Formula (Var n)) (a b c : Fin n) (dt : ℝ) :
-    keyedClaimS p n cX cov reg a b c dt ↔ keyedClaim p n cX cov reg a b c dt := by
+    (h : noStrictRows p n = true) (reg : Formula (Var n)) (a b c d : Fin n) (dt : ℝ) :
+    keyedClaimS p n cX cov reg a b c d dt ↔ keyedClaim p n cX cov reg a b c d dt := by
   unfold keyedClaimS keyedClaim
   have hϕ : ϕRowS p n = ϕRow p n := funext (fun l => ϕRowS_allFalse (maskOf_allFalse h l))
   rw [hϕ]
 
 theorem windowClaimS_iff {p : PProblem} {cX : EvolStrengtheningX} {cov : CoverEmitE}
-    (h : noStrictRows p n = true) (reg : Formula (Var n)) (a b : Fin n) (dt : ℝ) :
-    windowClaimS p n cX cov reg a b dt ↔ windowClaim p n cX cov reg a b dt := by
+    (h : noStrictRows p n = true) (reg : Formula (Var n)) (a b d : Fin n) (dt : ℝ) :
+    windowClaimS p n cX cov reg a b d dt ↔ windowClaim p n cX cov reg a b d dt := by
   unfold windowClaimS windowClaim
   rw [canonInvMS_allFalse _ _ (maskOf_allFalse h 0)]
 
@@ -527,11 +542,12 @@ theorem theorem3_keyed_of_records_via_strict {p : PProblem} {cX : EvolStrengthen
     {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv)
     (hinv : RegionInvariant (grOf p n (prunedOf cov)) reg)
     (hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg (epsR p))
-    (a b c : Fin n) (hba : b ≠ a) (hca : c ≠ a) (hcb : c ≠ b) (dt : ℝ) (hdt : dt ≤ epsL p) :
-    keyedClaim p n cX cov reg a b c dt :=
-  (keyedClaimS_iff hno reg a b c dt).mp
+    (a b c d : Fin n) (hba : b ≠ a) (hca : c ≠ a) (hcb : c ≠ b) (hda : d ≠ a) (hdb : d ≠ b)
+    (hdc : d ≠ c) (dt : ℝ) (hdt : dt ≤ epsL p) :
+    keyedClaim p n cX cov reg a b c d dt :=
+  (keyedClaimS_iff hno reg a b c d dt).mp
     (theorem3_keyed_strict_of_records hs (VerdictsS.ofVerdicts hno hv) hpo hcovers hregR hinv hwf
-      a b c hba hca hcb dt hdt)
+      a b c d hba hca hcb hda hdb hdc dt hdt)
 
 end Emitted
 end RelCertifier

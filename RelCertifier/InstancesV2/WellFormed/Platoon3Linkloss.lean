@@ -23,9 +23,6 @@ Over the instance's guarded right automaton `Gr` (the repaired model,
 the model was refuted here: from `g₁ = 19`, `r₁ = 0`, the other links at rest at 30, the run
 of duration 1 ends at `g₁ = 21`, outside `BRAKE1`'s guard, its only declared successor.)
 -/
-import RelCertifier.Proofs.Encoding.CutRespond
-import RelCertifier.Proofs.Encoding.ModeHandoff
-import RelCertifier.Proofs.Flow.FaceBridge
 import RelCertifier.InstancesV2.BenchIR.platoon3_linkloss
 import RelCertifier.InstancesV2.WellFormed.Platoon3Link
 

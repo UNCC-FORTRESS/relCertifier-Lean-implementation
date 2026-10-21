@@ -15,9 +15,6 @@ Both modes are contractions `x' = k (12.5 − x)` (`Fast` 0.6, `Slow` 0.2) insid
   side, the run stays above 8), the self-loop is enabled.
 Z3-free.
 -/
-import RelCertifier.Proofs.Encoding.CutRespond
-import RelCertifier.Proofs.Encoding.GuardedSwitch
-import RelCertifier.Proofs.Flow.FaceBridge
 import RelCertifier.InstancesV2.BenchIR.watertank_twospeed
 import RelCertifier.Proofs.Encoding.WellFormedR
 

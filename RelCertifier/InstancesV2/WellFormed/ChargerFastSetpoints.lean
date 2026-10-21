@@ -12,14 +12,7 @@ Over the instance's guarded right automaton `Gr`, the lowered right guards, `ε_
 * `FULL` (`x ≥ 99`, frozen) and `FAULT` (`x < 10`, `x' = −0.01 x`), style (a).
 Existence: the explicit exponential. Z3-free.
 -/
-import RelCertifier.Proofs.Encoding.CutRespond
-import RelCertifier.Proofs.Encoding.GuardedSwitch
-import RelCertifier.Proofs.Flow.FaceBridge
-import RelCertifier.Proofs.Soundness.UniformEvol
 import RelCertifier.InstancesV2.BenchIR.charger_fast_setpoints
-import RelCertifier.Proofs.Encoding.ReplayOne
-import RelCertifier.Proofs.Encoding.ContractRun
-import RelCertifier.Proofs.Encoding.WindowGrowth
 import RelCertifier.Proofs.Encoding.WellFormedR
 
 set_option linter.unusedSimpArgs false

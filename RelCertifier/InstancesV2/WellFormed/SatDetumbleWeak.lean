@@ -23,7 +23,6 @@ is forward invariant (each rate decays; style (a)); existence is the instance's 
 solution `flowR_exists`, which stays in the domain because the conserved sums are constant.
 `SAFE` (`E > 1`, frozen) holds still.
 -/
-import RelCertifier.Proofs.Encoding.GuardedSwitch
 import RelCertifier.InstancesV2.BenchIR.sat_detumble_weak
 import RelCertifier.Proofs.Encoding.WellFormedR
 

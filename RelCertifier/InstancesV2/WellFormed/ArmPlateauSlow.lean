@@ -26,13 +26,7 @@ Existence: the constant-rate run, inside `[0, 1.2]` for one interval from every 
 here: from `θ = 0.35` (`ApproachA`) and from `θ = 0.5` (`ApproachB`) the run of duration 1
 ends at `θ = 0.85`, outside every declared successor's band.)
 -/
-import RelCertifier.Proofs.Encoding.CutRespond
-import RelCertifier.Proofs.Encoding.GuardedClimb
-import RelCertifier.Proofs.Encoding.WindowGrowth
-import RelCertifier.Proofs.Encoding.RepoPrefixR
-import RelCertifier.Proofs.Flow.FaceBridge
 import RelCertifier.InstancesV2.BenchIR.arm_plateau_slow
-import RelCertifier.Proofs.Encoding.ReplayOne
 import RelCertifier.Proofs.Encoding.WellFormedR
 
 set_option linter.unusedSimpArgs false

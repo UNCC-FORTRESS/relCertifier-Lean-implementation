@@ -21,10 +21,6 @@ Over the instance's guarded right automaton `Gr`, the lowered right guards, `ε_
 (Until 2026-10-10 `LIMIT`'s only successor was itself and the model was refuted here, from
 `w = 3.1`: the run of duration 1 ends at `3.1 e^{−2} < 3`.)
 -/
-import RelCertifier.Proofs.Encoding.CutRespond
-import RelCertifier.Proofs.Encoding.GuardedSwitch
-import RelCertifier.Proofs.Flow.FaceBridge
-import RelCertifier.Proofs.Flow.StratifiedFaces
 import RelCertifier.InstancesV2.BenchIR.quad_light_airframe_20
 import RelCertifier.Proofs.Encoding.WellFormedR
 

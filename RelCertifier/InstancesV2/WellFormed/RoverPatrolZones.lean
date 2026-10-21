@@ -15,13 +15,7 @@ The driving zones run `v' = c − v` (`c` = the zone cap 0.6, 0.9, 1.1, 1.5) and
 * `FAST` (`s ≥ 50`, `0.3 ≤ v ≤ 1.5`) and `STALL` (`v < 0.2`), style (a).
 Existence: the explicit zone runs (`flowR_run`) and the explicit `STALL` decay. Z3-free.
 -/
-import RelCertifier.Proofs.Encoding.CutRespond
-import RelCertifier.Proofs.Encoding.ModeHandoff
-import RelCertifier.Proofs.Flow.FaceBridge
 import RelCertifier.InstancesV2.BenchIR.rover_patrol_zones
-import RelCertifier.Proofs.Encoding.GuardedClimb
-import RelCertifier.Proofs.Encoding.WindowGrowth
-import RelCertifier.Proofs.Encoding.ReplayOne
 import RelCertifier.Proofs.Encoding.WellFormedR
 
 set_option linter.unusedSimpArgs false

@@ -17,9 +17,6 @@ Every mode is a contraction `x' = k (c − x)` (PumpOff: `x' = 0`) inside the ta
   above), `PumpOff` (`x < 2`, frozen) are forward invariant, the self-loop is enabled.
 Z3-free.
 -/
-import RelCertifier.Proofs.Encoding.CutRespond
-import RelCertifier.Proofs.Encoding.GuardedSwitch
-import RelCertifier.Proofs.Flow.FaceBridge
 import RelCertifier.InstancesV2.BenchIR.watertank
 import RelCertifier.Proofs.Encoding.WellFormedR
 

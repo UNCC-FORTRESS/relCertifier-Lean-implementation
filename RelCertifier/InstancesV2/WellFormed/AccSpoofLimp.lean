@@ -9,10 +9,6 @@ Over the instance's guarded right automaton `Gr`, the lowered right guards, `ε_
 `DISENGAGE` (`v < 20`, `v' = −v/2`) are contractions whose guard sets are forward invariant
 (style (a)). Existence: the explicit exponential. Z3-free.
 -/
-import RelCertifier.Proofs.Encoding.CutRespond
-import RelCertifier.Proofs.Encoding.GuardedSwitch
-import RelCertifier.Proofs.Encoding.ModeHandoff
-import RelCertifier.Proofs.Flow.FaceBridge
 import RelCertifier.InstancesV2.BenchIR.acc_spoof_limp
 import RelCertifier.Proofs.Encoding.WellFormedR
 

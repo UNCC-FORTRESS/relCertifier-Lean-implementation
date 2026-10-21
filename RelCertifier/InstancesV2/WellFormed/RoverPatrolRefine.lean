@@ -15,14 +15,7 @@ evolve bound on `v`).
 * `FAST` (`s ≥ 50`, `0.3 ≤ v ≤ 1.5`), style (a).
 Existence: the explicit zone runs (`flowR_run`). Z3-free.
 -/
-import RelCertifier.Proofs.Encoding.CutRespond
-import RelCertifier.Proofs.Encoding.ModeHandoff
-import RelCertifier.Proofs.Flow.FaceBridge
 import RelCertifier.InstancesV2.BenchIR.rover_patrol_refine
-import RelCertifier.Proofs.Encoding.GuardedClimb
-import RelCertifier.Proofs.Encoding.WindowGrowth
-import RelCertifier.Proofs.Flow.DISuperlevel
-import RelCertifier.Proofs.Encoding.ReplayOne
 import RelCertifier.Proofs.Encoding.WellFormedR
 
 set_option linter.unusedSimpArgs false

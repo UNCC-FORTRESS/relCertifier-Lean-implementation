@@ -9,9 +9,6 @@ Over the instance's guarded right automaton `Gr`, the lowered right guards, `ε_
 contractions whose guard sets are forward invariant (style (a): the set point 30 lies in
 `[20, 40)`, 0 in `[0, 20)`); `a` is frozen. Existence: the explicit exponential. Z3-free.
 -/
-import RelCertifier.Proofs.Encoding.CutRespond
-import RelCertifier.Proofs.Encoding.GuardedSwitch
-import RelCertifier.Proofs.Flow.FaceBridge
 import RelCertifier.InstancesV2.BenchIR.acc_spoof_lag
 import RelCertifier.Proofs.Encoding.WellFormedR
 

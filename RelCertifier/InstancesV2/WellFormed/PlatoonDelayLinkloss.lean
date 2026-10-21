@@ -19,10 +19,6 @@ Over the instance's guarded right automaton `Gr`, the lowered right guards, `ε_
 (Until 2026-10-10 `BRAKE`'s only successor was itself and the model was refuted here, from
 `g = 19`: the run of duration 1 ends at `g = 20.5`.)
 -/
-import RelCertifier.Proofs.Encoding.CutRespond
-import RelCertifier.Proofs.Encoding.GuardedSwitch
-import RelCertifier.Proofs.Encoding.ModeHandoff
-import RelCertifier.Proofs.Flow.FaceBridge
 import RelCertifier.InstancesV2.BenchIR.platoon_delay_linkloss
 import RelCertifier.Proofs.Encoding.WellFormedR
 

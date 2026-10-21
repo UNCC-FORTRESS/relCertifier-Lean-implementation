@@ -10,10 +10,6 @@ forward-invariant guard (style (a); barriers at both faces). Existence: the inst
 viability route (both `w` faces strict, `a` faces neutral), with the left held still, and a
 time rescaling of the stretched run. Z3-free.
 -/
-import RelCertifier.Proofs.Encoding.CutRespond
-import RelCertifier.Proofs.Encoding.GuardedSwitch
-import RelCertifier.Proofs.Flow.FaceBridge
-import RelCertifier.Proofs.Flow.StratifiedFaces
 import RelCertifier.InstancesV2.BenchIR.quad_light_lag
 import RelCertifier.Proofs.Encoding.WellFormedR
 

@@ -2,31 +2,25 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `charger_fast_setpoints` through the general Theorem 3, with a reposition node
+# `charger_fast_setpoints`: the pruned automaton, Assumption 1 and the window data
 
-The first instance whose cover uses a right-only step: in the `BULK` and `ABSORB` windows the
-nominal charger may start in `BULK`, which no joint segment certifies; it repositions (charges
-at the bulk rate) until `ABSORB`'s guard opens at `x = 80`, then continues with the certified
-joint segments of `ABSORB` and `FULL`. The edge `BULK → FAULT` is pruned (Theorem 2: the level
-stays at or above 15 along the flows). Reposition progress is discharged from the tool's
-emitted **progress certificate** (`BenchProgress/charger_fast_setpoints`): its queries, rebuilt
-by `progressQueriesOf` and discharged by the progress verdict runner, give the rate and
-landing facts (`progressVerd_one`), which with Assumption 1 (the suite's lemma, transported),
-the reposition flow certificate (`VerdD`) and the pruned edge's exclusion give `RepoProgress`
-(`repoProgress_one`). The covers are decided in the kernel.
+The search graph with the edge `BULK → FAULT` pruned (Theorem 2: the level stays at or above
+15 along the flows), Assumption 1 transported from the suite's lemma (`wellFormedR`), the
+kernel-decided covers (`cov_*`, `inadm`) and the window data (`AG`, `cutsG`, `AG_box`).
+The Theorem-3 part (reposition progress of `BULK` from the emitted progress certificate, the
+`CoverHyps` assembly and `theorem3_of_coverX`) was retired on 2026-10-21 with the clocked
+right automaton: the file is fixed at `Var 2` and has no slot for the right clock; the
+benchmark's Theorem 3 is the generated bridge instance `InstancesV2/Bridge/ChargerFastSetpoints.lean`.
 -/
 import RelCertifier.InstancesV2.WellFormed.ChargerFastSetpoints
-import RelCertifier.Proofs.Encoding.Theorem3General
-import RelCertifier.Proofs.Encoding.Progress
-import RelCertifier.VerdictsV2.ProgressPin
-import RelCertifier.InstancesV2.BenchProgress.charger_fast_setpoints
+import RelCertifier.Checker.CoverX
 
 set_option linter.unusedSimpArgs false
 
 namespace RelCertifier
 namespace V2ChargerFastSetpoints
 
-open DL DLCalTiming DLRel Parse Set RelCertifier.Oracle RelCertifier.Progress
+open DL DLCalTiming DLRel Parse Set RelCertifier.Oracle
 
 /-! ## The automaton with the pruned edge `BULK → FAULT` -/
 
@@ -303,209 +297,10 @@ theorem not_fault {y : State (Var 2)} (h15 : 15 ≤ y (Rv 0)) :
   have := (sat_guardR3 y).mp hg
   linarith
 
-/-! ## Reposition progress of `BULK`, from the emitted certificate -/
-
-/-- The emitted certificate of `BULK` (pre-joint) in window `l`. -/
-def certOf (l : ℕ) : ProgressE :=
-  ⟨(mL l).name, "BULK", true, [⟨"x", (80 : ℚ) / 1, true, (1 : ℚ) / 1⟩], ["ABSORB"]⟩
-
-theorem certOf_mem (l : ℕ) (hl : l < 2) :
-    certOf l ∈ charger_fast_setpoints_coverV2_progress.certs := by
-  interval_cases l <;>
-    simp [certOf, charger_fast_setpoints_coverV2_progress, mL, charger_fast_setpoints_IRv2]
-
-theorem modeIdx_L (l : ℕ) (hl : l < 2) :
-    modeIdx charger_fast_setpoints_IRv2.L.modes (mL l).name = l := by
-  interval_cases l <;> decide
-theorem modeIdx_R : modeIdx charger_fast_setpoints_IRv2.R.modes "BULK" = 0 := by decide
-theorem invRow_eq (l : ℕ) (hl : l < 2) : invRowOf charger_fast_setpoints_IRv2 l = l := by
-  interval_cases l <;> decide
-theorem resolve_x : Run.resolveVar vs 2 Side.R "x" = some (Rv 0) := by decide
-theorem mode_ABSORB : ∀ md ∈ charger_fast_setpoints_IRv2.R.modes, md.name = "ABSORB" → md = mR 1 := by
-  decide
-
-/-- The region of `BULK` (pre-joint) in window `l`, as a formula: what the anchor and the left
-guard give, and what the certificate's queries assume. -/
-noncomputable def regionF (l : ℕ) : Formula (Var 2) :=
-  Formula.and (Formula.and (Formula.and (Formula.and domL (cutF (cL l))) (FM g gs))
-    (hostGuard vs 2 Side.L (mL l))) (Formula.and domR (cutF (cR 0)))
-
-theorem regionSat_of_regionF (l : ℕ) (hl : l < 2) (y : State (Var 2))
-    (h : Formula.sat (regionF l) y) :
-    RegionSat vs 2 charger_fast_setpoints_cutsV2X (mL l) (mR 0)
-      (charger_fast_setpoints_IRv2.invariants.getD l ("", PForm.tt)).2 true y := by
-  obtain ⟨⟨⟨⟨h1, h2⟩, h3⟩, h4⟩, h5, h6⟩ := h
-  refine ⟨?_, (sat_cutF _ _).mp h2, ?_, fun _ => h4, ?_, (sat_cutF _ _).mp h6⟩
-  · rw [domL_univ l (by omega)]; exact h1
-  · intro c hc
-    rw [row_eq l (by omega)] at hc
-    have hcomps : hostComps vs 2 (charger_fast_setpoints_IRv2.invariants.getD 0 ("", PForm.tt)).2
-        = [g] := by
-      show comps = [g]
-      rw [comps_eq]; simp [g, comps_eq]
-    rw [hcomps, List.mem_singleton] at hc
-    subst hc
-    exact (sat_FM_iff g gs y).mp h3 _ List.mem_cons_self
-  · rw [domR_univ 0 (by norm_num)]; exact h5
-
-theorem AG_regionF (l : ℕ) (hl : l < 2) (y : State (Var 2)) (hA : Formula.sat (AG l 0) y)
-    (hgL : Formula.sat (hostGuard vs 2 Side.L (mL l)) y) : Formula.sat (regionF l) y := by
-  obtain ⟨hF, hat⟩ := (sat_FM_append g gs _ y).mp hA.1
-  obtain ⟨hLc, hRc⟩ := (atomTerms_iff (hiffL l (by omega)) (hiffRs 0) y).mp hat
-  exact ⟨⟨⟨⟨hA.2.1, (sat_cutF _ _).mpr hLc⟩, hF⟩, hgL⟩, hA.2.2,
-    (sat_cutF _ _).mpr (by simpa [cRs] using hRc)⟩
-
-/-- An exit of the certificate is the declared, non-pruned edge `BULK → ABSORB`. -/
-theorem exit_edge (y : State (Var 2))
-    (h : ∃ nm ∈ ["ABSORB"], ∃ md ∈ charger_fast_setpoints_IRv2.R.modes, md.name = nm ∧
-      Formula.sat (hostGuard vs 2 Side.R md) y) :
-    ∃ e ∈ GrP.edgesFrom 0, e.tgt ≠ 0 ∧ e.pruned = false ∧ Formula.sat (guardR e.tgt) y := by
-  obtain ⟨nm, hnm, md, hmd, hname, hs⟩ := h
-  simp only [List.mem_singleton] at hnm
-  subst hnm
-  rw [mode_ABSORB md hmd hname] at hs
-  exact ⟨edgeWP 0 1, edge_memP 0 1 (by decide), by decide, by decide, hs⟩
-
-/-- **Reposition progress of `BULK`** in windows `BULK` and `ABSORB`, from the certificate. -/
-theorem repoProgress_BULK (l : ℕ) (hl : l < 2) (hd : VerdD l 0)
-    (hprog : ∀ c ∈ charger_fast_setpoints_coverV2_progress.certs,
-      ProgressVerd charger_fast_setpoints_IRv2 charger_fast_setpoints_cutsV2X 2 c) :
-    RepoProgress GrP (AG l) (hostGuard vs 2 Side.L (mL l)) (guardR 0) 0 true := by
-  have hl3 : l < 3 := by omega
-  -- the certificate's facts
-  obtain ⟨v, hv, hrate, hline, hstart⟩ := progressVerd_one (hprog _ (certOf_mem l hl))
-    ⟨"x", (80 : ℚ) / 1, true, (1 : ℚ) / 1⟩ rfl rfl
-  simp only [certOf] at hv hrate hline hstart
-  rw [modeIdx_L l hl, modeIdx_R, invRow_eq l hl] at hrate hline hstart
-  have hv0 : v = Rv 0 := by
-    have := hv
-    rw [show charger_fast_setpoints_IRv2.L.stateVars = vs from rfl, resolve_x] at this
-    exact (Option.some.injEq _ _).mp this.symm
-  subst hv0
-  have hmL : charger_fast_setpoints_IRv2.L.modes.getD l ⟨"", [], .tt, .tt, []⟩ = mL l := rfl
-  have hmR : charger_fast_setpoints_IRv2.R.modes.getD 0 ⟨"", [], .tt, .tt, []⟩ = mR 0 := rfl
-  have hvs : charger_fast_setpoints_IRv2.L.stateVars = vs := rfl
-  simp only [hmL, hmR, hvs] at hrate hline hstart
-  -- Assumption 1 at `BULK`
-  have hwf0 := wellFormedR 0 (by rw [GrP_len]; norm_num) (modeW 0) (GrP_modeAt 0 (by norm_num))
-  refine repoProgress_one GrP (fR 0) domL domR (hostGuard vs 2 Side.L (mL l)) guardR 0 (modeW 0)
-    (GrP_modeAt 0 (by norm_num)) rfl rfl (hfR 0 (by norm_num)) hdomL hdomR (hguardL l hl3)
-    hguardR_all hgRP (GrP_guards 0) (AG l) (AG_fv l hl3 0) (fun y h => ⟨h.2.1, h.2.2⟩) true 1
-    one_pos Formula.tt (fun _ h => by simp [Formula.fv] at h) (fun _ _ => trivial)
-    (fun x hg hd' _ => (hwf0 x hg hd' trivial).1)
-    (fun x hg hd' _ t Φ ht H => (hwf0 x hg hd' trivial).2 t Φ ht H) ?_ ?_ (regionF l)
-    (fun y hA hgL => AG_regionF l hl y hA (hgL rfl)) 0 80 ?_ ?_ 1 one_pos ?_
-  · -- the reposition flow certificate keeps the anchor
-    intro σ ω hA hgL hω
-    have hcRs : cRs 0 = cR 0 := by simp [cRs]
-    rw [AG, hcRs] at hA ⊢
-    refine ⟨?_, sem_ode_ends_in_domain hω⟩
-    exact couple_box_dyn true g gs (g :: gs) (cL l) (cR 0) (fR 0) domL domR
-      (hostGuard vs 2 Side.L (mL l)) (fun c hc => hc) (fun c hc => hc) (hiffL l hl3)
-      (hiffR 0 (by norm_num)) (cL_fvL l hl3) (hguardL l hl3)
-      (stayR_gen 0 (by norm_num) (fun _ => Term.const 0) 1 zero_le_one _)
-      (verdD_core l 0 hl3 (by norm_num) hd) σ ω hA.1 hgL hω
-  · -- the pruned edge is never enabled after a right-only run
-    intro e he hp σ ω hA hω
-    obtain ⟨-, ht⟩ := pruned_iff he hp
-    rw [GrP_guards 0 e he, ht]
-    exact not_fault (level_stays l hl3 (fun _ => Term.const 0) 1 zero_le_one σ ω hA hω)
-  · -- landing on the line
-    intro y hR hy
-    exact exit_edge y (hline y (regionSat_of_regionF l hl y hR) (by simpa using hy))
-  · -- landing at an already-crossed start
-    intro y hR hg hy
-    exact exit_edge y (hstart y (regionSat_of_regionF l hl y hR) hg (by simpa using hy))
-  · -- the rate
-    intro y hR hy
-    have := hrate y (regionSat_of_regionF l hl y hR) (by simpa using hy)
-    simpa [fR] using this
-
-/-! ## The certificates of each window, and Theorem 3 -/
-
-theorem coverHyps (l : ℕ) (hl : l < 3) (hv : Packs) (hd0 : VerdD 0 0) (hd1 : VerdD 1 0)
-    (hprog : ∀ c ∈ charger_fast_setpoints_coverV2_progress.certs,
-      ProgressVerd charger_fast_setpoints_IRv2 charger_fast_setpoints_cutsV2X 2 c) :
-    CoverHyps GrP (chW l) fR domR (fL l) domL (hostGuard vs 2 Side.L (mL l)) guardR 1 1
-      (fun _ => 1) (AG l) (fun _ => Formula.tt) (fun _ _ => Formula.tt)
-      (fun q _ => Formula.and (AG l q) (guardR q)) where
-  hδ := one_pos
-  hlam := fun _ => one_pos
-  hspan := fun _ => by norm_num
-  hAfv := AG_fv l hl
-  hAdom := fun q y h => h.2.2
-  hbox := AG_box l hl hv
-  hhand := AG_hand l hl
-  hprune := fun q m hm e he hp σ ω hA hω => by
-    obtain ⟨rfl, ht⟩ := pruned_iff he hp
-    rw [GrP_guards _ e he, ht]
-    exact not_fault (level_stays l hl (fL l) 1 zero_le_one σ ω hA hω)
-  hrepoProg := fun q m hm pre hflag => by
-    cases pre with
-    | false => simp [chW] at hflag
-    | true =>
-        simp only [chW, if_true, decide_eq_true_eq] at hflag
-        obtain ⟨rfl, hl2⟩ := hflag
-        interval_cases l
-        · exact repoProgress_BULK 0 (by norm_num) hd0 hprog
-        · exact repoProgress_BULK 1 (by norm_num) hd1 hprog
-  hRJ := fun _ _ _ => trivial
-  hcovJ := fun q S hS => by simp [chW] at hS
-  hRR := fun _ _ _ _ _ => trivial
-  hcovR := fun q σ S hS => by simp [chW] at hS
-  hRS := fun q σ y hA hg _ => ⟨hA, hg⟩
-  hcovS := fun q σ S hS => by simp [chW] at hS
-
-theorem hcov (l : ℕ) (hl : l < 3) (q : ℕ) (hq : q < 4)
-    (hadm : AdmissibleStart (hostGuard vs 2 Side.L (mL l)) (FM g gs) (Formula.and domL domR)
-      (guardR q) (cutsG q)) :
-    CoveredX GrP (chW l) ⟨q, 2, SrcSetting.preJ⟩ := by
-  obtain ⟨σ, hgL, hσ, hgR, -⟩ := hadm
-  have hσ' : Formula.sat (Formula.and (FM g gs) env) σ := hσ
-  interval_cases l <;> interval_cases q
-  · exact decideCoveredX_sound _ _ _ _ cov_00
-  · exact decideCoveredX_sound _ _ _ _ cov_01
-  · exact decideCoveredX_sound _ _ _ _ cov_02
-  · exact (inadm 0 3 (Or.inl ⟨by norm_num, rfl⟩) hσ' hgL hgR).elim
-  · exact decideCoveredX_sound _ _ _ _ cov_10
-  · exact decideCoveredX_sound _ _ _ _ cov_11
-  · exact decideCoveredX_sound _ _ _ _ cov_12
-  · exact (inadm 1 3 (Or.inl ⟨by norm_num, rfl⟩) hσ' hgL hgR).elim
-  · exact (inadm 2 0 (Or.inr ⟨rfl, rfl⟩) hσ' hgL hgR).elim
-  · exact decideCoveredX_sound _ _ _ _ cov_21
-  · exact decideCoveredX_sound _ _ _ _ cov_22
-  · exact (inadm 2 3 (Or.inl ⟨by norm_num, rfl⟩) hσ' hgL hgR).elim
-
-/-- **`charger_fast_setpoints` by the general Theorem 3**, with the reposition node `BULK`:
-windows of at most one left interval (`dt ≤ 2`), the tool's covers decided in the kernel,
-Assumption 1 (the suite's lemma), the six joint packs, the two reposition packs, and the
-emitted progress certificates (`hprog`: every query the progress verdict runner rebuilds is
-`unsat`). -/
-theorem charger_fast_setpoints_general (dt : ℝ) (hdt : dt ≤ 2) (hv : Packs)
-    (hd0 : VerdD 0 0) (hd1 : VerdD 1 0)
-    (hprog : ∀ c ∈ charger_fast_setpoints_coverV2_progress.certs,
-      ProgressVerd charger_fast_setpoints_IRv2 charger_fast_setpoints_cutsV2X 2 c) :
-    RFormula.rvalid (theorem3Form
-      (bigChoice (leftProgsOf 1 dt domL 3 (fun l => hostGuard vs 2 Side.L (mL l)) fL))
-      (rightAutomatonBody GrP mv)
-      (RFormula.and (RFormula.and (canonInvM g gs) (envLR domL domR))
-        (mvRegionR mv (regionG guardR cutsG) GrP.modes.length))) := by
-  refine theorem3_of_coverX GrP 0 1 (by decide) dt g gs comps_fv domL domR hdomL hdomR guardR
-    cutsG GrP_guards hgRP hguardR_all cutsG_fv fR (fun q hq => hfR q (by rwa [GrP_len] at hq))
-    GrP_sys GrP_dom GrP_weight hltP 3
-    (fun l => hostGuard vs 2 Side.L (mL l)) fL (fun l hl => hguardL l hl) (fun l hl => hfL l hl)
-    1 Formula.tt (fun _ h => by simp [Formula.fv] at h) wellFormedR chW (fun _ => 2) (fun _ => 1) (fun _ _ => 1) AG
-    (fun _ _ _ _ _ => trivial) (fun _ _ => Formula.tt)
-    (fun _ _ _ => Formula.tt)
-    (fun l q _ => Formula.and (AG l q) (guardR q))
-    (fun l hl => coverHyps l hl hv hd0 hd1 hprog) (fun l _ => by simpa using hdt) ?_ ?_ ?_
-  · intro l hl q hq hadm
-    rw [GrP_len] at hq
-    exact hcov l hl q hq hadm
-  · intro l hl q σ hgL hσ _ hc
-    exact AG_start l hl q σ hgL hσ hc
-  · intro l hl q' y hA
-    exact AG_post l hl q' y hA
+/- Theorem-3 part retired 2026-10-21 with the clocked right automaton (the file was fixed at
+`Var 2`, no slot for the right clock); the benchmark's Theorem 3 is the generated bridge
+instance `InstancesV2/Bridge/ChargerFastSetpoints.lean`.
+History: git show 61d7389:RelCertifier/InstancesV2/Choice/General/ChargerFastSetpoints.lean. -/
 
 end V2ChargerFastSetpoints
 end RelCertifier

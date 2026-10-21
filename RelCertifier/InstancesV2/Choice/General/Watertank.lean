@@ -2,19 +2,20 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `watertank` (the paper's running example) through the general Theorem 3
+# `watertank` (the paper's running example): the pruned automaton, Assumption 1 and the window data
 
-The suite benchmark as an instance of `theorem3_of_coverX`, mirroring the tool's emitted cover:
-the `Low` and `Mid` windows at stretch 2 (span 1/2, budget 2), the `High` window at 1; the
-all-successors rule throughout, the edge `Low → PumpOff` pruned (Theorem 2 here: the level
-stays above 2 along the flow); no choice. The inadmissible starts contradict the row
-(`inadm`). Assumption 1 is the suite's kernel-checked lemma (`watertank_wellFormedR`),
-transported to the automaton with the pruned flag. The covers are decided by the extended
-checker in the kernel (`decide`).
+The search graph with the edge `Low → PumpOff` pruned (Theorem 2: the level stays above 2
+along the flow), Assumption 1 transported from the suite's kernel-checked lemma
+(`watertank_wellFormedR`) to the automaton with the pruned flag (`wellFormedR`), the
+kernel-decided covers of the tool's windows (`cov_*`, `inadm4`) and the window data (`AG`,
+`cutsG`, `AG_box`). The Theorem-3 part (`CoverHyps` and `theorem3_of_coverX`) was retired on
+2026-10-21 with the clocked right automaton: the file is fixed at `Var 2` and has no slot for
+the right clock; the benchmark's Theorem 3 is the generated bridge instance
+`InstancesV2/Bridge/Watertank.lean`.
 -/
 import RelCertifier.InstancesV2.WellFormed.Watertank
-import RelCertifier.Proofs.Encoding.Theorem3General
 import RelCertifier.Checker.CoverX
+import RelCertifier.Proofs.Encoding.SyncSwitch
 
 set_option linter.unusedSimpArgs false
 
@@ -294,82 +295,10 @@ theorem not_pumpoff {y : State (Var 2)} (h2 : 2 ≤ y (Rv 0)) :
   norm_num at this
   linarith
 
-theorem coverHyps (l : ℕ) (hl : l < 3) (hv : Packs) :
-    CoverHyps GrP (chW l) fR domR (fL l) domL (hostGuard vs 2 Side.L (mL l)) guardR 1 (δw l)
-      (fun _ => lam l) (AG l) (fun _ => Formula.tt) (fun _ _ => Formula.tt)
-      (fun q _ => Formula.and (AG l q) (guardR q)) where
-  hδ := by unfold δw; split_ifs <;> norm_num
-  hlam := fun _ => lam_pos l
-  hspan := fun _ => by unfold δw lam; split_ifs <;> norm_num
-  hAfv := AG_fv l hl
-  hAdom := fun q y h => h.2.2
-  hbox := AG_box l hl hv
-  hhand := AG_hand l hl
-  hprune := fun q m hm e he hp σ ω hA hω => by
-    obtain ⟨rfl, ht⟩ := pruned_iff he hp
-    rw [GrP_guards _ e he, ht]
-    exact not_pumpoff (level_stays l hl (fL l) (lam l) (le_of_lt (lam_pos l)) σ ω hA hω)
-  hrepoProg := fun q m _ pre h => by cases pre <;> simp [chW] at h
-  hRJ := fun _ _ _ => trivial
-  hcovJ := fun q S hS => by simp [chW] at hS
-  hRR := fun _ _ _ _ _ => trivial
-  hcovR := fun q σ S hS => by simp [chW] at hS
-  hRS := fun q σ y hA hg _ => ⟨hA, hg⟩
-  hcovS := fun q σ S hS => by simp [chW] at hS
-
-/-! ## Theorem 3 -/
-
-theorem hcov (l : ℕ) (hl : l < 3) (q : ℕ) (hq : q < 5)
-    (hadm : AdmissibleStart (hostGuard vs 2 Side.L (mL l)) (FM g gs) (Formula.and domL domR)
-      (guardR q) (cutsG q)) :
-    CoveredX GrP (chW l) ⟨q, Bw l, SrcSetting.preJ⟩ := by
-  obtain ⟨σ, hgL, hσ, hgR, -⟩ := hadm
-  have hσ' : Formula.sat (Formula.and (FM g gs) env) σ := hσ
-  interval_cases l <;> interval_cases q
-  · exact decideCoveredX_sound _ _ _ _ cov_00
-  · exact decideCoveredX_sound _ _ _ _ cov_01
-  · exact decideCoveredX_sound _ _ _ _ cov_02
-  · exact (inadm 0 3 (Or.inl ⟨rfl, rfl⟩) hσ' hgL hgR).elim
-  · exact (inadm4 0 (by norm_num) hσ' hgL hgR).elim
-  · exact (inadm 1 0 (Or.inr (Or.inl ⟨rfl, rfl⟩)) hσ' hgL hgR).elim
-  · exact decideCoveredX_sound _ _ _ _ cov_11
-  · exact decideCoveredX_sound _ _ _ _ cov_12
-  · exact decideCoveredX_sound _ _ _ _ cov_13
-  · exact (inadm4 1 (by norm_num) hσ' hgL hgR).elim
-  · exact (inadm 2 0 (Or.inr (Or.inr ⟨rfl, by norm_num⟩)) hσ' hgL hgR).elim
-  · exact (inadm 2 1 (Or.inr (Or.inr ⟨rfl, by norm_num⟩)) hσ' hgL hgR).elim
-  · exact (inadm 2 2 (Or.inr (Or.inr ⟨rfl, by norm_num⟩)) hσ' hgL hgR).elim
-  · exact decideCoveredX_sound _ _ _ _ cov_23
-  · exact (inadm4 2 (by norm_num) hσ' hgL hgR).elim
-
-/-- **`watertank` by the general Theorem 3** (`theorem3_of_coverX`): windows of at most one
-left interval, the three windows' covers (`cov_*`, the tool's, decided in the kernel),
-Assumption 1 (the suite's lemma), the certificates (`coverHyps`: the suite's seven verdict
-packs, the pruned edge by arithmetic). -/
-theorem watertank_general (dt : ℝ) (hdt : dt ≤ 1) (hv : Packs) :
-    RFormula.rvalid (theorem3Form
-      (bigChoice (leftProgsOf 1 dt domL 3 (fun l => hostGuard vs 2 Side.L (mL l)) fL))
-      (rightAutomatonBody GrP mv)
-      (RFormula.and (RFormula.and (canonInvM g gs) (envLR domL domR))
-        (mvRegionR mv (regionG guardR cutsG) GrP.modes.length))) := by
-  refine theorem3_of_coverX GrP 0 1 (by decide) dt g gs comps_fv domL domR hdomL hdomR guardR
-    cutsG GrP_guards hgRP hguardR_all cutsG_fv fR (fun q hq => hfR q (by rwa [GrP_len] at hq))
-    GrP_sys GrP_dom GrP_weight hltP 3
-    (fun l => hostGuard vs 2 Side.L (mL l)) fL (fun l hl => hguardL l hl) (fun l hl => hfL l hl)
-    1 Formula.tt (fun _ h => by simp [Formula.fv] at h) wellFormedR chW Bw δw (fun l _ => lam l) AG (fun _ _ _ _ _ => trivial)
-    (fun _ _ => Formula.tt) (fun _ _ _ => Formula.tt)
-    (fun l q _ => Formula.and (AG l q) (guardR q))
-    (fun l hl => coverHyps l hl hv) ?_ ?_ ?_ ?_
-  · intro l hl
-    unfold Bw δw
-    interval_cases l <;> norm_num <;> linarith
-  · intro l hl q hq hadm
-    rw [GrP_len] at hq
-    exact hcov l hl q hq hadm
-  · intro l hl q σ hgL hσ _ hc
-    exact AG_start l hl q σ hgL hσ hc
-  · intro l hl q' y hA
-    exact AG_post l hl q' y hA
+/- Theorem-3 part retired 2026-10-21 with the clocked right automaton (the file was fixed at
+`Var 2`, no slot for the right clock); the benchmark's Theorem 3 is the generated bridge
+instance `InstancesV2/Bridge/Watertank.lean`.
+History: git show 61d7389:RelCertifier/InstancesV2/Choice/General/Watertank.lean. -/
 
 end V2Watertank
 end RelCertifier

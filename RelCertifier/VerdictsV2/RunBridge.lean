@@ -59,7 +59,10 @@ def choiceV2 (b : String) : ChoiceEmitE :=
   ((choiceTableV2.find? (·.1 == b)).map (·.2)).getD (ChoiceEmitE.empty b)
 
 /-- The dimensions of the benchmarks whose Assumption 1 lemma comes from a hand-written general
-instance (`InstancesV2/Choice/General/`), the instance's own dimension. -/
+exhibit (`InstancesV2/Choice/General/`): the dimension at which the exhibit proves Assumption 1
+(`wellFormedR`, fixed at `Var 2`). The bridge instance transports that proof and lifts it by
+one (`Emitted.wellFormedR_lift`) to the clocked dimension `bridgeDimV2`; the exhibits' own
+Theorem-3 parts were retired on 2026-10-21 (git history 61d7389). -/
 def generalDimsV2 : List (String × ℕ) := [("vehicle_hypercert", 2)]
 
 /-- The bridge dimension of a benchmark: the dimension of its Assumption 1 lemma (the pack

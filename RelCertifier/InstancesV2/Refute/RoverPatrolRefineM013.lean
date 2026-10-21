@@ -5,7 +5,7 @@ Released under Apache 2.0 license.
 # `rover_patrol_refine_m013`: Theorem 3's claim of a mutant of `rover_patrol_refine` is false (GENERATED — `scripts/gen_refute.py`)
 
 Mutant RRO/SNO `(<= L_s (+ R_s 2.0)) [<=->>=]`. Kind A (a component broken at the switch, right-rigid): the left switches
-from mode 1 to mode 3 with a zero-duration flow, the right starts in mode 1.
+from mode 1 to mode 3 with a zero-duration flow, the right starts in mode 1. Dimension 4: the benchmark's bridge dimension, the last auxiliary coordinate the right clock.
 -/
 import RelCertifier.Proofs.Encoding.Emitted.RefuteFlow
 import RelCertifier.InstancesV2.Refute.Data.rover_patrol_refine_m013
@@ -26,16 +26,22 @@ theorem same_model : IR.L = Parse.rover_patrol_refine_IRv2.L ∧ IR.R = Parse.ro
 theorem keyed_form : rowsSame IR = false := by decide +kernel
 
 /-- The witness's antecedent facts, decided in the kernel. -/
-theorem pre_ok : preOK IR 3 cX 0 1 2 w = true := by decide +kernel
+theorem pre_ok : preOK IR 4 cX 0 1 2 w = true := by decide +kernel
 
 /-- The broken component, decided in the kernel. -/
-theorem pos_ok : compPosQ IR 3 (rowOf IR w.m) w.k (witState 3 0 2 w) = true := by
+theorem pos_ok : compPosQ IR 4 (rowOf IR w.m) w.k (witState 4 0 2 w) = true := by
   decide +kernel
+
+/-- The left and right lowerings read only their own side's coordinates (the clock
+erasure's hygiene). -/
+theorem names_ok : namesOK IR = true := by decide +kernel
+theorem cuts_ok : cutsOK IR 4 cX = true := by decide +kernel
 
 /-- **The claim of `rover_patrol_refine_m013` is false** for every cover record (every pruning), every `dt ≥ 0`:
 every query group `relcert-refute-verdicts` sends is `unsat`. -/
-theorem refuted (hv : RefVerdicts IR 3 cX w) (dt : ℝ) (hdt : 0 ≤ dt) (cov : CoverEmitE) :
-    ¬ keyedClaim IR 3 cX cov Formula.tt 0 1 2 dt :=
-  refute_keyed_A pre_ok (by decide) pos_ok hv (by decide) (by decide) dt hdt cov
+theorem refuted (hv : RefVerdicts IR 4 cX w) (dt : ℝ) (hdt : 0 ≤ dt) (cov : CoverEmitE) :
+    ¬ keyedClaim IR 4 cX cov Formula.tt 0 1 2 3 dt :=
+  refute_keyed_A_clocked pre_ok (by decide) pos_ok hv names_ok cuts_ok (by decide) (by decide) 3
+    (by decide) dt hdt cov
 
 end RelCertifier.Refute.RoverPatrolRefineM013

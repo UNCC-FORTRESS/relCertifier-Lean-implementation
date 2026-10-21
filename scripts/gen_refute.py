@@ -7,9 +7,15 @@ mutant with a witness:
 * `benchmarks/refute_mutants/<id>/input.txt`: the mutated benchmark file;
 * `RelCertifier/InstancesV2/Refute/Data/<id>.lean`: its parser-emitted IR (`relcert --emit-ir`)
   and the witness literal;
-* `RelCertifier/InstancesV2/Refute/<Camel>.lean`: the refutation, `¬ keyedClaim …` for every
-  cover record, from the kernel-decided witness facts and the verdicts `RefVerdicts` (the groups
-  `relcert-refute-verdicts` discharges);
+* `RelCertifier/InstancesV2/Refute/<Camel>.lean`: the refutation, `¬ keyedClaim …` (the clocked
+  claim, the one the bridge instances prove) for every cover record, from the kernel-decided
+  witness facts and the verdicts `RefVerdicts` (the groups `relcert-refute-verdicts` discharges);
+
+The instance's dimension is the bridge dimension of its benchmark (`bridgeDimV2`: the witness's
+`dim`, the Assumption 1 lemma's dimension, plus one for the right clock), so each `¬ keyedClaim
+IR n cX cov Formula.tt 0 1 2 3 dt` is literally the negation of the benchmark's bridge claim at
+the same dimension (`0 1 2 3`: right mode variable, left clock, left mode variable, right
+clock; the window form has no left mode variable, `0 1 2`).
 
 and the aggregators `RelCertifier/InstancesV2/Refute/Table.lean` (the runner's records and its
 declared group count) and `RelCertifier/InstancesV2/Refute.lean` (every instance).
@@ -77,7 +83,7 @@ def emit(rec):
                 f"    wL := [{', '.join(lean_rat(x) for x in w['wL'])}],\n"
                 f"    wR := [{', '.join(lean_rat(x) for x in w['wR'])}] }}\n\n")
         f.write("end RelCertifier.Refute\n")
-    n = rec["dim"]
+    n = rec["dim"] + 1  # the bridge dimension: the witness's `dim` plus the right clock
     C = camel(mid)
     kind = w["kind"]
     window = bool(rec.get("rowsSame"))
@@ -89,7 +95,8 @@ def emit(rec):
     with open(f"{OUT}/{C}.lean", "w") as f:
         f.write(HDR.format(title=f"`{mid}`: Theorem 3's claim of a mutant of `{b}` is false",
                            body=f"\nMutant {rec['op']} `{rec['mutant']}`. Kind {kind} ({desc}): "
-                                f"{run} with {flow}, the right starts in mode {w['q0']}.\n"))
+                                f"{run} with {flow}, the right starts in mode {w['q0']}. Dimension {n}: the "
+                                f"benchmark's bridge dimension, the last auxiliary coordinate the right clock.\n"))
         f.write("import RelCertifier.Proofs.Encoding.Emitted.RefuteFlow\n"
                 f"import RelCertifier.InstancesV2.Refute.Data.{mid}\n"
                 f"import RelCertifier.InstancesV2.Cuts.{b}\n\n"
@@ -123,25 +130,30 @@ def emit(rec):
                 f.write(f"theorem b_ok : bQW IR {n} 0 1 w = true := by decide +kernel\n\n")
             else:
                 f.write(f"theorem b_ok : bQ IR {n} 0 1 2 w = true := by decide +kernel\n\n")
-            f.write("/-- The left and right lowerings read only their own side's coordinates. -/\n"
-                    "theorem names_ok : namesOK IR = true := by decide +kernel\n"
-                    f"theorem cuts_ok : cutsOK IR {n} cX = true := by decide +kernel\n\n")
+        f.write("/-- The left and right lowerings read only their own side's coordinates (the clock\n"
+                "erasure's hygiene). -/\n"
+                "theorem names_ok : namesOK IR = true := by decide +kernel\n"
+                f"theorem cuts_ok : cutsOK IR {n} cX = true := by decide +kernel\n\n")
         pos = "every `dt > 0`" if kind == "B" else "every `dt ≥ 0`"
         rel = "0 < dt" if kind == "B" else "0 ≤ dt"
-        claim = (f"¬ windowClaim IR {n} cX cov Formula.tt 0 1 dt" if window else
-                 f"¬ keyedClaim IR {n} cX cov Formula.tt 0 1 2 dt")
+        claim = (f"¬ windowClaim IR {n} cX cov Formula.tt 0 1 2 dt" if window else
+                 f"¬ keyedClaim IR {n} cX cov Formula.tt 0 1 2 3 dt")
         f.write(f"/-- **The claim of `{mid}` is false** for every cover record (every pruning), {pos}:\n"
                 f"every query group `relcert-refute-verdicts` sends is `unsat`. -/\n"
                 f"theorem refuted (hv : RefVerdicts IR {n} cX w) (dt : ℝ) (hdt : {rel}) (cov : CoverEmitE) :\n"
                 f"    {claim} :=\n")
         if kind == "C":
-            f.write("  refute_keyed_C pre_ok rfl hv (by decide) (by decide) dt hdt cov\n\n")
+            f.write("  refute_keyed_C_clocked pre_ok rfl hv names_ok cuts_ok (by decide) (by decide) 3 (by decide)\n"
+                    "    dt hdt cov\n\n")
         elif kind == "A":
-            f.write("  refute_keyed_A pre_ok (by decide) pos_ok hv (by decide) (by decide) dt hdt cov\n\n")
+            f.write("  refute_keyed_A_clocked pre_ok (by decide) pos_ok hv names_ok cuts_ok (by decide) (by decide) 3\n"
+                    "    (by decide) dt hdt cov\n\n")
         elif window:
-            f.write("  refute_window_B pre_ok b_ok (by decide) hv window_form names_ok cuts_ok (by decide) dt hdt cov\n\n")
+            f.write("  refute_window_B_clocked pre_ok b_ok (by decide) hv window_form names_ok cuts_ok (by decide) 2\n"
+                    "    (by decide) dt hdt cov\n\n")
         else:
-            f.write("  refute_keyed_B pre_ok b_ok (by decide) hv names_ok cuts_ok (by decide) (by decide) dt hdt cov\n\n")
+            f.write("  refute_keyed_B_clocked pre_ok b_ok (by decide) hv names_ok cuts_ok (by decide) (by decide) 3\n"
+                    "    (by decide) dt hdt cov\n\n")
         f.write(f"end RelCertifier.Refute.{C}\n")
     return mid, C
 
@@ -166,12 +178,13 @@ def main():
             f.write(f"import RelCertifier.InstancesV2.Cuts.{b}\n")
         f.write("import RelCertifier.Checker.EvolStrengtheningX\n\n"
                 "namespace RelCertifier.Refute\n\nopen RelCertifier.Parse RelCertifier.Oracle\n\n"
-                "/-- A refutation's records: the mutant's IR at its bridge dimension, the model's cut "
+                "/-- A refutation's records: the mutant's IR at its bridge dimension (the Assumption 1 "
+                "lemma's dimension plus one for the right clock, `bridgeDimV2`'s rule), the model's cut "
                 "certificate, the witness. -/\n"
                 "structure RefRec where\n  name : String\n  dim : ℕ\n  ir : PProblem\n"
                 "  cuts : EvolStrengtheningX\n  wit : RefWitE\n\n"
                 "def refuteTable : List RefRec := [\n")
-        f.write(",\n".join(f"  ⟨\"{mid}\", {r['dim']}, {mid}_IRm, {r['bench']}_cutsV2X, {mid}_wit⟩"
+        f.write(",\n".join(f"  ⟨\"{mid}\", {r['dim']} + 1, {mid}_IRm, {r['bench']}_cutsV2X, {mid}_wit⟩"
                            for r, mid, C in out))
         f.write(" ]\n\n")
         f.write("/-- Declared: the number of query groups over the refutations (one per right mode "

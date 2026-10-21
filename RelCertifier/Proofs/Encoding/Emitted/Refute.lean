@@ -9,6 +9,12 @@ record (so for every pruning of the right automaton: the arguments below never u
 automaton's edges), at the model's cut certificate `cX`, at `reg = ⊤`, for every window length
 `dt ≥ 0`.
 
+W4: the refutation arguments are stated against the UNCLOCKED claim `keyedClaimU` (the pre-W3
+`keyedClaim`, right program `rightAutomatonBody`). The clocked claim implies the unclocked one
+(`keyedClaim_to_unclocked`: fewer right runs make the claim harder, the clock is erased by
+`star_bodyC_to_body`), so each refutation transfers to `¬ keyedClaim … d dt` by contraposition
+(`refute_keyed_C_clocked`, `refute_keyed_A_clocked`).
+
 The left run is one step of the left automaton from a witness state `σ` (stored left mode `u`,
 stored right mode `q0`): `?(u_L = u) ; ?guard_m ; u_L := m ; ?guard_m ; clock := 0 ; flow_m` for
 `m ∈ next(u)`, the flow of duration zero (`sem_ode_zero`). At the bi-state `(σ, σ)` the claim's
@@ -25,6 +31,7 @@ left values, and the entered row `m` holds at `μR` itself.
   component reads) it stays `> 0`, so row `m` fails at `μR`.
 -/
 import RelCertifier.Proofs.Encoding.Emitted.RefuteData
+import RelCertifier.Proofs.Encoding.LeftAutUniform
 import RelCertifier.Proofs.Encoding.RightOnlyStay
 
 set_option autoImplicit false
@@ -461,6 +468,123 @@ theorem rigid_star {p : PProblem} {pr : String → String → Bool} {a : Fin n} 
       refine Term.coincidence G (fun v hv => (hfr v ?_).symm)
       rcases hGfv hv with ⟨i, rfl⟩ | ⟨i, rfl⟩ <;> simp [Lv, Rv]
 
+/-! ## The unclocked claim (the pre-W3 `keyedClaim`), the refutations' target -/
+
+/-- The mode-keyed claim over the UNCLOCKED guarded right automaton (`rightAutomatonBody`; mode
+variable `(Aux, a)`, left clock `(Aux, b)`, left mode variable `(Aux, c)`): the pre-W3
+`keyedClaim`. The clocked claim implies it (`keyedClaim_to_unclocked`), so a refutation of this
+claim refutes the clocked one by contraposition. -/
+def keyedClaimU (p : PProblem) (n : ℕ) (cX : EvolStrengtheningX) (cov : CoverEmitE)
+    (reg : Formula (Var n)) (a b c : Fin n) (dt : ℝ) : Prop :=
+  RFormula.rvalid (theorem3Form
+    (leftAutomatonBody (leftAutOf p n ((Side.Aux, b) : Var n) dt) ((Side.Aux, c) : Var n))
+    (rightAutomatonBody (grOf p n (prunedOf cov)) ((Side.Aux, a) : Var n))
+    (psiK ((Side.Aux, c) : Var n) (ϕRow p n) (leftAutOf p n ((Side.Aux, b) : Var n) dt).numModes
+      (domL p n) (domR p n)
+      (mvRegionR ((Side.Aux, a) : Var n) (gregion p n cX reg) (grOf p n (prunedOf cov)).modes.length)))
+
+/-! ## W4: the clocked claim implies the unclocked one -/
+
+/-- Theorem 3's ∀∃ form is monotone in the right program up to a transport of the
+post-condition: when every right run of `R'` landing in `ψ` yields a right run of `R` landing
+in `ψ` (same left end state), the claim over `R'` gives the claim over `R`. -/
+theorem t3_right_mono {L R R' : Program (Var n)} {ψ : RFormula (Var n)}
+    (h : RFormula.rvalid (theorem3Form L R' ψ))
+    (hR : ∀ {ωL ν μ : State (Var n)}, Program.sem (Program.star R') ν μ →
+      RFormula.sat ψ (ωL, μ) →
+      ∃ μ', Program.sem (Program.star R) ν μ' ∧ RFormula.sat ψ (ωL, μ')) :
+    RFormula.rvalid (theorem3Form L R ψ) := by
+  rintro ⟨ωL, ωR⟩
+  have h1 := h (ωL, ωR)
+  unfold theorem3Form at h1 ⊢
+  rw [RFormula_sat_imp, rsat_faShape_iff] at h1 ⊢
+  intro hpre a' ha'
+  obtain ⟨μ, hμ, hψ⟩ := h1 hpre a' ha'
+  exact hR hμ hψ
+
+/-- A right-only formula reads the same at the right copy. -/
+theorem sat_R_congr {f : Formula (Var n)} (hf : f.fv ⊆ range Rv) {x y : State (Var n)}
+    (hR : ∀ i, y (Side.R, i) = x (Side.R, i)) : Formula.sat f y ↔ Formula.sat f x :=
+  Formula.coincidence f (fun v hv => by obtain ⟨i, rfl⟩ := hf hv; exact hR i)
+
+/-- A formula over `Lv ∪ Rv` reads the same at the mixes with two right states agreeing on
+`Rv`. -/
+theorem sat_mixS_congr {f : Formula (Var n)} (hf : f.fv ⊆ range Lv ∪ range Rv)
+    {ωL μ μ' : State (Var n)} (hR : ∀ i, μ' (Side.R, i) = μ (Side.R, i)) :
+    Formula.sat f (mixS ωL μ') ↔ Formula.sat f (mixS ωL μ) :=
+  Formula.coincidence f (fun v hv => by
+    rcases hf hv with ⟨i, rfl⟩ | ⟨i, rfl⟩
+    · simp [mixS, Lv]
+    · simp [mixS, Rv, hR])
+
+/-- `Keyed.grOf_Rv` from `namesOK` alone: every declared right mode's system and domain read
+right coordinates only. -/
+theorem grOf_Rv_of {p : PProblem} (hnm : namesOK p = true) {pr : String → String → Bool} :
+    ∀ q m, (grOf p n pr).modeAt q = some m →
+      m.sys.boundSet ∪ m.sys.readVars ∪ m.dom.fv ⊆ range Rv := by
+  intro q m hm y hy
+  rw [grOf_sys hm, grOf_dom hm] at hy
+  rcases hy with (hy | hy) | hy
+  · exact rightBlock_boundSet_sub (fR p n q) (Term.const 1) hy
+  · exact rightBlock_readVars_sub (fR p n q) (Term.const 1) (fR_fv hnm q) (by simp [Term.fv]) hy
+  · exact domR_fv hnm hy
+
+/-- The right region reads right coordinates only (`namesOK`, `cutsOK`, `reg` over `Rv`). -/
+theorem gregion_fv_of {p : PProblem} {cX : EvolStrengtheningX} (hnm : namesOK p = true)
+    (hcu : cutsOK p n cX = true) {reg : Formula (Var n)} (hregR : reg.fv ⊆ range Rv) (q : ℕ) :
+    (gregion p n cX reg q).fv ⊆ range Rv :=
+  regionG_fv_sub (guardR_fv hnm q) (fun v hv => by
+    rcases hv with hv | hv
+    · exact cutF_fv_sub (cutPairsX_fvF_R (atomsWF_R_any hcu q)) hv
+    · exact hregR hv)
+
+/-- **Erase the right clock** `(Aux, d)` from a run of the file's clocked right automaton: the
+hygiene facts (`(Aux, d)` in no right system, domain or guard) come from `namesOK`. The erased
+run agrees with the clocked one on `Rv` and on the right mode variable. -/
+theorem erase_right_clock {p : PProblem} (hnm : namesOK p = true) {pr : String → String → Bool}
+    {a d : Fin n} (hda : d ≠ a) {dt : ℝ} {ν μ : State (Var n)}
+    (h : Program.sem (Program.star (rightAutomatonBodyC (grOf p n pr) ((Side.Aux, a) : Var n)
+      ((Side.Aux, d) : Var n) dt)) ν μ) :
+    ∃ μ', Program.sem (Program.star (rightAutomatonBody (grOf p n pr) ((Side.Aux, a) : Var n)))
+        ν μ' ∧
+      (∀ i, μ' (Side.R, i) = μ (Side.R, i)) ∧ μ' (Side.Aux, a) = μ (Side.Aux, a) := by
+  obtain ⟨μ', hμ', hagree⟩ := star_bodyC_to_body (grOf p n pr) _ _ dt
+    (by simp [Prod.ext_iff, hda.symm])
+    (fun q m hm hx => aux_notin_range_Rv d (grOf_Rv_of hnm q m hm (vars_ode_sub _ _ (Or.inl hx))))
+    (guardsFresh_of_right _ d (grOf_guardsRight hnm)) h
+  exact ⟨μ', hμ', fun i => hagree _ (by simp), hagree _ (by simp [Prod.ext_iff, hda.symm])⟩
+
+/-- **The clocked claim implies the unclocked one** (mode-keyed form). Fewer right runs make
+the claim harder: a clocked right run is erased to an unclocked one (`erase_right_clock`), and
+the post-condition reads the right state only on `Rv` and on the right mode variable
+`(Aux, a)`, never on the clock `(Aux, d)`. Only `d ≠ a` is needed. -/
+theorem keyedClaim_to_unclocked {p : PProblem} {cX : EvolStrengtheningX} {cov : CoverEmitE}
+    (hnm : namesOK p = true) (hcu : cutsOK p n cX = true) {reg : Formula (Var n)}
+    (hregR : reg.fv ⊆ range Rv) {a b c d : Fin n} (hda : d ≠ a) {dt : ℝ}
+    (h : keyedClaim p n cX cov reg a b c d dt) : keyedClaimU p n cX cov reg a b c dt := by
+  unfold keyedClaim at h
+  unfold keyedClaimU
+  refine t3_right_mono h ?_
+  intro ωL ν μ hμ hψ
+  obtain ⟨μ', hμ', hR, hA⟩ := erase_right_clock hnm hda hμ
+  refine ⟨μ', hμ', ?_⟩
+  rw [sat_psiK_bi] at hψ ⊢
+  obtain ⟨hK, ⟨hdL, hdR⟩, hB, hV⟩ := hψ
+  refine ⟨?_, ⟨hdL, (sat_R_congr (domR_fv hnm) hR).mpr hdR⟩, ?_, hV⟩
+  · rw [sat_modeKeyedR_bi] at hK ⊢
+    intro m hm hul
+    have hrow := hK m hm hul
+    change RFormula.sat (canonInvM (g p n m) (gs p n m)) _ at hrow ⊢
+    rw [sat_canonInvM_bi] at hrow ⊢
+    change Formula.sat (FRow p n m) _ at hrow ⊢
+    exact (sat_mixS_congr FRow_fv hR).mpr hrow
+  · change Formula.sat (mvRegion _ _ _) μ at hB
+    show Formula.sat (mvRegion _ _ _) μ'
+    rw [sat_mvRegion] at hB ⊢
+    obtain ⟨q, hq, hmv, hreg⟩ := hB
+    exact ⟨q, hq, by rw [hA]; exact hmv,
+      (sat_R_congr (gregion_fv_of hnm hcu hregR q) hR).mpr hreg⟩
+
 /-! ## The refutations -/
 
 section Refute
@@ -471,7 +595,7 @@ variable {p : PProblem} {cX : EvolStrengtheningX} {a b c : Fin n} {w : RefWitE}
 the claim is false for every cover record (every pruning), every `dt ≥ 0`. -/
 theorem refute_keyed_C (hpre : preOK p n cX a b c w = true) (hk : w.kind = "C")
     (hv : RefVerdicts p n cX w) (hca : c ≠ a) (hcb : c ≠ b) (dt : ℝ) (hdt : 0 ≤ dt)
-    (cov : CoverEmitE) : ¬ keyedClaim p n cX cov Formula.tt a b c dt := by
+    (cov : CoverEmitE) : ¬ keyedClaimU p n cX cov Formula.tt a b c dt := by
   intro hclaim
   have hpf := preFacts_of hpre
   obtain ⟨μR, hR, hψ⟩ := t3_elim hclaim (σW a c w) (pre_sat hpf hca (prunedOf cov) dt)
@@ -493,7 +617,7 @@ record (every pruning), every `dt ≥ 0`. -/
 theorem refute_keyed_A (hpre : preOK p n cX a b c w = true) (hk : w.kind ≠ "C")
     (hpos : compPosQ p n (rowOf p w.m) w.k (witState n a c w) = true)
     (hv : RefVerdicts p n cX w) (hca : c ≠ a) (hcb : c ≠ b) (dt : ℝ) (hdt : 0 ≤ dt)
-    (cov : CoverEmitE) : ¬ keyedClaim p n cX cov Formula.tt a b c dt := by
+    (cov : CoverEmitE) : ¬ keyedClaimU p n cX cov Formula.tt a b c dt := by
   intro hclaim
   have hpf := preFacts_of hpre
   obtain ⟨μR, hR, hψ⟩ := t3_elim hclaim (σW a c w) (pre_sat hpf hca (prunedOf cov) dt)
@@ -523,6 +647,25 @@ theorem refute_keyed_A (hpre : preOK p n cX a b c w = true) (hk : w.kind ≠ "C"
     exact rigid_sound hQ hz x hx) hR
   rw [sat_FRow_iff] at hrow
   linarith [hrow _ hmem]
+
+/-- **Kind C, mode-keyed, the clocked claim** (W4): `refute_keyed_C` by contraposition through
+`keyedClaim_to_unclocked`; `(Aux, d)` is the right clock. -/
+theorem refute_keyed_C_clocked (hpre : preOK p n cX a b c w = true) (hk : w.kind = "C")
+    (hv : RefVerdicts p n cX w) (hnm : namesOK p = true) (hcu : cutsOK p n cX = true)
+    (hca : c ≠ a) (hcb : c ≠ b) (d : Fin n) (hda : d ≠ a) (dt : ℝ) (hdt : 0 ≤ dt)
+    (cov : CoverEmitE) : ¬ keyedClaim p n cX cov Formula.tt a b c d dt :=
+  fun h => refute_keyed_C hpre hk hv hca hcb dt hdt cov
+    (keyedClaim_to_unclocked hnm hcu (by simp [Formula.fv]) hda h)
+
+/-- **Kind A, mode-keyed, the clocked claim** (W4): `refute_keyed_A` by contraposition through
+`keyedClaim_to_unclocked`; `(Aux, d)` is the right clock. -/
+theorem refute_keyed_A_clocked (hpre : preOK p n cX a b c w = true) (hk : w.kind ≠ "C")
+    (hpos : compPosQ p n (rowOf p w.m) w.k (witState n a c w) = true)
+    (hv : RefVerdicts p n cX w) (hnm : namesOK p = true) (hcu : cutsOK p n cX = true)
+    (hca : c ≠ a) (hcb : c ≠ b) (d : Fin n) (hda : d ≠ a) (dt : ℝ) (hdt : 0 ≤ dt)
+    (cov : CoverEmitE) : ¬ keyedClaim p n cX cov Formula.tt a b c d dt :=
+  fun h => refute_keyed_A hpre hk hpos hv hca hcb dt hdt cov
+    (keyedClaim_to_unclocked hnm hcu (by simp [Formula.fv]) hda h)
 
 end Refute
 

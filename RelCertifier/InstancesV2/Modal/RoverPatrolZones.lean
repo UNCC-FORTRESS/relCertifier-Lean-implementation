@@ -26,6 +26,7 @@ import RelCertifier.Proofs.Encoding.CutRespond
 import RelCertifier.Proofs.Encoding.ModeHandoff
 import RelCertifier.Proofs.Flow.FaceBridge
 import RelCertifier.InstancesV2.Cuts.rover_patrol_zones
+import RelCertifier.InstancesV2.WellFormed.RoverPatrolZones
 
 set_option linter.unusedSimpArgs false
 
@@ -33,20 +34,13 @@ namespace RelCertifier
 namespace V2RoverPatrolZones
 
 open DL DLCalTiming DLRel Parse Set RelCertifier.Oracle
-
-def vs : List String := ["v", "s"]
-def dm : PMode := ⟨"", [], .tt, .tt, []⟩
 def mL (l : ℕ) : PMode := rover_patrol_zones_IRv2.L.modes.getD l dm
-def mR (q : ℕ) : PMode := rover_patrol_zones_IRv2.R.modes.getD q dm
-
 abbrev mv : Var 3 := (Side.Aux, 0)
 abbrev tg : Var 3 := (Side.Aux, 1)
 abbrev uL : Var 3 := (Side.Aux, 2)
 
 noncomputable def fL (l : ℕ) : Fin 3 → Term (Var 3) := hostDyn vs 3 Side.L (mL l)
-noncomputable def fR (q : ℕ) : Fin 3 → Term (Var 3) := hostDyn vs 3 Side.R (mR q)
 noncomputable def domL : Formula (Var 3) := hostEvolve vs 3 Side.L (mL 0)
-noncomputable def domR : Formula (Var 3) := hostEvolve vs 3 Side.R (mR 0)
 noncomputable def env : Formula (Var 3) := Formula.and domL domR
 
 noncomputable def comps (l : ℕ) : List (Term (Var 3)) :=
@@ -71,45 +65,9 @@ theorem hp088 : Run.parseRat "0.88" = some ((22:ℚ)/25) := by
 theorem hp12 : Run.parseRat "1.2" = some ((6:ℚ)/5) := by
   have h : parseQ "1.2" = some (⟨12, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
-theorem hp06 : Run.parseRat "0.6" = some ((3:ℚ)/5) := by
-  have h : parseQ "0.6" = some (⟨6, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp09 : Run.parseRat "0.9" = some ((9:ℚ)/10) := by
-  have h : parseQ "0.9" = some (⟨9, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hp11 : Run.parseRat "1.1" = some ((11:ℚ)/10) := by
-  have h : parseQ "1.1" = some (⟨11, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hp15 : Run.parseRat "1.5" = some ((3:ℚ)/2) := by
-  have h : parseQ "1.5" = some (⟨15, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hpm20 : Run.parseRat "-2.0" = some (-2 : ℚ) := by
-  have h : parseQ "-2.0" = some (⟨-20, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp00 : Run.parseRat "0.0" = some (0 : ℚ) := by
-  have h : parseQ "0.0" = some (⟨0, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hp16 : Run.parseRat "1.6" = some ((8:ℚ)/5) := by
-  have h : parseQ "1.6" = some (⟨16, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp200 : Run.parseRat "20.0" = some (20 : ℚ) := by
-  have h : parseQ "20.0" = some (⟨200, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp500 : Run.parseRat "50.0" = some (50 : ℚ) := by
-  have h : parseQ "50.0" = some (⟨500, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp03 : Run.parseRat "0.3" = some ((3:ℚ)/10) := by
-  have h : parseQ "0.3" = some (⟨3, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hp02 : Run.parseRat "0.2" = some ((1:ℚ)/5) := by
-  have h : parseQ "0.2" = some (⟨2, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
 theorem hp05 : Run.parseRat "0.5" = some ((1:ℚ)/2) := by
   have h : parseQ "0.5" = some (⟨5, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
-theorem hp10 : Run.parseRat "1.0" = some (1 : ℚ) := by
-  have h : parseQ "1.0" = some (⟨10, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
 theorem hp20 : Run.parseRat "2.0" = some (2 : ℚ) := by
   have h : parseQ "2.0" = some (⟨20, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
@@ -125,8 +83,6 @@ def loQ : ℕ → ℚ
 guard's cap on both sides, and the right zone's command. -/
 def capS : ℕ → String
   | 0 => "0.6" | 1 => "0.9" | 2 => "1.1" | _ => "1.5"
-def capQ : ℕ → ℚ
-  | 0 => 3/5 | 1 => 9/10 | 2 => 11/10 | _ => 3/2
 /-- The deployed loop's set point `0.8 × command` (`0.48, 0.72, 0.88, 1.2`). -/
 def cLQ : ℕ → ℚ
   | 0 => 12/25 | 1 => 18/25 | 2 => 22/25 | _ => 6/5
@@ -135,7 +91,6 @@ def mQ : ℕ → ℚ
   | 0 => 1/2 | 1 => 1 | 2 => 1 | _ => 2
 
 noncomputable def loL (l : ℕ) : ℝ := (loQ l : ℝ)
-noncomputable def capL (l : ℕ) : ℝ := (capQ l : ℝ)
 noncomputable def cLv (l : ℕ) : ℝ := (cLQ l : ℝ)
 noncomputable def mL' (l : ℕ) : ℝ := (mQ l : ℝ)
 
@@ -147,8 +102,6 @@ theorem hcap (l : ℕ) (hl : l < 4) : Run.parseRat (capS l) = some (capQ l) := b
 
 theorem lo_nonneg (l : ℕ) (hl : l < 4) : 0 ≤ loL l := by
   interval_cases l <;> norm_num [loL, loQ]
-theorem cap_bounds (l : ℕ) (hl : l < 4) : 3/5 ≤ capL l ∧ capL l ≤ 3/2 := by
-  interval_cases l <;> norm_num [capL, capQ]
 theorem cL_bounds (l : ℕ) (hl : l < 4) : 3/10 < cLv l ∧ cLv l < capL l := by
   interval_cases l <;> norm_num [cLv, cLQ, capL, capQ]
 
@@ -168,39 +121,11 @@ theorem fL1_eval (l : ℕ) (hl : l < 4) (x : State (Var 3)) :
       hp072, hp088, hp12, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
       Term.eval, AOp.interp, Lv]
 
-/-- Right driving zones: `v' = c − v` with `c` the zone cap (= its command). -/
-theorem fR0_eval (q : ℕ) (hq : q < 4) (x : State (Var 3)) :
-    Term.eval (fR q 0) x = capL q - x (Rv 0) := by
-  interval_cases q <;>
-    simp [fR, hostDyn, mR, rover_patrol_zones_IRv2, vs, Run.dynOf, Run.lowerE, hp06, hp09,
-      hp11, hp15, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
-      AOp.interp, Rv, capL, capQ]
-
-theorem fR1_eval (q : ℕ) (hq : q < 5) (x : State (Var 3)) :
-    Term.eval (fR q 1) x = x (Rv 0) := by
-  interval_cases q <;>
-    simp [fR, hostDyn, mR, rover_patrol_zones_IRv2, vs, Run.dynOf, Run.lowerE, hp06, hp09,
-      hp11, hp15, hpm20, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
-      Term.eval, AOp.interp, Rv]
-
-theorem fR2_eval (q : ℕ) (hq : q < 5) (x : State (Var 3)) :
-    Term.eval (fR q 2) x = 0 := by
-  interval_cases q <;>
-    simp [fR, hostDyn, mR, rover_patrol_zones_IRv2, vs, Run.dynOf, Run.lowerE, hp06, hp09,
-      hp11, hp15, hpm20, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
-      Term.eval, AOp.interp, Rv]
-
 theorem sat_domL (x : State (Var 3)) :
     Formula.sat domL x ↔ (0 ≤ x (Lv 0) ∧ x (Lv 0) ≤ 8/5 ∧ 0 ≤ x (Lv 1)) := by
   simp only [domL, hostEvolve, mL, rover_patrol_zones_IRv2, vs]
   simp [Run.lowerF, Run.lowerE, hp00, hp16, Run.resolveVar, List.findIdx?_cons,
     IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Lv, and_assoc]
-
-theorem sat_domR (x : State (Var 3)) :
-    Formula.sat domR x ↔ (0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 8/5 ∧ 0 ≤ x (Rv 1)) := by
-  simp only [domR, hostEvolve, mR, rover_patrol_zones_IRv2, vs]
-  simp [Run.lowerF, Run.lowerE, hp00, hp16, Run.resolveVar, List.findIdx?_cons,
-    IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv, and_assoc]
 
 theorem domL_univ (l : ℕ) (hl : l < 4) : hostEvolve vs 3 Side.L (mL l) = domL := by
   interval_cases l <;> rfl
@@ -414,19 +339,8 @@ theorem anchor_fv (l q : ℕ) (hl : l < 4) (hq : q < 4) :
   · exact (thr_fv_R 0 _).1
   · exact (thr_fv_R 0 _).2
 
-/-! ## The right automaton (the file's modes and declared `next` lists) -/
-
-noncomputable def modeW (q : ℕ) : RMode (Var 3) :=
-  { sys := rightBlock (fR q) (Term.const 1), dom := domR, weight := 1 }
-
 def edgeW (s t : ℕ) : REdge (Var 3) :=
   { src := s, tgt := t, guard := Formula.tt, pruned := false }
-
-/-- The declared transitions, as indices (`SLOW` 0, `MEDIUM_ECO` 1, `MEDIUM_BRISK` 2,
-`FAST` 3, `STALL` 4). -/
-def edgeList : List (ℕ × ℕ) :=
-  [(0, 1), (0, 2), (0, 0), (0, 4), (1, 3), (1, 1), (1, 4), (2, 3), (2, 2), (2, 4), (3, 3),
-   (3, 4), (4, 4)]
 
 /-- **Faithfulness of the graph**: `edgeList` IS the file's `next` lists, resolved by name. -/
 theorem edgeList_eq_IR : edgeList =
@@ -564,113 +478,6 @@ theorem stayR (l q : ℕ) (hq : q < 4) :
       (fun z _ hz => by rw [fR0_eval q hq]; linarith) hinit
   · exact boxle_thrLe_R 0 _ _ _ _ h1 _ (Formula.and domL domR) (fun x h => h)
       (fun z _ hz => by rw [fR0_eval q hq]; linarith) hinit
-
-/-! ## Existence: each driving zone's flow, explicitly
-
-`v(t) = c + (v₀ − c) e^{−t}` (a convex combination of `v₀` and the command `c`, so inside
-`[0, 1.6]`), `s(t) = s₀ + c t + (v₀ − c)(1 − e^{−t}) = s₀ + v₀ (1 − e^{−t}) + c (t − 1 + e^{−t})
-≥ s₀` (the odometer never decreases; it has no upper wall). -/
-
-noncomputable def ex (t : ℝ) : ℝ := Real.exp (-t)
-
-noncomputable def solR (c : ℝ) (b : State (Var 3)) (t : ℝ) : State (Var 3) := fun x =>
-  if x = Rv 0 then c + (b (Rv 0) - c) * ex t
-  else if x = Rv 1 then b (Rv 1) + c * t + (b (Rv 0) - c) * (1 - ex t)
-  else b x
-
-theorem solR_0 (c : ℝ) (b : State (Var 3)) (t : ℝ) :
-    solR c b t (Rv 0) = c + (b (Rv 0) - c) * ex t := by simp [solR]
-theorem solR_1 (c : ℝ) (b : State (Var 3)) (t : ℝ) :
-    solR c b t (Rv 1) = b (Rv 1) + c * t + (b (Rv 0) - c) * (1 - ex t) := by
-  simp [solR, Rv, Prod.ext_iff]
-theorem solR_other (c : ℝ) (b : State (Var 3)) (t : ℝ) {x : Var 3} (h0 : x ≠ Rv 0)
-    (h1 : x ≠ Rv 1) : solR c b t x = b x := by
-  simp [solR, h0, h1]
-
-theorem ex_hasDeriv (t : ℝ) : HasDerivAt ex (-ex t) t := by
-  have h := ((hasDerivAt_id t).neg).exp
-  have h' : HasDerivAt ex (Real.exp (-id t) * (-1)) t := h
-  refine h'.congr_deriv ?_
-  simp only [ex, id]; ring
-theorem ex_zero : ex 0 = 1 := by simp [ex]
-theorem ex_pos (t : ℝ) : 0 < ex t := Real.exp_pos _
-theorem ex_le_one {t : ℝ} (ht : 0 ≤ t) : ex t ≤ 1 := by
-  unfold ex; rw [Real.exp_le_one_iff]; linarith
-theorem ex_ge (t : ℝ) : 1 - t ≤ ex t := by
-  unfold ex; have := Real.add_one_le_exp (-t); linarith
-
-theorem solR_stays (q : ℕ) (hq : q < 4) (b : State (Var 3)) (hb : Formula.sat domR b)
-    {t : ℝ} (ht : 0 ≤ t) : Formula.sat domR (solR (capL q) b t) := by
-  rw [sat_domR] at hb ⊢
-  obtain ⟨h0, h1, h2⟩ := hb
-  have hc := cap_bounds q hq
-  have he0 := ex_pos t
-  have he1 := ex_le_one ht
-  have he2 := ex_ge t
-  rw [solR_0, solR_1]
-  refine ⟨by nlinarith, by nlinarith, by nlinarith⟩
-
-theorem rightBlock_bound_mem (q : ℕ) (i : Fin 3) :
-    Rv i ∈ (rightBlock (fR q) (Term.const 1)).bound := by
-  simp only [rightBlock, ODESystem.bound, List.map_map]
-  exact List.mem_map.mpr ⟨i, List.mem_finRange i, rfl⟩
-
-/-- **The explicit run of a driving zone** (any duration `s ≥ 0`, from any envelope state). -/
-theorem flowR_run (q : ℕ) (hq : q < 4) (b : State (Var 3)) (hb : Formula.sat domR b)
-    (s : ℝ) :
-    solR (capL q) b 0 = b ∧
-      (∀ t ∈ Icc (0 : ℝ) s, ∀ p ∈ rightBlock (fR q) (Term.const 1),
-          HasDerivWithinAt (fun u => solR (capL q) b u p.1) (p.2.eval (solR (capL q) b t))
-            (Icc 0 s) t) ∧
-      (∀ t ∈ Icc (0 : ℝ) s, ∀ x, x ∉ (rightBlock (fR q) (Term.const 1)).bound →
-        solR (capL q) b t x = b x) ∧
-      (∀ t ∈ Icc (0 : ℝ) s, Formula.sat domR (solR (capL q) b t)) := by
-  set c := capL q with hcdef
-  refine ⟨?_, ?_, ?_, fun t ht => solR_stays q hq b hb ht.1⟩
-  · funext x
-    by_cases h0 : x = Rv 0
-    · subst h0; rw [solR_0, ex_zero]; ring
-    by_cases h1 : x = Rv 1
-    · subst h1; rw [solR_1, ex_zero]; ring
-    exact solR_other c b 0 h0 h1
-  · intro t ht p hp
-    simp only [rightBlock, List.mem_map, List.mem_finRange, true_and] at hp
-    obtain ⟨i, rfl⟩ := hp
-    have hd := ex_hasDeriv t
-    fin_cases i
-    · have h := (((hd.const_mul (b (Rv 0) - c)).const_add c)).hasDerivWithinAt (s := Icc 0 s)
-      have hf : (fun u => solR c b u (Rv 0)) = fun u => c + (b (Rv 0) - c) * ex u := by
-        funext u; exact solR_0 c b u
-      show HasDerivWithinAt (fun u => solR c b u (Rv 0))
-        (Term.eval (Term.binop .mul (Term.const 1) (fR q 0)) (solR c b t)) (Icc 0 s) t
-      rw [hf]
-      simp only [Term.eval, AOp.interp]
-      rw [fR0_eval q hq, solR_0]
-      exact h.congr_deriv (by rw [← hcdef]; ring)
-    · have h := ((((hasDerivAt_id t).const_mul c).const_add (b (Rv 1))).add
-        ((hd.const_sub 1).const_mul (b (Rv 0) - c))).hasDerivWithinAt (s := Icc 0 s)
-      have hf : (fun u => solR c b u (Rv 1)) =
-          fun u => (b (Rv 1) + c * id u) + (b (Rv 0) - c) * (1 - ex u) := by
-        funext u; rw [solR_1]; rfl
-      show HasDerivWithinAt (fun u => solR c b u (Rv 1))
-        (Term.eval (Term.binop .mul (Term.const 1) (fR q 1)) (solR c b t)) (Icc 0 s) t
-      rw [hf]
-      simp only [Term.eval, AOp.interp]
-      rw [fR1_eval q (by omega), solR_0]
-      exact h.congr_deriv (by ring)
-    · have hcurve : (fun u => solR c b u (Rv 2)) = fun _ => b (Rv 2) := by
-        funext u
-        exact solR_other c b u (by simp [Rv, Prod.ext_iff]) (by simp [Rv, Prod.ext_iff])
-      show HasDerivWithinAt (fun u => solR c b u (Rv 2))
-        (Term.eval (Term.binop .mul (Term.const 1) (fR q 2)) (solR c b t)) (Icc 0 s) t
-      rw [hcurve]
-      simp only [Term.eval, AOp.interp]
-      rw [fR2_eval q (by omega), mul_zero]
-      exact hasDerivWithinAt_const t _ _
-  · intro t _ x hx
-    refine solR_other c b t (fun h => hx ?_) (fun h => hx ?_)
-    · rw [h]; exact rightBlock_bound_mem q 0
-    · rw [h]; exact rightBlock_bound_mem q 1
 
 /-- A driving zone's program runs from `ω` to `solR c ω τ` for any `τ ≥ 0`. -/
 theorem mode_run (q : ℕ) (hq : q < 4) (ω : State (Var 3)) (τ : ℝ) (hτ : 0 ≤ τ)

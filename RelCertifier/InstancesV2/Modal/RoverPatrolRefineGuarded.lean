@@ -25,6 +25,7 @@ import RelCertifier.Proofs.Encoding.GuardedClimb
 import RelCertifier.Proofs.Encoding.WindowGrowth
 import RelCertifier.Proofs.Flow.DISuperlevel
 import RelCertifier.Proofs.Encoding.ReplayOne
+import RelCertifier.InstancesV2.WellFormed.RoverPatrolRefine
 
 set_option linter.unusedSimpArgs false
 
@@ -32,29 +33,7 @@ namespace RelCertifier
 namespace V2RoverPatrolRefineGuarded
 
 open DL DLCalTiming DLRel Parse Set RelCertifier.Oracle V2RoverPatrolRefine
-
-/-! ## The guarded right graph -/
-
-noncomputable def edgeG (s t : ℕ) : REdge (Var 3) :=
-  { src := s, tgt := t, guard := hostGuard vs 3 Side.R (mR t), pruned := false }
-
-noncomputable def GrG : SearchGraph (Var 3) :=
-  { modes := [modeW 0, modeW 1, modeW 2, modeW 3]
-    edges := edgeList.map (fun e => edgeG e.1 e.2) }
-
 theorem GrG_len : GrG.modes.length = 4 := rfl
-
-theorem GrG_modeAt (q : ℕ) (hq : q < 4) : GrG.modeAt q = some (modeW q) := by
-  interval_cases q <;> rfl
-
-theorem GrG_modeAt_inv {q : ℕ} {m : RMode (Var 3)} (hm : GrG.modeAt q = some m) :
-    q < 4 ∧ m = modeW q := by
-  match q with
-  | 0 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, GrG] using hm.symm⟩
-  | 1 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, GrG] using hm.symm⟩
-  | 2 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, GrG] using hm.symm⟩
-  | 3 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, GrG] using hm.symm⟩
-  | q + 4 => exact absurd hm (by simp [SearchGraph.modeAt, GrG])
 
 theorem GrG_guards : ∀ q, ∀ e ∈ GrG.edgesFrom q, e.guard = hostGuard vs 3 Side.R (mR e.tgt) := by
   intro q e he
@@ -92,34 +71,6 @@ theorem hgRG : GuardsRight GrG := by
   intro q e he
   rw [GrG_guards q e he]
   exact hguardR_all e.tgt
-
-theorem edgeG_mem (s t : ℕ) (h : (s, t) ∈ edgeList) : edgeG s t ∈ GrG.edgesFrom s :=
-  List.mem_filter.mpr ⟨List.mem_map.mpr ⟨(s, t), h, rfl⟩, by simp [edgeG]⟩
-
-/-! ## The right guards, evaluated -/
-
-theorem sat_guardR1 (x : State (Var 3)) : Formula.sat (hostGuard vs 3 Side.R (mR 1)) x ↔
-    (20 ≤ x (Rv 1) ∧ x (Rv 1) < 50 ∧ 3/10 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 9/10) := by
-  simp [hostGuard, mR, rover_patrol_refine_IRv2, Run.lowerF, Run.lowerE, hp0_0, hp20_0, hp50_0,
-    hp0_3, hp0_6, hp0_9, hp1_1, hp1_5, vs, Run.resolveVar, List.findIdx?_cons, IForm.toHost,
-    ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv, and_assoc]
-
-theorem sat_guardR3 (x : State (Var 3)) : Formula.sat (hostGuard vs 3 Side.R (mR 3)) x ↔
-    (50 ≤ x (Rv 1) ∧ 3/10 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 3/2) := by
-  simp [hostGuard, mR, rover_patrol_refine_IRv2, Run.lowerF, Run.lowerE, hp0_0, hp20_0, hp50_0,
-    hp0_3, hp0_6, hp0_9, hp1_1, hp1_5, vs, Run.resolveVar, List.findIdx?_cons, IForm.toHost,
-    ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv, and_assoc]
-
-/-- The zone guards: `lo ≤ s < hi` (no ceiling in `FAST`), `0.3 ≤ v ≤ cap`. -/
-theorem sat_guardR (q : ℕ) (hq : q < 4) (x : State (Var 3)) :
-    Formula.sat (hostGuard vs 3 Side.R (mR q)) x ↔
-      (loL q ≤ x (Rv 1) ∧ (q < 3 → x (Rv 1) < (if q = 0 then 20 else 50)) ∧
-        3/10 ≤ x (Rv 0) ∧ x (Rv 0) ≤ capL q) := by
-  interval_cases q <;>
-    simp [hostGuard, mR, rover_patrol_refine_IRv2, Run.lowerF, Run.lowerE, hp0_0, hp20_0,
-      hp50_0, hp0_3, hp0_6, hp0_9, hp1_1, hp1_5, vs, Run.resolveVar, List.findIdx?_cons,
-      IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv, and_assoc, loL,
-      loQ, capL, capQ]
 
 /-! ## The mode-consistent region -/
 

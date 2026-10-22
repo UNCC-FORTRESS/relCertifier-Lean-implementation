@@ -21,6 +21,7 @@ import RelCertifier.Proofs.Encoding.CanonicalInv
 import RelCertifier.Proofs.Encoding.CoverInstance
 import RelCertifier.Proofs.Flow.AffineFaces
 import RelCertifier.Instances.BenchIR.refinement_ladder_rover_rung3_6to8
+import RelCertifier.Instances.WellFormed.RoverLadderRung3
 
 namespace RelCertifier
 namespace RoverLadderRung3Modal
@@ -29,19 +30,13 @@ open DL DLCalTiming DLRel Parse Set
 
 set_option maxHeartbeats 12800000
 
-def vsR : List String := ["v", "s", "psi", "omega_psi", "theta_p", "omega_theta", "z", "phi_r"]
-def dummyR : Parse.PMode := ⟨"", [], .tt, .tt, []⟩
 def mLR (l : ℕ) : Parse.PMode := refinement_ladder_rover_rung3_6to8_IR.L.modes.getD l dummyR
-def mRR (q : ℕ) : Parse.PMode := refinement_ladder_rover_rung3_6to8_IR.R.modes.getD q dummyR
-
 abbrev mvR : Var 8 := (Side.Aux, 0)
 abbrev aR : Fin 8 := (1 : Fin 8)
 abbrev tgR : Var 8 := (Side.Aux, aR)
 
 noncomputable def fLR (l : ℕ) : Fin 8 → Term (Var 8) := hostDyn vsR 8 Side.L (mLR l)
-noncomputable def fRR (q : ℕ) : Fin 8 → Term (Var 8) := hostDyn vsR 8 Side.R (mRR q)
 noncomputable def domLR : Formula (Var 8) := hostEvolve vsR 8 Side.L (mLR 0)
-noncomputable def domRR : Formula (Var 8) := hostEvolve vsR 8 Side.R (mRR 0)
 noncomputable def envR : Formula (Var 8) := Formula.and domLR domRR
 
 def atomsOf : Parse.PForm → List Parse.PForm
@@ -85,23 +80,23 @@ theorem domRR_pipe : domRR =
 theorem hfLR (l : ℕ) (hl : l < 3) : ∀ i, (fLR l i).fv ⊆ range Lv := fun i x hx =>
   side_eq_L_mem (field_pipeline_side (resolvesTo_L vsR) (some (mLR l))
     (by interval_cases l <;>
-      simp [mLR, refinement_ladder_rover_rung3_6to8_IR, Parse.PExpr.namesFree]) i x
+      simp [mLR, refinement_ladder_rover_rung3_6to8_IR, refinement_ladder_rover_rung3_6to8_IRv2, Parse.PExpr.namesFree]) i x
     (fLR_pipe l i ▸ hx))
 
 theorem hfRR (q : ℕ) (hq : q < 3) : ∀ i, (fRR q i).fv ⊆ range Rv := fun i x hx =>
   side_eq_R_mem (field_pipeline_side (resolvesTo_R vsR) (some (mRR q))
     (by interval_cases q <;>
-      simp [mRR, refinement_ladder_rover_rung3_6to8_IR, Parse.PExpr.namesFree]) i x
+      simp [mRR, refinement_ladder_rover_rung3_6to8_IR, refinement_ladder_rover_rung3_6to8_IRv2, Parse.PExpr.namesFree]) i x
     (fRR_pipe q i ▸ hx))
 
 theorem hdomLR : domLR.fv ⊆ range Lv := fun x hx =>
   side_eq_L_mem (form_pipeline_side (resolvesTo_L vsR) (some (mLR 0))
-    (by simp [mLR, refinement_ladder_rover_rung3_6to8_IR, Parse.PForm.namesFree,
+    (by simp [mLR, refinement_ladder_rover_rung3_6to8_IR, refinement_ladder_rover_rung3_6to8_IRv2, Parse.PForm.namesFree,
       Parse.PExpr.namesFree]) x (domLR_pipe ▸ hx))
 
 theorem hdomRR : domRR.fv ⊆ range Rv := fun x hx =>
   side_eq_R_mem (form_pipeline_side (resolvesTo_R vsR) (some (mRR 0))
-    (by simp [mRR, refinement_ladder_rover_rung3_6to8_IR, Parse.PForm.namesFree,
+    (by simp [mRR, refinement_ladder_rover_rung3_6to8_IR, refinement_ladder_rover_rung3_6to8_IRv2, Parse.PForm.namesFree,
       Parse.PExpr.namesFree]) x (domRR_pipe ▸ hx))
 
 theorem hgAt (i : ℕ) : (gAt i).fv ⊆ range Lv ∪ range Rv := invToG_pipeline_LR _
@@ -133,9 +128,6 @@ theorem htgenvR : tgR ∉ envR.fv := fun h => by
   · exact absurd (hdomRR h) (by rintro ⟨i, hi⟩; exact absurd hi (by simp [Rv, Prod.ext_iff]))
 
 /-! ## The right graph (one-way chain) -/
-
-noncomputable def modeR (q : ℕ) : RMode (Var 8) :=
-  { sys := rightBlock (fRR q) (Term.const 1), dom := domRR, weight := 1 }
 
 def edgeR (st tgt : ℕ) : REdge (Var 8) :=
   { src := st, tgt := tgt, guard := Formula.tt, pruned := false }
@@ -212,115 +204,6 @@ theorem hframesR (dt : ℝ) : ∀ P ∈ leftProgsR dt, FramesMv P mvR := by
   intro h
   obtain ⟨i, hi⟩ := leftBlock_bound_sub d.2.1 _ h
   exact aux_ne_Lv 0 i hi
-
-/-! ## Parse pins -/
-
-theorem hr030 : Run.parseRat "0.30" = some ((3:ℚ)/10) := by
-  have h : parseQ "0.30" = some (⟨30, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hr050 : Run.parseRat "0.50" = some ((1:ℚ)/2) := by
-  have h : parseQ "0.50" = some (⟨50, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hr065 : Run.parseRat "0.65" = some ((13:ℚ)/20) := by
-  have h : parseQ "0.65" = some (⟨65, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hr3 : Run.parseRat "3" = some (3) := by
-  have h : parseQ "3" = some (⟨3, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hrm1 : Run.parseRat "-1" = some (-1) := by
-  have h : parseQ "-1" = some (⟨-1, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hr0 : Run.parseRat "0" = some (0) := by
-  have h : parseQ "0" = some (⟨0, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hr1 : Run.parseRat "1" = some (1) := by
-  have h : parseQ "1" = some (⟨1, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hr05 : Run.parseRat "0.5" = some ((1:ℚ)/2) := by
-  have h : parseQ "0.5" = some (⟨5, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hr03 : Run.parseRat "0.3" = some ((3:ℚ)/10) := by
-  have h : parseQ "0.3" = some (⟨3, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hrm05 : Run.parseRat "-0.5" = some (-(1:ℚ)/2) := by
-  have h : parseQ "-0.5" = some (⟨-5, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hr06 : Run.parseRat "0.6" = some ((3:ℚ)/5) := by
-  have h : parseQ "0.6" = some (⟨6, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hr015 : Run.parseRat "0.15" = some ((3:ℚ)/20) := by
-  have h : parseQ "0.15" = some (⟨15, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hr00 : Run.parseRat "0.0" = some (0) := by
-  have h : parseQ "0.0" = some (⟨0, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hr08 : Run.parseRat "0.8" = some ((4:ℚ)/5) := by
-  have h : parseQ "0.8" = some (⟨8, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hrm10 : Run.parseRat "-1.0" = some (-1) := by
-  have h : parseQ "-1.0" = some (⟨-10, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-
-/-! ## Field and shape pins -/
-
-noncomputable def cstR (q : ℕ) : ℝ := if q = 0 then 3/10 else if q = 1 then 1/2 else 13/20
-
-theorem fRR0_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
-    Term.eval (fRR q 0) x = 3 * (cstR q - x (Rv 0)) := by
-  interval_cases q <;>
-    simp [fRR, hostDyn, mRR, refinement_ladder_rover_rung3_6to8_IR, vsR, Run.dynOf,
-      Run.lowerE, hr030, hr050, hr065, hr3, hrm1, hr0, hr1, hr05, hr03, hrm05, hr06, hr015, hr00, hr08, hrm10, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv, cstR]
-theorem fRR1_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
-    Term.eval (fRR q 1) x = x (Rv 0) * ((1 - 1/2 * (x (Rv 2) * x (Rv 2))) - 3/10 * (x (Rv 4) * x (Rv 4))) := by
-  interval_cases q <;>
-    simp [fRR, hostDyn, mRR, refinement_ladder_rover_rung3_6to8_IR, vsR, Run.dynOf,
-      Run.lowerE, hr030, hr050, hr065, hr3, hrm1, hr0, hr1, hr05, hr03, hrm05, hr06, hr015, hr00, hr08, hrm10, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem fRR2_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
-    Term.eval (fRR q 2) x = -1 * x (Rv 2) := by
-  interval_cases q <;>
-    simp [fRR, hostDyn, mRR, refinement_ladder_rover_rung3_6to8_IR, vsR, Run.dynOf,
-      Run.lowerE, hr030, hr050, hr065, hr3, hrm1, hr0, hr1, hr05, hr03, hrm05, hr06, hr015, hr00, hr08, hrm10, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem fRR3_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
-    Term.eval (fRR q 3) x = 0 := by
-  interval_cases q <;>
-    simp [fRR, hostDyn, mRR, refinement_ladder_rover_rung3_6to8_IR, vsR, Run.dynOf,
-      Run.lowerE, hr030, hr050, hr065, hr3, hrm1, hr0, hr1, hr05, hr03, hrm05, hr06, hr015, hr00, hr08, hrm10, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem fRR4_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
-    Term.eval (fRR q 4) x = -1 * x (Rv 4) := by
-  interval_cases q <;>
-    simp [fRR, hostDyn, mRR, refinement_ladder_rover_rung3_6to8_IR, vsR, Run.dynOf,
-      Run.lowerE, hr030, hr050, hr065, hr3, hrm1, hr0, hr1, hr05, hr03, hrm05, hr06, hr015, hr00, hr08, hrm10, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem fRR5_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
-    Term.eval (fRR q 5) x = 0 := by
-  interval_cases q <;>
-    simp [fRR, hostDyn, mRR, refinement_ladder_rover_rung3_6to8_IR, vsR, Run.dynOf,
-      Run.lowerE, hr030, hr050, hr065, hr3, hrm1, hr0, hr1, hr05, hr03, hrm05, hr06, hr015, hr00, hr08, hrm10, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem fRR6_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
-    Term.eval (fRR q 6) x = -1 * x (Rv 6) := by
-  interval_cases q <;>
-    simp [fRR, hostDyn, mRR, refinement_ladder_rover_rung3_6to8_IR, vsR, Run.dynOf,
-      Run.lowerE, hr030, hr050, hr065, hr3, hrm1, hr0, hr1, hr05, hr03, hrm05, hr06, hr015, hr00, hr08, hrm10, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem fRR7_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
-    Term.eval (fRR q 7) x = -1 * x (Rv 7) := by
-  interval_cases q <;>
-    simp [fRR, hostDyn, mRR, refinement_ladder_rover_rung3_6to8_IR, vsR, Run.dynOf,
-      Run.lowerE, hr030, hr050, hr065, hr3, hrm1, hr0, hr1, hr05, hr03, hrm05, hr06, hr015, hr00, hr08, hrm10, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-
-theorem sat_domRR (x : State (Var 8)) : Formula.sat domRR x ↔
-    (-(1:ℝ)/2 ≤ x (Rv 3) ∧ x (Rv 3) ≤ (3:ℝ)/5 ∧ -(1:ℝ)/2 ≤ x (Rv 5) ∧ x (Rv 5) ≤ (3:ℝ)/5 ∧ -(1:ℝ)/2 ≤ x (Rv 7) ∧ x (Rv 7) ≤ (3:ℝ)/20 ∧ -(1:ℝ)/2 ≤ x (Rv 2) ∧ x (Rv 2) ≤ (3:ℝ)/20 ∧ 0 ≤ x (Rv 1) ∧ -(1:ℝ)/2 ≤ x (Rv 4) ∧ x (Rv 4) ≤ (3:ℝ)/20 ∧ 0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ (4:ℝ)/5 ∧ -(1:ℝ) ≤ x (Rv 6) ∧ x (Rv 6) ≤ (3:ℝ)/20) := by
-  simp only [domRR, hostEvolve, mRR, refinement_ladder_rover_rung3_6to8_IR, vsR]
-  simp [Run.lowerF, Run.lowerE, hrm05, hr06, hr015, hr00, hr08, hrm10,
-    Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
-    CompOp.interp, Term.eval, Rv]
-  tauto
 
 /-! ## Faces -/
 

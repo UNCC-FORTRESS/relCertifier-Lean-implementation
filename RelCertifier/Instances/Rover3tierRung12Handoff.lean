@@ -61,7 +61,7 @@ theorem gAt_one_eq : gAt 1 = gAtC 0 := by
 theorem eval_gQ (x : State (Var 3)) : Term.eval gQ x = x (Lv 0) - (x (Rv 0) + 1/2) := by
   have hdL : ("L_v".drop 2).copy = "v" := by decide
   have hdR : ("R_v".drop 2).copy = "v" := by decide
-  simp [gQ, gAt, atomsOf, invQPF, rover3tier_rung12_IR, Run.invToG, Run.lowerE, vsQ,
+  simp [gQ, gAt, atomsOf, invQPF, rover3tier_rung12_IR, rover3tier_rung12_IRv2, Run.invToG, Run.lowerE, vsQ,
     Run.resolveVar, Parse.dr, hdL, hdR, List.findIdx?_cons, hq05,
     ITerm.toHost, Term.eval, AOp.interp, Lv, Rv]
 
@@ -70,14 +70,14 @@ theorem eval_gQC (x : State (Var 3)) :
   have hdL : ("L_v".drop 2).copy = "v" := by decide
   have hdR : ("R_v".drop 2).copy = "v" := by decide
   have hdLa : ("L_a".drop 2).copy = "a" := by decide
-  simp [gQC, gAtC, atomsOf, invQCPF, rover3tier_rung12_IR, Run.invToG, Run.lowerE, vsQ,
+  simp [gQC, gAtC, atomsOf, invQCPF, rover3tier_rung12_IR, rover3tier_rung12_IRv2, Run.invToG, Run.lowerE, vsQ,
     Run.resolveVar, Parse.dr, hdL, hdR, hdLa, List.findIdx?_cons, hq3, hq12,
     ITerm.toHost, Term.eval, AOp.interp, Lv, Rv]
 
 theorem sat_domLQ (x : State (Var 3)) : Formula.sat domLQ x ↔
     (-(3:ℝ)/10 ≤ x (Lv 2) ∧ x (Lv 2) ≤ (19:ℝ)/20 ∧ 0 ≤ x (Lv 1) ∧ x (Lv 1) ≤ 100 ∧
       0 ≤ x (Lv 0) ∧ x (Lv 0) ≤ (3:ℝ)/2) := by
-  simp only [domLQ, hostEvolve, mLQ, rover3tier_rung12_IR, vsQ]
+  simp only [domLQ, hostEvolve, mLQ, rover3tier_rung12_IR, rover3tier_rung12_IRv2, vsQ]
   simp [Run.lowerF, Run.lowerE, hqm03, hq095, hq00, hq100, hq15,
     Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
     CompOp.interp, Term.eval, Lv]
@@ -155,7 +155,7 @@ theorem hnextQ (dt : ℝ) : ∀ m' < (AQ dt).numModes, ∀ t ∈ (AQ dt).succ m'
 
 theorem hguardQ (t : ℕ) (ht : t < 2) : (hostGuard vsQ 3 Side.L (mLQ t)).fv ⊆ range Lv := by
   refine hostGuard_fv_L vsQ (mLQ t) ?_
-  interval_cases t <;> simp [mLQ, rover3tier_rung12_IR, Parse.PForm.namesFree, Parse.PExpr.namesFree]
+  interval_cases t <;> simp [mLQ, rover3tier_rung12_IR, rover3tier_rung12_IRv2, Parse.PForm.namesFree, Parse.PExpr.namesFree]
 
 theorem hgrdQ (dt : ℝ) : ∀ t < (AQ dt).numModes, ((AQ dt).guard t).fv ⊆ range Lv := by
   intro t ht

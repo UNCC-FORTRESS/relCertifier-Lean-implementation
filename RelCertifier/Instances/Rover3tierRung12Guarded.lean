@@ -35,14 +35,6 @@ open DL DLCalTiming DLRel Parse Set Rover3tierRung12Modal Rover3tierRung12Handof
 
 /-! ## The guarded right graph -/
 
-/-- The declared edge `st → tgt` tests the lowered guard of the mode it enters. -/
-noncomputable def edgeG (st tgt : ℕ) : REdge (Var 3) :=
-  { src := st, tgt := tgt, guard := hostGuard vsQ 3 Side.R (mRQ tgt), pruned := false }
-
-noncomputable def GrG : SearchGraph (Var 3) :=
-  { modes := [modeQ 0, modeQ 1],
-    edges := [edgeG 0 1, edgeG 0 0, edgeG 1 0, edgeG 1 1] }
-
 /-- **Faithfulness of the graph**: its edges are the file's `next` lists, resolved. -/
 theorem GrG_edges_IR : GrG.edges.map (fun e => (e.src, e.tgt)) =
     (List.range rover3tier_rung12_IR.R.modes.length).flatMap (fun q =>
@@ -60,11 +52,6 @@ theorem GrG_guards : ∀ q, ∀ e ∈ GrG.edgesFrom q,
   have hmem : e ∈ GrG.edges := List.mem_of_mem_filter he
   simp only [GrG, List.mem_cons, List.not_mem_nil, or_false] at hmem
   rcases hmem with rfl | rfl | rfl | rfl <;> rfl
-
-theorem GrG_modeAt (q : ℕ) (hq : q < 2) : GrG.modeAt q = some (modeQ q) := by
-  interval_cases q <;> rfl
-
-theorem GrG_len : GrG.modes.length = 2 := rfl
 
 theorem hltG : ∀ q, ∀ e ∈ GrG.edgesFrom q, e.tgt < GrG.modes.length := by
   intro q e he
@@ -96,7 +83,7 @@ theorem hfreshG : ∀ q m, GrG.modeAt q = some m →
 theorem hguardRQ (q : ℕ) (hq : q < 2) : (hostGuard vsQ 3 Side.R (mRQ q)).fv ⊆ range Rv :=
   hostGuard_fv_R vsQ (mRQ q) (by
     interval_cases q <;>
-      simp [mRQ, rover3tier_rung12_IR, Parse.PForm.namesFree, Parse.PExpr.namesFree])
+      simp [mRQ, rover3tier_rung12_IR, rover3tier_rung12_IRv2, Parse.PForm.namesFree, Parse.PExpr.namesFree])
 
 theorem hgRG : GuardsRight GrG := by
   intro q e he
@@ -108,117 +95,11 @@ theorem hgRG : GuardsRight GrG := by
   · exact hguardRQ 0 (by norm_num)
   · exact hguardRQ 1 (by norm_num)
 
-theorem edgeG_mem (st tgt : ℕ) (hst : st < 2) (htgt : tgt < 2) :
-    edgeG st tgt ∈ GrG.edgesFrom st := by
-  refine List.mem_filter.mpr ⟨?_, by simp [edgeG]⟩
-  interval_cases st <;> interval_cases tgt <;> simp [GrG]
-
-/-- The right guards, evaluated (`ACCEL`: `0.3 ≤ v < 0.6`; `COAST`: `v ≥ 0.6`). -/
-theorem sat_guardRQ (q : ℕ) (hq : q < 2) (x : State (Var 3)) :
-    Formula.sat (hostGuard vsQ 3 Side.R (mRQ q)) x ↔
-      (if q = 0 then 3/10 ≤ x (Rv 0) ∧ x (Rv 0) < 3/5 else 3/5 ≤ x (Rv 0)) := by
-  interval_cases q <;>
-    simp [hostGuard, mRQ, rover3tier_rung12_IR, Run.lowerF, Run.lowerE, hq03, hq06, vsQ,
-      Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
-      CompOp.interp, Term.eval, Rv]
-
 /-! ## The explicit right run: `v' = a`, `s' = v`, `a' = 0` -/
 
-noncomputable def runEnd (ρ : State (Var 3)) (τ : ℝ) : State (Var 3) :=
-  fun x => if x = Rv 0 then ρ (Rv 0) + ρ (Rv 2) * τ
-    else if x = Rv 1 then ρ (Rv 1) + ρ (Rv 0) * τ + ρ (Rv 2) * τ ^ 2 / 2 else ρ x
-
-theorem runEnd_ne (ρ : State (Var 3)) (τ : ℝ) {x : Var 3} (h0 : x ≠ Rv 0) (h1 : x ≠ Rv 1) :
-    runEnd ρ τ x = ρ x := by simp [runEnd, h0, h1]
-
-theorem runEnd_R0 (ρ : State (Var 3)) (τ : ℝ) : runEnd ρ τ (Rv 0) = ρ (Rv 0) + ρ (Rv 2) * τ := by
-  simp [runEnd]
-theorem runEnd_R1 (ρ : State (Var 3)) (τ : ℝ) :
-    runEnd ρ τ (Rv 1) = ρ (Rv 1) + ρ (Rv 0) * τ + ρ (Rv 2) * τ ^ 2 / 2 := by
-  simp [runEnd, show (Rv 1 : Var 3) ≠ Rv 0 from by simp [Rv, Prod.ext_iff]]
-theorem runEnd_R2 (ρ : State (Var 3)) (τ : ℝ) : runEnd ρ τ (Rv 2) = ρ (Rv 2) :=
-  runEnd_ne ρ τ (by simp [Rv, Prod.ext_iff]) (by simp [Rv, Prod.ext_iff])
 theorem runEnd_L (ρ : State (Var 3)) (τ : ℝ) (i : Fin 3) : runEnd ρ τ (Lv i) = ρ (Lv i) :=
   runEnd_ne ρ τ (by simp [Lv, Rv, Prod.ext_iff]) (by simp [Lv, Rv, Prod.ext_iff])
 
-
-/-- The explicit solution is a run of either right mode, for any duration. -/
-theorem run_sol (q : ℕ) (hq : q < 2) (ρ : State (Var 3)) (hdom : Formula.sat domRQ ρ)
-    (τ : ℝ) (hτ : 0 ≤ τ) :
-    ODESol (modeQ q).sys (modeQ q).dom ρ τ (fun t => runEnd ρ t) := by
-  have hD := (sat_domRQ ρ).mp hdom
-  refine ⟨hτ, ?_, ?_, ?_, ?_⟩
-  · funext x
-    by_cases h0 : x = Rv 0
-    · subst h0; simp [runEnd]
-    · by_cases h1 : x = Rv 1
-      · subst h1; simp [runEnd_R1]
-      · exact runEnd_ne ρ 0 h0 h1
-  · intro t ht p hp
-    simp only [modeQ, rightBlock, List.mem_map, List.mem_finRange, true_and] at hp
-    obtain ⟨i, rfl⟩ := hp
-    fin_cases i
-    · have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (fRQ q ⟨0, by norm_num⟩))
-          (runEnd ρ t) = ρ (Rv 2) := by
-        simp only [Term.eval, AOp.interp]
-        rw [show fRQ q ⟨0, by norm_num⟩ = fRQ q 0 from rfl, fRQ0_eval q hq, runEnd_R2]
-        ring
-      simp only [heval]
-      have h2 : HasDerivWithinAt (fun u : ℝ => ρ (Rv 0) + ρ (Rv 2) * u) (ρ (Rv 2) * 1)
-          (Set.Icc 0 τ) t :=
-        ((hasDerivWithinAt_id t (Set.Icc (0:ℝ) τ)).const_mul (ρ (Rv 2))).const_add (ρ (Rv 0))
-      rw [mul_one] at h2
-      refine HasDerivWithinAt.congr h2 ?_ ?_
-      · intro y _; simp [runEnd_R0]
-      · simp [runEnd_R0]
-    · have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (fRQ q ⟨1, by norm_num⟩))
-          (runEnd ρ t) = ρ (Rv 0) + ρ (Rv 2) * t := by
-        simp only [Term.eval, AOp.interp]
-        rw [show fRQ q ⟨1, by norm_num⟩ = fRQ q 1 from rfl, fRQ1_eval q hq, runEnd_R0]
-        ring
-      simp only [heval]
-      have h2 : HasDerivWithinAt (fun u : ℝ => ρ (Rv 1) + ρ (Rv 0) * u + ρ (Rv 2) * u ^ 2 / 2)
-          (ρ (Rv 0) * 1 + ρ (Rv 2) * (2 * t ^ 1 * 1) / 2) (Set.Icc 0 τ) t := by
-        have hu := hasDerivWithinAt_id t (Set.Icc (0:ℝ) τ)
-        exact ((hu.const_mul (ρ (Rv 0))).const_add (ρ (Rv 1))).add
-          (((hu.pow 2).const_mul (ρ (Rv 2))).div_const 2)
-      have he : ρ (Rv 0) * 1 + ρ (Rv 2) * (2 * t ^ 1 * 1) / 2 = ρ (Rv 0) + ρ (Rv 2) * t := by
-        ring
-      rw [he] at h2
-      refine HasDerivWithinAt.congr h2 ?_ ?_
-      · intro y _; simp [runEnd_R1]
-      · simp [runEnd_R1]
-    · have heval : Term.eval (Term.binop AOp.mul (Term.const 1) (fRQ q ⟨2, by norm_num⟩))
-          (runEnd ρ t) = 0 := by
-        simp only [Term.eval, AOp.interp]
-        rw [show fRQ q ⟨2, by norm_num⟩ = fRQ q 2 from rfl, fRQ2_eval q hq]
-        ring
-      simp only [heval]
-      refine HasDerivWithinAt.congr (hasDerivWithinAt_const t (Set.Icc (0:ℝ) τ) (ρ (Rv 2)))
-        ?_ ?_
-      · intro y _; simp [runEnd_R2]
-      · simp [runEnd_R2]
-  · intro t ht x hx
-    have h0 : x ≠ Rv 0 := by
-      rintro rfl
-      exact hx (List.mem_map.mpr ⟨(Rv 0, _), List.mem_map.mpr ⟨0, List.mem_finRange 0, rfl⟩,
-        rfl⟩)
-    have h1 : x ≠ Rv 1 := by
-      rintro rfl
-      exact hx (List.mem_map.mpr ⟨(Rv 1, _), List.mem_map.mpr ⟨1, List.mem_finRange 1, rfl⟩,
-        rfl⟩)
-    exact runEnd_ne ρ t h0 h1
-  · intro t ht
-    refine (sat_domRQ _).mpr ?_
-    simp only [runEnd_R2, runEnd_R1, runEnd_R0]
-    obtain ⟨ha1, ha2, hs, hv⟩ := hD
-    have ht0 := ht.1
-    refine ⟨ha1, ha2, ?_, ?_⟩
-    · have : 0 ≤ ρ (Rv 0) * t := mul_nonneg hv ht0
-      have : 0 ≤ ρ (Rv 2) * t ^ 2 / 2 := by positivity
-      linarith
-    · have : 0 ≤ ρ (Rv 2) * t := mul_nonneg (by linarith) ht0
-      linarith
 
 /-! ## The emitted cover's data: the extended cut certificate, concretely -/
 
@@ -227,7 +108,7 @@ noncomputable def guardQ (l : ℕ) : Formula (Var 3) := hostGuard vsQ 3 Side.L (
 theorem hguardL (l : ℕ) (hl : l < 2) : (guardQ l).fv ⊆ range Lv :=
   hostGuard_fv_L vsQ (mLQ l) (by
     interval_cases l <;>
-      simp [mLQ, rover3tier_rung12_IR, Parse.PForm.namesFree, Parse.PExpr.namesFree])
+      simp [mLQ, rover3tier_rung12_IR, rover3tier_rung12_IRv2, Parse.PForm.namesFree, Parse.PExpr.namesFree])
 
 noncomputable def cL (l : ℕ) : List (CutAtomP 3) :=
   cutPairsX vsQ 3 Side.L (cutAtomsOfX rover3tier_rung12_cutsV2X.L (mLQ l).name)
@@ -271,15 +152,15 @@ theorem hO1R (q : ℕ) (hq : q < 2) :
   · interval_cases q <;> rfl
   · interval_cases q <;>
     · intro x hx
-      simp [cutAtomsOfX, rover3tier_rung12_cutsV2X, mRQ, rover3tier_rung12_IR] at hx
+      simp [cutAtomsOfX, rover3tier_rung12_cutsV2X, mRQ, rover3tier_rung12_IR, rover3tier_rung12_IRv2] at hx
       rcases hx with rfl <;> simp
   · interval_cases q <;>
     · intro x hx
-      simp [cutAtomsOfX, rover3tier_rung12_cutsV2X, mRQ, rover3tier_rung12_IR] at hx
+      simp [cutAtomsOfX, rover3tier_rung12_cutsV2X, mRQ, rover3tier_rung12_IR, rover3tier_rung12_IRv2] at hx
       rcases hx with rfl <;>
         simp [Run.lowerF, Run.lowerE, hq03, hq06, vsQ, Run.resolveVar, List.findIdx?_cons]
   · interval_cases q <;>
-      simp [mRQ, rover3tier_rung12_IR, Run.lowerF, Run.lowerE, hq03, hq06, vsQ,
+      simp [mRQ, rover3tier_rung12_IR, rover3tier_rung12_IRv2, Run.lowerF, Run.lowerE, hq03, hq06, vsQ,
         Run.resolveVar, List.findIdx?_cons]
 
 /-! ## O2: the kept atoms stay along the flows the cover certifies -/
@@ -339,7 +220,7 @@ theorem comps_eq0 : hostComps vsQ 3
         ("L_a".drop 2).copy = "a" := by decide
     rcases ha with rfl | rfl <;>
       exact ⟨⟨_, _, _, rfl⟩, by
-        simp [atomsOf, invQPF, rover3tier_rung12_IR, Run.invToG, Run.lowerE,
+        simp [atomsOf, invQPF, rover3tier_rung12_IR, rover3tier_rung12_IRv2, Run.invToG, Run.lowerE,
           vsQ, hq05, hq3, hq12, Run.resolveVar, Parse.dr, hdrops, List.findIdx?_cons]⟩
 
 theorem comps_eq1 : hostComps vsQ 3
@@ -355,7 +236,7 @@ theorem comps_eq1 : hostComps vsQ 3
         ("L_a".drop 2).copy = "a" := by decide
     subst ha
     exact ⟨⟨_, _, _, rfl⟩, by
-      simp [atomsOf, invQCPF, rover3tier_rung12_IR, Run.invToG, Run.lowerE,
+      simp [atomsOf, invQCPF, rover3tier_rung12_IR, rover3tier_rung12_IRv2, Run.invToG, Run.lowerE,
         vsQ, hq05, hq3, hq12, Run.resolveVar, Parse.dr, hdrops, List.findIdx?_cons]⟩
 
 theorem comps_fv (l : ℕ) : ∀ c ∈ rH l :: rT l, c.fv ⊆ range Lv ∪ range Rv := by
@@ -404,7 +285,7 @@ noncomputable def anc (l q : ℕ) : Formula (Var 3) := FM (rH l) (rT l ++ atomTe
 
 theorem cR_nil (q : ℕ) (hq : 2 ≤ q) : cR q = [] := by
   have : mRQ q = dummyQ :=
-    List.getD_eq_default _ _ (by simp [rover3tier_rung12_IR]; omega)
+    List.getD_eq_default _ _ (by simp [rover3tier_rung12_IR, rover3tier_rung12_IRv2]; omega)
   simp only [cR, this]
   rfl
 
@@ -590,7 +471,7 @@ noncomputable def gregionQ (q : ℕ) : Formula (Var 3) :=
   regionG (fun q => hostGuard vsQ 3 Side.R (mRQ q)) (fun _ => Formula.tt) q
 
 theorem hguardRQ_all (q : ℕ) : (hostGuard vsQ 3 Side.R (mRQ q)).fv ⊆ range Rv :=
-  hostGuard_fv_R_getD vsQ _ dummyQ rfl (by simp [rover3tier_rung12_IR, Parse.PForm.namesFree,
+  hostGuard_fv_R_getD vsQ _ dummyQ rfl (by simp [rover3tier_rung12_IR, rover3tier_rung12_IRv2, Parse.PForm.namesFree,
     Parse.PExpr.namesFree]) q
 
 theorem gregionQ_fv (q : ℕ) : (gregionQ q).fv ⊆ range Rv :=

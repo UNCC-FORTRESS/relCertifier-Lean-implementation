@@ -27,6 +27,7 @@ import RelCertifier.Proofs.Encoding.CanonicalInv
 import RelCertifier.Proofs.Encoding.CoverInstance
 import RelCertifier.Proofs.Flow.StratifiedFaces
 import RelCertifier.Instances.BenchIR.rover3tier_rung12
+import RelCertifier.Instances.WellFormed.Rover3tierRung12
 
 namespace RelCertifier
 namespace Rover3tierRung12Modal
@@ -35,19 +36,13 @@ open DL DLCalTiming DLRel Parse Set
 
 set_option maxHeartbeats 12800000
 
-def vsQ : List String := ["v", "s", "a"]
-def dummyQ : Parse.PMode := ⟨"", [], .tt, .tt, []⟩
 def mLQ (l : ℕ) : Parse.PMode := rover3tier_rung12_IR.L.modes.getD l dummyQ
-def mRQ (q : ℕ) : Parse.PMode := rover3tier_rung12_IR.R.modes.getD q dummyQ
-
 abbrev mvQ : Var 3 := (Side.Aux, 0)
 abbrev aQ : Fin 3 := (1 : Fin 3)
 abbrev tgQ : Var 3 := (Side.Aux, aQ)
 
 noncomputable def fLQ (l : ℕ) : Fin 3 → Term (Var 3) := hostDyn vsQ 3 Side.L (mLQ l)
-noncomputable def fRQ (q : ℕ) : Fin 3 → Term (Var 3) := hostDyn vsQ 3 Side.R (mRQ q)
 noncomputable def domLQ : Formula (Var 3) := hostEvolve vsQ 3 Side.L (mLQ 0)
-noncomputable def domRQ : Formula (Var 3) := hostEvolve vsQ 3 Side.R (mRQ 0)
 noncomputable def envQ : Formula (Var 3) := Formula.and domLQ domRQ
 
 def atomsOf : Parse.PForm → List Parse.PForm
@@ -92,23 +87,23 @@ theorem domRQ_pipe : domRQ =
 theorem hfLQ (l : ℕ) (hl : l < 2) : ∀ i, (fLQ l i).fv ⊆ range Lv := fun i x hx =>
   side_eq_L_mem (field_pipeline_side (resolvesTo_L vsQ) (some (mLQ l))
     (by interval_cases l <;>
-      simp [mLQ, rover3tier_rung12_IR, Parse.PExpr.namesFree]) i x
+      simp [mLQ, rover3tier_rung12_IR, rover3tier_rung12_IRv2, Parse.PExpr.namesFree]) i x
     (fLQ_pipe l i ▸ hx))
 
 theorem hfRQ (q : ℕ) (hq : q < 2) : ∀ i, (fRQ q i).fv ⊆ range Rv := fun i x hx =>
   side_eq_R_mem (field_pipeline_side (resolvesTo_R vsQ) (some (mRQ q))
     (by interval_cases q <;>
-      simp [mRQ, rover3tier_rung12_IR, Parse.PExpr.namesFree]) i x
+      simp [mRQ, rover3tier_rung12_IR, rover3tier_rung12_IRv2, Parse.PExpr.namesFree]) i x
     (fRQ_pipe q i ▸ hx))
 
 theorem hdomLQ : domLQ.fv ⊆ range Lv := fun x hx =>
   side_eq_L_mem (form_pipeline_side (resolvesTo_L vsQ) (some (mLQ 0))
-    (by simp [mLQ, rover3tier_rung12_IR, Parse.PForm.namesFree,
+    (by simp [mLQ, rover3tier_rung12_IR, rover3tier_rung12_IRv2, Parse.PForm.namesFree,
       Parse.PExpr.namesFree]) x (domLQ_pipe ▸ hx))
 
 theorem hdomRQ : domRQ.fv ⊆ range Rv := fun x hx =>
   side_eq_R_mem (form_pipeline_side (resolvesTo_R vsQ) (some (mRQ 0))
-    (by simp [mRQ, rover3tier_rung12_IR, Parse.PForm.namesFree,
+    (by simp [mRQ, rover3tier_rung12_IR, rover3tier_rung12_IRv2, Parse.PForm.namesFree,
       Parse.PExpr.namesFree]) x (domRQ_pipe ▸ hx))
 
 theorem hgAt (i : ℕ) : (gAt i).fv ⊆ range Lv ∪ range Rv := invToG_pipeline_LR _
@@ -157,9 +152,6 @@ theorem htgenvQ : tgQ ∉ envQ.fv := fun h => by
   · exact absurd (hdomRQ h) (by rintro ⟨i, hi⟩; exact absurd hi (by simp [Rv, Prod.ext_iff]))
 
 /-! ## The right graph (one-way chain) -/
-
-noncomputable def modeQ (q : ℕ) : RMode (Var 3) :=
-  { sys := rightBlock (fRQ q) (Term.const 1), dom := domRQ, weight := 1 }
 
 def edgeQ (st tgt : ℕ) : REdge (Var 3) :=
   { src := st, tgt := tgt, guard := Formula.tt, pruned := false }
@@ -260,23 +252,8 @@ theorem hq08 : Run.parseRat "0.8" = some ((4:ℚ)/5) := by
 theorem hqm03 : Run.parseRat "-0.3" = some (-(3:ℚ)/10) := by
   have h : parseQ "-0.3" = some (⟨-3, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]
-theorem hq0 : Run.parseRat "0" = some (0) := by
-  have h : parseQ "0" = some (⟨0, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hq1 : Run.parseRat "1" = some (1) := by
-  have h : parseQ "1" = some (⟨1, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
 theorem hq3 : Run.parseRat "3" = some (3) := by
   have h : parseQ "3" = some (⟨3, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hq05 : Run.parseRat "0.5" = some ((1:ℚ)/2) := by
-  have h : parseQ "0.5" = some (⟨5, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hq10 : Run.parseRat "1.0" = some (1) := by
-  have h : parseQ "1.0" = some (⟨10, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hq00 : Run.parseRat "0.0" = some (0) := by
-  have h : parseQ "0.0" = some (⟨0, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]
 theorem hq095 : Run.parseRat "0.95" = some ((19:ℚ)/20) := by
   have h : parseQ "0.95" = some (⟨95, 100⟩ : QF) := by decide
@@ -286,12 +263,6 @@ theorem hq15 : Run.parseRat "1.5" = some ((3:ℚ)/2) := by
   simp [Run.parseRat, h]; norm_num
 theorem hq100 : Run.parseRat "100.0" = some (100) := by
   have h : parseQ "100.0" = some (⟨1000, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hq03 : Run.parseRat "0.3" = some ((3:ℚ)/10) := by
-  have h : parseQ "0.3" = some (⟨3, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hq06 : Run.parseRat "0.6" = some ((3:ℚ)/5) := by
-  have h : parseQ "0.6" = some (⟨6, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
 theorem hq12 : Run.parseRat "1.2" = some ((6:ℚ)/5) := by
   have h : parseQ "1.2" = some (⟨12, 10⟩ : QF) := by decide
@@ -303,35 +274,6 @@ theorem hq2 : Run.parseRat "2" = some (2) := by
 /-! ## Field and shape pins -/
 
 noncomputable def cstQ (q : ℕ) : ℝ := if q = 0 then 0 else if q = 1 then 0 else 0
-
-theorem fRQ0_eval (q : ℕ) (hq : q < 2) (x : State (Var 3)) :
-    Term.eval (fRQ q 0) x = x (Rv 2) := by
-  interval_cases q <;>
-    · simp [fRQ, hostDyn, mRQ, rover3tier_rung12_IR, vsQ, Run.dynOf,
-      Run.lowerE, hq0, hq1, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-      try ring
-theorem fRQ1_eval (q : ℕ) (hq : q < 2) (x : State (Var 3)) :
-    Term.eval (fRQ q 1) x = x (Rv 0) := by
-  interval_cases q <;>
-    · simp [fRQ, hostDyn, mRQ, rover3tier_rung12_IR, vsQ, Run.dynOf,
-      Run.lowerE, hq0, hq1, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-      try ring
-theorem fRQ2_eval (q : ℕ) (hq : q < 2) (x : State (Var 3)) :
-    Term.eval (fRQ q 2) x = 0 := by
-  interval_cases q <;>
-    · simp [fRQ, hostDyn, mRQ, rover3tier_rung12_IR, vsQ, Run.dynOf,
-      Run.lowerE, hq0, hq1, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-      try ring
-theorem sat_domRQ (x : State (Var 3)) : Formula.sat domRQ x ↔
-    ((1:ℝ)/2 ≤ x (Rv 2) ∧ x (Rv 2) ≤ 1 ∧ 0 ≤ x (Rv 1) ∧ 0 ≤ x (Rv 0)) := by
-  simp only [domRQ, hostEvolve, mRQ, rover3tier_rung12_IR, vsQ]
-  simp [Run.lowerF, Run.lowerE, hq05, hq10, hq00,
-    Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
-    CompOp.interp, Term.eval, Rv]
-  tauto
 
 theorem esQ (lam : ℝ) (hlam : 0 < lam) (l m : ℕ) (hl : l < 2) (hm : m < 2)
     (dt : ℝ) (hdt : 0 ≤ dt) :
@@ -471,7 +413,6 @@ theorem esQ (lam : ℝ) (hlam : 0 < lam) (l m : ℕ) (hl : l < 2) (hm : m < 2)
       have h4 : 0 ≤ lam * μ (Rv 2) * t :=
         mul_nonneg (mul_nonneg hlam.le (by linarith)) ht0
       linarith [hv0, h4]
-
 
 
 /-! ## The ACCEL invariant: verdicts, coupling, response -/

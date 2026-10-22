@@ -2,7 +2,7 @@
 
 > **Current state (2026-10-10, pass 11, §21).** `benchmarks/suite_v2` has **50 benchmarks** (`watertank_twospeed` added 2026-10-11, §22; four literature benchmarks 2026-10-15, §23),
 > all CERTIFIED with `RELCERT_IMPLIED_CUT=1` (10 DECLINE without it), every one carries a
-> kernel-checked Theorem 3 (`RelCertifier/InstancesV2/BatteryV2.lean`; `README.md`), and every
+> kernel-checked Theorem 3 (`RelCertifier/InstancesV2/Bridge/`, the generic bridge; `README.md`), and every
 > right model satisfies Assumption 1 (`WellFormedR`, all 50 literally since 2026-10-15, when the six satellites'
 > momentum band entered their right evolve domains, §19.2; the nine models that violated it were repaired in §21). The mechanism matrix,
 > re-run on 2026-10-10 with `scripts/suite_v2_matrix.py` after the repairs, gives the totals
@@ -12,8 +12,9 @@
 > 14). The legacy suite `suite_uniform` that §12 and
 > several passes compare against was removed from the tree on 2026-10-10 (git history
 > keeps it); the docs this file cites as `docs/PRUNING.md`, `docs/SUITE-DEDUPE.md`,
-> `docs/COVER-AUDIT.md` and `docs/proposals/*` now live in `docs/history/`. Where things are:
-> the check recipe is `docs/CERTIFICATION-CHECK.md`, the verdict runner `docs/VERDICTS.md`,
+> `docs/COVER-AUDIT.md` and `docs/proposals/*` live in `docs/history/` on branch `archive/legacy-2026-10`
+> (`docs/SUITE-DEDUPE.md` stays in the tree). Where things are:
+> the check recipe is `docs/CERTIFICATION-CHECK.md`, the runners `docs/BRIDGE.md`,
 > the paper mapping `docs/PAPER-MAPPING.md`. The sections below are the design record,
 > pass by pass, and are not rewritten.
 

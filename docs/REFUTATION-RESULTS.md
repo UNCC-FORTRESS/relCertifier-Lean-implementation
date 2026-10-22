@@ -84,7 +84,7 @@ elimination) is out of scope.
    queries do not read the padded coordinate, so the count is unchanged).
 5. `scripts/refute_experiment.py`: relcert on every mutant (this worktree's binary,
    `RELCERT_IMPLIED_CUT=1`; the default verdict includes the handoff check), the table below
-   (`docs/refute/results.json`, `docs/refute/relcert.json`).
+   (`docs/refute/results.json`, `docs/refute/relcert.json`, archived on branch `archive/legacy-2026-10` on 2026-10-22; `docs/refute/witnesses.jsonl` stays).
 
 A mutant counts as kernel-refuted only if its instance builds (`lake build
 RelCertifier.InstancesV2.Refute`: all 67 build) and the runner discharges all its groups.

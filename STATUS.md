@@ -1,10 +1,13 @@
-# Status (2026-10-15, branch `theorem3-general`)
+# Status (2026-10-22, branch `cleanup-2026-10`)
 
 **The artifact.** `benchmarks/suite_v2` (50 benchmarks: 46 designed for the paper and four from the literature, 2026-10-15), the tool `relcert`, the generic
-soundness development (`RelCertifier/Core`, `Checker`, `Proofs`, `Trusted`) and the suite_v2
-battery (`RelCertifier/InstancesV2/BatteryV2.lean`). The legacy suite `suite_uniform` and its
-batteries were retired on 2026-10-10; the 19 theorems the battery carries over from it are
-kept with exactly what they need (`README.md`, "The 19 carried-over theorems").
+soundness development (`RelCertifier/Core`, `Checker`, `Proofs`, `Trusted`), the generic-bridge
+instances (`RelCertifier/InstancesV2/Bridge/`, Theorem 3 of every benchmark from its emitted
+records), the Assumption 1 battery (`InstancesV2/WellFormedBattery.lean`) and the 67 kernel
+refutations (`InstancesV2/Refute/`). The legacy suite `suite_uniform` was retired on 2026-10-10;
+the standalone route (one hand-written Theorem 3 per benchmark, its packs and pins) was
+archived on 2026-10-22 on branch `archive/legacy-2026-10` (`docs/CLEANUP-SCOPE.md`); the 19
+carried-over Assumption 1 proofs stay (`README.md`, "The 19 carried-over Assumption 1 proofs").
 
 **Proved, all 50, one statement.** Theorem 3 (Lean docstring numbering; the paper's Theorem 3 as of 2026-10-16) with the paper's LEFT program (the guard-gated
 left automaton `leftAutomatonBody A u_L`: each left window entered inside its lowered guard,
@@ -15,13 +18,12 @@ cuts q` of the right's current mode (`docs/GUARDED-SWITCHING.md` §3.1, §3.3). 
 for every window length, `refinement_ladder_rover_rung2c_6dof` for every window up to its
 control interval (`dt ≤ ε_L = 1`); every switch on both sides kernel-checked legal. 12
 mode-keyed, 33 mode-independent (carried to the left automaton by the generic bridge
-`theorem3_leftAut_of_choice`, proved once); **every one of the 46 standalone proofs replays the cover the
-tool emits** (`docs/REPLAY.md`: joint segments at `jointOK` nodes at the cover's stretch, each
-preserved by its pack; right-only repositions at `dynPre` nodes, each preserved by its
-reposition pack; legal switches along retained edges; inadmissible starts contradictory), so
-none is Z3-free (was 16; 234 joint + 41 reposition pack hypotheses); the 6 satellites' standalone
-statements carry the conserved-momentum band in their region (since 2026-10-15 also in the right
-evolve domain). No theorem carries a nonblocking (Assumption 1) hypothesis; no new
+`theorem3_leftAut_of_choice`, proved once); **every bridge instance replays the cover the
+tool emits** in the kernel (joint segments at `jointOK` nodes at the cover's stretch, each
+preserved by its verdict group; right-only repositions at `dynPre` nodes, each preserved by its
+reposition group; legal switches along retained edges; inadmissible starts contradictory), so
+none is Z3-free; the 6 satellites carry the conserved-momentum band in the right evolve domain
+(since 2026-10-15). No theorem carries a nonblocking (Assumption 1) hypothesis; no new
 axiom; the declared rows unchanged. Plus the Theorem 2 instance of `match_multi_rate`'s
 pruned edge. Axioms of every battery theorem ⊆ `{propext, Classical.choice, Quot.sound,
 z3_unsat_sound}`; no `sorry`.
@@ -85,21 +87,23 @@ existential mode choice (the right commits to the left's mode), which is now the
 Assumption 1 lemmas of the three new models are proved directly over the bridge's automaton (`_wellFormedR_direct`,
 `trajRs_sol` explicit runs); `vehicle_hypercert`'s comes from its hand-written general instance.
 
-**Discharged.** Every Z3 hypothesis is re-sent by `relcert --run-verdicts-v2` against
-declared counts (modal 625, handoff 401, non-connection 88 over 44 pruned edges, legacy
-packs 385, reposition 81), each query pinned in the kernel to the hypothesis it discharges.
-On branch `replay` every proof was made to replay the emitted cover (`docs/REPLAY.md`): the 46
-statements take 234 joint packs (every row of `RunV2.packsV2`, was 104 rows) and 41 reposition
-packs (the new table `RunV2.dynPacksV2` and runner phase); 132 pack hypotheses before. No
-headline statement takes a legacy pack any more; the legacy phase re-sends the packs of the
-choice-form and relaxation theorems that stay in the tree.
+**Discharged.** The one Z3 hypothesis of every bridge instance, `Verdicts`, IS the group list
+`relcert-bridge-verdicts` issues (4457 over the 52 instances, declared count); the progress
+certificates (261) and the refutations' groups (188) have their own runners. `relcert
+--check-quick-v2` re-sends the tool's own queries as a self-check against declared counts (modal
+625, handoff 401, non-connection 88 over 44 pruned edges, reposition 81).
 
 **Assumed.** The trust base: parser, lowering (including the right guards placed on the
 edges), SMT printer, Z3's `unsat`, the Lean kernel. Guard-gated switching is no longer
 assumed (both sides) (`README.md`, "Trust base").
 
-**Last verified run.** 2026-10-15, branch `theorem3-general` (commit `12a0c6b`), Apple M2 Max,
-Z3 4.15.1. Full `lake build` exit 0, no `sorry`; `relcert-test` `ALL PASS`; `relcert
+**Last verified run.** 2026-10-22, branch `cleanup-2026-10` (commit `093b2d1`), Apple M2 Max,
+Z3 4.15.1: full `lake build` exit 0 (9252 jobs), no `sorry`; `--check-quick-v2` 50/50, modal
+625, handoff 401, non-connection 88, pruned 44, reposition 81, STRICT 174/174, PASSED;
+`relcert-test` `ALL PASS`; `relcert-bridge-verdicts` 4457/4457; `relcert-refute-verdicts`
+188/188; `relcert-progress-verdicts` 261/261; `WellFormedBattery` 75 axiom lines, all standard;
+`benchmarks/negative/freedm_meter_leaky` DECLINED. Previous: 2026-10-15, branch
+`theorem3-general` (commit `12a0c6b`): full `lake build` exit 0, no `sorry`; `relcert-test` `ALL PASS`; `relcert
 --run-verdicts-v2` all phases discharged (reposition 81/81); `relcert-progress-verdicts` 261/261;
 `relcert-choice-verdicts` 32/32; `relcert-bridge-verdicts` 3512/3512; `scripts/paper_numbers.sh`
 re-run on the clean commit (46 CERTIFIED, 18 sync, 19 without prune declarations, 3 choice

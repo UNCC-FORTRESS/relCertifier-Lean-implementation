@@ -4,7 +4,7 @@ This is the reproduction recipe: starting from the benchmark files, what to run,
 you should see, to confirm that every suite_v2 benchmark carries a machine-checked
 Theorem 3 (Lean docstring numbering; the paper's Theorem 3 as of 2026-10-16) whose hypotheses all hold. Read `README.md` first for what the theorems say.
 
-> **Last run:** 2026-10-15, branch `theorem3-general` (commit `12a0c6b`): full `lake build` exit 0, no `sorry`; `relcert-test` `ALL PASS`; `--run-verdicts-v2` all phases discharged; `relcert-progress-verdicts` 261/261; `relcert-choice-verdicts` 32/32; `relcert-bridge-verdicts` 3512/3512 (`STATUS.md`; 4457/4457 since the literature benchmarks and the choice exhibits). 2026-10-21, branch `clocked-right`: the 52 bridge instances regenerated at dimension `bridgeDimV2` (+1), `relcert-bridge-verdicts` 4457/4457 (commit `61d7389`); the 67 refute instances regenerated at the same rule, `relcert-refute-verdicts` 188/188 (commit `b14f129`). Previous run: 2026-10-11, branch `per-pairing-stretch`, Apple M2 Max (12 cores, 64 GB), Z3 4.15.1. `lake build RelCertifier relcert relcert-test`: `Build completed successfully (17885 jobs)`, no `sorry`. Axiom audit: BatteryV2 72 lines, 48 with `z3_unsat_sound` (the 46 Theorem 3s, `match_multi_rate_nonconn`, `couple_cutX`), 24 at the three standard axioms; WellFormedBattery 77 lines, all at the three standard axioms; nothing else. `--check-quick-v2`: 46 certified / 0 declined / 0 errors (strict well-formedness mode), modal 625/625, handoff 187/187, non-connection 88/88, pruned edges 44/44, copied benchmarks 385/385, reposition (dyn) 81/81, `[wellformed] STRICT: 148/148 right modes ok (84 invariant, 64 exit), 0 UNKNOWN — matches the declared suite`, `SUITE_V2 QUICK CHECKS PASSED`. `relcert-test` with the suite_v2 manifest: 46 IR literals match, bare `ALL PASS`. The stretch pin `VerdictsV2/LamPinV2.lean` (every pack row's stretch is the emitted cover's stretch of that pairing) decides for all 236 rows.
+> **Last run:** 2026-10-22, branch `cleanup-2026-10` (commit `093b2d1`, the standalone route archived on branch `archive/legacy-2026-10`), Apple M2 Max, Z3 4.15.1: `lake build` exit 0 (9252 jobs, the root now imports `InstancesV2.Bridge`), no `sorry`; the five exes build; `--check-quick-v2`: 50 certified / 0 declined / 0 errors, modal 625/625, handoff 401/401, non-connection 88/88, pruned edges 44/44, reposition (dyn) 81/81, `[wellformed] STRICT: 174/174 right modes ok (94 invariant, 80 exit), 0 UNKNOWN`, `SUITE_V2 QUICK CHECKS PASSED`; `relcert-test` `ALL PASS` (50 literals); `relcert-bridge-verdicts` 4457/4457; `relcert-refute-verdicts` 188/188 and every `InstancesV2/Refute/*` instance builds; `relcert-progress-verdicts` 261/261; `WellFormedBattery` 75 axiom lines, all at the three standard axioms; `AxiomCheck` 9 lines; `benchmarks/negative/freedm_meter_leaky` DECLINED. Previous: 2026-10-15, branch `theorem3-general` (commit `12a0c6b`): full `lake build` exit 0, no `sorry`; `relcert-test` `ALL PASS`; `--run-verdicts-v2` all phases discharged; `relcert-progress-verdicts` 261/261; `relcert-choice-verdicts` 32/32; `relcert-bridge-verdicts` 3512/3512 (`STATUS.md`; 4457/4457 since the literature benchmarks and the choice exhibits). 2026-10-21, branch `clocked-right`: the 52 bridge instances regenerated at dimension `bridgeDimV2` (+1), `relcert-bridge-verdicts` 4457/4457 (commit `61d7389`); the 67 refute instances regenerated at the same rule, `relcert-refute-verdicts` 188/188 (commit `b14f129`). Previous run: 2026-10-11, branch `per-pairing-stretch`, Apple M2 Max (12 cores, 64 GB), Z3 4.15.1. `lake build RelCertifier relcert relcert-test`: `Build completed successfully (17885 jobs)`, no `sorry`. Axiom audit: BatteryV2 72 lines, 48 with `z3_unsat_sound` (the 46 Theorem 3s, `match_multi_rate_nonconn`, `couple_cutX`), 24 at the three standard axioms; WellFormedBattery 77 lines, all at the three standard axioms; nothing else. `--check-quick-v2`: 46 certified / 0 declined / 0 errors (strict well-formedness mode), modal 625/625, handoff 187/187, non-connection 88/88, pruned edges 44/44, copied benchmarks 385/385, reposition (dyn) 81/81, `[wellformed] STRICT: 148/148 right modes ok (84 invariant, 64 exit), 0 UNKNOWN — matches the declared suite`, `SUITE_V2 QUICK CHECKS PASSED`. `relcert-test` with the suite_v2 manifest: 46 IR literals match, bare `ALL PASS`. The stretch pin `VerdictsV2/LamPinV2.lean` (every pack row's stretch is the emitted cover's stretch of that pairing) decides for all 236 rows.
 
 ---
 
@@ -16,20 +16,25 @@ benchmarks/suite_v2/<b>/input.txt                the benchmark, as text
    ▼
 InstancesV2/BenchIR/<b>.lean  `<b>_IRv2`         the emitted IR literal
    │ ▲ relcert-test [ir-drift-v2]: re-parse and compare              ← check 4
-   │ ▲ InstancesV2/SameIR.lean: for the 19 carried-over benchmarks, the literal
-   │   IS the one the legacy theorems quote (rfl)
+   │   (+ BenchCovers, BenchProgress, Cuts, BenchChoice: the emitted records)
    ▼
-InstancesV2/Modal/<B>.lean, or Instances/<B>…    the Theorem 3 instance
-   │ Lean kernel                                                     ← check 1
+InstancesV2/Bridge/<B>.lean  `<b>_bridge`        the generic-bridge instance (generated):
+   │ Lean kernel; structural facts by decide +kernel                 ← check 1
+   │ Assumption 1 from InstancesV2/WellFormed/<B>.lean (transported, lifted)   ← check 5
    ▼
-rvalid (theorem3Form …)                          the ∀∃ refinement statement
-   │ #print axioms (InstancesV2/BatteryV2.lean)                      ← check 2
+windowClaim / keyedClaim (rvalid (theorem3Form …) over rightAutomatonBodyC)
+   │ #print axioms (InstancesV2/WellFormedBattery.lean, InstancesV2/AxiomCheck.lean)  ← check 2
    ▼
-[propext, Classical.choice, Quot.sound] (+ z3_unsat_sound at the verdict leaves)
-   │ relcert --run-verdicts-v2, each query pinned to its hypothesis  ← check 3
+[propext, Classical.choice, Quot.sound] (+ z3_unsat_sound through the `Verdicts` hypothesis)
+   │ relcert-bridge-verdicts: `Verdicts` IS the group list it issues    ← check 6
    ▼
-every verdict leaf: Z3 says unsat
+every verdict group: Z3 says unsat
 ```
+
+Until 2026-10-22 the chain ran through the standalone instances (`InstancesV2/Modal/<B>.lean`,
+`Instances/<B>Guarded.lean`, audited by `InstancesV2/BatteryV2.lean`, their packs discharged by
+`relcert --run-verdicts-v2`); that route is archived on branch `archive/legacy-2026-10`
+(`docs/CLEANUP-SCOPE.md`).
 
 Trusted and not discharged by any check below: the parser, the lowering, the SMT printer
 and Z3's `unsat` (axiom `z3_unsat_sound`), the Lean kernel, and the model assumptions of
@@ -46,14 +51,14 @@ theorems consume is in the repository.
 
 | # | what it establishes | command |
 |---|---|---|
-| 1 | every proof kernel-checks | `lake build` (see *Cost*), then `lake build relcert relcert-test` |
-| 2 | the axiom audit of every battery theorem | `lake build RelCertifier.InstancesV2.BatteryV2 2>&1 \| grep -A3 "depends on axioms"` |
-| 3 | the 50 files certify in the strict well-formedness mode (declared 50 / 0 / 0), every Z3 hypothesis of the battery holds, and the tool's Assumption 1 check finds no `UNKNOWN` right mode (declared 146 modes, 0 `UNKNOWN`), all against declared counts | `RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt` |
-| 3' | the hypotheses alone | `./.lake/build/bin/relcert --run-verdicts-v2` |
+| 1 | every proof kernel-checks (the root imports the proof chain, the Assumption 1 battery, the bridge and the refutation instances) | `lake build` (see *Cost*), then `lake build relcert relcert-test relcert-bridge-verdicts relcert-refute-verdicts relcert-progress-verdicts` |
+| 2 | the axiom audit of the Assumption 1 battery and of the generic theorems | `lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 \| grep -A3 "depends on axioms"`; the same for `RelCertifier.InstancesV2.AxiomCheck` |
+| 3 | the 50 files certify in the strict well-formedness mode (declared 50 / 0 / 0), the tool's own queries hold (modal, handoff, non-connection, pruned edges, reposition, against declared counts), and the tool's Assumption 1 check finds no `UNKNOWN` right mode (declared 174 modes, 0 `UNKNOWN`) | `RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt` |
+| 3' | the expected DECLINE (the leaky FREEDM controller) | `RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert benchmarks/negative/*/input.txt` |
 | 4 | each file parses to the literal the theorems quote; parser, printer, Z3-layer and determinism tests | `BENCH_PATHS=<manifest> ./.lake/build/bin/relcert-test` |
 | 5 | Assumption 1 of every right model (`WellFormedR`): proved for all 50, none refuted; axiom audit; the tool's check, strict in check 3 | `lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 \| grep -A3 "depends on axioms"`; `./.lake/build/bin/relcert --wellformed benchmarks/suite_v2/*/input.txt` |
 | 6 | every Z3 hypothesis of the generic bridge instances (`InstancesV2/Bridge/`, 52 `*_bridge` theorems: stays, non-connection pairs, flow and reposition packs, admissibility, handoffs, progress, coverage) holds, against the declared total 4457 over the 50 suite benchmarks and the 2 choice exhibits; every query is sent at the instance's dimension `bridgeDimV2 b` (`VerdictsV2/RunBridge.lean:73`: the Assumption 1 lemma's dimension plus one, the right clock of the clocked right automaton `rightAutomatonBodyC`), which is the dimension the instance's `Verdicts` hypothesis names | `./.lake/build/bin/relcert-bridge-verdicts` |
-| 7 | the progress certificates (the paper's reposition certificates, Definition 7) of every reposition node (261 queries) and the coverage queries of the choice exhibits (32) hold, against declared counts | `./.lake/build/bin/relcert-progress-verdicts`, `./.lake/build/bin/relcert-choice-verdicts` |
+| 7 | the progress certificates (the paper's reposition certificates, Definition 7) of every reposition node (261 queries) hold, against the declared count | `./.lake/build/bin/relcert-progress-verdicts` |
 | 8 | the 67 kernel refutations (`InstancesV2/Refute/`, `docs/REFUTATION-RESULTS.md`): every Z3 group of `RefVerdicts` holds against the declared total 188, each instance at its benchmark's bridge dimension (`RefRec.dim + 1`, `InstancesV2/Refute/Table.lean`), and each instance concludes `¬ keyedClaim … 0 1 2 3 dt` / `¬ windowClaim … 0 1 2 dt`, the negation of the clocked bridge claim at that dimension (`refute_keyed_C/A/B_clocked`, `refute_window_B_clocked`) | `./.lake/build/bin/relcert-refute-verdicts`; `lake build RelCertifier.InstancesV2.Refute` |
 
 The totals 4457 and 188 are unchanged by the dimension change of 2026-10-21 (branch
@@ -65,9 +70,8 @@ printer, Z3 `unsat`, kernel (`README.md`, "Trust base"); the axiom set stays `pr
 ## Check 1: the kernel checks every proof
 
 ```bash
-lake build
-lake build RelCertifier.InstancesV2.Bridge   # the generic-bridge instances (not in the root module)
-lake build relcert relcert-test relcert-bridge-verdicts relcert-progress-verdicts relcert-choice-verdicts
+lake build          # the library root imports InstancesV2.{WellFormedBattery,Bridge,Refute,AxiomCheck}
+lake build relcert relcert-test relcert-bridge-verdicts relcert-refute-verdicts relcert-progress-verdicts
 ```
 
 Expected: `Build completed successfully` for both, and no `declaration uses 'sorry'` in the
@@ -75,25 +79,20 @@ log (`grep -c "declaration uses 'sorry'"` prints 0).
 
 ### Cost
 
-Measured 2026-10-10 on an Apple M2 Max (12 cores, 64 GB), with the Lean dependencies
-(dL-rel, Mathlib) already built and every `RelCertifier` module invalidated by comment edits
-under `Proofs/`, `Checker/` and `Trusted/`: **64 min 45 s** wall with the serial recipe below.
-The `Core`/`Checker`/`Proofs`/`Trusted` layer took 175 s (built in parallel); the 24 legacy
-instance modules and the 26 suite_v2 instance modules, built one at a time, took between
-11 s and 651 s each: the heaviest were `Instances/Story1AttdistRungBHandoff` 651 s (peak
-resident memory about 15.6 GB, sampled every 10 s), `RoverLadderRung4Modal` 530 s (13.5 GB),
-`Story1AttdistRungBModal` 523 s (13.4 GB), `Story2LateralBModal`, `Story3RolloverBaseModal`,
-`Story3RolloverRungAModal`, `Story3RolloverRungBModal` about 225 s each (about 9 GB), and
-`RoverDofTerrainRung3Modal` 154 s; every suite_v2 instance took under 35 s. The remaining
-modules (data leaves, runner, pins, battery) took 112 s. A build from a cold tree also
-compiles dL-rel and the Mathlib subset it imports first; that part was not re-measured.
+Since the standalone instances were archived (2026-10-22) no module of the tree takes more
+than about a minute: on the 2026-10-22 run (Apple M2 Max, incremental after the archive) the
+heaviest modules were the 12-dimensional Assumption 1 proofs
+`InstancesV2/WellFormed/{Story3RolloverRungA,Story1AttdistRungB,Story3RolloverBase,
+Story2LateralB,Story2LateralA,Story1AttdistRungA,RoverDofTerrainRung3,RoverDofTerrainRung38d}`
+at 30 to 35 s each; a plain `lake build` is enough. The last full measurement of the
+pre-cleanup tree (2026-10-10, every module invalidated: 64 min 45 s wall, the archived
+standalone instances between 154 s and 651 s each at up to 15.6 GB) is in this file's history
+on branch `archive/legacy-2026-10`. A build from a cold tree also compiles dL-rel and the
+Mathlib subset it imports first; that part was not re-measured.
 
 Practical notes:
 
-* Build the heavy instance files one at a time before the rest: building several of them in
-  parallel can exhaust memory. `lake build <Module>` builds one module and what it imports;
-  for example, in dependency order, every module under `RelCertifier/Instances/` and
-  `RelCertifier/InstancesV2/Modal/`, then a final `lake build`.
+* `lake build <Module>` builds one module and what it imports; `lake build` the rest.
 * Run long builds detached and log to a file (`tee`, not `tail`).
 * Killing `lake build` can orphan Lean workers; follow up with
   `pkill -f "lake build"; pkill -9 -f "leanprover--lean4"`.
@@ -104,20 +103,20 @@ Practical notes:
 ## Check 2: the axiom audit
 
 ```bash
-lake build RelCertifier.InstancesV2.BatteryV2 2>&1 | grep -A3 "depends on axioms"
+lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 | grep -A3 "depends on axioms"
+lake build RelCertifier.InstancesV2.AxiomCheck 2>&1 | grep -A3 "depends on axioms"
 ```
 
-Use `-A3`: a four-axiom list prints over four lines. Expected: 72 lines, in the groups of
-`BatteryV2`: (1) the 46 Theorem 3s with the paper's left program over the guarded automata at
-the mode-consistent region (`rung2c` for `dt ≤ ε_L = 1`, the `platoon3` pair on the repaired
-model); `match_multi_rate_nonconn`; and 25 generic lemmas. Every list is a subset of
-`[propext, Classical.choice, Quot.sound, z3_unsat_sound]`; 48 carry `z3_unsat_sound` (all 46
-Theorem 3s, `couple_cutX`, `match_multi_rate_nonconn`); 24 are at the three standard axioms
-alone (24 generic lemmas: all but `couple_cutX`). Since branch `replay` no Theorem 3 is
-Z3-free: every proof replays the emitted cover, every flow fact a pack (`docs/REPLAY.md`);
-until then 16 were.
-No `sorryAx`, no other axiom.
-The generic theorems' audit is `InstancesV2/AxiomCheck.lean`, re-emitted by `lake build`.
+Use `-A3`: a four-axiom list prints over four lines. Expected from `WellFormedBattery.lean`:
+75 lines (check 5 lists them), each exactly `[propext, Classical.choice, Quot.sound]` (`lake`
+also replays the 11 lines of `Proofs/Soundness/CutLiftX.lean`'s own audit, which carry
+`z3_unsat_sound`). Expected from `AxiomCheck.lean`: 9 lines, the generic theorems
+`cover_sound`, `check_sound`, `theorem3_faithful`, `rvalid_from_cert`,
+`decideCovered_implies_theorem3_faithful`, `stratified_barrier_sound` at the three standard
+axioms and `flow_certified`, `segPres_from_flowCert`, `cut_hcert` at the three plus
+`z3_unsat_sound`. No `sorryAx`, no other axiom. The bridge instances print no audit of their
+own: their only Z3 leaf is the `Verdicts` hypothesis (check 6). The pre-cleanup audit of the
+standalone battery (`BatteryV2`, 72 lines) is on branch `archive/legacy-2026-10`.
 
 ## Check 3: certify the suite and discharge the verdict hypotheses
 
@@ -137,7 +136,6 @@ gated. Expected tail:
   [coverage] suite_v2 handoff: 401/401 hypotheses discharged
   [coverage] suite_v2 non-connection: 88/88 hypotheses discharged
   [coverage] suite_v2 pruned edges: 44/44 hypotheses discharged
-  [coverage] suite_v2 copied benchmarks (legacy packs): 385/385 hypotheses discharged
   [coverage] suite_v2 reposition (dyn): 81/81 hypotheses discharged
   [wellformed] summary: 50 benchmark(s), 174 right mode(s): 94 ok (invariant), 80 ok (exit), 0 UNKNOWN (0 benchmark(s) with an UNKNOWN mode); 2308 queries
   [wellformed] STRICT: 174/174 right modes ok (94 invariant, 80 exit), 0 UNKNOWN — matches the declared suite (174 modes, 0 UNKNOWN)
@@ -149,14 +147,18 @@ SUITE_V2 QUICK CHECKS PASSED  (the kernel check is `lake build`)
 ```
 
 The well-formedness gate (check 5's tool part, strict since 2026-10-10; it was informational
-while 9 models blocked): the declared mode count `ExpectedSuiteV2.wfModes = 174` is
-kernel-checked to be the right-mode count of the 50 IR literals
-(`VerdictsV2/CoveragePinsV2.suiteV2_wfModes`), and `wfUnknown = 0`; any `UNKNOWN` mode, a
-mode count off the declared one, or a file that does not parse fails the run.
+while 9 models blocked): the declared mode count `ExpectedSuiteV2.wfModes = 174`
+(`VerdictsV2/RunV2.lean`; its kernel pin against the IR table, `CoveragePinsV2`, was archived
+with the standalone route) and `wfUnknown = 0`; any `UNKNOWN` mode, a mode count off the
+declared one, or a file that does not parse fails the run.
 
-What each phase is and what pins it to the theorems: `docs/VERDICTS.md`. A phase that
-discharged fewer (or more) queries than declared fails the run; anything the runner cannot
-rebuild is a `SKIP`/`FAIL`, never a pass.
+The coverage phases re-send the tool's own queries (`VerdictsV2/{ModalX,ModalDynX}`,
+`Trusted/NonConnQuery`, `Verdicts/RunHandoff`) against the declared counts of
+`VerdictsV2/RunV2.lean`; the theorems' own Z3 leaves are the bridge groups of check 6. A phase
+that discharged fewer (or more) queries than declared fails the run; anything the runner
+cannot rebuild is a `SKIP`/`FAIL`, never a pass. The expected DECLINE: `RELCERT_IMPLIED_CUT=1
+./.lake/build/bin/relcert benchmarks/negative/*/input.txt` prints `freedm_meter_leaky:
+DECLINED`, `errors=0`.
 
 ## Check 4: the files match the IR the theorems quote
 
@@ -170,8 +172,7 @@ BENCH_PATHS=/tmp/bench-paths-v2.tsv ./.lake/build/bin/relcert-test
 Expected: `ok   all 50 suite_v2 IR literals match their files` and a bare `ALL PASS`.
 Without `BENCH_PATHS` the two determinism checks (`match_multi_rate` 8× CERTIFIED;
 `acc_spoof_lag`, which declines without the widened channel, 8× the same verdict) are
-skipped and the last line says `ALL PASS (2 SKIPPED …)`. The 19 carried-over legacy
-literals are covered by the same check through `SameIR`.
+skipped and the last line says `ALL PASS (2 SKIPPED …)`.
 
 ## Check 5: Assumption 1, verified per benchmark
 
@@ -180,15 +181,21 @@ lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 | grep -A3 "depends o
 ./.lake/build/bin/relcert --wellformed benchmarks/suite_v2/*/input.txt
 ```
 
-Expected: 76 axiom lines, each exactly `[propext, Classical.choice, Quot.sound]` (no
-`z3_unsat_sound`: every proof is Z3-free): 39 `<b>_wellFormedR` (proved; the nine repaired
-on 2026-10-10 with their repaired modes' per-mode theorems `…_brake` / `…_limit`), for the 6
-satellites `<b>_wellFormedR` (unconditional since 2026-10-15: the momentum band is in the right evolve domain; before, `<b>_wellFormedR_onBand`, `<b>_band_invariant` and `<b>_wellFormedR_false`) (the
-literal predicate), and 13 generic lemmas including `Platoon3Link.brake_guard_Ronly`,
-`Platoon3Link.solB_sol` and `WellFormedBattery.wf_coverage` (the declared counts `(39, 0, 6)`,
-`(30, 9, 6)` before the repairs, and the three name lists a permutation of the suite's IR
-table). The tool line: `[wellformed] summary: 50 benchmark(s), 174 right mode(s): 94 ok
-(invariant), 63 ok (exit), 0 UNKNOWN (0 benchmark(s) with an UNKNOWN mode)`; check 3 gates it.
+Expected: 75 axiom lines from `WellFormedBattery.lean`, each exactly `[propext,
+Classical.choice, Quot.sound]` (no `z3_unsat_sound`: every proof is Z3-free): 50 right
+models (40 `<b>_wellFormedR`, 3 `<b>_wellFormedR_direct` for the two dRL benchmarks and
+`freedm_meter`, `VehicleHypercert.wellFormedR`, and the 6 satellites' `<b>_wellFormedR`,
+unconditional since 2026-10-15), the six repaired modes' per-mode theorems
+`…_wellFormedR_brake` / `…_wellFormedR_limit`, the six satellites' `<b>_band_invariant`, and
+13 generic lemmas (`wellFormedR_ladder`, `wellFormedR_switchLegal`, `not_wellFormedR_of_run`,
+`not_wellFormedR_of_noRun`, `exists_contract_run`, `exists_rate_run`,
+`exists_of_HExistSegB_zero`, `coord_le_barrier`, `affine_const`, `Platoon3Link.link_guard_Ronly`,
+`Platoon3Link.brake_guard_Ronly`, `Platoon3Link.solB_sol`, `WellFormedBattery.wf_coverage`;
+the declared counts `(44, 0, 6)`, `(30, 9, 6)` before the repairs, and the three name lists a
+permutation of the suite's IR table). Each proof lives in its own self-contained
+`InstancesV2/WellFormed/<B>.lean` (right model and proof; since 2026-10-22 the 19 carried-over
+ones too). The tool line: `[wellformed] summary: 50 benchmark(s), 174 right mode(s): 94 ok
+(invariant), 80 ok (exit), 0 UNKNOWN (0 benchmark(s) with an UNKNOWN mode)`; check 3 gates it.
 What this establishes and what it does not (the tool checks only the successor half; the
 predicate's domain conjunct; the satellites' band): `docs/WELLFORMED.md`. The repairs:
 `docs/SUITE-REDESIGN.md` §21.
@@ -209,78 +216,92 @@ cell of the 36.
 
 ## Per-benchmark inventory
 
-"std 3" = `[propext, Classical.choice, Quot.sound]`. The hypotheses are the theorem's
-binders besides the window duration `dt` (and `0 ≤ dt` for some carried-over theorems,
-`0 ≤ dt ≤ 1` for `rung2c`): named Z3 verdict packs. Every statement: Theorem 3 with the
-paper's left program (`leftAutomatonBody`) over the guarded right automaton, the loop
-invariant carrying `guard ∧ cuts` of the right's current mode (`regionG`: the paper's operating
-region `op_R` with the mode facts of Definition 2, the tool's checked cuts), every switch
-kernel-checked legal (`docs/GUARDED-SWITCHING.md` §3.1, §3.3, §6). Mode-independent
-benchmarks are carried from their window-choice theorem by `theorem3_leftAut_of_choiceR`.
-Each `InstancesV2/Modal/` pack `Verd l q` is one row of `VerdictsV2/RunV2.packsV2`; each
-carried-over pack is pinned to a row of `Verdicts/RunModal.modalTable`.
+"std 3" = `[propext, Classical.choice, Quot.sound]`. Every instance is generated by
+`scripts/gen_bridge.py` (the strict exhibit `WatertankStrict` by `scripts/gen_strict_demo.py`)
+and states `<b>_bridge : Verdicts p n cX cov prog → dt ≤ εL → windowClaim … 0 1 2 dt` (or
+`keyedClaim … 0 1 2 3 dt`): Theorem 3 with the paper's left program (`leftAutomatonBody`) over
+the clocked guarded right automaton (`rightAutomatonBodyC`) at dimension `bridgeDimV2 b`, the
+loop invariant carrying `guard ∧ cuts` of the right's current mode (`regionG`: the paper's
+operating region `op_R` with the mode facts of Definition 2, the tool's checked cuts), every
+switch kernel-checked legal. The one Z3 hypothesis `Verdicts` is the group list
+`relcert-bridge-verdicts` issues for the benchmark (check 6); Assumption 1 comes from the
+benchmark's `WellFormedR` lemma (check 5), transported and lifted. The pre-cleanup inventory of
+the standalone instances (their files, theorem names and pack counts) is in this file's history
+on branch `archive/legacy-2026-10`.
 
-| benchmark | file | theorem | verdict packs | axioms |
-|---|---|---|---|---|
-| `acc_spoof_lag` | `InstancesV2/LeftAutV2.lean` | `V2AccSpoofLag.acc_spoof_lag_leftAut` | 1×`Verd` | std 3 + `z3_unsat_sound` |
-| `acc_spoof_limp` | `InstancesV2/Modal/AccSpoofLimp.lean` | `V2AccSpoofLimp.acc_spoof_limp_modeKeyed` | 6×`Verd` | std 3 + `z3_unsat_sound` |
-| `acc_tune_lag` | `InstancesV2/LeftAutV2.lean` | `V2AccTuneLag.acc_tune_lag_leftAut` | 1×`Verd` | std 3 + `z3_unsat_sound` |
-| `acc_tune_limp` | `InstancesV2/Modal/AccTuneLimp.lean` | `V2AccTuneLimp.acc_tune_limp_modeKeyed` | 6×`Verd` | std 3 + `z3_unsat_sound` |
-| `arm_plateau_crit` | `InstancesV2/LeftAutV2.lean` | `V2ArmPlateauCrit.arm_plateau_crit_leftAut` | none | std 3 |
-| `arm_plateau_profiles` | `InstancesV2/LeftAutV2.lean` | `V2ArmPlateauProfiles.arm_plateau_profiles_leftAut` | none | std 3 |
-| `arm_plateau_slow` | `InstancesV2/LeftAutV2.lean` | `V2ArmPlateauSlow.arm_plateau_slow_leftAut` | none | std 3 |
-| `charger_fast_setpoints` | `InstancesV2/LeftAutV2.lean` | `V2ChargerFastSetpoints.charger_fast_setpoints_leftAut` | 7×`Verd` | std 3 + `z3_unsat_sound` |
-| `charger_fast_tapers` | `InstancesV2/LeftAutV2.lean` | `V2ChargerFastTapers.charger_fast_tapers_leftAut` | 9×`Verd` | std 3 + `z3_unsat_sound` |
-| `match_multi_rate` | `Instances/LeftAutLegacy.lean` | `MatchMultiRateGuarded.match_multi_rate_leftAut` | none | std 3 |
-| `platoon3_linkloss` | `InstancesV2/Modal/Platoon3Linkloss.lean` | `V2Platoon3Linkloss.platoon3_linkloss_modeKeyed` | 2×`Verd` | std 3 + `z3_unsat_sound` |
-| `platoon3_profiles` | `InstancesV2/Modal/Platoon3Profiles.lean` | `V2Platoon3Profiles.platoon3_profiles_leftAut` | 3×`Verd` | std 3 + `z3_unsat_sound` |
-| `platoon_delay_linkloss` | `InstancesV2/Modal/PlatoonDelayLinkloss.lean` | `V2PlatoonDelayLinkloss.platoon_delay_linkloss_modeKeyed` | 6×`Verd` | std 3 + `z3_unsat_sound` |
-| `platoon_delay_profiles` | `InstancesV2/LeftAutV2.lean` | `V2PlatoonDelayProfiles.platoon_delay_profiles_leftAut` | 6×`Verd` | std 3 + `z3_unsat_sound` |
-| `quad_light_airframe_20` | `InstancesV2/LeftAutV2.lean` | `V2QuadLightAirframe20.quad_light_airframe_20_leftAut` | 1×`Verd` | std 3 + `z3_unsat_sound` |
-| `quad_light_lag` | `InstancesV2/LeftAutV2.lean` | `V2QuadLightLag.quad_light_lag_leftAut` | 1×`Verd` | std 3 + `z3_unsat_sound` |
-| `quad_light_profiles` | `InstancesV2/LeftAutV2.lean` | `V2QuadLightProfiles.quad_light_profiles_leftAut` | 3×`Verd` | std 3 + `z3_unsat_sound` |
-| `refinement_ladder_rover_rung1_2to3` | `Instances/LeftAutLegacy.lean` | `RoverLadderRung1Guarded.rover_ladder_rung1_leftAut` | none | std 3 |
-| `refinement_ladder_rover_rung2_3to6` | `Instances/RoverLadderRung2Guarded.lean` | `RoverLadderRung2Guarded.rover_ladder_rung2_3to6_leftAut` | 6×`Verd36` | std 3 + `z3_unsat_sound` |
-| `refinement_ladder_rover_rung2_6dof` | `Instances/LeftAutLegacy.lean` | `RoverRung26dofGuarded.rung2_6dof_leftAut` | none | std 3 |
-| `refinement_ladder_rover_rung2b_6dof` | `Instances/LeftAutLegacy.lean` | `RoverRung2b6dofGuarded.rung2b_6dof_leftAut` | none | std 3 |
-| `refinement_ladder_rover_rung2c_6dof` | `Instances/LeftAutLegacy.lean` | `RoverRung2cGuarded.rover_rung2c_leftAut` (`0 ≤ dt ≤ 1`) | 3×`VerdR6` | std 3 + `z3_unsat_sound` |
-| `refinement_ladder_rover_rung3_6to8` | `Instances/LeftAutLegacy.lean` | `RoverLadderRung3Guarded.rover_ladder_rung3_6to8_leftAut` | none | std 3 |
-| `refinement_ladder_rover_rung4_8to12` | `Instances/LeftAutLegacy.lean` | `RoverLadderRung4Guarded.rover_ladder_rung4_8to12_leftAut` | none | std 3 |
-| `rover3tier_rung12` | `Instances/Rover3tierRung12Guarded.lean` | `Rover3tierRung12Guarded.rover3tier_rung12_modeKeyed_guarded` | none | std 3 |
-| `rover_dof_terrain_rung1` | `Instances/LeftAutLegacy.lean` | `RoverDofTerrainRung1Guarded.rover_dof_terrain_rung1_leftAut` | none | std 3 |
-| `rover_dof_terrain_rung2` | `Instances/LeftAutLegacy.lean` | `RoverDofTerrainRung2Guarded.rover_dof_terrain_rung2_leftAut` | none | std 3 |
-| `rover_dof_terrain_rung3` | `Instances/LeftAutLegacy.lean` | `RoverDofTerrainRung3Guarded.rover_dof_terrain_rung3_leftAut` | none | std 3 |
-| `rover_dof_terrain_rung3_8d` | `Instances/LeftAutLegacy.lean` | `RoverDofTerrainRung38dGuarded.rover_dof_terrain_rung3_8d_leftAut` | none | std 3 |
-| `rover_patrol_refine` | `InstancesV2/Modal/RoverPatrolRefineGuarded.lean` | `V2RoverPatrolRefineGuarded.rover_patrol_refine_guarded` | none | std 3 |
-| `rover_patrol_zones` | `InstancesV2/Modal/RoverPatrolZonesGuarded.lean` | `V2RoverPatrolZonesGuarded.rover_patrol_zones_guarded` | none | std 3 |
-| `sat3w_detumble_nominal` | `InstancesV2/LeftAutV2.lean` | `V2Sat3wDetumbleNominal.sat3w_detumble_nominal_leftAut` | 1×`Verd` | std 3 + `z3_unsat_sound` |
-| `sat3w_detumble_phases` | `InstancesV2/Modal/Sat3wDetumblePhases.lean` | `V2Sat3wDetumblePhases.sat3w_detumble_phases_modeKeyed` | 2×`Verd` | std 3 + `z3_unsat_sound` |
-| `sat3w_detumble_weak` | `InstancesV2/LeftAutV2.lean` | `V2Sat3wDetumbleWeak.sat3w_detumble_weak_leftAut` | 3×`Verd` | std 3 + `z3_unsat_sound` |
-| `sat_detumble_nominal` | `InstancesV2/LeftAutV2.lean` | `V2SatDetumbleNominal.sat_detumble_nominal_leftAut` | 1×`Verd` | std 3 + `z3_unsat_sound` |
-| `sat_detumble_phases` | `InstancesV2/Modal/SatDetumblePhases.lean` | `V2SatDetumblePhases.sat_detumble_phases_modeKeyed` | 2×`Verd` | std 3 + `z3_unsat_sound` |
-| `sat_detumble_weak` | `InstancesV2/LeftAutV2.lean` | `V2SatDetumbleWeak.sat_detumble_weak_leftAut` | 3×`Verd` | std 3 + `z3_unsat_sound` |
-| `story1_attdist_rung_a_6to8` | `Instances/Story1AttdistRungAGuarded.lean` | `Story1AttdistRungAGuarded.story1_attdist_rung_a_guarded` | 3×`VerdS`, 6×`VerdD` | std 3 + `z3_unsat_sound` |
-| `story1_attdist_rung_b_12dof` | `Instances/Story1AttdistRungBGuarded.lean` | `Story1AttdistRungBGuarded.story1_attdist_rung_b_guarded` | 6×`VerdR` | std 3 + `z3_unsat_sound` |
-| `story2_lateral_rung_a_8dof` | `Instances/Story2LateralAGuarded.lean` | `Story2LateralAGuarded.story2_lateral_rung_a_leftAut` | 6×`VerdY` | std 3 + `z3_unsat_sound` |
-| `story2_lateral_rung_b_12dof` | `Instances/Story2LateralBGuarded.lean` | `Story2LateralBGuarded.story2_lateral_rung_b_leftAut` | 6×`VerdZ` | std 3 + `z3_unsat_sound` |
-| `story3_rollover_base_12dof` | `Instances/LeftAutLegacy.lean` | `Story3RolloverBaseGuarded.story3_rollover_base_leftAut` | 6×`VerdB` | std 3 + `z3_unsat_sound` |
-| `story3_rollover_ladder_rung_a` | `Instances/LeftAutLegacy.lean` | `Story3RolloverRungAGuarded.story3_rollover_rung_a_leftAut` | 6×`VerdA` | std 3 + `z3_unsat_sound` |
-| `story3_rollover_ladder_rung_b` | `InstancesV2/Modal/Story3RolloverRungBGuarded.lean` | `V2Story3RolloverRungBGuarded.story3_rollover_ladder_rung_b_guarded` | 9×`Verd` | std 3 + `z3_unsat_sound` |
-| `watertank` | `InstancesV2/LeftAutV2.lean` | `V2Watertank.watertank_leftAut` | 11×`Verd` | std 3 + `z3_unsat_sound` |
+| benchmark | file | theorem | form | Assumption 1 from | hypothesis | axioms |
+|---|---|---|---|---|---|---|
+| `acc_spoof_lag` | `InstancesV2/Bridge/AccSpoofLag.lean` | `acc_spoof_lag_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/AccSpoofLag.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `acc_spoof_limp` | `InstancesV2/Bridge/AccSpoofLimp.lean` | `acc_spoof_limp_bridge` | mode-keyed (`keyedClaim … 0 1 2 3 dt`) | `InstancesV2/WellFormed/AccSpoofLimp.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `acc_tune_lag` | `InstancesV2/Bridge/AccTuneLag.lean` | `acc_tune_lag_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/AccTuneLag.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `acc_tune_limp` | `InstancesV2/Bridge/AccTuneLimp.lean` | `acc_tune_limp_bridge` | mode-keyed (`keyedClaim … 0 1 2 3 dt`) | `InstancesV2/WellFormed/AccTuneLimp.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `arm_plateau_crit` | `InstancesV2/Bridge/ArmPlateauCrit.lean` | `arm_plateau_crit_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/ArmPlateauCrit.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `arm_plateau_profiles` | `InstancesV2/Bridge/ArmPlateauProfiles.lean` | `arm_plateau_profiles_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/ArmPlateauProfiles.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `arm_plateau_slow` | `InstancesV2/Bridge/ArmPlateauSlow.lean` | `arm_plateau_slow_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/ArmPlateauSlow.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `charger_fast_setpoints` | `InstancesV2/Bridge/ChargerFastSetpoints.lean` | `charger_fast_setpoints_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/ChargerFastSetpoints.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `charger_fast_tapers` | `InstancesV2/Bridge/ChargerFastTapers.lean` | `charger_fast_tapers_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/ChargerFastTapers.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `drl_car_stop` | `InstancesV2/Bridge/DrlCarStop.lean` | `drl_car_stop_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/DrlCarStop.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `drl_lane_control` | `InstancesV2/Bridge/DrlLaneControl.lean` | `drl_lane_control_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/DrlLaneControl.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `freedm_meter` | `InstancesV2/Bridge/FreedmMeter.lean` | `freedm_meter_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/FreedmMeter.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `match_multi_rate` | `InstancesV2/Bridge/MatchMultiRate.lean` | `match_multi_rate_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/MatchMultiRate.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `platoon3_linkloss` | `InstancesV2/Bridge/Platoon3Linkloss.lean` | `platoon3_linkloss_bridge` | mode-keyed (`keyedClaim … 0 1 2 3 dt`) | `InstancesV2/WellFormed/Platoon3Linkloss.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `platoon3_profiles` | `InstancesV2/Bridge/Platoon3Profiles.lean` | `platoon3_profiles_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/Platoon3Profiles.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `platoon_delay_linkloss` | `InstancesV2/Bridge/PlatoonDelayLinkloss.lean` | `platoon_delay_linkloss_bridge` | mode-keyed (`keyedClaim … 0 1 2 3 dt`) | `InstancesV2/WellFormed/PlatoonDelayLinkloss.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `platoon_delay_profiles` | `InstancesV2/Bridge/PlatoonDelayProfiles.lean` | `platoon_delay_profiles_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/PlatoonDelayProfiles.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `quad_light_airframe_20` | `InstancesV2/Bridge/QuadLightAirframe20.lean` | `quad_light_airframe_20_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/QuadLightAirframe20.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `quad_light_lag` | `InstancesV2/Bridge/QuadLightLag.lean` | `quad_light_lag_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/QuadLightLag.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `quad_light_profiles` | `InstancesV2/Bridge/QuadLightProfiles.lean` | `quad_light_profiles_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/QuadLightProfiles.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `refinement_ladder_rover_rung1_2to3` | `InstancesV2/Bridge/RefinementLadderRoverRung12to3.lean` | `refinement_ladder_rover_rung1_2to3_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverLadderRung1.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `refinement_ladder_rover_rung2_3to6` | `InstancesV2/Bridge/RefinementLadderRoverRung23to6.lean` | `refinement_ladder_rover_rung2_3to6_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverLadderRung2.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `refinement_ladder_rover_rung2_6dof` | `InstancesV2/Bridge/RefinementLadderRoverRung26dof.lean` | `refinement_ladder_rover_rung2_6dof_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverRung26dof.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `refinement_ladder_rover_rung2b_6dof` | `InstancesV2/Bridge/RefinementLadderRoverRung2b6dof.lean` | `refinement_ladder_rover_rung2b_6dof_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverRung2b6dof.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `refinement_ladder_rover_rung2c_6dof` | `InstancesV2/Bridge/RefinementLadderRoverRung2c6dof.lean` | `refinement_ladder_rover_rung2c_6dof_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverRung2c.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `refinement_ladder_rover_rung3_6to8` | `InstancesV2/Bridge/RefinementLadderRoverRung36to8.lean` | `refinement_ladder_rover_rung3_6to8_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverLadderRung3.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `refinement_ladder_rover_rung4_8to12` | `InstancesV2/Bridge/RefinementLadderRoverRung48to12.lean` | `refinement_ladder_rover_rung4_8to12_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverLadderRung4.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `rover3tier_rung12` | `InstancesV2/Bridge/Rover3tierRung12.lean` | `rover3tier_rung12_bridge` | mode-keyed (`keyedClaim … 0 1 2 3 dt`) | `InstancesV2/WellFormed/Rover3tierRung12.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `rover_dof_terrain_rung1` | `InstancesV2/Bridge/RoverDofTerrainRung1.lean` | `rover_dof_terrain_rung1_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverDofTerrainRung1.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `rover_dof_terrain_rung2` | `InstancesV2/Bridge/RoverDofTerrainRung2.lean` | `rover_dof_terrain_rung2_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverDofTerrainRung2.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `rover_dof_terrain_rung3` | `InstancesV2/Bridge/RoverDofTerrainRung3.lean` | `rover_dof_terrain_rung3_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverDofTerrainRung3.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `rover_dof_terrain_rung3_8d` | `InstancesV2/Bridge/RoverDofTerrainRung38d.lean` | `rover_dof_terrain_rung3_8d_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverDofTerrainRung38d.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `rover_patrol_refine` | `InstancesV2/Bridge/RoverPatrolRefine.lean` | `rover_patrol_refine_bridge` | mode-keyed (`keyedClaim … 0 1 2 3 dt`) | `InstancesV2/WellFormed/RoverPatrolRefine.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `rover_patrol_zones` | `InstancesV2/Bridge/RoverPatrolZones.lean` | `rover_patrol_zones_bridge` | mode-keyed (`keyedClaim … 0 1 2 3 dt`) | `InstancesV2/WellFormed/RoverPatrolZones.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `sat3w_detumble_nominal` | `InstancesV2/Bridge/Sat3wDetumbleNominal.lean` | `sat3w_detumble_nominal_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/Sat3wDetumbleNominal.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `sat3w_detumble_phases` | `InstancesV2/Bridge/Sat3wDetumblePhases.lean` | `sat3w_detumble_phases_bridge` | mode-keyed (`keyedClaim … 0 1 2 3 dt`) | `InstancesV2/WellFormed/Sat3wDetumblePhases.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `sat3w_detumble_weak` | `InstancesV2/Bridge/Sat3wDetumbleWeak.lean` | `sat3w_detumble_weak_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/Sat3wDetumbleWeak.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `sat_detumble_nominal` | `InstancesV2/Bridge/SatDetumbleNominal.lean` | `sat_detumble_nominal_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/SatDetumbleNominal.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `sat_detumble_phases` | `InstancesV2/Bridge/SatDetumblePhases.lean` | `sat_detumble_phases_bridge` | mode-keyed (`keyedClaim … 0 1 2 3 dt`) | `InstancesV2/WellFormed/SatDetumblePhases.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `sat_detumble_weak` | `InstancesV2/Bridge/SatDetumbleWeak.lean` | `sat_detumble_weak_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/SatDetumbleWeak.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `story1_attdist_rung_a_6to8` | `InstancesV2/Bridge/Story1AttdistRungA6to8.lean` | `story1_attdist_rung_a_6to8_bridge` | mode-keyed (`keyedClaim … 0 1 2 3 dt`) | `InstancesV2/WellFormed/Story1AttdistRungA.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `story1_attdist_rung_b_12dof` | `InstancesV2/Bridge/Story1AttdistRungB12dof.lean` | `story1_attdist_rung_b_12dof_bridge` | mode-keyed (`keyedClaim … 0 1 2 3 dt`) | `InstancesV2/WellFormed/Story1AttdistRungB.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `story2_lateral_rung_a_8dof` | `InstancesV2/Bridge/Story2LateralRungA8dof.lean` | `story2_lateral_rung_a_8dof_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/Story2LateralA.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `story2_lateral_rung_b_12dof` | `InstancesV2/Bridge/Story2LateralRungB12dof.lean` | `story2_lateral_rung_b_12dof_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/Story2LateralB.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `story3_rollover_base_12dof` | `InstancesV2/Bridge/Story3RolloverBase12dof.lean` | `story3_rollover_base_12dof_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/Story3RolloverBase.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `story3_rollover_ladder_rung_a` | `InstancesV2/Bridge/Story3RolloverLadderRungA.lean` | `story3_rollover_ladder_rung_a_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/Story3RolloverRungA.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `story3_rollover_ladder_rung_b` | `InstancesV2/Bridge/Story3RolloverLadderRungB.lean` | `story3_rollover_ladder_rung_b_bridge` | mode-keyed (`keyedClaim … 0 1 2 3 dt`) | `InstancesV2/WellFormed/Story3RolloverRungB.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `vehicle_accel_copy` | `InstancesV2/Bridge/VehicleAccelCopy.lean` | `vehicle_accel_copy_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/Choice/General/VehicleAccelCopy.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `vehicle_hypercert` | `InstancesV2/Bridge/VehicleHypercert.lean` | `vehicle_hypercert_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/Choice/General/VehicleHypercert.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `watertank` | `InstancesV2/Bridge/Watertank.lean` | `watertank_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/Watertank.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `watertank_choice` | `InstancesV2/Bridge/WatertankChoice.lean` | `watertank_choice_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/Choice/General/WatertankChoice.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `watertank_strict` | `InstancesV2/Bridge/WatertankStrict.lean` | `watertank_strict_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/Watertank.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `watertank_twospeed` | `InstancesV2/Bridge/WatertankTwospeed.lean` | `watertank_twospeed_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/WatertankTwospeed.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
 
 ## One-shot (after creating the manifest of check 4)
 
 ```bash
-lake build && lake build relcert relcert-test \
-  && lake build RelCertifier.InstancesV2.BatteryV2 2>&1 | grep -A3 "depends on axioms" \
+lake build && lake build relcert relcert-test relcert-bridge-verdicts relcert-refute-verdicts relcert-progress-verdicts \
+  && lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 | grep -A3 "depends on axioms" \
+  && lake build RelCertifier.InstancesV2.AxiomCheck 2>&1 | grep -A3 "depends on axioms" \
   && RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt \
+  && RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert benchmarks/negative/*/input.txt \
   && BENCH_PATHS=/tmp/bench-paths-v2.tsv ./.lake/build/bin/relcert-test \
-  && lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 | grep -A3 "depends on axioms"
+  && ./.lake/build/bin/relcert-bridge-verdicts \
+  && ./.lake/build/bin/relcert-refute-verdicts \
+  && ./.lake/build/bin/relcert-progress-verdicts
 ```
 
 A green build, an axiom listing with nothing beyond the four axioms, `SUITE_V2 QUICK CHECKS
-PASSED` and `ALL PASS` = every suite_v2 benchmark is certified end to end, modulo the
-trust base.
+PASSED`, `ALL PASS`, `4457/4457`, `188/188` and `261/261` = every suite_v2 benchmark is
+certified end to end, modulo the trust base.
 
 ## Earlier recipes
 
@@ -288,4 +309,6 @@ Until 2026-10-10 this document described the legacy suite (`suite_uniform`) and 
 checks (`--check-quick`, `--run-verdicts`, `Instances/ModalBattery.lean`), with dated
 records of full runs (the last cold-tree build of that development: 2026-08-02, 12h59m,
 8988 jobs). That suite and those entry points were removed; the records are in the git
-history of this file.
+history of this file. Until 2026-10-22 it described the standalone route (`BatteryV2`,
+`relcert --run-verdicts-v2`, `relcert-choice-verdicts`, the per-benchmark inventory of the
+hand-written instances); that route is archived on branch `archive/legacy-2026-10`.

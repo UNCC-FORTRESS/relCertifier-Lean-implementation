@@ -3,7 +3,7 @@
 Status: DONE 2026-10-21, branch `clocked-right` (scoped the same day against main = b30d15c;
 outcome and deviations in §7). Companion: `docs/PAPER-MAPPING.md` §9 (the row
 "`t := 0; {…, t' = 1 & t ≤ ε_R}` on the right", now "exact (cap as post-test)"),
-`docs/history/ROTATION-SCOPE.md` (rotation, a different row). Sections 1 to 6 are the scope
+`docs/history/ROTATION-SCOPE.md` on branch `archive/legacy-2026-10` (rotation, a different row). Sections 1 to 6 are the scope
 as written before the work; line numbers in them are those of main = b30d15c.
 
 ## 1. The gap
@@ -72,7 +72,7 @@ Dressing an unclocked flow with the clock is already proved: `sem_clockedSeg_of_
 
 * **Keep untouched** `RRespP`, `gseg`, `guarded_rights_bridge`, `modeStep`, `rightAutomatonBody`
   and every theorem of `GuardedClimb`/`GuardedSwitch`/`JointBridge`/`BridgeReposition`/
-  `EnvelopeChain*`. The 28 kept standalone instances (`InstancesV2/Modal/*`, "the earlier route,
+  `EnvelopeChain*`. The 28 then-kept standalone instances (`InstancesV2/Modal/*`, archived 2026-10-22; "the earlier route,
   kept", `PAPER-MAPPING.md:71`) import `CutRespond`, `GuardedSwitch`, `ModeHandoff` and none of
   `CoverResp`/`Theorem3General` (checked: 0 files), so they keep building.
 * **Add** the clocked twins: `gsegC`, `RRespPC`, `rrespP_stepC`/`stopC`/`monoC`
@@ -164,7 +164,7 @@ Deviations from §2 to §5:
 * **The five general exhibits were retired, not repadded** (§4 planned to regenerate every
   instance): they were hand-written at `Var 2` with no slot for the right clock; their
   Assumption 1 proofs are kept and lifted (`wellFormedR_lift`) into the bridge instances.
-  The 28 `InstancesV2/Modal/` standalone instances still state the unclocked claim.
+  The 28 `InstancesV2/Modal/` standalone instances still stated the unclocked claim (archived on branch `archive/legacy-2026-10`, 2026-10-22).
 * **67 refute instances, not 70** (§4, §5 counted 70): the refutation arc landed 67
   (`docs/REFUTATION-RESULTS.md`); all 67 regenerated.
 * The strict-demo instance (`scripts/gen_strict_demo.py`) regenerated with the others.

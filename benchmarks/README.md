@@ -5,7 +5,7 @@
 left mode) and the time-stretch range. **50 benchmarks.** With the widened cut channel on
 (`RELCERT_IMPLIED_CUT=1`, as every suite_v2 run sets it) the tool CERTIFIES all 50, and
 every one carries a kernel-checked Theorem 3 (Lean docstring numbering; the paper's Theorem 3 as of 2026-10-16) with the paper's left program over the
-guard-gated right automaton, at the mode-consistent region (`RelCertifier/InstancesV2/BatteryV2.lean`;
+guard-gated right automaton, at the mode-consistent region (`RelCertifier/InstancesV2/Bridge/`;
 `refinement_ladder_rover_rung2c_6dof` for windows up to its control interval `dt ≤ 1`;
 check recipe: `docs/CERTIFICATION-CHECK.md`). The two `platoon3` files were repaired on
 2026-10-10: their stay guards were engagement bands, so the nominal controller blocked after a
@@ -41,9 +41,9 @@ physical story, the units, the measured cover and the mechanisms it exercises
 Nineteen files (the rover refinement ladder, the rover terrain rungs, `rover3tier_rung12`,
 `match_multi_rate`, and the story1, story2 and story3 benchmarks except `story3_rollover_ladder_rung_b`) are byte-identical copies of files of the retired legacy
 suite `suite_uniform` (removed from the tree on 2026-10-10; git history keeps it). Their
-Theorem 3 instances were proved against the legacy files; since the parsed literals are
-equal (`RelCertifier/InstancesV2/SameIR.lean`, `rfl`), those theorems are theorems about
-these files, and the suite_v2 battery re-exports them. Their headers are the legacy ones
+Assumption 1 proofs were first written against the legacy literals and now quote these
+files' literals directly (`RelCertifier/InstancesV2/WellFormed/`); their standalone Theorem 3
+instances are archived on branch `archive/legacy-2026-10`. Their headers are the legacy ones
 (no `# scenario:` line). `story3_rollover_ladder_rung_b` was repaired on the left (attitude
 domains and the zone-switch entry condition) and `watertank` was redesigned as the paper's
 running example; both carry new instances.

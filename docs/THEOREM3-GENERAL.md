@@ -116,7 +116,7 @@ not the tool's decision. Replaying emitted covers through `decideCoveredX` (D5) 
 for every benchmark.
 
 The per-benchmark standalone proofs (`InstancesV2/Choice/Modal/`, `InstancesV2/Modal/`)
-remain; the general instances were theorems (`*_general`) with the same conclusion shape
+remained until 2026-10-22 (archived on branch `archive/legacy-2026-10`); the general instances were theorems (`*_general`) with the same conclusion shape
 (their region beyond the declared modes was `⊤` instead of `⊥`, immaterial under `mvRegionR`)
 until their retirement on 2026-10-21.
 

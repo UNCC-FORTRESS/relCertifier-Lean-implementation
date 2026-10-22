@@ -132,7 +132,7 @@ start mode, so choice never has to look across a left-cycle boundary.
 
 ## 8. Lean status (the three exhibits of 2026-10-14; `vehicle_hypercert` is a suite benchmark since 2026-10-15)
 
-`RelCertifier/InstancesV2/Choice/Modal/` proves modal Theorem 3 for `vehicle_hypercert`,
+`RelCertifier/InstancesV2/Choice/Modal/` (archived on branch `archive/legacy-2026-10` on 2026-10-22, with `Choice/Verdicts.lean` and `relcert-choice-verdicts`; the exhibits' bridge instances remain) proved modal Theorem 3 for `vehicle_hypercert`,
 `vehicle_accel_copy` and `watertank_choice`, standalone (not replayed from the tool's choice
 cover; the generic bridge replays the emitted chosen sets of the last two, §10). Each response is case 4 then case 1: a hop (`gresp_hop`) into one chosen mode, then
 that mode's certified joint segment for the whole window. The hop's domain premise is S3

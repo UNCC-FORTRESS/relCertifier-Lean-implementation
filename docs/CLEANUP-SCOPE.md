@@ -1,5 +1,7 @@
 # Cleanup scope: `main` = the paper's route; everything else to `archive/legacy-2026-10`
 
+> **Executed 2026-10-22** on branch `cleanup-2026-10` (commit 093b2d1, deletion; docs commit follows): 134 Lean modules / 82,213 lines archived, `Instances/WellFormed/` moved to `InstancesV2/WellFormed/`, `AxiomCheck` relocated to `InstancesV2/`; the snapshot is branch `archive/legacy-2026-10`. This file is the plan as written; where it differs from what was done, `docs/CLEANUP-VERIFY.md` and the commit message are authoritative.
+
 Scoped 2026-10-21 against `main` = `3d64743` (clean tree, 1001 tracked files). Read-only
 analysis; the import closure was computed from the `import RelCertifier.*` lines of all 811
 Lean modules (803 under `RelCertifier/`, `RelCertifier.lean`, 7 exe roots; 182,426 lines).

@@ -27,12 +27,12 @@ verdicts are correct, plus the model-faithfulness assumptions of the transition 
 (successor-completeness with guard-gated switching: every mode change of the right system
 moves it into a declared successor mode, and at that instant the state satisfies the
 entering mode's guard; and the paper's Assumption 1, nonblocking right flows), then every
-theorem of `InstancesV2/BatteryV2.lean` holds as stated, checked by the Lean kernel with
+theorem of `InstancesV2/Bridge/` holds as stated, checked by the Lean kernel with
 axioms `[propext, Classical.choice, Quot.sound]` plus `z3_unsat_sound` exactly at the Z3
 leaves. Nothing else is assumed: the tool's cover decisions are re-decided in the kernel
-(`InstancesV2/CoverReplay.lean`, all 45), the cut certificates are kernel-checked well
-formed (`InstancesV2/Cuts/`, all 45), and every `Verd` hypothesis is pinned to the query
-the runner sends (`VerdictsV2/`, `Verdicts/`).
+(each bridge instance replays its cover by `decide +kernel`, all 50), the cut certificates
+are kernel-checked well formed (`InstancesV2/Cuts/`, all 50), and the `Verdicts` hypothesis
+IS the group list the runner `relcert-bridge-verdicts` sends (`Emitted/Run.lean`, `VerdictsV2/RunBridge.lean`).
 
 **Import discipline** (checked by `scripts/trust_audit.py`): files in this folder may
 import each other, `Core/`, `Checker/` (pure, kernel-cited definitions), and upstream

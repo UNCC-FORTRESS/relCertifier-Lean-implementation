@@ -1,5 +1,7 @@
 # Independent verification of `docs/CLEANUP-SCOPE.md`
 
+> **Executed 2026-10-22** (commit 093b2d1 on `cleanup-2026-10`): the endorsed archive list was applied as corrected here (137 minus `AxiomCheck` relocated and `Choice/Verdicts` + `ChoiceVerdictsMain` removed earlier = 134 modules); open questions 2 to 7 resolved as recommended (X-modules kept, `AxiomCheck` kept, `GUARDED-SWITCHING.md` and `SUITE-DEDUPE.md` kept, `Instances/WellFormed/` renamed, `benchmarks/negative` kept with a recipe line).
+
 Re-derived 2026-10-21 against `main` = `3d64743`, read-only, with an own closure script over
 the `import RelCertifier.*` lines of all 813 Lean files (803 under `RelCertifier/`, root, 7 exe
 roots, 2 `scripts/*.lean`).

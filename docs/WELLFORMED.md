@@ -11,10 +11,9 @@ blocking states); those nine were repaired (`docs/SUITE-REDESIGN.md` §21: the f
 re-engage or are latched with an invariant guard, the arm planner's successor sets name every
 band a sampled interval can reach) and are now proved. No proof uses Z3. The tool's sufficient
 check of the successor half (`relcert --wellformed`) finds every one of the 174 right modes
-`ok`, and `--check-quick-v2` now runs it STRICT, against a declared count (§4). The standalone
-Theorem 3 instances (`InstancesV2/Modal/`, `BatteryV2.lean`; Lean docstring numbering, the
-paper's Theorem 3 as of 2026-10-16) take no Assumption 1 hypothesis. The generic-bridge
-instances (`InstancesV2/Bridge/`, the paper's route) do: `theorem3_keyed_of_records`
+`ok`, and `--check-quick-v2` now runs it STRICT, against a declared count (§4). The generic-bridge
+instances (`InstancesV2/Bridge/`, the paper's route; Lean docstring numbering, the paper's
+Theorem 3 as of 2026-10-16) take it as a hypothesis: `theorem3_keyed_of_records`
 (`Proofs/Encoding/Emitted/Keyed.lean:427`) and `theorem3_window_of_records`
 (`Emitted/Window.lean:83`) take `hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg
 (epsR p)`, which each generated instance discharges from the benchmark's `WellFormedR` lemma,
@@ -104,8 +103,9 @@ Theorems: `<ns>.<bench>_wellFormedR` (proved; for the nine repaired models also 
 per-mode theorems `…_brake`, `…_limit`, `…_mode`), for the detumble family also
 `<ns>.<bench>_band_invariant` (the band is kept by every mode's flow; the predicate itself is
 unconditional since the momentum band `|h_i + J_i w_i| ≤ 2` entered the right evolve domains,
-2026-10-15). Files: `InstancesV2/WellFormed/<B>.lean`,
-`Instances/WellFormed/<B>.lean`. Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
+2026-10-15). Files: `InstancesV2/WellFormed/<B>.lean` (50, each
+self-contained: right model and proof; the 19 carried-over ones moved in from `Instances/WellFormed/`
+on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 `relcert --wellformed` (§4). Z3 leaves: none for every row.
 
 | # | benchmark | result | modes: style | tool check |
@@ -229,8 +229,9 @@ single `relcert <file>` run; off, no verdict and no emission changes.
 
 **Strict in the recipe** (2026-10-10). `--check-quick-v2` certifies the suite in the strict
 mode (the switch forced on for its check 1/3) and ends with check 3/3, the `--wellformed`
-report gated against declared counts: `ExpectedSuiteV2.wfModes = 146` (kernel-checked to be
-the right-mode count of the 45 IR literals, `CoveragePinsV2.suiteV2_wfModes`) and
+report gated against declared counts: `ExpectedSuiteV2.wfModes = 174` (`VerdictsV2/RunV2.lean`; the
+kernel pin `CoveragePinsV2.suiteV2_wfModes` of that count was archived with the standalone
+route on 2026-10-22) and
 `wfUnknown = 0`. Any `UNKNOWN` mode, or a mode count off the declared one, fails the run
 (`wellformed (strict): FAIL`, exit 1). Checked negatively: with the pre-repair
 `platoon_delay_linkloss` in place of the repaired one, check 1 declines it

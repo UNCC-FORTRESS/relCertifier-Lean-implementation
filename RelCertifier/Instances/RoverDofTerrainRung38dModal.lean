@@ -17,6 +17,7 @@ import RelCertifier.Proofs.Encoding.CanonicalInv
 import RelCertifier.Proofs.Encoding.CoverInstance
 import RelCertifier.Proofs.Flow.StratifiedFaces
 import RelCertifier.Instances.BenchIR.rover_dof_terrain_rung3_8d
+import RelCertifier.Instances.WellFormed.RoverDofTerrainRung38d
 
 namespace RelCertifier
 namespace RoverDofTerrainRung38dModal
@@ -25,19 +26,13 @@ open DL DLCalTiming DLRel Parse Set
 
 set_option maxHeartbeats 1600000
 
-def vsU : List String := ["v", "s", "psi", "omega_psi", "theta_p", "omega_theta", "z", "phi_r"]
-def dummyU : Parse.PMode := ⟨"", [], .tt, .tt, []⟩
 def mLU (l : ℕ) : Parse.PMode := rover_dof_terrain_rung3_8d_IR.L.modes.getD l dummyU
-def mRU (q : ℕ) : Parse.PMode := rover_dof_terrain_rung3_8d_IR.R.modes.getD q dummyU
-
 abbrev mvU : Var 8 := (Side.Aux, 0)
 abbrev aU : Fin 8 := (1 : Fin 8)
 abbrev tgU : Var 8 := (Side.Aux, aU)
 
 noncomputable def fLU (l : ℕ) : Fin 8 → Term (Var 8) := hostDyn vsU 8 Side.L (mLU l)
-noncomputable def fRU (q : ℕ) : Fin 8 → Term (Var 8) := hostDyn vsU 8 Side.R (mRU q)
 noncomputable def domLU : Formula (Var 8) := hostEvolve vsU 8 Side.L (mLU 0)
-noncomputable def domRU : Formula (Var 8) := hostEvolve vsU 8 Side.R (mRU 0)
 noncomputable def envU : Formula (Var 8) := Formula.and domLU domRU
 
 def atomsOf : Parse.PForm → List Parse.PForm
@@ -71,23 +66,23 @@ theorem domRU_pipe : domRU =
 theorem hfLU (l : ℕ) (hl : l < 3) : ∀ i, (fLU l i).fv ⊆ range Lv := fun i x hx =>
   side_eq_L_mem (field_pipeline_side (resolvesTo_L vsU) (some (mLU l))
     (by interval_cases l <;>
-      simp [mLU, rover_dof_terrain_rung3_8d_IR, Parse.PExpr.namesFree]) i x
+      simp [mLU, rover_dof_terrain_rung3_8d_IR, rover_dof_terrain_rung3_8d_IRv2, Parse.PExpr.namesFree]) i x
     (fLU_pipe l i ▸ hx))
 
 theorem hfRU (q : ℕ) (hq : q < 3) : ∀ i, (fRU q i).fv ⊆ range Rv := fun i x hx =>
   side_eq_R_mem (field_pipeline_side (resolvesTo_R vsU) (some (mRU q))
     (by interval_cases q <;>
-      simp [mRU, rover_dof_terrain_rung3_8d_IR, Parse.PExpr.namesFree]) i x
+      simp [mRU, rover_dof_terrain_rung3_8d_IR, rover_dof_terrain_rung3_8d_IRv2, Parse.PExpr.namesFree]) i x
     (fRU_pipe q i ▸ hx))
 
 theorem hdomLU : domLU.fv ⊆ range Lv := fun x hx =>
   side_eq_L_mem (form_pipeline_side (resolvesTo_L vsU) (some (mLU 0))
-    (by simp [mLU, rover_dof_terrain_rung3_8d_IR, Parse.PForm.namesFree,
+    (by simp [mLU, rover_dof_terrain_rung3_8d_IR, rover_dof_terrain_rung3_8d_IRv2, Parse.PForm.namesFree,
       Parse.PExpr.namesFree]) x (domLU_pipe ▸ hx))
 
 theorem hdomRU : domRU.fv ⊆ range Rv := fun x hx =>
   side_eq_R_mem (form_pipeline_side (resolvesTo_R vsU) (some (mRU 0))
-    (by simp [mRU, rover_dof_terrain_rung3_8d_IR, Parse.PForm.namesFree,
+    (by simp [mRU, rover_dof_terrain_rung3_8d_IR, rover_dof_terrain_rung3_8d_IRv2, Parse.PForm.namesFree,
       Parse.PExpr.namesFree]) x (domRU_pipe ▸ hx))
 
 theorem hgAt (i : ℕ) : (gAt i).fv ⊆ range Lv ∪ range Rv := invToG_pipeline_LR _
@@ -119,9 +114,6 @@ theorem htgenvU : tgU ∉ envU.fv := fun h => by
   · exact absurd (hdomRU h) (by rintro ⟨i, hi⟩; exact absurd hi (by simp [Rv, Prod.ext_iff]))
 
 /-! ## The right graph -/
-
-noncomputable def modeU (q : ℕ) : RMode (Var 8) :=
-  { sys := rightBlock (fRU q) (Term.const 1), dom := domRU, weight := 1 }
 
 def edgeU (st tgt : ℕ) : REdge (Var 8) :=
   { src := st, tgt := tgt, guard := Formula.tt, pruned := false }
@@ -198,122 +190,15 @@ theorem hframesU (dt : ℝ) : ∀ P ∈ leftProgsU dt, FramesMv P mvU := by
 
 /-! ## Parse pins -/
 
-theorem hu030 : Run.parseRat "0.30" = some ((3:ℚ)/10) := by
-  have h : parseQ "0.30" = some (⟨30, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hu050 : Run.parseRat "0.50" = some ((1:ℚ)/2) := by
-  have h : parseQ "0.50" = some (⟨50, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hu065 : Run.parseRat "0.65" = some ((13:ℚ)/20) := by
-  have h : parseQ "0.65" = some (⟨65, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hu3 : Run.parseRat "3" = some 3 := by
-  have h : parseQ "3" = some (⟨3, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hum1 : Run.parseRat "-1" = some (-1) := by
-  have h : parseQ "-1" = some (⟨-1, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hu0 : Run.parseRat "0" = some 0 := by
-  have h : parseQ "0" = some (⟨0, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hu00 : Run.parseRat "0.0" = some 0 := by
-  have h : parseQ "0.0" = some (⟨0, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hu08 : Run.parseRat "0.8" = some ((4:ℚ)/5) := by
-  have h : parseQ "0.8" = some (⟨8, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
 theorem hu02 : Run.parseRat "0.2" = some ((1:ℚ)/5) := by
   have h : parseQ "0.2" = some (⟨2, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
-theorem hum05 : Run.parseRat "-0.5" = some (-(1:ℚ)/2) := by
-  have h : parseQ "-0.5" = some (⟨-5, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hu015 : Run.parseRat "0.15" = some ((3:ℚ)/20) := by
-  have h : parseQ "0.15" = some (⟨15, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hum10 : Run.parseRat "-1.0" = some (-1) := by
-  have h : parseQ "-1.0" = some (⟨-10, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hu11 : Run.parseRat "1.1" = some ((11:ℚ)/10) := by
-  have h : parseQ "1.1" = some (⟨11, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-
 /-! ## Field and shape pins -/
-
-noncomputable def cstU (q : ℕ) : ℝ := if q = 0 then 3/10 else if q = 1 then 1/2 else 13/20
-
-theorem fRU0_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
-    Term.eval (fRU q 0) x = 3 * (cstU q - x (Rv 0)) := by
-  interval_cases q <;>
-    simp [fRU, hostDyn, mRU, rover_dof_terrain_rung3_8d_IR, vsU, Run.dynOf,
-      Run.lowerE, hu3, hu030, hu050, hu065, hum1, hu0, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp,
-      Rv, cstU]
-
-theorem fRU1_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
-    Term.eval (fRU q 1) x = x (Rv 0) := by
-  interval_cases q <;>
-    simp [fRU, hostDyn, mRU, rover_dof_terrain_rung3_8d_IR, vsU, Run.dynOf,
-      Run.lowerE, hu3, hu030, hu050, hu065, hum1, hu0, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-
-theorem fRU2_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
-    Term.eval (fRU q 2) x = -1 * x (Rv 2) := by
-  interval_cases q <;>
-    simp [fRU, hostDyn, mRU, rover_dof_terrain_rung3_8d_IR, vsU, Run.dynOf,
-      Run.lowerE, hu3, hu030, hu050, hu065, hum1, hu0, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-
-theorem fRU3_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
-    Term.eval (fRU q 3) x = 0 := by
-  interval_cases q <;>
-    simp [fRU, hostDyn, mRU, rover_dof_terrain_rung3_8d_IR, vsU, Run.dynOf,
-      Run.lowerE, hu3, hu030, hu050, hu065, hum1, hu0, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-
-theorem fRU4_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
-    Term.eval (fRU q 4) x = -1 * x (Rv 4) := by
-  interval_cases q <;>
-    simp [fRU, hostDyn, mRU, rover_dof_terrain_rung3_8d_IR, vsU, Run.dynOf,
-      Run.lowerE, hu3, hu030, hu050, hu065, hum1, hu0, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-
-theorem fRU5_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
-    Term.eval (fRU q 5) x = 0 := by
-  interval_cases q <;>
-    simp [fRU, hostDyn, mRU, rover_dof_terrain_rung3_8d_IR, vsU, Run.dynOf,
-      Run.lowerE, hu3, hu030, hu050, hu065, hum1, hu0, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-
-theorem fRU6_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
-    Term.eval (fRU q 6) x = -1 * x (Rv 6) := by
-  interval_cases q <;>
-    simp [fRU, hostDyn, mRU, rover_dof_terrain_rung3_8d_IR, vsU, Run.dynOf,
-      Run.lowerE, hu3, hu030, hu050, hu065, hum1, hu0, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-
-theorem fRU7_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
-    Term.eval (fRU q 7) x = -1 * x (Rv 7) := by
-  interval_cases q <;>
-    simp [fRU, hostDyn, mRU, rover_dof_terrain_rung3_8d_IR, vsU, Run.dynOf,
-      Run.lowerE, hu3, hu030, hu050, hu065, hum1, hu0, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-
-theorem sat_domRU (x : State (Var 8)) : Formula.sat domRU x ↔
-    (-(1:ℝ) ≤ x (Rv 3) ∧ x (Rv 3) ≤ 11/10 ∧ -(1:ℝ) ≤ x (Rv 5) ∧ x (Rv 5) ≤ 11/10 ∧
-     -(1:ℝ)/2 ≤ x (Rv 7) ∧ x (Rv 7) ≤ 3/20 ∧ -(1:ℝ)/2 ≤ x (Rv 2) ∧ x (Rv 2) ≤ 3/20 ∧
-     0 ≤ x (Rv 1) ∧ -(1:ℝ)/2 ≤ x (Rv 4) ∧ x (Rv 4) ≤ 3/20 ∧ 0 ≤ x (Rv 0) ∧
-     x (Rv 0) ≤ 4/5 ∧ -(1:ℝ) ≤ x (Rv 6) ∧ x (Rv 6) ≤ 3/20) := by
-  simp only [domRU, hostEvolve, mRU, rover_dof_terrain_rung3_8d_IR, vsU]
-  simp [Run.lowerF, Run.lowerE, hum05, hu015, hu00, hu08, hum10, hu11,
-    Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
-    CompOp.interp, Term.eval, Rv]
-  tauto
 
 theorem gAt0_eval (x : State (Var 8)) : Term.eval (gAt 0) x = x (Lv 0) - x (Rv 0) := by
   have hdL : ("L_v".drop 2).copy = "v" := by decide
   have hdR : ("R_v".drop 2).copy = "v" := by decide
-  simp [gAt, atomsOf, invUPF, rover_dof_terrain_rung3_8d_IR, Run.invToG,
+  simp [gAt, atomsOf, invUPF, rover_dof_terrain_rung3_8d_IR, rover_dof_terrain_rung3_8d_IRv2, Run.invToG,
     Run.lowerE, vsU, Run.resolveVar, Parse.dr, hdL, hdR, List.findIdx?_cons,
     ITerm.toHost, Term.eval, AOp.interp, Lv, Rv]
 
@@ -321,7 +206,7 @@ theorem gAt1_eval (x : State (Var 8)) :
     Term.eval (gAt 1) x = x (Lv 1) - (x (Rv 1) + 1/5) := by
   have hdL : ("L_s".drop 2).copy = "s" := by decide
   have hdR : ("R_s".drop 2).copy = "s" := by decide
-  simp [gAt, atomsOf, invUPF, rover_dof_terrain_rung3_8d_IR, Run.invToG,
+  simp [gAt, atomsOf, invUPF, rover_dof_terrain_rung3_8d_IR, rover_dof_terrain_rung3_8d_IRv2, Run.invToG,
     Run.lowerE, vsU, hu02, Run.resolveVar, Parse.dr, hdL, hdR, List.findIdx?_cons,
     ITerm.toHost, Term.eval, AOp.interp, Lv, Rv]
 

@@ -35,13 +35,6 @@ open DL DLCalTiming DLRel Parse Set RoverDofTerrainRung1Modal GPins RelCertifier
 
 /-! ## The guarded right graph -/
 
-noncomputable def edgeG (st tgt : ℕ) : REdge (Var 3) :=
-  { src := st, tgt := tgt, guard := hostGuard vsE 3 Side.R (mRE tgt), pruned := false }
-
-noncomputable def GrG : SearchGraph (Var 3) :=
-  { modes := [modeE 0, modeE 1, modeE 2],
-    edges := [edgeG 0 1, edgeG 0 0, edgeG 1 2, edgeG 1 1, edgeG 2 2] }
-
 /-- **Faithfulness of the graph**: its edges are the file's `next` lists, resolved. -/
 theorem GrG_edges_IR : GrG.edges.map (fun e => (e.src, e.tgt)) =
     (List.range rover_dof_terrain_rung1_IR.R.modes.length).flatMap (fun q =>
@@ -59,9 +52,6 @@ theorem GrG_guards : ∀ q, ∀ e ∈ GrG.edgesFrom q,
   have hmem : e ∈ GrG.edges := List.mem_of_mem_filter he
   simp only [GrG, List.mem_cons, List.not_mem_nil, or_false] at hmem
   rcases hmem with rfl | rfl | rfl | rfl | rfl <;> rfl
-
-theorem GrG_modeAt (q : ℕ) (hq : q < 3) : GrG.modeAt q = some (modeE q) := by
-  interval_cases q <;> rfl
 
 theorem GrG_len : GrG.modes.length = 3 := rfl
 
@@ -89,36 +79,12 @@ theorem hfreshG : ∀ q m, GrG.modeAt q = some m → mvE ∉ (Program.ode m.sys 
 
 theorem hguardR_all (q : ℕ) : (hostGuard vsE 3 Side.R (mRE q)).fv ⊆ range Rv :=
   hostGuard_fv_R_getD vsE _ dummyE rfl (by
-    simp [rover_dof_terrain_rung1_IR, Parse.PForm.namesFree, Parse.PExpr.namesFree]) q
+    simp [rover_dof_terrain_rung1_IR, rover_dof_terrain_rung1_IRv2, Parse.PForm.namesFree, Parse.PExpr.namesFree]) q
 
 theorem hgRG : GuardsRight GrG := by
   intro q e he
   rw [GrG_guards q e he]
   exact hguardR_all e.tgt
-
-theorem edgeG_mem (st tgt : ℕ) (h : edgeG st tgt ∈ GrG.edges) :
-    edgeG st tgt ∈ GrG.edgesFrom st :=
-  List.mem_filter.mpr ⟨h, by simp [edgeG]⟩
-
-/-! ## The right guards, evaluated -/
-
-theorem sat_guardR0 (x : State (Var 3)) : Formula.sat (hostGuard vsE 3 Side.R (mRE 0)) x ↔
-    (0 ≤ x (Rv 1) ∧ x (Rv 1) < 3/5 ∧ x (Rv 0) ≤ 3/10) := by
-  simp [hostGuard, mRE, rover_dof_terrain_rung1_IR, Run.lowerF, Run.lowerE, gp_0_0, gp_0_6,
-    gp_1_4, gp_0_3, gp_0_5, gp_0_65, vsE, Run.resolveVar, List.findIdx?_cons, IForm.toHost,
-    ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv, and_assoc]
-
-theorem sat_guardR1 (x : State (Var 3)) : Formula.sat (hostGuard vsE 3 Side.R (mRE 1)) x ↔
-    (3/5 ≤ x (Rv 1) ∧ x (Rv 1) < 7/5 ∧ x (Rv 0) ≤ 1/2) := by
-  simp [hostGuard, mRE, rover_dof_terrain_rung1_IR, Run.lowerF, Run.lowerE, gp_0_0, gp_0_6,
-    gp_1_4, gp_0_3, gp_0_5, gp_0_65, vsE, Run.resolveVar, List.findIdx?_cons, IForm.toHost,
-    ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv, and_assoc]
-
-theorem sat_guardR2 (x : State (Var 3)) : Formula.sat (hostGuard vsE 3 Side.R (mRE 2)) x ↔
-    (7/5 ≤ x (Rv 1) ∧ x (Rv 0) ≤ 13/20) := by
-  simp [hostGuard, mRE, rover_dof_terrain_rung1_IR, Run.lowerF, Run.lowerE, gp_0_0, gp_0_6,
-    gp_1_4, gp_0_3, gp_0_5, gp_0_65, vsE, Run.resolveVar, List.findIdx?_cons, IForm.toHost,
-    ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv, and_assoc]
 
 /-! ## The mode-consistent region (the guard; no kept cut) -/
 
@@ -129,47 +95,6 @@ theorem gregion_fv (q : ℕ) : (gregion q).fv ⊆ range Rv :=
   regionG_fv_sub (hguardR_all q) (by simp [Formula.fv])
 
 theorem hmvregG : ∀ q, mvE ∉ (gregion q).fv := fun q h => aux_notin_range_Rv 0 (gregion_fv q h)
-
-/-! ## The ladder run (explicit; `ψ_R` frozen) -/
-
-theorem cstE_eq (q : ℕ) : cstE q = ladC q := rfl
-
-noncomputable def aR : Fin 3 → ℝ := fun _ => 0
-noncomputable def bR : Fin 3 → ℝ := fun _ => 0
-
-noncomputable def LR : LadderRun GrG domRE :=
-  LadderRun.ofLinear GrG domRE modeE fRE aR bR GrG_modeAt (fun _ _ => rfl) (fun _ _ => rfl)
-    (fun q hq x => by rw [fRE0_eval q hq, cstE_eq])
-    (fun q hq x => fRE1_eval q hq x)
-    (fun q hq i h0 h1 x => by
-      have hi : i = 2 := by fin_cases i <;> simp_all
-      subst hi
-      rw [fRE2_eval q hq]; simp [aR])
-    (fun q _ ρ hρ t ht => by
-      have hD := (sat_domRE ρ).mp hρ
-      have hv := phiLin_v_between aR bR q ρ (n := 1) ht
-      have hs := (phiLin_s_low aR bR q ρ (n := 1) hD.2.2.2.1 ht).2
-      have hp := phiLin_other aR bR q ρ (n := 1) 2 (by decide) (by decide) t
-      have hc := ladC_bounds q
-      rw [sat_domRE, trajR_R, trajR_R, trajR_R]
-      simp only [aR, bR, zero_mul, neg_zero, Real.exp_zero, mul_one, zero_add, sub_zero] at hp
-      rw [hp]
-      refine ⟨hD.1, hD.2.1, by linarith [hD.2.2.1], ?_, ?_⟩
-      · exact le_trans (le_min hD.2.2.2.1 (by linarith)) hv.1
-      · exact le_trans hv.2 (max_le hD.2.2.2.2 (by linarith)))
-    (fun ρ hρ => ((sat_domRE ρ).mp hρ).2.2.2.1)
-    (edgeG 0 1) (edgeG 1 2) (edgeG 2 2)
-    (edgeG_mem 0 1 (by simp [GrG])) (edgeG_mem 1 2 (by simp [GrG]))
-    (edgeG_mem 2 2 (by simp [GrG])) rfl rfl rfl
-    (fun x hs hv => by
-      show Formula.sat (hostGuard vsE 3 Side.R (mRE 1)) x
-      rw [sat_guardR1]; exact ⟨le_of_eq hs.symm, by rw [hs]; norm_num, by linarith⟩)
-    (fun x hs hv => by
-      show Formula.sat (hostGuard vsE 3 Side.R (mRE 2)) x
-      rw [sat_guardR2]; exact ⟨le_of_eq hs.symm, by linarith⟩)
-    (fun x hs hv => by
-      show Formula.sat (hostGuard vsE 3 Side.R (mRE 2)) x
-      rw [sat_guardR2]; exact ⟨hs, hv⟩)
 
 /-! ## The emitted cover's data: the extended cut certificate, concretely -/
 
@@ -264,16 +189,16 @@ theorem hO1L (l : ℕ) (hl : l < 3) :
   · interval_cases l <;> rfl
   · interval_cases l <;>
     · intro x hx
-      simp [cutAtomsOfX, rover_dof_terrain_rung1_cutsV2X, mLE, rover_dof_terrain_rung1_IR] at hx
+      simp [cutAtomsOfX, rover_dof_terrain_rung1_cutsV2X, mLE, rover_dof_terrain_rung1_IR, rover_dof_terrain_rung1_IRv2] at hx
       rcases hx with rfl <;> simp
   · interval_cases l <;>
     · intro x hx
-      simp [cutAtomsOfX, rover_dof_terrain_rung1_cutsV2X, mLE, rover_dof_terrain_rung1_IR] at hx
+      simp [cutAtomsOfX, rover_dof_terrain_rung1_cutsV2X, mLE, rover_dof_terrain_rung1_IR, rover_dof_terrain_rung1_IRv2] at hx
       rcases hx with rfl <;>
         simp [Run.lowerF, Run.lowerE, gp_0_0, gp_0_6, gp_1_4, vsE, Run.resolveVar,
           List.findIdx?_cons]
   · interval_cases l <;>
-      simp [mLE, rover_dof_terrain_rung1_IR, Run.lowerF, Run.lowerE, gp_0_0, gp_0_6, gp_1_4,
+      simp [mLE, rover_dof_terrain_rung1_IR, rover_dof_terrain_rung1_IRv2, Run.lowerF, Run.lowerE, gp_0_0, gp_0_6, gp_1_4,
         gp_899_95, vsE, Run.resolveVar, List.findIdx?_cons]
 
 theorem hO1R (q : ℕ) (hq : q < 3) :
@@ -283,16 +208,16 @@ theorem hO1R (q : ℕ) (hq : q < 3) :
   · interval_cases q <;> rfl
   · interval_cases q <;>
     · intro x hx
-      simp [cutAtomsOfX, rover_dof_terrain_rung1_cutsV2X, mRE, rover_dof_terrain_rung1_IR] at hx
+      simp [cutAtomsOfX, rover_dof_terrain_rung1_cutsV2X, mRE, rover_dof_terrain_rung1_IR, rover_dof_terrain_rung1_IRv2] at hx
       rcases hx with rfl | rfl <;> simp
   · interval_cases q <;>
     · intro x hx
-      simp [cutAtomsOfX, rover_dof_terrain_rung1_cutsV2X, mRE, rover_dof_terrain_rung1_IR] at hx
+      simp [cutAtomsOfX, rover_dof_terrain_rung1_cutsV2X, mRE, rover_dof_terrain_rung1_IR, rover_dof_terrain_rung1_IRv2] at hx
       rcases hx with rfl | rfl <;>
         simp [Run.lowerF, Run.lowerE, gp_0_0, gp_0_6, gp_1_4, gp_0_3, gp_0_5, gp_0_65, vsE,
           Run.resolveVar, List.findIdx?_cons]
   · interval_cases q <;>
-      simp [mRE, rover_dof_terrain_rung1_IR, Run.lowerF, Run.lowerE, gp_0_0, gp_0_6, gp_1_4,
+      simp [mRE, rover_dof_terrain_rung1_IR, rover_dof_terrain_rung1_IRv2, Run.lowerF, Run.lowerE, gp_0_0, gp_0_6, gp_1_4,
         gp_0_3, gp_0_5, gp_0_65, vsE, Run.resolveVar, List.findIdx?_cons]
 
 /-! ## The left field and envelope, evaluated -/
@@ -304,7 +229,7 @@ theorem gp_1000_0 : Run.parseRat "1000.0" = some (1000:ℚ) := by
 theorem fLE1_eval (l : ℕ) (hl : l < 3) (x : State (Var 3)) :
     Term.eval (fLE l 1) x = x (Lv 0) * (1 - 1/2 * (x (Lv 2) * x (Lv 2))) := by
   interval_cases l <;>
-    simp [fLE, hostDyn, mLE, rover_dof_terrain_rung1_IR, vsE, Run.dynOf,
+    simp [fLE, hostDyn, mLE, rover_dof_terrain_rung1_IR, rover_dof_terrain_rung1_IRv2, vsE, Run.dynOf,
       Run.lowerE, gp_3, gp_0_30, gp_0_50, gp_0_65, gp_1, gp_0_5, gp_m1, gp_0,
       Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp,
       Lv]
@@ -312,7 +237,7 @@ theorem fLE1_eval (l : ℕ) (hl : l < 3) (x : State (Var 3)) :
 /-- The left envelope's bounds the odometer's sign needs. -/
 theorem domL_bnd (z : State (Var 3)) (hz : Formula.sat domLE z) :
     0 ≤ z (Lv 0) ∧ -(1:ℝ)/2 ≤ z (Lv 2) ∧ z (Lv 2) ≤ 1/2 := by
-  simp only [domLE, hostEvolve, mLE, rover_dof_terrain_rung1_IR, vsE] at hz
+  simp only [domLE, hostEvolve, mLE, rover_dof_terrain_rung1_IR, rover_dof_terrain_rung1_IRv2, vsE] at hz
   simp [Run.lowerF, Run.lowerE, gp_0_0, gp_0_8, gp_m0_5, gp_0_15, gp_1000_0, Run.resolveVar,
     List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp,
     Term.eval, Lv] at hz
@@ -434,7 +359,7 @@ theorem verdD_core (l q : ℕ) (hl : l < 3) (hq : q < 3) (h : VerdD l q) :
 
 theorem cR_nil (q : ℕ) (hq : 3 ≤ q) : cR q = [] := by
   have : mRE q = dummyE :=
-    List.getD_eq_default _ _ (by simp [rover_dof_terrain_rung1_IR]; omega)
+    List.getD_eq_default _ _ (by simp [rover_dof_terrain_rung1_IR, rover_dof_terrain_rung1_IRv2]; omega)
   simp only [cR, this]
   rfl
 

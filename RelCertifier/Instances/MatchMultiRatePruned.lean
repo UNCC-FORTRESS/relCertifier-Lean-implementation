@@ -67,7 +67,7 @@ for both right modes). -/
 theorem hfRM' (q : ℕ) (hq : q < 2) : ∀ i, (fRM q i).fv ⊆ range Rv := fun i x hx =>
   side_eq_R_mem (field_pipeline_side (resolvesTo_R vsM) (some (mRM q))
     (by interval_cases q <;>
-      simp [mRM, match_multi_rate_IR, Parse.PExpr.namesFree]) i x
+      simp [mRM, match_multi_rate_IR, match_multi_rate_IRv2, Parse.PExpr.namesFree]) i x
     (fRM_pipe q i ▸ hx))
 
 theorem hRvP : ∀ q m, GrP.modeAt q = some m →
@@ -131,10 +131,6 @@ theorem match_multi_rate_pruned (dt : ℝ) (hdt : 0 ≤ dt)
 
 open NonConn
 
-theorem hm02 : Run.parseRat "0.2" = some ((1:ℚ)/5) := by
-  have h : parseQ "0.2" = some (⟨2, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-
 /-- `STALL`'s guard `v < 0.2` as the safe-side term `g = 0.2 − v` (`{g > 0}` is the guard). -/
 def gD : ITerm 2 := .bin .sub (.rat ((1:ℚ)/5)) (.var (Side.R, 0))
 
@@ -160,27 +156,27 @@ def fD : Fin 2 → ITerm 2 := fun i =>
     ITerm.var (Side.R, 0)] : List (ITerm 2))[i.val]?).getD (.rat 0)
 
 theorem hgD : guardTerm vsM 2 (mRM 1).guard = some gD := by
-  simp [guardTerm, mRM, match_multi_rate_IR, vsM, Run.lowerE, Run.resolveVar, hm02,
+  simp [guardTerm, mRM, match_multi_rate_IR, match_multi_rate_IRv2, vsM, Run.lowerE, Run.resolveVar, MatchMultiRateGuarded.hm02,
     List.findIdx?_cons, gD]
 
 theorem hdomD : Run.lowerF vsM 2 Side.R (mRM 0).evolve = some domD := by
-  simp [Run.lowerF, mRM, match_multi_rate_IR, vsM, Run.lowerE, Run.resolveVar, hm00,
+  simp [Run.lowerF, mRM, match_multi_rate_IR, match_multi_rate_IRv2, vsM, Run.lowerE, Run.resolveVar, hm00,
     hm115, List.findIdx?_cons, domD]
 
 theorem hsrcD : Run.lowerF vsM 2 Side.R (PForm.and (mRM 0).guard (mRM 0).evolve)
     = some srcD := by
-  simp [Run.lowerF, mRM, match_multi_rate_IR, vsM, Run.lowerE, Run.resolveVar, hm00,
-    hm115, hm02, hm10, List.findIdx?_cons, srcD, domD]
+  simp [Run.lowerF, mRM, match_multi_rate_IR, match_multi_rate_IRv2, vsM, Run.lowerE, Run.resolveVar, hm00,
+    hm115, MatchMultiRateGuarded.hm02, hm10, List.findIdx?_cons, srcD, domD]
 
 theorem hdynD : Run.dynOf vsM 2 Side.R (mRM 0) = some fD := by
-  simp [Run.dynOf, mRM, match_multi_rate_IR, vsM, Run.lowerE, Run.resolveVar, hm1, hm10,
+  simp [Run.dynOf, mRM, match_multi_rate_IR, match_multi_rate_IRv2, vsM, Run.lowerE, Run.resolveVar, hm1, hm10,
     List.findIdx?_cons, List.finRange]
   rfl
 
 theorem hcutD : cutOfAtoms vsM 2 (rightCutAtoms Oracle.match_multi_rate_cuts "DRIVE")
     = some cutD := by
   simp [cutOfAtoms, rightCutAtoms, Oracle.match_multi_rate_cuts, vsM, Run.lowerF,
-    Run.lowerE, Run.resolveVar, hm02, hm10, List.findIdx?_cons, cutD]
+    Run.lowerE, Run.resolveVar, MatchMultiRateGuarded.hm02, hm10, List.findIdx?_cons, cutD]
 
 /-- The certifier's two pruning queries for `DRIVE → STALL` are exactly the pair below
 (`Trusted/NonConnQuery.lean`, the function `nonConnPrune` calls). -/

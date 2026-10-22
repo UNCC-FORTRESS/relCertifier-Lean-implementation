@@ -37,13 +37,6 @@ set_option linter.unusedSimpArgs false
 
 /-! ## The guarded right automaton -/
 
-/-- The declared edge `st → tgt` tests the lowered guard of the mode it enters. -/
-noncomputable def edgeG (st tgt : ℕ) : REdge (Var 2) :=
-  { src := st, tgt := tgt, guard := hostGuard vsM 2 Side.R (mRM tgt), pruned := false }
-
-noncomputable def GrPG : SearchGraph (Var 2) :=
-  { modes := [modeM 0, modeM 1], edges := [edgeG 0 0, edgeG 0 1, edgeG 1 1] }
-
 /-- **Faithfulness of the graph**: the same modes and edges as `GrP` (the file's `next` lists:
 `DRIVE → [DRIVE, STALL]`, `STALL → [STALL]`). -/
 theorem GrPG_edges : GrPG.edges.map (fun e => (e.src, e.tgt)) =
@@ -56,9 +49,6 @@ theorem GrPG_guards : ∀ q, ∀ e ∈ GrPG.edgesFrom q,
   have hmem : e ∈ GrPG.edges := List.mem_of_mem_filter he
   simp only [GrPG, List.mem_cons, List.not_mem_nil, or_false] at hmem
   rcases hmem with rfl | rfl | rfl <;> rfl
-
-theorem GrPG_modeAt (q : ℕ) (hq : q < 2) : GrPG.modeAt q = some (modeM q) := by
-  interval_cases q <;> rfl
 
 theorem hltG : ∀ q, ∀ e ∈ GrPG.edgesFrom q, e.tgt < GrPG.modes.length := by
   intro q e he
@@ -79,7 +69,7 @@ theorem hfreshG : ∀ q m, GrPG.modeAt q = some m → mvM ∉ (Program.ode m.sys
 theorem hguardRM (q : ℕ) (hq : q < 2) : (hostGuard vsM 2 Side.R (mRM q)).fv ⊆ range Rv :=
   hostGuard_fv_R vsM (mRM q) (by
     interval_cases q <;>
-      simp [mRM, match_multi_rate_IR, Parse.PForm.namesFree, Parse.PExpr.namesFree])
+      simp [mRM, match_multi_rate_IR, match_multi_rate_IRv2, Parse.PForm.namesFree, Parse.PExpr.namesFree])
 
 theorem hgRG : GuardsRight GrPG := by
   intro q e he
@@ -90,17 +80,6 @@ theorem hgRG : GuardsRight GrPG := by
   · exact hguardRM 1 (by norm_num)
   · exact hguardRM 1 (by norm_num)
 
-theorem hm02 : Run.parseRat "0.2" = some ((1:ℚ)/5) := by
-  have h : parseQ "0.2" = some (⟨2, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-
-/-- `DRIVE`'s guard, evaluated (`0.2 ≤ v ≤ 1`). -/
-theorem sat_guardDRIVE (x : State (Var 2)) :
-    Formula.sat (hostGuard vsM 2 Side.R (mRM 0)) x ↔ 1/5 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 1 := by
-  simp [hostGuard, mRM, match_multi_rate_IR, Run.lowerF, Run.lowerE, hm02, hm10, vsM,
-    Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
-    CompOp.interp, Term.eval, Rv]
-
 /-! ## Evaluations -/
 
 noncomputable def kL (l : ℕ) : ℝ := if l = 0 then 3 else if l = 1 then 2 else if l = 2 then 1 else 4
@@ -109,14 +88,14 @@ noncomputable def cL (l : ℕ) : ℝ := if l = 3 then 1/10 else 1
 theorem fLM0_eval (l : ℕ) (hl : l < 4) (x : State (Var 2)) :
     Term.eval (fLM l 0) x = kL l * (cL l - x (Lv 0)) := by
   interval_cases l <;>
-    simp [fLM, hostDyn, mLM, match_multi_rate_IR, vsM, Run.dynOf, Run.lowerE, hm10, hm3, hm2,
+    simp [fLM, hostDyn, mLM, match_multi_rate_IR, match_multi_rate_IRv2, vsM, Run.dynOf, Run.lowerE, hm10, hm3, hm2,
       hm1, hm4, hm01, hm0, hm00, hm115, Run.resolveVar, List.findIdx?_cons, List.finRange,
       ITerm.toHost, Term.eval, AOp.interp, Lv, kL, cL]
 
 theorem eval_gM (x : State (Var 2)) : Term.eval gM x = x (Lv 0) - x (Rv 0) := by
   have hdL : ("L_v".drop 2).copy = "v" := by decide
   have hdR : ("R_v".drop 2).copy = "v" := by decide
-  simp [gM, gAt, atomsOf, invMPF, match_multi_rate_IR, Run.invToG, Run.lowerE, vsM,
+  simp [gM, gAt, atomsOf, invMPF, match_multi_rate_IR, match_multi_rate_IRv2, Run.invToG, Run.lowerE, vsM,
     Run.resolveVar, Parse.dr, hdL, hdR, List.findIdx?_cons, ITerm.toHost, Term.eval,
     AOp.interp, Lv, Rv]
 
@@ -127,7 +106,7 @@ theorem sat_FM (x : State (Var 2)) : Formula.sat (FM gM gsM) x ↔ x (Lv 0) ≤ 
 
 theorem sat_domLM (x : State (Var 2)) : Formula.sat domLM x ↔
     (0 ≤ x (Lv 1) ∧ 0 ≤ x (Lv 0) ∧ x (Lv 0) ≤ (23:ℝ)/20) := by
-  simp only [domLM, hostEvolve, mLM, match_multi_rate_IR, vsM]
+  simp only [domLM, hostEvolve, mLM, match_multi_rate_IR, match_multi_rate_IRv2, vsM]
   simp [Run.lowerF, Run.lowerE, hm00, hm115, Run.resolveVar, List.findIdx?_cons,
     IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Lv]
   tauto
@@ -176,72 +155,6 @@ theorem window_strict (l k : ℕ) (hl : l < 4) (dt : ℝ) {σ ν : State (Var 2)
 
 /-! ## The right `DRIVE` run, explicitly -/
 
-noncomputable def driveEnd (ρ : State (Var 2)) (t : ℝ) : State (Var 2) :=
-  fun x => if x = Rv 0 then 1 - (1 - ρ (Rv 0)) * Real.exp (-t)
-    else if x = Rv 1 then ρ (Rv 1) + t - (1 - ρ (Rv 0)) * (1 - Real.exp (-t)) else ρ x
-
-theorem driveEnd_R0 (ρ : State (Var 2)) (t : ℝ) :
-    driveEnd ρ t (Rv 0) = 1 - (1 - ρ (Rv 0)) * Real.exp (-t) := by simp [driveEnd]
-theorem driveEnd_R1 (ρ : State (Var 2)) (t : ℝ) :
-    driveEnd ρ t (Rv 1) = ρ (Rv 1) + t - (1 - ρ (Rv 0)) * (1 - Real.exp (-t)) := by
-  simp [driveEnd, show (Rv 1 : Var 2) ≠ Rv 0 from by simp [Rv, Prod.ext_iff]]
-theorem driveEnd_ne (ρ : State (Var 2)) (t : ℝ) {x : Var 2} (h0 : x ≠ Rv 0) (h1 : x ≠ Rv 1) :
-    driveEnd ρ t x = ρ x := by simp [driveEnd, h0, h1]
-
-theorem drive_sem (ρ : State (Var 2)) (hdom : Formula.sat domRM ρ) (hw1 : ρ (Rv 0) ≤ 1)
-    (τ : ℝ) (hτ : 0 ≤ τ) :
-    Program.sem (Program.ode (modeM 0).sys (modeM 0).dom) ρ (driveEnd ρ τ) := by
-  have hD := (sat_domRM ρ).mp hdom
-  refine ⟨τ, fun t => driveEnd ρ t, hτ, ?_, rfl, ?_, ?_, ?_⟩
-  · funext x
-    by_cases h0 : x = Rv 0
-    · subst h0; simp [driveEnd]
-    · by_cases h1 : x = Rv 1
-      · subst h1; simp [driveEnd_R1]
-      · exact driveEnd_ne ρ 0 h0 h1
-  · intro t ht p hp
-    simp only [modeM, rightBlock, List.mem_map, List.mem_finRange, true_and] at hp
-    obtain ⟨i, rfl⟩ := hp
-    have hexp : HasDerivWithinAt (fun u : ℝ => Real.exp (-u)) (Real.exp (-t) * (-1))
-        (Set.Icc 0 τ) t := by
-      have := (hasDerivAt_id t).neg.exp
-      simpa using this.hasDerivWithinAt
-    fin_cases i
-    · show HasDerivWithinAt (fun u => driveEnd ρ u (Rv 0))
-        (Term.eval (Term.binop AOp.mul (Term.const 1) (fRM 0 0)) (driveEnd ρ t)) _ t
-      simp only [Term.eval, AOp.interp]
-      rw [fRM0_eval 0 (by norm_num), driveEnd_R0]
-      have h := (hexp.const_mul (1 - ρ (Rv 0))).const_sub 1
-      refine (h.congr (fun y _ => driveEnd_R0 ρ y) (driveEnd_R0 ρ t)).congr_deriv ?_
-      simp [cstM]
-    · show HasDerivWithinAt (fun u => driveEnd ρ u (Rv 1))
-        (Term.eval (Term.binop AOp.mul (Term.const 1) (fRM 0 1)) (driveEnd ρ t)) _ t
-      simp only [Term.eval, AOp.interp]
-      rw [fRM1_eval 0 (by norm_num), driveEnd_R0]
-      have hid := hasDerivWithinAt_id t (Set.Icc (0:ℝ) τ)
-      have h := ((hid.const_add (ρ (Rv 1))).sub ((hexp.const_sub 1).const_mul (1 - ρ (Rv 0))))
-      refine (h.congr (fun y _ => by rw [driveEnd_R1]; simp) (by rw [driveEnd_R1]; simp)).congr_deriv
-        ?_
-      simp
-  · intro t ht x hx
-    have h0 : x ≠ Rv 0 := by
-      rintro rfl; exact hx (by simp [modeM, rightBlock, ODESystem.bound])
-    have h1 : x ≠ Rv 1 := by
-      rintro rfl; exact hx (by simp [modeM, rightBlock, ODESystem.bound])
-    exact driveEnd_ne ρ t h0 h1
-  · intro t ht
-    have he0 := Real.exp_pos (-t)
-    have he1 : Real.exp (-t) ≤ 1 := Real.exp_le_one_iff.mpr (by linarith [ht.1])
-    have hlin : 1 - Real.exp (-t) ≤ t := by linarith [Real.add_one_le_exp (-t)]
-    refine (sat_domRM _).mpr ⟨?_, ?_, ?_⟩
-    · show 0 ≤ driveEnd ρ t (Rv 1)
-      rw [driveEnd_R1]
-      nlinarith [hD.1, hD.2.1]
-    · show 0 ≤ driveEnd ρ t (Rv 0)
-      rw [driveEnd_R0]; nlinarith [hD.2.1]
-    · show driveEnd ρ t (Rv 0) ≤ 23/20
-      rw [driveEnd_R0]; nlinarith [hD.2.1]
-
 /-- `DRIVE` reaches any `b ∈ [v_R, 1)` from `v_R < 1`. -/
 theorem drive_reach (ρ : State (Var 2)) (hdom : Formula.sat domRM ρ) (b : ℝ)
     (hwb : ρ (Rv 0) ≤ b) (hb1 : b < 1) :
@@ -258,61 +171,6 @@ theorem drive_reach (ρ : State (Var 2)) (hdom : Formula.sat domRM ρ) (b : ℝ)
     field_simp
     ring
   · exact driveEnd_ne ρ τ (by simp [Lv, Rv, Prod.ext_iff]) (by simp [Lv, Rv, Prod.ext_iff])
-
-/-- The instance's explicit `DRIVE` run (`drive_sem`), with its duration kept. -/
-theorem drive_sol (ρ : State (Var 2)) (hdom : Formula.sat domRM ρ) (hw1 : ρ (Rv 0) ≤ 1)
-    (τ : ℝ) (hτ : 0 ≤ τ) :
-    ODESol (modeM 0).sys (modeM 0).dom ρ τ (fun t => driveEnd ρ t) := by
-  have hD := (sat_domRM ρ).mp hdom
-  refine ⟨hτ, ?_, ?_, ?_, ?_⟩
-  · funext x
-    by_cases h0 : x = Rv 0
-    · subst h0; simp [driveEnd]
-    · by_cases h1 : x = Rv 1
-      · subst h1; simp [driveEnd_R1]
-      · exact driveEnd_ne ρ 0 h0 h1
-  · intro t ht p hp
-    simp only [modeM, rightBlock, List.mem_map, List.mem_finRange, true_and] at hp
-    obtain ⟨i, rfl⟩ := hp
-    have hexp : HasDerivWithinAt (fun u : ℝ => Real.exp (-u)) (Real.exp (-t) * (-1))
-        (Set.Icc 0 τ) t := by
-      have := (hasDerivAt_id t).neg.exp
-      simpa using this.hasDerivWithinAt
-    fin_cases i
-    · show HasDerivWithinAt (fun u => driveEnd ρ u (Rv 0))
-        (Term.eval (Term.binop AOp.mul (Term.const 1) (fRM 0 0)) (driveEnd ρ t)) _ t
-      simp only [Term.eval, AOp.interp]
-      rw [fRM0_eval 0 (by norm_num), driveEnd_R0]
-      have h := (hexp.const_mul (1 - ρ (Rv 0))).const_sub 1
-      refine (h.congr (fun y _ => driveEnd_R0 ρ y) (driveEnd_R0 ρ t)).congr_deriv ?_
-      simp [cstM]
-    · show HasDerivWithinAt (fun u => driveEnd ρ u (Rv 1))
-        (Term.eval (Term.binop AOp.mul (Term.const 1) (fRM 0 1)) (driveEnd ρ t)) _ t
-      simp only [Term.eval, AOp.interp]
-      rw [fRM1_eval 0 (by norm_num), driveEnd_R0]
-      have hid := hasDerivWithinAt_id t (Set.Icc (0:ℝ) τ)
-      have h := ((hid.const_add (ρ (Rv 1))).sub ((hexp.const_sub 1).const_mul (1 - ρ (Rv 0))))
-      refine (h.congr (fun y _ => by rw [driveEnd_R1]; simp) (by rw [driveEnd_R1]; simp)).congr_deriv
-        ?_
-      simp
-  · intro t ht x hx
-    have h0 : x ≠ Rv 0 := by
-      rintro rfl; exact hx (by simp [modeM, rightBlock, ODESystem.bound])
-    have h1 : x ≠ Rv 1 := by
-      rintro rfl; exact hx (by simp [modeM, rightBlock, ODESystem.bound])
-    exact driveEnd_ne ρ t h0 h1
-  · intro t ht
-    have he0 := Real.exp_pos (-t)
-    have he1 : Real.exp (-t) ≤ 1 := Real.exp_le_one_iff.mpr (by linarith [ht.1])
-    have hlin : 1 - Real.exp (-t) ≤ t := by linarith [Real.add_one_le_exp (-t)]
-    refine (sat_domRM _).mpr ⟨?_, ?_, ?_⟩
-    · show 0 ≤ driveEnd ρ t (Rv 1)
-      rw [driveEnd_R1]
-      nlinarith [hD.1, hD.2.1]
-    · show 0 ≤ driveEnd ρ t (Rv 0)
-      rw [driveEnd_R0]; nlinarith [hD.2.1]
-    · show driveEnd ρ t (Rv 0) ≤ 23/20
-      rw [driveEnd_R0]; nlinarith [hD.2.1]
 
 /-! ## The emitted cover's data: the extended cut certificate, concretely -/
 
@@ -400,16 +258,16 @@ theorem hO1L (l : ℕ) (hl : l < 4) :
   · interval_cases l <;> rfl
   · interval_cases l <;>
     · intro x hx
-      simp [cutAtomsOfX, match_multi_rate_cutsV2X, mLM, match_multi_rate_IR] at hx
+      simp [cutAtomsOfX, match_multi_rate_cutsV2X, mLM, match_multi_rate_IR, match_multi_rate_IRv2] at hx
       try (rcases hx with rfl | rfl <;> simp)
   · interval_cases l <;>
     · intro x hx
-      simp [cutAtomsOfX, match_multi_rate_cutsV2X, mLM, match_multi_rate_IR] at hx
+      simp [cutAtomsOfX, match_multi_rate_cutsV2X, mLM, match_multi_rate_IR, match_multi_rate_IRv2] at hx
       try (rcases hx with rfl | rfl <;>
         simp [Run.lowerF, Run.lowerE, hm01, hm02, hm05, hm07, hm10, vsM, Run.resolveVar,
           List.findIdx?_cons])
   · interval_cases l <;>
-      simp [mLM, match_multi_rate_IR, Run.lowerF, Run.lowerE, hm01, hm02, hm05, hm07, hm095, hm10, vsM,
+      simp [mLM, match_multi_rate_IR, match_multi_rate_IRv2, Run.lowerF, Run.lowerE, hm01, hm02, hm05, hm07, hm095, hm10, vsM,
         Run.resolveVar, List.findIdx?_cons]
 
 theorem hO1R :
@@ -417,13 +275,13 @@ theorem hO1R :
   intro ν hν
   refine cutSatR_of_guard match_multi_rate_cutsV2X_wf (mRM 0) rfl ?_ ?_ ?_ ν hν
   · intro x hx
-    simp [cutAtomsOfX, match_multi_rate_cutsV2X, mRM, match_multi_rate_IR] at hx
+    simp [cutAtomsOfX, match_multi_rate_cutsV2X, mRM, match_multi_rate_IR, match_multi_rate_IRv2] at hx
     rcases hx with rfl | rfl <;> simp
   · intro x hx
-    simp [cutAtomsOfX, match_multi_rate_cutsV2X, mRM, match_multi_rate_IR] at hx
+    simp [cutAtomsOfX, match_multi_rate_cutsV2X, mRM, match_multi_rate_IR, match_multi_rate_IRv2] at hx
     rcases hx with rfl | rfl <;>
       simp [Run.lowerF, Run.lowerE, hm02, hm10, vsM, Run.resolveVar, List.findIdx?_cons]
-  · simp [mRM, match_multi_rate_IR, Run.lowerF, Run.lowerE, hm02, hm10, vsM,
+  · simp [mRM, match_multi_rate_IR, match_multi_rate_IRv2, Run.lowerF, Run.lowerE, hm02, hm10, vsM,
       Run.resolveVar, List.findIdx?_cons]
 
 /-! ## O2: the kept atoms stay along the flows the cover certifies -/
@@ -489,7 +347,7 @@ theorem comps_eq : hostComps vsM 2
     have hdR : ("R_v".drop 2).copy = "v" := by decide
     subst ha
     exact ⟨⟨_, _, _, rfl⟩, by
-      simp [atomsOf, invMPF, match_multi_rate_IR, Run.invToG, Run.lowerE,
+      simp [atomsOf, invMPF, match_multi_rate_IR, match_multi_rate_IRv2, Run.invToG, Run.lowerE,
         vsM, Run.resolveVar, Parse.dr, hdL, hdR, List.findIdx?_cons]⟩
 
 theorem comps_fv : ∀ c ∈ gM :: gsM, c.fv ⊆ range Lv ∪ range Rv := by
@@ -719,7 +577,7 @@ noncomputable def gregionP (q : ℕ) : Formula (Var 2) :=
   regionG (fun q => hostGuard vsM 2 Side.R (mRM q)) regionsP q
 
 theorem hguardRM_all (q : ℕ) : (hostGuard vsM 2 Side.R (mRM q)).fv ⊆ range Rv :=
-  hostGuard_fv_R_getD vsM _ dummyM rfl (by simp [match_multi_rate_IR, Parse.PForm.namesFree,
+  hostGuard_fv_R_getD vsM _ dummyM rfl (by simp [match_multi_rate_IR, match_multi_rate_IRv2, Parse.PForm.namesFree,
     Parse.PExpr.namesFree]) q
 
 /-- The left windows, each behind its lowered IR guard (the left automaton's edge test). -/

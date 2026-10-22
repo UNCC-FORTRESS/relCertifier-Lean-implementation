@@ -20,6 +20,7 @@ import RelCertifier.Proofs.Encoding.CanonicalInv
 import RelCertifier.Proofs.Encoding.CoverInstance
 import RelCertifier.Proofs.Flow.StratifiedFaces
 import RelCertifier.Instances.BenchIR.match_multi_rate
+import RelCertifier.Instances.WellFormed.MatchMultiRate
 
 namespace RelCertifier
 namespace MatchMultiRateModal
@@ -28,19 +29,13 @@ open DL DLCalTiming DLRel Parse Set
 
 set_option maxHeartbeats 12800000
 
-def vsM : List String := ["v", "s"]
-def dummyM : Parse.PMode := ⟨"", [], .tt, .tt, []⟩
 def mLM (l : ℕ) : Parse.PMode := match_multi_rate_IR.L.modes.getD l dummyM
-def mRM (q : ℕ) : Parse.PMode := match_multi_rate_IR.R.modes.getD q dummyM
-
 abbrev mvM : Var 2 := (Side.Aux, 0)
 abbrev aM : Fin 2 := (1 : Fin 2)
 abbrev tgM : Var 2 := (Side.Aux, aM)
 
 noncomputable def fLM (l : ℕ) : Fin 2 → Term (Var 2) := hostDyn vsM 2 Side.L (mLM l)
-noncomputable def fRM (q : ℕ) : Fin 2 → Term (Var 2) := hostDyn vsM 2 Side.R (mRM q)
 noncomputable def domLM : Formula (Var 2) := hostEvolve vsM 2 Side.L (mLM 0)
-noncomputable def domRM : Formula (Var 2) := hostEvolve vsM 2 Side.R (mRM 0)
 noncomputable def envM : Formula (Var 2) := Formula.and domLM domRM
 
 def atomsOf : Parse.PForm → List Parse.PForm
@@ -74,23 +69,23 @@ theorem domRM_pipe : domRM =
 theorem hfLM (l : ℕ) (hl : l < 4) : ∀ i, (fLM l i).fv ⊆ range Lv := fun i x hx =>
   side_eq_L_mem (field_pipeline_side (resolvesTo_L vsM) (some (mLM l))
     (by interval_cases l <;>
-      simp [mLM, match_multi_rate_IR, Parse.PExpr.namesFree]) i x
+      simp [mLM, match_multi_rate_IR, match_multi_rate_IRv2, Parse.PExpr.namesFree]) i x
     (fLM_pipe l i ▸ hx))
 
 theorem hfRM (q : ℕ) (hq : q < 1) : ∀ i, (fRM q i).fv ⊆ range Rv := fun i x hx =>
   side_eq_R_mem (field_pipeline_side (resolvesTo_R vsM) (some (mRM q))
     (by interval_cases q <;>
-      simp [mRM, match_multi_rate_IR, Parse.PExpr.namesFree]) i x
+      simp [mRM, match_multi_rate_IR, match_multi_rate_IRv2, Parse.PExpr.namesFree]) i x
     (fRM_pipe q i ▸ hx))
 
 theorem hdomLM : domLM.fv ⊆ range Lv := fun x hx =>
   side_eq_L_mem (form_pipeline_side (resolvesTo_L vsM) (some (mLM 0))
-    (by simp [mLM, match_multi_rate_IR, Parse.PForm.namesFree,
+    (by simp [mLM, match_multi_rate_IR, match_multi_rate_IRv2, Parse.PForm.namesFree,
       Parse.PExpr.namesFree]) x (domLM_pipe ▸ hx))
 
 theorem hdomRM : domRM.fv ⊆ range Rv := fun x hx =>
   side_eq_R_mem (form_pipeline_side (resolvesTo_R vsM) (some (mRM 0))
-    (by simp [mRM, match_multi_rate_IR, Parse.PForm.namesFree,
+    (by simp [mRM, match_multi_rate_IR, match_multi_rate_IRv2, Parse.PForm.namesFree,
       Parse.PExpr.namesFree]) x (domRM_pipe ▸ hx))
 
 theorem hgAt (i : ℕ) : (gAt i).fv ⊆ range Lv ∪ range Rv := invToG_pipeline_LR _
@@ -122,9 +117,6 @@ theorem htgenvM : tgM ∉ envM.fv := fun h => by
   · exact absurd (hdomRM h) (by rintro ⟨i, hi⟩; exact absurd hi (by simp [Rv, Prod.ext_iff]))
 
 /-! ## The right graph (one-way chain) -/
-
-noncomputable def modeM (q : ℕ) : RMode (Var 2) :=
-  { sys := rightBlock (fRM q) (Term.const 1), dom := domRM, weight := 1 }
 
 def edgeM (st tgt : ℕ) : REdge (Var 2) :=
   { src := st, tgt := tgt, guard := Formula.tt, pruned := false }
@@ -197,61 +189,6 @@ theorem hframesM (dt : ℝ) : ∀ P ∈ leftProgsM dt, FramesMv P mvM := by
   intro h
   obtain ⟨i, hi⟩ := leftBlock_bound_sub d.1 _ h
   exact aux_ne_Lv 0 i hi
-
-/-! ## Parse pins -/
-
-theorem hm10 : Run.parseRat "1.0" = some (1) := by
-  have h : parseQ "1.0" = some (⟨10, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hm3 : Run.parseRat "3" = some (3) := by
-  have h : parseQ "3" = some (⟨3, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hm2 : Run.parseRat "2" = some (2) := by
-  have h : parseQ "2" = some (⟨2, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hm1 : Run.parseRat "1" = some (1) := by
-  have h : parseQ "1" = some (⟨1, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hm4 : Run.parseRat "4" = some (4) := by
-  have h : parseQ "4" = some (⟨4, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hm01 : Run.parseRat "0.1" = some ((1:ℚ)/10) := by
-  have h : parseQ "0.1" = some (⟨1, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hm0 : Run.parseRat "0" = some (0) := by
-  have h : parseQ "0" = some (⟨0, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hm00 : Run.parseRat "0.0" = some (0) := by
-  have h : parseQ "0.0" = some (⟨0, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hm115 : Run.parseRat "1.15" = some ((23:ℚ)/20) := by
-  have h : parseQ "1.15" = some (⟨115, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-
-/-! ## Field and shape pins -/
-
-noncomputable def cstM (q : ℕ) : ℝ := if q = 0 then 1 else if q = 1 then 1 else 1
-
-theorem fRM0_eval (q : ℕ) (hq : q < 1) (x : State (Var 2)) :
-    Term.eval (fRM q 0) x = 1 * (cstM q - x (Rv 0)) := by
-  interval_cases q <;>
-    simp [fRM, hostDyn, mRM, match_multi_rate_IR, vsM, Run.dynOf,
-      Run.lowerE, hm10, hm3, hm2, hm1, hm4, hm01, hm0, hm00, hm115, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv, cstM]
-theorem fRM1_eval (q : ℕ) (hq : q < 1) (x : State (Var 2)) :
-    Term.eval (fRM q 1) x = x (Rv 0) := by
-  interval_cases q <;>
-    simp [fRM, hostDyn, mRM, match_multi_rate_IR, vsM, Run.dynOf,
-      Run.lowerE, hm10, hm3, hm2, hm1, hm4, hm01, hm0, hm00, hm115, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-
-theorem sat_domRM (x : State (Var 2)) : Formula.sat domRM x ↔
-    (0 ≤ x (Rv 1) ∧ 0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ (23:ℝ)/20) := by
-  simp only [domRM, hostEvolve, mRM, match_multi_rate_IR, vsM]
-  simp [Run.lowerF, Run.lowerE, hm00, hm115,
-    Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
-    CompOp.interp, Term.eval, Rv]
-  tauto
 
 /-! ## Faces -/
 

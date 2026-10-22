@@ -13,7 +13,6 @@ instance's explicit ladder runs (`LR.sol`). Z3-free. (GENERATED from one templat
 import RelCertifier.InstancesV2.BenchIR.story3_rollover_base_12dof
 import RelCertifier.Proofs.Encoding.WellFormedLadder
 
-set_option maxHeartbeats 12800000
 set_option maxHeartbeats 3200000
 set_option linter.unusedSimpArgs false
 

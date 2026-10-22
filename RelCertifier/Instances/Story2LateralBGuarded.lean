@@ -36,13 +36,6 @@ open DL DLCalTiming DLRel Parse Set Story2LateralBModal GPins RelCertifier.Oracl
 
 /-! ## The guarded right graph -/
 
-noncomputable def edgeG (st tgt : ℕ) : REdge (Var 12) :=
-  { src := st, tgt := tgt, guard := hostGuard vsZ 12 Side.R (mRZ tgt), pruned := false }
-
-noncomputable def GrG : SearchGraph (Var 12) :=
-  { modes := [modeZ 0, modeZ 1, modeZ 2],
-    edges := [edgeG 0 1, edgeG 0 0, edgeG 1 2, edgeG 1 1, edgeG 2 2] }
-
 /-- **Faithfulness of the graph**: its edges are the file's `next` lists, resolved. -/
 theorem GrG_edges_IR : GrG.edges.map (fun e => (e.src, e.tgt)) =
     (List.range story2_lateral_rung_b_12dof_IR.R.modes.length).flatMap (fun q =>
@@ -60,9 +53,6 @@ theorem GrG_guards : ∀ q, ∀ e ∈ GrG.edgesFrom q,
   have hmem : e ∈ GrG.edges := List.mem_of_mem_filter he
   simp only [GrG, List.mem_cons, List.not_mem_nil, or_false] at hmem
   rcases hmem with rfl | rfl | rfl | rfl | rfl <;> rfl
-
-theorem GrG_modeAt (q : ℕ) (hq : q < 3) : GrG.modeAt q = some (modeZ q) := by
-  interval_cases q <;> rfl
 
 theorem GrG_len : GrG.modes.length = 3 := rfl
 
@@ -89,7 +79,7 @@ theorem hfreshG : ∀ q m, GrG.modeAt q = some m → mvZ ∉ (Program.ode m.sys 
 
 theorem hguardR_all (q : ℕ) : (hostGuard vsZ 12 Side.R (mRZ q)).fv ⊆ range Rv :=
   hostGuard_fv_R_getD vsZ _ dummyZ rfl (by
-    simp [story2_lateral_rung_b_12dof_IR, Parse.PForm.namesFree,
+    simp [story2_lateral_rung_b_12dof_IR, story2_lateral_rung_b_12dof_IRv2, Parse.PForm.namesFree,
       Parse.PExpr.namesFree]) q
 
 theorem hgRG : GuardsRight GrG := by
@@ -97,32 +87,10 @@ theorem hgRG : GuardsRight GrG := by
   rw [GrG_guards q e he]
   exact hguardR_all e.tgt
 
-theorem edgeG_mem (st tgt : ℕ) (h : edgeG st tgt ∈ GrG.edges) :
-    edgeG st tgt ∈ GrG.edgesFrom st :=
-  List.mem_filter.mpr ⟨h, by simp [edgeG]⟩
-
 /-! ## The guards, evaluated -/
 
 noncomputable def guardZ (l : ℕ) : Formula (Var 12) := hostGuard vsZ 12 Side.L (mLZ l)
 
-
-theorem sat_guardR0 (x : State (Var 12)) : Formula.sat (hostGuard vsZ 12 Side.R (mRZ 0)) x ↔
-    (0 ≤ x (Rv 1) ∧ x (Rv 1) < 3/5) := by
-  simp [hostGuard, mRZ, story2_lateral_rung_b_12dof_IR, Run.lowerF, Run.lowerE, gp_0, gp_0_0, gp_0_05, gp_0_06, gp_0_0625, gp_0_07, gp_0_0775, gp_0_08, gp_0_085, gp_0_1, gp_0_125, gp_0_15, gp_0_156, gp_0_2, gp_0_205, gp_0_25, gp_0_255, gp_0_3, gp_0_30, gp_0_33, gp_0_35, gp_0_355, gp_0_4, gp_0_45, gp_0_48, gp_0_5, gp_0_50, gp_0_55, gp_0_6, gp_0_65, gp_0_6775, gp_0_7, gp_0_72, gp_0_75, gp_0_8, gp_0_84, gp_0_855, gp_0_88, gp_0_9, gp_0_95, gp_1, gp_10, gp_1000_0, gp_100_0, gp_10_0, gp_12_0, gp_12_45, gp_12_5, gp_13_0, gp_15_0, gp_15_5, gp_16, gp_16_0, gp_17_0, gp_1_0, gp_1_001, gp_1_1, gp_1_125, gp_1_15, gp_1_2, gp_1_25, gp_1_3, gp_1_4, gp_1_5, gp_1_52, gp_1_6, gp_1_62, gp_1_68, gp_1_8, gp_2, gp_20_0, gp_21_0, gp_22_0, gp_23_0, gp_24_0, gp_25_0, gp_26_0, gp_27_0, gp_28_0, gp_29_0, gp_2_0, gp_2_1, gp_2_2, gp_2_25, gp_2_5, gp_2_6, gp_3, gp_30_0, gp_32_0, gp_33_0, gp_34_0, gp_35_0, gp_36_0, gp_3_0, gp_3_04, gp_3_2, gp_3_5, gp_3_6, gp_4, gp_40_0, gp_4_0, gp_4_4, gp_5, gp_50_0, gp_5_0, gp_5_5, gp_60_0, gp_6_0, gp_6_5, gp_7_45, gp_8, gp_80_0, gp_899_95, gp_8_0, gp_8_45, gp_90_0, gp_99_0, gp_9_0, gp_9_524, gp_m0_01, gp_m0_125, gp_m0_2, gp_m0_25, gp_m0_3, gp_m0_4, gp_m0_42, gp_m0_45, gp_m0_5, gp_m0_6, gp_m0_7, gp_m0_75, gp_m0_8, gp_m1, gp_m10_0, gp_m1_0, gp_m1_5, gp_m1_52, gp_m2, gp_m2_0, gp_m2_5, gp_m3_04, gp_m4, vsZ,
-    Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
-    CompOp.interp, Term.eval, Rv, and_assoc]
-
-theorem sat_guardR1 (x : State (Var 12)) : Formula.sat (hostGuard vsZ 12 Side.R (mRZ 1)) x ↔
-    (3/5 ≤ x (Rv 1) ∧ x (Rv 1) < 7/5) := by
-  simp [hostGuard, mRZ, story2_lateral_rung_b_12dof_IR, Run.lowerF, Run.lowerE, gp_0, gp_0_0, gp_0_05, gp_0_06, gp_0_0625, gp_0_07, gp_0_0775, gp_0_08, gp_0_085, gp_0_1, gp_0_125, gp_0_15, gp_0_156, gp_0_2, gp_0_205, gp_0_25, gp_0_255, gp_0_3, gp_0_30, gp_0_33, gp_0_35, gp_0_355, gp_0_4, gp_0_45, gp_0_48, gp_0_5, gp_0_50, gp_0_55, gp_0_6, gp_0_65, gp_0_6775, gp_0_7, gp_0_72, gp_0_75, gp_0_8, gp_0_84, gp_0_855, gp_0_88, gp_0_9, gp_0_95, gp_1, gp_10, gp_1000_0, gp_100_0, gp_10_0, gp_12_0, gp_12_45, gp_12_5, gp_13_0, gp_15_0, gp_15_5, gp_16, gp_16_0, gp_17_0, gp_1_0, gp_1_001, gp_1_1, gp_1_125, gp_1_15, gp_1_2, gp_1_25, gp_1_3, gp_1_4, gp_1_5, gp_1_52, gp_1_6, gp_1_62, gp_1_68, gp_1_8, gp_2, gp_20_0, gp_21_0, gp_22_0, gp_23_0, gp_24_0, gp_25_0, gp_26_0, gp_27_0, gp_28_0, gp_29_0, gp_2_0, gp_2_1, gp_2_2, gp_2_25, gp_2_5, gp_2_6, gp_3, gp_30_0, gp_32_0, gp_33_0, gp_34_0, gp_35_0, gp_36_0, gp_3_0, gp_3_04, gp_3_2, gp_3_5, gp_3_6, gp_4, gp_40_0, gp_4_0, gp_4_4, gp_5, gp_50_0, gp_5_0, gp_5_5, gp_60_0, gp_6_0, gp_6_5, gp_7_45, gp_8, gp_80_0, gp_899_95, gp_8_0, gp_8_45, gp_90_0, gp_99_0, gp_9_0, gp_9_524, gp_m0_01, gp_m0_125, gp_m0_2, gp_m0_25, gp_m0_3, gp_m0_4, gp_m0_42, gp_m0_45, gp_m0_5, gp_m0_6, gp_m0_7, gp_m0_75, gp_m0_8, gp_m1, gp_m10_0, gp_m1_0, gp_m1_5, gp_m1_52, gp_m2, gp_m2_0, gp_m2_5, gp_m3_04, gp_m4, vsZ,
-    Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
-    CompOp.interp, Term.eval, Rv, and_assoc]
-
-theorem sat_guardR2 (x : State (Var 12)) : Formula.sat (hostGuard vsZ 12 Side.R (mRZ 2)) x ↔
-    7/5 ≤ x (Rv 1) := by
-  simp [hostGuard, mRZ, story2_lateral_rung_b_12dof_IR, Run.lowerF, Run.lowerE, gp_0, gp_0_0, gp_0_05, gp_0_06, gp_0_0625, gp_0_07, gp_0_0775, gp_0_08, gp_0_085, gp_0_1, gp_0_125, gp_0_15, gp_0_156, gp_0_2, gp_0_205, gp_0_25, gp_0_255, gp_0_3, gp_0_30, gp_0_33, gp_0_35, gp_0_355, gp_0_4, gp_0_45, gp_0_48, gp_0_5, gp_0_50, gp_0_55, gp_0_6, gp_0_65, gp_0_6775, gp_0_7, gp_0_72, gp_0_75, gp_0_8, gp_0_84, gp_0_855, gp_0_88, gp_0_9, gp_0_95, gp_1, gp_10, gp_1000_0, gp_100_0, gp_10_0, gp_12_0, gp_12_45, gp_12_5, gp_13_0, gp_15_0, gp_15_5, gp_16, gp_16_0, gp_17_0, gp_1_0, gp_1_001, gp_1_1, gp_1_125, gp_1_15, gp_1_2, gp_1_25, gp_1_3, gp_1_4, gp_1_5, gp_1_52, gp_1_6, gp_1_62, gp_1_68, gp_1_8, gp_2, gp_20_0, gp_21_0, gp_22_0, gp_23_0, gp_24_0, gp_25_0, gp_26_0, gp_27_0, gp_28_0, gp_29_0, gp_2_0, gp_2_1, gp_2_2, gp_2_25, gp_2_5, gp_2_6, gp_3, gp_30_0, gp_32_0, gp_33_0, gp_34_0, gp_35_0, gp_36_0, gp_3_0, gp_3_04, gp_3_2, gp_3_5, gp_3_6, gp_4, gp_40_0, gp_4_0, gp_4_4, gp_5, gp_50_0, gp_5_0, gp_5_5, gp_60_0, gp_6_0, gp_6_5, gp_7_45, gp_8, gp_80_0, gp_899_95, gp_8_0, gp_8_45, gp_90_0, gp_99_0, gp_9_0, gp_9_524, gp_m0_01, gp_m0_125, gp_m0_2, gp_m0_25, gp_m0_3, gp_m0_4, gp_m0_42, gp_m0_45, gp_m0_5, gp_m0_6, gp_m0_7, gp_m0_75, gp_m0_8, gp_m1, gp_m10_0, gp_m1_0, gp_m1_5, gp_m1_52, gp_m2, gp_m2_0, gp_m2_5, gp_m3_04, gp_m4, vsZ,
-    Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
-    CompOp.interp, Term.eval, Rv, and_assoc]
 
 /-- The left guards place the deployed's odometer in its band. -/
 theorem guardL_band (l : ℕ) (hl : l < 3) (x : State (Var 12))
@@ -130,14 +98,14 @@ theorem guardL_band (l : ℕ) (hl : l < 3) (x : State (Var 12))
     (l = 0 → x (Lv 1) < 3/5) ∧ (l = 1 → 3/5 ≤ x (Lv 1) ∧ x (Lv 1) < 7/5) ∧
       (l = 2 → 7/5 ≤ x (Lv 1)) := by
   interval_cases l <;>
-    simp [guardZ, hostGuard, mLZ, story2_lateral_rung_b_12dof_IR, Run.lowerF, Run.lowerE,
+    simp [guardZ, hostGuard, mLZ, story2_lateral_rung_b_12dof_IR, story2_lateral_rung_b_12dof_IRv2, Run.lowerF, Run.lowerE,
       gp_0, gp_0_0, gp_0_05, gp_0_06, gp_0_0625, gp_0_07, gp_0_0775, gp_0_08, gp_0_085, gp_0_1, gp_0_125, gp_0_15, gp_0_156, gp_0_2, gp_0_205, gp_0_25, gp_0_255, gp_0_3, gp_0_30, gp_0_33, gp_0_35, gp_0_355, gp_0_4, gp_0_45, gp_0_48, gp_0_5, gp_0_50, gp_0_55, gp_0_6, gp_0_65, gp_0_6775, gp_0_7, gp_0_72, gp_0_75, gp_0_8, gp_0_84, gp_0_855, gp_0_88, gp_0_9, gp_0_95, gp_1, gp_10, gp_1000_0, gp_100_0, gp_10_0, gp_12_0, gp_12_45, gp_12_5, gp_13_0, gp_15_0, gp_15_5, gp_16, gp_16_0, gp_17_0, gp_1_0, gp_1_001, gp_1_1, gp_1_125, gp_1_15, gp_1_2, gp_1_25, gp_1_3, gp_1_4, gp_1_5, gp_1_52, gp_1_6, gp_1_62, gp_1_68, gp_1_8, gp_2, gp_20_0, gp_21_0, gp_22_0, gp_23_0, gp_24_0, gp_25_0, gp_26_0, gp_27_0, gp_28_0, gp_29_0, gp_2_0, gp_2_1, gp_2_2, gp_2_25, gp_2_5, gp_2_6, gp_3, gp_30_0, gp_32_0, gp_33_0, gp_34_0, gp_35_0, gp_36_0, gp_3_0, gp_3_04, gp_3_2, gp_3_5, gp_3_6, gp_4, gp_40_0, gp_4_0, gp_4_4, gp_5, gp_50_0, gp_5_0, gp_5_5, gp_60_0, gp_6_0, gp_6_5, gp_7_45, gp_8, gp_80_0, gp_899_95, gp_8_0, gp_8_45, gp_90_0, gp_99_0, gp_9_0, gp_9_524, gp_m0_01, gp_m0_125, gp_m0_2, gp_m0_25, gp_m0_3, gp_m0_4, gp_m0_42, gp_m0_45, gp_m0_5, gp_m0_6, gp_m0_7, gp_m0_75, gp_m0_8, gp_m1, gp_m10_0, gp_m1_0, gp_m1_5, gp_m1_52, gp_m2, gp_m2_0, gp_m2_5, gp_m3_04, gp_m4, vsZ, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
       CompOp.interp, Term.eval, Lv, and_assoc] at h ⊢ <;> (try linarith) <;> tauto
 
 theorem gAtS_eval (x : State (Var 12)) : Term.eval (gAt 3) x = x (Lv 1) - x (Rv 1) := by
   have hdL : ("L_s".drop 2).copy = "s" := by decide
   have hdR : ("R_s".drop 2).copy = "s" := by decide
-  simp [gAt, atomsOf, invZPF, story2_lateral_rung_b_12dof_IR, Run.invToG,
+  simp [gAt, atomsOf, invZPF, story2_lateral_rung_b_12dof_IR, story2_lateral_rung_b_12dof_IRv2, Run.invToG,
     Run.lowerE, vsZ, Run.resolveVar, Parse.dr, hdL, hdR, List.findIdx?_cons,
     ITerm.toHost, Term.eval, AOp.interp, Lv, Rv]
 
@@ -169,194 +137,6 @@ theorem band_of_guard (q : ℕ) (hq : q < 3) (x : State (Var 12))
     exact ⟨fun h' => absurd h' (by norm_num), fun _ => h, fun h' => absurd h' (by norm_num)⟩
   · rw [sat_guardR2] at h
     exact ⟨fun h' => absurd h' (by norm_num), fun h' => absurd h' (by norm_num), fun _ => h⟩
-
-/-! ## The reference's band runs (explicit; the attitude-weighted odometer) -/
-
-/-- The reference's laws for every coordinate other than `v` and `s`: decay `e^{−t}` or frozen. -/
-noncomputable def dR : Fin 12 → ℝ := ![0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0]
-
-noncomputable def φo (ρ : State (Var 12)) (i : Fin 12) (t : ℝ) : ℝ :=
-  ρ (Rv i) * Real.exp (-(dR i * t))
-
-/-- The odometer factor along the run, `1 − ψ²/2 − 0.3 θ²`. -/
-noncomputable def kapT (ρ : State (Var 12)) (t : ℝ) : ℝ :=
-  1 - 1/2 * (φo ρ 2 t * φo ρ 2 t) - 3/10 * (φo ρ 3 t * φo ρ 3 t)
-
-theorem dR_nonneg (k : Fin 12) : 0 ≤ dR k := by fin_cases k <;> simp [dR]
-
-theorem φo_bounds (ρ : State (Var 12)) (hρ : Formula.sat domRZ ρ) {t : ℝ} (ht : 0 ≤ t) :
-    (-(1/2:ℝ) ≤ φo ρ 2 t ∧ φo ρ 2 t ≤ 3/20) ∧ (-(1/2:ℝ) ≤ φo ρ 3 t ∧ φo ρ 3 t ≤ 3/20) := by
-  have hD := (sat_domRZ ρ).mp hρ
-  obtain ⟨_, _, h2l, h2h, _, h3l, h3h, _⟩ := hD
-  have b2 := decay_between (ρ (Rv 2)) (dR 2) t (dR_nonneg 2) ht
-  have b3 := decay_between (ρ (Rv 3)) (dR 3) t (dR_nonneg 3) ht
-  unfold φo
-  exact ⟨⟨le_trans (le_min (by linarith) (by norm_num)) b2.1,
-    le_trans b2.2 (max_le h2h (by norm_num))⟩,
-    ⟨le_trans (le_min (by linarith) (by norm_num)) b3.1,
-    le_trans b3.2 (max_le h3h (by norm_num))⟩⟩
-
-theorem kapT_cont (ρ : State (Var 12)) : Continuous (kapT ρ) := by
-  unfold kapT φo; fun_prop
-
-theorem kapT_low (ρ : State (Var 12)) (hρ : Formula.sat domRZ ρ) {t : ℝ} (ht : 0 ≤ t) :
-    4/5 ≤ kapT ρ t := by
-  obtain ⟨⟨h2l, h2h⟩, ⟨h3l, h3h⟩⟩ := φo_bounds ρ hρ ht
-  unfold kapT
-  nlinarith
-
-theorem cstZ_eq (q : ℕ) : cstZ q = ladC q := rfl
-
-noncomputable def LR : LadderRun GrG domRZ :=
-  LadderRun.ofKappa GrG domRZ modeZ fRZ φo kapT (4/5) (by norm_num) GrG_modeAt
-    (fun _ _ => rfl) (fun _ _ => rfl)
-    (fun q hq x => by rw [fRZ0_eval q hq, cstZ_eq])
-    (fun ρ i h0 h1 => by simp [φo])
-    (fun q hq ρ _ i h0 h1 t _ => by
-      fin_cases i
-      · simp at h0
-      · simp at h1
-      · simp only [Fin.reduceFinMk, Fin.isValue]
-        rw [fRZ2_eval q hq]
-        have hf : φo ρ 2 = fun u => ρ (Rv 2) * Real.exp (-(dR 2 * u)) := rfl
-        rw [hf]
-        first
-          | (rw [trajR_R, phiK_other _ _ q ρ 2 (by decide) (by decide)]
-             convert hasDerivAt_decay (ρ (Rv 2)) (dR 2) t using 1; simp [dR, φo])
-          | (convert hasDerivAt_decay (ρ (Rv 2)) (dR 2) t using 1; simp [dR])
-      · simp only [Fin.reduceFinMk, Fin.isValue]
-        rw [fRZ3_eval q hq]
-        have hf : φo ρ 3 = fun u => ρ (Rv 3) * Real.exp (-(dR 3 * u)) := rfl
-        rw [hf]
-        first
-          | (rw [trajR_R, phiK_other _ _ q ρ 3 (by decide) (by decide)]
-             convert hasDerivAt_decay (ρ (Rv 3)) (dR 3) t using 1; simp [dR, φo])
-          | (convert hasDerivAt_decay (ρ (Rv 3)) (dR 3) t using 1; simp [dR])
-      · simp only [Fin.reduceFinMk, Fin.isValue]
-        rw [fRZ4_eval q hq]
-        have hf : φo ρ 4 = fun u => ρ (Rv 4) * Real.exp (-(dR 4 * u)) := rfl
-        rw [hf]
-        first
-          | (rw [trajR_R, phiK_other _ _ q ρ 4 (by decide) (by decide)]
-             convert hasDerivAt_decay (ρ (Rv 4)) (dR 4) t using 1; simp [dR, φo])
-          | (convert hasDerivAt_decay (ρ (Rv 4)) (dR 4) t using 1; simp [dR])
-      · simp only [Fin.reduceFinMk, Fin.isValue]
-        rw [fRZ5_eval q hq]
-        have hf : φo ρ 5 = fun u => ρ (Rv 5) * Real.exp (-(dR 5 * u)) := rfl
-        rw [hf]
-        first
-          | (rw [trajR_R, phiK_other _ _ q ρ 5 (by decide) (by decide)]
-             convert hasDerivAt_decay (ρ (Rv 5)) (dR 5) t using 1; simp [dR, φo])
-          | (convert hasDerivAt_decay (ρ (Rv 5)) (dR 5) t using 1; simp [dR])
-      · simp only [Fin.reduceFinMk, Fin.isValue]
-        rw [fRZ6_eval q hq]
-        have hf : φo ρ 6 = fun u => ρ (Rv 6) * Real.exp (-(dR 6 * u)) := rfl
-        rw [hf]
-        first
-          | (rw [trajR_R, phiK_other _ _ q ρ 6 (by decide) (by decide)]
-             convert hasDerivAt_decay (ρ (Rv 6)) (dR 6) t using 1; simp [dR, φo])
-          | (convert hasDerivAt_decay (ρ (Rv 6)) (dR 6) t using 1; simp [dR])
-      · simp only [Fin.reduceFinMk, Fin.isValue]
-        rw [fRZ7_eval q hq]
-        have hf : φo ρ 7 = fun u => ρ (Rv 7) * Real.exp (-(dR 7 * u)) := rfl
-        rw [hf]
-        first
-          | (rw [trajR_R, phiK_other _ _ q ρ 7 (by decide) (by decide)]
-             convert hasDerivAt_decay (ρ (Rv 7)) (dR 7) t using 1; simp [dR, φo])
-          | (convert hasDerivAt_decay (ρ (Rv 7)) (dR 7) t using 1; simp [dR])
-      · simp only [Fin.reduceFinMk, Fin.isValue]
-        rw [fRZ8_eval q hq]
-        have hf : φo ρ 8 = fun u => ρ (Rv 8) * Real.exp (-(dR 8 * u)) := rfl
-        rw [hf]
-        first
-          | (rw [trajR_R, phiK_other _ _ q ρ 8 (by decide) (by decide)]
-             convert hasDerivAt_decay (ρ (Rv 8)) (dR 8) t using 1; simp [dR, φo])
-          | (convert hasDerivAt_decay (ρ (Rv 8)) (dR 8) t using 1; simp [dR])
-      · simp only [Fin.reduceFinMk, Fin.isValue]
-        rw [fRZ9_eval q hq]
-        have hf : φo ρ 9 = fun u => ρ (Rv 9) * Real.exp (-(dR 9 * u)) := rfl
-        rw [hf]
-        first
-          | (rw [trajR_R, phiK_other _ _ q ρ 9 (by decide) (by decide)]
-             convert hasDerivAt_decay (ρ (Rv 9)) (dR 9) t using 1; simp [dR, φo])
-          | (convert hasDerivAt_decay (ρ (Rv 9)) (dR 9) t using 1; simp [dR])
-      · simp only [Fin.reduceFinMk, Fin.isValue]
-        rw [fRZ10_eval q hq]
-        have hf : φo ρ 10 = fun u => ρ (Rv 10) * Real.exp (-(dR 10 * u)) := rfl
-        rw [hf]
-        first
-          | (rw [trajR_R, phiK_other _ _ q ρ 10 (by decide) (by decide)]
-             convert hasDerivAt_decay (ρ (Rv 10)) (dR 10) t using 1; simp [dR, φo])
-          | (convert hasDerivAt_decay (ρ (Rv 10)) (dR 10) t using 1; simp [dR])
-      · simp only [Fin.reduceFinMk, Fin.isValue]
-        rw [fRZ11_eval q hq]
-        have hf : φo ρ 11 = fun u => ρ (Rv 11) * Real.exp (-(dR 11 * u)) := rfl
-        rw [hf]
-        first
-          | (rw [trajR_R, phiK_other _ _ q ρ 11 (by decide) (by decide)]
-             convert hasDerivAt_decay (ρ (Rv 11)) (dR 11) t using 1; simp [dR, φo])
-          | (convert hasDerivAt_decay (ρ (Rv 11)) (dR 11) t using 1; simp [dR]))
-    (fun q hq ρ _ t _ => by
-      rw [fRZ1_eval q hq, trajR_R, trajR_R, trajR_R, phiK_v,
-        phiK_other _ _ q ρ 2 (by decide) (by decide), phiK_other _ _ q ρ 3 (by decide) (by decide)]
-      simp only [kapT])
-    kapT_cont
-    (fun ρ hρ t ht => kapT_low ρ hρ ht)
-    (fun q _ ρ hρ t ht => by
-      have hD := (sat_domRZ ρ).mp hρ
-      obtain ⟨h7l, h7h, h2l, h2h, h1l, h3l, h3h, h0l, h0h, h8l, h8h, h9l, h9h, h10l, h10h, h11l, h11h, h4l, h4h, h5l, h5h, h6l, h6h⟩ := hD
-      have hv : min (ρ (Rv 0)) (ladC q) ≤ phiK φo kapT q ρ 0 t ∧
-          phiK φo kapT q ρ 0 t ≤ max (ρ (Rv 0)) (ladC q) := by
-        rw [phiK_v]; exact vLaw_between q ρ ht
-      have hc := ladC_bounds q
-      have hs : ρ (Rv 1) ≤ phiK φo kapT q ρ 1 t := by
-        rw [phiK_s]
-        have h := integral_vk_low q ρ (kapT ρ) (kapT_cont ρ) (4/5) (by norm_num) h0l ht
-          (fun u hu _ => kapT_low ρ hρ hu)
-        linarith [h.2]
-      have hk : ∀ k : Fin 12, k ≠ 0 → k ≠ 1 →
-          min (ρ (Rv k)) 0 ≤ phiK φo kapT q ρ k t ∧ phiK φo kapT q ρ k t ≤ max (ρ (Rv k)) 0 :=
-        fun k h0 h1 => by
-          rw [phiK_other φo kapT q ρ k h0 h1]
-          exact decay_between _ _ t (dR_nonneg k) ht
-      rw [sat_domRZ]
-      simp only [trajR_R]
-      exact ⟨le_trans (le_min h7l (by norm_num)) (hk 7 (by decide) (by decide)).1,
-        le_trans (hk 7 (by decide) (by decide)).2 (max_le h7h (by norm_num)),
-        le_trans (le_min h2l (by norm_num)) (hk 2 (by decide) (by decide)).1,
-        le_trans (hk 2 (by decide) (by decide)).2 (max_le h2h (by norm_num)),
-        le_trans h1l hs,
-        le_trans (le_min h3l (by norm_num)) (hk 3 (by decide) (by decide)).1,
-        le_trans (hk 3 (by decide) (by decide)).2 (max_le h3h (by norm_num)),
-        le_trans (le_min h0l (by linarith [hc.1])) hv.1,
-        le_trans hv.2 (max_le h0h (by linarith [hc.2])),
-        le_trans (le_min h8l (by norm_num)) (hk 8 (by decide) (by decide)).1,
-        le_trans (hk 8 (by decide) (by decide)).2 (max_le h8h (by norm_num)),
-        le_trans (le_min h9l (by norm_num)) (hk 9 (by decide) (by decide)).1,
-        le_trans (hk 9 (by decide) (by decide)).2 (max_le h9h (by norm_num)),
-        le_trans (le_min h10l (by norm_num)) (hk 10 (by decide) (by decide)).1,
-        le_trans (hk 10 (by decide) (by decide)).2 (max_le h10h (by norm_num)),
-        le_trans (le_min h11l (by norm_num)) (hk 11 (by decide) (by decide)).1,
-        le_trans (hk 11 (by decide) (by decide)).2 (max_le h11h (by norm_num)),
-        le_trans (le_min h4l (by norm_num)) (hk 4 (by decide) (by decide)).1,
-        le_trans (hk 4 (by decide) (by decide)).2 (max_le h4h (by norm_num)),
-        le_trans (le_min h5l (by norm_num)) (hk 5 (by decide) (by decide)).1,
-        le_trans (hk 5 (by decide) (by decide)).2 (max_le h5h (by norm_num)),
-        le_trans (le_min h6l (by norm_num)) (hk 6 (by decide) (by decide)).1,
-        le_trans (hk 6 (by decide) (by decide)).2 (max_le h6h (by norm_num))⟩)
-    (fun ρ hρ => by have hD := (sat_domRZ ρ).mp hρ; exact hD.2.2.2.2.2.2.2.1)
-    (edgeG 0 1) (edgeG 1 2) (edgeG 2 2)
-    (edgeG_mem 0 1 (by simp [GrG])) (edgeG_mem 1 2 (by simp [GrG]))
-    (edgeG_mem 2 2 (by simp [GrG])) rfl rfl rfl
-    (fun x hs _ => by
-      show Formula.sat (hostGuard vsZ 12 Side.R (mRZ 1)) x
-      rw [sat_guardR1]; exact ⟨le_of_eq hs.symm, by rw [hs]; norm_num⟩)
-    (fun x hs _ => by
-      show Formula.sat (hostGuard vsZ 12 Side.R (mRZ 2)) x
-      rw [sat_guardR2]; exact le_of_eq hs.symm)
-    (fun x hs _ => by
-      show Formula.sat (hostGuard vsZ 12 Side.R (mRZ 2)) x
-      rw [sat_guardR2]; exact hs)
 
 /-! ## The guarded window family -/
 
@@ -440,17 +220,17 @@ theorem hO1L (l : ℕ) (hl : l < 3) :
   · interval_cases l <;>
     · intro x hx
       simp [cutAtomsOfX, story2_lateral_rung_b_12dof_cutsV2X, mLZ,
-        story2_lateral_rung_b_12dof_IR] at hx
+        story2_lateral_rung_b_12dof_IR, story2_lateral_rung_b_12dof_IRv2] at hx
       rcases hx with rfl <;> simp
   · interval_cases l <;>
     · intro x hx
       simp [cutAtomsOfX, story2_lateral_rung_b_12dof_cutsV2X, mLZ,
-        story2_lateral_rung_b_12dof_IR] at hx
+        story2_lateral_rung_b_12dof_IR, story2_lateral_rung_b_12dof_IRv2] at hx
       rcases hx with rfl <;>
         simp [Run.lowerF, Run.lowerE, gp_0_0, gp_0_6, gp_1_4, gp_0_3, gp_0_5, gp_0_65, vsZ,
           Run.resolveVar, List.findIdx?_cons]
   · interval_cases l <;>
-      simp [mLZ, story2_lateral_rung_b_12dof_IR, Run.lowerF, Run.lowerE, gp_0, gp_0_0, gp_0_05, gp_0_06, gp_0_0625, gp_0_07, gp_0_0775, gp_0_08, gp_0_085, gp_0_1, gp_0_125, gp_0_15, gp_0_156, gp_0_2, gp_0_205, gp_0_25, gp_0_255, gp_0_3, gp_0_30, gp_0_33, gp_0_35, gp_0_355, gp_0_4, gp_0_45, gp_0_48, gp_0_5, gp_0_50, gp_0_55, gp_0_6, gp_0_65, gp_0_6775, gp_0_7, gp_0_72, gp_0_75, gp_0_8, gp_0_84, gp_0_855, gp_0_88, gp_0_9, gp_0_95, gp_1, gp_10, gp_1000_0, gp_100_0, gp_10_0, gp_12_0, gp_12_45, gp_12_5, gp_13_0, gp_15_0, gp_15_5, gp_16, gp_16_0, gp_17_0, gp_1_0, gp_1_001, gp_1_1, gp_1_125, gp_1_15, gp_1_2, gp_1_25, gp_1_3, gp_1_4, gp_1_5, gp_1_52, gp_1_6, gp_1_62, gp_1_68, gp_1_8, gp_2, gp_20_0, gp_21_0, gp_22_0, gp_23_0, gp_24_0, gp_25_0, gp_26_0, gp_27_0, gp_28_0, gp_29_0, gp_2_0, gp_2_1, gp_2_2, gp_2_25, gp_2_5, gp_2_6, gp_3, gp_30_0, gp_32_0, gp_33_0, gp_34_0, gp_35_0, gp_36_0, gp_3_0, gp_3_04, gp_3_2, gp_3_5, gp_3_6, gp_4, gp_40_0, gp_4_0, gp_4_4, gp_5, gp_50_0, gp_5_0, gp_5_5, gp_60_0, gp_6_0, gp_6_5, gp_7_45, gp_8, gp_80_0, gp_899_95, gp_8_0, gp_8_45, gp_90_0, gp_99_0, gp_9_0, gp_9_524, gp_m0_01, gp_m0_125, gp_m0_2, gp_m0_25, gp_m0_3, gp_m0_4, gp_m0_42, gp_m0_45, gp_m0_5, gp_m0_6, gp_m0_7, gp_m0_75, gp_m0_8, gp_m1, gp_m10_0, gp_m1_0, gp_m1_5, gp_m1_52, gp_m2, gp_m2_0, gp_m2_5, gp_m3_04, gp_m4, vsZ,
+      simp [mLZ, story2_lateral_rung_b_12dof_IR, story2_lateral_rung_b_12dof_IRv2, Run.lowerF, Run.lowerE, gp_0, gp_0_0, gp_0_05, gp_0_06, gp_0_0625, gp_0_07, gp_0_0775, gp_0_08, gp_0_085, gp_0_1, gp_0_125, gp_0_15, gp_0_156, gp_0_2, gp_0_205, gp_0_25, gp_0_255, gp_0_3, gp_0_30, gp_0_33, gp_0_35, gp_0_355, gp_0_4, gp_0_45, gp_0_48, gp_0_5, gp_0_50, gp_0_55, gp_0_6, gp_0_65, gp_0_6775, gp_0_7, gp_0_72, gp_0_75, gp_0_8, gp_0_84, gp_0_855, gp_0_88, gp_0_9, gp_0_95, gp_1, gp_10, gp_1000_0, gp_100_0, gp_10_0, gp_12_0, gp_12_45, gp_12_5, gp_13_0, gp_15_0, gp_15_5, gp_16, gp_16_0, gp_17_0, gp_1_0, gp_1_001, gp_1_1, gp_1_125, gp_1_15, gp_1_2, gp_1_25, gp_1_3, gp_1_4, gp_1_5, gp_1_52, gp_1_6, gp_1_62, gp_1_68, gp_1_8, gp_2, gp_20_0, gp_21_0, gp_22_0, gp_23_0, gp_24_0, gp_25_0, gp_26_0, gp_27_0, gp_28_0, gp_29_0, gp_2_0, gp_2_1, gp_2_2, gp_2_25, gp_2_5, gp_2_6, gp_3, gp_30_0, gp_32_0, gp_33_0, gp_34_0, gp_35_0, gp_36_0, gp_3_0, gp_3_04, gp_3_2, gp_3_5, gp_3_6, gp_4, gp_40_0, gp_4_0, gp_4_4, gp_5, gp_50_0, gp_5_0, gp_5_5, gp_60_0, gp_6_0, gp_6_5, gp_7_45, gp_8, gp_80_0, gp_899_95, gp_8_0, gp_8_45, gp_90_0, gp_99_0, gp_9_0, gp_9_524, gp_m0_01, gp_m0_125, gp_m0_2, gp_m0_25, gp_m0_3, gp_m0_4, gp_m0_42, gp_m0_45, gp_m0_5, gp_m0_6, gp_m0_7, gp_m0_75, gp_m0_8, gp_m1, gp_m10_0, gp_m1_0, gp_m1_5, gp_m1_52, gp_m2, gp_m2_0, gp_m2_5, gp_m3_04, gp_m4, vsZ,
         Run.resolveVar, List.findIdx?_cons]
 
 theorem hO1R (q : ℕ) (hq : q < 3) :
@@ -461,17 +241,17 @@ theorem hO1R (q : ℕ) (hq : q < 3) :
   · interval_cases q <;>
     · intro x hx
       simp [cutAtomsOfX, story2_lateral_rung_b_12dof_cutsV2X, mRZ,
-        story2_lateral_rung_b_12dof_IR] at hx
+        story2_lateral_rung_b_12dof_IR, story2_lateral_rung_b_12dof_IRv2] at hx
       rcases hx with rfl <;> simp
   · interval_cases q <;>
     · intro x hx
       simp [cutAtomsOfX, story2_lateral_rung_b_12dof_cutsV2X, mRZ,
-        story2_lateral_rung_b_12dof_IR] at hx
+        story2_lateral_rung_b_12dof_IR, story2_lateral_rung_b_12dof_IRv2] at hx
       rcases hx with rfl <;>
         simp [Run.lowerF, Run.lowerE, gp_0_0, gp_0_6, gp_1_4, vsZ, Run.resolveVar,
           List.findIdx?_cons]
   · interval_cases q <;>
-      simp [mRZ, story2_lateral_rung_b_12dof_IR, Run.lowerF, Run.lowerE, gp_0, gp_0_0, gp_0_05, gp_0_06, gp_0_0625, gp_0_07, gp_0_0775, gp_0_08, gp_0_085, gp_0_1, gp_0_125, gp_0_15, gp_0_156, gp_0_2, gp_0_205, gp_0_25, gp_0_255, gp_0_3, gp_0_30, gp_0_33, gp_0_35, gp_0_355, gp_0_4, gp_0_45, gp_0_48, gp_0_5, gp_0_50, gp_0_55, gp_0_6, gp_0_65, gp_0_6775, gp_0_7, gp_0_72, gp_0_75, gp_0_8, gp_0_84, gp_0_855, gp_0_88, gp_0_9, gp_0_95, gp_1, gp_10, gp_1000_0, gp_100_0, gp_10_0, gp_12_0, gp_12_45, gp_12_5, gp_13_0, gp_15_0, gp_15_5, gp_16, gp_16_0, gp_17_0, gp_1_0, gp_1_001, gp_1_1, gp_1_125, gp_1_15, gp_1_2, gp_1_25, gp_1_3, gp_1_4, gp_1_5, gp_1_52, gp_1_6, gp_1_62, gp_1_68, gp_1_8, gp_2, gp_20_0, gp_21_0, gp_22_0, gp_23_0, gp_24_0, gp_25_0, gp_26_0, gp_27_0, gp_28_0, gp_29_0, gp_2_0, gp_2_1, gp_2_2, gp_2_25, gp_2_5, gp_2_6, gp_3, gp_30_0, gp_32_0, gp_33_0, gp_34_0, gp_35_0, gp_36_0, gp_3_0, gp_3_04, gp_3_2, gp_3_5, gp_3_6, gp_4, gp_40_0, gp_4_0, gp_4_4, gp_5, gp_50_0, gp_5_0, gp_5_5, gp_60_0, gp_6_0, gp_6_5, gp_7_45, gp_8, gp_80_0, gp_899_95, gp_8_0, gp_8_45, gp_90_0, gp_99_0, gp_9_0, gp_9_524, gp_m0_01, gp_m0_125, gp_m0_2, gp_m0_25, gp_m0_3, gp_m0_4, gp_m0_42, gp_m0_45, gp_m0_5, gp_m0_6, gp_m0_7, gp_m0_75, gp_m0_8, gp_m1, gp_m10_0, gp_m1_0, gp_m1_5, gp_m1_52, gp_m2, gp_m2_0, gp_m2_5, gp_m3_04, gp_m4, vsZ,
+      simp [mRZ, story2_lateral_rung_b_12dof_IR, story2_lateral_rung_b_12dof_IRv2, Run.lowerF, Run.lowerE, gp_0, gp_0_0, gp_0_05, gp_0_06, gp_0_0625, gp_0_07, gp_0_0775, gp_0_08, gp_0_085, gp_0_1, gp_0_125, gp_0_15, gp_0_156, gp_0_2, gp_0_205, gp_0_25, gp_0_255, gp_0_3, gp_0_30, gp_0_33, gp_0_35, gp_0_355, gp_0_4, gp_0_45, gp_0_48, gp_0_5, gp_0_50, gp_0_55, gp_0_6, gp_0_65, gp_0_6775, gp_0_7, gp_0_72, gp_0_75, gp_0_8, gp_0_84, gp_0_855, gp_0_88, gp_0_9, gp_0_95, gp_1, gp_10, gp_1000_0, gp_100_0, gp_10_0, gp_12_0, gp_12_45, gp_12_5, gp_13_0, gp_15_0, gp_15_5, gp_16, gp_16_0, gp_17_0, gp_1_0, gp_1_001, gp_1_1, gp_1_125, gp_1_15, gp_1_2, gp_1_25, gp_1_3, gp_1_4, gp_1_5, gp_1_52, gp_1_6, gp_1_62, gp_1_68, gp_1_8, gp_2, gp_20_0, gp_21_0, gp_22_0, gp_23_0, gp_24_0, gp_25_0, gp_26_0, gp_27_0, gp_28_0, gp_29_0, gp_2_0, gp_2_1, gp_2_2, gp_2_25, gp_2_5, gp_2_6, gp_3, gp_30_0, gp_32_0, gp_33_0, gp_34_0, gp_35_0, gp_36_0, gp_3_0, gp_3_04, gp_3_2, gp_3_5, gp_3_6, gp_4, gp_40_0, gp_4_0, gp_4_4, gp_5, gp_50_0, gp_5_0, gp_5_5, gp_60_0, gp_6_0, gp_6_5, gp_7_45, gp_8, gp_80_0, gp_899_95, gp_8_0, gp_8_45, gp_90_0, gp_99_0, gp_9_0, gp_9_524, gp_m0_01, gp_m0_125, gp_m0_2, gp_m0_25, gp_m0_3, gp_m0_4, gp_m0_42, gp_m0_45, gp_m0_5, gp_m0_6, gp_m0_7, gp_m0_75, gp_m0_8, gp_m1, gp_m10_0, gp_m1_0, gp_m1_5, gp_m1_52, gp_m2, gp_m2_0, gp_m2_5, gp_m3_04, gp_m4, vsZ,
         Run.resolveVar, List.findIdx?_cons]
 
 /-! ## The fields and envelopes the atoms' staying needs -/
@@ -479,7 +259,7 @@ theorem hO1R (q : ℕ) (hq : q < 3) :
 theorem fLZ_eval0 (l : ℕ) (hl : l < 3) (x : State (Var 12)) :
     Term.eval (fLZ l 0) x = 3 * (ladC l - x (Lv 0)) := by
   interval_cases l <;>
-    simp [fLZ, hostDyn, mLZ, story2_lateral_rung_b_12dof_IR, vsZ, Run.dynOf,
+    simp [fLZ, hostDyn, mLZ, story2_lateral_rung_b_12dof_IR, story2_lateral_rung_b_12dof_IRv2, vsZ, Run.dynOf,
       Run.lowerE, gp_0, gp_0_0, gp_0_05, gp_0_06, gp_0_0625, gp_0_07, gp_0_0775, gp_0_08, gp_0_085, gp_0_1, gp_0_125, gp_0_15, gp_0_156, gp_0_2, gp_0_205, gp_0_25, gp_0_255, gp_0_3, gp_0_30, gp_0_33, gp_0_35, gp_0_355, gp_0_4, gp_0_45, gp_0_48, gp_0_5, gp_0_50, gp_0_55, gp_0_6, gp_0_65, gp_0_6775, gp_0_7, gp_0_72, gp_0_75, gp_0_8, gp_0_84, gp_0_855, gp_0_88, gp_0_9, gp_0_95, gp_1, gp_10, gp_1000_0, gp_100_0, gp_10_0, gp_12_0, gp_12_45, gp_12_5, gp_13_0, gp_15_0, gp_15_5, gp_16, gp_16_0, gp_17_0, gp_1_0, gp_1_001, gp_1_1, gp_1_125, gp_1_15, gp_1_2, gp_1_25, gp_1_3, gp_1_4, gp_1_5, gp_1_52, gp_1_6, gp_1_62, gp_1_68, gp_1_8, gp_2, gp_20_0, gp_21_0, gp_22_0, gp_23_0, gp_24_0, gp_25_0, gp_26_0, gp_27_0, gp_28_0, gp_29_0, gp_2_0, gp_2_1, gp_2_2, gp_2_25, gp_2_5, gp_2_6, gp_3, gp_30_0, gp_32_0, gp_33_0, gp_34_0, gp_35_0, gp_36_0, gp_3_0, gp_3_04, gp_3_2, gp_3_5, gp_3_6, gp_4, gp_40_0, gp_4_0, gp_4_4, gp_5, gp_50_0, gp_5_0, gp_5_5, gp_60_0, gp_6_0, gp_6_5, gp_7_45, gp_8, gp_80_0, gp_899_95, gp_8_0, gp_8_45, gp_90_0, gp_99_0, gp_9_0, gp_9_524, gp_m0_01, gp_m0_125, gp_m0_2, gp_m0_25, gp_m0_3, gp_m0_4, gp_m0_42, gp_m0_45, gp_m0_5, gp_m0_6, gp_m0_7, gp_m0_75, gp_m0_8, gp_m1, gp_m10_0, gp_m1_0, gp_m1_5, gp_m1_52, gp_m2, gp_m2_0, gp_m2_5, gp_m3_04, gp_m4, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
       Term.eval, AOp.interp, Lv, ladC]
 
@@ -487,14 +267,14 @@ theorem fLZ_eval1 (l : ℕ) (hl : l < 3) (x : State (Var 12)) :
     Term.eval (fLZ l 1) x =
       x (Lv 0) * ((1 - 1/2 * (x (Lv 2) * x (Lv 2))) - 3/10 * (x (Lv 3) * x (Lv 3))) := by
   interval_cases l <;>
-    simp [fLZ, hostDyn, mLZ, story2_lateral_rung_b_12dof_IR, vsZ, Run.dynOf,
+    simp [fLZ, hostDyn, mLZ, story2_lateral_rung_b_12dof_IR, story2_lateral_rung_b_12dof_IRv2, vsZ, Run.dynOf,
       Run.lowerE, gp_0, gp_0_0, gp_0_05, gp_0_06, gp_0_0625, gp_0_07, gp_0_0775, gp_0_08, gp_0_085, gp_0_1, gp_0_125, gp_0_15, gp_0_156, gp_0_2, gp_0_205, gp_0_25, gp_0_255, gp_0_3, gp_0_30, gp_0_33, gp_0_35, gp_0_355, gp_0_4, gp_0_45, gp_0_48, gp_0_5, gp_0_50, gp_0_55, gp_0_6, gp_0_65, gp_0_6775, gp_0_7, gp_0_72, gp_0_75, gp_0_8, gp_0_84, gp_0_855, gp_0_88, gp_0_9, gp_0_95, gp_1, gp_10, gp_1000_0, gp_100_0, gp_10_0, gp_12_0, gp_12_45, gp_12_5, gp_13_0, gp_15_0, gp_15_5, gp_16, gp_16_0, gp_17_0, gp_1_0, gp_1_001, gp_1_1, gp_1_125, gp_1_15, gp_1_2, gp_1_25, gp_1_3, gp_1_4, gp_1_5, gp_1_52, gp_1_6, gp_1_62, gp_1_68, gp_1_8, gp_2, gp_20_0, gp_21_0, gp_22_0, gp_23_0, gp_24_0, gp_25_0, gp_26_0, gp_27_0, gp_28_0, gp_29_0, gp_2_0, gp_2_1, gp_2_2, gp_2_25, gp_2_5, gp_2_6, gp_3, gp_30_0, gp_32_0, gp_33_0, gp_34_0, gp_35_0, gp_36_0, gp_3_0, gp_3_04, gp_3_2, gp_3_5, gp_3_6, gp_4, gp_40_0, gp_4_0, gp_4_4, gp_5, gp_50_0, gp_5_0, gp_5_5, gp_60_0, gp_6_0, gp_6_5, gp_7_45, gp_8, gp_80_0, gp_899_95, gp_8_0, gp_8_45, gp_90_0, gp_99_0, gp_9_0, gp_9_524, gp_m0_01, gp_m0_125, gp_m0_2, gp_m0_25, gp_m0_3, gp_m0_4, gp_m0_42, gp_m0_45, gp_m0_5, gp_m0_6, gp_m0_7, gp_m0_75, gp_m0_8, gp_m1, gp_m10_0, gp_m1_0, gp_m1_5, gp_m1_52, gp_m2, gp_m2_0, gp_m2_5, gp_m3_04, gp_m4, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
       Term.eval, AOp.interp, Lv]
 
 theorem domL_bnd (z : State (Var 12)) (hz : Formula.sat domLZ z) :
     0 ≤ z (Lv 0) ∧ -(1:ℝ)/2 ≤ z (Lv 2) ∧ z (Lv 2) ≤ 1/2 ∧ -(1:ℝ)/2 ≤ z (Lv 3) ∧
       z (Lv 3) ≤ 1/2 := by
-  simp only [domLZ, hostEvolve, mLZ, story2_lateral_rung_b_12dof_IR, vsZ] at hz
+  simp only [domLZ, hostEvolve, mLZ, story2_lateral_rung_b_12dof_IR, story2_lateral_rung_b_12dof_IRv2, vsZ] at hz
   simp [Run.lowerF, Run.lowerE, gp_0, gp_0_0, gp_0_05, gp_0_06, gp_0_0625, gp_0_07, gp_0_0775, gp_0_08, gp_0_085, gp_0_1, gp_0_125, gp_0_15, gp_0_156, gp_0_2, gp_0_205, gp_0_25, gp_0_255, gp_0_3, gp_0_30, gp_0_33, gp_0_35, gp_0_355, gp_0_4, gp_0_45, gp_0_48, gp_0_5, gp_0_50, gp_0_55, gp_0_6, gp_0_65, gp_0_6775, gp_0_7, gp_0_72, gp_0_75, gp_0_8, gp_0_84, gp_0_855, gp_0_88, gp_0_9, gp_0_95, gp_1, gp_10, gp_1000_0, gp_100_0, gp_10_0, gp_12_0, gp_12_45, gp_12_5, gp_13_0, gp_15_0, gp_15_5, gp_16, gp_16_0, gp_17_0, gp_1_0, gp_1_001, gp_1_1, gp_1_125, gp_1_15, gp_1_2, gp_1_25, gp_1_3, gp_1_4, gp_1_5, gp_1_52, gp_1_6, gp_1_62, gp_1_68, gp_1_8, gp_2, gp_20_0, gp_21_0, gp_22_0, gp_23_0, gp_24_0, gp_25_0, gp_26_0, gp_27_0, gp_28_0, gp_29_0, gp_2_0, gp_2_1, gp_2_2, gp_2_25, gp_2_5, gp_2_6, gp_3, gp_30_0, gp_32_0, gp_33_0, gp_34_0, gp_35_0, gp_36_0, gp_3_0, gp_3_04, gp_3_2, gp_3_5, gp_3_6, gp_4, gp_40_0, gp_4_0, gp_4_4, gp_5, gp_50_0, gp_5_0, gp_5_5, gp_60_0, gp_6_0, gp_6_5, gp_7_45, gp_8, gp_80_0, gp_899_95, gp_8_0, gp_8_45, gp_90_0, gp_99_0, gp_9_0, gp_9_524, gp_m0_01, gp_m0_125, gp_m0_2, gp_m0_25, gp_m0_3, gp_m0_4, gp_m0_42, gp_m0_45, gp_m0_5, gp_m0_6, gp_m0_7, gp_m0_75, gp_m0_8, gp_m1, gp_m10_0, gp_m1_0, gp_m1_5, gp_m1_52, gp_m2, gp_m2_0, gp_m2_5, gp_m3_04, gp_m4, Run.resolveVar, List.findIdx?_cons, IForm.toHost,
     ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Lv] at hz
   casesm* _ ∧ _
@@ -559,7 +339,7 @@ theorem comps_eq : hostComps vsZ 12
         ("L_y2".drop 2).copy = "y2" ∧ ("R_y2".drop 2).copy = "y2" := by decide
     rcases ha with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
       exact ⟨⟨_, _, _, rfl⟩, by
-        simp [atomsOf, invZPF, story2_lateral_rung_b_12dof_IR, Run.invToG, Run.lowerE,
+        simp [atomsOf, invZPF, story2_lateral_rung_b_12dof_IR, story2_lateral_rung_b_12dof_IRv2, Run.invToG, Run.lowerE,
           vsZ, gp_0_3, Run.resolveVar, Parse.dr, hdrops, List.findIdx?_cons]⟩
 
 theorem comps_fv : ∀ c ∈ gZ :: gsZ, c.fv ⊆ range Lv ∪ range Rv := by
@@ -598,7 +378,7 @@ theorem verd_core (l q : ℕ) (hl : l < 3) (hq : q < 3) (h : Verd l q) :
 
 theorem cR_nil (q : ℕ) (hq : 3 ≤ q) : cR q = [] := by
   have : mRZ q = dummyZ :=
-    List.getD_eq_default _ _ (by simp [story2_lateral_rung_b_12dof_IR]; omega)
+    List.getD_eq_default _ _ (by simp [story2_lateral_rung_b_12dof_IR, story2_lateral_rung_b_12dof_IRv2]; omega)
   simp only [cR, this]
   rfl
 

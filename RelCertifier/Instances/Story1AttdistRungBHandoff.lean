@@ -823,7 +823,7 @@ theorem hnextF (dt : ℝ) : ∀ m' < (AF dt).numModes, ∀ t ∈ (AF dt).succ m'
 theorem hguardF (t : ℕ) (ht : t < 3) : (hostGuard vsF 12 Side.L (mLF t)).fv ⊆ range Lv := by
   refine hostGuard_fv_L vsF (mLF t) ?_
   interval_cases t <;>
-    simp [mLF, story1_attdist_rung_b_12dof_IR, Parse.PForm.namesFree, Parse.PExpr.namesFree]
+    simp [mLF, story1_attdist_rung_b_12dof_IR, story1_attdist_rung_b_12dof_IRv2, Parse.PForm.namesFree, Parse.PExpr.namesFree]
 
 theorem hgrdF (dt : ℝ) : ∀ t < (AF dt).numModes, ((AF dt).guard t).fv ⊆ range Lv := by
   intro t ht

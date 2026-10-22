@@ -24,6 +24,7 @@ import RelCertifier.Proofs.Encoding.CanonicalInv
 import RelCertifier.Proofs.Encoding.CoverInstance
 import RelCertifier.Proofs.Flow.AffineFaces
 import RelCertifier.Instances.BenchIR.story2_lateral_rung_a_8dof
+import RelCertifier.Instances.WellFormed.Story2LateralA
 
 namespace RelCertifier
 namespace Story2LateralAModal
@@ -32,19 +33,13 @@ open DL DLCalTiming DLRel Parse Set
 
 set_option maxHeartbeats 3200000
 
-def vsY : List String := ["v", "s", "psi", "theta_p", "y", "z", "phi_r", "w"]
-def dummyY : Parse.PMode := ⟨"", [], .tt, .tt, []⟩
 def mLY (l : ℕ) : Parse.PMode := story2_lateral_rung_a_8dof_IR.L.modes.getD l dummyY
-def mRY (q : ℕ) : Parse.PMode := story2_lateral_rung_a_8dof_IR.R.modes.getD q dummyY
-
 abbrev mvY : Var 8 := (Side.Aux, 0)
 abbrev aY : Fin 8 := (1 : Fin 8)
 abbrev tgY : Var 8 := (Side.Aux, aY)
 
 noncomputable def fLY (l : ℕ) : Fin 8 → Term (Var 8) := hostDyn vsY 8 Side.L (mLY l)
-noncomputable def fRY (q : ℕ) : Fin 8 → Term (Var 8) := hostDyn vsY 8 Side.R (mRY q)
 noncomputable def domLY : Formula (Var 8) := hostEvolve vsY 8 Side.L (mLY 0)
-noncomputable def domRY : Formula (Var 8) := hostEvolve vsY 8 Side.R (mRY 0)
 noncomputable def envY : Formula (Var 8) := Formula.and domLY domRY
 
 def atomsOf : Parse.PForm → List Parse.PForm
@@ -75,23 +70,23 @@ theorem domRY_pipe : domRY =
 theorem hfLY (l : ℕ) (hl : l < 3) : ∀ i, (fLY l i).fv ⊆ range Lv := fun i x hx =>
   side_eq_L_mem (field_pipeline_side (resolvesTo_L vsY) (some (mLY l))
     (by interval_cases l <;>
-      simp [mLY, story2_lateral_rung_a_8dof_IR, Parse.PExpr.namesFree]) i x
+      simp [mLY, story2_lateral_rung_a_8dof_IR, story2_lateral_rung_a_8dof_IRv2, Parse.PExpr.namesFree]) i x
     (fLY_pipe l i ▸ hx))
 
 theorem hfRY (q : ℕ) (hq : q < 3) : ∀ i, (fRY q i).fv ⊆ range Rv := fun i x hx =>
   side_eq_R_mem (field_pipeline_side (resolvesTo_R vsY) (some (mRY q))
     (by interval_cases q <;>
-      simp [mRY, story2_lateral_rung_a_8dof_IR, Parse.PExpr.namesFree]) i x
+      simp [mRY, story2_lateral_rung_a_8dof_IR, story2_lateral_rung_a_8dof_IRv2, Parse.PExpr.namesFree]) i x
     (fRY_pipe q i ▸ hx))
 
 theorem hdomLY : domLY.fv ⊆ range Lv := fun x hx =>
   side_eq_L_mem (form_pipeline_side (resolvesTo_L vsY) (some (mLY 0))
-    (by simp [mLY, story2_lateral_rung_a_8dof_IR, Parse.PForm.namesFree,
+    (by simp [mLY, story2_lateral_rung_a_8dof_IR, story2_lateral_rung_a_8dof_IRv2, Parse.PForm.namesFree,
       Parse.PExpr.namesFree]) x (domLY_pipe ▸ hx))
 
 theorem hdomRY : domRY.fv ⊆ range Rv := fun x hx =>
   side_eq_R_mem (form_pipeline_side (resolvesTo_R vsY) (some (mRY 0))
-    (by simp [mRY, story2_lateral_rung_a_8dof_IR, Parse.PForm.namesFree,
+    (by simp [mRY, story2_lateral_rung_a_8dof_IR, story2_lateral_rung_a_8dof_IRv2, Parse.PForm.namesFree,
       Parse.PExpr.namesFree]) x (domRY_pipe ▸ hx))
 
 theorem hgAt (i : ℕ) : (gAt i).fv ⊆ range Lv ∪ range Rv := invToG_pipeline_LR _
@@ -123,9 +118,6 @@ theorem htgenvY : tgY ∉ envY.fv := fun h => by
   · exact absurd (hdomRY h) (by rintro ⟨i, hi⟩; exact absurd hi (by simp [Rv, Prod.ext_iff]))
 
 /-! ## The right graph -/
-
-noncomputable def modeY (q : ℕ) : RMode (Var 8) :=
-  { sys := rightBlock (fRY q) (Term.const 1), dom := domRY, weight := 1 }
 
 def edgeY (st tgt : ℕ) : REdge (Var 8) :=
   { src := st, tgt := tgt, guard := Formula.tt, pruned := false }
@@ -200,117 +192,6 @@ theorem hframesY (dt : ℝ) : ∀ P ∈ leftProgsY dt, FramesMv P mvY := by
   obtain ⟨i, hi⟩ := leftBlock_bound_sub d.1 _ h
   exact aux_ne_Lv 0 i hi
 
-
-/-! ## Parse pins -/
-
-theorem hy030 : Run.parseRat "0.30" = some ((3:ℚ)/10) := by
-  have h : parseQ "0.30" = some (⟨30, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hy050 : Run.parseRat "0.50" = some ((1:ℚ)/2) := by
-  have h : parseQ "0.50" = some (⟨50, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hy065 : Run.parseRat "0.65" = some ((13:ℚ)/20) := by
-  have h : parseQ "0.65" = some (⟨65, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hy3 : Run.parseRat "3" = some 3 := by
-  have h : parseQ "3" = some (⟨3, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hym1 : Run.parseRat "-1" = some (-1) := by
-  have h : parseQ "-1" = some (⟨-1, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hym10 : Run.parseRat "-1.0" = some (-1) := by
-  have h : parseQ "-1.0" = some (⟨-10, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hy0 : Run.parseRat "0" = some 0 := by
-  have h : parseQ "0" = some (⟨0, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hy00 : Run.parseRat "0.0" = some 0 := by
-  have h : parseQ "0.0" = some (⟨0, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hy1 : Run.parseRat "1" = some 1 := by
-  have h : parseQ "1" = some (⟨1, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hy05 : Run.parseRat "0.5" = some ((1:ℚ)/2) := by
-  have h : parseQ "0.5" = some (⟨5, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hy03 : Run.parseRat "0.3" = some ((3:ℚ)/10) := by
-  have h : parseQ "0.3" = some (⟨3, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hy08 : Run.parseRat "0.8" = some ((4:ℚ)/5) := by
-  have h : parseQ "0.8" = some (⟨8, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hym05 : Run.parseRat "-0.5" = some (-(1:ℚ)/2) := by
-  have h : parseQ "-0.5" = some (⟨-5, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hy015 : Run.parseRat "0.15" = some ((3:ℚ)/20) := by
-  have h : parseQ "0.15" = some (⟨15, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hy06 : Run.parseRat "0.6" = some ((3:ℚ)/5) := by
-  have h : parseQ "0.6" = some (⟨6, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-
-/-! ## Field and shape pins -/
-
-noncomputable def cstY (q : ℕ) : ℝ := if q = 0 then 3/10 else if q = 1 then 1/2 else 13/20
-
-theorem fRY0_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
-    Term.eval (fRY q 0) x = 3 * (cstY q - x (Rv 0)) := by
-  interval_cases q <;>
-    simp [fRY, hostDyn, mRY, story2_lateral_rung_a_8dof_IR, vsY, Run.dynOf,
-      Run.lowerE, hy3, hy030, hy050, hy065, hym1, hym10, hy0, hy1, hy05, hy03, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv, cstY]
-theorem fRY1_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
-    Term.eval (fRY q 1) x = x (Rv 0) * ((1 - 1/2 * (x (Rv 2) * x (Rv 2))) - 3/10 * (x (Rv 3) * x (Rv 3))) := by
-  interval_cases q <;>
-    simp [fRY, hostDyn, mRY, story2_lateral_rung_a_8dof_IR, vsY, Run.dynOf,
-      Run.lowerE, hy3, hy030, hy050, hy065, hym1, hym10, hy0, hy1, hy05, hy03, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem fRY2_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
-    Term.eval (fRY q 2) x = -1 * x (Rv 2) := by
-  interval_cases q <;>
-    simp [fRY, hostDyn, mRY, story2_lateral_rung_a_8dof_IR, vsY, Run.dynOf,
-      Run.lowerE, hy3, hy030, hy050, hy065, hym1, hym10, hy0, hy1, hy05, hy03, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem fRY3_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
-    Term.eval (fRY q 3) x = -1 * x (Rv 3) := by
-  interval_cases q <;>
-    simp [fRY, hostDyn, mRY, story2_lateral_rung_a_8dof_IR, vsY, Run.dynOf,
-      Run.lowerE, hy3, hy030, hy050, hy065, hym1, hym10, hy0, hy1, hy05, hy03, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem fRY4_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
-    Term.eval (fRY q 4) x = -1 * x (Rv 4) := by
-  interval_cases q <;>
-    simp [fRY, hostDyn, mRY, story2_lateral_rung_a_8dof_IR, vsY, Run.dynOf,
-      Run.lowerE, hy3, hy030, hy050, hy065, hym1, hym10, hy0, hy1, hy05, hy03, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem fRY5_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
-    Term.eval (fRY q 5) x = -1 * x (Rv 5) := by
-  interval_cases q <;>
-    simp [fRY, hostDyn, mRY, story2_lateral_rung_a_8dof_IR, vsY, Run.dynOf,
-      Run.lowerE, hy3, hy030, hy050, hy065, hym1, hym10, hy0, hy1, hy05, hy03, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem fRY6_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
-    Term.eval (fRY q 6) x = 0 := by
-  interval_cases q <;>
-    simp [fRY, hostDyn, mRY, story2_lateral_rung_a_8dof_IR, vsY, Run.dynOf,
-      Run.lowerE, hy3, hy030, hy050, hy065, hym1, hym10, hy0, hy1, hy05, hy03, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem fRY7_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
-    Term.eval (fRY q 7) x = -1 * x (Rv 7) := by
-  interval_cases q <;>
-    simp [fRY, hostDyn, mRY, story2_lateral_rung_a_8dof_IR, vsY, Run.dynOf,
-      Run.lowerE, hy3, hy030, hy050, hy065, hym1, hym10, hy0, hy1, hy05, hy03, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem sat_domRY (x : State (Var 8)) : Formula.sat domRY x ↔
-    (-(1:ℝ)/2 ≤ x (Rv 6) ∧ x (Rv 6) ≤ 3/5 ∧ -(1:ℝ)/2 ≤ x (Rv 2) ∧ x (Rv 2) ≤ 3/20 ∧
-     0 ≤ x (Rv 1) ∧ -(1:ℝ)/2 ≤ x (Rv 3) ∧ x (Rv 3) ≤ 3/20 ∧ 0 ≤ x (Rv 0) ∧
-     x (Rv 0) ≤ 4/5 ∧ -(1:ℝ) ≤ x (Rv 7) ∧ x (Rv 7) ≤ 3/20 ∧ 0 ≤ x (Rv 4) ∧
-     x (Rv 4) ≤ 3/20 ∧ -(1:ℝ) ≤ x (Rv 5) ∧ x (Rv 5) ≤ 3/20) := by
-  simp only [domRY, hostEvolve, mRY, story2_lateral_rung_a_8dof_IR, vsY]
-  simp [Run.lowerF, Run.lowerE, hym05, hy06, hy015, hy00, hy08, hym10,
-    Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
-    CompOp.interp, Term.eval, Rv]
-  tauto
 
 /-! ## Faces: 12 strict (incl. the auxiliary `y ≥ −1` band face), the conditioned
 `s` face, and the affine equilibrium face `y ≥ 0` (the stratA datum) -/

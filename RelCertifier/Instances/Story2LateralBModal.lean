@@ -18,6 +18,7 @@ import RelCertifier.Proofs.Encoding.CanonicalInv
 import RelCertifier.Proofs.Encoding.CoverInstance
 import RelCertifier.Proofs.Flow.AffineFaces
 import RelCertifier.Instances.BenchIR.story2_lateral_rung_b_12dof
+import RelCertifier.Instances.WellFormed.Story2LateralB
 
 namespace RelCertifier
 namespace Story2LateralBModal
@@ -26,19 +27,13 @@ open DL DLCalTiming DLRel Parse Set
 
 set_option maxHeartbeats 12800000
 
-def vsZ : List String := ["v", "s", "psi", "theta_p", "y", "y2", "z", "phi_r", "w", "w2", "w3", "w4"]
-def dummyZ : Parse.PMode := ⟨"", [], .tt, .tt, []⟩
 def mLZ (l : ℕ) : Parse.PMode := story2_lateral_rung_b_12dof_IR.L.modes.getD l dummyZ
-def mRZ (q : ℕ) : Parse.PMode := story2_lateral_rung_b_12dof_IR.R.modes.getD q dummyZ
-
 abbrev mvZ : Var 12 := (Side.Aux, 0)
 abbrev aZ : Fin 12 := (1 : Fin 12)
 abbrev tgZ : Var 12 := (Side.Aux, aZ)
 
 noncomputable def fLZ (l : ℕ) : Fin 12 → Term (Var 12) := hostDyn vsZ 12 Side.L (mLZ l)
-noncomputable def fRZ (q : ℕ) : Fin 12 → Term (Var 12) := hostDyn vsZ 12 Side.R (mRZ q)
 noncomputable def domLZ : Formula (Var 12) := hostEvolve vsZ 12 Side.L (mLZ 0)
-noncomputable def domRZ : Formula (Var 12) := hostEvolve vsZ 12 Side.R (mRZ 0)
 noncomputable def envZ : Formula (Var 12) := Formula.and domLZ domRZ
 
 def atomsOf : Parse.PForm → List Parse.PForm
@@ -72,23 +67,23 @@ theorem domRZ_pipe : domRZ =
 theorem hfLZ (l : ℕ) (hl : l < 3) : ∀ i, (fLZ l i).fv ⊆ range Lv := fun i x hx =>
   side_eq_L_mem (field_pipeline_side (resolvesTo_L vsZ) (some (mLZ l))
     (by interval_cases l <;>
-      simp [mLZ, story2_lateral_rung_b_12dof_IR, Parse.PExpr.namesFree]) i x
+      simp [mLZ, story2_lateral_rung_b_12dof_IR, story2_lateral_rung_b_12dof_IRv2, Parse.PExpr.namesFree]) i x
     (fLZ_pipe l i ▸ hx))
 
 theorem hfRZ (q : ℕ) (hq : q < 3) : ∀ i, (fRZ q i).fv ⊆ range Rv := fun i x hx =>
   side_eq_R_mem (field_pipeline_side (resolvesTo_R vsZ) (some (mRZ q))
     (by interval_cases q <;>
-      simp [mRZ, story2_lateral_rung_b_12dof_IR, Parse.PExpr.namesFree]) i x
+      simp [mRZ, story2_lateral_rung_b_12dof_IR, story2_lateral_rung_b_12dof_IRv2, Parse.PExpr.namesFree]) i x
     (fRZ_pipe q i ▸ hx))
 
 theorem hdomLZ : domLZ.fv ⊆ range Lv := fun x hx =>
   side_eq_L_mem (form_pipeline_side (resolvesTo_L vsZ) (some (mLZ 0))
-    (by simp [mLZ, story2_lateral_rung_b_12dof_IR, Parse.PForm.namesFree,
+    (by simp [mLZ, story2_lateral_rung_b_12dof_IR, story2_lateral_rung_b_12dof_IRv2, Parse.PForm.namesFree,
       Parse.PExpr.namesFree]) x (domLZ_pipe ▸ hx))
 
 theorem hdomRZ : domRZ.fv ⊆ range Rv := fun x hx =>
   side_eq_R_mem (form_pipeline_side (resolvesTo_R vsZ) (some (mRZ 0))
-    (by simp [mRZ, story2_lateral_rung_b_12dof_IR, Parse.PForm.namesFree,
+    (by simp [mRZ, story2_lateral_rung_b_12dof_IR, story2_lateral_rung_b_12dof_IRv2, Parse.PForm.namesFree,
       Parse.PExpr.namesFree]) x (domRZ_pipe ▸ hx))
 
 theorem hgAt (i : ℕ) : (gAt i).fv ⊆ range Lv ∪ range Rv := invToG_pipeline_LR _
@@ -120,9 +115,6 @@ theorem htgenvZ : tgZ ∉ envZ.fv := fun h => by
   · exact absurd (hdomRZ h) (by rintro ⟨i, hi⟩; exact absurd hi (by simp [Rv, Prod.ext_iff]))
 
 /-! ## The right graph (one-way chain) -/
-
-noncomputable def modeZ (q : ℕ) : RMode (Var 12) :=
-  { sys := rightBlock (fRZ q) (Term.const 1), dom := domRZ, weight := 1 }
 
 def edgeZ (st tgt : ℕ) : REdge (Var 12) :=
   { src := st, tgt := tgt, guard := Formula.tt, pruned := false }
@@ -196,142 +188,6 @@ theorem hframesZ (dt : ℝ) : ∀ P ∈ leftProgsZ dt, FramesMv P mvZ := by
   intro h
   obtain ⟨i, hi⟩ := leftBlock_bound_sub d.1 _ h
   exact aux_ne_Lv 0 i hi
-
-/-! ## Parse pins -/
-
-theorem hz030 : Run.parseRat "0.30" = some ((3:ℚ)/10) := by
-  have h : parseQ "0.30" = some (⟨30, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hz050 : Run.parseRat "0.50" = some ((1:ℚ)/2) := by
-  have h : parseQ "0.50" = some (⟨50, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hz065 : Run.parseRat "0.65" = some ((13:ℚ)/20) := by
-  have h : parseQ "0.65" = some (⟨65, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hz3 : Run.parseRat "3" = some (3) := by
-  have h : parseQ "3" = some (⟨3, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hzm1 : Run.parseRat "-1" = some (-1) := by
-  have h : parseQ "-1" = some (⟨-1, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hzm10 : Run.parseRat "-1.0" = some (-1) := by
-  have h : parseQ "-1.0" = some (⟨-10, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hz0 : Run.parseRat "0" = some (0) := by
-  have h : parseQ "0" = some (⟨0, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hz1 : Run.parseRat "1" = some (1) := by
-  have h : parseQ "1" = some (⟨1, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hz05 : Run.parseRat "0.5" = some ((1:ℚ)/2) := by
-  have h : parseQ "0.5" = some (⟨5, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hz03 : Run.parseRat "0.3" = some ((3:ℚ)/10) := by
-  have h : parseQ "0.3" = some (⟨3, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hzm05 : Run.parseRat "-0.5" = some (-(1:ℚ)/2) := by
-  have h : parseQ "-0.5" = some (⟨-5, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hz06 : Run.parseRat "0.6" = some ((3:ℚ)/5) := by
-  have h : parseQ "0.6" = some (⟨6, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hz015 : Run.parseRat "0.15" = some ((3:ℚ)/20) := by
-  have h : parseQ "0.15" = some (⟨15, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hz00 : Run.parseRat "0.0" = some (0) := by
-  have h : parseQ "0.0" = some (⟨0, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hz08 : Run.parseRat "0.8" = some ((4:ℚ)/5) := by
-  have h : parseQ "0.8" = some (⟨8, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hz11 : Run.parseRat "1.1" = some ((11:ℚ)/10) := by
-  have h : parseQ "1.1" = some (⟨11, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-
-/-! ## Field and shape pins -/
-
-noncomputable def cstZ (q : ℕ) : ℝ := if q = 0 then 3/10 else if q = 1 then 1/2 else 13/20
-
-theorem fRZ0_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRZ q 0) x = 3 * (cstZ q - x (Rv 0)) := by
-  interval_cases q <;>
-    simp [fRZ, hostDyn, mRZ, story2_lateral_rung_b_12dof_IR, vsZ, Run.dynOf,
-      Run.lowerE, hz030, hz050, hz065, hz3, hzm1, hzm10, hz0, hz1, hz05, hz03, hzm05, hz06, hz015, hz00, hz08, hz11, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv, cstZ]
-theorem fRZ1_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRZ q 1) x = x (Rv 0) * ((1 - 1/2 * (x (Rv 2) * x (Rv 2))) - 3/10 * (x (Rv 3) * x (Rv 3))) := by
-  interval_cases q <;>
-    simp [fRZ, hostDyn, mRZ, story2_lateral_rung_b_12dof_IR, vsZ, Run.dynOf,
-      Run.lowerE, hz030, hz050, hz065, hz3, hzm1, hzm10, hz0, hz1, hz05, hz03, hzm05, hz06, hz015, hz00, hz08, hz11, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem fRZ2_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRZ q 2) x = -1 * x (Rv 2) := by
-  interval_cases q <;>
-    simp [fRZ, hostDyn, mRZ, story2_lateral_rung_b_12dof_IR, vsZ, Run.dynOf,
-      Run.lowerE, hz030, hz050, hz065, hz3, hzm1, hzm10, hz0, hz1, hz05, hz03, hzm05, hz06, hz015, hz00, hz08, hz11, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem fRZ3_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRZ q 3) x = -1 * x (Rv 3) := by
-  interval_cases q <;>
-    simp [fRZ, hostDyn, mRZ, story2_lateral_rung_b_12dof_IR, vsZ, Run.dynOf,
-      Run.lowerE, hz030, hz050, hz065, hz3, hzm1, hzm10, hz0, hz1, hz05, hz03, hzm05, hz06, hz015, hz00, hz08, hz11, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem fRZ4_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRZ q 4) x = -1 * x (Rv 4) := by
-  interval_cases q <;>
-    simp [fRZ, hostDyn, mRZ, story2_lateral_rung_b_12dof_IR, vsZ, Run.dynOf,
-      Run.lowerE, hz030, hz050, hz065, hz3, hzm1, hzm10, hz0, hz1, hz05, hz03, hzm05, hz06, hz015, hz00, hz08, hz11, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem fRZ5_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRZ q 5) x = -1 * x (Rv 5) := by
-  interval_cases q <;>
-    simp [fRZ, hostDyn, mRZ, story2_lateral_rung_b_12dof_IR, vsZ, Run.dynOf,
-      Run.lowerE, hz030, hz050, hz065, hz3, hzm1, hzm10, hz0, hz1, hz05, hz03, hzm05, hz06, hz015, hz00, hz08, hz11, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem fRZ6_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRZ q 6) x = -1 * x (Rv 6) := by
-  interval_cases q <;>
-    simp [fRZ, hostDyn, mRZ, story2_lateral_rung_b_12dof_IR, vsZ, Run.dynOf,
-      Run.lowerE, hz030, hz050, hz065, hz3, hzm1, hzm10, hz0, hz1, hz05, hz03, hzm05, hz06, hz015, hz00, hz08, hz11, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem fRZ7_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRZ q 7) x = 0 := by
-  interval_cases q <;>
-    simp [fRZ, hostDyn, mRZ, story2_lateral_rung_b_12dof_IR, vsZ, Run.dynOf,
-      Run.lowerE, hz030, hz050, hz065, hz3, hzm1, hzm10, hz0, hz1, hz05, hz03, hzm05, hz06, hz015, hz00, hz08, hz11, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem fRZ8_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRZ q 8) x = -1 * x (Rv 8) := by
-  interval_cases q <;>
-    simp [fRZ, hostDyn, mRZ, story2_lateral_rung_b_12dof_IR, vsZ, Run.dynOf,
-      Run.lowerE, hz030, hz050, hz065, hz3, hzm1, hzm10, hz0, hz1, hz05, hz03, hzm05, hz06, hz015, hz00, hz08, hz11, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem fRZ9_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRZ q 9) x = 0 := by
-  interval_cases q <;>
-    simp [fRZ, hostDyn, mRZ, story2_lateral_rung_b_12dof_IR, vsZ, Run.dynOf,
-      Run.lowerE, hz030, hz050, hz065, hz3, hzm1, hzm10, hz0, hz1, hz05, hz03, hzm05, hz06, hz015, hz00, hz08, hz11, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem fRZ10_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRZ q 10) x = 0 := by
-  interval_cases q <;>
-    simp [fRZ, hostDyn, mRZ, story2_lateral_rung_b_12dof_IR, vsZ, Run.dynOf,
-      Run.lowerE, hz030, hz050, hz065, hz3, hzm1, hzm10, hz0, hz1, hz05, hz03, hzm05, hz06, hz015, hz00, hz08, hz11, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem fRZ11_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRZ q 11) x = 0 := by
-  interval_cases q <;>
-    simp [fRZ, hostDyn, mRZ, story2_lateral_rung_b_12dof_IR, vsZ, Run.dynOf,
-      Run.lowerE, hz030, hz050, hz065, hz3, hzm1, hzm10, hz0, hz1, hz05, hz03, hzm05, hz06, hz015, hz00, hz08, hz11, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-
-theorem sat_domRZ (x : State (Var 12)) : Formula.sat domRZ x ↔
-    (-(1:ℝ)/2 ≤ x (Rv 7) ∧ x (Rv 7) ≤ (3:ℝ)/5 ∧ -(1:ℝ)/2 ≤ x (Rv 2) ∧ x (Rv 2) ≤ (3:ℝ)/20 ∧ 0 ≤ x (Rv 1) ∧ -(1:ℝ)/2 ≤ x (Rv 3) ∧ x (Rv 3) ≤ (3:ℝ)/20 ∧ 0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ (4:ℝ)/5 ∧ -(1:ℝ) ≤ x (Rv 8) ∧ x (Rv 8) ≤ (3:ℝ)/20 ∧ -(1:ℝ) ≤ x (Rv 9) ∧ x (Rv 9) ≤ (11:ℝ)/10 ∧ -(1:ℝ) ≤ x (Rv 10) ∧ x (Rv 10) ≤ (11:ℝ)/10 ∧ -(1:ℝ) ≤ x (Rv 11) ∧ x (Rv 11) ≤ (11:ℝ)/10 ∧ 0 ≤ x (Rv 4) ∧ x (Rv 4) ≤ (3:ℝ)/20 ∧ 0 ≤ x (Rv 5) ∧ x (Rv 5) ≤ (3:ℝ)/20 ∧ -(1:ℝ) ≤ x (Rv 6) ∧ x (Rv 6) ≤ (3:ℝ)/20) := by
-  simp only [domRZ, hostEvolve, mRZ, story2_lateral_rung_b_12dof_IR, vsZ]
-  simp [Run.lowerF, Run.lowerE, hzm05, hz06, hz015, hz00, hz08, hzm10, hz11,
-    Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
-    CompOp.interp, Term.eval, Rv]
-  tauto
 
 /-! ## Faces -/
 

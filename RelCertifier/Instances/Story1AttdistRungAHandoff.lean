@@ -347,7 +347,7 @@ theorem hnextD (dt : ℝ) : ∀ m' < (AD dt).numModes, ∀ t ∈ (AD dt).succ m'
 theorem hguardD (t : ℕ) (ht : t < 3) : (hostGuard vsD 8 Side.L (mLD t)).fv ⊆ range Lv := by
   refine hostGuard_fv_L vsD (mLD t) ?_
   interval_cases t <;>
-    simp [mLD, story1_attdist_rung_a_6to8_IR, Parse.PForm.namesFree, Parse.PExpr.namesFree]
+    simp [mLD, story1_attdist_rung_a_6to8_IR, story1_attdist_rung_a_6to8_IRv2, Parse.PForm.namesFree, Parse.PExpr.namesFree]
 
 theorem hgrdD (dt : ℝ) : ∀ t < (AD dt).numModes, ((AD dt).guard t).fv ⊆ range Lv := by
   intro t ht

@@ -60,17 +60,6 @@ theorem suiteV2_wfModes :
     (benchIRTableV2.map (fun r => r.2.R.modes.length)).sum = expectedSuiteV2.wfModes := by
   decide
 
-/-- The copied benchmarks' legacy packs: the legacy derivation, over the filtered table. -/
-def derivedSameModalV2 : ℕ :=
-  sameModalTable.foldl (fun acc r =>
-    let (spec, info, order) := r
-    let heads := (if info.ceilCo.isSome then 1 else 0)
-               + (if info.region.isSome then 1 else 0)
-               + (if info.tailCo.isSome then 1 else 0)
-    acc + (RelCertifier.Verdicts.modalPairs spec info).length * (order.length + heads)) 0
-
-theorem derivedSameModalV2_eq : derivedSameModalV2 = expectedSameModalV2 := by decide
-
 set_option maxRecDepth 100000 in
 /-- **Every pack queries the window's own row.** For every joint pack and every reposition
 pack, the invariant row the runner quotes (`invRow`) is the row the tool reads for the

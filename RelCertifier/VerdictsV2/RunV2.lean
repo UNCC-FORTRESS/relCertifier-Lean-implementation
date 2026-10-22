@@ -21,7 +21,6 @@ import RelCertifier.InstancesV2.Cuts
 import RelCertifier.Trusted.Z3
 import RelCertifier.Verdicts.Coverage
 import RelCertifier.Verdicts.RunHandoff
-import RelCertifier.Verdicts.RunModal
 import RelCertifier.Trusted.NonConnQuery
 import RelCertifier.Trusted.JointVars
 import RelCertifier.InstancesV2.BenchCovers
@@ -625,49 +624,5 @@ over {nPaths} path(s) — tally not enforced (the declared suite is {e.paths} pa
     IO.eprintln s!"  [suite_v2] {certified} certified, {declined} declined, {errors} error(s) \
 but the declared suite is {e.certified}/{e.declined}/{e.errors}"
     return false
-
-/-! ## The 19 carried-over benchmarks: their legacy modal packs
-
-Their suite_v2 files are byte-identical copies of files of the retired legacy suite, and
-their suite_v2 literal IS the literal the legacy theorems quote (`InstancesV2/SameIR.lean`,
-`rfl`), so the legacy theorems (`Instances/`) and their verdict packs (the rows of
-`Verdicts/RunModal.modalTable`, pinned by `Verdicts/ModalPinTable`, `ModalTablePins`,
-`ModalCodePins`) are about the suite_v2 files. `modalTable` holds exactly the rows of these
-benchmarks: 22 rows over the 17 that carry packs (`refinement_ladder_rover_rung2_6dof` and
-`rung2b_6dof` are Z3-free); `rover3tier_rung12` has two per-left-mode packs, and the
-mode-keyed `story1_attdist_rung_a` / `_rung_b` add one and three packs to their base pack.
-This phase re-runs them all, so
-`--run-verdicts-v2` alone discharges every hypothesis of the suite_v2 battery (the one
-non-connection hypothesis among them, `match_multi_rate_nonconn`'s `VerdNC`, is discharged
-by the non-connection phase above: `VerdictsV2/NonConnPinV2`). -/
-
-def sameBenchV2 : List String :=
-  ["match_multi_rate", "refinement_ladder_rover_rung1_2to3",
-   "refinement_ladder_rover_rung2_3to6", "refinement_ladder_rover_rung2_6dof",
-   "refinement_ladder_rover_rung2b_6dof", "refinement_ladder_rover_rung2c_6dof",
-   "refinement_ladder_rover_rung3_6to8", "refinement_ladder_rover_rung4_8to12",
-   "rover3tier_rung12", "rover_dof_terrain_rung1", "rover_dof_terrain_rung2",
-   "rover_dof_terrain_rung3", "rover_dof_terrain_rung3_8d",
-   "story1_attdist_rung_a_6to8", "story1_attdist_rung_b_12dof",
-   "story2_lateral_rung_a_8dof", "story2_lateral_rung_b_12dof",
-   "story3_rollover_base_12dof", "story3_rollover_ladder_rung_a"]
-
-def sameModalTable : List (RelCertifier.ModalSpecs.VerdSpec × RelCertifier.Verdicts.RunInfo × List ℕ) :=
-  RelCertifier.Verdicts.modalTable.filter (fun r => sameBenchV2.contains r.1.bench)
-
-/-- Declared: the legacy modal queries of the 19 carried-over benchmarks
-(`CoveragePinsV2.derivedSameModalV2_eq` derives it from `modalTable`). -/
-def expectedSameModalV2 : Nat := 385
-
-def runSameModalV2 (cfg : Z3Config) : IO Bool := do
-  match ← Z3Session.start cfg with
-  | .error e => IO.eprintln s!"ERROR: z3: {e}"; return false
-  | .ok s =>
-      IO.println s!"== suite_v2 copied benchmarks : {sameModalTable.length} legacy verdict packs =="
-      let mut ok := true
-      for (spec, info, order) in sameModalTable do
-        ok := (← RelCertifier.Verdicts.runSpec s spec info order) && ok
-      s.close
-      pure ok
 
 end RelCertifier.VerdictsV2

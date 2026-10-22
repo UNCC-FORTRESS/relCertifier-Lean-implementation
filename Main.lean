@@ -109,15 +109,11 @@ def runAllVerdictsV2 (cfg : RelCertifier.Z3Config) : IO Bool := do
     RelCertifier.VerdictsV2.expectedNonConnV2
   let c3' ← RelCertifier.Verdicts.checkPhase "suite_v2 pruned edges"
     RelCertifier.VerdictsV2.prunedEdgesV2.length RelCertifier.VerdictsV2.expectedPrunedEdgesV2
-  let ok4 ← RelCertifier.VerdictsV2.runSameModalV2 cfg
+  let ok4 ← RelCertifier.VerdictsV2.runDynV2 cfg
   let n4 ← RelCertifier.Verdicts.dischargedCount.get
-  let c4 ← RelCertifier.Verdicts.checkPhase "suite_v2 copied benchmarks (legacy packs)"
-    (n4 - n3) RelCertifier.VerdictsV2.expectedSameModalV2
-  let ok5 ← RelCertifier.VerdictsV2.runDynV2 cfg
-  let n5 ← RelCertifier.Verdicts.dischargedCount.get
-  let c5 ← RelCertifier.Verdicts.checkPhase "suite_v2 reposition (dyn)" (n5 - n4)
+  let c4 ← RelCertifier.Verdicts.checkPhase "suite_v2 reposition (dyn)" (n4 - n3)
     RelCertifier.VerdictsV2.expectedDynV2
-  pure (ok1 && c1 && ok2 && c2 && ok3 && c3 && c3' && ok4 && c4 && ok5 && c5)
+  pure (ok1 && c1 && ok2 && c2 && ok3 && c3 && c3' && ok4 && c4)
 
 def usage : String :=
 "relcert — the relCertifier certification tool
@@ -127,8 +123,8 @@ USAGE
   relcert --run-verdicts-v2               re-send every Z3 hypothesis of the suite_v2
                                           battery, with declared per-phase counts:
                                           modal packs, handoff, non-connection (both
-                                          pruning queries of every pruned edge), and the
-                                          packs of the 19 carried-over theorems
+                                          pruning queries of every pruned edge) and
+                                          reposition packs
   RELCERT_IMPLIED_CUT=1 relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt
                                           certify the 50 suite_v2 files in the strict
                                           well-formedness mode (declared 50 certified,

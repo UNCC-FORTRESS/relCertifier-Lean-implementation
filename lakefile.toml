@@ -32,10 +32,6 @@ name = "relcert-slim"
 root = "SlimMain"
 
 [[lean_exe]]
-name = "relcert-choice-verdicts"
-root = "ChoiceVerdictsMain"
-
-[[lean_exe]]
 name = "relcert-progress-verdicts"
 root = "ProgressVerdictsMain"
 

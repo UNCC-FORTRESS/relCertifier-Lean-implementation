@@ -7,7 +7,7 @@ set -u
 OUT=${1:?usage: paper_numbers.sh OUTDIR}
 mkdir -p $OUT/covers1 $OUT/covers2
 cd "$(dirname $0)/.."
-lake build relcert relcert-choice-verdicts > $OUT/build.log 2>&1 || { echo "build failed (see build.log)"; exit 1; }
+lake build relcert > $OUT/build.log 2>&1 || { echo "build failed (see build.log)"; exit 1; }
 B=./.lake/build/bin/relcert
 S=(benchmarks/suite_v2/*/input.txt)
 C=(benchmarks/choice/*/input.txt)
@@ -52,14 +52,10 @@ run exhibits_off RELCERT_NO_CHOICE=1
 run exhibits_on
 run exhibits_sync_on RELCERT_SYNC=1
 
-# 3. the choice exhibits' verdict packs (the Lean instances' hypotheses)
-./.lake/build/bin/relcert-choice-verdicts > $OUT/choice_verdicts.txt 2>&1
-echo "choice verdicts exit=$?" >> $OUT/MANIFEST.txt
-
-# 4. mechanism matrix (its own counter-runs)
+# 3. mechanism matrix (its own counter-runs)
 python3 scripts/suite_v2_matrix.py --json $OUT/matrix.json --md $OUT/matrix.md > $OUT/matrix.log 2>&1
 
-# 5. numbers.tex
+# 4. numbers.tex
 python3 - $OUT <<'EOF'
 import json, re, sys, os
 out = sys.argv[1]
@@ -98,7 +94,6 @@ mac = {
  "numexhibitsoff": count(verdicts("exhibits_off"), "CERTIFIED"),
  "numexhibitson": count(verdicts("exhibits_on"), "CERTIFIED"),
  "numopregionout": len(opr),
- "numchoiceunsat": sum(1 for l in open(f"{out}/choice_verdicts.txt") if l.lstrip().startswith("UNSAT")),
  "nummechS": cells["M1"], "nummechM": cells["M2"], "nummechB": cells["M3"],
  "nummechP": cells["M4"], "nummechD": cells["M5"], "nummechc": cells["M6"],
  "nummechcplus": cells["M6+"], "nummechcL": cells["M6L"],

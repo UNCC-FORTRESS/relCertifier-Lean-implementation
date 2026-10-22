@@ -2,18 +2,21 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `vehicle_accel_copy`: Assumption 1 for the nominal model, and the window data
+# `vehicle_accel_copy`: the right model and Assumption 1 for the nominal model
 
-Assumption 1 for the nominal model (`wellFormedR`, at dimension 2; the bridge instance
+The right model of the choice exhibit (state variables, right modes, fields, evolve domain,
+parse pins, field evaluations, the guarded right automaton `Gr`) and Assumption 1 for the
+nominal model (`wellFormedR`, at dimension 2; the bridge instance
 `InstancesV2/Bridge/VehicleAccelCopy.lean` transports it and lifts it by one for the right
-clock), with the window cover data (`chG`), the window data (`AG`, `cutsG`, `AG_box`)
-and the arithmetic hop certificate (`hop_cover`). The Theorem-3 part (`CoverHyps` and
-`theorem3_of_coverX`) was retired on 2026-10-21 with the clocked right automaton: the file is
-fixed at `Var 2` and has no slot for the right clock.
+clock; the bridge instance reads the emitted cut table `Choice/Cuts/vehicle_accel_copy` through this
+file, so that leaf is imported here). Self-contained; the standalone Theorem 3 leaf `Choice/Modal/VehicleAccelCopy` imports
+this file for the right model. The window data and the hop certificate of the retired
+standalone route were dropped on 2026-10-22 (history: git show
+212cd42:RelCertifier/InstancesV2/Choice/General/VehicleAccelCopy.lean).
 -/
-import RelCertifier.InstancesV2.Choice.Modal.VehicleAccelCopy
+import RelCertifier.InstancesV2.Choice.BenchIR.vehicle_accel_copy
+import RelCertifier.InstancesV2.Choice.Cuts.vehicle_accel_copy
 import RelCertifier.InstancesV2.Choice.ConstMirror
-import RelCertifier.Checker.CoverX
 import RelCertifier.Proofs.Encoding.WellFormedR
 
 set_option linter.unusedSimpArgs false
@@ -23,12 +26,108 @@ namespace ChoiceVehicleAccelCopy
 
 open DL DLCalTiming DLRel Parse Set RelCertifier.Oracle
 
+/-! ## The right model -/
+
+def vs : List String := ["v"]
+
+def dm : PMode := ⟨"", [], .tt, .tt, []⟩
+
+def mR (q : ℕ) : PMode := vehicle_accel_copy_IRc.R.modes.getD q dm
+
+noncomputable def fR (q : ℕ) : Fin 2 → Term (Var 2) := hostDyn vs 2 Side.R (mR q)
+
+noncomputable def domR : Formula (Var 2) := hostEvolve vs 2 Side.R (mR 0)
+
+theorem hp00 : Run.parseRat "0.0" = some (0 : ℚ) := by
+  have h : parseQ "0.0" = some (⟨0, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+
+theorem hp10 : Run.parseRat "1.0" = some (1 : ℚ) := by
+  have h : parseQ "1.0" = some (⟨10, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+
+theorem hp300 : Run.parseRat "30.0" = some (30 : ℚ) := by
+  have h : parseQ "30.0" = some (⟨300, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
+
+theorem hp270 : Run.parseRat "27.0" = some (27 : ℚ) := by
+  have h : parseQ "27.0" = some (⟨270, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
+
+theorem hp30 : Run.parseRat "3.0" = some (3 : ℚ) := by
+  have h : parseQ "3.0" = some (⟨30, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
+
+/-- The accelerations, by mode index. -/
+noncomputable def acc : ℕ → ℝ
+  | 0 => 1 | 1 => 0 | _ => -1
+
+noncomputable def loR : ℕ → ℝ
+  | 0 => 0 | 1 => 0 | _ => 3
+
+noncomputable def hiR : ℕ → ℝ
+  | 0 => 27 | _ => 30
+
+/-- The coordinate field: the acceleration on index 0, the padding index frozen. -/
+noncomputable def cf (q : ℕ) : Fin 2 → ℝ := fun i => if i = 0 then acc q else 0
+
+theorem fR_eval (q : ℕ) (hq : q < 3) (i : Fin 2) (x : State (Var 2)) :
+    Term.eval (fR q i) x = cf q i := by
+  fin_cases i <;> interval_cases q <;>
+    simp [fR, hostDyn, mR, vehicle_accel_copy_IRc, vs, Run.dynOf, Run.lowerE, hp00, hp10, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
+      AOp.interp, Rv, cf, acc] <;> norm_num
+
+theorem sat_domR (x : State (Var 2)) :
+    Formula.sat domR x ↔ (0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 30) := by
+  simp only [domR, hostEvolve, mR, vehicle_accel_copy_IRc, vs]
+  simp [Run.lowerF, Run.lowerE, hp00, hp300, Run.resolveVar, List.findIdx?_cons,
+    IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv]
+
+theorem sat_guardR (q : ℕ) (hq : q < 3) (ν : State (Var 2)) :
+    Formula.sat (hostGuard vs 2 Side.R (mR q)) ν ↔ (loR q ≤ ν (Rv 0) ∧ ν (Rv 0) ≤ hiR q) := by
+  interval_cases q <;>
+    simp [hostGuard, mR, vehicle_accel_copy_IRc, Run.lowerF, Run.lowerE, hp00, hp270, hp300,
+      hp30, vs, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost,
+      Formula.sat, CompOp.interp, Term.eval, Rv, loR, hiR]
+
+noncomputable def modeW (q : ℕ) : RMode (Var 2) :=
+  { sys := rightBlock (fR q) (Term.const 1), dom := domR, weight := 1 }
+
+noncomputable def edgeW (s t : ℕ) : REdge (Var 2) :=
+  { src := s, tgt := t, guard := hostGuard vs 2 Side.R (mR t), pruned := false }
+
+def edgeList : List (ℕ × ℕ) :=
+  (List.range 3).flatMap (fun s => (List.range 3).map (fun t => (s, t)))
+
+theorem edgeList_mem (s t : ℕ) (hs : s < 3) (ht : t < 3) : (s, t) ∈ edgeList := by
+  simp [edgeList, hs, ht]
+
+noncomputable def Gr : SearchGraph (Var 2) :=
+  { modes := [modeW 0, modeW 1, modeW 2]
+    edges := edgeList.map (fun e => edgeW e.1 e.2) }
+
+theorem Gr_modeAt (q : ℕ) (hq : q < 3) : Gr.modeAt q = some (modeW q) := by
+  interval_cases q <;> rfl
+
+theorem Gr_modeAt_inv {q : ℕ} {m : RMode (Var 2)} (hm : Gr.modeAt q = some m) :
+    q < 3 ∧ m = modeW q := by
+  match q with
+  | 0 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
+  | 1 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
+  | 2 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
+  | q + 3 => exact absurd hm (by simp [SearchGraph.modeAt, Gr])
+
+theorem edgeList_tgt : ∀ p ∈ edgeList, p.2 < 3 := by decide
+
+theorem edge_mem (s t : ℕ) (hs : s < 3) (ht : t < 3) : edgeW s t ∈ Gr.edgesFrom s :=
+  List.mem_filter.mpr ⟨List.mem_map.mpr ⟨(s, t), edgeList_mem s t hs ht, rfl⟩, by simp [edgeW]⟩
+
+/-! ## Assumption 1 for the nominal model -/
+
 theorem epsR_eq : epsR vehicle_accel_copy_IRc = 1 := by
   simp [epsR, vehicle_accel_copy_IRc, hp10]
 
 noncomputable def guardR (q : ℕ) : Formula (Var 2) := hostGuard vs 2 Side.R (mR q)
-
-/-! ## Assumption 1 for the nominal model -/
 
 theorem edgesFrom_eq {q : ℕ} {e : REdge (Var 2)} (he : e ∈ Gr.edgesFrom q) :
     ∃ t, t < 3 ∧ e = edgeW q t := by
@@ -63,162 +162,6 @@ theorem wellFormedR : WellFormedR Gr guardR 1 := by
     have hR := (sat_domR _).mp hend
     exact ⟨edgeW q 1, edge_mem q 1 hq3 (by norm_num),
       (sat_guardR 1 (by norm_num) _).mpr (by simp [loR, hiR]; exact hR)⟩
-
-/-! ## The cover of each window: hop into the left's mode, then the closing segment -/
-
-/-- The window's cover data: only the diagonal pairing is certified; from any other start a
-hop into `l` (pre-joint). -/
-def chG (l : ℕ) : ChoiceData :=
-  { jointOK := fun q => decide (q = l), repoPre := fun _ => false, repoPost := fun _ => false,
-    jointS := fun _ => [], repoS := fun _ _ => [],
-    hopS := fun q σ => if σ = SrcSetting.preJ ∧ q ≠ l then [[l]] else [] }
-
--- `coverOf` (the window covers for `theorem3_of_coverX`, through `CoverResp.mem_exitSucc_of_edge`)
--- was retired with the Theorem-3 part; see the comment at the end of the file.
-
-/-! ## The window data -/
-
-/-- The right kept atoms, every index (empty beyond the modes). -/
-noncomputable def cRs (q : ℕ) : List (CutAtomP 2) := if q < 3 then cR q else []
-
-/-- The anchor of pairing `(l, q)`: the row, both sides' kept atoms, the envelope. -/
-noncomputable def AG (l q : ℕ) : Formula (Var 2) :=
-  Formula.and (FM g (gs ++ atomTerms (cL l) (cRs q))) (Formula.and domL domR)
-
-noncomputable def cutsG (q : ℕ) : Formula (Var 2) := cutF (cRs q)
-
-theorem cRs_fv (q : ℕ) : ∀ a ∈ cRs q, a.2.fv ⊆ range Lv ∪ range Rv := by
-  intro a ha
-  unfold cRs at ha
-  split_ifs at ha with hq
-  · interval_cases q <;>
-      simp only [cR_0, cR_1, cR_2, List.mem_cons, List.not_mem_nil, or_false] at ha <;>
-      (try rcases ha with rfl | rfl) <;> (try subst ha) <;>
-      first | exact (thr_fv_R _ _).1 | exact (thr_fv_R _ _).2
-  · simp at ha
-
-theorem cL_fv (l : ℕ) (hl : l < 3) : ∀ a ∈ cL l, a.2.fv ⊆ range Lv ∪ range Rv := by
-  intro a ha
-  interval_cases l <;>
-    simp only [cL_0, cL_1, cL_2, List.mem_cons, List.not_mem_nil, or_false] at ha <;>
-    (try rcases ha with rfl | rfl) <;> (try subst ha) <;>
-    first | exact (thr_fv_L _ _).1 | exact (thr_fv_L _ _).2
-
-theorem AG_fv (l : ℕ) (hl : l < 3) (q : ℕ) : (AG l q).fv ⊆ range Lv ∪ range Rv := by
-  intro v hv
-  rcases hv with hv | hv | hv
-  · by_contra hc
-    refine notMem_FM_fv (fun g' hg' hx => hc ?_) hv
-    rcases List.mem_cons.mp hg' with rfl | hg'
-    · exact comps_fv _ List.mem_cons_self hx
-    rcases List.mem_append.mp hg' with hg' | hg'
-    · exact comps_fv _ (List.mem_cons_of_mem _ hg') hx
-    simp only [atomTerms, List.map_append, List.mem_append, List.mem_map] at hg'
-    rcases hg' with ⟨a, ha, rfl⟩ | ⟨a, ha, rfl⟩
-    · exact cL_fv l hl a ha hx
-    · exact cRs_fv q a ha hx
-  · exact Or.inl (hdomL hv)
-  · exact Or.inr (hdomR hv)
-
-theorem hiffRs (q : ℕ) : AtomsIff (cRs q) := by
-  unfold cRs
-  split_ifs with hq
-  · exact hiffR q hq
-  · intro a ha; simp at ha
-
-theorem cutSatRs (q : ℕ) (ν : State (Var 2)) (h0 : 0 ≤ ν (Rv 0)) (h1 : ν (Rv 0) ≤ 30) :
-    CutSat (cRs q) ν := by
-  unfold cRs
-  split_ifs with hq
-  · exact (cutSatR_val q hq ν).mpr (cutP_of_env q _ h0 h1)
-  · intro a ha; simp at ha
-
-theorem cutsG_fv (q : ℕ) : (cutsG q).fv ⊆ range Rv := by
-  unfold cutsG cRs
-  split_ifs with hq
-  · exact region_fv_of (q := q) hq
-  · simp [cutF, Formula.fv]
-where
-  region_fv_of {q : ℕ} (hq : q < 3) : (cutF (cR q)).fv ⊆ range Rv := by
-    have := region_fv q
-    simpa [region, hq] using this
-
-/-- The anchor at a loop state of the window (the left guard admits the window). -/
-theorem AG_start (l : ℕ) (hl : l < 3) (q : ℕ) (σ : State (Var 2))
-    (hσ : Formula.sat (Formula.and (FM g gs) (Formula.and domL domR)) σ)
-    (hc : Formula.sat (cutsG q) σ) : Formula.sat (AG l q) σ := by
-  have hL0 := (sat_domL σ).mp hσ.2.1
-  refine ⟨(sat_FM_append g gs _ σ).mpr ⟨hσ.1, ?_⟩, hσ.2⟩
-  exact (atomTerms_iff (hiffL l hl) (hiffRs q) σ).mpr
-    ⟨(cutSatL_val l hl σ).mpr (cutP_of_env l _ hL0.1 hL0.2), (sat_cutF _ _).mp hc⟩
-
-theorem AG_post (l : ℕ) (hl : l < 3) (q : ℕ) (y : State (Var 2)) (h : Formula.sat (AG l q) y) :
-    Formula.sat (Formula.and (Formula.and (FM g gs) (Formula.and domL domR)) (cutsG q)) y := by
-  obtain ⟨hF, hat⟩ := (sat_FM_append g gs _ y).mp h.1
-  obtain ⟨-, hR⟩ := (atomTerms_iff (hiffL l hl) (hiffRs q) y).mp hat
-  exact ⟨⟨hF, h.2⟩, (sat_cutF _ _).mpr hR⟩
-
-/-- Entry: the anchor of `q` and the entered guard give the anchor of the entered mode (every
-mode's kept atoms follow from the envelope). -/
-theorem AG_hand (l : ℕ) (hl : l < 3) (q : ℕ) (e : REdge (Var 2)) (_ : e ∈ Gr.edgesFrom q)
-    (y : State (Var 2)) (hA : Formula.sat (AG l q) y) (_ : SwitchLegal e y) :
-    Formula.sat (AG l e.tgt) y := by
-  have hR0 := (sat_domR y).mp hA.2.2
-  obtain ⟨hF, hat⟩ := (sat_FM_append g gs _ y).mp hA.1
-  obtain ⟨hLc, -⟩ := (atomTerms_iff (hiffL l hl) (hiffRs q) y).mp hat
-  refine ⟨(sat_FM_append g gs _ y).mpr ⟨hF, ?_⟩, hA.2⟩
-  exact (atomTerms_iff (hiffL l hl) (hiffRs e.tgt) y).mpr ⟨hLc, cutSatRs e.tgt y hR0.1 hR0.2⟩
-
-/-- Theorem 1 at the diagonal pairing, from its verdict pack. -/
-theorem AG_box (l : ℕ) (hl : l < 3) (hv : Verd l) (q : ℕ) (m : RMode (Var 2))
-    (hm : Gr.modeAt q = some m) (hj : (chG l).jointOK q = true) :
-    ∀ σ ω, Formula.sat (AG l q) σ →
-      Program.sem (Program.ode (jointSys (fL l) (fR q) (Term.const 1)) (Formula.and domL domR))
-        σ ω → Formula.sat (AG l q) ω := by
-  have hql : q = l := by simpa [chG] using hj
-  subst hql
-  intro σ ω hσ hω
-  have hcRs : cRs q = cR q := by simp [cRs, hl]
-  rw [AG, hcRs] at hσ ⊢
-  refine ⟨?_, sem_ode_ends_in_domain hω⟩
-  have hb := couple_box_cutX g gs (g :: gs) (cL q) (cR q) (fL q) (fR q) 1 domL domR
-    (fun c hc => hc) (fun c hc => hc) (hiffL q hl) (hiffR q hl) (stayL q hl) (stayR q hl)
-    (verd_core q hl hv)
-  exact hb σ ω hσ.1 hω
-
-/-- The hop's coverage certificate, by arithmetic: at a pre-joint start in the left guard of
-`l` with `|v_L − v_R| ≤ 1`, the right is in the (wider) right guard of `l`. -/
-theorem hop_cover (l : ℕ) (hl : l < 3) (q : ℕ) (σ : SrcSetting) (S : List ℕ)
-    (hS : S ∈ (chG l).hopS q σ) (y : State (Var 2))
-    (hy : Formula.sat (Formula.and (AG l q) (Formula.and (guardR q)
-      (if σ = SrcSetting.preJ then hostGuard vs 2 Side.L (mL l) else Formula.tt))) y) :
-    ∃ q' ∈ S, Formula.sat (guardR q') y := by
-  simp only [chG] at hS
-  split_ifs at hS with hc
-  · simp only [List.mem_singleton] at hS
-    subst hS
-    obtain ⟨hA, -, hgL⟩ := hy
-    rw [if_pos hc.1] at hgL
-    refine ⟨l, List.mem_singleton_self l, ?_⟩
-    exact guardR_of_guardL l hl y ((sat_FM_append g gs _ y).mp hA.1).1 hA.2.2 hgL
-  · simp at hS
-
-theorem edge_pruned_false {q : ℕ} {e : REdge (Var 2)} (he : e ∈ Gr.edgesFrom q) :
-    e.pruned = false := by
-  obtain ⟨t, -, rfl⟩ := edgesFrom_eq he
-  rfl
-
-/-! ## The mode data of the search graph -/
-
-theorem guardR_fv (q : ℕ) : (guardR q).fv ⊆ range Rv := hguardR_all q
-
-theorem Gr_sys (q : ℕ) (m : RMode (Var 2)) (hm : Gr.modeAt q = some m) :
-    m.sys = rightBlock (fR q) (Term.const 1) := by
-  obtain ⟨-, rfl⟩ := Gr_modeAt_inv hm; rfl
-theorem Gr_dom (q : ℕ) (m : RMode (Var 2)) (hm : Gr.modeAt q = some m) : m.dom = domR := by
-  obtain ⟨-, rfl⟩ := Gr_modeAt_inv hm; rfl
-theorem Gr_weight (q : ℕ) (m : RMode (Var 2)) (hm : Gr.modeAt q = some m) : m.weight = 1 := by
-  obtain ⟨-, rfl⟩ := Gr_modeAt_inv hm; rfl
 
 /- Theorem-3 part retired 2026-10-21 with the clocked right automaton (the file was fixed at
 `Var 2`, no slot for the right clock); the benchmark's Theorem 3 is the generated bridge

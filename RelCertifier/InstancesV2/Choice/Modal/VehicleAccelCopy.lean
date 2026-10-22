@@ -16,6 +16,7 @@ generated bridge instance `Bridge/VehicleAccelCopy.lean` replays the emitted cho
 Existence of the right segment holds from the start state only (the right guard and one control
 period, `dt ≤ 1`), so the coupling is the pointwise one (`couple_cutX_at`).
 -/
+import RelCertifier.InstancesV2.Choice.General.VehicleAccelCopy
 import RelCertifier.Proofs.Encoding.CutRespond
 import RelCertifier.Proofs.Encoding.GuardedSwitch
 import RelCertifier.Proofs.Flow.FaceBridge
@@ -30,18 +31,13 @@ namespace ChoiceVehicleAccelCopy
 
 open DL DLCalTiming DLRel Parse Set RelCertifier.Oracle
 
-def vs : List String := ["v"]
-def dm : PMode := ⟨"", [], .tt, .tt, []⟩
 def mL (l : ℕ) : PMode := vehicle_accel_copy_IRc.L.modes.getD l dm
-def mR (q : ℕ) : PMode := vehicle_accel_copy_IRc.R.modes.getD q dm
 
 abbrev mv : Var 2 := (Side.Aux, 0)
 abbrev tg : Var 2 := (Side.Aux, 1)
 
 noncomputable def fL (l : ℕ) : Fin 2 → Term (Var 2) := hostDyn vs 2 Side.L (mL l)
-noncomputable def fR (q : ℕ) : Fin 2 → Term (Var 2) := hostDyn vs 2 Side.R (mR q)
 noncomputable def domL : Formula (Var 2) := hostEvolve vs 2 Side.L (mL 0)
-noncomputable def domR : Formula (Var 2) := hostEvolve vs 2 Side.R (mR 0)
 noncomputable def env : Formula (Var 2) := Formula.and domL domR
 
 /-- The declared invariant's components (row 0; every row is the same). -/
@@ -57,26 +53,11 @@ noncomputable def cR (q : ℕ) : List (CutAtomP 2) :=
 
 /-! ## Parse pins -/
 
-theorem hp00 : Run.parseRat "0.0" = some (0 : ℚ) := by
-  have h : parseQ "0.0" = some (⟨0, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hp10 : Run.parseRat "1.0" = some (1 : ℚ) := by
-  have h : parseQ "1.0" = some (⟨10, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
 theorem hp250 : Run.parseRat "25.0" = some (25 : ℚ) := by
   have h : parseQ "25.0" = some (⟨250, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
-theorem hp300 : Run.parseRat "30.0" = some (30 : ℚ) := by
-  have h : parseQ "30.0" = some (⟨300, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
 theorem hp50 : Run.parseRat "5.0" = some (5 : ℚ) := by
   have h : parseQ "5.0" = some (⟨50, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp270 : Run.parseRat "27.0" = some (27 : ℚ) := by
-  have h : parseQ "27.0" = some (⟨270, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp30 : Run.parseRat "3.0" = some (3 : ℚ) := by
-  have h : parseQ "3.0" = some (⟨30, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
 theorem hp1 : Run.parseRat "1" = some (1 : ℚ) := by
   have h : parseQ "1" = some (⟨1, 1⟩ : QF) := by decide
@@ -84,22 +65,11 @@ theorem hp1 : Run.parseRat "1" = some (1 : ℚ) := by
 
 /-! ## Evaluations of the lowered data -/
 
-/-- The accelerations, by mode index. -/
-noncomputable def acc : ℕ → ℝ
-  | 0 => 1 | 1 => 0 | _ => -1
-
 /-- The guard bounds, by mode index (left; the right's are wider by the tolerance). -/
 noncomputable def loL : ℕ → ℝ
   | 0 => 0 | 1 => 0 | _ => 5
 noncomputable def hiL : ℕ → ℝ
   | 0 => 25 | _ => 30
-noncomputable def loR : ℕ → ℝ
-  | 0 => 0 | 1 => 0 | _ => 3
-noncomputable def hiR : ℕ → ℝ
-  | 0 => 27 | _ => 30
-
-/-- The coordinate field: the acceleration on index 0, the padding index frozen. -/
-noncomputable def cf (q : ℕ) : Fin 2 → ℝ := fun i => if i = 0 then acc q else 0
 
 theorem fL_eval (l : ℕ) (hl : l < 3) (i : Fin 2) (x : State (Var 2)) :
     Term.eval (fL l i) x = cf l i := by
@@ -107,23 +77,11 @@ theorem fL_eval (l : ℕ) (hl : l < 3) (i : Fin 2) (x : State (Var 2)) :
     simp [fL, hostDyn, mL, vehicle_accel_copy_IRc, vs, Run.dynOf, Run.lowerE, hp00, hp10, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
       AOp.interp, Lv, cf, acc] <;> norm_num
 
-theorem fR_eval (q : ℕ) (hq : q < 3) (i : Fin 2) (x : State (Var 2)) :
-    Term.eval (fR q i) x = cf q i := by
-  fin_cases i <;> interval_cases q <;>
-    simp [fR, hostDyn, mR, vehicle_accel_copy_IRc, vs, Run.dynOf, Run.lowerE, hp00, hp10, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
-      AOp.interp, Rv, cf, acc] <;> norm_num
-
 theorem sat_domL (x : State (Var 2)) :
     Formula.sat domL x ↔ (0 ≤ x (Lv 0) ∧ x (Lv 0) ≤ 30) := by
   simp only [domL, hostEvolve, mL, vehicle_accel_copy_IRc, vs]
   simp [Run.lowerF, Run.lowerE, hp00, hp300, Run.resolveVar, List.findIdx?_cons,
     IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Lv]
-
-theorem sat_domR (x : State (Var 2)) :
-    Formula.sat domR x ↔ (0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 30) := by
-  simp only [domR, hostEvolve, mR, vehicle_accel_copy_IRc, vs]
-  simp [Run.lowerF, Run.lowerE, hp00, hp300, Run.resolveVar, List.findIdx?_cons,
-    IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv]
 
 theorem domL_univ (l : ℕ) (hl : l < 3) : hostEvolve vs 2 Side.L (mL l) = domL := by
   interval_cases l <;> rfl
@@ -246,13 +204,6 @@ theorem sat_guardL (l : ℕ) (hl : l < 3) (ν : State (Var 2)) :
       hp50, vs, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost,
       Formula.sat, CompOp.interp, Term.eval, Lv, loL, hiL]
 
-theorem sat_guardR (q : ℕ) (hq : q < 3) (ν : State (Var 2)) :
-    Formula.sat (hostGuard vs 2 Side.R (mR q)) ν ↔ (loR q ≤ ν (Rv 0) ∧ ν (Rv 0) ≤ hiR q) := by
-  interval_cases q <;>
-    simp [hostGuard, mR, vehicle_accel_copy_IRc, Run.lowerF, Run.lowerE, hp00, hp270, hp300,
-      hp30, vs, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost,
-      Formula.sat, CompOp.interp, Term.eval, Rv, loR, hiR]
-
 /-- **The copy is enabled**: the left's guard and the claim put the right in the right's
 guard of the same mode (the right's guards are wider by the tolerance). -/
 theorem guardR_of_guardL (l : ℕ) (hl : l < 3) (ν : State (Var 2))
@@ -344,15 +295,6 @@ theorem anchor_fv (l q : ℕ) (hl : l < 3) (hq : q < 3) :
 
 /-! ## The right automaton (the file's modes; every mode a successor of every mode) -/
 
-noncomputable def modeW (q : ℕ) : RMode (Var 2) :=
-  { sys := rightBlock (fR q) (Term.const 1), dom := domR, weight := 1 }
-
-noncomputable def edgeW (s t : ℕ) : REdge (Var 2) :=
-  { src := s, tgt := t, guard := hostGuard vs 2 Side.R (mR t), pruned := false }
-
-def edgeList : List (ℕ × ℕ) :=
-  (List.range 3).flatMap (fun s => (List.range 3).map (fun t => (s, t)))
-
 /-- **Faithfulness of the graph**: `edgeList` IS the file's `next` lists, resolved by name. -/
 theorem edgeList_eq_IR : edgeList =
     (List.range vehicle_accel_copy_IRc.R.modes.length).flatMap (fun q =>
@@ -360,32 +302,12 @@ theorem edgeList_eq_IR : edgeList =
         (q, (vehicle_accel_copy_IRc.R.modes.findIdx (·.name == nm))))) := by
   decide
 
-theorem edgeList_mem (s t : ℕ) (hs : s < 3) (ht : t < 3) : (s, t) ∈ edgeList := by
-  simp [edgeList, hs, ht]
-
-noncomputable def Gr : SearchGraph (Var 2) :=
-  { modes := [modeW 0, modeW 1, modeW 2]
-    edges := edgeList.map (fun e => edgeW e.1 e.2) }
-
 theorem Gr_len : Gr.modes.length = 3 := rfl
-
-theorem Gr_modeAt (q : ℕ) (hq : q < 3) : Gr.modeAt q = some (modeW q) := by
-  interval_cases q <;> rfl
-
-theorem Gr_modeAt_inv {q : ℕ} {m : RMode (Var 2)} (hm : Gr.modeAt q = some m) :
-    q < 3 ∧ m = modeW q := by
-  match q with
-  | 0 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
-  | 1 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
-  | 2 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
-  | q + 3 => exact absurd hm (by simp [SearchGraph.modeAt, Gr])
 
 theorem hguardR (q : ℕ) (hq : q < 3) : (hostGuard vs 2 Side.R (mR q)).fv ⊆ range Rv :=
   hostGuard_fv_R vs (mR q) (by
     interval_cases q <;>
       simp [mR, vehicle_accel_copy_IRc, Parse.PForm.namesFree, Parse.PExpr.namesFree])
-
-theorem edgeList_tgt : ∀ p ∈ edgeList, p.2 < 3 := by decide
 
 theorem hlt : ∀ q, ∀ e ∈ Gr.edgesFrom q, e.tgt < Gr.modes.length := by
   intro q e he
@@ -403,9 +325,6 @@ theorem hRv : ∀ q m, Gr.modeAt q = some m →
   · exact rightBlock_boundSet_sub (fR q) (Term.const 1) hy
   · exact rightBlock_readVars_sub (fR q) (Term.const 1) (hfR q hq) (by simp [Term.fv]) hy
   · exact hdomR hy
-
-theorem edge_mem (s t : ℕ) (hs : s < 3) (ht : t < 3) : edgeW s t ∈ Gr.edgesFrom s :=
-  List.mem_filter.mpr ⟨List.mem_map.mpr ⟨(s, t), edgeList_mem s t hs ht, rfl⟩, by simp [edgeW]⟩
 
 theorem hfresh : ∀ q m, Gr.modeAt q = some m → mv ∉ (Program.ode m.sys m.dom).fv := by
   intro q m hm hmv

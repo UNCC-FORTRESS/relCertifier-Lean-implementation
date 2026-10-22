@@ -13,6 +13,7 @@ wherever the start is admissible) and runs `MidBoost`'s certified segment. Stand
 response is written here, not replayed from the tool's choice cover; the generated bridge
 instance `Bridge/WatertankChoice.lean` replays the emitted chosen sets.
 -/
+import RelCertifier.InstancesV2.Choice.General.WatertankChoice
 import RelCertifier.Proofs.Encoding.CutRespond
 import RelCertifier.Proofs.Encoding.GuardedSwitch
 import RelCertifier.Proofs.Flow.FaceBridge
@@ -25,18 +26,13 @@ namespace ChoiceWatertank
 
 open DL DLCalTiming DLRel Parse Set RelCertifier.Oracle
 
-def vs : List String := ["x"]
-def dm : PMode := ⟨"", [], .tt, .tt, []⟩
 def mL (l : ℕ) : PMode := watertank_choice_IRc.L.modes.getD l dm
-def mR (q : ℕ) : PMode := watertank_choice_IRc.R.modes.getD q dm
 
 abbrev mv : Var 2 := (Side.Aux, 0)
 abbrev tg : Var 2 := (Side.Aux, 1)
 
 noncomputable def fL (l : ℕ) : Fin 2 → Term (Var 2) := hostDyn vs 2 Side.L (mL l)
-noncomputable def fR (q : ℕ) : Fin 2 → Term (Var 2) := hostDyn vs 2 Side.R (mR q)
 noncomputable def domL : Formula (Var 2) := hostEvolve vs 2 Side.L (mL 0)
-noncomputable def domR : Formula (Var 2) := hostEvolve vs 2 Side.R (mR 0)
 noncomputable def env : Formula (Var 2) := Formula.and domL domR
 
 /-- The declared invariant's components (`invComponents` of the row; all three rows equal). -/
@@ -53,41 +49,14 @@ noncomputable def cR (q : ℕ) : List (CutAtomP 2) :=
 
 /-! ## Parse pins -/
 
-theorem hp10 : Run.parseRat "1.0" = some (1 : ℚ) := by
-  have h : parseQ "1.0" = some (⟨10, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
 theorem hp155 : Run.parseRat "15.5" = some ((31:ℚ)/2) := by
   have h : parseQ "15.5" = some (⟨155, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp05 : Run.parseRat "0.5" = some ((1:ℚ)/2) := by
-  have h : parseQ "0.5" = some (⟨5, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
 theorem hp200 : Run.parseRat "20.0" = some (20 : ℚ) := by
   have h : parseQ "20.0" = some (⟨200, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
-theorem hp125 : Run.parseRat "12.5" = some ((25:ℚ)/2) := by
-  have h : parseQ "12.5" = some (⟨125, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp170 : Run.parseRat "17.0" = some (17 : ℚ) := by
-  have h : parseQ "17.0" = some (⟨170, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp00 : Run.parseRat "0.0" = some (0 : ℚ) := by
-  have h : parseQ "0.0" = some (⟨0, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hp250 : Run.parseRat "25.0" = some (25 : ℚ) := by
-  have h : parseQ "25.0" = some (⟨250, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
 theorem hp50 : Run.parseRat "5.0" = some (5 : ℚ) := by
   have h : parseQ "5.0" = some (⟨50, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp130 : Run.parseRat "13.0" = some (13 : ℚ) := by
-  have h : parseQ "13.0" = some (⟨130, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp20 : Run.parseRat "2.0" = some (2 : ℚ) := by
-  have h : parseQ "2.0" = some (⟨20, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp100 : Run.parseRat "10.0" = some (10 : ℚ) := by
-  have h : parseQ "10.0" = some (⟨100, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
 theorem hp3 : Run.parseRat "3" = some (3 : ℚ) := by
   have h : parseQ "3" = some (⟨3, 1⟩ : QF) := by decide
@@ -113,36 +82,11 @@ theorem fL1_eval (l : ℕ) (hl : l < 3) (x : State (Var 2)) :
       hp200, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
       AOp.interp, Lv]
 
-/-- Right fields: `x' = k_q (c_q − x)` (PumpOff: `0`). -/
-noncomputable def kR (q : ℕ) : ℝ := if q = 1 then 1/2 else if q = 4 then 0 else 1
-noncomputable def cRc (q : ℕ) : ℝ :=
-  if q = 0 then 25/2 else if q = 1 then 13 else if q = 4 then 0 else 17
-
-theorem fR0_eval (q : ℕ) (hq : q < 5) (x : State (Var 2)) :
-    Term.eval (fR q 0) x = kR q * (cRc q - x (Rv 0)) := by
-  interval_cases q <;>
-    simp [fR, hostDyn, mR, watertank_choice_IRc, vs, Run.dynOf, Run.lowerE, hp10, hp125, hp05,
-      hp170, hp130, hp00, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
-      Term.eval, AOp.interp, Rv, kR, cRc]
-
-theorem fR1_eval (q : ℕ) (hq : q < 5) (x : State (Var 2)) :
-    Term.eval (fR q 1) x = 0 := by
-  interval_cases q <;>
-    simp [fR, hostDyn, mR, watertank_choice_IRc, vs, Run.dynOf, Run.lowerE, hp10, hp125, hp05,
-      hp170, hp130, hp00, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
-      Term.eval, AOp.interp, Rv]
-
 theorem sat_domL (x : State (Var 2)) :
     Formula.sat domL x ↔ (0 ≤ x (Lv 0) ∧ x (Lv 0) ≤ 25) := by
   simp only [domL, hostEvolve, mL, watertank_choice_IRc, vs]
   simp [Run.lowerF, Run.lowerE, hp00, hp250, Run.resolveVar, List.findIdx?_cons,
     IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Lv]
-
-theorem sat_domR (x : State (Var 2)) :
-    Formula.sat domR x ↔ (0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 25) := by
-  simp only [domR, hostEvolve, mR, watertank_choice_IRc, vs]
-  simp [Run.lowerF, Run.lowerE, hp00, hp250, Run.resolveVar, List.findIdx?_cons,
-    IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv]
 
 theorem domL_univ (l : ℕ) (hl : l < 3) : hostEvolve vs 2 Side.L (mL l) = domL := by
   interval_cases l <;> rfl
@@ -162,8 +106,6 @@ theorem eval_g (x : State (Var 2)) : Term.eval g x = x (Lv 0) - (x (Rv 0) + 3) :
 theorem eval_gs0 (x : State (Var 2)) :
     Term.eval (gs.getD 0 (Term.const 0)) x = x (Rv 0) - (x (Lv 0) + 3) := by
   simp [gs, comps_eq, Term.eval, AOp.interp]
-
-
 
 /-! ## The cut families, concretely -/
 
@@ -374,30 +316,12 @@ theorem anchor_fv (l q : ℕ) (hl : l < 3) (hq : q < 4) :
 
 /-! ## The right automaton (the file's modes and declared `next` lists) -/
 
-noncomputable def modeW (q : ℕ) : RMode (Var 2) :=
-  { sys := rightBlock (fR q) (Term.const 1), dom := domR, weight := 1 }
-
-/-- The declared edge `s → t` carries the ENTERED mode's lowered guard (`hostGuard` of the
-right mode `t`, exactly as the left windows' guards are lowered): the right switches into
-`t` only where `t`'s guard holds. -/
-noncomputable def edgeW (s t : ℕ) : REdge (Var 2) :=
-  { src := s, tgt := t, guard := hostGuard vs 2 Side.R (mR t), pruned := false }
-
-/-- The declared transitions, as indices (Low 0, MidEco 1, MidBoost 2, High 3, PumpOff 4). -/
-def edgeList : List (ℕ × ℕ) :=
-  [(0, 0), (0, 1), (0, 2), (0, 4), (1, 1), (1, 2), (1, 3), (2, 2), (2, 1), (2, 3),
-   (3, 3), (3, 1), (3, 2), (4, 4)]
-
 /-- **Faithfulness of the graph**: `edgeList` IS the file's `next` lists, resolved by name. -/
 theorem edgeList_eq_IR : edgeList =
     (List.range watertank_choice_IRc.R.modes.length).flatMap (fun q =>
       (mR q).next.map (fun nm =>
         (q, (watertank_choice_IRc.R.modes.findIdx (·.name == nm))))) := by
   decide
-
-noncomputable def Gr : SearchGraph (Var 2) :=
-  { modes := [modeW 0, modeW 1, modeW 2, modeW 3, modeW 4]
-    edges := edgeList.map (fun e => edgeW e.1 e.2) }
 
 theorem Gr_len : Gr.modes.length = 5 := rfl
 
@@ -414,30 +338,9 @@ theorem Gr_modeAt_inv {q : ℕ} {m : RMode (Var 2)} (hm : Gr.modeAt q = some m) 
   | 4 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
   | q + 5 => exact absurd hm (by simp [SearchGraph.modeAt, Gr])
 
-/-- The right guards, evaluated (Low `[2, 10)`, MidEco and MidBoost `[10, 17)`, High
-`x ≥ 17`, PumpOff `x < 2`). -/
-theorem sat_guardR (q : ℕ) (hq : q < 5) (ν : State (Var 2)) :
-    Formula.sat (hostGuard vs 2 Side.R (mR q)) ν ↔
-      (if q = 0 then 2 ≤ ν (Rv 0) ∧ ν (Rv 0) < 10
-       else if q = 3 then 17 ≤ ν (Rv 0)
-       else if q = 4 then ν (Rv 0) < 2 else 10 ≤ ν (Rv 0) ∧ ν (Rv 0) < 17) := by
-  interval_cases q <;>
-    simp [hostGuard, mR, watertank_choice_IRc, Run.lowerF, Run.lowerE, hp20, hp100, hp170, vs,
-      Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
-      CompOp.interp, Term.eval, Rv]
-
 theorem hguardR (q : ℕ) (hq : q < 5) : (hostGuard vs 2 Side.R (mR q)).fv ⊆ range Rv :=
   hostGuard_fv_R vs (mR q) (by
     interval_cases q <;> simp [mR, watertank_choice_IRc, Parse.PForm.namesFree, Parse.PExpr.namesFree])
-
-theorem hlt : ∀ q, ∀ e ∈ Gr.edgesFrom q, e.tgt < Gr.modes.length := by
-  intro q e he
-  have hmem : e ∈ Gr.edges := List.mem_of_mem_filter he
-  simp only [Gr, List.mem_map] at hmem
-  obtain ⟨p, hp, rfl⟩ := hmem
-  simp only [edgeList, List.mem_cons, List.not_mem_nil, or_false] at hp
-  rcases hp with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl |
-    rfl | rfl <;> simp [edgeW, Gr]
 
 theorem hRv : ∀ q m, Gr.modeAt q = some m →
     m.sys.boundSet ∪ m.sys.readVars ∪ m.dom.fv ⊆ range Rv := by
@@ -518,7 +421,6 @@ theorem region_fv (q : ℕ) (hq : q < 5) : (region q).fv ⊆ range Rv := by
   · simp only [region, h4, if_false]
     simp [Formula.fv, Term.fv]
 
-
 /-! ## The mode-consistent region: the right mode's guard and its kept cut atoms -/
 
 /-- **The mode-consistent region** of right mode `q`: its lowered guard (the state a guarded
@@ -532,15 +434,6 @@ theorem hguardR_all (q : ℕ) : (hostGuard vs 2 Side.R (mR q)).fv ⊆ range Rv :
 
 theorem gregion_fv (q : ℕ) (hq : q < 5) : (gregion q).fv ⊆ range Rv :=
   regionG_fv_sub (hguardR_all q) (region_fv q hq)
-
-/-! ## The stretch of each pairing (the emitted cover's λ per right mode) -/
-
-/-- `Low` pairs with `Low` at 2, `MidEco` at 7/2, `MidBoost` and `High` at 1 (the per-pairing
-fallback); `Mid` and `High` at 1. -/
-noncomputable def lam (l q : ℕ) : ℝ :=
-  if l = 0 then (if q = 0 then 2 else if q = 1 then 7/2 else 1) else 1
-
-theorem lam_pos (l q : ℕ) : 0 < lam l q := by unfold lam; split_ifs <;> norm_num
 
 /-! ## O2: the kept atoms stay along the joint flows (contract shapes, rational) -/
 
@@ -605,28 +498,6 @@ theorem stayR (l q : ℕ) (hq : q < 4) :
       (fun z _ hz => by rw [hf]; simp only [kR, cRc]; norm_num; linarith) hinit
 
 /-! ## Existence: every right mode is a contraction toward a set point inside `[0, 25]` -/
-
-theorem hwfB (l q : ℕ) (hq : q < 5) (dt : ℝ) :
-    WellFormedFlowB (fR q) (Term.const (lam l q)) domR dt := by
-  refine WellFormedFlowB_transfer (fR := contractF 0 (lam l q * kR q) (cRc q))
-    (lam := Term.const 1) (domR := bandDom 0 0 25) ?_ ?_ ?_
-  · intro i x
-    match i with
-    | 0 =>
-        simp only [Term.eval, AOp.interp, contractF, if_true]
-        rw [fR0_eval q hq]
-        ring
-    | 1 =>
-        simp only [Term.eval, AOp.interp, contractF]
-        rw [fR1_eval q hq]
-        simp [Term.eval]
-  · intro x
-    rw [sat_domR]
-    simp [bandDom, Formula.sat, CompOp.interp, Term.eval]
-  · refine WellFormedFlowB_contract 0 (lam l q * kR q) (cRc q) 0 25 dt ?_ ?_ ?_
-    · exact mul_nonneg (le_of_lt (lam_pos l q)) (by unfold kR; split_ifs <;> norm_num)
-    · unfold cRc; split_ifs <;> norm_num
-    · unfold cRc; split_ifs <;> norm_num
 
 theorem es (l q : ℕ) (hq : q < 5) (dt : ℝ) (A : Formula (Var 2)) :
     ∀ σ, Formula.sat (Formula.and A (Formula.and domL domR)) σ →

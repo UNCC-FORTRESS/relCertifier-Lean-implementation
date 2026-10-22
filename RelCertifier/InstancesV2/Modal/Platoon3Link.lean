@@ -14,15 +14,15 @@ contributes four more. This leaf collects, once for both instances:
 
 * the per-link atom families (`guardT`, `linT`) and their O2 lemmas along the joint flows,
   both sides (`stayR_link`, `stayL_link`, `stayR_derGe`, `stayL_derGe`);
-* the explicit link solution and its box (`gS`, `rS`, `link_bounds`), from which the
-  existence residual of every joint segment is discharged;
-* the guard barrier along the reference's OWN flow (`gap_floor_Ronly`): a run that starts
-  with `x ≥ G` and `x + 2y ≥ P` (`G ≤ P ≤ c`) ends with `x ≥ G` — the flow repels at the
-  AEB floor.
+* (in `WellFormed/Platoon3Link`, imported here) the link shape (`LinkField`, `pgGe`), the
+  explicit link solution and its box (`gS`, `rS`, `link_bounds`), from which the existence
+  residual of every joint segment is discharged, and the guard barrier along the reference's
+  OWN flow (`gap_floor_Ronly`).
 
 New leaf.
 -/
 import RelCertifier.Proofs.Encoding.RightOnlyStay
+import RelCertifier.InstancesV2.WellFormed.Platoon3Link
 import RelCertifier.Proofs.Encoding.CutRespond
 import RelCertifier.Proofs.Encoding.GuardedSwitch
 
@@ -66,21 +66,7 @@ open DL DLCalTiming DLRel Set
 
 /-! ## One link -/
 
-/-- The damped link on side `W` at coordinates `jx` (gap), `jy` (closing rate). -/
-def LinkField (W : Fin 6 → Var 6) (f : Fin 6 → Term (Var 6)) (jx jy : Fin 6) (c : ℝ) :
-    Prop :=
-  (∀ z, Term.eval (f jx) z = z (W jy)) ∧
-  (∀ z, Term.eval (f jy) z = -(1/8) * (z (W jx) - c) - 3/4 * z (W jy))
-
-/-- The narrowing formula of a term (`t ≤ 0`). -/
-def leF (t : Term (Var 6)) : Formula (Var 6) := Formula.cmp CompOp.le t (Term.const 0)
-
-theorem sat_leF (t : Term (Var 6)) (z : State (Var 6)) :
-    Formula.sat (leF t) z ↔ Term.eval t z ≤ 0 := by
-  simp [leF, Formula.sat, CompOp.interp, Term.eval]
-
 theorem hroot4 : (1/4 : ℝ) * (1/4) - 3/4 * (1/4) + 1/8 = 0 := by norm_num
-theorem hroot2 : (1/2 : ℝ) * (1/2) - 3/4 * (1/2) + 1/8 = 0 := by norm_num
 
 /-- One link's constants: set point `c`; linear-form boxes `[b, a]` (`ρ = 1/4`) and `[e, d]`
 (`ρ = 1/2`); projected-gap bounds `[P, U]`. -/
@@ -96,19 +82,10 @@ structure LinkC where
 def LinkOK (p : LinkC) : Prop :=
   0 ≤ p.a ∧ p.b ≤ 0 ∧ 0 ≤ p.d ∧ p.e ≤ 0 ∧ p.P ≤ p.c ∧ p.c ≤ p.U ∧ 0 ≤ p.c ∧ p.c ≤ 60
 
-/-- Safe-side term of `x + 2y ≥ P`. -/
-def pgGe (wx wy : Var 6) (P : ℝ) : Term (Var 6) :=
-  Term.binop .sub (Term.const P)
-    (Term.binop .add (Term.var wx) (Term.binop .mul (Term.const 2) (Term.var wy)))
-
 /-- Safe-side term of `x + 2y ≤ U`. -/
 def pgLe (wx wy : Var 6) (U : ℝ) : Term (Var 6) :=
   Term.binop .sub
     (Term.binop .add (Term.var wx) (Term.binop .mul (Term.const 2) (Term.var wy))) (Term.const U)
-
-theorem eval_pgGe (wx wy : Var 6) (P c : ℝ) (z : State (Var 6)) :
-    Term.eval (pgGe wx wy P) z = 2 * Term.eval (linGe wx wy (1/2) c ((P - c)/2)) z := by
-  simp only [pgGe, linGe, eval_linQ, Term.eval, AOp.interp]; ring
 
 theorem eval_pgLe (wx wy : Var 6) (U c : ℝ) (z : State (Var 6)) :
     Term.eval (pgLe wx wy U) z = 2 * Term.eval (linLe wx wy (1/2) c ((U - c)/2)) z := by
@@ -338,252 +315,6 @@ theorem stayL_link (jx jy : Fin 6) (p : LinkC) (ok : LinkOK p) (hF : LinkField L
   · exact stayL_linGe fL fR lam dom jx jy _ p.c _ hroot2 hs2 ke hF ν ht0
 
 end Left
-
-/-! ## The explicit link solution and its box -/
-
-noncomputable def E1 (t : ℝ) : ℝ := Real.exp (-(1/2) * t)
-noncomputable def E2 (t : ℝ) : ℝ := Real.exp (-(1/4) * t)
-
-theorem hasDerivAt_E1 (t : ℝ) : HasDerivAt E1 (-(1/2) * E1 t) t := by
-  have hin : HasDerivAt (fun u : ℝ => -(1/2) * u) (-(1/2)) t := by
-    have h := (hasDerivAt_id t).const_mul (-(1/2 : ℝ))
-    simp only [id, mul_one] at h
-    exact h
-  have h := (Real.hasDerivAt_exp (-(1/2) * t)).comp t hin
-  rw [mul_comm] at h
-  exact h
-
-theorem hasDerivAt_E2 (t : ℝ) : HasDerivAt E2 (-(1/4) * E2 t) t := by
-  have hin : HasDerivAt (fun u : ℝ => -(1/4) * u) (-(1/4)) t := by
-    have h := (hasDerivAt_id t).const_mul (-(1/4 : ℝ))
-    simp only [id, mul_one] at h
-    exact h
-  have h := (Real.hasDerivAt_exp (-(1/4) * t)).comp t hin
-  rw [mul_comm] at h
-  exact h
-
-theorem E2_pos (t : ℝ) : 0 < E2 t := Real.exp_pos _
-theorem E2_le (t : ℝ) (ht : 0 ≤ t) : E2 t ≤ 1 := by
-  unfold E2; rw [Real.exp_le_one_iff]; linarith
-theorem E1_zero : E1 0 = 1 := by simp [E1]
-theorem E2_zero : E2 0 = 1 := by simp [E2]
-theorem E1_sq (t : ℝ) : E1 t = E2 t * E2 t := by
-  unfold E1 E2; rw [← Real.exp_add]; ring_nf
-
-/-- The two modal coordinates of a link at set point `c`. -/
-noncomputable def Q1 (c x y : ℝ) : ℝ := y + 1/4 * (x - c)
-noncomputable def Q2 (c x y : ℝ) : ℝ := y + 1/2 * (x - c)
-
-/-- The explicit link solution. -/
-noncomputable def gS (c x y t : ℝ) : ℝ := c + 4 * (Q2 c x y * E2 t - Q1 c x y * E1 t)
-noncomputable def rS (c x y t : ℝ) : ℝ := 2 * Q1 c x y * E1 t - Q2 c x y * E2 t
-
-theorem gS_zero (c x y : ℝ) : gS c x y 0 = x := by
-  simp only [gS, Q1, Q2, E1_zero, E2_zero]; ring
-theorem rS_zero (c x y : ℝ) : rS c x y 0 = y := by
-  simp only [rS, Q1, Q2, E1_zero, E2_zero]; ring
-
-theorem gS_hasDeriv (c x y t : ℝ) : HasDerivAt (fun u => gS c x y u) (rS c x y t) t := by
-  have h : HasDerivAt (fun u => c + 4 * (Q2 c x y * E2 u - Q1 c x y * E1 u))
-      (4 * (Q2 c x y * (-(1/4) * E2 t) - Q1 c x y * (-(1/2) * E1 t))) t :=
-    ((((hasDerivAt_E2 t).const_mul (Q2 c x y)).sub
-      ((hasDerivAt_E1 t).const_mul (Q1 c x y))).const_mul 4).const_add c
-  have e : rS c x y t = 4 * (Q2 c x y * (-(1/4) * E2 t) - Q1 c x y * (-(1/2) * E1 t)) := by
-    simp only [rS]; ring
-  rw [e]
-  exact h
-
-theorem rS_hasDeriv (c x y t : ℝ) : HasDerivAt (fun u => rS c x y u)
-    (-(1/8) * (gS c x y t - c) - 3/4 * rS c x y t) t := by
-  have h : HasDerivAt (fun u => 2 * Q1 c x y * E1 u - Q2 c x y * E2 u)
-      (2 * Q1 c x y * (-(1/2) * E1 t) - Q2 c x y * (-(1/4) * E2 t)) t :=
-    ((hasDerivAt_E1 t).const_mul (2 * Q1 c x y)).sub ((hasDerivAt_E2 t).const_mul (Q2 c x y))
-  have e : -(1/8) * (gS c x y t - c) - 3/4 * rS c x y t
-      = 2 * Q1 c x y * (-(1/2) * E1 t) - Q2 c x y * (-(1/4) * E2 t) := by
-    simp only [gS, rS]; ring
-  rw [e]
-  exact h
-
-theorem gap_hi_aux (a b u K : ℝ) (hu0 : 0 < u) (hu1 : u ≤ 1) (hK : 0 ≤ K)
-    (h1 : 2 * a ≤ K) (h2 : 4 * (a - b) ≤ K) : 4 * (a * u - b * (u * u)) ≤ K := by
-  have huu : 0 ≤ u * (1 - u) := mul_nonneg hu0.le (by linarith)
-  have hid : 4 * (a * u - b * (u * u)) = u * (4 * (a - b)) + 4 * b * (u * (1 - u)) := by ring
-  rcases le_or_gt b 0 with hb0 | hb0
-  · have e1 : 4 * b * (u * (1 - u)) ≤ 0 := by
-      have := mul_nonneg (by linarith : (0:ℝ) ≤ -(4 * b)) huu; linarith
-    rcases le_or_gt (4 * (a - b)) 0 with hn | hn
-    · have : u * (4 * (a - b)) ≤ 0 := mul_nonpos_of_nonneg_of_nonpos hu0.le hn
-      linarith
-    · have : u * (4 * (a - b)) ≤ 4 * (a - b) := by
-        have := mul_le_mul_of_nonneg_right hu1 hn.le; linarith
-      linarith
-  · rcases le_or_gt a (2 * b) with hab2 | hab2
-    · rcases le_or_gt a 0 with ha0 | ha0
-      · have e1 : a * u ≤ 0 := mul_nonpos_of_nonpos_of_nonneg ha0 hu0.le
-        have e2 : 0 ≤ b * (u * u) := by positivity
-        linarith
-      · have e1 : 2 * a * (u * u) ≤ 4 * b * (u * u) := by
-          have := mul_le_mul_of_nonneg_right (by linarith : 2 * a ≤ 4 * b) (by positivity : (0:ℝ) ≤ u * u)
-          linarith
-        have e2 : u * (2 - u) ≤ 1 := by nlinarith [sq_nonneg (1 - u)]
-        have e3 : 2 * a * (u * (2 - u)) ≤ 2 * a := by
-          have := mul_le_mul_of_nonneg_left e2 (by linarith : (0:ℝ) ≤ 2 * a); linarith
-        nlinarith
-    · have hid2 : 4 * (a * u - b * (u * u)) - 4 * (a - b) = 4 * ((u - 1) * (a - b * (u + 1))) := by
-        ring
-      have hx : 0 ≤ a - b * (u + 1) := by
-        have : b * (u + 1) ≤ b * 2 := by
-          have := mul_le_mul_of_nonneg_left (by linarith : u + 1 ≤ 2) hb0.le; linarith
-        linarith
-      have : (u - 1) * (a - b * (u + 1)) ≤ 0 :=
-        mul_nonpos_of_nonpos_of_nonneg (by linarith) hx
-      linarith
-
-theorem gap_lo_aux (a b u K : ℝ) (hu0 : 0 < u) (hu1 : u ≤ 1) (hK : 0 ≤ K)
-    (h1 : -K ≤ 4 * a) (h2 : -K ≤ 4 * (a - b)) : -K ≤ 4 * (a * u - b * (u * u)) := by
-  have huu : 0 ≤ u * (1 - u) := mul_nonneg hu0.le (by linarith)
-  have hid : 4 * (a * u - b * (u * u)) = u * (4 * (a - b)) + 4 * b * (u * (1 - u)) := by ring
-  rcases le_or_gt 0 b with hb0 | hb0
-  · have e1 : 0 ≤ 4 * b * (u * (1 - u)) := by positivity
-    rcases le_or_gt 0 (4 * (a - b)) with hn | hn
-    · have : 0 ≤ u * (4 * (a - b)) := mul_nonneg hu0.le hn
-      linarith
-    · have : 4 * (a - b) ≤ u * (4 * (a - b)) := by
-        have := mul_le_mul_of_nonneg_right hu1 (by linarith : (0:ℝ) ≤ -(4 * (a - b))); linarith
-      linarith
-  · have e1 : 0 ≤ -(b * (u * u)) := by
-      have := mul_nonneg (by linarith : (0:ℝ) ≤ -b) (by positivity : (0:ℝ) ≤ u * u); linarith
-    rcases le_or_gt 0 a with ha0 | ha0
-    · have : 0 ≤ a * u := mul_nonneg ha0 hu0.le
-      linarith
-    · have : a ≤ a * u := by
-        have := mul_le_mul_of_nonneg_right hu1 (by linarith : (0:ℝ) ≤ -a); linarith
-      linarith
-
-theorem rate_hi_aux (a b u y : ℝ) (hu0 : 0 < u) (hu1 : u ≤ 1) (hy : y = 2 * b - a)
-    (hy1 : y ≤ 10) (ha : -10 ≤ a) : 2 * b * (u * u) - a * u ≤ 10 := by
-  have huu : 0 ≤ u * (1 - u) := mul_nonneg hu0.le (by linarith)
-  rcases le_or_gt 0 b with hb0 | hb0
-  · -- convex in `u`: below the chord `u ↦ u y`
-    have hid : 2 * b * (u * u) - a * u = u * y - 2 * b * (u * (1 - u)) := by rw [hy]; ring
-    have e1 : 0 ≤ 2 * b * (u * (1 - u)) := by positivity
-    rcases le_or_gt y 0 with hy0 | hy0
-    · have : u * y ≤ 0 := mul_nonpos_of_nonneg_of_nonpos hu0.le hy0
-      linarith
-    · have : u * y ≤ y := by have := mul_le_mul_of_nonneg_right hu1 hy0.le; linarith
-      linarith
-  · have e1 : 2 * b * (u * u) ≤ 0 := by
-      have := mul_nonneg (by linarith : (0:ℝ) ≤ -(2 * b)) (by positivity : (0:ℝ) ≤ u * u); linarith
-    rcases le_or_gt 0 a with ha0 | ha0
-    · have : 0 ≤ a * u := mul_nonneg ha0 hu0.le
-      linarith
-    · have : -(a * u) ≤ -a := by
-        have := mul_le_mul_of_nonneg_right hu1 (by linarith : (0:ℝ) ≤ -a); linarith
-      linarith
-
-theorem rate_lo_aux (a b u y : ℝ) (hu0 : 0 < u) (hu1 : u ≤ 1) (hy : y = 2 * b - a)
-    (hy0 : -10 ≤ y) (ha : a ≤ 20) : -10 ≤ 2 * b * (u * u) - a * u := by
-  have huu : 0 ≤ u * (1 - u) := mul_nonneg hu0.le (by linarith)
-  rcases le_or_gt b 0 with hb0 | hb0
-  · -- concave in `u`: above the chord
-    have hid : 2 * b * (u * u) - a * u = u * y - 2 * b * (u * (1 - u)) := by rw [hy]; ring
-    have e1 : 2 * b * (u * (1 - u)) ≤ 0 := by
-      have := mul_nonneg (by linarith : (0:ℝ) ≤ -(2 * b)) huu; linarith
-    rcases le_or_gt 0 y with hy0' | hy0'
-    · have : 0 ≤ u * y := mul_nonneg hu0.le hy0'
-      linarith
-    · have : y ≤ u * y := by
-        have := mul_le_mul_of_nonneg_right hu1 (by linarith : (0:ℝ) ≤ -y); linarith
-      linarith
-  · rcases le_or_gt a (4 * b) with ha4 | ha4
-    · -- completing the square: `≥ −a² / (8 b) ≥ −a / 2 ≥ −10`
-      rcases le_or_gt a 0 with ha0 | ha0
-      · have e1 : 0 ≤ 2 * b * (u * u) := by positivity
-        have e2 : a * u ≤ 0 := mul_nonpos_of_nonpos_of_nonneg ha0 hu0.le
-        linarith
-      · have hsq : 0 ≤ (4 * b * u - a) ^ 2 := sq_nonneg _
-        -- `8 b (2 b u² − a u) = (4 b u − a)² − a²  ≥ −a² ≥ −4 b a`
-        have hkey : 8 * b * (2 * b * (u * u) - a * u) = (4 * b * u - a) ^ 2 - a * a := by ring
-        have e1 : a * a ≤ 4 * b * a := by
-          have := mul_le_mul_of_nonneg_right ha4 ha0.le; linarith
-        have e2 : -(4 * b * a) ≤ 8 * b * (2 * b * (u * u) - a * u) := by nlinarith
-        -- divide by `8 b > 0`
-        have e3 : -(a / 2) ≤ 2 * b * (u * u) - a * u := by
-          by_contra hc
-          push_neg at hc
-          have := mul_lt_mul_of_pos_left hc (by linarith : (0:ℝ) < 8 * b)
-          nlinarith
-        linarith
-    · -- decreasing on `[0, 1]`: above the value at `u = 1`
-      have hid : 2 * b * (u * u) - a * u - y = (u - 1) * (2 * b * (u + 1) - a) := by
-        rw [hy]; ring
-      have hx : 2 * b * (u + 1) - a ≤ 0 := by
-        have : b * (u + 1) ≤ b * 2 := by
-          have := mul_le_mul_of_nonneg_left (by linarith : u + 1 ≤ 2) hb0.le; linarith
-        linarith
-      have : 0 ≤ (u - 1) * (2 * b * (u + 1) - a) :=
-        mul_nonneg_of_nonpos_of_nonpos (by linarith) hx
-      linarith
-
-/-- **The link stays in the evolve box** (`0 ≤ x ≤ 60`, `|y| ≤ 10`) for all time when it
-starts there with the slow form `Q2 = y + (x − c)/2` in `[−K, (60 − c)/2]` (the
-projected-gap guard; `4 K ≤ c`, `K ≤ 10`). `u = e^{−t/4}`: `x − c = 4 (Q2 u − Q1 u²)`, `y = 2 Q1 u² − Q2 u`. -/
-theorem link_bounds (c K x y t : ℝ) (ht : 0 ≤ t) (hc1 : 20 ≤ c) (hc2 : c ≤ 60)
-    (hK1 : 4 * K ≤ c) (hK2 : K ≤ 10)
-    (hx0 : 0 ≤ x) (hx1 : x ≤ 60) (hy0 : -10 ≤ y) (hy1 : y ≤ 10)
-    (hq0 : -K ≤ Q2 c x y) (hq1 : 2 * Q2 c x y ≤ 60 - c) :
-    (0 ≤ gS c x y t ∧ gS c x y t ≤ 60) ∧ (-10 ≤ rS c x y t ∧ rS c x y t ≤ 10) := by
-  have hu0 : 0 < E2 t := E2_pos t
-  have hu1 : E2 t ≤ 1 := E2_le t ht
-  have hab : 4 * (Q2 c x y - Q1 c x y) = x - c := by simp only [Q1, Q2]; ring
-  have hyab : y = 2 * Q1 c x y - Q2 c x y := by simp only [Q1, Q2]; ring
-  have hg : gS c x y t = c + 4 * (Q2 c x y * E2 t - Q1 c x y * (E2 t * E2 t)) := by
-    unfold gS; rw [E1_sq]
-  have hr : rS c x y t = 2 * Q1 c x y * (E2 t * E2 t) - Q2 c x y * E2 t := by
-    unfold rS; rw [E1_sq]
-  rw [hg, hr]
-  refine ⟨⟨?_, ?_⟩, ?_, ?_⟩
-  · have := gap_lo_aux (Q2 c x y) (Q1 c x y) (E2 t) c hu0 hu1 (by linarith) (by linarith)
-      (by linarith)
-    linarith
-  · have := gap_hi_aux (Q2 c x y) (Q1 c x y) (E2 t) (60 - c) hu0 hu1 (by linarith) hq1
-      (by linarith)
-    linarith
-  · exact rate_lo_aux _ _ _ y hu0 hu1 hyab hy0 (by linarith)
-  · exact rate_hi_aux _ _ _ y hu0 hu1 hyab hy1 (by linarith)
-
-/-! ## The guard barrier along the reference's own flow -/
-
-/-- **The AEB floor repels.** Along a run of the reference's own flow (a link at set point
-`c`), a gap that starts at `x ≥ G` with `x + 2y ≥ P` (`G ≤ P ≤ c`) stays at `x ≥ G`: the slow
-form `y + (x − c)/2 ≥ (P − c)/2` only decays toward `0`, and on it `x' = y ≥ (G − x)/2 + …`
-points away from the floor. -/
-theorem gap_floor_Ronly (fR : Fin 6 → Term (Var 6)) (dom : Formula (Var 6)) (jx jy : Fin 6)
-    (c G P : ℝ) (hGP : G ≤ P) (hPc : P ≤ c) (hF : LinkField Rv fR jx jy c)
-    {ν μ : State (Var 6)}
-    (hrun : Program.sem (Program.ode (rightBlock fR (Term.const 1)) dom) ν μ)
-    (hP : Term.eval (pgGe (Rv jx) (Rv jy) P) ν ≤ 0) (hG : G ≤ ν (Rv jx)) :
-    G ≤ μ (Rv jx) := by
-  have hs2 : (0:ℝ) ≤ 3/4 - 1/2 := by norm_num
-  have hq : Term.eval (linGe (Rv jx) (Rv jy) (1/2) c ((P - c)/2)) ν ≤ 0 := by
-    have := (eval_pgGe (Rv jx) (Rv jy) P c ν) ▸ hP
-    linarith
-  have hx : Term.eval (thrGe (Rv jx) G) ν ≤ 0 := by
-    simp only [thrGe, Term.eval, AOp.interp]; linarith
-  have hbox := stay_given (sys := rightBlock fR (Term.const 1)) (dom := dom)
-    (Fq := leF (linGe (Rv jx) (Rv jy) (1/2) c ((P - c)/2))) (fun z => sat_leF _ z)
-    (fun ν' h' => boxle_Ronly_of_super _ fR 1 zero_le_one dom dom
-      (fun i hi => by simp [linGe, linQ, Term.fv, Lv, Rv] at hi) (fun x hx => hx)
-      (super_linear_ge_R (a := 1/8) (b := 3/4) hroot2 hs2 (by linarith) fR dom
-        (fun z _ => hF.1 z) (fun z _ => hF.2 z)) h')
-    (fun ν' h' => boxle_Ronly_of_super _ fR 1 zero_le_one _ _
-      (fun i hi => by simp [thrGe, Term.fv, Lv, Rv] at hi) (fun x hx => hx)
-      (super_derived_ge_R (r := 1/2) (by norm_num) (by linarith) fR
-        (Formula.and dom (leF (linGe (Rv jx) (Rv jy) (1/2) c ((P - c)/2))))
-        (fun z _ => hF.1 z) (fun z hz => (sat_leF _ z).mp hz.2)) h') ν hq hx
-  have := hbox μ hrun
-  simp only [thrGe, Term.eval, AOp.interp] at this
-  linarith
 
 end Platoon3Link
 end RelCertifier

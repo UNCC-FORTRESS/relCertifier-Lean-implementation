@@ -21,6 +21,7 @@ import RelCertifier.Proofs.Encoding.CanonicalInv
 import RelCertifier.Proofs.Encoding.CoverInstance
 import RelCertifier.Proofs.Flow.AffineFaces
 import RelCertifier.Instances.BenchIR.story3_rollover_base_12dof
+import RelCertifier.Instances.WellFormed.Story3RolloverBase
 
 namespace RelCertifier
 namespace Story3RolloverBaseModal
@@ -29,19 +30,13 @@ open DL DLCalTiming DLRel Parse Set
 
 set_option maxHeartbeats 12800000
 
-def vsB : List String := ["v", "s", "psi", "omega_psi", "theta_p", "omega_theta", "e", "r", "phi_r", "omega_phi", "z", "y"]
-def dummyB : Parse.PMode := ⟨"", [], .tt, .tt, []⟩
 def mLB (l : ℕ) : Parse.PMode := story3_rollover_base_12dof_IR.L.modes.getD l dummyB
-def mRB (q : ℕ) : Parse.PMode := story3_rollover_base_12dof_IR.R.modes.getD q dummyB
-
 abbrev mvB : Var 12 := (Side.Aux, 0)
 abbrev aB : Fin 12 := (1 : Fin 12)
 abbrev tgB : Var 12 := (Side.Aux, aB)
 
 noncomputable def fLB (l : ℕ) : Fin 12 → Term (Var 12) := hostDyn vsB 12 Side.L (mLB l)
-noncomputable def fRB (q : ℕ) : Fin 12 → Term (Var 12) := hostDyn vsB 12 Side.R (mRB q)
 noncomputable def domLB : Formula (Var 12) := hostEvolve vsB 12 Side.L (mLB 0)
-noncomputable def domRB : Formula (Var 12) := hostEvolve vsB 12 Side.R (mRB 0)
 noncomputable def envB : Formula (Var 12) := Formula.and domLB domRB
 
 def atomsOf : Parse.PForm → List Parse.PForm
@@ -85,23 +80,23 @@ theorem domRB_pipe : domRB =
 theorem hfLB (l : ℕ) (hl : l < 3) : ∀ i, (fLB l i).fv ⊆ range Lv := fun i x hx =>
   side_eq_L_mem (field_pipeline_side (resolvesTo_L vsB) (some (mLB l))
     (by interval_cases l <;>
-      simp [mLB, story3_rollover_base_12dof_IR, Parse.PExpr.namesFree]) i x
+      simp [mLB, story3_rollover_base_12dof_IR, story3_rollover_base_12dof_IRv2, Parse.PExpr.namesFree]) i x
     (fLB_pipe l i ▸ hx))
 
 theorem hfRB (q : ℕ) (hq : q < 3) : ∀ i, (fRB q i).fv ⊆ range Rv := fun i x hx =>
   side_eq_R_mem (field_pipeline_side (resolvesTo_R vsB) (some (mRB q))
     (by interval_cases q <;>
-      simp [mRB, story3_rollover_base_12dof_IR, Parse.PExpr.namesFree]) i x
+      simp [mRB, story3_rollover_base_12dof_IR, story3_rollover_base_12dof_IRv2, Parse.PExpr.namesFree]) i x
     (fRB_pipe q i ▸ hx))
 
 theorem hdomLB : domLB.fv ⊆ range Lv := fun x hx =>
   side_eq_L_mem (form_pipeline_side (resolvesTo_L vsB) (some (mLB 0))
-    (by simp [mLB, story3_rollover_base_12dof_IR, Parse.PForm.namesFree,
+    (by simp [mLB, story3_rollover_base_12dof_IR, story3_rollover_base_12dof_IRv2, Parse.PForm.namesFree,
       Parse.PExpr.namesFree]) x (domLB_pipe ▸ hx))
 
 theorem hdomRB : domRB.fv ⊆ range Rv := fun x hx =>
   side_eq_R_mem (form_pipeline_side (resolvesTo_R vsB) (some (mRB 0))
-    (by simp [mRB, story3_rollover_base_12dof_IR, Parse.PForm.namesFree,
+    (by simp [mRB, story3_rollover_base_12dof_IR, story3_rollover_base_12dof_IRv2, Parse.PForm.namesFree,
       Parse.PExpr.namesFree]) x (domRB_pipe ▸ hx))
 
 theorem hgAt (i : ℕ) : (gAt i).fv ⊆ range Lv ∪ range Rv := invToG_pipeline_LR _
@@ -133,9 +128,6 @@ theorem htgenvB : tgB ∉ envB.fv := fun h => by
   · exact absurd (hdomRB h) (by rintro ⟨i, hi⟩; exact absurd hi (by simp [Rv, Prod.ext_iff]))
 
 /-! ## The right graph (one-way chain) -/
-
-noncomputable def modeB (q : ℕ) : RMode (Var 12) :=
-  { sys := rightBlock (fRB q) (Term.const 1), dom := domRB, weight := 1 }
 
 def edgeB (st tgt : ℕ) : REdge (Var 12) :=
   { src := st, tgt := tgt, guard := Formula.tt, pruned := false }
@@ -212,151 +204,6 @@ theorem hframesB (dt : ℝ) : ∀ P ∈ leftProgsB dt, FramesMv P mvB := by
   intro h
   obtain ⟨i, hi⟩ := leftBlock_bound_sub d.2.1 _ h
   exact aux_ne_Lv 0 i hi
-
-/-! ## Parse pins -/
-
-theorem hp030 : Run.parseRat "0.30" = some ((3:ℚ)/10) := by
-  have h : parseQ "0.30" = some (⟨30, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp050 : Run.parseRat "0.50" = some ((1:ℚ)/2) := by
-  have h : parseQ "0.50" = some (⟨50, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp065 : Run.parseRat "0.65" = some ((13:ℚ)/20) := by
-  have h : parseQ "0.65" = some (⟨65, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp3 : Run.parseRat "3" = some (3) := by
-  have h : parseQ "3" = some (⟨3, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hpm1 : Run.parseRat "-1" = some (-1) := by
-  have h : parseQ "-1" = some (⟨-1, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hp0 : Run.parseRat "0" = some (0) := by
-  have h : parseQ "0" = some (⟨0, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hp1 : Run.parseRat "1" = some (1) := by
-  have h : parseQ "1" = some (⟨1, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hp05 : Run.parseRat "0.5" = some ((1:ℚ)/2) := by
-  have h : parseQ "0.5" = some (⟨5, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp03 : Run.parseRat "0.3" = some ((3:ℚ)/10) := by
-  have h : parseQ "0.3" = some (⟨3, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hpm05 : Run.parseRat "-0.5" = some (-(1:ℚ)/2) := by
-  have h : parseQ "-0.5" = some (⟨-5, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp06 : Run.parseRat "0.6" = some ((3:ℚ)/5) := by
-  have h : parseQ "0.6" = some (⟨6, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp015 : Run.parseRat "0.15" = some ((3:ℚ)/20) := by
-  have h : parseQ "0.15" = some (⟨15, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp00 : Run.parseRat "0.0" = some (0) := by
-  have h : parseQ "0.0" = some (⟨0, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hp08 : Run.parseRat "0.8" = some ((4:ℚ)/5) := by
-  have h : parseQ "0.8" = some (⟨8, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hpm10 : Run.parseRat "-1.0" = some (-1) := by
-  have h : parseQ "-1.0" = some (⟨-10, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hpm15 : Run.parseRat "-1.5" = some (-(3:ℚ)/2) := by
-  have h : parseQ "-1.5" = some (⟨-15, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp11 : Run.parseRat "1.1" = some ((11:ℚ)/10) := by
-  have h : parseQ "1.1" = some (⟨11, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hpm152 : Run.parseRat "-1.52" = some (-(38:ℚ)/25) := by
-  have h : parseQ "-1.52" = some (⟨-152, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp162 : Run.parseRat "1.62" = some ((81:ℚ)/50) := by
-  have h : parseQ "1.62" = some (⟨162, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-
-/-! ## Field and shape pins -/
-
-noncomputable def cstB (q : ℕ) : ℝ := if q = 0 then 3/10 else if q = 1 then 1/2 else 13/20
-
-theorem fRB0_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRB q 0) x = 3 * (cstB q - x (Rv 0)) := by
-  interval_cases q <;>
-    simp [fRB, hostDyn, mRB, story3_rollover_base_12dof_IR, vsB, Run.dynOf,
-      Run.lowerE, hp030, hp050, hp065, hp3, hpm1, hp0, hp1, hp05, hp03, hpm05, hp06, hp015, hp00, hp08, hpm10, hpm15, hp11, hpm152, hp162, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv, cstB]
-theorem fRB1_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRB q 1) x = x (Rv 0) * ((1 - 1/2 * (x (Rv 2) * x (Rv 2))) - 3/10 * (x (Rv 4) * x (Rv 4))) := by
-  interval_cases q <;>
-    simp [fRB, hostDyn, mRB, story3_rollover_base_12dof_IR, vsB, Run.dynOf,
-      Run.lowerE, hp030, hp050, hp065, hp3, hpm1, hp0, hp1, hp05, hp03, hpm05, hp06, hp015, hp00, hp08, hpm10, hpm15, hp11, hpm152, hp162, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem fRB2_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRB q 2) x = -1 * x (Rv 2) := by
-  interval_cases q <;>
-    simp [fRB, hostDyn, mRB, story3_rollover_base_12dof_IR, vsB, Run.dynOf,
-      Run.lowerE, hp030, hp050, hp065, hp3, hpm1, hp0, hp1, hp05, hp03, hpm05, hp06, hp015, hp00, hp08, hpm10, hpm15, hp11, hpm152, hp162, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem fRB3_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRB q 3) x = 0 := by
-  interval_cases q <;>
-    simp [fRB, hostDyn, mRB, story3_rollover_base_12dof_IR, vsB, Run.dynOf,
-      Run.lowerE, hp030, hp050, hp065, hp3, hpm1, hp0, hp1, hp05, hp03, hpm05, hp06, hp015, hp00, hp08, hpm10, hpm15, hp11, hpm152, hp162, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem fRB4_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRB q 4) x = -1 * x (Rv 4) := by
-  interval_cases q <;>
-    simp [fRB, hostDyn, mRB, story3_rollover_base_12dof_IR, vsB, Run.dynOf,
-      Run.lowerE, hp030, hp050, hp065, hp3, hpm1, hp0, hp1, hp05, hp03, hpm05, hp06, hp015, hp00, hp08, hpm10, hpm15, hp11, hpm152, hp162, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem fRB5_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRB q 5) x = 0 := by
-  interval_cases q <;>
-    simp [fRB, hostDyn, mRB, story3_rollover_base_12dof_IR, vsB, Run.dynOf,
-      Run.lowerE, hp030, hp050, hp065, hp3, hpm1, hp0, hp1, hp05, hp03, hpm05, hp06, hp015, hp00, hp08, hpm10, hpm15, hp11, hpm152, hp162, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem fRB6_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRB q 6) x = -1 * x (Rv 6) := by
-  interval_cases q <;>
-    simp [fRB, hostDyn, mRB, story3_rollover_base_12dof_IR, vsB, Run.dynOf,
-      Run.lowerE, hp030, hp050, hp065, hp3, hpm1, hp0, hp1, hp05, hp03, hpm05, hp06, hp015, hp00, hp08, hpm10, hpm15, hp11, hpm152, hp162, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem fRB7_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRB q 7) x = 0 := by
-  interval_cases q <;>
-    simp [fRB, hostDyn, mRB, story3_rollover_base_12dof_IR, vsB, Run.dynOf,
-      Run.lowerE, hp030, hp050, hp065, hp3, hpm1, hp0, hp1, hp05, hp03, hpm05, hp06, hp015, hp00, hp08, hpm10, hpm15, hp11, hpm152, hp162, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem fRB8_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRB q 8) x = -1 * x (Rv 8) := by
-  interval_cases q <;>
-    simp [fRB, hostDyn, mRB, story3_rollover_base_12dof_IR, vsB, Run.dynOf,
-      Run.lowerE, hp030, hp050, hp065, hp3, hpm1, hp0, hp1, hp05, hp03, hpm05, hp06, hp015, hp00, hp08, hpm10, hpm15, hp11, hpm152, hp162, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem fRB9_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRB q 9) x = 0 := by
-  interval_cases q <;>
-    simp [fRB, hostDyn, mRB, story3_rollover_base_12dof_IR, vsB, Run.dynOf,
-      Run.lowerE, hp030, hp050, hp065, hp3, hpm1, hp0, hp1, hp05, hp03, hpm05, hp06, hp015, hp00, hp08, hpm10, hpm15, hp11, hpm152, hp162, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem fRB10_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRB q 10) x = 0 := by
-  interval_cases q <;>
-    simp [fRB, hostDyn, mRB, story3_rollover_base_12dof_IR, vsB, Run.dynOf,
-      Run.lowerE, hp030, hp050, hp065, hp3, hpm1, hp0, hp1, hp05, hp03, hpm05, hp06, hp015, hp00, hp08, hpm10, hpm15, hp11, hpm152, hp162, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-theorem fRB11_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRB q 11) x = 0 := by
-  interval_cases q <;>
-    simp [fRB, hostDyn, mRB, story3_rollover_base_12dof_IR, vsB, Run.dynOf,
-      Run.lowerE, hp030, hp050, hp065, hp3, hpm1, hp0, hp1, hp05, hp03, hpm05, hp06, hp015, hp00, hp08, hpm10, hpm15, hp11, hpm152, hp162, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-
-theorem sat_domRB (x : State (Var 12)) : Formula.sat domRB x ↔
-    (-(3:ℝ)/2 ≤ x (Rv 6) ∧ x (Rv 6) ≤ (3:ℝ)/20 ∧ -(1:ℝ)/2 ≤ x (Rv 9) ∧ x (Rv 9) ≤ (3:ℝ)/5 ∧ -(1:ℝ)/2 ≤ x (Rv 3) ∧ x (Rv 3) ≤ (3:ℝ)/5 ∧ -(1:ℝ)/2 ≤ x (Rv 5) ∧ x (Rv 5) ≤ (3:ℝ)/5 ∧ -(1:ℝ)/2 ≤ x (Rv 8) ∧ x (Rv 8) ≤ (3:ℝ)/20 ∧ -(1:ℝ)/2 ≤ x (Rv 2) ∧ x (Rv 2) ≤ (3:ℝ)/20 ∧ -(38:ℝ)/25 ≤ x (Rv 7) ∧ x (Rv 7) ≤ (81:ℝ)/50 ∧ 0 ≤ x (Rv 1) ∧ -(1:ℝ)/2 ≤ x (Rv 4) ∧ x (Rv 4) ≤ (3:ℝ)/20 ∧ 0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ (4:ℝ)/5 ∧ -(1:ℝ) ≤ x (Rv 11) ∧ x (Rv 11) ≤ (11:ℝ)/10 ∧ -(1:ℝ) ≤ x (Rv 10) ∧ x (Rv 10) ≤ (11:ℝ)/10) := by
-  simp only [domRB, hostEvolve, mRB, story3_rollover_base_12dof_IR, vsB]
-  simp [Run.lowerF, Run.lowerE, hpm15, hp015, hpm05, hp06, hpm152, hp162, hp00, hp08, hpm10, hp11,
-    Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
-    CompOp.interp, Term.eval, Rv]
-  tauto
 
 /-! ## Faces -/
 

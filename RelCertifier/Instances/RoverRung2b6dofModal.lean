@@ -25,6 +25,7 @@ import RelCertifier.Proofs.Encoding.CanonicalInv
 import RelCertifier.Proofs.Encoding.CoverInstance
 import RelCertifier.Proofs.Flow.StratifiedFaces
 import RelCertifier.Instances.BenchIR.refinement_ladder_rover_rung2b_6dof
+import RelCertifier.Instances.WellFormed.RoverRung2b6dof
 
 namespace RelCertifier
 namespace RoverRung2b6dofModal
@@ -33,19 +34,13 @@ open DL DLCalTiming DLRel Parse Set
 
 set_option maxHeartbeats 12800000
 
-def vsB2 : List String := ["v", "s", "psi", "theta_p", "z", "phi_r"]
-def dummyB2 : Parse.PMode := ⟨"", [], .tt, .tt, []⟩
 def mLB2 (l : ℕ) : Parse.PMode := refinement_ladder_rover_rung2b_6dof_IR.L.modes.getD l dummyB2
-def mRB2 (q : ℕ) : Parse.PMode := refinement_ladder_rover_rung2b_6dof_IR.R.modes.getD q dummyB2
-
 abbrev mvB2 : Var 6 := (Side.Aux, 0)
 abbrev aB2 : Fin 6 := (1 : Fin 6)
 abbrev tgB2 : Var 6 := (Side.Aux, aB2)
 
 noncomputable def fLB2 (l : ℕ) : Fin 6 → Term (Var 6) := hostDyn vsB2 6 Side.L (mLB2 l)
-noncomputable def fRB2 (q : ℕ) : Fin 6 → Term (Var 6) := hostDyn vsB2 6 Side.R (mRB2 q)
 noncomputable def domLB2 : Formula (Var 6) := hostEvolve vsB2 6 Side.L (mLB2 0)
-noncomputable def domRB2 : Formula (Var 6) := hostEvolve vsB2 6 Side.R (mRB2 0)
 noncomputable def envB2 : Formula (Var 6) := Formula.and domLB2 domRB2
 
 def atomsOf : Parse.PForm → List Parse.PForm
@@ -79,23 +74,23 @@ theorem domRB2_pipe : domRB2 =
 theorem hfLB2 (l : ℕ) (hl : l < 3) : ∀ i, (fLB2 l i).fv ⊆ range Lv := fun i x hx =>
   side_eq_L_mem (field_pipeline_side (resolvesTo_L vsB2) (some (mLB2 l))
     (by interval_cases l <;>
-      simp [mLB2, refinement_ladder_rover_rung2b_6dof_IR, Parse.PExpr.namesFree]) i x
+      simp [mLB2, refinement_ladder_rover_rung2b_6dof_IR, refinement_ladder_rover_rung2b_6dof_IRv2, Parse.PExpr.namesFree]) i x
     (fLB2_pipe l i ▸ hx))
 
 theorem hfRB2 (q : ℕ) (hq : q < 3) : ∀ i, (fRB2 q i).fv ⊆ range Rv := fun i x hx =>
   side_eq_R_mem (field_pipeline_side (resolvesTo_R vsB2) (some (mRB2 q))
     (by interval_cases q <;>
-      simp [mRB2, refinement_ladder_rover_rung2b_6dof_IR, Parse.PExpr.namesFree]) i x
+      simp [mRB2, refinement_ladder_rover_rung2b_6dof_IR, refinement_ladder_rover_rung2b_6dof_IRv2, Parse.PExpr.namesFree]) i x
     (fRB2_pipe q i ▸ hx))
 
 theorem hdomLB2 : domLB2.fv ⊆ range Lv := fun x hx =>
   side_eq_L_mem (form_pipeline_side (resolvesTo_L vsB2) (some (mLB2 0))
-    (by simp [mLB2, refinement_ladder_rover_rung2b_6dof_IR, Parse.PForm.namesFree,
+    (by simp [mLB2, refinement_ladder_rover_rung2b_6dof_IR, refinement_ladder_rover_rung2b_6dof_IRv2, Parse.PForm.namesFree,
       Parse.PExpr.namesFree]) x (domLB2_pipe ▸ hx))
 
 theorem hdomRB2 : domRB2.fv ⊆ range Rv := fun x hx =>
   side_eq_R_mem (form_pipeline_side (resolvesTo_R vsB2) (some (mRB2 0))
-    (by simp [mRB2, refinement_ladder_rover_rung2b_6dof_IR, Parse.PForm.namesFree,
+    (by simp [mRB2, refinement_ladder_rover_rung2b_6dof_IR, refinement_ladder_rover_rung2b_6dof_IRv2, Parse.PForm.namesFree,
       Parse.PExpr.namesFree]) x (domRB2_pipe ▸ hx))
 
 theorem hgAt (i : ℕ) : (gAt i).fv ⊆ range Lv ∪ range Rv := invToG_pipeline_LR _
@@ -127,9 +122,6 @@ theorem htgenvB2 : tgB2 ∉ envB2.fv := fun h => by
   · exact absurd (hdomRB2 h) (by rintro ⟨i, hi⟩; exact absurd hi (by simp [Rv, Prod.ext_iff]))
 
 /-! ## The right graph (one-way chain) -/
-
-noncomputable def modeB2 (q : ℕ) : RMode (Var 6) :=
-  { sys := rightBlock (fRB2 q) (Term.const 1), dom := domRB2, weight := 1 }
 
 def edgeB2 (st tgt : ℕ) : REdge (Var 6) :=
   { src := st, tgt := tgt, guard := Formula.tt, pruned := false }
@@ -206,18 +198,6 @@ theorem hframesB2 (dt : ℝ) : ∀ P ∈ leftProgsB2 dt, FramesMv P mvB2 := by
 
 /-! ## Parse pins -/
 
-theorem hq3n : Run.parseRat "3" = some (3) := by
-  have h : parseQ "3" = some (⟨3, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hq030 : Run.parseRat "0.30" = some ((3:ℚ)/10) := by
-  have h : parseQ "0.30" = some (⟨30, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hq050 : Run.parseRat "0.50" = some ((1:ℚ)/2) := by
-  have h : parseQ "0.50" = some (⟨50, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hq065 : Run.parseRat "0.65" = some ((13:ℚ)/20) := by
-  have h : parseQ "0.65" = some (⟨65, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
 theorem hq1 : Run.parseRat "1" = some (1) := by
   have h : parseQ "1" = some (⟨1, 1⟩ : QF) := by decide
   simp [Run.parseRat, h]
@@ -230,95 +210,12 @@ theorem hq03 : Run.parseRat "0.3" = some ((3:ℚ)/10) := by
 theorem hqm1 : Run.parseRat "-1" = some (-1) := by
   have h : parseQ "-1" = some (⟨-1, 1⟩ : QF) := by decide
   simp [Run.parseRat, h]
-theorem hq0 : Run.parseRat "0" = some (0) := by
-  have h : parseQ "0" = some (⟨0, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hq00 : Run.parseRat "0.0" = some (0) := by
-  have h : parseQ "0.0" = some (⟨0, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hqm05 : Run.parseRat "-0.5" = some (-(1:ℚ)/2) := by
-  have h : parseQ "-0.5" = some (⟨-5, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
 theorem hq015 : Run.parseRat "0.15" = some ((3:ℚ)/20) := by
   have h : parseQ "0.15" = some (⟨15, 100⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
-theorem hq08 : Run.parseRat "0.8" = some ((4:ℚ)/5) := by
-  have h : parseQ "0.8" = some (⟨8, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hq06 : Run.parseRat "0.6" = some ((3:ℚ)/5) := by
-  have h : parseQ "0.6" = some (⟨6, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hqm10 : Run.parseRat "-1.0" = some (-1) := by
-  have h : parseQ "-1.0" = some (⟨-10, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hq11 : Run.parseRat "1.1" = some ((11:ℚ)/10) := by
-  have h : parseQ "1.1" = some (⟨11, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
 theorem hq02 : Run.parseRat "0.2" = some ((1:ℚ)/5) := by
   have h : parseQ "0.2" = some (⟨2, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
-
-/-! ## Field and shape pins -/
-
-noncomputable def cB2 (q : ℕ) : ℝ := if q = 0 then 3/10 else if q = 1 then 1/2 else 13/20
-
-theorem fRB20_eval (q : ℕ) (hq : q < 3) (x : State (Var 6)) :
-    Term.eval (fRB2 q 0) x = 3 * (cB2 q - x (Rv 0)) := by
-  interval_cases q <;>
-    · simp [fRB2, hostDyn, mRB2, refinement_ladder_rover_rung2b_6dof_IR, vsB2, Run.dynOf,
-      Run.lowerE, hq3n, hq030, hq050, hq065, hq0, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv, cB2]
-      try norm_num
-
-theorem fRB21_eval (q : ℕ) (hq : q < 3) (x : State (Var 6)) :
-    Term.eval (fRB2 q 1) x = x (Rv 0) := by
-  interval_cases q <;>
-    · simp [fRB2, hostDyn, mRB2, refinement_ladder_rover_rung2b_6dof_IR, vsB2, Run.dynOf,
-      Run.lowerE, hq3n, hq030, hq050, hq065, hq0, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-      try ring
-
-theorem fRB22_eval (q : ℕ) (hq : q < 3) (x : State (Var 6)) :
-    Term.eval (fRB2 q 2) x = 0 := by
-  interval_cases q <;>
-    · simp [fRB2, hostDyn, mRB2, refinement_ladder_rover_rung2b_6dof_IR, vsB2, Run.dynOf,
-      Run.lowerE, hq3n, hq030, hq050, hq065, hq0, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-      try norm_num
-
-theorem fRB23_eval (q : ℕ) (hq : q < 3) (x : State (Var 6)) :
-    Term.eval (fRB2 q 3) x = 0 := by
-  interval_cases q <;>
-    · simp [fRB2, hostDyn, mRB2, refinement_ladder_rover_rung2b_6dof_IR, vsB2, Run.dynOf,
-      Run.lowerE, hq3n, hq030, hq050, hq065, hq0, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-      try norm_num
-
-theorem fRB24_eval (q : ℕ) (hq : q < 3) (x : State (Var 6)) :
-    Term.eval (fRB2 q 4) x = 0 := by
-  interval_cases q <;>
-    · simp [fRB2, hostDyn, mRB2, refinement_ladder_rover_rung2b_6dof_IR, vsB2, Run.dynOf,
-      Run.lowerE, hq3n, hq030, hq050, hq065, hq0, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-      try norm_num
-
-theorem fRB25_eval (q : ℕ) (hq : q < 3) (x : State (Var 6)) :
-    Term.eval (fRB2 q 5) x = 0 := by
-  interval_cases q <;>
-    · simp [fRB2, hostDyn, mRB2, refinement_ladder_rover_rung2b_6dof_IR, vsB2, Run.dynOf,
-      Run.lowerE, hq3n, hq030, hq050, hq065, hq0, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-      try norm_num
-
-theorem sat_domRB2 (x : State (Var 6)) : Formula.sat domRB2 x ↔
-    (-(1:ℝ)/2 ≤ x (Rv 5) ∧ x (Rv 5) ≤ 3/5 ∧ -(1:ℝ)/2 ≤ x (Rv 2) ∧ x (Rv 2) ≤ 3/5 ∧
-      0 ≤ x (Rv 1) ∧ -(1:ℝ)/2 ≤ x (Rv 3) ∧ x (Rv 3) ≤ 3/5 ∧
-      0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 4/5 ∧ -(1:ℝ) ≤ x (Rv 4) ∧ x (Rv 4) ≤ 11/10) := by
-  simp only [domRB2, hostEvolve, mRB2, refinement_ladder_rover_rung2b_6dof_IR, vsB2]
-  simp [Run.lowerF, Run.lowerE, hqm05, hq06, hq00, hq08, hqm10, hq11,
-    Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
-    CompOp.interp, Term.eval, Rv]
-  tauto
 
 /-! ## The invariant's shape and the left-side extractors -/
 
@@ -328,7 +225,7 @@ theorem eval_gB2 (x : State (Var 6)) :
   have hdRs : ("R_s".drop 2).copy = "s" := by decide
   have hdLv : ("L_v".drop 2).copy = "v" := by decide
   have hdRv : ("R_v".drop 2).copy = "v" := by decide
-  simp [gB2, gAt, atomsOf, invB2PF, refinement_ladder_rover_rung2b_6dof_IR, Run.invToG,
+  simp [gB2, gAt, atomsOf, invB2PF, refinement_ladder_rover_rung2b_6dof_IR, refinement_ladder_rover_rung2b_6dof_IRv2, Run.invToG,
     Run.lowerE, vsB2, Run.resolveVar, Parse.dr, hdLs, hdRs, hdLv, hdRv,
     List.findIdx?_cons, hq02, hq1, hq3n, hq0,
     ITerm.toHost, Term.eval, AOp.interp, Lv, Rv]
@@ -339,7 +236,7 @@ theorem sat_domLB2 (x : State (Var 6)) : Formula.sat domLB2 x ↔
     (-(1:ℝ)/2 ≤ x (Lv 5) ∧ x (Lv 5) ≤ 3/20 ∧ -(1:ℝ)/2 ≤ x (Lv 2) ∧ x (Lv 2) ≤ 3/20 ∧
       0 ≤ x (Lv 1) ∧ -(1:ℝ)/2 ≤ x (Lv 3) ∧ x (Lv 3) ≤ 3/20 ∧
       0 ≤ x (Lv 0) ∧ x (Lv 0) ≤ 4/5 ∧ -(1:ℝ) ≤ x (Lv 4) ∧ x (Lv 4) ≤ 3/20) := by
-  simp only [domLB2, hostEvolve, mLB2, refinement_ladder_rover_rung2b_6dof_IR, vsB2]
+  simp only [domLB2, hostEvolve, mLB2, refinement_ladder_rover_rung2b_6dof_IR, refinement_ladder_rover_rung2b_6dof_IRv2, vsB2]
   simp [Run.lowerF, Run.lowerE, hqm05, hq015, hq00, hq08, hqm10, Run.resolveVar,
     List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
     CompOp.interp, Term.eval, Lv]
@@ -362,7 +259,7 @@ theorem htg_leftBlock (fL : Fin 6 → Term (Var 6)) : tgB2 ∉ (leftBlock fL).bo
 theorem fLB20_eval (l : ℕ) (hl : l < 3) (x : State (Var 6)) :
     Term.eval (fLB2 l 0) x = 3 * (cB2 l - x (Lv 0)) := by
   interval_cases l <;>
-    · simp [fLB2, hostDyn, mLB2, refinement_ladder_rover_rung2b_6dof_IR, vsB2, Run.dynOf,
+    · simp [fLB2, hostDyn, mLB2, refinement_ladder_rover_rung2b_6dof_IR, refinement_ladder_rover_rung2b_6dof_IRv2, vsB2, Run.dynOf,
         Run.lowerE, hq3n, hq030, hq050, hq065, hq1, hq05, hq03, hqm1, Run.resolveVar,
         List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Lv, cB2]
       try norm_num
@@ -371,7 +268,7 @@ theorem fLB21_eval (l : ℕ) (hl : l < 3) (x : State (Var 6)) :
     Term.eval (fLB2 l 1) x
       = x (Lv 0) * ((1 - 1/2 * (x (Lv 2) * x (Lv 2))) - 3/10 * (x (Lv 3) * x (Lv 3))) := by
   interval_cases l <;>
-    · simp [fLB2, hostDyn, mLB2, refinement_ladder_rover_rung2b_6dof_IR, vsB2, Run.dynOf,
+    · simp [fLB2, hostDyn, mLB2, refinement_ladder_rover_rung2b_6dof_IR, refinement_ladder_rover_rung2b_6dof_IRv2, vsB2, Run.dynOf,
         Run.lowerE, hq3n, hq030, hq050, hq065, hq1, hq05, hq03, hqm1, Run.resolveVar,
         List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Lv]
       try norm_num

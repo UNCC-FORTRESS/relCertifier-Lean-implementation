@@ -27,6 +27,7 @@ import RelCertifier.Proofs.Encoding.CanonicalInv
 import RelCertifier.Proofs.Encoding.CoverInstance
 import RelCertifier.Proofs.Flow.StratifiedFaces
 import RelCertifier.Instances.BenchIR.refinement_ladder_rover_rung1_2to3
+import RelCertifier.Instances.WellFormed.RoverLadderRung1
 
 namespace RelCertifier
 namespace RoverLadderRung1Modal
@@ -35,21 +36,14 @@ open DL DLCalTiming DLRel Parse Set
 
 set_option maxHeartbeats 1600000
 
-def vsE : List String := ["v", "s", "psi"]
-def dummyE : Parse.PMode := ⟨"", [], .tt, .tt, []⟩
 def mLE (l : ℕ) : Parse.PMode :=
   refinement_ladder_rover_rung1_2to3_IR.L.modes.getD l dummyE
-def mRE (q : ℕ) : Parse.PMode :=
-  refinement_ladder_rover_rung1_2to3_IR.R.modes.getD q dummyE
-
 abbrev mvE : Var 3 := (Side.Aux, 0)
 abbrev aE : Fin 3 := (1 : Fin 3)
 abbrev tgE : Var 3 := (Side.Aux, aE)
 
 noncomputable def fLE (l : ℕ) : Fin 3 → Term (Var 3) := hostDyn vsE 3 Side.L (mLE l)
-noncomputable def fRE (q : ℕ) : Fin 3 → Term (Var 3) := hostDyn vsE 3 Side.R (mRE q)
 noncomputable def domLE : Formula (Var 3) := hostEvolve vsE 3 Side.L (mLE 0)
-noncomputable def domRE : Formula (Var 3) := hostEvolve vsE 3 Side.R (mRE 0)
 noncomputable def envE : Formula (Var 3) := Formula.and domLE domRE
 
 /-! ## The two-component invariant -/
@@ -85,23 +79,23 @@ theorem domRE_pipe : domRE =
 theorem hfLE (l : ℕ) (hl : l < 3) : ∀ i, (fLE l i).fv ⊆ range Lv := fun i x hx =>
   side_eq_L_mem (field_pipeline_side (resolvesTo_L vsE) (some (mLE l))
     (by interval_cases l <;>
-      simp [mLE, refinement_ladder_rover_rung1_2to3_IR, Parse.PExpr.namesFree]) i x
+      simp [mLE, refinement_ladder_rover_rung1_2to3_IR, refinement_ladder_rover_rung1_2to3_IRv2, Parse.PExpr.namesFree]) i x
     (fLE_pipe l i ▸ hx))
 
 theorem hfRE (q : ℕ) (hq : q < 3) : ∀ i, (fRE q i).fv ⊆ range Rv := fun i x hx =>
   side_eq_R_mem (field_pipeline_side (resolvesTo_R vsE) (some (mRE q))
     (by interval_cases q <;>
-      simp [mRE, refinement_ladder_rover_rung1_2to3_IR, Parse.PExpr.namesFree]) i x
+      simp [mRE, refinement_ladder_rover_rung1_2to3_IR, refinement_ladder_rover_rung1_2to3_IRv2, Parse.PExpr.namesFree]) i x
     (fRE_pipe q i ▸ hx))
 
 theorem hdomLE : domLE.fv ⊆ range Lv := fun x hx =>
   side_eq_L_mem (form_pipeline_side (resolvesTo_L vsE) (some (mLE 0))
-    (by simp [mLE, refinement_ladder_rover_rung1_2to3_IR, Parse.PForm.namesFree,
+    (by simp [mLE, refinement_ladder_rover_rung1_2to3_IR, refinement_ladder_rover_rung1_2to3_IRv2, Parse.PForm.namesFree,
       Parse.PExpr.namesFree]) x (domLE_pipe ▸ hx))
 
 theorem hdomRE : domRE.fv ⊆ range Rv := fun x hx =>
   side_eq_R_mem (form_pipeline_side (resolvesTo_R vsE) (some (mRE 0))
-    (by simp [mRE, refinement_ladder_rover_rung1_2to3_IR, Parse.PForm.namesFree,
+    (by simp [mRE, refinement_ladder_rover_rung1_2to3_IR, refinement_ladder_rover_rung1_2to3_IRv2, Parse.PForm.namesFree,
       Parse.PExpr.namesFree]) x (domRE_pipe ▸ hx))
 
 theorem hgAt (i : ℕ) : (gAt i).fv ⊆ range Lv ∪ range Rv := invToG_pipeline_LR _
@@ -133,9 +127,6 @@ theorem htgenvE : tgE ∉ envE.fv := fun h => by
   · exact absurd (hdomRE h) (by rintro ⟨i, hi⟩; exact absurd hi (by simp [Rv, Prod.ext_iff]))
 
 /-! ## The right graph (one-way chain) -/
-
-noncomputable def modeE (q : ℕ) : RMode (Var 3) :=
-  { sys := rightBlock (fRE q) (Term.const 1), dom := domRE, weight := 1 }
 
 def edgeE (st tgt : ℕ) : REdge (Var 3) :=
   { src := st, tgt := tgt, guard := Formula.tt, pruned := false }
@@ -212,64 +203,16 @@ theorem hframesE (dt : ℝ) : ∀ P ∈ leftProgsE dt, FramesMv P mvE := by
 
 /-! ## Parse pins -/
 
-theorem he030 : Run.parseRat "0.30" = some ((3:ℚ)/10) := by
-  have h : parseQ "0.30" = some (⟨30, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem he050 : Run.parseRat "0.50" = some ((1:ℚ)/2) := by
-  have h : parseQ "0.50" = some (⟨50, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem he065 : Run.parseRat "0.65" = some ((13:ℚ)/20) := by
-  have h : parseQ "0.65" = some (⟨65, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem he3 : Run.parseRat "3" = some 3 := by
-  have h : parseQ "3" = some (⟨3, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem he00 : Run.parseRat "0.0" = some 0 := by
-  have h : parseQ "0.0" = some (⟨0, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem he08 : Run.parseRat "0.8" = some ((4:ℚ)/5) := by
-  have h : parseQ "0.8" = some (⟨8, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
 theorem he02 : Run.parseRat "0.2" = some ((1:ℚ)/5) := by
   have h : parseQ "0.2" = some (⟨2, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
 
 /-! ## Field and shape pins -/
 
-noncomputable def cstE (q : ℕ) : ℝ := if q = 0 then 3/10 else if q = 1 then 1/2 else 13/20
-
-theorem fRE0_eval (q : ℕ) (hq : q < 3) (x : State (Var 3)) :
-    Term.eval (fRE q 0) x = 3 * (cstE q - x (Rv 0)) := by
-  interval_cases q <;>
-    simp [fRE, hostDyn, mRE, refinement_ladder_rover_rung1_2to3_IR, vsE, Run.dynOf,
-      Run.lowerE, he3, he030, he050, he065, Run.resolveVar, List.findIdx?_cons,
-      List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv, cstE]
-
-theorem fRE1_eval (q : ℕ) (hq : q < 3) (x : State (Var 3)) :
-    Term.eval (fRE q 1) x = x (Rv 0) := by
-  interval_cases q <;>
-    simp [fRE, hostDyn, mRE, refinement_ladder_rover_rung1_2to3_IR, vsE, Run.dynOf,
-      Run.lowerE, he3, he030, he050, he065, Run.resolveVar, List.findIdx?_cons,
-      List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-
-theorem fRE2_eval (q : ℕ) (hq : q < 3) (x : State (Var 3)) :
-    Term.eval (fRE q 2) x = 0 := by
-  interval_cases q <;>
-    simp [fRE, hostDyn, mRE, refinement_ladder_rover_rung1_2to3_IR, vsE, Run.dynOf,
-      Run.lowerE, he3, he030, he050, he065, Run.resolveVar, List.findIdx?_cons,
-      List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-
-theorem sat_domRE (x : State (Var 3)) : Formula.sat domRE x ↔
-    (0 ≤ x (Rv 1) ∧ 0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 4/5) := by
-  simp only [domRE, hostEvolve, mRE, refinement_ladder_rover_rung1_2to3_IR, vsE]
-  simp [Run.lowerF, Run.lowerE, he00, he08, Run.resolveVar, List.findIdx?_cons,
-    IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv]
-  tauto
-
 theorem gAt0_eval (x : State (Var 3)) : Term.eval (gAt 0) x = x (Lv 0) - x (Rv 0) := by
   have hdL : ("L_v".drop 2).copy = "v" := by decide
   have hdR : ("R_v".drop 2).copy = "v" := by decide
-  simp [gAt, atomsOf, invEPF, refinement_ladder_rover_rung1_2to3_IR, Run.invToG,
+  simp [gAt, atomsOf, invEPF, refinement_ladder_rover_rung1_2to3_IR, refinement_ladder_rover_rung1_2to3_IRv2, Run.invToG,
     Run.lowerE, vsE, Run.resolveVar, Parse.dr, hdL, hdR, List.findIdx?_cons,
     ITerm.toHost, Term.eval, AOp.interp, Lv, Rv]
 
@@ -277,7 +220,7 @@ theorem gAt1_eval (x : State (Var 3)) :
     Term.eval (gAt 1) x = x (Lv 1) - (x (Rv 1) + 1/5) := by
   have hdL : ("L_s".drop 2).copy = "s" := by decide
   have hdR : ("R_s".drop 2).copy = "s" := by decide
-  simp [gAt, atomsOf, invEPF, refinement_ladder_rover_rung1_2to3_IR, Run.invToG,
+  simp [gAt, atomsOf, invEPF, refinement_ladder_rover_rung1_2to3_IR, refinement_ladder_rover_rung1_2to3_IRv2, Run.invToG,
     Run.lowerE, vsE, he02, Run.resolveVar, Parse.dr, hdL, hdR, List.findIdx?_cons,
     ITerm.toHost, Term.eval, AOp.interp, Lv, Rv]
 

@@ -117,7 +117,7 @@ alone (24 generic lemmas: all but `couple_cutX`). Since branch `replay` no Theor
 Z3-free: every proof replays the emitted cover, every flow fact a pack (`docs/REPLAY.md`);
 until then 16 were.
 No `sorryAx`, no other axiom.
-The generic theorems' audit is `Instances/AxiomCheck.lean`, re-emitted by `lake build`.
+The generic theorems' audit is `InstancesV2/AxiomCheck.lean`, re-emitted by `lake build`.
 
 ## Check 3: certify the suite and discharge the verdict hypotheses
 

@@ -4,7 +4,7 @@ Released under Apache 2.0 license.
 
 # Reproducible axiom audit
 
-Re-run: `lake env lean RelCertifier/Instances/AxiomCheck.lean` (or read the build log — this module is in the
+Re-run: `lake env lean RelCertifier/InstancesV2/AxiomCheck.lean` (or read the build log — this module is in the
 `RelCertifier` import root, so the `#print axioms` below re-emit on every `lake build`).
 
 Expected output — the whole verified chain depends on the three standard Lean axioms; the single
@@ -20,7 +20,9 @@ certificate (`flow_certified`, and anything constructing a `CoverCert` from it):
   segPres_from_flowCert                  : [propext, Classical.choice, Quot.sound, z3_unsat_sound]
 
 For the per-benchmark audit (every suite_v2 benchmark's Theorem 3 and its axioms) see
-`InstancesV2/BatteryV2.lean`; for what to run and what to expect, `docs/CERTIFICATION-CHECK.md`.
+`InstancesV2/WellFormedBattery.lean` (Assumption 1 of every right model) and the bridge
+instances `InstancesV2/Bridge/*.lean` (Theorem 3 through the generic bridge); for what to run
+and what to expect, `docs/CERTIFICATION-CHECK.md`.
 
 `decideCovered_implies_theorem3_faithful` is parametric in `cert : CoverCert` (a `Prop`), so it does
 NOT itself apply `z3_unsat_sound` — the leaf enters when that certificate is constructed per-mode via

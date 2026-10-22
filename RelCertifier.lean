@@ -35,7 +35,7 @@ suite_v2 battery with its axiom audit.
   query `relcert --run-verdicts-v2` sends.
 * `Instances/` and `Verdicts/`: the 19 theorems carried over from the retired legacy
   suite (their suite_v2 files are byte-identical copies; `InstancesV2/SameIR` ties the
-  literals) with their pack runner and pins, plus `Instances/AxiomCheck`, the axiom audit
+  literals) with their pack runner and pins. `InstancesV2/AxiomCheck` is the axiom audit
   of the generic theorems.
 
 Checking recipe: `docs/CERTIFICATION-CHECK.md`.
@@ -161,7 +161,7 @@ import RelCertifier.Trusted.Smt
 import RelCertifier.Trusted.ViabilityEmit
 import RelCertifier.Trusted.WellFormedCheck
 import RelCertifier.Trusted.Z3
-import RelCertifier.Instances.AxiomCheck
+import RelCertifier.InstancesV2.AxiomCheck
 import RelCertifier.Verdicts.ModalCodePins
 import RelCertifier.VerdictsV2.NonConnPinV2
 import RelCertifier.VerdictsV2.ModalDynX

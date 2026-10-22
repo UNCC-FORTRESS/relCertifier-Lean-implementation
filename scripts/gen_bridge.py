@@ -21,8 +21,7 @@ ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 os.chdir(ROOT)
 SUITE = "benchmarks/suite_v2"
 OUT = "RelCertifier/InstancesV2/Bridge"
-WF_DIRS = [("RelCertifier/InstancesV2/WellFormed", "RelCertifier.InstancesV2.WellFormed"),
-           ("RelCertifier/Instances/WellFormed", "RelCertifier.Instances.WellFormed")]
+WF_DIRS = [("RelCertifier/InstancesV2/WellFormed", "RelCertifier.InstancesV2.WellFormed")]
 
 # benchmarks whose left modes declare distinct rows (the keyed form); every other benchmark's
 # rows are identical (`rowsSame`, checked in the kernel by the window instance)

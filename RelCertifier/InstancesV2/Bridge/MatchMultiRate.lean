@@ -13,7 +13,7 @@ assumed (`Verdicts`: the groups `relcert-bridge-verdicts` discharges,
 import RelCertifier.Proofs.Encoding.Emitted.Window
 import RelCertifier.Proofs.Encoding.Emitted.Transport
 import RelCertifier.Proofs.Encoding.Emitted.Lift
-import RelCertifier.Instances.WellFormed.MatchMultiRate
+import RelCertifier.InstancesV2.WellFormed.MatchMultiRate
 import RelCertifier.InstancesV2.Cuts.match_multi_rate
 import RelCertifier.InstancesV2.BenchCovers.match_multi_rate
 import RelCertifier.InstancesV2.BenchProgress.match_multi_rate

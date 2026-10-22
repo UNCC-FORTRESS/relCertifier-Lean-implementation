@@ -1,9 +1,0 @@
-operator        certified  kernel-refuted  open  total
-RRO/SNO               21              18   125    164
-MCO                   85               2    66    153
-ORO                  197              47   215    459
-all                  303              67   406    776
-kernel-refuted by kind: {'C': 6, 'B': 33, 'A': 28}
-kernel-refuted AND certified: none
-relcert verdicts: {'DECLINED': 443, 'CERTIFIED': 303, 'ERROR': 30}
-witness found but not kernel-refuted: none

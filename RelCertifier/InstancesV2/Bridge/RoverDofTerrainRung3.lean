@@ -13,7 +13,7 @@ assumed (`Verdicts`: the groups `relcert-bridge-verdicts` discharges,
 import RelCertifier.Proofs.Encoding.Emitted.Window
 import RelCertifier.Proofs.Encoding.Emitted.Transport
 import RelCertifier.Proofs.Encoding.Emitted.Lift
-import RelCertifier.Instances.WellFormed.RoverDofTerrainRung3
+import RelCertifier.InstancesV2.WellFormed.RoverDofTerrainRung3
 import RelCertifier.InstancesV2.Cuts.rover_dof_terrain_rung3
 import RelCertifier.InstancesV2.BenchCovers.rover_dof_terrain_rung3
 import RelCertifier.InstancesV2.BenchProgress.rover_dof_terrain_rung3

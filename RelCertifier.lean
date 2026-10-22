@@ -4,8 +4,10 @@ Released under Apache 2.0 license.
 
 # `RelCertifier`: library root
 
-Importing this module builds the whole development: the generic soundness layer and the
-suite_v2 battery with its axiom audit.
+Importing this module builds the whole development: the generic soundness layer, the
+suite_v2 well-formedness battery with its axiom audit, the generic-bridge instances and the
+refutation instances. The standalone (pre-bridge) route is archived on branch
+`archive/legacy-2026-10` (`docs/CLEANUP-SCOPE.md`).
 
 * `Core/`: the per-segment flow certificate (Lie derivative ⟹ `DI`, `flow_certified`),
   rational reification.
@@ -21,22 +23,19 @@ suite_v2 battery with its axiom audit.
 * `Trusted/`: the IO shell the proofs do not cover (parser, lowering, SMT printer, Z3
   session, the certifier `OracleAPI.certify`, emitters); its single proof-facing interface
   is `z3_unsat_sound`.
-* `InstancesV2/BatteryV2`: **the headline**, the battery of the 45 `benchmarks/suite_v2`
-  benchmarks with `#print axioms` re-emitted on every build: Theorem 3 with the paper's
-  guard-gated left automaton against the guarded right automaton at the mode-consistent
-  region (`guard ∧ cuts` of the right's current mode) for all 45 (every window length;
-  `rung2c` up to its control interval `dt ≤ 1`; the `platoon3` pair on the repaired model)
-  (`docs/GUARDED-SWITCHING.md`).
+* `InstancesV2/Bridge`: **the headline**, Theorem 3 of every `benchmarks/suite_v2`
+  benchmark (and the two choice exhibits) through the generic bridge
+  (`Proofs/Encoding/Emitted/`): structural bundles decided in the kernel, Assumption 1
+  transported from the well-formedness battery, the Z3 verdicts assumed as the groups
+  `relcert-bridge-verdicts` discharges (`docs/BRIDGE.md`).
 * `InstancesV2/WellFormedBattery`: the paper's Assumption 1 (Well-Formedness) of each right
-  model as a separate, axiom-audited result (`WellFormedR`, `Proofs/Encoding/WellFormedR`):
-  proved for 30 benchmarks, refuted with an exhibited blocking state for 9 (model defects),
-  proved on the conserved momentum band for the 6 satellites (`docs/WELLFORMED.md`).
-  `VerdictsV2/`: the runner tables and the kernel pins tying each Z3 hypothesis to the
-  query `relcert --run-verdicts-v2` sends.
-* `Instances/` and `Verdicts/`: the 19 theorems carried over from the retired legacy
-  suite (their suite_v2 files are byte-identical copies; `InstancesV2/SameIR` ties the
-  literals) with their pack runner and pins. `InstancesV2/AxiomCheck` is the axiom audit
-  of the generic theorems.
+  model as a separate, axiom-audited result (`WellFormedR`, `Proofs/Encoding/WellFormedR`),
+  one self-contained `InstancesV2/WellFormed/<B>.lean` per right model (`docs/WELLFORMED.md`).
+* `InstancesV2/Refute`: the kernel refutations of the known-false invariant variants
+  (`docs/REFUTATION-RESULTS.md`).
+* `VerdictsV2/` and `Verdicts/`: the runner tables (`relcert --check-quick-v2`, the bridge,
+  refutation and progress runners) and the shared verdict combinators and pins.
+  `InstancesV2/AxiomCheck` is the axiom audit of the generic theorems.
 
 Checking recipe: `docs/CERTIFICATION-CHECK.md`.
 -/
@@ -80,7 +79,6 @@ import RelCertifier.Proofs.Encoding.LoweringSide
 import RelCertifier.Proofs.Encoding.GuardedSwitch
 import RelCertifier.Proofs.Encoding.LeftAutUniform
 import RelCertifier.Proofs.Encoding.ModeHandoff
-import RelCertifier.Proofs.Encoding.ModeRegion
 import RelCertifier.Proofs.Encoding.MultiSeg
 import RelCertifier.Proofs.Encoding.NonConnBridge
 import RelCertifier.Proofs.Encoding.Reification
@@ -92,16 +90,8 @@ import RelCertifier.Proofs.Encoding.RepositionEndToEnd
 import RelCertifier.Proofs.Encoding.RepositionFinish
 import RelCertifier.Proofs.Encoding.ReplayDyn
 import RelCertifier.Proofs.Encoding.ReplayEngine
-import RelCertifier.Proofs.Encoding.LadderReplay
-import RelCertifier.Proofs.Encoding.ReplayBridge
-import RelCertifier.Proofs.Encoding.ReplayComps
-import RelCertifier.Proofs.Encoding.ReplayModeKeyed
-import RelCertifier.Proofs.Encoding.ReplayOne
-import RelCertifier.Proofs.Encoding.ContractRun
-import RelCertifier.Proofs.Encoding.SinkExtension
 import RelCertifier.Proofs.Encoding.SplitCoupling
 import RelCertifier.Proofs.Encoding.StrictInv
-import RelCertifier.Proofs.Encoding.StrictModal
 import RelCertifier.Proofs.Encoding.StrictCouple
 import RelCertifier.Proofs.Encoding.Emitted.StrictAnchor
 import RelCertifier.Proofs.Encoding.Emitted.StrictKeyed
@@ -115,8 +105,6 @@ import RelCertifier.Proofs.Encoding.WellFormedLadder
 import RelCertifier.Proofs.Encoding.WellFormedR
 import RelCertifier.Proofs.Encoding.WindowGrowth
 import RelCertifier.Proofs.Encoding.WindowRF
-import RelCertifier.Proofs.Flow.AffineFaces
-import RelCertifier.Proofs.Flow.AffineFaces2
 import RelCertifier.Proofs.Flow.BoxViability
 import RelCertifier.Proofs.Flow.BoxViabilityBounded
 import RelCertifier.Proofs.Flow.DIStrictOpen
@@ -141,9 +129,6 @@ import RelCertifier.Proofs.Soundness.GuardThreaded
 import RelCertifier.Proofs.Soundness.StrictCover
 import RelCertifier.Proofs.Soundness.UniformEvol
 import RelCertifier.Proofs.Transfer.FaithfulBridge
-import RelCertifier.Proofs.Transfer.FaithfulBridgeGuards
-import RelCertifier.Proofs.Transfer.FaithfulBridgePad
-import RelCertifier.Proofs.Transfer.RealEndToEnd
 import RelCertifier.Proofs.Transfer.Rescale
 import RelCertifier.Trusted.EmitIR
 import RelCertifier.Trusted.Handoff
@@ -162,12 +147,10 @@ import RelCertifier.Trusted.ViabilityEmit
 import RelCertifier.Trusted.WellFormedCheck
 import RelCertifier.Trusted.Z3
 import RelCertifier.InstancesV2.AxiomCheck
-import RelCertifier.Verdicts.ModalCodePins
-import RelCertifier.VerdictsV2.NonConnPinV2
 import RelCertifier.VerdictsV2.ModalDynX
 import RelCertifier.VerdictsV2.ModalXStrict
-import RelCertifier.InstancesV2.BatteryV2
 import RelCertifier.InstancesV2.WellFormedBattery
+import RelCertifier.InstancesV2.Bridge
 import RelCertifier.Proofs.Encoding.Emitted.Refute
 import RelCertifier.Proofs.Encoding.Emitted.RefuteFlow
 import RelCertifier.VerdictsV2.RunRefute

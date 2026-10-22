@@ -8,10 +8,7 @@ Per benchmark `<b>` of benchmarks/suite_v2 (all 45):
   Cuts/<b>.lean          `Oracle.<b>_cutsV2` (legacy part) and `Oracle.<b>_cutsV2X` (extended),
                          both kernel-checked well-formed against the IR literal by `rfl`
 Aggregators: BenchIR.lean (`benchIRTableV2`), BenchCovers.lean (`coverTableV2`),
-Cuts.lean (`cutTableV2`), CoverReplay.lean (kernel replay of every emitted cover,
-`by decide`), SameIR.lean (the 19 benchmarks whose suite_v2 file is a byte-identical copy
-of a file of the retired legacy suite: their v2 literal IS the literal the carried-over
-legacy theorem quotes, `rfl`).
+BenchChoice.lean (`choiceTableV2`), Cuts.lean (`cutTableV2`).
 
 Usage: python3 scripts/gen_v2_data.py [bench ...]   (default: all of benchmarks/suite_v2)
 Every generated file is overwritten; the aggregators always list the whole suite.
@@ -46,17 +43,6 @@ def run(args, env_extra=None):
 
 def all_benches():
     return sorted(d for d in os.listdir(SUITE) if os.path.isfile(f"{SUITE}/{d}/input.txt"))
-
-# the 19 benchmarks whose suite_v2 file is a byte-identical copy of a retired legacy file
-SAME = ["match_multi_rate", "refinement_ladder_rover_rung1_2to3",
-        "refinement_ladder_rover_rung2_3to6", "refinement_ladder_rover_rung2_6dof",
-        "refinement_ladder_rover_rung2b_6dof", "refinement_ladder_rover_rung2c_6dof",
-        "refinement_ladder_rover_rung3_6to8", "refinement_ladder_rover_rung4_8to12",
-        "rover3tier_rung12", "rover_dof_terrain_rung1", "rover_dof_terrain_rung2",
-        "rover_dof_terrain_rung3", "rover_dof_terrain_rung3_8d",
-        "story1_attdist_rung_a_6to8", "story1_attdist_rung_b_12dof",
-        "story2_lateral_rung_a_8dof", "story2_lateral_rung_b_12dof",
-        "story3_rollover_base_12dof", "story3_rollover_ladder_rung_a"]
 
 def emit_leaves(b):
     path = f"{SUITE}/{b}/input.txt"
@@ -137,71 +123,6 @@ compares it with the literal of the same name in `benchIRTableV2`.
         f.write("def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [\n")
         f.write(",\n".join(f"  (\"{b}\", {b}_cutsV2, {b}_cutsV2X)" for b in benches))
         f.write(" ]\n\nend RelCertifier.Oracle\n")
-    with open(f"{OUT}/CoverReplay.lean", "w") as f:
-        f.write("""/-
-Copyright (c) 2026 relCertifier-lean contributors.
-Released under Apache 2.0 license.
-
-# Kernel replays of the suite_v2 covers (GENERATED — `scripts/gen_v2_data.py`)
-
-Per benchmark, for every emitted left-mode cover and every admissible start, the verified
-`decideCovered`, run on the same structural graph the tool built (`buildCoverGraph` over
-the emitted flags, successors and pruned edges, same fuel, same budget, σ = preJ), accepts,
-by kernel computation (`decide`). This replays the tool's CERTIFIED gate inside the kernel:
-three standard axioms, no Z3, no IO. A benchmark whose cover uses the existential mode choice
-(a non-empty choice record) is replayed by the extended checker `decideCoveredX` on the
-bridge's semantic automaton with its chosen sets (`Emitted.coversOK`, `decide +kernel`), the
-same replay its generated bridge instance performs.
--/
-import RelCertifier.Checker.Checker
-import RelCertifier.Trusted.Run
-import RelCertifier.Proofs.Encoding.Emitted.Keyed
-import RelCertifier.InstancesV2.BenchIR
-import RelCertifier.InstancesV2.BenchCovers
-import RelCertifier.InstancesV2.BenchChoice
-
-namespace RelCertifier
-
-/-- The replay predicate: every window, every admissible start, the checker accepts. -/
-def coverReplays (p : Parse.PProblem) (c : CoverEmitE) : Bool :=
-  c.covers.all (fun lc =>
-    lc.admissible.all (fun q0 =>
-      decideCovered (V := Var 1)
-        (buildCoverGraph lc.flags (Run.succOf p)
-          (fun a b => c.pruned.contains (a, b)))
-        (coverFuel lc.flags lc.bBudget)
-        ⟨nodeIdx lc.flags q0, lc.bBudget, SrcSetting.preJ⟩))
-
-""")
-        for b in benches:
-            if choice_entries(b) > 0:
-                n = max(nvars(b), 3)
-                f.write(f"/-- `{b}` uses the existential mode choice ({choice_entries(b)} chosen sets): the extended checker. -/\n")
-                f.write(f"theorem {b}_coverV2_replay : Emitted.coversOK Parse.{b}_IRv2 {n} {b}_coverV2 Choice.{b}_coverV2_choice = true := by decide +kernel\n\n")
-            else:
-                f.write(f"theorem {b}_coverV2_replay : coverReplays Parse.{b}_IRv2 {b}_coverV2 = true := by decide\n\n")
-        f.write("end RelCertifier\n")
-    with open(f"{OUT}/SameIR.lean", "w") as f:
-        f.write("""/-
-Copyright (c) 2026 relCertifier-lean contributors.
-Released under Apache 2.0 license.
-
-# The 19 suite_v2 benchmarks carried over from the retired legacy suite (GENERATED)
-
-Each of these suite_v2 files is a byte-identical copy of a file of the retired legacy suite
-(`suite_uniform`, removed from the tree; git history keeps it). Its parser-emitted literal
-IS the literal the carried-over legacy instance quotes (`rfl` below), so the legacy
-theorems (`Instances/`, re-exported by `InstancesV2/BatteryV2`) are theorems about the
-suite_v2 file; the file-to-literal tie is `relcert-test`'s `[ir-drift-v2]`.
--/
-""")
-        for b in SAME:
-            f.write(f"import RelCertifier.InstancesV2.BenchIR.{b}\n")
-            f.write(f"import RelCertifier.Instances.BenchIR.{b}\n")
-        f.write("\nnamespace RelCertifier.Parse\n\n")
-        for b in SAME:
-            f.write(f"theorem {b}_IRv2_eq : {b}_IRv2 = {b}_IR := rfl\n")
-        f.write("\nend RelCertifier.Parse\n")
 
 def choice_entries(b):
     """Number of chosen-set entries in the emitted choice record of `b`."""

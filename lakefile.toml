@@ -28,10 +28,6 @@ name = "relcert-test"
 root = "Test"
 
 [[lean_exe]]
-name = "relcert-slim"
-root = "SlimMain"
-
-[[lean_exe]]
 name = "relcert-progress-verdicts"
 root = "ProgressVerdictsMain"
 

@@ -63,7 +63,7 @@ Usage:
   scripts/suite_v2_matrix.py [--bench DIR] [--relcert BIN] [--json OUT.json] [--md OUT.md]
                              [--only name1,name2] [--timeout SEC]
 
-The normalized-hash duplicate check of docs/history/SUITE-DEDUPE.md is run over the whole set.
+The normalized-hash duplicate check of docs/SUITE-DEDUPE.md is run over the whole set.
 """
 import argparse, hashlib, json, os, re, subprocess, sys, time
 from fractions import Fraction
@@ -162,7 +162,7 @@ def parse_input(path):
     return prob
 
 def tolerance_masked_hash(path):
-    """docs/history/SUITE-DEDUPE.md tolerance-only variants: the normalized text with every numeric
+    """docs/SUITE-DEDUPE.md tolerance-only variants: the normalized text with every numeric
     literal of the [relational_invariant] rows masked -- two files with the same masked hash
     differ at most in their tolerance constants."""
     out, inrows = [], False
@@ -178,7 +178,7 @@ def tolerance_masked_hash(path):
     return hashlib.md5(("\n".join(out) + "\n").encode()).hexdigest()
 
 def normalized_hash(path):
-    """docs/history/SUITE-DEDUPE.md: comments, trailing blanks, blank lines and the `name =` line removed."""
+    """docs/SUITE-DEDUPE.md: comments, trailing blanks, blank lines and the `name =` line removed."""
     out = []
     for raw in open(path, encoding="utf-8"):
         s = re.sub(r"#.*$", "", raw).rstrip()

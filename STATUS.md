@@ -6,7 +6,7 @@ instances (`RelCertifier/InstancesV2/Bridge/`, Theorem 3 of every benchmark from
 records), the Assumption 1 battery (`InstancesV2/WellFormedBattery.lean`) and the 67 kernel
 refutations (`InstancesV2/Refute/`). The legacy suite `suite_uniform` was retired on 2026-10-10;
 the standalone route (one hand-written Theorem 3 per benchmark, its packs and pins) was
-archived on 2026-10-22 on branch `archive/legacy-2026-10` (`docs/CLEANUP-SCOPE.md`); the 19
+archived on 2026-10-22 on branch `archive/legacy-2026-10` (`docs/CLEANUP-SCOPE.md`, planning record, last present at commit 29663d8); the 19
 carried-over Assumption 1 proofs stay (`README.md`, "The 19 carried-over Assumption 1 proofs").
 
 **Proved, all 50, one statement.** Theorem 3 (the paper's Soundness of Synthesis) with the paper's LEFT program (the guard-gated

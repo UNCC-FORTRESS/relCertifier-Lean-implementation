@@ -1,6 +1,6 @@
 # Kernel-checked refutations: results (branch `refutation`)
 
-Design: `docs/REFUTATION-SCOPE.md`. This file reports what was built and the experiment.
+Design: `docs/REFUTATION-SCOPE.md` (planning record, last present at commit 29663d8). This file reports what was built and the experiment.
 
 ## The claim
 

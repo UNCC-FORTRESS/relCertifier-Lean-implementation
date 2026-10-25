@@ -34,7 +34,7 @@ every verdict group: Z3 says unsat
 Until 2026-10-22 the chain ran through the standalone instances (`InstancesV2/Modal/<B>.lean`,
 `Instances/<B>Guarded.lean`, audited by `InstancesV2/BatteryV2.lean`, their packs discharged by
 `relcert --run-verdicts-v2`); that route is archived on branch `archive/legacy-2026-10`
-(`docs/CLEANUP-SCOPE.md`).
+(`docs/CLEANUP-SCOPE.md`, planning record, last present at commit 29663d8).
 
 Trusted and not discharged by any check below: the parser, the lowering, the SMT printer
 and Z3's `unsat` (axiom `z3_unsat_sound`), the Lean kernel, and the model assumptions of

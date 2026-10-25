@@ -9,8 +9,8 @@ The right automaton of the general chain is unclocked (`modeStep`/`rightAutomato
 Theorem 3 ranges over more right runs than the paper's Eq. (1) allows. Its clocked twin
 (`modeStepC`/`rightAutomatonBodyC`, `ClockedTop.lean`) replaces the flow by
 `clockedSeg sys dom tg dt = tg := 0 ; {sys, tg' = 1 & dom} ; ?(tg ≤ dt)`. This file is the
-response layer of that twin (`docs/CLOCKED-RIGHT-SCOPE.md`, W1) plus the clock-erasure
-lemma of W4. Everything is additive; the unclocked layer is untouched.
+response layer of that twin (W1 of `docs/CLOCKED-RIGHT-SCOPE.md`, planning record, last present at commit 29663d8)
+plus the clock-erasure lemma of W4. Everything is additive; the unclocked layer is untouched.
 
 * `sem_clockedSeg_of_flow_le` / `sem_clockedSeg_of_odeSol`: dressing a flow of duration
   `r ≤ dt` with the clock (the `[0, r]` generalization of `sem_clockedSeg_of_flow`), stated

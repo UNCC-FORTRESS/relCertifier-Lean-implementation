@@ -492,7 +492,8 @@ standalone instances and `relcert-choice-verdicts`, the replay and ladder lemmas
 `Proofs/Encoding`, `SlimMain`, the generator `scripts/gen_multif_*.py`, `docs/VERDICTS.md`,
 `docs/REPLAY.md` and `docs/history/`) was removed from `main` on 2026-10-22 (134 Lean modules,
 82,213 lines). The pre-cleanup tree is branch `archive/legacy-2026-10` (its `lake build` is the
-full earlier artifact); what was kept and why: `docs/CLEANUP-SCOPE.md`, `docs/CLEANUP-VERIFY.md`.
+full earlier artifact); what was kept and why: `docs/CLEANUP-SCOPE.md` and `docs/CLEANUP-VERIFY.md`
+(planning record, last present at commit 29663d8).
 The per-benchmark findings of that route stay in `docs/GUARDED-SWITCHING.md`.
 
 ## Further reading
@@ -511,7 +512,7 @@ The per-benchmark findings of that route stay in `docs/GUARDED-SWITCHING.md`.
   the repaired defects, the tool check and its strict use in the recipe.
 * [`docs/HANDOFF.md`](docs/HANDOFF.md): mode-dependent invariants and the handoff check.
 * [`docs/REFUTATION-RESULTS.md`](docs/REFUTATION-RESULTS.md): the 67 kernel refutations of
-  known-false invariant variants; [`docs/REFUTATION-SCOPE.md`](docs/REFUTATION-SCOPE.md).
+  known-false invariant variants (its design was `docs/REFUTATION-SCOPE.md`, planning record, last present at commit 29663d8).
 * [`docs/BRIDGE.md`](docs/BRIDGE.md): the generic bridge, Theorem 3 of every benchmark from
   its emitted records; [`docs/THEOREM3-GENERAL.md`](docs/THEOREM3-GENERAL.md): the general
   theorem with existential mode choice and reposition progress;
@@ -521,6 +522,6 @@ The per-benchmark findings of that route stay in `docs/GUARDED-SWITCHING.md`.
 * [`benchmarks/README.md`](benchmarks/README.md): the input format and the suite.
 * [`RelCertifier/Trusted/README.md`](RelCertifier/Trusted/README.md): the trusted surface,
   file by file.
-* [`docs/CLEANUP-SCOPE.md`](docs/CLEANUP-SCOPE.md): what the 2026-10-22 cleanup archived
-  (branch `archive/legacy-2026-10`) and why; superseded records live on that branch.
+* The 2026-10-22 cleanup archived the standalone route to branch `archive/legacy-2026-10`,
+  where the superseded records live (see "Archived routes" above).
 * `STATUS.md`: the current status in one page.

@@ -7,7 +7,7 @@ Released under Apache 2.0 license.
 Importing this module builds the whole development: the generic soundness layer, the
 suite_v2 well-formedness battery with its axiom audit, the generic-bridge instances and the
 refutation instances. The standalone (pre-bridge) route is archived on branch
-`archive/legacy-2026-10` (`docs/CLEANUP-SCOPE.md`).
+`archive/legacy-2026-10` (`docs/CLEANUP-SCOPE.md`, planning record, last present at commit 29663d8).
 
 * `Core/`: the per-segment flow certificate (Lie derivative ⟹ `DI`, `flow_certified`),
   rational reification.

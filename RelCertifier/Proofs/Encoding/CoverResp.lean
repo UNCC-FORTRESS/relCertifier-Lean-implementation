@@ -2,10 +2,11 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# From an extended cover to the window response (the proof of Theorem 3, generically)
+# From an extended cover to the window response (Theorem 1's induction, generically)
 
-`coverX_piece` is the induction of Theorem 3's proof: from a configuration covered by
-`CoveredX` (Definition 4 with chosen successors and hops, `Checker/CoverX.lean`), the right
+`coverX_piece` is the induction of Theorem 1's proof (Soundness of Witness Strategies, which
+Theorem 3's proof applies through Lemma 5): from a configuration covered by
+`CoveredX` (Definition 8 with committed subsets and hops, `Checker/CoverX.lean`), the right
 answers one clocked left piece of duration `r` with a chain of declared, guard-legal CLOCKED
 segments (`RRespPC`, `ClockedRight.lean`: each right cycle is `tr := 0 ; {flow, tr' = 1} ;
 ?(tr ≤ ε_R)`), provided the piece fits the budget (`r − a ≤ B · δ`, `δ` the common segment
@@ -14,10 +15,10 @@ span). Per case:
 * **base**: the joint segment of `q` runs to the piece's end (its right duration `λ_q (r − a)
   ≤ λ_q δ ≤ ε_R`, so Assumption 1 gives the run, the cap passes, and at its end an enabled
   declared successor); the anchor is preserved by the pairing's flow certificate (`hbox`,
-  Theorem 1);
+  Definition 5, Lemma 2);
 * **step**: the joint segment runs its span `δ` (right duration `λ_q δ ≤ ε_R`, `hspan`);
   Assumption 1 gives an enabled declared successor at its end, the non-connection certificate
-  (`hprune`, Theorem 2) excludes the pruned ones, so the successor is retained and covered at
+  (`hprune`, Definition 6) excludes the pruned ones, so the successor is retained and covered at
   budget `B − 1`;
 * **chosen successors**: as step, but the successor comes from the coverage certificate: the
   end state satisfies the region `RJ q` (the anchor implies it), hence some chosen guard;
@@ -170,7 +171,7 @@ variable (G : SearchGraph (Var n)) (ch : ChoiceData)
   -- the anchors (the pairing's row, both sides' kept atoms, the envelope)
   (A : ℕ → Formula (Var n)) (hAfv : ∀ q, (A q).fv ⊆ range Lv ∪ range Rv)
   (hAdom : ∀ q y, Formula.sat (A q) y → Formula.sat domR y)
-  -- Theorem 1 at each pairing (the joint flow at the pairing's stretch keeps the anchor)
+  -- Lemma 2 at each pairing (the flow certificate of Definition 5: the joint flow at the pairing's stretch keeps the anchor)
   (hbox : ∀ q m, G.modeAt q = some m → ch.jointOK q = true → ∀ σ ω, Formula.sat (A q) σ →
     Program.sem (Program.ode (jointSys fL (fR q) (Term.const (lam q))) (Formula.and domL domR))
       σ ω → Formula.sat (A q) ω)
@@ -182,7 +183,7 @@ variable (G : SearchGraph (Var n)) (ch : ChoiceData)
   (hAreg : ∀ q y, Formula.sat (A q) y → Formula.sat reg y)
   -- Assumption 1 (the right model is well formed on `reg`)
   (hwf : WellFormedRIn G guard reg epsR)
-  -- Theorem 2: pruned edges are never enabled after the segment (joint and right-only kinds)
+  -- Definition 6: pruned edges are never enabled after the segment (joint and right-only kinds)
   (hprune : ∀ q m, G.modeAt q = some m → ∀ e ∈ G.edgesFrom q, e.pruned = true →
     ∀ σ ω, Formula.sat (A q) σ →
     Program.sem (Program.ode (jointSys fL (fR q) (Term.const (lam q))) (Formula.and domL domR))
@@ -310,7 +311,7 @@ theorem repoStep {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
 
 include hgR hguards hguardR hfL hdomL hdomR hgL hfR hsys hdomM hweight hδ hlam hspan hAfv hAdom
   hbox hhand hregR hAreg hwf hprune hrepoProg hRJ hcovJ hRR hcovR hRS hcovS htrL htrR in
-/-- **The induction of Theorem 3's proof.** A covered configuration answers one clocked left
+/-- **The induction of Theorem 1's proof** (the step Theorem 3's proof takes through Lemma 5). A covered configuration answers one clocked left
 piece from left time `a`, if the rest of the piece fits the budget. -/
 theorem coverX_piece {x : State (Var n)} {r : ℝ} {ΦL : ℝ → State (Var n)}
     (hL : ODESol (clk tg (leftBlock fL)) domL x r ΦL) (ω₀ : State (Var n))

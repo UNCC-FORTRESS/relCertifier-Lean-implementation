@@ -8,7 +8,7 @@ The last arrow of the main chain, built from two **proven** theorems:
 * `DLRel.sat_encode_faShape` : `encode ρ (faShape α β ψ) ≡ faModal ρ α β (encode ρ ψ)` — the
   dL-caltiming ∀∃-modality *is* the host encoding of the dL-rel ∀∃ relational modality
   `faShape α β ψ = [|(α,?⊤)|]⟨⟨(?⊤,β)⟩⟩ψ = [|(α,β)⟩⟩ψ`. **Same renaming `ρ`.**
-* `DLRel.RFormula.encoding_correct` (Theorem 2) : bi-state truth of a rel formula ≡ host truth
+* `DLRel.RFormula.encoding_correct` (the dL-rel encoding theorem, NFM'25) : bi-state truth of a rel formula ≡ host truth
   of its encoding at a bridged join state.
 
 Composing: a CSF `faModal ρ L* R* (encode ρ ϕ)` at the join state `σ` gives the **bi-state**

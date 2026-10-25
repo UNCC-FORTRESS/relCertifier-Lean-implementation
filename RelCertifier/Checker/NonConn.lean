@@ -4,7 +4,7 @@ Released under Apache 2.0 license.
 
 Stage 2 — the verified non-connection certificate (Nagumo forward-invariance barrier).
 
-The non-connection pruning (paper §V.A). A declared right transition
+The non-connection pruning (paper Section 4.2, Definition 6). A declared right transition
 `qR → qR'` is pruned when its successor guard `x OP c` is scalar and two Z3 checks
 both pass:
   (a) source-side: no valid source state already satisfies the guard;

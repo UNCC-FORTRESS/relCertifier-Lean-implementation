@@ -2,7 +2,7 @@
 # The progress certificate of a right-only (reposition) node
 
 A right-only segment of mode `q` is sound only if the right actually reaches a state where a
-declared non-self successor is enabled; the reposition flow certificate (certificate 3) says
+declared non-self successor is enabled; the reposition flow certificate (the right-only flow certificate of Lemma 4) says
 nothing about that. The **progress certificate** does, by a staged rate argument: a list of
 stages `(x, θ, up, r)`, each "while the earlier thresholds are crossed and `x` has not yet
 crossed `θ`, the field of `x` moves it toward `θ` at rate at least `r > 0`" (`rateQuery`), each

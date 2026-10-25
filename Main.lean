@@ -56,7 +56,7 @@ def runBatchTally (paths : List String) (strict : Option Bool := none) :
         let t0 ← IO.monoMsNow
         let name := (path.splitOn "/").reverse.getD 1 path
         -- CERTIFIED is Theorem 3's verdict: the cover and its certificates AND the handoff
-        -- condition (Eq. 12) at every declared left mode change. A cover without a passing
+        -- condition (Eq. 13) at every declared left mode change. A cover without a passing
         -- handoff is DECLINED, with the failing transitions named.
         let (oc, why) ← try
             match ← RelCertifier.Oracle.readProblemStrict path with

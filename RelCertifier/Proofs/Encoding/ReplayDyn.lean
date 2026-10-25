@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The dynamic-reposition verdict pack (certificate 3), stated and consumed
+# The dynamic-reposition verdict pack (Lemma 4's flow certificate), stated and consumed
 
 An emitted cover flags a right mode `q` of a left window `l` as a dynamic-reposition node
 (`dynPre` before the first joint segment, `dynPost` after one) when `OracleAPI.checkDynRepo`

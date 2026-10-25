@@ -389,7 +389,7 @@ def runModalV2 (cfg : Z3Config) : IO Bool := do
       s.close
       pure ok
 
-/-! ## The reposition packs (certificate 3) of the cover replays
+/-! ## The reposition packs (Lemma 4's flow certificates) of the cover replays
 
 One row per dynamic-reposition pack a replaying instance assumes: the reposition of right
 mode `m` against left window `l`, before the window's first joint segment (`pre = true`: the

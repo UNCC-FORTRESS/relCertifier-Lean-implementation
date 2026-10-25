@@ -4,7 +4,7 @@ Released under Apache 2.0 license.
 
 # The non-connection queries (leaf)
 
-Paper Section 4.3 / Theorem 2: a declared right edge `mR → mSuc` is pruned from the
+Paper Section 4.2 / Definition 6: a declared right edge `mR → mSuc` is pruned from the
 cover's all-successors obligation when the successor's guard is a single STRICT
 threshold `{g > 0}` on one variable and two Z3 checks are both `unsat`:
 

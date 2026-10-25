@@ -2,13 +2,13 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The non-connection bridge — the runner's two queries ARE Theorem 2's hypotheses
+# The non-connection bridge — the runner's two queries ARE Definition 6's checks
 
 `Trusted/NonConnQuery.lean` builds, at the SMT-IR level, the two pruning queries the
 certifier sends Z3 for a declared right edge `mR → mSuc` with a strict scalar successor
 guard `{g > 0}`, or a conjunction whose leading conjunct is one (`g > 0` is then that
-conjunct, which the guard implies; paper Section 4.3). `Checker/NonConn.lean` proves Theorem 2
-(`nonconn_sound`): if `sourceCheck` and `barrierCheck` of a `NonConnObligation` are both
+conjunct, which the guard implies; paper Section 4.2). `Checker/NonConn.lean` proves the
+soundness of Definition 6 (`nonconn_sound`): if `sourceCheck` and `barrierCheck` of a `NonConnObligation` are both
 unsatisfiable, no state the source mode's right flow reaches satisfies the successor
 guard. This leaf ties the two together, once, generically:
 
@@ -23,7 +23,7 @@ guard. This leaf ties the two together, once, generically:
   `ℚ`-literal zero against `Term.const 0`, and `lieDeriv g 0 fR 1` against
   `lieAlong g (jointSys 0 fR 1)`, both the semantic `Lie`);
 * `nonconn_of_unsat` — the composition: two `z3solve … = unsat` facts on exactly the
-  runner's queries yield Theorem 2's conclusion for the edge.
+  runner's queries yield `nonconn_sound`'s conclusion (Definition 6) for the edge.
 
 What this does NOT claim: that the pruned edge is never taken by the modal witness — the
 witness never takes it by construction (`Proofs/Encoding/SinkExtension.lean`), so the
@@ -113,7 +113,7 @@ theorem barrierCheck_iff (gI : ITerm n) (domI srcI cutR : IForm n)
 
 /-! ## The composition -/
 
-/-- **Theorem 2 from the runner's two verdicts.** If Z3 answers `unsat` on the printed
+/-- **Definition 6's conclusion from the runner's two verdicts.** If Z3 answers `unsat` on the printed
 source and barrier queries of a pruned edge, then from every state in the source region
 (the source mode's guard, evolve and checked cut) no state reached by the source mode's
 right flow — the left frozen, inside the (cut-narrowed) evolve domain — satisfies the

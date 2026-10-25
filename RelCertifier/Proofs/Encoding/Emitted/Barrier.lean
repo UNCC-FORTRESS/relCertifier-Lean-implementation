@@ -4,7 +4,7 @@ Released under Apache 2.0 license.
 
 # The generic bridge, part 3: pruned exits, admissibility, handoffs, read from Z3
 
-* **Pruned exits (Theorem 2).** The non-connection pair of a pruned edge `src → tgt`
+* **Pruned exits (Definition 6).** The non-connection pair of a pruned edge `src → tgt`
   (`NonConn.queries`: the source check `guard ∧ evolve ∧ cut ∧ g > 0` and the barrier check
   `evolve ∧ cut ∧ g = 0 ∧ ġ_R ≥ 0`, `g` the tool's `guardTerm` of `tgt`'s guard) gives: on
   entering `src` the barrier term is `≤ 0` (`nonconn_entry`), it stays `≤ 0` along every flow

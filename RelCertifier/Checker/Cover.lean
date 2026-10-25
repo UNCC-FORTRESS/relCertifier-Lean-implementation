@@ -16,7 +16,7 @@ right side — jumping only along declared edges (`R_real = star(rightAutomatonB
 response (the `jump` case follows a declared successor), and the witness
 `JointBridge.rightReach_is_R_real_run` shows the two coincide.
 
-The cover search (§IV budget walk + §V.A cover). A configuration `(qR, B)` is covered when a joint segment closes the
+The cover search (Section 5: the budget walk and the cover of Definition 8). A configuration `(qR, B)` is covered when a joint segment closes the
 remaining budget, or every retained (non-pruned) successor covers the decremented
 budget (all-successors). Budget-neutral cycles are rejected — each covering step
 strictly consumes budget (`0 < weight`) — which is the load-bearing finiteness piece.
@@ -38,7 +38,7 @@ variable {V : Type*} [Fintype V] [DecidableEq V]
 /-- A right mode. Two participation kinds:
 * **joint** — `sys` (λ-stretched `jointSys` shape), evolution domain `dom`, budget `weight` a
   joint residence consumes; available iff `jointOK`.
-* **dynamic reposition** (certificate 3, the paper's right-only segment) — the right flows
+* **dynamic reposition** (the right-only flow certificate of Lemma 4, the paper's right-only segment) — the right flows
   under the frozen-left field `dynSys` for a full interval while the left is held, consuming
   **zero** budget, and the invariant is preserved by the whole-domain flow certificate.
 
@@ -52,7 +52,7 @@ structure RMode (V : Type*) where
   dom       : Formula V
   weight    : ℕ
   jointOK   : Bool := true
-  -- **dynamic (right-only flow) reposition** (certificate 3): the right EVOLVES under the
+  -- **dynamic (right-only flow) reposition** (Lemma 4's flow certificate): the right EVOLVES under the
   -- frozen-left field `dynSys` (`ṡ_L = 0`), and `g ≤ 0` is preserved by MOTION (flow-cert
   -- `DI_nonstrict_domain`, whole-domain `ġ ≤ 0`), NOT statically. `dynDomPre`/`dynDomPost` are the
   -- σ-matched flow domains (`guardL ∧ evolveL ∧ evolveR` / `evolveL ∧ evolveR`). Zero budget.
@@ -105,7 +105,7 @@ are NOT `q` itself. A reposition consumes zero budget, so the *self-loop* (stayi
 be excluded from its ∀-over-successors — staying is covered by the reposition's own flow
 certificate (the right may linger in `q`, invariant held), and requiring the self-loop to
 *cover* would be a budget-neutral cycle that never grounds. The `∀` over `exitSucc` (all non-self declared exits,
-per the successor-completeness assumption) is Definition-4's all-successors condition for the
+per the successor-completeness assumption) is Definition 8's all-successors condition for the
 reposition kind. -/
 def SearchGraph.exitSucc (G : SearchGraph V) (q : ℕ) : List ℕ :=
   (G.edges.filter (fun e => decide (e.src = q) && !e.pruned && decide (e.tgt ≠ q))).map REdge.tgt
@@ -137,7 +137,7 @@ assume exit-to-*some* declared successor, soundness requires covering **all** no
 successors (`Covered.stepRepositionDyn*`'s `∀ q' ∈ exitSucc q`). -/
 structure CoverCert (G : SearchGraph V) (g : Term V) : Prop where
   segPres      : ∀ q m, G.modeAt q = some m → m.jointOK = true → SegPreserves g m
-  -- **certificate 3 (dynamic reposition)** — the right-only FLOW segment restored in its SOUND
+  -- **Lemma 4's flow certificate (dynamic reposition)** — the right-only FLOW segment restored in its SOUND
   -- whole-domain form: `SegPreservesOn` over the frozen-left field `dynSys` (`ṡ_L = 0`), discharged
   -- by `flow_cert_sound`'s `DI_nonstrict_domain` route (`UNSAT(ġ > 0 ∧ dom)` — whole-domain, NOT the
   -- `t²`-vulnerable boundary form). σ-matched domains: `dynDomPre` (with guardL) / `dynDomPost`.
@@ -153,7 +153,7 @@ structure CoverCert (G : SearchGraph V) (g : Term V) : Prop where
 /-! ## (3) The cover relation (Covered) and right-response reachability -/
 
 /-- **The cover relation** (`Covered`) — a direct structural transcription of the paper's
-**Definition 4**, its two cases explicit:
+**Definition 8** (all-successors form), its two cases explicit:
 
 * **`base`** (budget closed): the current mode is certified (`hm`) and its single residence
   already covers the remaining budget (`B ≤ m.weight`). The cover **terminates here** — it
@@ -163,7 +163,7 @@ structure CoverCert (G : SearchGraph V) (g : Term V) : Prop where
 * **`step`** (budget remains): strictly more budget than one residence (`m.weight < B`, hence
   `0 < m.weight`), and **every retained successor** covers the decremented budget.
 
-`base`'s `B ≤ m.weight` (not `B = 0`) is Definition 4's base condition; it is exactly the
+`base`'s `B ≤ m.weight` (not `B = 0`) is Definition 8's finish condition; it is exactly the
 termination that keeps the co-execution from over-reaching into a closed-leaf successor. -/
 inductive Covered (G : SearchGraph V) : Config → Prop
   -- base/step are the JOINT segments. A joint segment evolves the left, so its successor config
@@ -175,7 +175,7 @@ inductive Covered (G : SearchGraph V) : Config → Prop
       (hlt : m.weight < B) :
       (∀ q' ∈ G.retainedSucc q, Covered G ⟨q', B - m.weight, SrcSetting.postJ⟩) →
       Covered G ⟨q, B, σ⟩
-  -- **dynamic reposition** (certificate 3), σ-matched: zero budget, `0<B`, `exitSucc≠[]`, ∀
+  -- **dynamic reposition** (Lemma 4's flow certificate), σ-matched: zero budget, `0<B`, `exitSucc≠[]`, ∀
   -- non-self exit covered at the SAME σ (the left is held, so σ is preserved); availability is the
   -- whole-domain right-only flow cert (`repoDynPreOK`/`repoDynPostOK`). Each constructor concludes
   -- only its own σ, so the pre-j cert can never be applied at a `postJ` config.
@@ -193,11 +193,11 @@ budget `B`, the assembled right response either stays put (`refl`), evolves with
 current mode (`evolve`, time-unbounded — the flow certificate is a forward invariant), or
 jumps along a declared successor whose guard the evolved state enables (`jump`).
 
-The `jump` gate is `m.weight < B` (Definition 4's **step** condition), **not** `0 < B`: a
+The `jump` gate is `m.weight < B` (Definition 8's **continue** condition), **not** `0 < B`: a
 jump may fire only when budget genuinely remains *after* this residence (`B - m.weight ≥ 1`).
 When the budget is closed (`B ≤ m.weight`, the `base` case) no jump is possible — the right
 response is a *prefix of the single certified segment* and terminates, never evolving into a
-successor mode. That is the mechanized image of Definition 4's base-case termination; its
+successor mode. That is the mechanized image of Definition 8's finish-case termination; its
 absence (a bare `0 < B` gate) was the fidelity bug that forced closed-leaf certification. -/
 inductive RightReach (G : SearchGraph V) : Config → State V → State V → Prop
   | refl {q B σ ν} : RightReach G ⟨q, B, σ⟩ ν ν
@@ -211,7 +211,7 @@ inductive RightReach (G : SearchGraph V) : Config → State V → State V → Pr
       Formula.sat e.guard μ →
       RightReach G ⟨e.tgt, B - m.weight, SrcSetting.postJ⟩ μ ω →
       RightReach G ⟨q, B, σ⟩ ν ω
-  -- **DYNAMIC REPOSITION response** (certificate 3), σ-matched. The right genuinely EVOLVES under
+  -- **DYNAMIC REPOSITION response** (Lemma 4's flow certificate), σ-matched. The right genuinely EVOLVES under
   -- the frozen-left field `dynSys` (`Program.sem`, a flow segment), and `InvHolds μ` is preserved
   -- along it by the flow cert (`repoDynPresPre/Post`, `DI_nonstrict_domain` whole-domain, NOT a
   -- boundary-Lie). Then continues at the successor, same budget and σ. Zero budget (left frozen).
@@ -237,7 +237,7 @@ theorem cover_budget_decreases (G : SearchGraph V) {q B : ℕ} {σ σ' : SrcSett
     (⟨q', B - m.weight, σ'⟩ : Config).B < (⟨q, B, σ⟩ : Config).B :=
   Nat.sub_lt hpos hw
 
-/-! ## (4) The composition theorem = paper Theorem 3 -/
+/-! ## (4) Cover soundness (Lemma 5 with Theorem 1, all-successors form): the core of paper Theorem 3 -/
 
 /-- **Preservation is per-segment (`Covered`-free).** Along **every** assembled right response
 (joint or dynamic reposition), from an invariant-satisfying entry the invariant holds
@@ -254,7 +254,7 @@ theorem pres (G : SearchGraph V) (g : Term V) (cert : CoverCert G g) :
   | evolve m hm hj hsem _ ih => intro hν; exact ih (cert.segPres _ m hm hj _ hν _ hsem)
   | jump m hm hj e he hsrc hlt hsem hguard _ ih =>
       intro hν; exact ih (cert.segPres _ m hm hj _ hν _ hsem)
-  -- dynamic reposition (certificate 3): `InvHolds μ` is preserved along the frozen-left FLOW by the
+  -- dynamic reposition (Lemma 4's flow certificate): `InvHolds μ` is preserved along the frozen-left FLOW by the
   -- flow cert (`repoDynPresPre/Post`, `DI_nonstrict_domain`) — same shape as the joint `evolve` case,
   -- consuming `InvHolds ν` and the `sem` run. Whole-domain, no boundary-Lie ⟹ no `t²`.
   | repositionDynPre m hm hrepo e he hsrc hB hsem _ ih =>
@@ -284,7 +284,7 @@ theorem segPreserves_of_flow {n : ℕ} (o : FlowObligation n) (m : RMode (Var n)
   rw [hsys, hdom]
   exact flow_cert_sound o hunsat hν
 
-/-- **DYNAMIC REPOSITION connector (certificate 3).** The dynamic-reposition obligation
+/-- **DYNAMIC REPOSITION connector (Lemma 4's flow certificate).** The dynamic-reposition obligation
 `SegPreservesOn g dynSys dynDom` is discharged by the **same** `flow_cert_sound` — its
 `DI_nonstrict_domain` route (`flowQuery = domain ∧ ġ > 0`, whole-domain UNSAT) — instantiated with
 the **left field frozen** (`o.fL = 0`, made explicit by `hfrozen`), so the segment is a right-only

@@ -36,11 +36,11 @@ variable {V : Type*} [Fintype V] [DecidableEq V]
 /-! ## The computable cover checker (re-validates the runner's untrusted search) -/
 
 /-- **Computable** re-validation of a `Covered` derivation — the two cases of the paper's
-**Definition 4**, made executable and fuel-bounded (the fuel is the runner-supplied
+**Definition 8** (all-successors form), made executable and fuel-bounded (the fuel is the runner-supplied
 derivation height; `decideCovered_sound` needs only that it suffices):
 
 * **base** — `B ≤ m.weight`: the certified mode's single residence closes the budget →
-  accept, **without** examining successors (Definition 4's terminating base case).
+  accept, **without** examining successors (Definition 8's terminating finish case).
 * **step** — otherwise (`m.weight < B`): accept iff **every** retained successor validates
   at the decremented budget.
 
@@ -57,7 +57,7 @@ def decideCovered (G : SearchGraph V) : ℕ → Config → Bool
           || (m.jointOK && decide (m.weight < B) &&
                 (G.retainedSucc q).all (fun q' =>
                    decideCovered G fuel ⟨q', B - m.weight, SrcSetting.postJ⟩))
-          -- DYNAMIC reposition step (certificate 3, the right-only segment), σ-matched
+          -- DYNAMIC reposition step (Lemma 4's flow certificate, the right-only segment), σ-matched
           -- (`repoDynPreOK`/`repoDynPostOK`): zero budget, `exitSucc` non-empty (no vacuous
           -- dead-end cover), all non-self exits cover at the SAME budget `B` and SAME `σ` (the
           -- left is held, so σ is preserved). There is no static (zero-duration) reposition.
@@ -67,7 +67,7 @@ def decideCovered (G : SearchGraph V) : ℕ → Config → Bool
 
 /-- **Soundness of the checker's structural half.** If `decideCovered` accepts, the
 proof-level `Covered` relation holds — so the runner's (untrusted) search result is
-re-validated into a real Definition-4 derivation (base or step). -/
+re-validated into a real Definition 8 derivation (finish or continue). -/
 theorem decideCovered_sound (G : SearchGraph V) :
     ∀ (fuel : ℕ) (cfg : Config), decideCovered G fuel cfg = true → Covered G cfg := by
   intro fuel
@@ -85,7 +85,7 @@ theorem decideCovered_sound (G : SearchGraph V) :
           · exact Covered.base m hm hj hle                              -- base (joint)
           · refine Covered.step m hm hj hlt ?_                          -- joint step (successors postJ)
             intro q' hq'; exact ih _ (List.all_eq_true.mp hall q' hq')
-          · -- DYNAMIC reposition step (certificate 3), σ-matched
+          · -- DYNAMIC reposition step (Lemma 4's flow certificate), σ-matched
             have hne : G.exitSucc q ≠ [] := by intro hnil; rw [hnil] at hne'; simp at hne'
             cases σ with
             | preJ =>

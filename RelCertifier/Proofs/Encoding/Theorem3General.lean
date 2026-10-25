@@ -5,15 +5,17 @@ Released under Apache 2.0 license.
 # Theorem 3, generically: a cover of every admissible start gives the ∀∃ invariant
 
 `theorem3_of_coverX` is the paper's Theorem 3 (Soundness of Synthesis), with the existential
-mode choice, as one Lean theorem. Its hypotheses are Theorem 3's conditions:
+mode choice, as one Lean theorem. Its hypotheses are conditions 1 and 2 of Theorem 3, with the cover's certificates as a
+hypothesis of their own (condition 3, the handoff, enters where `theorem3_modeKeyed` composes
+the rows):
 
 1. the right model is well formed (`WellFormedR`, Assumption 1);
 2. for every left mode `l` and every admissible start mode `q`, the configuration
-   `(q, B_l, preJ)` is covered (`CoveredX`, Definition 4 extended), where `B_l · δ_l` bounds
+   `(q, B_l, preJ)` is covered (`CoveredX`, Definition 8 with committed subsets), where `B_l · δ_l` bounds
    the window;
 3. the certificates each cover step consumes, per left mode (`CoverHyps`): the flow certificate
-   of every pairing at its stretch (Theorem 1), the reposition certificates, the non-connection
-   certificates of the pruned edges (Theorem 2), the coverage certificates of the chosen sets,
+   of every pairing at its stretch (Definition 5, Lemma 2), the reposition certificates
+   (Definition 7), the non-connection certificates of the pruned edges (Definition 6), the coverage certificates of the chosen sets,
    the entry condition (the entered guard yields the entered mode's kept atoms), and the
    reposition-progress premise for the right-only steps of the all-successors rule.
 
@@ -35,8 +37,8 @@ open DL DLCalTiming DLRel Set Function
 
 variable {n : ℕ}
 
-/-- The certificates and premises one left window's cover consumes (Theorem 3's condition 3,
-per left mode). -/
+/-- The certificates and premises one left window's cover consumes (the certificates behind
+Theorem 3's condition 2, per left mode). -/
 structure CoverHyps (G : SearchGraph (Var n)) (ch : ChoiceData)
     (fR : ℕ → Fin n → Term (Var n)) (domR : Formula (Var n)) (fL : Fin n → Term (Var n))
     (domL gL : Formula (Var n)) (guard : ℕ → Formula (Var n)) (tr : Var n)

@@ -2,9 +2,9 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# The extended cover: Definition 4 with chosen successors and hops
+# The extended cover: Definition 8 with committed subsets (chosen successors) and hops
 
-`Covered` (`Checker/Cover.lean`) is Definition 4 with the all-successors rule: after a segment,
+`Covered` (`Checker/Cover.lean`) is Definition 8 with the all-successors rule only: after a segment,
 every retained successor must be covered. The existential mode choice adds two rules backed by
 a coverage certificate `Cover(R, S)`: `R ∧ ⋀_{q' ∈ S} ¬ guard(q')` is unsat, so every state of
 the region `R` lies in the guard of some mode of `S` (`docs/CHOICE-SOUNDNESS.md`):
@@ -49,7 +49,7 @@ self-loop): the targets a chosen set after a joint segment may name, each with a
 def SearchGraph.declSucc (G : SearchGraph V) (q : ℕ) : List ℕ :=
   (G.edges.filter (fun e => decide (e.src = q) && !e.pruned)).map REdge.tgt
 
-/-- **Definition 4, extended** (cases 1 to 4 of `docs/CHOICE-SOUNDNESS.md` §4). -/
+/-- **Definition 8 with committed subsets** (cases 1 to 4 of `docs/CHOICE-SOUNDNESS.md` §4). -/
 inductive CoveredX (G : SearchGraph V) (ch : ChoiceData) : Config → Prop
   -- 1. base: one joint segment closes the budget
   | base {q B σ} (m : RMode V) (hm : G.modeAt q = some m) (hj : ch.jointOK q = true)
@@ -94,7 +94,7 @@ inductive CoveredX (G : SearchGraph V) (ch : ChoiceData) : Config → Prop
 def ChoiceData.repoSAt (ch : ChoiceData) (q : ℕ) (σ : SrcSetting) : List (List ℕ) := ch.repoS q σ
 def ChoiceData.hopSAt (ch : ChoiceData) (q : ℕ) (σ : SrcSetting) : List (List ℕ) := ch.hopS q σ
 
-/-- **Definition 4 extended, executable.** `decideCovered` plus the three choice rules; each
+/-- **Definition 8 with committed subsets, executable.** `decideCovered` plus the three choice rules; each
 chosen set must be nonempty and inside the rule's successor set. -/
 def decideCoveredX (G : SearchGraph V) (ch : ChoiceData) : ℕ → Config → Bool
   | 0,        _      => false

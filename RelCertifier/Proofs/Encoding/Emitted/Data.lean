@@ -233,7 +233,7 @@ def prunedTgts (q : ℕ) : List ℕ :=
   ((mRof p q).next.filter (fun nm => prunedOf cov (mRof p q).name nm)).map (tgtIdx p)
 
 /-- The barrier term of a pruned exit into `t`: the tool's `guardTerm` of `t`'s guard, so that
-`t`'s guard implies `barrier > 0`; `≤ 0` is kept by the right flow (Theorem 2). -/
+`t`'s guard implies `barrier > 0`; `≤ 0` is kept by the right flow (Definition 6). -/
 noncomputable def barrierOf (t : ℕ) : Term (Var n) :=
   ((NonConn.guardTerm (vars p) n (mRof p t).guard).map ITerm.toHost).getD (Term.const 0)
 

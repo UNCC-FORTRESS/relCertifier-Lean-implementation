@@ -1,5 +1,7 @@
 # Guard-gated switching on the right (branch `guarded-right`)
 
+> Numbering here predates the submission; see `docs/PAPER-MAPPING.md`.
+
 **Status (2026-10-10, branch `guarded-right`): done, all 46.** One uniform statement for all
 46 benchmarks: Theorem 3 (Lean docstring numbering; the paper's Theorem 3 as of 2026-10-16) with the paper's LEFT program, the guard-gated left automaton
 `leftAutomatonBody A u_L` (jump, then flow: each left edge tests the entered left mode's

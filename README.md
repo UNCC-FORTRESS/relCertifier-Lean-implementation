@@ -7,7 +7,7 @@ Given two hybrid automata, an ideal system `L` and an implementation `R`, writte
 small textual format, the tool `relcert` certifies that `R` refines `L` up to a relational
 invariant (bounds such as `x_L ≤ x_R + 3`). For **all 50** benchmarks of the paper's suite
 (46 designed for it and four models taken from the literature (`drl_car_stop`, `drl_lane_control`: the sampled form of the refinement examples of differential refinement logic; `vehicle_hypercert`: the continuous-time counterpart of the HyperCertificates opacity vehicle; `freedm_meter`: the FREEDM transformer's battery-level nondeducibility through the grid meter), which need the existential mode choice)
-the repository contains a **kernel-checked Theorem 3** (the paper's relational ∀∃ statement; "Theorem 3" is the Lean docstring numbering, the paper's Theorem 3 as of 2026-10-16)
+the repository contains a **kernel-checked Theorem 3** (the paper's Theorem 3, Soundness of Synthesis: the relational ∀∃ statement)
 with the paper's own automata on both sides, **guard-gated**: every left window is entered
 only inside its mode's guard (the left automaton, jump then flow) and every right mode change
 enters a declared successor whose guard holds at that instant (flow then jump), at the
@@ -131,7 +131,7 @@ paper's route, `docs/BRIDGE.md`) state the same form over the **clocked** right 
 monotone from `0`). The right clock is a fourth auxiliary coordinate `(Aux, d)` next to the
 right mode variable `(Aux, a)`, the left clock `(Aux, b)` and the stored left mode `(Aux, c)`,
 so a bridge instance lives at the Assumption 1 lemma's dimension plus one (`bridgeDimV2`,
-`VerdictsV2/RunBridge.lean:73`); the lemma is lifted by `Emitted.wellFormedR_lift` under the
+`VerdictsV2/RunBridge.lean:74`); the lemma is lifted by `Emitted.wellFormedR_lift` under the
 kernel-decided `padOK` (`Proofs/Encoding/Emitted/Lift.lean`). The clocked claim implies the
 unclocked one (`keyedClaim_to_unclocked`, `Proofs/Encoding/Emitted/Refute.lean:561`): the
 bridge statement is the stronger of the two. The theorems are

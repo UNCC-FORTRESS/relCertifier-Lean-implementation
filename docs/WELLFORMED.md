@@ -12,8 +12,8 @@ re-engage or are latched with an invariant guard, the arm planner's successor se
 band a sampled interval can reach) and are now proved. No proof uses Z3. The tool's sufficient
 check of the successor half (`relcert --wellformed`) finds every one of the 174 right modes
 `ok`, and `--check-quick-v2` now runs it STRICT, against a declared count (§4). The generic-bridge
-instances (`InstancesV2/Bridge/`, the paper's route; Lean docstring numbering, the paper's
-Theorem 3 as of 2026-10-16) take it as a hypothesis: `theorem3_keyed_of_records`
+instances (`InstancesV2/Bridge/`, the paper's route to
+Theorem 3) take it as a hypothesis: `theorem3_keyed_of_records`
 (`Proofs/Encoding/Emitted/Keyed.lean:427`) and `theorem3_window_of_records`
 (`Emitted/Window.lean:83`) take `hwf : WellFormedRIn (grOf p n (prunedOf cov)) (guardR p n) reg
 (epsR p)`, which each generated instance discharges from the benchmark's `WellFormedR` lemma,
@@ -259,7 +259,7 @@ stored left mode; the right clock, the keyed form's fourth auxiliary coordinate,
 below). Since the
 right automaton of the bridge is clocked (`rightAutomatonBodyC`, the right clock `(Aux, d)`;
 `docs/PAPER-MAPPING.md` §9), the generated instances live at `n0 + 1` (`bridgeDimV2`,
-`VerdictsV2/RunBridge.lean:73`). `Proofs/Encoding/Emitted/Lift.lean` carries the lemma across:
+`VerdictsV2/RunBridge.lean:74`). `Proofs/Encoding/Emitted/Lift.lean` carries the lemma across:
 
 * `padOK p n : Bool` (`Lift.lean:108`): for every right mode `q ≤ nR p` (the out-of-range
   default included), the lowered guard and evolve domain at `n+1` are the `IForm.embed` of

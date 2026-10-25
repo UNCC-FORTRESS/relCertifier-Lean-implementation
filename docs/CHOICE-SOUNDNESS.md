@@ -3,9 +3,8 @@
 Status: argument first, code second. The region builders in `Trusted/OracleAPI.lean`
 (`ChoiceCtx.jointEnd`, `repoEnd`, `startReg`) must match §3 exactly.
 
-Numbering: Theorem 1, Theorem 2, Theorem 3 and Definition 4 below are the Lean docstring
-numbering (flow certificate, non-connection, synthesis, cover); in the paper's numbering as
-of 2026-10-16 they are Definition 5 / Lemma 2, Definition 6, Theorem 3 and Definition 8.
+Numbering is the submitted paper's: Lemma 2 (flow certificates, Definition 5), Definition 6
+(non-connection), Definition 8 (cover) and Theorem 3 (Soundness of Synthesis).
 
 ## 1. Setting
 
@@ -32,7 +31,7 @@ state lies in the source mode's evolution domain and the entered guard holds.
 * (S4) left evolution domain and left checked cuts of `m_l` (cuts hold throughout a left
   residence);
 * (S5) the invariant row of `m_l`: at the residence start by the premise; afterwards by
-  Theorem 1 (flow certificates hold throughout each segment, complete or partial);
+  Lemma 2 (flow certificates hold throughout each segment, complete or partial);
 * (S6) if `σ = pre-j`: the left guard of `m_l` (the left has not moved yet).
 
 **Segment end** (after a joint segment of any duration up to its span, or a right-only
@@ -41,7 +40,7 @@ segment of any duration):
 * (E1) both evolution domains (the run stays in them);
 * (E2) right checked cuts of `q` (preserved by `q`'s flow, true at entry by S2);
 * (E3) left domain and left checked cuts of `m_l` (S4; a right-only segment freezes the left);
-* (E4) the invariant row of `m_l` (Theorem 1);
+* (E4) the invariant row of `m_l` (Lemma 2);
 * (E5) right-only segment with `σ = pre-j` only: the left guard (left frozen, S6). A joint
   segment moves the left, so (E5) is **not** available after it.
 * `guard(q)` is **not** available at a segment end: the flow may leave it.
@@ -64,7 +63,7 @@ Prototype check (`relcert-choice.patch`, `mkCtx`): `jointEnd = leftFacts false �
 `rightFacts = evolveR(q) ∧ cutR(q)`. This matches the table. The right domain in
 `StartRegion` is `evolveR(q)` of the source mode, which is what `gresp_hop` needs.
 
-## 4. Extended Definition 4
+## 4. Definition 8 with committed subsets
 
 `(q, B, σ, h)` is covered if one of:
 
@@ -89,9 +88,9 @@ are excluded by the least reading (the tool rejects a revisit of an in-progress 
 By induction on the finite cover, from a configuration start satisfying S1 to S6:
 
 * **case 1**: run the joint segment for the rest of the residence; the invariant holds
-  throughout (Theorem 1); no switch inside the residence.
+  throughout (Lemma 2); no switch inside the residence.
 * **case 2**: run the segment to its end; Assumption 1 (completeness) gives an enabled declared
-  successor; non-connection certificates exclude the pruned ones (Theorem 2); every retained
+  successor; non-connection certificates exclude the pruned ones (Definition 6); every retained
   one is covered. Switch (`SwitchLegal`), arriving at a configuration start satisfying S1 to S6.
 * **case 3**: run the segment to its end; the end state satisfies `JointEnd(q)` (resp.
   `RepoEnd(q, σ)`) by E1 to E5; the coverage certificate gives `q' ∈ S` with `guard(q')`

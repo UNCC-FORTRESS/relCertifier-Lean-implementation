@@ -6,7 +6,7 @@ Status: the general theorem is proved (`Proofs/Encoding/Theorem3General.lean`,
 through it as hand-written general instances (`InstancesV2/Choice/General/`), each with the
 standard three axioms plus `z3_unsat_sound`; their Theorem-3 parts were retired on 2026-10-21
 (git 61d7389) and only their Assumption 1 proofs remain, every benchmark and exhibit now going
-through the generated bridge instances of §5. Before this branch the paper's Theorem 3 (Lean docstring numbering; the paper's Theorem 3 as of 2026-10-16) was mechanized per
+through the generated bridge instances of §5. Before this branch the paper's Theorem 3 was mechanized per
 benchmark: generic lemmas (the outer loop rule, the replay engine, guarded switching) and a
 per-benchmark construction of the response. Now the construction is one theorem whose
 hypotheses are Theorem 3's conditions.
@@ -17,7 +17,9 @@ hypotheses are Theorem 3's conditions.
 the guard-gated left windows `L` (one per left mode, each of duration at most `dt`) and the
 guarded right automaton `R`, with the loop invariant `ψ` = the declared row ∧ the evolve
 envelope ∧ the right mode's region (its guard and its kept atoms: the paper's operating region
-`op_R`). Its hypotheses, grouped as the paper's conditions:
+`op_R`). Its hypotheses, grouped as the paper's conditions 1 and 2 with the covers' certificates
+as a third group (the paper's condition 3, the handoff, enters where `theorem3_modeKeyed`
+composes the rows):
 
 1. **Assumption 1** (`hwf : WellFormedR G guard ε_R`): from every state of a mode's guard the
    run of one right interval exists, and every run of duration at most `ε_R` ends in some
@@ -26,10 +28,10 @@ envelope ∧ the right mode's region (its guard and its kept atoms: the paper's 
    (`AdmissibleStart`: some joint state satisfies the left guard, the row, the envelope and the
    right region), `CoveredX G (ch l) (q, B_l, preJ)`; and `dt ≤ B_l · δ_l`.
 3. **The certificates** (`CoverHyps`, per left mode): the flow certificate of every certified
-   pairing at its stretch (`hbox`, Theorem 1 in the Lean docstring numbering, the paper's Definition 5); the reposition-progress
+   pairing at its stretch (`hbox`, the paper's Definition 5 and Lemma 2); the reposition-progress
    premise of every reposition node (`hrepoProg : RepoProgress …`, into which the reposition flow box `hboxD` and the right-only
    non-connection fact `hpruneD` are folded when `repoProgress_*` discharges it; they are not `CoverHyps` fields);
-   the non-connection certificates of the pruned edges (`hprune`, Theorem 2 in the Lean docstring numbering, the paper's Definition 6); the
+   the non-connection certificates of the pruned edges (`hprune`, the paper's Definition 6); the
    coverage certificates of the chosen sets (`hcovJ`, `hcovR`, `hcovS`, with the regions
    implied by the anchor); the entry condition (`hhand`); and the reposition-progress premise
    (`hrepoProg`, §3).
@@ -39,15 +41,17 @@ pairing (`hspan`), unit weights, budget `B = ⌈ε_L / δ⌉`.
 
 ## 2. The proof
 
-`CoveredX` (`Checker/CoverX.lean`) is Definition 4 (Lean docstring numbering; the paper's Definition 8 as of 2026-10-16) with cases 3 and 4 of
+`CoveredX` (`Checker/CoverX.lean`) is the paper's Definition 8 with its committed subsets, cases 3 and 4 of
 `docs/CHOICE-SOUNDNESS.md`; `decideCoveredX` is the checker and `decideCoveredX_sound` its
 soundness. The cover flags (which pairings are certified) and the chosen sets are per window
 (`ChoiceData`), so one right automaton serves every window.
 
-`coverX_piece` (`Proofs/Encoding/CoverResp.lean`) is the induction: a covered configuration
+`coverX_piece` (`Proofs/Encoding/CoverResp.lean`) is the induction (the paper's Theorem 1, Soundness of
+Witness Strategies, whose steps are Lemmas 3 and 4): a covered configuration
 answers one clocked left piece from left time `a` if `r − a ≤ B δ`. Base and step run the
 joint segment (Assumption 1 gives the right run, `joint_stretch` carries the anchor, Assumption
-1 again gives an enabled successor, Theorem 2 excludes pruned ones); chosen successors come
+1 again gives an enabled successor, the non-connection certificates of Definition 6 exclude
+pruned ones); chosen successors come
 from the coverage certificate at the segment's end; right-only steps reach an exit by
 reposition progress; chosen exits and hops switch at duration zero. `coverX_gresp` lifts the
 piece response to the gated window; `Hmulti_of_coverX` and `theorem3_of_coverX` assemble the
@@ -56,8 +60,8 @@ windows into the loop through `Hmulti_regionG`, `hstep_assembled_GR` and
 
 ## 3. Reposition progress: the certificate the paper's proof sketch was missing
 
-The proof sketch of Theorem 3 (the paper's Theorem 3 as of 2026-10-16; the paper now states
-the right-only obligation as Lemma 4 and the certificate as Definition 7) said
+An earlier proof sketch of Theorem 3 (before the paper stated the right-only obligation as
+Lemma 4 and the certificate as Definition 7) said
 Assumption 1 "continues every segment along a retained edge". For a joint segment that is right. For a **right-only** segment it is not: Assumption 1
 may enable only the self-loop, the rule requires a non-self exit, and the tool never checked
 that an exit is reached. The 12 benchmarks whose covers use right-only steps rest on exactly
@@ -100,10 +104,10 @@ the generated bridge instances (§5, `docs/WELLFORMED.md` §6).
 |---|---|---|---|
 | `vehicle_hypercert` | 5, `dt ≤ 1` | hop into the left's mode, then base | hop certificate by arithmetic; Assumption 1 (`odeSol_constRight`); 5 packs |
 | `vehicle_accel_copy` | 3, `dt ≤ 1` | the same | hop certificate (`guardR_of_guardL`); 3 packs |
-| `watertank_choice` | 3, `dt ≤ 1` | `Low` at the per-pairing stretches (δ = 2/7, B = 4), all-successors with `Low → PumpOff` pruned; `Mid` from `MidEco` by a hop into `MidBoost`; decided by `decideCoveredX` in the kernel | Theorem 2 for the pruned edge by arithmetic; hop certificate; Assumption 1 with the economy set point; 7 packs |
-| `watertank` (suite) | 3, `dt ≤ 1` | the tool's emitted cover: `Low` and `Mid` at stretch 2 (δ = 1/2, B = 2), all-successors with `Low → PumpOff` pruned; no choice; decided in the kernel | Theorem 2 by arithmetic; Assumption 1 transported from the suite's lemma; the suite's 7 packs plus `Low/High` at 2 (see below) |
+| `watertank_choice` | 3, `dt ≤ 1` | `Low` at the per-pairing stretches (δ = 2/7, B = 4), all-successors with `Low → PumpOff` pruned; `Mid` from `MidEco` by a hop into `MidBoost`; decided by `decideCoveredX` in the kernel | Definition 6 for the pruned edge by arithmetic; hop certificate; Assumption 1 with the economy set point; 7 packs |
+| `watertank` (suite) | 3, `dt ≤ 1` | the tool's emitted cover: `Low` and `Mid` at stretch 2 (δ = 1/2, B = 2), all-successors with `Low → PumpOff` pruned; no choice; decided in the kernel | Definition 6 by arithmetic; Assumption 1 transported from the suite's lemma; the suite's 7 packs plus `Low/High` at 2 (see below) |
 
-| `charger_fast_setpoints` (suite) | 3, `dt ≤ 2` | the tool's emitted cover: `BULK` a reposition node in the `BULK` and `ABSORB` windows (the right charges at the bulk rate until `ABSORB`'s guard opens), `BULK → FAULT` pruned; decided in the kernel | **reposition progress from the emitted progress certificate** (`progressVerd_one`, the queries the progress verdict runner discharges) with Assumption 1, the reposition packs (`VerdD`) and Theorem 2 for the pruned edge; the suite's 6 joint packs |
+| `charger_fast_setpoints` (suite) | 3, `dt ≤ 2` | the tool's emitted cover: `BULK` a reposition node in the `BULK` and `ABSORB` windows (the right charges at the bulk rate until `ABSORB`'s guard opens), `BULK → FAULT` pruned; decided in the kernel | **reposition progress from the emitted progress certificate** (`progressVerd_one`, the queries the progress verdict runner discharges) with Assumption 1, the reposition packs (`VerdD`) and Definition 6 for the pruned edge; the suite's 6 joint packs |
 
 **A finding on the suite's replay.** The tool's emitted `Low` cover of `watertank` marks `High`
 joint-certified (a `MidEco` start may continue in `High` after one segment), so the tool issued

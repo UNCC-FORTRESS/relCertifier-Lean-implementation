@@ -9,7 +9,7 @@ the standalone route (one hand-written Theorem 3 per benchmark, its packs and pi
 archived on 2026-10-22 on branch `archive/legacy-2026-10` (`docs/CLEANUP-SCOPE.md`); the 19
 carried-over Assumption 1 proofs stay (`README.md`, "The 19 carried-over Assumption 1 proofs").
 
-**Proved, all 50, one statement.** Theorem 3 (Lean docstring numbering; the paper's Theorem 3 as of 2026-10-16) with the paper's LEFT program (the guard-gated
+**Proved, all 50, one statement.** Theorem 3 (the paper's Soundness of Synthesis) with the paper's LEFT program (the guard-gated
 left automaton `leftAutomatonBody A u_L`: each left window entered inside its lowered guard,
 the declared successors and `u_L` read from the file) against the GUARDED right automaton
 (every edge tests the lowered guard of the mode it enters), with the loop invariant carrying
@@ -24,8 +24,8 @@ preserved by its verdict group; right-only repositions at `dynPre` nodes, each p
 reposition group; legal switches along retained edges; inadmissible starts contradictory), so
 none is Z3-free; the 6 satellites carry the conserved-momentum band in the right evolve domain
 (since 2026-10-15). No theorem carries a nonblocking (Assumption 1) hypothesis; no new
-axiom; the declared rows unchanged. Plus the Theorem 2 instance of `match_multi_rate`'s
-pruned edge. Axioms of every battery theorem ⊆ `{propext, Classical.choice, Quot.sound,
+axiom; the declared rows unchanged. Plus the non-connection instance (Definition 6) of `match_multi_rate`'s
+pruned edge (archived on branch `archive/legacy-2026-10`). Axioms of every battery theorem ⊆ `{propext, Classical.choice, Quot.sound,
 z3_unsat_sound}`; no `sorry`.
 
 **Repaired.** `platoon3_linkloss`, `platoon3_profiles`: the guarded Theorem 3 was refuted in the
@@ -60,7 +60,7 @@ sufficient check (`relcert --wellformed`) reports 174 right modes: 94 ok (invari
 certifies in the strict mode and fails on any `UNKNOWN` against the declared 174 modes.
 
 **The generic bridge (branch `theorem3-general`, 2026-10-14/15; `docs/BRIDGE.md`).** The
-general Theorem 3 (`theorem3_of_coverX`, `docs/THEOREM3-GENERAL.md`) is Definition 4 (Lean docstring numbering; the paper's Definition 8 as of 2026-10-16) with the
+general Theorem 3 (`theorem3_of_coverX`, `docs/THEOREM3-GENERAL.md`) is stated over the cover of Definition 8 with the
 existential mode choice (chosen successor sets, entry hops; `docs/CHOICE-SOUNDNESS.md`) and the
 reposition-progress premise discharged by the tool's progress certificates (the paper's reposition certificates; emitted by default;
 `RELCERT_NO_PROGRESS=1` disables them). One generic layer (`Proofs/Encoding/Emitted/`) turns a
@@ -114,7 +114,7 @@ exhibits, 32 choice verdicts unsat, covers identical with choice on and off). Pr
 
 * `rung2c` beyond its control interval: `1 < dt ≤ 2.12` neither proved nor refuted, `dt > 2.12`
   false by a stated argument (not kernel-checked); outside the model (`ε_L = 1`).
-* Per-mode evolve domains (the paper's Eq. 2) are outside the Lean lift; no suite_v2
+* Per-mode evolve domains (which the paper's Eq. 1 admits; Appendix B.2) are outside the Lean lift; no suite_v2
   benchmark has them.
 * The generic X-channel theorem is the throughout form (`check_sound_multi_cutX`); the
   Theorem 3 instances are per benchmark (response strategy and existence).

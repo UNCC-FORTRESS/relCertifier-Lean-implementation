@@ -190,7 +190,7 @@ SWITCHES (environment)
   RELCERT_NO_LINEAR_CUT=1
                        keep the closures and implied-contraction atoms but switch the
                        linear-form chain off (the matrix's M6L counter-run)
-  RELCERT_NO_PRUNE=1   disable non-connection pruning (the paper's Section 4.3 device):
+  RELCERT_NO_PRUNE=1   disable non-connection pruning (the paper's Section 4.2 device):
                        every declared right edge stays in the cover's all-successors
                        obligation
   RELCERT_NO_CUT=1     disable the checked-cut channel (queries on the bare evolve domains)

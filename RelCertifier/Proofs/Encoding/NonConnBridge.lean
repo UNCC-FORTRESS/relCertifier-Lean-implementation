@@ -25,13 +25,13 @@ guard. This leaf ties the two together, once, generically:
 * `nonconn_of_unsat` — the composition: two `z3solve … = unsat` facts on exactly the
   runner's queries yield `nonconn_sound`'s conclusion (Definition 6) for the edge.
 
-What this does NOT claim: that the pruned edge is never taken by the modal witness — the
-witness never takes it by construction (`Proofs/Encoding/SinkExtension.lean`), so the
-modal Theorem 3 of a benchmark with a pruned edge does not consume this leaf. It is the
-kernel-checked content of the certificate the tool emits (`CoverEmitE.pruned`), stated for
-`match_multi_rate`'s pruned edge in `Instances/MatchMultiRatePruned.lean` with the runner's
-query names, and discharged by the non-connection phase of `relcert --run-verdicts-v2`
-(pinned by `VerdictsV2/NonConnPinV2.lean`).
+How the paper's route uses it: the bridge instances do not consume this lemma directly. They
+take the same two queries per pruned edge as the barrier of each pruned exit
+(`Proofs/Encoding/Emitted/Barrier.lean`, `Emitted/Anchor.lean`: `nonconn_entry`,
+`guard_pos_of_barrier`), 88 queries for the suite's 44 pruned edges. This file is the
+standalone statement of Definition 6's soundness for one edge, the kernel-checked content of
+the certificate the tool emits (`CoverEmitE.pruned`); its per-benchmark instance was part of
+the archived standalone route (commit 29663d8).
 
 New leaf; the three standard axioms plus `z3_unsat_sound` where the verdicts enter.
 -/

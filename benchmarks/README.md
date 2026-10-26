@@ -8,7 +8,7 @@ every one carries a kernel-checked Theorem 3 (the paper's Soundness of Synthesis
 guard-gated right automaton, at the mode-consistent region (`RelCertifier/InstancesV2/Bridge/`;
 check recipe: `docs/CERTIFICATION-CHECK.md`). The two `platoon3` files were repaired on
 2026-10-10: their stay guards were engagement bands, so the nominal controller blocked after a
-full cycle; they are now the operating range (`docs/SUITE-REDESIGN.md` §20). Without the widened channel 11 of them
+full cycle; they are now the operating range (`docs/SUITE-REDESIGN.md` §20). Without the widened channel 10 of them
 DECLINE.
 
 **Assumption 1 of each right model** (the paper's Well-Formedness: from every guard state a

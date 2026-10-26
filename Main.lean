@@ -172,7 +172,7 @@ NOT PART OF THIS BINARY
 SWITCHES (environment)
   RELCERT_IMPLIED_CUT=1
                        widen the cut candidates (off by default; the suite_v2 runs set it,
-                       11 suite_v2 benchmarks decline without it): the closure of a strict
+                       10 suite_v2 benchmarks decline without it): the closure of a strict
                        guard conjunct (O1 by weakening) and, for a contraction field
                        x' = k (c - x), the atoms x <= c / x >= c (O1 by rational
                        comparison with a threshold guard conjunct, else one Z3 query

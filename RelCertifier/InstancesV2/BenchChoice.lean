@@ -41,7 +41,6 @@ import RelCertifier.InstancesV2.BenchChoice.rover_terrain_2to3
 import RelCertifier.InstancesV2.BenchChoice.rover_terrain_3to6
 import RelCertifier.InstancesV2.BenchChoice.rover_terrain_6to12
 import RelCertifier.InstancesV2.BenchChoice.rover_terrain_6to8
-import RelCertifier.InstancesV2.BenchChoice.rover_tier_1to2
 import RelCertifier.InstancesV2.BenchChoice.sat3w_detumble_nominal
 import RelCertifier.InstancesV2.BenchChoice.sat3w_detumble_phases
 import RelCertifier.InstancesV2.BenchChoice.sat3w_detumble_weak
@@ -96,7 +95,6 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("rover_terrain_3to6", rover_terrain_3to6_coverV2_choice),
   ("rover_terrain_6to12", rover_terrain_6to12_coverV2_choice),
   ("rover_terrain_6to8", rover_terrain_6to8_coverV2_choice),
-  ("rover_tier_1to2", rover_tier_1to2_coverV2_choice),
   ("sat3w_detumble_nominal", sat3w_detumble_nominal_coverV2_choice),
   ("sat3w_detumble_phases", sat3w_detumble_phases_coverV2_choice),
   ("sat3w_detumble_weak", sat3w_detumble_weak_coverV2_choice),

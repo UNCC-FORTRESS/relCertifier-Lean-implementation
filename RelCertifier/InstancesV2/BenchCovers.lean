@@ -39,7 +39,6 @@ import RelCertifier.InstancesV2.BenchCovers.rover_terrain_2to3
 import RelCertifier.InstancesV2.BenchCovers.rover_terrain_3to6
 import RelCertifier.InstancesV2.BenchCovers.rover_terrain_6to12
 import RelCertifier.InstancesV2.BenchCovers.rover_terrain_6to8
-import RelCertifier.InstancesV2.BenchCovers.rover_tier_1to2
 import RelCertifier.InstancesV2.BenchCovers.sat3w_detumble_nominal
 import RelCertifier.InstancesV2.BenchCovers.sat3w_detumble_phases
 import RelCertifier.InstancesV2.BenchCovers.sat3w_detumble_weak
@@ -94,7 +93,6 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("rover_terrain_3to6", rover_terrain_3to6_coverV2),
   ("rover_terrain_6to12", rover_terrain_6to12_coverV2),
   ("rover_terrain_6to8", rover_terrain_6to8_coverV2),
-  ("rover_tier_1to2", rover_tier_1to2_coverV2),
   ("sat3w_detumble_nominal", sat3w_detumble_nominal_coverV2),
   ("sat3w_detumble_phases", sat3w_detumble_phases_coverV2),
   ("sat3w_detumble_weak", sat3w_detumble_weak_coverV2),

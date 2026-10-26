@@ -82,7 +82,6 @@ FAMILIES = [
     ("platoon_", "Platoon follower, delayed link"),
     ("platoon3_", "Platoon string, three followers"),
     ("rover_patrol_", "Rover patrol (zones)"),
-    ("rover_tier_", "Rover patrol (zones)"),
     ("match_multi_rate", "Rover patrol (zones)"),
     ("arm_plateau_", "Arm, leading reference"),
     ("rover_ladder_", "Terrain/position ladder"),
@@ -98,7 +97,6 @@ FAMILIES = [
 KEPT_SCENARIO = {
     "watertank": "sensor-attack",
     "match_multi_rate": "model-refinement",
-    "rover_tier_1to2": "model-refinement",
 }
 def family_of(name):
     for pre, fam in FAMILIES:

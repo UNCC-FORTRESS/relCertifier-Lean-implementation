@@ -15,8 +15,6 @@ import RelCertifier.InstancesV2.Refute.Platoon3LinklossM084
 import RelCertifier.InstancesV2.Refute.Platoon3LinklossM096
 import RelCertifier.InstancesV2.Refute.RoverLadder6to8M008
 import RelCertifier.InstancesV2.Refute.RoverLadder6to8M013
-import RelCertifier.InstancesV2.Refute.RoverTier1to2M000
-import RelCertifier.InstancesV2.Refute.RoverTier1to2M004
 import RelCertifier.InstancesV2.Refute.RoverPatrolLagM003
 import RelCertifier.InstancesV2.Refute.RoverPatrolLagM004
 import RelCertifier.InstancesV2.Refute.RoverPatrolLagM009

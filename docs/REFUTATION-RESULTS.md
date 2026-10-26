@@ -2,6 +2,14 @@
 
 > Benchmark names here predate the 2026-10-25 rename; old -> new: `benchmarks/README.md`, "Renamed 2026-10-25".
 
+> 2026-10-26 (branch `benchmark-fixes`): the tables below are the 2026-10-21 run and predate two
+> suite changes. The `rover_lateral` model changes added refutations (79 instances, 224 groups),
+> and `rover_tier_1to2` (`rover3tier_rung12`) was retired with its two refutations (m000 kind C,
+> m004 kind B; 9 mutants) and replaced by `tank_dos_3to1` (3 mutants, no witness: m000 open,
+> m001/m002 tautologies, certified). Current instance set: **77 refutations, 220 groups**
+> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 786 mutants in
+> `docs/refute/witnesses.jsonl`. The operator table has not been recomputed.
+
 Design: `docs/REFUTATION-SCOPE.md` (planning record, last present at commit 29663d8). This file reports what was built and the experiment.
 
 ## The claim

@@ -9,7 +9,7 @@ guard-gated right automaton, at the mode-consistent region (`RelCertifier/Instan
 `rover_ladder_4to6` for windows up to its control interval `dt ≤ 1`;
 check recipe: `docs/CERTIFICATION-CHECK.md`). The two `platoon3` files were repaired on
 2026-10-10: their stay guards were engagement bands, so the nominal controller blocked after a
-full cycle; they are now the operating range (`docs/SUITE-REDESIGN.md` §20). Without the widened channel 10 of them
+full cycle; they are now the operating range (`docs/SUITE-REDESIGN.md` §20). Without the widened channel 11 of them
 DECLINE.
 
 **Assumption 1 of each right model** (the paper's Well-Formedness: from every guard state a
@@ -26,7 +26,7 @@ profiles}` (the sink `BRAKE` left its guard: it now re-engages `FOLLOW`),
 an invariant guard) and `quad_light_{airframe_20,profiles}` (the sink `LIMIT`: it now hands
 back to the climb controller, whose operating range reaches the limiter threshold).
 `relcert --wellformed <input.txt>…` runs the tool's sufficient check per right mode (every one
-of the 146 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN`.
+of the 173 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN`.
 
 The suite's design, the per-family rationale, the domain audit (every evolve bound is a
 physical limit of the plant; `scripts/domain_widening.py` re-runs the tool with every bound
@@ -68,9 +68,13 @@ use the old names.
 | `rover_patrol_refine` | `rover_patrol_lag` |
 | `rover3tier_rung12` | `rover_tier_1to2` |
 
-## The 19 carried-over benchmarks
+Retired 2026-10-26: `rover_tier_1to2`, replaced by `tank_dos_3to1` (the suite stays at 50; no
+honest variant of its right model certified, `tank_dos_3to1` is the second Multi-cycle matching
+benchmark).
 
-Nineteen files (the rover refinement ladder, the rover terrain rungs, `rover_tier_1to2`,
+## The 18 carried-over benchmarks
+
+Eighteen files (the rover refinement ladder, the rover terrain rungs,
 `match_multi_rate`, and the attitude, lateral and rollover benchmarks except `rover_rollover_7to12`) are copies of files of the retired legacy
 suite `suite_uniform` (removed from the tree on 2026-10-10; git history keeps it), byte-identical
 up to the name lines of the 2026-10-25 rename (below) and the first header line of
@@ -125,7 +129,6 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `rover_ladder_4to6` | 6 / 6 | 3 / 3 |  | carried over |
 | `rover_ladder_6to8` | 8 / 8 | 3 / 3 |  | carried over |
 | `rover_ladder_8to12` | 12 / 12 | 3 / 3 |  | carried over |
-| `rover_tier_1to2` | 3 / 3 | 2 / 2 |  | carried over, mode-keyed |
 | `rover_terrain_2to3` | 3 / 3 | 3 / 3 |  | carried over |
 | `rover_terrain_3to6` | 6 / 6 | 3 / 3 |  | carried over |
 | `rover_terrain_6to12` | 12 / 12 | 3 / 3 |  | carried over |
@@ -138,6 +141,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `sat_detumble_nominal` | 4 / 4 | 1 / 2 | model-refinement | nonblocking region |
 | `sat_detumble_phases` | 4 / 4 | 2 / 2 | model-refinement | mode-keyed, nonblocking region |
 | `sat_detumble_weak` | 4 / 4 | 1 / 4 | degraded-actuator | nonblocking region |
+| `tank_dos_3to1` | 1 / 1 | 2 / 1 | dos-attack | widened cuts |
 | `rover_attitude_6to8` | 8 / 8 | 3 / 3 |  | carried over, mode-keyed |
 | `rover_attitude_8to12` | 12 / 12 | 3 / 3 |  | carried over, mode-keyed |
 | `rover_lateral_6to8` | 8 / 8 | 3 / 3 |  | carried over; right lateral pair frozen (2026-10-26) |

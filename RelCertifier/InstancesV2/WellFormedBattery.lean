@@ -68,7 +68,6 @@ import RelCertifier.InstancesV2.WellFormed.RoverPatrolZones
 import RelCertifier.InstancesV2.WellFormed.RoverPatrolLag
 import RelCertifier.InstancesV2.WellFormed.RoverRollover7to12
 import RelCertifier.InstancesV2.WellFormed.MatchMultiRate
-import RelCertifier.InstancesV2.WellFormed.RoverTier1to2
 import RelCertifier.InstancesV2.WellFormed.RoverLadder2to3
 import RelCertifier.InstancesV2.WellFormed.RoverLadder3to6
 import RelCertifier.InstancesV2.WellFormed.RoverLadder6to8
@@ -115,7 +114,7 @@ def wfProved : List String :=
    "watertank", "acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp",
    "charger_fast_setpoints", "charger_fast_tapers", "quad_light_lag", "rover_patrol_zones",
    "rover_patrol_lag", "rover_rollover_7to12", "match_multi_rate",
-   "rover_tier_1to2", "rover_ladder_2to3",
+   "rover_ladder_2to3",
    "rover_ladder_3to6", "rover_ladder_6to8",
    "rover_ladder_8to12", "rover_ladder_2to4",
    "rover_ladder_2to6", "rover_ladder_4to6",
@@ -140,7 +139,7 @@ def wfBand : List String :=
 detumble family (also proved, listed apart for its band audit). `(30, 9, 6)` until the
 2026-10-10 repairs of the nine refuted models; `(39, 0, 6)` then, `(40, 0, 6)` with
 `watertank_twospeed` (2026-10-11). -/
-def wfDeclared : ℕ × ℕ × ℕ := (45, 0, 6)
+def wfDeclared : ℕ × ℕ × ℕ := (44, 0, 6)
 
 /-- The suite's benchmark names, in the order of the IR table. -/
 def suiteNames : List String :=
@@ -154,7 +153,7 @@ def suiteNames : List String :=
    "rover_ladder_4to6", "rover_ladder_6to8", "rover_ladder_8to12", "rover_lateral_6to8",
    "rover_lateral_8to12", "rover_patrol_lag", "rover_patrol_zones", "rover_rollover_6to12",
    "rover_rollover_6to7", "rover_rollover_7to12", "rover_terrain_2to3",
-   "rover_terrain_3to6", "rover_terrain_6to12", "rover_terrain_6to8", "rover_tier_1to2",
+   "rover_terrain_3to6", "rover_terrain_6to12", "rover_terrain_6to8",
    "sat3w_detumble_nominal", "sat3w_detumble_phases", "sat3w_detumble_weak",
    "sat_detumble_nominal", "sat_detumble_phases", "sat_detumble_weak", "tank_dos_3to1",
    "vehicle_hypercert",
@@ -173,7 +172,7 @@ theorem wf_coverage :
 
 end WellFormedBattery
 
-/-! ## Proved (45, outside the detumble family): Assumption 1 at every mode -/
+/-! ## Proved (44, outside the detumble family): Assumption 1 at every mode -/
 
 #print axioms V2DrlCarStop.drl_car_stop_wellFormedR_direct
 #print axioms V2DrlLaneControl.drl_lane_control_wellFormedR_direct
@@ -194,7 +193,6 @@ end WellFormedBattery
 #print axioms V2RoverPatrolLagGuarded.rover_patrol_lag_wellFormedR
 #print axioms V2RoverRollover7to12Guarded.rover_rollover_7to12_wellFormedR
 #print axioms MatchMultiRateGuarded.match_multi_rate_wellFormedR
-#print axioms RoverTier1to2Guarded.rover_tier_1to2_wellFormedR
 #print axioms RoverLadder2to3Guarded.rover_ladder_2to3_wellFormedR
 #print axioms RoverLadder3to6Guarded.rover_ladder_3to6_wellFormedR
 #print axioms RoverLadder6to8Guarded.rover_ladder_6to8_wellFormedR

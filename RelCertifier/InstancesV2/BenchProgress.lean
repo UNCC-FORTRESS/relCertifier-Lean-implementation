@@ -23,7 +23,6 @@ import RelCertifier.InstancesV2.BenchProgress.rover_ladder_2to6
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_4to6
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_6to8
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_8to12
-import RelCertifier.InstancesV2.BenchProgress.rover_tier_1to2
 import RelCertifier.InstancesV2.BenchProgress.rover_terrain_2to3
 import RelCertifier.InstancesV2.BenchProgress.rover_terrain_3to6
 import RelCertifier.InstancesV2.BenchProgress.rover_terrain_6to12
@@ -75,7 +74,6 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("rover_ladder_4to6", rover_ladder_4to6_coverV2_progress),
    ("rover_ladder_6to8", rover_ladder_6to8_coverV2_progress),
    ("rover_ladder_8to12", rover_ladder_8to12_coverV2_progress),
-   ("rover_tier_1to2", rover_tier_1to2_coverV2_progress),
    ("rover_terrain_2to3", rover_terrain_2to3_coverV2_progress),
    ("rover_terrain_3to6", rover_terrain_3to6_coverV2_progress),
    ("rover_terrain_6to12", rover_terrain_6to12_coverV2_progress),

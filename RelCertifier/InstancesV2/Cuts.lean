@@ -39,7 +39,6 @@ import RelCertifier.InstancesV2.Cuts.rover_terrain_2to3
 import RelCertifier.InstancesV2.Cuts.rover_terrain_3to6
 import RelCertifier.InstancesV2.Cuts.rover_terrain_6to12
 import RelCertifier.InstancesV2.Cuts.rover_terrain_6to8
-import RelCertifier.InstancesV2.Cuts.rover_tier_1to2
 import RelCertifier.InstancesV2.Cuts.sat3w_detumble_nominal
 import RelCertifier.InstancesV2.Cuts.sat3w_detumble_phases
 import RelCertifier.InstancesV2.Cuts.sat3w_detumble_weak
@@ -94,7 +93,6 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("rover_terrain_3to6", rover_terrain_3to6_cutsV2, rover_terrain_3to6_cutsV2X),
   ("rover_terrain_6to12", rover_terrain_6to12_cutsV2, rover_terrain_6to12_cutsV2X),
   ("rover_terrain_6to8", rover_terrain_6to8_cutsV2, rover_terrain_6to8_cutsV2X),
-  ("rover_tier_1to2", rover_tier_1to2_cutsV2, rover_tier_1to2_cutsV2X),
   ("sat3w_detumble_nominal", sat3w_detumble_nominal_cutsV2, sat3w_detumble_nominal_cutsV2X),
   ("sat3w_detumble_phases", sat3w_detumble_phases_cutsV2, sat3w_detumble_phases_cutsV2X),
   ("sat3w_detumble_weak", sat3w_detumble_weak_cutsV2, sat3w_detumble_weak_cutsV2X),

@@ -300,11 +300,6 @@ def packsV2 : List PackV2 :=
     ⟨"rover_ladder_4to6", 6, 0, [0, 1, 4, 5, 6, 7, 2, 3], 1, 1, 0, 0⟩,
     ⟨"rover_ladder_4to6", 6, 0, [0, 1, 4, 5, 6, 7, 2, 3], 1, 1, 1, 1⟩,
     ⟨"rover_ladder_4to6", 6, 0, [0, 1, 4, 5, 6, 7, 2, 3], 1, 1, 2, 2⟩,
-    -- rover_tier_1to2 (cover replay)
-    ⟨"rover_tier_1to2", 3, 0, [1, 0], 7, 4, 0, 0⟩,
-    ⟨"rover_tier_1to2", 3, 0, [1, 0], 7, 4, 0, 1⟩,
-    ⟨"rover_tier_1to2", 3, 1, [0], 1, 1, 1, 0⟩,
-    ⟨"rover_tier_1to2", 3, 1, [0], 1, 1, 1, 1⟩,
     -- match_multi_rate (cover replay)
     ⟨"match_multi_rate", 2, 0, [0], 3, 1, 0, 0⟩,
     ⟨"match_multi_rate", 2, 0, [0], 2, 1, 1, 0⟩,
@@ -345,7 +340,7 @@ def packsV2 : List PackV2 :=
     ⟨"watertank_twospeed", 2, 0, [0, 1], 31, 10, 0, 1⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 645
+def expectedModalV2 : Nat := 639
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
@@ -523,7 +518,7 @@ def runDynV2 (cfg : Z3Config) : IO Bool := do
 
 /-- Declared: one handoff query per declared left transition over the 46 suite_v2 files
 (self-loops included; `CoveragePinsV2.derivedHandoffV2_eq` derives it from the IR table). -/
-def expectedHandoffV2 : Nat := 405
+def expectedHandoffV2 : Nat := 401
 
 /-- Declared handoff failures in suite_v2: none. -/
 def expectedHandoffFailuresV2 : List (String × Nat × Nat) := []
@@ -599,15 +594,15 @@ def runNonConnAllV2 (cfg : Z3Config) : IO Bool := do
 /-- What a certification run over `benchmarks/suite_v2/*/input.txt` must produce, with
 `RELCERT_IMPLIED_CUT=1`: all 50 certified (in the strict well-formedness mode of
 `--check-quick-v2`); and what the strict Assumption 1 check of the right models must produce:
-every one of the 174 right modes `ok` (`wfModes`, kernel-checked against the IR table by
+every one of the 173 right modes `ok` (`wfModes`, kernel-checked against the IR table by
 `CoveragePinsV2.suiteV2_wfModes`), none `UNKNOWN` (`wfUnknown`; 16 UNKNOWN in 9 benchmarks
 until the 2026-10-10 repairs, when the check was informational). -/
 structure ExpectedSuiteV2 where
-  paths     : Nat := 51
-  certified : Nat := 51
+  paths     : Nat := 50
+  certified : Nat := 50
   declined  : Nat := 0
   errors    : Nat := 0
-  wfModes   : Nat := 175
+  wfModes   : Nat := 173
   wfUnknown : Nat := 0
   deriving Repr
 

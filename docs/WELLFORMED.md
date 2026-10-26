@@ -134,7 +134,7 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 22 | `rover_ladder_4to6` | proved | as 18 | as 18 |
 | 23 | `rover_ladder_6to8` | proved | as 18 | as 18 |
 | 24 | `rover_ladder_8to12` | proved | as 18 | as 18 |
-| 25 | `rover_tier_1to2` | proved | ACCEL (b) → COAST, COAST (a); `ε_r = 0.3` | ACCEL ok (exit→COAST), COAST ok (invariant) |
+| 25 | `tank_dos_3to1` | proved | MODULATE (a) (`0.4 ≤ h ≤ 2` forward invariant, contraction to 1.0); `ε_r = 1` | ok (invariant) |
 | 26 | `rover_terrain_2to3` | proved | as 18 | as 18 |
 | 27 | `rover_terrain_3to6` | proved | as 18 | as 18 |
 | 28 | `rover_terrain_6to12` | proved | as 18 | as 18 |

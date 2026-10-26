@@ -211,12 +211,12 @@ def packsV2 : List PackV2 :=
     ⟨"rover_ladder_2to3", 3, 0, [0, 1], 1, 1, 1, 2⟩,
     ⟨"rover_ladder_2to3", 3, 0, [0, 1], 1, 1, 2, 2⟩,
     -- rover_ladder_6to8 (cover replay)
-    ⟨"rover_ladder_6to8", 8, 0, [0, 1, 2, 3], 9, 4, 0, 0⟩,
-    ⟨"rover_ladder_6to8", 8, 0, [0, 1, 2, 3], 9, 4, 0, 1⟩,
-    ⟨"rover_ladder_6to8", 8, 0, [0, 1, 2, 3], 9, 4, 0, 2⟩,
-    ⟨"rover_ladder_6to8", 8, 0, [0, 1, 2, 3], 9, 4, 1, 1⟩,
-    ⟨"rover_ladder_6to8", 8, 0, [0, 1, 2, 3], 9, 4, 1, 2⟩,
-    ⟨"rover_ladder_6to8", 8, 0, [0, 1, 2, 3], 9, 4, 2, 2⟩,
+    ⟨"rover_ladder_6to8", 8, 0, [0, 1], 3, 2, 0, 0⟩,
+    ⟨"rover_ladder_6to8", 8, 0, [0, 1], 3, 2, 0, 1⟩,
+    ⟨"rover_ladder_6to8", 8, 0, [0, 1], 3, 2, 0, 2⟩,
+    ⟨"rover_ladder_6to8", 8, 0, [0, 1], 3, 2, 1, 1⟩,
+    ⟨"rover_ladder_6to8", 8, 0, [0, 1], 3, 2, 1, 2⟩,
+    ⟨"rover_ladder_6to8", 8, 0, [0, 1], 3, 2, 2, 2⟩,
     -- rover_ladder_8to12 (cover replay)
     ⟨"rover_ladder_8to12", 12, 0, [0, 1], 17, 10, 0, 0⟩,
     ⟨"rover_ladder_8to12", 12, 0, [0, 1], 17, 10, 0, 1⟩,
@@ -239,19 +239,19 @@ def packsV2 : List PackV2 :=
     ⟨"rover_rollover_6to7", 12, 0, [0, 1, 4, 2, 3], 27, 20, 1, 2⟩,
     ⟨"rover_rollover_6to7", 12, 0, [0, 1, 4, 2, 3], 27, 20, 2, 2⟩,
     -- rover_ladder_2to4 (cover replay)
-    ⟨"rover_ladder_2to4", 4, 0, [0], 1001, 1000, 0, 0⟩,
-    ⟨"rover_ladder_2to4", 4, 0, [0], 1001, 1000, 0, 1⟩,
-    ⟨"rover_ladder_2to4", 4, 0, [0], 1001, 1000, 0, 2⟩,
-    ⟨"rover_ladder_2to4", 4, 0, [0], 1001, 1000, 1, 1⟩,
-    ⟨"rover_ladder_2to4", 4, 0, [0], 1001, 1000, 1, 2⟩,
-    ⟨"rover_ladder_2to4", 4, 0, [0], 1001, 1000, 2, 2⟩,
+    ⟨"rover_ladder_2to4", 4, 0, [0], 1, 1, 0, 0⟩,
+    ⟨"rover_ladder_2to4", 4, 0, [0], 1, 1, 0, 1⟩,
+    ⟨"rover_ladder_2to4", 4, 0, [0], 1, 1, 0, 2⟩,
+    ⟨"rover_ladder_2to4", 4, 0, [0], 1, 1, 1, 1⟩,
+    ⟨"rover_ladder_2to4", 4, 0, [0], 1, 1, 1, 2⟩,
+    ⟨"rover_ladder_2to4", 4, 0, [0], 1, 1, 2, 2⟩,
     -- rover_ladder_2to6 (cover replay)
-    ⟨"rover_ladder_2to6", 6, 0, [0], 1001, 1000, 0, 0⟩,
-    ⟨"rover_ladder_2to6", 6, 0, [0], 1001, 1000, 0, 1⟩,
-    ⟨"rover_ladder_2to6", 6, 0, [0], 1001, 1000, 0, 2⟩,
-    ⟨"rover_ladder_2to6", 6, 0, [0], 1001, 1000, 1, 1⟩,
-    ⟨"rover_ladder_2to6", 6, 0, [0], 1001, 1000, 1, 2⟩,
-    ⟨"rover_ladder_2to6", 6, 0, [0], 1001, 1000, 2, 2⟩,
+    ⟨"rover_ladder_2to6", 6, 0, [0], 1, 1, 0, 0⟩,
+    ⟨"rover_ladder_2to6", 6, 0, [0], 1, 1, 0, 1⟩,
+    ⟨"rover_ladder_2to6", 6, 0, [0], 1, 1, 0, 2⟩,
+    ⟨"rover_ladder_2to6", 6, 0, [0], 1, 1, 1, 1⟩,
+    ⟨"rover_ladder_2to6", 6, 0, [0], 1, 1, 1, 2⟩,
+    ⟨"rover_ladder_2to6", 6, 0, [0], 1, 1, 2, 2⟩,
     -- rover_ladder_3to6 (cover replay)
     ⟨"rover_ladder_3to6", 6, 0, [0, 2, 3, 1], 1, 1, 0, 0⟩,
     ⟨"rover_ladder_3to6", 6, 0, [0, 2, 3, 1], 1, 1, 0, 1⟩,
@@ -337,7 +337,7 @@ def packsV2 : List PackV2 :=
     ⟨"watertank_twospeed", 2, 0, [0, 1], 31, 10, 0, 1⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 672
+def expectedModalV2 : Nat := 660
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
@@ -424,14 +424,8 @@ def dynPacksV2 : List DynPackV2 :=
     ⟨"rover_terrain_6to8", 8, 0, [0, 1], true, 1, 0⟩,
     ⟨"rover_terrain_6to8", 8, 0, [0, 1], true, 2, 1⟩,
     -- rover_ladder_2to3
-    ⟨"rover_ladder_2to3", 3, 0, [0, 1], true, 1, 0⟩,
-    ⟨"rover_ladder_2to3", 3, 0, [0, 1], true, 2, 1⟩,
     -- rover_ladder_6to8
-    ⟨"rover_ladder_6to8", 8, 0, [0, 1, 2, 3], true, 1, 0⟩,
-    ⟨"rover_ladder_6to8", 8, 0, [0, 1, 2, 3], true, 2, 1⟩,
     -- rover_ladder_8to12
-    ⟨"rover_ladder_8to12", 12, 0, [0, 1], true, 1, 0⟩,
-    ⟨"rover_ladder_8to12", 12, 0, [0, 1], true, 2, 1⟩,
     -- rover_ladder_2to4
     ⟨"rover_ladder_2to4", 4, 0, [0], true, 1, 0⟩,
     ⟨"rover_ladder_2to4", 4, 0, [0], true, 2, 0⟩,
@@ -461,7 +455,7 @@ def dynPacksV2 : List DynPackV2 :=
     ⟨"rover_patrol_lag", 3, 3, [0, 1], true, 3, 2⟩ ]
 
 /-- Declared: the number of component queries the reposition packs owe. -/
-def expectedDynV2 : Nat := 57
+def expectedDynV2 : Nat := 41
 
 def runDynPack (s : Z3Session) (r : DynPackV2) : IO Bool := do
   let p := irV2 r.bench

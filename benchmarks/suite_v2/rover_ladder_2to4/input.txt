@@ -1,25 +1,49 @@
-# Ladder rung 2: 4-DOF refines 2-DOF  (2→4 composition step)
+# rover_ladder_2to4: rover ladder, step 2 -> 4: heading and pitch move.
+# scenario: model-refinement
 #
-# L (deployed, 4-DOF): s'=v(1-0.5*psi^2-0.3*theta^2), psi'=-psi, theta'=-theta
-#   Both heading and pitch steal along-track progress; both decay first-order.
+# System (the rover ladder; normalized units, time in s): a rover drives a three-zone route
+# indexed by its odometer s: STEEP s in [0, 0.6), MODER [0.6, 1.4), FLAT s >= 1.4, speed set
+# points c = 0.30 / 0.50 / 0.65, first-order speed loop v' = 3 (c - v). The ladder's models:
+#   2-DOF plan (v, s): s' = v.
+#   3-DOF: + heading psi' = -psi; s' = v (1 - psi^2/2) (only the along-track component of the
+#     speed counts: cos psi to second order).
+#   4-DOF: + pitch theta_p' = -theta_p; s' = v (1 - psi^2/2 - 0.3 theta_p^2) (wheel slip on a slope).
+#   6-DOF: + heave z' = -z and roll phi_r' = -phi_r. Roll costs progress (cross-slope crabbing: on
+#     a rolled chassis the rover crabs uphill to hold its track), s' = v (1 - psi^2/2 - 0.3 theta_p^2
+#     - 0.2 phi_r^2); heave pitches the chassis (bounce-pitch coupling, softer rear suspension),
+#     theta_p' = -theta_p + 0.5 z, so heave reaches progress through pitch.
+#   8-DOF: heading and pitch become second order, critically damped (x'' + 2 x' + x = forcing),
+#     written in the cascade chart omega = x' + x: psi' = omega_psi - psi, omega_psi' = -omega_psi,
+#     theta_p' = omega_theta - theta_p, omega_theta' = -omega_theta + 0.5 z; heave, roll as 6-DOF.
+#   12-DOF: heave, roll and lateral sway y become second order too (cascade chart, omega_z,
+#     omega_phi, omega_y), and roll is driven by the sway acceleration y'' = y - 2 omega_y:
+#     omega_phi' = -omega_phi + 0.2 (y - 2 omega_y), so sway reaches progress through roll.
 #
-# R (reasoning, 2-DOF lifted to 4-DOF): s'=v, psi'=0, theta'=0
-#   Pure kinematic baseline: ignores all attitude. psi and theta are states but pinned.
-#   R = 2-DOF model lifted; same R as rung1 but with theta also pinned.
+# Left (4-DOF, v, s, psi, theta_p move). Right (2-DOF plan): v, s move, psi, theta_p pinned
+# (psi' = theta_p' = 0). Guards: the zones on both sides (no speed condition).
 #
-# Invariant: g = s_L - s_R - 0.2 + (v_L-v_R)/3 <= 0
-#   Combined position-velocity form. psi and theta appear only negatively in s_L'.
-#   dg/dt = v*_L - lambda*v*_R at the boundary (independent of v_L,v_R,psi,theta).
-#   Certifies at lambda = v*_L/v*_R: same-terrain lambda=1.001, cross-terrain up to 13/6.
-#   9/9 pairs certified (forward and same-terrain; backward pairs not reachable).
+# Property (the same row in every left mode): s_L + v_L/3 <= s_R + v_R/3. s + v/3 is where the
+# rover comes to rest if its speed loop is commanded to zero (v' = -3 v covers v/3), so the
+# requirement reads: the rover's stopping point never passes the plan's, and a clearance up to the
+# plan's stopping point covers a stop command. Offset 0 is the tightest (-0.01 declines); before
+# 2026-10-26 the offset was 0.2 and lambda_min 1.001 (both artificial: with lambda_min 1.0 and
+# offset 0 the cover uses lambda 1).
 #
-# Composition: rung2 L = rung3 R (lifted to 8-DOF with omega states pinned).
-# Chain: 2-DOF → 4-DOF (this step) → 8-DOF (rung3) → 12-DOF (pos_ladder).
+# Domains: left psi, theta_p in [-0.5, 0.15] (forward invariant), v in [0, 0.8], s >= 0 unbounded
+# (the left FLAT guard cap s < 899.95 was dropped 2026-10-26); right pinned boxes contain their
+# constants. Every state of a side's domain is in exactly one of its guards.
+#
+# Composes: the 4-DOF left is the right of rover_ladder_4to6 (to be replaced); the direct 2 -> 6
+# step is rover_ladder_2to6.
+# Verdicts (RELCERT_IMPLIED_CUT=1): CERTIFIED in control and under NO_CHOICE, NO_PRUNE,
+# NO_PRUNE+NO_CHOICE, OPREGION, NO_CUT, NO_IMPLIED_CUT, NO_LINEAR_CUT and without
+# RELCERT_IMPLIED_CUT; DECLINED under SYNC and SYNC+NO_CHOICE (the lagging plan needs its own
+# segment). Covers: lambda 1, budget 1; a right-only reposition (R); nothing pruned; window claim.
 
 [problem]
 name = rover_ladder_2to4
 max_depth = 8
-lambda_min = 1.001
+lambda_min = 1.0
 lambda_max = 6.0
 bound_T = 4.0
 
@@ -41,7 +65,7 @@ next = [FLAT, MODER]
 
 [Lsys.mode.FLAT]
 ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); theta_p' = smt2:(* -1 theta_p);
-guard = s >= 1.4 and s < 899.95
+guard = s >= 1.4
 evolve = psi >= -0.5 and psi <= 0.15 and s >= 0.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8
 next = [FLAT]
 
@@ -52,8 +76,6 @@ epsilon = 1.0
 [Rsys.mode.STEEP]
 ode = v' = smt2:(* 3 (- 0.30 v)); s' = v; psi' = smt2:0; theta_p' = smt2:0;
 guard = s >= 0.0 and s < 0.6
-# (evolve cap on the drifting coordinate removed with it: nothing in the dynamics
-# enforces it — the reachability-in-evolve defect class.)
 evolve = psi >= -0.5 and psi <= 0.6 and s >= 0.0 and theta_p >= -0.5 and theta_p <= 0.6 and v >= 0.0 and v <= 0.8
 next = [MODER, STEEP]
 
@@ -65,16 +87,11 @@ next = [FLAT, MODER]
 
 [Rsys.mode.FLAT]
 ode = v' = smt2:(* 3 (- 0.65 v)); s' = v; psi' = smt2:0; theta_p' = smt2:0;
-# terminal segment: the upper cap made the settling hypothesis false (one-step image
-# escapes with no successor beyond — the H-falsification audit's terminal-band overflow);
-# the band is now unbounded above, per the honest-envelope principle for positions.
 guard = s >= 1.4
 evolve = psi >= -0.5 and psi <= 0.6 and s >= 0.0 and theta_p >= -0.5 and theta_p <= 0.6 and v >= 0.0 and v <= 0.8
 next = [FLAT]
 
 [relational_invariant]
-# One row per LEFT mode (the certifier resolves the invariant by left-mode name; the
-# earlier pair-keyed rows were all identical and are collapsed losslessly).
-STEEP = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)
-MODER = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)
-FLAT  = smt2:(<= (+ (- (- L_s R_s) 0.2) (* (/ 1 3) (- L_v R_v))) 0)
+STEEP = smt2:(<= (+ (- L_s R_s) (* (/ 1 3) (- L_v R_v))) 0)
+MODER = smt2:(<= (+ (- L_s R_s) (* (/ 1 3) (- L_v R_v))) 0)
+FLAT  = smt2:(<= (+ (- L_s R_s) (* (/ 1 3) (- L_v R_v))) 0)

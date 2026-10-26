@@ -6,7 +6,8 @@ Released under Apache 2.0 license.
 
 Over the guarded right automaton `GrG` of the Theorem 3 instance
 (`Instances/RoverLadder6to8Guarded.lean`), the lowered right guards, `ε_r = 1` (the literal is the
-suite_v2 file's, `InstancesV2/SameIR.lean`). A terrain ladder with speed caps, `s' = v ((1 − ψ²/2) − 0.3 θ²)`:
+suite_v2 file's, `InstancesV2/SameIR.lean`). A terrain ladder with speed caps, `s' = v ((1 − ψ²/2) − 0.3 θ² − 0.2 φ²)`, pitch driven by
+heave `θ' = −θ + z/2` (explicit law `(θ₀ + z₀ t/2) e^{−t}`):
 `wellFormedR_ladder` (style (b) for `STEEP`, `MODER`, (a) for `FLAT`); existence from the
 instance's explicit ladder runs (`LR.sol`). Z3-free. (GENERATED from one template.)
 -/
@@ -131,6 +132,10 @@ theorem hr00 : Run.parseRat "0.0" = some (0) := by
   have h : parseQ "0.0" = some (⟨0, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]
 
+theorem hr02 : Run.parseRat "0.2" = some ((1:ℚ)/5) := by
+  have h : parseQ "0.2" = some (⟨2, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
+
 theorem hr08 : Run.parseRat "0.8" = some ((4:ℚ)/5) := by
   have h : parseQ "0.8" = some (⟨8, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
@@ -147,56 +152,57 @@ theorem fRR0_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
     Term.eval (fRR q 0) x = 3 * (cstR q - x (Rv 0)) := by
   interval_cases q <;>
     simp [fRR, hostDyn, mRR, rover_ladder_6to8_IRv2, vsR, Run.dynOf,
-      Run.lowerE, hr030, hr050, hr065, hr3, hrm1, hr0, hr1, hr05, hr03, hrm05, hr06, hr015, hr00, hr08, hrm10, Run.resolveVar,
+      Run.lowerE, hr030, hr050, hr065, hr3, hrm1, hr0, hr1, hr05, hr03, hrm05, hr06, hr015, hr00, hr02, hr08, hrm10, Run.resolveVar,
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv, cstR]
 
 theorem fRR1_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
-    Term.eval (fRR q 1) x = x (Rv 0) * ((1 - 1/2 * (x (Rv 2) * x (Rv 2))) - 3/10 * (x (Rv 4) * x (Rv 4))) := by
+    Term.eval (fRR q 1) x = x (Rv 0) * (((1 - 1/2 * (x (Rv 2) * x (Rv 2))) - 3/10 * (x (Rv 4) * x (Rv 4)))
+      - 1/5 * (x (Rv 7) * x (Rv 7))) := by
   interval_cases q <;>
     simp [fRR, hostDyn, mRR, rover_ladder_6to8_IRv2, vsR, Run.dynOf,
-      Run.lowerE, hr030, hr050, hr065, hr3, hrm1, hr0, hr1, hr05, hr03, hrm05, hr06, hr015, hr00, hr08, hrm10, Run.resolveVar,
+      Run.lowerE, hr030, hr050, hr065, hr3, hrm1, hr0, hr1, hr05, hr03, hrm05, hr06, hr015, hr00, hr02, hr08, hrm10, Run.resolveVar,
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
 
 theorem fRR2_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
     Term.eval (fRR q 2) x = -1 * x (Rv 2) := by
   interval_cases q <;>
     simp [fRR, hostDyn, mRR, rover_ladder_6to8_IRv2, vsR, Run.dynOf,
-      Run.lowerE, hr030, hr050, hr065, hr3, hrm1, hr0, hr1, hr05, hr03, hrm05, hr06, hr015, hr00, hr08, hrm10, Run.resolveVar,
+      Run.lowerE, hr030, hr050, hr065, hr3, hrm1, hr0, hr1, hr05, hr03, hrm05, hr06, hr015, hr00, hr02, hr08, hrm10, Run.resolveVar,
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
 
 theorem fRR3_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
     Term.eval (fRR q 3) x = 0 := by
   interval_cases q <;>
     simp [fRR, hostDyn, mRR, rover_ladder_6to8_IRv2, vsR, Run.dynOf,
-      Run.lowerE, hr030, hr050, hr065, hr3, hrm1, hr0, hr1, hr05, hr03, hrm05, hr06, hr015, hr00, hr08, hrm10, Run.resolveVar,
+      Run.lowerE, hr030, hr050, hr065, hr3, hrm1, hr0, hr1, hr05, hr03, hrm05, hr06, hr015, hr00, hr02, hr08, hrm10, Run.resolveVar,
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
 
 theorem fRR4_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
-    Term.eval (fRR q 4) x = -1 * x (Rv 4) := by
+    Term.eval (fRR q 4) x = -1 * x (Rv 4) + 1/2 * x (Rv 6) := by
   interval_cases q <;>
     simp [fRR, hostDyn, mRR, rover_ladder_6to8_IRv2, vsR, Run.dynOf,
-      Run.lowerE, hr030, hr050, hr065, hr3, hrm1, hr0, hr1, hr05, hr03, hrm05, hr06, hr015, hr00, hr08, hrm10, Run.resolveVar,
+      Run.lowerE, hr030, hr050, hr065, hr3, hrm1, hr0, hr1, hr05, hr03, hrm05, hr06, hr015, hr00, hr02, hr08, hrm10, Run.resolveVar,
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
 
 theorem fRR5_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
     Term.eval (fRR q 5) x = 0 := by
   interval_cases q <;>
     simp [fRR, hostDyn, mRR, rover_ladder_6to8_IRv2, vsR, Run.dynOf,
-      Run.lowerE, hr030, hr050, hr065, hr3, hrm1, hr0, hr1, hr05, hr03, hrm05, hr06, hr015, hr00, hr08, hrm10, Run.resolveVar,
+      Run.lowerE, hr030, hr050, hr065, hr3, hrm1, hr0, hr1, hr05, hr03, hrm05, hr06, hr015, hr00, hr02, hr08, hrm10, Run.resolveVar,
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
 
 theorem fRR6_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
     Term.eval (fRR q 6) x = -1 * x (Rv 6) := by
   interval_cases q <;>
     simp [fRR, hostDyn, mRR, rover_ladder_6to8_IRv2, vsR, Run.dynOf,
-      Run.lowerE, hr030, hr050, hr065, hr3, hrm1, hr0, hr1, hr05, hr03, hrm05, hr06, hr015, hr00, hr08, hrm10, Run.resolveVar,
+      Run.lowerE, hr030, hr050, hr065, hr3, hrm1, hr0, hr1, hr05, hr03, hrm05, hr06, hr015, hr00, hr02, hr08, hrm10, Run.resolveVar,
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
 
 theorem fRR7_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
     Term.eval (fRR q 7) x = -1 * x (Rv 7) := by
   interval_cases q <;>
     simp [fRR, hostDyn, mRR, rover_ladder_6to8_IRv2, vsR, Run.dynOf,
-      Run.lowerE, hr030, hr050, hr065, hr3, hrm1, hr0, hr1, hr05, hr03, hrm05, hr06, hr015, hr00, hr08, hrm10, Run.resolveVar,
+      Run.lowerE, hr030, hr050, hr065, hr3, hrm1, hr0, hr1, hr05, hr03, hrm05, hr06, hr015, hr00, hr02, hr08, hrm10, Run.resolveVar,
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
 
 theorem sat_domRR (x : State (Var 8)) : Formula.sat domRR x ↔
@@ -249,62 +255,119 @@ theorem sat_guardR2 (x : State (Var 8)) : Formula.sat (hostGuard vsR 8 Side.R (m
 
 theorem cstR_eq (q : ℕ) : cstR q = ladC q := rfl
 
-noncomputable def dR : Fin 8 → ℝ := ![0, 0, 1, 0, 1, 0, 1, 1]
+/-- Decay rates of the uncoupled attitude coordinates (`ψ`, `z`, `φ` at rate 1; the pinned rates
+frozen). Pitch (index 4) is driven by heave and has its own law, `φo` below. -/
+noncomputable def dR : Fin 8 → ℝ := ![0, 0, 1, 0, 0, 0, 1, 1]
 
+/-- The explicit attitude laws: pitch `θ(t) = (θ₀ + z₀ t / 2) e^{−t}` (`θ' = −θ + z/2`,
+`z = z₀ e^{−t}`), every other coordinate `ρ_i e^{−d_i t}`. -/
 noncomputable def φo (ρ : State (Var 8)) (i : Fin 8) (t : ℝ) : ℝ :=
-  ρ (Rv i) * Real.exp (-(dR i * t))
+  if i = 4 then (ρ (Rv 4) + 1/2 * ρ (Rv 6) * t) * Real.exp (-t)
+  else ρ (Rv i) * Real.exp (-(dR i * t))
 
-/-- The odometer factor along the run, `1 − ψ²/2 − 0.3 θ²`. -/
+theorem φo_4 (ρ : State (Var 8)) (t : ℝ) :
+    φo ρ 4 t = (ρ (Rv 4) + 1/2 * ρ (Rv 6) * t) * Real.exp (-t) := by simp [φo]
+
+theorem φo_ne (ρ : State (Var 8)) (i : Fin 8) (h : i ≠ 4) (t : ℝ) :
+    φo ρ i t = ρ (Rv i) * Real.exp (-(dR i * t)) := by simp [φo, h]
+
+/-- The heave-driven pitch stays in `[−1/2, 3/20]` from that box, with heave in `[−1, 3/20]`. -/
+theorem pitch_bound (a z t : ℝ) (ha0 : -(1:ℝ)/2 ≤ a) (ha1 : a ≤ (3:ℝ)/20) (hz0 : -(1:ℝ) ≤ z)
+    (hz1 : z ≤ (3:ℝ)/20) (ht : 0 ≤ t) :
+    -(1:ℝ)/2 ≤ (a + 1/2 * z * t) * Real.exp (-t) ∧ (a + 1/2 * z * t) * Real.exp (-t) ≤ 3/20 := by
+  have he0 : 0 < Real.exp (-t) := Real.exp_pos _
+  have h1 : 1 + t ≤ Real.exp t := by have := Real.add_one_le_exp t; linarith
+  have hinv : Real.exp (-t) * Real.exp t = 1 := by rw [← Real.exp_add]; simp
+  have hk : (1 + t) * Real.exp (-t) ≤ 1 := by nlinarith
+  have hup : a + 1/2 * z * t ≤ 3/20 * (1 + t) := by nlinarith
+  have hlo : -(1/2) * (1 + t) ≤ a + 1/2 * z * t := by nlinarith
+  constructor <;> nlinarith
+
+/-- The odometer factor along the run, `1 − ψ²/2 − 0.3 θ² − 0.2 φ²`. -/
 noncomputable def kapT (ρ : State (Var 8)) (t : ℝ) : ℝ :=
-  1 - 1/2 * (φo ρ 2 t * φo ρ 2 t) - 3/10 * (φo ρ 4 t * φo ρ 4 t)
+  1 - 1/2 * (φo ρ 2 t * φo ρ 2 t) - 3/10 * (φo ρ 4 t * φo ρ 4 t) - 1/5 * (φo ρ 7 t * φo ρ 7 t)
 
 theorem φo_bounds (ρ : State (Var 8)) (hρ : Formula.sat domRR ρ) {t : ℝ} (ht : 0 ≤ t) :
-    (-(1/2:ℝ) ≤ φo ρ 2 t ∧ φo ρ 2 t ≤ 3/20) ∧ (-(1/2:ℝ) ≤ φo ρ 4 t ∧ φo ρ 4 t ≤ 3/20) := by
+    (-(1/2:ℝ) ≤ φo ρ 2 t ∧ φo ρ 2 t ≤ 3/20) ∧ (-(1:ℝ)/2 ≤ φo ρ 4 t ∧ φo ρ 4 t ≤ 3/20) ∧
+    (-(1/2:ℝ) ≤ φo ρ 7 t ∧ φo ρ 7 t ≤ 3/20) := by
   have hD := (sat_domRR ρ).mp hρ
-  obtain ⟨_, _, _, _, _, _, h2l, h2h, _, h4l, h4h, _⟩ := hD
+  obtain ⟨_, _, _, _, h7l, h7h, h2l, h2h, _, h4l, h4h, _, _, h6l, h6h⟩ := hD
   have b2 := decay_between (ρ (Rv 2)) (dR 2) t (by simp [dR]) ht
-  have b4 := decay_between (ρ (Rv 4)) (dR 4) t (by simp [dR]) ht
-  simp only [φo]
+  have b7 := decay_between (ρ (Rv 7)) (dR 7) t (by simp [dR]) ht
+  rw [φo_ne ρ 2 (by decide), φo_ne ρ 7 (by decide), φo_4]
   refine ⟨⟨le_trans (le_min (by linarith) (by norm_num)) b2.1,
       le_trans b2.2 (max_le h2h (by norm_num))⟩,
-    ⟨le_trans (le_min (by linarith) (by norm_num)) b4.1,
-      le_trans b4.2 (max_le h4h (by norm_num))⟩⟩
+    pitch_bound _ _ t h4l h4h h6l h6h ht,
+    ⟨le_trans (le_min (by linarith) (by norm_num)) b7.1,
+      le_trans b7.2 (max_le h7h (by norm_num))⟩⟩
 
 theorem kapT_cont (ρ : State (Var 8)) : Continuous (kapT ρ) := by
-  unfold kapT φo; fun_prop
+  unfold kapT
+  simp only [φo_4, φo_ne ρ 2 (by decide), φo_ne ρ 7 (by decide)]
+  fun_prop
 
 theorem kapT_low (ρ : State (Var 8)) (hρ : Formula.sat domRR ρ) {t : ℝ} (ht : 0 ≤ t) :
     7/10 ≤ kapT ρ t := by
-  obtain ⟨⟨h2l, h2h⟩, ⟨h4l, h4h⟩⟩ := φo_bounds ρ hρ ht
+  obtain ⟨⟨h2l, h2h⟩, ⟨h4l, h4h⟩, ⟨h7l, h7h⟩⟩ := φo_bounds ρ hρ ht
   unfold kapT
   nlinarith
 
 theorem hfoR (q : ℕ) (hq : q < 3) (ρ : State (Var 8)) (i : Fin 8) (h0 : i ≠ 0) (h1 : i ≠ 1)
     (t : ℝ) : HasDerivAt (φo ρ i) (Term.eval (fRR q i) (trajR ρ (phiK φo kapT q ρ) t)) t := by
-  have hf : φo ρ i = fun u => ρ (Rv i) * Real.exp (-(dR i * u)) := rfl
-  have hd := hasDerivAt_decay (ρ (Rv i)) (dR i) t
-  rw [hf]
-  convert hd using 1
-  fin_cases i
-  · exact absurd rfl h0
-  · exact absurd rfl h1
-  all_goals
-    simp only [Fin.reduceFinMk, Fin.isValue]
-    first
-      | (rw [fRR2_eval q hq]) | (rw [fRR3_eval q hq]) | (rw [fRR4_eval q hq])
-      | (rw [fRR5_eval q hq]) | (rw [fRR6_eval q hq]) | (rw [fRR7_eval q hq])
+  by_cases h4 : i = 4
+  · subst h4
+    have hf : φo ρ 4 = fun u => (ρ (Rv 4) + 1/2 * ρ (Rv 6) * u) * Real.exp (-u) := by
+      funext u; exact φo_4 ρ u
+    have hd := hasDerivAt_coupled (ρ (Rv 4)) (1/2 * ρ (Rv 6)) t
+    rw [hf]
+    convert hd using 1
+    rw [fRR4_eval q hq]
     simp [trajR_R, phiK, φo, dR]
+    try ring
+  · have hf : φo ρ i = fun u => ρ (Rv i) * Real.exp (-(dR i * u)) := by
+      funext u; exact φo_ne ρ i h4 u
+    have hd := hasDerivAt_decay (ρ (Rv i)) (dR i) t
+    rw [hf]
+    convert hd using 1
+    fin_cases i
+    · exact absurd rfl h0
+    · exact absurd rfl h1
+    all_goals
+      simp only [Fin.reduceFinMk, Fin.isValue]
+      first
+        | exact absurd rfl h4
+        | (rw [fRR2_eval q hq]) | (rw [fRR3_eval q hq])
+        | (rw [fRR5_eval q hq]) | (rw [fRR6_eval q hq]) | (rw [fRR7_eval q hq])
+      try simp [trajR_R, phiK, φo, dR]
+
+/-- The odometer rate `v ((1 − ψ²/2 − 0.3 θ²) − 0.2 φ²)` lies in `[0, 0.8]`. -/
+theorem odo_rate3 (v a b c : ℝ) (hv0 : 0 ≤ v) (hv1 : v ≤ 4/5) (ha0 : -(3/5) ≤ a) (ha1 : a ≤ 3/5)
+    (hb0 : -(3/5) ≤ b) (hb1 : b ≤ 3/5) (hc0 : -(3/5) ≤ c) (hc1 : c ≤ 3/5) :
+    0 ≤ v * (((1 - 1/2 * (a * a)) - 3/10 * (b * b)) - 1/5 * (c * c)) ∧
+      v * (((1 - 1/2 * (a * a)) - 3/10 * (b * b)) - 1/5 * (c * c)) ≤ 4/5 := by
+  have ha2 : a * a ≤ 9/25 := by nlinarith
+  have hb2 : b * b ≤ 9/25 := by nlinarith
+  have hc2 : c * c ≤ 9/25 := by nlinarith
+  have hk0 : 0 ≤ ((1 - 1/2 * (a * a)) - 3/10 * (b * b)) - 1/5 * (c * c) := by nlinarith
+  have hk1 : ((1 - 1/2 * (a * a)) - 3/10 * (b * b)) - 1/5 * (c * c) ≤ 1 := by
+    nlinarith [mul_self_nonneg a, mul_self_nonneg b, mul_self_nonneg c]
+  exact ⟨mul_nonneg hv0 hk0, by nlinarith [mul_le_mul_of_nonneg_left hk1 hv0]⟩
 
 noncomputable def LR : LadderRun GrG domRR :=
   LadderRun.ofKappa GrG domRR modeR fRR φo kapT (7/10) (by norm_num) GrG_modeAt
     (fun _ _ => rfl) (fun _ _ => rfl)
     (fun q hq x => by rw [fRR0_eval q hq, cstR_eq])
-    (fun ρ i _ _ => by simp [φo])
+    (fun ρ i _ _ => by
+      by_cases h : i = 4
+      · subst h; simp [φo]
+      · simp [φo, h])
     (fun q hq ρ _ i h0 h1 t _ => hfoR q hq ρ i h0 h1 t)
     (fun q hq ρ _ t _ => by
-      rw [fRR1_eval q hq, trajR_R, trajR_R, trajR_R, phiK_v,
-        phiK_other _ _ q ρ 2 (by decide) (by decide), phiK_other _ _ q ρ 4 (by decide) (by decide)]
-      simp only [kapT])
+      rw [fRR1_eval q hq, trajR_R, trajR_R, trajR_R, trajR_R, phiK_v,
+        phiK_other _ _ q ρ 2 (by decide) (by decide), phiK_other _ _ q ρ 4 (by decide) (by decide),
+        phiK_other _ _ q ρ 7 (by decide) (by decide)]
+      simp only [kapT]
+      try ring)
     kapT_cont
     (fun ρ hρ t ht => kapT_low ρ hρ ht)
     (fun q _ ρ hρ t ht => by
@@ -318,29 +381,30 @@ noncomputable def LR : LadderRun GrG domRR :=
         have h := integral_vk_low q ρ (kapT ρ) (kapT_cont ρ) (7/10) (by norm_num) hD.2.2.2.2.2.2.2.2.2.2.2.1 ht
           (fun u hu _ => kapT_low ρ hρ hu)
         linarith [h.2]
-      have hk : ∀ k : Fin 8, k ≠ 0 → k ≠ 1 →
+      have hk : ∀ k : Fin 8, k ≠ 0 → k ≠ 1 → k ≠ 4 →
           min (ρ (Rv k)) 0 ≤ phiK φo kapT q ρ k t ∧ phiK φo kapT q ρ k t ≤ max (ρ (Rv k)) 0 :=
-        fun k h0 h1 => by
-          rw [phiK_other φo kapT q ρ k h0 h1]
+        fun k h0 h1 h4 => by
+          rw [phiK_other φo kapT q ρ k h0 h1, φo_ne ρ k h4]
           exact decay_between _ _ t (by fin_cases k <;> simp [dR]) ht
+      have hp := (φo_bounds ρ hρ ht).2.1
+      rw [← phiK_other φo kapT q ρ 4 (by decide) (by decide)] at hp
       obtain ⟨h3l, h3h, h5l, h5h, h7l, h7h, h2l, h2h, h1l, h4l, h4h, h0l, h0h, h6l, h6h⟩ := hD
       rw [sat_domRR]
       simp only [trajR_R]
-      exact ⟨le_trans (le_min h3l (by norm_num)) (hk 3 (by decide) (by decide)).1,
-        le_trans (hk 3 (by decide) (by decide)).2 (max_le h3h (by norm_num)),
-        le_trans (le_min h5l (by norm_num)) (hk 5 (by decide) (by decide)).1,
-        le_trans (hk 5 (by decide) (by decide)).2 (max_le h5h (by norm_num)),
-        le_trans (le_min h7l (by norm_num)) (hk 7 (by decide) (by decide)).1,
-        le_trans (hk 7 (by decide) (by decide)).2 (max_le h7h (by norm_num)),
-        le_trans (le_min h2l (by norm_num)) (hk 2 (by decide) (by decide)).1,
-        le_trans (hk 2 (by decide) (by decide)).2 (max_le h2h (by norm_num)),
+      exact ⟨le_trans (le_min h3l (by norm_num)) (hk 3 (by decide) (by decide) (by decide)).1,
+        le_trans (hk 3 (by decide) (by decide) (by decide)).2 (max_le h3h (by norm_num)),
+        le_trans (le_min h5l (by norm_num)) (hk 5 (by decide) (by decide) (by decide)).1,
+        le_trans (hk 5 (by decide) (by decide) (by decide)).2 (max_le h5h (by norm_num)),
+        le_trans (le_min h7l (by norm_num)) (hk 7 (by decide) (by decide) (by decide)).1,
+        le_trans (hk 7 (by decide) (by decide) (by decide)).2 (max_le h7h (by norm_num)),
+        le_trans (le_min h2l (by norm_num)) (hk 2 (by decide) (by decide) (by decide)).1,
+        le_trans (hk 2 (by decide) (by decide) (by decide)).2 (max_le h2h (by norm_num)),
         le_trans h1l hs,
-        le_trans (le_min h4l (by norm_num)) (hk 4 (by decide) (by decide)).1,
-        le_trans (hk 4 (by decide) (by decide)).2 (max_le h4h (by norm_num)),
+        hp.1, hp.2,
         le_trans (le_min h0l (by linarith [hc.1])) hv.1,
         le_trans hv.2 (max_le h0h (by linarith [hc.2])),
-        le_trans (le_min h6l (by norm_num)) (hk 6 (by decide) (by decide)).1,
-        le_trans (hk 6 (by decide) (by decide)).2 (max_le h6h (by norm_num))⟩)
+        le_trans (le_min h6l (by norm_num)) (hk 6 (by decide) (by decide) (by decide)).1,
+        le_trans (hk 6 (by decide) (by decide) (by decide)).2 (max_le h6h (by norm_num))⟩)
     (fun ρ hρ => by have hD := (sat_domRR ρ).mp hρ; exact hD.2.2.2.2.2.2.2.2.2.2.2.1)
     (edgeG 0 1) (edgeG 1 2) (edgeG 2 2)
     (edgeG_mem 0 1 (by simp [GrG])) (edgeG_mem 1 2 (by simp [GrG]))
@@ -378,8 +442,11 @@ noncomputable def WF : LadderWF GrG guardR domRR where
     have ha1 : s (Rv 2) ≤ (3:ℝ)/20 := by rw [sat_domRR] at hs; tauto
     have hb0 : -(1:ℝ)/2 ≤ s (Rv 4) := by rw [sat_domRR] at hs; tauto
     have hb1 : s (Rv 4) ≤ (3:ℝ)/20 := by rw [sat_domRR] at hs; tauto
+    have hc0 : -(1:ℝ)/2 ≤ s (Rv 7) := by rw [sat_domRR] at hs; tauto
+    have hc1 : s (Rv 7) ≤ (3:ℝ)/20 := by rw [sat_domRR] at hs; tauto
     rw [fRR1_eval q hq]
-    exact odo_rate2 _ _ _ h0 h1 (by linarith) (by linarith) (by linarith) (by linarith)
+    exact odo_rate3 _ _ _ _ h0 h1 (by linarith) (by linarith) (by linarith) (by linarith)
+      (by linarith) (by linarith)
   g0 := fun x => by rw [guardR, sat_guardR0]; simp [and_assoc]
   g1 := fun x => by rw [guardR, sat_guardR1]; simp [and_assoc]
   g2 := fun x => by rw [guardR, sat_guardR2]; simp

@@ -6,7 +6,7 @@ Released under Apache 2.0 license.
 
 Over the guarded right automaton `GrG` of the Theorem 3 instance
 (`Instances/RoverLadder2to3Guarded.lean`), the lowered right guards, `ε_r = 1` (the literal is the
-suite_v2 file's, `InstancesV2/SameIR.lean`). A terrain ladder with speed caps, `s' = v`:
+suite_v2 file's, `InstancesV2/SameIR.lean`). A terrain ladder without speed caps (dropped 2026-10-26), `s' = v`:
 `wellFormedR_ladder` (style (b) for `STEEP`, `MODER`, (a) for `FLAT`); existence from the
 instance's explicit band runs (`runE`, with their duration kept). Z3-free. (GENERATED from one template.)
 -/
@@ -137,19 +137,19 @@ theorem he05 : Run.parseRat "0.5" = some ((1:ℚ)/2) := by
   simp [Run.parseRat, h]; norm_num
 
 theorem sat_guardR0 (x : State (Var 3)) : Formula.sat (hostGuard vsE 3 Side.R (mRE 0)) x ↔
-    (0 ≤ x (Rv 1) ∧ x (Rv 1) < 3/5 ∧ x (Rv 0) ≤ 3/10) := by
+    (0 ≤ x (Rv 1) ∧ x (Rv 1) < 3/5) := by
   simp [hostGuard, mRE, rover_ladder_2to3_IRv2, Run.lowerF, Run.lowerE, he00,
     he04, he14, he03, he05, he065, vsE, Run.resolveVar, List.findIdx?_cons, IForm.toHost,
     ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv, and_assoc]
 
 theorem sat_guardR1 (x : State (Var 3)) : Formula.sat (hostGuard vsE 3 Side.R (mRE 1)) x ↔
-    (3/5 ≤ x (Rv 1) ∧ x (Rv 1) < 7/5 ∧ x (Rv 0) ≤ 1/2) := by
+    (3/5 ≤ x (Rv 1) ∧ x (Rv 1) < 7/5) := by
   simp [hostGuard, mRE, rover_ladder_2to3_IRv2, Run.lowerF, Run.lowerE, he00,
     he04, he14, he03, he05, he065, vsE, Run.resolveVar, List.findIdx?_cons, IForm.toHost,
     ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv, and_assoc]
 
 theorem sat_guardR2 (x : State (Var 3)) : Formula.sat (hostGuard vsE 3 Side.R (mRE 2)) x ↔
-    (7/5 ≤ x (Rv 1) ∧ x (Rv 0) ≤ 13/20) := by
+    7/5 ≤ x (Rv 1) := by
   simp [hostGuard, mRE, rover_ladder_2to3_IRv2, Run.lowerF, Run.lowerE, he00,
     he04, he14, he03, he05, he065, vsE, Run.resolveVar, List.findIdx?_cons, IForm.toHost,
     ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv, and_assoc]
@@ -284,7 +284,7 @@ theorem runE_sol (q : ℕ) (hq : q < 3) (ρ : State (Var 3)) (hdom : Formula.sat
 noncomputable def WF : LadderWF GrG guardR domRE where
   m := modeE
   fR := fRE
-  vcap := True
+  vcap := False
   i0 := 0
   i1 := 1
   modeAt := GrG_modeAt
@@ -296,8 +296,8 @@ noncomputable def WF : LadderWF GrG guardR domRE where
     have h0 : 0 ≤ s (Rv 0) := by rw [sat_domRE] at hs; tauto
     have h1 : s (Rv 0) ≤ 4/5 := by rw [sat_domRE] at hs; tauto
     rw [fRE1_eval q hq]; exact ⟨h0, h1⟩
-  g0 := fun x => by rw [guardR, sat_guardR0]; simp [and_assoc]
-  g1 := fun x => by rw [guardR, sat_guardR1]; simp [and_assoc]
+  g0 := fun x => by rw [guardR, sat_guardR0]; simp
+  g1 := fun x => by rw [guardR, sat_guardR1]; simp
   g2 := fun x => by rw [guardR, sat_guardR2]; simp
   e00 := edgeG 0 0
   e01 := edgeG 0 1

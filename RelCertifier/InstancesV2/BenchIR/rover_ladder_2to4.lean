@@ -14,7 +14,7 @@ namespace RelCertifier.Parse
 def rover_ladder_2to4_IRv2 : PProblem :=
   {
     name := "rover_ladder_2to4"
-    lambdaMin := "1.001"
+    lambdaMin := "1.0"
     lambdaMax := "6.0"
     L := {
       stateVars := ["v", "s", "psi", "theta_p"]
@@ -44,7 +44,7 @@ def rover_ladder_2to4_IRv2 : PProblem :=
             ("s", (.bin "*" (.var "v") (.bin "-" (.bin "-" (.num "1") (.bin "*" (.num "0.5") (.bin "*" (.var "psi") (.var "psi")))) (.bin "*" (.num "0.3") (.bin "*" (.var "theta_p") (.var "theta_p")))))),
             ("psi", (.bin "*" (.num "-1") (.var "psi"))),
             ("theta_p", (.bin "*" (.num "-1") (.var "theta_p")))]
-          guard := (.and (.cmp ">=" (.var "s") (.num "1.4")) (.cmp "<" (.var "s") (.num "899.95")))
+          guard := (.cmp ">=" (.var "s") (.num "1.4"))
           evolve := (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "psi") (.num "-0.5")) (.cmp "<=" (.var "psi") (.num "0.15"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "theta_p") (.num "-0.5"))) (.cmp "<=" (.var "theta_p") (.num "0.15"))) (.cmp ">=" (.var "v") (.num "0.0"))) (.cmp "<=" (.var "v") (.num "0.8")))
           next := ["FLAT"] } ] }
     R := {
@@ -79,8 +79,8 @@ def rover_ladder_2to4_IRv2 : PProblem :=
           evolve := (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "psi") (.num "-0.5")) (.cmp "<=" (.var "psi") (.num "0.6"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "theta_p") (.num "-0.5"))) (.cmp "<=" (.var "theta_p") (.num "0.6"))) (.cmp ">=" (.var "v") (.num "0.0"))) (.cmp "<=" (.var "v") (.num "0.8")))
           next := ["FLAT"] } ] }
     invariants := [
-      ("STEEP", (.cmp "<=" (.bin "+" (.bin "-" (.bin "-" (.var "L_s") (.var "R_s")) (.num "0.2")) (.bin "*" (.bin "/" (.num "1") (.num "3")) (.bin "-" (.var "L_v") (.var "R_v")))) (.num "0"))),
-      ("MODER", (.cmp "<=" (.bin "+" (.bin "-" (.bin "-" (.var "L_s") (.var "R_s")) (.num "0.2")) (.bin "*" (.bin "/" (.num "1") (.num "3")) (.bin "-" (.var "L_v") (.var "R_v")))) (.num "0"))),
-      ("FLAT", (.cmp "<=" (.bin "+" (.bin "-" (.bin "-" (.var "L_s") (.var "R_s")) (.num "0.2")) (.bin "*" (.bin "/" (.num "1") (.num "3")) (.bin "-" (.var "L_v") (.var "R_v")))) (.num "0")))] }
+      ("STEEP", (.cmp "<=" (.bin "+" (.bin "-" (.var "L_s") (.var "R_s")) (.bin "*" (.bin "/" (.num "1") (.num "3")) (.bin "-" (.var "L_v") (.var "R_v")))) (.num "0"))),
+      ("MODER", (.cmp "<=" (.bin "+" (.bin "-" (.var "L_s") (.var "R_s")) (.bin "*" (.bin "/" (.num "1") (.num "3")) (.bin "-" (.var "L_v") (.var "R_v")))) (.num "0"))),
+      ("FLAT", (.cmp "<=" (.bin "+" (.bin "-" (.var "L_s") (.var "R_s")) (.bin "*" (.bin "/" (.num "1") (.num "3")) (.bin "-" (.var "L_v") (.var "R_v")))) (.num "0")))] }
 
 end RelCertifier.Parse

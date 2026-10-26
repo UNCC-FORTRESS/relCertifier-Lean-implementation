@@ -154,7 +154,7 @@ theorem fR6_eval2 (q : ℕ) (hq : q < 3) (x : State (Var 6)) :
       List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
 
 theorem fR6_eval3 (q : ℕ) (hq : q < 3) (x : State (Var 6)) :
-    Term.eval (fR6 q 3) x = -1 * x (Rv 3) := by
+    Term.eval (fR6 q 3) x = 0 := by
   interval_cases q <;>
     simp [fR6, hostDyn, mR6, rover_ladder_3to6_IRv2, vs6, Run.dynOf,
       Run.lowerE, hq3, hq030, hq050, hq065, hqm1, hq1, hq05, hq03, hq0, Run.resolveVar, List.findIdx?_cons,
@@ -229,8 +229,8 @@ theorem sat_guardR2 (x : State (Var 6)) : Formula.sat (hostGuard vs6 6 Side.R (m
 
 /-! ## The reference's band runs (explicit; the heading-weighted odometer) -/
 
-/-- The attitude laws: `ψ, θ` decay `e^{−t}`, `z, φ` are frozen. -/
-noncomputable def dR : Fin 6 → ℝ := ![0, 0, 1, 1, 0, 0]
+/-- The attitude laws: `ψ` decays `e^{−t}`, `θ, z, φ` are frozen (pinned). -/
+noncomputable def dR : Fin 6 → ℝ := ![0, 0, 1, 0, 0, 0]
 
 noncomputable def φo (ρ : State (Var 6)) (i : Fin 6) (t : ℝ) : ℝ :=
   ρ (Rv i) * Real.exp (-(dR i * t))

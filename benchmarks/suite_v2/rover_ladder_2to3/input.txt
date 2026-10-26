@@ -1,8 +1,44 @@
-# Ladder rung 1: 3-DOF refines 2-DOF
-# Adds heading (psi) which steals along-track progress.
-# R = 2-DOF: s'=v, psi pinned. L = 3-DOF: s'=v(1-0.5*psi^2), psi'=-psi.
-# Invariant: v_L<=v_R AND s_L<=s_R+0.2 (no coupling needed: R has no heading penalty)
-# Certified at lambda=1 (same-terrain). Cross-terrain covered by R solo-hopping to same terrain.
+# rover_ladder_2to3: rover ladder, step 2 -> 3: the heading psi moves (first step of the chain
+# 2to3, 3to6, 6to8, 8to12).
+# scenario: model-refinement
+#
+# System (the rover ladder; normalized units, time in s): a rover drives a three-zone route
+# indexed by its odometer s: STEEP s in [0, 0.6), MODER [0.6, 1.4), FLAT s >= 1.4, speed set
+# points c = 0.30 / 0.50 / 0.65, first-order speed loop v' = 3 (c - v). The ladder's models:
+#   2-DOF plan (v, s): s' = v.
+#   3-DOF: + heading psi' = -psi; s' = v (1 - psi^2/2) (only the along-track component of the
+#     speed counts: cos psi to second order).
+#   4-DOF: + pitch theta_p' = -theta_p; s' = v (1 - psi^2/2 - 0.3 theta_p^2) (wheel slip on a slope).
+#   6-DOF: + heave z' = -z and roll phi_r' = -phi_r. Roll costs progress (cross-slope crabbing: on
+#     a rolled chassis the rover crabs uphill to hold its track), s' = v (1 - psi^2/2 - 0.3 theta_p^2
+#     - 0.2 phi_r^2); heave pitches the chassis (bounce-pitch coupling, softer rear suspension),
+#     theta_p' = -theta_p + 0.5 z, so heave reaches progress through pitch.
+#   8-DOF: heading and pitch become second order, critically damped (x'' + 2 x' + x = forcing),
+#     written in the cascade chart omega = x' + x: psi' = omega_psi - psi, omega_psi' = -omega_psi,
+#     theta_p' = omega_theta - theta_p, omega_theta' = -omega_theta + 0.5 z; heave, roll as 6-DOF.
+#   12-DOF: heave, roll and lateral sway y become second order too (cascade chart, omega_z,
+#     omega_phi, omega_y), and roll is driven by the sway acceleration y'' = y - 2 omega_y:
+#     omega_phi' = -omega_phi + 0.2 (y - 2 omega_y), so sway reaches progress through roll.
+#
+# Left (3-DOF, v, s, psi move): the heading-penalized rover. Right (2-DOF plan, v, s): no heading.
+# Both sides use the same speed loop and zones; guards are the zones (no speed condition).
+#
+# Property (the same rows in every left mode): v_L <= v_R and s_L <= s_R: the rover is never
+# faster than, and never ahead of, the plan, so a clearance granted along the route up to the
+# plan's position always covers the rover. The s offset is 0 (before 2026-10-26: 0.2, not a
+# requirement); any offset down to -1 certifies (the s gap only grows: the plan has no heading
+# penalty), so the claim keeps the requirement value 0. Not implied by the domains.
+#
+# Domains: psi in [-0.5, 0.15] (forward invariant: psi' = -psi), v in [0, 0.8], s >= 0 unbounded
+# above. Right guards: the zones only (before 2026-10-26 they also required v <= set point,
+# leaving plan states above the set point in no right guard; dropping the caps certifies, so
+# every right state is now in exactly one right guard).
+#
+# Composes with rover_ladder_3to6 (its right is this file's left with theta_p, z, phi_r pinned).
+# Verdicts (RELCERT_IMPLIED_CUT=1): CERTIFIED in control and under NO_CHOICE, SYNC,
+# SYNC+NO_CHOICE, NO_PRUNE, NO_PRUNE+NO_CHOICE, OPREGION, NO_CUT, NO_IMPLIED_CUT, NO_LINEAR_CUT and
+# without RELCERT_IMPLIED_CUT. Covers: lambda 1, budget 1 in every left mode; nothing pruned; no
+# right-only reposition; rows identical (window claim). A rung: no mechanism is load-bearing.
 
 [problem]
 name = rover_ladder_2to3
@@ -39,30 +75,23 @@ epsilon = 1.0
 
 [Rsys.mode.STEEP]
 ode = v' = smt2:(* 3 (- 0.30 v)); s' = v;
-guard = s >= 0.0 and s < 0.6 and v <= 0.3
-# (evolve cap on the drifting coordinate removed with it: nothing in the dynamics
-# enforces it — the reachability-in-evolve defect class.)
+guard = s >= 0.0 and s < 0.6
 evolve = s >= 0.0 and v >= 0.0 and v <= 0.8
 next = [MODER, STEEP]
 
 [Rsys.mode.MODER]
 ode = v' = smt2:(* 3 (- 0.50 v)); s' = v;
-guard = s >= 0.6 and s < 1.4 and v <= 0.5
+guard = s >= 0.6 and s < 1.4
 evolve = s >= 0.0 and v >= 0.0 and v <= 0.8
 next = [FLAT, MODER]
 
 [Rsys.mode.FLAT]
 ode = v' = smt2:(* 3 (- 0.65 v)); s' = v;
-# terminal segment: the upper cap made the settling hypothesis false (one-step image
-# escapes with no successor beyond — the H-falsification audit's terminal-band overflow);
-# the band is now unbounded above, per the honest-envelope principle for positions.
-guard = s >= 1.4 and v <= 0.65
+guard = s >= 1.4
 evolve = s >= 0.0 and v >= 0.0 and v <= 0.8
 next = [FLAT]
 
 [relational_invariant]
-# v_L<=v_R and s_L<=s_R+0.2. No psi coupling: R has s'=v so psiR irrelevant.
-# Inductive at lambda=1 for same-terrain. Cross-terrain: R solo-hops first.
-STEEP = v[l] <= v[r] and s[l] <= s[r] + 0.2
-MODER = v[l] <= v[r] and s[l] <= s[r] + 0.2
-FLAT  = v[l] <= v[r] and s[l] <= s[r] + 0.2
+STEEP = v[l] <= v[r] and s[l] <= s[r]
+MODER = v[l] <= v[r] and s[l] <= s[r]
+FLAT  = v[l] <= v[r] and s[l] <= s[r]

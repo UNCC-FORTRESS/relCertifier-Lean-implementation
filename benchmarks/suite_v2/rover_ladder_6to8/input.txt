@@ -1,4 +1,51 @@
-# 8 refines 6 (dynamics-order refinement: 2nd-order vs 1st-order attitude) -- EXPLORATORY
+# rover_ladder_6to8: rover ladder, step 6 -> 8: heading and pitch become second order (their
+# rates omega_psi, omega_theta move).
+# scenario: model-refinement
+#
+# System (the rover ladder; normalized units, time in s): a rover drives a three-zone route
+# indexed by its odometer s: STEEP s in [0, 0.6), MODER [0.6, 1.4), FLAT s >= 1.4, speed set
+# points c = 0.30 / 0.50 / 0.65, first-order speed loop v' = 3 (c - v). The ladder's models:
+#   2-DOF plan (v, s): s' = v.
+#   3-DOF: + heading psi' = -psi; s' = v (1 - psi^2/2) (only the along-track component of the
+#     speed counts: cos psi to second order).
+#   4-DOF: + pitch theta_p' = -theta_p; s' = v (1 - psi^2/2 - 0.3 theta_p^2) (wheel slip on a slope).
+#   6-DOF: + heave z' = -z and roll phi_r' = -phi_r. Roll costs progress (cross-slope crabbing: on
+#     a rolled chassis the rover crabs uphill to hold its track), s' = v (1 - psi^2/2 - 0.3 theta_p^2
+#     - 0.2 phi_r^2); heave pitches the chassis (bounce-pitch coupling, softer rear suspension),
+#     theta_p' = -theta_p + 0.5 z, so heave reaches progress through pitch.
+#   8-DOF: heading and pitch become second order, critically damped (x'' + 2 x' + x = forcing),
+#     written in the cascade chart omega = x' + x: psi' = omega_psi - psi, omega_psi' = -omega_psi,
+#     theta_p' = omega_theta - theta_p, omega_theta' = -omega_theta + 0.5 z; heave, roll as 6-DOF.
+#   12-DOF: heave, roll and lateral sway y become second order too (cascade chart, omega_z,
+#     omega_phi, omega_y), and roll is driven by the sway acceleration y'' = y - 2 omega_y:
+#     omega_phi' = -omega_phi + 0.2 (y - 2 omega_y), so sway reaches progress through roll.
+#
+# Left (8-DOF, all 8 coordinates move). Right (6-DOF, rover_ladder_3to6's left): omega_psi,
+# omega_theta pinned. Both sides' zone guards carry the zone entry condition v <= set point.
+#
+# Property (the same rows in every left mode): v_L <= v_R and s_L <= s_R (never faster, never
+# ahead: the clearance requirement of rover_ladder_2to3). Before 2026-10-26 the file also carried
+# unexplained quadratic attitude rows (not needed: the v and s rows certify alone; the attitude
+# gap is the subject of rover_attitude_6to8) and an s offset 0.2; any offset down to -1 certifies,
+# the claim keeps 0.
+#
+# Domains: left psi, theta_p, omega_psi, omega_theta in [-0.6, 0.6] (forward invariant in the
+# cascade chart: x' = omega - x points inward when the omega box lies inside the x box; pitch
+# forcing 0.5 z with z in [-1, 0.15] keeps omega_theta' inward on both faces), phi_r in
+# [-0.5, 0.15], z in [-1, 0.15], v in [0, 0.8], s >= 0. Right: the 6-DOF boxes of rover_ladder_3to6.
+# Coverage: the right's guards carry the zone entry condition, so a right state above its zone's
+# set point is in no right guard. Such states are unreachable for the right: it starts in a guard
+# (v <= set point), v' = 3 (c - v) keeps v <= c inside a zone, and set points increase along the
+# route. The condition is load-bearing on both sides (without it: DECLINED; the stretched plan's
+# speed loop dominates only below set point).
+#
+# Composes: after rover_ladder_3to6, before rover_ladder_8to12 (whose right is this file's left
+# with omega_z, omega_phi, y, omega_y pinned); the v and s rows chain by transitivity.
+# Verdicts (RELCERT_IMPLIED_CUT=1): CERTIFIED in control and under NO_CHOICE, NO_PRUNE,
+# NO_PRUNE+NO_CHOICE, OPREGION, NO_IMPLIED_CUT, NO_LINEAR_CUT and without RELCERT_IMPLIED_CUT;
+# DECLINED under SYNC, SYNC+NO_CHOICE and NO_CUT. Covers: lambda 3/2 and budget 2 in every left
+# mode (the plan, which ignores the second-order lag, is sped up: S, M); nothing pruned; window
+# claim.
 
 [problem]
 name = rover_ladder_6to8
@@ -12,19 +59,19 @@ state_vars = [v, s, psi, omega_psi, theta_p, omega_theta, z, phi_r]
 epsilon = 1.0
 
 [Lsys.mode.STEEP]
-ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(- omega_psi psi); omega_psi' = smt2:(* -1 omega_psi); theta_p' = smt2:(- omega_theta theta_p); omega_theta' = smt2:(* -1 omega_theta); z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
+ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p))) (* 0.2 (* phi_r phi_r)))); psi' = smt2:(- omega_psi psi); omega_psi' = smt2:(* -1 omega_psi); theta_p' = smt2:(- omega_theta theta_p); omega_theta' = smt2:(+ (* -1 omega_theta) (* 0.5 z)); z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
 guard = s >= 0.0 and s < 0.6 and v <= 0.3
 evolve = omega_psi >= -0.6 and omega_psi <= 0.6 and omega_theta >= -0.6 and omega_theta <= 0.6 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.6 and psi <= 0.6 and s >= 0.0 and theta_p >= -0.6 and theta_p <= 0.6 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 0.15
 next = [MODER, STEEP]
 
 [Lsys.mode.MODER]
-ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(- omega_psi psi); omega_psi' = smt2:(* -1 omega_psi); theta_p' = smt2:(- omega_theta theta_p); omega_theta' = smt2:(* -1 omega_theta); z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
+ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p))) (* 0.2 (* phi_r phi_r)))); psi' = smt2:(- omega_psi psi); omega_psi' = smt2:(* -1 omega_psi); theta_p' = smt2:(- omega_theta theta_p); omega_theta' = smt2:(+ (* -1 omega_theta) (* 0.5 z)); z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
 guard = s >= 0.6 and s < 1.4 and v <= 0.5
 evolve = omega_psi >= -0.6 and omega_psi <= 0.6 and omega_theta >= -0.6 and omega_theta <= 0.6 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.6 and psi <= 0.6 and s >= 0.0 and theta_p >= -0.6 and theta_p <= 0.6 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 0.15
 next = [FLAT, MODER]
 
 [Lsys.mode.FLAT]
-ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(- omega_psi psi); omega_psi' = smt2:(* -1 omega_psi); theta_p' = smt2:(- omega_theta theta_p); omega_theta' = smt2:(* -1 omega_theta); z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
+ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p))) (* 0.2 (* phi_r phi_r)))); psi' = smt2:(- omega_psi psi); omega_psi' = smt2:(* -1 omega_psi); theta_p' = smt2:(- omega_theta theta_p); omega_theta' = smt2:(+ (* -1 omega_theta) (* 0.5 z)); z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
 guard = s >= 1.4 and v <= 0.65
 evolve = omega_psi >= -0.6 and omega_psi <= 0.6 and omega_theta >= -0.6 and omega_theta <= 0.6 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.6 and psi <= 0.6 and s >= 0.0 and theta_p >= -0.6 and theta_p <= 0.6 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 0.15
 next = [FLAT]
@@ -34,29 +81,24 @@ state_vars = [v, s, psi, omega_psi, theta_p, omega_theta, z, phi_r]
 epsilon = 1.0
 
 [Rsys.mode.STEEP]
-ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); omega_psi' = smt2:0; theta_p' = smt2:(* -1 theta_p); omega_theta' = smt2:0; z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
+ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p))) (* 0.2 (* phi_r phi_r)))); psi' = smt2:(* -1 psi); omega_psi' = smt2:0; theta_p' = smt2:(+ (* -1 theta_p) (* 0.5 z)); omega_theta' = smt2:0; z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
 guard = s >= 0.0 and s < 0.6 and v <= 0.3
-# (evolve cap on the drifting coordinate removed with it: nothing in the dynamics
-# enforces it — the reachability-in-evolve defect class.)
 evolve = omega_psi >= -0.5 and omega_psi <= 0.6 and omega_theta >= -0.5 and omega_theta <= 0.6 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 0.15
 next = [MODER, STEEP]
 
 [Rsys.mode.MODER]
-ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); omega_psi' = smt2:0; theta_p' = smt2:(* -1 theta_p); omega_theta' = smt2:0; z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
+ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p))) (* 0.2 (* phi_r phi_r)))); psi' = smt2:(* -1 psi); omega_psi' = smt2:0; theta_p' = smt2:(+ (* -1 theta_p) (* 0.5 z)); omega_theta' = smt2:0; z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
 guard = s >= 0.6 and s < 1.4 and v <= 0.5
 evolve = omega_psi >= -0.5 and omega_psi <= 0.6 and omega_theta >= -0.5 and omega_theta <= 0.6 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 0.15
 next = [FLAT, MODER]
 
 [Rsys.mode.FLAT]
-ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); omega_psi' = smt2:0; theta_p' = smt2:(* -1 theta_p); omega_theta' = smt2:0; z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
-# terminal segment: the upper cap made the settling hypothesis false (one-step image
-# escapes with no successor beyond — the H-falsification audit's terminal-band overflow);
-# the band is now unbounded above, per the honest-envelope principle for positions.
+ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p))) (* 0.2 (* phi_r phi_r)))); psi' = smt2:(* -1 psi); omega_psi' = smt2:0; theta_p' = smt2:(+ (* -1 theta_p) (* 0.5 z)); omega_theta' = smt2:0; z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r);
 guard = s >= 1.4 and v <= 0.65
 evolve = omega_psi >= -0.5 and omega_psi <= 0.6 and omega_theta >= -0.5 and omega_theta <= 0.6 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 0.15
 next = [FLAT]
 
 [relational_invariant]
-STEEP = v[l] <= v[r] and s[l] <= s[r] + 0.2 and psi[r]*psi[r] <= psi[l]*psi[l] + 3*(omega_psi[l]-psi[l])*(omega_psi[l]-psi[l]) and theta_p[r]*theta_p[r] <= theta_p[l]*theta_p[l] + 3*(omega_theta[l]-theta_p[l])*(omega_theta[l]-theta_p[l])
-MODER = v[l] <= v[r] and s[l] <= s[r] + 0.2 and psi[r]*psi[r] <= psi[l]*psi[l] + 3*(omega_psi[l]-psi[l])*(omega_psi[l]-psi[l]) and theta_p[r]*theta_p[r] <= theta_p[l]*theta_p[l] + 3*(omega_theta[l]-theta_p[l])*(omega_theta[l]-theta_p[l])
-FLAT  = v[l] <= v[r] and s[l] <= s[r] + 0.2 and psi[r]*psi[r] <= psi[l]*psi[l] + 3*(omega_psi[l]-psi[l])*(omega_psi[l]-psi[l]) and theta_p[r]*theta_p[r] <= theta_p[l]*theta_p[l] + 3*(omega_theta[l]-theta_p[l])*(omega_theta[l]-theta_p[l])
+STEEP = v[l] <= v[r] and s[l] <= s[r]
+MODER = v[l] <= v[r] and s[l] <= s[r]
+FLAT  = v[l] <= v[r] and s[l] <= s[r]

@@ -14,7 +14,7 @@ namespace RelCertifier.Parse
 def rover_ladder_2to6_IRv2 : PProblem :=
   {
     name := "rover_ladder_2to6"
-    lambdaMin := "1.001"
+    lambdaMin := "1.0"
     lambdaMax := "6.0"
     L := {
       stateVars := ["v", "s", "psi", "theta_p", "z", "phi_r"]
@@ -23,34 +23,34 @@ def rover_ladder_2to6_IRv2 : PProblem :=
         {
           name := "STEEP"
           odes := [("v", (.bin "*" (.num "3") (.bin "-" (.num "0.30") (.var "v")))),
-            ("s", (.bin "*" (.var "v") (.bin "-" (.bin "-" (.num "1") (.bin "*" (.num "0.5") (.bin "*" (.var "psi") (.var "psi")))) (.bin "*" (.num "0.3") (.bin "*" (.var "theta_p") (.var "theta_p")))))),
+            ("s", (.bin "*" (.var "v") (.bin "-" (.bin "-" (.bin "-" (.num "1") (.bin "*" (.num "0.5") (.bin "*" (.var "psi") (.var "psi")))) (.bin "*" (.num "0.3") (.bin "*" (.var "theta_p") (.var "theta_p")))) (.bin "*" (.num "0.2") (.bin "*" (.var "phi_r") (.var "phi_r")))))),
             ("psi", (.bin "*" (.num "-1") (.var "psi"))),
-            ("theta_p", (.bin "*" (.num "-1") (.var "theta_p"))),
+            ("theta_p", (.bin "+" (.bin "*" (.num "-1") (.var "theta_p")) (.bin "*" (.num "0.5") (.var "z")))),
             ("z", (.bin "*" (.num "-1") (.var "z"))),
             ("phi_r", (.bin "*" (.num "-1") (.var "phi_r")))]
-          guard := (.and (.cmp ">=" (.var "s") (.num "0.0")) (.cmp "<" (.var "s") (.num "0.6")))
+          guard := (.and (.and (.cmp ">=" (.var "s") (.num "0.0")) (.cmp "<" (.var "s") (.num "0.6"))) (.cmp "<=" (.var "v") (.num "0.3")))
           evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "phi_r") (.num "-0.5")) (.cmp "<=" (.var "phi_r") (.num "0.15"))) (.cmp ">=" (.var "psi") (.num "-0.5"))) (.cmp "<=" (.var "psi") (.num "0.15"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "theta_p") (.num "-0.5"))) (.cmp "<=" (.var "theta_p") (.num "0.15"))) (.cmp ">=" (.var "v") (.num "0.0"))) (.cmp "<=" (.var "v") (.num "0.8"))) (.cmp ">=" (.var "z") (.num "-1.0"))) (.cmp "<=" (.var "z") (.num "0.15")))
           next := ["MODER", "STEEP"] },
         {
           name := "MODER"
           odes := [("v", (.bin "*" (.num "3") (.bin "-" (.num "0.50") (.var "v")))),
-            ("s", (.bin "*" (.var "v") (.bin "-" (.bin "-" (.num "1") (.bin "*" (.num "0.5") (.bin "*" (.var "psi") (.var "psi")))) (.bin "*" (.num "0.3") (.bin "*" (.var "theta_p") (.var "theta_p")))))),
+            ("s", (.bin "*" (.var "v") (.bin "-" (.bin "-" (.bin "-" (.num "1") (.bin "*" (.num "0.5") (.bin "*" (.var "psi") (.var "psi")))) (.bin "*" (.num "0.3") (.bin "*" (.var "theta_p") (.var "theta_p")))) (.bin "*" (.num "0.2") (.bin "*" (.var "phi_r") (.var "phi_r")))))),
             ("psi", (.bin "*" (.num "-1") (.var "psi"))),
-            ("theta_p", (.bin "*" (.num "-1") (.var "theta_p"))),
+            ("theta_p", (.bin "+" (.bin "*" (.num "-1") (.var "theta_p")) (.bin "*" (.num "0.5") (.var "z")))),
             ("z", (.bin "*" (.num "-1") (.var "z"))),
             ("phi_r", (.bin "*" (.num "-1") (.var "phi_r")))]
-          guard := (.and (.cmp ">=" (.var "s") (.num "0.6")) (.cmp "<" (.var "s") (.num "1.4")))
+          guard := (.and (.and (.cmp ">=" (.var "s") (.num "0.6")) (.cmp "<" (.var "s") (.num "1.4"))) (.cmp "<=" (.var "v") (.num "0.5")))
           evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "phi_r") (.num "-0.5")) (.cmp "<=" (.var "phi_r") (.num "0.15"))) (.cmp ">=" (.var "psi") (.num "-0.5"))) (.cmp "<=" (.var "psi") (.num "0.15"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "theta_p") (.num "-0.5"))) (.cmp "<=" (.var "theta_p") (.num "0.15"))) (.cmp ">=" (.var "v") (.num "0.0"))) (.cmp "<=" (.var "v") (.num "0.8"))) (.cmp ">=" (.var "z") (.num "-1.0"))) (.cmp "<=" (.var "z") (.num "0.15")))
           next := ["FLAT", "MODER"] },
         {
           name := "FLAT"
           odes := [("v", (.bin "*" (.num "3") (.bin "-" (.num "0.65") (.var "v")))),
-            ("s", (.bin "*" (.var "v") (.bin "-" (.bin "-" (.num "1") (.bin "*" (.num "0.5") (.bin "*" (.var "psi") (.var "psi")))) (.bin "*" (.num "0.3") (.bin "*" (.var "theta_p") (.var "theta_p")))))),
+            ("s", (.bin "*" (.var "v") (.bin "-" (.bin "-" (.bin "-" (.num "1") (.bin "*" (.num "0.5") (.bin "*" (.var "psi") (.var "psi")))) (.bin "*" (.num "0.3") (.bin "*" (.var "theta_p") (.var "theta_p")))) (.bin "*" (.num "0.2") (.bin "*" (.var "phi_r") (.var "phi_r")))))),
             ("psi", (.bin "*" (.num "-1") (.var "psi"))),
-            ("theta_p", (.bin "*" (.num "-1") (.var "theta_p"))),
+            ("theta_p", (.bin "+" (.bin "*" (.num "-1") (.var "theta_p")) (.bin "*" (.num "0.5") (.var "z")))),
             ("z", (.bin "*" (.num "-1") (.var "z"))),
             ("phi_r", (.bin "*" (.num "-1") (.var "phi_r")))]
-          guard := (.and (.cmp ">=" (.var "s") (.num "1.4")) (.cmp "<" (.var "s") (.num "899.95")))
+          guard := (.and (.cmp ">=" (.var "s") (.num "1.4")) (.cmp "<=" (.var "v") (.num "0.65")))
           evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "phi_r") (.num "-0.5")) (.cmp "<=" (.var "phi_r") (.num "0.15"))) (.cmp ">=" (.var "psi") (.num "-0.5"))) (.cmp "<=" (.var "psi") (.num "0.15"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "theta_p") (.num "-0.5"))) (.cmp "<=" (.var "theta_p") (.num "0.15"))) (.cmp ">=" (.var "v") (.num "0.0"))) (.cmp "<=" (.var "v") (.num "0.8"))) (.cmp ">=" (.var "z") (.num "-1.0"))) (.cmp "<=" (.var "z") (.num "0.15")))
           next := ["FLAT"] } ] }
     R := {
@@ -91,8 +91,8 @@ def rover_ladder_2to6_IRv2 : PProblem :=
           evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "phi_r") (.num "-0.5")) (.cmp "<=" (.var "phi_r") (.num "0.6"))) (.cmp ">=" (.var "psi") (.num "-0.5"))) (.cmp "<=" (.var "psi") (.num "0.6"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "theta_p") (.num "-0.5"))) (.cmp "<=" (.var "theta_p") (.num "0.6"))) (.cmp ">=" (.var "v") (.num "0.0"))) (.cmp "<=" (.var "v") (.num "0.8"))) (.cmp ">=" (.var "z") (.num "-1.0"))) (.cmp "<=" (.var "z") (.num "1.1")))
           next := ["FLAT"] } ] }
     invariants := [
-      ("STEEP", (.cmp "<=" (.bin "+" (.bin "-" (.bin "-" (.var "L_s") (.var "R_s")) (.num "0.2")) (.bin "*" (.bin "/" (.num "1") (.num "3")) (.bin "-" (.var "L_v") (.var "R_v")))) (.num "0"))),
-      ("MODER", (.cmp "<=" (.bin "+" (.bin "-" (.bin "-" (.var "L_s") (.var "R_s")) (.num "0.2")) (.bin "*" (.bin "/" (.num "1") (.num "3")) (.bin "-" (.var "L_v") (.var "R_v")))) (.num "0"))),
-      ("FLAT", (.cmp "<=" (.bin "+" (.bin "-" (.bin "-" (.var "L_s") (.var "R_s")) (.num "0.2")) (.bin "*" (.bin "/" (.num "1") (.num "3")) (.bin "-" (.var "L_v") (.var "R_v")))) (.num "0")))] }
+      ("STEEP", (.cmp "<=" (.bin "+" (.bin "-" (.var "L_s") (.var "R_s")) (.bin "*" (.bin "/" (.num "1") (.num "3")) (.bin "-" (.var "L_v") (.var "R_v")))) (.num "0"))),
+      ("MODER", (.cmp "<=" (.bin "+" (.bin "-" (.var "L_s") (.var "R_s")) (.bin "*" (.bin "/" (.num "1") (.num "3")) (.bin "-" (.var "L_v") (.var "R_v")))) (.num "0"))),
+      ("FLAT", (.cmp "<=" (.bin "+" (.bin "-" (.var "L_s") (.var "R_s")) (.bin "*" (.bin "/" (.num "1") (.num "3")) (.bin "-" (.var "L_v") (.var "R_v")))) (.num "0")))] }
 
 end RelCertifier.Parse

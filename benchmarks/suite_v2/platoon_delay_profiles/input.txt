@@ -1,4 +1,5 @@
-# platoon_delay_profiles: the platoon follower on a delayed link against a reference with two catch-up profiles.
+# platoon_delay_profiles: the platoon follower on a delayed link against a reference with two
+# catch-up profiles.
 # scenario: degraded-sensor
 # mechanisms: S M B P I (per-pairing time stretch, RELCERT_SYNC=1 declines; multi-step covers;
 #   branching joint steps; pruned AEB edge; implied cuts, matrix codes M1 M2 M3 M4 M6 M6+)
@@ -10,7 +11,8 @@
 # opens at 1.5 m/s) re-engages FOLLOW at 20 m. Deployed follower (left): the same loops acting on
 # a delayed link whose reading overstates the gap by 1 m (the loops settle at 29 m); under its
 # delay-mitigation policy it re-engages with the gentle profile only. One cause: the delayed link
-# (and the policy that answers it).
+# (and the policy that answers it). Control periods: deployed 2 s (epsilon_L), reference 1 s
+# (epsilon_R).
 #
 # Guards. Left FOLLOW: 24..40 m. 24 m = 0.8 x the 30 m desired gap: the follow controller engages
 # only at 80 % of its desired gap or more (its engagement threshold; the AEB releases at 20 m,
@@ -25,6 +27,7 @@
 #   g_L <= g_R + 4: against an assertive reference re-engaging from a wide gap the gentle
 #     deployed follower trails wider; requirement: at most one car length (4 m) wider, beyond
 #     which cut-ins into the gap become likely. Tightest 3.43 (3.42 declines).
+# Every left mode has a satisfiable start (g_R = g_L in its guard).
 # BRAKE is no admissible start: g_L >= 24 and g_L <= g_R + 4 give g_R >= 20. The two constants
 # meet exactly there (24 - 4 = 20): a width tolerance above 4 m, or an engagement threshold
 # below 24 m, lets a reference in its AEB brake pair with a following deployed car, which the
@@ -32,7 +35,8 @@
 # tolerance that certifies at 24).
 #
 # Verdicts (RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED; CERTIFIED under NO_CHOICE,
-# NO_LINEAR_CUT, RELCERT_WELLFORMED_STRICT=1; DECLINED under RELCERT_SYNC=1, SYNC+NO_CHOICE,
+# NO_LINEAR_CUT, RELCERT_OPREGION=1, RELCERT_WELLFORMED_STRICT=1; DECLINED under RELCERT_SYNC=1,
+# SYNC+NO_CHOICE,
 # NO_PRUNE and NO_PRUNE+NO_CHOICE (FOLLOW -> BRAKE must be pruned: the gentle loop opens the gap
 # at 20 m), without RELCERT_IMPLIED_CUT and NO_IMPLIED_CUT (the implied contraction atoms g >= 30
 # of the right profiles and g >= 29 of the left GENTLE are load-bearing: the gap domain floor is

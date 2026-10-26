@@ -1,6 +1,7 @@
 # rover_patrol_zones: patrol rover with a worn drivetrain on a three-zone route.
 # scenario: degraded-actuator
-# mechanisms: M2 M3
+# mechanisms: M R B (multi-step covers, matrix code M2; right-only repositioning into the
+#   deployed's zone; branching joint steps into either MEDIUM profile, M3)
 #
 # A patrol rover drives a route whose speed zones are keyed to the odometer s (m):
 #   SLOW    s <  20         commanded speed 0.6 m/s (leaving the depot)
@@ -19,15 +20,17 @@
 # Requirement: the dispatcher schedules the patrol on the nominal rover's timetable, so the
 # worn rover must never be ahead of that timetable (it may only be late). Margin 0 is the
 # requirement value; the s row is not tight: every uniform offset tried, from +0.5 down to
-# -5 m, certifies (the s row follows from v_L <= v_R). Until 2026-10-26 the margins grew
-# along the route (SLOW 0.5 m, MEDIUM 1 m, FAST 2 m) with no requirement behind them; that
-# gave non-vacuous handoffs (M5) and load-bearing cuts (NO_CUT DECLINED), both lost now
-# (rows identical, handoff vacuous; NO_CUT CERTIFIES).
+# -5 m, certifies (the s row follows from v_L <= v_R). The sides differ in two ways: the worn
+# drivetrain, and the deployed planner's freedom to switch between ECO and BRISK inside the
+# MEDIUM zone (the reference keeps the profile it selected on zone entry). Same zones, commands
+# and 0.3 m/s floor.
 # Covers (measured): every zone certifies at lambda = 1 with budget 2 (epsilon_L = 2 s,
 # epsilon_R = 1 s); a window started in SLOW takes a joint step whose retained
-# successors MEDIUM_ECO and MEDIUM_BRISK both cover (M2, M3); a reference that is still
-# in an earlier zone than the deployed (or in the ECO profile while the deployed runs
-# BRISK) repositions right-only to the deployed's zone.
+# successors MEDIUM_ECO and MEDIUM_BRISK both cover (M2, M3).
+# Why right-only segments are needed (R). In a deployed MEDIUM_BRISK window a reference still in
+# MEDIUM_ECO (the reference cannot switch profiles) advances alone, a dynamic reposition into
+# FAST, before the joint segment. RELCERT_SYNC=1, which forbids right-only segments, DECLINES;
+# every cover runs at lambda = 1, so stretching is not what SYNC removes (no S).
 #
 # Fallback (M4): the reference declares a STALL fallback below 0.2 m/s (drive cut,
 # v' = -2 v, odometer keeps integrating, sink) from every driving zone; every zone floor
@@ -41,12 +44,17 @@
 # and the same floor (SLOW 0.6 -> MEDIUM 0.9 / 1.1 -> FAST 1.5). The band [0.2, 0.3) is the
 # stall detector's hysteresis: a drive that is stalled resumes a zone loop only at 0.3 m/s.
 # Envelope (physical domain, both sides): v in [0, 1.6] m/s (the drive's speed range);
-# s >= 0 m (the odometer counts up from the depot), no upper wall (removed 2026-10-10: it
-# blocked the reference's flow at s = 100 while the deployed still moved).
+# s >= 0 m (the odometer counts up from the depot), no upper wall. Every left mode has a
+# satisfiable start (v_R = v_L, s_R = s_L in its zone).
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1): CERTIFIED under control, NO_CHOICE, NO_PRUNE,
-# NO_PRUNE+NO_CHOICE, OPREGION, NO_CUT, NO_IMPLIED_CUT, NO_LINEAR_CUT and without
-# RELCERT_IMPLIED_CUT; DECLINED under SYNC and SYNC+NO_CHOICE.
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED; CERTIFIED under RELCERT_NO_CHOICE=1,
+# RELCERT_NO_PRUNE=1 (also with RELCERT_NO_CHOICE=1), RELCERT_OPREGION=1, RELCERT_NO_CUT=1,
+# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1 and without RELCERT_IMPLIED_CUT; DECLINED
+# under RELCERT_SYNC=1 (also with RELCERT_NO_CHOICE=1). Covers: every left mode at lambda 1,
+# budget 2; admissible starts SLOW: every driving zone, MEDIUM_ECO and MEDIUM_BRISK: both MEDIUM
+# profiles and FAST, FAST: FAST; branch 2 from SLOW; pruned the four STALL edges. Rows identical
+# (--handoff 10/10 vacuous). relcert --wellformed: SLOW, MEDIUM_ECO, MEDIUM_BRISK ok (exit), FAST,
+# STALL ok (invariant).
 [problem]
 name = rover_patrol_zones
 max_depth = 8

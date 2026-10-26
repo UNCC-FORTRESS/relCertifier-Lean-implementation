@@ -12,8 +12,10 @@
 #   Left (deployed, worn drivetrain): a_cmd = 1.25 (0.8 c - v) (the worn loop of
 #     rover_patrol_zones: it reaches only 80 % of the command).
 #   Right (reference, nominal drivetrain): a_cmd = c - v.
-# The drivetrain wear is the only difference. Lag choice: 1/tau = 16/3 is the lag near the old
-# 0.2 s at which both loops have rational real roots (left (s + 2)(s + 10/3), right
+# Besides the drivetrain wear, the sides differ in one discrete freedom: the deployed planner may
+# switch between ECO and BRISK inside the MEDIUM zone, the reference keeps the profile selected
+# on zone entry. Lag choice: 1/tau = 16/3 is a lag near 0.2 s at which both loops have rational
+# real roots (left (s + 2)(s + 10/3), right
 # (s + 4/3)(s + 4)), so both are non-oscillatory and decouple into exponential modes.
 #
 # Property (the same three rows in every zone).
@@ -35,23 +37,23 @@
 # derivative compares the two speeds, which the lag decouples from the commands). Rows are
 # uniform: no zone needs its own constant.
 #
-# Guards. Left (unchanged): a zone starts, and is kept, only with the motor current settled,
+# Guards. Left: a zone starts, and is kept, only with the motor current settled,
 # |a| <= 0.5 m/s^2, at a speed between 0.3 m/s and the zone's command (bumpless hand-over).
 # Right: the zone's odometer range and the nominal rover's OPERATING ENVELOPE, the hull of every
 # hand-over state (v in [0.3, c], |a| <= 0.5) that is forward invariant under all four zone
 # loops at once: 3 a + 4 v in [-0.3, 7.5] and a + 4 v in [0.7, 6.5] (each modal coordinate
 # a + r (v - c) decays to 0 and its interval contains r c for every zone command), intersected
 # with the domain box. relcert --wellformed: SLOW ok (exit->MEDIUM_BRISK), MEDIUM_ECO and
-# MEDIUM_BRISK ok (exit->FAST), FAST ok (invariant). This replaces the old right bands
-# v >= 0.3, which left [0, 0.3) in no mode and did not bound the lag state.
+# MEDIUM_BRISK ok (exit->FAST), FAST ok (invariant).
 # Coverage. Right states outside the envelope are in no right guard: the nominal rover never
-# reaches them from a hand-over.
-# Domains (both sides): v in [0, 2] m/s (the drive's top speed; was 1.6, which the envelope
-# exceeds), s >= 0 (no upper wall), a in [-2, 2] m/s^2 (0.2 g, wheel traction). Physical limits.
+# reaches them from a hand-over. Every left mode has a satisfiable start (equal states).
+# Domains (both sides): v in [0, 2] m/s (the drive's top speed; the envelope needs more than
+# 1.6), s >= 0 (no upper wall), a in [-2, 2] m/s^2 (0.2 g, wheel traction). Physical limits.
 #
 # Verdicts (RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED; DECLINED under RELCERT_SYNC=1 (and
 # SYNC+NO_CHOICE); CERTIFIED under NO_PRUNE, NO_CHOICE, NO_PRUNE+NO_CHOICE, without
-# RELCERT_IMPLIED_CUT, NO_IMPLIED_CUT, NO_LINEAR_CUT, NO_CUT and RELCERT_WELLFORMED_STRICT=1.
+# RELCERT_IMPLIED_CUT, NO_IMPLIED_CUT, NO_LINEAR_CUT, NO_CUT, OPREGION and
+# RELCERT_WELLFORMED_STRICT=1.
 # Covers: SLOW lambda 1 budget 2, MEDIUM_ECO 5/4 budget 3, MEDIUM_BRISK and FAST 3/2 budget 3;
 # joint steps from SLOW, MEDIUM_ECO and MEDIUM_BRISK retain two covering successors (branch 2);
 # nothing pruned; --handoff 10/10 vacuous (uniform rows). Units m/s, m, m/s^2, s.

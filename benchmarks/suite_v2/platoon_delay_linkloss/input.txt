@@ -1,46 +1,62 @@
-# platoon_delay_linkloss: delayed-link platoon follower with a latched radar-only mode after a V2V link loss.
+# platoon_delay_linkloss: a platoon follower on a degraded V2V link (delayed, and lost under
+# jamming: a latched radar-only mode) against the design follower.
 # scenario: sensor-attack
-# mechanisms: M2 M4 M5 M6 M6+
+# mechanisms: M D I (multi-step covers, matrix code M2; mode-dependent rows with
+#   domain-conditioned handoffs, M5; load-bearing guard cuts, M6 M6+)
 #
-# Replaces platoon_delay_band (pass 4; same FOLLOW/CATCH automaton with the half-open
-# FOLLOW band, cells M2 M4 M6 M6+ are a subset). Gap g (m) to a constant-speed leader.
-# Reference (right): FOLLOW g' = -0.5 (g - 30) on 20 <= g < 40, CATCH g' = -0.6 (g - 30)
-# re-engaged from g >= 30, BRAKE fallback below 20 m (g' = +1.5, re-engaging FOLLOW at
-# 20 m). Deployed (left):
-# acts on the delayed link's 1 m gap overstatement (loops toward 29 m), bands entered
-# 1 m later (FOLLOW 21 <= g < 40, CATCH g >= 30); when the V2V link is LOST (jamming or
-# dropout) the follower LATCHES a radar-only gap keeper with a larger stand-off:
-# LOST: g' = -0.5 (g - 35), entered at any gap 21 <= g <= 60 m, no way back until the
-# link is re-established at the next platoon join (not modeled).
+# System. Gap g (m) to a leader at constant speed, time s; each follow loop is
+# g' = -k (g - g*) toward its set point g*.
+# Right (design follower, epsilon 1 s): FOLLOW k = 0.5 toward 30 m on 20 <= g < 40; CATCH
+#   k = 0.6 toward 30 m, engaged from a wide gap g >= 30; BRAKE, the AEB below 20 m (the gap
+#   opens at 1.5 m/s), which releases into FOLLOW at 20 m. FOLLOW may hand over to CATCH or
+#   BRAKE, CATCH back to FOLLOW.
+# Left (deployed follower, epsilon 2 s): the same loops acting on the delayed V2V link, which
+#   overstates the gap by 1 m and refreshes every 2 s: the loops settle at 29 m true and the
+#   bands are entered 1 m later (FOLLOW 21 <= g < 40, CATCH g >= 30). When the link is LOST
+#   (jamming or dropout) the follower latches a radar-only gap keeper with a larger stand-off:
+#   LOST g' = -0.5 (g - 35), entered at any gap 21 <= g <= 60, no way back (the link is
+#   re-established at the next platoon join, not modeled).
+# One cause: the degraded V2V link (its delay, and its loss under attack). The design follower
+# has no LOST mode.
 #
-# Physical domain 0 <= g <= 60 m (the radar's range) on both sides.
+# Property (MODE-DEPENDENT rows).
+#   FOLLOW, CATCH: g_L <= g_R + 1 and g_R <= g_L + 3.
+#   LOST: g_L - g_R <= 1 + 0.45 (g_L - 21) and g_R <= g_L + 3 (written 0.55 g_L <= g_R - 8.45).
+#   g_L <= g_R + 1: the deployed does not trail the design follower by more than the link's 1 m
+#     overstatement; tightest 0.84 (0.83 declines).
+#   g_R <= g_L + 3: the deployed never closes in by more than 3 m beyond the design follower.
+#     3 m has no stated requirement; the tightest value is 1.00 (0.99 declines), the link's 1 m
+#     overstatement.
+#   LOST: a range-proportional tolerance, 1 m at the 21 m engagement floor plus 45 % of the gap
+#     beyond it (7.3 m at the radar-only equilibrium 35 m): the radar-only follower may fall
+#     behind a reference re-engaging CATCH from a wide gap, faster than a constant tolerance
+#     allows. The slope 0.45 is fitted, the tightest that certifies (0.446 declines), not a
+#     requirement.
+# BRAKE is no admissible start of any left mode: g_L >= 21 and the rows give g_R >= 20.
 #
-# Rows (MODE-DEPENDENT, M5): FOLLOW = CATCH: g_L <= g_R + 1 and g_R <= g_L + 3; LOST:
-# g_L - g_R <= 1 + 0.45 (g_L - 21) and g_R <= g_L + 3, i.e. 0.55 g_L <= g_R - 8.45 -- a
-# RANGE-PROPORTIONAL tolerance: 1 m at the 21 m engagement floor plus 45 % of the gap
-# beyond it (7.3 m at the radar-only equilibrium 35 m). The slope is the smallest on the
-# 0.05 grid that certifies (0.40 DECLINED: against a CATCH reference re-engaging from a
-# wide gap the radar-only follower falls behind faster than a constant tolerance allows).
-# The handoffs FOLLOW -> LOST and CATCH -> LOST are DOMAIN-CONDITIONED: the LOST row is
-# implied by the FOLLOW/CATCH row only on LOST's guard g_L >= 21 (--handoff 7/7 unsat).
-# Covers (measured): lambda = 1, budget 2 in every left mode (M2). The FOLLOW band cap is
-# the CLOSURE g <= 40 of the strict guard conjunct (RELCERT_IMPLIED_CUT=1; O1 by
-# weakening, O2 shape): RELCERT_NO_IMPLIED_CUT=1 DECLINES (M6+), RELCERT_NO_CUT=1
-# DECLINES (M6).
+# Why the rows differ (D). The handoffs FOLLOW -> LOST and CATCH -> LOST are domain-conditioned:
+# the LOST row is implied by the FOLLOW/CATCH row only on LOST's guard g_L >= 21 (--handoff 7/7
+# unsat).
+# Why the guard cuts are load-bearing (I). FOLLOW's strict cap is kept as its closure g <= 40 on
+# both sides (kind closure) and CATCH's floor as the implied contraction g >= 29 (left) and
+# g >= 30 (right); RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1 and a run without
+# RELCERT_IMPLIED_CUT DECLINE.
+# Multi-step (M). Each 2 s left window is matched by 2 design cycles (budget 2) in every mode.
+# The AEB edge. FOLLOW -> BRAKE is pruned (the design loop opens the gap at 20 m: g' = 5 m/s
+# there). Pruning and the committed successor choice each close this edge: RELCERT_NO_PRUNE=1
+# alone and RELCERT_NO_CHOICE=1 alone certify, both together DECLINE (no P, no X).
 #
-# Fallback (M4): FOLLOW -> BRAKE is pruned (the reference loop opens the gap at 20 m);
-# BRAKE is not an admissible start for any left mode (g_L >= 21 and the rows give
-# g_R >= 20 at g_L = 21). RELCERT_NO_PRUNE=1 DECLINES. Units m, s.
+# Domains: 0 <= g <= 60 m on both sides, the radar's range. Coverage: the right guards cover
+# [0, 60] (BRAKE below 20, FOLLOW on [20, 40), CATCH from 30): no gap. Every left mode has a
+# satisfiable start (g_R = g_L in its guard).
 #
-# Assumption 1 (repaired 2026-10-10, docs/SUITE-REDESIGN.md section 21): the brake
-# RE-ENGAGES. BRAKE's own flow reopens the gap (g' = +1.5), so its guard g < 20 is left
-# within one control period (from g = 19 the 1 s run ends at 20.5); with BRAKE as its own
-# only successor the nominal controller blocked there. Physically the AEB releases once
-# its condition has cleared: BRAKE -> FOLLOW is declared, enabled at g >= 20 (FOLLOW's
-# guard). Every run of at most 1 s from g < 20 ends below 21.5 m, in BRAKE's guard or in
-# FOLLOW's (20 <= g < 40). The return edge does not touch the pruning of FOLLOW -> BRAKE
-# (BRAKE is still never entered); every verdict, counter-run and matrix cell is unchanged
-# (relcert --wellformed: BRAKE ok (exit->FOLLOW)).
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED; CERTIFIED under RELCERT_SYNC=1 (also
+# with RELCERT_NO_CHOICE=1), RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1, RELCERT_NO_LINEAR_CUT=1 and
+# RELCERT_OPREGION=1; DECLINED under RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1, RELCERT_NO_CUT=1,
+# RELCERT_NO_IMPLIED_CUT=1 and without RELCERT_IMPLIED_CUT. Covers: every left mode at lambda 1,
+# budget 2, admissible starts FOLLOW and CATCH; pruned FOLLOW -> BRAKE. --handoff 7/7 unsat,
+# non-vacuous. relcert --wellformed: FOLLOW, CATCH ok (invariant), BRAKE ok (exit->FOLLOW).
+# Units m, s.
 [problem]
 name = platoon_delay_linkloss
 max_depth = 8

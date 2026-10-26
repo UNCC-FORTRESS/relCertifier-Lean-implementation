@@ -109,9 +109,9 @@ not carried. The mode-independent benchmarks are proved over the choice of their
 carried to the left automaton by one generic bridge (`theorem3_leftAut_of_choice`,
 `Proofs/Encoding/LeftAutUniform.lean`).
 The theorem's one Z3 hypothesis, `Verdicts`, IS the list of groups the runner
-`relcert-bridge-verdicts` issues (4389 over the 50 suite benchmarks and the 2 exhibits, against
+`relcert-bridge-verdicts` issues (4397 over the 50 suite benchmarks and the 2 exhibits, against
 the declared count), each coming back `unsat`; `relcert --check-quick-v2` re-sends the tool's
-own queries as a self-check (modal 654, handoff 401, non-connection 88, pruned edges 44,
+own queries as a self-check (modal 660, handoff 401, non-connection 88, pruned edges 44,
 reposition 81). The axiom audit of every theorem is a subset of
 `{propext, Classical.choice, Quot.sound, z3_unsat_sound}`; none of the 50 is Z3-free (every
 flow fact of every response is a group of the emitted cover). No
@@ -210,7 +210,7 @@ lake build relcert relcert-test relcert-bridge-verdicts relcert-refute-verdicts 
 lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 | grep -A3 "depends on axioms"
 lake build RelCertifier.InstancesV2.AxiomCheck 2>&1 | grep -A3 "depends on axioms"
 
-# 2b. the Z3 hypotheses of the 52 bridge instances (4389 groups) and the progress
+# 2b. the Z3 hypotheses of the 52 bridge instances (4397 groups) and the progress
 #     certificates of every reposition node (245 queries), against declared counts
 ./.lake/build/bin/relcert-bridge-verdicts
 ./.lake/build/bin/relcert-progress-verdicts
@@ -239,11 +239,11 @@ lake build $(ls RelCertifier/InstancesV2/Refute/*.lean | sed 's|/|.|g; s|\.lean$
 
 Expected: `Build completed successfully`; 75 axiom lines (WellFormedBattery), each exactly
 the three standard axioms (`lake` also replays the 11 lines of `CutLiftX.lean`'s own audit);
-9 axiom lines (AxiomCheck), each a subset of the four axioms above; `relcert-bridge-verdicts`: `4389/4389` at the bridge dimensions;
+9 axiom lines (AxiomCheck), each a subset of the four axioms above; `relcert-bridge-verdicts`: `4397/4397` at the bridge dimensions;
 `relcert-progress-verdicts`: `245/245`; `[suite_v2] 50 certified, 0 declined, 0 error(s)`,
-coverage `modal 654/654`, `handoff 401/401`, `non-connection 88/88`, `pruned edges 44/44`,
-`reposition (dyn) 29/29`, the strict Assumption 1 gate `[wellformed] STRICT: 173/173 right modes ok
-(94 invariant, 79 exit), 0 UNKNOWN — matches the declared suite`, `wellformed (strict): PASS`,
+coverage `modal 660/660`, `handoff 401/401`, `non-connection 88/88`, `pruned edges 44/44`,
+`reposition (dyn) 29/29`, the strict Assumption 1 gate `[wellformed] STRICT: 174/174 right modes ok
+(93 invariant, 81 exit), 0 UNKNOWN — matches the declared suite`, `wellformed (strict): PASS`,
 `SUITE_V2 QUICK CHECKS PASSED`; `benchmarks/negative/freedm_meter_leaky`: `DECLINED`;
 `relcert-test`: a bare `ALL PASS`; `refute: 225/225 hypotheses discharged` (the bridge and
 refute counts are unchanged by the right-clock coordinate of 2026-10-21: no query reads it).
@@ -464,8 +464,8 @@ and the lowering produce, with no Z3 leaf.
 sufficient check of clause (ii) per right mode: the guard atoms are kept by the mode's own
 flow (stratified cut routes) and the mode has a self-loop (`ok (invariant)`), or every run of
 at most `ε_r` ends in a declared successor's guard (rate bounds on the atoms that are not
-kept, then one coverage query: `ok (exit→S)`), else `UNKNOWN`. On the suite: 173 right
-modes, 94 ok (invariant), 79 ok (exit), **0 UNKNOWN** (before the repairs: 77 / 53 / 16
+kept, then one coverage query: `ok (exit→S)`), else `UNKNOWN`. On the suite: 174 right
+modes, 93 ok (invariant), 81 ok (exit), **0 UNKNOWN** (before the repairs: 77 / 53 / 16
 UNKNOWN, exactly the blocking modes of the nine models; on the old `platoon3` model, commit
 `1a3507f`, every mode is `UNKNOWN`). **Strict in the recipe:** `--check-quick-v2` certifies in
 the strict mode and gates the `--wellformed` report against declared counts (173 modes, 0

@@ -21,29 +21,35 @@ def tank_dos_3to1_IRv2 : PProblem :=
       epsilon := "3.0"
       modes := [
         {
-          name := "PUMP_ON"
-          odes := [("h", (.bin "*" (.num "0.1") (.bin "-" (.num "1.6") (.var "h"))))]
+          name := "HIGH"
+          odes := [("h", (.bin "*" (.num "0.1") (.bin "-" (.num "1.3") (.var "h"))))]
           guard := (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp "<" (.var "h") (.num "1.0")))
           evolve := (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp "<=" (.var "h") (.num "2.0")))
-          next := ["PUMP_ON", "PUMP_OFF"] },
+          next := ["HIGH", "LOW"] },
         {
-          name := "PUMP_OFF"
-          odes := [("h", (.bin "*" (.num "-0.1") (.var "h")))]
+          name := "LOW"
+          odes := [("h", (.bin "*" (.num "0.1") (.bin "-" (.num "0.7") (.var "h"))))]
           guard := (.and (.cmp ">=" (.var "h") (.num "1.0")) (.cmp "<=" (.var "h") (.num "2.0")))
           evolve := (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp "<=" (.var "h") (.num "2.0")))
-          next := ["PUMP_ON", "PUMP_OFF"] } ] }
+          next := ["HIGH", "LOW"] } ] }
     R := {
       stateVars := ["h"]
       epsilon := "1.0"
       modes := [
         {
-          name := "MODULATE"
-          odes := [("h", (.bin "*" (.num "0.2") (.bin "-" (.num "1.0") (.var "h"))))]
-          guard := (.and (.cmp ">=" (.var "h") (.num "0.4")) (.cmp "<=" (.var "h") (.num "2.0")))
-          evolve := (.and (.cmp ">=" (.var "h") (.num "0.4")) (.cmp "<=" (.var "h") (.num "2.0")))
-          next := ["MODULATE"] } ] }
+          name := "HIGH"
+          odes := [("h", (.bin "*" (.num "0.1") (.bin "-" (.num "1.3") (.var "h"))))]
+          guard := (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp "<" (.var "h") (.num "1.0")))
+          evolve := (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp "<=" (.var "h") (.num "2.0")))
+          next := ["HIGH", "LOW"] },
+        {
+          name := "LOW"
+          odes := [("h", (.bin "*" (.num "0.1") (.bin "-" (.num "0.7") (.var "h"))))]
+          guard := (.and (.cmp ">=" (.var "h") (.num "1.0")) (.cmp "<=" (.var "h") (.num "2.0")))
+          evolve := (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp "<=" (.var "h") (.num "2.0")))
+          next := ["HIGH", "LOW"] } ] }
     invariants := [
-      ("PUMP_ON", (.cmp "<=" (.var "L_h") (.bin "+" (.var "R_h") (.num "0.75")))),
-      ("PUMP_OFF", (.cmp "<=" (.var "L_h") (.bin "+" (.var "R_h") (.num "0.75"))))] }
+      ("HIGH", (.and (.cmp "<=" (.var "L_h") (.bin "+" (.var "R_h") (.num "0.7"))) (.cmp "<=" (.var "R_h") (.bin "+" (.var "L_h") (.num "0.7"))))),
+      ("LOW", (.and (.cmp "<=" (.var "L_h") (.bin "+" (.var "R_h") (.num "0.7"))) (.cmp "<=" (.var "R_h") (.bin "+" (.var "L_h") (.num "0.7")))))] }
 
 end RelCertifier.Parse

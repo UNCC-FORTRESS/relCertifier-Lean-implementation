@@ -13,7 +13,7 @@ namespace RelCertifier
 /-- `tank_dos_3to1` (emitted, suite_v2, widened cut channel on). -/
 def tank_dos_3to1_coverV2 : CoverEmitE :=
   ⟨"tank_dos_3to1", [], [
-    ⟨"PUMP_ON", (1 : ℚ) / 1, 3, [⟨"MODULATE", true, false, false⟩], ["MODULATE"], [⟨"MODULATE", [0], [], [], 1, 1⟩]⟩,
-    ⟨"PUMP_OFF", (1 : ℚ) / 1, 3, [⟨"MODULATE", true, false, false⟩], ["MODULATE"], [⟨"MODULATE", [0], [], [], 1, 1⟩]⟩]⟩
+    ⟨"HIGH", (1 : ℚ) / 1, 3, [⟨"HIGH", true, false, false⟩, ⟨"LOW", true, false, false⟩], ["HIGH", "LOW"], [⟨"HIGH", [0, 1], [0], [0], 1, 1⟩, ⟨"LOW", [0, 1], [1], [1], 1, 1⟩]⟩,
+    ⟨"LOW", (1 : ℚ) / 1, 3, [⟨"HIGH", true, false, false⟩, ⟨"LOW", true, false, false⟩], ["HIGH", "LOW"], [⟨"HIGH", [0, 1], [0], [0], 1, 1⟩, ⟨"LOW", [0, 1], [1], [1], 1, 1⟩]⟩]⟩
 
 end RelCertifier

@@ -15,20 +15,22 @@ open RelCertifier.Parse
 
 def tank_dos_3to1_cutsV2 : EvolStrengthening :=
   { L := [
-      ("PUMP_ON", [((.cmp ">=" (.var "h") (.num "0.0")), CutRoute.shape)]),
-      ("PUMP_OFF", [((.cmp "<=" (.var "h") (.num "2.0")), CutRoute.shape)])
+      ("HIGH", [((.cmp ">=" (.var "h") (.num "0.0")), CutRoute.shape)]),
+      ("LOW", [((.cmp "<=" (.var "h") (.num "2.0")), CutRoute.shape)])
     ]
     R := [
-      ("MODULATE", [((.cmp ">=" (.var "h") (.num "0.4")), CutRoute.shape), ((.cmp "<=" (.var "h") (.num "2.0")), CutRoute.shape)])
+      ("HIGH", [((.cmp ">=" (.var "h") (.num "0.0")), CutRoute.shape)]),
+      ("LOW", [((.cmp "<=" (.var "h") (.num "2.0")), CutRoute.shape)])
     ] }
 
 def tank_dos_3to1_cutsV2X : EvolStrengtheningX :=
   { L := [
-      ("PUMP_ON", [⟨(.cmp ">=" (.var "h") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "h") (.num "1.6")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
-      ("PUMP_OFF", [⟨(.cmp "<=" (.var "h") (.num "2.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp ">=" (.var "h") (.num "0")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩])
+      ("HIGH", [⟨(.cmp ">=" (.var "h") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "h") (.num "1.3")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
+      ("LOW", [⟨(.cmp "<=" (.var "h") (.num "2.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp ">=" (.var "h") (.num "0.7")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩])
     ]
     R := [
-      ("MODULATE", [⟨(.cmp ">=" (.var "h") (.num "0.4")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "h") (.num "2.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩])
+      ("HIGH", [⟨(.cmp ">=" (.var "h") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "h") (.num "1.3")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
+      ("LOW", [⟨(.cmp "<=" (.var "h") (.num "2.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp ">=" (.var "h") (.num "0.7")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩])
     ] }
 
 /-- The legacy (guard-conjunct) part is well formed. -/

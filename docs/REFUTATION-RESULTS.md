@@ -15,7 +15,7 @@
 > rows they refuted (graded zone margins; quadratic attitude rows), `rover_lateral_8to12` has 7
 > (m015, m019 to m024, kind B; each DECLINED by relcert; was 6), no other file of the batch has a
 > witness. Current instance set: **80 refutations, 225 groups**
-> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 788 mutants in
+> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 793 mutants in
 > `docs/refute/witnesses.jsonl`. The operator table has not been recomputed.
 
 Design: `docs/REFUTATION-SCOPE.md` (planning record, last present at commit 29663d8). This file reports what was built and the experiment.

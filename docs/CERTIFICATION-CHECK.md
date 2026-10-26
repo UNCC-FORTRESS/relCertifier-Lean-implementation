@@ -137,17 +137,17 @@ gated. Expected tail:
   [coverage] suite_v2 non-connection: 88/88 hypotheses discharged
   [coverage] suite_v2 pruned edges: 44/44 hypotheses discharged
   [coverage] suite_v2 reposition (dyn): 29/29 hypotheses discharged
-  [wellformed] summary: 50 benchmark(s), 173 right mode(s): 94 ok (invariant), 79 ok (exit), 0 UNKNOWN (0 benchmark(s) with an UNKNOWN mode); 2308 queries
-  [wellformed] STRICT: 173/173 right modes ok (94 invariant, 79 exit), 0 UNKNOWN — matches the declared suite (173 modes, 0 UNKNOWN)
+  [wellformed] summary: 50 benchmark(s), 174 right mode(s): 93 ok (invariant), 81 ok (exit), 0 UNKNOWN (0 benchmark(s) with an UNKNOWN mode); 2308 queries
+  [wellformed] STRICT: 174/174 right modes ok (93 invariant, 81 exit), 0 UNKNOWN — matches the declared suite (174 modes, 0 UNKNOWN)
 
   suite_v2: PASS
   verdicts: PASS
-  wellformed (strict): PASS (173/173 right modes ok (94 invariant, 79 exit), 0 UNKNOWN)
+  wellformed (strict): PASS (174/174 right modes ok (93 invariant, 81 exit), 0 UNKNOWN)
 SUITE_V2 QUICK CHECKS PASSED  (the kernel check is `lake build`)
 ```
 
 The well-formedness gate (check 5's tool part, strict since 2026-10-10; it was informational
-while 9 models blocked): the declared mode count `ExpectedSuiteV2.wfModes = 173`
+while 9 models blocked): the declared mode count `ExpectedSuiteV2.wfModes = 174`
 (`VerdictsV2/RunV2.lean`; its kernel pin against the IR table, `CoveragePinsV2`, was archived
 with the standalone route) and `wfUnknown = 0`; any `UNKNOWN` mode, a mode count off the
 declared one, or a file that does not parse fails the run.
@@ -194,8 +194,8 @@ unconditional since 2026-10-15), the six repaired modes' per-mode theorems
 the declared counts `(44, 0, 6)`, `(30, 9, 6)` before the repairs, and the three name lists a
 permutation of the suite's IR table). Each proof lives in its own self-contained
 `InstancesV2/WellFormed/<B>.lean` (right model and proof; since 2026-10-22 the 19 carried-over
-ones too). The tool line: `[wellformed] summary: 50 benchmark(s), 173 right mode(s): 94 ok
-(invariant), 79 ok (exit), 0 UNKNOWN (0 benchmark(s) with an UNKNOWN mode)`; check 3 gates it.
+ones too). The tool line: `[wellformed] summary: 50 benchmark(s), 174 right mode(s): 93 ok
+(invariant), 81 ok (exit), 0 UNKNOWN (0 benchmark(s) with an UNKNOWN mode)`; check 3 gates it.
 What this establishes and what it does not (the tool checks only the successor half; the
 predicate's domain conjunct; the satellites' band): `docs/WELLFORMED.md`. The repairs:
 `docs/SUITE-REDESIGN.md` §21.
@@ -300,7 +300,7 @@ lake build && lake build relcert relcert-test relcert-bridge-verdicts relcert-re
 ```
 
 A green build, an axiom listing with nothing beyond the four axioms, `SUITE_V2 QUICK CHECKS
-PASSED`, `ALL PASS`, `4389/4389`, `225/225` and `245/245` = every suite_v2 benchmark is
+PASSED`, `ALL PASS`, `4397/4397`, `225/225` and `245/245` = every suite_v2 benchmark is
 certified end to end, modulo the trust base.
 
 ## Earlier recipes

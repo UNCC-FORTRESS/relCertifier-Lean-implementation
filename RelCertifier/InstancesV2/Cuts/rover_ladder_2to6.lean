@@ -2,18 +2,18 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `rover_ladder_4to6_kin` (suite_v2) — checked-cut certificates, legacy and extended (GENERATED leaf — do not edit)
+# `rover_ladder_2to6` (suite_v2) — checked-cut certificates, legacy and extended (GENERATED leaf — do not edit)
 
-Regenerate with `scripts/gen_v2_data.py rover_ladder_4to6_kin`.
+Regenerate with `scripts/gen_v2_data.py rover_ladder_2to6`.
 -/
 import RelCertifier.Checker.EvolStrengtheningX
-import RelCertifier.InstancesV2.BenchIR.rover_ladder_4to6_kin
+import RelCertifier.InstancesV2.BenchIR.rover_ladder_2to6
 
 namespace RelCertifier.Oracle
 
 open RelCertifier.Parse
 
-def rover_ladder_4to6_kin_cutsV2 : EvolStrengthening :=
+def rover_ladder_2to6_cutsV2 : EvolStrengthening :=
   { L := [
       ("STEEP", [((.cmp ">=" (.var "s") (.num "0.0")), CutRoute.diNonstrict)]),
       ("MODER", [((.cmp ">=" (.var "s") (.num "0.6")), CutRoute.diNonstrict)]),
@@ -25,7 +25,7 @@ def rover_ladder_4to6_kin_cutsV2 : EvolStrengthening :=
       ("FLAT", [((.cmp ">=" (.var "s") (.num "1.4")), CutRoute.diNonstrict)])
     ] }
 
-def rover_ladder_4to6_kin_cutsV2X : EvolStrengtheningX :=
+def rover_ladder_2to6_cutsV2X : EvolStrengtheningX :=
   { L := [
       ("STEEP", [⟨(.cmp ">=" (.var "s") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diNonstrict, []⟩]),
       ("MODER", [⟨(.cmp ">=" (.var "s") (.num "0.6")), CutKind.guardConj, CutEntry.membership, CutRouteX.diNonstrict, []⟩]),
@@ -38,10 +38,10 @@ def rover_ladder_4to6_kin_cutsV2X : EvolStrengtheningX :=
     ] }
 
 /-- The legacy (guard-conjunct) part is well formed. -/
-theorem rover_ladder_4to6_kin_cutsV2_wf : evolStrengtheningWF rover_ladder_4to6_kin_IRv2 rover_ladder_4to6_kin_cutsV2 = true := rfl
+theorem rover_ladder_2to6_cutsV2_wf : evolStrengtheningWF rover_ladder_2to6_IRv2 rover_ladder_2to6_cutsV2 = true := rfl
 
 /-- The extended certificate is well formed (every kind, entry and rational route
 re-checked; `CutLiftX.evolStrengtheningWFX_entryL/R` consume it). -/
-theorem rover_ladder_4to6_kin_cutsV2X_wf : evolStrengtheningWFX rover_ladder_4to6_kin_IRv2 rover_ladder_4to6_kin_cutsV2X = true := rfl
+theorem rover_ladder_2to6_cutsV2X_wf : evolStrengtheningWFX rover_ladder_2to6_IRv2 rover_ladder_2to6_cutsV2X = true := rfl
 
 end RelCertifier.Oracle

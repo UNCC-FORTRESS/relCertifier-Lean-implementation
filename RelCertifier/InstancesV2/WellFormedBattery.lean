@@ -66,7 +66,7 @@ import RelCertifier.InstancesV2.WellFormed.ChargerFastTapers
 import RelCertifier.InstancesV2.WellFormed.QuadLightLag
 import RelCertifier.InstancesV2.WellFormed.RoverPatrolZones
 import RelCertifier.InstancesV2.WellFormed.RoverPatrolRefine
-import RelCertifier.InstancesV2.WellFormed.RoverRolloverSplitB
+import RelCertifier.InstancesV2.WellFormed.RoverRollover7to12
 import RelCertifier.InstancesV2.WellFormed.MatchMultiRate
 import RelCertifier.InstancesV2.WellFormed.Rover3tierRung12
 import RelCertifier.InstancesV2.WellFormed.RoverLadder2to3
@@ -74,7 +74,7 @@ import RelCertifier.InstancesV2.WellFormed.RoverLadder3to6
 import RelCertifier.InstancesV2.WellFormed.RoverLadder6to8
 import RelCertifier.InstancesV2.WellFormed.RoverLadder8to12
 import RelCertifier.InstancesV2.WellFormed.RoverLadder2to4
-import RelCertifier.InstancesV2.WellFormed.RoverLadder4to6Kin
+import RelCertifier.InstancesV2.WellFormed.RoverLadder2to6
 import RelCertifier.InstancesV2.WellFormed.RoverLadder4to6
 import RelCertifier.InstancesV2.WellFormed.RoverTerrain2to3
 import RelCertifier.InstancesV2.WellFormed.RoverTerrain3to6
@@ -85,7 +85,7 @@ import RelCertifier.InstancesV2.WellFormed.RoverAttitude8to12
 import RelCertifier.InstancesV2.WellFormed.RoverLateral6to8
 import RelCertifier.InstancesV2.WellFormed.RoverLateral8to12
 import RelCertifier.InstancesV2.WellFormed.RoverRollover6to12
-import RelCertifier.InstancesV2.WellFormed.RoverRolloverSplitA
+import RelCertifier.InstancesV2.WellFormed.RoverRollover6to7
 import RelCertifier.InstancesV2.WellFormed.ArmPlateauCrit
 import RelCertifier.InstancesV2.WellFormed.ArmPlateauProfiles
 import RelCertifier.InstancesV2.WellFormed.ArmPlateauSlow
@@ -113,15 +113,15 @@ def wfProved : List String :=
    "quad_light_airframe_20", "quad_light_profiles",
    "watertank", "acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp",
    "charger_fast_setpoints", "charger_fast_tapers", "quad_light_lag", "rover_patrol_zones",
-   "rover_patrol_refine", "rover_rollover_split_b", "match_multi_rate",
+   "rover_patrol_refine", "rover_rollover_7to12", "match_multi_rate",
    "rover3tier_rung12", "rover_ladder_2to3",
    "rover_ladder_3to6", "rover_ladder_6to8",
    "rover_ladder_8to12", "rover_ladder_2to4",
-   "rover_ladder_4to6_kin", "rover_ladder_4to6",
+   "rover_ladder_2to6", "rover_ladder_4to6",
    "rover_terrain_2to3", "rover_terrain_3to6", "rover_terrain_6to12",
    "rover_terrain_6to8", "rover_attitude_6to8", "rover_attitude_8to12",
    "rover_lateral_6to8", "rover_lateral_8to12", "rover_rollover_6to12",
-   "rover_rollover_split_a", "watertank_twospeed", "drl_car_stop", "drl_lane_control",
+   "rover_rollover_6to7", "watertank_twospeed", "drl_car_stop", "drl_lane_control",
    "vehicle_hypercert", "freedm_meter"]
 
 /-- The benchmarks whose right model violates Assumption 1 (none since the 2026-10-10
@@ -149,10 +149,10 @@ def suiteNames : List String :=
    "match_multi_rate", "platoon3_linkloss", "platoon3_profiles", "platoon_delay_linkloss",
    "platoon_delay_profiles", "quad_light_airframe_20", "quad_light_lag",
    "quad_light_profiles", "rover3tier_rung12", "rover_attitude_6to8",
-   "rover_attitude_8to12", "rover_ladder_2to3", "rover_ladder_2to4", "rover_ladder_3to6",
-   "rover_ladder_4to6", "rover_ladder_4to6_kin", "rover_ladder_6to8", "rover_ladder_8to12",
+   "rover_attitude_8to12", "rover_ladder_2to3", "rover_ladder_2to4", "rover_ladder_2to6",
+   "rover_ladder_3to6", "rover_ladder_4to6", "rover_ladder_6to8", "rover_ladder_8to12",
    "rover_lateral_6to8", "rover_lateral_8to12", "rover_patrol_refine", "rover_patrol_zones",
-   "rover_rollover_6to12", "rover_rollover_split_a", "rover_rollover_split_b",
+   "rover_rollover_6to12", "rover_rollover_6to7", "rover_rollover_7to12",
    "rover_terrain_2to3", "rover_terrain_3to6", "rover_terrain_6to12", "rover_terrain_6to8",
    "sat3w_detumble_nominal", "sat3w_detumble_phases", "sat3w_detumble_weak",
    "sat_detumble_nominal", "sat_detumble_phases", "sat_detumble_weak", "vehicle_hypercert",
@@ -189,7 +189,7 @@ end WellFormedBattery
 #print axioms V2QuadLightLag.quad_light_lag_wellFormedR
 #print axioms V2RoverPatrolZonesGuarded.rover_patrol_zones_wellFormedR
 #print axioms V2RoverPatrolRefineGuarded.rover_patrol_refine_wellFormedR
-#print axioms V2RoverRolloverSplitBGuarded.rover_rollover_split_b_wellFormedR
+#print axioms V2RoverRollover7to12Guarded.rover_rollover_7to12_wellFormedR
 #print axioms MatchMultiRateGuarded.match_multi_rate_wellFormedR
 #print axioms Rover3tierRung12Guarded.rover3tier_rung12_wellFormedR
 #print axioms RoverLadder2to3Guarded.rover_ladder_2to3_wellFormedR
@@ -197,7 +197,7 @@ end WellFormedBattery
 #print axioms RoverLadder6to8Guarded.rover_ladder_6to8_wellFormedR
 #print axioms RoverLadder8to12Guarded.rover_ladder_8to12_wellFormedR
 #print axioms RoverLadder2to4Guarded.rover_ladder_2to4_wellFormedR
-#print axioms RoverLadder4to6KinGuarded.rover_ladder_4to6_kin_wellFormedR
+#print axioms RoverLadder2to6Guarded.rover_ladder_2to6_wellFormedR
 #print axioms RoverLadder4to6Guarded.rover_ladder_4to6_wellFormedR
 #print axioms RoverTerrain2to3Guarded.rover_terrain_2to3_wellFormedR
 #print axioms RoverTerrain3to6Guarded.rover_terrain_3to6_wellFormedR
@@ -208,7 +208,7 @@ end WellFormedBattery
 #print axioms RoverLateral6to8Guarded.rover_lateral_6to8_wellFormedR
 #print axioms RoverLateral8to12Guarded.rover_lateral_8to12_wellFormedR
 #print axioms RoverRollover6to12Guarded.rover_rollover_6to12_wellFormedR
-#print axioms RoverRolloverSplitAGuarded.rover_rollover_split_a_wellFormedR
+#print axioms RoverRollover6to7Guarded.rover_rollover_6to7_wellFormedR
 
 /-! ## Repaired 2026-10-10 (9, among the 40): Assumption 1 at every mode, and at the repaired
 modes -/

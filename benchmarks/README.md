@@ -51,7 +51,7 @@ use the old names.
 | `refinement_ladder_rover_rung3_6to8` | `rover_ladder_6to8` |
 | `refinement_ladder_rover_rung4_8to12` | `rover_ladder_8to12` |
 | `refinement_ladder_rover_rung2_6dof` | `rover_ladder_2to4` |
-| `refinement_ladder_rover_rung2b_6dof` | `rover_ladder_4to6_kin` |
+| `refinement_ladder_rover_rung2b_6dof` | `rover_ladder_2to6` |
 | `refinement_ladder_rover_rung2c_6dof` | `rover_ladder_4to6` |
 | `rover_dof_terrain_rung1` | `rover_terrain_2to3` |
 | `rover_dof_terrain_rung2` | `rover_terrain_3to6` |
@@ -61,19 +61,19 @@ use the old names.
 | `story1_attdist_rung_b_12dof` | `rover_attitude_8to12` |
 | `story2_lateral_rung_a_8dof` | `rover_lateral_6to8` |
 | `story2_lateral_rung_b_12dof` | `rover_lateral_8to12` |
-| `story3_rollover_ladder_rung_a` | `rover_rollover_split_a` |
-| `story3_rollover_ladder_rung_b` | `rover_rollover_split_b` |
+| `story3_rollover_ladder_rung_a` | `rover_rollover_6to7` |
+| `story3_rollover_ladder_rung_b` | `rover_rollover_7to12` |
 | `story3_rollover_base_12dof` | `rover_rollover_6to12` |
 
 ## The 19 carried-over benchmarks
 
 Nineteen files (the rover refinement ladder, the rover terrain rungs, `rover3tier_rung12`,
-`match_multi_rate`, and the attitude, lateral and rollover benchmarks except `rover_rollover_split_b`) are byte-identical copies, up to the name lines of the 2026-10-25 rename (below), of files of the retired legacy
+`match_multi_rate`, and the attitude, lateral and rollover benchmarks except `rover_rollover_7to12`) are byte-identical copies, up to the name lines of the 2026-10-25 rename (below), of files of the retired legacy
 suite `suite_uniform` (removed from the tree on 2026-10-10; git history keeps it). Their
 Assumption 1 proofs were first written against the legacy literals and now quote these
 files' literals directly (`RelCertifier/InstancesV2/WellFormed/`); their standalone Theorem 3
 instances are archived on branch `archive/legacy-2026-10`. Their headers are the legacy ones
-(no `# scenario:` line). `rover_rollover_split_b` was repaired on the left (attitude
+(no `# scenario:` line). `rover_rollover_7to12` was repaired on the left (attitude
 domains and the zone-switch entry condition) and `watertank` was redesigned as the paper's
 running example; both carry new instances.
 
@@ -114,7 +114,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `rover_ladder_2to3` | 3 / 2 | 3 / 3 |  | carried over |
 | `rover_ladder_3to6` | 6 / 6 | 3 / 3 |  | carried over |
 | `rover_ladder_2to4` | 4 / 4 | 3 / 3 |  | carried over, Z3-free |
-| `rover_ladder_4to6_kin` | 6 / 6 | 3 / 3 |  | carried over, Z3-free |
+| `rover_ladder_2to6` | 6 / 6 | 3 / 3 |  | carried over, Z3-free |
 | `rover_ladder_4to6` | 6 / 6 | 3 / 3 |  | carried over |
 | `rover_ladder_6to8` | 8 / 8 | 3 / 3 |  | carried over |
 | `rover_ladder_8to12` | 12 / 12 | 3 / 3 |  | carried over |
@@ -136,8 +136,8 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `rover_lateral_6to8` | 8 / 8 | 3 / 3 |  | carried over |
 | `rover_lateral_8to12` | 12 / 12 | 3 / 3 |  | carried over |
 | `rover_rollover_6to12` | 12 / 12 | 3 / 3 |  | carried over |
-| `rover_rollover_split_a` | 12 / 12 | 3 / 3 |  | carried over |
-| `rover_rollover_split_b` | 12 / 12 | 3 / 3 |  | mode-keyed, widened cuts |
+| `rover_rollover_6to7` | 12 / 12 | 3 / 3 |  | carried over |
+| `rover_rollover_7to12` | 12 / 12 | 3 / 3 |  | mode-keyed, widened cuts |
 | `vehicle_hypercert` | 1 / 1 | 5 / 5 | opacity | literature (HyperCertificates), mode choice |
 | `watertank` | 1 / 1 | 3 / 5 | sensor-attack | widened cuts |
 

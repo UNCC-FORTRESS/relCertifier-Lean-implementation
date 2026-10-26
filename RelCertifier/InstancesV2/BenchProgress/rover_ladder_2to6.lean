@@ -2,8 +2,8 @@ import RelCertifier.Trusted.ProgressEmit
 
 namespace RelCertifier.Progress
 
-def rover_ladder_4to6_kin_coverV2_progress : RelCertifier.Progress.ProgressEmitE :=
-  ⟨"rover_ladder_4to6_kin", [
+def rover_ladder_2to6_coverV2_progress : RelCertifier.Progress.ProgressEmitE :=
+  ⟨"rover_ladder_2to6", [
     ⟨"STEEP", "STEEP", true, [⟨"v", (1 : ℚ) / 5, true, (1 : ℚ) / 4⟩, ⟨"s", (3 : ℚ) / 5, true, (1 : ℚ) / 8⟩], ["MODER"]⟩,
     ⟨"STEEP", "STEEP", false, [⟨"v", (1 : ℚ) / 5, true, (1 : ℚ) / 4⟩, ⟨"s", (3 : ℚ) / 5, true, (1 : ℚ) / 8⟩], ["MODER"]⟩,
     ⟨"STEEP", "MODER", true, [⟨"v", (3 : ℚ) / 10, true, (1 : ℚ) / 2⟩, ⟨"s", (7 : ℚ) / 5, true, (1 : ℚ) / 4⟩], ["FLAT"]⟩,

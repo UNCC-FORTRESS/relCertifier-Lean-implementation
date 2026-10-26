@@ -33,7 +33,7 @@
 # Composition: rung_a + rung_b imply the direct rover_rollover_6to12 invariant.
 
 [problem]
-name = rover_rollover_split_b
+name = rover_rollover_7to12
 max_depth = 8
 lambda_min = 1.0
 lambda_max = 8.0

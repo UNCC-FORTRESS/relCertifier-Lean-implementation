@@ -24,9 +24,9 @@ import RelCertifier.InstancesV2.Cuts.rover_attitude_6to8
 import RelCertifier.InstancesV2.Cuts.rover_attitude_8to12
 import RelCertifier.InstancesV2.Cuts.rover_ladder_2to3
 import RelCertifier.InstancesV2.Cuts.rover_ladder_2to4
+import RelCertifier.InstancesV2.Cuts.rover_ladder_2to6
 import RelCertifier.InstancesV2.Cuts.rover_ladder_3to6
 import RelCertifier.InstancesV2.Cuts.rover_ladder_4to6
-import RelCertifier.InstancesV2.Cuts.rover_ladder_4to6_kin
 import RelCertifier.InstancesV2.Cuts.rover_ladder_6to8
 import RelCertifier.InstancesV2.Cuts.rover_ladder_8to12
 import RelCertifier.InstancesV2.Cuts.rover_lateral_6to8
@@ -34,8 +34,8 @@ import RelCertifier.InstancesV2.Cuts.rover_lateral_8to12
 import RelCertifier.InstancesV2.Cuts.rover_patrol_refine
 import RelCertifier.InstancesV2.Cuts.rover_patrol_zones
 import RelCertifier.InstancesV2.Cuts.rover_rollover_6to12
-import RelCertifier.InstancesV2.Cuts.rover_rollover_split_a
-import RelCertifier.InstancesV2.Cuts.rover_rollover_split_b
+import RelCertifier.InstancesV2.Cuts.rover_rollover_6to7
+import RelCertifier.InstancesV2.Cuts.rover_rollover_7to12
 import RelCertifier.InstancesV2.Cuts.rover_terrain_2to3
 import RelCertifier.InstancesV2.Cuts.rover_terrain_3to6
 import RelCertifier.InstancesV2.Cuts.rover_terrain_6to12
@@ -78,9 +78,9 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("rover_attitude_8to12", rover_attitude_8to12_cutsV2, rover_attitude_8to12_cutsV2X),
   ("rover_ladder_2to3", rover_ladder_2to3_cutsV2, rover_ladder_2to3_cutsV2X),
   ("rover_ladder_2to4", rover_ladder_2to4_cutsV2, rover_ladder_2to4_cutsV2X),
+  ("rover_ladder_2to6", rover_ladder_2to6_cutsV2, rover_ladder_2to6_cutsV2X),
   ("rover_ladder_3to6", rover_ladder_3to6_cutsV2, rover_ladder_3to6_cutsV2X),
   ("rover_ladder_4to6", rover_ladder_4to6_cutsV2, rover_ladder_4to6_cutsV2X),
-  ("rover_ladder_4to6_kin", rover_ladder_4to6_kin_cutsV2, rover_ladder_4to6_kin_cutsV2X),
   ("rover_ladder_6to8", rover_ladder_6to8_cutsV2, rover_ladder_6to8_cutsV2X),
   ("rover_ladder_8to12", rover_ladder_8to12_cutsV2, rover_ladder_8to12_cutsV2X),
   ("rover_lateral_6to8", rover_lateral_6to8_cutsV2, rover_lateral_6to8_cutsV2X),
@@ -88,8 +88,8 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("rover_patrol_refine", rover_patrol_refine_cutsV2, rover_patrol_refine_cutsV2X),
   ("rover_patrol_zones", rover_patrol_zones_cutsV2, rover_patrol_zones_cutsV2X),
   ("rover_rollover_6to12", rover_rollover_6to12_cutsV2, rover_rollover_6to12_cutsV2X),
-  ("rover_rollover_split_a", rover_rollover_split_a_cutsV2, rover_rollover_split_a_cutsV2X),
-  ("rover_rollover_split_b", rover_rollover_split_b_cutsV2, rover_rollover_split_b_cutsV2X),
+  ("rover_rollover_6to7", rover_rollover_6to7_cutsV2, rover_rollover_6to7_cutsV2X),
+  ("rover_rollover_7to12", rover_rollover_7to12_cutsV2, rover_rollover_7to12_cutsV2X),
   ("rover_terrain_2to3", rover_terrain_2to3_cutsV2, rover_terrain_2to3_cutsV2X),
   ("rover_terrain_3to6", rover_terrain_3to6_cutsV2, rover_terrain_3to6_cutsV2X),
   ("rover_terrain_6to12", rover_terrain_6to12_cutsV2, rover_terrain_6to12_cutsV2X),

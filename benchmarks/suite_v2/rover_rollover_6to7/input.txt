@@ -10,7 +10,7 @@
 # Composition: rung_a + rung_b together imply rover_rollover_6to12's direct property.
 
 [problem]
-name = rover_rollover_split_a
+name = rover_rollover_6to7
 max_depth = 8
 lambda_min = 1.0
 lambda_max = 8.0

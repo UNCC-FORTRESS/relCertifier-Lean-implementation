@@ -2,18 +2,18 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `rover_ladder_4to6_kin` (suite_v2) — parser-emitted IR literal (GENERATED leaf — do not edit)
+# `rover_ladder_2to6` (suite_v2) — parser-emitted IR literal (GENERATED leaf — do not edit)
 
-Regenerate with `scripts/gen_v2_data.py rover_ladder_4to6_kin`.
+Regenerate with `scripts/gen_v2_data.py rover_ladder_2to6`.
 -/
 import RelCertifier.Trusted.Parse
 
 namespace RelCertifier.Parse
 
-/-- Parser-emitted IR of `benchmarks/suite_v2/rover_ladder_4to6_kin/input.txt` (do not edit). -/
-def rover_ladder_4to6_kin_IRv2 : PProblem :=
+/-- Parser-emitted IR of `benchmarks/suite_v2/rover_ladder_2to6/input.txt` (do not edit). -/
+def rover_ladder_2to6_IRv2 : PProblem :=
   {
-    name := "rover_ladder_4to6_kin"
+    name := "rover_ladder_2to6"
     lambdaMin := "1.001"
     lambdaMax := "6.0"
     L := {

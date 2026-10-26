@@ -24,9 +24,9 @@ import RelCertifier.InstancesV2.BenchCovers.rover_attitude_6to8
 import RelCertifier.InstancesV2.BenchCovers.rover_attitude_8to12
 import RelCertifier.InstancesV2.BenchCovers.rover_ladder_2to3
 import RelCertifier.InstancesV2.BenchCovers.rover_ladder_2to4
+import RelCertifier.InstancesV2.BenchCovers.rover_ladder_2to6
 import RelCertifier.InstancesV2.BenchCovers.rover_ladder_3to6
 import RelCertifier.InstancesV2.BenchCovers.rover_ladder_4to6
-import RelCertifier.InstancesV2.BenchCovers.rover_ladder_4to6_kin
 import RelCertifier.InstancesV2.BenchCovers.rover_ladder_6to8
 import RelCertifier.InstancesV2.BenchCovers.rover_ladder_8to12
 import RelCertifier.InstancesV2.BenchCovers.rover_lateral_6to8
@@ -34,8 +34,8 @@ import RelCertifier.InstancesV2.BenchCovers.rover_lateral_8to12
 import RelCertifier.InstancesV2.BenchCovers.rover_patrol_refine
 import RelCertifier.InstancesV2.BenchCovers.rover_patrol_zones
 import RelCertifier.InstancesV2.BenchCovers.rover_rollover_6to12
-import RelCertifier.InstancesV2.BenchCovers.rover_rollover_split_a
-import RelCertifier.InstancesV2.BenchCovers.rover_rollover_split_b
+import RelCertifier.InstancesV2.BenchCovers.rover_rollover_6to7
+import RelCertifier.InstancesV2.BenchCovers.rover_rollover_7to12
 import RelCertifier.InstancesV2.BenchCovers.rover_terrain_2to3
 import RelCertifier.InstancesV2.BenchCovers.rover_terrain_3to6
 import RelCertifier.InstancesV2.BenchCovers.rover_terrain_6to12
@@ -78,9 +78,9 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("rover_attitude_8to12", rover_attitude_8to12_coverV2),
   ("rover_ladder_2to3", rover_ladder_2to3_coverV2),
   ("rover_ladder_2to4", rover_ladder_2to4_coverV2),
+  ("rover_ladder_2to6", rover_ladder_2to6_coverV2),
   ("rover_ladder_3to6", rover_ladder_3to6_coverV2),
   ("rover_ladder_4to6", rover_ladder_4to6_coverV2),
-  ("rover_ladder_4to6_kin", rover_ladder_4to6_kin_coverV2),
   ("rover_ladder_6to8", rover_ladder_6to8_coverV2),
   ("rover_ladder_8to12", rover_ladder_8to12_coverV2),
   ("rover_lateral_6to8", rover_lateral_6to8_coverV2),
@@ -88,8 +88,8 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("rover_patrol_refine", rover_patrol_refine_coverV2),
   ("rover_patrol_zones", rover_patrol_zones_coverV2),
   ("rover_rollover_6to12", rover_rollover_6to12_coverV2),
-  ("rover_rollover_split_a", rover_rollover_split_a_coverV2),
-  ("rover_rollover_split_b", rover_rollover_split_b_coverV2),
+  ("rover_rollover_6to7", rover_rollover_6to7_coverV2),
+  ("rover_rollover_7to12", rover_rollover_7to12_coverV2),
   ("rover_terrain_2to3", rover_terrain_2to3_coverV2),
   ("rover_terrain_3to6", rover_terrain_3to6_coverV2),
   ("rover_terrain_6to12", rover_terrain_6to12_coverV2),

@@ -2,18 +2,18 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `rover_rollover_split_a` (suite_v2) — parser-emitted IR literal (GENERATED leaf — do not edit)
+# `rover_rollover_6to7` (suite_v2) — parser-emitted IR literal (GENERATED leaf — do not edit)
 
-Regenerate with `scripts/gen_v2_data.py rover_rollover_split_a`.
+Regenerate with `scripts/gen_v2_data.py rover_rollover_6to7`.
 -/
 import RelCertifier.Trusted.Parse
 
 namespace RelCertifier.Parse
 
-/-- Parser-emitted IR of `benchmarks/suite_v2/rover_rollover_split_a/input.txt` (do not edit). -/
-def rover_rollover_split_a_IRv2 : PProblem :=
+/-- Parser-emitted IR of `benchmarks/suite_v2/rover_rollover_6to7/input.txt` (do not edit). -/
+def rover_rollover_6to7_IRv2 : PProblem :=
   {
-    name := "rover_rollover_split_a"
+    name := "rover_rollover_6to7"
     lambdaMin := "1.0"
     lambdaMax := "8.0"
     L := {

@@ -1,4 +1,4 @@
-# Ladder rung 2b: 6-DOF refines 4-DOF  (4→6 composition step)
+# Ladder rung 2b: 6-DOF refines the 2-DOF kinematic baseline  (2→6 composition step)
 #
 # L (deployed, 6-DOF): adds heave (z) and roll (phi_r) to the 4-DOF model.
 #   s'=v(1-0.5*psi^2-0.3*theta^2), psi'=-psi, theta'=-theta, z'=-z, phi'=-phi
@@ -19,7 +19,7 @@
 # Chain: 2-DOF → 4-DOF (rung2) → 6-DOF (this) → 8-DOF (rung3) → 12-DOF (pos_ladder).
 
 [problem]
-name = rover_ladder_4to6_kin
+name = rover_ladder_2to6
 max_depth = 8
 lambda_min = 1.001
 lambda_max = 6.0

@@ -2,26 +2,26 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `rover_rollover_split_a`: Assumption 1 of the right model (`WellFormedR`)
+# `rover_rollover_6to7`: Assumption 1 of the right model (`WellFormedR`)
 
 Over the guarded right automaton `GrG` of the Theorem 3 instance
-(`Instances/RoverRolloverSplitAGuarded.lean`), the lowered right guards, `ε_r = 1` (the literal is the
+(`Instances/RoverRollover6to7Guarded.lean`), the lowered right guards, `ε_r = 1` (the literal is the
 suite_v2 file's, `InstancesV2/SameIR.lean`). A terrain ladder with speed caps, `s' = v ((1 − ψ²/2) − 0.3 θ²)`:
 `wellFormedR_ladder` (style (b) for `STEEP`, `MODER`, (a) for `FLAT`); existence from the
 instance's explicit ladder runs (`LR.sol`). Z3-free. (GENERATED from one template.)
 -/
-import RelCertifier.InstancesV2.BenchIR.rover_rollover_split_a
+import RelCertifier.InstancesV2.BenchIR.rover_rollover_6to7
 import RelCertifier.Proofs.Encoding.WellFormedLadder
 
 set_option maxHeartbeats 3200000
 set_option linter.unusedSimpArgs false
 
 namespace RelCertifier
-namespace RoverRolloverSplitAPins
+namespace RoverRollover6to7Pins
 
 open Parse
 
-/-! Parse pins of the numerals the guards and fields of `rover_rollover_split_a` write (the `GuardedPins` lemmas this file uses, local). -/
+/-! Parse pins of the numerals the guards and fields of `rover_rollover_6to7` write (the `GuardedPins` lemmas this file uses, local). -/
 
 theorem gp_0_0 : Run.parseRat "0.0" = some (0:ℚ) := by
   have h : parseQ "0.0" = some (⟨0, 10⟩ : QF) := by decide
@@ -58,9 +58,9 @@ theorem gp_1_4 : Run.parseRat "1.4" = some ((7:ℚ)/5) := by
   simp [Run.parseRat, h]
   try norm_num
 
-end RoverRolloverSplitAPins
+end RoverRollover6to7Pins
 
-namespace RoverRolloverSplitAModal
+namespace RoverRollover6to7Modal
 
 open DL DLCalTiming DLRel Parse Set
 
@@ -68,7 +68,7 @@ def vsA : List String := ["v", "s", "psi", "omega_psi", "theta_p", "omega_theta"
 
 def dummyA : Parse.PMode := ⟨"", [], .tt, .tt, []⟩
 
-def mRA (q : ℕ) : Parse.PMode := rover_rollover_split_a_IRv2.R.modes.getD q dummyA
+def mRA (q : ℕ) : Parse.PMode := rover_rollover_6to7_IRv2.R.modes.getD q dummyA
 
 noncomputable def fRA (q : ℕ) : Fin 12 → Term (Var 12) := hostDyn vsA 12 Side.R (mRA q)
 
@@ -162,100 +162,100 @@ noncomputable def cstA (q : ℕ) : ℝ := if q = 0 then 3/10 else if q = 1 then 
 theorem fRA0_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
     Term.eval (fRA q 0) x = 3 * (cstA q - x (Rv 0)) := by
   interval_cases q <;>
-    simp [fRA, hostDyn, mRA, rover_rollover_split_a_IRv2, vsA, Run.dynOf,
+    simp [fRA, hostDyn, mRA, rover_rollover_6to7_IRv2, vsA, Run.dynOf,
       Run.lowerE, hp030, hp050, hp065, hp3, hpm1, hp0, hp1, hp05, hp03, hpm05, hp06, hp015, hp00, hp08, hpm10, hpm15, hp11, hpm152, hp162, Run.resolveVar,
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv, cstA]
 
 theorem fRA1_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
     Term.eval (fRA q 1) x = x (Rv 0) * ((1 - 1/2 * (x (Rv 2) * x (Rv 2))) - 3/10 * (x (Rv 4) * x (Rv 4))) := by
   interval_cases q <;>
-    simp [fRA, hostDyn, mRA, rover_rollover_split_a_IRv2, vsA, Run.dynOf,
+    simp [fRA, hostDyn, mRA, rover_rollover_6to7_IRv2, vsA, Run.dynOf,
       Run.lowerE, hp030, hp050, hp065, hp3, hpm1, hp0, hp1, hp05, hp03, hpm05, hp06, hp015, hp00, hp08, hpm10, hpm15, hp11, hpm152, hp162, Run.resolveVar,
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
 
 theorem fRA2_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
     Term.eval (fRA q 2) x = -1 * x (Rv 2) := by
   interval_cases q <;>
-    simp [fRA, hostDyn, mRA, rover_rollover_split_a_IRv2, vsA, Run.dynOf,
+    simp [fRA, hostDyn, mRA, rover_rollover_6to7_IRv2, vsA, Run.dynOf,
       Run.lowerE, hp030, hp050, hp065, hp3, hpm1, hp0, hp1, hp05, hp03, hpm05, hp06, hp015, hp00, hp08, hpm10, hpm15, hp11, hpm152, hp162, Run.resolveVar,
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
 
 theorem fRA3_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
     Term.eval (fRA q 3) x = 0 := by
   interval_cases q <;>
-    simp [fRA, hostDyn, mRA, rover_rollover_split_a_IRv2, vsA, Run.dynOf,
+    simp [fRA, hostDyn, mRA, rover_rollover_6to7_IRv2, vsA, Run.dynOf,
       Run.lowerE, hp030, hp050, hp065, hp3, hpm1, hp0, hp1, hp05, hp03, hpm05, hp06, hp015, hp00, hp08, hpm10, hpm15, hp11, hpm152, hp162, Run.resolveVar,
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
 
 theorem fRA4_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
     Term.eval (fRA q 4) x = -1 * x (Rv 4) := by
   interval_cases q <;>
-    simp [fRA, hostDyn, mRA, rover_rollover_split_a_IRv2, vsA, Run.dynOf,
+    simp [fRA, hostDyn, mRA, rover_rollover_6to7_IRv2, vsA, Run.dynOf,
       Run.lowerE, hp030, hp050, hp065, hp3, hpm1, hp0, hp1, hp05, hp03, hpm05, hp06, hp015, hp00, hp08, hpm10, hpm15, hp11, hpm152, hp162, Run.resolveVar,
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
 
 theorem fRA5_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
     Term.eval (fRA q 5) x = 0 := by
   interval_cases q <;>
-    simp [fRA, hostDyn, mRA, rover_rollover_split_a_IRv2, vsA, Run.dynOf,
+    simp [fRA, hostDyn, mRA, rover_rollover_6to7_IRv2, vsA, Run.dynOf,
       Run.lowerE, hp030, hp050, hp065, hp3, hpm1, hp0, hp1, hp05, hp03, hpm05, hp06, hp015, hp00, hp08, hpm10, hpm15, hp11, hpm152, hp162, Run.resolveVar,
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
 
 theorem fRA6_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
     Term.eval (fRA q 6) x = -1 * x (Rv 6) := by
   interval_cases q <;>
-    simp [fRA, hostDyn, mRA, rover_rollover_split_a_IRv2, vsA, Run.dynOf,
+    simp [fRA, hostDyn, mRA, rover_rollover_6to7_IRv2, vsA, Run.dynOf,
       Run.lowerE, hp030, hp050, hp065, hp3, hpm1, hp0, hp1, hp05, hp03, hpm05, hp06, hp015, hp00, hp08, hpm10, hpm15, hp11, hpm152, hp162, Run.resolveVar,
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
 
 theorem fRA7_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
     Term.eval (fRA q 7) x = 0 := by
   interval_cases q <;>
-    simp [fRA, hostDyn, mRA, rover_rollover_split_a_IRv2, vsA, Run.dynOf,
+    simp [fRA, hostDyn, mRA, rover_rollover_6to7_IRv2, vsA, Run.dynOf,
       Run.lowerE, hp030, hp050, hp065, hp3, hpm1, hp0, hp1, hp05, hp03, hpm05, hp06, hp015, hp00, hp08, hpm10, hpm15, hp11, hpm152, hp162, Run.resolveVar,
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
 
 theorem fRA8_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
     Term.eval (fRA q 8) x = -1 * x (Rv 8) := by
   interval_cases q <;>
-    simp [fRA, hostDyn, mRA, rover_rollover_split_a_IRv2, vsA, Run.dynOf,
+    simp [fRA, hostDyn, mRA, rover_rollover_6to7_IRv2, vsA, Run.dynOf,
       Run.lowerE, hp030, hp050, hp065, hp3, hpm1, hp0, hp1, hp05, hp03, hpm05, hp06, hp015, hp00, hp08, hpm10, hpm15, hp11, hpm152, hp162, Run.resolveVar,
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
 
 theorem fRA9_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
     Term.eval (fRA q 9) x = 0 := by
   interval_cases q <;>
-    simp [fRA, hostDyn, mRA, rover_rollover_split_a_IRv2, vsA, Run.dynOf,
+    simp [fRA, hostDyn, mRA, rover_rollover_6to7_IRv2, vsA, Run.dynOf,
       Run.lowerE, hp030, hp050, hp065, hp3, hpm1, hp0, hp1, hp05, hp03, hpm05, hp06, hp015, hp00, hp08, hpm10, hpm15, hp11, hpm152, hp162, Run.resolveVar,
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
 
 theorem fRA10_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
     Term.eval (fRA q 10) x = 0 := by
   interval_cases q <;>
-    simp [fRA, hostDyn, mRA, rover_rollover_split_a_IRv2, vsA, Run.dynOf,
+    simp [fRA, hostDyn, mRA, rover_rollover_6to7_IRv2, vsA, Run.dynOf,
       Run.lowerE, hp030, hp050, hp065, hp3, hpm1, hp0, hp1, hp05, hp03, hpm05, hp06, hp015, hp00, hp08, hpm10, hpm15, hp11, hpm152, hp162, Run.resolveVar,
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
 
 theorem fRA11_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
     Term.eval (fRA q 11) x = 0 := by
   interval_cases q <;>
-    simp [fRA, hostDyn, mRA, rover_rollover_split_a_IRv2, vsA, Run.dynOf,
+    simp [fRA, hostDyn, mRA, rover_rollover_6to7_IRv2, vsA, Run.dynOf,
       Run.lowerE, hp030, hp050, hp065, hp3, hpm1, hp0, hp1, hp05, hp03, hpm05, hp06, hp015, hp00, hp08, hpm10, hpm15, hp11, hpm152, hp162, Run.resolveVar,
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
 
 theorem sat_domRA (x : State (Var 12)) : Formula.sat domRA x ↔
     (-(3:ℝ)/2 ≤ x (Rv 6) ∧ x (Rv 6) ≤ (3:ℝ)/20 ∧ -(1:ℝ)/2 ≤ x (Rv 9) ∧ x (Rv 9) ≤ (3:ℝ)/5 ∧ -(1:ℝ)/2 ≤ x (Rv 3) ∧ x (Rv 3) ≤ (3:ℝ)/5 ∧ -(1:ℝ)/2 ≤ x (Rv 5) ∧ x (Rv 5) ≤ (3:ℝ)/5 ∧ -(1:ℝ)/2 ≤ x (Rv 8) ∧ x (Rv 8) ≤ (3:ℝ)/20 ∧ -(1:ℝ)/2 ≤ x (Rv 2) ∧ x (Rv 2) ≤ (3:ℝ)/20 ∧ -(38:ℝ)/25 ≤ x (Rv 7) ∧ x (Rv 7) ≤ (81:ℝ)/50 ∧ 0 ≤ x (Rv 1) ∧ -(1:ℝ)/2 ≤ x (Rv 4) ∧ x (Rv 4) ≤ (3:ℝ)/20 ∧ 0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ (4:ℝ)/5 ∧ -(1:ℝ) ≤ x (Rv 11) ∧ x (Rv 11) ≤ (11:ℝ)/10 ∧ -(1:ℝ) ≤ x (Rv 10) ∧ x (Rv 10) ≤ (11:ℝ)/10) := by
-  simp only [domRA, hostEvolve, mRA, rover_rollover_split_a_IRv2, vsA]
+  simp only [domRA, hostEvolve, mRA, rover_rollover_6to7_IRv2, vsA]
   simp [Run.lowerF, Run.lowerE, hpm15, hp015, hpm05, hp06, hpm152, hp162, hp00, hp08, hpm10, hp11,
     Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
     CompOp.interp, Term.eval, Rv]
   tauto
 
-end RoverRolloverSplitAModal
+end RoverRollover6to7Modal
 
-namespace RoverRolloverSplitAGuarded
+namespace RoverRollover6to7Guarded
 
-open DL DLCalTiming DLRel Parse Set RoverRolloverSplitAModal RoverRolloverSplitAPins
+open DL DLCalTiming DLRel Parse Set RoverRollover6to7Modal RoverRollover6to7Pins
 
 noncomputable def edgeG (st tgt : ℕ) : REdge (Var 12) :=
   { src := st, tgt := tgt, guard := hostGuard vsA 12 Side.R (mRA tgt), pruned := false }
@@ -275,19 +275,19 @@ theorem edgeG_mem (st tgt : ℕ) (h : edgeG st tgt ∈ GrG.edges) :
 
 theorem sat_guardR0 (x : State (Var 12)) : Formula.sat (hostGuard vsA 12 Side.R (mRA 0)) x ↔
     (0 ≤ x (Rv 1) ∧ x (Rv 1) < 3/5 ∧ x (Rv 0) ≤ 3/10) := by
-  simp [hostGuard, mRA, rover_rollover_split_a_IRv2, Run.lowerF, Run.lowerE, gp_0_0, gp_0_6,
+  simp [hostGuard, mRA, rover_rollover_6to7_IRv2, Run.lowerF, Run.lowerE, gp_0_0, gp_0_6,
     gp_1_4, gp_0_3, gp_0_5, gp_0_65, vsA, Run.resolveVar, List.findIdx?_cons, IForm.toHost,
     ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv, and_assoc]
 
 theorem sat_guardR1 (x : State (Var 12)) : Formula.sat (hostGuard vsA 12 Side.R (mRA 1)) x ↔
     (3/5 ≤ x (Rv 1) ∧ x (Rv 1) < 7/5 ∧ x (Rv 0) ≤ 1/2) := by
-  simp [hostGuard, mRA, rover_rollover_split_a_IRv2, Run.lowerF, Run.lowerE, gp_0_0, gp_0_6,
+  simp [hostGuard, mRA, rover_rollover_6to7_IRv2, Run.lowerF, Run.lowerE, gp_0_0, gp_0_6,
     gp_1_4, gp_0_3, gp_0_5, gp_0_65, vsA, Run.resolveVar, List.findIdx?_cons, IForm.toHost,
     ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv, and_assoc]
 
 theorem sat_guardR2 (x : State (Var 12)) : Formula.sat (hostGuard vsA 12 Side.R (mRA 2)) x ↔
     (7/5 ≤ x (Rv 1) ∧ x (Rv 0) ≤ 13/20) := by
-  simp [hostGuard, mRA, rover_rollover_split_a_IRv2, Run.lowerF, Run.lowerE, gp_0_0, gp_0_6,
+  simp [hostGuard, mRA, rover_rollover_6to7_IRv2, Run.lowerF, Run.lowerE, gp_0_0, gp_0_6,
     gp_1_4, gp_0_3, gp_0_5, gp_0_65, vsA, Run.resolveVar, List.findIdx?_cons, IForm.toHost,
     ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv, and_assoc]
 
@@ -476,8 +476,8 @@ noncomputable def LR : LadderRun GrG domRA :=
       show Formula.sat (hostGuard vsA 12 Side.R (mRA 2)) x
       rw [sat_guardR2]; exact ⟨hs, hv⟩)
 
-theorem epsR_eq : epsR rover_rollover_split_a_IRv2 = 1 := by
-  simp [epsR, rover_rollover_split_a_IRv2, gp_1_0]
+theorem epsR_eq : epsR rover_rollover_6to7_IRv2 = 1 := by
+  simp [epsR, rover_rollover_6to7_IRv2, gp_1_0]
 
 noncomputable def guardR (q : ℕ) : Formula (Var 12) := hostGuard vsA 12 Side.R (mRA q)
 
@@ -521,11 +521,11 @@ noncomputable def WF : LadderWF GrG guardR domRA where
   e22_tgt := rfl
   exists_run := LR.exists_run GrG_modeAt
 
-/-- **Assumption 1 for `rover_rollover_split_a`**, every mode, Z3-free. -/
-theorem rover_rollover_split_a_wellFormedR :
-    WellFormedR GrG guardR (epsR rover_rollover_split_a_IRv2) := by
+/-- **Assumption 1 for `rover_rollover_6to7`**, every mode, Z3-free. -/
+theorem rover_rollover_6to7_wellFormedR :
+    WellFormedR GrG guardR (epsR rover_rollover_6to7_IRv2) := by
   rw [epsR_eq]; exact wellFormedR_ladder WF
 
-end RoverRolloverSplitAGuarded
+end RoverRollover6to7Guarded
 
 end RelCertifier

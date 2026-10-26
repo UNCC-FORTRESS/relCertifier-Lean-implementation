@@ -19,7 +19,7 @@ import RelCertifier.InstancesV2.BenchProgress.quad_light_profiles
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_2to3
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_3to6
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_2to4
-import RelCertifier.InstancesV2.BenchProgress.rover_ladder_4to6_kin
+import RelCertifier.InstancesV2.BenchProgress.rover_ladder_2to6
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_4to6
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_6to8
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_8to12
@@ -41,8 +41,8 @@ import RelCertifier.InstancesV2.BenchProgress.rover_attitude_8to12
 import RelCertifier.InstancesV2.BenchProgress.rover_lateral_6to8
 import RelCertifier.InstancesV2.BenchProgress.rover_lateral_8to12
 import RelCertifier.InstancesV2.BenchProgress.rover_rollover_6to12
-import RelCertifier.InstancesV2.BenchProgress.rover_rollover_split_a
-import RelCertifier.InstancesV2.BenchProgress.rover_rollover_split_b
+import RelCertifier.InstancesV2.BenchProgress.rover_rollover_6to7
+import RelCertifier.InstancesV2.BenchProgress.rover_rollover_7to12
 import RelCertifier.InstancesV2.BenchProgress.watertank
 import RelCertifier.InstancesV2.BenchProgress.watertank_twospeed
 
@@ -70,7 +70,7 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("rover_ladder_2to3", rover_ladder_2to3_coverV2_progress),
    ("rover_ladder_3to6", rover_ladder_3to6_coverV2_progress),
    ("rover_ladder_2to4", rover_ladder_2to4_coverV2_progress),
-   ("rover_ladder_4to6_kin", rover_ladder_4to6_kin_coverV2_progress),
+   ("rover_ladder_2to6", rover_ladder_2to6_coverV2_progress),
    ("rover_ladder_4to6", rover_ladder_4to6_coverV2_progress),
    ("rover_ladder_6to8", rover_ladder_6to8_coverV2_progress),
    ("rover_ladder_8to12", rover_ladder_8to12_coverV2_progress),
@@ -92,8 +92,8 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("rover_lateral_6to8", rover_lateral_6to8_coverV2_progress),
    ("rover_lateral_8to12", rover_lateral_8to12_coverV2_progress),
    ("rover_rollover_6to12", rover_rollover_6to12_coverV2_progress),
-   ("rover_rollover_split_a", rover_rollover_split_a_coverV2_progress),
-   ("rover_rollover_split_b", rover_rollover_split_b_coverV2_progress),
+   ("rover_rollover_6to7", rover_rollover_6to7_coverV2_progress),
+   ("rover_rollover_7to12", rover_rollover_7to12_coverV2_progress),
    ("watertank", watertank_coverV2_progress),
    ("watertank_twospeed", watertank_twospeed_coverV2_progress)]
 

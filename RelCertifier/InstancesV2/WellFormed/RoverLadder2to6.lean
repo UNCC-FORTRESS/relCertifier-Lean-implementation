@@ -2,26 +2,26 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `rover_ladder_4to6_kin`: Assumption 1 of the right model (`WellFormedR`)
+# `rover_ladder_2to6`: Assumption 1 of the right model (`WellFormedR`)
 
 Over the guarded right automaton `GrG` of the Theorem 3 instance
-(`Instances/RoverLadder4to6KinGuarded.lean`), the lowered right guards, `ε_r = 1` (the literal is the
+(`Instances/RoverLadder2to6Guarded.lean`), the lowered right guards, `ε_r = 1` (the literal is the
 suite_v2 file's, `InstancesV2/SameIR.lean`). A terrain ladder without speed caps, `s' = v`:
 `wellFormedR_ladder` (style (b) for `STEEP`, `MODER`, (a) for `FLAT`); existence from the
 instance's explicit ladder runs (`LR.sol`). Z3-free. (GENERATED from one template.)
 -/
-import RelCertifier.InstancesV2.BenchIR.rover_ladder_4to6_kin
+import RelCertifier.InstancesV2.BenchIR.rover_ladder_2to6
 import RelCertifier.Proofs.Encoding.WellFormedLadder
 
 set_option maxHeartbeats 3200000
 set_option linter.unusedSimpArgs false
 
 namespace RelCertifier
-namespace RoverLadder4to6KinPins
+namespace RoverLadder2to6Pins
 
 open Parse
 
-/-! Parse pins of the numerals the guards and fields of `rover_ladder_4to6_kin` write (the `GuardedPins` lemmas this file uses, local). -/
+/-! Parse pins of the numerals the guards and fields of `rover_ladder_2to6` write (the `GuardedPins` lemmas this file uses, local). -/
 
 theorem gp_0_0 : Run.parseRat "0.0" = some (0:ℚ) := by
   have h : parseQ "0.0" = some (⟨0, 10⟩ : QF) := by decide
@@ -58,9 +58,9 @@ theorem gp_1_4 : Run.parseRat "1.4" = some ((7:ℚ)/5) := by
   simp [Run.parseRat, h]
   try norm_num
 
-end RoverLadder4to6KinPins
+end RoverLadder2to6Pins
 
-namespace RoverLadder4to6KinModal
+namespace RoverLadder2to6Modal
 
 open DL DLCalTiming DLRel Parse Set
 
@@ -68,7 +68,7 @@ def vsB2 : List String := ["v", "s", "psi", "theta_p", "z", "phi_r"]
 
 def dummyB2 : Parse.PMode := ⟨"", [], .tt, .tt, []⟩
 
-def mRB2 (q : ℕ) : Parse.PMode := rover_ladder_4to6_kin_IRv2.R.modes.getD q dummyB2
+def mRB2 (q : ℕ) : Parse.PMode := rover_ladder_2to6_IRv2.R.modes.getD q dummyB2
 
 noncomputable def fRB2 (q : ℕ) : Fin 6 → Term (Var 6) := hostDyn vsB2 6 Side.R (mRB2 q)
 
@@ -128,7 +128,7 @@ noncomputable def cB2 (q : ℕ) : ℝ := if q = 0 then 3/10 else if q = 1 then 1
 theorem fRB20_eval (q : ℕ) (hq : q < 3) (x : State (Var 6)) :
     Term.eval (fRB2 q 0) x = 3 * (cB2 q - x (Rv 0)) := by
   interval_cases q <;>
-    · simp [fRB2, hostDyn, mRB2, rover_ladder_4to6_kin_IRv2, vsB2, Run.dynOf,
+    · simp [fRB2, hostDyn, mRB2, rover_ladder_2to6_IRv2, vsB2, Run.dynOf,
       Run.lowerE, hq3n, hq030, hq050, hq065, hq0, Run.resolveVar,
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv, cB2]
       try norm_num
@@ -136,7 +136,7 @@ theorem fRB20_eval (q : ℕ) (hq : q < 3) (x : State (Var 6)) :
 theorem fRB21_eval (q : ℕ) (hq : q < 3) (x : State (Var 6)) :
     Term.eval (fRB2 q 1) x = x (Rv 0) := by
   interval_cases q <;>
-    · simp [fRB2, hostDyn, mRB2, rover_ladder_4to6_kin_IRv2, vsB2, Run.dynOf,
+    · simp [fRB2, hostDyn, mRB2, rover_ladder_2to6_IRv2, vsB2, Run.dynOf,
       Run.lowerE, hq3n, hq030, hq050, hq065, hq0, Run.resolveVar,
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
       try ring
@@ -144,7 +144,7 @@ theorem fRB21_eval (q : ℕ) (hq : q < 3) (x : State (Var 6)) :
 theorem fRB22_eval (q : ℕ) (hq : q < 3) (x : State (Var 6)) :
     Term.eval (fRB2 q 2) x = 0 := by
   interval_cases q <;>
-    · simp [fRB2, hostDyn, mRB2, rover_ladder_4to6_kin_IRv2, vsB2, Run.dynOf,
+    · simp [fRB2, hostDyn, mRB2, rover_ladder_2to6_IRv2, vsB2, Run.dynOf,
       Run.lowerE, hq3n, hq030, hq050, hq065, hq0, Run.resolveVar,
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
       try norm_num
@@ -152,7 +152,7 @@ theorem fRB22_eval (q : ℕ) (hq : q < 3) (x : State (Var 6)) :
 theorem fRB23_eval (q : ℕ) (hq : q < 3) (x : State (Var 6)) :
     Term.eval (fRB2 q 3) x = 0 := by
   interval_cases q <;>
-    · simp [fRB2, hostDyn, mRB2, rover_ladder_4to6_kin_IRv2, vsB2, Run.dynOf,
+    · simp [fRB2, hostDyn, mRB2, rover_ladder_2to6_IRv2, vsB2, Run.dynOf,
       Run.lowerE, hq3n, hq030, hq050, hq065, hq0, Run.resolveVar,
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
       try norm_num
@@ -160,7 +160,7 @@ theorem fRB23_eval (q : ℕ) (hq : q < 3) (x : State (Var 6)) :
 theorem fRB24_eval (q : ℕ) (hq : q < 3) (x : State (Var 6)) :
     Term.eval (fRB2 q 4) x = 0 := by
   interval_cases q <;>
-    · simp [fRB2, hostDyn, mRB2, rover_ladder_4to6_kin_IRv2, vsB2, Run.dynOf,
+    · simp [fRB2, hostDyn, mRB2, rover_ladder_2to6_IRv2, vsB2, Run.dynOf,
       Run.lowerE, hq3n, hq030, hq050, hq065, hq0, Run.resolveVar,
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
       try norm_num
@@ -168,7 +168,7 @@ theorem fRB24_eval (q : ℕ) (hq : q < 3) (x : State (Var 6)) :
 theorem fRB25_eval (q : ℕ) (hq : q < 3) (x : State (Var 6)) :
     Term.eval (fRB2 q 5) x = 0 := by
   interval_cases q <;>
-    · simp [fRB2, hostDyn, mRB2, rover_ladder_4to6_kin_IRv2, vsB2, Run.dynOf,
+    · simp [fRB2, hostDyn, mRB2, rover_ladder_2to6_IRv2, vsB2, Run.dynOf,
       Run.lowerE, hq3n, hq030, hq050, hq065, hq0, Run.resolveVar,
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
       try norm_num
@@ -177,17 +177,17 @@ theorem sat_domRB2 (x : State (Var 6)) : Formula.sat domRB2 x ↔
     (-(1:ℝ)/2 ≤ x (Rv 5) ∧ x (Rv 5) ≤ 3/5 ∧ -(1:ℝ)/2 ≤ x (Rv 2) ∧ x (Rv 2) ≤ 3/5 ∧
       0 ≤ x (Rv 1) ∧ -(1:ℝ)/2 ≤ x (Rv 3) ∧ x (Rv 3) ≤ 3/5 ∧
       0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 4/5 ∧ -(1:ℝ) ≤ x (Rv 4) ∧ x (Rv 4) ≤ 11/10) := by
-  simp only [domRB2, hostEvolve, mRB2, rover_ladder_4to6_kin_IRv2, vsB2]
+  simp only [domRB2, hostEvolve, mRB2, rover_ladder_2to6_IRv2, vsB2]
   simp [Run.lowerF, Run.lowerE, hqm05, hq06, hq00, hq08, hqm10, hq11,
     Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
     CompOp.interp, Term.eval, Rv]
   tauto
 
-end RoverLadder4to6KinModal
+end RoverLadder2to6Modal
 
-namespace RoverLadder4to6KinGuarded
+namespace RoverLadder2to6Guarded
 
-open DL DLCalTiming DLRel Parse Set RoverLadder4to6KinModal RoverLadder4to6KinPins
+open DL DLCalTiming DLRel Parse Set RoverLadder2to6Modal RoverLadder2to6Pins
 
 noncomputable def edgeG (st tgt : ℕ) : REdge (Var 6) :=
   { src := st, tgt := tgt, guard := hostGuard vsB2 6 Side.R (mRB2 tgt), pruned := false }
@@ -207,19 +207,19 @@ theorem edgeG_mem (st tgt : ℕ) (h : edgeG st tgt ∈ GrG.edges) :
 
 theorem sat_guardR0 (x : State (Var 6)) : Formula.sat (hostGuard vsB2 6 Side.R (mRB2 0)) x ↔
     (0 ≤ x (Rv 1) ∧ x (Rv 1) < 3/5) := by
-  simp [hostGuard, mRB2, rover_ladder_4to6_kin_IRv2, Run.lowerF, Run.lowerE, gp_0_0, gp_0_6,
+  simp [hostGuard, mRB2, rover_ladder_2to6_IRv2, Run.lowerF, Run.lowerE, gp_0_0, gp_0_6,
     gp_1_4, gp_0_3, gp_0_5, gp_0_65, vsB2, Run.resolveVar, List.findIdx?_cons, IForm.toHost,
     ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv, and_assoc]
 
 theorem sat_guardR1 (x : State (Var 6)) : Formula.sat (hostGuard vsB2 6 Side.R (mRB2 1)) x ↔
     (3/5 ≤ x (Rv 1) ∧ x (Rv 1) < 7/5) := by
-  simp [hostGuard, mRB2, rover_ladder_4to6_kin_IRv2, Run.lowerF, Run.lowerE, gp_0_0, gp_0_6,
+  simp [hostGuard, mRB2, rover_ladder_2to6_IRv2, Run.lowerF, Run.lowerE, gp_0_0, gp_0_6,
     gp_1_4, gp_0_3, gp_0_5, gp_0_65, vsB2, Run.resolveVar, List.findIdx?_cons, IForm.toHost,
     ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv, and_assoc]
 
 theorem sat_guardR2 (x : State (Var 6)) : Formula.sat (hostGuard vsB2 6 Side.R (mRB2 2)) x ↔
     (7/5 ≤ x (Rv 1)) := by
-  simp [hostGuard, mRB2, rover_ladder_4to6_kin_IRv2, Run.lowerF, Run.lowerE, gp_0_0, gp_0_6,
+  simp [hostGuard, mRB2, rover_ladder_2to6_IRv2, Run.lowerF, Run.lowerE, gp_0_0, gp_0_6,
     gp_1_4, gp_0_3, gp_0_5, gp_0_65, vsB2, Run.resolveVar, List.findIdx?_cons, IForm.toHost,
     ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv, and_assoc]
 
@@ -286,8 +286,8 @@ noncomputable def LR : LadderRun GrG domRB2 :=
       show Formula.sat (hostGuard vsB2 6 Side.R (mRB2 2)) x
       rw [sat_guardR2]; exact hs)
 
-theorem epsR_eq : epsR rover_ladder_4to6_kin_IRv2 = 1 := by
-  simp [epsR, rover_ladder_4to6_kin_IRv2, gp_1_0]
+theorem epsR_eq : epsR rover_ladder_2to6_IRv2 = 1 := by
+  simp [epsR, rover_ladder_2to6_IRv2, gp_1_0]
 
 noncomputable def guardR (q : ℕ) : Formula (Var 6) := hostGuard vsB2 6 Side.R (mRB2 q)
 
@@ -326,11 +326,11 @@ noncomputable def WF : LadderWF GrG guardR domRB2 where
   e22_tgt := rfl
   exists_run := LR.exists_run GrG_modeAt
 
-/-- **Assumption 1 for `rover_ladder_4to6_kin`**, every mode, Z3-free. -/
-theorem rover_ladder_4to6_kin_wellFormedR :
-    WellFormedR GrG guardR (epsR rover_ladder_4to6_kin_IRv2) := by
+/-- **Assumption 1 for `rover_ladder_2to6`**, every mode, Z3-free. -/
+theorem rover_ladder_2to6_wellFormedR :
+    WellFormedR GrG guardR (epsR rover_ladder_2to6_IRv2) := by
   rw [epsR_eq]; exact wellFormedR_ladder WF
 
-end RoverLadder4to6KinGuarded
+end RoverLadder2to6Guarded
 
 end RelCertifier

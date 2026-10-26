@@ -130,7 +130,7 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 18 | `rover_ladder_2to3` | proved | STEEP (b) → MODER, MODER (b) → FLAT, FLAT (a) | STEEP ok (exit→MODER), MODER ok (exit→FLAT), FLAT ok (invariant) |
 | 19 | `rover_ladder_3to6` | proved | as 18 (ladder lemma) | as 18 |
 | 20 | `rover_ladder_2to4` | proved | as 18 | as 18 |
-| 21 | `rover_ladder_4to6_kin` | proved | as 18 | as 18 |
+| 21 | `rover_ladder_2to6` | proved | as 18 | as 18 |
 | 22 | `rover_ladder_4to6` | proved | as 18 | as 18 |
 | 23 | `rover_ladder_6to8` | proved | as 18 | as 18 |
 | 24 | `rover_ladder_8to12` | proved | as 18 | as 18 |
@@ -152,8 +152,8 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 40 | `rover_lateral_6to8` | proved | as 18 | as 18 |
 | 41 | `rover_lateral_8to12` | proved | as 18 | as 18 |
 | 42 | `rover_rollover_6to12` | proved | as 18 | as 18 |
-| 43 | `rover_rollover_split_a` | proved | as 18 | as 18 |
-| 44 | `rover_rollover_split_b` | proved | as 18 | as 18 |
+| 43 | `rover_rollover_6to7` | proved | as 18 | as 18 |
+| 44 | `rover_rollover_7to12` | proved | as 18 | as 18 |
 | 45 | `watertank` | proved | Low (b) → MidEco; MidEco, MidBoost, High, PumpOff (a) | Low ok (exit→MidBoost, same guard); the others ok (invariant) |
 | 47 | `drl_car_stop` | proved (direct) | Accel, Brake (b) → Coast; Coast (a); explicit run `x + v t + c t²/2` | Accel, Brake ok (exit→Coast); Coast ok (invariant) |
 | 48 | `drl_lane_control` | proved (direct) | every mode (b) → CoastLAccel or CoastLBrake by the leader's speed; explicit run | all six ok (exit) |

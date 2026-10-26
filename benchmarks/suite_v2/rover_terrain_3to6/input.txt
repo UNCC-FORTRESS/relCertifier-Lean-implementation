@@ -11,9 +11,14 @@
 # s' = v (1 - psi^2/2) (cos psi to second order); z, theta_p, phi_r pinned (z' = theta_p' =
 # phi_r' = 0). Until 2026-10-26 the right had s' = v (psi a decaying coordinate entering nothing),
 # contradicting this header's own "previous rung's fine model" claim.
-# Left (6-DOF [v, s, psi, z, theta_p, phi_r]): adds pitch, which costs progress on slopes,
-# s' = v (1 - psi^2/2 - 0.3 theta_p^2); heave z and roll phi_r decay first order (they enter no
-# other equation in this model).
+# Left (6-DOF [v, s, psi, z, theta_p, phi_r]): adds pitch and roll, which cost progress on
+# slopes and cross-slopes, s' = v (1 - psi^2/2 - 0.3 theta_p^2 - 0.2 phi_r^2); heave pitches the
+# chassis (bounce-pitch coupling), theta_p' = -theta_p + 0.5 z; z' = -z, phi_r' = -phi_r. Until
+# 2026-10-26 heave and roll entered no equation (filler); they now have the roles the ladder's
+# 6-DOF model gave them (rover_ladder_3to6, commit 2758fc2), so this left is rover_ladder_3to6's
+# left in another coordinate order: the two files refine the same pair of models and differ only
+# in the claim (the ladder also claims psi_L = psi_R) and in the right guards (the ladder's
+# right has no speed caps).
 #
 # Property (the same rows in every left mode): v_L <= v_R and s_L <= s_R: the rover is never
 # faster than, and never ahead of, the 3-DOF plan (the plan's odometer is an upper bound on the
@@ -22,7 +27,8 @@
 # Tightest: the s offset certifies at every value tried down to -1; the claim keeps 0.
 #
 # Domains: v in [0, 0.8] and every attitude box (psi, theta_p, phi_r in [-0.5, 0.15], z in
-# [-1, 0.15]) are forward invariant (first-order decay toward 0 points inward); s >= 0 unbounded
+# [-1, 0.15]) are forward invariant (first-order decay toward 0 points inward; for pitch,
+# -theta_p + 0.5 z is <= -0.075 at theta_p = 0.15 and >= 0 at theta_p = -0.5); s >= 0 unbounded
 # above (the left caps s <= 1000 and FLAT s < 899.95 were dropped 2026-10-26). Right pinned
 # coordinates keep their box. Guards: zone band of s and zone entry v <= the zone's set point,
 # on BOTH sides (left caps added 2026-10-26 so that the left's guards equal the right guards of
@@ -55,19 +61,19 @@ state_vars = [v, s, psi, z, theta_p, phi_r]
 epsilon = 1.0
 
 [Lsys.mode.STEEP]
-ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); z' = smt2:(* -1 z); theta_p' = smt2:(* -1 theta_p); phi_r' = smt2:(* -1 phi_r);
+ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p))) (* 0.2 (* phi_r phi_r)))); psi' = smt2:(* -1 psi); z' = smt2:(* -1 z); theta_p' = smt2:(+ (* -1 theta_p) (* 0.5 z)); phi_r' = smt2:(* -1 phi_r);
 guard = s >= 0.0 and s < 0.6 and v <= 0.3
 evolve = phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 0.15
 next = [MODER, STEEP]
 
 [Lsys.mode.MODER]
-ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); z' = smt2:(* -1 z); theta_p' = smt2:(* -1 theta_p); phi_r' = smt2:(* -1 phi_r);
+ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p))) (* 0.2 (* phi_r phi_r)))); psi' = smt2:(* -1 psi); z' = smt2:(* -1 z); theta_p' = smt2:(+ (* -1 theta_p) (* 0.5 z)); phi_r' = smt2:(* -1 phi_r);
 guard = s >= 0.6 and s < 1.4 and v <= 0.5
 evolve = phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 0.15
 next = [FLAT, MODER]
 
 [Lsys.mode.FLAT]
-ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); z' = smt2:(* -1 z); theta_p' = smt2:(* -1 theta_p); phi_r' = smt2:(* -1 phi_r);
+ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p))) (* 0.2 (* phi_r phi_r)))); psi' = smt2:(* -1 psi); z' = smt2:(* -1 z); theta_p' = smt2:(+ (* -1 theta_p) (* 0.5 z)); phi_r' = smt2:(* -1 phi_r);
 guard = s >= 1.4 and v <= 0.65
 evolve = phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and z >= -1.0 and z <= 0.15
 next = [FLAT]

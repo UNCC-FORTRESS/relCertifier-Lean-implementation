@@ -23,11 +23,11 @@ def rover_terrain_6to12_IRv2 : PProblem :=
         {
           name := "STEEP"
           odes := [("v", (.bin "*" (.num "3") (.bin "-" (.num "0.30") (.var "v")))),
-            ("s", (.bin "*" (.var "v") (.bin "-" (.bin "-" (.num "1") (.bin "*" (.num "0.5") (.bin "*" (.var "psi") (.var "psi")))) (.bin "*" (.num "0.3") (.bin "*" (.var "theta_p") (.var "theta_p")))))),
+            ("s", (.bin "*" (.var "v") (.bin "-" (.bin "-" (.bin "-" (.num "1") (.bin "*" (.num "0.5") (.bin "*" (.var "psi") (.var "psi")))) (.bin "*" (.num "0.3") (.bin "*" (.var "theta_p") (.var "theta_p")))) (.bin "*" (.num "0.2") (.bin "*" (.var "phi_r") (.var "phi_r")))))),
             ("psi", (.bin "-" (.var "omega_psi") (.var "psi"))),
             ("omega_psi", (.bin "*" (.num "-1") (.var "omega_psi"))),
             ("theta_p", (.bin "-" (.var "omega_theta") (.var "theta_p"))),
-            ("omega_theta", (.bin "+" (.bin "*" (.num "-1") (.var "omega_theta")) (.bin "*" (.num "0.1") (.var "ax")))),
+            ("omega_theta", (.bin "+" (.bin "+" (.bin "*" (.num "-1") (.var "omega_theta")) (.bin "*" (.num "0.1") (.var "ax"))) (.bin "*" (.num "0.5") (.var "z")))),
             ("phi_r", (.bin "-" (.var "omega_phi") (.var "phi_r"))),
             ("omega_phi", (.bin "+" (.bin "*" (.num "-1") (.var "omega_phi")) (.bin "*" (.num "0.1") (.var "ay")))),
             ("z", (.bin "-" (.var "vz") (.var "z"))),
@@ -40,11 +40,11 @@ def rover_terrain_6to12_IRv2 : PProblem :=
         {
           name := "MODER"
           odes := [("v", (.bin "*" (.num "3") (.bin "-" (.num "0.50") (.var "v")))),
-            ("s", (.bin "*" (.var "v") (.bin "-" (.bin "-" (.num "1") (.bin "*" (.num "0.5") (.bin "*" (.var "psi") (.var "psi")))) (.bin "*" (.num "0.3") (.bin "*" (.var "theta_p") (.var "theta_p")))))),
+            ("s", (.bin "*" (.var "v") (.bin "-" (.bin "-" (.bin "-" (.num "1") (.bin "*" (.num "0.5") (.bin "*" (.var "psi") (.var "psi")))) (.bin "*" (.num "0.3") (.bin "*" (.var "theta_p") (.var "theta_p")))) (.bin "*" (.num "0.2") (.bin "*" (.var "phi_r") (.var "phi_r")))))),
             ("psi", (.bin "-" (.var "omega_psi") (.var "psi"))),
             ("omega_psi", (.bin "*" (.num "-1") (.var "omega_psi"))),
             ("theta_p", (.bin "-" (.var "omega_theta") (.var "theta_p"))),
-            ("omega_theta", (.bin "+" (.bin "*" (.num "-1") (.var "omega_theta")) (.bin "*" (.num "0.1") (.var "ax")))),
+            ("omega_theta", (.bin "+" (.bin "+" (.bin "*" (.num "-1") (.var "omega_theta")) (.bin "*" (.num "0.1") (.var "ax"))) (.bin "*" (.num "0.5") (.var "z")))),
             ("phi_r", (.bin "-" (.var "omega_phi") (.var "phi_r"))),
             ("omega_phi", (.bin "+" (.bin "*" (.num "-1") (.var "omega_phi")) (.bin "*" (.num "0.1") (.var "ay")))),
             ("z", (.bin "-" (.var "vz") (.var "z"))),
@@ -57,11 +57,11 @@ def rover_terrain_6to12_IRv2 : PProblem :=
         {
           name := "FLAT"
           odes := [("v", (.bin "*" (.num "3") (.bin "-" (.num "0.65") (.var "v")))),
-            ("s", (.bin "*" (.var "v") (.bin "-" (.bin "-" (.num "1") (.bin "*" (.num "0.5") (.bin "*" (.var "psi") (.var "psi")))) (.bin "*" (.num "0.3") (.bin "*" (.var "theta_p") (.var "theta_p")))))),
+            ("s", (.bin "*" (.var "v") (.bin "-" (.bin "-" (.bin "-" (.num "1") (.bin "*" (.num "0.5") (.bin "*" (.var "psi") (.var "psi")))) (.bin "*" (.num "0.3") (.bin "*" (.var "theta_p") (.var "theta_p")))) (.bin "*" (.num "0.2") (.bin "*" (.var "phi_r") (.var "phi_r")))))),
             ("psi", (.bin "-" (.var "omega_psi") (.var "psi"))),
             ("omega_psi", (.bin "*" (.num "-1") (.var "omega_psi"))),
             ("theta_p", (.bin "-" (.var "omega_theta") (.var "theta_p"))),
-            ("omega_theta", (.bin "+" (.bin "*" (.num "-1") (.var "omega_theta")) (.bin "*" (.num "0.1") (.var "ax")))),
+            ("omega_theta", (.bin "+" (.bin "+" (.bin "*" (.num "-1") (.var "omega_theta")) (.bin "*" (.num "0.1") (.var "ax"))) (.bin "*" (.num "0.5") (.var "z")))),
             ("phi_r", (.bin "-" (.var "omega_phi") (.var "phi_r"))),
             ("omega_phi", (.bin "+" (.bin "*" (.num "-1") (.var "omega_phi")) (.bin "*" (.num "0.1") (.var "ay")))),
             ("z", (.bin "-" (.var "vz") (.var "z"))),
@@ -78,10 +78,10 @@ def rover_terrain_6to12_IRv2 : PProblem :=
         {
           name := "STEEP"
           odes := [("v", (.bin "*" (.num "3") (.bin "-" (.num "0.30") (.var "v")))),
-            ("s", (.bin "*" (.var "v") (.bin "-" (.bin "-" (.num "1") (.bin "*" (.num "0.5") (.bin "*" (.var "psi") (.var "psi")))) (.bin "*" (.num "0.3") (.bin "*" (.var "theta_p") (.var "theta_p")))))),
+            ("s", (.bin "*" (.var "v") (.bin "-" (.bin "-" (.bin "-" (.num "1") (.bin "*" (.num "0.5") (.bin "*" (.var "psi") (.var "psi")))) (.bin "*" (.num "0.3") (.bin "*" (.var "theta_p") (.var "theta_p")))) (.bin "*" (.num "0.2") (.bin "*" (.var "phi_r") (.var "phi_r")))))),
             ("psi", (.bin "*" (.num "-1") (.var "psi"))),
             ("omega_psi", (.num "0")),
-            ("theta_p", (.bin "*" (.num "-1") (.var "theta_p"))),
+            ("theta_p", (.bin "+" (.bin "*" (.num "-1") (.var "theta_p")) (.bin "*" (.num "0.5") (.var "z")))),
             ("omega_theta", (.num "0")),
             ("phi_r", (.bin "*" (.num "-1") (.var "phi_r"))),
             ("omega_phi", (.num "0")),
@@ -95,10 +95,10 @@ def rover_terrain_6to12_IRv2 : PProblem :=
         {
           name := "MODER"
           odes := [("v", (.bin "*" (.num "3") (.bin "-" (.num "0.50") (.var "v")))),
-            ("s", (.bin "*" (.var "v") (.bin "-" (.bin "-" (.num "1") (.bin "*" (.num "0.5") (.bin "*" (.var "psi") (.var "psi")))) (.bin "*" (.num "0.3") (.bin "*" (.var "theta_p") (.var "theta_p")))))),
+            ("s", (.bin "*" (.var "v") (.bin "-" (.bin "-" (.bin "-" (.num "1") (.bin "*" (.num "0.5") (.bin "*" (.var "psi") (.var "psi")))) (.bin "*" (.num "0.3") (.bin "*" (.var "theta_p") (.var "theta_p")))) (.bin "*" (.num "0.2") (.bin "*" (.var "phi_r") (.var "phi_r")))))),
             ("psi", (.bin "*" (.num "-1") (.var "psi"))),
             ("omega_psi", (.num "0")),
-            ("theta_p", (.bin "*" (.num "-1") (.var "theta_p"))),
+            ("theta_p", (.bin "+" (.bin "*" (.num "-1") (.var "theta_p")) (.bin "*" (.num "0.5") (.var "z")))),
             ("omega_theta", (.num "0")),
             ("phi_r", (.bin "*" (.num "-1") (.var "phi_r"))),
             ("omega_phi", (.num "0")),
@@ -112,10 +112,10 @@ def rover_terrain_6to12_IRv2 : PProblem :=
         {
           name := "FLAT"
           odes := [("v", (.bin "*" (.num "3") (.bin "-" (.num "0.65") (.var "v")))),
-            ("s", (.bin "*" (.var "v") (.bin "-" (.bin "-" (.num "1") (.bin "*" (.num "0.5") (.bin "*" (.var "psi") (.var "psi")))) (.bin "*" (.num "0.3") (.bin "*" (.var "theta_p") (.var "theta_p")))))),
+            ("s", (.bin "*" (.var "v") (.bin "-" (.bin "-" (.bin "-" (.num "1") (.bin "*" (.num "0.5") (.bin "*" (.var "psi") (.var "psi")))) (.bin "*" (.num "0.3") (.bin "*" (.var "theta_p") (.var "theta_p")))) (.bin "*" (.num "0.2") (.bin "*" (.var "phi_r") (.var "phi_r")))))),
             ("psi", (.bin "*" (.num "-1") (.var "psi"))),
             ("omega_psi", (.num "0")),
-            ("theta_p", (.bin "*" (.num "-1") (.var "theta_p"))),
+            ("theta_p", (.bin "+" (.bin "*" (.num "-1") (.var "theta_p")) (.bin "*" (.num "0.5") (.var "z")))),
             ("omega_theta", (.num "0")),
             ("phi_r", (.bin "*" (.num "-1") (.var "phi_r"))),
             ("omega_phi", (.num "0")),

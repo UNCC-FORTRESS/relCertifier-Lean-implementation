@@ -144,9 +144,9 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `rover_ladder_2to6` | 6 / 6 | 3 / 3 | model-refinement | rewritten 2026-10-26: heave/roll roles, lambda_min 1.0, offset 0 |
 | `rover_ladder_6to8` | 8 / 8 | 3 / 3 | model-refinement | rewritten 2026-10-26: v, s rows, offset 0 |
 | `rover_ladder_8to12` | 12 / 12 | 3 / 3 | model-refinement | rewritten 2026-10-26: right y pinned, cascade-chart left |
-| `rover_terrain_3to6` | 6 / 6 | 3 / 3 | model-refinement | rewritten 2026-10-26: right heading penalty, offset 0 |
-| `rover_terrain_6to12` | 12 / 12 | 3 / 3 | model-refinement | rewritten 2026-10-26: lagged ax, ay, damped heave, cascade chart |
-| `rover_terrain_6to8` | 8 / 8 | 3 / 3 | model-refinement | rewritten 2026-10-26: cascade-chart left, right penalty |
+| `rover_terrain_3to6` | 6 / 6 | 3 / 3 | model-refinement | rewritten 2026-10-26: right heading penalty, offset 0; heave/roll roles (the ladder's 6-DOF law) |
+| `rover_terrain_6to12` | 12 / 12 | 3 / 3 | model-refinement | rewritten 2026-10-26: lagged ax, ay, damped heave, cascade chart; heave/roll roles |
+| `rover_terrain_6to8` | 8 / 8 | 3 / 3 | model-refinement | rewritten 2026-10-26: cascade-chart left, right penalty; heave/roll roles (same models as `rover_ladder_6to8` up to the attitude range) |
 | `rover_patrol_lag` | 3 / 3 | 4 / 4 | model-refinement | mode-keyed, widened cuts |
 | `rover_patrol_zones` | 2 / 2 | 4 / 5 | degraded-actuator | uniform rows (2026-10-26) |
 | `sat3w_detumble_nominal` | 6 / 6 | 1 / 2 | model-refinement | nonblocking region |

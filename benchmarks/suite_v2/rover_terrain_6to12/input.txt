@@ -5,18 +5,21 @@
 #
 # System: the terrain-zone rover of rover_terrain_3to6 (zones STEEP / MODER / FLAT by odometer s,
 # set points c = 0.30 / 0.50 / 0.65, speed loop v' = 3 (c - v) on both sides,
-# s' = v (1 - psi^2/2 - 0.3 theta_p^2) on both sides).
+# s' = v (1 - psi^2/2 - 0.3 theta_p^2 - 0.2 phi_r^2) on both sides: pitch and roll cost progress).
 #
-# Right (6-DOF; exactly rover_terrain_3to6's left): psi, theta_p, phi_r, z decay first order;
-# omega_psi, omega_theta, omega_phi, vz, ax, ay pinned. Until 2026-10-26 the right had s' = v.
+# Right (6-DOF; exactly rover_terrain_3to6's left): psi, phi_r, z decay first order, pitch is
+# driven by heave, theta_p' = -theta_p + 0.5 z; omega_psi, omega_theta, omega_phi, vz, ax, ay
+# pinned. Until 2026-10-26 the right had s' = v, and (until the second 2026-10-26 revision) heave
+# and roll entered no equation of the 6-DOF model.
 # Left (12-DOF): heading, pitch, roll and heave are critically damped second-order loops (heave
 # damped by the suspension; before 2026-10-26 heave was an undamped oscillator z'' = -z), each
 # in its CASCADE CHART (omega_x := x' + x, so x' = omega_x - x, omega_x' = -omega_x + forcing;
 # vz is heave's omega). The body accelerations are first-order lagged states (time constant
 # 0.2): longitudinal ax' = 5 (3 (c - v) - ax) tracks the speed loop's acceleration, lateral
 # ay' = 5 (v psi_rate - ay) with psi_rate = omega_psi - psi tracks the centripetal acceleration.
-# They load the chassis: pitch squat omega_theta' = -omega_theta + 0.1 ax (and pitch costs
-# progress), body roll omega_phi' = -omega_phi + 0.1 ay (0.1 rad per unit acceleration). Before
+# They load the chassis: pitch squat and bounce-pitch omega_theta' = -omega_theta + 0.1 ax + 0.5 z
+# (pitch costs progress), body roll omega_phi' = -omega_phi + 0.1 ay (0.1 rad per unit
+# acceleration; roll costs progress). Before
 # 2026-10-26 ax, ay were pinned on the left too (the step moved 10, not 12, coordinates).
 #
 # Property (the same rows in every left mode): v_L <= v_R and s_L <= s_R: the rover is never
@@ -27,7 +30,7 @@
 # DOMAIN AUDIT (2026-10-26): the left used to be in the (angle, rate) chart with an undamped heave,
 # a box the flow leaves. Now every left box is forward invariant: angles psi, theta_p, phi_r and z
 # in the validity range [-1, 1] with their cascade coordinates in [-1, 1] (inflow when |omega| <=
-# the bound and |0.1 a| < 1); ax in [-1.5, 1.95] = the range of 3 (c - v) over v in [0, 0.8] and
+# the bound and the forcing is below 1: |0.1 ay| <= 0.16, |0.1 ax + 0.5 z| <= 0.695); ax in [-1.5, 1.95] = the range of 3 (c - v) over v in [0, 0.8] and
 # the three set points; ay in [-1.6, 1.6] = the bound of v psi_rate (|psi_rate| <= 2, v <= 0.8);
 # v in [0, 0.8]; s >= 0 unbounded above (caps s <= 1000, FLAT s < 899.95 dropped). Guards: zone
 # band and zone entry v <= set point on both sides (left caps added for consistency with
@@ -41,9 +44,8 @@
 #
 # Verdicts (RELCERT_IMPLIED_CUT=1): CERTIFIED (also NO_CHOICE, NO_PRUNE, NO_PRUNE+NO_CHOICE,
 # OPREGION, NO_IMPLIED_CUT, NO_LINEAR_CUT, and without RELCERT_IMPLIED_CUT); DECLINED under SYNC,
-# SYNC+NO_CHOICE, NO_CUT. Covers: lambda 5/4, budget 2 in every left mode (M1, M2); checked cuts
+# SYNC+NO_CHOICE, NO_CUT. Covers: lambda 3/2, budget 2 in every left mode (M1, M2); checked cuts
 # load-bearing (M6); nothing pruned; no right-only reposition; handoff vacuous (rows identical).
-# With ax, ay decaying first order instead of the lag/squat coupling the file also certifies.
 
 [problem]
 name = rover_terrain_6to12
@@ -57,19 +59,19 @@ state_vars = [v, s, psi, omega_psi, theta_p, omega_theta, phi_r, omega_phi, z, v
 epsilon = 1.0
 
 [Lsys.mode.STEEP]
-ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(- omega_psi psi); omega_psi' = smt2:(* -1 omega_psi); theta_p' = smt2:(- omega_theta theta_p); omega_theta' = smt2:(+ (* -1 omega_theta) (* 0.1 ax)); phi_r' = smt2:(- omega_phi phi_r); omega_phi' = smt2:(+ (* -1 omega_phi) (* 0.1 ay)); z' = smt2:(- vz z); vz' = smt2:(* -1 vz); ax' = smt2:(* 5 (- (* 3 (- 0.30 v)) ax)); ay' = smt2:(* 5 (- (* v (- omega_psi psi)) ay));
+ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p))) (* 0.2 (* phi_r phi_r)))); psi' = smt2:(- omega_psi psi); omega_psi' = smt2:(* -1 omega_psi); theta_p' = smt2:(- omega_theta theta_p); omega_theta' = smt2:(+ (+ (* -1 omega_theta) (* 0.1 ax)) (* 0.5 z)); phi_r' = smt2:(- omega_phi phi_r); omega_phi' = smt2:(+ (* -1 omega_phi) (* 0.1 ay)); z' = smt2:(- vz z); vz' = smt2:(* -1 vz); ax' = smt2:(* 5 (- (* 3 (- 0.30 v)) ax)); ay' = smt2:(* 5 (- (* v (- omega_psi psi)) ay));
 guard = s >= 0.0 and s < 0.6 and v <= 0.3
 evolve = ax >= -1.5 and ax <= 1.95 and ay >= -1.6 and ay <= 1.6 and omega_phi >= -1.0 and omega_phi <= 1.0 and omega_psi >= -1.0 and omega_psi <= 1.0 and omega_theta >= -1.0 and omega_theta <= 1.0 and phi_r >= -1.0 and phi_r <= 1.0 and psi >= -1.0 and psi <= 1.0 and s >= 0.0 and theta_p >= -1.0 and theta_p <= 1.0 and v >= 0.0 and v <= 0.8 and vz >= -1.0 and vz <= 1.0 and z >= -1.0 and z <= 1.0
 next = [MODER, STEEP]
 
 [Lsys.mode.MODER]
-ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(- omega_psi psi); omega_psi' = smt2:(* -1 omega_psi); theta_p' = smt2:(- omega_theta theta_p); omega_theta' = smt2:(+ (* -1 omega_theta) (* 0.1 ax)); phi_r' = smt2:(- omega_phi phi_r); omega_phi' = smt2:(+ (* -1 omega_phi) (* 0.1 ay)); z' = smt2:(- vz z); vz' = smt2:(* -1 vz); ax' = smt2:(* 5 (- (* 3 (- 0.50 v)) ax)); ay' = smt2:(* 5 (- (* v (- omega_psi psi)) ay));
+ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p))) (* 0.2 (* phi_r phi_r)))); psi' = smt2:(- omega_psi psi); omega_psi' = smt2:(* -1 omega_psi); theta_p' = smt2:(- omega_theta theta_p); omega_theta' = smt2:(+ (+ (* -1 omega_theta) (* 0.1 ax)) (* 0.5 z)); phi_r' = smt2:(- omega_phi phi_r); omega_phi' = smt2:(+ (* -1 omega_phi) (* 0.1 ay)); z' = smt2:(- vz z); vz' = smt2:(* -1 vz); ax' = smt2:(* 5 (- (* 3 (- 0.50 v)) ax)); ay' = smt2:(* 5 (- (* v (- omega_psi psi)) ay));
 guard = s >= 0.6 and s < 1.4 and v <= 0.5
 evolve = ax >= -1.5 and ax <= 1.95 and ay >= -1.6 and ay <= 1.6 and omega_phi >= -1.0 and omega_phi <= 1.0 and omega_psi >= -1.0 and omega_psi <= 1.0 and omega_theta >= -1.0 and omega_theta <= 1.0 and phi_r >= -1.0 and phi_r <= 1.0 and psi >= -1.0 and psi <= 1.0 and s >= 0.0 and theta_p >= -1.0 and theta_p <= 1.0 and v >= 0.0 and v <= 0.8 and vz >= -1.0 and vz <= 1.0 and z >= -1.0 and z <= 1.0
 next = [FLAT, MODER]
 
 [Lsys.mode.FLAT]
-ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(- omega_psi psi); omega_psi' = smt2:(* -1 omega_psi); theta_p' = smt2:(- omega_theta theta_p); omega_theta' = smt2:(+ (* -1 omega_theta) (* 0.1 ax)); phi_r' = smt2:(- omega_phi phi_r); omega_phi' = smt2:(+ (* -1 omega_phi) (* 0.1 ay)); z' = smt2:(- vz z); vz' = smt2:(* -1 vz); ax' = smt2:(* 5 (- (* 3 (- 0.65 v)) ax)); ay' = smt2:(* 5 (- (* v (- omega_psi psi)) ay));
+ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p))) (* 0.2 (* phi_r phi_r)))); psi' = smt2:(- omega_psi psi); omega_psi' = smt2:(* -1 omega_psi); theta_p' = smt2:(- omega_theta theta_p); omega_theta' = smt2:(+ (+ (* -1 omega_theta) (* 0.1 ax)) (* 0.5 z)); phi_r' = smt2:(- omega_phi phi_r); omega_phi' = smt2:(+ (* -1 omega_phi) (* 0.1 ay)); z' = smt2:(- vz z); vz' = smt2:(* -1 vz); ax' = smt2:(* 5 (- (* 3 (- 0.65 v)) ax)); ay' = smt2:(* 5 (- (* v (- omega_psi psi)) ay));
 guard = s >= 1.4 and v <= 0.65
 evolve = ax >= -1.5 and ax <= 1.95 and ay >= -1.6 and ay <= 1.6 and omega_phi >= -1.0 and omega_phi <= 1.0 and omega_psi >= -1.0 and omega_psi <= 1.0 and omega_theta >= -1.0 and omega_theta <= 1.0 and phi_r >= -1.0 and phi_r <= 1.0 and psi >= -1.0 and psi <= 1.0 and s >= 0.0 and theta_p >= -1.0 and theta_p <= 1.0 and v >= 0.0 and v <= 0.8 and vz >= -1.0 and vz <= 1.0 and z >= -1.0 and z <= 1.0
 next = [FLAT]
@@ -79,19 +81,19 @@ state_vars = [v, s, psi, omega_psi, theta_p, omega_theta, phi_r, omega_phi, z, v
 epsilon = 1.0
 
 [Rsys.mode.STEEP]
-ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); omega_psi' = smt2:0; theta_p' = smt2:(* -1 theta_p); omega_theta' = smt2:0; phi_r' = smt2:(* -1 phi_r); omega_phi' = smt2:0; z' = smt2:(* -1 z); vz' = smt2:0; ax' = smt2:0; ay' = smt2:0;
+ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p))) (* 0.2 (* phi_r phi_r)))); psi' = smt2:(* -1 psi); omega_psi' = smt2:0; theta_p' = smt2:(+ (* -1 theta_p) (* 0.5 z)); omega_theta' = smt2:0; phi_r' = smt2:(* -1 phi_r); omega_phi' = smt2:0; z' = smt2:(* -1 z); vz' = smt2:0; ax' = smt2:0; ay' = smt2:0;
 guard = s >= 0.0 and s < 0.6 and v <= 0.3
 evolve = ax >= -1.0 and ax <= 1.1 and ay >= -1.0 and ay <= 1.1 and omega_phi >= -1.0 and omega_phi <= 1.1 and omega_psi >= -1.0 and omega_psi <= 1.1 and omega_theta >= -1.0 and omega_theta <= 1.1 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and vz >= -1.0 and vz <= 1.1 and z >= -1.0 and z <= 0.15
 next = [MODER, STEEP]
 
 [Rsys.mode.MODER]
-ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); omega_psi' = smt2:0; theta_p' = smt2:(* -1 theta_p); omega_theta' = smt2:0; phi_r' = smt2:(* -1 phi_r); omega_phi' = smt2:0; z' = smt2:(* -1 z); vz' = smt2:0; ax' = smt2:0; ay' = smt2:0;
+ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p))) (* 0.2 (* phi_r phi_r)))); psi' = smt2:(* -1 psi); omega_psi' = smt2:0; theta_p' = smt2:(+ (* -1 theta_p) (* 0.5 z)); omega_theta' = smt2:0; phi_r' = smt2:(* -1 phi_r); omega_phi' = smt2:0; z' = smt2:(* -1 z); vz' = smt2:0; ax' = smt2:0; ay' = smt2:0;
 guard = s >= 0.6 and s < 1.4 and v <= 0.5
 evolve = ax >= -1.0 and ax <= 1.1 and ay >= -1.0 and ay <= 1.1 and omega_phi >= -1.0 and omega_phi <= 1.1 and omega_psi >= -1.0 and omega_psi <= 1.1 and omega_theta >= -1.0 and omega_theta <= 1.1 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and vz >= -1.0 and vz <= 1.1 and z >= -1.0 and z <= 0.15
 next = [FLAT, MODER]
 
 [Rsys.mode.FLAT]
-ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); omega_psi' = smt2:0; theta_p' = smt2:(* -1 theta_p); omega_theta' = smt2:0; phi_r' = smt2:(* -1 phi_r); omega_phi' = smt2:0; z' = smt2:(* -1 z); vz' = smt2:0; ax' = smt2:0; ay' = smt2:0;
+ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p))) (* 0.2 (* phi_r phi_r)))); psi' = smt2:(* -1 psi); omega_psi' = smt2:0; theta_p' = smt2:(+ (* -1 theta_p) (* 0.5 z)); omega_theta' = smt2:0; phi_r' = smt2:(* -1 phi_r); omega_phi' = smt2:0; z' = smt2:(* -1 z); vz' = smt2:0; ax' = smt2:0; ay' = smt2:0;
 guard = s >= 1.4 and v <= 0.65
 evolve = ax >= -1.0 and ax <= 1.1 and ay >= -1.0 and ay <= 1.1 and omega_phi >= -1.0 and omega_phi <= 1.1 and omega_psi >= -1.0 and omega_psi <= 1.1 and omega_theta >= -1.0 and omega_theta <= 1.1 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and vz >= -1.0 and vz <= 1.1 and z >= -1.0 and z <= 0.15
 next = [FLAT]

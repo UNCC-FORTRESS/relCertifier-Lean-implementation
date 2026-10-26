@@ -19,33 +19,33 @@ import RelCertifier.InstancesV2.BenchCovers.platoon_delay_profiles
 import RelCertifier.InstancesV2.BenchCovers.quad_light_airframe_20
 import RelCertifier.InstancesV2.BenchCovers.quad_light_lag
 import RelCertifier.InstancesV2.BenchCovers.quad_light_profiles
-import RelCertifier.InstancesV2.BenchCovers.refinement_ladder_rover_rung1_2to3
-import RelCertifier.InstancesV2.BenchCovers.refinement_ladder_rover_rung2_3to6
-import RelCertifier.InstancesV2.BenchCovers.refinement_ladder_rover_rung2_6dof
-import RelCertifier.InstancesV2.BenchCovers.refinement_ladder_rover_rung2b_6dof
-import RelCertifier.InstancesV2.BenchCovers.refinement_ladder_rover_rung2c_6dof
-import RelCertifier.InstancesV2.BenchCovers.refinement_ladder_rover_rung3_6to8
-import RelCertifier.InstancesV2.BenchCovers.refinement_ladder_rover_rung4_8to12
 import RelCertifier.InstancesV2.BenchCovers.rover3tier_rung12
-import RelCertifier.InstancesV2.BenchCovers.rover_dof_terrain_rung1
-import RelCertifier.InstancesV2.BenchCovers.rover_dof_terrain_rung2
-import RelCertifier.InstancesV2.BenchCovers.rover_dof_terrain_rung3
-import RelCertifier.InstancesV2.BenchCovers.rover_dof_terrain_rung3_8d
+import RelCertifier.InstancesV2.BenchCovers.rover_attitude_6to8
+import RelCertifier.InstancesV2.BenchCovers.rover_attitude_8to12
+import RelCertifier.InstancesV2.BenchCovers.rover_ladder_2to3
+import RelCertifier.InstancesV2.BenchCovers.rover_ladder_2to4
+import RelCertifier.InstancesV2.BenchCovers.rover_ladder_3to6
+import RelCertifier.InstancesV2.BenchCovers.rover_ladder_4to6
+import RelCertifier.InstancesV2.BenchCovers.rover_ladder_4to6_kin
+import RelCertifier.InstancesV2.BenchCovers.rover_ladder_6to8
+import RelCertifier.InstancesV2.BenchCovers.rover_ladder_8to12
+import RelCertifier.InstancesV2.BenchCovers.rover_lateral_6to8
+import RelCertifier.InstancesV2.BenchCovers.rover_lateral_8to12
 import RelCertifier.InstancesV2.BenchCovers.rover_patrol_refine
 import RelCertifier.InstancesV2.BenchCovers.rover_patrol_zones
+import RelCertifier.InstancesV2.BenchCovers.rover_rollover_split_a
+import RelCertifier.InstancesV2.BenchCovers.rover_rollover_split_b
+import RelCertifier.InstancesV2.BenchCovers.rover_terrain_2to3
+import RelCertifier.InstancesV2.BenchCovers.rover_terrain_3to6
+import RelCertifier.InstancesV2.BenchCovers.rover_terrain_6to12
+import RelCertifier.InstancesV2.BenchCovers.rover_terrain_6to8
 import RelCertifier.InstancesV2.BenchCovers.sat3w_detumble_nominal
 import RelCertifier.InstancesV2.BenchCovers.sat3w_detumble_phases
 import RelCertifier.InstancesV2.BenchCovers.sat3w_detumble_weak
 import RelCertifier.InstancesV2.BenchCovers.sat_detumble_nominal
 import RelCertifier.InstancesV2.BenchCovers.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchCovers.sat_detumble_weak
-import RelCertifier.InstancesV2.BenchCovers.story1_attdist_rung_a_6to8
-import RelCertifier.InstancesV2.BenchCovers.story1_attdist_rung_b_12dof
-import RelCertifier.InstancesV2.BenchCovers.story2_lateral_rung_a_8dof
-import RelCertifier.InstancesV2.BenchCovers.story2_lateral_rung_b_12dof
 import RelCertifier.InstancesV2.BenchCovers.story3_rollover_base_12dof
-import RelCertifier.InstancesV2.BenchCovers.story3_rollover_ladder_rung_a
-import RelCertifier.InstancesV2.BenchCovers.story3_rollover_ladder_rung_b
 import RelCertifier.InstancesV2.BenchCovers.vehicle_hypercert
 import RelCertifier.InstancesV2.BenchCovers.watertank
 import RelCertifier.InstancesV2.BenchCovers.watertank_twospeed
@@ -73,33 +73,33 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("quad_light_airframe_20", quad_light_airframe_20_coverV2),
   ("quad_light_lag", quad_light_lag_coverV2),
   ("quad_light_profiles", quad_light_profiles_coverV2),
-  ("refinement_ladder_rover_rung1_2to3", refinement_ladder_rover_rung1_2to3_coverV2),
-  ("refinement_ladder_rover_rung2_3to6", refinement_ladder_rover_rung2_3to6_coverV2),
-  ("refinement_ladder_rover_rung2_6dof", refinement_ladder_rover_rung2_6dof_coverV2),
-  ("refinement_ladder_rover_rung2b_6dof", refinement_ladder_rover_rung2b_6dof_coverV2),
-  ("refinement_ladder_rover_rung2c_6dof", refinement_ladder_rover_rung2c_6dof_coverV2),
-  ("refinement_ladder_rover_rung3_6to8", refinement_ladder_rover_rung3_6to8_coverV2),
-  ("refinement_ladder_rover_rung4_8to12", refinement_ladder_rover_rung4_8to12_coverV2),
   ("rover3tier_rung12", rover3tier_rung12_coverV2),
-  ("rover_dof_terrain_rung1", rover_dof_terrain_rung1_coverV2),
-  ("rover_dof_terrain_rung2", rover_dof_terrain_rung2_coverV2),
-  ("rover_dof_terrain_rung3", rover_dof_terrain_rung3_coverV2),
-  ("rover_dof_terrain_rung3_8d", rover_dof_terrain_rung3_8d_coverV2),
+  ("rover_attitude_6to8", rover_attitude_6to8_coverV2),
+  ("rover_attitude_8to12", rover_attitude_8to12_coverV2),
+  ("rover_ladder_2to3", rover_ladder_2to3_coverV2),
+  ("rover_ladder_2to4", rover_ladder_2to4_coverV2),
+  ("rover_ladder_3to6", rover_ladder_3to6_coverV2),
+  ("rover_ladder_4to6", rover_ladder_4to6_coverV2),
+  ("rover_ladder_4to6_kin", rover_ladder_4to6_kin_coverV2),
+  ("rover_ladder_6to8", rover_ladder_6to8_coverV2),
+  ("rover_ladder_8to12", rover_ladder_8to12_coverV2),
+  ("rover_lateral_6to8", rover_lateral_6to8_coverV2),
+  ("rover_lateral_8to12", rover_lateral_8to12_coverV2),
   ("rover_patrol_refine", rover_patrol_refine_coverV2),
   ("rover_patrol_zones", rover_patrol_zones_coverV2),
+  ("rover_rollover_split_a", rover_rollover_split_a_coverV2),
+  ("rover_rollover_split_b", rover_rollover_split_b_coverV2),
+  ("rover_terrain_2to3", rover_terrain_2to3_coverV2),
+  ("rover_terrain_3to6", rover_terrain_3to6_coverV2),
+  ("rover_terrain_6to12", rover_terrain_6to12_coverV2),
+  ("rover_terrain_6to8", rover_terrain_6to8_coverV2),
   ("sat3w_detumble_nominal", sat3w_detumble_nominal_coverV2),
   ("sat3w_detumble_phases", sat3w_detumble_phases_coverV2),
   ("sat3w_detumble_weak", sat3w_detumble_weak_coverV2),
   ("sat_detumble_nominal", sat_detumble_nominal_coverV2),
   ("sat_detumble_phases", sat_detumble_phases_coverV2),
   ("sat_detumble_weak", sat_detumble_weak_coverV2),
-  ("story1_attdist_rung_a_6to8", story1_attdist_rung_a_6to8_coverV2),
-  ("story1_attdist_rung_b_12dof", story1_attdist_rung_b_12dof_coverV2),
-  ("story2_lateral_rung_a_8dof", story2_lateral_rung_a_8dof_coverV2),
-  ("story2_lateral_rung_b_12dof", story2_lateral_rung_b_12dof_coverV2),
   ("story3_rollover_base_12dof", story3_rollover_base_12dof_coverV2),
-  ("story3_rollover_ladder_rung_a", story3_rollover_ladder_rung_a_coverV2),
-  ("story3_rollover_ladder_rung_b", story3_rollover_ladder_rung_b_coverV2),
   ("vehicle_hypercert", vehicle_hypercert_coverV2),
   ("watertank", watertank_coverV2),
   ("watertank_twospeed", watertank_twospeed_coverV2) ]

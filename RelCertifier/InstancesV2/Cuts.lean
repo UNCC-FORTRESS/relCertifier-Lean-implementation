@@ -19,33 +19,33 @@ import RelCertifier.InstancesV2.Cuts.platoon_delay_profiles
 import RelCertifier.InstancesV2.Cuts.quad_light_airframe_20
 import RelCertifier.InstancesV2.Cuts.quad_light_lag
 import RelCertifier.InstancesV2.Cuts.quad_light_profiles
-import RelCertifier.InstancesV2.Cuts.refinement_ladder_rover_rung1_2to3
-import RelCertifier.InstancesV2.Cuts.refinement_ladder_rover_rung2_3to6
-import RelCertifier.InstancesV2.Cuts.refinement_ladder_rover_rung2_6dof
-import RelCertifier.InstancesV2.Cuts.refinement_ladder_rover_rung2b_6dof
-import RelCertifier.InstancesV2.Cuts.refinement_ladder_rover_rung2c_6dof
-import RelCertifier.InstancesV2.Cuts.refinement_ladder_rover_rung3_6to8
-import RelCertifier.InstancesV2.Cuts.refinement_ladder_rover_rung4_8to12
 import RelCertifier.InstancesV2.Cuts.rover3tier_rung12
-import RelCertifier.InstancesV2.Cuts.rover_dof_terrain_rung1
-import RelCertifier.InstancesV2.Cuts.rover_dof_terrain_rung2
-import RelCertifier.InstancesV2.Cuts.rover_dof_terrain_rung3
-import RelCertifier.InstancesV2.Cuts.rover_dof_terrain_rung3_8d
+import RelCertifier.InstancesV2.Cuts.rover_attitude_6to8
+import RelCertifier.InstancesV2.Cuts.rover_attitude_8to12
+import RelCertifier.InstancesV2.Cuts.rover_ladder_2to3
+import RelCertifier.InstancesV2.Cuts.rover_ladder_2to4
+import RelCertifier.InstancesV2.Cuts.rover_ladder_3to6
+import RelCertifier.InstancesV2.Cuts.rover_ladder_4to6
+import RelCertifier.InstancesV2.Cuts.rover_ladder_4to6_kin
+import RelCertifier.InstancesV2.Cuts.rover_ladder_6to8
+import RelCertifier.InstancesV2.Cuts.rover_ladder_8to12
+import RelCertifier.InstancesV2.Cuts.rover_lateral_6to8
+import RelCertifier.InstancesV2.Cuts.rover_lateral_8to12
 import RelCertifier.InstancesV2.Cuts.rover_patrol_refine
 import RelCertifier.InstancesV2.Cuts.rover_patrol_zones
+import RelCertifier.InstancesV2.Cuts.rover_rollover_split_a
+import RelCertifier.InstancesV2.Cuts.rover_rollover_split_b
+import RelCertifier.InstancesV2.Cuts.rover_terrain_2to3
+import RelCertifier.InstancesV2.Cuts.rover_terrain_3to6
+import RelCertifier.InstancesV2.Cuts.rover_terrain_6to12
+import RelCertifier.InstancesV2.Cuts.rover_terrain_6to8
 import RelCertifier.InstancesV2.Cuts.sat3w_detumble_nominal
 import RelCertifier.InstancesV2.Cuts.sat3w_detumble_phases
 import RelCertifier.InstancesV2.Cuts.sat3w_detumble_weak
 import RelCertifier.InstancesV2.Cuts.sat_detumble_nominal
 import RelCertifier.InstancesV2.Cuts.sat_detumble_phases
 import RelCertifier.InstancesV2.Cuts.sat_detumble_weak
-import RelCertifier.InstancesV2.Cuts.story1_attdist_rung_a_6to8
-import RelCertifier.InstancesV2.Cuts.story1_attdist_rung_b_12dof
-import RelCertifier.InstancesV2.Cuts.story2_lateral_rung_a_8dof
-import RelCertifier.InstancesV2.Cuts.story2_lateral_rung_b_12dof
 import RelCertifier.InstancesV2.Cuts.story3_rollover_base_12dof
-import RelCertifier.InstancesV2.Cuts.story3_rollover_ladder_rung_a
-import RelCertifier.InstancesV2.Cuts.story3_rollover_ladder_rung_b
 import RelCertifier.InstancesV2.Cuts.vehicle_hypercert
 import RelCertifier.InstancesV2.Cuts.watertank
 import RelCertifier.InstancesV2.Cuts.watertank_twospeed
@@ -73,33 +73,33 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("quad_light_airframe_20", quad_light_airframe_20_cutsV2, quad_light_airframe_20_cutsV2X),
   ("quad_light_lag", quad_light_lag_cutsV2, quad_light_lag_cutsV2X),
   ("quad_light_profiles", quad_light_profiles_cutsV2, quad_light_profiles_cutsV2X),
-  ("refinement_ladder_rover_rung1_2to3", refinement_ladder_rover_rung1_2to3_cutsV2, refinement_ladder_rover_rung1_2to3_cutsV2X),
-  ("refinement_ladder_rover_rung2_3to6", refinement_ladder_rover_rung2_3to6_cutsV2, refinement_ladder_rover_rung2_3to6_cutsV2X),
-  ("refinement_ladder_rover_rung2_6dof", refinement_ladder_rover_rung2_6dof_cutsV2, refinement_ladder_rover_rung2_6dof_cutsV2X),
-  ("refinement_ladder_rover_rung2b_6dof", refinement_ladder_rover_rung2b_6dof_cutsV2, refinement_ladder_rover_rung2b_6dof_cutsV2X),
-  ("refinement_ladder_rover_rung2c_6dof", refinement_ladder_rover_rung2c_6dof_cutsV2, refinement_ladder_rover_rung2c_6dof_cutsV2X),
-  ("refinement_ladder_rover_rung3_6to8", refinement_ladder_rover_rung3_6to8_cutsV2, refinement_ladder_rover_rung3_6to8_cutsV2X),
-  ("refinement_ladder_rover_rung4_8to12", refinement_ladder_rover_rung4_8to12_cutsV2, refinement_ladder_rover_rung4_8to12_cutsV2X),
   ("rover3tier_rung12", rover3tier_rung12_cutsV2, rover3tier_rung12_cutsV2X),
-  ("rover_dof_terrain_rung1", rover_dof_terrain_rung1_cutsV2, rover_dof_terrain_rung1_cutsV2X),
-  ("rover_dof_terrain_rung2", rover_dof_terrain_rung2_cutsV2, rover_dof_terrain_rung2_cutsV2X),
-  ("rover_dof_terrain_rung3", rover_dof_terrain_rung3_cutsV2, rover_dof_terrain_rung3_cutsV2X),
-  ("rover_dof_terrain_rung3_8d", rover_dof_terrain_rung3_8d_cutsV2, rover_dof_terrain_rung3_8d_cutsV2X),
+  ("rover_attitude_6to8", rover_attitude_6to8_cutsV2, rover_attitude_6to8_cutsV2X),
+  ("rover_attitude_8to12", rover_attitude_8to12_cutsV2, rover_attitude_8to12_cutsV2X),
+  ("rover_ladder_2to3", rover_ladder_2to3_cutsV2, rover_ladder_2to3_cutsV2X),
+  ("rover_ladder_2to4", rover_ladder_2to4_cutsV2, rover_ladder_2to4_cutsV2X),
+  ("rover_ladder_3to6", rover_ladder_3to6_cutsV2, rover_ladder_3to6_cutsV2X),
+  ("rover_ladder_4to6", rover_ladder_4to6_cutsV2, rover_ladder_4to6_cutsV2X),
+  ("rover_ladder_4to6_kin", rover_ladder_4to6_kin_cutsV2, rover_ladder_4to6_kin_cutsV2X),
+  ("rover_ladder_6to8", rover_ladder_6to8_cutsV2, rover_ladder_6to8_cutsV2X),
+  ("rover_ladder_8to12", rover_ladder_8to12_cutsV2, rover_ladder_8to12_cutsV2X),
+  ("rover_lateral_6to8", rover_lateral_6to8_cutsV2, rover_lateral_6to8_cutsV2X),
+  ("rover_lateral_8to12", rover_lateral_8to12_cutsV2, rover_lateral_8to12_cutsV2X),
   ("rover_patrol_refine", rover_patrol_refine_cutsV2, rover_patrol_refine_cutsV2X),
   ("rover_patrol_zones", rover_patrol_zones_cutsV2, rover_patrol_zones_cutsV2X),
+  ("rover_rollover_split_a", rover_rollover_split_a_cutsV2, rover_rollover_split_a_cutsV2X),
+  ("rover_rollover_split_b", rover_rollover_split_b_cutsV2, rover_rollover_split_b_cutsV2X),
+  ("rover_terrain_2to3", rover_terrain_2to3_cutsV2, rover_terrain_2to3_cutsV2X),
+  ("rover_terrain_3to6", rover_terrain_3to6_cutsV2, rover_terrain_3to6_cutsV2X),
+  ("rover_terrain_6to12", rover_terrain_6to12_cutsV2, rover_terrain_6to12_cutsV2X),
+  ("rover_terrain_6to8", rover_terrain_6to8_cutsV2, rover_terrain_6to8_cutsV2X),
   ("sat3w_detumble_nominal", sat3w_detumble_nominal_cutsV2, sat3w_detumble_nominal_cutsV2X),
   ("sat3w_detumble_phases", sat3w_detumble_phases_cutsV2, sat3w_detumble_phases_cutsV2X),
   ("sat3w_detumble_weak", sat3w_detumble_weak_cutsV2, sat3w_detumble_weak_cutsV2X),
   ("sat_detumble_nominal", sat_detumble_nominal_cutsV2, sat_detumble_nominal_cutsV2X),
   ("sat_detumble_phases", sat_detumble_phases_cutsV2, sat_detumble_phases_cutsV2X),
   ("sat_detumble_weak", sat_detumble_weak_cutsV2, sat_detumble_weak_cutsV2X),
-  ("story1_attdist_rung_a_6to8", story1_attdist_rung_a_6to8_cutsV2, story1_attdist_rung_a_6to8_cutsV2X),
-  ("story1_attdist_rung_b_12dof", story1_attdist_rung_b_12dof_cutsV2, story1_attdist_rung_b_12dof_cutsV2X),
-  ("story2_lateral_rung_a_8dof", story2_lateral_rung_a_8dof_cutsV2, story2_lateral_rung_a_8dof_cutsV2X),
-  ("story2_lateral_rung_b_12dof", story2_lateral_rung_b_12dof_cutsV2, story2_lateral_rung_b_12dof_cutsV2X),
   ("story3_rollover_base_12dof", story3_rollover_base_12dof_cutsV2, story3_rollover_base_12dof_cutsV2X),
-  ("story3_rollover_ladder_rung_a", story3_rollover_ladder_rung_a_cutsV2, story3_rollover_ladder_rung_a_cutsV2X),
-  ("story3_rollover_ladder_rung_b", story3_rollover_ladder_rung_b_cutsV2, story3_rollover_ladder_rung_b_cutsV2X),
   ("vehicle_hypercert", vehicle_hypercert_cutsV2, vehicle_hypercert_cutsV2X),
   ("watertank", watertank_cutsV2, watertank_cutsV2X),
   ("watertank_twospeed", watertank_twospeed_cutsV2, watertank_twospeed_cutsV2X) ]

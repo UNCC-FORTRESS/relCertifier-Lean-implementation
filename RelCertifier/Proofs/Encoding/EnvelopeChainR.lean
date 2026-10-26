@@ -6,7 +6,7 @@ Released under Apache 2.0 license.
 
 The E/F chains carry `mvValid mv k` — the mode variable holds SOME declared index —
 so the loop invariant tells the step provider nothing about WHERE the right execution
-is while it holds a given mode. `refinement_ladder_rover_rung2c_6dof` needs more: its
+is while it holds a given mode. `rover_ladder_4to6` needs more: its
 right graph is the one-way chain `STEEP → MODER → FLAT`, and the three backward
 (window, start) pairs are dischargeable only by VACUITY, which requires the invariant
 to pin each mode's PRESERVED region (`s_r ≥ b(q)`, forward-invariant by

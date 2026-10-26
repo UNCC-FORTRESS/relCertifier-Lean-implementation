@@ -13,8 +13,8 @@ import RelCertifier.InstancesV2.Refute.ArmPlateauSlowM000
 import RelCertifier.InstancesV2.Refute.Platoon3LinklossM072
 import RelCertifier.InstancesV2.Refute.Platoon3LinklossM084
 import RelCertifier.InstancesV2.Refute.Platoon3LinklossM096
-import RelCertifier.InstancesV2.Refute.RefinementLadderRoverRung36to8M008
-import RelCertifier.InstancesV2.Refute.RefinementLadderRoverRung36to8M013
+import RelCertifier.InstancesV2.Refute.RoverLadder6to8M008
+import RelCertifier.InstancesV2.Refute.RoverLadder6to8M013
 import RelCertifier.InstancesV2.Refute.Rover3tierRung12M000
 import RelCertifier.InstancesV2.Refute.Rover3tierRung12M004
 import RelCertifier.InstancesV2.Refute.RoverPatrolRefineM003

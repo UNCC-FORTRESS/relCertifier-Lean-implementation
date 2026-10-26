@@ -13,8 +13,8 @@ import RelCertifier.InstancesV2.Refute.Data.arm_plateau_slow_m000
 import RelCertifier.InstancesV2.Refute.Data.platoon3_linkloss_m072
 import RelCertifier.InstancesV2.Refute.Data.platoon3_linkloss_m084
 import RelCertifier.InstancesV2.Refute.Data.platoon3_linkloss_m096
-import RelCertifier.InstancesV2.Refute.Data.refinement_ladder_rover_rung3_6to8_m008
-import RelCertifier.InstancesV2.Refute.Data.refinement_ladder_rover_rung3_6to8_m013
+import RelCertifier.InstancesV2.Refute.Data.rover_ladder_6to8_m008
+import RelCertifier.InstancesV2.Refute.Data.rover_ladder_6to8_m013
 import RelCertifier.InstancesV2.Refute.Data.rover3tier_rung12_m000
 import RelCertifier.InstancesV2.Refute.Data.rover3tier_rung12_m004
 import RelCertifier.InstancesV2.Refute.Data.rover_patrol_refine_m003
@@ -78,8 +78,8 @@ import RelCertifier.InstancesV2.Cuts.arm_plateau_crit
 import RelCertifier.InstancesV2.Cuts.arm_plateau_profiles
 import RelCertifier.InstancesV2.Cuts.arm_plateau_slow
 import RelCertifier.InstancesV2.Cuts.platoon3_linkloss
-import RelCertifier.InstancesV2.Cuts.refinement_ladder_rover_rung3_6to8
 import RelCertifier.InstancesV2.Cuts.rover3tier_rung12
+import RelCertifier.InstancesV2.Cuts.rover_ladder_6to8
 import RelCertifier.InstancesV2.Cuts.rover_patrol_refine
 import RelCertifier.InstancesV2.Cuts.rover_patrol_zones
 import RelCertifier.InstancesV2.Cuts.sat3w_detumble_nominal
@@ -112,8 +112,8 @@ def refuteTable : List RefRec := [
   ⟨"platoon3_linkloss_m072", 6 + 1, platoon3_linkloss_m072_IRm, platoon3_linkloss_cutsV2X, platoon3_linkloss_m072_wit⟩,
   ⟨"platoon3_linkloss_m084", 6 + 1, platoon3_linkloss_m084_IRm, platoon3_linkloss_cutsV2X, platoon3_linkloss_m084_wit⟩,
   ⟨"platoon3_linkloss_m096", 6 + 1, platoon3_linkloss_m096_IRm, platoon3_linkloss_cutsV2X, platoon3_linkloss_m096_wit⟩,
-  ⟨"refinement_ladder_rover_rung3_6to8_m008", 8 + 1, refinement_ladder_rover_rung3_6to8_m008_IRm, refinement_ladder_rover_rung3_6to8_cutsV2X, refinement_ladder_rover_rung3_6to8_m008_wit⟩,
-  ⟨"refinement_ladder_rover_rung3_6to8_m013", 8 + 1, refinement_ladder_rover_rung3_6to8_m013_IRm, refinement_ladder_rover_rung3_6to8_cutsV2X, refinement_ladder_rover_rung3_6to8_m013_wit⟩,
+  ⟨"rover_ladder_6to8_m008", 8 + 1, rover_ladder_6to8_m008_IRm, rover_ladder_6to8_cutsV2X, rover_ladder_6to8_m008_wit⟩,
+  ⟨"rover_ladder_6to8_m013", 8 + 1, rover_ladder_6to8_m013_IRm, rover_ladder_6to8_cutsV2X, rover_ladder_6to8_m013_wit⟩,
   ⟨"rover3tier_rung12_m000", 3 + 1, rover3tier_rung12_m000_IRm, rover3tier_rung12_cutsV2X, rover3tier_rung12_m000_wit⟩,
   ⟨"rover3tier_rung12_m004", 3 + 1, rover3tier_rung12_m004_IRm, rover3tier_rung12_cutsV2X, rover3tier_rung12_m004_wit⟩,
   ⟨"rover_patrol_refine_m003", 3 + 1, rover_patrol_refine_m003_IRm, rover_patrol_refine_cutsV2X, rover_patrol_refine_m003_wit⟩,

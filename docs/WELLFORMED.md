@@ -134,12 +134,12 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 22 | `rover_ladder_4to6` | proved | as 18 | as 18 |
 | 23 | `rover_ladder_6to8` | proved | as 18 | as 18 |
 | 24 | `rover_ladder_8to12` | proved | as 18 | as 18 |
-| 25 | `rover3tier_rung12` | proved | ACCEL (b) → COAST, COAST (a); `ε_r = 0.3` | ACCEL ok (exit→COAST), COAST ok (invariant) |
+| 25 | `rover_tier_1to2` | proved | ACCEL (b) → COAST, COAST (a); `ε_r = 0.3` | ACCEL ok (exit→COAST), COAST ok (invariant) |
 | 26 | `rover_terrain_2to3` | proved | as 18 | as 18 |
 | 27 | `rover_terrain_3to6` | proved | as 18 | as 18 |
 | 28 | `rover_terrain_6to12` | proved | as 18 | as 18 |
 | 29 | `rover_terrain_6to8` | proved | as 18 | as 18 |
-| 30 | `rover_patrol_refine` | proved | SLOW (b) → MEDIUM_ECO; MEDIUM_ECO, MEDIUM_BRISK (b) → FAST; FAST (a) | SLOW ok (exit→MEDIUM_BRISK); MEDIUM_* ok (exit→FAST); FAST ok (invariant) |
+| 30 | `rover_patrol_lag` | proved | SLOW (b) → MEDIUM_ECO; MEDIUM_ECO, MEDIUM_BRISK (b) → FAST; FAST (a) | SLOW ok (exit→MEDIUM_BRISK); MEDIUM_* ok (exit→FAST); FAST ok (invariant) |
 | 31 | `rover_patrol_zones` | proved | as 30; STALL (a) | as 30; STALL ok (invariant) |
 | 32 | `sat3w_detumble_nominal` | proved | DETUMBLE (a) (the band in the domain keeps the explicit run); SAFE (a) | both ok (invariant) (clause (i) is not checked by the tool) |
 | 33 | `sat3w_detumble_phases` | proved | as 32 | as 32 |

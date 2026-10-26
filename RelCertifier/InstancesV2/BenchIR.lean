@@ -28,7 +28,6 @@ import RelCertifier.InstancesV2.BenchIR.platoon_delay_profiles
 import RelCertifier.InstancesV2.BenchIR.quad_light_airframe_20
 import RelCertifier.InstancesV2.BenchIR.quad_light_lag
 import RelCertifier.InstancesV2.BenchIR.quad_light_profiles
-import RelCertifier.InstancesV2.BenchIR.rover3tier_rung12
 import RelCertifier.InstancesV2.BenchIR.rover_attitude_6to8
 import RelCertifier.InstancesV2.BenchIR.rover_attitude_8to12
 import RelCertifier.InstancesV2.BenchIR.rover_ladder_2to3
@@ -40,7 +39,7 @@ import RelCertifier.InstancesV2.BenchIR.rover_ladder_6to8
 import RelCertifier.InstancesV2.BenchIR.rover_ladder_8to12
 import RelCertifier.InstancesV2.BenchIR.rover_lateral_6to8
 import RelCertifier.InstancesV2.BenchIR.rover_lateral_8to12
-import RelCertifier.InstancesV2.BenchIR.rover_patrol_refine
+import RelCertifier.InstancesV2.BenchIR.rover_patrol_lag
 import RelCertifier.InstancesV2.BenchIR.rover_patrol_zones
 import RelCertifier.InstancesV2.BenchIR.rover_rollover_6to12
 import RelCertifier.InstancesV2.BenchIR.rover_rollover_6to7
@@ -49,6 +48,7 @@ import RelCertifier.InstancesV2.BenchIR.rover_terrain_2to3
 import RelCertifier.InstancesV2.BenchIR.rover_terrain_3to6
 import RelCertifier.InstancesV2.BenchIR.rover_terrain_6to12
 import RelCertifier.InstancesV2.BenchIR.rover_terrain_6to8
+import RelCertifier.InstancesV2.BenchIR.rover_tier_1to2
 import RelCertifier.InstancesV2.BenchIR.sat3w_detumble_nominal
 import RelCertifier.InstancesV2.BenchIR.sat3w_detumble_phases
 import RelCertifier.InstancesV2.BenchIR.sat3w_detumble_weak
@@ -82,7 +82,6 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("quad_light_airframe_20", quad_light_airframe_20_IRv2),
   ("quad_light_lag", quad_light_lag_IRv2),
   ("quad_light_profiles", quad_light_profiles_IRv2),
-  ("rover3tier_rung12", rover3tier_rung12_IRv2),
   ("rover_attitude_6to8", rover_attitude_6to8_IRv2),
   ("rover_attitude_8to12", rover_attitude_8to12_IRv2),
   ("rover_ladder_2to3", rover_ladder_2to3_IRv2),
@@ -94,7 +93,7 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("rover_ladder_8to12", rover_ladder_8to12_IRv2),
   ("rover_lateral_6to8", rover_lateral_6to8_IRv2),
   ("rover_lateral_8to12", rover_lateral_8to12_IRv2),
-  ("rover_patrol_refine", rover_patrol_refine_IRv2),
+  ("rover_patrol_lag", rover_patrol_lag_IRv2),
   ("rover_patrol_zones", rover_patrol_zones_IRv2),
   ("rover_rollover_6to12", rover_rollover_6to12_IRv2),
   ("rover_rollover_6to7", rover_rollover_6to7_IRv2),
@@ -103,6 +102,7 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("rover_terrain_3to6", rover_terrain_3to6_IRv2),
   ("rover_terrain_6to12", rover_terrain_6to12_IRv2),
   ("rover_terrain_6to8", rover_terrain_6to8_IRv2),
+  ("rover_tier_1to2", rover_tier_1to2_IRv2),
   ("sat3w_detumble_nominal", sat3w_detumble_nominal_IRv2),
   ("sat3w_detumble_phases", sat3w_detumble_phases_IRv2),
   ("sat3w_detumble_weak", sat3w_detumble_weak_IRv2),

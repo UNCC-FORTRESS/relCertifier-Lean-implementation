@@ -8,7 +8,7 @@ per-benchmark batteries (`SettlingInstances`, `TerrainInstances`, `AffineInstanc
 suite_v2 theorems use the modal chain instead. The generic definitions and lemmas stay
 compiled as part of the soundness development.
 
-The driven-active class (`rover_tier_r1`, `rover3tier_rung12`): the guarded velocity
+The driven-active class (`rover_tier_r1`, `rover_tier_1to2`): the guarded velocity
 satisfies `v' = a` with `a` FROZEN and nonneg (its envelope floor `alo ≥ 0`), so the witness
 is the phase-B quadratic stack with the affine rate `a₀ = base(a)` — `drivenVal` with
 `cR := base (Rv j)`, no new witness function at all. The guard bands are `[glo, ∞)` or

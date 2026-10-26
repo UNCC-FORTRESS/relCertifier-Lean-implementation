@@ -38,10 +38,11 @@ physical story, the units, the measured cover and the mechanisms it exercises
 
 ## Renamed 2026-10-25
 
-Eighteen benchmarks were renamed so that the name states the system, the property and the
-refinement step (deployed DOF refining reasoning DOF). Only names changed (directory, `name =`,
-header lines, derived Lean identifiers and modules); models, invariants, certificates and
-proofs are unchanged. Older records (git history, branch `archive/legacy-2026-10`, dated docs)
+Twenty benchmarks were renamed so that the name states the system, the property and the
+refinement step (e.g. deployed DOF refining reasoning DOF). Only names changed (directory,
+`name =`, header lines, derived Lean identifiers and modules); models, invariants, certificates
+and proofs are unchanged (the 2026-10-26 right-model change of `rover_lateral_6to8` is
+separate, see below). Older records (git history, branch `archive/legacy-2026-10`, dated docs)
 use the old names.
 
 | old | new |
@@ -64,10 +65,12 @@ use the old names.
 | `story3_rollover_ladder_rung_a` | `rover_rollover_6to7` |
 | `story3_rollover_ladder_rung_b` | `rover_rollover_7to12` |
 | `story3_rollover_base_12dof` | `rover_rollover_6to12` |
+| `rover_patrol_refine` | `rover_patrol_lag` |
+| `rover3tier_rung12` | `rover_tier_1to2` |
 
 ## The 19 carried-over benchmarks
 
-Nineteen files (the rover refinement ladder, the rover terrain rungs, `rover3tier_rung12`,
+Nineteen files (the rover refinement ladder, the rover terrain rungs, `rover_tier_1to2`,
 `match_multi_rate`, and the attitude, lateral and rollover benchmarks except `rover_rollover_7to12`) are copies of files of the retired legacy
 suite `suite_uniform` (removed from the tree on 2026-10-10; git history keeps it), byte-identical
 up to the name lines of the 2026-10-25 rename (below) and the first header line of
@@ -122,12 +125,12 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `rover_ladder_4to6` | 6 / 6 | 3 / 3 |  | carried over |
 | `rover_ladder_6to8` | 8 / 8 | 3 / 3 |  | carried over |
 | `rover_ladder_8to12` | 12 / 12 | 3 / 3 |  | carried over |
-| `rover3tier_rung12` | 3 / 3 | 2 / 2 |  | carried over, mode-keyed |
+| `rover_tier_1to2` | 3 / 3 | 2 / 2 |  | carried over, mode-keyed |
 | `rover_terrain_2to3` | 3 / 3 | 3 / 3 |  | carried over |
 | `rover_terrain_3to6` | 6 / 6 | 3 / 3 |  | carried over |
 | `rover_terrain_6to12` | 12 / 12 | 3 / 3 |  | carried over |
 | `rover_terrain_6to8` | 8 / 8 | 3 / 3 |  | carried over |
-| `rover_patrol_refine` | 3 / 3 | 4 / 4 | model-refinement | mode-keyed, widened cuts |
+| `rover_patrol_lag` | 3 / 3 | 4 / 4 | model-refinement | mode-keyed, widened cuts |
 | `rover_patrol_zones` | 2 / 2 | 4 / 5 | degraded-actuator | mode-keyed |
 | `sat3w_detumble_nominal` | 6 / 6 | 1 / 2 | model-refinement | nonblocking region |
 | `sat3w_detumble_phases` | 6 / 6 | 2 / 2 | model-refinement | mode-keyed, nonblocking region |

@@ -167,17 +167,17 @@ def packsV2 : List PackV2 :=
     ⟨"rover_patrol_zones", 3, 2, [0, 1], 1, 1, 2, 2⟩,
     ⟨"rover_patrol_zones", 3, 2, [0, 1], 1, 1, 2, 3⟩,
     ⟨"rover_patrol_zones", 3, 3, [0, 1], 1, 1, 3, 3⟩,
-    -- rover_patrol_refine
-    ⟨"rover_patrol_refine", 3, 0, [0, 1], 9, 4, 0, 0⟩,
-    ⟨"rover_patrol_refine", 3, 0, [0, 1], 9, 4, 0, 1⟩,
-    ⟨"rover_patrol_refine", 3, 0, [0, 1], 9, 4, 0, 2⟩,
-    ⟨"rover_patrol_refine", 3, 0, [0, 1], 9, 4, 0, 3⟩,
-    ⟨"rover_patrol_refine", 3, 1, [0, 1], 9, 4, 1, 1⟩,
-    ⟨"rover_patrol_refine", 3, 1, [0, 1], 9, 4, 1, 2⟩,
-    ⟨"rover_patrol_refine", 3, 1, [0, 1], 9, 4, 1, 3⟩,
-    ⟨"rover_patrol_refine", 3, 2, [0, 1], 9, 4, 2, 2⟩,
-    ⟨"rover_patrol_refine", 3, 2, [0, 1], 9, 4, 2, 3⟩,
-    ⟨"rover_patrol_refine", 3, 3, [0, 1], 9, 4, 3, 3⟩,
+    -- rover_patrol_lag
+    ⟨"rover_patrol_lag", 3, 0, [0, 1], 9, 4, 0, 0⟩,
+    ⟨"rover_patrol_lag", 3, 0, [0, 1], 9, 4, 0, 1⟩,
+    ⟨"rover_patrol_lag", 3, 0, [0, 1], 9, 4, 0, 2⟩,
+    ⟨"rover_patrol_lag", 3, 0, [0, 1], 9, 4, 0, 3⟩,
+    ⟨"rover_patrol_lag", 3, 1, [0, 1], 9, 4, 1, 1⟩,
+    ⟨"rover_patrol_lag", 3, 1, [0, 1], 9, 4, 1, 2⟩,
+    ⟨"rover_patrol_lag", 3, 1, [0, 1], 9, 4, 1, 3⟩,
+    ⟨"rover_patrol_lag", 3, 2, [0, 1], 9, 4, 2, 2⟩,
+    ⟨"rover_patrol_lag", 3, 2, [0, 1], 9, 4, 2, 3⟩,
+    ⟨"rover_patrol_lag", 3, 3, [0, 1], 9, 4, 3, 3⟩,
     -- rover_terrain_2to3 (cover replay): the joint nodes of each window, λ = 1
     ⟨"rover_terrain_2to3", 3, 0, [0, 1], 1, 1, 0, 0⟩,
     ⟨"rover_terrain_2to3", 3, 0, [0, 1], 1, 1, 0, 1⟩,
@@ -300,11 +300,11 @@ def packsV2 : List PackV2 :=
     ⟨"rover_ladder_4to6", 6, 0, [0, 1, 4, 5, 6, 7, 2, 3], 1, 1, 0, 0⟩,
     ⟨"rover_ladder_4to6", 6, 0, [0, 1, 4, 5, 6, 7, 2, 3], 1, 1, 1, 1⟩,
     ⟨"rover_ladder_4to6", 6, 0, [0, 1, 4, 5, 6, 7, 2, 3], 1, 1, 2, 2⟩,
-    -- rover3tier_rung12 (cover replay)
-    ⟨"rover3tier_rung12", 3, 0, [1, 0], 7, 4, 0, 0⟩,
-    ⟨"rover3tier_rung12", 3, 0, [1, 0], 7, 4, 0, 1⟩,
-    ⟨"rover3tier_rung12", 3, 1, [0], 1, 1, 1, 0⟩,
-    ⟨"rover3tier_rung12", 3, 1, [0], 1, 1, 1, 1⟩,
+    -- rover_tier_1to2 (cover replay)
+    ⟨"rover_tier_1to2", 3, 0, [1, 0], 7, 4, 0, 0⟩,
+    ⟨"rover_tier_1to2", 3, 0, [1, 0], 7, 4, 0, 1⟩,
+    ⟨"rover_tier_1to2", 3, 1, [0], 1, 1, 1, 0⟩,
+    ⟨"rover_tier_1to2", 3, 1, [0], 1, 1, 1, 1⟩,
     -- match_multi_rate (cover replay)
     ⟨"match_multi_rate", 2, 0, [0], 3, 1, 0, 0⟩,
     ⟨"match_multi_rate", 2, 0, [0], 2, 1, 1, 0⟩,
@@ -468,12 +468,12 @@ def dynPacksV2 : List DynPackV2 :=
     ⟨"rover_patrol_zones", 3, 2, [0, 1], true, 2, 1⟩,
     ⟨"rover_patrol_zones", 3, 3, [0, 1], true, 3, 1⟩,
     ⟨"rover_patrol_zones", 3, 3, [0, 1], true, 3, 2⟩,
-    -- rover_patrol_refine
-    ⟨"rover_patrol_refine", 3, 1, [0, 1], true, 1, 0⟩,
-    ⟨"rover_patrol_refine", 3, 2, [0, 1], true, 2, 0⟩,
-    ⟨"rover_patrol_refine", 3, 2, [0, 1], true, 2, 1⟩,
-    ⟨"rover_patrol_refine", 3, 3, [0, 1], true, 3, 1⟩,
-    ⟨"rover_patrol_refine", 3, 3, [0, 1], true, 3, 2⟩ ]
+    -- rover_patrol_lag
+    ⟨"rover_patrol_lag", 3, 1, [0, 1], true, 1, 0⟩,
+    ⟨"rover_patrol_lag", 3, 2, [0, 1], true, 2, 0⟩,
+    ⟨"rover_patrol_lag", 3, 2, [0, 1], true, 2, 1⟩,
+    ⟨"rover_patrol_lag", 3, 3, [0, 1], true, 3, 1⟩,
+    ⟨"rover_patrol_lag", 3, 3, [0, 1], true, 3, 2⟩ ]
 
 /-- Declared: the number of component queries the reposition packs owe. -/
 def expectedDynV2 : Nat := 81

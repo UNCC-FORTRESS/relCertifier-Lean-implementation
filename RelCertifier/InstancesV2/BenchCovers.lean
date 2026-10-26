@@ -19,7 +19,6 @@ import RelCertifier.InstancesV2.BenchCovers.platoon_delay_profiles
 import RelCertifier.InstancesV2.BenchCovers.quad_light_airframe_20
 import RelCertifier.InstancesV2.BenchCovers.quad_light_lag
 import RelCertifier.InstancesV2.BenchCovers.quad_light_profiles
-import RelCertifier.InstancesV2.BenchCovers.rover3tier_rung12
 import RelCertifier.InstancesV2.BenchCovers.rover_attitude_6to8
 import RelCertifier.InstancesV2.BenchCovers.rover_attitude_8to12
 import RelCertifier.InstancesV2.BenchCovers.rover_ladder_2to3
@@ -31,7 +30,7 @@ import RelCertifier.InstancesV2.BenchCovers.rover_ladder_6to8
 import RelCertifier.InstancesV2.BenchCovers.rover_ladder_8to12
 import RelCertifier.InstancesV2.BenchCovers.rover_lateral_6to8
 import RelCertifier.InstancesV2.BenchCovers.rover_lateral_8to12
-import RelCertifier.InstancesV2.BenchCovers.rover_patrol_refine
+import RelCertifier.InstancesV2.BenchCovers.rover_patrol_lag
 import RelCertifier.InstancesV2.BenchCovers.rover_patrol_zones
 import RelCertifier.InstancesV2.BenchCovers.rover_rollover_6to12
 import RelCertifier.InstancesV2.BenchCovers.rover_rollover_6to7
@@ -40,6 +39,7 @@ import RelCertifier.InstancesV2.BenchCovers.rover_terrain_2to3
 import RelCertifier.InstancesV2.BenchCovers.rover_terrain_3to6
 import RelCertifier.InstancesV2.BenchCovers.rover_terrain_6to12
 import RelCertifier.InstancesV2.BenchCovers.rover_terrain_6to8
+import RelCertifier.InstancesV2.BenchCovers.rover_tier_1to2
 import RelCertifier.InstancesV2.BenchCovers.sat3w_detumble_nominal
 import RelCertifier.InstancesV2.BenchCovers.sat3w_detumble_phases
 import RelCertifier.InstancesV2.BenchCovers.sat3w_detumble_weak
@@ -73,7 +73,6 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("quad_light_airframe_20", quad_light_airframe_20_coverV2),
   ("quad_light_lag", quad_light_lag_coverV2),
   ("quad_light_profiles", quad_light_profiles_coverV2),
-  ("rover3tier_rung12", rover3tier_rung12_coverV2),
   ("rover_attitude_6to8", rover_attitude_6to8_coverV2),
   ("rover_attitude_8to12", rover_attitude_8to12_coverV2),
   ("rover_ladder_2to3", rover_ladder_2to3_coverV2),
@@ -85,7 +84,7 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("rover_ladder_8to12", rover_ladder_8to12_coverV2),
   ("rover_lateral_6to8", rover_lateral_6to8_coverV2),
   ("rover_lateral_8to12", rover_lateral_8to12_coverV2),
-  ("rover_patrol_refine", rover_patrol_refine_coverV2),
+  ("rover_patrol_lag", rover_patrol_lag_coverV2),
   ("rover_patrol_zones", rover_patrol_zones_coverV2),
   ("rover_rollover_6to12", rover_rollover_6to12_coverV2),
   ("rover_rollover_6to7", rover_rollover_6to7_coverV2),
@@ -94,6 +93,7 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("rover_terrain_3to6", rover_terrain_3to6_coverV2),
   ("rover_terrain_6to12", rover_terrain_6to12_coverV2),
   ("rover_terrain_6to8", rover_terrain_6to8_coverV2),
+  ("rover_tier_1to2", rover_tier_1to2_coverV2),
   ("sat3w_detumble_nominal", sat3w_detumble_nominal_coverV2),
   ("sat3w_detumble_phases", sat3w_detumble_phases_coverV2),
   ("sat3w_detumble_weak", sat3w_detumble_weak_coverV2),

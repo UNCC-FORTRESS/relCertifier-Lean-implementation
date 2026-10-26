@@ -21,7 +21,6 @@ import RelCertifier.InstancesV2.BenchChoice.platoon_delay_profiles
 import RelCertifier.InstancesV2.BenchChoice.quad_light_airframe_20
 import RelCertifier.InstancesV2.BenchChoice.quad_light_lag
 import RelCertifier.InstancesV2.BenchChoice.quad_light_profiles
-import RelCertifier.InstancesV2.BenchChoice.rover3tier_rung12
 import RelCertifier.InstancesV2.BenchChoice.rover_attitude_6to8
 import RelCertifier.InstancesV2.BenchChoice.rover_attitude_8to12
 import RelCertifier.InstancesV2.BenchChoice.rover_ladder_2to3
@@ -33,7 +32,7 @@ import RelCertifier.InstancesV2.BenchChoice.rover_ladder_6to8
 import RelCertifier.InstancesV2.BenchChoice.rover_ladder_8to12
 import RelCertifier.InstancesV2.BenchChoice.rover_lateral_6to8
 import RelCertifier.InstancesV2.BenchChoice.rover_lateral_8to12
-import RelCertifier.InstancesV2.BenchChoice.rover_patrol_refine
+import RelCertifier.InstancesV2.BenchChoice.rover_patrol_lag
 import RelCertifier.InstancesV2.BenchChoice.rover_patrol_zones
 import RelCertifier.InstancesV2.BenchChoice.rover_rollover_6to12
 import RelCertifier.InstancesV2.BenchChoice.rover_rollover_6to7
@@ -42,6 +41,7 @@ import RelCertifier.InstancesV2.BenchChoice.rover_terrain_2to3
 import RelCertifier.InstancesV2.BenchChoice.rover_terrain_3to6
 import RelCertifier.InstancesV2.BenchChoice.rover_terrain_6to12
 import RelCertifier.InstancesV2.BenchChoice.rover_terrain_6to8
+import RelCertifier.InstancesV2.BenchChoice.rover_tier_1to2
 import RelCertifier.InstancesV2.BenchChoice.sat3w_detumble_nominal
 import RelCertifier.InstancesV2.BenchChoice.sat3w_detumble_phases
 import RelCertifier.InstancesV2.BenchChoice.sat3w_detumble_weak
@@ -75,7 +75,6 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("quad_light_airframe_20", quad_light_airframe_20_coverV2_choice),
   ("quad_light_lag", quad_light_lag_coverV2_choice),
   ("quad_light_profiles", quad_light_profiles_coverV2_choice),
-  ("rover3tier_rung12", rover3tier_rung12_coverV2_choice),
   ("rover_attitude_6to8", rover_attitude_6to8_coverV2_choice),
   ("rover_attitude_8to12", rover_attitude_8to12_coverV2_choice),
   ("rover_ladder_2to3", rover_ladder_2to3_coverV2_choice),
@@ -87,7 +86,7 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("rover_ladder_8to12", rover_ladder_8to12_coverV2_choice),
   ("rover_lateral_6to8", rover_lateral_6to8_coverV2_choice),
   ("rover_lateral_8to12", rover_lateral_8to12_coverV2_choice),
-  ("rover_patrol_refine", rover_patrol_refine_coverV2_choice),
+  ("rover_patrol_lag", rover_patrol_lag_coverV2_choice),
   ("rover_patrol_zones", rover_patrol_zones_coverV2_choice),
   ("rover_rollover_6to12", rover_rollover_6to12_coverV2_choice),
   ("rover_rollover_6to7", rover_rollover_6to7_coverV2_choice),
@@ -96,6 +95,7 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("rover_terrain_3to6", rover_terrain_3to6_coverV2_choice),
   ("rover_terrain_6to12", rover_terrain_6to12_coverV2_choice),
   ("rover_terrain_6to8", rover_terrain_6to8_coverV2_choice),
+  ("rover_tier_1to2", rover_tier_1to2_coverV2_choice),
   ("sat3w_detumble_nominal", sat3w_detumble_nominal_coverV2_choice),
   ("sat3w_detumble_phases", sat3w_detumble_phases_coverV2_choice),
   ("sat3w_detumble_weak", sat3w_detumble_weak_coverV2_choice),

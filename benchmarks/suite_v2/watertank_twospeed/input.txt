@@ -1,29 +1,53 @@
-# watertank_twospeed: the attacked tank of the running example against a nominal two-speed pump.
+# watertank_twospeed: a tank whose low-fill pump runs under a 3-unit sensor offset, against a
+# nominal two-speed fill pump.
 # scenario: sensor-attack
-# mechanisms: M1 M2 M3 M6 M6+
+# mechanisms: S M I (per-pairing time stretch, RELCERT_SYNC=1 declines; four right segments per
+#   left window; the set-point cuts are load-bearing; matrix codes M1 M2 M6 M6+)
 #
-# The deployed tank (left) is the running example's attacked low-fill mode: the sensor reads
-# 3 units low, so the controller regulates toward 15.5 instead of 12.5 and runs the pump at the
-# boost gain 0.6 (x' = 0.6 (15.5 - x), guard 5 <= x < 13 in true level, the nominal low-fill band
-# 2 <= x < 10 shifted by the offset). The nominal controller (right) fills in two speeds: FAST
-# below 8 (x' = 0.6 (12.5 - x), guard 2 <= x < 8) and a trickle SLOW above (x' = 0.2 (12.5 - x),
-# guard x >= 8), both toward the same set point 12.5. Claim: |x_L - x_R| <= 3 (the running example's
-# tolerance). Units are tank levels and minutes; the envelope 0 <= x <= 25 is the tank's capacity.
+# System. Tank level x (tank levels in dm, time in minutes); the envelope 0 <= x <= 25 is the
+# tank's capacity. This is a separate attacked pump at gain 0.6, not a mode of the running
+# example watertank (whose deployed Low runs at gain 2.0).
+# Left (deployed, attacked). One low-fill mode: the sensor reads 3 units low, so the controller
+# regulates toward 15.5 instead of 12.5: x' = 0.6 (15.5 - x), guard 5 <= x < 13 in true level
+# (the nominal low-fill band 2 <= x < 10 shifted by the offset), next = [Low]. The left is a
+# one-mode fragment: its flow rises toward 15.5, so every left run ends when it leaves the
+# guard at x = 13 (no mid-fill mode is modeled); the claim covers the low-fill phase only.
+# Right (nominal). Two speeds toward the same set point 12.5: FAST below 8
+# (x' = 0.6 (12.5 - x), guard 2 <= x < 8, next = [Fast, Slow]) and a trickle SLOW above
+# (x' = 0.2 (12.5 - x), guard x >= 8, next = [Slow]). The one cause between the sides is the
+# sensor offset (same gain 0.6 in the deployed pump and the nominal FAST).
+# Coverage: the right guards leave x < 2 uncovered (there is no dry-run interlock mode). No
+# paired state reaches it: x_L >= 5 and the claim give x_R >= 2, and both right flows rise
+# from x >= 2.
 #
-# WHY IT IS HERE (per-pairing stretch). The deployed low-fill pairs with FAST at stretches 1 to
-# 2.2 (same gain as the attacked pump: at 1 the difference converges to the tolerance, route C;
-# above 2.2 the stretched FAST overshoots the lower row) and with SLOW only from stretch 3 (the
-# gain ratio 0.6 / 0.2). No single stretch certifies both, and the deployed window needs both: a
-# nominal pump that starts in FAST crosses 8 within the window and continues in SLOW. With one
-# stretch per left mode the certifier DECLINES (RELCERT_NO_PAIR_STRETCH=1 DECLINES, measured);
-# the per-pairing fallback certifies with lambda_FAST = 1 and lambda_SLOW = 3.1 (the grid point),
-# every joint segment cut to the common span eps_R / 3.1 of left time, budget 4.
+# Property. |x_L - x_R| <= 3 (two rows): the tolerance is the sensor offset, as in the running
+# example. The first row is tight: x_L <= x_R + c certifies down to c = 3.00 (2.99 declines;
+# bisection): the difference x_L - x_R converges to 3. The second row is slack (alone it
+# certifies down to x_R <= x_L - 2.85). Not implied by the domains. The left Low has a
+# satisfiable start (x_R = x_L - 3 in the right's Fast or Slow guard).
 #
-# Covers (measured): deployed Low, lambda per pairing (FAST 1, SLOW 31/10), budget 4; admissible
-# starts FAST and SLOW; from FAST a joint step retains FAST and SLOW (M3), both joint-certified,
-# chained to the budget (M2). Cuts: FAST's set-point atom x <= 12.5 (implied contraction, M6+)
-# and the guard floors x >= 2, x >= 8 (M6). Tolerance 3 is tight: the difference x_L - x_R
-# converges to 3 from any admissible start.
+# Why per-pairing stretch (S). The deployed low-fill pairs with FAST at stretches 1 to 2.2
+# (same gain as the attacked pump: at 1 the difference converges to the tolerance, route C;
+# from 2.35 on the stretched FAST overshoots the lower row) and with SLOW only from 3.1 on
+# the lambda grid (the gain ratio 0.6 / 0.2 = 3; 2.95 fails). No single stretch certifies both,
+# and the deployed window needs both: a nominal pump that starts in FAST crosses 8 within the
+# window and continues in SLOW. With one stretch per left mode the certifier DECLINES
+# (RELCERT_NO_PAIR_STRETCH=1: DECLINED, measured); the per-pairing fallback certifies with
+# lambda_FAST = 1 and lambda_SLOW = 31/10, every joint segment cut to the common span
+# eps_R / 3.1 of left time, budget 4 (M). No branching: a joint step from FAST retains one
+# non-self successor (SLOW).
+# Why the cuts (I). FAST's set-point atom x <= 12.5 and the deployed's x <= 15.5 (implied
+# contraction atoms, widened channel) and the guard floors x >= 5 (deployed), x >= 2, x >= 8
+# (nominal) are kept as cuts;
+# RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1 and a run without RELCERT_IMPLIED_CUT all DECLINE.
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26): CERTIFIED; CERTIFIED under
+# RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1 (nothing is pruned), both together,
+# RELCERT_NO_LINEAR_CUT=1 and RELCERT_OPREGION=1; DECLINED under RELCERT_SYNC=1, RELCERT_SYNC=1
+# RELCERT_NO_CHOICE=1, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_PAIR_STRETCH=1
+# and without RELCERT_IMPLIED_CUT. Cover: deployed Low, lambda per pairing (Fast 1, Slow 31/10),
+# budget 4, admissible starts Fast and Slow. Rows identical (--handoff vacuous, 1/1). relcert
+# --wellformed: Fast ok (exit), Slow ok (invariant).
 [problem]
 name = watertank_twospeed
 max_depth = 8

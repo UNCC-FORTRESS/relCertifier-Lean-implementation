@@ -1,7 +1,8 @@
 # drl_lane_control: time-triggered local lane control refines the permissive controller
 # (sampled form of the case study of differential refinement logic).
 # scenario: controller-refinement
-# mechanisms: M2 M4
+# mechanisms: X (committed successor subsets: the reference hops into the deployed's
+#   follower/leader action pair at the start of every window)
 #
 # SOURCE. Loos and Platzer, "Differential refinement logic" (LICS 2016), Section 6.4: the
 # local lane control of Loos, Platzer and Nistor (FM 2011), a follower behind a leader on a
@@ -10,8 +11,9 @@
 # Safe_eps (eq. (7) of FM 2011, the time-triggered form), exactly -B when braking (dRL fixes
 # the braking power, FM 2011 allows [-B, -b]), and 0 when stopped; dRL shows the
 # time-triggered follower (period eps, guard Safe_eps) to refine the event-triggered one
-# (guard Safe, the safe-distance invariant of FM 2011), with b = B. Refinement in dRL is reachability inclusion, i.e. the
-# forall-exists relational invariance of this suite at the identity relation, stretch 1.
+# (guard Safe, the safe-distance invariant of FM 2011), with b = B. Refinement in dRL is
+# reachability inclusion, i.e. the forall-exists relational invariance of this suite at the
+# identity relation, stretch 1.
 #
 # STATE. The gap d = x_l - x_f and the two speeds: d' = v_l - v_f, v_f' = a_f, v_l' = a_l
 # (three variables per side; the absolute positions do not enter the guards).
@@ -38,8 +40,17 @@
 #                                    i.e. d >= v_f^2/2 - v_l^2/2 + 2 v_f + 1;
 #   Safe     (right, follower Accel): d >= v_f^2/2 - v_l^2/2.
 # Claim (every left mode): d_L = d_R, v_f_L = v_f_R, v_l_L = v_l_R (two inequalities each).
-# Existential mode choice (RELCERT_CHOICE=1): the right hops into the left's mode at the start
-# of each window, then runs the certified joint segment.
+# Why committed choice is needed (X). The existential mode choice is the tool's default: the
+# right hops into the left's mode (follower and leader action) at the start of each window,
+# legal because Safe_eps implies Safe under the identity relation, then runs the certified
+# joint segment. Without it (RELCERT_NO_CHOICE=1) the right must flow on in whatever admissible
+# action pair it holds and the gap or the speeds separate: DECLINED.
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26): CERTIFIED; CERTIFIED
+# under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1, RELCERT_OPREGION=1 and without
+# RELCERT_IMPLIED_CUT; DECLINED under RELCERT_NO_CHOICE=1, RELCERT_SYNC=1 RELCERT_NO_CHOICE=1
+# and RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1. Cover: every left mode at lambda 1, budget 1,
+# every right mode an admissible start, closed by a hop into the left's action pair. Rows
+# identical (--handoff vacuous, 36/36). relcert --wellformed: all six right modes ok (exit).
 [problem]
 name = drl_lane_control
 max_depth = 8

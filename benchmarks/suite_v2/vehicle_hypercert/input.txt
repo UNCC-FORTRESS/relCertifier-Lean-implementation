@@ -1,20 +1,42 @@
 # vehicle_hypercert: continuous-time counterpart of the vehicle case study of Murali et al.
 # (HyperCertificates, arXiv 2605.00752, Sec. 9.2).
 # scenario: opacity
-# mechanisms: M2
-# SOURCE AND FORM: velocity v in [0, 0.6], acceleration chosen
-# each cycle from {-0.04, -0.02, 0, 0.02, 0.04}; the observer sees the velocity. Their discrete
-# step s' = s + v + w/2, v' = v + w (state space s in [0, 8], v in [0, 0.6]; the observer's
-# precision is delta = 0.01) is the unit-period sampling of s' = v, v' = w with w held.
-# Opacity (secret start s in [0,1]) is encoded by the precondition v_L = v_R with the right's
-# position free (any non-secret start with the same velocity). Claim: v_L = v_R (implies their
-# delta-closeness for every delta >= 0). Position omitted: unobserved and unconstrained.
-# Guards keep the velocity in [0, 0.6] over one cycle. The encoding rests on two facts of the
-# source model: the velocity never reads the position (so the secret cannot reach the
-# observable, which is why the witness copies the acceleration) and a non-secret start
-# s in (1, 8] with the same velocity keeps a constant offset to the secret one, so the matching
-# trace may leave s <= 8 before the left does; neither side bounds s here. Stretch pinned to 1:
-# opacity compares the observable step by step. Existential mode choice (the tool's default).
+# mechanisms: X (committed successor subsets: the reference copies the deployed's acceleration
+#   at the start of every window). The emitted cover of the four non-zero accelerations also
+#   uses a right-only reposition through A0, but RELCERT_SYNC=1 (no right-only segments)
+#   certifies: R is used there, not needed.
+#
+# SOURCE AND FORM: velocity v in [0, 0.6], acceleration chosen each cycle from
+# {-0.04, -0.02, 0, 0.02, 0.04}; the observer sees the velocity. Their discrete step
+# s' = s + v + w/2, v' = v + w (state space s in [0, 8], v in [0, 0.6]; the observer's
+# precision is delta = 0.01) is the unit-period sampling of s' = v, v' = w with w held. One
+# mode per acceleration on each side (Am4, Am2, A0, Ap2, Ap4), identical on both sides.
+# Position abstracted away: the file's state is the velocity alone (state_vars = [v] on both
+# sides). The position s enters neither the observable nor any guard nor the velocity
+# equation, so dropping it loses nothing the claim reads; but the source's position range
+# s <= 8 and its secret (a start s in [0, 1]) are not represented. The encoding rests on two
+# facts of the source model: the velocity never reads the position (so the secret cannot reach
+# the observable, which is why the witness copies the acceleration) and a non-secret start
+# s in (1, 8] with the same velocity keeps a constant offset to the secret one (so the matching
+# trace may leave s <= 8 before the left does, a bound this file does not check).
+# No precondition: the format has no precondition section; the relational invariant v_L = v_R
+# is itself the start relation of every window (any secret and any non-secret start with the
+# same velocity are paired). Claim (every left mode): v_L = v_R (two inequalities), which
+# implies their delta-closeness for every delta >= 0. Guards keep the velocity in [0, 0.6] over
+# one cycle (the domain [0, 0.6] is forward invariant under them; the right guards cover it, A0
+# everywhere). Stretch pinned to 1: opacity compares the observable step by step.
+#
+# Why committed choice is needed (X). The existential mode choice is the tool's default: at the
+# start of each window the right hops into the left's acceleration and the two velocities move
+# together. Without it (RELCERT_NO_CHOICE=1) the right must flow on in whatever admissible
+# acceleration it holds, and the velocities separate: DECLINED.
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26): CERTIFIED; CERTIFIED under
+# RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1, RELCERT_OPREGION=1 and without
+# RELCERT_IMPLIED_CUT; DECLINED under RELCERT_NO_CHOICE=1, RELCERT_SYNC=1 RELCERT_NO_CHOICE=1 and
+# RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1. Cover: every left mode at lambda 1, budget 1, every
+# right mode an admissible start. Rows identical (--handoff vacuous, 25/25). relcert
+# --wellformed: Am4, Am2, Ap2, Ap4 ok (exit), A0 ok (invariant).
 [problem]
 name = vehicle_hypercert
 max_depth = 8

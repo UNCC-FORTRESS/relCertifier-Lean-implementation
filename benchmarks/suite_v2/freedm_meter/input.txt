@@ -1,7 +1,8 @@
 # freedm_meter: initial-state nondeducibility of a battery level through the grid meter
 # (sampled, single-transformer form of the FREEDM case study of hybrid-dynamic information flow).
 # scenario: information-flow
-# mechanisms: M2
+# mechanisms: X (committed successor subsets: the second run commits to the mode that copies
+#   the first run's meter, chosen per window)
 #
 # SOURCE. Bohrer and Platzer, "A hybrid, dynamic logic for hybrid-dynamic information flow"
 # (LICS 2018), the FREEDM model of Figure 2 (Section 3), nondeducibility (its Definition 5),
@@ -28,11 +29,21 @@
 #     battery cycle at a full battery, which the source's test does not), and a grid mode
 #     always. The evolve domain adds the capacity B <= Bmax to the source's B >= 0; the meter E
 #     has no domain (it may decrease when a surplus is sold).
-# PROPERTY. The suite's Definition 1 (the source's nondeducibility) at E_L = E_R (two inequalities), every pair of battery levels an
-# admissible start: the secret B is unconstrained on either side. Witness: the right copies the
-# left's source and inputs when its battery allows, otherwise draws from the grid with d = r
+# PROPERTY. The suite's Definition 1 (the source's nondeducibility) at E_L = E_R (two
+# inequalities), every pair of battery levels an admissible start: the secret B is
+# unconstrained on either side. Witness: the right copies the left's source and inputs when its
+# battery allows, otherwise draws from the grid with d = r
 # (zero net draw). Existential mode choice (the tool's default): the right commits to one mode.
+# Why committed choice is needed (X): the witness mode depends on the second run's own battery
+# level, so the right must choose it; without the choice (RELCERT_NO_CHOICE=1) the right must
+# flow on in whatever admissible mode it holds at the window start, and the meters separate:
+# DECLINED.
 # The leaky controller batI is benchmarks/negative/freedm_meter_leaky (expected DECLINED).
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26): CERTIFIED; CERTIFIED
+# under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1, RELCERT_OPREGION=1 and without
+# RELCERT_IMPLIED_CUT; DECLINED under RELCERT_NO_CHOICE=1, RELCERT_SYNC=1 RELCERT_NO_CHOICE=1
+# and RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1. Rows identical (--handoff vacuous, 144/144).
+# relcert --wellformed: all 12 right modes ok (8 invariant, 4 exit).
 [problem]
 name = freedm_meter
 max_depth = 8

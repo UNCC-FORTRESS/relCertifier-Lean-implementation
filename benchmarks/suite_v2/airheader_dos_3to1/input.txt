@@ -35,14 +35,15 @@
 # non-connection certificates (entry p >= 6 resp. p >= 5; on the threshold p = 5 the flow points
 # up for every demand). Without pruning the cover must also account for TRIP after a NORMAL
 # segment, and it cannot: (NORMAL_L, TRIP_R) separates the pressures. The existential choice
-# does not replace pruning here: at peak demand (g > 0.05) the loop settles below 6 bar, so
-# NORMAL's entry condition p >= 6 is not kept by its flow and, with the demand unknown, no cut
+# does not replace pruning here: at peak demand (g >= 0.05) the loop settles at or below 6 bar,
+# so NORMAL's entry condition p >= 6 is not kept by its flow and, with the demand unknown, no cut
 # bounds p from below at a segment end; states with p < 5 are then covered by no successor guard
 # but TRIP's. TRIP is no admissible start of NORMAL_L or ALARM_L (p_R = p_L >= 5).
 # Constants: certified for every peak demand g_max < 0.08 (= 0.1 (9 - 5) / 5: 0.079 certifies,
-# 0.081 declines, the trip becomes reachable); pruning is needed only for g_max > 0.05
-# (= 0.1 (9 - 6) / 6: with g_max = 0.034 RELCERT_NO_PRUNE=1 alone certifies, only
-# RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1 declines). Without the attack (epsilon_L = 1) a
+# 0.081 declines, the trip becomes reachable); pruning is needed only for g_max >= 0.05
+# (= 0.1 (9 - 6) / 6: RELCERT_NO_PRUNE=1 alone certifies up to g_max = 0.049 and declines at
+# 0.05; below that only RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1 declines, e.g. at g_max = 0.034,
+# the existential choice then closing the same fallback). Without the attack (epsilon_L = 1) a
 # one-segment cover suffices and pruning is not needed (RELCERT_NO_PRUNE=1
 # RELCERT_NO_CHOICE=1 certifies): the trip matters only across the held decision.
 #

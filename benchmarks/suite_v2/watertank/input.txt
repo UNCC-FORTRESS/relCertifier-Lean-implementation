@@ -1,9 +1,9 @@
-# watertank: set-point level controller under a sensor offset and a tampered fill pump.
+# watertank: set-point level controller under a sensor offset and a tampered fill pump (the
+# paper's running example).
 # scenario: sensor-attack
-# mechanisms: M1 M2 M3 M4
-#
-# THE PAPER'S RUNNING EXAMPLE (redesigned 2026-10-09, supersedes the fill-speedup
-# watertank of the earlier passes; docs/SUITE-REDESIGN.md section 18).
+# mechanisms: S M B (time stretch lambda = 2 in Low and Mid, RELCERT_SYNC=1 declines; two right
+#   segments per left window; a joint step from the reference's Low retains both Mid profiles;
+#   matrix codes M1 M2 M3)
 #
 # THE PLANT. A tank of capacity 25 (level x in dm, so a 2.5 m tank; time in minutes).
 # Every mode is a proportional pump controller that drives the level toward a set point c,
@@ -18,9 +18,9 @@
 #              MidBoost        x' = 1.0 (17 - x)    full gain k
 #   High     x >= 17         x' = 1.0 (17 - x)    regulate (drain) down to 17
 # The nominal controller may move between MidEco and MidBoost at any time while in Mid,
-# and returns from High into either profile.
+# and returns from High into either profile. The right guards partition [0, 25] (no gap).
 #
-# THE ATTACK (left, the deployed controller):
+# THE ATTACK (left, the deployed controller; one adversary acting on two channels):
 #   1. Sensor offset: the level sensor reads 3 dm LOW (x_measured = x - 3), so every
 #      threshold and every set point the controller acts on is 3 dm higher in true level:
 #        Low  5 <= x < 13   toward 15.5 (= 12.5 + 3)
@@ -31,46 +31,49 @@
 #      (gain 1.0; the deployed controller has a single Mid profile).
 #   Levels whose reading is below the interlock threshold (x_L < 5, i.e. a reading below
 #   2) are outside the model: the deployed controller has no dry-run mode, and its Low
-#   floor 5 = 2 + 3 is the nominal interlock threshold shifted by the offset.
+#   floor 5 = 2 + 3 is the nominal interlock threshold shifted by the offset. Every left
+#   mode has a satisfiable start (x_R = x_L - 3 is in the right's Low, Mid or High guard).
 #
 # CLAIM (two rows per mode): |x_L - x_R| <= 3, i.e. x_L <= x_R + 3 and x_R <= x_L + 3 in
 # every left mode: the true levels of the deployed and the reference tank never differ
-# by more than the sensor offset. The tolerance 3 IS the offset, and it is tight: with
-# tolerance 2.9 (both rows) the benchmark is DECLINED (measured). Why it is tight
-# (derived from the model): on the boundary x_L = x_R + 3 the deployed Low field is
-# 2.0 (15.5 - x_L) = 2.0 (12.5 - x_R), exactly the nominal Low field run at speed
-# ratio 2, so the gap is neutral there (zero Lie derivative), not contracting; the same
-# holds for Mid against MidEco at ratio 2 and against MidBoost at ratio 1.
+# by more than the sensor offset. Requirement: the attack may not move the true level by more
+# than the offset the operator already tolerates in the sensor. The tolerance 3 IS the offset,
+# and the first row is tight: with x_L <= x_R + c the benchmark certifies down to c = 3.00
+# (2.99 declines; bisection, both rows or the first alone). Why (derived from the model): on
+# the boundary x_L = x_R + 3 the deployed Low field is 2.0 (15.5 - x_L) = 2.0 (12.5 - x_R),
+# exactly the nominal Low field run at speed ratio 2, so the gap is neutral there (zero Lie
+# derivative), not contracting; the same holds for Mid against MidEco at ratio 2 and against
+# MidBoost at ratio 1. The second row is slack: alone it certifies down to x_R <= x_L + 1.50
+# (1.49 declines); the claim keeps the symmetric offset band. Not implied by the domains.
 #
 # DOMAIN: the tank capacity, 0 <= x <= 25, identical in every mode on both sides. No
 # certificate stands on it: widened to x <= 60 (and to -60 <= x <= 60) the benchmark
 # still CERTIFIES (measured).
 #
-# MEASURED (relcert, RELCERT_IMPLIED_CUT=1; epsilon_L = epsilon_R = 1 min, lambda grid
-# [1, 6]; counter-runs as in docs/SUITE-REDESIGN.md section 2):
-#   * CERTIFIED with no reposition of any kind: the replayed cover derivation consists
-#     of joint segments only (every left/right pair it visits is a joint segment; no
-#     static and no dynamic right-only step).
-#   * Low and Mid certify at lambda = 2 (the speed ratio: the tampered Low pump against
-#     the nominal one, and the full-gain deployed Mid against MidEco) with budget 2
-#     (two right segments per left window); High at lambda = 1, budget 1.
-#   * Branching (M3): a joint step from the nominal Low retains BOTH MidEco and MidBoost, and
-#     both cover. MidEco needs lambda = 2, MidBoost already passes at lambda = 1 (the
-#     per-lambda segment rows of RELCERT_DEBUG=1: for the deployed Mid, MidEco passes
-#     only at lambda = 2, MidBoost at every grid point from 1).
-#   * Pruning: Low -> PumpOff is pruned (the nominal Low flow from its entry x >= 2
-#     never reaches x < 2). RELCERT_NO_PRUNE=1 DECLINES: the deployed Low window cannot
-#     cover a reference latched in PumpOff (its segment fails at every lambda). The
-#     deployed floor 5 = 2 + 3 keeps PumpOff out of the admissible starts for the
-#     deployed Low.
-#   * Cuts: the set-point atoms x <= c are the cuts (deployed Low x <= 15.5, an implied
-#     contraction atom; deployed Mid x <= 20, nominal MidEco / MidBoost x <= 17, the
-#     closures of the strict guard caps; nominal Low x <= 12.5, implied). Until 2026-10-11
-#     RELCERT_NO_CUT=1 and RELCERT_NO_IMPLIED_CUT=1 both DECLINED; with the per-pairing
-#     stretch fallback (docs/SUITE-REDESIGN.md section 22) both CERTIFY (a different stretch
-#     per pairing recovers what the cut-narrowed domains gave), so the cuts are no longer
-#     load-bearing here (M6 / M6+ not credited; the two-speed variant watertank_twospeed
-#     carries them). RELCERT_NO_LINEAR_CUT=1 CERTIFIES (no linear-form atom is kept).
+# Why stretching (S). The tampered Low pump runs at twice the nominal Low gain and the deployed
+# Mid at twice MidEco's: only lambda = 2 matches them (RELCERT_SYNC=1: DECLINED).
+# Branching (B). A joint step from the nominal Low retains BOTH MidEco and MidBoost, and both
+# cover: MidEco passes only at lambda = 2, MidBoost at every grid point from 1 (the per-lambda
+# segment rows of RELCERT_DEBUG=1 for the deployed Mid).
+# Pruning (not load-bearing). Low -> PumpOff is pruned (the nominal Low flow from its entry
+# x >= 2 never reaches x < 2). RELCERT_NO_PRUNE=1 alone CERTIFIES: the existential choice closes
+# the same fallback (the reference commits to the successor that covers); only with
+# RELCERT_NO_PRUNE=1 and RELCERT_NO_CHOICE=1 together is it DECLINED (the deployed Low window
+# cannot cover a reference latched in PumpOff). The deployed floor 5 = 2 + 3 keeps PumpOff out
+# of the admissible starts for the deployed Low.
+# Cuts (not load-bearing). The set-point atoms x <= c are kept as cuts (deployed Low x <= 15.5,
+# an implied contraction atom; deployed Mid x <= 20, nominal MidEco / MidBoost x <= 17, the
+# closures of the strict guard caps; nominal Low x <= 12.5, implied), but RELCERT_NO_CUT=1,
+# RELCERT_NO_IMPLIED_CUT=1 and RELCERT_NO_LINEAR_CUT=1 all CERTIFY: the per-pairing stretch
+# recovers what the cut-narrowed domains gave. The cuts are load-bearing in watertank_twospeed.
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26): CERTIFIED; CERTIFIED
+# under RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1, RELCERT_OPREGION=1 and
+# without RELCERT_IMPLIED_CUT; DECLINED under RELCERT_SYNC=1, RELCERT_SYNC=1 RELCERT_NO_CHOICE=1
+# and RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1. Cover (joint segments only, no reposition): Low
+# and Mid at lambda 2, budget 2 (admissible starts Low, MidEco, MidBoost resp. MidEco, MidBoost,
+# High); High at lambda 1, budget 1. Rows identical (--handoff vacuous, 6/6). relcert
+# --wellformed: Low ok (exit), MidEco, MidBoost, High, PumpOff ok (invariant).
 [problem]
 name = watertank
 max_depth = 8

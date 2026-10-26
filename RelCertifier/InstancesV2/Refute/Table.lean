@@ -14,6 +14,39 @@ import RelCertifier.InstancesV2.Refute.Data.charger_fast_tapers_m003
 import RelCertifier.InstancesV2.Refute.Data.platoon3_linkloss_m072
 import RelCertifier.InstancesV2.Refute.Data.platoon3_linkloss_m084
 import RelCertifier.InstancesV2.Refute.Data.platoon3_linkloss_m096
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_2to4_m008
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_2to4_m011
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_2to4_m012
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_2to4_m015
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_4to6_m016
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_4to6_m017
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_4to6_m019
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_4to6_m020
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_4to6_m021
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_4to6_m022
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_4to6_m024
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_4to6_m028
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m020
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m021
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m023
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m024
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m025
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m026
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m028
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m029
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m030
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m032
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m035
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m037
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m039
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m040
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m041
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m042
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m043
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m044
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m045
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m046
+import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m047
 import RelCertifier.InstancesV2.Refute.Data.sat3w_detumble_nominal_m002
 import RelCertifier.InstancesV2.Refute.Data.sat3w_detumble_nominal_m003
 import RelCertifier.InstancesV2.Refute.Data.sat3w_detumble_nominal_m004
@@ -93,6 +126,9 @@ import RelCertifier.InstancesV2.Cuts.rover_lateral_6to8
 import RelCertifier.InstancesV2.Cuts.rover_lateral_8to12
 import RelCertifier.InstancesV2.Cuts.rover_rollover_6to12
 import RelCertifier.InstancesV2.Cuts.rover_rollover_6to7
+import RelCertifier.InstancesV2.Cuts.rover_terrain_2to4
+import RelCertifier.InstancesV2.Cuts.rover_terrain_4to6
+import RelCertifier.InstancesV2.Cuts.rover_terrain_6to12
 import RelCertifier.InstancesV2.Cuts.sat3w_detumble_nominal
 import RelCertifier.InstancesV2.Cuts.sat3w_detumble_phases
 import RelCertifier.InstancesV2.Cuts.sat3w_detumble_weak
@@ -123,6 +159,39 @@ def refuteTable : List RefRec := [
   ⟨"platoon3_linkloss_m072", 6 + 1, platoon3_linkloss_m072_IRm, platoon3_linkloss_cutsV2X, platoon3_linkloss_m072_wit⟩,
   ⟨"platoon3_linkloss_m084", 6 + 1, platoon3_linkloss_m084_IRm, platoon3_linkloss_cutsV2X, platoon3_linkloss_m084_wit⟩,
   ⟨"platoon3_linkloss_m096", 6 + 1, platoon3_linkloss_m096_IRm, platoon3_linkloss_cutsV2X, platoon3_linkloss_m096_wit⟩,
+  ⟨"rover_terrain_2to4_m008", 5 + 1, rover_terrain_2to4_m008_IRm, rover_terrain_2to4_cutsV2X, rover_terrain_2to4_m008_wit⟩,
+  ⟨"rover_terrain_2to4_m011", 5 + 1, rover_terrain_2to4_m011_IRm, rover_terrain_2to4_cutsV2X, rover_terrain_2to4_m011_wit⟩,
+  ⟨"rover_terrain_2to4_m012", 5 + 1, rover_terrain_2to4_m012_IRm, rover_terrain_2to4_cutsV2X, rover_terrain_2to4_m012_wit⟩,
+  ⟨"rover_terrain_2to4_m015", 5 + 1, rover_terrain_2to4_m015_IRm, rover_terrain_2to4_cutsV2X, rover_terrain_2to4_m015_wit⟩,
+  ⟨"rover_terrain_4to6_m016", 7 + 1, rover_terrain_4to6_m016_IRm, rover_terrain_4to6_cutsV2X, rover_terrain_4to6_m016_wit⟩,
+  ⟨"rover_terrain_4to6_m017", 7 + 1, rover_terrain_4to6_m017_IRm, rover_terrain_4to6_cutsV2X, rover_terrain_4to6_m017_wit⟩,
+  ⟨"rover_terrain_4to6_m019", 7 + 1, rover_terrain_4to6_m019_IRm, rover_terrain_4to6_cutsV2X, rover_terrain_4to6_m019_wit⟩,
+  ⟨"rover_terrain_4to6_m020", 7 + 1, rover_terrain_4to6_m020_IRm, rover_terrain_4to6_cutsV2X, rover_terrain_4to6_m020_wit⟩,
+  ⟨"rover_terrain_4to6_m021", 7 + 1, rover_terrain_4to6_m021_IRm, rover_terrain_4to6_cutsV2X, rover_terrain_4to6_m021_wit⟩,
+  ⟨"rover_terrain_4to6_m022", 7 + 1, rover_terrain_4to6_m022_IRm, rover_terrain_4to6_cutsV2X, rover_terrain_4to6_m022_wit⟩,
+  ⟨"rover_terrain_4to6_m024", 7 + 1, rover_terrain_4to6_m024_IRm, rover_terrain_4to6_cutsV2X, rover_terrain_4to6_m024_wit⟩,
+  ⟨"rover_terrain_4to6_m028", 7 + 1, rover_terrain_4to6_m028_IRm, rover_terrain_4to6_cutsV2X, rover_terrain_4to6_m028_wit⟩,
+  ⟨"rover_terrain_6to12_m020", 13 + 1, rover_terrain_6to12_m020_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m020_wit⟩,
+  ⟨"rover_terrain_6to12_m021", 13 + 1, rover_terrain_6to12_m021_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m021_wit⟩,
+  ⟨"rover_terrain_6to12_m023", 13 + 1, rover_terrain_6to12_m023_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m023_wit⟩,
+  ⟨"rover_terrain_6to12_m024", 13 + 1, rover_terrain_6to12_m024_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m024_wit⟩,
+  ⟨"rover_terrain_6to12_m025", 13 + 1, rover_terrain_6to12_m025_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m025_wit⟩,
+  ⟨"rover_terrain_6to12_m026", 13 + 1, rover_terrain_6to12_m026_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m026_wit⟩,
+  ⟨"rover_terrain_6to12_m028", 13 + 1, rover_terrain_6to12_m028_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m028_wit⟩,
+  ⟨"rover_terrain_6to12_m029", 13 + 1, rover_terrain_6to12_m029_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m029_wit⟩,
+  ⟨"rover_terrain_6to12_m030", 13 + 1, rover_terrain_6to12_m030_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m030_wit⟩,
+  ⟨"rover_terrain_6to12_m032", 13 + 1, rover_terrain_6to12_m032_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m032_wit⟩,
+  ⟨"rover_terrain_6to12_m035", 13 + 1, rover_terrain_6to12_m035_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m035_wit⟩,
+  ⟨"rover_terrain_6to12_m037", 13 + 1, rover_terrain_6to12_m037_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m037_wit⟩,
+  ⟨"rover_terrain_6to12_m039", 13 + 1, rover_terrain_6to12_m039_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m039_wit⟩,
+  ⟨"rover_terrain_6to12_m040", 13 + 1, rover_terrain_6to12_m040_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m040_wit⟩,
+  ⟨"rover_terrain_6to12_m041", 13 + 1, rover_terrain_6to12_m041_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m041_wit⟩,
+  ⟨"rover_terrain_6to12_m042", 13 + 1, rover_terrain_6to12_m042_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m042_wit⟩,
+  ⟨"rover_terrain_6to12_m043", 13 + 1, rover_terrain_6to12_m043_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m043_wit⟩,
+  ⟨"rover_terrain_6to12_m044", 13 + 1, rover_terrain_6to12_m044_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m044_wit⟩,
+  ⟨"rover_terrain_6to12_m045", 13 + 1, rover_terrain_6to12_m045_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m045_wit⟩,
+  ⟨"rover_terrain_6to12_m046", 13 + 1, rover_terrain_6to12_m046_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m046_wit⟩,
+  ⟨"rover_terrain_6to12_m047", 13 + 1, rover_terrain_6to12_m047_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m047_wit⟩,
   ⟨"sat3w_detumble_nominal_m002", 6 + 1, sat3w_detumble_nominal_m002_IRm, sat3w_detumble_nominal_cutsV2X, sat3w_detumble_nominal_m002_wit⟩,
   ⟨"sat3w_detumble_nominal_m003", 6 + 1, sat3w_detumble_nominal_m003_IRm, sat3w_detumble_nominal_cutsV2X, sat3w_detumble_nominal_m003_wit⟩,
   ⟨"sat3w_detumble_nominal_m004", 6 + 1, sat3w_detumble_nominal_m004_IRm, sat3w_detumble_nominal_cutsV2X, sat3w_detumble_nominal_m004_wit⟩,
@@ -193,6 +262,6 @@ def refuteTable : List RefRec := [
   ⟨"rover_rollover_6to7_m021", 13 + 1, rover_rollover_6to7_m021_IRm, rover_rollover_6to7_cutsV2X, rover_rollover_6to7_m021_wit⟩ ]
 
 /-- Declared: the number of query groups over the refutations (one per right mode each). -/
-def expectedRefuteGroups : Nat := 216
+def expectedRefuteGroups : Nat := 315
 
 end RelCertifier.Refute

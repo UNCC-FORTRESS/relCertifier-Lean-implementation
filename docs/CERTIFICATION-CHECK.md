@@ -58,8 +58,8 @@ theorems consume is in the repository.
 | 4 | each file parses to the literal the theorems quote; parser, printer, Z3-layer and determinism tests | `BENCH_PATHS=<manifest> ./.lake/build/bin/relcert-test` |
 | 5 | Assumption 1 of every right model (`WellFormedR`): proved for all 50, none refuted; axiom audit; the tool's check, strict in check 3 | `lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 \| grep -A3 "depends on axioms"`; `./.lake/build/bin/relcert --wellformed benchmarks/suite_v2/*/input.txt` |
 | 6 | every Z3 hypothesis of the generic bridge instances (`InstancesV2/Bridge/`, 52 `*_bridge` theorems: stays, non-connection pairs, flow and reposition packs, admissibility, handoffs, progress, coverage) holds, against the declared total 4457 over the 50 suite benchmarks and the 2 choice exhibits; every query is sent at the instance's dimension `bridgeDimV2 b` (`VerdictsV2/RunBridge.lean:74`: the Assumption 1 lemma's dimension plus one, the right clock of the clocked right automaton `rightAutomatonBodyC`), which is the dimension the instance's `Verdicts` hypothesis names | `./.lake/build/bin/relcert-bridge-verdicts` |
-| 7 | the progress certificates (the paper's reposition certificates, Definition 7) of every reposition node (249 queries) hold, against the declared count | `./.lake/build/bin/relcert-progress-verdicts` |
-| 8 | the 77 kernel refutations (`InstancesV2/Refute/`, `docs/REFUTATION-RESULTS.md`): every Z3 group of `RefVerdicts` holds against the declared total 216, each instance at its benchmark's bridge dimension (`RefRec.dim + 1`, `InstancesV2/Refute/Table.lean`), and each instance concludes `¬ keyedClaim … 0 1 2 3 dt` / `¬ windowClaim … 0 1 2 dt`, the negation of the clocked bridge claim at that dimension (`refute_keyed_C/A/B_clocked`, `refute_window_B_clocked`) | `./.lake/build/bin/relcert-refute-verdicts`; `lake build RelCertifier.InstancesV2.Refute` |
+| 7 | the progress certificates (the paper's reposition certificates, Definition 7) of every reposition node (213 queries) hold, against the declared count | `./.lake/build/bin/relcert-progress-verdicts` |
+| 8 | the 110 kernel refutations (`InstancesV2/Refute/`, `docs/REFUTATION-RESULTS.md`): every Z3 group of `RefVerdicts` holds against the declared total 315, each instance at its benchmark's bridge dimension (`RefRec.dim + 1`, `InstancesV2/Refute/Table.lean`), and each instance concludes `¬ keyedClaim … 0 1 2 3 dt` / `¬ windowClaim … 0 1 2 dt`, the negation of the clocked bridge claim at that dimension (`refute_keyed_C/A/B_clocked`, `refute_window_B_clocked`) | `./.lake/build/bin/relcert-refute-verdicts`; `lake build RelCertifier.InstancesV2.Refute` |
 
 The totals 4457 and 188 are unchanged by the dimension change of 2026-10-21 (branch
 `clocked-right`): the padded coordinate is unbound in every lowered formula, so no query reads
@@ -84,7 +84,8 @@ than about a minute: on the 2026-10-22 run (Apple M2 Max, incremental after the 
 heaviest modules were the 12-dimensional Assumption 1 proofs
 `InstancesV2/WellFormed/{RoverRollover6to7,RoverAttitude8to12,RoverRollover6to12,
 RoverLateral8to12,RoverLateral6to8,RoverAttitude6to8,RoverTerrain6to12,RoverTerrain6to8}`
-at 30 to 35 s each; a plain `lake build` is enough. The last full measurement of the
+at 30 to 35 s each (the terrain chain's proofs were rewritten on 2026-10-26, `RoverTerrain6to8` is
+now `RoverTerrain4to6`; they take about 20 s); a plain `lake build` is enough. The last full measurement of the
 pre-cleanup tree (2026-10-10, every module invalidated: 64 min 45 s wall, the archived
 standalone instances between 154 s and 651 s each at up to 15.6 GB) is in this file's history
 on branch `archive/legacy-2026-10`. A build from a cold tree also compiles dL-rel and the
@@ -132,7 +133,7 @@ gated. Expected tail:
 
 ```
   [suite_v2] 50 certified, 0 declined, 0 error(s) — matches the declared suite
-  [coverage] suite_v2 modal: 670/670 hypotheses discharged
+  [coverage] suite_v2 modal: 784/784 hypotheses discharged
   [coverage] suite_v2 handoff: 417/417 hypotheses discharged
   [coverage] suite_v2 non-connection: 92/92 hypotheses discharged
   [coverage] suite_v2 pruned edges: 46/46 hypotheses discharged
@@ -259,9 +260,9 @@ on branch `archive/legacy-2026-10`.
 | `rover_ladder_2to6` | `InstancesV2/Bridge/RoverLadder2to6.lean` | `rover_ladder_2to6_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverLadder2to6.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
 | `rover_ladder_6to8` | `InstancesV2/Bridge/RoverLadder6to8.lean` | `rover_ladder_6to8_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverLadder6to8.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
 | `rover_ladder_8to12` | `InstancesV2/Bridge/RoverLadder8to12.lean` | `rover_ladder_8to12_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverLadder8to12.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
-| `rover_terrain_3to6` | `InstancesV2/Bridge/RoverTerrain3to6.lean` | `rover_terrain_3to6_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverTerrain3to6.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `rover_terrain_2to4` | `InstancesV2/Bridge/RoverTerrain2to4.lean` | `rover_terrain_2to4_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverTerrain2to4.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `rover_terrain_4to6` | `InstancesV2/Bridge/RoverTerrain4to6.lean` | `rover_terrain_4to6_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverTerrain4to6.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
 | `rover_terrain_6to12` | `InstancesV2/Bridge/RoverTerrain6to12.lean` | `rover_terrain_6to12_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverTerrain6to12.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
-| `rover_terrain_6to8` | `InstancesV2/Bridge/RoverTerrain6to8.lean` | `rover_terrain_6to8_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverTerrain6to8.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
 | `rover_patrol_lag` | `InstancesV2/Bridge/RoverPatrolLag.lean` | `rover_patrol_lag_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverPatrolLag.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
 | `rover_patrol_zones` | `InstancesV2/Bridge/RoverPatrolZones.lean` | `rover_patrol_zones_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverPatrolZones.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
 | `sat3w_detumble_nominal` | `InstancesV2/Bridge/Sat3wDetumbleNominal.lean` | `sat3w_detumble_nominal_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/Sat3wDetumbleNominal.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
@@ -300,7 +301,7 @@ lake build && lake build relcert relcert-test relcert-bridge-verdicts relcert-re
 ```
 
 A green build, an axiom listing with nothing beyond the four axioms, `SUITE_V2 QUICK CHECKS
-PASSED`, `ALL PASS`, `4454/4454`, `216/216` and `249/249` = every suite_v2 benchmark is
+PASSED`, `ALL PASS`, `4350/4350`, `315/315` and `213/213` = every suite_v2 benchmark is
 certified end to end, modulo the trust base.
 
 ## Earlier recipes

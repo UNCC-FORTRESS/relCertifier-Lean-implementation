@@ -74,9 +74,9 @@ import RelCertifier.InstancesV2.WellFormed.RoverLadder6to8
 import RelCertifier.InstancesV2.WellFormed.RoverLadder8to12
 import RelCertifier.InstancesV2.WellFormed.RoverLadder2to4
 import RelCertifier.InstancesV2.WellFormed.RoverLadder2to6
-import RelCertifier.InstancesV2.WellFormed.RoverTerrain3to6
+import RelCertifier.InstancesV2.WellFormed.RoverTerrain2to4
 import RelCertifier.InstancesV2.WellFormed.RoverTerrain6to12
-import RelCertifier.InstancesV2.WellFormed.RoverTerrain6to8
+import RelCertifier.InstancesV2.WellFormed.RoverTerrain4to6
 import RelCertifier.InstancesV2.WellFormed.RoverAttitude6to8
 import RelCertifier.InstancesV2.WellFormed.RoverAttitude8to12
 import RelCertifier.InstancesV2.WellFormed.RoverLateral6to8
@@ -118,8 +118,8 @@ def wfProved : List String :=
    "rover_ladder_3to6", "rover_ladder_6to8",
    "rover_ladder_8to12", "rover_ladder_2to4",
    "rover_ladder_2to6",
-   "rover_terrain_3to6", "rover_terrain_6to12",
-   "rover_terrain_6to8", "rover_attitude_6to8", "rover_attitude_8to12",
+   "rover_terrain_2to4", "rover_terrain_6to12",
+   "rover_terrain_4to6", "rover_attitude_6to8", "rover_attitude_8to12",
    "rover_lateral_6to8", "rover_lateral_8to12", "rover_rollover_6to12",
    "rover_rollover_6to7", "watertank_twospeed", "tank_dos_3to1", "airheader_dos_3to1", "hvac_fan_staging", "drl_car_stop", "drl_lane_control",
    "vehicle_hypercert", "freedm_meter"]
@@ -155,7 +155,7 @@ def suiteNames : List String :=
    "rover_ladder_6to8", "rover_ladder_8to12", "rover_lateral_6to8",
    "rover_lateral_8to12", "rover_patrol_lag", "rover_patrol_zones", "rover_rollover_6to12",
    "rover_rollover_6to7", "rover_rollover_7to12",
-   "rover_terrain_3to6", "rover_terrain_6to12", "rover_terrain_6to8",
+   "rover_terrain_2to4", "rover_terrain_4to6", "rover_terrain_6to12",
    "sat3w_detumble_nominal", "sat3w_detumble_phases", "sat3w_detumble_weak",
    "sat_detumble_nominal", "sat_detumble_phases", "sat_detumble_weak", "tank_dos_3to1",
    "vehicle_hypercert",
@@ -203,9 +203,9 @@ end WellFormedBattery
 #print axioms RoverLadder8to12Guarded.rover_ladder_8to12_wellFormedR
 #print axioms RoverLadder2to4Guarded.rover_ladder_2to4_wellFormedR
 #print axioms RoverLadder2to6Guarded.rover_ladder_2to6_wellFormedR
-#print axioms RoverTerrain3to6Guarded.rover_terrain_3to6_wellFormedR
+#print axioms RoverTerrain2to4Guarded.rover_terrain_2to4_wellFormedR
 #print axioms RoverTerrain6to12Guarded.rover_terrain_6to12_wellFormedR
-#print axioms RoverTerrain6to8Guarded.rover_terrain_6to8_wellFormedR
+#print axioms RoverTerrain4to6Guarded.rover_terrain_4to6_wellFormedR
 #print axioms RoverAttitude6to8Guarded.rover_attitude_6to8_wellFormedR
 #print axioms RoverAttitude8to12Guarded.rover_attitude_8to12_wellFormedR
 #print axioms RoverLateral6to8Guarded.rover_lateral_6to8_wellFormedR

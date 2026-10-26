@@ -83,7 +83,11 @@ instances' viability route with the left held still and a time rescaling
 (`exists_of_HExistSegB_zero`, `ODESol.reparam`), and the refutation lemmas
 (`not_wellFormedR_of_run`: one explicit run that ends outside every successor guard;
 `not_wellFormedR_of_noRun`: no run of duration `ε`). `WellFormedLadder.lean`: one theorem
-(`wellFormedR_ladder`) for the 18 terrain ladders. `InstancesV2/WellFormed/Platoon3Link.lean`:
+(`wellFormedR_ladder`) for the terrain ladders. `WellFormedTerrain.lean` (2026-10-26): one theorem
+(`wellFormedR_terrain`) for the terrain chain (`MUD`, `GRAVEL`, `PAVED` odometer bands `[0, 5)`,
+`[5, 12)`, `[12, ∞)`, an optional cap `x_c ≤ c_T` kept by a contraction), and the explicit runs of
+affine cascades (`forcedSol`: `y' = F t − k y` by variation of constants; `intSol`) with their
+comparison bounds (`forcedSol_between`, `mono_of_deriv_nonneg`). `InstancesV2/WellFormed/Platoon3Link.lean`:
 the operating range of a platoon link is kept by the reference's own flow
 (`link_guard_Ronly`); the latched AEB sink's guard part is kept by its braking link
 (`brake_guard_Ronly`: `g + 2r` conserved, `r` decaying); the explicit 6-D solution with any
@@ -136,9 +140,9 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 24 | `rover_ladder_8to12` | proved | as 18 | as 18 |
 | 25 | `tank_dos_3to1` | proved | HIGH, LOW (b) (contractions to 1.3 resp. 0.7 inside `[0, 2]`, the guards `[0, 1)`, `[1, 2]` partition the tank); `ε_r = 1` | ok (exit) |
 | 26 | `hvac_fan_staging` | proved | LOW, MED, HIGH (b) (contractions to 27, 24, 21 inside `[16, 32]`; a run ends in `[16, 32]`, MED's guard, and MED follows every speed); `ε_r = 1`; dimension 3 (the default padding) | LOW ok (exit→HIGH), MED ok (invariant), HIGH ok (exit→MED) |
-| 27 | `rover_terrain_3to6` | proved | as 18 | as 18 |
-| 28 | `rover_terrain_6to12` | proved | as 18 | as 18 |
-| 29 | `rover_terrain_6to8` | proved | as 18 | as 18 |
+| 27 | `rover_terrain_2to4` | proved | MUD (b) → GRAVEL, GRAVEL (b) → PAVED, PAVED (a) (terrain-chain lemma; guards the odometer bands only; existence: `v → c_T`, `s` its integral, `w`, `zs` frozen) | MUD ok (exit→GRAVEL), GRAVEL ok (exit→PAVED), PAVED ok (invariant) |
+| 28 | `rover_terrain_4to6` | proved | as 27, cap `w ≤ c_T` kept by `w' = 3 (c_T − w)` (existence: the affine cascade `w, zs → v → s` inside the evolve box by the comparison bounds) | as 27 |
+| 29 | `rover_terrain_6to12` | proved | as 27, cap `u ≤ c_T` kept by `u' = 4 (c_T − u)` (existence: the cascade `u → w`, `w, zs → v → s, zh`) | as 27 |
 | 30 | `rover_patrol_lag` | proved | the lagged speed loop's `(v, a)` envelope kept (modal coordinates `3a + 4v − 4c`, `a + 4v − 4c` decaying; explicit run); SLOW (b) → MEDIUM_*; MEDIUM_ECO, MEDIUM_BRISK (b) → FAST; FAST (a) | SLOW ok (exit→MEDIUM_BRISK); MEDIUM_* ok (exit→FAST); FAST ok (invariant) |
 | 31 | `rover_patrol_zones` | proved | as 30; STALL (a) | as 30; STALL ok (invariant) |
 | 32 | `sat3w_detumble_nominal` | proved | DETUMBLE (a) (the band in the domain keeps the explicit run); SAFE (a) | both ok (invariant) (clause (i) is not checked by the tool) |

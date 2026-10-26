@@ -45,9 +45,9 @@ import RelCertifier.InstancesV2.BenchIR.rover_patrol_zones
 import RelCertifier.InstancesV2.BenchIR.rover_rollover_6to12
 import RelCertifier.InstancesV2.BenchIR.rover_rollover_6to7
 import RelCertifier.InstancesV2.BenchIR.rover_rollover_7to12
-import RelCertifier.InstancesV2.BenchIR.rover_terrain_3to6
+import RelCertifier.InstancesV2.BenchIR.rover_terrain_2to4
+import RelCertifier.InstancesV2.BenchIR.rover_terrain_4to6
 import RelCertifier.InstancesV2.BenchIR.rover_terrain_6to12
-import RelCertifier.InstancesV2.BenchIR.rover_terrain_6to8
 import RelCertifier.InstancesV2.BenchIR.sat3w_detumble_nominal
 import RelCertifier.InstancesV2.BenchIR.sat3w_detumble_phases
 import RelCertifier.InstancesV2.BenchIR.sat3w_detumble_weak
@@ -99,9 +99,9 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("rover_rollover_6to12", rover_rollover_6to12_IRv2),
   ("rover_rollover_6to7", rover_rollover_6to7_IRv2),
   ("rover_rollover_7to12", rover_rollover_7to12_IRv2),
-  ("rover_terrain_3to6", rover_terrain_3to6_IRv2),
+  ("rover_terrain_2to4", rover_terrain_2to4_IRv2),
+  ("rover_terrain_4to6", rover_terrain_4to6_IRv2),
   ("rover_terrain_6to12", rover_terrain_6to12_IRv2),
-  ("rover_terrain_6to8", rover_terrain_6to8_IRv2),
   ("sat3w_detumble_nominal", sat3w_detumble_nominal_IRv2),
   ("sat3w_detumble_phases", sat3w_detumble_phases_IRv2),
   ("sat3w_detumble_weak", sat3w_detumble_weak_IRv2),

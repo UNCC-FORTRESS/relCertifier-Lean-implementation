@@ -81,6 +81,20 @@ Retired 2026-10-26: `rover_terrain_2to3`, replaced by `hvac_fan_staging` (the su
 it duplicated `rover_ladder_2to3`, the same 2 -> 3 heading step on the same route;
 `hvac_fan_staging` is an existential mode-choice benchmark, DECLINED under `RELCERT_NO_CHOICE=1`).
 
+## Renamed 2026-10-26: the terrain chain
+
+The three terrain files were redesigned as one chain that refines terrain physics (soil, drive
+lag and roughness, slope and chassis), while the ladder refines attitude: both sides of every
+step run the same terrain law on the coordinates they share, and the right of each step is the
+coarser model with the finer model's extra coordinates pinned. All three models (left and right)
+are new; two names changed with their steps (the retired `rover_terrain_2to3` is not reused):
+
+| old | new |
+|---|---|
+| `rover_terrain_3to6` | `rover_terrain_2to4` (no-slip plan -> wheel slip and soil sinkage) |
+| `rover_terrain_6to8` | `rover_terrain_4to6` (+ drive lag and rough-terrain heave) |
+| `rover_terrain_6to12` | unchanged name (+ heave rate, bank grade, chassis pitch, acceleration, squat) |
+
 ## The 16 carried-over benchmarks
 
 Sixteen files (the rover refinement ladder, the rover terrain rungs,
@@ -96,7 +110,8 @@ instances are archived on branch `archive/legacy-2026-10`. Their headers were re
 header pass (below). `rover_rollover_7to12` was repaired on the left (attitude
 domains and the zone-switch entry condition; on 2026-10-26 the three rollover files were aligned
 so that 6to7 and 7to12 carry 6to12's rows on shared models and compose to it, with headers
-and `# scenario:` lines). On 2026-10-26 the ladder, terrain, attitude and `rover_lateral_8to12` files were rewritten as well (pinned
+and `# scenario:` lines). On 2026-10-26 the ladder, terrain, attitude and `rover_lateral_8to12` files were rewritten as well
+(the terrain files then redesigned as the terrain chain, see "Renamed 2026-10-26: the terrain chain") (pinned
 right coordinates, forward-invariant left boxes, requirement rows, roles for filler coordinates,
 new headers with `# scenario:` lines; the commit messages list each change), so they are no
 longer copies of the legacy files; and `watertank` was redesigned as the paper's
@@ -153,9 +168,9 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `rover_ladder_2to6` | 6 / 6 | 3 / 3 | model-refinement | rewritten 2026-10-26: heave/roll roles, lambda_min 1.0, offset 0 |
 | `rover_ladder_6to8` | 8 / 8 | 3 / 3 | model-refinement | rewritten 2026-10-26: v, s rows, offset 0 |
 | `rover_ladder_8to12` | 12 / 12 | 3 / 3 | model-refinement | rewritten 2026-10-26: right y pinned, cascade-chart left |
-| `rover_terrain_3to6` | 6 / 6 | 3 / 3 | model-refinement | rewritten 2026-10-26: right heading penalty, offset 0; heave/roll roles (the ladder's 6-DOF law) |
-| `rover_terrain_6to12` | 12 / 12 | 3 / 3 | model-refinement | rewritten 2026-10-26: lagged ax, ay, damped heave, cascade chart; heave/roll roles |
-| `rover_terrain_6to8` | 8 / 8 | 3 / 3 | model-refinement | rewritten 2026-10-26: cascade-chart left, right penalty; heave/roll roles (same models as `rover_ladder_6to8` up to the attitude range) |
+| `rover_terrain_2to4` | 4 / 4 | 3 / 3 | model-refinement | redesigned 2026-10-26 (was `rover_terrain_3to6`): terrain chain, wheel slip and sinkage; zone-only right plan |
+| `rover_terrain_4to6` | 6 / 6 | 3 / 3 | model-refinement | redesigned 2026-10-26 (was `rover_terrain_6to8`): terrain chain, drive lag and roughness heave; right cap `w <= c_T` |
+| `rover_terrain_6to12` | 12 / 12 | 3 / 3 | model-refinement | redesigned 2026-10-26: terrain chain, heave rate, bank grade, pitch, acceleration, squat; right cap `u <= c_T` |
 | `rover_patrol_lag` | 3 / 3 | 4 / 4 | degraded-actuator | redesigned 2026-10-26: same lag both sides |
 | `rover_patrol_zones` | 2 / 2 | 4 / 5 | degraded-actuator | uniform rows (2026-10-26) |
 | `sat3w_detumble_nominal` | 6 / 6 | 1 / 2 | model-refinement | nonblocking region |

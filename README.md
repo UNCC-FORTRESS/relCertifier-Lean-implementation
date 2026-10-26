@@ -109,9 +109,9 @@ not carried. The mode-independent benchmarks are proved over the choice of their
 carried to the left automaton by one generic bridge (`theorem3_leftAut_of_choice`,
 `Proofs/Encoding/LeftAutUniform.lean`).
 The theorem's one Z3 hypothesis, `Verdicts`, IS the list of groups the runner
-`relcert-bridge-verdicts` issues (4454 over the 50 suite benchmarks and the 2 exhibits, against
+`relcert-bridge-verdicts` issues (4350 over the 50 suite benchmarks and the 2 exhibits, against
 the declared count), each coming back `unsat`; `relcert --check-quick-v2` re-sends the tool's
-own queries as a self-check (modal 670, handoff 417, non-connection 92, pruned edges 46,
+own queries as a self-check (modal 784, handoff 417, non-connection 92, pruned edges 46,
 reposition 81). The axiom audit of every theorem is a subset of
 `{propext, Classical.choice, Quot.sound, z3_unsat_sound}`; none of the 50 is Z3-free (every
 flow fact of every response is a group of the emitted cover). No
@@ -182,7 +182,7 @@ Counts read off `InstancesV2/Bridge.lean`, `InstancesV2/WellFormedBattery.lean`,
 | model repaired for Assumption 1 (`WellFormedR` refuted in the kernel, then proved; `docs/SUITE-REDESIGN.md` §21) | **9** | `arm_plateau_{crit,profiles,slow}`, `platoon_delay_{linkloss,profiles}`, `platoon3_{linkloss,profiles}`, `quad_light_{airframe_20,profiles}` |
 | widened cut channel needed (`RELCERT_IMPLIED_CUT=1`; closures, implied contractions, linear-form chains; lifted to the kernel by `Proofs/Soundness/CutLiftX.lean`) | **9** | `arm_plateau_{crit,profiles,slow}`, `charger_fast_{setpoints,tapers}`, `platoon_delay_{linkloss,profiles}`, `rover_rollover_7to12`, `watertank_twospeed` (each DECLINES without the channel) |
 | the non-connection certificate of a pruned edge (the paper's Definition 6, `Checker/NonConn.lean`): enters every bridge instance as the barrier of each pruned exit (`nonconn_entry`, `nonconn_keep`, `guard_pos_of_barrier`), the 92 queries of the 46 pruned edges re-sent by `--check-quick-v2` and as bridge groups | **44** edges | `docs/PAPER-MAPPING.md` §5 |
-| kernel refutations of known-false invariant variants, each the negation of the clocked bridge claim at its benchmark's bridge dimension (`InstancesV2/Refute/`, `relcert-refute-verdicts`, 216 groups) | **77** | `docs/REFUTATION-RESULTS.md` |
+| kernel refutations of known-false invariant variants, each the negation of the clocked bridge claim at its benchmark's bridge dimension (`InstancesV2/Refute/`, `relcert-refute-verdicts`, 315 groups) | **110** | `docs/REFUTATION-RESULTS.md` |
 | the strict-invariant exhibit (`benchmarks/strict_demo`, `InstancesV2/Bridge/WatertankStrict.lean`) | **1** | `watertank_strict` |
 
 The generic theorems' audit (`InstancesV2/AxiomCheck.lean`, 9 lines) and the Assumption 1
@@ -206,8 +206,8 @@ lake build relcert relcert-test relcert-bridge-verdicts relcert-refute-verdicts 
 lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 | grep -A3 "depends on axioms"
 lake build RelCertifier.InstancesV2.AxiomCheck 2>&1 | grep -A3 "depends on axioms"
 
-# 2b. the Z3 hypotheses of the 52 bridge instances (4454 groups) and the progress
-#     certificates of every reposition node (249 queries), against declared counts
+# 2b. the Z3 hypotheses of the 52 bridge instances (4350 groups) and the progress
+#     certificates of every reposition node (213 queries), against declared counts
 ./.lake/build/bin/relcert-bridge-verdicts
 ./.lake/build/bin/relcert-progress-verdicts
 
@@ -225,7 +225,7 @@ for d in benchmarks/suite_v2/*/; do
 done > /tmp/bench-paths-v2.tsv
 BENCH_PATHS=/tmp/bench-paths-v2.tsv ./.lake/build/bin/relcert-test
 
-# 5. the kernel-checked refutations of the 77 invariant variants (docs/REFUTATION-RESULTS.md):
+# 5. the kernel-checked refutations of the 110 invariant variants (docs/REFUTATION-RESULTS.md):
 #    re-send their Z3 groups with the declared count (each at the variant's bridge dimension,
 #    RefRec.dim + 1), then build their instances (each concludes the negation of the clocked
 #    bridge claim, refute_*_clocked)
@@ -235,13 +235,13 @@ lake build $(ls RelCertifier/InstancesV2/Refute/*.lean | sed 's|/|.|g; s|\.lean$
 
 Expected: `Build completed successfully`; 75 axiom lines (WellFormedBattery), each exactly
 the three standard axioms (`lake` also replays the 11 lines of `CutLiftX.lean`'s own audit);
-9 axiom lines (AxiomCheck), each a subset of the four axioms above; `relcert-bridge-verdicts`: `4454/4454` at the bridge dimensions;
-`relcert-progress-verdicts`: `249/249`; `[suite_v2] 50 certified, 0 declined, 0 error(s)`,
-coverage `modal 670/670`, `handoff 417/417`, `non-connection 92/92`, `pruned edges 46/46`,
+9 axiom lines (AxiomCheck), each a subset of the four axioms above; `relcert-bridge-verdicts`: `4350/4350` at the bridge dimensions;
+`relcert-progress-verdicts`: `213/213`; `[suite_v2] 50 certified, 0 declined, 0 error(s)`,
+coverage `modal 784/784`, `handoff 417/417`, `non-connection 92/92`, `pruned edges 46/46`,
 `reposition (dyn) 21/21`, the strict Assumption 1 gate `[wellformed] STRICT: 174/174 right modes ok
 (91 invariant, 83 exit), 0 UNKNOWN — matches the declared suite`, `wellformed (strict): PASS`,
 `SUITE_V2 QUICK CHECKS PASSED`; `benchmarks/negative/freedm_meter_leaky`: `DECLINED`;
-`relcert-test`: a bare `ALL PASS`; `refute: 216/216 hypotheses discharged` (the bridge and
+`relcert-test`: a bare `ALL PASS`; `refute: 315/315 hypotheses discharged` (the bridge and
 refute counts are unchanged by the right-clock coordinate of 2026-10-21: no query reads it).
 
 The default `relcert <file>` verdict includes the handoff check (CERTIFIED requires the cover and
@@ -253,7 +253,7 @@ check.
 
 **Heavy files.** Since the standalone instances were archived (2026-10-22) no module takes
 more than about a minute: the heaviest are the 12-dimensional Assumption 1 proofs
-(`InstancesV2/WellFormed/RoverAttitude*`, `RoverLateral*`, `RoverRollover*`, `RoverTerrain6to12*`, about 35 s each) and the refutation
+(`InstancesV2/WellFormed/RoverAttitude*`, `RoverLateral*`, `RoverRollover*`, about 35 s each) and the refutation
 instances; a plain `lake build` is enough. `lake build` is incremental, but an edit to
 anything under `Proofs/`, `Checker/` or `Trusted/` rebuilds every instance downstream. The
 full recipe, what each check establishes and what it does not, and the measured cost:
@@ -310,9 +310,10 @@ RelCertifier/
                            certificates (EvolStrengthening, EvolStrengtheningX),
                            non-connection (Definition 6)
   Proofs/
-    Encoding/   58 files   the ∀∃ chain: CSF/NFM'25 bridge, joint segments, repositions,
+    Encoding/   59 files   the ∀∃ chain: CSF/NFM'25 bridge, joint segments, repositions,
                            envelope and window chains, mode handoffs, guarded switching,
-                           the non-connection bridge, Assumption 1 (WellFormedR),
+                           the non-connection bridge, Assumption 1 (WellFormedR; the shared
+                           ladder and terrain-chain lemmas WellFormedLadder, WellFormedTerrain),
                            the general Theorem 3 (Theorem3General, CoverResp, Progress)
       Emitted/  19 files   the generic bridge: a benchmark's Theorem 3 from its emitted
                            records (Data, Stay, Barrier, Anchor, Progress, Keyed, Window,
@@ -334,7 +335,7 @@ RelCertifier/
     WellFormed/ 50 files   Assumption 1 (`WellFormedR`) per suite benchmark, each file
                            self-contained (right model + proof), plus the shared platoon
                            link lemmas (Platoon3Link); the 18 carried-over proofs included
-    Refute/     78 files   the 77 kernel refutations and their Table; Refute/Data/ (77)
+    Refute/    111 files   the 110 kernel refutations and their Table; Refute/Data/ (110)
                            the mutant records (docs/REFUTATION-RESULTS.md)
     Choice/                the two choice exhibits' leaves (BenchIR, BenchCovers,
                            BenchProgress, BenchChoice, Cuts), ConstMirror, and General/
@@ -354,7 +355,7 @@ BridgeVerdictsMain.lean, ProgressVerdictsMain.lean, RefuteVerdictsMain.lean
                            relcert-refute-verdicts
 benchmarks/suite_v2/       the 50 inputs; benchmarks/choice/ the 2 choice exhibits;
                            benchmarks/strict_demo/ the strict exhibit; benchmarks/refute_mutants/
-                           the 77 mutants; benchmarks/negative/ one expected DECLINE (the
+                           the 110 mutants; benchmarks/negative/ one expected DECLINE (the
                            leaky FREEDM controller)
 scripts/                   gen_v2_data.py, gen_bridge.py, gen_refute.py, gen_strict_demo.py,
                            paper_numbers.sh (the frozen paper numbers), suite_v2_matrix.py,
@@ -480,7 +481,10 @@ Assumption 1 proofs were first written against the legacy literals; they now liv
 others in `InstancesV2/WellFormed/<B>.lean` (moved from `Instances/WellFormed/` on
 2026-10-22), each self-contained and quoting the suite_v2 literal `<b>_IRv2` directly, so the
 bridge instances transport them like any other (`wellFormedR_transport`). Their standalone
-Theorem 3 instances and the legacy verdict packs are archived (below).
+Theorem 3 instances and the legacy verdict packs are archived (below). The terrain rungs are
+no longer copies: on 2026-10-26 they were redesigned as the terrain chain (`rover_terrain_2to4`,
+`rover_terrain_4to6`, `rover_terrain_6to12`; `benchmarks/README.md`), with new Assumption 1
+proofs over `Proofs/Encoding/WellFormedTerrain.lean`.
 
 ## Archived routes
 
@@ -510,7 +514,7 @@ The per-benchmark findings of that route stay in `docs/GUARDED-SWITCHING.md`.
 * [`docs/WELLFORMED.md`](docs/WELLFORMED.md): Assumption 1 per benchmark (`WellFormedR`),
   the repaired defects, the tool check and its strict use in the recipe.
 * [`docs/HANDOFF.md`](docs/HANDOFF.md): mode-dependent invariants and the handoff check.
-* [`docs/REFUTATION-RESULTS.md`](docs/REFUTATION-RESULTS.md): the 77 kernel refutations of
+* [`docs/REFUTATION-RESULTS.md`](docs/REFUTATION-RESULTS.md): the 110 kernel refutations of
   known-false invariant variants (its design was `docs/REFUTATION-SCOPE.md`, planning record, last present at commit 29663d8).
 * [`docs/BRIDGE.md`](docs/BRIDGE.md): the generic bridge, Theorem 3 of every benchmark from
   its emitted records; [`docs/THEOREM3-GENERAL.md`](docs/THEOREM3-GENERAL.md): the general

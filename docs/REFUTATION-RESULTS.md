@@ -20,8 +20,15 @@
 > `rover_patrol_lag` m003, m004, m009, m013 and `acc_tune_limp` m008 are gone with the rows they
 > refuted, `charger_fast_setpoints` m003 and `charger_fast_tapers` m003 are new (the charging row
 > `x_L <= x_R + 2` flipped, kind C; each DECLINED by relcert), no other file of the batch has a
-> witness. Current instance set: **77 refutations, 216 groups**
-> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 798 mutants in
+> witness. The terrain chain redesign of 2026-10-26 (`rover_terrain_3to6` renamed
+> `rover_terrain_2to4`, `rover_terrain_6to8` renamed `rover_terrain_4to6`, all three right models
+> new; the old files had no witness among their 24 mutants) re-ran the finder over its 95 mutants:
+> 33 new refutations, all kind B, each DECLINED by relcert (`rover_terrain_2to4` m008, m011, m012,
+> m015; `rover_terrain_4to6` m016, m017, m019 to m022, m024, m028; `rover_terrain_6to12` m020,
+> m021, m023 to m026, m028 to m030, m032, m035, m037, m039 to m047: flipped, deleted or
+> cross-side rows of the slip, lag, heave, pitch, acceleration and squat bounds).
+> Current instance set: **110 refutations, 315 groups**
+> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 869 mutants in
 > `docs/refute/witnesses.jsonl`. The operator table has not been recomputed.
 
 Design: `docs/REFUTATION-SCOPE.md` (planning record, last present at commit 29663d8). This file reports what was built and the experiment.

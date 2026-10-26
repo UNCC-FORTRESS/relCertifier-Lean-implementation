@@ -36,9 +36,9 @@ import RelCertifier.InstancesV2.Bridge.RoverPatrolZones
 import RelCertifier.InstancesV2.Bridge.RoverRollover6to12
 import RelCertifier.InstancesV2.Bridge.RoverRollover6to7
 import RelCertifier.InstancesV2.Bridge.RoverRollover7to12
-import RelCertifier.InstancesV2.Bridge.RoverTerrain3to6
+import RelCertifier.InstancesV2.Bridge.RoverTerrain2to4
+import RelCertifier.InstancesV2.Bridge.RoverTerrain4to6
 import RelCertifier.InstancesV2.Bridge.RoverTerrain6to12
-import RelCertifier.InstancesV2.Bridge.RoverTerrain6to8
 import RelCertifier.InstancesV2.Bridge.Sat3wDetumbleNominal
 import RelCertifier.InstancesV2.Bridge.Sat3wDetumblePhases
 import RelCertifier.InstancesV2.Bridge.Sat3wDetumbleWeak

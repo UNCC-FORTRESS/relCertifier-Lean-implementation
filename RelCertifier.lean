@@ -102,6 +102,7 @@ import RelCertifier.Proofs.Encoding.ToolLevel
 import RelCertifier.Proofs.Encoding.UniformFvDischarge
 import RelCertifier.Proofs.Encoding.UniformMultiflow
 import RelCertifier.Proofs.Encoding.WellFormedLadder
+import RelCertifier.Proofs.Encoding.WellFormedTerrain
 import RelCertifier.Proofs.Encoding.WellFormedR
 import RelCertifier.Proofs.Encoding.WindowGrowth
 import RelCertifier.Proofs.Encoding.WindowRF

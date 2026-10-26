@@ -15,26 +15,26 @@ open RelCertifier.Parse
 
 def rover_terrain_6to12_cutsV2 : EvolStrengthening :=
   { L := [
-      ("STEEP", [((.cmp ">=" (.var "s") (.num "0.0")), CutRoute.diNonstrict), ((.cmp "<=" (.var "v") (.num "0.3")), CutRoute.shape)]),
-      ("MODER", [((.cmp ">=" (.var "s") (.num "0.6")), CutRoute.diNonstrict), ((.cmp "<=" (.var "v") (.num "0.5")), CutRoute.shape)]),
-      ("FLAT", [((.cmp ">=" (.var "s") (.num "1.4")), CutRoute.diNonstrict), ((.cmp "<=" (.var "v") (.num "0.65")), CutRoute.shape)])
+      ("MUD", [((.cmp ">=" (.var "s") (.num "0.0")), CutRoute.diNonstrict), ((.cmp "<=" (.var "u") (.num "0.25")), CutRoute.shape), ((.cmp ">=" (.var "gamma") (.num "0.02")), CutRoute.frozen)]),
+      ("GRAVEL", [((.cmp ">=" (.var "s") (.num "5.0")), CutRoute.diNonstrict), ((.cmp "<=" (.var "u") (.num "0.45")), CutRoute.shape)]),
+      ("PAVED", [((.cmp ">=" (.var "s") (.num "12.0")), CutRoute.diNonstrict), ((.cmp "<=" (.var "u") (.num "0.7")), CutRoute.shape)])
     ]
     R := [
-      ("STEEP", [((.cmp ">=" (.var "s") (.num "0.0")), CutRoute.diNonstrict), ((.cmp "<=" (.var "v") (.num "0.3")), CutRoute.shape)]),
-      ("MODER", [((.cmp ">=" (.var "s") (.num "0.6")), CutRoute.diNonstrict), ((.cmp "<=" (.var "v") (.num "0.5")), CutRoute.shape)]),
-      ("FLAT", [((.cmp ">=" (.var "s") (.num "1.4")), CutRoute.diNonstrict), ((.cmp "<=" (.var "v") (.num "0.65")), CutRoute.shape)])
+      ("MUD", [((.cmp ">=" (.var "s") (.num "0.0")), CutRoute.diNonstrict), ((.cmp "<=" (.var "u") (.num "0.25")), CutRoute.shape)]),
+      ("GRAVEL", [((.cmp ">=" (.var "s") (.num "5.0")), CutRoute.diNonstrict), ((.cmp "<=" (.var "u") (.num "0.45")), CutRoute.shape)]),
+      ("PAVED", [((.cmp ">=" (.var "s") (.num "12.0")), CutRoute.diNonstrict), ((.cmp "<=" (.var "u") (.num "0.7")), CutRoute.shape)])
     ] }
 
 def rover_terrain_6to12_cutsV2X : EvolStrengtheningX :=
   { L := [
-      ("STEEP", [⟨(.cmp ">=" (.var "s") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diNonstrict, []⟩, ⟨(.cmp "<=" (.var "v") (.num "0.3")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩]),
-      ("MODER", [⟨(.cmp ">=" (.var "s") (.num "0.6")), CutKind.guardConj, CutEntry.membership, CutRouteX.diNonstrict, []⟩, ⟨(.cmp "<=" (.var "v") (.num "0.5")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩]),
-      ("FLAT", [⟨(.cmp ">=" (.var "s") (.num "1.4")), CutKind.guardConj, CutEntry.membership, CutRouteX.diNonstrict, []⟩, ⟨(.cmp "<=" (.var "v") (.num "0.65")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩])
+      ("MUD", [⟨(.cmp ">=" (.var "s") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diNonstrict, []⟩, ⟨(.cmp "<=" (.var "u") (.num "0.25")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp ">=" (.var "gamma") (.num "0.02")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩]),
+      ("GRAVEL", [⟨(.cmp ">=" (.var "s") (.num "5.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diNonstrict, []⟩, ⟨(.cmp "<=" (.var "u") (.num "0.45")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩]),
+      ("PAVED", [⟨(.cmp ">=" (.var "s") (.num "12.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diNonstrict, []⟩, ⟨(.cmp "<=" (.var "u") (.num "0.7")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩])
     ]
     R := [
-      ("STEEP", [⟨(.cmp ">=" (.var "s") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diNonstrict, []⟩, ⟨(.cmp "<=" (.var "v") (.num "0.3")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩]),
-      ("MODER", [⟨(.cmp ">=" (.var "s") (.num "0.6")), CutKind.guardConj, CutEntry.membership, CutRouteX.diNonstrict, []⟩, ⟨(.cmp "<=" (.var "v") (.num "0.5")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩]),
-      ("FLAT", [⟨(.cmp ">=" (.var "s") (.num "1.4")), CutKind.guardConj, CutEntry.membership, CutRouteX.diNonstrict, []⟩, ⟨(.cmp "<=" (.var "v") (.num "0.65")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩])
+      ("MUD", [⟨(.cmp ">=" (.var "s") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diNonstrict, []⟩, ⟨(.cmp "<=" (.var "u") (.num "0.25")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩]),
+      ("GRAVEL", [⟨(.cmp ">=" (.var "s") (.num "5.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diNonstrict, []⟩, ⟨(.cmp "<=" (.var "u") (.num "0.45")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩]),
+      ("PAVED", [⟨(.cmp ">=" (.var "s") (.num "12.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diNonstrict, []⟩, ⟨(.cmp "<=" (.var "u") (.num "0.7")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩])
     ] }
 
 /-- The legacy (guard-conjunct) part is well formed. -/

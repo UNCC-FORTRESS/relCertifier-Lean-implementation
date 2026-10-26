@@ -1,0 +1,121 @@
+# rover_terrain_2to4: terrain chain, step 2 -> 4: wheel slip and soil sinkage. The right (the
+# no-slip plan) moves 2 coordinates (v, s), the left 4 (v, s, w, zs). First step of the chain
+# rover_terrain_2to4, rover_terrain_4to6, rover_terrain_6to12. (Renamed 2026-10-26 from
+# rover_terrain_3to6, whose models were the rover ladder's attitude models; the terrain chain
+# now refines terrain physics: soil, roughness, slope; the ladder refines attitude.)
+# scenario: model-refinement
+# mechanisms: S M I (time stretch lambda = 3/2 in GRAVEL and 11/4 in PAVED with two and three right
+#   segments per window, RELCERT_SYNC=1 declines; the checked cuts w <= c_T and s >= zone floor are
+#   load-bearing mode facts, RELCERT_NO_CUT=1 declines)
+#
+# System (SI units: m, s, m/s; g = 9.81 m/s^2): a rover climbs out of a muddy bank onto a
+# gravel track and then a paved road. The terrain is a mode, fixed by the odometer s along the
+# route: MUD s in [0, 5), GRAVEL [5, 12), PAVED s >= 12; the route is traversed in that order.
+# Per terrain T: wheel-speed set point c_T = 0.25 / 0.45 / 0.70 m/s (the controller slows on
+# soft ground), traction stiffness mu_T = 2.5 / 4 / 8 1/s (tractive force per unit slip
+# velocity: soft soil shears, pavement grips), terrain drag r_T = 0.4 / 0.15 / 0.05 1/s, and
+# equilibrium sinkage Z_T = 0.10 / 0.03 / 0 (in wheel radii).
+#
+# Right (2-DOF, the no-slip plan): the ground speed IS the wheel speed, v' = 3 (c_T - v),
+# s' = v: wheel odometry taken as ground truth. w, zs pinned (w' = zs' = 0).
+# Left (4-DOF): the speed loop closes on the wheel speed w, w' = 3 (c_T - w); the ground speed
+# follows through the soil, v' = mu_T (w - v) - r_T v - zs (traction from the slip velocity
+# w - v, viscous terrain drag, and compaction resistance proportional to sinkage, Bekker-style
+# and speed independent, 1 m/s^2 per wheel radius); the wheels settle to the terrain's sinkage,
+# zs' = 2 (Z_T - zs) (climbing out of the ruts on firmer ground). s' = v.
+#
+# Property (the same rows in every left mode):
+#   v_L <= v_R and s_L <= s_R: the rover is never faster than, and never ahead of, the
+#     wheel-odometry plan, so wheel odometry over-estimates progress and a clearance granted up
+#     to the plan's position always covers the rover. Offset 0 (structural).
+#   v_L <= w_L and w_L <= v_L + sigma, sigma = 0.25 m/s: the slip velocity stays in
+#     [0, sigma]: the wheels never skid (ground speed never exceeds wheel speed) and never spin
+#     past the traction controller's slip-velocity threshold sigma (it would cut torque there;
+#     requirement: it never has to on this route).
+#   Not implied by the domains (w - v ranges over [-0.65, 0.8] on the boxes).
+# Tightest (bisection 0.01): sigma certifies down to 0.21 (declines at 0.20). Analytically: a
+# launch from v = 0 at the start of GRAVEL with zs = 0.12 has d(w - v)/dt = 3 (0.45 - w)
+# - 4 (w - v) + zs at w - v = sigma, <= 0 iff sigma >= 1.47 / 7 = 0.21. Only the slip row
+# needs no auxiliary row: the claim is the requirement itself.
+#
+# Domains: v in [0, 0.8], w in [0.15, 0.8], zs in [0, 0.12], s >= 0 (unbounded above), all
+# forward invariant on the left: w' = 3 (c_T - w) points inward at 0.15 (the wheel controller's
+# creep floor, below every set point) and at 0.8; at v = 0, v' = mu_T w - zs >= 2.5 * 0.15
+# - 0.12 > 0; at v = 0.8, v' <= 0 since w <= 0.8; zs' = 2 (Z_T - zs) with Z_T <= 0.10. The
+# plan's v in [0, 0.8] is forward invariant; the right's pinned w, zs keep their boxes.
+# Guards: right = the terrain zones only (every right state lies in exactly one right guard);
+# left = the zone and entry wheel speed w <= c_T. A left state with w above its zone's set
+# point is in no left guard: unreachable from a guarded entry (w' = 3 (c_T - w) keeps w <= c_T
+# inside a zone; set points increase along the route). Starts are non-vacuous in every mode
+# (e.g. MUD: s = 0, v = 0.1, w = 0.25, zs = 0.1 with any plan state v_R >= 0.1, s_R >= 0).
+#
+# Composition: the left model is exactly the right model of rover_terrain_4to6 (u, zh pinned
+# there), so the v and s rows chain by transitivity with that file's and with
+# rover_terrain_6to12's: 12-DOF <= 6-DOF <= 4-DOF <= no-slip plan.
+#
+# Verdicts (default recipe RELCERT_IMPLIED_CUT=1): CERTIFIED; also under NO_PRUNE, NO_CHOICE,
+# NO_PRUNE+NO_CHOICE, OPREGION, NO_IMPLIED_CUT, NO_LINEAR_CUT, without RELCERT_IMPLIED_CUT, and
+# RELCERT_WELLFORMED_STRICT; DECLINED under SYNC, SYNC+NO_CHOICE, NO_CUT. --handoff 5/5
+# (vacuous: rows identical). --wellformed: MUD ok (exit -> GRAVEL), GRAVEL ok (exit -> PAVED),
+# PAVED ok (invariant), 0 UNKNOWN. Cover: MUD_L lambda 1 budget 1; GRAVEL_L lambda 3/2
+# budget 2; PAVED_L lambda 11/4 budget 3 (the plan is sped up: on gravel and pavement the
+# left's ground speed answers its wheel faster (mu_T = 4, 8 > 3) than the plan's loop, so
+# without the wheel-to-plan row the cover stretches the plan's clock); checked cuts
+# load-bearing (the contraction cut w <= c_T, the zone floor s >= s_T); nothing pruned; no
+# right-only segment. Letters: S M I.
+
+[problem]
+name = rover_terrain_2to4
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 4.0
+
+[Lsys]
+state_vars = [v, s, w, zs]
+epsilon = 1.0
+
+[Lsys.mode.MUD]
+ode = v' = 2.5*(w - v) - 0.4*v - zs; s' = v; w' = 3*(0.25 - w); zs' = 2*(0.1 - zs);
+guard = s >= 0.0 and s < 5.0 and w <= 0.25
+evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.15 and w <= 0.8 and zs >= 0.0 and zs <= 0.12
+next = [GRAVEL, MUD]
+
+[Lsys.mode.GRAVEL]
+ode = v' = 4.0*(w - v) - 0.15*v - zs; s' = v; w' = 3*(0.45 - w); zs' = 2*(0.03 - zs);
+guard = s >= 5.0 and s < 12.0 and w <= 0.45
+evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.15 and w <= 0.8 and zs >= 0.0 and zs <= 0.12
+next = [PAVED, GRAVEL]
+
+[Lsys.mode.PAVED]
+ode = v' = 8.0*(w - v) - 0.05*v - zs; s' = v; w' = 3*(0.7 - w); zs' = 2*(0.0 - zs);
+guard = s >= 12.0 and w <= 0.7
+evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.15 and w <= 0.8 and zs >= 0.0 and zs <= 0.12
+next = [PAVED]
+
+[Rsys]
+state_vars = [v, s, w, zs]
+epsilon = 1.0
+
+[Rsys.mode.MUD]
+ode = v' = 3*(0.25 - v); s' = v; w' = 0; zs' = 0;
+guard = s >= 0.0 and s < 5.0
+evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.0 and w <= 0.8 and zs >= 0.0 and zs <= 0.12
+next = [GRAVEL, MUD]
+
+[Rsys.mode.GRAVEL]
+ode = v' = 3*(0.45 - v); s' = v; w' = 0; zs' = 0;
+guard = s >= 5.0 and s < 12.0
+evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.0 and w <= 0.8 and zs >= 0.0 and zs <= 0.12
+next = [PAVED, GRAVEL]
+
+[Rsys.mode.PAVED]
+ode = v' = 3*(0.7 - v); s' = v; w' = 0; zs' = 0;
+guard = s >= 12.0
+evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.0 and w <= 0.8 and zs >= 0.0 and zs <= 0.12
+next = [PAVED]
+
+[relational_invariant]
+MUD = smt2:(and (<= L_v R_v) (<= L_s R_s) (>= L_v L_w) (<= L_w (+ L_v 0.25)))
+GRAVEL = smt2:(and (<= L_v R_v) (<= L_s R_s) (>= L_v L_w) (<= L_w (+ L_v 0.25)))
+PAVED = smt2:(and (<= L_v R_v) (<= L_s R_s) (>= L_v L_w) (<= L_w (+ L_v 0.25)))

@@ -17,118 +17,118 @@ def rover_terrain_6to12_IRv2 : PProblem :=
     lambdaMin := "1.0"
     lambdaMax := "6.0"
     L := {
-      stateVars := ["v", "s", "psi", "omega_psi", "theta_p", "omega_theta", "phi_r", "omega_phi", "z", "vz", "ax", "ay"]
+      stateVars := ["v", "s", "w", "zs", "u", "zh", "vz", "gamma", "theta_p", "ax", "phs", "omega_phs"]
       epsilon := "1.0"
       modes := [
         {
-          name := "STEEP"
-          odes := [("v", (.bin "*" (.num "3") (.bin "-" (.num "0.30") (.var "v")))),
-            ("s", (.bin "*" (.var "v") (.bin "-" (.bin "-" (.bin "-" (.num "1") (.bin "*" (.num "0.5") (.bin "*" (.var "psi") (.var "psi")))) (.bin "*" (.num "0.3") (.bin "*" (.var "theta_p") (.var "theta_p")))) (.bin "*" (.num "0.2") (.bin "*" (.var "phi_r") (.var "phi_r")))))),
-            ("psi", (.bin "-" (.var "omega_psi") (.var "psi"))),
-            ("omega_psi", (.bin "*" (.num "-1") (.var "omega_psi"))),
-            ("theta_p", (.bin "-" (.var "omega_theta") (.var "theta_p"))),
-            ("omega_theta", (.bin "+" (.bin "+" (.bin "*" (.num "-1") (.var "omega_theta")) (.bin "*" (.num "0.1") (.var "ax"))) (.bin "*" (.num "0.5") (.var "z")))),
-            ("phi_r", (.bin "-" (.var "omega_phi") (.var "phi_r"))),
-            ("omega_phi", (.bin "+" (.bin "*" (.num "-1") (.var "omega_phi")) (.bin "*" (.num "0.1") (.var "ay")))),
-            ("z", (.bin "-" (.var "vz") (.var "z"))),
-            ("vz", (.bin "*" (.num "-1") (.var "vz"))),
-            ("ax", (.bin "*" (.num "5") (.bin "-" (.bin "*" (.num "3") (.bin "-" (.num "0.30") (.var "v"))) (.var "ax")))),
-            ("ay", (.bin "*" (.num "5") (.bin "-" (.bin "*" (.var "v") (.bin "-" (.var "omega_psi") (.var "psi"))) (.var "ay"))))]
-          guard := (.and (.and (.cmp ">=" (.var "s") (.num "0.0")) (.cmp "<" (.var "s") (.num "0.6"))) (.cmp "<=" (.var "v") (.num "0.3")))
-          evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "ax") (.num "-1.5")) (.cmp "<=" (.var "ax") (.num "1.95"))) (.cmp ">=" (.var "ay") (.num "-1.6"))) (.cmp "<=" (.var "ay") (.num "1.6"))) (.cmp ">=" (.var "omega_phi") (.num "-1.0"))) (.cmp "<=" (.var "omega_phi") (.num "1.0"))) (.cmp ">=" (.var "omega_psi") (.num "-1.0"))) (.cmp "<=" (.var "omega_psi") (.num "1.0"))) (.cmp ">=" (.var "omega_theta") (.num "-1.0"))) (.cmp "<=" (.var "omega_theta") (.num "1.0"))) (.cmp ">=" (.var "phi_r") (.num "-1.0"))) (.cmp "<=" (.var "phi_r") (.num "1.0"))) (.cmp ">=" (.var "psi") (.num "-1.0"))) (.cmp "<=" (.var "psi") (.num "1.0"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "theta_p") (.num "-1.0"))) (.cmp "<=" (.var "theta_p") (.num "1.0"))) (.cmp ">=" (.var "v") (.num "0.0"))) (.cmp "<=" (.var "v") (.num "0.8"))) (.cmp ">=" (.var "vz") (.num "-1.0"))) (.cmp "<=" (.var "vz") (.num "1.0"))) (.cmp ">=" (.var "z") (.num "-1.0"))) (.cmp "<=" (.var "z") (.num "1.0")))
-          next := ["MODER", "STEEP"] },
+          name := "MUD"
+          odes := [("v", (.bin "-" (.bin "-" (.bin "-" (.bin "*" (.num "2.5") (.bin "-" (.var "w") (.var "v"))) (.bin "*" (.num "0.4") (.var "v"))) (.var "zs")) (.bin "*" (.num "9.81") (.var "theta_p")))),
+            ("s", (.var "v")),
+            ("w", (.bin "*" (.num "3") (.bin "-" (.var "u") (.var "w")))),
+            ("zs", (.bin "*" (.num "2") (.bin "-" (.num "0.1") (.var "zs")))),
+            ("u", (.bin "*" (.num "4") (.bin "-" (.num "0.25") (.var "u")))),
+            ("zh", (.bin "-" (.var "vz") (.var "zh"))),
+            ("vz", (.bin "-" (.bin "*" (.num "0.5") (.var "v")) (.var "vz"))),
+            ("gamma", (.num "0")),
+            ("theta_p", (.bin "*" (.bin "*" (.num "2") (.var "v")) (.bin "-" (.var "gamma") (.var "theta_p")))),
+            ("ax", (.bin "*" (.num "5") (.bin "-" (.bin "-" (.bin "-" (.bin "-" (.bin "*" (.num "2.5") (.bin "-" (.var "w") (.var "v"))) (.bin "*" (.num "0.4") (.var "v"))) (.var "zs")) (.bin "*" (.num "9.81") (.var "theta_p"))) (.var "ax")))),
+            ("phs", (.bin "-" (.var "omega_phs") (.var "phs"))),
+            ("omega_phs", (.bin "-" (.bin "*" (.num "0.05") (.var "ax")) (.var "omega_phs")))]
+          guard := (.and (.and (.and (.and (.cmp ">=" (.var "s") (.num "0.0")) (.cmp "<" (.var "s") (.num "5.0"))) (.cmp "<=" (.var "u") (.num "0.25"))) (.cmp ">=" (.var "gamma") (.num "0.02"))) (.cmp ">=" (.var "theta_p") (.num "0.02")))
+          evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "0.8"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "w") (.num "0.15"))) (.cmp "<=" (.var "w") (.num "0.8"))) (.cmp ">=" (.var "zs") (.num "0.0"))) (.cmp "<=" (.var "zs") (.num "0.12"))) (.cmp ">=" (.var "u") (.num "0.15"))) (.cmp "<=" (.var "u") (.num "0.8"))) (.cmp ">=" (.var "zh") (.num "0.0"))) (.cmp "<=" (.var "zh") (.num "0.5"))) (.cmp ">=" (.var "vz") (.num "0.0"))) (.cmp "<=" (.var "vz") (.num "0.5"))) (.cmp ">=" (.var "gamma") (.num "0.0"))) (.cmp "<=" (.var "gamma") (.num "0.02"))) (.cmp ">=" (.var "theta_p") (.num "0.0"))) (.cmp "<=" (.var "theta_p") (.num "0.02"))) (.cmp ">=" (.var "ax") (.num "-6.5"))) (.cmp "<=" (.var "ax") (.num "6.5"))) (.cmp ">=" (.var "phs") (.num "-0.65"))) (.cmp "<=" (.var "phs") (.num "0.65"))) (.cmp ">=" (.var "omega_phs") (.num "-0.65"))) (.cmp "<=" (.var "omega_phs") (.num "0.65")))
+          next := ["GRAVEL", "MUD"] },
         {
-          name := "MODER"
-          odes := [("v", (.bin "*" (.num "3") (.bin "-" (.num "0.50") (.var "v")))),
-            ("s", (.bin "*" (.var "v") (.bin "-" (.bin "-" (.bin "-" (.num "1") (.bin "*" (.num "0.5") (.bin "*" (.var "psi") (.var "psi")))) (.bin "*" (.num "0.3") (.bin "*" (.var "theta_p") (.var "theta_p")))) (.bin "*" (.num "0.2") (.bin "*" (.var "phi_r") (.var "phi_r")))))),
-            ("psi", (.bin "-" (.var "omega_psi") (.var "psi"))),
-            ("omega_psi", (.bin "*" (.num "-1") (.var "omega_psi"))),
-            ("theta_p", (.bin "-" (.var "omega_theta") (.var "theta_p"))),
-            ("omega_theta", (.bin "+" (.bin "+" (.bin "*" (.num "-1") (.var "omega_theta")) (.bin "*" (.num "0.1") (.var "ax"))) (.bin "*" (.num "0.5") (.var "z")))),
-            ("phi_r", (.bin "-" (.var "omega_phi") (.var "phi_r"))),
-            ("omega_phi", (.bin "+" (.bin "*" (.num "-1") (.var "omega_phi")) (.bin "*" (.num "0.1") (.var "ay")))),
-            ("z", (.bin "-" (.var "vz") (.var "z"))),
-            ("vz", (.bin "*" (.num "-1") (.var "vz"))),
-            ("ax", (.bin "*" (.num "5") (.bin "-" (.bin "*" (.num "3") (.bin "-" (.num "0.50") (.var "v"))) (.var "ax")))),
-            ("ay", (.bin "*" (.num "5") (.bin "-" (.bin "*" (.var "v") (.bin "-" (.var "omega_psi") (.var "psi"))) (.var "ay"))))]
-          guard := (.and (.and (.cmp ">=" (.var "s") (.num "0.6")) (.cmp "<" (.var "s") (.num "1.4"))) (.cmp "<=" (.var "v") (.num "0.5")))
-          evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "ax") (.num "-1.5")) (.cmp "<=" (.var "ax") (.num "1.95"))) (.cmp ">=" (.var "ay") (.num "-1.6"))) (.cmp "<=" (.var "ay") (.num "1.6"))) (.cmp ">=" (.var "omega_phi") (.num "-1.0"))) (.cmp "<=" (.var "omega_phi") (.num "1.0"))) (.cmp ">=" (.var "omega_psi") (.num "-1.0"))) (.cmp "<=" (.var "omega_psi") (.num "1.0"))) (.cmp ">=" (.var "omega_theta") (.num "-1.0"))) (.cmp "<=" (.var "omega_theta") (.num "1.0"))) (.cmp ">=" (.var "phi_r") (.num "-1.0"))) (.cmp "<=" (.var "phi_r") (.num "1.0"))) (.cmp ">=" (.var "psi") (.num "-1.0"))) (.cmp "<=" (.var "psi") (.num "1.0"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "theta_p") (.num "-1.0"))) (.cmp "<=" (.var "theta_p") (.num "1.0"))) (.cmp ">=" (.var "v") (.num "0.0"))) (.cmp "<=" (.var "v") (.num "0.8"))) (.cmp ">=" (.var "vz") (.num "-1.0"))) (.cmp "<=" (.var "vz") (.num "1.0"))) (.cmp ">=" (.var "z") (.num "-1.0"))) (.cmp "<=" (.var "z") (.num "1.0")))
-          next := ["FLAT", "MODER"] },
+          name := "GRAVEL"
+          odes := [("v", (.bin "-" (.bin "-" (.bin "-" (.bin "*" (.num "4.0") (.bin "-" (.var "w") (.var "v"))) (.bin "*" (.num "0.15") (.var "v"))) (.var "zs")) (.bin "*" (.num "9.81") (.var "theta_p")))),
+            ("s", (.var "v")),
+            ("w", (.bin "*" (.num "3") (.bin "-" (.var "u") (.var "w")))),
+            ("zs", (.bin "*" (.num "2") (.bin "-" (.num "0.03") (.var "zs")))),
+            ("u", (.bin "*" (.num "4") (.bin "-" (.num "0.45") (.var "u")))),
+            ("zh", (.bin "-" (.var "vz") (.var "zh"))),
+            ("vz", (.bin "-" (.bin "*" (.num "0.2") (.var "v")) (.var "vz"))),
+            ("gamma", (.bin "*" (.bin "*" (.num "-0.5") (.var "v")) (.var "gamma"))),
+            ("theta_p", (.bin "*" (.bin "*" (.num "2") (.var "v")) (.bin "-" (.var "gamma") (.var "theta_p")))),
+            ("ax", (.bin "*" (.num "5") (.bin "-" (.bin "-" (.bin "-" (.bin "-" (.bin "*" (.num "4.0") (.bin "-" (.var "w") (.var "v"))) (.bin "*" (.num "0.15") (.var "v"))) (.var "zs")) (.bin "*" (.num "9.81") (.var "theta_p"))) (.var "ax")))),
+            ("phs", (.bin "-" (.var "omega_phs") (.var "phs"))),
+            ("omega_phs", (.bin "-" (.bin "*" (.num "0.05") (.var "ax")) (.var "omega_phs")))]
+          guard := (.and (.and (.cmp ">=" (.var "s") (.num "5.0")) (.cmp "<" (.var "s") (.num "12.0"))) (.cmp "<=" (.var "u") (.num "0.45")))
+          evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "0.8"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "w") (.num "0.15"))) (.cmp "<=" (.var "w") (.num "0.8"))) (.cmp ">=" (.var "zs") (.num "0.0"))) (.cmp "<=" (.var "zs") (.num "0.12"))) (.cmp ">=" (.var "u") (.num "0.15"))) (.cmp "<=" (.var "u") (.num "0.8"))) (.cmp ">=" (.var "zh") (.num "0.0"))) (.cmp "<=" (.var "zh") (.num "0.5"))) (.cmp ">=" (.var "vz") (.num "0.0"))) (.cmp "<=" (.var "vz") (.num "0.5"))) (.cmp ">=" (.var "gamma") (.num "0.0"))) (.cmp "<=" (.var "gamma") (.num "0.02"))) (.cmp ">=" (.var "theta_p") (.num "0.0"))) (.cmp "<=" (.var "theta_p") (.num "0.02"))) (.cmp ">=" (.var "ax") (.num "-6.5"))) (.cmp "<=" (.var "ax") (.num "6.5"))) (.cmp ">=" (.var "phs") (.num "-0.65"))) (.cmp "<=" (.var "phs") (.num "0.65"))) (.cmp ">=" (.var "omega_phs") (.num "-0.65"))) (.cmp "<=" (.var "omega_phs") (.num "0.65")))
+          next := ["PAVED", "GRAVEL"] },
         {
-          name := "FLAT"
-          odes := [("v", (.bin "*" (.num "3") (.bin "-" (.num "0.65") (.var "v")))),
-            ("s", (.bin "*" (.var "v") (.bin "-" (.bin "-" (.bin "-" (.num "1") (.bin "*" (.num "0.5") (.bin "*" (.var "psi") (.var "psi")))) (.bin "*" (.num "0.3") (.bin "*" (.var "theta_p") (.var "theta_p")))) (.bin "*" (.num "0.2") (.bin "*" (.var "phi_r") (.var "phi_r")))))),
-            ("psi", (.bin "-" (.var "omega_psi") (.var "psi"))),
-            ("omega_psi", (.bin "*" (.num "-1") (.var "omega_psi"))),
-            ("theta_p", (.bin "-" (.var "omega_theta") (.var "theta_p"))),
-            ("omega_theta", (.bin "+" (.bin "+" (.bin "*" (.num "-1") (.var "omega_theta")) (.bin "*" (.num "0.1") (.var "ax"))) (.bin "*" (.num "0.5") (.var "z")))),
-            ("phi_r", (.bin "-" (.var "omega_phi") (.var "phi_r"))),
-            ("omega_phi", (.bin "+" (.bin "*" (.num "-1") (.var "omega_phi")) (.bin "*" (.num "0.1") (.var "ay")))),
-            ("z", (.bin "-" (.var "vz") (.var "z"))),
-            ("vz", (.bin "*" (.num "-1") (.var "vz"))),
-            ("ax", (.bin "*" (.num "5") (.bin "-" (.bin "*" (.num "3") (.bin "-" (.num "0.65") (.var "v"))) (.var "ax")))),
-            ("ay", (.bin "*" (.num "5") (.bin "-" (.bin "*" (.var "v") (.bin "-" (.var "omega_psi") (.var "psi"))) (.var "ay"))))]
-          guard := (.and (.cmp ">=" (.var "s") (.num "1.4")) (.cmp "<=" (.var "v") (.num "0.65")))
-          evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "ax") (.num "-1.5")) (.cmp "<=" (.var "ax") (.num "1.95"))) (.cmp ">=" (.var "ay") (.num "-1.6"))) (.cmp "<=" (.var "ay") (.num "1.6"))) (.cmp ">=" (.var "omega_phi") (.num "-1.0"))) (.cmp "<=" (.var "omega_phi") (.num "1.0"))) (.cmp ">=" (.var "omega_psi") (.num "-1.0"))) (.cmp "<=" (.var "omega_psi") (.num "1.0"))) (.cmp ">=" (.var "omega_theta") (.num "-1.0"))) (.cmp "<=" (.var "omega_theta") (.num "1.0"))) (.cmp ">=" (.var "phi_r") (.num "-1.0"))) (.cmp "<=" (.var "phi_r") (.num "1.0"))) (.cmp ">=" (.var "psi") (.num "-1.0"))) (.cmp "<=" (.var "psi") (.num "1.0"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "theta_p") (.num "-1.0"))) (.cmp "<=" (.var "theta_p") (.num "1.0"))) (.cmp ">=" (.var "v") (.num "0.0"))) (.cmp "<=" (.var "v") (.num "0.8"))) (.cmp ">=" (.var "vz") (.num "-1.0"))) (.cmp "<=" (.var "vz") (.num "1.0"))) (.cmp ">=" (.var "z") (.num "-1.0"))) (.cmp "<=" (.var "z") (.num "1.0")))
-          next := ["FLAT"] } ] }
+          name := "PAVED"
+          odes := [("v", (.bin "-" (.bin "-" (.bin "-" (.bin "*" (.num "8.0") (.bin "-" (.var "w") (.var "v"))) (.bin "*" (.num "0.05") (.var "v"))) (.var "zs")) (.bin "*" (.num "9.81") (.var "theta_p")))),
+            ("s", (.var "v")),
+            ("w", (.bin "*" (.num "3") (.bin "-" (.var "u") (.var "w")))),
+            ("zs", (.bin "*" (.num "2") (.bin "-" (.num "0.0") (.var "zs")))),
+            ("u", (.bin "*" (.num "4") (.bin "-" (.num "0.7") (.var "u")))),
+            ("zh", (.bin "-" (.var "vz") (.var "zh"))),
+            ("vz", (.bin "-" (.bin "*" (.num "0.05") (.var "v")) (.var "vz"))),
+            ("gamma", (.bin "*" (.bin "*" (.num "-0.5") (.var "v")) (.var "gamma"))),
+            ("theta_p", (.bin "*" (.bin "*" (.num "2") (.var "v")) (.bin "-" (.var "gamma") (.var "theta_p")))),
+            ("ax", (.bin "*" (.num "5") (.bin "-" (.bin "-" (.bin "-" (.bin "-" (.bin "*" (.num "8.0") (.bin "-" (.var "w") (.var "v"))) (.bin "*" (.num "0.05") (.var "v"))) (.var "zs")) (.bin "*" (.num "9.81") (.var "theta_p"))) (.var "ax")))),
+            ("phs", (.bin "-" (.var "omega_phs") (.var "phs"))),
+            ("omega_phs", (.bin "-" (.bin "*" (.num "0.05") (.var "ax")) (.var "omega_phs")))]
+          guard := (.and (.cmp ">=" (.var "s") (.num "12.0")) (.cmp "<=" (.var "u") (.num "0.7")))
+          evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "0.8"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "w") (.num "0.15"))) (.cmp "<=" (.var "w") (.num "0.8"))) (.cmp ">=" (.var "zs") (.num "0.0"))) (.cmp "<=" (.var "zs") (.num "0.12"))) (.cmp ">=" (.var "u") (.num "0.15"))) (.cmp "<=" (.var "u") (.num "0.8"))) (.cmp ">=" (.var "zh") (.num "0.0"))) (.cmp "<=" (.var "zh") (.num "0.5"))) (.cmp ">=" (.var "vz") (.num "0.0"))) (.cmp "<=" (.var "vz") (.num "0.5"))) (.cmp ">=" (.var "gamma") (.num "0.0"))) (.cmp "<=" (.var "gamma") (.num "0.02"))) (.cmp ">=" (.var "theta_p") (.num "0.0"))) (.cmp "<=" (.var "theta_p") (.num "0.02"))) (.cmp ">=" (.var "ax") (.num "-6.5"))) (.cmp "<=" (.var "ax") (.num "6.5"))) (.cmp ">=" (.var "phs") (.num "-0.65"))) (.cmp "<=" (.var "phs") (.num "0.65"))) (.cmp ">=" (.var "omega_phs") (.num "-0.65"))) (.cmp "<=" (.var "omega_phs") (.num "0.65")))
+          next := ["PAVED"] } ] }
     R := {
-      stateVars := ["v", "s", "psi", "omega_psi", "theta_p", "omega_theta", "phi_r", "omega_phi", "z", "vz", "ax", "ay"]
+      stateVars := ["v", "s", "w", "zs", "u", "zh", "vz", "gamma", "theta_p", "ax", "phs", "omega_phs"]
       epsilon := "1.0"
       modes := [
         {
-          name := "STEEP"
-          odes := [("v", (.bin "*" (.num "3") (.bin "-" (.num "0.30") (.var "v")))),
-            ("s", (.bin "*" (.var "v") (.bin "-" (.bin "-" (.bin "-" (.num "1") (.bin "*" (.num "0.5") (.bin "*" (.var "psi") (.var "psi")))) (.bin "*" (.num "0.3") (.bin "*" (.var "theta_p") (.var "theta_p")))) (.bin "*" (.num "0.2") (.bin "*" (.var "phi_r") (.var "phi_r")))))),
-            ("psi", (.bin "*" (.num "-1") (.var "psi"))),
-            ("omega_psi", (.num "0")),
-            ("theta_p", (.bin "+" (.bin "*" (.num "-1") (.var "theta_p")) (.bin "*" (.num "0.5") (.var "z")))),
-            ("omega_theta", (.num "0")),
-            ("phi_r", (.bin "*" (.num "-1") (.var "phi_r"))),
-            ("omega_phi", (.num "0")),
-            ("z", (.bin "*" (.num "-1") (.var "z"))),
+          name := "MUD"
+          odes := [("v", (.bin "-" (.bin "-" (.bin "*" (.num "2.5") (.bin "-" (.var "w") (.var "v"))) (.bin "*" (.num "0.4") (.var "v"))) (.var "zs"))),
+            ("s", (.var "v")),
+            ("w", (.bin "*" (.num "3") (.bin "-" (.var "u") (.var "w")))),
+            ("zs", (.bin "*" (.num "2") (.bin "-" (.num "0.1") (.var "zs")))),
+            ("u", (.bin "*" (.num "4") (.bin "-" (.num "0.25") (.var "u")))),
+            ("zh", (.bin "-" (.bin "*" (.num "0.5") (.var "v")) (.var "zh"))),
             ("vz", (.num "0")),
+            ("gamma", (.num "0")),
+            ("theta_p", (.num "0")),
             ("ax", (.num "0")),
-            ("ay", (.num "0"))]
-          guard := (.and (.and (.cmp ">=" (.var "s") (.num "0.0")) (.cmp "<" (.var "s") (.num "0.6"))) (.cmp "<=" (.var "v") (.num "0.3")))
-          evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "ax") (.num "-1.0")) (.cmp "<=" (.var "ax") (.num "1.1"))) (.cmp ">=" (.var "ay") (.num "-1.0"))) (.cmp "<=" (.var "ay") (.num "1.1"))) (.cmp ">=" (.var "omega_phi") (.num "-1.0"))) (.cmp "<=" (.var "omega_phi") (.num "1.1"))) (.cmp ">=" (.var "omega_psi") (.num "-1.0"))) (.cmp "<=" (.var "omega_psi") (.num "1.1"))) (.cmp ">=" (.var "omega_theta") (.num "-1.0"))) (.cmp "<=" (.var "omega_theta") (.num "1.1"))) (.cmp ">=" (.var "phi_r") (.num "-0.5"))) (.cmp "<=" (.var "phi_r") (.num "0.15"))) (.cmp ">=" (.var "psi") (.num "-0.5"))) (.cmp "<=" (.var "psi") (.num "0.15"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "theta_p") (.num "-0.5"))) (.cmp "<=" (.var "theta_p") (.num "0.15"))) (.cmp ">=" (.var "v") (.num "0.0"))) (.cmp "<=" (.var "v") (.num "0.8"))) (.cmp ">=" (.var "vz") (.num "-1.0"))) (.cmp "<=" (.var "vz") (.num "1.1"))) (.cmp ">=" (.var "z") (.num "-1.0"))) (.cmp "<=" (.var "z") (.num "0.15")))
-          next := ["MODER", "STEEP"] },
+            ("phs", (.num "0")),
+            ("omega_phs", (.num "0"))]
+          guard := (.and (.and (.cmp ">=" (.var "s") (.num "0.0")) (.cmp "<" (.var "s") (.num "5.0"))) (.cmp "<=" (.var "u") (.num "0.25")))
+          evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "0.8"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "w") (.num "0.15"))) (.cmp "<=" (.var "w") (.num "0.8"))) (.cmp ">=" (.var "zs") (.num "0.0"))) (.cmp "<=" (.var "zs") (.num "0.12"))) (.cmp ">=" (.var "u") (.num "0.15"))) (.cmp "<=" (.var "u") (.num "0.8"))) (.cmp ">=" (.var "zh") (.num "0.0"))) (.cmp "<=" (.var "zh") (.num "0.5"))) (.cmp ">=" (.var "vz") (.num "0.0"))) (.cmp "<=" (.var "vz") (.num "0.5"))) (.cmp ">=" (.var "gamma") (.num "0.0"))) (.cmp "<=" (.var "gamma") (.num "0.02"))) (.cmp ">=" (.var "theta_p") (.num "0.0"))) (.cmp "<=" (.var "theta_p") (.num "0.02"))) (.cmp ">=" (.var "ax") (.num "-6.5"))) (.cmp "<=" (.var "ax") (.num "6.5"))) (.cmp ">=" (.var "phs") (.num "-0.65"))) (.cmp "<=" (.var "phs") (.num "0.65"))) (.cmp ">=" (.var "omega_phs") (.num "-0.65"))) (.cmp "<=" (.var "omega_phs") (.num "0.65")))
+          next := ["GRAVEL", "MUD"] },
         {
-          name := "MODER"
-          odes := [("v", (.bin "*" (.num "3") (.bin "-" (.num "0.50") (.var "v")))),
-            ("s", (.bin "*" (.var "v") (.bin "-" (.bin "-" (.bin "-" (.num "1") (.bin "*" (.num "0.5") (.bin "*" (.var "psi") (.var "psi")))) (.bin "*" (.num "0.3") (.bin "*" (.var "theta_p") (.var "theta_p")))) (.bin "*" (.num "0.2") (.bin "*" (.var "phi_r") (.var "phi_r")))))),
-            ("psi", (.bin "*" (.num "-1") (.var "psi"))),
-            ("omega_psi", (.num "0")),
-            ("theta_p", (.bin "+" (.bin "*" (.num "-1") (.var "theta_p")) (.bin "*" (.num "0.5") (.var "z")))),
-            ("omega_theta", (.num "0")),
-            ("phi_r", (.bin "*" (.num "-1") (.var "phi_r"))),
-            ("omega_phi", (.num "0")),
-            ("z", (.bin "*" (.num "-1") (.var "z"))),
+          name := "GRAVEL"
+          odes := [("v", (.bin "-" (.bin "-" (.bin "*" (.num "4.0") (.bin "-" (.var "w") (.var "v"))) (.bin "*" (.num "0.15") (.var "v"))) (.var "zs"))),
+            ("s", (.var "v")),
+            ("w", (.bin "*" (.num "3") (.bin "-" (.var "u") (.var "w")))),
+            ("zs", (.bin "*" (.num "2") (.bin "-" (.num "0.03") (.var "zs")))),
+            ("u", (.bin "*" (.num "4") (.bin "-" (.num "0.45") (.var "u")))),
+            ("zh", (.bin "-" (.bin "*" (.num "0.2") (.var "v")) (.var "zh"))),
             ("vz", (.num "0")),
+            ("gamma", (.num "0")),
+            ("theta_p", (.num "0")),
             ("ax", (.num "0")),
-            ("ay", (.num "0"))]
-          guard := (.and (.and (.cmp ">=" (.var "s") (.num "0.6")) (.cmp "<" (.var "s") (.num "1.4"))) (.cmp "<=" (.var "v") (.num "0.5")))
-          evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "ax") (.num "-1.0")) (.cmp "<=" (.var "ax") (.num "1.1"))) (.cmp ">=" (.var "ay") (.num "-1.0"))) (.cmp "<=" (.var "ay") (.num "1.1"))) (.cmp ">=" (.var "omega_phi") (.num "-1.0"))) (.cmp "<=" (.var "omega_phi") (.num "1.1"))) (.cmp ">=" (.var "omega_psi") (.num "-1.0"))) (.cmp "<=" (.var "omega_psi") (.num "1.1"))) (.cmp ">=" (.var "omega_theta") (.num "-1.0"))) (.cmp "<=" (.var "omega_theta") (.num "1.1"))) (.cmp ">=" (.var "phi_r") (.num "-0.5"))) (.cmp "<=" (.var "phi_r") (.num "0.15"))) (.cmp ">=" (.var "psi") (.num "-0.5"))) (.cmp "<=" (.var "psi") (.num "0.15"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "theta_p") (.num "-0.5"))) (.cmp "<=" (.var "theta_p") (.num "0.15"))) (.cmp ">=" (.var "v") (.num "0.0"))) (.cmp "<=" (.var "v") (.num "0.8"))) (.cmp ">=" (.var "vz") (.num "-1.0"))) (.cmp "<=" (.var "vz") (.num "1.1"))) (.cmp ">=" (.var "z") (.num "-1.0"))) (.cmp "<=" (.var "z") (.num "0.15")))
-          next := ["FLAT", "MODER"] },
+            ("phs", (.num "0")),
+            ("omega_phs", (.num "0"))]
+          guard := (.and (.and (.cmp ">=" (.var "s") (.num "5.0")) (.cmp "<" (.var "s") (.num "12.0"))) (.cmp "<=" (.var "u") (.num "0.45")))
+          evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "0.8"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "w") (.num "0.15"))) (.cmp "<=" (.var "w") (.num "0.8"))) (.cmp ">=" (.var "zs") (.num "0.0"))) (.cmp "<=" (.var "zs") (.num "0.12"))) (.cmp ">=" (.var "u") (.num "0.15"))) (.cmp "<=" (.var "u") (.num "0.8"))) (.cmp ">=" (.var "zh") (.num "0.0"))) (.cmp "<=" (.var "zh") (.num "0.5"))) (.cmp ">=" (.var "vz") (.num "0.0"))) (.cmp "<=" (.var "vz") (.num "0.5"))) (.cmp ">=" (.var "gamma") (.num "0.0"))) (.cmp "<=" (.var "gamma") (.num "0.02"))) (.cmp ">=" (.var "theta_p") (.num "0.0"))) (.cmp "<=" (.var "theta_p") (.num "0.02"))) (.cmp ">=" (.var "ax") (.num "-6.5"))) (.cmp "<=" (.var "ax") (.num "6.5"))) (.cmp ">=" (.var "phs") (.num "-0.65"))) (.cmp "<=" (.var "phs") (.num "0.65"))) (.cmp ">=" (.var "omega_phs") (.num "-0.65"))) (.cmp "<=" (.var "omega_phs") (.num "0.65")))
+          next := ["PAVED", "GRAVEL"] },
         {
-          name := "FLAT"
-          odes := [("v", (.bin "*" (.num "3") (.bin "-" (.num "0.65") (.var "v")))),
-            ("s", (.bin "*" (.var "v") (.bin "-" (.bin "-" (.bin "-" (.num "1") (.bin "*" (.num "0.5") (.bin "*" (.var "psi") (.var "psi")))) (.bin "*" (.num "0.3") (.bin "*" (.var "theta_p") (.var "theta_p")))) (.bin "*" (.num "0.2") (.bin "*" (.var "phi_r") (.var "phi_r")))))),
-            ("psi", (.bin "*" (.num "-1") (.var "psi"))),
-            ("omega_psi", (.num "0")),
-            ("theta_p", (.bin "+" (.bin "*" (.num "-1") (.var "theta_p")) (.bin "*" (.num "0.5") (.var "z")))),
-            ("omega_theta", (.num "0")),
-            ("phi_r", (.bin "*" (.num "-1") (.var "phi_r"))),
-            ("omega_phi", (.num "0")),
-            ("z", (.bin "*" (.num "-1") (.var "z"))),
+          name := "PAVED"
+          odes := [("v", (.bin "-" (.bin "-" (.bin "*" (.num "8.0") (.bin "-" (.var "w") (.var "v"))) (.bin "*" (.num "0.05") (.var "v"))) (.var "zs"))),
+            ("s", (.var "v")),
+            ("w", (.bin "*" (.num "3") (.bin "-" (.var "u") (.var "w")))),
+            ("zs", (.bin "*" (.num "2") (.bin "-" (.num "0.0") (.var "zs")))),
+            ("u", (.bin "*" (.num "4") (.bin "-" (.num "0.7") (.var "u")))),
+            ("zh", (.bin "-" (.bin "*" (.num "0.05") (.var "v")) (.var "zh"))),
             ("vz", (.num "0")),
+            ("gamma", (.num "0")),
+            ("theta_p", (.num "0")),
             ("ax", (.num "0")),
-            ("ay", (.num "0"))]
-          guard := (.and (.cmp ">=" (.var "s") (.num "1.4")) (.cmp "<=" (.var "v") (.num "0.65")))
-          evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "ax") (.num "-1.0")) (.cmp "<=" (.var "ax") (.num "1.1"))) (.cmp ">=" (.var "ay") (.num "-1.0"))) (.cmp "<=" (.var "ay") (.num "1.1"))) (.cmp ">=" (.var "omega_phi") (.num "-1.0"))) (.cmp "<=" (.var "omega_phi") (.num "1.1"))) (.cmp ">=" (.var "omega_psi") (.num "-1.0"))) (.cmp "<=" (.var "omega_psi") (.num "1.1"))) (.cmp ">=" (.var "omega_theta") (.num "-1.0"))) (.cmp "<=" (.var "omega_theta") (.num "1.1"))) (.cmp ">=" (.var "phi_r") (.num "-0.5"))) (.cmp "<=" (.var "phi_r") (.num "0.15"))) (.cmp ">=" (.var "psi") (.num "-0.5"))) (.cmp "<=" (.var "psi") (.num "0.15"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "theta_p") (.num "-0.5"))) (.cmp "<=" (.var "theta_p") (.num "0.15"))) (.cmp ">=" (.var "v") (.num "0.0"))) (.cmp "<=" (.var "v") (.num "0.8"))) (.cmp ">=" (.var "vz") (.num "-1.0"))) (.cmp "<=" (.var "vz") (.num "1.1"))) (.cmp ">=" (.var "z") (.num "-1.0"))) (.cmp "<=" (.var "z") (.num "0.15")))
-          next := ["FLAT"] } ] }
+            ("phs", (.num "0")),
+            ("omega_phs", (.num "0"))]
+          guard := (.and (.cmp ">=" (.var "s") (.num "12.0")) (.cmp "<=" (.var "u") (.num "0.7")))
+          evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "0.8"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "w") (.num "0.15"))) (.cmp "<=" (.var "w") (.num "0.8"))) (.cmp ">=" (.var "zs") (.num "0.0"))) (.cmp "<=" (.var "zs") (.num "0.12"))) (.cmp ">=" (.var "u") (.num "0.15"))) (.cmp "<=" (.var "u") (.num "0.8"))) (.cmp ">=" (.var "zh") (.num "0.0"))) (.cmp "<=" (.var "zh") (.num "0.5"))) (.cmp ">=" (.var "vz") (.num "0.0"))) (.cmp "<=" (.var "vz") (.num "0.5"))) (.cmp ">=" (.var "gamma") (.num "0.0"))) (.cmp "<=" (.var "gamma") (.num "0.02"))) (.cmp ">=" (.var "theta_p") (.num "0.0"))) (.cmp "<=" (.var "theta_p") (.num "0.02"))) (.cmp ">=" (.var "ax") (.num "-6.5"))) (.cmp "<=" (.var "ax") (.num "6.5"))) (.cmp ">=" (.var "phs") (.num "-0.65"))) (.cmp "<=" (.var "phs") (.num "0.65"))) (.cmp ">=" (.var "omega_phs") (.num "-0.65"))) (.cmp "<=" (.var "omega_phs") (.num "0.65")))
+          next := ["PAVED"] } ] }
     invariants := [
-      ("STEEP", (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "L_s") (.var "R_s")))),
-      ("MODER", (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "L_s") (.var "R_s")))),
-      ("FLAT", (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "L_s") (.var "R_s"))))] }
+      ("MUD", (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "L_s") (.var "R_s"))) (.cmp "<=" (.var "L_u") (.var "R_u"))) (.cmp "<=" (.var "L_w") (.var "R_w"))) (.cmp "<=" (.var "R_zs") (.var "L_zs"))) (.cmp "<=" (.var "L_v") (.var "L_w"))) (.cmp "<=" (.var "L_w") (.var "L_u"))) (.cmp "<=" (.var "L_w") (.bin "+" (.var "L_v") (.num "0.25")))) (.cmp "<=" (.var "L_zh") (.num "0.15"))) (.cmp "<=" (.bin "+" (.var "L_theta_p") (.var "L_phs")) (.num "0.15"))) (.cmp "<=" (.var "L_vz") (.num "0.15"))) (.cmp "<=" (.var "L_ax") (.num "2.0"))) (.cmp "<=" (.var "L_omega_phs") (.num "0.1")))),
+      ("GRAVEL", (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "L_s") (.var "R_s"))) (.cmp "<=" (.var "L_u") (.var "R_u"))) (.cmp "<=" (.var "L_w") (.var "R_w"))) (.cmp "<=" (.var "R_zs") (.var "L_zs"))) (.cmp "<=" (.var "L_v") (.var "L_w"))) (.cmp "<=" (.var "L_w") (.var "L_u"))) (.cmp "<=" (.var "L_w") (.bin "+" (.var "L_v") (.num "0.25")))) (.cmp "<=" (.var "L_zh") (.num "0.15"))) (.cmp "<=" (.bin "+" (.var "L_theta_p") (.var "L_phs")) (.num "0.15"))) (.cmp "<=" (.var "L_vz") (.num "0.15"))) (.cmp "<=" (.var "L_ax") (.num "2.0"))) (.cmp "<=" (.var "L_omega_phs") (.num "0.1")))),
+      ("PAVED", (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "L_s") (.var "R_s"))) (.cmp "<=" (.var "L_u") (.var "R_u"))) (.cmp "<=" (.var "L_w") (.var "R_w"))) (.cmp "<=" (.var "R_zs") (.var "L_zs"))) (.cmp "<=" (.var "L_v") (.var "L_w"))) (.cmp "<=" (.var "L_w") (.var "L_u"))) (.cmp "<=" (.var "L_w") (.bin "+" (.var "L_v") (.num "0.25")))) (.cmp "<=" (.var "L_zh") (.num "0.15"))) (.cmp "<=" (.bin "+" (.var "L_theta_p") (.var "L_phs")) (.num "0.15"))) (.cmp "<=" (.var "L_vz") (.num "0.15"))) (.cmp "<=" (.var "L_ax") (.num "2.0"))) (.cmp "<=" (.var "L_omega_phs") (.num "0.1"))))] }
 
 end RelCertifier.Parse

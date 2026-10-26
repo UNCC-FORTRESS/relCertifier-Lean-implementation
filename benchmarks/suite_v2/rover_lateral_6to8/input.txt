@@ -1,10 +1,11 @@
 # rover_lateral_6to8: lateral corridor keeping, the 8-state lateral rover refining the 6-DOF
 #   plan (step 6 -> 8: the right moves 6 coordinates, the left 8).
 # scenario: model-refinement
-# mechanisms: none (CERTIFIED with RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, without
-#   the widened cuts and with no cut at all; lambda = 1, one segment per window)
+# mechanisms: none (a ladder rung: CERTIFIED under every counter-run, RELCERT_SYNC=1,
+#   RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1 and without RELCERT_IMPLIED_CUT;
+#   lambda 1, one segment per window)
 #
-# Coordinates: v speed (m/s), s odometer (m), psi pitch and theta_p tilt (rad), z heave,
+# Coordinates: v speed (m/s), s odometer (m), psi heading and theta_p pitch (rad), z heave,
 #   phi_r roll (rad), y lateral offset from the lane centreline (m, positive towards the right
 #   edge), w = y' lateral velocity (m/s).
 # Right (reasoning, the coarse plan): the 6-DOF rover, as in the other 6-DOF rover models (v
@@ -14,11 +15,13 @@
 # Left (deployed): the same 6-DOF rover plus the lateral regulator y' = w, w' = -y - 2w
 #   (stiffness 1 s^-2, damping 2 s^-1: critically damped, natural frequency 1 rad/s, no
 #   overshoot). The lead q = y + w (offset one time constant ahead) obeys q' = -q.
-#   The two sides differ exactly in y' and w'; modes, guards, successors, domains are equal.
+#   The two sides differ exactly in y' and w' (one cause: the lateral regulator); modes, guards,
+#   successors, domains are equal.
 # Modes: STEEP (s in [0, 0.6), set speed 0.30), MODER (s in [0.6, 1.4), 0.50), FLAT
 #   (s >= 1.4, 0.65, terminal, unbounded above); next = [MODER, STEEP], [FLAT, MODER], [FLAT].
-#   Every s >= 0 lies in exactly one right guard.
-# Property: the speed, odometer, pitch and tilt alignment rows of the ladder
+#   Every s >= 0 lies in exactly one right guard (no coverage gap); every left mode has a
+#   satisfiable start.
+# Property: the speed, odometer, heading and pitch alignment rows of the ladder
 #   (v_L <= v_R, s_L <= s_R, psi_L = psi_R, theta_p_L = theta_p_R) and corridor keeping
 #   y_L <= y_R + d with the lead y_L + w_L <= y_R + d (the rate is part of the state: with the
 #   offset row alone a deployed rover on the bound moving right breaks it at once).
@@ -35,9 +38,13 @@
 #   up to 1.0 > d). Load-bearing bound (scripts/domain_widening.py): only the right's lane edge
 #   y_R >= -0.5, which the frozen plan keeps.
 # Pairs with rover_lateral_8to12, whose right model is this file's left model with the 12-DOF
-#   coordinates pinned. (Redesigned 2026-10-26: before, the offsets lived in [0, 0.15] on both
-#   sides, so the corridor row y_L <= y_R + 0.3 followed from the domains, phi_r was frozen on
-#   both sides, and w entered no other equation.)
+#   coordinates pinned.
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED; CERTIFIED under RELCERT_SYNC=1,
+#   RELCERT_NO_CHOICE=1, SYNC+NO_CHOICE, RELCERT_NO_PRUNE=1, NO_PRUNE+NO_CHOICE, RELCERT_NO_CUT=1,
+#   RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_OPREGION=1 and without
+#   RELCERT_IMPLIED_CUT. Covers: lambda 1, budget 1 in every left mode; nothing pruned; no
+#   right-only reposition; guard cuts kept but not load-bearing; rows identical (--handoff
+#   vacuous, 5/5).
 
 [problem]
 name = rover_lateral_6to8

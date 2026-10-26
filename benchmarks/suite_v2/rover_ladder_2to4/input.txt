@@ -1,5 +1,8 @@
 # rover_ladder_2to4: rover ladder, step 2 -> 4: heading and pitch move.
 # scenario: model-refinement
+# mechanisms: R (right-only segments: a plan state behind the rover's zone first runs alone;
+#   RELCERT_SYNC=1 declines with lambda 1 throughout, so the decline is the right-only segment,
+#   not stretching; matrix code M2 shows "single segment, RO used")
 #
 # System (the rover ladder; normalized units, time in s): a rover drives a three-zone route
 # indexed by its odometer s: STEEP s in [0, 0.6), MODER [0.6, 1.4), FLAT s >= 1.4, speed set
@@ -20,25 +23,33 @@
 #     omega_phi' = -omega_phi + 0.2 (y - 2 omega_y), so sway reaches progress through roll.
 #
 # Left (4-DOF, v, s, psi, theta_p move). Right (2-DOF plan): v, s move, psi, theta_p pinned
-# (psi' = theta_p' = 0). Guards: the zones on both sides (no speed condition).
+# (psi' = theta_p' = 0). The one difference is the heading and slope penalty in s'. Guards: the
+# zones on both sides (no speed condition).
 #
 # Property (the same row in every left mode): s_L + v_L/3 <= s_R + v_R/3. s + v/3 is where the
 # rover comes to rest if its speed loop is commanded to zero (v' = -3 v covers v/3), so the
 # requirement reads: the rover's stopping point never passes the plan's, and a clearance up to the
-# plan's stopping point covers a stop command. Offset 0 is the tightest (-0.01 declines); before
-# 2026-10-26 the offset was 0.2 and lambda_min 1.001 (both artificial: with lambda_min 1.0 and
-# offset 0 the cover uses lambda 1).
+# plan's stopping point covers a stop command. The offset 0 is the requirement value; the row also
+# certifies with every negative offset tested (-0.01, -0.5, -1, -10: the stopping-point gap only
+# grows). Not implied by the domains.
 #
-# Domains: left psi, theta_p in [-0.5, 0.15] (forward invariant), v in [0, 0.8], s >= 0 unbounded
-# (the left FLAT guard cap s < 899.95 was dropped 2026-10-26); right pinned boxes contain their
-# constants. Every state of a side's domain is in exactly one of its guards.
+# Why right-only segments are needed (R). The row compares stopping points, not positions, so the
+# plan may still be in an earlier zone than the rover (behind it, but faster). The cover runs the
+# plan alone into the rover's zone (MODER_L from STEEP_R; FLAT_L from MODER_R and STEEP_R) and
+# then pairs the two; under RELCERT_SYNC=1 (no right-only segment, lambda 1) it DECLINES.
 #
-# Composes: the direct 2 -> 6 step is rover_ladder_2to6 (the 4 -> 6 step rover_ladder_4to6 was
-# retired on 2026-10-26: its step was vacuous).
-# Verdicts (RELCERT_IMPLIED_CUT=1): CERTIFIED in control and under NO_CHOICE, NO_PRUNE,
-# NO_PRUNE+NO_CHOICE, OPREGION, NO_CUT, NO_IMPLIED_CUT, NO_LINEAR_CUT and without
-# RELCERT_IMPLIED_CUT; DECLINED under SYNC and SYNC+NO_CHOICE (the lagging plan needs its own
-# segment). Covers: lambda 1, budget 1; a right-only reposition (R); nothing pruned; window claim.
+# Domains: left psi, theta_p in [-0.5, 0.15] (forward invariant: first-order decay), v in [0, 0.8]
+# (forward invariant), s >= 0 unbounded above (s' >= 0); the right's pinned psi, theta_p boxes
+# [-0.5, 0.6] contain their constants. The zones partition s >= 0 on both sides (no coverage gap);
+# every left mode has a satisfiable start (every right mode is an admissible start).
+#
+# Composes: the direct 2 -> 6 step is rover_ladder_2to6.
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED; CERTIFIED under RELCERT_NO_CHOICE=1,
+# RELCERT_NO_PRUNE=1, NO_PRUNE+NO_CHOICE, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1,
+# RELCERT_NO_LINEAR_CUT=1, RELCERT_OPREGION=1 and without RELCERT_IMPLIED_CUT; DECLINED under
+# RELCERT_SYNC=1 and SYNC+NO_CHOICE. Covers: lambda 1, budget 1 in every left mode; right-only
+# repositioning in MODER and FLAT; nothing pruned; guard cuts kept but not load-bearing; rows
+# identical (--handoff vacuous, 5/5).
 
 [problem]
 name = rover_ladder_2to4

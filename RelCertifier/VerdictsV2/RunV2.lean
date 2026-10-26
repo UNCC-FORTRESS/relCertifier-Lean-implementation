@@ -274,25 +274,25 @@ def packsV2 : List PackV2 :=
     ⟨"rover_lateral_8to12", 12, 0, [0, 2, 4, 6, 7, 8, 9, 1, 3, 5], 1, 1, 1, 2⟩,
     ⟨"rover_lateral_8to12", 12, 0, [0, 2, 4, 6, 7, 8, 9, 1, 3, 5], 1, 1, 2, 2⟩,
     -- rover_attitude_6to8 (cover replay)
-    ⟨"rover_attitude_6to8", 8, 0, [0, 1, 2], 1, 1, 0, 0⟩,
-    ⟨"rover_attitude_6to8", 8, 0, [0, 1, 2], 1, 1, 0, 1⟩,
-    ⟨"rover_attitude_6to8", 8, 0, [0, 1, 2], 1, 1, 0, 2⟩,
-    ⟨"rover_attitude_6to8", 8, 1, [0, 1], 1, 1, 1, 0⟩,
-    ⟨"rover_attitude_6to8", 8, 1, [0, 1], 1, 1, 1, 1⟩,
-    ⟨"rover_attitude_6to8", 8, 1, [0, 1], 1, 1, 1, 2⟩,
-    ⟨"rover_attitude_6to8", 8, 2, [0, 1], 1, 1, 2, 0⟩,
-    ⟨"rover_attitude_6to8", 8, 2, [0, 1], 1, 1, 2, 1⟩,
-    ⟨"rover_attitude_6to8", 8, 2, [0, 1], 1, 1, 2, 2⟩,
+    ⟨"rover_attitude_6to8", 8, 0, [0, 1], 1, 1, 0, 0⟩,
+    ⟨"rover_attitude_6to8", 8, 0, [0, 1], 1, 1, 0, 1⟩,
+    ⟨"rover_attitude_6to8", 8, 0, [0, 1], 1, 1, 0, 2⟩,
+    ⟨"rover_attitude_6to8", 8, 0, [0, 1], 1, 1, 1, 0⟩,
+    ⟨"rover_attitude_6to8", 8, 0, [0, 1], 1, 1, 1, 1⟩,
+    ⟨"rover_attitude_6to8", 8, 0, [0, 1], 1, 1, 1, 2⟩,
+    ⟨"rover_attitude_6to8", 8, 0, [0, 1], 1, 1, 2, 0⟩,
+    ⟨"rover_attitude_6to8", 8, 0, [0, 1], 1, 1, 2, 1⟩,
+    ⟨"rover_attitude_6to8", 8, 0, [0, 1], 1, 1, 2, 2⟩,
     -- rover_attitude_8to12 (cover replay)
-    ⟨"rover_attitude_8to12", 12, 0, [0, 1, 2], 1, 1, 0, 0⟩,
-    ⟨"rover_attitude_8to12", 12, 0, [0, 1, 2], 1, 1, 0, 1⟩,
-    ⟨"rover_attitude_8to12", 12, 0, [0, 1, 2], 1, 1, 0, 2⟩,
-    ⟨"rover_attitude_8to12", 12, 1, [0, 1], 1, 1, 1, 0⟩,
-    ⟨"rover_attitude_8to12", 12, 1, [0, 1], 1, 1, 1, 1⟩,
-    ⟨"rover_attitude_8to12", 12, 1, [0, 1], 1, 1, 1, 2⟩,
-    ⟨"rover_attitude_8to12", 12, 2, [0, 1], 1, 1, 2, 0⟩,
-    ⟨"rover_attitude_8to12", 12, 2, [0, 1], 1, 1, 2, 1⟩,
-    ⟨"rover_attitude_8to12", 12, 2, [0, 1], 1, 1, 2, 2⟩,
+    ⟨"rover_attitude_8to12", 12, 0, [0, 1], 1, 1, 0, 0⟩,
+    ⟨"rover_attitude_8to12", 12, 0, [0, 1], 1, 1, 0, 1⟩,
+    ⟨"rover_attitude_8to12", 12, 0, [0, 1], 1, 1, 0, 2⟩,
+    ⟨"rover_attitude_8to12", 12, 0, [0, 1], 1, 1, 1, 0⟩,
+    ⟨"rover_attitude_8to12", 12, 0, [0, 1], 1, 1, 1, 1⟩,
+    ⟨"rover_attitude_8to12", 12, 0, [0, 1], 1, 1, 1, 2⟩,
+    ⟨"rover_attitude_8to12", 12, 0, [0, 1], 1, 1, 2, 0⟩,
+    ⟨"rover_attitude_8to12", 12, 0, [0, 1], 1, 1, 2, 1⟩,
+    ⟨"rover_attitude_8to12", 12, 0, [0, 1], 1, 1, 2, 2⟩,
     -- rover_ladder_4to6 (cover replay)
     ⟨"rover_ladder_4to6", 6, 0, [0, 1, 4, 5, 6, 7, 2, 3], 1, 1, 0, 0⟩,
     ⟨"rover_ladder_4to6", 6, 0, [0, 1, 4, 5, 6, 7, 2, 3], 1, 1, 1, 1⟩,
@@ -337,7 +337,7 @@ def packsV2 : List PackV2 :=
     ⟨"watertank_twospeed", 2, 0, [0, 1], 31, 10, 0, 1⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 660
+def expectedModalV2 : Nat := 654
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do

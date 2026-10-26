@@ -207,7 +207,7 @@ theorem fRF9_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
 
 theorem fRF10_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRF q 10) x = -1 * x (Rv 10) := by
+    Term.eval (fRF q 10) x = 0 := by
   interval_cases q <;>
     simp [fRF, hostDyn, mRF, rover_attitude_8to12_IRv2, vsF, Run.dynOf,
       Run.lowerE, hf030, hf050, hf065, hf3, hfm1, hf0, hf1, hf05, hf03, hfm05, hf06, hfm06, hf015, hf00, hf08, hfm10, hfm04, Run.resolveVar,
@@ -271,8 +271,8 @@ theorem sat_guardR2 (x : State (Var 12)) : Formula.sat (hostGuard vsF 12 Side.R 
 theorem cstF_eq (q : ℕ) : cstF q = ladC q := rfl
 
 /-- The attitude/heave laws: `ψ = (ψ₀ + ω_ψ₀ t) e^{−t}`, `θ` alike, the rates and the
-`z/φ/y` coordinates decaying `e^{−t}`, the `ω_z/ω_φ/ω_y` rates frozen. -/
-noncomputable def dR : Fin 12 → ℝ := ![0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0]
+`z/φ` coordinates decaying `e^{−t}`, `y` (pinned since 2026-10-26) and the `ω_z/ω_φ/ω_y` rates frozen. -/
+noncomputable def dR : Fin 12 → ℝ := ![0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0]
 
 noncomputable def φo (ρ : State (Var 12)) (i : Fin 12) (t : ℝ) : ℝ :=
   if i = 2 then (ρ (Rv 2) + ρ (Rv 3) * t) * Real.exp (-t)

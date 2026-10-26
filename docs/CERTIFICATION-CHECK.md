@@ -171,7 +171,7 @@ BENCH_PATHS=/tmp/bench-paths-v2.tsv ./.lake/build/bin/relcert-test
 
 Expected: `ok   all 50 suite_v2 IR literals match their files` and a bare `ALL PASS`.
 Without `BENCH_PATHS` the two determinism checks (`match_multi_rate` 8× CERTIFIED;
-`acc_spoof_lag`, which declines without the widened channel, 8× the same verdict) are
+`watertank_twospeed`, which declines without the widened channel, 8× the same verdict) are
 skipped and the last line says `ALL PASS (2 SKIPPED …)`.
 
 ## Check 5: Assumption 1, verified per benchmark

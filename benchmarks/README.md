@@ -8,8 +8,8 @@ every one carries a kernel-checked Theorem 3 (the paper's Soundness of Synthesis
 guard-gated right automaton, at the mode-consistent region (`RelCertifier/InstancesV2/Bridge/`;
 check recipe: `docs/CERTIFICATION-CHECK.md`). The two `platoon3` files were repaired on
 2026-10-10: their stay guards were engagement bands, so the nominal controller blocked after a
-full cycle; they are now the operating range (`docs/SUITE-REDESIGN.md` §20). Without the widened channel 10 of them
-DECLINE.
+full cycle; they are now the operating range (`docs/SUITE-REDESIGN.md` §20). Without the widened channel 9 of them
+DECLINE (the rows marked *widened cuts* below).
 
 **Assumption 1 of each right model** (the paper's Well-Formedness: from every guard state a
 full control interval of flow exists, and every evolution of at most `ε_r` ends in a declared
@@ -84,16 +84,16 @@ it duplicated `rover_ladder_2to3`, the same 2 -> 3 heading step on the same rout
 ## The 16 carried-over benchmarks
 
 Sixteen files (the rover refinement ladder, the rover terrain rungs,
-`match_multi_rate`, and the attitude, lateral and rollover benchmarks except `rover_rollover_7to12`) are copies of files of the retired legacy
-suite `suite_uniform` (removed from the tree on 2026-10-10; git history keeps it), byte-identical
-up to the name lines of the 2026-10-25 rename (below) and the first header line of
+`match_multi_rate`, and the attitude, lateral and rollover benchmarks except `rover_rollover_7to12`) come from files of the retired legacy
+suite `suite_uniform` (removed from the tree on 2026-10-10; git history keeps it); at the
+2026-10-25 rename (above) they were byte-identical to them up to the name lines and the first header line of
 `rover_ladder_2to6`, except `rover_lateral_6to8`: since 2026-10-26 its right model freezes the
 lateral pair (`y' = 0`, `w' = 0`; before, left and right were identical), so the step is a
 genuine 6 -> 8 refinement. Their
 Assumption 1 proofs were first written against the legacy literals and now quote these
 files' literals directly (`RelCertifier/InstancesV2/WellFormed/`); their standalone Theorem 3
-instances are archived on branch `archive/legacy-2026-10`. Their headers are the legacy ones
-(no `# scenario:` line). `rover_rollover_7to12` was repaired on the left (attitude
+instances are archived on branch `archive/legacy-2026-10`. Their headers were rewritten in the 2026-10-26
+header pass (below). `rover_rollover_7to12` was repaired on the left (attitude
 domains and the zone-switch entry condition; on 2026-10-26 the three rollover files were aligned
 so that 6to7 and 7to12 carry 6to12's rows on shared models and compose to it, with headers
 and `# scenario:` lines). On 2026-10-26 the ladder, terrain, attitude and `rover_lateral_8to12` files were rewritten as well (pinned
@@ -101,6 +101,15 @@ right coordinates, forward-invariant left boxes, requirement rows, roles for fil
 new headers with `# scenario:` lines; the commit messages list each change), so they are no
 longer copies of the legacy files; and `watertank` was redesigned as the paper's
 running example; both carry new instances.
+
+**Header pass (2026-10-26).** Every header now describes its current file: a `# scenario:` line,
+a `# mechanisms:` line in the paper's Table 1 letters (S M R B P D I X, measured on the file:
+S = `RELCERT_SYNC=1` declines and a cover stretches, M multi-step cover, R right-only segment,
+B branching, P = `RELCERT_NO_PRUNE=1` declines, D mode-dependent rows with unsat handoffs,
+I = `RELCERT_NO_CUT=1` declines, X = `RELCERT_NO_CHOICE=1` declines), what each side is and the
+one cause between them, the requirement behind each constant with its tightest certifying value,
+the domains and any coverage gap of the right guards, and the verdict under every configuration.
+Where only a model change could make a header claim true, the header states the limitation.
 
 ## The benchmarks
 
@@ -122,17 +131,17 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `acc_tune_limp` | 1 / 1 | 2 / 4 | degraded-controller | mode-keyed, mode choice |
 | `airheader_dos_3to1` | 2 / 2 | 3 / 3 | dos-attack | new 2026-10-26 (replaces `rover_ladder_4to6`): pruning of the latched trip, DECLINES with `RELCERT_NO_PRUNE=1` |
 | `arm_plateau_crit` | 2 / 1 | 2 / 4 | model-refinement | widened cuts, Z3-free; successor sets repaired (§21) |
-| `arm_plateau_profiles` | 2 / 1 | 2 / 5 | degraded-controller | widened cuts, Z3-free; successor sets repaired (§21) |
-| `arm_plateau_slow` | 2 / 1 | 2 / 4 | degraded-actuator | widened cuts, Z3-free; successor sets repaired (§21) |
+| `arm_plateau_profiles` | 2 / 1 | 2 / 5 | model-refinement | widened cuts, Z3-free; successor sets repaired (§21) |
+| `arm_plateau_slow` | 2 / 1 | 2 / 4 | model-refinement | widened cuts, Z3-free; successor sets repaired (§21) |
 | `charger_fast_setpoints` | 1 / 1 | 5 / 5 | degraded-controller | mode-keyed, widened cuts |
 | `charger_fast_tapers` | 1 / 1 | 5 / 6 | degraded-controller | mode-keyed, widened cuts |
 | `drl_car_stop` | 2 / 2 | 3 / 3 | controller-refinement | literature (dRL), mode choice |
 | `drl_lane_control` | 3 / 3 | 6 / 6 | controller-refinement | literature (dRL), mode choice |
 | `freedm_meter` | 2 / 2 | 12 / 12 | information-flow | literature (dHL, FREEDM), mode choice |
 | `hvac_fan_staging` | 1 / 1 | 3 / 3 | controller-refinement | new 2026-10-26 (replaces `rover_terrain_2to3`): mode choice |
-| `match_multi_rate` | 2 / 2 | 4 / 2 |  | carried over |
+| `match_multi_rate` | 2 / 2 | 4 / 2 | model-refinement | carried over; synthetic rate-ratio exhibit (unitless) |
 | `platoon3_linkloss` | 6 / 6 | 2 / 4 | sensor-attack | mode-keyed; guards repaired (operating range, `docs/SUITE-REDESIGN.md` §20); latched AEB sinks (§21) |
-| `platoon3_profiles` | 6 / 6 | 1 / 6 | sensor-attack | guards repaired (operating range, `docs/SUITE-REDESIGN.md` §20); latched AEB sinks (§21) |
+| `platoon3_profiles` | 6 / 6 | 1 / 6 | degraded-sensor | guards repaired (operating range, `docs/SUITE-REDESIGN.md` §20); latched AEB sinks (§21) |
 | `platoon_delay_linkloss` | 1 / 1 | 3 / 3 | sensor-attack | mode-keyed, widened cuts; BRAKE re-engages (§21) |
 | `platoon_delay_profiles` | 1 / 1 | 2 / 4 | degraded-sensor | widened cuts; BRAKE re-engages (§21) |
 | `quad_light_airframe_20` | 1 / 1 | 1 / 2 | model-refinement | LIMIT hands back (§21) |
@@ -158,13 +167,14 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `tank_dos_3to1` | 1 / 1 | 2 / 2 | dos-attack | rewritten 2026-10-26: one two-speed pump law on both sides, the DoS changes only the hold |
 | `rover_attitude_6to8` | 8 / 8 | 3 / 3 | model-refinement | rewritten 2026-10-26: one attitude row in every mode |
 | `rover_attitude_8to12` | 12 / 12 | 3 / 3 | model-refinement | rewritten 2026-10-26: right y pinned, cascade-chart left |
-| `rover_lateral_6to8` | 8 / 8 | 3 / 3 |  | carried over; right lateral pair frozen (2026-10-26) |
+| `rover_lateral_6to8` | 8 / 8 | 3 / 3 | model-refinement | carried over; right lateral pair frozen (2026-10-26) |
 | `rover_lateral_8to12` | 12 / 12 | 3 / 3 | model-refinement | rewritten 2026-10-26: slip enters the lateral dynamics |
 | `rover_rollover_6to12` | 12 / 12 | 3 / 3 | model-refinement | carried over; left domain audit, s offset 0 (2026-10-26) |
 | `rover_rollover_6to7` | 12 / 12 | 3 / 3 | model-refinement | carried over; rollover rows of 6to12, s offset 0 (2026-10-26) |
 | `rover_rollover_7to12` | 12 / 12 | 3 / 3 | model-refinement | widened cuts; rollover, speed and progress rows added (2026-10-26) |
 | `vehicle_hypercert` | 1 / 1 | 5 / 5 | opacity | literature (HyperCertificates), mode choice |
-| `watertank` | 1 / 1 | 3 / 5 | sensor-attack | widened cuts |
+| `watertank` | 1 / 1 | 3 / 5 | sensor-attack | the paper's running example |
+| `watertank_twospeed` | 1 / 1 | 1 / 2 | sensor-attack | widened cuts; per-pairing stretch |
 
 ## File format
 
@@ -186,7 +196,7 @@ state_vars = [x]
 epsilon = 1.0
 
 [Lsys.mode.Low]          # one section per mode, named [<Lsys|Rsys>.mode.<Name>]
-ode = x' = smt2:(* 0.6 (- 15.5 x));
+ode = x' = smt2:(* 2.0 (- 15.5 x));
 guard = x >= 5.0 and x < 13.0
 evolve = x >= 0.0 and x <= 25.0
 next = [Low, Mid]

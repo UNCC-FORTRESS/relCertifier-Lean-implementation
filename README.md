@@ -64,7 +64,7 @@ through printed SMT scripts, and only its `unsat` answers are trusted.
 quadrotor climb, battery charger, robot-arm plateau, vehicle platoons, satellite
 detumbling, rover patrol, and the rover refinement ladders and story benchmarks up to 12
 degrees of freedom; `benchmarks/README.md`). With the widened cut channel on
-(`RELCERT_IMPLIED_CUT=1`) the tool CERTIFIES all 50; without it, 10 of them DECLINE; the four literature benchmarks DECLINE without the existential mode choice (`RELCERT_NO_CHOICE=1`), the other 46 covers are byte-identical with it on or off. One of them, `watertank_twospeed`, needs a different stretch per pairing (`RELCERT_NO_PAIR_STRETCH=1` DECLINES it; §22 of `docs/SUITE-REDESIGN.md`).
+(`RELCERT_IMPLIED_CUT=1`) the tool CERTIFIES all 50; without it, 9 of them DECLINE; seven DECLINE without the existential mode choice (`RELCERT_NO_CHOICE=1`): the four literature benchmarks, `hvac_fan_staging`, `acc_tune_limp` and `quad_light_profiles`; the other 43 covers are byte-identical with it on or off. One of them, `watertank_twospeed`, needs a different stretch per pairing (`RELCERT_NO_PAIR_STRETCH=1` DECLINES it; §22 of `docs/SUITE-REDESIGN.md`).
 
 The parts of the artifact:
 

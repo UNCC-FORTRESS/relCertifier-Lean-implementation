@@ -102,6 +102,7 @@ import RelCertifier.InstancesV2.WellFormed.Sat3wDetumbleNominal
 import RelCertifier.InstancesV2.WellFormed.Sat3wDetumbleWeak
 import RelCertifier.InstancesV2.WellFormed.Sat3wDetumblePhases
 import RelCertifier.InstancesV2.WellFormed.WatertankTwospeed
+import RelCertifier.InstancesV2.WellFormed.TankDos3to1
 
 namespace RelCertifier
 namespace WellFormedBattery
@@ -121,7 +122,7 @@ def wfProved : List String :=
    "rover_terrain_2to3", "rover_terrain_3to6", "rover_terrain_6to12",
    "rover_terrain_6to8", "rover_attitude_6to8", "rover_attitude_8to12",
    "rover_lateral_6to8", "rover_lateral_8to12", "rover_rollover_6to12",
-   "rover_rollover_6to7", "watertank_twospeed", "drl_car_stop", "drl_lane_control",
+   "rover_rollover_6to7", "watertank_twospeed", "tank_dos_3to1", "drl_car_stop", "drl_lane_control",
    "vehicle_hypercert", "freedm_meter"]
 
 /-- The benchmarks whose right model violates Assumption 1 (none since the 2026-10-10
@@ -139,7 +140,7 @@ def wfBand : List String :=
 detumble family (also proved, listed apart for its band audit). `(30, 9, 6)` until the
 2026-10-10 repairs of the nine refuted models; `(39, 0, 6)` then, `(40, 0, 6)` with
 `watertank_twospeed` (2026-10-11). -/
-def wfDeclared : ℕ × ℕ × ℕ := (44, 0, 6)
+def wfDeclared : ℕ × ℕ × ℕ := (45, 0, 6)
 
 /-- The suite's benchmark names, in the order of the IR table. -/
 def suiteNames : List String :=
@@ -155,7 +156,8 @@ def suiteNames : List String :=
    "rover_rollover_6to7", "rover_rollover_7to12", "rover_terrain_2to3",
    "rover_terrain_3to6", "rover_terrain_6to12", "rover_terrain_6to8", "rover_tier_1to2",
    "sat3w_detumble_nominal", "sat3w_detumble_phases", "sat3w_detumble_weak",
-   "sat_detumble_nominal", "sat_detumble_phases", "sat_detumble_weak", "vehicle_hypercert",
+   "sat_detumble_nominal", "sat_detumble_phases", "sat_detumble_weak", "tank_dos_3to1",
+   "vehicle_hypercert",
    "watertank", "watertank_twospeed"]
 
 /-- `suiteNames` IS the name column of the kernel-checked IR table of the suite. -/
@@ -171,7 +173,7 @@ theorem wf_coverage :
 
 end WellFormedBattery
 
-/-! ## Proved (44, outside the detumble family): Assumption 1 at every mode -/
+/-! ## Proved (45, outside the detumble family): Assumption 1 at every mode -/
 
 #print axioms V2DrlCarStop.drl_car_stop_wellFormedR_direct
 #print axioms V2DrlLaneControl.drl_lane_control_wellFormedR_direct
@@ -180,6 +182,7 @@ end WellFormedBattery
 
 #print axioms V2Watertank.watertank_wellFormedR
 #print axioms V2WatertankTwospeed.watertank_twospeed_wellFormedR
+#print axioms V2TankDos3to1.tank_dos_3to1_wellFormedR
 #print axioms V2AccSpoofLag.acc_spoof_lag_wellFormedR
 #print axioms V2AccSpoofLimp.acc_spoof_limp_wellFormedR
 #print axioms V2AccTuneLag.acc_tune_lag_wellFormedR

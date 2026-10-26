@@ -48,6 +48,7 @@ import RelCertifier.InstancesV2.BenchChoice.sat3w_detumble_weak
 import RelCertifier.InstancesV2.BenchChoice.sat_detumble_nominal
 import RelCertifier.InstancesV2.BenchChoice.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchChoice.sat_detumble_weak
+import RelCertifier.InstancesV2.BenchChoice.tank_dos_3to1
 import RelCertifier.InstancesV2.BenchChoice.vehicle_hypercert
 import RelCertifier.InstancesV2.BenchChoice.watertank
 import RelCertifier.InstancesV2.BenchChoice.watertank_twospeed
@@ -102,6 +103,7 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("sat_detumble_nominal", sat_detumble_nominal_coverV2_choice),
   ("sat_detumble_phases", sat_detumble_phases_coverV2_choice),
   ("sat_detumble_weak", sat_detumble_weak_coverV2_choice),
+  ("tank_dos_3to1", tank_dos_3to1_coverV2_choice),
   ("vehicle_hypercert", vehicle_hypercert_coverV2_choice),
   ("watertank", watertank_coverV2_choice),
   ("watertank_twospeed", watertank_twospeed_coverV2_choice) ]

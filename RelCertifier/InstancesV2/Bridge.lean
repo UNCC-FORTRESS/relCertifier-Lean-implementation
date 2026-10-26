@@ -46,6 +46,7 @@ import RelCertifier.InstancesV2.Bridge.Sat3wDetumbleWeak
 import RelCertifier.InstancesV2.Bridge.SatDetumbleNominal
 import RelCertifier.InstancesV2.Bridge.SatDetumblePhases
 import RelCertifier.InstancesV2.Bridge.SatDetumbleWeak
+import RelCertifier.InstancesV2.Bridge.TankDos3to1
 import RelCertifier.InstancesV2.Bridge.VehicleHypercert
 import RelCertifier.InstancesV2.Bridge.Watertank
 import RelCertifier.InstancesV2.Bridge.WatertankTwospeed

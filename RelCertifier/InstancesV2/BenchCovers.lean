@@ -46,6 +46,7 @@ import RelCertifier.InstancesV2.BenchCovers.sat3w_detumble_weak
 import RelCertifier.InstancesV2.BenchCovers.sat_detumble_nominal
 import RelCertifier.InstancesV2.BenchCovers.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchCovers.sat_detumble_weak
+import RelCertifier.InstancesV2.BenchCovers.tank_dos_3to1
 import RelCertifier.InstancesV2.BenchCovers.vehicle_hypercert
 import RelCertifier.InstancesV2.BenchCovers.watertank
 import RelCertifier.InstancesV2.BenchCovers.watertank_twospeed
@@ -100,6 +101,7 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("sat_detumble_nominal", sat_detumble_nominal_coverV2),
   ("sat_detumble_phases", sat_detumble_phases_coverV2),
   ("sat_detumble_weak", sat_detumble_weak_coverV2),
+  ("tank_dos_3to1", tank_dos_3to1_coverV2),
   ("vehicle_hypercert", vehicle_hypercert_coverV2),
   ("watertank", watertank_coverV2),
   ("watertank_twospeed", watertank_twospeed_coverV2) ]

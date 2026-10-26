@@ -46,6 +46,7 @@ import RelCertifier.InstancesV2.Cuts.sat3w_detumble_weak
 import RelCertifier.InstancesV2.Cuts.sat_detumble_nominal
 import RelCertifier.InstancesV2.Cuts.sat_detumble_phases
 import RelCertifier.InstancesV2.Cuts.sat_detumble_weak
+import RelCertifier.InstancesV2.Cuts.tank_dos_3to1
 import RelCertifier.InstancesV2.Cuts.vehicle_hypercert
 import RelCertifier.InstancesV2.Cuts.watertank
 import RelCertifier.InstancesV2.Cuts.watertank_twospeed
@@ -100,6 +101,7 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("sat_detumble_nominal", sat_detumble_nominal_cutsV2, sat_detumble_nominal_cutsV2X),
   ("sat_detumble_phases", sat_detumble_phases_cutsV2, sat_detumble_phases_cutsV2X),
   ("sat_detumble_weak", sat_detumble_weak_cutsV2, sat_detumble_weak_cutsV2X),
+  ("tank_dos_3to1", tank_dos_3to1_cutsV2, tank_dos_3to1_cutsV2X),
   ("vehicle_hypercert", vehicle_hypercert_cutsV2, vehicle_hypercert_cutsV2X),
   ("watertank", watertank_cutsV2, watertank_cutsV2X),
   ("watertank_twospeed", watertank_twospeed_cutsV2, watertank_twospeed_cutsV2X) ]

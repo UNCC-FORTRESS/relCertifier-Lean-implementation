@@ -310,6 +310,9 @@ def packsV2 : List PackV2 :=
     ⟨"match_multi_rate", 2, 0, [0], 2, 1, 1, 0⟩,
     ⟨"match_multi_rate", 2, 0, [0], 1, 1, 2, 0⟩,
     ⟨"match_multi_rate", 2, 0, [0], 1, 1, 3, 0⟩,
+    -- tank_dos_3to1 (cover replay): both left modes against MODULATE at λ = 1
+    ⟨"tank_dos_3to1", 2, 0, [0], 1, 1, 0, 0⟩,
+    ⟨"tank_dos_3to1", 2, 0, [0], 1, 1, 1, 0⟩,
     -- arm_plateau_crit (cover replay)
     ⟨"arm_plateau_crit", 2, 0, [0], 1, 1, 0, 0⟩,
     ⟨"arm_plateau_crit", 2, 0, [0], 1, 1, 0, 1⟩,
@@ -342,7 +345,7 @@ def packsV2 : List PackV2 :=
     ⟨"watertank_twospeed", 2, 0, [0, 1], 31, 10, 0, 1⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 643
+def expectedModalV2 : Nat := 645
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
@@ -520,7 +523,7 @@ def runDynV2 (cfg : Z3Config) : IO Bool := do
 
 /-- Declared: one handoff query per declared left transition over the 46 suite_v2 files
 (self-loops included; `CoveragePinsV2.derivedHandoffV2_eq` derives it from the IR table). -/
-def expectedHandoffV2 : Nat := 401
+def expectedHandoffV2 : Nat := 405
 
 /-- Declared handoff failures in suite_v2: none. -/
 def expectedHandoffFailuresV2 : List (String × Nat × Nat) := []
@@ -600,11 +603,11 @@ every one of the 174 right modes `ok` (`wfModes`, kernel-checked against the IR 
 `CoveragePinsV2.suiteV2_wfModes`), none `UNKNOWN` (`wfUnknown`; 16 UNKNOWN in 9 benchmarks
 until the 2026-10-10 repairs, when the check was informational). -/
 structure ExpectedSuiteV2 where
-  paths     : Nat := 50
-  certified : Nat := 50
+  paths     : Nat := 51
+  certified : Nat := 51
   declined  : Nat := 0
   errors    : Nat := 0
-  wfModes   : Nat := 174
+  wfModes   : Nat := 175
   wfUnknown : Nat := 0
   deriving Repr
 

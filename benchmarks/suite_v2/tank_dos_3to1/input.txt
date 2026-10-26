@@ -1,0 +1,75 @@
+# tank_dos_3to1: a level-controlled tank whose on/off pump controller is slowed from a 1 s to a
+# 3 s update by a denial-of-service attack, against the nominal modulating loop.
+# scenario: dos-attack
+# mechanisms: M2 M6 M6+
+#
+# System. A tank of height 2 m (level h in m, time in s) drains through a fixed outlet,
+# h' = -0.1 h, and is filled by a pump that alone would raise the level toward 1.6 m,
+# h' = 0.1 (1.6 - h) (inflow 0.16 m/s). Set point 1.0 m.
+#
+# Right (nominal, epsilon 1 s). The nominal loop modulates the pump valve every 1 s,
+# u = 0.625 + 0.625 (1.0 - h) (feed-forward 0.625 = the demand at the set point, gain 0.625 /m),
+# modeled by its continuous closed loop h' = 0.16 u - 0.1 h = 0.2 (1.0 - h): one mode MODULATE.
+# Its domain and guard 0.4 <= h <= 2.0 are the valve's unsaturated range (u in [0, 1]), forward
+# invariant (the flow points to 1.0), so MODULATE always re-enters itself.
+#
+# Left (deployed, epsilon 3 s). The deployed controller is the on/off pump law sampled at the
+# control interval: PUMP_ON when the sampled level is below the set point (guard 0 <= h < 1.0),
+# PUMP_OFF otherwise (guard 1.0 <= h <= 2.0). Attack: a denial-of-service on the control channel
+# drops two of every three updates, so the deployed controller holds its decision for 3 s
+# (epsilon_L = 3) instead of 1 s. Domain 0 <= h <= 2.0, the tank from empty to the overflow lip
+# (forward invariant in both modes). The two sides differ in the control law (on/off against
+# modulating) and in the update period (3 s against 1 s); same tank, same pump, same time
+# (lambda = 1: lambda_min = lambda_max = 1, the claim compares the two tanks at equal times).
+#
+# Property. h_L <= h_R + 0.75 in both left modes: the deployed level never exceeds the nominal
+# level by more than 0.75 m. Requirement: the plant's high-level trip is at 1.75 m, 0.75 m above
+# the set point, so while the nominal loop holds its set point the attacked tank never trips.
+# Tightest certifying tolerance 0.60 (0.59 declines): the pump-on equilibrium 1.6 m minus the set
+# point. The bound holds for any update period; what the 3 s period changes is the matching: one
+# deployed cycle of up to 3 s is matched by three nominal cycles of 1 s.
+#
+# Covers (measured, RELCERT_IMPLIED_CUT=1): both left modes at lambda 1, budget 3, admissible
+# start MODULATE, a joint step chained to the budget through MODULATE's self-loop (M2: one left
+# cycle, three right cycles). Cut: PUMP_ON's pump-on equilibrium h <= 1.6 (implied contraction
+# from the guard h < 1.0, M6+); without it the boundary needs h_R <= 2.0 - d, i.e. d >= 0.8,
+# so RELCERT_NO_CUT=1 and RELCERT_NO_IMPLIED_CUT=1 DECLINE at 0.75 (M6). Rows identical (the
+# handoff is vacuous); nothing pruned; CERTIFIED also under RELCERT_SYNC=1, RELCERT_NO_CHOICE=1,
+# RELCERT_NO_PRUNE=1 and RELCERT_NO_LINEAR_CUT=1. Not implied by the domains: they bound
+# h_L - h_R only by 1.6 - 0.4 = 1.2.
+[problem]
+name = tank_dos_3to1
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 2.0
+
+[Lsys]
+state_vars = [h]
+epsilon = 3.0
+
+[Lsys.mode.PUMP_ON]
+ode = h' = smt2:(* 0.1 (- 1.6 h));
+guard = h >= 0.0 and h < 1.0
+evolve = h >= 0.0 and h <= 2.0
+next = [PUMP_ON, PUMP_OFF]
+
+[Lsys.mode.PUMP_OFF]
+ode = h' = smt2:(* -0.1 h);
+guard = h >= 1.0 and h <= 2.0
+evolve = h >= 0.0 and h <= 2.0
+next = [PUMP_ON, PUMP_OFF]
+
+[Rsys]
+state_vars = [h]
+epsilon = 1.0
+
+[Rsys.mode.MODULATE]
+ode = h' = smt2:(* 0.2 (- 1.0 h));
+guard = h >= 0.4 and h <= 2.0
+evolve = h >= 0.4 and h <= 2.0
+next = [MODULATE]
+
+[relational_invariant]
+PUMP_ON = h[l] <= h[r] + 0.75
+PUMP_OFF = h[l] <= h[r] + 0.75

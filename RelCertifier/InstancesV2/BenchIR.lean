@@ -55,6 +55,7 @@ import RelCertifier.InstancesV2.BenchIR.sat3w_detumble_weak
 import RelCertifier.InstancesV2.BenchIR.sat_detumble_nominal
 import RelCertifier.InstancesV2.BenchIR.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchIR.sat_detumble_weak
+import RelCertifier.InstancesV2.BenchIR.tank_dos_3to1
 import RelCertifier.InstancesV2.BenchIR.vehicle_hypercert
 import RelCertifier.InstancesV2.BenchIR.watertank
 import RelCertifier.InstancesV2.BenchIR.watertank_twospeed
@@ -109,6 +110,7 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("sat_detumble_nominal", sat_detumble_nominal_IRv2),
   ("sat_detumble_phases", sat_detumble_phases_IRv2),
   ("sat_detumble_weak", sat_detumble_weak_IRv2),
+  ("tank_dos_3to1", tank_dos_3to1_IRv2),
   ("vehicle_hypercert", vehicle_hypercert_IRv2),
   ("watertank", watertank_IRv2),
   ("watertank_twospeed", watertank_twospeed_IRv2) ]

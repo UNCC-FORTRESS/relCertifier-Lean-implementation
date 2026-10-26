@@ -3,6 +3,7 @@ import RelCertifier.InstancesV2.Cuts.acc_spoof_lag
 import RelCertifier.InstancesV2.Cuts.acc_spoof_limp
 import RelCertifier.InstancesV2.Cuts.acc_tune_lag
 import RelCertifier.InstancesV2.Cuts.acc_tune_limp
+import RelCertifier.InstancesV2.Cuts.airheader_dos_3to1
 import RelCertifier.InstancesV2.Cuts.arm_plateau_crit
 import RelCertifier.InstancesV2.Cuts.arm_plateau_profiles
 import RelCertifier.InstancesV2.Cuts.arm_plateau_slow
@@ -25,7 +26,6 @@ import RelCertifier.InstancesV2.Cuts.rover_ladder_2to3
 import RelCertifier.InstancesV2.Cuts.rover_ladder_2to4
 import RelCertifier.InstancesV2.Cuts.rover_ladder_2to6
 import RelCertifier.InstancesV2.Cuts.rover_ladder_3to6
-import RelCertifier.InstancesV2.Cuts.rover_ladder_4to6
 import RelCertifier.InstancesV2.Cuts.rover_ladder_6to8
 import RelCertifier.InstancesV2.Cuts.rover_ladder_8to12
 import RelCertifier.InstancesV2.Cuts.rover_lateral_6to8
@@ -57,6 +57,7 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("acc_spoof_limp", acc_spoof_limp_cutsV2, acc_spoof_limp_cutsV2X),
   ("acc_tune_lag", acc_tune_lag_cutsV2, acc_tune_lag_cutsV2X),
   ("acc_tune_limp", acc_tune_limp_cutsV2, acc_tune_limp_cutsV2X),
+  ("airheader_dos_3to1", airheader_dos_3to1_cutsV2, airheader_dos_3to1_cutsV2X),
   ("arm_plateau_crit", arm_plateau_crit_cutsV2, arm_plateau_crit_cutsV2X),
   ("arm_plateau_profiles", arm_plateau_profiles_cutsV2, arm_plateau_profiles_cutsV2X),
   ("arm_plateau_slow", arm_plateau_slow_cutsV2, arm_plateau_slow_cutsV2X),
@@ -79,7 +80,6 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("rover_ladder_2to4", rover_ladder_2to4_cutsV2, rover_ladder_2to4_cutsV2X),
   ("rover_ladder_2to6", rover_ladder_2to6_cutsV2, rover_ladder_2to6_cutsV2X),
   ("rover_ladder_3to6", rover_ladder_3to6_cutsV2, rover_ladder_3to6_cutsV2X),
-  ("rover_ladder_4to6", rover_ladder_4to6_cutsV2, rover_ladder_4to6_cutsV2X),
   ("rover_ladder_6to8", rover_ladder_6to8_cutsV2, rover_ladder_6to8_cutsV2X),
   ("rover_ladder_8to12", rover_ladder_8to12_cutsV2, rover_ladder_8to12_cutsV2X),
   ("rover_lateral_6to8", rover_lateral_6to8_cutsV2, rover_lateral_6to8_cutsV2X),

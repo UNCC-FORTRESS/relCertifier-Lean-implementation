@@ -12,6 +12,7 @@ import RelCertifier.InstancesV2.BenchIR.acc_spoof_lag
 import RelCertifier.InstancesV2.BenchIR.acc_spoof_limp
 import RelCertifier.InstancesV2.BenchIR.acc_tune_lag
 import RelCertifier.InstancesV2.BenchIR.acc_tune_limp
+import RelCertifier.InstancesV2.BenchIR.airheader_dos_3to1
 import RelCertifier.InstancesV2.BenchIR.arm_plateau_crit
 import RelCertifier.InstancesV2.BenchIR.arm_plateau_profiles
 import RelCertifier.InstancesV2.BenchIR.arm_plateau_slow
@@ -34,7 +35,6 @@ import RelCertifier.InstancesV2.BenchIR.rover_ladder_2to3
 import RelCertifier.InstancesV2.BenchIR.rover_ladder_2to4
 import RelCertifier.InstancesV2.BenchIR.rover_ladder_2to6
 import RelCertifier.InstancesV2.BenchIR.rover_ladder_3to6
-import RelCertifier.InstancesV2.BenchIR.rover_ladder_4to6
 import RelCertifier.InstancesV2.BenchIR.rover_ladder_6to8
 import RelCertifier.InstancesV2.BenchIR.rover_ladder_8to12
 import RelCertifier.InstancesV2.BenchIR.rover_lateral_6to8
@@ -66,6 +66,7 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("acc_spoof_limp", acc_spoof_limp_IRv2),
   ("acc_tune_lag", acc_tune_lag_IRv2),
   ("acc_tune_limp", acc_tune_limp_IRv2),
+  ("airheader_dos_3to1", airheader_dos_3to1_IRv2),
   ("arm_plateau_crit", arm_plateau_crit_IRv2),
   ("arm_plateau_profiles", arm_plateau_profiles_IRv2),
   ("arm_plateau_slow", arm_plateau_slow_IRv2),
@@ -88,7 +89,6 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("rover_ladder_2to4", rover_ladder_2to4_IRv2),
   ("rover_ladder_2to6", rover_ladder_2to6_IRv2),
   ("rover_ladder_3to6", rover_ladder_3to6_IRv2),
-  ("rover_ladder_4to6", rover_ladder_4to6_IRv2),
   ("rover_ladder_6to8", rover_ladder_6to8_IRv2),
   ("rover_ladder_8to12", rover_ladder_8to12_IRv2),
   ("rover_lateral_6to8", rover_lateral_6to8_IRv2),

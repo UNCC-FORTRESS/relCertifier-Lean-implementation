@@ -131,7 +131,7 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 19 | `rover_ladder_3to6` | proved | as 18 (ladder lemma) | as 18 |
 | 20 | `rover_ladder_2to4` | proved | as 18 | as 18 |
 | 21 | `rover_ladder_2to6` | proved | as 18 | as 18 |
-| 22 | `rover_ladder_4to6` | proved | as 18 | as 18 |
+| 22 | `airheader_dos_3to1` | proved | NORMAL, ALARM (b) (the run ends in `0 ≤ p ≤ 9`, the three guards partition it, all declared successors; existence by the explicit exponential at the frozen demand); TRIP (a) (`p' = −g p ≤ 0` keeps `p < 5`, latched self-loop); `ε_r = 1` | NORMAL ok (exit→ALARM), ALARM ok (exit→NORMAL), TRIP ok (invariant) |
 | 23 | `rover_ladder_6to8` | proved | as 18 | as 18 |
 | 24 | `rover_ladder_8to12` | proved | as 18 | as 18 |
 | 25 | `tank_dos_3to1` | proved | HIGH, LOW (b) (contractions to 1.3 resp. 0.7 inside `[0, 2]`, the guards `[0, 1)`, `[1, 2]` partition the tank); `ε_r = 1` | ok (exit) |

@@ -5,6 +5,7 @@ import RelCertifier.InstancesV2.BenchChoice.acc_spoof_lag
 import RelCertifier.InstancesV2.BenchChoice.acc_spoof_limp
 import RelCertifier.InstancesV2.BenchChoice.acc_tune_lag
 import RelCertifier.InstancesV2.BenchChoice.acc_tune_limp
+import RelCertifier.InstancesV2.BenchChoice.airheader_dos_3to1
 import RelCertifier.InstancesV2.BenchChoice.arm_plateau_crit
 import RelCertifier.InstancesV2.BenchChoice.arm_plateau_profiles
 import RelCertifier.InstancesV2.BenchChoice.arm_plateau_slow
@@ -27,7 +28,6 @@ import RelCertifier.InstancesV2.BenchChoice.rover_ladder_2to3
 import RelCertifier.InstancesV2.BenchChoice.rover_ladder_2to4
 import RelCertifier.InstancesV2.BenchChoice.rover_ladder_2to6
 import RelCertifier.InstancesV2.BenchChoice.rover_ladder_3to6
-import RelCertifier.InstancesV2.BenchChoice.rover_ladder_4to6
 import RelCertifier.InstancesV2.BenchChoice.rover_ladder_6to8
 import RelCertifier.InstancesV2.BenchChoice.rover_ladder_8to12
 import RelCertifier.InstancesV2.BenchChoice.rover_lateral_6to8
@@ -59,6 +59,7 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("acc_spoof_limp", acc_spoof_limp_coverV2_choice),
   ("acc_tune_lag", acc_tune_lag_coverV2_choice),
   ("acc_tune_limp", acc_tune_limp_coverV2_choice),
+  ("airheader_dos_3to1", airheader_dos_3to1_coverV2_choice),
   ("arm_plateau_crit", arm_plateau_crit_coverV2_choice),
   ("arm_plateau_profiles", arm_plateau_profiles_coverV2_choice),
   ("arm_plateau_slow", arm_plateau_slow_coverV2_choice),
@@ -81,7 +82,6 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("rover_ladder_2to4", rover_ladder_2to4_coverV2_choice),
   ("rover_ladder_2to6", rover_ladder_2to6_coverV2_choice),
   ("rover_ladder_3to6", rover_ladder_3to6_coverV2_choice),
-  ("rover_ladder_4to6", rover_ladder_4to6_coverV2_choice),
   ("rover_ladder_6to8", rover_ladder_6to8_coverV2_choice),
   ("rover_ladder_8to12", rover_ladder_8to12_coverV2_choice),
   ("rover_lateral_6to8", rover_lateral_6to8_coverV2_choice),

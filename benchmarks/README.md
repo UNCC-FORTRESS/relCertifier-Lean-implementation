@@ -6,7 +6,6 @@ left mode) and the time-stretch range. **50 benchmarks.** With the widened cut c
 (`RELCERT_IMPLIED_CUT=1`, as every suite_v2 run sets it) the tool CERTIFIES all 50, and
 every one carries a kernel-checked Theorem 3 (the paper's Soundness of Synthesis) with the paper's left program over the
 guard-gated right automaton, at the mode-consistent region (`RelCertifier/InstancesV2/Bridge/`;
-`rover_ladder_4to6` for windows up to its control interval `dt ≤ 1`;
 check recipe: `docs/CERTIFICATION-CHECK.md`). The two `platoon3` files were repaired on
 2026-10-10: their stay guards were engagement bands, so the nominal controller blocked after a
 full cycle; they are now the operating range (`docs/SUITE-REDESIGN.md` §20). Without the widened channel 11 of them
@@ -72,9 +71,15 @@ Retired 2026-10-26: `rover_tier_1to2`, replaced by `tank_dos_3to1` (the suite st
 honest variant of its right model certified, `tank_dos_3to1` is the second Multi-cycle matching
 benchmark).
 
-## The 18 carried-over benchmarks
+Retired 2026-10-26: `rover_ladder_4to6`, replaced by `airheader_dos_3to1` (the suite stays at 50;
+its step was vacuous: the two sides had identical dynamics on every coordinate the claim reads, the
+added heave and roll were filler, and the ladder reaches 6-DOF through `rover_ladder_3to6` and
+directly through `rover_ladder_2to6`; `airheader_dos_3to1` is a non-connection pruning benchmark, DECLINED under
+`RELCERT_NO_PRUNE=1`).
 
-Eighteen files (the rover refinement ladder, the rover terrain rungs,
+## The 17 carried-over benchmarks
+
+Seventeen files (the rover refinement ladder, the rover terrain rungs,
 `match_multi_rate`, and the attitude, lateral and rollover benchmarks except `rover_rollover_7to12`) are copies of files of the retired legacy
 suite `suite_uniform` (removed from the tree on 2026-10-10; git history keeps it), byte-identical
 up to the name lines of the 2026-10-25 rename (below) and the first header line of
@@ -87,7 +92,7 @@ instances are archived on branch `archive/legacy-2026-10`. Their headers are the
 (no `# scenario:` line). `rover_rollover_7to12` was repaired on the left (attitude
 domains and the zone-switch entry condition; on 2026-10-26 the three rollover files were aligned
 so that 6to7 and 7to12 carry 6to12's rows on shared models and compose to it, with headers
-and `# scenario:` lines). On 2026-10-26 the ladder (except `rover_ladder_4to6`), terrain (except
+and `# scenario:` lines). On 2026-10-26 the ladder, terrain (except
 `rover_terrain_2to3`), attitude and `rover_lateral_8to12` files were rewritten as well (pinned
 right coordinates, forward-invariant left boxes, requirement rows, roles for filler coordinates,
 new headers with `# scenario:` lines; the commit messages list each change), so they are no
@@ -112,6 +117,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `acc_spoof_limp` | 1 / 1 | 2 / 4 | sensor-attack | mode-keyed |
 | `acc_tune_lag` | 2 / 2 | 1 / 2 | model-refinement |  |
 | `acc_tune_limp` | 1 / 1 | 2 / 4 | degraded-controller | mode-keyed |
+| `airheader_dos_3to1` | 2 / 2 | 3 / 3 | dos-attack | new 2026-10-26 (replaces `rover_ladder_4to6`): pruning of the latched trip, DECLINES with `RELCERT_NO_PRUNE=1` |
 | `arm_plateau_crit` | 2 / 1 | 2 / 4 | model-refinement | widened cuts, Z3-free; successor sets repaired (§21) |
 | `arm_plateau_profiles` | 2 / 1 | 2 / 5 | degraded-controller | widened cuts, Z3-free; successor sets repaired (§21) |
 | `arm_plateau_slow` | 2 / 1 | 2 / 4 | degraded-actuator | widened cuts, Z3-free; successor sets repaired (§21) |
@@ -132,7 +138,6 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `rover_ladder_3to6` | 6 / 6 | 3 / 3 | model-refinement | rewritten 2026-10-26: right pitch pinned, heave/roll roles |
 | `rover_ladder_2to4` | 4 / 4 | 3 / 3 | model-refinement | rewritten 2026-10-26: lambda_min 1.0, offset 0 |
 | `rover_ladder_2to6` | 6 / 6 | 3 / 3 | model-refinement | rewritten 2026-10-26: heave/roll roles, lambda_min 1.0, offset 0 |
-| `rover_ladder_4to6` | 6 / 6 | 3 / 3 |  | carried over |
 | `rover_ladder_6to8` | 8 / 8 | 3 / 3 | model-refinement | rewritten 2026-10-26: v, s rows, offset 0 |
 | `rover_ladder_8to12` | 12 / 12 | 3 / 3 | model-refinement | rewritten 2026-10-26: right y pinned, cascade-chart left |
 | `rover_terrain_2to3` | 3 / 3 | 3 / 3 |  | carried over |

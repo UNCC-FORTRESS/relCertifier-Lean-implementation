@@ -293,15 +293,18 @@ def packsV2 : List PackV2 :=
     ⟨"rover_attitude_8to12", 12, 0, [0, 1], 1, 1, 2, 0⟩,
     ⟨"rover_attitude_8to12", 12, 0, [0, 1], 1, 1, 2, 1⟩,
     ⟨"rover_attitude_8to12", 12, 0, [0, 1], 1, 1, 2, 2⟩,
-    -- rover_ladder_4to6 (cover replay)
-    ⟨"rover_ladder_4to6", 6, 0, [0, 1, 4, 5, 6, 7, 2, 3], 1, 1, 0, 0⟩,
-    ⟨"rover_ladder_4to6", 6, 0, [0, 1, 4, 5, 6, 7, 2, 3], 1, 1, 1, 1⟩,
-    ⟨"rover_ladder_4to6", 6, 0, [0, 1, 4, 5, 6, 7, 2, 3], 1, 1, 2, 2⟩,
     -- match_multi_rate (cover replay)
     ⟨"match_multi_rate", 2, 0, [0], 3, 1, 0, 0⟩,
     ⟨"match_multi_rate", 2, 0, [0], 2, 1, 1, 0⟩,
     ⟨"match_multi_rate", 2, 0, [0], 1, 1, 2, 0⟩,
     ⟨"match_multi_rate", 2, 0, [0], 1, 1, 3, 0⟩,
+    -- airheader_dos_3to1 (cover replay): NORMAL and ALARM against NORMAL and ALARM (their TRIP
+    -- edges pruned), TRIP against TRIP, at λ = 1
+    ⟨"airheader_dos_3to1", 2, 0, [2, 3, 0, 1], 1, 1, 0, 0⟩,
+    ⟨"airheader_dos_3to1", 2, 0, [2, 3, 0, 1], 1, 1, 0, 1⟩,
+    ⟨"airheader_dos_3to1", 2, 0, [2, 3, 0, 1], 1, 1, 1, 0⟩,
+    ⟨"airheader_dos_3to1", 2, 0, [2, 3, 0, 1], 1, 1, 1, 1⟩,
+    ⟨"airheader_dos_3to1", 2, 0, [2, 3, 0, 1], 1, 1, 2, 2⟩,
     -- tank_dos_3to1 (cover replay): both left modes against HIGH and LOW at λ = 1
     ⟨"tank_dos_3to1", 2, 0, [0, 1], 1, 1, 0, 0⟩,
     ⟨"tank_dos_3to1", 2, 0, [0, 1], 1, 1, 0, 1⟩,
@@ -339,7 +342,7 @@ def packsV2 : List PackV2 :=
     ⟨"watertank_twospeed", 2, 0, [0, 1], 31, 10, 0, 1⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 660
+def expectedModalV2 : Nat := 656
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
@@ -495,7 +498,7 @@ def runDynV2 (cfg : Z3Config) : IO Bool := do
 
 /-- Declared: one handoff query per declared left transition over the 46 suite_v2 files
 (self-loops included; `CoveragePinsV2.derivedHandoffV2_eq` derives it from the IR table). -/
-def expectedHandoffV2 : Nat := 401
+def expectedHandoffV2 : Nat := 403
 
 /-- Declared handoff failures in suite_v2: none. -/
 def expectedHandoffFailuresV2 : List (String × Nat × Nat) := []
@@ -530,8 +533,8 @@ def prunedEdgesV2 : List (String × String × String) :=
   coverTableV2.flatMap (fun c => c.2.pruned.map (fun e => (c.1, e.1, e.2)))
 
 /-- Declared: pruned edges in the suite_v2 covers, and two queries per edge. -/
-def expectedPrunedEdgesV2 : Nat := 44
-def expectedNonConnV2 : Nat := 88
+def expectedPrunedEdgesV2 : Nat := 46
+def expectedNonConnV2 : Nat := 92
 
 def nonConnQueriesOfV2 (p : PProblem) (cX : EvolStrengtheningX) (src tgt : String) :
     Option ((n : ℕ) × (Fin n → String) × IForm n × IForm n) := do

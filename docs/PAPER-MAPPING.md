@@ -211,7 +211,7 @@ viability argument, `Proofs/Flow/`).
 | the consequence sentence after Definition 6 (no numbered statement): the declared change is never taken under `(σ, kind)` | `nonconn_sound` (dL-lean `DI_strict` on the safe-side term); `nonconn_of_unsat`: the runner's two `unsat` answers are its hypotheses | `Checker/NonConn.lean`, `Proofs/Encoding/NonConnBridge.lean` |
 | the remark that the retained successors `ret^κ_σ(q)` are the exits segments of kind κ reach (Assumption 1 enables a declared successor at a segment end; a pruned one would be a connecting state); where a pruned edge leaves the cover | `SearchGraph.retainedSucc` (`Checker/Cover.lean:100`) drops it; the cover record carries the `pruned` list the kernel replays; in `coverX_piece` the end state of a joint segment enables a declared successor (Assumption 1 clause (ii)) whose guard is excluded for every pruned exit (`guard_pos_of_barrier`), so the retained set still serves as the exit set | `Checker/Cover.lean`, `Checker/CoverX.lean`, `Proofs/Encoding/Emitted/Barrier.lean` |
 | where it enters Theorem 3 | the bridge keeps the barrier term of every pruned exit of the current right mode in the anchor: `≤ 0` on entry (source check), kept along joint and frozen flows (barrier check), `> 0` under the target's guard, so the target's guard never holds at a segment end (`nonconn_entry`, `nonconn_keep`, `guard_pos_of_barrier`; the general theorem's `hprune` field of `CoverHyps`, and `hpruneD` of the `repoProgress_*` lemmas for the right-only kind) | `Proofs/Encoding/Emitted/Barrier.lean` |
-| suite | 44 pruned edges, both queries of each discharged (`--check-quick-v2`, and as groups of `relcert-bridge-verdicts`); the per-edge standalone instance `match_multi_rate_nonconn` for `DRIVE → STALL` is archived on branch `archive/legacy-2026-10` | `Checker/NonConn.lean`, `Trusted/NonConnQuery.lean`, `Proofs/Encoding/NonConnBridge.lean` |
+| suite | 46 pruned edges, both queries of each discharged (`--check-quick-v2`, and as groups of `relcert-bridge-verdicts`); the per-edge standalone instance `match_multi_rate_nonconn` for `DRIVE → STALL` is archived on branch `archive/legacy-2026-10` | `Checker/NonConn.lean`, `Trusted/NonConnQuery.lean`, `Proofs/Encoding/NonConnBridge.lean` |
 
 ## 5. Section 4.3: reposition certificates (Definition 7, Lemma 4; the stage lists of Section 6.1)
 
@@ -310,14 +310,14 @@ supplies the per-mode responses through `hstepMode_GRC` and `HMode_regionGC`
 | handoff check (negation of Eq. 13, `eq:handoff`, `unsat`, issued and counted for every declared left transition) | `Handoff.queryOf`; 187 transitions over the suite, all `unsat` (`docs/HANDOFF.md`) | `Trusted/Handoff.lean` |
 | the cover and its budget (depth-first recursion, budget-neutral cycles rejected) | §6.1; `decideCoveredX` with fuel is the kernel's replay of the same recursion | `Checker/CoverX.lean` |
 | checked cuts (the paper's mode facts, Definition 2 in Section 3, and "Mode facts." in Section 6.1; §2: the atoms implied by a mode's guard and preserved by its own flow narrow the segment domain; the `I_{m_l} ∧ I_{m_r}` of Eqs. 16 to 18 and of `R_q`) | O1 (entry) and O2 (invariance) per kept atom; the extended certificate `EvolStrengtheningX` kernel-checked well formed (`InstancesV2/Cuts/<b>.lean`, `cutsOK_wfX`); O2 in the bridge as the stay verdicts by the certificate's route (`Bridge.stayQueryOf`, `atomsStayC_L/R`); the lift `Proofs/Soundness/CutLiftX.lean` | `Checker/EvolStrengtheningX.lean`, `Emitted/Stay.lean` |
-| "Mechanization" paragraph: a kernel-checked theorem per benchmark over the guard-gated programs; Z3 hypotheses tied to the exact queries; trust base = parser, lowering, printer, Z3 `unsat`, kernel; twelve mode-dependent benchmarks composed with handoffs; Assumption 1 proved per benchmark; Theorem 1 (Soundness of Witness Strategies) as the cover induction, Lemmas 3 and 4 as steps of it, none a standalone statement | §0 (both routes), §6.2, §2.1, §2.2. Counts to quote: 50 benchmarks (46 designed, 4 from the literature); bridge verdicts 4475 groups over the 52 instances (`relcert-bridge-verdicts`, the number Appendix B quotes), 4321 over the suite; handoff 401; non-connection 88 over 44 pruned edges; progress 261; Assumption 1: 50 of 50 | `STATUS.md` (`docs/VERDICTS.md` is archived on branch `archive/legacy-2026-10`) |
+| "Mechanization" paragraph: a kernel-checked theorem per benchmark over the guard-gated programs; Z3 hypotheses tied to the exact queries; trust base = parser, lowering, printer, Z3 `unsat`, kernel; twelve mode-dependent benchmarks composed with handoffs; Assumption 1 proved per benchmark; Theorem 1 (Soundness of Witness Strategies) as the cover induction, Lemmas 3 and 4 as steps of it, none a standalone statement | §0 (both routes), §6.2, §2.1, §2.2. Counts to quote: 50 benchmarks (46 designed, 4 from the literature); bridge verdicts 4475 groups over the 52 instances (`relcert-bridge-verdicts`, the number Appendix B quotes), 4321 over the suite; handoff 403; non-connection 92 over 46 pruned edges; progress 261; Assumption 1: 50 of 50 | `STATUS.md` (`docs/VERDICTS.md` is archived on branch `archive/legacy-2026-10`) |
 | Table 1 (`tab:benchmarks`, the suite by group), Table 2 (`tab:ladder`, the refinement ladder, Section 6.4) and the mechanism matrix | `scripts/suite_v2_matrix.py`, `scripts/paper_numbers.sh` (the frozen numbers the paper quotes) | `docs/SUITE-REDESIGN.md` |
 
 **Paper text, checked against the submission.** The Mechanization paragraph (Section 6)
 takes the certificates, the handoff conditions and Assumption 1 as hypotheses of one Lean
 theorem over the programs of Eq. 1, says Assumption 1 is proved per benchmark without Z3, and
 names the trust base (parser and lowering, query printer, Z3 `unsat`, kernel); Appendix B gives
-the details and quotes the 4397 bridge groups over the 52 instances. The reposition certificate
+the details and quotes the 4411 bridge groups over the 52 instances. The reposition certificate
 is described in Section 4.3 and, as the tool's stage lists, in Section 6.1.
 
 ## 8. Where the numbers come from
@@ -325,9 +325,9 @@ is described in Section 4.3 and, as the tool's stage lists, in Section 6.1.
 | number | source |
 |---|---|
 | 50 benchmarks, all CERTIFIED with `RELCERT_IMPLIED_CUT=1` (4 need the existential mode choice, the default) | `scripts/paper_numbers.sh` (frozen), `benchmarks/suite_v2/` |
-| 52 bridge instances, 4397 verdict groups (4261 over the 50 suite benchmarks, 136 over the 2 exhibits) | `InstancesV2/Bridge.lean`, `relcert-bridge-verdicts`, `expectedBridgeGroupsV2` |
+| 52 bridge instances, 4411 verdict groups (4275 over the 50 suite benchmarks, 136 over the 2 exhibits) | `InstancesV2/Bridge.lean`, `relcert-bridge-verdicts`, `expectedBridgeGroupsV2` |
 | 50 Assumption 1 proofs, Z3-free; 80 kernel refutations, 225 verdict groups | `InstancesV2/WellFormedBattery.lean`; `InstancesV2/Refute.lean`, `relcert-refute-verdicts` |
-| 44 pruned edges, 88 non-connection queries; 401 handoff queries; 245 progress (reposition certificate) queries | the same runner; `relcert-progress-verdicts` |
+| 46 pruned edges, 92 non-connection queries; 403 handoff queries; 245 progress (reposition certificate) queries | the same runner; `relcert-progress-verdicts` |
 | Assumption 1: 50 of 50, Z3-free | `InstancesV2/WellFormedBattery.lean` |
 | axioms of every instance: `propext`, `Classical.choice`, `Quot.sound`, `z3_unsat_sound` | `lake build … 2>&1 | grep -A3 "depends on axioms"`; `docs/CERTIFICATION-CHECK.md` check 2 |
 

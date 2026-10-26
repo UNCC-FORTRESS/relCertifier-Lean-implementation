@@ -132,10 +132,10 @@ gated. Expected tail:
 
 ```
   [suite_v2] 50 certified, 0 declined, 0 error(s) — matches the declared suite
-  [coverage] suite_v2 modal: 625/625 hypotheses discharged
-  [coverage] suite_v2 handoff: 401/401 hypotheses discharged
-  [coverage] suite_v2 non-connection: 88/88 hypotheses discharged
-  [coverage] suite_v2 pruned edges: 44/44 hypotheses discharged
+  [coverage] suite_v2 modal: 656/656 hypotheses discharged
+  [coverage] suite_v2 handoff: 403/403 hypotheses discharged
+  [coverage] suite_v2 non-connection: 92/92 hypotheses discharged
+  [coverage] suite_v2 pruned edges: 46/46 hypotheses discharged
   [coverage] suite_v2 reposition (dyn): 29/29 hypotheses discharged
   [wellformed] summary: 50 benchmark(s), 174 right mode(s): 93 ok (invariant), 81 ok (exit), 0 UNKNOWN (0 benchmark(s) with an UNKNOWN mode); 2308 queries
   [wellformed] STRICT: 174/174 right modes ok (93 invariant, 81 exit), 0 UNKNOWN — matches the declared suite (174 modes, 0 UNKNOWN)
@@ -235,6 +235,7 @@ on branch `archive/legacy-2026-10`.
 | `acc_spoof_limp` | `InstancesV2/Bridge/AccSpoofLimp.lean` | `acc_spoof_limp_bridge` | mode-keyed (`keyedClaim … 0 1 2 3 dt`) | `InstancesV2/WellFormed/AccSpoofLimp.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
 | `acc_tune_lag` | `InstancesV2/Bridge/AccTuneLag.lean` | `acc_tune_lag_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/AccTuneLag.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
 | `acc_tune_limp` | `InstancesV2/Bridge/AccTuneLimp.lean` | `acc_tune_limp_bridge` | mode-keyed (`keyedClaim … 0 1 2 3 dt`) | `InstancesV2/WellFormed/AccTuneLimp.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `airheader_dos_3to1` | `InstancesV2/Bridge/AirheaderDos3to1.lean` | `airheader_dos_3to1_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/AirheaderDos3to1.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
 | `arm_plateau_crit` | `InstancesV2/Bridge/ArmPlateauCrit.lean` | `arm_plateau_crit_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/ArmPlateauCrit.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
 | `arm_plateau_profiles` | `InstancesV2/Bridge/ArmPlateauProfiles.lean` | `arm_plateau_profiles_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/ArmPlateauProfiles.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
 | `arm_plateau_slow` | `InstancesV2/Bridge/ArmPlateauSlow.lean` | `arm_plateau_slow_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/ArmPlateauSlow.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
@@ -255,7 +256,6 @@ on branch `archive/legacy-2026-10`.
 | `rover_ladder_3to6` | `InstancesV2/Bridge/RoverLadder3to6.lean` | `rover_ladder_3to6_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverLadder3to6.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
 | `rover_ladder_2to4` | `InstancesV2/Bridge/RoverLadder2to4.lean` | `rover_ladder_2to4_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverLadder2to4.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
 | `rover_ladder_2to6` | `InstancesV2/Bridge/RoverLadder2to6.lean` | `rover_ladder_2to6_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverLadder2to6.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
-| `rover_ladder_4to6` | `InstancesV2/Bridge/RoverLadder4to6.lean` | `rover_ladder_4to6_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverLadder4to6.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
 | `rover_ladder_6to8` | `InstancesV2/Bridge/RoverLadder6to8.lean` | `rover_ladder_6to8_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverLadder6to8.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
 | `rover_ladder_8to12` | `InstancesV2/Bridge/RoverLadder8to12.lean` | `rover_ladder_8to12_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverLadder8to12.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
 | `rover_terrain_2to3` | `InstancesV2/Bridge/RoverTerrain2to3.lean` | `rover_terrain_2to3_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverTerrain2to3.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
@@ -300,7 +300,7 @@ lake build && lake build relcert relcert-test relcert-bridge-verdicts relcert-re
 ```
 
 A green build, an axiom listing with nothing beyond the four axioms, `SUITE_V2 QUICK CHECKS
-PASSED`, `ALL PASS`, `4397/4397`, `225/225` and `245/245` = every suite_v2 benchmark is
+PASSED`, `ALL PASS`, `4411/4411`, `225/225` and `245/245` = every suite_v2 benchmark is
 certified end to end, modulo the trust base.
 
 ## Earlier recipes

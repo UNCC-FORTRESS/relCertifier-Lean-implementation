@@ -3,6 +3,7 @@ import RelCertifier.InstancesV2.BenchCovers.acc_spoof_lag
 import RelCertifier.InstancesV2.BenchCovers.acc_spoof_limp
 import RelCertifier.InstancesV2.BenchCovers.acc_tune_lag
 import RelCertifier.InstancesV2.BenchCovers.acc_tune_limp
+import RelCertifier.InstancesV2.BenchCovers.airheader_dos_3to1
 import RelCertifier.InstancesV2.BenchCovers.arm_plateau_crit
 import RelCertifier.InstancesV2.BenchCovers.arm_plateau_profiles
 import RelCertifier.InstancesV2.BenchCovers.arm_plateau_slow
@@ -25,7 +26,6 @@ import RelCertifier.InstancesV2.BenchCovers.rover_ladder_2to3
 import RelCertifier.InstancesV2.BenchCovers.rover_ladder_2to4
 import RelCertifier.InstancesV2.BenchCovers.rover_ladder_2to6
 import RelCertifier.InstancesV2.BenchCovers.rover_ladder_3to6
-import RelCertifier.InstancesV2.BenchCovers.rover_ladder_4to6
 import RelCertifier.InstancesV2.BenchCovers.rover_ladder_6to8
 import RelCertifier.InstancesV2.BenchCovers.rover_ladder_8to12
 import RelCertifier.InstancesV2.BenchCovers.rover_lateral_6to8
@@ -57,6 +57,7 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("acc_spoof_limp", acc_spoof_limp_coverV2),
   ("acc_tune_lag", acc_tune_lag_coverV2),
   ("acc_tune_limp", acc_tune_limp_coverV2),
+  ("airheader_dos_3to1", airheader_dos_3to1_coverV2),
   ("arm_plateau_crit", arm_plateau_crit_coverV2),
   ("arm_plateau_profiles", arm_plateau_profiles_coverV2),
   ("arm_plateau_slow", arm_plateau_slow_coverV2),
@@ -79,7 +80,6 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("rover_ladder_2to4", rover_ladder_2to4_coverV2),
   ("rover_ladder_2to6", rover_ladder_2to6_coverV2),
   ("rover_ladder_3to6", rover_ladder_3to6_coverV2),
-  ("rover_ladder_4to6", rover_ladder_4to6_coverV2),
   ("rover_ladder_6to8", rover_ladder_6to8_coverV2),
   ("rover_ladder_8to12", rover_ladder_8to12_coverV2),
   ("rover_lateral_6to8", rover_lateral_6to8_coverV2),

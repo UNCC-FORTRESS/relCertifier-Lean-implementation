@@ -65,8 +65,8 @@ Axioms of `theorem3_keyed_of_records` and `theorem3_window_of_records`: `propext
 `relcert-bridge-verdicts` issues exactly `bridgeGroups` per benchmark at the bridge dimension
 and reports the group count against the declared total (`expectedBridgeGroupsV2`).
 
-Run on the regenerated records: **4397 groups over the 50 suite benchmarks and the 2 choice
-exhibits, all discharged** (suite alone 4261: 3199 over the 46 original benchmarks, 35 + 130 + 87 + 810
+Run on the regenerated records: **4411 groups over the 50 suite benchmarks and the 2 choice
+exhibits, all discharged** (suite alone 4275: 3213 over the 46 original benchmarks, 35 + 130 + 87 + 810
 over `drl_car_stop`, `drl_lane_control`, `vehicle_hypercert`, `freedm_meter`; the first run before the progress
 gate, 3657/3657 over 46 + 3).
 

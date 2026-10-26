@@ -1,0 +1,114 @@
+# airheader_dos_3to1: a compressed-air header whose supervisor (low-pressure alarm and
+# line-break trip) is slowed from a 1 s to a 3 s update by a denial-of-service attack; the trip
+# is declared on both sides but provably never taken from the operating modes.
+# scenario: dos-attack
+# mechanisms: M P (multi-cycle matching, matrix code M2; non-connection pruning of the trip,
+#   matrix code M4)
+#
+# System. Header pressure p in bar (gauge), time in s. The compressor's inlet-valve loop
+# modulates its delivery continuously, u = 0.1 (9 - p) bar/s (fully unloaded at 9 bar); the
+# consumers draw g p bar/s, where the demand g (1/s) is unknown and constant over the horizon,
+# g in [0.02, 0.06] (light shift to peak production): p' = 0.1 (9 - p) - g p, g' = 0. The
+# header settles at 0.9 / (0.1 + g), between 7.5 bar (light demand) and 5.63 bar (peak demand).
+#
+# Supervisor (identical on both sides; it samples p and holds its decision until the next
+# update). NORMAL for p >= 6 bar; ALARM for 5 <= p < 6 bar (low-pressure alarm to the operator,
+# no change to the compressor loop, so its flow is NORMAL's); TRIP for p < 5 bar (line-break
+# protection: a burst line shows as a pressure collapse, the compressor is tripped, delivery
+# stops, p' = -g p, latched until manual reset, next = [TRIP]). NORMAL and ALARM may follow
+# each other and may trip. A line break itself is not modeled (it would be a demand outside
+# [0.02, 0.06]); within the modeled demand range the trip is declared but unreachable.
+#
+# Right (nominal, epsilon 1 s): the supervisor updates every 1 s.
+# Left (attacked, epsilon 3 s): a denial-of-service on the supervisor link drops two of every
+# three updates, so each decision is held for up to 3 s. This is the only difference (same
+# header, same loop, same thresholds); lambda_min = lambda_max = 1 (equal times), so one left
+# cycle is matched by three right cycles.
+#
+# Property (every left mode): p_L = p_R and g_L = g_R (two inequalities each): every attacked
+# run is, at every instant, a nominal run with the same demand. Requirement: the attack must
+# not change the header pressure at all; this holds because the only supervisory decision that
+# changes the flow, TRIP, is never taken from NORMAL or ALARM: at p = 5 the loop still gains
+# 0.1 (9 - 5) - 5 g >= 0.1 bar/s for every g <= 0.06. Not implied by the domains.
+#
+# Why pruning is needed (P). The right's NORMAL -> TRIP and ALARM -> TRIP edges are pruned by
+# non-connection certificates (entry p >= 6 resp. p >= 5; on the threshold p = 5 the flow points
+# up for every demand). Without pruning the cover must also account for TRIP after a NORMAL
+# segment, and it cannot: (NORMAL_L, TRIP_R) separates the pressures. The existential choice
+# does not replace pruning here: at peak demand (g > 0.05) the loop settles below 6 bar, so
+# NORMAL's entry condition p >= 6 is not kept by its flow and, with the demand unknown, no cut
+# bounds p from below at a segment end; states with p < 5 are then covered by no successor guard
+# but TRIP's. TRIP is no admissible start of NORMAL_L or ALARM_L (p_R = p_L >= 5).
+# Constants: certified for every peak demand g_max < 0.08 (= 0.1 (9 - 5) / 5: 0.079 certifies,
+# 0.081 declines, the trip becomes reachable); pruning is needed only for g_max > 0.05
+# (= 0.1 (9 - 6) / 6: with g_max = 0.034 RELCERT_NO_PRUNE=1 alone certifies, only
+# RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1 declines). Without the attack (epsilon_L = 1) a
+# one-segment cover suffices and pruning is not needed (RELCERT_NO_PRUNE=1
+# RELCERT_NO_CHOICE=1 certifies): the trip matters only across the held decision.
+#
+# Domains. 0 <= p <= 9 bar: from atmospheric to the unload pressure, forward invariant in every
+# mode (at 9 bar the delivery is zero and the demand draws the header down; at 0 every flow is
+# >= 0). g in [0.02, 0.06]: the plant's demand range. Right guards partition [0, 9] (no coverage
+# gap); every left mode has a satisfiable start (p_L = p_R, g_L = g_R).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED; CERTIFIED under RELCERT_SYNC=1,
+# RELCERT_NO_CHOICE=1, RELCERT_NO_CUT=1 and without RELCERT_IMPLIED_CUT; DECLINED under
+# RELCERT_NO_PRUNE=1 and under RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1. Cover: pruned
+# NORMAL->TRIP, ALARM->TRIP; every left mode at lambda 1, budget 3; admissible starts
+# NORMAL_L: [NORMAL], ALARM_L: [ALARM], TRIP_L: [TRIP]. Rows identical (--handoff vacuous,
+# 7/7). relcert --wellformed: NORMAL ok (exit), ALARM ok (exit), TRIP ok (invariant).
+[problem]
+name = airheader_dos_3to1
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 40.0
+
+[Lsys]
+state_vars = [p, g]
+epsilon = 3.0
+
+[Lsys.mode.NORMAL]
+ode = p' = smt2:(- (* 0.1 (- 9.0 p)) (* g p)); g' = 0.0;
+guard = p >= 6.0 and p <= 9.0 and g >= 0.02 and g <= 0.06
+evolve = p >= 0.0 and p <= 9.0 and g >= 0.02 and g <= 0.06
+next = [NORMAL, ALARM, TRIP]
+
+[Lsys.mode.ALARM]
+ode = p' = smt2:(- (* 0.1 (- 9.0 p)) (* g p)); g' = 0.0;
+guard = p >= 5.0 and p < 6.0 and g >= 0.02 and g <= 0.06
+evolve = p >= 0.0 and p <= 9.0 and g >= 0.02 and g <= 0.06
+next = [NORMAL, ALARM, TRIP]
+
+[Lsys.mode.TRIP]
+ode = p' = smt2:(- 0.0 (* g p)); g' = 0.0;
+guard = p < 5.0 and p >= 0.0 and g >= 0.02 and g <= 0.06
+evolve = p >= 0.0 and p <= 9.0 and g >= 0.02 and g <= 0.06
+next = [TRIP]
+
+[Rsys]
+state_vars = [p, g]
+epsilon = 1.0
+
+[Rsys.mode.NORMAL]
+ode = p' = smt2:(- (* 0.1 (- 9.0 p)) (* g p)); g' = 0.0;
+guard = p >= 6.0 and p <= 9.0 and g >= 0.02 and g <= 0.06
+evolve = p >= 0.0 and p <= 9.0 and g >= 0.02 and g <= 0.06
+next = [NORMAL, ALARM, TRIP]
+
+[Rsys.mode.ALARM]
+ode = p' = smt2:(- (* 0.1 (- 9.0 p)) (* g p)); g' = 0.0;
+guard = p >= 5.0 and p < 6.0 and g >= 0.02 and g <= 0.06
+evolve = p >= 0.0 and p <= 9.0 and g >= 0.02 and g <= 0.06
+next = [NORMAL, ALARM, TRIP]
+
+[Rsys.mode.TRIP]
+ode = p' = smt2:(- 0.0 (* g p)); g' = 0.0;
+guard = p < 5.0 and p >= 0.0 and g >= 0.02 and g <= 0.06
+evolve = p >= 0.0 and p <= 9.0 and g >= 0.02 and g <= 0.06
+next = [TRIP]
+
+[relational_invariant]
+NORMAL = p[l] <= p[r] and p[r] <= p[l] and g[l] <= g[r] and g[r] <= g[l]
+ALARM = p[l] <= p[r] and p[r] <= p[l] and g[l] <= g[r] and g[r] <= g[l]
+TRIP = p[l] <= p[r] and p[r] <= p[l] and g[l] <= g[r] and g[r] <= g[l]

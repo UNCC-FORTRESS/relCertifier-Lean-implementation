@@ -33,8 +33,8 @@
 # (the left FLAT guard cap s < 899.95 was dropped 2026-10-26); right pinned boxes contain their
 # constants. Every state of a side's domain is in exactly one of its guards.
 #
-# Composes: the 4-DOF left is the right of rover_ladder_4to6 (to be replaced); the direct 2 -> 6
-# step is rover_ladder_2to6.
+# Composes: the direct 2 -> 6 step is rover_ladder_2to6 (the 4 -> 6 step rover_ladder_4to6 was
+# retired on 2026-10-26: its step was vacuous).
 # Verdicts (RELCERT_IMPLIED_CUT=1): CERTIFIED in control and under NO_CHOICE, NO_PRUNE,
 # NO_PRUNE+NO_CHOICE, OPREGION, NO_CUT, NO_IMPLIED_CUT, NO_LINEAR_CUT and without
 # RELCERT_IMPLIED_CUT; DECLINED under SYNC and SYNC+NO_CHOICE (the lagging plan needs its own

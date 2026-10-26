@@ -2,8 +2,8 @@ import RelCertifier.Trusted.ChoiceEmit
 
 namespace RelCertifier.Choice
 
-def rover_ladder_4to6_coverV2_choice : RelCertifier.Choice.ChoiceEmitE :=
-  ⟨"rover_ladder_4to6", [
+def airheader_dos_3to1_coverV2_choice : RelCertifier.Choice.ChoiceEmitE :=
+  ⟨"airheader_dos_3to1", [
     ]⟩
 
 end RelCertifier.Choice

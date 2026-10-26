@@ -3,6 +3,7 @@ import RelCertifier.InstancesV2.BenchProgress.acc_spoof_lag
 import RelCertifier.InstancesV2.BenchProgress.acc_spoof_limp
 import RelCertifier.InstancesV2.BenchProgress.acc_tune_lag
 import RelCertifier.InstancesV2.BenchProgress.acc_tune_limp
+import RelCertifier.InstancesV2.BenchProgress.airheader_dos_3to1
 import RelCertifier.InstancesV2.BenchProgress.arm_plateau_crit
 import RelCertifier.InstancesV2.BenchProgress.arm_plateau_profiles
 import RelCertifier.InstancesV2.BenchProgress.arm_plateau_slow
@@ -20,7 +21,6 @@ import RelCertifier.InstancesV2.BenchProgress.rover_ladder_2to3
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_3to6
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_2to4
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_2to6
-import RelCertifier.InstancesV2.BenchProgress.rover_ladder_4to6
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_6to8
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_8to12
 import RelCertifier.InstancesV2.BenchProgress.rover_terrain_2to3
@@ -54,6 +54,7 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("acc_spoof_limp", acc_spoof_limp_coverV2_progress),
    ("acc_tune_lag", acc_tune_lag_coverV2_progress),
    ("acc_tune_limp", acc_tune_limp_coverV2_progress),
+   ("airheader_dos_3to1", airheader_dos_3to1_coverV2_progress),
    ("arm_plateau_crit", arm_plateau_crit_coverV2_progress),
    ("arm_plateau_profiles", arm_plateau_profiles_coverV2_progress),
    ("arm_plateau_slow", arm_plateau_slow_coverV2_progress),
@@ -71,7 +72,6 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("rover_ladder_3to6", rover_ladder_3to6_coverV2_progress),
    ("rover_ladder_2to4", rover_ladder_2to4_coverV2_progress),
    ("rover_ladder_2to6", rover_ladder_2to6_coverV2_progress),
-   ("rover_ladder_4to6", rover_ladder_4to6_coverV2_progress),
    ("rover_ladder_6to8", rover_ladder_6to8_coverV2_progress),
    ("rover_ladder_8to12", rover_ladder_8to12_coverV2_progress),
    ("rover_terrain_2to3", rover_terrain_2to3_coverV2_progress),

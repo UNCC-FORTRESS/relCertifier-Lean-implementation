@@ -109,17 +109,13 @@ not carried. The mode-independent benchmarks are proved over the choice of their
 carried to the left automaton by one generic bridge (`theorem3_leftAut_of_choice`,
 `Proofs/Encoding/LeftAutUniform.lean`).
 The theorem's one Z3 hypothesis, `Verdicts`, IS the list of groups the runner
-`relcert-bridge-verdicts` issues (4397 over the 50 suite benchmarks and the 2 exhibits, against
+`relcert-bridge-verdicts` issues (4411 over the 50 suite benchmarks and the 2 exhibits, against
 the declared count), each coming back `unsat`; `relcert --check-quick-v2` re-sends the tool's
-own queries as a self-check (modal 660, handoff 401, non-connection 88, pruned edges 44,
+own queries as a self-check (modal 656, handoff 403, non-connection 92, pruned edges 46,
 reposition 81). The axiom audit of every theorem is a subset of
 `{propext, Classical.choice, Quot.sound, z3_unsat_sound}`; none of the 50 is Z3-free (every
 flow fact of every response is a group of the emitted cover). No
 `sorry`, no `admit`, no `native_decide`.
-
-`rover_ladder_4to6` carries the statement for windows `0 ≤ dt ≤ ε_L = 1`
-(its control interval; false for `dt > 2.12` by a stated argument). See
-[Guard-gated switching](#guard-gated-switching).
 
 The statement above is the unclocked form (`rightAutomatonBody Gr mv`, the form of the archived
 standalone instances). The generic-bridge
@@ -185,7 +181,7 @@ Counts read off `InstancesV2/Bridge.lean`, `InstancesV2/WellFormedBattery.lean`,
 | model repaired by this mechanization (the nominal controller blocked after a full cycle; `docs/SUITE-REDESIGN.md` §20) | **2** | `platoon3_linkloss`, `platoon3_profiles` |
 | model repaired for Assumption 1 (`WellFormedR` refuted in the kernel, then proved; `docs/SUITE-REDESIGN.md` §21) | **9** | `arm_plateau_{crit,profiles,slow}`, `platoon_delay_{linkloss,profiles}`, `platoon3_{linkloss,profiles}`, `quad_light_{airframe_20,profiles}` |
 | widened cut channel needed (`RELCERT_IMPLIED_CUT=1`; closures, implied contractions, linear-form chains; lifted to the kernel by `Proofs/Soundness/CutLiftX.lean`) | **10** | `acc_spoof_lag`, `arm_plateau_{crit,profiles,slow}`, `charger_fast_setpoints`, `platoon_delay_{linkloss,profiles}`, `rover_patrol_lag`, `rover_rollover_7to12`, `watertank` (each DECLINES without the channel) |
-| the non-connection certificate of a pruned edge (the paper's Definition 6, `Checker/NonConn.lean`): enters every bridge instance as the barrier of each pruned exit (`nonconn_entry`, `nonconn_keep`, `guard_pos_of_barrier`), the 88 queries of the 44 pruned edges re-sent by `--check-quick-v2` and as bridge groups | **44** edges | `docs/PAPER-MAPPING.md` §5 |
+| the non-connection certificate of a pruned edge (the paper's Definition 6, `Checker/NonConn.lean`): enters every bridge instance as the barrier of each pruned exit (`nonconn_entry`, `nonconn_keep`, `guard_pos_of_barrier`), the 92 queries of the 46 pruned edges re-sent by `--check-quick-v2` and as bridge groups | **44** edges | `docs/PAPER-MAPPING.md` §5 |
 | kernel refutations of known-false invariant variants, each the negation of the clocked bridge claim at its benchmark's bridge dimension (`InstancesV2/Refute/`, `relcert-refute-verdicts`, 225 groups) | **80** | `docs/REFUTATION-RESULTS.md` |
 | the strict-invariant exhibit (`benchmarks/strict_demo`, `InstancesV2/Bridge/WatertankStrict.lean`) | **1** | `watertank_strict` |
 
@@ -210,7 +206,7 @@ lake build relcert relcert-test relcert-bridge-verdicts relcert-refute-verdicts 
 lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 | grep -A3 "depends on axioms"
 lake build RelCertifier.InstancesV2.AxiomCheck 2>&1 | grep -A3 "depends on axioms"
 
-# 2b. the Z3 hypotheses of the 52 bridge instances (4397 groups) and the progress
+# 2b. the Z3 hypotheses of the 52 bridge instances (4411 groups) and the progress
 #     certificates of every reposition node (245 queries), against declared counts
 ./.lake/build/bin/relcert-bridge-verdicts
 ./.lake/build/bin/relcert-progress-verdicts
@@ -239,9 +235,9 @@ lake build $(ls RelCertifier/InstancesV2/Refute/*.lean | sed 's|/|.|g; s|\.lean$
 
 Expected: `Build completed successfully`; 75 axiom lines (WellFormedBattery), each exactly
 the three standard axioms (`lake` also replays the 11 lines of `CutLiftX.lean`'s own audit);
-9 axiom lines (AxiomCheck), each a subset of the four axioms above; `relcert-bridge-verdicts`: `4397/4397` at the bridge dimensions;
+9 axiom lines (AxiomCheck), each a subset of the four axioms above; `relcert-bridge-verdicts`: `4411/4411` at the bridge dimensions;
 `relcert-progress-verdicts`: `245/245`; `[suite_v2] 50 certified, 0 declined, 0 error(s)`,
-coverage `modal 660/660`, `handoff 401/401`, `non-connection 88/88`, `pruned edges 44/44`,
+coverage `modal 656/656`, `handoff 403/403`, `non-connection 92/92`, `pruned edges 46/46`,
 `reposition (dyn) 29/29`, the strict Assumption 1 gate `[wellformed] STRICT: 174/174 right modes ok
 (93 invariant, 81 exit), 0 UNKNOWN — matches the declared suite`, `wellformed (strict): PASS`,
 `SUITE_V2 QUICK CHECKS PASSED`; `benchmarks/negative/freedm_meter_leaky`: `DECLINED`;

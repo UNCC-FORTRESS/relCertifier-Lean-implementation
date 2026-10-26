@@ -91,6 +91,7 @@ FAMILIES = [
     ("rover_rollover_", "Story ladders"),
     ("watertank", "Watertank"),
     ("tank_dos_", "Tank under sampling DoS"),
+    ("airheader_", "Compressed-air header under supervisor DoS"),
     ("sat_detumble_", "Rigid-body detumbling (polynomial)"),
     ("sat3w_detumble_", "Rigid-body detumbling (polynomial)"),
 ]

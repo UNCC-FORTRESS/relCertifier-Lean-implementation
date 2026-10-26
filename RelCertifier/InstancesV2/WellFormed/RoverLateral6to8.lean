@@ -8,8 +8,10 @@ Over the guarded right automaton `GrG` of the Theorem 3 instance
 (`Instances/RoverLateral6to8Guarded.lean`), the lowered right guards, `ε_r = 1` (the literal is the
 suite_v2 file's, `InstancesV2/SameIR.lean`). A terrain ladder without speed caps, `s' = v ((1 − ψ²/2) − 0.3 θ²)`:
 `wellFormedR_ladder` (style (b) for `STEEP`, `MODER`, (a) for `FLAT`); existence from the
-instance's explicit ladder runs (`LR.sol`). Z3-free. (GENERATED from one template; since
-2026-10-26 the right model freezes the lateral pair, `y' = 0`, `w' = 0`, as it does `phi_r`.)
+instance's explicit ladder runs (`LR.sol`). Z3-free. (GENERATED from one template.) The right
+model is the 6-DOF rover (`psi`, `theta_p`, `z`, `phi_r` decay `e^{−t}`) with the lateral pair
+frozen (`y' = 0`, `w' = 0`); its evolve domain carries the lane box `|y| ≤ 0.5`, `|w| ≤ 1` and
+the lead box `|y + w| ≤ 0.5`, kept because `y` and `w` do not move.
 -/
 import RelCertifier.InstancesV2.BenchIR.rover_lateral_6to8
 import RelCertifier.Proofs.Encoding.WellFormedLadder
@@ -125,6 +127,10 @@ theorem hy06 : Run.parseRat "0.6" = some ((3:ℚ)/5) := by
   have h : parseQ "0.6" = some (⟨6, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
 
+theorem hy10 : Run.parseRat "1.0" = some 1 := by
+  have h : parseQ "1.0" = some (⟨10, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+
 /-! ## Field and shape pins -/
 
 noncomputable def cstY (q : ℕ) : ℝ := if q = 0 then 3/10 else if q = 1 then 1/2 else 13/20
@@ -172,7 +178,7 @@ theorem fRY5_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
 
 theorem fRY6_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
-    Term.eval (fRY q 6) x = 0 := by
+    Term.eval (fRY q 6) x = -1 * x (Rv 6) := by
   interval_cases q <;>
     simp [fRY, hostDyn, mRY, rover_lateral_6to8_IRv2, vsY, Run.dynOf,
       Run.lowerE, hy3, hy030, hy050, hy065, hym1, hym10, hy0, hy1, hy05, hy03, Run.resolveVar,
@@ -186,12 +192,13 @@ theorem fRY7_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
 
 theorem sat_domRY (x : State (Var 8)) : Formula.sat domRY x ↔
-    (-(1:ℝ)/2 ≤ x (Rv 6) ∧ x (Rv 6) ≤ 3/5 ∧ -(1:ℝ)/2 ≤ x (Rv 2) ∧ x (Rv 2) ≤ 3/20 ∧
+    (-(1:ℝ)/2 ≤ x (Rv 6) ∧ x (Rv 6) ≤ 3/20 ∧ -(1:ℝ)/2 ≤ x (Rv 2) ∧ x (Rv 2) ≤ 3/20 ∧
      0 ≤ x (Rv 1) ∧ -(1:ℝ)/2 ≤ x (Rv 3) ∧ x (Rv 3) ≤ 3/20 ∧ 0 ≤ x (Rv 0) ∧
-     x (Rv 0) ≤ 4/5 ∧ -(1:ℝ) ≤ x (Rv 7) ∧ x (Rv 7) ≤ 3/20 ∧ 0 ≤ x (Rv 4) ∧
-     x (Rv 4) ≤ 3/20 ∧ -(1:ℝ) ≤ x (Rv 5) ∧ x (Rv 5) ≤ 3/20) := by
+     x (Rv 0) ≤ 4/5 ∧ -(1:ℝ) ≤ x (Rv 7) ∧ x (Rv 7) ≤ 1 ∧ -(1:ℝ)/2 ≤ x (Rv 4) ∧
+     x (Rv 4) ≤ 1/2 ∧ -(1:ℝ)/2 ≤ x (Rv 4) + x (Rv 7) ∧ x (Rv 4) + x (Rv 7) ≤ 1/2 ∧
+     -(1:ℝ) ≤ x (Rv 5) ∧ x (Rv 5) ≤ 3/20) := by
   simp only [domRY, hostEvolve, mRY, rover_lateral_6to8_IRv2, vsY]
-  simp [Run.lowerF, Run.lowerE, hym05, hy06, hy015, hy00, hy08, hym10,
+  simp [Run.lowerF, Run.lowerE, hym05, hy05, hy06, hy015, hy00, hy08, hym10, hy10,
     Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
     CompOp.interp, Term.eval, Rv]
   tauto
@@ -237,7 +244,7 @@ theorem sat_guardR2 (x : State (Var 8)) : Formula.sat (hostGuard vsY 8 Side.R (m
 /-! ## The reference's band runs (explicit; the attitude-weighted odometer) -/
 
 /-- The reference's laws for every coordinate other than `v` and `s`: decay `e^{−t}` or frozen. -/
-noncomputable def dR : Fin 8 → ℝ := ![0, 0, 1, 1, 0, 1, 0, 0]
+noncomputable def dR : Fin 8 → ℝ := ![0, 0, 1, 1, 0, 1, 1, 0]
 
 noncomputable def φo (ρ : State (Var 8)) (i : Fin 8) (t : ℝ) : ℝ :=
   ρ (Rv i) * Real.exp (-(dR i * t))
@@ -336,7 +343,8 @@ noncomputable def LR : LadderRun GrG domRY :=
     (fun ρ hρ t ht => kapT_low ρ hρ ht)
     (fun q _ ρ hρ t ht => by
       have hD := (sat_domRY ρ).mp hρ
-      obtain ⟨h6l, h6h, h2l, h2h, h1l, h3l, h3h, h0l, h0h, h7l, h7h, h4l, h4h, h5l, h5h⟩ := hD
+      obtain ⟨h6l, h6h, h2l, h2h, h1l, h3l, h3h, h0l, h0h, h7l, h7h, h4l, h4h, hql, hqh,
+        h5l, h5h⟩ := hD
       have hv : min (ρ (Rv 0)) (ladC q) ≤ phiK φo kapT q ρ 0 t ∧
           phiK φo kapT q ρ 0 t ≤ max (ρ (Rv 0)) (ladC q) := by
         rw [phiK_v]; exact vLaw_between q ρ ht
@@ -351,6 +359,10 @@ noncomputable def LR : LadderRun GrG domRY :=
         fun k h0 h1 => by
           rw [phiK_other φo kapT q ρ k h0 h1]
           exact decay_between _ _ t (dR_nonneg k) ht
+      have hfr : phiK φo kapT q ρ 4 t + phiK φo kapT q ρ 7 t = ρ (Rv 4) + ρ (Rv 7) := by
+        rw [phiK_other φo kapT q ρ 4 (by decide) (by decide),
+          phiK_other φo kapT q ρ 7 (by decide) (by decide)]
+        simp [φo, dR]
       rw [sat_domRY]
       simp only [trajR_R]
       exact ⟨le_trans (le_min h6l (by norm_num)) (hk 6 (by decide) (by decide)).1,
@@ -366,6 +378,8 @@ noncomputable def LR : LadderRun GrG domRY :=
         le_trans (hk 7 (by decide) (by decide)).2 (max_le h7h (by norm_num)),
         le_trans (le_min h4l (by norm_num)) (hk 4 (by decide) (by decide)).1,
         le_trans (hk 4 (by decide) (by decide)).2 (max_le h4h (by norm_num)),
+        by rw [hfr]; exact hql,
+        by rw [hfr]; exact hqh,
         le_trans (le_min h5l (by norm_num)) (hk 5 (by decide) (by decide)).1,
         le_trans (hk 5 (by decide) (by decide)).2 (max_le h5h (by norm_num))⟩)
     (fun ρ hρ => by have hD := (sat_domRY ρ).mp hρ; exact hD.2.2.2.2.2.2.2.1)

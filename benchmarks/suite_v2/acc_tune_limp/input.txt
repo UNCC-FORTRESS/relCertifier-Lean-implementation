@@ -1,4 +1,5 @@
-# acc_tune_limp: retuned cruise control with a fault-latched limp-home map, against the stock controller with driver-selectable response modes.
+# acc_tune_limp: retuned cruise control with a fault-latched limp-home map, against the stock
+# controller with driver-selectable response modes.
 # scenario: degraded-controller
 # mechanisms: S M B D I X (time stretch 3/2; multi-step cover; branching joint steps;
 #   mode-dependent rows; checked cuts, RELCERT_NO_CUT=1 declines; committed existential choice of
@@ -14,14 +15,13 @@
 # One cause: the tune (gain x 1.5 and the limp map it adds).
 #
 # Guards. Both controllers operate from the ACC floor 20 m/s (the stock controller's real
-# engagement speed, kept by the tune; it was 22 m/s on the left, 2 m/s above the floor, a value
-# placed to keep the reference's DISENGAGE out of the admissible starts). Left CRUISE: 20 to
-# 36 m/s (36 m/s the tune's resume ceiling); LIMP is entered between 20 and 30 m/s (the fault
-# latches while the ACC is engaged at or below the set speed). Right NORMAL / COMFORT / SPORT:
-# 20 to 40 m/s, the whole engaged range up to the domain's top (was 20 to 36, which left
-# (36, 40] in no right mode); DISENGAGE below 20. The right guards partition [0, 40] (no
-# coverage gap). Physical domain 0 <= v <= 40 m/s both sides; every right band is forward
-# invariant (relcert --wellformed: all four modes ok (invariant)).
+# engagement speed, kept by the tune). Left CRUISE: 20 to 36 m/s (36 m/s the tune's resume
+# ceiling); LIMP is entered between 20 and 30 m/s (the fault latches while the ACC is engaged at
+# or below the set speed). Right NORMAL / COMFORT / SPORT: 20 to 40 m/s, the whole engaged range
+# up to the domain's top; DISENGAGE below 20. The right guards partition [0, 40] (no coverage
+# gap); every left mode has a satisfiable start (v_L = v_R).
+# Physical domain 0 <= v <= 40 m/s both sides; every right band is forward invariant
+# (relcert --wellformed: all four modes ok (invariant)).
 #
 # Property (mode-dependent).
 #   CRUISE: v_L = v_R (two rows). The tune's specification: the stock NORMAL response, 1.5 times
@@ -34,7 +34,8 @@
 # The exact rows place the fallback without a dodge: v_L >= 20 and v_L <= v_R give v_R >= 20,
 # so DISENGAGE is no admissible start, and NORMAL / COMFORT / SPORT -> DISENGAGE are pruned (each
 # loop accelerates at the floor). With any positive lead allowed in CRUISE (v_L <= v_R + c,
-# c > 0) the file DECLINES at the 20 m/s floor: the reference could then start disengaged.
+# c > 0) the file DECLINES at the 20 m/s floor (measured at c = 0.5): the reference could then
+# start disengaged.
 # Existential choice (X). The deployed tune mirrors NORMAL only. When the reference starts in
 # COMFORT or SPORT the exact CRUISE row fails there; the cover commits the reference's driver to
 # NORMAL (choice hops COMFORT -> NORMAL and SPORT -> NORMAL), and RELCERT_NO_CHOICE=1 DECLINES.
@@ -42,10 +43,13 @@
 # v_R <= v_L + c certifies down to c = 7.00; 6.99 declines).
 #
 # Verdicts (RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED; CERTIFIED under NO_PRUNE, without
-# RELCERT_IMPLIED_CUT, NO_IMPLIED_CUT, NO_LINEAR_CUT, RELCERT_WELLFORMED_STRICT=1; DECLINED under
+# RELCERT_IMPLIED_CUT, NO_IMPLIED_CUT, NO_LINEAR_CUT, the operating region and
+# RELCERT_WELLFORMED_STRICT=1; DECLINED under
 # RELCERT_SYNC=1, NO_CHOICE, NO_PRUNE+NO_CHOICE, SYNC+NO_CHOICE and NO_CUT (the band conjuncts
-# are checked cuts the segments need). Covers: CRUISE by choice at lambda = 3/2, budget 3; LIMP
-# at lambda = 1, budget 2, joint steps from NORMAL retaining COMFORT and SPORT (branch 2).
+# are checked cuts the segments need). Covers: CRUISE by choice at lambda = 3/2, budget 3, joint
+# steps from NORMAL retaining COMFORT and SPORT (branch 2); LIMP at lambda = 1, budget 2, joint
+# steps from NORMAL, COMFORT and SPORT (branch 2). Pruning is redundant with the exact rows
+# (RELCERT_NO_PRUNE=1 certifies): no P.
 # Pruned: NORMAL, COMFORT, SPORT -> DISENGAGE. --handoff 3/3 unsat, non-vacuous. Units m/s, s.
 [problem]
 name = acc_tune_limp

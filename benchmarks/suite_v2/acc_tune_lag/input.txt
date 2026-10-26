@@ -13,7 +13,6 @@
 # real roots, so both are non-oscillatory and decouple into exponential modes:
 #   left  s^2 + 3.125 s + 2.34375 = (s + 1.25)(s + 1.875)
 #   right s^2 + 3.125 s + 1.5625  = (s + 0.625)(s + 2.5).
-# (The previous left lag 0.25 s gave an irrational right loop.)
 #
 # Property (requirement). The retune's specification is "the stock response, twice as fast":
 # the dominant (slow) mode must be the stock loop's dominant mode with its time constant halved
@@ -27,8 +26,8 @@
 # to c = 2.89 (2.88 declines): the fast modes keep the speeds within 2.89 m/s of each other.
 #
 # Guards. Left: the controller engages (resumes) between 25 m/s and the set speed with
-# |a| <= 2 m/s^2 (no hard pedal input), the deployed's engagement condition at every sample, as
-# before. Right: the stock car's ENGAGED ENVELOPE, the forward-invariant hull of the same
+# |a| <= 2 m/s^2 (no hard pedal input), the deployed's engagement condition at every sample.
+# Right: the stock car's ENGAGED ENVELOPE, the forward-invariant hull of the same
 # engagement box under the stock loop: a + 2.5 v in [60.5, 77] and a + 0.625 v in [13.625, 20.75]
 # (the modal coordinates a + r (v - 30) of the box, each decaying toward 0, so the set is kept by
 # the flow: relcert --wellformed CRUISE ok (invariant)). It bounds the reference's lag state,
@@ -37,8 +36,7 @@
 # stay in v in [24.8, 30.5].
 # Coverage. States of the right domain outside the envelope are in no right guard: the
 # reference never reaches them after engaging. The stock controller's disengage branch below
-# 20 m/s (declared in earlier versions) is not modeled on this pair: neither loop comes near
-# 20 m/s from engagement.
+# 20 m/s is not modeled on this pair: neither loop comes near 20 m/s from engagement.
 # Domains (both sides): v in [0, 40] m/s, a in [-10, 10] m/s^2 (1 g, the tyre-road limit);
 # physical limits, not load-bearing.
 #

@@ -1,7 +1,9 @@
-# charger_fast_setpoints: the fast charger against the certified profile whose bulk phase targets 90 %.
+# charger_fast_setpoints: the fast charger against the certified profile whose bulk phase targets
+# 90 %.
 # scenario: degraded-controller
-# mechanisms: S M R D I (RELCERT_SYNC=1 declines; multi-step covers with right-only
-#   repositioning; mode-dependent rows; implied cuts, matrix codes M2 M5 M6 M6+)
+# mechanisms: M R D I (multi-step covers with right-only repositioning; mode-dependent rows;
+#   checked cuts, matrix codes M2 M5 M6 M6+). RELCERT_SYNC=1 declines because the covers need
+#   right-only repositioning; every cover is at lambda = 1, so no S.
 #
 # System. State of charge x (%), time in h. The certified charging profile (right):
 #   PRECHARGE (10 <= x < 15): x' = 0.2 (20 - x)    recovery charge of a deeply discharged cell at
@@ -15,8 +17,8 @@
 # PRECHARGE and BULK may latch FAULT (declared edges). The deployed unit (left) runs the same
 # firmware with its current limit raised 25 % (every rate constant x 1.25: PRECHARGE 0.25,
 # BULK 0.125, ABSORB 0.0625) and the same FAULT latch. One cause: the current limit.
-# The guards partition [0, 100] on both sides: the old gap [10, 15) (no right mode) is closed by
-# the pre-charge phase every Li-ion charger runs below its bulk threshold.
+# The guards partition [0, 100] on both sides (no coverage gap): [10, 15) is the pre-charge phase
+# every Li-ion charger runs below its bulk threshold.
 #
 # Property. Requirement (SoC overshoot): the deployed unit's state of charge never exceeds the
 # certified profile's by more than 2 % SoC, the state-of-charge accuracy of the battery
@@ -30,16 +32,17 @@
 # Tightest: the charging rows certify down to 1.00 (0.99 declines); uniform rows x_L <= x_R + c
 # DECLINE (c = 1, 2, 3, 4.9), and uniform x_L <= x_R declines.
 #
-# Domain 0 <= x <= 100 both sides (physical). The implied contraction atoms x <= 20 (PRECHARGE),
+# Domain 0 <= x <= 100 both sides (physical); every left mode has a satisfiable start
+# (x_L = x_R). The implied contraction atoms x <= 20 (PRECHARGE),
 # x <= 90 (BULK) are load-bearing (without RELCERT_IMPLIED_CUT: DECLINED).
 #
 # Verdicts (RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED; CERTIFIED under NO_PRUNE, NO_CHOICE,
-# NO_LINEAR_CUT, RELCERT_WELLFORMED_STRICT=1; DECLINED under RELCERT_SYNC=1, SYNC+NO_CHOICE,
-# NO_PRUNE+NO_CHOICE (pruning of PRECHARGE->FAULT, BULK->FAULT or the committed choice, either one
-# suffices), without RELCERT_IMPLIED_CUT, NO_IMPLIED_CUT and NO_CUT. Covers: lambda = 1 in every
-# left mode, budget 2; right-only repositioning (with progress certificates) out of PRECHARGE,
-# BULK and ABSORB. --handoff 10/10 unsat, non-vacuous. relcert --wellformed: PRECHARGE ok
-# (exit->BULK), BULK ok (exit->ABSORB), ABSORB ok (exit->FULL), FULL and FAULT ok (invariant).
+# NO_LINEAR_CUT, the operating region, RELCERT_WELLFORMED_STRICT=1; DECLINED under RELCERT_SYNC=1,
+# SYNC+NO_CHOICE, NO_PRUNE+NO_CHOICE (pruning of PRECHARGE->FAULT, BULK->FAULT or the committed
+# choice, either one suffices), without RELCERT_IMPLIED_CUT, NO_IMPLIED_CUT and NO_CUT. Covers:
+# lambda = 1 in every left mode, budget 2; right-only repositioning (with progress certificates) out
+# of PRECHARGE, BULK and ABSORB. --handoff 10/10 unsat, non-vacuous. relcert --wellformed: PRECHARGE
+# ok (exit->BULK), BULK ok (exit->ABSORB), ABSORB ok (exit->FULL), FULL and FAULT ok (invariant).
 [problem]
 name = charger_fast_setpoints
 max_depth = 8

@@ -12,8 +12,7 @@
 #   Right (reference): the same car and lag, unspoofed, v_meas = v.
 # The attack is the only difference. Lag choice: tau = 0.375 s (1/tau = 8/3) is the lag at which
 # both closed loops have rational real roots (left (s + 1)(s + 5/3), right (s + 2/3)(s + 2)), so
-# both are non-oscillatory; the previous 0.4 s lag made the attacked loop critically damped and
-# the reference had no lag at all.
+# both are non-oscillatory.
 #
 # Property. Requirement: a spoofed speed sensor must not make the car faster than the unspoofed
 # reference: v_L <= v_R (row 1, constant 0 from the requirement). Row 2 is the attack's exact
@@ -26,15 +25,15 @@
 # car by at least 3.33 m/s; row 2 is tight at -6 (-6.01 declines). Not implied by the domains.
 #
 # Guards. Left: the controller engages between 23 m/s and the set speed with |a| <= 2 m/s^2 (no
-# hard pedal input), the engagement condition at every sample, as before. Right: the reference's
+# hard pedal input), the engagement condition at every sample. Right: the reference's
 # ENGAGED ENVELOPE, the forward-invariant hull of the same engagement box under the unspoofed
 # loop: 3 a + 2 v in [40, 66] and a + 2 v in [44, 62] (modal coordinates of the box, each
 # decaying toward 0; relcert --wellformed CRUISE ok (invariant)). It bounds the reference's lag
 # state, which a speed band alone does not. It spans v in [16.5, 36.5]; simulated runs from the
 # engagement box stay in v in [22.8, 30.6].
 # Coverage. Right-domain states outside the envelope are in no right guard: the reference never
-# reaches them after engaging. The stock controller's disengage branch below 20 m/s (declared in
-# earlier versions) is not modeled: neither loop comes near 20 m/s from engagement.
+# reaches them after engaging. The stock controller's disengage branch below 20 m/s is not
+# modeled: neither loop comes near 20 m/s from engagement.
 # Domains (both sides): v in [0, 40] m/s, a in [-10, 10] m/s^2 (1 g); physical, not load-bearing.
 #
 # Verdicts (RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED; DECLINED under RELCERT_SYNC=1 (and

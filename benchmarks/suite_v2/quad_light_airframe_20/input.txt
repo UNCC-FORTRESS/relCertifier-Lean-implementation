@@ -1,45 +1,49 @@
-# quad_light_airframe_20: quadrotor climb with quadratic drag, deployed airframe 20 % lighter.
+# quad_light_airframe_20: quadrotor climb with quadratic drag, deployed airframe 20 % lighter than
+# the reference model.
 # scenario: model-refinement
-# mechanisms: M1 M2 M4
+# mechanisms: S M (time stretch lambda = 7/4 needed, RELCERT_SYNC=1 declines; multi-step cover,
+#   matrix codes M1 M2)
 #
-# Climb-rate dynamics with quadratic aerodynamic drag: w' = a - c w^2, w = climb rate
-# (m/s), a = net specific thrust (m/s^2), c = drag per unit mass (1/m). Reference (right):
-# a = 4, c = 1, terminal climb rate 2 m/s. Deployed (left): the airframe is 20 % lighter
-# than the reference model assumed (payload released): the same motor thrust gives
-# T/m_L = 1.25 T/m, so a_L = 1.25 (a + g) - g = 7.45 (g = 9.81), and the drag per unit
-# mass is c_L = 1.25 c = 1.25; terminal climb rate 2.44 m/s.
+# System. Climb-rate dynamics with quadratic aerodynamic drag: w' = a - c w^2, w = climb rate
+# (m/s), a = net specific thrust (m/s^2), c = drag per unit mass (1/m); no motor lag (the lagged
+# pair is quad_light_lag).
+#   Right (reference model): a = 4, c = 1, terminal climb rate 2 m/s; plus the autopilot's
+#     climb-rate LIMITER above 3 m/s (motor command cut, w' = -2 w), which hands back to CLIMB
+#     once w <= 3 (LIMIT -> CLIMB declared).
+#   Left (deployed): the airframe is 20 % lighter than the reference model assumed (payload
+#     released): the same motor thrust gives T/m_L = 1.25 T/m, so a_L = 1.25 (4 + 9.81) - 9.81 =
+#     7.45 (g = 9.81) and c_L = 1.25 c = 1.25; terminal climb rate 2.44 m/s.
+# One cause: the airframe mass.
 #
-# Relational claim: w_L <= w_R + 1  and  w_R <= w_L + 0.5 (the deployed never climbs more
-# than 1 m/s faster than the reference, and the reference never more than 0.5 m/s faster
-# than the deployed). The deployed loop is faster: the right certifies at lambda = 7/4
-# (lambda = 1, 5/4, 3/2 fail the first conjunct at low climb rates). Budget
-# ceil(7/4 * 2 / 1) = 4 right cycles per left window (M1 with polynomial dynamics, M2).
+# Property: w_L <= w_R + 1 and w_R <= w_L + 0.5 (the deployed never climbs more than 1 m/s faster
+# than the reference, and the reference never more than 0.5 m/s faster than the deployed). The
+# two constants are round stated tolerances of this family, not derived from an external limit.
+# Tightest (bisection to 0.01, one conjunct at a time, the other at its file value): the first
+# certifies down to 0.60 (0.59 declines); the second down to 0 (w_R <= w_L; -0.01 declines).
+# Not implied by the domains.
 #
-# Fallback (M4): the reference autopilot declares a climb-rate LIMITER above 3 m/s (motor
-# command cut, w' = -2 w; it hands back to CLIMB once w <= 3). CLIMB never reaches it (at
-# w = 3 the drag wins, w' = -5 < 0, and CLIMB's guard ends at the threshold), so the edge
-# CLIMB -> LIMIT is pruned; LIMIT is not an admissible start (w_L <= 2.5 and
-# w_R <= w_L + 0.5 exclude w_R > 3). RELCERT_NO_PRUNE=1 DECLINES.
+# Why the stretch is needed (S). The deployed loop is faster: with lambda <= 3/2 the first
+# conjunct fails at low climb rates (lambda_max = 1.5 DECLINES); the cover uses lambda = 7/4,
+# budget ceil(7/4 * 2 / 1) = 4 right cycles per left window (M).
+# Fallback. CLIMB never reaches the limiter (at w = 3 drag wins, w' = -5 < 0), so CLIMB -> LIMIT
+# is pruned by a non-connection certificate; LIMIT is no admissible start (w_L <= 2.5 and
+# w_R <= w_L + 0.5 exclude w_R > 3). Pruning and the committed choice each close this fallback:
+# RELCERT_NO_PRUNE=1 alone certifies, only RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1 declines (no P).
 #
-# Assumption 1 (repaired 2026-10-10, docs/SUITE-REDESIGN.md section 21): the limiter
-# RE-ENGAGES the climb controller. The limiter's own flow decays the climb rate below its
-# guard within one control period (from w = 3.1 the 1 s run ends at 3.1 e^-2 = 0.42), and
-# with LIMIT as its own only successor the nominal controller blocked there. Physically
-# the motor command is restored once the climb rate is back at the limit: LIMIT -> CLIMB
-# is declared. For the hand-back to land in a mode, CLIMB's guard (the climb controller's
-# OPERATING RANGE, guard change) now reaches the limiter threshold, 0 <= w <= 3.0 (was
-# 0 <= w <= 2.6, a narrower engagement band that left 2.6 < w <= 3 in no mode): below the
-# limiter the climb controller is engaged, above it the limiter is. Every run of at most
-# 1 s from w > 3 ends in LIMIT's guard or in CLIMB's (the decay stays in [0, 3.5]). The
-# guard is still forward invariant under CLIMB's flow (w' = 4 - w^2 < 0 at w = 3, > 0 at
-# w = 0), CLIMB -> LIMIT is still pruned, LIMIT is still no admissible start; the verdict,
-# the cover (lambda = 7/4, budget 4) and every counter-run are unchanged (relcert
-# --wellformed: LIMIT ok (exit->CLIMB)).
+# Guards. Left CLIMB 0 <= w <= 2.5 (a climb from hover or a slow climb; forward invariant,
+# w' < 0 at 2.5). Right CLIMB 0 <= w <= 3 (the climb controller's operating range up to the
+# limiter threshold, forward invariant: w' = 4 - w^2 < 0 at 3, > 0 at 0), LIMIT 3 < w: the right
+# guards partition the domain (no gap). The limiter's own flow decays the climb rate below its
+# guard within one control period (from 3.1 the 1 s run ends at 3.1 e^-2 = 0.42), so it hands
+# back to CLIMB (relcert --wellformed: CLIMB ok (invariant), LIMIT ok (exit->CLIMB)).
+# Domains: 0 <= w <= 3.5 m/s both sides (climb only, the rated maximum climb rate). The left
+# mode has a satisfiable start (w_L = w_R).
 #
-# Envelope 0 <= w <= 3.5 both sides (climb only).
-# Tolerance remark: this pair is NOT the tightest certifiable pair; tightening one conjunct at a
-# time still certifies (w_L <= w_R + 0.95 with 0.5, or 1 with 0.45), so the pair is kept as a round,
-# stated tolerance rather than a derived bound (Section 6 of the paper qualifies such rungs).
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED; CERTIFIED under RELCERT_NO_CHOICE=1,
+# RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1, without RELCERT_IMPLIED_CUT, NO_IMPLIED_CUT, NO_LINEAR_CUT
+# and the operating region; DECLINED under RELCERT_SYNC=1, SYNC+NO_CHOICE and NO_PRUNE+NO_CHOICE.
+# Cover: lambda = 7/4, budget 4, admissible start CLIMB, pruned CLIMB -> LIMIT; --handoff 1/1
+# vacuous. Units m/s, m/s^2, s.
 [problem]
 name = quad_light_airframe_20
 max_depth = 8

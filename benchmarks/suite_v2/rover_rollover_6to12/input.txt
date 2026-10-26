@@ -1,7 +1,8 @@
 # rover_rollover_6to12: rollover safety of the 12-DOF rover against its 6-DOF terrain plan, the
 # direct refinement step 6 -> 12 of the rollover ladder (rover_rollover_6to7, rover_rollover_7to12).
 # scenario: model-refinement
-# mechanisms: M1 M2 M6
+# mechanisms: S M I (time stretch 5/4, RELCERT_SYNC=1 declines; two plan cycles per window; the
+#   guard conjuncts as load-bearing checked cuts; matrix codes M1 M2 M6)
 #
 # System. A rover crosses three terrain zones by odometer s: STEEP (0 <= s < 0.6, speed set
 # point c = 0.30), MODER (0.6 <= s < 1.4, c = 0.50), FLAT (s >= 1.4, c = 0.65), with
@@ -46,13 +47,16 @@
 # Composition. With the same three models, rover_rollover_7to12 relates the 12-DOF left to the
 # 7-DOF intermediate IM by v_L <= v_IM, s_L <= s_IM and the two rollover rows on the left, and
 # rover_rollover_6to7 relates IM to this file's right by v_IM <= v_R, s_IM <= s_R. Chained, the
-# rows give exactly this file's rows (v and s by transitivity, the rollover rows from 7to12).
+# rows give exactly this file's rows (v and s by transitivity, the rollover rows from 7to12;
+# 7to12's attitude rows are extra).
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1): CERTIFIED (also NO_CHOICE, NO_PRUNE, NO_PRUNE+NO_CHOICE,
-# NO_IMPLIED_CUT, NO_LINEAR_CUT, OPREGION); DECLINED under SYNC, SYNC+NO_CHOICE and NO_CUT.
-# Covers: lambda 5/4 and budget 2 in every left mode (M1, M2; admissible right starts: from STEEP
-# all three zones, from MODER MODER and FLAT, from FLAT FLAT); checked cut load-bearing (M6);
-# nothing pruned; handoff vacuous (rows identical).
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26): CERTIFIED (also NO_CHOICE,
+# NO_PRUNE, NO_PRUNE+NO_CHOICE, NO_IMPLIED_CUT, NO_LINEAR_CUT, OPREGION, and without
+# RELCERT_IMPLIED_CUT); DECLINED under SYNC, SYNC+NO_CHOICE and NO_CUT. Without the two left start
+# conditions (settled attitude, zone entry v <= c) the file still CERTIFIES; with an s offset of
+# +0.2 too. Covers: lambda 5/4 and budget 2 in every left mode (S, M; admissible right starts:
+# from STEEP all three zones, from MODER MODER and FLAT, from FLAT FLAT); checked cuts
+# load-bearing (I); nothing pruned; handoff vacuous (rows identical, 5/5).
 
 [problem]
 name = rover_rollover_6to12

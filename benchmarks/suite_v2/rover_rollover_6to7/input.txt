@@ -1,7 +1,8 @@
 # rover_rollover_6to7: rollover ladder, step 6 -> 7: the yaw channel becomes second order. With
 # rover_rollover_7to12 it composes to rover_rollover_6to12.
 # scenario: model-refinement
-# mechanisms: M1 M2 M6
+# mechanisms: S M I (time stretch 27/20, RELCERT_SYNC=1 declines; two plan cycles per window;
+#   the guard conjuncts as load-bearing checked cuts; matrix codes M1 M2 M6)
 #
 # System: the terrain-zone rover of rover_rollover_6to12 (zones STEEP / MODER / FLAT by odometer
 # s, speed set points 0.30 / 0.50 / 0.65, s' = v (1 - psi^2/2 - 0.3 theta_p^2)).
@@ -35,10 +36,12 @@
 # 12-DOF left's v, s and rollover rows against IM; chained, rover_rollover_6to12's rows. This
 # file's rollover rows are IM's own rollover property; the chain does not need them.
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1): CERTIFIED (also NO_CHOICE, NO_PRUNE, NO_PRUNE+NO_CHOICE,
-# NO_IMPLIED_CUT, NO_LINEAR_CUT, OPREGION); DECLINED under SYNC, SYNC+NO_CHOICE and NO_CUT.
-# Covers: lambda 27/20 and budget 2 in every left mode (M1, M2); checked cut load-bearing (M6);
-# nothing pruned; handoff vacuous (rows identical).
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26): CERTIFIED (also NO_CHOICE,
+# NO_PRUNE, NO_PRUNE+NO_CHOICE, NO_IMPLIED_CUT, NO_LINEAR_CUT, OPREGION, and without
+# RELCERT_IMPLIED_CUT); DECLINED under SYNC, SYNC+NO_CHOICE and NO_CUT. Covers: lambda 27/20 and
+# budget 2 in every left mode (S, M; admissible right starts: from STEEP all three zones, from
+# MODER MODER and FLAT, from FLAT FLAT); checked cuts load-bearing (I); nothing pruned; handoff
+# vacuous (rows identical, 5/5).
 
 [problem]
 name = rover_rollover_6to7

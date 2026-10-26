@@ -1,7 +1,9 @@
 # rover_rollover_7to12: rollover ladder, step 7 -> 12: attitude and roll become second order,
 # heave and lateral offset move. With rover_rollover_6to7 it composes to rover_rollover_6to12.
 # scenario: model-refinement
-# mechanisms: M1 M2 M6 M6+ M6L
+# mechanisms: S M I (time stretch 27/20, RELCERT_SYNC=1 declines; two IM cycles per window; the
+#   attitude entry floors as load-bearing cuts, with the widened linear-form and derived-bound
+#   atoms; matrix codes M1 M2 M6 M6+ M6L)
 #
 # System: the terrain-zone rover of rover_rollover_6to12 (zones STEEP / MODER / FLAT by odometer
 # s, speed set points 0.30 / 0.50 / 0.65, s' = v (1 - psi^2/2 - 0.3 theta_p^2)).
@@ -24,7 +26,8 @@
 #   alike: D >= (psi_L - psi_R)^2, so the attitude gap stays within 0.5 rad; with the reference
 #   in [-0.5, 0.15] the 12-DOF attitude stays in [-1, 0.65], inside the small-angle validity
 #   range [-1, 1] of the left domain.
-# Tightest certifying constants: D 0.22 (0.21 declines), |v r| 0.47 (0.46 declines), s offset any
+# Tightest certifying constants: D 0.22 (0.21 does not certify: the run ends in the tool's time
+# budget), |v r| 0.47 (0.46 declines), s offset any
 # value tried down to -1, energy any level down to 0; the claim keeps the requirement values. With
 # an s offset of +0.2 the file DECLINES (the right-only reposition that a lagging IM needs breaks
 # the attitude rows). Not implied by the domains.
@@ -46,12 +49,14 @@
 # are load-bearing (0.475: DECLINED) and forward invariant (psi' = -psi points inward). Every
 # other box is forward invariant; s >= 0 unbounded above (left FLAT guard s < 899.95 dropped).
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1): CERTIFIED (also NO_CHOICE, NO_PRUNE, NO_PRUNE+NO_CHOICE,
-# OPREGION: every admitted start in some right guard); DECLINED under SYNC, SYNC+NO_CHOICE, NO_CUT,
-# NO_IMPLIED_CUT and NO_LINEAR_CUT, and without the attitude entry condition. Covers: lambda 27/20
-# and budget 2 in every left mode (M1, M2); cuts load-bearing, with the widened linear-form and
-# derived-bound atoms (M6, M6+, M6L); nothing pruned; handoff vacuous (rows identical, a window
-# claim since 2026-10-26; before, mode-keyed).
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26): CERTIFIED (also NO_CHOICE,
+# NO_PRUNE, NO_PRUNE+NO_CHOICE, OPREGION: every admitted start in some right guard); DECLINED
+# under SYNC, SYNC+NO_CHOICE, NO_CUT, NO_IMPLIED_CUT, NO_LINEAR_CUT and without
+# RELCERT_IMPLIED_CUT, and without the attitude entry condition or the zone entry condition.
+# Covers: lambda 27/20 and budget 2 in every left mode (S, M; admissible right starts: from
+# STEEP all three zones, from MODER MODER and FLAT, from FLAT FLAT); cuts load-bearing, with the
+# widened linear-form and derived-bound atoms (I); nothing pruned; handoff vacuous (rows
+# identical, 5/5; a window claim since 2026-10-26, before mode-keyed).
 
 [problem]
 name = rover_rollover_7to12

@@ -183,26 +183,26 @@ def packsV2 : List PackV2 :=
     ⟨"rover_terrain_2to3", 3, 0, [0, 1], 1, 1, 1, 2⟩,
     ⟨"rover_terrain_2to3", 3, 0, [0, 1], 1, 1, 2, 2⟩,
     -- rover_terrain_3to6 (cover replay)
-    ⟨"rover_terrain_3to6", 6, 0, [0, 1], 1, 1, 0, 0⟩,
-    ⟨"rover_terrain_3to6", 6, 0, [0, 1], 1, 1, 0, 1⟩,
-    ⟨"rover_terrain_3to6", 6, 0, [0, 1], 1, 1, 0, 2⟩,
-    ⟨"rover_terrain_3to6", 6, 0, [0, 1], 1, 1, 1, 1⟩,
-    ⟨"rover_terrain_3to6", 6, 0, [0, 1], 1, 1, 1, 2⟩,
-    ⟨"rover_terrain_3to6", 6, 0, [0, 1], 1, 1, 2, 2⟩,
+    ⟨"rover_terrain_3to6", 6, 0, [0, 1], 5, 4, 0, 0⟩,
+    ⟨"rover_terrain_3to6", 6, 0, [0, 1], 5, 4, 0, 1⟩,
+    ⟨"rover_terrain_3to6", 6, 0, [0, 1], 5, 4, 0, 2⟩,
+    ⟨"rover_terrain_3to6", 6, 0, [0, 1], 5, 4, 1, 1⟩,
+    ⟨"rover_terrain_3to6", 6, 0, [0, 1], 5, 4, 1, 2⟩,
+    ⟨"rover_terrain_3to6", 6, 0, [0, 1], 5, 4, 2, 2⟩,
     -- rover_terrain_6to12 (cover replay)
-    ⟨"rover_terrain_6to12", 12, 0, [0, 1], 1, 1, 0, 0⟩,
-    ⟨"rover_terrain_6to12", 12, 0, [0, 1], 1, 1, 0, 1⟩,
-    ⟨"rover_terrain_6to12", 12, 0, [0, 1], 1, 1, 0, 2⟩,
-    ⟨"rover_terrain_6to12", 12, 0, [0, 1], 1, 1, 1, 1⟩,
-    ⟨"rover_terrain_6to12", 12, 0, [0, 1], 1, 1, 1, 2⟩,
-    ⟨"rover_terrain_6to12", 12, 0, [0, 1], 1, 1, 2, 2⟩,
+    ⟨"rover_terrain_6to12", 12, 0, [0, 1], 5, 4, 0, 0⟩,
+    ⟨"rover_terrain_6to12", 12, 0, [0, 1], 5, 4, 0, 1⟩,
+    ⟨"rover_terrain_6to12", 12, 0, [0, 1], 5, 4, 0, 2⟩,
+    ⟨"rover_terrain_6to12", 12, 0, [0, 1], 5, 4, 1, 1⟩,
+    ⟨"rover_terrain_6to12", 12, 0, [0, 1], 5, 4, 1, 2⟩,
+    ⟨"rover_terrain_6to12", 12, 0, [0, 1], 5, 4, 2, 2⟩,
     -- rover_terrain_6to8 (cover replay)
-    ⟨"rover_terrain_6to8", 8, 0, [0, 1], 1, 1, 0, 0⟩,
-    ⟨"rover_terrain_6to8", 8, 0, [0, 1], 1, 1, 0, 1⟩,
-    ⟨"rover_terrain_6to8", 8, 0, [0, 1], 1, 1, 0, 2⟩,
-    ⟨"rover_terrain_6to8", 8, 0, [0, 1], 1, 1, 1, 1⟩,
-    ⟨"rover_terrain_6to8", 8, 0, [0, 1], 1, 1, 1, 2⟩,
-    ⟨"rover_terrain_6to8", 8, 0, [0, 1], 1, 1, 2, 2⟩,
+    ⟨"rover_terrain_6to8", 8, 0, [0, 1], 5, 4, 0, 0⟩,
+    ⟨"rover_terrain_6to8", 8, 0, [0, 1], 5, 4, 0, 1⟩,
+    ⟨"rover_terrain_6to8", 8, 0, [0, 1], 5, 4, 0, 2⟩,
+    ⟨"rover_terrain_6to8", 8, 0, [0, 1], 5, 4, 1, 1⟩,
+    ⟨"rover_terrain_6to8", 8, 0, [0, 1], 5, 4, 1, 2⟩,
+    ⟨"rover_terrain_6to8", 8, 0, [0, 1], 5, 4, 2, 2⟩,
     -- rover_ladder_2to3 (cover replay)
     ⟨"rover_ladder_2to3", 3, 0, [0, 1], 1, 1, 0, 0⟩,
     ⟨"rover_ladder_2to3", 3, 0, [0, 1], 1, 1, 0, 1⟩,
@@ -415,14 +415,8 @@ def dynPacksV2 : List DynPackV2 :=
     ⟨"rover_terrain_2to3", 3, 0, [0, 1], true, 1, 0⟩,
     ⟨"rover_terrain_2to3", 3, 0, [0, 1], true, 2, 1⟩,
     -- rover_terrain_3to6
-    ⟨"rover_terrain_3to6", 6, 0, [0, 1], true, 1, 0⟩,
-    ⟨"rover_terrain_3to6", 6, 0, [0, 1], true, 2, 1⟩,
     -- rover_terrain_6to12
-    ⟨"rover_terrain_6to12", 12, 0, [0, 1], true, 1, 0⟩,
-    ⟨"rover_terrain_6to12", 12, 0, [0, 1], true, 2, 1⟩,
     -- rover_terrain_6to8
-    ⟨"rover_terrain_6to8", 8, 0, [0, 1], true, 1, 0⟩,
-    ⟨"rover_terrain_6to8", 8, 0, [0, 1], true, 2, 1⟩,
     -- rover_ladder_2to3
     -- rover_ladder_6to8
     -- rover_ladder_8to12
@@ -455,7 +449,7 @@ def dynPacksV2 : List DynPackV2 :=
     ⟨"rover_patrol_lag", 3, 3, [0, 1], true, 3, 2⟩ ]
 
 /-- Declared: the number of component queries the reposition packs owe. -/
-def expectedDynV2 : Nat := 41
+def expectedDynV2 : Nat := 29
 
 def runDynPack (s : Z3Session) (r : DynPackV2) : IO Bool := do
   let p := irV2 r.bench

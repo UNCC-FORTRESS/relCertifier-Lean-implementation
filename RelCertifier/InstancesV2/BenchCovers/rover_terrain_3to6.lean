@@ -13,8 +13,8 @@ namespace RelCertifier
 /-- `rover_terrain_3to6` (emitted, suite_v2, widened cut channel on). -/
 def rover_terrain_3to6_coverV2 : CoverEmitE :=
   ⟨"rover_terrain_3to6", [], [
-    ⟨"STEEP", (1 : ℚ) / 1, 1, [⟨"STEEP", true, true, true⟩, ⟨"MODER", true, true, true⟩, ⟨"FLAT", true, false, false⟩], ["STEEP", "MODER", "FLAT"], [⟨"STEEP", [0, 1], [0, 1], [0, 1], 1, 1⟩, ⟨"MODER", [0, 1], [0, 1], [0, 1], 1, 1⟩, ⟨"FLAT", [0, 1], [0, 1], [0, 1], 1, 1⟩]⟩,
-    ⟨"MODER", (1 : ℚ) / 1, 1, [⟨"STEEP", false, true, true⟩, ⟨"MODER", true, true, true⟩, ⟨"FLAT", true, false, false⟩], ["STEEP", "MODER", "FLAT"], [⟨"STEEP", [], [0, 1], [0, 1], 1, 1⟩, ⟨"MODER", [0, 1], [0, 1], [0, 1], 1, 1⟩, ⟨"FLAT", [0, 1], [0, 1], [0, 1], 1, 1⟩]⟩,
-    ⟨"FLAT", (1 : ℚ) / 1, 1, [⟨"STEEP", false, true, true⟩, ⟨"MODER", false, true, true⟩, ⟨"FLAT", true, false, false⟩], ["MODER", "FLAT"], [⟨"STEEP", [], [0, 1], [0, 1], 1, 1⟩, ⟨"MODER", [], [0, 1], [0, 1], 1, 1⟩, ⟨"FLAT", [0, 1], [0, 1], [0, 1], 1, 1⟩]⟩]⟩
+    ⟨"STEEP", (5 : ℚ) / 4, 2, [⟨"STEEP", true, true, true⟩, ⟨"MODER", true, true, true⟩, ⟨"FLAT", true, false, false⟩], ["STEEP", "MODER", "FLAT"], [⟨"STEEP", [0, 1], [0, 1], [0, 1], 5, 4⟩, ⟨"MODER", [0, 1], [0, 1], [0, 1], 5, 4⟩, ⟨"FLAT", [0, 1], [0, 1], [0, 1], 5, 4⟩]⟩,
+    ⟨"MODER", (5 : ℚ) / 4, 2, [⟨"STEEP", false, true, true⟩, ⟨"MODER", true, true, true⟩, ⟨"FLAT", true, false, false⟩], ["MODER", "FLAT"], [⟨"STEEP", [], [0, 1], [0, 1], 5, 4⟩, ⟨"MODER", [0, 1], [0, 1], [0, 1], 5, 4⟩, ⟨"FLAT", [0, 1], [0, 1], [0, 1], 5, 4⟩]⟩,
+    ⟨"FLAT", (5 : ℚ) / 4, 2, [⟨"STEEP", false, true, true⟩, ⟨"MODER", false, true, true⟩, ⟨"FLAT", true, false, false⟩], ["FLAT"], [⟨"STEEP", [], [0, 1], [0, 1], 5, 4⟩, ⟨"MODER", [], [0, 1], [0, 1], 5, 4⟩, ⟨"FLAT", [0, 1], [0, 1], [0, 1], 5, 4⟩]⟩]⟩
 
 end RelCertifier

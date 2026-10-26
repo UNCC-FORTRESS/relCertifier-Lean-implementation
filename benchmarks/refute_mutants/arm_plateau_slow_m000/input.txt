@@ -1,65 +1,63 @@
-# arm_plateau_slow: over-damped PD arm (worn joint, extra friction) tracking the leading reference.
-# scenario: degraded-actuator
-# mechanisms: M2 M3 M6 M6L
+# arm_plateau_slow: a worn PD arm (extra joint friction, over-damped) against the planner's
+# leading ramp-to-plateau reference.
+# scenario: model-refinement
+# mechanisms: M R B I (multi-step covers, matrix code M2; right-only repositioning up the ramp;
+#   branching joint steps, M3; load-bearing cut chain, M6 M6+ M6L)
 #
-# The reference-tracking arm (redesign of the arm tower; repaired in the domain audit,
-# docs/SUITE-REDESIGN.md section 13). Deployed (left): a PD-controlled joint tracking
-# the step command theta = 0.5 rad from rest, state (theta, v): theta' = v,
-# v' = -k_p (theta - 0.5) - k_d v, with the modes Accelerate (rising toward the
-# command, v >= 0) and Brake (past the command, v <= 0). Reference (right): a coarse
-# leading reference that ramps up in three rate steps, ApproachA (0.5 rad/s) ->
-# ApproachB (0.35) -> ApproachC (0.2), to a plateau of 0.6 rad and then HOLDS there
-# (Hold: theta' = 0, guard theta >= 0.6), a sound envelope the arm tracks from below.
-# This rung: a worn joint whose viscous friction adds to the controller's damping,
-# k_p = 1, k_d = 2.5 (over-damped, eigenvalues -0.5 and -2): the arm is sluggish, with
-# a slow mode of time constant 2 s, and still never oscillates.
+# System. Joint angle theta (rad), joint rate v (rad/s), time s.
+# Left (deployed arm, epsilon 2 s): a PD-controlled joint tracking the step command 0.5 rad,
+#   theta' = v, v' = -k_p (theta - 0.5) - k_d v, on a worn joint whose viscous friction adds to
+#   the controller's damping: k_p = 1, k_d = 2.5 (over-damped, eigenvalues -0.5 and -2; slow
+#   mode time constant 2 s, never oscillates). Modes Accelerate (below the command, rising:
+#   theta in [0, 0.5), v in [0, 0.355)) and Brake (past the command, v <= 0, theta in
+#   [0.5, 0.6775]); the two have the same flow, the mode records the phase.
+# Right (the motion planner's reference, epsilon 1 s), the same profile as arm_plateau_crit:
+#   ApproachA 0.5 rad/s on [0, 0.35], ApproachB 0.35 rad/s on [0.35, 0.5], ApproachC 0.2 rad/s
+#   on [0.5, 0.6], then Hold (theta' = 0) on [0.6, 1.15). The planner samples every 1 s and holds
+#   the selected rate in between, so a held segment can skip bands (ApproachA from 0.35 ends at
+#   0.85): each ramp mode names every band one period can reach.
+# The relation is an abstraction: the right is the coarse profile the planner certifies, the left
+# is the closed-loop (worn) arm that realises it; theta is shared (the right's variables are a
+# sublist), the joint rate v exists only on the left.
 #
-# PHYSICAL DOMAINS. As in arm_plateau_crit: theta in [0, 1.2] rad (the joint's range,
-# the reference's too), v in [-1, 1] rad/s (the actuator's speed limit); no reachable-set
-# estimate. Guards are entry conditions: Accelerate with the engagement velocity
-# v < 0.355 rad/s; Brake past the command with v <= 0 and the entry cap theta <= 0.6775,
-# the bound the cut chain proves for its only predecessor, Accelerate.
+# Property (both left modes): theta_L <= theta_R + 0.0775, the arm never leads the reference by
+# more than 0.0775 rad. The constant is derived, the smallest the cut chain supports: the chain
+# bounds the arm by 0.6775 rad against the 0.6 rad plateau. Tightest: 0.0775 certifies, 0.0774
+# declines. The stiffer damping is what makes the bound small (0.6775 against 0.855 for the
+# critically damped arm of arm_plateau_crit). Not implied by the domains (both allow theta in
+# [0, 1.2]).
 #
-# THE CUT CHAIN (RELCERT_IMPLIED_CUT=1, L7). With two real eigenvalues there are two
-# decoupling linear forms, q_r = v + r (theta - 0.5) for r in {0.5, 2}, with
-# q_r' = -(2.5 - r) q_r. Round 1 from the Accelerate guard box (theta < 0.5, v < 0.355):
-# q_0.5 <= 0.355 and q_2 <= 0.355 (kind linear-form, O1 rational, O2 linear-shape).
-# Round 2: the derived bound from the LARGER root is the tight one, theta <= 0.5 +
-# 0.355 / 2 = 0.6775 (kind derived-bound, given q_2 <= 0.355; the one from r = 0.5,
-# theta <= 1.21, is wider than the domain and not offered). Brake (guard theta <=
-# 0.6775, v <= 0) yields q_0.5 <= 0.08875 and the same theta <= 0.6775. The stiffer
-# damping pays off in the bound: 0.6775 against 0.855 for the critically damped loop.
+# Why the cut chain is load-bearing (I). With two real eigenvalues the loop has two decoupling
+# linear forms, q_r = v + r (theta - 0.5) for r in {0.5, 2}, with q_r' = -(2.5 - r) q_r. The
+# Accelerate guard box gives q_0.5 <= 0.355 and q_2 <= 0.355 (kind linear-form, rational
+# route); the bound from the larger root is the tight one, theta <= 0.5 + 0.355 / 2 = 0.6775
+# (kind derived-bound, given q_2 <= 0.355; the one from r = 0.5, theta <= 1.21, lies outside
+# the domain). Brake (guard theta <= 0.6775, v <= 0) yields q_0.5 <= 0.08875, q_2 <= 0.355 and
+# again theta <= 0.6775. The reference's Hold keeps its guard as a cut (closure theta <= 1.15).
+# RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1 and a run without
+# RELCERT_IMPLIED_CUT all DECLINE.
+# Why right-only segments are needed (R). In an Accelerate window a reference in ApproachB
+# advances alone (a dynamic reposition into ApproachC or Hold) before or after its joint
+# segment. RELCERT_SYNC=1, which forbids right-only segments, DECLINES; every cover runs at
+# lambda = 1, so stretching is not what SYNC removes (no S).
+# Multi-step and branching (M, B). Each 2 s left window is matched by 2 right cycles (budget 2);
+# a joint step from ApproachA retains ApproachB, ApproachC and Hold, each covering.
 #
-# CLAIM, derived: theta_L <= theta_R + 0.0775 in both deployed modes (0.6775 against
-# the 0.6 plateau, the tangent point (0.6775, 0.6) decided by the superlevel route).
-# 0.075 is DECLINED. The stiffer damping is what makes the chain tight: with physical
-# domains the earlier family-wide claim of 0.15 is provable for this member only, and
-# the critically damped and low-gain members derive 0.255.
+# Domains (both sides): theta in [0, 1.2] rad, the joint's mechanical range; v in [-1, 1] rad/s
+# on the left, the actuator's speed limit. Physical limits, not reachable-set estimates.
+# Coverage: the right guards cover [0, 1.15); theta_R in [1.15, 1.2] (between the joint's soft
+# stop margin and its hard limit) is in no right guard and unreachable: the reference starts in
+# a band, holds on the plateau, and no held segment ends above 0.85 rad. Every left mode has a
+# satisfiable start (theta_R = theta_L). No fallback mode is declared.
 #
-# Covers (measured): lambda = 1 with budget 2 right cycles per left window
-# (epsilon_L = 2 s, epsilon_R = 1 s), right-only repositioning up the ramp to Hold and
-# a joint window against the plateau (M2 with right-only segments). Counter-runs:
-# RELCERT_NO_CUT=1 DECLINED (M6); RELCERT_NO_LINEAR_CUT=1 DECLINED (M6L). No fallback
-# is declared: the arm starts at theta = 0 and the row is one-sided. Units rad, rad/s, s.
-#
-# Assumption 1 (repaired 2026-10-10, docs/SUITE-REDESIGN.md section 21): the planner is a
-# SAMPLED controller with period epsilon_R = 1 s; at each sample it selects the segment of
-# the band the reference is in, and between samples the selected rate is held. A ramp
-# segment held for a full period can cross more than one band boundary: ApproachA
-# (0.5 rad/s) from theta = 0.35 ends at 0.85, past ApproachB's band and in Hold's;
-# ApproachB (0.35 rad/s) from 0.5 ends at 0.85, past ApproachC's band [0.5, 0.6]. With successor sets naming only
-# the next band (ApproachA -> ApproachB; ApproachB -> ApproachC's band [0.5, 0.6]) the nominal controller
-# blocked there (the earlier reading was event-triggered: a switch exactly at each band
-# boundary). The successor sets now name every band a sample can find: ApproachA ->
-# [ApproachB, ApproachA, ApproachC, Hold], ApproachB -> [ApproachC, ApproachB, Hold] (the planner
-# can skip a band between samples); every run of at most 1 s from a band ends in a
-# declared successor's band (theta <= 0.85 < 1.15). No dynamics, band, domain or tolerance
-# changed (the tightest-certifiable check is re-run: one step tighter is still DECLINED);
-# the counter-runs are unchanged (NO_CUT, NO_IMPLIED_CUT, NO_LINEAR_CUT all DECLINE).
-# relcert --wellformed: every mode ok (ApproachA, ApproachB exit, ApproachC* exit->Hold,
-# Hold invariant).
-# The wider successor sets add branching: a joint step from ApproachA now has
-# ApproachB, ApproachC and Hold as retained successors, each covering (M3 credited, new).
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED; CERTIFIED under RELCERT_NO_CHOICE=1,
+# RELCERT_NO_PRUNE=1 (also with RELCERT_NO_CHOICE=1) and RELCERT_OPREGION=1; DECLINED under
+# RELCERT_SYNC=1 (also with RELCERT_NO_CHOICE=1), RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1,
+# RELCERT_NO_LINEAR_CUT=1 and without RELCERT_IMPLIED_CUT. Covers: both left modes at lambda 1,
+# budget 2; admissible starts Accelerate: every right mode, Brake: ApproachB, ApproachC, Hold;
+# branch 3 from Accelerate, 2 from Brake; right-only reposition out of ApproachB in the
+# Accelerate cover; nothing pruned. Rows identical (--handoff 4/4 vacuous). relcert
+# --wellformed: ApproachA, ApproachB, ApproachC ok (exit), Hold ok (invariant).
 [problem]
 name = arm_plateau_slow
 max_depth = 8

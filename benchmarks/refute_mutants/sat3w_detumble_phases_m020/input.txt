@@ -1,8 +1,10 @@
-# sat3w_detumble_phases: microsatellite with three reaction wheels, detumbling then fine pointing, phase-resolved claim against the design model.
+# sat3w_detumble_phases: three-wheel microsatellite, detumbling then fine pointing, vs design model.
 # scenario: model-refinement
-# mechanisms: M2 M4 M5 M6
+# mechanisms: M D I (multi-step cover, two design-model cycles per window; mode-dependent rows
+#   with an unsat DETUMBLE -> FINE handoff; the FINE energy envelope as a load-bearing checked cut;
+#   matrix codes M2 M5 M6)
 #
-# Dimension lift (pass 6) of sat_detumble_phases: the single z-wheel gyrostat becomes a
+# Dimension lift of sat_detumble_phases: the single z-wheel gyrostat becomes a
 # full three-wheel gyrostat, state (w1, w2, w3, h1, h2, h3) per side (6 D).
 #
 # THE PLANT (both sides; a ~60 kg microsatellite, SI units). Body rates w = (w1, w2, w3)
@@ -36,30 +38,46 @@
 # Guards (entry conditions): the detumble controller engages with the body energy inside
 # its authority envelope, E <= 1 (a controller-design constant). The design model
 # declares the FDIR SAFE mode on the ENERGY threshold E > 1 (actuators inhibited, a sink;
-# modeled frozen) -- a quadratic threshold.
+# modeled frozen) -- a quadratic threshold. The right guards partition the domain: no
+# coverage gap.
 #
-# Refined rung: the deployed's mode logic is modeled. DETUMBLE (k = 0.5 /s, engaged at
+# Phase logic: the deployed's mode logic is modeled. DETUMBLE (k = 0.5 /s, engaged at
 # E <= 1) hands over to FINE pointing once the body energy is inside the pointing loop's
-# capture envelope, E <= 0.2 (a controller-design constant, as in the 4-D rung; e.g.
+# capture envelope, E <= 0.2 (a controller-design constant, as in sat_detumble_phases; e.g.
 # |w3| <= 0.2 rad/s about z alone): FINE keeps damping the rates through the wheels with
 # a lower, power-saving gain k = 0.3 /s (60 % of the detumble gain). FINE is terminal
 # (DETUMBLE -> FINE only). The design model (right) is the k = 0.5 decoupled model with
 # SAFE. The constants are those of sat_detumble_phases.
 #
-# Rows (MODE-DEPENDENT, M5), each the tightest for its phase:
+# One cause between the sides: the right is the design model, the left the deployed's full
+# model (the gyroscopic and wheel couplings, which do no work, and its phase logic, whose FINE
+# gain is the only thing that moves the energy away from the design model's).
+#
+# Rows (MODE-DEPENDENT, D), each at the derived bound of its phase:
 #   DETUMBLE: E_L <= E_R and E_R <= E_L (exact, as sat_detumble_nominal);
 #   FINE:     E_L <= E_R + 0.08 and E_R <= E_L.
+# Requirement: the design model's energy prediction is exact while detumbling and, in fine
+# pointing, a lower bound of the deployed's that falls short by at most the gap d* the
+# power-saving gain opens (a derived bound; no free tolerance).
 # FINE, derived: on the boundary E_L = E_R + d the gap grows iff E_R > d k_F / (k_R - k_F);
 # with E_R <= E_L <= 0.2 (the FINE envelope, a checked cut) d* = 0.2 (1 - k_F / k_R) =
 # 0.08: the FINE row is stated at the analytic d*, where its boundary is TANGENT to the
-# flow. Measured (default settings): 0.08 CERTIFIED; 0.075 DECLINED (one step tighter on
-# the 0.005 grid). The heaviest tangent route query takes about 8 s and 33 M Z3 resource
-# units (default limit 64 M, per-query timeout 10 s).
+# flow. Measured (default settings, 2026-10-26): 0.08 CERTIFIED; 0.0775 DECLINED: the file's
+# constant is the tightest. Not implied by the domains; every left mode has a satisfiable
+# start (E_L = E_R <= 0.2 in FINE).
 # The handoff DETUMBLE -> FINE loosens the row (--handoff 3/3 unsat).
-# Covers (measured): lambda in [1, 1], budget 2 in both phases (M2). The FINE envelope
-# E <= 0.2 is a quadratic checked cut the FINE windows need: RELCERT_NO_CUT=1 DECLINES
-# (M6). Fallback (M4): DETUMBLE -> SAFE pruned; RELCERT_NO_PRUNE=1 DECLINES.
-# Z3 (measured, Z3 4.15.1): 69 queries, 12.1 s in total, the largest 8.1 s.
+# Covers (measured): lambda in [1, 1], budget 2 in both phases (M), admissible start DETUMBLE
+# for both left modes. The FINE envelope E <= 0.2 is a quadratic checked cut the FINE windows
+# need: RELCERT_NO_CUT=1 DECLINES (I).
+# Fallback: DETUMBLE -> SAFE is pruned (as in sat3w_detumble_nominal); the committed
+# successor subset closes the same fallback, so RELCERT_NO_PRUNE=1 alone CERTIFIES and only
+# RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1 DECLINES (no P, no X).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26): CERTIFIED (about 3 s);
+# CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_CHOICE=1, SYNC+NO_CHOICE, RELCERT_NO_PRUNE=1,
+# NO_IMPLIED_CUT, NO_LINEAR_CUT, RELCERT_OPREGION=1 and without RELCERT_IMPLIED_CUT; DECLINED
+# under RELCERT_NO_CUT=1 and RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1.
+#
 # MOMENTUM BAND (right evolve domains): |h_i + J_i w_i| <= 2 N m s, the total angular momentum of
 # each axis within one wheel's capacity. It is conserved by every design-model mode
 # (h_i' = k J_i w_i, w_i' = -k w_i), so it is a constraint on the initial state: the wheels can

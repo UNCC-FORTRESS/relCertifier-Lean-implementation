@@ -1,52 +1,59 @@
-# arm_plateau_profiles: detuned over-damped PD arm against a leading reference with two selectable final approaches.
-# scenario: degraded-controller
-# mechanisms: M2 M3 M6 M6+ M6L
+# arm_plateau_profiles: an over-damped (detuned) PD arm against the planner's leading reference
+# with two selectable final approaches.
+# scenario: model-refinement
+# mechanisms: M B I (multi-step covers, matrix code M2; branching joint steps into either final
+#   approach, M3; load-bearing cut chain, M6 M6+ M6L)
 #
-# Replaces arm_plateau_lowgain (pass 4; same deployed arm, cells M2 M6 M6+ M6L are a
-# subset). Deployed (left): the detuned PD joint of arm_plateau_lowgain tracking the step
-# command 0.5 rad from rest, theta' = v, v' = -0.5 (theta - 0.5) - 1.5 v (k_p = 0.5,
-# k_d = 1.5, over-damped, eigenvalues -0.5 and -1), modes Accelerate (v >= 0 below the
-# command) and Brake (v <= 0 past it). Reference (right): the leading ramp ApproachA
-# (0.5 rad/s, theta <= 0.35) -> ApproachB (0.35 rad/s, 0.35..0.5) -> final approach to the
-# 0.6 rad plateau, where the motion planner SELECTS the final approach on entering the
-# last segment: ApproachCfast (0.25 rad/s, nominal payload) or ApproachCslow (0.15 rad/s,
-# fragile payload), each then Hold (theta' = 0, guard theta >= 0.6).
+# System. Joint angle theta (rad), joint rate v (rad/s), time s.
+# Left (deployed arm, epsilon 2 s): a PD-controlled joint tracking the step command 0.5 rad,
+#   theta' = v, v' = -0.5 (theta - 0.5) - 1.5 v (k_p = 0.5, k_d = 1.5: a detuned, over-damped
+#   loop, eigenvalues -0.5 and -1). Modes Accelerate (below the command, rising: theta in
+#   [0, 0.5), v in [0, 0.355)) and Brake (past the command, v <= 0, theta in [0.5, 0.855]); the
+#   two have the same flow, the mode records the phase.
+# Right (the motion planner's reference, epsilon 1 s): a position-only leading profile,
+#   ApproachA 0.5 rad/s on [0, 0.35], ApproachB 0.35 rad/s on [0.35, 0.5], then a final approach
+#   to the 0.6 rad plateau that the planner SELECTS when it leaves the ramp: ApproachCfast
+#   (0.25 rad/s, nominal payload) or ApproachCslow (0.15 rad/s, fragile payload), both on
+#   [0.5, 0.6], then Hold (theta' = 0) on [0.6, 1.15). The planner samples every 1 s and holds
+#   the selected rate in between, so a held segment can skip bands (ApproachA from 0.35 ends at
+#   0.85): each ramp mode names every band one period can reach.
+# The relation is an abstraction: the right is the coarse profile the planner certifies, the left
+# is the closed-loop arm that realises it; theta is shared (the right's variables are a sublist),
+# the joint rate v exists only on the left.
 #
-# PHYSICAL DOMAINS: theta in [0, 1.2] rad (the joint's range, both sides), v in [-1, 1]
-# rad/s (the actuator's speed limit). Guards are entry conditions: Accelerate with the
-# engagement velocity v < 0.355 rad/s; Brake past the command with v <= 0 and the entry
-# cap theta <= 0.855, the bound the cut chain proves for its only predecessor; the ramp
-# guards are the planner's segment boundaries; Hold up to 1.15 rad (the joint's soft
-# stop margin).
+# Property (both left modes): theta_L <= theta_R + 0.255, the arm never leads the reference by
+# more than 0.255 rad, whichever final approach the planner picks. The constant is derived, the
+# smallest the cut chain supports: the chain bounds the arm by 0.855 rad against the 0.6 rad
+# plateau. Tightest: 0.255 certifies, 0.2546 declines. Not implied by the domains (both allow
+# theta in [0, 1.2]).
 #
-# THE CUT CHAIN (RELCERT_IMPLIED_CUT=1, L7), as in arm_plateau_lowgain: q_1 = v + (theta -
-# 0.5) <= 0.355 and q_0.5 <= 0.355 from the Accelerate guard box (linear-form), then
-# theta <= 0.855 (derived-bound). CLAIM, derived: theta_L <= theta_R + 0.255 (0.855
-# against the 0.6 plateau); 0.25 is DECLINED.
-# Covers (measured): lambda = 1, budget 2; from ApproachB the cover takes a joint step
-# whose retained successors ApproachCfast and ApproachCslow BOTH cover (M2, M3): the
-# claim holds whichever final approach the planner picks. Counter-runs: RELCERT_NO_CUT=1,
-# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1 all DECLINE (M6, M6+, M6L). No
-# fallback (the arm starts at theta = 0 and the row is one-sided). Units rad, rad/s, s.
+# Why the cut chain is load-bearing (I). The over-damped loop has two decoupling linear forms,
+# q_r = v + r (theta - 0.5) for r in {0.5, 1}, with q_r' = -(1.5 - r) q_r. The Accelerate guard
+# box gives q_0.5 <= 0.355 and q_1 <= 0.355 (kind linear-form, rational route); on q_1 <= 0.355,
+# theta' = v <= 0 wherever theta >= 0.855, so theta <= 0.855 (kind derived-bound). Brake (guard
+# theta <= 0.855, v <= 0) yields q_0.5 <= 0.1775, q_1 <= 0.355 and again theta <= 0.855. The
+# reference's Hold keeps its guard as a cut (closure theta <= 1.15). RELCERT_NO_CUT=1,
+# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1 and a run without RELCERT_IMPLIED_CUT all
+# DECLINE.
+# Multi-step and branching (M, B). Each 2 s left window is matched by 2 right cycles (budget 2);
+# the joint steps retain up to four covering successors (from ApproachA: ApproachB, both final
+# approaches and Hold), so the claim holds whichever final approach the planner selects. No
+# right-only segment is needed (RELCERT_SYNC=1 certifies).
 #
-# Assumption 1 (repaired 2026-10-10, docs/SUITE-REDESIGN.md section 21): the planner is a
-# SAMPLED controller with period epsilon_R = 1 s; at each sample it selects the segment of
-# the band the reference is in, and between samples the selected rate is held. A ramp
-# segment held for a full period can cross more than one band boundary: ApproachA
-# (0.5 rad/s) from theta = 0.35 ends at 0.85, past ApproachB's band and in Hold's;
-# ApproachB (0.35 rad/s) from 0.5 ends at 0.85, past the final approaches' band [0.5, 0.6]. With successor sets naming only
-# the next band (ApproachA -> ApproachB; ApproachB -> the final approaches' band [0.5, 0.6]) the nominal controller
-# blocked there (the earlier reading was event-triggered: a switch exactly at each band
-# boundary). The successor sets now name every band a sample can find: ApproachA ->
-# [ApproachB, ApproachA, ApproachCfast, ApproachCslow, Hold], ApproachB -> [ApproachCfast, ApproachCslow, ApproachB, Hold] (the planner
-# can skip a band between samples); every run of at most 1 s from a band ends in a
-# declared successor's band (theta <= 0.85 < 1.15). No dynamics, band, domain or tolerance
-# changed (the tightest-certifiable check is re-run: one step tighter is still DECLINED);
-# the counter-runs are unchanged (NO_CUT, NO_IMPLIED_CUT, NO_LINEAR_CUT all DECLINE).
-# relcert --wellformed: every mode ok (ApproachA, ApproachB exit, ApproachC* exit->Hold,
-# Hold invariant).
-# The wider successor sets add branching (the largest joint step now has 4 retained
-# successors, each covering, was 2; M3 was already credited).
+# Domains (both sides): theta in [0, 1.2] rad, the joint's mechanical range; v in [-1, 1] rad/s
+# on the left, the actuator's speed limit. Physical limits, not reachable-set estimates.
+# Coverage: the right guards cover [0, 1.15); theta_R in [1.15, 1.2] (between the joint's soft
+# stop margin and its hard limit) is in no right guard and unreachable: the reference starts in
+# a band, holds on the plateau, and no held segment ends above 0.85 rad. Every left mode has a
+# satisfiable start (theta_R = theta_L). No fallback mode is declared.
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED; CERTIFIED under RELCERT_SYNC=1 (also
+# with RELCERT_NO_CHOICE=1), RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1 (also with
+# RELCERT_NO_CHOICE=1) and RELCERT_OPREGION=1; DECLINED under RELCERT_NO_CUT=1,
+# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1 and without RELCERT_IMPLIED_CUT. Covers: both
+# left modes at lambda 1, budget 2, every right mode an admissible start, branch 4; nothing
+# pruned. Rows identical (--handoff 4/4 vacuous). relcert --wellformed: ApproachA, ApproachB,
+# ApproachCfast, ApproachCslow ok (exit), Hold ok (invariant).
 [problem]
 name = arm_plateau_profiles
 max_depth = 8

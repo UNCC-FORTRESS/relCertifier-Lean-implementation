@@ -1,8 +1,8 @@
-# sat3w_detumble_nominal: microsatellite with three reaction wheels, full gyrostat model against the decoupled design model.
+# sat3w_detumble_nominal: three-wheel microsatellite, full gyrostat model against its design model.
 # scenario: model-refinement
-# mechanisms: M2 M4
+# mechanisms: M (multi-step cover: two design-model cycles per deployed window, matrix code M2)
 #
-# Dimension lift (pass 7) of sat_detumble_nominal: the single z-wheel gyrostat becomes a
+# Dimension lift of sat_detumble_nominal: the single z-wheel gyrostat becomes a
 # full three-wheel gyrostat, state (w1, w2, w3, h1, h2, h3) per side (6 D).
 #
 # THE PLANT (both sides; a ~60 kg microsatellite, SI units). Body rates w = (w1, w2, w3)
@@ -36,24 +36,35 @@
 # Guards (entry conditions): the detumble controller engages with the body energy inside
 # its authority envelope, E <= 1 (a controller-design constant). The design model
 # declares the FDIR SAFE mode on the ENERGY threshold E > 1 (actuators inhibited, a sink;
-# modeled frozen) -- a quadratic threshold.
+# modeled frozen) -- a quadratic threshold. The right guards partition the domain (E <= 1,
+# E > 1): no coverage gap.
 #
+# One cause between the sides: the right is the design model of the same spacecraft, the
+# left adds the gyroscopic and wheel couplings (a model refinement; same gain, same guards).
 # Nominal: k = 0.5 /s on both sides. CLAIM: E_L <= E_R and E_R <= E_L -- the full
 # rigid body's energy EQUALS the design model's at every instant (tolerance 0 in both
 # directions; the exact equality is what the cubic cancellation gives, so no tighter
-# claim exists).
-# Covers (measured): stretch grid lambda in [1, 6]; the cover is found at lambda = 1
-# (no M1), budget 2 right cycles per left window (M2). Every counter-run is clean on
-# the grid: RELCERT_NO_PRUNE=1 DECLINES in 14.6 s (the 4-D rung needs lambda = 1 for
-# that, see sat_detumble_nominal); NO_CUT, NO_IMPLIED_CUT, NO_LINEAR_CUT CERTIFY (the
-# envelope cut is kept but not needed: no M6).
+# claim exists). Requirement: the design model's energy prediction is exact for the real
+# body, so detumble-time budgets computed on it hold. Not implied by the domains; every left
+# start with E_L = E_R <= 1 is admissible (DETUMBLE).
+# Covers (measured): stretch range lambda in [1, 6]; the cover is found at lambda = 1
+# (no S), budget 2 right cycles per left window (M); admissible start DETUMBLE. The
+# envelope cut is kept but not needed (RELCERT_NO_CUT=1 CERTIFIES: no I).
 #
-# Fallback (M4, energy threshold): DETUMBLE -> SAFE is pruned by the non-connection
+# Fallback (energy threshold): DETUMBLE -> SAFE is pruned by the non-connection
 # certificate -- source: no DETUMBLE entry state has E > 1; barrier: on E = 1 the
 # design model's field gives E' = -E < 0. SAFE is not an admissible start
 # (E_R <= E_L <= 1). Without pruning the cover owes SAFE, whose frozen energy breaks
-# E_R <= E_L as soon as the deployed's energy decays: RELCERT_NO_PRUNE=1 DECLINES.
-# Z3 (measured, Z3 4.15.1): 41 queries, 1.5 s in total, the largest 0.8 s.
+# E_R <= E_L as soon as the deployed's energy decays. The committed successor subset closes
+# the same fallback, so RELCERT_NO_PRUNE=1 alone CERTIFIES and only RELCERT_NO_PRUNE=1
+# RELCERT_NO_CHOICE=1 DECLINES (no P, no X).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26): CERTIFIED (about 1 s);
+# CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_CHOICE=1, SYNC+NO_CHOICE, RELCERT_NO_PRUNE=1,
+# RELCERT_NO_CUT=1, NO_IMPLIED_CUT, NO_LINEAR_CUT, RELCERT_OPREGION=1 and without
+# RELCERT_IMPLIED_CUT; DECLINED under RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1. Pruned:
+# DETUMBLE -> SAFE. One row (--handoff vacuous, 1/1).
+#
 # MOMENTUM BAND (right evolve domains): |h_i + J_i w_i| <= 2 N m s, the total angular momentum of
 # each axis within one wheel's capacity. It is conserved by every design-model mode
 # (h_i' = k J_i w_i, w_i' = -k w_i), so it is a constraint on the initial state: the wheels can

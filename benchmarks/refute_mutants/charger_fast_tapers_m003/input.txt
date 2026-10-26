@@ -1,7 +1,9 @@
 # charger_fast_tapers: the fast charger against a certified profile with two taper options.
 # scenario: degraded-controller
-# mechanisms: M R B P D I (multi-step covers with right-only repositioning; branching joint
-#   steps; pruned fault edges; mode-dependent rows; implied cuts, matrix codes M2 M3 M4 M5 M6 M6+)
+# mechanisms: M R B P D I (multi-step covers with right-only repositioning; branching joint steps;
+#   pruned fault edges; mode-dependent rows; checked cuts, matrix codes M2 M3 M4 M5 M6 M6+).
+#   RELCERT_SYNC=1 declines because the covers need right-only repositioning; every cover is at
+#   lambda = 1, so no S.
 #
 # System. State of charge x (%), time in h. The certified charging profile (right):
 #   PRECHARGE   (10 <= x < 15): x' = 0.2 (20 - x)    recovery charge of a deeply discharged cell
@@ -14,7 +16,7 @@
 # PRECHARGE and BULK may latch FAULT (declared edges). The deployed unit (left) runs the profile
 # with its current limit raised 25 % and the slow taper (PRECHARGE 0.25, BULK 0.125, ABSORB
 # 0.0625) and the same FAULT latch. One cause: the current limit. The guards partition [0, 100]
-# on both sides (the old gap [10, 15) is closed by the pre-charge phase).
+# on both sides (no coverage gap: the pre-charge phase covers [10, 15)).
 #
 # Property. Requirement (SoC overshoot): the deployed state of charge never exceeds the certified
 # profile's by more than 2 % SoC, the state-of-charge accuracy of the battery management system:
@@ -26,19 +28,19 @@
 # non-connection certificates (the charging flow rises at the 10 % threshold) prune them. Under
 # RELCERT_NO_PRUNE=1 the deployed PRECHARGE window has no cover (the reference's PRECHARGE
 # segment keeps FAULT in its all-successors obligation and the existential choice does not
-# replace it): DECLINED at the requirement 2 and at the tight 1. (The old version needed a
-# tolerance of 5, chosen for that purpose, to show it.)
+# replace it): DECLINED at the requirement 2 and at the tight 1.
 # Branching (B). From the reference's BULK a joint step retains both ABSORB_SLOW and ABSORB_FAST
 # as covering successors.
 #
-# Domain 0 <= x <= 100 both sides (physical). The implied contraction atoms x <= 20 (PRECHARGE)
+# Domain 0 <= x <= 100 both sides (physical); every left mode has a satisfiable start
+# (x_L = x_R). The implied contraction atoms x <= 20 (PRECHARGE)
 # and x <= 100 (BULK, tapers) are load-bearing (without RELCERT_IMPLIED_CUT: DECLINED).
 #
 # Verdicts (RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED; CERTIFIED under NO_CHOICE,
-# NO_LINEAR_CUT, RELCERT_WELLFORMED_STRICT=1; DECLINED under RELCERT_SYNC=1, SYNC+NO_CHOICE,
-# NO_PRUNE, NO_PRUNE+NO_CHOICE, without RELCERT_IMPLIED_CUT, NO_IMPLIED_CUT and NO_CUT. Covers:
-# lambda = 1 in every left mode, budget 2; branch 2 from PRECHARGE, ABSORB and FAULT windows;
-# right-only repositioning out of PRECHARGE, BULK and ABSORB. --handoff 10/10 unsat,
+# NO_LINEAR_CUT, the operating region, RELCERT_WELLFORMED_STRICT=1; DECLINED under RELCERT_SYNC=1,
+# SYNC+NO_CHOICE, NO_PRUNE, NO_PRUNE+NO_CHOICE, without RELCERT_IMPLIED_CUT, NO_IMPLIED_CUT and
+# NO_CUT. Covers: lambda = 1 in every left mode, budget 2; branch 2 from PRECHARGE, ABSORB and FAULT
+# windows; right-only repositioning out of PRECHARGE, BULK and ABSORB. --handoff 10/10 unsat,
 # non-vacuous. relcert --wellformed: PRECHARGE ok (exit->BULK), BULK ok (exit->ABSORB_FAST),
 # ABSORB_SLOW and ABSORB_FAST ok (exit->FULL), FULL and FAULT ok (invariant).
 [problem]

@@ -386,20 +386,118 @@ class Replay:
         self.memo[key] = res
         return res
 
+class ReplayX:
+    """`decideCoveredX` (Checker/CoverX.lean) over the semantic right automaton (`grOf`: every
+    right mode is a mode, unit weight, flags from the emitted cover) with the window's chosen
+    sets (`chOfC`, Proofs/Encoding/Emitted/Choice.lean): the all-successors rules of `Replay`
+    plus the committed-subset rules, in the checker's order (base, joint step, right-only step,
+    chosen joint successors, chosen right-only exits, hop). Used for a window that has choice
+    entries; the derivation record names the rule used."""
+    def __init__(self, order, flags, succ, pruned, entries):
+        self.order = list(order)
+        self.k = len(self.order)
+        self.idx = {m: i for i, m in enumerate(self.order)}
+        fl = {f["name"]: f for f in flags}
+        self.fl = [fl.get(m, {"name": m, "jointOK": False, "dynPre": False, "dynPost": False}) for m in self.order]
+        self.pruned = set(pruned)
+        self.memo = {}
+        self.decl = {}
+        for m in self.order:
+            self.decl[self.idx[m]] = [self.idx.get(t, self.k) for t in succ.get(m, []) if (m, t) not in self.pruned]
+        # chosen sets by (kind, mode index, pre); joint ignores pre
+        self.sets = {}
+        for e in entries:
+            q = self.idx.get(e["q"])
+            if q is None:
+                continue
+            key = (e["kind"], q, None if e["kind"] == "joint" else e["pre"])
+            self.sets.setdefault(key, []).append([self.idx.get(t, self.k) for t in e["S"]])
+    def name(self, q):
+        return self.order[q] if q < self.k else "<sentinel>"
+    def retained(self, q):
+        return [q] + self.decl.get(q, [])
+    def exits(self, q):
+        return [t for t in self.decl.get(q, []) if t != q]
+    def covered(self, fuel, q, B, sigma):
+        key = (fuel, q, B, sigma)
+        if key in self.memo:
+            return self.memo[key]
+        res = None
+        if fuel > 0 and q < self.k:
+            f = self.fl[q]
+            nm = self.order[q]
+            pre = sigma == "preJ"
+            def all_of(targets, B2, sig2):
+                kids = []
+                for t in targets:
+                    d = self.covered(fuel - 1, t, B2, sig2)
+                    if d is None:
+                        return None
+                    kids.append(d)
+                return kids
+            if f["jointOK"] and B <= 1:
+                res = {"kind": "base", "q": nm, "B": B, "sigma": sigma}
+            if res is None and f["jointOK"] and 1 < B:
+                kids = all_of(self.retained(q), B - 1, "postJ")
+                if kids is not None:
+                    res = {"kind": "joint", "q": nm, "B": B, "sigma": sigma,
+                           "retained": [self.name(t) for t in self.retained(q)], "kids": kids}
+            if res is None and f["dynPre" if pre else "dynPost"] and B > 0 and self.exits(q):
+                kids = all_of(self.exits(q), B, sigma)
+                if kids is not None:
+                    res = {"kind": "repoDyn", "q": nm, "B": B, "sigma": sigma,
+                           "exits": [self.name(t) for t in self.exits(q)], "kids": kids}
+            if res is None and f["jointOK"] and 1 < B:
+                for S in self.sets.get(("joint", q, None), []):
+                    if S and all(t in self.decl.get(q, []) for t in S):
+                        kids = all_of(S, B - 1, "postJ")
+                        if kids is not None:
+                            res = {"kind": "jointChosen", "q": nm, "B": B, "sigma": sigma,
+                                   "retained": [self.name(t) for t in S], "kids": kids}
+                            break
+            if res is None and B > 0:
+                for S in self.sets.get(("repo", q, pre), []):
+                    if S and all(t in self.exits(q) for t in S):
+                        kids = all_of(S, B, sigma)
+                        if kids is not None:
+                            res = {"kind": "repoChosen", "q": nm, "B": B, "sigma": sigma,
+                                   "exits": [self.name(t) for t in S], "kids": kids}
+                            break
+            if res is None:
+                for S in self.sets.get(("hop", q, pre), []):
+                    if S and all(t in self.exits(q) for t in S):
+                        kids = all_of(S, B, sigma)
+                        if kids is not None:
+                            res = {"kind": "hop", "q": nm, "B": B, "sigma": sigma,
+                                   "exits": [self.name(t) for t in S], "kids": kids}
+                            break
+        self.memo[key] = res
+        return res
+
+def parse_choice(text):
+    """The `ChoiceEmitE` literal the tool writes to RELCERT_CHOICE_OUT: one dict per entry."""
+    out = []
+    for m in re.finditer(r'⟨"(\w+)", "(\w+)", \.(joint|repo|hop), (true|false), \[([^\]]*)\]⟩', text):
+        out.append({"mL": m.group(1), "q": m.group(2), "kind": m.group(3), "pre": m.group(4) == "true",
+                    "S": re.findall(r'"(\w+)"', m.group(5))})
+    return out
+
 def summarize_derivation(d, acc):
     """Collect kinds, modes visited, max branching at joint steps, RO use."""
     if d is None:
         return
     acc["kinds"].add(d["kind"])
     acc["modes"].add(d["q"])
-    if d["kind"] == "joint":
+    if d["kind"] in ("joint", "jointChosen"):
         nonself = set(x for x in d["retained"] if x != d["q"])
         acc["branch"] = max(acc["branch"], len(nonself))
         acc["joint_steps"] += 1
         acc["joint_modes"].add(d["q"])
-    if d["kind"] == "repoDyn":
+    if d["kind"] in ("repoDyn", "repoChosen"):
         acc["ro"] = True
         acc["ro_modes"].add(d["q"])
+    if d["kind"] in ("jointChosen", "repoChosen", "hop"):
+        acc.setdefault("choice_modes", set()).add(f"{d['q']}:{d['kind']}")
     for k in d.get("kids", []):
         summarize_derivation(k, acc)
 
@@ -531,7 +629,21 @@ def analyze(name, path, relcert, timeout, z3time=False):
         rec["z3"] = z3_profile(relcert, path, timeout)
 
     # 2. cover
-    rc, out2, err2, _ = run([relcert, "--emit-cover", path, "x"], {"RELCERT_IMPLIED_CUT": "1"}, timeout)
+    import tempfile
+    with tempfile.NamedTemporaryFile(suffix=".lean", delete=False) as tf:
+        choice_out = tf.name
+    rc, out2, err2, _ = run([relcert, "--emit-cover", path, "x"],
+                            {"RELCERT_IMPLIED_CUT": "1", "RELCERT_CHOICE_OUT": choice_out}, timeout)
+    try:
+        entries = parse_choice(open(choice_out).read())
+    except OSError:
+        entries = []
+    finally:
+        try:
+            os.unlink(choice_out)
+        except OSError:
+            pass
+    rec["choice_entries"] = len(entries)
     cov = parse_cover(out2) if v == "CERTIFIED" else None
     rec["covers"] = []
     rec["pruned"] = []
@@ -540,7 +652,12 @@ def analyze(name, path, relcert, timeout, z3time=False):
         rec["pruned"] = pruned
         succ = {m: prob["R"]["modes"][m]["next"] for m in prob["R"]["order"]}
         for c in covers:
-            rp = Replay(c["flags"], succ, pruned)
+            ents = [e for e in entries if e["mL"] == c["mL"]]
+            if ents:
+                # a window with chosen sets: the extended checker on the semantic automaton
+                rp = ReplayX(prob["R"]["order"], c["flags"], succ, pruned, ents)
+            else:
+                rp = Replay(c["flags"], succ, pruned)
             fuel = c["budget"] * (rp.k + 1) + 1
             acc = {"kinds": set(), "modes": set(), "branch": 0, "ro": False, "joint_steps": 0,
                    "joint_modes": set(), "ro_modes": set()}
@@ -562,6 +679,7 @@ def analyze(name, path, relcert, timeout, z3time=False):
                 "kinds": sorted(acc["kinds"]), "modes_on_path": sorted(acc["modes"]),
                 "joint_modes": sorted(acc["joint_modes"]), "ro_modes": sorted(acc["ro_modes"]),
                 "branching": acc["branch"], "right_only": acc["ro"], "joint_steps": acc["joint_steps"],
+                "choice_steps": sorted(acc.get("choice_modes", set())), "choice_entries": len(ents),
                 "paths": paths})
 
     # 3./4. counter-runs
@@ -600,7 +718,8 @@ def analyze(name, path, relcert, timeout, z3time=False):
         cells["M1"] = "no (λ=1 everywhere)" if cert else "no"
     multi = [c for c in rec["covers"] if c["budget"] >= 2 and c["joint_steps"] >= 1]
     if cert and multi:
-        s = ", ".join(f"{c['mL']} B={c['budget']} via {'/'.join(c['joint_modes'])}" + (" +RO" if c["right_only"] else "") for c in multi)
+        s = ", ".join(f"{c['mL']} B={c['budget']} via {'/'.join(c['joint_modes'])}" + (" +RO" if c["right_only"] else "")
+                      + (f" +choice {'/'.join(c['choice_steps'])}" if c.get("choice_steps") else "") for c in multi)
         cells["M2"] = "yes: " + s
     else:
         ro = [c for c in rec["covers"] if c["right_only"]]

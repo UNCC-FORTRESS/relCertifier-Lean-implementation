@@ -71,4 +71,16 @@ import RelCertifier.InstancesV2.Refute.SatDetumbleWeakM002
 import RelCertifier.InstancesV2.Refute.SatDetumbleWeakM003
 import RelCertifier.InstancesV2.Refute.SatDetumbleWeakM005
 import RelCertifier.InstancesV2.Refute.SatDetumbleWeakM006
+import RelCertifier.InstancesV2.Refute.RoverLateral6to8M004
+import RelCertifier.InstancesV2.Refute.RoverLateral6to8M008
+import RelCertifier.InstancesV2.Refute.RoverLateral6to8M009
+import RelCertifier.InstancesV2.Refute.RoverLateral6to8M010
+import RelCertifier.InstancesV2.Refute.RoverLateral6to8M011
+import RelCertifier.InstancesV2.Refute.RoverLateral6to8M012
+import RelCertifier.InstancesV2.Refute.RoverLateral8to12M014
+import RelCertifier.InstancesV2.Refute.RoverLateral8to12M018
+import RelCertifier.InstancesV2.Refute.RoverLateral8to12M019
+import RelCertifier.InstancesV2.Refute.RoverLateral8to12M020
+import RelCertifier.InstancesV2.Refute.RoverLateral8to12M021
+import RelCertifier.InstancesV2.Refute.RoverLateral8to12M022
 import RelCertifier.InstancesV2.Refute.RoverRollover6to12M010

@@ -67,7 +67,7 @@ reposition-progress premise discharged by the tool's progress certificates (the 
 benchmark's emitted records (IR, cut certificate, cover, progress and choice records) into
 Theorem 3 of that benchmark: the structural facts decided in the kernel (`decide +kernel`),
 Assumption 1 transported from the benchmark's `WellFormedR` lemma, every verdict read from one
-Z3 run (`relcert-bridge-verdicts`: 4457 groups over the 50 suite benchmarks and the 2 choice
+Z3 run (`relcert-bridge-verdicts`: 4475 groups over the 50 suite benchmarks and the 2 choice
 exhibits, all discharged). Generated instances (`InstancesV2/Bridge/`, `scripts/gen_bridge.py`):
 all 50 suite benchmarks (38 window form, 12 mode-keyed) and the choice exhibits
 `vehicle_accel_copy`, `watertank_choice` (their chosen sets replayed); `vehicle_hypercert`'s
@@ -88,10 +88,10 @@ Assumption 1 lemmas of the three new models are proved directly over the bridge'
 `trajRs_sol` explicit runs); `vehicle_hypercert`'s comes from its hand-written general instance.
 
 **Discharged.** The one Z3 hypothesis of every bridge instance, `Verdicts`, IS the group list
-`relcert-bridge-verdicts` issues (4457 over the 52 instances, declared count); the progress
+`relcert-bridge-verdicts` issues (4475 over the 52 instances, declared count); the progress
 certificates (261) and the refutations' groups (188) have their own runners. `relcert
 --check-quick-v2` re-sends the tool's own queries as a self-check against declared counts (modal
-625, handoff 401, non-connection 88 over 44 pruned edges, reposition 81).
+643, handoff 401, non-connection 88 over 44 pruned edges, reposition 81).
 
 **Assumed.** The trust base: parser, lowering (including the right guards placed on the
 edges), SMT printer, Z3's `unsat`, the Lean kernel. Guard-gated switching is no longer
@@ -99,8 +99,8 @@ assumed (both sides) (`README.md`, "Trust base").
 
 **Last verified run.** 2026-10-22, branch `cleanup-2026-10` (commit `093b2d1`), Apple M2 Max,
 Z3 4.15.1: full `lake build` exit 0 (9252 jobs), no `sorry`; `--check-quick-v2` 50/50, modal
-625, handoff 401, non-connection 88, pruned 44, reposition 81, STRICT 174/174, PASSED;
-`relcert-test` `ALL PASS`; `relcert-bridge-verdicts` 4457/4457; `relcert-refute-verdicts`
+643, handoff 401, non-connection 88, pruned 44, reposition 81, STRICT 174/174, PASSED;
+`relcert-test` `ALL PASS`; `relcert-bridge-verdicts` 4475/4475; `relcert-refute-verdicts`
 188/188; `relcert-progress-verdicts` 261/261; `WellFormedBattery` 75 axiom lines, all standard;
 `benchmarks/negative/freedm_meter_leaky` DECLINED. Previous: 2026-10-15, branch
 `theorem3-general` (commit `12a0c6b`): full `lake build` exit 0, no `sorry`; `relcert-test` `ALL PASS`; `relcert

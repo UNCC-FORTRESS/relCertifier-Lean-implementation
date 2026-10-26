@@ -71,6 +71,18 @@ import RelCertifier.InstancesV2.Refute.Data.sat_detumble_weak_m002
 import RelCertifier.InstancesV2.Refute.Data.sat_detumble_weak_m003
 import RelCertifier.InstancesV2.Refute.Data.sat_detumble_weak_m005
 import RelCertifier.InstancesV2.Refute.Data.sat_detumble_weak_m006
+import RelCertifier.InstancesV2.Refute.Data.rover_lateral_6to8_m004
+import RelCertifier.InstancesV2.Refute.Data.rover_lateral_6to8_m008
+import RelCertifier.InstancesV2.Refute.Data.rover_lateral_6to8_m009
+import RelCertifier.InstancesV2.Refute.Data.rover_lateral_6to8_m010
+import RelCertifier.InstancesV2.Refute.Data.rover_lateral_6to8_m011
+import RelCertifier.InstancesV2.Refute.Data.rover_lateral_6to8_m012
+import RelCertifier.InstancesV2.Refute.Data.rover_lateral_8to12_m014
+import RelCertifier.InstancesV2.Refute.Data.rover_lateral_8to12_m018
+import RelCertifier.InstancesV2.Refute.Data.rover_lateral_8to12_m019
+import RelCertifier.InstancesV2.Refute.Data.rover_lateral_8to12_m020
+import RelCertifier.InstancesV2.Refute.Data.rover_lateral_8to12_m021
+import RelCertifier.InstancesV2.Refute.Data.rover_lateral_8to12_m022
 import RelCertifier.InstancesV2.Refute.Data.rover_rollover_6to12_m010
 import RelCertifier.InstancesV2.Cuts.acc_spoof_limp
 import RelCertifier.InstancesV2.Cuts.acc_tune_limp
@@ -79,6 +91,8 @@ import RelCertifier.InstancesV2.Cuts.arm_plateau_profiles
 import RelCertifier.InstancesV2.Cuts.arm_plateau_slow
 import RelCertifier.InstancesV2.Cuts.platoon3_linkloss
 import RelCertifier.InstancesV2.Cuts.rover_ladder_6to8
+import RelCertifier.InstancesV2.Cuts.rover_lateral_6to8
+import RelCertifier.InstancesV2.Cuts.rover_lateral_8to12
 import RelCertifier.InstancesV2.Cuts.rover_patrol_lag
 import RelCertifier.InstancesV2.Cuts.rover_patrol_zones
 import RelCertifier.InstancesV2.Cuts.rover_rollover_6to12
@@ -170,9 +184,21 @@ def refuteTable : List RefRec := [
   ⟨"sat_detumble_weak_m003", 4 + 1, sat_detumble_weak_m003_IRm, sat_detumble_weak_cutsV2X, sat_detumble_weak_m003_wit⟩,
   ⟨"sat_detumble_weak_m005", 4 + 1, sat_detumble_weak_m005_IRm, sat_detumble_weak_cutsV2X, sat_detumble_weak_m005_wit⟩,
   ⟨"sat_detumble_weak_m006", 4 + 1, sat_detumble_weak_m006_IRm, sat_detumble_weak_cutsV2X, sat_detumble_weak_m006_wit⟩,
+  ⟨"rover_lateral_6to8_m004", 9 + 1, rover_lateral_6to8_m004_IRm, rover_lateral_6to8_cutsV2X, rover_lateral_6to8_m004_wit⟩,
+  ⟨"rover_lateral_6to8_m008", 9 + 1, rover_lateral_6to8_m008_IRm, rover_lateral_6to8_cutsV2X, rover_lateral_6to8_m008_wit⟩,
+  ⟨"rover_lateral_6to8_m009", 9 + 1, rover_lateral_6to8_m009_IRm, rover_lateral_6to8_cutsV2X, rover_lateral_6to8_m009_wit⟩,
+  ⟨"rover_lateral_6to8_m010", 9 + 1, rover_lateral_6to8_m010_IRm, rover_lateral_6to8_cutsV2X, rover_lateral_6to8_m010_wit⟩,
+  ⟨"rover_lateral_6to8_m011", 9 + 1, rover_lateral_6to8_m011_IRm, rover_lateral_6to8_cutsV2X, rover_lateral_6to8_m011_wit⟩,
+  ⟨"rover_lateral_6to8_m012", 9 + 1, rover_lateral_6to8_m012_IRm, rover_lateral_6to8_cutsV2X, rover_lateral_6to8_m012_wit⟩,
+  ⟨"rover_lateral_8to12_m014", 13 + 1, rover_lateral_8to12_m014_IRm, rover_lateral_8to12_cutsV2X, rover_lateral_8to12_m014_wit⟩,
+  ⟨"rover_lateral_8to12_m018", 13 + 1, rover_lateral_8to12_m018_IRm, rover_lateral_8to12_cutsV2X, rover_lateral_8to12_m018_wit⟩,
+  ⟨"rover_lateral_8to12_m019", 13 + 1, rover_lateral_8to12_m019_IRm, rover_lateral_8to12_cutsV2X, rover_lateral_8to12_m019_wit⟩,
+  ⟨"rover_lateral_8to12_m020", 13 + 1, rover_lateral_8to12_m020_IRm, rover_lateral_8to12_cutsV2X, rover_lateral_8to12_m020_wit⟩,
+  ⟨"rover_lateral_8to12_m021", 13 + 1, rover_lateral_8to12_m021_IRm, rover_lateral_8to12_cutsV2X, rover_lateral_8to12_m021_wit⟩,
+  ⟨"rover_lateral_8to12_m022", 13 + 1, rover_lateral_8to12_m022_IRm, rover_lateral_8to12_cutsV2X, rover_lateral_8to12_m022_wit⟩,
   ⟨"rover_rollover_6to12_m010", 12 + 1, rover_rollover_6to12_m010_IRm, rover_rollover_6to12_cutsV2X, rover_rollover_6to12_m010_wit⟩ ]
 
 /-- Declared: the number of query groups over the refutations (one per right mode each). -/
-def expectedRefuteGroups : Nat := 188
+def expectedRefuteGroups : Nat := 224
 
 end RelCertifier.Refute

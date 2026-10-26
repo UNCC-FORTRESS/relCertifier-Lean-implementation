@@ -1,0 +1,98 @@
+# rover_lateral_8to12: lateral corridor keeping on both axles, the 12-DOF rover refining the
+#   8-state lateral rover (step 8 -> 12: the right moves 8 coordinates, the left 12).
+# scenario: model-refinement
+# mechanisms: none (CERTIFIED with RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, without
+#   the widened cuts and with no cut at all; lambda = 1, one segment per window)
+#
+# Coordinates: v, s, psi, theta_p, z, phi_r as in rover_lateral_6to8; y lateral offset of the
+#   front axle from the lane centreline (m, positive right) and w = y'; y2 lateral offset of
+#   the rear axle and w2 = y2'; w3, w4 front and rear lateral tyre-slip rates (m/s), first-order
+#   decaying states that enter no other equation and no row.
+# Right (reasoning): rover_lateral_6to8's left model, the 8-state lateral rover (6-DOF rover with
+#   phi_r decaying, front-axle regulator y' = w, w' = -y - 2w), with the 12-DOF coordinates
+#   pinned: y2' = 0, w2' = 0, w3' = 0, w4' = 0.
+# Left (deployed): the same, plus the rear-axle regulator y2' = w2, w2' = -y2 - 2w2 (critically
+#   damped like the front) and the slip decays w3' = -w3, w4' = -w4. The two sides differ
+#   exactly in y2', w2', w3', w4'; modes, successors, evolve domains and the front lateral pair
+#   are equal; the guards are equal except that the left FLAT guard stops at s < 899.95 (the
+#   right FLAT guard is unbounded above).
+# Modes: STEEP (s in [0, 0.6), set speed 0.30), MODER (s in [0.6, 1.4), 0.50), FLAT (s >= 1.4,
+#   0.65, terminal); next = [MODER, STEEP], [FLAT, MODER], [FLAT]. Every s >= 0 lies in exactly
+#   one right guard.
+# Property: the ladder rows (v_L <= v_R, s_L <= s_R, psi_L = psi_R, theta_p_L = theta_p_R) and
+#   corridor keeping on both axles, each with its lead: front y_L <= y_R + d and
+#   y_L + w_L <= y_R + w_R + d (both sides regulate y, so the leads are compared); rear
+#   y2_L <= y2_R + d and y2_L + w2_L <= y2_R + d (the right holds y2 frozen, as the plan does in
+#   rover_lateral_6to8).
+# Requirement behind d = 0.5 m (both axles): as in rover_lateral_6to8, the deployed rover may be
+#   at most one lane half-width further right than the reference on each axle. Tightest
+#   certifiable constants: front 0.00 (-0.01 DECLINES: both sides run the same front regulator,
+#   so a deployed rover starting no further right stays no further right), rear 0.50 (0.49
+#   DECLINES: against a frozen rear offset at the left edge the rear regulator recentres by the
+#   full half-width).
+# Domains (both sides, every mode): lane -0.5 <= y, y2 <= 0.5; leads -0.5 <= y + w, y2 + w2 <= 0.5
+#   (forward-invariant under the regulators, and kept on the right by Assumption 1's flow);
+#   lateral speeds and slip rates in [-1, 1] (w, w2 implied by lane and lead; w3, w4 decaying
+#   contractions); attitude and heave boxes as in rover_lateral_6to8 (forward-invariant);
+#   v in [0, 0.8]; s >= 0. No row follows from the domains. Load-bearing bound
+#   (scripts/domain_widening.py): only the right's rear lane edge y2_R >= -0.5.
+# (Redesigned 2026-10-26: before, y and y2 lived in [0, 0.15] on both sides so the corridor rows
+#   followed from the domains, the right was not the 8-state left of rover_lateral_6to8 (phi_r
+#   frozen, y2 moving), the left decayed y at 0.75 and the right at 1.0, and w..w4 entered no
+#   other equation.)
+
+[problem]
+name = rover_lateral_8to12
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 8.0
+bound_T = 4.0
+
+[Lsys]
+state_vars = [v, s, psi, theta_p, y, y2, z, phi_r, w, w2, w3, w4]
+epsilon = 1.0
+
+[Lsys.mode.STEEP]
+ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); theta_p' = smt2:(* -1 theta_p); y' = smt2:w; y2' = smt2:w2; z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r); w' = smt2:(- (* -1 y) (* 2 w)); w2' = smt2:(- (* -1 y2) (* 2 w2)); w3' = smt2:(* -1 w3); w4' = smt2:(* -1 w4);
+guard = s >= 0.0 and s < 0.6
+evolve = phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and w >= -1.0 and w <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and w4 >= -1.0 and w4 <= 1.0 and y >= -0.5 and y <= 0.5 and y + w >= -0.5 and y + w <= 0.5 and y2 >= -0.5 and y2 <= 0.5 and y2 + w2 >= -0.5 and y2 + w2 <= 0.5 and z >= -1.0 and z <= 0.15
+next = [MODER, STEEP]
+
+[Lsys.mode.MODER]
+ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); theta_p' = smt2:(* -1 theta_p); y' = smt2:w; y2' = smt2:w2; z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r); w' = smt2:(- (* -1 y) (* 2 w)); w2' = smt2:(- (* -1 y2) (* 2 w2)); w3' = smt2:(* -1 w3); w4' = smt2:(* -1 w4);
+guard = s >= 0.6 and s < 1.4
+evolve = phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and w >= -1.0 and w <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and w4 >= -1.0 and w4 <= 1.0 and y >= -0.5 and y <= 0.5 and y + w >= -0.5 and y + w <= 0.5 and y2 >= -0.5 and y2 <= 0.5 and y2 + w2 >= -0.5 and y2 + w2 <= 0.5 and z >= -1.0 and z <= 0.15
+next = [FLAT, MODER]
+
+[Lsys.mode.FLAT]
+ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); theta_p' = smt2:(* -1 theta_p); y' = smt2:w; y2' = smt2:w2; z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r); w' = smt2:(- (* -1 y) (* 2 w)); w2' = smt2:(- (* -1 y2) (* 2 w2)); w3' = smt2:(* -1 w3); w4' = smt2:(* -1 w4);
+guard = s >= 1.4 and s < 899.95
+evolve = phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and w >= -1.0 and w <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and w4 >= -1.0 and w4 <= 1.0 and y >= -0.5 and y <= 0.5 and y + w >= -0.5 and y + w <= 0.5 and y2 >= -0.5 and y2 <= 0.5 and y2 + w2 >= -0.5 and y2 + w2 <= 0.5 and z >= -1.0 and z <= 0.15
+next = [FLAT]
+
+[Rsys]
+state_vars = [v, s, psi, theta_p, y, y2, z, phi_r, w, w2, w3, w4]
+epsilon = 1.0
+
+[Rsys.mode.STEEP]
+ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); theta_p' = smt2:(* -1 theta_p); y' = smt2:w; y2' = smt2:0; z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r); w' = smt2:(- (* -1 y) (* 2 w)); w2' = smt2:0; w3' = smt2:0; w4' = smt2:0;
+guard = s >= 0.0 and s < 0.6
+evolve = phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and w >= -1.0 and w <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and w4 >= -1.0 and w4 <= 1.0 and y >= -0.5 and y <= 0.5 and y + w >= -0.5 and y + w <= 0.5 and y2 >= -0.5 and y2 <= 0.5 and y2 + w2 >= -0.5 and y2 + w2 <= 0.5 and z >= -1.0 and z <= 0.15
+next = [MODER, STEEP]
+
+[Rsys.mode.MODER]
+ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); theta_p' = smt2:(* -1 theta_p); y' = smt2:w; y2' = smt2:0; z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r); w' = smt2:(- (* -1 y) (* 2 w)); w2' = smt2:0; w3' = smt2:0; w4' = smt2:0;
+guard = s >= 0.6 and s < 1.4
+evolve = phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and w >= -1.0 and w <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and w4 >= -1.0 and w4 <= 1.0 and y >= -0.5 and y <= 0.5 and y + w >= -0.5 and y + w <= 0.5 and y2 >= -0.5 and y2 <= 0.5 and y2 + w2 >= -0.5 and y2 + w2 <= 0.5 and z >= -1.0 and z <= 0.15
+next = [FLAT, MODER]
+
+[Rsys.mode.FLAT]
+ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); theta_p' = smt2:(* -1 theta_p); y' = smt2:w; y2' = smt2:0; z' = smt2:(* -1 z); phi_r' = smt2:(* -1 phi_r); w' = smt2:(- (* -1 y) (* 2 w)); w2' = smt2:0; w3' = smt2:0; w4' = smt2:0;
+guard = s >= 1.4
+evolve = phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and w >= -1.0 and w <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and w4 >= -1.0 and w4 <= 1.0 and y >= -0.5 and y <= 0.5 and y + w >= -0.5 and y + w <= 0.5 and y2 >= -0.5 and y2 <= 0.5 and y2 + w2 >= -0.5 and y2 + w2 <= 0.5 and z >= -1.0 and z <= 0.15
+next = [FLAT]
+
+[relational_invariant]
+STEEP = smt2:(and (<= L_v R_v) (<= L_y (+ R_y 0.5)) (<= (+ L_y L_w) (+ (+ R_y R_w) 0.5)) (>= L_y2 (+ R_y2 0.5)) (<= (+ L_y2 L_w2) (+ R_y2 0.5)) (<= L_s R_s) (<= L_psi R_psi) (<= R_psi L_psi) (<= L_theta_p R_theta_p) (<= R_theta_p L_theta_p))
+MODER = smt2:(and (<= L_v R_v) (<= L_y (+ R_y 0.5)) (<= (+ L_y L_w) (+ (+ R_y R_w) 0.5)) (>= L_y2 (+ R_y2 0.5)) (<= (+ L_y2 L_w2) (+ R_y2 0.5)) (<= L_s R_s) (<= L_psi R_psi) (<= R_psi L_psi) (<= L_theta_p R_theta_p) (<= R_theta_p L_theta_p))
+FLAT = smt2:(and (<= L_v R_v) (<= L_y (+ R_y 0.5)) (<= (+ L_y L_w) (+ (+ R_y R_w) 0.5)) (>= L_y2 (+ R_y2 0.5)) (<= (+ L_y2 L_w2) (+ R_y2 0.5)) (<= L_s R_s) (<= L_psi R_psi) (<= R_psi L_psi) (<= L_theta_p R_theta_p) (<= R_theta_p L_theta_p))

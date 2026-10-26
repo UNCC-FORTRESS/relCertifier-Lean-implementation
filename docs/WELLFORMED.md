@@ -127,18 +127,18 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 15 | `quad_light_airframe_20` | proved (repaired) | CLIMB (a) (barriers, guard `0 ≤ w ≤ 3`); LIMIT (b) → CLIMB (exponential decay) | CLIMB ok (invariant); LIMIT ok (exit→CLIMB) |
 | 16 | `quad_light_lag` | proved | CLIMB (a) (barriers; viability existence) | ok (invariant) |
 | 17 | `quad_light_profiles` | proved (repaired) | NORMAL, ECO, SPORT (a) (guard `0 ≤ w ≤ 3.2`); LIMIT (b) → NORMAL | those ok (invariant); LIMIT ok (exit→NORMAL) |
-| 18 | `refinement_ladder_rover_rung1_2to3` | proved | STEEP (b) → MODER, MODER (b) → FLAT, FLAT (a) | STEEP ok (exit→MODER), MODER ok (exit→FLAT), FLAT ok (invariant) |
-| 19 | `refinement_ladder_rover_rung2_3to6` | proved | as 18 (ladder lemma) | as 18 |
-| 20 | `refinement_ladder_rover_rung2_6dof` | proved | as 18 | as 18 |
-| 21 | `refinement_ladder_rover_rung2b_6dof` | proved | as 18 | as 18 |
-| 22 | `refinement_ladder_rover_rung2c_6dof` | proved | as 18 | as 18 |
-| 23 | `refinement_ladder_rover_rung3_6to8` | proved | as 18 | as 18 |
-| 24 | `refinement_ladder_rover_rung4_8to12` | proved | as 18 | as 18 |
+| 18 | `rover_ladder_2to3` | proved | STEEP (b) → MODER, MODER (b) → FLAT, FLAT (a) | STEEP ok (exit→MODER), MODER ok (exit→FLAT), FLAT ok (invariant) |
+| 19 | `rover_ladder_3to6` | proved | as 18 (ladder lemma) | as 18 |
+| 20 | `rover_ladder_2to4` | proved | as 18 | as 18 |
+| 21 | `rover_ladder_4to6_kin` | proved | as 18 | as 18 |
+| 22 | `rover_ladder_4to6` | proved | as 18 | as 18 |
+| 23 | `rover_ladder_6to8` | proved | as 18 | as 18 |
+| 24 | `rover_ladder_8to12` | proved | as 18 | as 18 |
 | 25 | `rover3tier_rung12` | proved | ACCEL (b) → COAST, COAST (a); `ε_r = 0.3` | ACCEL ok (exit→COAST), COAST ok (invariant) |
-| 26 | `rover_dof_terrain_rung1` | proved | as 18 | as 18 |
-| 27 | `rover_dof_terrain_rung2` | proved | as 18 | as 18 |
-| 28 | `rover_dof_terrain_rung3` | proved | as 18 | as 18 |
-| 29 | `rover_dof_terrain_rung3_8d` | proved | as 18 | as 18 |
+| 26 | `rover_terrain_2to3` | proved | as 18 | as 18 |
+| 27 | `rover_terrain_3to6` | proved | as 18 | as 18 |
+| 28 | `rover_terrain_6to12` | proved | as 18 | as 18 |
+| 29 | `rover_terrain_6to8` | proved | as 18 | as 18 |
 | 30 | `rover_patrol_refine` | proved | SLOW (b) → MEDIUM_ECO; MEDIUM_ECO, MEDIUM_BRISK (b) → FAST; FAST (a) | SLOW ok (exit→MEDIUM_BRISK); MEDIUM_* ok (exit→FAST); FAST ok (invariant) |
 | 31 | `rover_patrol_zones` | proved | as 30; STALL (a) | as 30; STALL ok (invariant) |
 | 32 | `sat3w_detumble_nominal` | proved | DETUMBLE (a) (the band in the domain keeps the explicit run); SAFE (a) | both ok (invariant) (clause (i) is not checked by the tool) |
@@ -147,13 +147,13 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 35 | `sat_detumble_nominal` | proved | as 32 | as 32 |
 | 36 | `sat_detumble_phases` | proved | as 32 | as 32 |
 | 37 | `sat_detumble_weak` | proved | as 34 | as 34 |
-| 38 | `story1_attdist_rung_a_6to8` | proved | as 18 | as 18 |
-| 39 | `story1_attdist_rung_b_12dof` | proved | as 18 | as 18 |
-| 40 | `story2_lateral_rung_a_8dof` | proved | as 18 | as 18 |
-| 41 | `story2_lateral_rung_b_12dof` | proved | as 18 | as 18 |
+| 38 | `rover_attitude_6to8` | proved | as 18 | as 18 |
+| 39 | `rover_attitude_8to12` | proved | as 18 | as 18 |
+| 40 | `rover_lateral_6to8` | proved | as 18 | as 18 |
+| 41 | `rover_lateral_8to12` | proved | as 18 | as 18 |
 | 42 | `story3_rollover_base_12dof` | proved | as 18 | as 18 |
-| 43 | `story3_rollover_ladder_rung_a` | proved | as 18 | as 18 |
-| 44 | `story3_rollover_ladder_rung_b` | proved | as 18 | as 18 |
+| 43 | `rover_rollover_split_a` | proved | as 18 | as 18 |
+| 44 | `rover_rollover_split_b` | proved | as 18 | as 18 |
 | 45 | `watertank` | proved | Low (b) → MidEco; MidEco, MidBoost, High, PumpOff (a) | Low ok (exit→MidBoost, same guard); the others ok (invariant) |
 | 47 | `drl_car_stop` | proved (direct) | Accel, Brake (b) → Coast; Coast (a); explicit run `x + v t + c t²/2` | Accel, Brake ok (exit→Coast); Coast ok (invariant) |
 | 48 | `drl_lane_control` | proved (direct) | every mode (b) → CoastLAccel or CoastLBrake by the leader's speed; explicit run | all six ok (exit) |

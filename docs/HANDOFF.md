@@ -1,5 +1,7 @@
 # Cross-mode handoff: the static implication at every declared left transition
 
+> Benchmark names here predate the 2026-10-25 rename; old -> new: `benchmarks/README.md`, "Renamed 2026-10-25".
+
 Status: current for suite_v2 (2026-10-10). Every number below is from
 `RELCERT_IMPLIED_CUT=1 relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt` (its handoff
 phase) on 2026-10-10, Z3 4.15.1. The handoff check is a tool-level check: the twelve

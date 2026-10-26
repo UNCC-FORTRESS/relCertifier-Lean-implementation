@@ -1,5 +1,7 @@
 # Guard-gated switching on the right (branch `guarded-right`)
 
+> Benchmark names here predate the 2026-10-25 rename; old -> new: `benchmarks/README.md`, "Renamed 2026-10-25".
+
 > Numbering here predates the submission; see `docs/PAPER-MAPPING.md`.
 
 **Status (2026-10-10, branch `guarded-right`): done, all 46.** One uniform statement for all

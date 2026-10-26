@@ -1,5 +1,7 @@
 # Suite redesign — `benchmarks/suite_v2` (2026-10-08, branch `suite-redesign`)
 
+> Benchmark names here predate the 2026-10-25 rename; old -> new: `benchmarks/README.md`, "Renamed 2026-10-25".
+
 > Numbering here predates the submission; see `docs/PAPER-MAPPING.md`.
 
 > **Current state (2026-10-10, pass 11, §21).** `benchmarks/suite_v2` has **50 benchmarks** (`watertank_twospeed` added 2026-10-11, §22; four literature benchmarks 2026-10-15, §23),

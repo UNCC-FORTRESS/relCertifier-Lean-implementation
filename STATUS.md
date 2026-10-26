@@ -15,7 +15,7 @@ the declared successors and `u_L` read from the file) against the GUARDED right 
 (every edge tests the lowered guard of the mode it enters), with the loop invariant carrying
 the rows keyed by `u_L`, both envelopes, `u_L ∈ modes` and `regionG guard cuts q = guard q ∧
 cuts q` of the right's current mode (`docs/GUARDED-SWITCHING.md` §3.1, §3.3). 44 benchmarks
-for every window length, `refinement_ladder_rover_rung2c_6dof` for every window up to its
+for every window length, `rover_ladder_4to6` for every window up to its
 control interval (`dt ≤ ε_L = 1`); every switch on both sides kernel-checked legal. 12
 mode-keyed, 33 mode-independent (carried to the left automaton by the generic bridge
 `theorem3_leftAut_of_choice`, proved once); **every bridge instance replays the cover the
@@ -33,7 +33,7 @@ kernel on the old model (commit `1a3507f`) because its nominal controller BLOCKE
 cycle (engagement-band stay guards, no catch-all mode: a violation of Assumption 1 the
 certificate cannot detect). The guards are now the operating range (floor 20, radar range,
 rated closing rate, projected gap `21 ≤ g + 2r ≤ 59`; `docs/SUITE-REDESIGN.md` §20); both are
-CERTIFIED and proved. The earlier "refuted by argument" entries (`rung2_3to6`, the story2
+CERTIFIED and proved. The earlier "refuted by argument" entries (`rover_ladder_3to6`, the `rover_lateral`
 pair) refuted only a left program without guard tests; they are proved
 (`docs/GUARDED-SWITCHING.md` §4.5).
 

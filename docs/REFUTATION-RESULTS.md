@@ -1,5 +1,7 @@
 # Kernel-checked refutations: results (branch `refutation`)
 
+> Benchmark names here predate the 2026-10-25 rename; old -> new: `benchmarks/README.md`, "Renamed 2026-10-25".
+
 Design: `docs/REFUTATION-SCOPE.md` (planning record, last present at commit 29663d8). This file reports what was built and the experiment.
 
 ## The claim

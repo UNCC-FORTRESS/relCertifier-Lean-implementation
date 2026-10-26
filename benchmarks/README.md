@@ -6,7 +6,7 @@ left mode) and the time-stretch range. **50 benchmarks.** With the widened cut c
 (`RELCERT_IMPLIED_CUT=1`, as every suite_v2 run sets it) the tool CERTIFIES all 50, and
 every one carries a kernel-checked Theorem 3 (the paper's Soundness of Synthesis) with the paper's left program over the
 guard-gated right automaton, at the mode-consistent region (`RelCertifier/InstancesV2/Bridge/`;
-`refinement_ladder_rover_rung2c_6dof` for windows up to its control interval `dt ≤ 1`;
+`rover_ladder_4to6` for windows up to its control interval `dt ≤ 1`;
 check recipe: `docs/CERTIFICATION-CHECK.md`). The two `platoon3` files were repaired on
 2026-10-10: their stay guards were engagement bands, so the nominal controller blocked after a
 full cycle; they are now the operating range (`docs/SUITE-REDESIGN.md` §20). Without the widened channel 10 of them
@@ -36,15 +36,43 @@ needs, read off counter-runs; `scripts/suite_v2_matrix.py`) are in
 physical story, the units, the measured cover and the mechanisms it exercises
 (`# scenario:` and `# mechanisms:` lines).
 
+## Renamed 2026-10-25
+
+Seventeen benchmarks were renamed so that the name states the system, the property and the
+refinement step (deployed DOF refining reasoning DOF). Only names changed (directory, `name =`,
+header lines, derived Lean identifiers and modules); models, invariants, certificates and
+proofs are unchanged. Older records (git history, branch `archive/legacy-2026-10`, dated docs)
+use the old names. `story3_rollover_base_12dof` keeps its name.
+
+| old | new |
+|---|---|
+| `refinement_ladder_rover_rung1_2to3` | `rover_ladder_2to3` |
+| `refinement_ladder_rover_rung2_3to6` | `rover_ladder_3to6` |
+| `refinement_ladder_rover_rung3_6to8` | `rover_ladder_6to8` |
+| `refinement_ladder_rover_rung4_8to12` | `rover_ladder_8to12` |
+| `refinement_ladder_rover_rung2_6dof` | `rover_ladder_2to4` |
+| `refinement_ladder_rover_rung2b_6dof` | `rover_ladder_4to6_kin` |
+| `refinement_ladder_rover_rung2c_6dof` | `rover_ladder_4to6` |
+| `rover_dof_terrain_rung1` | `rover_terrain_2to3` |
+| `rover_dof_terrain_rung2` | `rover_terrain_3to6` |
+| `rover_dof_terrain_rung3` | `rover_terrain_6to12` |
+| `rover_dof_terrain_rung3_8d` | `rover_terrain_6to8` |
+| `story1_attdist_rung_a_6to8` | `rover_attitude_6to8` |
+| `story1_attdist_rung_b_12dof` | `rover_attitude_8to12` |
+| `story2_lateral_rung_a_8dof` | `rover_lateral_6to8` |
+| `story2_lateral_rung_b_12dof` | `rover_lateral_8to12` |
+| `story3_rollover_ladder_rung_a` | `rover_rollover_split_a` |
+| `story3_rollover_ladder_rung_b` | `rover_rollover_split_b` |
+
 ## The 19 carried-over benchmarks
 
 Nineteen files (the rover refinement ladder, the rover terrain rungs, `rover3tier_rung12`,
-`match_multi_rate`, and the story1, story2 and story3 benchmarks except `story3_rollover_ladder_rung_b`) are byte-identical copies of files of the retired legacy
+`match_multi_rate`, and the attitude, lateral and rollover benchmarks except `rover_rollover_split_b`) are byte-identical copies, up to the name lines of the 2026-10-25 rename (below), of files of the retired legacy
 suite `suite_uniform` (removed from the tree on 2026-10-10; git history keeps it). Their
 Assumption 1 proofs were first written against the legacy literals and now quote these
 files' literals directly (`RelCertifier/InstancesV2/WellFormed/`); their standalone Theorem 3
 instances are archived on branch `archive/legacy-2026-10`. Their headers are the legacy ones
-(no `# scenario:` line). `story3_rollover_ladder_rung_b` was repaired on the left (attitude
+(no `# scenario:` line). `rover_rollover_split_b` was repaired on the left (attitude
 domains and the zone-switch entry condition) and `watertank` was redesigned as the paper's
 running example; both carry new instances.
 
@@ -82,18 +110,18 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `quad_light_airframe_20` | 1 / 1 | 1 / 2 | model-refinement | LIMIT hands back (§21) |
 | `quad_light_lag` | 2 / 2 | 1 / 1 | model-refinement |  |
 | `quad_light_profiles` | 1 / 1 | 1 / 4 | model-refinement | LIMIT hands back (§21) |
-| `refinement_ladder_rover_rung1_2to3` | 3 / 2 | 3 / 3 |  | carried over |
-| `refinement_ladder_rover_rung2_3to6` | 6 / 6 | 3 / 3 |  | carried over |
-| `refinement_ladder_rover_rung2_6dof` | 4 / 4 | 3 / 3 |  | carried over, Z3-free |
-| `refinement_ladder_rover_rung2b_6dof` | 6 / 6 | 3 / 3 |  | carried over, Z3-free |
-| `refinement_ladder_rover_rung2c_6dof` | 6 / 6 | 3 / 3 |  | carried over |
-| `refinement_ladder_rover_rung3_6to8` | 8 / 8 | 3 / 3 |  | carried over |
-| `refinement_ladder_rover_rung4_8to12` | 12 / 12 | 3 / 3 |  | carried over |
+| `rover_ladder_2to3` | 3 / 2 | 3 / 3 |  | carried over |
+| `rover_ladder_3to6` | 6 / 6 | 3 / 3 |  | carried over |
+| `rover_ladder_2to4` | 4 / 4 | 3 / 3 |  | carried over, Z3-free |
+| `rover_ladder_4to6_kin` | 6 / 6 | 3 / 3 |  | carried over, Z3-free |
+| `rover_ladder_4to6` | 6 / 6 | 3 / 3 |  | carried over |
+| `rover_ladder_6to8` | 8 / 8 | 3 / 3 |  | carried over |
+| `rover_ladder_8to12` | 12 / 12 | 3 / 3 |  | carried over |
 | `rover3tier_rung12` | 3 / 3 | 2 / 2 |  | carried over, mode-keyed |
-| `rover_dof_terrain_rung1` | 3 / 3 | 3 / 3 |  | carried over |
-| `rover_dof_terrain_rung2` | 6 / 6 | 3 / 3 |  | carried over |
-| `rover_dof_terrain_rung3` | 12 / 12 | 3 / 3 |  | carried over |
-| `rover_dof_terrain_rung3_8d` | 8 / 8 | 3 / 3 |  | carried over |
+| `rover_terrain_2to3` | 3 / 3 | 3 / 3 |  | carried over |
+| `rover_terrain_3to6` | 6 / 6 | 3 / 3 |  | carried over |
+| `rover_terrain_6to12` | 12 / 12 | 3 / 3 |  | carried over |
+| `rover_terrain_6to8` | 8 / 8 | 3 / 3 |  | carried over |
 | `rover_patrol_refine` | 3 / 3 | 4 / 4 | model-refinement | mode-keyed, widened cuts |
 | `rover_patrol_zones` | 2 / 2 | 4 / 5 | degraded-actuator | mode-keyed |
 | `sat3w_detumble_nominal` | 6 / 6 | 1 / 2 | model-refinement | nonblocking region |
@@ -102,13 +130,13 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `sat_detumble_nominal` | 4 / 4 | 1 / 2 | model-refinement | nonblocking region |
 | `sat_detumble_phases` | 4 / 4 | 2 / 2 | model-refinement | mode-keyed, nonblocking region |
 | `sat_detumble_weak` | 4 / 4 | 1 / 4 | degraded-actuator | nonblocking region |
-| `story1_attdist_rung_a_6to8` | 8 / 8 | 3 / 3 |  | carried over, mode-keyed |
-| `story1_attdist_rung_b_12dof` | 12 / 12 | 3 / 3 |  | carried over, mode-keyed |
-| `story2_lateral_rung_a_8dof` | 8 / 8 | 3 / 3 |  | carried over |
-| `story2_lateral_rung_b_12dof` | 12 / 12 | 3 / 3 |  | carried over |
+| `rover_attitude_6to8` | 8 / 8 | 3 / 3 |  | carried over, mode-keyed |
+| `rover_attitude_8to12` | 12 / 12 | 3 / 3 |  | carried over, mode-keyed |
+| `rover_lateral_6to8` | 8 / 8 | 3 / 3 |  | carried over |
+| `rover_lateral_8to12` | 12 / 12 | 3 / 3 |  | carried over |
 | `story3_rollover_base_12dof` | 12 / 12 | 3 / 3 |  | carried over |
-| `story3_rollover_ladder_rung_a` | 12 / 12 | 3 / 3 |  | carried over |
-| `story3_rollover_ladder_rung_b` | 12 / 12 | 3 / 3 |  | mode-keyed, widened cuts |
+| `rover_rollover_split_a` | 12 / 12 | 3 / 3 |  | carried over |
+| `rover_rollover_split_b` | 12 / 12 | 3 / 3 |  | mode-keyed, widened cuts |
 | `vehicle_hypercert` | 1 / 1 | 5 / 5 | opacity | literature (HyperCertificates), mode choice |
 | `watertank` | 1 / 1 | 3 / 5 | sensor-attack | widened cuts |
 

@@ -1,3 +1,5 @@
+> Benchmark names here predate the 2026-10-25 rename; old -> new: `benchmarks/README.md`, "Renamed 2026-10-25".
+
 > Numbering here predates the submission; see `docs/PAPER-MAPPING.md`.
 
 > **HISTORY (moved to `docs/history/` on 2026-10-10).** A superseded record, kept for

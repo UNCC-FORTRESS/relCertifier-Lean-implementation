@@ -117,7 +117,7 @@ reposition 81). The axiom audit of every theorem is a subset of
 flow fact of every response is a group of the emitted cover). No
 `sorry`, no `admit`, no `native_decide`.
 
-`refinement_ladder_rover_rung2c_6dof` carries the statement for windows `0 ≤ dt ≤ ε_L = 1`
+`rover_ladder_4to6` carries the statement for windows `0 ≤ dt ≤ ε_L = 1`
 (its control interval; false for `dt > 2.12` by a stated argument). See
 [Guard-gated switching](#guard-gated-switching).
 
@@ -180,11 +180,11 @@ Counts read off `InstancesV2/Bridge.lean`, `InstancesV2/WellFormedBattery.lean`,
 | family | count | which |
 |---|---|---|
 | the generic bridge: Theorem 3 of the benchmark from its emitted records (IR, cut certificate, cover, progress and choice records), over the clocked right automaton `rightAutomatonBodyC` at dimension `bridgeDimV2 b` (the Assumption 1 lemma's dimension + 1, the right clock), Assumption 1 lifted by `wellFormedR_lift`, the structural facts decided in the kernel, every verdict from one Z3 run (`InstancesV2/Bridge/`, `relcert-bridge-verdicts`, 4457 groups over the 50 suite benchmarks and the 2 exhibits; `docs/BRIDGE.md`) | **52** | all 50 suite benchmarks (38 window form, 12 mode-keyed) and the choice exhibits `vehicle_accel_copy`, `watertank_choice` |
-| of which mode-keyed (per-left-mode rows composed through handoffs, `keyedClaim`) | **12** | `acc_spoof_limp`, `acc_tune_limp`, `platoon_delay_linkloss`, `platoon3_linkloss`, `sat_detumble_phases`, `sat3w_detumble_phases`, `rover3tier_rung12`, `rover_patrol_zones`, `rover_patrol_refine`, `story3_rollover_ladder_rung_b`, `story1_attdist_rung_a_6to8`, `story1_attdist_rung_b_12dof` |
+| of which mode-keyed (per-left-mode rows composed through handoffs, `keyedClaim`) | **12** | `acc_spoof_limp`, `acc_tune_limp`, `platoon_delay_linkloss`, `platoon3_linkloss`, `sat_detumble_phases`, `sat3w_detumble_phases`, `rover3tier_rung12`, `rover_patrol_zones`, `rover_patrol_refine`, `rover_rollover_split_b`, `rover_attitude_6to8`, `rover_attitude_8to12` |
 | Assumption 1 (`WellFormedR`) of the right model, proved in the kernel, Z3-free (`InstancesV2/WellFormed/<B>.lean`, `InstancesV2/WellFormedBattery.lean`; 75 axiom lines, each the three standard axioms) | **50** | every suite benchmark (the six satellites with the conserved momentum band in the right evolve domain; `docs/WELLFORMED.md`) |
 | model repaired by this mechanization (the nominal controller blocked after a full cycle; `docs/SUITE-REDESIGN.md` §20) | **2** | `platoon3_linkloss`, `platoon3_profiles` |
 | model repaired for Assumption 1 (`WellFormedR` refuted in the kernel, then proved; `docs/SUITE-REDESIGN.md` §21) | **9** | `arm_plateau_{crit,profiles,slow}`, `platoon_delay_{linkloss,profiles}`, `platoon3_{linkloss,profiles}`, `quad_light_{airframe_20,profiles}` |
-| widened cut channel needed (`RELCERT_IMPLIED_CUT=1`; closures, implied contractions, linear-form chains; lifted to the kernel by `Proofs/Soundness/CutLiftX.lean`) | **10** | `acc_spoof_lag`, `arm_plateau_{crit,profiles,slow}`, `charger_fast_setpoints`, `platoon_delay_{linkloss,profiles}`, `rover_patrol_refine`, `story3_rollover_ladder_rung_b`, `watertank` (each DECLINES without the channel) |
+| widened cut channel needed (`RELCERT_IMPLIED_CUT=1`; closures, implied contractions, linear-form chains; lifted to the kernel by `Proofs/Soundness/CutLiftX.lean`) | **10** | `acc_spoof_lag`, `arm_plateau_{crit,profiles,slow}`, `charger_fast_setpoints`, `platoon_delay_{linkloss,profiles}`, `rover_patrol_refine`, `rover_rollover_split_b`, `watertank` (each DECLINES without the channel) |
 | the non-connection certificate of a pruned edge (the paper's Definition 6, `Checker/NonConn.lean`): enters every bridge instance as the barrier of each pruned exit (`nonconn_entry`, `nonconn_keep`, `guard_pos_of_barrier`), the 88 queries of the 44 pruned edges re-sent by `--check-quick-v2` and as bridge groups | **44** edges | `docs/PAPER-MAPPING.md` §5 |
 | kernel refutations of known-false invariant variants, each the negation of the clocked bridge claim at its benchmark's bridge dimension (`InstancesV2/Refute/`, `relcert-refute-verdicts`, 188 groups) | **67** | `docs/REFUTATION-RESULTS.md` |
 | the strict-invariant exhibit (`benchmarks/strict_demo`, `InstancesV2/Bridge/WatertankStrict.lean`) | **1** | `watertank_strict` |
@@ -257,7 +257,7 @@ check.
 
 **Heavy files.** Since the standalone instances were archived (2026-10-22) no module takes
 more than about a minute: the heaviest are the 12-dimensional Assumption 1 proofs
-(`InstancesV2/WellFormed/Story*`, `RoverDofTerrainRung3*`, about 35 s each) and the refutation
+(`InstancesV2/WellFormed/RoverAttitude*`, `RoverLateral*`, `RoverRollover*`, `Story3RolloverBase`, `RoverTerrain6to12*`, about 35 s each) and the refutation
 instances; a plain `lake build` is enough. `lake build` is incremental, but an edit to
 anything under `Proofs/`, `Checker/` or `Trusted/` rebuilds every instance downstream. The
 full recipe, what each check establishes and what it does not, and the measured cost:
@@ -406,7 +406,7 @@ bridge, `theorem3_leftAut_of_choice`). With them all 46 were proved on the stand
 mostly by explicit responses that switch at band floors (ladder climbs, synchronized climbs
 inside the window, a decay budget for attitude rows: `GuardedClimb`, `LadderClimb`,
 `SyncSwitch`, `LadderSync`; the route is archived, see "Archived routes").
-Two findings: three ladders (`rung2_3to6`, the story2 pair) are false with a left window that
+Two findings: three ladders (`rover_ladder_3to6`, the `rover_lateral` pair) are false with a left window that
 has no guard test but true with the paper's left program (the band order the left guard
 gives makes every stretch a certified pair); and the two `platoon3` benchmarks were refuted in
 the kernel because their nominal controller BLOCKED after a full cycle (engagement-band stay
@@ -475,7 +475,7 @@ the strict mode and gates the `--wellformed` report against declared counts (174
 ## The 19 carried-over Assumption 1 proofs
 
 Nineteen suite_v2 benchmarks (the rover refinement ladder, the rover terrain rungs,
-`rover3tier_rung12`, `match_multi_rate`, and the story1, story2 and story3 benchmarks except `story3_rollover_ladder_rung_b`) are byte-identical copies of files of the retired legacy
+`rover3tier_rung12`, `match_multi_rate`, and the attitude, lateral and rollover benchmarks except `rover_rollover_split_b`) are byte-identical copies, up to the name lines of the 2026-10-25 rename (`benchmarks/README.md`), of files of the retired legacy
 suite `suite_uniform` (removed from the tree on 2026-10-10; git history keeps it). Their
 Assumption 1 proofs were first written against the legacy literals; they now live with the
 others in `InstancesV2/WellFormed/<B>.lean` (moved from `Instances/WellFormed/` on

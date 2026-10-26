@@ -4,7 +4,7 @@ Released under Apache 2.0 license.
 
 # `rover_lateral_8to12_m021`: Theorem 3's claim of a mutant of `rover_lateral_8to12` is false (GENERATED — `scripts/gen_refute.py`)
 
-Mutant ORO `(<= (+ L_y2 L_w2) (+ R_y2 0.5)) [L_y2->R_y2]`. Kind B (a component pushed out by the left flow, right-rigid): the left takes the window of mode 0 with a short flow, the right starts in mode 0. Dimension 14: the benchmark's bridge dimension, the last auxiliary coordinate the right clock.
+Mutant ORO `(<= (+ (+ L_y2 L_w2) L_w4) (+ R_y2 0.5)) [L_w2->R_w2]`. Kind B (a component pushed out by the left flow, right-rigid): the left takes the window of mode 0 with a short flow, the right starts in mode 0. Dimension 14: the benchmark's bridge dimension, the last auxiliary coordinate the right clock.
 -/
 import RelCertifier.Proofs.Encoding.Emitted.RefuteFlow
 import RelCertifier.InstancesV2.Refute.Data.rover_lateral_8to12_m021

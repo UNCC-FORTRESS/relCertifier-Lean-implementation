@@ -1,6 +1,6 @@
 # rover_patrol_zones: patrol rover with a worn drivetrain on a three-zone route.
 # scenario: degraded-actuator
-# mechanisms: M2 M3 M5 M6
+# mechanisms: M2 M3
 #
 # A patrol rover drives a route whose speed zones are keyed to the odometer s (m):
 #   SLOW    s <  20         commanded speed 0.6 m/s (leaving the depot)
@@ -14,32 +14,39 @@
 # 25 % faster; the deployed planner may also switch between the two MEDIUM profiles.
 # The reference (right) is the nominal rover.
 #
-# Rows (one per left mode): the deployed never drives faster than the reference
-# (v_L <= v_R) and its odometer never leads the reference's by more than a zone margin
-# that grows along the route (SLOW 0.5 m, MEDIUM 1 m, FAST 2 m); the handoffs along
-# SLOW -> MEDIUM -> FAST loosen the bound (M5, 10 non-vacuous handoff queries).
+# Property (the same rows in every left mode): the deployed never drives faster than the
+# reference (v_L <= v_R) and its odometer never leads the reference's (s_L <= s_R).
+# Requirement: the dispatcher schedules the patrol on the nominal rover's timetable, so the
+# worn rover must never be ahead of that timetable (it may only be late). Margin 0 is the
+# requirement value; the s row is not tight: every uniform offset tried, from +0.5 down to
+# -5 m, certifies (the s row follows from v_L <= v_R). Until 2026-10-26 the margins grew
+# along the route (SLOW 0.5 m, MEDIUM 1 m, FAST 2 m) with no requirement behind them; that
+# gave non-vacuous handoffs (M5) and load-bearing cuts (NO_CUT DECLINED), both lost now
+# (rows identical, handoff vacuous; NO_CUT CERTIFIES).
 # Covers (measured): every zone certifies at lambda = 1 with budget 2 (epsilon_L = 2 s,
 # epsilon_R = 1 s); a window started in SLOW takes a joint step whose retained
 # successors MEDIUM_ECO and MEDIUM_BRISK both cover (M2, M3); a reference that is still
 # in an earlier zone than the deployed (or in the ECO profile while the deployed runs
-# BRISK) repositions right-only to the deployed's zone. The zone speed caps are
-# flow-invariant guard conjuncts (each loop contracts toward its command), the checked
-# cuts those right-only segments need (RELCERT_NO_CUT=1 DECLINES, M6).
+# BRISK) repositions right-only to the deployed's zone.
 #
 # Fallback (M4): the reference declares a STALL fallback below 0.2 m/s (drive cut,
 # v' = -2 v, odometer keeps integrating, sink) from every driving zone; every zone floor
 # is 0.3 m/s and every loop accelerates at 0.2 m/s, so all four STALL edges are pruned;
-# v_L >= 0.3 and v_L <= v_R exclude STALL as a start. Pruning is NOT load-bearing on
-# this rung: RELCERT_NO_PRUNE=1 still CERTIFIES (the STALL pairings close without it), so
-# the matrix scores M4 as vacuous here (neither patrol rung exercises pruning).
+# v_L >= 0.3 and v_L <= v_R exclude STALL as a start. Pruning is NOT load-bearing:
+# RELCERT_NO_PRUNE=1 still CERTIFIES.
+# Right states in no right guard: v in [0.2, 0.3) (between the stall threshold and the zone
+# floor), and v above the zone's command. Neither is reachable by the reference: every zone
+# is entered at a speed in [0.3, vcmd] (its guard), each loop contracts toward vcmd, so v
+# stays in [0.3, vcmd] while the zone lasts, and every successor zone has a higher command
+# and the same floor (SLOW 0.6 -> MEDIUM 0.9 / 1.1 -> FAST 1.5). The band [0.2, 0.3) is the
+# stall detector's hysteresis: a drive that is stalled resumes a zone loop only at 0.3 m/s.
 # Envelope (physical domain, both sides): v in [0, 1.6] m/s (the drive's speed range);
-# s >= 0 m (the odometer counts up from the depot). The odometer has NO upper wall: the
-# patrol continues past the last zone boundary (FAST's guard s >= 50 already covers every
-# s beyond MEDIUM). Until 2026-10-10 the evolve domains also carried s <= 100 m; that is a
-# blocking constraint, not a physical limit of the rover (it stops the reference's flow at
-# s = 100 while the deployed, up to 2 m behind, still moves, violating nonblocking,
-# Assumption 1, and making the modal claim false as modeled). Removed on both sides;
-# docs/SUITE-REDESIGN.md section 19.
+# s >= 0 m (the odometer counts up from the depot), no upper wall (removed 2026-10-10: it
+# blocked the reference's flow at s = 100 while the deployed still moved).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1): CERTIFIED under control, NO_CHOICE, NO_PRUNE,
+# NO_PRUNE+NO_CHOICE, OPREGION, NO_CUT, NO_IMPLIED_CUT, NO_LINEAR_CUT and without
+# RELCERT_IMPLIED_CUT; DECLINED under SYNC and SYNC+NO_CHOICE.
 [problem]
 name = rover_patrol_zones
 max_depth = 8
@@ -98,7 +105,7 @@ guard = v < 0.2
 evolve = v >= 0.0 and v <= 1.6 and s >= 0.0
 next = [STALL]
 [relational_invariant]
-SLOW         = smt2:(and (<= L_v R_v) (<= L_s (+ R_s 0.5)))
-MEDIUM_ECO   = smt2:(and (<= L_v R_v) (<= L_s (+ R_s 1.0)))
-MEDIUM_BRISK = smt2:(and (<= L_v R_v) (<= L_s (+ R_s 1.0)))
-FAST         = smt2:(and (<= L_v R_v) (<= L_s (+ R_s 2.0)))
+SLOW         = smt2:(and (<= L_v R_v) (<= L_s R_s))
+MEDIUM_ECO   = smt2:(and (<= L_v R_v) (<= L_s R_s))
+MEDIUM_BRISK = smt2:(and (<= L_v R_v) (<= L_s R_s))
+FAST         = smt2:(and (<= L_v R_v) (<= L_s R_s))

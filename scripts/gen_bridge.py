@@ -33,7 +33,7 @@ CHOICE = {
 }
 
 KEYED = {"acc_spoof_limp", "acc_tune_limp", "platoon3_linkloss", "platoon_delay_linkloss",
-         "rover_patrol_lag", "rover_patrol_zones",
+         "rover_patrol_lag",
          "sat3w_detumble_phases", "sat_detumble_phases", "rover_attitude_6to8",
          "rover_attitude_8to12"}
 

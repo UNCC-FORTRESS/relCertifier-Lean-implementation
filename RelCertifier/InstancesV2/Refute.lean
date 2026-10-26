@@ -19,8 +19,6 @@ import RelCertifier.InstancesV2.Refute.RoverPatrolLagM003
 import RelCertifier.InstancesV2.Refute.RoverPatrolLagM004
 import RelCertifier.InstancesV2.Refute.RoverPatrolLagM009
 import RelCertifier.InstancesV2.Refute.RoverPatrolLagM013
-import RelCertifier.InstancesV2.Refute.RoverPatrolZonesM008
-import RelCertifier.InstancesV2.Refute.RoverPatrolZonesM012
 import RelCertifier.InstancesV2.Refute.Sat3wDetumbleNominalM002
 import RelCertifier.InstancesV2.Refute.Sat3wDetumbleNominalM003
 import RelCertifier.InstancesV2.Refute.Sat3wDetumbleNominalM004
@@ -75,12 +73,13 @@ import RelCertifier.InstancesV2.Refute.RoverLateral6to8M009
 import RelCertifier.InstancesV2.Refute.RoverLateral6to8M010
 import RelCertifier.InstancesV2.Refute.RoverLateral6to8M011
 import RelCertifier.InstancesV2.Refute.RoverLateral6to8M012
-import RelCertifier.InstancesV2.Refute.RoverLateral8to12M014
-import RelCertifier.InstancesV2.Refute.RoverLateral8to12M018
+import RelCertifier.InstancesV2.Refute.RoverLateral8to12M015
 import RelCertifier.InstancesV2.Refute.RoverLateral8to12M019
 import RelCertifier.InstancesV2.Refute.RoverLateral8to12M020
 import RelCertifier.InstancesV2.Refute.RoverLateral8to12M021
 import RelCertifier.InstancesV2.Refute.RoverLateral8to12M022
+import RelCertifier.InstancesV2.Refute.RoverLateral8to12M023
+import RelCertifier.InstancesV2.Refute.RoverLateral8to12M024
 import RelCertifier.InstancesV2.Refute.RoverRollover6to12M010
 import RelCertifier.InstancesV2.Refute.RoverRollover6to7M011
 import RelCertifier.InstancesV2.Refute.RoverRollover6to7M016

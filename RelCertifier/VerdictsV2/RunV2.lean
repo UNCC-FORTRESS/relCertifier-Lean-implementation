@@ -65,11 +65,11 @@ def packsV2 : List PackV2 :=
     ⟨"watertank", 2, 0, [0, 1], 2, 1, 1, 1⟩, ⟨"watertank", 2, 0, [0, 1], 2, 1, 1, 2⟩,
     ⟨"watertank", 2, 0, [0, 1], 2, 1, 1, 3⟩,
     ⟨"watertank", 2, 0, [0, 1], 1, 1, 2, 3⟩,
-    -- platoon_delay_profiles: two windows (rows 0, 1), right FOLLOW/GENTLE/ASSERTIVE, λ = 1
+    -- platoon_delay_profiles: two windows (rows 0, 1), right FOLLOW/GENTLE/ASSERTIVE, λ = 1 (5/4 for the GENTLE window against FOLLOW)
     ⟨"platoon_delay_profiles", 2, 0, [0, 1], 1, 1, 0, 0⟩,
     ⟨"platoon_delay_profiles", 2, 0, [0, 1], 1, 1, 0, 1⟩,
     ⟨"platoon_delay_profiles", 2, 0, [0, 1], 1, 1, 0, 2⟩,
-    ⟨"platoon_delay_profiles", 2, 1, [0, 1], 1, 1, 1, 0⟩,
+    ⟨"platoon_delay_profiles", 2, 1, [0, 1], 5, 4, 1, 0⟩,
     ⟨"platoon_delay_profiles", 2, 1, [0, 1], 1, 1, 1, 1⟩,
     ⟨"platoon_delay_profiles", 2, 1, [0, 1], 1, 1, 1, 2⟩,
     -- acc_spoof_limp
@@ -79,13 +79,6 @@ def packsV2 : List PackV2 :=
     ⟨"acc_spoof_limp", 3, 1, [0, 1], 1, 1, 1, 0⟩,
     ⟨"acc_spoof_limp", 3, 1, [0, 1], 1, 1, 1, 1⟩,
     ⟨"acc_spoof_limp", 3, 1, [0, 1], 1, 1, 1, 2⟩,
-    -- acc_tune_limp
-    ⟨"acc_tune_limp", 3, 0, [0, 1], 3, 2, 0, 0⟩,
-    ⟨"acc_tune_limp", 3, 0, [0, 1], 3, 2, 0, 1⟩,
-    ⟨"acc_tune_limp", 3, 0, [0, 1], 3, 2, 0, 2⟩,
-    ⟨"acc_tune_limp", 3, 1, [0, 1], 1, 1, 1, 0⟩,
-    ⟨"acc_tune_limp", 3, 1, [0, 1], 1, 1, 1, 1⟩,
-    ⟨"acc_tune_limp", 3, 1, [0, 1], 1, 1, 1, 2⟩,
     -- platoon_delay_linkloss
     ⟨"platoon_delay_linkloss", 3, 0, [0, 1], 1, 1, 0, 0⟩,
     ⟨"platoon_delay_linkloss", 3, 0, [0, 1], 1, 1, 0, 1⟩,
@@ -95,32 +88,44 @@ def packsV2 : List PackV2 :=
     ⟨"platoon_delay_linkloss", 3, 2, [0, 1], 1, 1, 2, 1⟩,
     -- quad_light_airframe_20
     ⟨"quad_light_airframe_20", 2, 0, [0, 1], 7, 4, 0, 0⟩,
-    -- quad_light_profiles
-    ⟨"quad_light_profiles", 2, 0, [0, 1], 5, 2, 0, 0⟩,
-    ⟨"quad_light_profiles", 2, 0, [0, 1], 5, 2, 0, 1⟩,
-    ⟨"quad_light_profiles", 2, 0, [0, 1], 5, 2, 0, 2⟩,
     -- quad_light_lag
-    ⟨"quad_light_lag", 2, 0, [0], 7, 4, 0, 0⟩,
+    ⟨"quad_light_lag", 2, 0, [1, 0], 7, 4, 0, 0⟩,
     -- charger_fast_setpoints
-    ⟨"charger_fast_setpoints", 2, 0, [0], 1, 1, 0, 1⟩,
-    ⟨"charger_fast_setpoints", 2, 0, [0], 1, 1, 0, 2⟩,
-    ⟨"charger_fast_setpoints", 2, 1, [0], 1, 1, 1, 1⟩,
-    ⟨"charger_fast_setpoints", 2, 1, [0], 1, 1, 1, 2⟩,
-    ⟨"charger_fast_setpoints", 2, 2, [0], 1, 1, 2, 1⟩,
-    ⟨"charger_fast_setpoints", 2, 2, [0], 1, 1, 2, 2⟩,
+    ⟨"charger_fast_setpoints", 3, 0, [0], 1, 1, 0, 1⟩,
+    ⟨"charger_fast_setpoints", 3, 0, [0], 1, 1, 0, 2⟩,
+    ⟨"charger_fast_setpoints", 3, 0, [0], 1, 1, 0, 3⟩,
+    ⟨"charger_fast_setpoints", 3, 1, [0], 1, 1, 1, 2⟩,
+    ⟨"charger_fast_setpoints", 3, 1, [0], 1, 1, 1, 3⟩,
+    ⟨"charger_fast_setpoints", 3, 2, [0], 1, 1, 2, 3⟩,
+    ⟨"charger_fast_setpoints", 3, 3, [0], 1, 1, 3, 2⟩,
+    ⟨"charger_fast_setpoints", 3, 3, [0], 1, 1, 3, 3⟩,
+    ⟨"charger_fast_setpoints", 3, 4, [0], 1, 1, 4, 0⟩,
+    ⟨"charger_fast_setpoints", 3, 4, [0], 1, 1, 4, 1⟩,
+    ⟨"charger_fast_setpoints", 3, 4, [0], 1, 1, 4, 2⟩,
+    ⟨"charger_fast_setpoints", 3, 4, [0], 1, 1, 4, 3⟩,
+    ⟨"charger_fast_setpoints", 3, 4, [0], 1, 1, 4, 4⟩,
     -- acc_tune_lag
-    ⟨"acc_tune_lag", 2, 0, [0], 5, 4, 0, 0⟩,
+    ⟨"acc_tune_lag", 2, 0, [0, 1], 2, 1, 0, 0⟩,
     -- acc_spoof_lag
-    ⟨"acc_spoof_lag", 2, 0, [0], 5, 2, 0, 0⟩,
+    ⟨"acc_spoof_lag", 2, 0, [1, 0], 3, 2, 0, 0⟩,
     -- charger_fast_tapers
-    ⟨"charger_fast_tapers", 2, 0, [0], 1, 1, 0, 3⟩,
-    ⟨"charger_fast_tapers", 2, 1, [0], 1, 1, 1, 0⟩,
-    ⟨"charger_fast_tapers", 2, 1, [0], 1, 1, 1, 1⟩,
-    ⟨"charger_fast_tapers", 2, 1, [0], 1, 1, 1, 2⟩,
-    ⟨"charger_fast_tapers", 2, 1, [0], 1, 1, 1, 3⟩,
-    ⟨"charger_fast_tapers", 2, 2, [0], 1, 1, 2, 1⟩,
-    ⟨"charger_fast_tapers", 2, 2, [0], 1, 1, 2, 2⟩,
-    ⟨"charger_fast_tapers", 2, 2, [0], 1, 1, 2, 3⟩,
+    ⟨"charger_fast_tapers", 3, 0, [0], 1, 1, 0, 1⟩,
+    ⟨"charger_fast_tapers", 3, 0, [0], 1, 1, 0, 2⟩,
+    ⟨"charger_fast_tapers", 3, 0, [0], 1, 1, 0, 3⟩,
+    ⟨"charger_fast_tapers", 3, 0, [0], 1, 1, 0, 4⟩,
+    ⟨"charger_fast_tapers", 3, 1, [0], 1, 1, 1, 4⟩,
+    ⟨"charger_fast_tapers", 3, 2, [0], 1, 1, 2, 1⟩,
+    ⟨"charger_fast_tapers", 3, 2, [0], 1, 1, 2, 3⟩,
+    ⟨"charger_fast_tapers", 3, 2, [0], 1, 1, 2, 4⟩,
+    ⟨"charger_fast_tapers", 3, 3, [0], 1, 1, 3, 2⟩,
+    ⟨"charger_fast_tapers", 3, 3, [0], 1, 1, 3, 3⟩,
+    ⟨"charger_fast_tapers", 3, 3, [0], 1, 1, 3, 4⟩,
+    ⟨"charger_fast_tapers", 3, 4, [0], 1, 1, 4, 0⟩,
+    ⟨"charger_fast_tapers", 3, 4, [0], 1, 1, 4, 1⟩,
+    ⟨"charger_fast_tapers", 3, 4, [0], 1, 1, 4, 2⟩,
+    ⟨"charger_fast_tapers", 3, 4, [0], 1, 1, 4, 3⟩,
+    ⟨"charger_fast_tapers", 3, 4, [0], 1, 1, 4, 4⟩,
+    ⟨"charger_fast_tapers", 3, 4, [0], 1, 1, 4, 5⟩,
     -- rover_rollover_7to12 (cover replay; rows identical since 2026-10-26)
     ⟨"rover_rollover_7to12", 12, 0, [0, 1, 2, 3, 4, 5, 6], 27, 20, 0, 0⟩,
     ⟨"rover_rollover_7to12", 12, 0, [0, 1, 2, 3, 4, 5, 6], 27, 20, 0, 1⟩,
@@ -165,16 +170,21 @@ def packsV2 : List PackV2 :=
     ⟨"rover_patrol_zones", 3, 0, [0, 1], 1, 1, 2, 3⟩,
     ⟨"rover_patrol_zones", 3, 0, [0, 1], 1, 1, 3, 3⟩,
     -- rover_patrol_lag
-    ⟨"rover_patrol_lag", 3, 0, [0, 1], 9, 4, 0, 0⟩,
-    ⟨"rover_patrol_lag", 3, 0, [0, 1], 9, 4, 0, 1⟩,
-    ⟨"rover_patrol_lag", 3, 0, [0, 1], 9, 4, 0, 2⟩,
-    ⟨"rover_patrol_lag", 3, 0, [0, 1], 9, 4, 0, 3⟩,
-    ⟨"rover_patrol_lag", 3, 1, [0, 1], 9, 4, 1, 1⟩,
-    ⟨"rover_patrol_lag", 3, 1, [0, 1], 9, 4, 1, 2⟩,
-    ⟨"rover_patrol_lag", 3, 1, [0, 1], 9, 4, 1, 3⟩,
-    ⟨"rover_patrol_lag", 3, 2, [0, 1], 9, 4, 2, 2⟩,
-    ⟨"rover_patrol_lag", 3, 2, [0, 1], 9, 4, 2, 3⟩,
-    ⟨"rover_patrol_lag", 3, 3, [0, 1], 9, 4, 3, 3⟩,
+    ⟨"rover_patrol_lag", 3, 0, [0, 1, 2], 1, 1, 0, 0⟩,
+    ⟨"rover_patrol_lag", 3, 0, [0, 1, 2], 1, 1, 0, 1⟩,
+    ⟨"rover_patrol_lag", 3, 0, [0, 1, 2], 1, 1, 0, 2⟩,
+    ⟨"rover_patrol_lag", 3, 0, [0, 1, 2], 1, 1, 0, 3⟩,
+    ⟨"rover_patrol_lag", 3, 1, [0, 1, 2], 5, 4, 1, 0⟩,
+    ⟨"rover_patrol_lag", 3, 1, [0, 1, 2], 5, 4, 1, 1⟩,
+    ⟨"rover_patrol_lag", 3, 1, [0, 1, 2], 5, 4, 1, 2⟩,
+    ⟨"rover_patrol_lag", 3, 1, [0, 1, 2], 5, 4, 1, 3⟩,
+    ⟨"rover_patrol_lag", 3, 2, [0, 1, 2], 3, 2, 2, 0⟩,
+    ⟨"rover_patrol_lag", 3, 2, [0, 1, 2], 3, 2, 2, 1⟩,
+    ⟨"rover_patrol_lag", 3, 2, [0, 1, 2], 3, 2, 2, 2⟩,
+    ⟨"rover_patrol_lag", 3, 2, [0, 1, 2], 3, 2, 2, 3⟩,
+    ⟨"rover_patrol_lag", 3, 3, [0, 1, 2], 3, 2, 3, 1⟩,
+    ⟨"rover_patrol_lag", 3, 3, [0, 1, 2], 3, 2, 3, 2⟩,
+    ⟨"rover_patrol_lag", 3, 3, [0, 1, 2], 3, 2, 3, 3⟩,
     -- rover_terrain_3to6 (cover replay)
     ⟨"rover_terrain_3to6", 6, 0, [0, 1], 5, 4, 0, 0⟩,
     ⟨"rover_terrain_3to6", 6, 0, [0, 1], 5, 4, 0, 1⟩,
@@ -335,7 +345,7 @@ def packsV2 : List PackV2 :=
     ⟨"watertank_twospeed", 2, 0, [0, 1], 31, 10, 0, 1⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 644
+def expectedModalV2 : Nat := 670
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
@@ -428,23 +438,23 @@ def dynPacksV2 : List DynPackV2 :=
     -- arm_plateau_slow
     ⟨"arm_plateau_slow", 2, 0, [0], true, 0, 1⟩,
     -- charger_fast_setpoints
-    ⟨"charger_fast_setpoints", 2, 0, [0], true, 0, 0⟩,
-    ⟨"charger_fast_setpoints", 2, 1, [0], true, 1, 0⟩,
+    ⟨"charger_fast_setpoints", 3, 0, [0], true, 0, 0⟩,
+    ⟨"charger_fast_setpoints", 3, 1, [0], true, 1, 0⟩,
+    ⟨"charger_fast_setpoints", 3, 1, [0], true, 1, 1⟩,
+    ⟨"charger_fast_setpoints", 3, 2, [0], true, 2, 1⟩,
+    ⟨"charger_fast_setpoints", 3, 2, [0], true, 2, 2⟩,
     -- charger_fast_tapers
-    ⟨"charger_fast_tapers", 2, 0, [0], true, 0, 0⟩,
-    ⟨"charger_fast_tapers", 2, 0, [0], true, 0, 1⟩,
-    ⟨"charger_fast_tapers", 2, 0, [0], true, 0, 2⟩,
+    ⟨"charger_fast_tapers", 3, 0, [0], true, 0, 0⟩,
+    ⟨"charger_fast_tapers", 3, 1, [0], true, 1, 0⟩,
+    ⟨"charger_fast_tapers", 3, 1, [0], true, 1, 1⟩,
+    ⟨"charger_fast_tapers", 3, 1, [0], true, 1, 2⟩,
+    ⟨"charger_fast_tapers", 3, 1, [0], true, 1, 3⟩,
+    ⟨"charger_fast_tapers", 3, 2, [0], true, 2, 2⟩,
     -- rover_patrol_zones
-    ⟨"rover_patrol_zones", 3, 0, [0, 1], true, 2, 1⟩,
-    -- rover_patrol_lag
-    ⟨"rover_patrol_lag", 3, 1, [0, 1], true, 1, 0⟩,
-    ⟨"rover_patrol_lag", 3, 2, [0, 1], true, 2, 0⟩,
-    ⟨"rover_patrol_lag", 3, 2, [0, 1], true, 2, 1⟩,
-    ⟨"rover_patrol_lag", 3, 3, [0, 1], true, 3, 1⟩,
-    ⟨"rover_patrol_lag", 3, 3, [0, 1], true, 3, 2⟩ ]
+    ⟨"rover_patrol_zones", 3, 0, [0, 1], true, 2, 1⟩ ]
 
 /-- Declared: the number of component queries the reposition packs owe. -/
-def expectedDynV2 : Nat := 25
+def expectedDynV2 : Nat := 21
 
 def runDynPack (s : Z3Session) (r : DynPackV2) : IO Bool := do
   let p := irV2 r.bench
@@ -488,7 +498,7 @@ def runDynV2 (cfg : Z3Config) : IO Bool := do
 
 /-- Declared: one handoff query per declared left transition over the 46 suite_v2 files
 (self-loops included; `CoveragePinsV2.derivedHandoffV2_eq` derives it from the IR table). -/
-def expectedHandoffV2 : Nat := 407
+def expectedHandoffV2 : Nat := 417
 
 /-- Declared handoff failures in suite_v2: none. -/
 def expectedHandoffFailuresV2 : List (String × Nat × Nat) := []

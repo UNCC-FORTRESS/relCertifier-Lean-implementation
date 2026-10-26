@@ -116,16 +116,16 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 
 | benchmark | state vars | modes | scenario | notes |
 |---|---|---|---|---|
-| `acc_spoof_lag` | 2 / 2 | 1 / 2 | model-refinement | widened cuts |
+| `acc_spoof_lag` | 2 / 2 | 1 / 1 | sensor-attack | redesigned 2026-10-26: same lag both sides |
 | `acc_spoof_limp` | 1 / 1 | 2 / 4 | sensor-attack | mode-keyed |
-| `acc_tune_lag` | 2 / 2 | 1 / 2 | model-refinement |  |
-| `acc_tune_limp` | 1 / 1 | 2 / 4 | degraded-controller | mode-keyed |
+| `acc_tune_lag` | 2 / 2 | 1 / 1 | degraded-controller | redesigned 2026-10-26: same lag both sides |
+| `acc_tune_limp` | 1 / 1 | 2 / 4 | degraded-controller | mode-keyed, mode choice |
 | `airheader_dos_3to1` | 2 / 2 | 3 / 3 | dos-attack | new 2026-10-26 (replaces `rover_ladder_4to6`): pruning of the latched trip, DECLINES with `RELCERT_NO_PRUNE=1` |
 | `arm_plateau_crit` | 2 / 1 | 2 / 4 | model-refinement | widened cuts, Z3-free; successor sets repaired (§21) |
 | `arm_plateau_profiles` | 2 / 1 | 2 / 5 | degraded-controller | widened cuts, Z3-free; successor sets repaired (§21) |
 | `arm_plateau_slow` | 2 / 1 | 2 / 4 | degraded-actuator | widened cuts, Z3-free; successor sets repaired (§21) |
-| `charger_fast_setpoints` | 1 / 1 | 3 / 4 | degraded-controller | widened cuts |
-| `charger_fast_tapers` | 1 / 1 | 3 / 5 | degraded-controller |  |
+| `charger_fast_setpoints` | 1 / 1 | 5 / 5 | degraded-controller | mode-keyed, widened cuts |
+| `charger_fast_tapers` | 1 / 1 | 5 / 6 | degraded-controller | mode-keyed, widened cuts |
 | `drl_car_stop` | 2 / 2 | 3 / 3 | controller-refinement | literature (dRL), mode choice |
 | `drl_lane_control` | 3 / 3 | 6 / 6 | controller-refinement | literature (dRL), mode choice |
 | `freedm_meter` | 2 / 2 | 12 / 12 | information-flow | literature (dHL, FREEDM), mode choice |
@@ -134,10 +134,10 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `platoon3_linkloss` | 6 / 6 | 2 / 4 | sensor-attack | mode-keyed; guards repaired (operating range, `docs/SUITE-REDESIGN.md` §20); latched AEB sinks (§21) |
 | `platoon3_profiles` | 6 / 6 | 1 / 6 | sensor-attack | guards repaired (operating range, `docs/SUITE-REDESIGN.md` §20); latched AEB sinks (§21) |
 | `platoon_delay_linkloss` | 1 / 1 | 3 / 3 | sensor-attack | mode-keyed, widened cuts; BRAKE re-engages (§21) |
-| `platoon_delay_profiles` | 1 / 1 | 2 / 4 | sensor-attack | widened cuts; BRAKE re-engages (§21) |
+| `platoon_delay_profiles` | 1 / 1 | 2 / 4 | degraded-sensor | widened cuts; BRAKE re-engages (§21) |
 | `quad_light_airframe_20` | 1 / 1 | 1 / 2 | model-refinement | LIMIT hands back (§21) |
-| `quad_light_lag` | 2 / 2 | 1 / 1 | model-refinement |  |
-| `quad_light_profiles` | 1 / 1 | 1 / 4 | model-refinement | LIMIT hands back (§21) |
+| `quad_light_lag` | 2 / 2 | 1 / 1 | model-refinement | redesigned 2026-10-26: same lag both sides |
+| `quad_light_profiles` | 1 / 1 | 1 / 4 | model-refinement | LIMIT hands back (§21); mode choice |
 | `rover_ladder_2to3` | 3 / 2 | 3 / 3 | model-refinement | rewritten 2026-10-26: right speed caps dropped, s offset 0 |
 | `rover_ladder_3to6` | 6 / 6 | 3 / 3 | model-refinement | rewritten 2026-10-26: right pitch pinned, heave/roll roles |
 | `rover_ladder_2to4` | 4 / 4 | 3 / 3 | model-refinement | rewritten 2026-10-26: lambda_min 1.0, offset 0 |
@@ -147,7 +147,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `rover_terrain_3to6` | 6 / 6 | 3 / 3 | model-refinement | rewritten 2026-10-26: right heading penalty, offset 0; heave/roll roles (the ladder's 6-DOF law) |
 | `rover_terrain_6to12` | 12 / 12 | 3 / 3 | model-refinement | rewritten 2026-10-26: lagged ax, ay, damped heave, cascade chart; heave/roll roles |
 | `rover_terrain_6to8` | 8 / 8 | 3 / 3 | model-refinement | rewritten 2026-10-26: cascade-chart left, right penalty; heave/roll roles (same models as `rover_ladder_6to8` up to the attitude range) |
-| `rover_patrol_lag` | 3 / 3 | 4 / 4 | model-refinement | mode-keyed, widened cuts |
+| `rover_patrol_lag` | 3 / 3 | 4 / 4 | degraded-actuator | redesigned 2026-10-26: same lag both sides |
 | `rover_patrol_zones` | 2 / 2 | 4 / 5 | degraded-actuator | uniform rows (2026-10-26) |
 | `sat3w_detumble_nominal` | 6 / 6 | 1 / 2 | model-refinement | nonblocking region |
 | `sat3w_detumble_phases` | 6 / 6 | 2 / 2 | model-refinement | mode-keyed, nonblocking region |

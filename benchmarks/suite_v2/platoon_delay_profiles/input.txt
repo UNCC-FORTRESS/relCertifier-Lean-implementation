@@ -1,41 +1,44 @@
-# platoon_delay_profiles: the delayed-link platoon follower against a reference with two catch-up profiles.
-# scenario: sensor-attack
-# mechanisms: M2 M3 M4 M6 M6+
+# platoon_delay_profiles: the platoon follower on a delayed link against a reference with two catch-up profiles.
+# scenario: degraded-sensor
+# mechanisms: S M B P I (per-pairing time stretch, RELCERT_SYNC=1 declines; multi-step covers;
+#   branching joint steps; pruned AEB edge; implied cuts, matrix codes M1 M2 M3 M4 M6 M6+)
 #
-# The platoon of platoon_delay_bias (gap g to a constant-speed leader, desired gap
-# 30 m, follower loops g' = -k (g - 30)). The reference follower (right) may re-engage
-# from a wide gap (>= 30 m) with either of two catch-up profiles, GENTLE (k = 0.6) or
-# ASSERTIVE (k = 0.7), selected when it leaves FOLLOW (k = 0.5, band 20..40 m); it
-# declares the BRAKE fallback below 20 m (gap opens at 1.5 m/s; it re-engages FOLLOW at
-# 20 m). The deployed
-# follower (left) acts on the delayed link's 1 m gap overstatement (loops toward 29 m)
-# and, under its delay-mitigation policy, re-engages with the gentle profile only
-# (bands FOLLOW_L 24..40 m, GENTLE_L >= 30 m).
+# System. Gap g (m) to a leader at constant speed; desired gap 30 m; follower loops
+# g' = -k (g - g*). Reference follower (right): FOLLOW k = 0.5 toward 30 m in the band 20..40 m;
+# from a wide gap (>= 30 m) it may re-engage with either catch-up profile, GENTLE (k = 0.6) or
+# ASSERTIVE (k = 0.7), selected when it leaves FOLLOW; the AEB brake BRAKE below 20 m (the gap
+# opens at 1.5 m/s) re-engages FOLLOW at 20 m. Deployed follower (left): the same loops acting on
+# a delayed link whose reading overstates the gap by 1 m (the loops settle at 29 m); under its
+# delay-mitigation policy it re-engages with the gentle profile only. One cause: the delayed link
+# (and the policy that answers it).
 #
-# Claim (every mode): g_L <= g_R + 4 and g_R <= g_L + 3 -- against an assertive
-# reference re-engaging from a 60 m gap the gentle deployed follower falls up to 4 m
-# wider (the 1 m tolerance of platoon_delay_bias is violated by that pairing), and it is
-# never more than 3 m narrower. Certified at lambda = 1 with budget 2 right cycles per
-# left window; the cover from FOLLOW takes a joint step whose retained successors
-# GENTLE and ASSERTIVE both cover (M2, M3). The closed bands are flow-invariant guard
-# conjuncts kept as checked cuts; the mixed-profile segments need them
-# (RELCERT_NO_CUT=1 DECLINES, M6). FOLLOW -> BRAKE is pruned (the gentle loop opens the
-# gap at 20 m, g' = +5) and BRAKE is not an admissible start (g_L >= 24, g_L <= g_R + 4);
-# RELCERT_NO_PRUNE=1 DECLINES (M4). Since the gap domain floor is the physical 0 m (not
-# 15 m), the re-engagement profiles' lower bound comes from the dynamics: the implied
-# contraction atoms g >= 30 (R.GENTLE, R.ASSERTIVE) and g >= 29 (L.GENTLE), O1 rational,
-# O2 shape, are load-bearing (RELCERT_NO_IMPLIED_CUT=1 DECLINES, M6+). Units m, s;
-# physical domain 0 <= g <= 60 both sides.
+# Guards. Left FOLLOW: 24..40 m. 24 m = 0.8 x the 30 m desired gap: the follow controller engages
+# only at 80 % of its desired gap or more (its engagement threshold; the AEB releases at 20 m,
+# so engagement and release are separated by a 4 m hysteresis). Left GENTLE: g >= 30. Right as
+# above; the right guards cover [0, 60] (BRAKE below 20, FOLLOW 20..40, profiles above 30).
+# Physical domain 0 <= g <= 60 m both sides. relcert --wellformed: FOLLOW, GENTLE, ASSERTIVE ok
+# (invariant), BRAKE ok (exit->FOLLOW).
 #
-# Assumption 1 (repaired 2026-10-10, docs/SUITE-REDESIGN.md section 21): the brake
-# RE-ENGAGES. BRAKE's own flow reopens the gap (g' = +1.5), so its guard g < 20 is left
-# within one control period (from g = 19 the 1 s run ends at 20.5); with BRAKE as its own
-# only successor the nominal controller blocked there. Physically the AEB releases once
-# its condition has cleared: BRAKE -> FOLLOW is declared, enabled at g >= 20 (FOLLOW's
-# guard). Every run of at most 1 s from g < 20 ends below 21.5 m, in BRAKE's guard or in
-# FOLLOW's (20 <= g <= 40). The return edge does not touch the pruning of FOLLOW -> BRAKE
-# (BRAKE is still never entered); every verdict, counter-run and matrix cell is unchanged
-# (relcert --wellformed: BRAKE ok (exit->FOLLOW)).
+# Property (every mode): g_L <= g_R + 4 and g_R <= g_L + 1.
+#   g_R <= g_L + 1: the deployed follower never closes in by more than the link's 1 m
+#     overstatement (the attack-free safety margin); tight: 1.00 certifies, 0.99 declines.
+#   g_L <= g_R + 4: against an assertive reference re-engaging from a wide gap the gentle
+#     deployed follower trails wider; requirement: at most one car length (4 m) wider, beyond
+#     which cut-ins into the gap become likely. Tightest 3.43 (3.42 declines).
+# BRAKE is no admissible start: g_L >= 24 and g_L <= g_R + 4 give g_R >= 20. The two constants
+# meet exactly there (24 - 4 = 20): a width tolerance above 4 m, or an engagement threshold
+# below 24 m, lets a reference in its AEB brake pair with a following deployed car, which the
+# cover cannot match (DECLINED; with the floor at 20 or 21 the file declines for every width
+# tolerance that certifies at 24).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED; CERTIFIED under NO_CHOICE,
+# NO_LINEAR_CUT, RELCERT_WELLFORMED_STRICT=1; DECLINED under RELCERT_SYNC=1, SYNC+NO_CHOICE,
+# NO_PRUNE and NO_PRUNE+NO_CHOICE (FOLLOW -> BRAKE must be pruned: the gentle loop opens the gap
+# at 20 m), without RELCERT_IMPLIED_CUT and NO_IMPLIED_CUT (the implied contraction atoms g >= 30
+# of the right profiles and g >= 29 of the left GENTLE are load-bearing: the gap domain floor is
+# the physical 0 m), and NO_CUT. Covers: FOLLOW lambda 1 budget 2, GENTLE lambda 5/4 budget 3
+# (per pairing 1); joint steps from FOLLOW retain GENTLE and ASSERTIVE (branch 2). --handoff 4/4
+# vacuous (rows identical). Units m, s.
 [problem]
 name = platoon_delay_profiles
 max_depth = 8
@@ -79,5 +82,5 @@ guard = g < 20.0
 evolve = g >= 0.0 and g <= 60.0
 next = [BRAKE, FOLLOW]
 [relational_invariant]
-FOLLOW    = smt2:(and (<= L_g (+ R_g 4.0)) (<= R_g (+ L_g 3.0)))
-GENTLE    = smt2:(and (<= L_g (+ R_g 4.0)) (<= R_g (+ L_g 3.0)))
+FOLLOW    = smt2:(and (<= L_g (+ R_g 4.0)) (<= R_g (+ L_g 1.0)))
+GENTLE    = smt2:(and (<= L_g (+ R_g 4.0)) (<= R_g (+ L_g 1.0)))

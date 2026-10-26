@@ -23,13 +23,13 @@ def acc_tune_limp_IRv2 : PProblem :=
         {
           name := "CRUISE"
           odes := [("v", (.bin "*" (.num "0.75") (.bin "-" (.num "30.0") (.var "v"))))]
-          guard := (.and (.cmp ">=" (.var "v") (.num "22.0")) (.cmp "<=" (.var "v") (.num "36.0")))
+          guard := (.and (.cmp ">=" (.var "v") (.num "20.0")) (.cmp "<=" (.var "v") (.num "36.0")))
           evolve := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "40.0")))
           next := ["CRUISE", "LIMP"] },
         {
           name := "LIMP"
           odes := [("v", (.bin "*" (.num "0.3") (.bin "-" (.num "25.0") (.var "v"))))]
-          guard := (.and (.cmp ">=" (.var "v") (.num "22.0")) (.cmp "<=" (.var "v") (.num "30.0")))
+          guard := (.and (.cmp ">=" (.var "v") (.num "20.0")) (.cmp "<=" (.var "v") (.num "30.0")))
           evolve := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "40.0")))
           next := ["LIMP"] } ] }
     R := {
@@ -39,19 +39,19 @@ def acc_tune_limp_IRv2 : PProblem :=
         {
           name := "NORMAL"
           odes := [("v", (.bin "*" (.num "0.5") (.bin "-" (.num "30.0") (.var "v"))))]
-          guard := (.and (.cmp ">=" (.var "v") (.num "20.0")) (.cmp "<=" (.var "v") (.num "36.0")))
+          guard := (.and (.cmp ">=" (.var "v") (.num "20.0")) (.cmp "<=" (.var "v") (.num "40.0")))
           evolve := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "40.0")))
           next := ["NORMAL", "COMFORT", "SPORT", "DISENGAGE"] },
         {
           name := "COMFORT"
           odes := [("v", (.bin "*" (.num "0.4") (.bin "-" (.num "30.0") (.var "v"))))]
-          guard := (.and (.cmp ">=" (.var "v") (.num "20.0")) (.cmp "<=" (.var "v") (.num "36.0")))
+          guard := (.and (.cmp ">=" (.var "v") (.num "20.0")) (.cmp "<=" (.var "v") (.num "40.0")))
           evolve := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "40.0")))
           next := ["COMFORT", "NORMAL", "DISENGAGE"] },
         {
           name := "SPORT"
           odes := [("v", (.bin "*" (.num "0.6") (.bin "-" (.num "30.0") (.var "v"))))]
-          guard := (.and (.cmp ">=" (.var "v") (.num "20.0")) (.cmp "<=" (.var "v") (.num "36.0")))
+          guard := (.and (.cmp ">=" (.var "v") (.num "20.0")) (.cmp "<=" (.var "v") (.num "40.0")))
           evolve := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "40.0")))
           next := ["SPORT", "NORMAL", "DISENGAGE"] },
         {
@@ -61,7 +61,7 @@ def acc_tune_limp_IRv2 : PProblem :=
           evolve := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "40.0")))
           next := ["DISENGAGE"] } ] }
     invariants := [
-      ("CRUISE", (.and (.cmp "<=" (.var "L_v") (.bin "+" (.var "R_v") (.num "2.0"))) (.cmp "<=" (.var "R_v") (.bin "+" (.var "L_v") (.num "2.0"))))),
-      ("LIMP", (.and (.cmp "<=" (.var "L_v") (.bin "+" (.var "R_v") (.num "2.0"))) (.cmp "<=" (.var "R_v") (.bin "+" (.var "L_v") (.num "6.5")))))] }
+      ("CRUISE", (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "R_v") (.var "L_v")))),
+      ("LIMP", (.cmp "<=" (.var "L_v") (.var "R_v")))] }
 
 end RelCertifier.Parse

@@ -22,8 +22,8 @@ def quad_light_profiles_IRv2 : PProblem :=
       modes := [
         {
           name := "CLIMB"
-          odes := [("w", (.bin "-" (.num "9.524") (.bin "*" (.num "1.4") (.bin "*" (.var "w") (.var "w")))))]
-          guard := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "2.2")))
+          odes := [("w", (.bin "-" (.bin "/" (.num "39.62") (.num "3.0")) (.bin "*" (.bin "/" (.num "5.0") (.num "3.0")) (.bin "*" (.var "w") (.var "w")))))]
+          guard := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "3.2")))
           evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "3.5")))
           next := ["CLIMB"] } ] }
     R := {
@@ -55,6 +55,6 @@ def quad_light_profiles_IRv2 : PProblem :=
           evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "3.5")))
           next := ["LIMIT", "NORMAL"] } ] }
     invariants := [
-      ("CLIMB", (.and (.cmp "<=" (.var "L_w") (.bin "+" (.var "R_w") (.num "0.95"))) (.cmp "<=" (.var "R_w") (.bin "+" (.var "L_w") (.num "0.8")))))] }
+      ("CLIMB", (.and (.cmp "<=" (.var "L_w") (.bin "+" (.var "R_w") (.num "1.0"))) (.cmp "<=" (.var "R_w") (.var "L_w"))))] }
 
 end RelCertifier.Parse

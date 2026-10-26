@@ -18,17 +18,15 @@ def acc_spoof_lag_cutsV2 : EvolStrengthening :=
       ("CRUISE", [])
     ]
     R := [
-      ("CRUISE", [((.cmp ">=" (.var "v") (.num "20.0")), CutRoute.shape)]),
-      ("DISENGAGE", [])
+      ("CRUISE", [((.cmp ">=" (.bin "+" (.bin "*" (.num "3.0") (.var "a")) (.bin "*" (.num "2.0") (.var "v"))) (.num "40.0")), CutRoute.diStrict), ((.cmp "<=" (.bin "+" (.bin "*" (.num "3.0") (.var "a")) (.bin "*" (.num "2.0") (.var "v"))) (.num "66.0")), CutRoute.diStrict), ((.cmp ">=" (.bin "+" (.var "a") (.bin "*" (.num "2.0") (.var "v"))) (.num "44.0")), CutRoute.diStrict), ((.cmp "<=" (.bin "+" (.var "a") (.bin "*" (.num "2.0") (.var "v"))) (.num "62.0")), CutRoute.diStrict)])
     ] }
 
 def acc_spoof_lag_cutsV2X : EvolStrengtheningX :=
   { L := [
-      ("CRUISE", [⟨(.cmp "<=" (.bin "+" (.var "a") (.bin "*" (.num "1.25") (.bin "-" (.var "v") (.num "24")))) (.num "9.5")), CutKind.linearForm, CutEntry.rational, CutRouteX.linearShape, []⟩, ⟨(.cmp ">=" (.bin "+" (.var "a") (.bin "*" (.num "1.25") (.bin "-" (.var "v") (.num "24")))) (.num "-3.25")), CutKind.linearForm, CutEntry.rational, CutRouteX.linearShape, []⟩, ⟨(.cmp "<=" (.var "v") (.num "31.6")), CutKind.derivedBound, CutEntry.rational, CutRouteX.derivedShape, [(.cmp "<=" (.bin "+" (.var "a") (.bin "*" (.num "1.25") (.bin "-" (.var "v") (.num "24")))) (.num "9.5"))]⟩, ⟨(.cmp ">=" (.var "v") (.num "21.4")), CutKind.derivedBound, CutEntry.rational, CutRouteX.derivedShape, [(.cmp ">=" (.bin "+" (.var "a") (.bin "*" (.num "1.25") (.bin "-" (.var "v") (.num "24")))) (.num "-3.25"))]⟩])
+      ("CRUISE", [])
     ]
     R := [
-      ("CRUISE", [⟨(.cmp ">=" (.var "v") (.num "20.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "v") (.num "40.0")), CutKind.closure, CutEntry.weakening, CutRouteX.shape, []⟩]),
-      ("DISENGAGE", [⟨(.cmp "<=" (.var "v") (.num "20.0")), CutKind.closure, CutEntry.weakening, CutRouteX.shape, []⟩])
+      ("CRUISE", [⟨(.cmp ">=" (.bin "+" (.bin "*" (.num "3.0") (.var "a")) (.bin "*" (.num "2.0") (.var "v"))) (.num "40.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.bin "+" (.bin "*" (.num "3.0") (.var "a")) (.bin "*" (.num "2.0") (.var "v"))) (.num "66.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp ">=" (.bin "+" (.var "a") (.bin "*" (.num "2.0") (.var "v"))) (.num "44.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.bin "+" (.var "a") (.bin "*" (.num "2.0") (.var "v"))) (.num "62.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩])
     ] }
 
 /-- The legacy (guard-conjunct) part is well formed. -/

@@ -15,7 +15,7 @@ open RelCertifier.Parse
 
 def quad_light_profiles_cutsV2 : EvolStrengthening :=
   { L := [
-      ("CLIMB", [((.cmp ">=" (.var "w") (.num "0.0")), CutRoute.diStrict)])
+      ("CLIMB", [((.cmp ">=" (.var "w") (.num "0.0")), CutRoute.diStrict), ((.cmp "<=" (.var "w") (.num "3.2")), CutRoute.diStrict)])
     ]
     R := [
       ("NORMAL", [((.cmp ">=" (.var "w") (.num "0.0")), CutRoute.diStrict), ((.cmp "<=" (.var "w") (.num "3.2")), CutRoute.diStrict)]),
@@ -26,7 +26,7 @@ def quad_light_profiles_cutsV2 : EvolStrengthening :=
 
 def quad_light_profiles_cutsV2X : EvolStrengtheningX :=
   { L := [
-      ("CLIMB", [⟨(.cmp ">=" (.var "w") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩])
+      ("CLIMB", [⟨(.cmp ">=" (.var "w") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "w") (.num "3.2")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩])
     ]
     R := [
       ("NORMAL", [⟨(.cmp ">=" (.var "w") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "w") (.num "3.2")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),

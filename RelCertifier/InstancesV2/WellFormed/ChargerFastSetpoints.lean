@@ -5,6 +5,11 @@ Released under Apache 2.0 license.
 # `charger_fast_setpoints`: Assumption 1 of the right model (`WellFormedR`)
 
 Over the instance's guarded right automaton `Gr`, the lowered right guards, `ε_r = 1`.
+Dimension 3 (the keyed bridge's padding for a one-variable file: coordinate 0 is the state of
+charge `x`, 1 and 2 are frozen). Every mode is a contraction `x' = k_q (c_q − x)` inside the
+evolve domain `[0, 100]`.
+* `PRECHARGE` (`10 ≤ x < 15`, `x' = 0.2 (20 − x)`), style (b): a run ends in `[x₀, 20)`,
+  inside `PRECHARGE` or `BULK` (`[15, 80)`).
 * `BULK` (`15 ≤ x < 80`, `x' = 0.1 (90 − x)`), style (b): a run ends in `[x₀, 90)`, inside
   `BULK` or `ABSORB` (`[80, 99)`).
 * `ABSORB` (`80 ≤ x < 99`, `x' = 0.05 (100 − x)`), style (b): a run ends in `[x₀, 100)`,
@@ -27,22 +32,40 @@ def vs : List String := ["x"]
 def dm : PMode := ⟨"", [], .tt, .tt, []⟩
 def mR (q : ℕ) : PMode := charger_fast_setpoints_IRv2.R.modes.getD q dm
 
-noncomputable def fR (q : ℕ) : Fin 2 → Term (Var 2) := hostDyn vs 2 Side.R (mR q)
-noncomputable def domR : Formula (Var 2) := hostEvolve vs 2 Side.R (mR 0)
+noncomputable def fR (q : ℕ) : Fin 3 → Term (Var 3) := hostDyn vs 3 Side.R (mR q)
+noncomputable def domR : Formula (Var 3) := hostEvolve vs 3 Side.R (mR 0)
+
+/-! ## Parse pins -/
+
+theorem hp02 : Run.parseRat "0.2" = some ((1:ℚ)/5) := by
+  have h : parseQ "0.2" = some (⟨2, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
 theorem hp01 : Run.parseRat "0.1" = some ((1:ℚ)/10) := by
   have h : parseQ "0.1" = some (⟨1, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]
 theorem hp005 : Run.parseRat "0.05" = some ((1:ℚ)/20) := by
   have h : parseQ "0.05" = some (⟨5, 100⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
+theorem hpm001 : Run.parseRat "-0.01" = some (-(1:ℚ)/100) := by
+  have h : parseQ "-0.01" = some (⟨-1, 100⟩ : QF) := by decide
+  simp [Run.parseRat, h]
 theorem hp0 : Run.parseRat "0" = some (0 : ℚ) := by
   have h : parseQ "0" = some (⟨0, 1⟩ : QF) := by decide
   simp [Run.parseRat, h]
 theorem hp00 : Run.parseRat "0.0" = some (0 : ℚ) := by
   have h : parseQ "0.0" = some (⟨0, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]
+theorem hp10 : Run.parseRat "1.0" = some (1 : ℚ) := by
+  have h : parseQ "1.0" = some (⟨10, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+theorem hp100 : Run.parseRat "10.0" = some (10 : ℚ) := by
+  have h : parseQ "10.0" = some (⟨100, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
 theorem hp150 : Run.parseRat "15.0" = some (15 : ℚ) := by
   have h : parseQ "15.0" = some (⟨150, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
+theorem hp200 : Run.parseRat "20.0" = some (20 : ℚ) := by
+  have h : parseQ "20.0" = some (⟨200, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
 theorem hp800 : Run.parseRat "80.0" = some (80 : ℚ) := by
   have h : parseQ "80.0" = some (⟨800, 10⟩ : QF) := by decide
@@ -56,26 +79,41 @@ theorem hp990 : Run.parseRat "99.0" = some (99 : ℚ) := by
 theorem hp1000 : Run.parseRat "100.0" = some (100 : ℚ) := by
   have h : parseQ "100.0" = some (⟨1000, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
-/-- Right fields of the non-sink modes: `x' = k_q (c_q − x)` (`BULK` 1/10 toward 90,
-`ABSORB` 1/20 toward 100, `FULL` 0). -/
-noncomputable def kR (q : ℕ) : ℝ := if q = 0 then 1/10 else if q = 1 then 1/20 else 0
-noncomputable def cRc (q : ℕ) : ℝ := if q = 0 then 90 else 100
 
-theorem fR0_eval (q : ℕ) (hq : q < 3) (x : State (Var 2)) :
+/-! ## The right fields -/
+
+/-- Right fields `x' = k_q (c_q − x)` (PRECHARGE 0, BULK 1, ABSORB 2, FULL 3, FAULT 4):
+`PRECHARGE` 1/5 toward 20, `BULK` 1/10 toward 90, `ABSORB` 1/20 toward 100, `FULL` 0,
+`FAULT` 1/100 toward 0. -/
+noncomputable def kR (q : ℕ) : ℝ :=
+  if q = 0 then 1/5 else if q = 1 then 1/10 else if q = 2 then 1/20 else if q = 3 then 0
+  else 1/100
+noncomputable def cRc (q : ℕ) : ℝ :=
+  if q = 0 then 20 else if q = 1 then 90 else if q = 4 then 0 else 100
+
+theorem fR0_eval (q : ℕ) (hq : q < 5) (x : State (Var 3)) :
     Term.eval (fR q 0) x = kR q * (cRc q - x (Rv 0)) := by
   interval_cases q <;>
-    simp [fR, hostDyn, mR, charger_fast_setpoints_IRv2, vs, Run.dynOf, Run.lowerE, hp01,
-      hp005, hp900, hp1000, hp0, Run.resolveVar, List.findIdx?_cons, List.finRange,
-      ITerm.toHost, Term.eval, AOp.interp, Rv, kR, cRc]
+    simp [fR, hostDyn, mR, charger_fast_setpoints_IRv2, vs, Run.dynOf, Run.lowerE, hp02, hp01,
+      hp005, hpm001, hp200, hp900, hp1000, hp0, Run.resolveVar, List.findIdx?_cons,
+      List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv, kR, cRc]
+  all_goals ring
 
-theorem fR1_eval (q : ℕ) (hq : q < 3) (x : State (Var 2)) :
-    Term.eval (fR q 1) x = 0 := by
-  interval_cases q <;>
-    simp [fR, hostDyn, mR, charger_fast_setpoints_IRv2, vs, Run.dynOf, Run.lowerE, hp01,
-      hp005, hp900, hp1000, hp0, Run.resolveVar, List.findIdx?_cons, List.finRange,
-      ITerm.toHost, Term.eval, AOp.interp, Rv]
+theorem fRo_eval (q : ℕ) (hq : q < 5) (i : Fin 3) (hi : i ≠ 0) (x : State (Var 3)) :
+    Term.eval (fR q i) x = 0 := by
+  match i, hi with
+  | ⟨1, _⟩, _ =>
+    interval_cases q <;>
+      simp [fR, hostDyn, mR, charger_fast_setpoints_IRv2, vs, Run.dynOf, Run.lowerE, hp02,
+        hp01, hp005, hpm001, hp200, hp900, hp1000, hp0, Run.resolveVar, List.findIdx?_cons,
+        List.finRange, ITerm.toHost, Term.eval]
+  | ⟨2, _⟩, _ =>
+    interval_cases q <;>
+      simp [fR, hostDyn, mR, charger_fast_setpoints_IRv2, vs, Run.dynOf, Run.lowerE, hp02,
+        hp01, hp005, hpm001, hp200, hp900, hp1000, hp0, Run.resolveVar, List.findIdx?_cons,
+        List.finRange, ITerm.toHost, Term.eval]
 
-theorem sat_domR (x : State (Var 2)) :
+theorem sat_domR (x : State (Var 3)) :
     Formula.sat domR x ↔ (0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 100) := by
   simp only [domR, hostEvolve, mR, charger_fast_setpoints_IRv2, vs]
   simp [Run.lowerF, Run.lowerE, hp00, hp1000, Run.resolveVar, List.findIdx?_cons,
@@ -83,104 +121,78 @@ theorem sat_domR (x : State (Var 2)) :
 
 /-! ## The right automaton (the file's modes and declared `next` lists) -/
 
-noncomputable def modeW (q : ℕ) : RMode (Var 2) :=
+noncomputable def modeW (q : ℕ) : RMode (Var 3) :=
   { sys := rightBlock (fR q) (Term.const 1), dom := domR, weight := 1 }
 
 /-- The declared edge `s → t` carries the ENTERED mode's lowered guard (`hostGuard` of the
 right mode `t`, lowered exactly as the left windows' guards are): the right switches into
 `t` only where `t`'s guard holds. -/
-noncomputable def edgeW (s t : ℕ) : REdge (Var 2) :=
-  { src := s, tgt := t, guard := hostGuard vs 2 Side.R (mR t), pruned := false }
+noncomputable def edgeW (s t : ℕ) : REdge (Var 3) :=
+  { src := s, tgt := t, guard := hostGuard vs 3 Side.R (mR t), pruned := false }
 
-/-- The declared transitions, as indices (BULK 0, ABSORB 1, FULL 2, FAULT 3). -/
+/-- The declared transitions, as indices (PRECHARGE 0, BULK 1, ABSORB 2, FULL 3, FAULT 4). -/
 def edgeList : List (ℕ × ℕ) :=
-  [(0, 1), (0, 0), (0, 3), (1, 2), (1, 1), (2, 2), (3, 3)]
+  [(0, 1), (0, 0), (0, 4), (1, 2), (1, 1), (1, 4), (2, 3), (2, 2), (3, 3), (4, 4)]
 
-noncomputable def Gr : SearchGraph (Var 2) :=
-  { modes := [modeW 0, modeW 1, modeW 2, modeW 3]
+noncomputable def Gr : SearchGraph (Var 3) :=
+  { modes := [modeW 0, modeW 1, modeW 2, modeW 3, modeW 4]
     edges := edgeList.map (fun e => edgeW e.1 e.2) }
 
-theorem Gr_modeAt (q : ℕ) (hq : q < 4) : Gr.modeAt q = some (modeW q) := by
+theorem Gr_modeAt (q : ℕ) (hq : q < 5) : Gr.modeAt q = some (modeW q) := by
   interval_cases q <;> rfl
 
-theorem Gr_modeAt_inv {q : ℕ} {m : RMode (Var 2)} (hm : Gr.modeAt q = some m) :
-    q < 4 ∧ m = modeW q := by
+theorem Gr_modeAt_inv {q : ℕ} {m : RMode (Var 3)} (hm : Gr.modeAt q = some m) :
+    q < 5 ∧ m = modeW q := by
   match q with
   | 0 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
   | 1 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
   | 2 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
   | 3 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
-  | q + 4 => exact absurd hm (by simp [SearchGraph.modeAt, Gr])
-
-theorem hlt : ∀ q, ∀ e ∈ Gr.edgesFrom q, e.tgt < Gr.modes.length := by
-  intro q e he
-  have hmem : e ∈ Gr.edges := List.mem_of_mem_filter he
-  simp only [Gr, List.mem_map] at hmem
-  obtain ⟨p, hp, rfl⟩ := hmem
-  simp only [edgeList, List.mem_cons, List.not_mem_nil, or_false] at hp
-  rcases hp with rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> simp [edgeW, Gr]
+  | 4 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
+  | q + 5 => exact absurd hm (by simp [SearchGraph.modeAt, Gr])
 
 theorem edge_mem (s t : ℕ) (h : (s, t) ∈ edgeList) : edgeW s t ∈ Gr.edgesFrom s :=
   List.mem_filter.mpr ⟨List.mem_map.mpr ⟨(s, t), h, rfl⟩, by simp [edgeW]⟩
 
-/-- The non-sink right guards, evaluated (`BULK`: `[15, 80)`; `ABSORB`: `[80, 99)`;
-`FULL`: `x ≥ 99`). -/
-theorem sat_guardR (q : ℕ) (hq : q < 3) (ν : State (Var 2)) :
-    Formula.sat (hostGuard vs 2 Side.R (mR q)) ν ↔
-      (if q = 0 then 15 ≤ ν (Rv 0) ∧ ν (Rv 0) < 80
-       else if q = 1 then 80 ≤ ν (Rv 0) ∧ ν (Rv 0) < 99 else 99 ≤ ν (Rv 0)) := by
-  interval_cases q <;>
-    simp [hostGuard, mR, charger_fast_setpoints_IRv2, Run.lowerF, Run.lowerE, hp150, hp800,
-      hp990, vs, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
-      CompOp.interp, Term.eval, Rv]
+/-! ## The right guards, evaluated -/
 
+theorem sat_guard0 (ν : State (Var 3)) :
+    Formula.sat (hostGuard vs 3 Side.R (mR 0)) ν ↔ (10 ≤ ν (Rv 0) ∧ ν (Rv 0) < 15) := by
+  simp [hostGuard, mR, charger_fast_setpoints_IRv2, Run.lowerF, Run.lowerE, hp100, hp150, vs,
+    Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
+    CompOp.interp, Term.eval, Rv]
 
-theorem hp10 : Run.parseRat "1.0" = some (1 : ℚ) := by
-  have h : parseQ "1.0" = some (⟨10, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hpm001 : Run.parseRat "-0.01" = some (-(1:ℚ)/100) := by
-  have h : parseQ "-0.01" = some (⟨-1, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-theorem hp100 : Run.parseRat "10.0" = some (10 : ℚ) := by
-  have h : parseQ "10.0" = some (⟨100, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
+theorem sat_guard1 (ν : State (Var 3)) :
+    Formula.sat (hostGuard vs 3 Side.R (mR 1)) ν ↔ (15 ≤ ν (Rv 0) ∧ ν (Rv 0) < 80) := by
+  simp [hostGuard, mR, charger_fast_setpoints_IRv2, Run.lowerF, Run.lowerE, hp150, hp800, vs,
+    Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
+    CompOp.interp, Term.eval, Rv]
 
-theorem epsR_eq : epsR charger_fast_setpoints_IRv2 = 1 := by
-  simp [epsR, charger_fast_setpoints_IRv2, hp10]
+theorem sat_guard2 (ν : State (Var 3)) :
+    Formula.sat (hostGuard vs 3 Side.R (mR 2)) ν ↔ (80 ≤ ν (Rv 0) ∧ ν (Rv 0) < 99) := by
+  simp [hostGuard, mR, charger_fast_setpoints_IRv2, Run.lowerF, Run.lowerE, hp800, hp990, vs,
+    Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
+    CompOp.interp, Term.eval, Rv]
 
-noncomputable def guardR (q : ℕ) : Formula (Var 2) := hostGuard vs 2 Side.R (mR q)
+theorem sat_guard3 (ν : State (Var 3)) :
+    Formula.sat (hostGuard vs 3 Side.R (mR 3)) ν ↔ 99 ≤ ν (Rv 0) := by
+  simp [hostGuard, mR, charger_fast_setpoints_IRv2, Run.lowerF, Run.lowerE, hp990, vs,
+    Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
+    CompOp.interp, Term.eval, Rv]
 
-noncomputable def kR4 (q : ℕ) : ℝ := if q < 3 then kR q else 1/100
-noncomputable def cR4 (q : ℕ) : ℝ := if q < 3 then cRc q else 0
-
-theorem fR0_all (q : ℕ) (hq : q < 4) (x : State (Var 2)) :
-    Term.eval (fR q 0) x = kR4 q * (cR4 q - x (Rv 0)) := by
-  by_cases h3 : q < 3
-  · rw [fR0_eval q h3]; simp [kR4, cR4, h3]
-  · have : q = 3 := by omega
-    subst this
-    simp [fR, hostDyn, mR, charger_fast_setpoints_IRv2, vs, Run.dynOf, Run.lowerE, hpm001,
-      Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
-      AOp.interp, Rv, kR4, cR4]
-    ring
-
-theorem fR1_all (q : ℕ) (hq : q < 4) (x : State (Var 2)) : Term.eval (fR q 1) x = 0 := by
-  by_cases h3 : q < 3
-  · exact fR1_eval q h3 x
-  · have : q = 3 := by omega
-    subst this
-    simp [fR, hostDyn, mR, charger_fast_setpoints_IRv2, vs, Run.dynOf, Run.lowerE, hpm001,
-      Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
-      AOp.interp, Rv]
-
-theorem sat_guardR3 (ν : State (Var 2)) :
-    Formula.sat (hostGuard vs 2 Side.R (mR 3)) ν ↔ ν (Rv 0) < 10 := by
+theorem sat_guard4 (ν : State (Var 3)) :
+    Formula.sat (hostGuard vs 3 Side.R (mR 4)) ν ↔ ν (Rv 0) < 10 := by
   simp [hostGuard, mR, charger_fast_setpoints_IRv2, Run.lowerF, Run.lowerE, hp100, vs,
     Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
     CompOp.interp, Term.eval, Rv]
 
-theorem kR4_nonneg (q : ℕ) : 0 ≤ kR4 q := by
-  unfold kR4 kR; split_ifs <;> norm_num
+theorem epsR_eq : epsR charger_fast_setpoints_IRv2 = 1 := by
+  simp [epsR, charger_fast_setpoints_IRv2, hp10]
+
+noncomputable def guardR (q : ℕ) : Formula (Var 3) := hostGuard vs 3 Side.R (mR q)
+
+theorem kR_nonneg (q : ℕ) : 0 ≤ kR q := by
+  unfold kR; split_ifs <;> norm_num
 
 theorem memR (q : ℕ) : (Rv 0, Term.binop .mul (Term.const 1) (fR q 0)) ∈ (modeW q).sys :=
   rightBlock_mem' _ _ 0
@@ -190,56 +202,55 @@ theorem charger_fast_setpoints_wellFormedR :
     WellFormedR Gr guardR (epsR charger_fast_setpoints_IRv2) := by
   rw [epsR_eq]
   intro q hq m hm x hg hd _
-  obtain ⟨hq4, rfl⟩ := Gr_modeAt_inv hm
+  obtain ⟨hq5, rfl⟩ := Gr_modeAt_inv hm
   have hdx := (sat_domR x).mp hd
-  have hcr : 0 ≤ cR4 q ∧ cR4 q ≤ 100 := by
-    unfold cR4 cRc; split_ifs <;> norm_num
+  have hcr : 0 ≤ cRc q ∧ cRc q ≤ 100 := by
+    unfold cRc; split_ifs <;> norm_num
   refine ⟨?_, ?_⟩
-  · refine exists_contract_run x 0 (kR4 q) (cR4 q) (kR4_nonneg q) (fR0_all q hq4)
-      ?_ ?_ 1 (by norm_num)
-    · intro i hi s
-      match i, hi with
-      | 1, _ => exact fR1_all q hq4 s
-    · intro v h1 h2
-      show Formula.sat domR _
-      rw [sat_domR, trajJ_j]
-      exact ⟨le_trans (le_min hdx.1 hcr.1) h1, le_trans h2 (max_le hdx.2 hcr.2)⟩
+  · refine exists_contract_run x 0 (kR q) (cRc q) (kR_nonneg q) (fR0_eval q hq5)
+      (fun i hi s => fRo_eval q hq5 i hi s) ?_ 1 (by norm_num)
+    intro v h1 h2
+    show Formula.sat domR _
+    rw [sat_domR, trajJ_j]
+    exact ⟨le_trans (le_min hdx.1 hcr.1) h1, le_trans h2 (max_le hdx.2 hcr.2)⟩
   · intro t Φ _ H
     have hf : ∀ s, Formula.sat (modeW q).dom s →
-        Term.eval (Term.binop .mul (Term.const 1) (fR q 0)) s = kR4 q * (cR4 q - s (Rv 0)) :=
-      fun s _ => by rw [eval_unit_mul, fR0_all q hq4]
+        Term.eval (Term.binop .mul (Term.const 1) (fR q 0)) s = kR q * (cRc q - s (Rv 0)) :=
+      fun s _ => by rw [eval_unit_mul, fR0_eval q hq5]
     interval_cases q
+    · -- PRECHARGE: ends in [x₀, 20), inside PRECHARGE or BULK
+      have hgx := (sat_guard0 x).mp hg
+      have hup := H.linear_up (memR 0) _ _ (kR_nonneg 0) hf (by simp [cRc]; linarith)
+      have hlt := H.linear_lt (memR 0) _ _ hf (by simp [cRc]; linarith)
+      simp [cRc] at hup hlt
+      by_cases h15 : Φ t (Rv 0) < 15
+      · exact ⟨edgeW 0 0, edge_mem 0 0 (by decide), (sat_guard0 _).mpr ⟨by linarith, h15⟩⟩
+      · exact ⟨edgeW 0 1, edge_mem 0 1 (by decide),
+          (sat_guard1 _).mpr ⟨by linarith, by linarith⟩⟩
     · -- BULK: ends in [x₀, 90), inside BULK or ABSORB
-      have hgx := (sat_guardR 0 (by norm_num) x).mp hg
-      simp only [if_true] at hgx
-      have hup := H.linear_up (memR 0) _ _ (kR4_nonneg 0) hf (by simp [cR4, cRc]; linarith)
-      have hlt := H.linear_lt (memR 0) _ _ hf (by simp [cR4, cRc]; linarith)
-      simp [cR4, cRc] at hup hlt
+      have hgx := (sat_guard1 x).mp hg
+      have hup := H.linear_up (memR 1) _ _ (kR_nonneg 1) hf (by simp [cRc]; linarith)
+      have hlt := H.linear_lt (memR 1) _ _ hf (by simp [cRc]; linarith)
+      simp [cRc] at hup hlt
       by_cases h80 : Φ t (Rv 0) < 80
-      · exact ⟨edgeW 0 0, edge_mem 0 0 (by decide), (sat_guardR 0 (by norm_num) _).mpr
-          (by simp only [if_true]; exact ⟨by linarith, h80⟩)⟩
-      · exact ⟨edgeW 0 1, edge_mem 0 1 (by decide), (sat_guardR 1 (by norm_num) _).mpr
-          (by norm_num; exact ⟨by linarith, by linarith⟩)⟩
-    · -- ABSORB: ends in [x₀, 100), inside ABSORB or FULL
-      have hgx := (sat_guardR 1 (by norm_num) x).mp hg
-      norm_num at hgx
-      have hup := H.linear_up (memR 1) _ _ (kR4_nonneg 1) hf (by simp [cR4, cRc]; linarith)
-      simp [cR4, cRc] at hup
+      · exact ⟨edgeW 1 1, edge_mem 1 1 (by decide), (sat_guard1 _).mpr ⟨by linarith, h80⟩⟩
+      · exact ⟨edgeW 1 2, edge_mem 1 2 (by decide),
+          (sat_guard2 _).mpr ⟨by linarith, by linarith⟩⟩
+    · -- ABSORB: ends in [x₀, 100], inside ABSORB or FULL
+      have hgx := (sat_guard2 x).mp hg
+      have hup := H.linear_up (memR 2) _ _ (kR_nonneg 2) hf (by simp [cRc]; linarith)
+      simp [cRc] at hup
       by_cases h99 : Φ t (Rv 0) < 99
-      · exact ⟨edgeW 1 1, edge_mem 1 1 (by decide), (sat_guardR 1 (by norm_num) _).mpr
-          (by norm_num; exact ⟨by linarith, h99⟩)⟩
-      · exact ⟨edgeW 1 2, edge_mem 1 2 (by decide), (sat_guardR 2 (by norm_num) _).mpr
-          (by norm_num; linarith)⟩
+      · exact ⟨edgeW 2 2, edge_mem 2 2 (by decide), (sat_guard2 _).mpr ⟨by linarith, h99⟩⟩
+      · exact ⟨edgeW 2 3, edge_mem 2 3 (by decide), (sat_guard3 _).mpr (by linarith)⟩
     · -- FULL: frozen
-      have hgx := (sat_guardR 2 (by norm_num) x).mp hg
-      norm_num at hgx
-      have hup := H.linear_up (memR 2) _ _ (kR4_nonneg 2) hf (by simp [cR4, cRc]; linarith)
-      exact ⟨edgeW 2 2, edge_mem 2 2 (by decide), (sat_guardR 2 (by norm_num) _).mpr
-        (by norm_num; linarith [hup.1])⟩
+      have hgx := (sat_guard3 x).mp hg
+      have hup := H.linear_up (memR 3) _ _ (kR_nonneg 3) hf (by simp [cRc]; linarith)
+      exact ⟨edgeW 3 3, edge_mem 3 3 (by decide), (sat_guard3 _).mpr (by linarith [hup.1])⟩
     · -- FAULT: [0, 10) invariant
-      have hgx := (sat_guardR3 x).mp hg
-      have hdn := H.linear_down (memR 3) _ _ (kR4_nonneg 3) hf (by simp [cR4]; linarith)
-      exact ⟨edgeW 3 3, edge_mem 3 3 (by decide), (sat_guardR3 _).mpr (by linarith [hdn.2])⟩
+      have hgx := (sat_guard4 x).mp hg
+      have hdn := H.linear_down (memR 4) _ _ (kR_nonneg 4) hf (by simp [cRc]; linarith)
+      exact ⟨edgeW 4 4, edge_mem 4 4 (by decide), (sat_guard4 _).mpr (by linarith [hdn.2])⟩
 
 end V2ChargerFastSetpoints
 end RelCertifier

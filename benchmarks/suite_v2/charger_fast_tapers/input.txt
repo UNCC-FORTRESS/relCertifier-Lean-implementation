@@ -1,31 +1,47 @@
 # charger_fast_tapers: the fast charger against a certified profile with two taper options.
 # scenario: degraded-controller
-# mechanisms: M2 M3 M4 M6
+# mechanisms: S M R B P D I (RELCERT_SYNC=1 declines; multi-step covers with right-only
+#   repositioning; branching joint steps; pruned fault edges; mode-dependent rows; implied cuts,
+#   matrix codes M2 M3 M4 M5 M6 M6+)
 #
-# The charger of charger_fast_bulk (state of charge x in %; BULK x' = 0.1 (100 - x) for
-# 15 <= x < 80, taper for 80 <= x < 99, FULL hold at x >= 99, CELL FAULT below 10 %).
-# The certified profile (right) offers two taper options the charger firmware selects
-# when it leaves BULK: ABSORB_SLOW (rate constant 0.05 /h) or ABSORB_FAST (0.07 /h). The
-# deployed unit (left) runs the profile with its current limit raised 25 % and the slow
-# taper (BULK 0.125, ABSORB 0.0625). Claim: x_L <= x_R + 5 in every phase. The
-# tolerance is CHOSEN so that the fallback mechanism is exercised: 5 is the smallest
-# tolerance at which the BULK_L/FAULT_R pairing (x_L >= 15 on the BULK guard, x_R < 10
-# in FAULT) is not excluded by the row, so BULK -> FAULT must be pruned; at 4.95 (and
-# 4.9, 4.75, 4.5, 4, 3, 2, 1) RELCERT_NO_PRUNE=1 CERTIFIES (pass 5,
-# docs/SUITE-REDESIGN.md section 15).
+# System. State of charge x (%), time in h. The certified charging profile (right):
+#   PRECHARGE   (10 <= x < 15): x' = 0.2 (20 - x)    recovery charge of a deeply discharged cell
+#                                                     (2 %/h at 10 %, 1 %/h at 15 %)
+#   BULK        (15 <= x < 80): x' = 0.1 (100 - x)   fast phase
+#   ABSORB_SLOW (80 <= x < 99): x' = 0.05 (100 - x)  slow taper  } the firmware selects one when
+#   ABSORB_FAST (80 <= x < 99): x' = 0.07 (100 - x)  fast taper  } it leaves BULK
+#   FULL        (x >= 99):      x' = 0               hold
+#   FAULT       (x < 10):       x' = -0.01 x         cell fault, latched (self-discharge only)
+# PRECHARGE and BULK may latch FAULT (declared edges). The deployed unit (left) runs the profile
+# with its current limit raised 25 % and the slow taper (PRECHARGE 0.25, BULK 0.125, ABSORB
+# 0.0625) and the same FAULT latch. One cause: the current limit. The guards partition [0, 100]
+# on both sides (the old gap [10, 15) is closed by the pre-charge phase).
 #
-# Remark (the tight bound): the tightest certifiable tolerance is x_L <= x_R + 1 (grid
-# 0.25, refined at 0.05: 0.95, 0.9, 0.85, 0.8, 0.75 DECLINED). At tolerance 1 the cells
-# are M2 M3 M6 (M4 lost: NO_PRUNE CERTIFIES), so the tight bound is not the claim.
+# Property. Requirement (SoC overshoot): the deployed state of charge never exceeds the certified
+# profile's by more than 2 % SoC, the state-of-charge accuracy of the battery management system:
+#   BULK, ABSORB, FULL, FAULT: x_L <= x_R + 2;   PRECHARGE: x_L <= x_R.
+# The pre-charge row is stricter by necessity (D): with a lead allowed there a deployed cell at
+# 10 % could pair with a certified cell latched in FAULT. Tightest: the charging rows certify down
+# to 1.00 (0.99 declines); uniform rows x_L <= x_R + c decline (c = 1, 2, 3, 4.9).
+# Why pruning is needed (P). The reference's PRECHARGE and BULK declare FAULT edges; their
+# non-connection certificates (the charging flow rises at the 10 % threshold) prune them. Under
+# RELCERT_NO_PRUNE=1 the deployed PRECHARGE window has no cover (the reference's PRECHARGE
+# segment keeps FAULT in its all-successors obligation and the existential choice does not
+# replace it): DECLINED at the requirement 2 and at the tight 1. (The old version needed a
+# tolerance of 5, chosen for that purpose, to show it.)
+# Branching (B). From the reference's BULK a joint step retains both ABSORB_SLOW and ABSORB_FAST
+# as covering successors.
 #
-# Covers (measured): lambda = 1, budget 2 right cycles per left window. In the deployed
-# ABSORB window a reference still in BULK takes a joint step whose retained successors
-# ABSORB_SLOW and ABSORB_FAST both cover (M3; M2 across BULK -> ABSORB_* -> FULL); in the
-# deployed BULK window the reference repositions right-only through either taper to
-# FULL. The taper and FULL floors (x >= 80, x >= 99) are checked cuts the FULL segments
-# need (RELCERT_NO_CUT=1 DECLINES, M6). BULK -> FAULT is pruned and FAULT is not an
-# admissible start (x_L >= 15, x_L <= x_R + 5); RELCERT_NO_PRUNE=1 DECLINES (M4).
-# Units %, h; envelope 0 <= x <= 100.
+# Domain 0 <= x <= 100 both sides (physical). The implied contraction atoms x <= 20 (PRECHARGE)
+# and x <= 100 (BULK, tapers) are load-bearing (without RELCERT_IMPLIED_CUT: DECLINED).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED; CERTIFIED under NO_CHOICE,
+# NO_LINEAR_CUT, RELCERT_WELLFORMED_STRICT=1; DECLINED under RELCERT_SYNC=1, SYNC+NO_CHOICE,
+# NO_PRUNE, NO_PRUNE+NO_CHOICE, without RELCERT_IMPLIED_CUT, NO_IMPLIED_CUT and NO_CUT. Covers:
+# lambda = 1 in every left mode, budget 2; branch 2 from PRECHARGE, ABSORB and FAULT windows;
+# right-only repositioning out of PRECHARGE, BULK and ABSORB. --handoff 10/10 unsat,
+# non-vacuous. relcert --wellformed: PRECHARGE ok (exit->BULK), BULK ok (exit->ABSORB_FAST),
+# ABSORB_SLOW and ABSORB_FAST ok (exit->FULL), FULL and FAULT ok (invariant).
 [problem]
 name = charger_fast_tapers
 max_depth = 8
@@ -35,11 +51,16 @@ bound_T = 4.0
 [Lsys]
 state_vars = [x]
 epsilon = 2.0
+[Lsys.mode.PRECHARGE]
+ode = x' = smt2:(* 0.25 (- 20.0 x));
+guard = x >= 10.0 and x < 15.0
+evolve = x >= 0.0 and x <= 100.0
+next = [BULK, PRECHARGE, FAULT]
 [Lsys.mode.BULK]
 ode = x' = smt2:(* 0.125 (- 100.0 x));
 guard = x >= 15.0 and x < 80.0
 evolve = x >= 0.0 and x <= 100.0
-next = [ABSORB, BULK]
+next = [ABSORB, BULK, FAULT]
 [Lsys.mode.ABSORB]
 ode = x' = smt2:(* 0.0625 (- 100.0 x));
 guard = x >= 80.0 and x < 99.0
@@ -50,9 +71,19 @@ ode = x' = smt2:0;
 guard = x >= 99.0
 evolve = x >= 0.0 and x <= 100.0
 next = [FULL]
+[Lsys.mode.FAULT]
+ode = x' = smt2:(* -0.01 x);
+guard = x < 10.0
+evolve = x >= 0.0 and x <= 100.0
+next = [FAULT]
 [Rsys]
 state_vars = [x]
 epsilon = 1.0
+[Rsys.mode.PRECHARGE]
+ode = x' = smt2:(* 0.2 (- 20.0 x));
+guard = x >= 10.0 and x < 15.0
+evolve = x >= 0.0 and x <= 100.0
+next = [BULK, PRECHARGE, FAULT]
 [Rsys.mode.BULK]
 ode = x' = smt2:(* 0.1 (- 100.0 x));
 guard = x >= 15.0 and x < 80.0
@@ -79,6 +110,8 @@ guard = x < 10.0
 evolve = x >= 0.0 and x <= 100.0
 next = [FAULT]
 [relational_invariant]
-BULK   = x[l] <= x[r] + 5
-ABSORB = x[l] <= x[r] + 5
-FULL   = x[l] <= x[r] + 5
+PRECHARGE = x[l] <= x[r]
+BULK = x[l] <= x[r] + 2
+ABSORB = x[l] <= x[r] + 2
+FULL = x[l] <= x[r] + 2
+FAULT = x[l] <= x[r] + 2

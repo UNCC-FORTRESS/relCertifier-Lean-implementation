@@ -1,34 +1,39 @@
-# quad_light_lag: the lighter quadrotor airframe refined with the motor thrust lag.
+# quad_light_lag: the 20 %-lighter quadrotor against the nominal airframe, both with the same
+# motor thrust lag.
 # scenario: model-refinement
-# mechanisms: M1 M2
+# mechanisms: S M (time stretch lambda = 7/4 needed, RELCERT_SYNC=1 declines; multi-step cover,
+#   matrix codes M1 M2)
 #
-# Refinement of quad_light_airframe_20: the deployed airframe's net specific thrust a is
-# a state that follows the commanded 7.45 m/s^2 through the motors' 0.2 s lag,
-# a' = 5 (7.45 - a); the climb rate obeys w' = a - 1.25 w^2. The reference (right) is the
-# first-order climb model w' = 4 - w^2 of the nominal airframe (thrust lag abstracted).
+# System. Climb rate w (m/s) and net specific thrust a (m/s^2); quadratic drag, w' = a - c w^2.
+# The motors realise the climb command through a first-order lag of 0.2 s, a' = 5 (a_cmd - a).
+#   Left (deployed): the airframe is 20 % lighter than the reference model assumed (payload
+#     released), the same motors and command: thrust-to-mass x 1/0.8 = 1.25, a_cmd = 1.25 (4 +
+#     9.81) - 9.81 = 7.45, c = 1.25 (terminal climb rate 2.44 m/s); the airframe of
+#     quad_light_airframe_20, now with its motor lag.
+#   Right (reference): the nominal airframe with the same lag: a_cmd = 4, c = 1 (terminal 2 m/s).
+# The airframe mass is the only difference.
 #
-# Claim: the lifted functional a_L + 5 w_L <= 5 w_R + 12.45. Along the deployed model
-# (a + 5w)' = 5 (7.45 - 1.25 w^2), the lighter airframe's first-order climb rate times 5;
-# with the thrust envelope 0 <= a <= 7.45 the row implies w_L <= w_R + 2.49 and, at
-# full thrust, w_L <= w_R + 1 as in quad_light_airframe_20. The right certifies at
-# lambda = 7/4 (the same stretch as the lag-free rung; lambda = 1, 5/4, 3/2 fail),
-# budget ceil(7/4 * 2 / 1) = 4 right cycles per left window (M1 with polynomial
-# dynamics, M2). No fallback is declared on this rung: the functional bounds w_R from
-# below only through a_L, so a climb-rate limiter above a ceiling could not be excluded
-# as a start. Envelope: w in [0, 3.5], a in [0, 7.45] both sides (physical climb-rate
-# and thrust limits; both are forward invariant: w' < 0 at w = 3.5, a' >= 0 at a = 0 and
-# a' = 0 at a = 7.45 on the left).
+# Property. Requirement (the climb-rate tolerance of this family, as in quad_light_airframe_20):
+# the deployed never climbs more than 1 m/s faster than the reference, w_L <= w_R + 1. Tightest:
+# 0.53 (0.52 declines). Strengthening row (exact, no constant): a_L <= 1.8625 a_R, i.e.
+# a_L / 7.45 <= a_R / 4: the deployed has realised no larger fraction of its climb command than
+# the reference. Both thrust deficits 7.45 - a_L and 4 - a_R decay at 5 /s; at any stretch
+# lambda >= 1 the reference's decays faster, so the row is kept once it holds at the start (it
+# holds with equality for a climb started from hover, a = 0 on both sides). Without it the
+# climb-rate row needs w_L <= w_R + 2.45: the lighter airframe's thrust would be unconstrained.
 #
-# Guards: the left starts a climb with 0 <= w <= 2.5 (and a in its envelope); the right
-# CLIMB guard is the whole climb envelope 0 <= w <= 3.5, so every left state of the
-# envelope has a right mode to start in (the operating-region run reports every admitted
-# start in some right guard). It was w <= 2.6 before, which left 2.6 < w <= 3.5 in no
-# right mode; there is no limiter mode on this rung to excuse that band. Widening it
-# changes no verdict and no tolerance (tightest certifiable constant 9.73, 9.72 declines;
-# 12.45 is the requirement above, not the tightest).
+# Guards. Left: a climb starts from hover or a slow climb, 0 <= w <= 2.5 m/s, forward invariant
+# (w' < 0 at 2.5). Right: the whole climb envelope 0 <= w <= 3.5 (every left state has a right
+# mode to start in). No limiter mode on this rung. Domains: w in [0, 3.5] m/s both sides (climb
+# only, the rated maximum climb rate); thrust a in [0, 7.45] left, [0, 4] right (hover to the
+# climb command; forward invariant: a' >= 0 below the command). Every box is forward invariant
+# (relcert --wellformed CLIMB ok (invariant)).
 #
-# The right's a, with a' = 0 and the box 0 <= a <= 7.45, only pads the reference to the
-# left's state dimension: no right ODE, guard or invariant term reads R_a.
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED; DECLINED under RELCERT_SYNC=1 (and
+# SYNC+NO_CHOICE); CERTIFIED under NO_PRUNE, NO_CHOICE, NO_PRUNE+NO_CHOICE, without
+# RELCERT_IMPLIED_CUT, NO_IMPLIED_CUT, NO_LINEAR_CUT, NO_CUT and RELCERT_WELLFORMED_STRICT=1.
+# Cover: lambda = 7/4 (the lag-free rung's stretch), budget ceil(7/4 * 2 / 1) = 4, nothing pruned;
+# --handoff 1/1 vacuous. Units m/s, m/s^2, s.
 [problem]
 name = quad_light_lag
 max_depth = 8
@@ -47,9 +52,9 @@ next = [CLIMB]
 state_vars = [w, a]
 epsilon = 1.0
 [Rsys.mode.CLIMB]
-ode = w' = smt2:(- 4.0 (* w w)); a' = smt2:0;
-guard = w >= 0.0 and w <= 3.5
-evolve = w >= 0.0 and w <= 3.5 and a >= 0.0 and a <= 7.45
+ode = w' = smt2:(- a (* w w)); a' = smt2:(* 5.0 (- 4.0 a));
+guard = w >= 0.0 and w <= 3.5 and a >= 0.0 and a <= 4.0
+evolve = w >= 0.0 and w <= 3.5 and a >= 0.0 and a <= 4.0
 next = [CLIMB]
 [relational_invariant]
-CLIMB = smt2:(<= (+ L_a (* 5.0 L_w)) (+ (* 5.0 R_w) 12.45))
+CLIMB = smt2:(and (<= L_w (+ R_w 1.0)) (<= L_a (* 1.8625 R_a)))

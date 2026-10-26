@@ -61,7 +61,7 @@ def platoon_delay_profiles_IRv2 : PProblem :=
           evolve := (.and (.cmp ">=" (.var "g") (.num "0.0")) (.cmp "<=" (.var "g") (.num "60.0")))
           next := ["BRAKE", "FOLLOW"] } ] }
     invariants := [
-      ("FOLLOW", (.and (.cmp "<=" (.var "L_g") (.bin "+" (.var "R_g") (.num "4.0"))) (.cmp "<=" (.var "R_g") (.bin "+" (.var "L_g") (.num "3.0"))))),
-      ("GENTLE", (.and (.cmp "<=" (.var "L_g") (.bin "+" (.var "R_g") (.num "4.0"))) (.cmp "<=" (.var "R_g") (.bin "+" (.var "L_g") (.num "3.0")))))] }
+      ("FOLLOW", (.and (.cmp "<=" (.var "L_g") (.bin "+" (.var "R_g") (.num "4.0"))) (.cmp "<=" (.var "R_g") (.bin "+" (.var "L_g") (.num "1.0"))))),
+      ("GENTLE", (.and (.cmp "<=" (.var "L_g") (.bin "+" (.var "R_g") (.num "4.0"))) (.cmp "<=" (.var "R_g") (.bin "+" (.var "L_g") (.num "1.0")))))] }
 
 end RelCertifier.Parse

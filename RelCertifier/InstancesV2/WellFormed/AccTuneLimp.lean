@@ -5,7 +5,7 @@ Released under Apache 2.0 license.
 # `acc_tune_limp`: Assumption 1 of the right model (`WellFormedR`)
 
 Over the instance's guarded right automaton `Gr`, the lowered right guards, `ε_r = 1`.
-`NORMAL` / `COMFORT` / `SPORT` (`20 ≤ v ≤ 36`, `v' = k (30 − v)`, `k = 0.5, 0.4, 0.6`) and
+`NORMAL` / `COMFORT` / `SPORT` (`20 ≤ v ≤ 40`, `v' = k (30 − v)`, `k = 0.5, 0.4, 0.6`) and
 `DISENGAGE` (`v < 20`, `v' = −v/2`) are contractions whose guard sets are forward invariant
 (style (a)). Existence: the explicit exponential. Z3-free.
 -/
@@ -28,9 +28,6 @@ noncomputable def fR (q : ℕ) : Fin 3 → Term (Var 3) := hostDyn vs 3 Side.R (
 noncomputable def domR : Formula (Var 3) := hostEvolve vs 3 Side.R (mR 0)
 theorem hp300 : Run.parseRat "30.0" = some (30 : ℚ) := by
   have h : parseQ "30.0" = some (⟨300, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp360 : Run.parseRat "36.0" = some (36 : ℚ) := by
-  have h : parseQ "36.0" = some (⟨360, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
 theorem hp200 : Run.parseRat "20.0" = some (20 : ℚ) := by
   have h : parseQ "20.0" = some (⟨200, 10⟩ : QF) := by decide
@@ -116,13 +113,13 @@ theorem Gr_modeAt_inv {q : ℕ} {m : RMode (Var 3)} (hm : Gr.modeAt q = some m) 
 theorem edge_mem (s t : ℕ) (h : (s, t) ∈ edgeList) : edgeW s t ∈ Gr.edgesFrom s :=
   List.mem_filter.mpr ⟨List.mem_map.mpr ⟨(s, t), h, rfl⟩, by simp [edgeW]⟩
 
-/-- The right guards, evaluated (`NORMAL`, `COMFORT`, `SPORT`: `20 ≤ v ≤ 36`;
+/-- The right guards, evaluated (`NORMAL`, `COMFORT`, `SPORT`: `20 ≤ v ≤ 40`;
 `DISENGAGE`: `v < 20`). -/
 theorem sat_guardR (q : ℕ) (hq : q < 4) (ν : State (Var 3)) :
     Formula.sat (hostGuard vs 3 Side.R (mR q)) ν ↔
-      (if q < 3 then 20 ≤ ν (Rv 0) ∧ ν (Rv 0) ≤ 36 else ν (Rv 0) < 20) := by
+      (if q < 3 then 20 ≤ ν (Rv 0) ∧ ν (Rv 0) ≤ 40 else ν (Rv 0) < 20) := by
   interval_cases q <;>
-    simp [hostGuard, mR, acc_tune_limp_IRv2, Run.lowerF, Run.lowerE, hp200, hp360, vs,
+    simp [hostGuard, mR, acc_tune_limp_IRv2, Run.lowerF, Run.lowerE, hp200, hp400, vs,
       Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
       CompOp.interp, Term.eval, Rv]
 
@@ -201,7 +198,7 @@ theorem acc_tune_limp_wellFormedR : WellFormedR Gr guardR (epsR acc_tune_limp_IR
     have hb := H.linear_between (memR q) _ _ (kR4_nonneg q) hf
     have hgx := (sat_guardR q hq4 x).mp hg
     by_cases h3 : q < 3
-    · -- the three engaged profiles: [20, 36] invariant (set point 30 inside)
+    · -- the three engaged profiles: [20, 40] invariant (set point 30 inside)
       simp only [h3, if_true] at hgx
       simp only [cR4, h3, if_true] at hb
       refine ⟨edgeW q q, edge_mem q q (by interval_cases q <;> decide),

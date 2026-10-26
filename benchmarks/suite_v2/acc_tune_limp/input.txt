@@ -1,35 +1,52 @@
-# acc_tune_limp: retuned cruise control with a fault-latched limp-home map, against a reference with selectable response modes.
+# acc_tune_limp: retuned cruise control with a fault-latched limp-home map, against the stock controller with driver-selectable response modes.
 # scenario: degraded-controller
-# mechanisms: M1 M2 M3 M4 M5 M6
+# mechanisms: S M B D I X (time stretch 3/2; multi-step cover; branching joint steps;
+#   mode-dependent rows; checked cuts, RELCERT_NO_CUT=1 declines; committed existential choice of
+#   the reference's response mode, matrix codes M1 M2 M3 M5 M6)
 #
-# Replaces acc_tune_gain (pass 4; its cells M1 M2 M4 are a subset). The deployed
-# controller (left) runs an aftermarket tune with speed-loop gain 0.75 /s toward the
-# set speed 30 m/s, CRUISE: v' = 0.75 (30 - v). (Pass 6: acc_tune_modes, this CRUISE
-# loop against the same reference without the limp map, was dropped; its cells were a
-# strict subset of this file's.) When the tuned ECU detects a drivetrain fault it LATCHES a
-# limp-home map until the next ignition cycle: LIMP: v' = 0.3 (25 - v) (set speed
-# reduced to 25 m/s, soft gain 0.3 /s). CRUISE -> LIMP at any time, no way back.
-# The reference (right) is the stock controller: the driver selects a response mode at
-# any time, COMFORT 0.4, NORMAL 0.5 or SPORT 0.6 /s toward 30 m/s, NORMAL <-> COMFORT /
-# SPORT.
+# System. Speed v (m/s), time s. The deployed controller (left) runs an aftermarket tune: CRUISE
+# v' = 0.75 (30 - v) (speed-loop gain 0.75 /s toward the set speed 30 m/s). When the tuned ECU
+# detects a drivetrain fault it LATCHES a limp-home map until the next ignition cycle: LIMP
+# v' = 0.3 (25 - v) (set speed 25 m/s, soft gain 0.3 /s); CRUISE -> LIMP at any sample, no way
+# back. The reference (right) is the stock controller: the driver selects a response mode at any
+# time, NORMAL 0.5, COMFORT 0.4 or SPORT 0.6 /s toward 30 m/s (NORMAL <-> COMFORT / SPORT), and
+# below the 20 m/s ACC floor the system hands back to the driver: DISENGAGE v' = -0.5 v, latched.
+# One cause: the tune (gain x 1.5 and the limp map it adds).
 #
-# Guards (entry conditions): CRUISE engages at 22 <= v <= 36 m/s (2 m/s above the
-# reference's 20 m/s floor, the offset of the v_L <= v_R + 2 row, so DISENGAGE is not an
-# admissible start; 36 m/s the tune's resume ceiling), the reference bands 20..36 m/s;
-# LIMP is entered between 22 and 30 m/s (the fault latches while the ACC is engaged at
-# or below the set speed). Physical domain 0 <= v <= 40 m/s on both sides.
+# Guards. Both controllers operate from the ACC floor 20 m/s (the stock controller's real
+# engagement speed, kept by the tune; it was 22 m/s on the left, 2 m/s above the floor, a value
+# placed to keep the reference's DISENGAGE out of the admissible starts). Left CRUISE: 20 to
+# 36 m/s (36 m/s the tune's resume ceiling); LIMP is entered between 20 and 30 m/s (the fault
+# latches while the ACC is engaged at or below the set speed). Right NORMAL / COMFORT / SPORT:
+# 20 to 40 m/s, the whole engaged range up to the domain's top (was 20 to 36, which left
+# (36, 40] in no right mode); DISENGAGE below 20. The right guards partition [0, 40] (no
+# coverage gap). Physical domain 0 <= v <= 40 m/s both sides; every right band is forward
+# invariant (relcert --wellformed: all four modes ok (invariant)).
 #
-# Rows (MODE-DEPENDENT, M5): CRUISE: |v_L - v_R| <= 2; LIMP: v_L <= v_R + 2 and
-# v_R <= v_L + 6.5. Tightest per mode (CRUISE 1.5 DECLINED; LIMP 6.0 DECLINED): the
-# limp map settles 5 m/s low and reacts slowly, so the reference leads it by up to
-# 6.5 m/s. CRUISE -> LIMP loosens the row; --handoff 3/3 unsat.
-# Covers (measured): CRUISE at lambda = 3/2 (the tune is the stock loop sped up 1.5x),
-# budget 3; LIMP at lambda = 1, budget 2; joint steps from NORMAL retain COMFORT and
-# SPORT, both covering (M1, M2, M3). The band bounds are flow-invariant guard conjuncts
-# kept as checked cuts; RELCERT_NO_CUT=1 DECLINES (M6).
+# Property (mode-dependent).
+#   CRUISE: v_L = v_R (two rows). The tune's specification: the stock NORMAL response, 1.5 times
+#     faster (0.75 = 1.5 x 0.5, same set speed), so at stretch 3/2 the tuned car's speed equals
+#     the stock car's exactly. Exact, no tolerance.
+#   LIMP: v_L <= v_R. Requirement: the limp-home map never makes the car faster than the
+#     reference. Constant 0 is forced: the handoff CRUISE -> LIMP starts from v_L = v_R.
+# The rows must differ: the exact CRUISE row cannot hold in LIMP (the limp map settles 5 m/s
+# low); a uniform v_L <= v_R also certifies, but states less in CRUISE.
+# The exact rows place the fallback without a dodge: v_L >= 20 and v_L <= v_R give v_R >= 20,
+# so DISENGAGE is no admissible start, and NORMAL / COMFORT / SPORT -> DISENGAGE are pruned (each
+# loop accelerates at the floor). With any positive lead allowed in CRUISE (v_L <= v_R + c,
+# c > 0) the file DECLINES at the 20 m/s floor: the reference could then start disengaged.
+# Existential choice (X). The deployed tune mirrors NORMAL only. When the reference starts in
+# COMFORT or SPORT the exact CRUISE row fails there; the cover commits the reference's driver to
+# NORMAL (choice hops COMFORT -> NORMAL and SPORT -> NORMAL), and RELCERT_NO_CHOICE=1 DECLINES.
+# Measured, not part of the claim: in LIMP the reference leads by at most 7.00 m/s (adding
+# v_R <= v_L + c certifies down to c = 7.00; 6.99 declines).
 #
-# Fallback (M4): DISENGAGE below 20 m/s from every reference mode (v' = -0.5 v, sink),
-# pruned (each loop accelerates at the floor); RELCERT_NO_PRUNE=1 DECLINES. Units m/s, s.
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED; CERTIFIED under NO_PRUNE, without
+# RELCERT_IMPLIED_CUT, NO_IMPLIED_CUT, NO_LINEAR_CUT, RELCERT_WELLFORMED_STRICT=1; DECLINED under
+# RELCERT_SYNC=1, NO_CHOICE, NO_PRUNE+NO_CHOICE, SYNC+NO_CHOICE and NO_CUT (the band conjuncts
+# are checked cuts the segments need). Covers: CRUISE by choice at lambda = 3/2, budget 3; LIMP
+# at lambda = 1, budget 2, joint steps from NORMAL retaining COMFORT and SPORT (branch 2).
+# Pruned: NORMAL, COMFORT, SPORT -> DISENGAGE. --handoff 3/3 unsat, non-vacuous. Units m/s, s.
 [problem]
 name = acc_tune_limp
 max_depth = 8
@@ -41,12 +58,12 @@ state_vars = [v]
 epsilon = 2.0
 [Lsys.mode.CRUISE]
 ode = v' = smt2:(* 0.75 (- 30.0 v));
-guard = v >= 22.0 and v <= 36.0
+guard = v >= 20.0 and v <= 36.0
 evolve = v >= 0.0 and v <= 40.0
 next = [CRUISE, LIMP]
 [Lsys.mode.LIMP]
 ode = v' = smt2:(* 0.3 (- 25.0 v));
-guard = v >= 22.0 and v <= 30.0
+guard = v >= 20.0 and v <= 30.0
 evolve = v >= 0.0 and v <= 40.0
 next = [LIMP]
 [Rsys]
@@ -54,17 +71,17 @@ state_vars = [v]
 epsilon = 1.0
 [Rsys.mode.NORMAL]
 ode = v' = smt2:(* 0.5 (- 30.0 v));
-guard = v >= 20.0 and v <= 36.0
+guard = v >= 20.0 and v <= 40.0
 evolve = v >= 0.0 and v <= 40.0
 next = [NORMAL, COMFORT, SPORT, DISENGAGE]
 [Rsys.mode.COMFORT]
 ode = v' = smt2:(* 0.4 (- 30.0 v));
-guard = v >= 20.0 and v <= 36.0
+guard = v >= 20.0 and v <= 40.0
 evolve = v >= 0.0 and v <= 40.0
 next = [COMFORT, NORMAL, DISENGAGE]
 [Rsys.mode.SPORT]
 ode = v' = smt2:(* 0.6 (- 30.0 v));
-guard = v >= 20.0 and v <= 36.0
+guard = v >= 20.0 and v <= 40.0
 evolve = v >= 0.0 and v <= 40.0
 next = [SPORT, NORMAL, DISENGAGE]
 [Rsys.mode.DISENGAGE]
@@ -73,5 +90,5 @@ guard = v < 20.0
 evolve = v >= 0.0 and v <= 40.0
 next = [DISENGAGE]
 [relational_invariant]
-CRUISE = smt2:(and (<= L_v (+ R_v 2.0)) (<= R_v (+ L_v 2.0)))
-LIMP   = smt2:(and (<= L_v (+ R_v 2.0)) (<= R_v (+ L_v 6.5)))
+CRUISE = smt2:(and (<= L_v R_v) (<= R_v L_v))
+LIMP   = smt2:(<= L_v R_v)

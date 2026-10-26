@@ -15,11 +15,14 @@ open RelCertifier.Parse
 
 def charger_fast_setpoints_cutsV2 : EvolStrengthening :=
   { L := [
+      ("PRECHARGE", [((.cmp ">=" (.var "x") (.num "10.0")), CutRoute.shape)]),
       ("BULK", [((.cmp ">=" (.var "x") (.num "15.0")), CutRoute.shape)]),
       ("ABSORB", [((.cmp ">=" (.var "x") (.num "80.0")), CutRoute.shape)]),
-      ("FULL", [((.cmp ">=" (.var "x") (.num "99.0")), CutRoute.frozen)])
+      ("FULL", [((.cmp ">=" (.var "x") (.num "99.0")), CutRoute.frozen)]),
+      ("FAULT", [])
     ]
     R := [
+      ("PRECHARGE", [((.cmp ">=" (.var "x") (.num "10.0")), CutRoute.shape)]),
       ("BULK", [((.cmp ">=" (.var "x") (.num "15.0")), CutRoute.shape)]),
       ("ABSORB", [((.cmp ">=" (.var "x") (.num "80.0")), CutRoute.shape)]),
       ("FULL", [((.cmp ">=" (.var "x") (.num "99.0")), CutRoute.frozen)]),
@@ -28,11 +31,14 @@ def charger_fast_setpoints_cutsV2 : EvolStrengthening :=
 
 def charger_fast_setpoints_cutsV2X : EvolStrengtheningX :=
   { L := [
+      ("PRECHARGE", [⟨(.cmp ">=" (.var "x") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "x") (.num "20.0")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
       ("BULK", [⟨(.cmp ">=" (.var "x") (.num "15.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "x") (.num "90.0")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
       ("ABSORB", [⟨(.cmp ">=" (.var "x") (.num "80.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "x") (.num "100.0")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
-      ("FULL", [⟨(.cmp ">=" (.var "x") (.num "99.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩])
+      ("FULL", [⟨(.cmp ">=" (.var "x") (.num "99.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩]),
+      ("FAULT", [⟨(.cmp "<=" (.var "x") (.num "10.0")), CutKind.closure, CutEntry.weakening, CutRouteX.shape, []⟩])
     ]
     R := [
+      ("PRECHARGE", [⟨(.cmp ">=" (.var "x") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "x") (.num "20.0")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
       ("BULK", [⟨(.cmp ">=" (.var "x") (.num "15.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "x") (.num "90.0")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
       ("ABSORB", [⟨(.cmp ">=" (.var "x") (.num "80.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "x") (.num "100.0")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
       ("FULL", [⟨(.cmp ">=" (.var "x") (.num "99.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩]),

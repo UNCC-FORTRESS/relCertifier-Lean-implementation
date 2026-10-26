@@ -14,6 +14,6 @@ namespace RelCertifier
 def platoon_delay_profiles_coverV2 : CoverEmitE :=
   ⟨"platoon_delay_profiles", [("FOLLOW", "BRAKE")], [
     ⟨"FOLLOW", (1 : ℚ) / 1, 2, [⟨"FOLLOW", true, false, false⟩, ⟨"GENTLE", true, false, false⟩, ⟨"ASSERTIVE", true, false, false⟩, ⟨"BRAKE", false, false, false⟩], ["FOLLOW", "GENTLE", "ASSERTIVE"], [⟨"FOLLOW", [0, 1], [], [], 1, 1⟩, ⟨"GENTLE", [0, 1], [1], [1], 1, 1⟩, ⟨"ASSERTIVE", [0, 1], [1], [1], 1, 1⟩, ⟨"BRAKE", [], [0], [0], 1, 1⟩]⟩,
-    ⟨"GENTLE", (1 : ℚ) / 1, 2, [⟨"FOLLOW", true, false, false⟩, ⟨"GENTLE", true, false, false⟩, ⟨"ASSERTIVE", true, false, false⟩, ⟨"BRAKE", false, false, false⟩], ["FOLLOW", "GENTLE", "ASSERTIVE"], [⟨"FOLLOW", [0, 1], [], [], 1, 1⟩, ⟨"GENTLE", [0, 1], [1], [1], 1, 1⟩, ⟨"ASSERTIVE", [0, 1], [1], [1], 1, 1⟩, ⟨"BRAKE", [0], [0], [0], 1, 1⟩]⟩]⟩
+    ⟨"GENTLE", (5 : ℚ) / 4, 3, [⟨"FOLLOW", true, false, false⟩, ⟨"GENTLE", true, false, false⟩, ⟨"ASSERTIVE", true, false, false⟩, ⟨"BRAKE", false, false, false⟩], ["FOLLOW", "GENTLE", "ASSERTIVE"], [⟨"FOLLOW", [0, 1], [], [], 5, 4⟩, ⟨"GENTLE", [0, 1], [1], [1], 1, 1⟩, ⟨"ASSERTIVE", [0, 1], [1], [1], 1, 1⟩, ⟨"BRAKE", [0], [0], [0], 5, 4⟩]⟩]⟩
 
 end RelCertifier

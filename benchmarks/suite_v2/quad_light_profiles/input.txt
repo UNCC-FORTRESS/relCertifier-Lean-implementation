@@ -1,47 +1,48 @@
 # quad_light_profiles: 40 %-lighter quadrotor against a reference autopilot with selectable climb-thrust profiles.
 # scenario: model-refinement
-# mechanisms: M1 M2 M3 M4
+# mechanisms: S M B X (time stretch lambda = 3; multi-step cover with joint steps from NORMAL
+#   and SPORT retaining two profiles; committed existential choice of the reference's profile,
+#   matrix codes M1 M2 M3)
 #
-# Replaces quad_light_airframe_40 (pass 4; its cells M1 M2 M4 are a subset). Climb-rate
-# dynamics with quadratic drag, w' = a - c w^2 (w climb rate m/s, a net specific thrust
-# m/s^2, c drag per unit mass 1/m). Deployed (left): the airframe of
-# quad_light_airframe_40, 40 % lighter than the reference model assumed: a_L = 9.524,
-# c_L = 1.4 (terminal 2.61 m/s). Reference (right): the autopilot's climb profiles,
-# selectable in flight from NORMAL to either neighbour and back: NORMAL a = 4 (terminal
-# 2.0 m/s), ECO a = 3.6 (90 % thrust, terminal 1.90), SPORT a = 4.4 (110 %, terminal
-# 2.10), c = 1; plus the climb-rate LIMITER above 3.2 m/s (motor command cut, w' = -2 w;
-# it hands back to NORMAL once w <= 3.2).
+# System. Climb rate w (m/s) with quadratic drag, w' = a - c w^2 (a net specific thrust m/s^2,
+# c drag per unit mass 1/m). Reference (right): the autopilot's climb profiles, selectable in
+# flight from NORMAL to either neighbour and back: NORMAL a = 4 (terminal 2.0 m/s), ECO a = 3.6
+# (90 % thrust, terminal 1.90), SPORT a = 4.4 (110 %, terminal 2.10), c = 1; plus the
+# climb-rate LIMITER above 3.2 m/s (motor command cut, w' = -2 w; it hands back to NORMAL once
+# w <= 3.2). Deployed (left): the same motors and NORMAL command on an airframe 40 % lighter
+# than the reference model assumed: thrust-to-mass x 1/0.6 = 5/3, so a_L = (5/3)(4 + 9.81) -
+# 9.81 = 39.62/3 = 13.21 and c_L = 5/3 (terminal 2.81 m/s). (Before 2026-10-26 the file used the
+# factor 1.4, a 29 % lighter airframe, under the "40 %" label.) One cause: the airframe mass.
 #
-# Guards: the deployed climb controller engages from hover or a slow climb,
-# 0 <= w <= 2.2 m/s; the reference climb modes 0 <= w <= 3.2 (the autopilot's climb
-# controller's operating range, up to the limiter threshold; 2.6 until 2026-10-10, see
-# below); LIMIT is w > 3.2. Physical domain 0 <= w <= 3.5 m/s on both sides (climb only;
-# 3.5 m/s is the airframe's rated maximum climb rate).
+# Guards. Left CLIMB: 0 <= w <= 3.2, the climb controller's operating range, the same range as
+# the reference's climb modes (up to the limiter threshold; it was 2.2 m/s, a ceiling placed so
+# that the reference's LIMIT was no admissible start). Right climb modes 0 <= w <= 3.2, LIMIT
+# w > 3.2: the right guards partition the domain. Physical domain 0 <= w <= 3.5 m/s both sides
+# (climb only, the rated maximum climb rate). Every climb guard is forward invariant (drag wins
+# at 3.2 in every profile and in the deployed); relcert --wellformed: NORMAL, ECO, SPORT ok
+# (invariant), LIMIT ok (exit->NORMAL).
 #
-# Claim: w_L <= w_R + 0.95 and w_R <= w_L + 0.8 -- the tightest pair that certifies
-# (0.9 / 0.75 are DECLINED). Covers (measured): lambda = 5/2 (the lighter airframe is
-# faster in time against every profile; on the grid SPORT passes from lambda = 2,
-# NORMAL from 9/4, ECO from 5/2, the first common point), budget 5; the cover from NORMAL takes
-# a joint step whose retained successors ECO and SPORT both cover (M1 with polynomial
-# dynamics, M2, M3).
+# Property: w_L <= w_R + 1 and w_R <= w_L.
+#   w_L <= w_R + 1: requirement (the climb-rate tolerance of this family, as in
+#     quad_light_airframe_20 and quad_light_lag): the lighter airframe never climbs more than
+#     1 m/s faster than the reference profile. Tightest 0.91 (0.90 declines).
+#   w_R <= w_L: the reference profile never climbs faster than the lighter airframe (at the
+#     matched, stretched time). Constant 0 so that a common start from hover (w_L = w_R = 0) is
+#     related; the row certifies down to w_R <= w_L - 0.56 (-0.57 declines), which would
+#     exclude that start.
+# Fallback placed honestly: w_R <= w_L <= 3.2 keeps the reference out of LIMIT at every start,
+# and NORMAL / ECO / SPORT -> LIMIT are pruned (drag wins at 3.2); RELCERT_NO_PRUNE=1 CERTIFIES
+# (the second row already excludes LIMIT along the cover).
+# Existential choice (X). ECO is too slow for the first row; when the reference starts in ECO
+# the cover commits the pilot's selection to NORMAL (choice hops ECO -> NORMAL), and
+# RELCERT_NO_CHOICE=1 DECLINES. The matrix replays the choice cover with the extended checker
+# (decideCoveredX: hop ECO -> NORMAL, then joint steps from NORMAL and SPORT, branch 2).
 #
-# Fallback (M4): CLIMB never reaches the limiter (at w = 3.2 drag wins in every
-# profile; entered at w <= 3.2), so NORMAL/ECO/SPORT -> LIMIT are pruned; LIMIT is not an
-# admissible start (w_L <= 2.2 and w_R <= w_L + 0.8 give w_R <= 3.0 < 3.2; this is why
-# the deployed engagement ceiling is 2.2 m/s). RELCERT_NO_PRUNE=1 DECLINES.
-#
-# Assumption 1 (repaired 2026-10-10, docs/SUITE-REDESIGN.md section 21): the limiter
-# RE-ENGAGES the climb controller. The limiter's own flow decays the climb rate below its
-# guard within one control period (from w = 3.3 the 1 s run ends at 3.3 e^-2 = 0.45), and
-# with LIMIT as its own only successor the nominal controller blocked there. Physically
-# the motor command is restored, on the NORMAL profile, once the climb rate is back at
-# the limit: LIMIT -> NORMAL is declared. For the hand-back to land in a mode, the climb
-# modes' guard (the operating range, guard change) now reaches the limiter threshold,
-# 0 <= w <= 3.2 (was 0 <= w <= 2.6, a narrower band that left 2.6 < w <= 3.2 in no mode).
-# Every run of at most 1 s from w > 3.2 ends in LIMIT's guard or in NORMAL's. The guard is
-# forward invariant under every profile (w' < 0 at 3.2: 4.4 - 10.24 < 0); the prune, the
-# admissible starts, the verdict, the cover (lambda = 5/2, budget 5) and every counter-run
-# are unchanged (relcert --wellformed: LIMIT ok (exit->NORMAL)).
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED; CERTIFIED under NO_PRUNE, without
+# RELCERT_IMPLIED_CUT, NO_IMPLIED_CUT, NO_LINEAR_CUT, NO_CUT, RELCERT_WELLFORMED_STRICT=1;
+# DECLINED under RELCERT_SYNC=1, NO_CHOICE, NO_PRUNE+NO_CHOICE and SYNC+NO_CHOICE. Cover: CLIMB
+# by choice at lambda = 3 (per pairing: NORMAL 3, SPORT 11/4), budget ceil(3 * 2 / 1) = 6.
+# --handoff 1/1 vacuous. Units m/s, m/s^2, s.
 [problem]
 name = quad_light_profiles
 max_depth = 8
@@ -52,8 +53,8 @@ bound_T = 4.0
 state_vars = [w]
 epsilon = 2.0
 [Lsys.mode.CLIMB]
-ode = w' = smt2:(- 9.524 (* 1.4 (* w w)));
-guard = w >= 0.0 and w <= 2.2
+ode = w' = smt2:(- (/ 39.62 3.0) (* (/ 5.0 3.0) (* w w)));
+guard = w >= 0.0 and w <= 3.2
 evolve = w >= 0.0 and w <= 3.5
 next = [CLIMB]
 [Rsys]
@@ -80,4 +81,4 @@ guard = w > 3.2
 evolve = w >= 0.0 and w <= 3.5
 next = [LIMIT, NORMAL]
 [relational_invariant]
-CLIMB = smt2:(and (<= L_w (+ R_w 0.95)) (<= R_w (+ L_w 0.8)))
+CLIMB = smt2:(and (<= L_w (+ R_w 1.0)) (<= R_w L_w))

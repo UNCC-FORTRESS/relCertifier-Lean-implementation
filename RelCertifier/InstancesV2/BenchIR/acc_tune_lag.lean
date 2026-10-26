@@ -23,7 +23,7 @@ def acc_tune_lag_IRv2 : PProblem :=
         {
           name := "CRUISE"
           odes := [("v", (.var "a")),
-            ("a", (.bin "*" (.num "4.0") (.bin "-" (.bin "*" (.num "0.75") (.bin "-" (.num "30.0") (.var "v"))) (.var "a"))))]
+            ("a", (.bin "*" (.num "3.125") (.bin "-" (.bin "*" (.num "0.75") (.bin "-" (.num "30.0") (.var "v"))) (.var "a"))))]
           guard := (.and (.and (.and (.cmp ">=" (.var "v") (.num "25.0")) (.cmp "<=" (.var "v") (.num "30.0"))) (.cmp ">=" (.var "a") (.num "-2.0"))) (.cmp "<=" (.var "a") (.num "2.0")))
           evolve := (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "40.0"))) (.cmp ">=" (.var "a") (.num "-10.0"))) (.cmp "<=" (.var "a") (.num "10.0")))
           next := ["CRUISE"] } ] }
@@ -33,19 +33,12 @@ def acc_tune_lag_IRv2 : PProblem :=
       modes := [
         {
           name := "CRUISE"
-          odes := [("v", (.bin "*" (.num "0.5") (.bin "-" (.num "30.0") (.var "v")))),
-            ("a", (.num "0"))]
-          guard := (.and (.cmp ">=" (.var "v") (.num "20.0")) (.cmp "<" (.var "v") (.num "40.0")))
+          odes := [("v", (.var "a")),
+            ("a", (.bin "*" (.num "3.125") (.bin "-" (.bin "*" (.num "0.5") (.bin "-" (.num "30.0") (.var "v"))) (.var "a"))))]
+          guard := (.and (.and (.and (.cmp ">=" (.bin "+" (.var "a") (.bin "*" (.num "2.5") (.var "v"))) (.num "60.5")) (.cmp "<=" (.bin "+" (.var "a") (.bin "*" (.num "2.5") (.var "v"))) (.num "77.0"))) (.cmp ">=" (.bin "+" (.var "a") (.bin "*" (.num "0.625") (.var "v"))) (.num "13.625"))) (.cmp "<=" (.bin "+" (.var "a") (.bin "*" (.num "0.625") (.var "v"))) (.num "20.75")))
           evolve := (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "40.0"))) (.cmp ">=" (.var "a") (.num "-10.0"))) (.cmp "<=" (.var "a") (.num "10.0")))
-          next := ["CRUISE", "DISENGAGE"] },
-        {
-          name := "DISENGAGE"
-          odes := [("v", (.bin "*" (.num "-0.5") (.var "v"))),
-            ("a", (.num "0"))]
-          guard := (.cmp "<" (.var "v") (.num "20.0"))
-          evolve := (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "40.0"))) (.cmp ">=" (.var "a") (.num "-10.0"))) (.cmp "<=" (.var "a") (.num "10.0")))
-          next := ["DISENGAGE"] } ] }
+          next := ["CRUISE"] } ] }
     invariants := [
-      ("CRUISE", (.cmp "<=" (.bin "+" (.var "L_a") (.bin "*" (.num "4.0") (.var "L_v"))) (.bin "+" (.bin "*" (.num "4.0") (.var "R_v")) (.num "16.0"))))] }
+      ("CRUISE", (.and (.cmp "<=" (.bin "+" (.bin "*" (.num "2.5") (.var "L_a")) (.bin "*" (.num "4.6875") (.var "L_v"))) (.bin "+" (.bin "*" (.num "1.875") (.var "R_a")) (.bin "*" (.num "4.6875") (.var "R_v")))) (.cmp "<=" (.bin "+" (.bin "*" (.num "1.875") (.var "R_a")) (.bin "*" (.num "4.6875") (.var "R_v"))) (.bin "+" (.bin "*" (.num "2.5") (.var "L_a")) (.bin "*" (.num "4.6875") (.var "L_v"))))))] }
 
 end RelCertifier.Parse

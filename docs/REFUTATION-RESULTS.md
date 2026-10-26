@@ -14,8 +14,14 @@
 > its 15 files: `rover_patrol_zones` m008, m012 and `rover_ladder_6to8` m009, m010 are gone with the
 > rows they refuted (graded zone margins; quadratic attitude rows), `rover_lateral_8to12` has 7
 > (m015, m019 to m024, kind B; each DECLINED by relcert; was 6), no other file of the batch has a
-> witness. Current instance set: **80 refutations, 225 groups**
-> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 777 mutants in
+> witness. The nine redesigned files of 2026-10-26 (`acc_tune_lag`, `acc_spoof_lag`,
+> `quad_light_lag`, `rover_patrol_lag`, `charger_fast_setpoints`, `charger_fast_tapers`,
+> `acc_tune_limp`, `platoon_delay_profiles`, `quad_light_profiles`; 84 mutants) re-ran the finder:
+> `rover_patrol_lag` m003, m004, m009, m013 and `acc_tune_limp` m008 are gone with the rows they
+> refuted, `charger_fast_setpoints` m003 and `charger_fast_tapers` m003 are new (the charging row
+> `x_L <= x_R + 2` flipped, kind C; each DECLINED by relcert), no other file of the batch has a
+> witness. Current instance set: **77 refutations, 216 groups**
+> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 798 mutants in
 > `docs/refute/witnesses.jsonl`. The operator table has not been recomputed.
 
 Design: `docs/REFUTATION-SCOPE.md` (planning record, last present at commit 29663d8). This file reports what was built and the experiment.

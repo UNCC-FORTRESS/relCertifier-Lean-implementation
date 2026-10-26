@@ -18,17 +18,15 @@ def acc_tune_lag_cutsV2 : EvolStrengthening :=
       ("CRUISE", [])
     ]
     R := [
-      ("CRUISE", [((.cmp ">=" (.var "v") (.num "20.0")), CutRoute.shape)]),
-      ("DISENGAGE", [])
+      ("CRUISE", [((.cmp ">=" (.bin "+" (.var "a") (.bin "*" (.num "2.5") (.var "v"))) (.num "60.5")), CutRoute.diStrict), ((.cmp "<=" (.bin "+" (.var "a") (.bin "*" (.num "2.5") (.var "v"))) (.num "77.0")), CutRoute.diStrict), ((.cmp ">=" (.bin "+" (.var "a") (.bin "*" (.num "0.625") (.var "v"))) (.num "13.625")), CutRoute.diStrict), ((.cmp "<=" (.bin "+" (.var "a") (.bin "*" (.num "0.625") (.var "v"))) (.num "20.75")), CutRoute.diStrict)])
     ] }
 
 def acc_tune_lag_cutsV2X : EvolStrengtheningX :=
   { L := [
-      ("CRUISE", [⟨(.cmp "<=" (.bin "+" (.var "a") (.bin "*" (.num "1") (.bin "-" (.var "v") (.num "30")))) (.num "2")), CutKind.linearForm, CutEntry.rational, CutRouteX.linearShape, []⟩, ⟨(.cmp ">=" (.bin "+" (.var "a") (.bin "*" (.num "1") (.bin "-" (.var "v") (.num "30")))) (.num "-7")), CutKind.linearForm, CutEntry.rational, CutRouteX.linearShape, []⟩, ⟨(.cmp "<=" (.bin "+" (.var "a") (.bin "*" (.num "3") (.bin "-" (.var "v") (.num "30")))) (.num "2")), CutKind.linearForm, CutEntry.rational, CutRouteX.linearShape, []⟩, ⟨(.cmp ">=" (.bin "+" (.var "a") (.bin "*" (.num "3") (.bin "-" (.var "v") (.num "30")))) (.num "-17")), CutKind.linearForm, CutEntry.rational, CutRouteX.linearShape, []⟩, ⟨(.cmp "<=" (.var "v") (.num "32")), CutKind.derivedBound, CutEntry.rational, CutRouteX.derivedShape, [(.cmp "<=" (.bin "+" (.var "a") (.bin "*" (.num "1") (.bin "-" (.var "v") (.num "30")))) (.num "2"))]⟩, ⟨(.cmp ">=" (.var "v") (.num "23")), CutKind.derivedBound, CutEntry.rational, CutRouteX.derivedShape, [(.cmp ">=" (.bin "+" (.var "a") (.bin "*" (.num "1") (.bin "-" (.var "v") (.num "30")))) (.num "-7"))]⟩])
+      ("CRUISE", [⟨(.cmp "<=" (.bin "+" (.var "a") (.bin "*" (.num "1.25") (.bin "-" (.var "v") (.num "30")))) (.num "2")), CutKind.linearForm, CutEntry.rational, CutRouteX.linearShape, []⟩, ⟨(.cmp ">=" (.bin "+" (.var "a") (.bin "*" (.num "1.25") (.bin "-" (.var "v") (.num "30")))) (.num "-8.25")), CutKind.linearForm, CutEntry.rational, CutRouteX.linearShape, []⟩, ⟨(.cmp "<=" (.bin "+" (.var "a") (.bin "*" (.num "1.875") (.bin "-" (.var "v") (.num "30")))) (.num "2")), CutKind.linearForm, CutEntry.rational, CutRouteX.linearShape, []⟩, ⟨(.cmp ">=" (.bin "+" (.var "a") (.bin "*" (.num "1.875") (.bin "-" (.var "v") (.num "30")))) (.num "-11.375")), CutKind.linearForm, CutEntry.rational, CutRouteX.linearShape, []⟩, ⟨(.cmp "<=" (.var "v") (.num "31.6")), CutKind.derivedBound, CutEntry.rational, CutRouteX.derivedShape, [(.cmp "<=" (.bin "+" (.var "a") (.bin "*" (.num "1.25") (.bin "-" (.var "v") (.num "30")))) (.num "2"))]⟩, ⟨(.cmp ">=" (.var "v") (.num "23.4")), CutKind.derivedBound, CutEntry.rational, CutRouteX.derivedShape, [(.cmp ">=" (.bin "+" (.var "a") (.bin "*" (.num "1.25") (.bin "-" (.var "v") (.num "30")))) (.num "-8.25"))]⟩])
     ]
     R := [
-      ("CRUISE", [⟨(.cmp ">=" (.var "v") (.num "20.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "v") (.num "40.0")), CutKind.closure, CutEntry.weakening, CutRouteX.shape, []⟩]),
-      ("DISENGAGE", [⟨(.cmp "<=" (.var "v") (.num "20.0")), CutKind.closure, CutEntry.weakening, CutRouteX.shape, []⟩])
+      ("CRUISE", [⟨(.cmp ">=" (.bin "+" (.var "a") (.bin "*" (.num "2.5") (.var "v"))) (.num "60.5")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.bin "+" (.var "a") (.bin "*" (.num "2.5") (.var "v"))) (.num "77.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp ">=" (.bin "+" (.var "a") (.bin "*" (.num "0.625") (.var "v"))) (.num "13.625")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.bin "+" (.var "a") (.bin "*" (.num "0.625") (.var "v"))) (.num "20.75")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩])
     ] }
 
 /-- The legacy (guard-conjunct) part is well formed. -/

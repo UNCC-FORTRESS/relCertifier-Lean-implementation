@@ -1,58 +1,53 @@
-# acc_tune_lag: the retuned cruise controller refined with the powertrain lag.
-# scenario: model-refinement
-# mechanisms: M1 M2 M4
+# acc_tune_lag: the retuned cruise loop against the stock loop, both with the same powertrain lag.
+# scenario: degraded-controller
+# mechanisms: S M (time stretch lambda = 2 needed, RELCERT_SYNC=1 declines; multi-step cover,
+#   matrix codes M1 M2)
 #
-# Refinement of the retuned CRUISE loop of acc_tune_limp against the
-# stock single-gain reference. The deployed vehicle (left) is modeled with its
-# powertrain lag: the retuned speed loop commands a_cmd = 0.75 (30 - v) and the
-# powertrain realises it through a first-order lag of time constant tau = 0.25 s:
-# v' = a, a' = 4 (a_cmd - a). The reference (right) is the stock first-order cruise
-# model v' = 0.5 (30 - v) (lag abstracted away).
+# System. Speed v (m/s) and realised acceleration a (m/s^2) of one car whose cruise loop commands
+# a_cmd = k (30 - v) toward the set speed 30 m/s; the powertrain realises the command through a
+# first-order lag of time constant tau = 0.32 s: v' = a, a' = (a_cmd - a) / tau = 3.125 (a_cmd - a).
+# The pair isolates the control change: both sides are this car with this lag.
+#   Left (deployed): the aftermarket retune, speed-loop gain k = 0.75 /s.
+#   Right (reference): the stock calibration, gain k = 0.5 /s.
+# Lag choice. tau = 0.32 s (1/tau = 25/8) is the lag at which BOTH closed loops have rational
+# real roots, so both are non-oscillatory and decouple into exponential modes:
+#   left  s^2 + 3.125 s + 2.34375 = (s + 1.25)(s + 1.875)
+#   right s^2 + 3.125 s + 1.5625  = (s + 0.625)(s + 2.5).
+# (The previous left lag 0.25 s gave an irrational right loop.)
 #
-# LAG CHOICE (domain audit, docs/SUITE-REDESIGN.md section 13, A2). The (v, a) loop is
-# v'' + b v' + 0.75 b (v - 30) = 0 with b = 1/tau; non-oscillatory iff b >= 3
-# (tau <= 1/3 s). The previous lag (tau = 0.5 s, b = 2, discriminant 4 - 6 < 0) was
-# UNDERDAMPED and its cap a <= 6 a load-bearing, non-invariant domain bound. Here
-# tau = 0.25 s (b = 4): characteristic polynomial s^2 + 4 s + 3 = (s + 1)(s + 3),
-# OVER-DAMPED with rational roots 1 and 3.
+# Property (requirement). The retune's specification is "the stock response, twice as fast":
+# the dominant (slow) mode must be the stock loop's dominant mode with its time constant halved
+# (1.6 s -> 0.8 s). Let u = v + a / r_f be the dominant-mode speed (r_f the fast root:
+# u_L = v_L + a_L / 1.875, u_R = v_R + a_R / 2.5); u - 30 decays at the slow rate (1.25 /s left,
+# 0.625 /s right). Claim: u_L = u_R (two rows, 4.6875 v_L + 2.5 a_L = 4.6875 v_R + 1.875 a_R):
+# at every instant the retuned car's dominant-mode speed equals the stock car's at twice the
+# elapsed time. Exact: no tolerance constant. Not implied by the domains (it pins a_R given the
+# other three coordinates).
+# Consequence (measured, not part of the claim): adding |v_L - v_R| <= c as a row certifies down
+# to c = 2.89 (2.88 declines): the fast modes keep the speeds within 2.89 m/s of each other.
 #
-# ENGAGEMENT (guard, a controller-design condition): the cruise controller engages
-# between 25 m/s and the set speed 30 m/s, and only with |a| <= 2 m/s^2. PHYSICAL
-# DOMAIN: v in [0, 40] m/s, a in [-10, 10] m/s^2 (1 g, the tyre-road friction limit);
-# no domain bound is load-bearing (widening test).
+# Guards. Left: the controller engages (resumes) between 25 m/s and the set speed with
+# |a| <= 2 m/s^2 (no hard pedal input), the deployed's engagement condition at every sample, as
+# before. Right: the stock car's ENGAGED ENVELOPE, the forward-invariant hull of the same
+# engagement box under the stock loop: a + 2.5 v in [60.5, 77] and a + 0.625 v in [13.625, 20.75]
+# (the modal coordinates a + r (v - 30) of the box, each decaying toward 0, so the set is kept by
+# the flow: relcert --wellformed CRUISE ok (invariant)). It bounds the reference's lag state,
+# which a speed band alone does not (with v in [20, 40] and a free the reference blocks or
+# leaves the band). The envelope spans v in [21.2, 33.8]; simulated runs from the engagement box
+# stay in v in [24.8, 30.5].
+# Coverage. States of the right domain outside the envelope are in no right guard: the
+# reference never reaches them after engaging. The stock controller's disengage branch below
+# 20 m/s (declared in earlier versions) is not modeled on this pair: neither loop comes near
+# 20 m/s from engagement.
+# Domains (both sides): v in [0, 40] m/s, a in [-10, 10] m/s^2 (1 g, the tyre-road limit);
+# physical limits, not load-bearing.
 #
-# THE CUT CHAIN (RELCERT_IMPLIED_CUT=1, L7). Two decoupling forms
-# q_1 = a + (v - 30) (q_1' = -3 q_1) and q_3 = a + 3 (v - 30) (q_3' = -q_3).
-# Round 1 over the guard box (v in [25, 30], a in [-2, 2]): q_1 in [-7, 2] and
-# q_3 in [-17, 2] (kind linear-form, O1 rational, O2 linear-shape). Round 2: v <= 32
-# and v >= 23 from q_1 (kind derived-bound; the q_3 bounds 30 + 2/3, 30 - 17/3 are not
-# decimal and are not offered). Inside the chain a is bounded on both sides
-# (a = (3 q_1 - q_3) / 2): the acceleration bound is DERIVED, not a domain cap.
-#
-# Claim: the lifted functional w = v + tau a = v + 0.25 a (w' = a_cmd =
-# 0.75 (30 - v)) satisfies a_L + 4 v_L <= 4 v_R + 16, i.e. w_L <= v_R + 4: the
-# retuned vehicle's lag-compensated speed stays within 4 m/s above the reference's.
-# The tolerance is CHOSEN so that the fallback mechanism is exercised: it is the
-# smallest slack (grid 0.25 in functional units) at which the reference's DISENGAGE
-# fallback must be pruned. Under the cuts the left floor is w_L >= 24 (v_L >= 23 and
-# q_1 >= -7, q_3 >= -17 give a_L >= 4 at v_L = 23), so the CRUISE_L/DISENGAGE_R
-# pairing region (v_R < 20) is non-empty iff 4 * 24 <= 4 * 20 + c, i.e. c >= 16; at
-# c = 16 DISENGAGE (v' = -0.5 v, sink below the 20 m/s wheel-speed floor) is pruned by
-# the non-connection certificate (CRUISE accelerates at the floor) and
-# RELCERT_NO_PRUNE=1 DECLINES (M4); at c = 15.75 (and 15.95) the region is empty and
-# RELCERT_NO_PRUNE=1 CERTIFIES. Certified at lambda = 5/4, budget
-# ceil(5/4 * 2 / 1) = 3 right cycles per left window (M1, M2). The chain atoms above
-# are still kept, but at this slack they are not load-bearing: RELCERT_NO_CUT=1,
-# RELCERT_NO_IMPLIED_CUT=1 and RELCERT_NO_LINEAR_CUT=1 all CERTIFY.
-#
-# Remark (the tight bound): the tightest certifiable slack is a_L + 4 v_L <= 4 v_R + 2
-# (w_L <= v_R + 0.5, against |v_L - v_R| <= 1 of the lag-free single-gain tune,
-# pass-3 acc_tune_gain); 1.75 is DECLINED, with the domain at +-10 and at +-100 alike.
-# There the chain is load-bearing (all three cut counter-runs DECLINE, M6 M6+ M6L,
-# lambda = 2, budget 4) but the derived floor empties the DISENGAGE pairing (no M4).
-# The chain stays load-bearing up to slack 9.75 (10 CERTIFIES without it), so no
-# slack exercises both the fallback and the chain (docs/SUITE-REDESIGN.md section
-# 13.6, pass 5). Units m/s, m/s^2, s.
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED; DECLINED under RELCERT_SYNC=1 (and
+# SYNC+NO_CHOICE); CERTIFIED under NO_PRUNE, NO_CHOICE, NO_PRUNE+NO_CHOICE, without
+# RELCERT_IMPLIED_CUT, NO_IMPLIED_CUT, NO_LINEAR_CUT, NO_CUT and RELCERT_WELLFORMED_STRICT=1.
+# Cover: lambda = 2, budget ceil(2 * 2 / 1) = 4 right cycles per left window, nothing pruned.
+# --handoff: 1/1, vacuous (one left mode). The left linear-form chain is still offered but is not
+# load-bearing. Units m/s, m/s^2, s.
 [problem]
 name = acc_tune_lag
 max_depth = 8
@@ -63,7 +58,7 @@ bound_T = 4.0
 state_vars = [v, a]
 epsilon = 2.0
 [Lsys.mode.CRUISE]
-ode = v' = a; a' = smt2:(* 4.0 (- (* 0.75 (- 30.0 v)) a));
+ode = v' = a; a' = smt2:(* 3.125 (- (* 0.75 (- 30.0 v)) a));
 guard = v >= 25.0 and v <= 30.0 and a >= -2.0 and a <= 2.0
 evolve = v >= 0.0 and v <= 40.0 and a >= -10.0 and a <= 10.0
 next = [CRUISE]
@@ -71,14 +66,9 @@ next = [CRUISE]
 state_vars = [v, a]
 epsilon = 1.0
 [Rsys.mode.CRUISE]
-ode = v' = smt2:(* 0.5 (- 30.0 v)); a' = smt2:0;
-guard = v >= 20.0 and v < 40.0
+ode = v' = a; a' = smt2:(* 3.125 (- (* 0.5 (- 30.0 v)) a));
+guard = smt2:(and (>= (+ a (* 2.5 v)) 60.5) (<= (+ a (* 2.5 v)) 77.0) (>= (+ a (* 0.625 v)) 13.625) (<= (+ a (* 0.625 v)) 20.75))
 evolve = v >= 0.0 and v <= 40.0 and a >= -10.0 and a <= 10.0
-next = [CRUISE, DISENGAGE]
-[Rsys.mode.DISENGAGE]
-ode = v' = smt2:(* -0.5 v); a' = smt2:0;
-guard = v < 20.0
-evolve = v >= 0.0 and v <= 40.0 and a >= -10.0 and a <= 10.0
-next = [DISENGAGE]
+next = [CRUISE]
 [relational_invariant]
-CRUISE = smt2:(<= (+ L_a (* 4.0 L_v)) (+ (* 4.0 R_v) 16.0))
+CRUISE = smt2:(and (<= (+ (* 2.5 L_a) (* 4.6875 L_v)) (+ (* 1.875 R_a) (* 4.6875 R_v))) (<= (+ (* 1.875 R_a) (* 4.6875 R_v)) (+ (* 2.5 L_a) (* 4.6875 L_v))))

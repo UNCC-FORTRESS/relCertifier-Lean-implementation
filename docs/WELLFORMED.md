@@ -110,23 +110,23 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 
 | # | benchmark | result | modes: style | tool check |
 |---|---|---|---|---|
-| 1 | `acc_spoof_lag` | proved | CRUISE (a), DISENGAGE (a) | both ok (invariant) |
+| 1 | `acc_spoof_lag` | proved | CRUISE (a) (the lagged loop's envelope, modal coordinates `a + 2v − 60`, `3a + 2v − 60` decaying; explicit two-exponential run) | ok (invariant) |
 | 2 | `acc_spoof_limp` | proved | NORMAL, ECO, SPORT (a); DISENGAGE (a) | all ok (invariant) |
-| 3 | `acc_tune_lag` | proved | CRUISE (a), DISENGAGE (a) | both ok (invariant) |
+| 3 | `acc_tune_lag` | proved | CRUISE (a) (the lagged loop's envelope, modal coordinates `a + 2.5v − 75`, `a + 0.625v − 18.75` decaying; explicit two-exponential run) | ok (invariant) |
 | 4 | `acc_tune_limp` | proved | NORMAL, COMFORT, SPORT (a); DISENGAGE (a) | all ok (invariant) |
 | 5 | `arm_plateau_crit` | proved (repaired) | ApproachA (b) → B, C or Hold; ApproachB (b) → C or Hold; ApproachC (b) → Hold; Hold (a) | A ok (exit→B,C,Hold); B ok (exit→C,Hold); C ok (exit→Hold); Hold ok (invariant) |
 | 6 | `arm_plateau_profiles` | proved (repaired) | ApproachA (b) → B, Cfast or Hold; ApproachB (b) → Cfast or Hold; ApproachCfast, ApproachCslow (b) → Hold; Hold (a) | A ok (exit→B,Cslow,Hold); B ok (exit→Cslow,Hold); C's ok (exit→Hold); Hold ok (invariant) |
 | 7 | `arm_plateau_slow` | proved (repaired) | as `arm_plateau_crit` | as `arm_plateau_crit` |
-| 8 | `charger_fast_setpoints` | proved | BULK (b) → ABSORB; ABSORB (b) → FULL; FULL (a); FAULT (a) | BULK ok (exit→ABSORB); ABSORB ok (exit→FULL); FULL, FAULT ok (invariant) |
-| 9 | `charger_fast_tapers` | proved | BULK (b) → ABSORB_SLOW (closed form at `t ≤ 1`); ABSORB_SLOW, ABSORB_FAST (b) → FULL; FULL (a); FAULT (a) | BULK ok (exit→ABSORB_FAST, same guard); ABSORB_* ok (exit→FULL); FULL, FAULT ok (invariant) |
+| 8 | `charger_fast_setpoints` | proved | PRECHARGE (b) → BULK; BULK (b) → ABSORB; ABSORB (b) → FULL; FULL (a); FAULT (a); dimension 3 (mode-keyed) | PRECHARGE ok (exit→BULK); BULK ok (exit→ABSORB); ABSORB ok (exit→FULL); FULL, FAULT ok (invariant) |
+| 9 | `charger_fast_tapers` | proved | PRECHARGE (b) → BULK; BULK (b) → ABSORB_SLOW (closed form at `t ≤ 1`); ABSORB_SLOW, ABSORB_FAST (b) → FULL; FULL (a); FAULT (a); dimension 3 (mode-keyed) | PRECHARGE ok (exit→BULK); BULK ok (exit→ABSORB_FAST, same guard); ABSORB_* ok (exit→FULL); FULL, FAULT ok (invariant) |
 | 10 | `match_multi_rate` | proved | DRIVE (a), STALL (a); `ε_r = 0.3` | both ok (invariant) |
 | 11 | `platoon3_linkloss` | proved (repaired) | FOLLOW (a); BRAKE1–3 (a), latched (`g + 2r` conserved; explicit solution `solB`) | all ok (invariant) |
 | 12 | `platoon3_profiles` | proved (repaired) | NORMAL, CLOSE, FAR (a); BRAKE1–3 (a), latched | all ok (invariant) |
 | 13 | `platoon_delay_linkloss` | proved (repaired) | FOLLOW (a), CATCH (a); BRAKE (b) → FOLLOW | FOLLOW, CATCH ok (invariant); BRAKE ok (exit→FOLLOW) |
 | 14 | `platoon_delay_profiles` | proved (repaired) | FOLLOW, GENTLE, ASSERTIVE (a); BRAKE (b) → FOLLOW | those ok (invariant); BRAKE ok (exit→FOLLOW) |
 | 15 | `quad_light_airframe_20` | proved (repaired) | CLIMB (a) (barriers, guard `0 ≤ w ≤ 3`); LIMIT (b) → CLIMB (exponential decay) | CLIMB ok (invariant); LIMIT ok (exit→CLIMB) |
-| 16 | `quad_light_lag` | proved | CLIMB (a) (barriers; viability existence) | ok (invariant) |
-| 17 | `quad_light_profiles` | proved (repaired) | NORMAL, ECO, SPORT (a) (guard `0 ≤ w ≤ 3.2`); LIMIT (b) → NORMAL | those ok (invariant); LIMIT ok (exit→NORMAL) |
+| 16 | `quad_light_lag` | proved | CLIMB (a) (the lagged thrust `a' = 5 (4 − a)`; barriers; viability existence over a box with a slanted face `w ≥ −a/4`) | ok (invariant) |
+| 17 | `quad_light_profiles` | proved (repaired) | NORMAL, ECO, SPORT (a) (guard `0 ≤ w ≤ 3.2`); LIMIT (b) → NORMAL; dimension 3 (mode choice, the default padding) | those ok (invariant); LIMIT ok (exit→NORMAL) |
 | 18 | `rover_ladder_2to3` | proved | STEEP (b) → MODER, MODER (b) → FLAT, FLAT (a) | STEEP ok (exit→MODER), MODER ok (exit→FLAT), FLAT ok (invariant) |
 | 19 | `rover_ladder_3to6` | proved | as 18 (ladder lemma) | as 18 |
 | 20 | `rover_ladder_2to4` | proved | as 18 | as 18 |
@@ -139,7 +139,7 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 27 | `rover_terrain_3to6` | proved | as 18 | as 18 |
 | 28 | `rover_terrain_6to12` | proved | as 18 | as 18 |
 | 29 | `rover_terrain_6to8` | proved | as 18 | as 18 |
-| 30 | `rover_patrol_lag` | proved | SLOW (b) → MEDIUM_ECO; MEDIUM_ECO, MEDIUM_BRISK (b) → FAST; FAST (a) | SLOW ok (exit→MEDIUM_BRISK); MEDIUM_* ok (exit→FAST); FAST ok (invariant) |
+| 30 | `rover_patrol_lag` | proved | the lagged speed loop's `(v, a)` envelope kept (modal coordinates `3a + 4v − 4c`, `a + 4v − 4c` decaying; explicit run); SLOW (b) → MEDIUM_*; MEDIUM_ECO, MEDIUM_BRISK (b) → FAST; FAST (a) | SLOW ok (exit→MEDIUM_BRISK); MEDIUM_* ok (exit→FAST); FAST ok (invariant) |
 | 31 | `rover_patrol_zones` | proved | as 30; STALL (a) | as 30; STALL ok (invariant) |
 | 32 | `sat3w_detumble_nominal` | proved | DETUMBLE (a) (the band in the domain keeps the explicit run); SAFE (a) | both ok (invariant) (clause (i) is not checked by the tool) |
 | 33 | `sat3w_detumble_phases` | proved | as 32 | as 32 |

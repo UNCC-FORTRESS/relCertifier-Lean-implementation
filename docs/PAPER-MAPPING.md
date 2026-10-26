@@ -226,7 +226,7 @@ certificates (`Trusted/ProgressEmit.lean`, `Proofs/Encoding/Progress.lean`,
 | the stage ladder (the rate, keep and landing obligations (stated in prose in Section 4.3), rate / keep / land), the tool's sufficient condition | per reposition node: staged rate bounds (`rateQuery`), kept thresholds (`keepQuery`) and the landing (`landQueries`: on the crossing line and at an already-crossed start some exit's guard holds); emitted by default (`RELCERT_NO_PROGRESS=1` disables it) | `Trusted/ProgressEmit.lean` |
 | the progress-function argument (Section 6.1, no numbered lemma): with the right-only flow certificate, the ladder implies `repoC^σ` with the cycle bound `Σ ⌈d_i/(r_i ε_r)⌉` (d_i the remaining distance) | (hypotheses include the right-only flow box `hboxD` and `hpruneD`, `Progress.lean:572-601`) | `repoProgress_one` (`Progress.lean:627`), `repoProgress_one_down` (`Progress.lean:761`, a single downward stage) and `repoProgress_two` (`Progress.lean:659`), standard axioms; `progressVerd_one/one_down/two` (`VerdictsV2/ProgressPin.lean`) read the runner's `unsat` answers as its facts | `Proofs/Encoding/Progress.lean`, `VerdictsV2/ProgressPin.lean` |
 | **Lemma 4** (Proving Right-Only Segments): `flowC(m_l, m_r, right-only, ·)` and `repoC(m_r)` give `seg_r-only(m_r, ret(m_r))`, the retained successors as exits | a step of `coverX_piece`, §2.2: `hrepoProg_of` (`Emitted/Progress.lean:195`) folds the ladder facts, the right-only flow box `hboxD` and the right-only non-connection facts `hpruneD` into `RepoProgress`, the `hrepoProg` field of `CoverHyps`, consumed by `repoStep` | `Proofs/Encoding/Emitted/Progress.lean`, `CoverResp.lean` |
-| suite | 257 certificates, all discharged (`relcert-progress-verdicts`) | `docs/THEOREM3-GENERAL.md` §3 |
+| suite | 245 certificates, all discharged (`relcert-progress-verdicts`) | `docs/THEOREM3-GENERAL.md` §3 |
 
 Why the premise is needed: the proof sketch of the synthesis theorem says Assumption 1
 "continues every segment along a retained edge". For a right-only segment that is not enough:
@@ -317,7 +317,7 @@ supplies the per-mode responses through `hstepMode_GRC` and `HMode_regionGC`
 takes the certificates, the handoff conditions and Assumption 1 as hypotheses of one Lean
 theorem over the programs of Eq. 1, says Assumption 1 is proved per benchmark without Z3, and
 names the trust base (parser and lowering, query printer, Z3 `unsat`, kernel); Appendix B gives
-the details and quotes the 4523 bridge groups over the 52 instances. The reposition certificate
+the details and quotes the 4389 bridge groups over the 52 instances. The reposition certificate
 is described in Section 4.3 and, as the tool's stage lists, in Section 6.1.
 
 ## 8. Where the numbers come from
@@ -325,9 +325,9 @@ is described in Section 4.3 and, as the tool's stage lists, in Section 6.1.
 | number | source |
 |---|---|
 | 50 benchmarks, all CERTIFIED with `RELCERT_IMPLIED_CUT=1` (4 need the existential mode choice, the default) | `scripts/paper_numbers.sh` (frozen), `benchmarks/suite_v2/` |
-| 52 bridge instances, 4523 verdict groups (4387 over the 50 suite benchmarks, 136 over the 2 exhibits) | `InstancesV2/Bridge.lean`, `relcert-bridge-verdicts`, `expectedBridgeGroupsV2` |
-| 50 Assumption 1 proofs, Z3-free; 83 kernel refutations, 238 verdict groups | `InstancesV2/WellFormedBattery.lean`; `InstancesV2/Refute.lean`, `relcert-refute-verdicts` |
-| 44 pruned edges, 88 non-connection queries; 401 handoff queries; 257 progress (reposition certificate) queries | the same runner; `relcert-progress-verdicts` |
+| 52 bridge instances, 4389 verdict groups (4253 over the 50 suite benchmarks, 136 over the 2 exhibits) | `InstancesV2/Bridge.lean`, `relcert-bridge-verdicts`, `expectedBridgeGroupsV2` |
+| 50 Assumption 1 proofs, Z3-free; 80 kernel refutations, 225 verdict groups | `InstancesV2/WellFormedBattery.lean`; `InstancesV2/Refute.lean`, `relcert-refute-verdicts` |
+| 44 pruned edges, 88 non-connection queries; 401 handoff queries; 245 progress (reposition certificate) queries | the same runner; `relcert-progress-verdicts` |
 | Assumption 1: 50 of 50, Z3-free | `InstancesV2/WellFormedBattery.lean` |
 | axioms of every instance: `propext`, `Classical.choice`, `Quot.sound`, `z3_unsat_sound` | `lake build … 2>&1 | grep -A3 "depends on axioms"`; `docs/CERTIFICATION-CHECK.md` check 2 |
 

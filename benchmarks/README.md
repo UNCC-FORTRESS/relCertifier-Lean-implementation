@@ -87,7 +87,11 @@ instances are archived on branch `archive/legacy-2026-10`. Their headers are the
 (no `# scenario:` line). `rover_rollover_7to12` was repaired on the left (attitude
 domains and the zone-switch entry condition; on 2026-10-26 the three rollover files were aligned
 so that 6to7 and 7to12 carry 6to12's rows on shared models and compose to it, with headers
-and `# scenario:` lines) and `watertank` was redesigned as the paper's
+and `# scenario:` lines). On 2026-10-26 the ladder (except `rover_ladder_4to6`), terrain (except
+`rover_terrain_2to3`), attitude and `rover_lateral_8to12` files were rewritten as well (pinned
+right coordinates, forward-invariant left boxes, requirement rows, roles for filler coordinates,
+new headers with `# scenario:` lines; the commit messages list each change), so they are no
+longer copies of the legacy files; and `watertank` was redesigned as the paper's
 running example; both carry new instances.
 
 ## The benchmarks
@@ -124,19 +128,19 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `quad_light_airframe_20` | 1 / 1 | 1 / 2 | model-refinement | LIMIT hands back (§21) |
 | `quad_light_lag` | 2 / 2 | 1 / 1 | model-refinement |  |
 | `quad_light_profiles` | 1 / 1 | 1 / 4 | model-refinement | LIMIT hands back (§21) |
-| `rover_ladder_2to3` | 3 / 2 | 3 / 3 |  | carried over |
-| `rover_ladder_3to6` | 6 / 6 | 3 / 3 |  | carried over |
-| `rover_ladder_2to4` | 4 / 4 | 3 / 3 |  | carried over, Z3-free |
-| `rover_ladder_2to6` | 6 / 6 | 3 / 3 |  | carried over, Z3-free |
+| `rover_ladder_2to3` | 3 / 2 | 3 / 3 | model-refinement | rewritten 2026-10-26: right speed caps dropped, s offset 0 |
+| `rover_ladder_3to6` | 6 / 6 | 3 / 3 | model-refinement | rewritten 2026-10-26: right pitch pinned, heave/roll roles |
+| `rover_ladder_2to4` | 4 / 4 | 3 / 3 | model-refinement | rewritten 2026-10-26: lambda_min 1.0, offset 0 |
+| `rover_ladder_2to6` | 6 / 6 | 3 / 3 | model-refinement | rewritten 2026-10-26: heave/roll roles, lambda_min 1.0, offset 0 |
 | `rover_ladder_4to6` | 6 / 6 | 3 / 3 |  | carried over |
-| `rover_ladder_6to8` | 8 / 8 | 3 / 3 |  | carried over |
-| `rover_ladder_8to12` | 12 / 12 | 3 / 3 |  | carried over |
+| `rover_ladder_6to8` | 8 / 8 | 3 / 3 | model-refinement | rewritten 2026-10-26: v, s rows, offset 0 |
+| `rover_ladder_8to12` | 12 / 12 | 3 / 3 | model-refinement | rewritten 2026-10-26: right y pinned, cascade-chart left |
 | `rover_terrain_2to3` | 3 / 3 | 3 / 3 |  | carried over |
-| `rover_terrain_3to6` | 6 / 6 | 3 / 3 |  | carried over |
-| `rover_terrain_6to12` | 12 / 12 | 3 / 3 |  | carried over |
-| `rover_terrain_6to8` | 8 / 8 | 3 / 3 |  | carried over |
+| `rover_terrain_3to6` | 6 / 6 | 3 / 3 | model-refinement | rewritten 2026-10-26: right heading penalty, offset 0 |
+| `rover_terrain_6to12` | 12 / 12 | 3 / 3 | model-refinement | rewritten 2026-10-26: lagged ax, ay, damped heave, cascade chart |
+| `rover_terrain_6to8` | 8 / 8 | 3 / 3 | model-refinement | rewritten 2026-10-26: cascade-chart left, right penalty |
 | `rover_patrol_lag` | 3 / 3 | 4 / 4 | model-refinement | mode-keyed, widened cuts |
-| `rover_patrol_zones` | 2 / 2 | 4 / 5 | degraded-actuator | mode-keyed |
+| `rover_patrol_zones` | 2 / 2 | 4 / 5 | degraded-actuator | uniform rows (2026-10-26) |
 | `sat3w_detumble_nominal` | 6 / 6 | 1 / 2 | model-refinement | nonblocking region |
 | `sat3w_detumble_phases` | 6 / 6 | 2 / 2 | model-refinement | mode-keyed, nonblocking region |
 | `sat3w_detumble_weak` | 6 / 6 | 1 / 4 | degraded-actuator | nonblocking region |
@@ -144,10 +148,10 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `sat_detumble_phases` | 4 / 4 | 2 / 2 | model-refinement | mode-keyed, nonblocking region |
 | `sat_detumble_weak` | 4 / 4 | 1 / 4 | degraded-actuator | nonblocking region |
 | `tank_dos_3to1` | 1 / 1 | 2 / 1 | dos-attack | widened cuts |
-| `rover_attitude_6to8` | 8 / 8 | 3 / 3 |  | carried over, mode-keyed |
-| `rover_attitude_8to12` | 12 / 12 | 3 / 3 |  | carried over, mode-keyed |
+| `rover_attitude_6to8` | 8 / 8 | 3 / 3 | model-refinement | rewritten 2026-10-26: one attitude row in every mode |
+| `rover_attitude_8to12` | 12 / 12 | 3 / 3 | model-refinement | rewritten 2026-10-26: right y pinned, cascade-chart left |
 | `rover_lateral_6to8` | 8 / 8 | 3 / 3 |  | carried over; right lateral pair frozen (2026-10-26) |
-| `rover_lateral_8to12` | 12 / 12 | 3 / 3 |  | carried over |
+| `rover_lateral_8to12` | 12 / 12 | 3 / 3 | model-refinement | rewritten 2026-10-26: slip enters the lateral dynamics |
 | `rover_rollover_6to12` | 12 / 12 | 3 / 3 | model-refinement | carried over; left domain audit, s offset 0 (2026-10-26) |
 | `rover_rollover_6to7` | 12 / 12 | 3 / 3 | model-refinement | carried over; rollover rows of 6to12, s offset 0 (2026-10-26) |
 | `rover_rollover_7to12` | 12 / 12 | 3 / 3 | model-refinement | widened cuts; rollover, speed and progress rows added (2026-10-26) |

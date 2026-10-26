@@ -9,9 +9,13 @@
 > m001/m002 tautologies, certified). The rollover files were aligned (rows of `rover_rollover_6to12`
 > on all three, s offset 0, audited left domain): the finder over their 72 mutants keeps
 > `rover_rollover_6to12_m010` (kind B, re-derived) and adds six of `rover_rollover_6to7` (m011, m016,
-> m018 to m021, kind B; each DECLINED by relcert), none for `rover_rollover_7to12`. Current
-> instance set: **83 refutations, 238 groups**
-> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 812 mutants in
+> m018 to m021, kind B; each DECLINED by relcert), none for `rover_rollover_7to12`. The rover
+> batch of 2026-10-26 (ladder, terrain, attitude, lateral_8to12, patrol_zones) re-ran the finder on
+> its 15 files: `rover_patrol_zones` m008, m012 and `rover_ladder_6to8` m009, m010 are gone with the
+> rows they refuted (graded zone margins; quadratic attitude rows), `rover_lateral_8to12` has 7
+> (m015, m019 to m024, kind B; each DECLINED by relcert; was 6), no other file of the batch has a
+> witness. Current instance set: **80 refutations, 225 groups**
+> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 788 mutants in
 > `docs/refute/witnesses.jsonl`. The operator table has not been recomputed.
 
 Design: `docs/REFUTATION-SCOPE.md` (planning record, last present at commit 29663d8). This file reports what was built and the experiment.

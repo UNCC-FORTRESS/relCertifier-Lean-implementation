@@ -475,8 +475,11 @@ the strict mode and gates the `--wellformed` report against declared counts (174
 ## The 19 carried-over Assumption 1 proofs
 
 Nineteen suite_v2 benchmarks (the rover refinement ladder, the rover terrain rungs,
-`rover3tier_rung12`, `match_multi_rate`, and the attitude, lateral and rollover benchmarks except `rover_rollover_7to12`) are byte-identical copies, up to the name lines of the 2026-10-25 rename (`benchmarks/README.md`), of files of the retired legacy
-suite `suite_uniform` (removed from the tree on 2026-10-10; git history keeps it). Their
+`rover3tier_rung12`, `match_multi_rate`, and the attitude, lateral and rollover benchmarks except `rover_rollover_7to12`) are copies of files of the retired legacy
+suite `suite_uniform` (removed from the tree on 2026-10-10; git history keeps it), byte-identical
+up to the name lines of the 2026-10-25 rename and the first header line of `rover_ladder_2to6`
+(`benchmarks/README.md`), except `rover_lateral_6to8`, whose right model freezes the lateral
+pair (`y' = 0`, `w' = 0`) since 2026-10-26, with its Assumption 1 proof adapted. Their
 Assumption 1 proofs were first written against the legacy literals; they now live with the
 others in `InstancesV2/WellFormed/<B>.lean` (moved from `Instances/WellFormed/` on
 2026-10-22), each self-contained and quoting the suite_v2 literal `<b>_IRv2` directly, so the

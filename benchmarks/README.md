@@ -68,8 +68,12 @@ use the old names.
 ## The 19 carried-over benchmarks
 
 Nineteen files (the rover refinement ladder, the rover terrain rungs, `rover3tier_rung12`,
-`match_multi_rate`, and the attitude, lateral and rollover benchmarks except `rover_rollover_7to12`) are byte-identical copies, up to the name lines of the 2026-10-25 rename (below), of files of the retired legacy
-suite `suite_uniform` (removed from the tree on 2026-10-10; git history keeps it). Their
+`match_multi_rate`, and the attitude, lateral and rollover benchmarks except `rover_rollover_7to12`) are copies of files of the retired legacy
+suite `suite_uniform` (removed from the tree on 2026-10-10; git history keeps it), byte-identical
+up to the name lines of the 2026-10-25 rename (below) and the first header line of
+`rover_ladder_2to6`, except `rover_lateral_6to8`: since 2026-10-26 its right model freezes the
+lateral pair (`y' = 0`, `w' = 0`; before, left and right were identical), so the step is a
+genuine 6 -> 8 refinement. Their
 Assumption 1 proofs were first written against the legacy literals and now quote these
 files' literals directly (`RelCertifier/InstancesV2/WellFormed/`); their standalone Theorem 3
 instances are archived on branch `archive/legacy-2026-10`. Their headers are the legacy ones
@@ -133,7 +137,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `sat_detumble_weak` | 4 / 4 | 1 / 4 | degraded-actuator | nonblocking region |
 | `rover_attitude_6to8` | 8 / 8 | 3 / 3 |  | carried over, mode-keyed |
 | `rover_attitude_8to12` | 12 / 12 | 3 / 3 |  | carried over, mode-keyed |
-| `rover_lateral_6to8` | 8 / 8 | 3 / 3 |  | carried over |
+| `rover_lateral_6to8` | 8 / 8 | 3 / 3 |  | carried over; right lateral pair frozen (2026-10-26) |
 | `rover_lateral_8to12` | 12 / 12 | 3 / 3 |  | carried over |
 | `rover_rollover_6to12` | 12 / 12 | 3 / 3 |  | carried over |
 | `rover_rollover_6to7` | 12 / 12 | 3 / 3 |  | carried over |

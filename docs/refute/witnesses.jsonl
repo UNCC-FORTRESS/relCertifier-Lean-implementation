@@ -109,6 +109,14 @@
 {"bench": "freedm_meter", "idx": 5, "op": "MCO", "mutant": "(<= R_E L_E) [del]", "dim": 3, "rowsSame": true, "file": "/tmp/relcert-refute/freedm_meter/m005.txt", "witness": null, "why": "none"}
 {"bench": "freedm_meter", "idx": 6, "op": "ORO", "mutant": "(<= R_E L_E) [L_E->R_E]", "dim": 3, "rowsSame": true, "file": "/tmp/relcert-refute/freedm_meter/m006.txt", "witness": null, "why": "none"}
 {"bench": "freedm_meter", "idx": 7, "op": "ORO", "mutant": "(<= R_E L_E) [R_E->L_E]", "dim": 3, "rowsSame": true, "file": "/tmp/relcert-refute/freedm_meter/m007.txt", "witness": null, "why": "none"}
+{"bench": "hvac_fan_staging", "idx": 0, "op": "RRO/SNO", "mutant": "(<= L_T R_T) [<=->>=]", "dim": 4, "rowsSame": true, "file": "/tmp/relcert-refute/hvac_fan_staging/m000.txt", "witness": null, "why": "none"}
+{"bench": "hvac_fan_staging", "idx": 1, "op": "MCO", "mutant": "(<= L_T R_T) [del]", "dim": 4, "rowsSame": true, "file": "/tmp/relcert-refute/hvac_fan_staging/m001.txt", "witness": null, "why": "none"}
+{"bench": "hvac_fan_staging", "idx": 2, "op": "ORO", "mutant": "(<= L_T R_T) [L_T->R_T]", "dim": 4, "rowsSame": true, "file": "/tmp/relcert-refute/hvac_fan_staging/m002.txt", "witness": null, "why": "none"}
+{"bench": "hvac_fan_staging", "idx": 3, "op": "ORO", "mutant": "(<= L_T R_T) [R_T->L_T]", "dim": 4, "rowsSame": true, "file": "/tmp/relcert-refute/hvac_fan_staging/m003.txt", "witness": null, "why": "none"}
+{"bench": "hvac_fan_staging", "idx": 4, "op": "RRO/SNO", "mutant": "(<= R_T L_T) [<=->>=]", "dim": 4, "rowsSame": true, "file": "/tmp/relcert-refute/hvac_fan_staging/m004.txt", "witness": null, "why": "none"}
+{"bench": "hvac_fan_staging", "idx": 5, "op": "MCO", "mutant": "(<= R_T L_T) [del]", "dim": 4, "rowsSame": true, "file": "/tmp/relcert-refute/hvac_fan_staging/m005.txt", "witness": null, "why": "none"}
+{"bench": "hvac_fan_staging", "idx": 6, "op": "ORO", "mutant": "(<= R_T L_T) [L_T->R_T]", "dim": 4, "rowsSame": true, "file": "/tmp/relcert-refute/hvac_fan_staging/m006.txt", "witness": null, "why": "none"}
+{"bench": "hvac_fan_staging", "idx": 7, "op": "ORO", "mutant": "(<= R_T L_T) [R_T->L_T]", "dim": 4, "rowsSame": true, "file": "/tmp/relcert-refute/hvac_fan_staging/m007.txt", "witness": null, "why": "none"}
 {"bench": "match_multi_rate", "idx": 0, "op": "RRO/SNO", "mutant": "(<= L_v R_v) [<=->>=]", "dim": 2, "rowsSame": true, "file": "/tmp/relcert-refute/match_multi_rate/m000.txt", "witness": null, "why": "none"}
 {"bench": "match_multi_rate", "idx": 1, "op": "ORO", "mutant": "(<= L_v R_v) [L_v->R_v]", "dim": 2, "rowsSame": true, "file": "/tmp/relcert-refute/match_multi_rate/m001.txt", "witness": null, "why": "none"}
 {"bench": "match_multi_rate", "idx": 2, "op": "ORO", "mutant": "(<= L_v R_v) [R_v->L_v]", "dim": 2, "rowsSame": true, "file": "/tmp/relcert-refute/match_multi_rate/m002.txt", "witness": null, "why": "none"}
@@ -402,14 +410,6 @@
 {"bench": "rover_ladder_8to12", "idx": 5, "op": "MCO", "mutant": "(<= L_s R_s) [del]", "dim": 13, "rowsSame": true, "file": "/tmp/relcert-refute/rover_ladder_8to12/m005.txt", "witness": null, "why": "none"}
 {"bench": "rover_ladder_8to12", "idx": 6, "op": "ORO", "mutant": "(<= L_s R_s) [L_s->R_s]", "dim": 13, "rowsSame": true, "file": "/tmp/relcert-refute/rover_ladder_8to12/m006.txt", "witness": null, "why": "none"}
 {"bench": "rover_ladder_8to12", "idx": 7, "op": "ORO", "mutant": "(<= L_s R_s) [R_s->L_s]", "dim": 13, "rowsSame": true, "file": "/tmp/relcert-refute/rover_ladder_8to12/m007.txt", "witness": null, "why": "none"}
-{"bench": "rover_terrain_2to3", "idx": 0, "op": "RRO/SNO", "mutant": "(<= L_v R_v) [<=->>=]", "dim": 3, "rowsSame": true, "file": "/tmp/relcert-refute/rover_terrain_2to3/m000.txt", "witness": null, "why": "none"}
-{"bench": "rover_terrain_2to3", "idx": 1, "op": "MCO", "mutant": "(<= L_v R_v) [del]", "dim": 3, "rowsSame": true, "file": "/tmp/relcert-refute/rover_terrain_2to3/m001.txt", "witness": null, "why": "none"}
-{"bench": "rover_terrain_2to3", "idx": 2, "op": "ORO", "mutant": "(<= L_v R_v) [L_v->R_v]", "dim": 3, "rowsSame": true, "file": "/tmp/relcert-refute/rover_terrain_2to3/m002.txt", "witness": null, "why": "none"}
-{"bench": "rover_terrain_2to3", "idx": 3, "op": "ORO", "mutant": "(<= L_v R_v) [R_v->L_v]", "dim": 3, "rowsSame": true, "file": "/tmp/relcert-refute/rover_terrain_2to3/m003.txt", "witness": null, "why": "none"}
-{"bench": "rover_terrain_2to3", "idx": 4, "op": "RRO/SNO", "mutant": "(<= L_s (+ R_s 0.2)) [<=->>=]", "dim": 3, "rowsSame": true, "file": "/tmp/relcert-refute/rover_terrain_2to3/m004.txt", "witness": null, "why": "none"}
-{"bench": "rover_terrain_2to3", "idx": 5, "op": "MCO", "mutant": "(<= L_s (+ R_s 0.2)) [del]", "dim": 3, "rowsSame": true, "file": "/tmp/relcert-refute/rover_terrain_2to3/m005.txt", "witness": null, "why": "none"}
-{"bench": "rover_terrain_2to3", "idx": 6, "op": "ORO", "mutant": "(<= L_s (+ R_s 0.2)) [L_s->R_s]", "dim": 3, "rowsSame": true, "file": "/tmp/relcert-refute/rover_terrain_2to3/m006.txt", "witness": null, "why": "none"}
-{"bench": "rover_terrain_2to3", "idx": 7, "op": "ORO", "mutant": "(<= L_s (+ R_s 0.2)) [R_s->L_s]", "dim": 3, "rowsSame": true, "file": "/tmp/relcert-refute/rover_terrain_2to3/m007.txt", "witness": null, "why": "none"}
 {"bench": "rover_terrain_3to6", "idx": 0, "op": "RRO/SNO", "mutant": "(<= L_v R_v) [<=->>=]", "dim": 7, "rowsSame": true, "file": "/tmp/relcert-refute/rover_terrain_3to6/m000.txt", "witness": null, "why": "none"}
 {"bench": "rover_terrain_3to6", "idx": 1, "op": "MCO", "mutant": "(<= L_v R_v) [del]", "dim": 7, "rowsSame": true, "file": "/tmp/relcert-refute/rover_terrain_3to6/m001.txt", "witness": null, "why": "none"}
 {"bench": "rover_terrain_3to6", "idx": 2, "op": "ORO", "mutant": "(<= L_v R_v) [L_v->R_v]", "dim": 7, "rowsSame": true, "file": "/tmp/relcert-refute/rover_terrain_3to6/m002.txt", "witness": null, "why": "none"}

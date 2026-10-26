@@ -12,6 +12,7 @@ import RelCertifier.InstancesV2.BenchCovers.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchCovers.drl_car_stop
 import RelCertifier.InstancesV2.BenchCovers.drl_lane_control
 import RelCertifier.InstancesV2.BenchCovers.freedm_meter
+import RelCertifier.InstancesV2.BenchCovers.hvac_fan_staging
 import RelCertifier.InstancesV2.BenchCovers.match_multi_rate
 import RelCertifier.InstancesV2.BenchCovers.platoon3_linkloss
 import RelCertifier.InstancesV2.BenchCovers.platoon3_profiles
@@ -35,7 +36,6 @@ import RelCertifier.InstancesV2.BenchCovers.rover_patrol_zones
 import RelCertifier.InstancesV2.BenchCovers.rover_rollover_6to12
 import RelCertifier.InstancesV2.BenchCovers.rover_rollover_6to7
 import RelCertifier.InstancesV2.BenchCovers.rover_rollover_7to12
-import RelCertifier.InstancesV2.BenchCovers.rover_terrain_2to3
 import RelCertifier.InstancesV2.BenchCovers.rover_terrain_3to6
 import RelCertifier.InstancesV2.BenchCovers.rover_terrain_6to12
 import RelCertifier.InstancesV2.BenchCovers.rover_terrain_6to8
@@ -66,6 +66,7 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("drl_car_stop", drl_car_stop_coverV2),
   ("drl_lane_control", drl_lane_control_coverV2),
   ("freedm_meter", freedm_meter_coverV2),
+  ("hvac_fan_staging", hvac_fan_staging_coverV2),
   ("match_multi_rate", match_multi_rate_coverV2),
   ("platoon3_linkloss", platoon3_linkloss_coverV2),
   ("platoon3_profiles", platoon3_profiles_coverV2),
@@ -89,7 +90,6 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("rover_rollover_6to12", rover_rollover_6to12_coverV2),
   ("rover_rollover_6to7", rover_rollover_6to7_coverV2),
   ("rover_rollover_7to12", rover_rollover_7to12_coverV2),
-  ("rover_terrain_2to3", rover_terrain_2to3_coverV2),
   ("rover_terrain_3to6", rover_terrain_3to6_coverV2),
   ("rover_terrain_6to12", rover_terrain_6to12_coverV2),
   ("rover_terrain_6to8", rover_terrain_6to8_coverV2),

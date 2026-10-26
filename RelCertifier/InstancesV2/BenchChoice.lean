@@ -14,6 +14,7 @@ import RelCertifier.InstancesV2.BenchChoice.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchChoice.drl_car_stop
 import RelCertifier.InstancesV2.BenchChoice.drl_lane_control
 import RelCertifier.InstancesV2.BenchChoice.freedm_meter
+import RelCertifier.InstancesV2.BenchChoice.hvac_fan_staging
 import RelCertifier.InstancesV2.BenchChoice.match_multi_rate
 import RelCertifier.InstancesV2.BenchChoice.platoon3_linkloss
 import RelCertifier.InstancesV2.BenchChoice.platoon3_profiles
@@ -37,7 +38,6 @@ import RelCertifier.InstancesV2.BenchChoice.rover_patrol_zones
 import RelCertifier.InstancesV2.BenchChoice.rover_rollover_6to12
 import RelCertifier.InstancesV2.BenchChoice.rover_rollover_6to7
 import RelCertifier.InstancesV2.BenchChoice.rover_rollover_7to12
-import RelCertifier.InstancesV2.BenchChoice.rover_terrain_2to3
 import RelCertifier.InstancesV2.BenchChoice.rover_terrain_3to6
 import RelCertifier.InstancesV2.BenchChoice.rover_terrain_6to12
 import RelCertifier.InstancesV2.BenchChoice.rover_terrain_6to8
@@ -68,6 +68,7 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("drl_car_stop", drl_car_stop_coverV2_choice),
   ("drl_lane_control", drl_lane_control_coverV2_choice),
   ("freedm_meter", freedm_meter_coverV2_choice),
+  ("hvac_fan_staging", hvac_fan_staging_coverV2_choice),
   ("match_multi_rate", match_multi_rate_coverV2_choice),
   ("platoon3_linkloss", platoon3_linkloss_coverV2_choice),
   ("platoon3_profiles", platoon3_profiles_coverV2_choice),
@@ -91,7 +92,6 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("rover_rollover_6to12", rover_rollover_6to12_coverV2_choice),
   ("rover_rollover_6to7", rover_rollover_6to7_coverV2_choice),
   ("rover_rollover_7to12", rover_rollover_7to12_coverV2_choice),
-  ("rover_terrain_2to3", rover_terrain_2to3_coverV2_choice),
   ("rover_terrain_3to6", rover_terrain_3to6_coverV2_choice),
   ("rover_terrain_6to12", rover_terrain_6to12_coverV2_choice),
   ("rover_terrain_6to8", rover_terrain_6to8_coverV2_choice),

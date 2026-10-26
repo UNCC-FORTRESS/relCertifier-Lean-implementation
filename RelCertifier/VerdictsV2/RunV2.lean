@@ -175,13 +175,6 @@ def packsV2 : List PackV2 :=
     ⟨"rover_patrol_lag", 3, 2, [0, 1], 9, 4, 2, 2⟩,
     ⟨"rover_patrol_lag", 3, 2, [0, 1], 9, 4, 2, 3⟩,
     ⟨"rover_patrol_lag", 3, 3, [0, 1], 9, 4, 3, 3⟩,
-    -- rover_terrain_2to3 (cover replay): the joint nodes of each window, λ = 1
-    ⟨"rover_terrain_2to3", 3, 0, [0, 1], 1, 1, 0, 0⟩,
-    ⟨"rover_terrain_2to3", 3, 0, [0, 1], 1, 1, 0, 1⟩,
-    ⟨"rover_terrain_2to3", 3, 0, [0, 1], 1, 1, 0, 2⟩,
-    ⟨"rover_terrain_2to3", 3, 0, [0, 1], 1, 1, 1, 1⟩,
-    ⟨"rover_terrain_2to3", 3, 0, [0, 1], 1, 1, 1, 2⟩,
-    ⟨"rover_terrain_2to3", 3, 0, [0, 1], 1, 1, 2, 2⟩,
     -- rover_terrain_3to6 (cover replay)
     ⟨"rover_terrain_3to6", 6, 0, [0, 1], 5, 4, 0, 0⟩,
     ⟨"rover_terrain_3to6", 6, 0, [0, 1], 5, 4, 0, 1⟩,
@@ -342,7 +335,7 @@ def packsV2 : List PackV2 :=
     ⟨"watertank_twospeed", 2, 0, [0, 1], 31, 10, 0, 1⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 656
+def expectedModalV2 : Nat := 644
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
@@ -416,10 +409,7 @@ noncomputable def dynPackVerd (r : DynPackV2) : Prop :=
 
 /-- The reposition packs. -/
 def dynPacksV2 : List DynPackV2 :=
-  [ -- rover_terrain_2to3: MODER window from STEEP, FLAT window from MODER
-    ⟨"rover_terrain_2to3", 3, 0, [0, 1], true, 1, 0⟩,
-    ⟨"rover_terrain_2to3", 3, 0, [0, 1], true, 2, 1⟩,
-    -- rover_terrain_3to6
+  [ -- rover_terrain_3to6
     -- rover_terrain_6to12
     -- rover_terrain_6to8
     -- rover_ladder_2to3
@@ -454,7 +444,7 @@ def dynPacksV2 : List DynPackV2 :=
     ⟨"rover_patrol_lag", 3, 3, [0, 1], true, 3, 2⟩ ]
 
 /-- Declared: the number of component queries the reposition packs owe. -/
-def expectedDynV2 : Nat := 29
+def expectedDynV2 : Nat := 25
 
 def runDynPack (s : Z3Session) (r : DynPackV2) : IO Bool := do
   let p := irV2 r.bench
@@ -498,7 +488,7 @@ def runDynV2 (cfg : Z3Config) : IO Bool := do
 
 /-- Declared: one handoff query per declared left transition over the 46 suite_v2 files
 (self-loops included; `CoveragePinsV2.derivedHandoffV2_eq` derives it from the IR table). -/
-def expectedHandoffV2 : Nat := 403
+def expectedHandoffV2 : Nat := 407
 
 /-- Declared handoff failures in suite_v2: none. -/
 def expectedHandoffFailuresV2 : List (String × Nat × Nat) := []

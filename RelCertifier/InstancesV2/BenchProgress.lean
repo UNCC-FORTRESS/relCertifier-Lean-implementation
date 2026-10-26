@@ -9,6 +9,7 @@ import RelCertifier.InstancesV2.BenchProgress.arm_plateau_profiles
 import RelCertifier.InstancesV2.BenchProgress.arm_plateau_slow
 import RelCertifier.InstancesV2.BenchProgress.charger_fast_setpoints
 import RelCertifier.InstancesV2.BenchProgress.charger_fast_tapers
+import RelCertifier.InstancesV2.BenchProgress.hvac_fan_staging
 import RelCertifier.InstancesV2.BenchProgress.match_multi_rate
 import RelCertifier.InstancesV2.BenchProgress.platoon3_linkloss
 import RelCertifier.InstancesV2.BenchProgress.platoon3_profiles
@@ -23,7 +24,6 @@ import RelCertifier.InstancesV2.BenchProgress.rover_ladder_2to4
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_2to6
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_6to8
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_8to12
-import RelCertifier.InstancesV2.BenchProgress.rover_terrain_2to3
 import RelCertifier.InstancesV2.BenchProgress.rover_terrain_3to6
 import RelCertifier.InstancesV2.BenchProgress.rover_terrain_6to12
 import RelCertifier.InstancesV2.BenchProgress.rover_terrain_6to8
@@ -60,6 +60,7 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("arm_plateau_slow", arm_plateau_slow_coverV2_progress),
    ("charger_fast_setpoints", charger_fast_setpoints_coverV2_progress),
    ("charger_fast_tapers", charger_fast_tapers_coverV2_progress),
+   ("hvac_fan_staging", hvac_fan_staging_coverV2_progress),
    ("match_multi_rate", match_multi_rate_coverV2_progress),
    ("platoon3_linkloss", platoon3_linkloss_coverV2_progress),
    ("platoon3_profiles", platoon3_profiles_coverV2_progress),
@@ -74,7 +75,6 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("rover_ladder_2to6", rover_ladder_2to6_coverV2_progress),
    ("rover_ladder_6to8", rover_ladder_6to8_coverV2_progress),
    ("rover_ladder_8to12", rover_ladder_8to12_coverV2_progress),
-   ("rover_terrain_2to3", rover_terrain_2to3_coverV2_progress),
    ("rover_terrain_3to6", rover_terrain_3to6_coverV2_progress),
    ("rover_terrain_6to12", rover_terrain_6to12_coverV2_progress),
    ("rover_terrain_6to8", rover_terrain_6to8_coverV2_progress),

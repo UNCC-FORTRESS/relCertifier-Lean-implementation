@@ -135,7 +135,7 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 23 | `rover_ladder_6to8` | proved | as 18 | as 18 |
 | 24 | `rover_ladder_8to12` | proved | as 18 | as 18 |
 | 25 | `tank_dos_3to1` | proved | HIGH, LOW (b) (contractions to 1.3 resp. 0.7 inside `[0, 2]`, the guards `[0, 1)`, `[1, 2]` partition the tank); `ε_r = 1` | ok (exit) |
-| 26 | `rover_terrain_2to3` | proved | as 18 | as 18 |
+| 26 | `hvac_fan_staging` | proved | LOW, MED, HIGH (b) (contractions to 27, 24, 21 inside `[16, 32]`; a run ends in `[16, 32]`, MED's guard, and MED follows every speed); `ε_r = 1`; dimension 3 (the default padding) | LOW ok (exit→HIGH), MED ok (invariant), HIGH ok (exit→MED) |
 | 27 | `rover_terrain_3to6` | proved | as 18 | as 18 |
 | 28 | `rover_terrain_6to12` | proved | as 18 | as 18 |
 | 29 | `rover_terrain_6to8` | proved | as 18 | as 18 |

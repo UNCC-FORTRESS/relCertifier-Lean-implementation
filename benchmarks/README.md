@@ -77,9 +77,13 @@ added heave and roll were filler, and the ladder reaches 6-DOF through `rover_la
 directly through `rover_ladder_2to6`; `airheader_dos_3to1` is a non-connection pruning benchmark, DECLINED under
 `RELCERT_NO_PRUNE=1`).
 
-## The 17 carried-over benchmarks
+Retired 2026-10-26: `rover_terrain_2to3`, replaced by `hvac_fan_staging` (the suite stays at 50;
+it duplicated `rover_ladder_2to3`, the same 2 -> 3 heading step on the same route;
+`hvac_fan_staging` is an existential mode-choice benchmark, DECLINED under `RELCERT_NO_CHOICE=1`).
 
-Seventeen files (the rover refinement ladder, the rover terrain rungs,
+## The 16 carried-over benchmarks
+
+Sixteen files (the rover refinement ladder, the rover terrain rungs,
 `match_multi_rate`, and the attitude, lateral and rollover benchmarks except `rover_rollover_7to12`) are copies of files of the retired legacy
 suite `suite_uniform` (removed from the tree on 2026-10-10; git history keeps it), byte-identical
 up to the name lines of the 2026-10-25 rename (below) and the first header line of
@@ -92,8 +96,7 @@ instances are archived on branch `archive/legacy-2026-10`. Their headers are the
 (no `# scenario:` line). `rover_rollover_7to12` was repaired on the left (attitude
 domains and the zone-switch entry condition; on 2026-10-26 the three rollover files were aligned
 so that 6to7 and 7to12 carry 6to12's rows on shared models and compose to it, with headers
-and `# scenario:` lines). On 2026-10-26 the ladder, terrain (except
-`rover_terrain_2to3`), attitude and `rover_lateral_8to12` files were rewritten as well (pinned
+and `# scenario:` lines). On 2026-10-26 the ladder, terrain, attitude and `rover_lateral_8to12` files were rewritten as well (pinned
 right coordinates, forward-invariant left boxes, requirement rows, roles for filler coordinates,
 new headers with `# scenario:` lines; the commit messages list each change), so they are no
 longer copies of the legacy files; and `watertank` was redesigned as the paper's
@@ -126,6 +129,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `drl_car_stop` | 2 / 2 | 3 / 3 | controller-refinement | literature (dRL), mode choice |
 | `drl_lane_control` | 3 / 3 | 6 / 6 | controller-refinement | literature (dRL), mode choice |
 | `freedm_meter` | 2 / 2 | 12 / 12 | information-flow | literature (dHL, FREEDM), mode choice |
+| `hvac_fan_staging` | 1 / 1 | 3 / 3 | controller-refinement | new 2026-10-26 (replaces `rover_terrain_2to3`): mode choice |
 | `match_multi_rate` | 2 / 2 | 4 / 2 |  | carried over |
 | `platoon3_linkloss` | 6 / 6 | 2 / 4 | sensor-attack | mode-keyed; guards repaired (operating range, `docs/SUITE-REDESIGN.md` §20); latched AEB sinks (§21) |
 | `platoon3_profiles` | 6 / 6 | 1 / 6 | sensor-attack | guards repaired (operating range, `docs/SUITE-REDESIGN.md` §20); latched AEB sinks (§21) |
@@ -140,7 +144,6 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `rover_ladder_2to6` | 6 / 6 | 3 / 3 | model-refinement | rewritten 2026-10-26: heave/roll roles, lambda_min 1.0, offset 0 |
 | `rover_ladder_6to8` | 8 / 8 | 3 / 3 | model-refinement | rewritten 2026-10-26: v, s rows, offset 0 |
 | `rover_ladder_8to12` | 12 / 12 | 3 / 3 | model-refinement | rewritten 2026-10-26: right y pinned, cascade-chart left |
-| `rover_terrain_2to3` | 3 / 3 | 3 / 3 |  | carried over |
 | `rover_terrain_3to6` | 6 / 6 | 3 / 3 | model-refinement | rewritten 2026-10-26: right heading penalty, offset 0 |
 | `rover_terrain_6to12` | 12 / 12 | 3 / 3 | model-refinement | rewritten 2026-10-26: lagged ax, ay, damped heave, cascade chart |
 | `rover_terrain_6to8` | 8 / 8 | 3 / 3 | model-refinement | rewritten 2026-10-26: cascade-chart left, right penalty |

@@ -12,6 +12,7 @@ import RelCertifier.InstancesV2.Bridge.ChargerFastTapers
 import RelCertifier.InstancesV2.Bridge.DrlCarStop
 import RelCertifier.InstancesV2.Bridge.DrlLaneControl
 import RelCertifier.InstancesV2.Bridge.FreedmMeter
+import RelCertifier.InstancesV2.Bridge.HvacFanStaging
 import RelCertifier.InstancesV2.Bridge.MatchMultiRate
 import RelCertifier.InstancesV2.Bridge.Platoon3Linkloss
 import RelCertifier.InstancesV2.Bridge.Platoon3Profiles
@@ -35,7 +36,6 @@ import RelCertifier.InstancesV2.Bridge.RoverPatrolZones
 import RelCertifier.InstancesV2.Bridge.RoverRollover6to12
 import RelCertifier.InstancesV2.Bridge.RoverRollover6to7
 import RelCertifier.InstancesV2.Bridge.RoverRollover7to12
-import RelCertifier.InstancesV2.Bridge.RoverTerrain2to3
 import RelCertifier.InstancesV2.Bridge.RoverTerrain3to6
 import RelCertifier.InstancesV2.Bridge.RoverTerrain6to12
 import RelCertifier.InstancesV2.Bridge.RoverTerrain6to8

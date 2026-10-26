@@ -109,9 +109,9 @@ not carried. The mode-independent benchmarks are proved over the choice of their
 carried to the left automaton by one generic bridge (`theorem3_leftAut_of_choice`,
 `Proofs/Encoding/LeftAutUniform.lean`).
 The theorem's one Z3 hypothesis, `Verdicts`, IS the list of groups the runner
-`relcert-bridge-verdicts` issues (4411 over the 50 suite benchmarks and the 2 exhibits, against
+`relcert-bridge-verdicts` issues (4337 over the 50 suite benchmarks and the 2 exhibits, against
 the declared count), each coming back `unsat`; `relcert --check-quick-v2` re-sends the tool's
-own queries as a self-check (modal 656, handoff 403, non-connection 92, pruned edges 46,
+own queries as a self-check (modal 644, handoff 407, non-connection 92, pruned edges 46,
 reposition 81). The axiom audit of every theorem is a subset of
 `{propext, Classical.choice, Quot.sound, z3_unsat_sound}`; none of the 50 is Z3-free (every
 flow fact of every response is a group of the emitted cover). No
@@ -206,8 +206,8 @@ lake build relcert relcert-test relcert-bridge-verdicts relcert-refute-verdicts 
 lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 | grep -A3 "depends on axioms"
 lake build RelCertifier.InstancesV2.AxiomCheck 2>&1 | grep -A3 "depends on axioms"
 
-# 2b. the Z3 hypotheses of the 52 bridge instances (4411 groups) and the progress
-#     certificates of every reposition node (245 queries), against declared counts
+# 2b. the Z3 hypotheses of the 52 bridge instances (4337 groups) and the progress
+#     certificates of every reposition node (233 queries), against declared counts
 ./.lake/build/bin/relcert-bridge-verdicts
 ./.lake/build/bin/relcert-progress-verdicts
 
@@ -235,10 +235,10 @@ lake build $(ls RelCertifier/InstancesV2/Refute/*.lean | sed 's|/|.|g; s|\.lean$
 
 Expected: `Build completed successfully`; 75 axiom lines (WellFormedBattery), each exactly
 the three standard axioms (`lake` also replays the 11 lines of `CutLiftX.lean`'s own audit);
-9 axiom lines (AxiomCheck), each a subset of the four axioms above; `relcert-bridge-verdicts`: `4411/4411` at the bridge dimensions;
-`relcert-progress-verdicts`: `245/245`; `[suite_v2] 50 certified, 0 declined, 0 error(s)`,
-coverage `modal 656/656`, `handoff 403/403`, `non-connection 92/92`, `pruned edges 46/46`,
-`reposition (dyn) 29/29`, the strict Assumption 1 gate `[wellformed] STRICT: 174/174 right modes ok
+9 axiom lines (AxiomCheck), each a subset of the four axioms above; `relcert-bridge-verdicts`: `4337/4337` at the bridge dimensions;
+`relcert-progress-verdicts`: `233/233`; `[suite_v2] 50 certified, 0 declined, 0 error(s)`,
+coverage `modal 644/644`, `handoff 407/407`, `non-connection 92/92`, `pruned edges 46/46`,
+`reposition (dyn) 25/25`, the strict Assumption 1 gate `[wellformed] STRICT: 174/174 right modes ok
 (93 invariant, 81 exit), 0 UNKNOWN — matches the declared suite`, `wellformed (strict): PASS`,
 `SUITE_V2 QUICK CHECKS PASSED`; `benchmarks/negative/freedm_meter_leaky`: `DECLINED`;
 `relcert-test`: a bare `ALL PASS`; `refute: 225/225 hypotheses discharged` (the bridge and

@@ -1,0 +1,99 @@
+# hvac_fan_staging: a zone's deployed three-speed fan staging against the building's sequence of
+# operations, which lets the fan run at any permitted speed; the reference must commit to the
+# deployed's speed.
+# scenario: controller-refinement
+# mechanisms: X (committed successor subsets: the reference's start hop into the deployed's fan
+#   speed is a chosen successor)
+#
+# System. Zone air temperature T in degC, time in min. A fan-coil unit cools the zone; at each
+# fan speed the zone relaxes toward the temperature that speed holds under the design cooling
+# load, with the zone time constant 20 min: LOW T' = 0.05 (27 - T), MED T' = 0.05 (24 - T),
+# HIGH T' = 0.05 (21 - T). Both sides decide every 1 min (epsilon 1) and hold the speed between
+# decisions.
+#
+# Right (reference: the sequence of operations, nondeterministic). Any speed the sequence
+# permits may be selected at each decision: LOW only at T <= 25 (above it LOW cannot hold
+# comfort), HIGH only at T >= 23 (below it HIGH overcools), MED at any temperature. The guards
+# overlap (LOW and MED on [16, 25], MED and HIGH on [23, 32]); every mode may follow every mode.
+# Left (deployed): the zone thermostat stages the fan around its 24 degC set point with a 1 degC
+# deadband: LOW below 23.5, MED on [23.5, 24.5], HIGH above 24.5 (a partition). Every deployed
+# choice is permitted by the sequence; the two sides differ only in that the deployed resolves
+# the sequence's free choice by its own staging rule (one stated refinement).
+#
+# Property (every left mode): T_L = T_R (two inequalities): every deployed run is, at every
+# instant, a run the sequence of operations permits. Requirement: the deployed staging must
+# conform to the building's sequence (exact refinement; any comfort tolerance also certifies,
+# e.g. |T_L - T_R| <= 0.5). Not implied by the domains.
+#
+# Why committed choice is needed (X). The reference's current speed at the start of a cycle is
+# any permitted one, e.g. HIGH while the deployed runs LOW at T in [23, 23.5). With the choice,
+# the reference switches at once into the deployed's speed (a zero-duration hop, legal because
+# the guards overlap there) and then flows with it. Without it (RELCERT_NO_CHOICE=1) the
+# reference must flow on in HIGH, and the temperatures separate (0.05 (27 - T) against
+# 0.05 (21 - T)): DECLINED.
+#
+# Domains. 16 <= T <= 32 on both sides: the zone's physical range, forward invariant at every
+# speed (all three equilibria lie inside). The right guards cover [16, 32] (MED everywhere); the
+# left guards partition it; every left mode has a satisfiable start (T_L = T_R).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED; CERTIFIED under RELCERT_SYNC=1,
+# RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1 and without RELCERT_IMPLIED_CUT; DECLINED under
+# RELCERT_NO_CHOICE=1 and under RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1. Cover: every left mode at
+# lambda 1, budget 1, every right mode an admissible start, the mismatched starts closed by a
+# hop into the deployed's speed. Rows identical (--handoff vacuous, 9/9). relcert --wellformed:
+# LOW ok (exit), MED ok (invariant), HIGH ok (exit).
+[problem]
+name = hvac_fan_staging
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 40.0
+
+[Lsys]
+state_vars = [T]
+epsilon = 1.0
+
+[Lsys.mode.LOW]
+ode = T' = smt2:(* 0.05 (- 27.0 T));
+guard = T >= 16.0 and T < 23.5
+evolve = T >= 16.0 and T <= 32.0
+next = [LOW, MED, HIGH]
+
+[Lsys.mode.MED]
+ode = T' = smt2:(* 0.05 (- 24.0 T));
+guard = T >= 23.5 and T <= 24.5
+evolve = T >= 16.0 and T <= 32.0
+next = [LOW, MED, HIGH]
+
+[Lsys.mode.HIGH]
+ode = T' = smt2:(* 0.05 (- 21.0 T));
+guard = T > 24.5 and T <= 32.0
+evolve = T >= 16.0 and T <= 32.0
+next = [LOW, MED, HIGH]
+
+[Rsys]
+state_vars = [T]
+epsilon = 1.0
+
+[Rsys.mode.LOW]
+ode = T' = smt2:(* 0.05 (- 27.0 T));
+guard = T >= 16.0 and T <= 25.0
+evolve = T >= 16.0 and T <= 32.0
+next = [LOW, MED, HIGH]
+
+[Rsys.mode.MED]
+ode = T' = smt2:(* 0.05 (- 24.0 T));
+guard = T >= 16.0 and T <= 32.0
+evolve = T >= 16.0 and T <= 32.0
+next = [LOW, MED, HIGH]
+
+[Rsys.mode.HIGH]
+ode = T' = smt2:(* 0.05 (- 21.0 T));
+guard = T >= 23.0 and T <= 32.0
+evolve = T >= 16.0 and T <= 32.0
+next = [LOW, MED, HIGH]
+
+[relational_invariant]
+LOW = T[l] <= T[r] and T[r] <= T[l]
+MED = T[l] <= T[r] and T[r] <= T[l]
+HIGH = T[l] <= T[r] and T[r] <= T[l]

@@ -21,6 +21,7 @@ import RelCertifier.InstancesV2.BenchIR.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchIR.drl_car_stop
 import RelCertifier.InstancesV2.BenchIR.drl_lane_control
 import RelCertifier.InstancesV2.BenchIR.freedm_meter
+import RelCertifier.InstancesV2.BenchIR.hvac_fan_staging
 import RelCertifier.InstancesV2.BenchIR.match_multi_rate
 import RelCertifier.InstancesV2.BenchIR.platoon3_linkloss
 import RelCertifier.InstancesV2.BenchIR.platoon3_profiles
@@ -44,7 +45,6 @@ import RelCertifier.InstancesV2.BenchIR.rover_patrol_zones
 import RelCertifier.InstancesV2.BenchIR.rover_rollover_6to12
 import RelCertifier.InstancesV2.BenchIR.rover_rollover_6to7
 import RelCertifier.InstancesV2.BenchIR.rover_rollover_7to12
-import RelCertifier.InstancesV2.BenchIR.rover_terrain_2to3
 import RelCertifier.InstancesV2.BenchIR.rover_terrain_3to6
 import RelCertifier.InstancesV2.BenchIR.rover_terrain_6to12
 import RelCertifier.InstancesV2.BenchIR.rover_terrain_6to8
@@ -75,6 +75,7 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("drl_car_stop", drl_car_stop_IRv2),
   ("drl_lane_control", drl_lane_control_IRv2),
   ("freedm_meter", freedm_meter_IRv2),
+  ("hvac_fan_staging", hvac_fan_staging_IRv2),
   ("match_multi_rate", match_multi_rate_IRv2),
   ("platoon3_linkloss", platoon3_linkloss_IRv2),
   ("platoon3_profiles", platoon3_profiles_IRv2),
@@ -98,7 +99,6 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("rover_rollover_6to12", rover_rollover_6to12_IRv2),
   ("rover_rollover_6to7", rover_rollover_6to7_IRv2),
   ("rover_rollover_7to12", rover_rollover_7to12_IRv2),
-  ("rover_terrain_2to3", rover_terrain_2to3_IRv2),
   ("rover_terrain_3to6", rover_terrain_3to6_IRv2),
   ("rover_terrain_6to12", rover_terrain_6to12_IRv2),
   ("rover_terrain_6to8", rover_terrain_6to8_IRv2),

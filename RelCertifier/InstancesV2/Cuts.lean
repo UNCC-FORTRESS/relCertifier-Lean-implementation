@@ -12,6 +12,7 @@ import RelCertifier.InstancesV2.Cuts.charger_fast_tapers
 import RelCertifier.InstancesV2.Cuts.drl_car_stop
 import RelCertifier.InstancesV2.Cuts.drl_lane_control
 import RelCertifier.InstancesV2.Cuts.freedm_meter
+import RelCertifier.InstancesV2.Cuts.hvac_fan_staging
 import RelCertifier.InstancesV2.Cuts.match_multi_rate
 import RelCertifier.InstancesV2.Cuts.platoon3_linkloss
 import RelCertifier.InstancesV2.Cuts.platoon3_profiles
@@ -35,7 +36,6 @@ import RelCertifier.InstancesV2.Cuts.rover_patrol_zones
 import RelCertifier.InstancesV2.Cuts.rover_rollover_6to12
 import RelCertifier.InstancesV2.Cuts.rover_rollover_6to7
 import RelCertifier.InstancesV2.Cuts.rover_rollover_7to12
-import RelCertifier.InstancesV2.Cuts.rover_terrain_2to3
 import RelCertifier.InstancesV2.Cuts.rover_terrain_3to6
 import RelCertifier.InstancesV2.Cuts.rover_terrain_6to12
 import RelCertifier.InstancesV2.Cuts.rover_terrain_6to8
@@ -66,6 +66,7 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("drl_car_stop", drl_car_stop_cutsV2, drl_car_stop_cutsV2X),
   ("drl_lane_control", drl_lane_control_cutsV2, drl_lane_control_cutsV2X),
   ("freedm_meter", freedm_meter_cutsV2, freedm_meter_cutsV2X),
+  ("hvac_fan_staging", hvac_fan_staging_cutsV2, hvac_fan_staging_cutsV2X),
   ("match_multi_rate", match_multi_rate_cutsV2, match_multi_rate_cutsV2X),
   ("platoon3_linkloss", platoon3_linkloss_cutsV2, platoon3_linkloss_cutsV2X),
   ("platoon3_profiles", platoon3_profiles_cutsV2, platoon3_profiles_cutsV2X),
@@ -89,7 +90,6 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("rover_rollover_6to12", rover_rollover_6to12_cutsV2, rover_rollover_6to12_cutsV2X),
   ("rover_rollover_6to7", rover_rollover_6to7_cutsV2, rover_rollover_6to7_cutsV2X),
   ("rover_rollover_7to12", rover_rollover_7to12_cutsV2, rover_rollover_7to12_cutsV2X),
-  ("rover_terrain_2to3", rover_terrain_2to3_cutsV2, rover_terrain_2to3_cutsV2X),
   ("rover_terrain_3to6", rover_terrain_3to6_cutsV2, rover_terrain_3to6_cutsV2X),
   ("rover_terrain_6to12", rover_terrain_6to12_cutsV2, rover_terrain_6to12_cutsV2X),
   ("rover_terrain_6to8", rover_terrain_6to8_cutsV2, rover_terrain_6to8_cutsV2X),

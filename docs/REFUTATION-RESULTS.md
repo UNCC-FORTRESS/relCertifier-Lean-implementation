@@ -6,8 +6,12 @@
 > suite changes. The `rover_lateral` model changes added refutations (79 instances, 224 groups),
 > and `rover_tier_1to2` (`rover3tier_rung12`) was retired with its two refutations (m000 kind C,
 > m004 kind B; 9 mutants) and replaced by `tank_dos_3to1` (3 mutants, no witness: m000 open,
-> m001/m002 tautologies, certified). Current instance set: **77 refutations, 220 groups**
-> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 786 mutants in
+> m001/m002 tautologies, certified). The rollover files were aligned (rows of `rover_rollover_6to12`
+> on all three, s offset 0, audited left domain): the finder over their 72 mutants keeps
+> `rover_rollover_6to12_m010` (kind B, re-derived) and adds six of `rover_rollover_6to7` (m011, m016,
+> m018 to m021, kind B; each DECLINED by relcert), none for `rover_rollover_7to12`. Current
+> instance set: **83 refutations, 238 groups**
+> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 812 mutants in
 > `docs/refute/witnesses.jsonl`. The operator table has not been recomputed.
 
 Design: `docs/REFUTATION-SCOPE.md` (planning record, last present at commit 29663d8). This file reports what was built and the experiment.

@@ -1,36 +1,57 @@
-# DOMAIN AUDIT (docs/SUITE-REDESIGN.md section 13; resolved 2026-10-08, user decision).
-# Left attitude domains are the PHYSICAL validity range of the small-angle model:
-# psi, omega_psi, theta_p, omega_theta in [-1, 1] (rad, rad/s). (Before: [-0.5, 0.5],
-# a floor the claim stood on although the loop overshoots it.) The deployed terrain
-# controller switches zones -- and starts its first zone -- only when the attitude is
-# SETTLED: every left guard carries the entry condition psi, omega_psi, theta_p,
-# omega_theta >= -0.25. This is a controller-design condition on the switch (a guard),
-# not a domain restriction: the flow may leave it freely after entry.
-# Why the claim needs it, and what it buys: the left attitude loop psi' = omega_psi,
-# omega_psi' = -psi - 2 omega_psi (theta_p alike) is critically damped (double root 1),
-# so q = omega_psi + psi satisfies q' = -q. From the entry box q >= -0.5 (kind
-# linear-form, O1 rational, O2 linear-shape), and inside it psi >= -0.5 (kind
-# derived-bound, O1 rational, O2 derived-shape): the floor the energy row needs is now
-# DERIVED, not declared (with psi_L = -0.95, omega_psi_L = 0.232, psi_R = -0.5 the row's
-# derivative is -0.522 + 0.668 lambda > 0 for every lambda >= 1, so some floor is
-# necessary). Counter-runs: RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_IMPLIED_CUT=1 and
-# RELCERT_NO_CUT=1 all DECLINE. Widening test: every left bound passes; the right
-# attitude caps psi <= 0.15, theta_p <= 0.15 are load-bearing and FORWARD-INVARIANT
-# (the reference attitude is psi' = -psi, theta_p' = -theta_p, a contraction toward 0:
-# on psi = 0.15 the field points inward, so no right trajectory leaves the box).
-# Dynamics, rows and every other bound are unchanged.
+# rover_rollover_7to12: rollover ladder, step 7 -> 12: attitude and roll become second order,
+# heave and lateral offset move. With rover_rollover_6to7 it composes to rover_rollover_6to12.
+# scenario: model-refinement
+# mechanisms: M1 M2 M6 M6+ M6L
 #
-# STORY 3 LADDER: rung_b (attitude order-raise)
-# L = direct_L: attitude 2nd-order AND rollover 2nd-order (full model)
-# R = IM (Intermediate Model): attitude 1st-order, rollover 2nd-order
+# System: the terrain-zone rover of rover_rollover_6to12 (zones STEEP / MODER / FLAT by odometer
+# s, speed set points 0.30 / 0.50 / 0.65, s' = v (1 - psi^2/2 - 0.3 theta_p^2)).
 #
-# Rollover is MATCHED on both sides (both 2nd-order), so NO rollover product needed.
-# Invariant: D_psi + D_theta (Lyapunov energy on attitude gap) -- Story 1 pattern.
-# SIMPLER than the direct certification which needs v*r<=1.0 (bilinear product).
+# Left (12-DOF, all 12 coordinates move; the same model as rover_rollover_6to12's left): attitude
+# psi' = omega_psi, omega_psi' = -psi - 2 omega_psi (theta_p and roll alike; critically damped),
+# yaw e' = r, r' = -4 e - 4 r (original chart: r is the yaw rate), heave z' = -z, lateral y' = -y.
+# Right (the 7-DOF intermediate model IM; the same model as rover_rollover_6to7's left): first-order
+# attitude psi' = -psi, theta_p' = -theta_p, roll phi_r' = -phi_r, the same yaw loop in its
+# cascade chart (r_R = yaw rate + 2 e: e' = r - 2 e, r' = -2 r, a linear bijection under which the
+# e, r box is forward invariant); omega_psi, omega_theta, omega_phi, z, y pinned. No speed
+# condition in its guards.
 #
-# The intermediate model (IM = rung_a's L) connects the two rungs:
-#   rung_a L == rung_b R (both are IM: rollover 2nd-order, attitude 1st-order)
-# Composition: rung_a + rung_b imply the direct rover_rollover_6to12 invariant.
+# Property (the same rows in every left mode; before 2026-10-26 the file had the attitude rows
+# only, plus v_L <= v_R in STEEP, and carried no rollover property).
+#   v_L <= v_R and s_L <= s_R: the rover is never faster than, and never ahead of, IM.
+#   |v_L r_L| <= 1.0 and V(e_L, r_L) <= 0.33: rover_rollover_6to12's rollover rows (a_max = 1.0;
+#   0.33 the largest two-decimal yaw-energy level giving |v r| < a_max at v <= 0.65).
+#   D_psi = 2 (psi_L - psi_R)^2 + 2 (psi_L - psi_R) omega_psi_L + omega_psi_L^2 <= 0.25, D_theta
+#   alike: D >= (psi_L - psi_R)^2, so the attitude gap stays within 0.5 rad; with the reference
+#   in [-0.5, 0.15] the 12-DOF attitude stays in [-1, 0.65], inside the small-angle validity
+#   range [-1, 1] of the left domain.
+# Tightest certifying constants: D 0.22 (0.21 declines), |v r| 0.47 (0.46 declines), s offset any
+# value tried down to -1, energy any level down to 0; the claim keeps the requirement values. With
+# an s offset of +0.2 the file DECLINES (the right-only reposition that a lagging IM needs breaks
+# the attitude rows). Not implied by the domains.
+#
+# DOMAIN AUDIT (docs/SUITE-REDESIGN.md section 13; resolved 2026-10-08, user decision). Left
+# attitude domains are the PHYSICAL validity range of the small-angle model: psi, omega_psi,
+# theta_p, omega_theta in [-1, 1] (before: [-0.5, 0.5], a floor the claim stood on although the
+# loop overshoots it); roll phi_r, omega_phi likewise in [-1, 1] since 2026-10-26. The deployed
+# terrain controller switches zones, and starts its first zone, only when the attitude is SETTLED:
+# every left guard carries psi, omega_psi, theta_p, omega_theta >= -0.25, a controller-design
+# condition on the switch (the flow may leave it after entry). Why D needs it: the left attitude
+# loop is critically damped, so q = omega_psi + psi satisfies q' = -q; from the entry box
+# q >= -0.5 (linear-form cut) and inside it psi >= -0.5 (derived-bound cut). With psi_L = -0.95,
+# omega_psi_L = 0.232, psi_R = -0.5 the derivative of D is -0.522 + 0.668 lambda > 0 for every
+# lambda >= 1, so some floor is necessary. Second start condition: zone entry v <= c in every
+# left guard (needed: without it, and without speed conditions on the right, the file DECLINES).
+# Left e in [-1.5, 1.5], r in [-1.52, 1.52], v in [0, 0.8]: physical limits, not load-bearing
+# (widened to e, r in [-3, 3], v in [0, 1]: CERTIFIED). The right attitude caps psi, theta_p <= 0.15
+# are load-bearing (0.475: DECLINED) and forward invariant (psi' = -psi points inward). Every
+# other box is forward invariant; s >= 0 unbounded above (left FLAT guard s < 899.95 dropped).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1): CERTIFIED (also NO_CHOICE, NO_PRUNE, NO_PRUNE+NO_CHOICE,
+# OPREGION: every admitted start in some right guard); DECLINED under SYNC, SYNC+NO_CHOICE, NO_CUT,
+# NO_IMPLIED_CUT and NO_LINEAR_CUT, and without the attitude entry condition. Covers: lambda 27/20
+# and budget 2 in every left mode (M1, M2); cuts load-bearing, with the widened linear-form and
+# derived-bound atoms (M6, M6+, M6L); nothing pruned; handoff vacuous (rows identical, a window
+# claim since 2026-10-26; before, mode-keyed).
 
 [problem]
 name = rover_rollover_7to12
@@ -45,30 +66,23 @@ epsilon = 1.0
 
 [Lsys.mode.STEEP]
 ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:omega_psi; omega_psi' = smt2:(- (* -1 psi) (* 2 omega_psi)); theta_p' = smt2:omega_theta; omega_theta' = smt2:(- (* -1 theta_p) (* 2 omega_theta)); e' = smt2:r; r' = smt2:(- (* -4 e) (* 4 r)); phi_r' = smt2:omega_phi; omega_phi' = smt2:(- (* -1 phi_r) (* 2 omega_phi)); z' = smt2:(* -1 z); y' = smt2:(* -1 y);
-guard = s >= 0.0 and s < 0.6 and psi >= -0.25 and omega_psi >= -0.25 and theta_p >= -0.25 and omega_theta >= -0.25
-evolve = e >= -1.5 and e <= 1.5 and omega_phi >= -0.5 and omega_phi <= 0.5 and omega_psi >= -1.0 and omega_psi <= 1.0 and omega_theta >= -1.0 and omega_theta <= 1.0 and phi_r >= -0.5 and phi_r <= 0.5 and psi >= -1.0 and psi <= 1.0 and r >= -1.52 and r <= 1.52 and s >= 0.0 and theta_p >= -1.0 and theta_p <= 1.0 and v >= 0.0 and v <= 0.8 and y >= -1.0 and y <= 0.15 and z >= -1.0 and z <= 0.15
+guard = s >= 0.0 and s < 0.6 and v <= 0.3 and psi >= -0.25 and omega_psi >= -0.25 and theta_p >= -0.25 and omega_theta >= -0.25
+evolve = e >= -1.5 and e <= 1.5 and omega_phi >= -1.0 and omega_phi <= 1.0 and omega_psi >= -1.0 and omega_psi <= 1.0 and omega_theta >= -1.0 and omega_theta <= 1.0 and phi_r >= -1.0 and phi_r <= 1.0 and psi >= -1.0 and psi <= 1.0 and r >= -1.52 and r <= 1.52 and s >= 0.0 and theta_p >= -1.0 and theta_p <= 1.0 and v >= 0.0 and v <= 0.8 and y >= -1.0 and y <= 0.15 and z >= -1.0 and z <= 0.15
 next = [MODER, STEEP]
 
 [Lsys.mode.MODER]
 ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:omega_psi; omega_psi' = smt2:(- (* -1 psi) (* 2 omega_psi)); theta_p' = smt2:omega_theta; omega_theta' = smt2:(- (* -1 theta_p) (* 2 omega_theta)); e' = smt2:r; r' = smt2:(- (* -4 e) (* 4 r)); phi_r' = smt2:omega_phi; omega_phi' = smt2:(- (* -1 phi_r) (* 2 omega_phi)); z' = smt2:(* -1 z); y' = smt2:(* -1 y);
-guard = s >= 0.6 and s < 1.4 and psi >= -0.25 and omega_psi >= -0.25 and theta_p >= -0.25 and omega_theta >= -0.25
-evolve = e >= -1.5 and e <= 1.5 and omega_phi >= -0.5 and omega_phi <= 0.5 and omega_psi >= -1.0 and omega_psi <= 1.0 and omega_theta >= -1.0 and omega_theta <= 1.0 and phi_r >= -0.5 and phi_r <= 0.5 and psi >= -1.0 and psi <= 1.0 and r >= -1.52 and r <= 1.52 and s >= 0.0 and theta_p >= -1.0 and theta_p <= 1.0 and v >= 0.0 and v <= 0.8 and y >= -1.0 and y <= 0.15 and z >= -1.0 and z <= 0.15
+guard = s >= 0.6 and s < 1.4 and v <= 0.5 and psi >= -0.25 and omega_psi >= -0.25 and theta_p >= -0.25 and omega_theta >= -0.25
+evolve = e >= -1.5 and e <= 1.5 and omega_phi >= -1.0 and omega_phi <= 1.0 and omega_psi >= -1.0 and omega_psi <= 1.0 and omega_theta >= -1.0 and omega_theta <= 1.0 and phi_r >= -1.0 and phi_r <= 1.0 and psi >= -1.0 and psi <= 1.0 and r >= -1.52 and r <= 1.52 and s >= 0.0 and theta_p >= -1.0 and theta_p <= 1.0 and v >= 0.0 and v <= 0.8 and y >= -1.0 and y <= 0.15 and z >= -1.0 and z <= 0.15
 next = [FLAT, MODER]
 
 [Lsys.mode.FLAT]
 ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:omega_psi; omega_psi' = smt2:(- (* -1 psi) (* 2 omega_psi)); theta_p' = smt2:omega_theta; omega_theta' = smt2:(- (* -1 theta_p) (* 2 omega_theta)); e' = smt2:r; r' = smt2:(- (* -4 e) (* 4 r)); phi_r' = smt2:omega_phi; omega_phi' = smt2:(- (* -1 phi_r) (* 2 omega_phi)); z' = smt2:(* -1 z); y' = smt2:(* -1 y);
-guard = s >= 1.4 and s < 899.95 and psi >= -0.25 and omega_psi >= -0.25 and theta_p >= -0.25 and omega_theta >= -0.25
-evolve = e >= -1.5 and e <= 1.5 and omega_phi >= -0.5 and omega_phi <= 0.5 and omega_psi >= -1.0 and omega_psi <= 1.0 and omega_theta >= -1.0 and omega_theta <= 1.0 and phi_r >= -0.5 and phi_r <= 0.5 and psi >= -1.0 and psi <= 1.0 and r >= -1.52 and r <= 1.52 and s >= 0.0 and theta_p >= -1.0 and theta_p <= 1.0 and v >= 0.0 and v <= 0.8 and y >= -1.0 and y <= 0.15 and z >= -1.0 and z <= 0.15
+guard = s >= 1.4 and v <= 0.65 and psi >= -0.25 and omega_psi >= -0.25 and theta_p >= -0.25 and omega_theta >= -0.25
+evolve = e >= -1.5 and e <= 1.5 and omega_phi >= -1.0 and omega_phi <= 1.0 and omega_psi >= -1.0 and omega_psi <= 1.0 and omega_theta >= -1.0 and omega_theta <= 1.0 and phi_r >= -1.0 and phi_r <= 1.0 and psi >= -1.0 and psi <= 1.0 and r >= -1.52 and r <= 1.52 and s >= 0.0 and theta_p >= -1.0 and theta_p <= 1.0 and v >= 0.0 and v <= 0.8 and y >= -1.0 and y <= 0.15 and z >= -1.0 and z <= 0.15
 next = [FLAT]
 
-# CASCADE COORDINATES: the second-order block is rewritten in its eigen-cascade
-# coordinates — a linear bijection of the same dynamics — because per-coordinate
-# envelope boxes are forward-invariant there (every face inflows), which the original
-# (position, velocity) chart cannot achieve (mechanized escape witnesses in
-# docs/DEVELOPMENT-ARC.md). The relational invariant references only v/s, so the
-# ladder composition is unchanged.
-# Here r := r_orig + 2e (u-cascade, (λ+2)² block): e' = r - 2e, r' = -2r;
-# |r| ≤ 2·(e-bound) makes the box inflow on every face.
+
 [Rsys]
 state_vars = [v, s, psi, omega_psi, theta_p, omega_theta, e, r, phi_r, omega_phi, z, y]
 epsilon = 1.0
@@ -76,8 +90,6 @@ epsilon = 1.0
 [Rsys.mode.STEEP]
 ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); omega_psi' = smt2:0; theta_p' = smt2:(* -1 theta_p); omega_theta' = smt2:0; e' = smt2:(- r (* 2 e)); r' = smt2:(* -2 r); phi_r' = smt2:(* -1 phi_r); omega_phi' = smt2:0; z' = smt2:0; y' = smt2:0;
 guard = s >= 0.0 and s < 0.6
-# (evolve cap on the drifting coordinate removed with it: nothing in the dynamics
-# enforces it — the reachability-in-evolve defect class.)
 evolve = e >= -1.52 and e <= 1.52 and omega_phi >= -0.5 and omega_phi <= 0.6 and omega_psi >= -0.5 and omega_psi <= 0.6 and omega_theta >= -0.5 and omega_theta <= 0.6 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and r >= -3.04 and r <= 3.04 and s >= 0.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and y >= -1.0 and y <= 1.1 and z >= -1.0 and z <= 1.1
 next = [MODER, STEEP]
 
@@ -89,14 +101,12 @@ next = [FLAT, MODER]
 
 [Rsys.mode.FLAT]
 ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); omega_psi' = smt2:0; theta_p' = smt2:(* -1 theta_p); omega_theta' = smt2:0; e' = smt2:(- r (* 2 e)); r' = smt2:(* -2 r); phi_r' = smt2:(* -1 phi_r); omega_phi' = smt2:0; z' = smt2:0; y' = smt2:0;
-# terminal segment: the upper cap made the settling hypothesis false (one-step image
-# escapes with no successor beyond — the H-falsification audit's terminal-band overflow);
-# the band is now unbounded above, per the honest-envelope principle for positions.
 guard = s >= 1.4
 evolve = e >= -1.52 and e <= 1.52 and omega_phi >= -0.5 and omega_phi <= 0.6 and omega_psi >= -0.5 and omega_psi <= 0.6 and omega_theta >= -0.5 and omega_theta <= 0.6 and phi_r >= -0.5 and phi_r <= 0.15 and psi >= -0.5 and psi <= 0.15 and r >= -3.04 and r <= 3.04 and s >= 0.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and y >= -1.0 and y <= 1.1 and z >= -1.0 and z <= 1.1
 next = [FLAT]
 
+
 [relational_invariant]
-STEEP = v[l] <= v[r] and 2*(psi[l]-psi[r])*(psi[l]-psi[r]) + 2*(psi[l]-psi[r])*omega_psi[l] + omega_psi[l]*omega_psi[l] <= 0.25 and 2*(theta_p[l]-theta_p[r])*(theta_p[l]-theta_p[r]) + 2*(theta_p[l]-theta_p[r])*omega_theta[l] + omega_theta[l]*omega_theta[l] <= 0.25
-MODER = 2*(psi[l]-psi[r])*(psi[l]-psi[r]) + 2*(psi[l]-psi[r])*omega_psi[l] + omega_psi[l]*omega_psi[l] <= 0.25 and 2*(theta_p[l]-theta_p[r])*(theta_p[l]-theta_p[r]) + 2*(theta_p[l]-theta_p[r])*omega_theta[l] + omega_theta[l]*omega_theta[l] <= 0.25
-FLAT = 2*(psi[l]-psi[r])*(psi[l]-psi[r]) + 2*(psi[l]-psi[r])*omega_psi[l] + omega_psi[l]*omega_psi[l] <= 0.25 and 2*(theta_p[l]-theta_p[r])*(theta_p[l]-theta_p[r]) + 2*(theta_p[l]-theta_p[r])*omega_theta[l] + omega_theta[l]*omega_theta[l] <= 0.25
+STEEP = v[l] <= v[r] and s[l] <= s[r] and v[l]*r[l] <= 1.0 and 0 <= 1.0 + v[l]*r[l] and 1.125*e[l]*e[l] + 0.25*e[l]*r[l] + 0.156*r[l]*r[l] <= 0.33 and 2*(psi[l]-psi[r])*(psi[l]-psi[r]) + 2*(psi[l]-psi[r])*omega_psi[l] + omega_psi[l]*omega_psi[l] <= 0.25 and 2*(theta_p[l]-theta_p[r])*(theta_p[l]-theta_p[r]) + 2*(theta_p[l]-theta_p[r])*omega_theta[l] + omega_theta[l]*omega_theta[l] <= 0.25
+MODER = v[l] <= v[r] and s[l] <= s[r] and v[l]*r[l] <= 1.0 and 0 <= 1.0 + v[l]*r[l] and 1.125*e[l]*e[l] + 0.25*e[l]*r[l] + 0.156*r[l]*r[l] <= 0.33 and 2*(psi[l]-psi[r])*(psi[l]-psi[r]) + 2*(psi[l]-psi[r])*omega_psi[l] + omega_psi[l]*omega_psi[l] <= 0.25 and 2*(theta_p[l]-theta_p[r])*(theta_p[l]-theta_p[r]) + 2*(theta_p[l]-theta_p[r])*omega_theta[l] + omega_theta[l]*omega_theta[l] <= 0.25
+FLAT = v[l] <= v[r] and s[l] <= s[r] and v[l]*r[l] <= 1.0 and 0 <= 1.0 + v[l]*r[l] and 1.125*e[l]*e[l] + 0.25*e[l]*r[l] + 0.156*r[l]*r[l] <= 0.33 and 2*(psi[l]-psi[r])*(psi[l]-psi[r]) + 2*(psi[l]-psi[r])*omega_psi[l] + omega_psi[l]*omega_psi[l] <= 0.25 and 2*(theta_p[l]-theta_p[r])*(theta_p[l]-theta_p[r]) + 2*(theta_p[l]-theta_p[r])*omega_theta[l] + omega_theta[l]*omega_theta[l] <= 0.25

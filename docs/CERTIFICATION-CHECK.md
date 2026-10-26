@@ -59,7 +59,7 @@ theorems consume is in the repository.
 | 5 | Assumption 1 of every right model (`WellFormedR`): proved for all 50, none refuted; axiom audit; the tool's check, strict in check 3 | `lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 \| grep -A3 "depends on axioms"`; `./.lake/build/bin/relcert --wellformed benchmarks/suite_v2/*/input.txt` |
 | 6 | every Z3 hypothesis of the generic bridge instances (`InstancesV2/Bridge/`, 52 `*_bridge` theorems: stays, non-connection pairs, flow and reposition packs, admissibility, handoffs, progress, coverage) holds, against the declared total 4457 over the 50 suite benchmarks and the 2 choice exhibits; every query is sent at the instance's dimension `bridgeDimV2 b` (`VerdictsV2/RunBridge.lean:74`: the Assumption 1 lemma's dimension plus one, the right clock of the clocked right automaton `rightAutomatonBodyC`), which is the dimension the instance's `Verdicts` hypothesis names | `./.lake/build/bin/relcert-bridge-verdicts` |
 | 7 | the progress certificates (the paper's reposition certificates, Definition 7) of every reposition node (257 queries) hold, against the declared count | `./.lake/build/bin/relcert-progress-verdicts` |
-| 8 | the 77 kernel refutations (`InstancesV2/Refute/`, `docs/REFUTATION-RESULTS.md`): every Z3 group of `RefVerdicts` holds against the declared total 220, each instance at its benchmark's bridge dimension (`RefRec.dim + 1`, `InstancesV2/Refute/Table.lean`), and each instance concludes `¬ keyedClaim … 0 1 2 3 dt` / `¬ windowClaim … 0 1 2 dt`, the negation of the clocked bridge claim at that dimension (`refute_keyed_C/A/B_clocked`, `refute_window_B_clocked`) | `./.lake/build/bin/relcert-refute-verdicts`; `lake build RelCertifier.InstancesV2.Refute` |
+| 8 | the 83 kernel refutations (`InstancesV2/Refute/`, `docs/REFUTATION-RESULTS.md`): every Z3 group of `RefVerdicts` holds against the declared total 238, each instance at its benchmark's bridge dimension (`RefRec.dim + 1`, `InstancesV2/Refute/Table.lean`), and each instance concludes `¬ keyedClaim … 0 1 2 3 dt` / `¬ windowClaim … 0 1 2 dt`, the negation of the clocked bridge claim at that dimension (`refute_keyed_C/A/B_clocked`, `refute_window_B_clocked`) | `./.lake/build/bin/relcert-refute-verdicts`; `lake build RelCertifier.InstancesV2.Refute` |
 
 The totals 4457 and 188 are unchanged by the dimension change of 2026-10-21 (branch
 `clocked-right`): the padded coordinate is unbound in every lowered formula, so no query reads
@@ -136,7 +136,7 @@ gated. Expected tail:
   [coverage] suite_v2 handoff: 401/401 hypotheses discharged
   [coverage] suite_v2 non-connection: 88/88 hypotheses discharged
   [coverage] suite_v2 pruned edges: 44/44 hypotheses discharged
-  [coverage] suite_v2 reposition (dyn): 81/81 hypotheses discharged
+  [coverage] suite_v2 reposition (dyn): 65/65 hypotheses discharged
   [wellformed] summary: 50 benchmark(s), 173 right mode(s): 94 ok (invariant), 79 ok (exit), 0 UNKNOWN (0 benchmark(s) with an UNKNOWN mode); 2308 queries
   [wellformed] STRICT: 173/173 right modes ok (94 invariant, 79 exit), 0 UNKNOWN — matches the declared suite (173 modes, 0 UNKNOWN)
 
@@ -276,7 +276,7 @@ on branch `archive/legacy-2026-10`.
 | `rover_lateral_8to12` | `InstancesV2/Bridge/RoverLateral8to12.lean` | `rover_lateral_8to12_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverLateral8to12.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
 | `rover_rollover_6to12` | `InstancesV2/Bridge/RoverRollover6to12.lean` | `rover_rollover_6to12_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverRollover6to12.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
 | `rover_rollover_6to7` | `InstancesV2/Bridge/RoverRollover6to7.lean` | `rover_rollover_6to7_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverRollover6to7.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
-| `rover_rollover_7to12` | `InstancesV2/Bridge/RoverRollover7to12.lean` | `rover_rollover_7to12_bridge` | mode-keyed (`keyedClaim … 0 1 2 3 dt`) | `InstancesV2/WellFormed/RoverRollover7to12.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `rover_rollover_7to12` | `InstancesV2/Bridge/RoverRollover7to12.lean` | `rover_rollover_7to12_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverRollover7to12.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
 | `vehicle_accel_copy` | `InstancesV2/Bridge/VehicleAccelCopy.lean` | `vehicle_accel_copy_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/Choice/General/VehicleAccelCopy.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
 | `tank_dos_3to1` | `InstancesV2/Bridge/TankDos3to1.lean` | `tank_dos_3to1_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/TankDos3to1.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
 | `vehicle_hypercert` | `InstancesV2/Bridge/VehicleHypercert.lean` | `vehicle_hypercert_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/Choice/General/VehicleHypercert.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
@@ -300,7 +300,7 @@ lake build && lake build relcert relcert-test relcert-bridge-verdicts relcert-re
 ```
 
 A green build, an axiom listing with nothing beyond the four axioms, `SUITE_V2 QUICK CHECKS
-PASSED`, `ALL PASS`, `4457/4457`, `220/220` and `257/257` = every suite_v2 benchmark is
+PASSED`, `ALL PASS`, `4523/4523`, `238/238` and `257/257` = every suite_v2 benchmark is
 certified end to end, modulo the trust base.
 
 ## Earlier recipes

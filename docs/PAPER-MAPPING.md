@@ -317,7 +317,7 @@ supplies the per-mode responses through `hstepMode_GRC` and `HMode_regionGC`
 takes the certificates, the handoff conditions and Assumption 1 as hypotheses of one Lean
 theorem over the programs of Eq. 1, says Assumption 1 is proved per benchmark without Z3, and
 names the trust base (parser and lowering, query printer, Z3 `unsat`, kernel); Appendix B gives
-the details and quotes the 4457 bridge groups over the 52 instances. The reposition certificate
+the details and quotes the 4523 bridge groups over the 52 instances. The reposition certificate
 is described in Section 4.3 and, as the tool's stage lists, in Section 6.1.
 
 ## 8. Where the numbers come from
@@ -325,8 +325,8 @@ is described in Section 4.3 and, as the tool's stage lists, in Section 6.1.
 | number | source |
 |---|---|
 | 50 benchmarks, all CERTIFIED with `RELCERT_IMPLIED_CUT=1` (4 need the existential mode choice, the default) | `scripts/paper_numbers.sh` (frozen), `benchmarks/suite_v2/` |
-| 52 bridge instances, 4457 verdict groups (4321 over the 50 suite benchmarks, 136 over the 2 exhibits) | `InstancesV2/Bridge.lean`, `relcert-bridge-verdicts`, `expectedBridgeGroupsV2` |
-| 50 Assumption 1 proofs, Z3-free; 77 kernel refutations, 220 verdict groups | `InstancesV2/WellFormedBattery.lean`; `InstancesV2/Refute.lean`, `relcert-refute-verdicts` |
+| 52 bridge instances, 4523 verdict groups (4387 over the 50 suite benchmarks, 136 over the 2 exhibits) | `InstancesV2/Bridge.lean`, `relcert-bridge-verdicts`, `expectedBridgeGroupsV2` |
+| 50 Assumption 1 proofs, Z3-free; 83 kernel refutations, 238 verdict groups | `InstancesV2/WellFormedBattery.lean`; `InstancesV2/Refute.lean`, `relcert-refute-verdicts` |
 | 44 pruned edges, 88 non-connection queries; 401 handoff queries; 257 progress (reposition certificate) queries | the same runner; `relcert-progress-verdicts` |
 | Assumption 1: 50 of 50, Z3-free | `InstancesV2/WellFormedBattery.lean` |
 | axioms of every instance: `propext`, `Classical.choice`, `Quot.sound`, `z3_unsat_sound` | `lake build … 2>&1 | grep -A3 "depends on axioms"`; `docs/CERTIFICATION-CHECK.md` check 2 |

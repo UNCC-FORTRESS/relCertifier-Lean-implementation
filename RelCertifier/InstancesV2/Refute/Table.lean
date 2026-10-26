@@ -82,6 +82,12 @@ import RelCertifier.InstancesV2.Refute.Data.rover_lateral_8to12_m020
 import RelCertifier.InstancesV2.Refute.Data.rover_lateral_8to12_m021
 import RelCertifier.InstancesV2.Refute.Data.rover_lateral_8to12_m022
 import RelCertifier.InstancesV2.Refute.Data.rover_rollover_6to12_m010
+import RelCertifier.InstancesV2.Refute.Data.rover_rollover_6to7_m011
+import RelCertifier.InstancesV2.Refute.Data.rover_rollover_6to7_m016
+import RelCertifier.InstancesV2.Refute.Data.rover_rollover_6to7_m018
+import RelCertifier.InstancesV2.Refute.Data.rover_rollover_6to7_m019
+import RelCertifier.InstancesV2.Refute.Data.rover_rollover_6to7_m020
+import RelCertifier.InstancesV2.Refute.Data.rover_rollover_6to7_m021
 import RelCertifier.InstancesV2.Cuts.acc_spoof_limp
 import RelCertifier.InstancesV2.Cuts.acc_tune_limp
 import RelCertifier.InstancesV2.Cuts.arm_plateau_crit
@@ -94,6 +100,7 @@ import RelCertifier.InstancesV2.Cuts.rover_lateral_8to12
 import RelCertifier.InstancesV2.Cuts.rover_patrol_lag
 import RelCertifier.InstancesV2.Cuts.rover_patrol_zones
 import RelCertifier.InstancesV2.Cuts.rover_rollover_6to12
+import RelCertifier.InstancesV2.Cuts.rover_rollover_6to7
 import RelCertifier.InstancesV2.Cuts.sat3w_detumble_nominal
 import RelCertifier.InstancesV2.Cuts.sat3w_detumble_phases
 import RelCertifier.InstancesV2.Cuts.sat3w_detumble_weak
@@ -191,9 +198,15 @@ def refuteTable : List RefRec := [
   ⟨"rover_lateral_8to12_m020", 13 + 1, rover_lateral_8to12_m020_IRm, rover_lateral_8to12_cutsV2X, rover_lateral_8to12_m020_wit⟩,
   ⟨"rover_lateral_8to12_m021", 13 + 1, rover_lateral_8to12_m021_IRm, rover_lateral_8to12_cutsV2X, rover_lateral_8to12_m021_wit⟩,
   ⟨"rover_lateral_8to12_m022", 13 + 1, rover_lateral_8to12_m022_IRm, rover_lateral_8to12_cutsV2X, rover_lateral_8to12_m022_wit⟩,
-  ⟨"rover_rollover_6to12_m010", 12 + 1, rover_rollover_6to12_m010_IRm, rover_rollover_6to12_cutsV2X, rover_rollover_6to12_m010_wit⟩ ]
+  ⟨"rover_rollover_6to12_m010", 13 + 1, rover_rollover_6to12_m010_IRm, rover_rollover_6to12_cutsV2X, rover_rollover_6to12_m010_wit⟩,
+  ⟨"rover_rollover_6to7_m011", 13 + 1, rover_rollover_6to7_m011_IRm, rover_rollover_6to7_cutsV2X, rover_rollover_6to7_m011_wit⟩,
+  ⟨"rover_rollover_6to7_m016", 13 + 1, rover_rollover_6to7_m016_IRm, rover_rollover_6to7_cutsV2X, rover_rollover_6to7_m016_wit⟩,
+  ⟨"rover_rollover_6to7_m018", 13 + 1, rover_rollover_6to7_m018_IRm, rover_rollover_6to7_cutsV2X, rover_rollover_6to7_m018_wit⟩,
+  ⟨"rover_rollover_6to7_m019", 13 + 1, rover_rollover_6to7_m019_IRm, rover_rollover_6to7_cutsV2X, rover_rollover_6to7_m019_wit⟩,
+  ⟨"rover_rollover_6to7_m020", 13 + 1, rover_rollover_6to7_m020_IRm, rover_rollover_6to7_cutsV2X, rover_rollover_6to7_m020_wit⟩,
+  ⟨"rover_rollover_6to7_m021", 13 + 1, rover_rollover_6to7_m021_IRm, rover_rollover_6to7_cutsV2X, rover_rollover_6to7_m021_wit⟩ ]
 
 /-- Declared: the number of query groups over the refutations (one per right mode each). -/
-def expectedRefuteGroups : Nat := 220
+def expectedRefuteGroups : Nat := 238
 
 end RelCertifier.Refute

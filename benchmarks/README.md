@@ -85,7 +85,9 @@ Assumption 1 proofs were first written against the legacy literals and now quote
 files' literals directly (`RelCertifier/InstancesV2/WellFormed/`); their standalone Theorem 3
 instances are archived on branch `archive/legacy-2026-10`. Their headers are the legacy ones
 (no `# scenario:` line). `rover_rollover_7to12` was repaired on the left (attitude
-domains and the zone-switch entry condition) and `watertank` was redesigned as the paper's
+domains and the zone-switch entry condition; on 2026-10-26 the three rollover files were aligned
+so that 6to7 and 7to12 carry 6to12's rows on shared models and compose to it, with headers
+and `# scenario:` lines) and `watertank` was redesigned as the paper's
 running example; both carry new instances.
 
 ## The benchmarks
@@ -146,9 +148,9 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `rover_attitude_8to12` | 12 / 12 | 3 / 3 |  | carried over, mode-keyed |
 | `rover_lateral_6to8` | 8 / 8 | 3 / 3 |  | carried over; right lateral pair frozen (2026-10-26) |
 | `rover_lateral_8to12` | 12 / 12 | 3 / 3 |  | carried over |
-| `rover_rollover_6to12` | 12 / 12 | 3 / 3 |  | carried over |
-| `rover_rollover_6to7` | 12 / 12 | 3 / 3 |  | carried over |
-| `rover_rollover_7to12` | 12 / 12 | 3 / 3 |  | mode-keyed, widened cuts |
+| `rover_rollover_6to12` | 12 / 12 | 3 / 3 | model-refinement | carried over; left domain audit, s offset 0 (2026-10-26) |
+| `rover_rollover_6to7` | 12 / 12 | 3 / 3 | model-refinement | carried over; rollover rows of 6to12, s offset 0 (2026-10-26) |
+| `rover_rollover_7to12` | 12 / 12 | 3 / 3 | model-refinement | widened cuts; rollover, speed and progress rows added (2026-10-26) |
 | `vehicle_hypercert` | 1 / 1 | 5 / 5 | opacity | literature (HyperCertificates), mode choice |
 | `watertank` | 1 / 1 | 3 / 5 | sensor-attack | widened cuts |
 

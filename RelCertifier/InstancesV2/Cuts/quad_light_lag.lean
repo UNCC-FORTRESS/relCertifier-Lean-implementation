@@ -18,7 +18,7 @@ def quad_light_lag_cutsV2 : EvolStrengthening :=
       ("CLIMB", [((.cmp "<=" (.var "w") (.num "2.5")), CutRoute.diStrict), ((.cmp ">=" (.var "a") (.num "0.0")), CutRoute.shape), ((.cmp "<=" (.var "a") (.num "7.45")), CutRoute.shape)])
     ]
     R := [
-      ("CLIMB", [((.cmp ">=" (.var "w") (.num "0.0")), CutRoute.diStrict), ((.cmp "<=" (.var "w") (.num "2.6")), CutRoute.diStrict)])
+      ("CLIMB", [((.cmp ">=" (.var "w") (.num "0.0")), CutRoute.diStrict), ((.cmp "<=" (.var "w") (.num "3.5")), CutRoute.diStrict)])
     ] }
 
 def quad_light_lag_cutsV2X : EvolStrengtheningX :=
@@ -26,7 +26,7 @@ def quad_light_lag_cutsV2X : EvolStrengtheningX :=
       ("CLIMB", [⟨(.cmp "<=" (.var "w") (.num "2.5")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp ">=" (.var "a") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "a") (.num "7.45")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩])
     ]
     R := [
-      ("CLIMB", [⟨(.cmp ">=" (.var "w") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "w") (.num "2.6")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩])
+      ("CLIMB", [⟨(.cmp ">=" (.var "w") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "w") (.num "3.5")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩])
     ] }
 
 /-- The legacy (guard-conjunct) part is well formed. -/

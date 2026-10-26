@@ -5,7 +5,7 @@ Released under Apache 2.0 license.
 # `quad_light_lag`: Assumption 1 of the right model (`WellFormedR`)
 
 Over the instance's guarded right automaton `Gr` (one mode, `CLIMB`, with its self-loop),
-the lowered right guard, `ε_r = 1`. `CLIMB` (`0 ≤ w ≤ 2.6`, `w' = 4 − w²`, `a' = 0`) has a
+the lowered right guard, `ε_r = 1`. `CLIMB` (`0 ≤ w ≤ 3.5`, `w' = 4 − w²`, `a' = 0`) has a
 forward-invariant guard (style (a); barriers at both faces). Existence: the instance's
 viability route (both `w` faces strict, `a` faces neutral), with the left held still, and a
 time rescaling of the stretched run. Z3-free.
@@ -43,9 +43,6 @@ theorem hp00 : Run.parseRat "0.0" = some (0 : ℚ) := by
   simp [Run.parseRat, h]
 theorem hp35 : Run.parseRat "3.5" = some ((7:ℚ)/2) := by
   have h : parseQ "3.5" = some (⟨35, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp26 : Run.parseRat "2.6" = some ((13:ℚ)/5) := by
-  have h : parseQ "2.6" = some (⟨26, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
 /-- Right climb field: `w' = c_q − w²` (`CLIMB`: `c = 4`); the thrust coordinate is frozen. -/
 noncomputable def cRc (_q : ℕ) : ℝ := 4
@@ -353,8 +350,8 @@ theorem epsR_eq : epsR quad_light_lag_IRv2 = 1 := by
 noncomputable def guardR (q : ℕ) : Formula (Var 2) := hostGuard vs 2 Side.R (mR q)
 
 theorem sat_guardR0 (ν : State (Var 2)) :
-    Formula.sat (hostGuard vs 2 Side.R (mR 0)) ν ↔ 0 ≤ ν (Rv 0) ∧ ν (Rv 0) ≤ 13/5 := by
-  simp [hostGuard, mR, quad_light_lag_IRv2, Run.lowerF, Run.lowerE, hp00, hp26, vs,
+    Formula.sat (hostGuard vs 2 Side.R (mR 0)) ν ↔ 0 ≤ ν (Rv 0) ∧ ν (Rv 0) ≤ 7/2 := by
+  simp [hostGuard, mR, quad_light_lag_IRv2, Run.lowerF, Run.lowerE, hp00, hp35, vs,
     Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
     CompOp.interp, Term.eval, Rv]
 
@@ -440,7 +437,7 @@ theorem quad_light_lag_wellFormedR : WellFormedR Gr guardR (epsR quad_light_lag_
     exact ⟨Φ, H⟩
   · intro t Φ _ H
     have hf := fR0_eval 0 (by norm_num)
-    have hup := H.coord_le_barrier 0 (13/5) (fun s _ hs => by
+    have hup := H.coord_le_barrier 0 (7/2) (fun s _ hs => by
       rw [hf]; simp only [cRc]; nlinarith) hgx.2
     have hlo := H.coord_ge_barrier 0 0 (fun s hs hs0 => by
       have := ((sat_domR s).mp hs).1.1.1

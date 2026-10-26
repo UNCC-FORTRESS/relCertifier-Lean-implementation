@@ -35,7 +35,7 @@ def quad_light_lag_IRv2 : PProblem :=
           name := "CLIMB"
           odes := [("w", (.bin "-" (.num "4.0") (.bin "*" (.var "w") (.var "w")))),
             ("a", (.num "0"))]
-          guard := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "2.6")))
+          guard := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "3.5")))
           evolve := (.and (.and (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "3.5"))) (.cmp ">=" (.var "a") (.num "0.0"))) (.cmp "<=" (.var "a") (.num "7.45")))
           next := ["CLIMB"] } ] }
     invariants := [

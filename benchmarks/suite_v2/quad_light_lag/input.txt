@@ -15,7 +15,20 @@
 # budget ceil(7/4 * 2 / 1) = 4 right cycles per left window (M1 with polynomial
 # dynamics, M2). No fallback is declared on this rung: the functional bounds w_R from
 # below only through a_L, so a climb-rate limiter above a ceiling could not be excluded
-# as a start. Envelope: w in [0, 3.5], a in [0, 7.45] both sides.
+# as a start. Envelope: w in [0, 3.5], a in [0, 7.45] both sides (physical climb-rate
+# and thrust limits; both are forward invariant: w' < 0 at w = 3.5, a' >= 0 at a = 0 and
+# a' = 0 at a = 7.45 on the left).
+#
+# Guards: the left starts a climb with 0 <= w <= 2.5 (and a in its envelope); the right
+# CLIMB guard is the whole climb envelope 0 <= w <= 3.5, so every left state of the
+# envelope has a right mode to start in (the operating-region run reports every admitted
+# start in some right guard). It was w <= 2.6 before, which left 2.6 < w <= 3.5 in no
+# right mode; there is no limiter mode on this rung to excuse that band. Widening it
+# changes no verdict and no tolerance (tightest certifiable constant 9.73, 9.72 declines;
+# 12.45 is the requirement above, not the tightest).
+#
+# The right's a, with a' = 0 and the box 0 <= a <= 7.45, only pads the reference to the
+# left's state dimension: no right ODE, guard or invariant term reads R_a.
 [problem]
 name = quad_light_lag
 max_depth = 8
@@ -35,7 +48,7 @@ state_vars = [w, a]
 epsilon = 1.0
 [Rsys.mode.CLIMB]
 ode = w' = smt2:(- 4.0 (* w w)); a' = smt2:0;
-guard = w >= 0.0 and w <= 2.6
+guard = w >= 0.0 and w <= 3.5
 evolve = w >= 0.0 and w <= 3.5 and a >= 0.0 and a <= 7.45
 next = [CLIMB]
 [relational_invariant]

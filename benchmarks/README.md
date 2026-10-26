@@ -38,11 +38,11 @@ physical story, the units, the measured cover and the mechanisms it exercises
 
 ## Renamed 2026-10-25
 
-Seventeen benchmarks were renamed so that the name states the system, the property and the
+Eighteen benchmarks were renamed so that the name states the system, the property and the
 refinement step (deployed DOF refining reasoning DOF). Only names changed (directory, `name =`,
 header lines, derived Lean identifiers and modules); models, invariants, certificates and
 proofs are unchanged. Older records (git history, branch `archive/legacy-2026-10`, dated docs)
-use the old names. `story3_rollover_base_12dof` keeps its name.
+use the old names.
 
 | old | new |
 |---|---|
@@ -63,6 +63,7 @@ use the old names. `story3_rollover_base_12dof` keeps its name.
 | `story2_lateral_rung_b_12dof` | `rover_lateral_8to12` |
 | `story3_rollover_ladder_rung_a` | `rover_rollover_split_a` |
 | `story3_rollover_ladder_rung_b` | `rover_rollover_split_b` |
+| `story3_rollover_base_12dof` | `rover_rollover_6to12` |
 
 ## The 19 carried-over benchmarks
 
@@ -134,7 +135,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `rover_attitude_8to12` | 12 / 12 | 3 / 3 |  | carried over, mode-keyed |
 | `rover_lateral_6to8` | 8 / 8 | 3 / 3 |  | carried over |
 | `rover_lateral_8to12` | 12 / 12 | 3 / 3 |  | carried over |
-| `story3_rollover_base_12dof` | 12 / 12 | 3 / 3 |  | carried over |
+| `rover_rollover_6to12` | 12 / 12 | 3 / 3 |  | carried over |
 | `rover_rollover_split_a` | 12 / 12 | 3 / 3 |  | carried over |
 | `rover_rollover_split_b` | 12 / 12 | 3 / 3 |  | mode-keyed, widened cuts |
 | `vehicle_hypercert` | 1 / 1 | 5 / 5 | opacity | literature (HyperCertificates), mode choice |

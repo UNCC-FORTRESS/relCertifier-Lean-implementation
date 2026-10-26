@@ -84,7 +84,7 @@ import RelCertifier.InstancesV2.WellFormed.RoverAttitude6to8
 import RelCertifier.InstancesV2.WellFormed.RoverAttitude8to12
 import RelCertifier.InstancesV2.WellFormed.RoverLateral6to8
 import RelCertifier.InstancesV2.WellFormed.RoverLateral8to12
-import RelCertifier.InstancesV2.WellFormed.Story3RolloverBase
+import RelCertifier.InstancesV2.WellFormed.RoverRollover6to12
 import RelCertifier.InstancesV2.WellFormed.RoverRolloverSplitA
 import RelCertifier.InstancesV2.WellFormed.ArmPlateauCrit
 import RelCertifier.InstancesV2.WellFormed.ArmPlateauProfiles
@@ -120,7 +120,7 @@ def wfProved : List String :=
    "rover_ladder_4to6_kin", "rover_ladder_4to6",
    "rover_terrain_2to3", "rover_terrain_3to6", "rover_terrain_6to12",
    "rover_terrain_6to8", "rover_attitude_6to8", "rover_attitude_8to12",
-   "rover_lateral_6to8", "rover_lateral_8to12", "story3_rollover_base_12dof",
+   "rover_lateral_6to8", "rover_lateral_8to12", "rover_rollover_6to12",
    "rover_rollover_split_a", "watertank_twospeed", "drl_car_stop", "drl_lane_control",
    "vehicle_hypercert", "freedm_meter"]
 
@@ -152,11 +152,11 @@ def suiteNames : List String :=
    "rover_attitude_8to12", "rover_ladder_2to3", "rover_ladder_2to4", "rover_ladder_3to6",
    "rover_ladder_4to6", "rover_ladder_4to6_kin", "rover_ladder_6to8", "rover_ladder_8to12",
    "rover_lateral_6to8", "rover_lateral_8to12", "rover_patrol_refine", "rover_patrol_zones",
-   "rover_rollover_split_a", "rover_rollover_split_b", "rover_terrain_2to3",
-   "rover_terrain_3to6", "rover_terrain_6to12", "rover_terrain_6to8",
+   "rover_rollover_6to12", "rover_rollover_split_a", "rover_rollover_split_b",
+   "rover_terrain_2to3", "rover_terrain_3to6", "rover_terrain_6to12", "rover_terrain_6to8",
    "sat3w_detumble_nominal", "sat3w_detumble_phases", "sat3w_detumble_weak",
-   "sat_detumble_nominal", "sat_detumble_phases", "sat_detumble_weak",
-   "story3_rollover_base_12dof", "vehicle_hypercert", "watertank", "watertank_twospeed"]
+   "sat_detumble_nominal", "sat_detumble_phases", "sat_detumble_weak", "vehicle_hypercert",
+   "watertank", "watertank_twospeed"]
 
 /-- `suiteNames` IS the name column of the kernel-checked IR table of the suite. -/
 theorem suiteNames_eq : Parse.benchIRTableV2.map Prod.fst = suiteNames := rfl
@@ -207,7 +207,7 @@ end WellFormedBattery
 #print axioms RoverAttitude8to12Guarded.rover_attitude_8to12_wellFormedR
 #print axioms RoverLateral6to8Guarded.rover_lateral_6to8_wellFormedR
 #print axioms RoverLateral8to12Guarded.rover_lateral_8to12_wellFormedR
-#print axioms Story3RolloverBaseGuarded.story3_rollover_base_12dof_wellFormedR
+#print axioms RoverRollover6to12Guarded.rover_rollover_6to12_wellFormedR
 #print axioms RoverRolloverSplitAGuarded.rover_rollover_split_a_wellFormedR
 
 /-! ## Repaired 2026-10-10 (9, among the 40): Assumption 1 at every mode, and at the repaired

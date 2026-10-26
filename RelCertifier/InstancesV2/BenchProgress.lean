@@ -40,7 +40,7 @@ import RelCertifier.InstancesV2.BenchProgress.rover_attitude_6to8
 import RelCertifier.InstancesV2.BenchProgress.rover_attitude_8to12
 import RelCertifier.InstancesV2.BenchProgress.rover_lateral_6to8
 import RelCertifier.InstancesV2.BenchProgress.rover_lateral_8to12
-import RelCertifier.InstancesV2.BenchProgress.story3_rollover_base_12dof
+import RelCertifier.InstancesV2.BenchProgress.rover_rollover_6to12
 import RelCertifier.InstancesV2.BenchProgress.rover_rollover_split_a
 import RelCertifier.InstancesV2.BenchProgress.rover_rollover_split_b
 import RelCertifier.InstancesV2.BenchProgress.watertank
@@ -91,7 +91,7 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("rover_attitude_8to12", rover_attitude_8to12_coverV2_progress),
    ("rover_lateral_6to8", rover_lateral_6to8_coverV2_progress),
    ("rover_lateral_8to12", rover_lateral_8to12_coverV2_progress),
-   ("story3_rollover_base_12dof", story3_rollover_base_12dof_coverV2_progress),
+   ("rover_rollover_6to12", rover_rollover_6to12_coverV2_progress),
    ("rover_rollover_split_a", rover_rollover_split_a_coverV2_progress),
    ("rover_rollover_split_b", rover_rollover_split_b_coverV2_progress),
    ("watertank", watertank_coverV2_progress),

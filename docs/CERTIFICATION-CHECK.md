@@ -82,7 +82,7 @@ log (`grep -c "declaration uses 'sorry'"` prints 0).
 Since the standalone instances were archived (2026-10-22) no module of the tree takes more
 than about a minute: on the 2026-10-22 run (Apple M2 Max, incremental after the archive) the
 heaviest modules were the 12-dimensional Assumption 1 proofs
-`InstancesV2/WellFormed/{RoverRolloverSplitA,RoverAttitude8to12,Story3RolloverBase,
+`InstancesV2/WellFormed/{RoverRolloverSplitA,RoverAttitude8to12,RoverRollover6to12,
 RoverLateral8to12,RoverLateral6to8,RoverAttitude6to8,RoverTerrain6to12,RoverTerrain6to8}`
 at 30 to 35 s each; a plain `lake build` is enough. The last full measurement of the
 pre-cleanup tree (2026-10-10, every module invalidated: 64 min 45 s wall, the archived
@@ -275,7 +275,7 @@ on branch `archive/legacy-2026-10`.
 | `rover_attitude_8to12` | `InstancesV2/Bridge/RoverAttitude8to12.lean` | `rover_attitude_8to12_bridge` | mode-keyed (`keyedClaim … 0 1 2 3 dt`) | `InstancesV2/WellFormed/RoverAttitude8to12.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
 | `rover_lateral_6to8` | `InstancesV2/Bridge/RoverLateral6to8.lean` | `rover_lateral_6to8_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverLateral6to8.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
 | `rover_lateral_8to12` | `InstancesV2/Bridge/RoverLateral8to12.lean` | `rover_lateral_8to12_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverLateral8to12.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
-| `story3_rollover_base_12dof` | `InstancesV2/Bridge/Story3RolloverBase12dof.lean` | `story3_rollover_base_12dof_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/Story3RolloverBase.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
+| `rover_rollover_6to12` | `InstancesV2/Bridge/RoverRollover6to12.lean` | `rover_rollover_6to12_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverRollover6to12.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
 | `rover_rollover_split_a` | `InstancesV2/Bridge/RoverRolloverSplitA.lean` | `rover_rollover_split_a_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/WellFormed/RoverRolloverSplitA.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
 | `rover_rollover_split_b` | `InstancesV2/Bridge/RoverRolloverSplitB.lean` | `rover_rollover_split_b_bridge` | mode-keyed (`keyedClaim … 0 1 2 3 dt`) | `InstancesV2/WellFormed/RoverRolloverSplitB.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |
 | `vehicle_accel_copy` | `InstancesV2/Bridge/VehicleAccelCopy.lean` | `vehicle_accel_copy_bridge` | window (`windowClaim … 0 1 2 dt`) | `InstancesV2/Choice/General/VehicleAccelCopy.lean` | `Verdicts` (the runner's groups) | std 3 + `z3_unsat_sound` |

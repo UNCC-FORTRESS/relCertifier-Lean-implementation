@@ -257,7 +257,7 @@ check.
 
 **Heavy files.** Since the standalone instances were archived (2026-10-22) no module takes
 more than about a minute: the heaviest are the 12-dimensional Assumption 1 proofs
-(`InstancesV2/WellFormed/RoverAttitude*`, `RoverLateral*`, `RoverRollover*`, `Story3RolloverBase`, `RoverTerrain6to12*`, about 35 s each) and the refutation
+(`InstancesV2/WellFormed/RoverAttitude*`, `RoverLateral*`, `RoverRollover*`, `RoverTerrain6to12*`, about 35 s each) and the refutation
 instances; a plain `lake build` is enough. `lake build` is incremental, but an edit to
 anything under `Proofs/`, `Checker/` or `Trusted/` rebuilds every instance downstream. The
 full recipe, what each check establishes and what it does not, and the measured cost:

@@ -2,8 +2,8 @@ import RelCertifier.Trusted.ProgressEmit
 
 namespace RelCertifier.Progress
 
-def story3_rollover_base_12dof_coverV2_progress : RelCertifier.Progress.ProgressEmitE :=
-  ⟨"story3_rollover_base_12dof", [
+def rover_rollover_6to12_coverV2_progress : RelCertifier.Progress.ProgressEmitE :=
+  ⟨"rover_rollover_6to12", [
     ⟨"STEEP", "STEEP", true, [⟨"v", (1 : ℚ) / 5, true, (1 : ℚ) / 4⟩, ⟨"s", (3 : ℚ) / 5, true, (1 : ℚ) / 8⟩], ["MODER"]⟩,
     ⟨"STEEP", "STEEP", false, [⟨"v", (1 : ℚ) / 5, true, (1 : ℚ) / 4⟩, ⟨"s", (3 : ℚ) / 5, true, (1 : ℚ) / 8⟩], ["MODER"]⟩,
     ⟨"STEEP", "MODER", true, [⟨"v", (3 : ℚ) / 10, true, (1 : ℚ) / 2⟩, ⟨"s", (7 : ℚ) / 5, true, (1 : ℚ) / 8⟩], ["FLAT"]⟩,

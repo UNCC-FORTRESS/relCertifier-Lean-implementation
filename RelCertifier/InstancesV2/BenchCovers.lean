@@ -33,6 +33,7 @@ import RelCertifier.InstancesV2.BenchCovers.rover_lateral_6to8
 import RelCertifier.InstancesV2.BenchCovers.rover_lateral_8to12
 import RelCertifier.InstancesV2.BenchCovers.rover_patrol_refine
 import RelCertifier.InstancesV2.BenchCovers.rover_patrol_zones
+import RelCertifier.InstancesV2.BenchCovers.rover_rollover_6to12
 import RelCertifier.InstancesV2.BenchCovers.rover_rollover_split_a
 import RelCertifier.InstancesV2.BenchCovers.rover_rollover_split_b
 import RelCertifier.InstancesV2.BenchCovers.rover_terrain_2to3
@@ -45,7 +46,6 @@ import RelCertifier.InstancesV2.BenchCovers.sat3w_detumble_weak
 import RelCertifier.InstancesV2.BenchCovers.sat_detumble_nominal
 import RelCertifier.InstancesV2.BenchCovers.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchCovers.sat_detumble_weak
-import RelCertifier.InstancesV2.BenchCovers.story3_rollover_base_12dof
 import RelCertifier.InstancesV2.BenchCovers.vehicle_hypercert
 import RelCertifier.InstancesV2.BenchCovers.watertank
 import RelCertifier.InstancesV2.BenchCovers.watertank_twospeed
@@ -87,6 +87,7 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("rover_lateral_8to12", rover_lateral_8to12_coverV2),
   ("rover_patrol_refine", rover_patrol_refine_coverV2),
   ("rover_patrol_zones", rover_patrol_zones_coverV2),
+  ("rover_rollover_6to12", rover_rollover_6to12_coverV2),
   ("rover_rollover_split_a", rover_rollover_split_a_coverV2),
   ("rover_rollover_split_b", rover_rollover_split_b_coverV2),
   ("rover_terrain_2to3", rover_terrain_2to3_coverV2),
@@ -99,7 +100,6 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("sat_detumble_nominal", sat_detumble_nominal_coverV2),
   ("sat_detumble_phases", sat_detumble_phases_coverV2),
   ("sat_detumble_weak", sat_detumble_weak_coverV2),
-  ("story3_rollover_base_12dof", story3_rollover_base_12dof_coverV2),
   ("vehicle_hypercert", vehicle_hypercert_coverV2),
   ("watertank", watertank_coverV2),
   ("watertank_twospeed", watertank_twospeed_coverV2) ]

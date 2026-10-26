@@ -2,9 +2,9 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `story3_rollover_base_12dof_m010`: a mutant of `story3_rollover_base_12dof` and its refutation witness (GENERATED — `scripts/gen_refute.py`)
+# `rover_rollover_6to12_m010`: a mutant of `rover_rollover_6to12` and its refutation witness (GENERATED — `scripts/gen_refute.py`)
 
-Mutant ORO `(<= (* L_v L_r) 1.0) [L_r->R_r]` of `benchmarks/suite_v2/story3_rollover_base_12dof`; file `benchmarks/refute_mutants/story3_rollover_base_12dof_m010/input.txt`.
+Mutant ORO `(<= (* L_v L_r) 1.0) [L_r->R_r]` of `benchmarks/suite_v2/rover_rollover_6to12`; file `benchmarks/refute_mutants/rover_rollover_6to12_m010/input.txt`.
 -/
 import RelCertifier.Trusted.Parse
 import RelCertifier.Trusted.RefuteQueries
@@ -13,10 +13,10 @@ namespace RelCertifier.Refute
 
 open RelCertifier.Parse
 
-/-- Parser-emitted IR of `benchmarks/refute_mutants/story3_rollover_base_12dof_m010/input.txt` (do not edit). -/
-def story3_rollover_base_12dof_m010_IRm : PProblem :=
+/-- Parser-emitted IR of `benchmarks/refute_mutants/rover_rollover_6to12_m010/input.txt` (do not edit). -/
+def rover_rollover_6to12_m010_IRm : PProblem :=
   {
-    name := "story3_rollover_base_12dof"
+    name := "rover_rollover_6to12"
     lambdaMin := "1.0"
     lambdaMax := "6.0"
     L := {
@@ -135,7 +135,7 @@ def story3_rollover_base_12dof_m010_IRm : PProblem :=
       ("FLAT", (.and (.and (.and (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "L_s") (.bin "+" (.var "R_s") (.num "0.2")))) (.cmp "<=" (.bin "*" (.var "L_v") (.var "R_r")) (.num "1.0"))) (.cmp "<=" (.num "0.0") (.bin "+" (.num "1.0") (.bin "*" (.var "L_v") (.var "L_r"))))) (.cmp "<=" (.bin "+" (.bin "+" (.bin "*" (.bin "*" (.num "1.125") (.var "L_e")) (.var "L_e")) (.bin "*" (.bin "*" (.num "0.25") (.var "L_e")) (.var "L_r"))) (.bin "*" (.bin "*" (.num "0.156") (.var "L_r")) (.var "L_r"))) (.num "0.33"))))] }
 
 /-- The finder's witness (kind B). -/
-def story3_rollover_base_12dof_m010_wit : RefWitE :=
+def rover_rollover_6to12_m010_wit : RefWitE :=
   { kind := "B", u := 2, m := 2, q0 := 2, k := 2,
     wL := [(5/8 : ℚ), (2 : ℚ), (0 : ℚ), (0 : ℚ), (0 : ℚ), (0 : ℚ), (0 : ℚ), (0 : ℚ), (0 : ℚ), (0 : ℚ), (0 : ℚ), (0 : ℚ)],
     wR := [(41/64 : ℚ), (3 : ℚ), (0 : ℚ), (0 : ℚ), (0 : ℚ), (0 : ℚ), (0 : ℚ), (8/5 : ℚ), (0 : ℚ), (0 : ℚ), (0 : ℚ), (0 : ℚ)] }

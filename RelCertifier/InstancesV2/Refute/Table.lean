@@ -71,7 +71,7 @@ import RelCertifier.InstancesV2.Refute.Data.sat_detumble_weak_m002
 import RelCertifier.InstancesV2.Refute.Data.sat_detumble_weak_m003
 import RelCertifier.InstancesV2.Refute.Data.sat_detumble_weak_m005
 import RelCertifier.InstancesV2.Refute.Data.sat_detumble_weak_m006
-import RelCertifier.InstancesV2.Refute.Data.story3_rollover_base_12dof_m010
+import RelCertifier.InstancesV2.Refute.Data.rover_rollover_6to12_m010
 import RelCertifier.InstancesV2.Cuts.acc_spoof_limp
 import RelCertifier.InstancesV2.Cuts.acc_tune_limp
 import RelCertifier.InstancesV2.Cuts.arm_plateau_crit
@@ -82,13 +82,13 @@ import RelCertifier.InstancesV2.Cuts.rover3tier_rung12
 import RelCertifier.InstancesV2.Cuts.rover_ladder_6to8
 import RelCertifier.InstancesV2.Cuts.rover_patrol_refine
 import RelCertifier.InstancesV2.Cuts.rover_patrol_zones
+import RelCertifier.InstancesV2.Cuts.rover_rollover_6to12
 import RelCertifier.InstancesV2.Cuts.sat3w_detumble_nominal
 import RelCertifier.InstancesV2.Cuts.sat3w_detumble_phases
 import RelCertifier.InstancesV2.Cuts.sat3w_detumble_weak
 import RelCertifier.InstancesV2.Cuts.sat_detumble_nominal
 import RelCertifier.InstancesV2.Cuts.sat_detumble_phases
 import RelCertifier.InstancesV2.Cuts.sat_detumble_weak
-import RelCertifier.InstancesV2.Cuts.story3_rollover_base_12dof
 import RelCertifier.Checker.EvolStrengtheningX
 
 namespace RelCertifier.Refute
@@ -170,7 +170,7 @@ def refuteTable : List RefRec := [
   ⟨"sat_detumble_weak_m003", 4 + 1, sat_detumble_weak_m003_IRm, sat_detumble_weak_cutsV2X, sat_detumble_weak_m003_wit⟩,
   ⟨"sat_detumble_weak_m005", 4 + 1, sat_detumble_weak_m005_IRm, sat_detumble_weak_cutsV2X, sat_detumble_weak_m005_wit⟩,
   ⟨"sat_detumble_weak_m006", 4 + 1, sat_detumble_weak_m006_IRm, sat_detumble_weak_cutsV2X, sat_detumble_weak_m006_wit⟩,
-  ⟨"story3_rollover_base_12dof_m010", 12 + 1, story3_rollover_base_12dof_m010_IRm, story3_rollover_base_12dof_cutsV2X, story3_rollover_base_12dof_m010_wit⟩ ]
+  ⟨"rover_rollover_6to12_m010", 12 + 1, rover_rollover_6to12_m010_IRm, rover_rollover_6to12_cutsV2X, rover_rollover_6to12_m010_wit⟩ ]
 
 /-- Declared: the number of query groups over the refutations (one per right mode each). -/
 def expectedRefuteGroups : Nat := 188

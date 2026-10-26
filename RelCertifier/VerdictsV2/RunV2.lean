@@ -227,13 +227,13 @@ def packsV2 : List PackV2 :=
     ⟨"rover_ladder_8to12", 12, 0, [0, 1], 17, 10, 1, 1⟩,
     ⟨"rover_ladder_8to12", 12, 0, [0, 1], 17, 10, 1, 2⟩,
     ⟨"rover_ladder_8to12", 12, 0, [0, 1], 17, 10, 2, 2⟩,
-    -- story3_rollover_base_12dof (cover replay)
-    ⟨"story3_rollover_base_12dof", 12, 0, [0, 1, 2, 3, 4], 5, 4, 0, 0⟩,
-    ⟨"story3_rollover_base_12dof", 12, 0, [0, 1, 2, 3, 4], 5, 4, 0, 1⟩,
-    ⟨"story3_rollover_base_12dof", 12, 0, [0, 1, 2, 3, 4], 5, 4, 0, 2⟩,
-    ⟨"story3_rollover_base_12dof", 12, 0, [0, 1, 2, 3, 4], 5, 4, 1, 1⟩,
-    ⟨"story3_rollover_base_12dof", 12, 0, [0, 1, 2, 3, 4], 5, 4, 1, 2⟩,
-    ⟨"story3_rollover_base_12dof", 12, 0, [0, 1, 2, 3, 4], 5, 4, 2, 2⟩,
+    -- rover_rollover_6to12 (cover replay)
+    ⟨"rover_rollover_6to12", 12, 0, [0, 1, 2, 3, 4], 5, 4, 0, 0⟩,
+    ⟨"rover_rollover_6to12", 12, 0, [0, 1, 2, 3, 4], 5, 4, 0, 1⟩,
+    ⟨"rover_rollover_6to12", 12, 0, [0, 1, 2, 3, 4], 5, 4, 0, 2⟩,
+    ⟨"rover_rollover_6to12", 12, 0, [0, 1, 2, 3, 4], 5, 4, 1, 1⟩,
+    ⟨"rover_rollover_6to12", 12, 0, [0, 1, 2, 3, 4], 5, 4, 1, 2⟩,
+    ⟨"rover_rollover_6to12", 12, 0, [0, 1, 2, 3, 4], 5, 4, 2, 2⟩,
     -- rover_rollover_split_a (cover replay)
     ⟨"rover_rollover_split_a", 12, 0, [0, 1, 2], 27, 20, 0, 0⟩,
     ⟨"rover_rollover_split_a", 12, 0, [0, 1, 2], 27, 20, 0, 1⟩,
@@ -437,9 +437,9 @@ def dynPacksV2 : List DynPackV2 :=
     -- rover_ladder_8to12
     ⟨"rover_ladder_8to12", 12, 0, [0, 1], true, 1, 0⟩,
     ⟨"rover_ladder_8to12", 12, 0, [0, 1], true, 2, 1⟩,
-    -- story3_rollover_base_12dof
-    ⟨"story3_rollover_base_12dof", 12, 0, [0, 1, 2, 3, 4], true, 1, 0⟩,
-    ⟨"story3_rollover_base_12dof", 12, 0, [0, 1, 2, 3, 4], true, 2, 1⟩,
+    -- rover_rollover_6to12
+    ⟨"rover_rollover_6to12", 12, 0, [0, 1, 2, 3, 4], true, 1, 0⟩,
+    ⟨"rover_rollover_6to12", 12, 0, [0, 1, 2, 3, 4], true, 2, 1⟩,
     -- rover_rollover_split_a
     ⟨"rover_rollover_split_a", 12, 0, [0, 1, 2], true, 1, 0⟩,
     ⟨"rover_rollover_split_a", 12, 0, [0, 1, 2], true, 2, 1⟩,

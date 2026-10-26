@@ -33,6 +33,7 @@ import RelCertifier.InstancesV2.Bridge.RoverLateral6to8
 import RelCertifier.InstancesV2.Bridge.RoverLateral8to12
 import RelCertifier.InstancesV2.Bridge.RoverPatrolRefine
 import RelCertifier.InstancesV2.Bridge.RoverPatrolZones
+import RelCertifier.InstancesV2.Bridge.RoverRollover6to12
 import RelCertifier.InstancesV2.Bridge.RoverRolloverSplitA
 import RelCertifier.InstancesV2.Bridge.RoverRolloverSplitB
 import RelCertifier.InstancesV2.Bridge.RoverTerrain2to3
@@ -45,7 +46,6 @@ import RelCertifier.InstancesV2.Bridge.Sat3wDetumbleWeak
 import RelCertifier.InstancesV2.Bridge.SatDetumbleNominal
 import RelCertifier.InstancesV2.Bridge.SatDetumblePhases
 import RelCertifier.InstancesV2.Bridge.SatDetumbleWeak
-import RelCertifier.InstancesV2.Bridge.Story3RolloverBase12dof
 import RelCertifier.InstancesV2.Bridge.VehicleHypercert
 import RelCertifier.InstancesV2.Bridge.Watertank
 import RelCertifier.InstancesV2.Bridge.WatertankTwospeed

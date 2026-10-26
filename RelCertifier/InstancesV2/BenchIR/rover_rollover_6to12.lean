@@ -2,18 +2,18 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `story3_rollover_base_12dof` (suite_v2) — parser-emitted IR literal (GENERATED leaf — do not edit)
+# `rover_rollover_6to12` (suite_v2) — parser-emitted IR literal (GENERATED leaf — do not edit)
 
-Regenerate with `scripts/gen_v2_data.py story3_rollover_base_12dof`.
+Regenerate with `scripts/gen_v2_data.py rover_rollover_6to12`.
 -/
 import RelCertifier.Trusted.Parse
 
 namespace RelCertifier.Parse
 
-/-- Parser-emitted IR of `benchmarks/suite_v2/story3_rollover_base_12dof/input.txt` (do not edit). -/
-def story3_rollover_base_12dof_IRv2 : PProblem :=
+/-- Parser-emitted IR of `benchmarks/suite_v2/rover_rollover_6to12/input.txt` (do not edit). -/
+def rover_rollover_6to12_IRv2 : PProblem :=
   {
-    name := "story3_rollover_base_12dof"
+    name := "rover_rollover_6to12"
     lambdaMin := "1.0"
     lambdaMax := "6.0"
     L := {

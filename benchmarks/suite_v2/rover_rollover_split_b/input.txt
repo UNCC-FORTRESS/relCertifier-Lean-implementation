@@ -30,7 +30,7 @@
 #
 # The intermediate model (IM = rung_a's L) connects the two rungs:
 #   rung_a L == rung_b R (both are IM: rollover 2nd-order, attitude 1st-order)
-# Composition: rung_a + rung_b imply the direct story3_rollover_base invariant.
+# Composition: rung_a + rung_b imply the direct rover_rollover_6to12 invariant.
 
 [problem]
 name = rover_rollover_split_b

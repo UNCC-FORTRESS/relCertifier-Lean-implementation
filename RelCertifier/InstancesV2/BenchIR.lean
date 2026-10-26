@@ -42,6 +42,7 @@ import RelCertifier.InstancesV2.BenchIR.rover_lateral_6to8
 import RelCertifier.InstancesV2.BenchIR.rover_lateral_8to12
 import RelCertifier.InstancesV2.BenchIR.rover_patrol_refine
 import RelCertifier.InstancesV2.BenchIR.rover_patrol_zones
+import RelCertifier.InstancesV2.BenchIR.rover_rollover_6to12
 import RelCertifier.InstancesV2.BenchIR.rover_rollover_split_a
 import RelCertifier.InstancesV2.BenchIR.rover_rollover_split_b
 import RelCertifier.InstancesV2.BenchIR.rover_terrain_2to3
@@ -54,7 +55,6 @@ import RelCertifier.InstancesV2.BenchIR.sat3w_detumble_weak
 import RelCertifier.InstancesV2.BenchIR.sat_detumble_nominal
 import RelCertifier.InstancesV2.BenchIR.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchIR.sat_detumble_weak
-import RelCertifier.InstancesV2.BenchIR.story3_rollover_base_12dof
 import RelCertifier.InstancesV2.BenchIR.vehicle_hypercert
 import RelCertifier.InstancesV2.BenchIR.watertank
 import RelCertifier.InstancesV2.BenchIR.watertank_twospeed
@@ -96,6 +96,7 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("rover_lateral_8to12", rover_lateral_8to12_IRv2),
   ("rover_patrol_refine", rover_patrol_refine_IRv2),
   ("rover_patrol_zones", rover_patrol_zones_IRv2),
+  ("rover_rollover_6to12", rover_rollover_6to12_IRv2),
   ("rover_rollover_split_a", rover_rollover_split_a_IRv2),
   ("rover_rollover_split_b", rover_rollover_split_b_IRv2),
   ("rover_terrain_2to3", rover_terrain_2to3_IRv2),
@@ -108,7 +109,6 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("sat_detumble_nominal", sat_detumble_nominal_IRv2),
   ("sat_detumble_phases", sat_detumble_phases_IRv2),
   ("sat_detumble_weak", sat_detumble_weak_IRv2),
-  ("story3_rollover_base_12dof", story3_rollover_base_12dof_IRv2),
   ("vehicle_hypercert", vehicle_hypercert_IRv2),
   ("watertank", watertank_IRv2),
   ("watertank_twospeed", watertank_twospeed_IRv2) ]

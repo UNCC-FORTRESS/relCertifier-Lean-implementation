@@ -151,7 +151,7 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 39 | `rover_attitude_8to12` | proved | as 18 | as 18 |
 | 40 | `rover_lateral_6to8` | proved | as 18 | as 18 |
 | 41 | `rover_lateral_8to12` | proved | as 18 | as 18 |
-| 42 | `story3_rollover_base_12dof` | proved | as 18 | as 18 |
+| 42 | `rover_rollover_6to12` | proved | as 18 | as 18 |
 | 43 | `rover_rollover_split_a` | proved | as 18 | as 18 |
 | 44 | `rover_rollover_split_b` | proved | as 18 | as 18 |
 | 45 | `watertank` | proved | Low (b) → MidEco; MidEco, MidBoost, High, PumpOff (a) | Low ok (exit→MidBoost, same guard); the others ok (invariant) |

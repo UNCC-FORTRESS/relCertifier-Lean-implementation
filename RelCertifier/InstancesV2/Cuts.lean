@@ -33,6 +33,7 @@ import RelCertifier.InstancesV2.Cuts.rover_lateral_6to8
 import RelCertifier.InstancesV2.Cuts.rover_lateral_8to12
 import RelCertifier.InstancesV2.Cuts.rover_patrol_refine
 import RelCertifier.InstancesV2.Cuts.rover_patrol_zones
+import RelCertifier.InstancesV2.Cuts.rover_rollover_6to12
 import RelCertifier.InstancesV2.Cuts.rover_rollover_split_a
 import RelCertifier.InstancesV2.Cuts.rover_rollover_split_b
 import RelCertifier.InstancesV2.Cuts.rover_terrain_2to3
@@ -45,7 +46,6 @@ import RelCertifier.InstancesV2.Cuts.sat3w_detumble_weak
 import RelCertifier.InstancesV2.Cuts.sat_detumble_nominal
 import RelCertifier.InstancesV2.Cuts.sat_detumble_phases
 import RelCertifier.InstancesV2.Cuts.sat_detumble_weak
-import RelCertifier.InstancesV2.Cuts.story3_rollover_base_12dof
 import RelCertifier.InstancesV2.Cuts.vehicle_hypercert
 import RelCertifier.InstancesV2.Cuts.watertank
 import RelCertifier.InstancesV2.Cuts.watertank_twospeed
@@ -87,6 +87,7 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("rover_lateral_8to12", rover_lateral_8to12_cutsV2, rover_lateral_8to12_cutsV2X),
   ("rover_patrol_refine", rover_patrol_refine_cutsV2, rover_patrol_refine_cutsV2X),
   ("rover_patrol_zones", rover_patrol_zones_cutsV2, rover_patrol_zones_cutsV2X),
+  ("rover_rollover_6to12", rover_rollover_6to12_cutsV2, rover_rollover_6to12_cutsV2X),
   ("rover_rollover_split_a", rover_rollover_split_a_cutsV2, rover_rollover_split_a_cutsV2X),
   ("rover_rollover_split_b", rover_rollover_split_b_cutsV2, rover_rollover_split_b_cutsV2X),
   ("rover_terrain_2to3", rover_terrain_2to3_cutsV2, rover_terrain_2to3_cutsV2X),
@@ -99,7 +100,6 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("sat_detumble_nominal", sat_detumble_nominal_cutsV2, sat_detumble_nominal_cutsV2X),
   ("sat_detumble_phases", sat_detumble_phases_cutsV2, sat_detumble_phases_cutsV2X),
   ("sat_detumble_weak", sat_detumble_weak_cutsV2, sat_detumble_weak_cutsV2X),
-  ("story3_rollover_base_12dof", story3_rollover_base_12dof_cutsV2, story3_rollover_base_12dof_cutsV2X),
   ("vehicle_hypercert", vehicle_hypercert_cutsV2, vehicle_hypercert_cutsV2X),
   ("watertank", watertank_cutsV2, watertank_cutsV2X),
   ("watertank_twospeed", watertank_twospeed_cutsV2, watertank_twospeed_cutsV2X) ]

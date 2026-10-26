@@ -8,7 +8,8 @@ Over the guarded right automaton `GrG` of the Theorem 3 instance
 (`Instances/RoverLateral6to8Guarded.lean`), the lowered right guards, `ε_r = 1` (the literal is the
 suite_v2 file's, `InstancesV2/SameIR.lean`). A terrain ladder without speed caps, `s' = v ((1 − ψ²/2) − 0.3 θ²)`:
 `wellFormedR_ladder` (style (b) for `STEEP`, `MODER`, (a) for `FLAT`); existence from the
-instance's explicit ladder runs (`LR.sol`). Z3-free. (GENERATED from one template.)
+instance's explicit ladder runs (`LR.sol`). Z3-free. (GENERATED from one template; since
+2026-10-26 the right model freezes the lateral pair, `y' = 0`, `w' = 0`, as it does `phi_r`.)
 -/
 import RelCertifier.InstancesV2.BenchIR.rover_lateral_6to8
 import RelCertifier.Proofs.Encoding.WellFormedLadder
@@ -157,7 +158,7 @@ theorem fRY3_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
 
 theorem fRY4_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
-    Term.eval (fRY q 4) x = -1 * x (Rv 4) := by
+    Term.eval (fRY q 4) x = 0 := by
   interval_cases q <;>
     simp [fRY, hostDyn, mRY, rover_lateral_6to8_IRv2, vsY, Run.dynOf,
       Run.lowerE, hy3, hy030, hy050, hy065, hym1, hym10, hy0, hy1, hy05, hy03, Run.resolveVar,
@@ -178,7 +179,7 @@ theorem fRY6_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
 
 theorem fRY7_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
-    Term.eval (fRY q 7) x = -1 * x (Rv 7) := by
+    Term.eval (fRY q 7) x = 0 := by
   interval_cases q <;>
     simp [fRY, hostDyn, mRY, rover_lateral_6to8_IRv2, vsY, Run.dynOf,
       Run.lowerE, hy3, hy030, hy050, hy065, hym1, hym10, hy0, hy1, hy05, hy03, Run.resolveVar,
@@ -236,7 +237,7 @@ theorem sat_guardR2 (x : State (Var 8)) : Formula.sat (hostGuard vsY 8 Side.R (m
 /-! ## The reference's band runs (explicit; the attitude-weighted odometer) -/
 
 /-- The reference's laws for every coordinate other than `v` and `s`: decay `e^{−t}` or frozen. -/
-noncomputable def dR : Fin 8 → ℝ := ![0, 0, 1, 1, 1, 1, 0, 1]
+noncomputable def dR : Fin 8 → ℝ := ![0, 0, 1, 1, 0, 1, 0, 0]
 
 noncomputable def φo (ρ : State (Var 8)) (i : Fin 8) (t : ℝ) : ℝ :=
   ρ (Rv i) * Real.exp (-(dR i * t))

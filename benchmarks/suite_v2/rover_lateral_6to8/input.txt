@@ -1,7 +1,11 @@
-# STORY 2 (forking tower: lateral corridor-keeping): rover_lateral_6to8
-# FORKS FROM 6-DOF (rung_3to6). Adds y, w (lateral offset + lateral rate); the
-# corridor-keeping property y_L <= y_R + d is unstatable below this DOF.
-# This rung (a) refines 6->8 carrying the lateral property; rung_b carries it 8->12.
+# rover_lateral_6to8: lateral corridor keeping, 8-state model refining the 6-DOF plan (6->8).
+# Right (reasoning): the 6-DOF rover (v, s, psi, theta_p, z, phi_r; left dynamics on these)
+#   lifted to 8 coordinates with the lateral offset and rate frozen (y' = 0, w' = 0): the
+#   coarse 6-DOF plan has no lateral dynamics.
+# Left (deployed): the 8-state model with lateral offset y and lateral rate w (y' = -y, w' = -w).
+# Property: corridor keeping y_L <= y_R + 0.3, carried with v, s, psi, theta_p alignment.
+# Connects to rover_lateral_8to12, whose right side runs this file's left lateral dynamics
+#   (y' = -y, w' = -w; it adds a second offset y2 with the same decay).
 
 [problem]
 name = rover_lateral_6to8
@@ -37,7 +41,7 @@ state_vars = [v, s, psi, theta_p, y, z, phi_r, w]
 epsilon = 1.0
 
 [Rsys.mode.STEEP]
-ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); theta_p' = smt2:(* -1 theta_p); y' = smt2:(* -1.0 y); z' = smt2:(* -1 z); phi_r' = smt2:0; w' = smt2:(* -1 w);
+ode = v' = smt2:(* 3 (- 0.30 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); theta_p' = smt2:(* -1 theta_p); y' = smt2:0; z' = smt2:(* -1 z); phi_r' = smt2:0; w' = smt2:0;
 guard = s >= 0.0 and s < 0.6
 # (evolve cap on the drifting coordinate removed with it: nothing in the dynamics
 # enforces it — the reachability-in-evolve defect class.)
@@ -45,13 +49,13 @@ evolve = phi_r >= -0.5 and phi_r <= 0.6 and psi >= -0.5 and psi <= 0.15 and s >=
 next = [MODER, STEEP]
 
 [Rsys.mode.MODER]
-ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); theta_p' = smt2:(* -1 theta_p); y' = smt2:(* -1.0 y); z' = smt2:(* -1 z); phi_r' = smt2:0; w' = smt2:(* -1 w);
+ode = v' = smt2:(* 3 (- 0.50 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); theta_p' = smt2:(* -1 theta_p); y' = smt2:0; z' = smt2:(* -1 z); phi_r' = smt2:0; w' = smt2:0;
 guard = s >= 0.6 and s < 1.4
 evolve = phi_r >= -0.5 and phi_r <= 0.6 and psi >= -0.5 and psi <= 0.15 and s >= 0.0 and theta_p >= -0.5 and theta_p <= 0.15 and v >= 0.0 and v <= 0.8 and w >= -1.0 and w <= 0.15 and y >= 0.0 and y <= 0.15 and z >= -1.0 and z <= 0.15
 next = [FLAT, MODER]
 
 [Rsys.mode.FLAT]
-ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); theta_p' = smt2:(* -1 theta_p); y' = smt2:(* -1.0 y); z' = smt2:(* -1 z); phi_r' = smt2:0; w' = smt2:(* -1 w);
+ode = v' = smt2:(* 3 (- 0.65 v)); s' = smt2:(* v (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p)))); psi' = smt2:(* -1 psi); theta_p' = smt2:(* -1 theta_p); y' = smt2:0; z' = smt2:(* -1 z); phi_r' = smt2:0; w' = smt2:0;
 # terminal segment: the upper cap made the settling hypothesis false (one-step image
 # escapes with no successor beyond — the H-falsification audit's terminal-band overflow);
 # the band is now unbounded above, per the honest-envelope principle for positions.

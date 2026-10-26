@@ -69,10 +69,10 @@ def rover_lateral_6to8_IRv2 : PProblem :=
             ("s", (.bin "*" (.var "v") (.bin "-" (.bin "-" (.num "1") (.bin "*" (.num "0.5") (.bin "*" (.var "psi") (.var "psi")))) (.bin "*" (.num "0.3") (.bin "*" (.var "theta_p") (.var "theta_p")))))),
             ("psi", (.bin "*" (.num "-1") (.var "psi"))),
             ("theta_p", (.bin "*" (.num "-1") (.var "theta_p"))),
-            ("y", (.bin "*" (.num "-1.0") (.var "y"))),
+            ("y", (.num "0")),
             ("z", (.bin "*" (.num "-1") (.var "z"))),
             ("phi_r", (.num "0")),
-            ("w", (.bin "*" (.num "-1") (.var "w")))]
+            ("w", (.num "0"))]
           guard := (.and (.cmp ">=" (.var "s") (.num "0.0")) (.cmp "<" (.var "s") (.num "0.6")))
           evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "phi_r") (.num "-0.5")) (.cmp "<=" (.var "phi_r") (.num "0.6"))) (.cmp ">=" (.var "psi") (.num "-0.5"))) (.cmp "<=" (.var "psi") (.num "0.15"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "theta_p") (.num "-0.5"))) (.cmp "<=" (.var "theta_p") (.num "0.15"))) (.cmp ">=" (.var "v") (.num "0.0"))) (.cmp "<=" (.var "v") (.num "0.8"))) (.cmp ">=" (.var "w") (.num "-1.0"))) (.cmp "<=" (.var "w") (.num "0.15"))) (.cmp ">=" (.var "y") (.num "0.0"))) (.cmp "<=" (.var "y") (.num "0.15"))) (.cmp ">=" (.var "z") (.num "-1.0"))) (.cmp "<=" (.var "z") (.num "0.15")))
           next := ["MODER", "STEEP"] },
@@ -82,10 +82,10 @@ def rover_lateral_6to8_IRv2 : PProblem :=
             ("s", (.bin "*" (.var "v") (.bin "-" (.bin "-" (.num "1") (.bin "*" (.num "0.5") (.bin "*" (.var "psi") (.var "psi")))) (.bin "*" (.num "0.3") (.bin "*" (.var "theta_p") (.var "theta_p")))))),
             ("psi", (.bin "*" (.num "-1") (.var "psi"))),
             ("theta_p", (.bin "*" (.num "-1") (.var "theta_p"))),
-            ("y", (.bin "*" (.num "-1.0") (.var "y"))),
+            ("y", (.num "0")),
             ("z", (.bin "*" (.num "-1") (.var "z"))),
             ("phi_r", (.num "0")),
-            ("w", (.bin "*" (.num "-1") (.var "w")))]
+            ("w", (.num "0"))]
           guard := (.and (.cmp ">=" (.var "s") (.num "0.6")) (.cmp "<" (.var "s") (.num "1.4")))
           evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "phi_r") (.num "-0.5")) (.cmp "<=" (.var "phi_r") (.num "0.6"))) (.cmp ">=" (.var "psi") (.num "-0.5"))) (.cmp "<=" (.var "psi") (.num "0.15"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "theta_p") (.num "-0.5"))) (.cmp "<=" (.var "theta_p") (.num "0.15"))) (.cmp ">=" (.var "v") (.num "0.0"))) (.cmp "<=" (.var "v") (.num "0.8"))) (.cmp ">=" (.var "w") (.num "-1.0"))) (.cmp "<=" (.var "w") (.num "0.15"))) (.cmp ">=" (.var "y") (.num "0.0"))) (.cmp "<=" (.var "y") (.num "0.15"))) (.cmp ">=" (.var "z") (.num "-1.0"))) (.cmp "<=" (.var "z") (.num "0.15")))
           next := ["FLAT", "MODER"] },
@@ -95,10 +95,10 @@ def rover_lateral_6to8_IRv2 : PProblem :=
             ("s", (.bin "*" (.var "v") (.bin "-" (.bin "-" (.num "1") (.bin "*" (.num "0.5") (.bin "*" (.var "psi") (.var "psi")))) (.bin "*" (.num "0.3") (.bin "*" (.var "theta_p") (.var "theta_p")))))),
             ("psi", (.bin "*" (.num "-1") (.var "psi"))),
             ("theta_p", (.bin "*" (.num "-1") (.var "theta_p"))),
-            ("y", (.bin "*" (.num "-1.0") (.var "y"))),
+            ("y", (.num "0")),
             ("z", (.bin "*" (.num "-1") (.var "z"))),
             ("phi_r", (.num "0")),
-            ("w", (.bin "*" (.num "-1") (.var "w")))]
+            ("w", (.num "0"))]
           guard := (.cmp ">=" (.var "s") (.num "1.4"))
           evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "phi_r") (.num "-0.5")) (.cmp "<=" (.var "phi_r") (.num "0.6"))) (.cmp ">=" (.var "psi") (.num "-0.5"))) (.cmp "<=" (.var "psi") (.num "0.15"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "theta_p") (.num "-0.5"))) (.cmp "<=" (.var "theta_p") (.num "0.15"))) (.cmp ">=" (.var "v") (.num "0.0"))) (.cmp "<=" (.var "v") (.num "0.8"))) (.cmp ">=" (.var "w") (.num "-1.0"))) (.cmp "<=" (.var "w") (.num "0.15"))) (.cmp ">=" (.var "y") (.num "0.0"))) (.cmp "<=" (.var "y") (.num "0.15"))) (.cmp ">=" (.var "z") (.num "-1.0"))) (.cmp "<=" (.var "z") (.num "0.15")))
           next := ["FLAT"] } ] }

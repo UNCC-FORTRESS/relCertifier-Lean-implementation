@@ -87,7 +87,9 @@ import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m029
 import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m032
 import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m036
 import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m040
+import RelCertifier.InstancesV2.Refute.Data.charger_fast_tapers_m003
 import RelCertifier.InstancesV2.Cuts.antenna_track_kvretune
+import RelCertifier.InstancesV2.Cuts.charger_fast_tapers
 import RelCertifier.InstancesV2.Cuts.engine_start_highidle
 import RelCertifier.InstancesV2.Cuts.hydro_rejection_gatecal
 import RelCertifier.InstancesV2.Cuts.platoon_latency
@@ -199,9 +201,10 @@ def refuteTable : List RefRec := [
   ⟨"antenna_track_kvretune_m029", 3 + 1, antenna_track_kvretune_m029_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m029_wit⟩,
   ⟨"antenna_track_kvretune_m032", 3 + 1, antenna_track_kvretune_m032_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m032_wit⟩,
   ⟨"antenna_track_kvretune_m036", 3 + 1, antenna_track_kvretune_m036_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m036_wit⟩,
-  ⟨"antenna_track_kvretune_m040", 3 + 1, antenna_track_kvretune_m040_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m040_wit⟩ ]
+  ⟨"antenna_track_kvretune_m040", 3 + 1, antenna_track_kvretune_m040_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m040_wit⟩,
+  ⟨"charger_fast_tapers_m003", 3 + 1, charger_fast_tapers_m003_IRm, charger_fast_tapers_cutsV2X, charger_fast_tapers_m003_wit⟩ ]
 
 /-- Declared: the number of query groups over the refutations (one per right mode each). -/
-def expectedRefuteGroups : Nat := 235
+def expectedRefuteGroups : Nat := 241
 
 end RelCertifier.Refute

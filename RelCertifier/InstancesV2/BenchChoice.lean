@@ -9,6 +9,7 @@ import RelCertifier.InstancesV2.BenchChoice.antenna_track_kvretune
 import RelCertifier.InstancesV2.BenchChoice.bms_chiller_undercharge
 import RelCertifier.InstancesV2.BenchChoice.bottling_fill_strainer
 import RelCertifier.InstancesV2.BenchChoice.canal_gate_notches
+import RelCertifier.InstancesV2.BenchChoice.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchChoice.compressor_station_recycle
 import RelCertifier.InstancesV2.BenchChoice.drl_car_stop
 import RelCertifier.InstancesV2.BenchChoice.drl_lane_control
@@ -26,7 +27,6 @@ import RelCertifier.InstancesV2.BenchChoice.molding_pack_checkring
 import RelCertifier.InstancesV2.BenchChoice.platoon_latency
 import RelCertifier.InstancesV2.BenchChoice.platoon_linkloss
 import RelCertifier.InstancesV2.BenchChoice.platoon_profiles
-import RelCertifier.InstancesV2.BenchChoice.quad_light_airframe_20
 import RelCertifier.InstancesV2.BenchChoice.quad_light_lag
 import RelCertifier.InstancesV2.BenchChoice.quad_light_profiles
 import RelCertifier.InstancesV2.BenchChoice.rampmeter_poll_2to1
@@ -63,6 +63,7 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("bms_chiller_undercharge", bms_chiller_undercharge_coverV2_choice),
   ("bottling_fill_strainer", bottling_fill_strainer_coverV2_choice),
   ("canal_gate_notches", canal_gate_notches_coverV2_choice),
+  ("charger_fast_tapers", charger_fast_tapers_coverV2_choice),
   ("compressor_station_recycle", compressor_station_recycle_coverV2_choice),
   ("drl_car_stop", drl_car_stop_coverV2_choice),
   ("drl_lane_control", drl_lane_control_coverV2_choice),
@@ -80,7 +81,6 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("platoon_latency", platoon_latency_coverV2_choice),
   ("platoon_linkloss", platoon_linkloss_coverV2_choice),
   ("platoon_profiles", platoon_profiles_coverV2_choice),
-  ("quad_light_airframe_20", quad_light_airframe_20_coverV2_choice),
   ("quad_light_lag", quad_light_lag_coverV2_choice),
   ("quad_light_profiles", quad_light_profiles_coverV2_choice),
   ("rampmeter_poll_2to1", rampmeter_poll_2to1_coverV2_choice),

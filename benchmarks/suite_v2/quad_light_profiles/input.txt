@@ -10,7 +10,8 @@
 # (letters S M B X) with a profile graph lacking ECO <-> SPORT; with that graph completed the
 # synchronous claim below certifies under RELCERT_SYNC=1, so S was a choice of claim, not forced
 # by the cause. This file adopts the complete graph and the synchronous claim; the time-scaled
-# reading of the same airframe pair stays in quad_light_airframe_20.
+# reading of the same airframe pair stays in quad_light_airframe_20 (in benchmarks/reserve/ since
+# 2026-10-27, batch I7; quad_light_lag keeps the time-scaled claim in the suite).
 #
 # System. The climb segment of quad_light_airframe_20 (same airframe numbers): altitude h (m),
 # climb rate w (m/s), m w' = T - m g - k w, h' = w, g = 9.81 m/s^2.

@@ -16,6 +16,7 @@ import RelCertifier.InstancesV2.BenchIR.antenna_track_kvretune
 import RelCertifier.InstancesV2.BenchIR.bms_chiller_undercharge
 import RelCertifier.InstancesV2.BenchIR.bottling_fill_strainer
 import RelCertifier.InstancesV2.BenchIR.canal_gate_notches
+import RelCertifier.InstancesV2.BenchIR.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchIR.compressor_station_recycle
 import RelCertifier.InstancesV2.BenchIR.drl_car_stop
 import RelCertifier.InstancesV2.BenchIR.drl_lane_control
@@ -33,7 +34,6 @@ import RelCertifier.InstancesV2.BenchIR.molding_pack_checkring
 import RelCertifier.InstancesV2.BenchIR.platoon_latency
 import RelCertifier.InstancesV2.BenchIR.platoon_linkloss
 import RelCertifier.InstancesV2.BenchIR.platoon_profiles
-import RelCertifier.InstancesV2.BenchIR.quad_light_airframe_20
 import RelCertifier.InstancesV2.BenchIR.quad_light_lag
 import RelCertifier.InstancesV2.BenchIR.quad_light_profiles
 import RelCertifier.InstancesV2.BenchIR.rampmeter_poll_2to1
@@ -70,6 +70,7 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("bms_chiller_undercharge", bms_chiller_undercharge_IRv2),
   ("bottling_fill_strainer", bottling_fill_strainer_IRv2),
   ("canal_gate_notches", canal_gate_notches_IRv2),
+  ("charger_fast_tapers", charger_fast_tapers_IRv2),
   ("compressor_station_recycle", compressor_station_recycle_IRv2),
   ("drl_car_stop", drl_car_stop_IRv2),
   ("drl_lane_control", drl_lane_control_IRv2),
@@ -87,7 +88,6 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("platoon_latency", platoon_latency_IRv2),
   ("platoon_linkloss", platoon_linkloss_IRv2),
   ("platoon_profiles", platoon_profiles_IRv2),
-  ("quad_light_airframe_20", quad_light_airframe_20_IRv2),
   ("quad_light_lag", quad_light_lag_IRv2),
   ("quad_light_profiles", quad_light_profiles_IRv2),
   ("rampmeter_poll_2to1", rampmeter_poll_2to1_IRv2),

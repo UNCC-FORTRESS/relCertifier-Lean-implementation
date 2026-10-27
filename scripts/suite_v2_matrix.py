@@ -106,6 +106,7 @@ FAMILIES = [
     ("rampmeter_", "Freeway ramp metering (polled detectors)"),
     ("bottling_", "Bottle filler (clogged product strainer)"),
     ("antenna_", "Ground-station antenna (servo retune)"),
+    ("charger_", "DC fast charger (raised current limit)"),
     ("sat_detumble_", "Rigid-body detumbling (polynomial)"),
     ("sat3w_detumble_", "Rigid-body detumbling (polynomial)"),
 ]

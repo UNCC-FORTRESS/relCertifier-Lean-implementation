@@ -4,7 +4,8 @@
 # mechanisms: S M (time stretch lambda = 6/5 needed, RELCERT_SYNC=1 declines; multi-step cover,
 #   matrix codes M1 M2)
 #
-# System. The climb segment of quad_light_airframe_20 (same airframe numbers) with the motors'
+# System. The climb segment of quad_light_airframe_20 (in benchmarks/reserve/ since 2026-10-27,
+# batch I7; same airframe numbers) with the motors'
 # thrust lag: altitude h (m), climb rate w (m/s), net specific thrust a = T/m - g (m/s^2), time
 # in s. The propellers realise the climb thrust through a first-order lag of time constant
 # tau = 0.1 s (motor and ESC spin-up), T' = (T_cmd - T)/tau, so a' = 10 (a_cmd - a) on either

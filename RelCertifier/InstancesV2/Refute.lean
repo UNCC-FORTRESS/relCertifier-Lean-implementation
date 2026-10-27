@@ -87,3 +87,4 @@ import RelCertifier.InstancesV2.Refute.AntennaTrackKvretuneM029
 import RelCertifier.InstancesV2.Refute.AntennaTrackKvretuneM032
 import RelCertifier.InstancesV2.Refute.AntennaTrackKvretuneM036
 import RelCertifier.InstancesV2.Refute.AntennaTrackKvretuneM040
+import RelCertifier.InstancesV2.Refute.ChargerFastTapersM003

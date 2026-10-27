@@ -7,6 +7,7 @@ import RelCertifier.InstancesV2.BenchCovers.antenna_track_kvretune
 import RelCertifier.InstancesV2.BenchCovers.bms_chiller_undercharge
 import RelCertifier.InstancesV2.BenchCovers.bottling_fill_strainer
 import RelCertifier.InstancesV2.BenchCovers.canal_gate_notches
+import RelCertifier.InstancesV2.BenchCovers.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchCovers.compressor_station_recycle
 import RelCertifier.InstancesV2.BenchCovers.drl_car_stop
 import RelCertifier.InstancesV2.BenchCovers.drl_lane_control
@@ -24,7 +25,6 @@ import RelCertifier.InstancesV2.BenchCovers.molding_pack_checkring
 import RelCertifier.InstancesV2.BenchCovers.platoon_latency
 import RelCertifier.InstancesV2.BenchCovers.platoon_linkloss
 import RelCertifier.InstancesV2.BenchCovers.platoon_profiles
-import RelCertifier.InstancesV2.BenchCovers.quad_light_airframe_20
 import RelCertifier.InstancesV2.BenchCovers.quad_light_lag
 import RelCertifier.InstancesV2.BenchCovers.quad_light_profiles
 import RelCertifier.InstancesV2.BenchCovers.rampmeter_poll_2to1
@@ -61,6 +61,7 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("bms_chiller_undercharge", bms_chiller_undercharge_coverV2),
   ("bottling_fill_strainer", bottling_fill_strainer_coverV2),
   ("canal_gate_notches", canal_gate_notches_coverV2),
+  ("charger_fast_tapers", charger_fast_tapers_coverV2),
   ("compressor_station_recycle", compressor_station_recycle_coverV2),
   ("drl_car_stop", drl_car_stop_coverV2),
   ("drl_lane_control", drl_lane_control_coverV2),
@@ -78,7 +79,6 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("platoon_latency", platoon_latency_coverV2),
   ("platoon_linkloss", platoon_linkloss_coverV2),
   ("platoon_profiles", platoon_profiles_coverV2),
-  ("quad_light_airframe_20", quad_light_airframe_20_coverV2),
   ("quad_light_lag", quad_light_lag_coverV2),
   ("quad_light_profiles", quad_light_profiles_coverV2),
   ("rampmeter_poll_2to1", rampmeter_poll_2to1_coverV2),

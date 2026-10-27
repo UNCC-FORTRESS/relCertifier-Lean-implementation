@@ -7,6 +7,7 @@ import RelCertifier.InstancesV2.Cuts.antenna_track_kvretune
 import RelCertifier.InstancesV2.Cuts.bms_chiller_undercharge
 import RelCertifier.InstancesV2.Cuts.bottling_fill_strainer
 import RelCertifier.InstancesV2.Cuts.canal_gate_notches
+import RelCertifier.InstancesV2.Cuts.charger_fast_tapers
 import RelCertifier.InstancesV2.Cuts.compressor_station_recycle
 import RelCertifier.InstancesV2.Cuts.drl_car_stop
 import RelCertifier.InstancesV2.Cuts.drl_lane_control
@@ -24,7 +25,6 @@ import RelCertifier.InstancesV2.Cuts.molding_pack_checkring
 import RelCertifier.InstancesV2.Cuts.platoon_latency
 import RelCertifier.InstancesV2.Cuts.platoon_linkloss
 import RelCertifier.InstancesV2.Cuts.platoon_profiles
-import RelCertifier.InstancesV2.Cuts.quad_light_airframe_20
 import RelCertifier.InstancesV2.Cuts.quad_light_lag
 import RelCertifier.InstancesV2.Cuts.quad_light_profiles
 import RelCertifier.InstancesV2.Cuts.rampmeter_poll_2to1
@@ -61,6 +61,7 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("bms_chiller_undercharge", bms_chiller_undercharge_cutsV2, bms_chiller_undercharge_cutsV2X),
   ("bottling_fill_strainer", bottling_fill_strainer_cutsV2, bottling_fill_strainer_cutsV2X),
   ("canal_gate_notches", canal_gate_notches_cutsV2, canal_gate_notches_cutsV2X),
+  ("charger_fast_tapers", charger_fast_tapers_cutsV2, charger_fast_tapers_cutsV2X),
   ("compressor_station_recycle", compressor_station_recycle_cutsV2, compressor_station_recycle_cutsV2X),
   ("drl_car_stop", drl_car_stop_cutsV2, drl_car_stop_cutsV2X),
   ("drl_lane_control", drl_lane_control_cutsV2, drl_lane_control_cutsV2X),
@@ -78,7 +79,6 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("platoon_latency", platoon_latency_cutsV2, platoon_latency_cutsV2X),
   ("platoon_linkloss", platoon_linkloss_cutsV2, platoon_linkloss_cutsV2X),
   ("platoon_profiles", platoon_profiles_cutsV2, platoon_profiles_cutsV2X),
-  ("quad_light_airframe_20", quad_light_airframe_20_cutsV2, quad_light_airframe_20_cutsV2X),
   ("quad_light_lag", quad_light_lag_cutsV2, quad_light_lag_cutsV2X),
   ("quad_light_profiles", quad_light_profiles_cutsV2, quad_light_profiles_cutsV2X),
   ("rampmeter_poll_2to1", rampmeter_poll_2to1_cutsV2, rampmeter_poll_2to1_cutsV2X),

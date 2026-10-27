@@ -124,6 +124,21 @@ never in the suite: the bound is the no-FFR worst case and does not depend on th
 | `match_multi_rate` | `gantry_speed_zones` (both models new: a pick-and-place gantry whose production program runs zone-scheduled speed overrides, against the program as commissioned at reduced speed; 10 mm path tolerance; replaces the synthetic unitless rate-ratio exhibit in the same multi-cycle matching role) |
 | `platoon_delay_profiles` | `platoon_profiles` (redesigned: the CACC follower driven in the SPORT profile, a shorter time gap, against the design follower verified in NORMAL; its right model is `platoon_linkloss`'s, Assumption 1 through the shared `PlatoonCaccAeb` lemmas) |
 
+## Batch I7 (2026-10-27): two tier-2 members swapped for reserve designs
+
+Owner clarification (2026-10-27): a benchmark needs a meaningful relational property; its claim
+need not depend on the stated cause. Two reserve designs set aside only because their claims also
+hold for other deployed behaviour replace the two tier-2 members; the suite stays at 50.
+`charger_fast_tapers` (a DC fast charger whose current limit is raised 25 %, against the certified
+profile with two taper options; R P D I) is back from the reserve at the minute time scale
+(`epsilon = 0.006` min = 0.36 s on both sides, the rate constants per minute: a 15 -> 80 % bulk
+phase of about 14.5 min; the earlier design used the hour with `epsilon = 0.0001` h), the same
+letters, the tightest charging row 1.00 % as before; its header states the 2 % BMS-accuracy
+requirement and that the bound also holds for other deployed charge rates. Its Assumption 1 proof
+is the round-2 proof at the new interval. `quad_light_airframe_20` moved to the reserve (the
+lag-free special case of `quad_light_lag`). Each move with its Lean integration, records,
+refutations and counts.
+
 ## Batch I6 (2026-10-27): round C fixes and five new benchmarks
 
 From the final audit of the suite (round C). `rover_terrain_2to4`: the plan's speed loop now runs
@@ -324,6 +339,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `bms_chiller_undercharge` | 1 / 1 | 2 / 3 | degraded-actuator | new 2026-10-27: mode choice (the reference commits to a cooling level that is not the deployed's) |
 | `bottling_fill_strainer` | 2 / 2 | 2 / 2 | degraded-actuator | new 2026-10-27 (batch I6): stretch 17/20 in FILL (`lambda_min = 0.8`), load-bearing mode fact; `CLOSE`'s predicted-final-volume guard conjunct added at installation |
 | `canal_gate_notches` | 1 / 1 | 3 / 4 | controller-refinement | new 2026-10-27: mode choice (the reference commits to a nearby permitted notch) |
+| `charger_fast_tapers` | 1 / 1 | 5 / 6 | degraded-controller | reinstalled 2026-10-27 (batch I7; in the reserve from batch I4): the minute time scale (`epsilon = 0.006` min = 0.36 s); mode-keyed (the stricter PRECHARGE row), right-only repositioning, pruned FAULT edges, widened cuts |
 | `compressor_station_recycle` | 2 / 2 | 3 / 3 | degraded-actuator | new 2026-10-27 (batch I5): mode choice (the reference commits to two units while the deployed commands three; with a healthy valve the hop is the identity) |
 | `drl_car_stop` | 2 / 2 | 3 / 3 | controller-refinement | literature (dRL), mode choice |
 | `drl_lane_control` | 3 / 3 | 6 / 6 | controller-refinement | literature (dRL), mode choice |
@@ -341,7 +357,6 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `platoon_latency` | 3 / 2 | 3 / 2 | degraded-network | new 2026-10-27: mode-keyed (AEB row), right model shared with `platoon_linkloss` |
 | `platoon_linkloss` | 2 / 2 | 3 / 2 | dos-attack | redesigned 2026-10-27 (was `platoon_delay_linkloss`): mode-keyed (AEB row), CACC -> ACC fallback |
 | `platoon_profiles` | 2 / 2 | 2 / 2 | controller-refinement | redesigned 2026-10-27 (was `platoon_delay_profiles`): mode-keyed (AEB row), SPORT time gap against NORMAL, right model shared with `platoon_linkloss` |
-| `quad_light_airframe_20` | 2 / 2 | 1 / 1 | model-refinement | redesigned 2026-10-27: altitude coordinate, rows from the 0.8 m altitude acceptance radius, the time scaling fixed to 6/5 (`lambda_min = lambda_max = 1.2`); tier 2 (the lag-free special case of `quad_light_lag`, kept until a replacement exists) |
 | `quad_light_lag` | 3 / 3 | 1 / 1 | model-refinement | redesigned 2026-10-27: altitude coordinate, rows from the 0.8 m altitude acceptance radius; the time scaling fixed to 6/5 (`lambda_min = lambda_max = 1.2`, batch I6) |
 | `quad_light_profiles` | 2 / 2 | 1 / 3 | model-refinement | redesigned 2026-10-27: altitude coordinate, real-time conformance to the reference's SPORT profile (lambda 1); mode choice |
 | `rampmeter_poll_2to1` | 3 / 3 | 6 / 6 | degraded-network | new 2026-10-27 (batch I6): multi-step and branching covers, pruned `R1440 -> R1800`; tier 2 (kept until a replacement exists) |

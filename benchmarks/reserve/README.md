@@ -13,7 +13,11 @@ their Lean integration in git history (last at commit 14e0405). The seven files 
 stored as its equal-period design of the round-A pass (RA2a), and their Lean integration (for
 the round-2 files of the same names) is in git history (last at commit 0a40e7d). The four files of
 batch I5 (2026-10-27: `datacenter_crah_poll`, `reactor_feed_wireless`, `rover_lateral_tirewear`,
-`lng_cooldown_overspray`) are design files of rounds A and B that were never in the suite.
+`lng_cooldown_overspray`) are design files of rounds A and B that were never in the suite. Batch I7
+(2026-10-27) swapped the two tier-2 suite members for reserve designs (a meaningful relational
+property suffices; the claim need not depend on the cause): `charger_fast_tapers` returned to the
+suite at the minute time scale and `quad_light_airframe_20` came here, as the suite file, with its
+Lean integration in git history (last at commit a6585c2).
 
 Verdicts measured 2026-10-27 with the branch's `relcert` (`RELCERT_IMPLIED_CUT=1`; letters as in
 `benchmarks/README.md`, "Header pass"). Every file CERTIFIES by default and under
@@ -31,8 +35,7 @@ Verdicts measured 2026-10-27 with the branch's `relcert` (`RELCERT_IMPLIED_CUT=1
 | `rover_rollover_8to12` | round-A design (never in the suite; the round-2 name of `rover_rollover_7to12`) | `SYNC`, `SYNC`+`NO_CHOICE`, `NO_CUT` | S M I | the same model pair (L12 / L8) and cause as `rover_ladder_8to12`; its heading, roll and LTR rows are folded into that file |
 | `rover_lateral_8to12` | round-A design (the suite file of that name left the suite on 2026-10-27) | `SYNC`, `SYNC`+`NO_CHOICE`, `NO_CUT` | S M I | the same model pair (L12 / L8) and cause as `rover_ladder_8to12`; its heading, roll and lane rows are folded into that file |
 | `rover_patrol_zones` | round-2 design (the suite file of that name left the suite on 2026-10-27) | `SYNC`+`NO_CHOICE` | M B | its letters come only from a stretch the claim does not need: it certifies at real time (`RELCERT_SYNC=1`) with no letter |
-| `charger_fast_tapers` | suite_v2, stored as its round-A (equal-period) design | `SYNC`, `NO_PRUNE`, `SYNC`+`NO_CHOICE`, `NO_PRUNE`+`NO_CHOICE`, `NO_CUT`, without the implied cut, `NO_IMPLIED_CUT` | R P D I | the claim does not depend on the current limit (the same bound certifies with the limit doubled or tripled; only P moves with it), and its time scale is wrong (a 20 h bulk phase against a DC fast-charging period) |
-| `charger_fast_setpoints` | suite_v2, stored as its round-A (equal-period) design | `SYNC`, `SYNC`+`NO_CHOICE`, `NO_PRUNE`+`NO_CHOICE`, `NO_CUT`, without the implied cut, `NO_IMPLIED_CUT` | R D I | the same cause-blind claim as `charger_fast_tapers`; stale name (both sides target 90 %) |
+| `charger_fast_setpoints` | suite_v2, stored as its round-A (equal-period) design | `SYNC`, `SYNC`+`NO_CHOICE`, `NO_PRUNE`+`NO_CHOICE`, `NO_CUT`, without the implied cut, `NO_IMPLIED_CUT` | R D I | a twin of `charger_fast_tapers` (back in the suite since batch I7): the same charger and claim form with one taper and no P, on the old hour time scale; stale name (both sides target 90 %) |
 | `sat_detumble_nominal` | suite_v2, stored as its round-A (equal-period) design | none | none | no letter; it equals `sat_detumble_phases` restricted to `DETUMBLE` |
 | `sat3w_detumble_nominal` | suite_v2, stored as its round-A (equal-period) design | none | none | no letter (the 6-D lift of `sat_detumble_nominal`; `sat3w_detumble_phases` is the 6-D scaling point) |
 | `sat3w_detumble_weak` | suite_v2, stored as its round-A (equal-period) design | `NO_CHOICE`, `SYNC`+`NO_CHOICE`, `NO_PRUNE`+`NO_CHOICE`, `NO_CUT` | I X | the same numbers as `sat_detumble_weak` (the binding case puts all the energy on the weak axis) |
@@ -42,5 +45,6 @@ Verdicts measured 2026-10-27 with the branch's `relcert` (`RELCERT_IMPLIED_CUT=1
 | `reactor_feed_wireless` | round-B design (never in the suite) | `NO_PRUNE`, `NO_PRUNE`+`NO_CHOICE` | M B P | twin of `fuelcell_chp_dos` (the same 1-D relaxation with a constant exogenous input, the 2:1 period cause, the live-edge pruning argument and a narrow symmetric band; a feed rising with temperature is the runaway direction) |
 | `rover_lateral_tirewear` | round-A fill design (never in the suite) | `NO_CHOICE`, `SYNC`+`NO_CHOICE`, `NO_PRUNE`+`NO_CHOICE`, `NO_CUT` | X I | twin of `rover_rollover_payload` (the same right model, band guards and claim-form X I; the wear is one more gain in the same roll-slip loop), and it sits at three decline edges at once |
 | `lng_cooldown_overspray` | round-A fill design (never in the suite) | `NO_CHOICE`, `SYNC`+`NO_CHOICE`, `NO_PRUNE`+`NO_CHOICE` | X | the `hvac_fan_staging` pattern (an identity hop through a permissive band reference, X from the claim form); its parameter sits at a decline edge (rho 1.05 against about 1.054) |
+| `quad_light_airframe_20` | suite_v2 (2026-10-27, batch I7) | `SYNC`, `SYNC`+`NO_CHOICE` | S M | the lag-free special case of `quad_light_lag` (the same airframe pair, cause, 0.8 m requirement and lambda 6/5); its tier-2 place in the suite went to `charger_fast_tapers` |
 
 Run one: `RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert benchmarks/reserve/<name>/input.txt`.

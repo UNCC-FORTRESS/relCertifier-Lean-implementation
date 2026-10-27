@@ -108,8 +108,12 @@
 > from `<=` to `>=`, deleted or with a coordinate moved to the other side (m016 to m023, m028, m029),
 > or a row of the stow band flipped (m032, m036, m040); each DECLINED by relcert (six of them at the
 > handoff into the stow band). 13 refutations, 39 groups and 132 witness lines in.
-> Current instance set: **82 refutations, 235 groups**
-> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 1079 mutants in
+> Batch I7, first group: `quad_light_airframe_20` left the suite (18 witness lines out, no
+> refutation); `charger_fast_tapers` reinstalled at the minute time scale, the finder rerun on it
+> (`--only`): 6 mutants, the same one refuted as before its batch-I4 move (m003, kind C: the
+> charging row flipped to `>=`), DECLINED by relcert; 1 refutation, 6 groups and 6 witness lines in.
+> Current instance set: **83 refutations, 241 groups**
+> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 1067 mutants in
 > `docs/refute/witnesses.jsonl`. The operator table has not been recomputed.
 
 Design: `docs/REFUTATION-SCOPE.md` (planning record, last present at commit 29663d8). This file reports what was built and the experiment.

@@ -7,6 +7,7 @@ import RelCertifier.InstancesV2.Bridge.AntennaTrackKvretune
 import RelCertifier.InstancesV2.Bridge.BmsChillerUndercharge
 import RelCertifier.InstancesV2.Bridge.BottlingFillStrainer
 import RelCertifier.InstancesV2.Bridge.CanalGateNotches
+import RelCertifier.InstancesV2.Bridge.ChargerFastTapers
 import RelCertifier.InstancesV2.Bridge.CompressorStationRecycle
 import RelCertifier.InstancesV2.Bridge.DrlCarStop
 import RelCertifier.InstancesV2.Bridge.DrlLaneControl
@@ -24,7 +25,6 @@ import RelCertifier.InstancesV2.Bridge.MoldingPackCheckring
 import RelCertifier.InstancesV2.Bridge.PlatoonLatency
 import RelCertifier.InstancesV2.Bridge.PlatoonLinkloss
 import RelCertifier.InstancesV2.Bridge.PlatoonProfiles
-import RelCertifier.InstancesV2.Bridge.QuadLightAirframe20
 import RelCertifier.InstancesV2.Bridge.QuadLightLag
 import RelCertifier.InstancesV2.Bridge.QuadLightProfiles
 import RelCertifier.InstancesV2.Bridge.RampmeterPoll2to1

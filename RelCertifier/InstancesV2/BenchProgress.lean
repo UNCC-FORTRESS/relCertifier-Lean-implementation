@@ -7,6 +7,7 @@ import RelCertifier.InstancesV2.BenchProgress.antenna_track_kvretune
 import RelCertifier.InstancesV2.BenchProgress.bms_chiller_undercharge
 import RelCertifier.InstancesV2.BenchProgress.bottling_fill_strainer
 import RelCertifier.InstancesV2.BenchProgress.canal_gate_notches
+import RelCertifier.InstancesV2.BenchProgress.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchProgress.compressor_station_recycle
 import RelCertifier.InstancesV2.BenchProgress.elevator_start_discbrake
 import RelCertifier.InstancesV2.BenchProgress.engine_start_highidle
@@ -21,7 +22,6 @@ import RelCertifier.InstancesV2.BenchProgress.molding_pack_checkring
 import RelCertifier.InstancesV2.BenchProgress.platoon_latency
 import RelCertifier.InstancesV2.BenchProgress.platoon_linkloss
 import RelCertifier.InstancesV2.BenchProgress.platoon_profiles
-import RelCertifier.InstancesV2.BenchProgress.quad_light_airframe_20
 import RelCertifier.InstancesV2.BenchProgress.quad_light_lag
 import RelCertifier.InstancesV2.BenchProgress.quad_light_profiles
 import RelCertifier.InstancesV2.BenchProgress.rampmeter_poll_2to1
@@ -58,6 +58,7 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("bms_chiller_undercharge", bms_chiller_undercharge_coverV2_progress),
    ("bottling_fill_strainer", bottling_fill_strainer_coverV2_progress),
    ("canal_gate_notches", canal_gate_notches_coverV2_progress),
+   ("charger_fast_tapers", charger_fast_tapers_coverV2_progress),
    ("compressor_station_recycle", compressor_station_recycle_coverV2_progress),
    ("elevator_start_discbrake", elevator_start_discbrake_coverV2_progress),
    ("engine_start_highidle", engine_start_highidle_coverV2_progress),
@@ -72,7 +73,6 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("platoon_latency", platoon_latency_coverV2_progress),
    ("platoon_linkloss", platoon_linkloss_coverV2_progress),
    ("platoon_profiles", platoon_profiles_coverV2_progress),
-   ("quad_light_airframe_20", quad_light_airframe_20_coverV2_progress),
    ("quad_light_lag", quad_light_lag_coverV2_progress),
    ("quad_light_profiles", quad_light_profiles_coverV2_progress),
    ("rampmeter_poll_2to1", rampmeter_poll_2to1_coverV2_progress),

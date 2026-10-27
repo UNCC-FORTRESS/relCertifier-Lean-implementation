@@ -11,7 +11,7 @@ blocking states); those nine were repaired (`docs/SUITE-REDESIGN.md` §21: the f
 re-engage or are latched with an invariant guard, the arm planner's successor sets name every
 band a sampled interval can reach) and are now proved. No proof uses Z3. The tool's sufficient
 check of both clauses (`relcert --wellformed`; the nonblocking clause since 2026-10-26, before
-which only the successor clause was checked) finds every one of the 170 right modes `ok`, and
+which only the successor clause was checked) finds every one of the 175 right modes `ok`, and
 `--check-quick-v2` runs it STRICT, against declared counts (§4). The generic-bridge
 instances (`InstancesV2/Bridge/`, the paper's route to
 Theorem 3) take it as a hypothesis: `theorem3_keyed_of_records`
@@ -126,13 +126,13 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 6 | `arm_plateau_profiles` | moved to `benchmarks/reserve/` 2026-10-27 (was: proved (repaired); proof in git history) | ApproachA (b) → B, Cfast or Hold; ApproachB (b) → Cfast or Hold; ApproachCfast, ApproachCslow (b) → Hold; Hold (a) | A ok (exit→B,Cslow,Hold); B ok (exit→Cslow,Hold); C's ok (exit→Hold); Hold ok (invariant) |
 | 7 | `arm_plateau_slow` | moved to `benchmarks/reserve/` 2026-10-27 (batch I4; was: proved (repaired); proof in git history) | as `arm_plateau_crit` | as `arm_plateau_crit` |
 | 8 | `charger_fast_setpoints` | moved to `benchmarks/reserve/` 2026-10-27 (batch I4; was: proved; proof in git history) | PRECHARGE (b) → BULK; BULK (b) → ABSORB; ABSORB (b) → FULL; FULL (a); FAULT (a); dimension 3 (mode-keyed) | PRECHARGE ok (exit→BULK); BULK ok (exit→ABSORB); ABSORB ok (exit→FULL); FULL, FAULT ok (invariant) |
-| 9 | `charger_fast_tapers` | moved to `benchmarks/reserve/` 2026-10-27 (batch I4; was: proved; proof in git history) | PRECHARGE (b) → BULK; BULK (b) → ABSORB_SLOW (closed form at `t ≤ 1`); ABSORB_SLOW, ABSORB_FAST (b) → FULL; FULL (a); FAULT (a); dimension 3 (mode-keyed) | PRECHARGE ok (exit→BULK); BULK ok (exit→ABSORB_FAST, same guard); ABSORB_* ok (exit→FULL); FULL, FAULT ok (invariant) |
+| 9 | `charger_fast_tapers` | proved (reinstalled 2026-10-27, batch I7, at the minute time scale, `ε_r = 0.006`: the round-2 proof at the new interval; in `benchmarks/reserve/` from batch I4 to batch I7) | PRECHARGE (b) → BULK; BULK (b) → ABSORB_SLOW (closed form at `t ≤ 0.006`); ABSORB_SLOW, ABSORB_FAST (b) → FULL; FULL (a); FAULT (a); dimension 3 (mode-keyed) | PRECHARGE ok (exit→BULK); BULK ok (exit→ABSORB_FAST, same guard); ABSORB_* ok (exit→FULL); FULL, FAULT ok (invariant) |
 | 10 | `match_multi_rate` | replaced 2026-10-27 by `gantry_speed_zones` (row 55; was: proved; proof in git history) | DRIVE (a), STALL (a); `ε_r = 0.3` | both ok (invariant) |
 | 11 | `platoon3_linkloss` | moved to `benchmarks/reserve/` 2026-10-27 (was: proved (repaired); proof in git history) | FOLLOW (a); BRAKE1–3 (a), latched (`g + 2r` conserved; explicit solution `solB`) | all ok (invariant) |
 | 12 | `platoon3_profiles` | moved to `benchmarks/reserve/` 2026-10-27 (was: proved (repaired); proof in git history) | NORMAL, CLOSE, FAR (a); BRAKE1–3 (a), latched | all ok (invariant) |
 | 13 | `platoon_delay_linkloss` | replaced 2026-10-27 by `platoon_linkloss` (row 51; was: proved (repaired); proof in git history) | FOLLOW (a), CATCH (a); BRAKE (b) → FOLLOW | FOLLOW, CATCH ok (invariant); BRAKE ok (exit→FOLLOW) |
 | 14 | `platoon_delay_profiles` | replaced 2026-10-27 by `platoon_profiles` (row 56; was: proved (repaired); proof in git history) | FOLLOW, GENTLE, ASSERTIVE (a); BRAKE (b) → FOLLOW | those ok (invariant); BRAKE ok (exit→FOLLOW) |
-| 15 | `quad_light_airframe_20` | proved (redesigned 2026-10-27; repaired 2026-10-10 before, proof in git history) | CLIMB (a) (the affine pair `h' = w`, `w' = 9.81 − 4.905 w`; the explicit run `forcedSol` / `intSol` stays in the guard box `h ≥ 0`, `0 ≤ w ≤ 2`, the equilibrium `w = 2` on its face) | ok (invariant) |
+| 15 | `quad_light_airframe_20` | moved to `benchmarks/reserve/` 2026-10-27 (batch I7; was: proved, redesigned 2026-10-27, repaired 2026-10-10 before; proof in git history) | CLIMB (a) (the affine pair `h' = w`, `w' = 9.81 − 4.905 w`; the explicit run `forcedSol` / `intSol` stays in the guard box `h ≥ 0`, `0 ≤ w ≤ 2`, the equilibrium `w = 2` on its face) | ok (invariant) |
 | 16 | `quad_light_lag` | proved | CLIMB (a) (since 2026-10-27 the affine cascade `h' = w`, `w' = a − 4.905 w`, `a' = 10 (9.81 − a)`; the explicit run `forcedSol` / `intSol` stays in the guard box `h ≥ 0`, `0 ≤ w ≤ 2`, `0 ≤ a ≤ 9.81`) | ok (invariant) |
 | 17 | `quad_light_profiles` | proved (redesigned 2026-10-27; repaired 2026-10-10 before, proof in git history) | NORMAL, ECO, SPORT (a) (`h' = w`, `w' = c − 4.905 w` toward 2.0, 1.6, 2.4; explicit run in the guard box `h ≥ 0`, `0 ≤ w ≤ 2.4`); dimension 3 (mode choice, the default padding) | all ok (invariant) |
 | 18 | `rover_ladder_2to3` | proved (reinstalled 2026-10-27 on the canonical rover hierarchy: right `L2`, `ψ` pinned) | STEEP (b) → MODER, MODER (b) → FLAT, FLAT (a) (the shared three-band lemma `wellFormedR_terrain` at the route scale: odometer zones `[0, 60)`, `[60, 140)`, `[140, ∞)`, no cap, `0 ≤ s' ≤ 8`; existence: `v → c_q` by `forcedSol`, `s` its integral) | STEEP ok (exit→MODER), MODER ok (exit→FLAT), FLAT ok (invariant) |
@@ -193,7 +193,7 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 74 | `bottling_fill_strainer` | proved (2026-10-27, batch I6) | FILL (b) → CLOSE (`u = 1` held, `V` rises at most 1 mL in 5 ms, `V + 8u ≤ 1003`); CLOSE (a) (`V` nondecreasing, `V + 8u` conserved: the guard conjunct `V + 8u ≤ 1060` added at installation, without which CLOSE was BLOCKING at the domain top); existence: explicit (`u` frozen, resp. `u₀ e^{−25t}` and `V + 8u` constant) | FILL ok (exit→CLOSE); CLOSE ok (invariant) |
 | 75 | `antenna_track_kvretune` | proved (2026-10-27, batch I6) | TRACK (b) → STOW (`c + 0.7 t` conserved; at `t ≥ 60`, `c ≤ 47.05 < 90`), STOW (b) → STOWED, STOWED (a); existence: `t`, `c` affine, `x` by variation of constants toward the command (`forcedSol 30`), inside `[−2, 92]` | TRACK ok (exit→STOW); STOW ok (exit→STOWED); STOWED ok (invariant) |
 
-Totals (the suite, 2026-10-27, batch I6): proved 47, false 0, band 3
+Totals (the suite, 2026-10-27, batch I7): proved 47, false 0, band 3
 (`WellFormedBattery.wfDeclared = (47, 0, 3)`, was `(30, 9, 6)` until the 2026-10-10 repairs;
 `wf_coverage` checks in the kernel that the three name lists are a permutation of the suite's
 IR table). Z3-free: 50/50. Region-relative: the 3 satellites.
@@ -276,8 +276,8 @@ summary: …` (with `RELCERT_DEBUG=1`, the reason of every mode not `ok` on stde
 `--check-quick-v2` runs the same section as its check 3/3, strict (below); until 2026-10-10 it
 was informational there.
 
-**Suite_v2 result** (2026-10-27, both clauses, batch I6): 50 benchmarks, 170 right
-modes: 84 ok (invariant), 86 ok (exit), **0 UNKNOWN, 0 BLOCKING**, 12676 queries; the per-mode labels are those of the
+**Suite_v2 result** (2026-10-27, both clauses, batch I7): 50 benchmarks, 175 right
+modes: 85 ok (invariant), 90 ok (exit), **0 UNKNOWN, 0 BLOCKING**, 12825 queries; the per-mode labels are those of the
 clause (ii) check alone (2026-10-26, 50 benchmarks: 174 right modes, 91 / 83, 10643 queries,
 about 17 s). The 37
 round-2 designs of the 2026-10-26 redesign pass (outside the tree): 122 right modes, 69 ok
@@ -308,7 +308,7 @@ single `relcert <file>` run; off, no verdict and no emission changes.
 
 **Strict in the recipe** (2026-10-10). `--check-quick-v2` certifies the suite in the strict
 mode (the switch forced on for its check 1/3) and ends with check 3/3, the `--wellformed`
-report gated against declared counts: `ExpectedSuiteV2.wfModes = 170` (`VerdictsV2/RunV2.lean`; the
+report gated against declared counts: `ExpectedSuiteV2.wfModes = 175` (`VerdictsV2/RunV2.lean`; the
 kernel pin `CoveragePinsV2.suiteV2_wfModes` of that count was archived with the standalone
 route on 2026-10-22), `wfUnknown = 0` and `wfBlocking = 0`. Any `UNKNOWN` or `BLOCKING` mode,
 or a mode count off the declared one, fails the run (`wellformed (strict): FAIL`, exit 1). Checked negatively: with the pre-repair

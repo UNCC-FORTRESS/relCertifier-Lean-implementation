@@ -65,9 +65,11 @@ Axioms of `theorem3_keyed_of_records` and `theorem3_window_of_records`: `propext
 `relcert-bridge-verdicts` issues exactly `bridgeGroups` per benchmark at the bridge dimension
 and reports the group count against the declared total (`expectedBridgeGroupsV2`).
 
-Run on the regenerated records: **4864 groups over the 50 suite benchmarks and the 2 choice
-exhibits, all discharged** (suite alone 4728: 3676 over the 46 designed benchmarks, 35 + 130 + 77 + 810
-over `drl_car_stop`, `drl_lane_control`, `vehicle_hypercert`, `freedm_meter`; 2026-10-27, batch I6:
+Run on the regenerated records: **5077 groups over the 50 suite benchmarks and the 2 choice
+exhibits, all discharged** (suite alone 4941: 3889 over the 46 designed benchmarks, 35 + 130 + 77 + 810
+over `drl_car_stop`, `drl_lane_control`, `vehicle_hypercert`, `freedm_meter`; 2026-10-27, batch I7,
+first group: `charger_fast_tapers` in (222 groups), `quad_light_airframe_20` to the reserve (9), 4864
+over 50 + 2 before it; batch I6:
 five new benchmarks, 472 groups (`rampmeter_poll_2to1` 302, `antenna_track_kvretune` 76,
 `tunnel_jetfan_pairout` 38, `bottling_fill_strainer` 31, `flaps_slow_approach` 25), 4392 over 45 + 2
 before them (unchanged by the round C fixes of the first group); batch I5:
@@ -100,8 +102,8 @@ gate, 3657/3657 over 46 + 3).
   2026-10-27 from the hand-written general instance `ChoiceVehicleHypercert.wellFormedR` at
   dimension 2, whose Theorem-3 part was retired on 2026-10-21, git 61d7389).
 
-* **50 of 50 suite benchmarks** are instantiated (`InstancesV2/Bridge/`): 38 in the window form,
-  12 in the mode-keyed form; plus the 2 choice exhibits (52 instances), all with the
+* **50 of 50 suite benchmarks** are instantiated (`InstancesV2/Bridge/`): 37 in the window form,
+  13 in the mode-keyed form; plus the 2 choice exhibits (52 instances), all with the
   unconditional Assumption 1. Every `*_bridge` theorem depends on exactly `propext`,
   `Classical.choice`, `Quot.sound`, `z3_unsat_sound`.
 * **Assumption 1 is unconditional for every instance (`R = ⊤`).** The chain

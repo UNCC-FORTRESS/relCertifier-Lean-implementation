@@ -1,3 +1,8 @@
+# RESERVE (benchmarks/reserve/, 2026-10-27, batch I7): not in suite_v2, not in the paper, no Lean
+# integration (last at commit a6585c2). Reason: the lag-free special case of quad_light_lag (the same
+# airframe pair, cause, 0.8 m requirement and lambda 6/5; the lag adds the motor state); its tier-2
+# place in the suite went to charger_fast_tapers. The header below is the suite file's.
+#
 # quad_light_airframe_20: quadrotor climb segment, deployed airframe 20 % lighter than the
 # reference model; altitude conformance at the stated time scaling 6/5.
 # scenario: model-refinement

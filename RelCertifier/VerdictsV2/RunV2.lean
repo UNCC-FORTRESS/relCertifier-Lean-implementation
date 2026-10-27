@@ -84,8 +84,6 @@ def packsV2 : List PackV2 :=
     -- against AEB, at λ = 1
     ⟨"platoon_profiles", 3, 0, [2, 3, 4, 5, 6, 0, 1], 1, 1, 0, 0⟩,
     ⟨"platoon_profiles", 3, 1, [0, 1, 2, 3], 1, 1, 1, 1⟩,
-    -- quad_light_airframe_20: CLIMB at the fixed time scaling 6/5
-    ⟨"quad_light_airframe_20", 2, 0, [2, 3, 0, 1], 6, 5, 0, 0⟩,
     -- quad_light_lag
     ⟨"quad_light_lag", 3, 0, [2, 3, 0, 1], 6, 5, 0, 0⟩,
     -- acc_tune_lag
@@ -303,6 +301,24 @@ def packsV2 : List PackV2 :=
     ⟨"antenna_track_kvretune", 3, 0, [0, 1, 2, 3, 4, 5, 6, 7], 1, 1, 0, 2⟩,
     ⟨"antenna_track_kvretune", 3, 1, [0, 1, 2, 3, 6, 7, 4, 5], 1, 1, 1, 1⟩,
     ⟨"antenna_track_kvretune", 3, 2, [0, 1, 2, 3, 6, 7, 4, 5], 1, 1, 2, 2⟩,
+    -- charger_fast_tapers (mode-keyed rows; cover replay at λ = 1; the right-only nodes are below)
+    ⟨"charger_fast_tapers", 3, 0, [0], 1, 1, 0, 1⟩,
+    ⟨"charger_fast_tapers", 3, 0, [0], 1, 1, 0, 2⟩,
+    ⟨"charger_fast_tapers", 3, 0, [0], 1, 1, 0, 3⟩,
+    ⟨"charger_fast_tapers", 3, 0, [0], 1, 1, 0, 4⟩,
+    ⟨"charger_fast_tapers", 3, 1, [0], 1, 1, 1, 4⟩,
+    ⟨"charger_fast_tapers", 3, 2, [0], 1, 1, 2, 1⟩,
+    ⟨"charger_fast_tapers", 3, 2, [0], 1, 1, 2, 3⟩,
+    ⟨"charger_fast_tapers", 3, 2, [0], 1, 1, 2, 4⟩,
+    ⟨"charger_fast_tapers", 3, 3, [0], 1, 1, 3, 2⟩,
+    ⟨"charger_fast_tapers", 3, 3, [0], 1, 1, 3, 3⟩,
+    ⟨"charger_fast_tapers", 3, 3, [0], 1, 1, 3, 4⟩,
+    ⟨"charger_fast_tapers", 3, 4, [0], 1, 1, 4, 0⟩,
+    ⟨"charger_fast_tapers", 3, 4, [0], 1, 1, 4, 1⟩,
+    ⟨"charger_fast_tapers", 3, 4, [0], 1, 1, 4, 2⟩,
+    ⟨"charger_fast_tapers", 3, 4, [0], 1, 1, 4, 3⟩,
+    ⟨"charger_fast_tapers", 3, 4, [0], 1, 1, 4, 4⟩,
+    ⟨"charger_fast_tapers", 3, 4, [0], 1, 1, 4, 5⟩,
     -- rampmeter_poll_2to1 (cover replay at λ = 1, budget 2)
     ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 0, 0⟩,
     ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 0, 1⟩,
@@ -338,7 +354,7 @@ def packsV2 : List PackV2 :=
     ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 5, 5⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 1349
+def expectedModalV2 : Nat := 1362
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
@@ -436,10 +452,17 @@ def dynPacksV2 : List DynPackV2 :=
     ⟨"syringe_relay_prearm", 4, 2, [0, 1, 2, 3, 4, 5, 6], true, 2, 1⟩,
     ⟨"syringe_relay_prearm", 4, 2, [0, 1, 2, 3, 4, 5, 6], true, 2, 2⟩,
     ⟨"syringe_relay_prearm", 4, 3, [0, 1, 2, 4, 6, 3, 5], true, 3, 2⟩,
-    ⟨"syringe_relay_prearm", 4, 4, [0, 1, 2, 3, 4], true, 4, 1⟩ ]
+    ⟨"syringe_relay_prearm", 4, 4, [0, 1, 2, 3, 4], true, 4, 1⟩,
+    -- charger_fast_tapers: PRECHARGE_L, BULK_L and ABSORB_L reposition through right-only nodes
+    ⟨"charger_fast_tapers", 3, 0, [0], true, 0, 0⟩,
+    ⟨"charger_fast_tapers", 3, 1, [0], true, 1, 0⟩,
+    ⟨"charger_fast_tapers", 3, 1, [0], true, 1, 1⟩,
+    ⟨"charger_fast_tapers", 3, 1, [0], true, 1, 2⟩,
+    ⟨"charger_fast_tapers", 3, 1, [0], true, 1, 3⟩,
+    ⟨"charger_fast_tapers", 3, 2, [0], true, 2, 2⟩ ]
 
 /-- Declared: the number of component queries the reposition packs owe. -/
-def expectedDynV2 : Nat := 69
+def expectedDynV2 : Nat := 75
 
 def runDynPack (s : Z3Session) (r : DynPackV2) : IO Bool := do
   let p := irV2 r.bench
@@ -483,7 +506,7 @@ def runDynV2 (cfg : Z3Config) : IO Bool := do
 
 /-- Declared: one handoff query per declared left transition over the suite_v2 files
 (self-loops included; `CoveragePinsV2.derivedHandoffV2_eq` derives it from the IR table). -/
-def expectedHandoffV2 : Nat := 517
+def expectedHandoffV2 : Nat := 526
 
 /-- Declared handoff failures in suite_v2: none. -/
 def expectedHandoffFailuresV2 : List (String × Nat × Nat) := []
@@ -518,8 +541,8 @@ def prunedEdgesV2 : List (String × String × String) :=
   coverTableV2.flatMap (fun c => c.2.pruned.map (fun e => (c.1, e.1, e.2)))
 
 /-- Declared: pruned edges in the suite_v2 covers, and two queries per edge. -/
-def expectedPrunedEdgesV2 : Nat := 23
-def expectedNonConnV2 : Nat := 46
+def expectedPrunedEdgesV2 : Nat := 25
+def expectedNonConnV2 : Nat := 50
 
 def nonConnQueriesOfV2 (p : PProblem) (cX : EvolStrengtheningX) (src tgt : String) :
     Option ((n : ℕ) × (Fin n → String) × IForm n × IForm n) := do
@@ -559,7 +582,7 @@ def runNonConnAllV2 (cfg : Z3Config) : IO Bool := do
 /-- What a certification run over `benchmarks/suite_v2/*/input.txt` must produce, with
 `RELCERT_IMPLIED_CUT=1`: all 50 certified (in the strict well-formedness mode of
 `--check-quick-v2`); and what the strict Assumption 1 check of the right models must produce:
-every one of the 170 right modes `ok` on both clauses (`wfModes`; the kernel pin
+every one of the 175 right modes `ok` on both clauses (`wfModes`; the kernel pin
 `CoveragePinsV2.suiteV2_wfModes` of that count was archived with the standalone route), none
 `UNKNOWN` (`wfUnknown`; 16 UNKNOWN in 9 benchmarks until the 2026-10-10 repairs, when the
 check was informational), none `BLOCKING` (`wfBlocking`; the nonblocking clause is checked
@@ -569,7 +592,7 @@ structure ExpectedSuiteV2 where
   certified : Nat := 50
   declined  : Nat := 0
   errors    : Nat := 0
-  wfModes   : Nat := 170
+  wfModes   : Nat := 175
   wfUnknown : Nat := 0
   wfBlocking : Nat := 0
   deriving Repr

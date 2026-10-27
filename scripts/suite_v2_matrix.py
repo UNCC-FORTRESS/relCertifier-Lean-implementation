@@ -91,6 +91,8 @@ FAMILIES = [
     ("watertank", "Watertank"),
     ("tank_dos_", "Tank under sampling DoS"),
     ("hvac_", "HVAC fan staging"),
+    ("engine_", "Turbofan ground start"),
+    ("train_", "Train speed control (ATO)"),
     ("sat_detumble_", "Rigid-body detumbling (polynomial)"),
     ("sat3w_detumble_", "Rigid-body detumbling (polynomial)"),
 ]

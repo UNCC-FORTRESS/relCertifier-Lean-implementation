@@ -23,7 +23,7 @@ hypothesis); this battery is a separate audit.
 **Results (all 46 benchmarks; declared counts `wfDeclared`, kernel-checked against the
 suite's IR table by `wf_coverage`).**
 
-* **Proved, 41** (`<bench>_wellFormedR`): every mode (`watertank_twospeed` added 2026-10-11;
+* **Proved, 43** (`<bench>_wellFormedR`): every mode (`watertank_twospeed` added 2026-10-11;
   the literature benchmarks `drl_car_stop`, `drl_lane_control`, `vehicle_hypercert` and
   `freedm_meter` added 2026-10-15, three of them proved directly over the bridge's automaton,
   `_wellFormedR_direct`). Z3-free (no verdict leaf). Five of them
@@ -88,6 +88,8 @@ import RelCertifier.InstancesV2.WellFormed.ArmPlateauCrit
 import RelCertifier.InstancesV2.WellFormed.ArmPlateauSlow
 import RelCertifier.InstancesV2.WellFormed.PlatoonLinkloss
 import RelCertifier.InstancesV2.WellFormed.PlatoonLatency
+import RelCertifier.InstancesV2.WellFormed.EngineStartHighidle
+import RelCertifier.InstancesV2.WellFormed.TrainAtoOdometry
 import RelCertifier.InstancesV2.WellFormed.PlatoonDelayProfiles
 import RelCertifier.InstancesV2.WellFormed.QuadLightAirframe20
 import RelCertifier.InstancesV2.WellFormed.QuadLightProfiles
@@ -119,7 +121,7 @@ def wfProved : List String :=
    "rover_terrain_2to4", "rover_terrain_6to12",
    "rover_terrain_4to6", "rover_attitude_6to8", "rover_attitude_8to12",
    "rover_lateral_6to8", "rover_lateral_8to12", "rover_rollover_6to12",
-   "rover_rollover_6to7", "watertank_twospeed", "tank_dos_3to1", "hvac_fan_staging", "drl_car_stop", "drl_lane_control",
+   "rover_rollover_6to7", "watertank_twospeed", "tank_dos_3to1", "hvac_fan_staging", "engine_start_highidle", "train_ato_odometry", "drl_car_stop", "drl_lane_control",
    "vehicle_hypercert", "freedm_meter"]
 
 /-- The benchmarks whose right model violates Assumption 1 (none since the 2026-10-10
@@ -139,15 +141,17 @@ detumble family (also proved, listed apart for its band audit). `(30, 9, 6)` unt
 `watertank_twospeed` (2026-10-11); `(44, 0, 6)` with the 2026-10-26 additions; `(40, 0, 6)`
 after the 2026-10-27 reserve moves (`airheader_dos_3to1`, `arm_plateau_profiles`,
 `platoon3_{linkloss,profiles}`); `(41, 0, 6)` with `platoon_linkloss` (replacing
-`platoon_delay_linkloss`) and `platoon_latency`. -/
-def wfDeclared : ℕ × ℕ × ℕ := (41, 0, 6)
+`platoon_delay_linkloss`) and `platoon_latency`; `(43, 0, 6)` with `engine_start_highidle` and
+`train_ato_odometry`. -/
+def wfDeclared : ℕ × ℕ × ℕ := (43, 0, 6)
 
 /-- The suite's benchmark names, in the order of the IR table. -/
 def suiteNames : List String :=
   ["acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp",
    "arm_plateau_crit",
    "arm_plateau_slow", "charger_fast_setpoints",
-   "charger_fast_tapers", "drl_car_stop", "drl_lane_control", "freedm_meter",
+   "charger_fast_tapers", "drl_car_stop", "drl_lane_control", "engine_start_highidle",
+   "freedm_meter",
    "hvac_fan_staging",
    "match_multi_rate",
    "platoon_delay_profiles", "platoon_latency", "platoon_linkloss", "quad_light_airframe_20", "quad_light_lag",
@@ -159,7 +163,7 @@ def suiteNames : List String :=
    "rover_terrain_2to4", "rover_terrain_4to6", "rover_terrain_6to12",
    "sat3w_detumble_nominal", "sat3w_detumble_phases", "sat3w_detumble_weak",
    "sat_detumble_nominal", "sat_detumble_phases", "sat_detumble_weak", "tank_dos_3to1",
-   "vehicle_hypercert",
+   "train_ato_odometry", "vehicle_hypercert",
    "watertank", "watertank_twospeed"]
 
 /-- `suiteNames` IS the name column of the kernel-checked IR table of the suite. -/
@@ -220,6 +224,8 @@ modes -/
 #print axioms V2ArmPlateauSlow.arm_plateau_slow_wellFormedR
 #print axioms V2PlatoonLinkloss.platoon_linkloss_wellFormedR
 #print axioms V2PlatoonLatency.platoon_latency_wellFormedR
+#print axioms V2EngineStartHighidle.engine_start_highidle_wellFormedR
+#print axioms V2TrainAtoOdometry.train_ato_odometry_wellFormedR
 #print axioms PlatoonCaccAeb.cacc_w_band
 #print axioms PlatoonCaccAeb.aeb_w_const
 #print axioms PlatoonCaccAeb.cacc_box

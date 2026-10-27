@@ -18,6 +18,7 @@ import RelCertifier.InstancesV2.BenchIR.charger_fast_setpoints
 import RelCertifier.InstancesV2.BenchIR.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchIR.drl_car_stop
 import RelCertifier.InstancesV2.BenchIR.drl_lane_control
+import RelCertifier.InstancesV2.BenchIR.engine_start_highidle
 import RelCertifier.InstancesV2.BenchIR.freedm_meter
 import RelCertifier.InstancesV2.BenchIR.hvac_fan_staging
 import RelCertifier.InstancesV2.BenchIR.match_multi_rate
@@ -52,6 +53,7 @@ import RelCertifier.InstancesV2.BenchIR.sat_detumble_nominal
 import RelCertifier.InstancesV2.BenchIR.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchIR.sat_detumble_weak
 import RelCertifier.InstancesV2.BenchIR.tank_dos_3to1
+import RelCertifier.InstancesV2.BenchIR.train_ato_odometry
 import RelCertifier.InstancesV2.BenchIR.vehicle_hypercert
 import RelCertifier.InstancesV2.BenchIR.watertank
 import RelCertifier.InstancesV2.BenchIR.watertank_twospeed
@@ -69,6 +71,7 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("charger_fast_tapers", charger_fast_tapers_IRv2),
   ("drl_car_stop", drl_car_stop_IRv2),
   ("drl_lane_control", drl_lane_control_IRv2),
+  ("engine_start_highidle", engine_start_highidle_IRv2),
   ("freedm_meter", freedm_meter_IRv2),
   ("hvac_fan_staging", hvac_fan_staging_IRv2),
   ("match_multi_rate", match_multi_rate_IRv2),
@@ -103,6 +106,7 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("sat_detumble_phases", sat_detumble_phases_IRv2),
   ("sat_detumble_weak", sat_detumble_weak_IRv2),
   ("tank_dos_3to1", tank_dos_3to1_IRv2),
+  ("train_ato_odometry", train_ato_odometry_IRv2),
   ("vehicle_hypercert", vehicle_hypercert_IRv2),
   ("watertank", watertank_IRv2),
   ("watertank_twospeed", watertank_twospeed_IRv2) ]

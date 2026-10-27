@@ -2,18 +2,18 @@
 
 `suite_v2/<name>/input.txt` is the complete specification of one benchmark: the left
 (ideal) and right (implementation) hybrid automata, the relational invariant (one row per
-left mode) and the time-stretch range. **47 benchmarks.** With the widened cut channel on
-(`RELCERT_IMPLIED_CUT=1`, as every suite_v2 run sets it) the tool CERTIFIES all 47, and
+left mode) and the time-stretch range. **49 benchmarks.** With the widened cut channel on
+(`RELCERT_IMPLIED_CUT=1`, as every suite_v2 run sets it) the tool CERTIFIES all 49, and
 every one carries a kernel-checked Theorem 3 (the paper's Soundness of Synthesis) with the paper's left program over the
 guard-gated right automaton, at the mode-consistent region (`RelCertifier/InstancesV2/Bridge/`;
-check recipe: `docs/CERTIFICATION-CHECK.md`). Without the widened channel 7 of them
+check recipe: `docs/CERTIFICATION-CHECK.md`). Without the widened channel 8 of them
 DECLINE (the rows marked *widened cuts* below). Near-duplicates and weak benchmarks are kept
 outside the suite in `benchmarks/reserve/` (inputs, headers and verdicts only; `reserve/README.md`).
 
 **Assumption 1 of each right model** (the paper's Well-Formedness: from every guard state a
 full control interval of flow exists, and every evolution of at most `ε_r` ends in a declared
 successor's guard) is verified per file (`WellFormedR`, `docs/WELLFORMED.md`): it holds for
-all 47 literally (the 6 satellite files carry their conserved momentum band in the right evolve
+all 49 literally (the 6 satellite files carry their conserved momentum band in the right evolve
 domain since 2026-10-15).
 Nine files had a blocking mode until 2026-10-10 and were repaired (`docs/SUITE-REDESIGN.md`
 §21; each header says how and why; `arm_plateau_profiles` and `platoon3_{linkloss,profiles}`
@@ -26,7 +26,7 @@ profiles}` (the sink `BRAKE` left its guard: it now re-engages `FOLLOW`),
 an invariant guard) and `quad_light_{airframe_20,profiles}` (the sink `LIMIT`: it now hands
 back to the climb controller, whose operating range reaches the limiter threshold).
 `relcert --wellformed <input.txt>…` runs the tool's sufficient check per right mode (every one
-of the 159 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN` or `BLOCKING`.
+of the 167 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN` or `BLOCKING`.
 
 The suite's design, the per-family rationale, the domain audit (every evolve bound is a
 physical limit of the plant; `scripts/domain_widening.py` re-runs the tool with every bound
@@ -99,6 +99,13 @@ New 2026-10-27: `platoon_latency` (the same follower with a late V2V feed-forwar
 ideal link; its right model is `platoon_linkloss`'s, and the two share one Assumption 1 lemma,
 `InstancesV2/WellFormed/PlatoonCaccAeb.lean`); it takes the place of `platoon3_linkloss`.
 
+New 2026-10-27: `engine_start_highidle` (a turbofan ground start with the high-idle schedule
+against ground idle; right-only repositioning, mode-dependent rows, load-bearing mode facts) and
+`train_ato_odometry` (automatic train operation with an odometry bias against the design speed
+loop; the first suite file with stretches below 1, `lambda_min = 0.75`; time stretch per pairing,
+multi-step and branching covers). The reserve keeps `engine_start_highidle`'s twin
+`h2_refuel_ambientbias`.
+
 ## Renamed 2026-10-26: the terrain chain
 
 The three terrain files were redesigned as one chain that refines terrain physics (soil, drive
@@ -168,6 +175,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `charger_fast_tapers` | 1 / 1 | 5 / 6 | degraded-controller | mode-keyed, widened cuts |
 | `drl_car_stop` | 2 / 2 | 3 / 3 | controller-refinement | literature (dRL), mode choice |
 | `drl_lane_control` | 3 / 3 | 6 / 6 | controller-refinement | literature (dRL), mode choice |
+| `engine_start_highidle` | 1 / 1 | 5 / 5 | controller-change | new 2026-10-27: mode-keyed, widened cuts |
 | `freedm_meter` | 2 / 2 | 12 / 12 | information-flow | literature (dHL, FREEDM), mode choice |
 | `hvac_fan_staging` | 1 / 1 | 3 / 3 | controller-refinement | new 2026-10-26 (replaces `rover_terrain_2to3`): mode choice |
 | `match_multi_rate` | 2 / 2 | 4 / 2 | model-refinement | carried over; synthetic rate-ratio exhibit (unitless) |
@@ -195,6 +203,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `sat_detumble_phases` | 4 / 4 | 2 / 2 | model-refinement | mode-keyed, nonblocking region |
 | `sat_detumble_weak` | 4 / 4 | 1 / 4 | degraded-actuator | nonblocking region |
 | `tank_dos_3to1` | 2 / 2 | 4 / 4 | dos-attack | redesigned 2026-10-27: a demand-paced four-pump station, the same staging law on both sides, the DoS holds the staging decision for up to three polls |
+| `train_ato_odometry` | 1 / 1 | 3 / 3 | degraded-sensor | new 2026-10-27: stretches per pairing from 31/40 to 6/5 (`lambda_min = 0.75`) |
 | `rover_attitude_6to8` | 8 / 8 | 3 / 3 | model-refinement | rewritten 2026-10-26: one attitude row in every mode |
 | `rover_attitude_8to12` | 12 / 12 | 3 / 3 | model-refinement | rewritten 2026-10-26: right y pinned, cascade-chart left |
 | `rover_lateral_6to8` | 8 / 8 | 3 / 3 | model-refinement | carried over; right lateral pair frozen (2026-10-26) |

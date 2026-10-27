@@ -11,6 +11,7 @@ import RelCertifier.InstancesV2.BenchChoice.charger_fast_setpoints
 import RelCertifier.InstancesV2.BenchChoice.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchChoice.drl_car_stop
 import RelCertifier.InstancesV2.BenchChoice.drl_lane_control
+import RelCertifier.InstancesV2.BenchChoice.engine_start_highidle
 import RelCertifier.InstancesV2.BenchChoice.freedm_meter
 import RelCertifier.InstancesV2.BenchChoice.hvac_fan_staging
 import RelCertifier.InstancesV2.BenchChoice.match_multi_rate
@@ -45,6 +46,7 @@ import RelCertifier.InstancesV2.BenchChoice.sat_detumble_nominal
 import RelCertifier.InstancesV2.BenchChoice.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchChoice.sat_detumble_weak
 import RelCertifier.InstancesV2.BenchChoice.tank_dos_3to1
+import RelCertifier.InstancesV2.BenchChoice.train_ato_odometry
 import RelCertifier.InstancesV2.BenchChoice.vehicle_hypercert
 import RelCertifier.InstancesV2.BenchChoice.watertank
 import RelCertifier.InstancesV2.BenchChoice.watertank_twospeed
@@ -62,6 +64,7 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("charger_fast_tapers", charger_fast_tapers_coverV2_choice),
   ("drl_car_stop", drl_car_stop_coverV2_choice),
   ("drl_lane_control", drl_lane_control_coverV2_choice),
+  ("engine_start_highidle", engine_start_highidle_coverV2_choice),
   ("freedm_meter", freedm_meter_coverV2_choice),
   ("hvac_fan_staging", hvac_fan_staging_coverV2_choice),
   ("match_multi_rate", match_multi_rate_coverV2_choice),
@@ -96,6 +99,7 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("sat_detumble_phases", sat_detumble_phases_coverV2_choice),
   ("sat_detumble_weak", sat_detumble_weak_coverV2_choice),
   ("tank_dos_3to1", tank_dos_3to1_coverV2_choice),
+  ("train_ato_odometry", train_ato_odometry_coverV2_choice),
   ("vehicle_hypercert", vehicle_hypercert_coverV2_choice),
   ("watertank", watertank_coverV2_choice),
   ("watertank_twospeed", watertank_twospeed_coverV2_choice) ]

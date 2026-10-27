@@ -46,8 +46,11 @@
 > by `platoon_linkloss`; `platoon_latency` new): `platoon_linkloss` 63 mutants, m036 and m039 new;
 > `platoon_latency` 67 mutants, m040 and m043 new (kind B, the floor rows `L_g >= 5`,
 > `L_g + 2 L_r >= 5` flipped; each DECLINED by relcert).
-> Current instance set: **111 refutations, 304 groups**
-> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 796 mutants in
+> The two new files of 2026-10-27: `engine_start_highidle` (6 mutants; m003 new, kind C, the
+> `n_L <= n_R + 4` rows flipped, DECLINED by relcert) and `train_ato_odometry` (8 mutants, no
+> witness).
+> Current instance set: **112 refutations, 309 groups**
+> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 810 mutants in
 > `docs/refute/witnesses.jsonl`. The operator table has not been recomputed.
 
 Design: `docs/REFUTATION-SCOPE.md` (planning record, last present at commit 29663d8). This file reports what was built and the experiment.

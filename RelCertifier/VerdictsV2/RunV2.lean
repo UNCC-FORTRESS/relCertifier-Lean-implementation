@@ -324,10 +324,36 @@ def packsV2 : List PackV2 :=
     -- watertank_twospeed: one window, a stretch PER PAIRING (the fallback's exhibit): Fast at
     -- 1, Slow at 31/10; pinned to the emitted cover per pairing by `LamPinV2`
     ⟨"watertank_twospeed", 2, 0, [0, 1], 1, 1, 0, 0⟩,
-    ⟨"watertank_twospeed", 2, 0, [0, 1], 31, 10, 0, 1⟩ ]
+    ⟨"watertank_twospeed", 2, 0, [0, 1], 31, 10, 0, 1⟩,
+    -- engine_start_highidle (cover replay; the reposition nodes, right-only, are below)
+    ⟨"engine_start_highidle", 3, 0, [0], 1, 1, 0, 0⟩,
+    ⟨"engine_start_highidle", 3, 0, [0], 1, 1, 0, 1⟩,
+    ⟨"engine_start_highidle", 3, 0, [0], 1, 1, 0, 2⟩,
+    ⟨"engine_start_highidle", 3, 0, [0], 1, 1, 0, 3⟩,
+    ⟨"engine_start_highidle", 3, 1, [0], 1, 1, 1, 1⟩,
+    ⟨"engine_start_highidle", 3, 1, [0], 1, 1, 1, 2⟩,
+    ⟨"engine_start_highidle", 3, 1, [0], 1, 1, 1, 3⟩,
+    ⟨"engine_start_highidle", 3, 2, [0], 1, 1, 2, 2⟩,
+    ⟨"engine_start_highidle", 3, 2, [0], 1, 1, 2, 3⟩,
+    ⟨"engine_start_highidle", 3, 3, [0], 1, 1, 3, 3⟩,
+    ⟨"engine_start_highidle", 3, 4, [0], 1, 1, 4, 0⟩,
+    ⟨"engine_start_highidle", 3, 4, [0], 1, 1, 4, 1⟩,
+    ⟨"engine_start_highidle", 3, 4, [0], 1, 1, 4, 2⟩,
+    ⟨"engine_start_highidle", 3, 4, [0], 1, 1, 4, 3⟩,
+    ⟨"engine_start_highidle", 3, 4, [0], 1, 1, 4, 4⟩,
+    -- train_ato_odometry: a stretch per pairing, below 1 against faster design levels (31/40 .. 6/5)
+    ⟨"train_ato_odometry", 2, 0, [0, 1], 39, 40, 0, 0⟩,
+    ⟨"train_ato_odometry", 2, 0, [0, 1], 43, 40, 0, 1⟩,
+    ⟨"train_ato_odometry", 2, 0, [0, 1], 6, 5, 0, 2⟩,
+    ⟨"train_ato_odometry", 2, 0, [0, 1], 7, 8, 1, 0⟩,
+    ⟨"train_ato_odometry", 2, 0, [0, 1], 39, 40, 1, 1⟩,
+    ⟨"train_ato_odometry", 2, 0, [0, 1], 11, 10, 1, 2⟩,
+    ⟨"train_ato_odometry", 2, 0, [0, 1], 31, 40, 2, 0⟩,
+    ⟨"train_ato_odometry", 2, 0, [0, 1], 7, 8, 2, 1⟩,
+    ⟨"train_ato_odometry", 2, 0, [0, 1], 39, 40, 2, 2⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 738
+def expectedModalV2 : Nat := 771
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
@@ -433,10 +459,13 @@ def dynPacksV2 : List DynPackV2 :=
     ⟨"charger_fast_tapers", 3, 1, [0], true, 1, 3⟩,
     ⟨"charger_fast_tapers", 3, 2, [0], true, 2, 2⟩,
     -- rover_patrol_zones
-    ⟨"rover_patrol_zones", 3, 0, [0, 1], true, 2, 1⟩ ]
+    ⟨"rover_patrol_zones", 3, 0, [0, 1], true, 2, 1⟩,
+    -- engine_start_highidle: SELF_L repositions through right-only LIGHTOFF, IDLE_L through SELF
+    ⟨"engine_start_highidle", 3, 2, [0], true, 2, 1⟩,
+    ⟨"engine_start_highidle", 3, 3, [0], true, 3, 2⟩ ]
 
 /-- Declared: the number of component queries the reposition packs owe. -/
-def expectedDynV2 : Nat := 21
+def expectedDynV2 : Nat := 23
 
 def runDynPack (s : Z3Session) (r : DynPackV2) : IO Bool := do
   let p := irV2 r.bench
@@ -480,7 +509,7 @@ def runDynV2 (cfg : Z3Config) : IO Bool := do
 
 /-- Declared: one handoff query per declared left transition over the suite_v2 files
 (self-loops included; `CoveragePinsV2.derivedHandoffV2_eq` derives it from the IR table). -/
-def expectedHandoffV2 : Nat := 415
+def expectedHandoffV2 : Nat := 434
 
 /-- Declared handoff failures in suite_v2: none. -/
 def expectedHandoffFailuresV2 : List (String × Nat × Nat) := []
@@ -515,8 +544,8 @@ def prunedEdgesV2 : List (String × String × String) :=
   coverTableV2.flatMap (fun c => c.2.pruned.map (fun e => (c.1, e.1, e.2)))
 
 /-- Declared: pruned edges in the suite_v2 covers, and two queries per edge. -/
-def expectedPrunedEdgesV2 : Nat := 33
-def expectedNonConnV2 : Nat := 66
+def expectedPrunedEdgesV2 : Nat := 35
+def expectedNonConnV2 : Nat := 70
 
 def nonConnQueriesOfV2 (p : PProblem) (cX : EvolStrengtheningX) (src tgt : String) :
     Option ((n : ℕ) × (Fin n → String) × IForm n × IForm n) := do
@@ -554,19 +583,19 @@ def runNonConnAllV2 (cfg : Z3Config) : IO Bool := do
 /-! ## The suite tally -/
 
 /-- What a certification run over `benchmarks/suite_v2/*/input.txt` must produce, with
-`RELCERT_IMPLIED_CUT=1`: all 47 certified (in the strict well-formedness mode of
+`RELCERT_IMPLIED_CUT=1`: all 49 certified (in the strict well-formedness mode of
 `--check-quick-v2`); and what the strict Assumption 1 check of the right models must produce:
-every one of the 159 right modes `ok` on both clauses (`wfModes`; the kernel pin
+every one of the 167 right modes `ok` on both clauses (`wfModes`; the kernel pin
 `CoveragePinsV2.suiteV2_wfModes` of that count was archived with the standalone route), none
 `UNKNOWN` (`wfUnknown`; 16 UNKNOWN in 9 benchmarks until the 2026-10-10 repairs, when the
 check was informational), none `BLOCKING` (`wfBlocking`; the nonblocking clause is checked
 since 2026-10-26). -/
 structure ExpectedSuiteV2 where
-  paths     : Nat := 47
-  certified : Nat := 47
+  paths     : Nat := 49
+  certified : Nat := 49
   declined  : Nat := 0
   errors    : Nat := 0
-  wfModes   : Nat := 159
+  wfModes   : Nat := 167
   wfUnknown : Nat := 0
   wfBlocking : Nat := 0
   deriving Repr

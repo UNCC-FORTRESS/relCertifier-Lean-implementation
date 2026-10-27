@@ -9,6 +9,7 @@ import RelCertifier.InstancesV2.Cuts.charger_fast_setpoints
 import RelCertifier.InstancesV2.Cuts.charger_fast_tapers
 import RelCertifier.InstancesV2.Cuts.drl_car_stop
 import RelCertifier.InstancesV2.Cuts.drl_lane_control
+import RelCertifier.InstancesV2.Cuts.engine_start_highidle
 import RelCertifier.InstancesV2.Cuts.freedm_meter
 import RelCertifier.InstancesV2.Cuts.hvac_fan_staging
 import RelCertifier.InstancesV2.Cuts.match_multi_rate
@@ -43,6 +44,7 @@ import RelCertifier.InstancesV2.Cuts.sat_detumble_nominal
 import RelCertifier.InstancesV2.Cuts.sat_detumble_phases
 import RelCertifier.InstancesV2.Cuts.sat_detumble_weak
 import RelCertifier.InstancesV2.Cuts.tank_dos_3to1
+import RelCertifier.InstancesV2.Cuts.train_ato_odometry
 import RelCertifier.InstancesV2.Cuts.vehicle_hypercert
 import RelCertifier.InstancesV2.Cuts.watertank
 import RelCertifier.InstancesV2.Cuts.watertank_twospeed
@@ -60,6 +62,7 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("charger_fast_tapers", charger_fast_tapers_cutsV2, charger_fast_tapers_cutsV2X),
   ("drl_car_stop", drl_car_stop_cutsV2, drl_car_stop_cutsV2X),
   ("drl_lane_control", drl_lane_control_cutsV2, drl_lane_control_cutsV2X),
+  ("engine_start_highidle", engine_start_highidle_cutsV2, engine_start_highidle_cutsV2X),
   ("freedm_meter", freedm_meter_cutsV2, freedm_meter_cutsV2X),
   ("hvac_fan_staging", hvac_fan_staging_cutsV2, hvac_fan_staging_cutsV2X),
   ("match_multi_rate", match_multi_rate_cutsV2, match_multi_rate_cutsV2X),
@@ -94,6 +97,7 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("sat_detumble_phases", sat_detumble_phases_cutsV2, sat_detumble_phases_cutsV2X),
   ("sat_detumble_weak", sat_detumble_weak_cutsV2, sat_detumble_weak_cutsV2X),
   ("tank_dos_3to1", tank_dos_3to1_cutsV2, tank_dos_3to1_cutsV2X),
+  ("train_ato_odometry", train_ato_odometry_cutsV2, train_ato_odometry_cutsV2X),
   ("vehicle_hypercert", vehicle_hypercert_cutsV2, vehicle_hypercert_cutsV2X),
   ("watertank", watertank_cutsV2, watertank_cutsV2X),
   ("watertank_twospeed", watertank_twospeed_cutsV2, watertank_twospeed_cutsV2X) ]

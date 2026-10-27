@@ -15,7 +15,7 @@ model that blocks at its domain boundary, `vehicle_hypercert` with `s ≤ 8` in 
 evolve domain, passed). It is reported per right mode and counted. It only ever declines:
 a single `relcert` run changes no verdict unless `RELCERT_WELLFORMED_STRICT=1`;
 `--check-quick-v2` certifies in the strict mode (`certifyWFWith true`) and gates the report
-against declared counts (174 right modes, 0 `UNKNOWN`, 0 `BLOCKING`,
+against declared counts (the suite's right-mode count, 0 `UNKNOWN`, 0 `BLOCKING`,
 `VerdictsV2.ExpectedSuiteV2`), since 2026-10-10.
 
 Per right mode `q` (guard `G_q`, a conjunction of comparison atoms `gₐ ≤ 0` / `gₐ < 0`,

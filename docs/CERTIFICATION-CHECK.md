@@ -4,7 +4,7 @@ This is the reproduction recipe: starting from the benchmark files, what to run,
 you should see, to confirm that every suite_v2 benchmark carries a machine-checked
 Theorem 3 (the paper's Soundness of Synthesis) whose hypotheses all hold. Read `README.md` first for what the theorems say.
 
-> **Last run:** 2026-10-26, branch `benchmark-fixes` (commit `a902fe5`, the Assumption 1 check of both clauses), Apple M2 Max, Z3 4.15.1: `lake build` exit 0 (9339 jobs), no `sorry`; the five exes build; `--check-quick-v2`: 50 certified / 0 declined / 0 errors, modal 784/784, handoff 417/417, non-connection 92/92, pruned edges 46/46, reposition (dyn) 21/21, `[wellformed] STRICT: 174/174 right modes ok, both clauses (91 invariant, 83 exit), 0 UNKNOWN, 0 BLOCKING`, `SUITE_V2 QUICK CHECKS PASSED`; `relcert-test` `ALL PASS`; `relcert-bridge-verdicts` 4350/4350; `relcert-progress-verdicts` 213/213; `relcert-refute-verdicts` 315/315 and every `InstancesV2/Refute/*` instance builds; `WellFormedBattery` 75 axiom lines at the three standard axioms; `AxiomCheck` 9 lines; `freedm_meter_leaky` DECLINED; `vehicle_hypercert_s8` five modes `BLOCKING`, DECLINED under the strict switch. Previous: 2026-10-22, branch `cleanup-2026-10` (commit `093b2d1`, the standalone route archived on branch `archive/legacy-2026-10`), Apple M2 Max, Z3 4.15.1: `lake build` exit 0 (9252 jobs, the root now imports `InstancesV2.Bridge`), no `sorry`; the five exes build; `--check-quick-v2`: 50 certified / 0 declined / 0 errors, modal 625/625, handoff 401/401, non-connection 88/88, pruned edges 44/44, reposition (dyn) 81/81, `[wellformed] STRICT: 174/174 right modes ok (94 invariant, 80 exit), 0 UNKNOWN`, `SUITE_V2 QUICK CHECKS PASSED`; `relcert-test` `ALL PASS` (50 literals); `relcert-bridge-verdicts` 4457/4457; `relcert-refute-verdicts` 188/188 and every `InstancesV2/Refute/*` instance builds; `relcert-progress-verdicts` 261/261; `WellFormedBattery` 75 axiom lines, all at the three standard axioms; `AxiomCheck` 9 lines; `benchmarks/negative/freedm_meter_leaky` DECLINED. Previous: 2026-10-15, branch `theorem3-general` (commit `12a0c6b`): full `lake build` exit 0, no `sorry`; `relcert-test` `ALL PASS`; `--run-verdicts-v2` all phases discharged; `relcert-progress-verdicts` 261/261; `relcert-choice-verdicts` 32/32; `relcert-bridge-verdicts` 3512/3512 (`STATUS.md`; 4457/4457 since the literature benchmarks and the choice exhibits). 2026-10-21, branch `clocked-right`: the 52 bridge instances regenerated at dimension `bridgeDimV2` (+1), `relcert-bridge-verdicts` 4457/4457 (commit `61d7389`); the 67 refute instances regenerated at the same rule, `relcert-refute-verdicts` 188/188 (commit `b14f129`). Previous run: 2026-10-11, branch `per-pairing-stretch`, Apple M2 Max (12 cores, 64 GB), Z3 4.15.1. `lake build RelCertifier relcert relcert-test`: `Build completed successfully (17885 jobs)`, no `sorry`. Axiom audit: BatteryV2 72 lines, 48 with `z3_unsat_sound` (the 46 Theorem 3s, `match_multi_rate_nonconn`, `couple_cutX`), 24 at the three standard axioms; WellFormedBattery 77 lines, all at the three standard axioms; nothing else. `--check-quick-v2`: 46 certified / 0 declined / 0 errors (strict well-formedness mode), modal 625/625, handoff 187/187, non-connection 88/88, pruned edges 44/44, copied benchmarks 385/385, reposition (dyn) 81/81, `[wellformed] STRICT: 148/148 right modes ok (84 invariant, 64 exit), 0 UNKNOWN — matches the declared suite`, `SUITE_V2 QUICK CHECKS PASSED`. `relcert-test` with the suite_v2 manifest: 46 IR literals match, bare `ALL PASS`. The stretch pin `VerdictsV2/LamPinV2.lean` (every pack row's stretch is the emitted cover's stretch of that pairing) decides for all 236 rows.
+> **Last run:** 2026-10-27, branch `benchmark-fixes` (batch I1: the commit after `d0400bc`, 49 suite benchmarks, four in `benchmarks/reserve/`), Apple M2 Max, Z3 4.15.1: `lake build` exit 0 (9336 jobs), no `sorry`; the five exes build; `--check-quick-v2`: 49 certified / 0 declined / 0 errors, modal 771/771, handoff 434/434, non-connection 70/70, pruned edges 35/35, reposition (dyn) 23/23, `[wellformed] STRICT: 167/167 right modes ok, both clauses (87 invariant, 80 exit), 0 UNKNOWN, 0 BLOCKING`, `SUITE_V2 QUICK CHECKS PASSED`; `relcert-test` `ALL PASS`; `relcert-bridge-verdicts` 4094/4094; `relcert-progress-verdicts` 227/227; `relcert-refute-verdicts` 309/309 and every `InstancesV2/Refute/*` instance builds; `WellFormedBattery` 71 axiom lines at the three standard axioms; `AxiomCheck` 9 lines; `freedm_meter_leaky` DECLINED; `vehicle_hypercert_s8` five modes `BLOCKING`, DECLINED under the strict switch. Previous: 2026-10-26, branch `benchmark-fixes` (commit `a902fe5`, the Assumption 1 check of both clauses), Apple M2 Max, Z3 4.15.1: `lake build` exit 0 (9339 jobs), no `sorry`; the five exes build; `--check-quick-v2`: 50 certified / 0 declined / 0 errors, modal 784/784, handoff 417/417, non-connection 92/92, pruned edges 46/46, reposition (dyn) 21/21, `[wellformed] STRICT: 174/174 right modes ok, both clauses (91 invariant, 83 exit), 0 UNKNOWN, 0 BLOCKING`, `SUITE_V2 QUICK CHECKS PASSED`; `relcert-test` `ALL PASS`; `relcert-bridge-verdicts` 4350/4350; `relcert-progress-verdicts` 213/213; `relcert-refute-verdicts` 315/315 and every `InstancesV2/Refute/*` instance builds; `WellFormedBattery` 75 axiom lines at the three standard axioms; `AxiomCheck` 9 lines; `freedm_meter_leaky` DECLINED; `vehicle_hypercert_s8` five modes `BLOCKING`, DECLINED under the strict switch. Previous: 2026-10-22, branch `cleanup-2026-10` (commit `093b2d1`, the standalone route archived on branch `archive/legacy-2026-10`), Apple M2 Max, Z3 4.15.1: `lake build` exit 0 (9252 jobs, the root now imports `InstancesV2.Bridge`), no `sorry`; the five exes build; `--check-quick-v2`: 50 certified / 0 declined / 0 errors, modal 625/625, handoff 401/401, non-connection 88/88, pruned edges 44/44, reposition (dyn) 81/81, `[wellformed] STRICT: 174/174 right modes ok (94 invariant, 80 exit), 0 UNKNOWN`, `SUITE_V2 QUICK CHECKS PASSED`; `relcert-test` `ALL PASS` (50 literals); `relcert-bridge-verdicts` 4457/4457; `relcert-refute-verdicts` 188/188 and every `InstancesV2/Refute/*` instance builds; `relcert-progress-verdicts` 261/261; `WellFormedBattery` 75 axiom lines, all at the three standard axioms; `AxiomCheck` 9 lines; `benchmarks/negative/freedm_meter_leaky` DECLINED. Previous: 2026-10-15, branch `theorem3-general` (commit `12a0c6b`): full `lake build` exit 0, no `sorry`; `relcert-test` `ALL PASS`; `--run-verdicts-v2` all phases discharged; `relcert-progress-verdicts` 261/261; `relcert-choice-verdicts` 32/32; `relcert-bridge-verdicts` 3512/3512 (`STATUS.md`; 4457/4457 since the literature benchmarks and the choice exhibits). 2026-10-21, branch `clocked-right`: the 52 bridge instances regenerated at dimension `bridgeDimV2` (+1), `relcert-bridge-verdicts` 4457/4457 (commit `61d7389`); the 67 refute instances regenerated at the same rule, `relcert-refute-verdicts` 188/188 (commit `b14f129`). Previous run: 2026-10-11, branch `per-pairing-stretch`, Apple M2 Max (12 cores, 64 GB), Z3 4.15.1. `lake build RelCertifier relcert relcert-test`: `Build completed successfully (17885 jobs)`, no `sorry`. Axiom audit: BatteryV2 72 lines, 48 with `z3_unsat_sound` (the 46 Theorem 3s, `match_multi_rate_nonconn`, `couple_cutX`), 24 at the three standard axioms; WellFormedBattery 77 lines, all at the three standard axioms; nothing else. `--check-quick-v2`: 46 certified / 0 declined / 0 errors (strict well-formedness mode), modal 625/625, handoff 187/187, non-connection 88/88, pruned edges 44/44, copied benchmarks 385/385, reposition (dyn) 81/81, `[wellformed] STRICT: 148/148 right modes ok (84 invariant, 64 exit), 0 UNKNOWN — matches the declared suite`, `SUITE_V2 QUICK CHECKS PASSED`. `relcert-test` with the suite_v2 manifest: 46 IR literals match, bare `ALL PASS`. The stretch pin `VerdictsV2/LamPinV2.lean` (every pack row's stretch is the emitted cover's stretch of that pairing) decides for all 236 rows.
 
 ---
 
@@ -53,14 +53,14 @@ theorems consume is in the repository.
 |---|---|---|
 | 1 | every proof kernel-checks (the root imports the proof chain, the Assumption 1 battery, the bridge and the refutation instances) | `lake build` (see *Cost*), then `lake build relcert relcert-test relcert-bridge-verdicts relcert-refute-verdicts relcert-progress-verdicts` |
 | 2 | the axiom audit of the Assumption 1 battery and of the generic theorems | `lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 \| grep -A3 "depends on axioms"`; the same for `RelCertifier.InstancesV2.AxiomCheck` |
-| 3 | the 47 files certify in the strict well-formedness mode (declared 47 / 0 / 0), the tool's own queries hold (modal, handoff, non-connection, pruned edges, reposition, against declared counts), and the tool's Assumption 1 check (both clauses, nonblocking and complete, since 2026-10-26) finds every right mode `ok` (declared 159 modes, 0 `UNKNOWN`, 0 `BLOCKING`) | `RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt` |
+| 3 | the 49 files certify in the strict well-formedness mode (declared 49 / 0 / 0), the tool's own queries hold (modal, handoff, non-connection, pruned edges, reposition, against declared counts), and the tool's Assumption 1 check (both clauses, nonblocking and complete, since 2026-10-26) finds every right mode `ok` (declared 167 modes, 0 `UNKNOWN`, 0 `BLOCKING`) | `RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt` |
 | 3' | the expected DECLINE (the leaky FREEDM controller) | `RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert benchmarks/negative/*/input.txt` |
 | 3'' | the expected Assumption 1 failure (`vehicle_hypercert_s8`, a right model that blocks at `s = 8`): all five right modes `BLOCKING`, DECLINED under the strict switch | `./.lake/build/bin/relcert --wellformed benchmarks/negative_wellformed/*/input.txt`; `RELCERT_IMPLIED_CUT=1 RELCERT_WELLFORMED_STRICT=1 ./.lake/build/bin/relcert benchmarks/negative_wellformed/*/input.txt` |
 | 4 | each file parses to the literal the theorems quote; parser, printer, Z3-layer and determinism tests | `BENCH_PATHS=<manifest> ./.lake/build/bin/relcert-test` |
-| 5 | Assumption 1 of every right model (`WellFormedR`): proved for all 47, none refuted; axiom audit; the tool's check, strict in check 3 | `lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 \| grep -A3 "depends on axioms"`; `./.lake/build/bin/relcert --wellformed benchmarks/suite_v2/*/input.txt` |
-| 6 | every Z3 hypothesis of the generic bridge instances (`InstancesV2/Bridge/`, 49 `*_bridge` theorems: stays, non-connection pairs, flow and reposition packs, admissibility, handoffs, progress, coverage) holds, against the declared total 3876 over the 47 suite benchmarks and the 2 choice exhibits; every query is sent at the instance's dimension `bridgeDimV2 b` (`VerdictsV2/RunBridge.lean:74`: the Assumption 1 lemma's dimension plus one, the right clock of the clocked right automaton `rightAutomatonBodyC`), which is the dimension the instance's `Verdicts` hypothesis names | `./.lake/build/bin/relcert-bridge-verdicts` |
-| 7 | the progress certificates (the paper's reposition certificates, Definition 7) of every reposition node (197 queries) hold, against the declared count | `./.lake/build/bin/relcert-progress-verdicts` |
-| 8 | the 111 kernel refutations (`InstancesV2/Refute/`, `docs/REFUTATION-RESULTS.md`): every Z3 group of `RefVerdicts` holds against the declared total 304, each instance at its benchmark's bridge dimension (`RefRec.dim + 1`, `InstancesV2/Refute/Table.lean`), and each instance concludes `¬ keyedClaim … 0 1 2 3 dt` / `¬ windowClaim … 0 1 2 dt`, the negation of the clocked bridge claim at that dimension (`refute_keyed_C/A/B_clocked`, `refute_window_B_clocked`) | `./.lake/build/bin/relcert-refute-verdicts`; `lake build RelCertifier.InstancesV2.Refute` |
+| 5 | Assumption 1 of every right model (`WellFormedR`): proved for all 49, none refuted; axiom audit; the tool's check, strict in check 3 | `lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 \| grep -A3 "depends on axioms"`; `./.lake/build/bin/relcert --wellformed benchmarks/suite_v2/*/input.txt` |
+| 6 | every Z3 hypothesis of the generic bridge instances (`InstancesV2/Bridge/`, 51 `*_bridge` theorems: stays, non-connection pairs, flow and reposition packs, admissibility, handoffs, progress, coverage) holds, against the declared total 4094 over the 49 suite benchmarks and the 2 choice exhibits; every query is sent at the instance's dimension `bridgeDimV2 b` (`VerdictsV2/RunBridge.lean:74`: the Assumption 1 lemma's dimension plus one, the right clock of the clocked right automaton `rightAutomatonBodyC`), which is the dimension the instance's `Verdicts` hypothesis names | `./.lake/build/bin/relcert-bridge-verdicts` |
+| 7 | the progress certificates (the paper's reposition certificates, Definition 7) of every reposition node (227 queries) hold, against the declared count | `./.lake/build/bin/relcert-progress-verdicts` |
+| 8 | the 112 kernel refutations (`InstancesV2/Refute/`, `docs/REFUTATION-RESULTS.md`): every Z3 group of `RefVerdicts` holds against the declared total 309, each instance at its benchmark's bridge dimension (`RefRec.dim + 1`, `InstancesV2/Refute/Table.lean`), and each instance concludes `¬ keyedClaim … 0 1 2 3 dt` / `¬ windowClaim … 0 1 2 dt`, the negation of the clocked bridge claim at that dimension (`refute_keyed_C/A/B_clocked`, `refute_window_B_clocked`) | `./.lake/build/bin/relcert-refute-verdicts`; `lake build RelCertifier.InstancesV2.Refute` |
 
 The totals 4457 and 188 are unchanged by the dimension change of 2026-10-21 (branch
 `clocked-right`): the padded coordinate is unbound in every lowered formula, so no query reads
@@ -110,7 +110,7 @@ lake build RelCertifier.InstancesV2.AxiomCheck 2>&1 | grep -A3 "depends on axiom
 ```
 
 Use `-A3`: a four-axiom list prints over four lines. Expected from `WellFormedBattery.lean`:
-69 lines (check 5 lists them), each exactly `[propext, Classical.choice, Quot.sound]` (`lake`
+71 lines (check 5 lists them), each exactly `[propext, Classical.choice, Quot.sound]` (`lake`
 also replays the 11 lines of `Proofs/Soundness/CutLiftX.lean`'s own audit, which carry
 `z3_unsat_sound`). Expected from `AxiomCheck.lean`: 9 lines, the generic theorems
 `cover_sound`, `check_sound`, `theorem3_faithful`, `rvalid_from_cert`,
@@ -126,30 +126,30 @@ standalone battery (`BatteryV2`, 72 lines) is on branch `archive/legacy-2026-10`
 RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt
 ```
 
-`--check-quick-v2` refuses to run without `RELCERT_IMPLIED_CUT=1` (7 suite_v2 benchmarks
+`--check-quick-v2` refuses to run without `RELCERT_IMPLIED_CUT=1` (8 suite_v2 benchmarks
 DECLINE without the widened cut channel). Check 1/3 certifies in the STRICT well-formedness
 mode (`RELCERT_WELLFORMED_STRICT` forced on: a CERTIFIED file with an `UNKNOWN` or `BLOCKING`
 right mode is DECLINED, a `[wellformed]` line per file on stderr); check 3/3 is the
 `--wellformed` report, gated. Expected tail:
 
 ```
-  [suite_v2] 47 certified, 0 declined, 0 error(s) — matches the declared suite
-  [coverage] suite_v2 modal: 738/738 hypotheses discharged
-  [coverage] suite_v2 handoff: 415/415 hypotheses discharged
-  [coverage] suite_v2 non-connection: 66/66 hypotheses discharged
-  [coverage] suite_v2 pruned edges: 33/33 hypotheses discharged
-  [coverage] suite_v2 reposition (dyn): 21/21 hypotheses discharged
-[wellformed] summary: 47 benchmark(s), 159 right mode(s): 82 ok (invariant), 77 ok (exit), 0 UNKNOWN (0 of them nonblocking), 0 BLOCKING (0 benchmark(s) with a mode not ok); both clauses checked; 9666 queries
-  [wellformed] STRICT: 159/159 right modes ok, both clauses (82 invariant, 77 exit), 0 UNKNOWN, 0 BLOCKING — matches the declared suite (159 modes, 0 UNKNOWN, 0 BLOCKING)
+  [suite_v2] 49 certified, 0 declined, 0 error(s) — matches the declared suite
+  [coverage] suite_v2 modal: 771/771 hypotheses discharged
+  [coverage] suite_v2 handoff: 434/434 hypotheses discharged
+  [coverage] suite_v2 non-connection: 70/70 hypotheses discharged
+  [coverage] suite_v2 pruned edges: 35/35 hypotheses discharged
+  [coverage] suite_v2 reposition (dyn): 23/23 hypotheses discharged
+[wellformed] summary: 49 benchmark(s), 167 right mode(s): 87 ok (invariant), 80 ok (exit), 0 UNKNOWN (0 of them nonblocking), 0 BLOCKING (0 benchmark(s) with a mode not ok); both clauses checked; 9817 queries
+  [wellformed] STRICT: 167/167 right modes ok, both clauses (87 invariant, 80 exit), 0 UNKNOWN, 0 BLOCKING — matches the declared suite (167 modes, 0 UNKNOWN, 0 BLOCKING)
 
   suite_v2: PASS
   verdicts: PASS
-  wellformed (strict): PASS (159/159 right modes ok, both clauses (82 invariant, 77 exit), 0 UNKNOWN, 0 BLOCKING)
+  wellformed (strict): PASS (167/167 right modes ok, both clauses (87 invariant, 80 exit), 0 UNKNOWN, 0 BLOCKING)
 SUITE_V2 QUICK CHECKS PASSED  (the kernel check is `lake build`)
 ```
 
 The well-formedness gate (check 5's tool part, strict since 2026-10-10; it was informational
-while 9 models blocked): the declared mode count `ExpectedSuiteV2.wfModes = 159`
+while 9 models blocked): the declared mode count `ExpectedSuiteV2.wfModes = 167`
 (`VerdictsV2/RunV2.lean`; its kernel pin against the IR table, `CoveragePinsV2`, was archived
 with the standalone route), `wfUnknown = 0` and `wfBlocking = 0`; any `UNKNOWN` or `BLOCKING`
 mode, a mode count off the declared one, or a file that does not parse fails the run. The
@@ -177,7 +177,7 @@ done > /tmp/bench-paths-v2.tsv
 BENCH_PATHS=/tmp/bench-paths-v2.tsv ./.lake/build/bin/relcert-test
 ```
 
-Expected: `ok   all 47 suite_v2 IR literals match their files (47 files)` and a bare `ALL PASS`
+Expected: `ok   all 49 suite_v2 IR literals match their files (49 files)` and a bare `ALL PASS`
 (the table must name exactly the benchmark directories of `benchmarks/suite_v2`).
 Without `BENCH_PATHS` the two determinism checks (`match_multi_rate` 8× CERTIFIED;
 `watertank_twospeed`, which declines without the widened channel, 8× the same verdict) are
@@ -190,9 +190,9 @@ lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 | grep -A3 "depends o
 ./.lake/build/bin/relcert --wellformed benchmarks/suite_v2/*/input.txt
 ```
 
-Expected: 69 axiom lines from `WellFormedBattery.lean`, each exactly `[propext,
-Classical.choice, Quot.sound]` (no `z3_unsat_sound`: every proof is Z3-free): 47 right
-models (37 `<b>_wellFormedR`, 3 `<b>_wellFormedR_direct` for the two dRL benchmarks and
+Expected: 71 axiom lines from `WellFormedBattery.lean`, each exactly `[propext,
+Classical.choice, Quot.sound]` (no `z3_unsat_sound`: every proof is Z3-free): 49 right
+models (39 `<b>_wellFormedR`, 3 `<b>_wellFormedR_direct` for the two dRL benchmarks and
 `freedm_meter`, `V2VehicleHypercert.vehicle_hypercert_wellFormedR`, and the 6 satellites' `<b>_wellFormedR`,
 unconditional since 2026-10-15), the three repaired modes' per-mode theorems
 `…_wellFormedR_brake` / `…_wellFormedR_limit`, the six satellites' `<b>_band_invariant`, and
@@ -200,11 +200,11 @@ unconditional since 2026-10-15), the three repaired modes' per-mode theorems
 `not_wellFormedR_of_noRun`, `exists_contract_run`, `exists_rate_run`,
 `exists_of_HExistSegB_zero`, `coord_le_barrier`, `affine_const`, the platoon follower's
 `PlatoonCaccAeb.cacc_w_band`, `PlatoonCaccAeb.aeb_w_const`, `PlatoonCaccAeb.cacc_box`,
-`WellFormedBattery.wf_coverage`; the declared counts `(41, 0, 6)`, `(30, 9, 6)` before the repairs, and the three name lists a
+`WellFormedBattery.wf_coverage`; the declared counts `(43, 0, 6)`, `(30, 9, 6)` before the repairs, and the three name lists a
 permutation of the suite's IR table). Each proof lives in its own self-contained
 `InstancesV2/WellFormed/<B>.lean` (right model and proof; since 2026-10-22 the 19 carried-over
-ones too). The tool line: `[wellformed] summary: 47 benchmark(s), 159 right mode(s): 82 ok
-(invariant), 77 ok (exit), 0 UNKNOWN (0 of them nonblocking), 0 BLOCKING (0 benchmark(s) with
+ones too). The tool line: `[wellformed] summary: 49 benchmark(s), 167 right mode(s): 87 ok
+(invariant), 80 ok (exit), 0 UNKNOWN (0 of them nonblocking), 0 BLOCKING (0 benchmark(s) with
 a mode not ok); both clauses checked`; check 3 gates it. What this establishes and what it does
 not (the tool's check is sufficient, of both clauses since 2026-10-26, of the successor clause
 only before; the predicate's domain conjunct; the satellites' band): `docs/WELLFORMED.md`. The repairs:
@@ -318,7 +318,7 @@ lake build && lake build relcert relcert-test relcert-bridge-verdicts relcert-re
 ```
 
 A green build, an axiom listing with nothing beyond the four axioms, `SUITE_V2 QUICK CHECKS
-PASSED`, `ALL PASS`, `3876/3876`, `304/304` and `197/197` = every suite_v2 benchmark is
+PASSED`, `ALL PASS`, `4094/4094`, `309/309` and `227/227` = every suite_v2 benchmark is
 certified end to end, modulo the trust base.
 
 ## Earlier recipes

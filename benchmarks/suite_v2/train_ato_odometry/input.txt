@@ -1,0 +1,140 @@
+# train_ato_odometry: a train under automatic train operation (ATO) whose wheel-diameter parameter
+# was not updated after a wheelset exchange, against the same train with calibrated odometry; the
+# traffic management may switch the ATO's performance level at every cycle.
+# scenario: degraded-sensor
+# mechanisms: S M B (a time stretch per pairing, below 1 against faster design levels and above 1
+#   against slower ones, RELCERT_SYNC=1 declines; two design cycles per deployed window; branching
+#   joint steps over the performance levels the traffic management may command; matrix codes M1
+#   M2 M3)
+#
+# System. Train speed v in m/s, time in s. The ATO holds the permitted speed V = 25 m/s (90 km/h)
+# with a first-order speed loop (running resistance and gradient compensated by feed-forward, the
+# traction delivering the commanded acceleration): a = k (V - v_meas). Performance levels (the
+# headway-regulation levels of CBTC/ATO traffic management): PL1 = 100 % response, k = 0.05 /s;
+# PL2 = 90 %, k = 0.045 /s; PL3 = 80 %, k = 0.04 /s. All three hold the same permitted speed; the
+# traffic management may command any level at any ATO cycle (every level declares every level as
+# successor, on both sides). ATO cycle 0.5 s on both sides.
+#
+# Right (design train, odometry calibrated, v_meas = v): v' = k (25 - v) in PL1 / PL2 / PL3.
+# Left (deployed train): the wheel-diameter parameter still holds the worn wheels' 806 mm while the
+#   new wheels measure 840 mm, so the tachometer speed reads c = 806 / 840 = 0.96 of the true speed.
+#   With v_meas = 0.96 v: v' = k (25 - 0.96 v) = 0.96 k (26.04 - v): in every level the deployed
+#   holds 26.04 m/s (93.75 km/h) instead of 25 and its loop is 4 % slower.
+# One cause: the odometry factor c. Same ATO, same levels, same commands, same cycle.
+#
+# Property (every left mode): 0 <= v_L - v_R <= 1.11 (m/s), against the design run re-timed by a
+#   stretch per pairing in [0.75, 1.25] (a claim on the speed history, not on clock time).
+#   Upper 1.11 m/s. Requirement: the overspeed warning margin of ETCS, dV_warning = 4 km/h =
+#     1.11 m/s at permitted speeds up to 110 km/h: the miscalibrated train never runs faster than a
+#     calibrated run by more than the margin at which the ATP of a calibrated train would warn.
+#     Tightest 1.07 (1.06 declines). The model's exact bound is the held-speed offset
+#     25 (1 / 0.96 - 1) = 1.042 m/s (first-order loops: the transient never exceeds it); the 0.03
+#     gap is the stretch grid (the needed stretches 0.96 k_i / k_j are not points of the tool's
+#     21-point grid on [0.75, 1.25]).
+#   Lower 0 (derived, not a requirement): the under-read only raises the held speed, so the
+#     deployed is never slower than its matched design run (0 certifies with the matched start
+#     v_L = v_R admitted).
+#   Not implied by the domains (they allow v_L - v_R up to 23.2 m/s).
+#
+# The bound depends on the cause (measured, same file with c and the left domain changed):
+#   tightest upper bound at c = 0.99 / 0.98 / 0.96 / 0.95: 0.28 / 0.56 / 1.07 / 1.32 m/s (model
+#   bound 25 (1 / c - 1) = 0.25 / 0.51 / 1.04 / 1.32). With calibrated odometry (c = 1) the exact
+#   claim v_L = v_R CERTIFIES. The 1.11 m/s requirement certifies for c = 0.96 and declines for
+#   c = 0.95: the warning margin tolerates an under-read of at most about 4.2 % (25 / 26.11).
+#
+# Why stretches are needed (S). In every level the deployed loop is 0.96 times as fast as the same
+#   design level, so the design run is matched at 39/40 (the grid point nearest 0.96 that passes),
+#   and a design run in another level at the ratio of the loop rates: PL1_L against PL1 / PL2 / PL3
+#   at 39/40, 43/40, 6/5; PL2_L at 7/8, 39/40, 11/10; PL3_L at 31/40, 7/8, 39/40. At stretch 1 the
+#   same-level pairing needs the offset plus the lag of the slower loop on the decelerating side
+#   up to the 27.08 m/s domain top, 1.042 + (1 / 0.96 - 1) x 2.08 = 1.13: RELCERT_SYNC=1 DECLINES
+#   for every tolerance below 1.13 (from 1.13 it certifies by committing the design train to the
+#   deployed's level at each window start, a choice hop); RELCERT_SYNC=1 RELCERT_NO_CHOICE=1
+#   DECLINES at every tolerance tested up to 3.0. S window over the tolerance: [1.07, 1.13); the
+#   1.11 requirement lies in it. lambda_min = 0.75 < 1: a
+#   design level faster than the deployed's is matched by slowing the design run (the first suite
+#   file with stretches below 1).
+# Multi-step and branching (M, B). PL1_L and PL2_L need stretches above 1 against slower design
+#   levels (up to 6/5), so each deployed window spans two design cycles (budget 2). At the joint
+#   step the traffic management may move the design train to either other level, and the cover
+#   certifies the rest of the window in each (branch 2 at PL1_L and PL2_L; nothing pruned; no
+#   choice: the RELCERT_NO_CHOICE=1 cover is byte-identical). PL3_L needs no stretch above 1
+#   (budget 1). M and B hold for every tolerance tested up to 2.0 m/s; at 5.0 m/s a single common
+#   stretch suffices (M1 only).
+#
+# Domains. Right 5 <= v <= 27.08 m/s: below 5 m/s PL1's demand (0.05 x 20 = 1.0 m/s^2) reaches the
+#   traction and service-brake limit, the end of the linear speed-loop range; 27.08 m/s = 97.5 km/h
+#   is the ETCS emergency-brake intervention speed at a 90 km/h permitted speed (dV_ebi = 7.5 km/h),
+#   above which the ATP, not the ATO, controls the train. Left 5 <= v <= 28.21 m/s: the deployed
+#   ATP sees the under-read speed and intervenes only at a true 27.08 / 0.96 = 28.21 m/s. Both are
+#   forward invariant in every level (each drives toward 25 resp. 26.04 inside). Guards = domains
+#   (any level at any speed), so the right guards cover the right domain and every left mode has a
+#   satisfiable start (v_L = v_R = 20). Domain widening (measured): lower bound 0 m/s CERTIFIES;
+#   upper bound 30 m/s (left 31.25) CERTIFIES; 40 m/s DECLINES at 1.11 (the stretch-grid slack
+#   grows with the distance above the held speed).
+#
+# Coverage gaps (not modeled): traction saturation and jerk limits, gradients beyond the
+#   feed-forward, wheel slip and slide, the ATP's own braking curves, position and stopping; the
+#   odometry error is a pure scale factor.
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26): CERTIFIED; CERTIFIED also
+# under RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1, without
+# RELCERT_IMPLIED_CUT, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_CUT=1,
+# RELCERT_OPREGION=1 (every admitted start in some right guard) and RELCERT_WELLFORMED_STRICT=1;
+# DECLINED under RELCERT_SYNC=1 and RELCERT_SYNC=1 RELCERT_NO_CHOICE=1 (S; no P, I, X, D).
+# Covers: PL1_L lambda 6/5, budget 2; PL2_L lambda 11/10, budget 2; PL3_L lambda 39/40, budget 1;
+# admissible starts [PL1, PL2, PL3] for every left mode. Nothing pruned. Rows identical (--handoff
+# 9/9, vacuous). relcert --wellformed: PL1, PL2, PL3 ok (invariant), 0 UNKNOWN.
+# RELCERT_NO_PAIR_STRETCH=1 (one stretch per left mode) also CERTIFIES, with PL1_L at 39/40,
+# PL2_L at 7/8 and PL3_L at 31/40, budget 1 each: S without M and B (measured 2026-10-27).
+# Lean (2026-10-27): the stretches below 1 go through the generic bridge unchanged: the emitted
+# cover (per-pairing stretches 31/40 to 6/5, PL3_L's window stretch 39/40), the kernel's
+# structural checks (a positive stretch, each pairing's at most its window's, the budget), the 39
+# bridge groups and the 9 modal packs all pass; Assumption 1 is proved (contractions toward 25
+# inside [5, 27.08]); no tool change was needed.
+[problem]
+name = train_ato_odometry
+max_depth = 8
+lambda_min = 0.75
+lambda_max = 1.25
+bound_T = 600.0
+[Lsys]
+state_vars = [v]
+epsilon = 0.5
+[Lsys.mode.PL1]
+ode = v' = smt2:(* 0.05 (- 25.0 (* 0.96 v)));
+guard = v >= 5.0 and v <= 28.21
+evolve = v >= 5.0 and v <= 28.21
+next = [PL1, PL2, PL3]
+[Lsys.mode.PL2]
+ode = v' = smt2:(* 0.045 (- 25.0 (* 0.96 v)));
+guard = v >= 5.0 and v <= 28.21
+evolve = v >= 5.0 and v <= 28.21
+next = [PL1, PL2, PL3]
+[Lsys.mode.PL3]
+ode = v' = smt2:(* 0.04 (- 25.0 (* 0.96 v)));
+guard = v >= 5.0 and v <= 28.21
+evolve = v >= 5.0 and v <= 28.21
+next = [PL1, PL2, PL3]
+[Rsys]
+state_vars = [v]
+epsilon = 0.5
+[Rsys.mode.PL1]
+ode = v' = smt2:(* 0.05 (- 25.0 v));
+guard = v >= 5.0 and v <= 27.08
+evolve = v >= 5.0 and v <= 27.08
+next = [PL1, PL2, PL3]
+[Rsys.mode.PL2]
+ode = v' = smt2:(* 0.045 (- 25.0 v));
+guard = v >= 5.0 and v <= 27.08
+evolve = v >= 5.0 and v <= 27.08
+next = [PL1, PL2, PL3]
+[Rsys.mode.PL3]
+ode = v' = smt2:(* 0.04 (- 25.0 v));
+guard = v >= 5.0 and v <= 27.08
+evolve = v >= 5.0 and v <= 27.08
+next = [PL1, PL2, PL3]
+[relational_invariant]
+PL1 = smt2:(and (<= (- L_v R_v) 1.11) (>= (- L_v R_v) 0.0))
+PL2 = smt2:(and (<= (- L_v R_v) 1.11) (>= (- L_v R_v) 0.0))
+PL3 = smt2:(and (<= (- L_v R_v) 1.11) (>= (- L_v R_v) 0.0))

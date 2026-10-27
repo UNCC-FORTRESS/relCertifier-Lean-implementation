@@ -7,6 +7,7 @@ import RelCertifier.InstancesV2.BenchProgress.arm_plateau_crit
 import RelCertifier.InstancesV2.BenchProgress.arm_plateau_slow
 import RelCertifier.InstancesV2.BenchProgress.charger_fast_setpoints
 import RelCertifier.InstancesV2.BenchProgress.charger_fast_tapers
+import RelCertifier.InstancesV2.BenchProgress.engine_start_highidle
 import RelCertifier.InstancesV2.BenchProgress.hvac_fan_staging
 import RelCertifier.InstancesV2.BenchProgress.match_multi_rate
 import RelCertifier.InstancesV2.BenchProgress.platoon_delay_profiles
@@ -40,6 +41,7 @@ import RelCertifier.InstancesV2.BenchProgress.sat_detumble_nominal
 import RelCertifier.InstancesV2.BenchProgress.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchProgress.sat_detumble_weak
 import RelCertifier.InstancesV2.BenchProgress.tank_dos_3to1
+import RelCertifier.InstancesV2.BenchProgress.train_ato_odometry
 import RelCertifier.InstancesV2.BenchProgress.watertank
 import RelCertifier.InstancesV2.BenchProgress.watertank_twospeed
 
@@ -55,6 +57,7 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("arm_plateau_slow", arm_plateau_slow_coverV2_progress),
    ("charger_fast_setpoints", charger_fast_setpoints_coverV2_progress),
    ("charger_fast_tapers", charger_fast_tapers_coverV2_progress),
+   ("engine_start_highidle", engine_start_highidle_coverV2_progress),
    ("hvac_fan_staging", hvac_fan_staging_coverV2_progress),
    ("match_multi_rate", match_multi_rate_coverV2_progress),
    ("platoon_delay_profiles", platoon_delay_profiles_coverV2_progress),
@@ -88,6 +91,7 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("sat_detumble_phases", sat_detumble_phases_coverV2_progress),
    ("sat_detumble_weak", sat_detumble_weak_coverV2_progress),
    ("tank_dos_3to1", tank_dos_3to1_coverV2_progress),
+   ("train_ato_odometry", train_ato_odometry_coverV2_progress),
    ("watertank", watertank_coverV2_progress),
    ("watertank_twospeed", watertank_twospeed_coverV2_progress)]
 

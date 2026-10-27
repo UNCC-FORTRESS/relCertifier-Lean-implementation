@@ -9,6 +9,7 @@ import RelCertifier.InstancesV2.BenchCovers.charger_fast_setpoints
 import RelCertifier.InstancesV2.BenchCovers.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchCovers.drl_car_stop
 import RelCertifier.InstancesV2.BenchCovers.drl_lane_control
+import RelCertifier.InstancesV2.BenchCovers.engine_start_highidle
 import RelCertifier.InstancesV2.BenchCovers.freedm_meter
 import RelCertifier.InstancesV2.BenchCovers.hvac_fan_staging
 import RelCertifier.InstancesV2.BenchCovers.match_multi_rate
@@ -43,6 +44,7 @@ import RelCertifier.InstancesV2.BenchCovers.sat_detumble_nominal
 import RelCertifier.InstancesV2.BenchCovers.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchCovers.sat_detumble_weak
 import RelCertifier.InstancesV2.BenchCovers.tank_dos_3to1
+import RelCertifier.InstancesV2.BenchCovers.train_ato_odometry
 import RelCertifier.InstancesV2.BenchCovers.vehicle_hypercert
 import RelCertifier.InstancesV2.BenchCovers.watertank
 import RelCertifier.InstancesV2.BenchCovers.watertank_twospeed
@@ -60,6 +62,7 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("charger_fast_tapers", charger_fast_tapers_coverV2),
   ("drl_car_stop", drl_car_stop_coverV2),
   ("drl_lane_control", drl_lane_control_coverV2),
+  ("engine_start_highidle", engine_start_highidle_coverV2),
   ("freedm_meter", freedm_meter_coverV2),
   ("hvac_fan_staging", hvac_fan_staging_coverV2),
   ("match_multi_rate", match_multi_rate_coverV2),
@@ -94,6 +97,7 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("sat_detumble_phases", sat_detumble_phases_coverV2),
   ("sat_detumble_weak", sat_detumble_weak_coverV2),
   ("tank_dos_3to1", tank_dos_3to1_coverV2),
+  ("train_ato_odometry", train_ato_odometry_coverV2),
   ("vehicle_hypercert", vehicle_hypercert_coverV2),
   ("watertank", watertank_coverV2),
   ("watertank_twospeed", watertank_twospeed_coverV2) ]

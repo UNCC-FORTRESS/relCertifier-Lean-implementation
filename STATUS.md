@@ -58,6 +58,11 @@ M3 12 → 14 (`arm_plateau_crit`, `_slow` now branch); widening unchanged except
 sufficient check (`relcert --wellformed`) reports 174 right modes: 94 ok (invariant), 80 ok
 (exit), 0 UNKNOWN (was 77 / 53 / 16), and is STRICT in the recipe: `--check-quick-v2`
 certifies in the strict mode and fails on any `UNKNOWN` against the declared 174 modes.
+(That check covered the successor clause only. Since 2026-10-26 it checks both clauses, the
+nonblocking one included: 174 right modes, 91 ok (invariant), 83 ok (exit), 0 UNKNOWN, 0
+BLOCKING; the exhibit `benchmarks/negative_wellformed/vehicle_hypercert_s8`, whose right model
+blocks at `s = 8`, passed the old check and is `BLOCKING` in all five modes now;
+`docs/WELLFORMED.md` §4.)
 
 **The generic bridge (branch `theorem3-general`, 2026-10-14/15; `docs/BRIDGE.md`).** The
 general Theorem 3 (`theorem3_of_coverX`, `docs/THEOREM3-GENERAL.md`) is stated over the cover of Definition 8 with the

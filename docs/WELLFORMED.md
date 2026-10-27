@@ -10,8 +10,9 @@ domain (§3, §5); until then they were proved on the band, with the literal pre
 blocking states); those nine were repaired (`docs/SUITE-REDESIGN.md` §21: the fallback sinks
 re-engage or are latched with an invariant guard, the arm planner's successor sets name every
 band a sampled interval can reach) and are now proved. No proof uses Z3. The tool's sufficient
-check of the successor half (`relcert --wellformed`) finds every one of the 174 right modes
-`ok`, and `--check-quick-v2` now runs it STRICT, against a declared count (§4). The generic-bridge
+check of both clauses (`relcert --wellformed`; the nonblocking clause since 2026-10-26, before
+which only the successor clause was checked) finds every one of the 174 right modes `ok`, and
+`--check-quick-v2` runs it STRICT, against declared counts (§4). The generic-bridge
 instances (`InstancesV2/Bridge/`, the paper's route to
 Theorem 3) take it as a hypothesis: `theorem3_keyed_of_records`
 (`Proofs/Encoding/Emitted/Keyed.lean:427`) and `theorem3_window_of_records`
@@ -145,7 +146,7 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 29 | `rover_terrain_6to12` | proved | as 27, cap `u ≤ c_T` kept by `u' = 4 (c_T − u)` (existence: the cascade `u → w`, `w, zs → v → s, zh`) | as 27 |
 | 30 | `rover_patrol_lag` | proved | the lagged speed loop's `(v, a)` envelope kept (modal coordinates `3a + 4v − 4c`, `a + 4v − 4c` decaying; explicit run); SLOW (b) → MEDIUM_*; MEDIUM_ECO, MEDIUM_BRISK (b) → FAST; FAST (a) | SLOW ok (exit→MEDIUM_BRISK); MEDIUM_* ok (exit→FAST); FAST ok (invariant) |
 | 31 | `rover_patrol_zones` | proved | as 30; STALL (a) | as 30; STALL ok (invariant) |
-| 32 | `sat3w_detumble_nominal` | proved | DETUMBLE (a) (the band in the domain keeps the explicit run); SAFE (a) | both ok (invariant) (clause (i) is not checked by the tool) |
+| 32 | `sat3w_detumble_nominal` | proved | DETUMBLE (a) (the band in the domain keeps the explicit run); SAFE (a) | both ok (invariant) (both clauses, since 2026-10-26) |
 | 33 | `sat3w_detumble_phases` | proved | as 32 | as 32 |
 | 34 | `sat3w_detumble_weak` | proved | NOMINAL, ECONOMY, SURVIVAL (a) (the band in the domain keeps the explicit runs); SAFE (a) | all ok (invariant) |
 | 35 | `sat_detumble_nominal` | proved | as 32 | as 32 |
@@ -194,7 +195,8 @@ covers, and Assumption 1 holds literally.
 
 ## 4. The tool check (`relcert --wellformed`)
 
-`Trusted/WellFormedCheck.lean`. Per right mode, a cheap SUFFICIENT check of clause (ii):
+`Trusted/WellFormedCheck.lean`. Per right mode, a cheap SUFFICIENT check of both clauses,
+clause (ii) first:
 
 1. **Invariance**: the guard's comparison atoms are kept by the mode's own flow over its
    evolve domain, stratified (an atom may be conditioned only on atoms kept in earlier
@@ -207,13 +209,57 @@ covers, and Assumption 1 holds literally.
    most `ε_r` is in a declared successor's guard. `ok (exit→S)`, `S` greedily minimized.
 3. Otherwise `UNKNOWN`.
 
-Only `unsat` counts. Clause (i) (a full-interval run exists) is not checked (the satellites'
-`ok (invariant)` rows are about clause (ii) only; the kernel's `WellFormedR` is the full
-statement). Output: `[wellformed] <bench>: q1 ok (invariant) | q2 ok (exit→q3) | q4 UNKNOWN
-(N queries)` and `[wellformed] summary: …`. `--check-quick-v2` runs the same section as its
-check 3/3, strict (below); until 2026-10-10 it was informational there.
+Then clause (i), on a mode whose clause (ii) is shown (since 2026-10-26; until then clause (i)
+was not checked). It must show that from every state of `X₀ = G ∧ D` the solution of the
+mode's (polynomial) field exists on `[0, ε_r]` and stays in `D`, which is the first conjunct
+of `WellFormedRModeIn` with its domain conjunct. `I` are the facts of steps 1/1b (valid along
+every run inside `D` from `X₀`).
 
-**Suite_v2 result** (2026-10-10, repaired models): 45 benchmarks, 146 right modes: 83 ok
+4. **The domain persists, atom by atom.** Each atom `d ≤ 0` of `D` persists past the first
+   time `τ < ε_r` the solution would leave the atoms shown so far, by: (R1) contraction
+   shape or frozen (exact for the unconstrained flow); (R3) `UNSAT(D ∧ I ∧ d = 0 ∧ ḋ ≥ 0)`;
+   (R5) `UNSAT(P ∧ ¬(d ≤ 0))`; (R4) `UNSAT(P ∧ ḋ > 0)`; (R6, a threshold atom `x ⋈ c`)
+   `UNSAT(P ∧ ḋ[x := c] > 0)`, since `ḋ − ḋ[x := c]` is a polynomial multiple of `d`; (R2,
+   the interval margin) a rate bound `UNSAT(D ∧ I ∧ ḋ > L)` and `UNSAT(X₀ ∧ d + L ε_r > 0)`.
+   `P` is the conjunction of the atoms shown before (sequential, never mutual); the closures
+   of the guard atoms are optional candidates for `P`. DI route A over `D` is deliberately
+   not a route: it speaks only of runs that stay in `D`, the thing to be shown.
+5. **Or the domain polyhedron persists.** All domain atoms closed and affine: the polyhedron
+   `K` of the domain atoms and the affine candidates is invariant when the field points
+   inward on every face, `UNSAT(K ∧ k = 0 ∧ k̇ > 0)` per atom `k` (Nagumo / Bony–Brezis for a
+   polyhedron and a locally Lipschitz field), a greatest fixpoint over the candidates. The
+   satellites use it (`h ≤ 2` under `h' = 2.5 w₃` holds on its face because the conserved
+   band gives `h + 5 w₃ ≤ 2`), as do the `platoon3` sinks (`g₁ ≥ 0` with the guard's
+   conserved `g₁ + 2 r₁ ≥ 0`) and the `rover_lateral` pairs (`y ≤ 0.5` with `y + w ≤ 0.5`).
+6. **Existence.** An affine field has global solutions; otherwise every moving coordinate's
+   field is bounded on `D ∧ I` (`|fᵢ| ≤ 10⁴`), so the solution cannot blow up before `ε_r`.
+
+A domain atom no route keeps is tested for an immediate exit, `SAT(X₀ ∧ d = 0 ∧ ḋ > 0)`: a
+start state leaves `D` at once, so no run of duration `ε_r > 0` exists, clause (i) is false
+and the mode is **`BLOCKING (leaves d)`** (a `sat` answer only ever marks a failure).
+Otherwise **`UNKNOWN (nonblocking)`**: clause (ii) shown, clause (i) not (a later exit, as in
+a variant of `vehicle_hypercert` whose `Am4` guard admits `v = 0.02` under `v' = −0.04`, is
+`UNKNOWN`, never `ok`). An `ok` mode keeps its clause (ii) label (`invariant` / `exit→S`, the
+Lean styles (a) / (b)); `ok` means both clauses.
+
+Only `unsat` counts. Output: `[wellformed] <bench>: q1 ok (invariant) | q2 ok (exit→q3) | q4
+UNKNOWN | q5 UNKNOWN (nonblocking) | q6 BLOCKING (leaves d) (N queries)` and `[wellformed]
+summary: …` (with `RELCERT_DEBUG=1`, the reason of every mode not `ok` on stderr).
+`--check-quick-v2` runs the same section as its check 3/3, strict (below); until 2026-10-10 it
+was informational there.
+
+**Suite_v2 result** (2026-10-26, both clauses): 50 benchmarks, 174 right modes: 91 ok
+(invariant), 83 ok (exit), **0 UNKNOWN, 0 BLOCKING**, 10643 queries (5947 for clause (ii)
+alone), about 17 s; the per-mode labels are those of the clause (ii) check alone. The 37
+round-2 designs of the 2026-10-26 redesign pass (outside the tree): 122 right modes, 69 ok
+(invariant), 53 ok (exit), 0 UNKNOWN, 0 BLOCKING, labels unchanged.
+
+**The blocking exhibit** `benchmarks/negative_wellformed/vehicle_hypercert_s8` (the round-2
+variant with `s ≤ 8` in every evolve domain): the default run CERTIFIES it, clause (ii) alone
+finds all five right modes `ok`, the two-clause check finds all five `BLOCKING (leaves s <= 8.0)`
+(at `s = 8`, `v > 0` the flow leaves at once), and `RELCERT_WELLFORMED_STRICT=1` DECLINES it.
+
+**Clause (ii) on the repaired models** (2026-10-10): 45 benchmarks, 146 right modes: 83 ok
 (invariant), 63 ok (exit), **0 UNKNOWN**, 2279 queries. Every mode the kernel proves is `ok`.
 Before the repairs: 77 / 53 / 16 UNKNOWN in 9 benchmarks (2236 queries); the 16 UNKNOWN modes
 were exactly the blocking modes of §3 (ApproachA and ApproachB of the three `arm_plateau`
@@ -227,17 +273,16 @@ LIMIT of the two `quad_light` files).
 repaired model's `FOLLOW` / `NORMAL` / `CLOSE` / `FAR` are `ok (invariant)`. With the switch
 on, the old model's two benchmarks, CERTIFIED by the default run, are DECLINED.
 
-**The switch** `RELCERT_WELLFORMED_STRICT=1`: a CERTIFIED benchmark with an `UNKNOWN` right
-mode becomes DECLINED (a `[wellformed] STRICT` line on stderr says why). Off by default for a
+**The switch** `RELCERT_WELLFORMED_STRICT=1`: a CERTIFIED benchmark with an `UNKNOWN` or
+`BLOCKING` right mode becomes DECLINED (a `[wellformed] STRICT` line on stderr says why). Off by default for a
 single `relcert <file>` run; off, no verdict and no emission changes.
 
 **Strict in the recipe** (2026-10-10). `--check-quick-v2` certifies the suite in the strict
 mode (the switch forced on for its check 1/3) and ends with check 3/3, the `--wellformed`
 report gated against declared counts: `ExpectedSuiteV2.wfModes = 174` (`VerdictsV2/RunV2.lean`; the
 kernel pin `CoveragePinsV2.suiteV2_wfModes` of that count was archived with the standalone
-route on 2026-10-22) and
-`wfUnknown = 0`. Any `UNKNOWN` mode, or a mode count off the declared one, fails the run
-(`wellformed (strict): FAIL`, exit 1). Checked negatively: with the pre-repair
+route on 2026-10-22), `wfUnknown = 0` and `wfBlocking = 0`. Any `UNKNOWN` or `BLOCKING` mode,
+or a mode count off the declared one, fails the run (`wellformed (strict): FAIL`, exit 1). Checked negatively: with the pre-repair
 `platoon_delay_linkloss` in place of the repaired one, check 1 declines it
 (`44 certified, 1 declined … but the declared suite is 45/0/0`) and check 3 reports
 `145/146 right modes ok … 1 UNKNOWN`: `SUITE_V2 QUICK CHECKS FAILED`, exit 1. The informational

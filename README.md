@@ -34,8 +34,10 @@ satellites since 2026-10-15, when their conserved momentum band entered the righ
 domain; `docs/WELLFORMED.md`). Nine models violated it until 2026-10-10
 (refuted in the kernel with exhibited blocking states: fallback sinks whose own flow left
 their guard, approach bands narrower than one control interval) and were repaired
-(`docs/SUITE-REDESIGN.md` §21). The tool checks its successor half (`relcert --wellformed`),
-STRICT in the certification recipe: `--check-quick-v2` fails on any `UNKNOWN` right mode. See
+(`docs/SUITE-REDESIGN.md` §21). The tool checks both clauses per right mode
+(`relcert --wellformed`; until 2026-10-26 only the successor clause, so a right model that
+blocks at a domain bound passed it), STRICT in the certification recipe: `--check-quick-v2`
+fails on any right mode that is `UNKNOWN` or `BLOCKING`. See
 [Assumption 1 is verified per benchmark](#assumption-1-is-verified-per-benchmark).
 
 Everything except Z3 is Lean: the parser, the lowering, the SMT printer, the search, the
@@ -161,7 +163,7 @@ the statement, not an assumption: the theorem's premise and conclusion both carr
 Nonblocking (the paper's Assumption 1) is taken by the generic-bridge theorems as `hwf` and
 discharged from the per-benchmark proof. Assumption 1 itself is a separately verified model fact (`WellFormedR`, [below](#assumption-1-is-verified-per-benchmark));
 the tool's `--wellformed` check of it is untrusted and only ever declines: strict in
-`--check-quick-v2` (an `UNKNOWN` right mode fails the recipe), informational as
+`--check-quick-v2` (an `UNKNOWN` or `BLOCKING` right mode fails the recipe), informational as
 `relcert --wellformed`, and per run under `RELCERT_WELLFORMED_STRICT=1`.
 
 The search (cover exploration, checked-cut search, route and λ selection) is untrusted: it
@@ -218,6 +220,11 @@ RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert --check-quick-v2 benchmarks/suit
 # 3b. the expected DECLINE (the leaky FREEDM controller)
 RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert benchmarks/negative/*/input.txt
 
+# 3c. the expected Assumption 1 failure (a right model that blocks at the bound s = 8; the
+#     default run certifies it, the strict gate declines it)
+./.lake/build/bin/relcert --wellformed benchmarks/negative_wellformed/*/input.txt
+RELCERT_IMPLIED_CUT=1 RELCERT_WELLFORMED_STRICT=1 ./.lake/build/bin/relcert benchmarks/negative_wellformed/*/input.txt
+
 # 4. the trusted-layer tests (IR drift of all 50 literals, parser, printer, Z3 layer,
 #    determinism); the manifest lets the two determinism checks run
 for d in benchmarks/suite_v2/*/; do
@@ -238,9 +245,11 @@ the three standard axioms (`lake` also replays the 11 lines of `CutLiftX.lean`'s
 9 axiom lines (AxiomCheck), each a subset of the four axioms above; `relcert-bridge-verdicts`: `4350/4350` at the bridge dimensions;
 `relcert-progress-verdicts`: `213/213`; `[suite_v2] 50 certified, 0 declined, 0 error(s)`,
 coverage `modal 784/784`, `handoff 417/417`, `non-connection 92/92`, `pruned edges 46/46`,
-`reposition (dyn) 21/21`, the strict Assumption 1 gate `[wellformed] STRICT: 174/174 right modes ok
-(91 invariant, 83 exit), 0 UNKNOWN — matches the declared suite`, `wellformed (strict): PASS`,
-`SUITE_V2 QUICK CHECKS PASSED`; `benchmarks/negative/freedm_meter_leaky`: `DECLINED`;
+`reposition (dyn) 21/21`, the strict Assumption 1 gate `[wellformed] STRICT: 174/174 right modes ok,
+both clauses (91 invariant, 83 exit), 0 UNKNOWN, 0 BLOCKING — matches the declared suite`,
+`wellformed (strict): PASS`, `SUITE_V2 QUICK CHECKS PASSED`;
+`benchmarks/negative/freedm_meter_leaky`: `DECLINED`; `vehicle_hypercert_s8`: all five right
+modes `BLOCKING (leaves s <= 8.0)`, and `DECLINED` under the strict switch;
 `relcert-test`: a bare `ALL PASS`; `refute: 315/315 hypotheses discharged` (the bridge and
 refute counts are unchanged by the right-clock coordinate of 2026-10-21: no query reads it).
 
@@ -379,7 +388,7 @@ Environment variables of `relcert` (`relcert --help` prints the same list):
 | `RELCERT_NO_PRUNE=1` | disable non-connection pruning (the M4 counter-run) |
 | `RELCERT_NO_CUT=1` | disable the checked-cut channel (the M6 counter-run) |
 | `RELCERT_DEBUG=1` | per-mode diagnostics on stderr |
-| `RELCERT_WELLFORMED_STRICT=1` | run the `--wellformed` check on every CERTIFIED benchmark and DECLINE it when a right mode is `UNKNOWN` (off by default for a single run, no verdict and no emission changes; `--check-quick-v2` forces it on; on the repaired suite no benchmark declines, before the 2026-10-10 repairs 9 did) |
+| `RELCERT_WELLFORMED_STRICT=1` | run the `--wellformed` check on every CERTIFIED benchmark and DECLINE it when a right mode is `UNKNOWN` or `BLOCKING` (off by default for a single run, no verdict and no emission changes; `--check-quick-v2` forces it on; on the repaired suite no benchmark declines, before the 2026-10-10 repairs 9 did) |
 | `RELCERT_Z3=<path>` | the Z3 binary |
 | `RELCERT_Z3_TIMEOUT=<ms>` | per-query timeout, default 10000 |
 | `RELCERT_Z3_RLIMIT=<n>` | per-query deterministic resource limit, default 64000000 |
@@ -458,16 +467,27 @@ states: `docs/WELLFORMED.md`; the repairs and their tool evidence: `docs/SUITE-R
 and the lowering produce, with no Z3 leaf.
 
 **The tool check** (`relcert --wellformed <inputs>`, `Trusted/WellFormedCheck.lean`): a cheap
-sufficient check of clause (ii) per right mode: the guard atoms are kept by the mode's own
-flow (stratified cut routes) and the mode has a self-loop (`ok (invariant)`), or every run of
-at most `ε_r` ends in a declared successor's guard (rate bounds on the atoms that are not
-kept, then one coverage query: `ok (exit→S)`), else `UNKNOWN`. On the suite: 174 right
-modes, 93 ok (invariant), 81 ok (exit), **0 UNKNOWN** (before the repairs: 77 / 53 / 16
-UNKNOWN, exactly the blocking modes of the nine models; on the old `platoon3` model, commit
-`1a3507f`, every mode is `UNKNOWN`). **Strict in the recipe:** `--check-quick-v2` certifies in
-the strict mode and gates the `--wellformed` report against declared counts (173 modes, 0
-`UNKNOWN`, the runner's declared constants `ExpectedSuiteV2.wfModes` / `wfUnknown`): any
-`UNKNOWN` fails the run. `RELCERT_WELLFORMED_STRICT=1` does the same per `relcert` run.
+sufficient check of BOTH clauses per right mode. Clause (ii): the guard atoms are kept by
+the mode's own flow (stratified cut routes) and the mode has a self-loop (`ok (invariant)`),
+or every run of at most `ε_r` ends in a declared successor's guard (rate bounds on the atoms
+that are not kept, then one coverage query: `ok (exit→S)`). Clause (i), on top (since
+2026-10-26; until then it was not checked, and `vehicle_hypercert` with `s ≤ 8` in the right
+evolve domain passed although its right model blocks at `s = 8`): from every guard state the
+solution stays in the evolve domain for `ε_r` (each domain atom persists by an exact,
+boundary, monotone, remainder or interval-margin route, or the domain polyhedron is kept face
+by face) and cannot blow up (an affine field, or a bounded one on the domain). A mode is `ok`
+only when both are shown; `BLOCKING (leaves d)` when some guard state leaves the domain at
+once (clause (i) refuted); else `UNKNOWN` (`UNKNOWN (nonblocking)`: clause (ii) shown, clause
+(i) not). The label of an `ok` mode is the clause (ii) style, matching the Lean proofs'
+styles (a) / (b). On the suite: 174 right modes, 91 ok (invariant), 83 ok (exit), **0
+UNKNOWN, 0 BLOCKING** (clause (ii) before the repairs: 77 / 53 / 16 UNKNOWN, exactly the
+blocking modes of the nine models; on the old `platoon3` model, commit `1a3507f`, every mode
+is `UNKNOWN`). On the 37 round-2 designs: 122 right modes, all `ok`. **Strict in the
+recipe:** `--check-quick-v2` certifies in the strict mode and gates the `--wellformed` report
+against declared counts (174 modes, 0 `UNKNOWN`, 0 `BLOCKING`, the runner's declared
+constants `ExpectedSuiteV2.wfModes` / `wfUnknown` / `wfBlocking`): any mode not `ok` fails the
+run. `RELCERT_WELLFORMED_STRICT=1` does the same per `relcert` run. The check is not part of
+the guarantee: the guarantee's Assumption 1 is the kernel's `WellFormedR`, above.
 
 ## The 18 carried-over Assumption 1 proofs
 

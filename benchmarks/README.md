@@ -268,3 +268,14 @@ the grid while a run from another level keeps it on the battery, so no matching 
 meters equal. A DECLINE is
 not a proof of insecurity (the certifier is sound, not complete); the source proves the leak by
 exhibiting the two runs.
+
+## Assumption 1 negative exhibit (`benchmarks/negative_wellformed/`)
+
+`vehicle_hypercert_s8`: `vehicle_hypercert` with the position bound `s ≤ 8` in every evolve
+domain (a round-2 design variant). The certifier CERTIFIES it (the relational invariant does
+not see the bound), but its right model can block: every right guard admits `s = 8` with
+`v > 0`, where the flow leaves the domain at once, so no evolution spans the control interval
+and Assumption 1's nonblocking clause is false. The check of the successor clause alone
+reports all five right modes `ok`; the two-clause check (since 2026-10-26) reports all five
+`BLOCKING (leaves s <= 8.0)`, and `RELCERT_WELLFORMED_STRICT=1` DECLINES the file. It enters no
+declared count (`docs/WELLFORMED.md` §4).

@@ -15,20 +15,32 @@ open RelCertifier.Parse
 
 def watertank_twospeed_cutsV2 : EvolStrengthening :=
   { L := [
-      ("Low", [((.cmp ">=" (.var "x") (.num "5.0")), CutRoute.shape)])
+      ("Low", [((.cmp ">=" (.var "x") (.num "5.0")), CutRoute.shape)]),
+      ("Mid", [((.cmp ">=" (.var "x") (.num "13.0")), CutRoute.shape)]),
+      ("High", [((.cmp ">=" (.var "x") (.num "20.0")), CutRoute.shape)])
     ]
     R := [
       ("Fast", [((.cmp ">=" (.var "x") (.num "2.0")), CutRoute.shape)]),
-      ("Slow", [((.cmp ">=" (.var "x") (.num "8.0")), CutRoute.shape)])
+      ("Slow", [((.cmp ">=" (.var "x") (.num "7.0")), CutRoute.shape)]),
+      ("MidEco", [((.cmp ">=" (.var "x") (.num "10.0")), CutRoute.shape)]),
+      ("MidBoost", [((.cmp ">=" (.var "x") (.num "10.0")), CutRoute.shape)]),
+      ("High", [((.cmp ">=" (.var "x") (.num "17.0")), CutRoute.shape)]),
+      ("PumpOff", [])
     ] }
 
 def watertank_twospeed_cutsV2X : EvolStrengtheningX :=
   { L := [
-      ("Low", [⟨(.cmp ">=" (.var "x") (.num "5.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "x") (.num "15.5")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩])
+      ("Low", [⟨(.cmp ">=" (.var "x") (.num "5.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "x") (.num "15.5")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
+      ("Mid", [⟨(.cmp ">=" (.var "x") (.num "13.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "x") (.num "20.0")), CutKind.closure, CutEntry.weakening, CutRouteX.shape, []⟩]),
+      ("High", [⟨(.cmp ">=" (.var "x") (.num "20.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩])
     ]
     R := [
       ("Fast", [⟨(.cmp ">=" (.var "x") (.num "2.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "x") (.num "12.5")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
-      ("Slow", [⟨(.cmp ">=" (.var "x") (.num "8.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩])
+      ("Slow", [⟨(.cmp ">=" (.var "x") (.num "7.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "x") (.num "12.5")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
+      ("MidEco", [⟨(.cmp ">=" (.var "x") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "x") (.num "17.0")), CutKind.closure, CutEntry.weakening, CutRouteX.shape, []⟩]),
+      ("MidBoost", [⟨(.cmp ">=" (.var "x") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "x") (.num "17.0")), CutKind.closure, CutEntry.weakening, CutRouteX.shape, []⟩]),
+      ("High", [⟨(.cmp ">=" (.var "x") (.num "17.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩]),
+      ("PumpOff", [⟨(.cmp "<=" (.var "x") (.num "2.0")), CutKind.closure, CutEntry.weakening, CutRouteX.frozen, []⟩])
     ] }
 
 /-- The legacy (guard-conjunct) part is well formed. -/

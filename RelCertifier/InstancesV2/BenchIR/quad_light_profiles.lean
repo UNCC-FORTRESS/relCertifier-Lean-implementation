@@ -15,46 +15,44 @@ def quad_light_profiles_IRv2 : PProblem :=
   {
     name := "quad_light_profiles"
     lambdaMin := "1.0"
-    lambdaMax := "6.0"
+    lambdaMax := "1.0"
     L := {
-      stateVars := ["w"]
-      epsilon := "2.0"
+      stateVars := ["h", "w"]
+      epsilon := "1.0"
       modes := [
         {
           name := "CLIMB"
-          odes := [("w", (.bin "-" (.bin "/" (.num "39.62") (.num "3.0")) (.bin "*" (.bin "/" (.num "5.0") (.num "3.0")) (.bin "*" (.var "w") (.var "w")))))]
-          guard := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "3.2")))
-          evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "3.5")))
+          odes := [("h", (.var "w")),
+            ("w", (.bin "-" (.num "14.715") (.bin "*" (.num "6.13125") (.var "w"))))]
+          guard := (.and (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "2.4")))
+          evolve := (.and (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "2.4")))
           next := ["CLIMB"] } ] }
     R := {
-      stateVars := ["w"]
+      stateVars := ["h", "w"]
       epsilon := "1.0"
       modes := [
         {
           name := "NORMAL"
-          odes := [("w", (.bin "-" (.num "4.0") (.bin "*" (.var "w") (.var "w"))))]
-          guard := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "3.2")))
-          evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "3.5")))
-          next := ["NORMAL", "ECO", "SPORT", "LIMIT"] },
+          odes := [("h", (.var "w")),
+            ("w", (.bin "-" (.num "9.81") (.bin "*" (.num "4.905") (.var "w"))))]
+          guard := (.and (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "2.4")))
+          evolve := (.and (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "2.4")))
+          next := ["NORMAL", "ECO", "SPORT"] },
         {
           name := "ECO"
-          odes := [("w", (.bin "-" (.num "3.6") (.bin "*" (.var "w") (.var "w"))))]
-          guard := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "3.2")))
-          evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "3.5")))
-          next := ["ECO", "NORMAL", "LIMIT"] },
+          odes := [("h", (.var "w")),
+            ("w", (.bin "-" (.num "7.848") (.bin "*" (.num "4.905") (.var "w"))))]
+          guard := (.and (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "2.4")))
+          evolve := (.and (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "2.4")))
+          next := ["ECO", "NORMAL", "SPORT"] },
         {
           name := "SPORT"
-          odes := [("w", (.bin "-" (.num "4.4") (.bin "*" (.var "w") (.var "w"))))]
-          guard := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "3.2")))
-          evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "3.5")))
-          next := ["SPORT", "NORMAL", "LIMIT"] },
-        {
-          name := "LIMIT"
-          odes := [("w", (.bin "*" (.num "-2.0") (.var "w")))]
-          guard := (.cmp ">" (.var "w") (.num "3.2"))
-          evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "3.5")))
-          next := ["LIMIT", "NORMAL"] } ] }
+          odes := [("h", (.var "w")),
+            ("w", (.bin "-" (.num "11.772") (.bin "*" (.num "4.905") (.var "w"))))]
+          guard := (.and (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "2.4")))
+          evolve := (.and (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "2.4")))
+          next := ["SPORT", "NORMAL", "ECO"] } ] }
     invariants := [
-      ("CLIMB", (.and (.cmp "<=" (.var "L_w") (.bin "+" (.var "R_w") (.num "1.0"))) (.cmp "<=" (.var "R_w") (.var "L_w"))))] }
+      ("CLIMB", (.and (.and (.and (.cmp "<=" (.bin "-" (.var "R_h") (.var "L_h")) (.num "0.8")) (.cmp "<=" (.bin "-" (.var "L_h") (.var "R_h")) (.num "0.8"))) (.cmp "<=" (.bin "+" (.bin "+" (.bin "*" (.num "6.13125") (.bin "-" (.var "L_h") (.var "R_h"))) (.bin "-" (.var "L_w") (.bin "*" (.num "1.25") (.var "R_w")))) (.num "0.6")) (.bin "*" (.num "6.13125") (.num "0.8")))) (.cmp "<=" (.var "R_w") (.var "L_w"))))] }
 
 end RelCertifier.Parse

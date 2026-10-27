@@ -1,75 +1,95 @@
-# quad_light_airframe_20: quadrotor climb with quadratic drag, deployed airframe 20 % lighter than
-# the reference model.
+# quad_light_airframe_20: quadrotor climb segment, deployed airframe 20 % lighter than the
+# reference model; altitude conformance at the stated time scaling 6/5.
 # scenario: model-refinement
-# mechanisms: S M (time stretch lambda = 7/4 needed, RELCERT_SYNC=1 declines; multi-step cover,
-#   matrix codes M1 M2)
+# mechanisms: S M (time stretch lambda = 6/5 needed, RELCERT_SYNC=1 declines; multi-step cover,
+#   budget 2; matrix codes M1 M2)
 #
-# System. Climb-rate dynamics with quadratic aerodynamic drag: w' = a - c w^2, w = climb rate
-# (m/s), a = net specific thrust (m/s^2), c = drag per unit mass (1/m); no motor lag (the lagged
-# pair is quad_light_lag).
-#   Right (reference model): a = 4, c = 1, terminal climb rate 2 m/s; plus the autopilot's
-#     climb-rate LIMITER above 3 m/s (motor command cut, w' = -2 w), which hands back to CLIMB
-#     once w <= 3 (LIMIT -> CLIMB declared).
-#   Left (deployed): the airframe is 20 % lighter than the reference model assumed (payload
-#     released): the same motor thrust gives T/m_L = 1.25 T/m, so a_L = 1.25 (4 + 9.81) - 9.81 =
-#     7.45 (g = 9.81) and c_L = 1.25 c = 1.25; terminal climb rate 2.44 m/s.
-# One cause: the airframe mass.
+# Round A (2026-10-26): the stretch is now stated, not searched (lambda_min = lambda_max = 6/5).
+# The previous range [1, 2] certified only because 6/5 is one of the tool's 21 stretch candidates
+# (1 + 4/20); with lambda_max = 4 (step 3/20) the same claim DECLINES, and a 4/3 ratio declines
+# at every candidate of [1, 2].
 #
-# Property: w_L <= w_R + 1 and w_R <= w_L + 0.5 (the deployed never climbs more than 1 m/s faster
-# than the reference, and the reference never more than 0.5 m/s faster than the deployed). The
-# two constants are round stated tolerances of this family, not derived from an external limit.
-# Tightest (bisection to 0.01, one conjunct at a time, the other at its file value): the first
-# certifies down to 0.60 (0.59 declines); the second down to 0 (w_R <= w_L; -0.01 declines).
-# Not implied by the domains.
+# System. Vertical climb segment of a quadrotor: altitude h (m above the take-off point), climb
+# rate w (m/s), time in s. The flight plan flies the climb at a fixed climb thrust T; the climb
+# rate is damped by the rotor thrust lapse with climb rate and the airframe drag, linearised:
+# m w' = T - m g - k w, h' = w (g = 9.81 m/s^2). Shared by quad_light_lag and
+# quad_light_profiles (same airframe numbers).
+#   Right (reference model): T = 2 m_R g (thrust-to-weight 2, the usual sizing), k/m_R = 4.905 /s:
+#     w' = 9.81 - 4.905 w, terminal climb rate 2.0 m/s (the flight plan's climb rate).
+#   Left (deployed): the same motors, thrust and damping on an airframe 20 % lighter than the
+#     reference model assumed (payload removed): T/m_L = 1.25 T/m_R, k/m_L = 1.25 k/m_R, so
+#     w' = 1.25 (2 g) - g - 6.13125 w = 14.715 - 6.13125 w, terminal climb rate 2.4 m/s.
+# One cause: the airframe mass (same thrust, damping, control interval and modes on both sides).
 #
-# Why the stretch is needed (S). The deployed loop is faster: with lambda <= 3/2 the first
-# conjunct fails at low climb rates (lambda_max = 1.5 DECLINES); the cover uses lambda = 7/4,
-# budget ceil(7/4 * 2 / 1) = 4 right cycles per left window (M).
-# Fallback. CLIMB never reaches the limiter (at w = 3 drag wins, w' = -5 < 0), so CLIMB -> LIMIT
-# is pruned by a non-connection certificate; LIMIT is no admissible start (w_L <= 2.5 and
-# w_R <= w_L + 0.5 exclude w_R > 3). Pruning and the committed choice each close this fallback:
-# RELCERT_NO_PRUNE=1 alone certifies, only RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1 declines (no P).
+# Requirement (altitude conformance at a stated time scaling, the Skorokhod form): at every time
+# t the deployed's altitude is within 0.8 m of the reference model's altitude at time 1.2 t.
+# 0.8 m is the autopilot's multicopter altitude acceptance radius (PX4's default
+# NAV_MC_ALT_RAD): every altitude the reference profile reaches, the deployed reaches 1.2 times
+# sooner to within the radius at which the autopilot accepts an altitude waypoint.
+# The scaling is the stated one: lambda = 6/5 = 2.4 / 2.0, the ratio of the terminal climb rates,
+# which follows from the stated mass ratio (lambda = 2 - m_L/m_R for T = 2 m_R g); hence
+# lambda_min = lambda_max = 1.2. It cannot be widened into a range by a tolerance: at any other
+# lambda the steady-climb gap Psi below drifts at 2.4 - 2 lambda m/s and the climb is unbounded.
+#   rows 1, 2 (the requirement): h_R - h_L <= 0.8 and h_L - h_R <= 0.8.
+# Strengthening rows (each needed: dropping row 3 or row 4, or both, DECLINES, measured):
+#   row 3: Psi <= 0.8 with Psi = (h_L - h_R) + (w_L - 2.4)/6.13125 - (w_R - 2)/4.905 (written
+#     multiplied by 6.13125 in the file). Psi is the altitude gap the two steady climbs converge
+#     to; at lambda = 6/5 it is conserved exactly (Psi' = 2.4 - 2 lambda = 0). Constant: the
+#     requirement's 0.8 (the steady-climb gap must also be within the radius).
+#   row 4: 1.2 w_R <= w_L, the climb-rate row that follows: the deployed climbs at least as fast
+#     as the time-scaled reference (at equality the deployed accelerates harder for every
+#     w <= 2.4). Under row 4, h_L - h_R <= Psi, so row 3 gives row 2, and h_L - h_R never
+#     decreases, so row 1 holds.
+# From hover (h_L = h_R, w_L = w_R = 0) Psi = 0.0163 m: the deployed leads the scaled reference by
+# at most 1.6 cm, well inside 0.8 m. Tightest: rows (0, 0.02, 0.02) certify (measured), so the
+# hover start stays related down to 0.02 and the requirement margin is 0.78 m. Not implied by
+# the domains.
 #
-# Guards. Left CLIMB 0 <= w <= 2.5 (a climb from hover or a slow climb; forward invariant,
-# w' < 0 at 2.5). Right CLIMB 0 <= w <= 3 (the climb controller's operating range up to the
-# limiter threshold, forward invariant: w' = 4 - w^2 < 0 at 3, > 0 at 0), LIMIT 3 < w: the right
-# guards partition the domain (no gap). The limiter's own flow decays the climb rate below its
-# guard within one control period (from 3.1 the 1 s run ends at 3.1 e^-2 = 0.42), so it hands
-# back to CLIMB (relcert --wellformed: CLIMB ok (invariant), LIMIT ok (exit->CLIMB)).
-# Domains: 0 <= w <= 3.5 m/s both sides (climb only, the rated maximum climb rate). The left
-# mode has a satisfiable start (w_L = w_R).
+# Cause dependence (measured): no mass change (left = the reference airframe) at lambda 6/5:
+# DECLINED (the identical pair is exact at lambda 1, not measured). 25 % lighter (terminal
+# 2.5 m/s) at 6/5: DECLINED; at its own ratio 5/4 with its own rows (Psi with 6.54 and 4/3,
+# row 4 1.25 w_R <= w_L): CERTIFIED.
+# The stretch follows the cause: lambda = 1 + the mass reduction.
+# Why the stretch (S) and two cycles (M): at lambda = 1 the deployed climbs away (RELCERT_SYNC=1
+# declines); the cover's budget is ceil(6/5 x 1 / 1) = 2 right cycles per left window.
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED; CERTIFIED under RELCERT_NO_CHOICE=1,
-# RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1, without RELCERT_IMPLIED_CUT, NO_IMPLIED_CUT, NO_LINEAR_CUT
-# and the operating region; DECLINED under RELCERT_SYNC=1, SYNC+NO_CHOICE and NO_PRUNE+NO_CHOICE.
-# Cover: lambda = 7/4, budget 4, admissible start CLIMB, pruned CLIMB -> LIMIT; --handoff 1/1
-# vacuous. Units m/s, m/s^2, s.
+# Guards and domains. The climb segment starts from hover or from a climb slower than terminal:
+# CLIMB guard = evolve = h >= 0 and 0 <= w <= the terminal climb rate (2.4 left, 2.0 right), the
+# climb envelope at the climb thrust, forward invariant (w' = 0 at the terminal rate, h' = w >= 0).
+# Altitude is unbounded above in this model (the claim covers climb segments of any length;
+# the level-off is not modeled). One right mode, so no coverage gap; the left mode has a
+# satisfiable start (hover). The autopilot's 3 m/s climb-rate limiter lies above both envelopes
+# and never engages: not modeled. Control interval 1 s on both sides.
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26 with the round-A binary):
+# CERTIFIED (about 0.15 s); DECLINED under RELCERT_SYNC=1 and SYNC+NO_CHOICE; CERTIFIED under
+# RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE, without RELCERT_IMPLIED_CUT,
+# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_CUT=1, RELCERT_NO_PAIR_STRETCH=1,
+# RELCERT_WELLFORMED_STRICT=1 and RELCERT_OPREGION=1 (every admitted start in some right guard).
+# Cover: CLIMB at lambda = 6/5, budget 2, admissible start CLIMB, nothing pruned; --handoff 1/1
+# vacuous (one left mode); relcert --wellformed: CLIMB ok (invariant), 0 UNKNOWN. Units m, m/s,
+# m/s^2, s.
 [problem]
 name = quad_light_airframe_20
 max_depth = 8
-lambda_min = 1.0
-lambda_max = 6.0
+lambda_min = 1.2
+lambda_max = 1.2
 bound_T = 4.0
 [Lsys]
-state_vars = [w]
-epsilon = 2.0
+state_vars = [h, w]
+epsilon = 1.0
 [Lsys.mode.CLIMB]
-ode = w' = smt2:(- 7.45 (* 1.25 (* w w)));
-guard = w >= 0.0 and w <= 2.5
-evolve = w >= 0.0 and w <= 3.5
+ode = h' = w; w' = smt2:(- 14.715 (* 6.13125 w));
+guard = h >= 0.0 and w >= 0.0 and w <= 2.4
+evolve = h >= 0.0 and w >= 0.0 and w <= 2.4
 next = [CLIMB]
 [Rsys]
-state_vars = [w]
+state_vars = [h, w]
 epsilon = 1.0
 [Rsys.mode.CLIMB]
-ode = w' = smt2:(- 4.0 (* w w));
-guard = w >= 0.0 and w <= 3.0
-evolve = w >= 0.0 and w <= 3.5
-next = [CLIMB, LIMIT]
-[Rsys.mode.LIMIT]
-ode = w' = smt2:(* -2.0 w);
-guard = w > 3.0
-evolve = w >= 0.0 and w <= 3.5
-next = [LIMIT, CLIMB]
+ode = h' = w; w' = smt2:(- 9.81 (* 4.905 w));
+guard = h >= 0.0 and w >= 0.0 and w <= 2.0
+evolve = h >= 0.0 and w >= 0.0 and w <= 2.0
+next = [CLIMB]
 [relational_invariant]
-CLIMB = smt2:(and (<= L_w (+ R_w 1.0)) (<= R_w (+ L_w 0.5)))
+CLIMB = smt2:(and (<= (- R_h L_h) 0.8) (<= (- L_h R_h) 0.8) (<= (+ (* 6.13125 (- L_h R_h)) (- L_w (* 1.25 R_w)) 0.1) (* 6.13125 0.8)) (<= (* 1.2 R_w) L_w))

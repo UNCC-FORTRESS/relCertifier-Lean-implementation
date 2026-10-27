@@ -12,7 +12,7 @@ namespace RelCertifier
 
 /-- `quad_light_airframe_20` (emitted, suite_v2, widened cut channel on). -/
 def quad_light_airframe_20_coverV2 : CoverEmitE :=
-  ⟨"quad_light_airframe_20", [("CLIMB", "LIMIT")], [
-    ⟨"CLIMB", (7 : ℚ) / 4, 4, [⟨"CLIMB", true, false, false⟩, ⟨"LIMIT", false, false, false⟩], ["CLIMB"], [⟨"CLIMB", [0, 1], [], [], 7, 4⟩, ⟨"LIMIT", [1], [1], [1], 7, 4⟩]⟩]⟩
+  ⟨"quad_light_airframe_20", [], [
+    ⟨"CLIMB", (6 : ℚ) / 5, 2, [⟨"CLIMB", true, false, false⟩], ["CLIMB"], [⟨"CLIMB", [2, 3, 0, 1], [1, 2], [1, 2], 6, 5⟩]⟩]⟩
 
 end RelCertifier

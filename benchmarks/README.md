@@ -6,7 +6,7 @@ left mode) and the time-stretch range. **49 benchmarks.** With the widened cut c
 (`RELCERT_IMPLIED_CUT=1`, as every suite_v2 run sets it) the tool CERTIFIES all 49, and
 every one carries a kernel-checked Theorem 3 (the paper's Soundness of Synthesis) with the paper's left program over the
 guard-gated right automaton, at the mode-consistent region (`RelCertifier/InstancesV2/Bridge/`;
-check recipe: `docs/CERTIFICATION-CHECK.md`). Without the widened channel 8 of them
+check recipe: `docs/CERTIFICATION-CHECK.md`). Without the widened channel 6 of them
 DECLINE (the rows marked *widened cuts* below). Near-duplicates and weak benchmarks are kept
 outside the suite in `benchmarks/reserve/` (inputs, headers and verdicts only; `reserve/README.md`).
 
@@ -23,10 +23,11 @@ ApproachB bands are narrower than one control interval of their own rate: the sa
 planner's successor sets now name every band a sample can find), `platoon_delay_{linkloss,
 profiles}` (the sink `BRAKE` left its guard: it now re-engages `FOLLOW`),
 `platoon3_{linkloss,profiles}` (the sinks `BRAKE1`–`BRAKE3`: now latched, speed-matching, with
-an invariant guard) and `quad_light_{airframe_20,profiles}` (the sink `LIMIT`: it now hands
-back to the climb controller, whose operating range reaches the limiter threshold).
+an invariant guard) and `quad_light_{airframe_20,profiles}` (the sink `LIMIT`: it handed back to
+the climb controller, whose operating range reached the limiter threshold; both were redesigned
+on 2026-10-27 with the altitude coordinate and no limiter mode).
 `relcert --wellformed <input.txt>…` runs the tool's sufficient check per right mode (every one
-of the 164 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN` or `BLOCKING`.
+of the 166 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN` or `BLOCKING`.
 
 The suite's design, the per-family rationale, the domain audit (every evolve bound is a
 physical limit of the plant; `scripts/domain_widening.py` re-runs the tool with every bound
@@ -189,9 +190,9 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `platoon_latency` | 3 / 2 | 3 / 2 | degraded-network | new 2026-10-27: mode-keyed (AEB row), right model shared with `platoon_linkloss` |
 | `platoon_linkloss` | 2 / 2 | 3 / 2 | dos-attack | redesigned 2026-10-27 (was `platoon_delay_linkloss`): mode-keyed (AEB row), CACC -> ACC fallback |
 | `platoon_profiles` | 2 / 2 | 2 / 2 | controller-refinement | redesigned 2026-10-27 (was `platoon_delay_profiles`): mode-keyed (AEB row), SPORT time gap against NORMAL, right model shared with `platoon_linkloss` |
-| `quad_light_airframe_20` | 1 / 1 | 1 / 2 | model-refinement | LIMIT hands back (§21) |
+| `quad_light_airframe_20` | 2 / 2 | 1 / 1 | model-refinement | redesigned 2026-10-27: altitude coordinate, rows from the 0.8 m altitude acceptance radius, the time scaling fixed to 6/5 (`lambda_min = lambda_max = 1.2`) |
 | `quad_light_lag` | 3 / 3 | 1 / 1 | model-refinement | redesigned 2026-10-27: altitude coordinate, rows from the 0.8 m altitude acceptance radius |
-| `quad_light_profiles` | 1 / 1 | 1 / 4 | model-refinement | LIMIT hands back (§21); mode choice |
+| `quad_light_profiles` | 2 / 2 | 1 / 3 | model-refinement | redesigned 2026-10-27: altitude coordinate, real-time conformance to the reference's SPORT profile (lambda 1); mode choice |
 | `rover_ladder_2to3` | 3 / 2 | 3 / 3 | model-refinement | rewritten 2026-10-26: right speed caps dropped, s offset 0 |
 | `rover_ladder_3to6` | 6 / 6 | 3 / 3 | model-refinement | rewritten 2026-10-26: right pitch pinned, heave/roll roles |
 | `rover_ladder_2to4` | 4 / 4 | 3 / 3 | model-refinement | rewritten 2026-10-26: lambda_min 1.0, offset 0 |
@@ -220,7 +221,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `rover_rollover_7to12` | 12 / 12 | 3 / 3 | model-refinement | widened cuts; rollover, speed and progress rows added (2026-10-26) |
 | `vehicle_hypercert` | 2 / 2 | 5 / 5 | opacity | literature (HyperCertificates), mode choice; position coordinate and start-offset row (2026-10-27) |
 | `watertank` | 1 / 1 | 3 / 5 | sensor-attack | the paper's running example |
-| `watertank_twospeed` | 1 / 1 | 1 / 2 | sensor-attack | widened cuts; per-pairing stretch |
+| `watertank_twospeed` | 1 / 1 | 3 / 6 | sensor-attack | redesigned 2026-10-27: six right modes (two-speed low fill, eco/boost mid fill, high, pump off), one uniform claim; per-pairing stretch, pruned `Fast -> PumpOff` |
 
 ## File format
 

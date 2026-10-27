@@ -1,58 +1,94 @@
-# watertank_twospeed: a tank whose low-fill pump runs under a 3-unit sensor offset, against a
-# nominal two-speed fill pump.
+# watertank_twospeed: the running example's attacked tank against a nominal controller whose
+# low-fill pump has two speeds.
 # scenario: sensor-attack
-# mechanisms: S M I (per-pairing time stretch, RELCERT_SYNC=1 declines; four right segments per
-#   left window; the set-point cuts are load-bearing; matrix codes M1 M2 M6 M6+)
+# mechanisms: S M B P (per-pairing time stretch, RELCERT_SYNC=1 declines; two right segments
+#   per deployed window; branching joint steps; pruned dry-run edge, RELCERT_NO_PRUNE=1
+#   declines; matrix codes M1 M2 M3 M4)
 #
-# System. Tank level x (tank levels in dm, time in minutes); the envelope 0 <= x <= 25 is the
-# tank's capacity. This is a separate attacked pump at gain 0.6, not a mode of the running
-# example watertank (whose deployed Low runs at gain 2.0).
-# Left (deployed, attacked). One low-fill mode: the sensor reads 3 units low, so the controller
-# regulates toward 15.5 instead of 12.5: x' = 0.6 (15.5 - x), guard 5 <= x < 13 in true level
-# (the nominal low-fill band 2 <= x < 10 shifted by the offset), next = [Low]. The left is a
-# one-mode fragment: its flow rises toward 15.5, so every left run ends when it leaves the
-# guard at x = 13 (no mid-fill mode is modeled); the claim covers the low-fill phase only.
-# Right (nominal). Two speeds toward the same set point 12.5: FAST below 8
-# (x' = 0.6 (12.5 - x), guard 2 <= x < 8, next = [Fast, Slow]) and a trickle SLOW above
-# (x' = 0.2 (12.5 - x), guard x >= 8, next = [Slow]). The one cause between the sides is the
-# sensor offset (same gain 0.6 in the deployed pump and the nominal FAST).
-# Coverage: the right guards leave x < 2 uncovered (there is no dry-run interlock mode). No
-# paired state reaches it: x_L >= 5 and the claim give x_R >= 2, and both right flows rise
-# from x >= 2.
+# Round A (2026-10-26): the claim is now the same in every mode (x_L <= x_R + 3, x_R <= x_L + 2).
+# The previous rows (+8 overflow margin in Mid and High) were looser than this uniform claim,
+# which also certifies, so their mode dependence (D) was not load-bearing; with the tighter
+# uniform rows the implied cuts are no longer needed either (I lost). Letters were S M B P D I.
 #
-# Property. |x_L - x_R| <= 3 (two rows): the tolerance is the sensor offset, as in the running
-# example. The first row is tight: x_L <= x_R + c certifies down to c = 3.00 (2.99 declines;
-# bisection): the difference x_L - x_R converges to 3. The second row is slack (alone it
-# certifies down to x_R <= x_L - 2.85). Not implied by the domains. The left Low has a
-# satisfiable start (x_R = x_L - 3 in the right's Fast or Slow guard).
+# THE PLANT (both sides, as in watertank). A tank of capacity 25 (level x in dm, a 2.5 m tank;
+# time in minutes); every mode is a proportional pump controller x' = k (c - x) toward a set
+# point c.
+# NOMINAL controller (right). The running example's reference with its low-fill pump staged in
+# two speeds:
+#   PumpOff  x < 2          x' = 0               dry-run interlock below the 2 dm intake, latched
+#                                                 (a sink)
+#   Fast     2 <= x < 7     x' = 2.0 (12.5 - x)  low fill at full speed
+#   Slow     7 <= x < 10    x' = 1.0 (12.5 - x)  low fill at half speed near the set point (the
+#                                                 running example's nominal Low)
+#   MidEco   10 <= x < 17   x' = 0.5 (17 - x)    } mid fill, two selectable profiles, switchable
+#   MidBoost 10 <= x < 17   x' = 1.0 (17 - x)    } at any time (as in watertank)
+#   High     x >= 17        x' = 1.0 (17 - x)    regulate down to 17
+# The right guards partition [0, 25] (no coverage gap). Successor sets are complete for one
+# 1-min period: Fast can reach the mid band (from just below 7 it reaches 11.76), so its
+# successors are Fast, Slow, MidEco, MidBoost and the interlock PumpOff; Slow: Slow, MidEco,
+# MidBoost.
+# DEPLOYED controller (left) = the running example's attacked controller, unchanged:
+#   Low  5 <= x < 13   x' = 2.0 (15.5 - x)    Mid  13 <= x < 20  x' = 1.0 (20 - x)
+#   High x >= 20       x' = 1.0 (20 - x)
+# ONE CAUSE, the attack of the running example (one adversary on two channels): the level
+# sensor reads s = 3 dm low (every threshold and set point is 3 dm higher in true level; the
+# low-fill floor 5 is the nominal interlock 2 seen through the offset), and the pump is forced to
+# its full speed for the whole low fill (gain 2.0 where the nominal drops to half speed) and to
+# the boost profile in mid fill. Levels whose reading is below the interlock (x_L < 5) are
+# outside the model (no deployed dry-run mode), as in watertank. Every left mode has a
+# satisfiable start (x_R = x_L - 3 is in Fast/Slow, MidEco/MidBoost resp. High).
 #
-# Why per-pairing stretch (S). The deployed low-fill pairs with FAST at stretches 1 to 2.2
-# (same gain as the attacked pump: at 1 the difference converges to the tolerance, route C;
-# from 2.35 on the stretched FAST overshoots the lower row) and with SLOW only from 3.1 on
-# the lambda grid (the gain ratio 0.6 / 0.2 = 3; 2.95 fails). No single stretch certifies both,
-# and the deployed window needs both: a nominal pump that starts in FAST crosses 8 within the
-# window and continues in SLOW. With one stretch per left mode the certifier DECLINES
-# (RELCERT_NO_PAIR_STRETCH=1: DECLINED, measured); the per-pairing fallback certifies with
-# lambda_FAST = 1 and lambda_SLOW = 31/10, every joint segment cut to the common span
-# eps_R / 3.1 of left time, budget 4 (M). No branching: a joint step from FAST retains one
-# non-self successor (SLOW).
-# Why the cuts (I). FAST's set-point atom x <= 12.5 and the deployed's x <= 15.5 (implied
-# contraction atoms, widened channel) and the guard floors x >= 5 (deployed), x >= 2, x >= 8
-# (nominal) are kept as cuts;
-# RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1 and a run without RELCERT_IMPLIED_CUT all DECLINE.
+# CLAIM (every left mode): x_L <= x_R + 3 and x_R <= x_L + 2, each constant a margin of the tank:
+#   3 = the sensor offset = the dry-run interlock margin of the low fill (deployed floor 5 minus
+#     the interlock 2): a filling deployed tank is matched by a reference whose pump runs
+#     (x_R >= x_L - 3 >= 2), never by one latched in PumpOff; and the overflow margin: every
+#     reference run from x <= 22 stays at or below 22 (all set points <= 17), so the deployed
+#     stays at or below the 25 dm lip.
+#   2 = underflow margin, the reference's interlock level 2 above the tank floor: while the
+#     reference runs (x_R >= 2), the deployed tank is not empty.
+# Not implied by the domains. Rows identical in every mode (--handoff vacuous, 6/6).
+# Tightest (bisection to 0.01, measured): upper exactly 3.00 (2.99 and 3.01 DECLINE: on the
+# boundary x_L = x_R + 3 the deployed field 2.0 (12.5 - x_R) equals Fast's at lambda 1 and Slow's
+# at lambda 2, neutral; above 3 a reference latched in PumpOff becomes admissible); lower 1.50
+# (1.49 DECLINES): a reference already in mid fill (set point 17) against a deployed still in
+# low fill (target 15.5), 17 - 15.5.
+# Cause dependence (measured; sensor offset s with every deployed threshold and set point s higher,
+# the forced full speed kept): the tightest pair is (upper, lower) = (s, 4.5 - s): s = 0: upper 0
+# (0.01 declines), lower 4.50 (4.49 declines); s = 1: lower 3.50; s = 2: upper 2 (1.99 declines),
+# lower 2.50; s = 3 (this file): 3, 1.50; s = 4: upper 4 (3.99 declines), lower 0.50 (0.49
+# declines). The upper bound is the offset and the lower bound shrinks as the offset grows.
+# An arbitrary left schedule (every left mode on the whole range [5, 25], every mode a successor of
+# every other): DECLINED.
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26): CERTIFIED; CERTIFIED under
-# RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1 (nothing is pruned), both together,
-# RELCERT_NO_LINEAR_CUT=1 and RELCERT_OPREGION=1; DECLINED under RELCERT_SYNC=1, RELCERT_SYNC=1
-# RELCERT_NO_CHOICE=1, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_PAIR_STRETCH=1
-# and without RELCERT_IMPLIED_CUT. Cover: deployed Low, lambda per pairing (Fast 1, Slow 31/10),
-# budget 4, admissible starts Fast and Slow. Rows identical (--handoff vacuous, 1/1). relcert
-# --wellformed: Fast ok (exit), Slow ok (invariant).
+# Why per-pairing stretch (S). The deployed low fill pairs with Fast at lambda 1 (same gain),
+# Slow at 2 (gain ratio), MidEco at 3/2, MidBoost and High at 1; no single stretch covers all and
+# the deployed window needs Fast and Slow (a reference starting in Fast crosses 7 within it):
+# RELCERT_SYNC=1 and RELCERT_NO_PAIR_STRETCH=1 DECLINE. The per-pairing fallback cuts each
+# joint segment to eps_R / 2 of left time, budget 2 (M); a joint step from Fast retains Slow,
+# MidEco and MidBoost (B, branching 3; branching 2 in Mid).
+# Why pruning (P). Fast -> PumpOff is pruned (Fast flows up from its floor 2). Under
+# RELCERT_NO_PRUNE=1 the PumpOff segment fails at every stretch (a latched reference against a
+# filling deployed tank) and the existential choice does not replace it in the per-pairing
+# cover: DECLINED. This is the running example's dead dry-run edge (the source mode's flow never
+# reaches the sink).
+#
+# DOMAIN: the tank capacity, 0 <= x <= 25, identical in every mode on both sides.
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26 with the round-A binary):
+# CERTIFIED (about 2 s); CERTIFIED under RELCERT_NO_CHOICE=1, RELCERT_NO_CUT=1,
+# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, without RELCERT_IMPLIED_CUT,
+# RELCERT_WELLFORMED_STRICT=1 and RELCERT_OPREGION=1 (every admitted start in some right guard,
+# all three left modes); DECLINED under RELCERT_SYNC=1, SYNC+NO_CHOICE, RELCERT_NO_PRUNE=1,
+# NO_PRUNE+NO_CHOICE and RELCERT_NO_PAIR_STRETCH=1. Covers: Low per pairing (Fast 1, Slow 2,
+# MidEco 3/2, MidBoost 1, High 1; reported lambda 2), budget 2, admissible Fast, Slow, MidEco,
+# MidBoost; Mid lambda 2, budget 2, admissible MidEco, MidBoost, High; High lambda 1, budget 1,
+# admissible High. Pruned Fast -> PumpOff. relcert --wellformed: Fast ok (exit), Slow ok (exit),
+# MidEco, MidBoost, High, PumpOff ok (invariant), 0 UNKNOWN.
 [problem]
 name = watertank_twospeed
 max_depth = 8
 lambda_min = 1.0
-lambda_max = 4.0
+lambda_max = 6.0
 bound_T = 40.0
 
 [Lsys]
@@ -60,26 +96,64 @@ state_vars = [x]
 epsilon = 1.0
 
 [Lsys.mode.Low]
-ode = x' = smt2:(* 0.6 (- 15.5 x));
+ode = x' = smt2:(* 2.0 (- 15.5 x));
 guard = x >= 5.0 and x < 13.0
 evolve = x >= 0.0 and x <= 25.0
-next = [Low]
+next = [Low, Mid]
+
+[Lsys.mode.Mid]
+ode = x' = smt2:(* 1.0 (- 20.0 x));
+guard = x >= 13.0 and x < 20.0
+evolve = x >= 0.0 and x <= 25.0
+next = [Mid, High]
+
+[Lsys.mode.High]
+ode = x' = smt2:(* 1.0 (- 20.0 x));
+guard = x >= 20.0
+evolve = x >= 0.0 and x <= 25.0
+next = [High, Mid]
 
 [Rsys]
 state_vars = [x]
 epsilon = 1.0
 
 [Rsys.mode.Fast]
-ode = x' = smt2:(* 0.6 (- 12.5 x));
-guard = x >= 2.0 and x < 8.0
+ode = x' = smt2:(* 2.0 (- 12.5 x));
+guard = x >= 2.0 and x < 7.0
 evolve = x >= 0.0 and x <= 25.0
-next = [Fast, Slow]
+next = [Fast, Slow, MidEco, MidBoost, PumpOff]
 
 [Rsys.mode.Slow]
-ode = x' = smt2:(* 0.2 (- 12.5 x));
-guard = x >= 8.0
+ode = x' = smt2:(* 1.0 (- 12.5 x));
+guard = x >= 7.0 and x < 10.0
 evolve = x >= 0.0 and x <= 25.0
-next = [Slow]
+next = [Slow, MidEco, MidBoost]
+
+[Rsys.mode.MidEco]
+ode = x' = smt2:(* 0.5 (- 17.0 x));
+guard = x >= 10.0 and x < 17.0
+evolve = x >= 0.0 and x <= 25.0
+next = [MidEco, MidBoost, High]
+
+[Rsys.mode.MidBoost]
+ode = x' = smt2:(* 1.0 (- 17.0 x));
+guard = x >= 10.0 and x < 17.0
+evolve = x >= 0.0 and x <= 25.0
+next = [MidBoost, MidEco, High]
+
+[Rsys.mode.High]
+ode = x' = smt2:(* 1.0 (- 17.0 x));
+guard = x >= 17.0
+evolve = x >= 0.0 and x <= 25.0
+next = [High, MidEco, MidBoost]
+
+[Rsys.mode.PumpOff]
+ode = x' = smt2:0.0;
+guard = x < 2.0
+evolve = x >= 0.0 and x <= 25.0
+next = [PumpOff]
 
 [relational_invariant]
-Low = x[l] <= x[r] + 3 and x[r] <= x[l] + 3
+Low = x[l] <= x[r] + 3 and x[r] <= x[l] + 2
+Mid = x[l] <= x[r] + 3 and x[r] <= x[l] + 2
+High = x[l] <= x[r] + 3 and x[r] <= x[l] + 2

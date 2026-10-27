@@ -11,7 +11,7 @@ blocking states); those nine were repaired (`docs/SUITE-REDESIGN.md` §21: the f
 re-engage or are latched with an invariant guard, the arm planner's successor sets name every
 band a sampled interval can reach) and are now proved. No proof uses Z3. The tool's sufficient
 check of both clauses (`relcert --wellformed`; the nonblocking clause since 2026-10-26, before
-which only the successor clause was checked) finds every one of the 164 right modes `ok`, and
+which only the successor clause was checked) finds every one of the 166 right modes `ok`, and
 `--check-quick-v2` runs it STRICT, against declared counts (§4). The generic-bridge
 instances (`InstancesV2/Bridge/`, the paper's route to
 Theorem 3) take it as a hypothesis: `theorem3_keyed_of_records`
@@ -129,9 +129,9 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 12 | `platoon3_profiles` | moved to `benchmarks/reserve/` 2026-10-27 (was: proved (repaired); proof in git history) | NORMAL, CLOSE, FAR (a); BRAKE1–3 (a), latched | all ok (invariant) |
 | 13 | `platoon_delay_linkloss` | replaced 2026-10-27 by `platoon_linkloss` (row 51; was: proved (repaired); proof in git history) | FOLLOW (a), CATCH (a); BRAKE (b) → FOLLOW | FOLLOW, CATCH ok (invariant); BRAKE ok (exit→FOLLOW) |
 | 14 | `platoon_delay_profiles` | replaced 2026-10-27 by `platoon_profiles` (row 56; was: proved (repaired); proof in git history) | FOLLOW, GENTLE, ASSERTIVE (a); BRAKE (b) → FOLLOW | those ok (invariant); BRAKE ok (exit→FOLLOW) |
-| 15 | `quad_light_airframe_20` | proved (repaired) | CLIMB (a) (barriers, guard `0 ≤ w ≤ 3`); LIMIT (b) → CLIMB (exponential decay) | CLIMB ok (invariant); LIMIT ok (exit→CLIMB) |
+| 15 | `quad_light_airframe_20` | proved (redesigned 2026-10-27; repaired 2026-10-10 before, proof in git history) | CLIMB (a) (the affine pair `h' = w`, `w' = 9.81 − 4.905 w`; the explicit run `forcedSol` / `intSol` stays in the guard box `h ≥ 0`, `0 ≤ w ≤ 2`, the equilibrium `w = 2` on its face) | ok (invariant) |
 | 16 | `quad_light_lag` | proved | CLIMB (a) (since 2026-10-27 the affine cascade `h' = w`, `w' = a − 4.905 w`, `a' = 10 (9.81 − a)`; the explicit run `forcedSol` / `intSol` stays in the guard box `h ≥ 0`, `0 ≤ w ≤ 2`, `0 ≤ a ≤ 9.81`) | ok (invariant) |
-| 17 | `quad_light_profiles` | proved (repaired) | NORMAL, ECO, SPORT (a) (guard `0 ≤ w ≤ 3.2`); LIMIT (b) → NORMAL; dimension 3 (mode choice, the default padding) | those ok (invariant); LIMIT ok (exit→NORMAL) |
+| 17 | `quad_light_profiles` | proved (redesigned 2026-10-27; repaired 2026-10-10 before, proof in git history) | NORMAL, ECO, SPORT (a) (`h' = w`, `w' = c − 4.905 w` toward 2.0, 1.6, 2.4; explicit run in the guard box `h ≥ 0`, `0 ≤ w ≤ 2.4`); dimension 3 (mode choice, the default padding) | all ok (invariant) |
 | 18 | `rover_ladder_2to3` | proved | STEEP (b) → MODER, MODER (b) → FLAT, FLAT (a) | STEEP ok (exit→MODER), MODER ok (exit→FLAT), FLAT ok (invariant) |
 | 19 | `rover_ladder_3to6` | proved | as 18 (ladder lemma) | as 18 |
 | 20 | `rover_ladder_2to4` | proved | as 18 | as 18 |
@@ -170,6 +170,7 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 54 | `train_ato_odometry` | proved (2026-10-27) | PL1, PL2, PL3 (a) (contractions toward 25 inside `[5, 27.08]`, guard = domain) | all ok (invariant) |
 | 55 | `gantry_speed_zones` | proved (2026-10-27) | MOVE (a) (two independent axis servos toward `(0.5, 0.3)`; the explicit two-exponential run stays in the travel box, guard = domain) | ok (invariant) |
 | 56 | `platoon_profiles` | proved (2026-10-27; the right model of row 51, `PlatoonCaccAeb`) | as 51 | both ok (invariant) |
+| 57 | `watertank_twospeed` | proved (redesigned 2026-10-27, six right modes) | Fast (b) → Slow or MidEco, Slow (b) → MidEco (contractions toward 12.5); MidEco, MidBoost (a) (toward 17 from below, strictly); High (a) (toward 17 from above); PumpOff (a) (frozen below 2) | Fast ok (exit→Slow,MidBoost); Slow ok (exit→MidBoost); the other four ok (invariant) |
 
 Totals: proved 39, false 0, band 6 (`WellFormedBattery.wfDeclared = (39, 0, 6)`, was
 `(30, 9, 6)` until the 2026-10-10 repairs;
@@ -254,8 +255,8 @@ summary: …` (with `RELCERT_DEBUG=1`, the reason of every mode not `ok` on stde
 `--check-quick-v2` runs the same section as its check 3/3, strict (below); until 2026-10-10 it
 was informational there.
 
-**Suite_v2 result** (2026-10-27, both clauses): 49 benchmarks, 164 right modes: 85 ok
-(invariant), 79 ok (exit), **0 UNKNOWN, 0 BLOCKING**, 9817 queries; the per-mode labels are those of the
+**Suite_v2 result** (2026-10-27, both clauses): 49 benchmarks, 166 right modes: 88 ok
+(invariant), 78 ok (exit), **0 UNKNOWN, 0 BLOCKING**, 9817 queries; the per-mode labels are those of the
 clause (ii) check alone (2026-10-26, 50 benchmarks: 174 right modes, 91 / 83, 10643 queries,
 about 17 s). The 37
 round-2 designs of the 2026-10-26 redesign pass (outside the tree): 122 right modes, 69 ok
@@ -286,7 +287,7 @@ single `relcert <file>` run; off, no verdict and no emission changes.
 
 **Strict in the recipe** (2026-10-10). `--check-quick-v2` certifies the suite in the strict
 mode (the switch forced on for its check 1/3) and ends with check 3/3, the `--wellformed`
-report gated against declared counts: `ExpectedSuiteV2.wfModes = 164` (`VerdictsV2/RunV2.lean`; the
+report gated against declared counts: `ExpectedSuiteV2.wfModes = 166` (`VerdictsV2/RunV2.lean`; the
 kernel pin `CoveragePinsV2.suiteV2_wfModes` of that count was archived with the standalone
 route on 2026-10-22), `wfUnknown = 0` and `wfBlocking = 0`. Any `UNKNOWN` or `BLOCKING` mode,
 or a mode count off the declared one, fails the run (`wellformed (strict): FAIL`, exit 1). Checked negatively: with the pre-repair

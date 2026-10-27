@@ -246,13 +246,13 @@ def testDeterminism (cfg : Z3Config) : IO Unit := do
           for _ in [0:8] do outs := outs ++ [isCert (← certify s p)]
           check "gantry_speed_zones: 8× identical CERTIFIED" (outs.all id)
       -- a DECLINED benchmark, 8× identical verdict (stability, not the value):
-      -- `watertank_twospeed` declines unless `RELCERT_IMPLIED_CUT=1` widens the cut channel
-      match ← loadProblem "watertank_twospeed" with
-      | none => skip "watertank_twospeed: 8× identical verdict" "BENCH_PATHS not set"
+      -- `engine_start_highidle` declines unless `RELCERT_IMPLIED_CUT=1` widens the cut channel
+      match ← loadProblem "engine_start_highidle" with
+      | none => skip "engine_start_highidle: 8× identical verdict" "BENCH_PATHS not set"
       | some p => do
           let mut tags : List String := []
           for _ in [0:8] do tags := tags ++ [(← certify s p).tag]
-          check "watertank_twospeed: 8× identical verdict" (tags.eraseDups.length == 1)
+          check "engine_start_highidle: 8× identical verdict" (tags.eraseDups.length == 1)
       s.close
 
 def main : IO Unit := do

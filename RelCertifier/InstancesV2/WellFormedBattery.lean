@@ -26,19 +26,18 @@ suite's IR table by `wf_coverage`).**
 * **Proved, 43** (`<bench>_wellFormedR`): every mode (`watertank_twospeed` added 2026-10-11;
   the literature benchmarks `drl_car_stop`, `drl_lane_control`, `vehicle_hypercert` and
   `freedm_meter` added 2026-10-15, three of them proved directly over the bridge's automaton,
-  `_wellFormedR_direct`). Z3-free (no verdict leaf). Four of them
+  `_wellFormedR_direct`). Z3-free (no verdict leaf). Two of them
   are models repaired on 2026-10-10 (`docs/SUITE-REDESIGN.md` §21; until then refuted
-  here with exhibited blocking states, declared counts `(30, 9, 6)`; of the other five repaired
+  here with exhibited blocking states, declared counts `(30, 9, 6)`; of the other seven repaired
   files, `arm_plateau_profiles` and `platoon3_{linkloss,profiles}` moved to
   `benchmarks/reserve/` on 2026-10-27 with their proofs and the shared `Platoon3Link` lemmas,
   `platoon_delay_linkloss` was replaced by `platoon_linkloss`, whose CACC/AEB follower it shares
-  with `platoon_latency` and `platoon_profiles` through `PlatoonCaccAeb`, and
-  `platoon_delay_profiles` by `platoon_profiles`):
+  with `platoon_latency` and `platoon_profiles` through `PlatoonCaccAeb`,
+  `platoon_delay_profiles` by `platoon_profiles`, and `quad_light_{airframe_20,profiles}` were
+  redesigned on 2026-10-27 with the altitude coordinate and no limiter mode):
   - `arm_plateau_{crit,slow}`: the planner is a sampled controller whose successor
     sets name every band one interval can reach (`ApproachA → …, ApproachC*, Hold`,
-    `ApproachB → …, Hold`);
-  - `quad_light_{airframe_20,profiles}`: the limiter `LIMIT` hands back to the climb
-    controller, whose operating range now reaches the limiter threshold.
+    `ApproachB → …, Hold`).
 * **Refuted, 0.**
 * **The detumble family, 6** (`<bench>_wellFormedR`, every mode; `<bench>_band_invariant`):
   `sat_detumble_{nominal,weak,phases}`, `sat3w_detumble_{nominal,weak,phases}`. Their right
@@ -143,7 +142,8 @@ after the 2026-10-27 reserve moves (`airheader_dos_3to1`, `arm_plateau_profiles`
 `platoon3_{linkloss,profiles}`); `(41, 0, 6)` with `platoon_linkloss` (replacing
 `platoon_delay_linkloss`) and `platoon_latency`; `(43, 0, 6)` with `engine_start_highidle` and
 `train_ato_odometry`; unchanged by `gantry_speed_zones` (replacing `match_multi_rate`) and
-`platoon_profiles` (replacing `platoon_delay_profiles`). -/
+`platoon_profiles` (replacing `platoon_delay_profiles`), and by the redesigned
+`quad_light_{airframe_20,profiles}` and `watertank_twospeed`. -/
 def wfDeclared : ℕ × ℕ × ℕ := (43, 0, 6)
 
 /-- The suite's benchmark names, in the order of the IR table. -/
@@ -217,7 +217,7 @@ end WellFormedBattery
 #print axioms RoverRollover6to12Guarded.rover_rollover_6to12_wellFormedR
 #print axioms RoverRollover6to7Guarded.rover_rollover_6to7_wellFormedR
 
-/-! ## Repaired 2026-10-10 (the four still in the suite) and the later additions: Assumption 1
+/-! ## Repaired 2026-10-10 (the two still in the suite) and the later additions: Assumption 1
 at every mode, and at the repaired modes -/
 
 #print axioms V2ArmPlateauCrit.arm_plateau_crit_wellFormedR
@@ -231,9 +231,7 @@ at every mode, and at the repaired modes -/
 #print axioms PlatoonCaccAeb.aeb_w_const
 #print axioms PlatoonCaccAeb.cacc_box
 #print axioms V2QuadLightAirframe20.quad_light_airframe_20_wellFormedR
-#print axioms V2QuadLightAirframe20.quad_light_airframe_20_wellFormedR_limit
 #print axioms V2QuadLightProfiles.quad_light_profiles_wellFormedR
-#print axioms V2QuadLightProfiles.quad_light_profiles_wellFormedR_limit
 
 /-! ## The detumble family (6): Assumption 1 unconditional (the momentum band is part of the
 right evolve domain since 2026-10-15), and the band invariant as a model fact -/

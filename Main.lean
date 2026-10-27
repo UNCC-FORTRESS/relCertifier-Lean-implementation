@@ -11,11 +11,11 @@ Released under Apache 2.0 license.
   (`InstancesV2/BatteryV2`) with declared per-phase counts (`runAllVerdictsV2`);
   `--check-quick-v2` certifies the 50 suite_v2 files first (in the strict well-formedness
   mode) and checks the tally, then runs the verdicts, then the strict Assumption 1 gate
-  (declared 174 right modes, 0 UNKNOWN).
+  (declared 174 right modes, 0 UNKNOWN, 0 BLOCKING; both clauses per mode).
 * `relcert --handoff <input.txt>…` runs the cross-mode handoff check per benchmark.
-* `relcert --wellformed <input.txt>…` runs the Assumption 1 check of the right models
-  (`Trusted/WellFormedCheck.lean`, informational; `RELCERT_WELLFORMED_STRICT=1` makes an
-  `UNKNOWN` mode decline a certified benchmark).
+* `relcert --wellformed <input.txt>…` runs the Assumption 1 check of the right models, both
+  clauses (`Trusted/WellFormedCheck.lean`, informational; `RELCERT_WELLFORMED_STRICT=1`
+  makes an `UNKNOWN` or `BLOCKING` mode decline a certified benchmark).
 * `--emit-*` print the Lean literals the kernel-checked data layer is generated from.
 
 `unsat` is the only verdict the proofs consume (`z3_unsat_sound`). The kernel check is
@@ -130,11 +130,13 @@ USAGE
                                           well-formedness mode (declared 50 certified,
                                           0 declined), then --run-verdicts-v2, then the
                                           strict --wellformed gate (declared 174 right
-                                          modes, 0 UNKNOWN; any UNKNOWN fails the run)
+                                          modes, 0 UNKNOWN, 0 BLOCKING; any mode not ok
+                                          fails the run)
   relcert --handoff <input.txt>...        the handoff check alone, per benchmark, with
                                           per-transition verdicts and wall time
   relcert --wellformed <input.txt>...     the Assumption 1 check of the right model, per
-                                          right mode (informational, never a verdict):
+                                          right mode, both clauses (informational, never
+                                          a verdict). Complete (clause ii):
                                           `ok (invariant)` when the mode's guard atoms are
                                           kept by its own flow (stratified DI routes B/A
                                           over its evolve domain) and it has a self-loop;
@@ -142,10 +144,17 @@ USAGE
                                           control interval ε_r ends in the guard of a
                                           declared successor in S (rate bounds on the
                                           atoms that are not kept, then one coverage
-                                          query); `UNKNOWN` otherwise (the check is
-                                          sufficient, not necessary; it checks the
-                                          successor half of Assumption 1, not that a
-                                          full-interval run exists). The kernel's
+                                          query). Nonblocking (clause i), on top of
+                                          either: every evolve-domain atom persists for
+                                          ε_r from the guard (exact, boundary, monotone or
+                                          interval-margin routes, a sign split on a
+                                          contraction coordinate) and the solution cannot
+                                          blow up; `BLOCKING (leaves d)` when a guard
+                                          state leaves the domain at once (no
+                                          full-interval run). `UNKNOWN` otherwise (the
+                                          check is sufficient, not necessary;
+                                          `UNKNOWN (nonblocking)`: clause ii shown, clause
+                                          i not). The kernel's
                                           per-benchmark result is WellFormedR
                                           (lake build RelCertifier.InstancesV2.WellFormedBattery)
   relcert --help                          this text
@@ -198,7 +207,7 @@ SWITCHES (environment)
                        edges, per-λ segment status; [cut-x] lines for the widened atoms)
   RELCERT_WELLFORMED_STRICT=1
                        run the --wellformed check on every CERTIFIED benchmark and turn it
-                       into DECLINED when a right mode is UNKNOWN (off by default; off, no
+                       into DECLINED when a right mode is UNKNOWN or BLOCKING (off by default; off, no
                        verdict and no emission changes)
   Solver and budget defaults (override per run):
   RELCERT_Z3=<path>               the Z3 binary (else the first of a fixed list of paths)
@@ -403,7 +412,7 @@ def main (args : List String) : IO Unit := do
 run it as RELCERT_IMPLIED_CUT=1 relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt"
         IO.Process.exit 2
       IO.println "== check 1/3 : certify the suite_v2 benchmarks (widened cut channel, strict \
-well-formedness: a CERTIFIED file with an UNKNOWN right mode is DECLINED) =="
+well-formedness: a CERTIFIED file with an UNKNOWN or BLOCKING right mode is DECLINED) =="
       let (cert, decl, errs) ← runBatchTally paths (strict := some true)
       let okSuite ← RelCertifier.VerdictsV2.checkSuiteV2 paths.length cert decl errs
       IO.println "\n== check 2/3 : discharge the suite_v2 verdict hypotheses =="
@@ -416,19 +425,20 @@ well-formedness: a CERTIFIED file with an UNKNOWN right mode is DECLINED) =="
         | .error err => IO.eprintln s!"ERROR: {err}"; pure (false, s!"not run ({err})")
         | .ok cfg => do
             let (t, okParse) ← RelCertifier.WellFormed.runWellformed cfg paths
-            let line := s!"{t.modes - t.unknown}/{t.modes} right modes ok \
-({t.inv} invariant, {t.exit} exit), {t.unknown} UNKNOWN"
+            let line := s!"{t.modes - t.failing}/{t.modes} right modes ok, both clauses \
+({t.inv} invariant, {t.exit} exit), {t.unknown} UNKNOWN, {t.blocking} BLOCKING"
             if paths.length != e.paths then
               IO.println s!"  [wellformed] {line} over {paths.length} path(s) — tally not \
-enforced (the declared suite is {e.paths} paths); an UNKNOWN mode still fails"
-              pure (okParse && t.unknown == 0, line)
-            else if okParse && t.modes == e.wfModes && t.unknown == e.wfUnknown then
+enforced (the declared suite is {e.paths} paths); a mode not ok still fails"
+              pure (okParse && t.failing == 0, line)
+            else if okParse && t.modes == e.wfModes && t.unknown == e.wfUnknown &&
+                t.blocking == e.wfBlocking then
               IO.println s!"  [wellformed] STRICT: {line} — matches the declared suite \
-({e.wfModes} modes, {e.wfUnknown} UNKNOWN)"
+({e.wfModes} modes, {e.wfUnknown} UNKNOWN, {e.wfBlocking} BLOCKING)"
               pure (true, line)
             else
               IO.eprintln s!"  [wellformed] STRICT: {line}, but the declared suite is \
-{e.wfModes} modes, {e.wfUnknown} UNKNOWN"
+{e.wfModes} modes, {e.wfUnknown} UNKNOWN, {e.wfBlocking} BLOCKING"
               pure (false, line)
       IO.println ""
       IO.println s!"  suite_v2: {if okSuite then "PASS" else "FAIL"}"

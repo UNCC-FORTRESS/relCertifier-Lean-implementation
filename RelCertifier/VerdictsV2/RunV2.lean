@@ -574,9 +574,11 @@ def runNonConnAllV2 (cfg : Z3Config) : IO Bool := do
 /-- What a certification run over `benchmarks/suite_v2/*/input.txt` must produce, with
 `RELCERT_IMPLIED_CUT=1`: all 50 certified (in the strict well-formedness mode of
 `--check-quick-v2`); and what the strict Assumption 1 check of the right models must produce:
-every one of the 174 right modes `ok` (`wfModes`, kernel-checked against the IR table by
-`CoveragePinsV2.suiteV2_wfModes`), none `UNKNOWN` (`wfUnknown`; 16 UNKNOWN in 9 benchmarks
-until the 2026-10-10 repairs, when the check was informational). -/
+every one of the 174 right modes `ok` on both clauses (`wfModes`; the kernel pin
+`CoveragePinsV2.suiteV2_wfModes` of that count was archived with the standalone route), none
+`UNKNOWN` (`wfUnknown`; 16 UNKNOWN in 9 benchmarks until the 2026-10-10 repairs, when the
+check was informational), none `BLOCKING` (`wfBlocking`; the nonblocking clause is checked
+since 2026-10-26). -/
 structure ExpectedSuiteV2 where
   paths     : Nat := 50
   certified : Nat := 50
@@ -584,6 +586,7 @@ structure ExpectedSuiteV2 where
   errors    : Nat := 0
   wfModes   : Nat := 174
   wfUnknown : Nat := 0
+  wfBlocking : Nat := 0
   deriving Repr
 
 def expectedSuiteV2 : ExpectedSuiteV2 := {}

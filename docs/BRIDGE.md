@@ -65,9 +65,10 @@ Axioms of `theorem3_keyed_of_records` and `theorem3_window_of_records`: `propext
 `relcert-bridge-verdicts` issues exactly `bridgeGroups` per benchmark at the bridge dimension
 and reports the group count against the declared total (`expectedBridgeGroupsV2`).
 
-Run on the regenerated records: **4350 groups over the 50 suite benchmarks and the 2 choice
-exhibits, all discharged** (suite alone 4214: 3152 over the 46 original benchmarks, 35 + 130 + 87 + 810
-over `drl_car_stop`, `drl_lane_control`, `vehicle_hypercert`, `freedm_meter`; the first run before the progress
+Run on the regenerated records: **3741 groups over the 46 suite benchmarks and the 2 choice
+exhibits, all discharged** (suite alone 3605: 2543 over the 42 designed benchmarks, 35 + 130 + 87 + 810
+over `drl_car_stop`, `drl_lane_control`, `vehicle_hypercert`, `freedm_meter`; 2026-10-27, after four
+benchmarks moved to `benchmarks/reserve/`; 4350 over 50 + 2 before; the first run before the progress
 gate, 3657/3657 over 46 + 3).
 
 ## 4. Coverage
@@ -91,8 +92,8 @@ gate, 3657/3657 over 46 + 3).
   (`ChoiceVehicleHypercert.wellFormedR` at the literal period, `epsR_eq`), the only part of that
   instance kept: its Theorem-3 part was retired on 2026-10-21 (git 61d7389).
 
-* **50 of 50 suite benchmarks** are instantiated (`InstancesV2/Bridge/`): 38 in the window form,
-  12 in the mode-keyed form; plus the 2 choice exhibits (52 instances), all with the
+* **46 of 46 suite benchmarks** are instantiated (`InstancesV2/Bridge/`): 39 in the window form,
+  7 in the mode-keyed form; plus the 2 choice exhibits (48 instances), all with the
   unconditional Assumption 1. Every `*_bridge` theorem depends on exactly `propext`,
   `Classical.choice`, `Quot.sound`, `z3_unsat_sound`.
 * **Assumption 1 is unconditional for every instance (`R = ⊤`).** The chain

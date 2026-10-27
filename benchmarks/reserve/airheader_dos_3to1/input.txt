@@ -1,3 +1,8 @@
+# RESERVE (benchmarks/reserve/, 2026-10-27): not in suite_v2, not in the paper, no Lean
+# integration. Reason: the claim does not depend on the attack (the DoS on the supervisor never
+# changes the pressure claim; P only in a narrow peak-demand window). The header below is the
+# design's.
+#
 # airheader_dos_3to1: a compressed-air header whose supervisor (low-pressure alarm and
 # line-break trip) is slowed from a 1 s to a 3 s update by a denial-of-service attack; the trip
 # is declared on both sides but provably never taken from the operating modes.

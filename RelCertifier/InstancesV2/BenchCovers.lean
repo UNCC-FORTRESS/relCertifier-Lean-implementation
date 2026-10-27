@@ -3,9 +3,7 @@ import RelCertifier.InstancesV2.BenchCovers.acc_spoof_lag
 import RelCertifier.InstancesV2.BenchCovers.acc_spoof_limp
 import RelCertifier.InstancesV2.BenchCovers.acc_tune_lag
 import RelCertifier.InstancesV2.BenchCovers.acc_tune_limp
-import RelCertifier.InstancesV2.BenchCovers.airheader_dos_3to1
 import RelCertifier.InstancesV2.BenchCovers.arm_plateau_crit
-import RelCertifier.InstancesV2.BenchCovers.arm_plateau_profiles
 import RelCertifier.InstancesV2.BenchCovers.arm_plateau_slow
 import RelCertifier.InstancesV2.BenchCovers.charger_fast_setpoints
 import RelCertifier.InstancesV2.BenchCovers.charger_fast_tapers
@@ -14,8 +12,6 @@ import RelCertifier.InstancesV2.BenchCovers.drl_lane_control
 import RelCertifier.InstancesV2.BenchCovers.freedm_meter
 import RelCertifier.InstancesV2.BenchCovers.hvac_fan_staging
 import RelCertifier.InstancesV2.BenchCovers.match_multi_rate
-import RelCertifier.InstancesV2.BenchCovers.platoon3_linkloss
-import RelCertifier.InstancesV2.BenchCovers.platoon3_profiles
 import RelCertifier.InstancesV2.BenchCovers.platoon_delay_linkloss
 import RelCertifier.InstancesV2.BenchCovers.platoon_delay_profiles
 import RelCertifier.InstancesV2.BenchCovers.quad_light_airframe_20
@@ -57,9 +53,7 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("acc_spoof_limp", acc_spoof_limp_coverV2),
   ("acc_tune_lag", acc_tune_lag_coverV2),
   ("acc_tune_limp", acc_tune_limp_coverV2),
-  ("airheader_dos_3to1", airheader_dos_3to1_coverV2),
   ("arm_plateau_crit", arm_plateau_crit_coverV2),
-  ("arm_plateau_profiles", arm_plateau_profiles_coverV2),
   ("arm_plateau_slow", arm_plateau_slow_coverV2),
   ("charger_fast_setpoints", charger_fast_setpoints_coverV2),
   ("charger_fast_tapers", charger_fast_tapers_coverV2),
@@ -68,8 +62,6 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("freedm_meter", freedm_meter_coverV2),
   ("hvac_fan_staging", hvac_fan_staging_coverV2),
   ("match_multi_rate", match_multi_rate_coverV2),
-  ("platoon3_linkloss", platoon3_linkloss_coverV2),
-  ("platoon3_profiles", platoon3_profiles_coverV2),
   ("platoon_delay_linkloss", platoon_delay_linkloss_coverV2),
   ("platoon_delay_profiles", platoon_delay_profiles_coverV2),
   ("quad_light_airframe_20", quad_light_airframe_20_coverV2),

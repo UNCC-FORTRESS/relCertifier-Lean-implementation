@@ -182,7 +182,7 @@ The 19 carried-over legacy literals (`Instances/BenchIR`) are tied to these by
 `InstancesV2/SameIR.lean` (`rfl`), so this one check covers them too. -/
 
 /-- The suite_v2 drift check: every `benchIRTableV2` literal equals a fresh parse of
-`benchmarks/suite_v2/<name>/input.txt`, and the table covers all 50 files. -/
+`benchmarks/suite_v2/<name>/input.txt`, and the table covers exactly the suite's files. -/
 def testIRDriftV2 : IO Unit := do
   IO.println "[ir-drift-v2]"
   let mut bad := 0
@@ -194,8 +194,15 @@ def testIRDriftV2 : IO Unit := do
     | .ok q =>
         if q == p then pure ()
         else bad := bad + 1; check s!"{nm}: literal == fresh parse (suite_v2)" false
-  check s!"all {RelCertifier.Parse.benchIRTableV2.length} suite_v2 IR literals match their files"
-    (bad == 0 && RelCertifier.Parse.benchIRTableV2.length == 50)
+  -- the table covers exactly the files: the benchmark directories of `benchmarks/suite_v2`
+  -- (those holding an `input.txt`), compared as name sets
+  let mut dirs : List String := []
+  for e in (← System.FilePath.readDir "benchmarks/suite_v2") do
+    if ← (e.path / "input.txt").pathExists then dirs := e.fileName :: dirs
+  let names := RelCertifier.Parse.benchIRTableV2.map (·.1)
+  let same := dirs.length == names.length && dirs.all names.contains && names.all dirs.contains
+  check s!"all {names.length} suite_v2 IR literals match their files ({dirs.length} files)"
+    (bad == 0 && same)
 
 /-! ## Invariant-lowering tests: each shape → expected component count -/
 def testLowering : IO Unit := do

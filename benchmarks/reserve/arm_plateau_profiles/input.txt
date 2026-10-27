@@ -1,3 +1,7 @@
+# RESERVE (benchmarks/reserve/, 2026-10-27): not in suite_v2, not in the paper, no Lean
+# integration. Reason: the planner's profile choice is never load-bearing (a near-duplicate of
+# arm_plateau_crit / arm_plateau_slow). The header below is the design's.
+#
 # arm_plateau_profiles: an over-damped (detuned) PD arm against the planner's leading reference
 # with two selectable final approaches.
 # scenario: model-refinement
@@ -111,5 +115,5 @@ evolve = theta >= 0.0 and theta <= 1.2
 next = [Hold]
 
 [relational_invariant]
-Accelerate = smt2:(>= L_theta (+ R_theta 0.255))
-Brake = smt2:(>= L_theta (+ R_theta 0.255))
+Accelerate = theta[l] <= theta[r] + 0.255
+Brake      = theta[l] <= theta[r] + 0.255

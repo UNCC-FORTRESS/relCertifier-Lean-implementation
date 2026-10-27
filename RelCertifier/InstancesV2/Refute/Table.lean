@@ -7,13 +7,9 @@ Released under Apache 2.0 license.
 -/
 import RelCertifier.InstancesV2.Refute.Data.acc_spoof_limp_m008
 import RelCertifier.InstancesV2.Refute.Data.arm_plateau_crit_m000
-import RelCertifier.InstancesV2.Refute.Data.arm_plateau_profiles_m000
 import RelCertifier.InstancesV2.Refute.Data.arm_plateau_slow_m000
 import RelCertifier.InstancesV2.Refute.Data.charger_fast_setpoints_m003
 import RelCertifier.InstancesV2.Refute.Data.charger_fast_tapers_m003
-import RelCertifier.InstancesV2.Refute.Data.platoon3_linkloss_m072
-import RelCertifier.InstancesV2.Refute.Data.platoon3_linkloss_m084
-import RelCertifier.InstancesV2.Refute.Data.platoon3_linkloss_m096
 import RelCertifier.InstancesV2.Refute.Data.rover_terrain_2to4_m008
 import RelCertifier.InstancesV2.Refute.Data.rover_terrain_2to4_m011
 import RelCertifier.InstancesV2.Refute.Data.rover_terrain_2to4_m012
@@ -117,11 +113,9 @@ import RelCertifier.InstancesV2.Refute.Data.rover_rollover_6to7_m020
 import RelCertifier.InstancesV2.Refute.Data.rover_rollover_6to7_m021
 import RelCertifier.InstancesV2.Cuts.acc_spoof_limp
 import RelCertifier.InstancesV2.Cuts.arm_plateau_crit
-import RelCertifier.InstancesV2.Cuts.arm_plateau_profiles
 import RelCertifier.InstancesV2.Cuts.arm_plateau_slow
 import RelCertifier.InstancesV2.Cuts.charger_fast_setpoints
 import RelCertifier.InstancesV2.Cuts.charger_fast_tapers
-import RelCertifier.InstancesV2.Cuts.platoon3_linkloss
 import RelCertifier.InstancesV2.Cuts.rover_lateral_6to8
 import RelCertifier.InstancesV2.Cuts.rover_lateral_8to12
 import RelCertifier.InstancesV2.Cuts.rover_rollover_6to12
@@ -152,13 +146,9 @@ structure RefRec where
 def refuteTable : List RefRec := [
   ⟨"acc_spoof_limp_m008", 3 + 1, acc_spoof_limp_m008_IRm, acc_spoof_limp_cutsV2X, acc_spoof_limp_m008_wit⟩,
   ⟨"arm_plateau_crit_m000", 2 + 1, arm_plateau_crit_m000_IRm, arm_plateau_crit_cutsV2X, arm_plateau_crit_m000_wit⟩,
-  ⟨"arm_plateau_profiles_m000", 2 + 1, arm_plateau_profiles_m000_IRm, arm_plateau_profiles_cutsV2X, arm_plateau_profiles_m000_wit⟩,
   ⟨"arm_plateau_slow_m000", 2 + 1, arm_plateau_slow_m000_IRm, arm_plateau_slow_cutsV2X, arm_plateau_slow_m000_wit⟩,
   ⟨"charger_fast_setpoints_m003", 4 + 1, charger_fast_setpoints_m003_IRm, charger_fast_setpoints_cutsV2X, charger_fast_setpoints_m003_wit⟩,
   ⟨"charger_fast_tapers_m003", 4 + 1, charger_fast_tapers_m003_IRm, charger_fast_tapers_cutsV2X, charger_fast_tapers_m003_wit⟩,
-  ⟨"platoon3_linkloss_m072", 6 + 1, platoon3_linkloss_m072_IRm, platoon3_linkloss_cutsV2X, platoon3_linkloss_m072_wit⟩,
-  ⟨"platoon3_linkloss_m084", 6 + 1, platoon3_linkloss_m084_IRm, platoon3_linkloss_cutsV2X, platoon3_linkloss_m084_wit⟩,
-  ⟨"platoon3_linkloss_m096", 6 + 1, platoon3_linkloss_m096_IRm, platoon3_linkloss_cutsV2X, platoon3_linkloss_m096_wit⟩,
   ⟨"rover_terrain_2to4_m008", 5 + 1, rover_terrain_2to4_m008_IRm, rover_terrain_2to4_cutsV2X, rover_terrain_2to4_m008_wit⟩,
   ⟨"rover_terrain_2to4_m011", 5 + 1, rover_terrain_2to4_m011_IRm, rover_terrain_2to4_cutsV2X, rover_terrain_2to4_m011_wit⟩,
   ⟨"rover_terrain_2to4_m012", 5 + 1, rover_terrain_2to4_m012_IRm, rover_terrain_2to4_cutsV2X, rover_terrain_2to4_m012_wit⟩,
@@ -262,6 +252,6 @@ def refuteTable : List RefRec := [
   ⟨"rover_rollover_6to7_m021", 13 + 1, rover_rollover_6to7_m021_IRm, rover_rollover_6to7_cutsV2X, rover_rollover_6to7_m021_wit⟩ ]
 
 /-- Declared: the number of query groups over the refutations (one per right mode each). -/
-def expectedRefuteGroups : Nat := 315
+def expectedRefuteGroups : Nat := 298
 
 end RelCertifier.Refute

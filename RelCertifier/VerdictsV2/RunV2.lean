@@ -135,13 +135,6 @@ def packsV2 : List PackV2 :=
     ⟨"rover_rollover_7to12", 12, 0, [0, 1, 2, 3, 4, 5, 6], 27, 20, 2, 2⟩,
     -- sat_detumble_nominal
     ⟨"sat_detumble_nominal", 4, 0, [0, 1], 1, 1, 0, 0⟩,
-    -- platoon3_profiles
-    ⟨"platoon3_profiles", 6, 0, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17], 1, 1, 0, 0⟩,
-    ⟨"platoon3_profiles", 6, 0, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17], 1, 1, 0, 1⟩,
-    ⟨"platoon3_profiles", 6, 0, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17], 1, 1, 0, 2⟩,
-    -- platoon3_linkloss
-    ⟨"platoon3_linkloss", 6, 0, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], 1, 1, 0, 0⟩,
-    ⟨"platoon3_linkloss", 6, 1, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], 1, 1, 1, 0⟩,
     -- sat_detumble_weak
     ⟨"sat_detumble_weak", 4, 0, [0, 1], 1, 1, 0, 0⟩,
     ⟨"sat_detumble_weak", 4, 0, [0, 1], 1, 1, 0, 1⟩,
@@ -301,13 +294,6 @@ def packsV2 : List PackV2 :=
     ⟨"match_multi_rate", 2, 0, [0], 2, 1, 1, 0⟩,
     ⟨"match_multi_rate", 2, 0, [0], 1, 1, 2, 0⟩,
     ⟨"match_multi_rate", 2, 0, [0], 1, 1, 3, 0⟩,
-    -- airheader_dos_3to1 (cover replay): NORMAL and ALARM against NORMAL and ALARM (their TRIP
-    -- edges pruned), TRIP against TRIP, at λ = 1
-    ⟨"airheader_dos_3to1", 2, 0, [2, 3, 0, 1], 1, 1, 0, 0⟩,
-    ⟨"airheader_dos_3to1", 2, 0, [2, 3, 0, 1], 1, 1, 0, 1⟩,
-    ⟨"airheader_dos_3to1", 2, 0, [2, 3, 0, 1], 1, 1, 1, 0⟩,
-    ⟨"airheader_dos_3to1", 2, 0, [2, 3, 0, 1], 1, 1, 1, 1⟩,
-    ⟨"airheader_dos_3to1", 2, 0, [2, 3, 0, 1], 1, 1, 2, 2⟩,
     -- tank_dos_3to1 (cover replay): both left modes against HIGH and LOW at λ = 1
     ⟨"tank_dos_3to1", 2, 0, [0, 1], 1, 1, 0, 0⟩,
     ⟨"tank_dos_3to1", 2, 0, [0, 1], 1, 1, 0, 1⟩,
@@ -321,17 +307,6 @@ def packsV2 : List PackV2 :=
     ⟨"arm_plateau_crit", 2, 1, [0], 1, 1, 1, 1⟩,
     ⟨"arm_plateau_crit", 2, 1, [0], 1, 1, 1, 2⟩,
     ⟨"arm_plateau_crit", 2, 1, [0], 1, 1, 1, 3⟩,
-    -- arm_plateau_profiles (cover replay)
-    ⟨"arm_plateau_profiles", 2, 0, [0], 1, 1, 0, 0⟩,
-    ⟨"arm_plateau_profiles", 2, 0, [0], 1, 1, 0, 1⟩,
-    ⟨"arm_plateau_profiles", 2, 0, [0], 1, 1, 0, 2⟩,
-    ⟨"arm_plateau_profiles", 2, 0, [0], 1, 1, 0, 3⟩,
-    ⟨"arm_plateau_profiles", 2, 0, [0], 1, 1, 0, 4⟩,
-    ⟨"arm_plateau_profiles", 2, 1, [0], 1, 1, 1, 0⟩,
-    ⟨"arm_plateau_profiles", 2, 1, [0], 1, 1, 1, 1⟩,
-    ⟨"arm_plateau_profiles", 2, 1, [0], 1, 1, 1, 2⟩,
-    ⟨"arm_plateau_profiles", 2, 1, [0], 1, 1, 1, 3⟩,
-    ⟨"arm_plateau_profiles", 2, 1, [0], 1, 1, 1, 4⟩,
     -- arm_plateau_slow (cover replay)
     ⟨"arm_plateau_slow", 2, 0, [0], 1, 1, 0, 0⟩,
     ⟨"arm_plateau_slow", 2, 0, [0], 1, 1, 0, 2⟩,
@@ -345,7 +320,7 @@ def packsV2 : List PackV2 :=
     ⟨"watertank_twospeed", 2, 0, [0, 1], 31, 10, 0, 1⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 784
+def expectedModalV2 : Nat := 674
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
@@ -496,9 +471,9 @@ def runDynV2 (cfg : Z3Config) : IO Bool := do
 
 /-! ## The handoff phase over suite_v2 -/
 
-/-- Declared: one handoff query per declared left transition over the 46 suite_v2 files
+/-- Declared: one handoff query per declared left transition over the suite_v2 files
 (self-loops included; `CoveragePinsV2.derivedHandoffV2_eq` derives it from the IR table). -/
-def expectedHandoffV2 : Nat := 417
+def expectedHandoffV2 : Nat := 402
 
 /-- Declared handoff failures in suite_v2: none. -/
 def expectedHandoffFailuresV2 : List (String × Nat × Nat) := []
@@ -533,8 +508,8 @@ def prunedEdgesV2 : List (String × String × String) :=
   coverTableV2.flatMap (fun c => c.2.pruned.map (fun e => (c.1, e.1, e.2)))
 
 /-- Declared: pruned edges in the suite_v2 covers, and two queries per edge. -/
-def expectedPrunedEdgesV2 : Nat := 46
-def expectedNonConnV2 : Nat := 92
+def expectedPrunedEdgesV2 : Nat := 32
+def expectedNonConnV2 : Nat := 64
 
 def nonConnQueriesOfV2 (p : PProblem) (cX : EvolStrengtheningX) (src tgt : String) :
     Option ((n : ℕ) × (Fin n → String) × IForm n × IForm n) := do
@@ -572,19 +547,19 @@ def runNonConnAllV2 (cfg : Z3Config) : IO Bool := do
 /-! ## The suite tally -/
 
 /-- What a certification run over `benchmarks/suite_v2/*/input.txt` must produce, with
-`RELCERT_IMPLIED_CUT=1`: all 50 certified (in the strict well-formedness mode of
+`RELCERT_IMPLIED_CUT=1`: all 46 certified (in the strict well-formedness mode of
 `--check-quick-v2`); and what the strict Assumption 1 check of the right models must produce:
-every one of the 174 right modes `ok` on both clauses (`wfModes`; the kernel pin
+every one of the 156 right modes `ok` on both clauses (`wfModes`; the kernel pin
 `CoveragePinsV2.suiteV2_wfModes` of that count was archived with the standalone route), none
 `UNKNOWN` (`wfUnknown`; 16 UNKNOWN in 9 benchmarks until the 2026-10-10 repairs, when the
 check was informational), none `BLOCKING` (`wfBlocking`; the nonblocking clause is checked
 since 2026-10-26). -/
 structure ExpectedSuiteV2 where
-  paths     : Nat := 50
-  certified : Nat := 50
+  paths     : Nat := 46
+  certified : Nat := 46
   declined  : Nat := 0
   errors    : Nat := 0
-  wfModes   : Nat := 174
+  wfModes   : Nat := 156
   wfUnknown : Nat := 0
   wfBlocking : Nat := 0
   deriving Repr

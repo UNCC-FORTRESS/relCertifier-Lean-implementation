@@ -130,11 +130,11 @@ The per-benchmark instances of §4 are superseded for the suite by the generic b
 (`docs/BRIDGE.md`, `Proofs/Encoding/Emitted/`): one layer instantiates the general theorem
 from a benchmark's emitted records (IR, cut certificate, cover, progress certificates), the
 structural facts decided in the kernel, every verdict read from one Z3 run
-(`relcert-bridge-verdicts`, 4350 groups over the 50 suite benchmarks and the 2 choice
+(`relcert-bridge-verdicts`, 3741 groups over the 46 suite benchmarks and the 2 choice
 exhibits, all discharged). Mode-dependent rows
 are assembled through `theorem3_modeKeyed` (`Emitted/Keyed.lean`); the two-stage progress pin
-is `progressVerd_two`. Generated instances: `InstancesV2/Bridge/`, all 50 suite benchmarks
-(42 window form, 8 mode-keyed) and the two choice exhibits, every one with the
+is `progressVerd_two`. Generated instances: `InstancesV2/Bridge/`, all 46 suite benchmarks
+(39 window form, 7 mode-keyed) and the two choice exhibits, every one with the
 paper's unconditional Assumption 1 (the detumble models carry their momentum band in the
 right evolve domain).
 

@@ -3,45 +3,41 @@ import RelCertifier.InstancesV2.BenchProgress.acc_spoof_lag
 import RelCertifier.InstancesV2.BenchProgress.acc_spoof_limp
 import RelCertifier.InstancesV2.BenchProgress.acc_tune_lag
 import RelCertifier.InstancesV2.BenchProgress.acc_tune_limp
-import RelCertifier.InstancesV2.BenchProgress.airheader_dos_3to1
 import RelCertifier.InstancesV2.BenchProgress.arm_plateau_crit
-import RelCertifier.InstancesV2.BenchProgress.arm_plateau_profiles
 import RelCertifier.InstancesV2.BenchProgress.arm_plateau_slow
 import RelCertifier.InstancesV2.BenchProgress.charger_fast_setpoints
 import RelCertifier.InstancesV2.BenchProgress.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchProgress.hvac_fan_staging
 import RelCertifier.InstancesV2.BenchProgress.match_multi_rate
-import RelCertifier.InstancesV2.BenchProgress.platoon3_linkloss
-import RelCertifier.InstancesV2.BenchProgress.platoon3_profiles
 import RelCertifier.InstancesV2.BenchProgress.platoon_delay_linkloss
 import RelCertifier.InstancesV2.BenchProgress.platoon_delay_profiles
 import RelCertifier.InstancesV2.BenchProgress.quad_light_airframe_20
 import RelCertifier.InstancesV2.BenchProgress.quad_light_lag
 import RelCertifier.InstancesV2.BenchProgress.quad_light_profiles
+import RelCertifier.InstancesV2.BenchProgress.rover_attitude_6to8
+import RelCertifier.InstancesV2.BenchProgress.rover_attitude_8to12
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_2to3
-import RelCertifier.InstancesV2.BenchProgress.rover_ladder_3to6
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_2to4
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_2to6
+import RelCertifier.InstancesV2.BenchProgress.rover_ladder_3to6
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_6to8
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_8to12
+import RelCertifier.InstancesV2.BenchProgress.rover_lateral_6to8
+import RelCertifier.InstancesV2.BenchProgress.rover_lateral_8to12
+import RelCertifier.InstancesV2.BenchProgress.rover_patrol_lag
+import RelCertifier.InstancesV2.BenchProgress.rover_patrol_zones
+import RelCertifier.InstancesV2.BenchProgress.rover_rollover_6to12
+import RelCertifier.InstancesV2.BenchProgress.rover_rollover_6to7
+import RelCertifier.InstancesV2.BenchProgress.rover_rollover_7to12
 import RelCertifier.InstancesV2.BenchProgress.rover_terrain_2to4
 import RelCertifier.InstancesV2.BenchProgress.rover_terrain_4to6
 import RelCertifier.InstancesV2.BenchProgress.rover_terrain_6to12
-import RelCertifier.InstancesV2.BenchProgress.rover_patrol_lag
-import RelCertifier.InstancesV2.BenchProgress.rover_patrol_zones
 import RelCertifier.InstancesV2.BenchProgress.sat3w_detumble_nominal
 import RelCertifier.InstancesV2.BenchProgress.sat3w_detumble_phases
 import RelCertifier.InstancesV2.BenchProgress.sat3w_detumble_weak
 import RelCertifier.InstancesV2.BenchProgress.sat_detumble_nominal
 import RelCertifier.InstancesV2.BenchProgress.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchProgress.sat_detumble_weak
-import RelCertifier.InstancesV2.BenchProgress.rover_attitude_6to8
-import RelCertifier.InstancesV2.BenchProgress.rover_attitude_8to12
-import RelCertifier.InstancesV2.BenchProgress.rover_lateral_6to8
-import RelCertifier.InstancesV2.BenchProgress.rover_lateral_8to12
-import RelCertifier.InstancesV2.BenchProgress.rover_rollover_6to12
-import RelCertifier.InstancesV2.BenchProgress.rover_rollover_6to7
-import RelCertifier.InstancesV2.BenchProgress.rover_rollover_7to12
 import RelCertifier.InstancesV2.BenchProgress.tank_dos_3to1
 import RelCertifier.InstancesV2.BenchProgress.watertank
 import RelCertifier.InstancesV2.BenchProgress.watertank_twospeed
@@ -54,45 +50,41 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("acc_spoof_limp", acc_spoof_limp_coverV2_progress),
    ("acc_tune_lag", acc_tune_lag_coverV2_progress),
    ("acc_tune_limp", acc_tune_limp_coverV2_progress),
-   ("airheader_dos_3to1", airheader_dos_3to1_coverV2_progress),
    ("arm_plateau_crit", arm_plateau_crit_coverV2_progress),
-   ("arm_plateau_profiles", arm_plateau_profiles_coverV2_progress),
    ("arm_plateau_slow", arm_plateau_slow_coverV2_progress),
    ("charger_fast_setpoints", charger_fast_setpoints_coverV2_progress),
    ("charger_fast_tapers", charger_fast_tapers_coverV2_progress),
    ("hvac_fan_staging", hvac_fan_staging_coverV2_progress),
    ("match_multi_rate", match_multi_rate_coverV2_progress),
-   ("platoon3_linkloss", platoon3_linkloss_coverV2_progress),
-   ("platoon3_profiles", platoon3_profiles_coverV2_progress),
    ("platoon_delay_linkloss", platoon_delay_linkloss_coverV2_progress),
    ("platoon_delay_profiles", platoon_delay_profiles_coverV2_progress),
    ("quad_light_airframe_20", quad_light_airframe_20_coverV2_progress),
    ("quad_light_lag", quad_light_lag_coverV2_progress),
    ("quad_light_profiles", quad_light_profiles_coverV2_progress),
+   ("rover_attitude_6to8", rover_attitude_6to8_coverV2_progress),
+   ("rover_attitude_8to12", rover_attitude_8to12_coverV2_progress),
    ("rover_ladder_2to3", rover_ladder_2to3_coverV2_progress),
-   ("rover_ladder_3to6", rover_ladder_3to6_coverV2_progress),
    ("rover_ladder_2to4", rover_ladder_2to4_coverV2_progress),
    ("rover_ladder_2to6", rover_ladder_2to6_coverV2_progress),
+   ("rover_ladder_3to6", rover_ladder_3to6_coverV2_progress),
    ("rover_ladder_6to8", rover_ladder_6to8_coverV2_progress),
    ("rover_ladder_8to12", rover_ladder_8to12_coverV2_progress),
+   ("rover_lateral_6to8", rover_lateral_6to8_coverV2_progress),
+   ("rover_lateral_8to12", rover_lateral_8to12_coverV2_progress),
+   ("rover_patrol_lag", rover_patrol_lag_coverV2_progress),
+   ("rover_patrol_zones", rover_patrol_zones_coverV2_progress),
+   ("rover_rollover_6to12", rover_rollover_6to12_coverV2_progress),
+   ("rover_rollover_6to7", rover_rollover_6to7_coverV2_progress),
+   ("rover_rollover_7to12", rover_rollover_7to12_coverV2_progress),
    ("rover_terrain_2to4", rover_terrain_2to4_coverV2_progress),
    ("rover_terrain_4to6", rover_terrain_4to6_coverV2_progress),
    ("rover_terrain_6to12", rover_terrain_6to12_coverV2_progress),
-   ("rover_patrol_lag", rover_patrol_lag_coverV2_progress),
-   ("rover_patrol_zones", rover_patrol_zones_coverV2_progress),
    ("sat3w_detumble_nominal", sat3w_detumble_nominal_coverV2_progress),
    ("sat3w_detumble_phases", sat3w_detumble_phases_coverV2_progress),
    ("sat3w_detumble_weak", sat3w_detumble_weak_coverV2_progress),
    ("sat_detumble_nominal", sat_detumble_nominal_coverV2_progress),
    ("sat_detumble_phases", sat_detumble_phases_coverV2_progress),
    ("sat_detumble_weak", sat_detumble_weak_coverV2_progress),
-   ("rover_attitude_6to8", rover_attitude_6to8_coverV2_progress),
-   ("rover_attitude_8to12", rover_attitude_8to12_coverV2_progress),
-   ("rover_lateral_6to8", rover_lateral_6to8_coverV2_progress),
-   ("rover_lateral_8to12", rover_lateral_8to12_coverV2_progress),
-   ("rover_rollover_6to12", rover_rollover_6to12_coverV2_progress),
-   ("rover_rollover_6to7", rover_rollover_6to7_coverV2_progress),
-   ("rover_rollover_7to12", rover_rollover_7to12_coverV2_progress),
    ("tank_dos_3to1", tank_dos_3to1_coverV2_progress),
    ("watertank", watertank_coverV2_progress),
    ("watertank_twospeed", watertank_twospeed_coverV2_progress)]

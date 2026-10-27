@@ -1,5 +1,6 @@
 # platoon3_linkloss_strict_mutant: negative control for the strict-atoms extension (NOT part
-# of suite_v2). benchmarks/suite_v2/platoon3_linkloss with ONE change: the LOST row atom
+# of suite_v2). The 2026-10-10 benchmarks/suite_v2/platoon3_linkloss (git history; the benchmark
+# is in benchmarks/reserve/ since 2026-10-27, as its round-2 redesign) with ONE change: the LOST row atom
 #   (>= (- (- L_g1 R_g1) (- 0.0 1.0)) 0.0)   becomes   (> (- (- L_g1 R_g1) (- 0.0 1.0)) 0.0),
 # i.e. L_g1 - R_g1 > -1 (strict). The claim is FALSE: at the FOLLOW -> LOST switch the FOLLOW
 # row forces L_g1 - R_g1 = -1. Read as its closure (the tool before strict-atoms) the handoff

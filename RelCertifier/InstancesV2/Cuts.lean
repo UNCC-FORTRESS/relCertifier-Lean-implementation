@@ -3,9 +3,7 @@ import RelCertifier.InstancesV2.Cuts.acc_spoof_lag
 import RelCertifier.InstancesV2.Cuts.acc_spoof_limp
 import RelCertifier.InstancesV2.Cuts.acc_tune_lag
 import RelCertifier.InstancesV2.Cuts.acc_tune_limp
-import RelCertifier.InstancesV2.Cuts.airheader_dos_3to1
 import RelCertifier.InstancesV2.Cuts.arm_plateau_crit
-import RelCertifier.InstancesV2.Cuts.arm_plateau_profiles
 import RelCertifier.InstancesV2.Cuts.arm_plateau_slow
 import RelCertifier.InstancesV2.Cuts.charger_fast_setpoints
 import RelCertifier.InstancesV2.Cuts.charger_fast_tapers
@@ -14,8 +12,6 @@ import RelCertifier.InstancesV2.Cuts.drl_lane_control
 import RelCertifier.InstancesV2.Cuts.freedm_meter
 import RelCertifier.InstancesV2.Cuts.hvac_fan_staging
 import RelCertifier.InstancesV2.Cuts.match_multi_rate
-import RelCertifier.InstancesV2.Cuts.platoon3_linkloss
-import RelCertifier.InstancesV2.Cuts.platoon3_profiles
 import RelCertifier.InstancesV2.Cuts.platoon_delay_linkloss
 import RelCertifier.InstancesV2.Cuts.platoon_delay_profiles
 import RelCertifier.InstancesV2.Cuts.quad_light_airframe_20
@@ -57,9 +53,7 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("acc_spoof_limp", acc_spoof_limp_cutsV2, acc_spoof_limp_cutsV2X),
   ("acc_tune_lag", acc_tune_lag_cutsV2, acc_tune_lag_cutsV2X),
   ("acc_tune_limp", acc_tune_limp_cutsV2, acc_tune_limp_cutsV2X),
-  ("airheader_dos_3to1", airheader_dos_3to1_cutsV2, airheader_dos_3to1_cutsV2X),
   ("arm_plateau_crit", arm_plateau_crit_cutsV2, arm_plateau_crit_cutsV2X),
-  ("arm_plateau_profiles", arm_plateau_profiles_cutsV2, arm_plateau_profiles_cutsV2X),
   ("arm_plateau_slow", arm_plateau_slow_cutsV2, arm_plateau_slow_cutsV2X),
   ("charger_fast_setpoints", charger_fast_setpoints_cutsV2, charger_fast_setpoints_cutsV2X),
   ("charger_fast_tapers", charger_fast_tapers_cutsV2, charger_fast_tapers_cutsV2X),
@@ -68,8 +62,6 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("freedm_meter", freedm_meter_cutsV2, freedm_meter_cutsV2X),
   ("hvac_fan_staging", hvac_fan_staging_cutsV2, hvac_fan_staging_cutsV2X),
   ("match_multi_rate", match_multi_rate_cutsV2, match_multi_rate_cutsV2X),
-  ("platoon3_linkloss", platoon3_linkloss_cutsV2, platoon3_linkloss_cutsV2X),
-  ("platoon3_profiles", platoon3_profiles_cutsV2, platoon3_profiles_cutsV2X),
   ("platoon_delay_linkloss", platoon_delay_linkloss_cutsV2, platoon_delay_linkloss_cutsV2X),
   ("platoon_delay_profiles", platoon_delay_profiles_cutsV2, platoon_delay_profiles_cutsV2X),
   ("quad_light_airframe_20", quad_light_airframe_20_cutsV2, quad_light_airframe_20_cutsV2X),

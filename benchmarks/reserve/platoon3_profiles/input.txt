@@ -1,0 +1,129 @@
+# RESERVE (benchmarks/reserve/, 2026-10-27): not in suite_v2, not in the paper, no Lean
+# integration. Reason: three identical time-scaled links (the three-follower copy of
+# platoon_profiles adds no mechanism). The header below is the design's.
+#
+# platoon3_profiles: a string of three CACC followers driven in the SPORT profile (the platoon
+# setting, every follower's CACC at 1.2 x bandwidth) against the design string verified in the
+# NORMAL profile; the three-follower version of platoon_profiles.
+# scenario: controller-refinement
+# mechanisms: S M (time stretch 6/5, RELCERT_SYNC=1 declines, matrix code M1; multi-cycle
+#   matching, budget 2, M2); scaling point of platoon_profiles (6-D, 1 / 4 modes)
+#
+# Shared platoon model (identical in platoon_linkloss, platoon_profiles, platoon3_linkloss,
+# platoon3_profiles). A lead vehicle cruises at the platoon reference speed v_ref = 25 m/s
+# (90 km/h). Per link (follower behind its predecessor): the gap g (m, bumper to bumper) and the
+# range rate r = v_pred - v (m/s, positive = opening), g' = r. Units m, m/s, s.
+# Spacing policy (constant time gap): standstill distance d0 = 5 m. CACC: time gap h_c = 0.6 s on
+#   the V2V-broadcast reference speed, desired gap d0 + h_c v_ref = 20 m. Radar-only ACC fallback:
+#   time gap h_a = 1.2 s on the follower's own speed v = v_ref - r (35 m at cruise).
+# CACC (V2V predecessor-acceleration feed-forward): a = a_pred + kp (g - 20) + kd r, so
+#   r' = -kp (g - 20) - kd r with kp = 0.125 /s^2, kd = 0.75 /s: closed-loop poles 0.25 and
+#   0.5 /s (over-damped); the forms r + 0.25 (g - 20) and r + 0.5 (g - 20) decay at 0.5 and
+#   0.25 /s.
+# ACC fallback (no feed-forward): a = kp (g - d0 - h_a v) + kd_a r, kd_a = 0.6 /s chosen so that
+#   the loop keeps the CACC poles (kd_a + kp h_a = 0.75): r' = -kp (g - 35) - 0.75 r.
+# SPORT driver profile: the CACC at 1.2 x its bandwidth, kp = 0.18 /s^2 (1.2^2 x), kd = 0.9 /s
+#   (1.2 x): poles 0.3 and 0.6 /s, same time gap and desired gap.
+# AEB (radar, the same function on every vehicle): triggers when the time to reach the standstill
+#   distance at the current closing rate falls below T = 2 s, (g - d0) + T r < 0, i.e.
+#   g + 2 r < 5; it then matches the predecessor's speed, r' = -0.5 r (relative deceleration
+#   5 m/s^2 at the rated 10 m/s closing rate), which conserves the projected stop gap g + 2 r, and
+#   stays latched until the driver resumes (not modeled). Trigger region as modeled:
+#   0 <= g + 2 r < 5 (a projected stop gap below 0 is a collision the matching law cannot avoid).
+# CACC operating range (the engagement spec, the same on both sides): |r| <= 10 (rated closing
+#   rate) and 5 <= g + 2 r <= 60 (TTC to the standstill distance at least 2 s, and the gap
+#   projected 2 s ahead inside the 60 m radar range gate). Forward invariant under CACC, ACC and
+#   SPORT: d/dt (g + 2 r) = -0.25 (g + 2 r - 20) under CACC (-0.25 (g + 2 r - 35) under ACC), so
+#   the TTC floor is a sublevel set of the slow mode and the CACC never triggers the AEB (the
+#   design's CACC -> AEB edges are pruned by non-connection certificates); the |r| <= 10 faces
+#   hold for every gap below 70 m.
+# Control period 0.1 s on both sides (10 Hz V2V messages, the ETSI CAM / SAE BSM rate).
+# Domain per link (both sides, every mode): 0 <= g <= 60 m (radar range gate), |r| <= 10 m/s
+#   (rated closing rate); every mode's guard is forward invariant inside it (CACC/ACC/SPORT: the
+#   operating range; AEB: g + 2 r is conserved and r decays).
+#
+# This file: three links, state (g1, r1, g2, r2, g3, r3); link i is follower i behind its
+# predecessor (link 1 behind the leader). Each follower's CACC feeds its predecessor's
+# acceleration forward, so every link obeys the single-link law of the shared model.
+# Right (design string): the NORMAL CACC on all three links, guard the operating range of every
+#   link, next [CACC, AEB1, AEB2, AEB3]; AEBk: follower k's AEB (link k on the AEB law, the two
+#   other links on the CACC), guard link k in the trigger region and the other two links in
+#   their operating range, latched.
+# Left (deployed string): the profile is a platoon setting, so every follower runs SPORT
+#   (kp 0.18, kd 0.9) on the same operating range; one mode, next [SPORT]. The deployed AEB is
+#   not modeled on the left: a braking follower among SPORT followers has no time-stretched
+#   design counterpart (its link would match the design's AEB at stretch 1, the SPORT links only
+#   at 6/5), so AEB starts of the deployed string are outside this claim; the SPORT row keeps
+#   every TTC >= 2 s, so no deployed run from a SPORT start enters one (platoon_profiles covers
+#   the single-link AEB pairing).
+# One cause: the driver profile (the controller gains it selects). Same plant, time gap, desired
+# gap, AEB, operating range and control period on both sides.
+#
+# Property, for every link i (Delta = L - R): g_i_L = g_i_R and r_i_L = 1.2 r_i_R at time
+# stretch 6/5, written as (r_i_L - 1.2 r_i_R) + rho (g_i_L - g_i_R) = 0, rho = 0.3, 0.6; and
+# g_i_L >= 5, g_i_L + 2 r_i_L >= 5. Requirement as in platoon_profiles: every SPORT string run
+# is a NORMAL string run played 1.2 times faster (the same gaps on every link, spacing error 0
+# up to the time scale), and every deployed follower stays collision-free (gap at least d0)
+# with TTC to d0 at least 2 s. Exact; gap floor tight (5.01 declines), the TTC floor is the AEB
+# threshold (larger floors also certify).
+# The AEB is placed by the claim and the cover, not by start floors (every left guard is the
+# spec's region, identical to the right's): with the rows the design state of each link has
+# TTC g_i_L + (5/3) r_i_L >= 5, so no AEBk is an admissible start; after the first design cycle
+# of a window the CACC -> AEB1, AEB2, AEB3 edges are closed both by pruning (non-connection on
+# each TTC floor) and by the committed choice of CACC: RELCERT_NO_PRUNE=1 alone and
+# RELCERT_NO_CHOICE=1 alone certify, both together DECLINE (no P, no X).
+# Stretch (S): lambda = 6/5 (RELCERT_SYNC=1 DECLINES). Multi-cycle (M): a 0.1 s deployed window
+# is 0.12 s of design time, two design cycles (budget 2). One left mode (handoff vacuous).
+#
+# Coverage of the right guards (per-link domain 0 <= g_i <= 60, |r_i| <= 10): a state with two
+# or more links below the TTC floor, or any link with g_i + 2 r_i < 0 or > 60, is in no right
+# guard; no run reaches one (the CACC operating range is forward invariant, and AEBk keeps the
+# other two links in theirs). The left mode has a satisfiable start (all gaps 20 m, r = 0).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED; CERTIFIED also under
+# RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, without RELCERT_IMPLIED_CUT, RELCERT_NO_IMPLIED_CUT=1,
+# RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_CUT=1, RELCERT_OPREGION=1 and RELCERT_WELLFORMED_STRICT=1;
+# DECLINED under RELCERT_SYNC=1 (also with RELCERT_NO_CHOICE=1) and under RELCERT_NO_PRUNE=1
+# RELCERT_NO_CHOICE=1. Cover: SPORT_L at lambda 6/5, budget 2, admissible [CACC]; pruned
+# CACC -> AEB1, AEB2, AEB3. --handoff 1/1 (vacuous: one left mode). relcert --wellformed: CACC,
+# AEB1, AEB2, AEB3 ok (invariant). About 5 s per run (the RELCERT_NO_PRUNE=1 runs about 20 s, half
+# the tool's 40 s budget).
+[problem]
+name = platoon3_profiles
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 2.0
+bound_T = 4.0
+[Lsys]
+state_vars = [g1, r1, g2, r2, g3, r3]
+epsilon = 0.1
+[Lsys.mode.SPORT]
+ode = g1' = smt2:r1; r1' = smt2:(- (* -0.18 (- g1 20.0)) (* 0.9 r1)); g2' = smt2:r2; r2' = smt2:(- (* -0.18 (- g2 20.0)) (* 0.9 r2)); g3' = smt2:r3; r3' = smt2:(- (* -0.18 (- g3 20.0)) (* 0.9 r3));
+guard = r1 >= -10.0 and r1 <= 10.0 and g1 + 2.0 * r1 >= 5.0 and g1 + 2.0 * r1 <= 60.0 and r2 >= -10.0 and r2 <= 10.0 and g2 + 2.0 * r2 >= 5.0 and g2 + 2.0 * r2 <= 60.0 and r3 >= -10.0 and r3 <= 10.0 and g3 + 2.0 * r3 >= 5.0 and g3 + 2.0 * r3 <= 60.0
+evolve = g1 >= 0.0 and g1 <= 60.0 and r1 >= -10.0 and r1 <= 10.0 and g2 >= 0.0 and g2 <= 60.0 and r2 >= -10.0 and r2 <= 10.0 and g3 >= 0.0 and g3 <= 60.0 and r3 >= -10.0 and r3 <= 10.0
+next = [SPORT]
+[Rsys]
+state_vars = [g1, r1, g2, r2, g3, r3]
+epsilon = 0.1
+[Rsys.mode.CACC]
+ode = g1' = smt2:r1; r1' = smt2:(- (* -0.125 (- g1 20.0)) (* 0.75 r1)); g2' = smt2:r2; r2' = smt2:(- (* -0.125 (- g2 20.0)) (* 0.75 r2)); g3' = smt2:r3; r3' = smt2:(- (* -0.125 (- g3 20.0)) (* 0.75 r3));
+guard = r1 >= -10.0 and r1 <= 10.0 and g1 + 2.0 * r1 >= 5.0 and g1 + 2.0 * r1 <= 60.0 and r2 >= -10.0 and r2 <= 10.0 and g2 + 2.0 * r2 >= 5.0 and g2 + 2.0 * r2 <= 60.0 and r3 >= -10.0 and r3 <= 10.0 and g3 + 2.0 * r3 >= 5.0 and g3 + 2.0 * r3 <= 60.0
+evolve = g1 >= 0.0 and g1 <= 60.0 and r1 >= -10.0 and r1 <= 10.0 and g2 >= 0.0 and g2 <= 60.0 and r2 >= -10.0 and r2 <= 10.0 and g3 >= 0.0 and g3 <= 60.0 and r3 >= -10.0 and r3 <= 10.0
+next = [CACC, AEB1, AEB2, AEB3]
+[Rsys.mode.AEB1]
+ode = g1' = smt2:r1; r1' = smt2:(* -0.5 r1); g2' = smt2:r2; r2' = smt2:(- (* -0.125 (- g2 20.0)) (* 0.75 r2)); g3' = smt2:r3; r3' = smt2:(- (* -0.125 (- g3 20.0)) (* 0.75 r3));
+guard = g1 + 2.0 * r1 < 5.0 and g1 + 2.0 * r1 >= 0.0 and g1 >= 0.0 and r2 >= -10.0 and r2 <= 10.0 and g2 + 2.0 * r2 >= 5.0 and g2 + 2.0 * r2 <= 60.0 and r3 >= -10.0 and r3 <= 10.0 and g3 + 2.0 * r3 >= 5.0 and g3 + 2.0 * r3 <= 60.0
+evolve = g1 >= 0.0 and g1 <= 60.0 and r1 >= -10.0 and r1 <= 10.0 and g2 >= 0.0 and g2 <= 60.0 and r2 >= -10.0 and r2 <= 10.0 and g3 >= 0.0 and g3 <= 60.0 and r3 >= -10.0 and r3 <= 10.0
+next = [AEB1]
+[Rsys.mode.AEB2]
+ode = g1' = smt2:r1; r1' = smt2:(- (* -0.125 (- g1 20.0)) (* 0.75 r1)); g2' = smt2:r2; r2' = smt2:(* -0.5 r2); g3' = smt2:r3; r3' = smt2:(- (* -0.125 (- g3 20.0)) (* 0.75 r3));
+guard = g2 + 2.0 * r2 < 5.0 and g2 + 2.0 * r2 >= 0.0 and g2 >= 0.0 and r1 >= -10.0 and r1 <= 10.0 and g1 + 2.0 * r1 >= 5.0 and g1 + 2.0 * r1 <= 60.0 and r3 >= -10.0 and r3 <= 10.0 and g3 + 2.0 * r3 >= 5.0 and g3 + 2.0 * r3 <= 60.0
+evolve = g1 >= 0.0 and g1 <= 60.0 and r1 >= -10.0 and r1 <= 10.0 and g2 >= 0.0 and g2 <= 60.0 and r2 >= -10.0 and r2 <= 10.0 and g3 >= 0.0 and g3 <= 60.0 and r3 >= -10.0 and r3 <= 10.0
+next = [AEB2]
+[Rsys.mode.AEB3]
+ode = g1' = smt2:r1; r1' = smt2:(- (* -0.125 (- g1 20.0)) (* 0.75 r1)); g2' = smt2:r2; r2' = smt2:(- (* -0.125 (- g2 20.0)) (* 0.75 r2)); g3' = smt2:r3; r3' = smt2:(* -0.5 r3);
+guard = g3 + 2.0 * r3 < 5.0 and g3 + 2.0 * r3 >= 0.0 and g3 >= 0.0 and r1 >= -10.0 and r1 <= 10.0 and g1 + 2.0 * r1 >= 5.0 and g1 + 2.0 * r1 <= 60.0 and r2 >= -10.0 and r2 <= 10.0 and g2 + 2.0 * r2 >= 5.0 and g2 + 2.0 * r2 <= 60.0
+evolve = g1 >= 0.0 and g1 <= 60.0 and r1 >= -10.0 and r1 <= 10.0 and g2 >= 0.0 and g2 <= 60.0 and r2 >= -10.0 and r2 <= 10.0 and g3 >= 0.0 and g3 <= 60.0 and r3 >= -10.0 and r3 <= 10.0
+next = [AEB3]
+[relational_invariant]
+SPORT = smt2:(and (>= (+ (- L_r1 (* 1.2 R_r1)) (* 0.3 (- L_g1 R_g1))) 0.0) (<= (+ (- L_r1 (* 1.2 R_r1)) (* 0.3 (- L_g1 R_g1))) 0.0) (>= (+ (- L_r1 (* 1.2 R_r1)) (* 0.6 (- L_g1 R_g1))) 0.0) (<= (+ (- L_r1 (* 1.2 R_r1)) (* 0.6 (- L_g1 R_g1))) 0.0) (>= L_g1 5.0) (>= (+ L_g1 (* 2.0 L_r1)) 5.0) (>= (+ (- L_r2 (* 1.2 R_r2)) (* 0.3 (- L_g2 R_g2))) 0.0) (<= (+ (- L_r2 (* 1.2 R_r2)) (* 0.3 (- L_g2 R_g2))) 0.0) (>= (+ (- L_r2 (* 1.2 R_r2)) (* 0.6 (- L_g2 R_g2))) 0.0) (<= (+ (- L_r2 (* 1.2 R_r2)) (* 0.6 (- L_g2 R_g2))) 0.0) (>= L_g2 5.0) (>= (+ L_g2 (* 2.0 L_r2)) 5.0) (>= (+ (- L_r3 (* 1.2 R_r3)) (* 0.3 (- L_g3 R_g3))) 0.0) (<= (+ (- L_r3 (* 1.2 R_r3)) (* 0.3 (- L_g3 R_g3))) 0.0) (>= (+ (- L_r3 (* 1.2 R_r3)) (* 0.6 (- L_g3 R_g3))) 0.0) (<= (+ (- L_r3 (* 1.2 R_r3)) (* 0.6 (- L_g3 R_g3))) 0.0) (>= L_g3 5.0) (>= (+ L_g3 (* 2.0 L_r3)) 5.0))

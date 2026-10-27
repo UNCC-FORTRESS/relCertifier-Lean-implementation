@@ -5,9 +5,7 @@ import RelCertifier.InstancesV2.BenchChoice.acc_spoof_lag
 import RelCertifier.InstancesV2.BenchChoice.acc_spoof_limp
 import RelCertifier.InstancesV2.BenchChoice.acc_tune_lag
 import RelCertifier.InstancesV2.BenchChoice.acc_tune_limp
-import RelCertifier.InstancesV2.BenchChoice.airheader_dos_3to1
 import RelCertifier.InstancesV2.BenchChoice.arm_plateau_crit
-import RelCertifier.InstancesV2.BenchChoice.arm_plateau_profiles
 import RelCertifier.InstancesV2.BenchChoice.arm_plateau_slow
 import RelCertifier.InstancesV2.BenchChoice.charger_fast_setpoints
 import RelCertifier.InstancesV2.BenchChoice.charger_fast_tapers
@@ -16,8 +14,6 @@ import RelCertifier.InstancesV2.BenchChoice.drl_lane_control
 import RelCertifier.InstancesV2.BenchChoice.freedm_meter
 import RelCertifier.InstancesV2.BenchChoice.hvac_fan_staging
 import RelCertifier.InstancesV2.BenchChoice.match_multi_rate
-import RelCertifier.InstancesV2.BenchChoice.platoon3_linkloss
-import RelCertifier.InstancesV2.BenchChoice.platoon3_profiles
 import RelCertifier.InstancesV2.BenchChoice.platoon_delay_linkloss
 import RelCertifier.InstancesV2.BenchChoice.platoon_delay_profiles
 import RelCertifier.InstancesV2.BenchChoice.quad_light_airframe_20
@@ -59,9 +55,7 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("acc_spoof_limp", acc_spoof_limp_coverV2_choice),
   ("acc_tune_lag", acc_tune_lag_coverV2_choice),
   ("acc_tune_limp", acc_tune_limp_coverV2_choice),
-  ("airheader_dos_3to1", airheader_dos_3to1_coverV2_choice),
   ("arm_plateau_crit", arm_plateau_crit_coverV2_choice),
-  ("arm_plateau_profiles", arm_plateau_profiles_coverV2_choice),
   ("arm_plateau_slow", arm_plateau_slow_coverV2_choice),
   ("charger_fast_setpoints", charger_fast_setpoints_coverV2_choice),
   ("charger_fast_tapers", charger_fast_tapers_coverV2_choice),
@@ -70,8 +64,6 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("freedm_meter", freedm_meter_coverV2_choice),
   ("hvac_fan_staging", hvac_fan_staging_coverV2_choice),
   ("match_multi_rate", match_multi_rate_coverV2_choice),
-  ("platoon3_linkloss", platoon3_linkloss_coverV2_choice),
-  ("platoon3_profiles", platoon3_profiles_coverV2_choice),
   ("platoon_delay_linkloss", platoon_delay_linkloss_coverV2_choice),
   ("platoon_delay_profiles", platoon_delay_profiles_coverV2_choice),
   ("quad_light_airframe_20", quad_light_airframe_20_coverV2_choice),

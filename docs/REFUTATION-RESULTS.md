@@ -27,8 +27,12 @@
 > m015; `rover_terrain_4to6` m016, m017, m019 to m022, m024, m028; `rover_terrain_6to12` m020,
 > m021, m023 to m026, m028 to m030, m032, m035, m037, m039 to m047: flipped, deleted or
 > cross-side rows of the slip, lag, heave, pitch, acceleration and squat bounds).
-> Current instance set: **110 refutations, 315 groups**
-> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 869 mutants in
+> On 2026-10-27 four benchmarks moved to `benchmarks/reserve/` (no Lean integration) with their
+> refutations and witness lines: `arm_plateau_profiles` (m000, kind B; 3 mutants),
+> `platoon3_linkloss` (m072, m084, m096, kind C; 104 mutants), `platoon3_profiles` (96 mutants, no
+> witness), `airheader_dos_3to1` (16 mutants, no witness).
+> Current instance set: **106 refutations, 298 groups**
+> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 650 mutants in
 > `docs/refute/witnesses.jsonl`. The operator table has not been recomputed.
 
 Design: `docs/REFUTATION-SCOPE.md` (planning record, last present at commit 29663d8). This file reports what was built and the experiment.

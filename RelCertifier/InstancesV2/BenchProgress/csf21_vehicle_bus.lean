@@ -2,8 +2,8 @@ import RelCertifier.Trusted.ProgressEmit
 
 namespace RelCertifier.Progress
 
-def platoon_profiles_coverV2_progress : RelCertifier.Progress.ProgressEmitE :=
-  ⟨"platoon_profiles", [
+def csf21_vehicle_bus_coverV2_progress : RelCertifier.Progress.ProgressEmitE :=
+  ⟨"csf21_vehicle_bus", [
     ]⟩
 
 end RelCertifier.Progress

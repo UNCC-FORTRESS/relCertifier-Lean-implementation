@@ -18,7 +18,7 @@ domain since 2026-10-15).
 Nine files had a blocking mode until 2026-10-10 and were repaired (`docs/SUITE-REDESIGN.md`
 §21; each header says how and why; `arm_plateau_{crit,profiles,slow}` and
 `platoon3_{linkloss,profiles}` are in `benchmarks/reserve/` since 2026-10-27, and `platoon_delay_{linkloss,profiles}` were
-replaced by the redesigned `platoon_linkloss` and `platoon_profiles`): `arm_plateau_{crit,profiles,slow}` (the ApproachA /
+replaced by the redesigned `platoon_linkloss` and `platoon_profiles`, the latter in the reserve since batch I8): `arm_plateau_{crit,profiles,slow}` (the ApproachA /
 ApproachB bands are narrower than one control interval of their own rate: the sampled
 planner's successor sets now name every band a sample can find), `platoon_delay_{linkloss,
 profiles}` (the sink `BRAKE` left its guard: it now re-engages `FOLLOW`),
@@ -27,7 +27,7 @@ an invariant guard) and `quad_light_{airframe_20,profiles}` (the sink `LIMIT`: i
 the climb controller, whose operating range reached the limiter threshold; both were redesigned
 on 2026-10-27 with the altitude coordinate and no limiter mode).
 `relcert --wellformed <input.txt>…` runs the tool's sufficient check per right mode (every one
-of the 170 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN` or `BLOCKING`.
+of the 185 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN` or `BLOCKING`.
 
 The suite's design, the per-family rationale, the domain audit (every evolve bound is a
 physical limit of the plant; `scripts/domain_widening.py` re-runs the tool with every bound
@@ -123,6 +123,27 @@ never in the suite: the bound is the no-FFR worst case and does not depend on th
 |---|---|
 | `match_multi_rate` | `gantry_speed_zones` (both models new: a pick-and-place gantry whose production program runs zone-scheduled speed overrides, against the program as commissioned at reduced speed; 10 mm path tolerance; replaces the synthetic unitless rate-ratio exhibit in the same multi-cycle matching role) |
 | `platoon_delay_profiles` | `platoon_profiles` (redesigned: the CACC follower driven in the SPORT profile, a shorter time gap, against the design follower verified in NORMAL; its right model is `platoon_linkloss`'s, Assumption 1 through the shared `PlatoonCaccAeb` lemmas) |
+
+## Batch I8 (2026-10-27): five own designs swapped for case studies from published work
+
+Owner request (2026-10-27): prefer case studies from existing work, for credibility; the literature
+group of four was too thin. Five of the suite's own designs move to the reserve and five case
+studies reproduced from published papers replace them; the suite stays at 50 (41 designed, 9 from
+the literature). Each new header cites its source, states what the file reproduces and every
+departure from it, and reports the verdicts measured on this branch. Each install with its Lean
+integration (records, bridge instance, a new Z3-free Assumption 1 proof stated over the bridge's
+automaton, `_wellFormedR_direct`), a refutation-finder run, the matrix family `Literature` and the
+counts; each move with its Lean integration, records, refutations and counts.
+
+First group: `csf21_vehicle_thermo` (Xiang, Fulton, Chong, CSF 2021, the car with interior
+temperature control: an attacker who owns the cabin-temperature reading cannot change the car's
+distance and velocity; X, the genuine car commits to the attacked car's action at every window)
+and `csf21_vehicle_bus` (the same paper's internal-bus case study: the thermostat shares the
+drive's bus, one message per cycle, twelve genuine modes by message type; X) in;
+`hvac_fan_staging` and `platoon_profiles` (the two tier-2 members of the final audit: the identity
+hop of template B, and a special case of `platoon_linkloss`) to the reserve. The negative exhibit
+`csf21_vehicle_thermo_leaky` (an air-conditioning load on the drive lets the temperature reading
+reach the velocity; expected DECLINED) joins `freedm_meter_leaky` in `benchmarks/negative/`.
 
 ## Batch I7 (2026-10-27): two tier-2 members swapped for reserve designs
 
@@ -353,6 +374,8 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `canal_gate_notches` | 1 / 1 | 3 / 4 | controller-refinement | new 2026-10-27: mode choice (the reference commits to a nearby permitted notch) |
 | `charger_fast_tapers` | 1 / 1 | 5 / 6 | degraded-controller | reinstalled 2026-10-27 (batch I7; in the reserve from batch I4): the minute time scale (`epsilon = 0.006` min = 0.36 s); mode-keyed (the stricter PRECHARGE row), right-only repositioning, pruned FAULT edges, widened cuts |
 | `compressor_station_recycle` | 2 / 2 | 3 / 3 | degraded-actuator | new 2026-10-27 (batch I5): mode choice (the reference commits to two units while the deployed commands three; with a healthy valve the hop is the identity) |
+| `csf21_vehicle_bus` | 3 / 3 | 6 / 12 | sensor-attack | literature (CSF 2021, internal bus), mode choice; new 2026-10-27 (batch I8) |
+| `csf21_vehicle_thermo` | 3 / 3 | 6 / 6 | sensor-attack | literature (CSF 2021), mode choice; new 2026-10-27 (batch I8); leaky counterpart in `benchmarks/negative/` |
 | `drl_car_stop` | 2 / 2 | 3 / 3 | controller-refinement | literature (dRL), mode choice |
 | `drl_lane_control` | 3 / 3 | 6 / 6 | controller-refinement | literature (dRL), mode choice |
 | `elevator_start_discbrake` | 3 / 3 | 4 / 4 | actuator-change | new 2026-10-27 (batch I5): mode-keyed (LIFT row), right-only repositioning (the reference's slower brake lift); STOP's rest-position guard conjunct added at installation |
@@ -363,13 +386,11 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `furnace_program_timebase` | 2 / 2 | 3 / 3 | controller-change | new 2026-10-27 (batch I5): stretch 4/5 (`lambda_min = 0.8`), widened cuts, load-bearing mode facts |
 | `gantry_speed_zones` | 2 / 2 | 3 / 1 | controller-refinement | new 2026-10-27 (replaces `match_multi_rate`): a time stretch per speed zone (3, 2, 1), multi-step covers |
 | `grid_ffr_dos` | 3 / 3 | 2 / 3 | dos-attack | new 2026-10-27 (batch I7; round-A design from the reserve): multi-step covers (one attacked cycle against three nominal), pruned trip edges `NORMAL -> TRIP`, `FFR -> TRIP` |
-| `hvac_fan_staging` | 1 / 1 | 3 / 3 | controller-refinement | new 2026-10-26 (replaces `rover_terrain_2to3`): mode choice |
 | `hydro_rejection_gatecal` | 3 / 3 | 2 / 2 | degraded-sensor | new 2026-10-27 (batch I5): mode-keyed (shared-grid equality before the breaker opens, a speed band after) |
 | `insulin_basal_cgmloss` | 3 / 3 | 9 / 9 | degraded-network | new 2026-10-27 (batch I5): multi-step and branching covers (state-dependent successors of the basal table) |
 | `molding_pack_checkring` | 3 / 3 | 2 / 2 | degraded-actuator | new 2026-10-27 (batch I5): mode-keyed (the hold row drops its nozzle conjunct at gate freeze) |
 | `platoon_latency` | 3 / 2 | 3 / 2 | degraded-network | new 2026-10-27: mode-keyed (AEB row), right model shared with `platoon_linkloss` |
 | `platoon_linkloss` | 2 / 2 | 3 / 2 | dos-attack | redesigned 2026-10-27 (was `platoon_delay_linkloss`): mode-keyed (AEB row), CACC -> ACC fallback |
-| `platoon_profiles` | 2 / 2 | 2 / 2 | controller-refinement | redesigned 2026-10-27 (was `platoon_delay_profiles`): mode-keyed (AEB row), SPORT time gap against NORMAL, right model shared with `platoon_linkloss` |
 | `quad_light_lag` | 3 / 3 | 1 / 1 | model-refinement | redesigned 2026-10-27: altitude coordinate, rows from the 0.8 m altitude acceptance radius; the time scaling fixed to 6/5 (`lambda_min = lambda_max = 1.2`, batch I6) |
 | `quad_light_profiles` | 2 / 2 | 1 / 3 | model-refinement | redesigned 2026-10-27: altitude coordinate, real-time conformance to the reference's SPORT profile (lambda 1); mode choice |
 | `rover_ladder_2to3` | 3 / 3 | 3 / 3 | model-refinement | reinstalled 2026-10-27 on the canonical rover hierarchy (L3 / L2): clearance and heading rows, lambda 1 |
@@ -470,7 +491,14 @@ discharge, the grid otherwise); a surplus at a full battery, or a demand at an e
 the grid while a run from another level keeps it on the battery, so no matching run keeps the
 meters equal. A DECLINE is
 not a proof of insecurity (the certifier is sound, not complete); the source proves the leak by
-exhibiting the two runs.
+exhibiting the two runs. `csf21_vehicle_thermo_leaky` (batch I8): `csf21_vehicle_thermo` with an
+air-conditioning load on the drive on both sides (accelerating while cooling gives 0.8 m/s^2
+instead of 1); the thermostat command now changes the velocity, so the attacker who sets the
+temperature reading sets the acceleration profile. Its header exhibits the leak by hand (five
+windows of AccHeat then three of AccCool need a genuine start temperature that does not exist),
+which the source's lock-step equivalence also rules out. The check
+`RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert benchmarks/negative/*/input.txt` must print
+`DECLINED` for both files.
 
 ## Assumption 1 negative exhibit (`benchmarks/negative_wellformed/`)
 

@@ -9,6 +9,8 @@ import RelCertifier.InstancesV2.BenchCovers.bottling_fill_strainer
 import RelCertifier.InstancesV2.BenchCovers.canal_gate_notches
 import RelCertifier.InstancesV2.BenchCovers.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchCovers.compressor_station_recycle
+import RelCertifier.InstancesV2.BenchCovers.csf21_vehicle_bus
+import RelCertifier.InstancesV2.BenchCovers.csf21_vehicle_thermo
 import RelCertifier.InstancesV2.BenchCovers.drl_car_stop
 import RelCertifier.InstancesV2.BenchCovers.drl_lane_control
 import RelCertifier.InstancesV2.BenchCovers.elevator_start_discbrake
@@ -19,13 +21,11 @@ import RelCertifier.InstancesV2.BenchCovers.fuelcell_chp_dos
 import RelCertifier.InstancesV2.BenchCovers.furnace_program_timebase
 import RelCertifier.InstancesV2.BenchCovers.gantry_speed_zones
 import RelCertifier.InstancesV2.BenchCovers.grid_ffr_dos
-import RelCertifier.InstancesV2.BenchCovers.hvac_fan_staging
 import RelCertifier.InstancesV2.BenchCovers.hydro_rejection_gatecal
 import RelCertifier.InstancesV2.BenchCovers.insulin_basal_cgmloss
 import RelCertifier.InstancesV2.BenchCovers.molding_pack_checkring
 import RelCertifier.InstancesV2.BenchCovers.platoon_latency
 import RelCertifier.InstancesV2.BenchCovers.platoon_linkloss
-import RelCertifier.InstancesV2.BenchCovers.platoon_profiles
 import RelCertifier.InstancesV2.BenchCovers.quad_light_lag
 import RelCertifier.InstancesV2.BenchCovers.quad_light_profiles
 import RelCertifier.InstancesV2.BenchCovers.rover_ladder_2to3
@@ -63,6 +63,8 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("canal_gate_notches", canal_gate_notches_coverV2),
   ("charger_fast_tapers", charger_fast_tapers_coverV2),
   ("compressor_station_recycle", compressor_station_recycle_coverV2),
+  ("csf21_vehicle_bus", csf21_vehicle_bus_coverV2),
+  ("csf21_vehicle_thermo", csf21_vehicle_thermo_coverV2),
   ("drl_car_stop", drl_car_stop_coverV2),
   ("drl_lane_control", drl_lane_control_coverV2),
   ("elevator_start_discbrake", elevator_start_discbrake_coverV2),
@@ -73,13 +75,11 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("furnace_program_timebase", furnace_program_timebase_coverV2),
   ("gantry_speed_zones", gantry_speed_zones_coverV2),
   ("grid_ffr_dos", grid_ffr_dos_coverV2),
-  ("hvac_fan_staging", hvac_fan_staging_coverV2),
   ("hydro_rejection_gatecal", hydro_rejection_gatecal_coverV2),
   ("insulin_basal_cgmloss", insulin_basal_cgmloss_coverV2),
   ("molding_pack_checkring", molding_pack_checkring_coverV2),
   ("platoon_latency", platoon_latency_coverV2),
   ("platoon_linkloss", platoon_linkloss_coverV2),
-  ("platoon_profiles", platoon_profiles_coverV2),
   ("quad_light_lag", quad_light_lag_coverV2),
   ("quad_light_profiles", quad_light_profiles_coverV2),
   ("rover_ladder_2to3", rover_ladder_2to3_coverV2),

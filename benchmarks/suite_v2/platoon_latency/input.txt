@@ -5,7 +5,8 @@
 #   or implied, uniform rows decline; matrix code M5)
 #
 # Shared platoon model (identical in platoon_linkloss and this file, and in the round-2 platoon
-# designs platoon_profiles and the reserve's platoon3_linkloss, platoon3_profiles). A lead vehicle cruises at the platoon reference speed
+# designs platoon_profiles (in benchmarks/reserve/ since 2026-10-27, batch I8) and the reserve's
+# platoon3_linkloss, platoon3_profiles). A lead vehicle cruises at the platoon reference speed
 # v_ref = 25 m/s (90 km/h). Per link (follower behind its predecessor): the gap g (m, bumper to
 # bumper) and the range rate r = v_pred - v (m/s, positive = opening), g' = r. Units m, m/s, s.
 # Spacing policy (constant time gap): standstill distance d0 = 5 m. CACC: time gap h_c = 0.6 s on

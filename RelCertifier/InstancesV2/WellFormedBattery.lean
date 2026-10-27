@@ -26,17 +26,19 @@ suite's IR table by `wf_coverage`).**
 * **Proved, 47** (`<bench>_wellFormedR`): every mode (`watertank_twospeed` added 2026-10-11;
   the literature benchmarks `drl_car_stop`, `drl_lane_control`, `vehicle_hypercert` and
   `freedm_meter` added 2026-10-15, three of them proved directly over the bridge's automaton,
-  `_wellFormedR_direct`). Z3-free (no verdict leaf). None of the nine models repaired on
+  `_wellFormedR_direct`; the literature case studies of batch I8, 2026-10-27, `csf21_vehicle_thermo`
+  and `csf21_vehicle_bus`, also direct). Z3-free (no verdict leaf). None of the nine models repaired on
   2026-10-10 (`docs/SUITE-REDESIGN.md` §21; until then refuted here with exhibited blocking
   states, declared counts `(30, 9, 6)`) is in the suite in its repaired form any more:
   `arm_plateau_{crit,profiles,slow}` and `platoon3_{linkloss,profiles}` moved to
   `benchmarks/reserve/` on 2026-10-27 with their proofs (history) and the shared `Platoon3Link`
   lemmas, `platoon_delay_linkloss` was replaced by `platoon_linkloss`, whose CACC/AEB follower it
-  shares with `platoon_latency` and `platoon_profiles` through `PlatoonCaccAeb`,
+  shares with `platoon_latency` (and shared with `platoon_profiles`, in the reserve since batch I8)
+  through `PlatoonCaccAeb`,
   `platoon_delay_profiles` by `platoon_profiles`, and `quad_light_{airframe_20,profiles}` were
   redesigned on 2026-10-27 with the altitude coordinate and no limiter mode (`quad_light_airframe_20`
   moved to `benchmarks/reserve/` in batch I7 the same day, its proof in history, as did
-  `rampmeter_poll_2to1` of batch I6).
+  `rampmeter_poll_2to1` of batch I6, and `hvac_fan_staging` and `platoon_profiles` in batch I8).
 * **Refuted, 0.**
 * **The detumble family, 3** (`<bench>_wellFormedR`, every mode; `<bench>_band_invariant`):
   `sat_detumble_{weak,phases}`, `sat3w_detumble_phases` (`sat_detumble_nominal` and
@@ -56,6 +58,8 @@ import RelCertifier.InstancesV2.WellFormed.DrlCarStop
 import RelCertifier.InstancesV2.WellFormed.DrlLaneControl
 import RelCertifier.InstancesV2.WellFormed.FreedmMeter
 import RelCertifier.InstancesV2.WellFormed.VehicleHypercert
+import RelCertifier.InstancesV2.WellFormed.Csf21VehicleThermo
+import RelCertifier.InstancesV2.WellFormed.Csf21VehicleBus
 import RelCertifier.InstancesV2.WellFormed.Watertank
 import RelCertifier.InstancesV2.WellFormed.AccSpoofLag
 import RelCertifier.InstancesV2.WellFormed.AccSpoofLimp
@@ -78,7 +82,6 @@ import RelCertifier.InstancesV2.WellFormed.TrainAtoOdometry
 import RelCertifier.InstancesV2.WellFormed.BmsChillerUndercharge
 import RelCertifier.InstancesV2.WellFormed.CanalGateNotches
 import RelCertifier.InstancesV2.WellFormed.TurbineStartupGearratio
-import RelCertifier.InstancesV2.WellFormed.PlatoonProfiles
 import RelCertifier.InstancesV2.WellFormed.ChargerFastTapers
 import RelCertifier.InstancesV2.WellFormed.QuadLightProfiles
 import RelCertifier.InstancesV2.WellFormed.SatDetumbleWeak
@@ -86,7 +89,6 @@ import RelCertifier.InstancesV2.WellFormed.SatDetumblePhases
 import RelCertifier.InstancesV2.WellFormed.Sat3wDetumblePhases
 import RelCertifier.InstancesV2.WellFormed.WatertankTwospeed
 import RelCertifier.InstancesV2.WellFormed.TankDos3to1
-import RelCertifier.InstancesV2.WellFormed.HvacFanStaging
 import RelCertifier.InstancesV2.WellFormed.MoldingPackCheckring
 import RelCertifier.InstancesV2.WellFormed.FuelcellChpDos
 import RelCertifier.InstancesV2.WellFormed.ElevatorStartDiscbrake
@@ -109,14 +111,13 @@ namespace WellFormedBattery
 /-- The benchmarks whose right model satisfies Assumption 1 at every mode. -/
 def wfProved : List String :=
   ["platoon_linkloss", "platoon_latency",
-   "platoon_profiles",
    "charger_fast_tapers", "quad_light_profiles",
    "watertank", "acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp",
    "quad_light_lag", "rover_patrol_lag", "gantry_speed_zones",
    "rover_ladder_2to3",
    "rover_ladder_3to6", "rover_ladder_6to8",
    "rover_ladder_8to12", "rover_terrain_2to4", "rover_terrain_6to12",
-   "rover_terrain_4to6", "watertank_twospeed", "tank_dos_3to1", "hvac_fan_staging", "engine_start_highidle", "train_ato_odometry",
+   "rover_terrain_4to6", "watertank_twospeed", "tank_dos_3to1", "engine_start_highidle", "train_ato_odometry",
    "bms_chiller_undercharge", "canal_gate_notches", "turbine_startup_gearratio",
    "molding_pack_checkring", "fuelcell_chp_dos", "elevator_start_discbrake",
    "furnace_program_timebase", "compressor_station_recycle", "syringe_relay_prearm",
@@ -125,7 +126,9 @@ def wfProved : List String :=
    "flaps_slow_approach", "tunnel_jetfan_pairout", "grid_ffr_dos",
    "bottling_fill_strainer", "antenna_track_kvretune",
    "drl_car_stop", "drl_lane_control",
-   "vehicle_hypercert", "freedm_meter"]
+   "vehicle_hypercert", "freedm_meter",
+   "csf21_vehicle_thermo",
+   "csf21_vehicle_bus"]
 
 /-- The benchmarks whose right model violates Assumption 1 (none since the 2026-10-10
 repairs; the nine refuted until then are in `wfProved`). -/
@@ -167,24 +170,27 @@ the polynomial terms `u^2` and `u c` and is proved with an explicit Riccati run,
 `rampmeter_poll_2to1`, `bottling_fill_strainer`, `antenna_track_kvretune`); unchanged by the swaps
 of batch I7 (`charger_fast_tapers`, reinstalled at the minute time scale with its round-2 proof
 at the new interval, for `quad_light_airframe_20`; `grid_ffr_dos`, a new proof with an explicit
-run and a non-strict barrier for the FFR release line, for `rampmeter_poll_2to1`). -/
+run and a non-strict barrier for the FFR release line, for `rampmeter_poll_2to1`); unchanged by the
+swaps of batch I8 (the literature case studies `csf21_vehicle_thermo` and `csf21_vehicle_bus`,
+direct proofs with explicit polynomial runs and an exit into a coast mode, for `hvac_fan_staging`
+and `platoon_profiles`). -/
 def wfDeclared : ℕ × ℕ × ℕ := (47, 0, 3)
 
 /-- The suite's benchmark names, in the order of the IR table. -/
 def suiteNames : List String :=
   ["acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp", "antenna_track_kvretune",
-   "bms_chiller_undercharge", "bottling_fill_strainer", "canal_gate_notches", "charger_fast_tapers",
-   "compressor_station_recycle", "drl_car_stop", "drl_lane_control", "elevator_start_discbrake",
+   "bms_chiller_undercharge", "bottling_fill_strainer", "canal_gate_notches",
+   "charger_fast_tapers", "compressor_station_recycle", "csf21_vehicle_bus",
+   "csf21_vehicle_thermo", "drl_car_stop", "drl_lane_control", "elevator_start_discbrake",
    "engine_start_highidle", "flaps_slow_approach", "freedm_meter", "fuelcell_chp_dos",
-   "furnace_program_timebase", "gantry_speed_zones", "grid_ffr_dos", "hvac_fan_staging",
-   "hydro_rejection_gatecal", "insulin_basal_cgmloss", "molding_pack_checkring", "platoon_latency",
-   "platoon_linkloss", "platoon_profiles", "quad_light_lag", "quad_light_profiles",
-   "rover_ladder_2to3", "rover_ladder_3to6", "rover_ladder_6to8", "rover_ladder_8to12",
-   "rover_patrol_lag", "rover_rollover_payload", "rover_terrain_2to4", "rover_terrain_4to6",
-   "rover_terrain_6to12", "sat3w_detumble_phases", "sat_detumble_phases", "sat_detumble_weak",
-   "syringe_relay_prearm", "tank_dos_3to1", "train_ato_odometry", "tunnel_jetfan_pairout",
-   "turbine_startup_gearratio", "vehicle_hypercert", "ventilator_vc_cuffleak", "watertank",
-   "watertank_twospeed"]
+   "furnace_program_timebase", "gantry_speed_zones", "grid_ffr_dos", "hydro_rejection_gatecal",
+   "insulin_basal_cgmloss", "molding_pack_checkring", "platoon_latency", "platoon_linkloss",
+   "quad_light_lag", "quad_light_profiles", "rover_ladder_2to3", "rover_ladder_3to6",
+   "rover_ladder_6to8", "rover_ladder_8to12", "rover_patrol_lag", "rover_rollover_payload",
+   "rover_terrain_2to4", "rover_terrain_4to6", "rover_terrain_6to12", "sat3w_detumble_phases",
+   "sat_detumble_phases", "sat_detumble_weak", "syringe_relay_prearm", "tank_dos_3to1",
+   "train_ato_odometry", "tunnel_jetfan_pairout", "turbine_startup_gearratio", "vehicle_hypercert",
+   "ventilator_vc_cuffleak", "watertank", "watertank_twospeed"]
 
 /-- `suiteNames` IS the name column of the kernel-checked IR table of the suite. -/
 theorem suiteNames_eq : Parse.benchIRTableV2.map Prod.fst = suiteNames := rfl
@@ -205,11 +211,12 @@ end WellFormedBattery
 #print axioms V2DrlLaneControl.drl_lane_control_wellFormedR_direct
 #print axioms V2FreedmMeter.freedm_meter_wellFormedR_direct
 #print axioms V2VehicleHypercert.vehicle_hypercert_wellFormedR
+#print axioms V2Csf21VehicleThermo.csf21_vehicle_thermo_wellFormedR_direct
+#print axioms V2Csf21VehicleBus.csf21_vehicle_bus_wellFormedR_direct
 
 #print axioms V2Watertank.watertank_wellFormedR
 #print axioms V2WatertankTwospeed.watertank_twospeed_wellFormedR
 #print axioms V2TankDos3to1.tank_dos_3to1_wellFormedR
-#print axioms V2HvacFanStaging.hvac_fan_staging_wellFormedR
 #print axioms V2AccSpoofLag.acc_spoof_lag_wellFormedR
 #print axioms V2AccSpoofLimp.acc_spoof_limp_wellFormedR
 #print axioms V2AccTuneLag.acc_tune_lag_wellFormedR
@@ -229,7 +236,6 @@ end WellFormedBattery
 
 #print axioms V2PlatoonLinkloss.platoon_linkloss_wellFormedR
 #print axioms V2PlatoonLatency.platoon_latency_wellFormedR
-#print axioms V2PlatoonProfiles.platoon_profiles_wellFormedR
 #print axioms V2EngineStartHighidle.engine_start_highidle_wellFormedR
 #print axioms V2TrainAtoOdometry.train_ato_odometry_wellFormedR
 #print axioms V2BmsChillerUndercharge.bms_chiller_undercharge_wellFormedR

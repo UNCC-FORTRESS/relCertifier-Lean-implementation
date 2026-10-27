@@ -1,3 +1,9 @@
+# RESERVE (benchmarks/reserve/, 2026-10-27, batch I8): not in suite_v2, not in the paper, no Lean
+# integration (last at commit 95033f6). Reason: tier 2 in the final audit (AUDIT-C2): a special case
+# of platoon_linkloss (a constant set-point shift with no switching, the same rows and the same AEB
+# D); its place in the suite went to a literature case study (csf21_vehicle_bus, batch I8). The
+# header below is the suite file's.
+#
 # platoon_profiles: a CACC follower driven in the SPORT profile (a shorter time gap) against the
 # design follower verified in the NORMAL profile.
 # scenario: controller-refinement

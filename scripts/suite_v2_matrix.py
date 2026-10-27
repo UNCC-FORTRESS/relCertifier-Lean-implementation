@@ -78,7 +78,7 @@ FAMILIES = [
     ("acc_", "ACC under sensor spoofing / retune"),
     ("quad_", "Quadrotor climb, lighter airframe"),
     ("heater_", "Heater cycle"),
-    ("platoon_", "Platoon follower (CACC, link loss / latency / profile)"),
+    ("platoon_", "Platoon follower (CACC, link loss / latency)"),
     ("rover_patrol_", "Rover patrol (zones)"),
     ("gantry_", "Gantry speed zones (multi-cycle matching)"),
     ("rover_ladder_", "Rover ladder"),
@@ -86,7 +86,6 @@ FAMILIES = [
     ("rover_terrain_", "Terrain chain"),
     ("watertank", "Watertank"),
     ("tank_dos_", "Tank under sampling DoS"),
-    ("hvac_", "HVAC fan staging"),
     ("engine_", "Turbofan ground start"),
     ("train_", "Train speed control (ATO)"),
     ("bms_", "Battery pack thermal management (chiller)"),
@@ -109,6 +108,11 @@ FAMILIES = [
     ("charger_", "DC fast charger (raised current limit)"),
     ("sat_detumble_", "Rigid-body detumbling (polynomial)"),
     ("sat3w_detumble_", "Rigid-body detumbling (polynomial)"),
+    # case studies reproduced from published work (each header cites its source)
+    ("drl_", "Literature"),
+    ("vehicle_hypercert", "Literature"),
+    ("freedm_", "Literature"),
+    ("csf21_", "Literature"),
 ]
 KEPT_SCENARIO = {
     "watertank": "sensor-attack",

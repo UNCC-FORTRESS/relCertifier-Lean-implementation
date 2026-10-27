@@ -256,8 +256,9 @@ Two more cases, `stepChosen`, `repoChosen` and `hop`, are the existential mode c
 subset of successors with a coverage certificate, an entry hop). It is the tool's default
 (`RELCERT_NO_CHOICE=1` disables it; one sentence in the paper's Section 6.1), vacuous for the 46
 original benchmarks (their covers are byte-identical with the feature on and off) and needed by
-the four literature benchmarks (`drl_car_stop`, `drl_lane_control`, `vehicle_hypercert`,
-`freedm_meter`: the right commits to the left's mode, or to a zero-net grid mode) and the two exhibits of `benchmarks/choice/`;
+the literature benchmarks (`drl_car_stop`, `drl_lane_control`, `vehicle_hypercert`,
+`freedm_meter`: the right commits to the left's mode, or to a zero-net grid mode; since batch I8
+also `csf21_vehicle_thermo` and `csf21_vehicle_bus`: the genuine car commits to the attacked car's action) and the two exhibits of `benchmarks/choice/`;
 `docs/CHOICE-SOUNDNESS.md`.
 
 ### 6.2 Theorem 3 (soundness of synthesis)
@@ -325,9 +326,9 @@ is described in Section 4.3 and, as the tool's stage lists, in Section 6.1.
 | number | source |
 |---|---|
 | 50 benchmarks, all CERTIFIED with `RELCERT_IMPLIED_CUT=1` (15 need the existential mode choice, the default) | `scripts/paper_numbers.sh` (frozen), `benchmarks/suite_v2/` |
-| 52 bridge instances, 4836 verdict groups (4700 over the 50 suite benchmarks, 136 over the 2 exhibits) | `InstancesV2/Bridge.lean`, `relcert-bridge-verdicts`, `expectedBridgeGroupsV2` |
-| 50 Assumption 1 proofs, Z3-free; 83 kernel refutations, 241 verdict groups | `InstancesV2/WellFormedBattery.lean`; `InstancesV2/Refute.lean`, `relcert-refute-verdicts` |
-| 26 pruned edges, 52 non-connection queries; 493 handoff queries; 147 progress (reposition certificate) queries | the same runner; `relcert-progress-verdicts` |
+| 52 bridge instances, 5069 verdict groups (4933 over the 50 suite benchmarks, 136 over the 2 exhibits) | `InstancesV2/Bridge.lean`, `relcert-bridge-verdicts`, `expectedBridgeGroupsV2` |
+| 50 Assumption 1 proofs, Z3-free; 81 kernel refutations, 237 verdict groups | `InstancesV2/WellFormedBattery.lean`; `InstancesV2/Refute.lean`, `relcert-refute-verdicts` |
+| 25 pruned edges, 50 non-connection queries; 541 handoff queries; 147 progress (reposition certificate) queries | the same runner; `relcert-progress-verdicts` |
 | Assumption 1: 50 of 50, Z3-free | `InstancesV2/WellFormedBattery.lean` |
 | axioms of every instance: `propext`, `Classical.choice`, `Quot.sound`, `z3_unsat_sound` | `lake build … 2>&1 | grep -A3 "depends on axioms"`; `docs/CERTIFICATION-CHECK.md` check 2 |
 

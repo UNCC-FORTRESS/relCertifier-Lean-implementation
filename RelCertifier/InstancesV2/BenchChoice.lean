@@ -11,6 +11,8 @@ import RelCertifier.InstancesV2.BenchChoice.bottling_fill_strainer
 import RelCertifier.InstancesV2.BenchChoice.canal_gate_notches
 import RelCertifier.InstancesV2.BenchChoice.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchChoice.compressor_station_recycle
+import RelCertifier.InstancesV2.BenchChoice.csf21_vehicle_bus
+import RelCertifier.InstancesV2.BenchChoice.csf21_vehicle_thermo
 import RelCertifier.InstancesV2.BenchChoice.drl_car_stop
 import RelCertifier.InstancesV2.BenchChoice.drl_lane_control
 import RelCertifier.InstancesV2.BenchChoice.elevator_start_discbrake
@@ -21,13 +23,11 @@ import RelCertifier.InstancesV2.BenchChoice.fuelcell_chp_dos
 import RelCertifier.InstancesV2.BenchChoice.furnace_program_timebase
 import RelCertifier.InstancesV2.BenchChoice.gantry_speed_zones
 import RelCertifier.InstancesV2.BenchChoice.grid_ffr_dos
-import RelCertifier.InstancesV2.BenchChoice.hvac_fan_staging
 import RelCertifier.InstancesV2.BenchChoice.hydro_rejection_gatecal
 import RelCertifier.InstancesV2.BenchChoice.insulin_basal_cgmloss
 import RelCertifier.InstancesV2.BenchChoice.molding_pack_checkring
 import RelCertifier.InstancesV2.BenchChoice.platoon_latency
 import RelCertifier.InstancesV2.BenchChoice.platoon_linkloss
-import RelCertifier.InstancesV2.BenchChoice.platoon_profiles
 import RelCertifier.InstancesV2.BenchChoice.quad_light_lag
 import RelCertifier.InstancesV2.BenchChoice.quad_light_profiles
 import RelCertifier.InstancesV2.BenchChoice.rover_ladder_2to3
@@ -65,6 +65,8 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("canal_gate_notches", canal_gate_notches_coverV2_choice),
   ("charger_fast_tapers", charger_fast_tapers_coverV2_choice),
   ("compressor_station_recycle", compressor_station_recycle_coverV2_choice),
+  ("csf21_vehicle_bus", csf21_vehicle_bus_coverV2_choice),
+  ("csf21_vehicle_thermo", csf21_vehicle_thermo_coverV2_choice),
   ("drl_car_stop", drl_car_stop_coverV2_choice),
   ("drl_lane_control", drl_lane_control_coverV2_choice),
   ("elevator_start_discbrake", elevator_start_discbrake_coverV2_choice),
@@ -75,13 +77,11 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("furnace_program_timebase", furnace_program_timebase_coverV2_choice),
   ("gantry_speed_zones", gantry_speed_zones_coverV2_choice),
   ("grid_ffr_dos", grid_ffr_dos_coverV2_choice),
-  ("hvac_fan_staging", hvac_fan_staging_coverV2_choice),
   ("hydro_rejection_gatecal", hydro_rejection_gatecal_coverV2_choice),
   ("insulin_basal_cgmloss", insulin_basal_cgmloss_coverV2_choice),
   ("molding_pack_checkring", molding_pack_checkring_coverV2_choice),
   ("platoon_latency", platoon_latency_coverV2_choice),
   ("platoon_linkloss", platoon_linkloss_coverV2_choice),
-  ("platoon_profiles", platoon_profiles_coverV2_choice),
   ("quad_light_lag", quad_light_lag_coverV2_choice),
   ("quad_light_profiles", quad_light_profiles_coverV2_choice),
   ("rover_ladder_2to3", rover_ladder_2to3_coverV2_choice),

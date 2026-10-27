@@ -18,6 +18,8 @@ import RelCertifier.InstancesV2.BenchIR.bottling_fill_strainer
 import RelCertifier.InstancesV2.BenchIR.canal_gate_notches
 import RelCertifier.InstancesV2.BenchIR.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchIR.compressor_station_recycle
+import RelCertifier.InstancesV2.BenchIR.csf21_vehicle_bus
+import RelCertifier.InstancesV2.BenchIR.csf21_vehicle_thermo
 import RelCertifier.InstancesV2.BenchIR.drl_car_stop
 import RelCertifier.InstancesV2.BenchIR.drl_lane_control
 import RelCertifier.InstancesV2.BenchIR.elevator_start_discbrake
@@ -28,13 +30,11 @@ import RelCertifier.InstancesV2.BenchIR.fuelcell_chp_dos
 import RelCertifier.InstancesV2.BenchIR.furnace_program_timebase
 import RelCertifier.InstancesV2.BenchIR.gantry_speed_zones
 import RelCertifier.InstancesV2.BenchIR.grid_ffr_dos
-import RelCertifier.InstancesV2.BenchIR.hvac_fan_staging
 import RelCertifier.InstancesV2.BenchIR.hydro_rejection_gatecal
 import RelCertifier.InstancesV2.BenchIR.insulin_basal_cgmloss
 import RelCertifier.InstancesV2.BenchIR.molding_pack_checkring
 import RelCertifier.InstancesV2.BenchIR.platoon_latency
 import RelCertifier.InstancesV2.BenchIR.platoon_linkloss
-import RelCertifier.InstancesV2.BenchIR.platoon_profiles
 import RelCertifier.InstancesV2.BenchIR.quad_light_lag
 import RelCertifier.InstancesV2.BenchIR.quad_light_profiles
 import RelCertifier.InstancesV2.BenchIR.rover_ladder_2to3
@@ -72,6 +72,8 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("canal_gate_notches", canal_gate_notches_IRv2),
   ("charger_fast_tapers", charger_fast_tapers_IRv2),
   ("compressor_station_recycle", compressor_station_recycle_IRv2),
+  ("csf21_vehicle_bus", csf21_vehicle_bus_IRv2),
+  ("csf21_vehicle_thermo", csf21_vehicle_thermo_IRv2),
   ("drl_car_stop", drl_car_stop_IRv2),
   ("drl_lane_control", drl_lane_control_IRv2),
   ("elevator_start_discbrake", elevator_start_discbrake_IRv2),
@@ -82,13 +84,11 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("furnace_program_timebase", furnace_program_timebase_IRv2),
   ("gantry_speed_zones", gantry_speed_zones_IRv2),
   ("grid_ffr_dos", grid_ffr_dos_IRv2),
-  ("hvac_fan_staging", hvac_fan_staging_IRv2),
   ("hydro_rejection_gatecal", hydro_rejection_gatecal_IRv2),
   ("insulin_basal_cgmloss", insulin_basal_cgmloss_IRv2),
   ("molding_pack_checkring", molding_pack_checkring_IRv2),
   ("platoon_latency", platoon_latency_IRv2),
   ("platoon_linkloss", platoon_linkloss_IRv2),
-  ("platoon_profiles", platoon_profiles_IRv2),
   ("quad_light_lag", quad_light_lag_IRv2),
   ("quad_light_profiles", quad_light_profiles_IRv2),
   ("rover_ladder_2to3", rover_ladder_2to3_IRv2),

@@ -80,10 +80,6 @@ def packsV2 : List PackV2 :=
     ⟨"platoon_latency", 3, 0, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 1, 1, 0, 0⟩,
     ⟨"platoon_latency", 3, 1, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 1, 1, 1, 0⟩,
     ⟨"platoon_latency", 3, 2, [0, 1, 2, 3], 1, 1, 2, 1⟩,
-    -- platoon_profiles (the same right follower; CACC -> AEB pruned): SPORT against CACC, AEB
-    -- against AEB, at λ = 1
-    ⟨"platoon_profiles", 3, 0, [2, 3, 4, 5, 6, 0, 1], 1, 1, 0, 0⟩,
-    ⟨"platoon_profiles", 3, 1, [0, 1, 2, 3], 1, 1, 1, 1⟩,
     -- quad_light_lag
     ⟨"quad_light_lag", 3, 0, [2, 3, 0, 1], 6, 5, 0, 0⟩,
     -- acc_tune_lag
@@ -325,7 +321,7 @@ def packsV2 : List PackV2 :=
     ⟨"grid_ffr_dos", 3, 0, [2, 3, 4, 0, 1], 1, 1, 1, 1⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 1185
+def expectedModalV2 : Nat := 1174
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
@@ -477,7 +473,7 @@ def runDynV2 (cfg : Z3Config) : IO Bool := do
 
 /-- Declared: one handoff query per declared left transition over the suite_v2 files
 (self-loops included; `CoveragePinsV2.derivedHandoffV2_eq` derives it from the IR table). -/
-def expectedHandoffV2 : Nat := 493
+def expectedHandoffV2 : Nat := 541
 
 /-- Declared handoff failures in suite_v2: none. -/
 def expectedHandoffFailuresV2 : List (String × Nat × Nat) := []
@@ -512,8 +508,8 @@ def prunedEdgesV2 : List (String × String × String) :=
   coverTableV2.flatMap (fun c => c.2.pruned.map (fun e => (c.1, e.1, e.2)))
 
 /-- Declared: pruned edges in the suite_v2 covers, and two queries per edge. -/
-def expectedPrunedEdgesV2 : Nat := 26
-def expectedNonConnV2 : Nat := 52
+def expectedPrunedEdgesV2 : Nat := 25
+def expectedNonConnV2 : Nat := 50
 
 def nonConnQueriesOfV2 (p : PProblem) (cX : EvolStrengtheningX) (src tgt : String) :
     Option ((n : ℕ) × (Fin n → String) × IForm n × IForm n) := do
@@ -553,7 +549,7 @@ def runNonConnAllV2 (cfg : Z3Config) : IO Bool := do
 /-- What a certification run over `benchmarks/suite_v2/*/input.txt` must produce, with
 `RELCERT_IMPLIED_CUT=1`: all 50 certified (in the strict well-formedness mode of
 `--check-quick-v2`); and what the strict Assumption 1 check of the right models must produce:
-every one of the 172 right modes `ok` on both clauses (`wfModes`; the kernel pin
+every one of the 185 right modes `ok` on both clauses (`wfModes`; the kernel pin
 `CoveragePinsV2.suiteV2_wfModes` of that count was archived with the standalone route), none
 `UNKNOWN` (`wfUnknown`; 16 UNKNOWN in 9 benchmarks until the 2026-10-10 repairs, when the
 check was informational), none `BLOCKING` (`wfBlocking`; the nonblocking clause is checked
@@ -563,7 +559,7 @@ structure ExpectedSuiteV2 where
   certified : Nat := 50
   declined  : Nat := 0
   errors    : Nat := 0
-  wfModes   : Nat := 172
+  wfModes   : Nat := 185
   wfUnknown : Nat := 0
   wfBlocking : Nat := 0
   deriving Repr

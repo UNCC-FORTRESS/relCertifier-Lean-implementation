@@ -64,8 +64,6 @@ import RelCertifier.InstancesV2.Refute.PlatoonLatencyM043
 import RelCertifier.InstancesV2.Refute.PlatoonLinklossM036
 import RelCertifier.InstancesV2.Refute.PlatoonLinklossM039
 import RelCertifier.InstancesV2.Refute.EngineStartHighidleM003
-import RelCertifier.InstancesV2.Refute.PlatoonProfilesM008
-import RelCertifier.InstancesV2.Refute.PlatoonProfilesM011
 import RelCertifier.InstancesV2.Refute.HydroRejectionGatecalM024
 import RelCertifier.InstancesV2.Refute.HydroRejectionGatecalM028
 import RelCertifier.InstancesV2.Refute.VentilatorVcCuffleakM020

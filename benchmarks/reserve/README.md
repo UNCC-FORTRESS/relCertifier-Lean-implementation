@@ -19,6 +19,10 @@ property suffices; the claim need not depend on the cause): `charger_fast_tapers
 suite at the minute time scale and `quad_light_airframe_20` came here, as the suite file, with its
 Lean integration in git history (last at commit a6585c2); `grid_ffr_dos` went to the suite and
 `rampmeter_poll_2to1` came here, as the suite file (Lean integration last at commit 856c79a).
+Batch I8 (2026-10-27) replaced own designs with case studies from published work (owner request:
+credibility; the literature group of four was too thin): `hvac_fan_staging` and `platoon_profiles`,
+the two tier-2 members of the final audit, came here as the suite files (Lean integration last at
+commit 95033f6), for `csf21_vehicle_thermo` and `csf21_vehicle_bus`.
 
 Verdicts measured 2026-10-27 with the branch's `relcert` (`RELCERT_IMPLIED_CUT=1`; letters as in
 `benchmarks/README.md`, "Header pass"). Every file CERTIFIES by default and under
@@ -47,5 +51,7 @@ Verdicts measured 2026-10-27 with the branch's `relcert` (`RELCERT_IMPLIED_CUT=1
 | `lng_cooldown_overspray` | round-A fill design (never in the suite) | `NO_CHOICE`, `SYNC`+`NO_CHOICE`, `NO_PRUNE`+`NO_CHOICE` | X | the `hvac_fan_staging` pattern (an identity hop through a permissive band reference, X from the claim form); its parameter sits at a decline edge (rho 1.05 against about 1.054) |
 | `quad_light_airframe_20` | suite_v2 (2026-10-27, batch I7) | `SYNC`, `SYNC`+`NO_CHOICE` | S M | the lag-free special case of `quad_light_lag` (the same airframe pair, cause, 0.8 m requirement and lambda 6/5); its tier-2 place in the suite went to `charger_fast_tapers` |
 | `rampmeter_poll_2to1` | suite_v2 (2026-10-27, batch I7) | none | M B | the chain-depth template of `tank_dos_3to1` and `insulin_basal_cgmloss` repeated (shared with insulin: a constant exogenous input, a first-order upstream state, a regulated state read through a level table, a 2:1 update ratio, a symmetric band), and its 10 veh/mi/ln requirement is only 1.0 below the 11 at which any deployed schedule certifies; its tier-2 place in the suite went to `grid_ffr_dos` |
+| `hvac_fan_staging` | suite_v2 (2026-10-27, batch I8) | `NO_CHOICE`, `SYNC`+`NO_CHOICE`, `NO_PRUNE`+`NO_CHOICE` | X | tier 2 in the final audit: its X is the identity hop of template B (a deterministic left against a permissive reference), the pattern that sent `lng_cooldown_overspray` here; the literature case studies of batch I8 show X with a non-identity commitment |
+| `platoon_profiles` | suite_v2 (2026-10-27, batch I8) | none | D | tier 2 in the final audit: a special case of `platoon_linkloss` (a constant set-point shift with no switching, the same rows and the same AEB D) |
 
 Run one: `RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert benchmarks/reserve/<name>/input.txt`.

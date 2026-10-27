@@ -77,7 +77,7 @@ def bridgeDimV2 (b : String) : ℕ :=
     (((generalDimsV2.find? (·.1 == b)).map (·.2)).getD (max (irV2 b).L.stateVars.length 3)) + 1
 
 /-- Declared: the number of query groups over the suite. -/
-def expectedBridgeGroupsV2 : Nat := 4836
+def expectedBridgeGroupsV2 : Nat := 5069
 
 /-- The suite's records. -/
 def suiteRecV2 (b : String) : BridgeRec :=

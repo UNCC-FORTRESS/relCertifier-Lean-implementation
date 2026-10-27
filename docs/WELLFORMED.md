@@ -2,8 +2,8 @@
 
 **Status (2026-10-15, branch `theorem3-general`).** The paper's Assumption 1
 (Well-Formedness) is a separately stated, kernel-checked model fact for every one of the 50
-suite_v2 benchmarks (2026-10-27: four moved to `benchmarks/reserve/`, below, seven more in batch I4, ten new in batch I5 and five in batch I6): **proved for all 50**, **false for none** (the four literature benchmarks
-of 2026-10-15 included; the two dRL ones and `freedm_meter` are proved directly over the bridge's automaton,
+suite_v2 benchmarks (2026-10-27: four moved to `benchmarks/reserve/`, below, seven more in batch I4, ten new in batch I5 and five in batch I6, and five swapped for literature case studies in batch I8): **proved for all 50**, **false for none** (the four literature benchmarks
+of 2026-10-15 included; the two dRL ones, `freedm_meter` and the case studies of batch I8 are proved directly over the bridge's automaton,
 `<b>_wellFormedR_direct`, with explicit polynomial runs, `trajRs_sol`). The satellites are proved
 literally since 2026-10-15, when their conserved momentum band entered the right evolve
 domain (§3, §5); until then they were proved on the band, with the literal predicate refuted. Until 2026-10-10 it was false for 9 models (refuted in the kernel with exhibited
@@ -11,7 +11,7 @@ blocking states); those nine were repaired (`docs/SUITE-REDESIGN.md` §21: the f
 re-engage or are latched with an invariant guard, the arm planner's successor sets name every
 band a sampled interval can reach) and are now proved. No proof uses Z3. The tool's sufficient
 check of both clauses (`relcert --wellformed`; the nonblocking clause since 2026-10-26, before
-which only the successor clause was checked) finds every one of the 172 right modes `ok`, and
+which only the successor clause was checked) finds every one of the 185 right modes `ok`, and
 `--check-quick-v2` runs it STRICT, against declared counts (§4). The generic-bridge
 instances (`InstancesV2/Bridge/`, the paper's route to
 Theorem 3) take it as a hypothesis: `theorem3_keyed_of_records`
@@ -143,7 +143,7 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 23 | `rover_ladder_6to8` | proved (reinstalled 2026-10-27, right `L6`) | as 18 (existence: the cascade `z → θ`, `(v, ψ) → φ`, all `→ s`, kept in the box by `forcedSol_between`) | as 18 |
 | 24 | `rover_ladder_8to12` | proved (reinstalled 2026-10-27, right `L8`) | as 18 (existence: the cascade `ω_ψ → ψ`, `z → ω_θ → θ`, `(v, ω_ψ, ψ) → φ`, all `→ s`) | as 18 |
 | 25 | `tank_dos_3to1` | proved | P2, P3, P4 (b) → the next stage, P5 (a) (since 2026-10-27 the staged pump `h' = 0.005 c − 0.001 w h`, `w' = 0.02 (22 − w)`: `w` explicit, `h` by variation of constants over the floor `w ≥ 2c`, barriers keep `0 ≤ h ≤ 2.5`; `w` rises at most 3.2 in `ε_r = 10`, one band) | P2–P4 ok (exit), P5 ok (invariant) |
-| 26 | `hvac_fan_staging` | proved | LOW, MED, HIGH (b) (contractions to 27, 24, 21 inside `[16, 32]`; a run ends in `[16, 32]`, MED's guard, and MED follows every speed); `ε_r = 1`; dimension 3 (the default padding) | LOW ok (exit→HIGH), MED ok (invariant), HIGH ok (exit→MED) |
+| 26 | `hvac_fan_staging` | moved to `benchmarks/reserve/` 2026-10-27 (batch I8; was: proved; proof in git history) | LOW, MED, HIGH (b) (contractions to 27, 24, 21 inside `[16, 32]`; a run ends in `[16, 32]`, MED's guard, and MED follows every speed); `ε_r = 1`; dimension 3 (the default padding) | LOW ok (exit→HIGH), MED ok (invariant), HIGH ok (exit→MED) |
 | 27 | `rover_terrain_2to4` | proved | MUD (b) → GRAVEL, GRAVEL (b) → PAVED, PAVED (a) (terrain-chain lemma; guards the odometer bands only; existence: `v → c_T`, `s` its integral, `w`, `zs` frozen) | MUD ok (exit→GRAVEL), GRAVEL ok (exit→PAVED), PAVED ok (invariant) |
 | 28 | `rover_terrain_4to6` | proved | as 27, cap `w ≤ c_T` kept by `w' = 3 (c_T − w)` (existence: the affine cascade `w, zs → v → s` inside the evolve box by the comparison bounds) | as 27 |
 | 29 | `rover_terrain_6to12` | proved | as 27, cap `u ≤ c_T` kept by `u' = 4 (c_T − u)` (existence: the cascade `u → w`, `w, zs → v → s, zh`) | as 27 |
@@ -172,7 +172,7 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 53 | `engine_start_highidle` | proved (2026-10-27) | STARTER, LIGHTOFF, SELF (b) → the next phase (contractions toward 30, 55, 62 inside `[0, 110]`; a run ends in its own band or the next); IDLE (a) (toward 62 from `n ≥ 60`); ABORT (a) (decay inside `[0, 5)`) | STARTER, LIGHTOFF, SELF ok (exit), IDLE, ABORT ok (invariant) |
 | 54 | `train_ato_odometry` | proved (2026-10-27) | PL1, PL2, PL3 (a) (contractions toward 25 inside `[5, 27.08]`, guard = domain) | all ok (invariant) |
 | 55 | `gantry_speed_zones` | proved (2026-10-27) | MOVE (a) (two independent axis servos toward `(0.5, 0.3)`; the explicit two-exponential run stays in the travel box, guard = domain) | ok (invariant) |
-| 56 | `platoon_profiles` | proved (2026-10-27; the right model of row 51, `PlatoonCaccAeb`) | as 51 | both ok (invariant) |
+| 56 | `platoon_profiles` | moved to `benchmarks/reserve/` 2026-10-27 (batch I8; was: proved, the right model of row 51, `PlatoonCaccAeb`; proof in git history) | as 51 | both ok (invariant) |
 | 57 | `watertank_twospeed` | proved (redesigned 2026-10-27, six right modes) | Fast (b) → Slow or MidEco, Slow (b) → MidEco (contractions toward 12.5); MidEco, MidBoost (a) (toward 17 from below, strictly); High (a) (toward 17 from above); PumpOff (a) (frozen below 2) | Fast ok (exit→Slow,MidBoost); Slow ok (exit→MidBoost); the other four ok (invariant) |
 | 58 | `bms_chiller_undercharge` | proved (2026-10-27; dimension 3, mode choice) | COAST, CHILL_LO, CHILL_HI: every run ends in `[0, 60]`, which COAST's guard `[0, 40]` and CHILL_HI's `[20, 60]` cover (every mode lists every mode); existence: contractions toward 50, 30, 20 | COAST ok (exit→CHILL_HI); CHILL_LO, CHILL_HI ok (invariant) |
 | 59 | `canal_gate_notches` | proved (2026-10-27; dimension 3, mode choice) | N100, N75, N50, N25: every run ends in N50's guard (the whole domain `[0, 1.2]`); existence: contractions toward 1, 0.75, 0.5, 0.25 | N100, N25 ok (exit→N50); N75, N50 ok (invariant) |
@@ -193,8 +193,10 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 74 | `bottling_fill_strainer` | proved (2026-10-27, batch I6) | FILL (b) → CLOSE (`u = 1` held, `V` rises at most 1 mL in 5 ms, `V + 8u ≤ 1003`); CLOSE (a) (`V` nondecreasing, `V + 8u` conserved: the guard conjunct `V + 8u ≤ 1060` added at installation, without which CLOSE was BLOCKING at the domain top); existence: explicit (`u` frozen, resp. `u₀ e^{−25t}` and `V + 8u` constant) | FILL ok (exit→CLOSE); CLOSE ok (invariant) |
 | 75 | `antenna_track_kvretune` | proved (2026-10-27, batch I6) | TRACK (b) → STOW (`c + 0.7 t` conserved; at `t ≥ 60`, `c ≤ 47.05 < 90`), STOW (b) → STOWED, STOWED (a); existence: `t`, `c` affine, `x` by variation of constants toward the command (`forcedSol 30`), inside `[−2, 92]` | TRACK ok (exit→STOW); STOW ok (exit→STOWED); STOWED ok (invariant) |
 | 76 | `grid_ffr_dos` | proved (2026-10-27, batch I7) | NORMAL (b) → FFR (`a = 0` frozen; on `a = 0` the three guards cover the domain: `x > −0.4`, `[−1.5, −0.4]`, `x < −1.5`); FFR (b) → TRIP or itself (the release line `x − 2a ≤ −0.4` kept by a non-strict barrier, Lie derivative `≤ 5.375 a − 6.25 d − 8.95 < 0`); TRIP (a) (`x` falls toward `−2.5`); existence: `a = 1 + (a₀ − 1) e^{−k t}` (`k = 0`, `5`), `x` by variation of constants (`forcedSol`) inside `[min x₀ (−5/7), max x₀ (5/42)]`, TRIP by `exists_contract_run` | NORMAL ok (exit→FFR); FFR, TRIP ok (invariant) |
+| 77 | `csf21_vehicle_thermo` | proved (2026-10-27, batch I8; direct, `_wellFormedR_direct`) | every mode (b) → CoastCool or CoastHeat by the end temperature (explicit run `d − v t − c t²/2`, `v + c t`, `temp ± t`; Acc from `v ≤ 39`, Brk from `v ≥ 1` keep `0 ≤ v ≤ 40`) | all six ok (exit) |
+| 78 | `csf21_vehicle_bus` | proved (2026-10-27, batch I8; direct) | every Cool mode (b) → CoastCoolA, every Heat mode (b) → CoastHeatA (their guard `v ≥ 0` is the speed part of the domain); the same explicit run | CoastCoolA, CoastHeatA ok (invariant); the other ten ok (exit) |
 
-Totals (the suite, 2026-10-27, batch I7): proved 47, false 0, band 3
+Totals (the suite, 2026-10-27, batch I8): proved 47, false 0, band 3
 (`WellFormedBattery.wfDeclared = (47, 0, 3)`, was `(30, 9, 6)` until the 2026-10-10 repairs;
 `wf_coverage` checks in the kernel that the three name lists are a permutation of the suite's
 IR table). Z3-free: 50/50. Region-relative: the 3 satellites.
@@ -309,7 +311,7 @@ single `relcert <file>` run; off, no verdict and no emission changes.
 
 **Strict in the recipe** (2026-10-10). `--check-quick-v2` certifies the suite in the strict
 mode (the switch forced on for its check 1/3) and ends with check 3/3, the `--wellformed`
-report gated against declared counts: `ExpectedSuiteV2.wfModes = 172` (`VerdictsV2/RunV2.lean`; the
+report gated against declared counts: `ExpectedSuiteV2.wfModes = 185` (`VerdictsV2/RunV2.lean`; the
 kernel pin `CoveragePinsV2.suiteV2_wfModes` of that count was archived with the standalone
 route on 2026-10-22), `wfUnknown = 0` and `wfBlocking = 0`. Any `UNKNOWN` or `BLOCKING` mode,
 or a mode count off the declared one, fails the run (`wellformed (strict): FAIL`, exit 1). Checked negatively: with the pre-repair

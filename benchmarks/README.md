@@ -2,18 +2,18 @@
 
 `suite_v2/<name>/input.txt` is the complete specification of one benchmark: the left
 (ideal) and right (implementation) hybrid automata, the relational invariant (one row per
-left mode) and the time-stretch range. **35 benchmarks.** With the widened cut channel on
-(`RELCERT_IMPLIED_CUT=1`, as every suite_v2 run sets it) the tool CERTIFIES all 35, and
+left mode) and the time-stretch range. **44 benchmarks.** With the widened cut channel on
+(`RELCERT_IMPLIED_CUT=1`, as every suite_v2 run sets it) the tool CERTIFIES all 44, and
 every one carries a kernel-checked Theorem 3 (the paper's Soundness of Synthesis) with the paper's left program over the
 guard-gated right automaton, at the mode-consistent region (`RelCertifier/InstancesV2/Bridge/`;
-check recipe: `docs/CERTIFICATION-CHECK.md`). Without the widened channel 2 of them
+check recipe: `docs/CERTIFICATION-CHECK.md`). Without the widened channel 3 of them
 DECLINE (the rows marked *widened cuts* below). Near-duplicates and weak benchmarks are kept
 outside the suite in `benchmarks/reserve/` (inputs, headers and verdicts only; `reserve/README.md`).
 
 **Assumption 1 of each right model** (the paper's Well-Formedness: from every guard state a
 full control interval of flow exists, and every evolution of at most `ε_r` ends in a declared
 successor's guard) is verified per file (`WellFormedR`, `docs/WELLFORMED.md`): it holds for
-all 35 literally (the 3 satellite files carry their conserved momentum band in the right evolve
+all 44 literally (the 3 satellite files carry their conserved momentum band in the right evolve
 domain since 2026-10-15).
 Nine files had a blocking mode until 2026-10-10 and were repaired (`docs/SUITE-REDESIGN.md`
 §21; each header says how and why; `arm_plateau_{crit,profiles,slow}` and
@@ -27,7 +27,7 @@ an invariant guard) and `quad_light_{airframe_20,profiles}` (the sink `LIMIT`: i
 the climb controller, whose operating range reached the limiter threshold; both were redesigned
 on 2026-10-27 with the altitude coordinate and no limiter mode).
 `relcert --wellformed <input.txt>…` runs the tool's sufficient check per right mode (every one
-of the 120 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN` or `BLOCKING`.
+of the 152 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN` or `BLOCKING`.
 
 The suite's design, the per-family rationale, the domain audit (every evolve bound is a
 physical limit of the plant; `scripts/domain_widening.py` re-runs the tool with every bound
@@ -123,6 +123,33 @@ never in the suite: the bound is the no-FFR worst case and does not depend on th
 |---|---|
 | `match_multi_rate` | `gantry_speed_zones` (both models new: a pick-and-place gantry whose production program runs zone-scheduled speed overrides, against the program as commissioned at reduced speed; 10 mm path tolerance; replaces the synthetic unitless rate-ratio exhibit in the same multi-cycle matching role) |
 | `platoon_delay_profiles` | `platoon_profiles` (redesigned: the CACC follower driven in the SPORT profile, a shorter time gap, against the design follower verified in NORMAL; its right model is `platoon_linkloss`'s, Assumption 1 through the shared `PlatoonCaccAeb` lemmas) |
+
+## Batch I5 (2026-10-27): nine new benchmarks
+
+New (designs of rounds A, B and C; every header re-measured on this branch, the letters as
+measured, `scripts/suite_v2_matrix.py` families added): `molding_pack_checkring` (an
+injection-molding pack and hold phase on a machine with a worn check ring, against a new ring;
+D: the hold row bounds nozzle and cavity pressure, the cooling row only the cavity),
+`fuelcell_chp_dos` (a PEM fuel-cell CHP unit whose current-level selection is held for two
+protocol cycles by a denial-of-service attack, against the stack maker's protocol; M B P X; its
+7 K tolerance sits in a narrow non-monotone certified window, [5, 8] certifies, (8, 10) declines,
+10 certifies again, and the header now gives where its 45/85 degC window and 40-56 degC return
+range come from), `elevator_start_discbrake` (an elevator trip with a retrofitted fast-lifting
+disc brake, against the validated drum-brake trip; R D; at installation `STOP`'s guard gained the
+rest-position conjunct `z + v/4 <= 20.5` on both sides: the design's `STOP` was BLOCKING at the
+overhead limit under the strict Assumption 1 gate; verdicts and letters unchanged),
+`furnace_program_timebase` (a heat-treatment furnace running its validated program at 80 % rate;
+S I; the stretch range [0.8, 1] is the recipe's rate window; it DECLINES without the widened cut
+channel), `compressor_station_recycle` (a gas compressor station whose third unit's recycle valve
+is stuck open; X, which also appears with a healthy valve as an identity hop, now said in the
+header; the non-identity commitment is the fault's), `syringe_relay_prearm` (a syringe-pump relay
+that pre-arms the incoming syringe, against the validated relay; R D), `hydro_rejection_gatecal`
+(a hydro unit with a gate transducer recalibrated 2 % low, in a load-rejection test; D),
+`ventilator_vc_cuffleak` (a volume-controlled breath with an under-inflated cuff, against a
+sealed cuff; D, the rows from ISO 80601-2-12's volume and PEEP accuracy) and
+`insulin_basal_cgmloss` (automated basal insulin whose glucose readings arrive over a lossy
+link, against every reading; M B). Each right model has its Z3-free Assumption 1 proof
+(`InstancesV2/WellFormed/`), each its bridge instance (five mode-keyed). Suite 35 -> 44.
 
 ## Batch I4 (2026-10-27): equal periods, and seven files to the reserve
 
@@ -239,12 +266,19 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `acc_tune_limp` | 1 / 1 | 2 / 4 | degraded-controller | mode-keyed, mode choice; equal 0.1 s periods since 2026-10-27 |
 | `bms_chiller_undercharge` | 1 / 1 | 2 / 3 | degraded-actuator | new 2026-10-27: mode choice (the reference commits to a cooling level that is not the deployed's) |
 | `canal_gate_notches` | 1 / 1 | 3 / 4 | controller-refinement | new 2026-10-27: mode choice (the reference commits to a nearby permitted notch) |
+| `compressor_station_recycle` | 2 / 2 | 3 / 3 | degraded-actuator | new 2026-10-27 (batch I5): mode choice (the reference commits to two units while the deployed commands three; with a healthy valve the hop is the identity) |
 | `drl_car_stop` | 2 / 2 | 3 / 3 | controller-refinement | literature (dRL), mode choice |
 | `drl_lane_control` | 3 / 3 | 6 / 6 | controller-refinement | literature (dRL), mode choice |
+| `elevator_start_discbrake` | 3 / 3 | 4 / 4 | actuator-change | new 2026-10-27 (batch I5): mode-keyed (LIFT row), right-only repositioning (the reference's slower brake lift); STOP's rest-position guard conjunct added at installation |
 | `engine_start_highidle` | 1 / 1 | 5 / 5 | controller-change | new 2026-10-27: mode-keyed, widened cuts |
 | `freedm_meter` | 2 / 2 | 12 / 12 | information-flow | literature (dHL, FREEDM), mode choice |
+| `fuelcell_chp_dos` | 2 / 2 | 3 / 3 | dos-attack | new 2026-10-27 (batch I5): mode choice, multi-step and branching covers, pruned live edges LOW -> HIGH, HIGH -> LOW |
+| `furnace_program_timebase` | 2 / 2 | 3 / 3 | controller-change | new 2026-10-27 (batch I5): stretch 4/5 (`lambda_min = 0.8`), widened cuts, load-bearing mode facts |
 | `gantry_speed_zones` | 2 / 2 | 3 / 1 | controller-refinement | new 2026-10-27 (replaces `match_multi_rate`): a time stretch per speed zone (3, 2, 1), multi-step covers |
 | `hvac_fan_staging` | 1 / 1 | 3 / 3 | controller-refinement | new 2026-10-26 (replaces `rover_terrain_2to3`): mode choice |
+| `hydro_rejection_gatecal` | 3 / 3 | 2 / 2 | degraded-sensor | new 2026-10-27 (batch I5): mode-keyed (shared-grid equality before the breaker opens, a speed band after) |
+| `insulin_basal_cgmloss` | 3 / 3 | 9 / 9 | degraded-network | new 2026-10-27 (batch I5): multi-step and branching covers (state-dependent successors of the basal table) |
+| `molding_pack_checkring` | 3 / 3 | 2 / 2 | degraded-actuator | new 2026-10-27 (batch I5): mode-keyed (the hold row drops its nozzle conjunct at gate freeze) |
 | `platoon_latency` | 3 / 2 | 3 / 2 | degraded-network | new 2026-10-27: mode-keyed (AEB row), right model shared with `platoon_linkloss` |
 | `platoon_linkloss` | 2 / 2 | 3 / 2 | dos-attack | redesigned 2026-10-27 (was `platoon_delay_linkloss`): mode-keyed (AEB row), CACC -> ACC fallback |
 | `platoon_profiles` | 2 / 2 | 2 / 2 | controller-refinement | redesigned 2026-10-27 (was `platoon_delay_profiles`): mode-keyed (AEB row), SPORT time gap against NORMAL, right model shared with `platoon_linkloss` |
@@ -262,10 +296,12 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `sat3w_detumble_phases` | 6 / 6 | 2 / 3 | model-refinement | nonblocking region, mode choice; 2026-10-27: equal 1 s periods, the design model with both phases (FINE added), exact energy rows in both phases (no longer mode-keyed) |
 | `sat_detumble_phases` | 4 / 4 | 2 / 3 | model-refinement | nonblocking region, mode choice; 2026-10-27: equal 1 s periods, the design model with both phases (FINE added), exact energy rows in both phases (no longer mode-keyed) |
 | `sat_detumble_weak` | 4 / 4 | 1 / 4 | degraded-actuator | nonblocking region, mode choice; 2026-10-27: equal 1 s periods, both sides at the design-model level (one cause: the weakened gain) |
+| `syringe_relay_prearm` | 4 / 4 | 6 / 4 | controller-change | new 2026-10-27 (batch I5): mode-keyed, right-only repositioning (the validated relay's take-up) |
 | `tank_dos_3to1` | 2 / 2 | 4 / 4 | dos-attack | redesigned 2026-10-27: a demand-paced four-pump station, the same staging law on both sides, the DoS holds the staging decision for up to three polls |
 | `train_ato_odometry` | 1 / 1 | 3 / 3 | degraded-sensor | new 2026-10-27: stretches per pairing from 31/40 to 6/5 (`lambda_min = 0.75`) |
 | `turbine_startup_gearratio` | 1 / 1 | 4 / 4 | degraded-controller | new 2026-10-27: widened cuts; right-only repositioning, pruned parking edges (the letters R P I come from the one-sided claim form, header) |
 | `vehicle_hypercert` | 2 / 2 | 5 / 5 | opacity | literature (HyperCertificates), mode choice; position coordinate and start-offset row (2026-10-27) |
+| `ventilator_vc_cuffleak` | 2 / 2 | 2 / 2 | degraded-actuator | new 2026-10-27 (batch I5): mode-keyed (a relative volume row in inspiration, an absolute band in expiration) |
 | `watertank` | 1 / 1 | 3 / 5 | sensor-attack | the paper's running example |
 | `watertank_twospeed` | 1 / 1 | 3 / 6 | sensor-attack | redesigned 2026-10-27: six right modes (two-speed low fill, eco/boost mid fill, high, pump off), one uniform claim; per-pairing stretch, pruned `Fast -> PumpOff` |
 

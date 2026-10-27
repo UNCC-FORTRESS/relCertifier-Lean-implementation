@@ -1,0 +1,190 @@
+# syringe_relay_prearm: a two-channel syringe pump running a noradrenaline infusion in relay mode
+# (when syringe 1 is near empty, channel 2 takes over), whose relay logic pre-arms the incoming
+# syringe (takes up its driver slack before the switchover), against the validated relay, which
+# starts the incoming syringe from rest at the switchover; the deployed relay must deliver the
+# validated volume history, re-timed by the validated relay's start-up interruption.
+# scenario: controller-change
+# mechanisms: R D (right-only repositioning: the validated relay completes its incoming syringe's
+#   slack take-up alone, RELCERT_SYNC=1 declines and no stretch replaces it; mode-dependent rows,
+#   every uniform row set declines; matrix codes M5 and a right-only step on the replayed path)
+#
+# System (both sides). Time in min, the relay logic re-deciding every 0.1 min (6 s; epsilon 0.1 on
+# both sides). Set rate Q = 3 mL/h = 0.05 mL/min, 50 mL syringes (inner diameter 26.6 mm, so the
+# plunger driver advances 0.09 mm/min at the set rate). State:
+#   v1, v2  volume delivered from syringe 1 and from syringe 2 (mL), 0..50
+#   C       plasma noradrenaline concentration as a fraction of its steady state at the set rate;
+#           elimination half-life 2.4 min, k = 0.29 /min: C' = k (1 - C) while a syringe delivers,
+#           C' = -k C while none does
+#   b       travel of channel 2's plunger driver into its slack (mm): 1.0 mm of mechanical slack
+#           (driver-to-flange gap, drive backlash, stopper compression) must be taken up before the
+#           plunger moves; b' = 0.09 while the driver advances without delivering, 0 otherwise
+# Modes of the relay (both sides): RUN1 (syringe 1 delivers, v1' = Q, channel 2 idle; guard
+# v1 < 49.5, v2 = 0), TAKEUP2 (syringe 1 at its 0.5 mL end-of-syringe point, channel 2's driver
+# taking up slack, no delivery: v1' = v2' = 0, b' = 0.09; guard v1 >= 49.5, b < 1, v2 = 0), RUN2
+# (syringe 2 delivers, v2' = Q; guard v1 >= 49.5, b >= 1, v2 < 49.5), END (syringe 2 at its end
+# point, end-of-infusion stop, nothing delivers; guard v1, v2 >= 49.5).
+# Right (validated relay): RUN1 -> [RUN1, TAKEUP2, RUN2] (TAKEUP2 when channel 2 is still at rest
+#   at the switchover, RUN2 when it is already at contact), TAKEUP2 -> [TAKEUP2, RUN2], RUN2 ->
+#   [RUN2, END], END -> [END]. From rest the take-up lasts 1.0 / 0.09 = 11.1 min, during which the
+#   plasma concentration falls to exp(-0.29 x 11.1) = 4 % of its steady state (the clinically known
+#   hypotension hazard of a syringe change).
+# Left (deployed relay): the same pump, syringes, drug and laws, with one change in the relay
+#   logic: at 5 mL left in syringe 1 (v1 >= 45, 100 min before the switchover) it pre-arms channel
+#   2: PREARM (syringe 1 still delivering, channel 2's driver taking up slack, b' = 0.09; guard
+#   45 <= v1 < 49.5, b < 1, v2 = 0), READY (driver at contact and held, b' = 0; guard 45 <= v1 <
+#   49.5, b >= 1, v2 = 0), then RUN2 at the switchover; if the pre-arm has not finished at the
+#   switchover, TAKEUP2 takes up the rest (the same mode as on the right). RUN1 (guard v1 < 45,
+#   v2 = 0) -> [RUN1, PREARM, READY], PREARM -> [PREARM, READY, TAKEUP2], READY -> [READY, RUN2],
+#   TAKEUP2 -> [TAKEUP2, RUN2], RUN2 -> [RUN2, END], END -> [END]. The pre-arming is the only
+#   difference (same slack, driver speed, rate, switchover and end points).
+#
+# Property (mode-dependent).
+#   Every left mode: v1_L = v1_R and v2_L = v2_R (four inequalities): up to re-timing, each
+#     syringe delivers the validated volume history (no extra or missing drug, no bolus).
+#     Requirement: the relay change must not change the delivered dose (exact, constant 0, the
+#     requirement value; the claim is "up to re-timing", the re-timing absorbs the validated
+#     relay's 11.1 min interruption).
+#   RUN1, PREARM, READY, TAKEUP2 (before the deployed delivers from syringe 2): C_L = C_R (both
+#     relays run syringe 1, resp. are both interrupted, identically), and the stated strengthening
+#     row b_R <= b_L (the validated relay's incoming driver is no further along than the
+#     deployed's; shown needed below; positive offsets decline, b_R <= b_L + 0.01 DECLINES).
+#   RUN2, END: C_R <= C_L: from the switchover on, the pre-armed relay never leaves the patient
+#     with less noradrenaline in plasma than the validated relay at the matched instant
+#     (requirement: no added hypotension risk; constant 0 is tight, C_R <= C_L - 0.01 DECLINES).
+#     No upper bound on C_L - C_R is claimed: none holds (see the cause dependence).
+#   Not implied by the domains.
+#
+# Why right-only repositioning (R), and why the reference "moves alone". In a deployed RUN2 window
+# (pre-armed, delivering from syringe 2 at once) the validated relay may be at the start of its
+# take-up (v2_R = 0, b_R < 1). The joint segment fails at every stretch (the deployed's v2 rises
+# while the validated relay delivers nothing: lambda_max = 6 with RELCERT_NO_REPO=1 DECLINES), so
+# the validated relay runs its take-up alone with the left frozen: v1_R, v2_R stay put (the volume
+# rows hold exactly), its plasma concentration FALLS alone (C_R' = -0.29 C_R <= 0 keeps C_R <= C_L
+# on the whole domain), its driver advances (b free in the RUN2 row) until contact (progress
+# certificate b >= 1 at rate 1/16 <= 0.09), exits to RUN2, and the delivery continues jointly.
+# RELCERT_SYNC=1 DECLINES (also with every volume tolerance tested, 1 and 10 mL: an interruption
+# cannot be absorbed by an unbounded joint segment). Every cover is at lambda 1, so no S.
+# Mode dependence is load-bearing (D). Uniform rows with b_R <= b_L DECLINE (the validated relay's
+# lone take-up in a deployed RUN2 window carries b_R past the deployed's contact travel); uniform
+# rows without it DECLINE (a deployed TAKEUP2 window, a pre-arm that has not finished, would admit
+# a validated relay already delivering from syringe 2); the row is carried through RUN1, PREARM,
+# READY so that the handoff PREARM -> TAKEUP2 implies it (--handoff 13/13 unsat). Uniform exact C
+# DECLINES (the lone fall of C_R). Disclosed: the load-bearing part of D is the b row, the same
+# mechanism as elevator_start_discbrake's LIFT row (an ordering of the preparation); the C keying
+# (equal before, one-sided after) is expressiveness: C_R <= C_L in every mode with the keyed b row
+# also CERTIFIES.
+# How the claim depends on the cause (measured). Without the cause (deployed = validated relay):
+# the exact claim (v1, v2, C, b all equal in every mode) CERTIFIES, also under RELCERT_SYNC=1 (no R,
+# no D). With the cause that claim DECLINES, and two-sided C rows after the switchover DECLINE at
+# every tolerance tested (|C_L - C_R| <= 0.5, 0.99, 1.0 of the steady state): the pre-arming turns
+# the concentration relation one-sided and forces the re-timed match. (Disclosed: the file's claim
+# form, with b free in the RUN2 row, also needs R at no cause; it is the claim the cause forces.)
+# The pre-arm point does not matter for the claim: pre-arming at 30, 45, 49.0 or 49.4 mL CERTIFIES
+# (a late pre-arm leaves the deployed a shorter residual take-up, TAKEUP2_L, and the validated
+# relay's interruption is still the longer). A deployed whose driver took up its slack at half the
+# speed (0.045 mm/min, i.e. could stay interrupted longer than the validated relay) DECLINES; at
+# double speed it CERTIFIES. Law dependence: an arbitrary deployed mode schedule (every left guard
+# the domain, every mode a successor of every other) DECLINES.
+#
+# Domains (both sides). v1, v2 in [0, 50] mL (syringe capacity; the switchover and end points are
+# 0.5 mL before the end, and one 0.1 min period delivers 0.005 mL, so no flow reaches 50), C in
+# [0, 1] (forward invariant: every flow drives C toward 1 or toward 0), b in [0, 1.2] mm (the
+# slack plus the stopper's further compressible travel; a take-up mode is left within one period
+# after contact, b <= 1.009). The guards' conditions v2 = 0 (syringe 2 untouched before it
+# delivers) and b >= 1 for delivery from syringe 2 are the relay's physical preconditions. Coverage
+# gap (both sides): states with v2 > 0 and v1 < 49.5, or with 0 < v2 < 49.5 and b < 1 (syringe 2
+# delivering before syringe 1 ended, or without contact) lie in no guard; unreachable (v2 rises only
+# in RUN2). RELCERT_OPREGION=1 CERTIFIES (every admitted start in some right guard). Every left mode
+# has a satisfiable start.
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27 on branch benchmark-fixes): CERTIFIED
+# (1.2 s); CERTIFIED under RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE,
+# RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, without RELCERT_IMPLIED_CUT,
+# RELCERT_NO_PAIR_STRETCH=1, RELCERT_OPREGION=1 and RELCERT_WELLFORMED_STRICT=1; DECLINED under
+# RELCERT_SYNC=1, SYNC+NO_CHOICE and RELCERT_NO_REPO=1. Cover: every left mode at lambda 1, budget
+# 1; RUN1_L, PREARM_L, READY_L admissible [RUN1]; TAKEUP2_L [TAKEUP2]; RUN2_L [TAKEUP2, RUN2], path
+# TAKEUP2 (right-only) -> RUN2; END_L [END]. Nothing pruned, no choice used. --handoff 13/13 unsat.
+# relcert --wellformed: RUN1 ok (exit->TAKEUP2,RUN2), TAKEUP2 ok (exit->RUN2), RUN2 ok (exit->END),
+# END ok (invariant), 0 UNKNOWN, 0 BLOCKING. Letters: R D.
+[problem]
+name = syringe_relay_prearm
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 2000.0
+
+[Lsys]
+state_vars = [v1, v2, C, b]
+epsilon = 0.1
+
+[Lsys.mode.RUN1]
+ode = v1' = 0.05; v2' = 0.0; C' = smt2:(* 0.29 (- 1.0 C)); b' = 0.0;
+guard = v1 < 45.0 and v2 <= 0.0 and v1 >= 0.0 and v1 <= 50.0 and v2 >= 0.0 and v2 <= 50.0 and C >= 0.0 and C <= 1.0 and b >= 0.0 and b <= 1.2
+evolve = v1 >= 0.0 and v1 <= 50.0 and v2 >= 0.0 and v2 <= 50.0 and C >= 0.0 and C <= 1.0 and b >= 0.0 and b <= 1.2
+next = [RUN1, PREARM, READY]
+
+[Lsys.mode.PREARM]
+ode = v1' = 0.05; v2' = 0.0; C' = smt2:(* 0.29 (- 1.0 C)); b' = 0.09;
+guard = v1 >= 45.0 and v1 < 49.5 and b < 1.0 and v2 <= 0.0 and v1 >= 0.0 and v1 <= 50.0 and v2 >= 0.0 and v2 <= 50.0 and C >= 0.0 and C <= 1.0 and b >= 0.0 and b <= 1.2
+evolve = v1 >= 0.0 and v1 <= 50.0 and v2 >= 0.0 and v2 <= 50.0 and C >= 0.0 and C <= 1.0 and b >= 0.0 and b <= 1.2
+next = [PREARM, READY, TAKEUP2]
+
+[Lsys.mode.READY]
+ode = v1' = 0.05; v2' = 0.0; C' = smt2:(* 0.29 (- 1.0 C)); b' = 0.0;
+guard = v1 >= 45.0 and v1 < 49.5 and b >= 1.0 and v2 <= 0.0 and v1 >= 0.0 and v1 <= 50.0 and v2 >= 0.0 and v2 <= 50.0 and C >= 0.0 and C <= 1.0 and b >= 0.0 and b <= 1.2
+evolve = v1 >= 0.0 and v1 <= 50.0 and v2 >= 0.0 and v2 <= 50.0 and C >= 0.0 and C <= 1.0 and b >= 0.0 and b <= 1.2
+next = [READY, RUN2]
+
+[Lsys.mode.TAKEUP2]
+ode = v1' = 0.0; v2' = 0.0; C' = smt2:(* (- 0.29) C); b' = 0.09;
+guard = v1 >= 49.5 and b < 1.0 and v2 <= 0.0 and v1 >= 0.0 and v1 <= 50.0 and v2 >= 0.0 and v2 <= 50.0 and C >= 0.0 and C <= 1.0 and b >= 0.0 and b <= 1.2
+evolve = v1 >= 0.0 and v1 <= 50.0 and v2 >= 0.0 and v2 <= 50.0 and C >= 0.0 and C <= 1.0 and b >= 0.0 and b <= 1.2
+next = [TAKEUP2, RUN2]
+
+[Lsys.mode.RUN2]
+ode = v1' = 0.0; v2' = 0.05; C' = smt2:(* 0.29 (- 1.0 C)); b' = 0.0;
+guard = v1 >= 49.5 and b >= 1.0 and v2 < 49.5 and v1 >= 0.0 and v1 <= 50.0 and v2 >= 0.0 and v2 <= 50.0 and C >= 0.0 and C <= 1.0 and b >= 0.0 and b <= 1.2
+evolve = v1 >= 0.0 and v1 <= 50.0 and v2 >= 0.0 and v2 <= 50.0 and C >= 0.0 and C <= 1.0 and b >= 0.0 and b <= 1.2
+next = [RUN2, END]
+
+[Lsys.mode.END]
+ode = v1' = 0.0; v2' = 0.0; C' = smt2:(* (- 0.29) C); b' = 0.0;
+guard = v1 >= 49.5 and v2 >= 49.5 and v1 >= 0.0 and v1 <= 50.0 and v2 >= 0.0 and v2 <= 50.0 and C >= 0.0 and C <= 1.0 and b >= 0.0 and b <= 1.2
+evolve = v1 >= 0.0 and v1 <= 50.0 and v2 >= 0.0 and v2 <= 50.0 and C >= 0.0 and C <= 1.0 and b >= 0.0 and b <= 1.2
+next = [END]
+
+[Rsys]
+state_vars = [v1, v2, C, b]
+epsilon = 0.1
+
+[Rsys.mode.RUN1]
+ode = v1' = 0.05; v2' = 0.0; C' = smt2:(* 0.29 (- 1.0 C)); b' = 0.0;
+guard = v1 < 49.5 and v2 <= 0.0 and v1 >= 0.0 and v1 <= 50.0 and v2 >= 0.0 and v2 <= 50.0 and C >= 0.0 and C <= 1.0 and b >= 0.0 and b <= 1.2
+evolve = v1 >= 0.0 and v1 <= 50.0 and v2 >= 0.0 and v2 <= 50.0 and C >= 0.0 and C <= 1.0 and b >= 0.0 and b <= 1.2
+next = [RUN1, TAKEUP2, RUN2]
+
+[Rsys.mode.TAKEUP2]
+ode = v1' = 0.0; v2' = 0.0; C' = smt2:(* (- 0.29) C); b' = 0.09;
+guard = v1 >= 49.5 and b < 1.0 and v2 <= 0.0 and v1 >= 0.0 and v1 <= 50.0 and v2 >= 0.0 and v2 <= 50.0 and C >= 0.0 and C <= 1.0 and b >= 0.0 and b <= 1.2
+evolve = v1 >= 0.0 and v1 <= 50.0 and v2 >= 0.0 and v2 <= 50.0 and C >= 0.0 and C <= 1.0 and b >= 0.0 and b <= 1.2
+next = [TAKEUP2, RUN2]
+
+[Rsys.mode.RUN2]
+ode = v1' = 0.0; v2' = 0.05; C' = smt2:(* 0.29 (- 1.0 C)); b' = 0.0;
+guard = v1 >= 49.5 and b >= 1.0 and v2 < 49.5 and v1 >= 0.0 and v1 <= 50.0 and v2 >= 0.0 and v2 <= 50.0 and C >= 0.0 and C <= 1.0 and b >= 0.0 and b <= 1.2
+evolve = v1 >= 0.0 and v1 <= 50.0 and v2 >= 0.0 and v2 <= 50.0 and C >= 0.0 and C <= 1.0 and b >= 0.0 and b <= 1.2
+next = [RUN2, END]
+
+[Rsys.mode.END]
+ode = v1' = 0.0; v2' = 0.0; C' = smt2:(* (- 0.29) C); b' = 0.0;
+guard = v1 >= 49.5 and v2 >= 49.5 and v1 >= 0.0 and v1 <= 50.0 and v2 >= 0.0 and v2 <= 50.0 and C >= 0.0 and C <= 1.0 and b >= 0.0 and b <= 1.2
+evolve = v1 >= 0.0 and v1 <= 50.0 and v2 >= 0.0 and v2 <= 50.0 and C >= 0.0 and C <= 1.0 and b >= 0.0 and b <= 1.2
+next = [END]
+
+[relational_invariant]
+RUN1 = v1[l] <= v1[r] and v1[r] <= v1[l] and v2[l] <= v2[r] and v2[r] <= v2[l] and C[l] <= C[r] and C[r] <= C[l] and b[r] <= b[l]
+PREARM = v1[l] <= v1[r] and v1[r] <= v1[l] and v2[l] <= v2[r] and v2[r] <= v2[l] and C[l] <= C[r] and C[r] <= C[l] and b[r] <= b[l]
+READY = v1[l] <= v1[r] and v1[r] <= v1[l] and v2[l] <= v2[r] and v2[r] <= v2[l] and C[l] <= C[r] and C[r] <= C[l] and b[r] <= b[l]
+TAKEUP2 = v1[l] <= v1[r] and v1[r] <= v1[l] and v2[l] <= v2[r] and v2[r] <= v2[l] and C[l] <= C[r] and C[r] <= C[l] and b[r] <= b[l]
+RUN2 = v1[l] <= v1[r] and v1[r] <= v1[l] and v2[l] <= v2[r] and v2[r] <= v2[l] and C[r] <= C[l]
+END = v1[l] <= v1[r] and v1[r] <= v1[l] and v2[l] <= v2[r] and v2[r] <= v2[l] and C[r] <= C[l]

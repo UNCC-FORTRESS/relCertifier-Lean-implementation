@@ -1,0 +1,146 @@
+# elevator_start_discbrake: an elevator trip whose machine brake was retrofitted with a fast-lifting
+# electromagnetic disc brake, against the validated trip with the original drum brake; the car must
+# make the validated trip, re-timed by the shorter brake lift.
+# scenario: actuator-change
+# mechanisms: R D (right-only repositioning: the reference completes its slower brake lift alone,
+#   RELCERT_SYNC=1 and RELCERT_NO_REPO=1 decline; mode-dependent rows, uniform rows decline; matrix
+#   codes M5 and a right-only step on the replayed path)
+#
+# System (both sides). Car position z in m above the bottom landing, car speed v in m/s, brake lift
+# b in [0, 1] (0 = set, 1 = fully lifted), time in s, the drive controller re-deciding every 0.1 s
+# (epsilon 0.1 on both sides). One up-trip of 20 m:
+#   LIFT  z <= 0.1, v = 0, b < 0.95   car held at the landing (z' = v' = 0) while the brake lifts,
+#                                      b' = k (1 - b); the brake-lift switch confirms at b >= 0.95
+#   UP    z < 18, b >= 0.95           speed loop toward the rated 1.6 m/s, v' = 0.8 (1.6 - v)
+#                                      (initial acceleration 1.28 m/s^2), z' = v
+#   APP   18 <= z < 19.9              approach at the levelling speed, v' = 0.8 (0.25 - v)
+#   STOP  z >= 19.9,                  stop at the landing, v' = -4 v (rest at about 19.96 m), brake
+#         z + v/4 <= 20.5             drops, b' = -5 b; z + v/4 is the rest position (constant in
+#                                      STOP), so the stop is engaged only when the car comes to rest
+#                                      below the overhead clearance (the final limit)
+# In UP and APP the brake stays lifted (b' = k (1 - b)). Successors LIFT -> [LIFT, UP], UP -> [UP,
+# APP], APP -> [APP, STOP], STOP -> [STOP].
+# Right (reference): the validated trip with the original drum brake, k = 5 /s (95 % lift in 0.6 s).
+# Left (deployed): the same car, drive and profile with the retrofitted disc brake, k = 50 /s (95 %
+# lift in 60 ms, within one control period). The brake's lift time is the only difference.
+#
+# Property (mode-dependent). Every left mode: z_L = z_R and v_L = v_R (four inequalities); LIFT
+# additionally b_R <= b_L. Reading: up to re-timing of the brake lift, the deployed trip is the
+# validated trip (the same positions and speeds in the same order: the validated speed profile, its
+# acceleration and levelling), and while the deployed car is still lifting its brake the matched
+# reference brake is no further lifted (the reference car has not started first). Requirement: the
+# brake retrofit must not change the validated motion profile (exact conformance, constant 0, the
+# requirement value; the stated claim is "up to re-timing", the re-timing absorbs the 0.5 s lift
+# difference). The LIFT conjunct is a stated strengthening row (shown needed below). Not implied by
+# the domains.
+#
+# Why right-only repositioning (R). In a deployed UP window (its brake confirmed after 60 ms) the
+# reference may still be in LIFT: the motion rows do not constrain its brake. The joint segment
+# fails at every stretch (the reference car is held while the deployed car accelerates;
+# RELCERT_NO_REPO=1 with lambda_max = 6 DECLINES), so the reference runs its lift alone with the left
+# frozen (z_R, v_R unchanged, so the motion rows hold exactly), exits to UP when its brake switch
+# confirms (progress b >= 0.95 at rate >= 1/4), and the trip continues jointly. RELCERT_SYNC=1
+# DECLINES. Every cover is at lambda 1, so no S.
+# Mode dependence is load-bearing (D): uniform rows with b_R <= b_L DECLINE (the reference's lone
+# lift in a deployed UP window raises b_R past b_L), uniform rows without it DECLINE (a deployed LIFT
+# window would admit a reference already in UP, moving while the deployed car is held). The handoff
+# LIFT -> UP drops the conjunct (--handoff 7/7 unsat).
+# How the claim depends on the cause (measured): without the cause (k_L = k_R = 5) the exact claim
+# z, v, b equal in every mode CERTIFIES, also under RELCERT_SYNC=1 and RELCERT_NO_REPO=1 (no R, no D);
+# with the cause that claim DECLINES (the brakes differ), and the file's claim, which leaves the
+# brake free outside LIFT, needs the right-only lift. (Disclosed: the file's claim form also needs R
+# at k_L = k_R, since it never constrains the reference brake outside LIFT; it is the claim the cause
+# forces.) A deployed brake slower than the validated one (k_L = 4) DECLINES (the LIFT conjunct
+# fails). k_L = 6, 50: CERTIFIED with R. Law dependence: an arbitrary deployed mode schedule (every
+# left guard the domain, every mode a successor of every other) DECLINES.
+#
+# Domains. z in [-0.5, 20.5] m (pit buffer to overhead clearance: physical limits; from the UP
+# guard one 0.1 s period reaches at most 18.17 m, STOP comes to rest within 0.1 m of 19.9 m on the
+# trip), v in [0, 1.7] m/s and b in [0, 1]; forward invariant from every mode's guard. The STOP
+# guard's rest-position conjunct z + v/4 <= 20.5 (2026-10-27, both sides, at installation): without
+# it the strict Assumption 1 gate reports STOP BLOCKING (a guard state at z = 20.5, v > 0 leaves the
+# overhead limit at once); with it STOP is forward invariant (z + v/4 is constant, z does not fall)
+# and every APP run that reaches 19.9 m satisfies it (z < 20.07 and v <= 1.7 after one period, so
+# z + v/4 < 20.495). Verdicts and letters are unchanged by it. Coverage gap of the right
+# guards: a moving or raised car with an unlifted brake (b < 0.95 and (z > 0.1 or v > 0), z < 18)
+# lies in no right guard; unreachable (the brake lifts before the car moves and stays lifted in UP
+# and APP); nor does a car above 19.9 m whose rest position lies beyond the overhead limit
+# (unreachable: the trip arrives at about 0.5 m/s). RELCERT_OPREGION=1 reports that the UP rows admit such reference starts for UP_L; they
+# are outside the right's operating region and excluded by Theorem 3's premise (the OPREGION run
+# CERTIFIES). Every left mode has a satisfiable start (equal states).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27 on branch benchmark-fixes): CERTIFIED;
+# CERTIFIED under RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE, RELCERT_NO_CUT=1,
+# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, without RELCERT_IMPLIED_CUT, RELCERT_OPREGION=1
+# and RELCERT_WELLFORMED_STRICT=1; DECLINED under RELCERT_SYNC=1 and SYNC+NO_CHOICE. Cover: every left
+# mode at lambda 1, budget 1; LIFT_L admissible [LIFT]; UP_L admissible [LIFT, UP], path LIFT
+# (right-only) -> UP; APP_L [APP]; STOP_L [STOP]. Nothing pruned. relcert --wellformed: LIFT ok
+# (exit->UP), UP ok (exit->APP), APP ok (exit->STOP), STOP ok (invariant), 0 UNKNOWN, 0 BLOCKING. Letters: R D.
+[problem]
+name = elevator_start_discbrake
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 60.0
+
+[Lsys]
+state_vars = [z, v, b]
+epsilon = 0.1
+
+[Lsys.mode.LIFT]
+ode = z' = 0.0; v' = 0.0; b' = smt2:(* 50.0 (- 1.0 b));
+guard = z <= 0.1 and v <= 0.0 and b < 0.95 and z >= -0.5 and z <= 20.5 and v >= 0.0 and v <= 1.7 and b >= 0.0 and b <= 1.0
+evolve = z >= -0.5 and z <= 20.5 and v >= 0.0 and v <= 1.7 and b >= 0.0 and b <= 1.0
+next = [LIFT, UP]
+
+[Lsys.mode.UP]
+ode = z' = v; v' = smt2:(* 0.8 (- 1.6 v)); b' = smt2:(* 50.0 (- 1.0 b));
+guard = z < 18.0 and b >= 0.95 and z >= -0.5 and z <= 20.5 and v >= 0.0 and v <= 1.7 and b >= 0.0 and b <= 1.0
+evolve = z >= -0.5 and z <= 20.5 and v >= 0.0 and v <= 1.7 and b >= 0.0 and b <= 1.0
+next = [UP, APP]
+
+[Lsys.mode.APP]
+ode = z' = v; v' = smt2:(* 0.8 (- 0.25 v)); b' = smt2:(* 50.0 (- 1.0 b));
+guard = z >= 18.0 and z < 19.9 and z >= -0.5 and z <= 20.5 and v >= 0.0 and v <= 1.7 and b >= 0.0 and b <= 1.0
+evolve = z >= -0.5 and z <= 20.5 and v >= 0.0 and v <= 1.7 and b >= 0.0 and b <= 1.0
+next = [APP, STOP]
+
+[Lsys.mode.STOP]
+ode = z' = v; v' = smt2:(* (- 4.0) v); b' = smt2:(* (- 5.0) b);
+guard = z >= 19.9 and z + 0.25*v <= 20.5 and z >= -0.5 and z <= 20.5 and v >= 0.0 and v <= 1.7 and b >= 0.0 and b <= 1.0
+evolve = z >= -0.5 and z <= 20.5 and v >= 0.0 and v <= 1.7 and b >= 0.0 and b <= 1.0
+next = [STOP]
+
+[Rsys]
+state_vars = [z, v, b]
+epsilon = 0.1
+
+[Rsys.mode.LIFT]
+ode = z' = 0.0; v' = 0.0; b' = smt2:(* 5.0 (- 1.0 b));
+guard = z <= 0.1 and v <= 0.0 and b < 0.95 and z >= -0.5 and z <= 20.5 and v >= 0.0 and v <= 1.7 and b >= 0.0 and b <= 1.0
+evolve = z >= -0.5 and z <= 20.5 and v >= 0.0 and v <= 1.7 and b >= 0.0 and b <= 1.0
+next = [LIFT, UP]
+
+[Rsys.mode.UP]
+ode = z' = v; v' = smt2:(* 0.8 (- 1.6 v)); b' = smt2:(* 5.0 (- 1.0 b));
+guard = z < 18.0 and b >= 0.95 and z >= -0.5 and z <= 20.5 and v >= 0.0 and v <= 1.7 and b >= 0.0 and b <= 1.0
+evolve = z >= -0.5 and z <= 20.5 and v >= 0.0 and v <= 1.7 and b >= 0.0 and b <= 1.0
+next = [UP, APP]
+
+[Rsys.mode.APP]
+ode = z' = v; v' = smt2:(* 0.8 (- 0.25 v)); b' = smt2:(* 5.0 (- 1.0 b));
+guard = z >= 18.0 and z < 19.9 and z >= -0.5 and z <= 20.5 and v >= 0.0 and v <= 1.7 and b >= 0.0 and b <= 1.0
+evolve = z >= -0.5 and z <= 20.5 and v >= 0.0 and v <= 1.7 and b >= 0.0 and b <= 1.0
+next = [APP, STOP]
+
+[Rsys.mode.STOP]
+ode = z' = v; v' = smt2:(* (- 4.0) v); b' = smt2:(* (- 5.0) b);
+guard = z >= 19.9 and z + 0.25*v <= 20.5 and z >= -0.5 and z <= 20.5 and v >= 0.0 and v <= 1.7 and b >= 0.0 and b <= 1.0
+evolve = z >= -0.5 and z <= 20.5 and v >= 0.0 and v <= 1.7 and b >= 0.0 and b <= 1.0
+next = [STOP]
+
+[relational_invariant]
+LIFT = z[l] <= z[r] and z[r] <= z[l] and v[l] <= v[r] and v[r] <= v[l] and b[r] <= b[l]
+UP = z[l] <= z[r] and z[r] <= z[l] and v[l] <= v[r] and v[r] <= v[l]
+APP = z[l] <= z[r] and z[r] <= z[l] and v[l] <= v[r] and v[r] <= v[l]
+STOP = z[l] <= z[r] and z[r] <= z[l] and v[l] <= v[r] and v[r] <= v[l]

@@ -14,12 +14,19 @@ import RelCertifier.InstancesV2.BenchIR.acc_tune_lag
 import RelCertifier.InstancesV2.BenchIR.acc_tune_limp
 import RelCertifier.InstancesV2.BenchIR.bms_chiller_undercharge
 import RelCertifier.InstancesV2.BenchIR.canal_gate_notches
+import RelCertifier.InstancesV2.BenchIR.compressor_station_recycle
 import RelCertifier.InstancesV2.BenchIR.drl_car_stop
 import RelCertifier.InstancesV2.BenchIR.drl_lane_control
+import RelCertifier.InstancesV2.BenchIR.elevator_start_discbrake
 import RelCertifier.InstancesV2.BenchIR.engine_start_highidle
 import RelCertifier.InstancesV2.BenchIR.freedm_meter
+import RelCertifier.InstancesV2.BenchIR.fuelcell_chp_dos
+import RelCertifier.InstancesV2.BenchIR.furnace_program_timebase
 import RelCertifier.InstancesV2.BenchIR.gantry_speed_zones
 import RelCertifier.InstancesV2.BenchIR.hvac_fan_staging
+import RelCertifier.InstancesV2.BenchIR.hydro_rejection_gatecal
+import RelCertifier.InstancesV2.BenchIR.insulin_basal_cgmloss
+import RelCertifier.InstancesV2.BenchIR.molding_pack_checkring
 import RelCertifier.InstancesV2.BenchIR.platoon_latency
 import RelCertifier.InstancesV2.BenchIR.platoon_linkloss
 import RelCertifier.InstancesV2.BenchIR.platoon_profiles
@@ -37,10 +44,12 @@ import RelCertifier.InstancesV2.BenchIR.rover_terrain_6to12
 import RelCertifier.InstancesV2.BenchIR.sat3w_detumble_phases
 import RelCertifier.InstancesV2.BenchIR.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchIR.sat_detumble_weak
+import RelCertifier.InstancesV2.BenchIR.syringe_relay_prearm
 import RelCertifier.InstancesV2.BenchIR.tank_dos_3to1
 import RelCertifier.InstancesV2.BenchIR.train_ato_odometry
 import RelCertifier.InstancesV2.BenchIR.turbine_startup_gearratio
 import RelCertifier.InstancesV2.BenchIR.vehicle_hypercert
+import RelCertifier.InstancesV2.BenchIR.ventilator_vc_cuffleak
 import RelCertifier.InstancesV2.BenchIR.watertank
 import RelCertifier.InstancesV2.BenchIR.watertank_twospeed
 
@@ -53,12 +62,19 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("acc_tune_limp", acc_tune_limp_IRv2),
   ("bms_chiller_undercharge", bms_chiller_undercharge_IRv2),
   ("canal_gate_notches", canal_gate_notches_IRv2),
+  ("compressor_station_recycle", compressor_station_recycle_IRv2),
   ("drl_car_stop", drl_car_stop_IRv2),
   ("drl_lane_control", drl_lane_control_IRv2),
+  ("elevator_start_discbrake", elevator_start_discbrake_IRv2),
   ("engine_start_highidle", engine_start_highidle_IRv2),
   ("freedm_meter", freedm_meter_IRv2),
+  ("fuelcell_chp_dos", fuelcell_chp_dos_IRv2),
+  ("furnace_program_timebase", furnace_program_timebase_IRv2),
   ("gantry_speed_zones", gantry_speed_zones_IRv2),
   ("hvac_fan_staging", hvac_fan_staging_IRv2),
+  ("hydro_rejection_gatecal", hydro_rejection_gatecal_IRv2),
+  ("insulin_basal_cgmloss", insulin_basal_cgmloss_IRv2),
+  ("molding_pack_checkring", molding_pack_checkring_IRv2),
   ("platoon_latency", platoon_latency_IRv2),
   ("platoon_linkloss", platoon_linkloss_IRv2),
   ("platoon_profiles", platoon_profiles_IRv2),
@@ -76,10 +92,12 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("sat3w_detumble_phases", sat3w_detumble_phases_IRv2),
   ("sat_detumble_phases", sat_detumble_phases_IRv2),
   ("sat_detumble_weak", sat_detumble_weak_IRv2),
+  ("syringe_relay_prearm", syringe_relay_prearm_IRv2),
   ("tank_dos_3to1", tank_dos_3to1_IRv2),
   ("train_ato_odometry", train_ato_odometry_IRv2),
   ("turbine_startup_gearratio", turbine_startup_gearratio_IRv2),
   ("vehicle_hypercert", vehicle_hypercert_IRv2),
+  ("ventilator_vc_cuffleak", ventilator_vc_cuffleak_IRv2),
   ("watertank", watertank_IRv2),
   ("watertank_twospeed", watertank_twospeed_IRv2) ]
 

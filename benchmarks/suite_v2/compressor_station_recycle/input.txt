@@ -1,0 +1,124 @@
+# compressor_station_recycle: a gas-pipeline compressor station whose third unit has its anti-surge
+# recycle valve stuck fully open, against the station's control philosophy, which permits one, two or
+# three running units in overlapping discharge-pressure bands; the reference must commit to the
+# two-unit level while the deployed scheduler commands three units.
+# scenario: degraded-actuator
+# mechanisms: X (committed existential choice: the reference hops into a permitted level that is not
+#   the deployed's own level, RELCERT_NO_CHOICE=1 declines)
+#
+# System (both sides). Suction header pressure ps and discharge header pressure pd in bar, time in
+# min, every decision held for one 1-min cycle (epsilon 1 on both sides). The suction header is fed
+# from the supply pipeline (supply 62 bar, linepack time constant 20 min) and each running unit draws
+# 0.2 bar/min from it; the discharge header feeds the delivery pipeline (city gate 40 bar, time
+# constant 20 min) and each running unit adds 0.45 bar/min:
+#   ps' = 0.05 (62 - ps) - 0.2 n,   pd' = 0.05 (40 - pd) + 0.45 n.
+# Equilibria: n = 1: (58, 49) bar, n = 2: (54, 58) bar, n = 3: (50, 67) bar. Delivery contract band
+# 55..66 bar, maximum allowable operating pressure (MAOP) 70 bar.
+#
+# Right (reference): the control philosophy, nondeterministic. LOW (one unit) is permitted only
+# while pd >= 60 (one unit settles at 49 bar, below the 55-bar contract minimum, so it may only run
+# on stored linepack); HIGH (three units) only while pd <= 66 (three units settle at 67 bar, 3 bar
+# from the MAOP); MED (two units, settles at 58 bar inside the contract band) at any pressure. Every
+# level may follow every level (the dispatcher may start or stop a unit at any decision).
+# Left (deployed): the station's deterministic scheduler, HIGH below 61 bar, MED on [61, 64], LOW
+# above 64 (a partition, every choice permitted by the philosophy). Its unit 3 has a failed-open
+# recycle valve: the unit runs but recirculates its whole flow, so commanding three units delivers
+# the throughput of two (HIGH_L has the n = 2 flow). This is the only difference between the sides
+# (same pipelines, same units, same thresholds as the philosophy permits). Because two units settle
+# at 58 bar < 61, the degraded station, once in HIGH, stays in HIGH.
+#
+# Property (every left mode): ps_L = ps_R and pd_L = pd_R (four inequalities): every deployed run
+# is, at every instant, a run the control philosophy permits. Requirement: the station must remain
+# inside its safety-reviewed control philosophy (exact conformance, constant 0, the requirement
+# value). Not implied by the domains.
+#
+# Why committed choice is needed (X), and why it is not the identity hop. At a window start the
+# reference may be at any level its bands permit at the current pressures: in a deployed HIGH window
+# (pd < 61) that is MED, HIGH and, for pd in [60, 61), LOW. The cover hops HIGH -> MED and LOW -> MED:
+# the reference commits to TWO units although the deployed commands three, because the degraded
+# three-unit station behaves exactly like the healthy two-unit one; HIGH itself fails (its flow is a
+# third unit stronger). For MED_L it hops LOW/HIGH -> MED, for LOW_L MED/HIGH -> LOW. RELCERT_NO_CHOICE=1
+# DECLINES.
+# The letter X does not need the fault: with a healthy valve (f = 0) RELCERT_NO_CHOICE=1 also DECLINES,
+# because the reference at a window start may sit at another permitted level and must hop into the
+# deployed's own level (an identity hop, MED/LOW -> HIGH for HIGH_L). What the fault changes is the
+# hop's target: with the stuck valve the reference commits to MED, a level the deployed does not
+# command (the non-identity commitment is the fault's).
+# How the claim depends on the cause (measured, recycled fraction f of unit 3's flow): f = 0 (healthy
+# valve): CERTIFIED with identity hops into HIGH, DECLINED under RELCERT_NO_CHOICE=1; f = 1 (this
+# file): CERTIFIED with hops into MED;
+# f = 0.5: the exact claim DECLINES (needs about +-4 bar suction, +-9 bar discharge: +-4/+-9 CERTIFIES,
+# +-2.5/+-5 DECLINES); f = 2 (two valves failed, three commanded units deliver one unit's flow): DECLINES
+# (one unit is not permitted below 60 bar). Law dependence: an arbitrary deployed schedule (every left
+# guard the whole domain) DECLINES (a one-unit run below 60 bar is not permitted).
+#
+# Domains. ps in [45, 62] bar (45 = the units' minimum suction pressure, 62 = the supply pressure) and
+# pd in [40, 70] bar (city gate pressure to MAOP), forward invariant for every n in {1, 2, 3} (at
+# ps = 45 every flow is >= 0.25 bar/min, at pd = 70 every flow is <= -0.15 bar/min). The right guards
+# cover the domain (MED everywhere); the left guards partition it; every left mode has a satisfiable
+# start (equal states).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27 on branch benchmark-fixes): CERTIFIED;
+# CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1,
+# RELCERT_NO_LINEAR_CUT=1, RELCERT_OPREGION=1 (every admitted start in some right guard), without
+# RELCERT_IMPLIED_CUT and with RELCERT_WELLFORMED_STRICT=1; DECLINED under RELCERT_NO_CHOICE=1,
+# RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1 and RELCERT_SYNC=1 RELCERT_NO_CHOICE=1. Cover: every left mode
+# at lambda 1, budget 1, admissible [LOW, MED, HIGH], one hop then a joint segment. Nothing pruned.
+# Rows identical (--handoff vacuous, 9/9). relcert --wellformed: LOW ok (exit->HIGH), MED ok
+# (invariant), HIGH ok (exit->MED), 0 UNKNOWN, 0 BLOCKING. Matrix cells (suite_v2_matrix.py): none (X is read off
+# RELCERT_NO_CHOICE=1). Letters: X.
+[problem]
+name = compressor_station_recycle
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 120.0
+
+[Lsys]
+state_vars = [ps, pd]
+epsilon = 1.0
+
+[Lsys.mode.HIGH]
+ode = ps' = smt2:(- (* 0.05 (- 62.0 ps)) 0.4000); pd' = smt2:(+ (* 0.05 (- 40.0 pd)) 0.9000);
+guard = pd < 61.0 and ps >= 45.0 and ps <= 62.0 and pd >= 40.0 and pd <= 70.0
+evolve = ps >= 45.0 and ps <= 62.0 and pd >= 40.0 and pd <= 70.0
+next = [HIGH, MED, LOW]
+
+[Lsys.mode.MED]
+ode = ps' = smt2:(- (* 0.05 (- 62.0 ps)) 0.4000); pd' = smt2:(+ (* 0.05 (- 40.0 pd)) 0.9000);
+guard = pd >= 61.0 and pd <= 64.0 and ps >= 45.0 and ps <= 62.0 and pd >= 40.0 and pd <= 70.0
+evolve = ps >= 45.0 and ps <= 62.0 and pd >= 40.0 and pd <= 70.0
+next = [HIGH, MED, LOW]
+
+[Lsys.mode.LOW]
+ode = ps' = smt2:(- (* 0.05 (- 62.0 ps)) 0.2000); pd' = smt2:(+ (* 0.05 (- 40.0 pd)) 0.4500);
+guard = pd > 64.0 and ps >= 45.0 and ps <= 62.0 and pd >= 40.0 and pd <= 70.0
+evolve = ps >= 45.0 and ps <= 62.0 and pd >= 40.0 and pd <= 70.0
+next = [HIGH, MED, LOW]
+
+[Rsys]
+state_vars = [ps, pd]
+epsilon = 1.0
+
+[Rsys.mode.LOW]
+ode = ps' = smt2:(- (* 0.05 (- 62.0 ps)) 0.2000); pd' = smt2:(+ (* 0.05 (- 40.0 pd)) 0.4500);
+guard = pd >= 60.0 and ps >= 45.0 and ps <= 62.0 and pd >= 40.0 and pd <= 70.0
+evolve = ps >= 45.0 and ps <= 62.0 and pd >= 40.0 and pd <= 70.0
+next = [LOW, MED, HIGH]
+
+[Rsys.mode.MED]
+ode = ps' = smt2:(- (* 0.05 (- 62.0 ps)) 0.4000); pd' = smt2:(+ (* 0.05 (- 40.0 pd)) 0.9000);
+guard = ps >= 45.0 and ps <= 62.0 and pd >= 40.0 and pd <= 70.0
+evolve = ps >= 45.0 and ps <= 62.0 and pd >= 40.0 and pd <= 70.0
+next = [LOW, MED, HIGH]
+
+[Rsys.mode.HIGH]
+ode = ps' = smt2:(- (* 0.05 (- 62.0 ps)) 0.6000); pd' = smt2:(+ (* 0.05 (- 40.0 pd)) 1.3500);
+guard = pd <= 66.0 and ps >= 45.0 and ps <= 62.0 and pd >= 40.0 and pd <= 70.0
+evolve = ps >= 45.0 and ps <= 62.0 and pd >= 40.0 and pd <= 70.0
+next = [LOW, MED, HIGH]
+
+[relational_invariant]
+HIGH = ps[l] <= ps[r] + 0 and ps[r] <= ps[l] + 0 and pd[l] <= pd[r] + 0 and pd[r] <= pd[l] + 0
+MED = ps[l] <= ps[r] + 0 and ps[r] <= ps[l] + 0 and pd[l] <= pd[r] + 0 and pd[r] <= pd[l] + 0
+LOW = ps[l] <= ps[r] + 0 and ps[r] <= ps[l] + 0 and pd[l] <= pd[r] + 0 and pd[r] <= pd[l] + 0

@@ -66,7 +66,11 @@ import RelCertifier.InstancesV2.Refute.Data.platoon_linkloss_m039
 import RelCertifier.InstancesV2.Refute.Data.engine_start_highidle_m003
 import RelCertifier.InstancesV2.Refute.Data.platoon_profiles_m008
 import RelCertifier.InstancesV2.Refute.Data.platoon_profiles_m011
+import RelCertifier.InstancesV2.Refute.Data.hydro_rejection_gatecal_m024
+import RelCertifier.InstancesV2.Refute.Data.hydro_rejection_gatecal_m028
+import RelCertifier.InstancesV2.Refute.Data.ventilator_vc_cuffleak_m020
 import RelCertifier.InstancesV2.Cuts.engine_start_highidle
+import RelCertifier.InstancesV2.Cuts.hydro_rejection_gatecal
 import RelCertifier.InstancesV2.Cuts.platoon_latency
 import RelCertifier.InstancesV2.Cuts.platoon_linkloss
 import RelCertifier.InstancesV2.Cuts.platoon_profiles
@@ -78,6 +82,7 @@ import RelCertifier.InstancesV2.Cuts.rover_terrain_4to6
 import RelCertifier.InstancesV2.Cuts.rover_terrain_6to12
 import RelCertifier.InstancesV2.Cuts.sat3w_detumble_phases
 import RelCertifier.InstancesV2.Cuts.sat_detumble_phases
+import RelCertifier.InstancesV2.Cuts.ventilator_vc_cuffleak
 import RelCertifier.Checker.EvolStrengtheningX
 
 namespace RelCertifier.Refute
@@ -153,9 +158,12 @@ def refuteTable : List RefRec := [
   ⟨"platoon_linkloss_m039", 3 + 1, platoon_linkloss_m039_IRm, platoon_linkloss_cutsV2X, platoon_linkloss_m039_wit⟩,
   ⟨"engine_start_highidle_m003", 3 + 1, engine_start_highidle_m003_IRm, engine_start_highidle_cutsV2X, engine_start_highidle_m003_wit⟩,
   ⟨"platoon_profiles_m008", 3 + 1, platoon_profiles_m008_IRm, platoon_profiles_cutsV2X, platoon_profiles_m008_wit⟩,
-  ⟨"platoon_profiles_m011", 3 + 1, platoon_profiles_m011_IRm, platoon_profiles_cutsV2X, platoon_profiles_m011_wit⟩ ]
+  ⟨"platoon_profiles_m011", 3 + 1, platoon_profiles_m011_IRm, platoon_profiles_cutsV2X, platoon_profiles_m011_wit⟩,
+  ⟨"hydro_rejection_gatecal_m024", 3 + 1, hydro_rejection_gatecal_m024_IRm, hydro_rejection_gatecal_cutsV2X, hydro_rejection_gatecal_m024_wit⟩,
+  ⟨"hydro_rejection_gatecal_m028", 3 + 1, hydro_rejection_gatecal_m028_IRm, hydro_rejection_gatecal_cutsV2X, hydro_rejection_gatecal_m028_wit⟩,
+  ⟨"ventilator_vc_cuffleak_m020", 3 + 1, ventilator_vc_cuffleak_m020_IRm, ventilator_vc_cuffleak_cutsV2X, ventilator_vc_cuffleak_m020_wit⟩ ]
 
 /-- Declared: the number of query groups over the refutations (one per right mode each). -/
-def expectedRefuteGroups : Nat := 175
+def expectedRefuteGroups : Nat := 181
 
 end RelCertifier.Refute

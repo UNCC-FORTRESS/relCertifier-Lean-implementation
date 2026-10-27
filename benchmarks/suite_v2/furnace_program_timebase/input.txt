@@ -1,0 +1,120 @@
+# furnace_program_timebase: a heat-treatment furnace running its validated thermal program at 80 %
+# rate (program time base slowed), against the same furnace running the program as validated; the
+# load must follow the validated profile, re-timed, within the furnace's uniformity class.
+# scenario: controller-change
+# mechanisms: S I (time stretch 4/5 in every left mode, RELCERT_SYNC=1 declines, the claim is a
+#   tolerance claim, not an exact time scaling; load-bearing mode facts, RELCERT_NO_CUT=1 declines;
+#   matrix codes M1 M6 M6+)
+#
+# System (both sides). Program setpoint s and load temperature T in degC, time in min, the program
+# controller re-deciding its segment every 1 min (epsilon 1 on both sides). The program generator
+# approaches each segment's target as a first-order filter; the furnace with its load follows the
+# setpoint with a 5 min lag (T' = 0.2 (s - T), a light load in a small furnace):
+#   PREHEAT  s < 640      s' = kap (650 - s)       preheat to 650 degC
+#   HEAT     640 <= s < 860   s' = kap (870 - s)   heat to the 870 degC austenitizing temperature
+#   SOAK     860 <= s <= 870  s' = 0.1 (870 - s)   close on the soak setpoint
+# Successors PREHEAT -> [PREHEAT, HEAT], HEAT -> [HEAT, SOAK], SOAK -> [SOAK] (the segments advance
+# in order; relcert --wellformed checks completeness).
+# Right (validated program): kap = 0.01 /min (preheat time constant 100 min, initial rate
+#   6.3 degC/min = 378 degC/h).
+# Left (deployed): the same program with the programmer's time base set to 1.25 min per program
+#   minute, i.e. the program runs at 80 % rate: kap = 0.008 /min, SOAK 0.08 /min. The furnace, the
+#   load and the segment thresholds are the same; the program rate is the only difference. Because
+#   the furnace lag is physics, the deployed load is NOT an exact time scaling of the validated one:
+#   a slower program lets the load lag its setpoint less.
+#
+# Property (every left mode): s_L = s_R (two inequalities), |T_L - T_R| <= 8, and the strengthening
+# rows s_R - T_R <= 32, T_R <= s_R (the validated load's tracking envelope). Reading: up to the
+# re-timing the recipe permits, the deployed program is the validated one and the deployed load is
+# within 8 degC of the validated load. Requirements: 8 degC = the furnace's AMS 2750 Class 3
+# temperature uniformity (+-15 degF / +-8 degC), the tolerance the validated profile was qualified
+# with; the stretch range [0.8, 1.0] = the recipe's permitted program rate, 80 % to 100 % of the
+# validated rate (lambda_min = 0.8, lambda_max = 1.0). The envelope rows are stated strengthening
+# rows: a first-order follower lags a setpoint moving at kap (650 - s) <= 6.3 degC/min by at most
+# 6.3 / 0.2 = 31.5 degC (32), and T never overshoots s (every target is approached from below);
+# without them the file DECLINES (the residual term below is unbounded over the domain).
+# Not implied by the domains (they bound |T_L - T_R| only by 880).
+#
+# Why the stretch (S), and why the claim is not exact. At lambda = 4/5 the program rows are exact
+# (the deployed generator is the validated one slowed by 4/5), but the load gap D = T_L - T_R obeys
+# D' = -0.2 D + 0.2 (s_L - s_R) + (1 - lambda) 0.2 (s_R - T_R): the validated load's lag, 32 degC at
+# most, leaves a residual (1 - lambda) x 32 = 6.4 degC. Tightest tolerance 6.40 (6.39 declines);
+# envelope window at the 8 degC requirement: [30, 40] (30 = the largest lag over the domain from
+# T >= 20, 40 = 8 / 0.2). RELCERT_SYNC=1 DECLINES (at lambda 1 the slowed program drifts behind the
+# validated setpoint without bound). The bound moves with the cause (measured tightest tolerance
+# against the program rate r, lambda_min = r): r = 1 (no cause): exact (s, T equal, 0 certifies,
+# also under RELCERT_SYNC=1); r = 0.9: 3.20; 0.85: 4.80; 0.8 (this file): 6.40; 0.75: 8.00, the
+# Class 3 limit; at r = 0.7 the 8 degC claim DECLINES. The deployed rate 0.8 lies on the tool's stretch
+# grid (the end point lambda_min); the program rows are exact by construction, the load rows are not.
+# Law dependence: an arbitrary deployed segment schedule (every left guard the domain, every segment
+# a successor of every other) DECLINES.
+# Cuts (I): the implied contraction atoms s <= 650 (PREHEAT) and s <= 870 (HEAT, SOAK) are
+# load-bearing: DECLINED with RELCERT_NO_CUT=1 and without RELCERT_IMPLIED_CUT.
+#
+# Domains. s, T in [20, 900] degC (room temperature to above the soak setpoint), forward invariant in
+# every segment (all targets <= 870, T follows s). The right guards partition s (no coverage gap);
+# every left mode has a satisfiable start (equal states on the envelope).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27 on branch benchmark-fixes): CERTIFIED;
+# CERTIFIED under RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE,
+# RELCERT_NO_LINEAR_CUT=1, RELCERT_OPREGION=1 (every admitted start in some right guard) and
+# RELCERT_WELLFORMED_STRICT=1; DECLINED under RELCERT_SYNC=1, SYNC+NO_CHOICE, RELCERT_NO_CUT=1,
+# RELCERT_NO_IMPLIED_CUT=1 and without RELCERT_IMPLIED_CUT. Cover: every left mode at lambda 4/5,
+# budget 1, admissible start the same segment, joint segments only. Nothing pruned. Rows identical
+# (--handoff vacuous, 5/5). relcert --wellformed: PREHEAT ok (exit->HEAT), HEAT ok (exit->SOAK),
+# SOAK ok (invariant), 0 UNKNOWN, 0 BLOCKING. Letters: S I.
+[problem]
+name = furnace_program_timebase
+max_depth = 8
+lambda_min = 0.8
+lambda_max = 1.0
+bound_T = 600.0
+
+[Lsys]
+state_vars = [s, T]
+epsilon = 1.0
+
+[Lsys.mode.PREHEAT]
+ode = s' = smt2:(* 0.008 (- 650.0 s)); T' = smt2:(* 0.2 (- s T));
+guard = s < 640.0 and s >= 20.0 and s <= 900.0 and T >= 20.0 and T <= 900.0
+evolve = s >= 20.0 and s <= 900.0 and T >= 20.0 and T <= 900.0
+next = [PREHEAT, HEAT]
+
+[Lsys.mode.HEAT]
+ode = s' = smt2:(* 0.008 (- 870.0 s)); T' = smt2:(* 0.2 (- s T));
+guard = s >= 640.0 and s < 860.0 and s >= 20.0 and s <= 900.0 and T >= 20.0 and T <= 900.0
+evolve = s >= 20.0 and s <= 900.0 and T >= 20.0 and T <= 900.0
+next = [HEAT, SOAK]
+
+[Lsys.mode.SOAK]
+ode = s' = smt2:(* 0.08 (- 870.0 s)); T' = smt2:(* 0.2 (- s T));
+guard = s >= 860.0 and s <= 870.0 and s >= 20.0 and s <= 900.0 and T >= 20.0 and T <= 900.0
+evolve = s >= 20.0 and s <= 900.0 and T >= 20.0 and T <= 900.0
+next = [SOAK]
+
+[Rsys]
+state_vars = [s, T]
+epsilon = 1.0
+
+[Rsys.mode.PREHEAT]
+ode = s' = smt2:(* 0.01 (- 650.0 s)); T' = smt2:(* 0.2 (- s T));
+guard = s < 640.0 and s >= 20.0 and s <= 900.0 and T >= 20.0 and T <= 900.0
+evolve = s >= 20.0 and s <= 900.0 and T >= 20.0 and T <= 900.0
+next = [PREHEAT, HEAT]
+
+[Rsys.mode.HEAT]
+ode = s' = smt2:(* 0.01 (- 870.0 s)); T' = smt2:(* 0.2 (- s T));
+guard = s >= 640.0 and s < 860.0 and s >= 20.0 and s <= 900.0 and T >= 20.0 and T <= 900.0
+evolve = s >= 20.0 and s <= 900.0 and T >= 20.0 and T <= 900.0
+next = [HEAT, SOAK]
+
+[Rsys.mode.SOAK]
+ode = s' = smt2:(* 0.1 (- 870.0 s)); T' = smt2:(* 0.2 (- s T));
+guard = s >= 860.0 and s <= 870.0 and s >= 20.0 and s <= 900.0 and T >= 20.0 and T <= 900.0
+evolve = s >= 20.0 and s <= 900.0 and T >= 20.0 and T <= 900.0
+next = [SOAK]
+
+[relational_invariant]
+PREHEAT = s[l] <= s[r] and s[r] <= s[l] and T[l] <= T[r] + 8.0 and T[r] <= T[l] + 8.0 and s[r] - T[r] <= 32.0 and T[r] <= s[r]
+HEAT = s[l] <= s[r] and s[r] <= s[l] and T[l] <= T[r] + 8.0 and T[r] <= T[l] + 8.0 and s[r] - T[r] <= 32.0 and T[r] <= s[r]
+SOAK = s[l] <= s[r] and s[r] <= s[l] and T[l] <= T[r] + 8.0 and T[r] <= T[l] + 8.0 and s[r] - T[r] <= 32.0 and T[r] <= s[r]

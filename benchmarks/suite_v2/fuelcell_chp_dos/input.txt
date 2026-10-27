@@ -1,0 +1,140 @@
+# fuelcell_chp_dos: a stationary PEM fuel-cell CHP unit whose current-level selection is held for two
+# protocol cycles by a denial-of-service attack on its supervisory link, against the stack maker's
+# operating protocol, which permits low, medium or high current in overlapping temperature bands.
+# scenario: dos-attack
+# mechanisms: M B P X (multi-cycle matching, one attacked decision against two protocol decisions;
+#   branching at the protocol's medium level; non-connection pruning of two LIVE (non-sink) edges,
+#   RELCERT_NO_PRUNE=1 declines; committed choice, RELCERT_NO_CHOICE=1 declines; matrix codes M2 M3 M4)
+#
+# System (both sides). Stack temperature T and heating-return (coolant inlet) temperature Tin in degC,
+# time in s. The stack's cooling loop is the building's heating loop; at each current level the stack
+# settles a fixed rise above the return temperature (12 K at LOW, 17 K at MED, 22 K at HIGH; thermal
+# time constant 120 s): T' = (Tin + rise - T) / 120. Tin is set by the building's heat demand and is
+# constant over the event, Tin in [40, 56] degC.
+# Right (reference): the stack maker's operating protocol, nondeterministic, deciding every 10 s.
+#   LOW is permitted only below 60 degC (a cold stack must run at low current), HIGH only above 70 degC
+#   (high current only on a warm, hydrated stack), MED on (50, 80) degC; every level may follow every
+#   level.
+# Left (deployed): the CHP controller's deterministic selection, LOW below 52, MED on [52, 78], HIGH
+#   above 78 (every choice permitted by the protocol, 8 K inside its band edges). A denial-of-service
+#   attack on the supervisory Modbus link drops every other temperature report, so each selection is
+#   held for up to 20 s (epsilon 20 s against 10 s; lambda 1). The hold is the only difference (same
+#   stack, loop and levels).
+#
+# Property (every left mode): |T_L - T_R| <= 7, Tin_L = Tin_R: the attacked stack stays within 7 K
+# of a temperature trajectory the protocol permits. Requirement: the stack's absolute operating window
+# [45, 85] degC against the protocol's steady temperatures [52, 78] degC (LOW at the coldest return
+# 40 + 12, HIGH at the warmest 56 + 22): 7 K on each side. Sources of the window: 85 degC is the
+# membrane limit of a low-temperature PEM stack (perfluorosulfonic-acid membranes need liquid-water
+# hydration; the US DOE Hydrogen and Fuel Cell Technologies Office gives PEM operation "at relatively
+# low temperatures, around 80 degC", and above about 85 degC at ambient pressure the membrane dries out
+# and degrades); 45 degC is this benchmark's stated floor for current-carrying operation (below it the
+# product water condenses in the cathode channels and floods them; no standard fixes the number, it
+# is a design value of this file). The return range [40, 56] degC is the return side of radiator
+# heating between the low-temperature 55/45 degC flow/return design and the 70/55 degC design common
+# in European practice (EN 442 rates radiators at 75/65/20 degC), with 40 degC at part load; also a
+# design range of this file, chosen from those design pairs.
+# Tightest 5.00 (4.99 declines) = one level's rise step (two protocol decisions per held selection put
+# the protocol at most one level away). The certified tolerances form a narrow, NON-MONOTONE window:
+# [5.00, 8.00] certifies, 8.01, 8.5, 9, 9.5 and 9.9 DECLINE (above 8 the start hop below fails), and
+# 10 (the full LOW-HIGH step) certifies again with every pairing passing and nothing load-bearing; the
+# file's 7 lies inside the lower window, 1 K below its edge. Not implied by the domains.
+#
+# Why pruning is needed (P), from edges into live modes. Pruned: LOW -> HIGH (at 70 degC the low
+# level's flow is at most (56 + 12 - 70) / 120 < 0 for every Tin) and HIGH -> LOW (at 60 degC the high
+# level's flow is at least (40 + 22 - 60) / 120 > 0). Neither target is a sink: the protocol's MED
+# reaches the LOW band for Tin < 43 and the HIGH band for Tin > 53, and both return to MED. In an
+# attacked LOW window the protocol runs LOW for its first 10 s segment (after the hop below); its
+# declared successors at the segment end are LOW, MED, HIGH. HIGH cannot be matched (it settles 10 K
+# above the attacked low level, beyond 7), and the existential choice cannot drop it: no checked cut
+# bounds T at the segment end (the low level's equilibrium Tin + 12 moves with the return temperature),
+# and above 80 degC only HIGH is permitted, so LOW's and MED's guards do not cover the segment-end
+# region. Symmetrically for an attacked HIGH window. RELCERT_NO_PRUNE=1 DECLINES.
+# Window (measured): both prunings and live targets need the Tin range inside (38, 58) and reaching
+# below 43 and above 53; [44, 52] still CERTIFIES with P but the targets are then dead (MED reaches
+# neither band); [36, 56] (HIGH -> LOW no longer prunable) and [40, 60] (LOW -> HIGH no longer
+# prunable) DECLINE. The stated range is the heating loop's return-temperature range.
+# Why committed choice is needed (X). At an attacked LOW window start the protocol may run MED (T in
+# (50, 59)); the cover hops MED -> LOW (the deployed's own level; StartRegion T_R < 52 + 7 < 60), and
+# likewise MED -> HIGH for HIGH windows. Without the hop the MED start's successors include the far
+# level. RELCERT_NO_CHOICE=1 DECLINES.
+# Multi-cycle matching (M): budget 2 in every left mode, joint steps. Branching (B): in an attacked
+# MED window the protocol's MED segment has the two non-self successors LOW and HIGH on the path.
+# How the claim depends on the cause (measured): no attack (epsilon_L = 10 s): the exact claim
+# (constant 0) CERTIFIES, RELCERT_NO_PRUNE=1 CERTIFIES (one segment, no step: no P); 20 s hold (this
+# file): tightest 5.00; 30 s hold: DECLINED at 7 (the protocol may be two levels away), only the full
+# 10 K step certifies. Law dependence: an arbitrary attacked schedule (every left guard the domain)
+# DECLINES.
+#
+# Domains. T in [40, 100] degC: 40 = the coldest heating return (the idle stack is held at the loop
+# temperature; every flow is > 0 there), 100 = the coolant loop's boiling limit (every flow < 0);
+# forward invariant at every level. Tin in [40, 56] degC, constant. The right guards cover [40, 100]
+# (LOW below 60, MED on (50, 80), HIGH above 70; no coverage gap); the left guards partition it; every
+# left mode has a satisfiable start (equal states). LOW_L and HIGH_L occur only after a cold or a hot
+# start: MED_L is forward invariant (its equilibrium Tin + 17 lies in [57, 73], inside [52, 78]), so no
+# left run re-enters LOW_L or HIGH_L once it has reached MED_L.
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27 on branch benchmark-fixes): CERTIFIED;
+# CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1,
+# without RELCERT_IMPLIED_CUT, RELCERT_OPREGION=1 (every admitted start in some right guard) and
+# RELCERT_WELLFORMED_STRICT=1; DECLINED under RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1,
+# NO_PRUNE+NO_CHOICE and SYNC+NO_CHOICE. Cover: every left mode at lambda 1, budget 2; LOW_L
+# admissible [LOW, MED] (MED hops to LOW), path LOW -> MED; MED_L [LOW, MED, HIGH], branching 2;
+# HIGH_L [MED, HIGH] (MED hops to HIGH). Pruned LOW->HIGH, HIGH->LOW. Rows identical (--handoff
+# vacuous, 9/9). relcert --wellformed: LOW ok (exit->MED), MED ok (invariant), HIGH ok (exit->MED),
+# 0 UNKNOWN, 0 BLOCKING. Letters: M B P X.
+[problem]
+name = fuelcell_chp_dos
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 1200.0
+
+[Lsys]
+state_vars = [T, Tin]
+epsilon = 20.0
+
+[Lsys.mode.LOW]
+ode = T' = smt2:(* 0.00833333 (- (+ Tin 12) T)); Tin' = 0.0;
+guard = T < 52.0 and T >= 40.0 and T <= 100.0 and Tin >= 40 and Tin <= 56
+evolve = T >= 40.0 and T <= 100.0 and Tin >= 40 and Tin <= 56
+next = [LOW, MED, HIGH]
+
+[Lsys.mode.MED]
+ode = T' = smt2:(* 0.00833333 (- (+ Tin 17) T)); Tin' = 0.0;
+guard = T >= 52.0 and T <= 78.0 and T >= 40.0 and T <= 100.0 and Tin >= 40 and Tin <= 56
+evolve = T >= 40.0 and T <= 100.0 and Tin >= 40 and Tin <= 56
+next = [LOW, MED, HIGH]
+
+[Lsys.mode.HIGH]
+ode = T' = smt2:(* 0.00833333 (- (+ Tin 22) T)); Tin' = 0.0;
+guard = T > 78.0 and T >= 40.0 and T <= 100.0 and Tin >= 40 and Tin <= 56
+evolve = T >= 40.0 and T <= 100.0 and Tin >= 40 and Tin <= 56
+next = [LOW, MED, HIGH]
+
+[Rsys]
+state_vars = [T, Tin]
+epsilon = 10.0
+
+[Rsys.mode.LOW]
+ode = T' = smt2:(* 0.00833333 (- (+ Tin 12) T)); Tin' = 0.0;
+guard = T < 60.0 and T >= 40.0 and T <= 100.0 and Tin >= 40 and Tin <= 56
+evolve = T >= 40.0 and T <= 100.0 and Tin >= 40 and Tin <= 56
+next = [LOW, MED, HIGH]
+
+[Rsys.mode.MED]
+ode = T' = smt2:(* 0.00833333 (- (+ Tin 17) T)); Tin' = 0.0;
+guard = T > 50.0 and T < 80.0 and T >= 40.0 and T <= 100.0 and Tin >= 40 and Tin <= 56
+evolve = T >= 40.0 and T <= 100.0 and Tin >= 40 and Tin <= 56
+next = [LOW, MED, HIGH]
+
+[Rsys.mode.HIGH]
+ode = T' = smt2:(* 0.00833333 (- (+ Tin 22) T)); Tin' = 0.0;
+guard = T > 70.0 and T >= 40.0 and T <= 100.0 and Tin >= 40 and Tin <= 56
+evolve = T >= 40.0 and T <= 100.0 and Tin >= 40 and Tin <= 56
+next = [LOW, MED, HIGH]
+
+[relational_invariant]
+LOW = T[l] <= T[r] + 7.0 and T[r] <= T[l] + 7.0 and Tin[l] <= Tin[r] and Tin[r] <= Tin[l]
+MED = T[l] <= T[r] + 7.0 and T[r] <= T[l] + 7.0 and Tin[l] <= Tin[r] and Tin[r] <= Tin[l]
+HIGH = T[l] <= T[r] + 7.0 and T[r] <= T[l] + 7.0 and Tin[l] <= Tin[r] and Tin[r] <= Tin[l]

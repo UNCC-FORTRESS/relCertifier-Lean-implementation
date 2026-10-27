@@ -1,0 +1,213 @@
+# insulin_basal_cgmloss: an insulin pump's automated basal modulation (low-glucose suspend plus a
+# glucose-band basal table) whose continuous glucose monitor reaches the pump over a lossy Bluetooth
+# link that drops every other reading, against the same pump receiving every 5-min reading.
+# scenario: degraded-network
+# mechanisms: M B (multi-cycle matching: one deployed decision against two reference decisions;
+#   branching from STATE-DEPENDENT successors, the reference's table is deterministic and the next
+#   level follows where the glucose goes; matrix codes M2 M3)
+#
+# System (both sides). Insulin action X in U/h, plasma glucose G in mg/dL, the patient's basal insulin
+# need b in U/h (constant over the event), time in min. Insulin action follows the delivered rate u
+# with the absorption time constant of rapid-acting insulin, 55 min (Hovorka et al. 2004, t_max,I):
+# X' = (u - X) / 55. Glucose relaxes in 60 min (glucose effectiveness about 0.017 /min, minimal model)
+# toward a steady state that each U/h of insulin action above the need lowers by 50 mg/dL (correction
+# factor 50 mg/dL per U over the 60 min relaxation): G' = (120 + 50 (b - X) - G) / 60. b in [0.5, 1.3]
+# U/h around the programmed 1.0 U/h (insulin need falls by up to half after exercise, rises by about a
+# third with stress or illness).
+# Basal table (identical on both sides): SUSP (low-glucose suspend, u = 0) below 70 mg/dL, the level-1
+# hypoglycaemia threshold; L1..L8 deliver u = 0.2, 0.4, ..., 1.6 U/h on 30 mg/dL bands from 70 (L1 on
+# [70, 100), L2 [100, 130), ..., L8 at or above 280). The level is a function of the reading.
+# Right (validated): the pump reads the CGM every 5 min (Dexcom G6 interval; epsilon 5). Within 5 min
+#   glucose moves at most 17.9 mg/dL < 30, so the declared successors are the adjacent levels
+#   (relcert --wellformed: every level ok (exit), e.g. L1 ok (exit->SUSP,L2)).
+# Left (deployed): the same pump, table and patient; the transmitter-to-pump Bluetooth link loses every
+#   other reading (body shadowing, distance), so each basal decision is held for 10 min (epsilon 10).
+#   Within 10 min glucose can move up to 35.8 mg/dL (at high glucose with full insulin action), so the
+#   deployed's successors reach two levels. The lost readings are the only difference (same pump, table,
+#   insulin and patient). lambda_min = lambda_max = 1: the claim compares the two patients at equal times.
+#
+# Property (every left mode): |G_L - G_R| <= 25, |X_L - X_R| <= 0.5, b_L = b_R. Requirement: the
+# consensus target range 70-180 mg/dL (Battelino et al., Diabetes Care 2019). The validated loop settles
+# between 125 mg/dL (b = 0.5, in L2) and 155 mg/dL (b = 1.3, in L3) (simulated, every start and need), so
+# a deployed run within 25 mg/dL of a validated run stays inside 70-180 wherever the validated loop
+# settles (180 - 155 = 25; 125 - 25 = 100 > 70). The insulin-action row is the stated strengthening that
+# carries the glucose row (the glucose gap is driven by 50 times the insulin-action gap: 25 = 50 x 0.5).
+# Tightest: X 0.40 with G 20.0 = two basal levels (0.4 U/h) and 50 x 0.4 mg/dL; G 19.5 declines with X
+# 0.5, X 0.39 declines with G 25. Certified window at X 0.6: G up to 30.5 (tested), so 25 is not at an
+# edge. Not implied by the domains (they allow 360 mg/dL and 1.6 U/h).
+#
+# Why multi-cycle matching (M) and branching (B), from the state. In a deployed window the reference
+# starts in the deployed's level or a neighbour (the 25 mg/dL row is narrower than a 30 mg/dL band) and
+# takes one joint step (budget 2). The table is deterministic, but from every level the glucose can go
+# either way, depending on the insulin on board and the need: L3 (0.6 U/h, [130, 160)) drives glucose
+# toward 120 + 50 (b - X), anywhere from 65 (b = 0.5, X = 1.6) to 185 (b = 1.3, X = 0), so both
+# neighbours are retained successors at every step (branching 2 in every left mode); no choice is
+# involved (RELCERT_NO_CHOICE=1 CERTIFIES with the same cover). The farthest pairing is two levels apart
+# (a neighbour start plus one step), which sets the tightest bound.
+# Pruning (not shown). Nothing is pruned: every adjacent change is reachable in the time-free segment
+# view (insulin on board can carry glucose down a band, an unmet need up a band). Measured: with the
+# need range narrowed to b >= 0.7 the edge L1 -> SUSP is pruned, because hypoglycaemia then becomes
+# unreachable (a dead target, and NO_PRUNE still CERTIFIES); with the exercise range SUSP is live.
+# A static-map variant (every level a declared successor of every level) DECLINES with or without
+# pruning (insulin on board makes far downward successors reachable).
+# How the claim depends on the cause (measured, same rows). No loss (epsilon 5 on both sides): the exact
+# claim (all constants 0) CERTIFIES, one segment, no M, no B. Every other reading lost (this file):
+# tightest two levels (0.4 U/h, 20 mg/dL). Two of three readings lost (epsilon 15): DECLINED at the
+# 25 mg/dL requirement, three levels (0.6 U/h, 30 mg/dL) CERTIFY. Simulated worst gap |G_L - G_R| from
+# equal starts (b on a 0.1 grid, nine glucose and four insulin-action starts, 24 h): 1.4 mg/dL at 10 min,
+# 2.4 mg/dL at 15 min; the certificate is an inductive envelope over unbounded segment durations, which
+# grows with the number of reference decisions per deployed decision as the reachable levels do. Law
+# dependence: an arbitrary deployed level schedule (every left guard the domain, every level a successor
+# of every level) DECLINES.
+# Template note: the bound is the hold's chain depth, as in tank_dos_3to1, but here in a regulation table
+# (every level drives glucose back toward the target; the reference moves both ways, state-dependent
+# branching), with an insulin-glucose cascade and a radio-loss cause; it is not the positive-association
+# schedule of fuelcell_chp_dos (nothing prunable, see above).
+#
+# Domains. X in [0, 1.6] U/h (between no delivery and the highest level; forward invariant at every
+# level). G in [40, 400] mg/dL (the CGM's reporting range; every flow points inward there: at 40 the
+# glucose rises for every X and b, at 400 it falls). b in [0.5, 1.3], constant. The right guards
+# partition [40, 400] (no coverage gap), as do the left guards; every left mode has a satisfiable start
+# (equal states).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27 on branch benchmark-fixes): CERTIFIED (6.5 s);
+# CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE,
+# SYNC+NO_CHOICE, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, without
+# RELCERT_IMPLIED_CUT, RELCERT_NO_PAIR_STRETCH=1, RELCERT_OPREGION=1 and RELCERT_WELLFORMED_STRICT=1
+# (8.7 s). Cover: every left mode at lambda 1, budget 2; admissible starts the deployed's level and its
+# neighbours (SUSP_L [SUSP, L1], L8_L [L7, L8], every other Lk_L [Lk-1, Lk, Lk+1]); one joint step,
+# branching 2 in every left mode; nothing pruned, no choice. Rows identical (--handoff vacuous, 39/39).
+# relcert --wellformed: all 9 right modes ok (exit), 0 UNKNOWN, 0 BLOCKING. Letters: M B.
+[problem]
+name = insulin_basal_cgmloss
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 600.0
+
+[Lsys]
+state_vars = [X, G, b]
+epsilon = 10.0
+
+[Lsys.mode.SUSP]
+ode = X' = smt2:(* 0.018182 (- 0.0 X)); G' = smt2:(* 0.016667 (- (+ 120.0 (* 50.0 (- b X))) G)); b' = 0.0;
+guard = G < 70 and X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+evolve = X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+next = [SUSP, L1, L2]
+
+[Lsys.mode.L1]
+ode = X' = smt2:(* 0.018182 (- 0.2 X)); G' = smt2:(* 0.016667 (- (+ 120.0 (* 50.0 (- b X))) G)); b' = 0.0;
+guard = G >= 70 and G < 100 and X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+evolve = X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+next = [SUSP, L1, L2, L3]
+
+[Lsys.mode.L2]
+ode = X' = smt2:(* 0.018182 (- 0.4 X)); G' = smt2:(* 0.016667 (- (+ 120.0 (* 50.0 (- b X))) G)); b' = 0.0;
+guard = G >= 100 and G < 130 and X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+evolve = X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+next = [SUSP, L1, L2, L3, L4]
+
+[Lsys.mode.L3]
+ode = X' = smt2:(* 0.018182 (- 0.6 X)); G' = smt2:(* 0.016667 (- (+ 120.0 (* 50.0 (- b X))) G)); b' = 0.0;
+guard = G >= 130 and G < 160 and X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+evolve = X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+next = [L1, L2, L3, L4, L5]
+
+[Lsys.mode.L4]
+ode = X' = smt2:(* 0.018182 (- 0.8 X)); G' = smt2:(* 0.016667 (- (+ 120.0 (* 50.0 (- b X))) G)); b' = 0.0;
+guard = G >= 160 and G < 190 and X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+evolve = X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+next = [L2, L3, L4, L5, L6]
+
+[Lsys.mode.L5]
+ode = X' = smt2:(* 0.018182 (- 1.0 X)); G' = smt2:(* 0.016667 (- (+ 120.0 (* 50.0 (- b X))) G)); b' = 0.0;
+guard = G >= 190 and G < 220 and X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+evolve = X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+next = [L3, L4, L5, L6, L7]
+
+[Lsys.mode.L6]
+ode = X' = smt2:(* 0.018182 (- 1.2 X)); G' = smt2:(* 0.016667 (- (+ 120.0 (* 50.0 (- b X))) G)); b' = 0.0;
+guard = G >= 220 and G < 250 and X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+evolve = X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+next = [L4, L5, L6, L7, L8]
+
+[Lsys.mode.L7]
+ode = X' = smt2:(* 0.018182 (- 1.4 X)); G' = smt2:(* 0.016667 (- (+ 120.0 (* 50.0 (- b X))) G)); b' = 0.0;
+guard = G >= 250 and G < 280 and X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+evolve = X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+next = [L5, L6, L7, L8]
+
+[Lsys.mode.L8]
+ode = X' = smt2:(* 0.018182 (- 1.6 X)); G' = smt2:(* 0.016667 (- (+ 120.0 (* 50.0 (- b X))) G)); b' = 0.0;
+guard = G >= 280 and X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+evolve = X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+next = [L6, L7, L8]
+
+[Rsys]
+state_vars = [X, G, b]
+epsilon = 5.0
+
+[Rsys.mode.SUSP]
+ode = X' = smt2:(* 0.018182 (- 0.0 X)); G' = smt2:(* 0.016667 (- (+ 120.0 (* 50.0 (- b X))) G)); b' = 0.0;
+guard = G < 70 and X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+evolve = X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+next = [SUSP, L1]
+
+[Rsys.mode.L1]
+ode = X' = smt2:(* 0.018182 (- 0.2 X)); G' = smt2:(* 0.016667 (- (+ 120.0 (* 50.0 (- b X))) G)); b' = 0.0;
+guard = G >= 70 and G < 100 and X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+evolve = X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+next = [SUSP, L1, L2]
+
+[Rsys.mode.L2]
+ode = X' = smt2:(* 0.018182 (- 0.4 X)); G' = smt2:(* 0.016667 (- (+ 120.0 (* 50.0 (- b X))) G)); b' = 0.0;
+guard = G >= 100 and G < 130 and X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+evolve = X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+next = [L1, L2, L3]
+
+[Rsys.mode.L3]
+ode = X' = smt2:(* 0.018182 (- 0.6 X)); G' = smt2:(* 0.016667 (- (+ 120.0 (* 50.0 (- b X))) G)); b' = 0.0;
+guard = G >= 130 and G < 160 and X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+evolve = X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+next = [L2, L3, L4]
+
+[Rsys.mode.L4]
+ode = X' = smt2:(* 0.018182 (- 0.8 X)); G' = smt2:(* 0.016667 (- (+ 120.0 (* 50.0 (- b X))) G)); b' = 0.0;
+guard = G >= 160 and G < 190 and X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+evolve = X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+next = [L3, L4, L5]
+
+[Rsys.mode.L5]
+ode = X' = smt2:(* 0.018182 (- 1.0 X)); G' = smt2:(* 0.016667 (- (+ 120.0 (* 50.0 (- b X))) G)); b' = 0.0;
+guard = G >= 190 and G < 220 and X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+evolve = X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+next = [L4, L5, L6]
+
+[Rsys.mode.L6]
+ode = X' = smt2:(* 0.018182 (- 1.2 X)); G' = smt2:(* 0.016667 (- (+ 120.0 (* 50.0 (- b X))) G)); b' = 0.0;
+guard = G >= 220 and G < 250 and X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+evolve = X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+next = [L5, L6, L7]
+
+[Rsys.mode.L7]
+ode = X' = smt2:(* 0.018182 (- 1.4 X)); G' = smt2:(* 0.016667 (- (+ 120.0 (* 50.0 (- b X))) G)); b' = 0.0;
+guard = G >= 250 and G < 280 and X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+evolve = X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+next = [L6, L7, L8]
+
+[Rsys.mode.L8]
+ode = X' = smt2:(* 0.018182 (- 1.6 X)); G' = smt2:(* 0.016667 (- (+ 120.0 (* 50.0 (- b X))) G)); b' = 0.0;
+guard = G >= 280 and X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+evolve = X >= 0.0 and X <= 1.6 and G >= 40.0 and G <= 400.0 and b >= 0.5 and b <= 1.3
+next = [L7, L8]
+
+[relational_invariant]
+SUSP = X[l] <= X[r] + 0.5 and X[r] <= X[l] + 0.5 and G[l] <= G[r] + 25 and G[r] <= G[l] + 25 and b[l] <= b[r] and b[r] <= b[l]
+L1 = X[l] <= X[r] + 0.5 and X[r] <= X[l] + 0.5 and G[l] <= G[r] + 25 and G[r] <= G[l] + 25 and b[l] <= b[r] and b[r] <= b[l]
+L2 = X[l] <= X[r] + 0.5 and X[r] <= X[l] + 0.5 and G[l] <= G[r] + 25 and G[r] <= G[l] + 25 and b[l] <= b[r] and b[r] <= b[l]
+L3 = X[l] <= X[r] + 0.5 and X[r] <= X[l] + 0.5 and G[l] <= G[r] + 25 and G[r] <= G[l] + 25 and b[l] <= b[r] and b[r] <= b[l]
+L4 = X[l] <= X[r] + 0.5 and X[r] <= X[l] + 0.5 and G[l] <= G[r] + 25 and G[r] <= G[l] + 25 and b[l] <= b[r] and b[r] <= b[l]
+L5 = X[l] <= X[r] + 0.5 and X[r] <= X[l] + 0.5 and G[l] <= G[r] + 25 and G[r] <= G[l] + 25 and b[l] <= b[r] and b[r] <= b[l]
+L6 = X[l] <= X[r] + 0.5 and X[r] <= X[l] + 0.5 and G[l] <= G[r] + 25 and G[r] <= G[l] + 25 and b[l] <= b[r] and b[r] <= b[l]
+L7 = X[l] <= X[r] + 0.5 and X[r] <= X[l] + 0.5 and G[l] <= G[r] + 25 and G[r] <= G[l] + 25 and b[l] <= b[r] and b[r] <= b[l]
+L8 = X[l] <= X[r] + 0.5 and X[r] <= X[l] + 0.5 and G[l] <= G[r] + 25 and G[r] <= G[l] + 25 and b[l] <= b[r] and b[r] <= b[l]

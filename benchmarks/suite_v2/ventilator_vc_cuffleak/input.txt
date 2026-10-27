@@ -1,0 +1,114 @@
+# ventilator_vc_cuffleak: one volume-controlled breath of a critical-care ventilator in an ARDS patient
+# whose endotracheal-tube cuff is under-inflated (gas leaks past the cuff), against the same breath with
+# a sealed cuff; the requirement changes with the phase because inspiration is flow-controlled and
+# expiration is pressure-controlled.
+# scenario: degraded-actuator
+# mechanisms: D (mode-dependent rows: during inspiration the lung-volume row is relative to the
+#   delivered volume, during expiration it is an absolute band; every uniform row set declines at the
+#   requirement; matrix code M5)
+#
+# System (both sides). Breath clock t in s, lung volume V in L above the end-expiratory volume at PEEP
+# (alveolar pressure PA = PEEP + V / C). Lung-protective ARDS settings (ARDSnet: 6-7 mL/kg predicted
+# body weight, PEEP 10 cmH2O for moderate ARDS): set tidal volume 0.40 L, constant inspiratory flow
+# 0.40 L/s for Ti = 1.0 s, PEEP 10 cmH2O; respiratory-system compliance C = 0.04 L/cmH2O (driving
+# pressure 10 cmH2O), airway resistance below the cuff R_aw = 5, 7.0 mm tube R_tube = 8 cmH2O.s/L.
+# The ventilator's breath logic re-decides every 0.01 s (epsilon 0.01 on both sides).
+#   INSP  t < 1.0   flow control: the ventilator delivers 0.40 L/s at the Y-piece
+#   EXP   t >= 1.0  pressure control: the exhalation valve holds the Y-piece at PEEP, the lung empties
+#                   through the tube
+# with t' = 1; INSP -> [INSP, EXP], EXP -> [EXP] (one breath; the next breath's trigger is not modeled).
+# Right (reference): sealed cuff. INSP V' = 0.4; EXP V' = -PA_excess / ((R_aw + R_tube) C) = -1.923 V.
+# Left (deployed): the same ventilator, settings and lung, with a cuff leak from the trachea to the
+#   upper airway of conductance g = 0.002 L/s per cmH2O (leak resistance 500 cmH2O.s/L; at plateau
+#   pressure 20 cmH2O it leaks 40 mL/s = 2.4 L/min). Resistor network alveoli -R_aw- trachea -R_tube-
+#   Y-piece, leak at the trachea: INSP V' = (0.4 - g (PEEP + V/C)) / (1 + R_aw g) = 0.376 - 0.0495 V,
+#   EXP V' = -1.942 V - 0.0122. Simulated: the leak steals 32.9 mL of the 400 mL breath (8.2 %) by
+#   end-inspiration, and in expiration the lung settles 6.3 mL below the PEEP volume (tracheal pressure
+#   0.16 cmH2O below PEEP). The leak is the only difference (same ventilator, settings, lung, timing).
+#
+# Property (mode-dependent).
+#   INSP: t_L = t_R, |V_L - V_R| <= 0.004 + 0.15 V_R.
+#   EXP:  t_L = t_R, |V_L - V_R| <= 0.08.
+# Requirements. Inspiration: ISO 80601-2-12:2020 delivered-volume accuracy, +-(4 mL + 15 %) of the set
+# value (as quoted in "Novel design of inspiratory flow generation and gas mixing for critical care
+# ventilators...", CTU Prague FBMI, 2023, supplementary material 2), applied to the volume delivered so
+# far: the deployed lung receives the reference's volume within 4 mL + 15 %.
+# Expiration: ISO 80601-2-12 PEEP accuracy +-2 cmH2O, i.e. +-2 C = 0.08 L of lung volume. The phase
+# clocks are equal (same ventilator timing). Tightest: inspiratory fraction 0.104 (with the 4 mL offset;
+# the simulated loss is 8.2 %), expiratory band 0.0647 L (0.064 declines), which is the inspiratory
+# row's value at the end of the breath (0.004 + 0.15 x 0.404) carried by the handoff INSP -> EXP. Not
+# implied by the domains (they allow a 0.8 L gap).
+#
+# Why the rows must differ (D). In inspiration the leak flow integrates against a constant delivered
+# flow: the volume gap grows with the delivered volume, so no constant band is inductive (uniform
+# |V_L - V_R| <= d DECLINES at every d tested, up to 0.3 L); only the relative row is. In expiration the
+# reference lung returns to the PEEP volume (V_R -> 0) while the deployed lung settles 6.3 mL below it,
+# so the relative row with ISO's 4 mL offset is false at the end of expiration (uniform INSP rows
+# DECLINE; a uniform relative row certifies only from a 9.8 mL offset, 2.4 times ISO's 4 mL). So no
+# uniform row set meets the two requirements; the keyed rows do (--handoff 3/3 unsat). Reason, not
+# molding's or hydro's: the controlled quantity switches from flow (an integrator: errors are relative)
+# to pressure (a relaxation: errors are absolute), and one leak acts both ways.
+# How the claim depends on the cause (measured). No leak: the exact uniform claim (all constants 0)
+# CERTIFIES, nothing mode-dependent. Leak resistance window: the keyed claim CERTIFIES from 339
+# cmH2O.s/L (inspiratory loss up to about 11.8 %; at 300, a 13.4 % loss, it DECLINES: the certified
+# fraction exceeds 15 %), and the uniform ISO-form row DECLINES up to 1203 (D present for leaks of
+# about 3 % to 12 % of the tidal volume); the file's 500 lies inside both edges. Tightest inspiratory
+# fraction against the leak: 0.105 at 500, 0.128 at 400, 0.145 at 350. Law dependence: an arbitrary
+# deployed phase schedule (both left guards the domain, each phase a successor of the other) DECLINES.
+#
+# Domains. t >= 0 s (the breath clock, forward invariant). V in [-0.4, 0.404] L: -0.4 = -C x PEEP
+# (alveolar pressure at atmospheric; every flow is > 0 there), 0.404 = the volume one breath can
+# deliver (0.4 L/s for at most Ti + epsilon). V - 0.4 t <= 0: the lung holds no more than the
+# ventilator has delivered since the breath start (forward invariant on both sides: inspiratory flow
+# <= 0.4, expiratory flow <= 0). The right guards partition the clock (no coverage gap); every left
+# mode has a satisfiable start (equal states).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27 on branch benchmark-fixes): CERTIFIED
+# (0.28 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE,
+# SYNC+NO_CHOICE, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, without
+# RELCERT_IMPLIED_CUT, RELCERT_NO_PAIR_STRETCH=1, RELCERT_OPREGION=1 and RELCERT_WELLFORMED_STRICT=1.
+# Cover: both left modes at lambda 1, budget 1, admissible start the same phase, joint segments only.
+# Nothing pruned. --handoff 3/3 unsat. relcert --wellformed: INSP ok (exit->EXP), EXP ok (invariant),
+# 0 UNKNOWN, 0 BLOCKING. Letters: D.
+[problem]
+name = ventilator_vc_cuffleak
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 3.0
+
+[Lsys]
+state_vars = [t, V]
+epsilon = 0.01
+
+[Lsys.mode.INSP]
+ode = t' = 1.0; V' = smt2:(- 0.376238 (* 0.049505 V));
+guard = t < 1.0 and t >= 0.0 and V >= -0.4 and V <= 0.404 and V - 0.4*t <= 0.0
+evolve = t >= 0.0 and V >= -0.4 and V <= 0.404 and V - 0.4*t <= 0.0
+next = [INSP, EXP]
+
+[Lsys.mode.EXP]
+ode = t' = 1.0; V' = smt2:(- (* (- 1.941896) V) 0.012232);
+guard = t >= 1.0 and t >= 0.0 and V >= -0.4 and V <= 0.404 and V - 0.4*t <= 0.0
+evolve = t >= 0.0 and V >= -0.4 and V <= 0.404 and V - 0.4*t <= 0.0
+next = [EXP]
+
+[Rsys]
+state_vars = [t, V]
+epsilon = 0.01
+
+[Rsys.mode.INSP]
+ode = t' = 1.0; V' = 0.4;
+guard = t < 1.0 and t >= 0.0 and V >= -0.4 and V <= 0.404 and V - 0.4*t <= 0.0
+evolve = t >= 0.0 and V >= -0.4 and V <= 0.404 and V - 0.4*t <= 0.0
+next = [INSP, EXP]
+
+[Rsys.mode.EXP]
+ode = t' = 1.0; V' = smt2:(* (- 1.923077) V);
+guard = t >= 1.0 and t >= 0.0 and V >= -0.4 and V <= 0.404 and V - 0.4*t <= 0.0
+evolve = t >= 0.0 and V >= -0.4 and V <= 0.404 and V - 0.4*t <= 0.0
+next = [EXP]
+
+[relational_invariant]
+INSP = t[l] <= t[r] and t[r] <= t[l] and V[l] <= V[r] + 0.004 + 0.15*V[r] and V[r] <= V[l] + 0.004 + 0.15*V[r]
+EXP = t[l] <= t[r] and t[r] <= t[l] and V[l] <= V[r] + 0.08 and V[r] <= V[l] + 0.08

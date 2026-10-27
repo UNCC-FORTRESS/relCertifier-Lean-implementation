@@ -216,10 +216,82 @@ def packsV2 : List PackV2 :=
     ⟨"turbine_startup_gearratio", 2, 0, [0], 1, 1, 3, 0⟩,
     ⟨"turbine_startup_gearratio", 2, 0, [0], 1, 1, 3, 1⟩,
     ⟨"turbine_startup_gearratio", 2, 0, [0], 1, 1, 3, 2⟩,
-    ⟨"turbine_startup_gearratio", 2, 0, [0], 1, 1, 3, 3⟩ ]
+    ⟨"turbine_startup_gearratio", 2, 0, [0], 1, 1, 3, 3⟩,
+    -- molding_pack_checkring (mode-keyed rows; cover replay at λ = 1)
+⟨"molding_pack_checkring", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 0, 0⟩,
+    ⟨"molding_pack_checkring", 3, 1, [0, 1, 2, 3], 1, 1, 1, 1⟩,
+    -- elevator_start_discbrake (mode-keyed rows; UP_L's right-only LIFT node is below)
+⟨"elevator_start_discbrake", 3, 0, [0, 1, 2, 3, 4], 1, 1, 0, 0⟩,
+    ⟨"elevator_start_discbrake", 3, 0, [0, 1, 2, 3, 4], 1, 1, 0, 2⟩,
+    ⟨"elevator_start_discbrake", 3, 0, [0, 1, 2, 3, 4], 1, 1, 0, 3⟩,
+    ⟨"elevator_start_discbrake", 3, 1, [2, 3, 0, 1], 1, 1, 1, 1⟩,
+    ⟨"elevator_start_discbrake", 3, 2, [2, 3, 0, 1], 1, 1, 2, 2⟩,
+    ⟨"elevator_start_discbrake", 3, 3, [2, 3, 0, 1], 1, 1, 3, 3⟩,
+    -- hydro_rejection_gatecal (mode-keyed rows; cover replay at λ = 1)
+⟨"hydro_rejection_gatecal", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 0, 0⟩,
+    ⟨"hydro_rejection_gatecal", 3, 1, [0, 1, 4, 5, 2, 3], 1, 1, 1, 1⟩,
+    -- syringe_relay_prearm (mode-keyed rows; the right-only TAKEUP2 and RUN2 nodes are below)
+⟨"syringe_relay_prearm", 4, 0, [0, 1, 2, 3, 4, 5, 6], 1, 1, 0, 0⟩,
+    ⟨"syringe_relay_prearm", 4, 0, [1, 2, 3, 4, 5, 6, 0], 1, 1, 0, 3⟩,
+    ⟨"syringe_relay_prearm", 4, 1, [0, 1, 2, 3, 4, 5, 6], 1, 1, 1, 0⟩,
+    ⟨"syringe_relay_prearm", 4, 1, [1, 2, 3, 4, 5, 6, 0], 1, 1, 1, 3⟩,
+    ⟨"syringe_relay_prearm", 4, 2, [0, 1, 2, 3, 4, 5, 6], 1, 1, 2, 0⟩,
+    ⟨"syringe_relay_prearm", 4, 2, [1, 2, 3, 4, 5, 6, 0], 1, 1, 2, 3⟩,
+    ⟨"syringe_relay_prearm", 4, 3, [0, 1, 2, 3, 4, 5, 6], 1, 1, 3, 1⟩,
+    ⟨"syringe_relay_prearm", 4, 3, [0, 1, 2, 3, 4, 5, 6], 1, 1, 3, 3⟩,
+    ⟨"syringe_relay_prearm", 4, 4, [0, 1, 2, 3, 4], 1, 1, 4, 2⟩,
+    ⟨"syringe_relay_prearm", 4, 5, [0, 1, 2, 3, 4], 1, 1, 5, 3⟩,
+    -- ventilator_vc_cuffleak (mode-keyed rows; cover replay at λ = 1)
+⟨"ventilator_vc_cuffleak", 3, 0, [0, 1, 2, 3], 1, 1, 0, 0⟩,
+    ⟨"ventilator_vc_cuffleak", 3, 1, [0, 1, 2, 3], 1, 1, 1, 1⟩,
+    -- furnace_program_timebase (cover replay at λ = 4/5)
+⟨"furnace_program_timebase", 2, 0, [0, 1, 4, 5, 2, 3], 4, 5, 0, 0⟩,
+    ⟨"furnace_program_timebase", 2, 0, [0, 1, 2, 3, 4, 5], 4, 5, 0, 2⟩,
+    ⟨"furnace_program_timebase", 2, 0, [0, 1, 4, 5, 2, 3], 4, 5, 1, 1⟩,
+    ⟨"furnace_program_timebase", 2, 0, [0, 1, 3, 4, 5, 2], 4, 5, 2, 2⟩,
+    -- insulin_basal_cgmloss (cover replay at λ = 1, budget 2)
+⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 0, 0⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 0, 1⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 0, 2⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 1, 0⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 1, 1⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 1, 2⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 1, 3⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 2, 0⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 2, 1⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 2, 2⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 2, 3⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 2, 4⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 3, 1⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 3, 2⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 3, 3⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 3, 4⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 3, 5⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 4, 2⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 4, 3⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 4, 4⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 4, 5⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 4, 6⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 5, 3⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 5, 4⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 5, 5⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 5, 6⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 5, 7⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 6, 4⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 6, 5⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 6, 6⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 6, 7⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 6, 8⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 7, 5⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 7, 6⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 7, 7⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 7, 8⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 8, 6⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 8, 7⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 8, 8⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 717
+def expectedModalV2 : Nat := 1098
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
@@ -306,10 +378,21 @@ def dynPacksV2 : List DynPackV2 :=
     ⟨"engine_start_highidle", 3, 2, [0], true, 2, 1⟩,
     ⟨"engine_start_highidle", 3, 3, [0], true, 3, 2⟩,
     -- turbine_startup_gearratio: SPINUP_L repositions through right-only RAMP
-    ⟨"turbine_startup_gearratio", 2, 0, [0], true, 0, 1⟩ ]
+    ⟨"turbine_startup_gearratio", 2, 0, [0], true, 0, 1⟩,
+    -- elevator_start_discbrake: right-only reposition nodes
+⟨"elevator_start_discbrake", 3, 1, [0, 1, 2, 3], true, 1, 0⟩,
+    -- syringe_relay_prearm: right-only reposition nodes
+⟨"syringe_relay_prearm", 4, 0, [0, 1, 2, 3, 4, 5, 6], true, 0, 1⟩,
+    ⟨"syringe_relay_prearm", 4, 0, [0, 1, 2, 3, 4, 5, 6], true, 0, 2⟩,
+    ⟨"syringe_relay_prearm", 4, 1, [0, 1, 2, 3, 4, 5, 6], true, 1, 1⟩,
+    ⟨"syringe_relay_prearm", 4, 1, [0, 1, 2, 3, 4, 5, 6], true, 1, 2⟩,
+    ⟨"syringe_relay_prearm", 4, 2, [0, 1, 2, 3, 4, 5, 6], true, 2, 1⟩,
+    ⟨"syringe_relay_prearm", 4, 2, [0, 1, 2, 3, 4, 5, 6], true, 2, 2⟩,
+    ⟨"syringe_relay_prearm", 4, 3, [0, 1, 2, 4, 6, 3, 5], true, 3, 2⟩,
+    ⟨"syringe_relay_prearm", 4, 4, [0, 1, 2, 3, 4], true, 4, 1⟩ ]
 
 /-- Declared: the number of component queries the reposition packs owe. -/
-def expectedDynV2 : Nat := 11
+def expectedDynV2 : Nat := 69
 
 def runDynPack (s : Z3Session) (r : DynPackV2) : IO Bool := do
   let p := irV2 r.bench
@@ -353,7 +436,7 @@ def runDynV2 (cfg : Z3Config) : IO Bool := do
 
 /-- Declared: one handoff query per declared left transition over the suite_v2 files
 (self-loops included; `CoveragePinsV2.derivedHandoffV2_eq` derives it from the IR table). -/
-def expectedHandoffV2 : Nat := 370
+def expectedHandoffV2 : Nat := 461
 
 /-- Declared handoff failures in suite_v2: none. -/
 def expectedHandoffFailuresV2 : List (String × Nat × Nat) := []
@@ -388,8 +471,8 @@ def prunedEdgesV2 : List (String × String × String) :=
   coverTableV2.flatMap (fun c => c.2.pruned.map (fun e => (c.1, e.1, e.2)))
 
 /-- Declared: pruned edges in the suite_v2 covers, and two queries per edge. -/
-def expectedPrunedEdgesV2 : Nat := 20
-def expectedNonConnV2 : Nat := 40
+def expectedPrunedEdgesV2 : Nat := 22
+def expectedNonConnV2 : Nat := 44
 
 def nonConnQueriesOfV2 (p : PProblem) (cX : EvolStrengtheningX) (src tgt : String) :
     Option ((n : ℕ) × (Fin n → String) × IForm n × IForm n) := do
@@ -427,19 +510,19 @@ def runNonConnAllV2 (cfg : Z3Config) : IO Bool := do
 /-! ## The suite tally -/
 
 /-- What a certification run over `benchmarks/suite_v2/*/input.txt` must produce, with
-`RELCERT_IMPLIED_CUT=1`: all 35 certified (in the strict well-formedness mode of
+`RELCERT_IMPLIED_CUT=1`: all 44 certified (in the strict well-formedness mode of
 `--check-quick-v2`); and what the strict Assumption 1 check of the right models must produce:
-every one of the 120 right modes `ok` on both clauses (`wfModes`; the kernel pin
+every one of the 152 right modes `ok` on both clauses (`wfModes`; the kernel pin
 `CoveragePinsV2.suiteV2_wfModes` of that count was archived with the standalone route), none
 `UNKNOWN` (`wfUnknown`; 16 UNKNOWN in 9 benchmarks until the 2026-10-10 repairs, when the
 check was informational), none `BLOCKING` (`wfBlocking`; the nonblocking clause is checked
 since 2026-10-26). -/
 structure ExpectedSuiteV2 where
-  paths     : Nat := 35
-  certified : Nat := 35
+  paths     : Nat := 44
+  certified : Nat := 44
   declined  : Nat := 0
   errors    : Nat := 0
-  wfModes   : Nat := 120
+  wfModes   : Nat := 152
   wfUnknown : Nat := 0
   wfBlocking : Nat := 0
   deriving Repr

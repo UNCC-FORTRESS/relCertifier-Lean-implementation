@@ -83,8 +83,15 @@
 > DECLINED by relcert (mutant inputs rewritten to the new files); the other 18 of their 28
 > refutations of the round-2 files (m000, m001, m004, m007, m018 to m023, resp. m000, m001, m018 to
 > m023) are gone with the rows and the 24-mutant claims they refuted.
-> Current instance set: **61 refutations, 175 groups**
-> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 661 mutants in
+> Batch I5 (2026-10-27, first group: nine new benchmarks) ran the finder on each (`--only`, records
+> appended): `molding_pack_checkring` 24 mutants, `fuelcell_chp_dos` 16, `elevator_start_discbrake`
+> 20, `furnace_program_timebase` 24, `compressor_station_recycle` 16, `syringe_relay_prearm` 28,
+> `insulin_basal_cgmloss` 24, no witness; `hydro_rejection_gatecal` 32 mutants, m024 and m028 new,
+> and `ventilator_vc_cuffleak` 24, m020 new, all kind C (a row of the band after the breaker opens,
+> resp. of the expiratory band, flipped from `<=` to `>=`); each DECLINED by relcert. 3
+> refutations, 6 groups and 208 witness lines in.
+> Current instance set: **64 refutations, 181 groups**
+> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 869 mutants in
 > `docs/refute/witnesses.jsonl`. The operator table has not been recomputed.
 
 Design: `docs/REFUTATION-SCOPE.md` (planning record, last present at commit 29663d8). This file reports what was built and the experiment.

@@ -11,6 +11,15 @@ import RelCertifier.InstancesV2.Refute.Data.charger_fast_setpoints_m003
 import RelCertifier.InstancesV2.Refute.Data.charger_fast_tapers_m003
 import RelCertifier.InstancesV2.Refute.Data.quad_light_lag_m021
 import RelCertifier.InstancesV2.Refute.Data.quad_light_lag_m023
+import RelCertifier.InstancesV2.Refute.Data.rover_ladder_6to8_m006
+import RelCertifier.InstancesV2.Refute.Data.rover_ladder_6to8_m009
+import RelCertifier.InstancesV2.Refute.Data.rover_ladder_8to12_m005
+import RelCertifier.InstancesV2.Refute.Data.rover_ladder_8to12_m006
+import RelCertifier.InstancesV2.Refute.Data.rover_ladder_8to12_m008
+import RelCertifier.InstancesV2.Refute.Data.rover_ladder_8to12_m009
+import RelCertifier.InstancesV2.Refute.Data.rover_ladder_8to12_m010
+import RelCertifier.InstancesV2.Refute.Data.rover_ladder_8to12_m019
+import RelCertifier.InstancesV2.Refute.Data.rover_ladder_8to12_m026
 import RelCertifier.InstancesV2.Refute.Data.rover_terrain_2to4_m008
 import RelCertifier.InstancesV2.Refute.Data.rover_terrain_2to4_m011
 import RelCertifier.InstancesV2.Refute.Data.rover_terrain_2to4_m012
@@ -92,26 +101,6 @@ import RelCertifier.InstancesV2.Refute.Data.sat_detumble_weak_m002
 import RelCertifier.InstancesV2.Refute.Data.sat_detumble_weak_m003
 import RelCertifier.InstancesV2.Refute.Data.sat_detumble_weak_m005
 import RelCertifier.InstancesV2.Refute.Data.sat_detumble_weak_m006
-import RelCertifier.InstancesV2.Refute.Data.rover_lateral_6to8_m004
-import RelCertifier.InstancesV2.Refute.Data.rover_lateral_6to8_m008
-import RelCertifier.InstancesV2.Refute.Data.rover_lateral_6to8_m009
-import RelCertifier.InstancesV2.Refute.Data.rover_lateral_6to8_m010
-import RelCertifier.InstancesV2.Refute.Data.rover_lateral_6to8_m011
-import RelCertifier.InstancesV2.Refute.Data.rover_lateral_6to8_m012
-import RelCertifier.InstancesV2.Refute.Data.rover_lateral_8to12_m015
-import RelCertifier.InstancesV2.Refute.Data.rover_lateral_8to12_m019
-import RelCertifier.InstancesV2.Refute.Data.rover_lateral_8to12_m020
-import RelCertifier.InstancesV2.Refute.Data.rover_lateral_8to12_m021
-import RelCertifier.InstancesV2.Refute.Data.rover_lateral_8to12_m022
-import RelCertifier.InstancesV2.Refute.Data.rover_lateral_8to12_m023
-import RelCertifier.InstancesV2.Refute.Data.rover_lateral_8to12_m024
-import RelCertifier.InstancesV2.Refute.Data.rover_rollover_6to12_m010
-import RelCertifier.InstancesV2.Refute.Data.rover_rollover_6to7_m011
-import RelCertifier.InstancesV2.Refute.Data.rover_rollover_6to7_m016
-import RelCertifier.InstancesV2.Refute.Data.rover_rollover_6to7_m018
-import RelCertifier.InstancesV2.Refute.Data.rover_rollover_6to7_m019
-import RelCertifier.InstancesV2.Refute.Data.rover_rollover_6to7_m020
-import RelCertifier.InstancesV2.Refute.Data.rover_rollover_6to7_m021
 import RelCertifier.InstancesV2.Refute.Data.platoon_latency_m040
 import RelCertifier.InstancesV2.Refute.Data.platoon_latency_m043
 import RelCertifier.InstancesV2.Refute.Data.platoon_linkloss_m036
@@ -128,10 +117,8 @@ import RelCertifier.InstancesV2.Cuts.platoon_latency
 import RelCertifier.InstancesV2.Cuts.platoon_linkloss
 import RelCertifier.InstancesV2.Cuts.platoon_profiles
 import RelCertifier.InstancesV2.Cuts.quad_light_lag
-import RelCertifier.InstancesV2.Cuts.rover_lateral_6to8
-import RelCertifier.InstancesV2.Cuts.rover_lateral_8to12
-import RelCertifier.InstancesV2.Cuts.rover_rollover_6to12
-import RelCertifier.InstancesV2.Cuts.rover_rollover_6to7
+import RelCertifier.InstancesV2.Cuts.rover_ladder_6to8
+import RelCertifier.InstancesV2.Cuts.rover_ladder_8to12
 import RelCertifier.InstancesV2.Cuts.rover_terrain_2to4
 import RelCertifier.InstancesV2.Cuts.rover_terrain_4to6
 import RelCertifier.InstancesV2.Cuts.rover_terrain_6to12
@@ -162,6 +149,15 @@ def refuteTable : List RefRec := [
   ⟨"charger_fast_tapers_m003", 3 + 1, charger_fast_tapers_m003_IRm, charger_fast_tapers_cutsV2X, charger_fast_tapers_m003_wit⟩,
   ⟨"quad_light_lag_m021", 3 + 1, quad_light_lag_m021_IRm, quad_light_lag_cutsV2X, quad_light_lag_m021_wit⟩,
   ⟨"quad_light_lag_m023", 3 + 1, quad_light_lag_m023_IRm, quad_light_lag_cutsV2X, quad_light_lag_m023_wit⟩,
+  ⟨"rover_ladder_6to8_m006", 8 + 1, rover_ladder_6to8_m006_IRm, rover_ladder_6to8_cutsV2X, rover_ladder_6to8_m006_wit⟩,
+  ⟨"rover_ladder_6to8_m009", 8 + 1, rover_ladder_6to8_m009_IRm, rover_ladder_6to8_cutsV2X, rover_ladder_6to8_m009_wit⟩,
+  ⟨"rover_ladder_8to12_m005", 12 + 1, rover_ladder_8to12_m005_IRm, rover_ladder_8to12_cutsV2X, rover_ladder_8to12_m005_wit⟩,
+  ⟨"rover_ladder_8to12_m006", 12 + 1, rover_ladder_8to12_m006_IRm, rover_ladder_8to12_cutsV2X, rover_ladder_8to12_m006_wit⟩,
+  ⟨"rover_ladder_8to12_m008", 12 + 1, rover_ladder_8to12_m008_IRm, rover_ladder_8to12_cutsV2X, rover_ladder_8to12_m008_wit⟩,
+  ⟨"rover_ladder_8to12_m009", 12 + 1, rover_ladder_8to12_m009_IRm, rover_ladder_8to12_cutsV2X, rover_ladder_8to12_m009_wit⟩,
+  ⟨"rover_ladder_8to12_m010", 12 + 1, rover_ladder_8to12_m010_IRm, rover_ladder_8to12_cutsV2X, rover_ladder_8to12_m010_wit⟩,
+  ⟨"rover_ladder_8to12_m019", 12 + 1, rover_ladder_8to12_m019_IRm, rover_ladder_8to12_cutsV2X, rover_ladder_8to12_m019_wit⟩,
+  ⟨"rover_ladder_8to12_m026", 12 + 1, rover_ladder_8to12_m026_IRm, rover_ladder_8to12_cutsV2X, rover_ladder_8to12_m026_wit⟩,
   ⟨"rover_terrain_2to4_m008", 4 + 1, rover_terrain_2to4_m008_IRm, rover_terrain_2to4_cutsV2X, rover_terrain_2to4_m008_wit⟩,
   ⟨"rover_terrain_2to4_m011", 4 + 1, rover_terrain_2to4_m011_IRm, rover_terrain_2to4_cutsV2X, rover_terrain_2to4_m011_wit⟩,
   ⟨"rover_terrain_2to4_m012", 4 + 1, rover_terrain_2to4_m012_IRm, rover_terrain_2to4_cutsV2X, rover_terrain_2to4_m012_wit⟩,
@@ -243,26 +239,6 @@ def refuteTable : List RefRec := [
   ⟨"sat_detumble_weak_m003", 4 + 1, sat_detumble_weak_m003_IRm, sat_detumble_weak_cutsV2X, sat_detumble_weak_m003_wit⟩,
   ⟨"sat_detumble_weak_m005", 4 + 1, sat_detumble_weak_m005_IRm, sat_detumble_weak_cutsV2X, sat_detumble_weak_m005_wit⟩,
   ⟨"sat_detumble_weak_m006", 4 + 1, sat_detumble_weak_m006_IRm, sat_detumble_weak_cutsV2X, sat_detumble_weak_m006_wit⟩,
-  ⟨"rover_lateral_6to8_m004", 8 + 1, rover_lateral_6to8_m004_IRm, rover_lateral_6to8_cutsV2X, rover_lateral_6to8_m004_wit⟩,
-  ⟨"rover_lateral_6to8_m008", 8 + 1, rover_lateral_6to8_m008_IRm, rover_lateral_6to8_cutsV2X, rover_lateral_6to8_m008_wit⟩,
-  ⟨"rover_lateral_6to8_m009", 8 + 1, rover_lateral_6to8_m009_IRm, rover_lateral_6to8_cutsV2X, rover_lateral_6to8_m009_wit⟩,
-  ⟨"rover_lateral_6to8_m010", 8 + 1, rover_lateral_6to8_m010_IRm, rover_lateral_6to8_cutsV2X, rover_lateral_6to8_m010_wit⟩,
-  ⟨"rover_lateral_6to8_m011", 8 + 1, rover_lateral_6to8_m011_IRm, rover_lateral_6to8_cutsV2X, rover_lateral_6to8_m011_wit⟩,
-  ⟨"rover_lateral_6to8_m012", 8 + 1, rover_lateral_6to8_m012_IRm, rover_lateral_6to8_cutsV2X, rover_lateral_6to8_m012_wit⟩,
-  ⟨"rover_lateral_8to12_m015", 12 + 1, rover_lateral_8to12_m015_IRm, rover_lateral_8to12_cutsV2X, rover_lateral_8to12_m015_wit⟩,
-  ⟨"rover_lateral_8to12_m019", 12 + 1, rover_lateral_8to12_m019_IRm, rover_lateral_8to12_cutsV2X, rover_lateral_8to12_m019_wit⟩,
-  ⟨"rover_lateral_8to12_m020", 12 + 1, rover_lateral_8to12_m020_IRm, rover_lateral_8to12_cutsV2X, rover_lateral_8to12_m020_wit⟩,
-  ⟨"rover_lateral_8to12_m021", 12 + 1, rover_lateral_8to12_m021_IRm, rover_lateral_8to12_cutsV2X, rover_lateral_8to12_m021_wit⟩,
-  ⟨"rover_lateral_8to12_m022", 12 + 1, rover_lateral_8to12_m022_IRm, rover_lateral_8to12_cutsV2X, rover_lateral_8to12_m022_wit⟩,
-  ⟨"rover_lateral_8to12_m023", 12 + 1, rover_lateral_8to12_m023_IRm, rover_lateral_8to12_cutsV2X, rover_lateral_8to12_m023_wit⟩,
-  ⟨"rover_lateral_8to12_m024", 12 + 1, rover_lateral_8to12_m024_IRm, rover_lateral_8to12_cutsV2X, rover_lateral_8to12_m024_wit⟩,
-  ⟨"rover_rollover_6to12_m010", 12 + 1, rover_rollover_6to12_m010_IRm, rover_rollover_6to12_cutsV2X, rover_rollover_6to12_m010_wit⟩,
-  ⟨"rover_rollover_6to7_m011", 12 + 1, rover_rollover_6to7_m011_IRm, rover_rollover_6to7_cutsV2X, rover_rollover_6to7_m011_wit⟩,
-  ⟨"rover_rollover_6to7_m016", 12 + 1, rover_rollover_6to7_m016_IRm, rover_rollover_6to7_cutsV2X, rover_rollover_6to7_m016_wit⟩,
-  ⟨"rover_rollover_6to7_m018", 12 + 1, rover_rollover_6to7_m018_IRm, rover_rollover_6to7_cutsV2X, rover_rollover_6to7_m018_wit⟩,
-  ⟨"rover_rollover_6to7_m019", 12 + 1, rover_rollover_6to7_m019_IRm, rover_rollover_6to7_cutsV2X, rover_rollover_6to7_m019_wit⟩,
-  ⟨"rover_rollover_6to7_m020", 12 + 1, rover_rollover_6to7_m020_IRm, rover_rollover_6to7_cutsV2X, rover_rollover_6to7_m020_wit⟩,
-  ⟨"rover_rollover_6to7_m021", 12 + 1, rover_rollover_6to7_m021_IRm, rover_rollover_6to7_cutsV2X, rover_rollover_6to7_m021_wit⟩,
   ⟨"platoon_latency_m040", 3 + 1, platoon_latency_m040_IRm, platoon_latency_cutsV2X, platoon_latency_m040_wit⟩,
   ⟨"platoon_latency_m043", 3 + 1, platoon_latency_m043_IRm, platoon_latency_cutsV2X, platoon_latency_m043_wit⟩,
   ⟨"platoon_linkloss_m036", 3 + 1, platoon_linkloss_m036_IRm, platoon_linkloss_cutsV2X, platoon_linkloss_m036_wit⟩,
@@ -272,6 +248,6 @@ def refuteTable : List RefRec := [
   ⟨"platoon_profiles_m011", 3 + 1, platoon_profiles_m011_IRm, platoon_profiles_cutsV2X, platoon_profiles_m011_wit⟩ ]
 
 /-- Declared: the number of query groups over the refutations (one per right mode each). -/
-def expectedRefuteGroups : Nat := 313
+def expectedRefuteGroups : Nat := 280
 
 end RelCertifier.Refute

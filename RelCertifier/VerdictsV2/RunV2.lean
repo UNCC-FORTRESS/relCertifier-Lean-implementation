@@ -124,13 +124,6 @@ def packsV2 : List PackV2 :=
     ⟨"charger_fast_tapers", 3, 4, [0], 1, 1, 4, 3⟩,
     ⟨"charger_fast_tapers", 3, 4, [0], 1, 1, 4, 4⟩,
     ⟨"charger_fast_tapers", 3, 4, [0], 1, 1, 4, 5⟩,
-    -- rover_rollover_7to12 (cover replay; rows identical since 2026-10-26)
-    ⟨"rover_rollover_7to12", 12, 0, [0, 1, 2, 3, 4, 5, 6], 27, 20, 0, 0⟩,
-    ⟨"rover_rollover_7to12", 12, 0, [0, 1, 2, 3, 4, 5, 6], 27, 20, 0, 1⟩,
-    ⟨"rover_rollover_7to12", 12, 0, [0, 1, 2, 3, 4, 5, 6], 27, 20, 0, 2⟩,
-    ⟨"rover_rollover_7to12", 12, 0, [0, 1, 2, 3, 4, 5, 6], 27, 20, 1, 1⟩,
-    ⟨"rover_rollover_7to12", 12, 0, [0, 1, 2, 3, 4, 5, 6], 27, 20, 1, 2⟩,
-    ⟨"rover_rollover_7to12", 12, 0, [0, 1, 2, 3, 4, 5, 6], 27, 20, 2, 2⟩,
     -- sat_detumble_nominal
     ⟨"sat_detumble_nominal", 4, 0, [0, 1], 1, 1, 0, 0⟩,
     -- sat_detumble_weak
@@ -149,33 +142,18 @@ def packsV2 : List PackV2 :=
     -- sat3w_detumble_phases
     ⟨"sat3w_detumble_phases", 6, 0, [0, 1], 1, 1, 0, 0⟩,
     ⟨"sat3w_detumble_phases", 6, 1, [0, 1], 1, 1, 1, 0⟩,
-    -- rover_patrol_zones
-    ⟨"rover_patrol_zones", 3, 0, [0, 1], 1, 1, 0, 0⟩,
-    ⟨"rover_patrol_zones", 3, 0, [0, 1], 1, 1, 0, 1⟩,
-    ⟨"rover_patrol_zones", 3, 0, [0, 1], 1, 1, 0, 2⟩,
-    ⟨"rover_patrol_zones", 3, 0, [0, 1], 1, 1, 0, 3⟩,
-    ⟨"rover_patrol_zones", 3, 0, [0, 1], 1, 1, 1, 1⟩,
-    ⟨"rover_patrol_zones", 3, 0, [0, 1], 1, 1, 1, 2⟩,
-    ⟨"rover_patrol_zones", 3, 0, [0, 1], 1, 1, 1, 3⟩,
-    ⟨"rover_patrol_zones", 3, 0, [0, 1], 1, 1, 2, 2⟩,
-    ⟨"rover_patrol_zones", 3, 0, [0, 1], 1, 1, 2, 3⟩,
-    ⟨"rover_patrol_zones", 3, 0, [0, 1], 1, 1, 3, 3⟩,
-    -- rover_patrol_lag
-    ⟨"rover_patrol_lag", 3, 0, [0, 1, 2], 1, 1, 0, 0⟩,
-    ⟨"rover_patrol_lag", 3, 0, [0, 1, 2], 1, 1, 0, 1⟩,
-    ⟨"rover_patrol_lag", 3, 0, [0, 1, 2], 1, 1, 0, 2⟩,
-    ⟨"rover_patrol_lag", 3, 0, [0, 1, 2], 1, 1, 0, 3⟩,
-    ⟨"rover_patrol_lag", 3, 1, [0, 1, 2], 5, 4, 1, 0⟩,
-    ⟨"rover_patrol_lag", 3, 1, [0, 1, 2], 5, 4, 1, 1⟩,
-    ⟨"rover_patrol_lag", 3, 1, [0, 1, 2], 5, 4, 1, 2⟩,
-    ⟨"rover_patrol_lag", 3, 1, [0, 1, 2], 5, 4, 1, 3⟩,
-    ⟨"rover_patrol_lag", 3, 2, [0, 1, 2], 3, 2, 2, 0⟩,
-    ⟨"rover_patrol_lag", 3, 2, [0, 1, 2], 3, 2, 2, 1⟩,
-    ⟨"rover_patrol_lag", 3, 2, [0, 1, 2], 3, 2, 2, 2⟩,
-    ⟨"rover_patrol_lag", 3, 2, [0, 1, 2], 3, 2, 2, 3⟩,
-    ⟨"rover_patrol_lag", 3, 3, [0, 1, 2], 3, 2, 3, 1⟩,
-    ⟨"rover_patrol_lag", 3, 3, [0, 1, 2], 3, 2, 3, 2⟩,
-    ⟨"rover_patrol_lag", 3, 3, [0, 1, 2], 3, 2, 3, 3⟩,
+    -- rover_patrol_lag (cover replay; FAST at 11/8; the right-only nodes are below)
+    ⟨"rover_patrol_lag", 3, 0, [1, 0], 1, 1, 0, 0⟩,
+    ⟨"rover_patrol_lag", 3, 0, [1, 0], 1, 1, 0, 1⟩,
+    ⟨"rover_patrol_lag", 3, 0, [1, 0], 1, 1, 0, 2⟩,
+    ⟨"rover_patrol_lag", 3, 0, [1, 0], 1, 1, 0, 3⟩,
+    ⟨"rover_patrol_lag", 3, 0, [1, 0], 1, 1, 1, 1⟩,
+    ⟨"rover_patrol_lag", 3, 0, [1, 0], 1, 1, 1, 2⟩,
+    ⟨"rover_patrol_lag", 3, 0, [1, 0], 1, 1, 1, 3⟩,
+    ⟨"rover_patrol_lag", 3, 0, [1, 0], 1, 1, 2, 2⟩,
+    ⟨"rover_patrol_lag", 3, 0, [1, 0], 1, 1, 2, 3⟩,
+    ⟨"rover_patrol_lag", 3, 0, [1, 0], 11, 8, 3, 2⟩,
+    ⟨"rover_patrol_lag", 3, 0, [1, 0], 11, 8, 3, 3⟩,
     -- rover_terrain_2to4 (cover replay)
     ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3], 1, 1, 0, 0⟩,
     ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3], 1, 1, 0, 1⟩,
@@ -198,95 +176,33 @@ def packsV2 : List PackV2 :=
     ⟨"rover_terrain_6to12", 12, 0, [2, 3, 4, 6, 7, 11, 12, 5, 9, 10, 0, 1, 8], 1, 1, 1, 2⟩,
     ⟨"rover_terrain_6to12", 12, 0, [2, 3, 4, 6, 7, 10, 11, 12, 0, 1, 5, 8, 9], 1, 1, 2, 2⟩,
     -- rover_ladder_2to3 (cover replay)
-    ⟨"rover_ladder_2to3", 3, 0, [0, 1], 1, 1, 0, 0⟩,
-    ⟨"rover_ladder_2to3", 3, 0, [0, 1], 1, 1, 0, 1⟩,
-    ⟨"rover_ladder_2to3", 3, 0, [0, 1], 1, 1, 0, 2⟩,
-    ⟨"rover_ladder_2to3", 3, 0, [0, 1], 1, 1, 1, 1⟩,
-    ⟨"rover_ladder_2to3", 3, 0, [0, 1], 1, 1, 1, 2⟩,
-    ⟨"rover_ladder_2to3", 3, 0, [0, 1], 1, 1, 2, 2⟩,
+    ⟨"rover_ladder_2to3", 3, 0, [0, 1, 2, 3], 1, 1, 0, 0⟩,
+    ⟨"rover_ladder_2to3", 3, 0, [0, 1, 2, 3], 1, 1, 0, 1⟩,
+    ⟨"rover_ladder_2to3", 3, 0, [0, 1, 2, 3], 1, 1, 0, 2⟩,
+    ⟨"rover_ladder_2to3", 3, 0, [0, 1, 2, 3], 1, 1, 1, 1⟩,
+    ⟨"rover_ladder_2to3", 3, 0, [0, 1, 2, 3], 1, 1, 1, 2⟩,
+    ⟨"rover_ladder_2to3", 3, 0, [0, 1, 2, 3], 1, 1, 2, 2⟩,
     -- rover_ladder_6to8 (cover replay)
-    ⟨"rover_ladder_6to8", 8, 0, [0, 1], 3, 2, 0, 0⟩,
-    ⟨"rover_ladder_6to8", 8, 0, [0, 1], 3, 2, 0, 1⟩,
-    ⟨"rover_ladder_6to8", 8, 0, [0, 1], 3, 2, 0, 2⟩,
-    ⟨"rover_ladder_6to8", 8, 0, [0, 1], 3, 2, 1, 1⟩,
-    ⟨"rover_ladder_6to8", 8, 0, [0, 1], 3, 2, 1, 2⟩,
-    ⟨"rover_ladder_6to8", 8, 0, [0, 1], 3, 2, 2, 2⟩,
+    ⟨"rover_ladder_6to8", 8, 0, [0, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 1, 2, 3, 6, 7], 11, 10, 0, 0⟩,
+    ⟨"rover_ladder_6to8", 8, 0, [0, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 1, 2, 3, 6, 7], 11, 10, 0, 1⟩,
+    ⟨"rover_ladder_6to8", 8, 0, [0, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 1, 2, 3, 6, 7], 11, 10, 0, 2⟩,
+    ⟨"rover_ladder_6to8", 8, 0, [0, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 1, 2, 3, 6, 7], 11, 10, 1, 1⟩,
+    ⟨"rover_ladder_6to8", 8, 0, [0, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 1, 2, 3, 6, 7], 11, 10, 1, 2⟩,
+    ⟨"rover_ladder_6to8", 8, 0, [0, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 1, 2, 3, 6, 7], 11, 10, 2, 2⟩,
     -- rover_ladder_8to12 (cover replay)
-    ⟨"rover_ladder_8to12", 12, 0, [0, 1], 17, 10, 0, 0⟩,
-    ⟨"rover_ladder_8to12", 12, 0, [0, 1], 17, 10, 0, 1⟩,
-    ⟨"rover_ladder_8to12", 12, 0, [0, 1], 17, 10, 0, 2⟩,
-    ⟨"rover_ladder_8to12", 12, 0, [0, 1], 17, 10, 1, 1⟩,
-    ⟨"rover_ladder_8to12", 12, 0, [0, 1], 17, 10, 1, 2⟩,
-    ⟨"rover_ladder_8to12", 12, 0, [0, 1], 17, 10, 2, 2⟩,
-    -- rover_rollover_6to12 (cover replay)
-    ⟨"rover_rollover_6to12", 12, 0, [0, 1, 2, 3, 4], 5, 4, 0, 0⟩,
-    ⟨"rover_rollover_6to12", 12, 0, [0, 1, 2, 3, 4], 5, 4, 0, 1⟩,
-    ⟨"rover_rollover_6to12", 12, 0, [0, 1, 2, 3, 4], 5, 4, 0, 2⟩,
-    ⟨"rover_rollover_6to12", 12, 0, [0, 1, 2, 3, 4], 5, 4, 1, 1⟩,
-    ⟨"rover_rollover_6to12", 12, 0, [0, 1, 2, 3, 4], 5, 4, 1, 2⟩,
-    ⟨"rover_rollover_6to12", 12, 0, [0, 1, 2, 3, 4], 5, 4, 2, 2⟩,
-    -- rover_rollover_6to7 (cover replay)
-    ⟨"rover_rollover_6to7", 12, 0, [0, 1, 2, 3, 4], 27, 20, 0, 0⟩,
-    ⟨"rover_rollover_6to7", 12, 0, [0, 1, 2, 3, 4], 27, 20, 0, 1⟩,
-    ⟨"rover_rollover_6to7", 12, 0, [0, 1, 2, 3, 4], 27, 20, 0, 2⟩,
-    ⟨"rover_rollover_6to7", 12, 0, [0, 1, 4, 2, 3], 27, 20, 1, 1⟩,
-    ⟨"rover_rollover_6to7", 12, 0, [0, 1, 4, 2, 3], 27, 20, 1, 2⟩,
-    ⟨"rover_rollover_6to7", 12, 0, [0, 1, 4, 2, 3], 27, 20, 2, 2⟩,
-    -- rover_ladder_2to4 (cover replay)
-    ⟨"rover_ladder_2to4", 4, 0, [0], 1, 1, 0, 0⟩,
-    ⟨"rover_ladder_2to4", 4, 0, [0], 1, 1, 0, 1⟩,
-    ⟨"rover_ladder_2to4", 4, 0, [0], 1, 1, 0, 2⟩,
-    ⟨"rover_ladder_2to4", 4, 0, [0], 1, 1, 1, 1⟩,
-    ⟨"rover_ladder_2to4", 4, 0, [0], 1, 1, 1, 2⟩,
-    ⟨"rover_ladder_2to4", 4, 0, [0], 1, 1, 2, 2⟩,
-    -- rover_ladder_2to6 (cover replay)
-    ⟨"rover_ladder_2to6", 6, 0, [0], 1, 1, 0, 0⟩,
-    ⟨"rover_ladder_2to6", 6, 0, [0], 1, 1, 0, 1⟩,
-    ⟨"rover_ladder_2to6", 6, 0, [0], 1, 1, 0, 2⟩,
-    ⟨"rover_ladder_2to6", 6, 0, [0], 1, 1, 1, 1⟩,
-    ⟨"rover_ladder_2to6", 6, 0, [0], 1, 1, 1, 2⟩,
-    ⟨"rover_ladder_2to6", 6, 0, [0], 1, 1, 2, 2⟩,
+    ⟨"rover_ladder_8to12", 12, 0, [0, 4, 5, 8, 9, 10, 11, 14, 15, 18, 19, 22, 23, 25, 2, 3, 6, 7, 12, 13, 16, 17, 20, 21, 24, 1], 11, 10, 0, 0⟩,
+    ⟨"rover_ladder_8to12", 12, 0, [0, 4, 5, 8, 9, 10, 11, 14, 15, 18, 19, 22, 23, 24, 25, 2, 3, 6, 7, 12, 13, 16, 17, 20, 21, 1], 11, 10, 0, 1⟩,
+    ⟨"rover_ladder_8to12", 12, 0, [0, 4, 5, 8, 9, 10, 11, 14, 15, 18, 19, 22, 23, 24, 25, 2, 3, 6, 7, 12, 13, 16, 17, 20, 21, 1], 11, 10, 0, 2⟩,
+    ⟨"rover_ladder_8to12", 12, 0, [0, 4, 5, 8, 9, 10, 11, 18, 19, 22, 23, 24, 25, 2, 3, 6, 7, 14, 15, 16, 17, 20, 21, 1, 12, 13], 11, 10, 1, 1⟩,
+    ⟨"rover_ladder_8to12", 12, 0, [0, 4, 5, 8, 9, 10, 11, 18, 19, 22, 23, 24, 25, 2, 3, 6, 7, 14, 15, 16, 17, 20, 21, 1, 12, 13], 11, 10, 1, 2⟩,
+    ⟨"rover_ladder_8to12", 12, 0, [0, 4, 5, 8, 9, 10, 11, 18, 19, 22, 23, 24, 25, 2, 3, 6, 7, 14, 15, 16, 17, 20, 21, 1, 12, 13], 11, 10, 2, 2⟩,
     -- rover_ladder_3to6 (cover replay)
-    ⟨"rover_ladder_3to6", 6, 0, [0, 2, 3, 1], 1, 1, 0, 0⟩,
-    ⟨"rover_ladder_3to6", 6, 0, [0, 2, 3, 1], 1, 1, 0, 1⟩,
-    ⟨"rover_ladder_3to6", 6, 0, [0, 2, 3, 1], 1, 1, 0, 2⟩,
-    ⟨"rover_ladder_3to6", 6, 0, [0, 2, 3, 1], 1, 1, 1, 1⟩,
-    ⟨"rover_ladder_3to6", 6, 0, [0, 2, 3, 1], 1, 1, 1, 2⟩,
-    ⟨"rover_ladder_3to6", 6, 0, [0, 2, 3, 1], 1, 1, 2, 2⟩,
-    -- rover_lateral_6to8 (cover replay)
-    ⟨"rover_lateral_6to8", 8, 0, [0, 2, 4, 5, 6, 7, 1, 3], 1, 1, 0, 0⟩,
-    ⟨"rover_lateral_6to8", 8, 0, [0, 2, 4, 5, 6, 7, 1, 3], 1, 1, 0, 1⟩,
-    ⟨"rover_lateral_6to8", 8, 0, [0, 2, 4, 5, 6, 7, 1, 3], 1, 1, 0, 2⟩,
-    ⟨"rover_lateral_6to8", 8, 0, [0, 2, 4, 5, 6, 7, 1, 3], 1, 1, 1, 1⟩,
-    ⟨"rover_lateral_6to8", 8, 0, [0, 2, 4, 5, 6, 7, 1, 3], 1, 1, 1, 2⟩,
-    ⟨"rover_lateral_6to8", 8, 0, [0, 2, 4, 5, 6, 7, 1, 3], 1, 1, 2, 2⟩,
-    -- rover_lateral_8to12 (cover replay)
-    ⟨"rover_lateral_8to12", 12, 0, [0, 2, 4, 6, 7, 8, 9, 1, 3, 5], 1, 1, 0, 0⟩,
-    ⟨"rover_lateral_8to12", 12, 0, [0, 2, 4, 6, 7, 8, 9, 1, 3, 5], 1, 1, 0, 1⟩,
-    ⟨"rover_lateral_8to12", 12, 0, [0, 2, 4, 6, 7, 8, 9, 1, 3, 5], 1, 1, 0, 2⟩,
-    ⟨"rover_lateral_8to12", 12, 0, [0, 2, 4, 6, 7, 8, 9, 1, 3, 5], 1, 1, 1, 1⟩,
-    ⟨"rover_lateral_8to12", 12, 0, [0, 2, 4, 6, 7, 8, 9, 1, 3, 5], 1, 1, 1, 2⟩,
-    ⟨"rover_lateral_8to12", 12, 0, [0, 2, 4, 6, 7, 8, 9, 1, 3, 5], 1, 1, 2, 2⟩,
-    -- rover_attitude_6to8 (cover replay)
-    ⟨"rover_attitude_6to8", 8, 0, [0, 1], 1, 1, 0, 0⟩,
-    ⟨"rover_attitude_6to8", 8, 0, [0, 1], 1, 1, 0, 1⟩,
-    ⟨"rover_attitude_6to8", 8, 0, [0, 1], 1, 1, 0, 2⟩,
-    ⟨"rover_attitude_6to8", 8, 0, [0, 1], 1, 1, 1, 0⟩,
-    ⟨"rover_attitude_6to8", 8, 0, [0, 1], 1, 1, 1, 1⟩,
-    ⟨"rover_attitude_6to8", 8, 0, [0, 1], 1, 1, 1, 2⟩,
-    ⟨"rover_attitude_6to8", 8, 0, [0, 1], 1, 1, 2, 0⟩,
-    ⟨"rover_attitude_6to8", 8, 0, [0, 1], 1, 1, 2, 1⟩,
-    ⟨"rover_attitude_6to8", 8, 0, [0, 1], 1, 1, 2, 2⟩,
-    -- rover_attitude_8to12 (cover replay)
-    ⟨"rover_attitude_8to12", 12, 0, [0, 1], 1, 1, 0, 0⟩,
-    ⟨"rover_attitude_8to12", 12, 0, [0, 1], 1, 1, 0, 1⟩,
-    ⟨"rover_attitude_8to12", 12, 0, [0, 1], 1, 1, 0, 2⟩,
-    ⟨"rover_attitude_8to12", 12, 0, [0, 1], 1, 1, 1, 0⟩,
-    ⟨"rover_attitude_8to12", 12, 0, [0, 1], 1, 1, 1, 1⟩,
-    ⟨"rover_attitude_8to12", 12, 0, [0, 1], 1, 1, 1, 2⟩,
-    ⟨"rover_attitude_8to12", 12, 0, [0, 1], 1, 1, 2, 0⟩,
-    ⟨"rover_attitude_8to12", 12, 0, [0, 1], 1, 1, 2, 1⟩,
-    ⟨"rover_attitude_8to12", 12, 0, [0, 1], 1, 1, 2, 2⟩,
+    ⟨"rover_ladder_3to6", 6, 0, [0, 2, 3, 4, 5, 1], 1, 1, 0, 0⟩,
+    ⟨"rover_ladder_3to6", 6, 0, [0, 2, 3, 4, 5, 1], 1, 1, 0, 1⟩,
+    ⟨"rover_ladder_3to6", 6, 0, [0, 2, 3, 4, 5, 1], 1, 1, 0, 2⟩,
+    ⟨"rover_ladder_3to6", 6, 0, [0, 2, 3, 4, 5, 1], 1, 1, 1, 1⟩,
+    ⟨"rover_ladder_3to6", 6, 0, [0, 2, 3, 4, 5, 1], 1, 1, 1, 2⟩,
+    ⟨"rover_ladder_3to6", 6, 0, [0, 2, 3, 4, 5, 1], 1, 1, 2, 2⟩,
     -- gantry_speed_zones (cover replay): each speed zone against MOVE at its override, λ = 3, 2, 1
     ⟨"gantry_speed_zones", 2, 0, [0, 1, 2, 3], 3, 1, 0, 0⟩,
     ⟨"gantry_speed_zones", 2, 0, [0, 1, 2, 3], 2, 1, 1, 0⟩,
@@ -368,7 +284,7 @@ def packsV2 : List PackV2 :=
     ⟨"turbine_startup_gearratio", 2, 0, [0], 1, 1, 3, 3⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 807
+def expectedModalV2 : Nat := 782
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
@@ -445,17 +361,12 @@ def dynPacksV2 : List DynPackV2 :=
   [ -- rover_terrain_2to4
     -- rover_terrain_4to6
     -- rover_terrain_6to12
-    -- rover_ladder_2to3
-    -- rover_ladder_6to8
-    -- rover_ladder_8to12
-    -- rover_ladder_2to4
-    ⟨"rover_ladder_2to4", 4, 0, [0], true, 1, 0⟩,
-    ⟨"rover_ladder_2to4", 4, 0, [0], true, 2, 0⟩,
-    ⟨"rover_ladder_2to4", 4, 0, [0], true, 2, 1⟩,
-    -- rover_ladder_2to6
-    ⟨"rover_ladder_2to6", 6, 0, [0], true, 1, 0⟩,
-    ⟨"rover_ladder_2to6", 6, 0, [0], true, 2, 0⟩,
-    ⟨"rover_ladder_2to6", 6, 0, [0], true, 2, 1⟩,
+    -- rover_patrol_lag: MEDIUM_ECO_L and MEDIUM_BRISK_L reposition through right-only SLOW,
+    -- MEDIUM_BRISK_L and FAST_L through right-only MEDIUM_ECO
+    ⟨"rover_patrol_lag", 3, 0, [0, 1], true, 1, 0⟩,
+    ⟨"rover_patrol_lag", 3, 0, [0, 1], true, 2, 0⟩,
+    ⟨"rover_patrol_lag", 3, 0, [0, 1], true, 2, 1⟩,
+    ⟨"rover_patrol_lag", 3, 0, [0, 1], true, 3, 1⟩,
     -- arm_plateau_crit
     ⟨"arm_plateau_crit", 2, 1, [0], true, 1, 0⟩,
     -- arm_plateau_slow
@@ -473,8 +384,6 @@ def dynPacksV2 : List DynPackV2 :=
     ⟨"charger_fast_tapers", 3, 1, [0], true, 1, 2⟩,
     ⟨"charger_fast_tapers", 3, 1, [0], true, 1, 3⟩,
     ⟨"charger_fast_tapers", 3, 2, [0], true, 2, 2⟩,
-    -- rover_patrol_zones
-    ⟨"rover_patrol_zones", 3, 0, [0, 1], true, 2, 1⟩,
     -- engine_start_highidle: SELF_L repositions through right-only LIGHTOFF, IDLE_L through SELF
     ⟨"engine_start_highidle", 3, 2, [0], true, 2, 1⟩,
     ⟨"engine_start_highidle", 3, 3, [0], true, 3, 2⟩,
@@ -526,7 +435,7 @@ def runDynV2 (cfg : Z3Config) : IO Bool := do
 
 /-- Declared: one handoff query per declared left transition over the suite_v2 files
 (self-loops included; `CoveragePinsV2.derivedHandoffV2_eq` derives it from the IR table). -/
-def expectedHandoffV2 : Nat := 454
+def expectedHandoffV2 : Nat := 399
 
 /-- Declared handoff failures in suite_v2: none. -/
 def expectedHandoffFailuresV2 : List (String × Nat × Nat) := []
@@ -561,8 +470,8 @@ def prunedEdgesV2 : List (String × String × String) :=
   coverTableV2.flatMap (fun c => c.2.pruned.map (fun e => (c.1, e.1, e.2)))
 
 /-- Declared: pruned edges in the suite_v2 covers, and two queries per edge. -/
-def expectedPrunedEdgesV2 : Nat := 33
-def expectedNonConnV2 : Nat := 66
+def expectedPrunedEdgesV2 : Nat := 29
+def expectedNonConnV2 : Nat := 58
 
 def nonConnQueriesOfV2 (p : PProblem) (cX : EvolStrengtheningX) (src tgt : String) :
     Option ((n : ℕ) × (Fin n → String) × IForm n × IForm n) := do
@@ -600,19 +509,19 @@ def runNonConnAllV2 (cfg : Z3Config) : IO Bool := do
 /-! ## The suite tally -/
 
 /-- What a certification run over `benchmarks/suite_v2/*/input.txt` must produce, with
-`RELCERT_IMPLIED_CUT=1`: all 52 certified (in the strict well-formedness mode of
+`RELCERT_IMPLIED_CUT=1`: all 42 certified (in the strict well-formedness mode of
 `--check-quick-v2`); and what the strict Assumption 1 check of the right models must produce:
-every one of the 177 right modes `ok` on both clauses (`wfModes`; the kernel pin
+every one of the 145 right modes `ok` on both clauses (`wfModes`; the kernel pin
 `CoveragePinsV2.suiteV2_wfModes` of that count was archived with the standalone route), none
 `UNKNOWN` (`wfUnknown`; 16 UNKNOWN in 9 benchmarks until the 2026-10-10 repairs, when the
 check was informational), none `BLOCKING` (`wfBlocking`; the nonblocking clause is checked
 since 2026-10-26). -/
 structure ExpectedSuiteV2 where
-  paths     : Nat := 52
-  certified : Nat := 52
+  paths     : Nat := 42
+  certified : Nat := 42
   declined  : Nat := 0
   errors    : Nat := 0
-  wfModes   : Nat := 177
+  wfModes   : Nat := 145
   wfUnknown : Nat := 0
   wfBlocking : Nat := 0
   deriving Repr

@@ -1,0 +1,193 @@
+# rover_ladder_8to12: rover hierarchy, step 8 -> 12: heave and roll become second order and the tire
+# slip moves (omega_z, omega_phi, y, omega_y move); the step carries the heading, roll, rollover and
+# lane requirements.
+# scenario: model-refinement
+# mechanisms: S M I measured (time stretch 11/10 with two reference segments per window,
+#   RELCERT_SYNC=1 declines; the zone facts s >= zone floor and v <= set point are load-bearing mode
+#   facts, RELCERT_NO_CUT=1 declines; matrix codes M1 M2 M6). Cause test: S and I persist with the
+#   left ODEs replaced by the right's, so they come from the re-timed claim form (the plan
+#   tolerances), not only from the step's added dynamics; the file earns its place as a ladder rung.
+#
+# System (the canonical rover hierarchy, stated in full here and shared by rover_ladder_2to3,
+# 3to6, 6to8 and 8to12; SI units, time in s, angles in rad): a four-wheel UGV (track 1.8 m, centre
+# of gravity 0.9 m high, so the load-transfer ratio is LTR = a_b/g + phi_r and the static rollover
+# threshold is 1 g; governed top speed 8 m/s) drives a route of three straight zones indexed by its
+# odometer s [m]: STEEP s in [0, 60) (grade 0.15, cross-slope 0.10, speed set point c = 3.0 m/s),
+# MODER [60, 140) (0.05, 0.05, 5.0 m/s), FLAT s >= 140 (level, 6.5 m/s). Speed loop v' = 0.5 (c - v)
+# on every level (time constant 2 s); control interval 1 s on both sides. r = psi' is the yaw-rate
+# error (r = -psi at L3 and L6, omega_psi - psi at L8 and L12), a = v r the lateral acceleration
+# [m/s^2] of the heading corrections, g = 9.81 m/s^2. The levels:
+#   L2 (v, s): s' = v.
+#   L3 + heading error psi (steering loop 1 rad/s): psi' = -psi; s' = v (1 - psi^2/2) (along-track
+#       component).
+#   L6 + pitch theta_p, heave z [m], roll phi_r (terrain-following suspension, time constant 1 s):
+#       theta_p' = -theta_p + grade + 0.5 z (bounce-pitch coupling), z' = -z, phi_r' = -phi_r +
+#       xslope + 0.015 a (roll gradient 0.015 rad per m/s^2); s' = v (1 - psi^2/2 - 0.3 theta_p^2 -
+#       0.2 phi_r^2) (wheel slip on the grade, crabbing on the cross-slope).
+#   L8 + yaw and pitch inertia (critically damped at 1 rad/s, cascade chart w = x' + x; L6's heading
+#       is L8's at omega_psi = 0): psi' = omega_psi - psi, omega_psi' = -omega_psi; theta_p' =
+#       omega_theta - theta_p, omega_theta' = -omega_theta + grade + 0.5 z.
+#   L12 + heave and roll inertia and tire slip: z' = omega_z - z, omega_z' = -omega_z; phi_r' =
+#       omega_phi - phi_r, omega_phi' = -omega_phi + xslope + 0.015 a_b with the body lateral
+#       acceleration a_b = a + y''; slip offset y [m]: y' = omega_y - y, omega_y' = -omega_y + 0.03
+#       (a + g phi_r) (tire lateral compliance 0.03 m per m/s^2 of lateral load: centripetal plus
+#       gravity on the rolled chassis), so y'' = y - 2 omega_y + 0.03 (a + g phi_r): slip moves the
+#       rover sideways and drives roll.
+# Requirements (one constant each): heading 0.35 rad = half field of view of the navigation camera
+# (the path stays in view); pitch 0.25 rad = range of the mast camera's tilt stabilizer; roll 0.2
+# rad = suspension roll stop; LTR 0.8 = 20 % margin to wheel lift (LTR = 1); lane 0.25 m = corridor
+# half-width 1.25 m minus vehicle half-width 1.0 m. In the cascade chart the rate state carries its
+# angle's tolerance (abs(x' + x) <= tol keeps the critically damped angle inside abs(x) <= tol).
+# Each rung carries the requirements of the dynamics it adds: heading (2to3); pitch (3to6); heading,
+# pitch, roll and rollover under yaw and pitch inertia (6to8); heading, roll, rollover and lane
+# under roll inertia and tire slip (8to12).
+#
+# Left (L12: all twelve coordinates move). Right (L8, rover_ladder_6to8's left: omega_z, omega_phi,
+# y, omega_y pinned at 0; the reference follows its track). The one difference is heave and roll
+# inertia and the tire slip: the centripetal load and gravity on the rolled chassis push the rover
+# sideways, and the slip acceleration y'' adds to the body lateral acceleration and drives roll.
+#
+# Property (the same rows in every left mode):
+#   v_L <= v_R and s_L <= s_R (clearance, as in rover_ladder_2to3, against the re-timed reference: a
+#     stop line the reference never passes is never passed by the rover, and with the timetable
+#     tolerance the rover is never more than 25 % ahead of the reference's clock).
+#   abs(psi_L), abs(omega_psi_L) <= 0.35 (heading; bounds r, so the centripetal part of the slip
+#     load and of the LTR; any value down to 0.05 certifies; without the heading rows the file
+#     DECLINES).
+#   abs(phi_r_L), abs(omega_phi_L) <= 0.2 (roll requirement under the new roll inertia, driven by
+#     the body lateral acceleration including the slip acceleration). Tightest certifying 0.15 (0.14
+#     declines).
+#   abs(a_b / g + phi_r)_L <= 0.8 with a_b = v r + y - 2 omega_y + 0.03 (v r + g phi_r) (rollover
+#     requirement LTR <= 0.8 including the slip acceleration; folded in from rover_rollover_8to12,
+#     same model pair; not implied by the other rows, which bound it by 0.87). Tightest certifying
+#     0.35 (0.34 declines).
+#   abs(y_L), abs(omega_y_L) <= 0.25 (lane requirement: the slip offset stays inside the lane
+#     margin; folded in from rover_lateral_8to12, same model pair). Tightest certifying 0.20 (0.19
+#     declines). The lane rows read the step's slip: with the tire compliance 5x (0.15 m per m/s^2)
+#     the file DECLINES.
+#   Plan tolerances abs(psi_R), abs(omega_psi_R) <= 0.35, abs(theta_p_R), abs(omega_theta_R) <=
+#     0.25, abs(phi_r_R) <= 0.2: exactly rover_ladder_6to8's left requirement rows (its LTR row is
+#     implied by them), so the 8-DOF reference is used inside what the previous rung certifies and
+#     the chain composes. Without them the file DECLINES (the reference's loss is then bounded only
+#     by its validity box, up to 0.338, which would need a re-timing of 1.51 > 1.25).
+#
+# Timetable tolerance (the stretch range). The dispatcher times the route from the 2-DOF plan
+# (rover_ladder_2to3's right model): a waypoint's crossing slot opens at 80 % of the plan's arrival
+# time, so the rover may run at most 25 % ahead of the plan's clock (a re-timing of at most 1/0.8 =
+# 1.25 against the plan). A certificate's response runs the reference at a rate lambda in
+# [lambda_min, lambda_max] (lambda_min = 1: never slower); with the clearance rows a rover at time t
+# is no farther along than the reference at some time between t and lambda_max t. The rungs 2to3 and
+# 3to6 need no re-timing and get none (lambda_max = 1); each re-timed rung (6to8, 8to12) may use the
+# whole margin (lambda_max = 1.25). The certified covers use 11/10 in every pairing of both re-timed
+# rungs, so the composed re-timing of the ladder's certificates is 1 x 1 x 1.1 x 1.1 = 1.21 <= 1.25
+# (the analytic need, 1.0965 per rung, composes to 1.202). The forall-exists statement itself is
+# untimed; the stretch is a property of the certificate's response, recorded in the emitted cover.
+#
+# Why the re-timing is needed (S, M) and where it comes from. The plan tolerance rows admit a
+# reference at its worst admitted attitude (abs psi_R = 0.35, abs theta_p_R = 0.25, abs phi_r_R =
+# 0.2: progress loss 0.5 x 0.35^2 + 0.3 x 0.25^2 + 0.2 x 0.2^2 = 0.088) beside a level rover with
+# the same v and s; then s_R' = 0.912 v < s_L', so the clearance row needs a re-timing lambda >=
+# 1/0.912 = 1.0965 whatever the step's dynamics. S therefore comes from the claim form: with the
+# left ODEs replaced by the right's (the step's added dynamics removed), RELCERT_SYNC=1 still
+# DECLINES and the default still CERTIFIES. The step's added dynamics need it as well: from aligned
+# shared coordinates (simulated at lambda = 1: phi_r = 0.2 with omega_phi_L = -0.2, z = 0.15 with
+# omega_z_L = -0.15, v = 3 in STEEP) the 12-DOF rover gains s_L - s_R = +0.052 m in 8 s. The cover
+# re-times by 11/10 with two reference segments per window (budget 2: span epsilon_R / lambda_max =
+# 0.8 s); lambda_max = 1.05 DECLINES. Sensitivity: a left whose speed loop is twice as fast (v' = c
+# - v) DECLINES at lambda_max = 1.25 (it certified at the round-2 lambda_max = 6).
+# Why the mode facts are needed (I). The re-timed reference's speed loop dominates the rover's only
+# at or below the set point: the checked cuts s >= zone floor and v <= c (guard conjuncts kept along
+# each mode's flow) carry this; under RELCERT_NO_CUT=1 the file DECLINES, also with the left ODEs
+# replaced by the right's (like S, I comes from the re-timed claim, not from the added dynamics).
+#
+# Domains (validity ranges, symmetric, forward invariant face by face, checked with Z3 for every
+# level and zone): v in [0, 8] m/s; s >= 0 (s' > 0); psi, omega_psi, theta_p, omega_theta in [-0.6,
+# 0.6] (small-angle validity of the cos and slip expansions); z, omega_z in [-0.15, 0.15] m
+# (suspension travel); phi_r, omega_phi in [-0.5, 0.5]; y, omega_y in [-0.5, 0.5] m. Pinned right
+# coordinates: [0, 0]. Every requirement constant lies strictly inside its coordinate's validity
+# range, so no row is implied by the domains.
+# Guards: the zones on s (they partition s >= 0 on both sides, so every right state is in exactly
+# one right guard). The deployed side's guards also carry the zone entry speed v <= c (3.0 / 5.0 /
+# 6.5 m/s), a start condition every reachable state satisfies (set points rise along the route and
+# v' = 0.5 (c - v) never overshoots). It is load-bearing: the re-timed reference decelerates faster
+# above its set point, so from a start above it the clearance rows fail at every lambda > 1.
+# Measured: without it the file DECLINES; on the reference's guards instead it also CERTIFIES, but
+# then no right guard holds the reference's states above the set point (a right coverage gap), so it
+# stays on the deployed side as a start condition.
+# Every left mode has a satisfiable start (the reference in the same zone with the same v and s, its
+# attitude at the zone's equilibrium). RELCERT_OPREGION=1 CERTIFIES (every admitted start is in some
+# right guard).
+#
+# Composes: last rung of rover_ladder_2to3, 3to6, 6to8, 8to12: the clearance rows chain, so the
+# 12-DOF rover is never ahead of the 2-DOF plan up to the composed re-timing of the certificates (1
+# x 1 x 1.1 x 1.1 = 1.21, inside the timetable's 1.25); its plan tolerances are rover_ladder_6to8's
+# left rows, so the requirement rows chain too.
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated; measured 2026-10-26 with the design binary and
+# again 2026-10-27 on this branch, the same verdicts): CERTIFIED (31 s of the tool's default 40 s
+# budget, CPU-bound: the stretch search fails at the eight grid points 1, 1.0125, ..., 1.0875 before
+# 1.1 in every left mode; at lambda_max 1.5
+# the same file takes 20 s); CERTIFIED under RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1,
+# NO_PRUNE+NO_CHOICE, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_REPO=1,
+# RELCERT_OPREGION=1, RELCERT_WELLFORMED_STRICT=1 and without RELCERT_IMPLIED_CUT; DECLINED under
+# RELCERT_SYNC=1, SYNC+NO_CHOICE and RELCERT_NO_CUT=1. Covers: lambda 11/10 and budget 2 in every
+# left mode (admissible right starts: from STEEP all three zones, from MODER MODER and FLAT, from
+# FLAT FLAT); nothing pruned; no right-only reposition; rows identical (--handoff vacuous, 5/5);
+# --wellformed: STEEP, MODER ok (exit), FLAT ok (invariant), 0 UNKNOWN. Matrix codes M1 M2 M6. The
+# tightest constants above were measured with RELCERT_TIME_BUDGET_MS=280000 (runs near a tight
+# constant take longer than the default 40 s).
+
+[problem]
+name = rover_ladder_8to12
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.25
+bound_T = 4.0
+
+[Lsys]
+state_vars = [v, s, psi, omega_psi, theta_p, omega_theta, z, omega_z, phi_r, omega_phi, y, omega_y]
+epsilon = 1.0
+
+[Lsys.mode.STEEP]
+ode = v' = smt2:(* 0.5 (- 3.0 v)); s' = smt2:(* v (- (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p))) (* 0.2 (* phi_r phi_r)))); psi' = smt2:(- omega_psi psi); omega_psi' = smt2:(* -1 omega_psi); theta_p' = smt2:(- omega_theta theta_p); omega_theta' = smt2:(+ (* -1 omega_theta) 0.15 (* 0.5 z)); z' = smt2:(- omega_z z); omega_z' = smt2:(* -1 omega_z); phi_r' = smt2:(- omega_phi phi_r); omega_phi' = smt2:(+ (* -1 omega_phi) 0.1 (* 0.015 (+ (* v (- omega_psi psi)) (- y (* 2 omega_y)) (* 0.03 (+ (* v (- omega_psi psi)) (* 9.81 phi_r)))))); y' = smt2:(- omega_y y); omega_y' = smt2:(+ (* -1 omega_y) (* 0.03 (+ (* v (- omega_psi psi)) (* 9.81 phi_r))));
+guard = s >= 0.0 and s < 60.0 and v <= 3.0
+evolve = v >= 0.0 and v <= 8.0 and s >= 0.0 and psi >= -0.6 and psi <= 0.6 and omega_psi >= -0.6 and omega_psi <= 0.6 and theta_p >= -0.6 and theta_p <= 0.6 and omega_theta >= -0.6 and omega_theta <= 0.6 and z >= -0.15 and z <= 0.15 and omega_z >= -0.15 and omega_z <= 0.15 and phi_r >= -0.5 and phi_r <= 0.5 and omega_phi >= -0.5 and omega_phi <= 0.5 and y >= -0.5 and y <= 0.5 and omega_y >= -0.5 and omega_y <= 0.5
+next = [MODER, STEEP]
+
+[Lsys.mode.MODER]
+ode = v' = smt2:(* 0.5 (- 5.0 v)); s' = smt2:(* v (- (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p))) (* 0.2 (* phi_r phi_r)))); psi' = smt2:(- omega_psi psi); omega_psi' = smt2:(* -1 omega_psi); theta_p' = smt2:(- omega_theta theta_p); omega_theta' = smt2:(+ (* -1 omega_theta) 0.05 (* 0.5 z)); z' = smt2:(- omega_z z); omega_z' = smt2:(* -1 omega_z); phi_r' = smt2:(- omega_phi phi_r); omega_phi' = smt2:(+ (* -1 omega_phi) 0.05 (* 0.015 (+ (* v (- omega_psi psi)) (- y (* 2 omega_y)) (* 0.03 (+ (* v (- omega_psi psi)) (* 9.81 phi_r)))))); y' = smt2:(- omega_y y); omega_y' = smt2:(+ (* -1 omega_y) (* 0.03 (+ (* v (- omega_psi psi)) (* 9.81 phi_r))));
+guard = s >= 60.0 and s < 140.0 and v <= 5.0
+evolve = v >= 0.0 and v <= 8.0 and s >= 0.0 and psi >= -0.6 and psi <= 0.6 and omega_psi >= -0.6 and omega_psi <= 0.6 and theta_p >= -0.6 and theta_p <= 0.6 and omega_theta >= -0.6 and omega_theta <= 0.6 and z >= -0.15 and z <= 0.15 and omega_z >= -0.15 and omega_z <= 0.15 and phi_r >= -0.5 and phi_r <= 0.5 and omega_phi >= -0.5 and omega_phi <= 0.5 and y >= -0.5 and y <= 0.5 and omega_y >= -0.5 and omega_y <= 0.5
+next = [FLAT, MODER]
+
+[Lsys.mode.FLAT]
+ode = v' = smt2:(* 0.5 (- 6.5 v)); s' = smt2:(* v (- (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p))) (* 0.2 (* phi_r phi_r)))); psi' = smt2:(- omega_psi psi); omega_psi' = smt2:(* -1 omega_psi); theta_p' = smt2:(- omega_theta theta_p); omega_theta' = smt2:(+ (* -1 omega_theta) (* 0.5 z)); z' = smt2:(- omega_z z); omega_z' = smt2:(* -1 omega_z); phi_r' = smt2:(- omega_phi phi_r); omega_phi' = smt2:(+ (* -1 omega_phi) (* 0.015 (+ (* v (- omega_psi psi)) (- y (* 2 omega_y)) (* 0.03 (+ (* v (- omega_psi psi)) (* 9.81 phi_r)))))); y' = smt2:(- omega_y y); omega_y' = smt2:(+ (* -1 omega_y) (* 0.03 (+ (* v (- omega_psi psi)) (* 9.81 phi_r))));
+guard = s >= 140.0 and v <= 6.5
+evolve = v >= 0.0 and v <= 8.0 and s >= 0.0 and psi >= -0.6 and psi <= 0.6 and omega_psi >= -0.6 and omega_psi <= 0.6 and theta_p >= -0.6 and theta_p <= 0.6 and omega_theta >= -0.6 and omega_theta <= 0.6 and z >= -0.15 and z <= 0.15 and omega_z >= -0.15 and omega_z <= 0.15 and phi_r >= -0.5 and phi_r <= 0.5 and omega_phi >= -0.5 and omega_phi <= 0.5 and y >= -0.5 and y <= 0.5 and omega_y >= -0.5 and omega_y <= 0.5
+next = [FLAT]
+
+[Rsys]
+state_vars = [v, s, psi, omega_psi, theta_p, omega_theta, z, omega_z, phi_r, omega_phi, y, omega_y]
+epsilon = 1.0
+
+[Rsys.mode.STEEP]
+ode = v' = smt2:(* 0.5 (- 3.0 v)); s' = smt2:(* v (- (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p))) (* 0.2 (* phi_r phi_r)))); psi' = smt2:(- omega_psi psi); omega_psi' = smt2:(* -1 omega_psi); theta_p' = smt2:(- omega_theta theta_p); omega_theta' = smt2:(+ (* -1 omega_theta) 0.15 (* 0.5 z)); z' = smt2:(* -1 z); omega_z' = smt2:0; phi_r' = smt2:(+ (* -1 phi_r) 0.1 (* 0.015 (* v (- omega_psi psi)))); omega_phi' = smt2:0; y' = smt2:0; omega_y' = smt2:0;
+guard = s >= 0.0 and s < 60.0
+evolve = v >= 0.0 and v <= 8.0 and s >= 0.0 and psi >= -0.6 and psi <= 0.6 and omega_psi >= -0.6 and omega_psi <= 0.6 and theta_p >= -0.6 and theta_p <= 0.6 and omega_theta >= -0.6 and omega_theta <= 0.6 and z >= -0.15 and z <= 0.15 and omega_z >= 0.0 and omega_z <= 0.0 and phi_r >= -0.5 and phi_r <= 0.5 and omega_phi >= 0.0 and omega_phi <= 0.0 and y >= 0.0 and y <= 0.0 and omega_y >= 0.0 and omega_y <= 0.0
+next = [MODER, STEEP]
+
+[Rsys.mode.MODER]
+ode = v' = smt2:(* 0.5 (- 5.0 v)); s' = smt2:(* v (- (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p))) (* 0.2 (* phi_r phi_r)))); psi' = smt2:(- omega_psi psi); omega_psi' = smt2:(* -1 omega_psi); theta_p' = smt2:(- omega_theta theta_p); omega_theta' = smt2:(+ (* -1 omega_theta) 0.05 (* 0.5 z)); z' = smt2:(* -1 z); omega_z' = smt2:0; phi_r' = smt2:(+ (* -1 phi_r) 0.05 (* 0.015 (* v (- omega_psi psi)))); omega_phi' = smt2:0; y' = smt2:0; omega_y' = smt2:0;
+guard = s >= 60.0 and s < 140.0
+evolve = v >= 0.0 and v <= 8.0 and s >= 0.0 and psi >= -0.6 and psi <= 0.6 and omega_psi >= -0.6 and omega_psi <= 0.6 and theta_p >= -0.6 and theta_p <= 0.6 and omega_theta >= -0.6 and omega_theta <= 0.6 and z >= -0.15 and z <= 0.15 and omega_z >= 0.0 and omega_z <= 0.0 and phi_r >= -0.5 and phi_r <= 0.5 and omega_phi >= 0.0 and omega_phi <= 0.0 and y >= 0.0 and y <= 0.0 and omega_y >= 0.0 and omega_y <= 0.0
+next = [FLAT, MODER]
+
+[Rsys.mode.FLAT]
+ode = v' = smt2:(* 0.5 (- 6.5 v)); s' = smt2:(* v (- (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p))) (* 0.2 (* phi_r phi_r)))); psi' = smt2:(- omega_psi psi); omega_psi' = smt2:(* -1 omega_psi); theta_p' = smt2:(- omega_theta theta_p); omega_theta' = smt2:(+ (* -1 omega_theta) (* 0.5 z)); z' = smt2:(* -1 z); omega_z' = smt2:0; phi_r' = smt2:(+ (* -1 phi_r) (* 0.015 (* v (- omega_psi psi)))); omega_phi' = smt2:0; y' = smt2:0; omega_y' = smt2:0;
+guard = s >= 140.0
+evolve = v >= 0.0 and v <= 8.0 and s >= 0.0 and psi >= -0.6 and psi <= 0.6 and omega_psi >= -0.6 and omega_psi <= 0.6 and theta_p >= -0.6 and theta_p <= 0.6 and omega_theta >= -0.6 and omega_theta <= 0.6 and z >= -0.15 and z <= 0.15 and omega_z >= 0.0 and omega_z <= 0.0 and phi_r >= -0.5 and phi_r <= 0.5 and omega_phi >= 0.0 and omega_phi <= 0.0 and y >= 0.0 and y <= 0.0 and omega_y >= 0.0 and omega_y <= 0.0
+next = [FLAT]
+
+[relational_invariant]
+STEEP = smt2:(and (and (<= L_v R_v) (<= L_s R_s)) (and (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_omega_psi 0.35) (<= (- 0 0.35) L_omega_psi))) (and (<= (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r) 0.8) (<= (- 0 0.8) (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r))) (and (and (<= L_y 0.25) (<= (- 0 0.25) L_y)) (and (<= L_omega_y 0.25) (<= (- 0 0.25) L_omega_y))) (and (and (<= R_psi 0.35) (<= (- 0 0.35) R_psi)) (and (<= R_omega_psi 0.35) (<= (- 0 0.35) R_omega_psi)) (and (<= R_theta_p 0.25) (<= (- 0 0.25) R_theta_p)) (and (<= R_omega_theta 0.25) (<= (- 0 0.25) R_omega_theta)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r))))
+MODER = smt2:(and (and (<= L_v R_v) (<= L_s R_s)) (and (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_omega_psi 0.35) (<= (- 0 0.35) L_omega_psi))) (and (<= (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r) 0.8) (<= (- 0 0.8) (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r))) (and (and (<= L_y 0.25) (<= (- 0 0.25) L_y)) (and (<= L_omega_y 0.25) (<= (- 0 0.25) L_omega_y))) (and (and (<= R_psi 0.35) (<= (- 0 0.35) R_psi)) (and (<= R_omega_psi 0.35) (<= (- 0 0.35) R_omega_psi)) (and (<= R_theta_p 0.25) (<= (- 0 0.25) R_theta_p)) (and (<= R_omega_theta 0.25) (<= (- 0 0.25) R_omega_theta)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r))))
+FLAT = smt2:(and (and (<= L_v R_v) (<= L_s R_s)) (and (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_omega_psi 0.35) (<= (- 0 0.35) L_omega_psi))) (and (<= (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r) 0.8) (<= (- 0 0.8) (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r))) (and (and (<= L_y 0.25) (<= (- 0 0.25) L_y)) (and (<= L_omega_y 0.25) (<= (- 0 0.25) L_omega_y))) (and (and (<= R_psi 0.35) (<= (- 0 0.35) R_psi)) (and (<= R_omega_psi 0.35) (<= (- 0 0.35) R_omega_psi)) (and (<= R_theta_p 0.25) (<= (- 0 0.25) R_theta_p)) (and (<= R_omega_theta 0.25) (<= (- 0 0.25) R_omega_theta)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r))))

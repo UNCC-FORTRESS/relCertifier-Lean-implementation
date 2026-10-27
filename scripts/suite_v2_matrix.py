@@ -83,11 +83,8 @@ FAMILIES = [
     ("rover_patrol_", "Rover patrol (zones)"),
     ("gantry_", "Gantry speed zones (multi-cycle matching)"),
     ("arm_plateau_", "Arm, leading reference"),
-    ("rover_ladder_", "Terrain/position ladder"),
+    ("rover_ladder_", "Rover ladder"),
     ("rover_terrain_", "Terrain chain"),
-    ("rover_attitude_", "Story ladders"),
-    ("rover_lateral_", "Story ladders"),
-    ("rover_rollover_", "Story ladders"),
     ("watertank", "Watertank"),
     ("tank_dos_", "Tank under sampling DoS"),
     ("hvac_", "HVAC fan staging"),
@@ -598,7 +595,7 @@ def z3_profile(relcert, path, timeout):
 
 def analyze(name, path, relcert, timeout, z3time=False):
     prob = parse_input(path)
-    scenario = prob["scenario"] or KEPT_SCENARIO.get(name) or ("model-refinement" if family_of(name) in ("Terrain/position ladder", "Terrain chain", "Story ladders") else None)
+    scenario = prob["scenario"] or KEPT_SCENARIO.get(name) or ("model-refinement" if family_of(name) in ("Rover ladder", "Terrain chain") else None)
     rec = {"name": name, "path": os.path.relpath(path, ROOT), "scenario": scenario, "family": family_of(name),
            "declared_mechanisms": prob["mechanisms"],
            "dimL": len(prob["L"]["vars"]), "dimR": len(prob["R"]["vars"]),
@@ -795,7 +792,7 @@ def md_table1(recs):
         groups.setdefault(r["family"], []).append(r)
     order = ["ACC under sensor spoofing / retune", "Quadrotor climb, lighter airframe", "Battery charger",
              "Platoon follower, delayed link", "Platoon string, three followers", "Rover patrol (zones)", "Multi-cycle matching", "Arm, leading reference", "Rigid-body detumbling (polynomial)", "Heater cycle",
-             "Terrain/position ladder", "Terrain chain", "Story ladders", "Watertank", "other"]
+             "Rover ladder", "Terrain chain", "Watertank", "other"]
     lines = ["| group | count | dim (L/R) | invariant forms | dynamics | discrete structure (modes L/R; pruned fallbacks; mode-dep. rows; cuts; widened cuts; linear-form chains; per-mode domains) |",
              "|---|---|---|---|---|---|"]
     total = 0

@@ -20,10 +20,10 @@ mode `q`, `ε = epsR` (the file's `epsilon`, read as the tool reads it). A model
 independent of the relational invariant and of every Theorem 3 (none takes it as a
 hypothesis); this battery is a separate audit.
 
-**Results (all 52 benchmarks; declared counts `wfDeclared`, kernel-checked against the
+**Results (all 42 benchmarks; declared counts `wfDeclared`, kernel-checked against the
 suite's IR table by `wf_coverage`).**
 
-* **Proved, 46** (`<bench>_wellFormedR`): every mode (`watertank_twospeed` added 2026-10-11;
+* **Proved, 36** (`<bench>_wellFormedR`): every mode (`watertank_twospeed` added 2026-10-11;
   the literature benchmarks `drl_car_stop`, `drl_lane_control`, `vehicle_hypercert` and
   `freedm_meter` added 2026-10-15, three of them proved directly over the bridge's automaton,
   `_wellFormedR_direct`). Z3-free (no verdict leaf). Two of them
@@ -64,25 +64,15 @@ import RelCertifier.InstancesV2.WellFormed.AccTuneLimp
 import RelCertifier.InstancesV2.WellFormed.ChargerFastSetpoints
 import RelCertifier.InstancesV2.WellFormed.ChargerFastTapers
 import RelCertifier.InstancesV2.WellFormed.QuadLightLag
-import RelCertifier.InstancesV2.WellFormed.RoverPatrolZones
 import RelCertifier.InstancesV2.WellFormed.RoverPatrolLag
-import RelCertifier.InstancesV2.WellFormed.RoverRollover7to12
 import RelCertifier.InstancesV2.WellFormed.GantrySpeedZones
 import RelCertifier.InstancesV2.WellFormed.RoverLadder2to3
 import RelCertifier.InstancesV2.WellFormed.RoverLadder3to6
 import RelCertifier.InstancesV2.WellFormed.RoverLadder6to8
 import RelCertifier.InstancesV2.WellFormed.RoverLadder8to12
-import RelCertifier.InstancesV2.WellFormed.RoverLadder2to4
-import RelCertifier.InstancesV2.WellFormed.RoverLadder2to6
 import RelCertifier.InstancesV2.WellFormed.RoverTerrain2to4
 import RelCertifier.InstancesV2.WellFormed.RoverTerrain6to12
 import RelCertifier.InstancesV2.WellFormed.RoverTerrain4to6
-import RelCertifier.InstancesV2.WellFormed.RoverAttitude6to8
-import RelCertifier.InstancesV2.WellFormed.RoverAttitude8to12
-import RelCertifier.InstancesV2.WellFormed.RoverLateral6to8
-import RelCertifier.InstancesV2.WellFormed.RoverLateral8to12
-import RelCertifier.InstancesV2.WellFormed.RoverRollover6to12
-import RelCertifier.InstancesV2.WellFormed.RoverRollover6to7
 import RelCertifier.InstancesV2.WellFormed.ArmPlateauCrit
 import RelCertifier.InstancesV2.WellFormed.ArmPlateauSlow
 import RelCertifier.InstancesV2.WellFormed.PlatoonLinkloss
@@ -114,16 +104,11 @@ def wfProved : List String :=
    "platoon_profiles",
    "quad_light_airframe_20", "quad_light_profiles",
    "watertank", "acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp",
-   "charger_fast_setpoints", "charger_fast_tapers", "quad_light_lag", "rover_patrol_zones",
-   "rover_patrol_lag", "rover_rollover_7to12", "gantry_speed_zones",
+   "charger_fast_setpoints", "charger_fast_tapers", "quad_light_lag", "rover_patrol_lag", "gantry_speed_zones",
    "rover_ladder_2to3",
    "rover_ladder_3to6", "rover_ladder_6to8",
-   "rover_ladder_8to12", "rover_ladder_2to4",
-   "rover_ladder_2to6",
-   "rover_terrain_2to4", "rover_terrain_6to12",
-   "rover_terrain_4to6", "rover_attitude_6to8", "rover_attitude_8to12",
-   "rover_lateral_6to8", "rover_lateral_8to12", "rover_rollover_6to12",
-   "rover_rollover_6to7", "watertank_twospeed", "tank_dos_3to1", "hvac_fan_staging", "engine_start_highidle", "train_ato_odometry",
+   "rover_ladder_8to12", "rover_terrain_2to4", "rover_terrain_6to12",
+   "rover_terrain_4to6", "watertank_twospeed", "tank_dos_3to1", "hvac_fan_staging", "engine_start_highidle", "train_ato_odometry",
    "bms_chiller_undercharge", "canal_gate_notches", "turbine_startup_gearratio", "drl_car_stop", "drl_lane_control",
    "vehicle_hypercert", "freedm_meter"]
 
@@ -148,8 +133,13 @@ after the 2026-10-27 reserve moves (`airheader_dos_3to1`, `arm_plateau_profiles`
 `train_ato_odometry`; unchanged by `gantry_speed_zones` (replacing `match_multi_rate`) and
 `platoon_profiles` (replacing `platoon_delay_profiles`), and by the redesigned
 `quad_light_{airframe_20,profiles}` and `watertank_twospeed`; `(46, 0, 6)` with
-`bms_chiller_undercharge`, `canal_gate_notches` and `turbine_startup_gearratio`. -/
-def wfDeclared : ℕ × ℕ × ℕ := (46, 0, 6)
+`bms_chiller_undercharge`, `canal_gate_notches` and `turbine_startup_gearratio`; `(36, 0, 6)`
+after the rover hierarchy of 2026-10-27 (ten rover files left the suite: `rover_rollover_6to7`,
+`_7to12`, `_6to12`, `rover_lateral_6to8`, `_8to12`, `rover_attitude_6to8`, `_8to12`,
+`rover_ladder_2to4`, `_2to6`, `rover_patrol_zones`; the four ladder rungs and
+`rover_patrol_lag` were reinstalled on new right models, `L2`, `L3`, `L6`, `L8` with pinned
+coordinates and the planning model). -/
+def wfDeclared : ℕ × ℕ × ℕ := (36, 0, 6)
 
 /-- The suite's benchmark names, in the order of the IR table. -/
 def suiteNames : List String :=
@@ -160,12 +150,8 @@ def suiteNames : List String :=
    "freedm_meter", "gantry_speed_zones",
    "hvac_fan_staging",
    "platoon_latency", "platoon_linkloss", "platoon_profiles", "quad_light_airframe_20", "quad_light_lag",
-   "quad_light_profiles", "rover_attitude_6to8", "rover_attitude_8to12",
-   "rover_ladder_2to3", "rover_ladder_2to4", "rover_ladder_2to6", "rover_ladder_3to6",
-   "rover_ladder_6to8", "rover_ladder_8to12", "rover_lateral_6to8",
-   "rover_lateral_8to12", "rover_patrol_lag", "rover_patrol_zones", "rover_rollover_6to12",
-   "rover_rollover_6to7", "rover_rollover_7to12",
-   "rover_terrain_2to4", "rover_terrain_4to6", "rover_terrain_6to12",
+   "quad_light_profiles", "rover_ladder_2to3", "rover_ladder_3to6",
+   "rover_ladder_6to8", "rover_ladder_8to12", "rover_patrol_lag", "rover_terrain_2to4", "rover_terrain_4to6", "rover_terrain_6to12",
    "sat3w_detumble_nominal", "sat3w_detumble_phases", "sat3w_detumble_weak",
    "sat_detumble_nominal", "sat_detumble_phases", "sat_detumble_weak", "tank_dos_3to1",
    "train_ato_odometry", "turbine_startup_gearratio", "vehicle_hypercert",
@@ -184,7 +170,7 @@ theorem wf_coverage :
 
 end WellFormedBattery
 
-/-! ## Proved (46 outside the detumble family, with the next section): Assumption 1 at every mode -/
+/-! ## Proved (36 outside the detumble family, with the next section): Assumption 1 at every mode -/
 
 #print axioms V2DrlCarStop.drl_car_stop_wellFormedR_direct
 #print axioms V2DrlLaneControl.drl_lane_control_wellFormedR_direct
@@ -202,25 +188,15 @@ end WellFormedBattery
 #print axioms V2ChargerFastSetpoints.charger_fast_setpoints_wellFormedR
 #print axioms V2ChargerFastTapers.charger_fast_tapers_wellFormedR
 #print axioms V2QuadLightLag.quad_light_lag_wellFormedR
-#print axioms V2RoverPatrolZonesGuarded.rover_patrol_zones_wellFormedR
 #print axioms V2RoverPatrolLagGuarded.rover_patrol_lag_wellFormedR
-#print axioms V2RoverRollover7to12Guarded.rover_rollover_7to12_wellFormedR
 #print axioms V2GantrySpeedZones.gantry_speed_zones_wellFormedR
 #print axioms RoverLadder2to3Guarded.rover_ladder_2to3_wellFormedR
 #print axioms RoverLadder3to6Guarded.rover_ladder_3to6_wellFormedR
 #print axioms RoverLadder6to8Guarded.rover_ladder_6to8_wellFormedR
 #print axioms RoverLadder8to12Guarded.rover_ladder_8to12_wellFormedR
-#print axioms RoverLadder2to4Guarded.rover_ladder_2to4_wellFormedR
-#print axioms RoverLadder2to6Guarded.rover_ladder_2to6_wellFormedR
 #print axioms RoverTerrain2to4Guarded.rover_terrain_2to4_wellFormedR
 #print axioms RoverTerrain6to12Guarded.rover_terrain_6to12_wellFormedR
 #print axioms RoverTerrain4to6Guarded.rover_terrain_4to6_wellFormedR
-#print axioms RoverAttitude6to8Guarded.rover_attitude_6to8_wellFormedR
-#print axioms RoverAttitude8to12Guarded.rover_attitude_8to12_wellFormedR
-#print axioms RoverLateral6to8Guarded.rover_lateral_6to8_wellFormedR
-#print axioms RoverLateral8to12Guarded.rover_lateral_8to12_wellFormedR
-#print axioms RoverRollover6to12Guarded.rover_rollover_6to12_wellFormedR
-#print axioms RoverRollover6to7Guarded.rover_rollover_6to7_wellFormedR
 
 /-! ## Repaired 2026-10-10 (the two still in the suite) and the later additions: Assumption 1
 at every mode, and at the repaired modes -/
@@ -259,7 +235,7 @@ right evolve domain since 2026-10-15), and the band invariant as a model fact -/
 
 /-! ## The generic layer -/
 
-#print axioms wellFormedR_ladder
+#print axioms wellFormedR_terrain
 #print axioms not_wellFormedR_of_run
 #print axioms not_wellFormedR_of_noRun
 #print axioms wellFormedR_switchLegal

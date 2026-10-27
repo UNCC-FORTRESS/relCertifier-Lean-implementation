@@ -15,63 +15,66 @@ def rover_ladder_2to3_IRv2 : PProblem :=
   {
     name := "rover_ladder_2to3"
     lambdaMin := "1.0"
-    lambdaMax := "6.0"
+    lambdaMax := "1.0"
     L := {
       stateVars := ["v", "s", "psi"]
       epsilon := "1.0"
       modes := [
         {
           name := "STEEP"
-          odes := [("v", (.bin "*" (.num "3") (.bin "-" (.num "0.30") (.var "v")))),
+          odes := [("v", (.bin "*" (.num "0.5") (.bin "-" (.num "3.0") (.var "v")))),
             ("s", (.bin "*" (.var "v") (.bin "-" (.num "1") (.bin "*" (.num "0.5") (.bin "*" (.var "psi") (.var "psi")))))),
             ("psi", (.bin "*" (.num "-1") (.var "psi")))]
-          guard := (.and (.cmp ">=" (.var "s") (.num "0.0")) (.cmp "<" (.var "s") (.num "0.6")))
-          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "psi") (.num "-0.5")) (.cmp "<=" (.var "psi") (.num "0.15"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "v") (.num "0.0"))) (.cmp "<=" (.var "v") (.num "0.8")))
+          guard := (.and (.cmp ">=" (.var "s") (.num "0.0")) (.cmp "<" (.var "s") (.num "60.0")))
+          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "8.0"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "psi") (.num "-0.6"))) (.cmp "<=" (.var "psi") (.num "0.6")))
           next := ["MODER", "STEEP"] },
         {
           name := "MODER"
-          odes := [("v", (.bin "*" (.num "3") (.bin "-" (.num "0.50") (.var "v")))),
+          odes := [("v", (.bin "*" (.num "0.5") (.bin "-" (.num "5.0") (.var "v")))),
             ("s", (.bin "*" (.var "v") (.bin "-" (.num "1") (.bin "*" (.num "0.5") (.bin "*" (.var "psi") (.var "psi")))))),
             ("psi", (.bin "*" (.num "-1") (.var "psi")))]
-          guard := (.and (.cmp ">=" (.var "s") (.num "0.6")) (.cmp "<" (.var "s") (.num "1.4")))
-          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "psi") (.num "-0.5")) (.cmp "<=" (.var "psi") (.num "0.15"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "v") (.num "0.0"))) (.cmp "<=" (.var "v") (.num "0.8")))
+          guard := (.and (.cmp ">=" (.var "s") (.num "60.0")) (.cmp "<" (.var "s") (.num "140.0")))
+          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "8.0"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "psi") (.num "-0.6"))) (.cmp "<=" (.var "psi") (.num "0.6")))
           next := ["FLAT", "MODER"] },
         {
           name := "FLAT"
-          odes := [("v", (.bin "*" (.num "3") (.bin "-" (.num "0.65") (.var "v")))),
+          odes := [("v", (.bin "*" (.num "0.5") (.bin "-" (.num "6.5") (.var "v")))),
             ("s", (.bin "*" (.var "v") (.bin "-" (.num "1") (.bin "*" (.num "0.5") (.bin "*" (.var "psi") (.var "psi")))))),
             ("psi", (.bin "*" (.num "-1") (.var "psi")))]
-          guard := (.cmp ">=" (.var "s") (.num "1.4"))
-          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "psi") (.num "-0.5")) (.cmp "<=" (.var "psi") (.num "0.15"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "v") (.num "0.0"))) (.cmp "<=" (.var "v") (.num "0.8")))
+          guard := (.cmp ">=" (.var "s") (.num "140.0"))
+          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "8.0"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "psi") (.num "-0.6"))) (.cmp "<=" (.var "psi") (.num "0.6")))
           next := ["FLAT"] } ] }
     R := {
-      stateVars := ["v", "s"]
+      stateVars := ["v", "s", "psi"]
       epsilon := "1.0"
       modes := [
         {
           name := "STEEP"
-          odes := [("v", (.bin "*" (.num "3") (.bin "-" (.num "0.30") (.var "v")))),
-            ("s", (.var "v"))]
-          guard := (.and (.cmp ">=" (.var "s") (.num "0.0")) (.cmp "<" (.var "s") (.num "0.6")))
-          evolve := (.and (.and (.cmp ">=" (.var "s") (.num "0.0")) (.cmp ">=" (.var "v") (.num "0.0"))) (.cmp "<=" (.var "v") (.num "0.8")))
+          odes := [("v", (.bin "*" (.num "0.5") (.bin "-" (.num "3.0") (.var "v")))),
+            ("s", (.var "v")),
+            ("psi", (.num "0"))]
+          guard := (.and (.cmp ">=" (.var "s") (.num "0.0")) (.cmp "<" (.var "s") (.num "60.0")))
+          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "8.0"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "psi") (.num "0.0"))) (.cmp "<=" (.var "psi") (.num "0.0")))
           next := ["MODER", "STEEP"] },
         {
           name := "MODER"
-          odes := [("v", (.bin "*" (.num "3") (.bin "-" (.num "0.50") (.var "v")))),
-            ("s", (.var "v"))]
-          guard := (.and (.cmp ">=" (.var "s") (.num "0.6")) (.cmp "<" (.var "s") (.num "1.4")))
-          evolve := (.and (.and (.cmp ">=" (.var "s") (.num "0.0")) (.cmp ">=" (.var "v") (.num "0.0"))) (.cmp "<=" (.var "v") (.num "0.8")))
+          odes := [("v", (.bin "*" (.num "0.5") (.bin "-" (.num "5.0") (.var "v")))),
+            ("s", (.var "v")),
+            ("psi", (.num "0"))]
+          guard := (.and (.cmp ">=" (.var "s") (.num "60.0")) (.cmp "<" (.var "s") (.num "140.0")))
+          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "8.0"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "psi") (.num "0.0"))) (.cmp "<=" (.var "psi") (.num "0.0")))
           next := ["FLAT", "MODER"] },
         {
           name := "FLAT"
-          odes := [("v", (.bin "*" (.num "3") (.bin "-" (.num "0.65") (.var "v")))),
-            ("s", (.var "v"))]
-          guard := (.cmp ">=" (.var "s") (.num "1.4"))
-          evolve := (.and (.and (.cmp ">=" (.var "s") (.num "0.0")) (.cmp ">=" (.var "v") (.num "0.0"))) (.cmp "<=" (.var "v") (.num "0.8")))
+          odes := [("v", (.bin "*" (.num "0.5") (.bin "-" (.num "6.5") (.var "v")))),
+            ("s", (.var "v")),
+            ("psi", (.num "0"))]
+          guard := (.cmp ">=" (.var "s") (.num "140.0"))
+          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "8.0"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "psi") (.num "0.0"))) (.cmp "<=" (.var "psi") (.num "0.0")))
           next := ["FLAT"] } ] }
     invariants := [
-      ("STEEP", (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "L_s") (.var "R_s")))),
-      ("MODER", (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "L_s") (.var "R_s")))),
-      ("FLAT", (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "L_s") (.var "R_s"))))] }
+      ("STEEP", (.and (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "L_s") (.var "R_s"))) (.and (.cmp "<=" (.var "L_psi") (.num "0.35")) (.cmp "<=" (.bin "-" (.num "0") (.num "0.35")) (.var "L_psi"))))),
+      ("MODER", (.and (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "L_s") (.var "R_s"))) (.and (.cmp "<=" (.var "L_psi") (.num "0.35")) (.cmp "<=" (.bin "-" (.num "0") (.num "0.35")) (.var "L_psi"))))),
+      ("FLAT", (.and (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "L_s") (.var "R_s"))) (.and (.cmp "<=" (.var "L_psi") (.num "0.35")) (.cmp "<=" (.bin "-" (.num "0") (.num "0.35")) (.var "L_psi")))))] }
 
 end RelCertifier.Parse

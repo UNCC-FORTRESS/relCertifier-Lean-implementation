@@ -4,15 +4,26 @@ Released under Apache 2.0 license.
 
 # `rover_ladder_8to12`: Assumption 1 of the right model (`WellFormedR`)
 
-Over the guarded right automaton `GrG` of the Theorem 3 instance
-(`Instances/RoverLadder8to12Guarded.lean`), the lowered right guards, `ε_r = 1` (the literal is the
-suite_v2 file's, `InstancesV2/SameIR.lean`). A terrain ladder with speed caps, `s' = v ((1 − ψ²/2) − 0.3 θ² − 0.2 φ²)`, the pitch rate driven
-by heave (`ω_θ' = −ω_θ + z/2`), lateral sway `y` pinned:
-`wellFormedR_ladder` (style (b) for `STEEP`, `MODER`, (a) for `FLAT`); existence from the
-instance's explicit ladder runs (`LR.sol`). Z3-free. (GENERATED from one template.)
+Over the guarded right automaton `GrG` (the file's three route zones `STEEP`, `MODER`, `FLAT`
+and their declared `next` lists), the lowered right guards, `ε_r = 1`. The right is the
+canonical rover's level `L8` (yaw and pitch inertia; the heave rate `ω_z`, roll rate `ω_φ` and
+the slip offset `y`, `ω_y` pinned at 0): per zone `q` (set point `c_q` = 3, 5, 6.5 m/s, grade
+`g_q` = 0.15, 0.05, 0, cross-slope `x_q` = 0.1, 0.05, 0)
+`v' = (c_q − v)/2`, `s' = v (1 − ψ²/2 − 0.3 θ² − 0.2 φ²)`, `ψ' = ω_ψ − ψ`, `ω_ψ' = −ω_ψ`,
+`θ' = ω_θ − θ`, `ω_θ' = −ω_θ + g_q + z/2`, `z' = −z`, `φ' = −φ + x_q + 0.015 v (ω_ψ − ψ)`, the
+pinned rates 0; the guards are the odometer zones `[0, 60)`, `[60, 140)`, `[140, ∞)`; the
+evolve box `0 ≤ v ≤ 8`, `s ≥ 0`, `|ψ|, |ω_ψ|, |θ|, |ω_θ| ≤ 0.6`, `|z| ≤ 0.15`, `|φ| ≤ 0.5`, the
+pinned coordinates 0.
+`wellFormedR_terrain` (the shared three-band lemma, no caps: `0 ≤ s' ≤ 8` on the box, so a
+`STEEP` run ends below `60 + 8 ≤ 140`, inside `STEEP` or `MODER`, a `MODER` run in `MODER` or
+`FLAT`, `FLAT` is forward invariant). Existence: the explicit run of the cascade
+`ω_ψ → ψ`, `z → ω_θ → θ`, `(v, ω_ψ, ψ) → φ`, all `→ s` (`forcedSol`, `intSol`), kept in the
+box by the comparison bounds (`forcedSol_between`: each forced contraction between its start
+and its forcing's range, `ω_θ`'s forcing in `[−0.075, 0.225]`, `φ`'s in `[−0.144, 0.244]`).
+Z3-free.
 -/
 import RelCertifier.InstancesV2.BenchIR.rover_ladder_8to12
-import RelCertifier.Proofs.Encoding.WellFormedLadder
+import RelCertifier.Proofs.Encoding.WellFormedTerrain
 
 set_option maxHeartbeats 3200000
 set_option linter.unusedSimpArgs false
@@ -22,10 +33,56 @@ namespace RoverLadder8to12Pins
 
 open Parse
 
-/-! Parse pins of the numerals the guards and fields of `rover_ladder_8to12` write (the `GuardedPins` lemmas this file uses, local). -/
+/-! Parse pins of the numerals the right guards, fields and domain of `rover_ladder_8to12`
+write. -/
+
+theorem gp_0 : Run.parseRat "0" = some (0:ℚ) := by
+  have h : parseQ "0" = some (⟨0, 1⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+  try norm_num
+
+theorem gp_1 : Run.parseRat "1" = some (1:ℚ) := by
+  have h : parseQ "1" = some (⟨1, 1⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+  try norm_num
+
+theorem gp_m1 : Run.parseRat "-1" = some (-1:ℚ) := by
+  have h : parseQ "-1" = some (⟨-1, 1⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+  try norm_num
 
 theorem gp_0_0 : Run.parseRat "0.0" = some (0:ℚ) := by
   have h : parseQ "0.0" = some (⟨0, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+  try norm_num
+
+theorem gp_0_015 : Run.parseRat "0.015" = some ((3:ℚ)/200) := by
+  have h : parseQ "0.015" = some (⟨15, 1000⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+  try norm_num
+
+theorem gp_0_05 : Run.parseRat "0.05" = some ((1:ℚ)/20) := by
+  have h : parseQ "0.05" = some (⟨5, 100⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+  try norm_num
+
+theorem gp_0_1 : Run.parseRat "0.1" = some ((1:ℚ)/10) := by
+  have h : parseQ "0.1" = some (⟨1, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+  try norm_num
+
+theorem gp_0_15 : Run.parseRat "0.15" = some ((3:ℚ)/20) := by
+  have h : parseQ "0.15" = some (⟨15, 100⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+  try norm_num
+
+theorem gp_m0_15 : Run.parseRat "-0.15" = some (-(3:ℚ)/20) := by
+  have h : parseQ "-0.15" = some (⟨-15, 100⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+  try norm_num
+
+theorem gp_0_2 : Run.parseRat "0.2" = some ((1:ℚ)/5) := by
+  have h : parseQ "0.2" = some (⟨2, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]
   try norm_num
 
@@ -39,13 +96,18 @@ theorem gp_0_5 : Run.parseRat "0.5" = some ((1:ℚ)/2) := by
   simp [Run.parseRat, h]
   try norm_num
 
+theorem gp_m0_5 : Run.parseRat "-0.5" = some (-(1:ℚ)/2) := by
+  have h : parseQ "-0.5" = some (⟨-5, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+  try norm_num
+
 theorem gp_0_6 : Run.parseRat "0.6" = some ((3:ℚ)/5) := by
   have h : parseQ "0.6" = some (⟨6, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]
   try norm_num
 
-theorem gp_0_65 : Run.parseRat "0.65" = some ((13:ℚ)/20) := by
-  have h : parseQ "0.65" = some (⟨65, 100⟩ : QF) := by decide
+theorem gp_m0_6 : Run.parseRat "-0.6" = some (-(3:ℚ)/5) := by
+  have h : parseQ "-0.6" = some (⟨-6, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]
   try norm_num
 
@@ -54,8 +116,33 @@ theorem gp_1_0 : Run.parseRat "1.0" = some (1:ℚ) := by
   simp [Run.parseRat, h]
   try norm_num
 
-theorem gp_1_4 : Run.parseRat "1.4" = some ((7:ℚ)/5) := by
-  have h : parseQ "1.4" = some (⟨14, 10⟩ : QF) := by decide
+theorem gp_3_0 : Run.parseRat "3.0" = some (3:ℚ) := by
+  have h : parseQ "3.0" = some (⟨30, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+  try norm_num
+
+theorem gp_5_0 : Run.parseRat "5.0" = some (5:ℚ) := by
+  have h : parseQ "5.0" = some (⟨50, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+  try norm_num
+
+theorem gp_6_5 : Run.parseRat "6.5" = some ((13:ℚ)/2) := by
+  have h : parseQ "6.5" = some (⟨65, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+  try norm_num
+
+theorem gp_8_0 : Run.parseRat "8.0" = some (8:ℚ) := by
+  have h : parseQ "8.0" = some (⟨80, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+  try norm_num
+
+theorem gp_60_0 : Run.parseRat "60.0" = some (60:ℚ) := by
+  have h : parseQ "60.0" = some (⟨600, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+  try norm_num
+
+theorem gp_140_0 : Run.parseRat "140.0" = some (140:ℚ) := by
+  have h : parseQ "140.0" = some (⟨1400, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]
   try norm_num
 
@@ -63,191 +150,129 @@ end RoverLadder8to12Pins
 
 namespace RoverLadder8to12Modal
 
-open DL DLCalTiming DLRel Parse Set
+open DL DLCalTiming DLRel Parse Set RoverLadder8to12Pins
 
-def vsF : List String := ["v", "s", "psi", "omega_psi", "theta_p", "omega_theta", "z", "omega_z", "phi_r", "omega_phi", "y", "omega_y"]
+def vsR : List String :=
+  ["v", "s", "psi", "omega_psi", "theta_p", "omega_theta", "z", "omega_z", "phi_r", "omega_phi",
+   "y", "omega_y"]
 
-def dummyF : Parse.PMode := ⟨"", [], .tt, .tt, []⟩
+def dummyR : Parse.PMode := ⟨"", [], .tt, .tt, []⟩
 
-def mRF (q : ℕ) : Parse.PMode := rover_ladder_8to12_IRv2.R.modes.getD q dummyF
+def mRR (q : ℕ) : Parse.PMode := rover_ladder_8to12_IRv2.R.modes.getD q dummyR
 
-noncomputable def fRF (q : ℕ) : Fin 12 → Term (Var 12) := hostDyn vsF 12 Side.R (mRF q)
+noncomputable def fRR (q : ℕ) : Fin 12 → Term (Var 12) := hostDyn vsR 12 Side.R (mRR q)
 
-noncomputable def domRF : Formula (Var 12) := hostEvolve vsF 12 Side.R (mRF 0)
+noncomputable def domRR : Formula (Var 12) := hostEvolve vsR 12 Side.R (mRR 0)
 
-noncomputable def modeF (q : ℕ) : RMode (Var 12) :=
-  { sys := rightBlock (fRF q) (Term.const 1), dom := domRF, weight := 1 }
+noncomputable def modeR (q : ℕ) : RMode (Var 12) :=
+  { sys := rightBlock (fRR q) (Term.const 1), dom := domRR, weight := 1 }
 
-/-! ## Parse pins -/
+/-- The zones' speed set points `c_q` (`STEEP` 3, `MODER` 5, `FLAT` 6.5 m/s). -/
+noncomputable def cZ (q : ℕ) : ℝ := if q = 0 then 3 else if q = 1 then 5 else 13/2
+/-- The zones' grades `g_q` (0.15, 0.05, 0). -/
+noncomputable def gZ (q : ℕ) : ℝ := if q = 0 then 3/20 else if q = 1 then 1/20 else 0
+/-- The zones' cross-slopes `x_q` (0.1, 0.05, 0). -/
+noncomputable def xZ (q : ℕ) : ℝ := if q = 0 then 1/10 else if q = 1 then 1/20 else 0
 
-theorem hf030 : Run.parseRat "0.30" = some ((3:ℚ)/10) := by
-  have h : parseQ "0.30" = some (⟨30, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-
-theorem hf050 : Run.parseRat "0.50" = some ((1:ℚ)/2) := by
-  have h : parseQ "0.50" = some (⟨50, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-
-theorem hf065 : Run.parseRat "0.65" = some ((13:ℚ)/20) := by
-  have h : parseQ "0.65" = some (⟨65, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-
-theorem hf3 : Run.parseRat "3" = some (3) := by
-  have h : parseQ "3" = some (⟨3, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-
-theorem hfm1 : Run.parseRat "-1" = some (-1) := by
-  have h : parseQ "-1" = some (⟨-1, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-
-theorem hf0 : Run.parseRat "0" = some (0) := by
-  have h : parseQ "0" = some (⟨0, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-
-theorem hf1 : Run.parseRat "1" = some (1) := by
-  have h : parseQ "1" = some (⟨1, 1⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-
-theorem hf05 : Run.parseRat "0.5" = some ((1:ℚ)/2) := by
-  have h : parseQ "0.5" = some (⟨5, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-
-theorem hf03 : Run.parseRat "0.3" = some ((3:ℚ)/10) := by
-  have h : parseQ "0.3" = some (⟨3, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-
-theorem hfm05 : Run.parseRat "-0.5" = some (-(1:ℚ)/2) := by
-  have h : parseQ "-0.5" = some (⟨-5, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-
-theorem hf06 : Run.parseRat "0.6" = some ((3:ℚ)/5) := by
-  have h : parseQ "0.6" = some (⟨6, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-
-theorem hfm06 : Run.parseRat "-0.6" = some (-(3:ℚ)/5) := by
-  have h : parseQ "-0.6" = some (⟨-6, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-
-theorem hf015 : Run.parseRat "0.15" = some ((3:ℚ)/20) := by
-  have h : parseQ "0.15" = some (⟨15, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-
-theorem hf00 : Run.parseRat "0.0" = some (0) := by
-  have h : parseQ "0.0" = some (⟨0, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-
-theorem hf02 : Run.parseRat "0.2" = some ((1:ℚ)/5) := by
-  have h : parseQ "0.2" = some (⟨2, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-
-theorem hf08 : Run.parseRat "0.8" = some ((4:ℚ)/5) := by
-  have h : parseQ "0.8" = some (⟨8, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-
-theorem hfm10 : Run.parseRat "-1.0" = some (-1) := by
-  have h : parseQ "-1.0" = some (⟨-10, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]
-
-theorem hfm04 : Run.parseRat "-0.4" = some (-(2:ℚ)/5) := by
-  have h : parseQ "-0.4" = some (⟨-4, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-
-/-! ## Field and shape pins -/
-
-noncomputable def cstF (q : ℕ) : ℝ := if q = 0 then 3/10 else if q = 1 then 1/2 else 13/20
-
-theorem fRF0_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRF q 0) x = 3 * (cstF q - x (Rv 0)) := by
+theorem fRR0_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
+    Term.eval (fRR q 0) x = 1/2 * (cZ q - x (Rv 0)) := by
   interval_cases q <;>
-    simp [fRF, hostDyn, mRF, rover_ladder_8to12_IRv2, vsF, Run.dynOf,
-      Run.lowerE, hf030, hf050, hf065, hf3, hfm1, hf0, hf1, hf05, hf03, hfm05, hf06, hfm06, hf015, hf00, hf02, hf08, hfm10, hfm04, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv, cstF]
+    simp [fRR, hostDyn, mRR, rover_ladder_8to12_IRv2, vsR, Run.dynOf,
+      Run.lowerE, gp_0, gp_1, gp_m1, gp_0_0, gp_0_015, gp_0_05, gp_0_1, gp_0_15, gp_m0_15,
+      gp_0_2, gp_0_3, gp_0_5, gp_m0_5, gp_0_6, gp_m0_6, gp_1_0, gp_3_0, gp_5_0, gp_6_5, gp_8_0,
+      gp_60_0, gp_140_0, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
+      Term.eval, AOp.interp, Rv, cZ]
 
-theorem fRF1_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRF q 1) x = x (Rv 0) * (((1 - 1/2 * (x (Rv 2) * x (Rv 2))) - 3/10 * (x (Rv 4) * x (Rv 4)))
-      - 1/5 * (x (Rv 8) * x (Rv 8))) := by
+theorem fRR1_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
+    Term.eval (fRR q 1) x = x (Rv 0) * (((1 - 1/2 * (x (Rv 2) * x (Rv 2))) -
+      3/10 * (x (Rv 4) * x (Rv 4))) - 1/5 * (x (Rv 8) * x (Rv 8))) := by
   interval_cases q <;>
-    simp [fRF, hostDyn, mRF, rover_ladder_8to12_IRv2, vsF, Run.dynOf,
-      Run.lowerE, hf030, hf050, hf065, hf3, hfm1, hf0, hf1, hf05, hf03, hfm05, hf06, hfm06, hf015, hf00, hf02, hf08, hfm10, hfm04, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
+    simp [fRR, hostDyn, mRR, rover_ladder_8to12_IRv2, vsR, Run.dynOf,
+      Run.lowerE, gp_0, gp_1, gp_m1, gp_0_0, gp_0_015, gp_0_05, gp_0_1, gp_0_15, gp_m0_15,
+      gp_0_2, gp_0_3, gp_0_5, gp_m0_5, gp_0_6, gp_m0_6, gp_1_0, gp_3_0, gp_5_0, gp_6_5, gp_8_0,
+      gp_60_0, gp_140_0, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
+      Term.eval, AOp.interp, Rv]
 
-theorem fRF2_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRF q 2) x = x (Rv 3) - x (Rv 2) := by
+theorem fRR2_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
+    Term.eval (fRR q 2) x = x (Rv 3) - x (Rv 2) := by
   interval_cases q <;>
-    simp [fRF, hostDyn, mRF, rover_ladder_8to12_IRv2, vsF, Run.dynOf,
-      Run.lowerE, hf030, hf050, hf065, hf3, hfm1, hf0, hf1, hf05, hf03, hfm05, hf06, hfm06, hf015, hf00, hf02, hf08, hfm10, hfm04, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
+    simp [fRR, hostDyn, mRR, rover_ladder_8to12_IRv2, vsR, Run.dynOf,
+      Run.lowerE, gp_0, gp_1, gp_m1, gp_0_0, gp_0_015, gp_0_05, gp_0_1, gp_0_15, gp_m0_15,
+      gp_0_2, gp_0_3, gp_0_5, gp_m0_5, gp_0_6, gp_m0_6, gp_1_0, gp_3_0, gp_5_0, gp_6_5, gp_8_0,
+      gp_60_0, gp_140_0, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
+      Term.eval, AOp.interp, Rv]
 
-theorem fRF3_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRF q 3) x = -1 * x (Rv 3) := by
+theorem fRR3_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
+    Term.eval (fRR q 3) x = -1 * x (Rv 3) := by
   interval_cases q <;>
-    simp [fRF, hostDyn, mRF, rover_ladder_8to12_IRv2, vsF, Run.dynOf,
-      Run.lowerE, hf030, hf050, hf065, hf3, hfm1, hf0, hf1, hf05, hf03, hfm05, hf06, hfm06, hf015, hf00, hf02, hf08, hfm10, hfm04, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
+    simp [fRR, hostDyn, mRR, rover_ladder_8to12_IRv2, vsR, Run.dynOf,
+      Run.lowerE, gp_0, gp_1, gp_m1, gp_0_0, gp_0_015, gp_0_05, gp_0_1, gp_0_15, gp_m0_15,
+      gp_0_2, gp_0_3, gp_0_5, gp_m0_5, gp_0_6, gp_m0_6, gp_1_0, gp_3_0, gp_5_0, gp_6_5, gp_8_0,
+      gp_60_0, gp_140_0, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
+      Term.eval, AOp.interp, Rv]
 
-theorem fRF4_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRF q 4) x = x (Rv 5) - x (Rv 4) := by
+theorem fRR4_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
+    Term.eval (fRR q 4) x = x (Rv 5) - x (Rv 4) := by
   interval_cases q <;>
-    simp [fRF, hostDyn, mRF, rover_ladder_8to12_IRv2, vsF, Run.dynOf,
-      Run.lowerE, hf030, hf050, hf065, hf3, hfm1, hf0, hf1, hf05, hf03, hfm05, hf06, hfm06, hf015, hf00, hf02, hf08, hfm10, hfm04, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
+    simp [fRR, hostDyn, mRR, rover_ladder_8to12_IRv2, vsR, Run.dynOf,
+      Run.lowerE, gp_0, gp_1, gp_m1, gp_0_0, gp_0_015, gp_0_05, gp_0_1, gp_0_15, gp_m0_15,
+      gp_0_2, gp_0_3, gp_0_5, gp_m0_5, gp_0_6, gp_m0_6, gp_1_0, gp_3_0, gp_5_0, gp_6_5, gp_8_0,
+      gp_60_0, gp_140_0, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
+      Term.eval, AOp.interp, Rv]
 
-theorem fRF5_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRF q 5) x = -1 * x (Rv 5) + 1/2 * x (Rv 6) := by
+theorem fRR5_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
+    Term.eval (fRR q 5) x = -1 * x (Rv 5) + gZ q + 1/2 * x (Rv 6) := by
   interval_cases q <;>
-    simp [fRF, hostDyn, mRF, rover_ladder_8to12_IRv2, vsF, Run.dynOf,
-      Run.lowerE, hf030, hf050, hf065, hf3, hfm1, hf0, hf1, hf05, hf03, hfm05, hf06, hfm06, hf015, hf00, hf02, hf08, hfm10, hfm04, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
+    simp [fRR, hostDyn, mRR, rover_ladder_8to12_IRv2, vsR, Run.dynOf,
+      Run.lowerE, gp_0, gp_1, gp_m1, gp_0_0, gp_0_015, gp_0_05, gp_0_1, gp_0_15, gp_m0_15,
+      gp_0_2, gp_0_3, gp_0_5, gp_m0_5, gp_0_6, gp_m0_6, gp_1_0, gp_3_0, gp_5_0, gp_6_5, gp_8_0,
+      gp_60_0, gp_140_0, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
+      Term.eval, AOp.interp, Rv, gZ] <;> try ring
 
-theorem fRF6_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRF q 6) x = -1 * x (Rv 6) := by
+theorem fRR6_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
+    Term.eval (fRR q 6) x = -1 * x (Rv 6) := by
   interval_cases q <;>
-    simp [fRF, hostDyn, mRF, rover_ladder_8to12_IRv2, vsF, Run.dynOf,
-      Run.lowerE, hf030, hf050, hf065, hf3, hfm1, hf0, hf1, hf05, hf03, hfm05, hf06, hfm06, hf015, hf00, hf02, hf08, hfm10, hfm04, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
+    simp [fRR, hostDyn, mRR, rover_ladder_8to12_IRv2, vsR, Run.dynOf,
+      Run.lowerE, gp_0, gp_1, gp_m1, gp_0_0, gp_0_015, gp_0_05, gp_0_1, gp_0_15, gp_m0_15,
+      gp_0_2, gp_0_3, gp_0_5, gp_m0_5, gp_0_6, gp_m0_6, gp_1_0, gp_3_0, gp_5_0, gp_6_5, gp_8_0,
+      gp_60_0, gp_140_0, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
+      Term.eval, AOp.interp, Rv]
 
-theorem fRF7_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRF q 7) x = 0 := by
+theorem fRR8_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
+    Term.eval (fRR q 8) x =
+      -1 * x (Rv 8) + xZ q + 3/200 * (x (Rv 0) * (x (Rv 3) - x (Rv 2))) := by
   interval_cases q <;>
-    simp [fRF, hostDyn, mRF, rover_ladder_8to12_IRv2, vsF, Run.dynOf,
-      Run.lowerE, hf030, hf050, hf065, hf3, hfm1, hf0, hf1, hf05, hf03, hfm05, hf06, hfm06, hf015, hf00, hf02, hf08, hfm10, hfm04, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
+    simp [fRR, hostDyn, mRR, rover_ladder_8to12_IRv2, vsR, Run.dynOf,
+      Run.lowerE, gp_0, gp_1, gp_m1, gp_0_0, gp_0_015, gp_0_05, gp_0_1, gp_0_15, gp_m0_15,
+      gp_0_2, gp_0_3, gp_0_5, gp_m0_5, gp_0_6, gp_m0_6, gp_1_0, gp_3_0, gp_5_0, gp_6_5, gp_8_0,
+      gp_60_0, gp_140_0, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
+      Term.eval, AOp.interp, Rv, xZ] <;> try ring
 
-theorem fRF8_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRF q 8) x = -1 * x (Rv 8) := by
+/-- The pinned coordinates (`ω_z`, `ω_φ`, `y`, `ω_y`) do not move. -/
+theorem fRR_pinned (q : ℕ) (hq : q < 3) (x : State (Var 12)) (i : Fin 12)
+    (h : i = 7 ∨ i = 9 ∨ i = 10 ∨ i = 11) : Term.eval (fRR q i) x = 0 := by
+  rcases h with rfl | rfl | rfl | rfl <;>
   interval_cases q <;>
-    simp [fRF, hostDyn, mRF, rover_ladder_8to12_IRv2, vsF, Run.dynOf,
-      Run.lowerE, hf030, hf050, hf065, hf3, hfm1, hf0, hf1, hf05, hf03, hfm05, hf06, hfm06, hf015, hf00, hf02, hf08, hfm10, hfm04, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
+    simp [fRR, hostDyn, mRR, rover_ladder_8to12_IRv2, vsR, Run.dynOf,
+      Run.lowerE, gp_0, gp_1, gp_m1, gp_0_0, gp_0_015, gp_0_05, gp_0_1, gp_0_15, gp_m0_15,
+      gp_0_2, gp_0_3, gp_0_5, gp_m0_5, gp_0_6, gp_m0_6, gp_1_0, gp_3_0, gp_5_0, gp_6_5, gp_8_0,
+      gp_60_0, gp_140_0, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
+      Term.eval, AOp.interp, Rv]
 
-theorem fRF9_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRF q 9) x = 0 := by
-  interval_cases q <;>
-    simp [fRF, hostDyn, mRF, rover_ladder_8to12_IRv2, vsF, Run.dynOf,
-      Run.lowerE, hf030, hf050, hf065, hf3, hfm1, hf0, hf1, hf05, hf03, hfm05, hf06, hfm06, hf015, hf00, hf02, hf08, hfm10, hfm04, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-
-theorem fRF10_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRF q 10) x = 0 := by
-  interval_cases q <;>
-    simp [fRF, hostDyn, mRF, rover_ladder_8to12_IRv2, vsF, Run.dynOf,
-      Run.lowerE, hf030, hf050, hf065, hf3, hfm1, hf0, hf1, hf05, hf03, hfm05, hf06, hfm06, hf015, hf00, hf02, hf08, hfm10, hfm04, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-
-theorem fRF11_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
-    Term.eval (fRF q 11) x = 0 := by
-  interval_cases q <;>
-    simp [fRF, hostDyn, mRF, rover_ladder_8to12_IRv2, vsF, Run.dynOf,
-      Run.lowerE, hf030, hf050, hf065, hf3, hfm1, hf0, hf1, hf05, hf03, hfm05, hf06, hfm06, hf015, hf00, hf02, hf08, hfm10, hfm04, Run.resolveVar,
-      List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
-
-theorem sat_domRF (x : State (Var 12)) : Formula.sat domRF x ↔
-    (-(2:ℝ)/5 ≤ x (Rv 9) ∧ x (Rv 9) ≤ (1:ℝ)/2 ∧ -(3:ℝ)/5 ≤ x (Rv 3) ∧ x (Rv 3) ≤ (3:ℝ)/5 ∧ -(3:ℝ)/5 ≤ x (Rv 5) ∧ x (Rv 5) ≤ (3:ℝ)/5 ∧ -(2:ℝ)/5 ≤ x (Rv 11) ∧ x (Rv 11) ≤ (1:ℝ)/2 ∧ -(2:ℝ)/5 ≤ x (Rv 7) ∧ x (Rv 7) ≤ (1:ℝ)/2 ∧ -(1:ℝ)/2 ≤ x (Rv 8) ∧ x (Rv 8) ≤ (3:ℝ)/20 ∧ -(3:ℝ)/5 ≤ x (Rv 2) ∧ x (Rv 2) ≤ (3:ℝ)/5 ∧ 0 ≤ x (Rv 1) ∧ -(3:ℝ)/5 ≤ x (Rv 4) ∧ x (Rv 4) ≤ (3:ℝ)/5 ∧ 0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ (4:ℝ)/5 ∧ -(1:ℝ)/2 ≤ x (Rv 10) ∧ x (Rv 10) ≤ (3:ℝ)/20 ∧ -(1:ℝ) ≤ x (Rv 6) ∧ x (Rv 6) ≤ (3:ℝ)/20) := by
-  simp only [domRF, hostEvolve, mRF, rover_ladder_8to12_IRv2, vsF]
-  simp [Run.lowerF, Run.lowerE, hfm04, hf05, hfm06, hf06, hfm05, hf015, hf00, hf08, hfm10,
-    Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
-    CompOp.interp, Term.eval, Rv]
-  tauto
+theorem sat_domRR (x : State (Var 12)) : Formula.sat domRR x ↔
+    (0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 8 ∧ 0 ≤ x (Rv 1) ∧
+      -(3/5) ≤ x (Rv 2) ∧ x (Rv 2) ≤ 3/5 ∧ -(3/5) ≤ x (Rv 3) ∧ x (Rv 3) ≤ 3/5 ∧
+      -(3/5) ≤ x (Rv 4) ∧ x (Rv 4) ≤ 3/5 ∧ -(3/5) ≤ x (Rv 5) ∧ x (Rv 5) ≤ 3/5 ∧
+      -(3/20) ≤ x (Rv 6) ∧ x (Rv 6) ≤ 3/20 ∧ 0 ≤ x (Rv 7) ∧ x (Rv 7) ≤ 0 ∧
+      -(1/2) ≤ x (Rv 8) ∧ x (Rv 8) ≤ 1/2 ∧ 0 ≤ x (Rv 9) ∧ x (Rv 9) ≤ 0 ∧
+      0 ≤ x (Rv 10) ∧ x (Rv 10) ≤ 0 ∧ 0 ≤ x (Rv 11) ∧ x (Rv 11) ≤ 0) := by
+  simp only [domRR, hostEvolve, mRR, rover_ladder_8to12_IRv2, vsR]
+  simp [Run.lowerF, Run.lowerE, gp_0, gp_1, gp_m1, gp_0_0, gp_0_015, gp_0_05, gp_0_1, gp_0_15,
+    gp_m0_15, gp_0_2, gp_0_3, gp_0_5, gp_m0_5, gp_0_6, gp_m0_6, gp_1_0, gp_3_0, gp_5_0, gp_6_5,
+    gp_8_0, gp_60_0, gp_140_0, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost,
+    Formula.sat, CompOp.interp, Term.eval, Rv]
+  try norm_num
+  try tauto
 
 end RoverLadder8to12Modal
 
@@ -256,13 +281,13 @@ namespace RoverLadder8to12Guarded
 open DL DLCalTiming DLRel Parse Set RoverLadder8to12Modal RoverLadder8to12Pins
 
 noncomputable def edgeG (st tgt : ℕ) : REdge (Var 12) :=
-  { src := st, tgt := tgt, guard := hostGuard vsF 12 Side.R (mRF tgt), pruned := false }
+  { src := st, tgt := tgt, guard := hostGuard vsR 12 Side.R (mRR tgt), pruned := false }
 
 noncomputable def GrG : SearchGraph (Var 12) :=
-  { modes := [modeF 0, modeF 1, modeF 2],
+  { modes := [modeR 0, modeR 1, modeR 2],
     edges := [edgeG 0 1, edgeG 0 0, edgeG 1 2, edgeG 1 1, edgeG 2 2] }
 
-theorem GrG_modeAt (q : ℕ) (hq : q < 3) : GrG.modeAt q = some (modeF q) := by
+theorem GrG_modeAt (q : ℕ) (hq : q < 3) : GrG.modeAt q = some (modeR q) := by
   interval_cases q <;> rfl
 
 theorem edgeG_mem (st tgt : ℕ) (h : edgeG st tgt ∈ GrG.edges) :
@@ -271,334 +296,309 @@ theorem edgeG_mem (st tgt : ℕ) (h : edgeG st tgt ∈ GrG.edges) :
 
 /-! ## The right guards, evaluated -/
 
-theorem sat_guardR0 (x : State (Var 12)) : Formula.sat (hostGuard vsF 12 Side.R (mRF 0)) x ↔
-    (0 ≤ x (Rv 1) ∧ x (Rv 1) < 3/5 ∧ x (Rv 0) ≤ 3/10) := by
-  simp [hostGuard, mRF, rover_ladder_8to12_IRv2, Run.lowerF, Run.lowerE, gp_0_0, gp_0_6,
-    gp_1_4, gp_0_3, gp_0_5, gp_0_65, vsF, Run.resolveVar, List.findIdx?_cons, IForm.toHost,
-    ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv, and_assoc]
+theorem sat_guardR0 (x : State (Var 12)) : Formula.sat (hostGuard vsR 12 Side.R (mRR 0)) x ↔
+    (0 ≤ x (Rv 1) ∧ x (Rv 1) < 60) := by
+  simp [hostGuard, mRR, rover_ladder_8to12_IRv2, Run.lowerF, Run.lowerE, gp_0, gp_0_0, gp_0_5,
+    gp_1_0, gp_3_0, gp_5_0, gp_6_5, gp_8_0, gp_60_0, gp_140_0, vsR, Run.resolveVar,
+    List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv,
+    and_assoc]
+  try norm_num
 
-theorem sat_guardR1 (x : State (Var 12)) : Formula.sat (hostGuard vsF 12 Side.R (mRF 1)) x ↔
-    (3/5 ≤ x (Rv 1) ∧ x (Rv 1) < 7/5 ∧ x (Rv 0) ≤ 1/2) := by
-  simp [hostGuard, mRF, rover_ladder_8to12_IRv2, Run.lowerF, Run.lowerE, gp_0_0, gp_0_6,
-    gp_1_4, gp_0_3, gp_0_5, gp_0_65, vsF, Run.resolveVar, List.findIdx?_cons, IForm.toHost,
-    ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv, and_assoc]
+theorem sat_guardR1 (x : State (Var 12)) : Formula.sat (hostGuard vsR 12 Side.R (mRR 1)) x ↔
+    (60 ≤ x (Rv 1) ∧ x (Rv 1) < 140) := by
+  simp [hostGuard, mRR, rover_ladder_8to12_IRv2, Run.lowerF, Run.lowerE, gp_0, gp_0_0, gp_0_5,
+    gp_1_0, gp_3_0, gp_5_0, gp_6_5, gp_8_0, gp_60_0, gp_140_0, vsR, Run.resolveVar,
+    List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv,
+    and_assoc]
+  try norm_num
 
-theorem sat_guardR2 (x : State (Var 12)) : Formula.sat (hostGuard vsF 12 Side.R (mRF 2)) x ↔
-    (7/5 ≤ x (Rv 1) ∧ x (Rv 0) ≤ 13/20) := by
-  simp [hostGuard, mRF, rover_ladder_8to12_IRv2, Run.lowerF, Run.lowerE, gp_0_0, gp_0_6,
-    gp_1_4, gp_0_3, gp_0_5, gp_0_65, vsF, Run.resolveVar, List.findIdx?_cons, IForm.toHost,
-    ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv, and_assoc]
+theorem sat_guardR2 (x : State (Var 12)) : Formula.sat (hostGuard vsR 12 Side.R (mRR 2)) x ↔
+    140 ≤ x (Rv 1) := by
+  simp [hostGuard, mRR, rover_ladder_8to12_IRv2, Run.lowerF, Run.lowerE, gp_0, gp_0_0, gp_0_5,
+    gp_1_0, gp_3_0, gp_5_0, gp_6_5, gp_8_0, gp_60_0, gp_140_0, vsR, Run.resolveVar,
+    List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv,
+    and_assoc]
+  try norm_num
 
-theorem cstF_eq (q : ℕ) : cstF q = ladC q := rfl
+/-! ## The explicit runs (the cascade `ω_ψ → ψ`, `z → ω_θ → θ`, `(v, ω_ψ, ψ) → φ`, all `→ s`) -/
 
-/-- The attitude/heave laws: `ψ = (ψ₀ + ω_ψ₀ t) e^{−t}`; pitch driven by heave through its rate,
-`ω_θ = (ω_θ₀ + z₀ t/2) e^{−t}` (`ω_θ' = −ω_θ + z/2`) and `θ = (θ₀ + ω_θ₀ t + z₀ t²/4) e^{−t}`;
-`ω_ψ`, `z`, `φ` decaying `e^{−t}`; `ω_z`, `ω_φ`, `y`, `ω_y` frozen (pinned). -/
-noncomputable def dR : Fin 12 → ℝ := ![0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0]
+theorem consts (q : ℕ) (hq : q < 3) :
+    3 ≤ cZ q ∧ cZ q ≤ 13/2 ∧ 0 ≤ gZ q ∧ gZ q ≤ 3/20 ∧ 0 ≤ xZ q ∧ xZ q ≤ 1/10 := by
+  interval_cases q <;> norm_num [cZ, gZ, xZ]
 
-noncomputable def φo (ρ : State (Var 12)) (i : Fin 12) (t : ℝ) : ℝ :=
-  if i = 2 then (ρ (Rv 2) + ρ (Rv 3) * t) * Real.exp (-t)
-  else if i = 4 then (ρ (Rv 4) + ρ (Rv 5) * t + 1/4 * ρ (Rv 6) * (t * t)) * Real.exp (-t)
-  else if i = 5 then (ρ (Rv 5) + 1/2 * ρ (Rv 6) * t) * Real.exp (-t)
-  else ρ (Rv i) * Real.exp (-(dR i * t))
-
-/-- The odometer factor along the run, `1 − ψ²/2 − 0.3 θ² − 0.2 φ²`. -/
-noncomputable def kapT (ρ : State (Var 12)) (t : ℝ) : ℝ :=
-  1 - 1/2 * (φo ρ 2 t * φo ρ 2 t) - 3/10 * (φo ρ 4 t * φo ρ 4 t) - 1/5 * (φo ρ 8 t * φo ρ 8 t)
-
-theorem φo_2 (ρ : State (Var 12)) (t : ℝ) :
-    φo ρ 2 t = (ρ (Rv 2) + ρ (Rv 3) * t) * Real.exp (-t) := by simp [φo]
-
-theorem φo_4 (ρ : State (Var 12)) (t : ℝ) :
-    φo ρ 4 t = (ρ (Rv 4) + ρ (Rv 5) * t + 1/4 * ρ (Rv 6) * (t * t)) * Real.exp (-t) := by simp [φo]
-
-theorem φo_5 (ρ : State (Var 12)) (t : ℝ) :
-    φo ρ 5 t = (ρ (Rv 5) + 1/2 * ρ (Rv 6) * t) * Real.exp (-t) := by simp [φo]
-
-theorem φo_dec (ρ : State (Var 12)) (i : Fin 12) (h2 : i ≠ 2) (h4 : i ≠ 4) (h5 : i ≠ 5) (t : ℝ) :
-    φo ρ i t = ρ (Rv i) * Real.exp (-(dR i * t)) := by simp [φo, h2, h4, h5]
-
-/-- `(a + b t + c t²) e^{−t}` solves `x' = (b + 2 c t) e^{−t} − x`. -/
-theorem hasDerivAt_quad (a b c t : ℝ) :
-    HasDerivAt (fun u => (a + b * u + c * (u * u)) * Real.exp (-u))
-      ((b + 2 * c * t) * Real.exp (-t) - (a + b * t + c * (t * t)) * Real.exp (-t)) t := by
-  have h1 : HasDerivAt (fun u => a + b * u + c * (u * u)) (b * 1 + c * (1 * t + t * 1)) t :=
-    (((hasDerivAt_id t).const_mul b).const_add a).add (((hasDerivAt_id t).mul (hasDerivAt_id t)).const_mul c)
-  have h2 : HasDerivAt (fun u => Real.exp (-u)) (Real.exp (-t) * (-1)) t := (hasDerivAt_id t).neg.exp
-  exact (h1.mul h2).congr_deriv (by ring)
-
-/-- The heave-driven pitch `(a + u t + z t²/4) e^{−t}` stays in `[−3/5, 3/5]` from that box
-(`a`, `u` in `[−3/5, 3/5]`, heave `z` in `[−1, 3/20]`). -/
-theorem pitch_bound2 (a u z t : ℝ) (ha0 : -(3:ℝ)/5 ≤ a) (ha1 : a ≤ (3:ℝ)/5) (hu0 : -(3:ℝ)/5 ≤ u)
-    (hu1 : u ≤ (3:ℝ)/5) (hz0 : -(1:ℝ) ≤ z) (hz1 : z ≤ (3:ℝ)/20) (ht : 0 ≤ t) :
-    -(3:ℝ)/5 ≤ (a + u * t + 1/4 * z * (t * t)) * Real.exp (-t) ∧
-      (a + u * t + 1/4 * z * (t * t)) * Real.exp (-t) ≤ (3:ℝ)/5 := by
-  have he0 : 0 < Real.exp (-t) := Real.exp_pos _
-  have hq : 1 + t + t ^ 2 / 2 ≤ Real.exp t := Real.quadratic_le_exp_of_nonneg ht
-  have hinv : Real.exp (-t) * Real.exp t = 1 := by rw [← Real.exp_add]; simp
-  have hk : (1 + t + t * t / 2) * Real.exp (-t) ≤ 1 := by nlinarith
-  have ht2 : 0 ≤ t * t := mul_nonneg ht ht
-  have p1 : 0 ≤ (3/5 - u) * t := mul_nonneg (by linarith) ht
-  have p2 : 0 ≤ (u + 3/5) * t := mul_nonneg (by linarith) ht
-  have p3 : 0 ≤ (3/20 - z) * (t * t) := mul_nonneg (by linarith) ht2
-  have p4 : 0 ≤ (z + 1) * (t * t) := mul_nonneg (by linarith) ht2
-  have hup : a + u * t + 1/4 * z * (t * t) ≤ 3/5 * (1 + t + t * t / 2) := by nlinarith
-  have hlo : -(3/5) * (1 + t + t * t / 2) ≤ a + u * t + 1/4 * z * (t * t) := by nlinarith
-  constructor <;> nlinarith
-
-theorem φo_bounds (ρ : State (Var 12)) (hρ : Formula.sat domRF ρ) {t : ℝ} (ht : 0 ≤ t) :
-    (-(3/5:ℝ) ≤ φo ρ 2 t ∧ φo ρ 2 t ≤ 3/5) ∧ (-(3:ℝ)/5 ≤ φo ρ 4 t ∧ φo ρ 4 t ≤ (3:ℝ)/5) ∧
-    (-(3/5:ℝ) ≤ φo ρ 5 t ∧ φo ρ 5 t ≤ 3/5) ∧ (-(1/2:ℝ) ≤ φo ρ 8 t ∧ φo ρ 8 t ≤ 3/20) := by
-  have hD := (sat_domRF ρ).mp hρ
-  obtain ⟨_, _, h3l, h3h, h5l, h5h, _, _, _, _, h8l, h8h, h2l, h2h, _, h4l, h4h, _, _, _, _,
-    h6l, h6h⟩ := hD
-  have b8 := decay_between (ρ (Rv 8)) (dR 8) t (by simp [dR]) ht
-  rw [φo_2, φo_4, φo_5, φo_dec ρ 8 (by decide) (by decide) (by decide)]
-  exact ⟨coupled_bound _ _ (3/5) t ⟨by linarith, h2h⟩ ⟨by linarith, h3h⟩ ht,
-    pitch_bound2 _ _ _ t h4l h4h h5l h5h h6l h6h ht,
-    coupled_bound _ _ (3/5) t ⟨by linarith, h5h⟩ ⟨by linarith, by linarith⟩ ht,
-    le_trans (le_min (by linarith) (by norm_num)) b8.1, le_trans b8.2 (max_le h8h (by norm_num))⟩
-
-theorem kapT_cont (ρ : State (Var 12)) : Continuous (kapT ρ) := by
-  unfold kapT; simp only [φo_2, φo_4, φo_dec ρ 8 (by decide) (by decide) (by decide)]; fun_prop
-
-theorem kapT_low (ρ : State (Var 12)) (hρ : Formula.sat domRF ρ) {t : ℝ} (ht : 0 ≤ t) :
-    13/20 ≤ kapT ρ t := by
-  obtain ⟨⟨h2l, h2h⟩, ⟨h4l, h4h⟩, _, ⟨h8l, h8h⟩⟩ := φo_bounds ρ hρ ht
-  unfold kapT
-  nlinarith
-
-/-- The odometer rate `v ((1 − ψ²/2 − 0.3 θ²) − 0.2 φ²)` lies in `[0, 0.8]`. -/
-theorem odo_rate3 (v a b c : ℝ) (hv0 : 0 ≤ v) (hv1 : v ≤ 4/5) (ha0 : -(3/5) ≤ a) (ha1 : a ≤ 3/5)
-    (hb0 : -(3/5) ≤ b) (hb1 : b ≤ 3/5) (hc0 : -(3/5) ≤ c) (hc1 : c ≤ 3/5) :
+/-- The attitude-weighted odometer rate `v ((1 − ψ²/2 − 0.3 θ²) − 0.2 φ²)` lies in `[0, 8]`
+on the box. -/
+theorem odo_rate (v a b c : ℝ) (hv0 : 0 ≤ v) (hv1 : v ≤ 8) (ha0 : -(3/5) ≤ a) (ha1 : a ≤ 3/5)
+    (hb0 : -(3/5) ≤ b) (hb1 : b ≤ 3/5) (hc0 : -(1/2) ≤ c) (hc1 : c ≤ 1/2) :
     0 ≤ v * (((1 - 1/2 * (a * a)) - 3/10 * (b * b)) - 1/5 * (c * c)) ∧
-      v * (((1 - 1/2 * (a * a)) - 3/10 * (b * b)) - 1/5 * (c * c)) ≤ 4/5 := by
+      v * (((1 - 1/2 * (a * a)) - 3/10 * (b * b)) - 1/5 * (c * c)) ≤ 8 := by
   have ha2 : a * a ≤ 9/25 := by nlinarith
   have hb2 : b * b ≤ 9/25 := by nlinarith
-  have hc2 : c * c ≤ 9/25 := by nlinarith
+  have hc2 : c * c ≤ 1/4 := by nlinarith
   have hk0 : 0 ≤ ((1 - 1/2 * (a * a)) - 3/10 * (b * b)) - 1/5 * (c * c) := by nlinarith
   have hk1 : ((1 - 1/2 * (a * a)) - 3/10 * (b * b)) - 1/5 * (c * c) ≤ 1 := by
     nlinarith [mul_self_nonneg a, mul_self_nonneg b, mul_self_nonneg c]
   exact ⟨mul_nonneg hv0 hk0, by nlinarith [mul_le_mul_of_nonneg_left hk1 hv0]⟩
 
-noncomputable def LR : LadderRun GrG domRF :=
-  LadderRun.ofKappa GrG domRF modeF fRF φo kapT (13/20) (by norm_num) GrG_modeAt
-    (fun _ _ => rfl) (fun _ _ => rfl)
-    (fun q hq x => by rw [fRF0_eval q hq, cstF_eq])
-    (fun ρ i h0 h1 => by
-      by_cases h2 : i = 2
-      · subst h2; simp [φo]
-      by_cases h4 : i = 4
-      · subst h4; simp [φo]
-      by_cases h5 : i = 5
-      · subst h5; simp [φo]
-      · rw [φo_dec ρ i h2 h4 h5]; simp)
-    (fun q hq ρ _ i h0 h1 t _ => by
-      fin_cases i
-      · simp at h0
-      · simp at h1
-      · simp only [Fin.reduceFinMk, Fin.isValue]
-        rw [fRF2_eval q hq, trajR_R, trajR_R, phiK_other _ _ q ρ 2 (by decide) (by decide),
-          phiK_other _ _ q ρ 3 (by decide) (by decide), φo_dec ρ 3 (by decide) (by decide) (by decide), φo_2]
-        have h := hasDerivAt_coupled (ρ (Rv 2)) (ρ (Rv 3)) t
-        have hf : φo ρ 2 = fun u => (ρ (Rv 2) + ρ (Rv 3) * u) * Real.exp (-u) := by
-          funext u; exact φo_2 ρ u
-        rw [hf]; convert h using 1; simp [dR]
-      · simp only [Fin.reduceFinMk, Fin.isValue]
-        rw [fRF3_eval q hq, trajR_R, phiK_other _ _ q ρ 3 (by decide) (by decide),
-          φo_dec ρ 3 (by decide) (by decide) (by decide)]
-        have hf : φo ρ 3 = fun u => ρ (Rv 3) * Real.exp (-(dR 3 * u)) := by
-          funext u; exact φo_dec ρ 3 (by decide) (by decide) (by decide) u
-        rw [hf]; convert hasDerivAt_decay (ρ (Rv 3)) (dR 3) t using 1; simp [dR]
-      · simp only [Fin.reduceFinMk, Fin.isValue]
-        rw [fRF4_eval q hq, trajR_R, trajR_R, phiK_other _ _ q ρ 4 (by decide) (by decide),
-          phiK_other _ _ q ρ 5 (by decide) (by decide), φo_5, φo_4]
-        have h := hasDerivAt_quad (ρ (Rv 4)) (ρ (Rv 5)) (1/4 * ρ (Rv 6)) t
-        have hf : φo ρ 4 = fun u => (ρ (Rv 4) + ρ (Rv 5) * u + 1/4 * ρ (Rv 6) * (u * u)) * Real.exp (-u) := by
-          funext u; exact φo_4 ρ u
-        rw [hf]; convert h using 1; ring
-      · simp only [Fin.reduceFinMk, Fin.isValue]
-        rw [fRF5_eval q hq, trajR_R, trajR_R, phiK_other _ _ q ρ 5 (by decide) (by decide),
-          phiK_other _ _ q ρ 6 (by decide) (by decide), φo_5, φo_dec ρ 6 (by decide) (by decide) (by decide)]
-        have h := hasDerivAt_coupled (ρ (Rv 5)) (1/2 * ρ (Rv 6)) t
-        have hf : φo ρ 5 = fun u => (ρ (Rv 5) + 1/2 * ρ (Rv 6) * u) * Real.exp (-u) := by
-          funext u; exact φo_5 ρ u
-        rw [hf]; convert h using 1; simp [dR]; ring
-      · simp only [Fin.reduceFinMk, Fin.isValue]
-        rw [fRF6_eval q hq]
-        have hf : φo ρ 6 = fun u => ρ (Rv 6) * Real.exp (-(dR 6 * u)) := by
-          funext u; exact φo_dec ρ 6 (by decide) (by decide) (by decide) u
-        rw [hf]
-        first
-          | (rw [trajR_R, phiK_other _ _ q ρ 6 (by decide) (by decide), φo_dec ρ 6 (by decide) (by decide) (by decide)]
-             convert hasDerivAt_decay (ρ (Rv 6)) (dR 6) t using 1; simp [dR])
-          | (convert hasDerivAt_decay (ρ (Rv 6)) (dR 6) t using 1; simp [dR])
-      · simp only [Fin.reduceFinMk, Fin.isValue]
-        rw [fRF7_eval q hq]
-        have hf : φo ρ 7 = fun u => ρ (Rv 7) * Real.exp (-(dR 7 * u)) := by
-          funext u; exact φo_dec ρ 7 (by decide) (by decide) (by decide) u
-        rw [hf]
-        first
-          | (rw [trajR_R, phiK_other _ _ q ρ 7 (by decide) (by decide), φo_dec ρ 7 (by decide) (by decide) (by decide)]
-             convert hasDerivAt_decay (ρ (Rv 7)) (dR 7) t using 1; simp [dR])
-          | (convert hasDerivAt_decay (ρ (Rv 7)) (dR 7) t using 1; simp [dR])
-      · simp only [Fin.reduceFinMk, Fin.isValue]
-        rw [fRF8_eval q hq]
-        have hf : φo ρ 8 = fun u => ρ (Rv 8) * Real.exp (-(dR 8 * u)) := by
-          funext u; exact φo_dec ρ 8 (by decide) (by decide) (by decide) u
-        rw [hf]
-        first
-          | (rw [trajR_R, phiK_other _ _ q ρ 8 (by decide) (by decide), φo_dec ρ 8 (by decide) (by decide) (by decide)]
-             convert hasDerivAt_decay (ρ (Rv 8)) (dR 8) t using 1; simp [dR])
-          | (convert hasDerivAt_decay (ρ (Rv 8)) (dR 8) t using 1; simp [dR])
-      · simp only [Fin.reduceFinMk, Fin.isValue]
-        rw [fRF9_eval q hq]
-        have hf : φo ρ 9 = fun u => ρ (Rv 9) * Real.exp (-(dR 9 * u)) := by
-          funext u; exact φo_dec ρ 9 (by decide) (by decide) (by decide) u
-        rw [hf]
-        first
-          | (rw [trajR_R, phiK_other _ _ q ρ 9 (by decide) (by decide), φo_dec ρ 9 (by decide) (by decide) (by decide)]
-             convert hasDerivAt_decay (ρ (Rv 9)) (dR 9) t using 1; simp [dR])
-          | (convert hasDerivAt_decay (ρ (Rv 9)) (dR 9) t using 1; simp [dR])
-      · simp only [Fin.reduceFinMk, Fin.isValue]
-        rw [fRF10_eval q hq]
-        have hf : φo ρ 10 = fun u => ρ (Rv 10) * Real.exp (-(dR 10 * u)) := by
-          funext u; exact φo_dec ρ 10 (by decide) (by decide) (by decide) u
-        rw [hf]
-        first
-          | (rw [trajR_R, phiK_other _ _ q ρ 10 (by decide) (by decide), φo_dec ρ 10 (by decide) (by decide) (by decide)]
-             convert hasDerivAt_decay (ρ (Rv 10)) (dR 10) t using 1; simp [dR])
-          | (convert hasDerivAt_decay (ρ (Rv 10)) (dR 10) t using 1; simp [dR])
-      · simp only [Fin.reduceFinMk, Fin.isValue]
-        rw [fRF11_eval q hq]
-        have hf : φo ρ 11 = fun u => ρ (Rv 11) * Real.exp (-(dR 11 * u)) := by
-          funext u; exact φo_dec ρ 11 (by decide) (by decide) (by decide) u
-        rw [hf]
-        first
-          | (rw [trajR_R, phiK_other _ _ q ρ 11 (by decide) (by decide), φo_dec ρ 11 (by decide) (by decide) (by decide)]
-             convert hasDerivAt_decay (ρ (Rv 11)) (dR 11) t using 1; simp [dR])
-          | (convert hasDerivAt_decay (ρ (Rv 11)) (dR 11) t using 1; simp [dR]))
-    (fun q hq ρ _ t _ => by
-      rw [fRF1_eval q hq, trajR_R, trajR_R, trajR_R, trajR_R, phiK_v,
-        phiK_other _ _ q ρ 2 (by decide) (by decide), phiK_other _ _ q ρ 4 (by decide) (by decide),
-        phiK_other _ _ q ρ 8 (by decide) (by decide)]
-      simp only [kapT]
-      try ring)
-    kapT_cont
-    (fun ρ hρ t ht => kapT_low ρ hρ ht)
-    (fun q _ ρ hρ t ht => by
-      have hD := (sat_domRF ρ).mp hρ
-      have hv : min (ρ (Rv 0)) (ladC q) ≤ phiK φo kapT q ρ 0 t ∧
-          phiK φo kapT q ρ 0 t ≤ max (ρ (Rv 0)) (ladC q) := by
-        rw [phiK_v]; exact vLaw_between q ρ ht
-      have hc := ladC_bounds q
-      have hb2 : -(3/5:ℝ) ≤ phiK φo kapT q ρ 2 t ∧ phiK φo kapT q ρ 2 t ≤ 3/5 := by
-        rw [phiK_other φo kapT q ρ 2 (by decide) (by decide)]; exact (φo_bounds ρ hρ ht).1
-      have hb4 : -(3:ℝ)/5 ≤ phiK φo kapT q ρ 4 t ∧ phiK φo kapT q ρ 4 t ≤ (3:ℝ)/5 := by
-        rw [phiK_other φo kapT q ρ 4 (by decide) (by decide)]; exact (φo_bounds ρ hρ ht).2.1
-      have hb5 : -(3/5:ℝ) ≤ phiK φo kapT q ρ 5 t ∧ phiK φo kapT q ρ 5 t ≤ 3/5 := by
-        rw [phiK_other φo kapT q ρ 5 (by decide) (by decide)]; exact (φo_bounds ρ hρ ht).2.2.1
-      have hs : ρ (Rv 1) ≤ phiK φo kapT q ρ 1 t := by
-        rw [phiK_s]
-        have h := integral_vk_low q ρ (kapT ρ) (kapT_cont ρ) (13/20) (by norm_num) hD.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.1 ht
-          (fun u hu _ => kapT_low ρ hρ hu)
-        linarith [h.2]
-      have hk : ∀ k : Fin 12, k ≠ 0 → k ≠ 1 → k ≠ 2 → k ≠ 4 → k ≠ 5 →
-          min (ρ (Rv k)) 0 ≤ phiK φo kapT q ρ k t ∧ phiK φo kapT q ρ k t ≤ max (ρ (Rv k)) 0 :=
-        fun k h0 h1 h2 h4 h5 => by
-          rw [phiK_other φo kapT q ρ k h0 h1, φo_dec ρ k h2 h4 h5]
-          exact decay_between _ _ t (by fin_cases k <;> simp [dR]) ht
-      rw [sat_domRF]
-      simp only [trajR_R]
-      exact ⟨le_trans (le_min hD.1 (by norm_num)) (hk 9 (by decide) (by decide) (by decide) (by decide) (by decide)).1,
-        le_trans (hk 9 (by decide) (by decide) (by decide) (by decide) (by decide)).2 (max_le hD.2.1 (by norm_num)),
-        le_trans (le_min hD.2.2.1 (by norm_num)) (hk 3 (by decide) (by decide) (by decide) (by decide) (by decide)).1,
-        le_trans (hk 3 (by decide) (by decide) (by decide) (by decide) (by decide)).2 (max_le hD.2.2.2.1 (by norm_num)),
-        by linarith [hb5.1],
-        hb5.2,
-        le_trans (le_min hD.2.2.2.2.2.2.1 (by norm_num)) (hk 11 (by decide) (by decide) (by decide) (by decide) (by decide)).1,
-        le_trans (hk 11 (by decide) (by decide) (by decide) (by decide) (by decide)).2 (max_le hD.2.2.2.2.2.2.2.1 (by norm_num)),
-        le_trans (le_min hD.2.2.2.2.2.2.2.2.1 (by norm_num)) (hk 7 (by decide) (by decide) (by decide) (by decide) (by decide)).1,
-        le_trans (hk 7 (by decide) (by decide) (by decide) (by decide) (by decide)).2 (max_le hD.2.2.2.2.2.2.2.2.2.1 (by norm_num)),
-        le_trans (le_min hD.2.2.2.2.2.2.2.2.2.2.1 (by norm_num)) (hk 8 (by decide) (by decide) (by decide) (by decide) (by decide)).1,
-        le_trans (hk 8 (by decide) (by decide) (by decide) (by decide) (by decide)).2 (max_le hD.2.2.2.2.2.2.2.2.2.2.2.1 (by norm_num)),
-        by linarith [hb2.1],
-        hb2.2,
-        le_trans hD.2.2.2.2.2.2.2.2.2.2.2.2.2.2.1 hs,
-        hb4.1,
-        hb4.2,
-        le_trans (le_min hD.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.1 (by linarith [hc.1])) hv.1,
-        le_trans hv.2 (max_le hD.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.1 (by linarith [hc.2])),
-        le_trans (le_min hD.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.1 (by norm_num)) (hk 10 (by decide) (by decide) (by decide) (by decide) (by decide)).1,
-        le_trans (hk 10 (by decide) (by decide) (by decide) (by decide) (by decide)).2 (max_le hD.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.1 (by norm_num)),
-        le_trans (le_min hD.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.1 (by norm_num)) (hk 6 (by decide) (by decide) (by decide) (by decide) (by decide)).1,
-        le_trans (hk 6 (by decide) (by decide) (by decide) (by decide) (by decide)).2 (max_le hD.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2 (by norm_num))⟩)
-    (fun ρ hρ => by have hD := (sat_domRF ρ).mp hρ; exact hD.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.1)
-    (edgeG 0 1) (edgeG 1 2) (edgeG 2 2)
-    (edgeG_mem 0 1 (by simp [GrG])) (edgeG_mem 1 2 (by simp [GrG]))
-    (edgeG_mem 2 2 (by simp [GrG])) rfl rfl rfl
-    (fun x hs hv => by
-      show Formula.sat (hostGuard vsF 12 Side.R (mRF 1)) x
-      rw [sat_guardR1]; exact ⟨le_of_eq hs.symm, by rw [hs]; norm_num, by linarith⟩)
-    (fun x hs hv => by
-      show Formula.sat (hostGuard vsF 12 Side.R (mRF 2)) x
-      rw [sat_guardR2]; exact ⟨le_of_eq hs.symm, by linarith⟩)
-    (fun x hs hv => by
-      show Formula.sat (hostGuard vsF 12 Side.R (mRF 2)) x
-      rw [sat_guardR2]; exact ⟨hs, hv⟩)
+noncomputable def φv (q : ℕ) (ρ : State (Var 12)) : ℝ → ℝ :=
+  forcedSol (1/2) (ρ (Rv 0)) (fun _ => 1/2 * cZ q)
+
+noncomputable def φop (ρ : State (Var 12)) : ℝ → ℝ := forcedSol 1 (ρ (Rv 3)) (fun _ => 0)
+
+noncomputable def φps (ρ : State (Var 12)) : ℝ → ℝ := forcedSol 1 (ρ (Rv 2)) (φop ρ)
+
+noncomputable def φz (ρ : State (Var 12)) : ℝ → ℝ := forcedSol 1 (ρ (Rv 6)) (fun _ => 0)
+
+noncomputable def φotF (q : ℕ) (ρ : State (Var 12)) : ℝ → ℝ := fun τ => gZ q + 1/2 * φz ρ τ
+
+noncomputable def φot (q : ℕ) (ρ : State (Var 12)) : ℝ → ℝ :=
+  forcedSol 1 (ρ (Rv 5)) (φotF q ρ)
+
+noncomputable def φth (q : ℕ) (ρ : State (Var 12)) : ℝ → ℝ := forcedSol 1 (ρ (Rv 4)) (φot q ρ)
+
+noncomputable def φphF (q : ℕ) (ρ : State (Var 12)) : ℝ → ℝ :=
+  fun τ => xZ q + 3/200 * (φv q ρ τ * (φop ρ τ - φps ρ τ))
+
+noncomputable def φph (q : ℕ) (ρ : State (Var 12)) : ℝ → ℝ :=
+  forcedSol 1 (ρ (Rv 8)) (φphF q ρ)
+
+noncomputable def φsF (q : ℕ) (ρ : State (Var 12)) : ℝ → ℝ :=
+  fun τ => φv q ρ τ * (((1 - 1/2 * (φps ρ τ * φps ρ τ)) - 3/10 * (φth q ρ τ * φth q ρ τ)) -
+    1/5 * (φph q ρ τ * φph q ρ τ))
+
+noncomputable def φs (q : ℕ) (ρ : State (Var 12)) : ℝ → ℝ := intSol (ρ (Rv 1)) (φsF q ρ)
+
+theorem φv_cont (q : ℕ) (ρ : State (Var 12)) : Continuous (φv q ρ) :=
+  forcedSol_continuous _ _ continuous_const
+
+theorem φop_cont (ρ : State (Var 12)) : Continuous (φop ρ) :=
+  forcedSol_continuous _ _ continuous_const
+
+theorem φps_cont (ρ : State (Var 12)) : Continuous (φps ρ) :=
+  forcedSol_continuous _ _ (φop_cont ρ)
+
+theorem φz_cont (ρ : State (Var 12)) : Continuous (φz ρ) :=
+  forcedSol_continuous _ _ continuous_const
+
+theorem φotF_cont (q : ℕ) (ρ : State (Var 12)) : Continuous (φotF q ρ) := by
+  have h := φz_cont ρ
+  unfold φotF; fun_prop
+
+theorem φot_cont (q : ℕ) (ρ : State (Var 12)) : Continuous (φot q ρ) :=
+  forcedSol_continuous _ _ (φotF_cont q ρ)
+
+theorem φth_cont (q : ℕ) (ρ : State (Var 12)) : Continuous (φth q ρ) :=
+  forcedSol_continuous _ _ (φot_cont q ρ)
+
+theorem φphF_cont (q : ℕ) (ρ : State (Var 12)) : Continuous (φphF q ρ) := by
+  have h1 := φv_cont q ρ
+  have h2 := φop_cont ρ
+  have h3 := φps_cont ρ
+  unfold φphF; fun_prop
+
+theorem φph_cont (q : ℕ) (ρ : State (Var 12)) : Continuous (φph q ρ) :=
+  forcedSol_continuous _ _ (φphF_cont q ρ)
+
+theorem φsF_cont (q : ℕ) (ρ : State (Var 12)) : Continuous (φsF q ρ) := by
+  have h1 := φv_cont q ρ
+  have h2 := φps_cont ρ
+  have h3 := φth_cont q ρ
+  have h4 := φph_cont q ρ
+  unfold φsF; fun_prop
+
+/-- The run: every right coordinate along its explicit law (the pinned ones frozen). -/
+noncomputable def φR (q : ℕ) (ρ : State (Var 12)) (i : Fin 12) : ℝ → ℝ :=
+  if i = 0 then φv q ρ else if i = 1 then φs q ρ else if i = 2 then φps ρ
+  else if i = 3 then φop ρ else if i = 4 then φth q ρ else if i = 5 then φot q ρ
+  else if i = 6 then φz ρ else if i = 8 then φph q ρ else fun _ => ρ (Rv i)
+
+theorem φR_zero (q : ℕ) (ρ : State (Var 12)) (i : Fin 12) : φR q ρ i 0 = ρ (Rv i) := by
+  fin_cases i <;> simp [φR, φv, φs, φps, φop, φth, φot, φz, φph, forcedSol_zero, intSol_zero]
+
+theorem φR_der (q : ℕ) (hq : q < 3) (ρ : State (Var 12)) (i : Fin 12) (t : ℝ) :
+    HasDerivAt (φR q ρ i) (Term.eval (fRR q i) (trajRs ρ (φR q ρ) t)) t := by
+  by_cases h0 : i = 0
+  · subst h0
+    rw [fRR0_eval q hq]
+    simp only [trajRs_R, φR, if_true]
+    refine (forcedSol_hasDerivAt (1/2) (ρ (Rv 0)) continuous_const t).congr_deriv ?_
+    simp only [φv]; ring
+  by_cases h1 : i = 1
+  · subst h1
+    rw [fRR1_eval q hq]
+    simp only [trajRs_R, φR, Fin.isValue, Fin.mk_one, if_true, Fin.reduceEq, if_false]
+    exact intSol_hasDerivAt _ (φsF_cont q ρ) t
+  by_cases h2 : i = 2
+  · subst h2
+    rw [fRR2_eval q hq]
+    simp only [trajRs_R, φR, Fin.isValue, Fin.reduceFinMk, if_true, Fin.reduceEq, if_false]
+    refine (forcedSol_hasDerivAt 1 (ρ (Rv 2)) (φop_cont ρ) t).congr_deriv ?_
+    simp only [φps]; ring
+  by_cases h3 : i = 3
+  · subst h3
+    rw [fRR3_eval q hq]
+    simp only [trajRs_R, φR, Fin.isValue, Fin.reduceFinMk, if_true, Fin.reduceEq, if_false]
+    refine (forcedSol_hasDerivAt 1 (ρ (Rv 3)) continuous_const t).congr_deriv ?_
+    simp only [φop]; ring
+  by_cases h4 : i = 4
+  · subst h4
+    rw [fRR4_eval q hq]
+    simp only [trajRs_R, φR, Fin.isValue, Fin.reduceFinMk, if_true, Fin.reduceEq, if_false]
+    refine (forcedSol_hasDerivAt 1 (ρ (Rv 4)) (φot_cont q ρ) t).congr_deriv ?_
+    simp only [φth]; ring
+  by_cases h5 : i = 5
+  · subst h5
+    rw [fRR5_eval q hq]
+    simp only [trajRs_R, φR, Fin.isValue, Fin.reduceFinMk, if_true, Fin.reduceEq, if_false]
+    refine (forcedSol_hasDerivAt 1 (ρ (Rv 5)) (φotF_cont q ρ) t).congr_deriv ?_
+    simp only [φot, φotF]; ring
+  by_cases h6 : i = 6
+  · subst h6
+    rw [fRR6_eval q hq]
+    simp only [trajRs_R, φR, Fin.isValue, Fin.reduceFinMk, if_true, Fin.reduceEq, if_false]
+    refine (forcedSol_hasDerivAt 1 (ρ (Rv 6)) continuous_const t).congr_deriv ?_
+    simp only [φz]; ring
+  by_cases h8 : i = 8
+  · subst h8
+    rw [fRR8_eval q hq]
+    simp only [trajRs_R, φR, Fin.isValue, Fin.reduceFinMk, if_true, Fin.reduceEq, if_false]
+    refine (forcedSol_hasDerivAt 1 (ρ (Rv 8)) (φphF_cont q ρ) t).congr_deriv ?_
+    simp only [φph, φphF]; ring
+  have hp : i = 7 ∨ i = 9 ∨ i = 10 ∨ i = 11 := by omega
+  rw [fRR_pinned q hq _ i hp]
+  simp only [φR, h0, h1, h2, h3, h4, h5, h6, h8, if_false]
+  exact hasDerivAt_const t _
+
+/-- The run stays in the evolve box over one control interval. -/
+theorem φR_dom (q : ℕ) (hq : q < 3) (ρ : State (Var 12)) (hρ : Formula.sat domRR ρ)
+    (t : ℝ) (ht : t ∈ Icc (0:ℝ) 1) : Formula.sat domRR (trajRs ρ (φR q ρ) t) := by
+  obtain ⟨hv0, hv1, hs0, hp0, hp1, ho0, ho1, hth0, hth1, hot0, hot1, hz0, hz1, h70, h71,
+    hph0, hph1, h90, h91, h100, h101, h110, h111⟩ := (sat_domRR ρ).mp hρ
+  obtain ⟨hc0, hc1, hg0, hg1, hx0, hx1⟩ := consts q hq
+  have hv : ∀ τ ∈ Icc (0:ℝ) 1, 0 ≤ φv q ρ τ ∧ φv q ρ τ ≤ 8 := by
+    intro τ hτ
+    have h := forcedSol_between (1/2) (ρ (Rv 0)) (F := fun _ => 1/2 * cZ q) continuous_const
+      (lo := 1/2 * cZ q) (hi := 1/2 * cZ q) (by norm_num) (fun _ _ => ⟨le_rfl, le_rfl⟩) τ hτ
+    have he : 1/2 * cZ q / (1/2) = cZ q := by ring
+    rw [he] at h
+    exact ⟨le_trans (le_min hv0 (by linarith)) h.1, le_trans h.2 (max_le hv1 (by linarith))⟩
+  have hop : ∀ τ ∈ Icc (0:ℝ) 1, -(3/5) ≤ φop ρ τ ∧ φop ρ τ ≤ 3/5 := by
+    intro τ hτ
+    have h := forcedSol_between 1 (ρ (Rv 3)) (F := fun _ => (0:ℝ)) continuous_const
+      (lo := 0) (hi := 0) (by norm_num) (fun _ _ => ⟨le_rfl, le_rfl⟩) τ hτ
+    simp only [zero_div] at h
+    exact ⟨le_trans (le_min ho0 (by norm_num)) h.1, le_trans h.2 (max_le ho1 (by norm_num))⟩
+  have hps : ∀ τ ∈ Icc (0:ℝ) 1, -(3/5) ≤ φps ρ τ ∧ φps ρ τ ≤ 3/5 := by
+    intro τ hτ
+    have h := forcedSol_between 1 (ρ (Rv 2)) (φop_cont ρ) (lo := -(3/5)) (hi := 3/5)
+      (by norm_num) (fun s hs => hop s hs) τ hτ
+    simp only [div_one] at h
+    exact ⟨le_trans (le_min hp0 le_rfl) h.1, le_trans h.2 (max_le hp1 le_rfl)⟩
+  have hz : ∀ τ ∈ Icc (0:ℝ) 1, -(3/20) ≤ φz ρ τ ∧ φz ρ τ ≤ 3/20 := by
+    intro τ hτ
+    have h := forcedSol_between 1 (ρ (Rv 6)) (F := fun _ => (0:ℝ)) continuous_const
+      (lo := 0) (hi := 0) (by norm_num) (fun _ _ => ⟨le_rfl, le_rfl⟩) τ hτ
+    simp only [zero_div] at h
+    exact ⟨le_trans (le_min hz0 (by norm_num)) h.1, le_trans h.2 (max_le hz1 (by norm_num))⟩
+  have hot : ∀ τ ∈ Icc (0:ℝ) 1, -(3/5) ≤ φot q ρ τ ∧ φot q ρ τ ≤ 3/5 := by
+    intro τ hτ
+    have h := forcedSol_between 1 (ρ (Rv 5)) (φotF_cont q ρ) (lo := -(3/40)) (hi := 9/40)
+      (by norm_num) (fun s hs => by
+        obtain ⟨a0, a1⟩ := hz s hs
+        simp only [φotF]; constructor <;> linarith) τ hτ
+    simp only [div_one] at h
+    exact ⟨le_trans (le_min hot0 (by norm_num)) h.1, le_trans h.2 (max_le hot1 (by norm_num))⟩
+  have hth : ∀ τ ∈ Icc (0:ℝ) 1, -(3/5) ≤ φth q ρ τ ∧ φth q ρ τ ≤ 3/5 := by
+    intro τ hτ
+    have h := forcedSol_between 1 (ρ (Rv 4)) (φot_cont q ρ) (lo := -(3/5)) (hi := 3/5)
+      (by norm_num) (fun s hs => hot s hs) τ hτ
+    simp only [div_one] at h
+    exact ⟨le_trans (le_min hth0 le_rfl) h.1, le_trans h.2 (max_le hth1 le_rfl)⟩
+  have hph : ∀ τ ∈ Icc (0:ℝ) 1, -(1/2) ≤ φph q ρ τ ∧ φph q ρ τ ≤ 1/2 := by
+    intro τ hτ
+    have h := forcedSol_between 1 (ρ (Rv 8)) (φphF_cont q ρ) (lo := -(18/125)) (hi := 61/250)
+      (by norm_num) (fun s hs => by
+        obtain ⟨a0, a1⟩ := hv s hs
+        obtain ⟨b0, b1⟩ := hop s hs
+        obtain ⟨c0, c1⟩ := hps s hs
+        have hd0 : -(6/5) ≤ φop ρ s - φps ρ s := by linarith
+        have hd1 : φop ρ s - φps ρ s ≤ 6/5 := by linarith
+        have m1 : φv q ρ s * (φop ρ s - φps ρ s) ≤ φv q ρ s * (6/5) :=
+          mul_le_mul_of_nonneg_left hd1 a0
+        have m2 : φv q ρ s * (-(6/5)) ≤ φv q ρ s * (φop ρ s - φps ρ s) :=
+          mul_le_mul_of_nonneg_left hd0 a0
+        simp only [φphF]; constructor <;> nlinarith) τ hτ
+    simp only [div_one] at h
+    exact ⟨le_trans (le_min hph0 (by norm_num)) h.1, le_trans h.2 (max_le hph1 (by norm_num))⟩
+  have hs : 0 ≤ φs q ρ t := by
+    have h := mono_of_deriv_nonneg (fun τ => intSol_hasDerivAt (ρ (Rv 1)) (φsF_cont q ρ) τ)
+      (fun τ hτ => (odo_rate _ _ _ _ (hv τ hτ).1 (hv τ hτ).2 (hps τ hτ).1 (hps τ hτ).2
+        (hth τ hτ).1 (hth τ hτ).2 (hph τ hτ).1 (hph τ hτ).2).1) t ht
+    simp only [intSol_zero] at h
+    simp only [φs]; linarith
+  rw [sat_domRR]
+  simp only [trajRs_R, φR, Fin.isValue, Fin.zero_eta, Fin.mk_one, Fin.reduceFinMk, if_true,
+    Fin.reduceEq, if_false]
+  exact ⟨(hv t ht).1, (hv t ht).2, hs, (hps t ht).1, (hps t ht).2, (hop t ht).1, (hop t ht).2,
+    (hth t ht).1, (hth t ht).2, (hot t ht).1, (hot t ht).2, (hz t ht).1, (hz t ht).2, h70, h71,
+    (hph t ht).1, (hph t ht).2, h90, h91, h100, h101, h110, h111⟩
 
 theorem epsR_eq : epsR rover_ladder_8to12_IRv2 = 1 := by
   simp [epsR, rover_ladder_8to12_IRv2, gp_1_0]
 
-noncomputable def guardR (q : ℕ) : Formula (Var 12) := hostGuard vsF 12 Side.R (mRF q)
+noncomputable def guardR (q : ℕ) : Formula (Var 12) := hostGuard vsR 12 Side.R (mRR q)
 
-noncomputable def WF : LadderWF GrG guardR domRF where
-  m := modeF
-  fR := fRF
-  vcap := True
-  i0 := 0
-  i1 := 1
+noncomputable def WF : TerrainWF GrG guardR domRR where
+  m := modeR
+  fR := fRR
+  s1 := 60
+  s2 := 140
+  B := 8
+  B0 := by norm_num
+  band := by norm_num
+  vcap := False
+  is := 1
+  ic := 0
+  kc := 0
+  kc0 := le_rfl
+  cap := fun _ => 0
+  cap01 := le_rfl
+  cap12 := le_rfl
   modeAt := GrG_modeAt
   len := rfl
   sys_eq := fun _ _ => rfl
   dom_eq := fun _ _ => rfl
-  fv := fun q hq s => by rw [fRF0_eval q hq, cstF_eq]
+  fc := fun h => h.elim
   fs := fun q hq s hs => by
-    have h0 : 0 ≤ s (Rv 0) := by rw [sat_domRF] at hs; tauto
-    have h1 : s (Rv 0) ≤ 4/5 := by rw [sat_domRF] at hs; tauto
-    have ha0 : -(3:ℝ)/5 ≤ s (Rv 2) := by rw [sat_domRF] at hs; tauto
-    have ha1 : s (Rv 2) ≤ (3:ℝ)/5 := by rw [sat_domRF] at hs; tauto
-    have hb0 : -(3:ℝ)/5 ≤ s (Rv 4) := by rw [sat_domRF] at hs; tauto
-    have hb1 : s (Rv 4) ≤ (3:ℝ)/5 := by rw [sat_domRF] at hs; tauto
-    have hc0 : -(1:ℝ)/2 ≤ s (Rv 8) := by rw [sat_domRF] at hs; tauto
-    have hc1 : s (Rv 8) ≤ (3:ℝ)/20 := by rw [sat_domRF] at hs; tauto
-    rw [fRF1_eval q hq]
-    exact odo_rate3 _ _ _ _ h0 h1 (by linarith) (by linarith) (by linarith) (by linarith)
-      (by linarith) (by linarith)
-  g0 := fun x => by rw [guardR, sat_guardR0]; simp [and_assoc]
-  g1 := fun x => by rw [guardR, sat_guardR1]; simp [and_assoc]
+    obtain ⟨h0, h1, _, h2l, h2h, _, _, h4l, h4h, _, _, _, _, _, _, h8l, h8h, _⟩ :=
+      (sat_domRR s).mp hs
+    rw [fRR1_eval q hq]; exact odo_rate _ _ _ _ h0 h1 h2l h2h h4l h4h h8l h8h
+  g0 := fun x => by rw [guardR, sat_guardR0]; simp
+  g1 := fun x => by rw [guardR, sat_guardR1]; simp
   g2 := fun x => by rw [guardR, sat_guardR2]; simp
   e00 := edgeG 0 0
   e01 := edgeG 0 1
   e11 := edgeG 1 1
   e12 := edgeG 1 2
   e22 := edgeG 2 2
-  e00_mem := List.mem_filter.mpr ⟨by simp [GrG], by simp [edgeG]⟩
-  e01_mem := List.mem_filter.mpr ⟨by simp [GrG], by simp [edgeG]⟩
-  e11_mem := List.mem_filter.mpr ⟨by simp [GrG], by simp [edgeG]⟩
-  e12_mem := List.mem_filter.mpr ⟨by simp [GrG], by simp [edgeG]⟩
-  e22_mem := List.mem_filter.mpr ⟨by simp [GrG], by simp [edgeG]⟩
+  e00_mem := edgeG_mem 0 0 (by simp [GrG])
+  e01_mem := edgeG_mem 0 1 (by simp [GrG])
+  e11_mem := edgeG_mem 1 1 (by simp [GrG])
+  e12_mem := edgeG_mem 1 2 (by simp [GrG])
+  e22_mem := edgeG_mem 2 2 (by simp [GrG])
   e00_tgt := rfl
   e01_tgt := rfl
   e11_tgt := rfl
   e12_tgt := rfl
   e22_tgt := rfl
-  exists_run := LR.exists_run GrG_modeAt
+  exists_run := fun q hq x hx =>
+    ⟨_, trajRs_sol x (φR q x) 1 (by norm_num) (φR_zero q x) (fun i t _ _ => φR_der q hq x i t)
+      (fun t h0 h1 => φR_dom q hq x hx t ⟨h0, h1⟩)⟩
 
 /-- **Assumption 1 for `rover_ladder_8to12`**, every mode, Z3-free. -/
 theorem rover_ladder_8to12_wellFormedR :
     WellFormedR GrG guardR (epsR rover_ladder_8to12_IRv2) := by
-  rw [epsR_eq]; exact wellFormedR_ladder WF
+  rw [epsR_eq]; exact wellFormedR_terrain WF
 
 end RoverLadder8to12Guarded
 

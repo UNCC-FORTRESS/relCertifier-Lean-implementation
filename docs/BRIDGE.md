@@ -65,10 +65,12 @@ Axioms of `theorem3_keyed_of_records` and `theorem3_window_of_records`: `propext
 `relcert-bridge-verdicts` issues exactly `bridgeGroups` per benchmark at the bridge dimension
 and reports the group count against the declared total (`expectedBridgeGroupsV2`).
 
-Run on the regenerated records: **4350 groups over the 52 suite benchmarks and the 2 choice
-exhibits, all discharged** (suite alone 4214: 3162 over the 48 designed benchmarks, 35 + 130 + 77 + 810
-over `drl_car_stop`, `drl_lane_control`, `vehicle_hypercert`, `freedm_meter`; 2026-10-27, after four
-benchmarks moved to `benchmarks/reserve/`, four were redesigned and four installed; 4350 over 50 + 2 before; the first run before the progress
+Run on the regenerated records: **3595 groups over the 42 suite benchmarks and the 2 choice
+exhibits, all discharged** (suite alone 3459: 2407 over the 38 designed benchmarks, 35 + 130 + 77 + 810
+over `drl_car_stop`, `drl_lane_control`, `vehicle_hypercert`, `freedm_meter`; 2026-10-27, batch I3:
+ten rover files left the suite and five were reinstalled on the canonical rover hierarchy; 4350
+over 52 + 2 after batch I2, and 4350 over 50 + 2 before it (four benchmarks to the reserve, four
+redesigned, four installed); the first run before the progress
 gate, 3657/3657 over 46 + 3).
 
 ## 4. Coverage
@@ -94,8 +96,8 @@ gate, 3657/3657 over 46 + 3).
   2026-10-27 from the hand-written general instance `ChoiceVehicleHypercert.wellFormedR` at
   dimension 2, whose Theorem-3 part was retired on 2026-10-21, git 61d7389).
 
-* **52 of 52 suite benchmarks** are instantiated (`InstancesV2/Bridge/`): 43 in the window form,
-  9 in the mode-keyed form; plus the 2 choice exhibits (54 instances), all with the
+* **42 of 42 suite benchmarks** are instantiated (`InstancesV2/Bridge/`): 33 in the window form,
+  9 in the mode-keyed form; plus the 2 choice exhibits (44 instances), all with the
   unconditional Assumption 1. Every `*_bridge` theorem depends on exactly `propext`,
   `Classical.choice`, `Quot.sound`, `z3_unsat_sound`.
 * **Assumption 1 is unconditional for every instance (`R = ⊤`).** The chain

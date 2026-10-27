@@ -57,8 +57,21 @@
 > `watertank_twospeed` (8), no witness (8 each before, none). Batch I2 new files:
 > `bms_chiller_undercharge` (8 mutants), `canal_gate_notches` (8) and `turbine_startup_gearratio`
 > (3), no witness.
-> Current instance set: **114 refutations, 313 groups**
-> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 905 mutants in
+> Batch I3 (2026-10-27, the rover hierarchy): the ten rover files that left the suite took their 20
+> refutations and 190 witness lines with them (`rover_lateral_6to8` 6, `rover_lateral_8to12` 7,
+> `rover_rollover_6to12` 1, `rover_rollover_6to7` 6; the other six had no witness). The five
+> reinstalled files re-ran the finder (`--only`, their records replaced in place):
+> `rover_ladder_2to3` (7 mutants), `rover_ladder_3to6` (10) and `rover_patrol_lag` (10), no
+> witness; `rover_ladder_6to8` (22 mutants; m006 and m009 new) and `rover_ladder_8to12` (27; m005,
+> m006, m008, m009, m010, m019 and m026 new), all kind B: a coordinate of a requirement row moved
+> to the other side (`L_omega_psi -> R_omega_psi` and the like; in m026 the plan row's `R_theta_p
+> -> L_theta_p`) or a rate row deleted; each DECLINED by relcert (`rover_ladder_8to12_m005` exceeds
+> the default 40 s budget, ERROR, and DECLINES in 45 s with `RELCERT_TIME_BUDGET_MS=280000`). The
+> two 6to8 mutant inputs carry the suite file's header as of the finder run (minutes before the
+> header's scratch path was removed); their non-comment lines equal the current file's mutants
+> (`gen_refute.py` checks this).
+> Current instance set: **103 refutations, 280 groups**
+> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 733 mutants in
 > `docs/refute/witnesses.jsonl`. The operator table has not been recomputed.
 
 Design: `docs/REFUTATION-SCOPE.md` (planning record, last present at commit 29663d8). This file reports what was built and the experiment.

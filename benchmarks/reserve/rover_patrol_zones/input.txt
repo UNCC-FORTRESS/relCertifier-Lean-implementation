@@ -1,0 +1,114 @@
+# RESERVE (benchmarks/reserve/, 2026-10-27): not in suite_v2, not in the paper, no Lean integration.
+# Reason: its letters come only from a stretch the claim does not need: it certifies at real time
+# (RELCERT_SYNC=1) with no letter. The header below is the design's.
+#
+# rover_patrol_zones: patrol rover with a worn drivetrain against the nominal rover, both driven by
+# the same zone planner.
+# scenario: degraded-actuator
+# mechanisms: M B (multi-step covers; branching joint steps into either MEDIUM profile; matrix codes
+#   M1 M2 M3; RELCERT_SYNC=1 still CERTIFIES, so the 5/4 stretch of the MEDIUM_BRISK cover is not
+#   load-bearing: no S)
+#
+# The rover (both sides). Speed v (m/s), odometer s (m), time in s. Top speed of the drive 1.6 m/s
+# (motor no-load speed at the wheel): the domain v in [0, 1.6], s >= 0 (the odometer counts up from
+# the depot, no upper wall). Each zone runs the speed loop v' = k (c - v) toward the zone command c,
+# loop gain k = 1 /s.
+# The planner (both sides, identical: same modes, guards, successor lists, 1 s decision period =
+# epsilon on both sides). Zones are keyed to the odometer, commands from the route's speed plan:
+#   SLOW          0 <= s < 20    c = 0.6 m/s  (depot yard speed limit)
+#   MEDIUM_ECO   20 <= s < 50    c = 0.9 m/s  } profile chosen by the mission controller
+#   MEDIUM_BRISK 20 <= s < 50    c = 1.1 m/s  } (energy reserve / schedule); it may switch
+#                                               ECO <-> BRISK at any decision instant in MEDIUM
+#   FAST         s >= 50         c = 1.5 m/s  (open track; sink)
+# Successors: SLOW -> SLOW, MEDIUM_ECO, MEDIUM_BRISK; MEDIUM_x -> MEDIUM_ECO, MEDIUM_BRISK, FAST;
+# FAST -> FAST. The guards are the odometer ranges only: they partition s >= 0, so every right
+# domain state is in exactly one zone's guard (both MEDIUM profiles share theirs), and the domain is
+# forward invariant under every loop (v' > 0 at v = 0, v' < 0 at v = 1.6 since every c <= 1.5).
+# The one cause. The deployed rover (left) has a worn drivetrain: an extra rolling resistance 0.25 v,
+# v' = (c - v) - 0.25 v = 1.25 (0.8 c - v): it settles at 80 % of the command. The reference (right)
+# is the nominal rover. Nothing else differs.
+# Round-2 changes: the reference now has the same ECO <-> BRISK edges as the deployed (round 1: only
+# the deployed could switch, a second cause); the reference's STALL latch (right only, v < 0.2,
+# unreachable from every zone: all four STALL edges were pruned, pruning not load-bearing) is
+# removed, so both sides run the same planner; the speed bands of the guards (0.3 m/s floor up to the
+# zone command, which left v in [0.2, 0.3) and v above the command in no right guard) are replaced by
+# the odometer ranges; the deployed window is 1 s like the reference's (was 2 s).
+#
+# Property (the same rows in every left mode, the requirement values, no tuning):
+#   (1) s_L <= s_R: the dispatcher schedules the patrol on the nominal rover's timetable, so the worn
+#       rover must never be ahead of it (it may only be late).
+#   (2) v_L <= v_R: the zone speed limits are certified on the nominal rover; the worn rover must never
+#       drive faster than the nominal one does.
+# Both rows are needed: (1) alone and (2) alone each DECLINE. Both are at the limit: v_L <= v_R + 0.01
+# and s_L <= s_R + 0.01 DECLINE (a worn rover allowed to start ahead or faster may lead the reference
+# into a zone it has not reached); every negative offset of (1) tried down to -5 m certifies, (2)
+# certifies down to -0.12 (negative offsets only shrink the starts). Every left mode has a
+# satisfiable start (v_R = v_L, s_R = s_L in its zone).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED; CERTIFIED under RELCERT_SYNC=1,
+# RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1,
+# RELCERT_NO_LINEAR_CUT=1, without RELCERT_IMPLIED_CUT, RELCERT_OPREGION=1, RELCERT_NO_REPO=1 and
+# RELCERT_WELLFORMED_STRICT=1; DECLINED only under RELCERT_SYNC=1 with RELCERT_NO_CHOICE=1.
+# Covers (measured): SLOW, MEDIUM_ECO, FAST at lambda 1, budget 1; MEDIUM_BRISK at lambda 5/4,
+# budget 2, a joint step whose retained successors (both MEDIUM profiles, FAST) cover, branch 2.
+# Admissible right starts: SLOW_L every zone; MEDIUM_x_L both MEDIUM profiles and FAST; FAST_L FAST.
+# No right-only segment, nothing pruned (no fallback declared). Rows identical (--handoff 10/10
+# vacuous). relcert --wellformed: SLOW ok (exit->MEDIUM_BRISK), MEDIUM_ECO and MEDIUM_BRISK ok
+# (exit->FAST), FAST ok (invariant); 0 UNKNOWN. Modes 4 / 4 (right was 5 with STALL).
+[problem]
+name = rover_patrol_zones
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 4.0
+[Lsys]
+state_vars = [v, s]
+epsilon = 1.0
+[Lsys.mode.SLOW]
+ode = v' = smt2:(* 1.25 (- 0.48 v)); s' = v;
+guard = s >= 0.0 and s < 20.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0
+next = [SLOW, MEDIUM_ECO, MEDIUM_BRISK]
+[Lsys.mode.MEDIUM_ECO]
+ode = v' = smt2:(* 1.25 (- 0.72 v)); s' = v;
+guard = s >= 20.0 and s < 50.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0
+next = [MEDIUM_ECO, MEDIUM_BRISK, FAST]
+[Lsys.mode.MEDIUM_BRISK]
+ode = v' = smt2:(* 1.25 (- 0.88 v)); s' = v;
+guard = s >= 20.0 and s < 50.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0
+next = [MEDIUM_BRISK, MEDIUM_ECO, FAST]
+[Lsys.mode.FAST]
+ode = v' = smt2:(* 1.25 (- 1.20 v)); s' = v;
+guard = s >= 50.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0
+next = [FAST]
+[Rsys]
+state_vars = [v, s]
+epsilon = 1.0
+[Rsys.mode.SLOW]
+ode = v' = smt2:(- 0.6 v); s' = v;
+guard = s >= 0.0 and s < 20.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0
+next = [SLOW, MEDIUM_ECO, MEDIUM_BRISK]
+[Rsys.mode.MEDIUM_ECO]
+ode = v' = smt2:(- 0.9 v); s' = v;
+guard = s >= 20.0 and s < 50.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0
+next = [MEDIUM_ECO, MEDIUM_BRISK, FAST]
+[Rsys.mode.MEDIUM_BRISK]
+ode = v' = smt2:(- 1.1 v); s' = v;
+guard = s >= 20.0 and s < 50.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0
+next = [MEDIUM_BRISK, MEDIUM_ECO, FAST]
+[Rsys.mode.FAST]
+ode = v' = smt2:(- 1.5 v); s' = v;
+guard = s >= 50.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0
+next = [FAST]
+[relational_invariant]
+SLOW         = smt2:(and (<= L_s R_s) (<= L_v R_v))
+MEDIUM_ECO   = smt2:(and (<= L_s R_s) (<= L_v R_v))
+MEDIUM_BRISK = smt2:(and (<= L_s R_s) (<= L_v R_v))
+FAST         = smt2:(and (<= L_s R_s) (<= L_v R_v))

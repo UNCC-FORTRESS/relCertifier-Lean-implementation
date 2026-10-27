@@ -21,21 +21,11 @@ import RelCertifier.InstancesV2.Cuts.platoon_profiles
 import RelCertifier.InstancesV2.Cuts.quad_light_airframe_20
 import RelCertifier.InstancesV2.Cuts.quad_light_lag
 import RelCertifier.InstancesV2.Cuts.quad_light_profiles
-import RelCertifier.InstancesV2.Cuts.rover_attitude_6to8
-import RelCertifier.InstancesV2.Cuts.rover_attitude_8to12
 import RelCertifier.InstancesV2.Cuts.rover_ladder_2to3
-import RelCertifier.InstancesV2.Cuts.rover_ladder_2to4
-import RelCertifier.InstancesV2.Cuts.rover_ladder_2to6
 import RelCertifier.InstancesV2.Cuts.rover_ladder_3to6
 import RelCertifier.InstancesV2.Cuts.rover_ladder_6to8
 import RelCertifier.InstancesV2.Cuts.rover_ladder_8to12
-import RelCertifier.InstancesV2.Cuts.rover_lateral_6to8
-import RelCertifier.InstancesV2.Cuts.rover_lateral_8to12
 import RelCertifier.InstancesV2.Cuts.rover_patrol_lag
-import RelCertifier.InstancesV2.Cuts.rover_patrol_zones
-import RelCertifier.InstancesV2.Cuts.rover_rollover_6to12
-import RelCertifier.InstancesV2.Cuts.rover_rollover_6to7
-import RelCertifier.InstancesV2.Cuts.rover_rollover_7to12
 import RelCertifier.InstancesV2.Cuts.rover_terrain_2to4
 import RelCertifier.InstancesV2.Cuts.rover_terrain_4to6
 import RelCertifier.InstancesV2.Cuts.rover_terrain_6to12
@@ -77,21 +67,11 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("quad_light_airframe_20", quad_light_airframe_20_cutsV2, quad_light_airframe_20_cutsV2X),
   ("quad_light_lag", quad_light_lag_cutsV2, quad_light_lag_cutsV2X),
   ("quad_light_profiles", quad_light_profiles_cutsV2, quad_light_profiles_cutsV2X),
-  ("rover_attitude_6to8", rover_attitude_6to8_cutsV2, rover_attitude_6to8_cutsV2X),
-  ("rover_attitude_8to12", rover_attitude_8to12_cutsV2, rover_attitude_8to12_cutsV2X),
   ("rover_ladder_2to3", rover_ladder_2to3_cutsV2, rover_ladder_2to3_cutsV2X),
-  ("rover_ladder_2to4", rover_ladder_2to4_cutsV2, rover_ladder_2to4_cutsV2X),
-  ("rover_ladder_2to6", rover_ladder_2to6_cutsV2, rover_ladder_2to6_cutsV2X),
   ("rover_ladder_3to6", rover_ladder_3to6_cutsV2, rover_ladder_3to6_cutsV2X),
   ("rover_ladder_6to8", rover_ladder_6to8_cutsV2, rover_ladder_6to8_cutsV2X),
   ("rover_ladder_8to12", rover_ladder_8to12_cutsV2, rover_ladder_8to12_cutsV2X),
-  ("rover_lateral_6to8", rover_lateral_6to8_cutsV2, rover_lateral_6to8_cutsV2X),
-  ("rover_lateral_8to12", rover_lateral_8to12_cutsV2, rover_lateral_8to12_cutsV2X),
   ("rover_patrol_lag", rover_patrol_lag_cutsV2, rover_patrol_lag_cutsV2X),
-  ("rover_patrol_zones", rover_patrol_zones_cutsV2, rover_patrol_zones_cutsV2X),
-  ("rover_rollover_6to12", rover_rollover_6to12_cutsV2, rover_rollover_6to12_cutsV2X),
-  ("rover_rollover_6to7", rover_rollover_6to7_cutsV2, rover_rollover_6to7_cutsV2X),
-  ("rover_rollover_7to12", rover_rollover_7to12_cutsV2, rover_rollover_7to12_cutsV2X),
   ("rover_terrain_2to4", rover_terrain_2to4_cutsV2, rover_terrain_2to4_cutsV2X),
   ("rover_terrain_4to6", rover_terrain_4to6_cutsV2, rover_terrain_4to6_cutsV2X),
   ("rover_terrain_6to12", rover_terrain_6to12_cutsV2, rover_terrain_6to12_cutsV2X),

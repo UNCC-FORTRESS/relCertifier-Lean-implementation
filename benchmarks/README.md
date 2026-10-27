@@ -2,18 +2,18 @@
 
 `suite_v2/<name>/input.txt` is the complete specification of one benchmark: the left
 (ideal) and right (implementation) hybrid automata, the relational invariant (one row per
-left mode) and the time-stretch range. **52 benchmarks.** With the widened cut channel on
-(`RELCERT_IMPLIED_CUT=1`, as every suite_v2 run sets it) the tool CERTIFIES all 52, and
+left mode) and the time-stretch range. **42 benchmarks.** With the widened cut channel on
+(`RELCERT_IMPLIED_CUT=1`, as every suite_v2 run sets it) the tool CERTIFIES all 42, and
 every one carries a kernel-checked Theorem 3 (the paper's Soundness of Synthesis) with the paper's left program over the
 guard-gated right automaton, at the mode-consistent region (`RelCertifier/InstancesV2/Bridge/`;
-check recipe: `docs/CERTIFICATION-CHECK.md`). Without the widened channel 7 of them
+check recipe: `docs/CERTIFICATION-CHECK.md`). Without the widened channel 6 of them
 DECLINE (the rows marked *widened cuts* below). Near-duplicates and weak benchmarks are kept
 outside the suite in `benchmarks/reserve/` (inputs, headers and verdicts only; `reserve/README.md`).
 
 **Assumption 1 of each right model** (the paper's Well-Formedness: from every guard state a
 full control interval of flow exists, and every evolution of at most `ε_r` ends in a declared
 successor's guard) is verified per file (`WellFormedR`, `docs/WELLFORMED.md`): it holds for
-all 52 literally (the 6 satellite files carry their conserved momentum band in the right evolve
+all 42 literally (the 6 satellite files carry their conserved momentum band in the right evolve
 domain since 2026-10-15).
 Nine files had a blocking mode until 2026-10-10 and were repaired (`docs/SUITE-REDESIGN.md`
 §21; each header says how and why; `arm_plateau_profiles` and `platoon3_{linkloss,profiles}`
@@ -27,7 +27,7 @@ an invariant guard) and `quad_light_{airframe_20,profiles}` (the sink `LIMIT`: i
 the climb controller, whose operating range reached the limiter threshold; both were redesigned
 on 2026-10-27 with the altitude coordinate and no limiter mode).
 `relcert --wellformed <input.txt>…` runs the tool's sufficient check per right mode (every one
-of the 177 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN` or `BLOCKING`.
+of the 145 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN` or `BLOCKING`.
 
 The suite's design, the per-family rationale, the domain audit (every evolve bound is a
 physical limit of the plant; `scripts/domain_widening.py` re-runs the tool with every bound
@@ -124,6 +124,28 @@ never in the suite: the bound is the no-FFR worst case and does not depend on th
 | `match_multi_rate` | `gantry_speed_zones` (both models new: a pick-and-place gantry whose production program runs zone-scheduled speed overrides, against the program as commissioned at reduced speed; 10 mm path tolerance; replaces the synthetic unitless rate-ratio exhibit in the same multi-cycle matching role) |
 | `platoon_delay_profiles` | `platoon_profiles` (redesigned: the CACC follower driven in the SPORT profile, a shorter time gap, against the design follower verified in NORMAL; its right model is `platoon_linkloss`'s, Assumption 1 through the shared `PlatoonCaccAeb` lemmas) |
 
+## Retired 2026-10-27: the rover hierarchy (batch I3)
+
+The rover files now follow one canonical hierarchy (a four-wheel UGV on one route, zones `STEEP`
+/ `MODER` / `FLAT` at 60 m and 140 m, set points 3 / 5 / 6.5 m/s; levels L2, L3, L6, L8, L12, each
+right model the coarser level with the finer level's extra coordinates pinned). The four ladder
+rungs `rover_ladder_2to3`, `rover_ladder_3to6`, `rover_ladder_6to8`, `rover_ladder_8to12` were
+reinstalled on its models (new left and right models) and carry the requirements of the
+dynamics each step adds, including the rollover (LTR) and lane rows of the former rollover and
+lateral files with the same model pair; `rover_patrol_lag` was reinstalled (the rover with its
+motor lag against the first-order planning model, the same zone planner on both sides). The
+terrain chain is unchanged.
+
+Left the suite (suite 52 -> 42): `rover_rollover_6to7`, `rover_rollover_7to12`,
+`rover_rollover_6to12`, `rover_lateral_6to8`, `rover_lateral_8to12`, `rover_attitude_6to8`,
+`rover_attitude_8to12`, `rover_ladder_2to4`, `rover_ladder_2to6`, `rover_patrol_zones`. Inputs,
+Lean leaves, Assumption 1 proofs, bridge instances and refutations are in git history (last at
+commit 14e0405). Kept in `benchmarks/reserve/` as round-2 / round-A designs (one line of reason
+each in `reserve/README.md`): `rover_rollover_6to8`, `rover_rollover_8to12` (the round-2 names of
+`rover_rollover_6to7`, `rover_rollover_7to12`) and `rover_lateral_8to12` (the same model pair and
+cause as a ladder rung; their rows are folded into it), and `rover_patrol_zones` (its letters
+come only from a stretch the claim does not need). The others are retired (history only).
+
 ## Renamed 2026-10-26: the terrain chain
 
 The three terrain files were redesigned as one chain that refines terrain physics (soil, drive
@@ -139,6 +161,11 @@ are new; two names changed with their steps (the retired `rover_terrain_2to3` is
 | `rover_terrain_6to12` | unchanged name (+ heave rate, bank grade, chassis pitch, acceleration, squat) |
 
 ## The 15 carried-over benchmarks
+
+Since 2026-10-27 (batch I3, "Retired 2026-10-27" above) none of these files is in the suite in
+its carried-over form: the ladder rungs were reinstalled on the canonical rover hierarchy, the
+terrain rungs had been redesigned as the terrain chain, and the attitude, lateral and rollover
+files left the suite. The rest of this section is their history.
 
 Fifteen files (the rover refinement ladder, the rover terrain rungs, and the attitude, lateral
 and rollover benchmarks except `rover_rollover_7to12`) come from files of the retired legacy
@@ -205,17 +232,14 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `quad_light_airframe_20` | 2 / 2 | 1 / 1 | model-refinement | redesigned 2026-10-27: altitude coordinate, rows from the 0.8 m altitude acceptance radius, the time scaling fixed to 6/5 (`lambda_min = lambda_max = 1.2`) |
 | `quad_light_lag` | 3 / 3 | 1 / 1 | model-refinement | redesigned 2026-10-27: altitude coordinate, rows from the 0.8 m altitude acceptance radius |
 | `quad_light_profiles` | 2 / 2 | 1 / 3 | model-refinement | redesigned 2026-10-27: altitude coordinate, real-time conformance to the reference's SPORT profile (lambda 1); mode choice |
-| `rover_ladder_2to3` | 3 / 2 | 3 / 3 | model-refinement | rewritten 2026-10-26: right speed caps dropped, s offset 0 |
-| `rover_ladder_3to6` | 6 / 6 | 3 / 3 | model-refinement | rewritten 2026-10-26: right pitch pinned, heave/roll roles |
-| `rover_ladder_2to4` | 4 / 4 | 3 / 3 | model-refinement | rewritten 2026-10-26: lambda_min 1.0, offset 0 |
-| `rover_ladder_2to6` | 6 / 6 | 3 / 3 | model-refinement | rewritten 2026-10-26: heave/roll roles, lambda_min 1.0, offset 0 |
-| `rover_ladder_6to8` | 8 / 8 | 3 / 3 | model-refinement | rewritten 2026-10-26: v, s rows, offset 0 |
-| `rover_ladder_8to12` | 12 / 12 | 3 / 3 | model-refinement | rewritten 2026-10-26: right y pinned, cascade-chart left |
+| `rover_ladder_2to3` | 3 / 3 | 3 / 3 | model-refinement | reinstalled 2026-10-27 on the canonical rover hierarchy (L3 / L2): clearance and heading rows, lambda 1 |
+| `rover_ladder_3to6` | 6 / 6 | 3 / 3 | model-refinement | reinstalled 2026-10-27 (L6 / L3): clearance, heading and pitch rows, lambda 1 |
+| `rover_ladder_6to8` | 8 / 8 | 3 / 3 | model-refinement | reinstalled 2026-10-27 (L8 / L6): + roll and rollover (LTR) rows; lambda [1, 1.25] from the timetable tolerance (S M I from the re-timed claim form, header) |
+| `rover_ladder_8to12` | 12 / 12 | 3 / 3 | model-refinement | reinstalled 2026-10-27 (L12 / L8): heading, roll, rollover (LTR) and lane rows; lambda [1, 1.25] (S M I from the re-timed claim form, header) |
 | `rover_terrain_2to4` | 4 / 4 | 3 / 3 | model-refinement | redesigned 2026-10-26 (was `rover_terrain_3to6`): terrain chain, wheel slip and sinkage; zone-only right plan |
 | `rover_terrain_4to6` | 6 / 6 | 3 / 3 | model-refinement | redesigned 2026-10-26 (was `rover_terrain_6to8`): terrain chain, drive lag and roughness heave; right cap `w <= c_T` |
 | `rover_terrain_6to12` | 12 / 12 | 3 / 3 | model-refinement | redesigned 2026-10-26: terrain chain, heave rate, bank grade, pitch, acceleration, squat; right cap `u <= c_T` |
-| `rover_patrol_lag` | 3 / 3 | 4 / 4 | degraded-actuator | redesigned 2026-10-26: same lag both sides |
-| `rover_patrol_zones` | 2 / 2 | 4 / 5 | degraded-actuator | uniform rows (2026-10-26) |
+| `rover_patrol_lag` | 3 / 2 | 4 / 4 | model-refinement | reinstalled 2026-10-27: the rover with its motor lag against the first-order planning model; lead bound as an order property up to a 3/2 re-timing (S M R B from the claim form, header) |
 | `sat3w_detumble_nominal` | 6 / 6 | 1 / 2 | model-refinement | nonblocking region |
 | `sat3w_detumble_phases` | 6 / 6 | 2 / 2 | model-refinement | mode-keyed, nonblocking region |
 | `sat3w_detumble_weak` | 6 / 6 | 1 / 4 | degraded-actuator | nonblocking region |
@@ -225,13 +249,6 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `tank_dos_3to1` | 2 / 2 | 4 / 4 | dos-attack | redesigned 2026-10-27: a demand-paced four-pump station, the same staging law on both sides, the DoS holds the staging decision for up to three polls |
 | `train_ato_odometry` | 1 / 1 | 3 / 3 | degraded-sensor | new 2026-10-27: stretches per pairing from 31/40 to 6/5 (`lambda_min = 0.75`) |
 | `turbine_startup_gearratio` | 1 / 1 | 4 / 4 | degraded-controller | new 2026-10-27: widened cuts; right-only repositioning, pruned parking edges (the letters R P I come from the one-sided claim form, header) |
-| `rover_attitude_6to8` | 8 / 8 | 3 / 3 | model-refinement | rewritten 2026-10-26: one attitude row in every mode |
-| `rover_attitude_8to12` | 12 / 12 | 3 / 3 | model-refinement | rewritten 2026-10-26: right y pinned, cascade-chart left |
-| `rover_lateral_6to8` | 8 / 8 | 3 / 3 | model-refinement | carried over; right lateral pair frozen (2026-10-26) |
-| `rover_lateral_8to12` | 12 / 12 | 3 / 3 | model-refinement | rewritten 2026-10-26: slip enters the lateral dynamics |
-| `rover_rollover_6to12` | 12 / 12 | 3 / 3 | model-refinement | carried over; left domain audit, s offset 0 (2026-10-26) |
-| `rover_rollover_6to7` | 12 / 12 | 3 / 3 | model-refinement | carried over; rollover rows of 6to12, s offset 0 (2026-10-26) |
-| `rover_rollover_7to12` | 12 / 12 | 3 / 3 | model-refinement | widened cuts; rollover, speed and progress rows added (2026-10-26) |
 | `vehicle_hypercert` | 2 / 2 | 5 / 5 | opacity | literature (HyperCertificates), mode choice; position coordinate and start-offset row (2026-10-27) |
 | `watertank` | 1 / 1 | 3 / 5 | sensor-attack | the paper's running example |
 | `watertank_twospeed` | 1 / 1 | 3 / 6 | sensor-attack | redesigned 2026-10-27: six right modes (two-speed low fill, eco/boost mid fill, high, pump off), one uniform claim; per-pairing stretch, pruned `Fast -> PumpOff` |

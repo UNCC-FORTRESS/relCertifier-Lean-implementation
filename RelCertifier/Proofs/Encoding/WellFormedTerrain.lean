@@ -10,7 +10,9 @@ The right models of the terrain chain (`rover_terrain_2to4`, `rover_terrain_4to6
 contraction coordinate `x_c' = k (c_q − x_c)` (the wheel-speed command `w` in `4to6`, the
 motor torque state `u` in `6to12`), the odometer rate `s'` between `0` and `B` on the evolve
 domain, the declared successors `MUD → {GRAVEL, MUD}`, `GRAVEL → {PAVED, GRAVEL}`,
-`PAVED → {PAVED}`, and `ε_r = 1`.
+`PAVED → {PAVED}`, and `ε_r = 1`. Since 2026-10-27 the four rover ladder rungs
+(`rover_ladder_2to3`, `_3to6`, `_6to8`, `_8to12`: zones `STEEP`, `MODER`, `FLAT` with bands
+`[0, 60)`, `[60, 140)`, `[140, ∞)`, no cap, `B = 8`) share the same shape and use it too.
 
 `wellFormedR_terrain`: from the band facts and the existence of runs, `WellFormedR`.
 Clause (ii) per band: the capped coordinate stays between its start and the set point (so

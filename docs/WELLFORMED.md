@@ -1,8 +1,8 @@
 # Assumption 1, verified per benchmark (`WellFormedR`)
 
 **Status (2026-10-15, branch `theorem3-general`).** The paper's Assumption 1
-(Well-Formedness) is a separately stated, kernel-checked model fact for every one of the 52
-suite_v2 benchmarks (2026-10-27: four moved to `benchmarks/reserve/`, below): **proved for all 52**, **false for none** (the four literature benchmarks
+(Well-Formedness) is a separately stated, kernel-checked model fact for every one of the 42
+suite_v2 benchmarks (2026-10-27: four moved to `benchmarks/reserve/`, below): **proved for all 42**, **false for none** (the four literature benchmarks
 of 2026-10-15 included; the two dRL ones and `freedm_meter` are proved directly over the bridge's automaton,
 `<b>_wellFormedR_direct`, with explicit polynomial runs, `trajRs_sol`). The six satellites are proved
 literally since 2026-10-15, when their conserved momentum band entered the right evolve
@@ -11,7 +11,7 @@ blocking states); those nine were repaired (`docs/SUITE-REDESIGN.md` §21: the f
 re-engage or are latched with an invariant guard, the arm planner's successor sets name every
 band a sampled interval can reach) and are now proved. No proof uses Z3. The tool's sufficient
 check of both clauses (`relcert --wellformed`; the nonblocking clause since 2026-10-26, before
-which only the successor clause was checked) finds every one of the 177 right modes `ok`, and
+which only the successor clause was checked) finds every one of the 145 right modes `ok`, and
 `--check-quick-v2` runs it STRICT, against declared counts (§4). The generic-bridge
 instances (`InstancesV2/Bridge/`, the paper's route to
 Theorem 3) take it as a hypothesis: `theorem3_keyed_of_records`
@@ -84,9 +84,12 @@ instances' viability route with the left held still and a time rescaling
 (`exists_of_HExistSegB_zero`, `ODESol.reparam`), and the refutation lemmas
 (`not_wellFormedR_of_run`: one explicit run that ends outside every successor guard;
 `not_wellFormedR_of_noRun`: no run of duration `ε`). `WellFormedLadder.lean`: one theorem
-(`wellFormedR_ladder`) for the terrain ladders. `WellFormedTerrain.lean` (2026-10-26): one theorem
+(`wellFormedR_ladder`) for the terrain ladders at the old scale (no suite benchmark uses it since
+2026-10-27). `WellFormedTerrain.lean` (2026-10-26): one theorem
 (`wellFormedR_terrain`) for the terrain chain (`MUD`, `GRAVEL`, `PAVED` odometer bands `[0, 5)`,
-`[5, 12)`, `[12, ∞)`, an optional cap `x_c ≤ c_T` kept by a contraction), and the explicit runs of
+`[5, 12)`, `[12, ∞)`, an optional cap `x_c ≤ c_T` kept by a contraction) and, since 2026-10-27,
+the four ladder rungs (`STEEP`, `MODER`, `FLAT` at `[0, 60)`, `[60, 140)`, `[140, ∞)`, no cap),
+and the explicit runs of
 affine cascades (`forcedSol`: `y' = F t − k y` by variation of constants; `intSol`) with their
 comparison bounds (`forcedSol_between`, `mono_of_deriv_nonneg`). `InstancesV2/WellFormed/Platoon3Link.lean`:
 the operating range of a platoon link is kept by the reference's own flow
@@ -108,7 +111,7 @@ Theorems: `<ns>.<bench>_wellFormedR` (proved; for the nine repaired models also 
 per-mode theorems `…_brake`, `…_limit`, `…_mode`), for the detumble family also
 `<ns>.<bench>_band_invariant` (the band is kept by every mode's flow; the predicate itself is
 unconditional since the momentum band `|h_i + J_i w_i| ≤ 2` entered the right evolve domains,
-2026-10-15). Files: `InstancesV2/WellFormed/<B>.lean` (50, each
+2026-10-15). Files: `InstancesV2/WellFormed/<B>.lean` (43, each
 self-contained: right model and proof; the 19 carried-over ones moved in from `Instances/WellFormed/`
 on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 `relcert --wellformed` (§4). Z3 leaves: none for every row.
@@ -132,33 +135,33 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 15 | `quad_light_airframe_20` | proved (redesigned 2026-10-27; repaired 2026-10-10 before, proof in git history) | CLIMB (a) (the affine pair `h' = w`, `w' = 9.81 − 4.905 w`; the explicit run `forcedSol` / `intSol` stays in the guard box `h ≥ 0`, `0 ≤ w ≤ 2`, the equilibrium `w = 2` on its face) | ok (invariant) |
 | 16 | `quad_light_lag` | proved | CLIMB (a) (since 2026-10-27 the affine cascade `h' = w`, `w' = a − 4.905 w`, `a' = 10 (9.81 − a)`; the explicit run `forcedSol` / `intSol` stays in the guard box `h ≥ 0`, `0 ≤ w ≤ 2`, `0 ≤ a ≤ 9.81`) | ok (invariant) |
 | 17 | `quad_light_profiles` | proved (redesigned 2026-10-27; repaired 2026-10-10 before, proof in git history) | NORMAL, ECO, SPORT (a) (`h' = w`, `w' = c − 4.905 w` toward 2.0, 1.6, 2.4; explicit run in the guard box `h ≥ 0`, `0 ≤ w ≤ 2.4`); dimension 3 (mode choice, the default padding) | all ok (invariant) |
-| 18 | `rover_ladder_2to3` | proved | STEEP (b) → MODER, MODER (b) → FLAT, FLAT (a) | STEEP ok (exit→MODER), MODER ok (exit→FLAT), FLAT ok (invariant) |
-| 19 | `rover_ladder_3to6` | proved | as 18 (ladder lemma) | as 18 |
-| 20 | `rover_ladder_2to4` | proved | as 18 | as 18 |
-| 21 | `rover_ladder_2to6` | proved | as 18 | as 18 |
+| 18 | `rover_ladder_2to3` | proved (reinstalled 2026-10-27 on the canonical rover hierarchy: right `L2`, `ψ` pinned) | STEEP (b) → MODER, MODER (b) → FLAT, FLAT (a) (the shared three-band lemma `wellFormedR_terrain` at the route scale: odometer zones `[0, 60)`, `[60, 140)`, `[140, ∞)`, no cap, `0 ≤ s' ≤ 8`; existence: `v → c_q` by `forcedSol`, `s` its integral) | STEEP ok (exit→MODER), MODER ok (exit→FLAT), FLAT ok (invariant) |
+| 19 | `rover_ladder_3to6` | proved (reinstalled 2026-10-27, right `L3`) | as 18 (existence: also `ψ` decaying) | as 18 |
+| 20 | `rover_ladder_2to4` | left the suite 2026-10-27 (batch I3, the rover hierarchy; was: proved; proof in git history) | as 18 | as 18 |
+| 21 | `rover_ladder_2to6` | left the suite 2026-10-27 (batch I3, the rover hierarchy; was: proved; proof in git history) | as 18 | as 18 |
 | 22 | `airheader_dos_3to1` | moved to `benchmarks/reserve/` 2026-10-27 (was: proved; proof in git history) | NORMAL, ALARM (b) (the run ends in `0 ≤ p ≤ 9`, the three guards partition it, all declared successors; existence by the explicit exponential at the frozen demand); TRIP (a) (`p' = −g p ≤ 0` keeps `p < 5`, latched self-loop); `ε_r = 1` | NORMAL ok (exit→ALARM), ALARM ok (exit→NORMAL), TRIP ok (invariant) |
-| 23 | `rover_ladder_6to8` | proved | as 18 | as 18 |
-| 24 | `rover_ladder_8to12` | proved | as 18 | as 18 |
+| 23 | `rover_ladder_6to8` | proved (reinstalled 2026-10-27, right `L6`) | as 18 (existence: the cascade `z → θ`, `(v, ψ) → φ`, all `→ s`, kept in the box by `forcedSol_between`) | as 18 |
+| 24 | `rover_ladder_8to12` | proved (reinstalled 2026-10-27, right `L8`) | as 18 (existence: the cascade `ω_ψ → ψ`, `z → ω_θ → θ`, `(v, ω_ψ, ψ) → φ`, all `→ s`) | as 18 |
 | 25 | `tank_dos_3to1` | proved | P2, P3, P4 (b) → the next stage, P5 (a) (since 2026-10-27 the staged pump `h' = 0.005 c − 0.001 w h`, `w' = 0.02 (22 − w)`: `w` explicit, `h` by variation of constants over the floor `w ≥ 2c`, barriers keep `0 ≤ h ≤ 2.5`; `w` rises at most 3.2 in `ε_r = 10`, one band) | P2–P4 ok (exit), P5 ok (invariant) |
 | 26 | `hvac_fan_staging` | proved | LOW, MED, HIGH (b) (contractions to 27, 24, 21 inside `[16, 32]`; a run ends in `[16, 32]`, MED's guard, and MED follows every speed); `ε_r = 1`; dimension 3 (the default padding) | LOW ok (exit→HIGH), MED ok (invariant), HIGH ok (exit→MED) |
 | 27 | `rover_terrain_2to4` | proved | MUD (b) → GRAVEL, GRAVEL (b) → PAVED, PAVED (a) (terrain-chain lemma; guards the odometer bands only; existence: `v → c_T`, `s` its integral, `w`, `zs` frozen) | MUD ok (exit→GRAVEL), GRAVEL ok (exit→PAVED), PAVED ok (invariant) |
 | 28 | `rover_terrain_4to6` | proved | as 27, cap `w ≤ c_T` kept by `w' = 3 (c_T − w)` (existence: the affine cascade `w, zs → v → s` inside the evolve box by the comparison bounds) | as 27 |
 | 29 | `rover_terrain_6to12` | proved | as 27, cap `u ≤ c_T` kept by `u' = 4 (c_T − u)` (existence: the cascade `u → w`, `w, zs → v → s, zh`) | as 27 |
-| 30 | `rover_patrol_lag` | proved | the lagged speed loop's `(v, a)` envelope kept (modal coordinates `3a + 4v − 4c`, `a + 4v − 4c` decaying; explicit run); SLOW (b) → MEDIUM_*; MEDIUM_ECO, MEDIUM_BRISK (b) → FAST; FAST (a) | SLOW ok (exit→MEDIUM_BRISK); MEDIUM_* ok (exit→FAST); FAST ok (invariant) |
-| 31 | `rover_patrol_zones` | proved | as 30; STALL (a) | as 30; STALL ok (invariant) |
+| 30 | `rover_patrol_lag` | proved (reinstalled 2026-10-27: the right is the first-order planning model `v' = c − v`, `s' = v`; the left's lag state `a` is frozen on the right) | SLOW (b) → MEDIUM_ECO; MEDIUM_ECO, MEDIUM_BRISK (b) → themselves or FAST; FAST (a) (the zones partition `s ≥ 0`, `0 ≤ s' ≤ 1.6`; explicit zone runs) | SLOW ok (exit→MEDIUM_BRISK); MEDIUM_ECO, MEDIUM_BRISK ok (exit→FAST); FAST ok (invariant) |
+| 31 | `rover_patrol_zones` | left the suite 2026-10-27 (batch I3; a design of the same name is in `benchmarks/reserve/`; was: proved; proof in git history) | as 30; STALL (a) | as 30; STALL ok (invariant) |
 | 32 | `sat3w_detumble_nominal` | proved | DETUMBLE (a) (the band in the domain keeps the explicit run); SAFE (a) | both ok (invariant) (both clauses, since 2026-10-26) |
 | 33 | `sat3w_detumble_phases` | proved | as 32 | as 32 |
 | 34 | `sat3w_detumble_weak` | proved | NOMINAL, ECONOMY, SURVIVAL (a) (the band in the domain keeps the explicit runs); SAFE (a) | all ok (invariant) |
 | 35 | `sat_detumble_nominal` | proved | as 32 | as 32 |
 | 36 | `sat_detumble_phases` | proved | as 32 | as 32 |
 | 37 | `sat_detumble_weak` | proved | as 34 | as 34 |
-| 38 | `rover_attitude_6to8` | proved | as 18 | as 18 |
-| 39 | `rover_attitude_8to12` | proved | as 18 | as 18 |
-| 40 | `rover_lateral_6to8` | proved | as 18 | as 18 |
-| 41 | `rover_lateral_8to12` | proved | as 18 | as 18 |
-| 42 | `rover_rollover_6to12` | proved | as 18 | as 18 |
-| 43 | `rover_rollover_6to7` | proved | as 18 | as 18 |
-| 44 | `rover_rollover_7to12` | proved | as 18 | as 18 |
+| 38 | `rover_attitude_6to8` | left the suite 2026-10-27 (batch I3, the rover hierarchy; was: proved; proof in git history) | as 18 | as 18 |
+| 39 | `rover_attitude_8to12` | left the suite 2026-10-27 (batch I3, the rover hierarchy; was: proved; proof in git history) | as 18 | as 18 |
+| 40 | `rover_lateral_6to8` | left the suite 2026-10-27 (batch I3, the rover hierarchy; was: proved; proof in git history) | as 18 | as 18 |
+| 41 | `rover_lateral_8to12` | left the suite 2026-10-27 (batch I3; a design of the same name is in `benchmarks/reserve/`; was: proved; proof in git history) | as 18 | as 18 |
+| 42 | `rover_rollover_6to12` | left the suite 2026-10-27 (batch I3, the rover hierarchy; was: proved; proof in git history) | as 18 | as 18 |
+| 43 | `rover_rollover_6to7` | left the suite 2026-10-27 (batch I3, the rover hierarchy; was: proved; proof in git history) | as 18 | as 18 |
+| 44 | `rover_rollover_7to12` | left the suite 2026-10-27 (batch I3, the rover hierarchy; was: proved; proof in git history) | as 18 | as 18 |
 | 45 | `watertank` | proved | Low (b) → MidEco; MidEco, MidBoost, High, PumpOff (a) | Low ok (exit→MidBoost, same guard); the others ok (invariant) |
 | 47 | `drl_car_stop` | proved (direct) | Accel, Brake (b) → Coast; Coast (a); explicit run `x + v t + c t²/2` | Accel, Brake ok (exit→Coast); Coast ok (invariant) |
 | 48 | `drl_lane_control` | proved (direct) | every mode (b) → CoastLAccel or CoastLBrake by the leader's speed; explicit run | all six ok (exit) |
@@ -258,8 +261,8 @@ summary: …` (with `RELCERT_DEBUG=1`, the reason of every mode not `ok` on stde
 `--check-quick-v2` runs the same section as its check 3/3, strict (below); until 2026-10-10 it
 was informational there.
 
-**Suite_v2 result** (2026-10-27, both clauses): 52 benchmarks, 177 right modes: 94 ok
-(invariant), 83 ok (exit), **0 UNKNOWN, 0 BLOCKING**, 9817 queries; the per-mode labels are those of the
+**Suite_v2 result** (2026-10-27, both clauses): 42 benchmarks, 145 right modes: 83 ok
+(invariant), 62 ok (exit), **0 UNKNOWN, 0 BLOCKING**, 7984 queries; the per-mode labels are those of the
 clause (ii) check alone (2026-10-26, 50 benchmarks: 174 right modes, 91 / 83, 10643 queries,
 about 17 s). The 37
 round-2 designs of the 2026-10-26 redesign pass (outside the tree): 122 right modes, 69 ok
@@ -290,7 +293,7 @@ single `relcert <file>` run; off, no verdict and no emission changes.
 
 **Strict in the recipe** (2026-10-10). `--check-quick-v2` certifies the suite in the strict
 mode (the switch forced on for its check 1/3) and ends with check 3/3, the `--wellformed`
-report gated against declared counts: `ExpectedSuiteV2.wfModes = 177` (`VerdictsV2/RunV2.lean`; the
+report gated against declared counts: `ExpectedSuiteV2.wfModes = 145` (`VerdictsV2/RunV2.lean`; the
 kernel pin `CoveragePinsV2.suiteV2_wfModes` of that count was archived with the standalone
 route on 2026-10-22), `wfUnknown = 0` and `wfBlocking = 0`. Any `UNKNOWN` or `BLOCKING` mode,
 or a mode count off the declared one, fails the run (`wellformed (strict): FAIL`, exit 1). Checked negatively: with the pre-repair

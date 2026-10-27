@@ -16,25 +16,25 @@ open RelCertifier.Parse
 def rover_ladder_2to3_cutsV2 : EvolStrengthening :=
   { L := [
       ("STEEP", [((.cmp ">=" (.var "s") (.num "0.0")), CutRoute.diNonstrict)]),
-      ("MODER", [((.cmp ">=" (.var "s") (.num "0.6")), CutRoute.diNonstrict)]),
-      ("FLAT", [((.cmp ">=" (.var "s") (.num "1.4")), CutRoute.diNonstrict)])
+      ("MODER", [((.cmp ">=" (.var "s") (.num "60.0")), CutRoute.diNonstrict)]),
+      ("FLAT", [((.cmp ">=" (.var "s") (.num "140.0")), CutRoute.diNonstrict)])
     ]
     R := [
       ("STEEP", [((.cmp ">=" (.var "s") (.num "0.0")), CutRoute.diNonstrict)]),
-      ("MODER", [((.cmp ">=" (.var "s") (.num "0.6")), CutRoute.diNonstrict)]),
-      ("FLAT", [((.cmp ">=" (.var "s") (.num "1.4")), CutRoute.diNonstrict)])
+      ("MODER", [((.cmp ">=" (.var "s") (.num "60.0")), CutRoute.diNonstrict)]),
+      ("FLAT", [((.cmp ">=" (.var "s") (.num "140.0")), CutRoute.diNonstrict)])
     ] }
 
 def rover_ladder_2to3_cutsV2X : EvolStrengtheningX :=
   { L := [
       ("STEEP", [⟨(.cmp ">=" (.var "s") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diNonstrict, []⟩]),
-      ("MODER", [⟨(.cmp ">=" (.var "s") (.num "0.6")), CutKind.guardConj, CutEntry.membership, CutRouteX.diNonstrict, []⟩]),
-      ("FLAT", [⟨(.cmp ">=" (.var "s") (.num "1.4")), CutKind.guardConj, CutEntry.membership, CutRouteX.diNonstrict, []⟩])
+      ("MODER", [⟨(.cmp ">=" (.var "s") (.num "60.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diNonstrict, []⟩]),
+      ("FLAT", [⟨(.cmp ">=" (.var "s") (.num "140.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diNonstrict, []⟩])
     ]
     R := [
       ("STEEP", [⟨(.cmp ">=" (.var "s") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diNonstrict, []⟩]),
-      ("MODER", [⟨(.cmp ">=" (.var "s") (.num "0.6")), CutKind.guardConj, CutEntry.membership, CutRouteX.diNonstrict, []⟩]),
-      ("FLAT", [⟨(.cmp ">=" (.var "s") (.num "1.4")), CutKind.guardConj, CutEntry.membership, CutRouteX.diNonstrict, []⟩])
+      ("MODER", [⟨(.cmp ">=" (.var "s") (.num "60.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diNonstrict, []⟩]),
+      ("FLAT", [⟨(.cmp ">=" (.var "s") (.num "140.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diNonstrict, []⟩])
     ] }
 
 /-- The legacy (guard-conjunct) part is well formed. -/

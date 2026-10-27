@@ -95,6 +95,12 @@
 > deleted (m023, m027, m031) or moved to the right side (m028 `L_omega_phi -> R_omega_phi`, m032
 > `L_omega_y -> R_omega_y`); each DECLINED by relcert, in 8 to 13 s). 5 refutations, 15 groups and
 > 78 witness lines in.
+> Batch I6, first group (the round C fixes): the finder re-ran on the five changed files that carry
+> refutations (`--only`, records replaced in place): `engine_start_highidle` (6 mutants),
+> `quad_light_lag` (24), `rover_terrain_2to4` (16), `rover_terrain_4to6` (31) and `rover_terrain_6to12`
+> (48). The same 36 mutants are refuted as before (m003; m021, m023; m008, m011, m012, m015; eight;
+> twenty-one), their mutant inputs and IR data rewritten to the new files (the stretch ranges pinned,
+> the `rover_terrain_2to4` plan at 8 /s), each DECLINED by relcert. Counts unchanged.
 > Current instance set: **69 refutations, 196 groups**
 > (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 947 mutants in
 > `docs/refute/witnesses.jsonl`. The operator table has not been recomputed.

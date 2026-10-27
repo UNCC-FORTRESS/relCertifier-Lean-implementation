@@ -50,7 +50,11 @@
 # is rover_terrain_6to12's right (its six new coordinates pinned), so the v and s rows chain by
 # transitivity: 12-DOF <= 6-DOF <= 4-DOF <= no-slip plan.
 #
-# Verdicts (default recipe RELCERT_IMPLIED_CUT=1): CERTIFIED; also under SYNC, SYNC+NO_CHOICE,
+# Stretch pinned (2026-10-27, final audit): lambda_max 6 -> 1. Every cover was already at lambda 1
+# and the requirement is a real-time one, so the unused range [1, 6] is gone; verdicts and letters
+# unchanged (measured 2026-10-27).
+# Verdicts (default recipe RELCERT_IMPLIED_CUT=1, re-measured 2026-10-27 at lambda_max 1):
+# CERTIFIED; also under SYNC, SYNC+NO_CHOICE,
 # NO_PRUNE, NO_CHOICE, NO_PRUNE+NO_CHOICE, OPREGION, NO_IMPLIED_CUT, NO_LINEAR_CUT, without
 # RELCERT_IMPLIED_CUT, and RELCERT_WELLFORMED_STRICT; DECLINED under NO_CUT. --handoff 5/5
 # (vacuous: rows identical). --wellformed: MUD ok (exit), GRAVEL ok (exit), PAVED ok
@@ -62,7 +66,7 @@
 name = rover_terrain_4to6
 max_depth = 8
 lambda_min = 1.0
-lambda_max = 6.0
+lambda_max = 1.0
 bound_T = 4.0
 
 [Lsys]

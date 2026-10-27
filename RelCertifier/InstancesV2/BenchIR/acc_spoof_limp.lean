@@ -15,7 +15,7 @@ def acc_spoof_limp_IRv2 : PProblem :=
   {
     name := "acc_spoof_limp"
     lambdaMin := "1.0"
-    lambdaMax := "6.0"
+    lambdaMax := "1.0"
     L := {
       stateVars := ["v"]
       epsilon := "2.0"

@@ -105,12 +105,12 @@ def packsV2 : List PackV2 :=
     ⟨"rover_patrol_lag", 3, 0, [1, 0], 11, 8, 3, 2⟩,
     ⟨"rover_patrol_lag", 3, 0, [1, 0], 11, 8, 3, 3⟩,
     -- rover_terrain_2to4 (cover replay)
-    ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3], 1, 1, 0, 0⟩,
-    ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3], 1, 1, 0, 1⟩,
+    ⟨"rover_terrain_2to4", 4, 0, [2, 3, 0, 1], 1, 1, 0, 0⟩,
+    ⟨"rover_terrain_2to4", 4, 0, [2, 3, 0, 1], 1, 1, 0, 1⟩,
     ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3], 1, 1, 0, 2⟩,
-    ⟨"rover_terrain_2to4", 4, 0, [2, 3, 0, 1], 3, 2, 1, 1⟩,
-    ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3], 3, 2, 1, 2⟩,
-    ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3], 11, 4, 2, 2⟩,
+    ⟨"rover_terrain_2to4", 4, 0, [2, 3, 0, 1], 1, 1, 1, 1⟩,
+    ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3], 1, 1, 1, 2⟩,
+    ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3], 1, 1, 2, 2⟩,
     -- rover_terrain_4to6 (cover replay)
     ⟨"rover_terrain_4to6", 6, 0, [2, 3, 5, 6, 0, 1, 4, 7], 1, 1, 0, 0⟩,
     ⟨"rover_terrain_4to6", 6, 0, [2, 3, 5, 6, 4, 7, 0, 1], 1, 1, 0, 1⟩,

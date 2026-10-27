@@ -49,7 +49,11 @@
 # The right guards partition [0, 110] (no coverage gap); every left mode has a satisfiable start
 # (N2_R = N2_L).
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26): CERTIFIED; CERTIFIED under
+# Stretch pinned (2026-10-27, final audit): lambda_max 6 -> 1. Every cover was already at lambda 1
+# and the requirement is a real-time one, so the unused range [1, 6] is gone; verdicts and letters
+# unchanged (measured 2026-10-27).
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26, re-measured 2026-10-27 at
+# lambda_max 1): CERTIFIED; CERTIFIED under
 # RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1,
 # RELCERT_NO_LINEAR_CUT=1, RELCERT_WELLFORMED_STRICT=1; DECLINED under RELCERT_SYNC=1, RELCERT_SYNC=1
 # RELCERT_NO_CHOICE=1, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1 and without RELCERT_IMPLIED_CUT.
@@ -62,7 +66,7 @@
 name = engine_start_highidle
 max_depth = 8
 lambda_min = 1.0
-lambda_max = 6.0
+lambda_max = 1.0
 bound_T = 120.0
 
 [Lsys]

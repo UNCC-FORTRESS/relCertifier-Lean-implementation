@@ -124,6 +124,23 @@ never in the suite: the bound is the no-FFR worst case and does not depend on th
 | `match_multi_rate` | `gantry_speed_zones` (both models new: a pick-and-place gantry whose production program runs zone-scheduled speed overrides, against the program as commissioned at reduced speed; 10 mm path tolerance; replaces the synthetic unitless rate-ratio exhibit in the same multi-cycle matching role) |
 | `platoon_delay_profiles` | `platoon_profiles` (redesigned: the CACC follower driven in the SPORT profile, a shorter time gap, against the design follower verified in NORMAL; its right model is `platoon_linkloss`'s, Assumption 1 through the shared `PlatoonCaccAeb` lemmas) |
 
+## Batch I6 (2026-10-27): round C fixes
+
+From the final audit of the suite (round C). `rover_terrain_2to4`: the plan's speed loop now runs
+at the rover's fastest ground response (8 /s, the traction stiffness on pavement) instead of the
+wheel loop's 3 /s, so "never ahead of the plan" holds in real time: the file certifies at
+lambda 1 (`lambda_min = lambda_max = 1`; the 3 /s plan at lambda 1 DECLINES), letters S M gone,
+I kept, the tightest slip threshold still 0.21; its left model is unchanged, so it is still
+exactly `rover_terrain_4to6`'s right with `u`, `zh` pinned and the chain composes, now with
+every step at lambda 1; its Assumption 1 proof follows the new rate. Stretch ranges pinned (every
+cover already used the pinned value; verdicts and letters unchanged): `quad_light_lag` to exactly
+6/5 (the terminal climb-rate ratio; [1, 2] certified only because 6/5 is a stretch-grid point),
+`acc_spoof_limp`, `engine_start_highidle`, `turbine_startup_gearratio`, `rover_terrain_4to6` and
+`rover_terrain_6to12` from `lambda_max = 6` to 1. `acc_spoof_limp`'s header now says that its M
+and B come from the deployed monitor's 2 s debounce period and that I persists without the
+spoof. `quad_light_airframe_20` is marked tier 2 in its header (the lag-free special case of
+`quad_light_lag`), kept until a replacement exists.
+
 ## Batch I5 (2026-10-27): ten new benchmarks, four designs to the reserve
 
 New (designs of rounds A, B and C; every header re-measured on this branch, the letters as
@@ -276,7 +293,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | benchmark | state vars | modes | scenario | notes |
 |---|---|---|---|---|
 | `acc_spoof_lag` | 2 / 2 | 1 / 1 | sensor-attack | redesigned 2026-10-26: same lag both sides; 2026-10-27: equal 0.1 s periods, real-time claim with a spoof-dependent envelope, the left guard its own loop's engaged envelope |
-| `acc_spoof_limp` | 1 / 1 | 2 / 4 | sensor-attack | redesigned 2026-10-27: the same two requirement rows in both modes (no longer mode-keyed), closed right guards |
+| `acc_spoof_limp` | 1 / 1 | 2 / 4 | sensor-attack | redesigned 2026-10-27: the same two requirement rows in both modes (no longer mode-keyed), closed right guards; lambda pinned to 1 (batch I6) |
 | `acc_tune_lag` | 2 / 2 | 1 / 1 | degraded-controller | redesigned 2026-10-26: same lag both sides; 2026-10-27: equal 0.1 s periods, the left guard its own loop's engaged envelope |
 | `acc_tune_limp` | 1 / 1 | 2 / 4 | degraded-controller | mode-keyed, mode choice; equal 0.1 s periods since 2026-10-27 |
 | `bms_chiller_undercharge` | 1 / 1 | 2 / 3 | degraded-actuator | new 2026-10-27: mode choice (the reference commits to a cooling level that is not the deployed's) |
@@ -285,7 +302,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `drl_car_stop` | 2 / 2 | 3 / 3 | controller-refinement | literature (dRL), mode choice |
 | `drl_lane_control` | 3 / 3 | 6 / 6 | controller-refinement | literature (dRL), mode choice |
 | `elevator_start_discbrake` | 3 / 3 | 4 / 4 | actuator-change | new 2026-10-27 (batch I5): mode-keyed (LIFT row), right-only repositioning (the reference's slower brake lift); STOP's rest-position guard conjunct added at installation |
-| `engine_start_highidle` | 1 / 1 | 5 / 5 | controller-change | new 2026-10-27: mode-keyed, widened cuts |
+| `engine_start_highidle` | 1 / 1 | 5 / 5 | controller-change | new 2026-10-27: mode-keyed, widened cuts; lambda pinned to 1 (batch I6) |
 | `freedm_meter` | 2 / 2 | 12 / 12 | information-flow | literature (dHL, FREEDM), mode choice |
 | `fuelcell_chp_dos` | 2 / 2 | 3 / 3 | dos-attack | new 2026-10-27 (batch I5): mode choice, multi-step and branching covers, pruned live edges LOW -> HIGH, HIGH -> LOW |
 | `furnace_program_timebase` | 2 / 2 | 3 / 3 | controller-change | new 2026-10-27 (batch I5): stretch 4/5 (`lambda_min = 0.8`), widened cuts, load-bearing mode facts |
@@ -297,17 +314,17 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `platoon_latency` | 3 / 2 | 3 / 2 | degraded-network | new 2026-10-27: mode-keyed (AEB row), right model shared with `platoon_linkloss` |
 | `platoon_linkloss` | 2 / 2 | 3 / 2 | dos-attack | redesigned 2026-10-27 (was `platoon_delay_linkloss`): mode-keyed (AEB row), CACC -> ACC fallback |
 | `platoon_profiles` | 2 / 2 | 2 / 2 | controller-refinement | redesigned 2026-10-27 (was `platoon_delay_profiles`): mode-keyed (AEB row), SPORT time gap against NORMAL, right model shared with `platoon_linkloss` |
-| `quad_light_airframe_20` | 2 / 2 | 1 / 1 | model-refinement | redesigned 2026-10-27: altitude coordinate, rows from the 0.8 m altitude acceptance radius, the time scaling fixed to 6/5 (`lambda_min = lambda_max = 1.2`) |
-| `quad_light_lag` | 3 / 3 | 1 / 1 | model-refinement | redesigned 2026-10-27: altitude coordinate, rows from the 0.8 m altitude acceptance radius |
+| `quad_light_airframe_20` | 2 / 2 | 1 / 1 | model-refinement | redesigned 2026-10-27: altitude coordinate, rows from the 0.8 m altitude acceptance radius, the time scaling fixed to 6/5 (`lambda_min = lambda_max = 1.2`); tier 2 (the lag-free special case of `quad_light_lag`, kept until a replacement exists) |
+| `quad_light_lag` | 3 / 3 | 1 / 1 | model-refinement | redesigned 2026-10-27: altitude coordinate, rows from the 0.8 m altitude acceptance radius; the time scaling fixed to 6/5 (`lambda_min = lambda_max = 1.2`, batch I6) |
 | `quad_light_profiles` | 2 / 2 | 1 / 3 | model-refinement | redesigned 2026-10-27: altitude coordinate, real-time conformance to the reference's SPORT profile (lambda 1); mode choice |
 | `rover_ladder_2to3` | 3 / 3 | 3 / 3 | model-refinement | reinstalled 2026-10-27 on the canonical rover hierarchy (L3 / L2): clearance and heading rows, lambda 1 |
 | `rover_ladder_3to6` | 6 / 6 | 3 / 3 | model-refinement | reinstalled 2026-10-27 (L6 / L3): clearance, heading and pitch rows, lambda 1 |
 | `rover_ladder_6to8` | 8 / 8 | 3 / 3 | model-refinement | reinstalled 2026-10-27 (L8 / L6): + roll and rollover (LTR) rows; lambda [1, 1.25] from the timetable tolerance (S M I from the re-timed claim form, header) |
 | `rover_ladder_8to12` | 12 / 12 | 3 / 3 | model-refinement | reinstalled 2026-10-27 (L12 / L8): heading, roll, rollover (LTR) and lane rows; lambda [1, 1.25] (S M I from the re-timed claim form, header) |
 | `rover_rollover_payload` | 12 / 12 | 3 / 3 | degradation | new 2026-10-27 (batch I5): mode choice, load-bearing mode facts (both from the claim form, disclosed); the right model's zone joints are 2 m bands with back edges |
-| `rover_terrain_2to4` | 4 / 4 | 3 / 3 | model-refinement | redesigned 2026-10-26 (was `rover_terrain_3to6`): terrain chain, wheel slip and sinkage; zone-only right plan |
-| `rover_terrain_4to6` | 6 / 6 | 3 / 3 | model-refinement | redesigned 2026-10-26 (was `rover_terrain_6to8`): terrain chain, drive lag and roughness heave; right cap `w <= c_T` |
-| `rover_terrain_6to12` | 12 / 12 | 3 / 3 | model-refinement | redesigned 2026-10-26: terrain chain, heave rate, bank grade, pitch, acceleration, squat; right cap `u <= c_T` |
+| `rover_terrain_2to4` | 4 / 4 | 3 / 3 | model-refinement | redesigned 2026-10-26 (was `rover_terrain_3to6`): terrain chain, wheel slip and sinkage; zone-only right plan; batch I6: the plan's speed loop at 8 /s, lambda 1 (I only) |
+| `rover_terrain_4to6` | 6 / 6 | 3 / 3 | model-refinement | redesigned 2026-10-26 (was `rover_terrain_6to8`): terrain chain, drive lag and roughness heave; right cap `w <= c_T`; lambda pinned to 1 (batch I6) |
+| `rover_terrain_6to12` | 12 / 12 | 3 / 3 | model-refinement | redesigned 2026-10-26: terrain chain, heave rate, bank grade, pitch, acceleration, squat; right cap `u <= c_T`; lambda pinned to 1 (batch I6) |
 | `rover_patrol_lag` | 3 / 2 | 4 / 4 | model-refinement | reinstalled 2026-10-27: the rover with its motor lag against the first-order planning model; lead bound as an order property up to a 3/2 re-timing (S M R B from the claim form, header) |
 | `sat3w_detumble_phases` | 6 / 6 | 2 / 3 | model-refinement | nonblocking region, mode choice; 2026-10-27: equal 1 s periods, the design model with both phases (FINE added), exact energy rows in both phases (no longer mode-keyed) |
 | `sat_detumble_phases` | 4 / 4 | 2 / 3 | model-refinement | nonblocking region, mode choice; 2026-10-27: equal 1 s periods, the design model with both phases (FINE added), exact energy rows in both phases (no longer mode-keyed) |
@@ -315,7 +332,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `syringe_relay_prearm` | 4 / 4 | 6 / 4 | controller-change | new 2026-10-27 (batch I5): mode-keyed, right-only repositioning (the validated relay's take-up) |
 | `tank_dos_3to1` | 2 / 2 | 4 / 4 | dos-attack | redesigned 2026-10-27: a demand-paced four-pump station, the same staging law on both sides, the DoS holds the staging decision for up to three polls |
 | `train_ato_odometry` | 1 / 1 | 3 / 3 | degraded-sensor | new 2026-10-27: stretches per pairing from 31/40 to 6/5 (`lambda_min = 0.75`) |
-| `turbine_startup_gearratio` | 1 / 1 | 4 / 4 | degraded-controller | new 2026-10-27: widened cuts; right-only repositioning, pruned parking edges (the letters R P I come from the one-sided claim form, header) |
+| `turbine_startup_gearratio` | 1 / 1 | 4 / 4 | degraded-controller | new 2026-10-27: widened cuts; right-only repositioning, pruned parking edges (the letters R P I come from the one-sided claim form, header); lambda pinned to 1 (batch I6) |
 | `vehicle_hypercert` | 2 / 2 | 5 / 5 | opacity | literature (HyperCertificates), mode choice; position coordinate and start-offset row (2026-10-27) |
 | `ventilator_vc_cuffleak` | 2 / 2 | 2 / 2 | degraded-actuator | new 2026-10-27 (batch I5): mode-keyed (a relative volume row in inspiration, an absolute band in expiration) |
 | `watertank` | 1 / 1 | 3 / 5 | sensor-attack | the paper's running example |

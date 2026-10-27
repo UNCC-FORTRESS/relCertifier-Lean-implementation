@@ -3,6 +3,10 @@
 # scenario: model-refinement
 # mechanisms: S M (time stretch lambda = 6/5 needed, RELCERT_SYNC=1 declines; multi-step cover,
 #   budget 2; matrix codes M1 M2)
+# Suite status: TIER 2 (final audit, round C, 2026-10-27): this file is the lag-free special case of
+#   quad_light_lag (the same airframe pair, cause, 0.8 m requirement and lambda 6/5; the lag adds the
+#   motor state and flips the sign of the gap). It stays in the suite only until a replacement
+#   benchmark exists.
 #
 # Round A (2026-10-26): the stretch is now stated, not searched (lambda_min = lambda_max = 6/5).
 # The previous range [1, 2] certified only because 6/5 is one of the tool's 21 stretch candidates

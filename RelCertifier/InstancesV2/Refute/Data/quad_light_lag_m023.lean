@@ -17,8 +17,8 @@ open RelCertifier.Parse
 def quad_light_lag_m023_IRm : PProblem :=
   {
     name := "quad_light_lag"
-    lambdaMin := "1.0"
-    lambdaMax := "2.0"
+    lambdaMin := "1.2"
+    lambdaMax := "1.2"
     L := {
       stateVars := ["h", "w", "a"]
       epsilon := "1.0"

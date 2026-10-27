@@ -15,7 +15,7 @@ def turbine_startup_gearratio_IRv2 : PProblem :=
   {
     name := "turbine_startup_gearratio"
     lambdaMin := "1.0"
-    lambdaMax := "6.0"
+    lambdaMax := "1.0"
     L := {
       stateVars := ["w"]
       epsilon := "1.0"

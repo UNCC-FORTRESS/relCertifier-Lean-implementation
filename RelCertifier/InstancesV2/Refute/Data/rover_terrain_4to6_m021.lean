@@ -18,7 +18,7 @@ def rover_terrain_4to6_m021_IRm : PProblem :=
   {
     name := "rover_terrain_4to6"
     lambdaMin := "1.0"
-    lambdaMax := "6.0"
+    lambdaMax := "1.0"
     L := {
       stateVars := ["v", "s", "w", "zs", "u", "zh"]
       epsilon := "1.0"
@@ -101,7 +101,7 @@ def rover_terrain_4to6_m021_IRm : PProblem :=
 /-- The finder's witness (kind B). -/
 def rover_terrain_4to6_m021_wit : RefWitE :=
   { kind := "B", u := 0, m := 0, q0 := 0, k := 4,
-    wL := [(1/4 : ℚ), (1/25 : ℚ), (1/4 : ℚ), (1/25 : ℚ), (19/100 : ℚ), (1/25 : ℚ), (0 : ℚ)],
-    wR := [(1/4 : ℚ), (1/25 : ℚ), (1/4 : ℚ), (0 : ℚ), (3/20 : ℚ), (0 : ℚ), (0 : ℚ)] }
+    wL := [(1/4 : ℚ), (1/25 : ℚ), (1/4 : ℚ), (1/25 : ℚ), (19/100 : ℚ), (1/25 : ℚ)],
+    wR := [(1/4 : ℚ), (1/25 : ℚ), (1/4 : ℚ), (0 : ℚ), (3/20 : ℚ), (0 : ℚ)] }
 
 end RelCertifier.Refute

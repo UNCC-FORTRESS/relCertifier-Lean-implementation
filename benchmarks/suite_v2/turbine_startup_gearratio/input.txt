@@ -72,7 +72,11 @@
 # the benchmark still CERTIFIES (round 2). The right guards partition [0, 16] (no coverage gap);
 # every left mode has a satisfiable start (w_R = w_L / 1.05 lies in the same reference phase).
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26 with the round-A binary):
+# Stretch pinned (2026-10-27, final audit): lambda_max 6 -> 1. Every cover was already at lambda 1
+# and the requirement is a real-time one, so the unused range [1, 6] is gone; verdicts and letters
+# unchanged (measured 2026-10-27).
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26 with the round-A binary,
+# re-measured 2026-10-27 at lambda_max 1):
 # CERTIFIED (about 0.4 s); CERTIFIED under RELCERT_NO_CHOICE=1, RELCERT_NO_LINEAR_CUT=1,
 # RELCERT_NO_PAIR_STRETCH=1, RELCERT_WELLFORMED_STRICT=1 and RELCERT_OPREGION=1 (every admitted
 # start in some right guard, all four left modes); DECLINED under RELCERT_SYNC=1 (no right-only
@@ -86,7 +90,7 @@
 name = turbine_startup_gearratio
 max_depth = 8
 lambda_min = 1.0
-lambda_max = 6.0
+lambda_max = 1.0
 bound_T = 60.0
 
 [Lsys]

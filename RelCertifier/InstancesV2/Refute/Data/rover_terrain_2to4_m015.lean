@@ -18,7 +18,7 @@ def rover_terrain_2to4_m015_IRm : PProblem :=
   {
     name := "rover_terrain_2to4"
     lambdaMin := "1.0"
-    lambdaMax := "6.0"
+    lambdaMax := "1.0"
     L := {
       stateVars := ["v", "s", "w", "zs"]
       epsilon := "1.0"
@@ -56,7 +56,7 @@ def rover_terrain_2to4_m015_IRm : PProblem :=
       modes := [
         {
           name := "MUD"
-          odes := [("v", (.bin "*" (.num "3") (.bin "-" (.num "0.25") (.var "v")))),
+          odes := [("v", (.bin "*" (.num "8") (.bin "-" (.num "0.25") (.var "v")))),
             ("s", (.var "v")),
             ("w", (.num "0")),
             ("zs", (.num "0"))]
@@ -65,7 +65,7 @@ def rover_terrain_2to4_m015_IRm : PProblem :=
           next := ["GRAVEL", "MUD"] },
         {
           name := "GRAVEL"
-          odes := [("v", (.bin "*" (.num "3") (.bin "-" (.num "0.45") (.var "v")))),
+          odes := [("v", (.bin "*" (.num "8") (.bin "-" (.num "0.45") (.var "v")))),
             ("s", (.var "v")),
             ("w", (.num "0")),
             ("zs", (.num "0"))]
@@ -74,7 +74,7 @@ def rover_terrain_2to4_m015_IRm : PProblem :=
           next := ["PAVED", "GRAVEL"] },
         {
           name := "PAVED"
-          odes := [("v", (.bin "*" (.num "3") (.bin "-" (.num "0.7") (.var "v")))),
+          odes := [("v", (.bin "*" (.num "8") (.bin "-" (.num "0.7") (.var "v")))),
             ("s", (.var "v")),
             ("w", (.num "0")),
             ("zs", (.num "0"))]
@@ -89,7 +89,7 @@ def rover_terrain_2to4_m015_IRm : PProblem :=
 /-- The finder's witness (kind B). -/
 def rover_terrain_2to4_m015_wit : RefWitE :=
   { kind := "B", u := 0, m := 0, q0 := 0, k := 3,
-    wL := [(39/290 : ℚ), (3/100 : ℚ), (9/50 : ℚ), (9/100 : ℚ), (0 : ℚ)],
-    wR := [(39/290 : ℚ), (3/100 : ℚ), (223/580 : ℚ), (0 : ℚ), (0 : ℚ)] }
+    wL := [(39/290 : ℚ), (3/100 : ℚ), (9/50 : ℚ), (9/100 : ℚ)],
+    wR := [(39/290 : ℚ), (3/100 : ℚ), (223/580 : ℚ), (0 : ℚ)] }
 
 end RelCertifier.Refute

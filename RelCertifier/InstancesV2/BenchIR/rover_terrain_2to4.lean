@@ -15,7 +15,7 @@ def rover_terrain_2to4_IRv2 : PProblem :=
   {
     name := "rover_terrain_2to4"
     lambdaMin := "1.0"
-    lambdaMax := "6.0"
+    lambdaMax := "1.0"
     L := {
       stateVars := ["v", "s", "w", "zs"]
       epsilon := "1.0"
@@ -53,7 +53,7 @@ def rover_terrain_2to4_IRv2 : PProblem :=
       modes := [
         {
           name := "MUD"
-          odes := [("v", (.bin "*" (.num "3") (.bin "-" (.num "0.25") (.var "v")))),
+          odes := [("v", (.bin "*" (.num "8") (.bin "-" (.num "0.25") (.var "v")))),
             ("s", (.var "v")),
             ("w", (.num "0")),
             ("zs", (.num "0"))]
@@ -62,7 +62,7 @@ def rover_terrain_2to4_IRv2 : PProblem :=
           next := ["GRAVEL", "MUD"] },
         {
           name := "GRAVEL"
-          odes := [("v", (.bin "*" (.num "3") (.bin "-" (.num "0.45") (.var "v")))),
+          odes := [("v", (.bin "*" (.num "8") (.bin "-" (.num "0.45") (.var "v")))),
             ("s", (.var "v")),
             ("w", (.num "0")),
             ("zs", (.num "0"))]
@@ -71,7 +71,7 @@ def rover_terrain_2to4_IRv2 : PProblem :=
           next := ["PAVED", "GRAVEL"] },
         {
           name := "PAVED"
-          odes := [("v", (.bin "*" (.num "3") (.bin "-" (.num "0.7") (.var "v")))),
+          odes := [("v", (.bin "*" (.num "8") (.bin "-" (.num "0.7") (.var "v")))),
             ("s", (.var "v")),
             ("w", (.num "0")),
             ("zs", (.num "0"))]

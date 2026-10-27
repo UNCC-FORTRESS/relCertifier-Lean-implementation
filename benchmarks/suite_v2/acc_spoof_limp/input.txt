@@ -20,6 +20,12 @@
 # only mode decision, the latch, is taken at most every 2 s); 1 s on the right, the reference's
 # mode logic (set-speed selection, ACC floor). With equal 1 s intervals the file still certifies
 # but keeps only I (budget 1, no multi-step or branching cover).
+# Where the letters come from (final audit, 2026-10-27). M and B come from the 2 s debounce period of
+# the deployed's plausibility monitor (the second difference between the sides, stated above), not
+# from the spoof: with equal 1 s periods only I remains. I persists without the spoof (the left
+# reading the true speed, still latching LIMP; the reference still able to DISENGAGE: RELCERT_NO_CUT=1
+# still DECLINES). So no letter of this file comes from the spoof itself; the spoof sets the bounds
+# (row 1's 4.8 m/s margin, row 2's intercept).
 #
 # Guards. CRUISE and the reference's three set-speed modes engage at the ACC floor 20 m/s (CRUISE
 # 20 <= v < 40, the set-speed modes 20 <= v <= 40); LIMP is entered between 20 and 30 m/s (the
@@ -64,7 +70,11 @@
 # the spoofed loop accelerates harder than ECO's below 12 m/s) and in LIMP against DISENGAGE, and
 # the file DECLINES.
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED; CERTIFIED under RELCERT_SYNC=1,
+# Stretch pinned (2026-10-27, final audit): lambda_max 6 -> 1. Both covers were at lambda 1 and the
+# traffic-flow requirement is a real-time one (the follower closes in real time), so the unused
+# range [1, 6] is gone; verdicts and letters unchanged.
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, re-measured 2026-10-27 at lambda_max 1): CERTIFIED;
+# CERTIFIED under RELCERT_SYNC=1,
 # RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, SYNC+NO_CHOICE, without RELCERT_IMPLIED_CUT,
 # NO_IMPLIED_CUT, NO_LINEAR_CUT, the operating region (every admitted start in some right guard)
 # and RELCERT_WELLFORMED_STRICT=1; DECLINED under NO_PRUNE+NO_CHOICE and RELCERT_NO_CUT=1.
@@ -75,7 +85,7 @@
 name = acc_spoof_limp
 max_depth = 8
 lambda_min = 1.0
-lambda_max = 6.0
+lambda_max = 1.0
 bound_T = 4.0
 [Lsys]
 state_vars = [v]

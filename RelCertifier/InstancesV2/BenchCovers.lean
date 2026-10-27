@@ -6,7 +6,6 @@ import RelCertifier.InstancesV2.BenchCovers.acc_tune_limp
 import RelCertifier.InstancesV2.BenchCovers.antenna_track_kvretune
 import RelCertifier.InstancesV2.BenchCovers.bms_chiller_undercharge
 import RelCertifier.InstancesV2.BenchCovers.bottling_fill_strainer
-import RelCertifier.InstancesV2.BenchCovers.canal_gate_notches
 import RelCertifier.InstancesV2.BenchCovers.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchCovers.compressor_station_recycle
 import RelCertifier.InstancesV2.BenchCovers.csf21_vehicle_bus
@@ -15,14 +14,15 @@ import RelCertifier.InstancesV2.BenchCovers.drl_car_stop
 import RelCertifier.InstancesV2.BenchCovers.drl_lane_control
 import RelCertifier.InstancesV2.BenchCovers.elevator_start_discbrake
 import RelCertifier.InstancesV2.BenchCovers.engine_start_highidle
-import RelCertifier.InstancesV2.BenchCovers.flaps_slow_approach
 import RelCertifier.InstancesV2.BenchCovers.freedm_meter
 import RelCertifier.InstancesV2.BenchCovers.fuelcell_chp_dos
 import RelCertifier.InstancesV2.BenchCovers.furnace_program_timebase
 import RelCertifier.InstancesV2.BenchCovers.gantry_speed_zones
+import RelCertifier.InstancesV2.BenchCovers.girard_robot
 import RelCertifier.InstancesV2.BenchCovers.grid_ffr_dos
 import RelCertifier.InstancesV2.BenchCovers.hydro_rejection_gatecal
 import RelCertifier.InstancesV2.BenchCovers.insulin_basal_cgmloss
+import RelCertifier.InstancesV2.BenchCovers.lz_vehicle_position
 import RelCertifier.InstancesV2.BenchCovers.molding_pack_checkring
 import RelCertifier.InstancesV2.BenchCovers.platoon_latency
 import RelCertifier.InstancesV2.BenchCovers.platoon_linkloss
@@ -33,10 +33,10 @@ import RelCertifier.InstancesV2.BenchCovers.rover_ladder_3to6
 import RelCertifier.InstancesV2.BenchCovers.rover_ladder_6to8
 import RelCertifier.InstancesV2.BenchCovers.rover_ladder_8to12
 import RelCertifier.InstancesV2.BenchCovers.rover_patrol_lag
-import RelCertifier.InstancesV2.BenchCovers.rover_rollover_payload
 import RelCertifier.InstancesV2.BenchCovers.rover_terrain_2to4
 import RelCertifier.InstancesV2.BenchCovers.rover_terrain_4to6
 import RelCertifier.InstancesV2.BenchCovers.rover_terrain_6to12
+import RelCertifier.InstancesV2.BenchCovers.salt_tank_sensor
 import RelCertifier.InstancesV2.BenchCovers.sat3w_detumble_phases
 import RelCertifier.InstancesV2.BenchCovers.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchCovers.sat_detumble_weak
@@ -60,7 +60,6 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("antenna_track_kvretune", antenna_track_kvretune_coverV2),
   ("bms_chiller_undercharge", bms_chiller_undercharge_coverV2),
   ("bottling_fill_strainer", bottling_fill_strainer_coverV2),
-  ("canal_gate_notches", canal_gate_notches_coverV2),
   ("charger_fast_tapers", charger_fast_tapers_coverV2),
   ("compressor_station_recycle", compressor_station_recycle_coverV2),
   ("csf21_vehicle_bus", csf21_vehicle_bus_coverV2),
@@ -69,14 +68,15 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("drl_lane_control", drl_lane_control_coverV2),
   ("elevator_start_discbrake", elevator_start_discbrake_coverV2),
   ("engine_start_highidle", engine_start_highidle_coverV2),
-  ("flaps_slow_approach", flaps_slow_approach_coverV2),
   ("freedm_meter", freedm_meter_coverV2),
   ("fuelcell_chp_dos", fuelcell_chp_dos_coverV2),
   ("furnace_program_timebase", furnace_program_timebase_coverV2),
   ("gantry_speed_zones", gantry_speed_zones_coverV2),
+  ("girard_robot", girard_robot_coverV2),
   ("grid_ffr_dos", grid_ffr_dos_coverV2),
   ("hydro_rejection_gatecal", hydro_rejection_gatecal_coverV2),
   ("insulin_basal_cgmloss", insulin_basal_cgmloss_coverV2),
+  ("lz_vehicle_position", lz_vehicle_position_coverV2),
   ("molding_pack_checkring", molding_pack_checkring_coverV2),
   ("platoon_latency", platoon_latency_coverV2),
   ("platoon_linkloss", platoon_linkloss_coverV2),
@@ -87,10 +87,10 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("rover_ladder_6to8", rover_ladder_6to8_coverV2),
   ("rover_ladder_8to12", rover_ladder_8to12_coverV2),
   ("rover_patrol_lag", rover_patrol_lag_coverV2),
-  ("rover_rollover_payload", rover_rollover_payload_coverV2),
   ("rover_terrain_2to4", rover_terrain_2to4_coverV2),
   ("rover_terrain_4to6", rover_terrain_4to6_coverV2),
   ("rover_terrain_6to12", rover_terrain_6to12_coverV2),
+  ("salt_tank_sensor", salt_tank_sensor_coverV2),
   ("sat3w_detumble_phases", sat3w_detumble_phases_coverV2),
   ("sat_detumble_phases", sat_detumble_phases_coverV2),
   ("sat_detumble_weak", sat_detumble_weak_coverV2),

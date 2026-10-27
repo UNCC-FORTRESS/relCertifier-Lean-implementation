@@ -118,8 +118,13 @@
 > (51 witness lines; m008 and m011, kind B, 4 groups) left the suite; `csf21_vehicle_thermo` and
 > `csf21_vehicle_bus` installed, the finder run on them (`--only`): 16 + 16 mutants, no witness
 > (32 lines in).
-> Current instance set: **81 refutations, 237 groups**
-> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 1037 mutants in
+> Second group: `rover_rollover_payload` (78 witness lines; m023, m027, m028, m031, m032, kind B,
+> 15 groups), `flaps_slow_approach` (16 lines) and `canal_gate_notches` (8 lines, no refutation) left the
+> suite; `lz_vehicle_position`, `girard_robot` and `salt_tank_sensor` installed, the finder run on them
+> (`--only`): 16 + 18 + 14 mutants, one witness: `girard_robot_m016` (the quadratic tracking-error row
+> flipped to `>=`, kind B, 6 groups; DECLINED by relcert); 48 lines in.
+> Current instance set: **77 refutations, 228 groups**
+> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 983 mutants in
 > `docs/refute/witnesses.jsonl`. The operator table has not been recomputed.
 
 Design: `docs/REFUTATION-SCOPE.md` (planning record, last present at commit 29663d8). This file reports what was built and the experiment.

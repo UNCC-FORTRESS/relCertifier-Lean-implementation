@@ -27,7 +27,7 @@ an invariant guard) and `quad_light_{airframe_20,profiles}` (the sink `LIMIT`: i
 the climb controller, whose operating range reached the limiter threshold; both were redesigned
 on 2026-10-27 with the altitude coordinate and no limiter mode).
 `relcert --wellformed <input.txt>…` runs the tool's sufficient check per right mode (every one
-of the 185 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN` or `BLOCKING`.
+of the 187 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN` or `BLOCKING`.
 
 The suite's design, the per-family rationale, the domain audit (every evolve bound is a
 physical limit of the plant; `scripts/domain_widening.py` re-runs the tool with every bound
@@ -144,6 +144,29 @@ drive's bus, one message per cycle, twelve genuine modes by message type; X) in;
 hop of template B, and a special case of `platoon_linkloss`) to the reserve. The negative exhibit
 `csf21_vehicle_thermo_leaky` (an air-conditioning load on the drive lets the temperature reading
 reach the velocity; expected DECLINED) joins `freedm_meter_leaky` in `benchmarks/negative/`.
+
+Second group: `lz_vehicle_position` (Liu and Zamani, IEEE L-CSS 2021: approximate initial-state
+opacity of a vehicle whose position an intruder observes with precision 1 m; the partner run starts
+1 m ahead and copies the input; X), `girard_robot` (Girard, Julius, Pappas, DEDS 2008: a planar
+robot with its dynamic tracking controller is approximately simulated, with precision 0.4 m, by its
+planner's kinematic model; X; the robot written in the coordinates of the source's simulation
+function; its location changes sampled, since the generic bridge takes one evolve domain per side,
+`Emitted.uniformEvolve`: with the source's per-location evolve domains every verdict is the same but
+no bridge instance can be stated, the header's departure (6)) and `salt_tank_sensor` (Xiang,
+Lanotte, Tini, Chong, Merro, NAHS 2025: a brine tank whose salt sensor is under a bounded attack
+stays within 3 lb of the genuine tank, the source's forward simulation distance; I) in;
+`rover_rollover_payload` (both letters from the claim form, and a second structural difference,
+the reference's transition bands), `flaps_slow_approach` (the integrator-stretch template shared
+with `furnace_program_timebase` and `bottling_fill_strainer`, a weakly sourced tolerance, exact
+rows dependent on the stretch grid) and `canal_gate_notches` (one of several X-only own designs;
+the literature cases now show X) to the reserve.
+
+**Relation to the running example.** The NAHS 2025 salt-tank case, now `salt_tank_sensor`, is a
+related published scenario (one tank, a sensor attack of magnitude 3 and a deviation band of 3,
+the same attack magnitude and band as `watertank`), not the source of the paper's running example
+`watertank`: the plants, the attacks (a bounded reading error at every sample against a constant
+3 dm offset with a tampered pump) and the mechanisms (I at lambda 1 against S M B at stretch 2)
+differ (`salt_tank_sensor`'s header, "RELATION TO THE RUNNING EXAMPLE").
 
 ## Batch I7 (2026-10-27): two tier-2 members swapped for reserve designs
 
@@ -371,7 +394,6 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `antenna_track_kvretune` | 3 / 3 | 3 / 3 | controller-change | new 2026-10-27 (batch I6): mode-keyed (the pointing row while tracking, the slew-lag envelope during the stow slew) |
 | `bms_chiller_undercharge` | 1 / 1 | 2 / 3 | degraded-actuator | new 2026-10-27: mode choice (the reference commits to a cooling level that is not the deployed's) |
 | `bottling_fill_strainer` | 2 / 2 | 2 / 2 | degraded-actuator | new 2026-10-27 (batch I6): stretch 17/20 in FILL (`lambda_min = 0.8`), load-bearing mode fact; `CLOSE`'s predicted-final-volume guard conjunct added at installation |
-| `canal_gate_notches` | 1 / 1 | 3 / 4 | controller-refinement | new 2026-10-27: mode choice (the reference commits to a nearby permitted notch) |
 | `charger_fast_tapers` | 1 / 1 | 5 / 6 | degraded-controller | reinstalled 2026-10-27 (batch I7; in the reserve from batch I4): the minute time scale (`epsilon = 0.006` min = 0.36 s); mode-keyed (the stricter PRECHARGE row), right-only repositioning, pruned FAULT edges, widened cuts |
 | `compressor_station_recycle` | 2 / 2 | 3 / 3 | degraded-actuator | new 2026-10-27 (batch I5): mode choice (the reference commits to two units while the deployed commands three; with a healthy valve the hop is the identity) |
 | `csf21_vehicle_bus` | 3 / 3 | 6 / 12 | sensor-attack | literature (CSF 2021, internal bus), mode choice; new 2026-10-27 (batch I8) |
@@ -380,14 +402,15 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `drl_lane_control` | 3 / 3 | 6 / 6 | controller-refinement | literature (dRL), mode choice |
 | `elevator_start_discbrake` | 3 / 3 | 4 / 4 | actuator-change | new 2026-10-27 (batch I5): mode-keyed (LIFT row), right-only repositioning (the reference's slower brake lift); STOP's rest-position guard conjunct added at installation |
 | `engine_start_highidle` | 1 / 1 | 5 / 5 | controller-change | new 2026-10-27: mode-keyed, widened cuts; lambda pinned to 1 (batch I6) |
-| `flaps_slow_approach` | 2 / 2 | 2 / 2 | degraded-actuator | new 2026-10-27 (batch I6): stretch 1/2 while the flaps move (`lambda_min = 0.5`), a speed tolerance; grid-dependent (header) |
 | `freedm_meter` | 2 / 2 | 12 / 12 | information-flow | literature (dHL, FREEDM), mode choice |
 | `fuelcell_chp_dos` | 2 / 2 | 3 / 3 | dos-attack | new 2026-10-27 (batch I5): mode choice, multi-step and branching covers, pruned live edges LOW -> HIGH, HIGH -> LOW |
 | `furnace_program_timebase` | 2 / 2 | 3 / 3 | controller-change | new 2026-10-27 (batch I5): stretch 4/5 (`lambda_min = 0.8`), widened cuts, load-bearing mode facts |
 | `gantry_speed_zones` | 2 / 2 | 3 / 1 | controller-refinement | new 2026-10-27 (replaces `match_multi_rate`): a time stretch per speed zone (3, 2, 1), multi-step covers |
+| `girard_robot` | 6 / 2 | 6 / 6 | abstraction | literature (Girard, Julius, Pappas, DEDS 2008), mode choice; new 2026-10-27 (batch I8); location changes sampled on both sides (the bridge's one evolve domain per side) |
 | `grid_ffr_dos` | 3 / 3 | 2 / 3 | dos-attack | new 2026-10-27 (batch I7; round-A design from the reserve): multi-step covers (one attacked cycle against three nominal), pruned trip edges `NORMAL -> TRIP`, `FFR -> TRIP` |
 | `hydro_rejection_gatecal` | 3 / 3 | 2 / 2 | degraded-sensor | new 2026-10-27 (batch I5): mode-keyed (shared-grid equality before the breaker opens, a speed band after) |
 | `insulin_basal_cgmloss` | 3 / 3 | 9 / 9 | degraded-network | new 2026-10-27 (batch I5): multi-step and branching covers (state-dependent successors of the basal table) |
+| `lz_vehicle_position` | 2 / 2 | 3 / 3 | opacity | literature (Liu, Zamani, L-CSS 2021), mode choice; new 2026-10-27 (batch I8) |
 | `molding_pack_checkring` | 3 / 3 | 2 / 2 | degraded-actuator | new 2026-10-27 (batch I5): mode-keyed (the hold row drops its nozzle conjunct at gate freeze) |
 | `platoon_latency` | 3 / 2 | 3 / 2 | degraded-network | new 2026-10-27: mode-keyed (AEB row), right model shared with `platoon_linkloss` |
 | `platoon_linkloss` | 2 / 2 | 3 / 2 | dos-attack | redesigned 2026-10-27 (was `platoon_delay_linkloss`): mode-keyed (AEB row), CACC -> ACC fallback |
@@ -398,10 +421,10 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `rover_ladder_6to8` | 8 / 8 | 3 / 3 | model-refinement | reinstalled 2026-10-27 (L8 / L6): + roll and rollover (LTR) rows; lambda [1, 1.25] from the timetable tolerance (S M I from the re-timed claim form, header) |
 | `rover_ladder_8to12` | 12 / 12 | 3 / 3 | model-refinement | reinstalled 2026-10-27 (L12 / L8): heading, roll, rollover (LTR) and lane rows; lambda [1, 1.25] (S M I from the re-timed claim form, header) |
 | `rover_patrol_lag` | 3 / 2 | 4 / 4 | model-refinement | reinstalled 2026-10-27: the rover with its motor lag against the first-order planning model; lead bound as an order property up to a 3/2 re-timing (S M R B from the claim form, header) |
-| `rover_rollover_payload` | 12 / 12 | 3 / 3 | degradation | new 2026-10-27 (batch I5): mode choice, load-bearing mode facts (both from the claim form, disclosed); the right model's zone joints are 2 m bands with back edges |
 | `rover_terrain_2to4` | 4 / 4 | 3 / 3 | model-refinement | redesigned 2026-10-26 (was `rover_terrain_3to6`): terrain chain, wheel slip and sinkage; zone-only right plan; batch I6: the plan's speed loop at 8 /s, lambda 1 (I only) |
 | `rover_terrain_4to6` | 6 / 6 | 3 / 3 | model-refinement | redesigned 2026-10-26 (was `rover_terrain_6to8`): terrain chain, drive lag and roughness heave; right cap `w <= c_T`; lambda pinned to 1 (batch I6) |
 | `rover_terrain_6to12` | 12 / 12 | 3 / 3 | model-refinement | redesigned 2026-10-26: terrain chain, heave rate, bank grade, pitch, acceleration, squat; right cap `u <= c_T`; lambda pinned to 1 (batch I6) |
+| `salt_tank_sensor` | 1 / 1 | 2 / 2 | sensor-attack | literature (NAHS 2025), load-bearing mode facts; new 2026-10-27 (batch I8); a related published scenario of the running example, not its source |
 | `sat3w_detumble_phases` | 6 / 6 | 2 / 3 | model-refinement | nonblocking region, mode choice; 2026-10-27: equal 1 s periods, the design model with both phases (FINE added), exact energy rows in both phases (no longer mode-keyed) |
 | `sat_detumble_phases` | 4 / 4 | 2 / 3 | model-refinement | nonblocking region, mode choice; 2026-10-27: equal 1 s periods, the design model with both phases (FINE added), exact energy rows in both phases (no longer mode-keyed) |
 | `sat_detumble_weak` | 4 / 4 | 1 / 4 | degraded-actuator | nonblocking region, mode choice; 2026-10-27: equal 1 s periods, both sides at the design-model level (one cause: the weakened gain) |
@@ -412,7 +435,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `turbine_startup_gearratio` | 1 / 1 | 4 / 4 | degraded-controller | new 2026-10-27: widened cuts; right-only repositioning, pruned parking edges (the letters R P I come from the one-sided claim form, header); lambda pinned to 1 (batch I6) |
 | `vehicle_hypercert` | 2 / 2 | 5 / 5 | opacity | literature (HyperCertificates), mode choice; position coordinate and start-offset row (2026-10-27) |
 | `ventilator_vc_cuffleak` | 2 / 2 | 2 / 2 | degraded-actuator | new 2026-10-27 (batch I5): mode-keyed (a relative volume row in inspiration, an absolute band in expiration) |
-| `watertank` | 1 / 1 | 3 / 5 | sensor-attack | the paper's running example |
+| `watertank` | 1 / 1 | 3 / 5 | sensor-attack | the paper's running example (the NAHS 2025 salt-tank case, `salt_tank_sensor`, is a related published scenario with the same attack magnitude and band of 3, not its source) |
 | `watertank_twospeed` | 1 / 1 | 3 / 6 | sensor-attack | redesigned 2026-10-27: six right modes (two-speed low fill, eco/boost mid fill, high, pump off), one uniform claim; per-pairing stretch, pruned `Fast -> PumpOff` |
 
 ## File format

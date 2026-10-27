@@ -67,11 +67,6 @@ import RelCertifier.InstancesV2.Refute.Data.engine_start_highidle_m003
 import RelCertifier.InstancesV2.Refute.Data.hydro_rejection_gatecal_m024
 import RelCertifier.InstancesV2.Refute.Data.hydro_rejection_gatecal_m028
 import RelCertifier.InstancesV2.Refute.Data.ventilator_vc_cuffleak_m020
-import RelCertifier.InstancesV2.Refute.Data.rover_rollover_payload_m023
-import RelCertifier.InstancesV2.Refute.Data.rover_rollover_payload_m027
-import RelCertifier.InstancesV2.Refute.Data.rover_rollover_payload_m028
-import RelCertifier.InstancesV2.Refute.Data.rover_rollover_payload_m031
-import RelCertifier.InstancesV2.Refute.Data.rover_rollover_payload_m032
 import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m016
 import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m017
 import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m018
@@ -86,16 +81,17 @@ import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m032
 import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m036
 import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m040
 import RelCertifier.InstancesV2.Refute.Data.charger_fast_tapers_m003
+import RelCertifier.InstancesV2.Refute.Data.girard_robot_m016
 import RelCertifier.InstancesV2.Cuts.antenna_track_kvretune
 import RelCertifier.InstancesV2.Cuts.charger_fast_tapers
 import RelCertifier.InstancesV2.Cuts.engine_start_highidle
+import RelCertifier.InstancesV2.Cuts.girard_robot
 import RelCertifier.InstancesV2.Cuts.hydro_rejection_gatecal
 import RelCertifier.InstancesV2.Cuts.platoon_latency
 import RelCertifier.InstancesV2.Cuts.platoon_linkloss
 import RelCertifier.InstancesV2.Cuts.quad_light_lag
 import RelCertifier.InstancesV2.Cuts.rover_ladder_6to8
 import RelCertifier.InstancesV2.Cuts.rover_ladder_8to12
-import RelCertifier.InstancesV2.Cuts.rover_rollover_payload
 import RelCertifier.InstancesV2.Cuts.rover_terrain_2to4
 import RelCertifier.InstancesV2.Cuts.rover_terrain_4to6
 import RelCertifier.InstancesV2.Cuts.rover_terrain_6to12
@@ -179,11 +175,6 @@ def refuteTable : List RefRec := [
   ⟨"hydro_rejection_gatecal_m024", 3 + 1, hydro_rejection_gatecal_m024_IRm, hydro_rejection_gatecal_cutsV2X, hydro_rejection_gatecal_m024_wit⟩,
   ⟨"hydro_rejection_gatecal_m028", 3 + 1, hydro_rejection_gatecal_m028_IRm, hydro_rejection_gatecal_cutsV2X, hydro_rejection_gatecal_m028_wit⟩,
   ⟨"ventilator_vc_cuffleak_m020", 3 + 1, ventilator_vc_cuffleak_m020_IRm, ventilator_vc_cuffleak_cutsV2X, ventilator_vc_cuffleak_m020_wit⟩,
-  ⟨"rover_rollover_payload_m023", 12 + 1, rover_rollover_payload_m023_IRm, rover_rollover_payload_cutsV2X, rover_rollover_payload_m023_wit⟩,
-  ⟨"rover_rollover_payload_m027", 12 + 1, rover_rollover_payload_m027_IRm, rover_rollover_payload_cutsV2X, rover_rollover_payload_m027_wit⟩,
-  ⟨"rover_rollover_payload_m028", 12 + 1, rover_rollover_payload_m028_IRm, rover_rollover_payload_cutsV2X, rover_rollover_payload_m028_wit⟩,
-  ⟨"rover_rollover_payload_m031", 12 + 1, rover_rollover_payload_m031_IRm, rover_rollover_payload_cutsV2X, rover_rollover_payload_m031_wit⟩,
-  ⟨"rover_rollover_payload_m032", 12 + 1, rover_rollover_payload_m032_IRm, rover_rollover_payload_cutsV2X, rover_rollover_payload_m032_wit⟩,
   ⟨"antenna_track_kvretune_m016", 3 + 1, antenna_track_kvretune_m016_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m016_wit⟩,
   ⟨"antenna_track_kvretune_m017", 3 + 1, antenna_track_kvretune_m017_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m017_wit⟩,
   ⟨"antenna_track_kvretune_m018", 3 + 1, antenna_track_kvretune_m018_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m018_wit⟩,
@@ -197,9 +188,10 @@ def refuteTable : List RefRec := [
   ⟨"antenna_track_kvretune_m032", 3 + 1, antenna_track_kvretune_m032_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m032_wit⟩,
   ⟨"antenna_track_kvretune_m036", 3 + 1, antenna_track_kvretune_m036_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m036_wit⟩,
   ⟨"antenna_track_kvretune_m040", 3 + 1, antenna_track_kvretune_m040_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m040_wit⟩,
-  ⟨"charger_fast_tapers_m003", 3 + 1, charger_fast_tapers_m003_IRm, charger_fast_tapers_cutsV2X, charger_fast_tapers_m003_wit⟩ ]
+  ⟨"charger_fast_tapers_m003", 3 + 1, charger_fast_tapers_m003_IRm, charger_fast_tapers_cutsV2X, charger_fast_tapers_m003_wit⟩,
+  ⟨"girard_robot_m016", 6 + 1, girard_robot_m016_IRm, girard_robot_cutsV2X, girard_robot_m016_wit⟩ ]
 
 /-- Declared: the number of query groups over the refutations (one per right mode each). -/
-def expectedRefuteGroups : Nat := 237
+def expectedRefuteGroups : Nat := 228
 
 end RelCertifier.Refute

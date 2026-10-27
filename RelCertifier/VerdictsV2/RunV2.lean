@@ -283,9 +283,11 @@ def packsV2 : List PackV2 :=
     ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 8, 6⟩,
     ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 8, 7⟩,
     ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 8, 8⟩,
-    -- flaps_slow_approach (cover replay: EXT at λ = 1/2, CONF2 at λ = 1)
-    ⟨"flaps_slow_approach", 2, 0, [0, 1, 2, 3], 1, 2, 0, 0⟩,
-    ⟨"flaps_slow_approach", 2, 0, [0, 1, 2, 3], 1, 1, 1, 1⟩,
+    -- salt_tank_sensor (cover replay at λ = 1, budget 1; dimension 3, the Assumption 1 lemma's)
+    ⟨"salt_tank_sensor", 3, 0, [0, 1, 2, 3], 1, 1, 0, 0⟩,
+    ⟨"salt_tank_sensor", 3, 0, [1, 2, 3, 0], 1, 1, 0, 1⟩,
+    ⟨"salt_tank_sensor", 3, 0, [0, 1, 2, 3], 1, 1, 1, 0⟩,
+    ⟨"salt_tank_sensor", 3, 0, [0, 1, 2, 3], 1, 1, 1, 1⟩,
     -- bottling_fill_strainer (cover replay: FILL at λ = 17/20, CLOSE at λ = 1)
     ⟨"bottling_fill_strainer", 2, 0, [0, 1, 2, 3, 4], 17, 20, 0, 0⟩,
     ⟨"bottling_fill_strainer", 2, 0, [0, 1, 2, 3, 4], 1, 1, 1, 1⟩,
@@ -321,7 +323,7 @@ def packsV2 : List PackV2 :=
     ⟨"grid_ffr_dos", 3, 0, [2, 3, 4, 0, 1], 1, 1, 1, 1⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 1174
+def expectedModalV2 : Nat := 1182
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
@@ -473,7 +475,7 @@ def runDynV2 (cfg : Z3Config) : IO Bool := do
 
 /-- Declared: one handoff query per declared left transition over the suite_v2 files
 (self-loops included; `CoveragePinsV2.derivedHandoffV2_eq` derives it from the IR table). -/
-def expectedHandoffV2 : Nat := 541
+def expectedHandoffV2 : Nat := 551
 
 /-- Declared handoff failures in suite_v2: none. -/
 def expectedHandoffFailuresV2 : List (String × Nat × Nat) := []
@@ -549,7 +551,7 @@ def runNonConnAllV2 (cfg : Z3Config) : IO Bool := do
 /-- What a certification run over `benchmarks/suite_v2/*/input.txt` must produce, with
 `RELCERT_IMPLIED_CUT=1`: all 50 certified (in the strict well-formedness mode of
 `--check-quick-v2`); and what the strict Assumption 1 check of the right models must produce:
-every one of the 185 right modes `ok` on both clauses (`wfModes`; the kernel pin
+every one of the 187 right modes `ok` on both clauses (`wfModes`; the kernel pin
 `CoveragePinsV2.suiteV2_wfModes` of that count was archived with the standalone route), none
 `UNKNOWN` (`wfUnknown`; 16 UNKNOWN in 9 benchmarks until the 2026-10-10 repairs, when the
 check was informational), none `BLOCKING` (`wfBlocking`; the nonblocking clause is checked
@@ -559,7 +561,7 @@ structure ExpectedSuiteV2 where
   certified : Nat := 50
   declined  : Nat := 0
   errors    : Nat := 0
-  wfModes   : Nat := 185
+  wfModes   : Nat := 187
   wfUnknown : Nat := 0
   wfBlocking : Nat := 0
   deriving Repr

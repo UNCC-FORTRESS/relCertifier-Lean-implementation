@@ -378,7 +378,7 @@
   "dimR": 8,
   "modesL": 3,
   "modesR": 3,
-  "inv": "linear",
+  "inv": "quadratic",
   "dyn": "polynomial",
   "mech": "S M I",
   "ms": 18563
@@ -390,7 +390,7 @@
   "dimR": 12,
   "modesL": 3,
   "modesR": 3,
-  "inv": "linear",
+  "inv": "quadratic",
   "dyn": "polynomial",
   "mech": "S M I",
   "ms": 34760

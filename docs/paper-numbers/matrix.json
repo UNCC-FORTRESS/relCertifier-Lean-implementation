@@ -7438,7 +7438,7 @@
    "hash": "1f6d1ddc8837da9bec86ba047ed31fc0",
    "tol_hash": "2118fe17ed0831774542717da17d63b1",
    "rows_identical": true,
-   "inv_shape": "conjunctive",
+   "inv_shape": "quadratic+conj",
    "per_mode_evolve": false,
    "nonlinear_L": true,
    "nonlinear_R": true,
@@ -7624,7 +7624,7 @@
     "M6": "yes: L.STEEP: 2 conjunct(s); L.MODER: 2 conjunct(s); L.FLAT: 2 conjunct(s); R.STEEP: 1 conjunct(s); R.MODER: 1 conjunct(s); R.FLAT: 1 conjunct(s); NO_CUT=DECLINED",
     "M6+": "no (no widened atom kept)",
     "M6L": "no (no linear-form atom kept)",
-    "M7": "model-refinement; dim 8; conjunctive"
+    "M7": "model-refinement; dim 8; quadratic+conj"
    },
    "exercised": [
     "M1",
@@ -7654,7 +7654,7 @@
    "hash": "218a65bb5a5f7f8197b8fbbe9900de57",
    "tol_hash": "c411181a7512ed02d18b511065f2c093",
    "rows_identical": true,
-   "inv_shape": "conjunctive",
+   "inv_shape": "quadratic+conj",
    "per_mode_evolve": false,
    "nonlinear_L": true,
    "nonlinear_R": true,
@@ -7840,7 +7840,7 @@
     "M6": "yes: L.STEEP: 2 conjunct(s); L.MODER: 2 conjunct(s); L.FLAT: 2 conjunct(s); R.STEEP: 1 conjunct(s); R.MODER: 1 conjunct(s); R.FLAT: 1 conjunct(s); NO_CUT=DECLINED",
     "M6+": "no (no widened atom kept)",
     "M6L": "no (no linear-form atom kept)",
-    "M7": "model-refinement; dim 12; conjunctive"
+    "M7": "model-refinement; dim 12; quadratic+conj"
    },
    "exercised": [
     "M1",

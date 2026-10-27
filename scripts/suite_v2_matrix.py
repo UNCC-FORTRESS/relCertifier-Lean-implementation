@@ -264,6 +264,15 @@ def ode_is_nonlinear(ode_text, vars_):
                 return True
     return False
 
+def _smt_row_degree(node):
+    """Largest polynomial degree, in the projected variables L_x / R_x, of any term of a row."""
+    if isinstance(node, str):
+        return 1 if re.match(r"^[LR]_\w+$", node) else 0
+    degs = [_smt_row_degree(a) for a in node[1:]]
+    if node[0] == "*":
+        return sum(degs)
+    return max(degs or [0])
+
 def row_shape(row):
     r = row.strip()
     if r.startswith("smt2:"):
@@ -272,6 +281,11 @@ def row_shape(row):
         quad = bool(re.search(r"\(\*\s*[LR]_\w+\s+[LR]_\w+", body)) or bool(re.search(r"\(\*\s*\d[\d.]*\s*\(\*\s*[LR]_\w+\s+[LR]_\w+", body)) or bool(re.search(r"\(\*\s*[LR]_\w+\s*\(\*", body))
         # any product of two projected variables anywhere
         quad = quad or len(re.findall(r"\(\*[^()]*[LR]_\w+[^()]*[LR]_\w+", body)) > 0
+        # a product whose factors nest, e.g. (* L_v (- L_omega_psi L_psi)): the regexes above miss it
+        try:
+            quad = quad or _smt_row_degree(_parse_sexpr(_sexpr_tokens(body.strip()))[0]) >= 2
+        except (IndexError, ValueError):
+            pass
         if quad and conj: return "quadratic+conj"
         if quad: return "quadratic"
         if conj: return "conjunctive"

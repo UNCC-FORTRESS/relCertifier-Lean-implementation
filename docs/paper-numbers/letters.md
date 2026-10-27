@@ -31,8 +31,8 @@
 | `quad_light_profiles` | Quadrotor climb, lighter airframe | 2/2 | 1/3 | linear | X | 0.2 | CERTIFIED | - | CERTIFIED | - | - |
 | `rover_ladder_2to3` | Rover ladder | 3/3 | 3/3 | linear | -- | 0.3 | CERTIFIED | - | CERTIFIED | - | - |
 | `rover_ladder_3to6` | Rover ladder | 6/6 | 3/3 | linear | -- | 0.7 | CERTIFIED | - | CERTIFIED | - | - |
-| `rover_ladder_6to8` | Rover ladder | 8/8 | 3/3 | linear | S M I | 18.6 | DECLINED | DECLINED | CERTIFIED | - | S_lam1 |
-| `rover_ladder_8to12` | Rover ladder | 12/12 | 3/3 | linear | S M I | 34.8 | DECLINED | DECLINED | CERTIFIED | - | S_lam1 |
+| `rover_ladder_6to8` | Rover ladder | 8/8 | 3/3 | quadratic | S M I | 18.6 | DECLINED | DECLINED | CERTIFIED | - | S_lam1 |
+| `rover_ladder_8to12` | Rover ladder | 12/12 | 3/3 | quadratic | S M I | 34.8 | DECLINED | DECLINED | CERTIFIED | - | S_lam1 |
 | `rover_patrol_lag` | Rover patrol (zones) | 3/2 | 4/4 | linear | S M R B | 1.3 | DECLINED | DECLINED | DECLINED | - | S_lam1 R_cover |
 | `rover_terrain_2to4` | Terrain chain | 4/4 | 3/3 | linear | I | 0.4 | CERTIFIED | - | CERTIFIED | - | - |
 | `rover_terrain_4to6` | Terrain chain | 6/6 | 3/3 | linear | I | 1.2 | CERTIFIED | - | CERTIFIED | - | - |

@@ -33,8 +33,8 @@
 | `quad_light_profiles` | CERTIFIED (224) | no (λ=1 everywhere) | no (single segment) | no (max non-self successors at a joint step = 0) | no (nothing pruned) | no (rows identical; handoff vacuous) | vacuous: cuts kept (L.CLIMB: 2 conjunct(s); R.NORMAL: 3 conjunct(s)... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 2; conjunctive |
 | `rover_ladder_2to3` | CERTIFIED (360) | no (λ=1 everywhere) | no (single segment) | no (max non-self successors at a joint step = 0) | no (nothing pruned) | no (rows identical; handoff vacuous) | vacuous: cuts kept (L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s);... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 3; conjunctive |
 | `rover_ladder_3to6` | CERTIFIED (741) | no (λ=1 everywhere) | no (single segment) | no (max non-self successors at a joint step = 0) | no (nothing pruned) | no (rows identical; handoff vacuous) | vacuous: cuts kept (L.STEEP: 1 conjunct(s); L.MODER: 1 conjunct(s);... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 6; conjunctive |
-| `rover_ladder_6to8` | CERTIFIED (17576) | yes: STEEP λ=11/10, MODER λ=11/10, FLAT λ=11/10 (polynomial dynamics) | yes: STEEP B=2 via FLAT/MODER/STEEP, MODER B=2 via FLAT/MODER, FLAT... | no (max non-self successors at a joint step = 1) | no (nothing pruned) | no (rows identical; handoff vacuous) | yes: L.STEEP: 2 conjunct(s); L.MODER: 2 conjunct(s); L.FLAT: 2 conj... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 8; conjunctive |
-| `rover_ladder_8to12` | CERTIFIED (32163) | yes: STEEP λ=11/10, MODER λ=11/10, FLAT λ=11/10 (polynomial dynamics) | yes: STEEP B=2 via FLAT/MODER/STEEP, MODER B=2 via FLAT/MODER, FLAT... | no (max non-self successors at a joint step = 1) | no (nothing pruned) | no (rows identical; handoff vacuous) | yes: L.STEEP: 2 conjunct(s); L.MODER: 2 conjunct(s); L.FLAT: 2 conj... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 12; conjunctive |
+| `rover_ladder_6to8` | CERTIFIED (17576) | yes: STEEP λ=11/10, MODER λ=11/10, FLAT λ=11/10 (polynomial dynamics) | yes: STEEP B=2 via FLAT/MODER/STEEP, MODER B=2 via FLAT/MODER, FLAT... | no (max non-self successors at a joint step = 1) | no (nothing pruned) | no (rows identical; handoff vacuous) | yes: L.STEEP: 2 conjunct(s); L.MODER: 2 conjunct(s); L.FLAT: 2 conj... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 8; quadratic+conj |
+| `rover_ladder_8to12` | CERTIFIED (32163) | yes: STEEP λ=11/10, MODER λ=11/10, FLAT λ=11/10 (polynomial dynamics) | yes: STEEP B=2 via FLAT/MODER/STEEP, MODER B=2 via FLAT/MODER, FLAT... | no (max non-self successors at a joint step = 1) | no (nothing pruned) | no (rows identical; handoff vacuous) | yes: L.STEEP: 2 conjunct(s); L.MODER: 2 conjunct(s); L.FLAT: 2 conj... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 12; quadratic+conj |
 | `rover_patrol_lag` | CERTIFIED (1305) | yes: FAST λ=11/8 (affine dynamics) | yes: FAST B=2 via FAST/MEDIUM_BRISK +RO | yes: FAST branch=2 | no (nothing pruned) | no (rows identical; handoff vacuous) | vacuous: cuts kept (L.SLOW: 1 conjunct(s); L.MEDIUM_ECO: 1 conjunct... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 3+-1; conjunctive |
 | `rover_terrain_2to4` | CERTIFIED (395) | no (λ=1 everywhere) | no (single segment) | no (max non-self successors at a joint step = 0) | no (nothing pruned) | no (rows identical; handoff vacuous) | yes: L.MUD: 2 conjunct(s); L.GRAVEL: 2 conjunct(s); L.PAVED: 2 conj... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 4; conjunctive |
 | `rover_terrain_4to6` | CERTIFIED (1090) | no (λ=1 everywhere) | no (single segment) | no (max non-self successors at a joint step = 0) | no (nothing pruned) | no (rows identical; handoff vacuous) | yes: L.MUD: 2 conjunct(s); L.GRAVEL: 2 conjunct(s); L.PAVED: 2 conj... | no (no widened atom kept) | no (no linear-form atom kept) | model-refinement; dim 6; conjunctive |
@@ -76,7 +76,7 @@
 | Platoon follower (CACC, link loss / latency) | 2 | 2, 3/2 | conjunctive | affine | modes 3-3 / 2-2; 0 with a pruned fallback; 2 mode-dependent; 0 cut-reliant; 0 widened-cut-reliant; 0 linear-form-reliant; 0 per-mode domains |
 | Rover patrol (zones) | 1 | 3/2 | conjunctive | affine | modes 4-4 / 4-4; 0 with a pruned fallback; 0 mode-dependent; 0 cut-reliant; 0 widened-cut-reliant; 0 linear-form-reliant; 0 per-mode domains |
 | Gantry speed zones (multi-cycle matching) | 1 | 2 | conjunctive | affine | modes 3-3 / 1-1; 0 with a pruned fallback; 0 mode-dependent; 0 cut-reliant; 0 widened-cut-reliant; 0 linear-form-reliant; 0 per-mode domains |
-| Rover ladder | 4 | 3, 6, 8, 12 | conjunctive | polynomial | modes 3-3 / 3-3; 0 with a pruned fallback; 0 mode-dependent; 2 cut-reliant; 0 widened-cut-reliant; 0 linear-form-reliant; 0 per-mode domains |
+| Rover ladder | 4 | 3, 6, 8, 12 | conjunctive, quadratic+conj | polynomial | modes 3-3 / 3-3; 0 with a pruned fallback; 0 mode-dependent; 2 cut-reliant; 0 widened-cut-reliant; 0 linear-form-reliant; 0 per-mode domains |
 | Terrain chain | 3 | 4, 6, 12 | conjunctive | affine + polynomial | modes 3-3 / 3-3; 0 with a pruned fallback; 0 mode-dependent; 3 cut-reliant; 0 widened-cut-reliant; 0 linear-form-reliant; 0 per-mode domains |
 | Watertank | 2 | 1 | conjunctive | affine | modes 3-3 / 5-6; 1 with a pruned fallback; 0 mode-dependent; 0 cut-reliant; 0 widened-cut-reliant; 0 linear-form-reliant; 0 per-mode domains |
 | Tank under sampling DoS | 1 | 2 | conjunctive | polynomial | modes 4-4 / 4-4; 0 with a pruned fallback; 0 mode-dependent; 1 cut-reliant; 0 widened-cut-reliant; 0 linear-form-reliant; 0 per-mode domains |
@@ -1107,7 +1107,7 @@ no two benchmarks normalize to the same model; no two benchmarks differ only in 
 
 ### `rover_ladder_6to8`
 
-* family: Rover ladder; scenario: model-refinement; dims L/R 8/8; modes L/R 3/3; εL/εR 1.0/1.0; λ ∈ [1.0, 1.25]; invariant shape conjunctive; rows identical: True; normalized md5 `1f6d1ddc8837`
+* family: Rover ladder; scenario: model-refinement; dims L/R 8/8; modes L/R 3/3; εL/εR 1.0/1.0; λ ∈ [1.0, 1.25]; invariant shape quadratic+conj; rows identical: True; normalized md5 `1f6d1ddc8837`
 * `relcert`: **CERTIFIED** (17576 ms); `[prune] rover_ladder_6to8: []`; NO_PRUNE: **CERTIFIED** (17082 ms); NO_CUT: **DECLINED** (13528 ms); NO_IMPLIED_CUT: **CERTIFIED** (17001 ms); NO_LINEAR_CUT: **CERTIFIED** (17024 ms); domains: uniform
 * `[cut] L.STEEP: 2 conjunct(s)`
 * `[cut] L.MODER: 2 conjunct(s)`
@@ -1132,7 +1132,7 @@ no two benchmarks normalize to the same model; no two benchmarks differ only in 
 
 ### `rover_ladder_8to12`
 
-* family: Rover ladder; scenario: model-refinement; dims L/R 12/12; modes L/R 3/3; εL/εR 1.0/1.0; λ ∈ [1.0, 1.25]; invariant shape conjunctive; rows identical: True; normalized md5 `218a65bb5a5f`
+* family: Rover ladder; scenario: model-refinement; dims L/R 12/12; modes L/R 3/3; εL/εR 1.0/1.0; λ ∈ [1.0, 1.25]; invariant shape quadratic+conj; rows identical: True; normalized md5 `218a65bb5a5f`
 * `relcert`: **CERTIFIED** (32163 ms); `[prune] rover_ladder_8to12: []`; NO_PRUNE: **CERTIFIED** (32753 ms); NO_CUT: **DECLINED** (32589 ms); NO_IMPLIED_CUT: **CERTIFIED** (32515 ms); NO_LINEAR_CUT: **CERTIFIED** (32516 ms); domains: uniform
 * `[cut] L.STEEP: 2 conjunct(s)`
 * `[cut] L.MODER: 2 conjunct(s)`

@@ -80,7 +80,7 @@ import RelCertifier.InstancesV2.WellFormed.RoverTerrain2to4
 import RelCertifier.InstancesV2.WellFormed.RoverTerrain6to12
 import RelCertifier.InstancesV2.WellFormed.RoverTerrain4to6
 import RelCertifier.InstancesV2.WellFormed.PlatoonLinkloss
-import RelCertifier.InstancesV2.WellFormed.PlatoonLatency
+import RelCertifier.InstancesV2.WellFormed.PlatoonProfiles
 import RelCertifier.InstancesV2.WellFormed.EngineStartHighidle
 import RelCertifier.InstancesV2.WellFormed.TrainAtoOdometry
 import RelCertifier.InstancesV2.WellFormed.BmsChillerUndercharge
@@ -91,7 +91,7 @@ import RelCertifier.InstancesV2.WellFormed.SatDetumbleWeak
 import RelCertifier.InstancesV2.WellFormed.SatDetumblePhases
 import RelCertifier.InstancesV2.WellFormed.Sat3wDetumblePhases
 import RelCertifier.InstancesV2.WellFormed.WatertankTwospeed
-import RelCertifier.InstancesV2.WellFormed.TankDos3to1
+import RelCertifier.InstancesV2.WellFormed.FlapsSlowApproach
 import RelCertifier.InstancesV2.WellFormed.MoldingPackCheckring
 import RelCertifier.InstancesV2.WellFormed.FuelcellChpDos
 import RelCertifier.InstancesV2.WellFormed.ElevatorStartDiscbrake
@@ -111,14 +111,14 @@ namespace WellFormedBattery
 
 /-- The benchmarks whose right model satisfies Assumption 1 at every mode. -/
 def wfProved : List String :=
-  ["platoon_linkloss", "platoon_latency",
+  ["platoon_linkloss", "platoon_profiles",
    "charger_fast_tapers", "quad_light_profiles",
    "watertank", "acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp",
    "quad_light_lag", "rover_patrol_lag", "gantry_speed_zones",
    "rover_ladder_2to3",
    "rover_ladder_3to6", "rover_ladder_6to8",
    "rover_ladder_8to12", "rover_terrain_2to4", "rover_terrain_6to12",
-   "rover_terrain_4to6", "watertank_twospeed", "tank_dos_3to1", "engine_start_highidle", "train_ato_odometry",
+   "rover_terrain_4to6", "watertank_twospeed", "flaps_slow_approach", "engine_start_highidle", "train_ato_odometry",
    "bms_chiller_undercharge", "turbine_startup_gearratio",
    "molding_pack_checkring", "fuelcell_chp_dos", "elevator_start_discbrake",
    "furnace_program_timebase", "compressor_station_recycle", "syringe_relay_prearm",
@@ -185,14 +185,15 @@ def suiteNames : List String :=
   ["acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp", "antenna_track_kvretune",
    "bms_chiller_undercharge", "bottling_fill_strainer", "charger_fast_tapers",
    "compressor_station_recycle", "csf21_vehicle_bus", "csf21_vehicle_thermo", "drl_car_stop",
-   "drl_lane_control", "elevator_start_discbrake", "engine_start_highidle", "freedm_meter",
+   "drl_lane_control", "elevator_start_discbrake", "engine_start_highidle", "flaps_slow_approach",
+   "freedm_meter",
    "fuelcell_chp_dos", "furnace_program_timebase", "gantry_speed_zones", "girard_robot",
    "grid_ffr_dos", "hydro_rejection_gatecal", "insulin_basal_cgmloss", "lz_vehicle_position",
-   "molding_pack_checkring", "platoon_latency", "platoon_linkloss", "quad_light_lag",
+   "molding_pack_checkring", "platoon_linkloss", "platoon_profiles", "quad_light_lag",
    "quad_light_profiles", "rover_ladder_2to3", "rover_ladder_3to6", "rover_ladder_6to8",
    "rover_ladder_8to12", "rover_patrol_lag", "rover_terrain_2to4", "rover_terrain_4to6",
    "rover_terrain_6to12", "salt_tank_sensor", "sat3w_detumble_phases", "sat_detumble_phases",
-   "sat_detumble_weak", "syringe_relay_prearm", "tank_dos_3to1", "train_ato_odometry",
+   "sat_detumble_weak", "syringe_relay_prearm", "train_ato_odometry",
    "tunnel_jetfan_pairout", "turbine_startup_gearratio", "vehicle_hypercert",
    "ventilator_vc_cuffleak", "watertank", "watertank_twospeed"]
 
@@ -223,7 +224,7 @@ end WellFormedBattery
 
 #print axioms V2Watertank.watertank_wellFormedR
 #print axioms V2WatertankTwospeed.watertank_twospeed_wellFormedR
-#print axioms V2TankDos3to1.tank_dos_3to1_wellFormedR
+#print axioms V2FlapsSlowApproach.flaps_slow_approach_wellFormedR
 #print axioms V2AccSpoofLag.acc_spoof_lag_wellFormedR
 #print axioms V2AccSpoofLimp.acc_spoof_limp_wellFormedR
 #print axioms V2AccTuneLag.acc_tune_lag_wellFormedR
@@ -242,7 +243,7 @@ end WellFormedBattery
 /-! ## The later additions: Assumption 1 at every mode -/
 
 #print axioms V2PlatoonLinkloss.platoon_linkloss_wellFormedR
-#print axioms V2PlatoonLatency.platoon_latency_wellFormedR
+#print axioms V2PlatoonProfiles.platoon_profiles_wellFormedR
 #print axioms V2EngineStartHighidle.engine_start_highidle_wellFormedR
 #print axioms V2TrainAtoOdometry.train_ato_odometry_wellFormedR
 #print axioms V2BmsChillerUndercharge.bms_chiller_undercharge_wellFormedR

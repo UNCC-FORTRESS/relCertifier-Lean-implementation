@@ -2,14 +2,14 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `platoon_latency`: Assumption 1 of the right model (`WellFormedR`)
+# `platoon_profiles`: Assumption 1 of the right model (`WellFormedR`)
 
 Model fact, independent of the relational invariant: over the right automaton `Gr` (the
 file's two right modes and their declared `next` lists, `CACC → [CACC, AEB]`,
 `AEB → [AEB]`), the lowered right guards, and `ε_r = 0.1` read from the file.
 
 The right model is the design follower of the CACC/AEB platoon link: gap `g` (coordinate 0),
-range rate `r` (coordinate 1), coordinate 2 the left's latency state `e`, which the right does not list, so its right field lowers to 0; evolve box `0 ≤ g ≤ 60`, `|r| ≤ 10` in both modes.
+range rate `r` (coordinate 1), coordinate 2 frozen (the keyed form pads the two state variables to dimension 3); evolve box `0 ≤ g ≤ 60`, `|r| ≤ 10` in both modes.
 * `CACC` (`g' = r`, `r' = −0.125 (g − 20) − 0.75 r`; guard `|r| ≤ 10`, `5 ≤ g + 2r ≤ 60`).
   (i) The explicit two-exponential solution stays in the box for all time
   (`PlatoonCaccAeb.cacc_exists`). (ii) Style (a), the self-loop: the projected stop gap
@@ -23,19 +23,19 @@ the run lemmas are the shared `WellFormed/PlatoonCaccAeb.lean`.
 -/
 import RelCertifier.Trusted.Parse
 import RelCertifier.Proofs.Encoding.WellFormedR
-import RelCertifier.InstancesV2.BenchIR.platoon_latency
+import RelCertifier.InstancesV2.BenchIR.platoon_profiles
 import RelCertifier.InstancesV2.WellFormed.PlatoonCaccAeb
 
 set_option linter.unusedSimpArgs false
 
 namespace RelCertifier
-namespace V2PlatoonLatency
+namespace V2PlatoonProfiles
 
 open DL DLCalTiming DLRel Parse Set
 
-def vs : List String := ["g", "r", "e"]
+def vs : List String := ["g", "r"]
 def dm : PMode := ⟨"", [], .tt, .tt, []⟩
-def mR (q : ℕ) : PMode := platoon_latency_IRv2.R.modes.getD q dm
+def mR (q : ℕ) : PMode := platoon_profiles_IRv2.R.modes.getD q dm
 
 noncomputable def fR (q : ℕ) : Fin 3 → Term (Var 3) := hostDyn vs 3 Side.R (mR q)
 noncomputable def domR : Formula (Var 3) := hostEvolve vs 3 Side.R (mR 0)
@@ -81,40 +81,40 @@ theorem hp01 : Run.parseRat "0.1" = some ((1:ℚ)/10) := by
 /-- `CACC`: `g' = r`, `r' = −0.125 (g − 20) − 0.75 r`, coordinate 2 frozen. -/
 theorem fR_cacc : PlatoonCaccAeb.CaccField (fR 0) 0 1 := by
   refine ⟨fun z => ?_, fun z => ?_, fun i h0 h1 z => ?_⟩
-  · simp [fR, hostDyn, mR, platoon_latency_IRv2, vs, Run.dynOf, Run.lowerE, hp0125m, hp200, hp075,
+  · simp [fR, hostDyn, mR, platoon_profiles_IRv2, vs, Run.dynOf, Run.lowerE, hp0125m, hp200, hp075,
       Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp,
       Rv]
-  · simp [fR, hostDyn, mR, platoon_latency_IRv2, vs, Run.dynOf, Run.lowerE, hp0125m, hp200, hp075,
+  · simp [fR, hostDyn, mR, platoon_profiles_IRv2, vs, Run.dynOf, Run.lowerE, hp0125m, hp200, hp075,
       Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp,
       Rv]
     ring
   · fin_cases i
     · exact absurd rfl h0
     · exact absurd rfl h1
-    · simp [fR, hostDyn, mR, platoon_latency_IRv2, vs, Run.dynOf, Run.lowerE, hp0125m, hp200, hp075,
+    · simp [fR, hostDyn, mR, platoon_profiles_IRv2, vs, Run.dynOf, Run.lowerE, hp0125m, hp200, hp075,
         Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
         AOp.interp, Rv]
 
 /-- `AEB`: `g' = r`, `r' = −0.5 r`, coordinate 2 frozen. -/
 theorem fR_aeb : PlatoonCaccAeb.AebField (fR 1) 0 1 := by
   refine ⟨fun z => ?_, fun z => ?_, fun i h0 h1 z => ?_⟩
-  · simp [fR, hostDyn, mR, platoon_latency_IRv2, vs, Run.dynOf, Run.lowerE, hp05m,
+  · simp [fR, hostDyn, mR, platoon_profiles_IRv2, vs, Run.dynOf, Run.lowerE, hp05m,
       Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp,
       Rv]
-  · simp [fR, hostDyn, mR, platoon_latency_IRv2, vs, Run.dynOf, Run.lowerE, hp05m,
+  · simp [fR, hostDyn, mR, platoon_profiles_IRv2, vs, Run.dynOf, Run.lowerE, hp05m,
       Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp,
       Rv]
     ring
   · fin_cases i
     · exact absurd rfl h0
     · exact absurd rfl h1
-    · simp [fR, hostDyn, mR, platoon_latency_IRv2, vs, Run.dynOf, Run.lowerE, hp05m,
+    · simp [fR, hostDyn, mR, platoon_profiles_IRv2, vs, Run.dynOf, Run.lowerE, hp05m,
         Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
         AOp.interp, Rv]
 
 /-- The evolve domain (both modes): the box `0 ≤ g ≤ 60`, `|r| ≤ 10`. -/
 theorem sat_domR (x : State (Var 3)) : Formula.sat domR x ↔ PlatoonCaccAeb.Box x 0 1 := by
-  simp only [domR, hostEvolve, mR, platoon_latency_IRv2, vs, PlatoonCaccAeb.Box]
+  simp only [domR, hostEvolve, mR, platoon_profiles_IRv2, vs, PlatoonCaccAeb.Box]
   simp [Run.lowerF, Run.lowerE, hp00, hp600, hpm100, hp100, Run.resolveVar,
     List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv]
   tauto
@@ -124,7 +124,7 @@ theorem sat_guardR0 (ν : State (Var 3)) :
     Formula.sat (hostGuard vs 3 Side.R (mR 0)) ν ↔
       (-10 ≤ ν (Rv 1) ∧ ν (Rv 1) ≤ 10) ∧
       (5 ≤ ν (Rv 0) + 2 * ν (Rv 1) ∧ ν (Rv 0) + 2 * ν (Rv 1) ≤ 60) := by
-  simp [hostGuard, mR, platoon_latency_IRv2, Run.lowerF, Run.lowerE, hpm100, hp100, hp20, hp50,
+  simp [hostGuard, mR, platoon_profiles_IRv2, Run.lowerF, Run.lowerE, hpm100, hp100, hp20, hp50,
     hp600, vs, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
     CompOp.interp, Term.eval, AOp.interp, Rv]
   tauto
@@ -133,7 +133,7 @@ theorem sat_guardR0 (ν : State (Var 3)) :
 theorem sat_guardR1 (ν : State (Var 3)) :
     Formula.sat (hostGuard vs 3 Side.R (mR 1)) ν ↔
       (ν (Rv 0) + 2 * ν (Rv 1) < 5 ∧ 0 ≤ ν (Rv 0) + 2 * ν (Rv 1)) ∧ 0 ≤ ν (Rv 0) := by
-  simp [hostGuard, mR, platoon_latency_IRv2, Run.lowerF, Run.lowerE, hp00, hp20, hp50, vs,
+  simp [hostGuard, mR, platoon_profiles_IRv2, Run.lowerF, Run.lowerE, hp00, hp20, hp50, vs,
     Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
     CompOp.interp, Term.eval, AOp.interp, Rv]
 
@@ -167,8 +167,8 @@ theorem edge_mem (s t : ℕ) (h : (s, t) ∈ edgeList) : edgeW s t ∈ Gr.edgesF
   List.mem_filter.mpr ⟨List.mem_map.mpr ⟨(s, t), h, rfl⟩, by simp [edgeW]⟩
 
 /-- `ε_r` of the file. -/
-theorem epsR_eq : epsR platoon_latency_IRv2 = 1/10 := by
-  simp [epsR, platoon_latency_IRv2, hp01]
+theorem epsR_eq : epsR platoon_profiles_IRv2 = 1/10 := by
+  simp [epsR, platoon_profiles_IRv2, hp01]
 
 /-- The lowered right guards. -/
 noncomputable def guardR (q : ℕ) : Formula (Var 3) := hostGuard vs 3 Side.R (mR q)
@@ -176,8 +176,8 @@ noncomputable def guardR (q : ℕ) : Formula (Var 3) := hostGuard vs 3 Side.R (m
 theorem domR_of_box (z : State (Var 3)) (h : PlatoonCaccAeb.Box z 0 1) : Formula.sat domR z :=
   (sat_domR z).mpr h
 
-/-- **Assumption 1 for `platoon_latency`**, every mode, Z3-free. -/
-theorem platoon_latency_wellFormedR : WellFormedR Gr guardR (epsR platoon_latency_IRv2) := by
+/-- **Assumption 1 for `platoon_profiles`**, every mode, Z3-free. -/
+theorem platoon_profiles_wellFormedR : WellFormedR Gr guardR (epsR platoon_profiles_IRv2) := by
   rw [epsR_eq]
   intro q hq m hm x hg hd _
   obtain ⟨hq2, rfl⟩ := Gr_modeAt_inv hm
@@ -206,6 +206,6 @@ theorem platoon_latency_wellFormedR : WellFormedR Gr guardR (epsR platoon_latenc
     exact ⟨edgeW 1 1, edge_mem 1 1 (by decide),
       (sat_guardR1 _).mpr ⟨⟨by linarith [hgx.1.1], by linarith [hgx.1.2]⟩, he.1⟩⟩
 
-end V2PlatoonLatency
+end V2PlatoonProfiles
 end RelCertifier
 

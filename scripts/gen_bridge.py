@@ -34,7 +34,7 @@ CHOICE = {
 
 KEYED = {"acc_tune_limp", "antenna_track_kvretune", "charger_fast_tapers", "elevator_start_discbrake",
          "engine_start_highidle", "hydro_rejection_gatecal", "molding_pack_checkring",
-         "platoon_latency", "platoon_linkloss", "syringe_relay_prearm",
+         "platoon_linkloss", "platoon_profiles", "syringe_relay_prearm",
          "tunnel_jetfan_pairout", "ventilator_vc_cuffleak"}
 
 

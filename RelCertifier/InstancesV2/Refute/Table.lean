@@ -59,8 +59,6 @@ import RelCertifier.InstancesV2.Refute.Data.sat_detumble_phases_m002
 import RelCertifier.InstancesV2.Refute.Data.sat_detumble_phases_m003
 import RelCertifier.InstancesV2.Refute.Data.sat_detumble_phases_m005
 import RelCertifier.InstancesV2.Refute.Data.sat_detumble_phases_m006
-import RelCertifier.InstancesV2.Refute.Data.platoon_latency_m040
-import RelCertifier.InstancesV2.Refute.Data.platoon_latency_m043
 import RelCertifier.InstancesV2.Refute.Data.platoon_linkloss_m036
 import RelCertifier.InstancesV2.Refute.Data.platoon_linkloss_m039
 import RelCertifier.InstancesV2.Refute.Data.engine_start_highidle_m003
@@ -82,13 +80,15 @@ import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m036
 import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m040
 import RelCertifier.InstancesV2.Refute.Data.charger_fast_tapers_m003
 import RelCertifier.InstancesV2.Refute.Data.girard_robot_m016
+import RelCertifier.InstancesV2.Refute.Data.platoon_profiles_m024
+import RelCertifier.InstancesV2.Refute.Data.platoon_profiles_m027
 import RelCertifier.InstancesV2.Cuts.antenna_track_kvretune
 import RelCertifier.InstancesV2.Cuts.charger_fast_tapers
 import RelCertifier.InstancesV2.Cuts.engine_start_highidle
 import RelCertifier.InstancesV2.Cuts.girard_robot
 import RelCertifier.InstancesV2.Cuts.hydro_rejection_gatecal
-import RelCertifier.InstancesV2.Cuts.platoon_latency
 import RelCertifier.InstancesV2.Cuts.platoon_linkloss
+import RelCertifier.InstancesV2.Cuts.platoon_profiles
 import RelCertifier.InstancesV2.Cuts.quad_light_lag
 import RelCertifier.InstancesV2.Cuts.rover_ladder_6to8
 import RelCertifier.InstancesV2.Cuts.rover_ladder_8to12
@@ -167,8 +167,6 @@ def refuteTable : List RefRec := [
   ⟨"sat_detumble_phases_m003", 4 + 1, sat_detumble_phases_m003_IRm, sat_detumble_phases_cutsV2X, sat_detumble_phases_m003_wit⟩,
   ⟨"sat_detumble_phases_m005", 4 + 1, sat_detumble_phases_m005_IRm, sat_detumble_phases_cutsV2X, sat_detumble_phases_m005_wit⟩,
   ⟨"sat_detumble_phases_m006", 4 + 1, sat_detumble_phases_m006_IRm, sat_detumble_phases_cutsV2X, sat_detumble_phases_m006_wit⟩,
-  ⟨"platoon_latency_m040", 3 + 1, platoon_latency_m040_IRm, platoon_latency_cutsV2X, platoon_latency_m040_wit⟩,
-  ⟨"platoon_latency_m043", 3 + 1, platoon_latency_m043_IRm, platoon_latency_cutsV2X, platoon_latency_m043_wit⟩,
   ⟨"platoon_linkloss_m036", 3 + 1, platoon_linkloss_m036_IRm, platoon_linkloss_cutsV2X, platoon_linkloss_m036_wit⟩,
   ⟨"platoon_linkloss_m039", 3 + 1, platoon_linkloss_m039_IRm, platoon_linkloss_cutsV2X, platoon_linkloss_m039_wit⟩,
   ⟨"engine_start_highidle_m003", 3 + 1, engine_start_highidle_m003_IRm, engine_start_highidle_cutsV2X, engine_start_highidle_m003_wit⟩,
@@ -189,7 +187,9 @@ def refuteTable : List RefRec := [
   ⟨"antenna_track_kvretune_m036", 3 + 1, antenna_track_kvretune_m036_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m036_wit⟩,
   ⟨"antenna_track_kvretune_m040", 3 + 1, antenna_track_kvretune_m040_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m040_wit⟩,
   ⟨"charger_fast_tapers_m003", 3 + 1, charger_fast_tapers_m003_IRm, charger_fast_tapers_cutsV2X, charger_fast_tapers_m003_wit⟩,
-  ⟨"girard_robot_m016", 6 + 1, girard_robot_m016_IRm, girard_robot_cutsV2X, girard_robot_m016_wit⟩ ]
+  ⟨"girard_robot_m016", 6 + 1, girard_robot_m016_IRm, girard_robot_cutsV2X, girard_robot_m016_wit⟩,
+  ⟨"platoon_profiles_m024", 3 + 1, platoon_profiles_m024_IRm, platoon_profiles_cutsV2X, platoon_profiles_m024_wit⟩,
+  ⟨"platoon_profiles_m027", 3 + 1, platoon_profiles_m027_IRm, platoon_profiles_cutsV2X, platoon_profiles_m027_wit⟩ ]
 
 /-- Declared: the number of query groups over the refutations (one per right mode each). -/
 def expectedRefuteGroups : Nat := 228

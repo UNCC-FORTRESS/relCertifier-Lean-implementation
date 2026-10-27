@@ -122,8 +122,18 @@
 > suite; `lz_vehicle_position`, `girard_robot` and `salt_tank_sensor` installed, the finder run on them
 > (`--only`): 16 + 18 + 14 mutants, one witness: `girard_robot_m016` (the quadratic tracking-error row
 > flipped to `>=`, kind B, 6 groups; DECLINED by relcert); 48 lines in.
+> Batch I9 (2026-10-27, the multi-rate and stretch pass, two swaps): `tank_dos_3to1` (16 witness lines, no refutation) and
+> `platoon_latency` (67 lines; m040 and m043, kind B, 4 groups) left the suite; `flaps_slow_approach` (16 mutants, no witness)
+> and the time-scaled `platoon_profiles` (51 mutants; m024 and m027 new, kind B, 4 groups: the floor rows `L_g >= 5` and
+> `L_g + 2 L_r >= 5` flipped, the same two rows its batch-I2 form refuted as m008 and m011) came in; the finder re-ran on the
+> eight changed files (`--only`): `acc_spoof_lag` 10 mutants (was 20: the dominant-mode rows), `charger_fast_tapers` 6,
+> `platoon_linkloss` 63, `quad_light_profiles` 18, `rover_terrain_2to4` 16, `sat3w_detumble_phases` 16, `sat_detumble_phases`
+> 16, `sat_detumble_weak` 16: the same refutations as before (`charger_fast_tapers` m003; `platoon_linkloss` m036, m039;
+> `rover_terrain_2to4` m008, m011, m012, m015; `sat3w_detumble_phases` m002 to m007; `sat_detumble_phases` m002, m003, m005,
+> m006), their mutant inputs and IR data rewritten to the new files, each DECLINED by relcert; no witness on the other four.
+> Witness lines 983 -> 957; instances 77 -> 77; groups 228 -> 228.
 > Current instance set: **77 refutations, 228 groups**
-> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 983 mutants in
+> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 957 mutants in
 > `docs/refute/witnesses.jsonl`. The operator table below is the 2026-10-21 run; recomputed on 2026-10-27
 > (`scripts/refute_experiment.py`, 6 parallel jobs, the then-default 40 s budget; `docs/refute/relcert.json`, `results.json`,
 > `runner.log`): 983 mutants, 342 certified, 77 kernel-refuted, 564 open (9 of them relcert ERRORs by the time budget:

@@ -59,8 +59,6 @@ import RelCertifier.InstancesV2.Refute.SatDetumblePhasesM002
 import RelCertifier.InstancesV2.Refute.SatDetumblePhasesM003
 import RelCertifier.InstancesV2.Refute.SatDetumblePhasesM005
 import RelCertifier.InstancesV2.Refute.SatDetumblePhasesM006
-import RelCertifier.InstancesV2.Refute.PlatoonLatencyM040
-import RelCertifier.InstancesV2.Refute.PlatoonLatencyM043
 import RelCertifier.InstancesV2.Refute.PlatoonLinklossM036
 import RelCertifier.InstancesV2.Refute.PlatoonLinklossM039
 import RelCertifier.InstancesV2.Refute.EngineStartHighidleM003
@@ -82,3 +80,5 @@ import RelCertifier.InstancesV2.Refute.AntennaTrackKvretuneM036
 import RelCertifier.InstancesV2.Refute.AntennaTrackKvretuneM040
 import RelCertifier.InstancesV2.Refute.ChargerFastTapersM003
 import RelCertifier.InstancesV2.Refute.GirardRobotM016
+import RelCertifier.InstancesV2.Refute.PlatoonProfilesM024
+import RelCertifier.InstancesV2.Refute.PlatoonProfilesM027

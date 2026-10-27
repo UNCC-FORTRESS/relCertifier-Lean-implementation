@@ -1,11 +1,15 @@
+# RESERVE (benchmarks/reserve/, 2026-10-27, batch I9): not in suite_v2, not in the paper, no Lean
+# integration (last at commit 9dcda0c). Reason: the same right model (the CACC/AEB design follower) and the same AEB D as platoon_linkloss, with a late feed-forward that keeps every row of that file; its place in the suite went to the time-scaled platoon_profiles (S M D), batch I9. The header below is the suite file's.
+#
 # platoon_latency: a CACC follower whose V2V feed-forward (the predecessor's acceleration) arrives
 # late, against the design follower with an ideal (zero-latency) link.
 # scenario: degraded-network
 # mechanisms: D (mode-dependent rows: the AEB row differs from the CACC row, the 7 handoffs unsat
 #   or implied, uniform rows decline; matrix code M5)
 #
-# Shared platoon model (identical in platoon_linkloss, platoon_profiles, platoon3_linkloss,
-# platoon3_profiles and this file). A lead vehicle cruises at the platoon reference speed
+# Shared platoon model (identical in platoon_linkloss and this file, and in the round-2 platoon
+# designs platoon_profiles (in benchmarks/reserve/ since 2026-10-27, batch I8) and the reserve's
+# platoon3_linkloss, platoon3_profiles). A lead vehicle cruises at the platoon reference speed
 # v_ref = 25 m/s (90 km/h). Per link (follower behind its predecessor): the gap g (m, bumper to
 # bumper) and the range rate r = v_pred - v (m/s, positive = opening), g' = r. Units m, m/s, s.
 # Spacing policy (constant time gap): standstill distance d0 = 5 m. CACC: time gap h_c = 0.6 s on
@@ -143,6 +147,6 @@ guard = g + 2.0 * r < 5.0 and g + 2.0 * r >= 0.0 and g >= 0.0
 evolve = g >= 0.0 and g <= 60.0 and r >= -10.0 and r <= 10.0
 next = [AEB]
 [relational_invariant]
-CACC_UP = smt2:(and (>= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) (- 0.0 1.0)) (<= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) 1.0) (>= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) (- 0.0 2.0)) (<= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) 2.0) (>= (- L_g R_g) (- 0.0 4.0)) (<= (- L_g R_g) 4.0) (>= (+ R_g (* 2.0 R_r)) 5.0) (<= (+ R_g (* 2.0 R_r)) 60.0) (>= L_g 5.0) (<= (+ L_g (* 2.0 L_r)) 5.0))
-CACC_DN = smt2:(and (>= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) (- 0.0 1.0)) (<= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) 1.0) (>= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) (- 0.0 2.0)) (<= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) 2.0) (>= (- L_g R_g) (- 0.0 4.0)) (<= (- L_g R_g) 4.0) (>= (+ R_g (* 2.0 R_r)) 5.0) (<= (+ R_g (* 2.0 R_r)) 60.0) (>= L_g 5.0) (<= (+ L_g (* 2.0 L_r)) 5.0))
+CACC_UP = smt2:(and (>= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) (- 0.0 1.0)) (<= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) 1.0) (>= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) (- 0.0 2.0)) (<= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) 2.0) (>= (- L_g R_g) (- 0.0 4.0)) (<= (- L_g R_g) 4.0) (>= (+ R_g (* 2.0 R_r)) 5.0) (<= (+ R_g (* 2.0 R_r)) 60.0) (>= L_g 5.0) (>= (+ L_g (* 2.0 L_r)) 5.0))
+CACC_DN = smt2:(and (>= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) (- 0.0 1.0)) (<= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) 1.0) (>= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) (- 0.0 2.0)) (<= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) 2.0) (>= (- L_g R_g) (- 0.0 4.0)) (<= (- L_g R_g) 4.0) (>= (+ R_g (* 2.0 R_r)) 5.0) (<= (+ R_g (* 2.0 R_r)) 60.0) (>= L_g 5.0) (>= (+ L_g (* 2.0 L_r)) 5.0))
 AEB = smt2:(and (>= (- L_r R_r) 0.0) (<= (- L_r R_r) 0.0) (>= (+ (- L_g R_g) (* 2.0 (- L_r R_r))) 0.0) (<= (+ (- L_g R_g) (* 2.0 (- L_r R_r))) 0.0))

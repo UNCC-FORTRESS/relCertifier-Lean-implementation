@@ -13,6 +13,6 @@ namespace RelCertifier
 /-- `acc_spoof_lag` (emitted, suite_v2, widened cut channel on). -/
 def acc_spoof_lag_coverV2 : CoverEmitE :=
   ⟨"acc_spoof_lag", [], [
-    ⟨"CRUISE", (1 : ℚ) / 1, 1, [⟨"CRUISE", true, false, false⟩], ["CRUISE"], [⟨"CRUISE", [1, 3, 0, 2], [], [], 1, 1⟩]⟩]⟩
+    ⟨"CRUISE", (3 : ℚ) / 2, 2, [⟨"CRUISE", true, false, false⟩], ["CRUISE"], [⟨"CRUISE", [1, 0], [], [], 3, 2⟩]⟩]⟩
 
 end RelCertifier

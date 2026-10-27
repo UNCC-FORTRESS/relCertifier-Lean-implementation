@@ -12,6 +12,7 @@ import RelCertifier.InstancesV2.BenchProgress.csf21_vehicle_bus
 import RelCertifier.InstancesV2.BenchProgress.csf21_vehicle_thermo
 import RelCertifier.InstancesV2.BenchProgress.elevator_start_discbrake
 import RelCertifier.InstancesV2.BenchProgress.engine_start_highidle
+import RelCertifier.InstancesV2.BenchProgress.flaps_slow_approach
 import RelCertifier.InstancesV2.BenchProgress.fuelcell_chp_dos
 import RelCertifier.InstancesV2.BenchProgress.furnace_program_timebase
 import RelCertifier.InstancesV2.BenchProgress.gantry_speed_zones
@@ -21,8 +22,8 @@ import RelCertifier.InstancesV2.BenchProgress.hydro_rejection_gatecal
 import RelCertifier.InstancesV2.BenchProgress.insulin_basal_cgmloss
 import RelCertifier.InstancesV2.BenchProgress.lz_vehicle_position
 import RelCertifier.InstancesV2.BenchProgress.molding_pack_checkring
-import RelCertifier.InstancesV2.BenchProgress.platoon_latency
 import RelCertifier.InstancesV2.BenchProgress.platoon_linkloss
+import RelCertifier.InstancesV2.BenchProgress.platoon_profiles
 import RelCertifier.InstancesV2.BenchProgress.quad_light_lag
 import RelCertifier.InstancesV2.BenchProgress.quad_light_profiles
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_2to3
@@ -38,7 +39,6 @@ import RelCertifier.InstancesV2.BenchProgress.sat3w_detumble_phases
 import RelCertifier.InstancesV2.BenchProgress.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchProgress.sat_detumble_weak
 import RelCertifier.InstancesV2.BenchProgress.syringe_relay_prearm
-import RelCertifier.InstancesV2.BenchProgress.tank_dos_3to1
 import RelCertifier.InstancesV2.BenchProgress.train_ato_odometry
 import RelCertifier.InstancesV2.BenchProgress.tunnel_jetfan_pairout
 import RelCertifier.InstancesV2.BenchProgress.turbine_startup_gearratio
@@ -63,6 +63,7 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("csf21_vehicle_thermo", csf21_vehicle_thermo_coverV2_progress),
    ("elevator_start_discbrake", elevator_start_discbrake_coverV2_progress),
    ("engine_start_highidle", engine_start_highidle_coverV2_progress),
+   ("flaps_slow_approach", flaps_slow_approach_coverV2_progress),
    ("fuelcell_chp_dos", fuelcell_chp_dos_coverV2_progress),
    ("furnace_program_timebase", furnace_program_timebase_coverV2_progress),
    ("gantry_speed_zones", gantry_speed_zones_coverV2_progress),
@@ -72,8 +73,8 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("insulin_basal_cgmloss", insulin_basal_cgmloss_coverV2_progress),
    ("lz_vehicle_position", lz_vehicle_position_coverV2_progress),
    ("molding_pack_checkring", molding_pack_checkring_coverV2_progress),
-   ("platoon_latency", platoon_latency_coverV2_progress),
    ("platoon_linkloss", platoon_linkloss_coverV2_progress),
+   ("platoon_profiles", platoon_profiles_coverV2_progress),
    ("quad_light_lag", quad_light_lag_coverV2_progress),
    ("quad_light_profiles", quad_light_profiles_coverV2_progress),
    ("rover_ladder_2to3", rover_ladder_2to3_coverV2_progress),
@@ -89,7 +90,6 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("sat_detumble_phases", sat_detumble_phases_coverV2_progress),
    ("sat_detumble_weak", sat_detumble_weak_coverV2_progress),
    ("syringe_relay_prearm", syringe_relay_prearm_coverV2_progress),
-   ("tank_dos_3to1", tank_dos_3to1_coverV2_progress),
    ("train_ato_odometry", train_ato_odometry_coverV2_progress),
    ("tunnel_jetfan_pairout", tunnel_jetfan_pairout_coverV2_progress),
    ("turbine_startup_gearratio", turbine_startup_gearratio_coverV2_progress),

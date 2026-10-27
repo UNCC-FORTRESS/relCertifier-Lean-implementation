@@ -72,20 +72,17 @@ def packsV2 : List PackV2 :=
     ⟨"acc_spoof_limp", 3, 0, [0, 1], 1, 1, 1, 0⟩,
     ⟨"acc_spoof_limp", 3, 0, [0, 1], 1, 1, 1, 1⟩,
     ⟨"acc_spoof_limp", 3, 0, [0, 1], 1, 1, 1, 2⟩,
-    -- platoon_linkloss, platoon_latency (the same right follower; CACC -> AEB pruned): the CACC/ACC
-    -- (resp. CACC_UP/CACC_DN) windows against CACC, AEB against AEB, at λ = 1
+    -- platoon_linkloss (CACC -> AEB pruned): the CACC/ACC windows against CACC, AEB against AEB,
+    -- at λ = 1 (budget 2 since batch I9: the 0.2 s link-loss decision)
     ⟨"platoon_linkloss", 3, 0, [0, 1, 2, 3, 4, 5, 6, 7, 8], 1, 1, 0, 0⟩,
     ⟨"platoon_linkloss", 3, 1, [0, 1, 2, 3, 4, 5, 6, 7, 8], 1, 1, 1, 0⟩,
     ⟨"platoon_linkloss", 3, 2, [0, 1, 2, 3], 1, 1, 2, 1⟩,
-    ⟨"platoon_latency", 3, 0, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 1, 1, 0, 0⟩,
-    ⟨"platoon_latency", 3, 1, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 1, 1, 1, 0⟩,
-    ⟨"platoon_latency", 3, 2, [0, 1, 2, 3], 1, 1, 2, 1⟩,
     -- quad_light_lag
     ⟨"quad_light_lag", 3, 0, [2, 3, 0, 1], 6, 5, 0, 0⟩,
     -- acc_tune_lag
     ⟨"acc_tune_lag", 2, 0, [0, 1], 2, 1, 0, 0⟩,
-    -- acc_spoof_lag
-    ⟨"acc_spoof_lag", 2, 0, [1, 3, 0, 2], 1, 1, 0, 0⟩,
+    -- acc_spoof_lag (cover replay at λ = 3/2, budget 2: the dominant-mode claim, batch I9)
+    ⟨"acc_spoof_lag", 2, 0, [1, 0], 3, 2, 0, 0⟩,
     -- rover_patrol_lag (cover replay; FAST at 11/8; the right-only nodes are below)
     ⟨"rover_patrol_lag", 3, 0, [1, 0], 1, 1, 0, 0⟩,
     ⟨"rover_patrol_lag", 3, 0, [1, 0], 1, 1, 0, 1⟩,
@@ -98,13 +95,13 @@ def packsV2 : List PackV2 :=
     ⟨"rover_patrol_lag", 3, 0, [1, 0], 1, 1, 2, 3⟩,
     ⟨"rover_patrol_lag", 3, 0, [1, 0], 11, 8, 3, 2⟩,
     ⟨"rover_patrol_lag", 3, 0, [1, 0], 11, 8, 3, 3⟩,
-    -- rover_terrain_2to4 (cover replay)
-    ⟨"rover_terrain_2to4", 4, 0, [2, 3, 0, 1], 1, 1, 0, 0⟩,
-    ⟨"rover_terrain_2to4", 4, 0, [2, 3, 0, 1], 1, 1, 0, 1⟩,
+    -- rover_terrain_2to4 (cover replay: MUD at λ = 1, GRAVEL at 13/10, PAVED at 27/10; the plan at 3 /s again since batch I9)
+    ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3], 1, 1, 0, 0⟩,
+    ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3], 1, 1, 0, 1⟩,
     ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3], 1, 1, 0, 2⟩,
-    ⟨"rover_terrain_2to4", 4, 0, [2, 3, 0, 1], 1, 1, 1, 1⟩,
-    ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3], 1, 1, 1, 2⟩,
-    ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3], 1, 1, 2, 2⟩,
+    ⟨"rover_terrain_2to4", 4, 0, [2, 3, 0, 1], 13, 10, 1, 1⟩,
+    ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3], 13, 10, 1, 2⟩,
+    ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3], 27, 10, 2, 2⟩,
     -- rover_terrain_4to6 (cover replay)
     ⟨"rover_terrain_4to6", 6, 0, [2, 3, 5, 6, 0, 1, 4, 7], 1, 1, 0, 0⟩,
     ⟨"rover_terrain_4to6", 6, 0, [2, 3, 5, 6, 4, 7, 0, 1], 1, 1, 0, 1⟩,
@@ -151,17 +148,7 @@ def packsV2 : List PackV2 :=
     ⟨"gantry_speed_zones", 2, 0, [0, 1, 2, 3], 3, 1, 0, 0⟩,
     ⟨"gantry_speed_zones", 2, 0, [0, 1, 2, 3], 2, 1, 1, 0⟩,
     ⟨"gantry_speed_zones", 2, 0, [0, 1, 2, 3], 1, 1, 2, 0⟩,
-    -- tank_dos_3to1 (cover replay): each left stage against its own and the next two right stages
     -- (the staging chain P2 -> P3 -> P4 -> P5) at λ = 1
-    ⟨"tank_dos_3to1", 2, 0, [2, 3, 0, 1], 1, 1, 0, 0⟩,
-    ⟨"tank_dos_3to1", 2, 0, [2, 3, 0, 1], 1, 1, 0, 1⟩,
-    ⟨"tank_dos_3to1", 2, 0, [2, 3, 0, 1], 1, 1, 0, 2⟩,
-    ⟨"tank_dos_3to1", 2, 0, [2, 3, 0, 1], 1, 1, 1, 1⟩,
-    ⟨"tank_dos_3to1", 2, 0, [2, 3, 0, 1], 1, 1, 1, 2⟩,
-    ⟨"tank_dos_3to1", 2, 0, [2, 3, 0, 1], 1, 1, 1, 3⟩,
-    ⟨"tank_dos_3to1", 2, 0, [2, 3, 0, 1], 1, 1, 2, 2⟩,
-    ⟨"tank_dos_3to1", 2, 0, [1, 2, 3, 0], 1, 1, 2, 3⟩,
-    ⟨"tank_dos_3to1", 2, 0, [1, 2, 3, 0], 1, 1, 3, 3⟩,
     -- watertank_twospeed: three windows (one row), a stretch PER PAIRING in Low (Fast 1, Slow 2,
     -- MidEco 3/2, MidBoost 1, High 1), Mid at 2 against MidEco/MidBoost/High, High at 1
     ⟨"watertank_twospeed", 2, 0, [0, 1], 1, 1, 0, 0⟩,
@@ -320,10 +307,16 @@ def packsV2 : List PackV2 :=
     -- grid_ffr_dos (cover replay at λ = 1, budget 3; NORMAL -> TRIP and FFR -> TRIP pruned)
     ⟨"grid_ffr_dos", 3, 0, [2, 3, 4, 0, 1], 1, 1, 0, 0⟩,
     ⟨"grid_ffr_dos", 3, 0, [2, 3, 4, 0, 1], 1, 1, 0, 1⟩,
-    ⟨"grid_ffr_dos", 3, 0, [2, 3, 4, 0, 1], 1, 1, 1, 1⟩ ]
+    ⟨"grid_ffr_dos", 3, 0, [2, 3, 4, 0, 1], 1, 1, 1, 1⟩,
+    -- flaps_slow_approach (batch I9, from the reserve): EXT at λ = 1/2 (the flap drive's speed ratio), CONF2 at 1
+    ⟨"flaps_slow_approach", 2, 0, [0, 1, 2, 3], 1, 2, 0, 0⟩,
+    ⟨"flaps_slow_approach", 2, 0, [0, 1, 2, 3], 1, 1, 1, 1⟩,
+    -- platoon_profiles (batch I9, from the reserve; mode-keyed rows): SPORT at λ = 6/5 (the bandwidth ratio), AEB at 1
+    ⟨"platoon_profiles", 3, 0, [0, 1, 2, 3, 4, 5], 6, 5, 0, 0⟩,
+    ⟨"platoon_profiles", 3, 1, [0, 1, 2, 3], 1, 1, 1, 1⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 1182
+def expectedModalV2 : Nat := 1138
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
@@ -475,7 +468,7 @@ def runDynV2 (cfg : Z3Config) : IO Bool := do
 
 /-- Declared: one handoff query per declared left transition over the suite_v2 files
 (self-loops included; `CoveragePinsV2.derivedHandoffV2_eq` derives it from the IR table). -/
-def expectedHandoffV2 : Nat := 551
+def expectedHandoffV2 : Nat := 540
 
 /-- Declared handoff failures in suite_v2: none. -/
 def expectedHandoffFailuresV2 : List (String × Nat × Nat) := []
@@ -551,7 +544,7 @@ def runNonConnAllV2 (cfg : Z3Config) : IO Bool := do
 /-- What a certification run over `benchmarks/suite_v2/*/input.txt` must produce, with
 `RELCERT_IMPLIED_CUT=1`: all 50 certified (in the strict well-formedness mode of
 `--check-quick-v2`); and what the strict Assumption 1 check of the right models must produce:
-every one of the 187 right modes `ok` on both clauses (`wfModes`; the kernel pin
+every one of the 185 right modes `ok` on both clauses (`wfModes`; the kernel pin
 `CoveragePinsV2.suiteV2_wfModes` of that count was archived with the standalone route), none
 `UNKNOWN` (`wfUnknown`; 16 UNKNOWN in 9 benchmarks until the 2026-10-10 repairs, when the
 check was informational), none `BLOCKING` (`wfBlocking`; the nonblocking clause is checked
@@ -561,7 +554,7 @@ structure ExpectedSuiteV2 where
   certified : Nat := 50
   declined  : Nat := 0
   errors    : Nat := 0
-  wfModes   : Nat := 187
+  wfModes   : Nat := 185
   wfUnknown : Nat := 0
   wfBlocking : Nat := 0
   deriving Repr

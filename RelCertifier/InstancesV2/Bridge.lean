@@ -14,6 +14,7 @@ import RelCertifier.InstancesV2.Bridge.DrlCarStop
 import RelCertifier.InstancesV2.Bridge.DrlLaneControl
 import RelCertifier.InstancesV2.Bridge.ElevatorStartDiscbrake
 import RelCertifier.InstancesV2.Bridge.EngineStartHighidle
+import RelCertifier.InstancesV2.Bridge.FlapsSlowApproach
 import RelCertifier.InstancesV2.Bridge.FreedmMeter
 import RelCertifier.InstancesV2.Bridge.FuelcellChpDos
 import RelCertifier.InstancesV2.Bridge.FurnaceProgramTimebase
@@ -24,8 +25,8 @@ import RelCertifier.InstancesV2.Bridge.HydroRejectionGatecal
 import RelCertifier.InstancesV2.Bridge.InsulinBasalCgmloss
 import RelCertifier.InstancesV2.Bridge.LzVehiclePosition
 import RelCertifier.InstancesV2.Bridge.MoldingPackCheckring
-import RelCertifier.InstancesV2.Bridge.PlatoonLatency
 import RelCertifier.InstancesV2.Bridge.PlatoonLinkloss
+import RelCertifier.InstancesV2.Bridge.PlatoonProfiles
 import RelCertifier.InstancesV2.Bridge.QuadLightLag
 import RelCertifier.InstancesV2.Bridge.QuadLightProfiles
 import RelCertifier.InstancesV2.Bridge.RoverLadder2to3
@@ -41,7 +42,6 @@ import RelCertifier.InstancesV2.Bridge.Sat3wDetumblePhases
 import RelCertifier.InstancesV2.Bridge.SatDetumblePhases
 import RelCertifier.InstancesV2.Bridge.SatDetumbleWeak
 import RelCertifier.InstancesV2.Bridge.SyringeRelayPrearm
-import RelCertifier.InstancesV2.Bridge.TankDos3to1
 import RelCertifier.InstancesV2.Bridge.TrainAtoOdometry
 import RelCertifier.InstancesV2.Bridge.TunnelJetfanPairout
 import RelCertifier.InstancesV2.Bridge.TurbineStartupGearratio

@@ -11,7 +11,7 @@ blocking states); those nine were repaired (`docs/SUITE-REDESIGN.md` §21: the f
 re-engage or are latched with an invariant guard, the arm planner's successor sets name every
 band a sampled interval can reach) and are now proved. No proof uses Z3. The tool's sufficient
 check of both clauses (`relcert --wellformed`; the nonblocking clause since 2026-10-26, before
-which only the successor clause was checked) finds every one of the 187 right modes `ok`, and
+which only the successor clause was checked) finds every one of the 185 right modes `ok`, and
 `--check-quick-v2` runs it STRICT, against declared counts (§4). The generic-bridge
 instances (`InstancesV2/Bridge/`, the paper's route to
 Theorem 3) take it as a hypothesis: `theorem3_keyed_of_records`
@@ -142,7 +142,7 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 22 | `airheader_dos_3to1` | moved to `benchmarks/reserve/` 2026-10-27 (was: proved; proof in git history) | NORMAL, ALARM (b) (the run ends in `0 ≤ p ≤ 9`, the three guards partition it, all declared successors; existence by the explicit exponential at the frozen demand); TRIP (a) (`p' = −g p ≤ 0` keeps `p < 5`, latched self-loop); `ε_r = 1` | NORMAL ok (exit→ALARM), ALARM ok (exit→NORMAL), TRIP ok (invariant) |
 | 23 | `rover_ladder_6to8` | proved (reinstalled 2026-10-27, right `L6`) | as 18 (existence: the cascade `z → θ`, `(v, ψ) → φ`, all `→ s`, kept in the box by `forcedSol_between`) | as 18 |
 | 24 | `rover_ladder_8to12` | proved (reinstalled 2026-10-27, right `L8`) | as 18 (existence: the cascade `ω_ψ → ψ`, `z → ω_θ → θ`, `(v, ω_ψ, ψ) → φ`, all `→ s`) | as 18 |
-| 25 | `tank_dos_3to1` | proved | P2, P3, P4 (b) → the next stage, P5 (a) (since 2026-10-27 the staged pump `h' = 0.005 c − 0.001 w h`, `w' = 0.02 (22 − w)`: `w` explicit, `h` by variation of constants over the floor `w ≥ 2c`, barriers keep `0 ≤ h ≤ 2.5`; `w` rises at most 3.2 in `ε_r = 10`, one band) | P2–P4 ok (exit), P5 ok (invariant) |
+| 25 | `tank_dos_3to1` | moved to `benchmarks/reserve/` 2026-10-27 (batch I9; was: proved; proof in git history) | P2, P3, P4 (b) → the next stage, P5 (a) (since 2026-10-27 the staged pump `h' = 0.005 c − 0.001 w h`, `w' = 0.02 (22 − w)`: `w` explicit, `h` by variation of constants over the floor `w ≥ 2c`, barriers keep `0 ≤ h ≤ 2.5`; `w` rises at most 3.2 in `ε_r = 10`, one band) | P2–P4 ok (exit), P5 ok (invariant) |
 | 26 | `hvac_fan_staging` | moved to `benchmarks/reserve/` 2026-10-27 (batch I8; was: proved; proof in git history) | LOW, MED, HIGH (b) (contractions to 27, 24, 21 inside `[16, 32]`; a run ends in `[16, 32]`, MED's guard, and MED follows every speed); `ε_r = 1`; dimension 3 (the default padding) | LOW ok (exit→HIGH), MED ok (invariant), HIGH ok (exit→MED) |
 | 27 | `rover_terrain_2to4` | proved | MUD (b) → GRAVEL, GRAVEL (b) → PAVED, PAVED (a) (terrain-chain lemma; guards the odometer bands only; existence: `v → c_T`, `s` its integral, `w`, `zs` frozen) | MUD ok (exit→GRAVEL), GRAVEL ok (exit→PAVED), PAVED ok (invariant) |
 | 28 | `rover_terrain_4to6` | proved | as 27, cap `w ≤ c_T` kept by `w' = 3 (c_T − w)` (existence: the affine cascade `w, zs → v → s` inside the evolve box by the comparison bounds) | as 27 |
@@ -168,11 +168,11 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 49 | `vehicle_hypercert` | proved (`V2VehicleHypercert.vehicle_hypercert_wellFormedR`, since 2026-10-27 with the position coordinate `s ≥ 0`: the explicit run `s₀ + v₀ t + c t²/2`, `v₀ + c t` stays in the domain; before, `ChoiceVehicleHypercert.wellFormedR` of the velocity-only model) | every mode (b) → A0 (A0's guard is the domain's velocity range) | A0 ok (invariant); the others ok (exit) |
 | 50 | `freedm_meter` | proved (direct) | every mode (b) → GridD0R0 (guard = domain); explicit linear run | battery modes ok (exit); grid modes ok (invariant) |
 | 51 | `platoon_linkloss` | proved (2026-10-27; `PlatoonCaccAeb`, shared with row 52) | CACC (a) (the projected stop gap `w = g + 2r` obeys `w' = −(w − 20)/4`, so `5 ≤ w ≤ 60` is kept; existence: the explicit two-exponential run stays in the box `0 ≤ g ≤ 60`, `|r| ≤ 10`); AEB (a), latched (`w` conserved; explicit run) | both ok (invariant) |
-| 52 | `platoon_latency` | proved (2026-10-27; the right model of row 51, the left's latency coordinate `e` frozen on the right) | as 51 | both ok (invariant) |
+| 52 | `platoon_latency` | moved to `benchmarks/reserve/` 2026-10-27 (batch I9; was: proved, the right model of row 51, the left's latency coordinate `e` frozen on the right; proof in git history) | as 51 | both ok (invariant) |
 | 53 | `engine_start_highidle` | proved (2026-10-27) | STARTER, LIGHTOFF, SELF (b) → the next phase (contractions toward 30, 55, 62 inside `[0, 110]`; a run ends in its own band or the next); IDLE (a) (toward 62 from `n ≥ 60`); ABORT (a) (decay inside `[0, 5)`) | STARTER, LIGHTOFF, SELF ok (exit), IDLE, ABORT ok (invariant) |
 | 54 | `train_ato_odometry` | proved (2026-10-27) | PL1, PL2, PL3 (a) (contractions toward 25 inside `[5, 27.08]`, guard = domain) | all ok (invariant) |
 | 55 | `gantry_speed_zones` | proved (2026-10-27) | MOVE (a) (two independent axis servos toward `(0.5, 0.3)`; the explicit two-exponential run stays in the travel box, guard = domain) | ok (invariant) |
-| 56 | `platoon_profiles` | moved to `benchmarks/reserve/` 2026-10-27 (batch I8; was: proved, the right model of row 51, `PlatoonCaccAeb`; proof in git history) | as 51 | both ok (invariant) |
+| 56 | `platoon_profiles` | proved (back in the suite 2026-10-27, batch I9, as the time-scaled design; the right model of row 51, `PlatoonCaccAeb`; in the reserve from batch I8 to I9) | as 51 | both ok (invariant) |
 | 57 | `watertank_twospeed` | proved (redesigned 2026-10-27, six right modes) | Fast (b) → Slow or MidEco, Slow (b) → MidEco (contractions toward 12.5); MidEco, MidBoost (a) (toward 17 from below, strictly); High (a) (toward 17 from above); PumpOff (a) (frozen below 2) | Fast ok (exit→Slow,MidBoost); Slow ok (exit→MidBoost); the other four ok (invariant) |
 | 58 | `bms_chiller_undercharge` | proved (2026-10-27; dimension 3, mode choice) | COAST, CHILL_LO, CHILL_HI: every run ends in `[0, 60]`, which COAST's guard `[0, 40]` and CHILL_HI's `[20, 60]` cover (every mode lists every mode); existence: contractions toward 50, 30, 20 | COAST ok (exit→CHILL_HI); CHILL_LO, CHILL_HI ok (invariant) |
 | 59 | `canal_gate_notches` | moved to `benchmarks/reserve/` 2026-10-27 (batch I8; was: proved, dimension 3, mode choice; proof in git history) | N100, N75, N50, N25: every run ends in N50's guard (the whole domain `[0, 1.2]`); existence: contractions toward 1, 0.75, 0.5, 0.25 | N100, N25 ok (exit→N50); N75, N50 ok (invariant) |
@@ -187,7 +187,7 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 68 | `ventilator_vc_cuffleak` | proved (2026-10-27, batch I5) | INSP (b) → EXP (the linear run is tangent to the face `V − 0.4 t ≤ 0`; the cap `V ≤ 0.404` holds since `V ≤ 0.4 (t₀ + s) < 0.404` for `t₀ < 1`, `s ≤ 0.01`); EXP (a) (`V` decays toward 0, below `max V₀ 0 ≤ 0.4 t`) | INSP ok (exit→EXP); EXP ok (invariant) |
 | 69 | `insulin_basal_cgmloss` | proved (2026-10-27, batch I5) | every level (b) → a neighbour (the 5-minute glucose motion bound: the field of `G` lies in `[−5.6, 2.42]` on the domain, so `G` moves by less than one 30 mg/dL band in one interval); existence: `X` toward `0.2 q`, `G` by variation of constants inside `[40, 400]` | all nine ok (exit) |
 | 70 | `rover_rollover_payload` | moved to `benchmarks/reserve/` 2026-10-27 (batch I8; was: proved, batch I5, dimension 12, mode choice; proof in git history) | STEEP (b) → MODER, MODER (b) → FLAT (the odometer bands `[0, 62)`, `[58, 142)`, `[138, ∞)`: `0 ≤ s' ≤ 8` on the box), FLAT (a); the back edges are never needed. Existence: the roll-slip block `(φ, ω_φ, y, ω_y)` is coupled both ways, so the run comes from Picard–Lindelöf on an enlarged box `B_δ` whose 22 faces are all strictly inflowing (`strict_faces_raw`; the field reads no `s`, no left or auxiliary coordinate, so its Lipschitz data on any ball around a `B_δ` point are those of one fixed ball), glued by `chainN`; on that run the true box is recovered coordinate by coordinate (`drive_le`, driven contractions with the forcing bounds `|ω_φ| ≤ 0.28`, `|ω_y| ≤ 0.45`) | STEEP ok (exit→MODER); MODER ok (exit→FLAT); FLAT ok (invariant) |
-| 71 | `flaps_slow_approach` | moved to `benchmarks/reserve/` 2026-10-27 (batch I8; was: proved, batch I6; proof in git history) | EXT (b) → CONF2 (the flaps rise at 1 deg/s from below 15 and end below 15.1); CONF2 (a) (the flaps set); existence: `f = f₀ + r t`, `V = 150 + (V₀ − 150) exp(−((0.02 + 0.001 f₀) t + r t²/2000))` (the flap drag grows with the angle), inside `[150, V₀]` | EXT ok (exit→CONF2); CONF2 ok (invariant) |
+| 71 | `flaps_slow_approach` | proved (batch I6; back in the suite 2026-10-27, batch I9, in the reserve from batch I8 to I9) | EXT (b) → CONF2 (the flaps rise at 1 deg/s from below 15 and end below 15.1); CONF2 (a) (the flaps set); existence: `f = f₀ + r t`, `V = 150 + (V₀ − 150) exp(−((0.02 + 0.001 f₀) t + r t²/2000))` (the flap drag grows with the angle), inside `[150, V₀]` | EXT ok (exit→CONF2); CONF2 ok (invariant) |
 | 72 | `tunnel_jetfan_pairout` | proved (2026-10-27, batch I6; the first polynomial right field, `u²` and `u c`) | NORMAL (b) → FIRE (the clock; `c ≤ 100` kept: at `c ≥ 100`, `u ≥ 3.2` the airflow flushes CO faster than traffic emits it); FIRE (a) (`t ≥ 600` kept); existence: the explicit Riccati run `u = U((U + u₀)e^{2bUs} − (U − u₀)) / ((U + u₀)e^{2bUs} + (U − u₀))` between `u₀` and `U = √(a/b)`, `c` by variation of constants with the rate `u(s)/1600`, inside `[0, 630]` | NORMAL ok (exit→FIRE); FIRE ok (invariant) |
 | 73 | `rampmeter_poll_2to1` | moved to `benchmarks/reserve/` 2026-10-27 (batch I7; was: proved, batch I6; proof in git history) | every level (b) → a declared neighbour (the 20 s density envelope: `k` between `L + (k₀ − L)E` and `U + (k₀ − U)E`, `L = 10 + r`, `U = 27.5 + r`, `E = e^{−0.01 t} ≥ 0.8`, by two comparison lemmas); existence: `kd` held, `k1` toward `kd`, `k` by variation of constants inside `[14, 42.5]` | all six ok (exit) |
 | 74 | `bottling_fill_strainer` | proved (2026-10-27, batch I6) | FILL (b) → CLOSE (`u = 1` held, `V` rises at most 1 mL in 5 ms, `V + 8u ≤ 1003`); CLOSE (a) (`V` nondecreasing, `V + 8u` conserved: the guard conjunct `V + 8u ≤ 1060` added at installation, without which CLOSE was BLOCKING at the domain top); existence: explicit (`u` frozen, resp. `u₀ e^{−25t}` and `V + 8u` constant) | FILL ok (exit→CLOSE); CLOSE ok (invariant) |
@@ -282,8 +282,9 @@ summary: …` (with `RELCERT_DEBUG=1`, the reason of every mode not `ok` on stde
 `--check-quick-v2` runs the same section as its check 3/3, strict (below); until 2026-10-10 it
 was informational there.
 
-**Suite_v2 result** (2026-10-27, both clauses, batch I8): 50 benchmarks, 187 right
-modes: 85 ok (invariant), 102 ok (exit), **0 UNKNOWN, 0 BLOCKING**, 13428 queries; the per-mode labels are those of the
+**Suite_v2 result** (2026-10-27, both clauses, batch I9): 50 benchmarks, 185 right
+modes: 85 ok (invariant), 100 ok (exit), **0 UNKNOWN, 0 BLOCKING**, 13433 queries (batch I8: 187 right
+modes, 85 / 102, 13428 queries); the per-mode labels are those of the
 clause (ii) check alone (2026-10-26, 50 benchmarks: 174 right modes, 91 / 83, 10643 queries,
 about 17 s). The 37
 round-2 designs of the 2026-10-26 redesign pass (outside the tree): 122 right modes, 69 ok
@@ -314,7 +315,7 @@ single `relcert <file>` run; off, no verdict and no emission changes.
 
 **Strict in the recipe** (2026-10-10). `--check-quick-v2` certifies the suite in the strict
 mode (the switch forced on for its check 1/3) and ends with check 3/3, the `--wellformed`
-report gated against declared counts: `ExpectedSuiteV2.wfModes = 187` (`VerdictsV2/RunV2.lean`; the
+report gated against declared counts: `ExpectedSuiteV2.wfModes = 185` (`VerdictsV2/RunV2.lean`; the
 kernel pin `CoveragePinsV2.suiteV2_wfModes` of that count was archived with the standalone
 route on 2026-10-22), `wfUnknown = 0` and `wfBlocking = 0`. Any `UNKNOWN` or `BLOCKING` mode,
 or a mode count off the declared one, fails the run (`wellformed (strict): FAIL`, exit 1). Checked negatively: with the pre-repair

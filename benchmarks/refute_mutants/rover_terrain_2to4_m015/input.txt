@@ -4,9 +4,14 @@
 # rover_terrain_3to6, whose models were the rover ladder's attitude models; the terrain chain
 # now refines terrain physics: soil, roughness, slope; the ladder refines attitude.)
 # scenario: model-refinement
-# mechanisms: I (the checked cuts w <= c_T and s >= zone floor are load-bearing mode facts,
-#   RELCERT_NO_CUT=1 declines; from the claim and the terrain structure, not a stated cause: this is a
-#   refinement step, a rung of the terrain chain)
+# mechanisms: S M I (time stretch, lambda = 13/10 in GRAVEL and 27/10 in PAVED against the no-slip
+#   plan, RELCERT_SYNC=1 declines, matrix code M1; multi-step cover, two and three plan segments per
+#   rover window, matrix code M2; the checked cuts w <= c_T and s >= zone floor are load-bearing mode
+#   facts, RELCERT_NO_CUT=1 declines, matrix code M6). S and M come from the claim form (progress
+#   against the plan re-timed within its stated allowance), I from the terrain structure: this is a
+#   refinement step, a rung of the terrain chain. Batch I9 (2026-10-27): the plan's speed loop is
+#   the wheel loop's 3 /s again and the claim is stated against the plan re-timed by at most 3
+#   (the batch-I6 file ran the plan at 8 /s to make the claim real-time; letters I).
 #
 # System (SI units: m, s, m/s; g = 9.81 m/s^2): a rover climbs out of a muddy bank onto a
 # gravel track and then a paved road. The terrain is a mode, fixed by the odometer s along the
@@ -16,11 +21,10 @@
 # velocity: soft soil shears, pavement grips), terrain drag r_T = 0.4 / 0.15 / 0.05 1/s, and
 # equilibrium sinkage Z_T = 0.10 / 0.03 / 0 (in wheel radii).
 #
-# Right (2-DOF, the no-slip plan): no slip, the ground speed answers the set point directly,
-# v' = 8 (c_T - v), s' = v, with the rover's fastest ground response (8 /s, the traction stiffness
-# on pavement; the left's ground speed follows its wheel at mu_T = 2.5 / 4 / 8 and its wheel loop runs
-# at 3 /s), so the plan is a conservative progress envelope in real time. w, zs pinned
-# (w' = zs' = 0).
+# Right (2-DOF, the no-slip plan): no slip, the ground speed IS the wheel speed, v' = 3 (c_T - v),
+# s' = v: wheel odometry taken as ground truth, the wheel loop's own rate (3 /s, the rate the
+# 4-DOF model's wheel loop runs at, so the plan is the 4-DOF model with slip and sinkage removed).
+# w, zs pinned (w' = zs' = 0).
 # Left (4-DOF): the speed loop closes on the wheel speed w, w' = 3 (c_T - w); the ground speed
 # follows through the soil, v' = mu_T (w - v) - r_T v - zs (traction from the slip velocity
 # w - v, viscous terrain drag, and compaction resistance proportional to sinkage, Bekker-style
@@ -29,8 +33,9 @@
 #
 # Property (the same rows in every left mode):
 #   v_L <= v_R and s_L <= s_R: the rover is never faster than, and never ahead of, the no-slip
-#     plan at the same time (lambda 1), so a clearance granted up to the plan's position always
-#     covers the rover. Offset 0 (structural).
+#     plan re-timed within its allowance (lambda in [1, 3]), so a clearance granted up to the
+#     plan's position (a stop line the plan never passes) always covers the rover: the position
+#     bound is time-free, the plan's clock may run up to 3 times faster. Offset 0 (structural).
 #   v_L <= w_L and w_L <= v_L + sigma, sigma = 0.25 m/s: the slip velocity stays in
 #     [0, sigma]: the wheels never skid (ground speed never exceeds wheel speed) and never spin
 #     past the traction controller's slip-velocity threshold sigma (it would cut torque there;
@@ -55,31 +60,42 @@
 # Composition: the left model is exactly the right model of rover_terrain_4to6 (u, zh pinned
 # there; checked 2026-10-27: same fields, guards and successor lists on the shared coordinates),
 # so the v and s rows chain by transitivity with that file's and with rover_terrain_6to12's:
-# 12-DOF <= 6-DOF <= 4-DOF <= no-slip plan. All three steps certify at lambda 1, so the chained
-# rows hold in real time.
+# 12-DOF <= 6-DOF <= 4-DOF (both at lambda 1, real time) <= no-slip plan (re-timed by at most 3).
+# A stop line the plan never passes is never passed by the 12-DOF rover: the chained position
+# bound is time-free, the re-timing affects only when the plan reaches a point, not where.
 #
-# Plan fix (2026-10-27, final audit). Until then the plan's speed loop was the wheel loop's 3 /s:
-# slower than the rover's ground response on gravel and pavement, so "never ahead of the plan" held
-# only against the plan re-timed up to 11/4 (lambda_max 6, letters S M from that re-timing), which
-# is not a real-time clearance. The plan now uses the fastest ground response, 8 /s, and the file
-# certifies at lambda 1 (lambda_min = lambda_max = 1; the 3 /s plan at lambda 1 DECLINES). Letters
-# S and M are gone, I is kept.
+# Stretch range and its source. The plan's clock may run up to 3 times faster than the rover's
+# (lambda in [1, 3]): the rover's ground speed answers its wheel through the soil at the
+# traction stiffness mu_T = 2.5 / 4 / 8 /s, so on gravel and pavement it responds faster than
+# the plan's 3 /s loop and reaches each set point earlier in its own time; the plan's progress
+# has to be read at a faster clock. The allowance covers the largest ratio the chain can need,
+# (mu_PAVED + r_PAVED) / 3 = 8.05 / 3 = 2.68 (the pavement ground response against the plan
+# loop), with margin: the covers use 13/10 in GRAVEL and 27/10 in PAVED, the plan at 3 /s with
+# lambda_max 2.5 DECLINES (27/10 is needed) and with lambda_max 2.7 CERTIFIES (measured
+# 2026-10-27); 3 keeps the stated value 0.3 above the needed point. In MUD the plan runs at
+# lambda 1 (the rover is slowest there). The plan at 3 /s at lambda 1 DECLINES (RELCERT_SYNC=1);
+# the batch-I6 alternative, a plan loop at 8 /s, certifies in real time but is not the 4-DOF
+# model's wheel loop. The claim is a tolerance claim (never ahead within the allowance), not an
+# exact time scaling: the covers' 13/10 and 27/10 are grid points of the range, not stated ratios.
 #
-# Verdicts (default recipe RELCERT_IMPLIED_CUT=1, measured 2026-10-27): CERTIFIED (0.6 s); also
-# under SYNC, NO_PRUNE, NO_CHOICE, NO_PRUNE+NO_CHOICE, SYNC+NO_CHOICE, NO_REPO, OPREGION,
-# NO_IMPLIED_CUT, NO_LINEAR_CUT, NO_PAIR_STRETCH, without RELCERT_IMPLIED_CUT, and
-# RELCERT_WELLFORMED_STRICT; DECLINED under NO_CUT. --handoff 5/5 (vacuous: rows identical).
-# --wellformed: MUD ok (exit -> GRAVEL), GRAVEL ok (exit -> PAVED), PAVED ok (invariant),
-# 0 UNKNOWN, 0 BLOCKING. Cover: every left mode at lambda 1, budget 1 (admissible starts: MUD
-# [MUD, GRAVEL, PAVED], GRAVEL [GRAVEL, PAVED], PAVED [PAVED]: the plan may be a zone ahead);
+# Verdicts (default recipe RELCERT_IMPLIED_CUT=1, measured 2026-10-27, batch I9): CERTIFIED
+# (about 6 s with a build running beside it; about 2 s quiet); also under NO_PRUNE, NO_CHOICE,
+# NO_PRUNE+NO_CHOICE, NO_REPO, OPREGION, NO_IMPLIED_CUT, NO_LINEAR_CUT, without
+# RELCERT_IMPLIED_CUT, and RELCERT_WELLFORMED_STRICT; DECLINED under SYNC, SYNC+NO_CHOICE and
+# NO_CUT. --handoff 5/5 (vacuous: rows identical). --wellformed: MUD ok (exit -> GRAVEL), GRAVEL
+# ok (exit -> PAVED), PAVED ok (invariant), 0 UNKNOWN, 0 BLOCKING. Cover: MUD_L lambda 1 budget
+# 1; GRAVEL_L lambda 13/10 budget 2 (a joint step from the plan's GRAVEL retaining PAVED, one
+# non-self successor: no branching letter); PAVED_L lambda 27/10 budget 3 (admissible starts:
+# MUD [MUD, GRAVEL, PAVED], GRAVEL [GRAVEL, PAVED], PAVED [PAVED]: the plan may be a zone ahead);
 # checked cuts load-bearing (the contraction cut w <= c_T, the zone floor s >= s_T); nothing
-# pruned; no right-only segment. Letters: I.
+# pruned; no right-only segment. The right model is the batch-I5 plan at 3 /s again (its
+# Assumption 1 proof is the one of that batch, WellFormed/RoverTerrain2to4.lean). Letters: S M I.
 
 [problem]
 name = rover_terrain_2to4
 max_depth = 8
 lambda_min = 1.0
-lambda_max = 1.0
+lambda_max = 3.0
 bound_T = 4.0
 
 [Lsys]
@@ -109,19 +125,19 @@ state_vars = [v, s, w, zs]
 epsilon = 1.0
 
 [Rsys.mode.MUD]
-ode = v' = 8*(0.25 - v); s' = v; w' = 0; zs' = 0;
+ode = v' = 3*(0.25 - v); s' = v; w' = 0; zs' = 0;
 guard = s >= 0.0 and s < 5.0
 evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.0 and w <= 0.8 and zs >= 0.0 and zs <= 0.12
 next = [GRAVEL, MUD]
 
 [Rsys.mode.GRAVEL]
-ode = v' = 8*(0.45 - v); s' = v; w' = 0; zs' = 0;
+ode = v' = 3*(0.45 - v); s' = v; w' = 0; zs' = 0;
 guard = s >= 5.0 and s < 12.0
 evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.0 and w <= 0.8 and zs >= 0.0 and zs <= 0.12
 next = [PAVED, GRAVEL]
 
 [Rsys.mode.PAVED]
-ode = v' = 8*(0.7 - v); s' = v; w' = 0; zs' = 0;
+ode = v' = 3*(0.7 - v); s' = v; w' = 0; zs' = 0;
 guard = s >= 12.0
 evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.0 and w <= 0.8 and zs >= 0.0 and zs <= 0.12
 next = [PAVED]

@@ -23,6 +23,7 @@ import RelCertifier.InstancesV2.BenchIR.drl_car_stop
 import RelCertifier.InstancesV2.BenchIR.drl_lane_control
 import RelCertifier.InstancesV2.BenchIR.elevator_start_discbrake
 import RelCertifier.InstancesV2.BenchIR.engine_start_highidle
+import RelCertifier.InstancesV2.BenchIR.flaps_slow_approach
 import RelCertifier.InstancesV2.BenchIR.freedm_meter
 import RelCertifier.InstancesV2.BenchIR.fuelcell_chp_dos
 import RelCertifier.InstancesV2.BenchIR.furnace_program_timebase
@@ -33,8 +34,8 @@ import RelCertifier.InstancesV2.BenchIR.hydro_rejection_gatecal
 import RelCertifier.InstancesV2.BenchIR.insulin_basal_cgmloss
 import RelCertifier.InstancesV2.BenchIR.lz_vehicle_position
 import RelCertifier.InstancesV2.BenchIR.molding_pack_checkring
-import RelCertifier.InstancesV2.BenchIR.platoon_latency
 import RelCertifier.InstancesV2.BenchIR.platoon_linkloss
+import RelCertifier.InstancesV2.BenchIR.platoon_profiles
 import RelCertifier.InstancesV2.BenchIR.quad_light_lag
 import RelCertifier.InstancesV2.BenchIR.quad_light_profiles
 import RelCertifier.InstancesV2.BenchIR.rover_ladder_2to3
@@ -50,7 +51,6 @@ import RelCertifier.InstancesV2.BenchIR.sat3w_detumble_phases
 import RelCertifier.InstancesV2.BenchIR.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchIR.sat_detumble_weak
 import RelCertifier.InstancesV2.BenchIR.syringe_relay_prearm
-import RelCertifier.InstancesV2.BenchIR.tank_dos_3to1
 import RelCertifier.InstancesV2.BenchIR.train_ato_odometry
 import RelCertifier.InstancesV2.BenchIR.tunnel_jetfan_pairout
 import RelCertifier.InstancesV2.BenchIR.turbine_startup_gearratio
@@ -77,6 +77,7 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("drl_lane_control", drl_lane_control_IRv2),
   ("elevator_start_discbrake", elevator_start_discbrake_IRv2),
   ("engine_start_highidle", engine_start_highidle_IRv2),
+  ("flaps_slow_approach", flaps_slow_approach_IRv2),
   ("freedm_meter", freedm_meter_IRv2),
   ("fuelcell_chp_dos", fuelcell_chp_dos_IRv2),
   ("furnace_program_timebase", furnace_program_timebase_IRv2),
@@ -87,8 +88,8 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("insulin_basal_cgmloss", insulin_basal_cgmloss_IRv2),
   ("lz_vehicle_position", lz_vehicle_position_IRv2),
   ("molding_pack_checkring", molding_pack_checkring_IRv2),
-  ("platoon_latency", platoon_latency_IRv2),
   ("platoon_linkloss", platoon_linkloss_IRv2),
+  ("platoon_profiles", platoon_profiles_IRv2),
   ("quad_light_lag", quad_light_lag_IRv2),
   ("quad_light_profiles", quad_light_profiles_IRv2),
   ("rover_ladder_2to3", rover_ladder_2to3_IRv2),
@@ -104,7 +105,6 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("sat_detumble_phases", sat_detumble_phases_IRv2),
   ("sat_detumble_weak", sat_detumble_weak_IRv2),
   ("syringe_relay_prearm", syringe_relay_prearm_IRv2),
-  ("tank_dos_3to1", tank_dos_3to1_IRv2),
   ("train_ato_odometry", train_ato_odometry_IRv2),
   ("tunnel_jetfan_pairout", tunnel_jetfan_pairout_IRv2),
   ("turbine_startup_gearratio", turbine_startup_gearratio_IRv2),

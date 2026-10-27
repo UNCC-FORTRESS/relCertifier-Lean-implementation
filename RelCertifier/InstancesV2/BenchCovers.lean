@@ -14,6 +14,7 @@ import RelCertifier.InstancesV2.BenchCovers.drl_car_stop
 import RelCertifier.InstancesV2.BenchCovers.drl_lane_control
 import RelCertifier.InstancesV2.BenchCovers.elevator_start_discbrake
 import RelCertifier.InstancesV2.BenchCovers.engine_start_highidle
+import RelCertifier.InstancesV2.BenchCovers.flaps_slow_approach
 import RelCertifier.InstancesV2.BenchCovers.freedm_meter
 import RelCertifier.InstancesV2.BenchCovers.fuelcell_chp_dos
 import RelCertifier.InstancesV2.BenchCovers.furnace_program_timebase
@@ -24,8 +25,8 @@ import RelCertifier.InstancesV2.BenchCovers.hydro_rejection_gatecal
 import RelCertifier.InstancesV2.BenchCovers.insulin_basal_cgmloss
 import RelCertifier.InstancesV2.BenchCovers.lz_vehicle_position
 import RelCertifier.InstancesV2.BenchCovers.molding_pack_checkring
-import RelCertifier.InstancesV2.BenchCovers.platoon_latency
 import RelCertifier.InstancesV2.BenchCovers.platoon_linkloss
+import RelCertifier.InstancesV2.BenchCovers.platoon_profiles
 import RelCertifier.InstancesV2.BenchCovers.quad_light_lag
 import RelCertifier.InstancesV2.BenchCovers.quad_light_profiles
 import RelCertifier.InstancesV2.BenchCovers.rover_ladder_2to3
@@ -41,7 +42,6 @@ import RelCertifier.InstancesV2.BenchCovers.sat3w_detumble_phases
 import RelCertifier.InstancesV2.BenchCovers.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchCovers.sat_detumble_weak
 import RelCertifier.InstancesV2.BenchCovers.syringe_relay_prearm
-import RelCertifier.InstancesV2.BenchCovers.tank_dos_3to1
 import RelCertifier.InstancesV2.BenchCovers.train_ato_odometry
 import RelCertifier.InstancesV2.BenchCovers.tunnel_jetfan_pairout
 import RelCertifier.InstancesV2.BenchCovers.turbine_startup_gearratio
@@ -68,6 +68,7 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("drl_lane_control", drl_lane_control_coverV2),
   ("elevator_start_discbrake", elevator_start_discbrake_coverV2),
   ("engine_start_highidle", engine_start_highidle_coverV2),
+  ("flaps_slow_approach", flaps_slow_approach_coverV2),
   ("freedm_meter", freedm_meter_coverV2),
   ("fuelcell_chp_dos", fuelcell_chp_dos_coverV2),
   ("furnace_program_timebase", furnace_program_timebase_coverV2),
@@ -78,8 +79,8 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("insulin_basal_cgmloss", insulin_basal_cgmloss_coverV2),
   ("lz_vehicle_position", lz_vehicle_position_coverV2),
   ("molding_pack_checkring", molding_pack_checkring_coverV2),
-  ("platoon_latency", platoon_latency_coverV2),
   ("platoon_linkloss", platoon_linkloss_coverV2),
+  ("platoon_profiles", platoon_profiles_coverV2),
   ("quad_light_lag", quad_light_lag_coverV2),
   ("quad_light_profiles", quad_light_profiles_coverV2),
   ("rover_ladder_2to3", rover_ladder_2to3_coverV2),
@@ -95,7 +96,6 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("sat_detumble_phases", sat_detumble_phases_coverV2),
   ("sat_detumble_weak", sat_detumble_weak_coverV2),
   ("syringe_relay_prearm", syringe_relay_prearm_coverV2),
-  ("tank_dos_3to1", tank_dos_3to1_coverV2),
   ("train_ato_odometry", train_ato_odometry_coverV2),
   ("tunnel_jetfan_pairout", tunnel_jetfan_pairout_coverV2),
   ("turbine_startup_gearratio", turbine_startup_gearratio_coverV2),

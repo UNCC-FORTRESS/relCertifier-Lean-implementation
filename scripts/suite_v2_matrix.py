@@ -99,6 +99,7 @@ FAMILIES = [
     ("tunnel_", "Road-tunnel ventilation through a fire alarm"),
     ("grid_", "Island grid fast frequency response (DoS on the FFR link)"),
     ("bottling_", "Bottle filler (clogged product strainer)"),
+    ("flaps_", "Airliner flap extension (one hydraulic system lost)"),
     ("antenna_", "Ground-station antenna (servo retune)"),
     ("charger_", "DC fast charger (raised current limit)"),
     ("sat_detumble_", "Rigid-body detumbling (polynomial)"),

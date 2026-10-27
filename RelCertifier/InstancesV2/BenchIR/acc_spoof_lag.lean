@@ -14,8 +14,8 @@ namespace RelCertifier.Parse
 def acc_spoof_lag_IRv2 : PProblem :=
   {
     name := "acc_spoof_lag"
-    lambdaMin := "1.0"
-    lambdaMax := "1.0"
+    lambdaMin := "1.5"
+    lambdaMax := "1.5"
     L := {
       stateVars := ["v", "a"]
       epsilon := "0.1"
@@ -39,6 +39,6 @@ def acc_spoof_lag_IRv2 : PProblem :=
           evolve := (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "40.0"))) (.cmp ">=" (.var "a") (.num "-10.0"))) (.cmp "<=" (.var "a") (.num "10.0")))
           next := ["CRUISE"] } ] }
     invariants := [
-      ("CRUISE", (.and (.and (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.bin "+" (.var "L_v") (.bin "*" (.num "0.5") (.var "L_a"))) (.bin "+" (.var "R_v") (.bin "*" (.num "0.5") (.var "R_a"))))) (.cmp "<=" (.var "R_v") (.bin "+" (.var "L_v") (.num "8.0")))) (.cmp "<=" (.bin "+" (.var "R_v") (.bin "*" (.num "0.5") (.var "R_a"))) (.bin "+" (.bin "+" (.var "L_v") (.bin "*" (.num "0.5") (.var "L_a"))) (.num "8.0")))))] }
+      ("CRUISE", (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.bin "+" (.var "L_v") (.bin "*" (.num "0.6") (.var "L_a"))) (.bin "-" (.bin "+" (.var "R_v") (.bin "*" (.num "0.5") (.var "R_a"))) (.num "6.0")))))] }
 
 end RelCertifier.Parse

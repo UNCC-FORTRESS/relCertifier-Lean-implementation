@@ -75,8 +75,16 @@
 > (m003; 6), `sat_detumble_nominal` (m002, m003, m005, m006; 16), `sat3w_detumble_nominal` (m002 to
 > m007; 16), `sat3w_detumble_weak` (m002 to m007; 16), `arm_plateau_crit` (m000; 3),
 > `arm_plateau_slow` (m000; 3): 20 refutations and 66 witness lines out.
-> Current instance set: **83 refutations, 217 groups**
-> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 677 mutants in
+> Batch I4 also re-ran the finder on its six installed files: `acc_spoof_lag` 20 mutants,
+> `acc_tune_lag` 12, `acc_tune_limp` 8, `sat_detumble_weak` 16, no witness (the four
+> `sat_detumble_weak` refutations m002, m003, m005, m006 are gone: both sides are now design
+> models); `sat_detumble_phases` 16 mutants (m002, m003, m005, m006) and `sat3w_detumble_phases` 16
+> (m002 to m007), all kind B (a left energy coordinate moved to the right side of a row), each
+> DECLINED by relcert (mutant inputs rewritten to the new files); the other 18 of their 28
+> refutations of the round-2 files (m000, m001, m004, m007, m018 to m023, resp. m000, m001, m018 to
+> m023) are gone with the rows and the 24-mutant claims they refuted.
+> Current instance set: **61 refutations, 175 groups**
+> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 661 mutants in
 > `docs/refute/witnesses.jsonl`. The operator table has not been recomputed.
 
 Design: `docs/REFUTATION-SCOPE.md` (planning record, last present at commit 29663d8). This file reports what was built and the experiment.

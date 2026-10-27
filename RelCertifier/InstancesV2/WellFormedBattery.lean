@@ -131,7 +131,8 @@ after the rover hierarchy of 2026-10-27 (ten rover files left the suite: `rover_
 `rover_patrol_lag` were reinstalled on new right models, `L2`, `L3`, `L6`, `L8` with pinned
 coordinates and the planning model); `(32, 0, 3)` after the reserve moves of batch I4
 (2026-10-27: `charger_fast_{setpoints,tapers}`, `arm_plateau_{crit,slow}`,
-`sat_detumble_nominal`, `sat3w_detumble_{nominal,weak}`). -/
+`sat_detumble_nominal`, `sat3w_detumble_{nominal,weak}`), unchanged by the batch I4 installs (the
+`acc_*` files at the 0.1 s period, the satellite phases' three-mode right models). -/
 def wfDeclared : ℕ × ℕ × ℕ := (32, 0, 3)
 
 /-- The suite's benchmark names, in the order of the IR table. -/

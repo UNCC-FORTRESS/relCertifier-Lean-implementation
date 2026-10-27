@@ -27,7 +27,7 @@ an invariant guard) and `quad_light_{airframe_20,profiles}` (the sink `LIMIT`: i
 the climb controller, whose operating range reached the limiter threshold; both were redesigned
 on 2026-10-27 with the altitude coordinate and no limiter mode).
 `relcert --wellformed <input.txt>…` runs the tool's sufficient check per right mode (every one
-of the 118 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN` or `BLOCKING`.
+of the 120 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN` or `BLOCKING`.
 
 The suite's design, the per-family rationale, the domain audit (every evolve bound is a
 physical limit of the plant; `scripts/domain_widening.py` re-runs the tool with every bound
@@ -130,7 +130,11 @@ Installed over the suite files (the equal-period designs of the round-A pass, in
 re-measured on this branch): `acc_spoof_lag` and `acc_tune_lag` (both sides at the 0.1 s radar
 cycle; each left guard is now its own loop's forward-invariant engaged envelope, so no left run
 from the engagement box is cut short; letters I, resp. S M), `acc_tune_limp` (0.1 s periods;
-letters S M B I X; its mode-dependent rows are expressiveness, a uniform row certifies, so no D).
+letters S M B I X; its mode-dependent rows are expressiveness, a uniform row certifies, so no D),
+`sat_detumble_phases` and `sat3w_detumble_phases` (1 s on both sides; the design model now has
+both phases, `FINE` added, with the same phase logic as the full model, and the claim is exact
+energy equality in both phases; letter X), `sat_detumble_weak` (1 s on both sides; both sides at
+the design-model level, so the weakened gain is the one cause; letters I X).
 
 Seven files left the suite (suite 42 -> 35) for `benchmarks/reserve/`, each stored as its
 equal-period design of the round-A pass with a banner and one line of reason
@@ -255,9 +259,9 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `rover_terrain_4to6` | 6 / 6 | 3 / 3 | model-refinement | redesigned 2026-10-26 (was `rover_terrain_6to8`): terrain chain, drive lag and roughness heave; right cap `w <= c_T` |
 | `rover_terrain_6to12` | 12 / 12 | 3 / 3 | model-refinement | redesigned 2026-10-26: terrain chain, heave rate, bank grade, pitch, acceleration, squat; right cap `u <= c_T` |
 | `rover_patrol_lag` | 3 / 2 | 4 / 4 | model-refinement | reinstalled 2026-10-27: the rover with its motor lag against the first-order planning model; lead bound as an order property up to a 3/2 re-timing (S M R B from the claim form, header) |
-| `sat3w_detumble_phases` | 6 / 6 | 2 / 2 | model-refinement | mode-keyed, nonblocking region |
-| `sat_detumble_phases` | 4 / 4 | 2 / 2 | model-refinement | mode-keyed, nonblocking region |
-| `sat_detumble_weak` | 4 / 4 | 1 / 4 | degraded-actuator | nonblocking region |
+| `sat3w_detumble_phases` | 6 / 6 | 2 / 3 | model-refinement | nonblocking region, mode choice; 2026-10-27: equal 1 s periods, the design model with both phases (FINE added), exact energy rows in both phases (no longer mode-keyed) |
+| `sat_detumble_phases` | 4 / 4 | 2 / 3 | model-refinement | nonblocking region, mode choice; 2026-10-27: equal 1 s periods, the design model with both phases (FINE added), exact energy rows in both phases (no longer mode-keyed) |
+| `sat_detumble_weak` | 4 / 4 | 1 / 4 | degraded-actuator | nonblocking region, mode choice; 2026-10-27: equal 1 s periods, both sides at the design-model level (one cause: the weakened gain) |
 | `tank_dos_3to1` | 2 / 2 | 4 / 4 | dos-attack | redesigned 2026-10-27: a demand-paced four-pump station, the same staging law on both sides, the DoS holds the staging decision for up to three polls |
 | `train_ato_odometry` | 1 / 1 | 3 / 3 | degraded-sensor | new 2026-10-27: stretches per pairing from 31/40 to 6/5 (`lambda_min = 0.75`) |
 | `turbine_startup_gearratio` | 1 / 1 | 4 / 4 | degraded-controller | new 2026-10-27: widened cuts; right-only repositioning, pruned parking edges (the letters R P I come from the one-sided claim form, header) |

@@ -49,38 +49,16 @@ import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m044
 import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m045
 import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m046
 import RelCertifier.InstancesV2.Refute.Data.rover_terrain_6to12_m047
-import RelCertifier.InstancesV2.Refute.Data.sat3w_detumble_phases_m000
-import RelCertifier.InstancesV2.Refute.Data.sat3w_detumble_phases_m001
 import RelCertifier.InstancesV2.Refute.Data.sat3w_detumble_phases_m002
 import RelCertifier.InstancesV2.Refute.Data.sat3w_detumble_phases_m003
 import RelCertifier.InstancesV2.Refute.Data.sat3w_detumble_phases_m004
 import RelCertifier.InstancesV2.Refute.Data.sat3w_detumble_phases_m005
 import RelCertifier.InstancesV2.Refute.Data.sat3w_detumble_phases_m006
 import RelCertifier.InstancesV2.Refute.Data.sat3w_detumble_phases_m007
-import RelCertifier.InstancesV2.Refute.Data.sat3w_detumble_phases_m018
-import RelCertifier.InstancesV2.Refute.Data.sat3w_detumble_phases_m019
-import RelCertifier.InstancesV2.Refute.Data.sat3w_detumble_phases_m020
-import RelCertifier.InstancesV2.Refute.Data.sat3w_detumble_phases_m021
-import RelCertifier.InstancesV2.Refute.Data.sat3w_detumble_phases_m022
-import RelCertifier.InstancesV2.Refute.Data.sat3w_detumble_phases_m023
-import RelCertifier.InstancesV2.Refute.Data.sat_detumble_phases_m000
-import RelCertifier.InstancesV2.Refute.Data.sat_detumble_phases_m001
 import RelCertifier.InstancesV2.Refute.Data.sat_detumble_phases_m002
 import RelCertifier.InstancesV2.Refute.Data.sat_detumble_phases_m003
-import RelCertifier.InstancesV2.Refute.Data.sat_detumble_phases_m004
 import RelCertifier.InstancesV2.Refute.Data.sat_detumble_phases_m005
 import RelCertifier.InstancesV2.Refute.Data.sat_detumble_phases_m006
-import RelCertifier.InstancesV2.Refute.Data.sat_detumble_phases_m007
-import RelCertifier.InstancesV2.Refute.Data.sat_detumble_phases_m018
-import RelCertifier.InstancesV2.Refute.Data.sat_detumble_phases_m019
-import RelCertifier.InstancesV2.Refute.Data.sat_detumble_phases_m020
-import RelCertifier.InstancesV2.Refute.Data.sat_detumble_phases_m021
-import RelCertifier.InstancesV2.Refute.Data.sat_detumble_phases_m022
-import RelCertifier.InstancesV2.Refute.Data.sat_detumble_phases_m023
-import RelCertifier.InstancesV2.Refute.Data.sat_detumble_weak_m002
-import RelCertifier.InstancesV2.Refute.Data.sat_detumble_weak_m003
-import RelCertifier.InstancesV2.Refute.Data.sat_detumble_weak_m005
-import RelCertifier.InstancesV2.Refute.Data.sat_detumble_weak_m006
 import RelCertifier.InstancesV2.Refute.Data.platoon_latency_m040
 import RelCertifier.InstancesV2.Refute.Data.platoon_latency_m043
 import RelCertifier.InstancesV2.Refute.Data.platoon_linkloss_m036
@@ -100,7 +78,6 @@ import RelCertifier.InstancesV2.Cuts.rover_terrain_4to6
 import RelCertifier.InstancesV2.Cuts.rover_terrain_6to12
 import RelCertifier.InstancesV2.Cuts.sat3w_detumble_phases
 import RelCertifier.InstancesV2.Cuts.sat_detumble_phases
-import RelCertifier.InstancesV2.Cuts.sat_detumble_weak
 import RelCertifier.Checker.EvolStrengtheningX
 
 namespace RelCertifier.Refute
@@ -160,38 +137,16 @@ def refuteTable : List RefRec := [
   ⟨"rover_terrain_6to12_m045", 12 + 1, rover_terrain_6to12_m045_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m045_wit⟩,
   ⟨"rover_terrain_6to12_m046", 12 + 1, rover_terrain_6to12_m046_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m046_wit⟩,
   ⟨"rover_terrain_6to12_m047", 12 + 1, rover_terrain_6to12_m047_IRm, rover_terrain_6to12_cutsV2X, rover_terrain_6to12_m047_wit⟩,
-  ⟨"sat3w_detumble_phases_m000", 6 + 1, sat3w_detumble_phases_m000_IRm, sat3w_detumble_phases_cutsV2X, sat3w_detumble_phases_m000_wit⟩,
-  ⟨"sat3w_detumble_phases_m001", 6 + 1, sat3w_detumble_phases_m001_IRm, sat3w_detumble_phases_cutsV2X, sat3w_detumble_phases_m001_wit⟩,
   ⟨"sat3w_detumble_phases_m002", 6 + 1, sat3w_detumble_phases_m002_IRm, sat3w_detumble_phases_cutsV2X, sat3w_detumble_phases_m002_wit⟩,
   ⟨"sat3w_detumble_phases_m003", 6 + 1, sat3w_detumble_phases_m003_IRm, sat3w_detumble_phases_cutsV2X, sat3w_detumble_phases_m003_wit⟩,
   ⟨"sat3w_detumble_phases_m004", 6 + 1, sat3w_detumble_phases_m004_IRm, sat3w_detumble_phases_cutsV2X, sat3w_detumble_phases_m004_wit⟩,
   ⟨"sat3w_detumble_phases_m005", 6 + 1, sat3w_detumble_phases_m005_IRm, sat3w_detumble_phases_cutsV2X, sat3w_detumble_phases_m005_wit⟩,
   ⟨"sat3w_detumble_phases_m006", 6 + 1, sat3w_detumble_phases_m006_IRm, sat3w_detumble_phases_cutsV2X, sat3w_detumble_phases_m006_wit⟩,
   ⟨"sat3w_detumble_phases_m007", 6 + 1, sat3w_detumble_phases_m007_IRm, sat3w_detumble_phases_cutsV2X, sat3w_detumble_phases_m007_wit⟩,
-  ⟨"sat3w_detumble_phases_m018", 6 + 1, sat3w_detumble_phases_m018_IRm, sat3w_detumble_phases_cutsV2X, sat3w_detumble_phases_m018_wit⟩,
-  ⟨"sat3w_detumble_phases_m019", 6 + 1, sat3w_detumble_phases_m019_IRm, sat3w_detumble_phases_cutsV2X, sat3w_detumble_phases_m019_wit⟩,
-  ⟨"sat3w_detumble_phases_m020", 6 + 1, sat3w_detumble_phases_m020_IRm, sat3w_detumble_phases_cutsV2X, sat3w_detumble_phases_m020_wit⟩,
-  ⟨"sat3w_detumble_phases_m021", 6 + 1, sat3w_detumble_phases_m021_IRm, sat3w_detumble_phases_cutsV2X, sat3w_detumble_phases_m021_wit⟩,
-  ⟨"sat3w_detumble_phases_m022", 6 + 1, sat3w_detumble_phases_m022_IRm, sat3w_detumble_phases_cutsV2X, sat3w_detumble_phases_m022_wit⟩,
-  ⟨"sat3w_detumble_phases_m023", 6 + 1, sat3w_detumble_phases_m023_IRm, sat3w_detumble_phases_cutsV2X, sat3w_detumble_phases_m023_wit⟩,
-  ⟨"sat_detumble_phases_m000", 4 + 1, sat_detumble_phases_m000_IRm, sat_detumble_phases_cutsV2X, sat_detumble_phases_m000_wit⟩,
-  ⟨"sat_detumble_phases_m001", 4 + 1, sat_detumble_phases_m001_IRm, sat_detumble_phases_cutsV2X, sat_detumble_phases_m001_wit⟩,
   ⟨"sat_detumble_phases_m002", 4 + 1, sat_detumble_phases_m002_IRm, sat_detumble_phases_cutsV2X, sat_detumble_phases_m002_wit⟩,
   ⟨"sat_detumble_phases_m003", 4 + 1, sat_detumble_phases_m003_IRm, sat_detumble_phases_cutsV2X, sat_detumble_phases_m003_wit⟩,
-  ⟨"sat_detumble_phases_m004", 4 + 1, sat_detumble_phases_m004_IRm, sat_detumble_phases_cutsV2X, sat_detumble_phases_m004_wit⟩,
   ⟨"sat_detumble_phases_m005", 4 + 1, sat_detumble_phases_m005_IRm, sat_detumble_phases_cutsV2X, sat_detumble_phases_m005_wit⟩,
   ⟨"sat_detumble_phases_m006", 4 + 1, sat_detumble_phases_m006_IRm, sat_detumble_phases_cutsV2X, sat_detumble_phases_m006_wit⟩,
-  ⟨"sat_detumble_phases_m007", 4 + 1, sat_detumble_phases_m007_IRm, sat_detumble_phases_cutsV2X, sat_detumble_phases_m007_wit⟩,
-  ⟨"sat_detumble_phases_m018", 4 + 1, sat_detumble_phases_m018_IRm, sat_detumble_phases_cutsV2X, sat_detumble_phases_m018_wit⟩,
-  ⟨"sat_detumble_phases_m019", 4 + 1, sat_detumble_phases_m019_IRm, sat_detumble_phases_cutsV2X, sat_detumble_phases_m019_wit⟩,
-  ⟨"sat_detumble_phases_m020", 4 + 1, sat_detumble_phases_m020_IRm, sat_detumble_phases_cutsV2X, sat_detumble_phases_m020_wit⟩,
-  ⟨"sat_detumble_phases_m021", 4 + 1, sat_detumble_phases_m021_IRm, sat_detumble_phases_cutsV2X, sat_detumble_phases_m021_wit⟩,
-  ⟨"sat_detumble_phases_m022", 4 + 1, sat_detumble_phases_m022_IRm, sat_detumble_phases_cutsV2X, sat_detumble_phases_m022_wit⟩,
-  ⟨"sat_detumble_phases_m023", 4 + 1, sat_detumble_phases_m023_IRm, sat_detumble_phases_cutsV2X, sat_detumble_phases_m023_wit⟩,
-  ⟨"sat_detumble_weak_m002", 4 + 1, sat_detumble_weak_m002_IRm, sat_detumble_weak_cutsV2X, sat_detumble_weak_m002_wit⟩,
-  ⟨"sat_detumble_weak_m003", 4 + 1, sat_detumble_weak_m003_IRm, sat_detumble_weak_cutsV2X, sat_detumble_weak_m003_wit⟩,
-  ⟨"sat_detumble_weak_m005", 4 + 1, sat_detumble_weak_m005_IRm, sat_detumble_weak_cutsV2X, sat_detumble_weak_m005_wit⟩,
-  ⟨"sat_detumble_weak_m006", 4 + 1, sat_detumble_weak_m006_IRm, sat_detumble_weak_cutsV2X, sat_detumble_weak_m006_wit⟩,
   ⟨"platoon_latency_m040", 3 + 1, platoon_latency_m040_IRm, platoon_latency_cutsV2X, platoon_latency_m040_wit⟩,
   ⟨"platoon_latency_m043", 3 + 1, platoon_latency_m043_IRm, platoon_latency_cutsV2X, platoon_latency_m043_wit⟩,
   ⟨"platoon_linkloss_m036", 3 + 1, platoon_linkloss_m036_IRm, platoon_linkloss_cutsV2X, platoon_linkloss_m036_wit⟩,
@@ -201,6 +156,6 @@ def refuteTable : List RefRec := [
   ⟨"platoon_profiles_m011", 3 + 1, platoon_profiles_m011_IRm, platoon_profiles_cutsV2X, platoon_profiles_m011_wit⟩ ]
 
 /-- Declared: the number of query groups over the refutations (one per right mode each). -/
-def expectedRefuteGroups : Nat := 217
+def expectedRefuteGroups : Nat := 175
 
 end RelCertifier.Refute

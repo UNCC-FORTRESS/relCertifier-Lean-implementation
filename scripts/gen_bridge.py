@@ -33,8 +33,7 @@ CHOICE = {
 }
 
 KEYED = {"acc_tune_limp", "engine_start_highidle",
-         "platoon_latency", "platoon_linkloss", "platoon_profiles",
-         "sat3w_detumble_phases", "sat_detumble_phases"}
+         "platoon_latency", "platoon_linkloss", "platoon_profiles"}
 
 
 def all_benches():

@@ -1,0 +1,130 @@
+# RESERVE (benchmarks/reserve/, 2026-10-27): not in suite_v2, not in the paper, no Lean
+# integration. Reason: the bound is the no-FFR worst case; it does not depend on the hold. The
+# header below is the design's.
+#
+# grid_ffr_dos: an island grid's fast frequency response (FFR) under a denial-of-service attack on
+# the FFR command link, against the same grid with the command delivered every cycle.
+# RESERVE (round A, 2026-10-26): not in the 50. The claim's bound is the no-FFR worst case,
+# independent of the attack's hold time (see Property); kept as a reserve input with its verdicts.
+# scenario: dos-attack
+# mechanisms (measured, reserve): M P (multi-cycle matching: one attacked cycle against three
+#   nominal cycles; non-connection pruning of the under-frequency trip, RELCERT_NO_PRUNE=1
+#   declines; matrix codes M2 M4)
+#
+# System. Frequency deviation x in Hz (50 Hz base), time in s. Aggregated swing equation of a small
+# island grid with instantaneous primary droop: inertia H = 4 s, droop 5 %, load damping 1, i.e.
+#   x' = (50 / 2H) (0.1 a - d) - (21 / 2H) x = 6.25 (0.1 a - d) - 2.625 x,
+# where d (pu, constant over the event) is the lost infeed, d in [0.05, 0.3] (0.3 = the largest unit,
+# the reference incident), and a in [0, 1] is the activated share of a 0.1 pu battery FFR. Without
+# FFR the frequency settles at -d / 0.42, between -0.12 and -0.71 Hz.
+# Supervisor (identical logic on both sides):
+#   NORMAL  x > -0.4 and a <= 0      FFR idle, a' = 0
+#   FFR     x - 2a <= -0.4, x >= -1.5 FFR triggered at 49.6 Hz and latched: the battery ramps to
+#                                     full power with time constant 0.2 s, a' = 5 (1 - a); the
+#                                     release line -0.4 + 2a Hz rises above the model's range once
+#                                     a > 0.7, so FFR never drops out (the guard is kept by the flow)
+#   TRIP    x < -1.5                  generator under-frequency protection (48.5 Hz): the units trip
+#                                     and the frequency collapses toward 47.5 Hz, x' = 0.5 (-2.5 - x)
+#                                     (latched). NORMAL and FFR declare TRIP.
+#
+# Right (nominal): the FFR command is delivered every cycle, epsilon 0.1 s.
+# Left (attacked): a DoS drops two of every three commands on the FFR link, so each supervisor
+# decision is held for up to 0.3 s (epsilon 0.3 s, lambda 1: one attacked cycle against three
+# nominal cycles). One cause: the hold time; same grid, same thresholds, same battery. The left
+# model has no TRIP mode: x >= -1.5 is forward invariant under both deployed modes for every legal
+# d (the flows at -1.5 Hz are >= 2.06 Hz/s upward) and every deployed start lies above it, so the
+# deployed's trip relay can never fire; the rows then need no vacuous trip row.
+#
+# Property (both left modes): x_L <= x_R, x_R <= x_L + 0.24 a_R, a_L <= a_R, d_L = d_R. Reading:
+# the attacked island never activates its FFR before the nominal one and never runs above it, and
+# it is at most 0.24 Hz below, in proportion to how far the nominal FFR has activated. The bound
+# is the FFR-LOSS bound: 0.24 >= P_ffr / (droop + damping) = 0.1 / 0.42 = 0.238 Hz, the frequency
+# support of the whole FFR. Tightest 0.24 (0.23 declines). The bound does NOT depend on the hold
+# (measured 2026-10-26): a 1 s hold (left epsilon 1.0) CERTIFIES at 0.24, and so does a deployed
+# FFR that never activates (left FFR with a' = 0). Only the exactness without the attack depends
+# on the cause (left epsilon 0.1 s: the exact claim x_L = x_R, a_L = a_R CERTIFIES; with the 0.3 s
+# hold it DECLINES). A left that activated early would break a_L <= a_R.
+# Why the bound cannot see the hold: every pairing segment is certified for unbounded time, so the
+# pairing of a deployed window still in NORMAL with a nominal already in FFR is checked as if the
+# deployed never triggered; its worst case is the no-FFR equilibrium shift. A hold-dependent bound
+# needs the two sides' activation tied by a shared state signal, as tank_dos_3to1 ties its pump
+# stages to the shared demand band (e.g. an event clock with a scheduled FFR ramp), which makes it
+# a structural twin of tank_dos_3to1 (FALLBACKS.md, ROUND A).
+# Why pruning is needed (P). NORMAL -> TRIP and FFR -> TRIP are pruned by non-connection
+# certificates (at -1.5 Hz both flows point up for every legal d). Without pruning, after a nominal
+# NORMAL segment inside an attacked window the cover must also take TRIP, and (NORMAL_L, TRIP_R)
+# separates the frequencies. The existential choice cannot drop TRIP there: for d > 0.168 the NORMAL
+# equilibrium lies below its own -0.4 Hz floor, so no checked cut bounds x below at a segment end,
+# and (with a_R = 0) the rows tie x_R to the uncut x_L. Window (measured): P holds for every largest
+# incident d_max in (0.168, 0.63) pu (0.168 = 0.42 x 0.4: NORMAL holds above 49.6 Hz, RELCERT_NO_PRUNE=1
+# certifies at d_max = 0.15; 0.63 = 0.42 x 1.5: beyond it the trip is reachable and the file
+# declines, measured at 0.65). The stated range (largest unit 0.3 pu) is the design condition of
+# FFR itself: large enough to need the FFR, too small to reach the generator trip.
+# Multi-cycle matching (M): budget 3, joint steps through NORMAL and FFR.
+#
+# Domains. -2.5 <= x <= 1.0 Hz, 0.05 <= d <= 0.3, 0 <= a <= 1 on both sides: forward invariant in
+# every mode (at x = 1.0 every flow is negative, at -2.5 NORMAL and FFR rise and TRIP rests); widened
+# to [-5, 3] Hz the benchmark still CERTIFIES. Coverage gap of the right guards: states with a > 0
+# and x > 2a - 0.4 (a partly ramped FFR above its release line) lie in no right guard; they are
+# unreachable (a > 0 only inside FFR, whose guard its flow keeps). RELCERT_OPREGION=1 reports that
+# the rows admit such starts for both left modes (a reference with a_R > 0 above the line); they are
+# outside the right's operating region and excluded by Theorem 3's premise. Every left mode has a
+# satisfiable start (x_R = x_L, a_R = a_L).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, re-measured 2026-10-26 with the round-A binary):
+# CERTIFIED; CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_CHOICE=1, RELCERT_SYNC=1 RELCERT_NO_CHOICE=1,
+# RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_PAIR_STRETCH=1,
+# without RELCERT_IMPLIED_CUT, with RELCERT_WELLFORMED_STRICT=1 and under RELCERT_OPREGION=1 (it
+# reports admitted starts outside every right guard for both left modes, see Domains);
+# DECLINED under RELCERT_NO_PRUNE=1 and RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1. Cover: lambda 1,
+# budget 3; NORMAL_L admissible [NORMAL, FFR], FFR_L [FFR]; joint segments only. Pruned
+# NORMAL->TRIP, FFR->TRIP. Rows identical (--handoff vacuous, 3/3).
+# relcert --wellformed: NORMAL ok (exit->FFR), FFR ok (invariant), TRIP ok (invariant), 0 UNKNOWN.
+[problem]
+name = grid_ffr_dos
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 10.0
+
+[Lsys]
+state_vars = [x, d, a]
+epsilon = 0.3
+
+[Lsys.mode.NORMAL]
+ode = x' = smt2:(- (* 6.25 (- (* 0.1 a) d)) (* 2.625 x)); d' = smt2:0.0; a' = smt2:0.0;
+guard = x > -0.4 and a <= 0.0 and x >= -2.5 and x <= 1.0 and d >= 0.05 and d <= 0.3 and a >= 0.0 and a <= 1.0
+evolve = x >= -2.5 and x <= 1.0 and d >= 0.05 and d <= 0.3 and a >= 0.0 and a <= 1.0
+next = [NORMAL, FFR]
+
+[Lsys.mode.FFR]
+ode = x' = smt2:(- (* 6.25 (- (* 0.1 a) d)) (* 2.625 x)); d' = smt2:0.0; a' = smt2:(* 5 (- 1 a));
+guard = x - 2.0*a <= -0.4 and x >= -1.5 and x >= -2.5 and x <= 1.0 and d >= 0.05 and d <= 0.3 and a >= 0.0 and a <= 1.0
+evolve = x >= -2.5 and x <= 1.0 and d >= 0.05 and d <= 0.3 and a >= 0.0 and a <= 1.0
+next = [FFR]
+
+[Rsys]
+state_vars = [x, d, a]
+epsilon = 0.1
+
+[Rsys.mode.NORMAL]
+ode = x' = smt2:(- (* 6.25 (- (* 0.1 a) d)) (* 2.625 x)); d' = smt2:0.0; a' = smt2:0.0;
+guard = x > -0.4 and a <= 0.0 and x >= -2.5 and x <= 1.0 and d >= 0.05 and d <= 0.3 and a >= 0.0 and a <= 1.0
+evolve = x >= -2.5 and x <= 1.0 and d >= 0.05 and d <= 0.3 and a >= 0.0 and a <= 1.0
+next = [NORMAL, FFR, TRIP]
+
+[Rsys.mode.FFR]
+ode = x' = smt2:(- (* 6.25 (- (* 0.1 a) d)) (* 2.625 x)); d' = smt2:0.0; a' = smt2:(* 5 (- 1 a));
+guard = x - 2.0*a <= -0.4 and x >= -1.5 and x >= -2.5 and x <= 1.0 and d >= 0.05 and d <= 0.3 and a >= 0.0 and a <= 1.0
+evolve = x >= -2.5 and x <= 1.0 and d >= 0.05 and d <= 0.3 and a >= 0.0 and a <= 1.0
+next = [FFR, TRIP]
+
+[Rsys.mode.TRIP]
+ode = x' = smt2:(* 0.5 (- (- 2.5) x)); d' = smt2:0.0; a' = smt2:0.0;
+guard = x < -1.5 and x >= -2.5 and x <= 1.0 and d >= 0.05 and d <= 0.3 and a >= 0.0 and a <= 1.0
+evolve = x >= -2.5 and x <= 1.0 and d >= 0.05 and d <= 0.3 and a >= 0.0 and a <= 1.0
+next = [TRIP]
+
+[relational_invariant]
+NORMAL = smt2:(and (<= L_x R_x) (<= R_x (+ L_x (* 0.24 R_a))) (<= L_a R_a) (<= L_d R_d) (<= R_d L_d))
+FFR = smt2:(and (<= L_x R_x) (<= R_x (+ L_x (* 0.24 R_a))) (<= L_a R_a) (<= L_d R_d) (<= R_d L_d))

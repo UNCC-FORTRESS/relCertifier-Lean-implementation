@@ -11,11 +11,11 @@ import RelCertifier.InstancesV2.BenchCovers.drl_car_stop
 import RelCertifier.InstancesV2.BenchCovers.drl_lane_control
 import RelCertifier.InstancesV2.BenchCovers.engine_start_highidle
 import RelCertifier.InstancesV2.BenchCovers.freedm_meter
+import RelCertifier.InstancesV2.BenchCovers.gantry_speed_zones
 import RelCertifier.InstancesV2.BenchCovers.hvac_fan_staging
-import RelCertifier.InstancesV2.BenchCovers.match_multi_rate
-import RelCertifier.InstancesV2.BenchCovers.platoon_delay_profiles
 import RelCertifier.InstancesV2.BenchCovers.platoon_latency
 import RelCertifier.InstancesV2.BenchCovers.platoon_linkloss
+import RelCertifier.InstancesV2.BenchCovers.platoon_profiles
 import RelCertifier.InstancesV2.BenchCovers.quad_light_airframe_20
 import RelCertifier.InstancesV2.BenchCovers.quad_light_lag
 import RelCertifier.InstancesV2.BenchCovers.quad_light_profiles
@@ -64,11 +64,11 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("drl_lane_control", drl_lane_control_coverV2),
   ("engine_start_highidle", engine_start_highidle_coverV2),
   ("freedm_meter", freedm_meter_coverV2),
+  ("gantry_speed_zones", gantry_speed_zones_coverV2),
   ("hvac_fan_staging", hvac_fan_staging_coverV2),
-  ("match_multi_rate", match_multi_rate_coverV2),
-  ("platoon_delay_profiles", platoon_delay_profiles_coverV2),
   ("platoon_latency", platoon_latency_coverV2),
   ("platoon_linkloss", platoon_linkloss_coverV2),
+  ("platoon_profiles", platoon_profiles_coverV2),
   ("quad_light_airframe_20", quad_light_airframe_20_coverV2),
   ("quad_light_lag", quad_light_lag_coverV2),
   ("quad_light_profiles", quad_light_profiles_coverV2),

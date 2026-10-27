@@ -11,11 +11,11 @@ import RelCertifier.InstancesV2.Cuts.drl_car_stop
 import RelCertifier.InstancesV2.Cuts.drl_lane_control
 import RelCertifier.InstancesV2.Cuts.engine_start_highidle
 import RelCertifier.InstancesV2.Cuts.freedm_meter
+import RelCertifier.InstancesV2.Cuts.gantry_speed_zones
 import RelCertifier.InstancesV2.Cuts.hvac_fan_staging
-import RelCertifier.InstancesV2.Cuts.match_multi_rate
-import RelCertifier.InstancesV2.Cuts.platoon_delay_profiles
 import RelCertifier.InstancesV2.Cuts.platoon_latency
 import RelCertifier.InstancesV2.Cuts.platoon_linkloss
+import RelCertifier.InstancesV2.Cuts.platoon_profiles
 import RelCertifier.InstancesV2.Cuts.quad_light_airframe_20
 import RelCertifier.InstancesV2.Cuts.quad_light_lag
 import RelCertifier.InstancesV2.Cuts.quad_light_profiles
@@ -64,11 +64,11 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("drl_lane_control", drl_lane_control_cutsV2, drl_lane_control_cutsV2X),
   ("engine_start_highidle", engine_start_highidle_cutsV2, engine_start_highidle_cutsV2X),
   ("freedm_meter", freedm_meter_cutsV2, freedm_meter_cutsV2X),
+  ("gantry_speed_zones", gantry_speed_zones_cutsV2, gantry_speed_zones_cutsV2X),
   ("hvac_fan_staging", hvac_fan_staging_cutsV2, hvac_fan_staging_cutsV2X),
-  ("match_multi_rate", match_multi_rate_cutsV2, match_multi_rate_cutsV2X),
-  ("platoon_delay_profiles", platoon_delay_profiles_cutsV2, platoon_delay_profiles_cutsV2X),
   ("platoon_latency", platoon_latency_cutsV2, platoon_latency_cutsV2X),
   ("platoon_linkloss", platoon_linkloss_cutsV2, platoon_linkloss_cutsV2X),
+  ("platoon_profiles", platoon_profiles_cutsV2, platoon_profiles_cutsV2X),
   ("quad_light_airframe_20", quad_light_airframe_20_cutsV2, quad_light_airframe_20_cutsV2X),
   ("quad_light_lag", quad_light_lag_cutsV2, quad_light_lag_cutsV2X),
   ("quad_light_profiles", quad_light_profiles_cutsV2, quad_light_profiles_cutsV2X),

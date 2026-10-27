@@ -1,0 +1,118 @@
+# gantry_speed_zones: a pick-and-place gantry whose production program runs zone-scheduled speed
+# overrides, against the program as commissioned at reduced speed (the path must stay within the
+# commissioning clearance margin).
+# scenario: controller-refinement
+# mechanisms: S M (a different time stretch per left mode, RELCERT_SYNC=1 declines; multi-step
+#   covers of 3 and 2 commissioning cycles per production cycle; matrix codes M1 M2)
+#
+# Renamed from match_multi_rate (2026-10-26), whose synthetic unitless rate-ratio exhibit this
+# file replaces with a physical system in the same matching role.
+# Round A (2026-10-26): the claim was exact path equality (constant 0), which certified only
+# because the stretches 3 and 2 lie on the tool's stretch grid (with lambda_max = 4, step 3/20,
+# it DECLINED). It is now a 10 mm path tolerance, and the verdict no longer hinges on the grid
+# (certifying stretch intervals below, wider than the grid step).
+#
+# THE PLANT (both sides). A two-axis Cartesian gantry (positions x, y in m, time in s) moving a
+# part from the pick side to the place point (0.5, 0.3). Each axis runs its own position loop, a
+# first-order servo toward the target (point-to-point move, no interpolation), so the path is the
+# curve traced by the two independent axes; the y carriage is the slower axis. Commissioning
+# gains (reduced speed): x' = 2 (0.5 - x), y' = 1 (0.3 - y). Control period 0.1 s on both sides.
+# RIGHT (the commissioned program): one mode MOVE at the commissioning gains on the whole
+#   workspace (guard = domain, next = [MOVE]). The program's clearances to the fixtures were
+#   checked on this run.
+# LEFT (the production program): the same move with the controller's speed override scheduled
+#   by zone along x, held for a whole period (the zone is sampled):
+#   FREE      0 <= x < 0.3     override 3: x' = 6 (0.5 - x), y' = 3 (0.3 - y)
+#   APPROACH  0.3 <= x < 0.45  override 2: x' = 4 (0.5 - x), y' = 2 (0.3 - y)
+#   PLACE     0.45 <= x <= 0.8 override 1 (the commissioning speed)
+#   Successor sets are complete for one period: from FREE the farthest reach is x = 0.39
+#   (APPROACH), from APPROACH x = 0.466 (PLACE); PLACE never leaves (the flow converges to 0.5
+#   from either side of it). FREE -> [FREE, APPROACH], APPROACH -> [APPROACH, PLACE],
+#   PLACE -> [PLACE].
+# ONE CAUSE: the speed override. It scales both axis loops by the same factor, so in this model it
+# is a time reparametrization of the commissioned motion, piecewise by zone.
+#
+# CLAIM (every left mode): |x_L - x_R| <= 0.01 and |y_L - y_R| <= 0.01 (m), up to a time stretch
+# per left mode. Requirement: the fixture clearances were verified on the commissioning run only,
+# with a 10 mm clearance margin to every fixture; a production path within 10 mm of the
+# commissioned path on each axis keeps every fixture clear. Not implied by the domains; every
+# left mode has a satisfiable start (equal positions in its zone).
+# Stretch range lambda in [1, 3]: the override range of the production program, 100 % to 300 % of
+# the commissioning speed (lambda_min = 1, lambda_max = 3).
+# Tightest tolerance (bisection to 0.01): 0.00 with lambda_max = 3 (the stretches 3, 2, 1 are
+# candidates); 0.01 with lambda_max = 4 (0.00 declines there: 3 and 2 are not candidates).
+# Grid independence (measured with RELCERT_LAMBDA_SCAN=1 at 0.01 resolution, tolerance 0.01):
+# each pairing certifies on a stretch interval, FREE [2.94, 3.06], APPROACH [1.94, 2.06], PLACE
+# [1.00, 1.03]. Within [1, 3] the FREE interval contains lambda_max and the PLACE interval
+# lambda_min (both always candidates) and the APPROACH interval is wider than the grid step
+# 1/10, so some candidate always certifies. Also CERTIFIED with lambda_max = 4 (stretches 59/20,
+# 41/20, 1) and 5 (3, 2, 1).
+#
+# Cause dependence (measured, tolerance 0.01). No override (production at commissioning speed in
+# every zone): the stretch is 1 and RELCERT_SYNC=1 certifies (S comes from the override). A
+# non-uniform override (FREE: y loop at 2.5 instead of 3, the axes no longer scaled alike, so the
+# path changes): DECLINED. An arbitrary zone schedule of the same uniform overrides (every left
+# guard the whole workspace, every mode a successor of every other): CERTIFIED: every uniform
+# override is a time reparametrization of the commissioned path, so the claim depends on the
+# overrides being uniform across the axes, not on where they are scheduled.
+# Why the stretch (S) and the multi-step covers (M). Only a stretch near the zone's override keeps
+# the tolerance: FREE at lambda = 3 with budget 3 (one production period matches three
+# commissioning periods), APPROACH at lambda = 2, budget 2, PLACE at lambda = 1, budget 1.
+# RELCERT_SYNC=1 DECLINES. Not load-bearing: nothing is pruned (no fallback mode), no cut is needed
+# (RELCERT_NO_CUT=1 CERTIFIES), the choice is trivial (one right mode).
+#
+# DOMAINS (both sides): the gantry's travel, 0 <= x <= 0.8 and 0 <= y <= 0.5, forward invariant
+# (every flow points toward the interior target). The right guard is the whole domain (no
+# coverage gap).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26 with the round-A binary):
+# CERTIFIED (about 1.5 s); CERTIFIED under RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, both together,
+# RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_PAIR_STRETCH=1,
+# RELCERT_WELLFORMED_STRICT=1, without RELCERT_IMPLIED_CUT and under RELCERT_OPREGION=1 (every
+# admitted start in some right guard, all three left modes); DECLINED under RELCERT_SYNC=1 and
+# SYNC+NO_CHOICE. Covers: FREE lambda 3 budget 3, APPROACH lambda 2 budget 2, PLACE lambda 1
+# budget 1, admissible start MOVE. Rows identical (--handoff vacuous, 5/5). relcert --wellformed:
+# MOVE ok (invariant), 0 UNKNOWN.
+[problem]
+name = gantry_speed_zones
+max_depth = 16
+lambda_min = 1.0
+lambda_max = 3.0
+bound_T = 4.0
+
+[Lsys]
+state_vars = [x, y]
+epsilon = 0.1
+
+[Lsys.mode.FREE]
+ode = x' = smt2:(* 6.0 (- 0.5 x)); y' = smt2:(* 3.0 (- 0.3 y));
+guard = x >= 0.0 and x < 0.3 and y >= 0.0 and y <= 0.5
+evolve = x >= 0.0 and x <= 0.8 and y >= 0.0 and y <= 0.5
+next = [FREE, APPROACH]
+
+[Lsys.mode.APPROACH]
+ode = x' = smt2:(* 4.0 (- 0.5 x)); y' = smt2:(* 2.0 (- 0.3 y));
+guard = x >= 0.3 and x < 0.45 and y >= 0.0 and y <= 0.5
+evolve = x >= 0.0 and x <= 0.8 and y >= 0.0 and y <= 0.5
+next = [APPROACH, PLACE]
+
+[Lsys.mode.PLACE]
+ode = x' = smt2:(* 2.0 (- 0.5 x)); y' = smt2:(* 1.0 (- 0.3 y));
+guard = x >= 0.45 and x <= 0.8 and y >= 0.0 and y <= 0.5
+evolve = x >= 0.0 and x <= 0.8 and y >= 0.0 and y <= 0.5
+next = [PLACE]
+
+[Rsys]
+state_vars = [x, y]
+epsilon = 0.1
+
+[Rsys.mode.MOVE]
+ode = x' = smt2:(* 2.0 (- 0.5 x)); y' = smt2:(* 1.0 (- 0.3 y));
+guard = x >= 0.0 and x <= 0.8 and y >= 0.0 and y <= 0.5
+evolve = x >= 0.0 and x <= 0.8 and y >= 0.0 and y <= 0.5
+next = [MOVE]
+
+[relational_invariant]
+FREE = x[l] <= x[r] + 0.01 and x[r] <= x[l] + 0.01 and y[l] <= y[r] + 0.01 and y[r] <= y[l] + 0.01
+APPROACH = x[l] <= x[r] + 0.01 and x[r] <= x[l] + 0.01 and y[l] <= y[r] + 0.01 and y[r] <= y[l] + 0.01
+PLACE = x[l] <= x[r] + 0.01 and x[r] <= x[l] + 0.01 and y[l] <= y[r] + 0.01 and y[r] <= y[l] + 0.01

@@ -17,8 +17,8 @@ all 49 literally (the 6 satellite files carry their conserved momentum band in t
 domain since 2026-10-15).
 Nine files had a blocking mode until 2026-10-10 and were repaired (`docs/SUITE-REDESIGN.md`
 §21; each header says how and why; `arm_plateau_profiles` and `platoon3_{linkloss,profiles}`
-are in `benchmarks/reserve/` since 2026-10-27, and `platoon_delay_linkloss` was replaced by the
-redesigned `platoon_linkloss`): `arm_plateau_{crit,profiles,slow}` (the ApproachA /
+are in `benchmarks/reserve/` since 2026-10-27, and `platoon_delay_{linkloss,profiles}` were
+replaced by the redesigned `platoon_linkloss` and `platoon_profiles`): `arm_plateau_{crit,profiles,slow}` (the ApproachA /
 ApproachB bands are narrower than one control interval of their own rate: the sampled
 planner's successor sets now name every band a sample can find), `platoon_delay_{linkloss,
 profiles}` (the sink `BRAKE` left its guard: it now re-engages `FOLLOW`),
@@ -26,7 +26,7 @@ profiles}` (the sink `BRAKE` left its guard: it now re-engages `FOLLOW`),
 an invariant guard) and `quad_light_{airframe_20,profiles}` (the sink `LIMIT`: it now hands
 back to the climb controller, whose operating range reaches the limiter threshold).
 `relcert --wellformed <input.txt>…` runs the tool's sufficient check per right mode (every one
-of the 167 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN` or `BLOCKING`.
+of the 164 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN` or `BLOCKING`.
 
 The suite's design, the per-family rationale, the domain audit (every evolve bound is a
 physical limit of the plant; `scripts/domain_widening.py` re-runs the tool with every bound
@@ -106,6 +106,13 @@ loop; the first suite file with stretches below 1, `lambda_min = 0.75`; time str
 multi-step and branching covers). The reserve keeps `engine_start_highidle`'s twin
 `h2_refuel_ambientbias`.
 
+## Renamed 2026-10-27: batch I2
+
+| old | new |
+|---|---|
+| `match_multi_rate` | `gantry_speed_zones` (both models new: a pick-and-place gantry whose production program runs zone-scheduled speed overrides, against the program as commissioned at reduced speed; 10 mm path tolerance; replaces the synthetic unitless rate-ratio exhibit in the same multi-cycle matching role) |
+| `platoon_delay_profiles` | `platoon_profiles` (redesigned: the CACC follower driven in the SPORT profile, a shorter time gap, against the design follower verified in NORMAL; its right model is `platoon_linkloss`'s, Assumption 1 through the shared `PlatoonCaccAeb` lemmas) |
+
 ## Renamed 2026-10-26: the terrain chain
 
 The three terrain files were redesigned as one chain that refines terrain physics (soil, drive
@@ -120,10 +127,10 @@ are new; two names changed with their steps (the retired `rover_terrain_2to3` is
 | `rover_terrain_6to8` | `rover_terrain_4to6` (+ drive lag and rough-terrain heave) |
 | `rover_terrain_6to12` | unchanged name (+ heave rate, bank grade, chassis pitch, acceleration, squat) |
 
-## The 16 carried-over benchmarks
+## The 15 carried-over benchmarks
 
-Sixteen files (the rover refinement ladder, the rover terrain rungs,
-`match_multi_rate`, and the attitude, lateral and rollover benchmarks except `rover_rollover_7to12`) come from files of the retired legacy
+Fifteen files (the rover refinement ladder, the rover terrain rungs, and the attitude, lateral
+and rollover benchmarks except `rover_rollover_7to12`) come from files of the retired legacy
 suite `suite_uniform` (removed from the tree on 2026-10-10; git history keeps it); at the
 2026-10-25 rename (above) they were byte-identical to them up to the name lines and the first header line of
 `rover_ladder_2to6`, except `rover_lateral_6to8`: since 2026-10-26 its right model freezes the
@@ -177,11 +184,11 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `drl_lane_control` | 3 / 3 | 6 / 6 | controller-refinement | literature (dRL), mode choice |
 | `engine_start_highidle` | 1 / 1 | 5 / 5 | controller-change | new 2026-10-27: mode-keyed, widened cuts |
 | `freedm_meter` | 2 / 2 | 12 / 12 | information-flow | literature (dHL, FREEDM), mode choice |
+| `gantry_speed_zones` | 2 / 2 | 3 / 1 | controller-refinement | new 2026-10-27 (replaces `match_multi_rate`): a time stretch per speed zone (3, 2, 1), multi-step covers |
 | `hvac_fan_staging` | 1 / 1 | 3 / 3 | controller-refinement | new 2026-10-26 (replaces `rover_terrain_2to3`): mode choice |
-| `match_multi_rate` | 2 / 2 | 4 / 2 | model-refinement | carried over; synthetic rate-ratio exhibit (unitless) |
 | `platoon_latency` | 3 / 2 | 3 / 2 | degraded-network | new 2026-10-27: mode-keyed (AEB row), right model shared with `platoon_linkloss` |
 | `platoon_linkloss` | 2 / 2 | 3 / 2 | dos-attack | redesigned 2026-10-27 (was `platoon_delay_linkloss`): mode-keyed (AEB row), CACC -> ACC fallback |
-| `platoon_delay_profiles` | 1 / 1 | 2 / 4 | degraded-sensor | widened cuts; BRAKE re-engages (§21) |
+| `platoon_profiles` | 2 / 2 | 2 / 2 | controller-refinement | redesigned 2026-10-27 (was `platoon_delay_profiles`): mode-keyed (AEB row), SPORT time gap against NORMAL, right model shared with `platoon_linkloss` |
 | `quad_light_airframe_20` | 1 / 1 | 1 / 2 | model-refinement | LIMIT hands back (§21) |
 | `quad_light_lag` | 3 / 3 | 1 / 1 | model-refinement | redesigned 2026-10-27: altitude coordinate, rows from the 0.8 m altitude acceptance radius |
 | `quad_light_profiles` | 1 / 1 | 1 / 4 | model-refinement | LIMIT hands back (§21); mode choice |

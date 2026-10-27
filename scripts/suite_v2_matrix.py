@@ -81,7 +81,7 @@ FAMILIES = [
     ("heater_", "Heater cycle"),
     ("platoon_", "Platoon follower (CACC, link loss / latency / profile)"),
     ("rover_patrol_", "Rover patrol (zones)"),
-    ("match_multi_rate", "Multi-cycle matching"),
+    ("gantry_", "Gantry speed zones (multi-cycle matching)"),
     ("arm_plateau_", "Arm, leading reference"),
     ("rover_ladder_", "Terrain/position ladder"),
     ("rover_terrain_", "Terrain chain"),
@@ -98,7 +98,6 @@ FAMILIES = [
 ]
 KEPT_SCENARIO = {
     "watertank": "sensor-attack",
-    "match_multi_rate": "model-refinement",
 }
 def family_of(name):
     for pre, fam in FAMILIES:

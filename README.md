@@ -56,7 +56,7 @@ through printed SMT scripts, and only its `unsat` answers are trusted.
 * [Switches](#switches)
 * [Guard-gated switching](#guard-gated-switching)
 * [Assumption 1 is verified per benchmark](#assumption-1-is-verified-per-benchmark)
-* [The 18 carried-over Assumption 1 proofs](#the-18-carried-over-assumption-1-proofs)
+* [The 17 carried-over Assumption 1 proofs](#the-17-carried-over-assumption-1-proofs)
 * [Archived routes](#archived-routes)
 * [Further reading](#further-reading)
 
@@ -64,9 +64,9 @@ through printed SMT scripts, and only its `unsat` answers are trusted.
 
 `benchmarks/suite_v2/` holds the paper's suite: **49 benchmarks** (adaptive cruise control,
 quadrotor climb, battery charger, robot-arm plateau, vehicle platoons, satellite
-detumbling, rover patrol, a turbofan ground start, train speed control, and the rover refinement ladders and story benchmarks up to 12
+detumbling, rover patrol, a turbofan ground start, train speed control, a pick-and-place gantry, and the rover refinement ladders and story benchmarks up to 12
 degrees of freedom; `benchmarks/README.md`). With the widened cut channel on
-(`RELCERT_IMPLIED_CUT=1`) the tool CERTIFIES all 49; without it, 8 of them DECLINE; seven DECLINE without the existential mode choice (`RELCERT_NO_CHOICE=1`): the four literature benchmarks, `hvac_fan_staging`, `acc_tune_limp` and `quad_light_profiles`; the other 42 covers are byte-identical with it on or off. Near-duplicates and weak benchmarks are kept outside the suite in `benchmarks/reserve/` (inputs and verdicts only, `benchmarks/reserve/README.md`). One of them, `watertank_twospeed`, needs a different stretch per pairing (`RELCERT_NO_PAIR_STRETCH=1` DECLINES it; §22 of `docs/SUITE-REDESIGN.md`).
+(`RELCERT_IMPLIED_CUT=1`) the tool CERTIFIES all 49; without it, 7 of them DECLINE; seven DECLINE without the existential mode choice (`RELCERT_NO_CHOICE=1`): the four literature benchmarks, `hvac_fan_staging`, `acc_tune_limp` and `quad_light_profiles`; the other 42 covers are byte-identical with it on or off. Near-duplicates and weak benchmarks are kept outside the suite in `benchmarks/reserve/` (inputs and verdicts only, `benchmarks/reserve/README.md`). One of them, `watertank_twospeed`, needs a different stretch per pairing (`RELCERT_NO_PAIR_STRETCH=1` DECLINES it; §22 of `docs/SUITE-REDESIGN.md`).
 
 The parts of the artifact:
 
@@ -111,9 +111,9 @@ not carried. The mode-independent benchmarks are proved over the choice of their
 carried to the left automaton by one generic bridge (`theorem3_leftAut_of_choice`,
 `Proofs/Encoding/LeftAutUniform.lean`).
 The theorem's one Z3 hypothesis, `Verdicts`, IS the list of groups the runner
-`relcert-bridge-verdicts` issues (4094 over the 49 suite benchmarks and the 2 exhibits, against
+`relcert-bridge-verdicts` issues (4099 over the 49 suite benchmarks and the 2 exhibits, against
 the declared count), each coming back `unsat`; `relcert --check-quick-v2` re-sends the tool's
-own queries as a self-check (modal 771, handoff 434, non-connection 70, pruned edges 35,
+own queries as a self-check (modal 778, handoff 430, non-connection 68, pruned edges 34,
 reposition 23). The axiom audit of every theorem is a subset of
 `{propext, Classical.choice, Quot.sound, z3_unsat_sound}`; none of the 49 is Z3-free (every
 flow fact of every response is a group of the emitted cover). No
@@ -177,18 +177,18 @@ Counts read off `InstancesV2/Bridge.lean`, `InstancesV2/WellFormedBattery.lean`,
 
 | family | count | which |
 |---|---|---|
-| the generic bridge: Theorem 3 of the benchmark from its emitted records (IR, cut certificate, cover, progress and choice records), over the clocked right automaton `rightAutomatonBodyC` at dimension `bridgeDimV2 b` (the Assumption 1 lemma's dimension + 1, the right clock), Assumption 1 lifted by `wellFormedR_lift`, the structural facts decided in the kernel, every verdict from one Z3 run (`InstancesV2/Bridge/`, `relcert-bridge-verdicts`, 4094 groups over the 49 suite benchmarks and the 2 exhibits; `docs/BRIDGE.md`) | **51** | all 49 suite benchmarks (41 window form, 8 mode-keyed) and the choice exhibits `vehicle_accel_copy`, `watertank_choice` |
-| of which mode-keyed (per-left-mode rows composed through handoffs, `keyedClaim`) | **8** | `acc_tune_limp`, `charger_fast_setpoints`, `charger_fast_tapers`, `engine_start_highidle`, `platoon_linkloss`, `platoon_latency`, `sat_detumble_phases`, `sat3w_detumble_phases` |
-| Assumption 1 (`WellFormedR`) of the right model, proved in the kernel, Z3-free (`InstancesV2/WellFormed/<B>.lean`, `InstancesV2/WellFormedBattery.lean`; 71 axiom lines, each the three standard axioms) | **49** | every suite benchmark (the six satellites with the conserved momentum band in the right evolve domain; `docs/WELLFORMED.md`) |
+| the generic bridge: Theorem 3 of the benchmark from its emitted records (IR, cut certificate, cover, progress and choice records), over the clocked right automaton `rightAutomatonBodyC` at dimension `bridgeDimV2 b` (the Assumption 1 lemma's dimension + 1, the right clock), Assumption 1 lifted by `wellFormedR_lift`, the structural facts decided in the kernel, every verdict from one Z3 run (`InstancesV2/Bridge/`, `relcert-bridge-verdicts`, 4099 groups over the 49 suite benchmarks and the 2 exhibits; `docs/BRIDGE.md`) | **51** | all 49 suite benchmarks (40 window form, 9 mode-keyed) and the choice exhibits `vehicle_accel_copy`, `watertank_choice` |
+| of which mode-keyed (per-left-mode rows composed through handoffs, `keyedClaim`) | **9** | `acc_tune_limp`, `charger_fast_setpoints`, `charger_fast_tapers`, `engine_start_highidle`, `platoon_linkloss`, `platoon_latency`, `platoon_profiles`, `sat_detumble_phases`, `sat3w_detumble_phases` |
+| Assumption 1 (`WellFormedR`) of the right model, proved in the kernel, Z3-free (`InstancesV2/WellFormed/<B>.lean`, `InstancesV2/WellFormedBattery.lean`; 70 axiom lines, each the three standard axioms) | **49** | every suite benchmark (the six satellites with the conserved momentum band in the right evolve domain; `docs/WELLFORMED.md`) |
 | model repaired by this mechanization (the nominal controller blocked after a full cycle; `docs/SUITE-REDESIGN.md` §20) | **0** | (the two, `platoon3_linkloss`, `platoon3_profiles`, are in `benchmarks/reserve/` since 2026-10-27) |
-| model repaired for Assumption 1 (`WellFormedR` refuted in the kernel, then proved; `docs/SUITE-REDESIGN.md` §21) | **5** | `arm_plateau_{crit,slow}`, `platoon_delay_profiles`, `quad_light_{airframe_20,profiles}` (of the other four, `arm_plateau_profiles` and `platoon3_{linkloss,profiles}` are in `benchmarks/reserve/`, and `platoon_delay_linkloss` was replaced by `platoon_linkloss` on 2026-10-27) |
-| widened cut channel needed (`RELCERT_IMPLIED_CUT=1`; closures, implied contractions, linear-form chains; lifted to the kernel by `Proofs/Soundness/CutLiftX.lean`) | **8** | `arm_plateau_{crit,slow}`, `charger_fast_{setpoints,tapers}`, `engine_start_highidle`, `platoon_delay_profiles`, `rover_rollover_7to12`, `watertank_twospeed` (each DECLINES without the channel) |
-| the non-connection certificate of a pruned edge (the paper's Definition 6, `Checker/NonConn.lean`): enters every bridge instance as the barrier of each pruned exit (`nonconn_entry`, `nonconn_keep`, `guard_pos_of_barrier`), the 70 queries of the 35 pruned edges re-sent by `--check-quick-v2` and as bridge groups | **35** edges | `docs/PAPER-MAPPING.md` §5 |
-| kernel refutations of known-false invariant variants, each the negation of the clocked bridge claim at its benchmark's bridge dimension (`InstancesV2/Refute/`, `relcert-refute-verdicts`, 309 groups) | **112** | `docs/REFUTATION-RESULTS.md` |
+| model repaired for Assumption 1 (`WellFormedR` refuted in the kernel, then proved; `docs/SUITE-REDESIGN.md` §21) | **4** | `arm_plateau_{crit,slow}`, `quad_light_{airframe_20,profiles}` (of the other five, `arm_plateau_profiles` and `platoon3_{linkloss,profiles}` are in `benchmarks/reserve/`, and `platoon_delay_{linkloss,profiles}` were replaced by `platoon_linkloss` and `platoon_profiles` on 2026-10-27) |
+| widened cut channel needed (`RELCERT_IMPLIED_CUT=1`; closures, implied contractions, linear-form chains; lifted to the kernel by `Proofs/Soundness/CutLiftX.lean`) | **7** | `arm_plateau_{crit,slow}`, `charger_fast_{setpoints,tapers}`, `engine_start_highidle`, `rover_rollover_7to12`, `watertank_twospeed` (each DECLINES without the channel) |
+| the non-connection certificate of a pruned edge (the paper's Definition 6, `Checker/NonConn.lean`): enters every bridge instance as the barrier of each pruned exit (`nonconn_entry`, `nonconn_keep`, `guard_pos_of_barrier`), the 68 queries of the 34 pruned edges re-sent by `--check-quick-v2` and as bridge groups | **34** edges | `docs/PAPER-MAPPING.md` §5 |
+| kernel refutations of known-false invariant variants, each the negation of the clocked bridge claim at its benchmark's bridge dimension (`InstancesV2/Refute/`, `relcert-refute-verdicts`, 313 groups) | **114** | `docs/REFUTATION-RESULTS.md` |
 | the strict-invariant exhibit (`benchmarks/strict_demo`, `InstancesV2/Bridge/WatertankStrict.lean`) | **1** | `watertank_strict` |
 
 The generic theorems' audit (`InstancesV2/AxiomCheck.lean`, 9 lines) and the Assumption 1
-battery's (71 lines) are re-emitted on every `lake build`; the bridge instances carry
+battery's (70 lines) are re-emitted on every `lake build`; the bridge instances carry
 `z3_unsat_sound` exactly through their `Verdicts` hypothesis.
 
 ## Build and check
@@ -203,12 +203,12 @@ dependency, dL-rel, is pinned by tag in `lakefile.toml`) and Z3 (the tool looks 
 lake build
 lake build relcert relcert-test relcert-bridge-verdicts relcert-refute-verdicts relcert-progress-verdicts
 
-# 2. the Assumption 1 battery (71 lines, the three standard axioms only) and the generic
+# 2. the Assumption 1 battery (70 lines, the three standard axioms only) and the generic
 #    theorems' audit (InstancesV2/AxiomCheck, 9 lines)
 lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 | grep -A3 "depends on axioms"
 lake build RelCertifier.InstancesV2.AxiomCheck 2>&1 | grep -A3 "depends on axioms"
 
-# 2b. the Z3 hypotheses of the 51 bridge instances (4094 groups) and the progress
+# 2b. the Z3 hypotheses of the 51 bridge instances (4099 groups) and the progress
 #     certificates of every reposition node (227 queries), against declared counts
 ./.lake/build/bin/relcert-bridge-verdicts
 ./.lake/build/bin/relcert-progress-verdicts
@@ -232,7 +232,7 @@ for d in benchmarks/suite_v2/*/; do
 done > /tmp/bench-paths-v2.tsv
 BENCH_PATHS=/tmp/bench-paths-v2.tsv ./.lake/build/bin/relcert-test
 
-# 5. the kernel-checked refutations of the 112 invariant variants (docs/REFUTATION-RESULTS.md):
+# 5. the kernel-checked refutations of the 114 invariant variants (docs/REFUTATION-RESULTS.md):
 #    re-send their Z3 groups with the declared count (each at the variant's bridge dimension,
 #    RefRec.dim + 1), then build their instances (each concludes the negation of the clocked
 #    bridge claim, refute_*_clocked)
@@ -240,17 +240,17 @@ BENCH_PATHS=/tmp/bench-paths-v2.tsv ./.lake/build/bin/relcert-test
 lake build $(ls RelCertifier/InstancesV2/Refute/*.lean | sed 's|/|.|g; s|\.lean$||')
 ```
 
-Expected: `Build completed successfully`; 71 axiom lines (WellFormedBattery), each exactly
+Expected: `Build completed successfully`; 70 axiom lines (WellFormedBattery), each exactly
 the three standard axioms (`lake` also replays the 11 lines of `CutLiftX.lean`'s own audit);
-9 axiom lines (AxiomCheck), each a subset of the four axioms above; `relcert-bridge-verdicts`: `4094/4094` at the bridge dimensions;
+9 axiom lines (AxiomCheck), each a subset of the four axioms above; `relcert-bridge-verdicts`: `4099/4099` at the bridge dimensions;
 `relcert-progress-verdicts`: `227/227`; `[suite_v2] 49 certified, 0 declined, 0 error(s)`,
-coverage `modal 771/771`, `handoff 434/434`, `non-connection 70/70`, `pruned edges 35/35`,
-`reposition (dyn) 23/23`, the strict Assumption 1 gate `[wellformed] STRICT: 167/167 right modes ok,
-both clauses (87 invariant, 80 exit), 0 UNKNOWN, 0 BLOCKING — matches the declared suite`,
+coverage `modal 778/778`, `handoff 430/430`, `non-connection 68/68`, `pruned edges 34/34`,
+`reposition (dyn) 23/23`, the strict Assumption 1 gate `[wellformed] STRICT: 164/164 right modes ok,
+both clauses (85 invariant, 79 exit), 0 UNKNOWN, 0 BLOCKING — matches the declared suite`,
 `wellformed (strict): PASS`, `SUITE_V2 QUICK CHECKS PASSED`;
 `benchmarks/negative/freedm_meter_leaky`: `DECLINED`; `vehicle_hypercert_s8`: all five right
 modes `BLOCKING (leaves s <= 8.0)`, and `DECLINED` under the strict switch;
-`relcert-test`: a bare `ALL PASS`; `refute: 309/309 hypotheses discharged` (the bridge and
+`relcert-test`: a bare `ALL PASS`; `refute: 313/313 hypotheses discharged` (the bridge and
 refute counts are unchanged by the right-clock coordinate of 2026-10-21: no query reads it).
 
 The default `relcert <file>` verdict includes the handoff check (CERTIFIED requires the cover and
@@ -345,7 +345,7 @@ RelCertifier/
                            self-contained (right model + proof; `platoon_linkloss` and
                            `platoon_latency` share the follower lemmas `PlatoonCaccAeb`); the
                            carried-over proofs included
-    Refute/    113 files   the 112 kernel refutations and their Table; Refute/Data/ (112)
+    Refute/    115 files   the 114 kernel refutations and their Table; Refute/Data/ (114)
                            the mutant records (docs/REFUTATION-RESULTS.md)
     Choice/                the two choice exhibits' leaves (BenchIR, BenchCovers,
                            BenchProgress, BenchChoice, Cuts), ConstMirror, and General/
@@ -365,7 +365,7 @@ BridgeVerdictsMain.lean, ProgressVerdictsMain.lean, RefuteVerdictsMain.lean
                            relcert-refute-verdicts
 benchmarks/suite_v2/       the 49 inputs; benchmarks/reserve/ the reserve inputs (no Lean); benchmarks/choice/ the 2 choice exhibits;
                            benchmarks/strict_demo/ the strict exhibit; benchmarks/refute_mutants/
-                           the 112 mutants; benchmarks/negative/ one expected DECLINE (the
+                           the 114 mutants; benchmarks/negative/ one expected DECLINE (the
                            leaky FREEDM controller)
 scripts/                   gen_v2_data.py, gen_bridge.py, gen_refute.py, gen_strict_demo.py,
                            paper_numbers.sh (the frozen paper numbers), suite_v2_matrix.py,
@@ -449,13 +449,13 @@ state; `docs/WELLFORMED.md` §1).
 
 **Results** (`InstancesV2/WellFormedBattery.lean`, declared counts `(43, 0, 6)`: every mode
 outside the detumble family, refuted, the detumble family, checked against the suite's IR
-table, `(30, 9, 6)` until the 2026-10-10 repairs; 71 axiom lines, each
+table, `(30, 9, 6)` until the 2026-10-10 repairs; 70 axiom lines, each
 `[propext, Classical.choice, Quot.sound]`; no Z3):
 
 | result | count | benchmarks |
 |---|---|---|
-| proved, every mode (`<b>_wellFormedR`; for the two dRL benchmarks and `freedm_meter` `_wellFormedR_direct`, over the bridge's automaton) | **43** | the acc, charger, ladder, terrain, story, rover patrol files, `quad_light_lag`, `match_multi_rate`, `tank_dos_3to1`, `watertank`, `watertank_twospeed`, `hvac_fan_staging`, `engine_start_highidle`, `train_ato_odometry`, `platoon_linkloss`, `platoon_latency` (one shared follower lemma, `PlatoonCaccAeb`), the four literature benchmarks, and the five repaired models below |
-| of which repaired 2026-10-10 (refuted until then, with the exhibited state; `arm_plateau_profiles` and `platoon3_{linkloss,profiles}` are in `benchmarks/reserve/` since 2026-10-27, `platoon_delay_linkloss` was replaced by `platoon_linkloss`) | 5 | `arm_plateau_{crit,slow}` (ApproachA from `θ = 0.35` reached `0.85` within one interval, past ApproachB's band: the sampled planner's successor sets now name every reachable band), `platoon_delay_profiles` (sink BRAKE left `g < 20`: it now re-engages FOLLOW), `quad_light_{airframe_20,profiles}` (sink LIMIT decayed below its guard: it now hands back to the climb controller, whose operating range reaches the limiter threshold) |
+| proved, every mode (`<b>_wellFormedR`; for the two dRL benchmarks and `freedm_meter` `_wellFormedR_direct`, over the bridge's automaton) | **43** | the acc, charger, ladder, terrain, story, rover patrol files, `quad_light_lag`, `gantry_speed_zones`, `tank_dos_3to1`, `watertank`, `watertank_twospeed`, `hvac_fan_staging`, `engine_start_highidle`, `train_ato_odometry`, `platoon_linkloss`, `platoon_latency`, `platoon_profiles` (one shared follower lemma, `PlatoonCaccAeb`), the four literature benchmarks, and the four repaired models below |
+| of which repaired 2026-10-10 (refuted until then, with the exhibited state; `arm_plateau_profiles` and `platoon3_{linkloss,profiles}` are in `benchmarks/reserve/` since 2026-10-27, `platoon_delay_{linkloss,profiles}` were replaced by `platoon_linkloss` and `platoon_profiles`) | 4 | `arm_plateau_{crit,slow}` (ApproachA from `θ = 0.35` reached `0.85` within one interval, past ApproachB's band: the sampled planner's successor sets now name every reachable band), `quad_light_{airframe_20,profiles}` (sink LIMIT decayed below its guard: it now hands back to the climb controller, whose operating range reaches the limiter threshold) |
 | false | **0** | — |
 | proved, every mode, with the conserved momentum band `|h_i + J_i w_i| ≤ 2` in the right evolve domain since 2026-10-15 (`<b>_wellFormedR`; the band is kept by every mode's flow, `<b>_band_invariant`; without it `DETUMBLE` from `w3 = 0.4`, `h = 2` had no full-interval run) | **6** | `sat_detumble_{nominal,weak,phases}`, `sat3w_detumble_{nominal,weak,phases}` |
 
@@ -480,20 +480,19 @@ by face) and cannot blow up (an affine field, or a bounded one on the domain). A
 only when both are shown; `BLOCKING (leaves d)` when some guard state leaves the domain at
 once (clause (i) refuted); else `UNKNOWN` (`UNKNOWN (nonblocking)`: clause (ii) shown, clause
 (i) not). The label of an `ok` mode is the clause (ii) style, matching the Lean proofs'
-styles (a) / (b). On the suite: 167 right modes, 87 ok (invariant), 80 ok (exit), **0
+styles (a) / (b). On the suite: 164 right modes, 85 ok (invariant), 79 ok (exit), **0
 UNKNOWN, 0 BLOCKING** (clause (ii) before the repairs: 77 / 53 / 16 UNKNOWN, exactly the
 blocking modes of the nine models; on the old `platoon3` model, commit `1a3507f`, every mode
 is `UNKNOWN`). On the 37 round-2 designs: 122 right modes, all `ok`. **Strict in the
 recipe:** `--check-quick-v2` certifies in the strict mode and gates the `--wellformed` report
-against declared counts (167 modes, 0 `UNKNOWN`, 0 `BLOCKING`, the runner's declared
+against declared counts (164 modes, 0 `UNKNOWN`, 0 `BLOCKING`, the runner's declared
 constants `ExpectedSuiteV2.wfModes` / `wfUnknown` / `wfBlocking`): any mode not `ok` fails the
 run. `RELCERT_WELLFORMED_STRICT=1` does the same per `relcert` run. The check is not part of
 the guarantee: the guarantee's Assumption 1 is the kernel's `WellFormedR`, above.
 
-## The 18 carried-over Assumption 1 proofs
+## The 17 carried-over Assumption 1 proofs
 
-Eighteen suite_v2 benchmarks (the rover refinement ladder, the rover terrain rungs,
-`match_multi_rate`, and the attitude, lateral and rollover benchmarks except `rover_rollover_7to12`) are copies of files of the retired legacy
+Seventeen suite_v2 benchmarks (the rover refinement ladder, the rover terrain rungs, and the attitude, lateral and rollover benchmarks except `rover_rollover_7to12`) are copies of files of the retired legacy
 suite `suite_uniform` (removed from the tree on 2026-10-10; git history keeps it), byte-identical
 up to the name lines of the 2026-10-25 rename and the first header line of `rover_ladder_2to6`
 (`benchmarks/README.md`), except `rover_lateral_6to8`, whose right model freezes the lateral
@@ -535,7 +534,7 @@ The per-benchmark findings of that route stay in `docs/GUARDED-SWITCHING.md`.
 * [`docs/WELLFORMED.md`](docs/WELLFORMED.md): Assumption 1 per benchmark (`WellFormedR`),
   the repaired defects, the tool check and its strict use in the recipe.
 * [`docs/HANDOFF.md`](docs/HANDOFF.md): mode-dependent invariants and the handoff check.
-* [`docs/REFUTATION-RESULTS.md`](docs/REFUTATION-RESULTS.md): the 112 kernel refutations of
+* [`docs/REFUTATION-RESULTS.md`](docs/REFUTATION-RESULTS.md): the 114 kernel refutations of
   known-false invariant variants (its design was `docs/REFUTATION-SCOPE.md`, planning record, last present at commit 29663d8).
 * [`docs/BRIDGE.md`](docs/BRIDGE.md): the generic bridge, Theorem 3 of every benchmark from
   its emitted records; [`docs/THEOREM3-GENERAL.md`](docs/THEOREM3-GENERAL.md): the general

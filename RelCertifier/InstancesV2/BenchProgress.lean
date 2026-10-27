@@ -8,11 +8,11 @@ import RelCertifier.InstancesV2.BenchProgress.arm_plateau_slow
 import RelCertifier.InstancesV2.BenchProgress.charger_fast_setpoints
 import RelCertifier.InstancesV2.BenchProgress.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchProgress.engine_start_highidle
+import RelCertifier.InstancesV2.BenchProgress.gantry_speed_zones
 import RelCertifier.InstancesV2.BenchProgress.hvac_fan_staging
-import RelCertifier.InstancesV2.BenchProgress.match_multi_rate
-import RelCertifier.InstancesV2.BenchProgress.platoon_delay_profiles
 import RelCertifier.InstancesV2.BenchProgress.platoon_latency
 import RelCertifier.InstancesV2.BenchProgress.platoon_linkloss
+import RelCertifier.InstancesV2.BenchProgress.platoon_profiles
 import RelCertifier.InstancesV2.BenchProgress.quad_light_airframe_20
 import RelCertifier.InstancesV2.BenchProgress.quad_light_lag
 import RelCertifier.InstancesV2.BenchProgress.quad_light_profiles
@@ -58,11 +58,11 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("charger_fast_setpoints", charger_fast_setpoints_coverV2_progress),
    ("charger_fast_tapers", charger_fast_tapers_coverV2_progress),
    ("engine_start_highidle", engine_start_highidle_coverV2_progress),
+   ("gantry_speed_zones", gantry_speed_zones_coverV2_progress),
    ("hvac_fan_staging", hvac_fan_staging_coverV2_progress),
-   ("match_multi_rate", match_multi_rate_coverV2_progress),
-   ("platoon_delay_profiles", platoon_delay_profiles_coverV2_progress),
    ("platoon_latency", platoon_latency_coverV2_progress),
    ("platoon_linkloss", platoon_linkloss_coverV2_progress),
+   ("platoon_profiles", platoon_profiles_coverV2_progress),
    ("quad_light_airframe_20", quad_light_airframe_20_coverV2_progress),
    ("quad_light_lag", quad_light_lag_coverV2_progress),
    ("quad_light_profiles", quad_light_profiles_coverV2_progress),

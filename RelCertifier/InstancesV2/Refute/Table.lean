@@ -117,6 +117,8 @@ import RelCertifier.InstancesV2.Refute.Data.platoon_latency_m043
 import RelCertifier.InstancesV2.Refute.Data.platoon_linkloss_m036
 import RelCertifier.InstancesV2.Refute.Data.platoon_linkloss_m039
 import RelCertifier.InstancesV2.Refute.Data.engine_start_highidle_m003
+import RelCertifier.InstancesV2.Refute.Data.platoon_profiles_m008
+import RelCertifier.InstancesV2.Refute.Data.platoon_profiles_m011
 import RelCertifier.InstancesV2.Cuts.arm_plateau_crit
 import RelCertifier.InstancesV2.Cuts.arm_plateau_slow
 import RelCertifier.InstancesV2.Cuts.charger_fast_setpoints
@@ -124,6 +126,7 @@ import RelCertifier.InstancesV2.Cuts.charger_fast_tapers
 import RelCertifier.InstancesV2.Cuts.engine_start_highidle
 import RelCertifier.InstancesV2.Cuts.platoon_latency
 import RelCertifier.InstancesV2.Cuts.platoon_linkloss
+import RelCertifier.InstancesV2.Cuts.platoon_profiles
 import RelCertifier.InstancesV2.Cuts.quad_light_lag
 import RelCertifier.InstancesV2.Cuts.rover_lateral_6to8
 import RelCertifier.InstancesV2.Cuts.rover_lateral_8to12
@@ -264,9 +267,11 @@ def refuteTable : List RefRec := [
   ⟨"platoon_latency_m043", 3 + 1, platoon_latency_m043_IRm, platoon_latency_cutsV2X, platoon_latency_m043_wit⟩,
   ⟨"platoon_linkloss_m036", 3 + 1, platoon_linkloss_m036_IRm, platoon_linkloss_cutsV2X, platoon_linkloss_m036_wit⟩,
   ⟨"platoon_linkloss_m039", 3 + 1, platoon_linkloss_m039_IRm, platoon_linkloss_cutsV2X, platoon_linkloss_m039_wit⟩,
-  ⟨"engine_start_highidle_m003", 3 + 1, engine_start_highidle_m003_IRm, engine_start_highidle_cutsV2X, engine_start_highidle_m003_wit⟩ ]
+  ⟨"engine_start_highidle_m003", 3 + 1, engine_start_highidle_m003_IRm, engine_start_highidle_cutsV2X, engine_start_highidle_m003_wit⟩,
+  ⟨"platoon_profiles_m008", 3 + 1, platoon_profiles_m008_IRm, platoon_profiles_cutsV2X, platoon_profiles_m008_wit⟩,
+  ⟨"platoon_profiles_m011", 3 + 1, platoon_profiles_m011_IRm, platoon_profiles_cutsV2X, platoon_profiles_m011_wit⟩ ]
 
 /-- Declared: the number of query groups over the refutations (one per right mode each). -/
-def expectedRefuteGroups : Nat := 309
+def expectedRefuteGroups : Nat := 313
 
 end RelCertifier.Refute

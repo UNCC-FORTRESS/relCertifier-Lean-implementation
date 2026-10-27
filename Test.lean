@@ -239,12 +239,12 @@ def testDeterminism (cfg : Z3Config) : IO Unit := do
   | .error e => check s!"session ({e})" false
   | .ok s =>
       -- a CERTIFIED benchmark, 8× on one warm session
-      match ← loadProblem "match_multi_rate" with
-      | none => skip "match_multi_rate: 8× identical CERTIFIED" "BENCH_PATHS not set"
+      match ← loadProblem "gantry_speed_zones" with
+      | none => skip "gantry_speed_zones: 8× identical CERTIFIED" "BENCH_PATHS not set"
       | some p => do
           let mut outs : List Bool := []
           for _ in [0:8] do outs := outs ++ [isCert (← certify s p)]
-          check "match_multi_rate: 8× identical CERTIFIED" (outs.all id)
+          check "gantry_speed_zones: 8× identical CERTIFIED" (outs.all id)
       -- a DECLINED benchmark, 8× identical verdict (stability, not the value):
       -- `watertank_twospeed` declines unless `RELCERT_IMPLIED_CUT=1` widens the cut channel
       match ← loadProblem "watertank_twospeed" with

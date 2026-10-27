@@ -6,10 +6,10 @@ Released under Apache 2.0 license.
 
 **Status.** Written for two legacy benchmarks (`arm_chain_rung3`, `arm_fidelity_mid`) whose
 cut-composed theorems were retired with the legacy suite (record:
-`docs/history/CUT-COMPOSITION.md`). The live consumer today is `hddF_multiR_plain`, used by
-`Instances/MatchMultiRatePruned.lean`;
-`sem_bigSeq_identity` and `sem_rightBlock_rate` have no live consumer and are kept as
-generic lemmas. The rest of this note is the original rationale.
+`docs/history/CUT-COMPOSITION.md`). None of its lemmas has a live consumer today (the last one,
+a legacy instance of `hddF_multiR_plain`, was archived; `GuardedSwitch.hddF_multiR_plain_G` is
+its guarded counterpart); `hddF_multiR_plain`, `sem_bigSeq_identity` and `sem_rightBlock_rate`
+are kept as generic lemmas. The rest of this note is the original rationale.
 
 Those two benchmarks were certified by the tool at a CHECKED CUT: the right
 `Hold` mode's flow certificate is discharged on the domain narrowed by `Hold`'s guard

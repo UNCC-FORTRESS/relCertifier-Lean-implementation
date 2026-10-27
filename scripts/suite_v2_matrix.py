@@ -71,13 +71,11 @@ from fractions import Fraction
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, ".."))
 
-# Family of a benchmark (by name prefix) and the scenario kind of the 19 benchmarks that
-# were copied unchanged from the retired legacy suite (their headers carry no
-# `# scenario:` line).
+# Family of a benchmark (by name prefix) and the scenario kind of the kept benchmarks whose
+# headers carry no `# scenario:` line.
 FAMILIES = [
     ("acc_", "ACC under sensor spoofing / retune"),
     ("quad_", "Quadrotor climb, lighter airframe"),
-    ("heater_", "Heater cycle"),
     ("platoon_", "Platoon follower (CACC, link loss / latency)"),
     ("rover_patrol_", "Rover patrol (zones)"),
     ("gantry_", "Gantry speed zones (multi-cycle matching)"),
@@ -808,9 +806,8 @@ def md_table1(recs):
     groups = {}
     for r in recs:
         groups.setdefault(r["family"], []).append(r)
-    order = ["ACC under sensor spoofing / retune", "Quadrotor climb, lighter airframe",
-             "Platoon follower, delayed link", "Platoon string, three followers", "Rover patrol (zones)", "Multi-cycle matching", "Rigid-body detumbling (polynomial)", "Heater cycle",
-             "Rover ladder", "Terrain chain", "Watertank", "other"]
+    # every family of FAMILIES, in its order (a hard-coded list here dropped renamed families)
+    order = list(dict.fromkeys(fam for _, fam in FAMILIES)) + ["other"]
     lines = ["| group | count | dim (L/R) | invariant forms | dynamics | discrete structure (modes L/R; pruned fallbacks; mode-dep. rows; cuts; widened cuts; linear-form chains; per-mode domains) |",
              "|---|---|---|---|---|---|"]
     total = 0

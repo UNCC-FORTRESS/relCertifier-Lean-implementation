@@ -1,0 +1,137 @@
+# RESERVE (benchmarks/reserve/, 2026-10-27): not in suite_v2, not in the paper, no Lean integration.
+# Reason: the claim does not depend on the current limit (the same 2 % bound certifies with the
+# limit doubled or tripled; only P moves with it), and the time scale is wrong (a 20 h bulk phase
+# against a period justified by DC fast charging). The header below is the design's.
+#
+# charger_fast_tapers: the fast charger against a certified profile with two taper options, same
+# control period on both sides.
+# scenario: degraded-controller
+# mechanisms: R P D I (right-only repositioning; pruned fault edges; mode-dependent rows; checked
+#   cuts, matrix codes M4 M5 M6 M6+). RELCERT_SYNC=1 declines because the covers need right-only
+#   repositioning; every cover is at lambda = 1, so no S. Only P depends on the cause (below); R, D
+#   and I come from the claim form (a one-sided bound against an existential reference) and persist
+#   with the cause removed. The round-2 file's M and B came only from a 2 h left period against a
+#   1 h right period and are gone with equal periods.
+#
+# System. State of charge x (%), time in h. The certified charging profile (right):
+#   PRECHARGE   (10 <= x < 15): x' = 0.2 (20 - x)    recovery charge of a deeply discharged cell
+#                                                     (2 %/h at 10 %, 1 %/h at 15 %)
+#   BULK        (15 <= x < 80): x' = 0.1 (100 - x)   fast phase
+#   ABSORB_SLOW (80 <= x < 99): x' = 0.05 (100 - x)  slow taper  } the firmware selects one when
+#   ABSORB_FAST (80 <= x < 99): x' = 0.07 (100 - x)  fast taper  } it leaves BULK
+#   FULL        (x >= 99):      x' = 0               hold
+#   FAULT       (x < 10):       x' = -0.01 x         cell fault, latched (self-discharge only)
+# PRECHARGE and BULK may latch FAULT (declared edges). The deployed unit (left) runs the profile
+# with its current limit raised 25 % and the slow taper (PRECHARGE 0.25, BULK 0.125, ABSORB
+# 0.0625) and the same FAULT latch. One cause: the current limit. The guards partition [0, 100]
+# on both sides (no coverage gap: the pre-charge phase covers [10, 15)).
+# Control period: 0.0001 h = 0.36 s on BOTH sides (epsilon = 0.0001; every decision interval is at
+# most 0.36 s). The phase decision follows the vehicle's charge-current request, sent on the
+# CHAdeMO CAN cycle of 100 ms +- 10 % (CHAdeMO protocol), so 0.36 s bounds it with margin; the file's
+# time unit is the hour, so the bound is a decimal number of hours. Both sides use the same period.
+#
+# Property. Requirement (SoC overshoot): the deployed state of charge never exceeds the certified
+# profile's by more than 2 % SoC, the state-of-charge accuracy of the battery management system:
+#   BULK, ABSORB, FULL, FAULT: x_L <= x_R + 2;   PRECHARGE: x_L <= x_R.
+# The pre-charge row is stricter by necessity (D): with a lead allowed there a deployed cell at
+# 10 % could pair with a certified cell latched in FAULT. Tightest (measured 2026-10-26): the
+# charging rows certify down to 1.00 (0.99 declines); uniform rows x_L <= x_R + c decline
+# (c = 1, 2, 3, 4.9), and so does a uniform x_L <= x_R.
+# Why pruning is needed (P). The reference's PRECHARGE and BULK declare FAULT edges; their
+# non-connection certificates (the charging flow rises at the 10 % threshold) prune them. Under
+# RELCERT_NO_PRUNE=1 the deployed PRECHARGE window has no cover (the reference's PRECHARGE
+# segment keeps FAULT in its all-successors obligation and the existential choice does not
+# replace it): DECLINED at the requirement 2 and at the tight 1.
+# Cause dependence (measured 2026-10-26, the deployed's rate constants set to the profile's, i.e.
+# no raised current limit, same rows): CERTIFIED, and then RELCERT_NO_PRUNE=1 also CERTIFIES (P is
+# the current limit's: the faster deployed charge is what makes the FAULT obligation bite), while
+# RELCERT_SYNC=1 and RELCERT_NO_CUT=1 still DECLINE (R and I do not witness the cause).
+#
+# Domain 0 <= x <= 100 both sides (physical); every left mode has a satisfiable start
+# (x_L = x_R). The implied contraction atoms x <= 20 (PRECHARGE) and x <= 100 (BULK, tapers) are
+# load-bearing (without RELCERT_IMPLIED_CUT and under RELCERT_NO_IMPLIED_CUT=1: DECLINED).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26 with the copied tool):
+# CERTIFIED (0.64 s); CERTIFIED under RELCERT_NO_CHOICE=1, RELCERT_NO_LINEAR_CUT=1,
+# RELCERT_OPREGION=1, RELCERT_WELLFORMED_STRICT=1; DECLINED under RELCERT_SYNC=1,
+# RELCERT_NO_PRUNE=1, NO_PRUNE+NO_CHOICE, without RELCERT_IMPLIED_CUT, RELCERT_NO_IMPLIED_CUT=1
+# and RELCERT_NO_CUT=1. Covers: lambda = 1 in every left mode, budget 1, right-only repositioning
+# on the replayed path, no branching joint step. Pruned: PRECHARGE -> FAULT, BULK -> FAULT.
+# --handoff 10/10 unsat, non-vacuous. relcert --wellformed: PRECHARGE ok (exit->BULK), BULK ok
+# (exit->ABSORB_FAST), ABSORB_SLOW and ABSORB_FAST ok (exit->FULL), FULL and FAULT ok (invariant),
+# 0 UNKNOWN. The right model changed only in its period (epsilon 1.0 -> 0.0001 h): its Assumption 1
+# proof needs the new interval (the declared successor lists stay valid; a 0.36 s interval reaches
+# fewer bands than 1 h did).
+[problem]
+name = charger_fast_tapers
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 4.0
+[Lsys]
+state_vars = [x]
+epsilon = 0.0001
+[Lsys.mode.PRECHARGE]
+ode = x' = smt2:(* 0.25 (- 20.0 x));
+guard = x >= 10.0 and x < 15.0
+evolve = x >= 0.0 and x <= 100.0
+next = [BULK, PRECHARGE, FAULT]
+[Lsys.mode.BULK]
+ode = x' = smt2:(* 0.125 (- 100.0 x));
+guard = x >= 15.0 and x < 80.0
+evolve = x >= 0.0 and x <= 100.0
+next = [ABSORB, BULK, FAULT]
+[Lsys.mode.ABSORB]
+ode = x' = smt2:(* 0.0625 (- 100.0 x));
+guard = x >= 80.0 and x < 99.0
+evolve = x >= 0.0 and x <= 100.0
+next = [FULL, ABSORB]
+[Lsys.mode.FULL]
+ode = x' = smt2:0;
+guard = x >= 99.0
+evolve = x >= 0.0 and x <= 100.0
+next = [FULL]
+[Lsys.mode.FAULT]
+ode = x' = smt2:(* -0.01 x);
+guard = x < 10.0
+evolve = x >= 0.0 and x <= 100.0
+next = [FAULT]
+[Rsys]
+state_vars = [x]
+epsilon = 0.0001
+[Rsys.mode.PRECHARGE]
+ode = x' = smt2:(* 0.2 (- 20.0 x));
+guard = x >= 10.0 and x < 15.0
+evolve = x >= 0.0 and x <= 100.0
+next = [BULK, PRECHARGE, FAULT]
+[Rsys.mode.BULK]
+ode = x' = smt2:(* 0.1 (- 100.0 x));
+guard = x >= 15.0 and x < 80.0
+evolve = x >= 0.0 and x <= 100.0
+next = [ABSORB_SLOW, ABSORB_FAST, BULK, FAULT]
+[Rsys.mode.ABSORB_SLOW]
+ode = x' = smt2:(* 0.05 (- 100.0 x));
+guard = x >= 80.0 and x < 99.0
+evolve = x >= 0.0 and x <= 100.0
+next = [FULL, ABSORB_SLOW]
+[Rsys.mode.ABSORB_FAST]
+ode = x' = smt2:(* 0.07 (- 100.0 x));
+guard = x >= 80.0 and x < 99.0
+evolve = x >= 0.0 and x <= 100.0
+next = [FULL, ABSORB_FAST]
+[Rsys.mode.FULL]
+ode = x' = smt2:0;
+guard = x >= 99.0
+evolve = x >= 0.0 and x <= 100.0
+next = [FULL]
+[Rsys.mode.FAULT]
+ode = x' = smt2:(* -0.01 x);
+guard = x < 10.0
+evolve = x >= 0.0 and x <= 100.0
+next = [FAULT]
+[relational_invariant]
+PRECHARGE = x[l] <= x[r]
+BULK = x[l] <= x[r] + 2
+ABSORB = x[l] <= x[r] + 2
+FULL = x[l] <= x[r] + 2
+FAULT = x[l] <= x[r] + 2

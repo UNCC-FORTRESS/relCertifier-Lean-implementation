@@ -5,10 +5,6 @@ Released under Apache 2.0 license.
 # Every kernel refutation instance (GENERATED — `scripts/gen_refute.py`)
 
 -/
-import RelCertifier.InstancesV2.Refute.ArmPlateauCritM000
-import RelCertifier.InstancesV2.Refute.ArmPlateauSlowM000
-import RelCertifier.InstancesV2.Refute.ChargerFastSetpointsM003
-import RelCertifier.InstancesV2.Refute.ChargerFastTapersM003
 import RelCertifier.InstancesV2.Refute.QuadLightLagM021
 import RelCertifier.InstancesV2.Refute.QuadLightLagM023
 import RelCertifier.InstancesV2.Refute.RoverLadder6to8M006
@@ -53,12 +49,6 @@ import RelCertifier.InstancesV2.Refute.RoverTerrain6to12M044
 import RelCertifier.InstancesV2.Refute.RoverTerrain6to12M045
 import RelCertifier.InstancesV2.Refute.RoverTerrain6to12M046
 import RelCertifier.InstancesV2.Refute.RoverTerrain6to12M047
-import RelCertifier.InstancesV2.Refute.Sat3wDetumbleNominalM002
-import RelCertifier.InstancesV2.Refute.Sat3wDetumbleNominalM003
-import RelCertifier.InstancesV2.Refute.Sat3wDetumbleNominalM004
-import RelCertifier.InstancesV2.Refute.Sat3wDetumbleNominalM005
-import RelCertifier.InstancesV2.Refute.Sat3wDetumbleNominalM006
-import RelCertifier.InstancesV2.Refute.Sat3wDetumbleNominalM007
 import RelCertifier.InstancesV2.Refute.Sat3wDetumblePhasesM000
 import RelCertifier.InstancesV2.Refute.Sat3wDetumblePhasesM001
 import RelCertifier.InstancesV2.Refute.Sat3wDetumblePhasesM002
@@ -73,16 +63,6 @@ import RelCertifier.InstancesV2.Refute.Sat3wDetumblePhasesM020
 import RelCertifier.InstancesV2.Refute.Sat3wDetumblePhasesM021
 import RelCertifier.InstancesV2.Refute.Sat3wDetumblePhasesM022
 import RelCertifier.InstancesV2.Refute.Sat3wDetumblePhasesM023
-import RelCertifier.InstancesV2.Refute.Sat3wDetumbleWeakM002
-import RelCertifier.InstancesV2.Refute.Sat3wDetumbleWeakM003
-import RelCertifier.InstancesV2.Refute.Sat3wDetumbleWeakM004
-import RelCertifier.InstancesV2.Refute.Sat3wDetumbleWeakM005
-import RelCertifier.InstancesV2.Refute.Sat3wDetumbleWeakM006
-import RelCertifier.InstancesV2.Refute.Sat3wDetumbleWeakM007
-import RelCertifier.InstancesV2.Refute.SatDetumbleNominalM002
-import RelCertifier.InstancesV2.Refute.SatDetumbleNominalM003
-import RelCertifier.InstancesV2.Refute.SatDetumbleNominalM005
-import RelCertifier.InstancesV2.Refute.SatDetumbleNominalM006
 import RelCertifier.InstancesV2.Refute.SatDetumblePhasesM000
 import RelCertifier.InstancesV2.Refute.SatDetumblePhasesM001
 import RelCertifier.InstancesV2.Refute.SatDetumblePhasesM002

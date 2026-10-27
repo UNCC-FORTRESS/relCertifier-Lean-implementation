@@ -32,7 +32,7 @@ CHOICE = {
     "watertank_choice": dict(ns="ChoiceWatertank", G="GrP", n=2),
 }
 
-KEYED = {"acc_tune_limp", "charger_fast_setpoints", "charger_fast_tapers", "engine_start_highidle",
+KEYED = {"acc_tune_limp", "engine_start_highidle",
          "platoon_latency", "platoon_linkloss", "platoon_profiles",
          "sat3w_detumble_phases", "sat_detumble_phases"}
 

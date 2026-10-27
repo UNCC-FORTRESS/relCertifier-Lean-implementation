@@ -2,22 +2,22 @@
 
 `suite_v2/<name>/input.txt` is the complete specification of one benchmark: the left
 (ideal) and right (implementation) hybrid automata, the relational invariant (one row per
-left mode) and the time-stretch range. **42 benchmarks.** With the widened cut channel on
-(`RELCERT_IMPLIED_CUT=1`, as every suite_v2 run sets it) the tool CERTIFIES all 42, and
+left mode) and the time-stretch range. **35 benchmarks.** With the widened cut channel on
+(`RELCERT_IMPLIED_CUT=1`, as every suite_v2 run sets it) the tool CERTIFIES all 35, and
 every one carries a kernel-checked Theorem 3 (the paper's Soundness of Synthesis) with the paper's left program over the
 guard-gated right automaton, at the mode-consistent region (`RelCertifier/InstancesV2/Bridge/`;
-check recipe: `docs/CERTIFICATION-CHECK.md`). Without the widened channel 6 of them
+check recipe: `docs/CERTIFICATION-CHECK.md`). Without the widened channel 2 of them
 DECLINE (the rows marked *widened cuts* below). Near-duplicates and weak benchmarks are kept
 outside the suite in `benchmarks/reserve/` (inputs, headers and verdicts only; `reserve/README.md`).
 
 **Assumption 1 of each right model** (the paper's Well-Formedness: from every guard state a
 full control interval of flow exists, and every evolution of at most `ε_r` ends in a declared
 successor's guard) is verified per file (`WellFormedR`, `docs/WELLFORMED.md`): it holds for
-all 42 literally (the 6 satellite files carry their conserved momentum band in the right evolve
+all 35 literally (the 3 satellite files carry their conserved momentum band in the right evolve
 domain since 2026-10-15).
 Nine files had a blocking mode until 2026-10-10 and were repaired (`docs/SUITE-REDESIGN.md`
-§21; each header says how and why; `arm_plateau_profiles` and `platoon3_{linkloss,profiles}`
-are in `benchmarks/reserve/` since 2026-10-27, and `platoon_delay_{linkloss,profiles}` were
+§21; each header says how and why; `arm_plateau_{crit,profiles,slow}` and
+`platoon3_{linkloss,profiles}` are in `benchmarks/reserve/` since 2026-10-27, and `platoon_delay_{linkloss,profiles}` were
 replaced by the redesigned `platoon_linkloss` and `platoon_profiles`): `arm_plateau_{crit,profiles,slow}` (the ApproachA /
 ApproachB bands are narrower than one control interval of their own rate: the sampled
 planner's successor sets now name every band a sample can find), `platoon_delay_{linkloss,
@@ -27,7 +27,7 @@ an invariant guard) and `quad_light_{airframe_20,profiles}` (the sink `LIMIT`: i
 the climb controller, whose operating range reached the limiter threshold; both were redesigned
 on 2026-10-27 with the altitude coordinate and no limiter mode).
 `relcert --wellformed <input.txt>…` runs the tool's sufficient check per right mode (every one
-of the 145 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN` or `BLOCKING`.
+of the 118 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN` or `BLOCKING`.
 
 The suite's design, the per-family rationale, the domain audit (every evolve bound is a
 physical limit of the plant; `scripts/domain_widening.py` re-runs the tool with every bound
@@ -124,6 +124,19 @@ never in the suite: the bound is the no-FFR worst case and does not depend on th
 | `match_multi_rate` | `gantry_speed_zones` (both models new: a pick-and-place gantry whose production program runs zone-scheduled speed overrides, against the program as commissioned at reduced speed; 10 mm path tolerance; replaces the synthetic unitless rate-ratio exhibit in the same multi-cycle matching role) |
 | `platoon_delay_profiles` | `platoon_profiles` (redesigned: the CACC follower driven in the SPORT profile, a shorter time gap, against the design follower verified in NORMAL; its right model is `platoon_linkloss`'s, Assumption 1 through the shared `PlatoonCaccAeb` lemmas) |
 
+## Reserve 2026-10-27: batch I4
+
+Seven files left the suite (suite 42 -> 35) for `benchmarks/reserve/`, each stored as its
+equal-period design of the round-A pass with a banner and one line of reason
+(`reserve/README.md`): `charger_fast_tapers` (the claim does not depend on the current limit; a
+wrong time scale), `charger_fast_setpoints` (the same cause-blind claim; a stale name),
+`sat_detumble_nominal` (no letter; `sat_detumble_phases` restricted to `DETUMBLE`),
+`sat3w_detumble_nominal` (no letter), `sat3w_detumble_weak` (the same numbers as
+`sat_detumble_weak`), `arm_plateau_crit` and `arm_plateau_slow` (no genuinely relational claim
+against the ramp planner; stored as the relational redesign, the planner fallback noted). Their
+Lean leaves, Assumption 1 proofs, bridge instances and refutations are in git history (last at
+commit 0a40e7d).
+
 ## Retired 2026-10-27: the rover hierarchy (batch I3)
 
 The rover files now follow one canonical hierarchy (a four-wheel UGV on one route, zones `STEEP`
@@ -214,12 +227,8 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `acc_spoof_limp` | 1 / 1 | 2 / 4 | sensor-attack | redesigned 2026-10-27: the same two requirement rows in both modes (no longer mode-keyed), closed right guards |
 | `acc_tune_lag` | 2 / 2 | 1 / 1 | degraded-controller | redesigned 2026-10-26: same lag both sides |
 | `acc_tune_limp` | 1 / 1 | 2 / 4 | degraded-controller | mode-keyed, mode choice |
-| `arm_plateau_crit` | 2 / 1 | 2 / 4 | model-refinement | widened cuts, Z3-free; successor sets repaired (§21) |
-| `arm_plateau_slow` | 2 / 1 | 2 / 4 | model-refinement | widened cuts, Z3-free; successor sets repaired (§21) |
 | `bms_chiller_undercharge` | 1 / 1 | 2 / 3 | degraded-actuator | new 2026-10-27: mode choice (the reference commits to a cooling level that is not the deployed's) |
 | `canal_gate_notches` | 1 / 1 | 3 / 4 | controller-refinement | new 2026-10-27: mode choice (the reference commits to a nearby permitted notch) |
-| `charger_fast_setpoints` | 1 / 1 | 5 / 5 | degraded-controller | mode-keyed, widened cuts |
-| `charger_fast_tapers` | 1 / 1 | 5 / 6 | degraded-controller | mode-keyed, widened cuts |
 | `drl_car_stop` | 2 / 2 | 3 / 3 | controller-refinement | literature (dRL), mode choice |
 | `drl_lane_control` | 3 / 3 | 6 / 6 | controller-refinement | literature (dRL), mode choice |
 | `engine_start_highidle` | 1 / 1 | 5 / 5 | controller-change | new 2026-10-27: mode-keyed, widened cuts |
@@ -240,10 +249,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `rover_terrain_4to6` | 6 / 6 | 3 / 3 | model-refinement | redesigned 2026-10-26 (was `rover_terrain_6to8`): terrain chain, drive lag and roughness heave; right cap `w <= c_T` |
 | `rover_terrain_6to12` | 12 / 12 | 3 / 3 | model-refinement | redesigned 2026-10-26: terrain chain, heave rate, bank grade, pitch, acceleration, squat; right cap `u <= c_T` |
 | `rover_patrol_lag` | 3 / 2 | 4 / 4 | model-refinement | reinstalled 2026-10-27: the rover with its motor lag against the first-order planning model; lead bound as an order property up to a 3/2 re-timing (S M R B from the claim form, header) |
-| `sat3w_detumble_nominal` | 6 / 6 | 1 / 2 | model-refinement | nonblocking region |
 | `sat3w_detumble_phases` | 6 / 6 | 2 / 2 | model-refinement | mode-keyed, nonblocking region |
-| `sat3w_detumble_weak` | 6 / 6 | 1 / 4 | degraded-actuator | nonblocking region |
-| `sat_detumble_nominal` | 4 / 4 | 1 / 2 | model-refinement | nonblocking region |
 | `sat_detumble_phases` | 4 / 4 | 2 / 2 | model-refinement | mode-keyed, nonblocking region |
 | `sat_detumble_weak` | 4 / 4 | 1 / 4 | degraded-actuator | nonblocking region |
 | `tank_dos_3to1` | 2 / 2 | 4 / 4 | dos-attack | redesigned 2026-10-27: a demand-paced four-pump station, the same staging law on both sides, the DoS holds the staging decision for up to three polls |

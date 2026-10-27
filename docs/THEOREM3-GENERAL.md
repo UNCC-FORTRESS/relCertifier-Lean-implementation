@@ -82,8 +82,9 @@ progress.
 The emitted certificates (`InstancesV2/BenchProgress`, 261 over the suite) are rebuilt into
 their queries by `VerdictsV2/ProgressX.lean` and discharged by `relcert-progress-verdicts`
 (261/261 unsat); `VerdictsV2/ProgressPin.lean` reads a certificate's verdict as the host-level
-facts, and `charger_fast_setpoints` goes through the general theorem with its `BULK` reposition
-node discharged that way.
+facts, and `charger_fast_setpoints` went through the general theorem with its `BULK` reposition
+node discharged that way (it moved to `benchmarks/reserve/` on 2026-10-27; its instance is in git
+history).
 
 `Proofs/Encoding/Progress.lean` proves the certificate sound: `repoProgress_one`,
 `repoProgress_one_down` (a single downward stage, the mirror) and `repoProgress_two` give `RepoProgress` (the general theorem's premise: from a reposition start,
@@ -107,7 +108,7 @@ the generated bridge instances (§5, `docs/WELLFORMED.md` §6).
 | `watertank_choice` | 3, `dt ≤ 1` | `Low` at the per-pairing stretches (δ = 2/7, B = 4), all-successors with `Low → PumpOff` pruned; `Mid` from `MidEco` by a hop into `MidBoost`; decided by `decideCoveredX` in the kernel | Definition 6 for the pruned edge by arithmetic; hop certificate; Assumption 1 with the economy set point; 7 packs |
 | `watertank` (suite) | 3, `dt ≤ 1` | the tool's emitted cover: `Low` and `Mid` at stretch 2 (δ = 1/2, B = 2), all-successors with `Low → PumpOff` pruned; no choice; decided in the kernel | Definition 6 by arithmetic; Assumption 1 transported from the suite's lemma; the suite's 7 packs plus `Low/High` at 2 (see below) |
 
-| `charger_fast_setpoints` (suite) | 3, `dt ≤ 2` | the tool's emitted cover: `BULK` a reposition node in the `BULK` and `ABSORB` windows (the right charges at the bulk rate until `ABSORB`'s guard opens), `BULK → FAULT` pruned; decided in the kernel | **reposition progress from the emitted progress certificate** (`progressVerd_one`, the queries the progress verdict runner discharges) with Assumption 1, the reposition packs (`VerdD`) and Definition 6 for the pruned edge; the suite's 6 joint packs |
+| `charger_fast_setpoints` (suite until 2026-10-27, now in `benchmarks/reserve/`) | 3, `dt ≤ 2` | the tool's emitted cover: `BULK` a reposition node in the `BULK` and `ABSORB` windows (the right charges at the bulk rate until `ABSORB`'s guard opens), `BULK → FAULT` pruned; decided in the kernel | **reposition progress from the emitted progress certificate** (`progressVerd_one`, the queries the progress verdict runner discharges) with Assumption 1, the reposition packs (`VerdD`) and Definition 6 for the pruned edge; the suite's 6 joint packs |
 
 **A finding on the suite's replay.** The tool's emitted `Low` cover of `watertank` marks `High`
 joint-certified (a `MidEco` start may continue in `High` after one segment), so the tool issued
@@ -130,11 +131,11 @@ The per-benchmark instances of §4 are superseded for the suite by the generic b
 (`docs/BRIDGE.md`, `Proofs/Encoding/Emitted/`): one layer instantiates the general theorem
 from a benchmark's emitted records (IR, cut certificate, cover, progress certificates), the
 structural facts decided in the kernel, every verdict read from one Z3 run
-(`relcert-bridge-verdicts`, 3595 groups over the 42 suite benchmarks and the 2 choice
+(`relcert-bridge-verdicts`, 3016 groups over the 35 suite benchmarks and the 2 choice
 exhibits, all discharged). Mode-dependent rows
 are assembled through `theorem3_modeKeyed` (`Emitted/Keyed.lean`); the two-stage progress pin
-is `progressVerd_two`. Generated instances: `InstancesV2/Bridge/`, all 42 suite benchmarks
-(33 window form, 9 mode-keyed) and the two choice exhibits, every one with the
+is `progressVerd_two`. Generated instances: `InstancesV2/Bridge/`, all 35 suite benchmarks
+(28 window form, 7 mode-keyed) and the two choice exhibits, every one with the
 paper's unconditional Assumption 1 (the detumble models carry their momentum band in the
 right evolve domain).
 

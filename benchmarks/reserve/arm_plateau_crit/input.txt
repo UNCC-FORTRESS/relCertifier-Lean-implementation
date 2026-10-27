@@ -1,0 +1,118 @@
+# RESERVE (benchmarks/reserve/, 2026-10-27): not in suite_v2, not in the paper, no Lean integration.
+# Reason: no genuinely relational claim against the ramp planner. Stored as its relational
+# redesign (against the servo's massless design model), which earns no letter. Planner fallback:
+# the ramp-planner file with equal periods (eps_L 1.0, the planner's 1 s tick) keeps R I, with a
+# unary binding case (the arm's overshoot against the plateau); FALLBACKS.md, round A.
+# The header below is the design's.
+#
+# arm_plateau_crit: a critically damped PD joint against its massless (inertia-free) design model: the
+# arm stays within the payload clearance of the design model's position at every instant.
+# scenario: model-refinement
+# mechanisms: none (measured 2026-10-26: every counter-run certifies; single-mode right, lambda 1,
+#   budget 1). This is the genuinely relational version asked for by the review (round-2 claim
+#   theta_L <= theta_R + 0.375 against a ramp planner reduced to the unary overshoot bound
+#   theta_L <= 0.6 + 0.375); it earns no mechanism letter. Proposed for the RESERVE unless a
+#   refinement step without a letter is wanted; the ramp-planner version with equal periods is
+#   recorded in FALLBACKS.md (letters R I, unary binding case).
+#
+# System (SI units). Joint angle theta (rad), joint rate v (rad/s), time s. A collaborative arm
+# moves a payload held at radius 0.80 m from the joint axis to the place pose theta = 0.6 rad.
+# Left (the arm, with its inertia): a PD joint servo commanded to the place pose,
+#   theta' = v, v' = -k_p (theta - 0.6) - k_d v, k_p = 1 /s^2, k_d = 2 /s per unit design inertia
+#   (servo torque gains K_p = J k_p, K_d = J k_d; critically damped, double eigenvalue -1).
+#   Two phases with the same flow (progress labels the cell controller reports; the rows are the
+#   same in both):
+#   Accelerate (below the place pose, rising): theta in [0, 0.6), v in [0, 0.3125).
+#     0.3125 rad/s is the entry speed: the approach runs in the reduced-speed mode of
+#     ISO 10218-1 (tool-centre-point speed at most 250 mm/s), 0.25 / 0.80 = 0.3125 rad/s at the
+#     payload radius.
+#   Brake (at or past the place pose, settling): theta >= 0.6 and the loop's decoupled rate
+#     q = v + (theta - 0.6) in [0, 0.3125], with theta <= 0.9125. With k_p = 1, k_d = 2 the loop
+#     decouples along q (q' = -q), so this set is forward invariant and contains every state at or
+#     past the pose that a run from Accelerate reaches; the union of the two guards is forward
+#     invariant, so every state of every left run lies in a left guard.
+# Right (the servo's design model with the inertia neglected): J -> 0 in J theta'' = -K_p (theta -
+#   0.6) - K_d theta' gives K_d theta' = -K_p (theta - 0.6), i.e. theta' = -(k_p / k_d)(theta - 0.6)
+#   = -0.5 (theta - 0.6): the first-order model a controls design uses for the position loop. One
+#   mode Approach on the joint range [0, 1.2] (forward invariant: the flow contracts to 0.6).
+# One cause between the sides: the joint inertia (a model refinement; the right is the left with
+#   the inertia term dropped and its rate pinned to the massless value v = -0.5 (theta - 0.6)).
+#   theta is shared; v exists only on the left. Same servo gains, same pose.
+# Control period: 0.001 s on BOTH sides (epsilon = 0.001; every decision interval is at most
+#   1 ms), the joint servo's 1 kHz cycle (the Franka Emika FCI real-time interface runs at 1 kHz);
+#   the PD law is continuous in the ODEs.
+#
+# Property (both left phases, real time: lambda_min = lambda_max = 1):
+#   |theta_L - theta_R| <= 0.375 (two rows). Requirement (payload clearance): the cell's swept
+#   volume is validated along the design model's motion with a payload clearance of 0.30 m; at
+#   the 0.80 m payload radius that is 0.30 / 0.80 = 0.375 rad, so at every instant the arm must be
+#   within 0.375 rad of where the design model is. Both trajectories converge to the pose, so the
+#   binding case is a transient where both sides move: the bound is relational, not an overshoot
+#   bound against a fixed plateau.
+# Strengthening row (stated as such, shown needed): with d = theta_L - theta_R, e = theta_L - 0.6,
+#   V = d^2 + 0.082 e^2 + 0.312 v_L^2 + 0.056 d e + 0.28 d v_L + 0.174 e v_L <= 0.031,
+#   a quadratic Lyapunov function of the joint linear system (V' <= 0 everywhere: its derivative
+#   form is negative definite). 0.031 is V's maximum over the starts theta_R = theta_L with the
+#   left in either engagement set (0.03047, at e = 0, v = 0.3125), rounded up, so every such pair
+#   is a start. On V <= 0.031, |d| <= 0.183. Without this row the band certifies only from 1.21
+#   (beyond the 1.2 rad joint range): the band alone is not inductive (a state at the band edge
+#   with the arm moving away from the design model leaves it).
+# Measured (2026-10-26): tightest band constant with the strengthening row 0.17 (0.16 declines);
+#   simulated from the starts theta_R = theta_L over the engagement box (RK4, 30 s): the arm leads
+#   the design model by at most 0.115 rad and lags it by at most 0.084 rad. The requirement holds
+#   with margin. Not implied by the domains (the joint range allows 1.2 rad).
+# The claim depends on the cause (measured 2026-10-26): with the inertia removed from the left
+#   (theta' = -0.5 (theta - 0.6), the right's flow) the exact claim theta_L = theta_R certifies;
+#   with 4 times the inertia (arm_plateau_slow, same right model) the tightest band is 0.27 and
+#   the simulated worst lead 0.171 rad.
+# Every left mode has a satisfiable start (Accelerate: theta_L = theta_R = 0.3, v = 0.1; Brake:
+#   theta_L = theta_R = 0.7, v = -0.05).
+#
+# Domains (both sides): theta in [0, 1.2] rad, the joint's mechanical range; v in [-1, 1] rad/s on
+# the left, the actuator's speed limit. Physical limits, not reachable-set estimates. The right
+# guard is its whole domain (no coverage gap).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26 with the copied tool):
+# CERTIFIED (0.19 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1,
+# NO_PRUNE+NO_CHOICE, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, without
+# RELCERT_IMPLIED_CUT, RELCERT_OPREGION=1 and RELCERT_WELLFORMED_STRICT=1. Covers: both left modes
+# at lambda 1, budget 1, nothing pruned, no choice, no right-only segment. Rows identical
+# (--handoff 4/4 vacuous). relcert --wellformed: Approach ok (invariant), 0 UNKNOWN. The right
+# model is NEW (it replaces the ramp planner): it needs a new Assumption 1 proof (one linear mode,
+# explicit exponential solution, guard = domain forward invariant).
+[problem]
+name = arm_plateau_crit
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 4.0
+
+[Lsys]
+state_vars = [theta, v]
+epsilon = 0.001
+
+[Lsys.mode.Accelerate]
+ode = theta' = v; v' = smt2:(+ (* -1.0 (- theta 0.6)) (* -2.0 v));
+guard = theta >= 0.0 and theta < 0.6 and v >= 0.0 and v < 0.3125
+evolve = theta >= 0.0 and theta <= 1.2 and v >= -1.0 and v <= 1.0
+next = [Brake, Accelerate]
+
+[Lsys.mode.Brake]
+ode = theta' = v; v' = smt2:(+ (* -1.0 (- theta 0.6)) (* -2.0 v));
+guard = theta >= 0.6 and theta <= 0.9125 and v + 1.0*theta <= 0.9125 and v + 1.0*theta >= 0.6
+evolve = theta >= 0.0 and theta <= 1.2 and v >= -1.0 and v <= 1.0
+next = [Accelerate, Brake]
+
+[Rsys]
+state_vars = [theta]
+epsilon = 0.001
+
+[Rsys.mode.Approach]
+ode = theta' = smt2:(* -0.5 (- theta 0.6));
+guard = theta >= 0.0 and theta <= 1.2
+evolve = theta >= 0.0 and theta <= 1.2
+next = [Approach]
+
+[relational_invariant]
+Accelerate = theta[l] <= theta[r] + 0.375 and theta[r] <= theta[l] + 0.375 and (theta[l] - theta[r])*(theta[l] - theta[r]) + 0.082*(theta[l] - 0.6)*(theta[l] - 0.6) + 0.312*v[l]*v[l] + 0.056*(theta[l] - theta[r])*(theta[l] - 0.6) + 0.280*(theta[l] - theta[r])*v[l] + 0.174*(theta[l] - 0.6)*v[l] <= 0.031
+Brake      = theta[l] <= theta[r] + 0.375 and theta[r] <= theta[l] + 0.375 and (theta[l] - theta[r])*(theta[l] - theta[r]) + 0.082*(theta[l] - 0.6)*(theta[l] - 0.6) + 0.312*v[l]*v[l] + 0.056*(theta[l] - theta[r])*(theta[l] - 0.6) + 0.280*(theta[l] - theta[r])*v[l] + 0.174*(theta[l] - 0.6)*v[l] <= 0.031

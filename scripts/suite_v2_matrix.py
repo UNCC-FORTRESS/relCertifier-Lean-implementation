@@ -77,12 +77,10 @@ ROOT = os.path.abspath(os.path.join(HERE, ".."))
 FAMILIES = [
     ("acc_", "ACC under sensor spoofing / retune"),
     ("quad_", "Quadrotor climb, lighter airframe"),
-    ("charger_", "Battery charger"),
     ("heater_", "Heater cycle"),
     ("platoon_", "Platoon follower (CACC, link loss / latency / profile)"),
     ("rover_patrol_", "Rover patrol (zones)"),
     ("gantry_", "Gantry speed zones (multi-cycle matching)"),
-    ("arm_plateau_", "Arm, leading reference"),
     ("rover_ladder_", "Rover ladder"),
     ("rover_terrain_", "Terrain chain"),
     ("watertank", "Watertank"),
@@ -790,8 +788,8 @@ def md_table1(recs):
     groups = {}
     for r in recs:
         groups.setdefault(r["family"], []).append(r)
-    order = ["ACC under sensor spoofing / retune", "Quadrotor climb, lighter airframe", "Battery charger",
-             "Platoon follower, delayed link", "Platoon string, three followers", "Rover patrol (zones)", "Multi-cycle matching", "Arm, leading reference", "Rigid-body detumbling (polynomial)", "Heater cycle",
+    order = ["ACC under sensor spoofing / retune", "Quadrotor climb, lighter airframe",
+             "Platoon follower, delayed link", "Platoon string, three followers", "Rover patrol (zones)", "Multi-cycle matching", "Rigid-body detumbling (polynomial)", "Heater cycle",
              "Rover ladder", "Terrain chain", "Watertank", "other"]
     lines = ["| group | count | dim (L/R) | invariant forms | dynamics | discrete structure (modes L/R; pruned fallbacks; mode-dep. rows; cuts; widened cuts; linear-form chains; per-mode domains) |",
              "|---|---|---|---|---|---|"]

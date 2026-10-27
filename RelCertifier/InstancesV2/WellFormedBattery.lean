@@ -20,27 +20,25 @@ mode `q`, `ε = epsR` (the file's `epsilon`, read as the tool reads it). A model
 independent of the relational invariant and of every Theorem 3 (none takes it as a
 hypothesis); this battery is a separate audit.
 
-**Results (all 42 benchmarks; declared counts `wfDeclared`, kernel-checked against the
+**Results (all 35 benchmarks; declared counts `wfDeclared`, kernel-checked against the
 suite's IR table by `wf_coverage`).**
 
-* **Proved, 36** (`<bench>_wellFormedR`): every mode (`watertank_twospeed` added 2026-10-11;
+* **Proved, 32** (`<bench>_wellFormedR`): every mode (`watertank_twospeed` added 2026-10-11;
   the literature benchmarks `drl_car_stop`, `drl_lane_control`, `vehicle_hypercert` and
   `freedm_meter` added 2026-10-15, three of them proved directly over the bridge's automaton,
-  `_wellFormedR_direct`). Z3-free (no verdict leaf). Two of them
-  are models repaired on 2026-10-10 (`docs/SUITE-REDESIGN.md` §21; until then refuted
-  here with exhibited blocking states, declared counts `(30, 9, 6)`; of the other seven repaired
-  files, `arm_plateau_profiles` and `platoon3_{linkloss,profiles}` moved to
-  `benchmarks/reserve/` on 2026-10-27 with their proofs and the shared `Platoon3Link` lemmas,
-  `platoon_delay_linkloss` was replaced by `platoon_linkloss`, whose CACC/AEB follower it shares
-  with `platoon_latency` and `platoon_profiles` through `PlatoonCaccAeb`,
+  `_wellFormedR_direct`). Z3-free (no verdict leaf). None of the nine models repaired on
+  2026-10-10 (`docs/SUITE-REDESIGN.md` §21; until then refuted here with exhibited blocking
+  states, declared counts `(30, 9, 6)`) is in the suite in its repaired form any more:
+  `arm_plateau_{crit,profiles,slow}` and `platoon3_{linkloss,profiles}` moved to
+  `benchmarks/reserve/` on 2026-10-27 with their proofs (history) and the shared `Platoon3Link`
+  lemmas, `platoon_delay_linkloss` was replaced by `platoon_linkloss`, whose CACC/AEB follower it
+  shares with `platoon_latency` and `platoon_profiles` through `PlatoonCaccAeb`,
   `platoon_delay_profiles` by `platoon_profiles`, and `quad_light_{airframe_20,profiles}` were
-  redesigned on 2026-10-27 with the altitude coordinate and no limiter mode):
-  - `arm_plateau_{crit,slow}`: the planner is a sampled controller whose successor
-    sets name every band one interval can reach (`ApproachA → …, ApproachC*, Hold`,
-    `ApproachB → …, Hold`).
+  redesigned on 2026-10-27 with the altitude coordinate and no limiter mode.
 * **Refuted, 0.**
-* **The detumble family, 6** (`<bench>_wellFormedR`, every mode; `<bench>_band_invariant`):
-  `sat_detumble_{nominal,weak,phases}`, `sat3w_detumble_{nominal,weak,phases}`. Their right
+* **The detumble family, 3** (`<bench>_wellFormedR`, every mode; `<bench>_band_invariant`):
+  `sat_detumble_{weak,phases}`, `sat3w_detumble_phases` (`sat_detumble_nominal` and
+  `sat3w_detumble_{nominal,weak}` moved to `benchmarks/reserve/` on 2026-10-27). Their right
   evolve domains carry the conserved momentum band `|h_i + J_i w_i| ≤ 2` (the body's momentum
   within the wheels' capacity; since 2026-10-15). Without it clause (i) failed at the edge of
   the wheel-momentum box (`h = 2`, `w3 = 0.4`: `h + 5 w3` is conserved and would leave
@@ -61,8 +59,6 @@ import RelCertifier.InstancesV2.WellFormed.AccSpoofLag
 import RelCertifier.InstancesV2.WellFormed.AccSpoofLimp
 import RelCertifier.InstancesV2.WellFormed.AccTuneLag
 import RelCertifier.InstancesV2.WellFormed.AccTuneLimp
-import RelCertifier.InstancesV2.WellFormed.ChargerFastSetpoints
-import RelCertifier.InstancesV2.WellFormed.ChargerFastTapers
 import RelCertifier.InstancesV2.WellFormed.QuadLightLag
 import RelCertifier.InstancesV2.WellFormed.RoverPatrolLag
 import RelCertifier.InstancesV2.WellFormed.GantrySpeedZones
@@ -73,8 +69,6 @@ import RelCertifier.InstancesV2.WellFormed.RoverLadder8to12
 import RelCertifier.InstancesV2.WellFormed.RoverTerrain2to4
 import RelCertifier.InstancesV2.WellFormed.RoverTerrain6to12
 import RelCertifier.InstancesV2.WellFormed.RoverTerrain4to6
-import RelCertifier.InstancesV2.WellFormed.ArmPlateauCrit
-import RelCertifier.InstancesV2.WellFormed.ArmPlateauSlow
 import RelCertifier.InstancesV2.WellFormed.PlatoonLinkloss
 import RelCertifier.InstancesV2.WellFormed.PlatoonLatency
 import RelCertifier.InstancesV2.WellFormed.EngineStartHighidle
@@ -85,11 +79,8 @@ import RelCertifier.InstancesV2.WellFormed.TurbineStartupGearratio
 import RelCertifier.InstancesV2.WellFormed.PlatoonProfiles
 import RelCertifier.InstancesV2.WellFormed.QuadLightAirframe20
 import RelCertifier.InstancesV2.WellFormed.QuadLightProfiles
-import RelCertifier.InstancesV2.WellFormed.SatDetumbleNominal
 import RelCertifier.InstancesV2.WellFormed.SatDetumbleWeak
 import RelCertifier.InstancesV2.WellFormed.SatDetumblePhases
-import RelCertifier.InstancesV2.WellFormed.Sat3wDetumbleNominal
-import RelCertifier.InstancesV2.WellFormed.Sat3wDetumbleWeak
 import RelCertifier.InstancesV2.WellFormed.Sat3wDetumblePhases
 import RelCertifier.InstancesV2.WellFormed.WatertankTwospeed
 import RelCertifier.InstancesV2.WellFormed.TankDos3to1
@@ -100,11 +91,11 @@ namespace WellFormedBattery
 
 /-- The benchmarks whose right model satisfies Assumption 1 at every mode. -/
 def wfProved : List String :=
-  ["arm_plateau_crit", "arm_plateau_slow", "platoon_linkloss", "platoon_latency",
+  ["platoon_linkloss", "platoon_latency",
    "platoon_profiles",
    "quad_light_airframe_20", "quad_light_profiles",
    "watertank", "acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp",
-   "charger_fast_setpoints", "charger_fast_tapers", "quad_light_lag", "rover_patrol_lag", "gantry_speed_zones",
+   "quad_light_lag", "rover_patrol_lag", "gantry_speed_zones",
    "rover_ladder_2to3",
    "rover_ladder_3to6", "rover_ladder_6to8",
    "rover_ladder_8to12", "rover_terrain_2to4", "rover_terrain_6to12",
@@ -120,8 +111,8 @@ def wfRefuted : List String := []
 the right evolve domain since 2026-10-15; before, only on the band), and the band is kept by
 every flow (`_band_invariant`). -/
 def wfBand : List String :=
-  ["sat_detumble_nominal", "sat_detumble_weak", "sat_detumble_phases",
-   "sat3w_detumble_nominal", "sat3w_detumble_weak", "sat3w_detumble_phases"]
+  ["sat_detumble_weak", "sat_detumble_phases",
+   "sat3w_detumble_phases"]
 
 /-- **Declared counts**: proved outside the detumble family, refuted (model defects), the
 detumble family (also proved, listed apart for its band audit). `(30, 9, 6)` until the
@@ -138,22 +129,21 @@ after the rover hierarchy of 2026-10-27 (ten rover files left the suite: `rover_
 `_7to12`, `_6to12`, `rover_lateral_6to8`, `_8to12`, `rover_attitude_6to8`, `_8to12`,
 `rover_ladder_2to4`, `_2to6`, `rover_patrol_zones`; the four ladder rungs and
 `rover_patrol_lag` were reinstalled on new right models, `L2`, `L3`, `L6`, `L8` with pinned
-coordinates and the planning model). -/
-def wfDeclared : ℕ × ℕ × ℕ := (36, 0, 6)
+coordinates and the planning model); `(32, 0, 3)` after the reserve moves of batch I4
+(2026-10-27: `charger_fast_{setpoints,tapers}`, `arm_plateau_{crit,slow}`,
+`sat_detumble_nominal`, `sat3w_detumble_{nominal,weak}`). -/
+def wfDeclared : ℕ × ℕ × ℕ := (32, 0, 3)
 
 /-- The suite's benchmark names, in the order of the IR table. -/
 def suiteNames : List String :=
   ["acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp",
-   "arm_plateau_crit",
-   "arm_plateau_slow", "bms_chiller_undercharge", "canal_gate_notches", "charger_fast_setpoints",
-   "charger_fast_tapers", "drl_car_stop", "drl_lane_control", "engine_start_highidle",
+   "bms_chiller_undercharge", "canal_gate_notches", "drl_car_stop", "drl_lane_control", "engine_start_highidle",
    "freedm_meter", "gantry_speed_zones",
    "hvac_fan_staging",
    "platoon_latency", "platoon_linkloss", "platoon_profiles", "quad_light_airframe_20", "quad_light_lag",
    "quad_light_profiles", "rover_ladder_2to3", "rover_ladder_3to6",
    "rover_ladder_6to8", "rover_ladder_8to12", "rover_patrol_lag", "rover_terrain_2to4", "rover_terrain_4to6", "rover_terrain_6to12",
-   "sat3w_detumble_nominal", "sat3w_detumble_phases", "sat3w_detumble_weak",
-   "sat_detumble_nominal", "sat_detumble_phases", "sat_detumble_weak", "tank_dos_3to1",
+   "sat3w_detumble_phases", "sat_detumble_phases", "sat_detumble_weak", "tank_dos_3to1",
    "train_ato_odometry", "turbine_startup_gearratio", "vehicle_hypercert",
    "watertank", "watertank_twospeed"]
 
@@ -170,7 +160,7 @@ theorem wf_coverage :
 
 end WellFormedBattery
 
-/-! ## Proved (36 outside the detumble family, with the next section): Assumption 1 at every mode -/
+/-! ## Proved (32 outside the detumble family, with the next section): Assumption 1 at every mode -/
 
 #print axioms V2DrlCarStop.drl_car_stop_wellFormedR_direct
 #print axioms V2DrlLaneControl.drl_lane_control_wellFormedR_direct
@@ -185,8 +175,6 @@ end WellFormedBattery
 #print axioms V2AccSpoofLimp.acc_spoof_limp_wellFormedR
 #print axioms V2AccTuneLag.acc_tune_lag_wellFormedR
 #print axioms V2AccTuneLimp.acc_tune_limp_wellFormedR
-#print axioms V2ChargerFastSetpoints.charger_fast_setpoints_wellFormedR
-#print axioms V2ChargerFastTapers.charger_fast_tapers_wellFormedR
 #print axioms V2QuadLightLag.quad_light_lag_wellFormedR
 #print axioms V2RoverPatrolLagGuarded.rover_patrol_lag_wellFormedR
 #print axioms V2GantrySpeedZones.gantry_speed_zones_wellFormedR
@@ -198,11 +186,8 @@ end WellFormedBattery
 #print axioms RoverTerrain6to12Guarded.rover_terrain_6to12_wellFormedR
 #print axioms RoverTerrain4to6Guarded.rover_terrain_4to6_wellFormedR
 
-/-! ## Repaired 2026-10-10 (the two still in the suite) and the later additions: Assumption 1
-at every mode, and at the repaired modes -/
+/-! ## The later additions: Assumption 1 at every mode -/
 
-#print axioms V2ArmPlateauCrit.arm_plateau_crit_wellFormedR
-#print axioms V2ArmPlateauSlow.arm_plateau_slow_wellFormedR
 #print axioms V2PlatoonLinkloss.platoon_linkloss_wellFormedR
 #print axioms V2PlatoonLatency.platoon_latency_wellFormedR
 #print axioms V2PlatoonProfiles.platoon_profiles_wellFormedR
@@ -217,19 +202,13 @@ at every mode, and at the repaired modes -/
 #print axioms V2QuadLightAirframe20.quad_light_airframe_20_wellFormedR
 #print axioms V2QuadLightProfiles.quad_light_profiles_wellFormedR
 
-/-! ## The detumble family (6): Assumption 1 unconditional (the momentum band is part of the
+/-! ## The detumble family (3): Assumption 1 unconditional (the momentum band is part of the
 right evolve domain since 2026-10-15), and the band invariant as a model fact -/
 
-#print axioms V2SatDetumbleNominal.sat_detumble_nominal_wellFormedR
-#print axioms V2SatDetumbleNominal.sat_detumble_nominal_band_invariant
 #print axioms V2SatDetumbleWeak.sat_detumble_weak_wellFormedR
 #print axioms V2SatDetumbleWeak.sat_detumble_weak_band_invariant
 #print axioms V2SatDetumblePhases.sat_detumble_phases_wellFormedR
 #print axioms V2SatDetumblePhases.sat_detumble_phases_band_invariant
-#print axioms V2Sat3wDetumbleNominal.sat3w_detumble_nominal_wellFormedR
-#print axioms V2Sat3wDetumbleNominal.sat3w_detumble_nominal_band_invariant
-#print axioms V2Sat3wDetumbleWeak.sat3w_detumble_weak_wellFormedR
-#print axioms V2Sat3wDetumbleWeak.sat3w_detumble_weak_band_invariant
 #print axioms V2Sat3wDetumblePhases.sat3w_detumble_phases_wellFormedR
 #print axioms V2Sat3wDetumblePhases.sat3w_detumble_phases_band_invariant
 

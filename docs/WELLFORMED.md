@@ -1,17 +1,17 @@
 # Assumption 1, verified per benchmark (`WellFormedR`)
 
 **Status (2026-10-15, branch `theorem3-general`).** The paper's Assumption 1
-(Well-Formedness) is a separately stated, kernel-checked model fact for every one of the 42
-suite_v2 benchmarks (2026-10-27: four moved to `benchmarks/reserve/`, below): **proved for all 42**, **false for none** (the four literature benchmarks
+(Well-Formedness) is a separately stated, kernel-checked model fact for every one of the 35
+suite_v2 benchmarks (2026-10-27: four moved to `benchmarks/reserve/`, below, and seven more in batch I4): **proved for all 35**, **false for none** (the four literature benchmarks
 of 2026-10-15 included; the two dRL ones and `freedm_meter` are proved directly over the bridge's automaton,
-`<b>_wellFormedR_direct`, with explicit polynomial runs, `trajRs_sol`). The six satellites are proved
+`<b>_wellFormedR_direct`, with explicit polynomial runs, `trajRs_sol`). The satellites are proved
 literally since 2026-10-15, when their conserved momentum band entered the right evolve
 domain (§3, §5); until then they were proved on the band, with the literal predicate refuted. Until 2026-10-10 it was false for 9 models (refuted in the kernel with exhibited
 blocking states); those nine were repaired (`docs/SUITE-REDESIGN.md` §21: the fallback sinks
 re-engage or are latched with an invariant guard, the arm planner's successor sets name every
 band a sampled interval can reach) and are now proved. No proof uses Z3. The tool's sufficient
 check of both clauses (`relcert --wellformed`; the nonblocking clause since 2026-10-26, before
-which only the successor clause was checked) finds every one of the 145 right modes `ok`, and
+which only the successor clause was checked) finds every one of the 118 right modes `ok`, and
 `--check-quick-v2` runs it STRICT, against declared counts (§4). The generic-bridge
 instances (`InstancesV2/Bridge/`, the paper's route to
 Theorem 3) take it as a hypothesis: `theorem3_keyed_of_records`
@@ -70,7 +70,7 @@ def WellFormedR  G guard ε     : Prop := WellFormedRIn G guard Formula.tt ε
 * **(a) forward invariance** of the mode's guard under its own flow, then the self-loop.
 * **(b) exit into a successor's guard** within one interval (the band advances into the next
   band; a threshold is crossed into the next mode's guard).
-* **(c) the momentum band in the domain**: the six satellites, style (a) once the right
+* **(c) the momentum band in the domain**: the satellites (three in the suite since 2026-10-27), style (a) once the right
   evolve domain carries the conserved momentum band (the explicit solution keeps the sums
   constant, so it stays in the domain).
 
@@ -122,11 +122,11 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 2 | `acc_spoof_limp` | proved | NORMAL, ECO, SPORT (a) (closed guards `20 ≤ v ≤ 40` since 2026-10-27, with DISENGAGE `v < 20` a partition of `[0, 40]`); DISENGAGE (a) | all ok (invariant) |
 | 3 | `acc_tune_lag` | proved | CRUISE (a) (the lagged loop's envelope, modal coordinates `a + 2.5v − 75`, `a + 0.625v − 18.75` decaying; explicit two-exponential run) | ok (invariant) |
 | 4 | `acc_tune_limp` | proved | NORMAL, COMFORT, SPORT (a); DISENGAGE (a) | all ok (invariant) |
-| 5 | `arm_plateau_crit` | proved (repaired) | ApproachA (b) → B, C or Hold; ApproachB (b) → C or Hold; ApproachC (b) → Hold; Hold (a) | A ok (exit→B,C,Hold); B ok (exit→C,Hold); C ok (exit→Hold); Hold ok (invariant) |
+| 5 | `arm_plateau_crit` | moved to `benchmarks/reserve/` 2026-10-27 (batch I4; was: proved (repaired); proof in git history) | ApproachA (b) → B, C or Hold; ApproachB (b) → C or Hold; ApproachC (b) → Hold; Hold (a) | A ok (exit→B,C,Hold); B ok (exit→C,Hold); C ok (exit→Hold); Hold ok (invariant) |
 | 6 | `arm_plateau_profiles` | moved to `benchmarks/reserve/` 2026-10-27 (was: proved (repaired); proof in git history) | ApproachA (b) → B, Cfast or Hold; ApproachB (b) → Cfast or Hold; ApproachCfast, ApproachCslow (b) → Hold; Hold (a) | A ok (exit→B,Cslow,Hold); B ok (exit→Cslow,Hold); C's ok (exit→Hold); Hold ok (invariant) |
-| 7 | `arm_plateau_slow` | proved (repaired) | as `arm_plateau_crit` | as `arm_plateau_crit` |
-| 8 | `charger_fast_setpoints` | proved | PRECHARGE (b) → BULK; BULK (b) → ABSORB; ABSORB (b) → FULL; FULL (a); FAULT (a); dimension 3 (mode-keyed) | PRECHARGE ok (exit→BULK); BULK ok (exit→ABSORB); ABSORB ok (exit→FULL); FULL, FAULT ok (invariant) |
-| 9 | `charger_fast_tapers` | proved | PRECHARGE (b) → BULK; BULK (b) → ABSORB_SLOW (closed form at `t ≤ 1`); ABSORB_SLOW, ABSORB_FAST (b) → FULL; FULL (a); FAULT (a); dimension 3 (mode-keyed) | PRECHARGE ok (exit→BULK); BULK ok (exit→ABSORB_FAST, same guard); ABSORB_* ok (exit→FULL); FULL, FAULT ok (invariant) |
+| 7 | `arm_plateau_slow` | moved to `benchmarks/reserve/` 2026-10-27 (batch I4; was: proved (repaired); proof in git history) | as `arm_plateau_crit` | as `arm_plateau_crit` |
+| 8 | `charger_fast_setpoints` | moved to `benchmarks/reserve/` 2026-10-27 (batch I4; was: proved; proof in git history) | PRECHARGE (b) → BULK; BULK (b) → ABSORB; ABSORB (b) → FULL; FULL (a); FAULT (a); dimension 3 (mode-keyed) | PRECHARGE ok (exit→BULK); BULK ok (exit→ABSORB); ABSORB ok (exit→FULL); FULL, FAULT ok (invariant) |
+| 9 | `charger_fast_tapers` | moved to `benchmarks/reserve/` 2026-10-27 (batch I4; was: proved; proof in git history) | PRECHARGE (b) → BULK; BULK (b) → ABSORB_SLOW (closed form at `t ≤ 1`); ABSORB_SLOW, ABSORB_FAST (b) → FULL; FULL (a); FAULT (a); dimension 3 (mode-keyed) | PRECHARGE ok (exit→BULK); BULK ok (exit→ABSORB_FAST, same guard); ABSORB_* ok (exit→FULL); FULL, FAULT ok (invariant) |
 | 10 | `match_multi_rate` | replaced 2026-10-27 by `gantry_speed_zones` (row 55; was: proved; proof in git history) | DRIVE (a), STALL (a); `ε_r = 0.3` | both ok (invariant) |
 | 11 | `platoon3_linkloss` | moved to `benchmarks/reserve/` 2026-10-27 (was: proved (repaired); proof in git history) | FOLLOW (a); BRAKE1–3 (a), latched (`g + 2r` conserved; explicit solution `solB`) | all ok (invariant) |
 | 12 | `platoon3_profiles` | moved to `benchmarks/reserve/` 2026-10-27 (was: proved (repaired); proof in git history) | NORMAL, CLOSE, FAR (a); BRAKE1–3 (a), latched | all ok (invariant) |
@@ -149,10 +149,10 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 29 | `rover_terrain_6to12` | proved | as 27, cap `u ≤ c_T` kept by `u' = 4 (c_T − u)` (existence: the cascade `u → w`, `w, zs → v → s, zh`) | as 27 |
 | 30 | `rover_patrol_lag` | proved (reinstalled 2026-10-27: the right is the first-order planning model `v' = c − v`, `s' = v`; the left's lag state `a` is frozen on the right) | SLOW (b) → MEDIUM_ECO; MEDIUM_ECO, MEDIUM_BRISK (b) → themselves or FAST; FAST (a) (the zones partition `s ≥ 0`, `0 ≤ s' ≤ 1.6`; explicit zone runs) | SLOW ok (exit→MEDIUM_BRISK); MEDIUM_ECO, MEDIUM_BRISK ok (exit→FAST); FAST ok (invariant) |
 | 31 | `rover_patrol_zones` | left the suite 2026-10-27 (batch I3; a design of the same name is in `benchmarks/reserve/`; was: proved; proof in git history) | as 30; STALL (a) | as 30; STALL ok (invariant) |
-| 32 | `sat3w_detumble_nominal` | proved | DETUMBLE (a) (the band in the domain keeps the explicit run); SAFE (a) | both ok (invariant) (both clauses, since 2026-10-26) |
+| 32 | `sat3w_detumble_nominal` | moved to `benchmarks/reserve/` 2026-10-27 (batch I4; was: proved; proof in git history) | DETUMBLE (a) (the band in the domain keeps the explicit run); SAFE (a) | both ok (invariant) (both clauses, since 2026-10-26) |
 | 33 | `sat3w_detumble_phases` | proved | as 32 | as 32 |
-| 34 | `sat3w_detumble_weak` | proved | NOMINAL, ECONOMY, SURVIVAL (a) (the band in the domain keeps the explicit runs); SAFE (a) | all ok (invariant) |
-| 35 | `sat_detumble_nominal` | proved | as 32 | as 32 |
+| 34 | `sat3w_detumble_weak` | moved to `benchmarks/reserve/` 2026-10-27 (batch I4; was: proved; proof in git history) | NOMINAL, ECONOMY, SURVIVAL (a) (the band in the domain keeps the explicit runs); SAFE (a) | all ok (invariant) |
+| 35 | `sat_detumble_nominal` | moved to `benchmarks/reserve/` 2026-10-27 (batch I4; was: proved; proof in git history) | as 32 | as 32 |
 | 36 | `sat_detumble_phases` | proved | as 32 | as 32 |
 | 37 | `sat_detumble_weak` | proved | as 34 | as 34 |
 | 38 | `rover_attitude_6to8` | left the suite 2026-10-27 (batch I3, the rover hierarchy; was: proved; proof in git history) | as 18 | as 18 |
@@ -261,8 +261,8 @@ summary: …` (with `RELCERT_DEBUG=1`, the reason of every mode not `ok` on stde
 `--check-quick-v2` runs the same section as its check 3/3, strict (below); until 2026-10-10 it
 was informational there.
 
-**Suite_v2 result** (2026-10-27, both clauses): 42 benchmarks, 145 right modes: 83 ok
-(invariant), 62 ok (exit), **0 UNKNOWN, 0 BLOCKING**, 7984 queries; the per-mode labels are those of the
+**Suite_v2 result** (2026-10-27, both clauses): 35 benchmarks, 118 right modes: 69 ok
+(invariant), 49 ok (exit), **0 UNKNOWN, 0 BLOCKING**, 6140 queries; the per-mode labels are those of the
 clause (ii) check alone (2026-10-26, 50 benchmarks: 174 right modes, 91 / 83, 10643 queries,
 about 17 s). The 37
 round-2 designs of the 2026-10-26 redesign pass (outside the tree): 122 right modes, 69 ok
@@ -293,7 +293,7 @@ single `relcert <file>` run; off, no verdict and no emission changes.
 
 **Strict in the recipe** (2026-10-10). `--check-quick-v2` certifies the suite in the strict
 mode (the switch forced on for its check 1/3) and ends with check 3/3, the `--wellformed`
-report gated against declared counts: `ExpectedSuiteV2.wfModes = 145` (`VerdictsV2/RunV2.lean`; the
+report gated against declared counts: `ExpectedSuiteV2.wfModes = 118` (`VerdictsV2/RunV2.lean`; the
 kernel pin `CoveragePinsV2.suiteV2_wfModes` of that count was archived with the standalone
 route on 2026-10-22), `wfUnknown = 0` and `wfBlocking = 0`. Any `UNKNOWN` or `BLOCKING` mode,
 or a mode count off the declared one, fails the run (`wellformed (strict): FAIL`, exit 1). Checked negatively: with the pre-repair

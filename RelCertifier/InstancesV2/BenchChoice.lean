@@ -5,12 +5,8 @@ import RelCertifier.InstancesV2.BenchChoice.acc_spoof_lag
 import RelCertifier.InstancesV2.BenchChoice.acc_spoof_limp
 import RelCertifier.InstancesV2.BenchChoice.acc_tune_lag
 import RelCertifier.InstancesV2.BenchChoice.acc_tune_limp
-import RelCertifier.InstancesV2.BenchChoice.arm_plateau_crit
-import RelCertifier.InstancesV2.BenchChoice.arm_plateau_slow
 import RelCertifier.InstancesV2.BenchChoice.bms_chiller_undercharge
 import RelCertifier.InstancesV2.BenchChoice.canal_gate_notches
-import RelCertifier.InstancesV2.BenchChoice.charger_fast_setpoints
-import RelCertifier.InstancesV2.BenchChoice.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchChoice.drl_car_stop
 import RelCertifier.InstancesV2.BenchChoice.drl_lane_control
 import RelCertifier.InstancesV2.BenchChoice.engine_start_highidle
@@ -31,10 +27,7 @@ import RelCertifier.InstancesV2.BenchChoice.rover_patrol_lag
 import RelCertifier.InstancesV2.BenchChoice.rover_terrain_2to4
 import RelCertifier.InstancesV2.BenchChoice.rover_terrain_4to6
 import RelCertifier.InstancesV2.BenchChoice.rover_terrain_6to12
-import RelCertifier.InstancesV2.BenchChoice.sat3w_detumble_nominal
 import RelCertifier.InstancesV2.BenchChoice.sat3w_detumble_phases
-import RelCertifier.InstancesV2.BenchChoice.sat3w_detumble_weak
-import RelCertifier.InstancesV2.BenchChoice.sat_detumble_nominal
 import RelCertifier.InstancesV2.BenchChoice.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchChoice.sat_detumble_weak
 import RelCertifier.InstancesV2.BenchChoice.tank_dos_3to1
@@ -51,12 +44,8 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("acc_spoof_limp", acc_spoof_limp_coverV2_choice),
   ("acc_tune_lag", acc_tune_lag_coverV2_choice),
   ("acc_tune_limp", acc_tune_limp_coverV2_choice),
-  ("arm_plateau_crit", arm_plateau_crit_coverV2_choice),
-  ("arm_plateau_slow", arm_plateau_slow_coverV2_choice),
   ("bms_chiller_undercharge", bms_chiller_undercharge_coverV2_choice),
   ("canal_gate_notches", canal_gate_notches_coverV2_choice),
-  ("charger_fast_setpoints", charger_fast_setpoints_coverV2_choice),
-  ("charger_fast_tapers", charger_fast_tapers_coverV2_choice),
   ("drl_car_stop", drl_car_stop_coverV2_choice),
   ("drl_lane_control", drl_lane_control_coverV2_choice),
   ("engine_start_highidle", engine_start_highidle_coverV2_choice),
@@ -77,10 +66,7 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("rover_terrain_2to4", rover_terrain_2to4_coverV2_choice),
   ("rover_terrain_4to6", rover_terrain_4to6_coverV2_choice),
   ("rover_terrain_6to12", rover_terrain_6to12_coverV2_choice),
-  ("sat3w_detumble_nominal", sat3w_detumble_nominal_coverV2_choice),
   ("sat3w_detumble_phases", sat3w_detumble_phases_coverV2_choice),
-  ("sat3w_detumble_weak", sat3w_detumble_weak_coverV2_choice),
-  ("sat_detumble_nominal", sat_detumble_nominal_coverV2_choice),
   ("sat_detumble_phases", sat_detumble_phases_coverV2_choice),
   ("sat_detumble_weak", sat_detumble_weak_coverV2_choice),
   ("tank_dos_3to1", tank_dos_3to1_coverV2_choice),

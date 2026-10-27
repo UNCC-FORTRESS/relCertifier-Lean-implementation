@@ -12,12 +12,8 @@ import RelCertifier.InstancesV2.BenchIR.acc_spoof_lag
 import RelCertifier.InstancesV2.BenchIR.acc_spoof_limp
 import RelCertifier.InstancesV2.BenchIR.acc_tune_lag
 import RelCertifier.InstancesV2.BenchIR.acc_tune_limp
-import RelCertifier.InstancesV2.BenchIR.arm_plateau_crit
-import RelCertifier.InstancesV2.BenchIR.arm_plateau_slow
 import RelCertifier.InstancesV2.BenchIR.bms_chiller_undercharge
 import RelCertifier.InstancesV2.BenchIR.canal_gate_notches
-import RelCertifier.InstancesV2.BenchIR.charger_fast_setpoints
-import RelCertifier.InstancesV2.BenchIR.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchIR.drl_car_stop
 import RelCertifier.InstancesV2.BenchIR.drl_lane_control
 import RelCertifier.InstancesV2.BenchIR.engine_start_highidle
@@ -38,10 +34,7 @@ import RelCertifier.InstancesV2.BenchIR.rover_patrol_lag
 import RelCertifier.InstancesV2.BenchIR.rover_terrain_2to4
 import RelCertifier.InstancesV2.BenchIR.rover_terrain_4to6
 import RelCertifier.InstancesV2.BenchIR.rover_terrain_6to12
-import RelCertifier.InstancesV2.BenchIR.sat3w_detumble_nominal
 import RelCertifier.InstancesV2.BenchIR.sat3w_detumble_phases
-import RelCertifier.InstancesV2.BenchIR.sat3w_detumble_weak
-import RelCertifier.InstancesV2.BenchIR.sat_detumble_nominal
 import RelCertifier.InstancesV2.BenchIR.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchIR.sat_detumble_weak
 import RelCertifier.InstancesV2.BenchIR.tank_dos_3to1
@@ -58,12 +51,8 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("acc_spoof_limp", acc_spoof_limp_IRv2),
   ("acc_tune_lag", acc_tune_lag_IRv2),
   ("acc_tune_limp", acc_tune_limp_IRv2),
-  ("arm_plateau_crit", arm_plateau_crit_IRv2),
-  ("arm_plateau_slow", arm_plateau_slow_IRv2),
   ("bms_chiller_undercharge", bms_chiller_undercharge_IRv2),
   ("canal_gate_notches", canal_gate_notches_IRv2),
-  ("charger_fast_setpoints", charger_fast_setpoints_IRv2),
-  ("charger_fast_tapers", charger_fast_tapers_IRv2),
   ("drl_car_stop", drl_car_stop_IRv2),
   ("drl_lane_control", drl_lane_control_IRv2),
   ("engine_start_highidle", engine_start_highidle_IRv2),
@@ -84,10 +73,7 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("rover_terrain_2to4", rover_terrain_2to4_IRv2),
   ("rover_terrain_4to6", rover_terrain_4to6_IRv2),
   ("rover_terrain_6to12", rover_terrain_6to12_IRv2),
-  ("sat3w_detumble_nominal", sat3w_detumble_nominal_IRv2),
   ("sat3w_detumble_phases", sat3w_detumble_phases_IRv2),
-  ("sat3w_detumble_weak", sat3w_detumble_weak_IRv2),
-  ("sat_detumble_nominal", sat_detumble_nominal_IRv2),
   ("sat_detumble_phases", sat_detumble_phases_IRv2),
   ("sat_detumble_weak", sat_detumble_weak_IRv2),
   ("tank_dos_3to1", tank_dos_3to1_IRv2),

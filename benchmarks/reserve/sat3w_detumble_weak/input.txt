@@ -1,0 +1,98 @@
+# RESERVE (benchmarks/reserve/, 2026-10-27): not in suite_v2, not in the paper, no Lean integration.
+# Reason: the same numbers as sat_detumble_weak (the binding case puts all the energy on the
+# weak axis). The header below is the design's.
+#
+# sat3w_detumble_weak: three-wheel microsatellite whose z-wheel is torque-limited, against the design
+# model with power profiles; both sides at the design-model level, same control period.
+# RESERVE (2026-10-26, eps pass RA2a): not distinct enough for the 50. The wheel-specific cause was
+# tried as the review asked; the requirement-level claim certifies only one-sided, and then with
+# exactly the numbers of sat_detumble_weak (the binding case puts all the energy on the weak axis).
+# scenario: degraded-actuator
+# mechanisms: I X (the engagement envelope as a load-bearing checked cut, RELCERT_NO_CUT=1
+#   declines; committed successor subsets into a power-saving profile, RELCERT_NO_CHOICE=1
+#   declines). Single-step cover at lambda = 1.
+#
+# THE SPACECRAFT (both sides; a ~60 kg microsatellite, SI units; the plant of
+# sat3w_detumble_nominal at the design-model level). Body rates w = (w1, w2, w3) (rad/s), inertia
+# J = diag(2, 4, 5) kg m^2, momenta h = (h1, h2, h3) (N m s) of three reaction wheels on the
+# principal axes, each absorbing its axis rate with gain k_i: w_i' = -k_i w_i, h_i' = k_i J_i w_i.
+# The gyroscopic and wheel couplings are not modeled on either side (they do no work; the
+# refinement step that adds them is sat3w_detumble_nominal). Energy E = 2 w1^2 + 4 w2^2 + 5 w3^2.
+# PHYSICAL DOMAIN (both sides): |w_i| <= 1 rad/s, |h_i| <= 2 N m s.
+# Control period: 1 s on BOTH sides (epsilon = 1.0), the attitude mode manager's cycle on a 1 Hz
+# ADCS (CubeSpace CubeStar attitude update 1 Hz, CubeSpace sensor data sheet).
+# Guards: DETUMBLE / the three profiles engage at E <= 1; the design model's FDIR SAFE sink at
+# E > 1 (frozen). The right guards cover the domain.
+#
+# Degraded deployed (left): the z-wheel's motor driver is current-limited to 80 % torque,
+# k_3 = 0.4 /s, while the x- and y-wheels run at the nominal gain 0.5 /s:
+# w1' = -0.5 w1, w2' = -0.5 w2, w3' = -0.4 w3, h1' = 1.0 w1, h2' = 2.0 w2, h3' = 2.0 w3. The
+# deployed's energy then decays at a rate between -0.8 E (all energy on z) and -1.0 E (none on z).
+# The design model (right) offers the ground-selectable profiles NOMINAL k = 0.5, ECONOMY 0.45 and
+# SURVIVAL 0.42 on all three wheels (NOMINAL <-> ECONOMY / SURVIVAL); each declares SAFE.
+# One cause between the sides: the z-wheel's torque limit.
+#
+# CLAIM: E_L <= E_R + 0.125, the residual-rate requirement of sat_detumble_weak (the energy of a
+# 0.25 rad/s spin about the minor axis x, the sun-acquisition capture range). The lower row of
+# sat_detumble_weak (E_R <= E_L, never faster than the design) is NOT part of this claim: with
+# healthy x- and y-wheels the deployed detumbles those axes faster than ECONOMY and SURVIVAL, so
+# that row is not a property of this spacecraft against a power-saving profile.
+# Measured (2026-10-26): tightest 0.1112 (0.1111 declines), the ECONOMY bound 1 - 0.4/0.45 = 1/9,
+# the same as sat_detumble_weak; under RELCERT_NO_CHOICE=1 the tightest is 0.20 (0.19 declines),
+# the NOMINAL bound 1 - 0.4/0.5. With the lower row E_R <= E_L added (the two-sided claim of
+# sat_detumble_weak) the file DECLINES at 0.125 and certifies only from 0.20 (committed to
+# NOMINAL), so the residual-rate requirement is not shown in the two-sided form.
+# Why the choice (X): a design run starting in NOMINAL must be committed to a power-saving
+# profile (NOMINAL's tangent bound 0.2 exceeds 0.125). Why the cut (I): the engagement envelope
+# E <= 1 bounds the energy on which the gap can grow.
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26 with the copied tool):
+# CERTIFIED (about 4.3 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1,
+# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_OPREGION=1,
+# RELCERT_WELLFORMED_STRICT=1 and without RELCERT_IMPLIED_CUT; DECLINED under RELCERT_NO_CHOICE=1,
+# NO_PRUNE+NO_CHOICE and RELCERT_NO_CUT=1. Cover: lambda 1, budget 1, choice cover. Pruned:
+# NOMINAL, ECONOMY, SURVIVAL -> SAFE. --handoff 1/1 vacuous. relcert --wellformed: four modes ok
+# (invariant), 0 UNKNOWN. The right model is the round-2 draft's, unchanged.
+#
+# MOMENTUM BAND (right evolve domains): |h_i + J_i w_i| <= 2 N m s per axis, conserved by every
+# design-model mode, a constraint on the initial state (the wheels can absorb the body's
+# momentum); the momentum dump is not modeled.
+[problem]
+name = sat3w_detumble_weak
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 4.0
+[Lsys]
+state_vars = [w1, w2, w3, h1, h2, h3]
+epsilon = 1.0
+[Lsys.mode.DETUMBLE]
+ode = w1' = smt2:(* -0.5 w1); w2' = smt2:(* -0.5 w2); w3' = smt2:(* -0.4 w3); h1' = smt2:(* 1.0 w1); h2' = smt2:(* 2.0 w2); h3' = smt2:(* 2.0 w3);
+guard = w1*w1*2 + w2*w2*4 + w3*w3*5 <= 1.0
+evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h1 >= -2.0 and h1 <= 2.0 and h2 >= -2.0 and h2 <= 2.0 and h3 >= -2.0 and h3 <= 2.0
+next = [DETUMBLE]
+[Rsys]
+state_vars = [w1, w2, w3, h1, h2, h3]
+epsilon = 1.0
+[Rsys.mode.NOMINAL]
+ode = w1' = smt2:(* -0.5 w1); w2' = smt2:(* -0.5 w2); w3' = smt2:(* -0.5 w3); h1' = smt2:(* 1.0 w1); h2' = smt2:(* 2.0 w2); h3' = smt2:(* 2.5 w3);
+guard = w1*w1*2 + w2*w2*4 + w3*w3*5 <= 1.0
+evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h1 >= -2.0 and h1 <= 2.0 and h2 >= -2.0 and h2 <= 2.0 and h3 >= -2.0 and h3 <= 2.0 and h1 + 2.0*w1 >= -2.0 and h1 + 2.0*w1 <= 2.0 and h2 + 4.0*w2 >= -2.0 and h2 + 4.0*w2 <= 2.0 and h3 + 5.0*w3 >= -2.0 and h3 + 5.0*w3 <= 2.0
+next = [NOMINAL, ECONOMY, SURVIVAL, SAFE]
+[Rsys.mode.ECONOMY]
+ode = w1' = smt2:(* -0.45 w1); w2' = smt2:(* -0.45 w2); w3' = smt2:(* -0.45 w3); h1' = smt2:(* 0.9 w1); h2' = smt2:(* 1.8 w2); h3' = smt2:(* 2.25 w3);
+guard = w1*w1*2 + w2*w2*4 + w3*w3*5 <= 1.0
+evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h1 >= -2.0 and h1 <= 2.0 and h2 >= -2.0 and h2 <= 2.0 and h3 >= -2.0 and h3 <= 2.0 and h1 + 2.0*w1 >= -2.0 and h1 + 2.0*w1 <= 2.0 and h2 + 4.0*w2 >= -2.0 and h2 + 4.0*w2 <= 2.0 and h3 + 5.0*w3 >= -2.0 and h3 + 5.0*w3 <= 2.0
+next = [ECONOMY, NOMINAL, SAFE]
+[Rsys.mode.SURVIVAL]
+ode = w1' = smt2:(* -0.42 w1); w2' = smt2:(* -0.42 w2); w3' = smt2:(* -0.42 w3); h1' = smt2:(* 0.84 w1); h2' = smt2:(* 1.68 w2); h3' = smt2:(* 2.1 w3);
+guard = w1*w1*2 + w2*w2*4 + w3*w3*5 <= 1.0
+evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h1 >= -2.0 and h1 <= 2.0 and h2 >= -2.0 and h2 <= 2.0 and h3 >= -2.0 and h3 <= 2.0 and h1 + 2.0*w1 >= -2.0 and h1 + 2.0*w1 <= 2.0 and h2 + 4.0*w2 >= -2.0 and h2 + 4.0*w2 <= 2.0 and h3 + 5.0*w3 >= -2.0 and h3 + 5.0*w3 <= 2.0
+next = [SURVIVAL, NOMINAL, SAFE]
+[Rsys.mode.SAFE]
+ode = w1' = smt2:0; w2' = smt2:0; w3' = smt2:0; h1' = smt2:0; h2' = smt2:0; h3' = smt2:0;
+guard = w1*w1*2 + w2*w2*4 + w3*w3*5 > 1.0
+evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h1 >= -2.0 and h1 <= 2.0 and h2 >= -2.0 and h2 <= 2.0 and h3 >= -2.0 and h3 <= 2.0 and h1 + 2.0*w1 >= -2.0 and h1 + 2.0*w1 <= 2.0 and h2 + 4.0*w2 >= -2.0 and h2 + 4.0*w2 <= 2.0 and h3 + 5.0*w3 >= -2.0 and h3 + 5.0*w3 <= 2.0
+next = [SAFE]
+[relational_invariant]
+DETUMBLE = w1[l]*w1[l]*2 + w2[l]*w2[l]*4 + w3[l]*w3[l]*5 <= w1[r]*w1[r]*2 + w2[r]*w2[r]*4 + w3[r]*w3[r]*5 + 0.125

@@ -88,54 +88,14 @@ def packsV2 : List PackV2 :=
     ⟨"quad_light_airframe_20", 2, 0, [2, 3, 0, 1], 6, 5, 0, 0⟩,
     -- quad_light_lag
     ⟨"quad_light_lag", 3, 0, [2, 3, 0, 1], 6, 5, 0, 0⟩,
-    -- charger_fast_setpoints
-    ⟨"charger_fast_setpoints", 3, 0, [0], 1, 1, 0, 1⟩,
-    ⟨"charger_fast_setpoints", 3, 0, [0], 1, 1, 0, 2⟩,
-    ⟨"charger_fast_setpoints", 3, 0, [0], 1, 1, 0, 3⟩,
-    ⟨"charger_fast_setpoints", 3, 1, [0], 1, 1, 1, 2⟩,
-    ⟨"charger_fast_setpoints", 3, 1, [0], 1, 1, 1, 3⟩,
-    ⟨"charger_fast_setpoints", 3, 2, [0], 1, 1, 2, 3⟩,
-    ⟨"charger_fast_setpoints", 3, 3, [0], 1, 1, 3, 2⟩,
-    ⟨"charger_fast_setpoints", 3, 3, [0], 1, 1, 3, 3⟩,
-    ⟨"charger_fast_setpoints", 3, 4, [0], 1, 1, 4, 0⟩,
-    ⟨"charger_fast_setpoints", 3, 4, [0], 1, 1, 4, 1⟩,
-    ⟨"charger_fast_setpoints", 3, 4, [0], 1, 1, 4, 2⟩,
-    ⟨"charger_fast_setpoints", 3, 4, [0], 1, 1, 4, 3⟩,
-    ⟨"charger_fast_setpoints", 3, 4, [0], 1, 1, 4, 4⟩,
     -- acc_tune_lag
     ⟨"acc_tune_lag", 2, 0, [0, 1], 2, 1, 0, 0⟩,
     -- acc_spoof_lag
     ⟨"acc_spoof_lag", 2, 0, [1, 0], 3, 2, 0, 0⟩,
-    -- charger_fast_tapers
-    ⟨"charger_fast_tapers", 3, 0, [0], 1, 1, 0, 1⟩,
-    ⟨"charger_fast_tapers", 3, 0, [0], 1, 1, 0, 2⟩,
-    ⟨"charger_fast_tapers", 3, 0, [0], 1, 1, 0, 3⟩,
-    ⟨"charger_fast_tapers", 3, 0, [0], 1, 1, 0, 4⟩,
-    ⟨"charger_fast_tapers", 3, 1, [0], 1, 1, 1, 4⟩,
-    ⟨"charger_fast_tapers", 3, 2, [0], 1, 1, 2, 1⟩,
-    ⟨"charger_fast_tapers", 3, 2, [0], 1, 1, 2, 3⟩,
-    ⟨"charger_fast_tapers", 3, 2, [0], 1, 1, 2, 4⟩,
-    ⟨"charger_fast_tapers", 3, 3, [0], 1, 1, 3, 2⟩,
-    ⟨"charger_fast_tapers", 3, 3, [0], 1, 1, 3, 3⟩,
-    ⟨"charger_fast_tapers", 3, 3, [0], 1, 1, 3, 4⟩,
-    ⟨"charger_fast_tapers", 3, 4, [0], 1, 1, 4, 0⟩,
-    ⟨"charger_fast_tapers", 3, 4, [0], 1, 1, 4, 1⟩,
-    ⟨"charger_fast_tapers", 3, 4, [0], 1, 1, 4, 2⟩,
-    ⟨"charger_fast_tapers", 3, 4, [0], 1, 1, 4, 3⟩,
-    ⟨"charger_fast_tapers", 3, 4, [0], 1, 1, 4, 4⟩,
-    ⟨"charger_fast_tapers", 3, 4, [0], 1, 1, 4, 5⟩,
-    -- sat_detumble_nominal
-    ⟨"sat_detumble_nominal", 4, 0, [0, 1], 1, 1, 0, 0⟩,
     -- sat_detumble_weak
     ⟨"sat_detumble_weak", 4, 0, [0, 1], 1, 1, 0, 0⟩,
     ⟨"sat_detumble_weak", 4, 0, [0, 1], 1, 1, 0, 1⟩,
     ⟨"sat_detumble_weak", 4, 0, [0, 1], 1, 1, 0, 2⟩,
-    -- sat3w_detumble_nominal
-    ⟨"sat3w_detumble_nominal", 6, 0, [0, 1], 1, 1, 0, 0⟩,
-    -- sat3w_detumble_weak
-    ⟨"sat3w_detumble_weak", 6, 0, [0, 1], 1, 1, 0, 0⟩,
-    ⟨"sat3w_detumble_weak", 6, 0, [0, 1], 1, 1, 0, 1⟩,
-    ⟨"sat3w_detumble_weak", 6, 0, [0, 1], 1, 1, 0, 2⟩,
     -- sat_detumble_phases
     ⟨"sat_detumble_phases", 4, 0, [0, 1], 1, 1, 0, 0⟩,
     ⟨"sat_detumble_phases", 4, 1, [0, 1], 1, 1, 1, 0⟩,
@@ -218,21 +178,6 @@ def packsV2 : List PackV2 :=
     ⟨"tank_dos_3to1", 2, 0, [2, 3, 0, 1], 1, 1, 2, 2⟩,
     ⟨"tank_dos_3to1", 2, 0, [1, 2, 3, 0], 1, 1, 2, 3⟩,
     ⟨"tank_dos_3to1", 2, 0, [1, 2, 3, 0], 1, 1, 3, 3⟩,
-    -- arm_plateau_crit (cover replay)
-    ⟨"arm_plateau_crit", 2, 0, [0], 1, 1, 0, 0⟩,
-    ⟨"arm_plateau_crit", 2, 0, [0], 1, 1, 0, 1⟩,
-    ⟨"arm_plateau_crit", 2, 0, [0], 1, 1, 0, 2⟩,
-    ⟨"arm_plateau_crit", 2, 0, [0], 1, 1, 0, 3⟩,
-    ⟨"arm_plateau_crit", 2, 1, [0], 1, 1, 1, 1⟩,
-    ⟨"arm_plateau_crit", 2, 1, [0], 1, 1, 1, 2⟩,
-    ⟨"arm_plateau_crit", 2, 1, [0], 1, 1, 1, 3⟩,
-    -- arm_plateau_slow (cover replay)
-    ⟨"arm_plateau_slow", 2, 0, [0], 1, 1, 0, 0⟩,
-    ⟨"arm_plateau_slow", 2, 0, [0], 1, 1, 0, 2⟩,
-    ⟨"arm_plateau_slow", 2, 0, [0], 1, 1, 0, 3⟩,
-    ⟨"arm_plateau_slow", 2, 1, [0], 1, 1, 1, 1⟩,
-    ⟨"arm_plateau_slow", 2, 1, [0], 1, 1, 1, 2⟩,
-    ⟨"arm_plateau_slow", 2, 1, [0], 1, 1, 1, 3⟩,
     -- watertank_twospeed: three windows (one row), a stretch PER PAIRING in Low (Fast 1, Slow 2,
     -- MidEco 3/2, MidBoost 1, High 1), Mid at 2 against MidEco/MidBoost/High, High at 1
     ⟨"watertank_twospeed", 2, 0, [0, 1], 1, 1, 0, 0⟩,
@@ -284,7 +229,7 @@ def packsV2 : List PackV2 :=
     ⟨"turbine_startup_gearratio", 2, 0, [0], 1, 1, 3, 3⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 782
+def expectedModalV2 : Nat := 729
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
@@ -367,23 +312,6 @@ def dynPacksV2 : List DynPackV2 :=
     ⟨"rover_patrol_lag", 3, 0, [0, 1], true, 2, 0⟩,
     ⟨"rover_patrol_lag", 3, 0, [0, 1], true, 2, 1⟩,
     ⟨"rover_patrol_lag", 3, 0, [0, 1], true, 3, 1⟩,
-    -- arm_plateau_crit
-    ⟨"arm_plateau_crit", 2, 1, [0], true, 1, 0⟩,
-    -- arm_plateau_slow
-    ⟨"arm_plateau_slow", 2, 0, [0], true, 0, 1⟩,
-    -- charger_fast_setpoints
-    ⟨"charger_fast_setpoints", 3, 0, [0], true, 0, 0⟩,
-    ⟨"charger_fast_setpoints", 3, 1, [0], true, 1, 0⟩,
-    ⟨"charger_fast_setpoints", 3, 1, [0], true, 1, 1⟩,
-    ⟨"charger_fast_setpoints", 3, 2, [0], true, 2, 1⟩,
-    ⟨"charger_fast_setpoints", 3, 2, [0], true, 2, 2⟩,
-    -- charger_fast_tapers
-    ⟨"charger_fast_tapers", 3, 0, [0], true, 0, 0⟩,
-    ⟨"charger_fast_tapers", 3, 1, [0], true, 1, 0⟩,
-    ⟨"charger_fast_tapers", 3, 1, [0], true, 1, 1⟩,
-    ⟨"charger_fast_tapers", 3, 1, [0], true, 1, 2⟩,
-    ⟨"charger_fast_tapers", 3, 1, [0], true, 1, 3⟩,
-    ⟨"charger_fast_tapers", 3, 2, [0], true, 2, 2⟩,
     -- engine_start_highidle: SELF_L repositions through right-only LIGHTOFF, IDLE_L through SELF
     ⟨"engine_start_highidle", 3, 2, [0], true, 2, 1⟩,
     ⟨"engine_start_highidle", 3, 3, [0], true, 3, 2⟩,
@@ -391,7 +319,7 @@ def dynPacksV2 : List DynPackV2 :=
     ⟨"turbine_startup_gearratio", 2, 0, [0], true, 0, 1⟩ ]
 
 /-- Declared: the number of component queries the reposition packs owe. -/
-def expectedDynV2 : Nat := 24
+def expectedDynV2 : Nat := 11
 
 def runDynPack (s : Z3Session) (r : DynPackV2) : IO Bool := do
   let p := irV2 r.bench
@@ -435,7 +363,7 @@ def runDynV2 (cfg : Z3Config) : IO Bool := do
 
 /-- Declared: one handoff query per declared left transition over the suite_v2 files
 (self-loops included; `CoveragePinsV2.derivedHandoffV2_eq` derives it from the IR table). -/
-def expectedHandoffV2 : Nat := 399
+def expectedHandoffV2 : Nat := 368
 
 /-- Declared handoff failures in suite_v2: none. -/
 def expectedHandoffFailuresV2 : List (String × Nat × Nat) := []
@@ -470,8 +398,8 @@ def prunedEdgesV2 : List (String × String × String) :=
   coverTableV2.flatMap (fun c => c.2.pruned.map (fun e => (c.1, e.1, e.2)))
 
 /-- Declared: pruned edges in the suite_v2 covers, and two queries per edge. -/
-def expectedPrunedEdgesV2 : Nat := 29
-def expectedNonConnV2 : Nat := 58
+def expectedPrunedEdgesV2 : Nat := 20
+def expectedNonConnV2 : Nat := 40
 
 def nonConnQueriesOfV2 (p : PProblem) (cX : EvolStrengtheningX) (src tgt : String) :
     Option ((n : ℕ) × (Fin n → String) × IForm n × IForm n) := do
@@ -509,19 +437,19 @@ def runNonConnAllV2 (cfg : Z3Config) : IO Bool := do
 /-! ## The suite tally -/
 
 /-- What a certification run over `benchmarks/suite_v2/*/input.txt` must produce, with
-`RELCERT_IMPLIED_CUT=1`: all 42 certified (in the strict well-formedness mode of
+`RELCERT_IMPLIED_CUT=1`: all 35 certified (in the strict well-formedness mode of
 `--check-quick-v2`); and what the strict Assumption 1 check of the right models must produce:
-every one of the 145 right modes `ok` on both clauses (`wfModes`; the kernel pin
+every one of the 118 right modes `ok` on both clauses (`wfModes`; the kernel pin
 `CoveragePinsV2.suiteV2_wfModes` of that count was archived with the standalone route), none
 `UNKNOWN` (`wfUnknown`; 16 UNKNOWN in 9 benchmarks until the 2026-10-10 repairs, when the
 check was informational), none `BLOCKING` (`wfBlocking`; the nonblocking clause is checked
 since 2026-10-26). -/
 structure ExpectedSuiteV2 where
-  paths     : Nat := 42
-  certified : Nat := 42
+  paths     : Nat := 35
+  certified : Nat := 35
   declined  : Nat := 0
   errors    : Nat := 0
-  wfModes   : Nat := 145
+  wfModes   : Nat := 118
   wfUnknown : Nat := 0
   wfBlocking : Nat := 0
   deriving Repr

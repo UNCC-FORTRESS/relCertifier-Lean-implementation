@@ -3,12 +3,8 @@ import RelCertifier.InstancesV2.BenchCovers.acc_spoof_lag
 import RelCertifier.InstancesV2.BenchCovers.acc_spoof_limp
 import RelCertifier.InstancesV2.BenchCovers.acc_tune_lag
 import RelCertifier.InstancesV2.BenchCovers.acc_tune_limp
-import RelCertifier.InstancesV2.BenchCovers.arm_plateau_crit
-import RelCertifier.InstancesV2.BenchCovers.arm_plateau_slow
 import RelCertifier.InstancesV2.BenchCovers.bms_chiller_undercharge
 import RelCertifier.InstancesV2.BenchCovers.canal_gate_notches
-import RelCertifier.InstancesV2.BenchCovers.charger_fast_setpoints
-import RelCertifier.InstancesV2.BenchCovers.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchCovers.drl_car_stop
 import RelCertifier.InstancesV2.BenchCovers.drl_lane_control
 import RelCertifier.InstancesV2.BenchCovers.engine_start_highidle
@@ -29,10 +25,7 @@ import RelCertifier.InstancesV2.BenchCovers.rover_patrol_lag
 import RelCertifier.InstancesV2.BenchCovers.rover_terrain_2to4
 import RelCertifier.InstancesV2.BenchCovers.rover_terrain_4to6
 import RelCertifier.InstancesV2.BenchCovers.rover_terrain_6to12
-import RelCertifier.InstancesV2.BenchCovers.sat3w_detumble_nominal
 import RelCertifier.InstancesV2.BenchCovers.sat3w_detumble_phases
-import RelCertifier.InstancesV2.BenchCovers.sat3w_detumble_weak
-import RelCertifier.InstancesV2.BenchCovers.sat_detumble_nominal
 import RelCertifier.InstancesV2.BenchCovers.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchCovers.sat_detumble_weak
 import RelCertifier.InstancesV2.BenchCovers.tank_dos_3to1
@@ -49,12 +42,8 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("acc_spoof_limp", acc_spoof_limp_coverV2),
   ("acc_tune_lag", acc_tune_lag_coverV2),
   ("acc_tune_limp", acc_tune_limp_coverV2),
-  ("arm_plateau_crit", arm_plateau_crit_coverV2),
-  ("arm_plateau_slow", arm_plateau_slow_coverV2),
   ("bms_chiller_undercharge", bms_chiller_undercharge_coverV2),
   ("canal_gate_notches", canal_gate_notches_coverV2),
-  ("charger_fast_setpoints", charger_fast_setpoints_coverV2),
-  ("charger_fast_tapers", charger_fast_tapers_coverV2),
   ("drl_car_stop", drl_car_stop_coverV2),
   ("drl_lane_control", drl_lane_control_coverV2),
   ("engine_start_highidle", engine_start_highidle_coverV2),
@@ -75,10 +64,7 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("rover_terrain_2to4", rover_terrain_2to4_coverV2),
   ("rover_terrain_4to6", rover_terrain_4to6_coverV2),
   ("rover_terrain_6to12", rover_terrain_6to12_coverV2),
-  ("sat3w_detumble_nominal", sat3w_detumble_nominal_coverV2),
   ("sat3w_detumble_phases", sat3w_detumble_phases_coverV2),
-  ("sat3w_detumble_weak", sat3w_detumble_weak_coverV2),
-  ("sat_detumble_nominal", sat_detumble_nominal_coverV2),
   ("sat_detumble_phases", sat_detumble_phases_coverV2),
   ("sat_detumble_weak", sat_detumble_weak_coverV2),
   ("tank_dos_3to1", tank_dos_3to1_coverV2),

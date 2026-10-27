@@ -3,12 +3,8 @@ import RelCertifier.InstancesV2.BenchProgress.acc_spoof_lag
 import RelCertifier.InstancesV2.BenchProgress.acc_spoof_limp
 import RelCertifier.InstancesV2.BenchProgress.acc_tune_lag
 import RelCertifier.InstancesV2.BenchProgress.acc_tune_limp
-import RelCertifier.InstancesV2.BenchProgress.arm_plateau_crit
-import RelCertifier.InstancesV2.BenchProgress.arm_plateau_slow
 import RelCertifier.InstancesV2.BenchProgress.bms_chiller_undercharge
 import RelCertifier.InstancesV2.BenchProgress.canal_gate_notches
-import RelCertifier.InstancesV2.BenchProgress.charger_fast_setpoints
-import RelCertifier.InstancesV2.BenchProgress.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchProgress.engine_start_highidle
 import RelCertifier.InstancesV2.BenchProgress.gantry_speed_zones
 import RelCertifier.InstancesV2.BenchProgress.hvac_fan_staging
@@ -26,10 +22,7 @@ import RelCertifier.InstancesV2.BenchProgress.rover_patrol_lag
 import RelCertifier.InstancesV2.BenchProgress.rover_terrain_2to4
 import RelCertifier.InstancesV2.BenchProgress.rover_terrain_4to6
 import RelCertifier.InstancesV2.BenchProgress.rover_terrain_6to12
-import RelCertifier.InstancesV2.BenchProgress.sat3w_detumble_nominal
 import RelCertifier.InstancesV2.BenchProgress.sat3w_detumble_phases
-import RelCertifier.InstancesV2.BenchProgress.sat3w_detumble_weak
-import RelCertifier.InstancesV2.BenchProgress.sat_detumble_nominal
 import RelCertifier.InstancesV2.BenchProgress.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchProgress.sat_detumble_weak
 import RelCertifier.InstancesV2.BenchProgress.tank_dos_3to1
@@ -46,12 +39,8 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("acc_spoof_limp", acc_spoof_limp_coverV2_progress),
    ("acc_tune_lag", acc_tune_lag_coverV2_progress),
    ("acc_tune_limp", acc_tune_limp_coverV2_progress),
-   ("arm_plateau_crit", arm_plateau_crit_coverV2_progress),
-   ("arm_plateau_slow", arm_plateau_slow_coverV2_progress),
    ("bms_chiller_undercharge", bms_chiller_undercharge_coverV2_progress),
    ("canal_gate_notches", canal_gate_notches_coverV2_progress),
-   ("charger_fast_setpoints", charger_fast_setpoints_coverV2_progress),
-   ("charger_fast_tapers", charger_fast_tapers_coverV2_progress),
    ("engine_start_highidle", engine_start_highidle_coverV2_progress),
    ("gantry_speed_zones", gantry_speed_zones_coverV2_progress),
    ("hvac_fan_staging", hvac_fan_staging_coverV2_progress),
@@ -69,10 +58,7 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("rover_terrain_2to4", rover_terrain_2to4_coverV2_progress),
    ("rover_terrain_4to6", rover_terrain_4to6_coverV2_progress),
    ("rover_terrain_6to12", rover_terrain_6to12_coverV2_progress),
-   ("sat3w_detumble_nominal", sat3w_detumble_nominal_coverV2_progress),
    ("sat3w_detumble_phases", sat3w_detumble_phases_coverV2_progress),
-   ("sat3w_detumble_weak", sat3w_detumble_weak_coverV2_progress),
-   ("sat_detumble_nominal", sat_detumble_nominal_coverV2_progress),
    ("sat_detumble_phases", sat_detumble_phases_coverV2_progress),
    ("sat_detumble_weak", sat_detumble_weak_coverV2_progress),
    ("tank_dos_3to1", tank_dos_3to1_coverV2_progress),

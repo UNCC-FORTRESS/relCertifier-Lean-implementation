@@ -74,6 +74,20 @@ import RelCertifier.InstancesV2.Refute.Data.rover_rollover_payload_m027
 import RelCertifier.InstancesV2.Refute.Data.rover_rollover_payload_m028
 import RelCertifier.InstancesV2.Refute.Data.rover_rollover_payload_m031
 import RelCertifier.InstancesV2.Refute.Data.rover_rollover_payload_m032
+import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m016
+import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m017
+import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m018
+import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m019
+import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m020
+import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m021
+import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m022
+import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m023
+import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m028
+import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m029
+import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m032
+import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m036
+import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m040
+import RelCertifier.InstancesV2.Cuts.antenna_track_kvretune
 import RelCertifier.InstancesV2.Cuts.engine_start_highidle
 import RelCertifier.InstancesV2.Cuts.hydro_rejection_gatecal
 import RelCertifier.InstancesV2.Cuts.platoon_latency
@@ -172,9 +186,22 @@ def refuteTable : List RefRec := [
   ⟨"rover_rollover_payload_m027", 12 + 1, rover_rollover_payload_m027_IRm, rover_rollover_payload_cutsV2X, rover_rollover_payload_m027_wit⟩,
   ⟨"rover_rollover_payload_m028", 12 + 1, rover_rollover_payload_m028_IRm, rover_rollover_payload_cutsV2X, rover_rollover_payload_m028_wit⟩,
   ⟨"rover_rollover_payload_m031", 12 + 1, rover_rollover_payload_m031_IRm, rover_rollover_payload_cutsV2X, rover_rollover_payload_m031_wit⟩,
-  ⟨"rover_rollover_payload_m032", 12 + 1, rover_rollover_payload_m032_IRm, rover_rollover_payload_cutsV2X, rover_rollover_payload_m032_wit⟩ ]
+  ⟨"rover_rollover_payload_m032", 12 + 1, rover_rollover_payload_m032_IRm, rover_rollover_payload_cutsV2X, rover_rollover_payload_m032_wit⟩,
+  ⟨"antenna_track_kvretune_m016", 3 + 1, antenna_track_kvretune_m016_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m016_wit⟩,
+  ⟨"antenna_track_kvretune_m017", 3 + 1, antenna_track_kvretune_m017_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m017_wit⟩,
+  ⟨"antenna_track_kvretune_m018", 3 + 1, antenna_track_kvretune_m018_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m018_wit⟩,
+  ⟨"antenna_track_kvretune_m019", 3 + 1, antenna_track_kvretune_m019_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m019_wit⟩,
+  ⟨"antenna_track_kvretune_m020", 3 + 1, antenna_track_kvretune_m020_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m020_wit⟩,
+  ⟨"antenna_track_kvretune_m021", 3 + 1, antenna_track_kvretune_m021_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m021_wit⟩,
+  ⟨"antenna_track_kvretune_m022", 3 + 1, antenna_track_kvretune_m022_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m022_wit⟩,
+  ⟨"antenna_track_kvretune_m023", 3 + 1, antenna_track_kvretune_m023_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m023_wit⟩,
+  ⟨"antenna_track_kvretune_m028", 3 + 1, antenna_track_kvretune_m028_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m028_wit⟩,
+  ⟨"antenna_track_kvretune_m029", 3 + 1, antenna_track_kvretune_m029_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m029_wit⟩,
+  ⟨"antenna_track_kvretune_m032", 3 + 1, antenna_track_kvretune_m032_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m032_wit⟩,
+  ⟨"antenna_track_kvretune_m036", 3 + 1, antenna_track_kvretune_m036_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m036_wit⟩,
+  ⟨"antenna_track_kvretune_m040", 3 + 1, antenna_track_kvretune_m040_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m040_wit⟩ ]
 
 /-- Declared: the number of query groups over the refutations (one per right mode each). -/
-def expectedRefuteGroups : Nat := 196
+def expectedRefuteGroups : Nat := 235
 
 end RelCertifier.Refute

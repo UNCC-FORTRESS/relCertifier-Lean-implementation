@@ -3,11 +3,14 @@ import RelCertifier.InstancesV2.BenchProgress.acc_spoof_lag
 import RelCertifier.InstancesV2.BenchProgress.acc_spoof_limp
 import RelCertifier.InstancesV2.BenchProgress.acc_tune_lag
 import RelCertifier.InstancesV2.BenchProgress.acc_tune_limp
+import RelCertifier.InstancesV2.BenchProgress.antenna_track_kvretune
 import RelCertifier.InstancesV2.BenchProgress.bms_chiller_undercharge
+import RelCertifier.InstancesV2.BenchProgress.bottling_fill_strainer
 import RelCertifier.InstancesV2.BenchProgress.canal_gate_notches
 import RelCertifier.InstancesV2.BenchProgress.compressor_station_recycle
 import RelCertifier.InstancesV2.BenchProgress.elevator_start_discbrake
 import RelCertifier.InstancesV2.BenchProgress.engine_start_highidle
+import RelCertifier.InstancesV2.BenchProgress.flaps_slow_approach
 import RelCertifier.InstancesV2.BenchProgress.fuelcell_chp_dos
 import RelCertifier.InstancesV2.BenchProgress.furnace_program_timebase
 import RelCertifier.InstancesV2.BenchProgress.gantry_speed_zones
@@ -21,6 +24,7 @@ import RelCertifier.InstancesV2.BenchProgress.platoon_profiles
 import RelCertifier.InstancesV2.BenchProgress.quad_light_airframe_20
 import RelCertifier.InstancesV2.BenchProgress.quad_light_lag
 import RelCertifier.InstancesV2.BenchProgress.quad_light_profiles
+import RelCertifier.InstancesV2.BenchProgress.rampmeter_poll_2to1
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_2to3
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_3to6
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_6to8
@@ -36,6 +40,7 @@ import RelCertifier.InstancesV2.BenchProgress.sat_detumble_weak
 import RelCertifier.InstancesV2.BenchProgress.syringe_relay_prearm
 import RelCertifier.InstancesV2.BenchProgress.tank_dos_3to1
 import RelCertifier.InstancesV2.BenchProgress.train_ato_odometry
+import RelCertifier.InstancesV2.BenchProgress.tunnel_jetfan_pairout
 import RelCertifier.InstancesV2.BenchProgress.turbine_startup_gearratio
 import RelCertifier.InstancesV2.BenchProgress.ventilator_vc_cuffleak
 import RelCertifier.InstancesV2.BenchProgress.watertank
@@ -49,11 +54,14 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("acc_spoof_limp", acc_spoof_limp_coverV2_progress),
    ("acc_tune_lag", acc_tune_lag_coverV2_progress),
    ("acc_tune_limp", acc_tune_limp_coverV2_progress),
+   ("antenna_track_kvretune", antenna_track_kvretune_coverV2_progress),
    ("bms_chiller_undercharge", bms_chiller_undercharge_coverV2_progress),
+   ("bottling_fill_strainer", bottling_fill_strainer_coverV2_progress),
    ("canal_gate_notches", canal_gate_notches_coverV2_progress),
    ("compressor_station_recycle", compressor_station_recycle_coverV2_progress),
    ("elevator_start_discbrake", elevator_start_discbrake_coverV2_progress),
    ("engine_start_highidle", engine_start_highidle_coverV2_progress),
+   ("flaps_slow_approach", flaps_slow_approach_coverV2_progress),
    ("fuelcell_chp_dos", fuelcell_chp_dos_coverV2_progress),
    ("furnace_program_timebase", furnace_program_timebase_coverV2_progress),
    ("gantry_speed_zones", gantry_speed_zones_coverV2_progress),
@@ -67,6 +75,7 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("quad_light_airframe_20", quad_light_airframe_20_coverV2_progress),
    ("quad_light_lag", quad_light_lag_coverV2_progress),
    ("quad_light_profiles", quad_light_profiles_coverV2_progress),
+   ("rampmeter_poll_2to1", rampmeter_poll_2to1_coverV2_progress),
    ("rover_ladder_2to3", rover_ladder_2to3_coverV2_progress),
    ("rover_ladder_3to6", rover_ladder_3to6_coverV2_progress),
    ("rover_ladder_6to8", rover_ladder_6to8_coverV2_progress),
@@ -82,6 +91,7 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("syringe_relay_prearm", syringe_relay_prearm_coverV2_progress),
    ("tank_dos_3to1", tank_dos_3to1_coverV2_progress),
    ("train_ato_odometry", train_ato_odometry_coverV2_progress),
+   ("tunnel_jetfan_pairout", tunnel_jetfan_pairout_coverV2_progress),
    ("turbine_startup_gearratio", turbine_startup_gearratio_coverV2_progress),
    ("ventilator_vc_cuffleak", ventilator_vc_cuffleak_coverV2_progress),
    ("watertank", watertank_coverV2_progress),

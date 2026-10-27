@@ -1,0 +1,125 @@
+# flaps_slow_approach: a twin-jet airliner extending its flaps from CONF 1+F to CONF 2 on approach with
+# one of the two hydraulic systems of the flap drive lost (FLAPS SLOW: the flaps move at half speed),
+# against the same extension with both systems; the claim compares the approach speed at equal flap
+# positions, i.e. against the normal extension re-timed by the flap drive's speed ratio.
+# scenario: degraded-actuator
+# mechanisms: S (a time stretch per mode: 1/2 while the flaps move, 1 once they are set; RELCERT_SYNC=1
+#   declines; the claim is a tolerance claim, not an exact time scaling: the flap rows are exact at
+#   the stretch, the speed row is not; matrix code M1)
+#
+# System (both sides). Flap angle f in deg, calibrated airspeed V in kt, time in s; the flap/slat
+# control and the autothrust re-decide every 0.1 s (epsilon 0.1 on both sides). At f = 10 deg (CONF
+# 1+F, A320 family) the crew selects CONF 2 (flaps 15 deg) at the S speed; the managed speed target
+# drops to the F speed and the autothrust decelerates toward it with idle thrust; flap drag makes the
+# deceleration grow with the flap angle: V' = -(0.02 + 0.001 f) (V - F), about 1.05 kt/s at f = 10 and
+# 35 kt above target (the usual 1 kt/s level-flight deceleration), F = 150 kt. Two modes:
+#   EXT    f < 15    the flap power control unit drives the flaps toward the detent at a constant rate
+#   CONF2  f >= 15   the flaps are set (f' = 0)
+# EXT -> [EXT, CONF2], CONF2 -> [CONF2]. Representative speeds for a mid landing weight, from the
+# Airbus definitions (Safety First #24, July 2017: S = 1.21 to 1.23 x VS1G clean, F = 1.38 to 1.47 x
+# VS1G CONF 2): S = 185 kt, F = 150 kt (VS1G clean about 152, CONF 2 about 106 kt). Flap rate 1 deg/s
+# with both systems (a representative value, assumed: about 5 s for the 5 deg leg).
+# Right (reference): both hydraulic systems, the flap PCU's two hydraulic motors drive the flaps at
+#   1 deg/s.
+# Left (deployed): one hydraulic system lost; the PCU runs on one motor and the flaps move at half
+#   speed, 0.5 deg/s (A320 family FCOM, flaps and slats: with one of the two hydraulic systems of a
+#   PCU the surfaces operate at half speed). Same aircraft, same autothrust, same selection. The
+#   flap drive speed is the only difference.
+#
+# Property (both modes): f_L = f_R (two inequalities), V_L <= V_R, V_R <= V_L + 20 (kt), against the
+# normal extension re-timed by a stretch in [1/2, 1] (lambda_min 0.5 = one motor of two, lambda_max 1).
+# Reading: at every flap position the FLAPS SLOW aircraft is never faster than the normal one (so it
+# respects every flap placard speed the normal extension respects) and at most 20 kt slower.
+# Requirement for the 20 kt: the speed windows operators accept around an approach speed target: the
+# Airbus AFS lets the speed vary +-20 kt around the managed target (Safety First #24), the stabilized-
+# approach criterion of the Flight Safety Foundation (ALAR Briefing Note 7.1) is a 20 kt window above
+# VREF. The upper row V_L <= V_R is derived, exact (constant 0; -1 declines). (The autothrust keeps
+# VLS of the actual configuration as a floor in both aircraft, Safety First #24; that floor is not
+# modeled, the speeds stay in [F, S] here.)
+# Tightest: 17.50 kt (17.49 declines) = (1 - 1/2) x (S - F): at the stretch 1/2 the flap rows are
+# exact and the speed gap obeys D' = -k(f) D + (1/2) k(f) (V_R - F), so the gap is held at half the
+# reference's distance above its target. Window: the 20 kt requirement holds while S - F <= 40 kt
+# (S = 190 certifies, S = 195 declines at 20); the drag coupling does not move the bound (with
+# k = 0.02 /s for every flap angle the tightest is 17.50 too). Not implied by the domains (they allow
+# a speed gap of 35 kt and any flap gap of 5.1 deg).
+#
+# Why the stretch (S), and why it is not exact. At stretch 1 the deployed flaps fall behind the
+# reference's without bound in the time-free segment certificate (0.5 deg/s against 1 deg/s), so the
+# exact flap rows fail: RELCERT_SYNC=1 DECLINES. At stretch 1/2 the flap motion is matched exactly,
+# but the speed is not: the autothrust and the flap drag act in real time, so the deployed spends
+# twice as long decelerating per degree of flap, and the speed row needs a tolerance. Per mode: the
+# cover uses 1/2 while the flaps move (EXT_L) and 1 once they are set (CONF2_L: both aircraft are then
+# the same system, the gap only decays).
+# Relation to furnace_program_timebase (the suite's other tolerance stretch). Same skeleton (an exactly
+# re-timed program, the flaps here and the setpoint generator there, and a real-time follower that
+# leaves a residual (1 - lambda) x its lag), but the stretch is per mode (1/2 while the flaps move, 1
+# once they are set, where the furnace re-times every segment), it comes from a hardware ratio (one
+# hydraulic motor of two, the grid end point lambda_min = 1/2) rather than a programmer setting, and
+# the follower's rate depends on the program through the flap drag.
+# How the bound depends on the cause (measured, tightest speed tolerance against the deployed flap
+# rate): 1 deg/s (no failure): the exact claim (all constants 0) CERTIFIES, also under RELCERT_SYNC=1;
+# 0.75 deg/s: 8.75; 0.6 deg/s: 14.00; 0.5 deg/s (this file): 17.50 = (1 - r) (S - F). Law dependence:
+# an arbitrary deployed flap schedule (every left guard the domain, each mode a successor of the
+# other: the flaps may stop or move at any angle) DECLINES at every tolerance up to 40 kt. Simulated
+# (0.01 s steps, from CONF 1+F at S): at CONF 2 the FLAPS SLOW aircraft is 4.5 kt slower (175.3 against
+# 179.8 kt); the certificate is the inductive envelope (17.5) over every start in the domain.
+#
+# Domains. f in [10, 15.1] deg (CONF 1+F to CONF 2, plus the 0.1 deg one control period of flap travel
+# can carry past the detent before the next decision stops it); V in [F, S] = [150, 185] kt: the
+# autothrust decelerates toward F and never below it, and never accelerates (forward invariant).
+# Right guards partition f (no coverage gap); every left mode has a satisfiable start (equal states).
+#
+# Stretch-grid dependence. The flap rows are exact only at lambda = the deployed-to-reference flap-rate
+# ratio, so the certificate needs that ratio to be a point of the tool's stretch grid (21 points over
+# [lambda_min, lambda_max], step 0.025 here; 1/2 is its end point lambda_min). A hydraulic rate 2 % off
+# the FCOM's half speed declines: 0.51 deg/s DECLINES (0.51 lies between grid points) and 0.49 deg/s
+# DECLINES (below lambda_min 0.5; with lambda_min 0.45 the ratio 0.49 is again off the grid and still
+# DECLINES). The claim therefore reads the FCOM's half speed as exact; a measured drive ratio would need
+# its value on the grid. (bottling_fill_strainer and furnace_program_timebase state the same dependence
+# for their integrators.)
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27 at installation on branch benchmark-fixes): CERTIFIED (0.4 s);
+# CERTIFIED under RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE, RELCERT_NO_CUT=1,
+# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, without RELCERT_IMPLIED_CUT, RELCERT_OPREGION=1,
+# RELCERT_NO_PAIR_STRETCH=1 and RELCERT_WELLFORMED_STRICT=1; DECLINED under RELCERT_SYNC=1 and
+# SYNC+NO_CHOICE. Cover: EXT_L at lambda 1/2, CONF2_L at lambda 1, budget 1, admissible start the same
+# mode, joint segments only. Nothing pruned. Rows identical (--handoff 3/3, vacuous). relcert
+# --wellformed: EXT ok (exit->CONF2), CONF2 ok (invariant), 0 UNKNOWN, 0 BLOCKING. Letters: S.
+[problem]
+name = flaps_slow_approach
+max_depth = 8
+lambda_min = 0.5
+lambda_max = 1.0
+bound_T = 120.0
+
+[Lsys]
+state_vars = [f, V]
+epsilon = 0.1
+[Lsys.mode.EXT]
+ode = f' = 0.5; V' = smt2:(* (- 0.0 (+ 0.02 (* 0.001 f))) (- V 150));
+guard = f < 15 and f >= 10 and f <= 15.1 and V >= 150 and V <= 185
+evolve = f >= 10 and f <= 15.1 and V >= 150 and V <= 185
+next = [EXT, CONF2]
+[Lsys.mode.CONF2]
+ode = f' = 0; V' = smt2:(* (- 0.0 (+ 0.02 (* 0.001 f))) (- V 150));
+guard = f >= 15 and f >= 10 and f <= 15.1 and V >= 150 and V <= 185
+evolve = f >= 10 and f <= 15.1 and V >= 150 and V <= 185
+next = [CONF2]
+
+[Rsys]
+state_vars = [f, V]
+epsilon = 0.1
+[Rsys.mode.EXT]
+ode = f' = 1; V' = smt2:(* (- 0.0 (+ 0.02 (* 0.001 f))) (- V 150));
+guard = f < 15 and f >= 10 and f <= 15.1 and V >= 150 and V <= 185
+evolve = f >= 10 and f <= 15.1 and V >= 150 and V <= 185
+next = [EXT, CONF2]
+[Rsys.mode.CONF2]
+ode = f' = 0; V' = smt2:(* (- 0.0 (+ 0.02 (* 0.001 f))) (- V 150));
+guard = f >= 15 and f >= 10 and f <= 15.1 and V >= 150 and V <= 185
+evolve = f >= 10 and f <= 15.1 and V >= 150 and V <= 185
+next = [CONF2]
+
+[relational_invariant]
+EXT = f[l] <= f[r] and f[r] <= f[l] and V[l] <= V[r] + 0 and V[r] <= V[l] + 20
+CONF2 = f[l] <= f[r] and f[r] <= f[l] and V[l] <= V[r] + 0 and V[r] <= V[l] + 20

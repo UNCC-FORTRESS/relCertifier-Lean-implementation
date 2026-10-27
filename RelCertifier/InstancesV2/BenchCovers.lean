@@ -3,13 +3,16 @@ import RelCertifier.InstancesV2.BenchCovers.acc_spoof_lag
 import RelCertifier.InstancesV2.BenchCovers.acc_spoof_limp
 import RelCertifier.InstancesV2.BenchCovers.acc_tune_lag
 import RelCertifier.InstancesV2.BenchCovers.acc_tune_limp
+import RelCertifier.InstancesV2.BenchCovers.antenna_track_kvretune
 import RelCertifier.InstancesV2.BenchCovers.bms_chiller_undercharge
+import RelCertifier.InstancesV2.BenchCovers.bottling_fill_strainer
 import RelCertifier.InstancesV2.BenchCovers.canal_gate_notches
 import RelCertifier.InstancesV2.BenchCovers.compressor_station_recycle
 import RelCertifier.InstancesV2.BenchCovers.drl_car_stop
 import RelCertifier.InstancesV2.BenchCovers.drl_lane_control
 import RelCertifier.InstancesV2.BenchCovers.elevator_start_discbrake
 import RelCertifier.InstancesV2.BenchCovers.engine_start_highidle
+import RelCertifier.InstancesV2.BenchCovers.flaps_slow_approach
 import RelCertifier.InstancesV2.BenchCovers.freedm_meter
 import RelCertifier.InstancesV2.BenchCovers.fuelcell_chp_dos
 import RelCertifier.InstancesV2.BenchCovers.furnace_program_timebase
@@ -24,6 +27,7 @@ import RelCertifier.InstancesV2.BenchCovers.platoon_profiles
 import RelCertifier.InstancesV2.BenchCovers.quad_light_airframe_20
 import RelCertifier.InstancesV2.BenchCovers.quad_light_lag
 import RelCertifier.InstancesV2.BenchCovers.quad_light_profiles
+import RelCertifier.InstancesV2.BenchCovers.rampmeter_poll_2to1
 import RelCertifier.InstancesV2.BenchCovers.rover_ladder_2to3
 import RelCertifier.InstancesV2.BenchCovers.rover_ladder_3to6
 import RelCertifier.InstancesV2.BenchCovers.rover_ladder_6to8
@@ -39,6 +43,7 @@ import RelCertifier.InstancesV2.BenchCovers.sat_detumble_weak
 import RelCertifier.InstancesV2.BenchCovers.syringe_relay_prearm
 import RelCertifier.InstancesV2.BenchCovers.tank_dos_3to1
 import RelCertifier.InstancesV2.BenchCovers.train_ato_odometry
+import RelCertifier.InstancesV2.BenchCovers.tunnel_jetfan_pairout
 import RelCertifier.InstancesV2.BenchCovers.turbine_startup_gearratio
 import RelCertifier.InstancesV2.BenchCovers.vehicle_hypercert
 import RelCertifier.InstancesV2.BenchCovers.ventilator_vc_cuffleak
@@ -52,13 +57,16 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("acc_spoof_limp", acc_spoof_limp_coverV2),
   ("acc_tune_lag", acc_tune_lag_coverV2),
   ("acc_tune_limp", acc_tune_limp_coverV2),
+  ("antenna_track_kvretune", antenna_track_kvretune_coverV2),
   ("bms_chiller_undercharge", bms_chiller_undercharge_coverV2),
+  ("bottling_fill_strainer", bottling_fill_strainer_coverV2),
   ("canal_gate_notches", canal_gate_notches_coverV2),
   ("compressor_station_recycle", compressor_station_recycle_coverV2),
   ("drl_car_stop", drl_car_stop_coverV2),
   ("drl_lane_control", drl_lane_control_coverV2),
   ("elevator_start_discbrake", elevator_start_discbrake_coverV2),
   ("engine_start_highidle", engine_start_highidle_coverV2),
+  ("flaps_slow_approach", flaps_slow_approach_coverV2),
   ("freedm_meter", freedm_meter_coverV2),
   ("fuelcell_chp_dos", fuelcell_chp_dos_coverV2),
   ("furnace_program_timebase", furnace_program_timebase_coverV2),
@@ -73,6 +81,7 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("quad_light_airframe_20", quad_light_airframe_20_coverV2),
   ("quad_light_lag", quad_light_lag_coverV2),
   ("quad_light_profiles", quad_light_profiles_coverV2),
+  ("rampmeter_poll_2to1", rampmeter_poll_2to1_coverV2),
   ("rover_ladder_2to3", rover_ladder_2to3_coverV2),
   ("rover_ladder_3to6", rover_ladder_3to6_coverV2),
   ("rover_ladder_6to8", rover_ladder_6to8_coverV2),
@@ -88,6 +97,7 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("syringe_relay_prearm", syringe_relay_prearm_coverV2),
   ("tank_dos_3to1", tank_dos_3to1_coverV2),
   ("train_ato_odometry", train_ato_odometry_coverV2),
+  ("tunnel_jetfan_pairout", tunnel_jetfan_pairout_coverV2),
   ("turbine_startup_gearratio", turbine_startup_gearratio_coverV2),
   ("vehicle_hypercert", vehicle_hypercert_coverV2),
   ("ventilator_vc_cuffleak", ventilator_vc_cuffleak_coverV2),

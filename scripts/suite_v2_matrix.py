@@ -101,6 +101,11 @@ FAMILIES = [
     ("hydro_", "Hydro unit load rejection"),
     ("ventilator_", "Volume-controlled ventilation"),
     ("insulin_", "Insulin basal control"),
+    ("flaps_", "Airliner flap extension (one hydraulic system lost)"),
+    ("tunnel_", "Road-tunnel ventilation through a fire alarm"),
+    ("rampmeter_", "Freeway ramp metering (polled detectors)"),
+    ("bottling_", "Bottle filler (clogged product strainer)"),
+    ("antenna_", "Ground-station antenna (servo retune)"),
     ("sat_detumble_", "Rigid-body detumbling (polynomial)"),
     ("sat3w_detumble_", "Rigid-body detumbling (polynomial)"),
 ]

@@ -288,10 +288,57 @@ def packsV2 : List PackV2 :=
     ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 7, 8⟩,
     ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 8, 6⟩,
     ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 8, 7⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 8, 8⟩ ]
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 8, 8⟩,
+    -- flaps_slow_approach (cover replay: EXT at λ = 1/2, CONF2 at λ = 1)
+    ⟨"flaps_slow_approach", 2, 0, [0, 1, 2, 3], 1, 2, 0, 0⟩,
+    ⟨"flaps_slow_approach", 2, 0, [0, 1, 2, 3], 1, 1, 1, 1⟩,
+    -- bottling_fill_strainer (cover replay: FILL at λ = 17/20, CLOSE at λ = 1)
+    ⟨"bottling_fill_strainer", 2, 0, [0, 1, 2, 3, 4], 17, 20, 0, 0⟩,
+    ⟨"bottling_fill_strainer", 2, 0, [0, 1, 2, 3, 4], 1, 1, 1, 1⟩,
+    -- tunnel_jetfan_pairout (mode-keyed rows; cover replay at λ = 1)
+    ⟨"tunnel_jetfan_pairout", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 0, 0⟩,
+    ⟨"tunnel_jetfan_pairout", 3, 1, [0, 1, 2], 1, 1, 1, 1⟩,
+    -- antenna_track_kvretune (mode-keyed rows; cover replay at λ = 1)
+    ⟨"antenna_track_kvretune", 3, 0, [0, 1, 2, 3, 6, 7, 4, 5], 1, 1, 0, 0⟩,
+    ⟨"antenna_track_kvretune", 3, 0, [0, 1, 2, 3, 4, 5, 6, 7], 1, 1, 0, 2⟩,
+    ⟨"antenna_track_kvretune", 3, 1, [0, 1, 2, 3, 6, 7, 4, 5], 1, 1, 1, 1⟩,
+    ⟨"antenna_track_kvretune", 3, 2, [0, 1, 2, 3, 6, 7, 4, 5], 1, 1, 2, 2⟩,
+    -- rampmeter_poll_2to1 (cover replay at λ = 1, budget 2)
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 0, 0⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 0, 1⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 0, 2⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 0, 3⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 0, 4⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 1, 0⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 1, 1⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 1, 2⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 1, 3⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 1, 4⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 1, 5⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 2, 0⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 2, 1⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 2, 2⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 2, 3⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 2, 4⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 2, 5⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 3, 1⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 3, 2⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 3, 3⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 3, 4⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 3, 5⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 4, 1⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 4, 2⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 4, 3⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 4, 4⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 4, 5⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 5, 1⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 5, 2⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 5, 3⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 5, 4⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 5, 5⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 1098
+def expectedModalV2 : Nat := 1349
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
@@ -436,7 +483,7 @@ def runDynV2 (cfg : Z3Config) : IO Bool := do
 
 /-- Declared: one handoff query per declared left transition over the suite_v2 files
 (self-loops included; `CoveragePinsV2.derivedHandoffV2_eq` derives it from the IR table). -/
-def expectedHandoffV2 : Nat := 466
+def expectedHandoffV2 : Nat := 517
 
 /-- Declared handoff failures in suite_v2: none. -/
 def expectedHandoffFailuresV2 : List (String × Nat × Nat) := []
@@ -471,8 +518,8 @@ def prunedEdgesV2 : List (String × String × String) :=
   coverTableV2.flatMap (fun c => c.2.pruned.map (fun e => (c.1, e.1, e.2)))
 
 /-- Declared: pruned edges in the suite_v2 covers, and two queries per edge. -/
-def expectedPrunedEdgesV2 : Nat := 22
-def expectedNonConnV2 : Nat := 44
+def expectedPrunedEdgesV2 : Nat := 23
+def expectedNonConnV2 : Nat := 46
 
 def nonConnQueriesOfV2 (p : PProblem) (cX : EvolStrengtheningX) (src tgt : String) :
     Option ((n : ℕ) × (Fin n → String) × IForm n × IForm n) := do
@@ -510,19 +557,19 @@ def runNonConnAllV2 (cfg : Z3Config) : IO Bool := do
 /-! ## The suite tally -/
 
 /-- What a certification run over `benchmarks/suite_v2/*/input.txt` must produce, with
-`RELCERT_IMPLIED_CUT=1`: all 45 certified (in the strict well-formedness mode of
+`RELCERT_IMPLIED_CUT=1`: all 50 certified (in the strict well-formedness mode of
 `--check-quick-v2`); and what the strict Assumption 1 check of the right models must produce:
-every one of the 155 right modes `ok` on both clauses (`wfModes`; the kernel pin
+every one of the 170 right modes `ok` on both clauses (`wfModes`; the kernel pin
 `CoveragePinsV2.suiteV2_wfModes` of that count was archived with the standalone route), none
 `UNKNOWN` (`wfUnknown`; 16 UNKNOWN in 9 benchmarks until the 2026-10-10 repairs, when the
 check was informational), none `BLOCKING` (`wfBlocking`; the nonblocking clause is checked
 since 2026-10-26). -/
 structure ExpectedSuiteV2 where
-  paths     : Nat := 45
-  certified : Nat := 45
+  paths     : Nat := 50
+  certified : Nat := 50
   declined  : Nat := 0
   errors    : Nat := 0
-  wfModes   : Nat := 155
+  wfModes   : Nat := 170
   wfUnknown : Nat := 0
   wfBlocking : Nat := 0
   deriving Repr

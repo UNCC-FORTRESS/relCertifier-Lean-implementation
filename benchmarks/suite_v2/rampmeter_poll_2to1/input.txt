@@ -1,0 +1,180 @@
+# rampmeter_poll_2to1: a freeway on-ramp meter whose traffic-responsive rate table is executed on
+# bottleneck-detector data that arrive every 40 s (central polling by the traffic management centre)
+# instead of the 20 s local update the table was designed for, against the same table updated every
+# 20 s; the claim bounds the bottleneck density gap between the two.
+# scenario: degraded-network
+# mechanisms: M B (multi-cycle matching, one 40 s deployed update against two 20 s design updates,
+#   matrix code M2; state-dependent branching: at the joint step the design meter may step its rate
+#   up or down, depending on the density band it has reached, and the cover certifies both, matrix
+#   code M3)
+# Suite status: TIER 2. The final audit of the suite (round C, 2026-10-27) recommended the reserve for
+#   this file: it is the chain-depth template of tank_dos_3to1 and insulin_basal_cgmloss again (the bound
+#   counts the design decisions that fit in one held deployed decision; with insulin it shares the 3-D
+#   shape: a constant exogenous input, a first-order upstream state, a regulated state read through a
+#   level table, a 2:1 update ratio, a symmetric band, M B), and its 10 veh/mi/ln requirement is only 1.0
+#   below the 11 at which any deployed schedule certifies (law independence, measured below). It stays in
+#   the suite only until a replacement benchmark exists.
+#
+# System (both sides). Two-lane freeway, free-flow speed 60 mi/h, free-flow branch of the cell
+# transmission model (Daganzo 1994), densities in veh/mi/ln, time in s. State: kd = the arrival
+# density of the upstream demand (demand / 120: 120 = 2 lanes x 60 mi/h), constant over the event,
+# kd in [10, 27.5] (1200 to 3300 veh/h); k1 = density of the 0.83-mile section upstream of the ramp
+# (travel time 50 s), k1' = (kd - k1) / 50; k = density of the 1.67-mile bottleneck section
+# downstream of the ramp merge (travel time 100 s), fed by the upstream section and the metered ramp
+# flow r: k' = (k1 + r / 120 - k) / 100. Dual-lane meter, one vehicle per green per lane, rates from
+# 2 x 240 to 2 x 900 veh/h (the FHWA default per-lane minimum and maximum metering rates, FHWA-HOP-
+# 13-042, Appendix I), in the one-car-per-green cycle steps 15, 10, 7.5, 6, 5, 4 s: r in {480, 720,
+# 960, 1200, 1440, 1800} veh/h, i.e. r / 120 in {4, 6, 8, 10, 12, 15}. The rate table (local
+# traffic-responsive metering, the same on both sides) selects the rate from the bottleneck density
+# band: R1800 below 19, R1440 [19, 24), R1200 [24, 29), R960 [29, 34), R720 [34, 39), R480 from 39.
+# Regulation: a denser bottleneck gets a lower ramp rate, so the bands are left in both directions.
+#   Right (design): the table updated every 20 s (epsilon 20). Declared successors: the levels the
+#     density can reach within one 20 s update: the adjacent levels, and two levels from the two end
+#     bands (where the density moves fastest, up to 0.285 veh/mi/ln per s); relcert --wellformed
+#     proves every list (every mode ok (exit), rate bounds over the mode's kept facts).
+#   Left (deployed): the same table, the same freeway and ramp, but its detector data come every 40 s,
+#     so each rate is held for up to 40 s (epsilon 40); every level is a declared successor.
+# The update interval is the only difference. Field controllers update every 20 to 60 s (ALINEA field
+# tests used 40 s and 60 s control intervals, Papageorgiou et al.); 40 s is inside that practice. The
+# averaging over the polling interval is not modeled (the deployed decides on the density at the poll).
+#
+# Property (every left mode): kd_L = kd_R, k1_L = k1_R (two inequalities each: the same arriving
+# traffic), |k_L - k_R| <= 10 veh/mi/ln. Requirement: HCM 6th edition, Exhibit 12-15 (basic freeway
+# segments): LOS D ends at 35 and LOS E at 45 pc/mi/ln, the capacity density. The design table holds
+# the bottleneck at or below 35 in steady operation for every demand in range (simulated steady
+# maxima 22.0 / 25.0 / 29.1 / 33.0 / 34.3 at 1200 / 1800 / 2400 / 3000 / 3300 veh/h), so a deployed
+# excess of at most 10 keeps the deployed below capacity wherever the design is at LOS D. The lower
+# side uses the same 10 as a tracking band (no separate requirement; tightest 6.00 with the upper
+# side at 10). Not implied by the domains (they allow a gap of 28.5).
+# Tightest (bisection to 0.01, symmetric constant): 7.00 (6.99 declines) = the three-level spread
+# (1800 - 960) / 120: with the band 10 the rows admit a design meter up to two 5-wide bands away at
+# a window start, and the one extra design update inside a held 40 s window steps it one level more;
+# a joint segment of two levels i, j keeps |k_L - k_R| <= |r_i - r_j| / 120 (the gap relaxes to the
+# rate difference), so three levels need 7. An isolated certifying point at 5.00 (5.25 to 6.99
+# decline) is a boundary coincidence of the band edges, not a window.
+#
+# How the bound depends on the cause (measured, tightest symmetric constant against the deployed
+# update interval, everything else fixed): 20 s (no cause): the exact claim (constant 0) CERTIFIES;
+# 30 s and 40 s (this file): 7.00; 50 s and 60 s: 9.00 (four levels); 80 s: 11.00 = (1800 - 480) /
+# 120, the whole ramp authority, which is also what an arbitrary deployed schedule needs (every left
+# guard the domain): the 10 requirement holds up to 60 s polling and fails from 80 s, where the
+# deployed is no better than an arbitrary metering schedule. Law dependence: an arbitrary deployed
+# schedule DECLINES at 10 (needs 11.00). The design table's rate limit is load-bearing: a design
+# reference that may jump to any level at an update (all levels declared) needs 11.00 at 40 s.
+# Simulated (0.5 s steps, 3000 random starts and polling phases): the worst sampled gap is 1.00
+# veh/mi/ln at 40 s, 1.53 at 60 s and 2.18 at 80 s; the certificate is an inductive envelope (the
+# held-level spread as if it persisted), about seven times the transient, and it moves with the
+# update interval as the transient does.
+#
+# Relation to tank_dos_3to1 (the suite's chain-depth M). The bound is again a chain depth (how many
+# design decisions fit in one held deployed decision), but the structure differs: there the stages
+# follow an exogenous, monotone demand ramp shared by both sides, the start pairing is exact and the
+# rows are one-sided; here the table regulates the very density it reads (a denser bottleneck gets
+# less ramp flow), the levels move up and down, the start pairing may already differ by two levels
+# (the band of the claim), the middle levels branch both ways, and the claim is a two-sided band.
+# The cause is a real update-interval difference, not a denial of service.
+#
+# Domains. kd in [10, 27.5] (constant); k1 in [10, 27.5] (it relaxes to kd: forward invariant);
+# k in [14, 42.5] = [10 + 480/120, 27.5 + 1800/120]: every level relaxes k to k1 + r/120 inside it
+# (forward invariant on both sides), below the capacity density 45 where the free-flow model holds.
+# The right guards partition the domain (no coverage gap); every left mode has a satisfiable start
+# (equal states); the left guards are re-checked at every poll and partition the forward-invariant
+# domain, so no run is dropped.
+# Letter windows. M and B: at every polling interval above 20 s the covers take ceil(interval / 20)
+# design updates per deployed window (budget 2 at 30 and 40 s, 3 at 50 and 60 s) with branching 2 on
+# the path; none at 20 s. Claim window at 40 s: the 10 requirement sits
+# inside the certifying range [7.00, 11.00) with margins 3.00 below and 1.00 above (from 11.00 on, an
+# arbitrary schedule certifies too: law independence).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27 at installation on branch benchmark-fixes): CERTIFIED (4.2 s);
+# CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE,
+# SYNC+NO_CHOICE, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, without
+# RELCERT_IMPLIED_CUT, RELCERT_OPREGION=1, RELCERT_NO_PAIR_STRETCH=1 and RELCERT_WELLFORMED_STRICT=1.
+# Cover: every left mode at lambda 1, budget 2, joint steps only; admissible starts span three to five
+# levels (the band 10 reaches two bands away); branching 2 at every left mode. Pruned R1440 -> R1800
+# (R1440 always raises the density; not load-bearing: NO_PRUNE certifies). Rows identical (--handoff 36/36, vacuous). relcert --wellformed:
+# R1800 ok (exit->R1440,R1200), R1440 ok (exit->R1200), R1200 ok (exit->R1440,R960), R960 ok
+# (exit->R1200,R720), R720 ok (exit->R960), R480 ok (exit->R960,R720), 0 UNKNOWN, 0 BLOCKING.
+# Letters: M B.
+[problem]
+name = rampmeter_poll_2to1
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 3600.0
+
+[Lsys]
+state_vars = [kd, k1, k]
+epsilon = 40
+[Lsys.mode.R1800]
+ode = kd' = 0.0; k1' = smt2:(* 0.02 (- kd k1)); k' = smt2:(* 0.01 (- (+ k1 15) k));
+guard = k < 19 and kd >= 10 and kd <= 27.5 and k1 >= 10 and k1 <= 27.5 and k >= 14 and k <= 42.5
+evolve = kd >= 10 and kd <= 27.5 and k1 >= 10 and k1 <= 27.5 and k >= 14 and k <= 42.5
+next = [R1800, R1440, R1200, R960, R720, R480]
+[Lsys.mode.R1440]
+ode = kd' = 0.0; k1' = smt2:(* 0.02 (- kd k1)); k' = smt2:(* 0.01 (- (+ k1 12) k));
+guard = k >= 19 and k < 24 and kd >= 10 and kd <= 27.5 and k1 >= 10 and k1 <= 27.5 and k >= 14 and k <= 42.5
+evolve = kd >= 10 and kd <= 27.5 and k1 >= 10 and k1 <= 27.5 and k >= 14 and k <= 42.5
+next = [R1800, R1440, R1200, R960, R720, R480]
+[Lsys.mode.R1200]
+ode = kd' = 0.0; k1' = smt2:(* 0.02 (- kd k1)); k' = smt2:(* 0.01 (- (+ k1 10) k));
+guard = k >= 24 and k < 29 and kd >= 10 and kd <= 27.5 and k1 >= 10 and k1 <= 27.5 and k >= 14 and k <= 42.5
+evolve = kd >= 10 and kd <= 27.5 and k1 >= 10 and k1 <= 27.5 and k >= 14 and k <= 42.5
+next = [R1800, R1440, R1200, R960, R720, R480]
+[Lsys.mode.R960]
+ode = kd' = 0.0; k1' = smt2:(* 0.02 (- kd k1)); k' = smt2:(* 0.01 (- (+ k1 8) k));
+guard = k >= 29 and k < 34 and kd >= 10 and kd <= 27.5 and k1 >= 10 and k1 <= 27.5 and k >= 14 and k <= 42.5
+evolve = kd >= 10 and kd <= 27.5 and k1 >= 10 and k1 <= 27.5 and k >= 14 and k <= 42.5
+next = [R1800, R1440, R1200, R960, R720, R480]
+[Lsys.mode.R720]
+ode = kd' = 0.0; k1' = smt2:(* 0.02 (- kd k1)); k' = smt2:(* 0.01 (- (+ k1 6) k));
+guard = k >= 34 and k < 39 and kd >= 10 and kd <= 27.5 and k1 >= 10 and k1 <= 27.5 and k >= 14 and k <= 42.5
+evolve = kd >= 10 and kd <= 27.5 and k1 >= 10 and k1 <= 27.5 and k >= 14 and k <= 42.5
+next = [R1800, R1440, R1200, R960, R720, R480]
+[Lsys.mode.R480]
+ode = kd' = 0.0; k1' = smt2:(* 0.02 (- kd k1)); k' = smt2:(* 0.01 (- (+ k1 4) k));
+guard = k >= 39 and kd >= 10 and kd <= 27.5 and k1 >= 10 and k1 <= 27.5 and k >= 14 and k <= 42.5
+evolve = kd >= 10 and kd <= 27.5 and k1 >= 10 and k1 <= 27.5 and k >= 14 and k <= 42.5
+next = [R1800, R1440, R1200, R960, R720, R480]
+
+[Rsys]
+state_vars = [kd, k1, k]
+epsilon = 20
+[Rsys.mode.R1800]
+ode = kd' = 0.0; k1' = smt2:(* 0.02 (- kd k1)); k' = smt2:(* 0.01 (- (+ k1 15) k));
+guard = k < 19 and kd >= 10 and kd <= 27.5 and k1 >= 10 and k1 <= 27.5 and k >= 14 and k <= 42.5
+evolve = kd >= 10 and kd <= 27.5 and k1 >= 10 and k1 <= 27.5 and k >= 14 and k <= 42.5
+next = [R1800, R1440, R1200]
+[Rsys.mode.R1440]
+ode = kd' = 0.0; k1' = smt2:(* 0.02 (- kd k1)); k' = smt2:(* 0.01 (- (+ k1 12) k));
+guard = k >= 19 and k < 24 and kd >= 10 and kd <= 27.5 and k1 >= 10 and k1 <= 27.5 and k >= 14 and k <= 42.5
+evolve = kd >= 10 and kd <= 27.5 and k1 >= 10 and k1 <= 27.5 and k >= 14 and k <= 42.5
+next = [R1800, R1440, R1200]
+[Rsys.mode.R1200]
+ode = kd' = 0.0; k1' = smt2:(* 0.02 (- kd k1)); k' = smt2:(* 0.01 (- (+ k1 10) k));
+guard = k >= 24 and k < 29 and kd >= 10 and kd <= 27.5 and k1 >= 10 and k1 <= 27.5 and k >= 14 and k <= 42.5
+evolve = kd >= 10 and kd <= 27.5 and k1 >= 10 and k1 <= 27.5 and k >= 14 and k <= 42.5
+next = [R1440, R1200, R960]
+[Rsys.mode.R960]
+ode = kd' = 0.0; k1' = smt2:(* 0.02 (- kd k1)); k' = smt2:(* 0.01 (- (+ k1 8) k));
+guard = k >= 29 and k < 34 and kd >= 10 and kd <= 27.5 and k1 >= 10 and k1 <= 27.5 and k >= 14 and k <= 42.5
+evolve = kd >= 10 and kd <= 27.5 and k1 >= 10 and k1 <= 27.5 and k >= 14 and k <= 42.5
+next = [R1200, R960, R720]
+[Rsys.mode.R720]
+ode = kd' = 0.0; k1' = smt2:(* 0.02 (- kd k1)); k' = smt2:(* 0.01 (- (+ k1 6) k));
+guard = k >= 34 and k < 39 and kd >= 10 and kd <= 27.5 and k1 >= 10 and k1 <= 27.5 and k >= 14 and k <= 42.5
+evolve = kd >= 10 and kd <= 27.5 and k1 >= 10 and k1 <= 27.5 and k >= 14 and k <= 42.5
+next = [R960, R720, R480]
+[Rsys.mode.R480]
+ode = kd' = 0.0; k1' = smt2:(* 0.02 (- kd k1)); k' = smt2:(* 0.01 (- (+ k1 4) k));
+guard = k >= 39 and kd >= 10 and kd <= 27.5 and k1 >= 10 and k1 <= 27.5 and k >= 14 and k <= 42.5
+evolve = kd >= 10 and kd <= 27.5 and k1 >= 10 and k1 <= 27.5 and k >= 14 and k <= 42.5
+next = [R960, R720, R480]
+
+[relational_invariant]
+R1800 = kd[l] <= kd[r] and kd[r] <= kd[l] and k1[l] <= k1[r] and k1[r] <= k1[l] and k[l] <= k[r] + 10 and k[r] <= k[l] + 10
+R1440 = kd[l] <= kd[r] and kd[r] <= kd[l] and k1[l] <= k1[r] and k1[r] <= k1[l] and k[l] <= k[r] + 10 and k[r] <= k[l] + 10
+R1200 = kd[l] <= kd[r] and kd[r] <= kd[l] and k1[l] <= k1[r] and k1[r] <= k1[l] and k[l] <= k[r] + 10 and k[r] <= k[l] + 10
+R960 = kd[l] <= kd[r] and kd[r] <= kd[l] and k1[l] <= k1[r] and k1[r] <= k1[l] and k[l] <= k[r] + 10 and k[r] <= k[l] + 10
+R720 = kd[l] <= kd[r] and kd[r] <= kd[l] and k1[l] <= k1[r] and k1[r] <= k1[l] and k[l] <= k[r] + 10 and k[r] <= k[l] + 10
+R480 = kd[l] <= kd[r] and kd[r] <= kd[l] and k1[l] <= k1[r] and k1[r] <= k1[l] and k[l] <= k[r] + 10 and k[r] <= k[l] + 10

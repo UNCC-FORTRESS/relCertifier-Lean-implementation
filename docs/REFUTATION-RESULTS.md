@@ -101,8 +101,15 @@
 > (48). The same 36 mutants are refuted as before (m003; m021, m023; m008, m011, m012, m015; eight;
 > twenty-one), their mutant inputs and IR data rewritten to the new files (the stretch ranges pinned,
 > the `rover_terrain_2to4` plan at 8 /s), each DECLINED by relcert. Counts unchanged.
-> Current instance set: **69 refutations, 196 groups**
-> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 947 mutants in
+> Batch I6, second group (five new benchmarks): the finder ran on each (`--only`, records
+> appended): `flaps_slow_approach` 16 mutants, `tunnel_jetfan_pairout` 24, `rampmeter_poll_2to1` 24,
+> `bottling_fill_strainer` 24, no witness; `antenna_track_kvretune` 44 mutants, 13 new (m016 to m023,
+> m028, m029, m032, m036, m040), all kind C: a pointing or envelope row of the tracking band flipped
+> from `<=` to `>=`, deleted or with a coordinate moved to the other side (m016 to m023, m028, m029),
+> or a row of the stow band flipped (m032, m036, m040); each DECLINED by relcert (six of them at the
+> handoff into the stow band). 13 refutations, 39 groups and 132 witness lines in.
+> Current instance set: **82 refutations, 235 groups**
+> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 1079 mutants in
 > `docs/refute/witnesses.jsonl`. The operator table has not been recomputed.
 
 Design: `docs/REFUTATION-SCOPE.md` (planning record, last present at commit 29663d8). This file reports what was built and the experiment.

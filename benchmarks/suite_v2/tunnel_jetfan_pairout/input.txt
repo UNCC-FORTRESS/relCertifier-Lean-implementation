@@ -1,0 +1,133 @@
+# tunnel_jetfan_pairout: the longitudinal ventilation of a 1.6 km road tunnel with one of its five
+# jet-fan pairs out of service, against the same tunnel with all ten fans, through a fire alarm: in
+# normal operation the requirement is on air quality (CO), once the fire mode is engaged it is on
+# the longitudinal air velocity that keeps the smoke away from the users upstream of the fire.
+# scenario: degraded-actuator
+# mechanisms: D I (mode-dependent rows: the CO row of normal operation is dropped in fire mode,
+#   where the deployed's smaller airflow makes it false; every uniform row set that states the CO
+#   requirement declines; matrix code M5; load-bearing mode fact: the normal-operation CO bound of
+#   the NORMAL guard, RELCERT_NO_CUT=1 declines, matrix code M6; I comes from the claim's normal-
+#   operation rows, not from the outage: it persists with all ten fans)
+#
+# System (both sides). Procedure clock t in s (the fire alarm at t = 600 s, the same event for both),
+# longitudinal air velocity u in m/s, tunnel-average CO concentration c in ppm; the ventilation
+# controller re-decides every 1 s (epsilon 1 on both sides). Tunnel L = 1600 m, cross-section A = 60 m^2,
+# hydraulic diameter 8 m, wall friction 0.02, portal losses 0.5 + 1.0: the air column obeys
+# u' = n T eta / (rho A L) - ((0.02 L / 8 + 1.5) / (2 L)) u^2 = a n - 0.00171875 u^2, with jet fans of
+# T eta = 1037 N (a 1300 N fan at installation efficiency 0.8): a = 0.009 m/s^2 per fan at full speed;
+# two-speed fans, low speed = half speed = a quarter of the thrust (fan affinity). CO is well mixed and
+# flushed by the airflow: c' = e - (u / L) c, with the traffic emission e = 0.1583 ppm/s, the design
+# traffic at which the reference's normal ventilation holds the PIARC design value 70 ppm. Two modes:
+#   NORMAL  t < 600, c <= 100   every available fan at low speed
+#   FIRE    t >= 600            fire mode: every available fan at full speed; a 100 MW design fire
+#                               (dangerous-goods tanker class) adds 1.1 ppm/s of CO (0.12 kg/s,
+#                               a CO yield of about 0.05 kg per kg of fuel at 2.3 kg/s)
+# NORMAL -> [NORMAL, FIRE], FIRE -> [FIRE]. Not modeled: the fire's own throttling and buoyancy,
+# traffic piston effect, meteorological pressure, fan spin-up times, smoke stratification.
+# Right (reference): all ten fans available (normal 3.618 m/s, fire 7.236 m/s steady).
+# Left (deployed): one fan pair out of service, eight fans (normal 3.236, fire 6.472 m/s). The missing
+#   thrust is the only difference (same tunnel, traffic, fire, fan control and alarm time).
+#
+# Property (mode-dependent).
+#   NORMAL: t_L = t_R, u_L <= u_R <= u_L + 0.5, c_R <= c_L <= c_R + 30.
+#   FIRE:   t_L = t_R, u_L <= u_R.
+# Requirements. CO, PIARC 2019R02 (Road tunnels: vehicle emissions and air demand for ventilation),
+# Table 3: design value 70 ppm for free-flowing peak traffic, normal operation below 100 ppm, tunnel
+# closure at 200 ppm. The reference is dimensioned to 70 ppm, so a deployed excess of at most 30 keeps
+# the deployed in normal operation. Velocity: in fire mode the airflow must exceed the critical
+# velocity that prevents smoke backlayering, about 3 m/s for large fires in a tunnel of this section
+# (NFPA 502, Annex on critical velocity; PIARC fire and smoke control). The velocity floor 3.2 m/s of
+# the domain is forward invariant on both sides (every mode drives u toward a steady velocity of at
+# least 3.236), so both tunnels meet the fire requirement by the domain alone and the FIRE rows carry
+# no velocity tolerance. (The design also stated u_R <= u_L + 4.2 in FIRE, the reference's 7.236 less
+# the 3 m/s; the domains already bound the velocity gap by 7.3 - 3.2 = 4.1, so that conjunct was implied
+# by the domains and was dropped at installation; no verdict changed.) The NORMAL velocity row is a
+# stated strengthening (the CO gap is driven by the velocity gap; without a velocity bound the CO row
+# is not inductive); u_L <= u_R (both modes) and c_R <= c_L are derived, exact (the deployed has less
+# airflow and never less CO). The NORMAL rows are not implied by the domains (they allow a velocity
+# gap of 4.1 and a CO gap of 630).
+# Tightest (bisection to 0.01): CO 13.52 ppm with the velocity strengthening at 0.5 (13.51 declines);
+# strengthening 0.39 m/s (0.38 declines; window [0.39, 1.2]
+# at CO 30, 1.5 declines). Steady states (computed): normal CO 78.3 against 70.0 ppm (gap 8.3), fire
+# velocity 6.472 against 7.236 (gap 0.76), fire CO 311.1 against 278.2 ppm (gap 32.9). The certificate is the
+# inductive envelope over the whole domain, above the steady gaps.
+#
+# Why the rows must differ (D). Uniform rows with the NORMAL rows in both modes (the CO row kept in
+# fire mode) DECLINE at every CO tolerance up to 2000 ppm: once the fire burns, the deployed's smaller
+# airflow flushes the fire's CO more slowly, the steady gap is 32.9 ppm (already above 30, the row is
+# false, not only non-inductive) and the time-free envelope over the fire-mode domain is unbounded.
+# Uniform rows with only the FIRE rows certify, but then the claim no longer states the normal-
+# operation air-quality requirement. So no uniform claim states both requirements; the keyed rows
+# do. The handoff NORMAL -> FIRE drops the CO conjunct and the velocity band (--handoff 3/3
+# unsat). This is not molding_pack_checkring's gate freeze (a coupling ends) nor
+# hydro_rejection_gatecal's breaker opening (a shared quantity becomes free): here the safety goal
+# itself switches at the alarm, from air quality to smoke control, and the dropped row becomes false
+# because of the fire.
+# Why the mode fact is needed (I). The NORMAL guard's c <= 100 (normal operation, PIARC Table 3) is
+# kept by every normal flow (steady CO at most 78.3) and bounds the reference's CO that multiplies the
+# velocity gap in the CO row: RELCERT_NO_CUT=1 DECLINES; the claim certifies with that bound anywhere
+# in [80, 220] (230 declines; with no bound below the domain's 630 it declines; 79 is not kept
+# at the domain's lowest velocity). The fact serves the claim's normal-operation rows, not the
+# outage: with no fan out (all ten fans on both sides) the claim certifies and RELCERT_NO_CUT=1 still
+# DECLINES, so I persists without the cause.
+# How the bound depends on the cause (measured, tightest constants against the fans out of service,
+# strengthening at its tightest + 0.01): no fan out: the exact claim (all constants 0) CERTIFIES,
+# nothing mode-dependent; one pair (this file): strengthening 0.39, CO 11.12; two pairs: 0.82,
+# 22.87 (the requirement still certifies); three pairs: 1.34, 328.77:
+# the 30 ppm requirement DECLINES (four fans cannot flush the design traffic's CO below 100 ppm).
+# Law dependence: an arbitrary deployed mode schedule (fire mode at any time, normal mode during the
+# fire) DECLINES.
+#
+# Domains. t >= 0 s (the procedure clock); u in [3.2, 7.3] m/s: every mode drives u toward a steady
+# velocity inside (3.236 to 7.236) and the flow points inward at both bounds (forward invariant on
+# both sides); c in [0, 630] ppm: at 630 every flow decreases c for u >= 3.2 (forward invariant). The
+# right guards partition the clock except normal-operation states with c > 100 ppm: outside normal
+# operation by PIARC Table 3 and unreachable from normal-operation starts (every normal flow keeps
+# c <= 100); RELCERT_OPREGION=1 CERTIFIES. The left guards are re-checked at every period and kept by
+# the left's flows, so no run is dropped. Every left mode has a satisfiable start (equal states).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27 at installation on branch benchmark-fixes): CERTIFIED (0.4 s);
+# CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE,
+# SYNC+NO_CHOICE, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, without RELCERT_IMPLIED_CUT,
+# RELCERT_OPREGION=1, RELCERT_NO_PAIR_STRETCH=1 and RELCERT_WELLFORMED_STRICT=1; DECLINED under
+# RELCERT_NO_CUT=1. Cover: both left modes at lambda 1, budget 1, admissible start the same mode,
+# joint segments only. Nothing pruned. Rows differ (--handoff 3/3 unsat). relcert --wellformed:
+# NORMAL ok (exit->FIRE), FIRE ok (invariant), 0 UNKNOWN, 0 BLOCKING. Letters: D I.
+[problem]
+name = tunnel_jetfan_pairout
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 1800.0
+
+[Lsys]
+state_vars = [t, u, c]
+epsilon = 1
+[Lsys.mode.NORMAL]
+ode = t' = 1.0; u' = smt2:(- 0.018 (* 0.00171875 (* u u))); c' = smt2:(- 0.1583 (* 0.000625 (* u c)));
+guard = t < 600 and c <= 100 and t >= 0 and u >= 3.2 and u <= 7.3 and c >= 0 and c <= 630
+evolve = t >= 0 and u >= 3.2 and u <= 7.3 and c >= 0 and c <= 630
+next = [NORMAL, FIRE]
+[Lsys.mode.FIRE]
+ode = t' = 1.0; u' = smt2:(- 0.072 (* 0.00171875 (* u u))); c' = smt2:(- 1.2583 (* 0.000625 (* u c)));
+guard = t >= 600 and t >= 0 and u >= 3.2 and u <= 7.3 and c >= 0 and c <= 630
+evolve = t >= 0 and u >= 3.2 and u <= 7.3 and c >= 0 and c <= 630
+next = [FIRE]
+
+[Rsys]
+state_vars = [t, u, c]
+epsilon = 1
+[Rsys.mode.NORMAL]
+ode = t' = 1.0; u' = smt2:(- 0.0225 (* 0.00171875 (* u u))); c' = smt2:(- 0.1583 (* 0.000625 (* u c)));
+guard = t < 600 and c <= 100 and t >= 0 and u >= 3.2 and u <= 7.3 and c >= 0 and c <= 630
+evolve = t >= 0 and u >= 3.2 and u <= 7.3 and c >= 0 and c <= 630
+next = [NORMAL, FIRE]
+[Rsys.mode.FIRE]
+ode = t' = 1.0; u' = smt2:(- 0.09 (* 0.00171875 (* u u))); c' = smt2:(- 1.2583 (* 0.000625 (* u c)));
+guard = t >= 600 and t >= 0 and u >= 3.2 and u <= 7.3 and c >= 0 and c <= 630
+evolve = t >= 0 and u >= 3.2 and u <= 7.3 and c >= 0 and c <= 630
+next = [FIRE]
+
+[relational_invariant]
+NORMAL = t[l] <= t[r] and t[r] <= t[l] and u[l] <= u[r] and u[r] <= u[l] + 0.5 and c[r] <= c[l] + 0 and c[l] <= c[r] + 30
+FIRE = t[l] <= t[r] and t[r] <= t[l] and u[l] <= u[r]

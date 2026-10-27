@@ -1,0 +1,121 @@
+# bottling_fill_strainer: one fill of a rotary volumetric (flowmeter-controlled) filler for still water in
+# 1 L PET bottles whose product strainer upstream of the filling valves is partly clogged (85 % flow), against
+# the same filler as commissioned with a clean strainer; the fill must reproduce the commissioned fill, re-timed
+# within the filling sector, to within the giveaway margin.
+# scenario: degraded-actuator
+# mechanisms: S I (time stretch 17/20 in FILL, RELCERT_SYNC=1 declines; the claim is a tolerance claim, not an
+#   exact time scaling: the closing valve's in-flight volume is not re-timed; load-bearing mode fact, the
+#   valve-open atom u >= 1 of FILL, RELCERT_NO_CUT=1 declines; matrix codes M1 M6)
+#
+# System (both sides). Metered volume V in mL (the filling valve's inductive flowmeter), valve opening u
+# (1 = fully open), time in s; the valve controller re-decides every 5 ms (epsilon 0.005 on both sides).
+#   FILL   V < 994, u = 1   the valve is confirmed fully open, product flows at the full-opening flow Q:
+#                           V' = Q u, u' = 0
+#   CLOSE  V >= 994,        the metered volume has reached the pre-close volume: the controller closes the
+#          V + (Q/25) u <= 1060
+#                           valve; the pneumatic actuator closes it with a 40 ms time constant, u' = -25 u,
+#                           and product still flows while it closes, V' = Q u (in-flight volume Q / 25)
+# FILL -> [FILL, CLOSE], CLOSE -> [CLOSE]. The opening transient (about 30 ms) precedes the model: the
+# flowmeter counts its volume, so it does not change where the valve is commanded closed.
+# Right (reference): the filler as commissioned, clean strainer, Q = 200 mL/s (1 L in about 5 s); in-flight
+#   8 mL, so the pre-close volume 994 mL gives a 1002 mL fill (nominal 1000 mL plus the 2 mL giveaway margin
+#   set at commissioning). Left (deployed): the same filler with the product strainer partly clogged: the
+#   pressure drop across it cuts the flow to 85 %, Q = 170 mL/s. The flow loss is the only difference (same
+#   valves, actuators, pre-close volume and controller; the in-flight correction is the commissioned one).
+#   Deployed fill: 994 + 6.8 = 1000.8 mL.
+#
+# Property (the same rows in both modes), with the predicted final volume Psi = V + (Q / 25) u (the volume the
+# valve still lets through once it is commanded closed; constant while closing):
+#   (1,2) Psi_L = Psi_R - 1.2 (exact)   (3) u_L <= u_R   (4) V_L <= V_R   (5) V_R - V_L <= 2.
+# Requirement (5): the deployed fill may fall short of the commissioned fill by at most the 2 mL giveaway
+# margin, so that it stays at or above the 1000 mL nominal quantity (Directive 76/211/EEC, Annex I: the actual
+# contents shall not be less, on average, than the nominal quantity; its tolerable negative error, 15 mL for
+# 500 to 1000 mL, is far looser). Re-timing range lambda in [0.8, 1.0]: the carousel's filling sector admits a
+# fill up to 1.25 times the commissioned fill time (the commissioned fill uses 80 % of it; a stated design
+# value of this benchmark). Rows (1)-(4) are stated strengthening rows, each shown needed (dropping (1,2), (3)
+# or (4) DECLINES). Tightest (5): 1.20 mL (1.19 declines) = (1 - 0.85) x 8 mL, the in-flight volume the
+# deployed does not deliver. Not implied by the domains (they allow a 1060 mL gap).
+#
+# Why the stretch (S), and why the claim is not exact. In FILL the deployed fill is the commissioned fill slowed
+# by the flow ratio (V' = 170 = 0.85 x 200): the cover pairs FILL at lambda = 17/20. RELCERT_SYNC=1 DECLINES (at
+# lambda 1 the metered volumes drift apart without bound). The valve's closing motion is physics: it closes with
+# its own 40 ms time constant whatever the flow, so the re-timing does not reach it, and the deployed delivers
+# 6.8 instead of 8 mL in flight. The matched fills therefore end 1.2 mL apart; the claim bounds this (CLOSE at
+# lambda 1). Grid: the fill phase is an integrator, so the certificate needs lambda = the flow ratio exactly;
+# the stretch grid of [0.8, 1] has step 0.01, every two-decimal ratio in [0.80, 0.99] certifies (measured 0.80,
+# 0.85, 0.90, 0.99), a ratio between grid points (0.853) DECLINES (as furnace_program_timebase).
+# How the claim depends on the cause (measured): clean strainer (ratio 1): the exact claim (all constants 0)
+# CERTIFIES, also under RELCERT_SYNC=1 (no S); ratio 0.9: tightest 0.80 mL; 0.85 (this file): 1.20; 0.8: 1.60;
+# 0.79 and 0.75: DECLINED (the slowed fill no longer fits the filling sector; with lambda_min 0.75 the ratio
+# 0.75 certifies at exactly the 2 mL margin). Letter windows: S for every grid ratio in [0.80, 0.99]; I at every
+# ratio. Law dependence: an arbitrary deployed schedule (every left guard the domain, each mode a successor of
+# the other) DECLINES.
+# Mode facts (I): the valve-open atom u >= 1 of FILL (kept, u frozen) is load-bearing: RELCERT_NO_CUT=1
+# DECLINES, and with the atom removed from the FILL guard the file DECLINES (a partly open valve in FILL would
+# deliver a different flow on each side). It comes from the model's mode structure (also present at ratio 1).
+#
+# Domains. V in [0, 1060] mL (empty bottle to the bottle's brimful volume), u in [0, 1]; every fill reachable
+# from FILL ends at most 1003 mL. The right guards cover the domain except partly open valves below the pre-close
+# volume (V < 994, u < 1): the opening transient that precedes the model; after it the valve only closes at
+# V >= 994 (unreachable), and closing states whose predicted final volume overflows the bottle (V + 8 u > 1060,
+# unreachable: every fill ends at most 1003 mL). RELCERT_OPREGION=1: every admitted start lies in some right
+# guard. Every left mode has a satisfiable start (V equal in FILL; matched in-flight states in CLOSE).
+#
+# Installation fix (2026-10-27, strict Assumption 1 gate). As designed, CLOSE's guard admitted states near the
+# domain top with the valve still open (V = 1060, u = 1): the closing valve still lets product through, so the
+# metered volume leaves V <= 1060 at once and the design's right CLOSE was BLOCKING under the two-clause gate
+# (relcert --wellformed: "CLOSE BLOCKING (leaves V <= 1060.0)"). CLOSE's guard now also requires the predicted
+# final volume to fit the bottle, Psi = V + (Q / 25) u <= 1060 (V + 6.8 u on the left, V + 8 u on the right:
+# each side's own in-flight volume, the same statement with the cause's flow; Psi is constant while the valve
+# closes, so the conjunct is kept by the flow). Every fill reachable from FILL ends at most 1003 mL, so no run
+# is lost; verdicts, letters and the tightest 1.20 mL are unchanged.
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27 at installation on branch benchmark-fixes): CERTIFIED (0.8 s);
+# CERTIFIED under RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE, RELCERT_NO_REPO=1,
+# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_PAIR_STRETCH=1, without RELCERT_IMPLIED_CUT,
+# RELCERT_OPREGION=1 and RELCERT_WELLFORMED_STRICT=1; DECLINED under RELCERT_SYNC=1, SYNC+NO_CHOICE and
+# RELCERT_NO_CUT=1. Cover: FILL_L at lambda 17/20, budget 1, admissible [FILL]; CLOSE_L at lambda 1, budget 1,
+# admissible [CLOSE]; joint segments only. Nothing pruned. Rows identical (--handoff vacuous, 3/3).
+# relcert --wellformed: FILL ok (exit->CLOSE), CLOSE ok (invariant), 0 UNKNOWN. Letters: S I.
+[problem]
+name = bottling_fill_strainer
+max_depth = 8
+lambda_min = 0.8
+lambda_max = 1.0
+bound_T = 10.0
+
+[Lsys]
+state_vars = [V, u]
+epsilon = 0.005
+
+[Lsys.mode.FILL]
+ode = V' = smt2:(* 170 u); u' = 0.0;
+guard = V < 994.0 and u >= 1.0 and V >= 0.0 and V <= 1060.0 and u >= 0.0 and u <= 1.0
+evolve = V >= 0.0 and V <= 1060.0 and u >= 0.0 and u <= 1.0
+next = [FILL, CLOSE]
+
+[Lsys.mode.CLOSE]
+ode = V' = smt2:(* 170 u); u' = smt2:(* (- 25) u);
+guard = V >= 994.0 and V + 6.8 * u <= 1060.0 and V >= 0.0 and V <= 1060.0 and u >= 0.0 and u <= 1.0
+evolve = V >= 0.0 and V <= 1060.0 and u >= 0.0 and u <= 1.0
+next = [CLOSE]
+
+[Rsys]
+state_vars = [V, u]
+epsilon = 0.005
+
+[Rsys.mode.FILL]
+ode = V' = smt2:(* 200 u); u' = 0.0;
+guard = V < 994.0 and u >= 1.0 and V >= 0.0 and V <= 1060.0 and u >= 0.0 and u <= 1.0
+evolve = V >= 0.0 and V <= 1060.0 and u >= 0.0 and u <= 1.0
+next = [FILL, CLOSE]
+
+[Rsys.mode.CLOSE]
+ode = V' = smt2:(* 200 u); u' = smt2:(* (- 25) u);
+guard = V >= 994.0 and V + 8.0 * u <= 1060.0 and V >= 0.0 and V <= 1060.0 and u >= 0.0 and u <= 1.0
+evolve = V >= 0.0 and V <= 1060.0 and u >= 0.0 and u <= 1.0
+next = [CLOSE]
+
+[relational_invariant]
+FILL = smt2:(and (<= (+ L_V (* 6.8 L_u)) (+ R_V (* 8 R_u) (- 1.2))) (<= (+ R_V (* 8 R_u) (- 1.2)) (+ L_V (* 6.8 L_u))) (<= L_u R_u) (<= L_V R_V) (<= R_V (+ L_V 2)))
+CLOSE = smt2:(and (<= (+ L_V (* 6.8 L_u)) (+ R_V (* 8 R_u) (- 1.2))) (<= (+ R_V (* 8 R_u) (- 1.2)) (+ L_V (* 6.8 L_u))) (<= L_u R_u) (<= L_V R_V) (<= R_V (+ L_V 2)))

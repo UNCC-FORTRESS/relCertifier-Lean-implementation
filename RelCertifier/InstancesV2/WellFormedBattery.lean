@@ -20,10 +20,10 @@ mode `q`, `ε = epsR` (the file's `epsilon`, read as the tool reads it). A model
 independent of the relational invariant and of every Theorem 3 (none takes it as a
 hypothesis); this battery is a separate audit.
 
-**Results (all 45 benchmarks; declared counts `wfDeclared`, kernel-checked against the
+**Results (all 50 benchmarks; declared counts `wfDeclared`, kernel-checked against the
 suite's IR table by `wf_coverage`).**
 
-* **Proved, 42** (`<bench>_wellFormedR`): every mode (`watertank_twospeed` added 2026-10-11;
+* **Proved, 47** (`<bench>_wellFormedR`): every mode (`watertank_twospeed` added 2026-10-11;
   the literature benchmarks `drl_car_stop`, `drl_lane_control`, `vehicle_hypercert` and
   `freedm_meter` added 2026-10-15, three of them proved directly over the bridge's automaton,
   `_wellFormedR_direct`). Z3-free (no verdict leaf). None of the nine models repaired on
@@ -95,6 +95,11 @@ import RelCertifier.InstancesV2.WellFormed.HydroRejectionGatecal
 import RelCertifier.InstancesV2.WellFormed.VentilatorVcCuffleak
 import RelCertifier.InstancesV2.WellFormed.InsulinBasalCgmloss
 import RelCertifier.InstancesV2.WellFormed.RoverRolloverPayload
+import RelCertifier.InstancesV2.WellFormed.FlapsSlowApproach
+import RelCertifier.InstancesV2.WellFormed.TunnelJetfanPairout
+import RelCertifier.InstancesV2.WellFormed.RampmeterPoll2to1
+import RelCertifier.InstancesV2.WellFormed.BottlingFillStrainer
+import RelCertifier.InstancesV2.WellFormed.AntennaTrackKvretune
 
 namespace RelCertifier
 namespace WellFormedBattery
@@ -115,6 +120,8 @@ def wfProved : List String :=
    "furnace_program_timebase", "compressor_station_recycle", "syringe_relay_prearm",
    "hydro_rejection_gatecal", "ventilator_vc_cuffleak", "insulin_basal_cgmloss",
    "rover_rollover_payload",
+   "flaps_slow_approach", "tunnel_jetfan_pairout", "rampmeter_poll_2to1",
+   "bottling_fill_strainer", "antenna_track_kvretune",
    "drl_car_stop", "drl_lane_control",
    "vehicle_hypercert", "freedm_meter"]
 
@@ -152,21 +159,26 @@ with the nine new benchmarks of batch I5 (`molding_pack_checkring`, `fuelcell_ch
 `elevator_start_discbrake`, `furnace_program_timebase`, `compressor_station_recycle`,
 `syringe_relay_prearm`, `hydro_rejection_gatecal`, `ventilator_vc_cuffleak`,
 `insulin_basal_cgmloss`); `(42, 0, 3)` with `rover_rollover_payload` (the first right model with a
-coupled block, proved by Picard on an enlarged strictly inflowing box). -/
-def wfDeclared : ℕ × ℕ × ℕ := (42, 0, 3)
+coupled block, proved by Picard on an enlarged strictly inflowing box); `(47, 0, 3)` with the five
+new benchmarks of batch I6 (`flaps_slow_approach`, `tunnel_jetfan_pairout`, whose right model has
+the polynomial terms `u^2` and `u c` and is proved with an explicit Riccati run,
+`rampmeter_poll_2to1`, `bottling_fill_strainer`, `antenna_track_kvretune`). -/
+def wfDeclared : ℕ × ℕ × ℕ := (47, 0, 3)
 
 /-- The suite's benchmark names, in the order of the IR table. -/
 def suiteNames : List String :=
-  ["acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp", "bms_chiller_undercharge",
-   "canal_gate_notches", "compressor_station_recycle", "drl_car_stop", "drl_lane_control",
-   "elevator_start_discbrake", "engine_start_highidle", "freedm_meter", "fuelcell_chp_dos",
+  ["acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp", "antenna_track_kvretune",
+   "bms_chiller_undercharge", "bottling_fill_strainer", "canal_gate_notches",
+   "compressor_station_recycle", "drl_car_stop", "drl_lane_control", "elevator_start_discbrake",
+   "engine_start_highidle", "flaps_slow_approach", "freedm_meter", "fuelcell_chp_dos",
    "furnace_program_timebase", "gantry_speed_zones", "hvac_fan_staging", "hydro_rejection_gatecal",
    "insulin_basal_cgmloss", "molding_pack_checkring", "platoon_latency", "platoon_linkloss",
    "platoon_profiles", "quad_light_airframe_20", "quad_light_lag", "quad_light_profiles",
-   "rover_ladder_2to3", "rover_ladder_3to6", "rover_ladder_6to8", "rover_ladder_8to12",
-   "rover_patrol_lag", "rover_rollover_payload", "rover_terrain_2to4", "rover_terrain_4to6", "rover_terrain_6to12",
-   "sat3w_detumble_phases", "sat_detumble_phases", "sat_detumble_weak", "syringe_relay_prearm",
-   "tank_dos_3to1", "train_ato_odometry", "turbine_startup_gearratio", "vehicle_hypercert",
+   "rampmeter_poll_2to1", "rover_ladder_2to3", "rover_ladder_3to6", "rover_ladder_6to8",
+   "rover_ladder_8to12", "rover_patrol_lag", "rover_rollover_payload", "rover_terrain_2to4",
+   "rover_terrain_4to6", "rover_terrain_6to12", "sat3w_detumble_phases", "sat_detumble_phases",
+   "sat_detumble_weak", "syringe_relay_prearm", "tank_dos_3to1", "train_ato_odometry",
+   "tunnel_jetfan_pairout", "turbine_startup_gearratio", "vehicle_hypercert",
    "ventilator_vc_cuffleak", "watertank", "watertank_twospeed"]
 
 /-- `suiteNames` IS the name column of the kernel-checked IR table of the suite. -/
@@ -182,7 +194,7 @@ theorem wf_coverage :
 
 end WellFormedBattery
 
-/-! ## Proved (42 outside the detumble family, with the next section): Assumption 1 at every mode -/
+/-! ## Proved (47 outside the detumble family, with the next section): Assumption 1 at every mode -/
 
 #print axioms V2DrlCarStop.drl_car_stop_wellFormedR_direct
 #print axioms V2DrlLaneControl.drl_lane_control_wellFormedR_direct
@@ -228,6 +240,11 @@ end WellFormedBattery
 #print axioms V2VentilatorVcCuffleak.ventilator_vc_cuffleak_wellFormedR
 #print axioms V2InsulinBasalCgmloss.insulin_basal_cgmloss_wellFormedR
 #print axioms V2RoverRolloverPayload.rover_rollover_payload_wellFormedR
+#print axioms V2FlapsSlowApproach.flaps_slow_approach_wellFormedR
+#print axioms V2TunnelJetfanPairout.tunnel_jetfan_pairout_wellFormedR
+#print axioms V2RampmeterPoll2to1.rampmeter_poll_2to1_wellFormedR
+#print axioms V2BottlingFillStrainer.bottling_fill_strainer_wellFormedR
+#print axioms V2AntennaTrackKvretune.antenna_track_kvretune_wellFormedR
 #print axioms PlatoonCaccAeb.cacc_w_band
 #print axioms PlatoonCaccAeb.aeb_w_const
 #print axioms PlatoonCaccAeb.cacc_box

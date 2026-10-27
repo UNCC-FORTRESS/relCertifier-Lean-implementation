@@ -2,8 +2,8 @@
 
 `suite_v2/<name>/input.txt` is the complete specification of one benchmark: the left
 (ideal) and right (implementation) hybrid automata, the relational invariant (one row per
-left mode) and the time-stretch range. **44 benchmarks.** With the widened cut channel on
-(`RELCERT_IMPLIED_CUT=1`, as every suite_v2 run sets it) the tool CERTIFIES all 44, and
+left mode) and the time-stretch range. **45 benchmarks.** With the widened cut channel on
+(`RELCERT_IMPLIED_CUT=1`, as every suite_v2 run sets it) the tool CERTIFIES all 45, and
 every one carries a kernel-checked Theorem 3 (the paper's Soundness of Synthesis) with the paper's left program over the
 guard-gated right automaton, at the mode-consistent region (`RelCertifier/InstancesV2/Bridge/`;
 check recipe: `docs/CERTIFICATION-CHECK.md`). Without the widened channel 3 of them
@@ -13,7 +13,7 @@ outside the suite in `benchmarks/reserve/` (inputs, headers and verdicts only; `
 **Assumption 1 of each right model** (the paper's Well-Formedness: from every guard state a
 full control interval of flow exists, and every evolution of at most `ε_r` ends in a declared
 successor's guard) is verified per file (`WellFormedR`, `docs/WELLFORMED.md`): it holds for
-all 44 literally (the 3 satellite files carry their conserved momentum band in the right evolve
+all 45 literally (the 3 satellite files carry their conserved momentum band in the right evolve
 domain since 2026-10-15).
 Nine files had a blocking mode until 2026-10-10 and were repaired (`docs/SUITE-REDESIGN.md`
 §21; each header says how and why; `arm_plateau_{crit,profiles,slow}` and
@@ -27,7 +27,7 @@ an invariant guard) and `quad_light_{airframe_20,profiles}` (the sink `LIMIT`: i
 the climb controller, whose operating range reached the limiter threshold; both were redesigned
 on 2026-10-27 with the altitude coordinate and no limiter mode).
 `relcert --wellformed <input.txt>…` runs the tool's sufficient check per right mode (every one
-of the 152 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN` or `BLOCKING`.
+of the 155 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN` or `BLOCKING`.
 
 The suite's design, the per-family rationale, the domain audit (every evolve bound is a
 physical limit of the plant; `scripts/domain_widening.py` re-runs the tool with every bound
@@ -124,7 +124,7 @@ never in the suite: the bound is the no-FFR worst case and does not depend on th
 | `match_multi_rate` | `gantry_speed_zones` (both models new: a pick-and-place gantry whose production program runs zone-scheduled speed overrides, against the program as commissioned at reduced speed; 10 mm path tolerance; replaces the synthetic unitless rate-ratio exhibit in the same multi-cycle matching role) |
 | `platoon_delay_profiles` | `platoon_profiles` (redesigned: the CACC follower driven in the SPORT profile, a shorter time gap, against the design follower verified in NORMAL; its right model is `platoon_linkloss`'s, Assumption 1 through the shared `PlatoonCaccAeb` lemmas) |
 
-## Batch I5 (2026-10-27): nine new benchmarks
+## Batch I5 (2026-10-27): ten new benchmarks, four designs to the reserve
 
 New (designs of rounds A, B and C; every header re-measured on this branch, the letters as
 measured, `scripts/suite_v2_matrix.py` families added): `molding_pack_checkring` (an
@@ -150,6 +150,21 @@ sealed cuff; D, the rows from ISO 80601-2-12's volume and PEEP accuracy) and
 `insulin_basal_cgmloss` (automated basal insulin whose glucose readings arrive over a lossy
 link, against every reading; M B). Each right model has its Z3-free Assumption 1 proof
 (`InstancesV2/WellFormed/`), each its bridge instance (five mode-keyed). Suite 35 -> 44.
+
+Second group: `rover_rollover_payload` (the canonical 12-DOF rover with a mast payload that
+raises its centre of gravity from 0.9 m to 1.2 m, roll gradient 0.015 -> 0.02 and load-transfer
+factor 4/3, against the same rover without the payload; the claim bounds the payload rover's
+load-transfer ratio and its excess over the nominal's scaled by the CG ratio; the reference reads
+the zone joints as 2 m transition bands with back edges, a second structural difference disclosed
+in the header; X I from the claim form, present also at `h_L = h_R`, disclosed; about 20 s). Its right model
+is the first with a two-way coupled block (`φ → ω_y → y → ω_φ → φ`); its Assumption 1 proof
+builds the run by Picard–Lindelöf on an enlarged, strictly inflowing box and recovers the true
+box coordinate by coordinate (`InstancesV2/WellFormed/RoverRolloverPayload.lean`). Suite 44 ->
+45. Four designs went to `benchmarks/reserve/` without ever entering the suite:
+`datacenter_crah_poll` (a near-duplicate of `tank_dos_3to1`), `reactor_feed_wireless` (a twin of
+`fuelcell_chp_dos`), `rover_lateral_tirewear` (a twin of `rover_rollover_payload`, at three
+decline edges) and `lng_cooldown_overspray` (the `hvac_fan_staging` pattern, its parameter at a
+decline edge).
 
 ## Batch I4 (2026-10-27): equal periods, and seven files to the reserve
 
@@ -289,6 +304,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `rover_ladder_3to6` | 6 / 6 | 3 / 3 | model-refinement | reinstalled 2026-10-27 (L6 / L3): clearance, heading and pitch rows, lambda 1 |
 | `rover_ladder_6to8` | 8 / 8 | 3 / 3 | model-refinement | reinstalled 2026-10-27 (L8 / L6): + roll and rollover (LTR) rows; lambda [1, 1.25] from the timetable tolerance (S M I from the re-timed claim form, header) |
 | `rover_ladder_8to12` | 12 / 12 | 3 / 3 | model-refinement | reinstalled 2026-10-27 (L12 / L8): heading, roll, rollover (LTR) and lane rows; lambda [1, 1.25] (S M I from the re-timed claim form, header) |
+| `rover_rollover_payload` | 12 / 12 | 3 / 3 | degradation | new 2026-10-27 (batch I5): mode choice, load-bearing mode facts (both from the claim form, disclosed); the right model's zone joints are 2 m bands with back edges |
 | `rover_terrain_2to4` | 4 / 4 | 3 / 3 | model-refinement | redesigned 2026-10-26 (was `rover_terrain_3to6`): terrain chain, wheel slip and sinkage; zone-only right plan |
 | `rover_terrain_4to6` | 6 / 6 | 3 / 3 | model-refinement | redesigned 2026-10-26 (was `rover_terrain_6to8`): terrain chain, drive lag and roughness heave; right cap `w <= c_T` |
 | `rover_terrain_6to12` | 12 / 12 | 3 / 3 | model-refinement | redesigned 2026-10-26: terrain chain, heave rate, bank grade, pitch, acceleration, squat; right cap `u <= c_T` |

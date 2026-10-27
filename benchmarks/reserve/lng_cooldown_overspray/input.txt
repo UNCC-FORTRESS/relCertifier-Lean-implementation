@@ -1,0 +1,130 @@
+# RESERVE (benchmarks/reserve/, 2026-10-27): not in suite_v2, not in the paper, no Lean integration.
+# Reason: the hvac_fan_staging pattern (an identity hop through a permissive band
+# reference, X from the claim form), and its parameter sits at a decline edge (rho 1.05 against
+# about 1.054).
+# The header below is the design's.
+#
+# lng_cooldown_overspray: cool-down of an LNG membrane cargo tank whose spray control valve passes
+# 5 % more than commanded (deployed), against the cool-down procedure model (reference).
+# scenario: degradation
+# mechanisms: X (hop of the reference into the deployed's spray stage inside the procedure's stage
+#   tolerance, RELCERT_NO_CHOICE=1 declines; matrix: M5 rows differ, handoffs 7/7 unsat, but D is
+#   not load-bearing, see below). X comes from the claim form (it persists without the valve fault).
+#
+# System. T = tank-bottom (inner barrier) temperature in degC, time in hours. Before loading, LNG
+# (-160 degC) is sprayed into the warm tank (20 degC) in three stages chosen by the bottom
+# temperature band: HIGH spray for T > -40, MED for -100 < T <= -40, LOW for T <= -100 (the tank is
+# ready for loading below -130). Cooling toward the cargo temperature:
+#   T' = -(rho k_q + k_v)(T + 160)
+# with the stage spray gain k_q (HIGH 0.039444, MED 0.061667, LOW 0.128333 1/h) scaled by the spray
+# valve's flow ratio rho, and the cold-vapour circulation k_v = 0.005 1/h, which the spray valve does
+# not affect. The gains are set so that the procedure cools at 8 degC/h at the warm end of every
+# stage (20, -40, -100 degC); heat ingress through the insulation is neglected (boil-off scale, two
+# orders below the spray cooling). All stages share the target -160 degC. The sequencer advances one
+# stage at a time and declares the step back (MED -> HIGH, LOW -> MED: return to the previous stage
+# when the tank warms above the stage entry, e.g. after a spray trip). Control period 0.1 h (6 min)
+# on both sides.
+#
+# Right (procedure model): rho = 1; the procedure states its stage temperatures as approximate
+# values: the reference may change stage (and step back) anywhere within +-9 degC of -40 and
+# -100 degC (HIGH T > -49, MED -109 < T <= -31, LOW T <= -91). Left (deployed): the same sequencer
+# switching exactly at -40 and -100, with rho = 1.05 (worn valve trim / positioner offset: 5 % more
+# spray than commanded). One cause: rho. (The tolerance band is the reference's abstraction; exact
+# reference stages DECLINE, the band without the step-back edges DECLINES.)
+#
+# Property (keyed by the deployed's stage).
+#   LEAD 0 <= T_R - T_L <= 8.5 degC: the deployed is never warmer than the procedure and leads it by
+#     at most 8.5 degC, inside the procedure's own +-9 degC stage tolerance, so the deployed's stage
+#     schedule is one the procedure admits.
+#   RATE (rho k_q + k_v)(T_L + 160) <= 10 degC/h in stage q: the containment's cool-down rate limit
+#     (10 degC/h, a stated design value of this benchmark; the procedure runs at 8 degC/h). The row
+#     differs per stage because each stage has its own rate law.
+#
+# Tightest constants (bisection, 2026-10-26): lead 7.68 (7.65 declines); lower side 0 (certifies);
+# rate 8.39 degC/h (8.38 declines).
+#
+# The claim depends on the cause: tightest lead 0 at rho = 1 (no fault: the identity claim
+# certifies), 4.69 at 1.03, 7.68 at 1.05, 10.53 at 1.07 (tolerance widened to 15), 14.70 at 1.10
+# (tolerance 20): about 180 (rho - 1) k_H / (k_H + k_v), the lead the faster deployed builds up in
+# HIGH. The file certifies for rho <= 1.054 and DECLINES from rho = 1.056; an arbitrary deployed
+# stage schedule (stage guards removed, every stage a successor of every stage) DECLINES.
+#
+# Letters, honestly. X: at a deployed stage change the reference is still in its previous stage
+# (inside the tolerance band) and hops into the deployed's stage. It persists at rho = 1 (the
+# identity claim also DECLINES under RELCERT_NO_CHOICE=1): claim form (the band reference), not the
+# fault. D: the rows differ, but the lead band alone (no rate rows) CERTIFIES; a uniform rate row
+# with LOW's law DECLINES and one with HIGH's law CERTIFIES, so the per-stage rows are
+# expressiveness, not load-bearing; D is not claimed. No S M R B P I (lambda 1, one segment per
+# window, nothing pruned, RELCERT_NO_CUT=1 certifies). Template: 1-D first-order stage relaxation
+# toward a shared target (the REVIEW-R2 "template B" family); B and P were attempted on this system
+# and not reached honestly (FALLBACKS.md, ROUND A).
+#
+# Domains. -160 <= T <= 20 degC on both sides (from the cargo temperature to the warm start; forward
+# invariant: every stage cools toward -160). The right guards cover [-160, 20] with overlaps; every
+# left mode has a satisfiable start (T_R = T_L).
+#
+# Verdicts (copied binary, cwd = repo root, RELCERT_IMPLIED_CUT=1 unless stated, 2026-10-26):
+# CERTIFIED (0.3 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, without RELCERT_IMPLIED_CUT,
+# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_CUT=1, RELCERT_WELLFORMED_STRICT=1,
+# RELCERT_NO_PAIR_STRETCH=1; DECLINED under RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1,
+# RELCERT_SYNC=1 RELCERT_NO_CHOICE=1. RELCERT_OPREGION=1: every admitted start in some right guard.
+# --handoff 7/7 unsat (mode-dependent rows). --wellformed: HIGH ok (exit->MED), MED ok (exit->LOW),
+# LOW ok (invariant), 0 UNKNOWN. Cover: lambda 1, budget 1 in every left mode; admissible HIGH_L
+# [HIGH, MED], MED_L [HIGH, MED, LOW], LOW_L [MED, LOW]; choice covers: HIGH_L hop MED -> HIGH,
+# MED_L hops HIGH -> MED and LOW -> MED, LOW_L hop MED -> LOW; nothing pruned.
+
+[problem]
+name = lng_cooldown_overspray
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 4.0
+
+[Lsys]
+state_vars = [T]
+epsilon = 0.1
+
+[Lsys.mode.HIGH]
+ode = T' = smt2:(* -0.046417 (+ T 160));
+guard = T > -40.0
+evolve = T >= -160.0 and T <= 20.0
+next = [HIGH, MED]
+
+[Lsys.mode.MED]
+ode = T' = smt2:(* -0.06975 (+ T 160));
+guard = T > -100.0 and T <= -40.0
+evolve = T >= -160.0 and T <= 20.0
+next = [MED, LOW, HIGH]
+
+[Lsys.mode.LOW]
+ode = T' = smt2:(* -0.13975 (+ T 160));
+guard = T <= -100.0
+evolve = T >= -160.0 and T <= 20.0
+next = [LOW, MED]
+
+[Rsys]
+state_vars = [T]
+epsilon = 0.1
+
+[Rsys.mode.HIGH]
+ode = T' = smt2:(* -0.044444 (+ T 160));
+guard = T > -49.0
+evolve = T >= -160.0 and T <= 20.0
+next = [HIGH, MED]
+
+[Rsys.mode.MED]
+ode = T' = smt2:(* -0.066667 (+ T 160));
+guard = T > -109.0 and T <= -31.0
+evolve = T >= -160.0 and T <= 20.0
+next = [MED, LOW, HIGH]
+
+[Rsys.mode.LOW]
+ode = T' = smt2:(* -0.133333 (+ T 160));
+guard = T <= -91.0
+evolve = T >= -160.0 and T <= 20.0
+next = [LOW, MED]
+
+[relational_invariant]
+HIGH = smt2:(and (and (<= (- R_T L_T) 8.5) (<= (- L_T R_T) 0.0)) (<= (* 0.046417 (+ L_T 160)) 10.0))
+MED = smt2:(and (and (<= (- R_T L_T) 8.5) (<= (- L_T R_T) 0.0)) (<= (* 0.06975 (+ L_T 160)) 10.0))
+LOW = smt2:(and (and (<= (- R_T L_T) 8.5) (<= (- L_T R_T) 0.0)) (<= (* 0.13975 (+ L_T 160)) 10.0))

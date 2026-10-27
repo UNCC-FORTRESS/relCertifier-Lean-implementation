@@ -90,8 +90,13 @@
 > and `ventilator_vc_cuffleak` 24, m020 new, all kind C (a row of the band after the breaker opens,
 > resp. of the expiratory band, flipped from `<=` to `>=`); each DECLINED by relcert. 3
 > refutations, 6 groups and 208 witness lines in.
-> Current instance set: **64 refutations, 181 groups**
-> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 869 mutants in
+> Batch I5, second group: `rover_rollover_payload` (78 mutants; m023, m027, m028, m031 and m032
+> new, all kind B: the heading-rate, roll-rate and slip-rate envelope rows of the payload rover
+> deleted (m023, m027, m031) or moved to the right side (m028 `L_omega_phi -> R_omega_phi`, m032
+> `L_omega_y -> R_omega_y`); each DECLINED by relcert, in 8 to 13 s). 5 refutations, 15 groups and
+> 78 witness lines in.
+> Current instance set: **69 refutations, 196 groups**
+> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 947 mutants in
 > `docs/refute/witnesses.jsonl`. The operator table has not been recomputed.
 
 Design: `docs/REFUTATION-SCOPE.md` (planning record, last present at commit 29663d8). This file reports what was built and the experiment.

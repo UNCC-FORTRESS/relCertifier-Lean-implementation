@@ -31,6 +31,7 @@ import RelCertifier.InstancesV2.BenchChoice.rover_ladder_3to6
 import RelCertifier.InstancesV2.BenchChoice.rover_ladder_6to8
 import RelCertifier.InstancesV2.BenchChoice.rover_ladder_8to12
 import RelCertifier.InstancesV2.BenchChoice.rover_patrol_lag
+import RelCertifier.InstancesV2.BenchChoice.rover_rollover_payload
 import RelCertifier.InstancesV2.BenchChoice.rover_terrain_2to4
 import RelCertifier.InstancesV2.BenchChoice.rover_terrain_4to6
 import RelCertifier.InstancesV2.BenchChoice.rover_terrain_6to12
@@ -79,6 +80,7 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("rover_ladder_6to8", rover_ladder_6to8_coverV2_choice),
   ("rover_ladder_8to12", rover_ladder_8to12_coverV2_choice),
   ("rover_patrol_lag", rover_patrol_lag_coverV2_choice),
+  ("rover_rollover_payload", rover_rollover_payload_coverV2_choice),
   ("rover_terrain_2to4", rover_terrain_2to4_coverV2_choice),
   ("rover_terrain_4to6", rover_terrain_4to6_coverV2_choice),
   ("rover_terrain_6to12", rover_terrain_6to12_coverV2_choice),

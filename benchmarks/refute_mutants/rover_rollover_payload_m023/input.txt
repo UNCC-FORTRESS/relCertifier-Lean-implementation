@@ -1,0 +1,146 @@
+# rover_rollover_payload: rollover margin of the canonical 12-DOF rover carrying a mast payload
+# that raises its centre of gravity from 0.9 m to 1.2 m (deployed), against the same rover without
+# the payload (nominal reference). Both sides 12-DOF; one cause (the CG height).
+# scenario: degradation
+# mechanisms: X I (hop of the reference into the deployed's zone inside its transition band,
+#   RELCERT_NO_CHOICE=1 declines; checked cut v <= c (zone entry speed), RELCERT_NO_CUT=1 declines;
+#   matrix code M6). Both letters come from the claim form (they persist at h_L = h_R), see below.
+#
+# System. The canonical rover of the round-A hierarchy (tmp/r2a/rover/gen.py, level L12: SI units,
+# s in m, angles in rad; track T = 1.8 m; zones STEEP [0, 60) m, MODER [60, 140) m, FLAT >= 140 m with
+# grade 0.15 / 0.05 / 0 rad, cross-slope 0.10 / 0.05 / 0 rad, speed set points 3.0 / 5.0 / 6.5 m/s;
+# control interval 1 s on both sides). The equations are literally the generator's L12 equations on
+# both sides; the right ODEs are byte-identical to the left ODEs of rover_ladder_8to12.
+#   v' = 0.5 (c - v); s' = v (1 - psi^2/2 - 0.3 theta_p^2 - 0.2 phi_r^2); psi' = omega_psi - psi,
+#   omega_psi' = -omega_psi; theta_p' = omega_theta - theta_p, omega_theta' = -omega_theta + grade +
+#   0.5 z; z' = omega_z - z, omega_z' = -omega_z; phi_r' = omega_phi - phi_r, omega_phi' = -omega_phi
+#   + xslope + KPHI a_b; y' = omega_y - y, omega_y' = -omega_y + 0.03 (a + 9.81 phi_r), with
+#   a = v (omega_psi - psi) and the body lateral acceleration a_b = a + y - 2 omega_y + 0.03 (a + 9.81 phi_r).
+#
+# The cause. The CG height h enters the canonical model in two places: the roll gradient
+# KPHI = 0.015 h / 0.9 rad per m/s^2 (roll moment arm = h for a roll axis at ground level, to first
+# order in m g h / K_roll) and the load-transfer ratio LTR = (2 h / T)(a_b / 9.81 + phi_r). Nominal
+# h_R = 0.9 m: KPHI_R = 0.015, 2h/T = 1 (static rollover threshold 1 g). Deployed h_L = 1.2 m (mast
+# payload): KPHI_L = 0.02, 2h/T = 4/3 (threshold 0.75 g). Nothing else differs in the dynamics.
+#
+# Deployed guards: the canonical zone guards with the zone entry speed v <= c (as the ladder's L12
+# left: a start condition every reachable state satisfies, set points rise along the route and
+# v' = 0.5 (c - v) never overshoots). Reference guards: the nominal reads each zone joint as a
+# transition band of +-2 m (STEEP s < 62, MODER 58 <= s < 142, FLAT s >= 138) and may switch back
+# inside the band (declared MODER -> STEEP, FLAT -> MODER). This is the reference's abstraction, not
+# a dynamic difference: the larger roll of the payload rover changes its crabbing loss
+# (0.2 phi_r^2 in s'), so the two odometers drift and a nominal run with exact joints cannot follow
+# the payload rover's zone schedule. Load-bearing: exact joints (no band, no back edges) DECLINE, a
+# 1 m band DECLINES, the 2 m band without the back edges DECLINES. The width is the certified drift
+# at the last joint (0.012 x 145 + 0.2 = 1.94 m).
+#
+# Property (rows identical in every zone).
+#   shared channels equal: v, psi, omega_psi, theta_p, omega_theta, z, omega_z (the payload changes
+#     none of their equations and the zones are matched);
+#   heading |psi_L|, |omega_psi_L| <= 0.35 rad (the ladder's heading requirement; it bounds the
+#     lateral acceleration a);
+#   roll stop |phi_r|, |omega_phi| <= 0.2 rad and lane |y|, |omega_y| <= 0.25 m on BOTH sides (the
+#     ladder's requirements; on the right they are the nominal's own envelope);
+#   roll and slip differences |phi_rL - phi_rR|, |omega_phiL - omega_phiR| <= 0.06,
+#     |y_L - y_R|, |omega_yL - omega_yR| <= 0.05 (certificate rows: the payload's extra roll);
+#   odometer drift |s_L - s_R| <= 0.012 s_L + 0.2 m (certificate row; it keeps the zones matched);
+#   REQUIREMENT |LTR_L| <= 0.8, LTR_L = (4/3)(a_bL / 9.81 + phi_rL): 20 % margin to wheel lift (LTR = 1);
+#   RELATIONAL |LTR_L - (h_L/h_R) LTR_R| <= 0.1: the payload rover's load transfer is the nominal's
+#     scaled by the CG ratio 4/3 (the static effect) up to a dynamic excess of 0.1 (half the 0.2
+#     rollover margin). LTR_R is written with the shared channels v, psi, omega_psi read on the left
+#     (equal by the rows above); a draft with the literal right-side form (excess 0.15) CERTIFIED in
+#     84 s with a raised RELCERT_TIME_BUDGET_MS, over the 40 s default budget.
+#
+# Tightest constants (bisection, the other constants at their file values, 2026-10-26):
+#   LTR_L 0.460 (0.457 declines); relational excess 0.084 (0.080 declines); drift slope 0.005
+#   (0.004 declines, band 3 m); roll difference 0.056 (0.051 declines; drift slope 0.016, band 3 m).
+#
+# The claim depends on the cause (measured; support rows widened where noted so that they do not bind):
+#   roll difference needed: 0.032 at h_L = 0.9 m (no payload; the floor of the stratified certificate,
+#     which cannot prove the cyclic roll-slip loop equal), 0.056 at 1.2 m, 0.080 at 1.5 m;
+#   tightest LTR_L: 0.347 (0.9 m, = the nominal's own), 0.385 (1.0), 0.422 (1.1), 0.461 (1.2),
+#     0.499 (1.3), 0.537 (1.4), 0.575 (1.5): proportional to h;
+#   relational excess with fixed support rows (difference rows 0.1, drift slope 0.016, band 3 m):
+#     0.101, 0.117, 0.125, 0.141, 0.149, 0.157, 0.172 for h_L = 0.9 .. 1.5 m;
+#   the file itself CERTIFIES up to h_L = 1.30 m and DECLINES from 1.31 m (the 0.06 roll-difference
+#     row no longer holds); an arbitrary deployed zone schedule (zone guards without the odometer,
+#     every zone a successor of every zone) DECLINES.
+#
+# Letters, honestly. X: from a deployed zone change the reference starts the next window in its old
+# zone (still in the band) and hops into the deployed's zone; I: the zone entry speed v <= c is a
+# checked cut that bounds a = v r in the roll and slip rows. Both persist at h_L = 0.9 m (NO_CHOICE
+# and NO_CUT still DECLINE): they come from the claim form (drift allowed by the rows, band
+# reference), not from the payload. What the payload moves is the bounds above. No S M R B P D:
+# lambda 1, one segment per window, nothing pruned, rows identical.
+#
+# Domains. The canonical validity boxes on both sides: v in [0, 8], s >= 0, psi, omega_psi, theta_p,
+# omega_theta in [-0.6, 0.6], z, omega_z in [-0.15, 0.15], phi_r, omega_phi, y, omega_y in [-0.5, 0.5]
+# (forward invariant for the canonical gains; with KPHI 0.02 the roll faces still point inward:
+# 0.1 + 0.02 |a_b| < 0.5). No requirement constant is implied by a domain. Every left mode has a
+# satisfiable start (both sides equal at rest at s = 0).
+#
+# Verdicts (branch benchmark-fixes, RELCERT_IMPLIED_CUT=1 unless stated, 2026-10-27):
+# CERTIFIED (20-21 s on a shared machine); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, without
+# RELCERT_IMPLIED_CUT, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_WELLFORMED_STRICT=1,
+# RELCERT_NO_PAIR_STRETCH=1; DECLINED under RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1,
+# RELCERT_SYNC=1 RELCERT_NO_CHOICE=1, RELCERT_NO_CUT=1. RELCERT_OPREGION=1: every admitted start in
+# some right guard. --handoff 5/5 (vacuous, rows identical). --wellformed: STEEP ok (exit->MODER),
+# MODER ok (exit->FLAT), FLAT ok (invariant), 0 UNKNOWN, 0 BLOCKING. Cover: lambda 1, budget 1 in every left
+# mode; admissible STEEP_L [STEEP, MODER], MODER_L [STEEP, MODER, FLAT], FLAT_L [MODER, FLAT]; choice covers: STEEP_L hop MODER -> STEEP, MODER_L hops STEEP -> MODER and FLAT -> MODER,
+# FLAT_L hop MODER -> FLAT; nothing pruned.
+
+[problem]
+name = rover_rollover_payload
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 4.0
+
+[Lsys]
+state_vars = [v, s, psi, omega_psi, theta_p, omega_theta, z, omega_z, phi_r, omega_phi, y, omega_y]
+epsilon = 1.0
+
+[Lsys.mode.STEEP]
+ode = v' = smt2:(* 0.5 (- 3.0 v)); s' = smt2:(* v (- (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p))) (* 0.2 (* phi_r phi_r)))); psi' = smt2:(- omega_psi psi); omega_psi' = smt2:(* -1 omega_psi); theta_p' = smt2:(- omega_theta theta_p); omega_theta' = smt2:(+ (* -1 omega_theta) 0.15 (* 0.5 z)); z' = smt2:(- omega_z z); omega_z' = smt2:(* -1 omega_z); phi_r' = smt2:(- omega_phi phi_r); omega_phi' = smt2:(+ (* -1 omega_phi) 0.1 (* 0.02 (+ (* v (- omega_psi psi)) (- y (* 2 omega_y)) (* 0.03 (+ (* v (- omega_psi psi)) (* 9.81 phi_r)))))); y' = smt2:(- omega_y y); omega_y' = smt2:(+ (* -1 omega_y) (* 0.03 (+ (* v (- omega_psi psi)) (* 9.81 phi_r))));
+guard = s >= 0.0 and s < 60.0 and v <= 3.0
+evolve = v >= 0.0 and v <= 8.0 and s >= 0.0 and psi >= -0.6 and psi <= 0.6 and omega_psi >= -0.6 and omega_psi <= 0.6 and theta_p >= -0.6 and theta_p <= 0.6 and omega_theta >= -0.6 and omega_theta <= 0.6 and z >= -0.15 and z <= 0.15 and omega_z >= -0.15 and omega_z <= 0.15 and phi_r >= -0.5 and phi_r <= 0.5 and omega_phi >= -0.5 and omega_phi <= 0.5 and y >= -0.5 and y <= 0.5 and omega_y >= -0.5 and omega_y <= 0.5
+next = [MODER, STEEP]
+
+[Lsys.mode.MODER]
+ode = v' = smt2:(* 0.5 (- 5.0 v)); s' = smt2:(* v (- (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p))) (* 0.2 (* phi_r phi_r)))); psi' = smt2:(- omega_psi psi); omega_psi' = smt2:(* -1 omega_psi); theta_p' = smt2:(- omega_theta theta_p); omega_theta' = smt2:(+ (* -1 omega_theta) 0.05 (* 0.5 z)); z' = smt2:(- omega_z z); omega_z' = smt2:(* -1 omega_z); phi_r' = smt2:(- omega_phi phi_r); omega_phi' = smt2:(+ (* -1 omega_phi) 0.05 (* 0.02 (+ (* v (- omega_psi psi)) (- y (* 2 omega_y)) (* 0.03 (+ (* v (- omega_psi psi)) (* 9.81 phi_r)))))); y' = smt2:(- omega_y y); omega_y' = smt2:(+ (* -1 omega_y) (* 0.03 (+ (* v (- omega_psi psi)) (* 9.81 phi_r))));
+guard = s >= 60.0 and s < 140.0 and v <= 5.0
+evolve = v >= 0.0 and v <= 8.0 and s >= 0.0 and psi >= -0.6 and psi <= 0.6 and omega_psi >= -0.6 and omega_psi <= 0.6 and theta_p >= -0.6 and theta_p <= 0.6 and omega_theta >= -0.6 and omega_theta <= 0.6 and z >= -0.15 and z <= 0.15 and omega_z >= -0.15 and omega_z <= 0.15 and phi_r >= -0.5 and phi_r <= 0.5 and omega_phi >= -0.5 and omega_phi <= 0.5 and y >= -0.5 and y <= 0.5 and omega_y >= -0.5 and omega_y <= 0.5
+next = [FLAT, MODER]
+
+[Lsys.mode.FLAT]
+ode = v' = smt2:(* 0.5 (- 6.5 v)); s' = smt2:(* v (- (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p))) (* 0.2 (* phi_r phi_r)))); psi' = smt2:(- omega_psi psi); omega_psi' = smt2:(* -1 omega_psi); theta_p' = smt2:(- omega_theta theta_p); omega_theta' = smt2:(+ (* -1 omega_theta) (* 0.5 z)); z' = smt2:(- omega_z z); omega_z' = smt2:(* -1 omega_z); phi_r' = smt2:(- omega_phi phi_r); omega_phi' = smt2:(+ (* -1 omega_phi) (* 0.02 (+ (* v (- omega_psi psi)) (- y (* 2 omega_y)) (* 0.03 (+ (* v (- omega_psi psi)) (* 9.81 phi_r)))))); y' = smt2:(- omega_y y); omega_y' = smt2:(+ (* -1 omega_y) (* 0.03 (+ (* v (- omega_psi psi)) (* 9.81 phi_r))));
+guard = s >= 140.0 and v <= 6.5
+evolve = v >= 0.0 and v <= 8.0 and s >= 0.0 and psi >= -0.6 and psi <= 0.6 and omega_psi >= -0.6 and omega_psi <= 0.6 and theta_p >= -0.6 and theta_p <= 0.6 and omega_theta >= -0.6 and omega_theta <= 0.6 and z >= -0.15 and z <= 0.15 and omega_z >= -0.15 and omega_z <= 0.15 and phi_r >= -0.5 and phi_r <= 0.5 and omega_phi >= -0.5 and omega_phi <= 0.5 and y >= -0.5 and y <= 0.5 and omega_y >= -0.5 and omega_y <= 0.5
+next = [FLAT]
+
+[Rsys]
+state_vars = [v, s, psi, omega_psi, theta_p, omega_theta, z, omega_z, phi_r, omega_phi, y, omega_y]
+epsilon = 1.0
+
+[Rsys.mode.STEEP]
+ode = v' = smt2:(* 0.5 (- 3.0 v)); s' = smt2:(* v (- (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p))) (* 0.2 (* phi_r phi_r)))); psi' = smt2:(- omega_psi psi); omega_psi' = smt2:(* -1 omega_psi); theta_p' = smt2:(- omega_theta theta_p); omega_theta' = smt2:(+ (* -1 omega_theta) 0.15 (* 0.5 z)); z' = smt2:(- omega_z z); omega_z' = smt2:(* -1 omega_z); phi_r' = smt2:(- omega_phi phi_r); omega_phi' = smt2:(+ (* -1 omega_phi) 0.1 (* 0.015 (+ (* v (- omega_psi psi)) (- y (* 2 omega_y)) (* 0.03 (+ (* v (- omega_psi psi)) (* 9.81 phi_r)))))); y' = smt2:(- omega_y y); omega_y' = smt2:(+ (* -1 omega_y) (* 0.03 (+ (* v (- omega_psi psi)) (* 9.81 phi_r))));
+guard = s >= 0.0 and s < 62.0
+evolve = v >= 0.0 and v <= 8.0 and s >= 0.0 and psi >= -0.6 and psi <= 0.6 and omega_psi >= -0.6 and omega_psi <= 0.6 and theta_p >= -0.6 and theta_p <= 0.6 and omega_theta >= -0.6 and omega_theta <= 0.6 and z >= -0.15 and z <= 0.15 and omega_z >= -0.15 and omega_z <= 0.15 and phi_r >= -0.5 and phi_r <= 0.5 and omega_phi >= -0.5 and omega_phi <= 0.5 and y >= -0.5 and y <= 0.5 and omega_y >= -0.5 and omega_y <= 0.5
+next = [MODER, STEEP]
+
+[Rsys.mode.MODER]
+ode = v' = smt2:(* 0.5 (- 5.0 v)); s' = smt2:(* v (- (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p))) (* 0.2 (* phi_r phi_r)))); psi' = smt2:(- omega_psi psi); omega_psi' = smt2:(* -1 omega_psi); theta_p' = smt2:(- omega_theta theta_p); omega_theta' = smt2:(+ (* -1 omega_theta) 0.05 (* 0.5 z)); z' = smt2:(- omega_z z); omega_z' = smt2:(* -1 omega_z); phi_r' = smt2:(- omega_phi phi_r); omega_phi' = smt2:(+ (* -1 omega_phi) 0.05 (* 0.015 (+ (* v (- omega_psi psi)) (- y (* 2 omega_y)) (* 0.03 (+ (* v (- omega_psi psi)) (* 9.81 phi_r)))))); y' = smt2:(- omega_y y); omega_y' = smt2:(+ (* -1 omega_y) (* 0.03 (+ (* v (- omega_psi psi)) (* 9.81 phi_r))));
+guard = s >= 58.0 and s < 142.0
+evolve = v >= 0.0 and v <= 8.0 and s >= 0.0 and psi >= -0.6 and psi <= 0.6 and omega_psi >= -0.6 and omega_psi <= 0.6 and theta_p >= -0.6 and theta_p <= 0.6 and omega_theta >= -0.6 and omega_theta <= 0.6 and z >= -0.15 and z <= 0.15 and omega_z >= -0.15 and omega_z <= 0.15 and phi_r >= -0.5 and phi_r <= 0.5 and omega_phi >= -0.5 and omega_phi <= 0.5 and y >= -0.5 and y <= 0.5 and omega_y >= -0.5 and omega_y <= 0.5
+next = [FLAT, MODER, STEEP]
+
+[Rsys.mode.FLAT]
+ode = v' = smt2:(* 0.5 (- 6.5 v)); s' = smt2:(* v (- (- (- 1 (* 0.5 (* psi psi))) (* 0.3 (* theta_p theta_p))) (* 0.2 (* phi_r phi_r)))); psi' = smt2:(- omega_psi psi); omega_psi' = smt2:(* -1 omega_psi); theta_p' = smt2:(- omega_theta theta_p); omega_theta' = smt2:(+ (* -1 omega_theta) (* 0.5 z)); z' = smt2:(- omega_z z); omega_z' = smt2:(* -1 omega_z); phi_r' = smt2:(- omega_phi phi_r); omega_phi' = smt2:(+ (* -1 omega_phi) (* 0.015 (+ (* v (- omega_psi psi)) (- y (* 2 omega_y)) (* 0.03 (+ (* v (- omega_psi psi)) (* 9.81 phi_r)))))); y' = smt2:(- omega_y y); omega_y' = smt2:(+ (* -1 omega_y) (* 0.03 (+ (* v (- omega_psi psi)) (* 9.81 phi_r))));
+guard = s >= 138.0
+evolve = v >= 0.0 and v <= 8.0 and s >= 0.0 and psi >= -0.6 and psi <= 0.6 and omega_psi >= -0.6 and omega_psi <= 0.6 and theta_p >= -0.6 and theta_p <= 0.6 and omega_theta >= -0.6 and omega_theta <= 0.6 and z >= -0.15 and z <= 0.15 and omega_z >= -0.15 and omega_z <= 0.15 and phi_r >= -0.5 and phi_r <= 0.5 and omega_phi >= -0.5 and omega_phi <= 0.5 and y >= -0.5 and y <= 0.5 and omega_y >= -0.5 and omega_y <= 0.5
+next = [FLAT, MODER]
+
+[relational_invariant]
+STEEP = smt2:(and (and (<= L_v R_v) (<= R_v L_v)) (and (<= L_psi R_psi) (<= R_psi L_psi)) (and (<= L_omega_psi R_omega_psi) (<= R_omega_psi L_omega_psi)) (and (<= L_theta_p R_theta_p) (<= R_theta_p L_theta_p)) (and (<= L_omega_theta R_omega_theta) (<= R_omega_theta L_omega_theta)) (and (<= L_z R_z) (<= R_z L_z)) (and (<= L_omega_z R_omega_z) (<= R_omega_z L_omega_z)) (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_phi_r 0.2) (<= (- 0 0.2) L_phi_r)) (and (<= L_omega_phi 0.2) (<= (- 0 0.2) L_omega_phi)) (and (<= L_y 0.25) (<= (- 0 0.25) L_y)) (and (<= L_omega_y 0.25) (<= (- 0 0.25) L_omega_y)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r)) (and (<= R_omega_phi 0.2) (<= (- 0 0.2) R_omega_phi)) (and (<= R_y 0.25) (<= (- 0 0.25) R_y)) (and (<= R_omega_y 0.25) (<= (- 0 0.25) R_omega_y)) (and (<= (- L_phi_r R_phi_r) 0.06) (<= (- 0 0.06) (- L_phi_r R_phi_r))) (and (<= (- L_omega_phi R_omega_phi) 0.06) (<= (- 0 0.06) (- L_omega_phi R_omega_phi))) (and (<= (- L_y R_y) 0.05) (<= (- 0 0.05) (- L_y R_y))) (and (<= (- L_omega_y R_omega_y) 0.05) (<= (- 0 0.05) (- L_omega_y R_omega_y))) (<= (- L_s R_s) (+ (* 0.012 L_s) 0.2)) (<= (- R_s L_s) (+ (* 0.012 L_s) 0.2)) (and (<= (* 1.333333 (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r)) 0.8) (<= (- 0 0.8) (* 1.333333 (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r)))) (and (<= (- (* 1.333333 (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r)) (* 1.333333 (* 1.0 (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- R_y (* 2 R_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 R_phi_r))))) R_phi_r)))) 0.1) (<= (- 0 0.1) (- (* 1.333333 (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r)) (* 1.333333 (* 1.0 (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- R_y (* 2 R_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 R_phi_r))))) R_phi_r)))))))
+MODER = smt2:(and (and (<= L_v R_v) (<= R_v L_v)) (and (<= L_psi R_psi) (<= R_psi L_psi)) (and (<= L_omega_psi R_omega_psi) (<= R_omega_psi L_omega_psi)) (and (<= L_theta_p R_theta_p) (<= R_theta_p L_theta_p)) (and (<= L_omega_theta R_omega_theta) (<= R_omega_theta L_omega_theta)) (and (<= L_z R_z) (<= R_z L_z)) (and (<= L_omega_z R_omega_z) (<= R_omega_z L_omega_z)) (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_phi_r 0.2) (<= (- 0 0.2) L_phi_r)) (and (<= L_omega_phi 0.2) (<= (- 0 0.2) L_omega_phi)) (and (<= L_y 0.25) (<= (- 0 0.25) L_y)) (and (<= L_omega_y 0.25) (<= (- 0 0.25) L_omega_y)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r)) (and (<= R_omega_phi 0.2) (<= (- 0 0.2) R_omega_phi)) (and (<= R_y 0.25) (<= (- 0 0.25) R_y)) (and (<= R_omega_y 0.25) (<= (- 0 0.25) R_omega_y)) (and (<= (- L_phi_r R_phi_r) 0.06) (<= (- 0 0.06) (- L_phi_r R_phi_r))) (and (<= (- L_omega_phi R_omega_phi) 0.06) (<= (- 0 0.06) (- L_omega_phi R_omega_phi))) (and (<= (- L_y R_y) 0.05) (<= (- 0 0.05) (- L_y R_y))) (and (<= (- L_omega_y R_omega_y) 0.05) (<= (- 0 0.05) (- L_omega_y R_omega_y))) (<= (- L_s R_s) (+ (* 0.012 L_s) 0.2)) (<= (- R_s L_s) (+ (* 0.012 L_s) 0.2)) (and (<= (* 1.333333 (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r)) 0.8) (<= (- 0 0.8) (* 1.333333 (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r)))) (and (<= (- (* 1.333333 (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r)) (* 1.333333 (* 1.0 (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- R_y (* 2 R_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 R_phi_r))))) R_phi_r)))) 0.1) (<= (- 0 0.1) (- (* 1.333333 (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r)) (* 1.333333 (* 1.0 (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- R_y (* 2 R_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 R_phi_r))))) R_phi_r)))))))
+FLAT = smt2:(and (and (<= L_v R_v) (<= R_v L_v)) (and (<= L_psi R_psi) (<= R_psi L_psi)) (and (<= L_omega_psi R_omega_psi) (<= R_omega_psi L_omega_psi)) (and (<= L_theta_p R_theta_p) (<= R_theta_p L_theta_p)) (and (<= L_omega_theta R_omega_theta) (<= R_omega_theta L_omega_theta)) (and (<= L_z R_z) (<= R_z L_z)) (and (<= L_omega_z R_omega_z) (<= R_omega_z L_omega_z)) (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)) (and (<= L_phi_r 0.2) (<= (- 0 0.2) L_phi_r)) (and (<= L_omega_phi 0.2) (<= (- 0 0.2) L_omega_phi)) (and (<= L_y 0.25) (<= (- 0 0.25) L_y)) (and (<= L_omega_y 0.25) (<= (- 0 0.25) L_omega_y)) (and (<= R_phi_r 0.2) (<= (- 0 0.2) R_phi_r)) (and (<= R_omega_phi 0.2) (<= (- 0 0.2) R_omega_phi)) (and (<= R_y 0.25) (<= (- 0 0.25) R_y)) (and (<= R_omega_y 0.25) (<= (- 0 0.25) R_omega_y)) (and (<= (- L_phi_r R_phi_r) 0.06) (<= (- 0 0.06) (- L_phi_r R_phi_r))) (and (<= (- L_omega_phi R_omega_phi) 0.06) (<= (- 0 0.06) (- L_omega_phi R_omega_phi))) (and (<= (- L_y R_y) 0.05) (<= (- 0 0.05) (- L_y R_y))) (and (<= (- L_omega_y R_omega_y) 0.05) (<= (- 0 0.05) (- L_omega_y R_omega_y))) (<= (- L_s R_s) (+ (* 0.012 L_s) 0.2)) (<= (- R_s L_s) (+ (* 0.012 L_s) 0.2)) (and (<= (* 1.333333 (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r)) 0.8) (<= (- 0 0.8) (* 1.333333 (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r)))) (and (<= (- (* 1.333333 (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r)) (* 1.333333 (* 1.0 (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- R_y (* 2 R_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 R_phi_r))))) R_phi_r)))) 0.1) (<= (- 0 0.1) (- (* 1.333333 (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- L_y (* 2 L_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 L_phi_r))))) L_phi_r)) (* 1.333333 (* 1.0 (+ (* 0.101937 (+ (* L_v (- L_omega_psi L_psi)) (- R_y (* 2 R_omega_y)) (* 0.03 (+ (* L_v (- L_omega_psi L_psi)) (* 9.81 R_phi_r))))) R_phi_r)))))))

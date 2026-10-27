@@ -11,7 +11,9 @@ their Lean integration in git history (last at commit 14e0405). The seven files 
 (2026-10-27: the two chargers, `sat_detumble_nominal`, `sat3w_detumble_nominal`,
 `sat3w_detumble_weak`, `arm_plateau_crit`, `arm_plateau_slow`) were suite benchmarks; each is
 stored as its equal-period design of the round-A pass (RA2a), and their Lean integration (for
-the round-2 files of the same names) is in git history (last at commit 0a40e7d).
+the round-2 files of the same names) is in git history (last at commit 0a40e7d). The four files of
+batch I5 (2026-10-27: `datacenter_crah_poll`, `reactor_feed_wireless`, `rover_lateral_tirewear`,
+`lng_cooldown_overspray`) are design files of rounds A and B that were never in the suite.
 
 Verdicts measured 2026-10-27 with the branch's `relcert` (`RELCERT_IMPLIED_CUT=1`; letters as in
 `benchmarks/README.md`, "Header pass"). Every file CERTIFIES by default and under
@@ -36,5 +38,9 @@ Verdicts measured 2026-10-27 with the branch's `relcert` (`RELCERT_IMPLIED_CUT=1
 | `sat3w_detumble_weak` | suite_v2, stored as its round-A (equal-period) design | `NO_CHOICE`, `SYNC`+`NO_CHOICE`, `NO_PRUNE`+`NO_CHOICE`, `NO_CUT` | I X | the same numbers as `sat_detumble_weak` (the binding case puts all the energy on the weak axis) |
 | `arm_plateau_crit` | suite_v2, stored as its round-A relational redesign | none | none | no genuinely relational claim against the ramp planner; the relational redesign (against the massless design model) earns no letter; planner fallback: the ramp-planner file with equal periods (R I, unary binding case) |
 | `arm_plateau_slow` | suite_v2, stored as its round-A relational redesign | none | none | as `arm_plateau_crit`; planner fallback: the ramp-planner file with equal periods (I, unary binding case) |
+| `datacenter_crah_poll` | round-A design (never in the suite) | none | M | near-duplicate of `tank_dos_3to1` (1-D storage driven by a monotone exogenous ramp, four stages on equal bands, one-sided rows, M from chain depth under a period-ratio cause; `tank_dos_3to1` keeps M I) |
+| `reactor_feed_wireless` | round-B design (never in the suite) | `NO_PRUNE`, `NO_PRUNE`+`NO_CHOICE` | M B P | twin of `fuelcell_chp_dos` (the same 1-D relaxation with a constant exogenous input, the 2:1 period cause, the live-edge pruning argument and a narrow symmetric band; a feed rising with temperature is the runaway direction) |
+| `rover_lateral_tirewear` | round-A fill design (never in the suite) | `NO_CHOICE`, `SYNC`+`NO_CHOICE`, `NO_PRUNE`+`NO_CHOICE`, `NO_CUT` | X I | twin of `rover_rollover_payload` (the same right model, band guards and claim-form X I; the wear is one more gain in the same roll-slip loop), and it sits at three decline edges at once |
+| `lng_cooldown_overspray` | round-A fill design (never in the suite) | `NO_CHOICE`, `SYNC`+`NO_CHOICE`, `NO_PRUNE`+`NO_CHOICE` | X | the `hvac_fan_staging` pattern (an identity hop through a permissive band reference, X from the claim form); its parameter sits at a decline edge (rho 1.05 against about 1.054) |
 
 Run one: `RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert benchmarks/reserve/<name>/input.txt`.

@@ -1,0 +1,137 @@
+# RESERVE (benchmarks/reserve/, 2026-10-27): not in suite_v2, not in the paper, no Lean integration.
+# Reason: near-duplicate of tank_dos_3to1 (the same 1-D storage driven by a monotone exogenous
+# ramp, four stages on equal bands, one-sided rows, M from chain depth under a period-ratio cause;
+# tank_dos_3to1 keeps M I).
+# The header below is the design's.
+#
+# datacenter_crah_poll: a data-center hall taking over a sister hall's IT load, whose CRAH units are
+# staged on the measured IT load; the deployed building-management system reads the load every 40 s,
+# the design every 20 s. The same staging law runs on both sides.
+# scenario: degraded-network
+# mechanisms: M (multi-cycle matching: one deployed poll of up to 40 s against two design polls of
+#   20 s along the design's staging chain; matrix code M2)
+#
+# System (both sides). Cold-aisle (server inlet) temperature T in degC, IT load P in kW, time in s.
+# Each running CRAH unit removes 40 kW per kelvin of inlet temperature above its 18 degC supply air;
+# the hall's air and equipment store 10 MJ/K:  T' = (P - 40 n (T - 18)) / 10000.
+# Failover: the sister hall's load is transferred in, P' = (1200 - P) / 90 (from 400 kW toward
+# 1200 kW with a 90 s time constant, the same exogenous ramp on both sides).
+# Staging law (identical on both sides): n CRAH units for the 200 kW load band of the measured P:
+# C3 for P < 600, C4 for [600, 800), C5 for [800, 1000), C6 for P >= 1000 (one unit per 200 kW; at a
+# band's top load the hall settles at 18 + 200 n / (40 n) = 23 degC). The decision is held until the
+# next read.
+#   Right (design, epsilon 20 s): the load is read every 20 s. next(Cn) = [Cn, Cn+1]: within 20 s the
+#     load rises at most 8.9 kW/s x 20 s = 178 kW < 200 kW, so at most one band edge (relcert
+#     --wellformed: C3, C4, C5 ok (exit), C6 ok (invariant)).
+#   Left (deployed, epsilon 40 s): the PDU meters are polled over SNMP every 40 s; next(Cn) = every
+#     stage from Cn up (within 40 s the load can cross two band edges).
+# The poll period is the only difference (same hall, units, ramp and bands). lambda_min = lambda_max
+# = 1: the claim compares the two halls at equal times, so one deployed poll is matched by two
+# design polls.
+#
+# Property (every left mode): T_R <= T_L, T_L <= T_R + 3.8, P_L = P_R (two inequalities).
+#   T_R <= T_L: during the transfer a stale decision is always a lower stage, so the deployed hall is
+#     never cooler than the design (exact, constant 0).
+#   T_L <= T_R + 3.8: the deployed inlet is at most 3.8 K warmer. Requirement: ASHRAE TC 9.9
+#     recommended inlet envelope, upper limit 27 degC; the design staging keeps the inlet at or below
+#     23.11 degC during the transfer (simulated 20 s polls from every start load in the first band),
+#     so the poll delay may cost at most 27 - 23.11 = 3.89 K, rounded down to 3.8. Not implied by the
+#     domains (they bound the difference only by 10 K).
+#   P_L = P_R: both halls see the same transferred load.
+# How the bound depends on the cause (measured; tightest certifying constant, bisection 0.01,
+# everything else fixed): 20 s poll (no cause): exact equality (0 certifies); 40 s (this file):
+# 2.50 (2.49 declines); 60 s: 4.00, above the 3.8 margin, so a three-poll delay violates the
+# requirement; 80 s and 120 s: 5.00 (the four-stage chain is exhausted). Why: on a joint segment with
+# the design dn stages ahead, the gap D = T_L - T_R obeys D' = (40/10000) (-n_L D + dn (T_R - 18));
+# with T_R <= T_L <= 28 (the domain cap) the boundary D = c is kept iff c >= 10 dn / n_R, so the
+# worst pairing is dn = 1, n_R = 4 (2.5) with two design polls per deployed poll, dn = 2, n_R = 5
+# (4.0) with three, dn = 3, n_R = 6 (5.0) with four or more. Simulated worst sampled gap T_L - T_R:
+# 0.31 / 0.70 / 0.52 K for 40 / 60 / 80 s polls from P = 400 kW: the certificate is an inductive
+# envelope that moves with the poll period as the chain depth does.
+# Law dependence (measured): an arbitrary deployed stage schedule (every left guard the whole domain,
+# every stage a successor of every other) DECLINES (it may run more units than the design, so
+# T_R <= T_L fails); the design's one-band-per-poll chain is load-bearing: with next(Cn) = every
+# higher stage on the right the file DECLINES at 3.8.
+#
+# Domains. T in [18, 28] degC: 18 = the supply-air temperature (every flow is >= P / 10000 > 0
+# there), 28 = the hottest equilibrium the hall can reach (three units at 1200 kW; every flow is
+# <= 0 there), forward invariant in every stage. P in [400, 1200] kW, forward invariant (the ramp
+# rises to 1200). The right guards partition P (no coverage gap); every left mode has a satisfiable
+# start (equal states).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26, copied binary): CERTIFIED;
+# CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE,
+# SYNC+NO_CHOICE, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, without
+# RELCERT_IMPLIED_CUT, RELCERT_OPREGION=1 (every admitted start in some right guard) and
+# RELCERT_WELLFORMED_STRICT=1. Cover: every left mode at lambda 1, budget 2, admissible start the
+# same stage, path Cn -> Cn+1, nothing pruned, no choice, no right-only segment. Rows identical
+# (--handoff vacuous, 10/10). relcert --wellformed: C3, C4, C5 ok (exit), C6 ok (invariant),
+# 0 UNKNOWN. Letters: M.
+[problem]
+name = datacenter_crah_poll
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 900.0
+
+[Lsys]
+state_vars = [T, P]
+epsilon = 40.0
+
+[Lsys.mode.C3]
+ode = T' = smt2:(* 0.00010000 (- P (* 120.0 (- T 18.0)))); P' = smt2:(* 0.01111111 (- 1200.0 P));
+guard = P >= 400.0 and P < 600.0 and T >= 18.0 and T <= 28.0 and P >= 400.0 and P <= 1200.0
+evolve = T >= 18.0 and T <= 28.0 and P >= 400.0 and P <= 1200.0
+next = [C3, C4, C5, C6]
+
+[Lsys.mode.C4]
+ode = T' = smt2:(* 0.00010000 (- P (* 160.0 (- T 18.0)))); P' = smt2:(* 0.01111111 (- 1200.0 P));
+guard = P >= 600.0 and P < 800.0 and T >= 18.0 and T <= 28.0 and P >= 400.0 and P <= 1200.0
+evolve = T >= 18.0 and T <= 28.0 and P >= 400.0 and P <= 1200.0
+next = [C4, C5, C6]
+
+[Lsys.mode.C5]
+ode = T' = smt2:(* 0.00010000 (- P (* 200.0 (- T 18.0)))); P' = smt2:(* 0.01111111 (- 1200.0 P));
+guard = P >= 800.0 and P < 1000.0 and T >= 18.0 and T <= 28.0 and P >= 400.0 and P <= 1200.0
+evolve = T >= 18.0 and T <= 28.0 and P >= 400.0 and P <= 1200.0
+next = [C5, C6]
+
+[Lsys.mode.C6]
+ode = T' = smt2:(* 0.00010000 (- P (* 240.0 (- T 18.0)))); P' = smt2:(* 0.01111111 (- 1200.0 P));
+guard = P >= 1000.0 and T >= 18.0 and T <= 28.0 and P >= 400.0 and P <= 1200.0
+evolve = T >= 18.0 and T <= 28.0 and P >= 400.0 and P <= 1200.0
+next = [C6]
+
+[Rsys]
+state_vars = [T, P]
+epsilon = 20.0
+
+[Rsys.mode.C3]
+ode = T' = smt2:(* 0.00010000 (- P (* 120.0 (- T 18.0)))); P' = smt2:(* 0.01111111 (- 1200.0 P));
+guard = P >= 400.0 and P < 600.0 and T >= 18.0 and T <= 28.0 and P >= 400.0 and P <= 1200.0
+evolve = T >= 18.0 and T <= 28.0 and P >= 400.0 and P <= 1200.0
+next = [C3, C4]
+
+[Rsys.mode.C4]
+ode = T' = smt2:(* 0.00010000 (- P (* 160.0 (- T 18.0)))); P' = smt2:(* 0.01111111 (- 1200.0 P));
+guard = P >= 600.0 and P < 800.0 and T >= 18.0 and T <= 28.0 and P >= 400.0 and P <= 1200.0
+evolve = T >= 18.0 and T <= 28.0 and P >= 400.0 and P <= 1200.0
+next = [C4, C5]
+
+[Rsys.mode.C5]
+ode = T' = smt2:(* 0.00010000 (- P (* 200.0 (- T 18.0)))); P' = smt2:(* 0.01111111 (- 1200.0 P));
+guard = P >= 800.0 and P < 1000.0 and T >= 18.0 and T <= 28.0 and P >= 400.0 and P <= 1200.0
+evolve = T >= 18.0 and T <= 28.0 and P >= 400.0 and P <= 1200.0
+next = [C5, C6]
+
+[Rsys.mode.C6]
+ode = T' = smt2:(* 0.00010000 (- P (* 240.0 (- T 18.0)))); P' = smt2:(* 0.01111111 (- 1200.0 P));
+guard = P >= 1000.0 and T >= 18.0 and T <= 28.0 and P >= 400.0 and P <= 1200.0
+evolve = T >= 18.0 and T <= 28.0 and P >= 400.0 and P <= 1200.0
+next = [C6]
+
+[relational_invariant]
+C3 = T[r] <= T[l] + 0 and T[l] <= T[r] + 3.8 and P[l] <= P[r] and P[r] <= P[l]
+C4 = T[r] <= T[l] + 0 and T[l] <= T[r] + 3.8 and P[l] <= P[r] and P[r] <= P[l]
+C5 = T[r] <= T[l] + 0 and T[l] <= T[r] + 3.8 and P[l] <= P[r] and P[r] <= P[l]
+C6 = T[r] <= T[l] + 0 and T[l] <= T[r] + 3.8 and P[l] <= P[r] and P[r] <= P[l]

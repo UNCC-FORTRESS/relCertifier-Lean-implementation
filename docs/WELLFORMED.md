@@ -1,8 +1,8 @@
 # Assumption 1, verified per benchmark (`WellFormedR`)
 
 **Status (2026-10-15, branch `theorem3-general`).** The paper's Assumption 1
-(Well-Formedness) is a separately stated, kernel-checked model fact for every one of the 44
-suite_v2 benchmarks (2026-10-27: four moved to `benchmarks/reserve/`, below, seven more in batch I4, and nine new in batch I5): **proved for all 44**, **false for none** (the four literature benchmarks
+(Well-Formedness) is a separately stated, kernel-checked model fact for every one of the 45
+suite_v2 benchmarks (2026-10-27: four moved to `benchmarks/reserve/`, below, seven more in batch I4, and ten new in batch I5): **proved for all 45**, **false for none** (the four literature benchmarks
 of 2026-10-15 included; the two dRL ones and `freedm_meter` are proved directly over the bridge's automaton,
 `<b>_wellFormedR_direct`, with explicit polynomial runs, `trajRs_sol`). The satellites are proved
 literally since 2026-10-15, when their conserved momentum band entered the right evolve
@@ -11,7 +11,7 @@ blocking states); those nine were repaired (`docs/SUITE-REDESIGN.md` §21: the f
 re-engage or are latched with an invariant guard, the arm planner's successor sets name every
 band a sampled interval can reach) and are now proved. No proof uses Z3. The tool's sufficient
 check of both clauses (`relcert --wellformed`; the nonblocking clause since 2026-10-26, before
-which only the successor clause was checked) finds every one of the 152 right modes `ok`, and
+which only the successor clause was checked) finds every one of the 155 right modes `ok`, and
 `--check-quick-v2` runs it STRICT, against declared counts (§4). The generic-bridge
 instances (`InstancesV2/Bridge/`, the paper's route to
 Theorem 3) take it as a hypothesis: `theorem3_keyed_of_records`
@@ -111,7 +111,7 @@ Theorems: `<ns>.<bench>_wellFormedR` (proved; for the nine repaired models also 
 per-mode theorems `…_brake`, `…_limit`, `…_mode`), for the detumble family also
 `<ns>.<bench>_band_invariant` (the band is kept by every mode's flow; the predicate itself is
 unconditional since the momentum band `|h_i + J_i w_i| ≤ 2` entered the right evolve domains,
-2026-10-15). Files: `InstancesV2/WellFormed/<B>.lean` (45, each
+2026-10-15). Files: `InstancesV2/WellFormed/<B>.lean` (46, each
 self-contained: right model and proof; the 19 carried-over ones moved in from `Instances/WellFormed/`
 on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 `relcert --wellformed` (§4). Z3 leaves: none for every row.
@@ -186,11 +186,12 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 67 | `hydro_rejection_gatecal` | proved (2026-10-27, batch I5) | ONGRID (b) → REJECT (the speed held by the grid, the gate toward `0.85 − 20 w`); REJECT (a) (the clock does not fall; `w` by variation of constants inside `[−1, 1]`) | ONGRID ok (exit→REJECT); REJECT ok (invariant) |
 | 68 | `ventilator_vc_cuffleak` | proved (2026-10-27, batch I5) | INSP (b) → EXP (the linear run is tangent to the face `V − 0.4 t ≤ 0`; the cap `V ≤ 0.404` holds since `V ≤ 0.4 (t₀ + s) < 0.404` for `t₀ < 1`, `s ≤ 0.01`); EXP (a) (`V` decays toward 0, below `max V₀ 0 ≤ 0.4 t`) | INSP ok (exit→EXP); EXP ok (invariant) |
 | 69 | `insulin_basal_cgmloss` | proved (2026-10-27, batch I5) | every level (b) → a neighbour (the 5-minute glucose motion bound: the field of `G` lies in `[−5.6, 2.42]` on the domain, so `G` moves by less than one 30 mg/dL band in one interval); existence: `X` toward `0.2 q`, `G` by variation of constants inside `[40, 400]` | all nine ok (exit) |
+| 70 | `rover_rollover_payload` | proved (2026-10-27, batch I5; dimension 12, mode choice) | STEEP (b) → MODER, MODER (b) → FLAT (the odometer bands `[0, 62)`, `[58, 142)`, `[138, ∞)`: `0 ≤ s' ≤ 8` on the box), FLAT (a); the back edges are never needed. Existence: the roll-slip block `(φ, ω_φ, y, ω_y)` is coupled both ways, so the run comes from Picard–Lindelöf on an enlarged box `B_δ` whose 22 faces are all strictly inflowing (`strict_faces_raw`; the field reads no `s`, no left or auxiliary coordinate, so its Lipschitz data on any ball around a `B_δ` point are those of one fixed ball), glued by `chainN`; on that run the true box is recovered coordinate by coordinate (`drive_le`, driven contractions with the forcing bounds `|ω_φ| ≤ 0.28`, `|ω_y| ≤ 0.45`) | STEEP ok (exit→MODER); MODER ok (exit→FLAT); FLAT ok (invariant) |
 
-Totals (the suite, 2026-10-27, batch I5 first group): proved 41, false 0, band 3
-(`WellFormedBattery.wfDeclared = (41, 0, 3)`, was `(30, 9, 6)` until the 2026-10-10 repairs;
+Totals (the suite, 2026-10-27, batch I5): proved 42, false 0, band 3
+(`WellFormedBattery.wfDeclared = (42, 0, 3)`, was `(30, 9, 6)` until the 2026-10-10 repairs;
 `wf_coverage` checks in the kernel that the three name lists are a permutation of the suite's
-IR table). Z3-free: 44/44. Region-relative: the 3 satellites.
+IR table). Z3-free: 45/45. Region-relative: the 3 satellites.
 
 ### The nine repaired models (refuted until 2026-10-10; the exhibited states)
 
@@ -270,8 +271,8 @@ summary: …` (with `RELCERT_DEBUG=1`, the reason of every mode not `ok` on stde
 `--check-quick-v2` runs the same section as its check 3/3, strict (below); until 2026-10-10 it
 was informational there.
 
-**Suite_v2 result** (2026-10-27, both clauses, batch I5 first group): 44 benchmarks, 152 right
-modes: 79 ok (invariant), 73 ok (exit), **0 UNKNOWN, 0 BLOCKING**, 9855 queries; the per-mode labels are those of the
+**Suite_v2 result** (2026-10-27, both clauses, batch I5): 45 benchmarks, 155 right
+modes: 80 ok (invariant), 75 ok (exit), **0 UNKNOWN, 0 BLOCKING**, 10194 queries; the per-mode labels are those of the
 clause (ii) check alone (2026-10-26, 50 benchmarks: 174 right modes, 91 / 83, 10643 queries,
 about 17 s). The 37
 round-2 designs of the 2026-10-26 redesign pass (outside the tree): 122 right modes, 69 ok
@@ -302,7 +303,7 @@ single `relcert <file>` run; off, no verdict and no emission changes.
 
 **Strict in the recipe** (2026-10-10). `--check-quick-v2` certifies the suite in the strict
 mode (the switch forced on for its check 1/3) and ends with check 3/3, the `--wellformed`
-report gated against declared counts: `ExpectedSuiteV2.wfModes = 152` (`VerdictsV2/RunV2.lean`; the
+report gated against declared counts: `ExpectedSuiteV2.wfModes = 155` (`VerdictsV2/RunV2.lean`; the
 kernel pin `CoveragePinsV2.suiteV2_wfModes` of that count was archived with the standalone
 route on 2026-10-22), `wfUnknown = 0` and `wfBlocking = 0`. Any `UNKNOWN` or `BLOCKING` mode,
 or a mode count off the declared one, fails the run (`wellformed (strict): FAIL`, exit 1). Checked negatively: with the pre-repair

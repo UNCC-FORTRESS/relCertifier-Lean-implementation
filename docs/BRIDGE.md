@@ -65,10 +65,10 @@ Axioms of `theorem3_keyed_of_records` and `theorem3_window_of_records`: `propext
 `relcert-bridge-verdicts` issues exactly `bridgeGroups` per benchmark at the bridge dimension
 and reports the group count against the declared total (`expectedBridgeGroupsV2`).
 
-Run on the regenerated records: **4228 groups over the 44 suite benchmarks and the 2 choice
-exhibits, all discharged** (suite alone 4092: 3040 over the 40 designed benchmarks, 35 + 130 + 77 + 810
+Run on the regenerated records: **4392 groups over the 45 suite benchmarks and the 2 choice
+exhibits, all discharged** (suite alone 4256: 3204 over the 41 designed benchmarks, 35 + 130 + 77 + 810
 over `drl_car_stop`, `drl_lane_control`, `vehicle_hypercert`, `freedm_meter`; 2026-10-27, batch I5:
-nine new benchmarks, 1203 groups, 3025 over 35 + 2 before it; batch I4: seven benchmarks to the reserve and six redesigns installed, 3595 over
+ten new benchmarks, 1367 groups (`rover_rollover_payload` 164), 3025 over 35 + 2 before it; batch I4: seven benchmarks to the reserve and six redesigns installed, 3595 over
 42 + 2 before it; batch I3: ten rover files left the suite and five were reinstalled on the canonical rover hierarchy; 4350
 over 52 + 2 after batch I2, and 4350 over 50 + 2 before it (four benchmarks to the reserve, four
 redesigned, four installed); the first run before the progress
@@ -97,8 +97,8 @@ gate, 3657/3657 over 46 + 3).
   2026-10-27 from the hand-written general instance `ChoiceVehicleHypercert.wellFormedR` at
   dimension 2, whose Theorem-3 part was retired on 2026-10-21, git 61d7389).
 
-* **44 of 44 suite benchmarks** are instantiated (`InstancesV2/Bridge/`): 34 in the window form,
-  10 in the mode-keyed form; plus the 2 choice exhibits (46 instances), all with the
+* **45 of 45 suite benchmarks** are instantiated (`InstancesV2/Bridge/`): 35 in the window form,
+  10 in the mode-keyed form; plus the 2 choice exhibits (47 instances), all with the
   unconditional Assumption 1. Every `*_bridge` theorem depends on exactly `propext`,
   `Classical.choice`, `Quot.sound`, `z3_unsat_sound`.
 * **Assumption 1 is unconditional for every instance (`R = ⊤`).** The chain

@@ -29,6 +29,7 @@ import RelCertifier.InstancesV2.Bridge.RoverLadder3to6
 import RelCertifier.InstancesV2.Bridge.RoverLadder6to8
 import RelCertifier.InstancesV2.Bridge.RoverLadder8to12
 import RelCertifier.InstancesV2.Bridge.RoverPatrolLag
+import RelCertifier.InstancesV2.Bridge.RoverRolloverPayload
 import RelCertifier.InstancesV2.Bridge.RoverTerrain2to4
 import RelCertifier.InstancesV2.Bridge.RoverTerrain4to6
 import RelCertifier.InstancesV2.Bridge.RoverTerrain6to12

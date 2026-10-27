@@ -38,6 +38,7 @@ import RelCertifier.InstancesV2.BenchIR.rover_ladder_3to6
 import RelCertifier.InstancesV2.BenchIR.rover_ladder_6to8
 import RelCertifier.InstancesV2.BenchIR.rover_ladder_8to12
 import RelCertifier.InstancesV2.BenchIR.rover_patrol_lag
+import RelCertifier.InstancesV2.BenchIR.rover_rollover_payload
 import RelCertifier.InstancesV2.BenchIR.rover_terrain_2to4
 import RelCertifier.InstancesV2.BenchIR.rover_terrain_4to6
 import RelCertifier.InstancesV2.BenchIR.rover_terrain_6to12
@@ -86,6 +87,7 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("rover_ladder_6to8", rover_ladder_6to8_IRv2),
   ("rover_ladder_8to12", rover_ladder_8to12_IRv2),
   ("rover_patrol_lag", rover_patrol_lag_IRv2),
+  ("rover_rollover_payload", rover_rollover_payload_IRv2),
   ("rover_terrain_2to4", rover_terrain_2to4_IRv2),
   ("rover_terrain_4to6", rover_terrain_4to6_IRv2),
   ("rover_terrain_6to12", rover_terrain_6to12_IRv2),

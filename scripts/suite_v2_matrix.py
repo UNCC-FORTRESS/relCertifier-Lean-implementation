@@ -82,6 +82,7 @@ FAMILIES = [
     ("rover_patrol_", "Rover patrol (zones)"),
     ("gantry_", "Gantry speed zones (multi-cycle matching)"),
     ("rover_ladder_", "Rover ladder"),
+    ("rover_rollover_", "Rover rollover (payload)"),
     ("rover_terrain_", "Terrain chain"),
     ("watertank", "Watertank"),
     ("tank_dos_", "Tank under sampling DoS"),

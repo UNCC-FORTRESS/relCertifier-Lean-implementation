@@ -24,10 +24,25 @@ The cut certificate is the suite benchmark's (`Oracle.<bench>_cutsV2X`): the too
 kept cut atoms from the model alone (`checkedCutX` per mode, no invariant input), and every
 instance proves the mutant has the benchmark's model (`same_model`).
 
+Where a mutant's text comes from (2026-10-27; before, every record's text was copied from the
+finder's scratch path `rec["file"]`, which for benchmarks the last run did not visit held another
+run's file, and about 50 committed mutant inputs were silently rewritten). A record written by
+the finder now carries the SHA-256 of the mutant text it searched (`sha256`) and a per-run
+scratch path. The text used is, in this order: that run's scratch file if its hash matches; the
+committed `benchmarks/refute_mutants/<id>/input.txt` if the record has no hash (a record from
+before the change) or the hash matches. Anything else is an error. Every text must also be
+mutant `idx` of the CURRENT suite file (same operator and label, the same non-comment lines as
+the finder's enumeration regenerates), else an error ("rerun the finder for that benchmark").
+All errors are reported together and nothing is written. Each mutant input written is listed,
+and files under `benchmarks/refute_mutants` and `InstancesV2/Refute` that no record produces
+(orphans of removed benchmarks) are listed too.
+
 Usage: python3 scripts/gen_refute.py [--witnesses FILE]
 """
-import argparse, json, os, re, shutil, subprocess
+import argparse, hashlib, json, os, re, subprocess, sys
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import refute_finder as F  # noqa: E402  (the finder's mutant enumeration)
 os.chdir(ROOT)
 RELCERT = os.path.join(ROOT, ".lake/build/bin/relcert")
 OUT = "RelCertifier/InstancesV2/Refute"
@@ -59,12 +74,59 @@ def nr_groups(rec):
     return rec["nR"]
 
 
-def emit(rec):
+def sha256(text):
+    return hashlib.sha256(text.encode()).hexdigest()
+
+
+def body(text):
+    """The non-comment, non-blank lines of an input file (the model and the rows)."""
+    return [l for l in text.splitlines() if l.strip() and not l.lstrip().startswith("#")]
+
+
+def mutant_text(rec):
+    """The mutant text of a record (see the module docstring); raises ValueError otherwise."""
+    b, i = rec["bench"], rec["idx"]
+    mid = f"{b}_m{i:03d}"
+    dst = f"{MUT}/{mid}/input.txt"
+    rerun = f"rerun `scripts/refute_finder.py --only {b}` (it replaces that benchmark's records in --out)"
+    h = rec.get("sha256")
+    text = None
+    if h is not None and os.path.exists(rec["file"]):
+        t = open(rec["file"]).read()
+        if sha256(t) == h:
+            text = t
+    if text is None and os.path.exists(dst):
+        t = open(dst).read()
+        if h is None or sha256(t) == h:
+            text = t
+    if text is None:
+        why = ("its run's scratch file is missing or was overwritten, and no committed copy has "
+               "its hash" if h is not None else
+               "a record from before the hash field, and no committed copy")
+        raise ValueError(f"{mid}: no mutant text from the finder run that found its witness ({why}); {rerun}")
+    src = open(f"benchmarks/suite_v2/{b}/input.txt").read()
+    bb, rows = F.load_rows(src)
+    muts = F.mutants(rows, bb["L"]["vars"], bb["R"]["vars"])
+    if i >= len(muts) or (muts[i][0], muts[i][1]) != (rec["op"], rec["mutant"]):
+        raise ValueError(f"{mid}: the current suite file has no mutant {i} = {rec['op']} "
+                         f"`{rec['mutant']}`; {rerun}")
+    op, label, key, new = muts[i]
+    if body(text) != body(F.write(src, F.apply(rows, key, new))):
+        raise ValueError(f"{mid}: the mutant text differs from mutant {i} of the current suite file "
+                         f"(the benchmark changed since the finder ran); {rerun}")
+    return text
+
+
+def emit(rec, text, written):
     b, i = rec["bench"], rec["idx"]
     mid = f"{b}_m{i:03d}"
     w = rec["witness"]
     os.makedirs(f"{MUT}/{mid}", exist_ok=True)
-    shutil.copyfile(rec["file"], f"{MUT}/{mid}/input.txt")
+    dst = f"{MUT}/{mid}/input.txt"
+    if not os.path.exists(dst) or open(dst).read() != text:
+        with open(dst, "w") as f:
+            f.write(text)
+        written.append(dst)
     ir = subprocess.run([RELCERT, "--emit-ir", f"{MUT}/{mid}/input.txt", f"{mid}_IRm"],
                         capture_output=True, text=True, check=True).stdout
     ir = "\n".join(l for l in ir.splitlines() if not l.startswith("/-- Parser-emitted IR"))
@@ -164,12 +226,25 @@ def main():
     a = ap.parse_args()
     recs = [json.loads(l) for l in open(a.witnesses)]
     recs = [r for r in recs if r["witness"] and r["witness"]["kind"] in ("C", "A", "B")]
-    # the right mode count, from the suite benchmark's IR literal
-    out = []
+    # every mutant text first: any error stops the run before a file is written
+    texts, errs = [], []
     for r in recs:
+        try:
+            texts.append(mutant_text(r))
+        except ValueError as e:
+            errs.append(str(e))
+    if errs:
+        print(f"gen_refute: {len(errs)} of {len(recs)} mutant texts unusable, nothing written:",
+              file=sys.stderr)
+        for e in errs:
+            print("  " + e, file=sys.stderr)
+        sys.exit(1)
+    # the right mode count, from the suite benchmark's IR literal
+    out, written = [], []
+    for r, text in zip(recs, texts):
         src = open(f"benchmarks/suite_v2/{r['bench']}/input.txt").read()
         r["nR"] = len(re.findall(r"^\[Rsys\.mode\.", src, re.M))
-        out.append((r, *emit(r)))
+        out.append((r, *emit(r, text, written)))
     with open(f"{OUT}/Table.lean", "w") as f:
         f.write(HDR.format(title="The refutation records (the runner's table)", body="\n"))
         for r, mid, C in out:
@@ -195,7 +270,20 @@ def main():
         f.write(HDR.format(title="Every kernel refutation instance", body="\n"))
         for r, mid, C in out:
             f.write(f"import RelCertifier.InstancesV2.Refute.{C}\n")
-    print(f"{len(out)} refutation instances")
+    print(f"{len(out)} refutation instances; {len(written)} mutant input(s) written")
+    for p in written:
+        print(f"  wrote {p}")
+    mids = {mid for _, mid, _ in out}
+    keep = {f"{C}.lean" for _, _, C in out} | {"Table.lean"}
+    orphans = sorted([f"{MUT}/{d}" for d in os.listdir(MUT) if d not in mids] +
+                     [f"{OUT}/Data/{f}" for f in os.listdir(f"{OUT}/Data")
+                      if f.endswith(".lean") and f[:-5] not in mids] +
+                     [f"{OUT}/{f}" for f in os.listdir(OUT) if f.endswith(".lean") and f not in keep])
+    if orphans:
+        print(f"gen_refute: {len(orphans)} file(s) no record produces (remove them with git rm):",
+              file=sys.stderr)
+        for p in orphans:
+            print("  " + p, file=sys.stderr)
 
 
 if __name__ == "__main__":

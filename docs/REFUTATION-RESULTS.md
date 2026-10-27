@@ -194,3 +194,12 @@ lake build RelCertifier.InstancesV2.Refute
 .lake/build/bin/relcert-refute-verdicts > docs/refute/runner.log
 python3 scripts/refute_experiment.py
 ```
+
+One benchmark only: `python3 scripts/refute_finder.py --only <b>` replaces that benchmark's
+records in `docs/refute/witnesses.jsonl` and keeps the others. `gen_refute.py` takes a mutant's
+text only from the finder run that found its witness (the record's `sha256` against that run's
+scratch file, or the committed `benchmarks/refute_mutants/<id>/input.txt`), checks that it is
+mutant `idx` of the current suite file, and otherwise stops with an error before writing
+anything (2026-10-27; before, it copied whatever the scratch folder held, which for benchmarks
+the last run did not visit was another run's file). It lists every mutant input it writes and
+every file no record produces.

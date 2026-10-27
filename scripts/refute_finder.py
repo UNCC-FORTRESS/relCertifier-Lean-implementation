@@ -19,9 +19,14 @@ Every formula comes from `scripts/refute_dump.lean`, which prints the tool's own
 lowering (`Emitted.Data`), so the search is over exactly what the kernel checks; the kernel
 re-checks every witness anyway, so nothing here is trusted. Witness values are exact rationals.
 
+Every record carries the SHA-256 of the mutant text searched (`sha256`) and its file under a
+per-run scratch folder (`$REFUTE_SCRATCH/<run>/<bench>/`), so `gen_refute.py` uses a mutant text
+only from the run that found its witness. With `--only`, the records of the other benchmarks
+already in `--out` are kept (a benchmark's block replaced in place, a new benchmark appended).
+
 Usage: scripts/refute_finder.py [--only a,b] [--jobs 8] [--out docs/refute/witnesses.jsonl]
 """
-import argparse, glob, json, os, re, subprocess, sys, tempfile
+import argparse, glob, hashlib, json, os, re, subprocess, sys, tempfile, time
 from concurrent.futures import ThreadPoolExecutor
 from fractions import Fraction
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -30,6 +35,7 @@ import inv_smt as I
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 Z3 = os.environ.get("Z3", "/opt/homebrew/bin/z3")
 SCRATCH = os.environ.get("REFUTE_SCRATCH", "/tmp/relcert-refute")
+RUN = time.strftime("run-%Y%m%d-%H%M%S") + f"-{os.getpid()}"
 
 # ---------------------------------------------------------------- mutants (black_mutation.py)
 
@@ -517,13 +523,15 @@ def main():
         text = open(p).read()
         b, rows = load_rows(text)
         muts = mutants(rows, b["L"]["vars"], b["R"]["vars"])
-        d = os.path.join(SCRATCH, bench)
+        d = os.path.join(SCRATCH, RUN, bench)
         os.makedirs(d, exist_ok=True)
-        files = []
+        files, hashes = [], []
         for i, (op, label, key, new) in enumerate(muts):
             f = os.path.join(d, f"m{i:03d}.txt")
-            open(f, "w").write(write(text, apply(rows, key, new)))
+            mt = write(text, apply(rows, key, new))
+            open(f, "w").write(mt)
             files.append(f)
+            hashes.append(hashlib.sha256(mt.encode()).hexdigest())
         D = dump(bench, dims[bench], files)
         with ThreadPoolExecutor(a.jobs) as pool:
             futs = [None if (bench, i) in prev or "head" not in D.get(f, {}) else
@@ -537,10 +545,26 @@ def main():
                     w, why = futs[i].result()
                 rec = {"bench": bench, "idx": i, "op": op, "mutant": label, "dim": dims[bench],
                        "rowsSame": D.get(files[i], {}).get("head", {}).get("rowsSame"),
-                       "file": files[i], "witness": w, "why": why}
+                       "file": files[i], "sha256": hashes[i], "witness": w, "why": why}
                 results.append(rec)
         nref = sum(1 for r in results if r["bench"] == bench and r["witness"])
         print(f"{bench}: mutants={len(muts)} witnesses={nref}", flush=True)
+    if a.only and os.path.exists(a.out):
+        # keep the other benchmarks' records; replace a visited benchmark's block in place
+        new = {}
+        for r in results:
+            new.setdefault(r["bench"], []).append(r)
+        merged, placed = [], set()
+        for l in open(a.out):
+            r = json.loads(l)
+            if r["bench"] in new:
+                if r["bench"] not in placed:
+                    merged += new[r["bench"]]
+                    placed.add(r["bench"])
+            else:
+                merged.append(r)
+        merged += [r for b, rs in new.items() if b not in placed for r in rs]
+        results = merged
     with open(a.out, "w") as fh:
         for r in results:
             fh.write(json.dumps(r) + "\n")

@@ -79,7 +79,7 @@ FAMILIES = [
     ("quad_", "Quadrotor climb, lighter airframe"),
     ("charger_", "Battery charger"),
     ("heater_", "Heater cycle"),
-    ("platoon_", "Platoon follower, delayed link"),
+    ("platoon_", "Platoon follower (CACC, link loss / latency / profile)"),
     ("rover_patrol_", "Rover patrol (zones)"),
     ("match_multi_rate", "Multi-cycle matching"),
     ("arm_plateau_", "Arm, leading reference"),

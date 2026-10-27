@@ -112,3 +112,7 @@ import RelCertifier.InstancesV2.Refute.RoverRollover6to7M018
 import RelCertifier.InstancesV2.Refute.RoverRollover6to7M019
 import RelCertifier.InstancesV2.Refute.RoverRollover6to7M020
 import RelCertifier.InstancesV2.Refute.RoverRollover6to7M021
+import RelCertifier.InstancesV2.Refute.PlatoonLatencyM040
+import RelCertifier.InstancesV2.Refute.PlatoonLatencyM043
+import RelCertifier.InstancesV2.Refute.PlatoonLinklossM036
+import RelCertifier.InstancesV2.Refute.PlatoonLinklossM039

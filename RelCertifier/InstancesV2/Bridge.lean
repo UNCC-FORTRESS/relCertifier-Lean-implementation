@@ -12,8 +12,9 @@ import RelCertifier.InstancesV2.Bridge.DrlLaneControl
 import RelCertifier.InstancesV2.Bridge.FreedmMeter
 import RelCertifier.InstancesV2.Bridge.HvacFanStaging
 import RelCertifier.InstancesV2.Bridge.MatchMultiRate
-import RelCertifier.InstancesV2.Bridge.PlatoonDelayLinkloss
 import RelCertifier.InstancesV2.Bridge.PlatoonDelayProfiles
+import RelCertifier.InstancesV2.Bridge.PlatoonLatency
+import RelCertifier.InstancesV2.Bridge.PlatoonLinkloss
 import RelCertifier.InstancesV2.Bridge.QuadLightAirframe20
 import RelCertifier.InstancesV2.Bridge.QuadLightLag
 import RelCertifier.InstancesV2.Bridge.QuadLightProfiles

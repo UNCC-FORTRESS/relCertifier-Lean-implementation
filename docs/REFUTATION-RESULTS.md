@@ -42,8 +42,12 @@
 > 2026-10-27 re-ran the finder: `acc_spoof_limp` (8 mutants; m008 is gone with the row it
 > refuted), `quad_light_lag` (24 mutants; m021 and m023 new, kind B, each DECLINED by relcert),
 > `tank_dos_3to1` (16) and `vehicle_hypercert` (16), no witness.
-> Current instance set: **107 refutations, 296 groups**
-> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 678 mutants in
+> The platoon pair of 2026-10-27 (`platoon_delay_linkloss`, 12 mutants without a witness, replaced
+> by `platoon_linkloss`; `platoon_latency` new): `platoon_linkloss` 63 mutants, m036 and m039 new;
+> `platoon_latency` 67 mutants, m040 and m043 new (kind B, the floor rows `L_g >= 5`,
+> `L_g + 2 L_r >= 5` flipped; each DECLINED by relcert).
+> Current instance set: **111 refutations, 304 groups**
+> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 796 mutants in
 > `docs/refute/witnesses.jsonl`. The operator table has not been recomputed.
 
 Design: `docs/REFUTATION-SCOPE.md` (planning record, last present at commit 29663d8). This file reports what was built and the experiment.

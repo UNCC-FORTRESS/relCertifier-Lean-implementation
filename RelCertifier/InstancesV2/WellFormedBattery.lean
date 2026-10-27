@@ -23,18 +23,20 @@ hypothesis); this battery is a separate audit.
 **Results (all 46 benchmarks; declared counts `wfDeclared`, kernel-checked against the
 suite's IR table by `wf_coverage`).**
 
-* **Proved, 40** (`<bench>_wellFormedR`): every mode (`watertank_twospeed` added 2026-10-11;
+* **Proved, 41** (`<bench>_wellFormedR`): every mode (`watertank_twospeed` added 2026-10-11;
   the literature benchmarks `drl_car_stop`, `drl_lane_control`, `vehicle_hypercert` and
   `freedm_meter` added 2026-10-15, three of them proved directly over the bridge's automaton,
-  `_wellFormedR_direct`). Z3-free (no verdict leaf). Six of them
+  `_wellFormedR_direct`). Z3-free (no verdict leaf). Five of them
   are models repaired on 2026-10-10 (`docs/SUITE-REDESIGN.md` §21; until then refuted
-  here with exhibited blocking states, declared counts `(30, 9, 6)`; the other three repaired
-  files, `arm_plateau_profiles` and `platoon3_{linkloss,profiles}`, moved to
-  `benchmarks/reserve/` on 2026-10-27 with their proofs and the shared `Platoon3Link` lemmas):
+  here with exhibited blocking states, declared counts `(30, 9, 6)`; of the other four repaired
+  files, `arm_plateau_profiles` and `platoon3_{linkloss,profiles}` moved to
+  `benchmarks/reserve/` on 2026-10-27 with their proofs and the shared `Platoon3Link` lemmas, and
+  `platoon_delay_linkloss` was replaced by `platoon_linkloss`, whose CACC/AEB follower it shares
+  with `platoon_latency` through `PlatoonCaccAeb`):
   - `arm_plateau_{crit,slow}`: the planner is a sampled controller whose successor
     sets name every band one interval can reach (`ApproachA → …, ApproachC*, Hold`,
     `ApproachB → …, Hold`);
-  - `platoon_delay_{linkloss,profiles}`: the AEB sink `BRAKE` re-engages `FOLLOW` at 20 m;
+  - `platoon_delay_profiles`: the AEB sink `BRAKE` re-engages `FOLLOW` at 20 m;
   - `quad_light_{airframe_20,profiles}`: the limiter `LIMIT` hands back to the climb
     controller, whose operating range now reaches the limiter threshold.
 * **Refuted, 0.**
@@ -84,7 +86,8 @@ import RelCertifier.InstancesV2.WellFormed.RoverRollover6to12
 import RelCertifier.InstancesV2.WellFormed.RoverRollover6to7
 import RelCertifier.InstancesV2.WellFormed.ArmPlateauCrit
 import RelCertifier.InstancesV2.WellFormed.ArmPlateauSlow
-import RelCertifier.InstancesV2.WellFormed.PlatoonDelayLinkloss
+import RelCertifier.InstancesV2.WellFormed.PlatoonLinkloss
+import RelCertifier.InstancesV2.WellFormed.PlatoonLatency
 import RelCertifier.InstancesV2.WellFormed.PlatoonDelayProfiles
 import RelCertifier.InstancesV2.WellFormed.QuadLightAirframe20
 import RelCertifier.InstancesV2.WellFormed.QuadLightProfiles
@@ -103,7 +106,7 @@ namespace WellFormedBattery
 
 /-- The benchmarks whose right model satisfies Assumption 1 at every mode. -/
 def wfProved : List String :=
-  ["arm_plateau_crit", "arm_plateau_slow", "platoon_delay_linkloss",
+  ["arm_plateau_crit", "arm_plateau_slow", "platoon_linkloss", "platoon_latency",
    "platoon_delay_profiles",
    "quad_light_airframe_20", "quad_light_profiles",
    "watertank", "acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp",
@@ -135,8 +138,9 @@ detumble family (also proved, listed apart for its band audit). `(30, 9, 6)` unt
 2026-10-10 repairs of the nine refuted models; `(39, 0, 6)` then, `(40, 0, 6)` with
 `watertank_twospeed` (2026-10-11); `(44, 0, 6)` with the 2026-10-26 additions; `(40, 0, 6)`
 after the 2026-10-27 reserve moves (`airheader_dos_3to1`, `arm_plateau_profiles`,
-`platoon3_{linkloss,profiles}`). -/
-def wfDeclared : ℕ × ℕ × ℕ := (40, 0, 6)
+`platoon3_{linkloss,profiles}`); `(41, 0, 6)` with `platoon_linkloss` (replacing
+`platoon_delay_linkloss`) and `platoon_latency`. -/
+def wfDeclared : ℕ × ℕ × ℕ := (41, 0, 6)
 
 /-- The suite's benchmark names, in the order of the IR table. -/
 def suiteNames : List String :=
@@ -145,8 +149,8 @@ def suiteNames : List String :=
    "arm_plateau_slow", "charger_fast_setpoints",
    "charger_fast_tapers", "drl_car_stop", "drl_lane_control", "freedm_meter",
    "hvac_fan_staging",
-   "match_multi_rate", "platoon_delay_linkloss",
-   "platoon_delay_profiles", "quad_light_airframe_20", "quad_light_lag",
+   "match_multi_rate",
+   "platoon_delay_profiles", "platoon_latency", "platoon_linkloss", "quad_light_airframe_20", "quad_light_lag",
    "quad_light_profiles", "rover_attitude_6to8", "rover_attitude_8to12",
    "rover_ladder_2to3", "rover_ladder_2to4", "rover_ladder_2to6", "rover_ladder_3to6",
    "rover_ladder_6to8", "rover_ladder_8to12", "rover_lateral_6to8",
@@ -214,8 +218,11 @@ modes -/
 
 #print axioms V2ArmPlateauCrit.arm_plateau_crit_wellFormedR
 #print axioms V2ArmPlateauSlow.arm_plateau_slow_wellFormedR
-#print axioms V2PlatoonDelayLinkloss.platoon_delay_linkloss_wellFormedR
-#print axioms V2PlatoonDelayLinkloss.platoon_delay_linkloss_wellFormedR_brake
+#print axioms V2PlatoonLinkloss.platoon_linkloss_wellFormedR
+#print axioms V2PlatoonLatency.platoon_latency_wellFormedR
+#print axioms PlatoonCaccAeb.cacc_w_band
+#print axioms PlatoonCaccAeb.aeb_w_const
+#print axioms PlatoonCaccAeb.cacc_box
 #print axioms V2PlatoonDelayProfiles.platoon_delay_profiles_wellFormedR
 #print axioms V2PlatoonDelayProfiles.platoon_delay_profiles_wellFormedR_brake
 #print axioms V2QuadLightAirframe20.quad_light_airframe_20_wellFormedR

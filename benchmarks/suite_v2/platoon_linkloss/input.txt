@@ -1,0 +1,138 @@
+# platoon_linkloss: a CACC follower whose V2V link is intermittently lost (jamming or
+# packet-loss bursts) and which then degrades to radar-only ACC, against the design follower
+# with the link always up.
+# scenario: dos-attack
+# mechanisms: D (mode-dependent rows: the AEB row differs from the CACC/ACC row, every handoff
+#   unsat or implied, matrix code M5)
+#
+# Shared platoon model (identical in this file and platoon_latency, and in the round-2 platoon
+# designs platoon_profiles and the reserve's platoon3_linkloss, platoon3_profiles). A lead vehicle cruises at the platoon reference speed v_ref = 25 m/s
+# (90 km/h). Per link (follower behind its predecessor): the gap g (m, bumper to bumper) and the
+# range rate r = v_pred - v (m/s, positive = opening), g' = r. Units m, m/s, s.
+# Spacing policy (constant time gap): standstill distance d0 = 5 m. CACC: time gap h_c = 0.6 s on
+#   the V2V-broadcast reference speed, desired gap d0 + h_c v_ref = 20 m. Radar-only ACC fallback:
+#   time gap h_a = 1.2 s on the follower's own speed v = v_ref - r (35 m at cruise).
+# CACC (V2V predecessor-acceleration feed-forward): a = a_pred + kp (g - 20) + kd r, so
+#   r' = -kp (g - 20) - kd r with kp = 0.125 /s^2, kd = 0.75 /s: closed-loop poles 0.25 and
+#   0.5 /s (over-damped); the forms r + 0.25 (g - 20) and r + 0.5 (g - 20) decay at 0.5 and
+#   0.25 /s.
+# ACC fallback (no feed-forward): a = kp (g - d0 - h_a v) + kd_a r, kd_a = 0.6 /s chosen so that
+#   the loop keeps the CACC poles (kd_a + kp h_a = 0.75): r' = -kp (g - 35) - 0.75 r.
+# SPORT driver profile: the CACC at 1.2 x its bandwidth, kp = 0.18 /s^2 (1.2^2 x), kd = 0.9 /s
+#   (1.2 x): poles 0.3 and 0.6 /s, same time gap and desired gap.
+# AEB (radar, the same function on every vehicle): triggers when the time to reach the standstill
+#   distance at the current closing rate falls below T = 2 s, (g - d0) + T r < 0, i.e.
+#   g + 2 r < 5; it then matches the predecessor's speed, r' = -0.5 r (relative deceleration
+#   5 m/s^2 at the rated 10 m/s closing rate), which conserves the projected stop gap g + 2 r, and
+#   stays latched until the driver resumes (not modeled). Trigger region as modeled:
+#   0 <= g + 2 r < 5 (a projected stop gap below 0 is a collision the matching law cannot avoid).
+# CACC operating range (the engagement spec, the same on both sides): |r| <= 10 (rated closing
+#   rate) and 5 <= g + 2 r <= 60 (TTC to the standstill distance at least 2 s, and the gap
+#   projected 2 s ahead inside the 60 m radar range gate). Forward invariant under CACC, ACC and
+#   SPORT: d/dt (g + 2 r) = -0.25 (g + 2 r - 20) under CACC (-0.25 (g + 2 r - 35) under ACC), so
+#   the TTC floor is a sublevel set of the slow mode and the CACC never triggers the AEB (the
+#   design's CACC -> AEB edges are pruned by non-connection certificates); the |r| <= 10 faces
+#   hold for every gap below 70 m.
+# Control period 0.1 s on both sides (10 Hz V2V messages, the ETSI CAM / SAE BSM rate).
+# Domain per link (both sides, every mode): 0 <= g <= 60 m (radar range gate), |r| <= 10 m/s
+#   (rated closing rate); every mode's guard is forward invariant inside it (CACC/ACC/SPORT: the
+#   operating range; AEB: g + 2 r is conserved and r decays).
+#
+# This file: one link (state g, r).
+# Right (design follower, link always up): CACC on the operating range, next [CACC, AEB]; AEB on
+#   its trigger region, latched (next [AEB]).
+# Left (deployed follower): the same CACC and AEB, plus the fallback. When the V2V link is lost
+#   (no message within the control period, e.g. under jamming) the deployed degrades to the
+#   radar-only ACC (h_a = 1.2 s), on the same operating range; when the link is back it
+#   re-engages the CACC. CACC -> [CACC, ACC, AEB], ACC -> [ACC, CACC, AEB], AEB latched. Loss
+#   and recovery may alternate any number of times.
+# One cause: the link loss (the fallback it forces). Same plant, same CACC, same AEB, same
+# operating range and control period on both sides; lambda_min = lambda_max = 1 (same time).
+#
+# Property (Delta = L - R; rows CACC and ACC identical, AEB separate).
+#   CACC, ACC:
+#     0 <= Delta g <= 15. Requirement (spacing error from the fallback time gap): the deployed
+#       follower is never closer to its predecessor than the design follower (so the design's
+#       spacing safety carries over) and never more than (h_a - h_c) v_ref = 0.6 s x 25 m/s
+#       = 15 m farther behind, however often the link drops. Both constants tight: 15.00
+#       certifies, 14.99 declines; 0.00 certifies, 0.01 declines.
+#     Delta r + 0.25 Delta g in [0, 3.75] and Delta r + 0.5 Delta g in [0, 7.5] (derived): the
+#       ACC and the CACC differ only in the set point (35 vs 20 m, same poles), so the forms
+#       Q_rho = Delta r + rho Delta g (rho = 0.25, 0.5) contract to 0 under (CACC, CACC) and to
+#       15 rho under (ACC, CACC); [0, 15 rho] is invariant under both, and the Delta g bounds are
+#       stratified on them (Delta g' = Q_0.25 - 0.25 Delta g).
+#     g_L >= 5 and g_L + 2 r_L >= 5: collision freedom of the deployed (gap at least the
+#       standstill distance d0) and its TTC to d0 at least 2 s. 5.00 is tight for the gap floor
+#       (5.01 declines: it is kept only through the TTC floor, which allows r = 0 at g = 5); the
+#       TTC floor is the AEB threshold (any floor up to 20 m also certifies: a sublevel set of
+#       the contracting slow mode).
+#     g_R + 2 r_R >= 5 (strengthening, needed): the design follower stays engaged (TTC >= 2 s).
+#       Without it the AEB is an admissible start of ACC_L (a design follower braking, paired
+#       with a deployed one 0..15 m behind) and the segment (ACC_L, AEB_R) fails at every
+#       stretch (DECLINED; also with an AEB that releases back to ACC); 5.00 certifies,
+#       4.99 declines. The pairs the deployed and design runs reach satisfy it: they start
+#       together in the CACC, whose operating range is forward invariant.
+#   AEB: exact, Delta r = 0 and Delta (g + 2 r) = 0 (the two AEBs are the same function).
+# The AEB is placed by the claim and the cover, not by start floors: every left guard is the
+# spec's operating range or trigger region, identical to the right's. The design's AEB is no
+# admissible start of CACC_L or ACC_L (their rows give g_R + 2 r_R >= 5), it is paired with
+# the deployed's AEB (AEB_L, exact, lambda 1), and the design's CACC -> AEB edge is pruned
+# (non-connection: d/dt (g + 2 r) = 3.75 > 0 on the TTC floor). The handoffs into AEB_L are
+# unsat (the CACC/ACC rows keep the deployed's TTC >= 2 s); CACC <-> ACC are implied (rows
+# identical).
+#
+# Coverage of the right guards (domain 0 <= g <= 60, |r| <= 10): CACC and AEB together cover
+# every domain state with 0 <= g + 2 r <= 60. The states with g + 2 r < 0 (collision
+# unavoidable at the matching law) or g + 2 r > 60 (opening past the range gate within 2 s)
+# are in no right guard; no run reaches them (both guards are forward invariant). Every left
+# mode has a satisfiable start (g_L = g_R = 20, r = 0 for CACC and ACC; g = 3, r = 0 for AEB).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED; CERTIFIED also under RELCERT_SYNC=1,
+# RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, both together, RELCERT_SYNC=1 RELCERT_NO_CHOICE=1,
+# without RELCERT_IMPLIED_CUT, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1,
+# RELCERT_NO_CUT=1, RELCERT_OPREGION=1 and RELCERT_WELLFORMED_STRICT=1 (no S, M, P, I, X).
+# Covers: every left mode at lambda 1, budget 1 (single segment); admissible starts CACC_L:
+# [CACC], ACC_L: [CACC], AEB_L: [AEB]; pruned CACC -> AEB (not load-bearing at budget 1).
+# --handoff 7/7 pass (rows differ). relcert --wellformed: CACC ok (invariant), AEB ok
+# (invariant).
+[problem]
+name = platoon_linkloss
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 4.0
+[Lsys]
+state_vars = [g, r]
+epsilon = 0.1
+[Lsys.mode.CACC]
+ode = g' = smt2:r; r' = smt2:(- (* -0.125 (- g 20.0)) (* 0.75 r));
+guard = r >= -10.0 and r <= 10.0 and g + 2.0 * r >= 5.0 and g + 2.0 * r <= 60.0
+evolve = g >= 0.0 and g <= 60.0 and r >= -10.0 and r <= 10.0
+next = [CACC, ACC, AEB]
+[Lsys.mode.ACC]
+ode = g' = smt2:r; r' = smt2:(- (* -0.125 (- g 35.0)) (* 0.75 r));
+guard = r >= -10.0 and r <= 10.0 and g + 2.0 * r >= 5.0 and g + 2.0 * r <= 60.0
+evolve = g >= 0.0 and g <= 60.0 and r >= -10.0 and r <= 10.0
+next = [ACC, CACC, AEB]
+[Lsys.mode.AEB]
+ode = g' = smt2:r; r' = smt2:(* -0.5 r);
+guard = g + 2.0 * r < 5.0 and g + 2.0 * r >= 0.0 and g >= 0.0
+evolve = g >= 0.0 and g <= 60.0 and r >= -10.0 and r <= 10.0
+next = [AEB]
+[Rsys]
+state_vars = [g, r]
+epsilon = 0.1
+[Rsys.mode.CACC]
+ode = g' = smt2:r; r' = smt2:(- (* -0.125 (- g 20.0)) (* 0.75 r));
+guard = r >= -10.0 and r <= 10.0 and g + 2.0 * r >= 5.0 and g + 2.0 * r <= 60.0
+evolve = g >= 0.0 and g <= 60.0 and r >= -10.0 and r <= 10.0
+next = [CACC, AEB]
+[Rsys.mode.AEB]
+ode = g' = smt2:r; r' = smt2:(* -0.5 r);
+guard = g + 2.0 * r < 5.0 and g + 2.0 * r >= 0.0 and g >= 0.0
+evolve = g >= 0.0 and g <= 60.0 and r >= -10.0 and r <= 10.0
+next = [AEB]
+[relational_invariant]
+CACC = smt2:(and (>= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) 0.0) (<= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) 3.75) (>= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) 0.0) (<= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) 7.5) (>= (- L_g R_g) 0.0) (<= (- L_g R_g) 15.0) (>= (+ R_g (* 2.0 R_r)) 5.0) (>= L_g 5.0) (>= (+ L_g (* 2.0 L_r)) 5.0))
+ACC  = smt2:(and (>= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) 0.0) (<= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) 3.75) (>= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) 0.0) (<= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) 7.5) (>= (- L_g R_g) 0.0) (<= (- L_g R_g) 15.0) (>= (+ R_g (* 2.0 R_r)) 5.0) (>= L_g 5.0) (>= (+ L_g (* 2.0 L_r)) 5.0))
+AEB  = smt2:(and (>= (- L_r R_r) 0.0) (<= (- L_r R_r) 0.0) (>= (+ (- L_g R_g) (* 2.0 (- L_r R_r))) 0.0) (<= (+ (- L_g R_g) (* 2.0 (- L_r R_r))) 0.0))

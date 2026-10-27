@@ -2,22 +2,23 @@
 
 `suite_v2/<name>/input.txt` is the complete specification of one benchmark: the left
 (ideal) and right (implementation) hybrid automata, the relational invariant (one row per
-left mode) and the time-stretch range. **46 benchmarks.** With the widened cut channel on
-(`RELCERT_IMPLIED_CUT=1`, as every suite_v2 run sets it) the tool CERTIFIES all 46, and
+left mode) and the time-stretch range. **47 benchmarks.** With the widened cut channel on
+(`RELCERT_IMPLIED_CUT=1`, as every suite_v2 run sets it) the tool CERTIFIES all 47, and
 every one carries a kernel-checked Theorem 3 (the paper's Soundness of Synthesis) with the paper's left program over the
 guard-gated right automaton, at the mode-consistent region (`RelCertifier/InstancesV2/Bridge/`;
-check recipe: `docs/CERTIFICATION-CHECK.md`). Without the widened channel 8 of them
+check recipe: `docs/CERTIFICATION-CHECK.md`). Without the widened channel 7 of them
 DECLINE (the rows marked *widened cuts* below). Near-duplicates and weak benchmarks are kept
 outside the suite in `benchmarks/reserve/` (inputs, headers and verdicts only; `reserve/README.md`).
 
 **Assumption 1 of each right model** (the paper's Well-Formedness: from every guard state a
 full control interval of flow exists, and every evolution of at most `ε_r` ends in a declared
 successor's guard) is verified per file (`WellFormedR`, `docs/WELLFORMED.md`): it holds for
-all 46 literally (the 6 satellite files carry their conserved momentum band in the right evolve
+all 47 literally (the 6 satellite files carry their conserved momentum band in the right evolve
 domain since 2026-10-15).
 Nine files had a blocking mode until 2026-10-10 and were repaired (`docs/SUITE-REDESIGN.md`
 §21; each header says how and why; `arm_plateau_profiles` and `platoon3_{linkloss,profiles}`
-are in `benchmarks/reserve/` since 2026-10-27): `arm_plateau_{crit,profiles,slow}` (the ApproachA /
+are in `benchmarks/reserve/` since 2026-10-27, and `platoon_delay_linkloss` was replaced by the
+redesigned `platoon_linkloss`): `arm_plateau_{crit,profiles,slow}` (the ApproachA /
 ApproachB bands are narrower than one control interval of their own rate: the sampled
 planner's successor sets now name every band a sample can find), `platoon_delay_{linkloss,
 profiles}` (the sink `BRAKE` left its guard: it now re-engages `FOLLOW`),
@@ -25,7 +26,7 @@ profiles}` (the sink `BRAKE` left its guard: it now re-engages `FOLLOW`),
 an invariant guard) and `quad_light_{airframe_20,profiles}` (the sink `LIMIT`: it now hands
 back to the climb controller, whose operating range reaches the limiter threshold).
 `relcert --wellformed <input.txt>…` runs the tool's sufficient check per right mode (every one
-of the 158 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN` or `BLOCKING`.
+of the 159 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN` or `BLOCKING`.
 
 The suite's design, the per-family rationale, the domain audit (every evolve bound is a
 physical limit of the plant; `scripts/domain_widening.py` re-runs the tool with every bound
@@ -86,7 +87,17 @@ integration; one line of reason each in `reserve/README.md`): `airheader_dos_3to
 does not depend on the attack), `arm_plateau_profiles` (the planner choice is never
 load-bearing), `platoon3_profiles` (three identical time-scaled links; stored as its round-2
 design), `platoon3_linkloss` (exact copies on links 2 and 3; stored as its round-2 design). The
-suite has 46 benchmarks until later batches restore it.
+suite has fewer than 50 benchmarks until later batches restore it.
+
+## Renamed 2026-10-27: the platoon link-loss file
+
+| old | new |
+|---|---|
+| `platoon_delay_linkloss` | `platoon_linkloss` (redesigned: a two-coordinate CACC follower, gap `g` and range rate `r`, that falls back to radar ACC when the V2V link is lost, against the design follower with the link up; AEB on a time-to-collision floor) |
+
+New 2026-10-27: `platoon_latency` (the same follower with a late V2V feed-forward against an
+ideal link; its right model is `platoon_linkloss`'s, and the two share one Assumption 1 lemma,
+`InstancesV2/WellFormed/PlatoonCaccAeb.lean`); it takes the place of `platoon3_linkloss`.
 
 ## Renamed 2026-10-26: the terrain chain
 
@@ -160,7 +171,8 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `freedm_meter` | 2 / 2 | 12 / 12 | information-flow | literature (dHL, FREEDM), mode choice |
 | `hvac_fan_staging` | 1 / 1 | 3 / 3 | controller-refinement | new 2026-10-26 (replaces `rover_terrain_2to3`): mode choice |
 | `match_multi_rate` | 2 / 2 | 4 / 2 | model-refinement | carried over; synthetic rate-ratio exhibit (unitless) |
-| `platoon_delay_linkloss` | 1 / 1 | 3 / 3 | sensor-attack | mode-keyed, widened cuts; BRAKE re-engages (§21) |
+| `platoon_latency` | 3 / 2 | 3 / 2 | degraded-network | new 2026-10-27: mode-keyed (AEB row), right model shared with `platoon_linkloss` |
+| `platoon_linkloss` | 2 / 2 | 3 / 2 | dos-attack | redesigned 2026-10-27 (was `platoon_delay_linkloss`): mode-keyed (AEB row), CACC -> ACC fallback |
 | `platoon_delay_profiles` | 1 / 1 | 2 / 4 | degraded-sensor | widened cuts; BRAKE re-engages (§21) |
 | `quad_light_airframe_20` | 1 / 1 | 1 / 2 | model-refinement | LIMIT hands back (§21) |
 | `quad_light_lag` | 3 / 3 | 1 / 1 | model-refinement | redesigned 2026-10-27: altitude coordinate, rows from the 0.8 m altitude acceptance radius |

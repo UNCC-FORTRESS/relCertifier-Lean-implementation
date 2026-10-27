@@ -33,7 +33,7 @@ CHOICE = {
 }
 
 KEYED = {"acc_tune_limp", "charger_fast_setpoints", "charger_fast_tapers",
-         "platoon_delay_linkloss",
+         "platoon_latency", "platoon_linkloss",
          "sat3w_detumble_phases", "sat_detumble_phases"}
 
 

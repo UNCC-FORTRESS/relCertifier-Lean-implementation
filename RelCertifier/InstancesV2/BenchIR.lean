@@ -21,8 +21,9 @@ import RelCertifier.InstancesV2.BenchIR.drl_lane_control
 import RelCertifier.InstancesV2.BenchIR.freedm_meter
 import RelCertifier.InstancesV2.BenchIR.hvac_fan_staging
 import RelCertifier.InstancesV2.BenchIR.match_multi_rate
-import RelCertifier.InstancesV2.BenchIR.platoon_delay_linkloss
 import RelCertifier.InstancesV2.BenchIR.platoon_delay_profiles
+import RelCertifier.InstancesV2.BenchIR.platoon_latency
+import RelCertifier.InstancesV2.BenchIR.platoon_linkloss
 import RelCertifier.InstancesV2.BenchIR.quad_light_airframe_20
 import RelCertifier.InstancesV2.BenchIR.quad_light_lag
 import RelCertifier.InstancesV2.BenchIR.quad_light_profiles
@@ -71,8 +72,9 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("freedm_meter", freedm_meter_IRv2),
   ("hvac_fan_staging", hvac_fan_staging_IRv2),
   ("match_multi_rate", match_multi_rate_IRv2),
-  ("platoon_delay_linkloss", platoon_delay_linkloss_IRv2),
   ("platoon_delay_profiles", platoon_delay_profiles_IRv2),
+  ("platoon_latency", platoon_latency_IRv2),
+  ("platoon_linkloss", platoon_linkloss_IRv2),
   ("quad_light_airframe_20", quad_light_airframe_20_IRv2),
   ("quad_light_lag", quad_light_lag_IRv2),
   ("quad_light_profiles", quad_light_profiles_IRv2),

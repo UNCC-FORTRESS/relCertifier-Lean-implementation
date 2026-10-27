@@ -14,8 +14,9 @@ import RelCertifier.InstancesV2.BenchChoice.drl_lane_control
 import RelCertifier.InstancesV2.BenchChoice.freedm_meter
 import RelCertifier.InstancesV2.BenchChoice.hvac_fan_staging
 import RelCertifier.InstancesV2.BenchChoice.match_multi_rate
-import RelCertifier.InstancesV2.BenchChoice.platoon_delay_linkloss
 import RelCertifier.InstancesV2.BenchChoice.platoon_delay_profiles
+import RelCertifier.InstancesV2.BenchChoice.platoon_latency
+import RelCertifier.InstancesV2.BenchChoice.platoon_linkloss
 import RelCertifier.InstancesV2.BenchChoice.quad_light_airframe_20
 import RelCertifier.InstancesV2.BenchChoice.quad_light_lag
 import RelCertifier.InstancesV2.BenchChoice.quad_light_profiles
@@ -64,8 +65,9 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("freedm_meter", freedm_meter_coverV2_choice),
   ("hvac_fan_staging", hvac_fan_staging_coverV2_choice),
   ("match_multi_rate", match_multi_rate_coverV2_choice),
-  ("platoon_delay_linkloss", platoon_delay_linkloss_coverV2_choice),
   ("platoon_delay_profiles", platoon_delay_profiles_coverV2_choice),
+  ("platoon_latency", platoon_latency_coverV2_choice),
+  ("platoon_linkloss", platoon_linkloss_coverV2_choice),
   ("quad_light_airframe_20", quad_light_airframe_20_coverV2_choice),
   ("quad_light_lag", quad_light_lag_coverV2_choice),
   ("quad_light_profiles", quad_light_profiles_coverV2_choice),

@@ -112,10 +112,16 @@ import RelCertifier.InstancesV2.Refute.Data.rover_rollover_6to7_m018
 import RelCertifier.InstancesV2.Refute.Data.rover_rollover_6to7_m019
 import RelCertifier.InstancesV2.Refute.Data.rover_rollover_6to7_m020
 import RelCertifier.InstancesV2.Refute.Data.rover_rollover_6to7_m021
+import RelCertifier.InstancesV2.Refute.Data.platoon_latency_m040
+import RelCertifier.InstancesV2.Refute.Data.platoon_latency_m043
+import RelCertifier.InstancesV2.Refute.Data.platoon_linkloss_m036
+import RelCertifier.InstancesV2.Refute.Data.platoon_linkloss_m039
 import RelCertifier.InstancesV2.Cuts.arm_plateau_crit
 import RelCertifier.InstancesV2.Cuts.arm_plateau_slow
 import RelCertifier.InstancesV2.Cuts.charger_fast_setpoints
 import RelCertifier.InstancesV2.Cuts.charger_fast_tapers
+import RelCertifier.InstancesV2.Cuts.platoon_latency
+import RelCertifier.InstancesV2.Cuts.platoon_linkloss
 import RelCertifier.InstancesV2.Cuts.quad_light_lag
 import RelCertifier.InstancesV2.Cuts.rover_lateral_6to8
 import RelCertifier.InstancesV2.Cuts.rover_lateral_8to12
@@ -251,9 +257,13 @@ def refuteTable : List RefRec := [
   ⟨"rover_rollover_6to7_m018", 12 + 1, rover_rollover_6to7_m018_IRm, rover_rollover_6to7_cutsV2X, rover_rollover_6to7_m018_wit⟩,
   ⟨"rover_rollover_6to7_m019", 12 + 1, rover_rollover_6to7_m019_IRm, rover_rollover_6to7_cutsV2X, rover_rollover_6to7_m019_wit⟩,
   ⟨"rover_rollover_6to7_m020", 12 + 1, rover_rollover_6to7_m020_IRm, rover_rollover_6to7_cutsV2X, rover_rollover_6to7_m020_wit⟩,
-  ⟨"rover_rollover_6to7_m021", 12 + 1, rover_rollover_6to7_m021_IRm, rover_rollover_6to7_cutsV2X, rover_rollover_6to7_m021_wit⟩ ]
+  ⟨"rover_rollover_6to7_m021", 12 + 1, rover_rollover_6to7_m021_IRm, rover_rollover_6to7_cutsV2X, rover_rollover_6to7_m021_wit⟩,
+  ⟨"platoon_latency_m040", 3 + 1, platoon_latency_m040_IRm, platoon_latency_cutsV2X, platoon_latency_m040_wit⟩,
+  ⟨"platoon_latency_m043", 3 + 1, platoon_latency_m043_IRm, platoon_latency_cutsV2X, platoon_latency_m043_wit⟩,
+  ⟨"platoon_linkloss_m036", 3 + 1, platoon_linkloss_m036_IRm, platoon_linkloss_cutsV2X, platoon_linkloss_m036_wit⟩,
+  ⟨"platoon_linkloss_m039", 3 + 1, platoon_linkloss_m039_IRm, platoon_linkloss_cutsV2X, platoon_linkloss_m039_wit⟩ ]
 
 /-- Declared: the number of query groups over the refutations (one per right mode each). -/
-def expectedRefuteGroups : Nat := 296
+def expectedRefuteGroups : Nat := 304
 
 end RelCertifier.Refute

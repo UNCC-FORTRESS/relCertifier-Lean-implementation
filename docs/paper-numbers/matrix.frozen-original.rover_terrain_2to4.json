@@ -1,0 +1,90 @@
+{
+ "name": "rover_terrain_2to4",
+ "path": "benchmarks/suite_v2/rover_terrain_2to4/input.txt",
+ "scenario": "model-refinement",
+ "family": "Terrain chain",
+ "declared_mechanisms": "I (the checked cuts w <= c_T and s >= zone floor are load-bearing mode facts,",
+ "dimL": 4,
+ "dimR": 4,
+ "modesL": 3,
+ "modesR": 3,
+ "epsL": "1.0",
+ "epsR": "1.0",
+ "lambda_min": "1.0",
+ "lambda_max": "1.0",
+ "rows": {
+  "MUD": "v[l] <= v[r] and s[l] <= s[r] and v[l] <= w[l] and w[l] <= v[l] + 0.25",
+  "GRAVEL": "v[l] <= v[r] and s[l] <= s[r] and v[l] <= w[l] and w[l] <= v[l] + 0.25",
+  "PAVED": "v[l] <= v[r] and s[l] <= s[r] and v[l] <= w[l] and w[l] <= v[l] + 0.25"
+ },
+ "hash": "96c2cbca5fcf7a97be4f98d14be2711d",
+ "tol_hash": "3c8708ae3b11bdfd6527f72c4272af89",
+ "rows_identical": true,
+ "inv_shape": "conjunctive",
+ "per_mode_evolve": false,
+ "nonlinear_L": false,
+ "nonlinear_R": false,
+ "verdict": "ERROR",
+ "ms": null,
+ "verdict_extra": "[budget exceeded (time budget exceeded)] (43594ms)",
+ "prune_line": "[prune] rover_terrain_2to4: []",
+ "admissible_lines": [
+  "[admissible] MUD_L: [MUD, GRAVEL, PAVED]"
+ ],
+ "cut_lines": [
+  "[cut] L.MUD: 2 conjunct(s)",
+  "[cut] L.GRAVEL: 2 conjunct(s)",
+  "[cut] L.PAVED: 2 conjunct(s)",
+  "[cut] R.MUD: 1 conjunct(s)",
+  "[cut] R.GRAVEL: 1 conjunct(s)",
+  "[cut] R.PAVED: 1 conjunct(s)"
+ ],
+ "cutx_lines": [],
+ "route_lines": [
+  "[route] MUD: DI-nonstrict(A)",
+  "[route] MUD: shape",
+  "[route] GRAVEL: DI-nonstrict(A)",
+  "[route] GRAVEL: shape",
+  "[route] PAVED: DI-nonstrict(A)",
+  "[route] PAVED: shape",
+  "[route] MUD: DI-nonstrict(A)",
+  "[route] GRAVEL: DI-nonstrict(A)",
+  "[route] PAVED: DI-nonstrict(A)"
+ ],
+ "repo_lines": [
+  "[repo-dyn-pre] MUD_L: [] [repo-dyn-post]: []"
+ ],
+ "wall_s": 43.88,
+ "choice_entries": 0,
+ "covers": [],
+ "pruned": [],
+ "no_prune_verdict": "CERTIFIED",
+ "no_prune_ms": 406,
+ "no_cut_verdict": "DECLINED",
+ "no_cut_ms": 241,
+ "no_implied_verdict": "CERTIFIED",
+ "no_implied_ms": 414,
+ "no_linear_verdict": "CERTIFIED",
+ "no_linear_ms": 442,
+ "handoff": {
+  "checked": 5,
+  "declared": 5,
+  "passed": 5,
+  "failing": "-",
+  "vacuous": true,
+  "ms": 60
+ },
+ "right_only_any": false,
+ "cells": {
+  "M1": "no",
+  "M2": "no",
+  "M3": "no",
+  "M4": "no",
+  "M5": "no",
+  "M6": "no",
+  "M6+": "no",
+  "M6L": "no",
+  "M7": "model-refinement; dim 4; conjunctive"
+ },
+ "exercised": []
+}

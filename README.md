@@ -371,8 +371,10 @@ benchmarks/suite_v2/       the 50 inputs; benchmarks/reserve/ the reserve inputs
                            leaky FREEDM controller, the leaky CSF 2021 car)
 scripts/                   gen_v2_data.py, gen_bridge.py, gen_refute.py, gen_strict_demo.py,
                            paper_numbers.sh (the frozen paper numbers), suite_v2_matrix.py,
+                           suite_v2_letters.py (Table 1 letters per benchmark),
                            domain_widening.py, z3_timing_proxy.py, trust_audit.py
-docs/                      see Further reading
+docs/                      see Further reading; docs/paper-numbers/ the frozen run of
+                           paper_numbers.sh (numbers.tex, matrix, letters, suite_results.json)
 ```
 
 `RelCertifier.lean` imports the library (the proof chain, the Assumption 1 battery, the bridge

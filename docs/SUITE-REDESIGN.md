@@ -179,6 +179,8 @@ vacuous` (one is: `rover_patrol_zones`, §5 finding 9).
 
 ## 3. Feature matrix (generated)
 
+> Superseded for the current 50: the generated matrix, totals and run records of the 2026-10-27 frozen run are in `docs/paper-numbers/matrix.md` (letters: `docs/paper-numbers/letters.md`). The generated content below is an earlier suite.
+
 | benchmark | verdict (ms) | M1 λ≠1 | M2 multi-step | M3 branch | M4 prune | M5 mode-dep | M6 cut | M6+ widened cut | M6L linear-form chain | M7 scenario; dim; invariant; domains |
 |---|---|---|---|---|---|---|---|---|---|---|
 | `acc_spoof_lag` | CERTIFIED (129) | yes: CRUISE λ=5/2 (affine dynamics) | yes: CRUISE B=5 via CRUISE | no (max non-self successors at a joint step = 0) | vacuous: pruned CRUISE->DISENGAGE but NO_PRUNE=CERTIFIED | no (rows identical; handoff vacuous) | yes: L.CRUISE: 4 conjunct(s); R.CRUISE: 2 conjunct(s); R.DISENGAGE:... | yes: L.CRUISE: (a + (1.25 * (v - 24))) <= 9.5 kind=linear-form entr... | yes: L.CRUISE: (a + (1.25 * (v - 24))) <= 9.5 kind=linear-form entr... | model-refinement; dim 2; linear |
@@ -712,6 +714,8 @@ inputs certify in under 0.6 s except the 6–12-dof ladders (`story1_attdist_run
 
 ## 8. Totals and the proposed Table-1 grouping (generated)
 
+> Superseded for the current 50: the generated matrix, totals and run records of the 2026-10-27 frozen run are in `docs/paper-numbers/matrix.md` (letters: `docs/paper-numbers/letters.md`). The generated content below is an earlier suite.
+
 | mechanism | benchmarks (non-vacuous) | count |
 |---|---|---|
 | M1 | `acc_spoof_lag`, `acc_spoof_limp`, `acc_tune_lag`, `acc_tune_limp`, `match_multi_rate`, `quad_light_airframe_20`, `quad_light_lag`, `quad_light_profiles`, `refinement_ladder_rover_rung2_6dof`, `refinement_ladder_rover_rung2b_6dof`, `refinement_ladder_rover_rung3_6to8`, `refinement_ladder_rover_rung4_8to12`, `rover3tier_rung12`, `rover_patrol_refine`, `story3_rollover_base_12dof`, `story3_rollover_ladder_rung_a`, `watertank` | 17 |
@@ -742,6 +746,8 @@ inputs certify in under 0.6 s except the 6–12-dof ladders (`story1_attdist_run
 Duplicate check: no two benchmarks normalize to the same model; no two benchmarks differ only in tolerance constants (rows' numerals masked)
 
 ## 9. Per-benchmark run records (generated)
+
+> Superseded for the current 50: the generated matrix, totals and run records of the 2026-10-27 frozen run are in `docs/paper-numbers/matrix.md` (letters: `docs/paper-numbers/letters.md`). The generated content below is an earlier suite.
 
 ### `acc_spoof_lag`
 

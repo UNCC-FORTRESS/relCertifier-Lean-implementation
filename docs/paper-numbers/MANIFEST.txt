@@ -1,0 +1,10 @@
+commit 236ac971c86f89154951c30b3c3410477ec89580 clean
+z3 Z3 version 4.15.1 - 64 bit
+os Darwin 25.5.0 arm64
+date 2026-10-27T14:02:49Z
+flags RELCERT_IMPLIED_CUT=1 (all runs); per-run switches in the run names
+covers identical
+
+matrix record of rover_terrain_2to4 re-run at 2026-10-27T14:42Z: in the frozen run its RELCERT_DEBUG main run hit the 40 s time budget once (43.6 s; 0.41 s in the control run and on re-run) while the laptop switched to battery power; matrix.json/md carry the re-run record, matrix.frozen-original.rover_terrain_2to4.json the original record; letters and numbers.tex recomputed from it (letters identical)
+power: the configuration runs (control ... opregion, exhibits; the timed ones) ran on AC power, finished 14:19Z; the laptop switched to battery during the matrix step (verdict-only)
+numbers run 2026-10-27 14:02Z-14:41Z on a machine with no other agent running (owner at the laptop: browser, load average about 3)

@@ -124,7 +124,13 @@ never in the suite: the bound is the no-FFR worst case and does not depend on th
 | `match_multi_rate` | `gantry_speed_zones` (both models new: a pick-and-place gantry whose production program runs zone-scheduled speed overrides, against the program as commissioned at reduced speed; 10 mm path tolerance; replaces the synthetic unitless rate-ratio exhibit in the same multi-cycle matching role) |
 | `platoon_delay_profiles` | `platoon_profiles` (redesigned: the CACC follower driven in the SPORT profile, a shorter time gap, against the design follower verified in NORMAL; its right model is `platoon_linkloss`'s, Assumption 1 through the shared `PlatoonCaccAeb` lemmas) |
 
-## Reserve 2026-10-27: batch I4
+## Batch I4 (2026-10-27): equal periods, and seven files to the reserve
+
+Installed over the suite files (the equal-period designs of the round-A pass, inputs and headers
+re-measured on this branch): `acc_spoof_lag` and `acc_tune_lag` (both sides at the 0.1 s radar
+cycle; each left guard is now its own loop's forward-invariant engaged envelope, so no left run
+from the engagement box is cut short; letters I, resp. S M), `acc_tune_limp` (0.1 s periods;
+letters S M B I X; its mode-dependent rows are expressiveness, a uniform row certifies, so no D).
 
 Seven files left the suite (suite 42 -> 35) for `benchmarks/reserve/`, each stored as its
 equal-period design of the round-A pass with a banner and one line of reason
@@ -223,10 +229,10 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 
 | benchmark | state vars | modes | scenario | notes |
 |---|---|---|---|---|
-| `acc_spoof_lag` | 2 / 2 | 1 / 1 | sensor-attack | redesigned 2026-10-26: same lag both sides |
+| `acc_spoof_lag` | 2 / 2 | 1 / 1 | sensor-attack | redesigned 2026-10-26: same lag both sides; 2026-10-27: equal 0.1 s periods, real-time claim with a spoof-dependent envelope, the left guard its own loop's engaged envelope |
 | `acc_spoof_limp` | 1 / 1 | 2 / 4 | sensor-attack | redesigned 2026-10-27: the same two requirement rows in both modes (no longer mode-keyed), closed right guards |
-| `acc_tune_lag` | 2 / 2 | 1 / 1 | degraded-controller | redesigned 2026-10-26: same lag both sides |
-| `acc_tune_limp` | 1 / 1 | 2 / 4 | degraded-controller | mode-keyed, mode choice |
+| `acc_tune_lag` | 2 / 2 | 1 / 1 | degraded-controller | redesigned 2026-10-26: same lag both sides; 2026-10-27: equal 0.1 s periods, the left guard its own loop's engaged envelope |
+| `acc_tune_limp` | 1 / 1 | 2 / 4 | degraded-controller | mode-keyed, mode choice; equal 0.1 s periods since 2026-10-27 |
 | `bms_chiller_undercharge` | 1 / 1 | 2 / 3 | degraded-actuator | new 2026-10-27: mode choice (the reference commits to a cooling level that is not the deployed's) |
 | `canal_gate_notches` | 1 / 1 | 3 / 4 | controller-refinement | new 2026-10-27: mode choice (the reference commits to a nearby permitted notch) |
 | `drl_car_stop` | 2 / 2 | 3 / 3 | controller-refinement | literature (dRL), mode choice |

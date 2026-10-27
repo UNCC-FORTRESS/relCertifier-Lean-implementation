@@ -91,7 +91,7 @@ def packsV2 : List PackV2 :=
     -- acc_tune_lag
     ⟨"acc_tune_lag", 2, 0, [0, 1], 2, 1, 0, 0⟩,
     -- acc_spoof_lag
-    ⟨"acc_spoof_lag", 2, 0, [1, 0], 3, 2, 0, 0⟩,
+    ⟨"acc_spoof_lag", 2, 0, [1, 3, 0, 2], 1, 1, 0, 0⟩,
     -- sat_detumble_weak
     ⟨"sat_detumble_weak", 4, 0, [0, 1], 1, 1, 0, 0⟩,
     ⟨"sat_detumble_weak", 4, 0, [0, 1], 1, 1, 0, 1⟩,
@@ -229,7 +229,7 @@ def packsV2 : List PackV2 :=
     ⟨"turbine_startup_gearratio", 2, 0, [0], 1, 1, 3, 3⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 729
+def expectedModalV2 : Nat := 731
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do

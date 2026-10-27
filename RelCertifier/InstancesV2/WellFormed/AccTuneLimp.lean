@@ -4,7 +4,7 @@ Released under Apache 2.0 license.
 
 # `acc_tune_limp`: Assumption 1 of the right model (`WellFormedR`)
 
-Over the instance's guarded right automaton `Gr`, the lowered right guards, `ε_r = 1`.
+Over the instance's guarded right automaton `Gr`, the lowered right guards, `ε_r = 1/10` (the 0.1 s decision period; 1 until 2026-10-27).
 `NORMAL` / `COMFORT` / `SPORT` (`20 ≤ v ≤ 40`, `v' = k (30 − v)`, `k = 0.5, 0.4, 0.6`) and
 `DISENGAGE` (`v < 20`, `v' = −v/2`) are contractions whose guard sets are forward invariant
 (style (a)). Existence: the explicit exponential. Z3-free.
@@ -124,15 +124,15 @@ theorem sat_guardR (q : ℕ) (hq : q < 4) (ν : State (Var 3)) :
       CompOp.interp, Term.eval, Rv]
 
 
-theorem hp10 : Run.parseRat "1.0" = some (1 : ℚ) := by
-  have h : parseQ "1.0" = some (⟨10, 10⟩ : QF) := by decide
+theorem hp01 : Run.parseRat "0.1" = some ((1:ℚ)/10 : ℚ) := by
+  have h : parseQ "0.1" = some (⟨1, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]
 theorem hpm05 : Run.parseRat "-0.5" = some (-(1:ℚ)/2) := by
   have h : parseQ "-0.5" = some (⟨-5, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
 
-theorem epsR_eq : epsR acc_tune_limp_IRv2 = 1 := by
-  simp [epsR, acc_tune_limp_IRv2, hp10]
+theorem epsR_eq : epsR acc_tune_limp_IRv2 = 1/10 := by
+  simp [epsR, acc_tune_limp_IRv2, hp01]
 
 noncomputable def guardR (q : ℕ) : Formula (Var 3) := hostGuard vs 3 Side.R (mR q)
 
@@ -186,7 +186,7 @@ theorem acc_tune_limp_wellFormedR : WellFormedR Gr guardR (epsR acc_tune_limp_IR
     unfold cR4; split_ifs <;> norm_num
   refine ⟨?_, ?_⟩
   · refine exists_contract_run x 0 (kR4 q) (cR4 q) (kR4_nonneg q) (fR0_all q hq4)
-      (fun i hi s => fRo_all q hq4 i hi s) ?_ 1 (by norm_num)
+      (fun i hi s => fRo_all q hq4 i hi s) ?_ (1/10) (by norm_num)
     intro v h1 h2
     show Formula.sat domR _
     rw [sat_domR, trajJ_j]

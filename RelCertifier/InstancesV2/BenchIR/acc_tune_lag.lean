@@ -18,18 +18,18 @@ def acc_tune_lag_IRv2 : PProblem :=
     lambdaMax := "6.0"
     L := {
       stateVars := ["v", "a"]
-      epsilon := "2.0"
+      epsilon := "0.1"
       modes := [
         {
           name := "CRUISE"
           odes := [("v", (.var "a")),
             ("a", (.bin "*" (.num "3.125") (.bin "-" (.bin "*" (.num "0.75") (.bin "-" (.num "30.0") (.var "v"))) (.var "a"))))]
-          guard := (.and (.and (.and (.cmp ">=" (.var "v") (.num "25.0")) (.cmp "<=" (.var "v") (.num "30.0"))) (.cmp ">=" (.var "a") (.num "-2.0"))) (.cmp "<=" (.var "a") (.num "2.0")))
+          guard := (.and (.and (.and (.cmp ">=" (.bin "+" (.var "a") (.bin "*" (.num "1.25") (.bin "-" (.var "v") (.num "30.0")))) (.neg (.num "8.25"))) (.cmp "<=" (.bin "+" (.var "a") (.bin "*" (.num "1.25") (.bin "-" (.var "v") (.num "30.0")))) (.num "2.0"))) (.cmp ">=" (.bin "+" (.var "a") (.bin "*" (.num "1.875") (.bin "-" (.var "v") (.num "30.0")))) (.neg (.num "11.375")))) (.cmp "<=" (.bin "+" (.var "a") (.bin "*" (.num "1.875") (.bin "-" (.var "v") (.num "30.0")))) (.num "2.0")))
           evolve := (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "40.0"))) (.cmp ">=" (.var "a") (.num "-10.0"))) (.cmp "<=" (.var "a") (.num "10.0")))
           next := ["CRUISE"] } ] }
     R := {
       stateVars := ["v", "a"]
-      epsilon := "1.0"
+      epsilon := "0.1"
       modes := [
         {
           name := "CRUISE"

@@ -18,7 +18,7 @@ def acc_tune_limp_IRv2 : PProblem :=
     lambdaMax := "6.0"
     L := {
       stateVars := ["v"]
-      epsilon := "2.0"
+      epsilon := "0.1"
       modes := [
         {
           name := "CRUISE"
@@ -34,7 +34,7 @@ def acc_tune_limp_IRv2 : PProblem :=
           next := ["LIMP"] } ] }
     R := {
       stateVars := ["v"]
-      epsilon := "1.0"
+      epsilon := "0.1"
       modes := [
         {
           name := "NORMAL"

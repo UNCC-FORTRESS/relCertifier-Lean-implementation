@@ -118,10 +118,10 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 
 | # | benchmark | result | modes: style | tool check |
 |---|---|---|---|---|
-| 1 | `acc_spoof_lag` | proved | CRUISE (a) (the lagged loop's envelope, modal coordinates `a + 2v − 60`, `3a + 2v − 60` decaying; explicit two-exponential run) | ok (invariant) |
+| 1 | `acc_spoof_lag` | proved (right period 0.1 s since 2026-10-27, batch I4) | CRUISE (a) (the lagged loop's envelope, modal coordinates `a + 2v − 60`, `3a + 2v − 60` decaying; explicit two-exponential run) | ok (invariant) |
 | 2 | `acc_spoof_limp` | proved | NORMAL, ECO, SPORT (a) (closed guards `20 ≤ v ≤ 40` since 2026-10-27, with DISENGAGE `v < 20` a partition of `[0, 40]`); DISENGAGE (a) | all ok (invariant) |
-| 3 | `acc_tune_lag` | proved | CRUISE (a) (the lagged loop's envelope, modal coordinates `a + 2.5v − 75`, `a + 0.625v − 18.75` decaying; explicit two-exponential run) | ok (invariant) |
-| 4 | `acc_tune_limp` | proved | NORMAL, COMFORT, SPORT (a); DISENGAGE (a) | all ok (invariant) |
+| 3 | `acc_tune_lag` | proved (right period 0.1 s since 2026-10-27, batch I4) | CRUISE (a) (the lagged loop's envelope, modal coordinates `a + 2.5v − 75`, `a + 0.625v − 18.75` decaying; explicit two-exponential run) | ok (invariant) |
+| 4 | `acc_tune_limp` | proved (right period 0.1 s since 2026-10-27, batch I4) | NORMAL, COMFORT, SPORT (a); DISENGAGE (a) | all ok (invariant) |
 | 5 | `arm_plateau_crit` | moved to `benchmarks/reserve/` 2026-10-27 (batch I4; was: proved (repaired); proof in git history) | ApproachA (b) → B, C or Hold; ApproachB (b) → C or Hold; ApproachC (b) → Hold; Hold (a) | A ok (exit→B,C,Hold); B ok (exit→C,Hold); C ok (exit→Hold); Hold ok (invariant) |
 | 6 | `arm_plateau_profiles` | moved to `benchmarks/reserve/` 2026-10-27 (was: proved (repaired); proof in git history) | ApproachA (b) → B, Cfast or Hold; ApproachB (b) → Cfast or Hold; ApproachCfast, ApproachCslow (b) → Hold; Hold (a) | A ok (exit→B,Cslow,Hold); B ok (exit→Cslow,Hold); C's ok (exit→Hold); Hold ok (invariant) |
 | 7 | `arm_plateau_slow` | moved to `benchmarks/reserve/` 2026-10-27 (batch I4; was: proved (repaired); proof in git history) | as `arm_plateau_crit` | as `arm_plateau_crit` |

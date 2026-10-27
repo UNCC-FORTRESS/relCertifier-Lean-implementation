@@ -1,7 +1,9 @@
-# acc_tune_lag: the retuned cruise loop against the stock loop, both with the same powertrain lag.
+# acc_tune_lag: the retuned cruise loop against the stock loop, both with the same powertrain lag and
+# the same control period.
 # scenario: degraded-controller
-# mechanisms: S M (time stretch lambda = 2 needed, RELCERT_SYNC=1 declines; multi-step cover,
-#   matrix codes M1 M2)
+# mechanisms: S M (time stretch lambda = 2 needed, RELCERT_SYNC=1 declines; multi-step cover: at
+#   lambda = 2 each left window is matched by two right cycles; matrix codes M1 M2). Both letters
+#   come from the retune: the stretch is the ratio of the two dominant time constants.
 #
 # System. Speed v (m/s) and realised acceleration a (m/s^2) of one car whose cruise loop commands
 # a_cmd = k (30 - v) toward the set speed 30 m/s; the powertrain realises the command through a
@@ -13,6 +15,11 @@
 # real roots, so both are non-oscillatory and decouple into exponential modes:
 #   left  s^2 + 3.125 s + 2.34375 = (s + 1.25)(s + 1.875)
 #   right s^2 + 3.125 s + 1.5625  = (s + 0.625)(s + 2.5).
+# Control period: 0.1 s on BOTH sides (epsilon = 0.1; every decision interval is at most 0.1 s).
+# The speed loop is continuous in the ODEs; the period is that of the mode decision (the
+# engagement check). 0.1 s bounds the update cycle of an automotive ACC's long-range radar (the
+# Continental ARS 408-21 data sheet gives a cycle time of about 72 ms). The gain is the only
+# difference between the sides.
 #
 # Property (requirement). The retune's specification is "the stock response, twice as fast":
 # the dominant (slow) mode must be the stock loop's dominant mode with its time constant halved
@@ -22,11 +29,21 @@
 # at every instant the retuned car's dominant-mode speed equals the stock car's at twice the
 # elapsed time. Exact: no tolerance constant. Not implied by the domains (it pins a_R given the
 # other three coordinates).
-# Consequence (measured, not part of the claim): adding |v_L - v_R| <= c as a row certifies down
-# to c = 2.89 (2.88 declines): the fast modes keep the speeds within 2.89 m/s of each other.
+# The claim depends on the cause: with a retune gain of 0.8 /s instead of 0.75 /s (same claim, same
+# guards) the file DECLINES; the exact claim and its stretch 2 are the specification of this retune
+# (the factor 2 is built into the specification, and it lies on the tool's stretch grid).
+# Consequence (measured 2026-10-27, not part of the claim): adding |v_L - v_R| <= c as a row
+# certifies down to c = 3.34 (3.33 declines; 2.89 on the round-A file, whose left guard was the
+# engagement box): the fast modes keep the speeds within 3.34 m/s over the left envelope.
 #
-# Guards. Left: the controller engages (resumes) between 25 m/s and the set speed with
-# |a| <= 2 m/s^2 (no hard pedal input), the deployed's engagement condition at every sample.
+# Guards. Left: the retuned loop's ENGAGED ENVELOPE, the forward-invariant hull under the retuned
+# loop of its engagement box (the controller engages, or resumes, between 25 m/s and the set speed
+# with |a| <= 2 m/s^2, no hard pedal input): a + 1.25 (v - 30) in [-8.25, 2] and
+# a + 1.875 (v - 30) in [-11.375, 2] (the left modal coordinates, decaying at 1.875 /s and
+# 1.25 /s; the box's corners (25, -2) and (30, 2) are envelope corners). The guard is re-checked
+# at every decision. With the box itself as the guard (the round-A file) a left run from (30, 2)
+# overshoots 30 m/s (to 30.47) and would end there; with the envelope every left run from the box
+# continues (they stay in v in [24.87, 30.47]).
 # Right: the stock car's ENGAGED ENVELOPE, the forward-invariant hull of the same
 # engagement box under the stock loop: a + 2.5 v in [60.5, 77] and a + 0.625 v in [13.625, 20.75]
 # (the modal coordinates a + r (v - 30) of the box, each decaying toward 0, so the set is kept by
@@ -40,12 +57,15 @@
 # Domains (both sides): v in [0, 40] m/s, a in [-10, 10] m/s^2 (1 g, the tyre-road limit);
 # physical limits, not load-bearing.
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED; DECLINED under RELCERT_SYNC=1 (and
-# SYNC+NO_CHOICE); CERTIFIED under NO_PRUNE, NO_CHOICE, NO_PRUNE+NO_CHOICE, without
-# RELCERT_IMPLIED_CUT, NO_IMPLIED_CUT, NO_LINEAR_CUT, NO_CUT and RELCERT_WELLFORMED_STRICT=1.
-# Cover: lambda = 2, budget ceil(2 * 2 / 1) = 4 right cycles per left window, nothing pruned.
-# --handoff: 1/1, vacuous (one left mode). The left linear-form chain is still offered but is not
-# load-bearing. Units m/s, m/s^2, s.
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27 on branch benchmark-fixes):
+# CERTIFIED (0.19 s); DECLINED under RELCERT_SYNC=1 and SYNC+NO_CHOICE; CERTIFIED under
+# RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE, without RELCERT_IMPLIED_CUT,
+# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_CUT=1, RELCERT_OPREGION=1 and
+# RELCERT_WELLFORMED_STRICT=1. Cover: lambda = 2, budget ceil(2 * 0.1 / 0.1) = 2 right cycles per
+# left window, nothing pruned (matrix: M1 M2; the cuts are kept but not load-bearing). --handoff
+# vacuous (one left mode). relcert --wellformed: CRUISE ok (invariant), 0 UNKNOWN, 0 BLOCKING. The
+# right model changed only in its period (epsilon 1.0 -> 0.1; its Assumption 1 proof states the
+# new interval). Units m/s, m/s^2, s.
 [problem]
 name = acc_tune_lag
 max_depth = 8
@@ -54,15 +74,15 @@ lambda_max = 6.0
 bound_T = 4.0
 [Lsys]
 state_vars = [v, a]
-epsilon = 2.0
+epsilon = 0.1
 [Lsys.mode.CRUISE]
 ode = v' = a; a' = smt2:(* 3.125 (- (* 0.75 (- 30.0 v)) a));
-guard = v >= 25.0 and v <= 30.0 and a >= -2.0 and a <= 2.0
+guard = smt2:(and (>= (+ a (* 1.25 (- v 30.0))) (- 8.25)) (<= (+ a (* 1.25 (- v 30.0))) 2.0) (>= (+ a (* 1.875 (- v 30.0))) (- 11.375)) (<= (+ a (* 1.875 (- v 30.0))) 2.0))
 evolve = v >= 0.0 and v <= 40.0 and a >= -10.0 and a <= 10.0
 next = [CRUISE]
 [Rsys]
 state_vars = [v, a]
-epsilon = 1.0
+epsilon = 0.1
 [Rsys.mode.CRUISE]
 ode = v' = a; a' = smt2:(* 3.125 (- (* 0.5 (- 30.0 v)) a));
 guard = smt2:(and (>= (+ a (* 2.5 v)) 60.5) (<= (+ a (* 2.5 v)) 77.0) (>= (+ a (* 0.625 v)) 13.625) (<= (+ a (* 0.625 v)) 20.75))

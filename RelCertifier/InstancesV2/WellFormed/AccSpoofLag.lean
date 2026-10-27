@@ -4,7 +4,7 @@ Released under Apache 2.0 license.
 
 # `acc_spoof_lag`: Assumption 1 of the right model (`WellFormedR`)
 
-Over the instance's guarded right automaton `Gr`, the lowered right guards, `ε_r = 1`. The
+Over the instance's guarded right automaton `Gr`, the lowered right guards, `ε_r = 1/10` (the 0.1 s decision period; 1 until 2026-10-27). The
 right model has one mode `CRUISE`: the unspoofed loop with powertrain lag, `v' = a`,
 `a' = (8/3)(0.5 (30 − v) − a)`, guard the engaged envelope `3 a + 2 v ∈ [40, 66]`,
 `a + 2 v ∈ [44, 62]`, evolve box `v ∈ [0, 40]`, `a ∈ [−10, 10]`, next `[CRUISE]`.
@@ -141,8 +141,8 @@ theorem hpm100 : Run.parseRat "-10.0" = some (-10 : ℚ) := by
 theorem hp100 : Run.parseRat "10.0" = some (10 : ℚ) := by
   have h : parseQ "10.0" = some (⟨100, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
-theorem hp10 : Run.parseRat "1.0" = some (1 : ℚ) := by
-  have h : parseQ "1.0" = some (⟨10, 10⟩ : QF) := by decide
+theorem hp01 : Run.parseRat "0.1" = some ((1:ℚ)/10 : ℚ) := by
+  have h : parseQ "0.1" = some (⟨1, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]
 
 /-- `v' = a`. -/
@@ -212,8 +212,8 @@ theorem sat_guardR0 (ν : State (Var 2)) :
     Formula.sat, CompOp.interp, Term.eval, AOp.interp, Rv]
   tauto
 
-theorem epsR_eq : epsR acc_spoof_lag_IRv2 = 1 := by
-  simp [epsR, acc_spoof_lag_IRv2, hp10]
+theorem epsR_eq : epsR acc_spoof_lag_IRv2 = 1/10 := by
+  simp [epsR, acc_spoof_lag_IRv2, hp01]
 
 noncomputable def guardR (q : ℕ) : Formula (Var 2) := hostGuard vs 2 Side.R (mR q)
 
@@ -282,7 +282,7 @@ theorem acc_spoof_lag_wellFormedR : WellFormedR Gr guardR (epsR acc_spoof_lag_IR
     set P0 := x (Rv 1) + 2 * x (Rv 0) - 60 with hP0
     set Q0 := 3 * x (Rv 1) + 2 * x (Rv 0) - 60 with hQ0
     refine ⟨_, trajRs_sol x (fun i t => if i.val = 0 then solV P0 Q0 t else solA P0 Q0 t)
-        1 (by norm_num) ?_ ?_ ?_⟩
+        (1/10) (by norm_num) ?_ ?_ ?_⟩
     · intro i
       fin_cases i <;> simp [solV, solA, eP, eQ, hP0, hQ0] <;> ring
     · intro i t _ _

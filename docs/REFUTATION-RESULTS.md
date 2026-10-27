@@ -76,7 +76,7 @@
 > m007; 16), `sat3w_detumble_weak` (m002 to m007; 16), `arm_plateau_crit` (m000; 3),
 > `arm_plateau_slow` (m000; 3): 20 refutations and 66 witness lines out.
 > Current instance set: **83 refutations, 217 groups**
-> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 667 mutants in
+> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 677 mutants in
 > `docs/refute/witnesses.jsonl`. The operator table has not been recomputed.
 
 Design: `docs/REFUTATION-SCOPE.md` (planning record, last present at commit 29663d8). This file reports what was built and the experiment.

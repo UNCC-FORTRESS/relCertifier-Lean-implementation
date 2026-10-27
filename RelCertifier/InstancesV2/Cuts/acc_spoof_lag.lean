@@ -15,7 +15,7 @@ open RelCertifier.Parse
 
 def acc_spoof_lag_cutsV2 : EvolStrengthening :=
   { L := [
-      ("CRUISE", [])
+      ("CRUISE", [((.cmp ">=" (.bin "+" (.var "a") (.bin "-" (.var "v") (.num "24.0"))) (.neg (.num "3.0"))), CutRoute.diStrict), ((.cmp "<=" (.bin "+" (.var "a") (.bin "-" (.var "v") (.num "24.0"))) (.num "8.0")), CutRoute.diStrict), ((.cmp ">=" (.bin "+" (.var "a") (.bin "*" (.bin "/" (.num "5.0") (.num "3.0")) (.bin "-" (.var "v") (.num "24.0")))) (.neg (.bin "/" (.num "11.0") (.num "3.0")))), CutRoute.diStrict), ((.cmp "<=" (.bin "+" (.var "a") (.bin "*" (.bin "/" (.num "5.0") (.num "3.0")) (.bin "-" (.var "v") (.num "24.0")))) (.num "12.0")), CutRoute.diStrict)])
     ]
     R := [
       ("CRUISE", [((.cmp ">=" (.bin "+" (.bin "*" (.num "3.0") (.var "a")) (.bin "*" (.num "2.0") (.var "v"))) (.num "40.0")), CutRoute.diStrict), ((.cmp "<=" (.bin "+" (.bin "*" (.num "3.0") (.var "a")) (.bin "*" (.num "2.0") (.var "v"))) (.num "66.0")), CutRoute.diStrict), ((.cmp ">=" (.bin "+" (.var "a") (.bin "*" (.num "2.0") (.var "v"))) (.num "44.0")), CutRoute.diStrict), ((.cmp "<=" (.bin "+" (.var "a") (.bin "*" (.num "2.0") (.var "v"))) (.num "62.0")), CutRoute.diStrict)])
@@ -23,7 +23,7 @@ def acc_spoof_lag_cutsV2 : EvolStrengthening :=
 
 def acc_spoof_lag_cutsV2X : EvolStrengtheningX :=
   { L := [
-      ("CRUISE", [])
+      ("CRUISE", [⟨(.cmp ">=" (.bin "+" (.var "a") (.bin "-" (.var "v") (.num "24.0"))) (.neg (.num "3.0"))), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.bin "+" (.var "a") (.bin "-" (.var "v") (.num "24.0"))) (.num "8.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp ">=" (.bin "+" (.var "a") (.bin "*" (.bin "/" (.num "5.0") (.num "3.0")) (.bin "-" (.var "v") (.num "24.0")))) (.neg (.bin "/" (.num "11.0") (.num "3.0")))), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.bin "+" (.var "a") (.bin "*" (.bin "/" (.num "5.0") (.num "3.0")) (.bin "-" (.var "v") (.num "24.0")))) (.num "12.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩])
     ]
     R := [
       ("CRUISE", [⟨(.cmp ">=" (.bin "+" (.bin "*" (.num "3.0") (.var "a")) (.bin "*" (.num "2.0") (.var "v"))) (.num "40.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.bin "+" (.bin "*" (.num "3.0") (.var "a")) (.bin "*" (.num "2.0") (.var "v"))) (.num "66.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp ">=" (.bin "+" (.var "a") (.bin "*" (.num "2.0") (.var "v"))) (.num "44.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.bin "+" (.var "a") (.bin "*" (.num "2.0") (.var "v"))) (.num "62.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩])

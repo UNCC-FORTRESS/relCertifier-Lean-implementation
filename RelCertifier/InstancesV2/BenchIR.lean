@@ -14,6 +14,8 @@ import RelCertifier.InstancesV2.BenchIR.acc_tune_lag
 import RelCertifier.InstancesV2.BenchIR.acc_tune_limp
 import RelCertifier.InstancesV2.BenchIR.arm_plateau_crit
 import RelCertifier.InstancesV2.BenchIR.arm_plateau_slow
+import RelCertifier.InstancesV2.BenchIR.bms_chiller_undercharge
+import RelCertifier.InstancesV2.BenchIR.canal_gate_notches
 import RelCertifier.InstancesV2.BenchIR.charger_fast_setpoints
 import RelCertifier.InstancesV2.BenchIR.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchIR.drl_car_stop
@@ -54,6 +56,7 @@ import RelCertifier.InstancesV2.BenchIR.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchIR.sat_detumble_weak
 import RelCertifier.InstancesV2.BenchIR.tank_dos_3to1
 import RelCertifier.InstancesV2.BenchIR.train_ato_odometry
+import RelCertifier.InstancesV2.BenchIR.turbine_startup_gearratio
 import RelCertifier.InstancesV2.BenchIR.vehicle_hypercert
 import RelCertifier.InstancesV2.BenchIR.watertank
 import RelCertifier.InstancesV2.BenchIR.watertank_twospeed
@@ -67,6 +70,8 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("acc_tune_limp", acc_tune_limp_IRv2),
   ("arm_plateau_crit", arm_plateau_crit_IRv2),
   ("arm_plateau_slow", arm_plateau_slow_IRv2),
+  ("bms_chiller_undercharge", bms_chiller_undercharge_IRv2),
+  ("canal_gate_notches", canal_gate_notches_IRv2),
   ("charger_fast_setpoints", charger_fast_setpoints_IRv2),
   ("charger_fast_tapers", charger_fast_tapers_IRv2),
   ("drl_car_stop", drl_car_stop_IRv2),
@@ -107,6 +112,7 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("sat_detumble_weak", sat_detumble_weak_IRv2),
   ("tank_dos_3to1", tank_dos_3to1_IRv2),
   ("train_ato_odometry", train_ato_odometry_IRv2),
+  ("turbine_startup_gearratio", turbine_startup_gearratio_IRv2),
   ("vehicle_hypercert", vehicle_hypercert_IRv2),
   ("watertank", watertank_IRv2),
   ("watertank_twospeed", watertank_twospeed_IRv2) ]

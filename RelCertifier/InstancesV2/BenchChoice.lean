@@ -7,6 +7,8 @@ import RelCertifier.InstancesV2.BenchChoice.acc_tune_lag
 import RelCertifier.InstancesV2.BenchChoice.acc_tune_limp
 import RelCertifier.InstancesV2.BenchChoice.arm_plateau_crit
 import RelCertifier.InstancesV2.BenchChoice.arm_plateau_slow
+import RelCertifier.InstancesV2.BenchChoice.bms_chiller_undercharge
+import RelCertifier.InstancesV2.BenchChoice.canal_gate_notches
 import RelCertifier.InstancesV2.BenchChoice.charger_fast_setpoints
 import RelCertifier.InstancesV2.BenchChoice.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchChoice.drl_car_stop
@@ -47,6 +49,7 @@ import RelCertifier.InstancesV2.BenchChoice.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchChoice.sat_detumble_weak
 import RelCertifier.InstancesV2.BenchChoice.tank_dos_3to1
 import RelCertifier.InstancesV2.BenchChoice.train_ato_odometry
+import RelCertifier.InstancesV2.BenchChoice.turbine_startup_gearratio
 import RelCertifier.InstancesV2.BenchChoice.vehicle_hypercert
 import RelCertifier.InstancesV2.BenchChoice.watertank
 import RelCertifier.InstancesV2.BenchChoice.watertank_twospeed
@@ -60,6 +63,8 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("acc_tune_limp", acc_tune_limp_coverV2_choice),
   ("arm_plateau_crit", arm_plateau_crit_coverV2_choice),
   ("arm_plateau_slow", arm_plateau_slow_coverV2_choice),
+  ("bms_chiller_undercharge", bms_chiller_undercharge_coverV2_choice),
+  ("canal_gate_notches", canal_gate_notches_coverV2_choice),
   ("charger_fast_setpoints", charger_fast_setpoints_coverV2_choice),
   ("charger_fast_tapers", charger_fast_tapers_coverV2_choice),
   ("drl_car_stop", drl_car_stop_coverV2_choice),
@@ -100,6 +105,7 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("sat_detumble_weak", sat_detumble_weak_coverV2_choice),
   ("tank_dos_3to1", tank_dos_3to1_coverV2_choice),
   ("train_ato_odometry", train_ato_odometry_coverV2_choice),
+  ("turbine_startup_gearratio", turbine_startup_gearratio_coverV2_choice),
   ("vehicle_hypercert", vehicle_hypercert_coverV2_choice),
   ("watertank", watertank_coverV2_choice),
   ("watertank_twospeed", watertank_twospeed_coverV2_choice) ]

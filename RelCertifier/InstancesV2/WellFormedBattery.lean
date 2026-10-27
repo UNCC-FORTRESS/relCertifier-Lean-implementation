@@ -20,10 +20,10 @@ mode `q`, `ε = epsR` (the file's `epsilon`, read as the tool reads it). A model
 independent of the relational invariant and of every Theorem 3 (none takes it as a
 hypothesis); this battery is a separate audit.
 
-**Results (all 49 benchmarks; declared counts `wfDeclared`, kernel-checked against the
+**Results (all 52 benchmarks; declared counts `wfDeclared`, kernel-checked against the
 suite's IR table by `wf_coverage`).**
 
-* **Proved, 43** (`<bench>_wellFormedR`): every mode (`watertank_twospeed` added 2026-10-11;
+* **Proved, 46** (`<bench>_wellFormedR`): every mode (`watertank_twospeed` added 2026-10-11;
   the literature benchmarks `drl_car_stop`, `drl_lane_control`, `vehicle_hypercert` and
   `freedm_meter` added 2026-10-15, three of them proved directly over the bridge's automaton,
   `_wellFormedR_direct`). Z3-free (no verdict leaf). Two of them
@@ -89,6 +89,9 @@ import RelCertifier.InstancesV2.WellFormed.PlatoonLinkloss
 import RelCertifier.InstancesV2.WellFormed.PlatoonLatency
 import RelCertifier.InstancesV2.WellFormed.EngineStartHighidle
 import RelCertifier.InstancesV2.WellFormed.TrainAtoOdometry
+import RelCertifier.InstancesV2.WellFormed.BmsChillerUndercharge
+import RelCertifier.InstancesV2.WellFormed.CanalGateNotches
+import RelCertifier.InstancesV2.WellFormed.TurbineStartupGearratio
 import RelCertifier.InstancesV2.WellFormed.PlatoonProfiles
 import RelCertifier.InstancesV2.WellFormed.QuadLightAirframe20
 import RelCertifier.InstancesV2.WellFormed.QuadLightProfiles
@@ -120,7 +123,8 @@ def wfProved : List String :=
    "rover_terrain_2to4", "rover_terrain_6to12",
    "rover_terrain_4to6", "rover_attitude_6to8", "rover_attitude_8to12",
    "rover_lateral_6to8", "rover_lateral_8to12", "rover_rollover_6to12",
-   "rover_rollover_6to7", "watertank_twospeed", "tank_dos_3to1", "hvac_fan_staging", "engine_start_highidle", "train_ato_odometry", "drl_car_stop", "drl_lane_control",
+   "rover_rollover_6to7", "watertank_twospeed", "tank_dos_3to1", "hvac_fan_staging", "engine_start_highidle", "train_ato_odometry",
+   "bms_chiller_undercharge", "canal_gate_notches", "turbine_startup_gearratio", "drl_car_stop", "drl_lane_control",
    "vehicle_hypercert", "freedm_meter"]
 
 /-- The benchmarks whose right model violates Assumption 1 (none since the 2026-10-10
@@ -143,14 +147,15 @@ after the 2026-10-27 reserve moves (`airheader_dos_3to1`, `arm_plateau_profiles`
 `platoon_delay_linkloss`) and `platoon_latency`; `(43, 0, 6)` with `engine_start_highidle` and
 `train_ato_odometry`; unchanged by `gantry_speed_zones` (replacing `match_multi_rate`) and
 `platoon_profiles` (replacing `platoon_delay_profiles`), and by the redesigned
-`quad_light_{airframe_20,profiles}` and `watertank_twospeed`. -/
-def wfDeclared : ℕ × ℕ × ℕ := (43, 0, 6)
+`quad_light_{airframe_20,profiles}` and `watertank_twospeed`; `(46, 0, 6)` with
+`bms_chiller_undercharge`, `canal_gate_notches` and `turbine_startup_gearratio`. -/
+def wfDeclared : ℕ × ℕ × ℕ := (46, 0, 6)
 
 /-- The suite's benchmark names, in the order of the IR table. -/
 def suiteNames : List String :=
   ["acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp",
    "arm_plateau_crit",
-   "arm_plateau_slow", "charger_fast_setpoints",
+   "arm_plateau_slow", "bms_chiller_undercharge", "canal_gate_notches", "charger_fast_setpoints",
    "charger_fast_tapers", "drl_car_stop", "drl_lane_control", "engine_start_highidle",
    "freedm_meter", "gantry_speed_zones",
    "hvac_fan_staging",
@@ -163,7 +168,7 @@ def suiteNames : List String :=
    "rover_terrain_2to4", "rover_terrain_4to6", "rover_terrain_6to12",
    "sat3w_detumble_nominal", "sat3w_detumble_phases", "sat3w_detumble_weak",
    "sat_detumble_nominal", "sat_detumble_phases", "sat_detumble_weak", "tank_dos_3to1",
-   "train_ato_odometry", "vehicle_hypercert",
+   "train_ato_odometry", "turbine_startup_gearratio", "vehicle_hypercert",
    "watertank", "watertank_twospeed"]
 
 /-- `suiteNames` IS the name column of the kernel-checked IR table of the suite. -/
@@ -179,7 +184,7 @@ theorem wf_coverage :
 
 end WellFormedBattery
 
-/-! ## Proved (43 outside the detumble family, with the next section): Assumption 1 at every mode -/
+/-! ## Proved (46 outside the detumble family, with the next section): Assumption 1 at every mode -/
 
 #print axioms V2DrlCarStop.drl_car_stop_wellFormedR_direct
 #print axioms V2DrlLaneControl.drl_lane_control_wellFormedR_direct
@@ -227,6 +232,9 @@ at every mode, and at the repaired modes -/
 #print axioms V2PlatoonProfiles.platoon_profiles_wellFormedR
 #print axioms V2EngineStartHighidle.engine_start_highidle_wellFormedR
 #print axioms V2TrainAtoOdometry.train_ato_odometry_wellFormedR
+#print axioms V2BmsChillerUndercharge.bms_chiller_undercharge_wellFormedR
+#print axioms V2CanalGateNotches.canal_gate_notches_wellFormedR
+#print axioms V2TurbineStartupGearratio.turbine_startup_gearratio_wellFormedR
 #print axioms PlatoonCaccAeb.cacc_w_band
 #print axioms PlatoonCaccAeb.aeb_w_const
 #print axioms PlatoonCaccAeb.cacc_box

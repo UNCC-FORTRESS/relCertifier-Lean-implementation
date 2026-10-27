@@ -1,0 +1,152 @@
+# turbine_startup_gearratio: the start-up of a pitch-regulated wind turbine whose controller
+# computes rotor speed with a stale gearbox ratio, against the same start-up with the correct ratio.
+# scenario: degraded-controller (configuration error after a gearbox exchange)
+# mechanisms: R P I (right-only repositioning; non-connection pruning of the parking edges,
+#   RELCERT_NO_PRUNE=1 declines; checked cuts, RELCERT_NO_CUT=1 declines; matrix codes M4 M6 M6+).
+#   All three are properties of the ONE-SIDED claim, not of the gear error: they are present at
+#   g = 1.00 (identical systems) with the claim w_L <= w_R (see "Where the letters come from").
+#
+# Round A (2026-10-26): model and claim unchanged; the header no longer presents the letters as
+# effects of the cause. Two-sided claims were tried and do not certify with a meaningful lower
+# tolerance (below).
+#
+# System. Rotor speed w in rpm, time in s. Numbers of the NREL 5-MW reference turbine (Jonkman et
+# al., NREL/TP-500-38060, 2009): rated rotor speed 12.1 rpm, cut-in rotor speed 6.9 rpm, gearbox
+# 97:1. The start-up at rated wind is a sequence of first-order phases (rotor inertia against the
+# aerodynamic torque of each pitch setting), decided every 1 s:
+#   SPINUP  2.0 <= w < 5.0   blades at the start-up pitch, generator off: the rotor free-spins
+#                            toward 9 rpm, w' = 0.03 (9 - w)   (an aerodynamic balance, not a set point)
+#   RAMP    5.0 <= w < 6.9   the pitch loop holds the rotor toward the synchronization speed
+#                            7.5 rpm, w' = 0.04 (7.5 - w)
+#   GEN     w >= 6.9         generator connected at cut-in; speed regulated to rated,
+#                            w' = 0.05 (12.1 - w)
+#   STOP    w < 2.0          parked: the brake decelerates the rotor, w' = -0.1 w (latched)
+# SPINUP and RAMP declare STOP (the controller parks the rotor if the speed falls below 2 rpm).
+#
+# Right (reference): the start-up with the correct gearbox ratio (the numbers above).
+# Left (deployed): the replacement gearbox has ratio 92.4:1, but the controller still divides the
+# generator speed by 97, so it reads the rotor speed 5 % low (97 / 92.4 = 1.05). One cause: every
+# speed the controller acts on is 1.05 times higher in true rotor speed: thresholds 2.1, 5.25,
+# 7.245 rpm, synchronization target 7.875 rpm, rated target 12.705 rpm. The free-spin speed of
+# SPINUP (9 rpm) and the brake are physics, not set points, and are unchanged.
+#
+# Property (every left mode): w_L <= 1.05 w_R (relational, up to the reference's re-timing): the
+# deployed rotor never turns faster than 1.05 times a reference start-up. Requirement: the
+# control system's overspeed limit, 110 % of rated (13.31 rpm); a reference start-up begun below
+# rated never exceeds 12.1 rpm, so the claim bounds the deployed by 12.71 rpm < 13.31 rpm. The
+# factor is the cause: exactly 1.05 certifies (1.049 and 1.06 decline; 1.06 because a reference
+# already parked below 2 rpm becomes an admissible start against a deployed spinning up at
+# 2.1 rpm). The bound moves with the cause: for a gearbox error g the claim w_L <= g w_R
+# certifies at g = 1.00 (no error), 1.01, 1.02, 1.05, 1.10, 1.20 (measured in round 2); an error
+# g > 1.1 breaks the overspeed limit. Not implied by the domains.
+#
+# Where the letters come from (measured 2026-10-26). The one-sided claim admits a reference that
+# is already in a later phase. From a deployed SPINUP window the reference may start in RAMP; its
+# pitch loop holds it at 7.5 rpm while the deployed free-spins toward 9 rpm, so the joint segment
+# fails at every stretch and the reference first runs alone (left frozen) out of RAMP into GEN
+# (R). RAMP and SPINUP declare STOP; the non-connection certificate (their flows rise at 2 rpm)
+# prunes RAMP -> STOP and SPINUP -> STOP; under RELCERT_NO_PRUNE=1 the repositioning step must
+# also cover STOP (a parked reference against a spinning deployed) and the existential choice
+# cannot replace it: DECLINED (P). The implied contraction atoms (w <= 9 in SPINUP, w <= 7.875 /
+# 7.5 in RAMP) are load-bearing: DECLINED with RELCERT_NO_CUT=1 and without RELCERT_IMPLIED_CUT
+# (I). At g = 1.00 (left = right) the claim w_L <= w_R shows the same three letters (RELCERT_SYNC=1,
+# RELCERT_NO_PRUNE=1 and RELCERT_NO_CUT=1 all DECLINE), while the exact two-sided claim w_L = w_R
+# certifies under all of them with no letter. So R, P and I witness the one-sided form of the
+# claim (an existential reference that may be ahead), not the stale ratio; the cause sets the
+# factor 1.05.
+# Two-sided claims tried (to make the claim pin the cause from both sides; all measured):
+#   w_R - d <= w_L <= 1.05 w_R in SPINUP, RAMP, GEN (STOP with the upper row only): DECLINED at
+#     every d tried (0, 0.25, 0.5, 1 to 10, 12, 13, 16; 16 = the whole speed range); at
+#     g = 1.00 (w_R - d <= w_L <= w_R) the same grid certifies only d = 0.
+#     The (SPINUP_L, RAMP_R) segment fails at every stretch, and once a lower row binds the
+#     reference's solo run the right-only repositioning that rescues the one-sided claim is not
+#     found ([repo-dyn-pre] empty).
+#   lower row only in RAMP and GEN: tightest d = 10.75 rpm (g = 1.05) and 11.00 (g = 1.00); only in
+#     GEN: 8.76 and 9.10: near-vacuous and the same without the cause.
+# Window: R and P hold for every gear error g < 1.2 (the free-spin speed 9 rpm exceeds the
+# deployed's synchronization target 7.5 g); at g = 1.2 the joint segment passes and
+# RELCERT_NO_PRUNE=1, RELCERT_SYNC=1 certify (round 2).
+#
+# Domains. 0 <= w <= 16 rpm on both sides (the model's speed range, above the 13.31 rpm limit):
+# forward invariant in every mode (all targets <= 12.705, every flow >= 0 at 0); widened to 30 rpm
+# the benchmark still CERTIFIES (round 2). The right guards partition [0, 16] (no coverage gap);
+# every left mode has a satisfiable start (w_R = w_L / 1.05 lies in the same reference phase).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26 with the round-A binary):
+# CERTIFIED (about 0.4 s); CERTIFIED under RELCERT_NO_CHOICE=1, RELCERT_NO_LINEAR_CUT=1,
+# RELCERT_NO_PAIR_STRETCH=1, RELCERT_WELLFORMED_STRICT=1 and RELCERT_OPREGION=1 (every admitted
+# start in some right guard, all four left modes); DECLINED under RELCERT_SYNC=1 (no right-only
+# steps; every cover is at lambda 1, so no S), RELCERT_NO_PRUNE=1, NO_PRUNE+NO_CHOICE,
+# SYNC+NO_CHOICE, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1 and without RELCERT_IMPLIED_CUT.
+# Cover: lambda 1, budget 1 in every left mode; SPINUP_L admissible [SPINUP, RAMP, GEN] with a
+# right-only step; RAMP_L [RAMP, GEN]; GEN_L [GEN]; STOP_L all four. Pruned SPINUP->STOP,
+# RAMP->STOP. Rows identical (--handoff vacuous, 8/8). relcert --wellformed: SPINUP ok
+# (exit->RAMP), RAMP ok (exit->GEN), GEN ok (invariant), STOP ok (invariant), 0 UNKNOWN.
+[problem]
+name = turbine_startup_gearratio
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 60.0
+
+[Lsys]
+state_vars = [w]
+epsilon = 1.0
+
+[Lsys.mode.SPINUP]
+ode = w' = smt2:(* 0.03 (- 9 w));
+guard = w >= 2.1 and w < 5.25
+evolve = w >= 0.0 and w <= 16.0
+next = [SPINUP, RAMP, STOP]
+
+[Lsys.mode.RAMP]
+ode = w' = smt2:(* 0.04 (- 7.875 w));
+guard = w >= 5.25 and w < 7.245
+evolve = w >= 0.0 and w <= 16.0
+next = [RAMP, GEN, STOP]
+
+[Lsys.mode.GEN]
+ode = w' = smt2:(* 0.05 (- 12.705 w));
+guard = w >= 7.245
+evolve = w >= 0.0 and w <= 16.0
+next = [GEN]
+
+[Lsys.mode.STOP]
+ode = w' = smt2:(* (- 0.1) w);
+guard = w < 2.1
+evolve = w >= 0.0 and w <= 16.0
+next = [STOP]
+
+[Rsys]
+state_vars = [w]
+epsilon = 1.0
+
+[Rsys.mode.SPINUP]
+ode = w' = smt2:(* 0.03 (- 9 w));
+guard = w >= 2.0 and w < 5.0
+evolve = w >= 0.0 and w <= 16.0
+next = [SPINUP, RAMP, STOP]
+
+[Rsys.mode.RAMP]
+ode = w' = smt2:(* 0.04 (- 7.5 w));
+guard = w >= 5.0 and w < 6.9
+evolve = w >= 0.0 and w <= 16.0
+next = [RAMP, GEN, STOP]
+
+[Rsys.mode.GEN]
+ode = w' = smt2:(* 0.05 (- 12.1 w));
+guard = w >= 6.9
+evolve = w >= 0.0 and w <= 16.0
+next = [GEN]
+
+[Rsys.mode.STOP]
+ode = w' = smt2:(* (- 0.1) w);
+guard = w < 2.0
+evolve = w >= 0.0 and w <= 16.0
+next = [STOP]
+
+[relational_invariant]
+SPINUP = smt2:(<= L_w (* 1.05 R_w))
+RAMP = smt2:(<= L_w (* 1.05 R_w))
+GEN = smt2:(<= L_w (* 1.05 R_w))
+STOP = smt2:(<= L_w (* 1.05 R_w))

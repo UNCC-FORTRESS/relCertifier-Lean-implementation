@@ -54,9 +54,11 @@
 > replaced by `platoon_profiles` (51 mutants; m008 and m011 new, kind B, the floor rows
 > `L_g >= 5`, `L_g + 2 L_r >= 5` flipped, as on `platoon_linkloss`; each DECLINED by relcert).
 > Batch I2 redesigns: `quad_light_airframe_20` (18 mutants), `quad_light_profiles` (18) and
-> `watertank_twospeed` (8), no witness (8 each before, none).
+> `watertank_twospeed` (8), no witness (8 each before, none). Batch I2 new files:
+> `bms_chiller_undercharge` (8 mutants), `canal_gate_notches` (8) and `turbine_startup_gearratio`
+> (3), no witness.
 > Current instance set: **114 refutations, 313 groups**
-> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 886 mutants in
+> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 905 mutants in
 > `docs/refute/witnesses.jsonl`. The operator table has not been recomputed.
 
 Design: `docs/REFUTATION-SCOPE.md` (planning record, last present at commit 29663d8). This file reports what was built and the experiment.

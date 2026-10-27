@@ -5,6 +5,8 @@ import RelCertifier.InstancesV2.BenchProgress.acc_tune_lag
 import RelCertifier.InstancesV2.BenchProgress.acc_tune_limp
 import RelCertifier.InstancesV2.BenchProgress.arm_plateau_crit
 import RelCertifier.InstancesV2.BenchProgress.arm_plateau_slow
+import RelCertifier.InstancesV2.BenchProgress.bms_chiller_undercharge
+import RelCertifier.InstancesV2.BenchProgress.canal_gate_notches
 import RelCertifier.InstancesV2.BenchProgress.charger_fast_setpoints
 import RelCertifier.InstancesV2.BenchProgress.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchProgress.engine_start_highidle
@@ -42,6 +44,7 @@ import RelCertifier.InstancesV2.BenchProgress.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchProgress.sat_detumble_weak
 import RelCertifier.InstancesV2.BenchProgress.tank_dos_3to1
 import RelCertifier.InstancesV2.BenchProgress.train_ato_odometry
+import RelCertifier.InstancesV2.BenchProgress.turbine_startup_gearratio
 import RelCertifier.InstancesV2.BenchProgress.watertank
 import RelCertifier.InstancesV2.BenchProgress.watertank_twospeed
 
@@ -55,6 +58,8 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("acc_tune_limp", acc_tune_limp_coverV2_progress),
    ("arm_plateau_crit", arm_plateau_crit_coverV2_progress),
    ("arm_plateau_slow", arm_plateau_slow_coverV2_progress),
+   ("bms_chiller_undercharge", bms_chiller_undercharge_coverV2_progress),
+   ("canal_gate_notches", canal_gate_notches_coverV2_progress),
    ("charger_fast_setpoints", charger_fast_setpoints_coverV2_progress),
    ("charger_fast_tapers", charger_fast_tapers_coverV2_progress),
    ("engine_start_highidle", engine_start_highidle_coverV2_progress),
@@ -92,6 +97,7 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("sat_detumble_weak", sat_detumble_weak_coverV2_progress),
    ("tank_dos_3to1", tank_dos_3to1_coverV2_progress),
    ("train_ato_odometry", train_ato_odometry_coverV2_progress),
+   ("turbine_startup_gearratio", turbine_startup_gearratio_coverV2_progress),
    ("watertank", watertank_coverV2_progress),
    ("watertank_twospeed", watertank_twospeed_coverV2_progress)]
 

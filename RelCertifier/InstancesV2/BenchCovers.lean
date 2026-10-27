@@ -5,6 +5,8 @@ import RelCertifier.InstancesV2.BenchCovers.acc_tune_lag
 import RelCertifier.InstancesV2.BenchCovers.acc_tune_limp
 import RelCertifier.InstancesV2.BenchCovers.arm_plateau_crit
 import RelCertifier.InstancesV2.BenchCovers.arm_plateau_slow
+import RelCertifier.InstancesV2.BenchCovers.bms_chiller_undercharge
+import RelCertifier.InstancesV2.BenchCovers.canal_gate_notches
 import RelCertifier.InstancesV2.BenchCovers.charger_fast_setpoints
 import RelCertifier.InstancesV2.BenchCovers.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchCovers.drl_car_stop
@@ -45,6 +47,7 @@ import RelCertifier.InstancesV2.BenchCovers.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchCovers.sat_detumble_weak
 import RelCertifier.InstancesV2.BenchCovers.tank_dos_3to1
 import RelCertifier.InstancesV2.BenchCovers.train_ato_odometry
+import RelCertifier.InstancesV2.BenchCovers.turbine_startup_gearratio
 import RelCertifier.InstancesV2.BenchCovers.vehicle_hypercert
 import RelCertifier.InstancesV2.BenchCovers.watertank
 import RelCertifier.InstancesV2.BenchCovers.watertank_twospeed
@@ -58,6 +61,8 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("acc_tune_limp", acc_tune_limp_coverV2),
   ("arm_plateau_crit", arm_plateau_crit_coverV2),
   ("arm_plateau_slow", arm_plateau_slow_coverV2),
+  ("bms_chiller_undercharge", bms_chiller_undercharge_coverV2),
+  ("canal_gate_notches", canal_gate_notches_coverV2),
   ("charger_fast_setpoints", charger_fast_setpoints_coverV2),
   ("charger_fast_tapers", charger_fast_tapers_coverV2),
   ("drl_car_stop", drl_car_stop_coverV2),
@@ -98,6 +103,7 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("sat_detumble_weak", sat_detumble_weak_coverV2),
   ("tank_dos_3to1", tank_dos_3to1_coverV2),
   ("train_ato_odometry", train_ato_odometry_coverV2),
+  ("turbine_startup_gearratio", turbine_startup_gearratio_coverV2),
   ("vehicle_hypercert", vehicle_hypercert_coverV2),
   ("watertank", watertank_coverV2),
   ("watertank_twospeed", watertank_twospeed_coverV2) ]

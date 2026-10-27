@@ -2,18 +2,18 @@
 
 `suite_v2/<name>/input.txt` is the complete specification of one benchmark: the left
 (ideal) and right (implementation) hybrid automata, the relational invariant (one row per
-left mode) and the time-stretch range. **49 benchmarks.** With the widened cut channel on
-(`RELCERT_IMPLIED_CUT=1`, as every suite_v2 run sets it) the tool CERTIFIES all 49, and
+left mode) and the time-stretch range. **52 benchmarks.** With the widened cut channel on
+(`RELCERT_IMPLIED_CUT=1`, as every suite_v2 run sets it) the tool CERTIFIES all 52, and
 every one carries a kernel-checked Theorem 3 (the paper's Soundness of Synthesis) with the paper's left program over the
 guard-gated right automaton, at the mode-consistent region (`RelCertifier/InstancesV2/Bridge/`;
-check recipe: `docs/CERTIFICATION-CHECK.md`). Without the widened channel 6 of them
+check recipe: `docs/CERTIFICATION-CHECK.md`). Without the widened channel 7 of them
 DECLINE (the rows marked *widened cuts* below). Near-duplicates and weak benchmarks are kept
 outside the suite in `benchmarks/reserve/` (inputs, headers and verdicts only; `reserve/README.md`).
 
 **Assumption 1 of each right model** (the paper's Well-Formedness: from every guard state a
 full control interval of flow exists, and every evolution of at most `ε_r` ends in a declared
 successor's guard) is verified per file (`WellFormedR`, `docs/WELLFORMED.md`): it holds for
-all 49 literally (the 6 satellite files carry their conserved momentum band in the right evolve
+all 52 literally (the 6 satellite files carry their conserved momentum band in the right evolve
 domain since 2026-10-15).
 Nine files had a blocking mode until 2026-10-10 and were repaired (`docs/SUITE-REDESIGN.md`
 §21; each header says how and why; `arm_plateau_profiles` and `platoon3_{linkloss,profiles}`
@@ -27,7 +27,7 @@ an invariant guard) and `quad_light_{airframe_20,profiles}` (the sink `LIMIT`: i
 the climb controller, whose operating range reached the limiter threshold; both were redesigned
 on 2026-10-27 with the altitude coordinate and no limiter mode).
 `relcert --wellformed <input.txt>…` runs the tool's sufficient check per right mode (every one
-of the 166 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN` or `BLOCKING`.
+of the 177 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN` or `BLOCKING`.
 
 The suite's design, the per-family rationale, the domain audit (every evolve bound is a
 physical limit of the plant; `scripts/domain_widening.py` re-runs the tool with every bound
@@ -88,7 +88,7 @@ integration; one line of reason each in `reserve/README.md`): `airheader_dos_3to
 does not depend on the attack), `arm_plateau_profiles` (the planner choice is never
 load-bearing), `platoon3_profiles` (three identical time-scaled links; stored as its round-2
 design), `platoon3_linkloss` (exact copies on links 2 and 3; stored as its round-2 design). The
-suite has fewer than 50 benchmarks until later batches restore it.
+suite had fewer than 50 benchmarks until batch I2 (52 after it).
 
 ## Renamed 2026-10-27: the platoon link-loss file
 
@@ -106,6 +106,16 @@ against ground idle; right-only repositioning, mode-dependent rows, load-bearing
 loop; the first suite file with stretches below 1, `lambda_min = 0.75`; time stretch per pairing,
 multi-step and branching covers). The reserve keeps `engine_start_highidle`'s twin
 `h2_refuel_ambientbias`.
+
+New 2026-10-27 (batch I2): `bms_chiller_undercharge` (an EV battery pack in DC fast charge whose
+chiller lost refrigerant, against the pack's thermal strategy; the reference commits to the half
+compressor level to track the degraded full level: mode choice), `canal_gate_notches` (an
+irrigation-canal pool under a three-position automatic gate against the manual operating rule's
+four notches: mode choice) and `turbine_startup_gearratio` (a wind turbine start-up whose
+controller uses a stale gearbox ratio; right-only repositioning, pruned parking edges and
+load-bearing mode facts, all three present already at the correct ratio: the one-sided claim
+form, disclosed in its header). Suite 49 -> 52. The reserve adds `grid_ffr_dos` (round-A design,
+never in the suite: the bound is the no-FFR worst case and does not depend on the hold).
 
 ## Renamed 2026-10-27: batch I2
 
@@ -179,6 +189,8 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `acc_tune_limp` | 1 / 1 | 2 / 4 | degraded-controller | mode-keyed, mode choice |
 | `arm_plateau_crit` | 2 / 1 | 2 / 4 | model-refinement | widened cuts, Z3-free; successor sets repaired (§21) |
 | `arm_plateau_slow` | 2 / 1 | 2 / 4 | model-refinement | widened cuts, Z3-free; successor sets repaired (§21) |
+| `bms_chiller_undercharge` | 1 / 1 | 2 / 3 | degraded-actuator | new 2026-10-27: mode choice (the reference commits to a cooling level that is not the deployed's) |
+| `canal_gate_notches` | 1 / 1 | 3 / 4 | controller-refinement | new 2026-10-27: mode choice (the reference commits to a nearby permitted notch) |
 | `charger_fast_setpoints` | 1 / 1 | 5 / 5 | degraded-controller | mode-keyed, widened cuts |
 | `charger_fast_tapers` | 1 / 1 | 5 / 6 | degraded-controller | mode-keyed, widened cuts |
 | `drl_car_stop` | 2 / 2 | 3 / 3 | controller-refinement | literature (dRL), mode choice |
@@ -212,6 +224,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `sat_detumble_weak` | 4 / 4 | 1 / 4 | degraded-actuator | nonblocking region |
 | `tank_dos_3to1` | 2 / 2 | 4 / 4 | dos-attack | redesigned 2026-10-27: a demand-paced four-pump station, the same staging law on both sides, the DoS holds the staging decision for up to three polls |
 | `train_ato_odometry` | 1 / 1 | 3 / 3 | degraded-sensor | new 2026-10-27: stretches per pairing from 31/40 to 6/5 (`lambda_min = 0.75`) |
+| `turbine_startup_gearratio` | 1 / 1 | 4 / 4 | degraded-controller | new 2026-10-27: widened cuts; right-only repositioning, pruned parking edges (the letters R P I come from the one-sided claim form, header) |
 | `rover_attitude_6to8` | 8 / 8 | 3 / 3 | model-refinement | rewritten 2026-10-26: one attitude row in every mode |
 | `rover_attitude_8to12` | 12 / 12 | 3 / 3 | model-refinement | rewritten 2026-10-26: right y pinned, cascade-chart left |
 | `rover_lateral_6to8` | 8 / 8 | 3 / 3 | model-refinement | carried over; right lateral pair frozen (2026-10-26) |

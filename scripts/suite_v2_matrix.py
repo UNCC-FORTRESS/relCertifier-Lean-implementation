@@ -93,6 +93,9 @@ FAMILIES = [
     ("hvac_", "HVAC fan staging"),
     ("engine_", "Turbofan ground start"),
     ("train_", "Train speed control (ATO)"),
+    ("bms_", "Battery pack thermal management (chiller)"),
+    ("canal_", "Irrigation canal gate"),
+    ("turbine_", "Wind turbine start-up"),
     ("sat_detumble_", "Rigid-body detumbling (polynomial)"),
     ("sat3w_detumble_", "Rigid-body detumbling (polynomial)"),
 ]

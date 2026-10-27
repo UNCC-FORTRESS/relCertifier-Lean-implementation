@@ -1,0 +1,118 @@
+# bms_chiller_undercharge: an EV battery pack in DC fast charge whose chiller has lost refrigerant,
+# against the pack's thermal strategy, which permits coasting or either compressor level; the
+# reference must commit to the HALF-speed level to track the degraded FULL-speed chiller.
+# scenario: degraded-actuator
+# mechanisms: X (committed existential choice: hops into a permitted cooling level that is not the
+#   deployed's own level, RELCERT_NO_CHOICE=1 declines)
+#
+# Round A (2026-10-26): the 5 K tolerance is now derived from the cells' charging-temperature
+# limit (it was a thermal-uniformity spec reused as a conformance tolerance); the strategy's
+# coasting ceiling is 40 degC (was 35) so that the derivation closes.
+#
+# System. Cell temperature T in degC, time in min, decided every 1 min on both sides. Lumped cell and
+# cold-plate model under a fast charge that heats the cells at 0.5 K/min (ohmic heat without
+# cooling). Each cooling level relaxes T toward the temperature where heat removal balances it:
+#   COAST    coolant pump off, enclosure losses to the 25 degC ambient: T' = 0.02 (50 - T)
+#   CHILL_LO compressor half speed, coolant 20 degC, cold plate 0.05 /min: T' = 0.05 (30 - T)
+#   CHILL_HI compressor full speed, coolant 10 degC: T' = 0.05 (20 - T)
+# (each balance = coolant temperature + 0.5 / conductance).
+#
+# Right (reference): the thermal strategy, nondeterministic. Coasting is permitted up to 40 degC
+# (above it active cooling is mandatory); either compressor level is permitted from 20 degC (pre-
+# cooling for fast charge); every level may follow every level.
+# Left (deployed): the same pack with a deterministic BMS: COAST below 28 degC, full-speed chiller
+# from 28 degC. Its chiller is undercharged (refrigerant loss): at full speed it only reaches 17 degC
+# coolant, T' = 0.05 (27 - T). One cause: the degraded chiller (the deployed's staging rule is a
+# permitted resolution of the strategy, so without the degradation the claim is exact).
+#
+# Property (both left modes): |T_L - T_R| <= 5 K: every deployed temperature trace stays within
+# 5 K of a trace the strategy permits. Requirement: the cells' maximum charging temperature,
+# 45 degC (the upper end of the 0 to 45 degC charging range of Li-ion cell datasheets), minus the
+# strategy's coasting ceiling 40 degC: whenever the strategy keeps the cells at or below 40 degC,
+# the deployed pack stays at or below 45 degC. The lower side is the same conformance band: the
+# deployed is never more than 5 K colder than a permitted trace (the strategy's charging-current
+# map was set for the strategy's temperatures).
+# Tightest 3.00 K (2.99 declines): the degraded full-speed chiller settles at 27 degC, 3 K from
+# the strategy's half-speed level (30 degC) and 7 K from its full-speed level (20 degC). The
+# bound is the distance from the degraded balance to the nearest permitted level, so it moves
+# with the cause (measured tightest tolerance against the deployed coolant temperature T_c,
+# balance T_c + 10): T_c = 10 (no degradation): 0 (exact claim certifies); 15: 5.00; 17 (this
+# file): 3.00; 19: 1.00.
+# Certified tolerances: [3.00, 8.00] K (8.01 declines: a reference coasting just below the
+# 20 degC pre-cooling floor then becomes admissible against a deployed chilling from 28 degC, it
+# may not switch to a chiller there and no hop can follow it; a limit of the per-window cover,
+# not of the pack). The requirement 5 K lies inside.
+# Law dependence: an arbitrary left schedule (both left modes on the whole range [0, 60]):
+# DECLINED at 5 K.
+#
+# Why committed choice is needed (X), and why it is not the identity hop. At a window start the
+# reference may be at any permitted level within 5 K. For the deployed CHILL window the cover hops
+# CHILL_HI -> CHILL_LO and COAST -> CHILL_LO: the reference commits to the HALF-speed level although
+# the deployed runs its chiller at FULL speed, because the degraded full-speed chiller behaves like
+# the healthy half-speed one; CHILL_HI itself is 7 K off and fails at 5 K. For the COAST window it
+# hops CHILL_LO / CHILL_HI -> COAST. RELCERT_NO_CHOICE=1 DECLINES. Window: the hop target is the
+# non-identity CHILL_LO for every deployed coolant temperature in (15, 20] degC; for T_c <= 15 the
+# nearest level is CHILL_HI and the hops are identity hops (X still holds).
+#
+# Domains. 0 <= T <= 60 degC on both sides (the cells' operating range; 60 degC is the usual
+# maximum discharge temperature): forward invariant at every level (balances 20 to 50 degC). The
+# right guards cover [0, 60] (COAST up to 40, the chillers from 20); the left guards partition it;
+# every left mode has a satisfiable start (T_R = T_L in COAST or CHILL_LO).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26 with the round-A binary):
+# CERTIFIED (about 0.2 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1,
+# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_PAIR_STRETCH=1, without
+# RELCERT_IMPLIED_CUT, RELCERT_WELLFORMED_STRICT=1 and RELCERT_OPREGION=1 (every admitted start in
+# some right guard); DECLINED under RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1 and
+# RELCERT_SYNC=1 RELCERT_NO_CHOICE=1. Cover: both left modes at lambda 1, budget 1, admissible
+# [COAST, CHILL_LO, CHILL_HI], one hop then a joint segment. Nothing pruned. Rows identical
+# (--handoff vacuous, 4/4). relcert --wellformed: COAST ok (exit->CHILL_HI), CHILL_LO ok
+# (invariant), CHILL_HI ok (invariant), 0 UNKNOWN.
+[problem]
+name = bms_chiller_undercharge
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 120.0
+
+[Lsys]
+state_vars = [T]
+epsilon = 1.0
+
+[Lsys.mode.COAST]
+ode = T' = smt2:(* 0.02 (- 50 T));
+guard = T >= 0.0 and T < 28.0
+evolve = T >= 0.0 and T <= 60.0
+next = [COAST, CHILL]
+
+[Lsys.mode.CHILL]
+ode = T' = smt2:(* 0.05 (- 27 T));
+guard = T >= 28.0 and T <= 60.0
+evolve = T >= 0.0 and T <= 60.0
+next = [COAST, CHILL]
+
+[Rsys]
+state_vars = [T]
+epsilon = 1.0
+
+[Rsys.mode.COAST]
+ode = T' = smt2:(* 0.02 (- 50 T));
+guard = T >= 0.0 and T <= 40.0
+evolve = T >= 0.0 and T <= 60.0
+next = [COAST, CHILL_LO, CHILL_HI]
+
+[Rsys.mode.CHILL_LO]
+ode = T' = smt2:(* 0.05 (- 30 T));
+guard = T >= 20.0 and T <= 60.0
+evolve = T >= 0.0 and T <= 60.0
+next = [COAST, CHILL_LO, CHILL_HI]
+
+[Rsys.mode.CHILL_HI]
+ode = T' = smt2:(* 0.05 (- 20 T));
+guard = T >= 20.0 and T <= 60.0
+evolve = T >= 0.0 and T <= 60.0
+next = [COAST, CHILL_LO, CHILL_HI]
+
+[relational_invariant]
+COAST = T[l] <= T[r] + 5.0 and T[r] <= T[l] + 5.0
+CHILL = T[l] <= T[r] + 5.0 and T[r] <= T[l] + 5.0

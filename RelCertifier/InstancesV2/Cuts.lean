@@ -5,6 +5,8 @@ import RelCertifier.InstancesV2.Cuts.acc_tune_lag
 import RelCertifier.InstancesV2.Cuts.acc_tune_limp
 import RelCertifier.InstancesV2.Cuts.arm_plateau_crit
 import RelCertifier.InstancesV2.Cuts.arm_plateau_slow
+import RelCertifier.InstancesV2.Cuts.bms_chiller_undercharge
+import RelCertifier.InstancesV2.Cuts.canal_gate_notches
 import RelCertifier.InstancesV2.Cuts.charger_fast_setpoints
 import RelCertifier.InstancesV2.Cuts.charger_fast_tapers
 import RelCertifier.InstancesV2.Cuts.drl_car_stop
@@ -45,6 +47,7 @@ import RelCertifier.InstancesV2.Cuts.sat_detumble_phases
 import RelCertifier.InstancesV2.Cuts.sat_detumble_weak
 import RelCertifier.InstancesV2.Cuts.tank_dos_3to1
 import RelCertifier.InstancesV2.Cuts.train_ato_odometry
+import RelCertifier.InstancesV2.Cuts.turbine_startup_gearratio
 import RelCertifier.InstancesV2.Cuts.vehicle_hypercert
 import RelCertifier.InstancesV2.Cuts.watertank
 import RelCertifier.InstancesV2.Cuts.watertank_twospeed
@@ -58,6 +61,8 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("acc_tune_limp", acc_tune_limp_cutsV2, acc_tune_limp_cutsV2X),
   ("arm_plateau_crit", arm_plateau_crit_cutsV2, arm_plateau_crit_cutsV2X),
   ("arm_plateau_slow", arm_plateau_slow_cutsV2, arm_plateau_slow_cutsV2X),
+  ("bms_chiller_undercharge", bms_chiller_undercharge_cutsV2, bms_chiller_undercharge_cutsV2X),
+  ("canal_gate_notches", canal_gate_notches_cutsV2, canal_gate_notches_cutsV2X),
   ("charger_fast_setpoints", charger_fast_setpoints_cutsV2, charger_fast_setpoints_cutsV2X),
   ("charger_fast_tapers", charger_fast_tapers_cutsV2, charger_fast_tapers_cutsV2X),
   ("drl_car_stop", drl_car_stop_cutsV2, drl_car_stop_cutsV2X),
@@ -98,6 +103,7 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("sat_detumble_weak", sat_detumble_weak_cutsV2, sat_detumble_weak_cutsV2X),
   ("tank_dos_3to1", tank_dos_3to1_cutsV2, tank_dos_3to1_cutsV2X),
   ("train_ato_odometry", train_ato_odometry_cutsV2, train_ato_odometry_cutsV2X),
+  ("turbine_startup_gearratio", turbine_startup_gearratio_cutsV2, turbine_startup_gearratio_cutsV2X),
   ("vehicle_hypercert", vehicle_hypercert_cutsV2, vehicle_hypercert_cutsV2X),
   ("watertank", watertank_cutsV2, watertank_cutsV2X),
   ("watertank_twospeed", watertank_twospeed_cutsV2, watertank_twospeed_cutsV2X) ]

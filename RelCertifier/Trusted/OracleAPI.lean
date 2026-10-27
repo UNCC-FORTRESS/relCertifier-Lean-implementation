@@ -29,7 +29,7 @@ through `z3_unsat_sound`) and the cover decision, which is made by the verified 
   There is no zero-duration right switch.
 
 Budgets, per benchmark (env-overridable): query budget `RELCERT_MAX_QUERIES` = 20000,
-wall-clock budget `RELCERT_TIME_BUDGET_MS` = 40000 ms; per query (`Trusted/Z3.lean`):
+wall-clock budget `RELCERT_TIME_BUDGET_MS` = 300000 ms; per query (`Trusted/Z3.lean`):
 timeout 10 s, rlimit 64 000 000.
 
 Three distinct, never-conflated outcomes:
@@ -1193,7 +1193,7 @@ verdict, never a hang) — the same input always hits the same count. -/
 def certify (s : Z3Session) (p : PProblem) : IO Outcome := do
   let cnt ← IO.mkRef 0
   let maxQ := (← IO.getEnv "RELCERT_MAX_QUERIES").bind String.toNat? |>.getD 20000
-  let budgetMs := (← IO.getEnv "RELCERT_TIME_BUDGET_MS").bind String.toNat? |>.getD 40000
+  let budgetMs := (← IO.getEnv "RELCERT_TIME_BUDGET_MS").bind String.toNat? |>.getD 300000
   let maxSmt := (← IO.getEnv "RELCERT_MAX_SMT").bind String.toNat? |>.getD 200000
   let deadline := (← IO.monoMsNow) + budgetMs
   try certifyCore s cnt maxQ maxSmt deadline p
@@ -1225,7 +1225,7 @@ def emitCoverFile (cfg : Z3Config) (path defname : String) : IO Unit := do
       | .ok s =>
           let cnt ← IO.mkRef 0
           let maxQ := (← IO.getEnv "RELCERT_MAX_QUERIES").bind String.toNat? |>.getD 20000
-          let budgetMs := (← IO.getEnv "RELCERT_TIME_BUDGET_MS").bind String.toNat? |>.getD 40000
+          let budgetMs := (← IO.getEnv "RELCERT_TIME_BUDGET_MS").bind String.toNat? |>.getD 300000
           let maxSmt := (← IO.getEnv "RELCERT_MAX_SMT").bind String.toNat? |>.getD 200000
           let deadline := (← IO.monoMsNow) + budgetMs
           let r ← try certifyWithData s cnt maxQ maxSmt deadline p

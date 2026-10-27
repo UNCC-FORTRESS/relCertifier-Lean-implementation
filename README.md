@@ -398,7 +398,7 @@ Environment variables of `relcert` (`relcert --help` prints the same list):
 | `RELCERT_Z3_TIMEOUT=<ms>` | per-query timeout, default 10000 |
 | `RELCERT_Z3_RLIMIT=<n>` | per-query deterministic resource limit, default 64000000 |
 | `RELCERT_MAX_QUERIES=<n>` | per-benchmark query budget, default 20000 |
-| `RELCERT_TIME_BUDGET_MS=<ms>` | per-benchmark wall-clock budget, default 40000 |
+| `RELCERT_TIME_BUDGET_MS=<ms>` | per-benchmark wall-clock budget, default 300000 (5 min; 40000 before 2026-10-27) |
 
 ## Guard-gated switching
 

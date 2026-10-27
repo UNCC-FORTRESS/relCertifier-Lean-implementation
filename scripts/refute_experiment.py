@@ -12,7 +12,7 @@ Per Black-Okun-Yesha mutant of the suite (the finder's records, `docs/refute/wit
 Tabulates certified / kernel-refuted / open per operator and per kind, checks that no
 kernel-refuted mutant is certified, and writes `docs/refute/results.json`.
 
-Usage: scripts/refute_experiment.py [--jobs 6] [--timeout 180] [--runner-log FILE]
+Usage: scripts/refute_experiment.py [--jobs 6] [--timeout 600] [--runner-log FILE]
 """
 import argparse, json, os, re, subprocess
 from collections import Counter, defaultdict
@@ -41,7 +41,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--witnesses", default=os.path.join(ROOT, "docs/refute/witnesses.jsonl"))
     ap.add_argument("--jobs", type=int, default=6)
-    ap.add_argument("--timeout", type=int, default=180)
+    ap.add_argument("--timeout", type=int, default=600)  # above relcert's 300 s default budget
     ap.add_argument("--runner-log", default=os.path.join(ROOT, "docs/refute/runner.log"))
     ap.add_argument("--verdicts", default=os.path.join(ROOT, "docs/refute/relcert.json"))
     ap.add_argument("--out", default=os.path.join(ROOT, "docs/refute/results.json"))

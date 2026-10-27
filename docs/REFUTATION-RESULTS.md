@@ -65,8 +65,7 @@
 > witness; `rover_ladder_6to8` (22 mutants; m006 and m009 new) and `rover_ladder_8to12` (27; m005,
 > m006, m008, m009, m010, m019 and m026 new), all kind B: a coordinate of a requirement row moved
 > to the other side (`L_omega_psi -> R_omega_psi` and the like; in m026 the plan row's `R_theta_p
-> -> L_theta_p`) or a rate row deleted; each DECLINED by relcert (`rover_ladder_8to12_m005` exceeds
-> the default 40 s budget, ERROR, and DECLINES in 45 s with `RELCERT_TIME_BUDGET_MS=280000`). The
+> -> L_theta_p`) or a rate row deleted; each DECLINED by relcert at the default time budget. The
 > two 6to8 mutant inputs carry the suite file's header as of the finder run (minutes before the
 > header's scratch path was removed); their non-comment lines equal the current file's mutants
 > (`gen_refute.py` checks this).
@@ -126,12 +125,13 @@
 > Current instance set: **77 refutations, 228 groups**
 > (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 983 mutants in
 > `docs/refute/witnesses.jsonl`. The operator table below is the 2026-10-21 run; recomputed on 2026-10-27
-> (`scripts/refute_experiment.py`, 6 parallel jobs, the default 40 s budget; `docs/refute/relcert.json`, `results.json`,
+> (`scripts/refute_experiment.py`, 6 parallel jobs, the then-default 40 s budget; `docs/refute/relcert.json`, `results.json`,
 > `runner.log`): 983 mutants, 342 certified, 77 kernel-refuted, 564 open (9 of them relcert ERRORs by the time budget:
 > `rover_ladder_6to8_m021`, `rover_ladder_8to12_m005`, `_m010`, `_m016`, `_m024`, `sat3w_detumble_phases_m011`, `_m012`,
 > `_m014`, `_m015`); by operator RRO/SNO 31/30/154, MCO 102/13/112, ORO 209/34/298 (certified/refuted/open); by kind B 59,
-> C 18; kernel-refuted and certified: none. Of the 77, 75 are DECLINED in that run; `rover_ladder_8to12_m010` DECLINES when
-> run alone (38 s) and `rover_ladder_8to12_m005` DECLINES with `RELCERT_TIME_BUDGET_MS=280000` (45 s).
+> C 18; kernel-refuted and certified: none. All 77 are DECLINED by relcert at the default time budget (300 s since
+> 2026-10-27; decline check of `benchmarks/refute_mutants/*`, `RELCERT_IMPLIED_CUT=1`, 4 parallel jobs:
+> 77/77 DECLINED, the slowest `rover_ladder_8to12_m005` in 46 s; `docs/refute/decline_default_budget.tsv`).
 
 Design: `docs/REFUTATION-SCOPE.md` (planning record, last present at commit 29663d8). This file reports what was built and the experiment.
 

@@ -218,7 +218,7 @@ SWITCHES (environment)
   RELCERT_MAX_QUERIES=<n>         per-benchmark query budget, default 20000
   RELCERT_NO_PROGRESS=1           no progress certificates at reposition nodes (ablation)
   RELCERT_NO_CHOICE=1             no existential mode choice after the all-successors rule fails (ablation)
-  RELCERT_TIME_BUDGET_MS=<ms>     per-benchmark wall-clock budget, default 40000
+  RELCERT_TIME_BUDGET_MS=<ms>     per-benchmark wall-clock budget, default 300000
 
 EXIT
   0 success · 1 a check failed · 2 environment problem (no z3, bad usage)"

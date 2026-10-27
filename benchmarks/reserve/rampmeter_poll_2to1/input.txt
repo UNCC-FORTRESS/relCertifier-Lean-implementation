@@ -1,3 +1,8 @@
+# RESERVE (benchmarks/reserve/, 2026-10-27, batch I7): not in suite_v2, not in the paper, no Lean
+# integration (last at commit 856c79a). Reason: the chain-depth template of tank_dos_3to1 and
+# insulin_basal_cgmloss repeated (see Suite status below); its tier-2 place in the suite went to
+# grid_ffr_dos. The header below is the suite file's.
+#
 # rampmeter_poll_2to1: a freeway on-ramp meter whose traffic-responsive rate table is executed on
 # bottleneck-detector data that arrive every 40 s (central polling by the traffic management centre)
 # instead of the 20 s local update the table was designed for, against the same table updated every

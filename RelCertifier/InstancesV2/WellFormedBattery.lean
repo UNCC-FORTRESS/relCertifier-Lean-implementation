@@ -35,7 +35,8 @@ suite's IR table by `wf_coverage`).**
   shares with `platoon_latency` and `platoon_profiles` through `PlatoonCaccAeb`,
   `platoon_delay_profiles` by `platoon_profiles`, and `quad_light_{airframe_20,profiles}` were
   redesigned on 2026-10-27 with the altitude coordinate and no limiter mode (`quad_light_airframe_20`
-  moved to `benchmarks/reserve/` in batch I7 the same day, its proof in history).
+  moved to `benchmarks/reserve/` in batch I7 the same day, its proof in history, as did
+  `rampmeter_poll_2to1` of batch I6).
 * **Refuted, 0.**
 * **The detumble family, 3** (`<bench>_wellFormedR`, every mode; `<bench>_band_invariant`):
   `sat_detumble_{weak,phases}`, `sat3w_detumble_phases` (`sat_detumble_nominal` and
@@ -98,7 +99,7 @@ import RelCertifier.InstancesV2.WellFormed.InsulinBasalCgmloss
 import RelCertifier.InstancesV2.WellFormed.RoverRolloverPayload
 import RelCertifier.InstancesV2.WellFormed.FlapsSlowApproach
 import RelCertifier.InstancesV2.WellFormed.TunnelJetfanPairout
-import RelCertifier.InstancesV2.WellFormed.RampmeterPoll2to1
+import RelCertifier.InstancesV2.WellFormed.GridFfrDos
 import RelCertifier.InstancesV2.WellFormed.BottlingFillStrainer
 import RelCertifier.InstancesV2.WellFormed.AntennaTrackKvretune
 
@@ -121,7 +122,7 @@ def wfProved : List String :=
    "furnace_program_timebase", "compressor_station_recycle", "syringe_relay_prearm",
    "hydro_rejection_gatecal", "ventilator_vc_cuffleak", "insulin_basal_cgmloss",
    "rover_rollover_payload",
-   "flaps_slow_approach", "tunnel_jetfan_pairout", "rampmeter_poll_2to1",
+   "flaps_slow_approach", "tunnel_jetfan_pairout", "grid_ffr_dos",
    "bottling_fill_strainer", "antenna_track_kvretune",
    "drl_car_stop", "drl_lane_control",
    "vehicle_hypercert", "freedm_meter"]
@@ -165,7 +166,8 @@ new benchmarks of batch I6 (`flaps_slow_approach`, `tunnel_jetfan_pairout`, whos
 the polynomial terms `u^2` and `u c` and is proved with an explicit Riccati run,
 `rampmeter_poll_2to1`, `bottling_fill_strainer`, `antenna_track_kvretune`); unchanged by the swaps
 of batch I7 (`charger_fast_tapers`, reinstalled at the minute time scale with its round-2 proof
-at the new interval, for `quad_light_airframe_20`). -/
+at the new interval, for `quad_light_airframe_20`; `grid_ffr_dos`, a new proof with an explicit
+run and a non-strict barrier for the FFR release line, for `rampmeter_poll_2to1`). -/
 def wfDeclared : ℕ × ℕ × ℕ := (47, 0, 3)
 
 /-- The suite's benchmark names, in the order of the IR table. -/
@@ -174,9 +176,9 @@ def suiteNames : List String :=
    "bms_chiller_undercharge", "bottling_fill_strainer", "canal_gate_notches", "charger_fast_tapers",
    "compressor_station_recycle", "drl_car_stop", "drl_lane_control", "elevator_start_discbrake",
    "engine_start_highidle", "flaps_slow_approach", "freedm_meter", "fuelcell_chp_dos",
-   "furnace_program_timebase", "gantry_speed_zones", "hvac_fan_staging", "hydro_rejection_gatecal",
-   "insulin_basal_cgmloss", "molding_pack_checkring", "platoon_latency", "platoon_linkloss",
-   "platoon_profiles", "quad_light_lag", "quad_light_profiles", "rampmeter_poll_2to1",
+   "furnace_program_timebase", "gantry_speed_zones", "grid_ffr_dos", "hvac_fan_staging",
+   "hydro_rejection_gatecal", "insulin_basal_cgmloss", "molding_pack_checkring", "platoon_latency",
+   "platoon_linkloss", "platoon_profiles", "quad_light_lag", "quad_light_profiles",
    "rover_ladder_2to3", "rover_ladder_3to6", "rover_ladder_6to8", "rover_ladder_8to12",
    "rover_patrol_lag", "rover_rollover_payload", "rover_terrain_2to4", "rover_terrain_4to6",
    "rover_terrain_6to12", "sat3w_detumble_phases", "sat_detumble_phases", "sat_detumble_weak",
@@ -245,10 +247,10 @@ end WellFormedBattery
 #print axioms V2RoverRolloverPayload.rover_rollover_payload_wellFormedR
 #print axioms V2FlapsSlowApproach.flaps_slow_approach_wellFormedR
 #print axioms V2TunnelJetfanPairout.tunnel_jetfan_pairout_wellFormedR
-#print axioms V2RampmeterPoll2to1.rampmeter_poll_2to1_wellFormedR
 #print axioms V2BottlingFillStrainer.bottling_fill_strainer_wellFormedR
 #print axioms V2AntennaTrackKvretune.antenna_track_kvretune_wellFormedR
 #print axioms V2ChargerFastTapers.charger_fast_tapers_wellFormedR
+#print axioms V2GridFfrDos.grid_ffr_dos_wellFormedR
 #print axioms PlatoonCaccAeb.cacc_w_band
 #print axioms PlatoonCaccAeb.aeb_w_const
 #print axioms PlatoonCaccAeb.cacc_box

@@ -139,6 +139,18 @@ is the round-2 proof at the new interval. `quad_light_airframe_20` moved to the 
 lag-free special case of `quad_light_lag`). Each move with its Lean integration, records,
 refutations and counts.
 
+Second group: `grid_ffr_dos` (an island grid's fast frequency response under a denial-of-service
+attack on the FFR command link, holding each supervisor decision for 0.3 s, against the command
+delivered every 0.1 s; M P: one attacked cycle against three nominal cycles, the generator trip
+edges pruned by non-connection certificates) is installed from the reserve (round-A design, the
+model unchanged). Its header states the FFR-loss requirement (the attacked island at most the
+FFR's own frequency support, 0.1 / 0.42 = 0.238 Hz, rounded to 0.24, below the nominal one) and
+that the bound also holds for a longer hold and for a deployed FFR that never activates; the
+exact claim certifies without the attack and declines with it. Its Assumption 1 proof is new
+(an explicit run, and a non-strict barrier for the FFR release line `x - 2a <= -0.4`).
+`rampmeter_poll_2to1` moved to the reserve (the chain-depth template of `tank_dos_3to1` and
+`insulin_basal_cgmloss` repeated).
+
 ## Batch I6 (2026-10-27): round C fixes and five new benchmarks
 
 From the final audit of the suite (round C). `rover_terrain_2to4`: the plan's speed loop now runs
@@ -350,6 +362,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `fuelcell_chp_dos` | 2 / 2 | 3 / 3 | dos-attack | new 2026-10-27 (batch I5): mode choice, multi-step and branching covers, pruned live edges LOW -> HIGH, HIGH -> LOW |
 | `furnace_program_timebase` | 2 / 2 | 3 / 3 | controller-change | new 2026-10-27 (batch I5): stretch 4/5 (`lambda_min = 0.8`), widened cuts, load-bearing mode facts |
 | `gantry_speed_zones` | 2 / 2 | 3 / 1 | controller-refinement | new 2026-10-27 (replaces `match_multi_rate`): a time stretch per speed zone (3, 2, 1), multi-step covers |
+| `grid_ffr_dos` | 3 / 3 | 2 / 3 | dos-attack | new 2026-10-27 (batch I7; round-A design from the reserve): multi-step covers (one attacked cycle against three nominal), pruned trip edges `NORMAL -> TRIP`, `FFR -> TRIP` |
 | `hvac_fan_staging` | 1 / 1 | 3 / 3 | controller-refinement | new 2026-10-26 (replaces `rover_terrain_2to3`): mode choice |
 | `hydro_rejection_gatecal` | 3 / 3 | 2 / 2 | degraded-sensor | new 2026-10-27 (batch I5): mode-keyed (shared-grid equality before the breaker opens, a speed band after) |
 | `insulin_basal_cgmloss` | 3 / 3 | 9 / 9 | degraded-network | new 2026-10-27 (batch I5): multi-step and branching covers (state-dependent successors of the basal table) |
@@ -359,7 +372,6 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `platoon_profiles` | 2 / 2 | 2 / 2 | controller-refinement | redesigned 2026-10-27 (was `platoon_delay_profiles`): mode-keyed (AEB row), SPORT time gap against NORMAL, right model shared with `platoon_linkloss` |
 | `quad_light_lag` | 3 / 3 | 1 / 1 | model-refinement | redesigned 2026-10-27: altitude coordinate, rows from the 0.8 m altitude acceptance radius; the time scaling fixed to 6/5 (`lambda_min = lambda_max = 1.2`, batch I6) |
 | `quad_light_profiles` | 2 / 2 | 1 / 3 | model-refinement | redesigned 2026-10-27: altitude coordinate, real-time conformance to the reference's SPORT profile (lambda 1); mode choice |
-| `rampmeter_poll_2to1` | 3 / 3 | 6 / 6 | degraded-network | new 2026-10-27 (batch I6): multi-step and branching covers, pruned `R1440 -> R1800`; tier 2 (kept until a replacement exists) |
 | `rover_ladder_2to3` | 3 / 3 | 3 / 3 | model-refinement | reinstalled 2026-10-27 on the canonical rover hierarchy (L3 / L2): clearance and heading rows, lambda 1 |
 | `rover_ladder_3to6` | 6 / 6 | 3 / 3 | model-refinement | reinstalled 2026-10-27 (L6 / L3): clearance, heading and pitch rows, lambda 1 |
 | `rover_ladder_6to8` | 8 / 8 | 3 / 3 | model-refinement | reinstalled 2026-10-27 (L8 / L6): + roll and rollover (LTR) rows; lambda [1, 1.25] from the timetable tolerance (S M I from the re-timed claim form, header) |

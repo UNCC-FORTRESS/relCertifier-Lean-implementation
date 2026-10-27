@@ -11,7 +11,7 @@ blocking states); those nine were repaired (`docs/SUITE-REDESIGN.md` §21: the f
 re-engage or are latched with an invariant guard, the arm planner's successor sets name every
 band a sampled interval can reach) and are now proved. No proof uses Z3. The tool's sufficient
 check of both clauses (`relcert --wellformed`; the nonblocking clause since 2026-10-26, before
-which only the successor clause was checked) finds every one of the 175 right modes `ok`, and
+which only the successor clause was checked) finds every one of the 172 right modes `ok`, and
 `--check-quick-v2` runs it STRICT, against declared counts (§4). The generic-bridge
 instances (`InstancesV2/Bridge/`, the paper's route to
 Theorem 3) take it as a hypothesis: `theorem3_keyed_of_records`
@@ -189,9 +189,10 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 70 | `rover_rollover_payload` | proved (2026-10-27, batch I5; dimension 12, mode choice) | STEEP (b) → MODER, MODER (b) → FLAT (the odometer bands `[0, 62)`, `[58, 142)`, `[138, ∞)`: `0 ≤ s' ≤ 8` on the box), FLAT (a); the back edges are never needed. Existence: the roll-slip block `(φ, ω_φ, y, ω_y)` is coupled both ways, so the run comes from Picard–Lindelöf on an enlarged box `B_δ` whose 22 faces are all strictly inflowing (`strict_faces_raw`; the field reads no `s`, no left or auxiliary coordinate, so its Lipschitz data on any ball around a `B_δ` point are those of one fixed ball), glued by `chainN`; on that run the true box is recovered coordinate by coordinate (`drive_le`, driven contractions with the forcing bounds `|ω_φ| ≤ 0.28`, `|ω_y| ≤ 0.45`) | STEEP ok (exit→MODER); MODER ok (exit→FLAT); FLAT ok (invariant) |
 | 71 | `flaps_slow_approach` | proved (2026-10-27, batch I6) | EXT (b) → CONF2 (the flaps rise at 1 deg/s from below 15 and end below 15.1); CONF2 (a) (the flaps set); existence: `f = f₀ + r t`, `V = 150 + (V₀ − 150) exp(−((0.02 + 0.001 f₀) t + r t²/2000))` (the flap drag grows with the angle), inside `[150, V₀]` | EXT ok (exit→CONF2); CONF2 ok (invariant) |
 | 72 | `tunnel_jetfan_pairout` | proved (2026-10-27, batch I6; the first polynomial right field, `u²` and `u c`) | NORMAL (b) → FIRE (the clock; `c ≤ 100` kept: at `c ≥ 100`, `u ≥ 3.2` the airflow flushes CO faster than traffic emits it); FIRE (a) (`t ≥ 600` kept); existence: the explicit Riccati run `u = U((U + u₀)e^{2bUs} − (U − u₀)) / ((U + u₀)e^{2bUs} + (U − u₀))` between `u₀` and `U = √(a/b)`, `c` by variation of constants with the rate `u(s)/1600`, inside `[0, 630]` | NORMAL ok (exit→FIRE); FIRE ok (invariant) |
-| 73 | `rampmeter_poll_2to1` | proved (2026-10-27, batch I6) | every level (b) → a declared neighbour (the 20 s density envelope: `k` between `L + (k₀ − L)E` and `U + (k₀ − U)E`, `L = 10 + r`, `U = 27.5 + r`, `E = e^{−0.01 t} ≥ 0.8`, by two comparison lemmas); existence: `kd` held, `k1` toward `kd`, `k` by variation of constants inside `[14, 42.5]` | all six ok (exit) |
+| 73 | `rampmeter_poll_2to1` | moved to `benchmarks/reserve/` 2026-10-27 (batch I7; was: proved, batch I6; proof in git history) | every level (b) → a declared neighbour (the 20 s density envelope: `k` between `L + (k₀ − L)E` and `U + (k₀ − U)E`, `L = 10 + r`, `U = 27.5 + r`, `E = e^{−0.01 t} ≥ 0.8`, by two comparison lemmas); existence: `kd` held, `k1` toward `kd`, `k` by variation of constants inside `[14, 42.5]` | all six ok (exit) |
 | 74 | `bottling_fill_strainer` | proved (2026-10-27, batch I6) | FILL (b) → CLOSE (`u = 1` held, `V` rises at most 1 mL in 5 ms, `V + 8u ≤ 1003`); CLOSE (a) (`V` nondecreasing, `V + 8u` conserved: the guard conjunct `V + 8u ≤ 1060` added at installation, without which CLOSE was BLOCKING at the domain top); existence: explicit (`u` frozen, resp. `u₀ e^{−25t}` and `V + 8u` constant) | FILL ok (exit→CLOSE); CLOSE ok (invariant) |
 | 75 | `antenna_track_kvretune` | proved (2026-10-27, batch I6) | TRACK (b) → STOW (`c + 0.7 t` conserved; at `t ≥ 60`, `c ≤ 47.05 < 90`), STOW (b) → STOWED, STOWED (a); existence: `t`, `c` affine, `x` by variation of constants toward the command (`forcedSol 30`), inside `[−2, 92]` | TRACK ok (exit→STOW); STOW ok (exit→STOWED); STOWED ok (invariant) |
+| 76 | `grid_ffr_dos` | proved (2026-10-27, batch I7) | NORMAL (b) → FFR (`a = 0` frozen; on `a = 0` the three guards cover the domain: `x > −0.4`, `[−1.5, −0.4]`, `x < −1.5`); FFR (b) → TRIP or itself (the release line `x − 2a ≤ −0.4` kept by a non-strict barrier, Lie derivative `≤ 5.375 a − 6.25 d − 8.95 < 0`); TRIP (a) (`x` falls toward `−2.5`); existence: `a = 1 + (a₀ − 1) e^{−k t}` (`k = 0`, `5`), `x` by variation of constants (`forcedSol`) inside `[min x₀ (−5/7), max x₀ (5/42)]`, TRIP by `exists_contract_run` | NORMAL ok (exit→FFR); FFR, TRIP ok (invariant) |
 
 Totals (the suite, 2026-10-27, batch I7): proved 47, false 0, band 3
 (`WellFormedBattery.wfDeclared = (47, 0, 3)`, was `(30, 9, 6)` until the 2026-10-10 repairs;
@@ -276,8 +277,8 @@ summary: …` (with `RELCERT_DEBUG=1`, the reason of every mode not `ok` on stde
 `--check-quick-v2` runs the same section as its check 3/3, strict (below); until 2026-10-10 it
 was informational there.
 
-**Suite_v2 result** (2026-10-27, both clauses, batch I7): 50 benchmarks, 175 right
-modes: 85 ok (invariant), 90 ok (exit), **0 UNKNOWN, 0 BLOCKING**, 12825 queries; the per-mode labels are those of the
+**Suite_v2 result** (2026-10-27, both clauses, batch I7): 50 benchmarks, 172 right
+modes: 87 ok (invariant), 85 ok (exit), **0 UNKNOWN, 0 BLOCKING**, 11687 queries; the per-mode labels are those of the
 clause (ii) check alone (2026-10-26, 50 benchmarks: 174 right modes, 91 / 83, 10643 queries,
 about 17 s). The 37
 round-2 designs of the 2026-10-26 redesign pass (outside the tree): 122 right modes, 69 ok
@@ -308,7 +309,7 @@ single `relcert <file>` run; off, no verdict and no emission changes.
 
 **Strict in the recipe** (2026-10-10). `--check-quick-v2` certifies the suite in the strict
 mode (the switch forced on for its check 1/3) and ends with check 3/3, the `--wellformed`
-report gated against declared counts: `ExpectedSuiteV2.wfModes = 175` (`VerdictsV2/RunV2.lean`; the
+report gated against declared counts: `ExpectedSuiteV2.wfModes = 172` (`VerdictsV2/RunV2.lean`; the
 kernel pin `CoveragePinsV2.suiteV2_wfModes` of that count was archived with the standalone
 route on 2026-10-22), `wfUnknown = 0` and `wfBlocking = 0`. Any `UNKNOWN` or `BLOCKING` mode,
 or a mode count off the declared one, fails the run (`wellformed (strict): FAIL`, exit 1). Checked negatively: with the pre-repair

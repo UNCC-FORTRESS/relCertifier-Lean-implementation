@@ -18,6 +18,7 @@ import RelCertifier.InstancesV2.BenchCovers.freedm_meter
 import RelCertifier.InstancesV2.BenchCovers.fuelcell_chp_dos
 import RelCertifier.InstancesV2.BenchCovers.furnace_program_timebase
 import RelCertifier.InstancesV2.BenchCovers.gantry_speed_zones
+import RelCertifier.InstancesV2.BenchCovers.grid_ffr_dos
 import RelCertifier.InstancesV2.BenchCovers.hvac_fan_staging
 import RelCertifier.InstancesV2.BenchCovers.hydro_rejection_gatecal
 import RelCertifier.InstancesV2.BenchCovers.insulin_basal_cgmloss
@@ -27,7 +28,6 @@ import RelCertifier.InstancesV2.BenchCovers.platoon_linkloss
 import RelCertifier.InstancesV2.BenchCovers.platoon_profiles
 import RelCertifier.InstancesV2.BenchCovers.quad_light_lag
 import RelCertifier.InstancesV2.BenchCovers.quad_light_profiles
-import RelCertifier.InstancesV2.BenchCovers.rampmeter_poll_2to1
 import RelCertifier.InstancesV2.BenchCovers.rover_ladder_2to3
 import RelCertifier.InstancesV2.BenchCovers.rover_ladder_3to6
 import RelCertifier.InstancesV2.BenchCovers.rover_ladder_6to8
@@ -72,6 +72,7 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("fuelcell_chp_dos", fuelcell_chp_dos_coverV2),
   ("furnace_program_timebase", furnace_program_timebase_coverV2),
   ("gantry_speed_zones", gantry_speed_zones_coverV2),
+  ("grid_ffr_dos", grid_ffr_dos_coverV2),
   ("hvac_fan_staging", hvac_fan_staging_coverV2),
   ("hydro_rejection_gatecal", hydro_rejection_gatecal_coverV2),
   ("insulin_basal_cgmloss", insulin_basal_cgmloss_coverV2),
@@ -81,7 +82,6 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("platoon_profiles", platoon_profiles_coverV2),
   ("quad_light_lag", quad_light_lag_coverV2),
   ("quad_light_profiles", quad_light_profiles_coverV2),
-  ("rampmeter_poll_2to1", rampmeter_poll_2to1_coverV2),
   ("rover_ladder_2to3", rover_ladder_2to3_coverV2),
   ("rover_ladder_3to6", rover_ladder_3to6_coverV2),
   ("rover_ladder_6to8", rover_ladder_6to8_coverV2),

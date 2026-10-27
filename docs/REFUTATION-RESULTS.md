@@ -112,8 +112,10 @@
 > refutation); `charger_fast_tapers` reinstalled at the minute time scale, the finder rerun on it
 > (`--only`): 6 mutants, the same one refuted as before its batch-I4 move (m003, kind C: the
 > charging row flipped to `>=`), DECLINED by relcert; 1 refutation, 6 groups and 6 witness lines in.
+> Second group: `rampmeter_poll_2to1` left the suite (24 witness lines out, no refutation);
+> `grid_ffr_dos` installed, the finder run on it (`--only`): 21 mutants, no witness (21 lines in).
 > Current instance set: **83 refutations, 241 groups**
-> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 1067 mutants in
+> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 1064 mutants in
 > `docs/refute/witnesses.jsonl`. The operator table has not been recomputed.
 
 Design: `docs/REFUTATION-SCOPE.md` (planning record, last present at commit 29663d8). This file reports what was built and the experiment.

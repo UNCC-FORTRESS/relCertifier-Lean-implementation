@@ -15,6 +15,7 @@ import RelCertifier.InstancesV2.BenchProgress.flaps_slow_approach
 import RelCertifier.InstancesV2.BenchProgress.fuelcell_chp_dos
 import RelCertifier.InstancesV2.BenchProgress.furnace_program_timebase
 import RelCertifier.InstancesV2.BenchProgress.gantry_speed_zones
+import RelCertifier.InstancesV2.BenchProgress.grid_ffr_dos
 import RelCertifier.InstancesV2.BenchProgress.hvac_fan_staging
 import RelCertifier.InstancesV2.BenchProgress.hydro_rejection_gatecal
 import RelCertifier.InstancesV2.BenchProgress.insulin_basal_cgmloss
@@ -24,7 +25,6 @@ import RelCertifier.InstancesV2.BenchProgress.platoon_linkloss
 import RelCertifier.InstancesV2.BenchProgress.platoon_profiles
 import RelCertifier.InstancesV2.BenchProgress.quad_light_lag
 import RelCertifier.InstancesV2.BenchProgress.quad_light_profiles
-import RelCertifier.InstancesV2.BenchProgress.rampmeter_poll_2to1
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_2to3
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_3to6
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_6to8
@@ -66,6 +66,7 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("fuelcell_chp_dos", fuelcell_chp_dos_coverV2_progress),
    ("furnace_program_timebase", furnace_program_timebase_coverV2_progress),
    ("gantry_speed_zones", gantry_speed_zones_coverV2_progress),
+   ("grid_ffr_dos", grid_ffr_dos_coverV2_progress),
    ("hvac_fan_staging", hvac_fan_staging_coverV2_progress),
    ("hydro_rejection_gatecal", hydro_rejection_gatecal_coverV2_progress),
    ("insulin_basal_cgmloss", insulin_basal_cgmloss_coverV2_progress),
@@ -75,7 +76,6 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("platoon_profiles", platoon_profiles_coverV2_progress),
    ("quad_light_lag", quad_light_lag_coverV2_progress),
    ("quad_light_profiles", quad_light_profiles_coverV2_progress),
-   ("rampmeter_poll_2to1", rampmeter_poll_2to1_coverV2_progress),
    ("rover_ladder_2to3", rover_ladder_2to3_coverV2_progress),
    ("rover_ladder_3to6", rover_ladder_3to6_coverV2_progress),
    ("rover_ladder_6to8", rover_ladder_6to8_coverV2_progress),

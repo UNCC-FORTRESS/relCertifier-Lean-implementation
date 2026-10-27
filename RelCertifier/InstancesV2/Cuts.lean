@@ -18,6 +18,7 @@ import RelCertifier.InstancesV2.Cuts.freedm_meter
 import RelCertifier.InstancesV2.Cuts.fuelcell_chp_dos
 import RelCertifier.InstancesV2.Cuts.furnace_program_timebase
 import RelCertifier.InstancesV2.Cuts.gantry_speed_zones
+import RelCertifier.InstancesV2.Cuts.grid_ffr_dos
 import RelCertifier.InstancesV2.Cuts.hvac_fan_staging
 import RelCertifier.InstancesV2.Cuts.hydro_rejection_gatecal
 import RelCertifier.InstancesV2.Cuts.insulin_basal_cgmloss
@@ -27,7 +28,6 @@ import RelCertifier.InstancesV2.Cuts.platoon_linkloss
 import RelCertifier.InstancesV2.Cuts.platoon_profiles
 import RelCertifier.InstancesV2.Cuts.quad_light_lag
 import RelCertifier.InstancesV2.Cuts.quad_light_profiles
-import RelCertifier.InstancesV2.Cuts.rampmeter_poll_2to1
 import RelCertifier.InstancesV2.Cuts.rover_ladder_2to3
 import RelCertifier.InstancesV2.Cuts.rover_ladder_3to6
 import RelCertifier.InstancesV2.Cuts.rover_ladder_6to8
@@ -72,6 +72,7 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("fuelcell_chp_dos", fuelcell_chp_dos_cutsV2, fuelcell_chp_dos_cutsV2X),
   ("furnace_program_timebase", furnace_program_timebase_cutsV2, furnace_program_timebase_cutsV2X),
   ("gantry_speed_zones", gantry_speed_zones_cutsV2, gantry_speed_zones_cutsV2X),
+  ("grid_ffr_dos", grid_ffr_dos_cutsV2, grid_ffr_dos_cutsV2X),
   ("hvac_fan_staging", hvac_fan_staging_cutsV2, hvac_fan_staging_cutsV2X),
   ("hydro_rejection_gatecal", hydro_rejection_gatecal_cutsV2, hydro_rejection_gatecal_cutsV2X),
   ("insulin_basal_cgmloss", insulin_basal_cgmloss_cutsV2, insulin_basal_cgmloss_cutsV2X),
@@ -81,7 +82,6 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("platoon_profiles", platoon_profiles_cutsV2, platoon_profiles_cutsV2X),
   ("quad_light_lag", quad_light_lag_cutsV2, quad_light_lag_cutsV2X),
   ("quad_light_profiles", quad_light_profiles_cutsV2, quad_light_profiles_cutsV2X),
-  ("rampmeter_poll_2to1", rampmeter_poll_2to1_cutsV2, rampmeter_poll_2to1_cutsV2X),
   ("rover_ladder_2to3", rover_ladder_2to3_cutsV2, rover_ladder_2to3_cutsV2X),
   ("rover_ladder_3to6", rover_ladder_3to6_cutsV2, rover_ladder_3to6_cutsV2X),
   ("rover_ladder_6to8", rover_ladder_6to8_cutsV2, rover_ladder_6to8_cutsV2X),

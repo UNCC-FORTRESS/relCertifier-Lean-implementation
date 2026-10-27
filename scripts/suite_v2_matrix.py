@@ -103,7 +103,7 @@ FAMILIES = [
     ("insulin_", "Insulin basal control"),
     ("flaps_", "Airliner flap extension (one hydraulic system lost)"),
     ("tunnel_", "Road-tunnel ventilation through a fire alarm"),
-    ("rampmeter_", "Freeway ramp metering (polled detectors)"),
+    ("grid_", "Island grid fast frequency response (DoS on the FFR link)"),
     ("bottling_", "Bottle filler (clogged product strainer)"),
     ("antenna_", "Ground-station antenna (servo retune)"),
     ("charger_", "DC fast charger (raised current limit)"),

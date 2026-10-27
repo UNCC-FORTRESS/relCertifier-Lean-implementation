@@ -325,9 +325,9 @@ is described in Section 4.3 and, as the tool's stage lists, in Section 6.1.
 | number | source |
 |---|---|
 | 50 benchmarks, all CERTIFIED with `RELCERT_IMPLIED_CUT=1` (15 need the existential mode choice, the default) | `scripts/paper_numbers.sh` (frozen), `benchmarks/suite_v2/` |
-| 52 bridge instances, 5077 verdict groups (4941 over the 50 suite benchmarks, 136 over the 2 exhibits) | `InstancesV2/Bridge.lean`, `relcert-bridge-verdicts`, `expectedBridgeGroupsV2` |
+| 52 bridge instances, 4836 verdict groups (4700 over the 50 suite benchmarks, 136 over the 2 exhibits) | `InstancesV2/Bridge.lean`, `relcert-bridge-verdicts`, `expectedBridgeGroupsV2` |
 | 50 Assumption 1 proofs, Z3-free; 83 kernel refutations, 241 verdict groups | `InstancesV2/WellFormedBattery.lean`; `InstancesV2/Refute.lean`, `relcert-refute-verdicts` |
-| 25 pruned edges, 50 non-connection queries; 526 handoff queries; 147 progress (reposition certificate) queries | the same runner; `relcert-progress-verdicts` |
+| 26 pruned edges, 52 non-connection queries; 493 handoff queries; 147 progress (reposition certificate) queries | the same runner; `relcert-progress-verdicts` |
 | Assumption 1: 50 of 50, Z3-free | `InstancesV2/WellFormedBattery.lean` |
 | axioms of every instance: `propext`, `Classical.choice`, `Quot.sound`, `z3_unsat_sound` | `lake build … 2>&1 | grep -A3 "depends on axioms"`; `docs/CERTIFICATION-CHECK.md` check 2 |
 

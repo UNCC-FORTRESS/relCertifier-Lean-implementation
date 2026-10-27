@@ -20,6 +20,7 @@ import RelCertifier.InstancesV2.BenchChoice.freedm_meter
 import RelCertifier.InstancesV2.BenchChoice.fuelcell_chp_dos
 import RelCertifier.InstancesV2.BenchChoice.furnace_program_timebase
 import RelCertifier.InstancesV2.BenchChoice.gantry_speed_zones
+import RelCertifier.InstancesV2.BenchChoice.grid_ffr_dos
 import RelCertifier.InstancesV2.BenchChoice.hvac_fan_staging
 import RelCertifier.InstancesV2.BenchChoice.hydro_rejection_gatecal
 import RelCertifier.InstancesV2.BenchChoice.insulin_basal_cgmloss
@@ -29,7 +30,6 @@ import RelCertifier.InstancesV2.BenchChoice.platoon_linkloss
 import RelCertifier.InstancesV2.BenchChoice.platoon_profiles
 import RelCertifier.InstancesV2.BenchChoice.quad_light_lag
 import RelCertifier.InstancesV2.BenchChoice.quad_light_profiles
-import RelCertifier.InstancesV2.BenchChoice.rampmeter_poll_2to1
 import RelCertifier.InstancesV2.BenchChoice.rover_ladder_2to3
 import RelCertifier.InstancesV2.BenchChoice.rover_ladder_3to6
 import RelCertifier.InstancesV2.BenchChoice.rover_ladder_6to8
@@ -74,6 +74,7 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("fuelcell_chp_dos", fuelcell_chp_dos_coverV2_choice),
   ("furnace_program_timebase", furnace_program_timebase_coverV2_choice),
   ("gantry_speed_zones", gantry_speed_zones_coverV2_choice),
+  ("grid_ffr_dos", grid_ffr_dos_coverV2_choice),
   ("hvac_fan_staging", hvac_fan_staging_coverV2_choice),
   ("hydro_rejection_gatecal", hydro_rejection_gatecal_coverV2_choice),
   ("insulin_basal_cgmloss", insulin_basal_cgmloss_coverV2_choice),
@@ -83,7 +84,6 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("platoon_profiles", platoon_profiles_coverV2_choice),
   ("quad_light_lag", quad_light_lag_coverV2_choice),
   ("quad_light_profiles", quad_light_profiles_coverV2_choice),
-  ("rampmeter_poll_2to1", rampmeter_poll_2to1_coverV2_choice),
   ("rover_ladder_2to3", rover_ladder_2to3_coverV2_choice),
   ("rover_ladder_3to6", rover_ladder_3to6_coverV2_choice),
   ("rover_ladder_6to8", rover_ladder_6to8_coverV2_choice),

@@ -27,6 +27,7 @@ import RelCertifier.InstancesV2.BenchIR.freedm_meter
 import RelCertifier.InstancesV2.BenchIR.fuelcell_chp_dos
 import RelCertifier.InstancesV2.BenchIR.furnace_program_timebase
 import RelCertifier.InstancesV2.BenchIR.gantry_speed_zones
+import RelCertifier.InstancesV2.BenchIR.grid_ffr_dos
 import RelCertifier.InstancesV2.BenchIR.hvac_fan_staging
 import RelCertifier.InstancesV2.BenchIR.hydro_rejection_gatecal
 import RelCertifier.InstancesV2.BenchIR.insulin_basal_cgmloss
@@ -36,7 +37,6 @@ import RelCertifier.InstancesV2.BenchIR.platoon_linkloss
 import RelCertifier.InstancesV2.BenchIR.platoon_profiles
 import RelCertifier.InstancesV2.BenchIR.quad_light_lag
 import RelCertifier.InstancesV2.BenchIR.quad_light_profiles
-import RelCertifier.InstancesV2.BenchIR.rampmeter_poll_2to1
 import RelCertifier.InstancesV2.BenchIR.rover_ladder_2to3
 import RelCertifier.InstancesV2.BenchIR.rover_ladder_3to6
 import RelCertifier.InstancesV2.BenchIR.rover_ladder_6to8
@@ -81,6 +81,7 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("fuelcell_chp_dos", fuelcell_chp_dos_IRv2),
   ("furnace_program_timebase", furnace_program_timebase_IRv2),
   ("gantry_speed_zones", gantry_speed_zones_IRv2),
+  ("grid_ffr_dos", grid_ffr_dos_IRv2),
   ("hvac_fan_staging", hvac_fan_staging_IRv2),
   ("hydro_rejection_gatecal", hydro_rejection_gatecal_IRv2),
   ("insulin_basal_cgmloss", insulin_basal_cgmloss_IRv2),
@@ -90,7 +91,6 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("platoon_profiles", platoon_profiles_IRv2),
   ("quad_light_lag", quad_light_lag_IRv2),
   ("quad_light_profiles", quad_light_profiles_IRv2),
-  ("rampmeter_poll_2to1", rampmeter_poll_2to1_IRv2),
   ("rover_ladder_2to3", rover_ladder_2to3_IRv2),
   ("rover_ladder_3to6", rover_ladder_3to6_IRv2),
   ("rover_ladder_6to8", rover_ladder_6to8_IRv2),

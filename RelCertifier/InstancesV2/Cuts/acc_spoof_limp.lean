@@ -19,9 +19,9 @@ def acc_spoof_limp_cutsV2 : EvolStrengthening :=
       ("LIMP", [((.cmp ">=" (.var "v") (.num "20.0")), CutRoute.shape), ((.cmp "<=" (.var "v") (.num "30.0")), CutRoute.shape)])
     ]
     R := [
-      ("NORMAL", [((.cmp ">=" (.var "v") (.num "20.0")), CutRoute.shape)]),
-      ("ECO", [((.cmp ">=" (.var "v") (.num "20.0")), CutRoute.shape)]),
-      ("SPORT", [((.cmp ">=" (.var "v") (.num "20.0")), CutRoute.shape)]),
+      ("NORMAL", [((.cmp ">=" (.var "v") (.num "20.0")), CutRoute.shape), ((.cmp "<=" (.var "v") (.num "40.0")), CutRoute.shape)]),
+      ("ECO", [((.cmp ">=" (.var "v") (.num "20.0")), CutRoute.shape), ((.cmp "<=" (.var "v") (.num "40.0")), CutRoute.shape)]),
+      ("SPORT", [((.cmp ">=" (.var "v") (.num "20.0")), CutRoute.shape), ((.cmp "<=" (.var "v") (.num "40.0")), CutRoute.shape)]),
       ("DISENGAGE", [])
     ] }
 
@@ -31,9 +31,9 @@ def acc_spoof_limp_cutsV2X : EvolStrengtheningX :=
       ("LIMP", [⟨(.cmp ">=" (.var "v") (.num "20.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "v") (.num "30.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩])
     ]
     R := [
-      ("NORMAL", [⟨(.cmp ">=" (.var "v") (.num "20.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "v") (.num "40.0")), CutKind.closure, CutEntry.weakening, CutRouteX.shape, []⟩]),
-      ("ECO", [⟨(.cmp ">=" (.var "v") (.num "20.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "v") (.num "40.0")), CutKind.closure, CutEntry.weakening, CutRouteX.shape, []⟩]),
-      ("SPORT", [⟨(.cmp ">=" (.var "v") (.num "20.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "v") (.num "40.0")), CutKind.closure, CutEntry.weakening, CutRouteX.shape, []⟩]),
+      ("NORMAL", [⟨(.cmp ">=" (.var "v") (.num "20.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "v") (.num "40.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩]),
+      ("ECO", [⟨(.cmp ">=" (.var "v") (.num "20.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "v") (.num "40.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩]),
+      ("SPORT", [⟨(.cmp ">=" (.var "v") (.num "20.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "v") (.num "40.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩]),
       ("DISENGAGE", [⟨(.cmp "<=" (.var "v") (.num "20.0")), CutKind.closure, CutEntry.weakening, CutRouteX.shape, []⟩])
     ] }
 

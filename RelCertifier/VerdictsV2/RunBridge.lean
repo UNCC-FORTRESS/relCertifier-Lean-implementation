@@ -59,11 +59,12 @@ def choiceV2 (b : String) : ChoiceEmitE :=
   ((choiceTableV2.find? (·.1 == b)).map (·.2)).getD (ChoiceEmitE.empty b)
 
 /-- The dimensions of the benchmarks whose Assumption 1 lemma comes from a hand-written general
-exhibit (`InstancesV2/Choice/General/`): the dimension at which the exhibit proves Assumption 1
-(`wellFormedR`, fixed at `Var 2`). The bridge instance transports that proof and lifts it by
-one (`Emitted.wellFormedR_lift`) to the clocked dimension `bridgeDimV2`; the exhibits' own
-Theorem-3 parts were retired on 2026-10-21 (git history 61d7389). -/
-def generalDimsV2 : List (String × ℕ) := [("vehicle_hypercert", 2)]
+exhibit (`InstancesV2/Choice/General/`): the dimension at which the exhibit proves Assumption 1.
+None since 2026-10-27: `vehicle_hypercert` (with the position coordinate) has its own
+`InstancesV2/WellFormed/VehicleHypercert.lean` at the padded fallback dimension 3 (bridge
+dimension 4; it was 2, bridge 3, while its Assumption 1 came from the general exhibit at
+`Var 2`, git history 61d7389). -/
+def generalDimsV2 : List (String × ℕ) := []
 
 /-- The bridge dimension of a benchmark: the dimension of its Assumption 1 lemma (the pack
 table's; else a hand-written general instance's, `generalDimsV2`; else the state variables
@@ -76,7 +77,7 @@ def bridgeDimV2 (b : String) : ℕ :=
     (((generalDimsV2.find? (·.1 == b)).map (·.2)).getD (max (irV2 b).L.stateVars.length 3)) + 1
 
 /-- Declared: the number of query groups over the suite. -/
-def expectedBridgeGroupsV2 : Nat := 3741
+def expectedBridgeGroupsV2 : Nat := 3797
 
 /-- The suite's records. -/
 def suiteRecV2 (b : String) : BridgeRec :=

@@ -340,13 +340,18 @@ def dump(bench, n, paths):
 
 
 def bench_dims():
+    """The Assumption 1 lemma's dimension of each benchmark: its bridge instance's dimension
+    (`structOK IR n`, the clocked `bridgeDimV2`) minus the right clock. `gen_refute.py` writes
+    `dim + 1`, so each refutation is stated at the bridge dimension. (Until 2026-10-27 this
+    returned the bridge dimension itself, so the refutations found after the clocked change of
+    2026-10-21 were stated one dimension above their bridge claims.)"""
     d = {}
     for f in glob.glob(os.path.join(ROOT, "RelCertifier/InstancesV2/Bridge/*.lean")):
         src = open(f).read()
         m = re.search(r"abbrev IR := Parse\.(\w+)_IRv2", src)
         k = re.search(r"structOK IR (\d+)", src)
         if m and k:
-            d[m.group(1)] = int(k.group(1))
+            d[m.group(1)] = int(k.group(1)) - 1
     return d
 
 # ---------------------------------------------------------------- search

@@ -31,8 +31,19 @@
 > refutations and witness lines: `arm_plateau_profiles` (m000, kind B; 3 mutants),
 > `platoon3_linkloss` (m072, m084, m096, kind C; 104 mutants), `platoon3_profiles` (96 mutants, no
 > witness), `airheader_dos_3to1` (16 mutants, no witness).
-> Current instance set: **106 refutations, 298 groups**
-> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 650 mutants in
+> Also 2026-10-27: the finder's `bench_dims` read the bridge instance's dimension, which since the
+> clocked change of 2026-10-21 already counts the right clock, and `gen_refute.py` adds the clock
+> again, so the 55 refutations found after 2026-10-21 (`charger_fast_setpoints` m003,
+> `charger_fast_tapers` m003, `rover_lateral_6to8` 6, `rover_lateral_8to12` 7,
+> `rover_rollover_6to12` 1, `rover_rollover_6to7` 6, `rover_terrain_*` 33) were stated one
+> dimension above their benchmark's bridge claim. Fixed (`bench_dims` is the Assumption 1
+> dimension); the 55 instances are regenerated at the bridge dimension (the witnesses do not read
+> the padded coordinate), each builds and its groups are `unsat`. The four redesigned files of
+> 2026-10-27 re-ran the finder: `acc_spoof_limp` (8 mutants; m008 is gone with the row it
+> refuted), `quad_light_lag` (24 mutants; m021 and m023 new, kind B, each DECLINED by relcert),
+> `tank_dos_3to1` (16) and `vehicle_hypercert` (16), no witness.
+> Current instance set: **107 refutations, 296 groups**
+> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 678 mutants in
 > `docs/refute/witnesses.jsonl`. The operator table has not been recomputed.
 
 Design: `docs/REFUTATION-SCOPE.md` (planning record, last present at commit 29663d8). This file reports what was built and the experiment.

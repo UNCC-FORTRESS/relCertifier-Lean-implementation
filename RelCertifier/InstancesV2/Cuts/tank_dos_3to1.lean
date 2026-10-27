@@ -15,22 +15,30 @@ open RelCertifier.Parse
 
 def tank_dos_3to1_cutsV2 : EvolStrengthening :=
   { L := [
-      ("HIGH", [((.cmp ">=" (.var "h") (.num "0.0")), CutRoute.shape)]),
-      ("LOW", [((.cmp "<=" (.var "h") (.num "2.0")), CutRoute.shape)])
+      ("P2", [((.cmp ">=" (.var "w") (.num "6.0")), CutRoute.shape), ((.cmp ">=" (.var "h") (.num "0.0")), CutRoute.diStrict), ((.cmp "<=" (.var "h") (.num "2.5")), CutRoute.diStrict)]),
+      ("P3", [((.cmp ">=" (.var "w") (.num "10.0")), CutRoute.shape), ((.cmp ">=" (.var "h") (.num "0.0")), CutRoute.diStrict)]),
+      ("P4", [((.cmp ">=" (.var "w") (.num "14.0")), CutRoute.shape), ((.cmp ">=" (.var "h") (.num "0.0")), CutRoute.diStrict)]),
+      ("P5", [((.cmp ">=" (.var "w") (.num "18.0")), CutRoute.shape), ((.cmp "<=" (.var "w") (.num "22.0")), CutRoute.shape), ((.cmp ">=" (.var "h") (.num "0.0")), CutRoute.diStrict)])
     ]
     R := [
-      ("HIGH", [((.cmp ">=" (.var "h") (.num "0.0")), CutRoute.shape)]),
-      ("LOW", [((.cmp "<=" (.var "h") (.num "2.0")), CutRoute.shape)])
+      ("P2", [((.cmp ">=" (.var "w") (.num "6.0")), CutRoute.shape), ((.cmp ">=" (.var "h") (.num "0.0")), CutRoute.diStrict), ((.cmp "<=" (.var "h") (.num "2.5")), CutRoute.diStrict)]),
+      ("P3", [((.cmp ">=" (.var "w") (.num "10.0")), CutRoute.shape), ((.cmp ">=" (.var "h") (.num "0.0")), CutRoute.diStrict)]),
+      ("P4", [((.cmp ">=" (.var "w") (.num "14.0")), CutRoute.shape), ((.cmp ">=" (.var "h") (.num "0.0")), CutRoute.diStrict)]),
+      ("P5", [((.cmp ">=" (.var "w") (.num "18.0")), CutRoute.shape), ((.cmp "<=" (.var "w") (.num "22.0")), CutRoute.shape), ((.cmp ">=" (.var "h") (.num "0.0")), CutRoute.diStrict)])
     ] }
 
 def tank_dos_3to1_cutsV2X : EvolStrengtheningX :=
   { L := [
-      ("HIGH", [⟨(.cmp ">=" (.var "h") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "h") (.num "1.3")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
-      ("LOW", [⟨(.cmp "<=" (.var "h") (.num "2.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp ">=" (.var "h") (.num "0.7")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩])
+      ("P2", [⟨(.cmp ">=" (.var "w") (.num "6.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp ">=" (.var "h") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "h") (.num "2.5")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "w") (.num "22.0")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
+      ("P3", [⟨(.cmp ">=" (.var "w") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp ">=" (.var "h") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "w") (.num "22.0")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
+      ("P4", [⟨(.cmp ">=" (.var "w") (.num "14.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp ">=" (.var "h") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "w") (.num "22.0")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
+      ("P5", [⟨(.cmp ">=" (.var "w") (.num "18.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "w") (.num "22.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp ">=" (.var "h") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩])
     ]
     R := [
-      ("HIGH", [⟨(.cmp ">=" (.var "h") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "h") (.num "1.3")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
-      ("LOW", [⟨(.cmp "<=" (.var "h") (.num "2.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp ">=" (.var "h") (.num "0.7")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩])
+      ("P2", [⟨(.cmp ">=" (.var "w") (.num "6.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp ">=" (.var "h") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "h") (.num "2.5")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "w") (.num "22.0")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
+      ("P3", [⟨(.cmp ">=" (.var "w") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp ">=" (.var "h") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "w") (.num "22.0")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
+      ("P4", [⟨(.cmp ">=" (.var "w") (.num "14.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp ">=" (.var "h") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "w") (.num "22.0")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
+      ("P5", [⟨(.cmp ">=" (.var "w") (.num "18.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "w") (.num "22.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp ">=" (.var "h") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩])
     ] }
 
 /-- The legacy (guard-conjunct) part is well formed. -/

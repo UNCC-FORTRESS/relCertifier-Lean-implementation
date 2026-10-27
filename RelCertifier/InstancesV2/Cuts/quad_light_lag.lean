@@ -15,18 +15,18 @@ open RelCertifier.Parse
 
 def quad_light_lag_cutsV2 : EvolStrengthening :=
   { L := [
-      ("CLIMB", [((.cmp "<=" (.var "w") (.num "2.5")), CutRoute.diStrict), ((.cmp ">=" (.var "a") (.num "0.0")), CutRoute.shape), ((.cmp "<=" (.var "a") (.num "7.45")), CutRoute.shape)])
+      ("CLIMB", [((.cmp ">=" (.var "h") (.num "0.0")), CutRoute.diNonstrict), ((.cmp ">=" (.var "a") (.num "0.0")), CutRoute.shape), ((.cmp "<=" (.var "a") (.num "14.715")), CutRoute.shape)])
     ]
     R := [
-      ("CLIMB", [((.cmp "<=" (.var "w") (.num "3.5")), CutRoute.diStrict), ((.cmp ">=" (.var "a") (.num "0.0")), CutRoute.shape), ((.cmp "<=" (.var "a") (.num "4.0")), CutRoute.shape)])
+      ("CLIMB", [((.cmp ">=" (.var "h") (.num "0.0")), CutRoute.diNonstrict), ((.cmp ">=" (.var "a") (.num "0.0")), CutRoute.shape), ((.cmp "<=" (.var "a") (.num "9.81")), CutRoute.shape)])
     ] }
 
 def quad_light_lag_cutsV2X : EvolStrengtheningX :=
   { L := [
-      ("CLIMB", [⟨(.cmp "<=" (.var "w") (.num "2.5")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp ">=" (.var "a") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "a") (.num "7.45")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩])
+      ("CLIMB", [⟨(.cmp ">=" (.var "h") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diNonstrict, []⟩, ⟨(.cmp ">=" (.var "a") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "a") (.num "14.715")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩])
     ]
     R := [
-      ("CLIMB", [⟨(.cmp "<=" (.var "w") (.num "3.5")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp ">=" (.var "a") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "a") (.num "4.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩])
+      ("CLIMB", [⟨(.cmp ">=" (.var "h") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diNonstrict, []⟩, ⟨(.cmp ">=" (.var "a") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "a") (.num "9.81")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩])
     ] }
 
 /-- The legacy (guard-conjunct) part is well formed. -/

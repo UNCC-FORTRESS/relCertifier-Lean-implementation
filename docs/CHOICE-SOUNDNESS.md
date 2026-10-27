@@ -164,10 +164,11 @@ segment, the hop targets, each with its coverage query). `Proofs/Encoding/Emitte
 turns the record into the window's `ChoiceData`, rebuilds every coverage query from the tool's
 regions, and `coverage_sound` reads its `unsat` as the coverage premise (`hcovJ/hcovR/hcovS`
 of §9); the chosen cover is decided by `decideCoveredX`. `InstancesV2/Bridge/VehicleAccelCopy.lean`
-and `WatertankChoice.lean` are generated instances through `theorem3_window_of_records`;
-`vehicle_hypercert`, whose reposition node's progress stage crosses its threshold downward, goes
-through the downward mirror `repoProgress_one_down`; its hand-written general instance (§9) keeps
-only its Assumption 1 proof (its Theorem-3 part was retired on 2026-10-21, git 61d7389). The coverage queries are among the groups of `relcert-bridge-verdicts`
+and `WatertankChoice.lean` are generated instances through `theorem3_window_of_records`, and so
+is `vehicle_hypercert` (until its 2026-10-27 redesign with the position coordinate its reposition
+node's progress stage crossed its threshold downward, through the downward mirror
+`repoProgress_one_down`, and its Assumption 1 came from the hand-written general instance of §9,
+now removed; since then it has no reposition node and its own `InstancesV2/WellFormed/` proof). The coverage queries are among the groups of `relcert-bridge-verdicts`
 (`docs/BRIDGE.md`).
 
 Since 2026-10-15 the choice is the tool's default (`RELCERT_NO_CHOICE=1` disables it): the 46

@@ -4,7 +4,7 @@ Released under Apache 2.0 license.
 
 # `rover_terrain_2to4_m011`: Theorem 3's claim of a mutant of `rover_terrain_2to4` is false (GENERATED — `scripts/gen_refute.py`)
 
-Mutant ORO `(<= L_v L_w) [L_w->R_w]`. Kind B (a component pushed out by the left flow, right-rigid): the left takes the window of mode 0 with a short flow, the right starts in mode 0. Dimension 6: the benchmark's bridge dimension, the last auxiliary coordinate the right clock.
+Mutant ORO `(<= L_v L_w) [L_w->R_w]`. Kind B (a component pushed out by the left flow, right-rigid): the left takes the window of mode 0 with a short flow, the right starts in mode 0. Dimension 5: the benchmark's bridge dimension, the last auxiliary coordinate the right clock.
 -/
 import RelCertifier.Proofs.Encoding.Emitted.RefuteFlow
 import RelCertifier.InstancesV2.Refute.Data.rover_terrain_2to4_m011
@@ -25,21 +25,21 @@ theorem same_model : IR.L = Parse.rover_terrain_2to4_IRv2.L ∧ IR.R = Parse.rov
 theorem window_form : rowsSame IR = true := by decide +kernel
 
 /-- The witness's antecedent facts, decided in the kernel. -/
-theorem pre_ok : preOKW IR 6 cX 0 1 w = true := by decide +kernel
+theorem pre_ok : preOKW IR 5 cX 0 1 w = true := by decide +kernel
 
 /-- The exit facts (interior of the left envelope, the component's sign and its left Lie
 derivative's), decided in the kernel. -/
-theorem b_ok : bQW IR 6 0 1 w = true := by decide +kernel
+theorem b_ok : bQW IR 5 0 1 w = true := by decide +kernel
 
 /-- The left and right lowerings read only their own side's coordinates (the clock
 erasure's hygiene). -/
 theorem names_ok : namesOK IR = true := by decide +kernel
-theorem cuts_ok : cutsOK IR 6 cX = true := by decide +kernel
+theorem cuts_ok : cutsOK IR 5 cX = true := by decide +kernel
 
 /-- **The claim of `rover_terrain_2to4_m011` is false** for every cover record (every pruning), every `dt > 0`:
 every query group `relcert-refute-verdicts` sends is `unsat`. -/
-theorem refuted (hv : RefVerdicts IR 6 cX w) (dt : ℝ) (hdt : 0 < dt) (cov : CoverEmitE) :
-    ¬ windowClaim IR 6 cX cov Formula.tt 0 1 2 dt :=
+theorem refuted (hv : RefVerdicts IR 5 cX w) (dt : ℝ) (hdt : 0 < dt) (cov : CoverEmitE) :
+    ¬ windowClaim IR 5 cX cov Formula.tt 0 1 2 dt :=
   refute_window_B_clocked pre_ok b_ok (by decide) hv window_form names_ok cuts_ok (by decide) 2
     (by decide) dt hdt cov
 

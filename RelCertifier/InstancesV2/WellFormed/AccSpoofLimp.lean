@@ -1,3 +1,7 @@
+import RelCertifier.Trusted.Parse
+import RelCertifier.Proofs.Encoding.WellFormedR
+import RelCertifier.InstancesV2.BenchIR.acc_spoof_limp
+
 /-
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
@@ -5,20 +9,17 @@ Released under Apache 2.0 license.
 # `acc_spoof_limp`: Assumption 1 of the right model (`WellFormedR`)
 
 Over the instance's guarded right automaton `Gr`, the lowered right guards, `ε_r = 1`.
-`NORMAL` / `ECO` / `SPORT` (`20 ≤ v < 40`, `v' = (c − v)/2` with `c = 30, 27, 33`) and
+`NORMAL` / `ECO` / `SPORT` (`20 ≤ v ≤ 40`, `v' = (c − v)/2` with `c = 30, 27, 33`) and
 `DISENGAGE` (`v < 20`, `v' = −v/2`) are contractions whose guard sets are forward invariant
-(style (a)). Existence: the explicit exponential. Z3-free.
+(style (a)); the closed engaged guards and `DISENGAGE` partition the domain `[0, 40]`.
+Existence: the explicit exponential. Z3-free; the closed-guard version of the earlier proof.
 -/
-import RelCertifier.InstancesV2.BenchIR.acc_spoof_limp
-import RelCertifier.Proofs.Encoding.WellFormedR
-
 set_option linter.unusedSimpArgs false
 
 namespace RelCertifier
 namespace V2AccSpoofLimp
 
 open DL DLCalTiming DLRel Parse Set
-
 
 def vs : List String := ["v"]
 def dm : PMode := ⟨"", [], .tt, .tt, []⟩
@@ -113,14 +114,13 @@ theorem Gr_modeAt_inv {q : ℕ} {m : RMode (Var 3)} (hm : Gr.modeAt q = some m) 
 theorem edge_mem (s t : ℕ) (h : (s, t) ∈ edgeList) : edgeW s t ∈ Gr.edgesFrom s :=
   List.mem_filter.mpr ⟨List.mem_map.mpr ⟨(s, t), h, rfl⟩, by simp [edgeW]⟩
 
-/-- The non-sink right guards, evaluated (`NORMAL`, `ECO`, `SPORT`: `20 ≤ v < 40`). -/
+/-- The non-sink right guards, evaluated (`NORMAL`, `ECO`, `SPORT`: `20 ≤ v ≤ 40`). -/
 theorem sat_guardR (q : ℕ) (hq : q < 3) (ν : State (Var 3)) :
-    Formula.sat (hostGuard vs 3 Side.R (mR q)) ν ↔ 20 ≤ ν (Rv 0) ∧ ν (Rv 0) < 40 := by
+    Formula.sat (hostGuard vs 3 Side.R (mR q)) ν ↔ 20 ≤ ν (Rv 0) ∧ ν (Rv 0) ≤ 40 := by
   interval_cases q <;>
     simp [hostGuard, mR, acc_spoof_limp_IRv2, Run.lowerF, Run.lowerE, hp200, hp400, vs,
       Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
       CompOp.interp, Term.eval, Rv]
-
 
 theorem hp10 : Run.parseRat "1.0" = some (1 : ℚ) := by
   have h : parseQ "1.0" = some (⟨10, 10⟩ : QF) := by decide
@@ -196,14 +196,14 @@ theorem acc_spoof_limp_wellFormedR : WellFormedR Gr guardR (epsR acc_spoof_limp_
       fun s _ => by rw [eval_unit_mul, fR0_all q hq4]
     have hb := H.linear_between (memR q) _ _ (by norm_num) hf
     by_cases h3 : q < 3
-    · -- the three engaged profiles: [20, 40) invariant (set point inside)
+    · -- the three engaged profiles: [20, 40] invariant (set point inside)
       have hgx := (sat_guardR q h3 x).mp hg
-      have hc : 20 ≤ cR4 q ∧ cR4 q < 40 := by
+      have hc : 20 ≤ cR4 q ∧ cR4 q ≤ 40 := by
         unfold cR4 cRc; simp only [h3, if_true]; split_ifs <;> norm_num
       refine ⟨edgeW q q, edge_mem q q (by interval_cases q <;> decide),
         (sat_guardR q h3 _).mpr ⟨?_, ?_⟩⟩
       · exact le_trans (le_min hgx.1 hc.1) hb.1
-      · exact lt_of_le_of_lt hb.2 (max_lt hgx.2 hc.2)
+      · exact le_trans hb.2 (max_le hgx.2 hc.2)
     · have : q = 3 := by omega
       subst this
       have hgx := (sat_guardR3 x).mp hg
@@ -212,3 +212,4 @@ theorem acc_spoof_limp_wellFormedR : WellFormedR Gr guardR (epsR acc_spoof_limp_
 
 end V2AccSpoofLimp
 end RelCertifier
+

@@ -5,11 +5,12 @@ Released under Apache 2.0 license.
 # Every kernel refutation instance (GENERATED — `scripts/gen_refute.py`)
 
 -/
-import RelCertifier.InstancesV2.Refute.AccSpoofLimpM008
 import RelCertifier.InstancesV2.Refute.ArmPlateauCritM000
 import RelCertifier.InstancesV2.Refute.ArmPlateauSlowM000
 import RelCertifier.InstancesV2.Refute.ChargerFastSetpointsM003
 import RelCertifier.InstancesV2.Refute.ChargerFastTapersM003
+import RelCertifier.InstancesV2.Refute.QuadLightLagM021
+import RelCertifier.InstancesV2.Refute.QuadLightLagM023
 import RelCertifier.InstancesV2.Refute.RoverTerrain2to4M008
 import RelCertifier.InstancesV2.Refute.RoverTerrain2to4M011
 import RelCertifier.InstancesV2.Refute.RoverTerrain2to4M012

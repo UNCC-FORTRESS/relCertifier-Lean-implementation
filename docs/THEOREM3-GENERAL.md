@@ -130,18 +130,19 @@ The per-benchmark instances of §4 are superseded for the suite by the generic b
 (`docs/BRIDGE.md`, `Proofs/Encoding/Emitted/`): one layer instantiates the general theorem
 from a benchmark's emitted records (IR, cut certificate, cover, progress certificates), the
 structural facts decided in the kernel, every verdict read from one Z3 run
-(`relcert-bridge-verdicts`, 3741 groups over the 46 suite benchmarks and the 2 choice
+(`relcert-bridge-verdicts`, 3797 groups over the 46 suite benchmarks and the 2 choice
 exhibits, all discharged). Mode-dependent rows
 are assembled through `theorem3_modeKeyed` (`Emitted/Keyed.lean`); the two-stage progress pin
 is `progressVerd_two`. Generated instances: `InstancesV2/Bridge/`, all 46 suite benchmarks
-(39 window form, 7 mode-keyed) and the two choice exhibits, every one with the
+(40 window form, 6 mode-keyed) and the two choice exhibits, every one with the
 paper's unconditional Assumption 1 (the detumble models carry their momentum band in the
 right evolve domain).
 
 The tool emits its choice covers (`RELCERT_CHOICE_OUT`, `Trusted/ChoiceEmit.lean`) and the
 bridge replays them (`Emitted/Choice.lean`): `vehicle_accel_copy` and `watertank_choice` are
-generated bridge instances, and so is `vehicle_hypercert`, whose reposition node's single progress
-stage crosses its threshold downward: `repoProgress_one_down` is the mirror of `repoProgress_one`
-(the only downward form the suite's records use); its hand-written general instance of §4 keeps
-only its Assumption 1 lemma (its Theorem-3 part was retired on 2026-10-21, git 61d7389), which
-the bridge instance transports and lifts.
+generated bridge instances, and so is `vehicle_hypercert`. `repoProgress_one_down`, the mirror of
+`repoProgress_one` for a single downward stage, was used by the velocity-only `vehicle_hypercert`
+(its reposition node's stage crossed its threshold downward); since that benchmark's redesign with
+the position coordinate (2026-10-27) no suite record uses the downward form, and its Assumption 1
+lemma is its own `InstancesV2/WellFormed/VehicleHypercert.lean` (before, the hand-written general
+instance of §4, whose Theorem-3 part was retired on 2026-10-21, git 61d7389).

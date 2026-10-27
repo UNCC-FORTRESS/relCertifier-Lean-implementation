@@ -25,7 +25,7 @@ profiles}` (the sink `BRAKE` left its guard: it now re-engages `FOLLOW`),
 an invariant guard) and `quad_light_{airframe_20,profiles}` (the sink `LIMIT`: it now hands
 back to the climb controller, whose operating range reaches the limiter threshold).
 `relcert --wellformed <input.txt>…` runs the tool's sufficient check per right mode (every one
-of the 156 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN` or `BLOCKING`.
+of the 158 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN` or `BLOCKING`.
 
 The suite's design, the per-family rationale, the domain audit (every evolve bound is a
 physical limit of the plant; `scripts/domain_widening.py` re-runs the tool with every bound
@@ -148,7 +148,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | benchmark | state vars | modes | scenario | notes |
 |---|---|---|---|---|
 | `acc_spoof_lag` | 2 / 2 | 1 / 1 | sensor-attack | redesigned 2026-10-26: same lag both sides |
-| `acc_spoof_limp` | 1 / 1 | 2 / 4 | sensor-attack | mode-keyed |
+| `acc_spoof_limp` | 1 / 1 | 2 / 4 | sensor-attack | redesigned 2026-10-27: the same two requirement rows in both modes (no longer mode-keyed), closed right guards |
 | `acc_tune_lag` | 2 / 2 | 1 / 1 | degraded-controller | redesigned 2026-10-26: same lag both sides |
 | `acc_tune_limp` | 1 / 1 | 2 / 4 | degraded-controller | mode-keyed, mode choice |
 | `arm_plateau_crit` | 2 / 1 | 2 / 4 | model-refinement | widened cuts, Z3-free; successor sets repaired (§21) |
@@ -163,7 +163,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `platoon_delay_linkloss` | 1 / 1 | 3 / 3 | sensor-attack | mode-keyed, widened cuts; BRAKE re-engages (§21) |
 | `platoon_delay_profiles` | 1 / 1 | 2 / 4 | degraded-sensor | widened cuts; BRAKE re-engages (§21) |
 | `quad_light_airframe_20` | 1 / 1 | 1 / 2 | model-refinement | LIMIT hands back (§21) |
-| `quad_light_lag` | 2 / 2 | 1 / 1 | model-refinement | redesigned 2026-10-26: same lag both sides |
+| `quad_light_lag` | 3 / 3 | 1 / 1 | model-refinement | redesigned 2026-10-27: altitude coordinate, rows from the 0.8 m altitude acceptance radius |
 | `quad_light_profiles` | 1 / 1 | 1 / 4 | model-refinement | LIMIT hands back (§21); mode choice |
 | `rover_ladder_2to3` | 3 / 2 | 3 / 3 | model-refinement | rewritten 2026-10-26: right speed caps dropped, s offset 0 |
 | `rover_ladder_3to6` | 6 / 6 | 3 / 3 | model-refinement | rewritten 2026-10-26: right pitch pinned, heave/roll roles |
@@ -182,7 +182,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `sat_detumble_nominal` | 4 / 4 | 1 / 2 | model-refinement | nonblocking region |
 | `sat_detumble_phases` | 4 / 4 | 2 / 2 | model-refinement | mode-keyed, nonblocking region |
 | `sat_detumble_weak` | 4 / 4 | 1 / 4 | degraded-actuator | nonblocking region |
-| `tank_dos_3to1` | 1 / 1 | 2 / 2 | dos-attack | rewritten 2026-10-26: one two-speed pump law on both sides, the DoS changes only the hold |
+| `tank_dos_3to1` | 2 / 2 | 4 / 4 | dos-attack | redesigned 2026-10-27: a demand-paced four-pump station, the same staging law on both sides, the DoS holds the staging decision for up to three polls |
 | `rover_attitude_6to8` | 8 / 8 | 3 / 3 | model-refinement | rewritten 2026-10-26: one attitude row in every mode |
 | `rover_attitude_8to12` | 12 / 12 | 3 / 3 | model-refinement | rewritten 2026-10-26: right y pinned, cascade-chart left |
 | `rover_lateral_6to8` | 8 / 8 | 3 / 3 | model-refinement | carried over; right lateral pair frozen (2026-10-26) |
@@ -190,7 +190,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `rover_rollover_6to12` | 12 / 12 | 3 / 3 | model-refinement | carried over; left domain audit, s offset 0 (2026-10-26) |
 | `rover_rollover_6to7` | 12 / 12 | 3 / 3 | model-refinement | carried over; rollover rows of 6to12, s offset 0 (2026-10-26) |
 | `rover_rollover_7to12` | 12 / 12 | 3 / 3 | model-refinement | widened cuts; rollover, speed and progress rows added (2026-10-26) |
-| `vehicle_hypercert` | 1 / 1 | 5 / 5 | opacity | literature (HyperCertificates), mode choice |
+| `vehicle_hypercert` | 2 / 2 | 5 / 5 | opacity | literature (HyperCertificates), mode choice; position coordinate and start-offset row (2026-10-27) |
 | `watertank` | 1 / 1 | 3 / 5 | sensor-attack | the paper's running example |
 | `watertank_twospeed` | 1 / 1 | 1 / 2 | sensor-attack | widened cuts; per-pairing stretch |
 

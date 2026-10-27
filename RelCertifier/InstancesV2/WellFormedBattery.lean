@@ -54,7 +54,7 @@ import RelCertifier.InstancesV2.BenchIR
 import RelCertifier.InstancesV2.WellFormed.DrlCarStop
 import RelCertifier.InstancesV2.WellFormed.DrlLaneControl
 import RelCertifier.InstancesV2.WellFormed.FreedmMeter
-import RelCertifier.InstancesV2.Choice.General.VehicleHypercert
+import RelCertifier.InstancesV2.WellFormed.VehicleHypercert
 import RelCertifier.InstancesV2.WellFormed.Watertank
 import RelCertifier.InstancesV2.WellFormed.AccSpoofLag
 import RelCertifier.InstancesV2.WellFormed.AccSpoofLimp
@@ -176,7 +176,7 @@ end WellFormedBattery
 #print axioms V2DrlCarStop.drl_car_stop_wellFormedR_direct
 #print axioms V2DrlLaneControl.drl_lane_control_wellFormedR_direct
 #print axioms V2FreedmMeter.freedm_meter_wellFormedR_direct
-#print axioms ChoiceVehicleHypercert.wellFormedR
+#print axioms V2VehicleHypercert.vehicle_hypercert_wellFormedR
 
 #print axioms V2Watertank.watertank_wellFormedR
 #print axioms V2WatertankTwospeed.watertank_twospeed_wellFormedR

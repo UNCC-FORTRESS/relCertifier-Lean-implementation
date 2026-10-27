@@ -65,10 +65,10 @@ Axioms of `theorem3_keyed_of_records` and `theorem3_window_of_records`: `propext
 `relcert-bridge-verdicts` issues exactly `bridgeGroups` per benchmark at the bridge dimension
 and reports the group count against the declared total (`expectedBridgeGroupsV2`).
 
-Run on the regenerated records: **3741 groups over the 46 suite benchmarks and the 2 choice
-exhibits, all discharged** (suite alone 3605: 2543 over the 42 designed benchmarks, 35 + 130 + 87 + 810
+Run on the regenerated records: **3797 groups over the 46 suite benchmarks and the 2 choice
+exhibits, all discharged** (suite alone 3661: 2609 over the 42 designed benchmarks, 35 + 130 + 77 + 810
 over `drl_car_stop`, `drl_lane_control`, `vehicle_hypercert`, `freedm_meter`; 2026-10-27, after four
-benchmarks moved to `benchmarks/reserve/`; 4350 over 50 + 2 before; the first run before the progress
+benchmarks moved to `benchmarks/reserve/` and four were redesigned; 4350 over 50 + 2 before; the first run before the progress
 gate, 3657/3657 over 46 + 3).
 
 ## 4. Coverage
@@ -82,18 +82,20 @@ gate, 3657/3657 over 46 + 3).
   `DIRECT_REGION`). The exhibits: `vehicle_accel_copy` (a
   chosen exit set after a right-only segment, hops) and `watertank_choice` (a hop) go through
   `theorem3_window_of_records` with their chosen sets decided by the extended checker and
-  their coverage queries among the verdicts. `vehicle_hypercert`'s cover uses a reposition node
-  (`A0`) whose progress certificate crosses its threshold **downward** (`up = false`): the
-  single-stage downward form is covered by `repoProgress_one_down` (`cycle_decay`,
-  `hits_line_down`, `phase_down`, `land_at_start_down` in `Proofs/Encoding/Progress.lean`;
-  the pin `progressVerd_one_down`), the only downward form in the suite's records (a
-  two-stage certificate must be upward in both stages, `certOK`). Its generated instance
-  transports Assumption 1 from the hand-written general instance's lemma
-  (`ChoiceVehicleHypercert.wellFormedR` at the literal period, `epsR_eq`), the only part of that
-  instance kept: its Theorem-3 part was retired on 2026-10-21 (git 61d7389).
+  their coverage queries among the verdicts. The single-stage downward progress form
+  (`up = false`) is covered by `repoProgress_one_down` (`cycle_decay`, `hits_line_down`,
+  `phase_down`, `land_at_start_down` in `Proofs/Encoding/Progress.lean`; the pin
+  `progressVerd_one_down`; a two-stage certificate must be upward in both stages, `certOK`); the
+  velocity-only `vehicle_hypercert` used it (a reposition node `A0` crossing its threshold
+  downward), and since its redesign with the position coordinate (2026-10-27) no suite cover
+  has a reposition node there and no record uses the downward form. Its generated instance
+  transports Assumption 1 from its own `InstancesV2/WellFormed/VehicleHypercert.lean`
+  (`V2VehicleHypercert.vehicle_hypercert_wellFormedR`, dimension 3, bridge dimension 4; until
+  2026-10-27 from the hand-written general instance `ChoiceVehicleHypercert.wellFormedR` at
+  dimension 2, whose Theorem-3 part was retired on 2026-10-21, git 61d7389).
 
-* **46 of 46 suite benchmarks** are instantiated (`InstancesV2/Bridge/`): 39 in the window form,
-  7 in the mode-keyed form; plus the 2 choice exhibits (48 instances), all with the
+* **46 of 46 suite benchmarks** are instantiated (`InstancesV2/Bridge/`): 40 in the window form,
+  6 in the mode-keyed form; plus the 2 choice exhibits (48 instances), all with the
   unconditional Assumption 1. Every `*_bridge` theorem depends on exactly `propext`,
   `Classical.choice`, `Quot.sound`, `z3_unsat_sound`.
 * **Assumption 1 is unconditional for every instance (`R = ⊤`).** The chain

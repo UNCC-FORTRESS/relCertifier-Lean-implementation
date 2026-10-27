@@ -1,87 +1,140 @@
-# tank_dos_3to1: a level-controlled tank whose two-speed pump controller is slowed from a 1 s to
-# a 3 s update by a denial-of-service attack; the same control law runs on both sides.
+# tank_dos_3to1: a water tank fed by a demand-paced four-pump station whose staging decision is held
+# for up to three polls (30 s instead of 10 s) by a denial-of-service attack on the station link; the
+# same staging law runs on both sides.
 # scenario: dos-attack
-# mechanisms: M (multi-cycle matching: one left cycle of up to 3 s against three right cycles
-#   of 1 s; matrix code M2)
+# mechanisms: M I (multi-cycle matching: one left cycle of up to 30 s against three right cycles of
+#   10 s through the right's staging chain, matrix code M2; load-bearing mode facts, RELCERT_NO_CUT=1
+#   declines, matrix code M6)
 #
-# System. A standpipe tank of cross-section 0.1 m^2 and height 2.0 m (level h in m, time in s)
-# drains through a fixed outlet, 0.01 h m^3/s (10 L/s at 1 m), i.e. h' = -0.1 h, and is filled
-# by a two-speed pump: HIGH speed 13 L/s (h' = 0.13 - 0.1 h = 0.1 (1.3 - h), equilibrium 1.3 m),
-# LOW speed 7 L/s (h' = 0.1 (0.7 - h), equilibrium 0.7 m). Set point 1.0 m.
+# System. Level h (m) of a tank between its floor (0 m) and its overflow lip (2.5 m); demand
+# conductance w of the distribution network (1/ks): the network draws w h / 1000 m/s of level
+# (pressure-driven demand: the outflow grows with the head and with the number of open consumers).
+# Each running pump adds 5 mm/s of level. With n pumps running: h' = 0.005 n - 0.001 w h.
+# Demand surge (the same exogenous input on both sides): w' = 0.02 (22 - w), the demand rising from
+# the night level 6 toward the peak 22 with a 50 s time constant (a fire-flow draw or a morning surge).
 #
-# Control law (identical on both sides). At every update the controller samples the level and
-# holds its decision until the next update: HIGH when h < 1.0 (guard 0 <= h < 1.0), LOW
-# otherwise (guard 1.0 <= h <= 2.0). Both modes may follow both modes (next = [HIGH, LOW]).
+# Staging law (identical on both sides). At every poll the station runs the number of pumps of the
+# demand band of the measured w: P2 for w in [6, 10), P3 for [10, 14), P4 for [14, 18), P5 for
+# [18, 22] (n = round(w / 4): the band of n is where n pumps balance the demand at a level between
+# 1.0 and 1.67 m, equilibrium 5 n / w). The decision is held until the next poll.
+#   Right (nominal, epsilon 10 s): polls every 10 s. Declared successors next(Pn) = [Pn, Pn+1]:
+#     within one 10 s poll the demand crosses at most one band edge (rate at most 0.02 (22 - 6) =
+#     0.32 /ks per s, 3.2 per poll, below the band width 4); relcert --wellformed checks it
+#     (P2, P3, P4 ok (exit), P5 ok (invariant)).
+#   Left (attacked, epsilon 30 s): the attack drops two of every three polls, so each staging
+#     decision is held for up to 30 s. next(Pn) = [Pn, ..., P5]: within 30 s the demand can cross
+#     two band edges (the stages reachable in one held period).
+# The hold time is the only difference (same tank, pumps, demand, bands). lambda_min = lambda_max =
+# 1: the claim compares the two tanks at equal times.
 #
-# Right (nominal, epsilon 1 s): the controller updates every 1 s.
-# Left (attacked, epsilon 3 s): a denial-of-service on the controller link drops two of every
-# three updates, so each decision is held for up to 3 s. This is the only difference between
-# the two sides (same tank, same pump, same law, same thresholds).
-# Time is not stretched (lambda_min = lambda_max = 1): the claim compares the two tanks at equal
-# times, so one left cycle of up to 3 s is matched by three right cycles of 1 s.
+# Property (every left mode): h_L <= h_R, h_R <= h_L + 0.8, w_L = w_R (two inequalities).
+#   h_L <= h_R: during the surge a stale decision is always a lower stage, so the attacked tank is
+#     never above the nominal one and cannot overflow when the nominal does not (exact, constant 0).
+#   h_R <= h_L + 0.8: the attacked level falls at most 0.8 m below the nominal. Requirement: the
+#     outlet main needs the level above its minimum submergence 0.15 m; the nominal station holds
+#     the level at or above 0.95 m (its lowest staging equilibrium is 1.0 m, two pumps at w = 10;
+#     simulated 10 s sampled runs from the band [1.0, 1.67] m stay at or above 0.99 m), so the
+#     shortfall may be at most 0.95 - 0.15 = 0.8 m. Not implied by the domains (they allow 2.5).
+#   w_L = w_R: both tanks see the same demand.
 #
-# Property (both left modes): |h_L - h_R| <= 0.7. Requirement: while the nominal loop holds the
-# tank in its operating band [0.7, 1.3] m (the two pump equilibria), the attacked tank stays
-# between the tank floor 0.0 m (pump suction, dry running below it) and the overflow lip 2.0 m:
-# 0.7 = 2.0 - 1.3 = 0.7 - 0.0. Not implied by the domains (they bound |h_L - h_R| only by 2.0).
-# Tightest certifying tolerance 0.60 (0.595 and 0.59 decline): on the boundary h_L - h_R = d with
-# the left in HIGH and the right in LOW (reachable whenever the two controllers decide at
-# different instants) the gap grows at 0.1 (0.6 - d), so the tolerance must cover the difference
-# of the pump equilibria 1.3 - 0.7; the other side is symmetric. The bound comes from the joint
-# flow alone (RELCERT_NO_CUT=1 also certifies). The same 0.60 is tightest without the attack
-# (epsilon_L = 1 certifies at 0.7, declines at 0.59): the 3 s hold changes the matching (one
-# left cycle against three right cycles), not the bound.
+# How the bound depends on the cause (measured; tightest certifying shortfall, bisection 0.01,
+# everything else fixed): no attack (epsilon_L = 10 s): exact equality (0 certifies); 20 s hold:
+# 0.50; 30 s hold (this file): 0.72 (0.71 declines); 40 s and 50 s holds: 0.84, above the 0.8
+# margin, so a four-poll hold violates the requirement. Why: within one held decision the nominal
+# station stages up to two pumps more than the attacked one (budget 3 along the chain
+# Pn -> Pn+1 -> Pn+2); on a joint segment with the right k pumps ahead, the shortfall d = h_R - h_L
+# obeys d' = 0.005 k - 0.001 w d, so d <= 5 k / w is kept; with the right's mode fact "w at or above
+# its band floor" (kept, the demand only rises) two pumps at w >= 14 give 10 / 14 = 0.714.
+# Simulated worst sampled shortfall h_R - h_L from the band: 0.09 / 0.15 / 0.18 / 0.24 m for
+# 20 / 30 / 40 / 50 s holds: the certificate is an inductive envelope (the held stage offset as
+# if it persisted), about five times the transient, and it moves with the hold as the transient does.
+# Law dependence (measured): an arbitrary left pump schedule (every left guard the whole domain,
+# every left mode a successor of every other) DECLINES for every shortfall constant (it may run
+# more pumps than the nominal, so h_L <= h_R fails); with that side relaxed to h_L <= h_R + 2.5 it
+# needs 0.84 (> 0.8). The nominal's staging chain is load-bearing: with next(Pn) = [Pn, ..., P5] on
+# the right the tightest is 0.84. Without the mode facts (RELCERT_NO_CUT=1, w only >= 6) it is 1.67.
 #
-# Domains. 0 <= h <= 2.0 on both sides: the tank from empty to the overflow lip, forward
-# invariant in both modes (HIGH points inward at 2.0, LOW at 0.0). The right guards partition
-# [0, 2.0] (no coverage gap); every left mode has a satisfiable start (h_L = h_R).
+# Domains. h in [0, 2.5]: tank floor to overflow lip; from every right guard the level stays inside
+# (every stage's equilibrium 5 n / w is at most 1.67 for w at or above its band floor, and above
+# the equilibrium the level falls). w in [6, 22]: night demand to peak, forward invariant. The right
+# guards partition w in [6, 22] (no coverage gap); every left mode has a satisfiable start (equal
+# states).
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED; also CERTIFIED under RELCERT_SYNC=1,
-# RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, both together, RELCERT_NO_CUT=1 and without
-# RELCERT_IMPLIED_CUT. Cover: both left modes at lambda 1, budget 3, every right mode admissible,
-# joint segments chained through the right's HIGH/LOW successors (M2). Rows identical (--handoff
-# vacuous, 4/4). relcert --wellformed: HIGH ok (exit), LOW ok (exit).
-# Replaces the 2026-10-26 version, whose right side ran a different (modulating) law: that file
-# compared two causes at once (law and update period).
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED; CERTIFIED under RELCERT_SYNC=1,
+# RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE, SYNC+NO_CHOICE, without
+# RELCERT_IMPLIED_CUT, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1 and
+# RELCERT_WELLFORMED_STRICT=1; DECLINED under RELCERT_NO_CUT=1. RELCERT_OPREGION=1: every admitted
+# start of every left mode in some right guard. Cover: every left mode at lambda 1, budget 3,
+# admissible start the same stage, path Pn -> Pn+1 -> Pn+2, nothing pruned, no choice, no
+# right-only segment. Rows identical (--handoff vacuous, 10/10). relcert --wellformed: P2, P3, P4
+# ok (exit), P5 ok (invariant), 0 UNKNOWN. Units m, s, 1/ks.
+# Replaces the round-1 file (two-speed level controller, |h_L - h_R| <= 0.7), whose bound was the
+# pump-equilibrium spread: independent of the attack and certified by an arbitrary left schedule.
 [problem]
 name = tank_dos_3to1
 max_depth = 8
 lambda_min = 1.0
 lambda_max = 1.0
-bound_T = 2.0
+bound_T = 300.0
 
 [Lsys]
-state_vars = [h]
-epsilon = 3.0
+state_vars = [h, w]
+epsilon = 30.0
 
-[Lsys.mode.HIGH]
-ode = h' = smt2:(* 0.1 (- 1.3 h));
-guard = h >= 0.0 and h < 1.0
-evolve = h >= 0.0 and h <= 2.0
-next = [HIGH, LOW]
+[Lsys.mode.P2]
+ode = h' = smt2:(- (* 2.0 0.005) (* 0.001 (* w h))); w' = smt2:(* 0.02 (- 22.0 w));
+guard = w >= 6.0 and w < 10.0 and h >= 0.0 and h <= 2.5
+evolve = h >= 0.0 and h <= 2.5 and w >= 6.0 and w <= 22.0
+next = [P2, P3, P4, P5]
 
-[Lsys.mode.LOW]
-ode = h' = smt2:(* 0.1 (- 0.7 h));
-guard = h >= 1.0 and h <= 2.0
-evolve = h >= 0.0 and h <= 2.0
-next = [HIGH, LOW]
+[Lsys.mode.P3]
+ode = h' = smt2:(- (* 3.0 0.005) (* 0.001 (* w h))); w' = smt2:(* 0.02 (- 22.0 w));
+guard = w >= 10.0 and w < 14.0 and h >= 0.0 and h <= 2.5
+evolve = h >= 0.0 and h <= 2.5 and w >= 6.0 and w <= 22.0
+next = [P3, P4, P5]
+
+[Lsys.mode.P4]
+ode = h' = smt2:(- (* 4.0 0.005) (* 0.001 (* w h))); w' = smt2:(* 0.02 (- 22.0 w));
+guard = w >= 14.0 and w < 18.0 and h >= 0.0 and h <= 2.5
+evolve = h >= 0.0 and h <= 2.5 and w >= 6.0 and w <= 22.0
+next = [P4, P5]
+
+[Lsys.mode.P5]
+ode = h' = smt2:(- (* 5.0 0.005) (* 0.001 (* w h))); w' = smt2:(* 0.02 (- 22.0 w));
+guard = w >= 18.0 and w <= 22.0 and h >= 0.0 and h <= 2.5
+evolve = h >= 0.0 and h <= 2.5 and w >= 6.0 and w <= 22.0
+next = [P5]
 
 [Rsys]
-state_vars = [h]
-epsilon = 1.0
+state_vars = [h, w]
+epsilon = 10.0
 
-[Rsys.mode.HIGH]
-ode = h' = smt2:(* 0.1 (- 1.3 h));
-guard = h >= 0.0 and h < 1.0
-evolve = h >= 0.0 and h <= 2.0
-next = [HIGH, LOW]
+[Rsys.mode.P2]
+ode = h' = smt2:(- (* 2.0 0.005) (* 0.001 (* w h))); w' = smt2:(* 0.02 (- 22.0 w));
+guard = w >= 6.0 and w < 10.0 and h >= 0.0 and h <= 2.5
+evolve = h >= 0.0 and h <= 2.5 and w >= 6.0 and w <= 22.0
+next = [P2, P3]
 
-[Rsys.mode.LOW]
-ode = h' = smt2:(* 0.1 (- 0.7 h));
-guard = h >= 1.0 and h <= 2.0
-evolve = h >= 0.0 and h <= 2.0
-next = [HIGH, LOW]
+[Rsys.mode.P3]
+ode = h' = smt2:(- (* 3.0 0.005) (* 0.001 (* w h))); w' = smt2:(* 0.02 (- 22.0 w));
+guard = w >= 10.0 and w < 14.0 and h >= 0.0 and h <= 2.5
+evolve = h >= 0.0 and h <= 2.5 and w >= 6.0 and w <= 22.0
+next = [P3, P4]
+
+[Rsys.mode.P4]
+ode = h' = smt2:(- (* 4.0 0.005) (* 0.001 (* w h))); w' = smt2:(* 0.02 (- 22.0 w));
+guard = w >= 14.0 and w < 18.0 and h >= 0.0 and h <= 2.5
+evolve = h >= 0.0 and h <= 2.5 and w >= 6.0 and w <= 22.0
+next = [P4, P5]
+
+[Rsys.mode.P5]
+ode = h' = smt2:(- (* 5.0 0.005) (* 0.001 (* w h))); w' = smt2:(* 0.02 (- 22.0 w));
+guard = w >= 18.0 and w <= 22.0 and h >= 0.0 and h <= 2.5
+evolve = h >= 0.0 and h <= 2.5 and w >= 6.0 and w <= 22.0
+next = [P5]
 
 [relational_invariant]
-HIGH = h[l] <= h[r] + 0.7 and h[r] <= h[l] + 0.7
-LOW = h[l] <= h[r] + 0.7 and h[r] <= h[l] + 0.7
+P2 = h[l] <= h[r] and h[r] <= h[l] + 0.8 and w[l] <= w[r] and w[r] <= w[l]
+P3 = h[l] <= h[r] and h[r] <= h[l] + 0.8 and w[l] <= w[r] and w[r] <= w[l]
+P4 = h[l] <= h[r] and h[r] <= h[l] + 0.8 and w[l] <= w[r] and w[r] <= w[l]
+P5 = h[l] <= h[r] and h[r] <= h[l] + 0.8 and w[l] <= w[r] and w[r] <= w[l]

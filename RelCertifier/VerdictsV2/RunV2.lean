@@ -73,12 +73,12 @@ def packsV2 : List PackV2 :=
     ⟨"platoon_delay_profiles", 2, 1, [0, 1], 1, 1, 1, 1⟩,
     ⟨"platoon_delay_profiles", 2, 1, [0, 1], 1, 1, 1, 2⟩,
     -- acc_spoof_limp
-    ⟨"acc_spoof_limp", 3, 0, [0, 1], 5, 4, 0, 0⟩,
-    ⟨"acc_spoof_limp", 3, 0, [0, 1], 5, 4, 0, 1⟩,
-    ⟨"acc_spoof_limp", 3, 0, [0, 1], 5, 4, 0, 2⟩,
-    ⟨"acc_spoof_limp", 3, 1, [0, 1], 1, 1, 1, 0⟩,
-    ⟨"acc_spoof_limp", 3, 1, [0, 1], 1, 1, 1, 1⟩,
-    ⟨"acc_spoof_limp", 3, 1, [0, 1], 1, 1, 1, 2⟩,
+    ⟨"acc_spoof_limp", 3, 0, [0, 1], 1, 1, 0, 0⟩,
+    ⟨"acc_spoof_limp", 3, 0, [0, 1], 1, 1, 0, 1⟩,
+    ⟨"acc_spoof_limp", 3, 0, [0, 1], 1, 1, 0, 2⟩,
+    ⟨"acc_spoof_limp", 3, 0, [0, 1], 1, 1, 1, 0⟩,
+    ⟨"acc_spoof_limp", 3, 0, [0, 1], 1, 1, 1, 1⟩,
+    ⟨"acc_spoof_limp", 3, 0, [0, 1], 1, 1, 1, 2⟩,
     -- platoon_delay_linkloss
     ⟨"platoon_delay_linkloss", 3, 0, [0, 1], 1, 1, 0, 0⟩,
     ⟨"platoon_delay_linkloss", 3, 0, [0, 1], 1, 1, 0, 1⟩,
@@ -89,7 +89,7 @@ def packsV2 : List PackV2 :=
     -- quad_light_airframe_20
     ⟨"quad_light_airframe_20", 2, 0, [0, 1], 7, 4, 0, 0⟩,
     -- quad_light_lag
-    ⟨"quad_light_lag", 2, 0, [1, 0], 7, 4, 0, 0⟩,
+    ⟨"quad_light_lag", 3, 0, [2, 3, 0, 1], 6, 5, 0, 0⟩,
     -- charger_fast_setpoints
     ⟨"charger_fast_setpoints", 3, 0, [0], 1, 1, 0, 1⟩,
     ⟨"charger_fast_setpoints", 3, 0, [0], 1, 1, 0, 2⟩,
@@ -294,11 +294,17 @@ def packsV2 : List PackV2 :=
     ⟨"match_multi_rate", 2, 0, [0], 2, 1, 1, 0⟩,
     ⟨"match_multi_rate", 2, 0, [0], 1, 1, 2, 0⟩,
     ⟨"match_multi_rate", 2, 0, [0], 1, 1, 3, 0⟩,
-    -- tank_dos_3to1 (cover replay): both left modes against HIGH and LOW at λ = 1
-    ⟨"tank_dos_3to1", 2, 0, [0, 1], 1, 1, 0, 0⟩,
-    ⟨"tank_dos_3to1", 2, 0, [0, 1], 1, 1, 0, 1⟩,
-    ⟨"tank_dos_3to1", 2, 0, [0, 1], 1, 1, 1, 0⟩,
-    ⟨"tank_dos_3to1", 2, 0, [0, 1], 1, 1, 1, 1⟩,
+    -- tank_dos_3to1 (cover replay): each left stage against its own and the next two right stages
+    -- (the staging chain P2 -> P3 -> P4 -> P5) at λ = 1
+    ⟨"tank_dos_3to1", 2, 0, [2, 3, 0, 1], 1, 1, 0, 0⟩,
+    ⟨"tank_dos_3to1", 2, 0, [2, 3, 0, 1], 1, 1, 0, 1⟩,
+    ⟨"tank_dos_3to1", 2, 0, [2, 3, 0, 1], 1, 1, 0, 2⟩,
+    ⟨"tank_dos_3to1", 2, 0, [2, 3, 0, 1], 1, 1, 1, 1⟩,
+    ⟨"tank_dos_3to1", 2, 0, [2, 3, 0, 1], 1, 1, 1, 2⟩,
+    ⟨"tank_dos_3to1", 2, 0, [2, 3, 0, 1], 1, 1, 1, 3⟩,
+    ⟨"tank_dos_3to1", 2, 0, [2, 3, 0, 1], 1, 1, 2, 2⟩,
+    ⟨"tank_dos_3to1", 2, 0, [1, 2, 3, 0], 1, 1, 2, 3⟩,
+    ⟨"tank_dos_3to1", 2, 0, [1, 2, 3, 0], 1, 1, 3, 3⟩,
     -- arm_plateau_crit (cover replay)
     ⟨"arm_plateau_crit", 2, 0, [0], 1, 1, 0, 0⟩,
     ⟨"arm_plateau_crit", 2, 0, [0], 1, 1, 0, 1⟩,
@@ -320,7 +326,7 @@ def packsV2 : List PackV2 :=
     ⟨"watertank_twospeed", 2, 0, [0, 1], 31, 10, 0, 1⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 674
+def expectedModalV2 : Nat := 704
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
@@ -473,7 +479,7 @@ def runDynV2 (cfg : Z3Config) : IO Bool := do
 
 /-- Declared: one handoff query per declared left transition over the suite_v2 files
 (self-loops included; `CoveragePinsV2.derivedHandoffV2_eq` derives it from the IR table). -/
-def expectedHandoffV2 : Nat := 402
+def expectedHandoffV2 : Nat := 408
 
 /-- Declared handoff failures in suite_v2: none. -/
 def expectedHandoffFailuresV2 : List (String × Nat × Nat) := []
@@ -549,7 +555,7 @@ def runNonConnAllV2 (cfg : Z3Config) : IO Bool := do
 /-- What a certification run over `benchmarks/suite_v2/*/input.txt` must produce, with
 `RELCERT_IMPLIED_CUT=1`: all 46 certified (in the strict well-formedness mode of
 `--check-quick-v2`); and what the strict Assumption 1 check of the right models must produce:
-every one of the 156 right modes `ok` on both clauses (`wfModes`; the kernel pin
+every one of the 158 right modes `ok` on both clauses (`wfModes`; the kernel pin
 `CoveragePinsV2.suiteV2_wfModes` of that count was archived with the standalone route), none
 `UNKNOWN` (`wfUnknown`; 16 UNKNOWN in 9 benchmarks until the 2026-10-10 repairs, when the
 check was informational), none `BLOCKING` (`wfBlocking`; the nonblocking clause is checked
@@ -559,7 +565,7 @@ structure ExpectedSuiteV2 where
   certified : Nat := 46
   declined  : Nat := 0
   errors    : Nat := 0
-  wfModes   : Nat := 156
+  wfModes   : Nat := 158
   wfUnknown : Nat := 0
   wfBlocking : Nat := 0
   deriving Repr

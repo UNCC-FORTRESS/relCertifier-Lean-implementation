@@ -11,7 +11,7 @@ blocking states); those nine were repaired (`docs/SUITE-REDESIGN.md` §21: the f
 re-engage or are latched with an invariant guard, the arm planner's successor sets name every
 band a sampled interval can reach) and are now proved. No proof uses Z3. The tool's sufficient
 check of both clauses (`relcert --wellformed`; the nonblocking clause since 2026-10-26, before
-which only the successor clause was checked) finds every one of the 156 right modes `ok`, and
+which only the successor clause was checked) finds every one of the 158 right modes `ok`, and
 `--check-quick-v2` runs it STRICT, against declared counts (§4). The generic-bridge
 instances (`InstancesV2/Bridge/`, the paper's route to
 Theorem 3) take it as a hypothesis: `theorem3_keyed_of_records`
@@ -116,7 +116,7 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | # | benchmark | result | modes: style | tool check |
 |---|---|---|---|---|
 | 1 | `acc_spoof_lag` | proved | CRUISE (a) (the lagged loop's envelope, modal coordinates `a + 2v − 60`, `3a + 2v − 60` decaying; explicit two-exponential run) | ok (invariant) |
-| 2 | `acc_spoof_limp` | proved | NORMAL, ECO, SPORT (a); DISENGAGE (a) | all ok (invariant) |
+| 2 | `acc_spoof_limp` | proved | NORMAL, ECO, SPORT (a) (closed guards `20 ≤ v ≤ 40` since 2026-10-27, with DISENGAGE `v < 20` a partition of `[0, 40]`); DISENGAGE (a) | all ok (invariant) |
 | 3 | `acc_tune_lag` | proved | CRUISE (a) (the lagged loop's envelope, modal coordinates `a + 2.5v − 75`, `a + 0.625v − 18.75` decaying; explicit two-exponential run) | ok (invariant) |
 | 4 | `acc_tune_limp` | proved | NORMAL, COMFORT, SPORT (a); DISENGAGE (a) | all ok (invariant) |
 | 5 | `arm_plateau_crit` | proved (repaired) | ApproachA (b) → B, C or Hold; ApproachB (b) → C or Hold; ApproachC (b) → Hold; Hold (a) | A ok (exit→B,C,Hold); B ok (exit→C,Hold); C ok (exit→Hold); Hold ok (invariant) |
@@ -130,7 +130,7 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 13 | `platoon_delay_linkloss` | proved (repaired) | FOLLOW (a), CATCH (a); BRAKE (b) → FOLLOW | FOLLOW, CATCH ok (invariant); BRAKE ok (exit→FOLLOW) |
 | 14 | `platoon_delay_profiles` | proved (repaired) | FOLLOW, GENTLE, ASSERTIVE (a); BRAKE (b) → FOLLOW | those ok (invariant); BRAKE ok (exit→FOLLOW) |
 | 15 | `quad_light_airframe_20` | proved (repaired) | CLIMB (a) (barriers, guard `0 ≤ w ≤ 3`); LIMIT (b) → CLIMB (exponential decay) | CLIMB ok (invariant); LIMIT ok (exit→CLIMB) |
-| 16 | `quad_light_lag` | proved | CLIMB (a) (the lagged thrust `a' = 5 (4 − a)`; barriers; viability existence over a box with a slanted face `w ≥ −a/4`) | ok (invariant) |
+| 16 | `quad_light_lag` | proved | CLIMB (a) (since 2026-10-27 the affine cascade `h' = w`, `w' = a − 4.905 w`, `a' = 10 (9.81 − a)`; the explicit run `forcedSol` / `intSol` stays in the guard box `h ≥ 0`, `0 ≤ w ≤ 2`, `0 ≤ a ≤ 9.81`) | ok (invariant) |
 | 17 | `quad_light_profiles` | proved (repaired) | NORMAL, ECO, SPORT (a) (guard `0 ≤ w ≤ 3.2`); LIMIT (b) → NORMAL; dimension 3 (mode choice, the default padding) | those ok (invariant); LIMIT ok (exit→NORMAL) |
 | 18 | `rover_ladder_2to3` | proved | STEEP (b) → MODER, MODER (b) → FLAT, FLAT (a) | STEEP ok (exit→MODER), MODER ok (exit→FLAT), FLAT ok (invariant) |
 | 19 | `rover_ladder_3to6` | proved | as 18 (ladder lemma) | as 18 |
@@ -139,7 +139,7 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 22 | `airheader_dos_3to1` | moved to `benchmarks/reserve/` 2026-10-27 (was: proved; proof in git history) | NORMAL, ALARM (b) (the run ends in `0 ≤ p ≤ 9`, the three guards partition it, all declared successors; existence by the explicit exponential at the frozen demand); TRIP (a) (`p' = −g p ≤ 0` keeps `p < 5`, latched self-loop); `ε_r = 1` | NORMAL ok (exit→ALARM), ALARM ok (exit→NORMAL), TRIP ok (invariant) |
 | 23 | `rover_ladder_6to8` | proved | as 18 | as 18 |
 | 24 | `rover_ladder_8to12` | proved | as 18 | as 18 |
-| 25 | `tank_dos_3to1` | proved | HIGH, LOW (b) (contractions to 1.3 resp. 0.7 inside `[0, 2]`, the guards `[0, 1)`, `[1, 2]` partition the tank); `ε_r = 1` | ok (exit) |
+| 25 | `tank_dos_3to1` | proved | P2, P3, P4 (b) → the next stage, P5 (a) (since 2026-10-27 the staged pump `h' = 0.005 c − 0.001 w h`, `w' = 0.02 (22 − w)`: `w` explicit, `h` by variation of constants over the floor `w ≥ 2c`, barriers keep `0 ≤ h ≤ 2.5`; `w` rises at most 3.2 in `ε_r = 10`, one band) | P2–P4 ok (exit), P5 ok (invariant) |
 | 26 | `hvac_fan_staging` | proved | LOW, MED, HIGH (b) (contractions to 27, 24, 21 inside `[16, 32]`; a run ends in `[16, 32]`, MED's guard, and MED follows every speed); `ε_r = 1`; dimension 3 (the default padding) | LOW ok (exit→HIGH), MED ok (invariant), HIGH ok (exit→MED) |
 | 27 | `rover_terrain_2to4` | proved | MUD (b) → GRAVEL, GRAVEL (b) → PAVED, PAVED (a) (terrain-chain lemma; guards the odometer bands only; existence: `v → c_T`, `s` its integral, `w`, `zs` frozen) | MUD ok (exit→GRAVEL), GRAVEL ok (exit→PAVED), PAVED ok (invariant) |
 | 28 | `rover_terrain_4to6` | proved | as 27, cap `w ≤ c_T` kept by `w' = 3 (c_T − w)` (existence: the affine cascade `w, zs → v → s` inside the evolve box by the comparison bounds) | as 27 |
@@ -162,7 +162,7 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 45 | `watertank` | proved | Low (b) → MidEco; MidEco, MidBoost, High, PumpOff (a) | Low ok (exit→MidBoost, same guard); the others ok (invariant) |
 | 47 | `drl_car_stop` | proved (direct) | Accel, Brake (b) → Coast; Coast (a); explicit run `x + v t + c t²/2` | Accel, Brake ok (exit→Coast); Coast ok (invariant) |
 | 48 | `drl_lane_control` | proved (direct) | every mode (b) → CoastLAccel or CoastLBrake by the leader's speed; explicit run | all six ok (exit) |
-| 49 | `vehicle_hypercert` | proved (`ChoiceVehicleHypercert.wellFormedR`) | A0 (a); the others (b) → A0 or Ap4 | A0 ok (invariant); the others ok (exit) |
+| 49 | `vehicle_hypercert` | proved (`V2VehicleHypercert.vehicle_hypercert_wellFormedR`, since 2026-10-27 with the position coordinate `s ≥ 0`: the explicit run `s₀ + v₀ t + c t²/2`, `v₀ + c t` stays in the domain; before, `ChoiceVehicleHypercert.wellFormedR` of the velocity-only model) | every mode (b) → A0 (A0's guard is the domain's velocity range) | A0 ok (invariant); the others ok (exit) |
 | 50 | `freedm_meter` | proved (direct) | every mode (b) → GridD0R0 (guard = domain); explicit linear run | battery modes ok (exit); grid modes ok (invariant) |
 
 Totals: proved 39, false 0, band 6 (`WellFormedBattery.wfDeclared = (39, 0, 6)`, was
@@ -248,8 +248,8 @@ summary: …` (with `RELCERT_DEBUG=1`, the reason of every mode not `ok` on stde
 `--check-quick-v2` runs the same section as its check 3/3, strict (below); until 2026-10-10 it
 was informational there.
 
-**Suite_v2 result** (2026-10-27, both clauses): 46 benchmarks, 156 right modes: 79 ok
-(invariant), 77 ok (exit), **0 UNKNOWN, 0 BLOCKING**; the per-mode labels are those of the
+**Suite_v2 result** (2026-10-27, both clauses): 46 benchmarks, 158 right modes: 80 ok
+(invariant), 78 ok (exit), **0 UNKNOWN, 0 BLOCKING**, 9483 queries; the per-mode labels are those of the
 clause (ii) check alone (2026-10-26, 50 benchmarks: 174 right modes, 91 / 83, 10643 queries,
 about 17 s). The 37
 round-2 designs of the 2026-10-26 redesign pass (outside the tree): 122 right modes, 69 ok
@@ -280,7 +280,7 @@ single `relcert <file>` run; off, no verdict and no emission changes.
 
 **Strict in the recipe** (2026-10-10). `--check-quick-v2` certifies the suite in the strict
 mode (the switch forced on for its check 1/3) and ends with check 3/3, the `--wellformed`
-report gated against declared counts: `ExpectedSuiteV2.wfModes = 156` (`VerdictsV2/RunV2.lean`; the
+report gated against declared counts: `ExpectedSuiteV2.wfModes = 158` (`VerdictsV2/RunV2.lean`; the
 kernel pin `CoveragePinsV2.suiteV2_wfModes` of that count was archived with the standalone
 route on 2026-10-22), `wfUnknown = 0` and `wfBlocking = 0`. Any `UNKNOWN` or `BLOCKING` mode,
 or a mode count off the declared one, fails the run (`wellformed (strict): FAIL`, exit 1). Checked negatively: with the pre-repair
@@ -323,8 +323,9 @@ right automaton of the bridge is clocked (`rightAutomatonBodyC`, the right clock
 
 The order in a generated instance (`scripts/gen_bridge.py`, e.g. `InstancesV2/Bridge/Watertank.lean:53`):
 transport at the lemma's dimension (`wellFormedR_transport`, or the `_direct` form), then
-`wellFormedR_lift (n := n0) pad_ok`, then `WellFormedRIn.of_tt` at `reg = ⊤`. The five
-hand-written `InstancesV2/Choice/General/` exhibits keep only their Assumption 1 proofs
+`wellFormedR_lift (n := n0) pad_ok`, then `WellFormedRIn.of_tt` at `reg = ⊤`. The
+hand-written `InstancesV2/Choice/General/` exhibits (two since 2026-10-27, when `vehicle_hypercert`
+moved to `InstancesV2/WellFormed/`) keep only their Assumption 1 proofs
 (their Theorem-3 parts were retired on 2026-10-21, fixed at `Var 2` with no slot for the
 right clock); those proofs are lifted the same way into the corresponding bridge instances.
 Nothing in this file's battery or audit (§5) changes: the lift is a generic lemma at the

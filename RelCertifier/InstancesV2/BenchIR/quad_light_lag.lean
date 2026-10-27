@@ -15,30 +15,32 @@ def quad_light_lag_IRv2 : PProblem :=
   {
     name := "quad_light_lag"
     lambdaMin := "1.0"
-    lambdaMax := "6.0"
+    lambdaMax := "2.0"
     L := {
-      stateVars := ["w", "a"]
-      epsilon := "2.0"
-      modes := [
-        {
-          name := "CLIMB"
-          odes := [("w", (.bin "-" (.var "a") (.bin "*" (.num "1.25") (.bin "*" (.var "w") (.var "w"))))),
-            ("a", (.bin "*" (.num "5.0") (.bin "-" (.num "7.45") (.var "a"))))]
-          guard := (.and (.and (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "2.5"))) (.cmp ">=" (.var "a") (.num "0.0"))) (.cmp "<=" (.var "a") (.num "7.45")))
-          evolve := (.and (.and (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "3.5"))) (.cmp ">=" (.var "a") (.num "0.0"))) (.cmp "<=" (.var "a") (.num "7.45")))
-          next := ["CLIMB"] } ] }
-    R := {
-      stateVars := ["w", "a"]
+      stateVars := ["h", "w", "a"]
       epsilon := "1.0"
       modes := [
         {
           name := "CLIMB"
-          odes := [("w", (.bin "-" (.var "a") (.bin "*" (.var "w") (.var "w")))),
-            ("a", (.bin "*" (.num "5.0") (.bin "-" (.num "4.0") (.var "a"))))]
-          guard := (.and (.and (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "3.5"))) (.cmp ">=" (.var "a") (.num "0.0"))) (.cmp "<=" (.var "a") (.num "4.0")))
-          evolve := (.and (.and (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "3.5"))) (.cmp ">=" (.var "a") (.num "0.0"))) (.cmp "<=" (.var "a") (.num "4.0")))
+          odes := [("h", (.var "w")),
+            ("w", (.bin "-" (.var "a") (.bin "*" (.num "6.13125") (.var "w")))),
+            ("a", (.bin "*" (.num "10.0") (.bin "-" (.num "14.715") (.var "a"))))]
+          guard := (.and (.and (.and (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "2.4"))) (.cmp ">=" (.var "a") (.num "0.0"))) (.cmp "<=" (.var "a") (.num "14.715")))
+          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "2.4"))) (.cmp ">=" (.var "a") (.num "0.0"))) (.cmp "<=" (.var "a") (.num "14.715")))
+          next := ["CLIMB"] } ] }
+    R := {
+      stateVars := ["h", "w", "a"]
+      epsilon := "1.0"
+      modes := [
+        {
+          name := "CLIMB"
+          odes := [("h", (.var "w")),
+            ("w", (.bin "-" (.var "a") (.bin "*" (.num "4.905") (.var "w")))),
+            ("a", (.bin "*" (.num "10.0") (.bin "-" (.num "9.81") (.var "a"))))]
+          guard := (.and (.and (.and (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "2.0"))) (.cmp ">=" (.var "a") (.num "0.0"))) (.cmp "<=" (.var "a") (.num "9.81")))
+          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "2.0"))) (.cmp ">=" (.var "a") (.num "0.0"))) (.cmp "<=" (.var "a") (.num "9.81")))
           next := ["CLIMB"] } ] }
     invariants := [
-      ("CLIMB", (.and (.cmp "<=" (.var "L_w") (.bin "+" (.var "R_w") (.num "1.0"))) (.cmp "<=" (.var "L_a") (.bin "*" (.num "1.8625") (.var "R_a")))))] }
+      ("CLIMB", (.and (.and (.and (.cmp "<=" (.bin "-" (.var "R_h") (.var "L_h")) (.num "0.8")) (.cmp "<=" (.bin "-" (.var "L_h") (.var "R_h")) (.num "0.8"))) (.cmp "<=" (.bin "-" (.bin "+" (.bin "+" (.bin "*" (.num "6.13125") (.bin "-" (.var "L_h") (.var "R_h"))) (.var "L_w")) (.bin "*" (.num "0.1") (.var "L_a"))) (.bin "+" (.bin "+" (.bin "*" (.num "1.25") (.var "R_w")) (.bin "*" (.num "0.125") (.var "R_a"))) (.num "0.14525"))) (.bin "*" (.num "6.13125") (.num "0.16")))) (.cmp "<=" (.bin "*" (.neg (.num "6.13125")) (.num "0.16")) (.bin "-" (.bin "+" (.bin "+" (.bin "*" (.num "6.13125") (.bin "-" (.var "L_h") (.var "R_h"))) (.var "L_w")) (.bin "*" (.num "0.1") (.var "L_a"))) (.bin "+" (.bin "+" (.bin "*" (.num "1.25") (.var "R_w")) (.bin "*" (.num "0.125") (.var "R_a"))) (.num "0.14525"))))))] }
 
 end RelCertifier.Parse

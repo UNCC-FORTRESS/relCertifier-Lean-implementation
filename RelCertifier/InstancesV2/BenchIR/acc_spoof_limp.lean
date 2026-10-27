@@ -39,19 +39,19 @@ def acc_spoof_limp_IRv2 : PProblem :=
         {
           name := "NORMAL"
           odes := [("v", (.bin "*" (.num "0.5") (.bin "-" (.num "30.0") (.var "v"))))]
-          guard := (.and (.cmp ">=" (.var "v") (.num "20.0")) (.cmp "<" (.var "v") (.num "40.0")))
+          guard := (.and (.cmp ">=" (.var "v") (.num "20.0")) (.cmp "<=" (.var "v") (.num "40.0")))
           evolve := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "40.0")))
           next := ["NORMAL", "ECO", "SPORT", "DISENGAGE"] },
         {
           name := "ECO"
           odes := [("v", (.bin "*" (.num "0.5") (.bin "-" (.num "27.0") (.var "v"))))]
-          guard := (.and (.cmp ">=" (.var "v") (.num "20.0")) (.cmp "<" (.var "v") (.num "40.0")))
+          guard := (.and (.cmp ">=" (.var "v") (.num "20.0")) (.cmp "<=" (.var "v") (.num "40.0")))
           evolve := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "40.0")))
           next := ["ECO", "NORMAL", "DISENGAGE"] },
         {
           name := "SPORT"
           odes := [("v", (.bin "*" (.num "0.5") (.bin "-" (.num "33.0") (.var "v"))))]
-          guard := (.and (.cmp ">=" (.var "v") (.num "20.0")) (.cmp "<" (.var "v") (.num "40.0")))
+          guard := (.and (.cmp ">=" (.var "v") (.num "20.0")) (.cmp "<=" (.var "v") (.num "40.0")))
           evolve := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "40.0")))
           next := ["SPORT", "NORMAL", "DISENGAGE"] },
         {
@@ -61,7 +61,7 @@ def acc_spoof_limp_IRv2 : PProblem :=
           evolve := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "40.0")))
           next := ["DISENGAGE"] } ] }
     invariants := [
-      ("CRUISE", (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "R_v") (.bin "+" (.var "L_v") (.num "9.0"))))),
-      ("LIMP", (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "R_v") (.bin "+" (.var "L_v") (.num "12.0")))))] }
+      ("CRUISE", (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.bin "*" (.num "0.7") (.var "R_v")) (.bin "+" (.var "L_v") (.num "4.0"))))),
+      ("LIMP", (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.bin "*" (.num "0.7") (.var "R_v")) (.bin "+" (.var "L_v") (.num "4.0")))))] }
 
 end RelCertifier.Parse

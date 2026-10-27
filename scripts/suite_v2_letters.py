@@ -22,18 +22,26 @@ Letters (the paper's legend), every one measured, never read off a header:
   B branching        a joint step on the path has >= 2 distinct non-self retained successors
                      (matrix M3)
   P pruning          an edge is pruned AND RELCERT_NO_PRUNE=1 DECLINES (matrix M4)
-  D mode-dependent   the rows differ, the handoffs are non-vacuous and unsat (matrix M5), AND
-                     every uniform row set built from the file's own rows DECLINES (each
-                     distinct row placed on every left mode; diagnostic D_rows: matrix M5 alone)
+  D mode-dependent   the stated requirement differs per mode, so the claim needs mode-dependent
+                     rows: the rows differ, the handoffs are non-vacuous and unsat (matrix M5),
+                     AND every uniform row set built from the file's own rows that keeps every
+                     stated requirement DECLINES (each distinct row placed on every left mode; a
+                     uniform row keeps the requirement of a mode when it implies that mode's row,
+                     checked by Z3 over the reals; when no single row implies all, the conjunction
+                     of the distinct rows is the uniform candidate). A weaker uniform row that
+                     drops a stated requirement may certify without removing D (owner's rule of
+                     2026-10-27). Diagnostics: D_rows = matrix M5 alone; D_strict = every uniform
+                     row set built from the file's own rows DECLINES (the rule before 2026-10-27)
   I mode fact        RELCERT_NO_CUT=1 DECLINES (matrix no_cut_verdict)
   X committed subset RELCERT_NO_CHOICE=1 DECLINES
 """
-import argparse, json, os, re, sys, tempfile
+import argparse, json, os, re, shutil, subprocess, sys, tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, ".."))
 sys.path.insert(0, HERE)
 from suite_v2_matrix import parse_input, run, verdict_of  # noqa: E402
+from inv_smt import atoms_of, show  # noqa: E402
 
 LETTERS = ["S", "M", "R", "B", "P", "D", "I", "X"]
 LINE_RE = re.compile(r"^([A-Za-z0-9_]+): (CERTIFIED|DECLINED|ERROR)(?: \[.*\])? \((\d+)ms\)")
@@ -74,6 +82,35 @@ def variant_uniform(text, row):
             continue
         out.append(line)
     return "\n".join(out) + "\n"
+
+
+def z3_bin():
+    for p in (os.environ.get("RELCERT_Z3"), "/opt/homebrew/bin/z3", "/usr/local/bin/z3", "/usr/bin/z3",
+              shutil.which("z3")):
+        if p and os.path.exists(p):
+            return p
+    raise SystemExit("z3 not found (set RELCERT_Z3)")
+
+
+def row_atoms(row):
+    return [show(x) for x in atoms_of(row, None, [])]
+
+
+def implies(stronger, weaker):
+    """Z3 over the reals: every point satisfying row `stronger` satisfies row `weaker`."""
+    a, b = row_atoms(stronger), row_atoms(weaker)
+    syms = sorted(set(re.findall(r"\b[LR]_[A-Za-z0-9_]+\b", " ".join(a + b))))
+    q = "".join(f"(declare-const {s} Real)\n" for s in syms)
+    q += f"(assert (and true {' '.join(a)}))\n(assert (not (and true {' '.join(b)})))\n(check-sat)\n"
+    r = subprocess.run([z3_bin(), "-in"], input=q, capture_output=True, text=True, timeout=60)
+    out = r.stdout.strip()
+    if out not in ("sat", "unsat"):
+        raise SystemExit(f"implication check inconclusive ({out!r}): {stronger} => {weaker}")
+    return out == "unsat"
+
+
+def conj_row(rows):
+    return "smt2:(and " + " ".join(x for r in rows for x in row_atoms(r)) + ")"
 
 
 def run_variant(relcert, text, tmpdir, tag, timeout):
@@ -118,7 +155,7 @@ def main():
             cells = r["cells"]
             v = {k: runs[k].get(name, ("MISSING", 0))[0] for k in runs}
             lam1 = run_variant(a.relcert, variant_lambda1(text), tmp, name + "_lam1", a.timeout) if lam_ne1 else "-"
-            uni = {}
+            uni, keeps, own = {}, {}, set()
             if cells["M5"].startswith("yes"):
                 distinct = []
                 for k in prob["row_order"]:
@@ -128,20 +165,29 @@ def main():
                 for k in prob["row_order"]:
                     keys.setdefault(prob["rows"][k], []).append(k)
                 for i, row in enumerate(distinct):
-                    uni["/".join(keys[row])] = run_variant(a.relcert, variant_uniform(text, row), tmp, f"{name}_uni{i}", a.timeout)
+                    lab = "/".join(keys[row])
+                    uni[lab] = run_variant(a.relcert, variant_uniform(text, row), tmp, f"{name}_uni{i}", a.timeout)
+                    keeps[lab] = all(implies(row, other) for other in distinct)
+                    own.add(lab)
+                if not any(keeps.values()):
+                    uni["conj"] = run_variant(a.relcert, variant_uniform(text, conj_row(distinct)), tmp, f"{name}_uniconj", a.timeout)
+                    keeps["conj"] = True
             L = {
                 "S": cert and v["sync"] == "DECLINED" and lam_ne1,
                 "M": cells["M2"].startswith("yes"),
                 "R": cert and ro and v["norepo"] == "DECLINED",
                 "B": cells["M3"].startswith("yes"),
                 "P": cells["M4"].startswith("yes"),
-                "D": cells["M5"].startswith("yes") and bool(uni) and all(x == "DECLINED" for x in uni.values()),
+                "D": cells["M5"].startswith("yes") and any(keeps.values())
+                     and all(x == "DECLINED" for k, x in uni.items() if keeps[k]),
                 "I": cert and r["no_cut_verdict"] == "DECLINED",
                 "X": cert and v["nochoice"] == "DECLINED",
             }
             diag = {
                 "S_lam1": lam1 == "DECLINED", "lam1_verdict": lam1,
                 "R_cover": ro, "D_rows": cells["M5"].startswith("yes"), "uniform_rows": uni,
+                "uniform_keeps_all": keeps,
+                "D_strict": cells["M5"].startswith("yes") and bool(own) and all(uni[k] == "DECLINED" for k in own),
                 "P_noprune_declines": v["noprune"] == "DECLINED",
             }
             letters = " ".join(k for k in LETTERS if L[k])
@@ -154,10 +200,13 @@ def main():
                    "lambdas": {c["mL"]: c["lam"] for c in r["covers"]},
                    "letters": L, "diagnostics": diag}
             rows.append(rec)
-            dl = [k for k, x in (("S_lam1", diag["S_lam1"]), ("R_cover", ro), ("D_rows", diag["D_rows"])) if x]
-            table.append(f"| `{name}` | {r['family']} | {r['dimL']}/{r['dimR']} | {r['modesL']}/{r['modesR']} | {rec['inv']} | {letters or '--'} | {ctl[name][1]/1000:.1f} | {v['sync']} | {lam1} | {v['norepo']} | {', '.join(f'{k}:{x}' for k, x in uni.items()) or '-'} | {' '.join(dl) or '-'} |")
-            print(f"{name}: {letters or '--'} (lam1={lam1}, norepo={v['norepo']}, uniform={uni})", flush=True)
+            dl = [k for k, x in (("S_lam1", diag["S_lam1"]), ("R_cover", ro), ("D_rows", diag["D_rows"]),
+                                 ("D_strict", diag["D_strict"])) if x]
+            unis = ", ".join(f"{k}:{x}" + ("" if keeps[k] else " (drops a stated row)") for k, x in uni.items())
+            table.append(f"| `{name}` | {r['family']} | {r['dimL']}/{r['dimR']} | {r['modesL']}/{r['modesR']} | {rec['inv']} | {letters or '--'} | {ctl[name][1]/1000:.1f} | {v['sync']} | {lam1} | {v['norepo']} | {unis or '-'} | {' '.join(dl) or '-'} |")
+            print(f"{name}: {letters or '--'} (lam1={lam1}, norepo={v['norepo']}, uniform={uni}, keeps_all={keeps})", flush=True)
     tot = {k: sum(1 for x in rows if x["letters"][k]) for k in LETTERS}
+    nstrict = sum(1 for x in rows if x["diagnostics"]["D_strict"])
     json.dump({"rows": rows, "totals": tot}, open(f"{a.out}/letters.json", "w"), indent=1)
     json.dump([{k: x[k] for k in ("name", "family", "dimL", "dimR", "modesL", "modesR", "inv", "dyn", "mech", "ms")} for x in rows],
               open(f"{a.out}/suite_results.json", "w"), indent=1)
@@ -165,8 +214,12 @@ def main():
         f.write("| benchmark | family | dim L/R | modes L/R | inv | letters | time (s) | SYNC | lambda=1 file | NO_REPO | uniform rows | diagnostics |\n")
         f.write("|---|---|---|---|---|---|---|---|---|---|---|---|\n")
         f.write("\n".join(table) + "\n\n")
-        f.write("Totals: " + ", ".join(f"{k} {tot[k]}" for k in LETTERS) + "\n")
-    print("TOTALS " + " ".join(f"{k}={tot[k]}" for k in LETTERS))
+        f.write("Totals: " + ", ".join(f"{k} {tot[k]}" for k in LETTERS) + "\n\n")
+        f.write("D rule (2026-10-27): the stated requirement differs per mode, so the claim needs mode-dependent rows: "
+                "matrix M5 and every uniform row set from the file's own rows that keeps every stated requirement declines; "
+                "a uniform row marked (drops a stated row) may certify without removing D. "
+                f"Under the earlier strict rule (every uniform row set declines, diagnostic D_strict) D = {nstrict}.\n")
+    print("TOTALS " + " ".join(f"{k}={tot[k]}" for k in LETTERS) + f" (D_strict={nstrict})")
 
 
 if __name__ == "__main__":

@@ -44,7 +44,7 @@
   "modesR": 4,
   "inv": "linear",
   "dyn": "linear",
-  "mech": "S M B I X",
+  "mech": "S M B D I X",
   "ms": 1028
  },
  {
@@ -56,7 +56,7 @@
   "modesR": 3,
   "inv": "linear",
   "dyn": "linear",
-  "mech": "",
+  "mech": "D",
   "ms": 855
  },
  {
@@ -536,7 +536,7 @@
   "modesR": 2,
   "inv": "linear",
   "dyn": "polynomial",
-  "mech": "I",
+  "mech": "D I",
   "ms": 241
  },
  {

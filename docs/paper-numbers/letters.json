@@ -39,6 +39,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -82,6 +84,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -124,6 +128,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -137,7 +143,7 @@
    "inv": "linear",
    "inv_shape": "conjunctive+linear",
    "dyn": "linear",
-   "mech": "S M B I X",
+   "mech": "S M B D I X",
    "ms": 1028,
    "verdict": "CERTIFIED",
    "sync": "DECLINED",
@@ -157,7 +163,7 @@
     "R": false,
     "B": true,
     "P": false,
-    "D": false,
+    "D": true,
     "I": true,
     "X": true
    },
@@ -170,6 +176,11 @@
      "CRUISE": "DECLINED",
      "LIMP": "CERTIFIED"
     },
+    "uniform_keeps_all": {
+     "CRUISE": true,
+     "LIMP": false
+    },
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -183,7 +194,7 @@
    "inv": "linear",
    "inv_shape": "conjunctive",
    "dyn": "linear",
-   "mech": "",
+   "mech": "D",
    "ms": 855,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
@@ -204,7 +215,7 @@
     "R": false,
     "B": false,
     "P": false,
-    "D": false,
+    "D": true,
     "I": false,
     "X": false
    },
@@ -217,6 +228,11 @@
      "TRACK": "DECLINED",
      "STOW/STOWED": "CERTIFIED"
     },
+    "uniform_keeps_all": {
+     "TRACK": true,
+     "STOW/STOWED": false
+    },
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -260,6 +276,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -303,6 +321,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -352,6 +372,11 @@
      "PRECHARGE": "DECLINED",
      "BULK/ABSORB/FULL/FAULT": "DECLINED"
     },
+    "uniform_keeps_all": {
+     "PRECHARGE": true,
+     "BULK/ABSORB/FULL/FAULT": false
+    },
+    "D_strict": true,
     "P_noprune_declines": true
    }
   },
@@ -396,6 +421,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -436,6 +463,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -483,6 +512,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -527,6 +558,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -574,6 +607,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -622,6 +657,11 @@
      "LIFT": "DECLINED",
      "UP/APP/STOP": "DECLINED"
     },
+    "uniform_keeps_all": {
+     "LIFT": true,
+     "UP/APP/STOP": false
+    },
+    "D_strict": true,
     "P_noprune_declines": false
    }
   },
@@ -671,6 +711,11 @@
      "STARTER/LIGHTOFF": "DECLINED",
      "SELF/IDLE/ABORT": "DECLINED"
     },
+    "uniform_keeps_all": {
+     "STARTER/LIGHTOFF": true,
+     "SELF/IDLE/ABORT": false
+    },
+    "D_strict": true,
     "P_noprune_declines": false
    }
   },
@@ -711,6 +756,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -755,6 +802,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": true
    }
   },
@@ -799,6 +848,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -843,6 +894,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -890,6 +943,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -933,6 +988,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": true
    }
   },
@@ -979,6 +1036,11 @@
      "ONGRID": "DECLINED",
      "REJECT": "DECLINED"
     },
+    "uniform_keeps_all": {
+     "ONGRID": true,
+     "REJECT": false
+    },
+    "D_strict": true,
     "P_noprune_declines": false
    }
   },
@@ -1029,6 +1091,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -1073,6 +1137,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -1119,6 +1185,11 @@
      "HOLD": "DECLINED",
      "COOL": "DECLINED"
     },
+    "uniform_keeps_all": {
+     "HOLD": true,
+     "COOL": false
+    },
+    "D_strict": true,
     "P_noprune_declines": false
    }
   },
@@ -1164,8 +1235,15 @@
     "D_rows": true,
     "uniform_rows": {
      "CACC_UP/CACC_DN": "DECLINED",
-     "AEB": "DECLINED"
+     "AEB": "DECLINED",
+     "conj": "DECLINED"
     },
+    "uniform_keeps_all": {
+     "CACC_UP/CACC_DN": false,
+     "AEB": false,
+     "conj": true
+    },
+    "D_strict": true,
     "P_noprune_declines": false
    }
   },
@@ -1211,8 +1289,15 @@
     "D_rows": true,
     "uniform_rows": {
      "CACC/ACC": "DECLINED",
-     "AEB": "DECLINED"
+     "AEB": "DECLINED",
+     "conj": "DECLINED"
     },
+    "uniform_keeps_all": {
+     "CACC/ACC": false,
+     "AEB": false,
+     "conj": true
+    },
+    "D_strict": true,
     "P_noprune_declines": false
    }
   },
@@ -1255,6 +1340,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -1297,6 +1384,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -1341,6 +1430,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -1385,6 +1476,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -1429,6 +1522,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -1473,6 +1568,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -1518,6 +1615,8 @@
     "R_cover": true,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -1562,6 +1661,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -1606,6 +1707,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -1650,6 +1753,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -1693,6 +1798,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -1736,6 +1843,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -1779,6 +1888,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -1821,6 +1932,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -1871,6 +1984,11 @@
      "RUN1/PREARM/READY/TAKEUP2": "DECLINED",
      "RUN2/END": "DECLINED"
     },
+    "uniform_keeps_all": {
+     "RUN1/PREARM/READY/TAKEUP2": true,
+     "RUN2/END": false
+    },
+    "D_strict": true,
     "P_noprune_declines": false
    }
   },
@@ -1916,6 +2034,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -1960,6 +2080,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -1973,7 +2095,7 @@
    "inv": "linear",
    "inv_shape": "conjunctive",
    "dyn": "polynomial",
-   "mech": "I",
+   "mech": "D I",
    "ms": 241,
    "verdict": "CERTIFIED",
    "sync": "CERTIFIED",
@@ -1993,7 +2115,7 @@
     "R": false,
     "B": false,
     "P": false,
-    "D": false,
+    "D": true,
     "I": true,
     "X": false
    },
@@ -2006,6 +2128,11 @@
      "NORMAL": "DECLINED",
      "FIRE": "CERTIFIED"
     },
+    "uniform_keeps_all": {
+     "NORMAL": true,
+     "FIRE": false
+    },
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -2051,6 +2178,8 @@
     "R_cover": true,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": true
    }
   },
@@ -2097,6 +2226,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -2141,8 +2272,15 @@
     "D_rows": true,
     "uniform_rows": {
      "INSP": "DECLINED",
-     "EXP": "DECLINED"
+     "EXP": "DECLINED",
+     "conj": "DECLINED"
     },
+    "uniform_keeps_all": {
+     "INSP": false,
+     "EXP": false,
+     "conj": true
+    },
+    "D_strict": true,
     "P_noprune_declines": false
    }
   },
@@ -2187,6 +2325,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": false
    }
   },
@@ -2231,6 +2371,8 @@
     "R_cover": false,
     "D_rows": false,
     "uniform_rows": {},
+    "uniform_keeps_all": {},
+    "D_strict": false,
     "P_noprune_declines": true
    }
   }
@@ -2241,7 +2383,7 @@
   "R": 6,
   "B": 8,
   "P": 5,
-  "D": 9,
+  "D": 12,
   "I": 17,
   "X": 16
  }

@@ -327,7 +327,7 @@ is described in Section 4.3 and, as the tool's stage lists, in Section 6.1.
 
 | number | source |
 |---|---|
-| 50 benchmarks, all CERTIFIED with `RELCERT_IMPLIED_CUT=1` (15 need the existential mode choice, the default) | `scripts/paper_numbers.sh` (frozen), `benchmarks/suite_v2/` |
+| 50 benchmarks, all CERTIFIED with `RELCERT_IMPLIED_CUT=1` (16 need the existential mode choice, the default); Table 1 letters, Sync and ablation counts, Table 3 rows | `scripts/paper_numbers.sh` (frozen run 2026-10-27: `docs/paper-numbers/`), `scripts/suite_v2_letters.py`, `benchmarks/suite_v2/` |
 | 52 bridge instances, 5014 verdict groups (4878 over the 50 suite benchmarks, 136 over the 2 exhibits) | `InstancesV2/Bridge.lean`, `relcert-bridge-verdicts`, `expectedBridgeGroupsV2` |
 | 50 Assumption 1 proofs, Z3-free; 77 kernel refutations, 228 verdict groups | `InstancesV2/WellFormedBattery.lean`; `InstancesV2/Refute.lean`, `relcert-refute-verdicts` |
 | 25 pruned edges, 50 non-connection queries; 551 handoff queries; 151 progress (reposition certificate) queries | the same runner; `relcert-progress-verdicts` |

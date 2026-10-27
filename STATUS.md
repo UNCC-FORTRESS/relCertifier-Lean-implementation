@@ -102,7 +102,14 @@ certificates (261) and the refutations' groups (188) have their own runners. `re
 edges), SMT printer, Z3's `unsat`, the Lean kernel. Guard-gated switching is no longer
 assumed (both sides) (`README.md`, "Trust base").
 
-**Last verified run.** 2026-10-22, branch `cleanup-2026-10` (commit `093b2d1`), Apple M2 Max,
+**Last verified run.** 2026-10-27, branch `benchmark-fixes` (commit `aedcd61`), Apple M2 Max, Z3 4.15.1:
+`lake build` exit 0 (9273 jobs); `--check-quick-v2` 50/50, modal 1182, handoff 551, non-connection 50, pruned 25,
+reposition 75, STRICT 187/187, PASSED (a first run that day ERRORed `rover_ladder_8to12` after 260 s, against its usual
+31-35 s and a 40 s budget; the re-run passed); `relcert-test` `ALL PASS`; `relcert-bridge-verdicts` 5014/5014;
+`relcert-progress-verdicts` 151/151; `relcert-refute-verdicts` 228/228 and the 77 refutation instances built;
+`WellFormedBattery` 66 axiom lines, all standard; `AxiomCheck` 9 lines; `benchmarks/negative/*` both DECLINED;
+`vehicle_hypercert_s8` 5 right modes BLOCKING, DECLINED under the strict switch; `scripts/paper_numbers.sh` frozen in
+`docs/paper-numbers/`. Previous: 2026-10-22, branch `cleanup-2026-10` (commit `093b2d1`), Apple M2 Max,
 Z3 4.15.1: full `lake build` exit 0 (9252 jobs), no `sorry`; `--check-quick-v2` 50/50, modal
 643, handoff 401, non-connection 88, pruned 44, reposition 81, STRICT 174/174, PASSED;
 `relcert-test` `ALL PASS`; `relcert-bridge-verdicts` 4475/4475; `relcert-refute-verdicts`

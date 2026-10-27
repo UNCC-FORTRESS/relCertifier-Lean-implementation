@@ -125,7 +125,13 @@
 > flipped to `>=`, kind B, 6 groups; DECLINED by relcert); 48 lines in.
 > Current instance set: **77 refutations, 228 groups**
 > (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 983 mutants in
-> `docs/refute/witnesses.jsonl`. The operator table has not been recomputed.
+> `docs/refute/witnesses.jsonl`. The operator table below is the 2026-10-21 run; recomputed on 2026-10-27
+> (`scripts/refute_experiment.py`, 6 parallel jobs, the default 40 s budget; `docs/refute/relcert.json`, `results.json`,
+> `runner.log`): 983 mutants, 342 certified, 77 kernel-refuted, 564 open (9 of them relcert ERRORs by the time budget:
+> `rover_ladder_6to8_m021`, `rover_ladder_8to12_m005`, `_m010`, `_m016`, `_m024`, `sat3w_detumble_phases_m011`, `_m012`,
+> `_m014`, `_m015`); by operator RRO/SNO 31/30/154, MCO 102/13/112, ORO 209/34/298 (certified/refuted/open); by kind B 59,
+> C 18; kernel-refuted and certified: none. Of the 77, 75 are DECLINED in that run; `rover_ladder_8to12_m010` DECLINES when
+> run alone (38 s) and `rover_ladder_8to12_m005` DECLINES with `RELCERT_TIME_BUDGET_MS=280000` (45 s).
 
 Design: `docs/REFUTATION-SCOPE.md` (planning record, last present at commit 29663d8). This file reports what was built and the experiment.
 

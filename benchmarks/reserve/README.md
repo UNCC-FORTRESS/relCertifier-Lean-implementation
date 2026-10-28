@@ -57,11 +57,13 @@ Verdicts measured 2026-10-27 with the branch's `relcert` (`RELCERT_IMPLIED_CUT=1
 | `rover_rollover_payload` | suite_v2 (2026-10-27, batch I8) | `NO_CHOICE`, `SYNC`+`NO_CHOICE`, `NO_PRUNE`+`NO_CHOICE`, `NO_CUT` | X I | both letters come from the claim form (they persist at `h_L = h_R`), and the two sides differ in a second structural way besides the payload (the reference's 2 m transition bands with back edges, load-bearing) |
 | `canal_gate_notches` | suite_v2 (2026-10-27, batch I8) | `NO_CHOICE`, `SYNC`+`NO_CHOICE`, `NO_PRUNE`+`NO_CHOICE` | X | one of several X-only own designs (template B, with `bms_chiller_undercharge` and `compressor_station_recycle`); the literature case studies of batch I8 now show X |
 
-| `tank_dos_3to1` | suite_v2 (2026-10-27, batch I9) | none | M I | the chain-depth multi-cycle template (one held decision against three polls through the staging chain) is carried by `insulin_basal_cgmloss`, `fuelcell_chp_dos`, `grid_ffr_dos` and the three satellite files; its near-duplicate `datacenter_crah_poll` is here already; its place in the suite went to `flaps_slow_approach` (S) |
+| `insulin_basal_cgmloss` | suite_v2 (2026-10-28, batch I9) | none | M B | the chain-depth multi-cycle template under a 2:1 period ratio is carried by `tank_dos_3to1` (M I, with load-bearing mode facts), `fuelcell_chp_dos` (M B P X) and the three satellite files; the third slowest suite file (15 s); the medical domain stays represented by `ventilator_vc_cuffleak` and `syringe_relay_prearm`; its place in the suite went to `flaps_slow_approach` (S) |
 | `platoon_latency` | suite_v2 (2026-10-27, batch I9) | none | D | the same right model (the CACC/AEB design follower) and the same AEB D as `platoon_linkloss`, with a late feed-forward that keeps every row of that file; its place in the suite went to the time-scaled `platoon_profiles` (S M D) |
 
-Batch I9 (2026-10-27) took `flaps_slow_approach` and `platoon_profiles` back into the suite (the latter as
-the round-A time-scaled design, SPORT = the CACC at 1.2 x bandwidth, S M D) and brought `tank_dos_3to1`
-and `platoon_latency` here as the suite files (Lean integration last at commit 9dcda0c).
+Batch I9 (2026-10-27/28) took `flaps_slow_approach` and `platoon_profiles` back into the suite (the latter
+as the round-A time-scaled design, SPORT = the CACC at 1.2 x bandwidth, S M D) and brought
+`platoon_latency` (Lean integration last at commit 9dcda0c) and `insulin_basal_cgmloss` (last at c57ca5f)
+here as the suite files; `tank_dos_3to1` was here between commits 5f3bb55 and c57ca5f and is back in
+the suite (its I keeps the letter total at the frozen 17).
 
 Run one: `RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert benchmarks/reserve/<name>/input.txt`.

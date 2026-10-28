@@ -24,7 +24,6 @@ import RelCertifier.InstancesV2.BenchChoice.gantry_speed_zones
 import RelCertifier.InstancesV2.BenchChoice.girard_robot
 import RelCertifier.InstancesV2.BenchChoice.grid_ffr_dos
 import RelCertifier.InstancesV2.BenchChoice.hydro_rejection_gatecal
-import RelCertifier.InstancesV2.BenchChoice.insulin_basal_cgmloss
 import RelCertifier.InstancesV2.BenchChoice.lz_vehicle_position
 import RelCertifier.InstancesV2.BenchChoice.molding_pack_checkring
 import RelCertifier.InstancesV2.BenchChoice.platoon_linkloss
@@ -44,6 +43,7 @@ import RelCertifier.InstancesV2.BenchChoice.sat3w_detumble_phases
 import RelCertifier.InstancesV2.BenchChoice.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchChoice.sat_detumble_weak
 import RelCertifier.InstancesV2.BenchChoice.syringe_relay_prearm
+import RelCertifier.InstancesV2.BenchChoice.tank_dos_3to1
 import RelCertifier.InstancesV2.BenchChoice.train_ato_odometry
 import RelCertifier.InstancesV2.BenchChoice.tunnel_jetfan_pairout
 import RelCertifier.InstancesV2.BenchChoice.turbine_startup_gearratio
@@ -78,7 +78,6 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("girard_robot", girard_robot_coverV2_choice),
   ("grid_ffr_dos", grid_ffr_dos_coverV2_choice),
   ("hydro_rejection_gatecal", hydro_rejection_gatecal_coverV2_choice),
-  ("insulin_basal_cgmloss", insulin_basal_cgmloss_coverV2_choice),
   ("lz_vehicle_position", lz_vehicle_position_coverV2_choice),
   ("molding_pack_checkring", molding_pack_checkring_coverV2_choice),
   ("platoon_linkloss", platoon_linkloss_coverV2_choice),
@@ -98,6 +97,7 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("sat_detumble_phases", sat_detumble_phases_coverV2_choice),
   ("sat_detumble_weak", sat_detumble_weak_coverV2_choice),
   ("syringe_relay_prearm", syringe_relay_prearm_coverV2_choice),
+  ("tank_dos_3to1", tank_dos_3to1_coverV2_choice),
   ("train_ato_odometry", train_ato_odometry_coverV2_choice),
   ("tunnel_jetfan_pairout", tunnel_jetfan_pairout_coverV2_choice),
   ("turbine_startup_gearratio", turbine_startup_gearratio_coverV2_choice),

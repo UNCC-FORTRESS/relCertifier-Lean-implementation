@@ -22,7 +22,6 @@ import RelCertifier.InstancesV2.Bridge.GantrySpeedZones
 import RelCertifier.InstancesV2.Bridge.GirardRobot
 import RelCertifier.InstancesV2.Bridge.GridFfrDos
 import RelCertifier.InstancesV2.Bridge.HydroRejectionGatecal
-import RelCertifier.InstancesV2.Bridge.InsulinBasalCgmloss
 import RelCertifier.InstancesV2.Bridge.LzVehiclePosition
 import RelCertifier.InstancesV2.Bridge.MoldingPackCheckring
 import RelCertifier.InstancesV2.Bridge.PlatoonLinkloss
@@ -42,6 +41,7 @@ import RelCertifier.InstancesV2.Bridge.Sat3wDetumblePhases
 import RelCertifier.InstancesV2.Bridge.SatDetumblePhases
 import RelCertifier.InstancesV2.Bridge.SatDetumbleWeak
 import RelCertifier.InstancesV2.Bridge.SyringeRelayPrearm
+import RelCertifier.InstancesV2.Bridge.TankDos3to1
 import RelCertifier.InstancesV2.Bridge.TrainAtoOdometry
 import RelCertifier.InstancesV2.Bridge.TunnelJetfanPairout
 import RelCertifier.InstancesV2.Bridge.TurbineStartupGearratio

@@ -27,7 +27,7 @@ an invariant guard) and `quad_light_{airframe_20,profiles}` (the sink `LIMIT`: i
 the climb controller, whose operating range reached the limiter threshold; both were redesigned
 on 2026-10-27 with the altitude coordinate and no limiter mode).
 `relcert --wellformed <input.txt>…` runs the tool's sufficient check per right mode (every one
-of the 185 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN` or `BLOCKING`.
+of the 180 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN` or `BLOCKING`.
 
 The suite's design, the per-family rationale, the domain audit (every evolve bound is a
 physical limit of the plant; `scripts/domain_widening.py` re-runs the tool with every bound
@@ -48,7 +48,7 @@ range taken from a stated source. Every change was designed and measured in scra
 SYNC, NO_PRUNE, NO_CHOICE, NO_PRUNE+NO_CHOICE, NO_CUT, NO_REPO, OPREGION, `--handoff`, `--wellformed`
 strict, the uniform-rows test for D), installed with the full Lean pipeline, and each header states
 where its period or stretch comes from and where each letter comes from. Letter totals S 12 -> 18,
-M 15 -> 23, R 6, B 8 -> 11, P 5, D 12, I 17, X 16; benchmarks certifying under `RELCERT_SYNC=1`
+M 15 -> 23, R 6, B 8 -> 10, P 5, D 12, I 17, X 16; benchmarks certifying under `RELCERT_SYNC=1`
 33 -> 27 (`docs/paper-numbers/letters.md`). The suite stays at 50 (41 designed, 9 from the literature).
 
 Multi-rate pass (the deployed side's decision period restored to twice the reference's, with the
@@ -88,9 +88,12 @@ range (SYNC still certifies, 114 s).
 
 Two swaps. `flaps_slow_approach` is back from the reserve (S: the per-mode stretch 1/2 while the flaps
 move, from one of the flap drive's two hydraulic motors, and 1 once they are set; a tolerance claim on
-the approach speed) and takes the place of `tank_dos_3to1` (M I; the chain-depth multi-cycle template
-is carried by `insulin_basal_cgmloss`, `fuelcell_chp_dos`, `grid_ffr_dos` and the three satellite files;
-its near-duplicate `datacenter_crah_poll` was in the reserve already). `platoon_profiles` is back from
+the approach speed) and takes the place of `insulin_basal_cgmloss` (M B; the chain-depth multi-cycle
+template under a 2:1 period ratio is carried by `tank_dos_3to1`, whose mode facts are load-bearing (M I),
+`fuelcell_chp_dos` (M B P X) and the three satellite files; the third slowest suite file at 15 s; the
+medical domain stays represented by `ventilator_vc_cuffleak` and `syringe_relay_prearm`; a first form of
+this batch had moved `tank_dos_3to1` instead, which left the letter I at 16, below the frozen 17, so the
+tank file stays and the insulin file goes). `platoon_profiles` is back from
 the reserve as the round-A time-scaled design (SPORT = the CACC at 1.2 times its bandwidth, kp 0.18,
 kd 0.9; the SPORT follower's gap and closing rate are the NORMAL follower's re-timed by 6/5, the AEB
 the same function at real time; `lambda in [1, 1.2]`, the two pairings' ratios: S M D) and takes the
@@ -98,7 +101,7 @@ place of `platoon_latency` (D; the same right model and the same AEB D as `plato
 right models are batch-I6 / batch-I2 ones with their Assumption 1 proofs (`WellFormed/FlapsSlowApproach`,
 `WellFormed/PlatoonProfiles` through the shared `PlatoonCaccAeb` lemmas). The two files that left are
 stored in `benchmarks/reserve/` as the suite files with one line of reason each; their Lean integration
-is in git history (last at commit 9dcda0c).
+is in git history (`platoon_latency` last at commit 9dcda0c, `insulin_basal_cgmloss` at c57ca5f).
 
 Also in this batch: the `acc_tune_limp` header states D under the rule of 2026-10-27 (S M B D I X).
 
@@ -475,7 +478,6 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `girard_robot` | 6 / 2 | 6 / 6 | abstraction | literature (Girard, Julius, Pappas, DEDS 2008), mode choice; new 2026-10-27 (batch I8); location changes sampled on both sides (the bridge's one evolve domain per side) |
 | `grid_ffr_dos` | 3 / 3 | 2 / 3 | dos-attack | new 2026-10-27 (batch I7; round-A design from the reserve): multi-step covers (one attacked cycle against three nominal), pruned trip edges `NORMAL -> TRIP`, `FFR -> TRIP` |
 | `hydro_rejection_gatecal` | 3 / 3 | 2 / 2 | degraded-sensor | new 2026-10-27 (batch I5): mode-keyed (shared-grid equality before the breaker opens, a speed band after) |
-| `insulin_basal_cgmloss` | 3 / 3 | 9 / 9 | degraded-network | new 2026-10-27 (batch I5): multi-step and branching covers (state-dependent successors of the basal table) |
 | `lz_vehicle_position` | 2 / 2 | 3 / 3 | opacity | literature (Liu, Zamani, L-CSS 2021), mode choice; new 2026-10-27 (batch I8) |
 | `molding_pack_checkring` | 3 / 3 | 2 / 2 | degraded-actuator | new 2026-10-27 (batch I5): mode-keyed (the hold row drops its nozzle conjunct at gate freeze) |
 | `platoon_linkloss` | 2 / 2 | 3 / 2 | dos-attack | redesigned 2026-10-27 (was `platoon_delay_linkloss`): mode-keyed (AEB row), CACC -> ACC fallback; batch I9: the deployed link-loss decision every 0.2 s (two-message timeout), multi-step covers |
@@ -495,6 +497,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `sat_detumble_phases` | 4 / 4 | 2 / 3 | model-refinement | nonblocking region, mode choice; 2026-10-27: the design model with both phases (FINE added), exact energy rows in both phases (no longer mode-keyed); batch I9: the flight mode manager's 2 s period against the design model's 1 s (M I X) |
 | `sat_detumble_weak` | 4 / 4 | 1 / 4 | degraded-actuator | nonblocking region, mode choice; 2026-10-27: both sides at the design-model level (one cause: the weakened gain); batch I9: the exact re-timed claim at the derating ratio 4/5 and the power-saving 2 s period (S M B X) |
 | `syringe_relay_prearm` | 4 / 4 | 6 / 4 | controller-change | new 2026-10-27 (batch I5): mode-keyed, right-only repositioning (the validated relay's take-up) |
+| `tank_dos_3to1` | 2 / 2 | 4 / 4 | dos-attack | redesigned 2026-10-27: a demand-paced four-pump station, the same staging law on both sides, the DoS holds the staging decision for up to three polls |
 | `train_ato_odometry` | 1 / 1 | 3 / 3 | degraded-sensor | new 2026-10-27: stretches per pairing from 31/40 to 6/5 (`lambda_min = 0.75`) |
 | `tunnel_jetfan_pairout` | 3 / 3 | 2 / 2 | degraded-actuator | new 2026-10-27 (batch I6): mode-keyed (the CO row dropped in fire mode), load-bearing mode fact |
 | `turbine_startup_gearratio` | 1 / 1 | 4 / 4 | degraded-controller | new 2026-10-27: widened cuts; right-only repositioning, pruned parking edges (the letters R P I come from the one-sided claim form, header); lambda pinned to 1 (batch I6) |

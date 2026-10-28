@@ -22,7 +22,6 @@ import RelCertifier.InstancesV2.BenchCovers.gantry_speed_zones
 import RelCertifier.InstancesV2.BenchCovers.girard_robot
 import RelCertifier.InstancesV2.BenchCovers.grid_ffr_dos
 import RelCertifier.InstancesV2.BenchCovers.hydro_rejection_gatecal
-import RelCertifier.InstancesV2.BenchCovers.insulin_basal_cgmloss
 import RelCertifier.InstancesV2.BenchCovers.lz_vehicle_position
 import RelCertifier.InstancesV2.BenchCovers.molding_pack_checkring
 import RelCertifier.InstancesV2.BenchCovers.platoon_linkloss
@@ -42,6 +41,7 @@ import RelCertifier.InstancesV2.BenchCovers.sat3w_detumble_phases
 import RelCertifier.InstancesV2.BenchCovers.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchCovers.sat_detumble_weak
 import RelCertifier.InstancesV2.BenchCovers.syringe_relay_prearm
+import RelCertifier.InstancesV2.BenchCovers.tank_dos_3to1
 import RelCertifier.InstancesV2.BenchCovers.train_ato_odometry
 import RelCertifier.InstancesV2.BenchCovers.tunnel_jetfan_pairout
 import RelCertifier.InstancesV2.BenchCovers.turbine_startup_gearratio
@@ -76,7 +76,6 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("girard_robot", girard_robot_coverV2),
   ("grid_ffr_dos", grid_ffr_dos_coverV2),
   ("hydro_rejection_gatecal", hydro_rejection_gatecal_coverV2),
-  ("insulin_basal_cgmloss", insulin_basal_cgmloss_coverV2),
   ("lz_vehicle_position", lz_vehicle_position_coverV2),
   ("molding_pack_checkring", molding_pack_checkring_coverV2),
   ("platoon_linkloss", platoon_linkloss_coverV2),
@@ -96,6 +95,7 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("sat_detumble_phases", sat_detumble_phases_coverV2),
   ("sat_detumble_weak", sat_detumble_weak_coverV2),
   ("syringe_relay_prearm", syringe_relay_prearm_coverV2),
+  ("tank_dos_3to1", tank_dos_3to1_coverV2),
   ("train_ato_odometry", train_ato_odometry_coverV2),
   ("tunnel_jetfan_pairout", tunnel_jetfan_pairout_coverV2),
   ("turbine_startup_gearratio", turbine_startup_gearratio_coverV2),

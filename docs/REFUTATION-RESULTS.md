@@ -131,9 +131,11 @@
 > 16, `sat_detumble_weak` 16: the same refutations as before (`charger_fast_tapers` m003; `platoon_linkloss` m036, m039;
 > `rover_terrain_2to4` m008, m011, m012, m015; `sat3w_detumble_phases` m002 to m007; `sat_detumble_phases` m002, m003, m005,
 > m006), their mutant inputs and IR data rewritten to the new files, each DECLINED by relcert; no witness on the other four.
-> Witness lines 983 -> 957; instances 77 -> 77; groups 228 -> 228.
+> Then (2026-10-28) `insulin_basal_cgmloss` (24 witness lines, no refutation) left the suite and `tank_dos_3to1`
+> (16 lines, no refutation) came back, keeping the letter I at the frozen 17. Witness lines 983 -> 949; instances
+> 77 -> 77; groups 228 -> 228.
 > Current instance set: **77 refutations, 228 groups**
-> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 957 mutants in
+> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 949 mutants in
 > `docs/refute/witnesses.jsonl`. The operator table below is the 2026-10-21 run; recomputed on 2026-10-27
 > (`scripts/refute_experiment.py`, 6 parallel jobs, the then-default 40 s budget; `docs/refute/relcert.json`, `results.json`,
 > `runner.log`): 983 mutants, 342 certified, 77 kernel-refuted, 564 open (9 of them relcert ERRORs by the time budget:

@@ -19,7 +19,6 @@ import RelCertifier.InstancesV2.BenchProgress.gantry_speed_zones
 import RelCertifier.InstancesV2.BenchProgress.girard_robot
 import RelCertifier.InstancesV2.BenchProgress.grid_ffr_dos
 import RelCertifier.InstancesV2.BenchProgress.hydro_rejection_gatecal
-import RelCertifier.InstancesV2.BenchProgress.insulin_basal_cgmloss
 import RelCertifier.InstancesV2.BenchProgress.lz_vehicle_position
 import RelCertifier.InstancesV2.BenchProgress.molding_pack_checkring
 import RelCertifier.InstancesV2.BenchProgress.platoon_linkloss
@@ -39,6 +38,7 @@ import RelCertifier.InstancesV2.BenchProgress.sat3w_detumble_phases
 import RelCertifier.InstancesV2.BenchProgress.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchProgress.sat_detumble_weak
 import RelCertifier.InstancesV2.BenchProgress.syringe_relay_prearm
+import RelCertifier.InstancesV2.BenchProgress.tank_dos_3to1
 import RelCertifier.InstancesV2.BenchProgress.train_ato_odometry
 import RelCertifier.InstancesV2.BenchProgress.tunnel_jetfan_pairout
 import RelCertifier.InstancesV2.BenchProgress.turbine_startup_gearratio
@@ -70,7 +70,6 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("girard_robot", girard_robot_coverV2_progress),
    ("grid_ffr_dos", grid_ffr_dos_coverV2_progress),
    ("hydro_rejection_gatecal", hydro_rejection_gatecal_coverV2_progress),
-   ("insulin_basal_cgmloss", insulin_basal_cgmloss_coverV2_progress),
    ("lz_vehicle_position", lz_vehicle_position_coverV2_progress),
    ("molding_pack_checkring", molding_pack_checkring_coverV2_progress),
    ("platoon_linkloss", platoon_linkloss_coverV2_progress),
@@ -90,6 +89,7 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("sat_detumble_phases", sat_detumble_phases_coverV2_progress),
    ("sat_detumble_weak", sat_detumble_weak_coverV2_progress),
    ("syringe_relay_prearm", syringe_relay_prearm_coverV2_progress),
+   ("tank_dos_3to1", tank_dos_3to1_coverV2_progress),
    ("train_ato_odometry", train_ato_odometry_coverV2_progress),
    ("tunnel_jetfan_pairout", tunnel_jetfan_pairout_coverV2_progress),
    ("turbine_startup_gearratio", turbine_startup_gearratio_coverV2_progress),

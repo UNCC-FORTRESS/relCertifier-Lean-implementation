@@ -65,11 +65,11 @@ Axioms of `theorem3_keyed_of_records` and `theorem3_window_of_records`: `propext
 `relcert-bridge-verdicts` issues exactly `bridgeGroups` per benchmark at the bridge dimension
 and reports the group count against the declared total (`expectedBridgeGroupsV2`).
 
-Run on the regenerated records: **4937 groups over the 50 suite benchmarks and the 2 choice
-exhibits, all discharged** (suite alone 4801: 3282 over the 41 designed benchmarks, 35 + 130 + 77 + 810
-+ 116 + 180 + 35 + 80 + 56 = 1519 over the nine literature cases; 2026-10-27, batch I9: the multi-rate
+Run on the regenerated records: **4576 groups over the 50 suite benchmarks and the 2 choice
+exhibits, all discharged** (suite alone 4440: 2921 over the 41 designed benchmarks, 35 + 130 + 77 + 810
++ 116 + 180 + 35 + 80 + 56 = 1519 over the nine literature cases; 2026-10-27/28, batch I9: the multi-rate
 and stretch pass, `flaps_slow_approach` (25 groups) and the time-scaled `platoon_profiles` (29) in,
-`tank_dos_3to1` and `platoon_latency` out, and the eight changed covers `acc_spoof_lag` 11,
+`insulin_basal_cgmloss` (361) and `platoon_latency` out (`tank_dos_3to1`, 84, stays), and the eight changed covers `acc_spoof_lag` 11,
 `charger_fast_tapers` 222, `platoon_linkloss` 59, `quad_light_profiles` 19, `rover_terrain_2to4` 41,
 `sat3w_detumble_phases` 23, `sat_detumble_phases` 23, `sat_detumble_weak` 19; 5014 over 50 + 2 before it:
 suite alone 4878, 3359 over the 41 designed benchmarks, 35 + 130 + 77 + 810

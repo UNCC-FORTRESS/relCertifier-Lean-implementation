@@ -1,3 +1,6 @@
+# RESERVE (benchmarks/reserve/, 2026-10-28, batch I9): not in suite_v2, not in the paper, no Lean
+# integration (last at commit c57ca5f). Reason: the chain-depth multi-cycle template under a 2:1 period ratio (M B) is carried by tank_dos_3to1 (M I, with load-bearing mode facts), fuelcell_chp_dos (M B P X) and the three satellite files; the third slowest suite file (15 s); the medical domain stays represented by ventilator_vc_cuffleak and syringe_relay_prearm; its place in the suite went back to tank_dos_3to1, batch I9. The header below is the suite file's.
+#
 # insulin_basal_cgmloss: an insulin pump's automated basal modulation (low-glucose suspend plus a
 # glucose-band basal table) whose continuous glucose monitor reaches the pump over a lossy Bluetooth
 # link that drops every other reading, against the same pump receiving every 5-min reading.

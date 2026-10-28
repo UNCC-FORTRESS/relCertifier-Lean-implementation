@@ -100,7 +100,7 @@ import RelCertifier.InstancesV2.WellFormed.CompressorStationRecycle
 import RelCertifier.InstancesV2.WellFormed.SyringeRelayPrearm
 import RelCertifier.InstancesV2.WellFormed.HydroRejectionGatecal
 import RelCertifier.InstancesV2.WellFormed.VentilatorVcCuffleak
-import RelCertifier.InstancesV2.WellFormed.InsulinBasalCgmloss
+import RelCertifier.InstancesV2.WellFormed.TankDos3to1
 import RelCertifier.InstancesV2.WellFormed.TunnelJetfanPairout
 import RelCertifier.InstancesV2.WellFormed.GridFfrDos
 import RelCertifier.InstancesV2.WellFormed.BottlingFillStrainer
@@ -122,7 +122,7 @@ def wfProved : List String :=
    "bms_chiller_undercharge", "turbine_startup_gearratio",
    "molding_pack_checkring", "fuelcell_chp_dos", "elevator_start_discbrake",
    "furnace_program_timebase", "compressor_station_recycle", "syringe_relay_prearm",
-   "hydro_rejection_gatecal", "ventilator_vc_cuffleak", "insulin_basal_cgmloss", "tunnel_jetfan_pairout", "grid_ffr_dos",
+   "hydro_rejection_gatecal", "ventilator_vc_cuffleak", "tank_dos_3to1", "tunnel_jetfan_pairout", "grid_ffr_dos",
    "bottling_fill_strainer", "antenna_track_kvretune",
    "drl_car_stop", "drl_lane_control",
    "vehicle_hypercert", "freedm_meter",
@@ -188,12 +188,12 @@ def suiteNames : List String :=
    "drl_lane_control", "elevator_start_discbrake", "engine_start_highidle", "flaps_slow_approach",
    "freedm_meter",
    "fuelcell_chp_dos", "furnace_program_timebase", "gantry_speed_zones", "girard_robot",
-   "grid_ffr_dos", "hydro_rejection_gatecal", "insulin_basal_cgmloss", "lz_vehicle_position",
+   "grid_ffr_dos", "hydro_rejection_gatecal", "lz_vehicle_position",
    "molding_pack_checkring", "platoon_linkloss", "platoon_profiles", "quad_light_lag",
    "quad_light_profiles", "rover_ladder_2to3", "rover_ladder_3to6", "rover_ladder_6to8",
    "rover_ladder_8to12", "rover_patrol_lag", "rover_terrain_2to4", "rover_terrain_4to6",
    "rover_terrain_6to12", "salt_tank_sensor", "sat3w_detumble_phases", "sat_detumble_phases",
-   "sat_detumble_weak", "syringe_relay_prearm", "train_ato_odometry",
+   "sat_detumble_weak", "syringe_relay_prearm", "tank_dos_3to1", "train_ato_odometry",
    "tunnel_jetfan_pairout", "turbine_startup_gearratio", "vehicle_hypercert",
    "ventilator_vc_cuffleak", "watertank", "watertank_twospeed"]
 
@@ -256,7 +256,7 @@ end WellFormedBattery
 #print axioms V2SyringeRelayPrearm.syringe_relay_prearm_wellFormedR
 #print axioms V2HydroRejectionGatecal.hydro_rejection_gatecal_wellFormedR
 #print axioms V2VentilatorVcCuffleak.ventilator_vc_cuffleak_wellFormedR
-#print axioms V2InsulinBasalCgmloss.insulin_basal_cgmloss_wellFormedR
+#print axioms V2TankDos3to1.tank_dos_3to1_wellFormedR
 #print axioms V2TunnelJetfanPairout.tunnel_jetfan_pairout_wellFormedR
 #print axioms V2BottlingFillStrainer.bottling_fill_strainer_wellFormedR
 #print axioms V2AntennaTrackKvretune.antenna_track_kvretune_wellFormedR

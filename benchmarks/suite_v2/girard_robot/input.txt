@@ -56,9 +56,12 @@
 #   axes and at the origin the 0.4-neighbourhoods of locations 1, 3, 4, 6 overlap). With the
 #   source's edges (l -> l, l+1) those starts have no edge into the robot's location: DECLINED.
 #   Here the planner may switch between any two locations whose enlarged invariants overlap, in
-#   both directions (the target's enlarged invariant is checked at the switch): a weaker planner
-#   than Fig. 3. Edges: 1 -> 1,2,3,4,6; 2 -> 1,2,3; 3 -> 1,2,3,4,6; 4 -> 1,3,4,5,6; 5 -> 4,5,6;
-#   6 -> 1,3,4,5,6.
+#   both directions, and its guard at a switch is the target's enlarged invariant, not the
+#   source's 0.8-wide guard strip (e.g. 2.6 <= px <= 3.4 for 1 -> 2). The certified abstraction
+#   is therefore MORE PERMISSIVE than Fig. 3 (extra edges, larger guards): what is certified is
+#   weaker than the source's statement, though the planner model is still a 0.4-simulation of
+#   the robot, and the source's Fig. 3 automaton is a sub-automaton of it. Edges: 1 -> 1,2,3,4,6;
+#   2 -> 1,2,3; 3 -> 1,2,3,4,6; 4 -> 1,3,4,5,6; 5 -> 4,5,6; 6 -> 1,3,4,5,6.
 # (3) Planner invariants tested at window starts only: one evolve domain shared by all planner
 #   modes, the whole plane (written 0.0 <= 1.0); the handoff check refuses per-mode right evolve
 #   domains. Inside a joint window the planner copies w_L, which stays within 0.4 of the robot,
@@ -79,9 +82,10 @@
 # location (heading), then w_L and y2_R move together; without the choice (RELCERT_NO_CHOICE=1)
 # it must keep the heading it holds: DECLINED.
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27 on branch benchmark-fixes, batch I8):
-# CERTIFIED (about 3.5 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1,
-# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_PAIR_STRETCH=1, RELCERT_OPREGION=1,
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27 on branch benchmark-fixes, batch
+# I8; re-measured 2026-10-28, unchanged): CERTIFIED (about 3.8 s); CERTIFIED under RELCERT_SYNC=1,
+# RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1,
+# RELCERT_NO_PAIR_STRETCH=1, RELCERT_NO_REPO=1, RELCERT_OPREGION=1,
 # RELCERT_WELLFORMED_STRICT=1 and without RELCERT_IMPLIED_CUT; DECLINED under
 # RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1 and RELCERT_SYNC=1
 # RELCERT_NO_CHOICE=1. Cover: every left mode at lambda 1, budget 1, closed by choice; admissible

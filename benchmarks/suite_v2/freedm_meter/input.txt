@@ -28,7 +28,15 @@
 #     level in [0, Bmax] (Bmax = 10), the sampled form of that test (it also admits a zero-net
 #     battery cycle at a full battery, which the source's test does not), and a grid mode
 #     always. The evolve domain adds the capacity B <= Bmax to the source's B >= 0; the meter E
-#     has no domain (it may decrease when a surplus is sold).
+#     has no domain (it may decrease when a surplus is sold). The literal charge test B < Bmax
+#     in place of "one period keeps the level in [0, Bmax]" also CERTIFIES (relcert --wellformed
+#     then reports one right mode, BatD0R1, UNKNOWN, not blocking; measured 2026-10-28).
+# (4) The source is not time-triggered: its plant carries no t <= eps, the ODE may run for any
+#     duration and the controller runs at every cycle end. Both sides here are sampled at period
+#     1 (the left may switch earlier). This is harmless: every mode's flow is autonomous with
+#     constant inputs, so a source cycle of any duration is the same run as re-choosing the same
+#     mode at every period, and equal meters at every instant from equal starts are equal draws
+#     almost everywhere, the source's agreement on gr at every cycle end.
 # PROPERTY. The suite's Definition 1 (the source's nondeducibility) at E_L = E_R (two
 # inequalities), every pair of battery levels an admissible start: the secret B is
 # unconstrained on either side. Witness: the right copies the left's source and inputs when its
@@ -39,9 +47,11 @@
 # flow on in whatever admissible mode it holds at the window start, and the meters separate:
 # DECLINED.
 # The leaky controller batI is benchmarks/negative/freedm_meter_leaky (expected DECLINED).
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26): CERTIFIED; CERTIFIED
-# under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1, RELCERT_OPREGION=1 and without
-# RELCERT_IMPLIED_CUT; DECLINED under RELCERT_NO_CHOICE=1, RELCERT_SYNC=1 RELCERT_NO_CHOICE=1
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26, re-measured 2026-10-28 on
+# branch benchmark-fixes, unchanged): CERTIFIED (about 2.5 s); CERTIFIED under RELCERT_SYNC=1,
+# RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1,
+# RELCERT_NO_PAIR_STRETCH=1, RELCERT_NO_REPO=1, RELCERT_OPREGION=1, RELCERT_WELLFORMED_STRICT=1
+# and without RELCERT_IMPLIED_CUT; DECLINED under RELCERT_NO_CHOICE=1, RELCERT_SYNC=1 RELCERT_NO_CHOICE=1
 # and RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1. Rows identical (--handoff vacuous, 144/144).
 # relcert --wellformed: all 12 right modes ok (8 invariant, 4 exit).
 [problem]

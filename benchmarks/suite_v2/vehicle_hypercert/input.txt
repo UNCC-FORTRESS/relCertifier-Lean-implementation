@@ -38,9 +38,12 @@
 # (1) Position range. The domain is s >= 0 with no upper bound (forward invariant: v >= 0); the
 #   source's 8 enters only as the start range X0 that the offset row respects. The range cannot
 #   be kept as an evolve bound s <= 8: (a) the right model would block at s = 8 with v > 0 (no
-#   run of a full control interval, so Assumption 1 is false) while the tool still CERTIFIES
-#   such a file (relcert --wellformed checks only the successor half of Assumption 1 and
-#   reports all five modes ok), so it would not lift to a theorem; (b) read with every run
+#   run of a full control interval, so Assumption 1 is false), so it would not lift to a
+#   theorem; the default run still CERTIFIES such a file, and the strict Assumption 1 gate
+#   (relcert --wellformed, both clauses since 2026-10-26) reports all five modes BLOCKING and
+#   DECLINES it under RELCERT_WELLFORMED_STRICT=1 (benchmarks/negative_wellformed/
+#   vehicle_hypercert_s8; until then the check covered the successor half only and reported
+#   the modes ok); (b) read with every run
 #   confined to [0, 8] the property is false: the secret run from s = 0 at v = 0.6 that cruises
 #   (A0) for 5 s and brakes (Am4) for 15 s comes to rest at s = 7.5 and stays in [0, 8], and a
 #   partner whose velocity stays within 0.01 of it covers at least 7.5 - 0.01 x 20 = 7.3 m, so
@@ -66,9 +69,10 @@
 #
 # Letter window: X at every offset tested (1.01, 2 and 7: RELCERT_NO_CHOICE=1 declines each).
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26): CERTIFIED (about 1 s);
-# CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1,
-# RELCERT_NO_LINEAR_CUT=1, RELCERT_OPREGION=1, RELCERT_NO_PAIR_STRETCH=1,
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26, re-measured 2026-10-28 on
+# branch benchmark-fixes, unchanged): CERTIFIED (about 1 s); CERTIFIED under RELCERT_SYNC=1,
+# RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1,
+# RELCERT_NO_REPO=1, RELCERT_OPREGION=1, RELCERT_NO_PAIR_STRETCH=1,
 # RELCERT_WELLFORMED_STRICT=1 and without RELCERT_IMPLIED_CUT; DECLINED under RELCERT_NO_CHOICE=1
 # (also with RELCERT_SYNC=1 and with RELCERT_NO_PRUNE=1). Cover: every left mode at lambda 1,
 # budget 1, every right mode an admissible start, one hop into the left's acceleration, no

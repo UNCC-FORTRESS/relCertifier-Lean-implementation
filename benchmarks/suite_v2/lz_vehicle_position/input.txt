@@ -35,9 +35,15 @@
 #
 # Where this file departs from the source.
 # (1) Position range: the domain is x >= 0 with no upper bound (forward invariant: v >= 0); the
-#   source's 10 enters only through the start range. An evolve bound x <= 10 would make the partner,
-#   1 m ahead, block at 10 (Assumption 1), as discussed in vehicle_hypercert's header.
-# (2) Witness: the exact copy u_hat = u (equal velocities) instead of the source's feedback policy.
+#   source's 10 enters only through the start range. The bound is dropped for the WITNESS, not
+#   because the source's claim fails: an evolve bound x <= 10 would make the copying partner, 1 m
+#   ahead, block at 10 (Assumption 1), while under the literal reading (every run confined to
+#   [0, 10]) the source's property stays plausibly true, since a partner may lag and still end
+#   within 1 m and inside [0, 10]. Contrast vehicle_hypercert, where the literal claim is false.
+# (1') Initial velocity: the source's X0 = [0, 10] x {0} starts at rest; here every pair of equal
+#   velocities in [0, 0.1] is an admissible start, a stronger claim.
+# (2) Witness: the exact copy u_hat = u (equal velocities) instead of the source's feedback policy
+#   (which, taken literally, is not input-admissible: x1 = 5, x1_hat = 6 gives u_hat about 13).
 # (3) Inputs: three levels (the ends and the middle of U) instead of the interval; switching after
 #   less than a period is allowed on the left (continuous time), the partner copies each switch.
 # (4) Boundary: x_L = 0 pairs with x_R = 1, on the boundary of the closed Xs; the source's R0
@@ -54,9 +60,10 @@
 # secret run's input and the two velocities move together; without the choice
 # (RELCERT_NO_CHOICE=1) it must keep its input: DECLINED.
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27 on branch benchmark-fixes, batch I8):
-# CERTIFIED (about 0.35 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1,
-# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_PAIR_STRETCH=1, RELCERT_OPREGION=1,
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27 on branch benchmark-fixes, batch
+# I8; re-measured 2026-10-28, unchanged): CERTIFIED (about 0.4 s); CERTIFIED under RELCERT_SYNC=1,
+# RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1,
+# RELCERT_NO_PAIR_STRETCH=1, RELCERT_NO_REPO=1, RELCERT_OPREGION=1,
 # RELCERT_WELLFORMED_STRICT=1 and without RELCERT_IMPLIED_CUT; DECLINED under
 # RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1 and RELCERT_SYNC=1
 # RELCERT_NO_CHOICE=1. Cover: every left mode at lambda 1, budget 1, closed by choice; nothing

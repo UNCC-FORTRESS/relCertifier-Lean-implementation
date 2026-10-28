@@ -37,6 +37,45 @@ needs, read off counter-runs; `scripts/suite_v2_matrix.py`) are in
 physical story, the units, the measured cover and the mechanisms it exercises
 (`# scenario:` and `# mechanisms:` lines).
 
+## Literature faithfulness fixes (2026-10-28)
+
+The owner asked that the nine literature benchmarks be as faithful to their sources as the
+suite's format allows; a read-only audit against the fetched sources (LICS 2016 and IJCAR 2024 for
+dRL, LICS 2018 for FREEDM, CSF 2021, L-CSS 2021, DEDS 2008, NAHS 2025, HyperCertificates) listed
+the fixes, every one tested on a scratch copy before it was installed. Models (five files):
+
+- `drl_car_stop`, `drl_lane_control`, `csf21_vehicle_thermo`, `csf21_vehicle_bus`: the Coast
+  action that the suite adds on both sides (the one-period stand-in for the source's braking to
+  rest, which Assumption 1 forbids on the right) is now enabled only at `v <= 1` (`v_f <= 1` for
+  the lane follower) instead of at any speed, so the attacked or conservative car is a subset of
+  the source's car plus that stand-in. Every verdict is unchanged (CERTIFIED; the same
+  configurations CERTIFIED and DECLINED as before, re-measured under control, SYNC, NO_PRUNE,
+  NO_CHOICE, NO_PRUNE+NO_CHOICE, SYNC+NO_CHOICE, NO_CUT, NO_IMPLIED_CUT, NO_LINEAR_CUT,
+  NO_PAIR_STRETCH, NO_REPO, OPREGION, WELLFORMED_STRICT, --handoff and --wellformed strict:
+  0 UNKNOWN, 0 BLOCKING); covers and choice records unchanged except `drl_lane_control`'s cover;
+  bridge groups `csf21_vehicle_thermo` 116 -> 120, `csf21_vehicle_bus` 180 -> 186, the dRL files
+  unchanged. The four Assumption 1 proofs are rewritten: the exit clause now splits on the end
+  speed (`v <= 1` into Coast, `v >= 1` into Brake, with the thermostat or leader case split as
+  before), Z3-free at the three standard axioms.
+- `salt_tank_sensor`: the evolve domain `xp >= 0`, which the source's plant lacks, is dropped
+  (the constant atom `0.0 <= 1.0`, as `girard_robot`); every verdict unchanged, bridge groups
+  56 -> 54, the proof's domain clause now trivial.
+
+Headers only (IR unchanged, checked by regenerating the leaves): `drl_car_stop` (LICS 2016 gives
+templates; the concrete car is Prebet-Platzer Example 1 with `safeT`, `safeE` unspecified, so
+`Safe` and `Safe_eps` are our instantiation; the `v >= 0` domain is load-bearing, the
+Prebet-literal variant declines and is false; what is certified is dRL's Open Goal 1);
+`drl_lane_control` (dRL removes FM 2011's stopped branch, `Safe` is ours, the three-valued leader
+variant declines, open); `freedm_meter` (the source has no sampling period; why sampling at 1 is
+harmless; the literal charge test also certifies); `csf21_vehicle_thermo` and `csf21_vehicle_bus`
+(Def. 5 is symmetric, the converse direction is immediate); `lz_vehicle_position` (the position
+bound is dropped for the copying witness, not because the claim fails; the source starts at
+rest, ours from every equal velocity pair); `girard_robot` (the certified abstraction is more
+permissive than Fig. 3); `vehicle_hypercert` (the Q1 reading kept; the stale sentence on the
+successor-only `--wellformed` replaced by the strict gate's BLOCKING verdict). Suite counts
+after the fixes: modal 1004, handoff 528, non-connection 64, pruned 32, reposition 76, strict gate
+184 (88/96) unchanged; bridge 4866 -> 4874.
+
 ## Batch I11 (2026-10-28): three swaps from the reserve scan
 
 Third round of the owner's 2026-10-27 request, decided on the reserve scan of 2026-10-28 (every

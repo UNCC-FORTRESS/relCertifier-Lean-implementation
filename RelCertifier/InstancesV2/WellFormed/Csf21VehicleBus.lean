@@ -10,12 +10,14 @@ internal-bus case study: twelve modes `xtA` / `xtT` (action `x ∈ {Acc, Coast, 
 `t ∈ {Cool, Heat}`, message type `A` / `T`), in file order `AccCoolA, AccCoolT, AccHeatA,
 AccHeatT, CoastCoolA, CoastCoolT, CoastHeatA, CoastHeatT, BrkCoolA, BrkCoolT, BrkHeatA,
 BrkHeatT`, with `d' = −v`, `v' = c_q ∈ {1, 0, −1}`, `temp' = h_q ∈ {−1, 1}` and the shared evolve
-domain `0 ≤ v ≤ 40`. The `Acc` guards contain `0 ≤ v ≤ 39`, the `Brk` guards `v ≥ 1`.
+domain `0 ≤ v ≤ 40`. The `Acc` guards contain `0 ≤ v ≤ 39`, the `Brk` guards `v ≥ 1`, the
+`Coast` guards `0 ≤ v ≤ 1` (the low-speed stand-in for braking to rest; 2026-10-28).
 Existence: the explicit polynomial run `d − v t − c t²/2`, `v + c t`, `temp + h t`
 (`trajRs_sol`), inside the domain for one period by the guard's speed bounds. Completeness: the
-guard of `CoastCoolA` (resp. `CoastHeatA`) is `v ≥ 0`, implied by the domain, and `CoastCoolA`
-(resp. `CoastHeatA`) is a declared successor of every `Cool` (resp. `Heat`) mode, so every
-run's end state enables a declared successor. Z3-free.
+end state is in the domain, so `v ≥ 0`; `v ≤ 1` enables `CoastCoolA` (resp. `CoastHeatA`), whose
+guard is `0 ≤ v ≤ 1`, and `v ≥ 1` enables `BrkCoolA` (resp. `BrkHeatA`), whose guard is
+`v ≥ 1`; both are declared successors of every `Cool` (resp. `Heat`) mode, so every run's end
+state enables a declared successor. Z3-free.
 -/
 import RelCertifier.Proofs.Encoding.Emitted.Data
 import RelCertifier.Proofs.Encoding.WellFormedR
@@ -89,22 +91,40 @@ theorem sat_guardR_speed (q : ℕ) (hq12 : q < 12) (s : State (Var 3))
       IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, AOp.interp, Rv] at hg ⊢ <;>
     simp_all
 
-/-- The guard of `CoastCoolA` (`q = 4`) and of `CoastHeatA` (`q = 6`) is `v ≥ 0`. -/
+/-- The guard of `CoastCoolA` (`q = 4`) and of `CoastHeatA` (`q = 6`) is `0 ≤ v ≤ 1`. -/
 theorem sat_guardR_coastA (q : ℕ) (hq : q = 4 ∨ q = 6) (s : State (Var 3)) :
-    Formula.sat (guardR IR 3 q) s ↔ 0 ≤ s (Rv 1) := by
+    Formula.sat (guardR IR 3 q) s ↔ 0 ≤ s (Rv 1) ∧ s (Rv 1) ≤ 1 := by
   rcases hq with rfl | rfl <;>
     simp [guardR, hostGuard, mRof, vars, IR, Parse.csf21_vehicle_bus_IRv2, Run.lowerF, Run.lowerE,
-      hp00, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
+      hp00, hp10, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
       CompOp.interp, Term.eval, AOp.interp, Rv]
 
-/-- The exit successor of right mode `q`: `CoastCoolA` for the `Cool` modes, `CoastHeatA` for
-the `Heat` modes. -/
+/-- The guard of `BrkCoolA` (`q = 8`) and of `BrkHeatA` (`q = 10`) is `v ≥ 1`. -/
+theorem sat_guardR_brkA (q : ℕ) (hq : q = 8 ∨ q = 10) (s : State (Var 3)) :
+    Formula.sat (guardR IR 3 q) s ↔ 1 ≤ s (Rv 1) := by
+  rcases hq with rfl | rfl <;>
+    simp [guardR, hostGuard, mRof, vars, IR, Parse.csf21_vehicle_bus_IRv2, Run.lowerF, Run.lowerE,
+      hp10, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
+      CompOp.interp, Term.eval, AOp.interp, Rv]
+
+/-- The low-speed exit successor of right mode `q`: `CoastCoolA` for the `Cool` modes,
+`CoastHeatA` for the `Heat` modes. -/
 def succNm (q : ℕ) : String := if q % 4 < 2 then "CoastCoolA" else "CoastHeatA"
+
+/-- The braking exit successor of right mode `q`: `BrkCoolA` for the `Cool` modes, `BrkHeatA`
+for the `Heat` modes. -/
+def brkNm (q : ℕ) : String := if q % 4 < 2 then "BrkCoolA" else "BrkHeatA"
 
 theorem succ_next (q : ℕ) (hq12 : q < 12) : succNm q ∈ (mRof IR q).next := by
   interval_cases q <;> decide
 
+theorem brk_next (q : ℕ) (hq12 : q < 12) : brkNm q ∈ (mRof IR q).next := by
+  interval_cases q <;> decide
+
 theorem tgt_succ (q : ℕ) (hq12 : q < 12) : tgtIdx IR (succNm q) = 4 ∨ tgtIdx IR (succNm q) = 6 := by
+  interval_cases q <;> decide
+
+theorem tgt_brk (q : ℕ) (hq12 : q < 12) : tgtIdx IR (brkNm q) = 8 ∨ tgtIdx IR (brkNm q) = 10 := by
   interval_cases q <;> decide
 
 /-- **Assumption 1 for `csf21_vehicle_bus`**, every mode, over the bridge's automaton. -/
@@ -152,13 +172,21 @@ theorem csf21_vehicle_bus_wellFormedR_direct (pruned : String → String → Boo
         · have := hs2 (by omega)
           simp only [cq, if_neg hA, if_neg hC]
           constructor <;> nlinarith [hdx.1, hdx.2, ht0, ht1, this]
-  · -- completeness: the end state is in the domain, which implies the `Coast*A` guard
+  · -- completeness: the end state is in the domain (`v ≥ 0`); `v ≤ 1` enables the `Coast*A`
+    -- successor, `v ≥ 1` the `Brk*A` successor
     intro t Φ _ H
-    refine ⟨edgeOf IR 3 pruned q (succNm q),
-      edge_mem_grOf (by rw [nR_eq]; exact hq12) (succ_next q hq12), ?_⟩
-    simp only [edgeOf]
-    rw [sat_guardR_coastA _ (tgt_succ q hq12)]
-    exact ((sat_domR _).mp H.end_dom).1
+    have hend := (sat_domR _).mp H.end_dom
+    rcases le_total (Φ t (Rv 1)) 1 with hv | hv
+    · refine ⟨edgeOf IR 3 pruned q (succNm q),
+        edge_mem_grOf (by rw [nR_eq]; exact hq12) (succ_next q hq12), ?_⟩
+      simp only [edgeOf]
+      rw [sat_guardR_coastA _ (tgt_succ q hq12)]
+      exact ⟨hend.1, hv⟩
+    · refine ⟨edgeOf IR 3 pruned q (brkNm q),
+        edge_mem_grOf (by rw [nR_eq]; exact hq12) (brk_next q hq12), ?_⟩
+      simp only [edgeOf]
+      rw [sat_guardR_brkA _ (tgt_brk q hq12)]
+      exact hv
 
 end V2Csf21VehicleBus
 end RelCertifier

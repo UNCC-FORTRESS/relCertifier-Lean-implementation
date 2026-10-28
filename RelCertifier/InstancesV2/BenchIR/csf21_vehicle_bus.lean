@@ -41,7 +41,7 @@ def csf21_vehicle_bus_IRv2 : PProblem :=
           odes := [("d", (.bin "-" (.num "0.0") (.var "v"))),
             ("v", (.num "0.0")),
             ("temp", (.bin "-" (.num "0.0") (.num "1.0")))]
-          guard := (.cmp ">=" (.var "v") (.num "0.0"))
+          guard := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "1.0")))
           evolve := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "40.0")))
           next := ["AccCool", "CoastCool", "BrkCool", "CoastHeat"] },
         {
@@ -49,7 +49,7 @@ def csf21_vehicle_bus_IRv2 : PProblem :=
           odes := [("d", (.bin "-" (.num "0.0") (.var "v"))),
             ("v", (.num "0.0")),
             ("temp", (.num "1.0"))]
-          guard := (.cmp ">=" (.var "v") (.num "0.0"))
+          guard := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "1.0")))
           evolve := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "40.0")))
           next := ["AccHeat", "CoastHeat", "BrkHeat", "CoastCool"] },
         {
@@ -109,7 +109,7 @@ def csf21_vehicle_bus_IRv2 : PProblem :=
           odes := [("d", (.bin "-" (.num "0.0") (.var "v"))),
             ("v", (.num "0.0")),
             ("temp", (.bin "-" (.num "0.0") (.num "1.0")))]
-          guard := (.cmp ">=" (.var "v") (.num "0.0"))
+          guard := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "1.0")))
           evolve := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "40.0")))
           next := ["AccCoolA", "CoastCoolA", "BrkCoolA", "CoastCoolT", "CoastHeatT"] },
         {
@@ -117,7 +117,7 @@ def csf21_vehicle_bus_IRv2 : PProblem :=
           odes := [("d", (.bin "-" (.num "0.0") (.var "v"))),
             ("v", (.num "0.0")),
             ("temp", (.bin "-" (.num "0.0") (.num "1.0")))]
-          guard := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp ">=" (.var "temp") (.num "20.0")))
+          guard := (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "1.0"))) (.cmp ">=" (.var "temp") (.num "20.0")))
           evolve := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "40.0")))
           next := ["AccCoolA", "CoastCoolA", "BrkCoolA", "CoastCoolT", "CoastHeatT"] },
         {
@@ -125,7 +125,7 @@ def csf21_vehicle_bus_IRv2 : PProblem :=
           odes := [("d", (.bin "-" (.num "0.0") (.var "v"))),
             ("v", (.num "0.0")),
             ("temp", (.num "1.0"))]
-          guard := (.cmp ">=" (.var "v") (.num "0.0"))
+          guard := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "1.0")))
           evolve := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "40.0")))
           next := ["AccHeatA", "CoastHeatA", "BrkHeatA", "CoastCoolT", "CoastHeatT"] },
         {
@@ -133,7 +133,7 @@ def csf21_vehicle_bus_IRv2 : PProblem :=
           odes := [("d", (.bin "-" (.num "0.0") (.var "v"))),
             ("v", (.num "0.0")),
             ("temp", (.num "1.0"))]
-          guard := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "temp") (.num "20.0")))
+          guard := (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "1.0"))) (.cmp "<=" (.var "temp") (.num "20.0")))
           evolve := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "40.0")))
           next := ["AccHeatA", "CoastHeatA", "BrkHeatA", "CoastCoolT", "CoastHeatT"] },
         {

@@ -33,14 +33,21 @@
 # moves. Not implied by the domains; every left mode has a satisfiable start (equal d and v in the
 # mode's action guard, any temperatures). The rows leave both cabin temperatures free, so the claim
 # holds from every pair of cabin temperatures; this per-state form implies the source's, whose
-# genuine run may also choose its start temperature.
+# genuine run may also choose its start temperature. The source's Def. 5 is symmetric (each
+# program's runs are matched by the other's); the converse direction, every run of the genuine
+# car matched by the attacked car, is immediate, since the attacked program contains the genuine
+# one (temps := * includes temps := temp), so the direction certified here is the one with
+# content.
 #
 # Where this file departs from the source.
-# (1) Coast and low-speed braking. A Coast action (a = 0, from any v >= 0) is added on both sides
-#   and Brk is enabled only from v >= 1 = B eps, as in drl_car_stop: the source's braking run
-#   stops at v = 0 before the period ends (its domain v >= 0), which a right mode may not do
-#   (Assumption 1 asks every right mode for a run of a full control interval); Coast keeps the
-#   genuine car complete where neither psi nor v >= 1 holds.
+# (1) Coast and low-speed braking. A Coast action (a = 0, enabled only at v <= 1 = B eps) is
+#   added on both sides and Brk is enabled only from v >= 1, as in drl_car_stop: the source's
+#   braking run stops at v = 0 before the period ends (its domain v >= 0), which a right mode may
+#   not do (Assumption 1 asks every right mode for a run of a full control interval); Coast is
+#   the one-period stand-in for braking to rest and keeps the genuine car complete where neither
+#   psi nor v >= 1 holds. Until 2026-10-28 Coast was enabled at any speed; restricting it to
+#   v <= 1 makes the attacked car a subset of the source's attacked car plus that stand-in,
+#   instead of a car that may coast at any speed, and changes no verdict.
 # (2) Top speed. Domain 0 <= v <= 40 (m/s, ours; the source has v >= 0 only), and Acc needs
 #   v <= 39 so that one period of acceleration stays below it. It bounds the rate of the psi atom,
 #   which the Assumption 1 check needs: without it the file still CERTIFIES (measured), but
@@ -54,15 +61,17 @@
 # temp >= 20, Heat at temp <= 20); its d and v then move with the attacked car's. Without the
 # choice (RELCERT_NO_CHOICE=1) it must flow on in the action it holds: DECLINED.
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27 on branch benchmark-fixes, batch I8):
-# CERTIFIED (about 1.8 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1,
-# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_PAIR_STRETCH=1, RELCERT_OPREGION=1,
-# RELCERT_WELLFORMED_STRICT=1 and without RELCERT_IMPLIED_CUT; DECLINED under
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-28 on branch benchmark-fixes
+# with Coast at v <= 1; the same pattern as batch I8's unrestricted Coast): CERTIFIED (about
+# 1.9 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1,
+# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_PAIR_STRETCH=1, RELCERT_NO_REPO=1,
+# RELCERT_OPREGION=1, RELCERT_WELLFORMED_STRICT=1 and without RELCERT_IMPLIED_CUT; DECLINED under
 # RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1 and RELCERT_SYNC=1
 # RELCERT_NO_CHOICE=1. Cover: every left mode at lambda 1, budget 1, all six right modes
 # admissible starts, closed by a hop into the left's action (both thermostat settings pass);
 # nothing pruned. Rows identical (--handoff vacuous, 36/36). relcert --wellformed: all six right
-# modes ok (exit), 0 UNKNOWN.
+# modes ok (exit; Acc and Brk into a Coast or Brk mode by the end speed, each Coast mode into the
+# other setting's Coast), 0 UNKNOWN, 0 BLOCKING.
 # The leaky counterpart is benchmarks/negative/csf21_vehicle_thermo_leaky (expected DECLINED).
 [problem]
 name = csf21_vehicle_thermo
@@ -89,13 +98,13 @@ next = [AccCool, AccHeat, CoastCool, CoastHeat, BrkCool, BrkHeat]
 
 [Lsys.mode.CoastCool]
 ode = d' = smt2:(- 0.0 v); v' = smt2:0.0; temp' = smt2:(- 0.0 1.0);
-guard = smt2:(and (>= v 0.0))
+guard = smt2:(and (>= v 0.0) (<= v 1.0))
 evolve = v >= 0.0 and v <= 40.0
 next = [AccCool, AccHeat, CoastCool, CoastHeat, BrkCool, BrkHeat]
 
 [Lsys.mode.CoastHeat]
 ode = d' = smt2:(- 0.0 v); v' = smt2:0.0; temp' = smt2:1.0;
-guard = smt2:(and (>= v 0.0))
+guard = smt2:(and (>= v 0.0) (<= v 1.0))
 evolve = v >= 0.0 and v <= 40.0
 next = [AccCool, AccHeat, CoastCool, CoastHeat, BrkCool, BrkHeat]
 
@@ -129,13 +138,13 @@ next = [AccCool, AccHeat, CoastCool, CoastHeat, BrkCool, BrkHeat]
 
 [Rsys.mode.CoastCool]
 ode = d' = smt2:(- 0.0 v); v' = smt2:0.0; temp' = smt2:(- 0.0 1.0);
-guard = smt2:(and (>= v 0.0) (>= temp 20.0))
+guard = smt2:(and (>= v 0.0) (<= v 1.0) (>= temp 20.0))
 evolve = v >= 0.0 and v <= 40.0
 next = [AccCool, AccHeat, CoastCool, CoastHeat, BrkCool, BrkHeat]
 
 [Rsys.mode.CoastHeat]
 ode = d' = smt2:(- 0.0 v); v' = smt2:0.0; temp' = smt2:1.0;
-guard = smt2:(and (>= v 0.0) (<= temp 20.0))
+guard = smt2:(and (>= v 0.0) (<= v 1.0) (<= temp 20.0))
 evolve = v >= 0.0 and v <= 40.0
 next = [AccCool, AccHeat, CoastCool, CoastHeat, BrkCool, BrkHeat]
 

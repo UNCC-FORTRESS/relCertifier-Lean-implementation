@@ -31,7 +31,7 @@ def drl_car_stop_IRv2 : PProblem :=
           name := "Coast"
           odes := [("x", (.var "v")),
             ("v", (.num "0.0"))]
-          guard := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "10.0")))
+          guard := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "1.0")))
           evolve := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "10.0")))
           next := ["Accel", "Coast", "Brake"] },
         {
@@ -56,7 +56,7 @@ def drl_car_stop_IRv2 : PProblem :=
           name := "Coast"
           odes := [("x", (.var "v")),
             ("v", (.num "0.0"))]
-          guard := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "10.0")))
+          guard := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "1.0")))
           evolve := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "10.0")))
           next := ["Accel", "Coast", "Brake"] },
         {

@@ -35,9 +35,12 @@
 # implied by the domains; every left mode has a satisfiable start; the cabin temperatures are free
 # on both sides (the per-state form, which implies the source's).
 #
-# Where this file departs from the source. (1)-(3) of csf21_vehicle_thermo: Coast added and Brk
-# from v >= 1 (Assumption 1); top speed 40 m/s with Acc from v <= 39 (lets relcert --wellformed
-# bound the psi atom); thermo in {-1, 1}. (4) "?temps = T" leaves busV = a, so the source then
+# Where this file departs from the source. (1)-(3) of csf21_vehicle_thermo: Coast added at
+# v <= 1 only (the stand-in for braking to rest; at any speed until 2026-10-28, same verdicts)
+# and Brk from v >= 1 (Assumption 1); top speed 40 m/s with Acc from v <= 39 (lets relcert
+# --wellformed bound the psi atom); thermo in {-1, 1}; the converse direction of the source's
+# symmetric Def. 5 is immediate (the attacked program contains the genuine one). (4) "?temps =
+# T" leaves busV = a, so the source then
 # writes the acceleration value into thermo (1 after Acc, -1 after Brk at A = B = 1, and it would
 # write 0 after our Coast); here both settings are enabled at temp = 20 exactly (closed guards).
 #
@@ -46,14 +49,16 @@
 # temperature condition on that message); without the choice (RELCERT_NO_CHOICE=1) it flows on in
 # the mode it holds: DECLINED. The genuine car never needs a thermostat message.
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27 on branch benchmark-fixes, batch I8):
-# CERTIFIED (about 3.5 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1,
-# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_PAIR_STRETCH=1, RELCERT_OPREGION=1,
-# RELCERT_WELLFORMED_STRICT=1 and without RELCERT_IMPLIED_CUT; DECLINED under
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-28 on branch benchmark-fixes
+# with Coast at v <= 1; the same pattern as batch I8's unrestricted Coast): CERTIFIED (about
+# 4 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1,
+# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_PAIR_STRETCH=1, RELCERT_NO_REPO=1,
+# RELCERT_OPREGION=1, RELCERT_WELLFORMED_STRICT=1 and without RELCERT_IMPLIED_CUT; DECLINED under
 # RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1 and RELCERT_SYNC=1
 # RELCERT_NO_CHOICE=1. Cover: every left mode at lambda 1, budget 1, all twelve right modes
 # admissible starts, closed by choice; nothing pruned. Rows identical (--handoff vacuous, 24/24).
-# relcert --wellformed: 12 right modes, 2 ok (invariant), 10 ok (exit), 0 UNKNOWN.
+# relcert --wellformed: 12 right modes, 2 ok (invariant: CoastCoolA, CoastHeatA), 10 ok (exit;
+# the Acc and Brk modes into a Coast*A or Brk*A mode by the end speed), 0 UNKNOWN, 0 BLOCKING.
 [problem]
 name = csf21_vehicle_bus
 max_depth = 8
@@ -79,13 +84,13 @@ next = [AccHeat, CoastHeat, BrkHeat, AccCool]
 
 [Lsys.mode.CoastCool]
 ode = d' = smt2:(- 0.0 v); v' = smt2:0.0; temp' = smt2:(- 0.0 1.0);
-guard = smt2:(and (>= v 0.0))
+guard = smt2:(and (>= v 0.0) (<= v 1.0))
 evolve = v >= 0.0 and v <= 40.0
 next = [AccCool, CoastCool, BrkCool, CoastHeat]
 
 [Lsys.mode.CoastHeat]
 ode = d' = smt2:(- 0.0 v); v' = smt2:0.0; temp' = smt2:1.0;
-guard = smt2:(and (>= v 0.0))
+guard = smt2:(and (>= v 0.0) (<= v 1.0))
 evolve = v >= 0.0 and v <= 40.0
 next = [AccHeat, CoastHeat, BrkHeat, CoastCool]
 
@@ -131,25 +136,25 @@ next = [AccHeatA, CoastHeatA, BrkHeatA, AccCoolT, AccHeatT]
 
 [Rsys.mode.CoastCoolA]
 ode = d' = smt2:(- 0.0 v); v' = smt2:0.0; temp' = smt2:(- 0.0 1.0);
-guard = smt2:(and (>= v 0.0))
+guard = smt2:(and (>= v 0.0) (<= v 1.0))
 evolve = v >= 0.0 and v <= 40.0
 next = [AccCoolA, CoastCoolA, BrkCoolA, CoastCoolT, CoastHeatT]
 
 [Rsys.mode.CoastCoolT]
 ode = d' = smt2:(- 0.0 v); v' = smt2:0.0; temp' = smt2:(- 0.0 1.0);
-guard = smt2:(and (>= v 0.0) (>= temp 20.0))
+guard = smt2:(and (>= v 0.0) (<= v 1.0) (>= temp 20.0))
 evolve = v >= 0.0 and v <= 40.0
 next = [AccCoolA, CoastCoolA, BrkCoolA, CoastCoolT, CoastHeatT]
 
 [Rsys.mode.CoastHeatA]
 ode = d' = smt2:(- 0.0 v); v' = smt2:0.0; temp' = smt2:1.0;
-guard = smt2:(and (>= v 0.0))
+guard = smt2:(and (>= v 0.0) (<= v 1.0))
 evolve = v >= 0.0 and v <= 40.0
 next = [AccHeatA, CoastHeatA, BrkHeatA, CoastCoolT, CoastHeatT]
 
 [Rsys.mode.CoastHeatT]
 ode = d' = smt2:(- 0.0 v); v' = smt2:0.0; temp' = smt2:1.0;
-guard = smt2:(and (>= v 0.0) (<= temp 20.0))
+guard = smt2:(and (>= v 0.0) (<= v 1.0) (<= temp 20.0))
 evolve = v >= 0.0 and v <= 40.0
 next = [AccHeatA, CoastHeatA, BrkHeatA, CoastCoolT, CoastHeatT]
 

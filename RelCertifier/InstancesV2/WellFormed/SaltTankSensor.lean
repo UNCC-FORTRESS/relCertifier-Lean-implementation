@@ -7,10 +7,11 @@ Released under Apache 2.0 license.
 Stated directly over the generic bridge's automaton `grOf IR 3 pruned` (no standalone
 instance): the lowered right guards, `ε_r = 1`. The right model is the genuine controller of
 the brine tank: `On` (`xp' = 0.1 (25 − xp)`, guard `xp ≥ 25`) and `Off` (`xp' = 0`, guard
-`0 ≤ xp < 25`, a strict atom), evolve domain `xp ≥ 0`; the padding coordinates have field 0.
-Existence: `On`'s explicit exponential approach `25 + (xp − 25) e^{−t/10}`
-(`exists_contract_run`), which stays between its start and the set point 25, hence in the
-domain; `Off`'s constant run (`const_sol`). Completeness, for EVERY run (not only the explicit
+`xp < 25`, a strict atom), evolve domain the constant atom `0 ≤ 1` (the source's plant has no
+state domain; the `xp ≥ 0` of the first install was dropped 2026-10-28); the padding
+coordinates have field 0. Existence: `On`'s explicit exponential approach
+`25 + (xp − 25) e^{−t/10}` (`exists_contract_run`), trivially in the domain; `Off`'s constant
+run (`const_sol`). Completeness, for EVERY run (not only the explicit
 one): along `On` the closed form of the linear coordinate (`ODESol.linear_down`) keeps
 `xp ≥ 25`, so the end state enables the declared self-loop `On`; along `Off` the field
 vanishes (`ODESol.const`), so `xp` keeps its start value and the end state enables `Off` (the
@@ -62,10 +63,14 @@ theorem fR_off (s : State (Var 3)) (i : Fin 3) : Term.eval (fR IR 3 1 i) s = 0 :
       hp00, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
       AOp.interp, Rv]
 
-theorem sat_domR (s : State (Var 3)) : Formula.sat (domR IR 3) s ↔ 0 ≤ s (Rv 0) := by
+theorem sat_domR_iff (s : State (Var 3)) : Formula.sat (domR IR 3) s ↔ (0 : ℝ) ≤ 1 := by
   simp [domR, hostEvolve, mRof, vars, IR, Parse.salt_tank_sensor_IRv2, Run.lowerF, Run.lowerE,
-    hp00, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
+    hp00, hp10, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
     CompOp.interp, Term.eval, AOp.interp, Rv]
+
+/-- The evolve domain is the whole state space (the constant atom `0 ≤ 1`). -/
+theorem sat_domR (s : State (Var 3)) : Formula.sat (domR IR 3) s :=
+  (sat_domR_iff s).mpr zero_le_one
 
 theorem sat_guardR0 (s : State (Var 3)) : Formula.sat (guardR IR 3 0) s ↔ 25 ≤ s (Rv 0) := by
   simp [guardR, hostGuard, mRof, vars, IR, Parse.salt_tank_sensor_IRv2, Run.lowerF, Run.lowerE,
@@ -73,9 +78,9 @@ theorem sat_guardR0 (s : State (Var 3)) : Formula.sat (guardR IR 3 0) s ↔ 25 �
     CompOp.interp, Term.eval, AOp.interp, Rv]
 
 theorem sat_guardR1 (s : State (Var 3)) :
-    Formula.sat (guardR IR 3 1) s ↔ 0 ≤ s (Rv 0) ∧ s (Rv 0) < 25 := by
+    Formula.sat (guardR IR 3 1) s ↔ s (Rv 0) < 25 := by
   simp [guardR, hostGuard, mRof, vars, IR, Parse.salt_tank_sensor_IRv2, Run.lowerF, Run.lowerE,
-    hp00, hp250, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
+    hp250, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
     CompOp.interp, Term.eval, AOp.interp, Rv]
 
 theorem on_next : "On" ∈ (mRof IR 0).next := by decide
@@ -96,7 +101,6 @@ theorem salt_tank_sensor_wellFormedR_direct (pruned : String → String → Bool
   intro q hq m hm x hg hd _
   obtain ⟨hq2, rfl⟩ := grOf_modeAt_inv hm
   rw [nR_eq] at hq2
-  have hdx := (sat_domR x).mp hd
   interval_cases q
   · -- On: the exponential approach to 25 from above
     have hg0 := (sat_guardR0 x).mp hg
@@ -104,10 +108,7 @@ theorem salt_tank_sensor_wellFormedR_direct (pruned : String → String → Bool
     · exact exists_contract_run x 0 (1 / 10) 25 (by norm_num)
         (fun s => by rw [fR_on]; simp)
         (fun i hi s => by rw [fR_on, if_neg]; intro h; exact hi (Fin.ext h))
-        (fun v hv _ => by
-          change Formula.sat (domR IR 3) _
-          rw [sat_domR, trajJ_j]
-          exact le_trans (le_min hdx (by norm_num)) hv)
+        (fun _ _ _ => sat_domR _)
         1 (by norm_num)
     · intro t Φ _ H
       have hdn := H.linear_down (memR 0) (1 / 10) 25 (by norm_num)

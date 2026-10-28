@@ -2,17 +2,19 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `drl_lane_control`: Assumption 1 of the right model (style (b), exit into a `Coast` pair)
+# `drl_lane_control`: Assumption 1 of the right model (style (b), exit into a `Coast` or `Brake` pair)
 
 Stated directly over the generic bridge's automaton `grOf IR 3 pruned` (no standalone
 instance): the lowered right guards, `ε_r = 1`. The right model is the permissive sampled
 lane controller of the dRL case study: six modes, pairs of a follower action (`Accel`: `v_f' = 1`,
-guard `v_f ≤ 9` and the safe distance; `Coast`: `v_f' = 0`; `Brake`: `v_f' = −1`, guard
-`v_f ≥ 1`) and a leader action (`LAccel`: `v_l' = 1`, guard `v_l ≤ 9`; `LBrake`: `v_l' = −1`,
-guard `v_l ≥ 1`), gap `d' = v_l − v_f`, evolve domain `0 ≤ v_f ≤ 10 ∧ 0 ≤ v_l ≤ 10`.
+guard `v_f ≤ 9` and the safe distance; `Coast`: `v_f' = 0`, guard `v_f ≤ 1`, the low-speed
+stand-in for braking to rest (2026-10-28); `Brake`: `v_f' = −1`, guard `v_f ≥ 1`) and a leader
+action (`LAccel`: `v_l' = 1`, guard `v_l ≤ 9`; `LBrake`: `v_l' = −1`, guard `v_l ≥ 1`), gap
+`d' = v_l − v_f`, evolve domain `0 ≤ v_f ≤ 10 ∧ 0 ≤ v_l ≤ 10`.
 Existence: the explicit polynomial run (`trajRs_sol`), inside the domain for one period by
-the guard's speed bounds. Completeness: at every end state `v_l ≤ 9` or `v_l ≥ 1`, so
-`CoastLAccel` or `CoastLBrake` (both declared successors of every mode) is enabled. Z3-free.
+the guard's speed bounds. Completeness: at every end state `v_f ≤ 1` or `v_f ≥ 1`, and
+`v_l ≤ 9` or `v_l ≥ 1`, so one of `CoastLAccel`, `CoastLBrake`, `BrakeLAccel`, `BrakeLBrake`
+(all four declared successors of every mode) is enabled. Z3-free.
 -/
 import RelCertifier.Proofs.Encoding.Emitted.Data
 import RelCertifier.Proofs.Encoding.WellFormedR
@@ -86,27 +88,51 @@ theorem sat_guardR_speed (q : ℕ) (hq : q < 6) (s : State (Var 3))
       IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, AOp.interp, Rv] at hg ⊢ <;>
     simp_all
 
+/-- `CoastLAccel`'s guard: `0 ≤ v_f ≤ 1 ∧ 0 ≤ v_l ≤ 9`. -/
 theorem sat_guardR2 (s : State (Var 3)) :
     Formula.sat (guardR IR 3 2) s ↔
-      (0 ≤ s (Rv 1) ∧ s (Rv 1) ≤ 10) ∧ (0 ≤ s (Rv 2) ∧ s (Rv 2) ≤ 9) := by
+      (0 ≤ s (Rv 1) ∧ s (Rv 1) ≤ 1) ∧ (0 ≤ s (Rv 2) ∧ s (Rv 2) ≤ 9) := by
   simp [guardR, hostGuard, mRof, vars, IR, Parse.drl_lane_control_IRv2, Run.lowerF, Run.lowerE,
-    hp00, hp90, hp100, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost,
+    hp00, hp10, hp90, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost,
     Formula.sat, CompOp.interp, Term.eval, AOp.interp, Rv, and_assoc]
 
+/-- `CoastLBrake`'s guard: `0 ≤ v_f ≤ 1 ∧ 1 ≤ v_l ≤ 10`. -/
 theorem sat_guardR3 (s : State (Var 3)) :
     Formula.sat (guardR IR 3 3) s ↔
-      (0 ≤ s (Rv 1) ∧ s (Rv 1) ≤ 10) ∧ (1 ≤ s (Rv 2) ∧ s (Rv 2) ≤ 10) := by
+      (0 ≤ s (Rv 1) ∧ s (Rv 1) ≤ 1) ∧ (1 ≤ s (Rv 2) ∧ s (Rv 2) ≤ 10) := by
   simp [guardR, hostGuard, mRof, vars, IR, Parse.drl_lane_control_IRv2, Run.lowerF, Run.lowerE,
     hp00, hp10, hp100, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost,
+    Formula.sat, CompOp.interp, Term.eval, AOp.interp, Rv, and_assoc]
+
+/-- `BrakeLAccel`'s guard: `1 ≤ v_f ≤ 10 ∧ 0 ≤ v_l ≤ 9`. -/
+theorem sat_guardR4 (s : State (Var 3)) :
+    Formula.sat (guardR IR 3 4) s ↔
+      (1 ≤ s (Rv 1) ∧ s (Rv 1) ≤ 10) ∧ (0 ≤ s (Rv 2) ∧ s (Rv 2) ≤ 9) := by
+  simp [guardR, hostGuard, mRof, vars, IR, Parse.drl_lane_control_IRv2, Run.lowerF, Run.lowerE,
+    hp00, hp10, hp90, hp100, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost,
+    Formula.sat, CompOp.interp, Term.eval, AOp.interp, Rv, and_assoc]
+
+/-- `BrakeLBrake`'s guard: `1 ≤ v_f ≤ 10 ∧ 1 ≤ v_l ≤ 10`. -/
+theorem sat_guardR5 (s : State (Var 3)) :
+    Formula.sat (guardR IR 3 5) s ↔
+      (1 ≤ s (Rv 1) ∧ s (Rv 1) ≤ 10) ∧ (1 ≤ s (Rv 2) ∧ s (Rv 2) ≤ 10) := by
+  simp [guardR, hostGuard, mRof, vars, IR, Parse.drl_lane_control_IRv2, Run.lowerF, Run.lowerE,
+    hp10, hp100, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost,
     Formula.sat, CompOp.interp, Term.eval, AOp.interp, Rv, and_assoc]
 
 theorem coastA_next (q : ℕ) (hq : q < 6) : "CoastLAccel" ∈ (mRof IR q).next := by
   interval_cases q <;> decide
 theorem coastB_next (q : ℕ) (hq : q < 6) : "CoastLBrake" ∈ (mRof IR q).next := by
   interval_cases q <;> decide
+theorem brakeA_next (q : ℕ) (hq : q < 6) : "BrakeLAccel" ∈ (mRof IR q).next := by
+  interval_cases q <;> decide
+theorem brakeB_next (q : ℕ) (hq : q < 6) : "BrakeLBrake" ∈ (mRof IR q).next := by
+  interval_cases q <;> decide
 
 theorem tgt_coastA : tgtIdx IR "CoastLAccel" = 2 := by decide
 theorem tgt_coastB : tgtIdx IR "CoastLBrake" = 3 := by decide
+theorem tgt_brakeA : tgtIdx IR "BrakeLAccel" = 4 := by decide
+theorem tgt_brakeB : tgtIdx IR "BrakeLBrake" = 5 := by decide
 
 /-- **Assumption 1 for `drl_lane_control`**, every mode, over the bridge's automaton. -/
 theorem drl_lane_control_wellFormedR_direct (pruned : String → String → Bool) :
@@ -149,20 +175,33 @@ theorem drl_lane_control_wellFormedR_direct (pruned : String → String → Bool
       obtain ⟨⟨hf0, hf10⟩, ⟨hl0, hl10⟩⟩ := hdx
       interval_cases q <;> norm_num [af, al] at hf9 hf1 hl9 hl1 ⊢ <;>
         refine ⟨⟨?_, ?_⟩, ⟨?_, ?_⟩⟩ <;> nlinarith
-  · -- completeness: `v_l ≤ 9` enables `CoastLAccel`, `v_l ≥ 1` enables `CoastLBrake`
+  · -- completeness: `v_f ≤ 1` enables a `Coast` pair, `v_f ≥ 1` a `Brake` pair; `v_l ≤ 9`
+    -- selects the `LAccel` member, `v_l ≥ 1` the `LBrake` member
     intro t Φ _ H
     have hend := (sat_domR _).mp H.end_dom
-    by_cases hv : Φ t (Rv 2) ≤ 9
-    · refine ⟨edgeOf IR 3 pruned q "CoastLAccel",
-        edge_mem_grOf (by rw [nR_eq]; exact hq6) (coastA_next q hq6), ?_⟩
-      simp only [edgeOf, tgt_coastA]
-      rw [sat_guardR2]
-      exact ⟨hend.1, hend.2.1, hv⟩
-    · refine ⟨edgeOf IR 3 pruned q "CoastLBrake",
-        edge_mem_grOf (by rw [nR_eq]; exact hq6) (coastB_next q hq6), ?_⟩
-      simp only [edgeOf, tgt_coastB]
-      rw [sat_guardR3]
-      exact ⟨hend.1, by linarith, hend.2.2⟩
+    by_cases hf : Φ t (Rv 1) ≤ 1
+    · by_cases hv : Φ t (Rv 2) ≤ 9
+      · refine ⟨edgeOf IR 3 pruned q "CoastLAccel",
+          edge_mem_grOf (by rw [nR_eq]; exact hq6) (coastA_next q hq6), ?_⟩
+        simp only [edgeOf, tgt_coastA]
+        rw [sat_guardR2]
+        exact ⟨⟨hend.1.1, hf⟩, hend.2.1, hv⟩
+      · refine ⟨edgeOf IR 3 pruned q "CoastLBrake",
+          edge_mem_grOf (by rw [nR_eq]; exact hq6) (coastB_next q hq6), ?_⟩
+        simp only [edgeOf, tgt_coastB]
+        rw [sat_guardR3]
+        exact ⟨⟨hend.1.1, hf⟩, by linarith, hend.2.2⟩
+    · by_cases hv : Φ t (Rv 2) ≤ 9
+      · refine ⟨edgeOf IR 3 pruned q "BrakeLAccel",
+          edge_mem_grOf (by rw [nR_eq]; exact hq6) (brakeA_next q hq6), ?_⟩
+        simp only [edgeOf, tgt_brakeA]
+        rw [sat_guardR4]
+        exact ⟨⟨by linarith, hend.1.2⟩, hend.2.1, hv⟩
+      · refine ⟨edgeOf IR 3 pruned q "BrakeLBrake",
+          edge_mem_grOf (by rw [nR_eq]; exact hq6) (brakeB_next q hq6), ?_⟩
+        simp only [edgeOf, tgt_brakeB]
+        rw [sat_guardR5]
+        exact ⟨⟨by linarith, hend.1.2⟩, by linarith, hend.2.2⟩
 
 end V2DrlLaneControl
 end RelCertifier

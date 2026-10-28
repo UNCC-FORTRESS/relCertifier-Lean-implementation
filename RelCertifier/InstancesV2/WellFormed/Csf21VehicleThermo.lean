@@ -9,12 +9,13 @@ instance): the lowered right guards, `ε_r = 1`. The right model is the genuine 
 CSF'21 sensor-attack example with its thermostat: six modes action × setting, `AccCool`,
 `AccHeat`, `CoastCool`, `CoastHeat`, `BrkCool`, `BrkHeat` (indices `0..5`), field
 `d' = −v`, `v' = c_q ∈ {1, 0, −1}`, `temp' = h_q ∈ {−1, 1}`, evolve domain `0 ≤ v ≤ 40`.
-`Acc*` guards contain `0 ≤ v ≤ 39`, `Brk*` guards `1 ≤ v`, `Coast*` guards `0 ≤ v`, and
-`Cool` asks `temp ≥ 20`, `Heat` asks `temp ≤ 20`. Existence: the explicit polynomial run
-`d − v t − c t²/2`, `v + c t`, `temp + h t` (`trajRs_sol`), inside the domain for one period by
-the guard's speed bounds. Completeness: the end state is in the domain, so `v ≥ 0` holds there,
-and by a case split on its temperature it enables `CoastCool` (`temp ≥ 20`) or `CoastHeat`
-(`temp ≤ 20`), both declared successors of every mode. Z3-free.
+`Acc*` guards contain `0 ≤ v ≤ 39`, `Brk*` guards `1 ≤ v`, `Coast*` guards `0 ≤ v ≤ 1` (the
+low-speed stand-in for braking to rest; 2026-10-28), and `Cool` asks `temp ≥ 20`, `Heat` asks
+`temp ≤ 20`. Existence: the explicit polynomial run `d − v t − c t²/2`, `v + c t`, `temp + h t`
+(`trajRs_sol`), inside the domain for one period by the guard's speed bounds. Completeness:
+the end state is in the domain, so `v ≥ 0` holds there; `v ≤ 1` enables a `Coast*` mode and
+`v ≥ 1` a `Brk*` mode, the temperature selecting `*Cool` (`temp ≥ 20`) or `*Heat`
+(`temp ≤ 20`); all four are declared successors of every mode. Z3-free.
 -/
 import RelCertifier.Proofs.Encoding.Emitted.Data
 import RelCertifier.Proofs.Encoding.WellFormedR
@@ -90,18 +91,32 @@ theorem sat_guardR_speed (q : ℕ) (hq6 : q < 6) (s : State (Var 3))
       AOp.interp, Rv] at hg ⊢ <;>
     simp_all
 
-/-- `CoastCool`'s guard: `0 ≤ v ∧ temp ≥ 20`. -/
+/-- `CoastCool`'s guard: `0 ≤ v ≤ 1 ∧ temp ≥ 20`. -/
 theorem sat_guardR2 (s : State (Var 3)) :
-    Formula.sat (guardR IR 3 2) s ↔ 0 ≤ s (Rv 1) ∧ 20 ≤ s (Rv 2) := by
+    Formula.sat (guardR IR 3 2) s ↔ 0 ≤ s (Rv 1) ∧ s (Rv 1) ≤ 1 ∧ 20 ≤ s (Rv 2) := by
   simp [guardR, hostGuard, mRof, vars, IR, Parse.csf21_vehicle_thermo_IRv2, Run.lowerF,
-    Run.lowerE, hp00, hp200, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost,
+    Run.lowerE, hp00, hp10, hp200, Run.resolveVar, List.findIdx?_cons, IForm.toHost,
+    ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, AOp.interp, Rv, and_assoc]
+
+/-- `CoastHeat`'s guard: `0 ≤ v ≤ 1 ∧ temp ≤ 20`. -/
+theorem sat_guardR3 (s : State (Var 3)) :
+    Formula.sat (guardR IR 3 3) s ↔ 0 ≤ s (Rv 1) ∧ s (Rv 1) ≤ 1 ∧ s (Rv 2) ≤ 20 := by
+  simp [guardR, hostGuard, mRof, vars, IR, Parse.csf21_vehicle_thermo_IRv2, Run.lowerF,
+    Run.lowerE, hp00, hp10, hp200, Run.resolveVar, List.findIdx?_cons, IForm.toHost,
+    ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, AOp.interp, Rv, and_assoc]
+
+/-- `BrkCool`'s guard: `1 ≤ v ∧ temp ≥ 20`. -/
+theorem sat_guardR4 (s : State (Var 3)) :
+    Formula.sat (guardR IR 3 4) s ↔ 1 ≤ s (Rv 1) ∧ 20 ≤ s (Rv 2) := by
+  simp [guardR, hostGuard, mRof, vars, IR, Parse.csf21_vehicle_thermo_IRv2, Run.lowerF,
+    Run.lowerE, hp10, hp200, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost,
     Formula.sat, CompOp.interp, Term.eval, AOp.interp, Rv]
 
-/-- `CoastHeat`'s guard: `0 ≤ v ∧ temp ≤ 20`. -/
-theorem sat_guardR3 (s : State (Var 3)) :
-    Formula.sat (guardR IR 3 3) s ↔ 0 ≤ s (Rv 1) ∧ s (Rv 2) ≤ 20 := by
+/-- `BrkHeat`'s guard: `1 ≤ v ∧ temp ≤ 20`. -/
+theorem sat_guardR5 (s : State (Var 3)) :
+    Formula.sat (guardR IR 3 5) s ↔ 1 ≤ s (Rv 1) ∧ s (Rv 2) ≤ 20 := by
   simp [guardR, hostGuard, mRof, vars, IR, Parse.csf21_vehicle_thermo_IRv2, Run.lowerF,
-    Run.lowerE, hp00, hp200, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost,
+    Run.lowerE, hp10, hp200, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost,
     Formula.sat, CompOp.interp, Term.eval, AOp.interp, Rv]
 
 theorem coastCool_next (q : ℕ) (hq6 : q < 6) : "CoastCool" ∈ (mRof IR q).next := by
@@ -110,9 +125,19 @@ theorem coastCool_next (q : ℕ) (hq6 : q < 6) : "CoastCool" ∈ (mRof IR q).nex
 theorem coastHeat_next (q : ℕ) (hq6 : q < 6) : "CoastHeat" ∈ (mRof IR q).next := by
   interval_cases q <;> decide
 
+theorem brkCool_next (q : ℕ) (hq6 : q < 6) : "BrkCool" ∈ (mRof IR q).next := by
+  interval_cases q <;> decide
+
+theorem brkHeat_next (q : ℕ) (hq6 : q < 6) : "BrkHeat" ∈ (mRof IR q).next := by
+  interval_cases q <;> decide
+
 theorem tgt_coastCool : tgtIdx IR "CoastCool" = 2 := by decide
 
 theorem tgt_coastHeat : tgtIdx IR "CoastHeat" = 3 := by decide
+
+theorem tgt_brkCool : tgtIdx IR "BrkCool" = 4 := by decide
+
+theorem tgt_brkHeat : tgtIdx IR "BrkHeat" = 5 := by decide
 
 /-- **Assumption 1 for `csf21_vehicle_thermo`**, every mode, over the bridge's automaton. -/
 theorem csf21_vehicle_thermo_wellFormedR_direct (pruned : String → String → Bool) :
@@ -166,19 +191,30 @@ theorem csf21_vehicle_thermo_wellFormedR_direct (pruned : String → String → 
       · have := hs2 (Or.inr rfl)
         norm_num [cq]
         constructor <;> nlinarith [hdx.1, hdx.2, ht0, ht1, this]
-  · -- completeness: the end state is in the domain (`v ≥ 0`); by its temperature it enables
-    -- `CoastCool` (`temp ≥ 20`) or `CoastHeat` (`temp ≤ 20`)
+  · -- completeness: the end state is in the domain (`v ≥ 0`); `v ≤ 1` enables a `Coast*`
+    -- mode, `v ≥ 1` a `Brk*` mode, the temperature selecting `*Cool` (`temp ≥ 20`) or
+    -- `*Heat` (`temp ≤ 20`)
     intro t Φ _ H
     have hend := (sat_domR (Φ t)).mp H.end_dom
-    rcases le_total 20 (Φ t (Rv 2)) with hT | hT
-    · refine ⟨edgeOf IR 3 pruned q "CoastCool",
-        edge_mem_grOf (by rw [nR_eq]; exact hq6) (coastCool_next q hq6), ?_⟩
-      simp only [edgeOf, tgt_coastCool]
-      exact (sat_guardR2 (Φ t)).mpr ⟨hend.1, hT⟩
-    · refine ⟨edgeOf IR 3 pruned q "CoastHeat",
-        edge_mem_grOf (by rw [nR_eq]; exact hq6) (coastHeat_next q hq6), ?_⟩
-      simp only [edgeOf, tgt_coastHeat]
-      exact (sat_guardR3 (Φ t)).mpr ⟨hend.1, hT⟩
+    rcases le_total (Φ t (Rv 1)) 1 with hv | hv
+    · rcases le_total 20 (Φ t (Rv 2)) with hT | hT
+      · refine ⟨edgeOf IR 3 pruned q "CoastCool",
+          edge_mem_grOf (by rw [nR_eq]; exact hq6) (coastCool_next q hq6), ?_⟩
+        simp only [edgeOf, tgt_coastCool]
+        exact (sat_guardR2 (Φ t)).mpr ⟨hend.1, hv, hT⟩
+      · refine ⟨edgeOf IR 3 pruned q "CoastHeat",
+          edge_mem_grOf (by rw [nR_eq]; exact hq6) (coastHeat_next q hq6), ?_⟩
+        simp only [edgeOf, tgt_coastHeat]
+        exact (sat_guardR3 (Φ t)).mpr ⟨hend.1, hv, hT⟩
+    · rcases le_total 20 (Φ t (Rv 2)) with hT | hT
+      · refine ⟨edgeOf IR 3 pruned q "BrkCool",
+          edge_mem_grOf (by rw [nR_eq]; exact hq6) (brkCool_next q hq6), ?_⟩
+        simp only [edgeOf, tgt_brkCool]
+        exact (sat_guardR4 (Φ t)).mpr ⟨hv, hT⟩
+      · refine ⟨edgeOf IR 3 pruned q "BrkHeat",
+          edge_mem_grOf (by rw [nR_eq]; exact hq6) (brkHeat_next q hq6), ?_⟩
+        simp only [edgeOf, tgt_brkHeat]
+        exact (sat_guardR5 (Φ t)).mpr ⟨hv, hT⟩
 
 end V2Csf21VehicleThermo
 end RelCertifier

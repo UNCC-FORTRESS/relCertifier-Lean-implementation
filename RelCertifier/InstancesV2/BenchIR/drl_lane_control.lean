@@ -41,7 +41,7 @@ def drl_lane_control_IRv2 : PProblem :=
           odes := [("d", (.bin "-" (.var "vl") (.var "vf"))),
             ("vf", (.num "0.0")),
             ("vl", (.num "1.0"))]
-          guard := (.and (.and (.and (.cmp ">=" (.var "vf") (.num "0.0")) (.cmp "<=" (.var "vf") (.num "10.0"))) (.cmp ">=" (.var "vl") (.num "0.0"))) (.cmp "<=" (.var "vl") (.num "9.0")))
+          guard := (.and (.and (.and (.cmp ">=" (.var "vf") (.num "0.0")) (.cmp "<=" (.var "vf") (.num "1.0"))) (.cmp ">=" (.var "vl") (.num "0.0"))) (.cmp "<=" (.var "vl") (.num "9.0")))
           evolve := (.and (.and (.and (.cmp ">=" (.var "vf") (.num "0.0")) (.cmp "<=" (.var "vf") (.num "10.0"))) (.cmp ">=" (.var "vl") (.num "0.0"))) (.cmp "<=" (.var "vl") (.num "10.0")))
           next := ["AccelLAccel", "AccelLBrake", "CoastLAccel", "CoastLBrake", "BrakeLAccel", "BrakeLBrake"] },
         {
@@ -49,7 +49,7 @@ def drl_lane_control_IRv2 : PProblem :=
           odes := [("d", (.bin "-" (.var "vl") (.var "vf"))),
             ("vf", (.num "0.0")),
             ("vl", (.bin "-" (.num "0.0") (.num "1.0")))]
-          guard := (.and (.and (.and (.cmp ">=" (.var "vf") (.num "0.0")) (.cmp "<=" (.var "vf") (.num "10.0"))) (.cmp ">=" (.var "vl") (.num "1.0"))) (.cmp "<=" (.var "vl") (.num "10.0")))
+          guard := (.and (.and (.and (.cmp ">=" (.var "vf") (.num "0.0")) (.cmp "<=" (.var "vf") (.num "1.0"))) (.cmp ">=" (.var "vl") (.num "1.0"))) (.cmp "<=" (.var "vl") (.num "10.0")))
           evolve := (.and (.and (.and (.cmp ">=" (.var "vf") (.num "0.0")) (.cmp "<=" (.var "vf") (.num "10.0"))) (.cmp ">=" (.var "vl") (.num "0.0"))) (.cmp "<=" (.var "vl") (.num "10.0")))
           next := ["AccelLAccel", "AccelLBrake", "CoastLAccel", "CoastLBrake", "BrakeLAccel", "BrakeLBrake"] },
         {
@@ -93,7 +93,7 @@ def drl_lane_control_IRv2 : PProblem :=
           odes := [("d", (.bin "-" (.var "vl") (.var "vf"))),
             ("vf", (.num "0.0")),
             ("vl", (.num "1.0"))]
-          guard := (.and (.and (.and (.cmp ">=" (.var "vf") (.num "0.0")) (.cmp "<=" (.var "vf") (.num "10.0"))) (.cmp ">=" (.var "vl") (.num "0.0"))) (.cmp "<=" (.var "vl") (.num "9.0")))
+          guard := (.and (.and (.and (.cmp ">=" (.var "vf") (.num "0.0")) (.cmp "<=" (.var "vf") (.num "1.0"))) (.cmp ">=" (.var "vl") (.num "0.0"))) (.cmp "<=" (.var "vl") (.num "9.0")))
           evolve := (.and (.and (.and (.cmp ">=" (.var "vf") (.num "0.0")) (.cmp "<=" (.var "vf") (.num "10.0"))) (.cmp ">=" (.var "vl") (.num "0.0"))) (.cmp "<=" (.var "vl") (.num "10.0")))
           next := ["AccelLAccel", "AccelLBrake", "CoastLAccel", "CoastLBrake", "BrakeLAccel", "BrakeLBrake"] },
         {
@@ -101,7 +101,7 @@ def drl_lane_control_IRv2 : PProblem :=
           odes := [("d", (.bin "-" (.var "vl") (.var "vf"))),
             ("vf", (.num "0.0")),
             ("vl", (.bin "-" (.num "0.0") (.num "1.0")))]
-          guard := (.and (.and (.and (.cmp ">=" (.var "vf") (.num "0.0")) (.cmp "<=" (.var "vf") (.num "10.0"))) (.cmp ">=" (.var "vl") (.num "1.0"))) (.cmp "<=" (.var "vl") (.num "10.0")))
+          guard := (.and (.and (.and (.cmp ">=" (.var "vf") (.num "0.0")) (.cmp "<=" (.var "vf") (.num "1.0"))) (.cmp ">=" (.var "vl") (.num "1.0"))) (.cmp "<=" (.var "vl") (.num "10.0")))
           evolve := (.and (.and (.and (.cmp ">=" (.var "vf") (.num "0.0")) (.cmp "<=" (.var "vf") (.num "10.0"))) (.cmp ">=" (.var "vl") (.num "0.0"))) (.cmp "<=" (.var "vl") (.num "10.0")))
           next := ["AccelLAccel", "AccelLBrake", "CoastLAccel", "CoastLBrake", "BrakeLAccel", "BrakeLBrake"] },
         {

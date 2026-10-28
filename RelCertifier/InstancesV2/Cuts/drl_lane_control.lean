@@ -17,16 +17,16 @@ def drl_lane_control_cutsV2 : EvolStrengthening :=
   { L := [
       ("AccelLAccel", [((.cmp ">=" (.var "vf") (.num "0.0")), CutRoute.diStrict), ((.cmp ">=" (.var "vl") (.num "0.0")), CutRoute.diStrict)]),
       ("AccelLBrake", [((.cmp ">=" (.var "vf") (.num "0.0")), CutRoute.diStrict), ((.cmp "<=" (.var "vl") (.num "10.0")), CutRoute.diStrict)]),
-      ("CoastLAccel", [((.cmp ">=" (.var "vf") (.num "0.0")), CutRoute.frozen), ((.cmp "<=" (.var "vf") (.num "10.0")), CutRoute.frozen), ((.cmp ">=" (.var "vl") (.num "0.0")), CutRoute.diStrict)]),
-      ("CoastLBrake", [((.cmp ">=" (.var "vf") (.num "0.0")), CutRoute.frozen), ((.cmp "<=" (.var "vf") (.num "10.0")), CutRoute.frozen), ((.cmp "<=" (.var "vl") (.num "10.0")), CutRoute.diStrict)]),
+      ("CoastLAccel", [((.cmp ">=" (.var "vf") (.num "0.0")), CutRoute.frozen), ((.cmp "<=" (.var "vf") (.num "1.0")), CutRoute.frozen), ((.cmp ">=" (.var "vl") (.num "0.0")), CutRoute.diStrict)]),
+      ("CoastLBrake", [((.cmp ">=" (.var "vf") (.num "0.0")), CutRoute.frozen), ((.cmp "<=" (.var "vf") (.num "1.0")), CutRoute.frozen), ((.cmp "<=" (.var "vl") (.num "10.0")), CutRoute.diStrict)]),
       ("BrakeLAccel", [((.cmp "<=" (.var "vf") (.num "10.0")), CutRoute.diStrict), ((.cmp ">=" (.var "vl") (.num "0.0")), CutRoute.diStrict)]),
       ("BrakeLBrake", [((.cmp "<=" (.var "vf") (.num "10.0")), CutRoute.diStrict), ((.cmp "<=" (.var "vl") (.num "10.0")), CutRoute.diStrict)])
     ]
     R := [
       ("AccelLAccel", [((.cmp ">=" (.var "vf") (.num "0.0")), CutRoute.diStrict), ((.cmp ">=" (.var "vl") (.num "0.0")), CutRoute.diStrict)]),
       ("AccelLBrake", [((.cmp ">=" (.var "vf") (.num "0.0")), CutRoute.diStrict), ((.cmp "<=" (.var "vl") (.num "10.0")), CutRoute.diStrict)]),
-      ("CoastLAccel", [((.cmp ">=" (.var "vf") (.num "0.0")), CutRoute.frozen), ((.cmp "<=" (.var "vf") (.num "10.0")), CutRoute.frozen), ((.cmp ">=" (.var "vl") (.num "0.0")), CutRoute.diStrict)]),
-      ("CoastLBrake", [((.cmp ">=" (.var "vf") (.num "0.0")), CutRoute.frozen), ((.cmp "<=" (.var "vf") (.num "10.0")), CutRoute.frozen), ((.cmp "<=" (.var "vl") (.num "10.0")), CutRoute.diStrict)]),
+      ("CoastLAccel", [((.cmp ">=" (.var "vf") (.num "0.0")), CutRoute.frozen), ((.cmp "<=" (.var "vf") (.num "1.0")), CutRoute.frozen), ((.cmp ">=" (.var "vl") (.num "0.0")), CutRoute.diStrict)]),
+      ("CoastLBrake", [((.cmp ">=" (.var "vf") (.num "0.0")), CutRoute.frozen), ((.cmp "<=" (.var "vf") (.num "1.0")), CutRoute.frozen), ((.cmp "<=" (.var "vl") (.num "10.0")), CutRoute.diStrict)]),
       ("BrakeLAccel", [((.cmp "<=" (.var "vf") (.num "10.0")), CutRoute.diStrict), ((.cmp ">=" (.var "vl") (.num "0.0")), CutRoute.diStrict)]),
       ("BrakeLBrake", [((.cmp "<=" (.var "vf") (.num "10.0")), CutRoute.diStrict), ((.cmp "<=" (.var "vl") (.num "10.0")), CutRoute.diStrict)])
     ] }
@@ -35,16 +35,16 @@ def drl_lane_control_cutsV2X : EvolStrengtheningX :=
   { L := [
       ("AccelLAccel", [⟨(.cmp ">=" (.var "vf") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp ">=" (.var "vl") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
       ("AccelLBrake", [⟨(.cmp ">=" (.var "vf") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "vl") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
-      ("CoastLAccel", [⟨(.cmp ">=" (.var "vf") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "vf") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp ">=" (.var "vl") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
-      ("CoastLBrake", [⟨(.cmp ">=" (.var "vf") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "vf") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "vl") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
+      ("CoastLAccel", [⟨(.cmp ">=" (.var "vf") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "vf") (.num "1.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp ">=" (.var "vl") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
+      ("CoastLBrake", [⟨(.cmp ">=" (.var "vf") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "vf") (.num "1.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "vl") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
       ("BrakeLAccel", [⟨(.cmp "<=" (.var "vf") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp ">=" (.var "vl") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
       ("BrakeLBrake", [⟨(.cmp "<=" (.var "vf") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "vl") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩])
     ]
     R := [
       ("AccelLAccel", [⟨(.cmp ">=" (.var "vf") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp ">=" (.var "vl") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
       ("AccelLBrake", [⟨(.cmp ">=" (.var "vf") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "vl") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
-      ("CoastLAccel", [⟨(.cmp ">=" (.var "vf") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "vf") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp ">=" (.var "vl") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
-      ("CoastLBrake", [⟨(.cmp ">=" (.var "vf") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "vf") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "vl") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
+      ("CoastLAccel", [⟨(.cmp ">=" (.var "vf") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "vf") (.num "1.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp ">=" (.var "vl") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
+      ("CoastLBrake", [⟨(.cmp ">=" (.var "vf") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "vf") (.num "1.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "vl") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
       ("BrakeLAccel", [⟨(.cmp "<=" (.var "vf") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp ">=" (.var "vl") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
       ("BrakeLBrake", [⟨(.cmp "<=" (.var "vf") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "vl") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩])
     ] }

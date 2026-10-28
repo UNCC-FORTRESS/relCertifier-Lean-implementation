@@ -30,10 +30,12 @@
 # the paper's distance (the attacked tank can hold its salt (Off) just below 28 while the genuine
 # one settles toward 25). The other row is slack: xp_R <= xp_L certifies (c' = 0; -0.01 declines):
 # the genuine tank never holds more salt than the attacked one. Not implied by the domain
-# (xp >= 0); every left mode has a satisfiable start (xp_L = xp_R = 26).
+# (none); every left mode has a satisfiable start (xp_L = xp_R = 26).
 #
 # Where this file departs from the source.
-# (1) Domain xp >= 0 added (salt is nonnegative; forward invariant under both flows).
+# (1) No evolve domain, as the source's plant (written as the constant atom 0.0 <= 1.0). The
+#   first install added xp >= 0 (salt is nonnegative; forward invariant under both flows); it was
+#   dropped 2026-10-28 to match the source, with every verdict unchanged.
 # (2) The band and the two lower bounds replace the source's disjunctive invariant (they imply the
 #   same distance 3); the claim holds from every related pair, which implies the source's forward
 #   distance from xp = 50.
@@ -48,10 +50,11 @@
 # stretch 2; here lambda = 1 and I). Shared: one tank, a sensor attack of magnitude 3 and a
 # deviation band equal to it, the forward-distance scenario of this source.
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27 on branch benchmark-fixes, batch I8):
-# CERTIFIED (about 0.12 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1,
-# RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1, RELCERT_SYNC=1 RELCERT_NO_CHOICE=1,
-# RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_PAIR_STRETCH=1, RELCERT_OPREGION=1 and
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-28 on branch benchmark-fixes
+# without the evolve domain; the same pattern as batch I8's file with xp >= 0): CERTIFIED (about
+# 0.15 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1,
+# RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1, RELCERT_SYNC=1 RELCERT_NO_CHOICE=1,
+# RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_PAIR_STRETCH=1, RELCERT_NO_REPO=1, RELCERT_OPREGION=1 and
 # RELCERT_WELLFORMED_STRICT=1; DECLINED under RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1 and without
 # RELCERT_IMPLIED_CUT (the attacked Off with the genuine On fails without the mode facts). Cover:
 # both left modes at lambda 1, budget 1, the genuine On the only admissible start (the rows exclude
@@ -72,13 +75,13 @@ epsilon = 1.0
 [Lsys.mode.On]
 ode = xp' = smt2:(* 0.1 (- 25.0 xp));
 guard = xp >= 22.0
-evolve = xp >= 0.0
+evolve = 0.0 <= 1.0
 next = [On, Off]
 
 [Lsys.mode.Off]
 ode = xp' = smt2:0.0;
-guard = xp >= 0.0 and xp < 28.0
-evolve = xp >= 0.0
+guard = xp < 28.0
+evolve = 0.0 <= 1.0
 next = [On, Off]
 
 [Rsys]
@@ -88,13 +91,13 @@ epsilon = 1.0
 [Rsys.mode.On]
 ode = xp' = smt2:(* 0.1 (- 25.0 xp));
 guard = xp >= 25.0
-evolve = xp >= 0.0
+evolve = 0.0 <= 1.0
 next = [On, Off]
 
 [Rsys.mode.Off]
 ode = xp' = smt2:0.0;
-guard = xp >= 0.0 and xp < 25.0
-evolve = xp >= 0.0
+guard = xp < 25.0
+evolve = 0.0 <= 1.0
 next = [On, Off]
 
 [relational_invariant]

@@ -8,12 +8,15 @@
 # local lane control of Loos, Platzer and Nistor (FM 2011), a follower behind a leader on a
 # straight lane, x_f' = v_f, v_f' = a_f, x_l' = v_l, v_l' = a_l: the leader's acceleration is
 # any value in [-B, A]; the follower's is any value in [-B, A] under the safety condition
-# Safe_eps (eq. (7) of FM 2011, the time-triggered form), exactly -B when braking (dRL fixes
-# the braking power, FM 2011 allows [-B, -b]), and 0 when stopped; dRL shows the
-# time-triggered follower (period eps, guard Safe_eps) to refine the event-triggered one
-# (guard Safe, the safe-distance invariant of FM 2011), with b = B. Refinement in dRL is
-# reachability inclusion, i.e. the forall-exists relational invariance of this suite at the
-# identity relation, stretch 1.
+# Safe_eps (eq. (7) of FM 2011, the time-triggered form) and exactly -B when braking (dRL fixes
+# the braking power, FM 2011 allows [-B, -b]). FM 2011 also has a stopped-car branch
+# (?(v_f = 0); a_f := 0), which dRL REMOVES: "the proof of refinement only allows two control
+# modes: normal and evade". dRL shows the time-triggered follower (period eps, guard Safe_eps)
+# to refine the event-triggered one (guard Safe), with b = B; Goals 1 and 2 close automatically
+# and Goal 3 in 79 steps. The event guard Safe is not printed in LICS 2016 (it is in Loos's
+# thesis); the Safe below, the safe distance when both cars brake, is OUR instantiation.
+# Refinement in dRL is reachability inclusion, i.e. the forall-exists relational invariance of
+# this suite at the identity relation, stretch 1.
 #
 # STATE. The gap d = x_l - x_f and the two speeds: d' = v_l - v_f, v_f' = a_f, v_l' = a_l
 # (three variables per side; the absolute positions do not enter the guards).
@@ -25,32 +28,46 @@
 # dRL's refinement pattern between two sampled controllers: the conservative follower
 # (Safe_eps) refines the permissive one (Safe), since Safe_eps implies Safe. (2) The leader's
 # acceleration, an arbitrary value in [-B, A] in the source, is here one of {A, -B} per
-# cycle (a mode choice on both sides); the witness copies the left's leader. (3) The
-# follower's actions are the extremes: accelerate at A under Safe_eps (the source allows any
-# value in [-B, A] there), brake at -B from a speed >= 1 (the source's braking run stops at
-# v_f = 0), and coast (a = 0) unconditionally, which stands in for the source's stopped-car
-# branch and keeps the right model complete; guards are closed where the source's are strict.
-# All deviations are stated once here and in the suite table.
+# cycle (a mode choice on both sides); the witness copies the left's leader. A three-valued
+# leader {A, 0, -B} on both sides (nine modes per side, well-formed 9/9) DECLINES at the left
+# mode AccelLCoast after AccelLAccel and AccelLBrake close by choice; the cause is not
+# identified (measured 2026-10-28, open). (3) The follower's actions are the extremes:
+# accelerate at A under Safe_eps (the source allows any value in [-B, A] there), brake at -B
+# from a speed >= 1 (the source's braking run stops at v_f = 0, which Assumption 1 forbids on
+# the right), and coast (a = 0) only at v_f <= 1, a stand-in for braking to rest that keeps the
+# right model complete (not the stopped-car branch of FM 2011, which dRL removes); guards are
+# closed where the source's are strict. Until 2026-10-28 Coast was enabled at any speed;
+# restricting it to v_f <= 1 changes no verdict. (4) Speeds in [0, 10]: v >= 0 is the source's
+# domain, the top speed 10 is ours (without it the file still CERTIFIES, two right modes
+# UNKNOWN in relcert --wellformed, none blocking; measured 2026-10-28). (5) As in
+# drl_car_stop, what is certified is dRL's Open Goal 1 (Safe_eps implies Safe) between two
+# sampled controllers; Goals 2 and 3 are not represented. All deviations are stated once here
+# and in the suite table.
 #
 # PARAMETERS. A = 1, B = 1, eps = 1; speeds in [0, 10]; braking only from a speed >= 1 (a
-# full period of braking stays in v >= 0); a Coast action (a = 0) of the follower keeps the
-# right model complete (Assumption 1; the leader is complete with its two actions). Modes are
-# pairs (follower action, leader action), six per side.
+# full period of braking stays in v >= 0); a Coast action (a = 0) of the follower at v_f <= 1
+# keeps the right model complete (Assumption 1; the leader is complete with its two actions).
+# Modes are pairs (follower action, leader action), six per side.
 #   Safe_eps (left, follower Accel): d >= v_f^2/(2B) - v_l^2/(2B) + (A/B + 1)(A eps^2/2 + eps v_f),
 #                                    i.e. d >= v_f^2/2 - v_l^2/2 + 2 v_f + 1;
-#   Safe     (right, follower Accel): d >= v_f^2/2 - v_l^2/2.
+#   Safe     (right, follower Accel): d >= v_f^2/2 - v_l^2/2 (ours, see SOURCE).
 # Claim (every left mode): d_L = d_R, v_f_L = v_f_R, v_l_L = v_l_R (two inequalities each).
 # Why committed choice is needed (X). The existential mode choice is the tool's default: the
 # right hops into the left's mode (follower and leader action) at the start of each window,
 # legal because Safe_eps implies Safe under the identity relation, then runs the certified
 # joint segment. Without it (RELCERT_NO_CHOICE=1) the right must flow on in whatever admissible
 # action pair it holds and the gap or the speeds separate: DECLINED.
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26): CERTIFIED; CERTIFIED
-# under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1, RELCERT_OPREGION=1 and without
-# RELCERT_IMPLIED_CUT; DECLINED under RELCERT_NO_CHOICE=1, RELCERT_SYNC=1 RELCERT_NO_CHOICE=1
-# and RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1. Cover: every left mode at lambda 1, budget 1,
-# every right mode an admissible start, closed by a hop into the left's action pair. Rows
-# identical (--handoff vacuous, 36/36). relcert --wellformed: all six right modes ok (exit).
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-28 on branch benchmark-fixes
+# with the follower's Coast at v_f <= 1; the same pattern as with the unrestricted Coast):
+# CERTIFIED (about 3 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1,
+# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_PAIR_STRETCH=1, RELCERT_NO_REPO=1,
+# RELCERT_OPREGION=1, RELCERT_WELLFORMED_STRICT=1 and without RELCERT_IMPLIED_CUT; DECLINED
+# under RELCERT_NO_CHOICE=1, RELCERT_SYNC=1 RELCERT_NO_CHOICE=1 and RELCERT_NO_PRUNE=1
+# RELCERT_NO_CHOICE=1. Cover: every left mode at lambda 1, budget 1, every right mode an
+# admissible start, closed by a hop into the left's action pair. Rows identical (--handoff
+# vacuous, 36/36). relcert --wellformed: all six right modes ok (exit; the Accel and Brake pairs
+# into a Coast or Brake pair by the end speeds, each Coast pair into the other), 0 UNKNOWN,
+# 0 BLOCKING.
 [problem]
 name = drl_lane_control
 max_depth = 8
@@ -72,12 +89,12 @@ evolve = vf >= 0.0 and vf <= 10.0 and vl >= 0.0 and vl <= 10.0
 next = [AccelLAccel, AccelLBrake, CoastLAccel, CoastLBrake, BrakeLAccel, BrakeLBrake]
 [Lsys.mode.CoastLAccel]
 ode = d' = smt2:(- vl vf); vf' = smt2:0.0; vl' = smt2:1.0;
-guard = vf >= 0.0 and vf <= 10.0 and vl >= 0.0 and vl <= 9.0
+guard = vf >= 0.0 and vf <= 1.0 and vl >= 0.0 and vl <= 9.0
 evolve = vf >= 0.0 and vf <= 10.0 and vl >= 0.0 and vl <= 10.0
 next = [AccelLAccel, AccelLBrake, CoastLAccel, CoastLBrake, BrakeLAccel, BrakeLBrake]
 [Lsys.mode.CoastLBrake]
 ode = d' = smt2:(- vl vf); vf' = smt2:0.0; vl' = smt2:(- 0.0 1.0);
-guard = vf >= 0.0 and vf <= 10.0 and vl >= 1.0 and vl <= 10.0
+guard = vf >= 0.0 and vf <= 1.0 and vl >= 1.0 and vl <= 10.0
 evolve = vf >= 0.0 and vf <= 10.0 and vl >= 0.0 and vl <= 10.0
 next = [AccelLAccel, AccelLBrake, CoastLAccel, CoastLBrake, BrakeLAccel, BrakeLBrake]
 [Lsys.mode.BrakeLAccel]
@@ -105,12 +122,12 @@ evolve = vf >= 0.0 and vf <= 10.0 and vl >= 0.0 and vl <= 10.0
 next = [AccelLAccel, AccelLBrake, CoastLAccel, CoastLBrake, BrakeLAccel, BrakeLBrake]
 [Rsys.mode.CoastLAccel]
 ode = d' = smt2:(- vl vf); vf' = smt2:0.0; vl' = smt2:1.0;
-guard = vf >= 0.0 and vf <= 10.0 and vl >= 0.0 and vl <= 9.0
+guard = vf >= 0.0 and vf <= 1.0 and vl >= 0.0 and vl <= 9.0
 evolve = vf >= 0.0 and vf <= 10.0 and vl >= 0.0 and vl <= 10.0
 next = [AccelLAccel, AccelLBrake, CoastLAccel, CoastLBrake, BrakeLAccel, BrakeLBrake]
 [Rsys.mode.CoastLBrake]
 ode = d' = smt2:(- vl vf); vf' = smt2:0.0; vl' = smt2:(- 0.0 1.0);
-guard = vf >= 0.0 and vf <= 10.0 and vl >= 1.0 and vl <= 10.0
+guard = vf >= 0.0 and vf <= 1.0 and vl >= 1.0 and vl <= 10.0
 evolve = vf >= 0.0 and vf <= 10.0 and vl >= 0.0 and vl <= 10.0
 next = [AccelLAccel, AccelLBrake, CoastLAccel, CoastLBrake, BrakeLAccel, BrakeLBrake]
 [Rsys.mode.BrakeLAccel]

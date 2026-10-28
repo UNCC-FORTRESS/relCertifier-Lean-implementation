@@ -24,13 +24,13 @@ def salt_tank_sensor_IRv2 : PProblem :=
           name := "On"
           odes := [("xp", (.bin "*" (.num "0.1") (.bin "-" (.num "25.0") (.var "xp"))))]
           guard := (.cmp ">=" (.var "xp") (.num "22.0"))
-          evolve := (.cmp ">=" (.var "xp") (.num "0.0"))
+          evolve := (.cmp "<=" (.num "0.0") (.num "1.0"))
           next := ["On", "Off"] },
         {
           name := "Off"
           odes := [("xp", (.num "0.0"))]
-          guard := (.and (.cmp ">=" (.var "xp") (.num "0.0")) (.cmp "<" (.var "xp") (.num "28.0")))
-          evolve := (.cmp ">=" (.var "xp") (.num "0.0"))
+          guard := (.cmp "<" (.var "xp") (.num "28.0"))
+          evolve := (.cmp "<=" (.num "0.0") (.num "1.0"))
           next := ["On", "Off"] } ] }
     R := {
       stateVars := ["xp"]
@@ -40,13 +40,13 @@ def salt_tank_sensor_IRv2 : PProblem :=
           name := "On"
           odes := [("xp", (.bin "*" (.num "0.1") (.bin "-" (.num "25.0") (.var "xp"))))]
           guard := (.cmp ">=" (.var "xp") (.num "25.0"))
-          evolve := (.cmp ">=" (.var "xp") (.num "0.0"))
+          evolve := (.cmp "<=" (.num "0.0") (.num "1.0"))
           next := ["On", "Off"] },
         {
           name := "Off"
           odes := [("xp", (.num "0.0"))]
-          guard := (.and (.cmp ">=" (.var "xp") (.num "0.0")) (.cmp "<" (.var "xp") (.num "25.0")))
-          evolve := (.cmp ">=" (.var "xp") (.num "0.0"))
+          guard := (.cmp "<" (.var "xp") (.num "25.0"))
+          evolve := (.cmp "<=" (.num "0.0") (.num "1.0"))
           next := ["On", "Off"] } ] }
     invariants := [
       ("On", (.and (.and (.and (.cmp "<=" (.var "L_xp") (.bin "+" (.var "R_xp") (.num "3.0"))) (.cmp "<=" (.var "R_xp") (.bin "+" (.var "L_xp") (.num "3.0")))) (.cmp ">=" (.var "L_xp") (.num "25.0"))) (.cmp ">=" (.var "R_xp") (.num "25.0")))),

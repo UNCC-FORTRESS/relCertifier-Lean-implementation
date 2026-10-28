@@ -16,21 +16,21 @@ open RelCertifier.Parse
 def salt_tank_sensor_cutsV2 : EvolStrengthening :=
   { L := [
       ("On", [((.cmp ">=" (.var "xp") (.num "22.0")), CutRoute.shape)]),
-      ("Off", [((.cmp ">=" (.var "xp") (.num "0.0")), CutRoute.frozen)])
+      ("Off", [])
     ]
     R := [
       ("On", [((.cmp ">=" (.var "xp") (.num "25.0")), CutRoute.shape)]),
-      ("Off", [((.cmp ">=" (.var "xp") (.num "0.0")), CutRoute.frozen)])
+      ("Off", [])
     ] }
 
 def salt_tank_sensor_cutsV2X : EvolStrengtheningX :=
   { L := [
       ("On", [⟨(.cmp ">=" (.var "xp") (.num "22.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩]),
-      ("Off", [⟨(.cmp ">=" (.var "xp") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "xp") (.num "28.0")), CutKind.closure, CutEntry.weakening, CutRouteX.frozen, []⟩])
+      ("Off", [⟨(.cmp "<=" (.var "xp") (.num "28.0")), CutKind.closure, CutEntry.weakening, CutRouteX.frozen, []⟩])
     ]
     R := [
       ("On", [⟨(.cmp ">=" (.var "xp") (.num "25.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩]),
-      ("Off", [⟨(.cmp ">=" (.var "xp") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "xp") (.num "25.0")), CutKind.closure, CutEntry.weakening, CutRouteX.frozen, []⟩])
+      ("Off", [⟨(.cmp "<=" (.var "xp") (.num "25.0")), CutKind.closure, CutEntry.weakening, CutRouteX.frozen, []⟩])
     ] }
 
 /-- The legacy (guard-conjunct) part is well formed. -/

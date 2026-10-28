@@ -17,8 +17,8 @@ def csf21_vehicle_bus_cutsV2 : EvolStrengthening :=
   { L := [
       ("AccCool", [((.cmp ">=" (.var "v") (.num "0.0")), CutRoute.diStrict)]),
       ("AccHeat", [((.cmp ">=" (.var "v") (.num "0.0")), CutRoute.diStrict)]),
-      ("CoastCool", [((.cmp ">=" (.var "v") (.num "0.0")), CutRoute.frozen)]),
-      ("CoastHeat", [((.cmp ">=" (.var "v") (.num "0.0")), CutRoute.frozen)]),
+      ("CoastCool", [((.cmp ">=" (.var "v") (.num "0.0")), CutRoute.frozen), ((.cmp "<=" (.var "v") (.num "1.0")), CutRoute.frozen)]),
+      ("CoastHeat", [((.cmp ">=" (.var "v") (.num "0.0")), CutRoute.frozen), ((.cmp "<=" (.var "v") (.num "1.0")), CutRoute.frozen)]),
       ("BrkCool", []),
       ("BrkHeat", [])
     ]
@@ -27,10 +27,10 @@ def csf21_vehicle_bus_cutsV2 : EvolStrengthening :=
       ("AccCoolT", [((.cmp ">=" (.var "v") (.num "0.0")), CutRoute.diStrict)]),
       ("AccHeatA", [((.cmp ">=" (.var "v") (.num "0.0")), CutRoute.diStrict)]),
       ("AccHeatT", [((.cmp ">=" (.var "v") (.num "0.0")), CutRoute.diStrict)]),
-      ("CoastCoolA", [((.cmp ">=" (.var "v") (.num "0.0")), CutRoute.frozen)]),
-      ("CoastCoolT", [((.cmp ">=" (.var "v") (.num "0.0")), CutRoute.frozen)]),
-      ("CoastHeatA", [((.cmp ">=" (.var "v") (.num "0.0")), CutRoute.frozen)]),
-      ("CoastHeatT", [((.cmp ">=" (.var "v") (.num "0.0")), CutRoute.frozen)]),
+      ("CoastCoolA", [((.cmp ">=" (.var "v") (.num "0.0")), CutRoute.frozen), ((.cmp "<=" (.var "v") (.num "1.0")), CutRoute.frozen)]),
+      ("CoastCoolT", [((.cmp ">=" (.var "v") (.num "0.0")), CutRoute.frozen), ((.cmp "<=" (.var "v") (.num "1.0")), CutRoute.frozen)]),
+      ("CoastHeatA", [((.cmp ">=" (.var "v") (.num "0.0")), CutRoute.frozen), ((.cmp "<=" (.var "v") (.num "1.0")), CutRoute.frozen)]),
+      ("CoastHeatT", [((.cmp ">=" (.var "v") (.num "0.0")), CutRoute.frozen), ((.cmp "<=" (.var "v") (.num "1.0")), CutRoute.frozen)]),
       ("BrkCoolA", []),
       ("BrkCoolT", []),
       ("BrkHeatA", []),
@@ -41,8 +41,8 @@ def csf21_vehicle_bus_cutsV2X : EvolStrengtheningX :=
   { L := [
       ("AccCool", [⟨(.cmp ">=" (.var "v") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
       ("AccHeat", [⟨(.cmp ">=" (.var "v") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
-      ("CoastCool", [⟨(.cmp ">=" (.var "v") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩]),
-      ("CoastHeat", [⟨(.cmp ">=" (.var "v") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩]),
+      ("CoastCool", [⟨(.cmp ">=" (.var "v") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "v") (.num "1.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩]),
+      ("CoastHeat", [⟨(.cmp ">=" (.var "v") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "v") (.num "1.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩]),
       ("BrkCool", []),
       ("BrkHeat", [])
     ]
@@ -51,10 +51,10 @@ def csf21_vehicle_bus_cutsV2X : EvolStrengtheningX :=
       ("AccCoolT", [⟨(.cmp ">=" (.var "v") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
       ("AccHeatA", [⟨(.cmp ">=" (.var "v") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
       ("AccHeatT", [⟨(.cmp ">=" (.var "v") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
-      ("CoastCoolA", [⟨(.cmp ">=" (.var "v") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩]),
-      ("CoastCoolT", [⟨(.cmp ">=" (.var "v") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩]),
-      ("CoastHeatA", [⟨(.cmp ">=" (.var "v") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩]),
-      ("CoastHeatT", [⟨(.cmp ">=" (.var "v") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩]),
+      ("CoastCoolA", [⟨(.cmp ">=" (.var "v") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "v") (.num "1.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩]),
+      ("CoastCoolT", [⟨(.cmp ">=" (.var "v") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "v") (.num "1.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩]),
+      ("CoastHeatA", [⟨(.cmp ">=" (.var "v") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "v") (.num "1.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩]),
+      ("CoastHeatT", [⟨(.cmp ">=" (.var "v") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "v") (.num "1.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩]),
       ("BrkCoolA", []),
       ("BrkCoolT", []),
       ("BrkHeatA", []),

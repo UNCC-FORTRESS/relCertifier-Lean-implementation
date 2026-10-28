@@ -16,24 +16,24 @@ open RelCertifier.Parse
 def drl_car_stop_cutsV2 : EvolStrengthening :=
   { L := [
       ("Accel", [((.cmp ">=" (.var "v") (.num "0.0")), CutRoute.diStrict)]),
-      ("Coast", [((.cmp ">=" (.var "v") (.num "0.0")), CutRoute.frozen), ((.cmp "<=" (.var "v") (.num "10.0")), CutRoute.frozen)]),
+      ("Coast", [((.cmp ">=" (.var "v") (.num "0.0")), CutRoute.frozen), ((.cmp "<=" (.var "v") (.num "1.0")), CutRoute.frozen)]),
       ("Brake", [((.cmp "<=" (.var "v") (.num "10.0")), CutRoute.diStrict)])
     ]
     R := [
       ("Accel", [((.cmp ">=" (.var "v") (.num "0.0")), CutRoute.diStrict)]),
-      ("Coast", [((.cmp ">=" (.var "v") (.num "0.0")), CutRoute.frozen), ((.cmp "<=" (.var "v") (.num "10.0")), CutRoute.frozen)]),
+      ("Coast", [((.cmp ">=" (.var "v") (.num "0.0")), CutRoute.frozen), ((.cmp "<=" (.var "v") (.num "1.0")), CutRoute.frozen)]),
       ("Brake", [((.cmp "<=" (.var "v") (.num "10.0")), CutRoute.diStrict)])
     ] }
 
 def drl_car_stop_cutsV2X : EvolStrengtheningX :=
   { L := [
       ("Accel", [⟨(.cmp ">=" (.var "v") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
-      ("Coast", [⟨(.cmp ">=" (.var "v") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "v") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩]),
+      ("Coast", [⟨(.cmp ">=" (.var "v") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "v") (.num "1.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩]),
       ("Brake", [⟨(.cmp "<=" (.var "v") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩])
     ]
     R := [
       ("Accel", [⟨(.cmp ">=" (.var "v") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
-      ("Coast", [⟨(.cmp ">=" (.var "v") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "v") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩]),
+      ("Coast", [⟨(.cmp ">=" (.var "v") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "v") (.num "1.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩]),
       ("Brake", [⟨(.cmp "<=" (.var "v") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩])
     ] }
 

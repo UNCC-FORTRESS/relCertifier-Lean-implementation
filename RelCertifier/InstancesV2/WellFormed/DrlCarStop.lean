@@ -2,16 +2,17 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `drl_car_stop`: Assumption 1 of the right model (style (b), exit into `Coast`)
+# `drl_car_stop`: Assumption 1 of the right model (style (b), exit into `Coast` or `Brake`)
 
 Stated directly over the generic bridge's automaton `grOf IR 3 pruned` (no standalone
 instance): the lowered right guards, `ε_r = 1`. The right model is the permissive sampled
 car controller of the dRL refinement example: `Accel` (`x' = v, v' = 1`, guard
-`0 ≤ v ≤ 9 ∧ x + v²/2 ≤ 50`), `Coast` (`v' = 0`, guard `0 ≤ v ≤ 10`) and `Brake`
-(`v' = −1`, guard `1 ≤ v ≤ 10`), evolve domain `0 ≤ v ≤ 10`. Existence: the explicit
-polynomial run `x + v t + c t²/2`, `v + c t` (`trajRs_sol`), inside the domain for one period
-by the guard's speed bounds. Completeness: `Coast`'s guard is the evolve domain, so every
-run's end state enables the declared successor `Coast`. Z3-free.
+`0 ≤ v ≤ 9 ∧ x + v²/2 ≤ 50`), `Coast` (`v' = 0`, guard `0 ≤ v ≤ 1`, the low-speed stand-in
+for braking to rest; 2026-10-28) and `Brake` (`v' = −1`, guard `1 ≤ v ≤ 10`), evolve domain
+`0 ≤ v ≤ 10`. Existence: the explicit polynomial run `x + v t + c t²/2`, `v + c t`
+(`trajRs_sol`), inside the domain for one period by the guard's speed bounds. Completeness:
+the end state is in the domain, so `v ≤ 1` enables `Coast` and `v ≥ 1` enables `Brake`, both
+declared successors of every mode. Z3-free.
 -/
 import RelCertifier.Proofs.Encoding.Emitted.Data
 import RelCertifier.Proofs.Encoding.WellFormedR
@@ -76,16 +77,29 @@ theorem sat_guardR_speed (q : ℕ) (hq : q < 3) (s : State (Var 3))
       ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, AOp.interp, Rv] at hg ⊢ <;>
     simp_all
 
+/-- `Coast`'s guard: `0 ≤ v ≤ 1`. -/
 theorem sat_guardR1 (s : State (Var 3)) :
-    Formula.sat (guardR IR 3 1) s ↔ 0 ≤ s (Rv 1) ∧ s (Rv 1) ≤ 10 := by
+    Formula.sat (guardR IR 3 1) s ↔ 0 ≤ s (Rv 1) ∧ s (Rv 1) ≤ 1 := by
   simp [guardR, hostGuard, mRof, vars, IR, Parse.drl_car_stop_IRv2, Run.lowerF, Run.lowerE,
-    hp00, hp100, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
+    hp00, hp10, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
+    CompOp.interp, Term.eval, AOp.interp, Rv]
+
+/-- `Brake`'s guard: `1 ≤ v ≤ 10`. -/
+theorem sat_guardR2 (s : State (Var 3)) :
+    Formula.sat (guardR IR 3 2) s ↔ 1 ≤ s (Rv 1) ∧ s (Rv 1) ≤ 10 := by
+  simp [guardR, hostGuard, mRof, vars, IR, Parse.drl_car_stop_IRv2, Run.lowerF, Run.lowerE,
+    hp10, hp100, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
     CompOp.interp, Term.eval, AOp.interp, Rv]
 
 theorem coast_next (q : ℕ) (hq : q < 3) : "Coast" ∈ (mRof IR q).next := by
   interval_cases q <;> decide
 
+theorem brake_next (q : ℕ) (hq : q < 3) : "Brake" ∈ (mRof IR q).next := by
+  interval_cases q <;> decide
+
 theorem tgt_coast : tgtIdx IR "Coast" = 1 := by decide
+
+theorem tgt_brake : tgtIdx IR "Brake" = 2 := by decide
 
 /-- **Assumption 1 for `drl_car_stop`**, every mode, over the bridge's automaton. -/
 theorem drl_car_stop_wellFormedR_direct (pruned : String → String → Bool) :
@@ -129,12 +143,19 @@ theorem drl_car_stop_wellFormedR_direct (pruned : String → String → Bool) :
       · have := hs2 rfl
         norm_num [cq]
         constructor <;> nlinarith [hdx.1, hdx.2, ht0, ht1, this]
-  · -- completeness: the end state is in the domain, which is `Coast`'s guard
+  · -- completeness: the end state is in the domain `0 ≤ v ≤ 10`; `v ≤ 1` enables `Coast`,
+    -- `v ≥ 1` enables `Brake`
     intro t Φ _ H
-    refine ⟨edgeOf IR 3 pruned q "Coast", edge_mem_grOf (by rw [nR_eq]; exact hq3) (coast_next q hq3), ?_⟩
-    simp only [edgeOf, tgt_coast]
-    rw [sat_guardR1, ← sat_domR]
-    exact H.end_dom
+    have hend := (sat_domR _).mp H.end_dom
+    by_cases hv : Φ t (Rv 1) ≤ 1
+    · refine ⟨edgeOf IR 3 pruned q "Coast",
+        edge_mem_grOf (by rw [nR_eq]; exact hq3) (coast_next q hq3), ?_⟩
+      simp only [edgeOf, tgt_coast]
+      exact (sat_guardR1 _).mpr ⟨hend.1, hv⟩
+    · refine ⟨edgeOf IR 3 pruned q "Brake",
+        edge_mem_grOf (by rw [nR_eq]; exact hq3) (brake_next q hq3), ?_⟩
+      simp only [edgeOf, tgt_brake]
+      exact (sat_guardR2 _).mpr ⟨by linarith, hend.2⟩
 
 end V2DrlCarStop
 end RelCertifier

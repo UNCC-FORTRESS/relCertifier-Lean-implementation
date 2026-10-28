@@ -1,12 +1,12 @@
-commit 8f2945d1d7089e16dc7898a5a4ebd22a6b1f56d3 clean
+commit 7f533af8141af77914954cb56e64fa7444859c4c clean
 z3 Z3 version 4.15.3 - 64 bit
 os Linux 6.18.44-fc-v180 x86_64
-date 2026-10-28T01:16:23Z
+date 2026-10-28T02:35:45Z
 flags RELCERT_IMPLIED_CUT=1 (all runs); per-run switches in the run names
 covers identical
 
-batch I9 run (2026-10-28): scripts/paper_numbers.sh re-run on the batch I9 tip (its bash port, same steps and outputs; zsh is not installed on the machine) in a 4-core cloud container with no other job running (the only load was this run itself). Verdicts, covers and letters are machine-independent; letters S 12 -> 18, M 15 -> 23, B 8 -> 10, R 6, P 5, D 12, I 17, X 16 unchanged; benchmarks certifying under RELCERT_SYNC=1 33 -> 27.
-timing numbers: the container is slower than the laptop of the 2026-10-27 frozen run (total of the control run 213 s against 115 s; slowest rover_ladder_8to12 66 s against 35 s; 19 files under 1 s against 29); \totaltimes, \numunderonesec, \slowesttime and the per-file times in letters.md / matrix.md should be re-taken on the owner's machine before they are quoted. The sat_detumble_weak time changed from 114 s to 2.9 s with its batch I9 redesign; no file hit the 300 s time budget.
+batch I10 run (2026-10-28): scripts/paper_numbers.sh re-run on the batch I10 tip (its bash port, same steps and outputs; zsh is not installed on the machine) in a 4-core cloud container with no other job running. Verdicts, covers and letters are machine-independent; letters S 19, M 24, R 6, B 11, P 5, D 12, I 17, X 16 (frozen 2026-10-27: S 12, M 15, R 6, B 8, P 5, D 12, I 17, X 16); benchmarks certifying under RELCERT_SYNC=1 26 (frozen 33; batch I9 27).
+timing numbers: the container is slower than the laptop of the 2026-10-27 frozen run (control-run total 215 s against 115 s; slowest 65 s against 35 s; 17 files under 1 s against 29); \totaltimes, \numunderonesec, \slowesttime and the per-file times in letters.md / matrix.md should be re-taken on the owner's machine before they are quoted. No file hit the 300 s time budget.
 D rule (owner, 2026-10-27): D counts where the stated requirement differs per mode, so the claim needs mode-dependent rows, even if a weaker uniform row that drops a stated requirement certifies (matrix M5 AND every uniform row set from the file's own rows that keeps every stated requirement DECLINES; "keeps" = implies every mode's row, Z3 over the reals; the conjunction of the rows when no single row implies all). The earlier strict rule (every uniform row set declines) is kept as diagnostic D_strict.
 \numnolinear (certified without decoupling forms, 50) is informational, not a paper number (no benchmark needs a decoupling form); numbers.tex marks it.
 time budget: the default RELCERT_TIME_BUDGET_MS is 300 s; this run used the default (no budget ERROR in any run).

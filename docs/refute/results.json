@@ -4750,166 +4750,6 @@
   "witness_found": false
  },
  {
-  "id": "compressor_station_recycle_m000",
-  "bench": "compressor_station_recycle",
-  "op": "RRO/SNO",
-  "mutant": "(<= L_ps (+ R_ps 0.0)) [<=->>=]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "compressor_station_recycle_m001",
-  "bench": "compressor_station_recycle",
-  "op": "MCO",
-  "mutant": "(<= L_ps (+ R_ps 0.0)) [del]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "compressor_station_recycle_m002",
-  "bench": "compressor_station_recycle",
-  "op": "ORO",
-  "mutant": "(<= L_ps (+ R_ps 0.0)) [L_ps->R_ps]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "compressor_station_recycle_m003",
-  "bench": "compressor_station_recycle",
-  "op": "ORO",
-  "mutant": "(<= L_ps (+ R_ps 0.0)) [R_ps->L_ps]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "compressor_station_recycle_m004",
-  "bench": "compressor_station_recycle",
-  "op": "RRO/SNO",
-  "mutant": "(<= R_ps (+ L_ps 0.0)) [<=->>=]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "compressor_station_recycle_m005",
-  "bench": "compressor_station_recycle",
-  "op": "MCO",
-  "mutant": "(<= R_ps (+ L_ps 0.0)) [del]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "compressor_station_recycle_m006",
-  "bench": "compressor_station_recycle",
-  "op": "ORO",
-  "mutant": "(<= R_ps (+ L_ps 0.0)) [L_ps->R_ps]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "compressor_station_recycle_m007",
-  "bench": "compressor_station_recycle",
-  "op": "ORO",
-  "mutant": "(<= R_ps (+ L_ps 0.0)) [R_ps->L_ps]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "compressor_station_recycle_m008",
-  "bench": "compressor_station_recycle",
-  "op": "RRO/SNO",
-  "mutant": "(<= L_pd (+ R_pd 0.0)) [<=->>=]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "compressor_station_recycle_m009",
-  "bench": "compressor_station_recycle",
-  "op": "MCO",
-  "mutant": "(<= L_pd (+ R_pd 0.0)) [del]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "compressor_station_recycle_m010",
-  "bench": "compressor_station_recycle",
-  "op": "ORO",
-  "mutant": "(<= L_pd (+ R_pd 0.0)) [L_pd->R_pd]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "compressor_station_recycle_m011",
-  "bench": "compressor_station_recycle",
-  "op": "ORO",
-  "mutant": "(<= L_pd (+ R_pd 0.0)) [R_pd->L_pd]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "compressor_station_recycle_m012",
-  "bench": "compressor_station_recycle",
-  "op": "RRO/SNO",
-  "mutant": "(<= R_pd (+ L_pd 0.0)) [<=->>=]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "compressor_station_recycle_m013",
-  "bench": "compressor_station_recycle",
-  "op": "MCO",
-  "mutant": "(<= R_pd (+ L_pd 0.0)) [del]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "compressor_station_recycle_m014",
-  "bench": "compressor_station_recycle",
-  "op": "ORO",
-  "mutant": "(<= R_pd (+ L_pd 0.0)) [L_pd->R_pd]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "compressor_station_recycle_m015",
-  "bench": "compressor_station_recycle",
-  "op": "ORO",
-  "mutant": "(<= R_pd (+ L_pd 0.0)) [R_pd->L_pd]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
   "id": "elevator_start_discbrake_m000",
   "bench": "elevator_start_discbrake",
   "op": "RRO/SNO",
@@ -5830,246 +5670,6 @@
   "witness_found": false
  },
  {
-  "id": "molding_pack_checkring_m000",
-  "bench": "molding_pack_checkring",
-  "op": "RRO/SNO",
-  "mutant": "(<= L_t R_t) [<=->>=]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "molding_pack_checkring_m001",
-  "bench": "molding_pack_checkring",
-  "op": "MCO",
-  "mutant": "(<= L_t R_t) [del]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "molding_pack_checkring_m002",
-  "bench": "molding_pack_checkring",
-  "op": "ORO",
-  "mutant": "(<= L_t R_t) [L_t->R_t]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "molding_pack_checkring_m003",
-  "bench": "molding_pack_checkring",
-  "op": "ORO",
-  "mutant": "(<= L_t R_t) [R_t->L_t]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "molding_pack_checkring_m004",
-  "bench": "molding_pack_checkring",
-  "op": "RRO/SNO",
-  "mutant": "(<= R_t L_t) [<=->>=]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "molding_pack_checkring_m005",
-  "bench": "molding_pack_checkring",
-  "op": "MCO",
-  "mutant": "(<= R_t L_t) [del]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "molding_pack_checkring_m006",
-  "bench": "molding_pack_checkring",
-  "op": "ORO",
-  "mutant": "(<= R_t L_t) [L_t->R_t]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "molding_pack_checkring_m007",
-  "bench": "molding_pack_checkring",
-  "op": "ORO",
-  "mutant": "(<= R_t L_t) [R_t->L_t]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "molding_pack_checkring_m008",
-  "bench": "molding_pack_checkring",
-  "op": "RRO/SNO",
-  "mutant": "(<= L_x (+ R_x 25.0)) [<=->>=]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "molding_pack_checkring_m009",
-  "bench": "molding_pack_checkring",
-  "op": "MCO",
-  "mutant": "(<= L_x (+ R_x 25.0)) [del]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "molding_pack_checkring_m010",
-  "bench": "molding_pack_checkring",
-  "op": "ORO",
-  "mutant": "(<= L_x (+ R_x 25.0)) [L_x->R_x]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "molding_pack_checkring_m011",
-  "bench": "molding_pack_checkring",
-  "op": "ORO",
-  "mutant": "(<= L_x (+ R_x 25.0)) [R_x->L_x]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "molding_pack_checkring_m012",
-  "bench": "molding_pack_checkring",
-  "op": "RRO/SNO",
-  "mutant": "(<= R_x (+ L_x 25.0)) [<=->>=]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "molding_pack_checkring_m013",
-  "bench": "molding_pack_checkring",
-  "op": "MCO",
-  "mutant": "(<= R_x (+ L_x 25.0)) [del]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "molding_pack_checkring_m014",
-  "bench": "molding_pack_checkring",
-  "op": "ORO",
-  "mutant": "(<= R_x (+ L_x 25.0)) [L_x->R_x]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "molding_pack_checkring_m015",
-  "bench": "molding_pack_checkring",
-  "op": "ORO",
-  "mutant": "(<= R_x (+ L_x 25.0)) [R_x->L_x]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "molding_pack_checkring_m016",
-  "bench": "molding_pack_checkring",
-  "op": "RRO/SNO",
-  "mutant": "(<= L_y (+ R_y 25.0)) [<=->>=]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "molding_pack_checkring_m017",
-  "bench": "molding_pack_checkring",
-  "op": "MCO",
-  "mutant": "(<= L_y (+ R_y 25.0)) [del]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "molding_pack_checkring_m018",
-  "bench": "molding_pack_checkring",
-  "op": "ORO",
-  "mutant": "(<= L_y (+ R_y 25.0)) [L_y->R_y]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "molding_pack_checkring_m019",
-  "bench": "molding_pack_checkring",
-  "op": "ORO",
-  "mutant": "(<= L_y (+ R_y 25.0)) [R_y->L_y]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "molding_pack_checkring_m020",
-  "bench": "molding_pack_checkring",
-  "op": "RRO/SNO",
-  "mutant": "(<= R_y (+ L_y 25.0)) [<=->>=]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "molding_pack_checkring_m021",
-  "bench": "molding_pack_checkring",
-  "op": "MCO",
-  "mutant": "(<= R_y (+ L_y 25.0)) [del]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "molding_pack_checkring_m022",
-  "bench": "molding_pack_checkring",
-  "op": "ORO",
-  "mutant": "(<= R_y (+ L_y 25.0)) [L_y->R_y]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "molding_pack_checkring_m023",
-  "bench": "molding_pack_checkring",
-  "op": "ORO",
-  "mutant": "(<= R_y (+ L_y 25.0)) [R_y->L_y]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
   "id": "syringe_relay_prearm_m000",
   "bench": "syringe_relay_prearm",
   "op": "RRO/SNO",
@@ -6586,446 +6186,6 @@
   "mutant": "(<= R_V (+ L_V 0.08)) [R_V->L_V]",
   "kind": null,
   "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "antenna_track_kvretune_m000",
-  "bench": "antenna_track_kvretune",
-  "op": "RRO/SNO",
-  "mutant": "(<= L_t R_t) [<=->>=]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "antenna_track_kvretune_m001",
-  "bench": "antenna_track_kvretune",
-  "op": "MCO",
-  "mutant": "(<= L_t R_t) [del]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "antenna_track_kvretune_m002",
-  "bench": "antenna_track_kvretune",
-  "op": "ORO",
-  "mutant": "(<= L_t R_t) [L_t->R_t]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "antenna_track_kvretune_m003",
-  "bench": "antenna_track_kvretune",
-  "op": "ORO",
-  "mutant": "(<= L_t R_t) [R_t->L_t]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "antenna_track_kvretune_m004",
-  "bench": "antenna_track_kvretune",
-  "op": "RRO/SNO",
-  "mutant": "(<= R_t L_t) [<=->>=]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "antenna_track_kvretune_m005",
-  "bench": "antenna_track_kvretune",
-  "op": "MCO",
-  "mutant": "(<= R_t L_t) [del]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "antenna_track_kvretune_m006",
-  "bench": "antenna_track_kvretune",
-  "op": "ORO",
-  "mutant": "(<= R_t L_t) [L_t->R_t]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "antenna_track_kvretune_m007",
-  "bench": "antenna_track_kvretune",
-  "op": "ORO",
-  "mutant": "(<= R_t L_t) [R_t->L_t]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "antenna_track_kvretune_m008",
-  "bench": "antenna_track_kvretune",
-  "op": "RRO/SNO",
-  "mutant": "(<= L_c R_c) [<=->>=]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "antenna_track_kvretune_m009",
-  "bench": "antenna_track_kvretune",
-  "op": "MCO",
-  "mutant": "(<= L_c R_c) [del]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "antenna_track_kvretune_m010",
-  "bench": "antenna_track_kvretune",
-  "op": "ORO",
-  "mutant": "(<= L_c R_c) [L_c->R_c]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "antenna_track_kvretune_m011",
-  "bench": "antenna_track_kvretune",
-  "op": "ORO",
-  "mutant": "(<= L_c R_c) [R_c->L_c]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "antenna_track_kvretune_m012",
-  "bench": "antenna_track_kvretune",
-  "op": "RRO/SNO",
-  "mutant": "(<= R_c L_c) [<=->>=]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "antenna_track_kvretune_m013",
-  "bench": "antenna_track_kvretune",
-  "op": "MCO",
-  "mutant": "(<= R_c L_c) [del]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "antenna_track_kvretune_m014",
-  "bench": "antenna_track_kvretune",
-  "op": "ORO",
-  "mutant": "(<= R_c L_c) [L_c->R_c]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "antenna_track_kvretune_m015",
-  "bench": "antenna_track_kvretune",
-  "op": "ORO",
-  "mutant": "(<= R_c L_c) [R_c->L_c]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "antenna_track_kvretune_m016",
-  "bench": "antenna_track_kvretune",
-  "op": "RRO/SNO",
-  "mutant": "(<= L_x (+ R_x 0.035)) [<=->>=]",
-  "kind": "C",
-  "relcert": "DECLINED",
-  "kernel_refuted": true,
-  "witness_found": true
- },
- {
-  "id": "antenna_track_kvretune_m017",
-  "bench": "antenna_track_kvretune",
-  "op": "MCO",
-  "mutant": "(<= L_x (+ R_x 0.035)) [del]",
-  "kind": "C",
-  "relcert": "DECLINED",
-  "kernel_refuted": true,
-  "witness_found": true
- },
- {
-  "id": "antenna_track_kvretune_m018",
-  "bench": "antenna_track_kvretune",
-  "op": "ORO",
-  "mutant": "(<= L_x (+ R_x 0.035)) [L_x->R_x]",
-  "kind": "C",
-  "relcert": "DECLINED",
-  "kernel_refuted": true,
-  "witness_found": true
- },
- {
-  "id": "antenna_track_kvretune_m019",
-  "bench": "antenna_track_kvretune",
-  "op": "ORO",
-  "mutant": "(<= L_x (+ R_x 0.035)) [R_x->L_x]",
-  "kind": "C",
-  "relcert": "DECLINED",
-  "kernel_refuted": true,
-  "witness_found": true
- },
- {
-  "id": "antenna_track_kvretune_m020",
-  "bench": "antenna_track_kvretune",
-  "op": "RRO/SNO",
-  "mutant": "(<= R_x (+ L_x 0.035)) [<=->>=]",
-  "kind": "C",
-  "relcert": "DECLINED",
-  "kernel_refuted": true,
-  "witness_found": true
- },
- {
-  "id": "antenna_track_kvretune_m021",
-  "bench": "antenna_track_kvretune",
-  "op": "MCO",
-  "mutant": "(<= R_x (+ L_x 0.035)) [del]",
-  "kind": "C",
-  "relcert": "DECLINED",
-  "kernel_refuted": true,
-  "witness_found": true
- },
- {
-  "id": "antenna_track_kvretune_m022",
-  "bench": "antenna_track_kvretune",
-  "op": "ORO",
-  "mutant": "(<= R_x (+ L_x 0.035)) [L_x->R_x]",
-  "kind": "C",
-  "relcert": "DECLINED",
-  "kernel_refuted": true,
-  "witness_found": true
- },
- {
-  "id": "antenna_track_kvretune_m023",
-  "bench": "antenna_track_kvretune",
-  "op": "ORO",
-  "mutant": "(<= R_x (+ L_x 0.035)) [R_x->L_x]",
-  "kind": "C",
-  "relcert": "DECLINED",
-  "kernel_refuted": true,
-  "witness_found": true
- },
- {
-  "id": "antenna_track_kvretune_m024",
-  "bench": "antenna_track_kvretune",
-  "op": "RRO/SNO",
-  "mutant": "(<= (- R_x R_c) 0.025) [<=->>=]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "antenna_track_kvretune_m025",
-  "bench": "antenna_track_kvretune",
-  "op": "MCO",
-  "mutant": "(<= (- R_x R_c) 0.025) [del]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "antenna_track_kvretune_m026",
-  "bench": "antenna_track_kvretune",
-  "op": "ORO",
-  "mutant": "(<= (- R_x R_c) 0.025) [R_c->L_c]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "antenna_track_kvretune_m027",
-  "bench": "antenna_track_kvretune",
-  "op": "ORO",
-  "mutant": "(<= (- R_x R_c) 0.025) [R_x->L_x]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "antenna_track_kvretune_m028",
-  "bench": "antenna_track_kvretune",
-  "op": "RRO/SNO",
-  "mutant": "(<= (- R_c R_x) 0.0) [<=->>=]",
-  "kind": "C",
-  "relcert": "DECLINED",
-  "kernel_refuted": true,
-  "witness_found": true
- },
- {
-  "id": "antenna_track_kvretune_m029",
-  "bench": "antenna_track_kvretune",
-  "op": "MCO",
-  "mutant": "(<= (- R_c R_x) 0.0) [del]",
-  "kind": "C",
-  "relcert": "DECLINED",
-  "kernel_refuted": true,
-  "witness_found": true
- },
- {
-  "id": "antenna_track_kvretune_m030",
-  "bench": "antenna_track_kvretune",
-  "op": "ORO",
-  "mutant": "(<= (- R_c R_x) 0.0) [R_c->L_c]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "antenna_track_kvretune_m031",
-  "bench": "antenna_track_kvretune",
-  "op": "ORO",
-  "mutant": "(<= (- R_c R_x) 0.0) [R_x->L_x]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "antenna_track_kvretune_m032",
-  "bench": "antenna_track_kvretune",
-  "op": "RRO/SNO",
-  "mutant": "(<= L_x (+ R_x 0.25)) [<=->>=]",
-  "kind": "C",
-  "relcert": "DECLINED",
-  "kernel_refuted": true,
-  "witness_found": true
- },
- {
-  "id": "antenna_track_kvretune_m033",
-  "bench": "antenna_track_kvretune",
-  "op": "MCO",
-  "mutant": "(<= L_x (+ R_x 0.25)) [del]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "antenna_track_kvretune_m034",
-  "bench": "antenna_track_kvretune",
-  "op": "ORO",
-  "mutant": "(<= L_x (+ R_x 0.25)) [L_x->R_x]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "antenna_track_kvretune_m035",
-  "bench": "antenna_track_kvretune",
-  "op": "ORO",
-  "mutant": "(<= L_x (+ R_x 0.25)) [R_x->L_x]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "antenna_track_kvretune_m036",
-  "bench": "antenna_track_kvretune",
-  "op": "RRO/SNO",
-  "mutant": "(<= R_x (+ L_x 0.25)) [<=->>=]",
-  "kind": "C",
-  "relcert": "DECLINED",
-  "kernel_refuted": true,
-  "witness_found": true
- },
- {
-  "id": "antenna_track_kvretune_m037",
-  "bench": "antenna_track_kvretune",
-  "op": "MCO",
-  "mutant": "(<= R_x (+ L_x 0.25)) [del]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "antenna_track_kvretune_m038",
-  "bench": "antenna_track_kvretune",
-  "op": "ORO",
-  "mutant": "(<= R_x (+ L_x 0.25)) [L_x->R_x]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "antenna_track_kvretune_m039",
-  "bench": "antenna_track_kvretune",
-  "op": "ORO",
-  "mutant": "(<= R_x (+ L_x 0.25)) [R_x->L_x]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "antenna_track_kvretune_m040",
-  "bench": "antenna_track_kvretune",
-  "op": "RRO/SNO",
-  "mutant": "(<= (- R_c R_x) 0.17) [<=->>=]",
-  "kind": "C",
-  "relcert": "DECLINED",
-  "kernel_refuted": true,
-  "witness_found": true
- },
- {
-  "id": "antenna_track_kvretune_m041",
-  "bench": "antenna_track_kvretune",
-  "op": "MCO",
-  "mutant": "(<= (- R_c R_x) 0.17) [del]",
-  "kind": null,
-  "relcert": "DECLINED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "antenna_track_kvretune_m042",
-  "bench": "antenna_track_kvretune",
-  "op": "ORO",
-  "mutant": "(<= (- R_c R_x) 0.17) [R_c->L_c]",
-  "kind": null,
-  "relcert": "CERTIFIED",
-  "kernel_refuted": false,
-  "witness_found": false
- },
- {
-  "id": "antenna_track_kvretune_m043",
-  "bench": "antenna_track_kvretune",
-  "op": "ORO",
-  "mutant": "(<= (- R_c R_x) 0.17) [R_x->L_x]",
-  "kind": null,
-  "relcert": "DECLINED",
   "kernel_refuted": false,
   "witness_found": false
  },
@@ -9486,6 +8646,896 @@
   "mutant": "(<= R_T L_T) [R_T->L_T]",
   "kind": null,
   "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "h2_refuel_ambientbias_m000",
+  "bench": "h2_refuel_ambientbias",
+  "op": "RRO/SNO",
+  "mutant": "(<= L_p R_p) [<=->>=]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "h2_refuel_ambientbias_m001",
+  "bench": "h2_refuel_ambientbias",
+  "op": "ORO",
+  "mutant": "(<= L_p R_p) [L_p->R_p]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "h2_refuel_ambientbias_m002",
+  "bench": "h2_refuel_ambientbias",
+  "op": "ORO",
+  "mutant": "(<= L_p R_p) [R_p->L_p]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "h2_refuel_ambientbias_m003",
+  "bench": "h2_refuel_ambientbias",
+  "op": "RRO/SNO",
+  "mutant": "(<= L_p (+ R_p 2.9)) [<=->>=]",
+  "kind": "C",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "h2_refuel_ambientbias_m004",
+  "bench": "h2_refuel_ambientbias",
+  "op": "ORO",
+  "mutant": "(<= L_p (+ R_p 2.9)) [L_p->R_p]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "h2_refuel_ambientbias_m005",
+  "bench": "h2_refuel_ambientbias",
+  "op": "ORO",
+  "mutant": "(<= L_p (+ R_p 2.9)) [R_p->L_p]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m000",
+  "bench": "platoon_latency",
+  "op": "RRO/SNO",
+  "mutant": "(>= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) (- 0.0 1.0)) [>=-><=]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m001",
+  "bench": "platoon_latency",
+  "op": "MCO",
+  "mutant": "(>= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) (- 0.0 1.0)) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m002",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(>= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) (- 0.0 1.0)) [L_g->R_g]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m003",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(>= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) (- 0.0 1.0)) [L_r->R_r]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m004",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(>= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) (- 0.0 1.0)) [R_g->L_g]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m005",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(>= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) (- 0.0 1.0)) [R_r->L_r]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m006",
+  "bench": "platoon_latency",
+  "op": "RRO/SNO",
+  "mutant": "(<= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) 1.0) [<=->>=]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m007",
+  "bench": "platoon_latency",
+  "op": "MCO",
+  "mutant": "(<= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) 1.0) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m008",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(<= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) 1.0) [L_g->R_g]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m009",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(<= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) 1.0) [L_r->R_r]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m010",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(<= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) 1.0) [R_g->L_g]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m011",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(<= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) 1.0) [R_r->L_r]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m012",
+  "bench": "platoon_latency",
+  "op": "RRO/SNO",
+  "mutant": "(>= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) (- 0.0 2.0)) [>=-><=]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m013",
+  "bench": "platoon_latency",
+  "op": "MCO",
+  "mutant": "(>= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) (- 0.0 2.0)) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m014",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(>= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) (- 0.0 2.0)) [L_g->R_g]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m015",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(>= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) (- 0.0 2.0)) [L_r->R_r]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m016",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(>= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) (- 0.0 2.0)) [R_g->L_g]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m017",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(>= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) (- 0.0 2.0)) [R_r->L_r]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m018",
+  "bench": "platoon_latency",
+  "op": "RRO/SNO",
+  "mutant": "(<= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) 2.0) [<=->>=]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m019",
+  "bench": "platoon_latency",
+  "op": "MCO",
+  "mutant": "(<= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) 2.0) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m020",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(<= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) 2.0) [L_g->R_g]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m021",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(<= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) 2.0) [L_r->R_r]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m022",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(<= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) 2.0) [R_g->L_g]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m023",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(<= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) 2.0) [R_r->L_r]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m024",
+  "bench": "platoon_latency",
+  "op": "RRO/SNO",
+  "mutant": "(>= (- L_g R_g) (- 0.0 4.0)) [>=-><=]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m025",
+  "bench": "platoon_latency",
+  "op": "MCO",
+  "mutant": "(>= (- L_g R_g) (- 0.0 4.0)) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m026",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(>= (- L_g R_g) (- 0.0 4.0)) [L_g->R_g]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m027",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(>= (- L_g R_g) (- 0.0 4.0)) [R_g->L_g]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m028",
+  "bench": "platoon_latency",
+  "op": "RRO/SNO",
+  "mutant": "(<= (- L_g R_g) 4.0) [<=->>=]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m029",
+  "bench": "platoon_latency",
+  "op": "MCO",
+  "mutant": "(<= (- L_g R_g) 4.0) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m030",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(<= (- L_g R_g) 4.0) [L_g->R_g]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m031",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(<= (- L_g R_g) 4.0) [R_g->L_g]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m032",
+  "bench": "platoon_latency",
+  "op": "RRO/SNO",
+  "mutant": "(>= (+ R_g (* 2.0 R_r)) 5.0) [>=-><=]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m033",
+  "bench": "platoon_latency",
+  "op": "MCO",
+  "mutant": "(>= (+ R_g (* 2.0 R_r)) 5.0) [del]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m034",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(>= (+ R_g (* 2.0 R_r)) 5.0) [R_g->L_g]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m035",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(>= (+ R_g (* 2.0 R_r)) 5.0) [R_r->L_r]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m036",
+  "bench": "platoon_latency",
+  "op": "RRO/SNO",
+  "mutant": "(<= (+ R_g (* 2.0 R_r)) 60.0) [<=->>=]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m037",
+  "bench": "platoon_latency",
+  "op": "MCO",
+  "mutant": "(<= (+ R_g (* 2.0 R_r)) 60.0) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m038",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(<= (+ R_g (* 2.0 R_r)) 60.0) [R_g->L_g]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m039",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(<= (+ R_g (* 2.0 R_r)) 60.0) [R_r->L_r]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m040",
+  "bench": "platoon_latency",
+  "op": "RRO/SNO",
+  "mutant": "(>= L_g 5.0) [>=-><=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "platoon_latency_m041",
+  "bench": "platoon_latency",
+  "op": "MCO",
+  "mutant": "(>= L_g 5.0) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m042",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(>= L_g 5.0) [L_g->R_g]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m043",
+  "bench": "platoon_latency",
+  "op": "RRO/SNO",
+  "mutant": "(>= (+ L_g (* 2.0 L_r)) 5.0) [>=-><=]",
+  "kind": "B",
+  "relcert": "DECLINED",
+  "kernel_refuted": true,
+  "witness_found": true
+ },
+ {
+  "id": "platoon_latency_m044",
+  "bench": "platoon_latency",
+  "op": "MCO",
+  "mutant": "(>= (+ L_g (* 2.0 L_r)) 5.0) [del]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m045",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(>= (+ L_g (* 2.0 L_r)) 5.0) [L_g->R_g]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m046",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(>= (+ L_g (* 2.0 L_r)) 5.0) [L_r->R_r]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m047",
+  "bench": "platoon_latency",
+  "op": "RRO/SNO",
+  "mutant": "(>= (- L_r R_r) 0.0) [>=-><=]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m048",
+  "bench": "platoon_latency",
+  "op": "MCO",
+  "mutant": "(>= (- L_r R_r) 0.0) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m049",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(>= (- L_r R_r) 0.0) [L_r->R_r]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m050",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(>= (- L_r R_r) 0.0) [R_r->L_r]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m051",
+  "bench": "platoon_latency",
+  "op": "RRO/SNO",
+  "mutant": "(<= (- L_r R_r) 0.0) [<=->>=]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m052",
+  "bench": "platoon_latency",
+  "op": "MCO",
+  "mutant": "(<= (- L_r R_r) 0.0) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m053",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(<= (- L_r R_r) 0.0) [L_r->R_r]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m054",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(<= (- L_r R_r) 0.0) [R_r->L_r]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m055",
+  "bench": "platoon_latency",
+  "op": "RRO/SNO",
+  "mutant": "(>= (+ (- L_g R_g) (* 2.0 (- L_r R_r))) 0.0) [>=-><=]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m056",
+  "bench": "platoon_latency",
+  "op": "MCO",
+  "mutant": "(>= (+ (- L_g R_g) (* 2.0 (- L_r R_r))) 0.0) [del]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m057",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(>= (+ (- L_g R_g) (* 2.0 (- L_r R_r))) 0.0) [L_g->R_g]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m058",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(>= (+ (- L_g R_g) (* 2.0 (- L_r R_r))) 0.0) [L_r->R_r]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m059",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(>= (+ (- L_g R_g) (* 2.0 (- L_r R_r))) 0.0) [R_g->L_g]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m060",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(>= (+ (- L_g R_g) (* 2.0 (- L_r R_r))) 0.0) [R_r->L_r]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m061",
+  "bench": "platoon_latency",
+  "op": "RRO/SNO",
+  "mutant": "(<= (+ (- L_g R_g) (* 2.0 (- L_r R_r))) 0.0) [<=->>=]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m062",
+  "bench": "platoon_latency",
+  "op": "MCO",
+  "mutant": "(<= (+ (- L_g R_g) (* 2.0 (- L_r R_r))) 0.0) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m063",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(<= (+ (- L_g R_g) (* 2.0 (- L_r R_r))) 0.0) [L_g->R_g]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m064",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(<= (+ (- L_g R_g) (* 2.0 (- L_r R_r))) 0.0) [L_r->R_r]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m065",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(<= (+ (- L_g R_g) (* 2.0 (- L_r R_r))) 0.0) [R_g->L_g]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "platoon_latency_m066",
+  "bench": "platoon_latency",
+  "op": "ORO",
+  "mutant": "(<= (+ (- L_g R_g) (* 2.0 (- L_r R_r))) 0.0) [R_r->L_r]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "reactor_feed_wireless_m000",
+  "bench": "reactor_feed_wireless",
+  "op": "RRO/SNO",
+  "mutant": "(<= L_T (+ R_T 9.0)) [<=->>=]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "reactor_feed_wireless_m001",
+  "bench": "reactor_feed_wireless",
+  "op": "MCO",
+  "mutant": "(<= L_T (+ R_T 9.0)) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "reactor_feed_wireless_m002",
+  "bench": "reactor_feed_wireless",
+  "op": "ORO",
+  "mutant": "(<= L_T (+ R_T 9.0)) [L_T->R_T]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "reactor_feed_wireless_m003",
+  "bench": "reactor_feed_wireless",
+  "op": "ORO",
+  "mutant": "(<= L_T (+ R_T 9.0)) [R_T->L_T]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "reactor_feed_wireless_m004",
+  "bench": "reactor_feed_wireless",
+  "op": "RRO/SNO",
+  "mutant": "(<= R_T (+ L_T 9.0)) [<=->>=]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "reactor_feed_wireless_m005",
+  "bench": "reactor_feed_wireless",
+  "op": "MCO",
+  "mutant": "(<= R_T (+ L_T 9.0)) [del]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "reactor_feed_wireless_m006",
+  "bench": "reactor_feed_wireless",
+  "op": "ORO",
+  "mutant": "(<= R_T (+ L_T 9.0)) [L_T->R_T]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "reactor_feed_wireless_m007",
+  "bench": "reactor_feed_wireless",
+  "op": "ORO",
+  "mutant": "(<= R_T (+ L_T 9.0)) [R_T->L_T]",
+  "kind": null,
+  "relcert": "CERTIFIED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "reactor_feed_wireless_m008",
+  "bench": "reactor_feed_wireless",
+  "op": "RRO/SNO",
+  "mutant": "(<= L_p R_p) [<=->>=]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "reactor_feed_wireless_m009",
+  "bench": "reactor_feed_wireless",
+  "op": "MCO",
+  "mutant": "(<= L_p R_p) [del]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "reactor_feed_wireless_m010",
+  "bench": "reactor_feed_wireless",
+  "op": "ORO",
+  "mutant": "(<= L_p R_p) [L_p->R_p]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "reactor_feed_wireless_m011",
+  "bench": "reactor_feed_wireless",
+  "op": "ORO",
+  "mutant": "(<= L_p R_p) [R_p->L_p]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "reactor_feed_wireless_m012",
+  "bench": "reactor_feed_wireless",
+  "op": "RRO/SNO",
+  "mutant": "(<= R_p L_p) [<=->>=]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "reactor_feed_wireless_m013",
+  "bench": "reactor_feed_wireless",
+  "op": "MCO",
+  "mutant": "(<= R_p L_p) [del]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "reactor_feed_wireless_m014",
+  "bench": "reactor_feed_wireless",
+  "op": "ORO",
+  "mutant": "(<= R_p L_p) [L_p->R_p]",
+  "kind": null,
+  "relcert": "DECLINED",
+  "kernel_refuted": false,
+  "witness_found": false
+ },
+ {
+  "id": "reactor_feed_wireless_m015",
+  "bench": "reactor_feed_wireless",
+  "op": "ORO",
+  "mutant": "(<= R_p L_p) [R_p->L_p]",
+  "kind": null,
+  "relcert": "DECLINED",
   "kernel_refuted": false,
   "witness_found": false
  }

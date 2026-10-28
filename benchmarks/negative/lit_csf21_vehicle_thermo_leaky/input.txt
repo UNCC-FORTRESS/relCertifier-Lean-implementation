@@ -1,0 +1,130 @@
+# lit_csf21_vehicle_thermo_leaky: the car of lit_csf21_vehicle_thermo with an air-conditioning load on the
+# drive, expected DECLINED (the temperature reading now reaches the velocity). NOT part of the
+# certified suite: a negative exhibit.
+# scenario: sensor-attack
+#
+# Same model as benchmarks/suite_v2/lit_csf21_vehicle_thermo (see its header for the source, Xiang,
+# Fulton, Chong, CSF 2021, Sec. III-C(b) and Figs. 6-8, the constants and deviations (1)-(3)), with
+# one physical coupling on BOTH sides (ours, not in the source): while the air conditioning runs
+# (Cool), its compressor takes drive power, and accelerating gives a = 0.8 m/s^2 instead of A = 1
+# (AccCool: v' = 0.8). The thermostat command now changes the velocity, so the attacker who sets
+# the temperature reading sets the acceleration profile. This breaks the source's requirement
+# ("an attacker with access to a car's interior temperature sensor should not be able to affect
+# the control of the car's velocity", Sec. III-C(b)).
+#
+# The leak, by hand. Let the attacked car accelerate (psi true throughout, e.g. d = 1000, v = 0)
+# for five 1-s windows in AccHeat (a = 1) and then three in AccCool (a = 0.8). A genuine car with
+# the same velocity must be in AccHeat at the first five window starts (temp <= 20) and in AccCool
+# at the next three (temp >= 20); with temp' = +1 then -1 that needs temp0 + 4 <= 20 and
+# temp0 + 3 >= 20, so no genuine start temperature exists. The source's H-equivalence (whose
+# genuine run may choose its start) therefore fails too, not only the per-state claim the
+# positive file certifies. The tool DECLINES (a DECLINE is not a proof of the leak; the run above
+# is). It declines at the first left mode it covers, AccCool: a genuine car in any mode but
+# AccCool separates (only AccCool passes), and a genuine start at temp < 20 cannot enter it.
+#
+# A second leak, measured and not kept: a thermal-derating interlock in the genuine controller
+# (Acc only while temp <= 30; the attacked reading is arbitrary, so the attacked Acc keeps psi
+# only) also DECLINES, but only in the per-state form: a genuine run that starts below 30 stays
+# near 20 and matches every attacked run, so the source's H-equivalence holds for it.
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27 on branch benchmark-fixes, batch I8):
+# DECLINED (about 0.4 s); also DECLINED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1,
+# RELCERT_NO_CHOICE=1 (and its combinations with RELCERT_SYNC=1 and RELCERT_NO_PRUNE=1),
+# RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_PAIR_STRETCH=1,
+# RELCERT_OPREGION=1, RELCERT_WELLFORMED_STRICT=1 and without
+# RELCERT_IMPLIED_CUT. Rows identical (--handoff vacuous, 36/36). relcert --wellformed: all six
+# right modes ok (exit), 0 UNKNOWN.
+[problem]
+name = lit_csf21_vehicle_thermo_leaky
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 40.0
+
+[Lsys]
+state_vars = [d, v, temp]
+epsilon = 1.0
+
+[Lsys.mode.AccCool]
+ode = d' = smt2:(- 0.0 v); v' = smt2:0.8; temp' = smt2:(- 0.0 1.0);
+guard = smt2:(and (>= v 0.0) (<= v 39.0) (> (* 2.0 d) (+ (* v v) (* 4.0 v) 2.0)))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccCool, AccHeat, CoastCool, CoastHeat, BrkCool, BrkHeat]
+
+[Lsys.mode.AccHeat]
+ode = d' = smt2:(- 0.0 v); v' = smt2:1.0; temp' = smt2:1.0;
+guard = smt2:(and (>= v 0.0) (<= v 39.0) (> (* 2.0 d) (+ (* v v) (* 4.0 v) 2.0)))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccCool, AccHeat, CoastCool, CoastHeat, BrkCool, BrkHeat]
+
+[Lsys.mode.CoastCool]
+ode = d' = smt2:(- 0.0 v); v' = smt2:0.0; temp' = smt2:(- 0.0 1.0);
+guard = smt2:(and (>= v 0.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccCool, AccHeat, CoastCool, CoastHeat, BrkCool, BrkHeat]
+
+[Lsys.mode.CoastHeat]
+ode = d' = smt2:(- 0.0 v); v' = smt2:0.0; temp' = smt2:1.0;
+guard = smt2:(and (>= v 0.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccCool, AccHeat, CoastCool, CoastHeat, BrkCool, BrkHeat]
+
+[Lsys.mode.BrkCool]
+ode = d' = smt2:(- 0.0 v); v' = smt2:(- 0.0 1.0); temp' = smt2:(- 0.0 1.0);
+guard = smt2:(and (>= v 1.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccCool, AccHeat, CoastCool, CoastHeat, BrkCool, BrkHeat]
+
+[Lsys.mode.BrkHeat]
+ode = d' = smt2:(- 0.0 v); v' = smt2:(- 0.0 1.0); temp' = smt2:1.0;
+guard = smt2:(and (>= v 1.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccCool, AccHeat, CoastCool, CoastHeat, BrkCool, BrkHeat]
+
+[Rsys]
+state_vars = [d, v, temp]
+epsilon = 1.0
+
+[Rsys.mode.AccCool]
+ode = d' = smt2:(- 0.0 v); v' = smt2:0.8; temp' = smt2:(- 0.0 1.0);
+guard = smt2:(and (>= v 0.0) (<= v 39.0) (> (* 2.0 d) (+ (* v v) (* 4.0 v) 2.0)) (>= temp 20.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccCool, AccHeat, CoastCool, CoastHeat, BrkCool, BrkHeat]
+
+[Rsys.mode.AccHeat]
+ode = d' = smt2:(- 0.0 v); v' = smt2:1.0; temp' = smt2:1.0;
+guard = smt2:(and (>= v 0.0) (<= v 39.0) (> (* 2.0 d) (+ (* v v) (* 4.0 v) 2.0)) (<= temp 20.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccCool, AccHeat, CoastCool, CoastHeat, BrkCool, BrkHeat]
+
+[Rsys.mode.CoastCool]
+ode = d' = smt2:(- 0.0 v); v' = smt2:0.0; temp' = smt2:(- 0.0 1.0);
+guard = smt2:(and (>= v 0.0) (>= temp 20.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccCool, AccHeat, CoastCool, CoastHeat, BrkCool, BrkHeat]
+
+[Rsys.mode.CoastHeat]
+ode = d' = smt2:(- 0.0 v); v' = smt2:0.0; temp' = smt2:1.0;
+guard = smt2:(and (>= v 0.0) (<= temp 20.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccCool, AccHeat, CoastCool, CoastHeat, BrkCool, BrkHeat]
+
+[Rsys.mode.BrkCool]
+ode = d' = smt2:(- 0.0 v); v' = smt2:(- 0.0 1.0); temp' = smt2:(- 0.0 1.0);
+guard = smt2:(and (>= v 1.0) (>= temp 20.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccCool, AccHeat, CoastCool, CoastHeat, BrkCool, BrkHeat]
+
+[Rsys.mode.BrkHeat]
+ode = d' = smt2:(- 0.0 v); v' = smt2:(- 0.0 1.0); temp' = smt2:1.0;
+guard = smt2:(and (>= v 1.0) (<= temp 20.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccCool, AccHeat, CoastCool, CoastHeat, BrkCool, BrkHeat]
+
+[relational_invariant]
+AccCool = d[l] <= d[r] and d[r] <= d[l] and v[l] <= v[r] and v[r] <= v[l]
+AccHeat = d[l] <= d[r] and d[r] <= d[l] and v[l] <= v[r] and v[r] <= v[l]
+CoastCool = d[l] <= d[r] and d[r] <= d[l] and v[l] <= v[r] and v[r] <= v[l]
+CoastHeat = d[l] <= d[r] and d[r] <= d[l] and v[l] <= v[r] and v[r] <= v[l]
+BrkCool = d[l] <= d[r] and d[r] <= d[l] and v[l] <= v[r] and v[r] <= v[l]
+BrkHeat = d[l] <= d[r] and d[r] <= d[l] and v[l] <= v[r] and v[r] <= v[l]

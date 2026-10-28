@@ -19,7 +19,7 @@ import os, subprocess, sys
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 os.chdir(ROOT)
 RELCERT = "./.lake/build/bin/relcert"
-PROGRESS_TABLE_SKIP = {"drl_car_stop", "drl_lane_control", "freedm_meter", "vehicle_hypercert"}
+PROGRESS_TABLE_SKIP = {"lit_drl_car_stop", "lit_drl_lane_control", "lit_freedm_meter", "lit_hypercert_vehicle"}
 SUITE = "benchmarks/suite_v2"
 OUT = "RelCertifier/InstancesV2"
 HDR = """/-

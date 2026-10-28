@@ -67,14 +67,14 @@ and reports the group count against the declared total (`expectedBridgeGroupsV2`
 
 Run on the regenerated records: **4874 groups over the 50 suite benchmarks and the 2 choice
 exhibits, all discharged** (suite alone 4738: 3211 over the 41 designed benchmarks, 35 + 130 + 77 + 810
-+ 120 + 186 + 35 + 80 + 54 = 1527 over the nine literature cases; 2026-10-28, literature faithfulness fixes: `csf21_vehicle_thermo` 116 -> 120 and `csf21_vehicle_bus` 180 -> 186 with Coast at `v <= 1`, `salt_tank_sensor` 56 -> 54 without its evolve domain, `drl_car_stop` and `drl_lane_control` unchanged; 2026-10-28, batch I11: `h2_refuel_ambientbias` (273 groups), `platoon_latency` (52) and `reactor_feed_wireless` (118) in, `antenna_track_kvretune` (76), `compressor_station_recycle` (53) and `molding_pack_checkring` (28) out, 4580 over 50 + 2 before it; batch I10: `zone_lightmass_schedule` (26 groups) in, `bms_chiller_undercharge` (22) out; 2026-10-27/28, batch I9: the multi-rate
++ 120 + 186 + 35 + 80 + 54 = 1527 over the nine literature cases; 2026-10-28, literature faithfulness fixes: `lit_csf21_vehicle_thermo` 116 -> 120 and `lit_csf21_vehicle_bus` 180 -> 186 with Coast at `v <= 1`, `lit_nahs25_salt_tank` 56 -> 54 without its evolve domain, `lit_drl_car_stop` and `lit_drl_lane_control` unchanged; 2026-10-28, batch I11: `h2_refuel_ambientbias` (273 groups), `platoon_latency` (52) and `reactor_feed_wireless` (118) in, `antenna_track_kvretune` (76), `compressor_station_recycle` (53) and `molding_pack_checkring` (28) out, 4580 over 50 + 2 before it; batch I10: `zone_lightmass_schedule` (26 groups) in, `bms_chiller_undercharge` (22) out; 2026-10-27/28, batch I9: the multi-rate
 and stretch pass, `flaps_slow_approach` (25 groups) and the time-scaled `platoon_profiles` (29) in,
 `insulin_basal_cgmloss` (361) and `platoon_latency` out (`tank_dos_3to1`, 84, stays), and the eight changed covers `acc_spoof_lag` 11,
 `charger_fast_tapers` 222, `platoon_linkloss` 59, `quad_light_profiles` 19, `rover_terrain_2to4` 41,
 `sat3w_detumble_phases` 23, `sat_detumble_phases` 23, `sat_detumble_weak` 19; 5014 over 50 + 2 before it:
 suite alone 4878, 3359 over the 41 designed benchmarks, 35 + 130 + 77 + 810
-+ 116 + 180 + 35 + 80 + 56 over `drl_car_stop`, `drl_lane_control`, `vehicle_hypercert`, `freedm_meter`,
-`csf21_vehicle_thermo`, `csf21_vehicle_bus`, `lz_vehicle_position`, `girard_robot`, `salt_tank_sensor`;
++ 116 + 180 + 35 + 80 + 56 over `lit_drl_car_stop`, `lit_drl_lane_control`, `lit_hypercert_vehicle`, `lit_freedm_meter`,
+`lit_csf21_vehicle_thermo`, `lit_csf21_vehicle_bus`, `lit_lz21_vehicle_position`, `lit_girard08_robot`, `lit_nahs25_salt_tank`;
 2026-10-27, batch I8, second group: the three case studies in (35 + 80 + 56 groups), `rover_rollover_payload`,
 `flaps_slow_approach` and `canal_gate_notches` to the reserve (226), 5069 over 50 + 2 before it; first group: the two CSF 2021
 case studies in (116 + 180 groups), `hvac_fan_staging` and `platoon_profiles` to the reserve (63),
@@ -95,8 +95,8 @@ gate, 3657/3657 over 46 + 3).
 
 * **The choice records.** The tool emits the chosen sets (`RELCERT_CHOICE_OUT`; a leaf per suite
   benchmark in `InstancesV2/BenchChoice/`, empty for the 46 original benchmarks), and the bridge
-  replays them. The literature benchmarks need them (`drl_car_stop`, `drl_lane_control`:
-  a hop into the left's mode per window; `vehicle_hypercert`; `freedm_meter`: a hop into the
+  replays them. The literature benchmarks need them (`lit_drl_car_stop`, `lit_drl_lane_control`:
+  a hop into the left's mode per window; `lit_hypercert_vehicle`; `lit_freedm_meter`: a hop into the
   left's mode or a zero-net grid mode); the Assumption 1 lemmas of the three new models are
   stated directly over the bridge's automaton (`<b>_wellFormedR_direct`, generator variant
   `DIRECT_REGION`). The exhibits: `vehicle_accel_copy` (a
@@ -106,12 +106,12 @@ gate, 3657/3657 over 46 + 3).
   (`up = false`) is covered by `repoProgress_one_down` (`cycle_decay`, `hits_line_down`,
   `phase_down`, `land_at_start_down` in `Proofs/Encoding/Progress.lean`; the pin
   `progressVerd_one_down`; a two-stage certificate must be upward in both stages, `certOK`); the
-  velocity-only `vehicle_hypercert` used it (a reposition node `A0` crossing its threshold
+  velocity-only `lit_hypercert_vehicle` used it (a reposition node `A0` crossing its threshold
   downward), and since its redesign with the position coordinate (2026-10-27) no suite cover
   has a reposition node there and no record uses the downward form. Its generated instance
-  transports Assumption 1 from its own `InstancesV2/WellFormed/VehicleHypercert.lean`
-  (`V2VehicleHypercert.vehicle_hypercert_wellFormedR`, dimension 3, bridge dimension 4; until
-  2026-10-27 from the hand-written general instance `ChoiceVehicleHypercert.wellFormedR` at
+  transports Assumption 1 from its own `InstancesV2/WellFormed/LitHypercertVehicle.lean`
+  (`V2LitHypercertVehicle.lit_hypercert_vehicle_wellFormedR`, dimension 3, bridge dimension 4; until
+  2026-10-27 from the hand-written general instance `ChoiceLitHypercertVehicle.wellFormedR` at
   dimension 2, whose Theorem-3 part was retired on 2026-10-21, git 61d7389).
 
 * **50 of 50 suite benchmarks** are instantiated (`InstancesV2/Bridge/`): 37 in the window form,

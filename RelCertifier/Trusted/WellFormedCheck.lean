@@ -11,7 +11,7 @@ The kernel states and proves (or refutes) it per benchmark (`WellFormedR`,
 `InstancesV2/WellFormedBattery.lean`). This file is the tool's CHEAP, SUFFICIENT check of
 BOTH halves, per right mode: completeness (clause (ii), steps 1–3) and, since 2026-10-26,
 nonblocking (clause (i), steps 4–6; until then only clause (ii) was checked, and a right
-model that blocks at its domain boundary, `vehicle_hypercert` with `s ≤ 8` in the right
+model that blocks at its domain boundary, `lit_hypercert_vehicle` with `s ≤ 8` in the right
 evolve domain, passed). It is reported per right mode and counted. It only ever declines:
 a single `relcert` run changes no verdict unless `RELCERT_WELLFORMED_STRICT=1`;
 `--check-quick-v2` certifies in the strict mode (`certifyWFWith true`) and gates the report

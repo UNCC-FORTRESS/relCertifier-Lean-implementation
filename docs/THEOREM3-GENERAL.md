@@ -2,7 +2,7 @@
 
 Status: the general theorem is proved (`Proofs/Encoding/Theorem3General.lean`,
 `theorem3_of_coverX`, axioms `propext`, `Classical.choice`, `Quot.sound`); instances for
-`vehicle_hypercert`, `vehicle_accel_copy`, `watertank_choice` and the suite's `watertank` went
+`lit_hypercert_vehicle`, `vehicle_accel_copy`, `watertank_choice` and the suite's `watertank` went
 through it as hand-written general instances (`InstancesV2/Choice/General/`), each with the
 standard three axioms plus `z3_unsat_sound`; their Theorem-3 parts were retired on 2026-10-21
 (git 61d7389) and only their Assumption 1 proofs remain, every benchmark and exhibit now going
@@ -103,7 +103,7 @@ the generated bridge instances (§5, `docs/WELLFORMED.md` §6).
 
 | benchmark | windows | cover | discharged here |
 |---|---|---|---|
-| `vehicle_hypercert` | 5, `dt ≤ 1` | hop into the left's mode, then base | hop certificate by arithmetic; Assumption 1 (`odeSol_constRight`); 5 packs |
+| `lit_hypercert_vehicle` | 5, `dt ≤ 1` | hop into the left's mode, then base | hop certificate by arithmetic; Assumption 1 (`odeSol_constRight`); 5 packs |
 | `vehicle_accel_copy` | 3, `dt ≤ 1` | the same | hop certificate (`guardR_of_guardL`); 3 packs |
 | `watertank_choice` | 3, `dt ≤ 1` | `Low` at the per-pairing stretches (δ = 2/7, B = 4), all-successors with `Low → PumpOff` pruned; `Mid` from `MidEco` by a hop into `MidBoost`; decided by `decideCoveredX` in the kernel | Definition 6 for the pruned edge by arithmetic; hop certificate; Assumption 1 with the economy set point; 7 packs |
 | `watertank` (suite) | 3, `dt ≤ 1` | the tool's emitted cover: `Low` and `Mid` at stretch 2 (δ = 1/2, B = 2), all-successors with `Low → PumpOff` pruned; no choice; decided in the kernel | Definition 6 by arithmetic; Assumption 1 transported from the suite's lemma; the suite's 7 packs plus `Low/High` at 2 (see below) |
@@ -141,9 +141,9 @@ right evolve domain).
 
 The tool emits its choice covers (`RELCERT_CHOICE_OUT`, `Trusted/ChoiceEmit.lean`) and the
 bridge replays them (`Emitted/Choice.lean`): `vehicle_accel_copy` and `watertank_choice` are
-generated bridge instances, and so is `vehicle_hypercert`. `repoProgress_one_down`, the mirror of
-`repoProgress_one` for a single downward stage, was used by the velocity-only `vehicle_hypercert`
+generated bridge instances, and so is `lit_hypercert_vehicle`. `repoProgress_one_down`, the mirror of
+`repoProgress_one` for a single downward stage, was used by the velocity-only `lit_hypercert_vehicle`
 (its reposition node's stage crossed its threshold downward); since that benchmark's redesign with
 the position coordinate (2026-10-27) no suite record uses the downward form, and its Assumption 1
-lemma is its own `InstancesV2/WellFormed/VehicleHypercert.lean` (before, the hand-written general
+lemma is its own `InstancesV2/WellFormed/LitHypercertVehicle.lean` (before, the hand-written general
 instance of §4, whose Theorem-3 part was retired on 2026-10-21, git 61d7389).

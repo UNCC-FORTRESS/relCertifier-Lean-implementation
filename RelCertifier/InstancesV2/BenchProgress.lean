@@ -5,19 +5,20 @@ import RelCertifier.InstancesV2.BenchProgress.acc_tune_lag
 import RelCertifier.InstancesV2.BenchProgress.acc_tune_limp
 import RelCertifier.InstancesV2.BenchProgress.bottling_fill_strainer
 import RelCertifier.InstancesV2.BenchProgress.charger_fast_tapers
-import RelCertifier.InstancesV2.BenchProgress.csf21_vehicle_bus
-import RelCertifier.InstancesV2.BenchProgress.csf21_vehicle_thermo
 import RelCertifier.InstancesV2.BenchProgress.elevator_start_discbrake
 import RelCertifier.InstancesV2.BenchProgress.engine_start_highidle
 import RelCertifier.InstancesV2.BenchProgress.flaps_slow_approach
 import RelCertifier.InstancesV2.BenchProgress.fuelcell_chp_dos
 import RelCertifier.InstancesV2.BenchProgress.furnace_program_timebase
 import RelCertifier.InstancesV2.BenchProgress.gantry_speed_zones
-import RelCertifier.InstancesV2.BenchProgress.girard_robot
 import RelCertifier.InstancesV2.BenchProgress.grid_ffr_dos
 import RelCertifier.InstancesV2.BenchProgress.h2_refuel_ambientbias
 import RelCertifier.InstancesV2.BenchProgress.hydro_rejection_gatecal
-import RelCertifier.InstancesV2.BenchProgress.lz_vehicle_position
+import RelCertifier.InstancesV2.BenchProgress.lit_csf21_vehicle_bus
+import RelCertifier.InstancesV2.BenchProgress.lit_csf21_vehicle_thermo
+import RelCertifier.InstancesV2.BenchProgress.lit_girard08_robot
+import RelCertifier.InstancesV2.BenchProgress.lit_lz21_vehicle_position
+import RelCertifier.InstancesV2.BenchProgress.lit_nahs25_salt_tank
 import RelCertifier.InstancesV2.BenchProgress.platoon_latency
 import RelCertifier.InstancesV2.BenchProgress.platoon_linkloss
 import RelCertifier.InstancesV2.BenchProgress.platoon_profiles
@@ -32,7 +33,6 @@ import RelCertifier.InstancesV2.BenchProgress.rover_patrol_lag
 import RelCertifier.InstancesV2.BenchProgress.rover_terrain_2to4
 import RelCertifier.InstancesV2.BenchProgress.rover_terrain_4to6
 import RelCertifier.InstancesV2.BenchProgress.rover_terrain_6to12
-import RelCertifier.InstancesV2.BenchProgress.salt_tank_sensor
 import RelCertifier.InstancesV2.BenchProgress.sat3w_detumble_phases
 import RelCertifier.InstancesV2.BenchProgress.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchProgress.sat_detumble_weak
@@ -56,19 +56,20 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("acc_tune_limp", acc_tune_limp_coverV2_progress),
    ("bottling_fill_strainer", bottling_fill_strainer_coverV2_progress),
    ("charger_fast_tapers", charger_fast_tapers_coverV2_progress),
-   ("csf21_vehicle_bus", csf21_vehicle_bus_coverV2_progress),
-   ("csf21_vehicle_thermo", csf21_vehicle_thermo_coverV2_progress),
    ("elevator_start_discbrake", elevator_start_discbrake_coverV2_progress),
    ("engine_start_highidle", engine_start_highidle_coverV2_progress),
    ("flaps_slow_approach", flaps_slow_approach_coverV2_progress),
    ("fuelcell_chp_dos", fuelcell_chp_dos_coverV2_progress),
    ("furnace_program_timebase", furnace_program_timebase_coverV2_progress),
    ("gantry_speed_zones", gantry_speed_zones_coverV2_progress),
-   ("girard_robot", girard_robot_coverV2_progress),
    ("grid_ffr_dos", grid_ffr_dos_coverV2_progress),
    ("h2_refuel_ambientbias", h2_refuel_ambientbias_coverV2_progress),
    ("hydro_rejection_gatecal", hydro_rejection_gatecal_coverV2_progress),
-   ("lz_vehicle_position", lz_vehicle_position_coverV2_progress),
+   ("lit_csf21_vehicle_bus", lit_csf21_vehicle_bus_coverV2_progress),
+   ("lit_csf21_vehicle_thermo", lit_csf21_vehicle_thermo_coverV2_progress),
+   ("lit_girard08_robot", lit_girard08_robot_coverV2_progress),
+   ("lit_lz21_vehicle_position", lit_lz21_vehicle_position_coverV2_progress),
+   ("lit_nahs25_salt_tank", lit_nahs25_salt_tank_coverV2_progress),
    ("platoon_latency", platoon_latency_coverV2_progress),
    ("platoon_linkloss", platoon_linkloss_coverV2_progress),
    ("platoon_profiles", platoon_profiles_coverV2_progress),
@@ -83,7 +84,6 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("rover_terrain_2to4", rover_terrain_2to4_coverV2_progress),
    ("rover_terrain_4to6", rover_terrain_4to6_coverV2_progress),
    ("rover_terrain_6to12", rover_terrain_6to12_coverV2_progress),
-   ("salt_tank_sensor", salt_tank_sensor_coverV2_progress),
    ("sat3w_detumble_phases", sat3w_detumble_phases_coverV2_progress),
    ("sat_detumble_phases", sat_detumble_phases_coverV2_progress),
    ("sat_detumble_weak", sat_detumble_weak_coverV2_progress),

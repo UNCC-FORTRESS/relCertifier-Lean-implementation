@@ -108,13 +108,7 @@ FAMILIES = [
     ("h2_", "Hydrogen refuelling (sensor bias)"),
     ("reactor_", "Exothermic reactor feed interlock"),
     # case studies reproduced from published work (each header cites its source)
-    ("drl_", "Literature"),
-    ("vehicle_hypercert", "Literature"),
-    ("freedm_", "Literature"),
-    ("csf21_", "Literature"),
-    ("lz_", "Literature"),
-    ("girard_", "Literature"),
-    ("salt_tank_", "Literature"),
+    ("lit_", "Literature"),
 ]
 KEPT_SCENARIO = {
     "watertank": "sensor-attack",

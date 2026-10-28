@@ -2,7 +2,7 @@
 # integration (last at commit 95033f6). Reason: tier 2 in the final audit (AUDIT-C2): its X is the
 # identity hop of template B (a deterministic left against a permissive reference), the pattern that
 # sent lng_cooldown_overspray to the reserve; its place in the suite went to a literature case study
-# (csf21_vehicle_thermo, batch I8). The header below is the suite file's.
+# (lit_csf21_vehicle_thermo, batch I8). The header below is the suite file's.
 #
 # hvac_fan_staging: a zone's deployed three-speed fan staging against the building's sequence of
 # operations, which lets the fan run at any permitted speed; the reference must commit to the

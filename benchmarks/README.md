@@ -44,7 +44,7 @@ suite's format allows; a read-only audit against the fetched sources (LICS 2016 
 dRL, LICS 2018 for FREEDM, CSF 2021, L-CSS 2021, DEDS 2008, NAHS 2025, HyperCertificates) listed
 the fixes, every one tested on a scratch copy before it was installed. Models (five files):
 
-- `drl_car_stop`, `drl_lane_control`, `csf21_vehicle_thermo`, `csf21_vehicle_bus`: the Coast
+- `lit_drl_car_stop`, `lit_drl_lane_control`, `lit_csf21_vehicle_thermo`, `lit_csf21_vehicle_bus`: the Coast
   action that the suite adds on both sides (the one-period stand-in for the source's braking to
   rest, which Assumption 1 forbids on the right) is now enabled only at `v <= 1` (`v_f <= 1` for
   the lane follower) instead of at any speed, so the attacked or conservative car is a subset of
@@ -52,26 +52,26 @@ the fixes, every one tested on a scratch copy before it was installed. Models (f
   configurations CERTIFIED and DECLINED as before, re-measured under control, SYNC, NO_PRUNE,
   NO_CHOICE, NO_PRUNE+NO_CHOICE, SYNC+NO_CHOICE, NO_CUT, NO_IMPLIED_CUT, NO_LINEAR_CUT,
   NO_PAIR_STRETCH, NO_REPO, OPREGION, WELLFORMED_STRICT, --handoff and --wellformed strict:
-  0 UNKNOWN, 0 BLOCKING); covers and choice records unchanged except `drl_lane_control`'s cover;
-  bridge groups `csf21_vehicle_thermo` 116 -> 120, `csf21_vehicle_bus` 180 -> 186, the dRL files
+  0 UNKNOWN, 0 BLOCKING); covers and choice records unchanged except `lit_drl_lane_control`'s cover;
+  bridge groups `lit_csf21_vehicle_thermo` 116 -> 120, `lit_csf21_vehicle_bus` 180 -> 186, the dRL files
   unchanged. The four Assumption 1 proofs are rewritten: the exit clause now splits on the end
   speed (`v <= 1` into Coast, `v >= 1` into Brake, with the thermostat or leader case split as
   before), Z3-free at the three standard axioms.
-- `salt_tank_sensor`: the evolve domain `xp >= 0`, which the source's plant lacks, is dropped
-  (the constant atom `0.0 <= 1.0`, as `girard_robot`); every verdict unchanged, bridge groups
+- `lit_nahs25_salt_tank`: the evolve domain `xp >= 0`, which the source's plant lacks, is dropped
+  (the constant atom `0.0 <= 1.0`, as `lit_girard08_robot`); every verdict unchanged, bridge groups
   56 -> 54, the proof's domain clause now trivial.
 
-Headers only (IR unchanged, checked by regenerating the leaves): `drl_car_stop` (LICS 2016 gives
+Headers only (IR unchanged, checked by regenerating the leaves): `lit_drl_car_stop` (LICS 2016 gives
 templates; the concrete car is Prebet-Platzer Example 1 with `safeT`, `safeE` unspecified, so
 `Safe` and `Safe_eps` are our instantiation; the `v >= 0` domain is load-bearing, the
 Prebet-literal variant declines and is false; what is certified is dRL's Open Goal 1);
-`drl_lane_control` (dRL removes FM 2011's stopped branch, `Safe` is ours, the three-valued leader
-variant declines, open); `freedm_meter` (the source has no sampling period; why sampling at 1 is
-harmless; the literal charge test also certifies); `csf21_vehicle_thermo` and `csf21_vehicle_bus`
-(Def. 5 is symmetric, the converse direction is immediate); `lz_vehicle_position` (the position
+`lit_drl_lane_control` (dRL removes FM 2011's stopped branch, `Safe` is ours, the three-valued leader
+variant declines, open); `lit_freedm_meter` (the source has no sampling period; why sampling at 1 is
+harmless; the literal charge test also certifies); `lit_csf21_vehicle_thermo` and `lit_csf21_vehicle_bus`
+(Def. 5 is symmetric, the converse direction is immediate); `lit_lz21_vehicle_position` (the position
 bound is dropped for the copying witness, not because the claim fails; the source starts at
-rest, ours from every equal velocity pair); `girard_robot` (the certified abstraction is more
-permissive than Fig. 3); `vehicle_hypercert` (the Q1 reading kept; the stale sentence on the
+rest, ours from every equal velocity pair); `lit_girard08_robot` (the certified abstraction is more
+permissive than Fig. 3); `lit_hypercert_vehicle` (the Q1 reading kept; the stale sentence on the
 successor-only `--wellformed` replaced by the strict gate's BLOCKING verdict). Suite counts
 after the fixes: modal 1004, handoff 528, non-connection 64, pruned 32, reposition 76, strict gate
 184 (88/96) unchanged; bridge 4866 -> 4874.
@@ -277,6 +277,30 @@ never in the suite: the bound is the no-FFR worst case and does not depend on th
 | `match_multi_rate` | `gantry_speed_zones` (both models new: a pick-and-place gantry whose production program runs zone-scheduled speed overrides, against the program as commissioned at reduced speed; 10 mm path tolerance; replaces the synthetic unitless rate-ratio exhibit in the same multi-cycle matching role) |
 | `platoon_delay_profiles` | `platoon_profiles` (redesigned: the CACC follower driven in the SPORT profile, a shorter time gap, against the design follower verified in NORMAL; its right model is `platoon_linkloss`'s, Assumption 1 through the shared `PlatoonCaccAeb` lemmas) |
 
+## Renamed 2026-10-28: the literature group
+
+The nine case studies reproduced from published work carry the prefix `lit_` (family
+"Literature" in `scripts/suite_v2_matrix.py`), with the source's venue and year where the old name
+lacked it. Only names changed (directory, `name =`, header lines, derived Lean identifiers and
+modules, refutation mutants and witnesses); models, invariants, certificates and proofs are
+unchanged. The exhibits sharing a stem are renamed with them. Older records (git history, dated
+docs) use the old names.
+
+| old | new |
+|---|---|
+| `drl_car_stop` | `lit_drl_car_stop` |
+| `drl_lane_control` | `lit_drl_lane_control` |
+| `vehicle_hypercert` | `lit_hypercert_vehicle` |
+| `freedm_meter` | `lit_freedm_meter` |
+| `csf21_vehicle_thermo` | `lit_csf21_vehicle_thermo` |
+| `csf21_vehicle_bus` | `lit_csf21_vehicle_bus` |
+| `lz_vehicle_position` | `lit_lz21_vehicle_position` |
+| `girard_robot` | `lit_girard08_robot` |
+| `salt_tank_sensor` | `lit_nahs25_salt_tank` |
+| `negative/csf21_vehicle_thermo_leaky` | `negative/lit_csf21_vehicle_thermo_leaky` |
+| `negative/freedm_meter_leaky` | `negative/lit_freedm_meter_leaky` |
+| `negative_wellformed/vehicle_hypercert_s8` | `negative_wellformed/lit_hypercert_vehicle_s8` |
+
 ## Batch I8 (2026-10-27): five own designs swapped for case studies from published work
 
 Owner request (2026-10-27): prefer case studies from existing work, for credibility; the literature
@@ -288,24 +312,24 @@ integration (records, bridge instance, a new Z3-free Assumption 1 proof stated o
 automaton, `_wellFormedR_direct`), a refutation-finder run, the matrix family `Literature` and the
 counts; each move with its Lean integration, records, refutations and counts.
 
-First group: `csf21_vehicle_thermo` (Xiang, Fulton, Chong, CSF 2021, the car with interior
+First group: `lit_csf21_vehicle_thermo` (Xiang, Fulton, Chong, CSF 2021, the car with interior
 temperature control: an attacker who owns the cabin-temperature reading cannot change the car's
 distance and velocity; X, the genuine car commits to the attacked car's action at every window)
-and `csf21_vehicle_bus` (the same paper's internal-bus case study: the thermostat shares the
+and `lit_csf21_vehicle_bus` (the same paper's internal-bus case study: the thermostat shares the
 drive's bus, one message per cycle, twelve genuine modes by message type; X) in;
 `hvac_fan_staging` and `platoon_profiles` (the two tier-2 members of the final audit: the identity
 hop of template B, and a special case of `platoon_linkloss`) to the reserve. The negative exhibit
-`csf21_vehicle_thermo_leaky` (an air-conditioning load on the drive lets the temperature reading
-reach the velocity; expected DECLINED) joins `freedm_meter_leaky` in `benchmarks/negative/`.
+`lit_csf21_vehicle_thermo_leaky` (an air-conditioning load on the drive lets the temperature reading
+reach the velocity; expected DECLINED) joins `lit_freedm_meter_leaky` in `benchmarks/negative/`.
 
-Second group: `lz_vehicle_position` (Liu and Zamani, IEEE L-CSS 2021: approximate initial-state
+Second group: `lit_lz21_vehicle_position` (Liu and Zamani, IEEE L-CSS 2021: approximate initial-state
 opacity of a vehicle whose position an intruder observes with precision 1 m; the partner run starts
-1 m ahead and copies the input; X), `girard_robot` (Girard, Julius, Pappas, DEDS 2008: a planar
+1 m ahead and copies the input; X), `lit_girard08_robot` (Girard, Julius, Pappas, DEDS 2008: a planar
 robot with its dynamic tracking controller is approximately simulated, with precision 0.4 m, by its
 planner's kinematic model; X; the robot written in the coordinates of the source's simulation
 function; its location changes sampled, since the generic bridge takes one evolve domain per side,
 `Emitted.uniformEvolve`: with the source's per-location evolve domains every verdict is the same but
-no bridge instance can be stated, the header's departure (6)) and `salt_tank_sensor` (Xiang,
+no bridge instance can be stated, the header's departure (6)) and `lit_nahs25_salt_tank` (Xiang,
 Lanotte, Tini, Chong, Merro, NAHS 2025: a brine tank whose salt sensor is under a bounded attack
 stays within 3 lb of the genuine tank, the source's forward simulation distance; I) in;
 `rover_rollover_payload` (both letters from the claim form, and a second structural difference,
@@ -314,12 +338,12 @@ with `furnace_program_timebase` and `bottling_fill_strainer`, a weakly sourced t
 rows dependent on the stretch grid) and `canal_gate_notches` (one of several X-only own designs;
 the literature cases now show X) to the reserve.
 
-**Relation to the running example.** The NAHS 2025 salt-tank case, now `salt_tank_sensor`, is a
+**Relation to the running example.** The NAHS 2025 salt-tank case, now `lit_nahs25_salt_tank`, is a
 related published scenario (one tank, a sensor attack of magnitude 3 and a deviation band of 3,
 the same attack magnitude and band as `watertank`), not the source of the paper's running example
 `watertank`: the plants, the attacks (a bounded reading error at every sample against a constant
 3 dm offset with a tampered pump) and the mechanisms (I at lambda 1 against S M B at stretch 2)
-differ (`salt_tank_sensor`'s header, "RELATION TO THE RUNNING EXAMPLE").
+differ (`lit_nahs25_salt_tank`'s header, "RELATION TO THE RUNNING EXAMPLE").
 
 ## Batch I7 (2026-10-27): two tier-2 members swapped for reserve designs
 
@@ -548,22 +572,22 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `acc_tune_limp` | 1 / 1 | 2 / 4 | degraded-controller | mode-keyed, mode choice; equal 0.1 s periods since 2026-10-27 |
 | `bottling_fill_strainer` | 2 / 2 | 2 / 2 | degraded-actuator | new 2026-10-27 (batch I6): stretch 17/20 in FILL (`lambda_min = 0.8`), load-bearing mode fact; `CLOSE`'s predicted-final-volume guard conjunct added at installation |
 | `charger_fast_tapers` | 1 / 1 | 5 / 6 | degraded-controller | reinstalled 2026-10-27 (batch I7; in the reserve from batch I4): the minute time scale (`epsilon` 0.006 min = 0.36 s on the right); mode-keyed (the stricter PRECHARGE row), right-only repositioning, pruned FAULT edges, widened cuts; batch I9: the deployed phase decision every other request cycle (0.012 min), multi-step and branching covers |
-| `csf21_vehicle_bus` | 3 / 3 | 6 / 12 | sensor-attack | literature (CSF 2021, internal bus), mode choice; new 2026-10-27 (batch I8) |
-| `csf21_vehicle_thermo` | 3 / 3 | 6 / 6 | sensor-attack | literature (CSF 2021), mode choice; new 2026-10-27 (batch I8); leaky counterpart in `benchmarks/negative/` |
-| `drl_car_stop` | 2 / 2 | 3 / 3 | controller-refinement | literature (dRL), mode choice |
-| `drl_lane_control` | 3 / 3 | 6 / 6 | controller-refinement | literature (dRL), mode choice |
+| `lit_csf21_vehicle_bus` | 3 / 3 | 6 / 12 | sensor-attack | literature (CSF 2021, internal bus), mode choice; new 2026-10-27 (batch I8) |
+| `lit_csf21_vehicle_thermo` | 3 / 3 | 6 / 6 | sensor-attack | literature (CSF 2021), mode choice; new 2026-10-27 (batch I8); leaky counterpart in `benchmarks/negative/` |
+| `lit_drl_car_stop` | 2 / 2 | 3 / 3 | controller-refinement | literature (dRL), mode choice |
+| `lit_drl_lane_control` | 3 / 3 | 6 / 6 | controller-refinement | literature (dRL), mode choice |
 | `elevator_start_discbrake` | 3 / 3 | 4 / 4 | actuator-change | new 2026-10-27 (batch I5): mode-keyed (LIFT row), right-only repositioning (the reference's slower brake lift); STOP's rest-position guard conjunct added at installation |
 | `engine_start_highidle` | 1 / 1 | 5 / 5 | controller-change | new 2026-10-27: mode-keyed, widened cuts; lambda pinned to 1 (batch I6) |
 | `flaps_slow_approach` | 2 / 2 | 2 / 2 | degraded-actuator | back from the reserve 2026-10-27 (batch I9; new in batch I6): a per-mode stretch 1/2 while the flaps move (one hydraulic motor of two), 1 once set; 20 kt speed tolerance (S) |
-| `freedm_meter` | 2 / 2 | 12 / 12 | information-flow | literature (dHL, FREEDM), mode choice |
+| `lit_freedm_meter` | 2 / 2 | 12 / 12 | information-flow | literature (dHL, FREEDM), mode choice |
 | `fuelcell_chp_dos` | 2 / 2 | 3 / 3 | dos-attack | new 2026-10-27 (batch I5): mode choice, multi-step and branching covers, pruned live edges LOW -> HIGH, HIGH -> LOW |
 | `furnace_program_timebase` | 2 / 2 | 3 / 3 | controller-change | new 2026-10-27 (batch I5): stretch 4/5 (`lambda_min = 0.8`), widened cuts, load-bearing mode facts |
 | `gantry_speed_zones` | 2 / 2 | 3 / 1 | controller-refinement | new 2026-10-27 (replaces `match_multi_rate`): a time stretch per speed zone (3, 2, 1), multi-step covers |
-| `girard_robot` | 6 / 2 | 6 / 6 | abstraction | literature (Girard, Julius, Pappas, DEDS 2008), mode choice; new 2026-10-27 (batch I8); location changes sampled on both sides (the bridge's one evolve domain per side) |
+| `lit_girard08_robot` | 6 / 2 | 6 / 6 | abstraction | literature (Girard, Julius, Pappas, DEDS 2008), mode choice; new 2026-10-27 (batch I8); location changes sampled on both sides (the bridge's one evolve domain per side) |
 | `grid_ffr_dos` | 3 / 3 | 2 / 3 | dos-attack | new 2026-10-27 (batch I7; round-A design from the reserve): multi-step covers (one attacked cycle against three nominal), pruned trip edges `NORMAL -> TRIP`, `FFR -> TRIP` |
 | `h2_refuel_ambientbias` | 1 / 1 | 6 / 6 | sensor-fault | new 2026-10-28 (batch I11, from the reserve): a 70 MPa hydrogen fill whose dispenser's ambient sensor reads 10 K high, so the SAE J2601 end-pressure table returns 72.4 MPa; mode-keyed (exact stage rows, the top rows at the derived 2.9 MPa allowance), right-only repositioning out of a TOPOFF window, load-bearing checked cuts (R D I) |
 | `hydro_rejection_gatecal` | 3 / 3 | 2 / 2 | degraded-sensor | new 2026-10-27 (batch I5): mode-keyed (shared-grid equality before the breaker opens, a speed band after) |
-| `lz_vehicle_position` | 2 / 2 | 3 / 3 | opacity | literature (Liu, Zamani, L-CSS 2021), mode choice; new 2026-10-27 (batch I8) |
+| `lit_lz21_vehicle_position` | 2 / 2 | 3 / 3 | opacity | literature (Liu, Zamani, L-CSS 2021), mode choice; new 2026-10-27 (batch I8) |
 | `platoon_latency` | 3 / 2 | 3 / 2 | degraded-network | back from the reserve 2026-10-28 (batch I11; in the reserve from batch I9): the V2V feed-forward two control periods late (its Pade lag's error `e` bounded by the ISO 15622 jerk limit), against the design follower with an ideal link; mode-keyed (AEB row), right model shared with `platoon_linkloss` (D) |
 | `platoon_linkloss` | 2 / 2 | 3 / 2 | dos-attack | redesigned 2026-10-27 (was `platoon_delay_linkloss`): mode-keyed (AEB row), CACC -> ACC fallback; batch I9: the deployed link-loss decision every 0.2 s (two-message timeout), multi-step covers |
 | `platoon_profiles` | 2 / 2 | 2 / 2 | controller-refinement | back from the reserve 2026-10-27 (batch I9) as the time-scaled design: SPORT = the CACC at 1.2 x bandwidth, exact re-timed SPORT rows at 6/5, the AEB at 1 (`lambda in [1, 1.2]`); mode-keyed (AEB row), right model shared with `platoon_linkloss` |
@@ -578,7 +602,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `rover_terrain_2to4` | 4 / 4 | 3 / 3 | model-refinement | redesigned 2026-10-26 (was `rover_terrain_3to6`): terrain chain, wheel slip and sinkage; zone-only right plan; batch I9: the plan's speed loop at the wheel loop's 3 /s again, progress against the plan re-timed within `lambda in [1, 3]` (S M I) |
 | `rover_terrain_4to6` | 6 / 6 | 3 / 3 | model-refinement | redesigned 2026-10-26 (was `rover_terrain_6to8`): terrain chain, drive lag and roughness heave; right cap `w <= c_T`; lambda pinned to 1 (batch I6) |
 | `rover_terrain_6to12` | 12 / 12 | 3 / 3 | model-refinement | redesigned 2026-10-26: terrain chain, heave rate, bank grade, pitch, acceleration, squat; right cap `u <= c_T`; lambda pinned to 1 (batch I6) |
-| `salt_tank_sensor` | 1 / 1 | 2 / 2 | sensor-attack | literature (NAHS 2025), load-bearing mode facts; new 2026-10-27 (batch I8); a related published scenario of the running example, not its source |
+| `lit_nahs25_salt_tank` | 1 / 1 | 2 / 2 | sensor-attack | literature (NAHS 2025), load-bearing mode facts; new 2026-10-27 (batch I8); a related published scenario of the running example, not its source |
 | `sat3w_detumble_phases` | 6 / 6 | 2 / 3 | model-refinement | nonblocking region, mode choice; 2026-10-27: the design model with both phases (FINE added), exact energy rows in both phases (no longer mode-keyed); batch I9: the flight mode manager's 2 s period against the design model's 1 s (M I X) |
 | `sat_detumble_phases` | 4 / 4 | 2 / 3 | model-refinement | nonblocking region, mode choice; 2026-10-27: the design model with both phases (FINE added), exact energy rows in both phases (no longer mode-keyed); batch I9: the flight mode manager's 2 s period against the design model's 1 s (M I X) |
 | `sat_detumble_weak` | 4 / 4 | 1 / 4 | degraded-actuator | nonblocking region, mode choice; 2026-10-27: both sides at the design-model level (one cause: the weakened gain); batch I9: the exact re-timed claim at the derating ratio 4/5 and the power-saving 2 s period (S M B X) |
@@ -587,9 +611,9 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `train_ato_odometry` | 1 / 1 | 3 / 3 | degraded-sensor | new 2026-10-27: stretches per pairing from 31/40 to 6/5 (`lambda_min = 0.75`) |
 | `tunnel_jetfan_pairout` | 3 / 3 | 2 / 2 | degraded-actuator | new 2026-10-27 (batch I6): mode-keyed (the CO row dropped in fire mode), load-bearing mode fact |
 | `turbine_startup_gearratio` | 1 / 1 | 4 / 4 | degraded-controller | new 2026-10-27: widened cuts; right-only repositioning, pruned parking edges (the letters R P I come from the one-sided claim form, header); lambda pinned to 1 (batch I6) |
-| `vehicle_hypercert` | 2 / 2 | 5 / 5 | opacity | literature (HyperCertificates), mode choice; position coordinate and start-offset row (2026-10-27) |
+| `lit_hypercert_vehicle` | 2 / 2 | 5 / 5 | opacity | literature (HyperCertificates), mode choice; position coordinate and start-offset row (2026-10-27) |
 | `ventilator_vc_cuffleak` | 2 / 2 | 2 / 2 | degraded-actuator | new 2026-10-27 (batch I5): mode-keyed (a relative volume row in inspiration, an absolute band in expiration) |
-| `watertank` | 1 / 1 | 3 / 5 | sensor-attack | the paper's running example (the NAHS 2025 salt-tank case, `salt_tank_sensor`, is a related published scenario with the same attack magnitude and band of 3, not its source) |
+| `watertank` | 1 / 1 | 3 / 5 | sensor-attack | the paper's running example (the NAHS 2025 salt-tank case, `lit_nahs25_salt_tank`, is a related published scenario with the same attack magnitude and band of 3, not its source) |
 | `watertank_twospeed` | 1 / 1 | 3 / 6 | sensor-attack | redesigned 2026-10-27: six right modes (two-speed low fill, eco/boost mid fill, high, pump off), one uniform claim; per-pairing stretch, pruned `Fast -> PumpOff` |
 | `zone_lightmass_schedule` | 1 / 1 | 2 / 3 | model-refinement | new 2026-10-28 (batch I10): time-scaled conformance of a lightweight zone to the commissioned zone's occupancy schedule, `lambda_min = lambda_max = 2` (the heat-capacity ratio), budget 2, mode choice (an identity hop and a timing commitment), a degenerate branching step |
 
@@ -663,13 +687,13 @@ a file and its theorem cannot drift apart silently.
 ## Negative exhibits (`benchmarks/negative/`)
 
 Files the tool is expected to DECLINE, kept beside the suite to show what a decline looks like;
-they enter no declared count. `freedm_meter_leaky`: the deterministic controller `batI` of the
-FREEDM case study on both sides of `freedm_meter` (the battery whenever it can still charge or
+they enter no declared count. `lit_freedm_meter_leaky`: the deterministic controller `batI` of the
+FREEDM case study on both sides of `lit_freedm_meter` (the battery whenever it can still charge or
 discharge, the grid otherwise); a surplus at a full battery, or a demand at an empty one, goes to
 the grid while a run from another level keeps it on the battery, so no matching run keeps the
 meters equal. A DECLINE is
 not a proof of insecurity (the certifier is sound, not complete); the source proves the leak by
-exhibiting the two runs. `csf21_vehicle_thermo_leaky` (batch I8): `csf21_vehicle_thermo` with an
+exhibiting the two runs. `lit_csf21_vehicle_thermo_leaky` (batch I8): `lit_csf21_vehicle_thermo` with an
 air-conditioning load on the drive on both sides (accelerating while cooling gives 0.8 m/s^2
 instead of 1); the thermostat command now changes the velocity, so the attacker who sets the
 temperature reading sets the acceleration profile. Its header exhibits the leak by hand (five
@@ -680,7 +704,7 @@ which the source's lock-step equivalence also rules out. The check
 
 ## Assumption 1 negative exhibit (`benchmarks/negative_wellformed/`)
 
-`vehicle_hypercert_s8`: `vehicle_hypercert` with the position bound `s ≤ 8` in every evolve
+`lit_hypercert_vehicle_s8`: `lit_hypercert_vehicle` with the position bound `s ≤ 8` in every evolve
 domain (a round-2 design variant). The certifier CERTIFIES it (the relational invariant does
 not see the bound), but its right model can block: every right guard admits `s = 8` with
 `v > 0`, where the flow leaves the domain at once, so no evolution spans the control interval

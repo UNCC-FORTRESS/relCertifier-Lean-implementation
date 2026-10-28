@@ -7,22 +7,24 @@ import RelCertifier.InstancesV2.BenchChoice.acc_tune_lag
 import RelCertifier.InstancesV2.BenchChoice.acc_tune_limp
 import RelCertifier.InstancesV2.BenchChoice.bottling_fill_strainer
 import RelCertifier.InstancesV2.BenchChoice.charger_fast_tapers
-import RelCertifier.InstancesV2.BenchChoice.csf21_vehicle_bus
-import RelCertifier.InstancesV2.BenchChoice.csf21_vehicle_thermo
-import RelCertifier.InstancesV2.BenchChoice.drl_car_stop
-import RelCertifier.InstancesV2.BenchChoice.drl_lane_control
 import RelCertifier.InstancesV2.BenchChoice.elevator_start_discbrake
 import RelCertifier.InstancesV2.BenchChoice.engine_start_highidle
 import RelCertifier.InstancesV2.BenchChoice.flaps_slow_approach
-import RelCertifier.InstancesV2.BenchChoice.freedm_meter
 import RelCertifier.InstancesV2.BenchChoice.fuelcell_chp_dos
 import RelCertifier.InstancesV2.BenchChoice.furnace_program_timebase
 import RelCertifier.InstancesV2.BenchChoice.gantry_speed_zones
-import RelCertifier.InstancesV2.BenchChoice.girard_robot
 import RelCertifier.InstancesV2.BenchChoice.grid_ffr_dos
 import RelCertifier.InstancesV2.BenchChoice.h2_refuel_ambientbias
 import RelCertifier.InstancesV2.BenchChoice.hydro_rejection_gatecal
-import RelCertifier.InstancesV2.BenchChoice.lz_vehicle_position
+import RelCertifier.InstancesV2.BenchChoice.lit_csf21_vehicle_bus
+import RelCertifier.InstancesV2.BenchChoice.lit_csf21_vehicle_thermo
+import RelCertifier.InstancesV2.BenchChoice.lit_drl_car_stop
+import RelCertifier.InstancesV2.BenchChoice.lit_drl_lane_control
+import RelCertifier.InstancesV2.BenchChoice.lit_freedm_meter
+import RelCertifier.InstancesV2.BenchChoice.lit_girard08_robot
+import RelCertifier.InstancesV2.BenchChoice.lit_hypercert_vehicle
+import RelCertifier.InstancesV2.BenchChoice.lit_lz21_vehicle_position
+import RelCertifier.InstancesV2.BenchChoice.lit_nahs25_salt_tank
 import RelCertifier.InstancesV2.BenchChoice.platoon_latency
 import RelCertifier.InstancesV2.BenchChoice.platoon_linkloss
 import RelCertifier.InstancesV2.BenchChoice.platoon_profiles
@@ -37,7 +39,6 @@ import RelCertifier.InstancesV2.BenchChoice.rover_patrol_lag
 import RelCertifier.InstancesV2.BenchChoice.rover_terrain_2to4
 import RelCertifier.InstancesV2.BenchChoice.rover_terrain_4to6
 import RelCertifier.InstancesV2.BenchChoice.rover_terrain_6to12
-import RelCertifier.InstancesV2.BenchChoice.salt_tank_sensor
 import RelCertifier.InstancesV2.BenchChoice.sat3w_detumble_phases
 import RelCertifier.InstancesV2.BenchChoice.sat_detumble_phases
 import RelCertifier.InstancesV2.BenchChoice.sat_detumble_weak
@@ -46,7 +47,6 @@ import RelCertifier.InstancesV2.BenchChoice.tank_dos_3to1
 import RelCertifier.InstancesV2.BenchChoice.train_ato_odometry
 import RelCertifier.InstancesV2.BenchChoice.tunnel_jetfan_pairout
 import RelCertifier.InstancesV2.BenchChoice.turbine_startup_gearratio
-import RelCertifier.InstancesV2.BenchChoice.vehicle_hypercert
 import RelCertifier.InstancesV2.BenchChoice.ventilator_vc_cuffleak
 import RelCertifier.InstancesV2.BenchChoice.watertank
 import RelCertifier.InstancesV2.BenchChoice.watertank_twospeed
@@ -61,22 +61,24 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("acc_tune_limp", acc_tune_limp_coverV2_choice),
   ("bottling_fill_strainer", bottling_fill_strainer_coverV2_choice),
   ("charger_fast_tapers", charger_fast_tapers_coverV2_choice),
-  ("csf21_vehicle_bus", csf21_vehicle_bus_coverV2_choice),
-  ("csf21_vehicle_thermo", csf21_vehicle_thermo_coverV2_choice),
-  ("drl_car_stop", drl_car_stop_coverV2_choice),
-  ("drl_lane_control", drl_lane_control_coverV2_choice),
   ("elevator_start_discbrake", elevator_start_discbrake_coverV2_choice),
   ("engine_start_highidle", engine_start_highidle_coverV2_choice),
   ("flaps_slow_approach", flaps_slow_approach_coverV2_choice),
-  ("freedm_meter", freedm_meter_coverV2_choice),
   ("fuelcell_chp_dos", fuelcell_chp_dos_coverV2_choice),
   ("furnace_program_timebase", furnace_program_timebase_coverV2_choice),
   ("gantry_speed_zones", gantry_speed_zones_coverV2_choice),
-  ("girard_robot", girard_robot_coverV2_choice),
   ("grid_ffr_dos", grid_ffr_dos_coverV2_choice),
   ("h2_refuel_ambientbias", h2_refuel_ambientbias_coverV2_choice),
   ("hydro_rejection_gatecal", hydro_rejection_gatecal_coverV2_choice),
-  ("lz_vehicle_position", lz_vehicle_position_coverV2_choice),
+  ("lit_csf21_vehicle_bus", lit_csf21_vehicle_bus_coverV2_choice),
+  ("lit_csf21_vehicle_thermo", lit_csf21_vehicle_thermo_coverV2_choice),
+  ("lit_drl_car_stop", lit_drl_car_stop_coverV2_choice),
+  ("lit_drl_lane_control", lit_drl_lane_control_coverV2_choice),
+  ("lit_freedm_meter", lit_freedm_meter_coverV2_choice),
+  ("lit_girard08_robot", lit_girard08_robot_coverV2_choice),
+  ("lit_hypercert_vehicle", lit_hypercert_vehicle_coverV2_choice),
+  ("lit_lz21_vehicle_position", lit_lz21_vehicle_position_coverV2_choice),
+  ("lit_nahs25_salt_tank", lit_nahs25_salt_tank_coverV2_choice),
   ("platoon_latency", platoon_latency_coverV2_choice),
   ("platoon_linkloss", platoon_linkloss_coverV2_choice),
   ("platoon_profiles", platoon_profiles_coverV2_choice),
@@ -91,7 +93,6 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("rover_terrain_2to4", rover_terrain_2to4_coverV2_choice),
   ("rover_terrain_4to6", rover_terrain_4to6_coverV2_choice),
   ("rover_terrain_6to12", rover_terrain_6to12_coverV2_choice),
-  ("salt_tank_sensor", salt_tank_sensor_coverV2_choice),
   ("sat3w_detumble_phases", sat3w_detumble_phases_coverV2_choice),
   ("sat_detumble_phases", sat_detumble_phases_coverV2_choice),
   ("sat_detumble_weak", sat_detumble_weak_coverV2_choice),
@@ -100,7 +101,6 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("train_ato_odometry", train_ato_odometry_coverV2_choice),
   ("tunnel_jetfan_pairout", tunnel_jetfan_pairout_coverV2_choice),
   ("turbine_startup_gearratio", turbine_startup_gearratio_coverV2_choice),
-  ("vehicle_hypercert", vehicle_hypercert_coverV2_choice),
   ("ventilator_vc_cuffleak", ventilator_vc_cuffleak_coverV2_choice),
   ("watertank", watertank_coverV2_choice),
   ("watertank_twospeed", watertank_twospeed_coverV2_choice),

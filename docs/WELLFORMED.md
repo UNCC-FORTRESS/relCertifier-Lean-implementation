@@ -3,7 +3,7 @@
 **Status (2026-10-15, branch `theorem3-general`).** The paper's Assumption 1
 (Well-Formedness) is a separately stated, kernel-checked model fact for every one of the 50
 suite_v2 benchmarks (2026-10-27: four moved to `benchmarks/reserve/`, below, seven more in batch I4, ten new in batch I5 and five in batch I6, and five swapped for literature case studies in batch I8): **proved for all 50**, **false for none** (the four literature benchmarks
-of 2026-10-15 included; the two dRL ones, `freedm_meter` and the case studies of batch I8 are proved directly over the bridge's automaton,
+of 2026-10-15 included; the two dRL ones, `lit_freedm_meter` and the case studies of batch I8 are proved directly over the bridge's automaton,
 `<b>_wellFormedR_direct`, with explicit polynomial runs, `trajRs_sol`). The satellites are proved
 literally since 2026-10-15, when their conserved momentum band entered the right evolve
 domain (§3, §5); until then they were proved on the band, with the literal predicate refuted. Until 2026-10-10 it was false for 9 models (refuted in the kernel with exhibited
@@ -163,10 +163,10 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 43 | `rover_rollover_6to7` | left the suite 2026-10-27 (batch I3, the rover hierarchy; was: proved; proof in git history) | as 18 | as 18 |
 | 44 | `rover_rollover_7to12` | left the suite 2026-10-27 (batch I3, the rover hierarchy; was: proved; proof in git history) | as 18 | as 18 |
 | 45 | `watertank` | proved | Low (b) → MidEco; MidEco, MidBoost, High, PumpOff (a) | Low ok (exit→MidBoost, same guard); the others ok (invariant) |
-| 47 | `drl_car_stop` | proved (direct; Coast at `v ≤ 1` since 2026-10-28) | every mode (b) → Coast (`v ≤ 1`) or Brake (`v ≥ 1`) by the end speed; explicit run `x + v t + c t²/2` | Accel ok (exit→Coast,Brake); Coast ok (invariant); Brake ok (exit→Coast) |
-| 48 | `drl_lane_control` | proved (direct; follower Coast at `v_f ≤ 1` since 2026-10-28) | every mode (b) → a Coast pair (`v_f ≤ 1`) or a Brake pair (`v_f ≥ 1`), the leader's member by its speed (`v_l ≤ 9` LAccel, `v_l ≥ 1` LBrake); explicit run | all six ok (exit) |
-| 49 | `vehicle_hypercert` | proved (`V2VehicleHypercert.vehicle_hypercert_wellFormedR`, since 2026-10-27 with the position coordinate `s ≥ 0`: the explicit run `s₀ + v₀ t + c t²/2`, `v₀ + c t` stays in the domain; before, `ChoiceVehicleHypercert.wellFormedR` of the velocity-only model) | every mode (b) → A0 (A0's guard is the domain's velocity range) | A0 ok (invariant); the others ok (exit) |
-| 50 | `freedm_meter` | proved (direct) | every mode (b) → GridD0R0 (guard = domain); explicit linear run | battery modes ok (exit); grid modes ok (invariant) |
+| 47 | `lit_drl_car_stop` | proved (direct; Coast at `v ≤ 1` since 2026-10-28) | every mode (b) → Coast (`v ≤ 1`) or Brake (`v ≥ 1`) by the end speed; explicit run `x + v t + c t²/2` | Accel ok (exit→Coast,Brake); Coast ok (invariant); Brake ok (exit→Coast) |
+| 48 | `lit_drl_lane_control` | proved (direct; follower Coast at `v_f ≤ 1` since 2026-10-28) | every mode (b) → a Coast pair (`v_f ≤ 1`) or a Brake pair (`v_f ≥ 1`), the leader's member by its speed (`v_l ≤ 9` LAccel, `v_l ≥ 1` LBrake); explicit run | all six ok (exit) |
+| 49 | `lit_hypercert_vehicle` | proved (`V2LitHypercertVehicle.lit_hypercert_vehicle_wellFormedR`, since 2026-10-27 with the position coordinate `s ≥ 0`: the explicit run `s₀ + v₀ t + c t²/2`, `v₀ + c t` stays in the domain; before, `ChoiceLitHypercertVehicle.wellFormedR` of the velocity-only model) | every mode (b) → A0 (A0's guard is the domain's velocity range) | A0 ok (invariant); the others ok (exit) |
+| 50 | `lit_freedm_meter` | proved (direct) | every mode (b) → GridD0R0 (guard = domain); explicit linear run | battery modes ok (exit); grid modes ok (invariant) |
 | 51 | `platoon_linkloss` | proved (2026-10-27; `PlatoonCaccAeb`, shared with row 52) | CACC (a) (the projected stop gap `w = g + 2r` obeys `w' = −(w − 20)/4`, so `5 ≤ w ≤ 60` is kept; existence: the explicit two-exponential run stays in the box `0 ≤ g ≤ 60`, `|r| ≤ 10`); AEB (a), latched (`w` conserved; explicit run) | both ok (invariant) |
 | 52 | `platoon_latency` | proved (back in the suite 2026-10-28, batch I11; the right model of row 51, `PlatoonCaccAeb`, the left's latency coordinate `e` frozen on the right; in the reserve from batch I9 to I11) | as 51 | both ok (invariant) |
 | 53 | `engine_start_highidle` | proved (2026-10-27) | STARTER, LIGHTOFF, SELF (b) → the next phase (contractions toward 30, 55, 62 inside `[0, 110]`; a run ends in its own band or the next); IDLE (a) (toward 62 from `n ≥ 60`); ABORT (a) (decay inside `[0, 5)`) | STARTER, LIGHTOFF, SELF ok (exit), IDLE, ABORT ok (invariant) |
@@ -193,14 +193,14 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 74 | `bottling_fill_strainer` | proved (2026-10-27, batch I6) | FILL (b) → CLOSE (`u = 1` held, `V` rises at most 1 mL in 5 ms, `V + 8u ≤ 1003`); CLOSE (a) (`V` nondecreasing, `V + 8u` conserved: the guard conjunct `V + 8u ≤ 1060` added at installation, without which CLOSE was BLOCKING at the domain top); existence: explicit (`u` frozen, resp. `u₀ e^{−25t}` and `V + 8u` constant) | FILL ok (exit→CLOSE); CLOSE ok (invariant) |
 | 75 | `antenna_track_kvretune` | moved to `benchmarks/reserve/` 2026-10-28 (batch I11; was: proved 2026-10-27, batch I6; proof in git history) | TRACK (b) → STOW (`c + 0.7 t` conserved; at `t ≥ 60`, `c ≤ 47.05 < 90`), STOW (b) → STOWED, STOWED (a); existence: `t`, `c` affine, `x` by variation of constants toward the command (`forcedSol 30`), inside `[−2, 92]` | TRACK ok (exit→STOW); STOW ok (exit→STOWED); STOWED ok (invariant) |
 | 76 | `grid_ffr_dos` | proved (2026-10-27, batch I7) | NORMAL (b) → FFR (`a = 0` frozen; on `a = 0` the three guards cover the domain: `x > −0.4`, `[−1.5, −0.4]`, `x < −1.5`); FFR (b) → TRIP or itself (the release line `x − 2a ≤ −0.4` kept by a non-strict barrier, Lie derivative `≤ 5.375 a − 6.25 d − 8.95 < 0`); TRIP (a) (`x` falls toward `−2.5`); existence: `a = 1 + (a₀ − 1) e^{−k t}` (`k = 0`, `5`), `x` by variation of constants (`forcedSol`) inside `[min x₀ (−5/7), max x₀ (5/42)]`, TRIP by `exists_contract_run` | NORMAL ok (exit→FFR); FFR, TRIP ok (invariant) |
-| 77 | `csf21_vehicle_thermo` | proved (2026-10-27, batch I8; direct, `_wellFormedR_direct`; Coast at `v ≤ 1` since 2026-10-28) | every mode (b) → Coast* (`v ≤ 1`) or Brk* (`v ≥ 1`) by the end speed, *Cool or *Heat by the end temperature (explicit run `d − v t − c t²/2`, `v + c t`, `temp ± t`; Acc from `v ≤ 39`, Brk from `v ≥ 1` keep `0 ≤ v ≤ 40`) | all six ok (exit) |
-| 78 | `csf21_vehicle_bus` | proved (2026-10-27, batch I8; direct; Coast at `v ≤ 1` since 2026-10-28) | every Cool mode (b) → CoastCoolA (`v ≤ 1`) or BrkCoolA (`v ≥ 1`), every Heat mode (b) → CoastHeatA or BrkHeatA, by the end speed; the same explicit run | CoastCoolA, CoastHeatA ok (invariant); the other ten ok (exit) |
-| 79 | `lz_vehicle_position` | proved (2026-10-27, batch I8; direct) | every mode (b) → U0 (its guard `0 ≤ v ≤ 0.1` is the speed part of the domain); explicit run `x + v t + c t²/2`, `v + c t` (Um from `v ≥ 0.05`, Up from `v ≤ 0.05`) | Um ok (exit→Up), U0 ok (invariant), Up ok (exit→U0) |
-| 80 | `girard_robot` | proved (2026-10-27, batch I8; direct, dimension 6; the right evolve domain is the constant atom `0.0 <= 1.0`) | every location (b) → itself or the next location (constant headings of norm 0.2: one interval moves each coordinate by at most 0.2, across at most one line of the 0.4-enlarged invariants); explicit linear run | all six ok (exit) |
+| 77 | `lit_csf21_vehicle_thermo` | proved (2026-10-27, batch I8; direct, `_wellFormedR_direct`; Coast at `v ≤ 1` since 2026-10-28) | every mode (b) → Coast* (`v ≤ 1`) or Brk* (`v ≥ 1`) by the end speed, *Cool or *Heat by the end temperature (explicit run `d − v t − c t²/2`, `v + c t`, `temp ± t`; Acc from `v ≤ 39`, Brk from `v ≥ 1` keep `0 ≤ v ≤ 40`) | all six ok (exit) |
+| 78 | `lit_csf21_vehicle_bus` | proved (2026-10-27, batch I8; direct; Coast at `v ≤ 1` since 2026-10-28) | every Cool mode (b) → CoastCoolA (`v ≤ 1`) or BrkCoolA (`v ≥ 1`), every Heat mode (b) → CoastHeatA or BrkHeatA, by the end speed; the same explicit run | CoastCoolA, CoastHeatA ok (invariant); the other ten ok (exit) |
+| 79 | `lit_lz21_vehicle_position` | proved (2026-10-27, batch I8; direct) | every mode (b) → U0 (its guard `0 ≤ v ≤ 0.1` is the speed part of the domain); explicit run `x + v t + c t²/2`, `v + c t` (Um from `v ≥ 0.05`, Up from `v ≤ 0.05`) | Um ok (exit→Up), U0 ok (invariant), Up ok (exit→U0) |
+| 80 | `lit_girard08_robot` | proved (2026-10-27, batch I8; direct, dimension 6; the right evolve domain is the constant atom `0.0 <= 1.0`) | every location (b) → itself or the next location (constant headings of norm 0.2: one interval moves each coordinate by at most 0.2, across at most one line of the 0.4-enlarged invariants); explicit linear run | all six ok (exit) |
 | 82 | `zone_lightmass_schedule` | proved (2026-10-28, batch I10; dimension 2) | COMFORT, STANDBY, ECONOMY (a): every run ends in `[5, 30]`, every level's guard (every level lists every level); existence: contractions toward 21, 19, 16 at rate 0.02 /min, `exists_contract_run` | all three ok (invariant) |
 | 83 | `h2_refuel_ambientbias` | proved (2026-10-28, batch I11; from the reserve) | STAGE1, STAGE2, STAGE3, TOPOFF (b) → the next stage (contractions toward 20, 40, 60, 70.5 inside `[0, 87.5]`; a run ends in its own band or the next); COMPLETE (a) (held at `p ≥ 70`); ABORT (a) (held below 0.5); existence: the explicit exponential, `exists_contract_run` with `k = 0` for the held modes | STAGE1 ok (exit→STAGE2), STAGE2 ok (exit→STAGE3), STAGE3 ok (exit→TOPOFF), TOPOFF ok (exit→COMPLETE); COMPLETE, ABORT ok (invariant) |
 | 84 | `reactor_feed_wireless` | proved (2026-10-28, batch I11; from the reserve; dimension 2) | F1 to F4: every run ends in `[15, 60] × [15, 35]`, which the four guards cover (`T < 25`, `[25, 35)`, `[35, 45]`, `T > 45`; every level lists every level); existence: `T` toward `p + 4, 8, 12, 16 ∈ [19, 51]`, `p` held (`trajRs_sol`) | F1 ok (exit→F2), F2 ok (exit→F1,F3), F3 ok (exit→F2,F4), F4 ok (exit→F3) |
-| 81 | `salt_tank_sensor` | proved (2026-10-27, batch I8; direct; no evolve domain since 2026-10-28, the constant atom `0 ≤ 1` as `girard_robot`) | On (a) (every run stays `≥ 25`, `ODESol.linear_down`; explicit run `25 + (xp − 25) e^{−t/10}`); Off (a) (the constant run; the strict guard atom `xp < 25` carried exactly) | both ok (invariant) |
+| 81 | `lit_nahs25_salt_tank` | proved (2026-10-27, batch I8; direct; no evolve domain since 2026-10-28, the constant atom `0 ≤ 1` as `lit_girard08_robot`) | On (a) (every run stays `≥ 25`, `ODESol.linear_down`; explicit run `25 + (xp − 25) e^{−t/10}`); Off (a) (the constant run; the strict guard atom `xp < 25` carried exactly) | both ok (invariant) |
 
 Totals (the suite, 2026-10-28, batch I11): proved 47, false 0, band 3
 (`WellFormedBattery.wfDeclared = (47, 0, 3)`, was `(30, 9, 6)` until the 2026-10-10 repairs;
@@ -275,7 +275,7 @@ A domain atom no route keeps is tested for an immediate exit, `SAT(X₀ ∧ d = 
 start state leaves `D` at once, so no run of duration `ε_r > 0` exists, clause (i) is false
 and the mode is **`BLOCKING (leaves d)`** (a `sat` answer only ever marks a failure).
 Otherwise **`UNKNOWN (nonblocking)`**: clause (ii) shown, clause (i) not (a later exit, as in
-a variant of `vehicle_hypercert` whose `Am4` guard admits `v = 0.02` under `v' = −0.04`, is
+a variant of `lit_hypercert_vehicle` whose `Am4` guard admits `v = 0.02` under `v' = −0.04`, is
 `UNKNOWN`, never `ok`). An `ok` mode keeps its clause (ii) label (`invariant` / `exit→S`, the
 Lean styles (a) / (b)); `ok` means both clauses.
 
@@ -293,7 +293,7 @@ about 17 s). The 37
 round-2 designs of the 2026-10-26 redesign pass (outside the tree): 122 right modes, 69 ok
 (invariant), 53 ok (exit), 0 UNKNOWN, 0 BLOCKING, labels unchanged.
 
-**The blocking exhibit** `benchmarks/negative_wellformed/vehicle_hypercert_s8` (the round-2
+**The blocking exhibit** `benchmarks/negative_wellformed/lit_hypercert_vehicle_s8` (the round-2
 variant with `s ≤ 8` in every evolve domain): the default run CERTIFIES it, clause (ii) alone
 finds all five right modes `ok`, the two-clause check finds all five `BLOCKING (leaves s <= 8.0)`
 (at `s = 8`, `v > 0` the flow leaves at once), and `RELCERT_WELLFORMED_STRICT=1` DECLINES it.
@@ -362,7 +362,7 @@ right automaton of the bridge is clocked (`rightAutomatonBodyC`, the right clock
 The order in a generated instance (`scripts/gen_bridge.py`, e.g. `InstancesV2/Bridge/Watertank.lean:53`):
 transport at the lemma's dimension (`wellFormedR_transport`, or the `_direct` form), then
 `wellFormedR_lift (n := n0) pad_ok`, then `WellFormedRIn.of_tt` at `reg = ⊤`. The
-hand-written `InstancesV2/Choice/General/` exhibits (two since 2026-10-27, when `vehicle_hypercert`
+hand-written `InstancesV2/Choice/General/` exhibits (two since 2026-10-27, when `lit_hypercert_vehicle`
 moved to `InstancesV2/WellFormed/`) keep only their Assumption 1 proofs
 (their Theorem-3 parts were retired on 2026-10-21, fixed at `Var 2` with no slot for the
 right clock); those proofs are lifted the same way into the corresponding bridge instances.

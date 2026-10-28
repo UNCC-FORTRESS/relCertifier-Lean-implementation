@@ -60,7 +60,7 @@ sufficient check (`relcert --wellformed`) reports 174 right modes: 94 ok (invari
 certifies in the strict mode and fails on any `UNKNOWN` against the declared 174 modes.
 (That check covered the successor clause only. Since 2026-10-26 it checks both clauses, the
 nonblocking one included: 174 right modes, 91 ok (invariant), 83 ok (exit), 0 UNKNOWN, 0
-BLOCKING; the exhibit `benchmarks/negative_wellformed/vehicle_hypercert_s8`, whose right model
+BLOCKING; the exhibit `benchmarks/negative_wellformed/lit_hypercert_vehicle_s8`, whose right model
 blocks at `s = 8`, passed the old check and is `BLOCKING` in all five modes now;
 `docs/WELLFORMED.md` §4.)
 
@@ -75,22 +75,22 @@ Assumption 1 transported from the benchmark's `WellFormedR` lemma, every verdict
 Z3 run (`relcert-bridge-verdicts`: 4475 groups over the 50 suite benchmarks and the 2 choice
 exhibits, all discharged). Generated instances (`InstancesV2/Bridge/`, `scripts/gen_bridge.py`):
 all 50 suite benchmarks (38 window form, 12 mode-keyed) and the choice exhibits
-`vehicle_accel_copy`, `watertank_choice` (their chosen sets replayed); `vehicle_hypercert`'s
+`vehicle_accel_copy`, `watertank_choice` (their chosen sets replayed); `lit_hypercert_vehicle`'s
 downward progress stage goes through the mirror lemma `repoProgress_one_down`. Axioms
 of every `*_bridge` theorem: the three standard ones and `z3_unsat_sound`.
 
 **Literature benchmarks (2026-10-15).** Four models from cited papers joined the suite, each
-header stating the source and what the sampled form changed: `drl_car_stop` and
-`drl_lane_control` (differential refinement logic: a time-triggered controller refines the
+header stating the source and what the sampled form changed: `lit_drl_car_stop` and
+`lit_drl_lane_control` (differential refinement logic: a time-triggered controller refines the
 permissive sampled one, identity invariant, the leader's acceleration a finite choice) and
-`vehicle_hypercert` (HyperCertificates §9.2, formerly a choice exhibit) and `freedm_meter` (the
+`lit_hypercert_vehicle` (HyperCertificates §9.2, formerly a choice exhibit) and `lit_freedm_meter` (the
 FREEDM transformer of hybrid-dynamic information flow: the battery level is not deducible from
 the grid meter under the free-source controller `batS`; the leaky `batI` is the negative exhibit
-`benchmarks/negative/freedm_meter_leaky`, DECLINED as expected). All four need the
+`benchmarks/negative/lit_freedm_meter_leaky`, DECLINED as expected). All four need the
 existential mode choice (the right commits to the left's mode), which is now the tool's default
 (`RELCERT_NO_CHOICE=1` disables it); the 46 original covers are byte-identical either way. The
 Assumption 1 lemmas of the three new models are proved directly over the bridge's automaton (`_wellFormedR_direct`,
-`trajRs_sol` explicit runs); `vehicle_hypercert`'s comes from its hand-written general instance.
+`trajRs_sol` explicit runs); `lit_hypercert_vehicle`'s comes from its hand-written general instance.
 
 **Discharged.** The one Z3 hypothesis of every bridge instance, `Verdicts`, IS the group list
 `relcert-bridge-verdicts` issues (4475 over the 52 instances, declared count); the progress
@@ -107,7 +107,7 @@ Apple M2 Max, Z3 4.15.1: `lake build` exit 0 (18130 jobs with the five exes); `-
 handoff 528, non-connection 64, pruned 32, reposition 76, STRICT 184/184 (88 invariant, 96 exit), PASSED; `relcert-test`
 `ALL PASS`; `relcert-bridge-verdicts` 4866/4866; `relcert-progress-verdicts` 199/199; `relcert-refute-verdicts` 199/199 and
 the 67 refutation instances built; `WellFormedBattery` 66 axiom lines, all standard; `AxiomCheck` 9 lines;
-`benchmarks/negative/*` both DECLINED; `vehicle_hypercert_s8` 5 right modes BLOCKING, DECLINED under the strict switch.
+`benchmarks/negative/*` both DECLINED; `lit_hypercert_vehicle_s8` 5 right modes BLOCKING, DECLINED under the strict switch.
 Previous: 2026-10-28, the same branch (batch I10), a 4-core Linux container, Lean 4.31.0 with Mathlib built from source,
 Z3 4.15.3: `lake build` exit 0 (18150 jobs with the five exes); `--check-quick-v2` 50/50, modal 944, handoff 511,
 non-connection 50, pruned 25, reposition 75, STRICT 180/180 (86 invariant, 94 exit), PASSED; `relcert-bridge-verdicts`
@@ -120,13 +120,13 @@ reposition 75, STRICT 187/187, PASSED (a first run that day ERRORed `rover_ladde
 31-35 s and the then-default 40 s budget, raised to 300 s since; the re-run passed); `relcert-test` `ALL PASS`; `relcert-bridge-verdicts` 5014/5014;
 `relcert-progress-verdicts` 151/151; `relcert-refute-verdicts` 228/228 and the 77 refutation instances built;
 `WellFormedBattery` 66 axiom lines, all standard; `AxiomCheck` 9 lines; `benchmarks/negative/*` both DECLINED;
-`vehicle_hypercert_s8` 5 right modes BLOCKING, DECLINED under the strict switch; `scripts/paper_numbers.sh` frozen in
+`lit_hypercert_vehicle_s8` 5 right modes BLOCKING, DECLINED under the strict switch; `scripts/paper_numbers.sh` frozen in
 `docs/paper-numbers/`. Previous: 2026-10-22, branch `cleanup-2026-10` (commit `093b2d1`), Apple M2 Max,
 Z3 4.15.1: full `lake build` exit 0 (9252 jobs), no `sorry`; `--check-quick-v2` 50/50, modal
 643, handoff 401, non-connection 88, pruned 44, reposition 81, STRICT 174/174, PASSED;
 `relcert-test` `ALL PASS`; `relcert-bridge-verdicts` 4475/4475; `relcert-refute-verdicts`
 188/188; `relcert-progress-verdicts` 261/261; `WellFormedBattery` 75 axiom lines, all standard;
-`benchmarks/negative/freedm_meter_leaky` DECLINED. Previous: 2026-10-15, branch
+`benchmarks/negative/lit_freedm_meter_leaky` DECLINED. Previous: 2026-10-15, branch
 `theorem3-general` (commit `12a0c6b`): full `lake build` exit 0, no `sorry`; `relcert-test` `ALL PASS`; `relcert
 --run-verdicts-v2` all phases discharged (reposition 81/81); `relcert-progress-verdicts` 261/261;
 `relcert-choice-verdicts` 32/32; `relcert-bridge-verdicts` 3512/3512; `scripts/paper_numbers.sh`

@@ -244,11 +244,11 @@ def packsV2 : List PackV2 :=
     ⟨"tank_dos_3to1", 2, 0, [1, 2, 3, 0], 1, 1, 2, 3⟩,
     ⟨"tank_dos_3to1", 2, 0, [1, 2, 3, 0], 1, 1, 3, 3⟩,
     -- watertank_twospeed: three windows (one row), a stretch PER PAIRING in Low (Fast 1, Slow 2,
-    -- salt_tank_sensor (cover replay at λ = 1, budget 1; dimension 3, the Assumption 1 lemma's)
-    ⟨"salt_tank_sensor", 3, 0, [0, 1, 2, 3], 1, 1, 0, 0⟩,
-    ⟨"salt_tank_sensor", 3, 0, [1, 2, 3, 0], 1, 1, 0, 1⟩,
-    ⟨"salt_tank_sensor", 3, 0, [0, 1, 2, 3], 1, 1, 1, 0⟩,
-    ⟨"salt_tank_sensor", 3, 0, [0, 1, 2, 3], 1, 1, 1, 1⟩,
+    -- lit_nahs25_salt_tank (cover replay at λ = 1, budget 1; dimension 3, the Assumption 1 lemma's)
+    ⟨"lit_nahs25_salt_tank", 3, 0, [0, 1, 2, 3], 1, 1, 0, 0⟩,
+    ⟨"lit_nahs25_salt_tank", 3, 0, [1, 2, 3, 0], 1, 1, 0, 1⟩,
+    ⟨"lit_nahs25_salt_tank", 3, 0, [0, 1, 2, 3], 1, 1, 1, 0⟩,
+    ⟨"lit_nahs25_salt_tank", 3, 0, [0, 1, 2, 3], 1, 1, 1, 1⟩,
     -- bottling_fill_strainer (cover replay: FILL at λ = 17/20, CLOSE at λ = 1)
     ⟨"bottling_fill_strainer", 2, 0, [0, 1, 2, 3, 4], 17, 20, 0, 0⟩,
     ⟨"bottling_fill_strainer", 2, 0, [0, 1, 2, 3, 4], 1, 1, 1, 1⟩,

@@ -20,7 +20,7 @@ of `q` ending with a switch along a non-self exit. The tool's progress certifica
 * `repoProgress_one`, `repoProgress_two`: the certificate with one or two (upward) stages
   gives `RepoProgress`; `repoProgress_one_down` (with `cycle_decay`, `hits_line_down`,
   `phase_down`, `land_at_start_down`) the mirror for a single DOWNWARD stage, the only
-  downward form the suite's records use (`vehicle_hypercert`).
+  downward form the suite's records use (`lit_hypercert_vehicle`).
 
 Each cycle's run is Assumption 1's (from a guard state, duration `ε_R`); the anchor is kept by
 the reposition flow certificate; the pruned exits are excluded by the right-only

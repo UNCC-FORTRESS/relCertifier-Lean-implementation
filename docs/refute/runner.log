@@ -61,7 +61,7 @@ z3 = /opt/homebrew/bin/z3
   UNSAT hydro_rejection_gatecal_m028  (kind C, 2 groups, dim 4)
   UNSAT ventilator_vc_cuffleak_m020  (kind C, 2 groups, dim 4)
   UNSAT charger_fast_tapers_m003  (kind C, 6 groups, dim 4)
-  UNSAT girard_robot_m016  (kind B, 6 groups, dim 7)
+  UNSAT lit_girard08_robot_m016  (kind B, 6 groups, dim 7)
   UNSAT platoon_profiles_m024  (kind B, 2 groups, dim 4)
   UNSAT platoon_profiles_m027  (kind B, 2 groups, dim 4)
   UNSAT h2_refuel_ambientbias_m003  (kind C, 6 groups, dim 4)

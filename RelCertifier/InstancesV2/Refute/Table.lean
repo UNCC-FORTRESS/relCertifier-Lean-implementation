@@ -66,7 +66,7 @@ import RelCertifier.InstancesV2.Refute.Data.hydro_rejection_gatecal_m024
 import RelCertifier.InstancesV2.Refute.Data.hydro_rejection_gatecal_m028
 import RelCertifier.InstancesV2.Refute.Data.ventilator_vc_cuffleak_m020
 import RelCertifier.InstancesV2.Refute.Data.charger_fast_tapers_m003
-import RelCertifier.InstancesV2.Refute.Data.girard_robot_m016
+import RelCertifier.InstancesV2.Refute.Data.lit_girard08_robot_m016
 import RelCertifier.InstancesV2.Refute.Data.platoon_profiles_m024
 import RelCertifier.InstancesV2.Refute.Data.platoon_profiles_m027
 import RelCertifier.InstancesV2.Refute.Data.h2_refuel_ambientbias_m003
@@ -74,9 +74,9 @@ import RelCertifier.InstancesV2.Refute.Data.platoon_latency_m040
 import RelCertifier.InstancesV2.Refute.Data.platoon_latency_m043
 import RelCertifier.InstancesV2.Cuts.charger_fast_tapers
 import RelCertifier.InstancesV2.Cuts.engine_start_highidle
-import RelCertifier.InstancesV2.Cuts.girard_robot
 import RelCertifier.InstancesV2.Cuts.h2_refuel_ambientbias
 import RelCertifier.InstancesV2.Cuts.hydro_rejection_gatecal
+import RelCertifier.InstancesV2.Cuts.lit_girard08_robot
 import RelCertifier.InstancesV2.Cuts.platoon_latency
 import RelCertifier.InstancesV2.Cuts.platoon_linkloss
 import RelCertifier.InstancesV2.Cuts.platoon_profiles
@@ -165,7 +165,7 @@ def refuteTable : List RefRec := [
   ⟨"hydro_rejection_gatecal_m028", 3 + 1, hydro_rejection_gatecal_m028_IRm, hydro_rejection_gatecal_cutsV2X, hydro_rejection_gatecal_m028_wit⟩,
   ⟨"ventilator_vc_cuffleak_m020", 3 + 1, ventilator_vc_cuffleak_m020_IRm, ventilator_vc_cuffleak_cutsV2X, ventilator_vc_cuffleak_m020_wit⟩,
   ⟨"charger_fast_tapers_m003", 3 + 1, charger_fast_tapers_m003_IRm, charger_fast_tapers_cutsV2X, charger_fast_tapers_m003_wit⟩,
-  ⟨"girard_robot_m016", 6 + 1, girard_robot_m016_IRm, girard_robot_cutsV2X, girard_robot_m016_wit⟩,
+  ⟨"lit_girard08_robot_m016", 6 + 1, lit_girard08_robot_m016_IRm, lit_girard08_robot_cutsV2X, lit_girard08_robot_m016_wit⟩,
   ⟨"platoon_profiles_m024", 3 + 1, platoon_profiles_m024_IRm, platoon_profiles_cutsV2X, platoon_profiles_m024_wit⟩,
   ⟨"platoon_profiles_m027", 3 + 1, platoon_profiles_m027_IRm, platoon_profiles_cutsV2X, platoon_profiles_m027_wit⟩,
   ⟨"h2_refuel_ambientbias_m003", 3 + 1, h2_refuel_ambientbias_m003_IRm, h2_refuel_ambientbias_cutsV2X, h2_refuel_ambientbias_m003_wit⟩,

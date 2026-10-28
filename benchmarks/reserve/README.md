@@ -22,9 +22,9 @@ Lean integration in git history (last at commit a6585c2); `grid_ffr_dos` went to
 Batch I8 (2026-10-27) replaced own designs with case studies from published work (owner request:
 credibility; the literature group of four was too thin): `hvac_fan_staging` and `platoon_profiles`,
 the two tier-2 members of the final audit, came here as the suite files (Lean integration last at
-commit 95033f6), for `csf21_vehicle_thermo` and `csf21_vehicle_bus`; then `rover_rollover_payload`,
+commit 95033f6), for `lit_csf21_vehicle_thermo` and `lit_csf21_vehicle_bus`; then `rover_rollover_payload`,
 `flaps_slow_approach` and `canal_gate_notches` came here as the suite files (Lean integration last at
-commit f3400f1), for `lz_vehicle_position`, `girard_robot` and `salt_tank_sensor`.
+commit f3400f1), for `lit_lz21_vehicle_position`, `lit_girard08_robot` and `lit_nahs25_salt_tank`.
 
 Verdicts measured 2026-10-27 with the branch's `relcert` (`RELCERT_IMPLIED_CUT=1`; letters as in
 `benchmarks/README.md`, "Header pass"). Every file CERTIFIES by default and under

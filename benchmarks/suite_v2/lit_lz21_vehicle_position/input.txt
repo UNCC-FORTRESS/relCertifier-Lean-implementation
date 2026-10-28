@@ -1,0 +1,126 @@
+# lit_lz21_vehicle_position: approximate initial-state opacity of a vehicle whose POSITION an intruder
+# observes with precision 1 m (the vehicle example of verifying approximate opacity via barrier
+# certificates; the origin of the vehicle that lit_hypercert_vehicle takes from HyperCertificates).
+# scenario: opacity
+# mechanisms: X (committed successor subsets: the partner run copies the secret run's
+#   acceleration at the start of every window)
+#
+# SOURCE. Liu and Zamani, "Verification of approximate opacity via barrier certificates", IEEE
+# Control Systems Letters 5(4) (2021), Section V-A, Eq. (17): an autonomous vehicle on a single-lane
+# road (x1 position, x2 velocity), x1(t+1) = x1 + dt x2 + dt^2/2 u, x2(t+1) = x2 + dt u, output
+# y = x1, dt = 1; state set X = [0, 10] x [0, 0.1], initial set X0 = [0, 10] x {0}, secret set
+# Xs = [0, 1] x [0, 0.1] (e.g. a cash-transit van leaving a bank), inputs U = [-0.05, 0.05],
+# intruder precision delta = 1 (the smallest delta for which they find a certificate); R0 pairs a
+# secret start x1 in [0, 1] with x1_hat in [1, 10], |x1 - x1_hat| <= delta; certificate a degree-2
+# augmented control barrier certificate with the partner policy
+# u_hat = 0.8 x1 - 0.8 x2 + 1.5 x1_hat - 1.5 x2_hat + u. Property (delta-approximate initial-state
+# opacity): for every run from a secret initial state there is a run from a non-secret initial
+# state whose outputs stay within delta forever. The same vehicle with the velocity observed is the
+# source of lit_hypercert_vehicle (HyperCertificates, Sec. 9.2) and of Anand et al. (TAC 2024, Sec. 5.1).
+#
+# THIS FILE. Both sides the vehicle, state (x, v) in m and m/s, in continuous time: x' = v, v' = u
+# held for the 1 s period (epsilon 1 on both sides; the source's step is the exact 1 s sampling of
+# this flow). One mode per input u in {-0.05, 0, 0.05} (Um, U0, Up). Guards keep the velocity in the
+# source's [0, 0.1] over one period (Um needs v >= 0.05, Up needs v <= 0.05; U0 is enabled
+# everywhere, so the guards cover the domain). The left run is the secret run, the right run its
+# non-secret partner. Stretch pinned to 1 (opacity compares the outputs instant by instant).
+#
+# CLAIM (every left mode): v_L = v_R and x_R = x_L + 1 (two inequalities each). The partner starts
+# delta = 1 m ahead (the secret start x_L in [0, 1] is paired with x_R in [1, 2], inside the
+# source's R0), copies the input, and its observed position stays exactly delta away forever: the
+# source's opacity statement from every pair of R0 of this form. The offset is the source's delta,
+# not a tuned constant (equal velocities keep any offset; delta = 1 is what makes the partner start
+# non-secret). Not implied by the domains; every left mode has a satisfiable start (x_L = 0.5,
+# x_R = 1.5, v_L = v_R = 0.05).
+#
+# Where this file departs from the source.
+# (1) Position range: the domain is x >= 0 with no upper bound (forward invariant: v >= 0); the
+#   source's 10 enters only through the start range. The bound is dropped for the WITNESS, not
+#   because the source's claim fails: an evolve bound x <= 10 would make the copying partner, 1 m
+#   ahead, block at 10 (Assumption 1), while under the literal reading (every run confined to
+#   [0, 10]) the source's property stays plausibly true, since a partner may lag and still end
+#   within 1 m and inside [0, 10]. Contrast lit_hypercert_vehicle, where the literal claim is false.
+# (1') Initial velocity: the source's X0 = [0, 10] x {0} starts at rest; here every pair of equal
+#   velocities in [0, 0.1] is an admissible start, a stronger claim.
+# (2) Witness: the exact copy u_hat = u (equal velocities) instead of the source's feedback policy
+#   (which, taken literally, is not input-admissible: x1 = 5, x1_hat = 6 gives u_hat about 13).
+# (3) Inputs: three levels (the ends and the middle of U) instead of the interval; switching after
+#   less than a period is allowed on the left (continuous time), the partner copies each switch.
+# (4) Boundary: x_L = 0 pairs with x_R = 1, on the boundary of the closed Xs; the source's R0
+#   (x1_hat in [1, 10]) does the same, and at delta = 1 no partner of x1 = 0 lies in X0 \ Xs.
+#
+# NOTE (not a separate file). The infinite-step opacity of the same vehicle (Kalat, Liu, Zamani,
+# "Verification of approximate infinite-step opacity using barrier certificates", ECC 2022,
+# Sec. V: X = X0 = [0, 10], Xs = [5.5, 6], U = [-0.05, 0.05], delta = 1) CERTIFIES with these
+# modes and the offset 0.75 instead of 1 (whenever the secret run is in [5.5, 6], the partner is in
+# [6.25, 6.75], outside Xs, and 0.75 <= delta away; measured 2026-10-27, same verdicts pattern):
+# a one-constant change of this file.
+#
+# Why committed choice is needed (X). At the start of each window the partner hops into the
+# secret run's input and the two velocities move together; without the choice
+# (RELCERT_NO_CHOICE=1) it must keep its input: DECLINED.
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27 on branch benchmark-fixes, batch
+# I8; re-measured 2026-10-28, unchanged): CERTIFIED (about 0.4 s); CERTIFIED under RELCERT_SYNC=1,
+# RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1,
+# RELCERT_NO_PAIR_STRETCH=1, RELCERT_NO_REPO=1, RELCERT_OPREGION=1,
+# RELCERT_WELLFORMED_STRICT=1 and without RELCERT_IMPLIED_CUT; DECLINED under
+# RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1 and RELCERT_SYNC=1
+# RELCERT_NO_CHOICE=1. Cover: every left mode at lambda 1, budget 1, closed by choice; nothing
+# pruned. Rows identical (--handoff vacuous, 9/9). relcert --wellformed: Um ok (exit), U0 ok
+# (invariant), Up ok (exit), 0 UNKNOWN.
+[problem]
+name = lit_lz21_vehicle_position
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 40.0
+
+[Lsys]
+state_vars = [x, v]
+epsilon = 1.0
+
+[Lsys.mode.Um]
+ode = x' = v; v' = smt2:(- 0.0 0.05);
+guard = v >= 0.05 and v <= 0.1
+evolve = x >= 0.0 and v >= 0.0 and v <= 0.1
+next = [Um, U0, Up]
+
+[Lsys.mode.U0]
+ode = x' = v; v' = smt2:0.0;
+guard = v >= 0.0 and v <= 0.1
+evolve = x >= 0.0 and v >= 0.0 and v <= 0.1
+next = [Um, U0, Up]
+
+[Lsys.mode.Up]
+ode = x' = v; v' = smt2:0.05;
+guard = v >= 0.0 and v <= 0.05
+evolve = x >= 0.0 and v >= 0.0 and v <= 0.1
+next = [Um, U0, Up]
+
+[Rsys]
+state_vars = [x, v]
+epsilon = 1.0
+
+[Rsys.mode.Um]
+ode = x' = v; v' = smt2:(- 0.0 0.05);
+guard = v >= 0.05 and v <= 0.1
+evolve = x >= 0.0 and v >= 0.0 and v <= 0.1
+next = [Um, U0, Up]
+
+[Rsys.mode.U0]
+ode = x' = v; v' = smt2:0.0;
+guard = v >= 0.0 and v <= 0.1
+evolve = x >= 0.0 and v >= 0.0 and v <= 0.1
+next = [Um, U0, Up]
+
+[Rsys.mode.Up]
+ode = x' = v; v' = smt2:0.05;
+guard = v >= 0.0 and v <= 0.05
+evolve = x >= 0.0 and v >= 0.0 and v <= 0.1
+next = [Um, U0, Up]
+
+[relational_invariant]
+Um = v[l] <= v[r] and v[r] <= v[l] and x[l] + 1.0 <= x[r] and x[r] <= x[l] + 1.0
+U0 = v[l] <= v[r] and v[r] <= v[l] and x[l] + 1.0 <= x[r] and x[r] <= x[l] + 1.0
+Up = v[l] <= v[r] and v[r] <= v[l] and x[l] + 1.0 <= x[r] and x[r] <= x[l] + 1.0

@@ -60,8 +60,8 @@ def choiceV2 (b : String) : ChoiceEmitE :=
 
 /-- The dimensions of the benchmarks whose Assumption 1 lemma comes from a hand-written general
 exhibit (`InstancesV2/Choice/General/`): the dimension at which the exhibit proves Assumption 1.
-None since 2026-10-27: `vehicle_hypercert` (with the position coordinate) has its own
-`InstancesV2/WellFormed/VehicleHypercert.lean` at the padded fallback dimension 3 (bridge
+None since 2026-10-27: `lit_hypercert_vehicle` (with the position coordinate) has its own
+`InstancesV2/WellFormed/LitHypercertVehicle.lean` at the padded fallback dimension 3 (bridge
 dimension 4; it was 2, bridge 3, while its Assumption 1 came from the general exhibit at
 `Var 2`, git history 61d7389). -/
 def generalDimsV2 : List (String × ℕ) := []

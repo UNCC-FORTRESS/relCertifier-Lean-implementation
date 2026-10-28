@@ -2,6 +2,8 @@
 
 > Benchmark names here predate the 2026-10-25 rename; old -> new: `benchmarks/README.md`, "Renamed 2026-10-25".
 
+> Literature benchmark names here predate the 2026-10-28 rename (`lit_` prefix); old -> new: `benchmarks/README.md`, "Renamed 2026-10-28: the literature group".
+
 > 2026-10-26 (branch `benchmark-fixes`): the tables below are the 2026-10-21 run and predate two
 > suite changes. The `rover_lateral` model changes added refutations (79 instances, 224 groups),
 > and `rover_tier_1to2` (`rover3tier_rung12`) was retired with its two refutations (m000 kind C,

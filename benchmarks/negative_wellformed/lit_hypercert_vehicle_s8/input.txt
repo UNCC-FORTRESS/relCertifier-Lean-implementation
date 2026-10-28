@@ -1,0 +1,77 @@
+# lit_hypercert_vehicle_s8: a known-false Assumption 1 exhibit (the right model can BLOCK).
+# lit_hypercert_vehicle (suite_v2) with the position bound s <= 8 added to every evolve domain, on
+# both sides. On the right, every mode's guard admits s = 8 with v > 0 (e.g. A0: v in [0, 0.6],
+# s' = v), where the flow leaves the domain at once: no evolution spans the control interval, so
+# the nonblocking clause of Assumption 1 is false. The certifier itself CERTIFIES the file (the
+# relational invariant is unaffected); until 2026-10-26 the tool's Assumption 1 check examined
+# only the successor clause and reported all five right modes ok, so the strict gate passed it.
+# Expected: `relcert --wellformed` reports every right mode `BLOCKING (leaves s <= 8.0)`;
+# `RELCERT_WELLFORMED_STRICT=1 relcert` DECLINES it. Not part of any declared count.
+[problem]
+name = lit_hypercert_vehicle_s8
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 40.0
+[Lsys]
+state_vars = [s, v]
+epsilon = 1.0
+[Lsys.mode.Am4]
+ode = s' = v; v' = smt2:(- 0.0 0.04);
+guard = v >= 0.04 and v <= 0.6
+evolve = s >= 0.0 and s <= 8.0 and v >= 0.0 and v <= 0.6
+next = [Am4, Am2, A0, Ap2, Ap4]
+[Lsys.mode.Am2]
+ode = s' = v; v' = smt2:(- 0.0 0.02);
+guard = v >= 0.02 and v <= 0.6
+evolve = s >= 0.0 and s <= 8.0 and v >= 0.0 and v <= 0.6
+next = [Am4, Am2, A0, Ap2, Ap4]
+[Lsys.mode.A0]
+ode = s' = v; v' = smt2:0.0;
+guard = v >= 0.0 and v <= 0.6
+evolve = s >= 0.0 and s <= 8.0 and v >= 0.0 and v <= 0.6
+next = [Am4, Am2, A0, Ap2, Ap4]
+[Lsys.mode.Ap2]
+ode = s' = v; v' = smt2:0.02;
+guard = v >= 0.0 and v <= 0.58
+evolve = s >= 0.0 and s <= 8.0 and v >= 0.0 and v <= 0.6
+next = [Am4, Am2, A0, Ap2, Ap4]
+[Lsys.mode.Ap4]
+ode = s' = v; v' = smt2:0.04;
+guard = v >= 0.0 and v <= 0.56
+evolve = s >= 0.0 and s <= 8.0 and v >= 0.0 and v <= 0.6
+next = [Am4, Am2, A0, Ap2, Ap4]
+[Rsys]
+state_vars = [s, v]
+epsilon = 1.0
+[Rsys.mode.Am4]
+ode = s' = v; v' = smt2:(- 0.0 0.04);
+guard = v >= 0.04 and v <= 0.6
+evolve = s >= 0.0 and s <= 8.0 and v >= 0.0 and v <= 0.6
+next = [Am4, Am2, A0, Ap2, Ap4]
+[Rsys.mode.Am2]
+ode = s' = v; v' = smt2:(- 0.0 0.02);
+guard = v >= 0.02 and v <= 0.6
+evolve = s >= 0.0 and s <= 8.0 and v >= 0.0 and v <= 0.6
+next = [Am4, Am2, A0, Ap2, Ap4]
+[Rsys.mode.A0]
+ode = s' = v; v' = smt2:0.0;
+guard = v >= 0.0 and v <= 0.6
+evolve = s >= 0.0 and s <= 8.0 and v >= 0.0 and v <= 0.6
+next = [Am4, Am2, A0, Ap2, Ap4]
+[Rsys.mode.Ap2]
+ode = s' = v; v' = smt2:0.02;
+guard = v >= 0.0 and v <= 0.58
+evolve = s >= 0.0 and s <= 8.0 and v >= 0.0 and v <= 0.6
+next = [Am4, Am2, A0, Ap2, Ap4]
+[Rsys.mode.Ap4]
+ode = s' = v; v' = smt2:0.04;
+guard = v >= 0.0 and v <= 0.56
+evolve = s >= 0.0 and s <= 8.0 and v >= 0.0 and v <= 0.6
+next = [Am4, Am2, A0, Ap2, Ap4]
+[relational_invariant]
+Am4 = v[l] <= v[r] and v[r] <= v[l] and s[l] + 2.0 <= s[r] and s[r] <= s[l] + 2.0
+Am2 = v[l] <= v[r] and v[r] <= v[l] and s[l] + 2.0 <= s[r] and s[r] <= s[l] + 2.0
+A0 = v[l] <= v[r] and v[r] <= v[l] and s[l] + 2.0 <= s[r] and s[r] <= s[l] + 2.0
+Ap2 = v[l] <= v[r] and v[r] <= v[l] and s[l] + 2.0 <= s[r] and s[r] <= s[l] + 2.0
+Ap4 = v[l] <= v[r] and v[r] <= v[l] and s[l] + 2.0 <= s[r] and s[r] <= s[l] + 2.0

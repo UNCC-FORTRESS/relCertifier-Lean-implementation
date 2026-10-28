@@ -1,7 +1,7 @@
 # RESERVE (benchmarks/reserve/, 2026-10-27, batch I8): not in suite_v2, not in the paper, no Lean
 # integration (last at commit f3400f1). Reason: one of several X-only own designs (template B, with
 # bms_chiller_undercharge and compressor_station_recycle); the literature case studies of batch I8
-# (csf21_vehicle_thermo, csf21_vehicle_bus, lz_vehicle_position, girard_robot) now show X. The header
+# (lit_csf21_vehicle_thermo, lit_csf21_vehicle_bus, lit_lz21_vehicle_position, lit_girard08_robot) now show X. The header
 # below is the suite file's.
 #
 # canal_gate_notches: an irrigation-canal pool under an automatic three-position gate controller,

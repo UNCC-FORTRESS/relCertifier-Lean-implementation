@@ -129,9 +129,9 @@ start mode, so choice never has to look across a left-cycle boundary.
 3. Hop targets are declared, non-self successors; requiring them non-pruned is conservative
    and harmless (a hop has no flow).
 
-## 8. Lean status (the three exhibits of 2026-10-14; `vehicle_hypercert` is a suite benchmark since 2026-10-15)
+## 8. Lean status (the three exhibits of 2026-10-14; `lit_hypercert_vehicle` is a suite benchmark since 2026-10-15)
 
-`RelCertifier/InstancesV2/Choice/Modal/` (archived on branch `archive/legacy-2026-10` on 2026-10-22, with `Choice/Verdicts.lean` and `relcert-choice-verdicts`; the exhibits' bridge instances remain) proved modal Theorem 3 for `vehicle_hypercert`,
+`RelCertifier/InstancesV2/Choice/Modal/` (archived on branch `archive/legacy-2026-10` on 2026-10-22, with `Choice/Verdicts.lean` and `relcert-choice-verdicts`; the exhibits' bridge instances remain) proved modal Theorem 3 for `lit_hypercert_vehicle`,
 `vehicle_accel_copy` and `watertank_choice`, standalone (not replayed from the tool's choice
 cover; the generic bridge replays the emitted chosen sets of the last two, §10). Each response is case 4 then case 1: a hop (`gresp_hop`) into one chosen mode, then
 that mode's certified joint segment for the whole window. The hop's domain premise is S3
@@ -139,7 +139,7 @@ that mode's certified joint segment for the whole window. The hop's domain premi
 guard plus the invariant at the start (the left run frames the right).
 
 Existence of the right segment: `WellFormedFlowB` (existence from every domain state) is false
-for constant fields at the domain edge they point to. `vehicle_hypercert` uses the mirror
+for constant fields at the domain edge they point to. `lit_hypercert_vehicle` uses the mirror
 argument (`hExistSegB_constMirror`: the right copies the left run). `vehicle_accel_copy` needs
 the right guard at the start and one control period (`dt ≤ 1`), facts that hold at the start
 but are not invariant, so it couples through `couple_cutX_at`, which takes the existence
@@ -165,7 +165,7 @@ turns the record into the window's `ChoiceData`, rebuilds every coverage query f
 regions, and `coverage_sound` reads its `unsat` as the coverage premise (`hcovJ/hcovR/hcovS`
 of §9); the chosen cover is decided by `decideCoveredX`. `InstancesV2/Bridge/VehicleAccelCopy.lean`
 and `WatertankChoice.lean` are generated instances through `theorem3_window_of_records`, and so
-is `vehicle_hypercert` (until its 2026-10-27 redesign with the position coordinate its reposition
+is `lit_hypercert_vehicle` (until its 2026-10-27 redesign with the position coordinate its reposition
 node's progress stage crossed its threshold downward, through the downward mirror
 `repoProgress_one_down`, and its Assumption 1 came from the hand-written general instance of §9,
 now removed; since then it has no reposition node and its own `InstancesV2/WellFormed/` proof). The coverage queries are among the groups of `relcert-bridge-verdicts`
@@ -173,6 +173,6 @@ now removed; since then it has no reposition node and its own `InstancesV2/WellF
 
 Since 2026-10-15 the choice is the tool's default (`RELCERT_NO_CHOICE=1` disables it): the 46
 original suite covers are byte-identical with it on or off, and four suite benchmarks need it,
-`vehicle_hypercert` (moved from the exhibits), the two dRL refinement benchmarks
-`drl_car_stop`, `drl_lane_control`, whose witness hops into the left's mode at every window, and
-`freedm_meter`, whose witness hops into the left's mode or a zero-net grid mode.
+`lit_hypercert_vehicle` (moved from the exhibits), the two dRL refinement benchmarks
+`lit_drl_car_stop`, `lit_drl_lane_control`, whose witness hops into the left's mode at every window, and
+`lit_freedm_meter`, whose witness hops into the left's mode or a zero-net grid mode.

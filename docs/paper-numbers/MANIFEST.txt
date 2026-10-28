@@ -1,14 +1,12 @@
-commit 236ac971c86f89154951c30b3c3410477ec89580 clean
-z3 Z3 version 4.15.1 - 64 bit
-os Darwin 25.5.0 arm64
-date 2026-10-27T14:02:49Z
+commit 8f2945d1d7089e16dc7898a5a4ebd22a6b1f56d3 clean
+z3 Z3 version 4.15.3 - 64 bit
+os Linux 6.18.44-fc-v180 x86_64
+date 2026-10-28T01:16:23Z
 flags RELCERT_IMPLIED_CUT=1 (all runs); per-run switches in the run names
 covers identical
 
-matrix record of rover_terrain_2to4 re-run at 2026-10-27T14:42Z: in the frozen run its RELCERT_DEBUG main run hit the 40 s time budget once (43.6 s; 0.41 s in the control run and on re-run) while the laptop switched to battery power; matrix.json/md carry the re-run record, matrix.frozen-original.rover_terrain_2to4.json the original record; letters and numbers.tex recomputed from it (letters identical)
-power: the configuration runs (control ... opregion, exhibits; the timed ones) ran on AC power, finished 14:19Z; the laptop switched to battery during the matrix step (verdict-only)
-numbers run 2026-10-27 14:02Z-14:41Z on a machine with no other agent running (owner at the laptop: browser, load average about 3)
-invariant shape: rover_ladder_6to8 and rover_ladder_8to12 re-derived as quadratic+conj (bilinear rollover row v*(omega_psi - psi)) after the row_shape fix (scripts/suite_v2_matrix.py, same commit); recomputed from the stored rows in matrix.json, letters.json, suite_results.json (no rerun needed)
-D rule changed 2026-10-27 (owner): D counts where the stated requirement differs per mode, so the claim needs mode-dependent rows, even if a weaker uniform row that drops a stated requirement certifies (matrix M5 AND every uniform row set from the file's own rows that keeps every stated requirement DECLINES; "keeps" = implies every mode's row, Z3 over the reals; the conjunction of the rows when no single row implies all). Only the letters step was re-run (scripts/suite_v2_letters.py at the commit of this note, on the frozen control/sync/nochoice/noprune/norepo verdicts and matrix.json; no timing re-measured): letters.json/md/log, suite_results.json and \numletterD re-generated. D 9 -> 12: + acc_tune_limp (uniform LIMP row v_L <= v_R certifies but drops CRUISE's exactness), antenna_track_kvretune (uniform STOW rows drop the 0.035 pointing row of TRACK), tunnel_jetfan_pairout (uniform FIRE rows drop NORMAL's CO rows); the earlier strict rule (every uniform row set declines) is kept as diagnostic D_strict (9). Every other letter and diagnostic unchanged.
+batch I9 run (2026-10-28): scripts/paper_numbers.sh re-run on the batch I9 tip (its bash port, same steps and outputs; zsh is not installed on the machine) in a 4-core cloud container with no other job running (the only load was this run itself). Verdicts, covers and letters are machine-independent; letters S 12 -> 18, M 15 -> 23, B 8 -> 10, R 6, P 5, D 12, I 17, X 16 unchanged; benchmarks certifying under RELCERT_SYNC=1 33 -> 27.
+timing numbers: the container is slower than the laptop of the 2026-10-27 frozen run (total of the control run 213 s against 115 s; slowest rover_ladder_8to12 66 s against 35 s; 19 files under 1 s against 29); \totaltimes, \numunderonesec, \slowesttime and the per-file times in letters.md / matrix.md should be re-taken on the owner's machine before they are quoted. The sat_detumble_weak time changed from 114 s to 2.9 s with its batch I9 redesign; no file hit the 300 s time budget.
+D rule (owner, 2026-10-27): D counts where the stated requirement differs per mode, so the claim needs mode-dependent rows, even if a weaker uniform row that drops a stated requirement certifies (matrix M5 AND every uniform row set from the file's own rows that keeps every stated requirement DECLINES; "keeps" = implies every mode's row, Z3 over the reals; the conjunction of the rows when no single row implies all). The earlier strict rule (every uniform row set declines) is kept as diagnostic D_strict.
 \numnolinear (certified without decoupling forms, 50) is informational, not a paper number (no benchmark needs a decoupling form); numbers.tex marks it.
-default time budget raised to 300 s (RELCERT_TIME_BUDGET_MS) after the frozen run: its verdicts were taken at the then-default 40 s (no budget ERROR except the matrix record noted above); the letters re-run of the D-rule note used the 300 s default.
+time budget: the default RELCERT_TIME_BUDGET_MS is 300 s; this run used the default (no budget ERROR in any run).

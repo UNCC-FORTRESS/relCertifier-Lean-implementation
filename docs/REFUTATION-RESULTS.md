@@ -137,8 +137,13 @@
 > Batch I10 (2026-10-28): `bms_chiller_undercharge` (8 witness lines, no refutation) left the suite and
 > `zone_lightmass_schedule` came in (the finder with `--only`: 8 mutants, no witness). Witness lines 949 -> 949;
 > instances 77 -> 77; groups 228 -> 228.
-> Current instance set: **77 refutations, 228 groups**
-> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 949 mutants in
+> Batch I11 (2026-10-28, the reserve scan): `antenna_track_kvretune` (44 witness lines, 13 refutations, 39 groups),
+> `compressor_station_recycle` (16 lines, none) and `molding_pack_checkring` (24 lines, none) left the suite;
+> `platoon_latency` came back (the finder with `--only`: 67 mutants, m040 and m043 refuted again, kind B, 2 groups each),
+> `h2_refuel_ambientbias` (6 mutants, m003 refuted, kind C, 6 groups) and `reactor_feed_wireless` (16 mutants, no witness)
+> came in; each refuted mutant DECLINED by relcert. Witness lines 949 -> 954; instances 77 -> 67; groups 228 -> 199.
+> Current instance set: **67 refutations, 199 groups**
+> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 954 mutants in
 > `docs/refute/witnesses.jsonl`. The operator table below is the 2026-10-21 run; recomputed on 2026-10-28 after batch I10
 > (`scripts/refute_experiment.py`, 2 parallel jobs in a 4-core cloud container, the 300 s default budget; the verdicts of the
 > mutants of the benchmarks batches I9 and I10 changed, swapped or added were re-measured, the others kept from the 2026-10-27

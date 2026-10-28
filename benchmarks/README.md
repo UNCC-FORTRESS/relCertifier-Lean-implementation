@@ -37,6 +37,32 @@ needs, read off counter-runs; `scripts/suite_v2_matrix.py`) are in
 physical story, the units, the measured cover and the mechanisms it exercises
 (`# scenario:` and `# mechanisms:` lines).
 
+## Batch I11 (2026-10-28): three swaps from the reserve scan
+
+Third round of the owner's 2026-10-27 request, decided on the reserve scan of 2026-10-28 (every
+reserve file re-measured with the branch binary; criteria: physically meaningful with a named
+source where one exists, a relational property an engineer cares about, letters disclosed where they
+come from the claim's form, mechanisms judged per group). Three swaps, the suite at 50 (41 own
+designs, 9 from the literature): `platoon_latency` (D; the degraded-network scenario, back in the
+platoon group as a plain member) for `antenna_track_kvretune` (the weakest D of the suite: its D
+came only from the rule that a uniform row drops a stated requirement); `reactor_feed_wireless`
+(M B P; the exothermic reactor's feed interlock under a 2 min wireless publish period, P being the
+suite's scarcest letter; the thermal constants are design values, the publish period a WirelessHART
+setting, the two 9 K process-safety limits stated) for `compressor_station_recycle` (a single
+identity-hop X with no source); `h2_refuel_ambientbias` (R D I; a 70 MPa fill under a 10 K
+ambient-sensor bias, the protocol now named: SAE J2601, 70 MPa NWP, 87.5 MPa = 125 % maximum
+fueling pressure, 0.5 MPa minimum tank pressure, the end pressure read from the ambient table)
+for `molding_pack_checkring` (a single D with no source for its 25 bar envelope or hold time).
+Each installed with the full pipeline: `platoon_latency`'s Lean integration restored from commit
+9dcda0c (the right model unchanged, cover byte-identical), new Z3-free Assumption 1 proofs
+`WellFormed/H2RefuelAmbientbias.lean` (six 1-D contractions, as `EngineStartHighidle`) and
+`WellFormed/ReactorFeedWireless.lean` (four exponential runs at dimension 2, as `FuelcellChpDos`),
+the KEYED set (`h2_refuel_ambientbias`, `platoon_latency` in; `antenna_track_kvretune`,
+`molding_pack_checkring` out), bridge instances, modal and reposition packs, refutation finder
+runs (`--only`) and two matrix families. Every installed right model passes `--wellformed` strict
+with 0 UNKNOWN and 0 BLOCKING. Letter totals S 19, M 24 -> 25, R 6 -> 7, B 11 -> 12, P 5 -> 6,
+D 12, I 17 -> 18, X 16 -> 15; benchmarks certifying under `RELCERT_SYNC=1` 26 -> 25.
+
 ## Batch I10 (2026-10-28): one time-scaled design in, one single-letter file out
 
 Second round of the owner's 2026-10-27 request (more Table 1 mechanisms, every benchmark physically
@@ -319,7 +345,8 @@ predicted-final-volume conjunct `V + (Q/25) u <= 1060` on both sides, each with 
 design's right `CLOSE` was BLOCKING at the domain top under the strict Assumption 1 gate; verdicts,
 letters and the tightest 1.20 mL unchanged) and `antenna_track_kvretune` (a LEO ground-station
 antenna's elevation axis retuned to a lower velocity error constant, over the end of a pass; D:
-the pointing row while tracking, the slew-lag envelope during the stow slew). Each right model
+the pointing row while tracking, the slew-lag envelope during the stow slew; in the reserve since
+batch I11). Each right model
 has its Z3-free Assumption 1 proof (`InstancesV2/WellFormed/`; `tunnel_jetfan_pairout`'s is the
 first over a polynomial right field, `u^2` and `u c`, with an explicit Riccati run), each its
 bridge instance (two mode-keyed). Suite 45 -> 50.
@@ -329,7 +356,8 @@ bridge instance (two mode-keyed). Suite 45 -> 50.
 New (designs of rounds A, B and C; every header re-measured on this branch, the letters as
 measured, `scripts/suite_v2_matrix.py` families added): `molding_pack_checkring` (an
 injection-molding pack and hold phase on a machine with a worn check ring, against a new ring;
-D: the hold row bounds nozzle and cavity pressure, the cooling row only the cavity),
+D: the hold row bounds nozzle and cavity pressure, the cooling row only the cavity; in the reserve
+since batch I11),
 `fuelcell_chp_dos` (a PEM fuel-cell CHP unit whose current-level selection is held for two
 protocol cycles by a denial-of-service attack, against the stack maker's protocol; M B P X; its
 7 K tolerance sits in a narrow non-monotone certified window, [5, 8] certifies, (8, 10) declines,
@@ -342,7 +370,7 @@ overhead limit under the strict Assumption 1 gate; verdicts and letters unchange
 S I; the stretch range [0.8, 1] is the recipe's rate window; it DECLINES without the widened cut
 channel), `compressor_station_recycle` (a gas compressor station whose third unit's recycle valve
 is stuck open; X, which also appears with a healthy valve as an identity hop, now said in the
-header; the non-identity commitment is the fault's), `syringe_relay_prearm` (a syringe-pump relay
+header; the non-identity commitment is the fault's; in the reserve since batch I11), `syringe_relay_prearm` (a syringe-pump relay
 that pre-arms the incoming syringe, against the validated relay; R D), `hydro_rejection_gatecal`
 (a hydro unit with a gate transducer recalibrated 2 % low, in a load-rejection test; D),
 `ventilator_vc_cuffleak` (a volume-controlled breath with an under-inflated cuff, against a
@@ -479,10 +507,8 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `acc_spoof_limp` | 1 / 1 | 2 / 4 | sensor-attack | redesigned 2026-10-27: the same two requirement rows in both modes (no longer mode-keyed), closed right guards; lambda pinned to 1 (batch I6) |
 | `acc_tune_lag` | 2 / 2 | 1 / 1 | degraded-controller | redesigned 2026-10-26: same lag both sides; 2026-10-27: equal 0.1 s periods, the left guard its own loop's engaged envelope |
 | `acc_tune_limp` | 1 / 1 | 2 / 4 | degraded-controller | mode-keyed, mode choice; equal 0.1 s periods since 2026-10-27 |
-| `antenna_track_kvretune` | 3 / 3 | 3 / 3 | controller-change | new 2026-10-27 (batch I6): mode-keyed (the pointing row while tracking, the slew-lag envelope during the stow slew) |
 | `bottling_fill_strainer` | 2 / 2 | 2 / 2 | degraded-actuator | new 2026-10-27 (batch I6): stretch 17/20 in FILL (`lambda_min = 0.8`), load-bearing mode fact; `CLOSE`'s predicted-final-volume guard conjunct added at installation |
 | `charger_fast_tapers` | 1 / 1 | 5 / 6 | degraded-controller | reinstalled 2026-10-27 (batch I7; in the reserve from batch I4): the minute time scale (`epsilon` 0.006 min = 0.36 s on the right); mode-keyed (the stricter PRECHARGE row), right-only repositioning, pruned FAULT edges, widened cuts; batch I9: the deployed phase decision every other request cycle (0.012 min), multi-step and branching covers |
-| `compressor_station_recycle` | 2 / 2 | 3 / 3 | degraded-actuator | new 2026-10-27 (batch I5): mode choice (the reference commits to two units while the deployed commands three; with a healthy valve the hop is the identity) |
 | `csf21_vehicle_bus` | 3 / 3 | 6 / 12 | sensor-attack | literature (CSF 2021, internal bus), mode choice; new 2026-10-27 (batch I8) |
 | `csf21_vehicle_thermo` | 3 / 3 | 6 / 6 | sensor-attack | literature (CSF 2021), mode choice; new 2026-10-27 (batch I8); leaky counterpart in `benchmarks/negative/` |
 | `drl_car_stop` | 2 / 2 | 3 / 3 | controller-refinement | literature (dRL), mode choice |
@@ -496,13 +522,15 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `gantry_speed_zones` | 2 / 2 | 3 / 1 | controller-refinement | new 2026-10-27 (replaces `match_multi_rate`): a time stretch per speed zone (3, 2, 1), multi-step covers |
 | `girard_robot` | 6 / 2 | 6 / 6 | abstraction | literature (Girard, Julius, Pappas, DEDS 2008), mode choice; new 2026-10-27 (batch I8); location changes sampled on both sides (the bridge's one evolve domain per side) |
 | `grid_ffr_dos` | 3 / 3 | 2 / 3 | dos-attack | new 2026-10-27 (batch I7; round-A design from the reserve): multi-step covers (one attacked cycle against three nominal), pruned trip edges `NORMAL -> TRIP`, `FFR -> TRIP` |
+| `h2_refuel_ambientbias` | 1 / 1 | 6 / 6 | sensor-fault | new 2026-10-28 (batch I11, from the reserve): a 70 MPa hydrogen fill whose dispenser's ambient sensor reads 10 K high, so the SAE J2601 end-pressure table returns 72.4 MPa; mode-keyed (exact stage rows, the top rows at the derived 2.9 MPa allowance), right-only repositioning out of a TOPOFF window, load-bearing checked cuts (R D I) |
 | `hydro_rejection_gatecal` | 3 / 3 | 2 / 2 | degraded-sensor | new 2026-10-27 (batch I5): mode-keyed (shared-grid equality before the breaker opens, a speed band after) |
 | `lz_vehicle_position` | 2 / 2 | 3 / 3 | opacity | literature (Liu, Zamani, L-CSS 2021), mode choice; new 2026-10-27 (batch I8) |
-| `molding_pack_checkring` | 3 / 3 | 2 / 2 | degraded-actuator | new 2026-10-27 (batch I5): mode-keyed (the hold row drops its nozzle conjunct at gate freeze) |
+| `platoon_latency` | 3 / 2 | 3 / 2 | degraded-network | back from the reserve 2026-10-28 (batch I11; in the reserve from batch I9): the V2V feed-forward two control periods late (its Pade lag's error `e` bounded by the ISO 15622 jerk limit), against the design follower with an ideal link; mode-keyed (AEB row), right model shared with `platoon_linkloss` (D) |
 | `platoon_linkloss` | 2 / 2 | 3 / 2 | dos-attack | redesigned 2026-10-27 (was `platoon_delay_linkloss`): mode-keyed (AEB row), CACC -> ACC fallback; batch I9: the deployed link-loss decision every 0.2 s (two-message timeout), multi-step covers |
 | `platoon_profiles` | 2 / 2 | 2 / 2 | controller-refinement | back from the reserve 2026-10-27 (batch I9) as the time-scaled design: SPORT = the CACC at 1.2 x bandwidth, exact re-timed SPORT rows at 6/5, the AEB at 1 (`lambda in [1, 1.2]`); mode-keyed (AEB row), right model shared with `platoon_linkloss` |
 | `quad_light_lag` | 3 / 3 | 1 / 1 | model-refinement | redesigned 2026-10-27: altitude coordinate, rows from the 0.8 m altitude acceptance radius; the time scaling fixed to 6/5 (`lambda_min = lambda_max = 1.2`, batch I6) |
 | `quad_light_profiles` | 2 / 2 | 1 / 3 | model-refinement | redesigned 2026-10-27: altitude coordinate; batch I9: conformance to the reference's NORMAL profile at the stated scaling 6/5 (the rows of `quad_light_airframe_20`), multi-step and branching covers, mode choice |
+| `reactor_feed_wireless` | 2 / 2 | 4 / 4 | degraded-sensor | new 2026-10-28 (batch I11, from the reserve): an exothermic CSTR's feed interlock read through a WirelessHART transmitter every 2 min against the validated 1 min wired reading; multi-step and branching covers (budget 2, the design's deterministic level partition), four pruned edges into the live levels F1 and F4 (M B P) |
 | `rover_ladder_2to3` | 3 / 3 | 3 / 3 | model-refinement | reinstalled 2026-10-27 on the canonical rover hierarchy (L3 / L2): clearance and heading rows, lambda 1 |
 | `rover_ladder_3to6` | 6 / 6 | 3 / 3 | model-refinement | reinstalled 2026-10-27 (L6 / L3): clearance, heading and pitch rows, lambda 1 |
 | `rover_ladder_6to8` | 8 / 8 | 3 / 3 | model-refinement | reinstalled 2026-10-27 (L8 / L6): + roll and rollover (LTR) rows; lambda [1, 1.25] from the timetable tolerance (S M I from the re-timed claim form, header) |

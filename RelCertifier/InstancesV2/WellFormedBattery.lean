@@ -92,11 +92,11 @@ import RelCertifier.InstancesV2.WellFormed.SatDetumblePhases
 import RelCertifier.InstancesV2.WellFormed.Sat3wDetumblePhases
 import RelCertifier.InstancesV2.WellFormed.WatertankTwospeed
 import RelCertifier.InstancesV2.WellFormed.FlapsSlowApproach
-import RelCertifier.InstancesV2.WellFormed.MoldingPackCheckring
+import RelCertifier.InstancesV2.WellFormed.H2RefuelAmbientbias
 import RelCertifier.InstancesV2.WellFormed.FuelcellChpDos
 import RelCertifier.InstancesV2.WellFormed.ElevatorStartDiscbrake
 import RelCertifier.InstancesV2.WellFormed.FurnaceProgramTimebase
-import RelCertifier.InstancesV2.WellFormed.CompressorStationRecycle
+import RelCertifier.InstancesV2.WellFormed.ReactorFeedWireless
 import RelCertifier.InstancesV2.WellFormed.SyringeRelayPrearm
 import RelCertifier.InstancesV2.WellFormed.HydroRejectionGatecal
 import RelCertifier.InstancesV2.WellFormed.VentilatorVcCuffleak
@@ -104,14 +104,14 @@ import RelCertifier.InstancesV2.WellFormed.TankDos3to1
 import RelCertifier.InstancesV2.WellFormed.TunnelJetfanPairout
 import RelCertifier.InstancesV2.WellFormed.GridFfrDos
 import RelCertifier.InstancesV2.WellFormed.BottlingFillStrainer
-import RelCertifier.InstancesV2.WellFormed.AntennaTrackKvretune
+import RelCertifier.InstancesV2.WellFormed.PlatoonLatency
 
 namespace RelCertifier
 namespace WellFormedBattery
 
 /-- The benchmarks whose right model satisfies Assumption 1 at every mode. -/
 def wfProved : List String :=
-  ["platoon_linkloss", "platoon_profiles",
+  ["platoon_linkloss", "platoon_profiles", "platoon_latency",
    "charger_fast_tapers", "quad_light_profiles",
    "watertank", "acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp",
    "quad_light_lag", "rover_patrol_lag", "gantry_speed_zones",
@@ -120,10 +120,10 @@ def wfProved : List String :=
    "rover_ladder_8to12", "rover_terrain_2to4", "rover_terrain_6to12",
    "rover_terrain_4to6", "watertank_twospeed", "flaps_slow_approach", "engine_start_highidle", "train_ato_odometry",
    "zone_lightmass_schedule", "turbine_startup_gearratio",
-   "molding_pack_checkring", "fuelcell_chp_dos", "elevator_start_discbrake",
-   "furnace_program_timebase", "compressor_station_recycle", "syringe_relay_prearm",
+   "h2_refuel_ambientbias", "fuelcell_chp_dos", "elevator_start_discbrake",
+   "furnace_program_timebase", "reactor_feed_wireless", "syringe_relay_prearm",
    "hydro_rejection_gatecal", "ventilator_vc_cuffleak", "tank_dos_3to1", "tunnel_jetfan_pairout", "grid_ffr_dos",
-   "bottling_fill_strainer", "antenna_track_kvretune",
+   "bottling_fill_strainer",
    "drl_car_stop", "drl_lane_control",
    "vehicle_hypercert", "freedm_meter",
    "lz_vehicle_position",
@@ -177,20 +177,25 @@ swaps of batch I8 (the literature case studies `csf21_vehicle_thermo` and `csf21
 direct proofs with explicit polynomial runs and an exit into a coast mode, for `hvac_fan_staging`
 and `platoon_profiles`; then `lz_vehicle_position`, `girard_robot`, whose right evolve domain is
 the constant atom `0.0 <= 1.0`, and `salt_tank_sensor`, a contraction toward 25 kept by every run,
-for `rover_rollover_payload`, `flaps_slow_approach` and `canal_gate_notches`). -/
+for `rover_rollover_payload`, `flaps_slow_approach` and `canal_gate_notches`); unchanged by the
+swaps of batches I9 to I11 (2026-10-28; batch I11: `platoon_latency`, its round-2 proof over the
+shared CACC/AEB run lemmas, `h2_refuel_ambientbias`, six 1-D contractions as `engine_start_highidle`,
+and `reactor_feed_wireless`, four exponential runs at dimension 2 as `fuelcell_chp_dos`, for
+`antenna_track_kvretune`, `molding_pack_checkring` and `compressor_station_recycle`). -/
 def wfDeclared : ℕ × ℕ × ℕ := (47, 0, 3)
 
 /-- The suite's benchmark names, in the order of the IR table. -/
 def suiteNames : List String :=
-  ["acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp", "antenna_track_kvretune",
+  ["acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp",
    "bottling_fill_strainer", "charger_fast_tapers",
-   "compressor_station_recycle", "csf21_vehicle_bus", "csf21_vehicle_thermo", "drl_car_stop",
+   "csf21_vehicle_bus", "csf21_vehicle_thermo", "drl_car_stop",
    "drl_lane_control", "elevator_start_discbrake", "engine_start_highidle", "flaps_slow_approach",
    "freedm_meter",
    "fuelcell_chp_dos", "furnace_program_timebase", "gantry_speed_zones", "girard_robot",
-   "grid_ffr_dos", "hydro_rejection_gatecal", "lz_vehicle_position",
-   "molding_pack_checkring", "platoon_linkloss", "platoon_profiles", "quad_light_lag",
-   "quad_light_profiles", "rover_ladder_2to3", "rover_ladder_3to6", "rover_ladder_6to8",
+   "grid_ffr_dos", "h2_refuel_ambientbias", "hydro_rejection_gatecal", "lz_vehicle_position",
+   "platoon_latency", "platoon_linkloss", "platoon_profiles", "quad_light_lag",
+   "quad_light_profiles", "reactor_feed_wireless", "rover_ladder_2to3", "rover_ladder_3to6",
+   "rover_ladder_6to8",
    "rover_ladder_8to12", "rover_patrol_lag", "rover_terrain_2to4", "rover_terrain_4to6",
    "rover_terrain_6to12", "salt_tank_sensor", "sat3w_detumble_phases", "sat_detumble_phases",
    "sat_detumble_weak", "syringe_relay_prearm", "tank_dos_3to1", "train_ato_odometry",
@@ -248,18 +253,18 @@ end WellFormedBattery
 #print axioms V2TrainAtoOdometry.train_ato_odometry_wellFormedR
 #print axioms V2ZoneLightmassSchedule.zone_lightmass_schedule_wellFormedR
 #print axioms V2TurbineStartupGearratio.turbine_startup_gearratio_wellFormedR
-#print axioms V2MoldingPackCheckring.molding_pack_checkring_wellFormedR
+#print axioms V2H2RefuelAmbientbias.h2_refuel_ambientbias_wellFormedR
 #print axioms V2FuelcellChpDos.fuelcell_chp_dos_wellFormedR
 #print axioms V2ElevatorStartDiscbrake.elevator_start_discbrake_wellFormedR
 #print axioms V2FurnaceProgramTimebase.furnace_program_timebase_wellFormedR
-#print axioms V2CompressorStationRecycle.compressor_station_recycle_wellFormedR
+#print axioms V2ReactorFeedWireless.reactor_feed_wireless_wellFormedR
 #print axioms V2SyringeRelayPrearm.syringe_relay_prearm_wellFormedR
 #print axioms V2HydroRejectionGatecal.hydro_rejection_gatecal_wellFormedR
 #print axioms V2VentilatorVcCuffleak.ventilator_vc_cuffleak_wellFormedR
 #print axioms V2TankDos3to1.tank_dos_3to1_wellFormedR
 #print axioms V2TunnelJetfanPairout.tunnel_jetfan_pairout_wellFormedR
 #print axioms V2BottlingFillStrainer.bottling_fill_strainer_wellFormedR
-#print axioms V2AntennaTrackKvretune.antenna_track_kvretune_wellFormedR
+#print axioms V2PlatoonLatency.platoon_latency_wellFormedR
 #print axioms V2ChargerFastTapers.charger_fast_tapers_wellFormedR
 #print axioms V2GridFfrDos.grid_ffr_dos_wellFormedR
 #print axioms PlatoonCaccAeb.cacc_w_band

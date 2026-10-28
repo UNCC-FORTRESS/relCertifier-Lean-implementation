@@ -12,10 +12,8 @@ import RelCertifier.InstancesV2.BenchIR.acc_spoof_lag
 import RelCertifier.InstancesV2.BenchIR.acc_spoof_limp
 import RelCertifier.InstancesV2.BenchIR.acc_tune_lag
 import RelCertifier.InstancesV2.BenchIR.acc_tune_limp
-import RelCertifier.InstancesV2.BenchIR.antenna_track_kvretune
 import RelCertifier.InstancesV2.BenchIR.bottling_fill_strainer
 import RelCertifier.InstancesV2.BenchIR.charger_fast_tapers
-import RelCertifier.InstancesV2.BenchIR.compressor_station_recycle
 import RelCertifier.InstancesV2.BenchIR.csf21_vehicle_bus
 import RelCertifier.InstancesV2.BenchIR.csf21_vehicle_thermo
 import RelCertifier.InstancesV2.BenchIR.drl_car_stop
@@ -29,13 +27,15 @@ import RelCertifier.InstancesV2.BenchIR.furnace_program_timebase
 import RelCertifier.InstancesV2.BenchIR.gantry_speed_zones
 import RelCertifier.InstancesV2.BenchIR.girard_robot
 import RelCertifier.InstancesV2.BenchIR.grid_ffr_dos
+import RelCertifier.InstancesV2.BenchIR.h2_refuel_ambientbias
 import RelCertifier.InstancesV2.BenchIR.hydro_rejection_gatecal
 import RelCertifier.InstancesV2.BenchIR.lz_vehicle_position
-import RelCertifier.InstancesV2.BenchIR.molding_pack_checkring
+import RelCertifier.InstancesV2.BenchIR.platoon_latency
 import RelCertifier.InstancesV2.BenchIR.platoon_linkloss
 import RelCertifier.InstancesV2.BenchIR.platoon_profiles
 import RelCertifier.InstancesV2.BenchIR.quad_light_lag
 import RelCertifier.InstancesV2.BenchIR.quad_light_profiles
+import RelCertifier.InstancesV2.BenchIR.reactor_feed_wireless
 import RelCertifier.InstancesV2.BenchIR.rover_ladder_2to3
 import RelCertifier.InstancesV2.BenchIR.rover_ladder_3to6
 import RelCertifier.InstancesV2.BenchIR.rover_ladder_6to8
@@ -66,10 +66,8 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("acc_spoof_limp", acc_spoof_limp_IRv2),
   ("acc_tune_lag", acc_tune_lag_IRv2),
   ("acc_tune_limp", acc_tune_limp_IRv2),
-  ("antenna_track_kvretune", antenna_track_kvretune_IRv2),
   ("bottling_fill_strainer", bottling_fill_strainer_IRv2),
   ("charger_fast_tapers", charger_fast_tapers_IRv2),
-  ("compressor_station_recycle", compressor_station_recycle_IRv2),
   ("csf21_vehicle_bus", csf21_vehicle_bus_IRv2),
   ("csf21_vehicle_thermo", csf21_vehicle_thermo_IRv2),
   ("drl_car_stop", drl_car_stop_IRv2),
@@ -83,13 +81,15 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("gantry_speed_zones", gantry_speed_zones_IRv2),
   ("girard_robot", girard_robot_IRv2),
   ("grid_ffr_dos", grid_ffr_dos_IRv2),
+  ("h2_refuel_ambientbias", h2_refuel_ambientbias_IRv2),
   ("hydro_rejection_gatecal", hydro_rejection_gatecal_IRv2),
   ("lz_vehicle_position", lz_vehicle_position_IRv2),
-  ("molding_pack_checkring", molding_pack_checkring_IRv2),
+  ("platoon_latency", platoon_latency_IRv2),
   ("platoon_linkloss", platoon_linkloss_IRv2),
   ("platoon_profiles", platoon_profiles_IRv2),
   ("quad_light_lag", quad_light_lag_IRv2),
   ("quad_light_profiles", quad_light_profiles_IRv2),
+  ("reactor_feed_wireless", reactor_feed_wireless_IRv2),
   ("rover_ladder_2to3", rover_ladder_2to3_IRv2),
   ("rover_ladder_3to6", rover_ladder_3to6_IRv2),
   ("rover_ladder_6to8", rover_ladder_6to8_IRv2),

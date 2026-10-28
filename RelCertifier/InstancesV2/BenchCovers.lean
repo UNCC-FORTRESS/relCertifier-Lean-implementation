@@ -3,10 +3,8 @@ import RelCertifier.InstancesV2.BenchCovers.acc_spoof_lag
 import RelCertifier.InstancesV2.BenchCovers.acc_spoof_limp
 import RelCertifier.InstancesV2.BenchCovers.acc_tune_lag
 import RelCertifier.InstancesV2.BenchCovers.acc_tune_limp
-import RelCertifier.InstancesV2.BenchCovers.antenna_track_kvretune
 import RelCertifier.InstancesV2.BenchCovers.bottling_fill_strainer
 import RelCertifier.InstancesV2.BenchCovers.charger_fast_tapers
-import RelCertifier.InstancesV2.BenchCovers.compressor_station_recycle
 import RelCertifier.InstancesV2.BenchCovers.csf21_vehicle_bus
 import RelCertifier.InstancesV2.BenchCovers.csf21_vehicle_thermo
 import RelCertifier.InstancesV2.BenchCovers.drl_car_stop
@@ -20,13 +18,15 @@ import RelCertifier.InstancesV2.BenchCovers.furnace_program_timebase
 import RelCertifier.InstancesV2.BenchCovers.gantry_speed_zones
 import RelCertifier.InstancesV2.BenchCovers.girard_robot
 import RelCertifier.InstancesV2.BenchCovers.grid_ffr_dos
+import RelCertifier.InstancesV2.BenchCovers.h2_refuel_ambientbias
 import RelCertifier.InstancesV2.BenchCovers.hydro_rejection_gatecal
 import RelCertifier.InstancesV2.BenchCovers.lz_vehicle_position
-import RelCertifier.InstancesV2.BenchCovers.molding_pack_checkring
+import RelCertifier.InstancesV2.BenchCovers.platoon_latency
 import RelCertifier.InstancesV2.BenchCovers.platoon_linkloss
 import RelCertifier.InstancesV2.BenchCovers.platoon_profiles
 import RelCertifier.InstancesV2.BenchCovers.quad_light_lag
 import RelCertifier.InstancesV2.BenchCovers.quad_light_profiles
+import RelCertifier.InstancesV2.BenchCovers.reactor_feed_wireless
 import RelCertifier.InstancesV2.BenchCovers.rover_ladder_2to3
 import RelCertifier.InstancesV2.BenchCovers.rover_ladder_3to6
 import RelCertifier.InstancesV2.BenchCovers.rover_ladder_6to8
@@ -57,10 +57,8 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("acc_spoof_limp", acc_spoof_limp_coverV2),
   ("acc_tune_lag", acc_tune_lag_coverV2),
   ("acc_tune_limp", acc_tune_limp_coverV2),
-  ("antenna_track_kvretune", antenna_track_kvretune_coverV2),
   ("bottling_fill_strainer", bottling_fill_strainer_coverV2),
   ("charger_fast_tapers", charger_fast_tapers_coverV2),
-  ("compressor_station_recycle", compressor_station_recycle_coverV2),
   ("csf21_vehicle_bus", csf21_vehicle_bus_coverV2),
   ("csf21_vehicle_thermo", csf21_vehicle_thermo_coverV2),
   ("drl_car_stop", drl_car_stop_coverV2),
@@ -74,13 +72,15 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("gantry_speed_zones", gantry_speed_zones_coverV2),
   ("girard_robot", girard_robot_coverV2),
   ("grid_ffr_dos", grid_ffr_dos_coverV2),
+  ("h2_refuel_ambientbias", h2_refuel_ambientbias_coverV2),
   ("hydro_rejection_gatecal", hydro_rejection_gatecal_coverV2),
   ("lz_vehicle_position", lz_vehicle_position_coverV2),
-  ("molding_pack_checkring", molding_pack_checkring_coverV2),
+  ("platoon_latency", platoon_latency_coverV2),
   ("platoon_linkloss", platoon_linkloss_coverV2),
   ("platoon_profiles", platoon_profiles_coverV2),
   ("quad_light_lag", quad_light_lag_coverV2),
   ("quad_light_profiles", quad_light_profiles_coverV2),
+  ("reactor_feed_wireless", reactor_feed_wireless_coverV2),
   ("rover_ladder_2to3", rover_ladder_2to3_coverV2),
   ("rover_ladder_3to6", rover_ladder_3to6_coverV2),
   ("rover_ladder_6to8", rover_ladder_6to8_coverV2),

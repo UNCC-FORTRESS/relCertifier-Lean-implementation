@@ -3,10 +3,8 @@ import RelCertifier.InstancesV2.BenchProgress.acc_spoof_lag
 import RelCertifier.InstancesV2.BenchProgress.acc_spoof_limp
 import RelCertifier.InstancesV2.BenchProgress.acc_tune_lag
 import RelCertifier.InstancesV2.BenchProgress.acc_tune_limp
-import RelCertifier.InstancesV2.BenchProgress.antenna_track_kvretune
 import RelCertifier.InstancesV2.BenchProgress.bottling_fill_strainer
 import RelCertifier.InstancesV2.BenchProgress.charger_fast_tapers
-import RelCertifier.InstancesV2.BenchProgress.compressor_station_recycle
 import RelCertifier.InstancesV2.BenchProgress.csf21_vehicle_bus
 import RelCertifier.InstancesV2.BenchProgress.csf21_vehicle_thermo
 import RelCertifier.InstancesV2.BenchProgress.elevator_start_discbrake
@@ -17,13 +15,15 @@ import RelCertifier.InstancesV2.BenchProgress.furnace_program_timebase
 import RelCertifier.InstancesV2.BenchProgress.gantry_speed_zones
 import RelCertifier.InstancesV2.BenchProgress.girard_robot
 import RelCertifier.InstancesV2.BenchProgress.grid_ffr_dos
+import RelCertifier.InstancesV2.BenchProgress.h2_refuel_ambientbias
 import RelCertifier.InstancesV2.BenchProgress.hydro_rejection_gatecal
 import RelCertifier.InstancesV2.BenchProgress.lz_vehicle_position
-import RelCertifier.InstancesV2.BenchProgress.molding_pack_checkring
+import RelCertifier.InstancesV2.BenchProgress.platoon_latency
 import RelCertifier.InstancesV2.BenchProgress.platoon_linkloss
 import RelCertifier.InstancesV2.BenchProgress.platoon_profiles
 import RelCertifier.InstancesV2.BenchProgress.quad_light_lag
 import RelCertifier.InstancesV2.BenchProgress.quad_light_profiles
+import RelCertifier.InstancesV2.BenchProgress.reactor_feed_wireless
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_2to3
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_3to6
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_6to8
@@ -54,10 +54,8 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("acc_spoof_limp", acc_spoof_limp_coverV2_progress),
    ("acc_tune_lag", acc_tune_lag_coverV2_progress),
    ("acc_tune_limp", acc_tune_limp_coverV2_progress),
-   ("antenna_track_kvretune", antenna_track_kvretune_coverV2_progress),
    ("bottling_fill_strainer", bottling_fill_strainer_coverV2_progress),
    ("charger_fast_tapers", charger_fast_tapers_coverV2_progress),
-   ("compressor_station_recycle", compressor_station_recycle_coverV2_progress),
    ("csf21_vehicle_bus", csf21_vehicle_bus_coverV2_progress),
    ("csf21_vehicle_thermo", csf21_vehicle_thermo_coverV2_progress),
    ("elevator_start_discbrake", elevator_start_discbrake_coverV2_progress),
@@ -68,13 +66,15 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("gantry_speed_zones", gantry_speed_zones_coverV2_progress),
    ("girard_robot", girard_robot_coverV2_progress),
    ("grid_ffr_dos", grid_ffr_dos_coverV2_progress),
+   ("h2_refuel_ambientbias", h2_refuel_ambientbias_coverV2_progress),
    ("hydro_rejection_gatecal", hydro_rejection_gatecal_coverV2_progress),
    ("lz_vehicle_position", lz_vehicle_position_coverV2_progress),
-   ("molding_pack_checkring", molding_pack_checkring_coverV2_progress),
+   ("platoon_latency", platoon_latency_coverV2_progress),
    ("platoon_linkloss", platoon_linkloss_coverV2_progress),
    ("platoon_profiles", platoon_profiles_coverV2_progress),
    ("quad_light_lag", quad_light_lag_coverV2_progress),
    ("quad_light_profiles", quad_light_profiles_coverV2_progress),
+   ("reactor_feed_wireless", reactor_feed_wireless_coverV2_progress),
    ("rover_ladder_2to3", rover_ladder_2to3_coverV2_progress),
    ("rover_ladder_3to6", rover_ladder_3to6_coverV2_progress),
    ("rover_ladder_6to8", rover_ladder_6to8_coverV2_progress),

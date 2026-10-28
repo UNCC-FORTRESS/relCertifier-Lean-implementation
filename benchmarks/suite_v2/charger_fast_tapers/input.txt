@@ -23,7 +23,8 @@
 #   FAULT       (x < 10):       x' = -0.01 x         cell fault, latched (self-discharge only)
 # PRECHARGE and BULK may latch FAULT (declared edges). The deployed unit (left) runs the profile
 # with its current limit raised 25 % and the slow taper (PRECHARGE 0.25, BULK 0.125, ABSORB
-# 0.0625; 15 -> 80 % in about 11.6 min) and the same FAULT latch. One cause: the current limit. The
+# 0.0625; 15 -> 80 % in about 11.6 min) and the same FAULT latch. Two differences: the current limit
+# and the slower phase decision its firmware ships with (the control periods below). The
 # guards partition [0, 100] on both sides (no coverage gap: the pre-charge phase covers [10, 15)).
 # Control periods. Right (certified profile): 0.006 min = 0.36 s (epsilon = 0.006): the phase
 # decision follows the vehicle's charge-current request, sent on the CHAdeMO CAN cycle of 100 ms
@@ -32,7 +33,9 @@
 # other request cycle (it averages two consecutive current requests before changing phase, a
 # design value of this file; the round-2 design had the same 2:1 ratio, 2 h against 1 h). Every
 # decision interval is at most the period. The claim compares the two at equal times (lambda 1):
-# one deployed decision is matched by two profile decisions (M). Time scale (2026-10-27, batch I7):
+# one deployed decision is matched by two profile decisions (M). The M window: any left decision
+# period strictly above the right's gives M, with budget ceil(left period / right period) (2 at the
+# stated 2:1); the stated periods are not at an edge. Time scale (2026-10-27, batch I7):
 # the time unit is the minute (the earlier design used the hour with epsilon 0.0001 h); the rate
 # constants are per minute, so the phases take the minutes of DC fast charging.
 #

@@ -8,9 +8,8 @@
 #   CACC/ACC row, every handoff unsat or implied, uniform rows decline, matrix code M5). M comes
 #   from the link-loss timeout (batch I9, 2026-10-27; the equal-period file had D only).
 #
-# Shared platoon model (identical in this file and platoon_latency, and in the round-2 platoon
-# designs platoon_profiles (in benchmarks/reserve/ since 2026-10-27, batch I8) and the reserve's
-# platoon3_linkloss, platoon3_profiles). A lead vehicle cruises at the platoon reference speed v_ref = 25 m/s
+# Shared platoon model (identical in this file, platoon_latency and platoon_profiles, and in the
+# reserve's platoon3_linkloss, platoon3_profiles). A lead vehicle cruises at the platoon reference speed v_ref = 25 m/s
 # (90 km/h). Per link (follower behind its predecessor): the gap g (m, bumper to bumper) and the
 # range rate r = v_pred - v (m/s, positive = opening), g' = r. Units m, m/s, s.
 # Spacing policy (constant time gap): standstill distance d0 = 5 m. CACC: time gap h_c = 0.6 s on
@@ -43,6 +42,8 @@
 # usual guard against a single dropped CAM), so its mode decision (CACC, ACC or the AEB trigger)
 # is held for up to 0.2 s. The claim compares the two at equal times (lambda 1), so one deployed
 # decision is matched by two design decisions (M).
+# The M window: any left decision period strictly above the right's gives M, with budget
+# ceil(left period / right period) (2 at the stated 2:1); the stated periods are not at an edge.
 # Domain per link (both sides, every mode): 0 <= g <= 60 m (radar range gate), |r| <= 10 m/s
 #   (rated closing rate); every mode's guard is forward invariant inside it (CACC/ACC/SPORT: the
 #   operating range; AEB: g + 2 r is conserved and r decays).

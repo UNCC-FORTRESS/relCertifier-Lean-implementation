@@ -39,7 +39,7 @@
 # measured 2026-10-27; and RELCERT_SYNC=1 DECLINES).
 #   rows 1, 2 (the requirement): h_R - h_L <= 0.8 and h_L - h_R <= 0.8.
 # Strengthening rows (the rows of quad_light_airframe_20; each needed: dropping row 3 or row 4
-# DECLINES, measured on that file):
+# DECLINES, re-measured 2026-10-28 on this file):
 #   row 3: Psi <= 0.8 with Psi = (h_L - h_R) + (w_L - 2.4)/6.13125 - (w_R - 2)/4.905 (written
 #     multiplied by 6.13125 in the file). Psi is the altitude gap the two steady climbs converge
 #     to; at lambda = 6/5 against NORMAL it is conserved exactly (Psi' = 2.4 - 2 lambda = 0).

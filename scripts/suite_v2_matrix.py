@@ -76,7 +76,7 @@ ROOT = os.path.abspath(os.path.join(HERE, ".."))
 FAMILIES = [
     ("acc_", "ACC under sensor spoofing / retune"),
     ("quad_", "Quadrotor climb, lighter airframe"),
-    ("platoon_", "Platoon follower (CACC, link loss / latency)"),
+    ("platoon_", "Platoon follower (CACC: link loss, latency, profiles)"),
     ("rover_patrol_", "Rover patrol (zones)"),
     ("gantry_", "Gantry speed zones (multi-cycle matching)"),
     ("rover_ladder_", "Rover ladder"),
@@ -105,6 +105,8 @@ FAMILIES = [
     ("sat_detumble_", "Rigid-body detumbling (polynomial)"),
     ("sat3w_detumble_", "Rigid-body detumbling (polynomial)"),
     ("zone_", "Building zone heating (lightweight construction)"),
+    ("h2_", "Hydrogen refuelling (sensor bias)"),
+    ("reactor_", "Exothermic reactor feed interlock"),
     # case studies reproduced from published work (each header cites its source)
     ("drl_", "Literature"),
     ("vehicle_hypercert", "Literature"),

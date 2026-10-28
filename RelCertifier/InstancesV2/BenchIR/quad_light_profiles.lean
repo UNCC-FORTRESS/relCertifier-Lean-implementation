@@ -14,8 +14,8 @@ namespace RelCertifier.Parse
 def quad_light_profiles_IRv2 : PProblem :=
   {
     name := "quad_light_profiles"
-    lambdaMin := "1.0"
-    lambdaMax := "1.0"
+    lambdaMin := "1.2"
+    lambdaMax := "1.2"
     L := {
       stateVars := ["h", "w"]
       epsilon := "1.0"
@@ -53,6 +53,6 @@ def quad_light_profiles_IRv2 : PProblem :=
           evolve := (.and (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "2.4")))
           next := ["SPORT", "NORMAL", "ECO"] } ] }
     invariants := [
-      ("CLIMB", (.and (.and (.and (.cmp "<=" (.bin "-" (.var "R_h") (.var "L_h")) (.num "0.8")) (.cmp "<=" (.bin "-" (.var "L_h") (.var "R_h")) (.num "0.8"))) (.cmp "<=" (.bin "+" (.bin "+" (.bin "*" (.num "6.13125") (.bin "-" (.var "L_h") (.var "R_h"))) (.bin "-" (.var "L_w") (.bin "*" (.num "1.25") (.var "R_w")))) (.num "0.6")) (.bin "*" (.num "6.13125") (.num "0.8")))) (.cmp "<=" (.var "R_w") (.var "L_w"))))] }
+      ("CLIMB", (.and (.and (.and (.cmp "<=" (.bin "-" (.var "R_h") (.var "L_h")) (.num "0.8")) (.cmp "<=" (.bin "-" (.var "L_h") (.var "R_h")) (.num "0.8"))) (.cmp "<=" (.bin "+" (.bin "+" (.bin "*" (.num "6.13125") (.bin "-" (.var "L_h") (.var "R_h"))) (.bin "-" (.var "L_w") (.bin "*" (.num "1.25") (.var "R_w")))) (.num "0.1")) (.bin "*" (.num "6.13125") (.num "0.8")))) (.cmp "<=" (.bin "*" (.num "1.2") (.var "R_w")) (.var "L_w"))))] }
 
 end RelCertifier.Parse

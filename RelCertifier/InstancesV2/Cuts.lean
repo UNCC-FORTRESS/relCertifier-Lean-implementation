@@ -3,31 +3,30 @@ import RelCertifier.InstancesV2.Cuts.acc_spoof_lag
 import RelCertifier.InstancesV2.Cuts.acc_spoof_limp
 import RelCertifier.InstancesV2.Cuts.acc_tune_lag
 import RelCertifier.InstancesV2.Cuts.acc_tune_limp
-import RelCertifier.InstancesV2.Cuts.antenna_track_kvretune
-import RelCertifier.InstancesV2.Cuts.bms_chiller_undercharge
 import RelCertifier.InstancesV2.Cuts.bottling_fill_strainer
 import RelCertifier.InstancesV2.Cuts.charger_fast_tapers
-import RelCertifier.InstancesV2.Cuts.compressor_station_recycle
 import RelCertifier.InstancesV2.Cuts.csf21_vehicle_bus
 import RelCertifier.InstancesV2.Cuts.csf21_vehicle_thermo
 import RelCertifier.InstancesV2.Cuts.drl_car_stop
 import RelCertifier.InstancesV2.Cuts.drl_lane_control
 import RelCertifier.InstancesV2.Cuts.elevator_start_discbrake
 import RelCertifier.InstancesV2.Cuts.engine_start_highidle
+import RelCertifier.InstancesV2.Cuts.flaps_slow_approach
 import RelCertifier.InstancesV2.Cuts.freedm_meter
 import RelCertifier.InstancesV2.Cuts.fuelcell_chp_dos
 import RelCertifier.InstancesV2.Cuts.furnace_program_timebase
 import RelCertifier.InstancesV2.Cuts.gantry_speed_zones
 import RelCertifier.InstancesV2.Cuts.girard_robot
 import RelCertifier.InstancesV2.Cuts.grid_ffr_dos
+import RelCertifier.InstancesV2.Cuts.h2_refuel_ambientbias
 import RelCertifier.InstancesV2.Cuts.hydro_rejection_gatecal
-import RelCertifier.InstancesV2.Cuts.insulin_basal_cgmloss
 import RelCertifier.InstancesV2.Cuts.lz_vehicle_position
-import RelCertifier.InstancesV2.Cuts.molding_pack_checkring
 import RelCertifier.InstancesV2.Cuts.platoon_latency
 import RelCertifier.InstancesV2.Cuts.platoon_linkloss
+import RelCertifier.InstancesV2.Cuts.platoon_profiles
 import RelCertifier.InstancesV2.Cuts.quad_light_lag
 import RelCertifier.InstancesV2.Cuts.quad_light_profiles
+import RelCertifier.InstancesV2.Cuts.reactor_feed_wireless
 import RelCertifier.InstancesV2.Cuts.rover_ladder_2to3
 import RelCertifier.InstancesV2.Cuts.rover_ladder_3to6
 import RelCertifier.InstancesV2.Cuts.rover_ladder_6to8
@@ -49,6 +48,7 @@ import RelCertifier.InstancesV2.Cuts.vehicle_hypercert
 import RelCertifier.InstancesV2.Cuts.ventilator_vc_cuffleak
 import RelCertifier.InstancesV2.Cuts.watertank
 import RelCertifier.InstancesV2.Cuts.watertank_twospeed
+import RelCertifier.InstancesV2.Cuts.zone_lightmass_schedule
 
 namespace RelCertifier.Oracle
 
@@ -57,31 +57,30 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("acc_spoof_limp", acc_spoof_limp_cutsV2, acc_spoof_limp_cutsV2X),
   ("acc_tune_lag", acc_tune_lag_cutsV2, acc_tune_lag_cutsV2X),
   ("acc_tune_limp", acc_tune_limp_cutsV2, acc_tune_limp_cutsV2X),
-  ("antenna_track_kvretune", antenna_track_kvretune_cutsV2, antenna_track_kvretune_cutsV2X),
-  ("bms_chiller_undercharge", bms_chiller_undercharge_cutsV2, bms_chiller_undercharge_cutsV2X),
   ("bottling_fill_strainer", bottling_fill_strainer_cutsV2, bottling_fill_strainer_cutsV2X),
   ("charger_fast_tapers", charger_fast_tapers_cutsV2, charger_fast_tapers_cutsV2X),
-  ("compressor_station_recycle", compressor_station_recycle_cutsV2, compressor_station_recycle_cutsV2X),
   ("csf21_vehicle_bus", csf21_vehicle_bus_cutsV2, csf21_vehicle_bus_cutsV2X),
   ("csf21_vehicle_thermo", csf21_vehicle_thermo_cutsV2, csf21_vehicle_thermo_cutsV2X),
   ("drl_car_stop", drl_car_stop_cutsV2, drl_car_stop_cutsV2X),
   ("drl_lane_control", drl_lane_control_cutsV2, drl_lane_control_cutsV2X),
   ("elevator_start_discbrake", elevator_start_discbrake_cutsV2, elevator_start_discbrake_cutsV2X),
   ("engine_start_highidle", engine_start_highidle_cutsV2, engine_start_highidle_cutsV2X),
+  ("flaps_slow_approach", flaps_slow_approach_cutsV2, flaps_slow_approach_cutsV2X),
   ("freedm_meter", freedm_meter_cutsV2, freedm_meter_cutsV2X),
   ("fuelcell_chp_dos", fuelcell_chp_dos_cutsV2, fuelcell_chp_dos_cutsV2X),
   ("furnace_program_timebase", furnace_program_timebase_cutsV2, furnace_program_timebase_cutsV2X),
   ("gantry_speed_zones", gantry_speed_zones_cutsV2, gantry_speed_zones_cutsV2X),
   ("girard_robot", girard_robot_cutsV2, girard_robot_cutsV2X),
   ("grid_ffr_dos", grid_ffr_dos_cutsV2, grid_ffr_dos_cutsV2X),
+  ("h2_refuel_ambientbias", h2_refuel_ambientbias_cutsV2, h2_refuel_ambientbias_cutsV2X),
   ("hydro_rejection_gatecal", hydro_rejection_gatecal_cutsV2, hydro_rejection_gatecal_cutsV2X),
-  ("insulin_basal_cgmloss", insulin_basal_cgmloss_cutsV2, insulin_basal_cgmloss_cutsV2X),
   ("lz_vehicle_position", lz_vehicle_position_cutsV2, lz_vehicle_position_cutsV2X),
-  ("molding_pack_checkring", molding_pack_checkring_cutsV2, molding_pack_checkring_cutsV2X),
   ("platoon_latency", platoon_latency_cutsV2, platoon_latency_cutsV2X),
   ("platoon_linkloss", platoon_linkloss_cutsV2, platoon_linkloss_cutsV2X),
+  ("platoon_profiles", platoon_profiles_cutsV2, platoon_profiles_cutsV2X),
   ("quad_light_lag", quad_light_lag_cutsV2, quad_light_lag_cutsV2X),
   ("quad_light_profiles", quad_light_profiles_cutsV2, quad_light_profiles_cutsV2X),
+  ("reactor_feed_wireless", reactor_feed_wireless_cutsV2, reactor_feed_wireless_cutsV2X),
   ("rover_ladder_2to3", rover_ladder_2to3_cutsV2, rover_ladder_2to3_cutsV2X),
   ("rover_ladder_3to6", rover_ladder_3to6_cutsV2, rover_ladder_3to6_cutsV2X),
   ("rover_ladder_6to8", rover_ladder_6to8_cutsV2, rover_ladder_6to8_cutsV2X),
@@ -102,6 +101,7 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("vehicle_hypercert", vehicle_hypercert_cutsV2, vehicle_hypercert_cutsV2X),
   ("ventilator_vc_cuffleak", ventilator_vc_cuffleak_cutsV2, ventilator_vc_cuffleak_cutsV2X),
   ("watertank", watertank_cutsV2, watertank_cutsV2X),
-  ("watertank_twospeed", watertank_twospeed_cutsV2, watertank_twospeed_cutsV2X) ]
+  ("watertank_twospeed", watertank_twospeed_cutsV2, watertank_twospeed_cutsV2X),
+  ("zone_lightmass_schedule", zone_lightmass_schedule_cutsV2, zone_lightmass_schedule_cutsV2X) ]
 
 end RelCertifier.Oracle

@@ -21,7 +21,7 @@ def sat3w_detumble_phases_m006_IRm : PProblem :=
     lambdaMax := "1.0"
     L := {
       stateVars := ["w1", "w2", "w3", "h1", "h2", "h3"]
-      epsilon := "1.0"
+      epsilon := "2.0"
       modes := [
         {
           name := "DETUMBLE"

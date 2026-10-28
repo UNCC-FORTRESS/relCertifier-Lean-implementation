@@ -18,7 +18,7 @@ def charger_fast_tapers_IRv2 : PProblem :=
     lambdaMax := "6.0"
     L := {
       stateVars := ["x"]
-      epsilon := "0.006"
+      epsilon := "0.012"
       modes := [
         {
           name := "PRECHARGE"

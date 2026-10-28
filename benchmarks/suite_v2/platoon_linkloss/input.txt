@@ -1,13 +1,15 @@
 # platoon_linkloss: a CACC follower whose V2V link is intermittently lost (jamming or
 # packet-loss bursts) and which then degrades to radar-only ACC, against the design follower
-# with the link always up.
+# with the link always up; the deployed follower's link-loss decision waits for two message
+# periods (0.2 s), the design follower decides every message (0.1 s).
 # scenario: dos-attack
-# mechanisms: D (mode-dependent rows: the AEB row differs from the CACC/ACC row, every handoff
-#   unsat or implied, matrix code M5)
+# mechanisms: M D (multi-cycle matching: one 0.2 s deployed decision against two 0.1 s design
+#   decisions, budget 2, matrix code M2; mode-dependent rows: the AEB row differs from the
+#   CACC/ACC row, every handoff unsat or implied, uniform rows decline, matrix code M5). M comes
+#   from the link-loss timeout (batch I9, 2026-10-27; the equal-period file had D only).
 #
-# Shared platoon model (identical in this file and platoon_latency, and in the round-2 platoon
-# designs platoon_profiles (in benchmarks/reserve/ since 2026-10-27, batch I8) and the reserve's
-# platoon3_linkloss, platoon3_profiles). A lead vehicle cruises at the platoon reference speed v_ref = 25 m/s
+# Shared platoon model (identical in this file, platoon_latency and platoon_profiles, and in the
+# reserve's platoon3_linkloss, platoon3_profiles). A lead vehicle cruises at the platoon reference speed v_ref = 25 m/s
 # (90 km/h). Per link (follower behind its predecessor): the gap g (m, bumper to bumper) and the
 # range rate r = v_pred - v (m/s, positive = opening), g' = r. Units m, m/s, s.
 # Spacing policy (constant time gap): standstill distance d0 = 5 m. CACC: time gap h_c = 0.6 s on
@@ -34,7 +36,14 @@
 #   the TTC floor is a sublevel set of the slow mode and the CACC never triggers the AEB (the
 #   design's CACC -> AEB edges are pruned by non-connection certificates); the |r| <= 10 faces
 #   hold for every gap below 70 m.
-# Control period 0.1 s on both sides (10 Hz V2V messages, the ETSI CAM / SAE BSM rate).
+# Control periods: 0.1 s on the design follower (10 Hz V2V messages, the ETSI CAM / SAE BSM rate)
+# and 0.2 s on the deployed follower: its link supervisor declares the link lost, or back, only
+# after two consecutive message periods without, or with, a message (a two-message timeout, the
+# usual guard against a single dropped CAM), so its mode decision (CACC, ACC or the AEB trigger)
+# is held for up to 0.2 s. The claim compares the two at equal times (lambda 1), so one deployed
+# decision is matched by two design decisions (M).
+# The M window: any left decision period strictly above the right's gives M, with budget
+# ceil(left period / right period) (2 at the stated 2:1); the stated periods are not at an edge.
 # Domain per link (both sides, every mode): 0 <= g <= 60 m (radar range gate), |r| <= 10 m/s
 #   (rated closing rate); every mode's guard is forward invariant inside it (CACC/ACC/SPORT: the
 #   operating range; AEB: g + 2 r is conserved and r decays).
@@ -47,8 +56,9 @@
 #   radar-only ACC (h_a = 1.2 s), on the same operating range; when the link is back it
 #   re-engages the CACC. CACC -> [CACC, ACC, AEB], ACC -> [ACC, CACC, AEB], AEB latched. Loss
 #   and recovery may alternate any number of times.
-# One cause: the link loss (the fallback it forces). Same plant, same CACC, same AEB, same
-# operating range and control period on both sides; lambda_min = lambda_max = 1 (same time).
+# One cause: the link loss (the fallback it forces, and the two-message timeout that detects it).
+# Same plant, same CACC, same AEB, same operating range on both sides; lambda_min = lambda_max = 1
+# (same time).
 #
 # Property (Delta = L - R; rows CACC and ACC identical, AEB separate).
 #   CACC, ACC:
@@ -88,14 +98,18 @@
 # are in no right guard; no run reaches them (both guards are forward invariant). Every left
 # mode has a satisfiable start (g_L = g_R = 20, r = 0 for CACC and ACC; g = 3, r = 0 for AEB).
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED; CERTIFIED also under RELCERT_SYNC=1,
-# RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, both together, RELCERT_SYNC=1 RELCERT_NO_CHOICE=1,
-# without RELCERT_IMPLIED_CUT, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1,
-# RELCERT_NO_CUT=1, RELCERT_OPREGION=1 and RELCERT_WELLFORMED_STRICT=1 (no S, M, P, I, X).
-# Covers: every left mode at lambda 1, budget 1 (single segment); admissible starts CACC_L:
-# [CACC], ACC_L: [CACC], AEB_L: [AEB]; pruned CACC -> AEB (not load-bearing at budget 1).
-# --handoff 7/7 pass (rows differ). relcert --wellformed: CACC ok (invariant), AEB ok
-# (invariant).
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27, batch I9): CERTIFIED (about
+# 1.5 s); CERTIFIED also under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1,
+# SYNC+NO_CHOICE, RELCERT_NO_REPO=1, without RELCERT_IMPLIED_CUT, RELCERT_NO_IMPLIED_CUT=1,
+# RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_CUT=1, RELCERT_OPREGION=1 and RELCERT_WELLFORMED_STRICT=1
+# (no S, P, I, X); DECLINED under NO_PRUNE+NO_CHOICE only (the pruned CACC -> AEB edge is closed
+# by the existential choice when pruning is off, as in acc_spoof_limp: no P).
+# Covers: every left mode at lambda 1, budget 2 (two design decisions per deployed decision, joint
+# steps retaining the own mode only: no branching); admissible starts CACC_L: [CACC], ACC_L:
+# [CACC], AEB_L: [AEB]; pruned CACC -> AEB. --handoff 7/7 pass (rows differ; the uniform rows
+# decline: D). relcert --wellformed: CACC ok (invariant), AEB ok (invariant), 0 UNKNOWN, 0
+# BLOCKING. The right model is unchanged (Assumption 1 through the shared PlatoonCaccAeb lemmas);
+# the left changed only in its period (batch I9). Letters: M D.
 [problem]
 name = platoon_linkloss
 max_depth = 8
@@ -104,7 +118,7 @@ lambda_max = 1.0
 bound_T = 4.0
 [Lsys]
 state_vars = [g, r]
-epsilon = 0.1
+epsilon = 0.2
 [Lsys.mode.CACC]
 ode = g' = smt2:r; r' = smt2:(- (* -0.125 (- g 20.0)) (* 0.75 r));
 guard = r >= -10.0 and r <= 10.0 and g + 2.0 * r >= 5.0 and g + 2.0 * r <= 60.0

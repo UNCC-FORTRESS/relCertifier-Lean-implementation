@@ -1,86 +1,90 @@
-# acc_spoof_lag: the cruise loop under a speed-sensor spoof against the unspoofed loop, both with the
-# same powertrain lag and the same control period; a real-time speed envelope whose width is set by
-# the spoof.
+# acc_spoof_lag: the cruise loop under a speed-sensor spoof against the unspoofed loop, both with
+# the same powertrain lag and the same control period; the spoofed loop is the stock loop run 3/2
+# times faster toward a set speed 6 m/s lower.
 # scenario: sensor-attack
-# mechanisms: I (load-bearing mode facts: the two engaged envelopes kept as checked cuts,
-#   RELCERT_NO_CUT=1 declines, matrix code M6). No time stretch (lambda = 1, RELCERT_SYNC=1 certifies), single-step
-#   cover (budget 1: no M; the round-2 file's M came only from a 2 s left period against a 1 s
-#   right period, which had no physical reason and is removed here).
+# mechanisms: S M (time stretch lambda = 3/2, the ratio of the two dominant time constants,
+#   RELCERT_SYNC=1 declines, matrix code M1; multi-step cover, each 0.1 s left window matched by
+#   two right cycles (budget ceil(3/2 * 0.1 / 0.1) = 2), matrix code M2). Both letters come from
+#   the attack: the spoof scales the loop gain by 1.25 and so the dominant rate by 3/2. Batch I9
+#   (2026-10-27): the exact dominant-mode claim of the round-2 file is restored on the batch-I4
+#   models (0.1 s periods, the engaged envelopes as guards); the batch-I4 real-time claim with the
+#   8 m/s shortfall envelope (letters I) still certifies and is quoted below as a consequence.
 #
-# System. Speed v (m/s), realised acceleration a (m/s^2); the cruise loop commands
-# a_cmd = 0.5 (30 - v_meas) toward the set speed 30 m/s and the powertrain realises it through a
-# first-order lag of time constant tau = 0.375 s: v' = a, a' = (8/3) (a_cmd - a).
-#   Left (attacked): the speed sensor is spoofed to read 25 % high, v_meas = sigma v with
-#     sigma = 1.25, so a_cmd = 0.5 (30 - 1.25 v) = 0.625 (24 - v): the car settles at 24 m/s.
+# System. Speed v (m/s) and realised acceleration a (m/s^2) of one car whose cruise loop commands
+# a_cmd = 0.5 (30 - v_meas) toward the set speed 30 m/s; the powertrain realises the command through
+# a first-order lag of time constant tau = 0.375 s: v' = a, a' = (8/3) (a_cmd - a).
+#   Left (attacked): the speed sensor is spoofed to read 25 % high, v_meas = 1.25 v, so
+#     a_cmd = 0.5 (30 - 1.25 v) = 0.625 (24 - v): the car settles at 24 m/s.
 #   Right (reference): the same car and lag, unspoofed, v_meas = v.
-# Lag choice: tau = 0.375 s (1/tau = 8/3) gives both closed loops rational real roots (left
-# (s + 1)(s + 5/3), right (s + 2/3)(s + 2)): both non-oscillatory.
-# Control period: 0.1 s on BOTH sides (epsilon = 0.1; every decision interval is at most 0.1 s).
-# The speed loop itself is continuous in the ODEs; the period is that of the mode decision (the
-# engagement check). 0.1 s bounds the update cycle of an automotive ACC's long-range radar (the
-# Continental ARS 408-21 data sheet gives a cycle time of about 72 ms). The spoof is the only
-# difference between the sides: same car, lag, gain, set speed, period, engagement condition.
+# The attack is the only difference (same plant, lag, period, engagement). Lag choice:
+# tau = 0.375 s (1/tau = 8/3) is the lag at which both closed loops have rational real roots
+# (left (s + 1)(s + 5/3), right (s + 2/3)(s + 2)), so both are non-oscillatory and decouple into
+# exponential modes.
+# Control period: 0.1 s on BOTH sides (epsilon = 0.1; every decision interval is at most 0.1 s):
+# the engagement check runs on the ACC's update cycle, bounded by an automotive long-range radar's
+# cycle (the Continental ARS 408-21 data sheet gives about 72 ms). The speed loop is continuous in
+# the ODEs; the period is that of the mode decision.
 #
-# Property (real time, lambda_min = lambda_max = 1: the two cars are compared at equal times).
-# Requirement rows:
-#   (1) v_L <= v_R: a sensor that reads high must never make the car faster than the unspoofed
-#       reference (constant 0 from the requirement).
-#   (3) v_R <= v_L + 8.0: the spoof may slow the car at most 8 m/s below the reference; at the
-#       30 m/s set speed this keeps the spoofed car above 22 m/s (80 km/h), the minimum speed the
-#       scenario's motorway lane requires.
-# Strengthening rows (stated as such): (2) p_L <= p_R and (4) p_R <= p_L + 8.0, with p = v + 0.5 a the
-#   half-second speed preview. Each is needed: without (2) or without (4) the file DECLINES; without
-#   (1) or without (3) it still certifies (they follow inductively from the preview rows).
-# Not implied by the domains (they allow speed differences up to 40 m/s).
-#
-# How the claim depends on the cause (measured 2026-10-27 on this file, bisection 0.01): the
-# tightest shortfall constant of rows (3) and (4) together is 6.84 (6.83 declines). With sigma = 1
-# (no spoof; the left guard is then the reference's own envelope) the claim is exact (0 certifies)
-# and the file certifies also under RELCERT_NO_CUT=1: the I letter is the spoof's (the cut is needed
-# only to bound the spoof-induced separation). Inside the envelope the spoof also slows the car by
-# a guaranteed margin: rows (1) and (2) certify down to v_L <= v_R - 3.95 (-3.96 declines); that set
-# excludes equal starts, so the requirement keeps the constant 0. Measured on the round-A file
-# (2026-10-26, the engagement box as the left guard, which drops left runs, below; shortfall 7.20 at
-# sigma = 1.25, margin 3.40): sigma = 1.1: 3.28; sigma = 1.4: 10.29; i.e. about 36 (1 - 1/sigma),
-# 1.2 times the steady-state speed loss 30 (1 - 1/sigma); the 8.0 requirement held for spoofs up to
-# sigma = 1.28 (1.29 declined). A sensor spoofed to read LOW (sigma = 0.95, 0.9) makes the car
-# faster: row (1) fails and the file DECLINES. Row (3) alone cannot go below row (4)'s constant.
-# Differs from acc_tune_lag by its cause and its claim: a sensor spoof (not a gain retune), compared
-# in real time with a spoof-dependent two-sided envelope; acc_tune_lag compares the dominant modes
-# exactly at a time scale of 2 (S genuine there).
+# Property (requirement and the attack's exact signature). Let u = v + a / r_f be the dominant-mode
+# speed (r_f the fast root: u_L = v_L + 0.6 a_L, u_R = v_R + 0.5 a_R); u_L - 24 decays at 1 /s and
+# u_R - 30 at 2/3 /s. Rows:
+#   v_L <= v_R (row 1, the requirement, constant 0): a spoofed speed sensor must never make the car
+#     faster than the unspoofed reference. The row certifies down to v_L <= v_R - 3.33 (-3.34
+#     declines): the attack slows the car by at least 3.33 m/s along the cover.
+#   u_L <= u_R - 6 (row 2, exact): at lambda = 3/2 the two dominant modes decay alike, so the
+#     spoofed car's dominant-mode speed equals the reference's at 3/2 the elapsed time minus the
+#     6 m/s set-speed shift (30 - 24), and the row is kept exactly. Tight at -6 (-6.01 declines).
+#     Row 2 is also the inductive strengthening row 1 needs (row 1 alone has no inductive
+#     certificate: its derivative compares the two accelerations).
+# Reading: the spoof turns the stock loop into the same loop 3/2 times faster aiming 6 m/s lower,
+# so every speed profile of the attacked car is a sped-up, lowered profile of the reference. Exact:
+# no tolerance constant. Not implied by the domains.
+# The stretch follows the cause: lambda = 1 / (2/3) = 3/2 is the ratio of the dominant rates, i.e.
+# the loop-gain factor the spoof introduces (0.625 / 0.5 = 1.25 on the gain, 3/2 on the dominant
+# root at this lag). Stated, not searched (lambda_min = lambda_max = 1.5); as every exact rate
+# ratio of this suite it certifies at its exact value only (1.45 DECLINES, measured 2026-10-27;
+# and RELCERT_SYNC=1 DECLINES). Cause dependence: at a 20 % spoof (v_meas = 1.2 v, set point 25,
+# dominant ratio 1.4 at a lag with rational roots) the rows would read u_L <= u_R - 5 at lambda
+# 7/5; the stated spoof fixes both constants.
+# Consequence (measured 2026-10-27, not part of the claim): the batch-I4 real-time rows
+# v_R <= v_L + 8 and u_R <= u_L + 8 (the shortfall envelope, 8 m/s = the 6 m/s set-speed shift
+# plus the lag transient; its requirement: the spoof may slow the car at most 8 m/s below the
+# reference, which at the 30 m/s set speed keeps the spoofed car above 22 m/s (80 km/h), the
+# minimum speed the scenario's motorway lane requires) certify at lambda 1 on this file; adding them to the exact rows at
+# lambda 3/2 DECLINES (they are real-time statements, not re-timed ones), so the file states the
+# exact claim alone.
 #
 # Guards. Left: the spoofed loop's ENGAGED ENVELOPE, the forward-invariant hull under the spoofed
-# loop of its engagement box (the controller engages between 23 m/s and the set speed with
-# |a| <= 2 m/s^2, no hard pedal input): a + (v - 24) in [-3, 8] and a + (5/3)(v - 24) in
-# [-11/3, 12] (the left modal coordinates about the spoofed equilibrium 24 m/s, decaying at 5/3 /s
-# and 1 /s; the box's corners (23, -2) and (30, 2) are envelope corners). The guard is re-checked
-# at every decision. With the box itself as the guard (the round-A file) a left run from (23, -2)
-# dips to 22.6 m/s and would end there, a run the stock controller (disengage below 20 m/s) keeps;
-# with the envelope every left run from the box continues (they stay in v in [22.6, 30.2]).
+# loop of its engagement box (the controller engages, or resumes, between 23 m/s and the set speed
+# with |a| <= 2 m/s^2, no hard pedal input): a + (v - 24) in [-3, 8] and a + (5/3)(v - 24) in
+# [-11/3, 12] (the left modal coordinates, decaying at 5/3 /s and 1 /s; the box's corners are
+# envelope corners). The guard is re-checked at every decision; every left run from the box
+# continues (with the box itself as the guard a run from (23, -2) dipped to 22.6 m/s and ended).
 # Right: the reference's ENGAGED ENVELOPE, the forward-invariant hull of the same engagement box
-# under the unspoofed loop: 3 a + 2 v in [40, 66] and a + 2 v in [44, 62] (modal coordinates of the
-# box, each decaying toward 0; relcert --wellformed CRUISE ok (invariant)). It bounds the
+# under the unspoofed loop: 3 a + 2 v in [40, 66] and a + 2 v in [44, 62] (modal coordinates of
+# the box, each decaying toward 0; relcert --wellformed CRUISE ok (invariant)). It bounds the
 # reference's lag state, which a speed band alone does not. It spans v in [16.5, 36.5]; simulated
 # runs from the engagement box stay in v in [22.8, 30.6].
 # Coverage. Right-domain states outside the envelope are in no right guard: the reference never
-# reaches them after engaging (RELCERT_OPREGION=1 reports row-admitted starts outside every right
-# guard; Theorem 3's premise excludes them). The stock controller's disengage branch below 20 m/s is
-# not modeled: neither loop comes near 20 m/s from engagement.
-# Domains (both sides): v in [0, 40] m/s, a in [-10, 10] m/s^2 (1 g); physical, not load-bearing.
+# reaches them after engaging. The stock controller's disengage branch below 20 m/s is not
+# modeled: neither loop comes near 20 m/s from engagement.
+# Domains (both sides): v in [0, 40] m/s, a in [-10, 10] m/s^2 (1 g, the tyre-road limit);
+# physical limits, not load-bearing.
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27 on branch benchmark-fixes):
-# CERTIFIED (0.15 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1,
-# NO_PRUNE+NO_CHOICE, SYNC+NO_CHOICE, without RELCERT_IMPLIED_CUT, RELCERT_NO_IMPLIED_CUT=1,
-# RELCERT_NO_LINEAR_CUT=1, RELCERT_OPREGION=1 and RELCERT_WELLFORMED_STRICT=1; DECLINED under
-# RELCERT_NO_CUT=1. Cover: lambda = 1, budget 1, nothing pruned, no choice, no right-only segment
-# (matrix: M6 only); --handoff vacuous (one left mode). relcert --wellformed: CRUISE ok
-# (invariant), 0 UNKNOWN, 0 BLOCKING. The right model changed only in its period (epsilon
-# 1.0 -> 0.1; its Assumption 1 proof states the new interval). Units m/s, m/s^2, s.
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27, batch I9): CERTIFIED
+# (0.13 s); DECLINED under RELCERT_SYNC=1 and SYNC+NO_CHOICE; CERTIFIED under RELCERT_NO_PRUNE=1,
+# RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE, without RELCERT_IMPLIED_CUT, RELCERT_NO_IMPLIED_CUT=1,
+# RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_CUT=1, RELCERT_NO_REPO=1, RELCERT_OPREGION=1 and
+# RELCERT_WELLFORMED_STRICT=1. Cover: lambda = 3/2, budget 2 right cycles per left window,
+# admissible start CRUISE, nothing pruned (the cuts are kept but not load-bearing). --handoff 1/1
+# vacuous (one left mode). relcert --wellformed: CRUISE ok (invariant), 0 UNKNOWN, 0 BLOCKING.
+# The right model is unchanged since batch I4 (Assumption 1 proof unchanged); the rows and the
+# stretch changed (batch I9). Units m/s, m/s^2, s.
 [problem]
 name = acc_spoof_lag
 max_depth = 8
-lambda_min = 1.0
-lambda_max = 1.0
+lambda_min = 1.5
+lambda_max = 1.5
 bound_T = 4.0
 [Lsys]
 state_vars = [v, a]
@@ -99,4 +103,4 @@ guard = smt2:(and (>= (+ (* 3.0 a) (* 2.0 v)) 40.0) (<= (+ (* 3.0 a) (* 2.0 v)) 
 evolve = v >= 0.0 and v <= 40.0 and a >= -10.0 and a <= 10.0
 next = [CRUISE]
 [relational_invariant]
-CRUISE = smt2:(and (<= L_v R_v) (<= (+ L_v (* 0.5 L_a)) (+ R_v (* 0.5 R_a))) (<= R_v (+ L_v 8.0)) (<= (+ R_v (* 0.5 R_a)) (+ (+ L_v (* 0.5 L_a)) 8.0)))
+CRUISE = smt2:(and (<= L_v R_v) (<= (+ L_v (* 0.6 L_a)) (- (+ R_v (* 0.5 R_a)) 6.0)))

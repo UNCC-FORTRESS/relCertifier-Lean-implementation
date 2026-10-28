@@ -122,24 +122,49 @@
 > suite; `lz_vehicle_position`, `girard_robot` and `salt_tank_sensor` installed, the finder run on them
 > (`--only`): 16 + 18 + 14 mutants, one witness: `girard_robot_m016` (the quadratic tracking-error row
 > flipped to `>=`, kind B, 6 groups; DECLINED by relcert); 48 lines in.
-> Current instance set: **77 refutations, 228 groups**
-> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 983 mutants in
-> `docs/refute/witnesses.jsonl`. The operator table below is the 2026-10-21 run; recomputed on 2026-10-27
-> (`scripts/refute_experiment.py`, 6 parallel jobs, the then-default 40 s budget; `docs/refute/relcert.json`, `results.json`,
-> `runner.log`): 983 mutants, 342 certified, 77 kernel-refuted, 564 open (9 of them relcert ERRORs by the time budget:
-> `rover_ladder_6to8_m021`, `rover_ladder_8to12_m005`, `_m010`, `_m016`, `_m024`, `sat3w_detumble_phases_m011`, `_m012`,
-> `_m014`, `_m015`); by operator RRO/SNO 31/30/154, MCO 102/13/112, ORO 209/34/298 (certified/refuted/open); by kind B 59,
-> C 18; kernel-refuted and certified: none. All 77 are DECLINED by relcert at the default time budget (300 s since
-> 2026-10-27; decline check of `benchmarks/refute_mutants/*`, `RELCERT_IMPLIED_CUT=1`, 4 parallel jobs:
-> 77/77 DECLINED, the slowest `rover_ladder_8to12_m005` in 46 s; `docs/refute/decline_default_budget.tsv`).
+> Batch I9 (2026-10-27, the multi-rate and stretch pass, two swaps): `tank_dos_3to1` (16 witness lines, no refutation) and
+> `platoon_latency` (67 lines; m040 and m043, kind B, 4 groups) left the suite; `flaps_slow_approach` (16 mutants, no witness)
+> and the time-scaled `platoon_profiles` (51 mutants; m024 and m027 new, kind B, 4 groups: the floor rows `L_g >= 5` and
+> `L_g + 2 L_r >= 5` flipped, the same two rows its batch-I2 form refuted as m008 and m011) came in; the finder re-ran on the
+> eight changed files (`--only`): `acc_spoof_lag` 10 mutants (was 20: the dominant-mode rows), `charger_fast_tapers` 6,
+> `platoon_linkloss` 63, `quad_light_profiles` 18, `rover_terrain_2to4` 16, `sat3w_detumble_phases` 16, `sat_detumble_phases`
+> 16, `sat_detumble_weak` 16: the same refutations as before (`charger_fast_tapers` m003; `platoon_linkloss` m036, m039;
+> `rover_terrain_2to4` m008, m011, m012, m015; `sat3w_detumble_phases` m002 to m007; `sat_detumble_phases` m002, m003, m005,
+> m006), their mutant inputs and IR data rewritten to the new files, each DECLINED by relcert; no witness on the other four.
+> Then (2026-10-28) `insulin_basal_cgmloss` (24 witness lines, no refutation) left the suite and `tank_dos_3to1`
+> (16 lines, no refutation) came back, keeping the letter I at the frozen 17. Witness lines 983 -> 949; instances
+> 77 -> 77; groups 228 -> 228.
+> Batch I10 (2026-10-28): `bms_chiller_undercharge` (8 witness lines, no refutation) left the suite and
+> `zone_lightmass_schedule` came in (the finder with `--only`: 8 mutants, no witness). Witness lines 949 -> 949;
+> instances 77 -> 77; groups 228 -> 228.
+> Batch I11 (2026-10-28, the reserve scan): `antenna_track_kvretune` (44 witness lines, 13 refutations, 39 groups),
+> `compressor_station_recycle` (16 lines, none) and `molding_pack_checkring` (24 lines, none) left the suite;
+> `platoon_latency` came back (the finder with `--only`: 67 mutants, m040 and m043 refuted again, kind B, 2 groups each),
+> `h2_refuel_ambientbias` (6 mutants, m003 refuted, kind C, 6 groups) and `reactor_feed_wireless` (16 mutants, no witness)
+> came in; each refuted mutant DECLINED by relcert. Witness lines 949 -> 954; instances 77 -> 67; groups 228 -> 199.
+> Current instance set: **67 refutations, 199 groups**
+> (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 954 mutants in
+> `docs/refute/witnesses.jsonl`. The operator table below is the 2026-10-21 run; recomputed on 2026-10-28 after batch I11
+> (`scripts/refute_experiment.py`, 4 parallel jobs on the owner's Apple M2 Max, Z3 4.15.1, the 300 s default budget; the
+> verdicts of the mutants of the three incoming benchmarks were measured, the others kept from the batch I10 run in the
+> cloud container; `docs/refute/relcert.json`, `results.json`, `runner.log`): 954 mutants, 366 certified, 67 kernel-refuted,
+> 521 open (9 of them relcert ERRORs by the time budget, kept from the container run: `rover_ladder_6to8_m021`,
+> `rover_ladder_8to12_m005`, `_m010`, `_m016`, `_m024`, `sat3w_detumble_phases_m011`, `_m012`, `_m014`, `_m015`, the same
+> nine as on 2026-10-27); by operator RRO/SNO 38/27/141, MCO 107/10/99, ORO 221/30/281 (certified/refuted/open); by kind
+> B 61, C 6; kernel-refuted and certified: none. (Batch I10, 2026-10-28: 949 mutants, 343 certified, 77 kernel-refuted,
+> 529 open; RRO/SNO 38/30/139, MCO 101/13/105, ORO 204/34/285. 2026-10-27, 983 mutants: 342 certified, 77 kernel-refuted,
+> 564 open; RRO/SNO 31/30/154, MCO 102/13/112, ORO 209/34/298.) All 67 are DECLINED by relcert at the default time budget
+> (300 s since 2026-10-27; decline check of `benchmarks/refute_mutants/*`, `RELCERT_IMPLIED_CUT=1`, 4 parallel jobs on the
+> owner's machine: 67/67 DECLINED, the slowest `rover_ladder_8to12_m005` in 48 s; `docs/refute/decline_default_budget.tsv`).
 
 Design: `docs/REFUTATION-SCOPE.md` (planning record, last present at commit 29663d8). This file reports what was built and the experiment.
 
 ## The claim
 
-> Of the 776 Black-Okun-Yesha mutants of the 50 suite benchmarks, **67 are proved false in the
-> Lean kernel** (a refutation of Theorem 3's claim for the mutated invariant), 303 are certified
-> by relcert, and 406 are open. **relcert certifies none of the 67.**
+> Of the 954 Black-Okun-Yesha mutants of the 50 suite benchmarks, **67 are proved false in the
+> Lean kernel** (a refutation of Theorem 3's claim for the mutated invariant), 366 are certified
+> by relcert, and 521 are open. **relcert certifies none of the 67.** (2026-10-28, batch I11;
+> the 2026-10-21 run: 776 mutants, 67 refuted, 303 certified, 406 open.)
 
 The trust base of a refutation is the trust base of a certificate: the parser and lowering
 (the instance quotes the parser-emitted IR of the mutant file), the query printer and Z3's

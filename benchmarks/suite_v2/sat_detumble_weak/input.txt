@@ -1,10 +1,16 @@
 # sat_detumble_weak: detumbling on weakened actuators against a design model with power profiles;
-# both sides at the design-model level, same control period.
+# both sides at the design-model level; the weakened spacecraft detumbles exactly like the NOMINAL
+# profile at 4/5 of its speed, and the ADCS in its power-saving duty cycle decides every 2 s.
 # scenario: degraded-actuator
-# mechanisms: I X (the engagement envelope as a load-bearing checked cut, RELCERT_NO_CUT=1
-#   declines, matrix code M6; committed successor subsets into a power-saving profile,
-#   RELCERT_NO_CHOICE=1 declines). Single-step cover at lambda = 1. The round-2 file's M came only
-#   from a 2 s left period against a 1 s right period and is gone with equal periods.
+# mechanisms: S M B X (time stretch lambda = 4/5, the actuator derating, RELCERT_SYNC=1 declines,
+#   matrix code M1; multi-cycle matching, one 2 s flight decision against two 1 s design cycles
+#   (budget ceil(0.8 * 2 / 1) = 2), matrix code M2; branching joint steps, the NOMINAL segment
+#   retaining ECONOMY and SURVIVAL, matrix code M3; committed existential choice of the reference's
+#   profile, RELCERT_NO_CHOICE=1 declines). S and X come from the derating (the exact scaling and
+#   the profile it selects), M and B from the 2 s decision period of the power-saving duty cycle.
+#   Batch I9 (2026-10-27): the claim is the exact re-timed one (the batch-I4 file stated a 0.125
+#   tolerance band at lambda 1 with equal periods, letters I X; the engagement-envelope cut that
+#   band needed is no longer load-bearing, so no I).
 #
 # THE SPACECRAFT (a ~60 kg microsatellite, SI units; the plant of sat_detumble_nominal, in benchmarks/reserve/). Body
 # rates w1, w2, w3 (rad/s) about the principal axes, inertia J = diag(2, 4, 5) kg m^2, and the
@@ -12,14 +18,20 @@
 # the wheel absorbing the z-rate, gain k. BOTH sides are the design model of this spacecraft:
 # w_i' = -k w_i, h' = 5 k w3 (the gyroscopic and wheel couplings are not modeled on either side).
 # The couplings do no work at any gain, so the full gyrostat's body energy equals the design
-# model's at every instant (the refinement step that sat_detumble_nominal certifies exactly at
-# k = 0.5); this file isolates the degradation at the design-model level. The body energy
-# E = 2 w1^2 + 4 w2^2 + 5 w3^2 (twice the rotational kinetic energy) obeys E' = -2 k E.
+# model's at every instant (the refinement step that sat_detumble_phases certifies); this file
+# isolates the degradation at the design-model level. The body energy E = 2 w1^2 + 4 w2^2 +
+# 5 w3^2 (twice the rotational kinetic energy) obeys E' = -2 k E.
 # PHYSICAL DOMAIN (both sides): |w_i| <= 1 rad/s (the gyro's measurement range) and
 # |h| <= 2 N m s (the wheel's momentum capacity); no certificate stands on them.
-# Control period: 1 s on BOTH sides (epsilon = 1.0; every decision interval is at most 1 s), the
-# attitude mode manager's cycle on a 1 Hz ADCS (the attitude solution of a CubeSpace CubeStar star
-# tracker is updated at 1 Hz, CubeSpace sensor data sheet), as in sat_detumble_nominal.
+# Control periods. Right (design model): 1 s (epsilon = 1.0), the attitude mode manager's cycle on
+# a 1 Hz ADCS (the attitude solution of a CubeSpace CubeStar star tracker is updated at 1 Hz,
+# CubeSpace sensor data sheet), as in sat_detumble_nominal. Left (deployed, under-voltage): 2 s
+# (epsilon = 2.0): with the bus under-voltage the ADCS runs its power-saving duty cycle and
+# evaluates the mode decision every other sensor cycle (a design value of this file, the same 2 s
+# the round-2 file used). Every decision interval is at most the period; the damping law is
+# continuous in the ODEs. The M window: any left decision period strictly above the right's gives M,
+# with budget ceil(lambda x left period / right period) (2 at the stated 2:1 and lambda 4/5); the
+# stated periods are not at an edge.
 # Guards (entry conditions): the detumble controller engages with the body energy inside
 # its authority envelope, E <= 1 (e.g. |w1| <= 0.71 rad/s about x alone). The design
 # model declares the FDIR SAFE mode on an ENERGY threshold, E > 1 (actuators inhibited,
@@ -31,53 +43,53 @@
 # ground-selectable detumble power profiles, NOMINAL k = 0.5, ECONOMY 0.45 and SURVIVAL 0.42
 # (battery states), switchable NOMINAL <-> ECONOMY / SURVIVAL; each declares SAFE.
 # One cause between the sides: the actuator degradation (k_L = 0.4 against the profiles'
-# 0.5 / 0.45 / 0.42). (The round-2 file also gave the left the couplings, a second difference;
-# it is removed here: same model level on both sides.)
+# 0.5 / 0.45 / 0.42) and the duty cycle it brings (the 2 s decision period).
 #
-# CLAIM: E_R <= E_L (the weakened spacecraft never detumbles faster than the design model;
-# constant 0) and E_L <= E_R + 0.125. Requirement (residual rate): the energy the weakened
-# spacecraft carries beyond the design model's is at most that of a 0.25 rad/s spin about the
-# minor axis x, J1 (0.25)^2 = 0.125. So when the design model has come to rest the weakened
-# spacecraft's rates are within the 0.25 rad/s capture range of the sun-acquisition mode that
-# takes over after detumbling (a stated mission value): |w1| <= 0.25, |w2| <= 0.18,
-# |w3| <= 0.16 rad/s, the minor axis x being the binding one.
-# Derived bound: on the boundary E_L = E_R + d the gap grows at 2 k_R E_R - 2 k_L (E_R + d),
-# which is <= 0 iff E_R <= d k_L / (k_R - k_L); with E_R <= E_L <= 1 (the engagement envelope, a
-# checked cut) the tangent tolerance against a profile of gain k_R is d* = 1 - k_L / k_R:
-# 0.2 against NOMINAL, 1/9 = 0.111 against ECONOMY, 0.048 against SURVIVAL. The requirement
-# 0.125 lies between the ECONOMY and the NOMINAL bounds: a design run that stays in NOMINAL does
-# not bound the weakened spacecraft, a design run that the ground switches to a power-saving
-# profile does. Tightest certifying (measured 2026-10-26, edge re-checked 2026-10-27): 0.12 on the 0.01 grid (0.11 declines);
-# finer, 0.1112 certifies and 0.1111 declines: the ECONOMY bound 1/9. Under RELCERT_NO_CHOICE=1
-# the tightest is 0.20 (0.19 declines): the NOMINAL bound. Not implied by the domains; the left
-# mode has a satisfiable start (E_L = E_R <= 1).
-# Why the choice (X). A design run that starts in NOMINAL must be committed to ECONOMY or
-# SURVIVAL: its NOMINAL segment fails (tangent bound 0.2 > 0.125), so the cover hops from
-# NOMINAL into the power-saving profiles (committed successor subset). RELCERT_NO_CHOICE=1
-# DECLINES.
-# The claim and the letters depend on the cause (measured 2026-10-26): at k_L = 0.3 (60 %) the
-# file DECLINES (the smallest tangent bound, against SURVIVAL, is then 0.29 > 0.125); without
-# the degradation (k_L = 0.5) it CERTIFIES,
-# RELCERT_NO_CUT=1 then CERTIFIES too (I is the degradation's: the envelope cut bounds the energy
-# the gap can grow on), and RELCERT_NO_CHOICE=1 still DECLINES, but the commitment then goes into
-# NOMINAL (the lower row needs the matching gain); the degradation is what moves the committed
-# profile to ECONOMY / SURVIVAL and the tolerance from 0 to 1/9.
-# Covers (measured): lambda in [1, 1] (synchronous, as sat_detumble_nominal; a weaker deployed
-# gains nothing from a stretch), budget 1; admissible starts NOMINAL, ECONOMY, SURVIVAL; certified
-# by the choice cover. The engagement envelope E <= 1 is a checked cut (a quadratic guard
-# conjunct whose invariance is a DI-boundary query): RELCERT_NO_CUT=1 DECLINES (I).
-# Fallback: NOMINAL/ECONOMY/SURVIVAL -> SAFE pruned as in sat_detumble_nominal; the committed
-# successor subsets close the same fallback, so RELCERT_NO_PRUNE=1 alone CERTIFIES (no P).
+# CLAIM (the exact re-timed one): E_L = E_R (two rows, E_L <= E_R and E_R <= E_L) against the
+# design model re-timed by lambda = 4/5 (lambda_min = lambda_max = 0.8). The derated actuators scale
+# every rate equation by 0.8, so the weakened spacecraft's state at time t is the NOMINAL design
+# model's state at time 0.8 t exactly (w_i(t) = w_i^NOM(0.8 t), h(t) = h^NOM(0.8 t)), and the
+# energy too. Requirement: the design model's detumble-time prediction holds for the weakened
+# spacecraft after re-timing by the derating, so a detumble budget of T s on the design model is a
+# budget of T / 0.8 = 1.25 T s on the degraded spacecraft (the time the mission planning must
+# allow before the sun-acquisition mode can take over). Exact, no tolerance constant.
+# The stretch follows the cause: lambda = k_L / k_NOM = 0.4 / 0.5 = 4/5 (the ratio of the
+# derated gain to the NOMINAL gain). It is stated, not searched; as every exact rate ratio of this
+# suite (quad_light_lag's 6/5, acc_tune_lag's 2) it certifies at its exact value only: pinned to
+# 0.79 or 0.81 the file DECLINES (measured 2026-10-27), and so does RELCERT_SYNC=1 (lambda 1). The
+# tolerance form (E_R <= E_L <= E_R + 0.125 at lambda 1, the batch-I4 claim) still certifies
+# (measured) but is weaker; this file states the exact one.
+# Why the choice (X). At lambda = 4/5 only the NOMINAL profile matches the weakened spacecraft
+# exactly (ECONOMY re-timed by 4/5 decays at 0.9 k_L, SURVIVAL at 0.84 k_L). A design run that
+# starts in ECONOMY or SURVIVAL must be committed to NOMINAL: the cover hops ECONOMY -> NOMINAL and
+# SURVIVAL -> NOMINAL (committed successor subsets), then runs the joint segment from NOMINAL;
+# RELCERT_NO_CHOICE=1 DECLINES. The hop target is the profile the derated spacecraft behaves like,
+# not a copy of the deployed's mode (the deployed has one mode).
+# Multi-cycle matching (M) and branching (B): a 2 s deployed window is matched by two 1 s design
+# cycles (budget 2); at the joint step the NOMINAL segment's declared successors ECONOMY and
+# SURVIVAL are retained (branch 2) and covered through the committed hop back into NOMINAL.
+# Fallback: NOMINAL/ECONOMY/SURVIVAL -> SAFE pruned as in sat_detumble_nominal (source: no entry
+# state has E > 1; barrier: on E = 1 every profile's field gives E' < 0); the committed successor
+# subsets close the same fallback, so RELCERT_NO_PRUNE=1 alone CERTIFIES (no P). The engagement
+# envelope E <= 1 is kept as a checked cut but is not load-bearing for the exact rows
+# (RELCERT_NO_CUT=1 CERTIFIES: no I).
+# Letter window (measured 2026-10-27): S, M, B and X hold for every derating k_L / k_NOM on the
+# stretch grid (the file pins lambda to it); at k_L = 0.5 (no degradation) the identical pair is
+# exact at lambda 1 and RELCERT_SYNC=1 certifies (no S), the commitment then goes into NOMINAL as
+# an identity hop (X persists, from the profile choice).
+# Not implied by the domains; the left mode has a satisfiable start (E_L = E_R <= 1, any profile).
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27 on branch benchmark-fixes):
-# CERTIFIED (7.6 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1,
-# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_OPREGION=1,
-# RELCERT_WELLFORMED_STRICT=1 and without RELCERT_IMPLIED_CUT; DECLINED under RELCERT_NO_CHOICE=1,
-# NO_PRUNE+NO_CHOICE, SYNC+NO_CHOICE and RELCERT_NO_CUT=1. Pruned: NOMINAL, ECONOMY, SURVIVAL ->
-# SAFE (matrix: M4 vacuous, M6). One row (--handoff vacuous, 1/1). relcert --wellformed: NOMINAL,
-# ECONOMY, SURVIVAL, SAFE ok (invariant), 0 UNKNOWN, 0 BLOCKING. The right model is unchanged from
-# the suite file this one replaces (epsilon 1.0); the left changed (period 2 -> 1 s, couplings
-# removed).
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27, batch I9): CERTIFIED (about
+# 3 s); CERTIFIED under RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1,
+# RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_REPO=1, RELCERT_OPREGION=1, RELCERT_WELLFORMED_STRICT=1 and
+# without RELCERT_IMPLIED_CUT; DECLINED under RELCERT_SYNC=1, RELCERT_NO_CHOICE=1,
+# NO_PRUNE+NO_CHOICE and SYNC+NO_CHOICE. Cover: DETUMBLE at lambda = 4/5, budget 2, admissible
+# starts NOMINAL, ECONOMY, SURVIVAL, hops into NOMINAL, joint steps from NOMINAL retaining ECONOMY
+# and SURVIVAL (branch 2), no right-only segment; pruned NOMINAL, ECONOMY, SURVIVAL -> SAFE. One
+# row (--handoff vacuous, 1/1). relcert --wellformed: NOMINAL, ECONOMY, SURVIVAL, SAFE ok
+# (invariant), 0 UNKNOWN, 0 BLOCKING. The right model is unchanged since batch I4 (Assumption 1
+# proof unchanged); the left changed in its period (1 -> 2 s) and the claim in its form (exact
+# re-timed rows, lambda 4/5). Letters: S M B X.
 #
 # MOMENTUM BAND (right evolve domains): |h + 5 w3| <= 2 N m s, the z-axis total angular momentum
 # within the wheel's capacity. It is conserved by every design-model mode (h' = 5 k w3,
@@ -88,12 +100,12 @@
 [problem]
 name = sat_detumble_weak
 max_depth = 8
-lambda_min = 1.0
-lambda_max = 1.0
+lambda_min = 0.8
+lambda_max = 0.8
 bound_T = 4.0
 [Lsys]
 state_vars = [w1, w2, w3, h]
-epsilon = 1.0
+epsilon = 2.0
 [Lsys.mode.DETUMBLE]
 ode = w1' = smt2:(* -0.4 w1); w2' = smt2:(* -0.4 w2); w3' = smt2:(* -0.4 w3); h' = smt2:(* 2.0 w3);
 guard = w1*w1*2 + w2*w2*4 + w3*w3*5 <= 1.0
@@ -123,4 +135,4 @@ guard = w1*w1*2 + w2*w2*4 + w3*w3*5 > 1.0
 evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h >= -2.0 and h <= 2.0 and h + 5.0*w3 >= -2.0 and h + 5.0*w3 <= 2.0
 next = [SAFE]
 [relational_invariant]
-DETUMBLE = w1[l]*w1[l]*2 + w2[l]*w2[l]*4 + w3[l]*w3[l]*5 <= w1[r]*w1[r]*2 + w2[r]*w2[r]*4 + w3[r]*w3[r]*5 + 0.125 and w1[r]*w1[r]*2 + w2[r]*w2[r]*4 + w3[r]*w3[r]*5 <= w1[l]*w1[l]*2 + w2[l]*w2[l]*4 + w3[l]*w3[l]*5
+DETUMBLE = w1[l]*w1[l]*2 + w2[l]*w2[l]*4 + w3[l]*w3[l]*5 <= w1[r]*w1[r]*2 + w2[r]*w2[r]*4 + w3[r]*w3[r]*5 and w1[r]*w1[r]*2 + w2[r]*w2[r]*4 + w3[r]*w3[r]*5 <= w1[l]*w1[l]*2 + w2[l]*w2[l]*4 + w3[l]*w3[l]*5

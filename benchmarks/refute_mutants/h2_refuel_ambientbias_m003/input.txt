@@ -1,0 +1,181 @@
+# h2_refuel_ambientbias: a 70 MPa hydrogen fill by a dispenser whose ambient-temperature sensor
+# reads 10 K high, against the same fill with a correct reading.
+# scenario: sensor-fault (degraded sensor feeding the end-pressure table)
+# mechanisms: R D I (right-only repositioning; mode-dependent rows, uniform rows decline; checked
+#   cuts, RELCERT_NO_CUT=1 declines; matrix codes M5 M6 M6+)
+#
+# System. Vehicle tank pressure p in MPa, time in s. Light-duty tank, nominal working pressure 70 MPa,
+# maximum allowable 87.5 MPa (125 %). A staged pressure-ramp dispenser: in each stage the control
+# valve feeds the tank toward the stage's set point, flow proportional to the pressure difference
+# (gain 0.05 /s, about 45 s per 20 MPa stage, a fill of about 3 min); the dispenser re-decides every
+# 1 s:
+#   STAGE1   0.5 <= p < 18    toward 20 MPa      STAGE2  18 <= p < 38   toward 40 MPa
+#   STAGE3    38 <= p < 58    toward 60 MPa      TOPOFF  58 <= p < end  toward end + 0.5 MPa
+#   COMPLETE p >= end         nozzle valve closed, pressure held (p' = 0)
+#   ABORT    p < 0.5          the 0.5 MPa minimum tank pressure; a fall below it during the fill
+#                             means a leak: valve closed, pressure held (latched)
+# STAGE1 and STAGE2 declare ABORT. The end pressure comes from the fueling protocol's table (SAE J2601,
+# Fueling Protocols for Light Duty Gaseous Hydrogen Surface Vehicles: H70 tanks, nominal working
+# pressure 70 MPa, maximum fueling pressure 87.5 MPa = 125 % NWP, minimum vehicle tank pressure
+# 0.5 MPa, and the end-of-fill target pressure read from a table indexed by the ambient temperature):
+# the pressure at which the tank holds 100 % state of charge at the gas temperature the station
+# infers from ambient. The staged pressure ramp with its gains and stage set points is a design
+# value of this file (J2601 prescribes a pressure-ramp rate by table, not a stage structure).
+#
+# Right (reference): correct ambient reading, end pressure 70.0 MPa. Left (deployed): the ambient
+# sensor reads 10 K high, so the table returns 72.4 MPa (ideal-gas scaling 70 x (1 + 10/288)); the
+# deployed tops off toward 72.9 and completes at 72.4. One cause: the sensor bias, which reaches the
+# fill only through the end pressure (stages 1 to 3 are identical).
+#
+# Property (mode-dependent; relational up to the reference's re-timing, see R).
+#   STAGE1, STAGE2, STAGE3: p_L <= p_R. Requirement: the ramp stages are identical, so the deployed
+#     may not lead. Forced: a lead of 0.01 MPa declines (a reference already aborted below 0.5 MPa
+#     becomes an admissible start against a deployed at 0.5 MPa).
+#   TOPOFF, COMPLETE, ABORT: p_L <= p_R + 2.9. Requirement: the bias may overfill by at most what
+#     it shifts the end pressure (2.4 MPa) plus the 0.5 MPa top-off margin, i.e. the deployed tank
+#     ends below 73.4 MPa (about 4 % state of charge above full), well inside the 87.5 MPa limit.
+#     Tightest 2.90 (2.89 declines); every larger tolerance up to 20 MPa certifies.
+# Mode dependence is load-bearing (D): uniform p_L <= p_R + 2.9 declines (the ABORT start above) and
+# uniform p_L <= p_R declines. The handoffs only relax (exact to 2.9 at STAGE3 -> TOPOFF and into
+# ABORT): --handoff 12/12 unsat. The bound moves with the cause: with an end-pressure shift s the top
+# rows certify down to s + 0.5 (measured s = 0, 1, 2.4, 5). Caveat, stated: even without the bias
+# (s = 0) the top rows need 0.50 MPa, because the one-sided claim lets a reference that has already
+# completed at 70.0 face a deployed still topping off toward 70.5, and the certificate cannot use
+# the top-off's exit at 70.0; so D (and R) are present at s = 0 too, and the cause moves the top
+# bound from 0.50 to 2.90.
+#
+# Letter windows. R and D are present for every end-pressure shift s >= 0 (measured s = 0, 1, 2.4, 5)
+# and I for every s measured; the top rows certify for every tolerance in [s + 0.5, 20] MPa, here
+# [2.90, 20]; the stage rows are exact (0) by the requirement and forced (0.01 declines). The stated
+# 2.9 is the derived allowance (end-pressure shift 2.4 plus the 0.5 top-off margin), as the 4 % idle
+# increment is in engine_start_highidle; a larger operational allowance (5 MPa, the deployed tank
+# ending below 75 MPa) also certifies, with the letters measured as stated in the last line.
+#
+# Why right-only repositioning (R). From a deployed TOPOFF window the reference may start in STAGE3
+# (aiming at 60 MPa) while the deployed tops off toward 72.9: the joint segment fails, so the
+# reference first runs alone into TOPOFF. RELCERT_SYNC=1 DECLINES; every cover is at lambda 1, so no
+# S. Pruning is present but not load-bearing: STAGE1 -> ABORT and STAGE2 -> ABORT are pruned (both
+# flows rise at 0.5 MPa) and RELCERT_NO_PRUNE=1 CERTIFIES (no repositioning out of STAGE1/STAGE2).
+# Cuts (I). The implied contraction atoms (p <= set point of each stage) are load-bearing: DECLINED
+# with RELCERT_NO_CUT=1 (s = 0, 1, 2.4, 5) and without RELCERT_IMPLIED_CUT.
+#
+# Domains. 0 <= p <= 87.5 MPa on both sides (empty to the maximum allowable pressure), forward
+# invariant in every mode (all set points <= 72.9, holding modes frozen); widened to 120 MPa the
+# benchmark still CERTIFIES. The right guards partition [0, 87.5] (no coverage gap); every left mode
+# has a satisfiable start (p_R = p_L, for COMPLETE_L p_R = 70.5 in TOPOFF or COMPLETE).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26; re-measured 2026-10-28 on the
+# branch binary with the same verdicts, see the last line): CERTIFIED; CERTIFIED under
+# RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1,
+# RELCERT_NO_LINEAR_CUT=1, RELCERT_WELLFORMED_STRICT=1; DECLINED under RELCERT_SYNC=1, RELCERT_SYNC=1
+# RELCERT_NO_CHOICE=1, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1 and without RELCERT_IMPLIED_CUT.
+# RELCERT_OPREGION=1: every admitted start in some right guard. Cover: lambda 1, budget 1 in every
+# left mode; TOPOFF_L admissible [STAGE3, TOPOFF, COMPLETE] with a right-only step; COMPLETE_L
+# [TOPOFF, COMPLETE]; STAGE1_L every mode but ABORT. Pruned STAGE1->ABORT, STAGE2->ABORT. relcert
+# --wellformed: STAGE1, STAGE2, STAGE3, TOPOFF ok (exit to the next stage), COMPLETE, ABORT ok
+# (invariant).
+# Re-measured 2026-10-28 (reserve scan; the branch binary built from fb55b6e;
+# RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED (0.8 s); CERTIFIED under RELCERT_NO_PRUNE=1,
+# RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE, RELCERT_NO_LINEAR_CUT=1, RELCERT_OPREGION=1 and
+# RELCERT_WELLFORMED_STRICT=1 (--wellformed: COMPLETE, ABORT ok (invariant), 4 ok (exit), 0 UNKNOWN,
+# 0 BLOCKING); DECLINED under RELCERT_SYNC=1, SYNC+NO_CHOICE, RELCERT_NO_REPO=1, RELCERT_NO_CUT=1
+# and RELCERT_NO_IMPLIED_CUT=1. Uniform rows: p_L <= p_R on every left mode DECLINED; p_L <= p_R +
+# 2.9 on every left mode DECLINED (and it drops the stage requirement). --handoff 12/12 checked, 12
+# passed (rows differ). Letters measured by scripts/suite_v2_letters.py: R D I (matrix M5 M6 M6+;
+# D_strict). With the top rows at 5.0 MPa instead of 2.9 (the operational allowance above): the same
+# verdicts under every configuration, the same uniform-row results and the same letters R D I.
+#
+[problem]
+name = h2_refuel_ambientbias
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 6.0
+bound_T = 600.0
+
+[Lsys]
+state_vars = [p]
+epsilon = 1.0
+
+[Lsys.mode.STAGE1]
+ode = p' = smt2:(* 0.05 (- 20 p));
+guard = p >= 0.5 and p < 18.0
+evolve = p >= 0.0 and p <= 87.5
+next = [STAGE1, STAGE2, ABORT]
+
+[Lsys.mode.STAGE2]
+ode = p' = smt2:(* 0.05 (- 40 p));
+guard = p >= 18.0 and p < 38.0
+evolve = p >= 0.0 and p <= 87.5
+next = [STAGE2, STAGE3, ABORT]
+
+[Lsys.mode.STAGE3]
+ode = p' = smt2:(* 0.05 (- 60 p));
+guard = p >= 38.0 and p < 58.0
+evolve = p >= 0.0 and p <= 87.5
+next = [STAGE3, TOPOFF]
+
+[Lsys.mode.TOPOFF]
+ode = p' = smt2:(* 0.05 (- 72.9 p));
+guard = p >= 58.0 and p < 72.4
+evolve = p >= 0.0 and p <= 87.5
+next = [TOPOFF, COMPLETE]
+
+[Lsys.mode.COMPLETE]
+ode = p' = smt2:0.0;
+guard = p >= 72.4
+evolve = p >= 0.0 and p <= 87.5
+next = [COMPLETE]
+
+[Lsys.mode.ABORT]
+ode = p' = smt2:0.0;
+guard = p < 0.5
+evolve = p >= 0.0 and p <= 87.5
+next = [ABORT]
+
+[Rsys]
+state_vars = [p]
+epsilon = 1.0
+
+[Rsys.mode.STAGE1]
+ode = p' = smt2:(* 0.05 (- 20 p));
+guard = p >= 0.5 and p < 18.0
+evolve = p >= 0.0 and p <= 87.5
+next = [STAGE1, STAGE2, ABORT]
+
+[Rsys.mode.STAGE2]
+ode = p' = smt2:(* 0.05 (- 40 p));
+guard = p >= 18.0 and p < 38.0
+evolve = p >= 0.0 and p <= 87.5
+next = [STAGE2, STAGE3, ABORT]
+
+[Rsys.mode.STAGE3]
+ode = p' = smt2:(* 0.05 (- 60 p));
+guard = p >= 38.0 and p < 58.0
+evolve = p >= 0.0 and p <= 87.5
+next = [STAGE3, TOPOFF]
+
+[Rsys.mode.TOPOFF]
+ode = p' = smt2:(* 0.05 (- 70.5 p));
+guard = p >= 58.0 and p < 70.0
+evolve = p >= 0.0 and p <= 87.5
+next = [TOPOFF, COMPLETE]
+
+[Rsys.mode.COMPLETE]
+ode = p' = smt2:0.0;
+guard = p >= 70.0
+evolve = p >= 0.0 and p <= 87.5
+next = [COMPLETE]
+
+[Rsys.mode.ABORT]
+ode = p' = smt2:0.0;
+guard = p < 0.5
+evolve = p >= 0.0 and p <= 87.5
+next = [ABORT]
+
+[relational_invariant]
+STAGE1 = smt2:(<= L_p R_p)
+STAGE2 = smt2:(<= L_p R_p)
+STAGE3 = smt2:(<= L_p R_p)
+TOPOFF = smt2:(>= L_p (+ R_p 2.9))
+COMPLETE = smt2:(>= L_p (+ R_p 2.9))
+ABORT = smt2:(>= L_p (+ R_p 2.9))

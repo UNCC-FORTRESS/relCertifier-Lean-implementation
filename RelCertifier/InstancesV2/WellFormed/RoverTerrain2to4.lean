@@ -7,8 +7,7 @@ Released under Apache 2.0 license.
 Over the guarded right automaton `GrG` (the file's three terrains `MUD`, `GRAVEL`, `PAVED` and
 their declared `next` lists), the lowered right guards, `ε_r = 1`. The right is the no-slip
 plan (the chain's 2-coordinate model; wheel speed `w` and sinkage `zs` pinned): per terrain
-`T`, `v' = 8 (c_T − v)` (`c_T` = 0.25, 0.45, 0.7; the plan's speed loop at the rover's fastest
-ground response, 8 /s, since 2026-10-27), `s' = v`, `w' = zs' = 0`; the guards are
+`T`, `v' = 3 (c_T − v)` (`c_T` = 0.25, 0.45, 0.7), `s' = v`, `w' = zs' = 0`; the guards are
 the odometer bands `[0, 5)`, `[5, 12)`, `[12, ∞)` only (no cap).
 `wellFormedR_terrain` (clause (ii): `0 ≤ s' = v ≤ 0.8`, so a `MUD` run ends in `MUD` or
 `GRAVEL`, a `GRAVEL` run in `GRAVEL` or `PAVED`, `PAVED` is forward invariant). Existence: the
@@ -68,8 +67,8 @@ theorem gp_1_0 : Run.parseRat "1.0" = some (1:ℚ) := by
   simp [Run.parseRat, h]
   try norm_num
 
-theorem gp_8 : Run.parseRat "8" = some (8:ℚ) := by
-  have h : parseQ "8" = some (⟨8, 1⟩ : QF) := by decide
+theorem gp_3 : Run.parseRat "3" = some (3:ℚ) := by
+  have h : parseQ "3" = some (⟨3, 1⟩ : QF) := by decide
   simp [Run.parseRat, h]
   try norm_num
 
@@ -107,38 +106,38 @@ noncomputable def modeR (q : ℕ) : RMode (Var 4) :=
 noncomputable def cT (q : ℕ) : ℝ := if q = 0 then 1/4 else if q = 1 then 9/20 else 7/10
 
 theorem fRR0_eval (q : ℕ) (hq : q < 3) (x : State (Var 4)) :
-    Term.eval (fRR q 0) x = 8 * (cT q - x (Rv 0)) := by
+    Term.eval (fRR q 0) x = 3 * (cT q - x (Rv 0)) := by
   interval_cases q <;>
     simp [fRR, hostDyn, mRR, rover_terrain_2to4_IRv2, vsR, Run.dynOf,
-      Run.lowerE, gp_0, gp_0_0, gp_0_12, gp_0_25, gp_0_45, gp_0_7, gp_0_8, gp_1_0, gp_8, gp_5_0, gp_12_0, Run.resolveVar,
+      Run.lowerE, gp_0, gp_0_0, gp_0_12, gp_0_25, gp_0_45, gp_0_7, gp_0_8, gp_1_0, gp_3, gp_5_0, gp_12_0, Run.resolveVar,
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv, cT]
 
 theorem fRR1_eval (q : ℕ) (hq : q < 3) (x : State (Var 4)) :
     Term.eval (fRR q 1) x = x (Rv 0) := by
   interval_cases q <;>
     simp [fRR, hostDyn, mRR, rover_terrain_2to4_IRv2, vsR, Run.dynOf,
-      Run.lowerE, gp_0, gp_0_0, gp_0_12, gp_0_25, gp_0_45, gp_0_7, gp_0_8, gp_1_0, gp_8, gp_5_0, gp_12_0, Run.resolveVar,
+      Run.lowerE, gp_0, gp_0_0, gp_0_12, gp_0_25, gp_0_45, gp_0_7, gp_0_8, gp_1_0, gp_3, gp_5_0, gp_12_0, Run.resolveVar,
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv, cT]
 
 theorem fRR2_eval (q : ℕ) (hq : q < 3) (x : State (Var 4)) :
     Term.eval (fRR q 2) x = 0 := by
   interval_cases q <;>
     simp [fRR, hostDyn, mRR, rover_terrain_2to4_IRv2, vsR, Run.dynOf,
-      Run.lowerE, gp_0, gp_0_0, gp_0_12, gp_0_25, gp_0_45, gp_0_7, gp_0_8, gp_1_0, gp_8, gp_5_0, gp_12_0, Run.resolveVar,
+      Run.lowerE, gp_0, gp_0_0, gp_0_12, gp_0_25, gp_0_45, gp_0_7, gp_0_8, gp_1_0, gp_3, gp_5_0, gp_12_0, Run.resolveVar,
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv, cT]
 
 theorem fRR3_eval (q : ℕ) (hq : q < 3) (x : State (Var 4)) :
     Term.eval (fRR q 3) x = 0 := by
   interval_cases q <;>
     simp [fRR, hostDyn, mRR, rover_terrain_2to4_IRv2, vsR, Run.dynOf,
-      Run.lowerE, gp_0, gp_0_0, gp_0_12, gp_0_25, gp_0_45, gp_0_7, gp_0_8, gp_1_0, gp_8, gp_5_0, gp_12_0, Run.resolveVar,
+      Run.lowerE, gp_0, gp_0_0, gp_0_12, gp_0_25, gp_0_45, gp_0_7, gp_0_8, gp_1_0, gp_3, gp_5_0, gp_12_0, Run.resolveVar,
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv, cT]
 
 theorem sat_domRR (x : State (Var 4)) : Formula.sat domRR x ↔
     (0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 4/5 ∧ 0 ≤ x (Rv 1) ∧ 0 ≤ x (Rv 2) ∧ x (Rv 2) ≤ 4/5 ∧
       0 ≤ x (Rv 3) ∧ x (Rv 3) ≤ 3/25) := by
   simp only [domRR, hostEvolve, mRR, rover_terrain_2to4_IRv2, vsR]
-  simp [Run.lowerF, Run.lowerE, gp_0, gp_0_0, gp_0_12, gp_0_25, gp_0_45, gp_0_7, gp_0_8, gp_1_0, gp_8, gp_5_0, gp_12_0,
+  simp [Run.lowerF, Run.lowerE, gp_0, gp_0_0, gp_0_12, gp_0_25, gp_0_45, gp_0_7, gp_0_8, gp_1_0, gp_3, gp_5_0, gp_12_0,
     Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
     CompOp.interp, Term.eval, Rv]
   try norm_num
@@ -168,21 +167,21 @@ theorem edgeG_mem (st tgt : ℕ) (h : edgeG st tgt ∈ GrG.edges) :
 
 theorem sat_guardR0 (x : State (Var 4)) : Formula.sat (hostGuard vsR 4 Side.R (mRR 0)) x ↔
     (0 ≤ x (Rv 1) ∧ x (Rv 1) < 5) := by
-  simp [hostGuard, mRR, rover_terrain_2to4_IRv2, Run.lowerF, Run.lowerE, gp_0, gp_0_0, gp_0_12, gp_0_25, gp_0_45, gp_0_7, gp_0_8, gp_1_0, gp_8, gp_5_0, gp_12_0,
+  simp [hostGuard, mRR, rover_terrain_2to4_IRv2, Run.lowerF, Run.lowerE, gp_0, gp_0_0, gp_0_12, gp_0_25, gp_0_45, gp_0_7, gp_0_8, gp_1_0, gp_3, gp_5_0, gp_12_0,
     vsR, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
     CompOp.interp, Term.eval, Rv, and_assoc]
   try norm_num
 
 theorem sat_guardR1 (x : State (Var 4)) : Formula.sat (hostGuard vsR 4 Side.R (mRR 1)) x ↔
     (5 ≤ x (Rv 1) ∧ x (Rv 1) < 12) := by
-  simp [hostGuard, mRR, rover_terrain_2to4_IRv2, Run.lowerF, Run.lowerE, gp_0, gp_0_0, gp_0_12, gp_0_25, gp_0_45, gp_0_7, gp_0_8, gp_1_0, gp_8, gp_5_0, gp_12_0,
+  simp [hostGuard, mRR, rover_terrain_2to4_IRv2, Run.lowerF, Run.lowerE, gp_0, gp_0_0, gp_0_12, gp_0_25, gp_0_45, gp_0_7, gp_0_8, gp_1_0, gp_3, gp_5_0, gp_12_0,
     vsR, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
     CompOp.interp, Term.eval, Rv, and_assoc]
   try norm_num
 
 theorem sat_guardR2 (x : State (Var 4)) : Formula.sat (hostGuard vsR 4 Side.R (mRR 2)) x ↔
     12 ≤ x (Rv 1) := by
-  simp [hostGuard, mRR, rover_terrain_2to4_IRv2, Run.lowerF, Run.lowerE, gp_0, gp_0_0, gp_0_12, gp_0_25, gp_0_45, gp_0_7, gp_0_8, gp_1_0, gp_8, gp_5_0, gp_12_0,
+  simp [hostGuard, mRR, rover_terrain_2to4_IRv2, Run.lowerF, Run.lowerE, gp_0, gp_0_0, gp_0_12, gp_0_25, gp_0_45, gp_0_7, gp_0_8, gp_1_0, gp_3, gp_5_0, gp_12_0,
     vsR, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
     CompOp.interp, Term.eval, Rv, and_assoc]
   try norm_num
@@ -193,7 +192,7 @@ theorem consts (q : ℕ) (hq : q < 3) : 1/4 ≤ cT q ∧ cT q ≤ 7/10 := by
   interval_cases q <;> norm_num [cT]
 
 noncomputable def φv (q : ℕ) (ρ : State (Var 4)) : ℝ → ℝ :=
-  forcedSol 8 (ρ (Rv 0)) (fun _ => 8 * cT q)
+  forcedSol 3 (ρ (Rv 0)) (fun _ => 3 * cT q)
 
 noncomputable def φs (q : ℕ) (ρ : State (Var 4)) : ℝ → ℝ := intSol (ρ (Rv 1)) (φv q ρ)
 
@@ -213,7 +212,7 @@ theorem φR_der (q : ℕ) (hq : q < 3) (ρ : State (Var 4)) (i : Fin 4) (t : ℝ
   · rw [fRR0_eval q hq]
     simp only [trajRs_R, φR]
     simp only [Fin.isValue, Fin.zero_eta, if_true, Fin.reduceEq, if_false]
-    refine (forcedSol_hasDerivAt 8 (ρ (Rv 0)) continuous_const t).congr_deriv ?_
+    refine (forcedSol_hasDerivAt 3 (ρ (Rv 0)) continuous_const t).congr_deriv ?_
     simp only [φv]; ring
   · rw [fRR1_eval q hq]
     simp only [trajRs_R, φR]
@@ -233,9 +232,9 @@ theorem φR_dom (q : ℕ) (hq : q < 3) (ρ : State (Var 4)) (hρ : Formula.sat d
   obtain ⟨hc0, hc1⟩ := consts q hq
   have hv : ∀ τ ∈ Icc (0:ℝ) 1, 0 ≤ φv q ρ τ ∧ φv q ρ τ ≤ 4/5 := by
     intro τ hτ
-    have h := forcedSol_between 8 (ρ (Rv 0)) (F := fun _ => 8 * cT q) continuous_const
-      (lo := 8 * cT q) (hi := 8 * cT q) (by norm_num) (fun _ _ => ⟨le_rfl, le_rfl⟩) τ hτ
-    have he : 8 * cT q / 8 = cT q := by ring
+    have h := forcedSol_between 3 (ρ (Rv 0)) (F := fun _ => 3 * cT q) continuous_const
+      (lo := 3 * cT q) (hi := 3 * cT q) (by norm_num) (fun _ _ => ⟨le_rfl, le_rfl⟩) τ hτ
+    have he : 3 * cT q / 3 = cT q := by ring
     rw [he] at h
     exact ⟨le_trans (le_min hv0 (by linarith)) h.1, le_trans h.2 (max_le hv1 (by linarith))⟩
   have hs : 0 ≤ φs q ρ t := by
@@ -264,7 +263,7 @@ noncomputable def WF : TerrainWF GrG guardR domRR where
   vcap := False
   is := 1
   ic := 0
-  kc := 8
+  kc := 3
   kc0 := by norm_num
   cap := cT
   cap01 := by norm_num [cT]

@@ -1,0 +1,114 @@
+# zone_lightmass_schedule: a building-automation occupancy schedule (comfort / standby / economy set
+# points) deployed in a lightweight prefabricated zone of half the areal heat capacity of the medium-
+# weight zone it was commissioned in; the light zone reproduces the reference zone's temperature trace
+# at twice the speed, so it visits exactly the temperatures the reference permits.
+# scenario: model-refinement
+# mechanisms: S M B X (time stretch lambda = 2, the heat-capacity ratio, RELCERT_SYNC=1 declines,
+#   matrix code M1; multi-step cover, each 5 min left window matched by two right cycles, budget
+#   ceil(2 * 5 / 5) = 2, matrix code M2; branching joint step, every set-point selection the
+#   strategy permits is retained, matrix code M3; committed choice, the reference must re-select
+#   the deployed's set point at its own decision instants, RELCERT_NO_CHOICE=1 declines, M6).
+#   S and M come from the cause (the halved heat capacity); B and X come from the claim's form
+#   (an exact re-timed row against a permissive strategy), stated below.
+#
+# System. Zone air temperature T in degC, time in min. One zone served by a constant-volume reheat
+# terminal (cooling coil upstream, zone reheat coil): the terminal heats or cools, so the zone
+# controller's proportional law acts on both sides of the set point (reheat systems run simultaneous
+# heating and cooling for temperature control, DOE "Minimizing reheat" laboratory guide). Lumped
+# zone: C T' = q - U (T - T_out), with the controller's load-compensated proportional law
+# q = Kp (T_set - T) + U (T_set - T_out), so that T' = ((Kp + U) / C) (T_set - T): a first-order
+# approach to the set point with the closed-loop constant C / (Kp + U).
+#   Right (reference): the zone the schedule was commissioned in, medium class of EN ISO 13790
+#     (areal heat capacity 165 kJ/(m^2 K)); closed-loop constant 50 min: T' = 0.02 (T_set - T).
+#   Left (deployed): the same terminal, controller gains and schedule in a lightweight prefabricated
+#     zone of half the areal heat capacity (near the very-light class, 80 kJ/(m^2 K)):
+#     T' = 0.04 (T_set - T). The model takes the capacity ratio as exactly 2 (165 / 80 = 2.06).
+# One cause: the halved heat capacity. Every rate of the zone scales with 1/C, so every run of the
+# light zone is a run of the reference zone at twice the speed.
+# Operating modes (EN 15232-1 energy levels, as in the Siemens Desigo room operating modes): COMFORT
+# (occupied, set point 21 degC), STANDBY (pre-comfort, building occupied but the room empty, 19 degC),
+# ECONOMY (outside occupancy, 16 degC); the schedule may select any level at any decision (every
+# level may follow every level). The fourth level, building protection (frost protection with the
+# terminal otherwise off), is not modeled: it is a heating-only law that the bidirectional
+# proportional model does not cover. Set-point values are typical BMS defaults.
+#   Right: the strategy, nondeterministic over the three levels.
+#   Left: the deployed zone's own schedule, COMFORT by day and ECONOMY by night, switching at any
+#     decision (the two-level schedule of a laboratory with no pre-comfort period).
+# Control interval: 5 min on both sides (the schedule's time resolution; the zone controller's own
+# loop is continuous in the ODE).
+#
+# Property (the same row in both left modes): T_L = T_R (written as two inequalities), exact.
+#   At lambda = 2 the light zone's temperature equals the reference zone's at twice the elapsed time,
+#   so the deployed zone visits exactly the temperatures a schedule run of the reference permits
+#   (the comfort band of the commissioned zone is inherited) and reaches each of them in half the
+#   time (the set-back recovery halves). The row certifies down to |T_L - T_R| <= 0 (exact; no
+#   tolerance constant). Not implied by the domains.
+# The stretch follows the cause: lambda = C_R / C_L = 2, the ratio of the two closed-loop rates.
+# Stated, not searched (lambda_min = lambda_max = 2); as every exact rate ratio of this suite it
+# certifies at its exact value only (1.9, 2.1 and 1.0 DECLINE, measured 2026-10-28). A band claim
+# at lambda 1 does not exist for this file: with equal clocks the two zones drift apart by the full
+# set-point step after every schedule change.
+# Where the letters come from. S and M: the stretch 2 and the budget 2 (two reference cycles per
+# deployed window) are the heat-capacity ratio. X: at the deployed's schedule switch the reference
+# must hop to the same level (an identity hop in the set point), and at its own extra decision
+# instant inside each deployed window it must re-select the current level (a timing commitment):
+# the all-successors joint step from a level fails for the other two levels, RELCERT_NO_CHOICE=1
+# DECLINES. B: the joint step from each level retains all three permitted selections because an
+# off-level selection is answered by an immediate hop back (zero time): the branch is covered but
+# degenerate, and is reported as such. No I: no hop needs a mode fact (RELCERT_NO_CUT=1
+# certifies). No D (rows identical; --handoff 4/4, vacuous).
+#
+# Guards and domain. Every level's guard is the zone's instrumented range 5 <= T <= 30 degC, which
+# is also the physical domain on both sides (the zone controller is enabled over the whole range;
+# set points 16 to 21 lie inside, so every level is forward invariant on it: relcert --wellformed:
+# COMFORT, STANDBY, ECONOMY ok (invariant)). The right guards cover the left guards (no coverage
+# gap); every left mode has a satisfiable start (T_L = T_R in any level).
+# Pruning: none (every level may follow every level). Right-only repositioning: none
+# (RELCERT_NO_REPO=1 certifies).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-28, batch I10): CERTIFIED
+# (0.4 s); DECLINED under RELCERT_SYNC=1, SYNC+NO_CHOICE, RELCERT_NO_CHOICE=1 and NO_PRUNE+NO_CHOICE;
+# CERTIFIED under RELCERT_NO_PRUNE=1, RELCERT_NO_REPO=1, RELCERT_NO_CUT=1, RELCERT_OPREGION=1 and
+# RELCERT_WELLFORMED_STRICT=1. Covers: COMFORT and ECONOMY at lambda = 2, budget 2, admissible
+# starts COMFORT, STANDBY, ECONOMY; nothing pruned. --handoff 4/4 (vacuous: identical rows).
+# relcert --wellformed: 3 right modes ok (invariant), 0 UNKNOWN, 0 BLOCKING. Units degC, min.
+[problem]
+name = zone_lightmass_schedule
+max_depth = 8
+lambda_min = 2.0
+lambda_max = 2.0
+bound_T = 4.0
+[Lsys]
+state_vars = [T]
+epsilon = 5.0
+[Lsys.mode.COMFORT]
+ode = T' = smt2:(* 0.04 (- 21 T));
+guard = T >= 5.0 and T <= 30.0
+evolve = T >= 5.0 and T <= 30.0
+next = [COMFORT, ECONOMY]
+[Lsys.mode.ECONOMY]
+ode = T' = smt2:(* 0.04 (- 16 T));
+guard = T >= 5.0 and T <= 30.0
+evolve = T >= 5.0 and T <= 30.0
+next = [ECONOMY, COMFORT]
+[Rsys]
+state_vars = [T]
+epsilon = 5.0
+[Rsys.mode.COMFORT]
+ode = T' = smt2:(* 0.02 (- 21 T));
+guard = T >= 5.0 and T <= 30.0
+evolve = T >= 5.0 and T <= 30.0
+next = [COMFORT, STANDBY, ECONOMY]
+[Rsys.mode.STANDBY]
+ode = T' = smt2:(* 0.02 (- 19 T));
+guard = T >= 5.0 and T <= 30.0
+evolve = T >= 5.0 and T <= 30.0
+next = [STANDBY, COMFORT, ECONOMY]
+[Rsys.mode.ECONOMY]
+ode = T' = smt2:(* 0.02 (- 16 T));
+guard = T >= 5.0 and T <= 30.0
+evolve = T >= 5.0 and T <= 30.0
+next = [ECONOMY, COMFORT, STANDBY]
+[relational_invariant]
+COMFORT = smt2:(and (<= L_T R_T) (<= R_T L_T))
+ECONOMY = smt2:(and (<= L_T R_T) (<= R_T L_T))

@@ -13,8 +13,8 @@ namespace RelCertifier
 /-- `platoon_linkloss` (emitted, suite_v2, widened cut channel on). -/
 def platoon_linkloss_coverV2 : CoverEmitE :=
   ⟨"platoon_linkloss", [("CACC", "AEB")], [
-    ⟨"CACC", (1 : ℚ) / 1, 1, [⟨"CACC", true, false, false⟩, ⟨"AEB", true, false, false⟩], ["CACC"], [⟨"CACC", [0, 1, 2, 3, 4, 5, 6, 7, 8], [7, 8], [7, 8], 1, 1⟩, ⟨"AEB", [0, 2, 4, 6, 7, 8, 1, 3, 5], [2, 3, 6, 7, 8], [2, 3, 6, 7, 8], 1, 1⟩]⟩,
-    ⟨"ACC", (1 : ℚ) / 1, 1, [⟨"CACC", true, false, false⟩, ⟨"AEB", false, false, false⟩], ["CACC"], [⟨"CACC", [0, 1, 2, 3, 4, 5, 6, 7, 8], [7, 8], [7, 8], 1, 1⟩, ⟨"AEB", [0, 2, 4, 6, 7, 8], [2, 3, 6, 7, 8], [2, 3, 6, 7, 8], 1, 1⟩]⟩,
-    ⟨"AEB", (1 : ℚ) / 1, 1, [⟨"CACC", false, false, false⟩, ⟨"AEB", true, false, false⟩], ["AEB"], [⟨"CACC", [3], [], [], 1, 1⟩, ⟨"AEB", [0, 1, 2, 3], [2, 3], [2, 3], 1, 1⟩]⟩]⟩
+    ⟨"CACC", (1 : ℚ) / 1, 2, [⟨"CACC", true, false, false⟩, ⟨"AEB", true, false, false⟩], ["CACC"], [⟨"CACC", [0, 1, 2, 3, 4, 5, 6, 7, 8], [7, 8], [7, 8], 1, 1⟩, ⟨"AEB", [0, 2, 4, 6, 7, 8, 1, 3, 5], [2, 3, 6, 7, 8], [2, 3, 6, 7, 8], 1, 1⟩]⟩,
+    ⟨"ACC", (1 : ℚ) / 1, 2, [⟨"CACC", true, false, false⟩, ⟨"AEB", false, false, false⟩], ["CACC"], [⟨"CACC", [0, 1, 2, 3, 4, 5, 6, 7, 8], [7, 8], [7, 8], 1, 1⟩, ⟨"AEB", [0, 2, 4, 6, 7, 8], [2, 3, 6, 7, 8], [2, 3, 6, 7, 8], 1, 1⟩]⟩,
+    ⟨"AEB", (1 : ℚ) / 1, 2, [⟨"CACC", false, false, false⟩, ⟨"AEB", true, false, false⟩], ["AEB"], [⟨"CACC", [3], [], [], 1, 1⟩, ⟨"AEB", [0, 1, 2, 3], [2, 3], [2, 3], 1, 1⟩]⟩]⟩
 
 end RelCertifier

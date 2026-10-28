@@ -21,7 +21,7 @@ def platoon_linkloss_m039_IRm : PProblem :=
     lambdaMax := "1.0"
     L := {
       stateVars := ["g", "r"]
-      epsilon := "0.1"
+      epsilon := "0.2"
       modes := [
         {
           name := "CACC"

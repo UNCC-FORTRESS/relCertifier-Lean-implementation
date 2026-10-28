@@ -1,11 +1,13 @@
 # acc_tune_limp: retuned cruise control with a fault-latched limp-home map, against the stock
 # controller with driver-selectable response modes; same control period on both sides.
 # scenario: degraded-controller
-# mechanisms: S M B I X (time stretch 3/2; multi-step cover at that stretch; branching joint steps;
-#   checked cuts, RELCERT_NO_CUT=1 declines; committed existential choice of the reference's
-#   response mode, matrix codes M1 M2 M3 M6). M and B come from the stretch (a CRUISE window of
-#   0.1 s against 0.15 s of the reference). The mode-dependent rows (matrix M5, handoffs unsat) are
-#   expressiveness, not a letter: a uniform v_L <= v_R also certifies (below), so no D.
+# mechanisms: S M B D I X (time stretch 3/2; multi-step cover at that stretch; branching joint
+#   steps; mode-dependent rows, the stated requirement differs per mode; checked cuts,
+#   RELCERT_NO_CUT=1 declines; committed existential choice of the reference's response mode,
+#   matrix codes M1 M2 M3 M5 M6). M and B come from the stretch (a CRUISE window of 0.1 s against
+#   0.15 s of the reference). D under the rule of 2026-10-27: the rows differ, every handoff is
+#   unsat, and the only uniform row that certifies (v_L <= v_R in both modes, below) drops CRUISE's
+#   stated exactness requirement; the uniform exact row DECLINES in LIMP.
 #
 # System. Speed v (m/s), time s. The deployed controller (left) runs an aftermarket tune: CRUISE
 # v' = 0.75 (30 - v) (speed-loop gain 0.75 /s toward the set speed 30 m/s). When the tuned ECU
@@ -36,8 +38,11 @@
 #   LIMP: v_L <= v_R. Requirement: the limp-home map never makes the car faster than the
 #     reference. Constant 0 is forced: the handoff CRUISE -> LIMP starts from v_L = v_R.
 # The rows differ because the exact CRUISE row cannot hold in LIMP (the limp map settles 5 m/s
-# low); a uniform v_L <= v_R in both modes also certifies (with the same S, X, I verdicts), but
-# states less in CRUISE: D is expressiveness, not a necessity.
+# low): the uniform exact row DECLINES. A uniform v_L <= v_R in both modes certifies (with the same
+# S, X, I verdicts) but states less in CRUISE: it drops the tune's exactness requirement, so under
+# the D rule of 2026-10-27 (the stated requirement differs per mode; a weaker uniform row that drops
+# a stated requirement does not remove D) the file counts D (the letters step: CRUISE row uniform
+# DECLINED, LIMP row uniform CERTIFIED but drops a stated row).
 # The exact rows place the fallback without a dodge: v_L >= 20 and v_L <= v_R give v_R >= 20,
 # so DISENGAGE is no admissible start, and NORMAL / COMFORT / SPORT -> DISENGAGE are pruned (each
 # loop accelerates at the floor). With any positive lead allowed in CRUISE (v_L <= v_R + c,

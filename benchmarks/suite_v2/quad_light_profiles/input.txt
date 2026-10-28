@@ -1,20 +1,18 @@
 # quad_light_profiles: the 20 %-lighter quadrotor flying the plan's NORMAL climb against a
-# reference model with pilot-selectable climb profiles; real-time altitude conformance to the
-# reference's SPORT profile.
+# reference model with pilot-selectable climb profiles; altitude conformance to the reference's
+# NORMAL profile at the stated time scaling 6/5.
 # scenario: model-refinement
-# mechanisms: X (committed existential choice: at each window start the reference commits the
-#   pilot's selection to SPORT, which is not the deployed's own profile; RELCERT_NO_CHOICE=1
-#   declines). No S, M, B: the claim is synchronous (lambda fixed to 1), one segment per window.
+# mechanisms: S M B X (time stretch lambda = 6/5, the terminal climb-rate ratio the mass ratio
+#   fixes, RELCERT_SYNC=1 declines, matrix code M1; multi-step cover, budget 2, matrix code M2;
+#   branching joint steps, the reference's NORMAL segment retaining ECO and SPORT, matrix code M3;
+#   committed existential choice: at each window start the reference commits the pilot's selection
+#   to NORMAL, RELCERT_NO_CHOICE=1 declines). S and M come from the airframe mass (the scaling it
+#   fixes), B and X from the reference's profile graph. Batch I9 (2026-10-27): the time-scaled
+#   claim to NORMAL is restored (the round-A file claimed real-time conformance to SPORT, letters
+#   X; that claim still certifies and is quoted below).
 #
-# Round A (2026-10-26): the previous file claimed conformance to NORMAL at the time scaling 6/5
-# (letters S M B X) with a profile graph lacking ECO <-> SPORT; with that graph completed the
-# synchronous claim below certifies under RELCERT_SYNC=1, so S was a choice of claim, not forced
-# by the cause. This file adopts the complete graph and the synchronous claim; the time-scaled
-# reading of the same airframe pair stays in quad_light_airframe_20 (in benchmarks/reserve/ since
-# 2026-10-27, batch I7; quad_light_lag keeps the time-scaled claim in the suite).
-#
-# System. The climb segment of quad_light_airframe_20 (same airframe numbers): altitude h (m),
-# climb rate w (m/s), m w' = T - m g - k w, h' = w, g = 9.81 m/s^2.
+# System. The climb segment of quad_light_airframe_20 (in benchmarks/reserve/; same airframe
+# numbers): altitude h (m), climb rate w (m/s), m w' = T - m g - k w, h' = w, g = 9.81 m/s^2.
 #   Right (reference model of the autopilot): the pilot may select the climb profile in flight;
 #     the selection sets the thrust ratio and any profile may follow any profile at the next 1 s
 #     control interval (complete graph: NORMAL, ECO, SPORT each list all three). k/m_R = 4.905 /s:
@@ -24,40 +22,47 @@
 #   Left (deployed): the flight plan's NORMAL profile on the airframe 20 % lighter than the
 #     reference model assumed (T/m and k/m both x 1.25): w' = 14.715 - 6.13125 w (terminal
 #     2.4 m/s), as in quad_light_airframe_20.
-# One cause: the airframe mass. The lighter airframe at NORMAL thrust has the terminal climb rate
-# of the reference's SPORT profile ((2 - m_L/m_R) x 2.0 = 2.4 m/s); it differs from SPORT only in
-# its faster transient (time constant 1/6.13125 s instead of 1/4.905 s).
+# One cause: the airframe mass. The lighter airframe at NORMAL thrust is the NORMAL profile with
+# every rate scaled by 1.25 (T/m and k/m both x 1.25): its climb is the reference's NORMAL climb
+# run 6/5 times faster in the steady part (2.4 against 2.0 m/s) with a 1.25-times faster
+# transient (time constant 1/6.13125 s against 1/4.905 s).
 #
-# Requirement: altitude conformance in real time to the PX4 default multicopter altitude
-# acceptance radius NAV_MC_ALT_RAD = 0.8 m: at every time t the deployed's altitude is within
-# 0.8 m of the altitude of some reference run (the pilot's selections resolved existentially).
-# lambda_min = lambda_max = 1 (real time, the claim compares equal times).
+# Requirement (altitude conformance at a stated time scaling, the Skorokhod form of
+# quad_light_airframe_20): at every time t the deployed's altitude is within 0.8 m of the
+# NORMAL reference's altitude at time 1.2 t; 0.8 m is the autopilot's multicopter altitude
+# acceptance radius (PX4's default NAV_MC_ALT_RAD): every altitude the NORMAL plan reaches, the
+# deployed reaches 1.2 times sooner to within the radius at which the autopilot accepts an
+# altitude waypoint. The scaling is the stated one: lambda = 6/5 = 2.4 / 2.0, the ratio of the
+# terminal climb rates, which follows from the stated mass ratio (lambda = 2 - m_L/m_R for
+# T = 2 m_R g); lambda_min = lambda_max = 1.2. At any other lambda the steady-climb gap Psi below
+# drifts at 2.4 - 2 lambda m/s and the climb is unbounded (pinned to 1.19 the file DECLINES,
+# measured 2026-10-27; and RELCERT_SYNC=1 DECLINES).
 #   rows 1, 2 (the requirement): h_R - h_L <= 0.8 and h_L - h_R <= 0.8.
-#   row 3 (strengthening): Psi_S <= 0.8, with
-#     Psi_S = (h_L - h_R) + (w_L - 2.4)/6.13125 - (w_R - 2.4)/4.905 (times 6.13125 in the file),
-#     the steady-climb altitude gap against SPORT; conserved exactly in real time when the
-#     reference flies SPORT (Psi_S' = 0).
-#   row 4 (strengthening): w_R <= w_L: the lighter airframe accelerates at least as hard as SPORT
-#     at every equal climb rate w <= 2.4. Under row 4, h_L - h_R <= Psi_S (row 3 gives row 2) and
-#     h_L - h_R never decreases (row 1 holds from any start that satisfies it).
-#   Needed: dropping row 3 or row 4 DECLINES; a lower Psi_S row is not needed (not in the file).
-# Tightest (measured): the rows are homogeneous and certify at every common constant c >= 0 for
-# rows 1 to 3; the hover start (h_L = h_R, w_L = w_R = 0) is related iff c >= Psi_S(hover) =
-# 0.0979 m (the deployed leads SPORT by at most 9.8 cm), so the 0.8 m radius leaves 0.70 m.
-# Not implied by the domains.
-#
-# Cause dependence (measured, rows as in the file unless stated): no mass change (left = the
-# reference airframe at NORMAL): DECLINED; that left satisfies the exact claim h_L = h_R,
-# w_L = w_R against NORMAL instead (CERTIFIED; NO_CHOICE declines). 25 % lighter (terminal
-# 2.5 m/s, above every profile): DECLINED, and the requirement is false (the deployed climbs away
-# from every reference run at >= 0.1 m/s). 15 % lighter (terminal 2.3 m/s, between NORMAL and
-# SPORT): DECLINED (no single profile matches; a reference alternating profiles is not searched
-# by the per-window cover). The previous graph without ECO <-> SPORT: DECLINED (ECO cannot reach
-# SPORT in one hop).
-# Existential choice (X). When the reference starts in NORMAL or ECO the cover hops into SPORT
-# (choice hops NORMAL -> SPORT, ECO -> SPORT) and runs one joint segment; against NORMAL or ECO
-# row 3 drifts. RELCERT_NO_CHOICE=1 DECLINES. The hop target is the reference profile the
-# degraded airframe behaves like, not a copy of the deployed's mode.
+# Strengthening rows (the rows of quad_light_airframe_20; each needed: dropping row 3 or row 4
+# DECLINES, re-measured 2026-10-28 on this file):
+#   row 3: Psi <= 0.8 with Psi = (h_L - h_R) + (w_L - 2.4)/6.13125 - (w_R - 2)/4.905 (written
+#     multiplied by 6.13125 in the file). Psi is the altitude gap the two steady climbs converge
+#     to; at lambda = 6/5 against NORMAL it is conserved exactly (Psi' = 2.4 - 2 lambda = 0).
+#     Constant: the requirement's 0.8 (the steady-climb gap must also be within the radius).
+#   row 4: 1.2 w_R <= w_L, the climb-rate row that follows: the deployed climbs at least as fast
+#     as the time-scaled NORMAL reference (at equality the deployed accelerates harder for every
+#     w <= 2.4). Under row 4, h_L - h_R <= Psi, so row 3 gives row 2, and h_L - h_R never
+#     decreases, so row 1 holds.
+# From hover (h_L = h_R, w_L = w_R = 0) Psi = 0.0163 m: the deployed leads the scaled NORMAL
+# reference by at most 1.6 cm, well inside 0.8 m. Not implied by the domains.
+# Existential choice (X). ECO re-timed by 6/5 climbs at 1.92 m/s and SPORT at 2.88 m/s against the
+# deployed's 2.4: Psi drifts against either, so when the reference starts in ECO or SPORT the cover
+# commits the pilot's selection to NORMAL (choice hops ECO -> NORMAL, SPORT -> NORMAL), then runs the
+# joint segment from NORMAL; RELCERT_NO_CHOICE=1 DECLINES. The hop target is the profile the
+# lighter airframe's climb is a re-timing of, not a copy of the deployed's mode.
+# Multi-step cover (M) and branching (B): budget ceil(6/5 x 1 / 1) = 2 right cycles per left
+# window; at the joint step the NORMAL segment's declared successors ECO and SPORT are retained
+# (branch 2) and covered through the committed hop back into NORMAL.
+# The real-time alternative (measured 2026-10-27): real-time conformance to the SPORT profile
+# (the round-A claim, lambda 1, rows against SPORT's 2.4 m/s terminal) also CERTIFIES with X only;
+# the lighter airframe's steady climb equals SPORT's, but its transient is 1.25 times faster, so
+# that claim needs a tolerance where this one is exact in the steady gap. This file states the
+# time-scaled claim to the plan's own profile (NORMAL), the one the mass ratio fixes.
 #
 # Guards and domains. Left CLIMB guard = evolve: h >= 0, 0 <= w <= 2.4 (the deployed's climb
 # envelope, forward invariant). Right NORMAL, ECO, SPORT guard = evolve: h >= 0, 0 <= w <= 2.4,
@@ -67,19 +72,22 @@
 # climb-rate limiter lies above every envelope and never engages: not modeled. Control interval
 # 1 s on both sides.
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26 with the round-A binary):
-# CERTIFIED (about 0.3 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, without
-# RELCERT_IMPLIED_CUT, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_CUT=1,
-# RELCERT_NO_PAIR_STRETCH=1, RELCERT_WELLFORMED_STRICT=1 and RELCERT_OPREGION=1 (every admitted
-# start in some right guard); DECLINED under RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE and
-# SYNC+NO_CHOICE. Cover: CLIMB by choice at lambda 1, budget 1, admissible NORMAL, ECO, SPORT,
-# hops NORMAL -> SPORT and ECO -> SPORT, nothing pruned. --handoff 1/1 vacuous (one left mode).
-# relcert --wellformed: NORMAL, ECO, SPORT ok (invariant), 0 UNKNOWN. Units m, m/s, m/s^2, s.
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27, batch I9): CERTIFIED
+# (about 0.5 s); DECLINED under RELCERT_SYNC=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE and
+# SYNC+NO_CHOICE; CERTIFIED under RELCERT_NO_PRUNE=1, without RELCERT_IMPLIED_CUT,
+# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_CUT=1, RELCERT_NO_REPO=1,
+# RELCERT_WELLFORMED_STRICT=1 and RELCERT_OPREGION=1 (every admitted start in some right guard).
+# Cover: CLIMB by choice at lambda = 6/5, budget 2, admissible starts NORMAL, ECO, SPORT, hops
+# ECO -> NORMAL and SPORT -> NORMAL, joint steps from NORMAL retaining ECO and SPORT (branch 2),
+# nothing pruned. --handoff 1/1 vacuous (one left mode); the left mode has a satisfiable start
+# (hover, w_L = w_R = 0). relcert --wellformed: NORMAL, ECO, SPORT ok (invariant), 0 UNKNOWN,
+# 0 BLOCKING. The right model is unchanged since round A (Assumption 1 proof unchanged); the rows
+# and the stretch changed (batch I9). Units m, m/s, m/s^2, s.
 [problem]
 name = quad_light_profiles
 max_depth = 8
-lambda_min = 1.0
-lambda_max = 1.0
+lambda_min = 1.2
+lambda_max = 1.2
 bound_T = 4.0
 [Lsys]
 state_vars = [h, w]
@@ -108,4 +116,4 @@ guard = h >= 0.0 and w >= 0.0 and w <= 2.4
 evolve = h >= 0.0 and w >= 0.0 and w <= 2.4
 next = [SPORT, NORMAL, ECO]
 [relational_invariant]
-CLIMB = smt2:(and (<= (- R_h L_h) 0.8) (<= (- L_h R_h) 0.8) (<= (+ (* 6.13125 (- L_h R_h)) (- L_w (* 1.25 R_w)) 0.6) (* 6.13125 0.8)) (<= R_w L_w))
+CLIMB = smt2:(and (<= (- R_h L_h) 0.8) (<= (- L_h R_h) 0.8) (<= (+ (* 6.13125 (- L_h R_h)) (- L_w (* 1.25 R_w)) 0.1) (* 6.13125 0.8)) (<= (* 1.2 R_w) L_w))

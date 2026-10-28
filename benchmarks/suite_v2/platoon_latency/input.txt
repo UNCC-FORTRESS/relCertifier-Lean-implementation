@@ -4,9 +4,8 @@
 # mechanisms: D (mode-dependent rows: the AEB row differs from the CACC row, the 7 handoffs unsat
 #   or implied, uniform rows decline; matrix code M5)
 #
-# Shared platoon model (identical in platoon_linkloss and this file, and in the round-2 platoon
-# designs platoon_profiles (in benchmarks/reserve/ since 2026-10-27, batch I8) and the reserve's
-# platoon3_linkloss, platoon3_profiles). A lead vehicle cruises at the platoon reference speed
+# Shared platoon model (identical in platoon_linkloss, platoon_profiles and this file, and in the
+# reserve's platoon3_linkloss, platoon3_profiles). A lead vehicle cruises at the platoon reference speed
 # v_ref = 25 m/s (90 km/h). Per link (follower behind its predecessor): the gap g (m, bumper to
 # bumper) and the range rate r = v_pred - v (m/s, positive = opening), g' = r. Units m, m/s, s.
 # Spacing policy (constant time gap): standstill distance d0 = 5 m. CACC: time gap h_c = 0.6 s on
@@ -106,6 +105,15 @@
 # CACC_UP_L, CACC_DN_L: [CACC], AEB_L: [AEB]; pruned CACC -> AEB (not load-bearing at budget 1).
 # --handoff 7/7 pass (rows differ). relcert --wellformed: CACC ok (invariant), AEB ok
 # (invariant), 0 UNKNOWN.
+# Re-measured 2026-10-28 (reserve scan; the branch binary built from fb55b6e;
+# RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED (0.7 s); CERTIFIED under every counter-run
+# (RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE, SYNC+NO_CHOICE,
+# RELCERT_NO_REPO=1, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1,
+# RELCERT_OPREGION=1) and RELCERT_WELLFORMED_STRICT=1 (--wellformed: CACC, AEB ok (invariant), 0
+# UNKNOWN, 0 BLOCKING). Uniform rows (scripts/suite_v2_letters.py): the CACC row on every left mode
+# DECLINED, the AEB row on every left mode DECLINED, their conjunction DECLINED. --handoff 7/7
+# checked, 7 passed (rows differ). Letter measured: D (matrix M5; D_strict).
+#
 [problem]
 name = platoon_latency
 max_depth = 8

@@ -146,7 +146,8 @@
 > changed (`drl_car_stop` 16 mutants, `drl_lane_control` 24, `csf21_vehicle_thermo` 16, `csf21_vehicle_bus` 16,
 > `salt_tank_sensor` 14; Coast at `v <= 1`, the salt tank without its evolve domain): no witness on any of
 > them, as before; their 86 records rewritten (new hashes and scratch paths). Witness lines 954, instances 67,
-> groups 199 unchanged; `gen_refute.py` leaves every instance as it was.
+> groups 199 unchanged; `gen_refute.py` leaves every instance as it was; `refute_experiment.py` at the default budget
+> reproduces `results.json` exactly (366 certified, 67 kernel-refuted, 521 open, none both).
 > Current instance set: **67 refutations, 199 groups**
 > (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 954 mutants in
 > `docs/refute/witnesses.jsonl`. The operator table below is the 2026-10-21 run; recomputed on 2026-10-28 after batch I11

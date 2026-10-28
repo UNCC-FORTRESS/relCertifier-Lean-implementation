@@ -134,6 +134,9 @@
 > Then (2026-10-28) `insulin_basal_cgmloss` (24 witness lines, no refutation) left the suite and `tank_dos_3to1`
 > (16 lines, no refutation) came back, keeping the letter I at the frozen 17. Witness lines 983 -> 949; instances
 > 77 -> 77; groups 228 -> 228.
+> Batch I10 (2026-10-28): `bms_chiller_undercharge` (8 witness lines, no refutation) left the suite and
+> `zone_lightmass_schedule` came in (the finder with `--only`: 8 mutants, no witness). Witness lines 949 -> 949;
+> instances 77 -> 77; groups 228 -> 228.
 > Current instance set: **77 refutations, 228 groups**
 > (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 949 mutants in
 > `docs/refute/witnesses.jsonl`. The operator table below is the 2026-10-21 run; recomputed on 2026-10-27

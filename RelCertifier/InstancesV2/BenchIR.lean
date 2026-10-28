@@ -13,7 +13,6 @@ import RelCertifier.InstancesV2.BenchIR.acc_spoof_limp
 import RelCertifier.InstancesV2.BenchIR.acc_tune_lag
 import RelCertifier.InstancesV2.BenchIR.acc_tune_limp
 import RelCertifier.InstancesV2.BenchIR.antenna_track_kvretune
-import RelCertifier.InstancesV2.BenchIR.bms_chiller_undercharge
 import RelCertifier.InstancesV2.BenchIR.bottling_fill_strainer
 import RelCertifier.InstancesV2.BenchIR.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchIR.compressor_station_recycle
@@ -58,6 +57,7 @@ import RelCertifier.InstancesV2.BenchIR.vehicle_hypercert
 import RelCertifier.InstancesV2.BenchIR.ventilator_vc_cuffleak
 import RelCertifier.InstancesV2.BenchIR.watertank
 import RelCertifier.InstancesV2.BenchIR.watertank_twospeed
+import RelCertifier.InstancesV2.BenchIR.zone_lightmass_schedule
 
 namespace RelCertifier.Parse
 
@@ -67,7 +67,6 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("acc_tune_lag", acc_tune_lag_IRv2),
   ("acc_tune_limp", acc_tune_limp_IRv2),
   ("antenna_track_kvretune", antenna_track_kvretune_IRv2),
-  ("bms_chiller_undercharge", bms_chiller_undercharge_IRv2),
   ("bottling_fill_strainer", bottling_fill_strainer_IRv2),
   ("charger_fast_tapers", charger_fast_tapers_IRv2),
   ("compressor_station_recycle", compressor_station_recycle_IRv2),
@@ -111,6 +110,7 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("vehicle_hypercert", vehicle_hypercert_IRv2),
   ("ventilator_vc_cuffleak", ventilator_vc_cuffleak_IRv2),
   ("watertank", watertank_IRv2),
-  ("watertank_twospeed", watertank_twospeed_IRv2) ]
+  ("watertank_twospeed", watertank_twospeed_IRv2),
+  ("zone_lightmass_schedule", zone_lightmass_schedule_IRv2) ]
 
 end RelCertifier.Parse

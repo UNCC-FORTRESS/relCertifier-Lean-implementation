@@ -83,7 +83,7 @@ import RelCertifier.InstancesV2.WellFormed.PlatoonLinkloss
 import RelCertifier.InstancesV2.WellFormed.PlatoonProfiles
 import RelCertifier.InstancesV2.WellFormed.EngineStartHighidle
 import RelCertifier.InstancesV2.WellFormed.TrainAtoOdometry
-import RelCertifier.InstancesV2.WellFormed.BmsChillerUndercharge
+import RelCertifier.InstancesV2.WellFormed.ZoneLightmassSchedule
 import RelCertifier.InstancesV2.WellFormed.TurbineStartupGearratio
 import RelCertifier.InstancesV2.WellFormed.ChargerFastTapers
 import RelCertifier.InstancesV2.WellFormed.QuadLightProfiles
@@ -119,7 +119,7 @@ def wfProved : List String :=
    "rover_ladder_3to6", "rover_ladder_6to8",
    "rover_ladder_8to12", "rover_terrain_2to4", "rover_terrain_6to12",
    "rover_terrain_4to6", "watertank_twospeed", "flaps_slow_approach", "engine_start_highidle", "train_ato_odometry",
-   "bms_chiller_undercharge", "turbine_startup_gearratio",
+   "zone_lightmass_schedule", "turbine_startup_gearratio",
    "molding_pack_checkring", "fuelcell_chp_dos", "elevator_start_discbrake",
    "furnace_program_timebase", "compressor_station_recycle", "syringe_relay_prearm",
    "hydro_rejection_gatecal", "ventilator_vc_cuffleak", "tank_dos_3to1", "tunnel_jetfan_pairout", "grid_ffr_dos",
@@ -183,7 +183,7 @@ def wfDeclared : ℕ × ℕ × ℕ := (47, 0, 3)
 /-- The suite's benchmark names, in the order of the IR table. -/
 def suiteNames : List String :=
   ["acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp", "antenna_track_kvretune",
-   "bms_chiller_undercharge", "bottling_fill_strainer", "charger_fast_tapers",
+   "bottling_fill_strainer", "charger_fast_tapers",
    "compressor_station_recycle", "csf21_vehicle_bus", "csf21_vehicle_thermo", "drl_car_stop",
    "drl_lane_control", "elevator_start_discbrake", "engine_start_highidle", "flaps_slow_approach",
    "freedm_meter",
@@ -195,7 +195,7 @@ def suiteNames : List String :=
    "rover_terrain_6to12", "salt_tank_sensor", "sat3w_detumble_phases", "sat_detumble_phases",
    "sat_detumble_weak", "syringe_relay_prearm", "tank_dos_3to1", "train_ato_odometry",
    "tunnel_jetfan_pairout", "turbine_startup_gearratio", "vehicle_hypercert",
-   "ventilator_vc_cuffleak", "watertank", "watertank_twospeed"]
+   "ventilator_vc_cuffleak", "watertank", "watertank_twospeed", "zone_lightmass_schedule"]
 
 /-- `suiteNames` IS the name column of the kernel-checked IR table of the suite. -/
 theorem suiteNames_eq : Parse.benchIRTableV2.map Prod.fst = suiteNames := rfl
@@ -246,7 +246,7 @@ end WellFormedBattery
 #print axioms V2PlatoonProfiles.platoon_profiles_wellFormedR
 #print axioms V2EngineStartHighidle.engine_start_highidle_wellFormedR
 #print axioms V2TrainAtoOdometry.train_ato_odometry_wellFormedR
-#print axioms V2BmsChillerUndercharge.bms_chiller_undercharge_wellFormedR
+#print axioms V2ZoneLightmassSchedule.zone_lightmass_schedule_wellFormedR
 #print axioms V2TurbineStartupGearratio.turbine_startup_gearratio_wellFormedR
 #print axioms V2MoldingPackCheckring.molding_pack_checkring_wellFormedR
 #print axioms V2FuelcellChpDos.fuelcell_chp_dos_wellFormedR

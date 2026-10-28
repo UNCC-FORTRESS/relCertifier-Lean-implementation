@@ -4,7 +4,6 @@ import RelCertifier.InstancesV2.BenchProgress.acc_spoof_limp
 import RelCertifier.InstancesV2.BenchProgress.acc_tune_lag
 import RelCertifier.InstancesV2.BenchProgress.acc_tune_limp
 import RelCertifier.InstancesV2.BenchProgress.antenna_track_kvretune
-import RelCertifier.InstancesV2.BenchProgress.bms_chiller_undercharge
 import RelCertifier.InstancesV2.BenchProgress.bottling_fill_strainer
 import RelCertifier.InstancesV2.BenchProgress.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchProgress.compressor_station_recycle
@@ -45,6 +44,7 @@ import RelCertifier.InstancesV2.BenchProgress.turbine_startup_gearratio
 import RelCertifier.InstancesV2.BenchProgress.ventilator_vc_cuffleak
 import RelCertifier.InstancesV2.BenchProgress.watertank
 import RelCertifier.InstancesV2.BenchProgress.watertank_twospeed
+import RelCertifier.InstancesV2.BenchProgress.zone_lightmass_schedule
 
 namespace RelCertifier.Progress
 
@@ -55,7 +55,6 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("acc_tune_lag", acc_tune_lag_coverV2_progress),
    ("acc_tune_limp", acc_tune_limp_coverV2_progress),
    ("antenna_track_kvretune", antenna_track_kvretune_coverV2_progress),
-   ("bms_chiller_undercharge", bms_chiller_undercharge_coverV2_progress),
    ("bottling_fill_strainer", bottling_fill_strainer_coverV2_progress),
    ("charger_fast_tapers", charger_fast_tapers_coverV2_progress),
    ("compressor_station_recycle", compressor_station_recycle_coverV2_progress),
@@ -95,6 +94,7 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("turbine_startup_gearratio", turbine_startup_gearratio_coverV2_progress),
    ("ventilator_vc_cuffleak", ventilator_vc_cuffleak_coverV2_progress),
    ("watertank", watertank_coverV2_progress),
-   ("watertank_twospeed", watertank_twospeed_coverV2_progress)]
+   ("watertank_twospeed", watertank_twospeed_coverV2_progress),
+   ("zone_lightmass_schedule", zone_lightmass_schedule_coverV2_progress)]
 
 end RelCertifier.Progress

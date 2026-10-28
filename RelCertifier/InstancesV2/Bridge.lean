@@ -4,7 +4,6 @@ import RelCertifier.InstancesV2.Bridge.AccSpoofLimp
 import RelCertifier.InstancesV2.Bridge.AccTuneLag
 import RelCertifier.InstancesV2.Bridge.AccTuneLimp
 import RelCertifier.InstancesV2.Bridge.AntennaTrackKvretune
-import RelCertifier.InstancesV2.Bridge.BmsChillerUndercharge
 import RelCertifier.InstancesV2.Bridge.BottlingFillStrainer
 import RelCertifier.InstancesV2.Bridge.ChargerFastTapers
 import RelCertifier.InstancesV2.Bridge.CompressorStationRecycle
@@ -49,5 +48,6 @@ import RelCertifier.InstancesV2.Bridge.VehicleHypercert
 import RelCertifier.InstancesV2.Bridge.VentilatorVcCuffleak
 import RelCertifier.InstancesV2.Bridge.Watertank
 import RelCertifier.InstancesV2.Bridge.WatertankTwospeed
+import RelCertifier.InstancesV2.Bridge.ZoneLightmassSchedule
 import RelCertifier.InstancesV2.Bridge.VehicleAccelCopy
 import RelCertifier.InstancesV2.Bridge.WatertankChoice

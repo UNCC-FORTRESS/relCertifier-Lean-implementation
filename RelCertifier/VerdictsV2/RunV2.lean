@@ -285,10 +285,13 @@ def packsV2 : List PackV2 :=
     ⟨"flaps_slow_approach", 2, 0, [0, 1, 2, 3], 1, 1, 1, 1⟩,
     -- platoon_profiles (batch I9, from the reserve; mode-keyed rows): SPORT at λ = 6/5 (the bandwidth ratio), AEB at 1
     ⟨"platoon_profiles", 3, 0, [0, 1, 2, 3, 4, 5], 6, 5, 0, 0⟩,
-    ⟨"platoon_profiles", 3, 1, [0, 1, 2, 3], 1, 1, 1, 1⟩ ]
+    ⟨"platoon_profiles", 3, 1, [0, 1, 2, 3], 1, 1, 1, 1⟩,
+    -- zone_lightmass_schedule (batch I10): COMFORT and ECONOMY at λ = 2 (the heat-capacity ratio), budget 2
+    ⟨"zone_lightmass_schedule", 2, 0, [0, 1], 2, 1, 0, 0⟩,
+    ⟨"zone_lightmass_schedule", 2, 0, [0, 1], 2, 1, 1, 2⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 940
+def expectedModalV2 : Nat := 944
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do

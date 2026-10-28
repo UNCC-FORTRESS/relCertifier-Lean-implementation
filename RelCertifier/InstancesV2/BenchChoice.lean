@@ -6,7 +6,6 @@ import RelCertifier.InstancesV2.BenchChoice.acc_spoof_limp
 import RelCertifier.InstancesV2.BenchChoice.acc_tune_lag
 import RelCertifier.InstancesV2.BenchChoice.acc_tune_limp
 import RelCertifier.InstancesV2.BenchChoice.antenna_track_kvretune
-import RelCertifier.InstancesV2.BenchChoice.bms_chiller_undercharge
 import RelCertifier.InstancesV2.BenchChoice.bottling_fill_strainer
 import RelCertifier.InstancesV2.BenchChoice.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchChoice.compressor_station_recycle
@@ -51,6 +50,7 @@ import RelCertifier.InstancesV2.BenchChoice.vehicle_hypercert
 import RelCertifier.InstancesV2.BenchChoice.ventilator_vc_cuffleak
 import RelCertifier.InstancesV2.BenchChoice.watertank
 import RelCertifier.InstancesV2.BenchChoice.watertank_twospeed
+import RelCertifier.InstancesV2.BenchChoice.zone_lightmass_schedule
 
 namespace RelCertifier.Choice
 
@@ -60,7 +60,6 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("acc_tune_lag", acc_tune_lag_coverV2_choice),
   ("acc_tune_limp", acc_tune_limp_coverV2_choice),
   ("antenna_track_kvretune", antenna_track_kvretune_coverV2_choice),
-  ("bms_chiller_undercharge", bms_chiller_undercharge_coverV2_choice),
   ("bottling_fill_strainer", bottling_fill_strainer_coverV2_choice),
   ("charger_fast_tapers", charger_fast_tapers_coverV2_choice),
   ("compressor_station_recycle", compressor_station_recycle_coverV2_choice),
@@ -104,6 +103,7 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("vehicle_hypercert", vehicle_hypercert_coverV2_choice),
   ("ventilator_vc_cuffleak", ventilator_vc_cuffleak_coverV2_choice),
   ("watertank", watertank_coverV2_choice),
-  ("watertank_twospeed", watertank_twospeed_coverV2_choice) ]
+  ("watertank_twospeed", watertank_twospeed_coverV2_choice),
+  ("zone_lightmass_schedule", zone_lightmass_schedule_coverV2_choice) ]
 
 end RelCertifier.Choice

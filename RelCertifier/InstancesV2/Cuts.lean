@@ -4,7 +4,6 @@ import RelCertifier.InstancesV2.Cuts.acc_spoof_limp
 import RelCertifier.InstancesV2.Cuts.acc_tune_lag
 import RelCertifier.InstancesV2.Cuts.acc_tune_limp
 import RelCertifier.InstancesV2.Cuts.antenna_track_kvretune
-import RelCertifier.InstancesV2.Cuts.bms_chiller_undercharge
 import RelCertifier.InstancesV2.Cuts.bottling_fill_strainer
 import RelCertifier.InstancesV2.Cuts.charger_fast_tapers
 import RelCertifier.InstancesV2.Cuts.compressor_station_recycle
@@ -49,6 +48,7 @@ import RelCertifier.InstancesV2.Cuts.vehicle_hypercert
 import RelCertifier.InstancesV2.Cuts.ventilator_vc_cuffleak
 import RelCertifier.InstancesV2.Cuts.watertank
 import RelCertifier.InstancesV2.Cuts.watertank_twospeed
+import RelCertifier.InstancesV2.Cuts.zone_lightmass_schedule
 
 namespace RelCertifier.Oracle
 
@@ -58,7 +58,6 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("acc_tune_lag", acc_tune_lag_cutsV2, acc_tune_lag_cutsV2X),
   ("acc_tune_limp", acc_tune_limp_cutsV2, acc_tune_limp_cutsV2X),
   ("antenna_track_kvretune", antenna_track_kvretune_cutsV2, antenna_track_kvretune_cutsV2X),
-  ("bms_chiller_undercharge", bms_chiller_undercharge_cutsV2, bms_chiller_undercharge_cutsV2X),
   ("bottling_fill_strainer", bottling_fill_strainer_cutsV2, bottling_fill_strainer_cutsV2X),
   ("charger_fast_tapers", charger_fast_tapers_cutsV2, charger_fast_tapers_cutsV2X),
   ("compressor_station_recycle", compressor_station_recycle_cutsV2, compressor_station_recycle_cutsV2X),
@@ -102,6 +101,7 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("vehicle_hypercert", vehicle_hypercert_cutsV2, vehicle_hypercert_cutsV2X),
   ("ventilator_vc_cuffleak", ventilator_vc_cuffleak_cutsV2, ventilator_vc_cuffleak_cutsV2X),
   ("watertank", watertank_cutsV2, watertank_cutsV2X),
-  ("watertank_twospeed", watertank_twospeed_cutsV2, watertank_twospeed_cutsV2X) ]
+  ("watertank_twospeed", watertank_twospeed_cutsV2, watertank_twospeed_cutsV2X),
+  ("zone_lightmass_schedule", zone_lightmass_schedule_cutsV2, zone_lightmass_schedule_cutsV2X) ]
 
 end RelCertifier.Oracle

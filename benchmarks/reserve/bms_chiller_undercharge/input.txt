@@ -1,3 +1,10 @@
+# RESERVE (benchmarks/reserve/, 2026-10-28, batch I10): not in suite_v2, not in the paper, no Lean
+# integration (last at commit 3480f5b). Reason: a single-letter file (X) that certifies under RELCERT_SYNC=1;
+# its non-identity commitment (the reference's half-speed chiller level against the deployed's degraded
+# full-speed one) stays represented by compressor_station_recycle and fuelcell_chp_dos; its place in
+# the suite went to zone_lightmass_schedule (S M B X, a time-scaled claim that declines under SYNC).
+# The header below is the suite file's.
+#
 # bms_chiller_undercharge: an EV battery pack in DC fast charge whose chiller has lost refrigerant,
 # against the pack's thermal strategy, which permits coasting or either compressor level; the
 # reference must commit to the HALF-speed level to track the degraded FULL-speed chiller.

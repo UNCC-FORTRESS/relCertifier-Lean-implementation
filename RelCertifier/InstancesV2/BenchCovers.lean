@@ -4,7 +4,6 @@ import RelCertifier.InstancesV2.BenchCovers.acc_spoof_limp
 import RelCertifier.InstancesV2.BenchCovers.acc_tune_lag
 import RelCertifier.InstancesV2.BenchCovers.acc_tune_limp
 import RelCertifier.InstancesV2.BenchCovers.antenna_track_kvretune
-import RelCertifier.InstancesV2.BenchCovers.bms_chiller_undercharge
 import RelCertifier.InstancesV2.BenchCovers.bottling_fill_strainer
 import RelCertifier.InstancesV2.BenchCovers.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchCovers.compressor_station_recycle
@@ -49,6 +48,7 @@ import RelCertifier.InstancesV2.BenchCovers.vehicle_hypercert
 import RelCertifier.InstancesV2.BenchCovers.ventilator_vc_cuffleak
 import RelCertifier.InstancesV2.BenchCovers.watertank
 import RelCertifier.InstancesV2.BenchCovers.watertank_twospeed
+import RelCertifier.InstancesV2.BenchCovers.zone_lightmass_schedule
 
 namespace RelCertifier
 
@@ -58,7 +58,6 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("acc_tune_lag", acc_tune_lag_coverV2),
   ("acc_tune_limp", acc_tune_limp_coverV2),
   ("antenna_track_kvretune", antenna_track_kvretune_coverV2),
-  ("bms_chiller_undercharge", bms_chiller_undercharge_coverV2),
   ("bottling_fill_strainer", bottling_fill_strainer_coverV2),
   ("charger_fast_tapers", charger_fast_tapers_coverV2),
   ("compressor_station_recycle", compressor_station_recycle_coverV2),
@@ -102,6 +101,7 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("vehicle_hypercert", vehicle_hypercert_coverV2),
   ("ventilator_vc_cuffleak", ventilator_vc_cuffleak_coverV2),
   ("watertank", watertank_coverV2),
-  ("watertank_twospeed", watertank_twospeed_coverV2) ]
+  ("watertank_twospeed", watertank_twospeed_coverV2),
+  ("zone_lightmass_schedule", zone_lightmass_schedule_coverV2) ]
 
 end RelCertifier

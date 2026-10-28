@@ -37,6 +37,26 @@ needs, read off counter-runs; `scripts/suite_v2_matrix.py`) are in
 physical story, the units, the measured cover and the mechanisms it exercises
 (`# scenario:` and `# mechanisms:` lines).
 
+## Batch I10 (2026-10-28): one time-scaled design in, one single-letter file out
+
+Second round of the owner's 2026-10-27 request (more Table 1 mechanisms, every benchmark physically
+meaningful with a meaningful relational property). One swap: `zone_lightmass_schedule` (a building-
+automation occupancy schedule, comfort / standby / economy set points as in the EN 15232 energy levels,
+deployed in a lightweight prefabricated zone of half the areal heat capacity of the medium-weight zone it
+was commissioned in; the light zone reproduces the reference zone's temperature trace at twice the speed:
+exact rows `T_L = T_R` at `lambda = 2`, the heat-capacity ratio, budget 2; letters S M B X, with B and X
+from the claim's form as the header states) replaces `bms_chiller_undercharge` (X only, certifies under
+`RELCERT_SYNC=1`; in the reserve with its reason). Designed and measured in scratch first (every
+configuration, `--handoff`, `--wellformed` strict; 1.9, 2.1 and 1.0 DECLINE, the exact ratio), installed
+with the full Lean pipeline (Assumption 1 proof `WellFormed/ZoneLightmassSchedule.lean`, Z3-free, at
+dimension 2; bridge instance; 8 refutation mutants, no witness). Tried and not adopted: a vacuum
+pump-down recipe on a load lock of half the chamber volume (the same exact scaling, but the reference's
+irreversible turbo start pairs with the deployed's roughing phase as an admissible start with no return
+edge: DECLINED), and a second first-order time-scaled design in another domain (a mathematical twin of
+the zone file; not added). Letter totals S 18 -> 19, M 23 -> 24, B 10 -> 11, R 6, P 5, D 12, I 17,
+X 16; benchmarks certifying under `RELCERT_SYNC=1` 27 -> 26. The suite stays at 50 (41 designed, 9 from
+the literature).
+
 ## Batch I9 (2026-10-27): more mechanisms, the multi-rate and stretch passes, two swaps
 
 Owner request (2026-10-27): demonstrate more of the paper's Table 1 mechanisms while keeping every
@@ -177,7 +197,7 @@ multi-step and branching covers). The reserve keeps `engine_start_highidle`'s tw
 
 New 2026-10-27 (batch I2): `bms_chiller_undercharge` (an EV battery pack in DC fast charge whose
 chiller lost refrigerant, against the pack's thermal strategy; the reference commits to the half
-compressor level to track the degraded full level: mode choice), `canal_gate_notches` (an
+compressor level to track the degraded full level: mode choice; in the reserve since batch I10), `canal_gate_notches` (an
 irrigation-canal pool under a three-position automatic gate against the manual operating rule's
 four notches: mode choice) and `turbine_startup_gearratio` (a wind turbine start-up whose
 controller uses a stale gearbox ratio; right-only repositioning, pruned parking edges and
@@ -460,7 +480,6 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `acc_tune_lag` | 2 / 2 | 1 / 1 | degraded-controller | redesigned 2026-10-26: same lag both sides; 2026-10-27: equal 0.1 s periods, the left guard its own loop's engaged envelope |
 | `acc_tune_limp` | 1 / 1 | 2 / 4 | degraded-controller | mode-keyed, mode choice; equal 0.1 s periods since 2026-10-27 |
 | `antenna_track_kvretune` | 3 / 3 | 3 / 3 | controller-change | new 2026-10-27 (batch I6): mode-keyed (the pointing row while tracking, the slew-lag envelope during the stow slew) |
-| `bms_chiller_undercharge` | 1 / 1 | 2 / 3 | degraded-actuator | new 2026-10-27: mode choice (the reference commits to a cooling level that is not the deployed's) |
 | `bottling_fill_strainer` | 2 / 2 | 2 / 2 | degraded-actuator | new 2026-10-27 (batch I6): stretch 17/20 in FILL (`lambda_min = 0.8`), load-bearing mode fact; `CLOSE`'s predicted-final-volume guard conjunct added at installation |
 | `charger_fast_tapers` | 1 / 1 | 5 / 6 | degraded-controller | reinstalled 2026-10-27 (batch I7; in the reserve from batch I4): the minute time scale (`epsilon` 0.006 min = 0.36 s on the right); mode-keyed (the stricter PRECHARGE row), right-only repositioning, pruned FAULT edges, widened cuts; batch I9: the deployed phase decision every other request cycle (0.012 min), multi-step and branching covers |
 | `compressor_station_recycle` | 2 / 2 | 3 / 3 | degraded-actuator | new 2026-10-27 (batch I5): mode choice (the reference commits to two units while the deployed commands three; with a healthy valve the hop is the identity) |
@@ -505,6 +524,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `ventilator_vc_cuffleak` | 2 / 2 | 2 / 2 | degraded-actuator | new 2026-10-27 (batch I5): mode-keyed (a relative volume row in inspiration, an absolute band in expiration) |
 | `watertank` | 1 / 1 | 3 / 5 | sensor-attack | the paper's running example (the NAHS 2025 salt-tank case, `salt_tank_sensor`, is a related published scenario with the same attack magnitude and band of 3, not its source) |
 | `watertank_twospeed` | 1 / 1 | 3 / 6 | sensor-attack | redesigned 2026-10-27: six right modes (two-speed low fill, eco/boost mid fill, high, pump off), one uniform claim; per-pairing stretch, pruned `Fast -> PumpOff` |
+| `zone_lightmass_schedule` | 1 / 1 | 2 / 3 | model-refinement | new 2026-10-28 (batch I10): time-scaled conformance of a lightweight zone to the commissioned zone's occupancy schedule, `lambda_min = lambda_max = 2` (the heat-capacity ratio), budget 2, mode choice (an identity hop and a timing commitment), a degenerate branching step |
 
 ## File format
 

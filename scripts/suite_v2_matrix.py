@@ -104,6 +104,7 @@ FAMILIES = [
     ("charger_", "DC fast charger (raised current limit)"),
     ("sat_detumble_", "Rigid-body detumbling (polynomial)"),
     ("sat3w_detumble_", "Rigid-body detumbling (polynomial)"),
+    ("zone_", "Building zone heating (lightweight construction)"),
     # case studies reproduced from published work (each header cites its source)
     ("drl_", "Literature"),
     ("vehicle_hypercert", "Literature"),

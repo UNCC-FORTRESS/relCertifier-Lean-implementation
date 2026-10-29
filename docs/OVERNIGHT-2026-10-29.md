@@ -567,3 +567,103 @@ owes 5180` (no FAIL line; the three extra groups are lz21's longer row), the mea
 `VerdictsV2/RunBridge.lean`, the runner rebuilt and re-run: 5183/5183. Nothing reverted.
 
 Commits (branch `benchmark-fixes`, pushed): the literature fidelity commit, then this section.
+
+## Literature migration + audit (2026-10-29)
+
+Goal (owner): replace weak designed and literature rows with faithful migrations of published examples, under
+the fidelity standard of the previous section ((a) model as printed, departures only where forced and listed;
+(b) the source's claim and bound, tight value measured; (c) non-trivial: no copy witness unless the source's
+claim is a copy, removing the source's cause changes the verdict or the tight value; (d) letters reported).
+Framework rules kept: Assumption 1 as is, sampled switching, one physical evolve domain, suite exactly 50.
+
+### Phase A: candidates, installs, swap, removals
+
+| benchmark | source | status | fidelity a/b/c (after audit) | tight vs source | cause test | letters |
+|---|---|---|---|---|---|---|
+| `lit_gpt10_boost_converter` | Girard, Pola, Tabuada, IEEE TAC 55(1) 2010, Sec. 5.1, Sec. 4.1, Thm. 4.1, Def. 3.2 | INSTALLED (replaces `lit_drl_car_stop`) | OK / OK / OK (first draft WEAK/WEAK/OK, fixed in Phase A: see audit) | eps 2.58 certifies, 2.57 declines (computed 2.5783) vs the source's eps = 2.6 at eta = 1/(40 sqrt 2) (its sufficient bound 145 eta = 2.563) | eta halved: 1.29 / 1.28 (linear in eta); no drift: exact rows; Euclidean norm in the source's physical coordinates: DECLINED; M = I: DECLINED at 2.6; NO_CHOICE: DECLINED | X |
+| `lit_csf25_salt_tank_hold` | Xiang et al., IEEE CSF 2025, Sec. VII, Fig. 8, Figs. 9-12, Props. 4, 6, 7, Def. 8 (owner-approved addition, design V2) | INSTALLED (replaces `zone_lightmass_schedule`) | WEAK / WEAK / OK (audit: the held decision is keyed on the fresh level, not the source's stale reading; disclosed) | Inc slope 1.31 (1.30 declines), the mechanism of the paper's 1.3 at another start; Dec 0.25 (0.24 declines) | hold 1 / 2 / 3 / 4 min: Inc slope 0 / 0.99 / 1.31 / 1.48 (= 0.03 x 65.5 x (1 - 1/H)) | S D I |
+| `rampmeter_poll_2to1` | reserve (RESERVE-R6 reframe): HCM 6th ed. Exhibit 12-15 level-of-service bands | SWAPPED IN (replaces `insulin_basal_cgmloss`) | designed file | requirement 8 veh/mi/ln, tightest 7.00 (6.99 declines) | poll 20 s: exact; 40 s: 7; 50-60 s: 9; 80 s: 11 (8 holds up to 40 s) | M B (unchanged from the reserve) |
+| n-room building | Girard, Goessler, Mouelhi, IEEE TAC 61(6) 2016, Sec. V-B, Table II | NOT INSTALLED | - | - | - | - |
+| engine cooling | Xiang et al., NAHS 56 (2025), Secs. 3-5, Examples 3, 5 | NOT INSTALLED | - | - | - | - |
+| 3-D polynomial vs 2-D linear | Girard, Pappas, CDC-ECC 2005, Sec. V | NOT INSTALLED (fallback tried) | - | - | - | - |
+| three voting velocity sensors | Xiang, Fulton, Chong, CSF 2021, Sec. III-C(a), Fig. 5 | NOT INSTALLED (fallback considered) | - | - | - | - |
+
+Why the three requested files that are not installed could not be made faithful and certifying:
+
+* **n-room building (GGM16 Sec. V-B).** The source's precision is the approximate bisimulation of Theorem 4 between
+  the building and its multiscale quantized model at eta = 0.28, tau = 80, N = 4, eps = 0.4, with a common
+  delta-GUAS Lyapunov function that is not printed. Encoded like the boost file (left = the building pushed by the
+  quantizer's error, per room +-eta/(sqrt n tau) per window, the 2^n corners times n + 1 heater modes; right = the
+  building copying the heater by choice; rows: one Euclidean quadratic row on the room differences): n = 3 has 32
+  left modes and exceeds the tool's 300 s budget (ERROR at 305 s; an 8-mode subset alone takes 168 s); box rows
+  (|T_L,i - T_R,i| <= c, linear) DECLINE even for the copy without perturbation (the coupled rooms make each row
+  depend on the others, which the linear-row route does not combine); a constant-disturbance variant (disturbance
+  as left state) did not finish in 600 s. The copy form (incremental stability of two runs, 0.3 s) certifies for
+  every c, so it fails (c). Measured on the way: with the Euclidean V the stand-in's tight precision is 0.70 for every
+  n, and the source's pair (eta = 0.28, eps = 0.4) does not satisfy its own condition (14) for that V (kappa = beta =
+  1/200 is the best rate any common Lyapunov function can have, the all-off mode's uniform direction decays at beta;
+  (14) at s = 0 then needs eta <= 0.132).
+* **Engine cooling (NAHS 2025, Examples 3 and 5).** The source's forward distance 0.3 (Def. 8) compares reachable
+  SETS (attacked (99.2, 101.3] against genuine (99.5, 101], Example 7); a run-wise forall-exists relation is false:
+  in lock step, from the source's pre temp = 100 the attacked controller may cool (a reading 100.3 > 100) while the
+  genuine one must heat, a gap of 1.5 after one period, and any band <= 0.3 would need temp_L <= 99.7 whenever
+  temp_R <= 100 and temp_L > 100.3 whenever temp_R > 100, impossible as temp_R crosses 100. With a stretch range
+  ([0.5, 2], [0.1, 10], [0, 1], [1, 10]) every pairing of the two-sided band fails (DECLINED); right-only
+  repositioning, which a set distance would allow, is not admitted for two-sided rows (SUITE-REDESIGN finding 5).
+* **Fallbacks.** Girard-Pappas 2005 (OVERNIGHT candidate 4): the printed bisimulation function is not one: its Lie
+  derivative is positive inside its own sublevel set V <= 0.348 (0.589 at (x1, x2, x3, e2, e3) = (0.846, -7.64, -3.80,
+  -0.088, -0.480), random search), and relcert returns ERROR (Z3 inconclusive) on the faithful file; a known-false
+  certificate, not a benchmark. CSF 2021 three-sensor voting car (OVERNIGHT candidate 5's neighbour): after
+  projecting the attack through the vote the attacked model is byte-identical to the genuine one (a copy, the
+  source's claim), the third CSF 2021 file and a near-duplicate of `lit_csf21_vehicle_thermo`; not installed. The
+  owner then approved `lit_csf25_salt_tank_hold` as the second new literature file.
+
+Removals (to `benchmarks/skipped/<b>/` with SKIPPED.md): `lit_drl_car_stop` (X; the dRL Goal-1-only copy, kept
+`lit_drl_lane_control`); `insulin_basal_cgmloss` (M B; the reserve swap); `zone_lightmass_schedule` (S M B X; r5
+overall 2, structural objection: the 0.5 K row certifies only by the 5..30 degC domain). Selection of the designed
+file: no P, D or R carrier removed; of the two r5-scored-2 candidates without P/D/R and with a structural objection
+(`acc_spoof_limp` M B I X, `zone_lightmass_schedule` S M B X), zone loses the most plentiful S instead of I. Only one
+designed file was removed: two of the three requested literature files could not be installed, and the owner-approved
+CSF 2025 file took the third slot.
+
+Letter arithmetic: out `lit_drl_car_stop` (X), `insulin_basal_cgmloss` (M B), `zone_lightmass_schedule` (S M B X); in `lit_gpt10_boost_converter` (X), `rampmeter_poll_2to1` (M B), `lit_csf25_salt_tank_hold` (S D I): net M -1, B -1, X -1, D +1, I +1. Totals (`docs/paper-numbers/letters.md`) S 20 M 25 R 7 B 13 P 4 D 10 I 17 X 16 -> S 20 M 24 R 7 B 12 P 4 D 11 I 18 X 15 (strict D 6 -> 7). No P or R carrier removed; the scarce D gains one. Literature count 8 -> 9 (41 designed + 9).
+
+Lean: Assumption 1 proofs `InstancesV2/WellFormed/LitGpt10BoostConverter.lean` and `LitCsf25SaltTankHold.lean`
+(direct over the bridge's automaton, the three standard axioms, no sorry), both on a new generic lemma
+`Proofs/Flow/LipschitzRun.lean` (`exists_odeSol_of_lipschitz`: a globally Lipschitz field has runs of every length,
+one uniform Picard step of length 1/(K + 1) chained by `chainN`; `lipschitz_rightBlock` for the right block);
+`RampmeterPoll2to1.lean` restored from 95033f6^ (builds unchanged). Generated: leaves (`gen_v2_data.py`), bridge
+instances (`gen_bridge.py`, `lit_csf25_salt_tank_hold` keyed), pack rows for the two non-choice files (29 + 2, derived
+from the emitted covers), refutation records (`refute_finder.py --only` the three: 53 mutants, no witness; the 48
+records of the removed files dropped; `gen_refute.py`: 74 instances unchanged).
+
+Checks (all green; library and the five executables built serially, no sorry): `--check-quick-v2` 50 certified,
+modal 1160/1160, handoff 2827/2827 (537 before: the boost's 48 all-to-all abstraction modes add 2256 vacuous
+transitions), non-connection 44/44, pruned 22/22, reposition 74/74, strict gate 181/181 (80 invariant, 101 exit);
+`relcert-test` ALL PASS; bridge 7433/7433 (5183 before; the boost alone 2450); progress 194/194; refute 204/204
+(74 instances); WellFormedBattery 66 lines at the three standard axioms (plus the 11 `CutLiftX` replay lines),
+AxiomCheck 9; negatives DECLINED (3); `lit_hypercert_vehicle_s8` BLOCKING / DECLINED under strict; one domain PASS
+(48 + 2 kind (iii)). Failed checks and their resolution: the first `--check-quick-v2` and bridge runs reported the
+declared counts (modal 1218, handoff 537, non-connection 42, pruned 21, wellformed 186, bridge 5183) against the
+measured ones; the declared counts in `VerdictsV2/RunV2.lean` and `RunBridge.lean` were set after measuring and the
+runners rebuilt; every query had come back unsat. Nothing reverted.
+
+Paper numbers (`scripts/paper_numbers.sh docs/paper-numbers` under zsh): covers identical across the two emissions; `numbers.tex` changes: `\numlit` 8 -> 9; letters M 25 -> 24, B 13 -> 12, D 10 -> 11, I 17 -> 18, X 16 -> 15 (`\nummechM/B/D/c/cplus` likewise: 25/13/10/17/6 -> 24/12/11/18/7); `\numnochoice` (certified without choice) 34 -> 35; `\numnoprunenochoice` 30 -> 31, `\numnoprunenochoicedecl` 20 -> 19; `\numnocut` 33 -> 32; `\numguardonly` 44 -> 43; `\totaltimes` 124 -> 181 s, `\numunderonesec` 29 -> 26, `\slowesttime` 31 -> 50 s (the slowest benchmark is now `lit_gpt10_boost_converter`, 50 s, the 48-mode abstraction; was `rover_ladder_8to12`). Run time on this machine (Apple, Z3 4.15.x): 45 min 46 s for the whole script.
+
+### Phase B: independent audit of the nine literature files
+
+Four fresh auditors (no migration notes; the sources, the files and the standard only), scratch copies under
+`tmp/lit-audit-r7/slice{A,B,C,D}/`, a frozen relcert binary. Every header measurement they re-ran reproduced,
+except the girard08 departure (1) claim (below).
+
+| file | a | b | c | discrepancies (source location) | fixed / open |
+|---|---|---|---|---|---|
+| `lit_gpt10_boost_converter` | WEAK -> OK | WEAK -> OK | OK | B1 (SUBSTANTIVE, Sec. 4.1): the four-corner drift of the first draft, integrated through e^(A s), misses up to 2 % of the lattice cell, so the left did not contain the abstraction; B2: departure (1) not forced, a polygon covering the source's eta-ball certifies; B3 (header): "the same label p" is the choice witness, not certified | fixed in Phase A (new install): 24-gon covering the eta-ball, re-measured (2.58 / 2.57, eta halved 1.29 / 1.28, cause tests); B3 disclosed |
+| `lit_girard08_robot` | WEAK | OK | OK (the copy of w is forced by beta = 0.4) | R1: departure (1)'s "physical coordinates: ERROR at 40 s" not reproduced, the physical-coordinate file CERTIFIES in 53 s (level 0.1599 and NO_CHOICE DECLINE), so the error coordinates are not forced; R2: the physical reading (planner, obstacle) is ours, labelled | header corrected; switching the model to physical coordinates OPEN (substantive) |
+| `lit_nahs25_salt_tank` | OK | OK | OK | 3 is the lock-step supremum; Def. 8's reachable-set value from xp = 50 is 0 (both reach (25, 50]); Fig. 7 omits the reset t := 0; lambda pinned is not forced (tight 3 also for lambda ranges) | header fixed (wording, reset disclosed) |
+| `lit_csf21_vehicle_thermo` | OK | OK | OK | the negative exhibit `lit_csf21_vehicle_thermo_leaky` still had the pre-2026-10-28 Coast guards (v >= 0); Def. 5 is lock-step in iterations, not durations; leaky time 0.9 s -> 0.4 s | fixed (exhibit guards v <= 1, still DECLINED; header wording) |
+| `lit_csf21_vehicle_bus` | OK | OK | OK (caveat: the positive certificate is the thermo file's; the bus content is in the negative exhibit, disclosed) | thermoprio time 1.5 s -> 0.9 s; the left cannot change its thermostat on a Brk -> Coast cycle (weakens the claim, not load-bearing) | time fixed; the minor point OPEN |
+| `lit_drl_lane_control` | WEAK | WEAK | WEAK | A = B = eps = 1 is our instantiation (the source is symbolic); the "two UNKNOWN, none blocking" note should say neither is shown nonblocking; the two-level leader, the closed strict guards and the top speed are conveniences, not forced; the source's 2 v_f + 1 margin is not load-bearing (tight margin 0, -0.001 DECLINES) | header fixed; the WEAK axes OPEN (disclosed: Goal 3 not expressible) |
+| `lit_freedm_meter` | OK | OK | OK | l. 46-47 misstated the source's batS test; the claim (E equal at every instant) is a trace statement, stronger than Def. 5's final states; the battery guards are forced on the right only (the literal source tests on the left CERTIFY); domain B <= 10 not forced (disclosed) | header fixed; literal left guards OPEN (option) |
+| `lit_lz21_vehicle_position` | WEAK | OK | WEAK | l. 63: the printed policy ranges exactly over [1.45, 3.85] on R0 (header [1.47, 3.82]); the left can be confined to the source's x <= 10 by guards (CERTIFIED); 11 input levels certify; the tool verdict is independent of delta (delta acts through coverage, outside the tool) | constant fixed; the two closer models OPEN (options) |
+| `lit_csf25_salt_tank_hold` | WEAK | WEAK | OK | SUBSTANTIVE (paper.tex ~4060-4075, Fig. 10 mid_a): the held decision is keyed on the fresh level at S, while the source's DoS keeps the stale pre-attack reading, whose worst case the paper proves; a stale/free-decision variant CERTIFIES with Inc slope about 2.06 (6.2 lb at the end of the hold, the paper's 6) only without the psi_b envelope rows; "rounded down" gloss wrong (the paper's 1.295 <= 1.3 is sound at xp_L >= 35; 1.31 is at 34.5); Cors. 1-2 are in Sec. V-B; 3.93 vs 6 not comparable | header fixed (departure (3) now a disclosure); the stale-reading model OPEN (substantive) |

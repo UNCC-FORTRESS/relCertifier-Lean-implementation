@@ -66,7 +66,7 @@ def rover_ladder_3to6_IRv2 : PProblem :=
             ("z", (.num "0")),
             ("phi_r", (.num "0"))]
           guard := (.and (.cmp ">=" (.var "s") (.num "0.0")) (.cmp "<" (.var "s") (.num "60.0")))
-          evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "8.0"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "psi") (.num "-0.6"))) (.cmp "<=" (.var "psi") (.num "0.6"))) (.cmp ">=" (.var "theta_p") (.num "0.0"))) (.cmp "<=" (.var "theta_p") (.num "0.0"))) (.cmp ">=" (.var "z") (.num "0.0"))) (.cmp "<=" (.var "z") (.num "0.0"))) (.cmp ">=" (.var "phi_r") (.num "0.0"))) (.cmp "<=" (.var "phi_r") (.num "0.0")))
+          evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "8.0"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "psi") (.num "-0.6"))) (.cmp "<=" (.var "psi") (.num "0.6"))) (.cmp ">=" (.var "theta_p") (.num "-0.6"))) (.cmp "<=" (.var "theta_p") (.num "0.6"))) (.cmp ">=" (.var "z") (.num "-0.15"))) (.cmp "<=" (.var "z") (.num "0.15"))) (.cmp ">=" (.var "phi_r") (.num "-0.5"))) (.cmp "<=" (.var "phi_r") (.num "0.5")))
           next := ["MODER", "STEEP"] },
         {
           name := "MODER"
@@ -77,7 +77,7 @@ def rover_ladder_3to6_IRv2 : PProblem :=
             ("z", (.num "0")),
             ("phi_r", (.num "0"))]
           guard := (.and (.cmp ">=" (.var "s") (.num "60.0")) (.cmp "<" (.var "s") (.num "140.0")))
-          evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "8.0"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "psi") (.num "-0.6"))) (.cmp "<=" (.var "psi") (.num "0.6"))) (.cmp ">=" (.var "theta_p") (.num "0.0"))) (.cmp "<=" (.var "theta_p") (.num "0.0"))) (.cmp ">=" (.var "z") (.num "0.0"))) (.cmp "<=" (.var "z") (.num "0.0"))) (.cmp ">=" (.var "phi_r") (.num "0.0"))) (.cmp "<=" (.var "phi_r") (.num "0.0")))
+          evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "8.0"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "psi") (.num "-0.6"))) (.cmp "<=" (.var "psi") (.num "0.6"))) (.cmp ">=" (.var "theta_p") (.num "-0.6"))) (.cmp "<=" (.var "theta_p") (.num "0.6"))) (.cmp ">=" (.var "z") (.num "-0.15"))) (.cmp "<=" (.var "z") (.num "0.15"))) (.cmp ">=" (.var "phi_r") (.num "-0.5"))) (.cmp "<=" (.var "phi_r") (.num "0.5")))
           next := ["FLAT", "MODER"] },
         {
           name := "FLAT"
@@ -88,7 +88,7 @@ def rover_ladder_3to6_IRv2 : PProblem :=
             ("z", (.num "0")),
             ("phi_r", (.num "0"))]
           guard := (.cmp ">=" (.var "s") (.num "140.0"))
-          evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "8.0"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "psi") (.num "-0.6"))) (.cmp "<=" (.var "psi") (.num "0.6"))) (.cmp ">=" (.var "theta_p") (.num "0.0"))) (.cmp "<=" (.var "theta_p") (.num "0.0"))) (.cmp ">=" (.var "z") (.num "0.0"))) (.cmp "<=" (.var "z") (.num "0.0"))) (.cmp ">=" (.var "phi_r") (.num "0.0"))) (.cmp "<=" (.var "phi_r") (.num "0.0")))
+          evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "8.0"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "psi") (.num "-0.6"))) (.cmp "<=" (.var "psi") (.num "0.6"))) (.cmp ">=" (.var "theta_p") (.num "-0.6"))) (.cmp "<=" (.var "theta_p") (.num "0.6"))) (.cmp ">=" (.var "z") (.num "-0.15"))) (.cmp "<=" (.var "z") (.num "0.15"))) (.cmp ">=" (.var "phi_r") (.num "-0.5"))) (.cmp "<=" (.var "phi_r") (.num "0.5")))
           next := ["FLAT"] } ] }
     invariants := [
       ("STEEP", (.and (.and (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "L_s") (.var "R_s"))) (.and (.cmp "<=" (.var "L_psi") (.var "R_psi")) (.cmp "<=" (.var "R_psi") (.var "L_psi")))) (.and (.cmp "<=" (.var "L_theta_p") (.num "0.25")) (.cmp "<=" (.bin "-" (.num "0") (.num "0.25")) (.var "L_theta_p"))))),

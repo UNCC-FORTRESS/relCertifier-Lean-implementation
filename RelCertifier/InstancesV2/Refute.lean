@@ -6,7 +6,6 @@ Released under Apache 2.0 license.
 
 -/
 import RelCertifier.InstancesV2.Refute.QuadLightLagM021
-import RelCertifier.InstancesV2.Refute.QuadLightLagM023
 import RelCertifier.InstancesV2.Refute.RoverLadder6to8M006
 import RelCertifier.InstancesV2.Refute.RoverLadder6to8M009
 import RelCertifier.InstancesV2.Refute.RoverLadder8to12M005
@@ -79,6 +78,7 @@ import RelCertifier.InstancesV2.Refute.PlatoonLatencyM043
 import RelCertifier.InstancesV2.Refute.PlatoonLatencyM047
 import RelCertifier.InstancesV2.Refute.PlatoonLatencyM048
 import RelCertifier.InstancesV2.Refute.PlatoonLatencyM049
+import RelCertifier.InstancesV2.Refute.PlatoonLatencyM050
 import RelCertifier.InstancesV2.Refute.AntennaTrackKvretuneM016
 import RelCertifier.InstancesV2.Refute.AntennaTrackKvretuneM017
 import RelCertifier.InstancesV2.Refute.AntennaTrackKvretuneM018

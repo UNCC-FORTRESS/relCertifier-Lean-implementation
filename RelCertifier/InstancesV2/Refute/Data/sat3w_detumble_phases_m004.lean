@@ -32,7 +32,7 @@ def sat3w_detumble_phases_m004_IRm : PProblem :=
             ("h2", (.bin "*" (.num "2.0") (.var "w2"))),
             ("h3", (.bin "*" (.num "2.5") (.var "w3")))]
           guard := (.cmp "<=" (.bin "+" (.bin "+" (.bin "*" (.bin "*" (.var "w1") (.var "w1")) (.num "2")) (.bin "*" (.bin "*" (.var "w2") (.var "w2")) (.num "4"))) (.bin "*" (.bin "*" (.var "w3") (.var "w3")) (.num "5"))) (.num "1.0"))
-          evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "w1") (.num "-1.0")) (.cmp "<=" (.var "w1") (.num "1.0"))) (.cmp ">=" (.var "w2") (.num "-1.0"))) (.cmp "<=" (.var "w2") (.num "1.0"))) (.cmp ">=" (.var "w3") (.num "-1.0"))) (.cmp "<=" (.var "w3") (.num "1.0"))) (.cmp ">=" (.var "h1") (.num "-2.0"))) (.cmp "<=" (.var "h1") (.num "2.0"))) (.cmp ">=" (.var "h2") (.num "-2.0"))) (.cmp "<=" (.var "h2") (.num "2.0"))) (.cmp ">=" (.var "h3") (.num "-2.0"))) (.cmp "<=" (.var "h3") (.num "2.0")))
+          evolve := (.and (.and (.and (.and (.and (.cmp ">=" (.var "w1") (.num "-1.0")) (.cmp "<=" (.var "w1") (.num "1.0"))) (.cmp ">=" (.var "w2") (.num "-1.0"))) (.cmp "<=" (.var "w2") (.num "1.0"))) (.cmp ">=" (.var "w3") (.num "-1.0"))) (.cmp "<=" (.var "w3") (.num "1.0")))
           next := ["FINE", "DETUMBLE"] },
         {
           name := "FINE"
@@ -43,7 +43,7 @@ def sat3w_detumble_phases_m004_IRm : PProblem :=
             ("h2", (.bin "*" (.num "1.2") (.var "w2"))),
             ("h3", (.bin "*" (.num "1.5") (.var "w3")))]
           guard := (.cmp "<=" (.bin "+" (.bin "+" (.bin "*" (.bin "*" (.var "w1") (.var "w1")) (.num "2")) (.bin "*" (.bin "*" (.var "w2") (.var "w2")) (.num "4"))) (.bin "*" (.bin "*" (.var "w3") (.var "w3")) (.num "5"))) (.num "0.125"))
-          evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "w1") (.num "-1.0")) (.cmp "<=" (.var "w1") (.num "1.0"))) (.cmp ">=" (.var "w2") (.num "-1.0"))) (.cmp "<=" (.var "w2") (.num "1.0"))) (.cmp ">=" (.var "w3") (.num "-1.0"))) (.cmp "<=" (.var "w3") (.num "1.0"))) (.cmp ">=" (.var "h1") (.num "-2.0"))) (.cmp "<=" (.var "h1") (.num "2.0"))) (.cmp ">=" (.var "h2") (.num "-2.0"))) (.cmp "<=" (.var "h2") (.num "2.0"))) (.cmp ">=" (.var "h3") (.num "-2.0"))) (.cmp "<=" (.var "h3") (.num "2.0")))
+          evolve := (.and (.and (.and (.and (.and (.cmp ">=" (.var "w1") (.num "-1.0")) (.cmp "<=" (.var "w1") (.num "1.0"))) (.cmp ">=" (.var "w2") (.num "-1.0"))) (.cmp "<=" (.var "w2") (.num "1.0"))) (.cmp ">=" (.var "w3") (.num "-1.0"))) (.cmp "<=" (.var "w3") (.num "1.0")))
           next := ["FINE", "DETUMBLE"] } ] }
     R := {
       stateVars := ["w1", "w2", "w3", "h1", "h2", "h3"]
@@ -58,7 +58,7 @@ def sat3w_detumble_phases_m004_IRm : PProblem :=
             ("h2", (.bin "*" (.num "2.0") (.var "w2"))),
             ("h3", (.bin "*" (.num "2.5") (.var "w3")))]
           guard := (.cmp "<=" (.bin "+" (.bin "+" (.bin "*" (.bin "*" (.var "w1") (.var "w1")) (.num "2")) (.bin "*" (.bin "*" (.var "w2") (.var "w2")) (.num "4"))) (.bin "*" (.bin "*" (.var "w3") (.var "w3")) (.num "5"))) (.num "1.0"))
-          evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "w1") (.num "-1.0")) (.cmp "<=" (.var "w1") (.num "1.0"))) (.cmp ">=" (.var "w2") (.num "-1.0"))) (.cmp "<=" (.var "w2") (.num "1.0"))) (.cmp ">=" (.var "w3") (.num "-1.0"))) (.cmp "<=" (.var "w3") (.num "1.0"))) (.cmp ">=" (.var "h1") (.num "-2.0"))) (.cmp "<=" (.var "h1") (.num "2.0"))) (.cmp ">=" (.var "h2") (.num "-2.0"))) (.cmp "<=" (.var "h2") (.num "2.0"))) (.cmp ">=" (.var "h3") (.num "-2.0"))) (.cmp "<=" (.var "h3") (.num "2.0"))) (.cmp ">=" (.bin "+" (.var "h1") (.bin "*" (.num "2.0") (.var "w1"))) (.num "-2.0"))) (.cmp "<=" (.bin "+" (.var "h1") (.bin "*" (.num "2.0") (.var "w1"))) (.num "2.0"))) (.cmp ">=" (.bin "+" (.var "h2") (.bin "*" (.num "4.0") (.var "w2"))) (.num "-2.0"))) (.cmp "<=" (.bin "+" (.var "h2") (.bin "*" (.num "4.0") (.var "w2"))) (.num "2.0"))) (.cmp ">=" (.bin "+" (.var "h3") (.bin "*" (.num "5.0") (.var "w3"))) (.num "-2.0"))) (.cmp "<=" (.bin "+" (.var "h3") (.bin "*" (.num "5.0") (.var "w3"))) (.num "2.0")))
+          evolve := (.and (.and (.and (.and (.and (.cmp ">=" (.var "w1") (.num "-1.0")) (.cmp "<=" (.var "w1") (.num "1.0"))) (.cmp ">=" (.var "w2") (.num "-1.0"))) (.cmp "<=" (.var "w2") (.num "1.0"))) (.cmp ">=" (.var "w3") (.num "-1.0"))) (.cmp "<=" (.var "w3") (.num "1.0")))
           next := ["DETUMBLE", "FINE", "SAFE"] },
         {
           name := "FINE"
@@ -69,7 +69,7 @@ def sat3w_detumble_phases_m004_IRm : PProblem :=
             ("h2", (.bin "*" (.num "1.2") (.var "w2"))),
             ("h3", (.bin "*" (.num "1.5") (.var "w3")))]
           guard := (.cmp "<=" (.bin "+" (.bin "+" (.bin "*" (.bin "*" (.var "w1") (.var "w1")) (.num "2")) (.bin "*" (.bin "*" (.var "w2") (.var "w2")) (.num "4"))) (.bin "*" (.bin "*" (.var "w3") (.var "w3")) (.num "5"))) (.num "0.125"))
-          evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "w1") (.num "-1.0")) (.cmp "<=" (.var "w1") (.num "1.0"))) (.cmp ">=" (.var "w2") (.num "-1.0"))) (.cmp "<=" (.var "w2") (.num "1.0"))) (.cmp ">=" (.var "w3") (.num "-1.0"))) (.cmp "<=" (.var "w3") (.num "1.0"))) (.cmp ">=" (.var "h1") (.num "-2.0"))) (.cmp "<=" (.var "h1") (.num "2.0"))) (.cmp ">=" (.var "h2") (.num "-2.0"))) (.cmp "<=" (.var "h2") (.num "2.0"))) (.cmp ">=" (.var "h3") (.num "-2.0"))) (.cmp "<=" (.var "h3") (.num "2.0"))) (.cmp ">=" (.bin "+" (.var "h1") (.bin "*" (.num "2.0") (.var "w1"))) (.num "-2.0"))) (.cmp "<=" (.bin "+" (.var "h1") (.bin "*" (.num "2.0") (.var "w1"))) (.num "2.0"))) (.cmp ">=" (.bin "+" (.var "h2") (.bin "*" (.num "4.0") (.var "w2"))) (.num "-2.0"))) (.cmp "<=" (.bin "+" (.var "h2") (.bin "*" (.num "4.0") (.var "w2"))) (.num "2.0"))) (.cmp ">=" (.bin "+" (.var "h3") (.bin "*" (.num "5.0") (.var "w3"))) (.num "-2.0"))) (.cmp "<=" (.bin "+" (.var "h3") (.bin "*" (.num "5.0") (.var "w3"))) (.num "2.0")))
+          evolve := (.and (.and (.and (.and (.and (.cmp ">=" (.var "w1") (.num "-1.0")) (.cmp "<=" (.var "w1") (.num "1.0"))) (.cmp ">=" (.var "w2") (.num "-1.0"))) (.cmp "<=" (.var "w2") (.num "1.0"))) (.cmp ">=" (.var "w3") (.num "-1.0"))) (.cmp "<=" (.var "w3") (.num "1.0")))
           next := ["FINE", "DETUMBLE"] },
         {
           name := "SAFE"
@@ -80,7 +80,7 @@ def sat3w_detumble_phases_m004_IRm : PProblem :=
             ("h2", (.num "0")),
             ("h3", (.num "0"))]
           guard := (.cmp ">" (.bin "+" (.bin "+" (.bin "*" (.bin "*" (.var "w1") (.var "w1")) (.num "2")) (.bin "*" (.bin "*" (.var "w2") (.var "w2")) (.num "4"))) (.bin "*" (.bin "*" (.var "w3") (.var "w3")) (.num "5"))) (.num "1.0"))
-          evolve := (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "w1") (.num "-1.0")) (.cmp "<=" (.var "w1") (.num "1.0"))) (.cmp ">=" (.var "w2") (.num "-1.0"))) (.cmp "<=" (.var "w2") (.num "1.0"))) (.cmp ">=" (.var "w3") (.num "-1.0"))) (.cmp "<=" (.var "w3") (.num "1.0"))) (.cmp ">=" (.var "h1") (.num "-2.0"))) (.cmp "<=" (.var "h1") (.num "2.0"))) (.cmp ">=" (.var "h2") (.num "-2.0"))) (.cmp "<=" (.var "h2") (.num "2.0"))) (.cmp ">=" (.var "h3") (.num "-2.0"))) (.cmp "<=" (.var "h3") (.num "2.0"))) (.cmp ">=" (.bin "+" (.var "h1") (.bin "*" (.num "2.0") (.var "w1"))) (.num "-2.0"))) (.cmp "<=" (.bin "+" (.var "h1") (.bin "*" (.num "2.0") (.var "w1"))) (.num "2.0"))) (.cmp ">=" (.bin "+" (.var "h2") (.bin "*" (.num "4.0") (.var "w2"))) (.num "-2.0"))) (.cmp "<=" (.bin "+" (.var "h2") (.bin "*" (.num "4.0") (.var "w2"))) (.num "2.0"))) (.cmp ">=" (.bin "+" (.var "h3") (.bin "*" (.num "5.0") (.var "w3"))) (.num "-2.0"))) (.cmp "<=" (.bin "+" (.var "h3") (.bin "*" (.num "5.0") (.var "w3"))) (.num "2.0")))
+          evolve := (.and (.and (.and (.and (.and (.cmp ">=" (.var "w1") (.num "-1.0")) (.cmp "<=" (.var "w1") (.num "1.0"))) (.cmp ">=" (.var "w2") (.num "-1.0"))) (.cmp "<=" (.var "w2") (.num "1.0"))) (.cmp ">=" (.var "w3") (.num "-1.0"))) (.cmp "<=" (.var "w3") (.num "1.0")))
           next := ["SAFE"] } ] }
     invariants := [
       ("DETUMBLE", (.and (.cmp "<=" (.bin "+" (.bin "+" (.bin "*" (.bin "*" (.var "L_w1") (.var "L_w1")) (.num "2.0")) (.bin "*" (.bin "*" (.var "L_w2") (.var "L_w2")) (.num "4.0"))) (.bin "*" (.bin "*" (.var "R_w3") (.var "R_w3")) (.num "5.0"))) (.bin "+" (.bin "+" (.bin "*" (.bin "*" (.var "R_w1") (.var "R_w1")) (.num "2.0")) (.bin "*" (.bin "*" (.var "R_w2") (.var "R_w2")) (.num "4.0"))) (.bin "*" (.bin "*" (.var "R_w3") (.var "R_w3")) (.num "5.0")))) (.cmp "<=" (.bin "+" (.bin "+" (.bin "*" (.bin "*" (.var "R_w1") (.var "R_w1")) (.num "2.0")) (.bin "*" (.bin "*" (.var "R_w2") (.var "R_w2")) (.num "4.0"))) (.bin "*" (.bin "*" (.var "R_w3") (.var "R_w3")) (.num "5.0"))) (.bin "+" (.bin "+" (.bin "*" (.bin "*" (.var "L_w1") (.var "L_w1")) (.num "2.0")) (.bin "*" (.bin "*" (.var "L_w2") (.var "L_w2")) (.num "4.0"))) (.bin "*" (.bin "*" (.var "L_w3") (.var "L_w3")) (.num "5.0")))))),
@@ -89,7 +89,7 @@ def sat3w_detumble_phases_m004_IRm : PProblem :=
 /-- The finder's witness (kind B). -/
 def sat3w_detumble_phases_m004_wit : RefWitE :=
   { kind := "B", u := 0, m := 0, q0 := 0, k := 0,
-    wL := [(1/2 : ℚ), (0 : ℚ), (5/16 : ℚ), (0 : ℚ), (7/4 : ℚ), (0 : ℚ)],
-    wR := [(-1/2 : ℚ), (0 : ℚ), (0 : ℚ), (0 : ℚ), (0 : ℚ), (0 : ℚ)] }
+    wL := [(707/1000 : ℚ), (0 : ℚ), (1/1000 : ℚ), (0 : ℚ), (707001/1000 : ℚ), (0 : ℚ)],
+    wR := [(707/1000 : ℚ), (0 : ℚ), (0 : ℚ), (0 : ℚ), (0 : ℚ), (0 : ℚ)] }
 
 end RelCertifier.Refute

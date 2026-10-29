@@ -13,6 +13,17 @@
 > mutants), `quad_light_profiles` (21) and `turbine_startup_gearratio` (6, now at bridge dimension 4)
 > have no witness. 87 instances, `relcert-refute-verdicts` 260/260.
 
+> 2026-10-29, later (branch `benchmark-fixes`, one evolve domain per benchmark,
+> `docs/OVERNIGHT-2026-10-29.md` "One domain per benchmark 2026-10-29"): the finder was re-run
+> (fresh, no reuse) on the eleven benchmarks whose models changed. `platoon_latency` (73 mutants:
+> the right now declares `e`, so two more mutants) has 6 witnesses (`_m050` new, `L_e -> R_e` in
+> the `|e| <= 0.5` row, kind B); `quad_light_lag` (24) has 1 (`_m021`; `_m023`, a Psi lower-row
+> mutant, has no witness on the 3 m/s / 1.5 g box and was removed); every other count is as before
+> (`rover_ladder_6to8` 2, `_8to12` 7, `rover_terrain_2to4` 4, `sat_detumble_phases` 4,
+> `sat_detumble_weak` 4, `sat3w_detumble_phases` 6; `rover_ladder_2to3`, `_3to6`, `rover_patrol_lag`
+> none), every instance re-emitted on its new model. 87 instances, `relcert-refute-verdicts`
+> 261/261, every instance builds.
+
 > 2026-10-26 (branch `benchmark-fixes`): the tables below are the 2026-10-21 run and predate two
 > suite changes. The `rover_lateral` model changes added refutations (79 instances, 224 groups),
 > and `rover_tier_1to2` (`rover3tier_rung12`) was retired with its two refutations (m000 kind C,

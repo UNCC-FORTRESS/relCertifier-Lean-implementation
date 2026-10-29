@@ -5,8 +5,10 @@
 suite_v2 benchmarks (2026-10-27: four moved to `benchmarks/reserve/`, below, seven more in batch I4, ten new in batch I5 and five in batch I6, and five swapped for literature case studies in batch I8): **proved for all 50**, **false for none** (the four literature benchmarks
 of 2026-10-15 included; the two dRL ones, `lit_freedm_meter` and the case studies of batch I8 are proved directly over the bridge's automaton,
 `<b>_wellFormedR_direct`, with explicit polynomial runs, `trajRs_sol`). The satellites are proved
-literally since 2026-10-15, when their conserved momentum band entered the right evolve
-domain (§3, §5); until then they were proved on the band, with the literal predicate refuted. Until 2026-10-10 it was false for 9 models (refuted in the kernel with exhibited
+literally since 2026-10-15 (§3, §5); from 2026-10-15 to 2026-10-29 their right evolve domain carried the
+conserved momentum band, since 2026-10-29 (one domain per benchmark) their domain is the gyro box `|w_i| ≤ 1`
+on both sides, without the band (not a first integral of the left) and without the wheel box `|h| ≤ 2` (which the
+design model's flow crosses); until 2026-10-15 they were proved on the band, with the literal predicate refuted. Until 2026-10-10 it was false for 9 models (refuted in the kernel with exhibited
 blocking states); those nine were repaired (`docs/SUITE-REDESIGN.md` §21: the fallback sinks
 re-engage or are latched with an invariant guard, the arm planner's successor sets name every
 band a sampled interval can reach) and are now proved. No proof uses Z3. The tool's sufficient
@@ -70,9 +72,10 @@ def WellFormedR  G guard ε     : Prop := WellFormedRIn G guard Formula.tt ε
 * **(a) forward invariance** of the mode's guard under its own flow, then the self-loop.
 * **(b) exit into a successor's guard** within one interval (the band advances into the next
   band; a threshold is crossed into the next mode's guard).
-* **(c) the momentum band in the domain**: the satellites (three in the suite since 2026-10-27), style (a) once the right
-  evolve domain carries the conserved momentum band (the explicit solution keeps the sums
-  constant, so it stays in the domain).
+* **(c) the momentum band in the domain** (2026-10-15 to 2026-10-29): the satellites, style (a) once the right
+  evolve domain carried the conserved momentum band. Since 2026-10-29 the domain is the gyro box
+  `|w_i| ≤ 1` only (one domain per benchmark): style (a), the explicit solution's rates decay
+  (`|w_i(t)| = |w_i(0)| e^{−kt}`), `h` is unconstrained.
 
 Generic lemmas (`WellFormedR.lean`): closed form of a linear coordinate at the run's duration
 (`ODESol.linear_exact`, `linear_between`, `linear_up/down/lt/gt`), rate bounds
@@ -101,7 +104,7 @@ Existence (clause (i)) is always an explicit or instance-supplied run: the expon
 linear solutions, the ladders' `LadderRun.sol` (and `runE` / `run_sol` / `drive_sol`, the
 instances' explicit runs with their duration kept), the platoon link solution `solΦ` and the
 sinks' `solB`, the
-satellites' `flowR_exists` (the conserved sums keep the band), and for `w' = c − w²` the instances' viability route
+satellites' `flowR_exists` (the decaying rates keep the gyro box), and for `w' = c − w²` the instances' viability route
 (both faces strict, hand Lipschitz data). **No Z3 leaf** anywhere: the pinned-query discipline
 was not needed.
 
@@ -109,9 +112,9 @@ was not needed.
 
 Theorems: `<ns>.<bench>_wellFormedR` (proved; for the nine repaired models also the
 per-mode theorems `…_brake`, `…_limit`, `…_mode`), for the detumble family also
-`<ns>.<bench>_band_invariant` (the band is kept by every mode's flow; the predicate itself is
-unconditional since the momentum band `|h_i + J_i w_i| ≤ 2` entered the right evolve domains,
-2026-10-15). Files: `InstancesV2/WellFormed/<B>.lean` (51, each
+`<ns>.<bench>_band_invariant` (the band is kept by every right mode's flow, a model fact of the
+design model; the predicate itself is unconditional since 2026-10-15, with the band in the right
+evolve domains until 2026-10-29 and over the gyro box `|w_i| ≤ 1` alone since). Files: `InstancesV2/WellFormed/<B>.lean` (51, each
 self-contained: right model and proof; the 19 carried-over ones moved in from `Instances/WellFormed/`
 on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 `relcert --wellformed` (§4). Z3 leaves: none for every row.
@@ -133,9 +136,9 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 13 | `platoon_delay_linkloss` | replaced 2026-10-27 by `platoon_linkloss` (row 51; was: proved (repaired); proof in git history) | FOLLOW (a), CATCH (a); BRAKE (b) → FOLLOW | FOLLOW, CATCH ok (invariant); BRAKE ok (exit→FOLLOW) |
 | 14 | `platoon_delay_profiles` | replaced 2026-10-27 by `platoon_profiles` (row 56; was: proved (repaired); proof in git history) | FOLLOW, GENTLE, ASSERTIVE (a); BRAKE (b) → FOLLOW | those ok (invariant); BRAKE ok (exit→FOLLOW) |
 | 15 | `quad_light_airframe_20` | moved to `benchmarks/reserve/` 2026-10-27 (batch I7; was: proved, redesigned 2026-10-27, repaired 2026-10-10 before; proof in git history) | CLIMB (a) (the affine pair `h' = w`, `w' = 9.81 − 4.905 w`; the explicit run `forcedSol` / `intSol` stays in the guard box `h ≥ 0`, `0 ≤ w ≤ 2`, the equilibrium `w = 2` on its face) | ok (invariant) |
-| 16 | `quad_light_lag` | proved | CLIMB (a) (since 2026-10-27 the affine cascade `h' = w`, `w' = a − 4.905 w`, `a' = 10 (9.81 − a)`; the explicit run `forcedSol` / `intSol` stays in the guard box `h ≥ 0`, `0 ≤ w ≤ 2`, `0 ≤ a ≤ 9.81`) | ok (invariant) |
+| 16 | `quad_light_lag` | proved | CLIMB (a) (since 2026-10-27 the affine cascade `h' = w`, `w' = a − 4.905 w`, `a' = 10 (9.81 − a)`; the explicit run `forcedSol` / `intSol` stays in the guard box; since 2026-10-29 (one domain on both sides) the box is `h ≥ 0`, `0 ≤ w ≤ 3`, `0 ≤ a ≤ 14.715`, kept since `14.715 = 3 × 4.905`) | ok (invariant) |
 | 17 | `quad_light_profiles` | proved (redesigned 2026-10-27; repaired 2026-10-10 before, proof in git history) | NORMAL, ECO, SPORT (a) (`h' = w`, `w' = c − 4.905 w` toward 2.0, 1.6, 2.4; explicit run in the guard box `h ≥ 0`, `0 ≤ w ≤ 2.4`); dimension 3 (mode choice, the default padding) | all ok (invariant) |
-| 18 | `rover_ladder_2to3` | proved (reinstalled 2026-10-27 on the canonical rover hierarchy: right `L2`, `ψ` pinned) | STEEP (b) → MODER, MODER (b) → FLAT, FLAT (a) (the shared three-band lemma `wellFormedR_terrain` at the route scale: odometer zones `[0, 60)`, `[60, 140)`, `[140, ∞)`, no cap, `0 ≤ s' ≤ 8`; existence: `v → c_q` by `forcedSol`, `s` its integral) | STEEP ok (exit→MODER), MODER ok (exit→FLAT), FLAT ok (invariant) |
+| 18 | `rover_ladder_2to3` | proved (reinstalled 2026-10-27 on the canonical rover hierarchy: right `L2`, `ψ` frozen; since 2026-10-29 the right evolve domain is the validity box of both sides, the frozen coordinates stay at their start values) | STEEP (b) → MODER, MODER (b) → FLAT, FLAT (a) (the shared three-band lemma `wellFormedR_terrain` at the route scale: odometer zones `[0, 60)`, `[60, 140)`, `[140, ∞)`, no cap, `0 ≤ s' ≤ 8`; existence: `v → c_q` by `forcedSol`, `s` its integral) | STEEP ok (exit→MODER), MODER ok (exit→FLAT), FLAT ok (invariant) |
 | 19 | `rover_ladder_3to6` | proved (reinstalled 2026-10-27, right `L3`) | as 18 (existence: also `ψ` decaying) | as 18 |
 | 20 | `rover_ladder_2to4` | left the suite 2026-10-27 (batch I3, the rover hierarchy; was: proved; proof in git history) | as 18 | as 18 |
 | 21 | `rover_ladder_2to6` | left the suite 2026-10-27 (batch I3, the rover hierarchy; was: proved; proof in git history) | as 18 | as 18 |
@@ -147,14 +150,14 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 27 | `rover_terrain_2to4` | proved | MUD (b) → GRAVEL, GRAVEL (b) → PAVED, PAVED (a) (terrain-chain lemma; guards the odometer bands only; existence: `v → c_T`, `s` its integral, `w`, `zs` frozen) | MUD ok (exit→GRAVEL), GRAVEL ok (exit→PAVED), PAVED ok (invariant) |
 | 28 | `rover_terrain_4to6` | proved | as 27, cap `w ≤ c_T` kept by `w' = 3 (c_T − w)` (existence: the affine cascade `w, zs → v → s` inside the evolve box by the comparison bounds) | as 27 |
 | 29 | `rover_terrain_6to12` | proved | as 27, cap `u ≤ c_T` kept by `u' = 4 (c_T − u)` (existence: the cascade `u → w`, `w, zs → v → s, zh`) | as 27 |
-| 30 | `rover_patrol_lag` | proved (reinstalled 2026-10-27: the right is the first-order planning model `v' = c − v`, `s' = v`; the left's lag state `a` is frozen on the right) | SLOW (b) → MEDIUM_ECO; MEDIUM_ECO, MEDIUM_BRISK (b) → themselves or FAST; FAST (a) (the zones partition `s ≥ 0`, `0 ≤ s' ≤ 1.6`; explicit zone runs) | SLOW ok (exit→MEDIUM_BRISK); MEDIUM_ECO, MEDIUM_BRISK ok (exit→FAST); FAST ok (invariant) |
+| 30 | `rover_patrol_lag` | proved (reinstalled 2026-10-27: the right is the first-order planning model `v' = c − v`, `s' = v`; the left's lag state `a` is frozen on the right; since 2026-10-29 a declared right variable, `a' = 0`, with the shared box `|a| ≤ 2`) | SLOW (b) → MEDIUM_ECO; MEDIUM_ECO, MEDIUM_BRISK (b) → themselves or FAST; FAST (a) (the zones partition `s ≥ 0`, `0 ≤ s' ≤ 1.6`; explicit zone runs) | SLOW ok (exit→MEDIUM_BRISK); MEDIUM_ECO, MEDIUM_BRISK ok (exit→FAST); FAST ok (invariant) |
 | 31 | `rover_patrol_zones` | left the suite 2026-10-27 (batch I3; a design of the same name is in `benchmarks/reserve/`; was: proved; proof in git history) | as 30; STALL (a) | as 30; STALL ok (invariant) |
 | 32 | `sat3w_detumble_nominal` | moved to `benchmarks/reserve/` 2026-10-27 (batch I4; was: proved; proof in git history) | DETUMBLE (a) (the band in the domain keeps the explicit run); SAFE (a) | both ok (invariant) (both clauses, since 2026-10-26) |
-| 33 | `sat3w_detumble_phases` | proved (new three-mode right model 2026-10-27, batch I4) | DETUMBLE, FINE (a) (each guard, `E ≤ 1` resp. `E ≤ 0.125`, forward invariant; the band in the domain keeps the explicit runs); SAFE (a) | all ok (invariant) |
+| 33 | `sat3w_detumble_phases` | proved (new three-mode right model 2026-10-27, batch I4) | DETUMBLE, FINE (a) (each guard, `E ≤ 1` resp. `E ≤ 0.125`, forward invariant; since 2026-10-29 the domain is the gyro box `|w_i| ≤ 1`, which the explicit runs keep since each rate decays; until then the band in the domain kept them); SAFE (a) | all ok (invariant) |
 | 34 | `sat3w_detumble_weak` | moved to `benchmarks/reserve/` 2026-10-27 (batch I4; was: proved; proof in git history) | NOMINAL, ECONOMY, SURVIVAL (a) (the band in the domain keeps the explicit runs); SAFE (a) | all ok (invariant) |
 | 35 | `sat_detumble_nominal` | moved to `benchmarks/reserve/` 2026-10-27 (batch I4; was: proved; proof in git history) | as 32 | as 32 |
 | 36 | `sat_detumble_phases` | proved (new three-mode right model 2026-10-27, batch I4) | as 33 | as 33 |
-| 37 | `sat_detumble_weak` | proved | as 34 | as 34 |
+| 37 | `sat_detumble_weak` | proved | NOMINAL, ECONOMY, SURVIVAL (a) (the guard `E ≤ 1` forward invariant; the gyro box `|w_i| ≤ 1` kept by the decaying rates, since 2026-10-29 without the band); SAFE (a) | all ok (invariant) |
 | 38 | `rover_attitude_6to8` | left the suite 2026-10-27 (batch I3, the rover hierarchy; was: proved; proof in git history) | as 18 | as 18 |
 | 39 | `rover_attitude_8to12` | left the suite 2026-10-27 (batch I3, the rover hierarchy; was: proved; proof in git history) | as 18 | as 18 |
 | 40 | `rover_lateral_6to8` | left the suite 2026-10-27 (batch I3, the rover hierarchy; was: proved; proof in git history) | as 18 | as 18 |
@@ -168,7 +171,7 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 49 | `lit_hypercert_vehicle` (left the suite 2026-10-28, `benchmarks/skipped/`; the proof went with it) | was proved (`V2LitHypercertVehicle.lit_hypercert_vehicle_wellFormedR`, since 2026-10-27 with the position coordinate `s ≥ 0`: the explicit run `s₀ + v₀ t + c t²/2`, `v₀ + c t` stays in the domain; before, `ChoiceLitHypercertVehicle.wellFormedR` of the velocity-only model) | every mode (b) → A0 (A0's guard is the domain's velocity range) | A0 ok (invariant); the others ok (exit) |
 | 50 | `lit_freedm_meter` | proved (direct) | every mode (b) → GridD0R0 (guard = domain); explicit linear run | battery modes ok (exit); grid modes ok (invariant) |
 | 51 | `platoon_linkloss` | proved (2026-10-27; `PlatoonCaccAeb`, shared with row 52) | CACC (a) (the projected stop gap `w = g + 2r` obeys `w' = −(w − 20)/4`, so `5 ≤ w ≤ 60` is kept; existence: the explicit two-exponential run stays in the box `0 ≤ g ≤ 60`, `|r| ≤ 10`); AEB (a), latched (`w` conserved; explicit run) | both ok (invariant) |
-| 52 | `platoon_latency` | proved (back in the suite 2026-10-28, batch I11; the right model of row 51, `PlatoonCaccAeb`, the left's latency coordinate `e` frozen on the right; in the reserve from batch I9 to I11) | as 51 | both ok (invariant) |
+| 52 | `platoon_latency` | proved (back in the suite 2026-10-28, batch I11; the right model of row 51, `PlatoonCaccAeb`, the left's latency coordinate `e` frozen on the right, since 2026-10-29 a declared right variable with `e' = 0` and the shared box `|e| ≤ 20`, the runs of row 51 transported (`sol_domR`); in the reserve from batch I9 to I11) | as 51 | both ok (invariant) |
 | 53 | `engine_start_highidle` | proved (2026-10-27) | STARTER, LIGHTOFF, SELF (b) → the next phase (contractions toward 30, 55, 62 inside `[0, 110]`; a run ends in its own band or the next); IDLE (a) (toward 62 from `n ≥ 60`); ABORT (a) (decay inside `[0, 5)`) | STARTER, LIGHTOFF, SELF ok (exit), IDLE, ABORT ok (invariant) |
 | 54 | `train_ato_odometry` | proved (2026-10-27) | PL1, PL2, PL3 (a) (contractions toward 25 inside `[5, 27.08]`, guard = domain) | all ok (invariant) |
 | 55 | `gantry_speed_zones` | proved (2026-10-27) | MOVE (a) (two independent axis servos toward `(0.5, 0.3)`; the explicit two-exponential run stays in the travel box, guard = domain) | ok (invariant) |
@@ -205,7 +208,7 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 Totals (the suite, 2026-10-28, batch I11): proved 47, false 0, band 3
 (`WellFormedBattery.wfDeclared = (47, 0, 3)`, was `(30, 9, 6)` until the 2026-10-10 repairs;
 `wf_coverage` checks in the kernel that the three name lists are a permutation of the suite's
-IR table). Z3-free: 50/50. Region-relative: the 3 satellites.
+IR table). Z3-free: 50/50. Region-relative: none since 2026-10-15 (the 3 satellites' `wfBand` list is kept for their band audit, `_band_invariant`).
 
 ### The nine repaired models (refuted until 2026-10-10; the exhibited states)
 
@@ -226,9 +229,13 @@ interval; as a sampled controller with period `ε_r` the old model violated the 
 the repaired one does not. The satellites' momentum band is the band their standalone Theorem 3 regions carry (`nbF`,
 `docs/SUITE-REDESIGN.md` §19.2): the total angular momentum about each wheel axis,
 `h_i + J_i w_i`, within the wheel's capacity, the condition under which the wheel can absorb the
-body's momentum, and a constant of every design-model flow. Since 2026-10-15 it is part of the
-right evolve domains (each file's header says so), the tool certifies the six with byte-identical
-covers, and Assumption 1 holds literally.
+body's momentum, and a constant of every design-model flow. From 2026-10-15 to 2026-10-29 it was part of the
+right evolve domains. Since 2026-10-29 (one physical domain per benchmark, the same on both sides)
+it is not: it is not a first integral of the left (the gyroscopic couplings, e.g.
+`d/dt (h + 5 w3) = −2 w1 w2`), so on the left it would be a reachable-set band; the wheel box
+`|h| ≤ 2` went with it (the design model's flow `h' = 5 k w3` crosses it, which is the blocking state
+above); the domain is the gyro box `|w_i| ≤ 1`, the claim (energy) does not read `h`, the covers are
+unchanged, and Assumption 1 holds literally on the new domain.
 
 ## 4. The tool check (`relcert --wellformed`)
 
@@ -265,8 +272,8 @@ every run inside `D` from `X₀`).
    `K` of the domain atoms and the affine candidates is invariant when the field points
    inward on every face, `UNSAT(K ∧ k = 0 ∧ k̇ > 0)` per atom `k` (Nagumo / Bony–Brezis for a
    polyhedron and a locally Lipschitz field), a greatest fixpoint over the candidates. The
-   satellites use it (`h ≤ 2` under `h' = 2.5 w₃` holds on its face because the conserved
-   band gives `h + 5 w₃ ≤ 2`), as do the `platoon3` sinks (`g₁ ≥ 0` with the guard's
+   satellites used it until 2026-10-29 (`h ≤ 2` under `h' = 2.5 w₃` held on its face because the
+   conserved band gave `h + 5 w₃ ≤ 2`; their domain is now the gyro box), as do the `platoon3` sinks (`g₁ ≥ 0` with the guard's
    conserved `g₁ + 2 r₁ ≥ 0`) and the `rover_lateral` pairs (`y ≤ 0.5` with `y + w ≤ 0.5`).
 6. **Existence.** An affine field has global solutions; otherwise every moving coordinate's
    field is bounded on `D ∧ I` (`|fᵢ| ≤ 10⁴`), so the solution cannot blow up before `ε_r`.

@@ -5,7 +5,8 @@
 #   or implied, uniform rows decline; matrix code M5). AEB_L and AEB_R are reachable only as starts
 #   in this file (the CACC operating range is forward invariant on both sides, see Domains): D is
 #   the rows differing on a mode no CACC run enters, and with AEB removed on both sides the CACC
-#   rows alone certify under every configuration with no letter (measured 2026-10-29).
+#   rows alone certify under every configuration with no letter (measured 2026-10-29, before the
+#   one-domain change).
 #
 # Shared platoon model (identical in platoon_linkloss, platoon_profiles and this file, and in the
 # reserve's platoon3_linkloss, platoon3_profiles). A lead vehicle cruises at the platoon reference speed
@@ -26,8 +27,8 @@
 #   rate) and 5 <= g + 2 r <= 60 (TTC to the standstill distance at least 2 s, and the gap
 #   projected 2 s ahead inside the 60 m radar range gate).
 # Control period 0.1 s on both sides (10 Hz V2V messages, the ETSI CAM / SAE BSM rate).
-# Domain per link (both sides, every mode): 0 <= g <= 60 m (radar range gate), |r| <= 10 m/s
-#   (rated closing rate); the deployed also |e| <= 20 m/s^2 (the error of two accelerations each
+# Domain per link (one domain, both sides, every mode): 0 <= g <= 60 m (radar range gate),
+#   |r| <= 10 m/s (rated closing rate), |e| <= 20 m/s^2 (the difference of two accelerations each
 #   within the 1 g tyre-road limit of 10 m/s^2, as acc_tune_lag's acceleration box).
 #
 # The cause: V2V latency. The deployed follower's feed-forward is the predecessor's acceleration
@@ -46,8 +47,9 @@
 #   The field is affine in j_pred, so every face condition that holds at both extremes holds for
 #   every jerk in between. Guards: the operating range (same as the design's), any e. AEB: the
 #   shared AEB (radar only, the feed-forward is unused; its error is frozen, e' = 0), latched.
-# Right (design follower, state g, r): the same CACC with an ideal link (e = 0, so the design has
-#   no e coordinate) and the same AEB; CACC -> [CACC, AEB], AEB latched.
+# Right (design follower, state g, r, e): the same CACC with an ideal link and the same AEB;
+#   CACC -> [CACC, AEB], AEB latched. The design has no feed-forward lag: its e is an inert
+#   coordinate, frozen (e' = 0 in both modes), that never enters g, r.
 # One cause: the latency (the lag and its error e). Same plant, gains, AEB, operating range and
 # control period on both sides; lambda_min = lambda_max = 1 (same time). The predecessor is the
 # same on both sides; the relative coordinates make the design's motion independent of it.
@@ -86,18 +88,20 @@
 #       range is forward invariant on both sides.
 #   AEB: exact, Delta r = 0 and Delta (g + 2 r) = 0 (the two AEBs are the same function).
 #
-# The bound grows with the latency (measured, every other constant at its derived value 2 W,
-# 4 W): tightest |Delta g| = 2.00 / 4.00 / 6.00 / 10.00 m at tau = 0.1 / 0.2 / 0.3 / 0.5 s, i.e.
-# J tau / kp. Without latency (J tau = 0, e = 0) the exact claim (every Delta = 0) CERTIFIES. At
-# tau = 0.75 s the file still CERTIFIES (with |Delta g| <= 15); at tau = 0.8 s it DECLINES: the
-# segment (CACC_UP_L, CACC_R) fails, the deployed can reach its AEB threshold while the design
-# cannot.
+# The bound grows with the latency (measured before the one-domain change of 2026-10-29, every
+# other constant at its derived value 2 W, 4 W): tightest |Delta g| = 2.00 / 4.00 / 6.00 / 10.00 m
+# at tau = 0.1 / 0.2 / 0.3 / 0.5 s, i.e. J tau / kp. Without latency (J tau = 0, e = 0) the exact
+# claim (every Delta = 0) CERTIFIES. At tau = 0.75 s the file still CERTIFIES (with
+# |Delta g| <= 15); at tau = 0.8 s it DECLINES: the segment (CACC_UP_L, CACC_R) fails, the
+# deployed can reach its AEB threshold while the design cannot.
 #
-# Domains. Both sides 0 <= g <= 60, |r| <= 10 (as above); left also |e| <= 20 m/s^2, the range the
-# tyre-road limit leaves to the difference of two vehicle accelerations (physical; the domain audit
-# of 2026-10-29 replaced the earlier |e| <= W = 0.5, the error band the jerk limit makes reachable,
-# which the claim stood on: widened by 5 % the file declined; the band is now the stated row above).
-# Not load-bearing now: every bound widened by 20 % of its range CERTIFIES. The CACC operating
+# Domains. One domain on both sides and every mode: 0 <= g <= 60, |r| <= 10, |e| <= 20 m/s^2
+# (physical, as above; the domain audit of 2026-10-29 replaced the deployed's earlier
+# |e| <= W = 0.5, the error band the jerk limit makes reachable, which the claim stood on: widened
+# by 5 % the file declined; the band is now the stated row above). Not load-bearing now: every
+# bound widened by 20 % of its range CERTIFIES.
+# One domain (2026-10-29): the design's g, r box -> the shared g, r, e box (the design carries e,
+# frozen); rows, tight values, verdicts and letters unchanged. The CACC operating
 # range is forward invariant on both sides (TTC floor above; g + 2 r <= 60 since the CACC drives
 # g + 2 r toward 20 +- 8 W; the |r| <= 10 faces hold below 70 m), so the deployed's CACC never
 # triggers the AEB either; the design's CACC -> AEB edge is pruned (non-connection), the deployed's
@@ -127,14 +131,17 @@
 # UNKNOWN, 0 BLOCKING). Uniform rows (scripts/suite_v2_letters.py): the CACC row on every left mode
 # DECLINED, the AEB row on every left mode DECLINED, their conjunction DECLINED. --handoff 7/7
 # checked, 7 passed (rows differ). Letter measured: D (matrix M5; D_strict).
-# Re-measured 2026-10-29 (domain audit: |e| <= 20 domain, |e_L| <= 0.5 row; RELCERT_IMPLIED_CUT=1
-# unless stated): CERTIFIED (1.3 s); CERTIFIED under every counter-run (RELCERT_SYNC=1,
-# RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE, SYNC+NO_CHOICE, RELCERT_NO_REPO=1,
-# RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, without RELCERT_IMPLIED_CUT,
-# RELCERT_NO_PAIR_STRETCH=1, RELCERT_OPREGION=1) and RELCERT_WELLFORMED_STRICT=1; tight values
-# unchanged (|Delta g| 4.00, 3.99 declines; the e row 0.50, 0.49 declines). Cover unchanged (every
-# left mode at lambda 1, budget 1, admissible start CACC resp. AEB, CACC -> AEB pruned). Letters: D
-# before and after.
+# Re-measured 2026-10-29 after the domain audit (|e| <= 20 domain, |e_L| <= 0.5 row) and again
+# after the one-domain change (RELCERT_IMPLIED_CUT=1 unless stated), the same both times:
+# CERTIFIED (2.0 s); CERTIFIED under every counter-run (RELCERT_SYNC=1, RELCERT_NO_PRUNE=1,
+# RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE, SYNC+NO_CHOICE, RELCERT_NO_REPO=1, RELCERT_NO_CUT=1,
+# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, without RELCERT_IMPLIED_CUT,
+# RELCERT_NO_PAIR_STRETCH=1, RELCERT_OPREGION=1), RELCERT_WELLFORMED_STRICT=1 and with every
+# two-sided evolve bound widened by 20 % of its range; tight values unchanged (|Delta g| 4.00, 3.99
+# declines; the Q rows 1 and 2, 0.99 and 1.99 decline; g_L >= 5.00, 5.01 declines; TTC floor 16,
+# 16.01 declines; the e row 0.50, 0.49 declines). Cover unchanged (every left mode at lambda 1,
+# budget 1, admissible start CACC resp. AEB, CACC -> AEB pruned); --handoff 7/7 passed;
+# --wellformed: CACC, AEB ok (invariant). Letters: D before and after.
 #
 [problem]
 name = platoon_latency
@@ -161,17 +168,17 @@ guard = g + 2.0 * r < 5.0 and g + 2.0 * r >= 0.0 and g >= 0.0
 evolve = g >= 0.0 and g <= 60.0 and r >= -10.0 and r <= 10.0 and e >= -20.0 and e <= 20.0
 next = [AEB]
 [Rsys]
-state_vars = [g, r]
+state_vars = [g, r, e]
 epsilon = 0.1
 [Rsys.mode.CACC]
-ode = g' = smt2:r; r' = smt2:(- (* -0.125 (- g 20.0)) (* 0.75 r));
+ode = g' = smt2:r; r' = smt2:(- (* -0.125 (- g 20.0)) (* 0.75 r)); e' = smt2:0;
 guard = r >= -10.0 and r <= 10.0 and g + 2.0 * r >= 5.0 and g + 2.0 * r <= 60.0
-evolve = g >= 0.0 and g <= 60.0 and r >= -10.0 and r <= 10.0
+evolve = g >= 0.0 and g <= 60.0 and r >= -10.0 and r <= 10.0 and e >= -20.0 and e <= 20.0
 next = [CACC, AEB]
 [Rsys.mode.AEB]
-ode = g' = smt2:r; r' = smt2:(* -0.5 r);
+ode = g' = smt2:r; r' = smt2:(* -0.5 r); e' = smt2:0;
 guard = g + 2.0 * r < 5.0 and g + 2.0 * r >= 0.0 and g >= 0.0
-evolve = g >= 0.0 and g <= 60.0 and r >= -10.0 and r <= 10.0
+evolve = g >= 0.0 and g <= 60.0 and r >= -10.0 and r <= 10.0 and e >= -20.0 and e <= 20.0
 next = [AEB]
 [relational_invariant]
 CACC_UP = smt2:(and (>= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) (- 0.0 1.0)) (<= (+ (- L_r R_r) (* 0.25 (- L_g R_g))) 1.0) (>= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) (- 0.0 2.0)) (<= (+ (- L_r R_r) (* 0.5 (- L_g R_g))) 2.0) (>= (- L_g R_g) (- 0.0 4.0)) (<= (- L_g R_g) 4.0) (>= (+ R_g (* 2.0 R_r)) 5.0) (<= (+ R_g (* 2.0 R_r)) 60.0) (>= L_g 5.0) (>= (+ L_g (* 2.0 L_r)) 5.0) (<= L_e (- 0.0 0.5)) (<= L_e 0.5))

@@ -109,11 +109,17 @@
 # deployed's synchronization target 7.5 g); at g = 1.2 the joint segment passes and
 # RELCERT_NO_PRUNE=1, RELCERT_SYNC=1 certify (round 2).
 #
-# Domains. 0 <= w <= 13.9755 rpm (left) and 0 <= w <= 13.31 rpm (right): from rest to the overspeed
-# trip, where the control system shuts the turbine down and the model ends (13.31 rpm = 110 % of
-# rated, the reference's trip; the deployed's controller applies the same limit to its reading,
-# which is 5 % low, so its trip is at 1.05 x 13.31 = 13.9755 rpm true: the stale ratio also delays
-# the protection). Both are limits of the hardware's protection, not reachable-set estimates (the
+# Domains (one physical domain, written in true rotor-speed coordinates on both sides; owner's rule
+# of 2026-10-29). The state w is the TRUE rotor speed on both sides. From rest (0) to the overspeed
+# trip, where the control system shuts the turbine down and the model ends: ONE trip setting,
+# 13.31 rpm = 110 % of rated on the controller's rotor-speed READING. The reference reads w, so it
+# trips at w = 13.31; the deployed computes the rotor speed from the generator speed with the stale
+# gearbox ratio and reads w / 1.05, so the same setting trips at a true w = 1.05 x 13.31 = 13.9755
+# rpm (the stale ratio also delays the protection). One limit in two reading scales, not two limits:
+# Domain conversion (kind iii): left 13.9755 = 1.05 x 13.31 (the same overspeed trip setting, 13.31 rpm on the rotor-speed reading; the deployed reads 1/1.05 of the true speed), right 13.31 = 13.31 x 1.
+# (scripts/check_one_domain.py admits this file by that line.) Measured 2026-10-29: either single
+# true-speed box (13.31 or 13.9755 on both sides) also CERTIFIES; the stated form keeps each model up
+# to its own trip. Both are limits of the hardware's protection, not reachable-set estimates (the
 # domain audit of 2026-10-29 replaced the round-B domains 12.705 / 12.1, the rated targets, which
 # the exact GEN row stood on). Forward invariant in every mode (every target is below the trip and
 # every flow is >= 0 at 0). Load-bearing: the GEN tolerance 0.061 is set at the trip (see

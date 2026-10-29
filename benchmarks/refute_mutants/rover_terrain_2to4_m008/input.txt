@@ -8,12 +8,16 @@
 #   plan, RELCERT_SYNC=1 declines, matrix code M1; multi-step cover, two and three plan segments per
 #   rover window, matrix code M2; the checked cuts w <= c_T and s >= zone floor are load-bearing mode
 #   facts, RELCERT_NO_CUT=1 declines, matrix code M6). S and M come from the claim form (progress
-#   against the plan re-timed within its stated allowance), I from the terrain structure: this is a
+#   against the plan re-timed within its stated allowance, the stretched form chosen as the chain's
+#   exhibit: the real-time form with the auxiliary row w[l] <= v[r] is the stronger claim, below), I
+#   from the terrain structure: this is a
 #   refinement step, a rung of the terrain chain. Batch I9 (2026-10-27): the plan's speed loop is
 #   the wheel loop's 3 /s again and the claim is stated against the plan re-timed within the
 #   traction ratio (the batch-I6 file ran the plan at 8 /s to make the claim real-time; letters
 #   I). Round 1 (2026-10-29): the allowance is the derived ratio 2.7 (was 3), and the real-time
 #   form of this file is recorded below; this file keeps the re-timed form deliberately.
+#   One domain (2026-10-29): left w in [0.15, 0.8] (the controller's creep floor), right w in
+#   [0, 0.8] -> w in [0, 0.8] on both sides; rows, verdict, tight values and ablations unchanged.
 #
 # System (SI units: m, s, m/s; g = 9.81 m/s^2): a rover climbs out of a muddy bank onto a
 # gravel track and then a paved road. The terrain is a mode, fixed by the odometer s along the
@@ -42,22 +46,31 @@
 #     [0, sigma]: the wheels never skid (ground speed never exceeds wheel speed) and never spin
 #     past the traction controller's slip-velocity threshold sigma (it would cut torque there;
 #     requirement: it never has to on this route).
-#   Not implied by the domains (w - v ranges over [-0.65, 0.8] on the boxes).
-# Tightest (bisection 0.01): sigma certifies down to 0.21 (declines at 0.20). Analytically: a
+#   Not implied by the domain (w - v ranges over [-0.8, 0.8] on the box).
+# Tightest (bisection 0.01, re-measured on the one domain): sigma certifies down to 0.21
+# (declines at 0.20). Analytically: a
 # launch from v = 0 at the start of GRAVEL with zs = 0.12 has d(w - v)/dt = 3 (0.45 - w)
 # - 4 (w - v) + zs at w - v = sigma, <= 0 iff sigma >= 1.47 / 7 = 0.21. Only the slip row
 # needs no auxiliary row: the claim is the requirement itself.
 #
-# Domains: v in [0, 0.8], w in [0.15, 0.8], zs in [0, 0.12], s >= 0 (unbounded above), all
-# forward invariant on the left: w' = 3 (c_T - w) points inward at 0.15 (the wheel controller's
-# creep floor, below every set point) and at 0.8; at v = 0, v' = mu_T w - zs >= 2.5 * 0.15
-# - 0.12 > 0; at v = 0.8, v' <= 0 since w <= 0.8; zs' = 2 (Z_T - zs) with Z_T <= 0.10. The
-# plan's v in [0, 0.8] is forward invariant; the right's pinned w, zs keep their boxes.
+# Domain (the same in every mode, both sides): v in [0, 0.8] m/s (standstill to the drive's top
+# speed), s >= 0 (unbounded above), w in [0, 0.8] m/s (wheel surface speed from standstill to the
+# drive's top speed; the wheel does not reverse in this model), zs in [0, 0.12] (the sinkage
+# range). On the left, w' = 3 (c_T - w) points inward at 0 and at 0.8, zs' = 2 (Z_T - zs) with
+# Z_T <= 0.10, and at v = 0.8, v' <= 0 since w <= 0.8. At v = 0, v' = mu_T w - zs is negative for
+# w < zs / mu_T (at most 0.048 m/s, in MUD): a launch with the wheel nearly still reaches v = 0
+# and the run ends there. That is the physical end of the model, a stalled rover: compaction
+# resistance cannot drive it backward, it holds v at 0 until mu_T w >= zs. The claim covers the
+# stall too: v_L = 0 <= v_R, s_L stands still, and the slip w_L < zs / mu_T < sigma (simulated
+# 2026-10-29 with v held at 0 while stalled, 672 launches with v_L <= 0.02 in every zone: stalls
+# last at most 0.07 s, no row violated within the allowance). The plan's v in [0, 0.8] is forward
+# invariant; its flow keeps w, zs fixed.
 # Guards: right = the terrain zones only (every right state lies in exactly one right guard);
 # left = the zone and entry wheel speed w <= c_T. A left state with w above its zone's set
 # point is in no left guard: unreachable from a guarded entry (w' = 3 (c_T - w) keeps w <= c_T
 # inside a zone; set points increase along the route). Starts are non-vacuous in every mode
-# (e.g. MUD: s = 0, v = 0.1, w = 0.25, zs = 0.1 with any plan state v_R >= 0.1, s_R >= 0).
+# (e.g. MUD: s = 0, v = 0.1, w = 0.25, zs = 0.1 with any plan state v_R >= 0.1, s_R >= 0); the
+# entry guard admits every wheel speed in [0, c_T], so starts with the wheel at standstill too.
 #
 # Composition: the left model is exactly the right model of rover_terrain_4to6 (u, zh pinned
 # there; checked 2026-10-27: same fields, guards and successor lists on the shared coordinates),
@@ -67,13 +80,20 @@
 # bound is time-free, the re-timing affects only when the plan reaches a point, not where.
 #
 # Stretch range and its source. The plan's clock may run up to 2.7 times faster than the rover's
-# (lambda in [1, 2.7]): the rover's ground speed answers its wheel through the soil at the
-# traction stiffness mu_T = 2.5 / 4 / 8 /s, so on gravel and pavement it responds faster than
-# the plan's 3 /s loop and reaches each set point earlier in its own time; the plan's progress
-# has to be read at a faster clock. The window is the derived traction ratio of the fastest
-# ground, the pavement ground response against the plan loop, (mu_PAVED + r_PAVED) / 3 = 8.05 / 3
-# = 2.68, rounded up to the grid value 2.7; it is not a margin. Below it the file declines
-# (measured 2026-10-29, the PAVED cover taking the top of the range in every run): lambda_max
+# (lambda in [1, 2.7]). From matched starts (wheel, ground and plan speed equal at a zone entry,
+# any sinkage) no stretch is needed: the rover's cascade (wheel loop at 3 /s, then the soil at
+# mu_T) is slower than the plan's single 3 /s stage, so v_L <= v_R and s_L <= s_R hold at lambda 1
+# (simulated 2026-10-29: every matched and plan-ahead start at lambda 1.00). What the allowance
+# covers is the starts the rows admit with pre-existing slip, the wheel leading the plan by up to
+# sigma (w_L = v_L + sigma, v_R = v_L): there v_L' = mu_T sigma - r_T v_L exceeds the plan's
+# 3 (c_T - v_R). The worst admitted start is on pavement at the slip bound with the wheel at its
+# set point (v_L = v_R = 0.45, w_L = 0.70): rate ratio (8 x 0.25 - 0.05 x 0.45) / (3 x 0.25) =
+# 2.637 = (mu_PAVED + r_PAVED) / 3 - r_PAVED c_PAVED / (3 sigma), the simulated minimal lambda from
+# that start is 2.637, and the tool's tight lambda_max is 2.64 (below); the file's 2.7 is the
+# traction ratio (mu_PAVED + r_PAVED) / 3 = 2.68 rounded up to the grid value, not a margin. The
+# gravel cover's 67/50 covers the gravel slip-ahead start the same way (simulated 1.294 from
+# v = 0.20, w = 0.45). Below it the file declines
+# (measured 2026-10-29 on the one domain, the PAVED cover taking the top of the range): lambda_max
 # 2.64 CERTIFIES (cover 66/25) and 2.63, 2.62, 2.6 and 2.5 DECLINE, so the tool's tight value is
 # 2.64 and 2.7 is the derived ratio's rounding, 0.06 above it. In MUD the plan runs at lambda 1
 # (the rover is slowest there); the grid is 20 steps of the range, so GRAVEL takes 67/50 at
@@ -86,11 +106,12 @@
 # exact time scaling: the covers' 67/50 and 27/10 are grid points of the range, not stated ratios.
 #
 # Verdicts (default recipe RELCERT_IMPLIED_CUT=1, measured 2026-10-29 at lambda_max 2.7):
-# CERTIFIED (about 2.7 s quiet); also under NO_PRUNE, NO_CHOICE, NO_PRUNE+NO_CHOICE, NO_REPO,
-# OPREGION, NO_IMPLIED_CUT, NO_LINEAR_CUT, without RELCERT_IMPLIED_CUT, and
-# RELCERT_WELLFORMED_STRICT; DECLINED under SYNC, SYNC+NO_CHOICE and NO_CUT. --handoff 5/5
-# (vacuous: rows identical). --wellformed: MUD ok (exit -> GRAVEL), GRAVEL ok (exit -> PAVED),
-# PAVED ok (invariant), 0 UNKNOWN, 0 BLOCKING. Cover: MUD_L lambda 1 budget 1; GRAVEL_L lambda
+# CERTIFIED (about 3.3 s quiet); also under NO_PRUNE, NO_CHOICE, NO_PRUNE+NO_CHOICE, NO_REPO,
+# OPREGION, NO_IMPLIED_CUT, NO_LINEAR_CUT, NO_PAIR_STRETCH, without RELCERT_IMPLIED_CUT,
+# RELCERT_WELLFORMED_STRICT, and with every two-sided domain bound widened by 20 % of its range;
+# DECLINED under SYNC, SYNC+NO_CHOICE and NO_CUT (the same as before the one-domain change).
+# --handoff 5/5 (vacuous: rows identical). --wellformed: MUD ok (exit -> GRAVEL), GRAVEL ok
+# (exit -> PAVED), PAVED ok (invariant), 0 UNKNOWN, 0 BLOCKING. Cover: MUD_L lambda 1 budget 1; GRAVEL_L lambda
 # 67/50 budget 2 (a joint step from the plan's GRAVEL retaining PAVED, one non-self successor: no
 # branching letter); PAVED_L lambda 27/10 budget 3 (admissible starts: MUD [MUD, GRAVEL, PAVED],
 # GRAVEL [GRAVEL, PAVED], PAVED [PAVED]: the plan may be a zone ahead); checked cuts load-bearing
@@ -112,19 +133,19 @@ epsilon = 1.0
 [Lsys.mode.MUD]
 ode = v' = 2.5*(w - v) - 0.4*v - zs; s' = v; w' = 3*(0.25 - w); zs' = 2*(0.1 - zs);
 guard = s >= 0.0 and s < 5.0 and w <= 0.25
-evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.15 and w <= 0.8 and zs >= 0.0 and zs <= 0.12
+evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.0 and w <= 0.8 and zs >= 0.0 and zs <= 0.12
 next = [GRAVEL, MUD]
 
 [Lsys.mode.GRAVEL]
 ode = v' = 4.0*(w - v) - 0.15*v - zs; s' = v; w' = 3*(0.45 - w); zs' = 2*(0.03 - zs);
 guard = s >= 5.0 and s < 12.0 and w <= 0.45
-evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.15 and w <= 0.8 and zs >= 0.0 and zs <= 0.12
+evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.0 and w <= 0.8 and zs >= 0.0 and zs <= 0.12
 next = [PAVED, GRAVEL]
 
 [Lsys.mode.PAVED]
 ode = v' = 8.0*(w - v) - 0.05*v - zs; s' = v; w' = 3*(0.7 - w); zs' = 2*(0.0 - zs);
 guard = s >= 12.0 and w <= 0.7
-evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.15 and w <= 0.8 and zs >= 0.0 and zs <= 0.12
+evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.0 and w <= 0.8 and zs >= 0.0 and zs <= 0.12
 next = [PAVED]
 
 [Rsys]

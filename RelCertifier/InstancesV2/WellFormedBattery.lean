@@ -44,12 +44,14 @@ suite's IR table by `wf_coverage`).**
 * **Refuted, 0.**
 * **The detumble family, 3** (`<bench>_wellFormedR`, every mode; `<bench>_band_invariant`):
   `sat_detumble_{weak,phases}`, `sat3w_detumble_phases` (`sat_detumble_nominal` and
-  `sat3w_detumble_{nominal,weak}` moved to `benchmarks/reserve/` on 2026-10-27). Their right
-  evolve domains carry the conserved momentum band `|h_i + J_i w_i| ≤ 2` (the body's momentum
-  within the wheels' capacity; since 2026-10-15). Without it clause (i) failed at the edge of
-  the wheel-momentum box (`h = 2`, `w3 = 0.4`: `h + 5 w3` is conserved and would leave
-  `|h| ≤ 2`); with it the explicit solution stays in the domain, and the band is kept by every
-  mode's flow.
+  `sat3w_detumble_{nominal,weak}` moved to `benchmarks/reserve/` on 2026-10-27). From 2026-10-15
+  to 2026-10-29 their right evolve domains carried the conserved momentum band
+  `|h_i + J_i w_i| ≤ 2` (without it clause (i) failed at the edge of the wheel-momentum box,
+  `h = 2`, `w3 = 0.4`). Since 2026-10-29 (one physical domain per benchmark, the same on both
+  sides) the domain is the gyro box `|w_i| ≤ 1` alone: the band is not a first integral of the
+  left and the wheel box is crossed by the design model's own flow, so both left the domain; the
+  explicit solution stays in the gyro box (the rates decay), and the band is still kept by every
+  right mode's flow (`_band_invariant`, a model fact).
 
 Expected axioms: `propext`, `Classical.choice`, `Quot.sound`, nothing else (every proof is
 Z3-free). `lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 | grep -A3 "depends on
@@ -137,9 +139,9 @@ def wfProved : List String :=
 repairs; the nine refuted until then are in `wfProved`). -/
 def wfRefuted : List String := []
 
-/-- The detumble family: Assumption 1 holds at every mode (the conserved momentum band is in
-the right evolve domain since 2026-10-15; before, only on the band), and the band is kept by
-every flow (`_band_invariant`). -/
+/-- The detumble family: Assumption 1 holds at every mode (over the gyro box `|w_i| ≤ 1` since
+2026-10-29; with the momentum band in the right evolve domain from 2026-10-15; before, only on the
+band), and the band is kept by every right flow (`_band_invariant`). -/
 def wfBand : List String :=
   ["sat_detumble_weak", "sat_detumble_phases",
    "sat3w_detumble_phases"]
@@ -272,8 +274,9 @@ end WellFormedBattery
 #print axioms PlatoonCaccAeb.cacc_box
 #print axioms V2QuadLightProfiles.quad_light_profiles_wellFormedR
 
-/-! ## The detumble family (3): Assumption 1 unconditional (the momentum band is part of the
-right evolve domain since 2026-10-15), and the band invariant as a model fact -/
+/-! ## The detumble family (3): Assumption 1 unconditional (over the gyro box since 2026-10-29;
+the momentum band was part of the right evolve domain from 2026-10-15 to 2026-10-29), and the band
+invariant as a model fact -/
 
 #print axioms V2SatDetumbleWeak.sat_detumble_weak_wellFormedR
 #print axioms V2SatDetumbleWeak.sat_detumble_weak_band_invariant

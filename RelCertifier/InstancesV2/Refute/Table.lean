@@ -6,7 +6,6 @@ Released under Apache 2.0 license.
 
 -/
 import RelCertifier.InstancesV2.Refute.Data.quad_light_lag_m021
-import RelCertifier.InstancesV2.Refute.Data.quad_light_lag_m023
 import RelCertifier.InstancesV2.Refute.Data.rover_ladder_6to8_m006
 import RelCertifier.InstancesV2.Refute.Data.rover_ladder_6to8_m009
 import RelCertifier.InstancesV2.Refute.Data.rover_ladder_8to12_m005
@@ -79,6 +78,7 @@ import RelCertifier.InstancesV2.Refute.Data.platoon_latency_m043
 import RelCertifier.InstancesV2.Refute.Data.platoon_latency_m047
 import RelCertifier.InstancesV2.Refute.Data.platoon_latency_m048
 import RelCertifier.InstancesV2.Refute.Data.platoon_latency_m049
+import RelCertifier.InstancesV2.Refute.Data.platoon_latency_m050
 import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m016
 import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m017
 import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m018
@@ -127,7 +127,6 @@ structure RefRec where
 
 def refuteTable : List RefRec := [
   ⟨"quad_light_lag_m021", 3 + 1, quad_light_lag_m021_IRm, quad_light_lag_cutsV2X, quad_light_lag_m021_wit⟩,
-  ⟨"quad_light_lag_m023", 3 + 1, quad_light_lag_m023_IRm, quad_light_lag_cutsV2X, quad_light_lag_m023_wit⟩,
   ⟨"rover_ladder_6to8_m006", 8 + 1, rover_ladder_6to8_m006_IRm, rover_ladder_6to8_cutsV2X, rover_ladder_6to8_m006_wit⟩,
   ⟨"rover_ladder_6to8_m009", 8 + 1, rover_ladder_6to8_m009_IRm, rover_ladder_6to8_cutsV2X, rover_ladder_6to8_m009_wit⟩,
   ⟨"rover_ladder_8to12_m005", 12 + 1, rover_ladder_8to12_m005_IRm, rover_ladder_8to12_cutsV2X, rover_ladder_8to12_m005_wit⟩,
@@ -200,6 +199,7 @@ def refuteTable : List RefRec := [
   ⟨"platoon_latency_m047", 3 + 1, platoon_latency_m047_IRm, platoon_latency_cutsV2X, platoon_latency_m047_wit⟩,
   ⟨"platoon_latency_m048", 3 + 1, platoon_latency_m048_IRm, platoon_latency_cutsV2X, platoon_latency_m048_wit⟩,
   ⟨"platoon_latency_m049", 3 + 1, platoon_latency_m049_IRm, platoon_latency_cutsV2X, platoon_latency_m049_wit⟩,
+  ⟨"platoon_latency_m050", 3 + 1, platoon_latency_m050_IRm, platoon_latency_cutsV2X, platoon_latency_m050_wit⟩,
   ⟨"antenna_track_kvretune_m016", 3 + 1, antenna_track_kvretune_m016_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m016_wit⟩,
   ⟨"antenna_track_kvretune_m017", 3 + 1, antenna_track_kvretune_m017_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m017_wit⟩,
   ⟨"antenna_track_kvretune_m018", 3 + 1, antenna_track_kvretune_m018_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m018_wit⟩,
@@ -215,6 +215,6 @@ def refuteTable : List RefRec := [
   ⟨"antenna_track_kvretune_m040", 3 + 1, antenna_track_kvretune_m040_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m040_wit⟩ ]
 
 /-- Declared: the number of query groups over the refutations (one per right mode each). -/
-def expectedRefuteGroups : Nat := 260
+def expectedRefuteGroups : Nat := 261
 
 end RelCertifier.Refute

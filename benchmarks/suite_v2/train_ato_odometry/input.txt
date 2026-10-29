@@ -62,11 +62,19 @@
 #   (budget 1). M and B hold for every tolerance tested up to 2.0 m/s; at 5.0 m/s a single common
 #   stretch suffices (M1 only).
 #
-# Domains. Right 5 <= v <= 27.08 m/s: below 5 m/s PL1's demand (0.05 x 20 = 1.0 m/s^2) reaches the
-#   traction and service-brake limit, the end of the linear speed-loop range; 27.08 m/s = 97.5 km/h
-#   is the ETCS emergency-brake intervention speed at a 90 km/h permitted speed (dV_ebi = 7.5 km/h),
-#   above which the ATP, not the ATO, controls the train. Left 5 <= v <= 28.21 m/s: the deployed
-#   ATP sees the under-read speed and intervenes only at a true 27.08 / 0.96 = 28.21 m/s. Both are
+# Domains (one physical domain, written in true-speed coordinates on both sides; owner's rule of
+#   2026-10-29). The state v is the TRUE speed on both sides. Lower 5 m/s on both: below it PL1's
+#   demand (0.05 x 20 = 1.0 m/s^2) reaches the traction and service-brake limit, the end of the
+#   linear speed-loop range. Upper: the ATP's emergency-brake intervention, ONE setting on both
+#   trains, 27.08 m/s = 97.5 km/h on the train's speed READING (the ETCS intervention speed at a
+#   90 km/h permitted speed, dV_ebi = 7.5 km/h), above which the ATP, not the ATO, controls the
+#   train. The design train reads v, so its trip is at v = 27.08; the deployed reads 0.96 v, so the
+#   same trip is at a true v = 27.08 / 0.96 = 28.21 m/s. The two numbers are one limit in two
+#   reading scales, not two limits:
+# Domain conversion (kind iii): left 28.21 = 27.08 / 0.96 (the same ATP intervention setting, 27.08 m/s on the speed reading; the deployed's tachometer reads 0.96 of the true speed), right 27.08 = 27.08 / 1.
+#   (scripts/check_one_domain.py admits this file by that line.) Measured 2026-10-29: either single
+#   true-speed box (27.08 or 28.21 on both sides) also CERTIFIES; the stated form keeps each model
+#   up to its own trip. Both are
 #   forward invariant in every level (each drives toward 25 resp. 26.04 inside). Guards = domains
 #   (any level at any speed), so the right guards cover the right domain and every left mode has a
 #   satisfiable start (v_L = v_R = 20). Domain widening (measured): lower bound 0 m/s CERTIFIES;

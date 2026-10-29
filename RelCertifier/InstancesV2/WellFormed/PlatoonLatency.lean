@@ -9,7 +9,10 @@ file's two right modes and their declared `next` lists, `CACC → [CACC, AEB]`,
 `AEB → [AEB]`), the lowered right guards, and `ε_r = 0.1` read from the file.
 
 The right model is the design follower of the CACC/AEB platoon link: gap `g` (coordinate 0),
-range rate `r` (coordinate 1), coordinate 2 the left's latency state `e`, which the right does not list, so its right field lowers to 0; evolve box `0 ≤ g ≤ 60`, `|r| ≤ 10` in both modes.
+range rate `r` (coordinate 1), and the latency state `e` (coordinate 2), which the right
+declares with `e' = 0` in both modes; evolve box `0 ≤ g ≤ 60`, `|r| ≤ 10`, `|e| ≤ 20` in both
+modes. The runs are the shared `(g, r)` link runs over the `(g, r)` box `domGR`; `e` is frozen
+along them, so they stay in the full box (`sol_domR`).
 * `CACC` (`g' = r`, `r' = −0.125 (g − 20) − 0.75 r`; guard `|r| ≤ 10`, `5 ≤ g + 2r ≤ 60`).
   (i) The explicit two-exponential solution stays in the box for all time
   (`PlatoonCaccAeb.cacc_exists`). (ii) Style (a), the self-loop: the projected stop gap
@@ -75,6 +78,12 @@ theorem hp50 : Run.parseRat "5.0" = some (5 : ℚ) := by
 theorem hp01 : Run.parseRat "0.1" = some ((1:ℚ)/10) := by
   have h : parseQ "0.1" = some (⟨1, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]
+theorem hp0 : Run.parseRat "0" = some (0 : ℚ) := by
+  have h : parseQ "0" = some (⟨0, 1⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+theorem hpm200 : Run.parseRat "-20.0" = some (-20 : ℚ) := by
+  have h : parseQ "-20.0" = some (⟨-200, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
 
 /-! ## The lowered right fields, domain and guards -/
 
@@ -82,42 +91,69 @@ theorem hp01 : Run.parseRat "0.1" = some ((1:ℚ)/10) := by
 theorem fR_cacc : PlatoonCaccAeb.CaccField (fR 0) 0 1 := by
   refine ⟨fun z => ?_, fun z => ?_, fun i h0 h1 z => ?_⟩
   · simp [fR, hostDyn, mR, platoon_latency_IRv2, vs, Run.dynOf, Run.lowerE, hp0125m, hp200, hp075,
-      Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp,
+      hp0, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp,
       Rv]
   · simp [fR, hostDyn, mR, platoon_latency_IRv2, vs, Run.dynOf, Run.lowerE, hp0125m, hp200, hp075,
-      Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp,
+      hp0, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp,
       Rv]
     ring
   · fin_cases i
     · exact absurd rfl h0
     · exact absurd rfl h1
     · simp [fR, hostDyn, mR, platoon_latency_IRv2, vs, Run.dynOf, Run.lowerE, hp0125m, hp200, hp075,
-        Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
+        hp0, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
         AOp.interp, Rv]
 
 /-- `AEB`: `g' = r`, `r' = −0.5 r`, coordinate 2 frozen. -/
 theorem fR_aeb : PlatoonCaccAeb.AebField (fR 1) 0 1 := by
   refine ⟨fun z => ?_, fun z => ?_, fun i h0 h1 z => ?_⟩
-  · simp [fR, hostDyn, mR, platoon_latency_IRv2, vs, Run.dynOf, Run.lowerE, hp05m,
+  · simp [fR, hostDyn, mR, platoon_latency_IRv2, vs, Run.dynOf, Run.lowerE, hp05m, hp0,
       Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp,
       Rv]
-  · simp [fR, hostDyn, mR, platoon_latency_IRv2, vs, Run.dynOf, Run.lowerE, hp05m,
+  · simp [fR, hostDyn, mR, platoon_latency_IRv2, vs, Run.dynOf, Run.lowerE, hp05m, hp0,
       Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp,
       Rv]
     ring
   · fin_cases i
     · exact absurd rfl h0
     · exact absurd rfl h1
-    · simp [fR, hostDyn, mR, platoon_latency_IRv2, vs, Run.dynOf, Run.lowerE, hp05m,
+    · simp [fR, hostDyn, mR, platoon_latency_IRv2, vs, Run.dynOf, Run.lowerE, hp05m, hp0,
         Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
         AOp.interp, Rv]
 
-/-- The evolve domain (both modes): the box `0 ≤ g ≤ 60`, `|r| ≤ 10`. -/
-theorem sat_domR (x : State (Var 3)) : Formula.sat domR x ↔ PlatoonCaccAeb.Box x 0 1 := by
+/-- The evolve domain (both modes): the box `0 ≤ g ≤ 60`, `|r| ≤ 10`, and `|e| ≤ 20`. -/
+theorem sat_domR (x : State (Var 3)) :
+    Formula.sat domR x ↔ PlatoonCaccAeb.Box x 0 1 ∧ (-20 ≤ x (Rv 2) ∧ x (Rv 2) ≤ 20) := by
   simp only [domR, hostEvolve, mR, platoon_latency_IRv2, vs, PlatoonCaccAeb.Box]
+  simp [Run.lowerF, Run.lowerE, hp00, hp600, hpm100, hp100, hpm200, hp200, Run.resolveVar,
+    List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv]
+  tauto
+
+/-- The `(g, r)` part of the evolve box, lowered from its literal: the domain in which the
+shared link runs of `PlatoonCaccAeb` are built (`e` is not mentioned). -/
+noncomputable def domGR : Formula (Var 3) :=
+  hostEvolve vs 3 Side.R ⟨"", [], .tt,
+    (.and (.and (.and (.cmp ">=" (.var "g") (.num "0.0")) (.cmp "<=" (.var "g") (.num "60.0")))
+      (.cmp ">=" (.var "r") (.num "-10.0"))) (.cmp "<=" (.var "r") (.num "10.0"))), []⟩
+
+theorem sat_domGR (x : State (Var 3)) : Formula.sat domGR x ↔ PlatoonCaccAeb.Box x 0 1 := by
+  simp only [domGR, hostEvolve, vs, PlatoonCaccAeb.Box]
   simp [Run.lowerF, Run.lowerE, hp00, hp600, hpm100, hp100, Run.resolveVar,
     List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv]
   tauto
+
+/-- **The frozen `e` keeps its box**: a `(g, r)`-box run of a field whose coordinate 2
+vanishes is a run over the full evolve domain from every state of that domain. -/
+theorem sol_domR {f : Fin 3 → Term (Var 3)} (h2 : ∀ z, Term.eval (f 2) z = 0)
+    {x : State (Var 3)} (hx : Formula.sat domR x) {τ : ℝ} {Φ : ℝ → State (Var 3)}
+    (H : ODESol (rightBlock f (Term.const 1)) domGR x τ Φ) :
+    ODESol (rightBlock f (Term.const 1)) domR x τ Φ := by
+  refine ⟨H.hr, H.hΦ0, H.hder, H.hmask, fun t ht => ?_⟩
+  have he : Φ t (Rv 2) = x (Rv 2) :=
+    (H.restrict ht.1 ht.2).const (rightBlock_mem' f (Term.const 1) 2)
+      (fun s _ => by rw [eval_unit_mul, h2])
+  have hxe := ((sat_domR x).mp hx).2
+  exact (sat_domR _).mpr ⟨(sat_domGR _).mp (H.hdom t ht), by rw [he]; exact hxe⟩
 
 /-- `CACC`'s guard: `|r| ≤ 10`, `5 ≤ g + 2r ≤ 60`. -/
 theorem sat_guardR0 (ν : State (Var 3)) :
@@ -173,38 +209,41 @@ theorem epsR_eq : epsR platoon_latency_IRv2 = 1/10 := by
 /-- The lowered right guards. -/
 noncomputable def guardR (q : ℕ) : Formula (Var 3) := hostGuard vs 3 Side.R (mR q)
 
-theorem domR_of_box (z : State (Var 3)) (h : PlatoonCaccAeb.Box z 0 1) : Formula.sat domR z :=
-  (sat_domR z).mpr h
+theorem domGR_of_box (z : State (Var 3)) (h : PlatoonCaccAeb.Box z 0 1) :
+    Formula.sat domGR z :=
+  (sat_domGR z).mpr h
 
 /-- **Assumption 1 for `platoon_latency`**, every mode, Z3-free. -/
 theorem platoon_latency_wellFormedR : WellFormedR Gr guardR (epsR platoon_latency_IRv2) := by
   rw [epsR_eq]
   intro q hq m hm x hg hd _
   obtain ⟨hq2, rfl⟩ := Gr_modeAt_inv hm
-  have hdx : PlatoonCaccAeb.Box x 0 1 := (sat_domR x).mp hd
+  have hdx : PlatoonCaccAeb.Box x 0 1 := ((sat_domR x).mp hd).1
   have h01 : (0 : Fin 3) ≠ 1 := by decide
   interval_cases q
   · -- CACC: existence from the explicit solution; the self-loop keeps the guard
     have hgx := (sat_guardR0 x).mp hg
-    refine ⟨PlatoonCaccAeb.cacc_exists h01 fR_cacc domR_of_box x hdx (by linarith [hgx.2.1])
-      hgx.2.2 _ (by norm_num), ?_⟩
+    obtain ⟨Φ, HΦ⟩ := PlatoonCaccAeb.cacc_exists h01 fR_cacc domGR_of_box x hdx
+      (by linarith [hgx.2.1]) hgx.2.2 (1/10) (by norm_num)
+    refine ⟨⟨Φ, sol_domR (fR_cacc.2.2 2 (by decide) (by decide)) hd HΦ⟩, ?_⟩
     intro t Φ _ H
     have H' : ODESol (rightBlock (fR 0) (Term.const 1)) domR x t Φ := H
     have hw := PlatoonCaccAeb.cacc_w_band fR_cacc H' 5 60 (by norm_num) (by norm_num)
       hgx.2.1 hgx.2.2
     have he := (sat_domR _).mp H'.end_dom
     exact ⟨edgeW 0 0, edge_mem 0 0 (by decide),
-      (sat_guardR0 _).mpr ⟨⟨he.2.2.1, he.2.2.2⟩, hw⟩⟩
+      (sat_guardR0 _).mpr ⟨⟨he.1.2.2.1, he.1.2.2.2⟩, hw⟩⟩
   · -- AEB: existence from the explicit solution; `w` conserved, the latched self-loop
     have hgx := (sat_guardR1 x).mp hg
-    refine ⟨PlatoonCaccAeb.aeb_exists h01 fR_aeb domR_of_box x hdx hgx.1.2
-      (by linarith [hgx.1.1]) _ (by norm_num), ?_⟩
+    obtain ⟨Φ, HΦ⟩ := PlatoonCaccAeb.aeb_exists h01 fR_aeb domGR_of_box x hdx hgx.1.2
+      (by linarith [hgx.1.1]) (1/10) (by norm_num)
+    refine ⟨⟨Φ, sol_domR (fR_aeb.2.2 2 (by decide) (by decide)) hd HΦ⟩, ?_⟩
     intro t Φ _ H
     have H' : ODESol (rightBlock (fR 1) (Term.const 1)) domR x t Φ := H
     have hw := PlatoonCaccAeb.aeb_w_const fR_aeb H'
     have he := (sat_domR _).mp H'.end_dom
     exact ⟨edgeW 1 1, edge_mem 1 1 (by decide),
-      (sat_guardR1 _).mpr ⟨⟨by linarith [hgx.1.1], by linarith [hgx.1.2]⟩, he.1⟩⟩
+      (sat_guardR1 _).mpr ⟨⟨by linarith [hgx.1.1], by linarith [hgx.1.2]⟩, he.1.1⟩⟩
 
 end V2PlatoonLatency
 end RelCertifier

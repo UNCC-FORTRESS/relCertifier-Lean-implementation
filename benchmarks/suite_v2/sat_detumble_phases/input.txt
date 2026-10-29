@@ -8,6 +8,8 @@
 #   subsets that keep the design model in the deployed's phase, RELCERT_NO_CHOICE=1 declines). At
 #   lambda = 1 (real time). Batch I9 (2026-10-27): the 2 s flight period is restored (the equal-period
 #   file of batch I4 kept only X); M and I come from the period ratio, X from the shared phase logic.
+#   One domain (2026-10-29): |w_i| <= 1, |h| <= 2 on both sides plus |h + 5 w3| <= 2 on the right
+#   -> |w_i| <= 1 on every mode of both sides; CERTIFIED with the rows unchanged, same ablations.
 #
 # THE PLANT (both sides; a ~60 kg microsatellite, SI units). Body rates w1, w2, w3 (rad/s)
 # about the principal axes, inertia J = diag(2, 4, 5) kg m^2, and the momentum h (N m s)
@@ -34,11 +36,11 @@
 # 2026-10-29. The gyroscopic and wheel-coupling terms are
 # genuine BILINEAR couplings (products w2 w3, w3 w1, w1 w2, w2 h, w1 h); they do no work,
 # so the body energy E = 2 w1^2 + 4 w2^2 + 5 w3^2 (twice the rotational kinetic energy)
-# obeys E' = -2 k E exactly -- but only through the cancellation of the cubic terms,
+# obeys E' = -2 k E exactly, but only through the cancellation of the cubic terms,
 # which every flow query has to establish (Z3, nonlinear real arithmetic).
 # The DESIGN MODEL (right) neglects the couplings: w_i' = -k w_i, h' = 5 k w3.
-# PHYSICAL DOMAIN (both sides): |w_i| <= 1 rad/s (the gyro's measurement range) and
-# |h| <= 2 N m s (the wheel's momentum capacity).
+# PHYSICAL DOMAIN (every mode, both sides): |w_i| <= 1 rad/s (the gyro's measurement range);
+# the wheel momentum h is not bounded (see WHEEL MOMENTUM).
 # Control periods. Right (design model): 1 s (epsilon = 1.0), the ADCS sensor cycle on which the
 # design analysis evaluates the phase logic (the attitude solution of a CubeSpace CubeStar star
 # tracker, the FINE phase's sensor, is updated at 1 Hz, CubeSpace sensor data sheet). Left (flight
@@ -69,16 +71,16 @@
 # decision period (2 s flight, 1 s design). Gains, guards, phase logic and successor sets are the
 # same on both sides (the design model adds only its SAFE sink).
 #
-# CLAIM (both phases): E_L <= E_R and E_R <= E_L -- the full rigid body's energy EQUALS the design
+# CLAIM (both phases): E_L <= E_R and E_R <= E_L: the full rigid body's energy EQUALS the design
 # model's at every instant, through the phase handovers (tolerance 0 in both directions; no
 # tighter claim exists). Requirement: the design model's energy prediction is exact for the real
 # body in both phases, so detumble-time and capture-time budgets computed on it hold. Not
 # implied by the domains. Every left mode has a satisfiable start (DETUMBLE: E_L = E_R <= 1;
 # FINE: E_L = E_R <= 0.125). The claim is synchronous: lambda in [1, 1].
 #
-# The claim depends on the cause (measured 2026-10-26): with the wheel back-reaction on w1
-# removed (the term -0.5 w2 h of w1' set to 0 on the left, so the w1-h coupling does work,
-# E' = -2 k E + 2 w1 w2 h) the same claim DECLINES.
+# The claim depends on the cause (measured 2026-10-26, again 2026-10-29): with the wheel
+# back-reaction on w1 removed (the term -0.5 w2 h of w1' set to 0 on the left, so the w1-h
+# coupling does work, E' = -2 k E + 2 w1 w2 h) the same claim DECLINES.
 #
 # Why the choice (X). After every segment the design model's successors include the other phase
 # (DETUMBLE -> FINE inside E <= 0.125, FINE -> DETUMBLE always); the phase it is in must be the
@@ -89,34 +91,39 @@
 # energy equality between different dynamics, not the identity, so the hop is not a copy of the
 # deployed's state. X comes from the shared phase logic, not from the couplings: with the
 # couplings removed from the left (left = design model) RELCERT_NO_CHOICE=1 still DECLINES.
-# Letter window over the FINE gain k_F (measured 2026-10-26, both sides changed): X holds whenever
-# the FINE gain differs from the detumble gain (k_F = 0.3 here, also k_F = 0.45); with k_F = 0.5
-# the two phases coincide and RELCERT_NO_CHOICE=1 certifies.
+# Letter window over the FINE gain k_F (measured 2026-10-26, again 2026-10-29, both sides changed):
+# X holds whenever the FINE gain differs from the detumble gain (k_F = 0.3 here, also k_F = 0.45);
+# with k_F = 0.5 the two phases coincide and RELCERT_NO_CHOICE=1 certifies.
 # Fallback: DETUMBLE -> SAFE is pruned (source: no DETUMBLE entry state has E > 1; barrier: on
 # E = 1 the design model's field gives E' = -E < 0); the committed successor subset closes the
 # same fallback, so RELCERT_NO_PRUNE=1 alone CERTIFIES (no P).
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27, batch I9): CERTIFIED (about
-# 6 s with a build running beside it; 4 s quiet); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1,
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-29, one domain): CERTIFIED (about
+# 8 s on a shared machine); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1,
 # RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_REPO=1, RELCERT_OPREGION=1,
-# RELCERT_WELLFORMED_STRICT=1 and without RELCERT_IMPLIED_CUT; DECLINED under RELCERT_NO_CHOICE=1,
-# NO_PRUNE+NO_CHOICE, SYNC+NO_CHOICE and RELCERT_NO_CUT=1 (on the second design cycle of a FINE
-# window the design model's FINE guard E <= 0.125 is a checked cut; without cuts the handover
-# DETUMBLE -> FINE after the first cycle is not covered). Covers: both left modes at lambda 1,
-# budget 2 (joint steps: DETUMBLE's design cycles retain DETUMBLE and FINE, FINE's retain FINE
-# and DETUMBLE, one non-self successor each, no branching letter), by the choice cover (a hop into
-# the deployed's phase at the window start), no right-only segment; pruned DETUMBLE -> SAFE (not
-# load-bearing, NO_PRUNE certifies). Rows identical (--handoff 4/4 vacuous; the bridge instance
-# takes the window form). relcert --wellformed: DETUMBLE, FINE, SAFE ok (invariant), 0 UNKNOWN,
-# 0 BLOCKING. The right model is unchanged since batch I4 (three modes, Assumption 1 proof
-# unchanged); the left changed only in its period (1 -> 2 s, batch I9). Letters: M I X.
+# RELCERT_WELLFORMED_STRICT=1, without RELCERT_IMPLIED_CUT and with every evolve bound widened by
+# 20 %; DECLINED under RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE, SYNC+NO_CHOICE and RELCERT_NO_CUT=1
+# (on the second design cycle of a FINE window the design model's FINE guard E <= 0.125 is a checked
+# cut; without cuts the handover DETUMBLE -> FINE after the first cycle is not covered). Covers:
+# both left modes at lambda 1, budget 2 (joint steps: DETUMBLE's design cycles retain DETUMBLE and
+# FINE, FINE's retain FINE and DETUMBLE, one non-self successor each, no branching letter), by the
+# choice cover (a hop into the deployed's phase at the window start), no right-only segment; pruned
+# DETUMBLE -> SAFE (not load-bearing, NO_PRUNE certifies). Rows identical (--handoff 4/4 vacuous;
+# the bridge instance takes the window form). relcert --wellformed: DETUMBLE, FINE, SAFE ok
+# (invariant), 0 UNKNOWN, 0 BLOCKING. The right fields and guards are unchanged since batch I4
+# (three modes); the right domain changed on 2026-10-29 (one domain: the band and the h box
+# dropped), and the Lean Assumption 1 proof is redone on the w box (2026-10-29, Z3-free);
+# the left changed in its period (1 -> 2 s, batch I9) and in its domain (2026-10-29). Letters:
+# M I X.
 #
-# MOMENTUM BAND (right evolve domains): |h + 5 w3| <= 2 N m s, the z-axis total angular momentum
-# within the wheel's capacity. It is conserved by every design-model mode (h' = 5 k w3,
-# w3' = -k w3), so it is a constraint on the initial state: the wheel can absorb the body's
-# momentum. Off the band the wheel saturates before the body is stopped and the design model
-# has no run of a full period (its Assumption 1 fails); the momentum dump that would handle
-# that case is not modeled.
+# WHEEL MOMENTUM (not in the domain). Neither model has wheel-saturation dynamics, so the wheel's
+# capacity (2 N m s) and the momentum dump that would handle it are coverage gaps of the models,
+# not domain bounds: with |h| <= 2 in the domain the design model's own flow (h' = 5 k w3) crosses
+# it, and relcert --wellformed reports DETUMBLE and FINE BLOCKING (leaves h >= -2.0; Assumption 1
+# fails, measured 2026-10-29). The band |h + 5 w3| <= 2 (the z-axis total momentum within the
+# wheel's capacity) is a first integral of every design-model mode but not of the gyrostat, where
+# (h + 5 w3)' = -2 w1 w2 in both phases, so on the left it would be a reachable-set band. The
+# claim needs neither: on both sides E' = -2 k E whatever h is.
 [problem]
 name = sat_detumble_phases
 max_depth = 8
@@ -129,12 +136,12 @@ epsilon = 2.0
 [Lsys.mode.DETUMBLE]
 ode = w1' = smt2:(- (- (* -0.5 (* w2 w3)) (* 0.5 (* w2 h))) (* 0.5 w1)); w2' = smt2:(- (+ (* 0.75 (* w3 w1)) (* 0.25 (* w1 h))) (* 0.5 w2)); w3' = smt2:(- (* -0.4 (* w1 w2)) (* 0.5 w3)); h' = smt2:(* 2.5 w3);
 guard = w1*w1*2 + w2*w2*4 + w3*w3*5 <= 1.0
-evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h >= -2.0 and h <= 2.0
+evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0
 next = [FINE, DETUMBLE]
 [Lsys.mode.FINE]
 ode = w1' = smt2:(- (- (* -0.5 (* w2 w3)) (* 0.5 (* w2 h))) (* 0.3 w1)); w2' = smt2:(- (+ (* 0.75 (* w3 w1)) (* 0.25 (* w1 h))) (* 0.3 w2)); w3' = smt2:(- (* -0.4 (* w1 w2)) (* 0.3 w3)); h' = smt2:(* 1.5 w3);
 guard = w1*w1*2 + w2*w2*4 + w3*w3*5 <= 0.125
-evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h >= -2.0 and h <= 2.0
+evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0
 next = [FINE, DETUMBLE]
 [Rsys]
 state_vars = [w1, w2, w3, h]
@@ -142,17 +149,17 @@ epsilon = 1.0
 [Rsys.mode.DETUMBLE]
 ode = w1' = smt2:(* -0.5 w1); w2' = smt2:(* -0.5 w2); w3' = smt2:(* -0.5 w3); h' = smt2:(* 2.5 w3);
 guard = w1*w1*2 + w2*w2*4 + w3*w3*5 <= 1.0
-evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h >= -2.0 and h <= 2.0 and h + 5.0*w3 >= -2.0 and h + 5.0*w3 <= 2.0
+evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0
 next = [DETUMBLE, FINE, SAFE]
 [Rsys.mode.FINE]
 ode = w1' = smt2:(* -0.3 w1); w2' = smt2:(* -0.3 w2); w3' = smt2:(* -0.3 w3); h' = smt2:(* 1.5 w3);
 guard = w1*w1*2 + w2*w2*4 + w3*w3*5 <= 0.125
-evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h >= -2.0 and h <= 2.0 and h + 5.0*w3 >= -2.0 and h + 5.0*w3 <= 2.0
+evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0
 next = [FINE, DETUMBLE]
 [Rsys.mode.SAFE]
 ode = w1' = smt2:0; w2' = smt2:0; w3' = smt2:0; h' = smt2:0;
 guard = w1*w1*2 + w2*w2*4 + w3*w3*5 > 1.0
-evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0 and h >= -2.0 and h <= 2.0 and h + 5.0*w3 >= -2.0 and h + 5.0*w3 <= 2.0
+evolve = w1 >= -1.0 and w1 <= 1.0 and w2 >= -1.0 and w2 <= 1.0 and w3 >= -1.0 and w3 <= 1.0
 next = [SAFE]
 [relational_invariant]
 DETUMBLE = w1[l]*w1[l]*2 + w2[l]*w2[l]*4 + w3[l]*w3[l]*5 <= w1[r]*w1[r]*2 + w2[r]*w2[r]*4 + w3[r]*w3[r]*5 and w1[r]*w1[r]*2 + w2[r]*w2[r]*4 + w3[r]*w3[r]*5 <= w1[l]*w1[l]*2 + w2[l]*w2[l]*4 + w3[l]*w3[l]*5

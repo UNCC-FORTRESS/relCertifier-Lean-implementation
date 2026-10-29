@@ -7,12 +7,14 @@ Released under Apache 2.0 license.
 Over the instance's guarded right automaton `Gr` (one mode, `CLIMB`, with its self-loop),
 the lowered right guard, `ε_r = 1`. The right model is the reference quadrotor's climb with
 the motors' thrust lag, an affine cascade: `h' = w`, `w' = a − 4.905 w`,
-`a' = 10 (9.81 − a)`; guard = evolve = `h ≥ 0 ∧ 0 ≤ w ≤ 2 ∧ 0 ≤ a ≤ 9.81`.
+`a' = 10 (9.81 − a)`; guard = evolve = `h ≥ 0 ∧ 0 ≤ w ≤ 3 ∧ 0 ≤ a ≤ 14.715` (the one
+evolve domain shared with the left; `14.715 = 3 · 4.905`).
 
 * Existence (i): the explicit run of the cascade. `a` is the forced contraction toward
-  `9.81` (`forcedSol 10 a₀ 98.1`, kept in `[a₀, 9.81] ⊆ [0, 9.81]` by `forcedSol_between`);
-  `w` is the contraction `w' = a(t) − 4.905 w` forced by that `a` (`forcedSol 4.905 w₀ a`,
-  kept in `[min w₀ 0, max w₀ (9.81/4.905)] = [0, 2]` because `0 ≤ a(t) ≤ 9.81`); `h` is the
+  `9.81` (`forcedSol 10 a₀ 98.1`, kept between `a₀` and `9.81`, so in `[0, 14.715]`, by
+  `forcedSol_between`); `w` is the contraction `w' = a(t) − 4.905 w` forced by that `a`
+  (`forcedSol 4.905 w₀ a`, kept in `[min w₀ 0, max w₀ (14.715/4.905)] = [0, 3]` because
+  `0 ≤ a(t) ≤ 14.715`); `h` is the
   integral of `w` (`intSol`), not decreasing since `w ≥ 0` (`mono_of_deriv_nonneg`). The run
   is assembled by `trajRs_sol` and stays in the evolve box over the interval.
 * (ii), style (a): the guard is the evolve domain, so every run (of any duration) ends in
@@ -60,6 +62,12 @@ theorem hp100 : Run.parseRat "10.0" = some (10 : ℚ) := by
 theorem hp981 : Run.parseRat "9.81" = some ((981 : ℚ) / 100) := by
   have h : parseQ "9.81" = some (⟨981, 100⟩ : QF) := by decide
   simp [Run.parseRat, h]; try norm_num
+theorem hp30 : Run.parseRat "3.0" = some (3 : ℚ) := by
+  have h : parseQ "3.0" = some (⟨30, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; try norm_num
+theorem hp14715 : Run.parseRat "14.715" = some ((2943 : ℚ) / 200) := by
+  have h : parseQ "14.715" = some (⟨14715, 1000⟩ : QF) := by decide
+  simp [Run.parseRat, h]; try norm_num
 theorem hp4905 : Run.parseRat "4.905" = some ((981 : ℚ) / 200) := by
   have h : parseQ "4.905" = some (⟨4905, 1000⟩ : QF) := by decide
   simp [Run.parseRat, h]; try norm_num
@@ -69,14 +77,14 @@ theorem hp4905 : Run.parseRat "4.905" = some ((981 : ℚ) / 200) := by
 /-- Altitude: `h' = w`. -/
 theorem fR0_eval (x : State (Var 3)) : Term.eval (fR 0 0) x = x (Rv 1) := by
   simp [fR, hostDyn, mR, quad_light_lag_IRv2, vs, Run.dynOf, Run.lowerE, hp0, hp00, hp20,
-    hp100, hp981, hp4905, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
+    hp100, hp981, hp4905, hp30, hp14715, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
     Term.eval, AOp.interp, Rv]
 
 /-- Climb rate: `w' = a − 4.905 w`. -/
 theorem fR1_eval (x : State (Var 3)) :
     Term.eval (fR 0 1) x = x (Rv 2) - 981 / 200 * x (Rv 1) := by
   simp [fR, hostDyn, mR, quad_light_lag_IRv2, vs, Run.dynOf, Run.lowerE, hp0, hp00, hp20,
-    hp100, hp981, hp4905, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
+    hp100, hp981, hp4905, hp30, hp14715, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
     Term.eval, AOp.interp, Rv]
   try norm_num
 
@@ -84,17 +92,17 @@ theorem fR1_eval (x : State (Var 3)) :
 theorem fR2_eval (x : State (Var 3)) :
     Term.eval (fR 0 2) x = 10 * (981 / 100 - x (Rv 2)) := by
   simp [fR, hostDyn, mR, quad_light_lag_IRv2, vs, Run.dynOf, Run.lowerE, hp0, hp00, hp20,
-    hp100, hp981, hp4905, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
+    hp100, hp981, hp4905, hp30, hp14715, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
     Term.eval, AOp.interp, Rv]
   try norm_num
 
-/-- The climb box (guard = evolve domain). -/
+/-- The climb box (guard = evolve domain): `h ≥ 0`, `0 ≤ w ≤ 3`, `0 ≤ a ≤ 14.715`. -/
 def boxR (x : State (Var 3)) : Prop :=
-  0 ≤ x (Rv 0) ∧ 0 ≤ x (Rv 1) ∧ x (Rv 1) ≤ 2 ∧ 0 ≤ x (Rv 2) ∧ x (Rv 2) ≤ 981 / 100
+  0 ≤ x (Rv 0) ∧ 0 ≤ x (Rv 1) ∧ x (Rv 1) ≤ 3 ∧ 0 ≤ x (Rv 2) ∧ x (Rv 2) ≤ 2943 / 200
 
 theorem sat_domR (x : State (Var 3)) : Formula.sat domR x ↔ boxR x := by
   simp only [domR, hostEvolve, mR, quad_light_lag_IRv2, vs]
-  simp [Run.lowerF, Run.lowerE, hp0, hp00, hp20, hp100, hp981, hp4905, Run.resolveVar,
+  simp [Run.lowerF, Run.lowerE, hp0, hp00, hp20, hp100, hp981, hp4905, hp30, hp14715, Run.resolveVar,
     List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval,
     Rv, boxR, and_assoc]
   try norm_num
@@ -133,7 +141,7 @@ noncomputable def guardR (q : ℕ) : Formula (Var 3) := hostGuard vs 3 Side.R (m
 
 theorem sat_guardR0 (x : State (Var 3)) : Formula.sat (guardR 0) x ↔ boxR x := by
   simp [guardR, hostGuard, mR, quad_light_lag_IRv2, Run.lowerF, Run.lowerE, hp0, hp00, hp20,
-    hp100, hp981, hp4905, vs, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost,
+    hp100, hp981, hp4905, hp30, hp14715, vs, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost,
     Formula.sat, CompOp.interp, Term.eval, Rv, boxR, and_assoc]
   try norm_num
 
@@ -187,27 +195,28 @@ theorem φR_der (ρ : State (Var 3)) (i : Fin 3) (t : ℝ) :
       show 981 / 10 - 10 * φa ρ t = 10 * (981 / 100 - φa ρ t)
       ring
 
-/-- The thrust stays in `[0, 9.81]` over one control interval. -/
+/-- The thrust stays in `[0, 14.715]` over one control interval (it moves monotonically
+from `a₀` toward `9.81 ≤ 14.715`). -/
 theorem φa_bnd (ρ : State (Var 3)) (hρ : boxR ρ) :
-    ∀ τ ∈ Icc (0:ℝ) 1, 0 ≤ φa ρ τ ∧ φa ρ τ ≤ 981 / 100 := by
+    ∀ τ ∈ Icc (0:ℝ) 1, 0 ≤ φa ρ τ ∧ φa ρ τ ≤ 2943 / 200 := by
   obtain ⟨-, -, -, ha0, ha1⟩ := hρ
   intro τ hτ
   have h := forcedSol_between 10 (ρ (Rv 2)) (F := fun _ => (981 / 10 : ℝ)) continuous_const
     (lo := 981 / 10) (hi := 981 / 10) (by norm_num) (fun _ _ => ⟨le_rfl, le_rfl⟩) τ hτ
   have he : (981 / 10 : ℝ) / 10 = 981 / 100 := by norm_num
   rw [he] at h
-  exact ⟨le_trans (le_min ha0 (by norm_num)) h.1, le_trans h.2 (max_le ha1 le_rfl)⟩
+  exact ⟨le_trans (le_min ha0 (by norm_num)) h.1, le_trans h.2 (max_le ha1 (by norm_num))⟩
 
-/-- The climb rate stays in `[0, 2]` over one control interval (`2 = 9.81 / 4.905`). -/
+/-- The climb rate stays in `[0, 3]` over one control interval (`3 = 14.715 / 4.905`). -/
 theorem φw_bnd (ρ : State (Var 3)) (hρ : boxR ρ) :
-    ∀ τ ∈ Icc (0:ℝ) 1, 0 ≤ φw ρ τ ∧ φw ρ τ ≤ 2 := by
+    ∀ τ ∈ Icc (0:ℝ) 1, 0 ≤ φw ρ τ ∧ φw ρ τ ≤ 3 := by
   have hb := φa_bnd ρ hρ
   obtain ⟨-, hw0, hw1, -, -⟩ := hρ
   intro τ hτ
   have h := forcedSol_between (981 / 200) (ρ (Rv 1)) (F := φa ρ) (φa_cont ρ)
-    (lo := 0) (hi := 981 / 100) (by norm_num) hb τ hτ
+    (lo := 0) (hi := 2943 / 200) (by norm_num) hb τ hτ
   have he0 : (0 : ℝ) / (981 / 200) = 0 := by norm_num
-  have he1 : (981 / 100 : ℝ) / (981 / 200) = 2 := by norm_num
+  have he1 : (2943 / 200 : ℝ) / (981 / 200) = 3 := by norm_num
   rw [he0, he1] at h
   exact ⟨le_trans (le_min hw0 le_rfl) h.1, le_trans h.2 (max_le hw1 le_rfl)⟩
 

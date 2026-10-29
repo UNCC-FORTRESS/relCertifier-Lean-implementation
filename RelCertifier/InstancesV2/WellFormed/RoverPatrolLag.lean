@@ -7,17 +7,17 @@ Released under Apache 2.0 license.
 Over the guarded right automaton `GrG` (the file's four zone modes `SLOW`, `MEDIUM_ECO`,
 `MEDIUM_BRISK`, `FAST` and their declared `next` lists), the lowered right guards, `ε_r = 1`.
 The right is the planning model: no motor state, the zone loop `v' = c − v` toward the zone
-command `c` (0.6, 0.9, 1.1, 1.5 m/s), `s' = v`; coordinate 2 is the left's motor-lag state `a`,
-which the right does not list, so its right field lowers to 0. The evolve box is
-`0 ≤ v ≤ 1.6`, `s ≥ 0` in every mode; the guards are the odometer zones only (`SLOW`
+command `c` (0.6, 0.9, 1.1, 1.5 m/s), `s' = v`, and the motor-lag state `a` (coordinate 2)
+declared frozen, `a' = 0`. The evolve box is `0 ≤ v ≤ 1.6`, `s ≥ 0`, `|a| ≤ 2` in every mode
+(the frozen `a` keeps its box trivially); the guards are the odometer zones only (`SLOW`
 `0 ≤ s < 20`, both `MEDIUM` profiles `20 ≤ s < 50`, `FAST` `s ≥ 50`). Over one interval the
 odometer grows by at most `1.6` (the evolve bound on `v`), and never decreases.
 * `SLOW`, style (b): ends in `SLOW` or `MEDIUM_ECO` (below `20 + 1.6 < 50`).
 * `MEDIUM_ECO` / `MEDIUM_BRISK`, style (b): end in the profile itself or `FAST`.
 * `FAST`, style (a): forward invariant.
 Existence: the explicit zone runs (`flowR_run`: `v` a convex combination of its start and the
-command, `s` its integral). Z3-free; modelled on the round-2 `rover_patrol_zones` proof (the
-same planning model, git history).
+command, `s` its integral, `a` constant). Z3-free; modelled on the round-2
+`rover_patrol_zones` proof (the same planning model, git history).
 -/
 import RelCertifier.InstancesV2.BenchIR.rover_patrol_lag
 import RelCertifier.Proofs.Encoding.WellFormedR
@@ -62,6 +62,15 @@ theorem hp500 : Run.parseRat "50.0" = some (50 : ℚ) := by
 theorem hp10 : Run.parseRat "1.0" = some (1 : ℚ) := by
   have h : parseQ "1.0" = some (⟨10, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]
+theorem hp0 : Run.parseRat "0" = some (0 : ℚ) := by
+  have h : parseQ "0" = some (⟨0, 1⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+theorem hp20 : Run.parseRat "2.0" = some (2 : ℚ) := by
+  have h : parseQ "2.0" = some (⟨20, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
+theorem hpm20 : Run.parseRat "-2.0" = some (-2 : ℚ) := by
+  have h : parseQ "-2.0" = some (⟨-20, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]; norm_num
 def capQ : ℕ → ℚ
   | 0 => 3/5 | 1 => 9/10 | 2 => 11/10 | _ => 3/2
 noncomputable def capL (l : ℕ) : ℝ := (capQ l : ℝ)
@@ -72,28 +81,30 @@ theorem fR0_eval (q : ℕ) (hq : q < 4) (x : State (Var 3)) :
     Term.eval (fR q 0) x = capL q - x (Rv 0) := by
   interval_cases q <;>
     simp [fR, hostDyn, mR, rover_patrol_lag_IRv2, vs, Run.dynOf, Run.lowerE, hp06, hp09,
-      hp11, hp15, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
+      hp11, hp15, hp0, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
       AOp.interp, Rv, capL, capQ]
 
 theorem fR1_eval (q : ℕ) (hq : q < 4) (x : State (Var 3)) :
     Term.eval (fR q 1) x = x (Rv 0) := by
   interval_cases q <;>
     simp [fR, hostDyn, mR, rover_patrol_lag_IRv2, vs, Run.dynOf, Run.lowerE, hp06, hp09,
-      hp11, hp15, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
+      hp11, hp15, hp0, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
       Term.eval, AOp.interp, Rv]
 
-/-- The left's lag state `a` is not a right coordinate: its right field is 0. -/
+/-- The motor-lag state `a` is frozen on the right (`a' = 0` in every mode). -/
 theorem fR2_eval (q : ℕ) (hq : q < 4) (x : State (Var 3)) :
     Term.eval (fR q 2) x = 0 := by
   interval_cases q <;>
     simp [fR, hostDyn, mR, rover_patrol_lag_IRv2, vs, Run.dynOf, Run.lowerE, hp06, hp09,
-      hp11, hp15, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
+      hp11, hp15, hp0, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
       Term.eval, AOp.interp, Rv]
 
+/-- The evolve domain (every mode): `0 ≤ v ≤ 1.6`, `s ≥ 0`, `|a| ≤ 2`. -/
 theorem sat_domR (x : State (Var 3)) :
-    Formula.sat domR x ↔ (0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 8/5 ∧ 0 ≤ x (Rv 1)) := by
+    Formula.sat domR x ↔ (0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 8/5 ∧ 0 ≤ x (Rv 1) ∧
+      -2 ≤ x (Rv 2) ∧ x (Rv 2) ≤ 2) := by
   simp only [domR, hostEvolve, mR, rover_patrol_lag_IRv2, vs]
-  simp [Run.lowerF, Run.lowerE, hp00, hp16, Run.resolveVar, List.findIdx?_cons,
+  simp [Run.lowerF, Run.lowerE, hp00, hp16, hp20, hpm20, Run.resolveVar, List.findIdx?_cons,
     IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv, and_assoc]
 
 /-! ## The right automaton (the file's modes and declared `next` lists) -/
@@ -110,7 +121,8 @@ def edgeList : List (ℕ × ℕ) :=
 
 `v(t) = c + (v₀ − c) e^{−t}` (a convex combination of `v₀` and the command `c`, so inside
 `[0, 1.6]`), `s(t) = s₀ + c t + (v₀ − c)(1 − e^{−t}) = s₀ + v₀ (1 − e^{−t}) + c (t − 1 + e^{−t})
-≥ s₀` (the odometer never decreases; it has no upper wall). -/
+≥ s₀` (the odometer never decreases; it has no upper wall), `a(t) = a₀` (frozen, so its box is
+kept). -/
 
 noncomputable def ex (t : ℝ) : ℝ := Real.exp (-t)
 
@@ -143,13 +155,15 @@ theorem ex_ge (t : ℝ) : 1 - t ≤ ex t := by
 theorem solR_stays (q : ℕ) (hq : q < 4) (b : State (Var 3)) (hb : Formula.sat domR b)
     {t : ℝ} (ht : 0 ≤ t) : Formula.sat domR (solR (capL q) b t) := by
   rw [sat_domR] at hb ⊢
-  obtain ⟨h0, h1, h2⟩ := hb
+  obtain ⟨h0, h1, h2, h3, h4⟩ := hb
   have hc := cap_bounds q hq
   have he0 := ex_pos t
   have he1 := ex_le_one ht
   have he2 := ex_ge t
-  rw [solR_0, solR_1]
-  refine ⟨by nlinarith, by nlinarith, by nlinarith⟩
+  have ha : solR (capL q) b t (Rv 2) = b (Rv 2) :=
+    solR_other _ b t (by simp [Rv, Prod.ext_iff]) (by simp [Rv, Prod.ext_iff])
+  rw [solR_0, solR_1, ha]
+  refine ⟨by nlinarith, by nlinarith, by nlinarith, h3, h4⟩
 
 theorem rightBlock_bound_mem (q : ℕ) (i : Fin 3) :
     Rv i ∈ (rightBlock (fR q) (Term.const 1)).bound := by

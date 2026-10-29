@@ -13,8 +13,8 @@ outside the suite in `benchmarks/reserve/` (inputs, headers and verdicts only; `
 **Assumption 1 of each right model** (the paper's Well-Formedness: from every guard state a
 full control interval of flow exists, and every evolution of at most `ε_r` ends in a declared
 successor's guard) is verified per file (`WellFormedR`, `docs/WELLFORMED.md`): it holds for
-all 50 literally (the 3 satellite files carry their conserved momentum band in the right evolve
-domain since 2026-10-15).
+all 50 literally (the 3 satellite files on the gyro box `|w_i| <= 1` alone since 2026-10-29, when
+every benchmark got one physical evolve domain, the same on both sides: `scripts/check_one_domain.py`).
 Nine files had a blocking mode until 2026-10-10 and were repaired (`docs/SUITE-REDESIGN.md`
 §21; each header says how and why; `arm_plateau_{crit,profiles,slow}` and
 `platoon3_{linkloss,profiles}` are in `benchmarks/reserve/` since 2026-10-27, and `platoon_delay_{linkloss,profiles}` were

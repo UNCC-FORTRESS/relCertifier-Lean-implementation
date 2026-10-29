@@ -2,7 +2,7 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `sat3w_detumble_phases`: Assumption 1 of the right model (style (a); the momentum band in the right evolve domain)
+# `sat3w_detumble_phases`: Assumption 1 of the right model (style (a); the gyro box as the right evolve domain)
 
 Over the instance's guarded right automaton `Gr` (the design model's three modes `DETUMBLE` 0,
 `FINE` 1, `SAFE` 2 and their declared `next` lists), the lowered right guards, `ε_r = 1`.
@@ -12,18 +12,20 @@ The right model neglects the gyroscopic and wheel couplings: at gain `k` (`DETUM
 Guards: `DETUMBLE` `E ≤ 1`, `FINE` `E ≤ 0.125`, `SAFE` `E > 1`, with the body energy
 `E = 2 w1² + 4 w2² + 5 w3²`.
 
-**The right evolve domain carries the momentum band `|h_i + J_i w_i| ≤ 2`** (the body's momentum
-within the wheels' capacity, a constant of every design-model flow). Without it `WellFormedR`
-would be false: from `w₃ = 0.4`, `h₃ = 2`, the rest 0 (energy `0.8`, inside `DETUMBLE`'s guard and
-the box) the `DETUMBLE` run of duration 1 would end at `h₃ = 4 − 2 e^{−1/2} > 2`.
+**The right evolve domain (every mode) is the gyro box `|w_i| ≤ 1`** (the gyro's measurement
+range; one domain on every mode of both sides since 2026-10-29). The wheel momenta `h_i` are not
+bounded: with `|h_i| ≤ 2` in the domain the design model's own flow `h_i' = J_i k w_i` would cross
+it (from `w₃ = 0.4`, `h₃ = 2`, the rest 0, the `DETUMBLE` run of duration 1 ends at
+`h₃ = 4 − 2 e^{−1/2} > 2`) and Assumption 1 would be false. The momentum bands
+`|h_i + J_i w_i| ≤ 2` are not in the domain either (first integrals of the design model, not of
+the real body), but they are still conserved by every right mode's flow
+(`sat3w_detumble_phases_band_invariant`).
 
-**With the band, Assumption 1 holds at every mode** (`sat3w_detumble_phases_wellFormedR`,
-Z3-free), and the band is kept by every mode's flow (`sat3w_detumble_phases_band_invariant`):
+**Assumption 1 holds at every mode** (`sat3w_detumble_phases_wellFormedR`, Z3-free):
 * `DETUMBLE`, `FINE`: the mode's own guard (`E ≤ 1`, resp. `E ≤ 0.125`) is forward invariant
   (each rate's square decays, so `E` does not grow; style (a)), the exit edge is the self-loop;
   existence is the explicit solution `flowR_exists` (gain `kR q`), which stays in the domain
-  because the three conserved momenta `c_i = h_i + J_i w_i` are constant and each `h_i` is a
-  convex combination of `h_i0` and `c_i`.
+  because each `|w_i(t)| = |w_i(0)| e^{−k t} ≤ 1`, the `h_i` being unconstrained.
 * `SAFE` (`E > 1`, frozen) holds still.
 
 Z3-free; modelled on `RelCertifier/InstancesV2/WellFormed/Sat3wDetumbleWeak.lean`.
@@ -87,15 +89,6 @@ theorem hpm10 : Run.parseRat "-1.0" = some (-1 : ℚ) := by
 theorem hp20 : Run.parseRat "2.0" = some (2 : ℚ) := by
   have h : parseQ "2.0" = some (⟨20, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
-theorem hp40 : Run.parseRat "4.0" = some (4 : ℚ) := by
-  have h : parseQ "4.0" = some (⟨40, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp50 : Run.parseRat "5.0" = some (5 : ℚ) := by
-  have h : parseQ "5.0" = some (⟨50, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hpm20 : Run.parseRat "-2.0" = some (-2 : ℚ) := by
-  have h : parseQ "-2.0" = some (⟨-20, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
 theorem hp0' : Run.parseRat "0" = some (0 : ℚ) := by
   have h : parseQ "0" = some (⟨0, 1⟩ : QF) := by decide
   simp [Run.parseRat, h]
@@ -158,17 +151,13 @@ theorem fR_safe (i : Fin 6) (x : State (Var 6)) : Term.eval (fR 2 i) x = 0 := by
 
 theorem sat_domR (x : State (Var 6)) :
     Formula.sat domR x ↔ (-1 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 1 ∧ -1 ≤ x (Rv 1) ∧ x (Rv 1) ≤ 1 ∧
-      -1 ≤ x (Rv 2) ∧ x (Rv 2) ≤ 1 ∧ -2 ≤ x (Rv 3) ∧ x (Rv 3) ≤ 2 ∧
-      -2 ≤ x (Rv 4) ∧ x (Rv 4) ≤ 2 ∧ -2 ≤ x (Rv 5) ∧ x (Rv 5) ≤ 2 ∧
-      -2 ≤ x (Rv 3) + 2 * x (Rv 0) ∧ x (Rv 3) + 2 * x (Rv 0) ≤ 2 ∧
-      -2 ≤ x (Rv 4) + 4 * x (Rv 1) ∧ x (Rv 4) + 4 * x (Rv 1) ≤ 2 ∧
-      -2 ≤ x (Rv 5) + 5 * x (Rv 2) ∧ x (Rv 5) + 5 * x (Rv 2) ≤ 2) := by
+      -1 ≤ x (Rv 2) ∧ x (Rv 2) ≤ 1) := by
   simp only [domR, hostEvolve, mR, sat3w_detumble_phases_IRv2, vs]
-  simp [Run.lowerF, Run.lowerE, hpm10, hp10, hpm20, hp20, hp40, hp50, Run.resolveVar, AOp.interp,
+  simp [Run.lowerF, Run.lowerE, hpm10, hp10, Run.resolveVar, AOp.interp,
     List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv,
     and_assoc]
 
-/-! ## The nonblocking momenta `c1 = h1 + 2 w1`, `c2 = h2 + 4 w2`, `c3 = h3 + 5 w3`
+/-! ## The momenta `c1 = h1 + 2 w1`, `c2 = h2 + 4 w2`, `c3 = h3 + 5 w3`
 (right side; each conserved by every right flow) -/
 
 /-- `h_j + a w_i` on the right (`h_j` at coordinate `j`, `w_i` at `i`). -/
@@ -220,7 +209,8 @@ noncomputable def nbPair (c : Term (Var 6)) : Formula (Var 6) :=
   Formula.and (Formula.cmp CompOp.le c (Term.const 2))
     (Formula.cmp CompOp.le (Term.const (-2)) c)
 
-/-- The nonblocking conjunct `⋀ᵢ −2 ≤ c_i ≤ 2` (NOT a tool cut; see the theorem). -/
+/-- The momentum bands `⋀ᵢ −2 ≤ c_i ≤ 2` (not in the domain, not a tool cut; conserved by every
+right flow, see `sat3w_detumble_phases_band_invariant`). -/
 noncomputable def nbF : Formula (Var 6) :=
   Formula.and (nbPair c1) (Formula.and (nbPair c2) (nbPair c3))
 
@@ -234,9 +224,8 @@ theorem sat_nbF (ν : State (Var 6)) :
 /-! ## Existence: each active mode's flow, explicitly
 
 At gain `k`: `w_i(t) = w_i0 e^{−kt}`, `h_i(t) = h_i0 + J_i w_i0 (1 − e^{−kt})`
-(`J = (2, 4, 5)`): the rates contract toward 0 (inside `[−1, 1]`), and
-`h_i(t) = e^{−kt} h_i0 + (1 − e^{−kt}) (h_i0 + J_i w_i0)` is a convex combination of `h_i0`
-and the conserved `c_i = h_i0 + J_i w_i0`, inside `[−2, 2]` by the band. -/
+(`J = (2, 4, 5)`): the rates contract toward 0, so each `|w_i(t)| ≤ |w_i0| ≤ 1` and the run
+stays in the gyro box; the `h_i` are unconstrained by the domain. -/
 
 noncomputable def ex (k t : ℝ) : ℝ := Real.exp (-k * t)
 
@@ -285,41 +274,17 @@ theorem rate_band {w e : ℝ} (he0 : 0 < e) (he1 : e ≤ 1) (hl : -1 ≤ w) (hu 
   constructor <;> nlinarith [mul_nonneg he0.le (by linarith : (0:ℝ) ≤ 1 + w),
     mul_nonneg he0.le (by linarith : (0:ℝ) ≤ 1 - w)]
 
-/-- A wheel momentum `h0 + a w0 (1 − e)` (convex combination of `h0` and `h0 + a w0`) stays
-in `[−2, 2]` when both ends do. -/
-theorem mom_band {h a w e : ℝ} (he0 : 0 < e) (he1 : e ≤ 1) (hl : -2 ≤ h) (hu : h ≤ 2)
-    (hcu : h + a * w ≤ 2) (hcl : -2 ≤ h + a * w) :
-    -2 ≤ h + a * w * (1 - e) ∧ h + a * w * (1 - e) ≤ 2 := by
-  constructor <;> nlinarith [mul_nonneg he0.le (by linarith : (0:ℝ) ≤ 2 + h),
-    mul_nonneg he0.le (by linarith : (0:ℝ) ≤ 2 - h),
-    mul_nonneg (by linarith : (0:ℝ) ≤ 1 - e) (by linarith : (0:ℝ) ≤ 2 + (h + a * w)),
-    mul_nonneg (by linarith : (0:ℝ) ≤ 1 - e) (by linarith : (0:ℝ) ≤ 2 - (h + a * w))]
-
 theorem solR_stays {k : ℝ} (hk : 0 ≤ k) (b : State (Var 6)) (hb : Formula.sat domR b)
     {t : ℝ} (ht : 0 ≤ t) : Formula.sat domR (solR k b t) := by
   rw [sat_domR] at hb ⊢
-  obtain ⟨h0l, h0u, h1l, h1u, h2l, h2u, h3l, h3u, h4l, h4u, h5l, h5u,
-    hc1l, hc1u, hc2l, hc2u, hc3l, hc3u⟩ := hb
+  obtain ⟨h0l, h0u, h1l, h1u, h2l, h2u⟩ := hb
   have he0 := ex_pos k t
   have he1 := ex_le_one hk ht
-  rw [solR_0, solR_1, solR_2, solR_3, solR_4, solR_5]
+  rw [solR_0, solR_1, solR_2]
   obtain ⟨a0, b0⟩ := rate_band he0 he1 h0l h0u
   obtain ⟨a1, b1⟩ := rate_band he0 he1 h1l h1u
   obtain ⟨a2, b2⟩ := rate_band he0 he1 h2l h2u
-  obtain ⟨a3, b3⟩ := mom_band he0 he1 h3l h3u hc1u hc1l
-  obtain ⟨a4, b4⟩ := mom_band he0 he1 h4l h4u hc2u hc2l
-  obtain ⟨a5, b5⟩ := mom_band he0 he1 h5l h5u hc3u hc3l
-  have e1 : b (Rv 3) + 2 * b (Rv 0) * (1 - ex k t) + 2 * (b (Rv 0) * ex k t)
-      = b (Rv 3) + 2 * b (Rv 0) := by
-    ring
-  have e2 : b (Rv 4) + 4 * b (Rv 1) * (1 - ex k t) + 4 * (b (Rv 1) * ex k t)
-      = b (Rv 4) + 4 * b (Rv 1) := by
-    ring
-  have e3 : b (Rv 5) + 5 * b (Rv 2) * (1 - ex k t) + 5 * (b (Rv 2) * ex k t)
-      = b (Rv 5) + 5 * b (Rv 2) := by
-    ring
-  rw [e1, e2, e3]
-  exact ⟨a0, b0, a1, b1, a2, b2, a3, b3, a4, b4, a5, b5, hc1l, hc1u, hc2l, hc2u, hc3l, hc3u⟩
+  exact ⟨a0, b0, a1, b1, a2, b2⟩
 
 theorem rightBlock_bound_mem (q : ℕ) (i : Fin 6) :
     Rv i ∈ (rightBlock (fR q) (Term.const 1)).bound := by
@@ -490,7 +455,7 @@ theorem sat3w_detumble_phases_band_invariant : RegionInvariant Gr nbF := by
     simp only [safe_const H]
     exact ⟨a1, a2, a3, a4, a5, a6⟩
 
-/-- **Assumption 1 for `sat3w_detumble_phases` on the momentum band** (Z3-free). -/
+/-- **Assumption 1 for `sat3w_detumble_phases` on the gyro box `|w_i| ≤ 1`** (Z3-free). -/
 theorem sat3w_detumble_phases_wellFormedR :
     WellFormedR Gr guardR (epsR sat3w_detumble_phases_IRv2) := by
   rw [epsR_eq]

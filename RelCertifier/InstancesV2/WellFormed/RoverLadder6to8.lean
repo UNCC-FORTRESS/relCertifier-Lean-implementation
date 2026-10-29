@@ -7,11 +7,13 @@ Released under Apache 2.0 license.
 Over the guarded right automaton `GrG` (the file's three route zones `STEEP`, `MODER`, `FLAT`
 and their declared `next` lists), the lowered right guards, `ε_r = 1`. The right is the
 canonical rover's level `L6` (terrain-following suspension; the yaw rate `ω_ψ` and pitch rate
-`ω_θ` pinned at 0): per zone `q` (set point `c_q` = 3, 5, 6.5 m/s, grade `g_q` = 0.15, 0.05,
-0, cross-slope `x_q` = 0.1, 0.05, 0) `v' = (c_q − v)/2`, `s' = v (1 − ψ²/2 − 0.3 θ² − 0.2 φ²)`,
-`ψ' = −ψ`, `θ' = −θ + g_q + z/2`, `z' = −z`, `φ' = −φ + x_q + 0.015 v (−ψ)`, the pinned rates
-0; the guards are the odometer zones `[0, 60)`, `[60, 140)`, `[140, ∞)`; the evolve box
-`0 ≤ v ≤ 8`, `s ≥ 0`, `|ψ|, |θ| ≤ 0.6`, `|z| ≤ 0.15`, `|φ| ≤ 0.5`, `ω_ψ = ω_θ = 0`.
+`ω_θ` frozen at their start values): per zone `q` (set point `c_q` = 3, 5, 6.5 m/s, grade
+`g_q` = 0.15, 0.05, 0, cross-slope `x_q` = 0.1, 0.05, 0) `v' = (c_q − v)/2`,
+`s' = v (1 − ψ²/2 − 0.3 θ² − 0.2 φ²)`, `ψ' = −ψ`, `θ' = −θ + g_q + z/2`, `z' = −z`,
+`φ' = −φ + x_q + 0.015 v (−ψ)`, the frozen rates 0; the guards are the odometer zones
+`[0, 60)`, `[60, 140)`, `[140, ∞)`; the evolve domain is the one validity box of both sides,
+`0 ≤ v ≤ 8`, `s ≥ 0`, `|ψ|, |ω_ψ|, |θ|, |ω_θ| ≤ 0.6`, `|z| ≤ 0.15`, `|φ| ≤ 0.5` (a frozen rate
+keeps its start value, so it stays in the box).
 `wellFormedR_terrain` (the shared three-band lemma, no caps: `0 ≤ s' ≤ 8` on the box, so a
 `STEEP` run ends below `60 + 8 ≤ 140`, inside `STEEP` or `MODER`, a `MODER` run in `MODER` or
 `FLAT`, `FLAT` is forward invariant). Existence: the explicit run of the cascade `z → θ`,
@@ -225,7 +227,7 @@ theorem fRR7_eval (q : ℕ) (hq : q < 3) (x : State (Var 8)) :
       gp_60_0, gp_140_0, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
       Term.eval, AOp.interp, Rv, xZ] <;> try ring
 
-/-- The pinned rates (`ω_ψ`, `ω_θ`) do not move. -/
+/-- The frozen rates (`ω_ψ`, `ω_θ`) do not move. -/
 theorem fRR_pinned (q : ℕ) (hq : q < 3) (x : State (Var 8)) (i : Fin 8)
     (h : i = 3 ∨ i = 5) : Term.eval (fRR q i) x = 0 := by
   rcases h with rfl | rfl <;>
@@ -238,8 +240,8 @@ theorem fRR_pinned (q : ℕ) (hq : q < 3) (x : State (Var 8)) (i : Fin 8)
 
 theorem sat_domRR (x : State (Var 8)) : Formula.sat domRR x ↔
     (0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 8 ∧ 0 ≤ x (Rv 1) ∧
-      -(3/5) ≤ x (Rv 2) ∧ x (Rv 2) ≤ 3/5 ∧ 0 ≤ x (Rv 3) ∧ x (Rv 3) ≤ 0 ∧
-      -(3/5) ≤ x (Rv 4) ∧ x (Rv 4) ≤ 3/5 ∧ 0 ≤ x (Rv 5) ∧ x (Rv 5) ≤ 0 ∧
+      -(3/5) ≤ x (Rv 2) ∧ x (Rv 2) ≤ 3/5 ∧ -(3/5) ≤ x (Rv 3) ∧ x (Rv 3) ≤ 3/5 ∧
+      -(3/5) ≤ x (Rv 4) ∧ x (Rv 4) ≤ 3/5 ∧ -(3/5) ≤ x (Rv 5) ∧ x (Rv 5) ≤ 3/5 ∧
       -(3/20) ≤ x (Rv 6) ∧ x (Rv 6) ≤ 3/20 ∧ -(1/2) ≤ x (Rv 7) ∧ x (Rv 7) ≤ 1/2) := by
   simp only [domRR, hostEvolve, mRR, rover_ladder_6to8_IRv2, vsR]
   simp [Run.lowerF, Run.lowerE, gp_0, gp_1, gp_m1, gp_0_0, gp_0_015, gp_0_05, gp_0_1, gp_0_15,
@@ -369,7 +371,7 @@ theorem φsF_cont (q : ℕ) (ρ : State (Var 8)) : Continuous (φsF q ρ) := by
   have h4 := φph_cont q ρ
   unfold φsF; fun_prop
 
-/-- The run: every right coordinate along its explicit law (the pinned rates frozen). -/
+/-- The run: every right coordinate along its explicit law (the frozen rates constant). -/
 noncomputable def φR (q : ℕ) (ρ : State (Var 8)) (i : Fin 8) : ℝ → ℝ :=
   if i = 0 then φv q ρ else if i = 1 then φs q ρ else if i = 2 then φps ρ
   else if i = 4 then φth q ρ else if i = 6 then φz ρ else if i = 7 then φph q ρ

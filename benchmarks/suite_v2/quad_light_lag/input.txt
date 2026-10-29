@@ -25,9 +25,11 @@
 # round 6/5. The ratio is not grid-tuned: with PX4's default K = 4.0 /s (terminals 2.0 and 2.4905)
 # the same rows certify pinned at lambda = 1 + 0.2 g / (K w_sp) = 1.24525, and with K = 4.5
 # (terminals 2.0 and 2.436) at 1.218, Psi rebuilt for the new constants and the letters S M
-# unchanged (measured 2026-10-29). At every K the claim certifies only with the exact ratio on the
-# stretch grid, pinned or as the top of a range ([1, 1.24525] certifies, [1, 1.3] and [1, 1.5]
-# decline at K = 4.0), because Psi is conserved at the exact ratio only; the pin is the stated form.
+# unchanged (re-measured 2026-10-29 on the one domain, where these gains leave the reference's box
+# open at the limiter: 14.715 > 3 K, relcert --wellformed CLIMB BLOCKING). At every K the claim
+# certifies only with the exact ratio on the stretch grid, pinned or as the top of a range
+# ([1, 1.24525] certifies, [1, 1.3] and [1, 1.5] decline at K = 4.0), because Psi is conserved at
+# the exact ratio only; the pin is the stated form.
 # One cause: the airframe mass (the lag is the same physical lag on both sides).
 #
 # Requirement: the altitude conformance of quad_light_airframe_20, |h_L - h_R| <= 0.8 m at times t
@@ -45,9 +47,9 @@
 #     side's h + ((w - w_term) + tau (a - a_cmd)) / (k/m) is its extrapolated steady-climb
 #     altitude and grows at exactly its terminal rate whatever the lag state, so at
 #     lambda = 6/5 = 2.4 / 2 their difference Psi is conserved exactly.
-#     Constant: the requirement 0.8 m less the largest transient term the climb envelopes allow
-#     (0.63 m above, 0.61 m below), rounded down: with |Psi| <= 0.16 rows 1 and 2 follow from the
-#     boxes.
+#     Constant: the requirement 0.8 m less the largest transient term the earlier per-side climb
+#     envelopes allowed (0.63 m above, 0.61 m below), rounded down. On the one domain the term
+#     reaches 0.94 m above and 0.71 m below, so rows 1 and 2 no longer follow from the box.
 # The lag breaks the lag-free climb-rate row 1.2 w_R <= w_L of quad_light_airframe_20: at the
 # scaled time the reference's lag is 1.2 times shorter, so from hover its climb rate stays above
 # the deployed's through the whole transient (simulated; adding that row DECLINES). The gap's
@@ -55,26 +57,37 @@
 # Psi = -0.0237 m and the deployed falls behind the scaled reference by at most 2.4 cm
 # (simulated: gap from 0 down to -0.0237 m, never positive); the lower row 1 is now the one the
 # lag loads.
-# Tightest (bisection to 0.01): with rows 3, 4 at 0.16, row 2 certifies down to 0.40 (0.39
-# declines) and row 1 down to 0.38 (0.37 declines); with rows 1, 2 at 0.8, Psi's bounds certify
-# up to 0.56 above (0.57 declines) and 0.58 below (0.59 declines); with Psi in [-0.03, 0.01]
-# (hover still related) rows 1 and 2 certify down to 0.25 (0.24 declines). Psi is conserved, so
-# its own bounds are only limited by the starts. Not implied by the domains.
+# Tightest (bisection to 0.01, re-measured 2026-10-29 on the one domain; the wider box admits
+# starts with larger transients): with rows 3, 4 at 0.16, row 2 certifies down to 0.51 (0.50
+# declines; 0.40 before) and row 1 down to 0.38 (0.37 declines); with rows 1, 2 at 0.8, Psi's
+# bounds certify up to 0.45 above (0.46 declines; 0.56 before) and 0.58 below (0.59 declines);
+# with Psi in [-0.03, 0.01] (hover still related) rows 1 and 2 certify down to 0.36 (0.35
+# declines; 0.25 before). Psi is conserved, so its own bounds are only limited by the starts. Not
+# implied by the domains.
 #
-# Guards and domains. CLIMB guard = evolve: h >= 0, 0 <= w <= terminal (2.4 left, 2.0 right),
-# 0 <= a <= a_cmd (14.715 left, 9.81 right): from hover thrust to the climb thrust. Every box is
-# forward invariant (a' >= 0 below the command, w' <= 0 at the terminal rate since a <= a_cmd,
-# h' = w >= 0); altitude unbounded above (climb segments of any length). One right mode (no
-# coverage gap); the left mode has a satisfiable start (hover). Climb-rate limiter (3 m/s) above
-# both envelopes: not modeled. Control interval 1 s on both sides; budget ceil(6/5) = 2 (M).
+# Guards and domains. One domain on both sides, CLIMB guard = evolve: h >= 0 (the ground),
+# 0 <= w <= 3 m/s (w >= 0 the climb segment as in quad_light_profiles; w <= 3 the PX4 climb-rate
+# limiter MPC_Z_VEL_MAX_UP, the bound the domain audit of 2026-10-29 gave quad_light_profiles),
+# 0 <= a <= 14.715 m/s^2 = 1.5 g (net specific thrust from hover to the propulsion's thrust
+# limit). The box is forward invariant on both sides (a' >= 0 at a = 0, a' <= 0 at 14.715,
+# w' = a >= 0 at w = 0, h' = w >= 0); at the limiter w' = a - (k/m) w <= 0 needs a <= 3 k/m, which
+# on the reference is exactly the thrust limit 14.715, so the a bound keeps its box forward
+# invariant (relcert --wellformed: CLIMB ok (invariant)). Guard = evolve stays: with per-side
+# guards narrower than the domain the tool's Assumption 1 check returns UNKNOWN (measured).
+# Altitude unbounded above. One right mode (no coverage gap); the left mode has a satisfiable
+# start (hover). Control interval 1 s on both sides; budget ceil(6/5) = 2 (M).
+# One domain (2026-10-29): per-side climb envelopes (left w <= 2.4, right w <= 2.0, a <= 9.81: the
+# terminal rates and thrust commands) -> the one physical box above; rows unchanged, CERTIFIED
+# without the envelopes; three tight values moved (above).
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, re-measured 2026-10-27 at lambda 6/5 and
-# 2026-10-29): CERTIFIED (0.11 s); DECLINED under RELCERT_SYNC=1 and
-# SYNC+NO_CHOICE; CERTIFIED under RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE,
-# without RELCERT_IMPLIED_CUT, NO_IMPLIED_CUT, NO_LINEAR_CUT, RELCERT_NO_CUT=1, the operating
-# region (every admitted start in some right guard) and RELCERT_WELLFORMED_STRICT=1. Cover: CLIMB
-# at lambda = 6/5, budget 2, admissible start CLIMB, nothing pruned; --handoff 1/1 vacuous;
-# relcert --wellformed: CLIMB ok (invariant). Units m, m/s, m/s^2, s.
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, re-measured 2026-10-29 on the one domain, the
+# same as before it): CERTIFIED (0.3 s); DECLINED under RELCERT_SYNC=1 and SYNC+NO_CHOICE;
+# CERTIFIED under RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE, without
+# RELCERT_IMPLIED_CUT, NO_IMPLIED_CUT, NO_LINEAR_CUT, RELCERT_NO_CUT=1, RELCERT_NO_PAIR_STRETCH=1,
+# the operating region (every admitted start in some right guard), RELCERT_WELLFORMED_STRICT=1 and
+# every two-sided evolve bound widened by 20 % of its range. Cover: CLIMB at lambda = 6/5, budget
+# 2, admissible start CLIMB, nothing pruned; --handoff 1/1 vacuous; relcert --wellformed: CLIMB ok
+# (invariant). Units m, m/s, m/s^2, s.
 [problem]
 name = quad_light_lag
 max_depth = 8
@@ -86,16 +99,16 @@ state_vars = [h, w, a]
 epsilon = 1.0
 [Lsys.mode.CLIMB]
 ode = h' = w; w' = smt2:(- a (* 6.13125 w)); a' = smt2:(* 10.0 (- 14.715 a));
-guard = h >= 0.0 and w >= 0.0 and w <= 2.4 and a >= 0.0 and a <= 14.715
-evolve = h >= 0.0 and w >= 0.0 and w <= 2.4 and a >= 0.0 and a <= 14.715
+guard = h >= 0.0 and w >= 0.0 and w <= 3.0 and a >= 0.0 and a <= 14.715
+evolve = h >= 0.0 and w >= 0.0 and w <= 3.0 and a >= 0.0 and a <= 14.715
 next = [CLIMB]
 [Rsys]
 state_vars = [h, w, a]
 epsilon = 1.0
 [Rsys.mode.CLIMB]
 ode = h' = w; w' = smt2:(- a (* 4.905 w)); a' = smt2:(* 10.0 (- 9.81 a));
-guard = h >= 0.0 and w >= 0.0 and w <= 2.0 and a >= 0.0 and a <= 9.81
-evolve = h >= 0.0 and w >= 0.0 and w <= 2.0 and a >= 0.0 and a <= 9.81
+guard = h >= 0.0 and w >= 0.0 and w <= 3.0 and a >= 0.0 and a <= 14.715
+evolve = h >= 0.0 and w >= 0.0 and w <= 3.0 and a >= 0.0 and a <= 14.715
 next = [CLIMB]
 [relational_invariant]
 CLIMB = smt2:(and (<= (- R_h L_h) 0.8) (<= (- L_h R_h) 0.8) (<= (- (+ (* 6.13125 (- L_h R_h)) L_w (* 0.1 L_a)) (+ (* 1.25 R_w) (* 0.125 R_a) 0.14525)) (* 6.13125 0.16)) (<= (* (- 6.13125) 0.16) (- (+ (* 6.13125 (- L_h R_h)) L_w (* 0.1 L_a)) (+ (* 1.25 R_w) (* 0.125 R_a) 0.14525))))

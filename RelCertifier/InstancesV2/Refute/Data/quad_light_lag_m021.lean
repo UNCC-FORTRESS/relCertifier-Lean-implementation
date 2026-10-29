@@ -28,8 +28,8 @@ def quad_light_lag_m021_IRm : PProblem :=
           odes := [("h", (.var "w")),
             ("w", (.bin "-" (.var "a") (.bin "*" (.num "6.13125") (.var "w")))),
             ("a", (.bin "*" (.num "10.0") (.bin "-" (.num "14.715") (.var "a"))))]
-          guard := (.and (.and (.and (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "2.4"))) (.cmp ">=" (.var "a") (.num "0.0"))) (.cmp "<=" (.var "a") (.num "14.715")))
-          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "2.4"))) (.cmp ">=" (.var "a") (.num "0.0"))) (.cmp "<=" (.var "a") (.num "14.715")))
+          guard := (.and (.and (.and (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "3.0"))) (.cmp ">=" (.var "a") (.num "0.0"))) (.cmp "<=" (.var "a") (.num "14.715")))
+          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "3.0"))) (.cmp ">=" (.var "a") (.num "0.0"))) (.cmp "<=" (.var "a") (.num "14.715")))
           next := ["CLIMB"] } ] }
     R := {
       stateVars := ["h", "w", "a"]
@@ -40,8 +40,8 @@ def quad_light_lag_m021_IRm : PProblem :=
           odes := [("h", (.var "w")),
             ("w", (.bin "-" (.var "a") (.bin "*" (.num "4.905") (.var "w")))),
             ("a", (.bin "*" (.num "10.0") (.bin "-" (.num "9.81") (.var "a"))))]
-          guard := (.and (.and (.and (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "2.0"))) (.cmp ">=" (.var "a") (.num "0.0"))) (.cmp "<=" (.var "a") (.num "9.81")))
-          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "2.0"))) (.cmp ">=" (.var "a") (.num "0.0"))) (.cmp "<=" (.var "a") (.num "9.81")))
+          guard := (.and (.and (.and (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "3.0"))) (.cmp ">=" (.var "a") (.num "0.0"))) (.cmp "<=" (.var "a") (.num "14.715")))
+          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "3.0"))) (.cmp ">=" (.var "a") (.num "0.0"))) (.cmp "<=" (.var "a") (.num "14.715")))
           next := ["CLIMB"] } ] }
     invariants := [
       ("CLIMB", (.and (.and (.and (.cmp "<=" (.bin "-" (.var "R_h") (.var "L_h")) (.num "0.8")) (.cmp "<=" (.bin "-" (.var "L_h") (.var "R_h")) (.num "0.8"))) (.cmp "<=" (.bin "-" (.bin "+" (.bin "+" (.bin "*" (.num "6.13125") (.bin "-" (.var "L_h") (.var "R_h"))) (.var "L_w")) (.bin "*" (.num "0.1") (.var "L_a"))) (.bin "+" (.bin "+" (.bin "*" (.num "1.25") (.var "R_w")) (.bin "*" (.num "0.125") (.var "R_a"))) (.num "0.14525"))) (.bin "*" (.num "6.13125") (.num "0.16")))) (.cmp "<=" (.bin "*" (.neg (.num "6.13125")) (.num "0.16")) (.bin "-" (.bin "+" (.bin "+" (.bin "*" (.num "6.13125") (.bin "-" (.var "L_h") (.var "R_h"))) (.var "L_w")) (.bin "*" (.num "0.1") (.var "L_a"))) (.bin "+" (.bin "+" (.bin "*" (.num "1.25") (.var "R_w")) (.bin "*" (.num "0.125") (.var "L_a"))) (.num "0.14525"))))))] }
@@ -49,7 +49,7 @@ def quad_light_lag_m021_IRm : PProblem :=
 /-- The finder's witness (kind B). -/
 def quad_light_lag_m021_wit : RefWitE :=
   { kind := "B", u := 0, m := 0, q0 := 0, k := 3,
-    wL := [(2219/9475 : ℚ), (2219/9475 : ℚ), (2219/9475 : ℚ)],
-    wR := [(0 : ℚ), (2 : ℚ), (0 : ℚ)] }
+    wL := [(11657/28425 : ℚ), (11657/28425 : ℚ), (11657/28425 : ℚ)],
+    wR := [(0 : ℚ), (3 : ℚ), (0 : ℚ)] }
 
 end RelCertifier.Refute

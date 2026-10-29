@@ -4,8 +4,8 @@ Released under Apache 2.0 license.
 
 # `platoon_latency_m049`: Theorem 3's claim of a mutant of `platoon_latency` is false (GENERATED — `scripts/gen_refute.py`)
 
-Mutant RRO/SNO `(<= L_e 0.5) [<=->>=]`. Kind B (a component pushed out by the left flow, right-rigid): the left switches
-from mode 0 to mode 1 with a short flow, the right starts in mode 0. Dimension 4: the benchmark's bridge dimension, the last auxiliary coordinate the right clock.
+Mutant ORO `(>= L_e (- 0.0 0.5)) [L_e->R_e]`. Kind B (a component pushed out by the left flow, right-rigid): the left switches
+from mode 0 to mode 0 with a short flow, the right starts in mode 0. Dimension 4: the benchmark's bridge dimension, the last auxiliary coordinate the right clock.
 -/
 import RelCertifier.Proofs.Encoding.Emitted.RefuteFlow
 import RelCertifier.InstancesV2.Refute.Data.platoon_latency_m049

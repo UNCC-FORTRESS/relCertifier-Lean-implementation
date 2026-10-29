@@ -6,14 +6,16 @@ Released under Apache 2.0 license.
 
 Over the guarded right automaton `GrG` (the file's three route zones `STEEP`, `MODER`, `FLAT`
 and their declared `next` lists), the lowered right guards, `ε_r = 1`. The right is the
-canonical rover's point model `L2` (the hierarchy's level 2; the heading `ψ` pinned at 0): per
-zone `v' = (c_q − v)/2` toward the zone's set point `c_q` (3, 5, 6.5 m/s), `s' = v`, `ψ' = 0`;
-the guards are the odometer zones `[0, 60)`, `[60, 140)`, `[140, ∞)`; the evolve box
-`0 ≤ v ≤ 8`, `s ≥ 0`, `ψ = 0`.
+canonical rover's point model `L2` (the hierarchy's level 2; the heading `ψ` frozen at its
+start value, rate 0): per zone `v' = (c_q − v)/2` toward the zone's set point `c_q`
+(3, 5, 6.5 m/s), `s' = v`, `ψ' = 0`; the guards are the odometer zones `[0, 60)`, `[60, 140)`,
+`[140, ∞)`; the evolve box is the validity box shared by both sides, `0 ≤ v ≤ 8`, `s ≥ 0`,
+`|ψ| ≤ 0.6`.
 `wellFormedR_terrain` (the shared three-band lemma, no caps: `0 ≤ s' = v ≤ 8`, so a `STEEP`
 run ends below `60 + 8 ≤ 140`, inside `STEEP` or `MODER`, a `MODER` run in `MODER` or `FLAT`,
 `FLAT` is forward invariant). Existence: the explicit run (`forcedSol` for `v`, between its
-start and `c_q`; `intSol` for `s`, nondecreasing; `ψ` frozen). Z3-free.
+start and `c_q`; `intSol` for `s`, nondecreasing; `ψ` frozen at its start value, inside the
+box). Z3-free.
 -/
 import RelCertifier.InstancesV2.BenchIR.rover_ladder_2to3
 import RelCertifier.Proofs.Encoding.WellFormedTerrain
@@ -41,6 +43,16 @@ theorem gp_0_0 : Run.parseRat "0.0" = some (0:ℚ) := by
 
 theorem gp_0_5 : Run.parseRat "0.5" = some ((1:ℚ)/2) := by
   have h : parseQ "0.5" = some (⟨5, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+  try norm_num
+
+theorem gp_0_6 : Run.parseRat "0.6" = some ((3:ℚ)/5) := by
+  have h : parseQ "0.6" = some (⟨6, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+  try norm_num
+
+theorem gp_m0_6 : Run.parseRat "-0.6" = some (-(3:ℚ)/5) := by
+  have h : parseQ "-0.6" = some (⟨-6, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]
   try norm_num
 
@@ -126,11 +138,11 @@ theorem fRR2_eval (q : ℕ) (hq : q < 3) (x : State (Var 3)) :
       AOp.interp, Rv]
 
 theorem sat_domRR (x : State (Var 3)) : Formula.sat domRR x ↔
-    (0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 8 ∧ 0 ≤ x (Rv 1) ∧ 0 ≤ x (Rv 2) ∧ x (Rv 2) ≤ 0) := by
+    (0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 8 ∧ 0 ≤ x (Rv 1) ∧ -(3/5) ≤ x (Rv 2) ∧ x (Rv 2) ≤ 3/5) := by
   simp only [domRR, hostEvolve, mRR, rover_ladder_2to3_IRv2, vsR]
-  simp [Run.lowerF, Run.lowerE, gp_0, gp_0_0, gp_0_5, gp_1_0, gp_3_0, gp_5_0, gp_6_5, gp_8_0,
-    gp_60_0, gp_140_0, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost,
-    Formula.sat, CompOp.interp, Term.eval, Rv]
+  simp [Run.lowerF, Run.lowerE, gp_0, gp_0_0, gp_0_5, gp_0_6, gp_m0_6, gp_1_0, gp_3_0, gp_5_0,
+    gp_6_5, gp_8_0, gp_60_0, gp_140_0, Run.resolveVar, List.findIdx?_cons, IForm.toHost,
+    ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv]
   try norm_num
   try tauto
 

@@ -7,13 +7,14 @@ Released under Apache 2.0 license.
 Over the guarded right automaton `GrG` (the file's three route zones `STEEP`, `MODER`, `FLAT`
 and their declared `next` lists), the lowered right guards, `ε_r = 1`. The right is the
 canonical rover's level `L8` (yaw and pitch inertia; the heave rate `ω_z`, roll rate `ω_φ` and
-the slip offset `y`, `ω_y` pinned at 0): per zone `q` (set point `c_q` = 3, 5, 6.5 m/s, grade
-`g_q` = 0.15, 0.05, 0, cross-slope `x_q` = 0.1, 0.05, 0)
+the slip offset `y`, `ω_y` frozen at their start values): per zone `q` (set point `c_q` = 3,
+5, 6.5 m/s, grade `g_q` = 0.15, 0.05, 0, cross-slope `x_q` = 0.1, 0.05, 0)
 `v' = (c_q − v)/2`, `s' = v (1 − ψ²/2 − 0.3 θ² − 0.2 φ²)`, `ψ' = ω_ψ − ψ`, `ω_ψ' = −ω_ψ`,
 `θ' = ω_θ − θ`, `ω_θ' = −ω_θ + g_q + z/2`, `z' = −z`, `φ' = −φ + x_q + 0.015 v (ω_ψ − ψ)`, the
-pinned rates 0; the guards are the odometer zones `[0, 60)`, `[60, 140)`, `[140, ∞)`; the
-evolve box `0 ≤ v ≤ 8`, `s ≥ 0`, `|ψ|, |ω_ψ|, |θ|, |ω_θ| ≤ 0.6`, `|z| ≤ 0.15`, `|φ| ≤ 0.5`, the
-pinned coordinates 0.
+frozen rates 0; the guards are the odometer zones `[0, 60)`, `[60, 140)`, `[140, ∞)`; the
+evolve domain is the one validity box of both sides, `0 ≤ v ≤ 8`, `s ≥ 0`,
+`|ψ|, |ω_ψ|, |θ|, |ω_θ| ≤ 0.6`, `|z|, |ω_z| ≤ 0.15`, `|φ|, |ω_φ|, |y|, |ω_y| ≤ 0.5` (a frozen
+coordinate keeps its start value, so it stays in the box).
 `wellFormedR_terrain` (the shared three-band lemma, no caps: `0 ≤ s' ≤ 8` on the box, so a
 `STEEP` run ends below `60 + 8 ≤ 140`, inside `STEEP` or `MODER`, a `MODER` run in `MODER` or
 `FLAT`, `FLAT` is forward invariant). Existence: the explicit run of the cascade
@@ -248,7 +249,7 @@ theorem fRR8_eval (q : ℕ) (hq : q < 3) (x : State (Var 12)) :
       gp_60_0, gp_140_0, Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost,
       Term.eval, AOp.interp, Rv, xZ] <;> try ring
 
-/-- The pinned coordinates (`ω_z`, `ω_φ`, `y`, `ω_y`) do not move. -/
+/-- The frozen coordinates (`ω_z`, `ω_φ`, `y`, `ω_y`) do not move. -/
 theorem fRR_pinned (q : ℕ) (hq : q < 3) (x : State (Var 12)) (i : Fin 12)
     (h : i = 7 ∨ i = 9 ∨ i = 10 ∨ i = 11) : Term.eval (fRR q i) x = 0 := by
   rcases h with rfl | rfl | rfl | rfl <;>
@@ -263,9 +264,9 @@ theorem sat_domRR (x : State (Var 12)) : Formula.sat domRR x ↔
     (0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 8 ∧ 0 ≤ x (Rv 1) ∧
       -(3/5) ≤ x (Rv 2) ∧ x (Rv 2) ≤ 3/5 ∧ -(3/5) ≤ x (Rv 3) ∧ x (Rv 3) ≤ 3/5 ∧
       -(3/5) ≤ x (Rv 4) ∧ x (Rv 4) ≤ 3/5 ∧ -(3/5) ≤ x (Rv 5) ∧ x (Rv 5) ≤ 3/5 ∧
-      -(3/20) ≤ x (Rv 6) ∧ x (Rv 6) ≤ 3/20 ∧ 0 ≤ x (Rv 7) ∧ x (Rv 7) ≤ 0 ∧
-      -(1/2) ≤ x (Rv 8) ∧ x (Rv 8) ≤ 1/2 ∧ 0 ≤ x (Rv 9) ∧ x (Rv 9) ≤ 0 ∧
-      0 ≤ x (Rv 10) ∧ x (Rv 10) ≤ 0 ∧ 0 ≤ x (Rv 11) ∧ x (Rv 11) ≤ 0) := by
+      -(3/20) ≤ x (Rv 6) ∧ x (Rv 6) ≤ 3/20 ∧ -(3/20) ≤ x (Rv 7) ∧ x (Rv 7) ≤ 3/20 ∧
+      -(1/2) ≤ x (Rv 8) ∧ x (Rv 8) ≤ 1/2 ∧ -(1/2) ≤ x (Rv 9) ∧ x (Rv 9) ≤ 1/2 ∧
+      -(1/2) ≤ x (Rv 10) ∧ x (Rv 10) ≤ 1/2 ∧ -(1/2) ≤ x (Rv 11) ∧ x (Rv 11) ≤ 1/2) := by
   simp only [domRR, hostEvolve, mRR, rover_ladder_8to12_IRv2, vsR]
   simp [Run.lowerF, Run.lowerE, gp_0, gp_1, gp_m1, gp_0_0, gp_0_015, gp_0_05, gp_0_1, gp_0_15,
     gp_m0_15, gp_0_2, gp_0_3, gp_0_5, gp_m0_5, gp_0_6, gp_m0_6, gp_1_0, gp_3_0, gp_5_0, gp_6_5,
@@ -406,7 +407,7 @@ theorem φsF_cont (q : ℕ) (ρ : State (Var 12)) : Continuous (φsF q ρ) := by
   have h4 := φph_cont q ρ
   unfold φsF; fun_prop
 
-/-- The run: every right coordinate along its explicit law (the pinned ones frozen). -/
+/-- The run: every right coordinate along its explicit law (the frozen ones constant). -/
 noncomputable def φR (q : ℕ) (ρ : State (Var 12)) (i : Fin 12) : ℝ → ℝ :=
   if i = 0 then φv q ρ else if i = 1 then φs q ρ else if i = 2 then φps ρ
   else if i = 3 then φop ρ else if i = 4 then φth q ρ else if i = 5 then φot q ρ

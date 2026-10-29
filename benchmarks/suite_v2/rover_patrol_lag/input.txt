@@ -6,7 +6,7 @@
 #   cover, budget 2; right-only repositioning, RELCERT_NO_REPO=1 declines; branching joint step,
 #   branch 2; matrix codes M1 M2 M3). Cause test: the no-lag twin with the same rows shows the same
 #   four letters and covers, so they come from the claim form (the 1 m slack admits a rover already
-#   in the next zone), not from the lag; the lag shows in the lead bound (tightest 0.59 m with the
+#   in the next zone), not from the lag; the lag shows in the lead bound (tightest 0.75 m with the
 #   lag, 0 without, there even synchronously).
 #
 # The rover and planner are those of rover_patrol_zones (reserve): speed v (m/s), odometer s (m),
@@ -21,18 +21,23 @@
 #     motor realises it through a first-order current lag, tau = 3/16 s = 0.1875 s:
 #     v' = a, s' = v, a' = (16/3) (a_cmd - a). Characteristic polynomial (s + 4/3)(s + 4): real,
 #     rational roots, so the loop does not oscillate.
-#   Right (the planning model = the reference of rover_patrol_zones, unchanged): no motor state, the
-#     acceleration is realised at once, v' = c - v, s' = v. Its state list [v, s] is a sublist of the
-#     left's: the lag state a exists only on the left.
+#   Right (the planning model = the reference of rover_patrol_zones): the acceleration is realised
+#     at once, v' = c - v, s' = v. The plan has no lag: it carries a only as a frozen coordinate
+#     (a' = 0) that never enters v, s.
 #
-# Domains. Right: v in [0, 1.6], s >= 0 (as rover_patrol_zones; forward invariant). Left: the
-# physical box v in [0, 1.6] (top speed), a in [-2, 2] m/s^2 (0.2 g, wheel traction), s >= 0, cut by
-# 0 <= a + 4 v <= 6.4 (the slow modal speed v + a/4, which decays toward c at rate 4/3 /s, stays in
-# [0, 1.6]). The cut makes the box forward invariant under all four zone loops: at v = 1.6 it forces
-# a <= 0, at v = 0 it forces a >= 0, on a = +-2 the lag pulls a inward, and its own faces move toward
-# 4 c in [2.4, 6]. It contains rest (v = a = 0) and every zone's steady state (v = c, a = 0); it is
-# not load-bearing (no bound is placed to force the property). The guards are the odometer ranges
-# only, on both sides; they partition s >= 0, so every right domain state is in a right guard.
+# Domains. One domain on both sides and every mode: v in [0, 1.6] m/s (top speed), s >= 0
+# (odometer), a in [-2, 2] m/s^2 (0.2 g, wheel traction). The plan's box is forward invariant
+# (c in [0.6, 1.5], a frozen). The rover's is not: on a = +-2 the lag pulls a inward and
+# s' = v >= 0, but at v = 1.6 with a > 0 (or v = 0 with a < 0) the speed leaves the box, and a run
+# that gets there ends at the governed top speed, the physical end of the model. Runs from rest or
+# from a zone's steady state never get there: they stay in 0 <= a + 4 v <= 6.4, which is forward
+# invariant ((a + 4 v)' = (4/3) (4 c - (a + 4 v)), 4 c in [2.4, 6]) and forces a <= 0 at v = 1.6
+# and a >= 0 at v = 0. No bound is placed to force the property. The guards are the odometer
+# ranges only, on both sides; they partition s >= 0, so every right domain state is in a right
+# guard.
+# One domain (2026-10-29): left box cut by the lag's band 0 <= a + 4 v <= 6.4, right v, s only ->
+# the one box above (the plan carries a, frozen); CERTIFIED without the band, no row added; the
+# lead bound rose from 0.59 to 0.75 m (row (1)).
 #
 # Property (the same two rows in every left mode).
 #   (1) s_L <= s_R + 1: in the matched runs (the plan run re-timed by a rate in [1, 3/2] and
@@ -40,56 +45,65 @@
 #       ahead of the plan; 1 m is the waypoint acceptance radius. The rows are ONE-SIDED: the
 #       matched plan may lead by any amount, and the certified claim is an order property of the
 #       matched runs, not a real-time statement (with the plan on the rover's clock, RELCERT_SYNC=1:
-#       lambda 1, no right-only step, the file DECLINES). Tightest 0.59 (0.58 declines) at
-#       lambda_max 3/2; at the round-2 lambda_max 6 it was 0.38 (a faster re-timing absorbs part
-#       of the lead).
+#       lambda 1, no right-only step, the file DECLINES). Tightest 0.75 (0.74 declines) at
+#       lambda_max 3/2, and the same at lambda_max 2 and 6 (re-measured 2026-10-29 on the one
+#       domain; 0.59 at 3/2 before, 0.38 at the round-2 lambda_max 6): the row (2) offset plus
+#       tau x 2 m/s^2, the look-ahead term at the braking limit a_L = -2, which the box now admits
+#       at every speed (the band admitted it only from v = 0.5; offset 0.2 gives 0.58, offset 0
+#       gives 0.38).
 #   (2) Strengthening (needed: (1) alone DECLINES): P_L <= P_R + 0.375 with the look-ahead odometers
 #       P_L = s_L + v_L + 0.1875 a_L and P_R = s_R + v_R, whose rate is exactly the zone command c on
 #       both sides (P_L' = v + a + tau a' = c), so in a shared zone P_L - P_R is constant. 0.375 m is
 #       derived: at an aligned start (s_L = s_R, v_L = v_R) P_L - P_R = tau a_L <= tau x 2 m/s^2.
-#       With (1) at 1 m, (2) certifies for every offset from -1 to 0.79 (0.80 declines); offsets
-#       below 0.375 only shrink the starts.
+#       With (1) at 1 m, (2) certifies for every offset from -1 to 0.62 (0.63 declines; 0.79
+#       before the one-domain change), i.e. up to 1 - tau x 2; offsets below 0.375 only shrink
+#       the starts.
 # The other direction, the rover never behind the plan, is a different claim with a different
-# stretch (measured 2026-10-29): s_R <= s_L + X with P_R <= P_L + Y DECLINES at every X up to 20
-# for lambda in [1, 3/2] or [2/3, 1] (a plan already in FAST while the rover is still in MEDIUM_ECO
-# pulls ahead at 1.5 against 0.9), and CERTIFIES with the plan re-timed by at most 0.6 = 0.9 / 1.5
-# (lambda in [0.6, 1]; 0.65 declines), tightest X = Y + 0.375 (0.75 at Y = 0.375, 0.38 at Y = 0;
-# the bound is the admitted acceleration a_L <= 2 over tau, not the lag's steady offset
-# tau c <= 0.28 m); its letters are S only (NO_REPO, NO_CHOICE, NO_PRUNE and NO_CUT certify at
-# [0.5, 1]). A two-sided band |s_L - s_R| <= X with |P_L - P_R| <= Y DECLINES for every X up to 50
-# and every stretch range in [0.5, 2]: the cover takes one stretch per left mode, and the plan
-# ahead needs lambda <= 0.6 while the plan behind needs lambda >= 15/11 or a right-only step. Every
-# left mode has a satisfiable start (s_R = s_L, v_R = v_L in its zone, any a_L).
+# stretch (measured 2026-10-29, the same on the one domain): s_R <= s_L + X with P_R <= P_L + Y
+# DECLINES at every X up to 20 for lambda in [1, 3/2] or [2/3, 1] (a plan already in FAST while
+# the rover is still in MEDIUM_ECO pulls ahead at 1.5 against 0.9), and CERTIFIES with the plan
+# re-timed by at most 0.6 = 0.9 / 1.5 (lambda in [0.6, 1]; 0.65 declines), tightest
+# X = Y + 0.375 (0.75 at Y = 0.375, 0.38 at Y = 0; the bound is the admitted acceleration
+# a_L <= 2 over tau, not the lag's steady offset tau c <= 0.28 m); its letters are S only
+# (NO_REPO, NO_CHOICE, NO_PRUNE and NO_CUT certify at [0.5, 1]). A two-sided band
+# |s_L - s_R| <= X with |P_L - P_R| <= Y DECLINES for every X up to 50 and every stretch range in
+# [0.5, 2] (measured before the one-domain change): the cover takes one stretch per left mode,
+# and the plan ahead needs lambda <= 0.6 while the plan behind needs lambda >= 15/11 or a
+# right-only step. Every
+# left mode has a satisfiable start (s_R = s_L, v_R = v_L in its zone, any a).
 #
 # Stretch (lambda range [1, 3/2]). A rover up to 1 m ahead can already be in FAST while the plan is
 # still in MEDIUM_BRISK: P_L then grows at the FAST command 1.5 and P_R at 1.1, so row (2) needs the
 # plan re-timed by at least 1.5 / 1.1 = 15/11 = 1.36 (the cover uses 11/8 in FAST); a plan still in
 # SLOW or MEDIUM_ECO is advanced alone (right-only repositioning) until it is in the rover's zone or
 # MEDIUM_BRISK. lambda_max = 3/2 is 15/11 rounded up to the next half: it bounds the re-timing of
-# the matched plan run; it is not a mission requirement. Measured: lambda_max 1.25 DECLINES; at 3/2
+# the matched plan run; it is not a mission requirement. Measured (also on the one domain):
+# lambda_max 1.25 DECLINES; at 3/2
 # RELCERT_NO_REPO=1 DECLINES (the right-only steps are load-bearing); at lambda_max 2
 # RELCERT_NO_REPO=1 CERTIFIES (a larger stretch replaces them).
 #
-# Cause dependence. No-lag twin (left speed loop v' = c - v as the plan's, lag state a pinned at 0):
+# Cause dependence. No-lag twin (left speed loop v' = c - v as the plan's, a frozen and dropped
+# from P_L; re-measured 2026-10-29 on the one domain):
 # with the exact claim s_L <= s_R, P_L <= P_R it CERTIFIES, also under RELCERT_SYNC=1 and
 # RELCERT_NO_REPO=1; with this file's rows it CERTIFIES with the same covers (FAST 11/8, budget 2,
 # branch 2, right-only steps) and the same letters S M R B, and RELCERT_SYNC=1 and RELCERT_NO_REPO=1
-# DECLINE it too. The lag is what moves the lead bound from 0 to 0.59 m; the letters come from the
+# DECLINE it too. The lag is what moves the lead bound from 0 to 0.75 m; the letters come from the
 # 1 m slack the requirement allows, with or without the lag.
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated; measured 2026-10-26 with the design binary and
-# again 2026-10-27 on this branch, the same verdicts): CERTIFIED (1.2 s); DECLINED under
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated; measured 2026-10-26 and 2026-10-27, re-measured
+# 2026-10-29 on the one domain, the same verdicts): CERTIFIED (1.8 s); DECLINED under
 # RELCERT_SYNC=1 (also with RELCERT_NO_CHOICE=1) and RELCERT_NO_REPO=1; CERTIFIED under
-# RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE,
-# RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, without RELCERT_IMPLIED_CUT,
-# RELCERT_OPREGION=1 and RELCERT_WELLFORMED_STRICT=1.
+# RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE, RELCERT_NO_CUT=1,
+# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, without RELCERT_IMPLIED_CUT,
+# RELCERT_NO_PAIR_STRETCH=1, RELCERT_OPREGION=1, RELCERT_WELLFORMED_STRICT=1 and with every
+# two-sided evolve bound widened by 20 % of its range.
 # Covers (measured): SLOW at lambda 1, budget 1; MEDIUM_ECO and MEDIUM_BRISK at lambda 1, budget 1,
 # with right-only repositioning (a reference still in SLOW, or for MEDIUM_BRISK_L in MEDIUM_ECO,
 # first advances alone); FAST at lambda 11/8, budget 2, a joint step whose retained successors cover
 # (branch 2), plus right-only repositioning. Admissible right starts: every zone for SLOW_L and
 # MEDIUM_x_L; MEDIUM_x and FAST for FAST_L. Nothing pruned (no fallback declared). Rows identical
 # (--handoff 10/10 vacuous). relcert --wellformed: SLOW ok (exit->MEDIUM_BRISK), MEDIUM_ECO and
-# MEDIUM_BRISK ok (exit->FAST), FAST ok (invariant); 0 UNKNOWN. Modes 4 / 4, state vars 3 / 2.
+# MEDIUM_BRISK ok (exit->FAST), FAST ok (invariant); 0 UNKNOWN. Modes 4 / 4, state vars 3 / 3.
 # Replaces the round-1 file (worn vs nominal drivetrain, the same lag on both sides, the reference
 # unable to switch MEDIUM profiles); round A (2026-10-26) bounds the stretch at 3/2 (was 6) and
 # states the requirement as an order property. Units m/s, m, m/s^2, s.
@@ -105,45 +119,45 @@ epsilon = 1.0
 [Lsys.mode.SLOW]
 ode = v' = a; s' = v; a' = smt2:(* (/ 16.0 3.0) (- (- 0.6 v) a));
 guard = s >= 0.0 and s < 20.0
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and a >= -2.0 and a <= 2.0 and a + 4.0 * v >= 0.0 and a + 4.0 * v <= 6.4
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and a >= -2.0 and a <= 2.0
 next = [SLOW, MEDIUM_ECO, MEDIUM_BRISK]
 [Lsys.mode.MEDIUM_ECO]
 ode = v' = a; s' = v; a' = smt2:(* (/ 16.0 3.0) (- (- 0.9 v) a));
 guard = s >= 20.0 and s < 50.0
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and a >= -2.0 and a <= 2.0 and a + 4.0 * v >= 0.0 and a + 4.0 * v <= 6.4
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and a >= -2.0 and a <= 2.0
 next = [MEDIUM_ECO, MEDIUM_BRISK, FAST]
 [Lsys.mode.MEDIUM_BRISK]
 ode = v' = a; s' = v; a' = smt2:(* (/ 16.0 3.0) (- (- 1.1 v) a));
 guard = s >= 20.0 and s < 50.0
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and a >= -2.0 and a <= 2.0 and a + 4.0 * v >= 0.0 and a + 4.0 * v <= 6.4
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and a >= -2.0 and a <= 2.0
 next = [MEDIUM_BRISK, MEDIUM_ECO, FAST]
 [Lsys.mode.FAST]
 ode = v' = a; s' = v; a' = smt2:(* (/ 16.0 3.0) (- (- 1.5 v) a));
 guard = s >= 50.0
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and a >= -2.0 and a <= 2.0 and a + 4.0 * v >= 0.0 and a + 4.0 * v <= 6.4
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and a >= -2.0 and a <= 2.0
 next = [FAST]
 [Rsys]
-state_vars = [v, s]
+state_vars = [v, s, a]
 epsilon = 1.0
 [Rsys.mode.SLOW]
-ode = v' = smt2:(- 0.6 v); s' = v;
+ode = v' = smt2:(- 0.6 v); s' = v; a' = smt2:0;
 guard = s >= 0.0 and s < 20.0
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and a >= -2.0 and a <= 2.0
 next = [SLOW, MEDIUM_ECO, MEDIUM_BRISK]
 [Rsys.mode.MEDIUM_ECO]
-ode = v' = smt2:(- 0.9 v); s' = v;
+ode = v' = smt2:(- 0.9 v); s' = v; a' = smt2:0;
 guard = s >= 20.0 and s < 50.0
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and a >= -2.0 and a <= 2.0
 next = [MEDIUM_ECO, MEDIUM_BRISK, FAST]
 [Rsys.mode.MEDIUM_BRISK]
-ode = v' = smt2:(- 1.1 v); s' = v;
+ode = v' = smt2:(- 1.1 v); s' = v; a' = smt2:0;
 guard = s >= 20.0 and s < 50.0
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and a >= -2.0 and a <= 2.0
 next = [MEDIUM_BRISK, MEDIUM_ECO, FAST]
 [Rsys.mode.FAST]
-ode = v' = smt2:(- 1.5 v); s' = v;
+ode = v' = smt2:(- 1.5 v); s' = v; a' = smt2:0;
 guard = s >= 50.0
-evolve = v >= 0.0 and v <= 1.6 and s >= 0.0
+evolve = v >= 0.0 and v <= 1.6 and s >= 0.0 and a >= -2.0 and a <= 2.0
 next = [FAST]
 [relational_invariant]
 SLOW         = smt2:(and (<= L_s (+ R_s 1.0)) (<= (+ L_s L_v (* 0.1875 L_a)) (+ R_s R_v 0.375)))

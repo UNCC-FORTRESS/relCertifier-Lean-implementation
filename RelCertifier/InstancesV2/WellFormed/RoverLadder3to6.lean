@@ -7,15 +7,15 @@ Released under Apache 2.0 license.
 Over the guarded right automaton `GrG` (the file's three route zones `STEEP`, `MODER`, `FLAT`
 and their declared `next` lists), the lowered right guards, `ε_r = 1`. The right is the
 canonical rover's level `L3` (speed, odometer, heading error; pitch `θ`, heave `z` and roll `φ`
-pinned at 0): per zone `v' = (c_q − v)/2` toward the zone's set point `c_q` (3, 5, 6.5 m/s),
-`s' = v (1 − ψ²/2)`, `ψ' = −ψ`, `θ' = z' = φ' = 0`; the guards are the odometer zones
-`[0, 60)`, `[60, 140)`, `[140, ∞)`; the evolve box `0 ≤ v ≤ 8`, `s ≥ 0`, `|ψ| ≤ 0.6`,
-`θ = z = φ = 0`.
+frozen at their start values, rate 0): per zone `v' = (c_q − v)/2` toward the zone's set point
+`c_q` (3, 5, 6.5 m/s), `s' = v (1 − ψ²/2)`, `ψ' = −ψ`, `θ' = z' = φ' = 0`; the guards are the
+odometer zones `[0, 60)`, `[60, 140)`, `[140, ∞)`; the evolve box is the validity box shared by
+both sides, `0 ≤ v ≤ 8`, `s ≥ 0`, `|ψ| ≤ 0.6`, `|θ| ≤ 0.6`, `|z| ≤ 0.15`, `|φ| ≤ 0.5`.
 `wellFormedR_terrain` (the shared three-band lemma, no caps: `0 ≤ s' ≤ 8` on the box, so a
 `STEEP` run ends below `60 + 8 ≤ 140`, inside `STEEP` or `MODER`, a `MODER` run in `MODER` or
 `FLAT`, `FLAT` is forward invariant). Existence: the explicit run (`forcedSol` for `v`,
 between its start and `c_q`, and for `ψ`, between its start and 0; `intSol` for `s`,
-nondecreasing; `θ`, `z`, `φ` frozen). Z3-free.
+nondecreasing; `θ`, `z`, `φ` frozen at their start values, inside the box). Z3-free.
 -/
 import RelCertifier.InstancesV2.BenchIR.rover_ladder_3to6
 import RelCertifier.Proofs.Encoding.WellFormedTerrain
@@ -53,6 +53,21 @@ theorem gp_0_0 : Run.parseRat "0.0" = some (0:ℚ) := by
 
 theorem gp_0_5 : Run.parseRat "0.5" = some ((1:ℚ)/2) := by
   have h : parseQ "0.5" = some (⟨5, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+  try norm_num
+
+theorem gp_0_15 : Run.parseRat "0.15" = some ((3:ℚ)/20) := by
+  have h : parseQ "0.15" = some (⟨15, 100⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+  try norm_num
+
+theorem gp_m0_15 : Run.parseRat "-0.15" = some (-(3:ℚ)/20) := by
+  have h : parseQ "-0.15" = some (⟨-15, 100⟩ : QF) := by decide
+  simp [Run.parseRat, h]
+  try norm_num
+
+theorem gp_m0_5 : Run.parseRat "-0.5" = some (-(1:ℚ)/2) := by
+  have h : parseQ "-0.5" = some (⟨-5, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]
   try norm_num
 
@@ -162,10 +177,11 @@ theorem fRR_pinned (q : ℕ) (hq : q < 3) (x : State (Var 6)) (i : Fin 6) (h0 : 
 
 theorem sat_domRR (x : State (Var 6)) : Formula.sat domRR x ↔
     (0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 8 ∧ 0 ≤ x (Rv 1) ∧ -(3/5) ≤ x (Rv 2) ∧ x (Rv 2) ≤ 3/5 ∧
-      0 ≤ x (Rv 3) ∧ x (Rv 3) ≤ 0 ∧ 0 ≤ x (Rv 4) ∧ x (Rv 4) ≤ 0 ∧
-      0 ≤ x (Rv 5) ∧ x (Rv 5) ≤ 0) := by
+      -(3/5) ≤ x (Rv 3) ∧ x (Rv 3) ≤ 3/5 ∧ -(3/20) ≤ x (Rv 4) ∧ x (Rv 4) ≤ 3/20 ∧
+      -(1/2) ≤ x (Rv 5) ∧ x (Rv 5) ≤ 1/2) := by
   simp only [domRR, hostEvolve, mRR, rover_ladder_3to6_IRv2, vsR]
-  simp [Run.lowerF, Run.lowerE, gp_0, gp_1, gp_m1, gp_0_0, gp_0_5, gp_0_6, gp_m0_6, gp_1_0,
+  simp [Run.lowerF, Run.lowerE, gp_0, gp_1, gp_m1, gp_0_0, gp_0_5, gp_0_6, gp_m0_6, gp_0_15,
+    gp_m0_15, gp_m0_5, gp_1_0,
     gp_3_0, gp_5_0, gp_6_5, gp_8_0, gp_60_0, gp_140_0, Run.resolveVar, List.findIdx?_cons,
     IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv]
   try norm_num

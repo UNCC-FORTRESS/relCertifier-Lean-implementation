@@ -2,26 +2,26 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `sat_detumble_weak`: Assumption 1 of the right model (style (a); the momentum band in the right evolve domain)
+# `sat_detumble_weak`: Assumption 1 of the right model (style (a); the gyro box as the right evolve domain)
 
 Over the instance's guarded right automaton `Gr`, the lowered right guards, `ε_r = 1`.
 
-**The right evolve domain carries the momentum band `|h_i + J_i w_i| ≤ 2`** (the body's
-momentum within the wheels' capacity, a constant of every design-model flow; since
-2026-10-15). Without it `WellFormedR` would be false: the wheel
-momentum `h` is bounded by the evolve domain (`|h| ≤ 2`) but driven by `h' = 5 k w3` in the three
-active modes (`NOMINAL`, `ECONOMY`, `SURVIVAL`, `w' = −k w`, `k = 0.5, 0.45, 0.42`), and
-`h + 5 w3` is conserved by each of those flows. From `w1 = w2 = 0`, `w3 = 0.4`,
-`h = 2` (energy `0.8`: inside `NOMINAL`'s guard `2w1² + 4w2² + 5w3² ≤ 1`, inside the domain)
-no `NOMINAL` run of duration 1 exists: it would end at `h = 4 − 2 e^{−1/2} > 2`, outside the domain
-(clause (i) fails; the controller blocks). This is the model fact the Theorem 3 instance
-already records (its region carries the nonblocking conjunct `nbF`).
+The right model has three active modes (`NOMINAL`, `ECONOMY`, `SURVIVAL`: `w' = −k w`,
+`h' = 5 k w3`, `k = 0.5, 0.45, 0.42`, guard `E ≤ 1`) and the frozen `SAFE` (guard `E > 1`), with
+the body energy `E = 2 w1² + 4 w2² + 5 w3²`.
 
-**With the band, Assumption 1 holds at every mode** (`sat_detumble_weak_wellFormedR`, Z3-free), and
-the band is kept by every mode's flow (`sat_detumble_weak_band_invariant`): the active guard (`E ≤ 1`)
-is forward invariant (each rate decays; style (a)); existence is the instance's explicit
-solution `flowR_exists`, which stays in the domain because the conserved sums are constant.
-`SAFE` (`E > 1`, frozen) holds still.
+**The right evolve domain (every mode) is the gyro box `|w_i| ≤ 1`** (the gyro's measurement
+range; one domain on every mode of both sides since 2026-10-29). The wheel momentum `h` is not
+bounded: with `|h| ≤ 2` in the domain the design model's own flow `h' = 5 k w3` would cross it
+(from `w1 = w2 = 0`, `w3 = 0.4`, `h = 2` the `NOMINAL` run of duration 1 ends at
+`h = 4 − 2 e^{−1/2} > 2`) and Assumption 1 would be false. The momentum band `|h + 5 w3| ≤ 2` is
+not in the domain either (a first integral of the design model, not of the real body), but it is
+still conserved by every right mode's flow (`sat_detumble_weak_band_invariant`).
+
+**Assumption 1 holds at every mode** (`sat_detumble_weak_wellFormedR`, Z3-free): the active
+guard (`E ≤ 1`) is forward invariant (each rate decays; style (a)); existence is the instance's
+explicit solution `flowR_exists`, which stays in the domain because each
+`|w_i(t)| = |w_i(0)| e^{−k t} ≤ 1`, `h` being unconstrained. `SAFE` (`E > 1`, frozen) holds still.
 -/
 import RelCertifier.InstancesV2.BenchIR.sat_detumble_weak
 import RelCertifier.Proofs.Encoding.WellFormedR
@@ -73,15 +73,6 @@ theorem hp10 : Run.parseRat "1.0" = some (1 : ℚ) := by
 theorem hpm10 : Run.parseRat "-1.0" = some (-1 : ℚ) := by
   have h : parseQ "-1.0" = some (⟨-10, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]
-theorem hp20 : Run.parseRat "2.0" = some (2 : ℚ) := by
-  have h : parseQ "2.0" = some (⟨20, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp50 : Run.parseRat "5.0" = some (5 : ℚ) := by
-  have h : parseQ "5.0" = some (⟨50, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hpm20 : Run.parseRat "-2.0" = some (-2 : ℚ) := by
-  have h : parseQ "-2.0" = some (⟨-20, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
 /-- The right profiles' rates: `NOMINAL` 0.5, `ECONOMY` 0.45, `SURVIVAL` 0.42. -/
 noncomputable def kR (q : ℕ) : ℝ := if q = 1 then 9/20 else if q = 2 then 21/50 else 1/2
 
@@ -115,14 +106,13 @@ theorem fR3_eval (q : ℕ) (hq : q < 3) (x : State (Var 4)) :
 
 theorem sat_domR (x : State (Var 4)) :
     Formula.sat domR x ↔ (-1 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 1 ∧ -1 ≤ x (Rv 1) ∧ x (Rv 1) ≤ 1 ∧
-      -1 ≤ x (Rv 2) ∧ x (Rv 2) ≤ 1 ∧ -2 ≤ x (Rv 3) ∧ x (Rv 3) ≤ 2 ∧
-      -2 ≤ x (Rv 3) + 5 * x (Rv 2) ∧ x (Rv 3) + 5 * x (Rv 2) ≤ 2) := by
+      -1 ≤ x (Rv 2) ∧ x (Rv 2) ≤ 1) := by
   simp only [domR, hostEvolve, mR, sat_detumble_weak_IRv2, vs]
-  simp [Run.lowerF, Run.lowerE, hpm10, hp10, hpm20, hp20, hp50, Run.resolveVar, AOp.interp,
+  simp [Run.lowerF, Run.lowerE, hpm10, hp10, Run.resolveVar, AOp.interp,
     List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv,
     and_assoc]
 
-/-! ## The nonblocking quantity `h_R + 5 w3_R` (conserved by every right profile) -/
+/-! ## The momentum `h_R + 5 w3_R` (conserved by every right profile) -/
 
 noncomputable def hw : Term (Var 4) :=
   Term.binop .add (Term.var (Rv 3)) (Term.binop .mul (Term.const 5) (Term.var (Rv 2)))
@@ -164,7 +154,8 @@ theorem edge_mem (s t : ℕ) (h : (s, t) ∈ edgeList) : edgeW s t ∈ Gr.edgesF
 
 /-! ## Regions -/
 
-/-- The nonblocking conjunct `−2 ≤ h_R + 5 w3_R ≤ 2` (NOT a tool cut; see the theorem). -/
+/-- The momentum band `−2 ≤ h_R + 5 w3_R ≤ 2` (not in the domain, not a tool cut; conserved by
+every right flow, see `sat_detumble_weak_band_invariant`). -/
 noncomputable def nbF : Formula (Var 4) :=
   Formula.and (Formula.cmp CompOp.le hw (Term.const 2))
     (Formula.cmp CompOp.le (Term.const (-2)) hw)
@@ -173,10 +164,11 @@ theorem sat_nbF (ν : State (Var 4)) :
     Formula.sat nbF ν ↔ (ν (Rv 3) + 5 * ν (Rv 2) ≤ 2 ∧ -2 ≤ ν (Rv 3) + 5 * ν (Rv 2)) := by
   simp [nbF, Formula.sat, CompOp.interp, eval_hw, Term.eval]
 
-/-! ## Existence: each right profile's flow, explicitly, from a nonblocking start
+/-! ## Existence: each right profile's flow, explicitly, from every domain state
 
-`w_i(t) = w_i0 e^{−k t}`, `h(t) = h0 + 5 w3_0 (1 − e^{−k t})`: the rates contract toward 0
-and `h(t)` is a convex combination of `h0` and the conserved `h0 + 5 w3_0`. -/
+`w_i(t) = w_i0 e^{−k t}`, `h(t) = h0 + 5 w3_0 (1 − e^{−k t})`: the rates contract toward 0, so
+each `|w_i(t)| ≤ |w_i0| ≤ 1` and the run stays in the gyro box; `h` is unconstrained by the
+domain. -/
 
 noncomputable def ex (k t : ℝ) : ℝ := Real.exp (-k * t)
 
@@ -214,21 +206,18 @@ theorem ex_le_one {k t : ℝ} (hk : 0 ≤ k) (ht : 0 ≤ t) : ex k t ≤ 1 := by
 theorem solR_stays {k : ℝ} (hk : 0 ≤ k) (b : State (Var 4)) (hb : Formula.sat domR b)
     {t : ℝ} (ht : 0 ≤ t) : Formula.sat domR (solR k b t) := by
   rw [sat_domR] at hb ⊢
-  obtain ⟨h0l, h0u, h1l, h1u, h2l, h2u, h3l, h3u, hc1l, hc1u⟩ := hb
+  obtain ⟨h0l, h0u, h1l, h1u, h2l, h2u⟩ := hb
   have he0 := ex_pos k t
   have he1 := ex_le_one hk ht
-  rw [solR_0, solR_1, solR_2, solR_3]
-  have e1 : b (Rv 3) + 5 * b (Rv 2) * (1 - ex k t) + 5 * (b (Rv 2) * ex k t) = b (Rv 3) + 5 * b (Rv 2) := by
-    ring
-  rw [e1]
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩ <;> nlinarith
+  rw [solR_0, solR_1, solR_2]
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩ <;> nlinarith
 
 theorem rightBlock_bound_mem (q : ℕ) (i : Fin 4) :
     Rv i ∈ (rightBlock (fR q) (Term.const 1)).bound := by
   simp only [rightBlock, ODESystem.bound, List.map_map]
   exact List.mem_map.mpr ⟨i, List.mem_finRange i, rfl⟩
 
-/-- **Each right profile's flow exists, domain-staying, from every nonblocking start.** -/
+/-- **Each right profile's flow exists, domain-staying, from every domain state.** -/
 theorem flowR_exists (q : ℕ) (hq : q < 3) (b : State (Var 4)) (hb : Formula.sat domR b)
     (s : ℝ) (_hs : 0 ≤ s) :
     ∃ ΦR : ℝ → State (Var 4), ΦR 0 = b ∧
@@ -356,7 +345,7 @@ theorem safe_const {x : State (Var 4)} {t : ℝ} {Φ : ℝ → State (Var 4)}
     (H : ODESol (modeW 3).sys (modeW 3).dom x t Φ) (i : Fin 4) : Φ t (Rv i) = x (Rv i) :=
   H.const (memR 3 i) (fun s _ => by rw [eval_unit_mul, fR_safe])
 
-/-- **The momentum band is invariant** under both modes' flows. -/
+/-- **The momentum band is invariant** under every mode's flow. -/
 theorem sat_detumble_weak_band_invariant : RegionInvariant Gr nbF := by
   intro q m hm x t Φ hx H
   obtain ⟨hq, rfl⟩ := Gr_modeAt_inv hm
@@ -366,7 +355,7 @@ theorem sat_detumble_weak_band_invariant : RegionInvariant Gr nbF := by
   · obtain rfl : q = 3 := by omega
     rw [safe_const H 3, safe_const H 2]; exact hx
 
-/-- **Assumption 1 for `sat_detumble_weak` on the momentum band** (Z3-free). -/
+/-- **Assumption 1 for `sat_detumble_weak` on the gyro box `|w_i| ≤ 1`** (Z3-free). -/
 theorem sat_detumble_weak_wellFormedR :
     WellFormedR Gr guardR (epsR sat_detumble_weak_IRv2) := by
   rw [epsR_eq]

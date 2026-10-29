@@ -37,6 +37,21 @@ needs, read off counter-runs; `scripts/suite_v2_matrix.py`) are in
 physical story, the units, the measured cover and the mechanisms it exercises
 (`# scenario:` and `# mechanisms:` lines).
 
+## One domain per benchmark, 2026-10-29
+
+Rule (owner): one physical evolve domain per benchmark, the same text on every mode of both sides;
+physical constraints only. Checked by `scripts/check_one_domain.py` (kind (iii) exception: one
+physical limit in two reading scales, conversion stated in a `# Domain conversion (kind iii):`
+header line). Thirteen files had more than one domain: `platoon_latency` and `rover_patrol_lag`
+declare the lag coordinate on the right (frozen) with the shared box, and `rover_patrol_lag` loses
+its lag envelope `0 <= a + 4 v <= 6.4`; the four `rover_ladder_*` rungs drop the right's `[0, 0]`
+pins for the validity box; `rover_terrain_2to4` drops the creep floor `w >= 0.15`; `quad_light_lag`
+moves from the two airframes' set points to `0 <= w <= 3`, `0 <= a <= 14.715` on both; the three
+satellites drop the momentum band (a first integral of the design model, not of the gyrostat) and
+the wheel box (crossed by the design model's flow) for the gyro box `|w_i| <= 1`;
+`train_ato_odometry` and `turbine_startup_gearratio` are kind (iii). Every file CERTIFIES with its
+rows unchanged, letters unchanged per benchmark; details in `docs/OVERNIGHT-2026-10-29.md`.
+
 ## Domain audit, 2026-10-29: four domains moved to physical limits, one benchmark skipped and refilled
 
 Rule (owner, `docs/SUITE-REDESIGN.md` section 13): an evolve domain states a physical constraint

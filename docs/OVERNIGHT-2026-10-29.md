@@ -275,3 +275,87 @@ Letters: start (b1827f4) S 20 M 26 R 7 B 13 P 6 D 12 I 18 X 15; end S 20 M 26 R 
 Failed checks and how they were resolved: (1) the first `lake build` failed in `Bridge/TurbineStartupGearratio.lean` (`rowsSame IR = true` decided false: the turbine now has a per-mode row), fixed by adding it to `KEYED` in `scripts/gen_bridge.py` and re-emitting; (2) the second build failed in the same file (`3 ≠ 0`: the mode-keyed form needs four auxiliary coordinates, so the Assumption 1 lemma must be at dimension 3), fixed by lifting `WellFormed/TurbineStartupGearratio.lean` from `Var 2` to `Var 3` (two padding coordinates, their fields lower to 0) and re-emitting its pack rows and bridge at dimension 3 / 4 (the finder re-run on it, still no witness); (3) `relcert-bridge-verdicts` reported `discharged 5283 but owes 5246`, the measured total set in `VerdictsV2/RunBridge.lean` and the runner rebuilt; (4) `paper_numbers.sh` run once under `bash` instead of `zsh` wrote no run tables and its letters step failed on the stale table (`KeyError: tunnel_jetfan_pairout`); re-run under `zsh`, green. Nothing reverted.
 
 Commits (branch `benchmark-fixes`, pushed): 6e1819f the audit (benchmarks, proofs, generated layers, counts, paper numbers); this section in the commit after it.
+
+## One domain per benchmark 2026-10-29
+
+Rule (owner): each benchmark has ONE physical evolve domain, the same text on every mode and on
+both sides (left and right). A domain states physical constraints only (hardware limits, sensor
+range, saturation, trips), never set points, asymptotes or reachable-set bands. Exception, kind
+(iii): the two sides state the same physical limit in different coordinates; then the header
+states the conversion in a `# Domain conversion (kind iii):` line and `scripts/check_one_domain.py`
+admits the file. At tip e3d4e1e thirteen files had more than one distinct `evolve` line. Every
+change was made on a scratch copy and run with `RELCERT_IMPLIED_CUT=1`; every edited file
+CERTIFIED with its rows unchanged, so no claim-side fix was needed and nothing was dropped (suite 50).
+
+| benchmark | old domains | new domain (both sides, every mode) | kind | verdict | claim change | letters before / after | tight numbers |
+|---|---|---|---|---|---|---|---|
+| `platoon_latency` | L `0 <= g <= 60`, `\|r\| <= 10`, `\|e\| <= 20`; R `g`, `r` only (no `e`) | the same box; the right declares `e`, frozen (`e' = 0`, inert) | (i) | CERTIFIED | none | D / D | unchanged: `\|Delta g\|` 4.00 (3.99 D), `e` row 0.50 (0.49 D), Q rows (0.99, 1.99 D), `g_L >= 5` 5.00, TTC 16 |
+| `quad_light_lag` | L `0 <= w <= 2.4`, `0 <= a <= 14.715`; R `0 <= w <= 2.0`, `0 <= a <= 9.81` (terminal climb rates and thrust commands: set points) | `h >= 0` (ground), `0 <= w <= 3` (PX4 climb-rate limiter), `0 <= a <= 14.715` (1.5 g; `= 3 K`, which keeps the reference's `w <= 3`); guard = evolve | (iii) rejected: set points, one limit | CERTIFIED | none | S M / S M | row 1 0.38 (=); row 2 0.40 -> 0.51 (0.50 D); Psi upper 0.56 -> 0.45 (0.46 D); Psi lower 0.58 (=); rows 1, 2 from hover 0.25 -> 0.36 (0.35 D) |
+| `rover_ladder_2to3` | R `psi` in [0, 0] | validity box (`psi` in [-0.6, 0.6], `v` in [0, 8], `s >= 0`); right `psi` frozen | (i) | CERTIFIED | none | - / - | unchanged |
+| `rover_ladder_3to6` | R `theta_p`, `z`, `phi_r` in [0, 0] | validity box (`z` in [-0.15, 0.15] suspension travel, ...) | (i) | CERTIFIED | none | - / - | pitch 0.23 (0.22 D), unchanged |
+| `rover_ladder_6to8` | R `omega_psi`, `omega_theta` in [0, 0] | validity box | (i) | CERTIFIED | none | S M I / S M I | pitch 0.23, roll 0.14, LTR 0.22, unchanged |
+| `rover_ladder_8to12` | R `omega_z`, `omega_phi`, `y`, `omega_y` in [0, 0] | validity box | (i) | CERTIFIED | none | S M I / S M I | roll 0.15, LTR 0.35, lane 0.20, unchanged |
+| `rover_patrol_lag` | L `v` in [0, 1.6], `s >= 0`, `\|a\| <= 2`, `0 <= a + 4 v <= 6.4` (lag envelope: reachable set); R `v`, `s` | `v` in [0, 1.6] (top speed), `s >= 0`, `\|a\| <= 2` (0.2 g traction); the right declares `a`, frozen | (i) + (ii) | CERTIFIED (the band is not needed) | none | S M R B / S M R B | lead row 0.59 -> 0.75 (0.74 D; the box admits braking at every speed); row (2) offset up to 0.79 -> 0.62 |
+| `rover_terrain_2to4` | L `w >= 0.15` (the wheel controller's creep floor: policy); R `w >= 0` | `v`, `w` in [0, 0.8], `s >= 0`, `zs` in [0, 0.12] | (ii) | CERTIFIED | none | S M I / S M I | sigma 0.21 (0.20 D), lambda_max 2.64, unchanged |
+| `sat_detumble_phases` | L `\|w_i\| <= 1`, `\|h\| <= 2`; R the same plus `\|h + 5 w3\| <= 2` | `\|w_i\| <= 1` (gyro range) | (ii), not a first integral | CERTIFIED | none | M I X / M I X | exact claim (no tolerance) |
+| `sat_detumble_weak` | as above | `\|w_i\| <= 1` | (ii), not a first integral | CERTIFIED | none | S M B X / S M B X | lambda 0.8 pinned (0.79, 0.81 D), unchanged |
+| `sat3w_detumble_phases` | L `\|w_i\|`, `\|h_i\|` box; R plus `\|h1 + 2 w1\|`, `\|h2 + 4 w2\|`, `\|h3 + 5 w3\| <= 2` | `\|w_i\| <= 1` | (ii), not a first integral | CERTIFIED (22 s, was 3 s) | none | M I X / M I X | exact claim |
+| `train_ato_odometry` | L `v <= 28.21`, R `v <= 27.08` (true speed) | unchanged: one ATP intervention setting, 27.08 m/s on the speed reading; 28.21 = 27.08 / 0.96 | (iii), conversion stated | CERTIFIED | none | S M B / S M B | 1.07 (1.06 D), unchanged |
+| `turbine_startup_gearratio` | L `w <= 13.9755`, R `w <= 13.31` (true speed) | unchanged: one overspeed trip, 13.31 rpm on the reading; 13.9755 = 1.05 x 13.31 | (iii), conversion stated | CERTIFIED | none | R P D I / R P D I | 0.061 (0.060 D), unchanged |
+
+The satellites' bands, first-integral test (both phases; the gain `k` cancels): on the right
+(design model, `w' = -k w`, `h' = J k w`) `h_i + J_i w_i` is constant in every mode, so the band is
+a first integral there. On the left (the gyrostat) it is not: `sat_detumble_phases` and
+`sat_detumble_weak` have `d/dt (h + 5 w3) = -2 w1 w2`; `sat3w_detumble_phases` has
+`d/dt (h1 + 2 w1) = -w2 w3 + w3 h2 - w2 h3`, `d/dt (h2 + 4 w2) = 3 w1 w3 + w1 h3 - w3 h1`,
+`d/dt (h3 + 5 w3) = -2 w1 w2 + w2 h1 - w1 h2`. So all three bands left the domain. The wheel box
+`|h| <= 2` had to go with them: kept alone, the design model's own flow (`h' = 5 k w3`) crosses it,
+and `relcert --wellformed` reports DETUMBLE and FINE (resp. NOMINAL, ECONOMY, SURVIVAL) BLOCKING
+(leaves `h >= -2.0`), i.e. Assumption 1 fails (the refutation `docs/WELLFORMED.md` records for
+before 2026-10-15). The claim (energy equality; `E' = -2 k E` on both sides whatever `h` is) needs
+neither, so no row or cut was added. The wheel capacity and the momentum dump are now stated as
+coverage gaps of the models. The kind (iii) files: either single true-speed box (27.08 or 28.21;
+13.31 or 13.9755 on both sides) also CERTIFIES; the stated per-reading form keeps each model up to
+its own trip.
+
+Ablations (SYNC, NO_CHOICE, SYNC+NO_CHOICE, NO_PRUNE, NO_PRUNE+NO_CHOICE, NO_REPO, NO_CUT,
+NO_IMPLIED_CUT, NO_LINEAR_CUT, without IMPLIED_CUT, OPREGION, NO_PAIR_STRETCH, STRICT) re-measured
+on the eleven changed files: identical to the originals in every switch. W20 widening scan on the
+thirteen final files: 9 CERTIFY; 4 DECLINE, as before, each on a physical, load-bearing bound
+(`rover_ladder_{3to6,6to8,8to12}`: `z <= 0.15` suspension travel, 8to12 also `v <= 8`;
+`turbine_startup_gearratio`: the trip). Headers: Domains paragraph rewritten (one domain, each
+bound's physical source), a `One domain (2026-10-29)` line, verdict paragraphs re-dated. Assumption 1
+(`RelCertifier/InstancesV2/WellFormed/*.lean`): ten proofs adapted (the domain lemmas; the
+satellites' explicit runs now stay in the gyro box because each rate decays, `h` free; the
+`_band_invariant` theorems kept as model facts of the design model; platoon's runs transported from
+the `(g, r)` box, `sol_domR`); `RoverTerrain2to4` needed no change (its right domain was already
+`w >= 0`). Docs: `docs/WELLFORMED.md`, `README.md`, `benchmarks/README.md`,
+`docs/REFUTATION-RESULTS.md`, `docs/CERTIFICATION-CHECK.md`, the battery's docstrings.
+
+Regeneration: `gen_v2_data.py` on the eleven (covers, progress and choice leaves unchanged; IR
+leaves and `Cuts/quad_light_lag` changed), declared counts recomputed (unchanged), `gen_bridge.py`
+(instances unchanged), `refute_finder.py --only` the eleven (fresh) + `gen_refute.py`.
+
+Checks (all green; one serial `lake build`, exit 0): `--check-quick-v2` 50 certified, modal
+1264/1264, handoff 544/544, non-connection 60/60, pruned 30/30, reposition 74/74, strict gate
+189/189 (87 invariant, 102 exit), 0 UNKNOWN, 0 BLOCKING; `check_one_domain.py` `ONE DOMAIN: PASS
+(50 benchmarks: 48 with one evolve domain, 2 kind (iii) with a stated conversion)`; `relcert-test`
+ALL PASS (50 literals); bridge 5284/5284 (declared count set after measuring, was 5283);
+progress 197/197; refute 261/261 (87 instances) and every refutation instance builds;
+WellFormedBattery 66 standard axiom lines (plus the 11 `CutLiftX` replay lines); AxiomCheck 9; both
+negatives DECLINED; `lit_hypercert_vehicle_s8` BLOCKING / DECLINED; `scripts/paper_numbers.sh`
+under `zsh` (covers identical; total time 109 -> 126 s, the sat3w file).
+
+Letters: start S 20 M 26 R 7 B 13 P 6 D 13 I 17 X 15; end the same, and identical per benchmark
+(`docs/paper-numbers/letters.md` compared with the previous commit's).
+
+Failed checks and how they were resolved: (1) after the domain change ten Assumption 1 proofs
+failed to build (the domain characterization lemmas), adapted as above before the full build;
+(2) `relcert-bridge-verdicts` reported `discharged 5284 but owes 5283` (no FAIL line: the left of
+`quad_light_lag` gains the checked cut `w <= 3`, one more DI group), the measured total set in
+`VerdictsV2/RunBridge.lean` and the runner rebuilt; (3) `gen_refute.py` reported the stale
+`quad_light_lag_m023` (no witness on the new box), removed with `git rm`. Nothing reverted, nothing
+left unchanged except the two kind (iii) models (headers only).
+
+Commits (branch `benchmark-fixes`, pushed): 50ab23f the batch (benchmarks, proofs, generated layers,
+counts, check script, paper numbers); this section in the commit after it.

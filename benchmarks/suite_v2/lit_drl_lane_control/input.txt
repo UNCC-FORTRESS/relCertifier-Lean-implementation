@@ -49,7 +49,8 @@
 # Coast was enabled at any speed; restricting it to v_f <= 1 changes no verdict. (4) Speeds
 # in [0, 10]: v >= 0 is the source's
 # domain, the top speed 10 is ours (without it the file still CERTIFIES, two right modes
-# UNKNOWN in relcert --wellformed, none blocking; measured 2026-10-28). (5) As in
+# UNKNOWN in relcert --wellformed, none BLOCKING but neither shown nonblocking; measured
+# 2026-10-28, re-measured 2026-10-29). (5) As in
 # lit_drl_car_stop, what is certified is dRL's Open Goal 1 (Safe_eps implies Safe) between two
 # sampled controllers; Goals 2 and 3 (the event domain is kept for eps time; the source's
 # Goal 3 takes 79 interactive steps) are not represented, and cannot be with this tool: its
@@ -64,7 +65,8 @@
 # source's safe-distance invariant; the certified refinement does not transfer the source's
 # safety. All deviations are stated once here and in the suite table.
 #
-# PARAMETERS. A = 1, B = 1, eps = 1; speeds in [0, 10]; braking only from a speed >= 1 (a
+# PARAMETERS. A = 1, B = 1, eps = 1 (our instantiation: the source keeps A, B, eps symbolic);
+# speeds in [0, 10]; braking only from a speed >= 1 (a
 # full period of braking stays in v >= 0); a Coast action (a = 0) of the follower at v_f <= 1
 # keeps the right model complete (Assumption 1; the leader is complete with its two actions).
 # Modes are pairs (follower action, leader action), six per side.

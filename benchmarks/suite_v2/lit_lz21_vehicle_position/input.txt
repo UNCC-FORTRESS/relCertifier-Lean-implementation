@@ -60,7 +60,7 @@
 #   velocities in [0, 0.1] is an admissible start, a stronger claim.
 # (2) Witness: the partner keeps its start offset and takes the secret run's input, instead of the
 #   source's feedback policy, which is not input-admissible (measured 2026-10-29 by
-#   numerical sampling): as printed it gives u_hat in [1.47, 3.82] on R0 (never in U; x1 = 5, x1_hat = 6 gives
+#   numerical sampling; exact range by the independent audit, 2026-10-29): as printed it gives u_hat in [1.45, 3.85] on R0 (never in U; x1 = 5, x1_hat = 6 gives
 #   about 13); read as the error feedback u_hat = u + 0.8 (x1 - x1_hat) + 1.5 (x2 - x2_hat) it is in U
 #   on 0.6 % of R0; and NO input-admissible u_hat makes the printed B non-increasing (condition (5))
 #   on about 29 % of X x X x U (e.g. x = (5, 0.05), x_hat = (5.5, 0.1), u = -0.05: B grows by at

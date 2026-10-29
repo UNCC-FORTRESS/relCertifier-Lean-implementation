@@ -56,7 +56,7 @@
 # keeps its current action for that cycle even where its choice guard fails (Acc held past psi,
 # within 0 <= v <= 39; Brk held from v >= 1; the genuine drive overrides only at the speed limits,
 # Brk at v >= 39 and Coast at v < 1, so the right model stays complete). The file is then
-# DECLINED (1.5 s; relcert --wellformed of that right model: 16/16 ok, 0 UNKNOWN, 0 BLOCKING),
+# DECLINED (0.9 s; relcert --wellformed of that right model: 16/16 ok, 0 UNKNOWN, 0 BLOCKING),
 # and the leak is real in the source's sense: from d = 3, v = 0 the attacked car runs Acc, Acc
 # (held past psi through a spoofed thermostat message), Brk, Coast, and no genuine run of the
 # reversed model matches it from any start temperature or mode (all 3^4 x 2^4 genuine

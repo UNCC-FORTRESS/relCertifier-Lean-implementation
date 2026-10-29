@@ -24,8 +24,9 @@
 # guarded on both sides by the source's psi at these constants, 2d > v^2 + 4v + 2 (strict, as in
 # the source). The attacked thermostat is free: every mode whose action guard holds is enabled.
 # The genuine thermostat reads the true temperature: Cool needs temp >= 20, Heat temp <= 20, at
-# the window start. Stretch pinned to 1 (lambda in [1, 1]): the source's definition is lock-step
-# (the attack does not change the control rate).
+# the window start. Stretch pinned to 1 (lambda in [1, 1]): the source's Def. 5 is lock-step in
+# iteration counts; equal durations come from its interleaved-composition proof, so stretch 1 is the
+# stronger statement, not the definition (the attack does not change the control rate).
 #
 # CLAIM (every left mode): d_L = d_R and v_L = v_R (two inequalities each), the source's
 # equivalence formula, here at every instant (the source asks it after every loop iteration).
@@ -67,7 +68,7 @@
 # Cause test (measured 2026-10-29). The source's claim holds because the thermostat command never
 # reaches the drive: the d and v flows do not read temp or the setting. Remove that separation and
 # the verdict changes: benchmarks/negative/lit_csf21_vehicle_thermo_leaky (the same file with an
-# air-conditioning load on both sides, AccCool: v' = 0.8 instead of 1) is DECLINED (0.9 s), and its
+# air-conditioning load on both sides, AccCool: v' = 0.8 instead of 1) is DECLINED (0.4 s), and its
 # header gives an attacked run that no genuine run matches from any start temperature, so the
 # source's H-equivalence fails there too, not only this file's per-state form. The witness copies
 # d and v (it enters the attacked car's action), but that copy is the source's claim itself

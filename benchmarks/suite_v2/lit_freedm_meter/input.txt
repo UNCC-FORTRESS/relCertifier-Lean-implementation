@@ -44,8 +44,11 @@
 #     every flow is autonomous with constant inputs, so a source cycle of any duration is the
 #     same run as re-choosing the same mode at every period.
 # (5) The guard of the charging mode is B <= 9, not the source's B < Bmax, and a discharging
-#     mode needs B >= n, not B > 0: Assumption 1 (a full period from the guard inside the
-#     domain). With the literal charge test B < 10 the file also CERTIFIES (relcert
+#     mode needs B >= n, where the source's batS test (B < Bmax or (n > 0 and B > 0)) is always
+#     true on [0, Bmax] for n > 0: Assumption 1 (a full period from the guard inside the
+#     domain). Forced on the right only; with the source's literal tests on the LEFT (BatD0R1 at
+#     B < 10, the discharge modes on all of [0, 10]) the file also CERTIFIES (independent audit,
+#     2026-10-29). With the literal charge test B < 10 the file also CERTIFIES (relcert
 #     --wellformed: BatD0R1 UNKNOWN, not blocking; measured 2026-10-29).
 # (6) Evolve domain 0 <= B <= 10 (the source's domain is B >= 0; the capacity 0 <= B <= Bmax is
 #     the range stated in its Section 3): the guards keep B in [0, 10], so no run changes; with
@@ -55,7 +58,9 @@
 # levels an admissible start: the source's nondeducibility with L = {gr, t} (time is lock-step,
 # gr is carried by E as in (1)), the secret B unconstrained on either side, the inputs d, r
 # hidden and chosen freely by each run. Existential mode choice (the tool's default): the right
-# commits to one mode per window. Both sides run batS, as in Prop. 11.
+# commits to one mode per window. Both sides run batS, as in Prop. 11. The claim holds at every
+# instant of the two runs, a stronger (trace) statement than Definition 5, which compares the final
+# states only; it is the form of the source's per-iteration proof (Prop. 11).
 # Witness: not a copy. When the left uses its battery the right cannot copy it (its own level
 # may be empty or full); whatever net draw the left takes from the grid (E' in {-1, 0, 1, 2}),
 # a grid mode with the same draw exists (d = r for 0, d = r + 1 for 1, d = 2 and r = 0 for 2,

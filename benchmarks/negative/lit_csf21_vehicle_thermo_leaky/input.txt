@@ -34,6 +34,8 @@
 # RELCERT_OPREGION=1, RELCERT_WELLFORMED_STRICT=1 and without
 # RELCERT_IMPLIED_CUT. Rows identical (--handoff vacuous, 36/36). relcert --wellformed: all six
 # right modes ok (exit), 0 UNKNOWN.
+# 2026-10-29: Coast guards aligned with the suite file (v <= 1, as lit_csf21_vehicle_thermo since
+# 2026-10-28), so this exhibit is that file with the AC load and nothing else; verdict unchanged.
 [problem]
 name = lit_csf21_vehicle_thermo_leaky
 max_depth = 8
@@ -59,13 +61,13 @@ next = [AccCool, AccHeat, CoastCool, CoastHeat, BrkCool, BrkHeat]
 
 [Lsys.mode.CoastCool]
 ode = d' = smt2:(- 0.0 v); v' = smt2:0.0; temp' = smt2:(- 0.0 1.0);
-guard = smt2:(and (>= v 0.0))
+guard = smt2:(and (>= v 0.0) (<= v 1.0))
 evolve = v >= 0.0 and v <= 40.0
 next = [AccCool, AccHeat, CoastCool, CoastHeat, BrkCool, BrkHeat]
 
 [Lsys.mode.CoastHeat]
 ode = d' = smt2:(- 0.0 v); v' = smt2:0.0; temp' = smt2:1.0;
-guard = smt2:(and (>= v 0.0))
+guard = smt2:(and (>= v 0.0) (<= v 1.0))
 evolve = v >= 0.0 and v <= 40.0
 next = [AccCool, AccHeat, CoastCool, CoastHeat, BrkCool, BrkHeat]
 
@@ -99,13 +101,13 @@ next = [AccCool, AccHeat, CoastCool, CoastHeat, BrkCool, BrkHeat]
 
 [Rsys.mode.CoastCool]
 ode = d' = smt2:(- 0.0 v); v' = smt2:0.0; temp' = smt2:(- 0.0 1.0);
-guard = smt2:(and (>= v 0.0) (>= temp 20.0))
+guard = smt2:(and (>= v 0.0) (<= v 1.0) (>= temp 20.0))
 evolve = v >= 0.0 and v <= 40.0
 next = [AccCool, AccHeat, CoastCool, CoastHeat, BrkCool, BrkHeat]
 
 [Rsys.mode.CoastHeat]
 ode = d' = smt2:(- 0.0 v); v' = smt2:0.0; temp' = smt2:1.0;
-guard = smt2:(and (>= v 0.0) (<= temp 20.0))
+guard = smt2:(and (>= v 0.0) (<= v 1.0) (<= temp 20.0))
 evolve = v >= 0.0 and v <= 40.0
 next = [AccCool, AccHeat, CoastCool, CoastHeat, BrkCool, BrkHeat]
 

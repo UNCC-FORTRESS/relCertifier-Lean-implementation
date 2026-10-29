@@ -73,7 +73,11 @@
 #   ERROR (time budget exceeded, 40 s). The joint segment queries of the diagonal headings
 #   dominate (location 1's cover takes 0.2 s, location 2's first queries alone exceed the budget);
 #   with the budget raised to 280 s it CERTIFIES in about 128 s (literature draft, every planner
-#   edge declared, same admissible starts; measured 2026-10-27, not re-run).
+#   edge declared, same admissible starts; measured 2026-10-27). Not reproduced by the independent
+#   audit (2026-10-29): the physical-coordinate file with the current planner CERTIFIES within the
+#   default budget (about 53 s; 64 s with the budget at 280 s; level 0.1599 DECLINES, NO_CHOICE
+#   DECLINES). So this departure is not forced by the tool any more; it is kept for run time (about
+#   4 s against 53 s), the error coordinates being an exact change of variables.
 # (2) Location pairing. The source's relation pairs equal locations. Rows are keyed by the left
 #   mode and cannot require the planner to be in the paired location, so the cover must also
 #   answer planner starts in a location whose enlarged invariant overlaps the robot's (along the

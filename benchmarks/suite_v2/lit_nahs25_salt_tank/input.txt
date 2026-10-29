@@ -36,8 +36,11 @@
 # file's claim.
 #
 # TIGHTNESS (measured 2026-10-29, other rows fixed). xp_L <= xp_R + c certifies down to c = 3.00
-# (2.99 declines): the tool gets the source's distance exactly, and 3 is the exact supremum from
-# xp = 50 (the attacked tank may turn Off just below 28 while the genuine one settles toward 25).
+# (2.99 declines): the tool gets the source's distance exactly, and 3 is the exact lock-step
+# supremum from xp = 50 (the attacked tank may turn Off just below 28 while the genuine one settles
+# toward 25). Def. 8 itself compares reachable sets: from xp = 50 both tanks reach exactly (25, 50]
+# (the attacked Off only holds levels already reached), so the Def. 8 value is 0; the source's 3,
+# like this file's, is the value of its run-matched proof (independent audit, 2026-10-29).
 # The other row is slack: xp_R <= xp_L certifies (c' = 0; -0.01 declines): the genuine tank never
 # holds more salt than the attacked one. Without the lower bounds the band 3 (and 6) declines: the
 # band alone is not inductive, as in the source, whose invariant carries them too.
@@ -59,7 +62,8 @@
 #   tool needs for its rows and a weaker claim; the claim holds from every related pair, which
 #   implies the source's forward distance from xp = 50.
 # (3) The source's proof figures write r := 5 in off where Fig. 7 writes r := 0; this file follows
-#   Fig. 7.
+#   Fig. 7. Fig. 7's ctrl also omits the clock reset t := 0 that the source's other figures write;
+#   this file assumes the reset (a fresh 1-min window every period).
 # (4) Def. 8 relates reachable sets (any genuine state, any time); this file relates the two runs
 #   in lock step (stretch 1), as the source's own proof (Figs. 9-13, the same period on both
 #   sides) does. Lock step is the stronger statement.

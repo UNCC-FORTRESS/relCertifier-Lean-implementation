@@ -5,6 +5,7 @@ import RelCertifier.InstancesV2.BenchProgress.acc_tune_lag
 import RelCertifier.InstancesV2.BenchProgress.acc_tune_limp
 import RelCertifier.InstancesV2.BenchProgress.antenna_track_kvretune
 import RelCertifier.InstancesV2.BenchProgress.bottling_fill_strainer
+import RelCertifier.InstancesV2.BenchProgress.canal_gate_notches
 import RelCertifier.InstancesV2.BenchProgress.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchProgress.elevator_start_discbrake
 import RelCertifier.InstancesV2.BenchProgress.engine_start_highidle
@@ -12,7 +13,6 @@ import RelCertifier.InstancesV2.BenchProgress.flaps_slow_approach
 import RelCertifier.InstancesV2.BenchProgress.fuelcell_chp_dos
 import RelCertifier.InstancesV2.BenchProgress.furnace_program_timebase
 import RelCertifier.InstancesV2.BenchProgress.gantry_speed_zones
-import RelCertifier.InstancesV2.BenchProgress.grid_ffr_dos
 import RelCertifier.InstancesV2.BenchProgress.h2_refuel_ambientbias
 import RelCertifier.InstancesV2.BenchProgress.hydro_rejection_gatecal
 import RelCertifier.InstancesV2.BenchProgress.insulin_basal_cgmloss
@@ -57,6 +57,7 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("acc_tune_limp", acc_tune_limp_coverV2_progress),
    ("antenna_track_kvretune", antenna_track_kvretune_coverV2_progress),
    ("bottling_fill_strainer", bottling_fill_strainer_coverV2_progress),
+   ("canal_gate_notches", canal_gate_notches_coverV2_progress),
    ("charger_fast_tapers", charger_fast_tapers_coverV2_progress),
    ("elevator_start_discbrake", elevator_start_discbrake_coverV2_progress),
    ("engine_start_highidle", engine_start_highidle_coverV2_progress),
@@ -64,7 +65,6 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("fuelcell_chp_dos", fuelcell_chp_dos_coverV2_progress),
    ("furnace_program_timebase", furnace_program_timebase_coverV2_progress),
    ("gantry_speed_zones", gantry_speed_zones_coverV2_progress),
-   ("grid_ffr_dos", grid_ffr_dos_coverV2_progress),
    ("h2_refuel_ambientbias", h2_refuel_ambientbias_coverV2_progress),
    ("hydro_rejection_gatecal", hydro_rejection_gatecal_coverV2_progress),
    ("insulin_basal_cgmloss", insulin_basal_cgmloss_coverV2_progress),

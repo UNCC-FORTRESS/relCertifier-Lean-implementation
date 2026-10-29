@@ -105,7 +105,7 @@ import RelCertifier.InstancesV2.WellFormed.HydroRejectionGatecal
 import RelCertifier.InstancesV2.WellFormed.VentilatorVcCuffleak
 import RelCertifier.InstancesV2.WellFormed.TankDos3to1
 import RelCertifier.InstancesV2.WellFormed.AntennaTrackKvretune
-import RelCertifier.InstancesV2.WellFormed.GridFfrDos
+import RelCertifier.InstancesV2.WellFormed.CanalGateNotches
 import RelCertifier.InstancesV2.WellFormed.BottlingFillStrainer
 import RelCertifier.InstancesV2.WellFormed.PlatoonLatency
 
@@ -125,7 +125,7 @@ def wfProved : List String :=
    "zone_lightmass_schedule", "turbine_startup_gearratio", "insulin_basal_cgmloss",
    "h2_refuel_ambientbias", "fuelcell_chp_dos", "elevator_start_discbrake",
    "furnace_program_timebase", "reactor_feed_wireless", "syringe_relay_prearm",
-   "hydro_rejection_gatecal", "ventilator_vc_cuffleak", "tank_dos_3to1", "antenna_track_kvretune", "grid_ffr_dos",
+   "hydro_rejection_gatecal", "ventilator_vc_cuffleak", "tank_dos_3to1", "antenna_track_kvretune", "canal_gate_notches",
    "bottling_fill_strainer",
    "lit_drl_car_stop", "lit_drl_lane_control",
    "lit_freedm_meter",
@@ -184,15 +184,20 @@ for `rover_rollover_payload`, `flaps_slow_approach` and `canal_gate_notches`); u
 swaps of batches I9 to I11 (2026-10-28; batch I11: `platoon_latency`, its round-2 proof over the
 shared CACC/AEB run lemmas, `h2_refuel_ambientbias`, six 1-D contractions as `engine_start_highidle`,
 and `reactor_feed_wireless`, four exponential runs at dimension 2 as `fuelcell_chp_dos`, for
-`antenna_track_kvretune`, `molding_pack_checkring` and `compressor_station_recycle`). -/
+`antenna_track_kvretune`, `molding_pack_checkring` and `compressor_station_recycle`); unchanged by fix round 4 (2026-10-29: `canal_gate_notches`, its
+batch-I5 proof restored, for `grid_ffr_dos`; the proofs adapted to the new right models of
+`engine_start_highidle` (frozen supply pressure `p`, new mode `STARTER_LOW`),
+`h2_refuel_ambientbias` (no `ABORT`, five 1-D contractions), `charger_fast_tapers` (no `FAULT`),
+`rover_terrain_{2to4,4to6,6to12}` (wheel and torque floors 0.05, 0.05, 0.13) and
+`platoon_{latency,linkloss,profiles}` (no `AEB`, the single invariant mode `CACC`)). -/
 def wfDeclared : ℕ × ℕ × ℕ := (47, 0, 3)
 
 /-- The suite's benchmark names, in the order of the IR table. -/
 def suiteNames : List String :=
   ["acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp",
-   "antenna_track_kvretune", "bottling_fill_strainer", "charger_fast_tapers",
+   "antenna_track_kvretune", "bottling_fill_strainer", "canal_gate_notches", "charger_fast_tapers",
    "elevator_start_discbrake", "engine_start_highidle", "flaps_slow_approach",
-   "fuelcell_chp_dos", "furnace_program_timebase", "gantry_speed_zones", "grid_ffr_dos",
+   "fuelcell_chp_dos", "furnace_program_timebase", "gantry_speed_zones",
    "h2_refuel_ambientbias", "hydro_rejection_gatecal", "insulin_basal_cgmloss",
    "lit_csf21_vehicle_bus", "lit_csf21_vehicle_thermo", "lit_drl_car_stop",
    "lit_drl_lane_control", "lit_freedm_meter", "lit_girard08_robot",
@@ -268,7 +273,7 @@ end WellFormedBattery
 #print axioms V2BottlingFillStrainer.bottling_fill_strainer_wellFormedR
 #print axioms V2PlatoonLatency.platoon_latency_wellFormedR
 #print axioms V2ChargerFastTapers.charger_fast_tapers_wellFormedR
-#print axioms V2GridFfrDos.grid_ffr_dos_wellFormedR
+#print axioms V2CanalGateNotches.canal_gate_notches_wellFormedR
 #print axioms PlatoonCaccAeb.cacc_w_band
 #print axioms PlatoonCaccAeb.aeb_w_const
 #print axioms PlatoonCaccAeb.cacc_box

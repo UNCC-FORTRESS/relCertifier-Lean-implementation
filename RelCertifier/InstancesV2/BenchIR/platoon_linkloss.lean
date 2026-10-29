@@ -26,21 +26,14 @@ def platoon_linkloss_IRv2 : PProblem :=
             ("r", (.bin "-" (.bin "*" (.num "-0.125") (.bin "-" (.var "g") (.num "20.0"))) (.bin "*" (.num "0.75") (.var "r"))))]
           guard := (.and (.and (.and (.cmp ">=" (.var "r") (.num "-10.0")) (.cmp "<=" (.var "r") (.num "10.0"))) (.cmp ">=" (.bin "+" (.var "g") (.bin "*" (.num "2.0") (.var "r"))) (.num "5.0"))) (.cmp "<=" (.bin "+" (.var "g") (.bin "*" (.num "2.0") (.var "r"))) (.num "60.0")))
           evolve := (.and (.and (.and (.cmp ">=" (.var "g") (.num "0.0")) (.cmp "<=" (.var "g") (.num "60.0"))) (.cmp ">=" (.var "r") (.num "-10.0"))) (.cmp "<=" (.var "r") (.num "10.0")))
-          next := ["CACC", "ACC", "AEB"] },
+          next := ["CACC", "ACC"] },
         {
           name := "ACC"
           odes := [("g", (.var "r")),
             ("r", (.bin "-" (.bin "*" (.num "-0.125") (.bin "-" (.var "g") (.num "35.0"))) (.bin "*" (.num "0.75") (.var "r"))))]
           guard := (.and (.and (.and (.cmp ">=" (.var "r") (.num "-10.0")) (.cmp "<=" (.var "r") (.num "10.0"))) (.cmp ">=" (.bin "+" (.var "g") (.bin "*" (.num "2.0") (.var "r"))) (.num "5.0"))) (.cmp "<=" (.bin "+" (.var "g") (.bin "*" (.num "2.0") (.var "r"))) (.num "60.0")))
           evolve := (.and (.and (.and (.cmp ">=" (.var "g") (.num "0.0")) (.cmp "<=" (.var "g") (.num "60.0"))) (.cmp ">=" (.var "r") (.num "-10.0"))) (.cmp "<=" (.var "r") (.num "10.0")))
-          next := ["ACC", "CACC", "AEB"] },
-        {
-          name := "AEB"
-          odes := [("g", (.var "r")),
-            ("r", (.bin "*" (.num "-0.5") (.var "r")))]
-          guard := (.and (.and (.cmp "<" (.bin "+" (.var "g") (.bin "*" (.num "2.0") (.var "r"))) (.num "5.0")) (.cmp ">=" (.bin "+" (.var "g") (.bin "*" (.num "2.0") (.var "r"))) (.num "0.0"))) (.cmp ">=" (.var "g") (.num "0.0")))
-          evolve := (.and (.and (.and (.cmp ">=" (.var "g") (.num "0.0")) (.cmp "<=" (.var "g") (.num "60.0"))) (.cmp ">=" (.var "r") (.num "-10.0"))) (.cmp "<=" (.var "r") (.num "10.0")))
-          next := ["AEB"] } ] }
+          next := ["ACC", "CACC"] } ] }
     R := {
       stateVars := ["g", "r"]
       epsilon := "0.1"
@@ -51,17 +44,9 @@ def platoon_linkloss_IRv2 : PProblem :=
             ("r", (.bin "-" (.bin "*" (.num "-0.125") (.bin "-" (.var "g") (.num "20.0"))) (.bin "*" (.num "0.75") (.var "r"))))]
           guard := (.and (.and (.and (.cmp ">=" (.var "r") (.num "-10.0")) (.cmp "<=" (.var "r") (.num "10.0"))) (.cmp ">=" (.bin "+" (.var "g") (.bin "*" (.num "2.0") (.var "r"))) (.num "5.0"))) (.cmp "<=" (.bin "+" (.var "g") (.bin "*" (.num "2.0") (.var "r"))) (.num "60.0")))
           evolve := (.and (.and (.and (.cmp ">=" (.var "g") (.num "0.0")) (.cmp "<=" (.var "g") (.num "60.0"))) (.cmp ">=" (.var "r") (.num "-10.0"))) (.cmp "<=" (.var "r") (.num "10.0")))
-          next := ["CACC", "AEB"] },
-        {
-          name := "AEB"
-          odes := [("g", (.var "r")),
-            ("r", (.bin "*" (.num "-0.5") (.var "r")))]
-          guard := (.and (.and (.cmp "<" (.bin "+" (.var "g") (.bin "*" (.num "2.0") (.var "r"))) (.num "5.0")) (.cmp ">=" (.bin "+" (.var "g") (.bin "*" (.num "2.0") (.var "r"))) (.num "0.0"))) (.cmp ">=" (.var "g") (.num "0.0")))
-          evolve := (.and (.and (.and (.cmp ">=" (.var "g") (.num "0.0")) (.cmp "<=" (.var "g") (.num "60.0"))) (.cmp ">=" (.var "r") (.num "-10.0"))) (.cmp "<=" (.var "r") (.num "10.0")))
-          next := ["AEB"] } ] }
+          next := ["CACC"] } ] }
     invariants := [
-      ("CACC", (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.bin "+" (.bin "-" (.var "L_r") (.var "R_r")) (.bin "*" (.num "0.25") (.bin "-" (.var "L_g") (.var "R_g")))) (.num "0.0")) (.cmp "<=" (.bin "+" (.bin "-" (.var "L_r") (.var "R_r")) (.bin "*" (.num "0.25") (.bin "-" (.var "L_g") (.var "R_g")))) (.num "3.75"))) (.cmp ">=" (.bin "+" (.bin "-" (.var "L_r") (.var "R_r")) (.bin "*" (.num "0.5") (.bin "-" (.var "L_g") (.var "R_g")))) (.num "0.0"))) (.cmp "<=" (.bin "+" (.bin "-" (.var "L_r") (.var "R_r")) (.bin "*" (.num "0.5") (.bin "-" (.var "L_g") (.var "R_g")))) (.num "7.5"))) (.cmp ">=" (.bin "-" (.var "L_g") (.var "R_g")) (.num "0.0"))) (.cmp "<=" (.bin "-" (.var "L_g") (.var "R_g")) (.num "15.0"))) (.cmp ">=" (.bin "+" (.var "R_g") (.bin "*" (.num "2.0") (.var "R_r"))) (.num "5.0"))) (.cmp ">=" (.var "L_g") (.num "5.0"))) (.cmp ">=" (.bin "+" (.var "L_g") (.bin "*" (.num "2.0") (.var "L_r"))) (.num "5.0")))),
-      ("ACC", (.and (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.bin "+" (.bin "-" (.var "L_r") (.var "R_r")) (.bin "*" (.num "0.25") (.bin "-" (.var "L_g") (.var "R_g")))) (.num "0.0")) (.cmp "<=" (.bin "+" (.bin "-" (.var "L_r") (.var "R_r")) (.bin "*" (.num "0.25") (.bin "-" (.var "L_g") (.var "R_g")))) (.num "3.75"))) (.cmp ">=" (.bin "+" (.bin "-" (.var "L_r") (.var "R_r")) (.bin "*" (.num "0.5") (.bin "-" (.var "L_g") (.var "R_g")))) (.num "0.0"))) (.cmp "<=" (.bin "+" (.bin "-" (.var "L_r") (.var "R_r")) (.bin "*" (.num "0.5") (.bin "-" (.var "L_g") (.var "R_g")))) (.num "7.5"))) (.cmp ">=" (.bin "-" (.var "L_g") (.var "R_g")) (.num "0.0"))) (.cmp "<=" (.bin "-" (.var "L_g") (.var "R_g")) (.num "15.0"))) (.cmp ">=" (.bin "+" (.var "R_g") (.bin "*" (.num "2.0") (.var "R_r"))) (.num "5.0"))) (.cmp ">=" (.var "L_g") (.num "5.0"))) (.cmp ">=" (.bin "+" (.var "L_g") (.bin "*" (.num "2.0") (.var "L_r"))) (.num "5.0")))),
-      ("AEB", (.and (.and (.and (.cmp ">=" (.bin "-" (.var "L_r") (.var "R_r")) (.num "0.0")) (.cmp "<=" (.bin "-" (.var "L_r") (.var "R_r")) (.num "0.0"))) (.cmp ">=" (.bin "+" (.bin "-" (.var "L_g") (.var "R_g")) (.bin "*" (.num "2.0") (.bin "-" (.var "L_r") (.var "R_r")))) (.num "0.0"))) (.cmp "<=" (.bin "+" (.bin "-" (.var "L_g") (.var "R_g")) (.bin "*" (.num "2.0") (.bin "-" (.var "L_r") (.var "R_r")))) (.num "0.0"))))] }
+      ("CACC", (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.bin "+" (.bin "-" (.var "L_r") (.var "R_r")) (.bin "*" (.num "0.25") (.bin "-" (.var "L_g") (.var "R_g")))) (.num "0.0")) (.cmp "<=" (.bin "+" (.bin "-" (.var "L_r") (.var "R_r")) (.bin "*" (.num "0.25") (.bin "-" (.var "L_g") (.var "R_g")))) (.num "3.75"))) (.cmp ">=" (.bin "+" (.bin "-" (.var "L_r") (.var "R_r")) (.bin "*" (.num "0.5") (.bin "-" (.var "L_g") (.var "R_g")))) (.num "0.0"))) (.cmp "<=" (.bin "+" (.bin "-" (.var "L_r") (.var "R_r")) (.bin "*" (.num "0.5") (.bin "-" (.var "L_g") (.var "R_g")))) (.num "7.5"))) (.cmp ">=" (.bin "-" (.var "L_g") (.var "R_g")) (.num "0.0"))) (.cmp "<=" (.bin "-" (.var "L_g") (.var "R_g")) (.num "15.0"))) (.cmp ">=" (.var "L_g") (.num "5.0"))) (.cmp ">=" (.bin "+" (.var "L_g") (.bin "*" (.num "2.0") (.var "L_r"))) (.num "5.0")))),
+      ("ACC", (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.bin "+" (.bin "-" (.var "L_r") (.var "R_r")) (.bin "*" (.num "0.25") (.bin "-" (.var "L_g") (.var "R_g")))) (.num "0.0")) (.cmp "<=" (.bin "+" (.bin "-" (.var "L_r") (.var "R_r")) (.bin "*" (.num "0.25") (.bin "-" (.var "L_g") (.var "R_g")))) (.num "3.75"))) (.cmp ">=" (.bin "+" (.bin "-" (.var "L_r") (.var "R_r")) (.bin "*" (.num "0.5") (.bin "-" (.var "L_g") (.var "R_g")))) (.num "0.0"))) (.cmp "<=" (.bin "+" (.bin "-" (.var "L_r") (.var "R_r")) (.bin "*" (.num "0.5") (.bin "-" (.var "L_g") (.var "R_g")))) (.num "7.5"))) (.cmp ">=" (.bin "-" (.var "L_g") (.var "R_g")) (.num "0.0"))) (.cmp "<=" (.bin "-" (.var "L_g") (.var "R_g")) (.num "15.0"))) (.cmp ">=" (.var "L_g") (.num "5.0"))) (.cmp ">=" (.bin "+" (.var "L_g") (.bin "*" (.num "2.0") (.var "L_r"))) (.num "5.0"))))] }
 
 end RelCertifier.Parse

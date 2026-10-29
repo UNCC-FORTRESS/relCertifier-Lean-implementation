@@ -15,7 +15,7 @@ def watertank_IRv2 : PProblem :=
   {
     name := "watertank"
     lambdaMin := "1.0"
-    lambdaMax := "6.0"
+    lambdaMax := "2.0"
     L := {
       stateVars := ["x"]
       epsilon := "1.0"

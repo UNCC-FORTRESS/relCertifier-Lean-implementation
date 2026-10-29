@@ -1,27 +1,28 @@
 # h2_refuel_ambientbias: a 70 MPa hydrogen fill by a dispenser whose ambient-temperature sensor
 # reads 10 K high, against the same fill with a correct reading.
 # scenario: sensor-fault (degraded sensor feeding the end-pressure table)
-# mechanisms: R D I (right-only repositioning; mode-dependent rows, uniform rows decline through the
-#   start-only ABORT mode, see D; checked cuts, RELCERT_NO_CUT=1 declines; matrix codes M5 M6 M6+)
+# mechanisms: R D I (right-only repositioning; mode-dependent rows: uniform p_L <= p_R declines on
+#   the top rows, uniform p_L <= p_R + 2.9 certifies but drops the stage requirement, see D; checked
+#   cuts, RELCERT_NO_CUT=1 declines; matrix codes M5 M6 M6+)
 #
 # System. Vehicle tank pressure p in MPa, time in s. Light-duty tank, nominal working pressure 70 MPa,
 # maximum allowable 87.5 MPa (125 %). A staged pressure-ramp dispenser: in each stage the control
 # valve feeds the tank toward the stage's set point, flow proportional to the pressure difference
 # (gain 0.05 /s, about 45 s per 20 MPa stage, a fill of about 3 min); the dispenser re-decides every
 # 1 s:
-#   STAGE1   0.5 <= p < 18    toward 20 MPa      STAGE2  18 <= p < 38   toward 40 MPa
-#   STAGE3    38 <= p < 58    toward 60 MPa      TOPOFF  58 <= p < end  toward end + 0.5 MPa
+#   STAGE1        p < 18  toward 20 MPa      STAGE2  18 <= p < 38   toward 40 MPa
+#   STAGE3   38 <= p < 58  toward 60 MPa      TOPOFF  58 <= p < end  toward end + 0.5 MPa
 #   COMPLETE p >= end         nozzle valve closed, pressure held (p' = 0)
-#   ABORT    p < 0.5          below J2601's 0.5 MPa minimum vehicle tank pressure: the dispenser does
-#                             not fill such a tank (valve closed, latched). Reachable only as a start
-#                             on either side: both stage flows rise at 0.5 MPa (both edges pruned).
-# STAGE1 and STAGE2 declare ABORT. The end pressure comes from the fueling protocol's table (SAE J2601,
-# Fueling Protocols for Light Duty Gaseous Hydrogen Surface Vehicles: H70 tanks, nominal working
-# pressure 70 MPa, maximum fueling pressure 87.5 MPa = 125 % NWP, minimum vehicle tank pressure
-# 0.5 MPa, and the end-of-fill target pressure read from a table indexed by the ambient temperature):
-# the pressure at which the tank holds 100 % state of charge at the gas temperature the station
-# infers from ambient. The staged pressure ramp with its gains and stage set points is a design
-# value of this file (J2601 prescribes a pressure-ramp rate by table, not a stage structure).
+# The end pressure comes from the fueling protocol's table (SAE J2601, Fueling Protocols for Light
+# Duty Gaseous Hydrogen Surface Vehicles: H70 tanks, nominal working pressure 70 MPa, maximum
+# fueling pressure 87.5 MPa = 125 % NWP, and the end-of-fill target pressure read from a table
+# indexed by the ambient temperature): the pressure at which the tank holds 100 % state of charge at
+# the gas temperature the station infers from ambient. The staged pressure ramp with its gains and
+# stage set points is a design value of this file (J2601 prescribes a pressure-ramp rate by table,
+# not a stage structure). Not modeled: J2601's 0.5 MPa minimum vehicle tank pressure (the station
+# declines to start such a fill; no fill reaches it, since every stage flow raises p), and the
+# station aborts (gas temperature above 85 degC, pressure ramp outside its band, time-out): in this
+# one-state model none is reachable by an ordinary fill, so STAGE1 fills from any p >= 0.
 #
 # Right (reference): correct ambient reading, end pressure 70.0 MPa. Left (deployed): the ambient
 # sensor reads 10 K high, so the table returns 72.4 MPa (ideal-gas scaling 70 x (1 + 10/288)); the
@@ -30,71 +31,71 @@
 #
 # Property (mode-dependent; relational up to the reference's re-timing, see R).
 #   STAGE1, STAGE2, STAGE3: p_L <= p_R. Requirement: the ramp stages are identical, so the deployed
-#     may not lead. Forced by the ABORT start, not by the stage physics: a lead of 0.01 MPa declines
-#     because a reference frozen in ABORT (p < 0.5) is an admissible start against a deployed at
-#     0.5 MPa in STAGE1, and no fill enters ABORT. With ABORT removed on both sides (measured
-#     2026-10-29) the stage rows certify at every lead tried (0.01, 1.0, 2.4): the stage boundaries
-#     do not force them (a leading tank entering the next stage first is covered by a right-only
-#     segment), so the exactness of the stage rows is the ABORT start's.
-#   TOPOFF, COMPLETE, ABORT: p_L <= p_R + 2.9. The bias shifts the end pressure by 2.4 MPa (the
-#     deployed completes at 72.4 against 70.0); the further 0.5 MPa is what the certificate needs
-#     even at zero bias (see the caveat below: the top-off's exit at the end pressure cannot be
-#     used, so the tool bounds the deployed top-off by its set point end + 0.5). The deployed tank
-#     therefore ends below 73.4 MPa in the certificate and at 72.4 MPa physically, both well inside
-#     the 87.5 MPa limit. Tightest 2.90 (2.899 declines, bisected 2026-10-29); 2.4 declines; every
-#     larger tolerance up to 20 MPa certifies. No physically sound variant certifies 2.4: a top-off
-#     aimed at the end pressure itself certifies 2.40 (2.399 declines) but never completes
-#     (--wellformed: TOPOFF invariant), and a constant-rate top-off (0.3 MPa/s) has no contraction
-#     cut, so the tool bounds its segment by the domain and the slack grows to about 17.5.
-# Mode dependence (D) rests on the ABORT start: uniform p_L <= p_R + 2.9 declines only through the
-# (STAGE1_L, ABORT_R) pairing (RELCERT_DEBUG=1: every other pairing passes), and with ABORT removed on
-# both sides the uniform row p_L <= p_R + 2.9 certifies (as does 5.0; 2.4 and p_L <= p_R decline on
-# the top rows), letters R I. D is the rows differing on a mode no fill reaches. The handoffs only
-# relax (exact to 2.9 at STAGE3 -> TOPOFF and into ABORT): --handoff 12/12 unsat. The bound moves
-# with the cause: with an end-pressure shift s the top rows certify down to s + 0.5 (measured
-# s = 0, 1, 2.4, 5). Caveat, stated: even without the bias
-# (s = 0) the top rows need 0.50 MPa, because the one-sided claim lets a reference that has already
-# completed at 70.0 face a deployed still topping off toward 70.5, and the certificate cannot use
-# the top-off's exit at 70.0; so D (and R) are present at s = 0 too, and the cause moves the top
-# bound from 0.50 to 2.90.
+#     may not lead. Lead 0 is the requirement, not a tool limit: stage rows p_L <= p_R + c certify
+#     for c in [-10.00, 2.90] (-10.01 declines; 2.91 declines at the STAGE3 -> TOPOFF handoff,
+#     bisected 2026-10-29). A negative c only shrinks the admitted starts (the reference must start
+#     c ahead, so the fill that starts with both tanks at the same pressure is excluded); 0 is the
+#     strongest row that admits it.
+#   TOPOFF, COMPLETE: p_L <= p_R + 2.9. The bias shifts the end pressure by 2.4 MPa (the deployed
+#     completes at 72.4 against 70.0); the further 0.5 MPa is what the certificate needs even at
+#     zero bias (see the caveat below: the top-off's exit at the end pressure cannot be used, so the
+#     tool bounds the deployed top-off by its set point end + 0.5). The deployed tank therefore ends
+#     below 73.4 MPa in the certificate and at 72.4 MPa physically, both well inside the 87.5 MPa
+#     limit. Tightest 2.90 (2.899 and 2.89 decline, bisected 2026-10-29); 2.4 declines; 5.0 and
+#     20 MPa certify. No physically sound variant certifies 2.4: a top-off aimed at the end pressure
+#     itself certifies 2.40 (2.399 declines) but never completes (--wellformed: TOPOFF invariant),
+#     and a constant-rate top-off (0.3 MPa/s) has no contraction cut, so the tool bounds its segment
+#     by the domain and the slack grows to 17.51 (17.50 declines) (measured 2026-10-29).
+# Mode dependence (D). The rows differ because the requirements differ: the stages are identical
+# (lead 0) and the end pressure is shifted (2.9 at the top). Uniform p_L <= p_R, the only uniform
+# row from the file's own rows that keeps every stated requirement, DECLINES (the top rows need
+# 2.9); uniform p_L <= p_R + 2.9 CERTIFIES but drops the stage requirement. The handoffs only relax
+# (exact to 2.9 at STAGE3 -> TOPOFF): --handoff 9/9 unsat. The bound moves with the cause: with an
+# end-pressure shift s the top rows certify down to s + 0.5 (s = 0: 0.50, 0.49 declines; s = 1:
+# 1.50, 1.49 declines; s = 2.4: 2.90; s = 5: 5.50, 5.49 declines; measured 2026-10-29). Caveat,
+# stated: even without the bias (s = 0) the top rows need 0.50 MPa, because the one-sided claim
+# lets a reference that has already completed at 70.0 face a deployed still topping off toward
+# 70.5, and the certificate cannot use the top-off's exit at 70.0; so D (and R) are present at
+# s = 0 too, and the cause moves the top bound from 0.50 to 2.90.
 #
-# Letter windows. R and D are present for every end-pressure shift s >= 0 (measured s = 0, 1, 2.4, 5)
-# and I for every s measured; the top rows certify for every tolerance in [s + 0.5, 20] MPa, here
-# [2.90, 20]; the stage rows are exact (0) by the requirement and forced by the ABORT start (0.01
-# declines). The stated 2.9 is the end-pressure shift 2.4 plus the certificate's 0.5; a larger
-# operational allowance (5 MPa, the deployed tank ending below 75 MPa) also certifies, with the same
-# verdicts and letters (see Verdicts).
+# Letter windows. R, D and I are present at s = 0, 2.4 and 5 (letters measured 2026-10-29); the
+# top rows certify for every tolerance in [s + 0.5, 20] MPa measured, here [2.90, 20]. The stated
+# 2.9 is the end-pressure shift 2.4 plus the certificate's 0.5; a larger operational allowance
+# (5 MPa, the deployed tank ending below 75 MPa) also certifies, with the same verdicts and letters
+# (see Verdicts).
 #
 # Why right-only repositioning (R). From a deployed TOPOFF window the reference may start in STAGE3
 # (aiming at 60 MPa) while the deployed tops off toward 72.9: the joint segment fails, so the
 # reference first runs alone into TOPOFF. RELCERT_SYNC=1 DECLINES; every cover is at lambda 1, so no
-# S. Pruning is present but not load-bearing: STAGE1 -> ABORT and STAGE2 -> ABORT are pruned (both
-# flows rise at 0.5 MPa) and RELCERT_NO_PRUNE=1 CERTIFIES (no repositioning out of STAGE1/STAGE2).
+# S. No edge is pruned (no P).
 # Cuts (I). The implied contraction atoms (p <= set point of each stage) are load-bearing: DECLINED
-# with RELCERT_NO_CUT=1 (s = 0, 1, 2.4, 5) and without RELCERT_IMPLIED_CUT.
+# with RELCERT_NO_CUT=1 and without RELCERT_IMPLIED_CUT.
 #
 # Domains. 0 <= p <= 87.5 MPa on both sides (empty to the maximum allowable pressure), forward
-# invariant in every mode (all set points <= 72.9, holding modes frozen); widened to 120 MPa the
-# benchmark still CERTIFIES. The right guards partition [0, 87.5] (no coverage gap); every left mode
-# has a satisfiable start (p_R = p_L, for COMPLETE_L p_R = 70.5 in TOPOFF or COMPLETE).
+# invariant in every mode (all set points <= 72.9, COMPLETE frozen); widened to 120 MPa the
+# benchmark still CERTIFIES (and with the W20 widening). The right guards partition [0, 87.5] (no
+# coverage gap); every left mode has a satisfiable start (p_R = p_L, for COMPLETE_L p_R = 70.5 in
+# TOPOFF or COMPLETE).
 #
-# Stretch pinned (2026-10-29): lambda_max 6 -> 1. Every cover was already at lambda 1 (6 of 6 under
-# RELCERT_DEBUG) and the requirement is a real-time one, so the unused range [1, 6] is gone;
-# verdicts, letters and --handoff 12/12 unchanged (measured 2026-10-29).
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26, re-measured 2026-10-28 on the
-# branch binary built from fb55b6e and 2026-10-29 at lambda_max 1): CERTIFIED (1.1 s); CERTIFIED
+# Stretch pinned (2026-10-29): lambda_max 6 -> 1. Every cover was already at lambda 1 and the
+# requirement is a real-time one, so the unused range [1, 6] is gone.
+# ABORT removed (2026-10-29). Earlier versions carried an ABORT mode (p < 0.5, valve latched) that
+# no fill reaches (every stage flow raises p) and that was entered only as a start; it made the
+# stage rows exact and was the only cause of the pruned edges. Removed on both sides, STAGE1 now
+# covers [0, 18); verdicts below re-measured.
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-29): CERTIFIED (0.8 s); CERTIFIED
 # under RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE, RELCERT_NO_LINEAR_CUT=1,
-# RELCERT_OPREGION=1 (every admitted start in some right guard) and RELCERT_WELLFORMED_STRICT=1
-# (--wellformed: STAGE1, STAGE2, STAGE3, TOPOFF ok (exit to the next stage), COMPLETE, ABORT ok
-# (invariant), 0 UNKNOWN, 0 BLOCKING); DECLINED under RELCERT_SYNC=1, SYNC+NO_CHOICE,
-# RELCERT_NO_REPO=1, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1 and without RELCERT_IMPLIED_CUT.
+# RELCERT_NO_PAIR_STRETCH=1, RELCERT_OPREGION=1 (every admitted start in some right guard) and
+# RELCERT_WELLFORMED_STRICT=1 (--wellformed: STAGE1, STAGE2, STAGE3, TOPOFF ok (exit to the next
+# stage), COMPLETE ok (invariant), 0 UNKNOWN, 0 BLOCKING); DECLINED under RELCERT_SYNC=1,
+# SYNC+NO_CHOICE, RELCERT_NO_REPO=1, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1 and without
+# RELCERT_IMPLIED_CUT.
 # Cover: lambda 1, budget 1 in every left mode; TOPOFF_L admissible [STAGE3, TOPOFF, COMPLETE] with
-# a right-only step; COMPLETE_L [TOPOFF, COMPLETE]; STAGE1_L every mode but ABORT. Pruned
-# STAGE1->ABORT, STAGE2->ABORT. Uniform rows: p_L <= p_R on every left mode DECLINED; p_L <= p_R +
-# 2.9 on every left mode DECLINED (and it drops the stage requirement). --handoff 12/12 checked, 12
-# passed (rows differ). Letters measured by scripts/suite_v2_letters.py: R D I (matrix M5 M6 M6+;
-# D_strict). With the top rows at 5.0 MPa instead of 2.9 (the operational allowance above): the same
-# verdicts under every configuration, the same uniform-row results and the same letters R D I.
+# a right-only step; COMPLETE_L [TOPOFF, COMPLETE]; STAGE1_L every mode. Nothing pruned. Uniform
+# rows: p_L <= p_R on every left mode DECLINED; p_L <= p_R + 2.9 on every left mode CERTIFIED (it
+# drops the stage requirement). --handoff 9/9 checked, 9 passed (rows differ). Letters measured by
+# scripts/suite_v2_letters.py: R D I (matrix M5 M6 M6+). With the top rows at 5.0 MPa instead of
+# 2.9 (the operational allowance above): CERTIFIED, the same letters R D I.
 #
 [problem]
 name = h2_refuel_ambientbias
@@ -109,15 +110,15 @@ epsilon = 1.0
 
 [Lsys.mode.STAGE1]
 ode = p' = smt2:(* 0.05 (- 20 p));
-guard = p >= 0.5 and p < 18.0
+guard = p < 18.0
 evolve = p >= 0.0 and p <= 87.5
-next = [STAGE1, STAGE2, ABORT]
+next = [STAGE1, STAGE2]
 
 [Lsys.mode.STAGE2]
 ode = p' = smt2:(* 0.05 (- 40 p));
 guard = p >= 18.0 and p < 38.0
 evolve = p >= 0.0 and p <= 87.5
-next = [STAGE2, STAGE3, ABORT]
+next = [STAGE2, STAGE3]
 
 [Lsys.mode.STAGE3]
 ode = p' = smt2:(* 0.05 (- 60 p));
@@ -137,27 +138,21 @@ guard = p >= 72.4
 evolve = p >= 0.0 and p <= 87.5
 next = [COMPLETE]
 
-[Lsys.mode.ABORT]
-ode = p' = smt2:0.0;
-guard = p < 0.5
-evolve = p >= 0.0 and p <= 87.5
-next = [ABORT]
-
 [Rsys]
 state_vars = [p]
 epsilon = 1.0
 
 [Rsys.mode.STAGE1]
 ode = p' = smt2:(* 0.05 (- 20 p));
-guard = p >= 0.5 and p < 18.0
+guard = p < 18.0
 evolve = p >= 0.0 and p <= 87.5
-next = [STAGE1, STAGE2, ABORT]
+next = [STAGE1, STAGE2]
 
 [Rsys.mode.STAGE2]
 ode = p' = smt2:(* 0.05 (- 40 p));
 guard = p >= 18.0 and p < 38.0
 evolve = p >= 0.0 and p <= 87.5
-next = [STAGE2, STAGE3, ABORT]
+next = [STAGE2, STAGE3]
 
 [Rsys.mode.STAGE3]
 ode = p' = smt2:(* 0.05 (- 60 p));
@@ -177,16 +172,9 @@ guard = p >= 70.0
 evolve = p >= 0.0 and p <= 87.5
 next = [COMPLETE]
 
-[Rsys.mode.ABORT]
-ode = p' = smt2:0.0;
-guard = p < 0.5
-evolve = p >= 0.0 and p <= 87.5
-next = [ABORT]
-
 [relational_invariant]
 STAGE1 = p[l] <= p[r]
 STAGE2 = p[l] <= p[r]
 STAGE3 = p[l] <= p[r]
 TOPOFF = p[l] <= p[r] + 2.9
 COMPLETE = p[l] <= p[r] + 2.9
-ABORT = p[l] <= p[r] + 2.9

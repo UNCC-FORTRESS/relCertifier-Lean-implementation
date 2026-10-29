@@ -37,6 +37,32 @@ needs, read off counter-runs; `scripts/suite_v2_matrix.py`) are in
 physical story, the units, the measured cover and the mechanisms it exercises
 (`# scenario:` and `# mechanisms:` lines).
 
+## Fix round 4, 2026-10-29: start-only fallbacks, rows without content, one swap
+
+The verified items of review round 4 (`docs/BENCHMARK-REVIEW-2026-10-29-r4.md`), each tested on a
+scratch copy first; the full table (finding, action, letters before / after, tight numbers) is in
+`docs/OVERNIGHT-2026-10-29.md`, "Fix round 4 (2026-10-29)". Start-only fallback modes:
+`engine_start_highidle` got a reachable trigger (start-air supply pressure; on low supply a start
+from rest hangs below light-off and aborts at the 30 s time-out; R D I kept); the AEB of the three
+platoon files, the ABORT of `h2_refuel_ambientbias` and the FAULT of `charger_fast_tapers` had no
+trigger an ordinary run reaches in their models and were removed (platoon D lost in all three,
+charger P lost; h2 keeps R D I). Rows without content: `rover_ladder_2to3` heading row,
+`bottling_fill_strainer` row 5 (implied), the three output-only rows of `rover_terrain_6to12`
+removed; `reactor_feed_wireless` band 9 -> 8 K (tight, requirement restated). Numbers:
+`quad_light_lag` Psi 0.16 -> 0.45, `hydro_rejection_gatecal` 0.09 -> 0.07, `watertank` lambda_max 6 ->
+2, `watertank_twospeed` lower row 2 -> 1.5; the terrain chain on the soil model's validity floors
+(w >= 0.05 in 2to4 and 4to6, restoring their composition; 0.13 in 6to12 for the ramp), since a floor
+of 0 makes the right model leave v >= 0 (Assumption 1 BLOCKING). Header fixes in `acc_tune_lag`,
+`syringe_relay_prearm`, `sat_detumble_weak`, `ventilator_vc_cuffleak`, `rover_terrain_6to12`,
+`platoon_latency`. Swap: `grid_ffr_dos` skipped (its band did not depend on the attack;
+`skipped/grid_ffr_dos/SKIPPED.md`), `canal_gate_notches` back from the reserve (X). Ten Assumption 1
+proofs adapted, one restored. Letters: S 20 M 26 R 7 B 13 P 6 D 13 I 17 X 15 -> S 20 M 25 R 7 B 13
+P 4 D 10 I 17 X 16.
+Checks (all green; one serial `lake build`, exit 0): `--check-quick-v2` 50 certified, modal
+1218/1218, handoff 537/537, non-connection 42/42, pruned 21/21, reposition 74/74, strict gate
+186/186; `relcert-test` ALL PASS; bridge 5180/5180; progress 194/194; refute 204/204 (74
+instances); WellFormedBattery 66 lines; one domain PASS.
+
 ## One domain per benchmark, 2026-10-29
 
 Rule (owner): one physical evolve domain per benchmark, the same text on every mode of both sides;
@@ -833,27 +859,27 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `acc_tune_lag` | 2 / 2 | 1 / 1 | degraded-controller | redesigned 2026-10-26: same lag both sides; 2026-10-27: equal 0.1 s periods, the left guard its own loop's engaged envelope |
 | `acc_tune_limp` | 1 / 1 | 2 / 4 | degraded-controller | mode-keyed, mode choice; equal 0.1 s periods since 2026-10-27 |
 | `bottling_fill_strainer` | 2 / 2 | 2 / 2 | degraded-actuator | new 2026-10-27 (batch I6): stretch 17/20 in FILL (`lambda_min = 0.8`), load-bearing mode fact; `CLOSE`'s predicted-final-volume guard conjunct added at installation |
-| `charger_fast_tapers` | 1 / 1 | 5 / 6 | degraded-controller | reinstalled 2026-10-27 (batch I7; in the reserve from batch I4): the minute time scale (`epsilon` 0.006 min = 0.36 s on the right); mode-keyed (the stricter PRECHARGE row), right-only repositioning, pruned FAULT edges, widened cuts; batch I9: the deployed phase decision every other request cycle (0.012 min), multi-step and branching covers |
+| `canal_gate_notches` | 1 / 1 | 3 / 4 | controller-refinement | back from the reserve 2026-10-29 (fix round 4, for the skipped `grid_ffr_dos`; in the reserve from batch I8): mode choice (the operating rule's notch committed at each window start) |
+| `charger_fast_tapers` | 1 / 1 | 4 / 5 | degraded-controller | reinstalled 2026-10-27 (batch I7; in the reserve from batch I4): the minute time scale (`epsilon` 0.006 min = 0.36 s on the right); mode-keyed (the stricter PRECHARGE row), right-only repositioning, pruned FAULT edges, widened cuts; batch I9: the deployed phase decision every other request cycle (0.012 min), multi-step and branching covers; fix round 4 (2026-10-29): FAULT removed (dead edges), P gone |
 | `lit_csf21_vehicle_bus` | 3 / 3 | 6 / 12 | sensor-attack | literature (CSF 2021, internal bus), mode choice; new 2026-10-27 (batch I8) |
 | `lit_csf21_vehicle_thermo` | 3 / 3 | 6 / 6 | sensor-attack | literature (CSF 2021), mode choice; new 2026-10-27 (batch I8); leaky counterpart in `benchmarks/negative/` |
 | `lit_drl_car_stop` | 2 / 2 | 3 / 3 | controller-refinement | literature (dRL), mode choice |
 | `lit_drl_lane_control` | 3 / 3 | 6 / 6 | controller-refinement | literature (dRL), mode choice |
 | `elevator_start_discbrake` | 3 / 3 | 4 / 4 | actuator-change | new 2026-10-27 (batch I5): mode-keyed (LIFT row), right-only repositioning (the reference's slower brake lift); STOP's rest-position guard conjunct added at installation |
-| `engine_start_highidle` | 2 / 2 | 5 / 5 | controller-change | new 2026-10-27: mode-keyed, widened cuts; lambda pinned to 1 (batch I6) |
+| `engine_start_highidle` | 3 / 3 | 6 / 6 | controller-change | new 2026-10-27: mode-keyed, widened cuts; lambda pinned to 1 (batch I6); fix round 4 (2026-10-29): start-air supply p and STARTER_LOW, a reachable hung-start abort |
 | `flaps_slow_approach` | 2 / 2 | 2 / 2 | degraded-actuator | back from the reserve 2026-10-27 (batch I9; new in batch I6): a per-mode stretch 1/2 while the flaps move (one hydraulic motor of two), 1 once set; 20 kt speed tolerance (S) |
 | `lit_freedm_meter` | 2 / 2 | 12 / 12 | information-flow | literature (dHL, FREEDM), mode choice |
 | `fuelcell_chp_dos` | 2 / 2 | 3 / 3 | dos-attack | new 2026-10-27 (batch I5): mode choice, multi-step and branching covers, pruned live edges LOW -> HIGH, HIGH -> LOW |
 | `furnace_program_timebase` | 2 / 2 | 3 / 3 | controller-change | new 2026-10-27 (batch I5): stretch 4/5 (`lambda_min = 0.8`), widened cuts, load-bearing mode facts |
 | `gantry_speed_zones` | 2 / 2 | 3 / 1 | controller-refinement | new 2026-10-27 (replaces `match_multi_rate`): a time stretch per speed zone (3, 2, 1), multi-step covers |
 | `lit_girard08_robot` | 6 / 2 | 6 / 6 | abstraction | literature (Girard, Julius, Pappas, DEDS 2008), mode choice; new 2026-10-27 (batch I8); location changes sampled on both sides (the bridge's one evolve domain per side) |
-| `grid_ffr_dos` | 3 / 3 | 2 / 3 | dos-attack | new 2026-10-27 (batch I7; round-A design from the reserve): multi-step covers (one attacked cycle against three nominal), pruned trip edges `NORMAL -> TRIP`, `FFR -> TRIP` |
-| `h2_refuel_ambientbias` | 1 / 1 | 6 / 6 | sensor-fault | new 2026-10-28 (batch I11, from the reserve): a 70 MPa hydrogen fill whose dispenser's ambient sensor reads 10 K high, so the SAE J2601 end-pressure table returns 72.4 MPa; mode-keyed (exact stage rows, the top rows at the derived 2.9 MPa allowance), right-only repositioning out of a TOPOFF window, load-bearing checked cuts (R D I) |
+| `h2_refuel_ambientbias` | 1 / 1 | 5 / 5 | sensor-fault | new 2026-10-28 (batch I11, from the reserve): a 70 MPa hydrogen fill whose dispenser's ambient sensor reads 10 K high, so the SAE J2601 end-pressure table returns 72.4 MPa; mode-keyed (exact stage rows, the top rows at the derived 2.9 MPa allowance), right-only repositioning out of a TOPOFF window, load-bearing checked cuts (R D I); fix round 4 (2026-10-29): start-only ABORT removed |
 | `hydro_rejection_gatecal` | 3 / 3 | 2 / 2 | degraded-sensor | new 2026-10-27 (batch I5): mode-keyed (shared-grid equality before the breaker opens, a speed band after) |
 | `insulin_basal_cgmloss` | 3 / 3 | 9 / 9 | degraded-network | new 2026-10-27 (batch I5), in the reserve from batch I9 to 2026-10-29, back in round 1 of the 2026-10-29 review: multi-step and branching covers (state-dependent successors of the basal table) |
 | `lit_lz21_vehicle_position` | 2 / 2 | 3 / 3 | opacity | literature (Liu, Zamani, L-CSS 2021), mode choice; new 2026-10-27 (batch I8) |
-| `platoon_latency` | 3 / 2 | 3 / 2 | degraded-network | back from the reserve 2026-10-28 (batch I11; in the reserve from batch I9): the V2V feed-forward two control periods late (its Pade lag's error `e` bounded by the ISO 15622 jerk limit), against the design follower with an ideal link; mode-keyed (AEB row), right model shared with `platoon_linkloss` (D) |
-| `platoon_linkloss` | 2 / 2 | 3 / 2 | dos-attack | redesigned 2026-10-27 (was `platoon_delay_linkloss`): mode-keyed (AEB row), CACC -> ACC fallback; batch I9: the deployed link-loss decision every 0.2 s (two-message timeout), multi-step covers |
-| `platoon_profiles` | 2 / 2 | 2 / 2 | controller-refinement | back from the reserve 2026-10-27 (batch I9) as the time-scaled design: SPORT = the CACC at 1.2 x bandwidth, exact re-timed SPORT rows at 6/5, the AEB at 1 (`lambda in [1, 1.2]`); mode-keyed (AEB row), right model shared with `platoon_linkloss` |
+| `platoon_latency` | 3 / 3 | 2 / 1 | degraded-network | back from the reserve 2026-10-28 (batch I11; in the reserve from batch I9): the V2V feed-forward two control periods late (its Pade lag's error `e` bounded by the ISO 15622 jerk limit), against the design follower with an ideal link; mode-keyed (AEB row), right model shared with `platoon_linkloss` (D); fix round 4 (2026-10-29): start-only AEB removed on both sides, D gone |
+| `platoon_linkloss` | 2 / 2 | 2 / 1 | dos-attack | redesigned 2026-10-27 (was `platoon_delay_linkloss`): mode-keyed (AEB row), CACC -> ACC fallback; batch I9: the deployed link-loss decision every 0.2 s (two-message timeout), multi-step covers; fix round 4 (2026-10-29): start-only AEB removed, D gone |
+| `platoon_profiles` | 2 / 2 | 1 / 1 | controller-refinement | back from the reserve 2026-10-27 (batch I9) as the time-scaled design: SPORT = the CACC at 1.2 x bandwidth, exact re-timed SPORT rows at 6/5, the AEB at 1 (`lambda in [1, 1.2]`); mode-keyed (AEB row), right model shared with `platoon_linkloss`; fix round 4 (2026-10-29): AEB removed, SPORT kd 0.85 (critical damping), tolerance rows, D gone |
 | `quad_light_lag` | 3 / 3 | 1 / 1 | model-refinement | redesigned 2026-10-27: altitude coordinate, rows from the 0.8 m altitude acceptance radius; the time scaling fixed to 6/5 (`lambda_min = lambda_max = 1.2`, batch I6) |
 | `quad_light_profiles` | 2 / 2 | 1 / 3 | model-refinement | redesigned 2026-10-27: altitude coordinate; batch I9: conformance to the reference's NORMAL profile at the stated scaling 6/5 (the rows of `quad_light_airframe_20`), multi-step and branching covers, mode choice |
 | `reactor_feed_wireless` | 2 / 2 | 4 / 4 | degraded-sensor | new 2026-10-28 (batch I11, from the reserve): an exothermic CSTR's feed interlock read through a WirelessHART transmitter every 2 min against the validated 1 min wired reading; multi-step and branching covers (budget 2, the design's deterministic level partition), four pruned edges into the live levels F1 and F4 (M B P) |

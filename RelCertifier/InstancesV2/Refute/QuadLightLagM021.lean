@@ -4,7 +4,7 @@ Released under Apache 2.0 license.
 
 # `quad_light_lag_m021`: Theorem 3's claim of a mutant of `quad_light_lag` is false (GENERATED — `scripts/gen_refute.py`)
 
-Mutant ORO `(<= (* (- 6.13125) 0.16) (- (+ (* 6.13125 (- L_h R_h)) L_w (* 0.1 L_a)) (+ (* 1.25 R_w) (* 0.125 R_a) 0.14525))) [R_a->L_a]`. Kind B (a component pushed out by the left flow, right-rigid): the left takes the window of mode 0 with a short flow, the right starts in mode 0. Dimension 4: the benchmark's bridge dimension, the last auxiliary coordinate the right clock.
+Mutant ORO `(<= (* (- 6.13125) 0.45) (- (+ (* 6.13125 (- L_h R_h)) L_w (* 0.1 L_a)) (+ (* 1.25 R_w) (* 0.125 R_a) 0.14525))) [R_a->L_a]`. Kind B (a component pushed out by the left flow, right-rigid): the left takes the window of mode 0 with a short flow, the right starts in mode 0. Dimension 4: the benchmark's bridge dimension, the last auxiliary coordinate the right clock.
 -/
 import RelCertifier.Proofs.Encoding.Emitted.RefuteFlow
 import RelCertifier.InstancesV2.Refute.Data.quad_light_lag_m021

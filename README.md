@@ -112,10 +112,10 @@ not carried. The mode-independent benchmarks are proved over the choice of their
 carried to the left automaton by one generic bridge (`theorem3_leftAut_of_choice`,
 `Proofs/Encoding/LeftAutUniform.lean`).
 The theorem's one Z3 hypothesis, `Verdicts`, IS the list of groups the runner
-`relcert-bridge-verdicts` issues (5284 over the 50 suite benchmarks and the 2 exhibits, against
+`relcert-bridge-verdicts` issues (5180 over the 50 suite benchmarks and the 2 exhibits, against
 the declared count), each coming back `unsat`; `relcert --check-quick-v2` re-sends the tool's
-own queries as a self-check (modal 1264, handoff 544, non-connection 60, pruned edges 30,
-reposition 73). The axiom audit of every theorem is a subset of
+own queries as a self-check (modal 1218, handoff 537, non-connection 42, pruned edges 21,
+reposition 74). The axiom audit of every theorem is a subset of
 `{propext, Classical.choice, Quot.sound, z3_unsat_sound}`; none of the 50 is Z3-free (every
 flow fact of every response is a group of the emitted cover). No
 `sorry`, no `admit`, no `native_decide`.
@@ -209,8 +209,8 @@ lake build relcert relcert-test relcert-bridge-verdicts relcert-refute-verdicts 
 lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 | grep -A3 "depends on axioms"
 lake build RelCertifier.InstancesV2.AxiomCheck 2>&1 | grep -A3 "depends on axioms"
 
-# 2b. the Z3 hypotheses of the 52 bridge instances (5284 groups) and the progress
-#     certificates of every reposition node (197 queries), against declared counts
+# 2b. the Z3 hypotheses of the 52 bridge instances (5180 groups) and the progress
+#     certificates of every reposition node (194 queries), against declared counts
 ./.lake/build/bin/relcert-bridge-verdicts
 ./.lake/build/bin/relcert-progress-verdicts
 
@@ -238,7 +238,7 @@ for d in benchmarks/suite_v2/*/; do
 done > /tmp/bench-paths-v2.tsv
 BENCH_PATHS=/tmp/bench-paths-v2.tsv ./.lake/build/bin/relcert-test
 
-# 5. the kernel-checked refutations of the 87 invariant variants (docs/REFUTATION-RESULTS.md):
+# 5. the kernel-checked refutations of the 74 invariant variants (docs/REFUTATION-RESULTS.md):
 #    re-send their Z3 groups with the declared count (each at the variant's bridge dimension,
 #    RefRec.dim + 1), then build their instances (each concludes the negation of the clocked
 #    bridge claim, refute_*_clocked)
@@ -248,16 +248,16 @@ lake build $(ls RelCertifier/InstancesV2/Refute/*.lean | sed 's|/|.|g; s|\.lean$
 
 Expected: `Build completed successfully`; 66 axiom lines (WellFormedBattery), each exactly
 the three standard axioms (`lake` also replays the 11 lines of `CutLiftX.lean`'s own audit);
-9 axiom lines (AxiomCheck), each a subset of the four axioms above; `relcert-bridge-verdicts`: `5284/5284` at the bridge dimensions;
-`relcert-progress-verdicts`: `197/197`; `[suite_v2] 50 certified, 0 declined, 0 error(s)`,
-coverage `modal 1264/1264`, `handoff 544/544`, `non-connection 60/60`, `pruned edges 30/30`,
-`reposition (dyn) 74/74`, the strict Assumption 1 gate `[wellformed] STRICT: 189/189 right modes ok,
-both clauses (87 invariant, 101 exit), 0 UNKNOWN, 0 BLOCKING — matches the declared suite`,
+9 axiom lines (AxiomCheck), each a subset of the four axioms above; `relcert-bridge-verdicts`: `5180/5180` at the bridge dimensions;
+`relcert-progress-verdicts`: `194/194`; `[suite_v2] 50 certified, 0 declined, 0 error(s)`,
+coverage `modal 1218/1218`, `handoff 537/537`, `non-connection 42/42`, `pruned edges 21/21`,
+`reposition (dyn) 74/74`, the strict Assumption 1 gate `[wellformed] STRICT: 186/186 right modes ok,
+both clauses (82 invariant, 104 exit), 0 UNKNOWN, 0 BLOCKING — matches the declared suite`,
 `wellformed (strict): PASS`, `SUITE_V2 QUICK CHECKS PASSED`;
 `ONE DOMAIN: PASS (50 benchmarks: 48 with one evolve domain, 2 kind (iii) with a stated conversion)`;
 `benchmarks/negative/lit_freedm_meter_leaky` and `lit_csf21_vehicle_thermo_leaky`: both `DECLINED`; `lit_hypercert_vehicle_s8` (self-contained; its suite benchmark is in `benchmarks/skipped/` since 2026-10-28): all five right
 modes `BLOCKING (leaves s <= 8.0)`, and `DECLINED` under the strict switch;
-`relcert-test`: a bare `ALL PASS`; `refute: 261/261 hypotheses discharged` (the bridge and
+`relcert-test`: a bare `ALL PASS`; `refute: 204/204 hypotheses discharged` (the bridge and
 refute counts are unchanged by the right-clock coordinate of 2026-10-21: no query reads it).
 
 The default `relcert <file>` verdict includes the handoff check (CERTIFIED requires the cover and
@@ -353,7 +353,7 @@ RelCertifier/
                            and `platoon_profiles` share the follower lemmas
                            `PlatoonCaccAeb`); the
                            carried-over proofs included
-    Refute/    88 files   the 87 kernel refutations and their Table; Refute/Data/ (87)
+    Refute/    75 files   the 74 kernel refutations and their Table; Refute/Data/ (74)
                            the mutant records (docs/REFUTATION-RESULTS.md)
     Choice/                the two choice exhibits' leaves (BenchIR, BenchCovers,
                            BenchProgress, BenchChoice, Cuts), ConstMirror, and General/
@@ -549,7 +549,7 @@ The per-benchmark findings of that route stay in `docs/GUARDED-SWITCHING.md`.
 * [`docs/WELLFORMED.md`](docs/WELLFORMED.md): Assumption 1 per benchmark (`WellFormedR`),
   the repaired defects, the tool check and its strict use in the recipe.
 * [`docs/HANDOFF.md`](docs/HANDOFF.md): mode-dependent invariants and the handoff check.
-* [`docs/REFUTATION-RESULTS.md`](docs/REFUTATION-RESULTS.md): the 87 kernel refutations of
+* [`docs/REFUTATION-RESULTS.md`](docs/REFUTATION-RESULTS.md): the 74 kernel refutations of
   known-false invariant variants (its design was `docs/REFUTATION-SCOPE.md`, planning record, last present at commit 29663d8).
 * [`docs/BRIDGE.md`](docs/BRIDGE.md): the generic bridge, Theorem 3 of every benchmark from
   its emitted records; [`docs/THEOREM3-GENERAL.md`](docs/THEOREM3-GENERAL.md): the general

@@ -73,15 +73,13 @@ def packsV2 : List PackV2 :=
     ⟨"acc_spoof_limp", 3, 0, [0, 1], 1, 1, 0, 2⟩,
     ⟨"acc_spoof_limp", 3, 0, [0, 1], 1, 1, 1, 0⟩,
     ⟨"acc_spoof_limp", 3, 0, [0, 1], 1, 1, 1, 2⟩,
-    -- platoon_linkloss (CACC -> AEB pruned): the CACC/ACC windows against CACC, AEB against AEB,
+    -- platoon_linkloss (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
+    ⟨"platoon_linkloss", 3, 0, [0, 1, 2, 3, 4, 5, 6, 7], 1, 1, 0, 0⟩,
+    ⟨"platoon_linkloss", 3, 1, [0, 1, 2, 3, 4, 5, 6, 7], 1, 1, 1, 0⟩,
     -- at λ = 1 (budget 2 since batch I9: the 0.2 s link-loss decision)
-    ⟨"platoon_linkloss", 3, 0, [0, 1, 2, 3, 4, 5, 6, 7, 8], 1, 1, 0, 0⟩,
-    ⟨"platoon_linkloss", 3, 1, [0, 1, 2, 3, 4, 5, 6, 7, 8], 1, 1, 1, 0⟩,
-    ⟨"platoon_linkloss", 3, 2, [0, 1, 2, 3], 1, 1, 2, 1⟩,
     -- platoon_latency (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
-    ⟨"platoon_latency", 3, 0, [6, 7, 10, 11, 0, 1, 2, 3, 4, 5, 9, 8], 1, 1, 0, 0⟩,
-    ⟨"platoon_latency", 3, 1, [6, 7, 10, 11, 0, 1, 2, 3, 4, 5, 9, 8], 1, 1, 1, 0⟩,
-    ⟨"platoon_latency", 3, 2, [0, 1, 2, 3], 1, 1, 2, 1⟩,
+    ⟨"platoon_latency", 3, 0, [8, 9, 0, 1, 2, 3, 4, 5, 7, 6], 1, 1, 0, 0⟩,
+    ⟨"platoon_latency", 3, 1, [8, 9, 0, 1, 2, 3, 4, 5, 7, 6], 1, 1, 1, 0⟩,
     -- pruned): the CACC_UP/CACC_DN windows against CACC, AEB against AEB, at λ = 1, budget 1
     -- quad_light_lag
     ⟨"quad_light_lag", 3, 0, [2, 3, 0, 1], 6, 5, 0, 0⟩,
@@ -115,20 +113,20 @@ def packsV2 : List PackV2 :=
     ⟨"rover_terrain_4to6", 6, 0, [2, 3, 5, 6, 0, 1, 4, 7], 1, 1, 1, 1⟩,
     ⟨"rover_terrain_4to6", 6, 0, [2, 3, 5, 6, 4, 7, 0, 1], 1, 1, 1, 2⟩,
     ⟨"rover_terrain_4to6", 6, 0, [2, 3, 5, 6, 7, 0, 1, 4], 1, 1, 2, 2⟩,
-    -- rover_terrain_6to12 (cover replay)
-    ⟨"rover_terrain_6to12", 12, 0, [2, 3, 4, 6, 7, 11, 12, 0, 1, 5, 9, 10, 8], 1, 1, 0, 0⟩,
-    ⟨"rover_terrain_6to12", 12, 0, [2, 3, 4, 6, 7, 11, 12, 5, 9, 10, 0, 1, 8], 1, 1, 0, 1⟩,
-    ⟨"rover_terrain_6to12", 12, 0, [2, 3, 4, 6, 7, 11, 12, 5, 9, 10, 0, 1, 8], 1, 1, 0, 2⟩,
-    ⟨"rover_terrain_6to12", 12, 0, [2, 3, 4, 6, 7, 11, 12, 0, 1, 5, 9, 10, 8], 1, 1, 1, 1⟩,
-    ⟨"rover_terrain_6to12", 12, 0, [2, 3, 4, 6, 7, 11, 12, 5, 9, 10, 0, 1, 8], 1, 1, 1, 2⟩,
-    ⟨"rover_terrain_6to12", 12, 0, [2, 3, 4, 6, 7, 10, 11, 12, 0, 1, 5, 8, 9], 1, 1, 2, 2⟩,
-    -- rover_ladder_2to3 (cover replay)
-    ⟨"rover_ladder_2to3", 3, 0, [0, 1, 2, 3], 1, 1, 0, 0⟩,
-    ⟨"rover_ladder_2to3", 3, 0, [0, 1, 2, 3], 1, 1, 0, 1⟩,
-    ⟨"rover_ladder_2to3", 3, 0, [0, 1, 2, 3], 1, 1, 0, 2⟩,
-    ⟨"rover_ladder_2to3", 3, 0, [0, 1, 2, 3], 1, 1, 1, 1⟩,
-    ⟨"rover_ladder_2to3", 3, 0, [0, 1, 2, 3], 1, 1, 1, 2⟩,
-    ⟨"rover_ladder_2to3", 3, 0, [0, 1, 2, 3], 1, 1, 2, 2⟩,
+    -- rover_terrain_6to12 (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
+    ⟨"rover_terrain_6to12", 12, 0, [2, 3, 4, 6, 7, 0, 1, 5, 9, 8], 1, 1, 0, 0⟩,
+    ⟨"rover_terrain_6to12", 12, 0, [2, 3, 4, 6, 7, 5, 9, 0, 1, 8], 1, 1, 0, 1⟩,
+    ⟨"rover_terrain_6to12", 12, 0, [2, 3, 4, 6, 7, 5, 9, 0, 1, 8], 1, 1, 0, 2⟩,
+    ⟨"rover_terrain_6to12", 12, 0, [2, 3, 4, 6, 7, 0, 1, 5, 9, 8], 1, 1, 1, 1⟩,
+    ⟨"rover_terrain_6to12", 12, 0, [2, 3, 4, 6, 7, 5, 9, 0, 1, 8], 1, 1, 1, 2⟩,
+    ⟨"rover_terrain_6to12", 12, 0, [2, 3, 4, 6, 7, 9, 0, 1, 5, 8], 1, 1, 2, 2⟩,
+    -- rover_ladder_2to3 (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
+    ⟨"rover_ladder_2to3", 3, 0, [0, 1], 1, 1, 0, 0⟩,
+    ⟨"rover_ladder_2to3", 3, 0, [0, 1], 1, 1, 0, 1⟩,
+    ⟨"rover_ladder_2to3", 3, 0, [0, 1], 1, 1, 0, 2⟩,
+    ⟨"rover_ladder_2to3", 3, 0, [0, 1], 1, 1, 1, 1⟩,
+    ⟨"rover_ladder_2to3", 3, 0, [0, 1], 1, 1, 1, 2⟩,
+    ⟨"rover_ladder_2to3", 3, 0, [0, 1], 1, 1, 2, 2⟩,
     -- rover_ladder_6to8 (cover replay)
     ⟨"rover_ladder_6to8", 8, 0, [0, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 1, 2, 3, 6, 7], 11, 10, 0, 0⟩,
     ⟨"rover_ladder_6to8", 8, 0, [0, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 1, 2, 3, 6, 7], 11, 10, 0, 1⟩,
@@ -155,8 +153,7 @@ def packsV2 : List PackV2 :=
     ⟨"gantry_speed_zones", 2, 0, [0, 1, 2, 3], 2, 1, 1, 0⟩,
     ⟨"gantry_speed_zones", 2, 0, [0, 1, 2, 3], 1, 1, 2, 0⟩,
     -- (the staging chain P2 -> P3 -> P4 -> P5) at λ = 1
-    -- watertank_twospeed: three windows (one row), a stretch PER PAIRING in Low (Fast 1, Slow 2,
-    -- MidEco 3/2, MidBoost 1, High 1), Mid at 2 against MidEco/MidBoost/High, High at 1
+    -- watertank_twospeed (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
     ⟨"watertank_twospeed", 2, 0, [0, 1], 1, 1, 0, 0⟩,
     ⟨"watertank_twospeed", 2, 0, [0, 1], 2, 1, 0, 1⟩,
     ⟨"watertank_twospeed", 2, 0, [0, 1], 3, 2, 0, 2⟩,
@@ -165,25 +162,29 @@ def packsV2 : List PackV2 :=
     ⟨"watertank_twospeed", 2, 0, [0, 1], 2, 1, 1, 2⟩,
     ⟨"watertank_twospeed", 2, 0, [0, 1], 2, 1, 1, 3⟩,
     ⟨"watertank_twospeed", 2, 0, [0, 1], 2, 1, 1, 4⟩,
-    ⟨"watertank_twospeed", 2, 0, [0, 1], 1, 1, 2, 2⟩,
-    ⟨"watertank_twospeed", 2, 0, [0, 1], 1, 1, 2, 3⟩,
     ⟨"watertank_twospeed", 2, 0, [0, 1], 1, 1, 2, 4⟩,
+    -- MidEco 3/2, MidBoost 1, High 1), Mid at 2 against MidEco/MidBoost/High, High at 1
     -- engine_start_highidle (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
-    ⟨"engine_start_highidle", 3, 0, [0, 1], 1, 1, 0, 0⟩,
-    ⟨"engine_start_highidle", 3, 0, [0, 1], 1, 1, 0, 1⟩,
-    ⟨"engine_start_highidle", 3, 0, [0, 1], 1, 1, 0, 2⟩,
-    ⟨"engine_start_highidle", 3, 0, [0, 1], 1, 1, 0, 3⟩,
-    ⟨"engine_start_highidle", 3, 1, [0], 1, 1, 1, 1⟩,
-    ⟨"engine_start_highidle", 3, 1, [0], 1, 1, 1, 2⟩,
-    ⟨"engine_start_highidle", 3, 1, [0], 1, 1, 1, 3⟩,
+    ⟨"engine_start_highidle", 3, 0, [0, 1, 2, 3], 1, 1, 0, 0⟩,
+    ⟨"engine_start_highidle", 3, 0, [0, 1, 2, 3], 1, 1, 0, 2⟩,
+    ⟨"engine_start_highidle", 3, 0, [0, 1, 2, 3], 1, 1, 0, 3⟩,
+    ⟨"engine_start_highidle", 3, 0, [0, 1, 2, 3], 1, 1, 0, 4⟩,
+    ⟨"engine_start_highidle", 3, 1, [0, 1, 2, 3], 1, 1, 1, 1⟩,
+    ⟨"engine_start_highidle", 3, 1, [0, 1, 2, 3], 1, 1, 1, 2⟩,
+    ⟨"engine_start_highidle", 3, 1, [0, 1, 2, 3], 1, 1, 1, 3⟩,
+    ⟨"engine_start_highidle", 3, 1, [0, 1, 2, 3], 1, 1, 1, 4⟩,
     ⟨"engine_start_highidle", 3, 2, [0], 1, 1, 2, 2⟩,
     ⟨"engine_start_highidle", 3, 2, [0], 1, 1, 2, 3⟩,
+    ⟨"engine_start_highidle", 3, 2, [0], 1, 1, 2, 4⟩,
     ⟨"engine_start_highidle", 3, 3, [0], 1, 1, 3, 3⟩,
-    ⟨"engine_start_highidle", 3, 4, [0], 1, 1, 4, 0⟩,
-    ⟨"engine_start_highidle", 3, 4, [0], 1, 1, 4, 1⟩,
-    ⟨"engine_start_highidle", 3, 4, [0], 1, 1, 4, 2⟩,
-    ⟨"engine_start_highidle", 3, 4, [0], 1, 1, 4, 3⟩,
+    ⟨"engine_start_highidle", 3, 3, [0], 1, 1, 3, 4⟩,
     ⟨"engine_start_highidle", 3, 4, [0], 1, 1, 4, 4⟩,
+    ⟨"engine_start_highidle", 3, 5, [0], 1, 1, 5, 0⟩,
+    ⟨"engine_start_highidle", 3, 5, [0], 1, 1, 5, 1⟩,
+    ⟨"engine_start_highidle", 3, 5, [0], 1, 1, 5, 2⟩,
+    ⟨"engine_start_highidle", 3, 5, [0], 1, 1, 5, 3⟩,
+    ⟨"engine_start_highidle", 3, 5, [0], 1, 1, 5, 4⟩,
+    ⟨"engine_start_highidle", 3, 5, [0], 1, 1, 5, 5⟩,
     -- train_ato_odometry: a stretch per pairing, below 1 against faster design levels (31/40 .. 6/5)
     ⟨"train_ato_odometry", 2, 0, [0, 1], 39, 40, 0, 0⟩,
     ⟨"train_ato_odometry", 2, 0, [0, 1], 43, 40, 0, 1⟩,
@@ -244,18 +245,15 @@ def packsV2 : List PackV2 :=
     ⟨"tank_dos_3to1", 2, 0, [2, 3, 0, 1], 1, 1, 2, 2⟩,
     ⟨"tank_dos_3to1", 2, 0, [1, 2, 3, 0], 1, 1, 2, 3⟩,
     ⟨"tank_dos_3to1", 2, 0, [1, 2, 3, 0], 1, 1, 3, 3⟩,
-    -- watertank_twospeed: three windows (one row), a stretch PER PAIRING in Low (Fast 1, Slow 2,
     -- lit_nahs25_salt_tank (cover replay at λ = 1, budget 1; dimension 3, the Assumption 1 lemma's)
     ⟨"lit_nahs25_salt_tank", 3, 0, [0, 1, 2, 3], 1, 1, 0, 0⟩,
     ⟨"lit_nahs25_salt_tank", 3, 0, [1, 2, 3, 0], 1, 1, 0, 1⟩,
     ⟨"lit_nahs25_salt_tank", 3, 0, [0, 1, 2, 3], 1, 1, 1, 0⟩,
     ⟨"lit_nahs25_salt_tank", 3, 0, [0, 1, 2, 3], 1, 1, 1, 1⟩,
-    -- bottling_fill_strainer (cover replay: FILL at λ = 17/20, CLOSE at λ = 1)
-    ⟨"bottling_fill_strainer", 2, 0, [0, 1, 2, 3, 4], 17, 20, 0, 0⟩,
-    ⟨"bottling_fill_strainer", 2, 0, [0, 1, 2, 3, 4], 1, 1, 1, 1⟩,
-    -- charger_fast_tapers (mode-keyed rows; cover replay at λ = 5/4, the raised CC current ratio,
-    -- since 2026-10-28; the joint pairings of each window's admissible starts, the right-only
-    -- nodes are below)
+    -- bottling_fill_strainer (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
+    ⟨"bottling_fill_strainer", 2, 0, [0, 1, 2, 3], 17, 20, 0, 0⟩,
+    ⟨"bottling_fill_strainer", 2, 0, [0, 1, 2, 3], 1, 1, 1, 1⟩,
+    -- charger_fast_tapers (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
     ⟨"charger_fast_tapers", 3, 0, [0], 5, 4, 0, 0⟩,
     ⟨"charger_fast_tapers", 3, 0, [0], 5, 4, 0, 1⟩,
     ⟨"charger_fast_tapers", 3, 0, [0], 5, 4, 0, 2⟩,
@@ -270,22 +268,13 @@ def packsV2 : List PackV2 :=
     ⟨"charger_fast_tapers", 3, 3, [0], 5, 4, 3, 2⟩,
     ⟨"charger_fast_tapers", 3, 3, [0], 5, 4, 3, 3⟩,
     ⟨"charger_fast_tapers", 3, 3, [0], 5, 4, 3, 4⟩,
-    ⟨"charger_fast_tapers", 3, 4, [0], 5, 4, 4, 0⟩,
-    ⟨"charger_fast_tapers", 3, 4, [0], 5, 4, 4, 1⟩,
-    ⟨"charger_fast_tapers", 3, 4, [0], 5, 4, 4, 2⟩,
-    ⟨"charger_fast_tapers", 3, 4, [0], 5, 4, 4, 3⟩,
-    ⟨"charger_fast_tapers", 3, 4, [0], 5, 4, 4, 4⟩,
-    ⟨"charger_fast_tapers", 3, 4, [0], 5, 4, 4, 5⟩,
-    -- grid_ffr_dos (cover replay at λ = 1, budget 3; NORMAL -> TRIP and FFR -> TRIP pruned)
-    ⟨"grid_ffr_dos", 3, 0, [2, 3, 4, 0, 1], 1, 1, 0, 0⟩,
-    ⟨"grid_ffr_dos", 3, 0, [2, 3, 4, 0, 1], 1, 1, 0, 1⟩,
-    ⟨"grid_ffr_dos", 3, 0, [2, 3, 4, 0, 1], 1, 1, 1, 1⟩,
+    -- since 2026-10-28; the joint pairings of each window's admissible starts, the right-only
+    -- nodes are below)
     -- flaps_slow_approach (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
     ⟨"flaps_slow_approach", 2, 0, [0, 1, 2, 3], 1, 2, 0, 0⟩,
     ⟨"flaps_slow_approach", 2, 0, [0, 1, 2, 3], 1, 1, 1, 1⟩,
-    -- platoon_profiles (batch I9, from the reserve; mode-keyed rows): SPORT at λ = 6/5 (the bandwidth ratio), AEB at 1
-    ⟨"platoon_profiles", 3, 0, [0, 1, 2, 3, 4, 5], 6, 5, 0, 0⟩,
-    ⟨"platoon_profiles", 3, 1, [0, 1, 2, 3], 1, 1, 1, 1⟩,
+    -- platoon_profiles (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
+    ⟨"platoon_profiles", 3, 0, [2, 3, 4, 5, 6, 7, 0, 1], 6, 5, 0, 0⟩,
     -- zone_lightmass_schedule (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
     ⟨"zone_lightmass_schedule", 2, 0, [0, 1], 2, 1, 0, 0⟩,
     ⟨"zone_lightmass_schedule", 2, 0, [0, 1], 2, 1, 1, 2⟩,
@@ -306,12 +295,6 @@ def packsV2 : List PackV2 :=
     ⟨"h2_refuel_ambientbias", 3, 3, [0], 1, 1, 3, 4⟩,
     ⟨"h2_refuel_ambientbias", 3, 4, [0], 1, 1, 4, 3⟩,
     ⟨"h2_refuel_ambientbias", 3, 4, [0], 1, 1, 4, 4⟩,
-    ⟨"h2_refuel_ambientbias", 3, 5, [0], 1, 1, 5, 0⟩,
-    ⟨"h2_refuel_ambientbias", 3, 5, [0], 1, 1, 5, 1⟩,
-    ⟨"h2_refuel_ambientbias", 3, 5, [0], 1, 1, 5, 2⟩,
-    ⟨"h2_refuel_ambientbias", 3, 5, [0], 1, 1, 5, 3⟩,
-    ⟨"h2_refuel_ambientbias", 3, 5, [0], 1, 1, 5, 4⟩,
-    ⟨"h2_refuel_ambientbias", 3, 5, [0], 1, 1, 5, 5⟩,
     -- reactor_feed_wireless (batch I11, from the reserve; cover replay at λ = 1, budget 2; the
     -- four pruned edges into the live levels F1 and F4): each left level against the joint levels
     -- of its cover
@@ -372,10 +355,15 @@ def packsV2 : List PackV2 :=
     -- antenna_track_kvretune (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
     ⟨"antenna_track_kvretune", 3, 0, [0, 1, 2, 3, 6, 7, 4, 5], 1, 1, 0, 0⟩,
     ⟨"antenna_track_kvretune", 3, 1, [0, 1, 2, 3, 6, 7, 4, 5], 1, 1, 1, 1⟩,
-    ⟨"antenna_track_kvretune", 3, 2, [0, 1, 2, 3, 6, 7, 4, 5], 1, 1, 2, 2⟩ ]
+    ⟨"antenna_track_kvretune", 3, 2, [0, 1, 2, 3, 6, 7, 4, 5], 1, 1, 2, 2⟩,
+    -- canal_gate_notches (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
+    ⟨"canal_gate_notches", 3, 0, [0, 1], 1, 1, 0, 0⟩,
+    ⟨"canal_gate_notches", 3, 0, [0, 1], 1, 1, 1, 1⟩,
+    ⟨"canal_gate_notches", 3, 0, [0, 1], 1, 1, 1, 2⟩,
+    ⟨"canal_gate_notches", 3, 0, [0, 1], 1, 1, 2, 3⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 1264
+def expectedModalV2 : Nat := 1218
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
@@ -450,7 +438,6 @@ noncomputable def dynPackVerd (r : DynPackV2) : Prop :=
 /-- The reposition packs. -/
 def dynPacksV2 : List DynPackV2 :=
   [ -- rover_terrain_4to6
-    -- rover_terrain_6to12
     -- rover_patrol_lag: MEDIUM_ECO_L and MEDIUM_BRISK_L reposition through right-only SLOW,
     -- MEDIUM_BRISK_L and FAST_L through right-only MEDIUM_ECO
     ⟨"rover_patrol_lag", 3, 0, [0, 1], true, 1, 0⟩,
@@ -458,8 +445,8 @@ def dynPacksV2 : List DynPackV2 :=
     ⟨"rover_patrol_lag", 3, 0, [0, 1], true, 2, 1⟩,
     ⟨"rover_patrol_lag", 3, 0, [0, 1], true, 3, 1⟩,
     -- engine_start_highidle: right-only reposition nodes of the emitted cover (2026-10-29)
-    ⟨"engine_start_highidle", 3, 2, [0], true, 2, 1⟩,
     ⟨"engine_start_highidle", 3, 3, [0], true, 3, 2⟩,
+    ⟨"engine_start_highidle", 3, 4, [0], true, 4, 3⟩,
     -- h2_refuel_ambientbias: right-only reposition nodes of the emitted cover (2026-10-29)
     ⟨"h2_refuel_ambientbias", 3, 3, [0], true, 3, 2⟩,
     -- turbine_startup_gearratio: right-only reposition nodes of the emitted cover (2026-10-29)
@@ -476,8 +463,7 @@ def dynPacksV2 : List DynPackV2 :=
     ⟨"syringe_relay_prearm", 4, 2, [0, 1, 2, 3, 4, 5, 6], true, 2, 2⟩,
     ⟨"syringe_relay_prearm", 4, 3, [0, 1, 2, 4, 6, 3, 5], true, 3, 2⟩,
     ⟨"syringe_relay_prearm", 4, 4, [0, 1, 2, 3, 4], true, 4, 1⟩,
-    -- charger_fast_tapers: BULK_L repositions through the right-only lag pairings PRECHARGE,
-    -- ABSORB_SLOW and ABSORB_FAST (re-timed form, 2026-10-28)
+    -- charger_fast_tapers: right-only reposition nodes of the emitted cover (2026-10-29)
     ⟨"charger_fast_tapers", 3, 1, [0], true, 1, 0⟩,
     ⟨"charger_fast_tapers", 3, 1, [0], true, 1, 2⟩,
     ⟨"charger_fast_tapers", 3, 1, [0], true, 1, 3⟩ ]
@@ -527,7 +513,7 @@ def runDynV2 (cfg : Z3Config) : IO Bool := do
 
 /-- Declared: one handoff query per declared left transition over the suite_v2 files
 (self-loops included; `CoveragePinsV2.derivedHandoffV2_eq` derives it from the IR table). -/
-def expectedHandoffV2 : Nat := 544
+def expectedHandoffV2 : Nat := 537
 
 /-- Declared handoff failures in suite_v2: none. -/
 def expectedHandoffFailuresV2 : List (String × Nat × Nat) := []
@@ -562,8 +548,8 @@ def prunedEdgesV2 : List (String × String × String) :=
   coverTableV2.flatMap (fun c => c.2.pruned.map (fun e => (c.1, e.1, e.2)))
 
 /-- Declared: pruned edges in the suite_v2 covers, and two queries per edge. -/
-def expectedPrunedEdgesV2 : Nat := 30
-def expectedNonConnV2 : Nat := 60
+def expectedPrunedEdgesV2 : Nat := 21
+def expectedNonConnV2 : Nat := 42
 
 def nonConnQueriesOfV2 (p : PProblem) (cX : EvolStrengtheningX) (src tgt : String) :
     Option ((n : ℕ) × (Fin n → String) × IForm n × IForm n) := do
@@ -613,7 +599,7 @@ structure ExpectedSuiteV2 where
   certified : Nat := 50
   declined  : Nat := 0
   errors    : Nat := 0
-  wfModes   : Nat := 189
+  wfModes   : Nat := 186
   wfUnknown : Nat := 0
   wfBlocking : Nat := 0
   deriving Repr

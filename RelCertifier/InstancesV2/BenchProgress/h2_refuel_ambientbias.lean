@@ -43,14 +43,6 @@ def h2_refuel_ambientbias_coverV2_progress : RelCertifier.Progress.ProgressEmitE
     ⟨"COMPLETE", "STAGE3", true, [⟨"p", (58 : ℚ) / 1, true, (1 : ℚ) / 1⟩], ["TOPOFF"]⟩,
     ⟨"COMPLETE", "STAGE3", false, [⟨"p", (58 : ℚ) / 1, true, (1 : ℚ) / 1⟩], ["TOPOFF"]⟩,
     ⟨"COMPLETE", "TOPOFF", true, [⟨"p", (70 : ℚ) / 1, true, (1 : ℚ) / 64⟩], ["COMPLETE"]⟩,
-    ⟨"COMPLETE", "TOPOFF", false, [⟨"p", (70 : ℚ) / 1, true, (1 : ℚ) / 64⟩], ["COMPLETE"]⟩,
-    ⟨"ABORT", "STAGE1", true, [⟨"p", (18 : ℚ) / 1, true, (1 : ℚ) / 16⟩], ["STAGE2"]⟩,
-    ⟨"ABORT", "STAGE1", false, [⟨"p", (18 : ℚ) / 1, true, (1 : ℚ) / 16⟩], ["STAGE2"]⟩,
-    ⟨"ABORT", "STAGE2", true, [⟨"p", (38 : ℚ) / 1, true, (1 : ℚ) / 16⟩], ["STAGE3"]⟩,
-    ⟨"ABORT", "STAGE2", false, [⟨"p", (38 : ℚ) / 1, true, (1 : ℚ) / 16⟩], ["STAGE3"]⟩,
-    ⟨"ABORT", "STAGE3", true, [⟨"p", (58 : ℚ) / 1, true, (1 : ℚ) / 16⟩], ["TOPOFF"]⟩,
-    ⟨"ABORT", "STAGE3", false, [⟨"p", (58 : ℚ) / 1, true, (1 : ℚ) / 16⟩], ["TOPOFF"]⟩,
-    ⟨"ABORT", "TOPOFF", true, [⟨"p", (70 : ℚ) / 1, true, (1 : ℚ) / 64⟩], ["COMPLETE"]⟩,
-    ⟨"ABORT", "TOPOFF", false, [⟨"p", (70 : ℚ) / 1, true, (1 : ℚ) / 64⟩], ["COMPLETE"]⟩]⟩
+    ⟨"COMPLETE", "TOPOFF", false, [⟨"p", (70 : ℚ) / 1, true, (1 : ℚ) / 64⟩], ["COMPLETE"]⟩]⟩
 
 end RelCertifier.Progress

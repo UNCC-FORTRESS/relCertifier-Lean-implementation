@@ -1,0 +1,136 @@
+# platoon_profiles: a CACC follower driven in the SPORT profile (the CACC at 1.2 times its natural
+# frequency, tuned to critical damping) against the design follower verified in the NORMAL
+# profile; the SPORT follower's gap and closing rate stay within a stated tolerance of the NORMAL
+# follower's re-timed by the natural-frequency ratio 6/5.
+# scenario: controller-refinement
+# mechanisms: S M (time stretch lambda = 6/5, the natural-frequency ratio of the two profiles,
+#   RELCERT_SYNC=1 declines, matrix code M1; multi-cycle matching, budget ceil(1.2 x 0.1 / 0.1) = 2
+#   design cycles per deployed window, matrix code M2). Both come from the profile. Round-4 fix
+#   (2026-10-29): (1) the AEB fallback mode is removed from both sides: it was reachable only as a
+#   start (the operating range is forward invariant under both profiles), so its D letter was the
+#   rows differing on a mode no SPORT run enters (with AEB_L removed the file certified with S M);
+#   no physical trigger keeps an AEB pairing (see "Why no AEB"). (2) The SPORT damping gain is
+#   0.85 /s instead of the exact bandwidth-scaling value 0.9 /s: with 0.9 the SPORT loop was the
+#   NORMAL loop run 6/5 times faster, the rows were an exact re-timing identity and any slack
+#   certified (no tolerance content); with 0.85 the exact rows DECLINE and the claim is a tolerance
+#   bisected to 0.01. Letters S M D -> S M. History: batch I9 (2026-10-27) brought the file back
+#   from benchmarks/reserve/ as the time-scaled design; platoon_latency (same right model) is in the
+#   suite as well.
+#
+# Shared platoon model (the same CACC, operating range and domain as platoon_latency and
+# platoon_linkloss). A lead vehicle cruises at the platoon reference speed v_ref = 25 m/s
+# (90 km/h). Per link (follower behind its predecessor): the gap g (m, bumper to bumper) and the
+# range rate r = v_pred - v (m/s, positive = opening), g' = r. Units m, m/s, s.
+# Spacing policy (constant time gap): standstill distance d0 = 5 m. CACC: time gap h_c = 0.6 s on
+#   the V2V-broadcast reference speed, desired gap d0 + h_c v_ref = 20 m.
+# CACC (V2V predecessor-acceleration feed-forward): a = a_pred + kp (g - d0 - h v_ref) + kd r, so
+#   r' = -kp (g - d0 - h v_ref) - kd r. NORMAL profile: kp = 0.125 /s^2, kd = 0.75 /s: natural
+#   frequency 0.354 rad/s, damping ratio 1.06, poles 0.25 and 0.5 /s (over-damped).
+# SPORT driver profile: kp = 0.18 /s^2 (1.44 x, natural frequency 0.424 rad/s = 1.2 x NORMAL's)
+#   and kd = 0.85 /s (critical damping, ratio 1.002, the fastest response without overshoot):
+#   poles 0.4 and 0.45 /s; same time gap and desired gap. The exact bandwidth scaling would need
+#   kd = 0.9 (1.2 x); SPORT keeps the NORMAL's natural-frequency ratio but not its damping.
+# CACC operating range (the engagement spec, the same on both sides): |r| <= 10 (rated closing
+#   rate) and 5 <= g + 2 r <= 60 (time to reach the standstill distance at the current closing
+#   rate at least 2 s, and the gap projected 2 s ahead inside the 60 m radar range gate). Forward
+#   invariant under both profiles: d/dt (g + 2 r) = -0.25 (g + 2 r - 20) under NORMAL and
+#   -0.36 (g - 20) - 0.7 r under SPORT, which on the face g + 2 r = 5 equals 5.4 + 0.02 r > 0 and
+#   on g + 2 r = 60 equals -14.4 + 0.02 r < 0 for |r| <= 10.
+# Control period 0.1 s on both sides (10 Hz V2V messages, the ETSI CAM / SAE BSM rate).
+# Domain per link (both sides, every mode): 0 <= g <= 60 m (radar range gate), |r| <= 10 m/s
+#   (rated closing rate); every mode's guard is forward invariant inside it.
+#
+# This file: one link (state g, r).
+# Right (design follower): the CACC in its NORMAL profile on the operating range, next [CACC].
+# Left (deployed follower): the driver has selected SPORT (kp 0.18, kd 0.85, the same 0.6 s time
+#   gap and 20 m desired gap) on the same operating range, next [SPORT].
+# One cause: the driver profile (the gains it selects). Same plant, time gap, operating range and
+# control period (0.1 s on both sides) on both sides.
+#
+# Property (Delta = L - R at the re-timed instants: the SPORT follower at time t against the
+# NORMAL follower at time 1.2 t, lambda = 6/5 stated, lambda_min = lambda_max = 1.2).
+#   Re-timed error: Delta g = g_L - g_R and Delta rho = r_L - 1.2 r_R (the closing rate of the
+#     re-timed NORMAL signal is 1.2 r_R). Along the pair Delta g' = Delta rho and
+#     Delta rho' = -0.18 Delta g - 0.85 Delta rho + w with w = (1.2 x 0.9 - 1.2 x 0.85) r_R =
+#     0.06 r_R: the damping mismatch acting on the design's closing rate, |w| <= W = 0.6 m/s^2 at
+#     the rated |r_R| <= 10. In the SPORT modal forms P_a = Delta rho + a Delta g:
+#     P_0.4' = -0.45 P_0.4 + w and P_0.45' = -0.4 P_0.45 + w.
+#   |Delta g| <= 3.34. Requirement (spacing tolerance of the SPORT tuning): at every re-timed
+#     instant the SPORT follower's gap is within 3.34 m of the NORMAL follower's, so the design's
+#     spacing behaviour carries over to SPORT with every event 6/5 times sooner, up to 3.34 m.
+#     Cause: the static allowance W / kp = 0.6 / 0.18 = 3.33 m of the damping mismatch at the rated
+#     closing rate. Tight: 3.34 certifies, 3.33 declines.
+#   |P_0.45| <= 1.50 (derived, W / 0.4, the slow form's static bound; 1.49 declines) and
+#     |P_0.4| <= 1.14 (derived; 1.13 declines): below W / 0.45 = 1.33 because on the face
+#     P_0.4 = b the deployed's own rated closing rate |r_L| <= 10 caps the design's re-timed one,
+#     0.05 (10 + 0.4 x 3.34 - b) <= 0.45 b, b >= 1.134. Each constant is tight with the other two
+#     at their stated values (a coordinate-wise fixpoint of the bisection).
+#   Related starts: equal physical states (g_L = g_R, r_L = r_R = r) are related for
+#     |r| <= 1.14 / 0.2 = 5.7 m/s (Delta rho = -0.2 r), not only at r = 0 as with exact rows.
+#   g_L >= 5 and g_L + 2 r_L >= 5: collision freedom of the deployed (gap at least d0 = 5 m) and
+#     its TTC to d0 at least 2 s (the operating range's face). 5.00 is tight for the gap floor
+#     (5.01 declines: it is kept only through the TTC floor); TTC floors up to 19.44 certify (19.45
+#     declines: the SPORT face condition 0.36 (20 - k) + 0.02 r >= 0 at |r| <= 10). Not
+#     load-bearing for the Delta rows: without both floors the file still certifies.
+# The stretch follows the cause: lambda = 6/5 = sqrt(0.18 / 0.125) is the natural-frequency
+# ratio of the two profiles; it is stated, not searched. RELCERT_SYNC=1 DECLINES (the rows at
+# lambda 1). The range [1, 1.2] also certifies; the file pins 6/5.
+# Cause dependence (2026-10-29): with the exact-scaling SPORT damping 0.9 the exact rows
+# (Delta g = 0, Delta rho = 0) certify; with 0.85 the exact rows DECLINE, so the tolerance above
+# is the damping mismatch's. With the NORMAL profile on both sides the exact claim certifies at
+# lambda 1 (no S; measured before round 4).
+#
+# Why no AEB (round-4 analysis, 2026-10-29). Earlier files carried the radar AEB (trigger
+# g + 2 r < 5, matching law r' = -0.5 r, latched) on both sides, with exact AEB rows at lambda 1,
+# reachable only as a start. A run reaches an AEB only under a disturbance the CACC cannot cancel
+# (a predecessor braking beyond the feed-forward's authority); a lead-braking mode on the design
+# shares the CACC's guard, so the deployed-keyed rows admit a mismatched design mode (measured in
+# platoon_latency on scratch variants, 2026-10-29), and the two AEBs fire at
+# different instants (the projected stop gaps of the re-timed pair differ), after which a latched
+# AEB on one side faces a recovering CACC on the other with no bounded row. Hence the AEB is
+# removed and D is lost.
+#
+# Domains. The tolerance scales with the rated closing rate (W = 0.06 x 10): with every evolve
+# bound widened by 20 % of its range (|r| <= 14) the stated rows DECLINE, and the same widened
+# file with the three constants scaled by 1.4 (1.6, 2.1, 4.68) CERTIFIES (2026-10-29); widening
+# only the gap bound (g <= 72) certifies unchanged. The rated closing rate is a physical limit (the
+# radar's rated range-rate), so the dependence is the claim's, not a reachable-set band.
+# Coverage of the right guard (domain 0 <= g <= 60, |r| <= 10): CACC covers every domain state with
+# 5 <= g + 2 r <= 60; the other domain states are in no right guard and no run reaches them (the
+# guard is forward invariant). The left mode has a satisfiable start (g = 20, r = 0 on both sides).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-29 on this file): CERTIFIED
+# (about 0.2 s: 140 ms in the letters run, 0.3 s in the ablation run); CERTIFIED under
+# RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1, NO_PRUNE+NO_CHOICE, RELCERT_NO_REPO=1, RELCERT_NO_CUT=1,
+# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, without RELCERT_IMPLIED_CUT,
+# RELCERT_OPREGION=1, RELCERT_NO_PAIR_STRETCH=1 and RELCERT_WELLFORMED_STRICT=1; DECLINED under
+# RELCERT_SYNC=1 and SYNC+NO_CHOICE (S), and with every evolve bound widened by 20 % (Domains
+# above). Cover: SPORT_L at lambda 6/5, budget 2, admissible [CACC], joint steps retaining CACC
+# only (no branching); nothing pruned. --handoff 1/1 passed (vacuous: one mode). relcert
+# --wellformed: CACC ok (invariant), 0 UNKNOWN, 0 BLOCKING. One-domain check passes. Letters
+# (scripts/suite_v2_letters.py through letters.sh): S M D before the round-4 fix, S M after.
+#
+[problem]
+name = platoon_profiles
+max_depth = 8
+lambda_min = 1.2
+lambda_max = 1.2
+bound_T = 4.0
+[Lsys]
+state_vars = [g, r]
+epsilon = 0.1
+[Lsys.mode.SPORT]
+ode = g' = smt2:r; r' = smt2:(- (* -0.18 (- g 20.0)) (* 0.85 r));
+guard = r >= -10.0 and r <= 10.0 and g + 2.0 * r >= 5.0 and g + 2.0 * r <= 60.0
+evolve = g >= 0.0 and g <= 60.0 and r >= -10.0 and r <= 10.0
+next = [SPORT]
+[Rsys]
+state_vars = [g, r]
+epsilon = 0.1
+[Rsys.mode.CACC]
+ode = g' = smt2:r; r' = smt2:(- (* -0.125 (- g 20.0)) (* 0.75 r));
+guard = r >= -10.0 and r <= 10.0 and g + 2.0 * r >= 5.0 and g + 2.0 * r <= 60.0
+evolve = g >= 0.0 and g <= 60.0 and r >= -10.0 and r <= 10.0
+next = [CACC]
+[relational_invariant]
+SPORT = smt2:(and (>= (+ (- L_r (* 1.2 R_r)) (* 0.4 (- L_g R_g))) (- 0.0 1.14)) (<= (+ (- L_r (* 1.2 R_r)) (* 0.4 (- L_g R_g))) 1.14) (>= (+ (- L_r (* 1.2 R_r)) (* 0.45 (- L_g R_g))) (- 0.0 1.5)) (<= (+ (- L_r (* 1.2 R_r)) (* 0.45 (- L_g R_g))) 1.5) (>= (- L_g R_g) (- 0.0 3.34)) (<= (- L_g R_g) 3.34) (>= L_g 5.0) (<= (+ L_g (* 2.0 L_r)) 5.0))

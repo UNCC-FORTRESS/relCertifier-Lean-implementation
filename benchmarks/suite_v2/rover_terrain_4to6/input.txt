@@ -37,10 +37,16 @@
 # rover_terrain_2to4, the lag does not raise it); H 0.13 (declines at 0.12; the analytic
 # bound is max_T rho_T c_T = 0.5 * 0.25 = 0.125 in MUD, through v <= w <= u <= c_T).
 #
-# Domains: v in [0, 0.8], w and u in [0.15, 0.8] (the creep floor; u' = 4 (c_T - u) and
-# w' = 3 (u - w) point inward at 0.15 and 0.8), zs in [0, 0.12], zh in [0, 0.5] (zh' =
-# rho_T v - zh >= 0 at 0 and < 0 at 0.5 since rho_T v <= 0.4), s >= 0: forward invariant
-# (v' >= 2.5 * 0.15 - 0.12 > 0 at v = 0). Right pinned u, zh keep the same boxes.
+# Domains (one domain, both sides, every mode): v in [0, 0.8], w and u in [0.05, 0.8], zs in
+# [0, 0.12], zh in [0, 0.5], s >= 0. The wheel floor 0.05 is the soil model's validity range of
+# rover_terrain_2to4 (its compaction term is speed independent, so below mu_MUD w = Z_max, w <
+# 0.048, it would push a standing rover backward; rounded up to 0.05), set 2026-10-29 in place
+# of the wheel controller's creep floor 0.15, a policy value. The floor is needed: at w = 0 the
+# right's (rover_terrain_2to4's left's) v' = mu_T w - zs < 0 at v = 0 and relcert --wellformed
+# reports MUD, GRAVEL, PAVED BLOCKING (leaves v >= 0.0), so Assumption 1 fails (measured
+# 2026-10-29). Forward invariant: u' = 4 (c_T - u) and w' = 3 (u - w) point inward at 0.05 and
+# 0.8, zh' = rho_T v - zh >= 0 at 0 and < 0 at 0.5 since rho_T v <= 0.4, v' >= 2.5 x 0.05 - 0.12
+# > 0 at v = 0. Right pinned u, zh keep the same boxes.
 # Guards: right = zone and entry w <= c_T (as rover_terrain_2to4's left); left = zone and entry
 # u <= c_T (the commanded quantity at most the zone's set point). A right (left) state with w
 # (u) above its zone's set point is in no guard of its side: unreachable from a guarded entry
@@ -48,9 +54,11 @@
 # non-vacuous in every mode (e.g. MUD: v = 0.1, w = u = 0.25, zs = 0.1, zh = 0; right v = 0.1,
 # w = 0.25, zs = 0.1).
 #
-# Composition: the right model is rover_terrain_2to4's left (u, zh pinned) and the left model
-# is rover_terrain_6to12's right (its six new coordinates pinned), so the v and s rows chain by
-# transitivity: 12-DOF <= 6-DOF <= 4-DOF <= no-slip plan.
+# Composition: the right model is rover_terrain_2to4's left (u, zh pinned; the same fields,
+# guards, successors and wheel range [0.05, 0.8], restored 2026-10-29) and the left model is
+# rover_terrain_6to12's right (its six new coordinates pinned; that file's domain, wheel floor
+# 0.13 for its ramp, lies inside this one), so the v and s rows chain by transitivity: 12-DOF
+# <= 6-DOF <= 4-DOF <= no-slip plan.
 #
 # Stretch pinned (2026-10-27, final audit): lambda_max 6 -> 1. Every cover was already at lambda 1
 # and the requirement is a real-time one, so the unused range [1, 6] is gone; verdicts and letters
@@ -62,7 +70,9 @@
 # (vacuous: rows identical). --wellformed: MUD ok (exit), GRAVEL ok (exit), PAVED ok
 # (invariant), 0 UNKNOWN. Cover: lambda 1, budget 1 in every left mode; checked cuts
 # load-bearing (u <= c_T on the left, w <= c_T on the right: contraction cuts; zone floors);
-# nothing pruned; no right-only segment. Letters: I.
+# nothing pruned; no right-only segment. Letters: I. Fix round 4 (2026-10-29), wheel floor
+# 0.15 -> 0.05: the same verdicts in every switch above; sigma 0.21 (0.20 declines), H 0.13 (0.12
+# declines), unchanged.
 
 [problem]
 name = rover_terrain_4to6
@@ -78,19 +88,19 @@ epsilon = 1.0
 [Lsys.mode.MUD]
 ode = v' = 2.5*(w - v) - 0.4*v - zs; s' = v; w' = 3*(u - w); zs' = 2*(0.1 - zs); u' = 4*(0.25 - u); zh' = 0.5*v - zh;
 guard = s >= 0.0 and s < 5.0 and u <= 0.25
-evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.15 and w <= 0.8 and zs >= 0.0 and zs <= 0.12 and u >= 0.15 and u <= 0.8 and zh >= 0.0 and zh <= 0.5
+evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.05 and w <= 0.8 and zs >= 0.0 and zs <= 0.12 and u >= 0.05 and u <= 0.8 and zh >= 0.0 and zh <= 0.5
 next = [GRAVEL, MUD]
 
 [Lsys.mode.GRAVEL]
 ode = v' = 4.0*(w - v) - 0.15*v - zs; s' = v; w' = 3*(u - w); zs' = 2*(0.03 - zs); u' = 4*(0.45 - u); zh' = 0.2*v - zh;
 guard = s >= 5.0 and s < 12.0 and u <= 0.45
-evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.15 and w <= 0.8 and zs >= 0.0 and zs <= 0.12 and u >= 0.15 and u <= 0.8 and zh >= 0.0 and zh <= 0.5
+evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.05 and w <= 0.8 and zs >= 0.0 and zs <= 0.12 and u >= 0.05 and u <= 0.8 and zh >= 0.0 and zh <= 0.5
 next = [PAVED, GRAVEL]
 
 [Lsys.mode.PAVED]
 ode = v' = 8.0*(w - v) - 0.05*v - zs; s' = v; w' = 3*(u - w); zs' = 2*(0.0 - zs); u' = 4*(0.7 - u); zh' = 0.05*v - zh;
 guard = s >= 12.0 and u <= 0.7
-evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.15 and w <= 0.8 and zs >= 0.0 and zs <= 0.12 and u >= 0.15 and u <= 0.8 and zh >= 0.0 and zh <= 0.5
+evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.05 and w <= 0.8 and zs >= 0.0 and zs <= 0.12 and u >= 0.05 and u <= 0.8 and zh >= 0.0 and zh <= 0.5
 next = [PAVED]
 
 [Rsys]
@@ -100,19 +110,19 @@ epsilon = 1.0
 [Rsys.mode.MUD]
 ode = v' = 2.5*(w - v) - 0.4*v - zs; s' = v; w' = 3*(0.25 - w); zs' = 2*(0.1 - zs); u' = 0; zh' = 0;
 guard = s >= 0.0 and s < 5.0 and w <= 0.25
-evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.15 and w <= 0.8 and zs >= 0.0 and zs <= 0.12 and u >= 0.15 and u <= 0.8 and zh >= 0.0 and zh <= 0.5
+evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.05 and w <= 0.8 and zs >= 0.0 and zs <= 0.12 and u >= 0.05 and u <= 0.8 and zh >= 0.0 and zh <= 0.5
 next = [GRAVEL, MUD]
 
 [Rsys.mode.GRAVEL]
 ode = v' = 4.0*(w - v) - 0.15*v - zs; s' = v; w' = 3*(0.45 - w); zs' = 2*(0.03 - zs); u' = 0; zh' = 0;
 guard = s >= 5.0 and s < 12.0 and w <= 0.45
-evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.15 and w <= 0.8 and zs >= 0.0 and zs <= 0.12 and u >= 0.15 and u <= 0.8 and zh >= 0.0 and zh <= 0.5
+evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.05 and w <= 0.8 and zs >= 0.0 and zs <= 0.12 and u >= 0.05 and u <= 0.8 and zh >= 0.0 and zh <= 0.5
 next = [PAVED, GRAVEL]
 
 [Rsys.mode.PAVED]
 ode = v' = 8.0*(w - v) - 0.05*v - zs; s' = v; w' = 3*(0.7 - w); zs' = 2*(0.0 - zs); u' = 0; zh' = 0;
 guard = s >= 12.0 and w <= 0.7
-evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.15 and w <= 0.8 and zs >= 0.0 and zs <= 0.12 and u >= 0.15 and u <= 0.8 and zh >= 0.0 and zh <= 0.5
+evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.05 and w <= 0.8 and zs >= 0.0 and zs <= 0.12 and u >= 0.05 and u <= 0.8 and zh >= 0.0 and zh <= 0.5
 next = [PAVED]
 
 [relational_invariant]

@@ -59,9 +59,9 @@
 # design model re-timed by lambda = 4/5 (lambda_min = lambda_max = 0.8). The weakened spacecraft's
 # ENERGY at time t is the NOMINAL design model's at time 0.8 t exactly (E_L(t) = E(0) e^{-0.8 t}
 # = E_R^NOM(0.8 t)); the states differ (the couplings redistribute rate between the axes), so the
-# witness is not a re-timed copy (RK4 check, 2026-10-29, from w = (0.5, 0.3, 0.2), h = 1:
-# E_L(2) = E_R^NOM(1.6) = 0.214010 while w_L(2) = (-0.046, 0.218, 0.064) against
-# w_R(1.6) = (0.225, 0.135, 0.090)). Requirement: the design model's detumble-time prediction
+# witness is not a re-timed copy (RK4 check, 2026-10-29, from w = (0.4, 0.3, 0.2), h = 1, a start
+# inside the DETUMBLE guard, E = 0.88 <= 1: E_L(2) = E_R^NOM(1.6) = 0.177669 while
+# w_L(2) = (-0.071, 0.187, 0.074) against w_R(1.6) = (0.180, 0.135, 0.090)). Requirement: the design model's detumble-time prediction
 # holds for the weakened spacecraft after re-timing by the derating, so a detumble budget of T s
 # on the design model is a budget of T / 0.8 = 1.25 T s on the degraded spacecraft (the time the
 # mission planning must allow before the sun-acquisition mode can take over). Exact, no tolerance

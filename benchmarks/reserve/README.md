@@ -53,7 +53,6 @@ Verdicts measured 2026-10-27 with the branch's `relcert` (`RELCERT_IMPLIED_CUT=1
 | `rampmeter_poll_2to1` | suite_v2 (2026-10-27, batch I7) | none | M B | the chain-depth template of `tank_dos_3to1` and `insulin_basal_cgmloss` repeated (shared with insulin: a constant exogenous input, a first-order upstream state, a regulated state read through a level table, a 2:1 update ratio, a symmetric band), and its 10 veh/mi/ln requirement is only 1.0 below the 11 at which any deployed schedule certifies; its tier-2 place in the suite went to `grid_ffr_dos` |
 | `hvac_fan_staging` | suite_v2 (2026-10-27, batch I8) | `NO_CHOICE`, `SYNC`+`NO_CHOICE`, `NO_PRUNE`+`NO_CHOICE` | X | tier 2 in the final audit: its X is the identity hop of template B (a deterministic left against a permissive reference), the pattern that sent `lng_cooldown_overspray` here; the literature case studies of batch I8 show X with a non-identity commitment |
 | `rover_rollover_payload` | suite_v2 (2026-10-27, batch I8) | `NO_CHOICE`, `SYNC`+`NO_CHOICE`, `NO_PRUNE`+`NO_CHOICE`, `NO_CUT` | X I | both letters come from the claim form (they persist at `h_L = h_R`), and the two sides differ in a second structural way besides the payload (the reference's 2 m transition bands with back edges, load-bearing) |
-| `canal_gate_notches` | suite_v2 (2026-10-27, batch I8) | `NO_CHOICE`, `SYNC`+`NO_CHOICE`, `NO_PRUNE`+`NO_CHOICE` | X | one of several X-only own designs (template B, with `bms_chiller_undercharge` and `compressor_station_recycle`); the literature case studies of batch I8 now show X |
 | `bms_chiller_undercharge` | suite_v2 (2026-10-28, batch I10) | `NO_CHOICE`, `SYNC`+`NO_CHOICE`, `NO_PRUNE`+`NO_CHOICE` | X | a single-letter file that certifies under `SYNC`; its non-identity commitment (the reference's half-speed chiller level against the deployed's degraded full-speed one) stays represented by `compressor_station_recycle` and `fuelcell_chp_dos`; its place in the suite went to `zone_lightmass_schedule` (S M B X, a time-scaled claim that declines under `SYNC`) |
 | `compressor_station_recycle` | suite_v2 (2026-10-28, batch I11) | `NO_CHOICE`, `SYNC`+`NO_CHOICE`, `NO_PRUNE`+`NO_CHOICE` | X | a single-letter own design whose X is an identity hop into the deployed's own level (the hop persists with a healthy valve; the fault only moves its target), no external source; its place in the suite went to `reactor_feed_wireless` (M B P) |
 | `molding_pack_checkring` | suite_v2 (2026-10-28, batch I11) | none | D | a single-letter own design with no external source for the 25 bar envelope or the hold time; its place in the suite went to `h2_refuel_ambientbias` (R D I, SAE J2601) |
@@ -84,5 +83,13 @@ and at the physical floor the reference is not well formed); the reserve is 25 f
 audit's widening test on the reserve (every two-sided evolve bound widened by 20 % of its range,
 `RELCERT_IMPLIED_CUT=1`): every file CERTIFIES except `lng_cooldown_overspray` and
 `quad_light_airframe_20`, whose claims stand on a domain bound.
+
+Fix round 4 of 2026-10-29 (`docs/OVERNIGHT-2026-10-29.md`, "Fix round 4 (2026-10-29)") took
+`canal_gate_notches` (round-1 reserve score P 4, R 4, C 5, overall 4, letter X; one physical domain,
+the bank crest; W20 CERTIFIES) back into the suite, with its Assumption 1 proof from git history, in
+place of `grid_ffr_dos`, skipped (`benchmarks/skipped/grid_ffr_dos/SKIPPED.md`: its band did not
+depend on the attack). `molding_pack_checkring` (overall 4, D) was not taken: its pressure domain
+`x, y <= 500` bar is the hold set point, and at the machine's pressure limit (2000 bar) it DECLINES.
+The reserve is 24 files.
 
 Run one: `RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert benchmarks/reserve/<name>/input.txt`.

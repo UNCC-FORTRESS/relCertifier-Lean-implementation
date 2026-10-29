@@ -53,7 +53,7 @@
 # cmH2O.s/L (inspiratory loss up to about 11.8 %; at 300, a 13.4 % loss, it DECLINES: the certified
 # fraction exceeds 15 %), and the uniform ISO-form row DECLINES up to 1203 (D present for leaks of
 # about 3 % to 12 % of the tidal volume); the file's 500 lies inside both edges. Tightest inspiratory
-# fraction against the leak: 0.105 at 500, 0.128 at 400, 0.145 at 350. Law dependence: an arbitrary
+# fraction against the leak: 0.104 at 500 (0.103 declines), 0.128 at 400, 0.145 at 350. Law dependence: an arbitrary
 # deployed phase schedule (both left guards the domain, each phase a successor of the other) DECLINES.
 #
 # Domains. t >= 0 s (the breath clock, forward invariant). V in [-0.4, 0.404] L: -0.4 = -C x PEEP

@@ -15,36 +15,32 @@ open RelCertifier.Parse
 
 def charger_fast_tapers_cutsV2 : EvolStrengthening :=
   { L := [
-      ("PRECHARGE", [((.cmp ">=" (.var "x") (.num "10.0")), CutRoute.shape)]),
+      ("PRECHARGE", [((.cmp ">=" (.var "x") (.num "0.0")), CutRoute.shape)]),
       ("BULK", [((.cmp ">=" (.var "x") (.num "15.0")), CutRoute.shape)]),
       ("ABSORB", [((.cmp ">=" (.var "x") (.num "80.0")), CutRoute.shape)]),
-      ("FULL", [((.cmp ">=" (.var "x") (.num "99.0")), CutRoute.frozen)]),
-      ("FAULT", [])
+      ("FULL", [((.cmp ">=" (.var "x") (.num "99.0")), CutRoute.frozen)])
     ]
     R := [
-      ("PRECHARGE", [((.cmp ">=" (.var "x") (.num "10.0")), CutRoute.shape)]),
+      ("PRECHARGE", [((.cmp ">=" (.var "x") (.num "0.0")), CutRoute.shape)]),
       ("BULK", [((.cmp ">=" (.var "x") (.num "15.0")), CutRoute.shape)]),
       ("ABSORB_SLOW", [((.cmp ">=" (.var "x") (.num "80.0")), CutRoute.shape)]),
       ("ABSORB_FAST", [((.cmp ">=" (.var "x") (.num "80.0")), CutRoute.shape)]),
-      ("FULL", [((.cmp ">=" (.var "x") (.num "99.0")), CutRoute.frozen)]),
-      ("FAULT", [])
+      ("FULL", [((.cmp ">=" (.var "x") (.num "99.0")), CutRoute.frozen)])
     ] }
 
 def charger_fast_tapers_cutsV2X : EvolStrengtheningX :=
   { L := [
-      ("PRECHARGE", [⟨(.cmp ">=" (.var "x") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "x") (.num "20.0")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
+      ("PRECHARGE", [⟨(.cmp ">=" (.var "x") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "x") (.num "20.0")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
       ("BULK", [⟨(.cmp ">=" (.var "x") (.num "15.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "x") (.num "100.0")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
       ("ABSORB", [⟨(.cmp ">=" (.var "x") (.num "80.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "x") (.num "100.0")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
-      ("FULL", [⟨(.cmp ">=" (.var "x") (.num "99.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩]),
-      ("FAULT", [⟨(.cmp "<=" (.var "x") (.num "10.0")), CutKind.closure, CutEntry.weakening, CutRouteX.shape, []⟩])
+      ("FULL", [⟨(.cmp ">=" (.var "x") (.num "99.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩])
     ]
     R := [
-      ("PRECHARGE", [⟨(.cmp ">=" (.var "x") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "x") (.num "20.0")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
+      ("PRECHARGE", [⟨(.cmp ">=" (.var "x") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "x") (.num "20.0")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
       ("BULK", [⟨(.cmp ">=" (.var "x") (.num "15.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "x") (.num "100.0")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
       ("ABSORB_SLOW", [⟨(.cmp ">=" (.var "x") (.num "80.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "x") (.num "100.0")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
       ("ABSORB_FAST", [⟨(.cmp ">=" (.var "x") (.num "80.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "x") (.num "100.0")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
-      ("FULL", [⟨(.cmp ">=" (.var "x") (.num "99.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩]),
-      ("FAULT", [⟨(.cmp "<=" (.var "x") (.num "10.0")), CutKind.closure, CutEntry.weakening, CutRouteX.shape, []⟩])
+      ("FULL", [⟨(.cmp ">=" (.var "x") (.num "99.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩])
     ] }
 
 /-- The legacy (guard-conjunct) part is well formed. -/

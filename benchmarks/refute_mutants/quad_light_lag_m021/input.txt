@@ -42,14 +42,16 @@
 # steady-climb gap Psi below drifts (Psi' = 2.4 - 2 lambda), so no range can be stated.
 #   rows 1, 2 (the requirement): h_R - h_L <= 0.8 and h_L - h_R <= 0.8.
 # Strengthening rows (each needed: dropping either, or both, DECLINES):
-#   rows 3, 4: -0.16 <= Psi <= 0.16 with Psi = (h_L - h_R) + ((w_L - 2.4) + 0.1 (a_L - 14.715))
+#   rows 3, 4: -0.45 <= Psi <= 0.45 with Psi = (h_L - h_R) + ((w_L - 2.4) + 0.1 (a_L - 14.715))
 #     / 6.13125 - ((w_R - 2) + 0.1 (a_R - 9.81)) / 4.905 (written multiplied by 6.13125). Each
 #     side's h + ((w - w_term) + tau (a - a_cmd)) / (k/m) is its extrapolated steady-climb
 #     altitude and grows at exactly its terminal rate whatever the lag state, so at
 #     lambda = 6/5 = 2.4 / 2 their difference Psi is conserved exactly.
-#     Constant: the requirement 0.8 m less the largest transient term the earlier per-side climb
-#     envelopes allowed (0.63 m above, 0.61 m below), rounded down. On the one domain the term
-#     reaches 0.94 m above and 0.71 m below, so rows 1 and 2 no longer follow from the box.
+#     Constant 0.45 (set 2026-10-29; 0.16 before, a value derived from the per-side climb envelopes
+#     the one-domain change removed): the widest symmetric band of steady-climb gaps for which the
+#     0.8 m requirement holds, i.e. the largest set of related starts the claim covers; 0.46
+#     DECLINES (row 2 then fails). Psi is conserved, so the band is a start relation that the
+#     dynamics keep; its width is limited only by the requirement it must protect.
 # The lag breaks the lag-free climb-rate row 1.2 w_R <= w_L of quad_light_airframe_20: at the
 # scaled time the reference's lag is 1.2 times shorter, so from hover its climb rate stays above
 # the deployed's through the whole transient (simulated; adding that row DECLINES). The gap's
@@ -57,13 +59,12 @@
 # Psi = -0.0237 m and the deployed falls behind the scaled reference by at most 2.4 cm
 # (simulated: gap from 0 down to -0.0237 m, never positive); the lower row 1 is now the one the
 # lag loads.
-# Tightest (bisection to 0.01, re-measured 2026-10-29 on the one domain; the wider box admits
-# starts with larger transients): with rows 3, 4 at 0.16, row 2 certifies down to 0.51 (0.50
-# declines; 0.40 before) and row 1 down to 0.38 (0.37 declines); with rows 1, 2 at 0.8, Psi's
-# bounds certify up to 0.45 above (0.46 declines; 0.56 before) and 0.58 below (0.59 declines);
-# with Psi in [-0.03, 0.01] (hover still related) rows 1 and 2 certify down to 0.36 (0.35
-# declines; 0.25 before). Psi is conserved, so its own bounds are only limited by the starts. Not
-# implied by the domains.
+# Tightest (bisection to 0.01, measured 2026-10-29 on the one domain): with rows 3, 4 at 0.45,
+# row 2 (deployed above) is tight at the requirement, 0.80 (0.79 declines), and row 1 (deployed
+# below) certifies down to 0.67 (0.66 declines); with rows 1, 2 at 0.8, Psi's bounds certify up
+# to 0.45 above (0.46 declines) and 0.58 below (0.59 declines), so the stated symmetric 0.45 is
+# set by the upper side; with Psi in [-0.03, 0.01] (hover still related) rows 1 and 2 certify
+# down to 0.36 (0.35 declines). Not implied by the domains.
 #
 # Guards and domains. One domain on both sides, CLIMB guard = evolve: h >= 0 (the ground),
 # 0 <= w <= 3 m/s (w >= 0 the climb segment as in quad_light_profiles; w <= 3 the PX4 climb-rate
@@ -78,7 +79,7 @@
 # start (hover). Control interval 1 s on both sides; budget ceil(6/5) = 2 (M).
 # One domain (2026-10-29): per-side climb envelopes (left w <= 2.4, right w <= 2.0, a <= 9.81: the
 # terminal rates and thrust commands) -> the one physical box above; rows unchanged, CERTIFIED
-# without the envelopes; three tight values moved (above).
+# without the envelopes; three tight values moved; the Psi band set to its tight 0.45 the same day.
 #
 # Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, re-measured 2026-10-29 on the one domain, the
 # same as before it): CERTIFIED (0.3 s); DECLINED under RELCERT_SYNC=1 and SYNC+NO_CHOICE;
@@ -111,4 +112,4 @@ guard = h >= 0.0 and w >= 0.0 and w <= 3.0 and a >= 0.0 and a <= 14.715
 evolve = h >= 0.0 and w >= 0.0 and w <= 3.0 and a >= 0.0 and a <= 14.715
 next = [CLIMB]
 [relational_invariant]
-CLIMB = smt2:(and (<= (- R_h L_h) 0.8) (<= (- L_h R_h) 0.8) (<= (- (+ (* 6.13125 (- L_h R_h)) L_w (* 0.1 L_a)) (+ (* 1.25 R_w) (* 0.125 R_a) 0.14525)) (* 6.13125 0.16)) (<= (* (- 6.13125) 0.16) (- (+ (* 6.13125 (- L_h R_h)) L_w (* 0.1 L_a)) (+ (* 1.25 R_w) (* 0.125 L_a) 0.14525))))
+CLIMB = smt2:(and (<= (- R_h L_h) 0.8) (<= (- L_h R_h) 0.8) (<= (- (+ (* 6.13125 (- L_h R_h)) L_w (* 0.1 L_a)) (+ (* 1.25 R_w) (* 0.125 R_a) 0.14525)) (* 6.13125 0.45)) (<= (* (- 6.13125) 0.45) (- (+ (* 6.13125 (- L_h R_h)) L_w (* 0.1 L_a)) (+ (* 1.25 R_w) (* 0.125 L_a) 0.14525))))

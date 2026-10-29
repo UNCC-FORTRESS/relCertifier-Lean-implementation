@@ -15,7 +15,9 @@ per terrain `T`, `v' = μ_T (w − v) − r_T v − zs`, `s' = v`, `w' = 3 (c_T 
 `PAVED`, `PAVED` is forward invariant). Existence: the explicit run of the affine cascade
 `w, zs → v → s` (`forcedSol`, `intSol`), kept in the evolve box by the comparison bounds
 (`forcedSol_between`: `w` between its start and `c_T`, `zs` between its start and `Z_T`, `v`
-between `min v₀ ((0.15 μ_T − 0.12)/(μ_T + r_T)) ≥ 0` and `max v₀ (0.8 μ_T/(μ_T + r_T)) ≤ 0.8`).
+between `min v₀ ((0.05 μ_T − 0.12)/(μ_T + r_T)) ≥ 0` and `max v₀ (0.8 μ_T/(μ_T + r_T)) ≤ 0.8`).
+The evolve domain has the wheel and torque floors `w ≥ 0.05`, `u ≥ 0.05`; at `v = 0` the field
+is `v' = μ_T w − zs ≥ 2.5 · 0.05 − 0.12 = 0.005 > 0`, so the speed floor is kept.
 Z3-free.
 -/
 import RelCertifier.InstancesV2.BenchIR.rover_terrain_4to6
@@ -206,8 +208,8 @@ theorem fRR5_eval (q : ℕ) (hq : q < 3) (x : State (Var 6)) :
       List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv, cT, muT, rT, ZT]
 
 theorem sat_domRR (x : State (Var 6)) : Formula.sat domRR x ↔
-    (0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 4/5 ∧ 0 ≤ x (Rv 1) ∧ 3/20 ≤ x (Rv 2) ∧ x (Rv 2) ≤ 4/5 ∧
-      0 ≤ x (Rv 3) ∧ x (Rv 3) ≤ 3/25 ∧ 3/20 ≤ x (Rv 4) ∧ x (Rv 4) ≤ 4/5 ∧
+    (0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 4/5 ∧ 0 ≤ x (Rv 1) ∧ 1/20 ≤ x (Rv 2) ∧ x (Rv 2) ≤ 4/5 ∧
+      0 ≤ x (Rv 3) ∧ x (Rv 3) ≤ 3/25 ∧ 1/20 ≤ x (Rv 4) ∧ x (Rv 4) ≤ 4/5 ∧
       0 ≤ x (Rv 5) ∧ x (Rv 5) ≤ 1/2) := by
   simp only [domRR, hostEvolve, mRR, rover_terrain_4to6_IRv2, vsR]
   simp [Run.lowerF, Run.lowerE, gp_0, gp_0_0, gp_0_03, gp_0_05, gp_0_1, gp_0_12, gp_0_15, gp_0_25, gp_0_4, gp_0_45, gp_0_5, gp_0_7, gp_0_8, gp_1_0, gp_2, gp_2_5, gp_3, gp_4_0, gp_5_0, gp_8_0, gp_12_0,
@@ -267,7 +269,7 @@ noncomputable def kT (q : ℕ) : ℝ := muT q + rT q
 /-- The numeric facts the comparison bounds use. -/
 theorem consts (q : ℕ) (hq : q < 3) :
     1/4 ≤ cT q ∧ cT q ≤ 7/10 ∧ 0 ≤ ZT q ∧ ZT q ≤ 3/25 ∧ 0 < kT q ∧ 0 ≤ muT q ∧
-      0 ≤ (muT q * (3/20) - 3/25) / kT q ∧ muT q * (4/5) / kT q ≤ 4/5 := by
+      0 ≤ (muT q * (1/20) - 3/25) / kT q ∧ muT q * (4/5) / kT q ≤ 4/5 := by
   interval_cases q <;> norm_num [cT, ZT, kT, muT, rT]
 
 noncomputable def φw (q : ℕ) (ρ : State (Var 6)) : ℝ → ℝ :=
@@ -336,7 +338,7 @@ theorem φR_dom (q : ℕ) (hq : q < 3) (ρ : State (Var 6)) (hρ : Formula.sat d
     (t : ℝ) (ht : t ∈ Icc (0:ℝ) 1) : Formula.sat domRR (trajRs ρ (φR q ρ) t) := by
   obtain ⟨hv0, hv1, hs0, hw0, hw1, hz0, hz1, hu0, hu1, hh0, hh1⟩ := (sat_domRR ρ).mp hρ
   obtain ⟨hc0, hc1, hZ0, hZ1, hk, hmu, hlo, hhi⟩ := consts q hq
-  have hw : ∀ τ ∈ Icc (0:ℝ) 1, 3/20 ≤ φw q ρ τ ∧ φw q ρ τ ≤ 4/5 := by
+  have hw : ∀ τ ∈ Icc (0:ℝ) 1, 1/20 ≤ φw q ρ τ ∧ φw q ρ τ ≤ 4/5 := by
     intro τ hτ
     have h := forcedSol_between 3 (ρ (Rv 2)) (F := fun _ => 3 * cT q) continuous_const
       (lo := 3 * cT q) (hi := 3 * cT q) (by norm_num) (fun _ _ => ⟨le_rfl, le_rfl⟩) τ hτ
@@ -353,7 +355,7 @@ theorem φR_dom (q : ℕ) (hq : q < 3) (ρ : State (Var 6)) (hρ : Formula.sat d
   have hv : ∀ τ ∈ Icc (0:ℝ) 1, 0 ≤ φv q ρ τ ∧ φv q ρ τ ≤ 4/5 := by
     intro τ hτ
     have h := forcedSol_between (kT q) (ρ (Rv 0)) (φvF_cont q ρ)
-      (lo := muT q * (3/20) - 3/25) (hi := muT q * (4/5)) hk (fun s hs => by
+      (lo := muT q * (1/20) - 3/25) (hi := muT q * (4/5)) hk (fun s hs => by
         obtain ⟨a0, a1⟩ := hw s hs
         obtain ⟨b0, b1⟩ := hz s hs
         constructor <;> nlinarith) τ hτ

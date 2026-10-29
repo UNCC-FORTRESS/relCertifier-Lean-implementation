@@ -9,14 +9,14 @@ Over the instance's guarded right automaton `Gr`, the lowered right guards, `ε_
 Dimension 3 (the keyed bridge's padding for a one-variable file: coordinate 0 is the state of
 charge `x`, 1 and 2 are frozen). Every mode is a contraction `x' = k_q (c_q − x)` inside the
 evolve domain `[0, 100]`.
-* `PRECHARGE` (`10 ≤ x < 15`, `x' = 0.2 (20 − x)`), style (b): a run ends in `[x₀, 20)`,
+* `PRECHARGE` (`0 ≤ x < 15`, `x' = 0.2 (20 − x)`), style (b): a run ends in `[x₀, 20)`,
   inside `PRECHARGE` or `BULK` (`[15, 80)`).
 * `BULK` (`15 ≤ x < 80`, `x' = 0.1 (100 − x)`), style (b): within one interval a run ends
   in `[x₀, 100 − (100 − x₀) e^{−0.1 t}] ⊆ [15, 99)` (the closed form at the run's duration
   `t ≤ 0.006`), inside `BULK` or `ABSORB_SLOW` (`[80, 99)`).
 * `ABSORB_SLOW` / `ABSORB_FAST` (`80 ≤ x < 99`, `x' = k (100 − x)`), style (b): a run ends in
   `[x₀, 100]`, inside the mode itself or `FULL` (`x ≥ 99`).
-* `FULL` (`x ≥ 99`, frozen) and `FAULT` (`x < 10`, `x' = −0.01 x`), style (a).
+* `FULL` (`x ≥ 99`, frozen), style (a).
 Existence: the explicit exponential. Z3-free.
 -/
 import RelCertifier.InstancesV2.BenchIR.charger_fast_tapers
@@ -51,9 +51,6 @@ theorem hp005 : Run.parseRat "0.05" = some ((1:ℚ)/20) := by
 theorem hp007 : Run.parseRat "0.07" = some ((7:ℚ)/100) := by
   have h : parseQ "0.07" = some (⟨7, 100⟩ : QF) := by decide
   simp [Run.parseRat, h]
-theorem hpm001 : Run.parseRat "-0.01" = some (-(1:ℚ)/100) := by
-  have h : parseQ "-0.01" = some (⟨-1, 100⟩ : QF) := by decide
-  simp [Run.parseRat, h]
 theorem hp0 : Run.parseRat "0" = some (0 : ℚ) := by
   have h : parseQ "0" = some (⟨0, 1⟩ : QF) := by decide
   simp [Run.parseRat, h]
@@ -62,9 +59,6 @@ theorem hp00 : Run.parseRat "0.0" = some (0 : ℚ) := by
   simp [Run.parseRat, h]
 theorem hp0006 : Run.parseRat "0.006" = some ((3:ℚ)/500) := by
   have h : parseQ "0.006" = some (⟨6, 1000⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp100 : Run.parseRat "10.0" = some (10 : ℚ) := by
-  have h : parseQ "10.0" = some (⟨100, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
 theorem hp150 : Run.parseRat "15.0" = some (15 : ℚ) := by
   have h : parseQ "15.0" = some (⟨150, 10⟩ : QF) := by decide
@@ -85,34 +79,33 @@ theorem hp1000 : Run.parseRat "100.0" = some (100 : ℚ) := by
 /-! ## The right fields -/
 
 /-- Right fields `x' = k_q (c_q − x)` (PRECHARGE 0, BULK 1, ABSORB_SLOW 2, ABSORB_FAST 3,
-FULL 4, FAULT 5): `PRECHARGE` 1/5 toward 20, `BULK` 1/10 toward 100, `ABSORB_SLOW` 1/20 and
-`ABSORB_FAST` 7/100 toward 100, `FULL` 0, `FAULT` 1/100 toward 0. -/
+FULL 4): `PRECHARGE` 1/5 toward 20, `BULK` 1/10 toward 100, `ABSORB_SLOW` 1/20 and
+`ABSORB_FAST` 7/100 toward 100, `FULL` 0. -/
 noncomputable def kR (q : ℕ) : ℝ :=
   if q = 0 then 1/5 else if q = 1 then 1/10 else if q = 2 then 1/20 else if q = 3 then 7/100
-  else if q = 4 then 0 else 1/100
+  else 0
 noncomputable def cRc (q : ℕ) : ℝ :=
-  if q = 0 then 20 else if q = 5 then 0 else 100
+  if q = 0 then 20 else 100
 
-theorem fR0_eval (q : ℕ) (hq : q < 6) (x : State (Var 3)) :
+theorem fR0_eval (q : ℕ) (hq : q < 5) (x : State (Var 3)) :
     Term.eval (fR q 0) x = kR q * (cRc q - x (Rv 0)) := by
   interval_cases q <;>
     simp [fR, hostDyn, mR, charger_fast_tapers_IRv2, vs, Run.dynOf, Run.lowerE, hp02, hp01,
-      hp005, hp007, hpm001, hp200, hp1000, hp0, Run.resolveVar, List.findIdx?_cons,
+      hp005, hp007, hp200, hp1000, hp0, Run.resolveVar, List.findIdx?_cons,
       List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv, kR, cRc]
-  all_goals ring
 
-theorem fRo_eval (q : ℕ) (hq : q < 6) (i : Fin 3) (hi : i ≠ 0) (x : State (Var 3)) :
+theorem fRo_eval (q : ℕ) (hq : q < 5) (i : Fin 3) (hi : i ≠ 0) (x : State (Var 3)) :
     Term.eval (fR q i) x = 0 := by
   match i, hi with
   | ⟨1, _⟩, _ =>
     interval_cases q <;>
       simp [fR, hostDyn, mR, charger_fast_tapers_IRv2, vs, Run.dynOf, Run.lowerE, hp02,
-        hp01, hp005, hp007, hpm001, hp200, hp1000, hp0, Run.resolveVar, List.findIdx?_cons,
+        hp01, hp005, hp007, hp200, hp1000, hp0, Run.resolveVar, List.findIdx?_cons,
         List.finRange, ITerm.toHost, Term.eval]
   | ⟨2, _⟩, _ =>
     interval_cases q <;>
       simp [fR, hostDyn, mR, charger_fast_tapers_IRv2, vs, Run.dynOf, Run.lowerE, hp02,
-        hp01, hp005, hp007, hpm001, hp200, hp1000, hp0, Run.resolveVar, List.findIdx?_cons,
+        hp01, hp005, hp007, hp200, hp1000, hp0, Run.resolveVar, List.findIdx?_cons,
         List.finRange, ITerm.toHost, Term.eval]
 
 theorem sat_domR (x : State (Var 3)) :
@@ -133,28 +126,26 @@ noncomputable def edgeW (s t : ℕ) : REdge (Var 3) :=
   { src := s, tgt := t, guard := hostGuard vs 3 Side.R (mR t), pruned := false }
 
 /-- The declared transitions, as indices (PRECHARGE 0, BULK 1, ABSORB_SLOW 2, ABSORB_FAST 3,
-FULL 4, FAULT 5). -/
+FULL 4). -/
 def edgeList : List (ℕ × ℕ) :=
-  [(0, 1), (0, 0), (0, 5), (1, 2), (1, 3), (1, 1), (1, 5), (2, 4), (2, 2), (3, 4), (3, 3),
-    (4, 4), (5, 5)]
+  [(0, 1), (0, 0), (1, 2), (1, 3), (1, 1), (2, 4), (2, 2), (3, 4), (3, 3), (4, 4)]
 
 noncomputable def Gr : SearchGraph (Var 3) :=
-  { modes := [modeW 0, modeW 1, modeW 2, modeW 3, modeW 4, modeW 5]
+  { modes := [modeW 0, modeW 1, modeW 2, modeW 3, modeW 4]
     edges := edgeList.map (fun e => edgeW e.1 e.2) }
 
-theorem Gr_modeAt (q : ℕ) (hq : q < 6) : Gr.modeAt q = some (modeW q) := by
+theorem Gr_modeAt (q : ℕ) (hq : q < 5) : Gr.modeAt q = some (modeW q) := by
   interval_cases q <;> rfl
 
 theorem Gr_modeAt_inv {q : ℕ} {m : RMode (Var 3)} (hm : Gr.modeAt q = some m) :
-    q < 6 ∧ m = modeW q := by
+    q < 5 ∧ m = modeW q := by
   match q with
   | 0 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
   | 1 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
   | 2 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
   | 3 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
   | 4 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
-  | 5 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
-  | q + 6 => exact absurd hm (by simp [SearchGraph.modeAt, Gr])
+  | q + 5 => exact absurd hm (by simp [SearchGraph.modeAt, Gr])
 
 theorem edge_mem (s t : ℕ) (h : (s, t) ∈ edgeList) : edgeW s t ∈ Gr.edgesFrom s :=
   List.mem_filter.mpr ⟨List.mem_map.mpr ⟨(s, t), h, rfl⟩, by simp [edgeW]⟩
@@ -162,8 +153,8 @@ theorem edge_mem (s t : ℕ) (h : (s, t) ∈ edgeList) : edgeW s t ∈ Gr.edgesF
 /-! ## The right guards, evaluated -/
 
 theorem sat_guard0 (ν : State (Var 3)) :
-    Formula.sat (hostGuard vs 3 Side.R (mR 0)) ν ↔ (10 ≤ ν (Rv 0) ∧ ν (Rv 0) < 15) := by
-  simp [hostGuard, mR, charger_fast_tapers_IRv2, Run.lowerF, Run.lowerE, hp100, hp150, vs,
+    Formula.sat (hostGuard vs 3 Side.R (mR 0)) ν ↔ (0 ≤ ν (Rv 0) ∧ ν (Rv 0) < 15) := by
+  simp [hostGuard, mR, charger_fast_tapers_IRv2, Run.lowerF, Run.lowerE, hp00, hp150, vs,
     Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
     CompOp.interp, Term.eval, Rv]
 
@@ -191,12 +182,6 @@ theorem sat_guard4 (ν : State (Var 3)) :
     Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
     CompOp.interp, Term.eval, Rv]
 
-theorem sat_guard5 (ν : State (Var 3)) :
-    Formula.sat (hostGuard vs 3 Side.R (mR 5)) ν ↔ ν (Rv 0) < 10 := by
-  simp [hostGuard, mR, charger_fast_tapers_IRv2, Run.lowerF, Run.lowerE, hp100, vs,
-    Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
-    CompOp.interp, Term.eval, Rv]
-
 theorem epsR_eq : epsR charger_fast_tapers_IRv2 = 3/500 := by
   simp [epsR, charger_fast_tapers_IRv2, hp0006]
 
@@ -213,13 +198,13 @@ theorem charger_fast_tapers_wellFormedR :
     WellFormedR Gr guardR (epsR charger_fast_tapers_IRv2) := by
   rw [epsR_eq]
   intro q hq m hm x hg hd _
-  obtain ⟨hq6, rfl⟩ := Gr_modeAt_inv hm
+  obtain ⟨hq5, rfl⟩ := Gr_modeAt_inv hm
   have hdx := (sat_domR x).mp hd
   have hcr : 0 ≤ cRc q ∧ cRc q ≤ 100 := by
     unfold cRc; split_ifs <;> norm_num
   refine ⟨?_, ?_⟩
-  · refine exists_contract_run x 0 (kR q) (cRc q) (kR_nonneg q) (fR0_eval q hq6)
-      (fun i hi s => fRo_eval q hq6 i hi s) ?_ (3/500) (by norm_num)
+  · refine exists_contract_run x 0 (kR q) (cRc q) (kR_nonneg q) (fR0_eval q hq5)
+      (fun i hi s => fRo_eval q hq5 i hi s) ?_ (3/500) (by norm_num)
     intro v h1 h2
     show Formula.sat domR _
     rw [sat_domR, trajJ_j]
@@ -227,7 +212,7 @@ theorem charger_fast_tapers_wellFormedR :
   · intro t Φ ht H
     have hf : ∀ s, Formula.sat (modeW q).dom s →
         Term.eval (Term.binop .mul (Term.const 1) (fR q 0)) s = kR q * (cRc q - s (Rv 0)) :=
-      fun s _ => by rw [eval_unit_mul, fR0_eval q hq6]
+      fun s _ => by rw [eval_unit_mul, fR0_eval q hq5]
     interval_cases q
     · -- PRECHARGE: ends in [x₀, 20), inside PRECHARGE or BULK
       have hgx := (sat_guard0 x).mp hg
@@ -268,10 +253,6 @@ theorem charger_fast_tapers_wellFormedR :
       have hgx := (sat_guard4 x).mp hg
       have hup := H.linear_up (memR 4) _ _ (kR_nonneg 4) hf (by simp [cRc]; linarith)
       exact ⟨edgeW 4 4, edge_mem 4 4 (by decide), (sat_guard4 _).mpr (by linarith [hup.1])⟩
-    · -- FAULT: [0, 10) invariant
-      have hgx := (sat_guard5 x).mp hg
-      have hdn := H.linear_down (memR 5) _ _ (kR_nonneg 5) hf (by simp [cRc]; linarith)
-      exact ⟨edgeW 5 5, edge_mem 5 5 (by decide), (sat_guard5 _).mpr (by linarith [hdn.2])⟩
 
 end V2ChargerFastTapers
 end RelCertifier

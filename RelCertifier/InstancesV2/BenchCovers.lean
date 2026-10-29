@@ -5,6 +5,7 @@ import RelCertifier.InstancesV2.BenchCovers.acc_tune_lag
 import RelCertifier.InstancesV2.BenchCovers.acc_tune_limp
 import RelCertifier.InstancesV2.BenchCovers.antenna_track_kvretune
 import RelCertifier.InstancesV2.BenchCovers.bottling_fill_strainer
+import RelCertifier.InstancesV2.BenchCovers.canal_gate_notches
 import RelCertifier.InstancesV2.BenchCovers.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchCovers.elevator_start_discbrake
 import RelCertifier.InstancesV2.BenchCovers.engine_start_highidle
@@ -12,7 +13,6 @@ import RelCertifier.InstancesV2.BenchCovers.flaps_slow_approach
 import RelCertifier.InstancesV2.BenchCovers.fuelcell_chp_dos
 import RelCertifier.InstancesV2.BenchCovers.furnace_program_timebase
 import RelCertifier.InstancesV2.BenchCovers.gantry_speed_zones
-import RelCertifier.InstancesV2.BenchCovers.grid_ffr_dos
 import RelCertifier.InstancesV2.BenchCovers.h2_refuel_ambientbias
 import RelCertifier.InstancesV2.BenchCovers.hydro_rejection_gatecal
 import RelCertifier.InstancesV2.BenchCovers.insulin_basal_cgmloss
@@ -59,6 +59,7 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("acc_tune_limp", acc_tune_limp_coverV2),
   ("antenna_track_kvretune", antenna_track_kvretune_coverV2),
   ("bottling_fill_strainer", bottling_fill_strainer_coverV2),
+  ("canal_gate_notches", canal_gate_notches_coverV2),
   ("charger_fast_tapers", charger_fast_tapers_coverV2),
   ("elevator_start_discbrake", elevator_start_discbrake_coverV2),
   ("engine_start_highidle", engine_start_highidle_coverV2),
@@ -66,7 +67,6 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("fuelcell_chp_dos", fuelcell_chp_dos_coverV2),
   ("furnace_program_timebase", furnace_program_timebase_coverV2),
   ("gantry_speed_zones", gantry_speed_zones_coverV2),
-  ("grid_ffr_dos", grid_ffr_dos_coverV2),
   ("h2_refuel_ambientbias", h2_refuel_ambientbias_coverV2),
   ("hydro_rejection_gatecal", hydro_rejection_gatecal_coverV2),
   ("insulin_basal_cgmloss", insulin_basal_cgmloss_coverV2),

@@ -5,6 +5,7 @@ import RelCertifier.InstancesV2.Cuts.acc_tune_lag
 import RelCertifier.InstancesV2.Cuts.acc_tune_limp
 import RelCertifier.InstancesV2.Cuts.antenna_track_kvretune
 import RelCertifier.InstancesV2.Cuts.bottling_fill_strainer
+import RelCertifier.InstancesV2.Cuts.canal_gate_notches
 import RelCertifier.InstancesV2.Cuts.charger_fast_tapers
 import RelCertifier.InstancesV2.Cuts.elevator_start_discbrake
 import RelCertifier.InstancesV2.Cuts.engine_start_highidle
@@ -12,7 +13,6 @@ import RelCertifier.InstancesV2.Cuts.flaps_slow_approach
 import RelCertifier.InstancesV2.Cuts.fuelcell_chp_dos
 import RelCertifier.InstancesV2.Cuts.furnace_program_timebase
 import RelCertifier.InstancesV2.Cuts.gantry_speed_zones
-import RelCertifier.InstancesV2.Cuts.grid_ffr_dos
 import RelCertifier.InstancesV2.Cuts.h2_refuel_ambientbias
 import RelCertifier.InstancesV2.Cuts.hydro_rejection_gatecal
 import RelCertifier.InstancesV2.Cuts.insulin_basal_cgmloss
@@ -59,6 +59,7 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("acc_tune_limp", acc_tune_limp_cutsV2, acc_tune_limp_cutsV2X),
   ("antenna_track_kvretune", antenna_track_kvretune_cutsV2, antenna_track_kvretune_cutsV2X),
   ("bottling_fill_strainer", bottling_fill_strainer_cutsV2, bottling_fill_strainer_cutsV2X),
+  ("canal_gate_notches", canal_gate_notches_cutsV2, canal_gate_notches_cutsV2X),
   ("charger_fast_tapers", charger_fast_tapers_cutsV2, charger_fast_tapers_cutsV2X),
   ("elevator_start_discbrake", elevator_start_discbrake_cutsV2, elevator_start_discbrake_cutsV2X),
   ("engine_start_highidle", engine_start_highidle_cutsV2, engine_start_highidle_cutsV2X),
@@ -66,7 +67,6 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("fuelcell_chp_dos", fuelcell_chp_dos_cutsV2, fuelcell_chp_dos_cutsV2X),
   ("furnace_program_timebase", furnace_program_timebase_cutsV2, furnace_program_timebase_cutsV2X),
   ("gantry_speed_zones", gantry_speed_zones_cutsV2, gantry_speed_zones_cutsV2X),
-  ("grid_ffr_dos", grid_ffr_dos_cutsV2, grid_ffr_dos_cutsV2X),
   ("h2_refuel_ambientbias", h2_refuel_ambientbias_cutsV2, h2_refuel_ambientbias_cutsV2X),
   ("hydro_rejection_gatecal", hydro_rejection_gatecal_cutsV2, hydro_rejection_gatecal_cutsV2X),
   ("insulin_basal_cgmloss", insulin_basal_cgmloss_cutsV2, insulin_basal_cgmloss_cutsV2X),

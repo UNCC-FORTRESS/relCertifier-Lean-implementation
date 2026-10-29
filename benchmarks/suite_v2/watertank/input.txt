@@ -52,6 +52,11 @@
 #
 # Why stretching (S). The tampered Low pump runs at twice the nominal Low gain and the deployed
 # Mid at twice MidEco's: only lambda = 2 matches them (RELCERT_SYNC=1: DECLINED).
+# Stretch range lambda in [1, 2] (set 2026-10-29; [1, 6] before, whose top was never used): the
+# claim compares the deployed level at time t with the reference's at a time between t and 2 t,
+# i.e. the band holds against the reference re-timed by at most the tampered pump's speed-up
+# (the gain ratio 2), not at equal clock times. lambda_max = 2 is tight: 1.95 and 1.9 DECLINE
+# (the Low and Mid covers need exactly the gain ratio).
 # Branching (B). A joint step from the nominal Low retains BOTH MidEco and MidBoost, and both
 # cover: MidEco passes only at lambda = 2, MidBoost at every grid point from 1 (the per-lambda
 # segment rows of RELCERT_DEBUG=1 for the deployed Mid).
@@ -78,7 +83,7 @@
 name = watertank
 max_depth = 8
 lambda_min = 1.0
-lambda_max = 6.0
+lambda_max = 2.0
 bound_T = 40.0
 
 [Lsys]

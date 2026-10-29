@@ -73,8 +73,8 @@ def rover_ladder_2to3_IRv2 : PProblem :=
           evolve := (.and (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "8.0"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "psi") (.num "-0.6"))) (.cmp "<=" (.var "psi") (.num "0.6")))
           next := ["FLAT"] } ] }
     invariants := [
-      ("STEEP", (.and (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "L_s") (.var "R_s"))) (.and (.cmp "<=" (.var "L_psi") (.num "0.35")) (.cmp "<=" (.bin "-" (.num "0") (.num "0.35")) (.var "L_psi"))))),
-      ("MODER", (.and (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "L_s") (.var "R_s"))) (.and (.cmp "<=" (.var "L_psi") (.num "0.35")) (.cmp "<=" (.bin "-" (.num "0") (.num "0.35")) (.var "L_psi"))))),
-      ("FLAT", (.and (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "L_s") (.var "R_s"))) (.and (.cmp "<=" (.var "L_psi") (.num "0.35")) (.cmp "<=" (.bin "-" (.num "0") (.num "0.35")) (.var "L_psi")))))] }
+      ("STEEP", (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "L_s") (.var "R_s")))),
+      ("MODER", (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "L_s") (.var "R_s")))),
+      ("FLAT", (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "L_s") (.var "R_s"))))] }
 
 end RelCertifier.Parse

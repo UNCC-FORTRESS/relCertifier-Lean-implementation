@@ -58,6 +58,6 @@ def hydro_rejection_gatecal_IRv2 : PProblem :=
           next := ["REJECT"] } ] }
     invariants := [
       ("ONGRID", (.and (.and (.and (.and (.and (.cmp "<=" (.var "L_t") (.var "R_t")) (.cmp "<=" (.var "R_t") (.var "L_t"))) (.cmp "<=" (.var "L_w") (.var "R_w"))) (.cmp "<=" (.var "R_w") (.var "L_w"))) (.cmp "<=" (.var "R_g") (.bin "+" (.var "L_g") (.num "0.027")))) (.cmp "<=" (.var "L_g") (.bin "+" (.var "R_g") (.num "0.027"))))),
-      ("REJECT", (.and (.and (.and (.and (.and (.cmp "<=" (.var "L_t") (.var "R_t")) (.cmp "<=" (.var "R_t") (.var "L_t"))) (.cmp "<=" (.var "R_w") (.bin "+" (.var "L_w") (.num "0.09")))) (.cmp "<=" (.var "L_w") (.bin "+" (.var "R_w") (.num "0.09")))) (.cmp "<=" (.var "R_g") (.bin "+" (.var "L_g") (.num "0.027")))) (.cmp "<=" (.var "L_g") (.bin "+" (.var "R_g") (.num "0.027")))))] }
+      ("REJECT", (.and (.and (.and (.and (.and (.cmp "<=" (.var "L_t") (.var "R_t")) (.cmp "<=" (.var "R_t") (.var "L_t"))) (.cmp "<=" (.var "R_w") (.bin "+" (.var "L_w") (.num "0.07")))) (.cmp "<=" (.var "L_w") (.bin "+" (.var "R_w") (.num "0.07")))) (.cmp "<=" (.var "R_g") (.bin "+" (.var "L_g") (.num "0.027")))) (.cmp "<=" (.var "L_g") (.bin "+" (.var "R_g") (.num "0.027")))))] }
 
 end RelCertifier.Parse

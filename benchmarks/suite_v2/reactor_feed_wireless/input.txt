@@ -28,15 +28,20 @@
 #   thresholds, cooling water). lambda_min = lambda_max = 1: the claim compares the two reactors at
 #   equal times, one deployed reading matched by two design readings.
 #
-# Property (every left mode): |T_L - T_R| <= 9, p_L = p_R. Requirement (two process-safety limits, each
-# 9 K from the validated envelope): the reaction mass boils at 60 degC, and the validated interlock
-# never takes the reactor above 51 degC (F4 at the warmest cooling water, 35 + 16); below 10 degC the
-# reaction stops and feed accumulates, and the validated interlock never takes the reactor below
-# 19 degC (F1 at the coldest cooling water, 15 + 4). A deployed run within 9 K of a validated run
-# therefore neither boils nor accumulates feed. Tightest 8.00 (7.99 declines) = two feed levels
-# (2 x 4 K); certified window [8.00, 10.00] (from 10.01 the admissible starts span two bands, the
-# band width is 10 K, and a three-level pairing appears; 10.01 to 11.99 DECLINE, 12.00 = three
-# levels certifies, with nothing load-bearing). Not implied by the domains (they allow 45 K).
+# Property (every left mode): |T_L - T_R| <= 8, p_L = p_R. Requirement (conformance to the
+# validated temperature profile): at every instant the deployed reactor is within the heat of two
+# feed levels (2 x 4 K = 8 K) of a validated run from the same state. Why a temperature band: the
+# reaction rate, and with it the heat release and the feed consumption the interlock was validated
+# against, roughly doubles per 10 K (the van 't Hoff rule of thumb), so a band below 10 K keeps the
+# deployed reaction within a factor 2^(8/10) = 1.74 of the validated run's at the same instant, and
+# the validated heat-removal margin and residence-time conversion carry over. The absolute limits
+# are context, not the requirement: the reaction mass boils at 60 degC and feed accumulates below
+# about 10 degC, and the deployed reactor alone already stays within them (on the coolant range its
+# interlock keeps it in [19, 51] degC). Tightest 8.00 (7.99 declines) = two feed levels, the stated
+# value (until 2026-10-29 the file stated 9 K, justified by those absolute limits); certified window
+# [8.00, 10.00] (from 10.01 the admissible starts span two bands, the band width is 10 K, and a
+# three-level pairing appears; 10.01 to 11.99 DECLINE, 12.00 = three levels certifies, with nothing
+# load-bearing). Not implied by the domains (they allow 45 K).
 #
 # Why branching (B), from the state. The design's interlock is deterministic: which level follows F2
 # depends on where its temperature goes, and that depends on the cooling water: F2 settles at p + 8,
@@ -50,7 +55,7 @@
 # p), F3 -> F1 and F4 -> F1 (they settle at least at 15 + 12 = 27 and 15 + 16 = 31 > 25: at T = 25
 # their flow is positive). The targets are live levels, not sinks: F3 reaches F4 for p > 33 and F2
 # reaches F1 for p < 17, and F4 and F1 return to F3 and F2. In a deployed F1 window the design may
-# start in F2 (within 9 K of a reading below 25) and step once; without the pruning its successors
+# start in F2 (within 8 K of a reading below 25) and step once; without the pruning its successors
 # include F4, three levels (12 K) above the deployed's F1, and the choice cannot drop F4 (no cut
 # bounds the temperature at the segment end: every level's settling point moves with p, so no guard
 # atom is kept by its flow, and above 45 only F4 is enabled). Symmetrically for F4 windows.
@@ -60,23 +65,22 @@
 # Multi-cycle matching (M): budget 2 in every left mode, one joint step.
 # How the claim depends on the cause (measured, tightest tolerance by bisection): publish period 1 min
 # (no cause): the exact claim (constant 0) CERTIFIES (one segment, nothing pruned or branched);
-# 2 min (this file): 8.00; 3 min: 12.00, above the 9 K requirement (the design may be three levels
+# 2 min (this file): 8.00; 3 min: 12.00, above the 8 K requirement (the design may be three levels
 # away). Simulated worst gap |T_L - T_R| from equal starts (p on a 0.5 K grid, T0 on a 1 K grid,
 # 180 min): 0.87 K at 2 min, 1.33 K at 3 min: the certificate is an inductive envelope over
 # unbounded segment durations, which grows with the number of design readings per deployed reading
 # as the reachable levels do. Law dependence: an arbitrary deployed level schedule (every left
-# guard the whole domain) needs 12.00 and DECLINES at 9.
+# guard the whole domain) needs 12.00 and DECLINES at 8 (and at 9).
 #
 # Not modeled, stated: an independent high-temperature feed stop (a latched protective function set
 # above the operating envelope) and the cooling-water loop's own control; within the modeled coolant
-# range the validated interlock never exceeds 51 degC, 9 K below the boiling point, which is what the
-# 9 K band transfers to the deployed reactor. The thermal constants (10 min time constant, 4 K per
+# range the validated interlock never exceeds 51 degC, 9 K below the boiling point. The thermal constants (10 min time constant, 4 K per
 # 25 % feed) and the four-level interlock are design values of this file; the 120 s publish period is
 # a WirelessHART burst-rate setting.
 # Letter windows. M: budget 2 at every publish period in (1, 2] min (one deployed reading against two
 # design readings); B: branching 2 at every left level for every coolant range that contains the
 # switch points (p_lo < 17 and p_hi > 33); P: the pruning holds for p_lo > 13 and p_hi < 37, the
-# stated [15, 35] is inside both; tolerance window [8.00, 10.00] around the stated 9.
+# stated [15, 35] is inside both; tolerance window [8.00, 10.00], the stated 8 at its lower edge.
 #
 # Template note: this is the positive-association schedule of fuelcell_chp_dos (the selected level
 # drives the selecting variable the same way, so far levels are unreachable), here with a
@@ -169,7 +173,7 @@ evolve = T >= 15.0 and T <= 60.0 and p >= 15.0 and p <= 35.0
 next = [F1, F2, F3, F4]
 
 [relational_invariant]
-F1 = T[l] <= T[r] + 9.0 and T[r] <= T[l] + 9.0 and p[l] <= p[r] and p[r] <= p[l]
-F2 = T[l] <= T[r] + 9.0 and T[r] <= T[l] + 9.0 and p[l] <= p[r] and p[r] <= p[l]
-F3 = T[l] <= T[r] + 9.0 and T[r] <= T[l] + 9.0 and p[l] <= p[r] and p[r] <= p[l]
-F4 = T[l] <= T[r] + 9.0 and T[r] <= T[l] + 9.0 and p[l] <= p[r] and p[r] <= p[l]
+F1 = T[l] <= T[r] + 8.0 and T[r] <= T[l] + 8.0 and p[l] <= p[r] and p[r] <= p[l]
+F2 = T[l] <= T[r] + 8.0 and T[r] <= T[l] + 8.0 and p[l] <= p[r] and p[r] <= p[l]
+F3 = T[l] <= T[r] + 8.0 and T[r] <= T[l] + 8.0 and p[l] <= p[r] and p[r] <= p[l]
+F4 = T[l] <= T[r] + 8.0 and T[r] <= T[l] + 8.0 and p[l] <= p[r] and p[r] <= p[l]

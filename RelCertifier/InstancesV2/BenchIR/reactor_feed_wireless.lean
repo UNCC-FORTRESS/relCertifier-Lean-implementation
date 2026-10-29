@@ -81,9 +81,9 @@ def reactor_feed_wireless_IRv2 : PProblem :=
           evolve := (.and (.and (.and (.cmp ">=" (.var "T") (.num "15.0")) (.cmp "<=" (.var "T") (.num "60.0"))) (.cmp ">=" (.var "p") (.num "15.0"))) (.cmp "<=" (.var "p") (.num "35.0")))
           next := ["F1", "F2", "F3", "F4"] } ] }
     invariants := [
-      ("F1", (.and (.and (.and (.cmp "<=" (.var "L_T") (.bin "+" (.var "R_T") (.num "9.0"))) (.cmp "<=" (.var "R_T") (.bin "+" (.var "L_T") (.num "9.0")))) (.cmp "<=" (.var "L_p") (.var "R_p"))) (.cmp "<=" (.var "R_p") (.var "L_p")))),
-      ("F2", (.and (.and (.and (.cmp "<=" (.var "L_T") (.bin "+" (.var "R_T") (.num "9.0"))) (.cmp "<=" (.var "R_T") (.bin "+" (.var "L_T") (.num "9.0")))) (.cmp "<=" (.var "L_p") (.var "R_p"))) (.cmp "<=" (.var "R_p") (.var "L_p")))),
-      ("F3", (.and (.and (.and (.cmp "<=" (.var "L_T") (.bin "+" (.var "R_T") (.num "9.0"))) (.cmp "<=" (.var "R_T") (.bin "+" (.var "L_T") (.num "9.0")))) (.cmp "<=" (.var "L_p") (.var "R_p"))) (.cmp "<=" (.var "R_p") (.var "L_p")))),
-      ("F4", (.and (.and (.and (.cmp "<=" (.var "L_T") (.bin "+" (.var "R_T") (.num "9.0"))) (.cmp "<=" (.var "R_T") (.bin "+" (.var "L_T") (.num "9.0")))) (.cmp "<=" (.var "L_p") (.var "R_p"))) (.cmp "<=" (.var "R_p") (.var "L_p"))))] }
+      ("F1", (.and (.and (.and (.cmp "<=" (.var "L_T") (.bin "+" (.var "R_T") (.num "8.0"))) (.cmp "<=" (.var "R_T") (.bin "+" (.var "L_T") (.num "8.0")))) (.cmp "<=" (.var "L_p") (.var "R_p"))) (.cmp "<=" (.var "R_p") (.var "L_p")))),
+      ("F2", (.and (.and (.and (.cmp "<=" (.var "L_T") (.bin "+" (.var "R_T") (.num "8.0"))) (.cmp "<=" (.var "R_T") (.bin "+" (.var "L_T") (.num "8.0")))) (.cmp "<=" (.var "L_p") (.var "R_p"))) (.cmp "<=" (.var "R_p") (.var "L_p")))),
+      ("F3", (.and (.and (.and (.cmp "<=" (.var "L_T") (.bin "+" (.var "R_T") (.num "8.0"))) (.cmp "<=" (.var "R_T") (.bin "+" (.var "L_T") (.num "8.0")))) (.cmp "<=" (.var "L_p") (.var "R_p"))) (.cmp "<=" (.var "R_p") (.var "L_p")))),
+      ("F4", (.and (.and (.and (.cmp "<=" (.var "L_T") (.bin "+" (.var "R_T") (.num "8.0"))) (.cmp "<=" (.var "R_T") (.bin "+" (.var "L_T") (.num "8.0")))) (.cmp "<=" (.var "L_p") (.var "R_p"))) (.cmp "<=" (.var "R_p") (.var "L_p"))))] }
 
 end RelCertifier.Parse

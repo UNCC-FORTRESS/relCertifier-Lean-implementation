@@ -15,9 +15,11 @@
 #   the wheel loop's 3 /s again and the claim is stated against the plan re-timed within the
 #   traction ratio (the batch-I6 file ran the plan at 8 /s to make the claim real-time; letters
 #   I). Round 1 (2026-10-29): the allowance is the derived ratio 2.7 (was 3), and the real-time
-#   form of this file is recorded below; this file keeps the re-timed form deliberately.
+#   form of this file is recorded below with the reason the re-timed form is the claim stated.
 #   One domain (2026-10-29): left w in [0.15, 0.8] (the controller's creep floor), right w in
-#   [0, 0.8] -> w in [0, 0.8] on both sides; rows, verdict, tight values and ablations unchanged.
+#   [0, 0.8] -> w in [0, 0.8] on both sides; then (fix round 4, 2026-10-29) w in [0.05, 0.8],
+#   the soil model's validity range (Domain, below), shared with rover_terrain_4to6; rows,
+#   verdict, tight values and ablations unchanged.
 #
 # System (SI units: m, s, m/s; g = 9.81 m/s^2): a rover climbs out of a muddy bank onto a
 # gravel track and then a paved road. The terrain is a mode, fixed by the odometer s along the
@@ -54,26 +56,27 @@
 # needs no auxiliary row: the claim is the requirement itself.
 #
 # Domain (the same in every mode, both sides): v in [0, 0.8] m/s (standstill to the drive's top
-# speed), s >= 0 (unbounded above), w in [0, 0.8] m/s (wheel surface speed from standstill to the
-# drive's top speed; the wheel does not reverse in this model), zs in [0, 0.12] (the sinkage
-# range). On the left, w' = 3 (c_T - w) points inward at 0 and at 0.8, zs' = 2 (Z_T - zs) with
-# Z_T <= 0.10, and at v = 0.8, v' <= 0 since w <= 0.8. At v = 0, v' = mu_T w - zs is negative for
-# w < zs / mu_T (at most 0.048 m/s, in MUD): a launch with the wheel nearly still reaches v = 0
-# and the run ends there. That is the physical end of the model, a stalled rover: compaction
-# resistance cannot drive it backward, it holds v at 0 until mu_T w >= zs. The claim covers the
-# stall too: v_L = 0 <= v_R, s_L stands still, and the slip w_L < zs / mu_T < sigma (simulated
-# 2026-10-29 with v held at 0 while stalled, 672 launches with v_L <= 0.02 in every zone: stalls
-# last at most 0.07 s, no row violated within the allowance). The plan's v in [0, 0.8] is forward
-# invariant; its flow keeps w, zs fixed.
+# speed), s >= 0 (unbounded above), w in [0.05, 0.8] m/s, zs in [0, 0.12] (the sinkage range).
+# The wheel floor 0.05 is the validity range of the linear soil model: its compaction resistance
+# zs is speed independent, so with the wheel nearly still (mu_T w < zs) it would push a standing
+# rover backward, which soil cannot do; the model holds where traction at standstill covers it,
+# mu_MUD w >= Z_max, w >= 0.12 / 2.5 = 0.048, rounded up to 0.05 (then v' >= 2.5 x 0.05 - 0.12 > 0
+# at v = 0 in every zone). Until 2026-10-29 the domain was w in [0, 0.8] and a launch with the wheel
+# nearly still stalled at v = 0 (the run ended there); w in [0.15, 0.8] before that was the wheel
+# controller's creep floor, a policy value. On the left, w' = 3 (c_T - w) points inward at 0.05
+# and at 0.8, zs' = 2 (Z_T - zs) with Z_T <= 0.10, at v = 0.8, v' <= 0 since w <= 0.8, and at
+# v = 0, v' > 0 (above): forward invariant. The plan's v in [0, 0.8] is forward invariant; its
+# flow keeps w, zs fixed.
 # Guards: right = the terrain zones only (every right state lies in exactly one right guard);
 # left = the zone and entry wheel speed w <= c_T. A left state with w above its zone's set
 # point is in no left guard: unreachable from a guarded entry (w' = 3 (c_T - w) keeps w <= c_T
 # inside a zone; set points increase along the route). Starts are non-vacuous in every mode
 # (e.g. MUD: s = 0, v = 0.1, w = 0.25, zs = 0.1 with any plan state v_R >= 0.1, s_R >= 0); the
-# entry guard admits every wheel speed in [0, c_T], so starts with the wheel at standstill too.
+# entry guard admits every wheel speed in [0.05, c_T], so starts with the wheel at its floor too.
 #
 # Composition: the left model is exactly the right model of rover_terrain_4to6 (u, zh pinned
-# there; checked 2026-10-27: same fields, guards and successor lists on the shared coordinates),
+# there; checked 2026-10-27, and the domain again 2026-10-29: same fields, guards, successor
+# lists and wheel range [0.05, 0.8] on the shared coordinates),
 # so the v and s rows chain by transitivity with that file's and with rover_terrain_6to12's:
 # 12-DOF <= 6-DOF <= 4-DOF (both at lambda 1, real time) <= no-slip plan (re-timed by at most 2.7).
 # A stop line the plan never passes is never passed by the 12-DOF rover: the chained position
@@ -100,9 +103,15 @@
 # lambda_max 2.7 (13/10 at the former 3). The plan at 3 /s at lambda 1 DECLINES (RELCERT_SYNC=1).
 # A real-time form of this file exists: adding the auxiliary row w[l] <= v[r] to the three modes
 # (inductive since the plan's loop is the rover's wheel loop and c_L <= c_R along the route)
-# certifies at lambda 1 with RELCERT_SYNC=1 certifying too, letters I only (measured 2026-10-29);
-# this file keeps the re-timed form deliberately, as the chain's exhibit of a stretched claim
-# against the plan. The claim is a tolerance claim (never ahead within the allowance), not an
+# certifies at lambda 1 with RELCERT_SYNC=1 certifying too, letters I only (measured 2026-10-29).
+# Why the re-timed form is the claim stated: the extra row excludes exactly the starts in which the
+# wheels turn faster than the plan's speed, and those are the starts that matter for a planner
+# re-initialized from the rover's measured ground speed (visual odometry, v_R = v_L) while the
+# wheels slip ahead of it (w_L up to v_L + sigma), e.g. at a zone entry after a slip event. From
+# such a start the rover accelerates faster than the freshly planned profile, so no real-time
+# bound holds; the re-timed bound does, and it is time-free in position (a stop line the plan
+# never passes is never passed by the rover). The real-time form covers only plans that already
+# start at or above the wheel speed. The claim is a tolerance claim (never ahead within the allowance), not an
 # exact time scaling: the covers' 67/50 and 27/10 are grid points of the range, not stated ratios.
 #
 # Verdicts (default recipe RELCERT_IMPLIED_CUT=1, measured 2026-10-29 at lambda_max 2.7):
@@ -116,8 +125,10 @@
 # branching letter); PAVED_L lambda 27/10 budget 3 (admissible starts: MUD [MUD, GRAVEL, PAVED],
 # GRAVEL [GRAVEL, PAVED], PAVED [PAVED]: the plan may be a zone ahead); checked cuts load-bearing
 # (the contraction cut w <= c_T, the zone floor s >= s_T); nothing pruned; no right-only segment.
-# The right model is the batch-I5 plan at 3 /s (unchanged; its Assumption 1 proof is the one of
-# that batch, WellFormed/RoverTerrain2to4.lean). Letters: S M I.
+# The right model is the batch-I5 plan at 3 /s (its flows unchanged; its Assumption 1 proof is the
+# one of that batch, WellFormed/RoverTerrain2to4.lean, with the wheel range of 2026-10-29).
+# Letters: S M I. Fix round 4 (2026-10-29): the domain's wheel floor 0 -> 0.05 re-measured: the
+# same verdicts in every switch above, sigma 0.21 (0.20 declines), lambda_max 2.64 (2.63 declines).
 
 [problem]
 name = rover_terrain_2to4
@@ -133,19 +144,19 @@ epsilon = 1.0
 [Lsys.mode.MUD]
 ode = v' = 2.5*(w - v) - 0.4*v - zs; s' = v; w' = 3*(0.25 - w); zs' = 2*(0.1 - zs);
 guard = s >= 0.0 and s < 5.0 and w <= 0.25
-evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.0 and w <= 0.8 and zs >= 0.0 and zs <= 0.12
+evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.05 and w <= 0.8 and zs >= 0.0 and zs <= 0.12
 next = [GRAVEL, MUD]
 
 [Lsys.mode.GRAVEL]
 ode = v' = 4.0*(w - v) - 0.15*v - zs; s' = v; w' = 3*(0.45 - w); zs' = 2*(0.03 - zs);
 guard = s >= 5.0 and s < 12.0 and w <= 0.45
-evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.0 and w <= 0.8 and zs >= 0.0 and zs <= 0.12
+evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.05 and w <= 0.8 and zs >= 0.0 and zs <= 0.12
 next = [PAVED, GRAVEL]
 
 [Lsys.mode.PAVED]
 ode = v' = 8.0*(w - v) - 0.05*v - zs; s' = v; w' = 3*(0.7 - w); zs' = 2*(0.0 - zs);
 guard = s >= 12.0 and w <= 0.7
-evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.0 and w <= 0.8 and zs >= 0.0 and zs <= 0.12
+evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.05 and w <= 0.8 and zs >= 0.0 and zs <= 0.12
 next = [PAVED]
 
 [Rsys]
@@ -155,19 +166,19 @@ epsilon = 1.0
 [Rsys.mode.MUD]
 ode = v' = 3*(0.25 - v); s' = v; w' = 0; zs' = 0;
 guard = s >= 0.0 and s < 5.0
-evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.0 and w <= 0.8 and zs >= 0.0 and zs <= 0.12
+evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.05 and w <= 0.8 and zs >= 0.0 and zs <= 0.12
 next = [GRAVEL, MUD]
 
 [Rsys.mode.GRAVEL]
 ode = v' = 3*(0.45 - v); s' = v; w' = 0; zs' = 0;
 guard = s >= 5.0 and s < 12.0
-evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.0 and w <= 0.8 and zs >= 0.0 and zs <= 0.12
+evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.05 and w <= 0.8 and zs >= 0.0 and zs <= 0.12
 next = [PAVED, GRAVEL]
 
 [Rsys.mode.PAVED]
 ode = v' = 3*(0.7 - v); s' = v; w' = 0; zs' = 0;
 guard = s >= 12.0
-evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.0 and w <= 0.8 and zs >= 0.0 and zs <= 0.12
+evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.05 and w <= 0.8 and zs >= 0.0 and zs <= 0.12
 next = [PAVED]
 
 [relational_invariant]

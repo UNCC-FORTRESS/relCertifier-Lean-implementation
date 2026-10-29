@@ -29,7 +29,7 @@
 #   plasma concentration falls to exp(-0.29 x 11.1) = 4 % of its steady state (the clinically known
 #   hypotension hazard of a syringe change).
 # Left (deployed relay): the same pump, syringes, drug and laws, with one change in the relay
-#   logic: at 5 mL left in syringe 1 (v1 >= 45, 100 min before the switchover) it pre-arms channel
+#   logic: at 5 mL left in syringe 1 (v1 >= 45, 90 min before the switchover) it pre-arms channel
 #   2: PREARM (syringe 1 still delivering, channel 2's driver taking up slack, b' = 0.09; guard
 #   45 <= v1 < 49.5, b < 1, v2 = 0), READY (driver at contact and held, b' = 0; guard 45 <= v1 <
 #   49.5, b >= 1, v2 = 0), then RUN2 at the switchover; if the pre-arm has not finished at the

@@ -12,9 +12,8 @@ namespace RelCertifier
 
 /-- `platoon_latency` (emitted, suite_v2, widened cut channel on). -/
 def platoon_latency_coverV2 : CoverEmitE :=
-  ⟨"platoon_latency", [("CACC", "AEB")], [
-    ⟨"CACC_UP", (1 : ℚ) / 1, 1, [⟨"CACC", true, false, false⟩, ⟨"AEB", false, false, false⟩], ["CACC"], [⟨"CACC", [6, 7, 10, 11, 0, 1, 2, 3, 4, 5, 9, 8], [8, 9, 10, 11], [8, 9, 10, 11], 1, 1⟩, ⟨"AEB", [6, 7, 10, 11, 0, 2, 4, 9, 8], [2, 3, 6, 7, 8, 9, 10, 11], [2, 3, 6, 7, 8, 9, 10, 11], 1, 1⟩]⟩,
-    ⟨"CACC_DN", (1 : ℚ) / 1, 1, [⟨"CACC", true, false, false⟩, ⟨"AEB", false, false, false⟩], ["CACC"], [⟨"CACC", [6, 7, 10, 11, 0, 1, 2, 3, 4, 5, 9, 8], [8, 9, 10, 11], [8, 9, 10, 11], 1, 1⟩, ⟨"AEB", [6, 7, 10, 11, 0, 2, 4, 9, 8], [2, 3, 6, 7, 8, 9, 10, 11], [2, 3, 6, 7, 8, 9, 10, 11], 1, 1⟩]⟩,
-    ⟨"AEB", (1 : ℚ) / 1, 1, [⟨"CACC", false, false, false⟩, ⟨"AEB", true, false, false⟩], ["AEB"], [⟨"CACC", [3], [], [], 1, 1⟩, ⟨"AEB", [0, 1, 2, 3], [2, 3], [2, 3], 1, 1⟩]⟩]⟩
+  ⟨"platoon_latency", [], [
+    ⟨"CACC_UP", (1 : ℚ) / 1, 1, [⟨"CACC", true, false, false⟩], ["CACC"], [⟨"CACC", [8, 9, 0, 1, 2, 3, 4, 5, 7, 6], [6, 7, 8, 9], [6, 7, 8, 9], 1, 1⟩]⟩,
+    ⟨"CACC_DN", (1 : ℚ) / 1, 1, [⟨"CACC", true, false, false⟩], ["CACC"], [⟨"CACC", [8, 9, 0, 1, 2, 3, 4, 5, 7, 6], [6, 7, 8, 9], [6, 7, 8, 9], 1, 1⟩]⟩]⟩
 
 end RelCertifier

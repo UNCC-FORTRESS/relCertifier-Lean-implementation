@@ -4,7 +4,7 @@ Released under Apache 2.0 license.
 
 # `quad_light_lag_m021`: a mutant of `quad_light_lag` and its refutation witness (GENERATED — `scripts/gen_refute.py`)
 
-Mutant ORO `(<= (* (- 6.13125) 0.16) (- (+ (* 6.13125 (- L_h R_h)) L_w (* 0.1 L_a)) (+ (* 1.25 R_w) (* 0.125 R_a) 0.14525))) [R_a->L_a]` of `benchmarks/suite_v2/quad_light_lag`; file `benchmarks/refute_mutants/quad_light_lag_m021/input.txt`.
+Mutant ORO `(<= (* (- 6.13125) 0.45) (- (+ (* 6.13125 (- L_h R_h)) L_w (* 0.1 L_a)) (+ (* 1.25 R_w) (* 0.125 R_a) 0.14525))) [R_a->L_a]` of `benchmarks/suite_v2/quad_light_lag`; file `benchmarks/refute_mutants/quad_light_lag_m021/input.txt`.
 -/
 import RelCertifier.Trusted.Parse
 import RelCertifier.Trusted.RefuteQueries
@@ -44,12 +44,12 @@ def quad_light_lag_m021_IRm : PProblem :=
           evolve := (.and (.and (.and (.and (.cmp ">=" (.var "h") (.num "0.0")) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "3.0"))) (.cmp ">=" (.var "a") (.num "0.0"))) (.cmp "<=" (.var "a") (.num "14.715")))
           next := ["CLIMB"] } ] }
     invariants := [
-      ("CLIMB", (.and (.and (.and (.cmp "<=" (.bin "-" (.var "R_h") (.var "L_h")) (.num "0.8")) (.cmp "<=" (.bin "-" (.var "L_h") (.var "R_h")) (.num "0.8"))) (.cmp "<=" (.bin "-" (.bin "+" (.bin "+" (.bin "*" (.num "6.13125") (.bin "-" (.var "L_h") (.var "R_h"))) (.var "L_w")) (.bin "*" (.num "0.1") (.var "L_a"))) (.bin "+" (.bin "+" (.bin "*" (.num "1.25") (.var "R_w")) (.bin "*" (.num "0.125") (.var "R_a"))) (.num "0.14525"))) (.bin "*" (.num "6.13125") (.num "0.16")))) (.cmp "<=" (.bin "*" (.neg (.num "6.13125")) (.num "0.16")) (.bin "-" (.bin "+" (.bin "+" (.bin "*" (.num "6.13125") (.bin "-" (.var "L_h") (.var "R_h"))) (.var "L_w")) (.bin "*" (.num "0.1") (.var "L_a"))) (.bin "+" (.bin "+" (.bin "*" (.num "1.25") (.var "R_w")) (.bin "*" (.num "0.125") (.var "L_a"))) (.num "0.14525"))))))] }
+      ("CLIMB", (.and (.and (.and (.cmp "<=" (.bin "-" (.var "R_h") (.var "L_h")) (.num "0.8")) (.cmp "<=" (.bin "-" (.var "L_h") (.var "R_h")) (.num "0.8"))) (.cmp "<=" (.bin "-" (.bin "+" (.bin "+" (.bin "*" (.num "6.13125") (.bin "-" (.var "L_h") (.var "R_h"))) (.var "L_w")) (.bin "*" (.num "0.1") (.var "L_a"))) (.bin "+" (.bin "+" (.bin "*" (.num "1.25") (.var "R_w")) (.bin "*" (.num "0.125") (.var "R_a"))) (.num "0.14525"))) (.bin "*" (.num "6.13125") (.num "0.45")))) (.cmp "<=" (.bin "*" (.neg (.num "6.13125")) (.num "0.45")) (.bin "-" (.bin "+" (.bin "+" (.bin "*" (.num "6.13125") (.bin "-" (.var "L_h") (.var "R_h"))) (.var "L_w")) (.bin "*" (.num "0.1") (.var "L_a"))) (.bin "+" (.bin "+" (.bin "*" (.num "1.25") (.var "R_w")) (.bin "*" (.num "0.125") (.var "L_a"))) (.num "0.14525"))))))] }
 
 /-- The finder's witness (kind B). -/
 def quad_light_lag_m021_wit : RefWitE :=
   { kind := "B", u := 0, m := 0, q0 := 0, k := 3,
-    wL := [(11657/28425 : ℚ), (11657/28425 : ℚ), (11657/28425 : ℚ)],
+    wL := [(18179/113700 : ℚ), (18179/113700 : ℚ), (18179/113700 : ℚ)],
     wR := [(0 : ℚ), (3 : ℚ), (0 : ℚ)] }
 
 end RelCertifier.Refute

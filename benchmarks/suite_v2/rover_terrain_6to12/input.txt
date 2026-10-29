@@ -42,28 +42,33 @@
 # Property (the same rows in every left mode):
 #   requirements: v_L <= v_R and s_L <= s_R (the sloped, compliant rover never faster than,
 #     never ahead of, the flat-ground model; offset 0, structural); slip window v_L <= w_L <=
-#     v_L + sigma, sigma = 0.25 m/s; heave zh_L <= H, H = 0.15 wheel radii (bump stop);
-#     body pitch theta_p_L + phs_L <= Theta, Theta = 0.15 rad (nose-up limit of the navigation
-#     camera's pitch stabilization: chassis slope plus squat).
+#     v_L + sigma, sigma = 0.25 m/s; heave zh_L <= H, H = 0.15 wheel radii (bump stop).
 #   auxiliary rows (each needed; constants derived, not tuned): u_L <= u_R, w_L <= w_R,
 #     zs_R <= zs_L, w_L <= u_L (orderings, as in rover_terrain_4to6); vz_L <= H (heave's
-#     cascade coordinate, which bounds zh); ax_L <= 2.0 = mu_PAVED * sigma (the largest
-#     tractive acceleration the slip limit allows); omega_phs_L <= 0.1 = 0.05 * 2.0 (the squat
-#     the acceleration bound allows).
+#     cascade coordinate, which bounds zh).
 #   Not implied by the domains.
-# Tightest (bisection 0.01): sigma 0.24 (declines at 0.23; the slope load needs more slip on
-#   the ramp than flat ground, 0.21); H 0.13 (declines at 0.12; analytic 0.125); Theta 0.13
-#   (declines at 0.12; the analytic bound, ramp grade 0.02 + squat bound 0.1, is 0.12); aux ax
-#   2.00 (declines at 1.99: it is exactly mu_PAVED * sigma); aux omega_phs 0.10 (declines at
-#   0.09).
+#   Removed 2026-10-29: the body-pitch row theta_p_L + phs_L <= 0.15 and its auxiliary rows
+#     ax_L <= 2.0 and omega_phs_L <= 0.1. They were unary bounds on the squat-pitch chain
+#     (ax, phs, omega_phs), which is output-only in this model (it does not feed back into v, s,
+#     w, zs, u or zh), so they added no relational content; with them deleted the remaining rows
+#     certify unchanged. The chain stays in the 12-DOF model as the refinement's body-attitude
+#     output; it carries no requirement here.
+# Tightest (bisection 0.01, re-measured 2026-10-29 on the domain below): sigma 0.24 (declines at
+#   0.23; the slope load needs more slip on the ramp than flat ground, 0.21); H 0.13 with the
+#   cascade row at the same value (declines at 0.12; analytic 0.125).
 #
-# Domains (left; all forward invariant): v in [0, 0.8] (at v = 0, v' >= 2.5 * 0.15 - 0.12
-# - 9.81 * 0.02 > 0, so the creep floor keeps the rover climbing the ramp; a domain remark: the
-# certificate does not use it, a 0.028 ramp certifies with v'(0) < 0 there), w, u in
-# [0.15, 0.8], zs in [0, 0.12], zh, vz in [0, 0.5], gamma, theta_p in [0, 0.02] (the grade
-# never exceeds the ramp's and never goes negative on this route), ax in [-6.5, 6.5] (contains
-# the range of the v' field on the boxes, |v'| <= 5.6), phs, omega_phs in [-0.65, 0.65]
-# (|0.05 ax| <= 0.33), s >= 0. Right pinned coordinates keep the same boxes.
+# Domains (one domain, both sides, every mode; all forward invariant on the left): v in [0, 0.8];
+# w, u in [0.13, 0.8]: the validity range of the linear soil model on this ramp. Its compaction and
+# slope terms are speed independent, so with the wheel nearly still they would push a standing
+# rover backward down the ramp, which the soil cannot do; the model is valid where traction at
+# standstill covers them, mu_MUD w >= Z_max + 9.81 gamma, i.e. w >= (0.12 + 0.196) / 2.5 = 0.127,
+# rounded up to 0.13 (then v' >= 2.5 x 0.13 - 0.12 - 9.81 x 0.02 > 0 at v = 0, and u' = 4 (c_T - u),
+# w' = 3 (u - w) point inward at 0.13). (Until 2026-10-29 the floor was 0.15, the wheel controller's
+# creep floor, a policy value.) zs in [0, 0.12], zh, vz in [0, 0.5], gamma, theta_p in [0, 0.02]
+# (the grade never exceeds the ramp's and never goes negative on this route), ax in [-6.5, 6.5]
+# (contains the range of the v' field on the boxes, |v'| <= 8 x 0.8 = 6.4 on PAVED), phs,
+# omega_phs in [-0.65, 0.65] (|0.05 ax| <= 0.33), s >= 0. Right pinned coordinates keep the same
+# boxes.
 # Guards: zone and entry u <= c_T on both sides (as rover_terrain_4to6's left); left MUD also
 # requires gamma >= 0.02 and theta_p >= 0.02 (the rover starts on the ramp; the MUD guard
 # gamma >= 0.02 with the domain gamma <= 0.02 pins the grade on the ramp, and the frozen cut is
@@ -72,8 +77,11 @@
 # non-vacuous in every mode (e.g. MUD: v = 0.1, w = u = 0.25, zs = 0.1, gamma = theta_p = 0.02,
 # the rest 0).
 #
-# Composition: the right model is rover_terrain_4to6's left (six coordinates pinned), so the v
-# and s rows chain by transitivity: 12-DOF <= 6-DOF <= 4-DOF <= no-slip plan.
+# Composition: the right model is rover_terrain_4to6's left (six coordinates pinned; the same
+# fields, guards and successors), on this file's domain, which is contained in rover_terrain_4to6's
+# (wheel floor 0.13 against the flat-route validity floor 0.05 there: the ramp's slope load needs
+# the higher one). A 6-DOF run in this domain is a run of rover_terrain_4to6's left, so the v and
+# s rows chain by transitivity: 12-DOF <= 6-DOF <= 4-DOF <= no-slip plan.
 #
 # Stretch pinned (2026-10-27, final audit): lambda_max 6 -> 1. Every cover was already at lambda 1
 # and the requirement is a real-time one, so the unused range [1, 6] is gone; verdicts and letters
@@ -101,19 +109,19 @@ epsilon = 1.0
 [Lsys.mode.MUD]
 ode = v' = 2.5*(w - v) - 0.4*v - zs - 9.81*theta_p; s' = v; w' = 3*(u - w); zs' = 2*(0.1 - zs); u' = 4*(0.25 - u); zh' = vz - zh; vz' = 0.5*v - vz; gamma' = 0; theta_p' = 2*v*(gamma - theta_p); ax' = 5*((2.5*(w - v) - 0.4*v - zs - 9.81*theta_p) - ax); phs' = omega_phs - phs; omega_phs' = 0.05*ax - omega_phs;
 guard = s >= 0.0 and s < 5.0 and u <= 0.25 and gamma >= 0.02 and theta_p >= 0.02
-evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.15 and w <= 0.8 and zs >= 0.0 and zs <= 0.12 and u >= 0.15 and u <= 0.8 and zh >= 0.0 and zh <= 0.5 and vz >= 0.0 and vz <= 0.5 and gamma >= 0.0 and gamma <= 0.02 and theta_p >= 0.0 and theta_p <= 0.02 and ax >= -6.5 and ax <= 6.5 and phs >= -0.65 and phs <= 0.65 and omega_phs >= -0.65 and omega_phs <= 0.65
+evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.13 and w <= 0.8 and zs >= 0.0 and zs <= 0.12 and u >= 0.13 and u <= 0.8 and zh >= 0.0 and zh <= 0.5 and vz >= 0.0 and vz <= 0.5 and gamma >= 0.0 and gamma <= 0.02 and theta_p >= 0.0 and theta_p <= 0.02 and ax >= -6.5 and ax <= 6.5 and phs >= -0.65 and phs <= 0.65 and omega_phs >= -0.65 and omega_phs <= 0.65
 next = [GRAVEL, MUD]
 
 [Lsys.mode.GRAVEL]
 ode = v' = 4.0*(w - v) - 0.15*v - zs - 9.81*theta_p; s' = v; w' = 3*(u - w); zs' = 2*(0.03 - zs); u' = 4*(0.45 - u); zh' = vz - zh; vz' = 0.2*v - vz; gamma' = -0.5*v*gamma; theta_p' = 2*v*(gamma - theta_p); ax' = 5*((4.0*(w - v) - 0.15*v - zs - 9.81*theta_p) - ax); phs' = omega_phs - phs; omega_phs' = 0.05*ax - omega_phs;
 guard = s >= 5.0 and s < 12.0 and u <= 0.45
-evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.15 and w <= 0.8 and zs >= 0.0 and zs <= 0.12 and u >= 0.15 and u <= 0.8 and zh >= 0.0 and zh <= 0.5 and vz >= 0.0 and vz <= 0.5 and gamma >= 0.0 and gamma <= 0.02 and theta_p >= 0.0 and theta_p <= 0.02 and ax >= -6.5 and ax <= 6.5 and phs >= -0.65 and phs <= 0.65 and omega_phs >= -0.65 and omega_phs <= 0.65
+evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.13 and w <= 0.8 and zs >= 0.0 and zs <= 0.12 and u >= 0.13 and u <= 0.8 and zh >= 0.0 and zh <= 0.5 and vz >= 0.0 and vz <= 0.5 and gamma >= 0.0 and gamma <= 0.02 and theta_p >= 0.0 and theta_p <= 0.02 and ax >= -6.5 and ax <= 6.5 and phs >= -0.65 and phs <= 0.65 and omega_phs >= -0.65 and omega_phs <= 0.65
 next = [PAVED, GRAVEL]
 
 [Lsys.mode.PAVED]
 ode = v' = 8.0*(w - v) - 0.05*v - zs - 9.81*theta_p; s' = v; w' = 3*(u - w); zs' = 2*(0.0 - zs); u' = 4*(0.7 - u); zh' = vz - zh; vz' = 0.05*v - vz; gamma' = -0.5*v*gamma; theta_p' = 2*v*(gamma - theta_p); ax' = 5*((8.0*(w - v) - 0.05*v - zs - 9.81*theta_p) - ax); phs' = omega_phs - phs; omega_phs' = 0.05*ax - omega_phs;
 guard = s >= 12.0 and u <= 0.7
-evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.15 and w <= 0.8 and zs >= 0.0 and zs <= 0.12 and u >= 0.15 and u <= 0.8 and zh >= 0.0 and zh <= 0.5 and vz >= 0.0 and vz <= 0.5 and gamma >= 0.0 and gamma <= 0.02 and theta_p >= 0.0 and theta_p <= 0.02 and ax >= -6.5 and ax <= 6.5 and phs >= -0.65 and phs <= 0.65 and omega_phs >= -0.65 and omega_phs <= 0.65
+evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.13 and w <= 0.8 and zs >= 0.0 and zs <= 0.12 and u >= 0.13 and u <= 0.8 and zh >= 0.0 and zh <= 0.5 and vz >= 0.0 and vz <= 0.5 and gamma >= 0.0 and gamma <= 0.02 and theta_p >= 0.0 and theta_p <= 0.02 and ax >= -6.5 and ax <= 6.5 and phs >= -0.65 and phs <= 0.65 and omega_phs >= -0.65 and omega_phs <= 0.65
 next = [PAVED]
 
 [Rsys]
@@ -123,22 +131,22 @@ epsilon = 1.0
 [Rsys.mode.MUD]
 ode = v' = 2.5*(w - v) - 0.4*v - zs; s' = v; w' = 3*(u - w); zs' = 2*(0.1 - zs); u' = 4*(0.25 - u); zh' = 0.5*v - zh; vz' = 0; gamma' = 0; theta_p' = 0; ax' = 0; phs' = 0; omega_phs' = 0;
 guard = s >= 0.0 and s < 5.0 and u <= 0.25
-evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.15 and w <= 0.8 and zs >= 0.0 and zs <= 0.12 and u >= 0.15 and u <= 0.8 and zh >= 0.0 and zh <= 0.5 and vz >= 0.0 and vz <= 0.5 and gamma >= 0.0 and gamma <= 0.02 and theta_p >= 0.0 and theta_p <= 0.02 and ax >= -6.5 and ax <= 6.5 and phs >= -0.65 and phs <= 0.65 and omega_phs >= -0.65 and omega_phs <= 0.65
+evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.13 and w <= 0.8 and zs >= 0.0 and zs <= 0.12 and u >= 0.13 and u <= 0.8 and zh >= 0.0 and zh <= 0.5 and vz >= 0.0 and vz <= 0.5 and gamma >= 0.0 and gamma <= 0.02 and theta_p >= 0.0 and theta_p <= 0.02 and ax >= -6.5 and ax <= 6.5 and phs >= -0.65 and phs <= 0.65 and omega_phs >= -0.65 and omega_phs <= 0.65
 next = [GRAVEL, MUD]
 
 [Rsys.mode.GRAVEL]
 ode = v' = 4.0*(w - v) - 0.15*v - zs; s' = v; w' = 3*(u - w); zs' = 2*(0.03 - zs); u' = 4*(0.45 - u); zh' = 0.2*v - zh; vz' = 0; gamma' = 0; theta_p' = 0; ax' = 0; phs' = 0; omega_phs' = 0;
 guard = s >= 5.0 and s < 12.0 and u <= 0.45
-evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.15 and w <= 0.8 and zs >= 0.0 and zs <= 0.12 and u >= 0.15 and u <= 0.8 and zh >= 0.0 and zh <= 0.5 and vz >= 0.0 and vz <= 0.5 and gamma >= 0.0 and gamma <= 0.02 and theta_p >= 0.0 and theta_p <= 0.02 and ax >= -6.5 and ax <= 6.5 and phs >= -0.65 and phs <= 0.65 and omega_phs >= -0.65 and omega_phs <= 0.65
+evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.13 and w <= 0.8 and zs >= 0.0 and zs <= 0.12 and u >= 0.13 and u <= 0.8 and zh >= 0.0 and zh <= 0.5 and vz >= 0.0 and vz <= 0.5 and gamma >= 0.0 and gamma <= 0.02 and theta_p >= 0.0 and theta_p <= 0.02 and ax >= -6.5 and ax <= 6.5 and phs >= -0.65 and phs <= 0.65 and omega_phs >= -0.65 and omega_phs <= 0.65
 next = [PAVED, GRAVEL]
 
 [Rsys.mode.PAVED]
 ode = v' = 8.0*(w - v) - 0.05*v - zs; s' = v; w' = 3*(u - w); zs' = 2*(0.0 - zs); u' = 4*(0.7 - u); zh' = 0.05*v - zh; vz' = 0; gamma' = 0; theta_p' = 0; ax' = 0; phs' = 0; omega_phs' = 0;
 guard = s >= 12.0 and u <= 0.7
-evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.15 and w <= 0.8 and zs >= 0.0 and zs <= 0.12 and u >= 0.15 and u <= 0.8 and zh >= 0.0 and zh <= 0.5 and vz >= 0.0 and vz <= 0.5 and gamma >= 0.0 and gamma <= 0.02 and theta_p >= 0.0 and theta_p <= 0.02 and ax >= -6.5 and ax <= 6.5 and phs >= -0.65 and phs <= 0.65 and omega_phs >= -0.65 and omega_phs <= 0.65
+evolve = v >= 0.0 and v <= 0.8 and s >= 0.0 and w >= 0.13 and w <= 0.8 and zs >= 0.0 and zs <= 0.12 and u >= 0.13 and u <= 0.8 and zh >= 0.0 and zh <= 0.5 and vz >= 0.0 and vz <= 0.5 and gamma >= 0.0 and gamma <= 0.02 and theta_p >= 0.0 and theta_p <= 0.02 and ax >= -6.5 and ax <= 6.5 and phs >= -0.65 and phs <= 0.65 and omega_phs >= -0.65 and omega_phs <= 0.65
 next = [PAVED]
 
 [relational_invariant]
-MUD = v[l] <= v[r] and s[l] <= s[r] and u[l] <= u[r] and w[l] <= w[r] and zs[r] <= zs[l] and v[l] <= w[l] and w[l] <= u[l] and w[l] <= v[l] + 0.25 and zh[l] <= 0.15 and theta_p[l] + phs[l] <= 0.15 and vz[l] <= 0.15 and ax[l] <= 2.0 and omega_phs[l] <= 0.1
-GRAVEL = v[l] <= v[r] and s[l] <= s[r] and u[l] <= u[r] and w[l] <= w[r] and zs[r] <= zs[l] and v[l] <= w[l] and w[l] <= u[l] and w[l] <= v[l] + 0.25 and zh[l] <= 0.15 and theta_p[l] + phs[l] <= 0.15 and vz[l] <= 0.15 and ax[l] <= 2.0 and omega_phs[l] <= 0.1
-PAVED = v[l] <= v[r] and s[l] <= s[r] and u[l] <= u[r] and w[l] <= w[r] and zs[r] <= zs[l] and v[l] <= w[l] and w[l] <= u[l] and w[l] <= v[l] + 0.25 and zh[l] <= 0.15 and theta_p[l] + phs[l] <= 0.15 and vz[l] <= 0.15 and ax[l] <= 2.0 and omega_phs[l] <= 0.1
+MUD = v[l] <= v[r] and s[l] <= s[r] and u[l] <= u[r] and w[l] <= w[r] and zs[r] <= zs[l] and v[l] <= w[l] and w[l] <= u[l] and w[l] <= v[l] + 0.25 and zh[l] <= 0.15 and vz[l] <= 0.15
+GRAVEL = v[l] <= v[r] and s[l] <= s[r] and u[l] <= u[r] and w[l] <= w[r] and zs[r] <= zs[l] and v[l] <= w[l] and w[l] <= u[l] and w[l] <= v[l] + 0.25 and zh[l] <= 0.15 and vz[l] <= 0.15
+PAVED = v[l] <= v[r] and s[l] <= s[r] and u[l] <= u[r] and w[l] <= w[r] and zs[r] <= zs[l] and v[l] <= w[l] and w[l] <= u[l] and w[l] <= v[l] + 0.25 and zh[l] <= 0.15 and vz[l] <= 0.15

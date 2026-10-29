@@ -7,6 +7,7 @@ import RelCertifier.InstancesV2.BenchChoice.acc_tune_lag
 import RelCertifier.InstancesV2.BenchChoice.acc_tune_limp
 import RelCertifier.InstancesV2.BenchChoice.antenna_track_kvretune
 import RelCertifier.InstancesV2.BenchChoice.bottling_fill_strainer
+import RelCertifier.InstancesV2.BenchChoice.canal_gate_notches
 import RelCertifier.InstancesV2.BenchChoice.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchChoice.elevator_start_discbrake
 import RelCertifier.InstancesV2.BenchChoice.engine_start_highidle
@@ -14,7 +15,6 @@ import RelCertifier.InstancesV2.BenchChoice.flaps_slow_approach
 import RelCertifier.InstancesV2.BenchChoice.fuelcell_chp_dos
 import RelCertifier.InstancesV2.BenchChoice.furnace_program_timebase
 import RelCertifier.InstancesV2.BenchChoice.gantry_speed_zones
-import RelCertifier.InstancesV2.BenchChoice.grid_ffr_dos
 import RelCertifier.InstancesV2.BenchChoice.h2_refuel_ambientbias
 import RelCertifier.InstancesV2.BenchChoice.hydro_rejection_gatecal
 import RelCertifier.InstancesV2.BenchChoice.insulin_basal_cgmloss
@@ -61,6 +61,7 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("acc_tune_limp", acc_tune_limp_coverV2_choice),
   ("antenna_track_kvretune", antenna_track_kvretune_coverV2_choice),
   ("bottling_fill_strainer", bottling_fill_strainer_coverV2_choice),
+  ("canal_gate_notches", canal_gate_notches_coverV2_choice),
   ("charger_fast_tapers", charger_fast_tapers_coverV2_choice),
   ("elevator_start_discbrake", elevator_start_discbrake_coverV2_choice),
   ("engine_start_highidle", engine_start_highidle_coverV2_choice),
@@ -68,7 +69,6 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("fuelcell_chp_dos", fuelcell_chp_dos_coverV2_choice),
   ("furnace_program_timebase", furnace_program_timebase_coverV2_choice),
   ("gantry_speed_zones", gantry_speed_zones_coverV2_choice),
-  ("grid_ffr_dos", grid_ffr_dos_coverV2_choice),
   ("h2_refuel_ambientbias", h2_refuel_ambientbias_coverV2_choice),
   ("hydro_rejection_gatecal", hydro_rejection_gatecal_coverV2_choice),
   ("insulin_basal_cgmloss", insulin_basal_cgmloss_coverV2_choice),

@@ -79,8 +79,8 @@ def watertank_twospeed_IRv2 : PProblem :=
           evolve := (.and (.cmp ">=" (.var "x") (.num "0.0")) (.cmp "<=" (.var "x") (.num "25.0")))
           next := ["PumpOff"] } ] }
     invariants := [
-      ("Low", (.and (.cmp "<=" (.var "L_x") (.bin "+" (.var "R_x") (.num "3"))) (.cmp "<=" (.var "R_x") (.bin "+" (.var "L_x") (.num "2"))))),
-      ("Mid", (.and (.cmp "<=" (.var "L_x") (.bin "+" (.var "R_x") (.num "3"))) (.cmp "<=" (.var "R_x") (.bin "+" (.var "L_x") (.num "2"))))),
-      ("High", (.and (.cmp "<=" (.var "L_x") (.bin "+" (.var "R_x") (.num "3"))) (.cmp "<=" (.var "R_x") (.bin "+" (.var "L_x") (.num "2")))))] }
+      ("Low", (.and (.cmp "<=" (.var "L_x") (.bin "+" (.var "R_x") (.num "3"))) (.cmp "<=" (.var "R_x") (.bin "+" (.var "L_x") (.num "1.5"))))),
+      ("Mid", (.and (.cmp "<=" (.var "L_x") (.bin "+" (.var "R_x") (.num "3"))) (.cmp "<=" (.var "R_x") (.bin "+" (.var "L_x") (.num "1.5"))))),
+      ("High", (.and (.cmp "<=" (.var "L_x") (.bin "+" (.var "R_x") (.num "3"))) (.cmp "<=" (.var "R_x") (.bin "+" (.var "L_x") (.num "1.5")))))] }
 
 end RelCertifier.Parse

@@ -16,23 +16,19 @@ open RelCertifier.Parse
 def platoon_latency_cutsV2 : EvolStrengthening :=
   { L := [
       ("CACC_UP", []),
-      ("CACC_DN", []),
-      ("AEB", [((.cmp ">=" (.bin "+" (.var "g") (.bin "*" (.num "2.0") (.var "r"))) (.num "0.0")), CutRoute.diNonstrict)])
+      ("CACC_DN", [])
     ]
     R := [
-      ("CACC", [((.cmp ">=" (.var "r") (.num "-10.0")), CutRoute.diStrict), ((.cmp "<=" (.var "r") (.num "10.0")), CutRoute.diStrict), ((.cmp ">=" (.bin "+" (.var "g") (.bin "*" (.num "2.0") (.var "r"))) (.num "5.0")), CutRoute.diStrict), ((.cmp "<=" (.bin "+" (.var "g") (.bin "*" (.num "2.0") (.var "r"))) (.num "60.0")), CutRoute.diStrict)]),
-      ("AEB", [((.cmp ">=" (.bin "+" (.var "g") (.bin "*" (.num "2.0") (.var "r"))) (.num "0.0")), CutRoute.diNonstrict)])
+      ("CACC", [((.cmp ">=" (.var "r") (.num "-10.0")), CutRoute.diStrict), ((.cmp "<=" (.var "r") (.num "10.0")), CutRoute.diStrict), ((.cmp ">=" (.bin "+" (.var "g") (.bin "*" (.num "2.0") (.var "r"))) (.num "5.0")), CutRoute.diStrict), ((.cmp "<=" (.bin "+" (.var "g") (.bin "*" (.num "2.0") (.var "r"))) (.num "60.0")), CutRoute.diStrict)])
     ] }
 
 def platoon_latency_cutsV2X : EvolStrengtheningX :=
   { L := [
       ("CACC_UP", []),
-      ("CACC_DN", []),
-      ("AEB", [⟨(.cmp ">=" (.bin "+" (.var "g") (.bin "*" (.num "2.0") (.var "r"))) (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diNonstrict, []⟩, ⟨(.cmp "<=" (.bin "+" (.var "g") (.bin "*" (.num "2.0") (.var "r"))) (.num "5.0")), CutKind.closure, CutEntry.weakening, CutRouteX.diNonstrict, []⟩])
+      ("CACC_DN", [])
     ]
     R := [
-      ("CACC", [⟨(.cmp ">=" (.var "r") (.num "-10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "r") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp ">=" (.bin "+" (.var "g") (.bin "*" (.num "2.0") (.var "r"))) (.num "5.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.bin "+" (.var "g") (.bin "*" (.num "2.0") (.var "r"))) (.num "60.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
-      ("AEB", [⟨(.cmp ">=" (.bin "+" (.var "g") (.bin "*" (.num "2.0") (.var "r"))) (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diNonstrict, []⟩, ⟨(.cmp "<=" (.bin "+" (.var "g") (.bin "*" (.num "2.0") (.var "r"))) (.num "5.0")), CutKind.closure, CutEntry.weakening, CutRouteX.diNonstrict, []⟩])
+      ("CACC", [⟨(.cmp ">=" (.var "r") (.num "-10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "r") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp ">=" (.bin "+" (.var "g") (.bin "*" (.num "2.0") (.var "r"))) (.num "5.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.bin "+" (.var "g") (.bin "*" (.num "2.0") (.var "r"))) (.num "60.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩])
     ] }
 
 /-- The legacy (guard-conjunct) part is well formed. -/

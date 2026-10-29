@@ -65,6 +65,8 @@ Axioms of `theorem3_keyed_of_records` and `theorem3_window_of_records`: `propext
 `relcert-bridge-verdicts` issues exactly `bridgeGroups` per benchmark at the bridge dimension
 and reports the group count against the declared total (`expectedBridgeGroupsV2`).
 
+Fix round 4 (2026-10-29, `docs/OVERNIGHT-2026-10-29.md`): **5180 groups over the 50 suite benchmarks and the 2 choice exhibits, all discharged** (5284 before it; `grid_ffr_dos` out, `canal_gate_notches` in, and the re-emitted instances of the seventeen changed benchmarks, among them the three platoon files on a one-mode right model and the start-only fallback modes removed); the declared count was set after measuring.
+
 Run on the regenerated records: **4874 groups over the 50 suite benchmarks and the 2 choice
 exhibits, all discharged** (suite alone 4738: 3211 over the 41 designed benchmarks, 35 + 130 + 77 + 810
 + 120 + 186 + 35 + 80 + 54 = 1527 over the nine literature cases; 2026-10-28, literature faithfulness fixes: `lit_csf21_vehicle_thermo` 116 -> 120 and `lit_csf21_vehicle_bus` 180 -> 186 with Coast at `v <= 1`, `lit_nahs25_salt_tank` 56 -> 54 without its evolve domain, `lit_drl_car_stop` and `lit_drl_lane_control` unchanged; 2026-10-28, batch I11: `h2_refuel_ambientbias` (273 groups), `platoon_latency` (52) and `reactor_feed_wireless` (118) in, `antenna_track_kvretune` (76), `compressor_station_recycle` (53) and `molding_pack_checkring` (28) out, 4580 over 50 + 2 before it; batch I10: `zone_lightmass_schedule` (26 groups) in, `bms_chiller_undercharge` (22) out; 2026-10-27/28, batch I9: the multi-rate

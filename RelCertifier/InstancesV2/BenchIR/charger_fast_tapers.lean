@@ -23,15 +23,15 @@ def charger_fast_tapers_IRv2 : PProblem :=
         {
           name := "PRECHARGE"
           odes := [("x", (.bin "*" (.num "0.2") (.bin "-" (.num "20.0") (.var "x"))))]
-          guard := (.and (.cmp ">=" (.var "x") (.num "10.0")) (.cmp "<" (.var "x") (.num "15.0")))
+          guard := (.and (.cmp ">=" (.var "x") (.num "0.0")) (.cmp "<" (.var "x") (.num "15.0")))
           evolve := (.and (.cmp ">=" (.var "x") (.num "0.0")) (.cmp "<=" (.var "x") (.num "100.0")))
-          next := ["BULK", "PRECHARGE", "FAULT"] },
+          next := ["BULK", "PRECHARGE"] },
         {
           name := "BULK"
           odes := [("x", (.bin "*" (.num "0.125") (.bin "-" (.num "100.0") (.var "x"))))]
           guard := (.and (.cmp ">=" (.var "x") (.num "15.0")) (.cmp "<" (.var "x") (.num "80.0")))
           evolve := (.and (.cmp ">=" (.var "x") (.num "0.0")) (.cmp "<=" (.var "x") (.num "100.0")))
-          next := ["ABSORB", "BULK", "FAULT"] },
+          next := ["ABSORB", "BULK"] },
         {
           name := "ABSORB"
           odes := [("x", (.bin "*" (.num "0.05") (.bin "-" (.num "100.0") (.var "x"))))]
@@ -43,13 +43,7 @@ def charger_fast_tapers_IRv2 : PProblem :=
           odes := [("x", (.num "0"))]
           guard := (.cmp ">=" (.var "x") (.num "99.0"))
           evolve := (.and (.cmp ">=" (.var "x") (.num "0.0")) (.cmp "<=" (.var "x") (.num "100.0")))
-          next := ["FULL"] },
-        {
-          name := "FAULT"
-          odes := [("x", (.bin "*" (.num "-0.01") (.var "x")))]
-          guard := (.cmp "<" (.var "x") (.num "10.0"))
-          evolve := (.and (.cmp ">=" (.var "x") (.num "0.0")) (.cmp "<=" (.var "x") (.num "100.0")))
-          next := ["FAULT"] } ] }
+          next := ["FULL"] } ] }
     R := {
       stateVars := ["x"]
       epsilon := "0.006"
@@ -57,15 +51,15 @@ def charger_fast_tapers_IRv2 : PProblem :=
         {
           name := "PRECHARGE"
           odes := [("x", (.bin "*" (.num "0.2") (.bin "-" (.num "20.0") (.var "x"))))]
-          guard := (.and (.cmp ">=" (.var "x") (.num "10.0")) (.cmp "<" (.var "x") (.num "15.0")))
+          guard := (.and (.cmp ">=" (.var "x") (.num "0.0")) (.cmp "<" (.var "x") (.num "15.0")))
           evolve := (.and (.cmp ">=" (.var "x") (.num "0.0")) (.cmp "<=" (.var "x") (.num "100.0")))
-          next := ["BULK", "PRECHARGE", "FAULT"] },
+          next := ["BULK", "PRECHARGE"] },
         {
           name := "BULK"
           odes := [("x", (.bin "*" (.num "0.1") (.bin "-" (.num "100.0") (.var "x"))))]
           guard := (.and (.cmp ">=" (.var "x") (.num "15.0")) (.cmp "<" (.var "x") (.num "80.0")))
           evolve := (.and (.cmp ">=" (.var "x") (.num "0.0")) (.cmp "<=" (.var "x") (.num "100.0")))
-          next := ["ABSORB_SLOW", "ABSORB_FAST", "BULK", "FAULT"] },
+          next := ["ABSORB_SLOW", "ABSORB_FAST", "BULK"] },
         {
           name := "ABSORB_SLOW"
           odes := [("x", (.bin "*" (.num "0.05") (.bin "-" (.num "100.0") (.var "x"))))]
@@ -83,18 +77,11 @@ def charger_fast_tapers_IRv2 : PProblem :=
           odes := [("x", (.num "0"))]
           guard := (.cmp ">=" (.var "x") (.num "99.0"))
           evolve := (.and (.cmp ">=" (.var "x") (.num "0.0")) (.cmp "<=" (.var "x") (.num "100.0")))
-          next := ["FULL"] },
-        {
-          name := "FAULT"
-          odes := [("x", (.bin "*" (.num "-0.01") (.var "x")))]
-          guard := (.cmp "<" (.var "x") (.num "10.0"))
-          evolve := (.and (.cmp ">=" (.var "x") (.num "0.0")) (.cmp "<=" (.var "x") (.num "100.0")))
-          next := ["FAULT"] } ] }
+          next := ["FULL"] } ] }
     invariants := [
       ("PRECHARGE", (.cmp "<=" (.var "L_x") (.var "R_x"))),
-      ("BULK", (.cmp "<=" (.var "L_x") (.bin "+" (.var "R_x") (.num "2")))),
-      ("ABSORB", (.cmp "<=" (.var "L_x") (.bin "+" (.var "R_x") (.num "2")))),
-      ("FULL", (.cmp "<=" (.var "L_x") (.bin "+" (.var "R_x") (.num "2")))),
-      ("FAULT", (.cmp "<=" (.var "L_x") (.bin "+" (.var "R_x") (.num "2"))))] }
+      ("BULK", (.cmp "<=" (.var "L_x") (.bin "+" (.var "R_x") (.num "1")))),
+      ("ABSORB", (.cmp "<=" (.var "L_x") (.bin "+" (.var "R_x") (.num "1")))),
+      ("FULL", (.cmp "<=" (.var "L_x") (.bin "+" (.var "R_x") (.num "1"))))] }
 
 end RelCertifier.Parse

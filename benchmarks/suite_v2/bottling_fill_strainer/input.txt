@@ -26,15 +26,19 @@
 #
 # Property (the same rows in both modes), with the predicted final volume Psi = V + (Q / 25) u (the volume the
 # valve still lets through once it is commanded closed; constant while closing):
-#   (1,2) Psi_L = Psi_R - 1.2 (exact)   (3) u_L <= u_R   (4) V_L <= V_R   (5) V_R - V_L <= 2.
-# Requirement (5): the deployed fill may fall short of the commissioned fill by at most the 2 mL giveaway
+#   (1,2) Psi_L = Psi_R - 1.2 (exact)   (3) u_L <= u_R   (4) V_L <= V_R.
+# Requirement: the deployed fill may fall short of the commissioned fill by at most the 2 mL giveaway
 # margin, so that it stays at or above the 1000 mL nominal quantity (Directive 76/211/EEC, Annex I: the actual
 # contents shall not be less, on average, than the nominal quantity; its tolerable negative error, 15 mL for
-# 500 to 1000 mL, is far looser). Re-timing range lambda in [0.8, 1.0]: the carousel's filling sector admits a
-# fill up to 1.25 times the commissioned fill time (the commissioned fill uses 80 % of it; a stated design
-# value of this benchmark). Rows (1)-(4) are stated strengthening rows, each shown needed (dropping (1,2), (3)
-# or (4) DECLINES). Tightest (5): 1.20 mL (1.19 declines) = (1 - 0.85) x 8 mL, the in-flight volume the
-# deployed does not deliver. Not implied by the domains (they allow a 1060 mL gap).
+# 500 to 1000 mL, is far looser). The rows give it directly: V_R - V_L = 1.2 - 8 u_R + 6.8 u_L <= 1.2 (1 - u_R)
+# <= 1.2 by (1,2) and (3), so the shortfall is at most 1.2 mL at every matched instant and exactly 1.2 mL at
+# the end of the fill (u = 0), 0.8 mL inside the margin. (Until 2026-10-29 the file also stated the margin as a
+# fifth row, V_R - V_L <= 2; it follows from (1)-(3), so it was removed; its "tightest 1.20" was row (1)'s
+# offset.) Re-timing range lambda in [0.8, 1.0]: the carousel's filling sector admits a fill up to 1.25 times
+# the commissioned fill time (the commissioned fill uses 80 % of it; a stated design value of this
+# benchmark). Each row is needed: dropping (1,2), (3) or (4) DECLINES. The offset 1.2 = (1 - 0.85) x 8 mL,
+# the in-flight volume the deployed does not deliver, is exact: 1.19 and 1.21 DECLINE (the predicted final
+# volumes differ by exactly the in-flight shortfall). Not implied by the domains (they allow a 1060 mL gap).
 #
 # Why the stretch (S), and why the claim is not exact. In FILL the deployed fill is the commissioned fill slowed
 # by the flow ratio (V' = 170 = 0.85 x 200): the cover pairs FILL at lambda = 17/20. RELCERT_SYNC=1 DECLINES (at
@@ -45,9 +49,9 @@
 # the stretch grid of [0.8, 1] has step 0.01, every two-decimal ratio in [0.80, 0.99] certifies (measured 0.80,
 # 0.85, 0.90, 0.99), a ratio between grid points (0.853) DECLINES (as furnace_program_timebase).
 # How the claim depends on the cause (measured): clean strainer (ratio 1): the exact claim (all constants 0)
-# CERTIFIES, also under RELCERT_SYNC=1 (no S); ratio 0.9: tightest 0.80 mL; 0.85 (this file): 1.20; 0.8: 1.60;
+# CERTIFIES, also under RELCERT_SYNC=1 (no S); the exact offset (1 - ratio) x 8 mL is 0.80 mL at ratio 0.9, 1.20 at 0.85 (this file), 1.60 at 0.8;
 # 0.79 and 0.75: DECLINED (the slowed fill no longer fits the filling sector; with lambda_min 0.75 the ratio
-# 0.75 certifies at exactly the 2 mL margin). Letter windows: S for every grid ratio in [0.80, 0.99]; I at every
+# 0.75 certifies with offset 2.00, exactly the 2 mL margin). Letter windows: S for every grid ratio in [0.80, 0.99]; I at every
 # ratio. Law dependence: an arbitrary deployed schedule (every left guard the domain, each mode a successor of
 # the other) DECLINES.
 # Mode facts (I): the valve-open atom u >= 1 of FILL (kept, u frozen) is load-bearing: RELCERT_NO_CUT=1
@@ -68,9 +72,10 @@
 # final volume to fit the bottle, Psi = V + (Q / 25) u <= 1060 (V + 6.8 u on the left, V + 8 u on the right:
 # each side's own in-flight volume, the same statement with the cause's flow; Psi is constant while the valve
 # closes, so the conjunct is kept by the flow). Every fill reachable from FILL ends at most 1003 mL, so no run
-# is lost; verdicts, letters and the tightest 1.20 mL are unchanged.
+# is lost; verdicts, letters and the offset 1.20 mL are unchanged.
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27 at installation on branch benchmark-fixes): CERTIFIED (0.8 s);
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27 at installation on branch benchmark-fixes, and
+# again 2026-10-29 without the implied fifth row, the same verdicts): CERTIFIED (0.8 s);
 # CERTIFIED under RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE, RELCERT_NO_REPO=1,
 # RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_PAIR_STRETCH=1, without RELCERT_IMPLIED_CUT,
 # RELCERT_OPREGION=1 and RELCERT_WELLFORMED_STRICT=1; DECLINED under RELCERT_SYNC=1, SYNC+NO_CHOICE and
@@ -117,5 +122,5 @@ evolve = V >= 0.0 and V <= 1060.0 and u >= 0.0 and u <= 1.0
 next = [CLOSE]
 
 [relational_invariant]
-FILL = smt2:(and (<= (+ L_V (* 6.8 L_u)) (+ R_V (* 8 R_u) (- 1.2))) (<= (+ R_V (* 8 R_u) (- 1.2)) (+ L_V (* 6.8 L_u))) (<= L_u R_u) (<= L_V R_V) (<= R_V (+ L_V 2)))
-CLOSE = smt2:(and (<= (+ L_V (* 6.8 L_u)) (+ R_V (* 8 R_u) (- 1.2))) (<= (+ R_V (* 8 R_u) (- 1.2)) (+ L_V (* 6.8 L_u))) (<= L_u R_u) (<= L_V R_V) (<= R_V (+ L_V 2)))
+FILL = smt2:(and (<= (+ L_V (* 6.8 L_u)) (+ R_V (* 8 R_u) (- 1.2))) (<= (+ R_V (* 8 R_u) (- 1.2)) (+ L_V (* 6.8 L_u))) (<= L_u R_u) (<= L_V R_V))
+CLOSE = smt2:(and (<= (+ L_V (* 6.8 L_u)) (+ R_V (* 8 R_u) (- 1.2))) (<= (+ R_V (* 8 R_u) (- 1.2)) (+ L_V (* 6.8 L_u))) (<= L_u R_u) (<= L_V R_V))

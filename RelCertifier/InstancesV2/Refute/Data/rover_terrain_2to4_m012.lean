@@ -30,7 +30,7 @@ def rover_terrain_2to4_m012_IRm : PProblem :=
             ("w", (.bin "*" (.num "3") (.bin "-" (.num "0.25") (.var "w")))),
             ("zs", (.bin "*" (.num "2") (.bin "-" (.num "0.1") (.var "zs"))))]
           guard := (.and (.and (.cmp ">=" (.var "s") (.num "0.0")) (.cmp "<" (.var "s") (.num "5.0"))) (.cmp "<=" (.var "w") (.num "0.25")))
-          evolve := (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "0.8"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "0.8"))) (.cmp ">=" (.var "zs") (.num "0.0"))) (.cmp "<=" (.var "zs") (.num "0.12")))
+          evolve := (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "0.8"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "w") (.num "0.05"))) (.cmp "<=" (.var "w") (.num "0.8"))) (.cmp ">=" (.var "zs") (.num "0.0"))) (.cmp "<=" (.var "zs") (.num "0.12")))
           next := ["GRAVEL", "MUD"] },
         {
           name := "GRAVEL"
@@ -39,7 +39,7 @@ def rover_terrain_2to4_m012_IRm : PProblem :=
             ("w", (.bin "*" (.num "3") (.bin "-" (.num "0.45") (.var "w")))),
             ("zs", (.bin "*" (.num "2") (.bin "-" (.num "0.03") (.var "zs"))))]
           guard := (.and (.and (.cmp ">=" (.var "s") (.num "5.0")) (.cmp "<" (.var "s") (.num "12.0"))) (.cmp "<=" (.var "w") (.num "0.45")))
-          evolve := (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "0.8"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "0.8"))) (.cmp ">=" (.var "zs") (.num "0.0"))) (.cmp "<=" (.var "zs") (.num "0.12")))
+          evolve := (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "0.8"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "w") (.num "0.05"))) (.cmp "<=" (.var "w") (.num "0.8"))) (.cmp ">=" (.var "zs") (.num "0.0"))) (.cmp "<=" (.var "zs") (.num "0.12")))
           next := ["PAVED", "GRAVEL"] },
         {
           name := "PAVED"
@@ -48,7 +48,7 @@ def rover_terrain_2to4_m012_IRm : PProblem :=
             ("w", (.bin "*" (.num "3") (.bin "-" (.num "0.7") (.var "w")))),
             ("zs", (.bin "*" (.num "2") (.bin "-" (.num "0.0") (.var "zs"))))]
           guard := (.and (.cmp ">=" (.var "s") (.num "12.0")) (.cmp "<=" (.var "w") (.num "0.7")))
-          evolve := (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "0.8"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "0.8"))) (.cmp ">=" (.var "zs") (.num "0.0"))) (.cmp "<=" (.var "zs") (.num "0.12")))
+          evolve := (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "0.8"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "w") (.num "0.05"))) (.cmp "<=" (.var "w") (.num "0.8"))) (.cmp ">=" (.var "zs") (.num "0.0"))) (.cmp "<=" (.var "zs") (.num "0.12")))
           next := ["PAVED"] } ] }
     R := {
       stateVars := ["v", "s", "w", "zs"]
@@ -61,7 +61,7 @@ def rover_terrain_2to4_m012_IRm : PProblem :=
             ("w", (.num "0")),
             ("zs", (.num "0"))]
           guard := (.and (.cmp ">=" (.var "s") (.num "0.0")) (.cmp "<" (.var "s") (.num "5.0")))
-          evolve := (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "0.8"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "0.8"))) (.cmp ">=" (.var "zs") (.num "0.0"))) (.cmp "<=" (.var "zs") (.num "0.12")))
+          evolve := (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "0.8"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "w") (.num "0.05"))) (.cmp "<=" (.var "w") (.num "0.8"))) (.cmp ">=" (.var "zs") (.num "0.0"))) (.cmp "<=" (.var "zs") (.num "0.12")))
           next := ["GRAVEL", "MUD"] },
         {
           name := "GRAVEL"
@@ -70,7 +70,7 @@ def rover_terrain_2to4_m012_IRm : PProblem :=
             ("w", (.num "0")),
             ("zs", (.num "0"))]
           guard := (.and (.cmp ">=" (.var "s") (.num "5.0")) (.cmp "<" (.var "s") (.num "12.0")))
-          evolve := (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "0.8"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "0.8"))) (.cmp ">=" (.var "zs") (.num "0.0"))) (.cmp "<=" (.var "zs") (.num "0.12")))
+          evolve := (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "0.8"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "w") (.num "0.05"))) (.cmp "<=" (.var "w") (.num "0.8"))) (.cmp ">=" (.var "zs") (.num "0.0"))) (.cmp "<=" (.var "zs") (.num "0.12")))
           next := ["PAVED", "GRAVEL"] },
         {
           name := "PAVED"
@@ -79,7 +79,7 @@ def rover_terrain_2to4_m012_IRm : PProblem :=
             ("w", (.num "0")),
             ("zs", (.num "0"))]
           guard := (.cmp ">=" (.var "s") (.num "12.0"))
-          evolve := (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "0.8"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "w") (.num "0.0"))) (.cmp "<=" (.var "w") (.num "0.8"))) (.cmp ">=" (.var "zs") (.num "0.0"))) (.cmp "<=" (.var "zs") (.num "0.12")))
+          evolve := (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "0.8"))) (.cmp ">=" (.var "s") (.num "0.0"))) (.cmp ">=" (.var "w") (.num "0.05"))) (.cmp "<=" (.var "w") (.num "0.8"))) (.cmp ">=" (.var "zs") (.num "0.0"))) (.cmp "<=" (.var "zs") (.num "0.12")))
           next := ["PAVED"] } ] }
     invariants := [
       ("MUD", (.and (.and (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "L_s") (.var "R_s"))) (.cmp "<=" (.var "L_v") (.var "L_w"))) (.cmp ">=" (.var "L_w") (.bin "+" (.var "L_v") (.num "0.25"))))),
@@ -90,6 +90,6 @@ def rover_terrain_2to4_m012_IRm : PProblem :=
 def rover_terrain_2to4_m012_wit : RefWitE :=
   { kind := "B", u := 1, m := 1, q0 := 1, k := 3,
     wL := [(3/50 : ℚ), (5 : ℚ), (31/100 : ℚ), (3/50 : ℚ)],
-    wR := [(3/50 : ℚ), (5 : ℚ), (0 : ℚ), (0 : ℚ)] }
+    wR := [(3/50 : ℚ), (5 : ℚ), (1/20 : ℚ), (0 : ℚ)] }
 
 end RelCertifier.Refute

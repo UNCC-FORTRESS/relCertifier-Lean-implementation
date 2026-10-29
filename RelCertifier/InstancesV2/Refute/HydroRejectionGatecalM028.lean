@@ -4,7 +4,7 @@ Released under Apache 2.0 license.
 
 # `hydro_rejection_gatecal_m028`: Theorem 3's claim of a mutant of `hydro_rejection_gatecal` is false (GENERATED — `scripts/gen_refute.py`)
 
-Mutant RRO/SNO `(<= L_w (+ R_w 0.09)) [<=->>=]`. Kind C (no partner): the left switches
+Mutant RRO/SNO `(<= L_w (+ R_w 0.07)) [<=->>=]`. Kind C (no partner): the left switches
 from mode 0 to mode 1 with a zero-duration flow, the right starts in mode 1. Dimension 4: the benchmark's bridge dimension, the last auxiliary coordinate the right clock.
 -/
 import RelCertifier.Proofs.Encoding.Emitted.RefuteFlow

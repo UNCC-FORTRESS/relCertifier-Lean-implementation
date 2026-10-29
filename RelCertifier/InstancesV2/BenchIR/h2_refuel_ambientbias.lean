@@ -23,15 +23,15 @@ def h2_refuel_ambientbias_IRv2 : PProblem :=
         {
           name := "STAGE1"
           odes := [("p", (.bin "*" (.num "0.05") (.bin "-" (.num "20") (.var "p"))))]
-          guard := (.and (.cmp ">=" (.var "p") (.num "0.5")) (.cmp "<" (.var "p") (.num "18.0")))
+          guard := (.cmp "<" (.var "p") (.num "18.0"))
           evolve := (.and (.cmp ">=" (.var "p") (.num "0.0")) (.cmp "<=" (.var "p") (.num "87.5")))
-          next := ["STAGE1", "STAGE2", "ABORT"] },
+          next := ["STAGE1", "STAGE2"] },
         {
           name := "STAGE2"
           odes := [("p", (.bin "*" (.num "0.05") (.bin "-" (.num "40") (.var "p"))))]
           guard := (.and (.cmp ">=" (.var "p") (.num "18.0")) (.cmp "<" (.var "p") (.num "38.0")))
           evolve := (.and (.cmp ">=" (.var "p") (.num "0.0")) (.cmp "<=" (.var "p") (.num "87.5")))
-          next := ["STAGE2", "STAGE3", "ABORT"] },
+          next := ["STAGE2", "STAGE3"] },
         {
           name := "STAGE3"
           odes := [("p", (.bin "*" (.num "0.05") (.bin "-" (.num "60") (.var "p"))))]
@@ -49,13 +49,7 @@ def h2_refuel_ambientbias_IRv2 : PProblem :=
           odes := [("p", (.num "0.0"))]
           guard := (.cmp ">=" (.var "p") (.num "72.4"))
           evolve := (.and (.cmp ">=" (.var "p") (.num "0.0")) (.cmp "<=" (.var "p") (.num "87.5")))
-          next := ["COMPLETE"] },
-        {
-          name := "ABORT"
-          odes := [("p", (.num "0.0"))]
-          guard := (.cmp "<" (.var "p") (.num "0.5"))
-          evolve := (.and (.cmp ">=" (.var "p") (.num "0.0")) (.cmp "<=" (.var "p") (.num "87.5")))
-          next := ["ABORT"] } ] }
+          next := ["COMPLETE"] } ] }
     R := {
       stateVars := ["p"]
       epsilon := "1.0"
@@ -63,15 +57,15 @@ def h2_refuel_ambientbias_IRv2 : PProblem :=
         {
           name := "STAGE1"
           odes := [("p", (.bin "*" (.num "0.05") (.bin "-" (.num "20") (.var "p"))))]
-          guard := (.and (.cmp ">=" (.var "p") (.num "0.5")) (.cmp "<" (.var "p") (.num "18.0")))
+          guard := (.cmp "<" (.var "p") (.num "18.0"))
           evolve := (.and (.cmp ">=" (.var "p") (.num "0.0")) (.cmp "<=" (.var "p") (.num "87.5")))
-          next := ["STAGE1", "STAGE2", "ABORT"] },
+          next := ["STAGE1", "STAGE2"] },
         {
           name := "STAGE2"
           odes := [("p", (.bin "*" (.num "0.05") (.bin "-" (.num "40") (.var "p"))))]
           guard := (.and (.cmp ">=" (.var "p") (.num "18.0")) (.cmp "<" (.var "p") (.num "38.0")))
           evolve := (.and (.cmp ">=" (.var "p") (.num "0.0")) (.cmp "<=" (.var "p") (.num "87.5")))
-          next := ["STAGE2", "STAGE3", "ABORT"] },
+          next := ["STAGE2", "STAGE3"] },
         {
           name := "STAGE3"
           odes := [("p", (.bin "*" (.num "0.05") (.bin "-" (.num "60") (.var "p"))))]
@@ -89,19 +83,12 @@ def h2_refuel_ambientbias_IRv2 : PProblem :=
           odes := [("p", (.num "0.0"))]
           guard := (.cmp ">=" (.var "p") (.num "70.0"))
           evolve := (.and (.cmp ">=" (.var "p") (.num "0.0")) (.cmp "<=" (.var "p") (.num "87.5")))
-          next := ["COMPLETE"] },
-        {
-          name := "ABORT"
-          odes := [("p", (.num "0.0"))]
-          guard := (.cmp "<" (.var "p") (.num "0.5"))
-          evolve := (.and (.cmp ">=" (.var "p") (.num "0.0")) (.cmp "<=" (.var "p") (.num "87.5")))
-          next := ["ABORT"] } ] }
+          next := ["COMPLETE"] } ] }
     invariants := [
       ("STAGE1", (.cmp "<=" (.var "L_p") (.var "R_p"))),
       ("STAGE2", (.cmp "<=" (.var "L_p") (.var "R_p"))),
       ("STAGE3", (.cmp "<=" (.var "L_p") (.var "R_p"))),
       ("TOPOFF", (.cmp "<=" (.var "L_p") (.bin "+" (.var "R_p") (.num "2.9")))),
-      ("COMPLETE", (.cmp "<=" (.var "L_p") (.bin "+" (.var "R_p") (.num "2.9")))),
-      ("ABORT", (.cmp "<=" (.var "L_p") (.bin "+" (.var "R_p") (.num "2.9"))))] }
+      ("COMPLETE", (.cmp "<=" (.var "L_p") (.bin "+" (.var "R_p") (.num "2.9"))))] }
 
 end RelCertifier.Parse

@@ -34,9 +34,12 @@
 # rad = suspension roll stop; LTR 0.8 = 20 % margin to wheel lift (LTR = 1); lane 0.25 m = corridor
 # half-width 1.25 m minus vehicle half-width 1.0 m. In the cascade chart the rate state carries its
 # angle's tolerance (abs(x' + x) <= tol keeps the critically damped angle inside abs(x) <= tol).
-# Each rung carries the requirements of the dynamics it adds: heading (2to3); pitch (3to6); heading,
-# pitch, roll and rollover under yaw and pitch inertia (6to8); heading, roll, rollover and lane
-# under roll inertia and tire slip (8to12).
+# Each rung carries the relational requirements of the dynamics it adds: the clearance rows under
+# the heading channel (2to3); pitch (3to6); heading, pitch, roll and rollover under yaw and pitch
+# inertia (6to8); heading, roll, rollover and lane under roll inertia and tire slip (8to12). The
+# heading requirement is stated where yaw inertia makes it a property of the dynamics (6to8,
+# 8to12); on this rung the first-order heading loop only contracts, so it would be a start
+# restriction (below).
 #
 # Left (L3: v, s, psi move). Right (L2, the point model: v, s move; psi frozen, psi' = 0, and
 # absent from s', so it keeps its start value). The one difference is the heading channel and its
@@ -48,8 +51,13 @@
 #     Offset 0 is the requirement value: s_L + 1 <= s_R also certifies (the gap only grows); s_L <=
 #     s_R + 1 DECLINES (a rover start 1 m ahead can be in the next zone, with the higher set point,
 #     so v_L <= v_R fails).
-#   abs(psi_L) <= 0.35 (heading requirement, the step's new channel). The heading loop contracts, so
-#     the row is a start requirement the step's dynamics keep: every value in [0, 0.6] certifies.
+#   No heading row (removed 2026-10-29). The former row abs(psi_L) <= 0.35 was not load-bearing:
+#     psi' = -psi contracts, so the row only restricted the starts (every bound in [0, 0.6], and
+#     100, certified). The clearance rows hold for every heading in the validity box. A relational
+#     bound on the along-track lag (s_R <= s_L + c with v_R <= v_L + d) DECLINES for every c, d
+#     tried (c = 2, 5 with d = 0.5, 1; measured 2026-10-29): a rover start behind the reference near
+#     a zone boundary stays one zone behind, at the lower set point, long enough for the gap to
+#     grow without a bound of that form.
 #
 # Stretch range: lambda_min = lambda_max = 1. This rung certifies synchronously (RELCERT_SYNC=1
 # CERTIFIES), so it uses none of the ladder's timetable margin (the 25 % of rover_ladder_6to8's
@@ -136,6 +144,6 @@ evolve = v >= 0.0 and v <= 8.0 and s >= 0.0 and psi >= -0.6 and psi <= 0.6
 next = [FLAT]
 
 [relational_invariant]
-STEEP = smt2:(and (and (<= L_v R_v) (<= L_s R_s)) (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)))
-MODER = smt2:(and (and (<= L_v R_v) (<= L_s R_s)) (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)))
-FLAT = smt2:(and (and (<= L_v R_v) (<= L_s R_s)) (and (<= L_psi 0.35) (<= (- 0 0.35) L_psi)))
+STEEP = smt2:(and (<= L_v R_v) (<= L_s R_s))
+MODER = smt2:(and (<= L_v R_v) (<= L_s R_s))
+FLAT = smt2:(and (<= L_v R_v) (<= L_s R_s))

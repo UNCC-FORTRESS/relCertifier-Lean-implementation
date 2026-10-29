@@ -14,6 +14,7 @@ import RelCertifier.InstancesV2.BenchIR.acc_tune_lag
 import RelCertifier.InstancesV2.BenchIR.acc_tune_limp
 import RelCertifier.InstancesV2.BenchIR.antenna_track_kvretune
 import RelCertifier.InstancesV2.BenchIR.bottling_fill_strainer
+import RelCertifier.InstancesV2.BenchIR.canal_gate_notches
 import RelCertifier.InstancesV2.BenchIR.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchIR.elevator_start_discbrake
 import RelCertifier.InstancesV2.BenchIR.engine_start_highidle
@@ -21,7 +22,6 @@ import RelCertifier.InstancesV2.BenchIR.flaps_slow_approach
 import RelCertifier.InstancesV2.BenchIR.fuelcell_chp_dos
 import RelCertifier.InstancesV2.BenchIR.furnace_program_timebase
 import RelCertifier.InstancesV2.BenchIR.gantry_speed_zones
-import RelCertifier.InstancesV2.BenchIR.grid_ffr_dos
 import RelCertifier.InstancesV2.BenchIR.h2_refuel_ambientbias
 import RelCertifier.InstancesV2.BenchIR.hydro_rejection_gatecal
 import RelCertifier.InstancesV2.BenchIR.insulin_basal_cgmloss
@@ -68,6 +68,7 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("acc_tune_limp", acc_tune_limp_IRv2),
   ("antenna_track_kvretune", antenna_track_kvretune_IRv2),
   ("bottling_fill_strainer", bottling_fill_strainer_IRv2),
+  ("canal_gate_notches", canal_gate_notches_IRv2),
   ("charger_fast_tapers", charger_fast_tapers_IRv2),
   ("elevator_start_discbrake", elevator_start_discbrake_IRv2),
   ("engine_start_highidle", engine_start_highidle_IRv2),
@@ -75,7 +76,6 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("fuelcell_chp_dos", fuelcell_chp_dos_IRv2),
   ("furnace_program_timebase", furnace_program_timebase_IRv2),
   ("gantry_speed_zones", gantry_speed_zones_IRv2),
-  ("grid_ffr_dos", grid_ffr_dos_IRv2),
   ("h2_refuel_ambientbias", h2_refuel_ambientbias_IRv2),
   ("hydro_rejection_gatecal", hydro_rejection_gatecal_IRv2),
   ("insulin_basal_cgmloss", insulin_basal_cgmloss_IRv2),

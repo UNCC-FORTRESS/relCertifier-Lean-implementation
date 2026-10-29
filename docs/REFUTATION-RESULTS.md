@@ -13,6 +13,14 @@
 > mutants), `quad_light_profiles` (21) and `turbine_startup_gearratio` (6, now at bridge dimension 4)
 > have no witness. 87 instances, `relcert-refute-verdicts` 260/260.
 
+> 2026-10-29, fix round 4 (`docs/OVERNIGHT-2026-10-29.md`, "Fix round 4 (2026-10-29)"): the finder was
+> re-run (`--only`) on the seventeen changed benchmarks and the refill `canal_gate_notches` (8 mutants, no
+> witness); `grid_ffr_dos` left the suite with its records (21 mutants, no witness). Witnesses:
+> `hydro_rejection_gatecal` 2, `platoon_latency` 6, `platoon_linkloss` 2, `platoon_profiles` 2,
+> `quad_light_lag` 1, `rover_terrain_2to4` 4, `rover_terrain_4to6` 8, `rover_terrain_6to12` 11; none for
+> the other nine. 70 stale instance and data files (variants of the previous models) were removed as
+> `gen_refute.py` listed them. 74 instances, `relcert-refute-verdicts` 204/204, every instance builds.
+
 > 2026-10-29, later (branch `benchmark-fixes`, one evolve domain per benchmark,
 > `docs/OVERNIGHT-2026-10-29.md` "One domain per benchmark 2026-10-29"): the finder was re-run
 > (fresh, no reuse) on the eleven benchmarks whose models changed. `platoon_latency` (73 mutants:

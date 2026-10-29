@@ -5,7 +5,8 @@
 #   per deployed window; branching joint steps; pruned dry-run edge, RELCERT_NO_PRUNE=1
 #   declines; matrix codes M1 M2 M3 M4)
 #
-# Round A (2026-10-26): the claim is now the same in every mode (x_L <= x_R + 3, x_R <= x_L + 2).
+# Round A (2026-10-26): the claim is now the same in every mode (x_L <= x_R + 3, x_R <= x_L + 2;
+# the lower row tightened to 1.5 on 2026-10-29).
 # The previous rows (+8 overflow margin in Mid and High) were looser than this uniform claim,
 # which also certifies, so their mode dependence (D) was not load-bearing; with the tighter
 # uniform rows the implied cuts are no longer needed either (I lost). Letters were S M B P D I.
@@ -38,14 +39,17 @@
 # outside the model (no deployed dry-run mode), as in watertank. Every left mode has a
 # satisfiable start (x_R = x_L - 3 is in Fast/Slow, MidEco/MidBoost resp. High).
 #
-# CLAIM (every left mode): x_L <= x_R + 3 and x_R <= x_L + 2, each constant a margin of the tank:
+# CLAIM (every left mode): x_L <= x_R + 3 and x_R <= x_L + 1.5:
 #   3 = the sensor offset = the dry-run interlock margin of the low fill (deployed floor 5 minus
 #     the interlock 2): a filling deployed tank is matched by a reference whose pump runs
 #     (x_R >= x_L - 3 >= 2), never by one latched in PumpOff; and the overflow margin: every
 #     reference run from x <= 22 stays at or below 22 (all set points <= 17), so the deployed
 #     stays at or below the 25 dm lip.
-#   2 = underflow margin, the reference's interlock level 2 above the tank floor: while the
-#     reference runs (x_R >= 2), the deployed tank is not empty.
+#   1.5 = the deployed tank's largest lag behind the reference, the tight value (below): the
+#     reference's mid-fill set point 17 minus the deployed's low-fill target 15.5. While the
+#     reference's pump runs (x_R >= 2) the deployed holds at least 0.5 dm. (Until 2026-10-29 the
+#     row stated 2, justified as an underflow margin; with x_R >= 2 that only gives x_L >= 0, the
+#     tank floor, so the row now states the tight lag.)
 # Not implied by the domains. Rows identical in every mode (--handoff vacuous, 6/6).
 # Tightest (bisection to 0.01, measured): upper exactly 3.00 (2.99 and 3.01 DECLINE: on the
 # boundary x_L = x_R + 3 the deployed field 2.0 (12.5 - x_R) equals Fast's at lambda 1 and Slow's
@@ -154,6 +158,6 @@ evolve = x >= 0.0 and x <= 25.0
 next = [PumpOff]
 
 [relational_invariant]
-Low = x[l] <= x[r] + 3 and x[r] <= x[l] + 2
-Mid = x[l] <= x[r] + 3 and x[r] <= x[l] + 2
-High = x[l] <= x[r] + 3 and x[r] <= x[l] + 2
+Low = x[l] <= x[r] + 3 and x[r] <= x[l] + 1.5
+Mid = x[l] <= x[r] + 3 and x[r] <= x[l] + 1.5
+High = x[l] <= x[r] + 3 and x[r] <= x[l] + 1.5

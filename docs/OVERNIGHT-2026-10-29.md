@@ -227,3 +227,51 @@ run for every other file, checked against `docs/paper-numbers/letters.md` after 
   header fixes.
 * 2a3c506 round 3: two constant changes, four header fixes.
 * this document.
+
+## Domain audit 2026-10-29
+
+Rule (owner): an evolve domain states a physical constraint of the plant (a hardware limit, a
+sensor range, a saturation, a trip); it must not be a closed-loop target, set point, asymptote or
+reachable-set cap chosen so that the claim certifies. Scan (tip b1827f4, `relcert` with
+`RELCERT_IMPLIED_CUT=1`; every two-sided evolve bound widened by 20 % of its range (W20), by 10x
+(NODOM), by 5 % on the W20 decliners (W5), then one bound at a time on the W20 decliners): base
+50/50 CERTIFIED; W20 41 C / 9 D; NODOM 36 C / 14 D (the five NODOM-only decliners stand on creep
+floors widened below 0 or on boxes widened 10x; not acted on). The nine W20 decliners: class (a),
+a physical limit load-bearing (`acc_tune_lag`, `rover_ladder_3to6`, `rover_ladder_6to8`,
+`rover_ladder_8to12`); class (b), a closed-loop band (`flaps_slow_approach`, `platoon_latency`,
+`quad_light_profiles`, `tunnel_jetfan_pairout`, `turbine_startup_gearratio`). Besides these,
+`engine_start_highidle`'s round-2 domain (`5 <= N2`, `t <= 40`) was reverted to the physical one
+(it was not load-bearing).
+
+| benchmark | old bound | new bound | verdict at the new bound | action | letters before / after | tight numbers |
+|---|---|---|---|---|---|---|
+| `flaps_slow_approach` | `V` in [150, 185] kt (autothrust target F, selection speed S) | `V` in [130, 200] kt (VLS CONF 2 = 1.23 VS1G; flap placard VFE CONF 2) | DECLINED with the old rows (every EXT segment fails: above 190 kt the gap grows past 20, below F the slow aircraft is the faster one) | rows `V_R <= V_L + 25`, `V_L <= V_R + 10` installed, CERTIFIED; W20 now CERTIFIES; Assumption 1 proof adapted | S / S | 25.00 (24.99 declines) = (VFE - F)/2; 10.00 (9.99 declines) = (F - VLS)/2; with the placard at 190: 20.00 (19.99 declines); cause dependence 0.75 deg/s 12.50, 0.6 deg/s 20.00, 1 deg/s exact |
+| `platoon_latency` | `e` in [-0.5, 0.5] m/s^2 (J tau, the jerk-reachable band) | `e` in [-20, 20] m/s^2 (two accelerations within the 1 g tyre-road limit) | DECLINED with the old rows (`abs(Delta g) <= 4` needs `abs(e) <= 0.5`) | row `abs(e_L) <= 0.5` added to the CACC rows, CERTIFIED; W20 CERTIFIES | D / D | e row 0.50 (0.49 declines); `abs(Delta g)` 4.00 (3.99 declines), unchanged |
+| `quad_light_profiles` | `w <= 2.4` m/s (SPORT set point, both sides) | `w <= 3` m/s (PX4 MPC_Z_VEL_MAX_UP climb-rate limiter) | DECLINED with the old rows (row 4 `1.2 w_R <= w_L` is not inductive above `w_R = 2`) | row `w_L <= 2.4` added, CERTIFIED (SYNC, NO_CHOICE decline as before); W20 CERTIFIES; Assumption 1 proof adapted | S M B X / S M B X | 2.40 (2.39 declines); rows 1 to 4 unchanged |
+| `turbine_startup_gearratio` | `w <= 12.705` (left) / `12.1` (right) rpm (rated targets) | `w <= 13.9755` / `13.31` rpm (overspeed trips, 110 % of rated; the deployed's read 5 % low) | DECLINED with the exact row (GEN x GEN from above rated: the deployed regulates more slowly); unary rows `w_R <= 12.1`, `w_L <= 12.705` DECLINED too (they block the right-only reposition) | GEN row `w_L <= 1.05 w_R + 0.061`, exact elsewhere, CERTIFIED; uniform rows decline (D); W20 DECLINES (the trip is physical and load-bearing, stated); Assumption 1 proof adapted | R P I / R P I D | 0.061 (0.060 declines) = the overspeed-recovery lag at the trip; factor 1.05 exact as before |
+| `tunnel_jetfan_pairout` | `u >= 2.6` m/s (controller's minimum duty) | `u >= 0` | DECLINED (NORMAL_L: both segments fail; the reference's NORMAL mode is not well formed at low airflow, the CO mode fact is lost) | no claim-side fix (`benchmarks/skipped/tunnel_jetfan_pairout/SKIPPED.md`); SKIPPED, refilled by `antenna_track_kvretune` | D I / (out) | - |
+| `antenna_track_kvretune` | (reserve) | `t >= 0`; `c`, `x` in [-2, 92] deg (limit switches) | CERTIFIED; W20 CERTIFIES; every counter-run CERTIFIES | refilled (best-scored reserve candidate with physical domains: round-1 reserve score P 4 R 4 C 5), Assumption 1 proof of fb55b6e restored unchanged | (in) / D | 0.0125 (TRACK), 0.085 (STOW), as its header |
+| `engine_start_highidle` | `5 <= N2 <= 110`, `0 <= t <= 40` | `0 <= N2 <= 110`, `t >= 0` | CERTIFIED (same counter-run pattern) | domain reverted, header fixed, Assumption 1 proof adapted | R D I / R D I | 4.00 unchanged |
+| `acc_tune_lag` | `a` in [-10, 10] (1 g), `v` in [0, 40] | unchanged | W5 DECLINES; `a.hi`, `a.lo` alone at 20 % DECLINE | header: physical and load-bearing (was "not load-bearing") | S M / S M | unchanged |
+| `rover_ladder_3to6` | `z <= 0.15` m (suspension travel) | unchanged | W5 CERTIFIES; `z.hi` alone at 20 % DECLINES | header: physical and load-bearing | - / - | unchanged |
+| `rover_ladder_6to8` | `z <= 0.15` m | unchanged | W5 CERTIFIES; `z.hi` alone at 20 % DECLINES | header: physical and load-bearing | S M I / S M I | unchanged |
+| `rover_ladder_8to12` | `z <= 0.15` m, `v <= 8` m/s (governor) | unchanged | W5 CERTIFIES; `z.hi`, `v.hi` alone at 20 % DECLINE | header: physical and load-bearing | S M I / S M I | unchanged |
+
+Reserve widening test (the same W20 on the 26 reserve files): every file CERTIFIES except
+`lng_cooldown_overspray` and `quad_light_airframe_20` (noted in `benchmarks/reserve/README.md`).
+Ablations re-measured for every edited benchmark (SYNC, NO_CHOICE, SYNC+NO_CHOICE, NO_PRUNE,
+NO_PRUNE+NO_CHOICE, NO_REPO, NO_CUT, NO_IMPLIED_CUT, NO_LINEAR_CUT, without IMPLIED_CUT, OPREGION,
+NO_PAIR_STRETCH, STRICT) and written into the headers: flaps SYNC and SYNC+NO_CHOICE decline (S);
+platoon every run certifies (D from the uniform-row runs); quad SYNC, NO_CHOICE, NO_PRUNE+NO_CHOICE,
+SYNC+NO_CHOICE decline (S, X); turbine SYNC, NO_PRUNE, NO_PRUNE+NO_CHOICE, SYNC+NO_CHOICE, NO_REPO,
+NO_CUT, NO_IMPLIED_CUT and without IMPLIED_CUT decline (R P I; D from the uniform rows); engine SYNC,
+NO_REPO, NO_CUT, NO_IMPLIED_CUT and without IMPLIED_CUT decline (R I; D from the uniform rows);
+antenna every run certifies (D from the uniform rows).
+
+Checks (all green; `lake build` exit 0, 9293 jobs, the five executables 18172): `--check-quick-v2` 50 certified, modal 1264/1264, handoff 544/544, non-connection 60/60, pruned 30/30, reposition 74/74, strict gate 189/189 (87 invariant, 102 exit), 0 UNKNOWN, 0 BLOCKING; `relcert-test` ALL PASS (50 literals); bridge 5283/5283 (declared count set after measuring, was 5246: the tunnel's 38 groups out, the antenna's in, the five re-emitted instances); progress 197/197; refute 260/260 (87 instances, was 73: two tunnel out, 13 antenna and three platoon in) and every refutation instance builds; WellFormedBattery 66 standard axiom lines (plus the 11 `CutLiftX` replay lines); AxiomCheck 9; both negatives DECLINED; `lit_hypercert_vehicle_s8` BLOCKING / DECLINED; `scripts/paper_numbers.sh` re-run (covers identical, letters S 20 M 26 R 7 B 13 P 6 D 13 I 17 X 15; per-benchmark letters identical to the previous run for every file but the three listed).
+
+Letters: start (b1827f4) S 20 M 26 R 7 B 13 P 6 D 12 I 18 X 15; end S 20 M 26 R 7 B 13 P 6 D 13 I 17 X 15 (`tunnel_jetfan_pairout` D I out; `antenna_track_kvretune` D and the turbine's new D in; no other benchmark's letters changed).
+
+Failed checks and how they were resolved: (1) the first `lake build` failed in `Bridge/TurbineStartupGearratio.lean` (`rowsSame IR = true` decided false: the turbine now has a per-mode row), fixed by adding it to `KEYED` in `scripts/gen_bridge.py` and re-emitting; (2) the second build failed in the same file (`3 ≠ 0`: the mode-keyed form needs four auxiliary coordinates, so the Assumption 1 lemma must be at dimension 3), fixed by lifting `WellFormed/TurbineStartupGearratio.lean` from `Var 2` to `Var 3` (two padding coordinates, their fields lower to 0) and re-emitting its pack rows and bridge at dimension 3 / 4 (the finder re-run on it, still no witness); (3) `relcert-bridge-verdicts` reported `discharged 5283 but owes 5246`, the measured total set in `VerdictsV2/RunBridge.lean` and the runner rebuilt; (4) `paper_numbers.sh` run once under `bash` instead of `zsh` wrote no run tables and its letters step failed on the stale table (`KeyError: tunnel_jetfan_pairout`); re-run under `zsh`, green. Nothing reverted.
+
+Commits (branch `benchmark-fixes`, pushed): 6e1819f the audit (benchmarks, proofs, generated layers, counts, paper numbers); this section in the commit after it.

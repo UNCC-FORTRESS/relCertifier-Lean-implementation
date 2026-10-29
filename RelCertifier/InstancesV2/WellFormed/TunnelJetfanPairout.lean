@@ -12,17 +12,18 @@ The right model is the tunnel ventilation: the clock `t` (coordinate 0), the jet
 `u` (coordinate 1) and the contaminant `c` (coordinate 2), with `t' = 1`,
 `u' = w − b u²` (`b = 0.00171875`; `w` = `0.0225` in `NORMAL`, `0.09` in `FIRE`) and
 `c' = a − 0.000625 u c` (`a` = `0.1583`, `1.2583`), inside the evolve box `t ≥ 0`,
-`3.2 ≤ u ≤ 7.3`, `0 ≤ c ≤ 630`. Guards: `NORMAL` `t < 600 ∧ c ≤ 100`, `FIRE` `t ≥ 600` (each
-with the box); `NORMAL → {NORMAL, FIRE}`, `FIRE → {FIRE}`. The first suite right model with a
+`2.6 ≤ u ≤ 7.3`, `0 ≤ c ≤ 900` (floor 2.6 and cap 900 since 2026-10-29; before, 3.2 and 630).
+Guards: `NORMAL` `t < 600 ∧ c ≤ 100`, `FIRE` `t ≥ 600` (each with the box); `NORMAL → {NORMAL, FIRE}`, `FIRE → {FIRE}`. The first suite right model with a
 polynomial field (`u²`, `u c`).
 * Existence (i), explicit (no Picard–Lindelöf): `u' = b (U² − u²)` with `U = √(w/b)`
   (`√(144/11) ≈ 3.618`, `√(576/11) ≈ 7.236`) is a Riccati equation with the run
   `uSol U u₀ s = U ((U + u₀) e^{2bUs} − (U − u₀)) / ((U + u₀) e^{2bUs} + (U − u₀))`, which stays
-  between `u₀` and `U` (`uSol_between`), so in `[3.2, 7.3]`; given that run, `c` is linear with
-  the continuous rate `p(s) = 0.000625 u(s) ≥ 0.002` (`linSol`, variation of constants with
-  `e^{−∫p}`), and stays in `[0, 630]` since `a ≤ 1.2583 ≤ 630 · 0.002` (`linSol_between`).
-* (ii): `NORMAL` keeps `c ≤ 100` (at `c ≥ 100`, `c' ≤ 0.1583 − 0.2 < 0`, `coord_le_barrier`),
-  so a run ends in `NORMAL` (`t < 600`) or `FIRE` (`t ≥ 600`); `FIRE` keeps `t ≥ 600`
+  between `u₀` and `U` (`uSol_between`), so in `[2.6, 7.3]`; given that run, `c` is linear with
+  the continuous rate `p(s) = 0.000625 u(s) ≥ 0.001625` (`linSol`, variation of constants with
+  `e^{−∫p}`), and stays in `[0, 900]` since `a ≤ 1.2583 ≤ 900 · 0.001625 = 1.4625`
+  (`linSol_between`).
+* (ii): `NORMAL` keeps `c ≤ 100` (at `c ≥ 100`, `u ≥ 2.6`: `c' ≤ 0.1583 − 0.1625 < 0`,
+  `coord_le_barrier`), so a run ends in `NORMAL` (`t < 600`) or `FIRE` (`t ≥ 600`); `FIRE` keeps `t ≥ 600`
   (`t' = 1`, `coord_ge_barrier`).
 Z3-free; modelled on `FurnaceProgramTimebase.lean`.
 -/
@@ -63,11 +64,11 @@ theorem hp_100 : Run.parseRat "100" = some (100 : ℚ) := by
 theorem hp_600 : Run.parseRat "600" = some (600 : ℚ) := by
   have h : parseQ "600" = some (⟨600, 1⟩ : QF) := by decide
   norm_num [Run.parseRat, h]
-theorem hp_630 : Run.parseRat "630" = some (630 : ℚ) := by
-  have h : parseQ "630" = some (⟨630, 1⟩ : QF) := by decide
+theorem hp_900 : Run.parseRat "900" = some (900 : ℚ) := by
+  have h : parseQ "900" = some (⟨900, 1⟩ : QF) := by decide
   norm_num [Run.parseRat, h]
-theorem hp_3_2 : Run.parseRat "3.2" = some ((16:ℚ)/5) := by
-  have h : parseQ "3.2" = some (⟨32, 10⟩ : QF) := by decide
+theorem hp_2_6 : Run.parseRat "2.6" = some ((13:ℚ)/5) := by
+  have h : parseQ "2.6" = some (⟨26, 10⟩ : QF) := by decide
   norm_num [Run.parseRat, h]
 theorem hp_7_3 : Run.parseRat "7.3" = some ((73:ℚ)/10) := by
   have h : parseQ "7.3" = some (⟨73, 10⟩ : QF) := by decide
@@ -103,7 +104,7 @@ theorem fR0_eval (q : ℕ) (hq : q < 2) (x : State (Var 3)) :
     Term.eval (fR q 0) x = 1 := by
   interval_cases q <;>
     simp [fR, hostDyn, mR, tunnel_jetfan_pairout_IRv2, vs, Run.dynOf, Run.lowerE, hp_1_0, hp_1,
-      hp_0, hp_100, hp_600, hp_630, hp_3_2, hp_7_3, hp_0_0225, hp_0_09, hp_0_00171875,
+      hp_0, hp_100, hp_600, hp_900, hp_2_6, hp_7_3, hp_0_0225, hp_0_09, hp_0_00171875,
       hp_0_000625, hp_0_1583, hp_1_2583,
       Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv]
 
@@ -111,7 +112,7 @@ theorem fR1_eval (q : ℕ) (hq : q < 2) (x : State (Var 3)) :
     Term.eval (fR q 1) x = wR q - 11/6400 * (x (Rv 1) * x (Rv 1)) := by
   interval_cases q <;>
     simp [fR, hostDyn, mR, tunnel_jetfan_pairout_IRv2, vs, Run.dynOf, Run.lowerE, hp_1_0, hp_1,
-      hp_0, hp_100, hp_600, hp_630, hp_3_2, hp_7_3, hp_0_0225, hp_0_09, hp_0_00171875,
+      hp_0, hp_100, hp_600, hp_900, hp_2_6, hp_7_3, hp_0_0225, hp_0_09, hp_0_00171875,
       hp_0_000625, hp_0_1583, hp_1_2583,
       Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv,
       wR]
@@ -120,16 +121,16 @@ theorem fR2_eval (q : ℕ) (hq : q < 2) (x : State (Var 3)) :
     Term.eval (fR q 2) x = aR q - 1/1600 * (x (Rv 1) * x (Rv 2)) := by
   interval_cases q <;>
     simp [fR, hostDyn, mR, tunnel_jetfan_pairout_IRv2, vs, Run.dynOf, Run.lowerE, hp_1_0, hp_1,
-      hp_0, hp_100, hp_600, hp_630, hp_3_2, hp_7_3, hp_0_0225, hp_0_09, hp_0_00171875,
+      hp_0, hp_100, hp_600, hp_900, hp_2_6, hp_7_3, hp_0_0225, hp_0_09, hp_0_00171875,
       hp_0_000625, hp_0_1583, hp_1_2583,
       Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp, Rv,
       aR]
 
 theorem sat_domR (x : State (Var 3)) :
     Formula.sat domR x ↔
-      (0 ≤ x (Rv 0) ∧ 16/5 ≤ x (Rv 1) ∧ x (Rv 1) ≤ 73/10 ∧ 0 ≤ x (Rv 2) ∧ x (Rv 2) ≤ 630) := by
+      (0 ≤ x (Rv 0) ∧ 13/5 ≤ x (Rv 1) ∧ x (Rv 1) ≤ 73/10 ∧ 0 ≤ x (Rv 2) ∧ x (Rv 2) ≤ 900) := by
   simp only [domR, hostEvolve, mR, tunnel_jetfan_pairout_IRv2, vs]
-  simp [Run.lowerF, Run.lowerE, hp_1_0, hp_1, hp_0, hp_100, hp_600, hp_630, hp_3_2, hp_7_3,
+  simp [Run.lowerF, Run.lowerE, hp_1_0, hp_1, hp_0, hp_100, hp_600, hp_900, hp_2_6, hp_7_3,
     Run.resolveVar, List.findIdx?_cons,
     IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv, and_assoc]
 
@@ -165,19 +166,19 @@ theorem Gr_modeAt_inv {q : ℕ} {m : RMode (Var 3)} (hm : Gr.modeAt q = some m) 
 
 theorem sat_guard0 (ν : State (Var 3)) :
     Formula.sat (hostGuard vs 3 Side.R (mR 0)) ν ↔
-      (ν (Rv 0) < 600 ∧ ν (Rv 2) ≤ 100 ∧ 0 ≤ ν (Rv 0) ∧ 16/5 ≤ ν (Rv 1) ∧ ν (Rv 1) ≤ 73/10 ∧
-        0 ≤ ν (Rv 2) ∧ ν (Rv 2) ≤ 630) := by
+      (ν (Rv 0) < 600 ∧ ν (Rv 2) ≤ 100 ∧ 0 ≤ ν (Rv 0) ∧ 13/5 ≤ ν (Rv 1) ∧ ν (Rv 1) ≤ 73/10 ∧
+        0 ≤ ν (Rv 2) ∧ ν (Rv 2) ≤ 900) := by
   simp [hostGuard, mR, tunnel_jetfan_pairout_IRv2, Run.lowerF, Run.lowerE, hp_1_0, hp_1, hp_0,
-    hp_100, hp_600, hp_630, hp_3_2, hp_7_3, vs,
+    hp_100, hp_600, hp_900, hp_2_6, hp_7_3, vs,
     Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
     CompOp.interp, Term.eval, Rv, and_assoc]
 
 theorem sat_guard1 (ν : State (Var 3)) :
     Formula.sat (hostGuard vs 3 Side.R (mR 1)) ν ↔
-      (600 ≤ ν (Rv 0) ∧ 0 ≤ ν (Rv 0) ∧ 16/5 ≤ ν (Rv 1) ∧ ν (Rv 1) ≤ 73/10 ∧
-        0 ≤ ν (Rv 2) ∧ ν (Rv 2) ≤ 630) := by
+      (600 ≤ ν (Rv 0) ∧ 0 ≤ ν (Rv 0) ∧ 13/5 ≤ ν (Rv 1) ∧ ν (Rv 1) ≤ 73/10 ∧
+        0 ≤ ν (Rv 2) ∧ ν (Rv 2) ≤ 900) := by
   simp [hostGuard, mR, tunnel_jetfan_pairout_IRv2, Run.lowerF, Run.lowerE, hp_1_0, hp_1, hp_0,
-    hp_100, hp_600, hp_630, hp_3_2, hp_7_3, vs,
+    hp_100, hp_600, hp_900, hp_2_6, hp_7_3, vs,
     Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
     CompOp.interp, Term.eval, Rv, and_assoc]
 
@@ -327,7 +328,7 @@ noncomputable def UR (q : ℕ) : ℝ := Real.sqrt (wR q * (6400/11))
 theorem UR_sq (q : ℕ) : UR q * UR q = wR q * (6400/11) :=
   Real.mul_self_sqrt (by unfold wR; split_ifs <;> norm_num)
 
-theorem UR_box (q : ℕ) : 0 < UR q ∧ 16/5 ≤ UR q ∧ UR q ≤ 73/10 := by
+theorem UR_box (q : ℕ) : 0 < UR q ∧ 13/5 ≤ UR q ∧ UR q ≤ 73/10 := by
   have h0 : 0 ≤ UR q := Real.sqrt_nonneg _
   have h1 := UR_sq q
   have hw : 144/11 ≤ wR q * (6400/11) ∧ wR q * (6400/11) ≤ 576/11 := by
@@ -385,10 +386,10 @@ theorem exists_run (q : ℕ) (hq : q < 2) (x : State (Var 3)) (hd : Formula.sat 
     | 0 => rw [phi_zero]; simp
     | 1 => rw [phi_one, uSol_zero _ _ hU.1]
     | 2 => rw [phi_two, linSol_zero]
-  · have hu := uSol_between (UR q) (x (Rv 1)) t (16/5) (73/10) hU.1 hx ht a1 a2 hU.2.1 hU.2.2
-    have hc := linSol_between (pC_cont q _ hx) (a := aR q) (M := 630) (T := t)
+  · have hu := uSol_between (UR q) (x (Rv 1)) t (13/5) (73/10) hU.1 hx ht a1 a2 hU.2.1 hU.2.2
+    have hc := linSol_between (pC_cont q _ hx) (a := aR q) (M := 900) (T := t)
       (by unfold aR; split_ifs <;> norm_num) a3 a4 (fun s _ => by
-        have h := uSol_between (UR q) (x (Rv 1)) (max s 0) (16/5) (73/10) hU.1 hx
+        have h := uSol_between (UR q) (x (Rv 1)) (max s 0) (13/5) (73/10) hU.1 hx
           (le_max_right s 0) a1 a2 hU.2.1 hU.2.2
         have ha : aR q ≤ 12583/10000 := by unfold aR; split_ifs <;> norm_num
         simp only [pC]; nlinarith [h.1]) t ⟨ht, le_rfl⟩
@@ -408,7 +409,7 @@ theorem tunnel_jetfan_pairout_wellFormedR :
   have H' : ODESol (rightBlock (fR q) (Term.const 1)) domR x t Φ := H
   obtain ⟨e0, e1, e2, e3, e4⟩ := (sat_domR _).mp H.end_dom
   interval_cases q
-  · -- NORMAL: `c ≤ 100` is kept (at `c = 100`, `c' ≤ 0.1583 − 0.2`); NORMAL before 600, FIRE after
+  · -- NORMAL: `c ≤ 100` is kept (at `c = 100`, `u ≥ 2.6`: `c' ≤ 0.1583 − 0.1625`); NORMAL before 600, FIRE after
     have hg0 := (sat_guard0 x).mp hg
     have hc := H'.coord_le_barrier 2 100 (fun s hs hK => by
       obtain ⟨-, s1, -, -, -⟩ := (sat_domR s).mp hs

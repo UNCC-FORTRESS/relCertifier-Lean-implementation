@@ -65,10 +65,12 @@ import RelCertifier.InstancesV2.Refute.Data.sat_detumble_weak_m005
 import RelCertifier.InstancesV2.Refute.Data.sat_detumble_weak_m006
 import RelCertifier.InstancesV2.Refute.Data.platoon_linkloss_m036
 import RelCertifier.InstancesV2.Refute.Data.platoon_linkloss_m039
-import RelCertifier.InstancesV2.Refute.Data.engine_start_highidle_m003
+import RelCertifier.InstancesV2.Refute.Data.engine_start_highidle_m008
 import RelCertifier.InstancesV2.Refute.Data.hydro_rejection_gatecal_m024
 import RelCertifier.InstancesV2.Refute.Data.hydro_rejection_gatecal_m028
 import RelCertifier.InstancesV2.Refute.Data.ventilator_vc_cuffleak_m020
+import RelCertifier.InstancesV2.Refute.Data.tunnel_jetfan_pairout_m024
+import RelCertifier.InstancesV2.Refute.Data.tunnel_jetfan_pairout_m027
 import RelCertifier.InstancesV2.Refute.Data.charger_fast_tapers_m003
 import RelCertifier.InstancesV2.Refute.Data.lit_girard08_robot_m016
 import RelCertifier.InstancesV2.Refute.Data.platoon_profiles_m024
@@ -93,6 +95,7 @@ import RelCertifier.InstancesV2.Cuts.rover_terrain_6to12
 import RelCertifier.InstancesV2.Cuts.sat3w_detumble_phases
 import RelCertifier.InstancesV2.Cuts.sat_detumble_phases
 import RelCertifier.InstancesV2.Cuts.sat_detumble_weak
+import RelCertifier.InstancesV2.Cuts.tunnel_jetfan_pairout
 import RelCertifier.InstancesV2.Cuts.ventilator_vc_cuffleak
 import RelCertifier.Checker.EvolStrengtheningX
 
@@ -169,10 +172,12 @@ def refuteTable : List RefRec := [
   ⟨"sat_detumble_weak_m006", 4 + 1, sat_detumble_weak_m006_IRm, sat_detumble_weak_cutsV2X, sat_detumble_weak_m006_wit⟩,
   ⟨"platoon_linkloss_m036", 3 + 1, platoon_linkloss_m036_IRm, platoon_linkloss_cutsV2X, platoon_linkloss_m036_wit⟩,
   ⟨"platoon_linkloss_m039", 3 + 1, platoon_linkloss_m039_IRm, platoon_linkloss_cutsV2X, platoon_linkloss_m039_wit⟩,
-  ⟨"engine_start_highidle_m003", 3 + 1, engine_start_highidle_m003_IRm, engine_start_highidle_cutsV2X, engine_start_highidle_m003_wit⟩,
+  ⟨"engine_start_highidle_m008", 3 + 1, engine_start_highidle_m008_IRm, engine_start_highidle_cutsV2X, engine_start_highidle_m008_wit⟩,
   ⟨"hydro_rejection_gatecal_m024", 3 + 1, hydro_rejection_gatecal_m024_IRm, hydro_rejection_gatecal_cutsV2X, hydro_rejection_gatecal_m024_wit⟩,
   ⟨"hydro_rejection_gatecal_m028", 3 + 1, hydro_rejection_gatecal_m028_IRm, hydro_rejection_gatecal_cutsV2X, hydro_rejection_gatecal_m028_wit⟩,
   ⟨"ventilator_vc_cuffleak_m020", 3 + 1, ventilator_vc_cuffleak_m020_IRm, ventilator_vc_cuffleak_cutsV2X, ventilator_vc_cuffleak_m020_wit⟩,
+  ⟨"tunnel_jetfan_pairout_m024", 3 + 1, tunnel_jetfan_pairout_m024_IRm, tunnel_jetfan_pairout_cutsV2X, tunnel_jetfan_pairout_m024_wit⟩,
+  ⟨"tunnel_jetfan_pairout_m027", 3 + 1, tunnel_jetfan_pairout_m027_IRm, tunnel_jetfan_pairout_cutsV2X, tunnel_jetfan_pairout_m027_wit⟩,
   ⟨"charger_fast_tapers_m003", 3 + 1, charger_fast_tapers_m003_IRm, charger_fast_tapers_cutsV2X, charger_fast_tapers_m003_wit⟩,
   ⟨"lit_girard08_robot_m016", 6 + 1, lit_girard08_robot_m016_IRm, lit_girard08_robot_cutsV2X, lit_girard08_robot_m016_wit⟩,
   ⟨"platoon_profiles_m024", 3 + 1, platoon_profiles_m024_IRm, platoon_profiles_cutsV2X, platoon_profiles_m024_wit⟩,
@@ -182,6 +187,6 @@ def refuteTable : List RefRec := [
   ⟨"platoon_latency_m043", 3 + 1, platoon_latency_m043_IRm, platoon_latency_cutsV2X, platoon_latency_m043_wit⟩ ]
 
 /-- Declared: the number of query groups over the refutations (one per right mode each). -/
-def expectedRefuteGroups : Nat := 215
+def expectedRefuteGroups : Nat := 219
 
 end RelCertifier.Refute

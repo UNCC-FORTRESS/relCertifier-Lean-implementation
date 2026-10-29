@@ -18,19 +18,24 @@
 # hypoglycaemia threshold; L1..L8 deliver u = 0.2, 0.4, ..., 1.6 U/h on 30 mg/dL bands from 70 (L1 on
 # [70, 100), L2 [100, 130), ..., L8 at or above 280). The level is a function of the reading.
 # Right (validated): the pump reads the CGM every 5 min (Dexcom G6 interval; epsilon 5). Within 5 min
-#   glucose moves at most 17.9 mg/dL < 30, so the declared successors are the adjacent levels
-#   (relcert --wellformed: every level ok (exit), e.g. L1 ok (exit->SUSP,L2)).
+#   glucose moves at most 27.9 mg/dL < 30 over the domain (the linear rate at G = 400 with full
+#   insulin action 1.6 U/h and the lowest need 0.5 U/h, 335/60 x 5; 26.8 by the exact exponential,
+#   and the run stays in L8), and at most 17.9 from the L8 edge G = 280, so no reading skips a band:
+#   the declared successors are the adjacent levels (relcert --wellformed: every level ok (exit),
+#   e.g. L1 ok (exit->SUSP,L2)).
 # Left (deployed): the same pump, table and patient; the transmitter-to-pump Bluetooth link loses every
 #   other reading (body shadowing, distance), so each basal decision is held for 10 min (epsilon 10).
-#   Within 10 min glucose can move up to 35.8 mg/dL (at high glucose with full insulin action), so the
+#   Within 10 min glucose can move up to 55.8 mg/dL over the domain (51.4 exact, from G = 400,
+#   still in L8) and 35.8 from the L8 edge (33.0 exact: 280 to 247, two bands down), so the
 #   deployed's successors reach two levels. The lost readings are the only difference (same pump, table,
 #   insulin and patient). lambda_min = lambda_max = 1: the claim compares the two patients at equal times.
 #
 # Property (every left mode): |G_L - G_R| <= 25, |X_L - X_R| <= 0.5, b_L = b_R. Requirement: the
 # consensus target range 70-180 mg/dL (Battelino et al., Diabetes Care 2019). The validated loop settles
 # between 125 mg/dL (b = 0.5, in L2) and 155 mg/dL (b = 1.3, in L3) (simulated, every start and need), so
-# a deployed run within 25 mg/dL of a validated run stays inside 70-180 wherever the validated loop
-# settles (180 - 155 = 25; 125 - 25 = 100 > 70). The insulin-action row is the stated strengthening that
+# a deployed run within 25 mg/dL of a validated run stays inside 70-180 at the validated loop's
+# settling points (180 - 155 = 25; 125 - 25 = 100 > 70; transiently the validated run can be anywhere
+# in [40, 400]). The insulin-action row is the stated strengthening that
 # carries the glucose row (the glucose gap is driven by 50 times the insulin-action gap: 25 = 50 x 0.5).
 # Tightest: X 0.40 with G 20.0 = two basal levels (0.4 U/h) and 50 x 0.4 mg/dL; G 19.5 declines with X
 # 0.5, X 0.39 declines with G 25. Certified window at X 0.6: G up to 30.5 (tested), so 25 is not at an

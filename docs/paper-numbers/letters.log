@@ -5,7 +5,7 @@ acc_tune_limp: S M B D I X (lam1=DECLINED, norepo=CERTIFIED, uniform={'CRUISE': 
 bottling_fill_strainer: S I (lam1=DECLINED, norepo=CERTIFIED, uniform={}, keeps_all={})
 charger_fast_tapers: S M R B P D I (lam1=CERTIFIED, norepo=DECLINED, uniform={'PRECHARGE': 'DECLINED', 'BULK/ABSORB/FULL/FAULT': 'DECLINED'}, keeps_all={'PRECHARGE': True, 'BULK/ABSORB/FULL/FAULT': False})
 elevator_start_discbrake: R D (lam1=-, norepo=DECLINED, uniform={'LIFT': 'DECLINED', 'UP/APP/STOP': 'DECLINED'}, keeps_all={'LIFT': True, 'UP/APP/STOP': False})
-engine_start_highidle: R D I (lam1=-, norepo=DECLINED, uniform={'STARTER/LIGHTOFF': 'DECLINED', 'SELF/IDLE/ABORT': 'DECLINED'}, keeps_all={'STARTER/LIGHTOFF': True, 'SELF/IDLE/ABORT': False})
+engine_start_highidle: R D I (lam1=-, norepo=DECLINED, uniform={'STARTER': 'DECLINED', 'LIGHTOFF': 'DECLINED', 'SELF/IDLE/ABORT': 'DECLINED'}, keeps_all={'STARTER': True, 'LIGHTOFF': False, 'SELF/IDLE/ABORT': False})
 flaps_slow_approach: S (lam1=DECLINED, norepo=CERTIFIED, uniform={}, keeps_all={})
 fuelcell_chp_dos: M B P X (lam1=-, norepo=CERTIFIED, uniform={}, keeps_all={})
 furnace_program_timebase: S I (lam1=DECLINED, norepo=CERTIFIED, uniform={}, keeps_all={})

@@ -10,7 +10,7 @@ Released under Apache 2.0 license.
 
 Over the instance's guarded right automaton `Gr`, the lowered right guards, `ε_r = 1`.
 `NORMAL` / `ECO` / `SPORT` (`20 ≤ v ≤ 40`, `v' = (c − v)/2` with `c = 30, 27, 33`) and
-`DISENGAGE` (`v < 20`, `v' = −v/2`) are contractions whose guard sets are forward invariant
+`DISENGAGE` (`v < 20`, `v' = −v/10`; `−v/2` until 2026-10-28) are contractions whose guard sets are forward invariant
 (style (a)); the closed engaged guards and `DISENGAGE` partition the domain `[0, 40]`.
 Existence: the explicit exponential. Z3-free; the closed-guard version of the earlier proof.
 -/
@@ -125,9 +125,9 @@ theorem sat_guardR (q : ℕ) (hq : q < 3) (ν : State (Var 3)) :
 theorem hp10 : Run.parseRat "1.0" = some (1 : ℚ) := by
   have h : parseQ "1.0" = some (⟨10, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]
-theorem hpm05 : Run.parseRat "-0.5" = some (-(1:ℚ)/2) := by
-  have h : parseQ "-0.5" = some (⟨-5, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
+theorem hpm01 : Run.parseRat "-0.1" = some (-(1:ℚ)/10) := by
+  have h : parseQ "-0.1" = some (⟨-1, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]
 
 theorem epsR_eq : epsR acc_spoof_limp_IRv2 = 1 := by
   simp [epsR, acc_spoof_limp_IRv2, hp10]
@@ -136,16 +136,21 @@ noncomputable def guardR (q : ℕ) : Formula (Var 3) := hostGuard vs 3 Side.R (m
 
 /-- Set points of all four right modes (`DISENGAGE`: 0). -/
 noncomputable def cR4 (q : ℕ) : ℝ := if q < 3 then cRc q else 0
+/-- Gains of all four right modes (the engaged modes 1/2; `DISENGAGE` 1/10, the coast-down). -/
+noncomputable def kR4 (q : ℕ) : ℝ := if q < 3 then 1/2 else 1/10
+
+theorem kR4_nonneg (q : ℕ) : 0 ≤ kR4 q := by
+  unfold kR4; split_ifs <;> norm_num
 
 theorem fR0_all (q : ℕ) (hq : q < 4) (x : State (Var 3)) :
-    Term.eval (fR q 0) x = 1/2 * (cR4 q - x (Rv 0)) := by
+    Term.eval (fR q 0) x = kR4 q * (cR4 q - x (Rv 0)) := by
   by_cases h3 : q < 3
-  · rw [fR0_eval q h3]; simp [cR4, h3]
+  · rw [fR0_eval q h3]; simp [cR4, kR4, h3]
   · have : q = 3 := by omega
     subst this
-    simp [fR, hostDyn, mR, acc_spoof_limp_IRv2, vs, Run.dynOf, Run.lowerE, hpm05,
+    simp [fR, hostDyn, mR, acc_spoof_limp_IRv2, vs, Run.dynOf, Run.lowerE, hpm01,
       Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
-      AOp.interp, Rv, cR4]
+      AOp.interp, Rv, cR4, kR4]
     ring
 
 theorem fRo_all (q : ℕ) (hq : q < 4) (i : Fin 3) (hi : i ≠ 0) (x : State (Var 3)) :
@@ -158,11 +163,11 @@ theorem fRo_all (q : ℕ) (hq : q < 4) (i : Fin 3) (hi : i ≠ 0) (x : State (Va
     subst this
     match i, hi with
     | 1, _ =>
-      simp [fR, hostDyn, mR, acc_spoof_limp_IRv2, vs, Run.dynOf, Run.lowerE, hpm05,
+      simp [fR, hostDyn, mR, acc_spoof_limp_IRv2, vs, Run.dynOf, Run.lowerE, hpm01,
         Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
         AOp.interp, Rv]
     | 2, _ =>
-      simp [fR, hostDyn, mR, acc_spoof_limp_IRv2, vs, Run.dynOf, Run.lowerE, hpm05,
+      simp [fR, hostDyn, mR, acc_spoof_limp_IRv2, vs, Run.dynOf, Run.lowerE, hpm01,
         Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
         AOp.interp, Rv]
 
@@ -184,7 +189,7 @@ theorem acc_spoof_limp_wellFormedR : WellFormedR Gr guardR (epsR acc_spoof_limp_
   have hcr : 0 ≤ cR4 q ∧ cR4 q ≤ 40 := by
     unfold cR4 cRc; split_ifs <;> norm_num
   refine ⟨?_, ?_⟩
-  · refine exists_contract_run x 0 (1/2) (cR4 q) (by norm_num) (fR0_all q hq4)
+  · refine exists_contract_run x 0 (kR4 q) (cR4 q) (kR4_nonneg q) (fR0_all q hq4)
       (fun i hi s => fRo_all q hq4 i hi s) ?_ 1 (by norm_num)
     intro v h1 h2
     show Formula.sat domR _
@@ -192,9 +197,9 @@ theorem acc_spoof_limp_wellFormedR : WellFormedR Gr guardR (epsR acc_spoof_limp_
     exact ⟨le_trans (le_min hdx.1 hcr.1) h1, le_trans h2 (max_le hdx.2 hcr.2)⟩
   · intro t Φ _ H
     have hf : ∀ s, Formula.sat (modeW q).dom s →
-        Term.eval (Term.binop .mul (Term.const 1) (fR q 0)) s = 1/2 * (cR4 q - s (Rv 0)) :=
+        Term.eval (Term.binop .mul (Term.const 1) (fR q 0)) s = kR4 q * (cR4 q - s (Rv 0)) :=
       fun s _ => by rw [eval_unit_mul, fR0_all q hq4]
-    have hb := H.linear_between (memR q) _ _ (by norm_num) hf
+    have hb := H.linear_between (memR q) _ _ (kR4_nonneg q) hf
     by_cases h3 : q < 3
     · -- the three engaged profiles: [20, 40] invariant (set point inside)
       have hgx := (sat_guardR q h3 x).mp hg
@@ -207,7 +212,7 @@ theorem acc_spoof_limp_wellFormedR : WellFormedR Gr guardR (epsR acc_spoof_limp_
     · have : q = 3 := by omega
       subst this
       have hgx := (sat_guardR3 x).mp hg
-      have hdn := H.linear_down (memR 3) _ _ (by norm_num) hf (by simp [cR4]; linarith [hdx.1])
+      have hdn := H.linear_down (memR 3) _ _ (kR4_nonneg 3) hf (by simp [cR4]; linarith [hdx.1])
       exact ⟨edgeW 3 3, edge_mem 3 3 (by decide), (sat_guardR3 _).mpr (by linarith [hdn.2])⟩
 
 end V2AccSpoofLimp

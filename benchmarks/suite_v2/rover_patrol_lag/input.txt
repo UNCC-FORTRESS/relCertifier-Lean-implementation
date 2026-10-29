@@ -35,24 +35,31 @@
 # only, on both sides; they partition s >= 0, so every right domain state is in a right guard.
 #
 # Property (the same two rows in every left mode).
-#   (1) Requirement: s_L <= s_R + 1. The waypoint acceptance radius is 1 m: the planner registers a
-#       waypoint when the rover is within 1 m of it. The claim is an ORDER property: in the matched
-#       runs (the plan run re-timed by a rate in [1, 3/2] and advanced alone into the rover's zone,
-#       see Stretch) the lagged rover is never more than 1 m ahead of the planning model, so every
-#       waypoint the rover reaches has already been registered in the matched plan run. It is not a
-#       real-time statement: with the plan on the rover's clock (RELCERT_SYNC=1: lambda 1, no
-#       right-only step) the file DECLINES. Tightest 0.59 (0.58 declines) at lambda_max 3/2; at the
-#       round-2 lambda_max 6 it was 0.38 (a faster re-timing absorbs part of the lead).
+#   (1) s_L <= s_R + 1: in the matched runs (the plan run re-timed by a rate in [1, 3/2] and
+#       advanced alone into the rover's zone, see Stretch) the lagged rover is never more than 1 m
+#       ahead of the plan; 1 m is the waypoint acceptance radius. The rows are ONE-SIDED: the
+#       matched plan may lead by any amount, and the certified claim is an order property of the
+#       matched runs, not a real-time statement (with the plan on the rover's clock, RELCERT_SYNC=1:
+#       lambda 1, no right-only step, the file DECLINES). Tightest 0.59 (0.58 declines) at
+#       lambda_max 3/2; at the round-2 lambda_max 6 it was 0.38 (a faster re-timing absorbs part
+#       of the lead).
 #   (2) Strengthening (needed: (1) alone DECLINES): P_L <= P_R + 0.375 with the look-ahead odometers
 #       P_L = s_L + v_L + 0.1875 a_L and P_R = s_R + v_R, whose rate is exactly the zone command c on
 #       both sides (P_L' = v + a + tau a' = c), so in a shared zone P_L - P_R is constant. 0.375 m is
 #       derived: at an aligned start (s_L = s_R, v_L = v_R) P_L - P_R = tau a_L <= tau x 2 m/s^2.
 #       With (1) at 1 m, (2) certifies for every offset from -1 to 0.79 (0.80 declines); offsets
 #       below 0.375 only shrink the starts.
-# The rows are one-sided by design of the requirement: the plan may lead. The two-sided version
-# (|s_L - s_R| <= 1 with |P_L - P_R| <= 0.375) DECLINES: a plan that is ahead crosses a zone boundary
-# first and its higher command lets it pull further ahead. Every left mode has a satisfiable start
-# (s_R = s_L, v_R = v_L in its zone, any a_L).
+# The other direction, the rover never behind the plan, is a different claim with a different
+# stretch (measured 2026-10-29): s_R <= s_L + X with P_R <= P_L + Y DECLINES at every X up to 20
+# for lambda in [1, 3/2] or [2/3, 1] (a plan already in FAST while the rover is still in MEDIUM_ECO
+# pulls ahead at 1.5 against 0.9), and CERTIFIES with the plan re-timed by at most 0.6 = 0.9 / 1.5
+# (lambda in [0.6, 1]; 0.65 declines), tightest X = Y + 0.375 (0.75 at Y = 0.375, 0.38 at Y = 0;
+# the bound is the admitted acceleration a_L <= 2 over tau, not the lag's steady offset
+# tau c <= 0.28 m); its letters are S only (NO_REPO, NO_CHOICE, NO_PRUNE and NO_CUT certify at
+# [0.5, 1]). A two-sided band |s_L - s_R| <= X with |P_L - P_R| <= Y DECLINES for every X up to 50
+# and every stretch range in [0.5, 2]: the cover takes one stretch per left mode, and the plan
+# ahead needs lambda <= 0.6 while the plan behind needs lambda >= 15/11 or a right-only step. Every
+# left mode has a satisfiable start (s_R = s_L, v_R = v_L in its zone, any a_L).
 #
 # Stretch (lambda range [1, 3/2]). A rover up to 1 m ahead can already be in FAST while the plan is
 # still in MEDIUM_BRISK: P_L then grows at the FAST command 1.5 and P_R at 1.1, so row (2) needs the

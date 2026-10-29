@@ -6,7 +6,9 @@
 # mechanisms: S M D (time stretch, lambda = 6/5 for the SPORT pairing and 1 for the AEB pairing,
 #   RELCERT_SYNC=1 declines, matrix code M1; multi-cycle matching, budget ceil(1.2 x 0.1 / 0.1) = 2
 #   design cycles per deployed window, matrix code M2; mode-dependent rows, the AEB rows differ
-#   from the SPORT rows, every handoff unsat, uniform rows decline, matrix code M5). S and M come
+#   from the SPORT rows, every handoff unsat, uniform rows decline, matrix code M5; AEB_L is
+#   reachable only as a start, so D is the rows differing on a mode no SPORT run enters: with AEB_L
+#   removed the file certifies with S M, measured 2026-10-29). S and M come
 #   from the profile (the bandwidth scaling it is), D from the AEB. Batch I9 (2026-10-27): back
 #   from benchmarks/reserve/ as the round-A time-scaled design (the batch-I2 suite file read SPORT
 #   as a shorter time gap at lambda 1, letters D, and went to the reserve in batch I8 as a special
@@ -36,8 +38,9 @@
 # CACC operating range (the engagement spec, the same on both sides): |r| <= 10 (rated closing
 #   rate) and 5 <= g + 2 r <= 60 (TTC to the standstill distance at least 2 s, and the gap
 #   projected 2 s ahead inside the 60 m radar range gate). Forward invariant under both profiles:
-#   d/dt (g + 2 r) = -0.25 (g + 2 r - 20) under NORMAL and -0.3 (g + 2 r - 20) under SPORT, so
-#   the TTC floor is a sublevel set of the slow mode and neither CACC triggers the AEB (the
+#   d/dt (g + 2 r) = -0.25 (g + 2 r - 20) under NORMAL (a sublevel set of its slow mode) and
+#   -0.36 (g - 20) - 0.8 r under SPORT, which on the face g + 2 r = 5 equals 5.4 - 0.08 r > 0 and
+#   on g + 2 r = 60 equals -14.4 - 0.08 r < 0 for |r| <= 10; so neither CACC triggers the AEB (the
 #   design's CACC -> AEB edge is pruned by a non-connection certificate).
 # Control period 0.1 s on both sides (10 Hz V2V messages, the ETSI CAM / SAE BSM rate).
 # Domain per link (both sides, every mode): 0 <= g <= 60 m (radar range gate), |r| <= 10 m/s
@@ -84,13 +87,19 @@
 # certifies at lambda 1 (no S); the ratio is the profile's.
 #
 # Why the rows differ (D). The SPORT rows carry the TTC floor, so the handoff SPORT -> AEB is unsat
-# (a SPORT state never satisfies the AEB trigger: the deployed's AEB is reachable only as a start);
-# the AEB rows are the exact matching rows at lambda 1, which the re-timed SPORT rows are not
-# (r_L = 1.2 r_R against r_L = r_R). The uniform candidates decline (the SPORT rows in AEB, the
-# AEB rows in SPORT, and their conjunction): D under both the current and the strict rule. Not
-# load-bearing here: the design's CACC -> AEB edge is pruned (non-connection on the TTC floor),
-# RELCERT_NO_PRUNE=1 also certifies (the existential choice closes the same fallback; only
-# NO_PRUNE+NO_CHOICE declines: no P); no committed choice is needed (no X).
+# (a SPORT state never satisfies the AEB trigger) and the deployed's AEB, like the design's, is
+# reachable only as a start: a window that opens with both followers already inside the trigger
+# (equal states after a cut-in, g + 2 r < 5), where the AEB rows say the two identical AEBs stay
+# identical. The AEB rows are the exact matching rows at lambda 1, which the re-timed SPORT rows
+# are not (r_L = 1.2 r_R against r_L = r_R). The uniform candidates decline (the SPORT rows in AEB,
+# the AEB rows in SPORT, and their conjunction): D under both the current and the strict rule, but
+# D is the rows differing on a mode no SPORT run enters: with AEB_L removed (SPORT next [SPORT])
+# the file certifies with S M (SYNC declines; NO_CHOICE, NO_PRUNE, NO_REPO, NO_CUT certify;
+# measured 2026-10-29). The floor rows g_L >= 5 and g_L + 2 r_L >= 5 are left-only but
+# load-bearing: with both removed the file DECLINES. Not load-bearing here: the design's CACC -> AEB
+# edge is pruned (non-connection on the TTC floor), RELCERT_NO_PRUNE=1 also certifies (the
+# existential choice closes the same fallback; only NO_PRUNE+NO_CHOICE declines: no P); no
+# committed choice is needed (no X).
 #
 # Coverage of the right guards (domain 0 <= g <= 60, |r| <= 10): CACC and AEB together cover
 # every domain state with 0 <= g + 2 r <= 60; the states with g + 2 r < 0 (collision

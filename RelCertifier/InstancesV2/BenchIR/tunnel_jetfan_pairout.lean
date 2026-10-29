@@ -25,16 +25,16 @@ def tunnel_jetfan_pairout_IRv2 : PProblem :=
           odes := [("t", (.num "1.0")),
             ("u", (.bin "-" (.num "0.018") (.bin "*" (.num "0.00171875") (.bin "*" (.var "u") (.var "u"))))),
             ("c", (.bin "-" (.num "0.1583") (.bin "*" (.num "0.000625") (.bin "*" (.var "u") (.var "c")))))]
-          guard := (.and (.and (.and (.and (.and (.and (.cmp "<" (.var "t") (.num "600")) (.cmp "<=" (.var "c") (.num "100"))) (.cmp ">=" (.var "t") (.num "0"))) (.cmp ">=" (.var "u") (.num "3.2"))) (.cmp "<=" (.var "u") (.num "7.3"))) (.cmp ">=" (.var "c") (.num "0"))) (.cmp "<=" (.var "c") (.num "630")))
-          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "t") (.num "0")) (.cmp ">=" (.var "u") (.num "3.2"))) (.cmp "<=" (.var "u") (.num "7.3"))) (.cmp ">=" (.var "c") (.num "0"))) (.cmp "<=" (.var "c") (.num "630")))
+          guard := (.and (.and (.and (.and (.and (.and (.cmp "<" (.var "t") (.num "600")) (.cmp "<=" (.var "c") (.num "100"))) (.cmp ">=" (.var "t") (.num "0"))) (.cmp ">=" (.var "u") (.num "2.6"))) (.cmp "<=" (.var "u") (.num "7.3"))) (.cmp ">=" (.var "c") (.num "0"))) (.cmp "<=" (.var "c") (.num "900")))
+          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "t") (.num "0")) (.cmp ">=" (.var "u") (.num "2.6"))) (.cmp "<=" (.var "u") (.num "7.3"))) (.cmp ">=" (.var "c") (.num "0"))) (.cmp "<=" (.var "c") (.num "900")))
           next := ["NORMAL", "FIRE"] },
         {
           name := "FIRE"
           odes := [("t", (.num "1.0")),
             ("u", (.bin "-" (.num "0.072") (.bin "*" (.num "0.00171875") (.bin "*" (.var "u") (.var "u"))))),
             ("c", (.bin "-" (.num "1.2583") (.bin "*" (.num "0.000625") (.bin "*" (.var "u") (.var "c")))))]
-          guard := (.and (.and (.and (.and (.and (.cmp ">=" (.var "t") (.num "600")) (.cmp ">=" (.var "t") (.num "0"))) (.cmp ">=" (.var "u") (.num "3.2"))) (.cmp "<=" (.var "u") (.num "7.3"))) (.cmp ">=" (.var "c") (.num "0"))) (.cmp "<=" (.var "c") (.num "630")))
-          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "t") (.num "0")) (.cmp ">=" (.var "u") (.num "3.2"))) (.cmp "<=" (.var "u") (.num "7.3"))) (.cmp ">=" (.var "c") (.num "0"))) (.cmp "<=" (.var "c") (.num "630")))
+          guard := (.and (.and (.and (.and (.and (.cmp ">=" (.var "t") (.num "600")) (.cmp ">=" (.var "t") (.num "0"))) (.cmp ">=" (.var "u") (.num "2.6"))) (.cmp "<=" (.var "u") (.num "7.3"))) (.cmp ">=" (.var "c") (.num "0"))) (.cmp "<=" (.var "c") (.num "900")))
+          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "t") (.num "0")) (.cmp ">=" (.var "u") (.num "2.6"))) (.cmp "<=" (.var "u") (.num "7.3"))) (.cmp ">=" (.var "c") (.num "0"))) (.cmp "<=" (.var "c") (.num "900")))
           next := ["FIRE"] } ] }
     R := {
       stateVars := ["t", "u", "c"]
@@ -45,19 +45,19 @@ def tunnel_jetfan_pairout_IRv2 : PProblem :=
           odes := [("t", (.num "1.0")),
             ("u", (.bin "-" (.num "0.0225") (.bin "*" (.num "0.00171875") (.bin "*" (.var "u") (.var "u"))))),
             ("c", (.bin "-" (.num "0.1583") (.bin "*" (.num "0.000625") (.bin "*" (.var "u") (.var "c")))))]
-          guard := (.and (.and (.and (.and (.and (.and (.cmp "<" (.var "t") (.num "600")) (.cmp "<=" (.var "c") (.num "100"))) (.cmp ">=" (.var "t") (.num "0"))) (.cmp ">=" (.var "u") (.num "3.2"))) (.cmp "<=" (.var "u") (.num "7.3"))) (.cmp ">=" (.var "c") (.num "0"))) (.cmp "<=" (.var "c") (.num "630")))
-          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "t") (.num "0")) (.cmp ">=" (.var "u") (.num "3.2"))) (.cmp "<=" (.var "u") (.num "7.3"))) (.cmp ">=" (.var "c") (.num "0"))) (.cmp "<=" (.var "c") (.num "630")))
+          guard := (.and (.and (.and (.and (.and (.and (.cmp "<" (.var "t") (.num "600")) (.cmp "<=" (.var "c") (.num "100"))) (.cmp ">=" (.var "t") (.num "0"))) (.cmp ">=" (.var "u") (.num "2.6"))) (.cmp "<=" (.var "u") (.num "7.3"))) (.cmp ">=" (.var "c") (.num "0"))) (.cmp "<=" (.var "c") (.num "900")))
+          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "t") (.num "0")) (.cmp ">=" (.var "u") (.num "2.6"))) (.cmp "<=" (.var "u") (.num "7.3"))) (.cmp ">=" (.var "c") (.num "0"))) (.cmp "<=" (.var "c") (.num "900")))
           next := ["NORMAL", "FIRE"] },
         {
           name := "FIRE"
           odes := [("t", (.num "1.0")),
             ("u", (.bin "-" (.num "0.09") (.bin "*" (.num "0.00171875") (.bin "*" (.var "u") (.var "u"))))),
             ("c", (.bin "-" (.num "1.2583") (.bin "*" (.num "0.000625") (.bin "*" (.var "u") (.var "c")))))]
-          guard := (.and (.and (.and (.and (.and (.cmp ">=" (.var "t") (.num "600")) (.cmp ">=" (.var "t") (.num "0"))) (.cmp ">=" (.var "u") (.num "3.2"))) (.cmp "<=" (.var "u") (.num "7.3"))) (.cmp ">=" (.var "c") (.num "0"))) (.cmp "<=" (.var "c") (.num "630")))
-          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "t") (.num "0")) (.cmp ">=" (.var "u") (.num "3.2"))) (.cmp "<=" (.var "u") (.num "7.3"))) (.cmp ">=" (.var "c") (.num "0"))) (.cmp "<=" (.var "c") (.num "630")))
+          guard := (.and (.and (.and (.and (.and (.cmp ">=" (.var "t") (.num "600")) (.cmp ">=" (.var "t") (.num "0"))) (.cmp ">=" (.var "u") (.num "2.6"))) (.cmp "<=" (.var "u") (.num "7.3"))) (.cmp ">=" (.var "c") (.num "0"))) (.cmp "<=" (.var "c") (.num "900")))
+          evolve := (.and (.and (.and (.and (.cmp ">=" (.var "t") (.num "0")) (.cmp ">=" (.var "u") (.num "2.6"))) (.cmp "<=" (.var "u") (.num "7.3"))) (.cmp ">=" (.var "c") (.num "0"))) (.cmp "<=" (.var "c") (.num "900")))
           next := ["FIRE"] } ] }
     invariants := [
-      ("NORMAL", (.and (.and (.and (.and (.and (.cmp "<=" (.var "L_t") (.var "R_t")) (.cmp "<=" (.var "R_t") (.var "L_t"))) (.cmp "<=" (.var "L_u") (.var "R_u"))) (.cmp "<=" (.var "R_u") (.bin "+" (.var "L_u") (.num "0.5")))) (.cmp "<=" (.var "R_c") (.bin "+" (.var "L_c") (.num "0")))) (.cmp "<=" (.var "L_c") (.bin "+" (.var "R_c") (.num "30"))))),
-      ("FIRE", (.and (.and (.cmp "<=" (.var "L_t") (.var "R_t")) (.cmp "<=" (.var "R_t") (.var "L_t"))) (.cmp "<=" (.var "L_u") (.var "R_u"))))] }
+      ("NORMAL", (.and (.and (.and (.and (.and (.and (.cmp "<=" (.var "L_t") (.var "R_t")) (.cmp "<=" (.var "R_t") (.var "L_t"))) (.cmp "<=" (.var "L_u") (.var "R_u"))) (.cmp "<=" (.var "R_u") (.bin "+" (.var "L_u") (.num "0.41")))) (.cmp "<=" (.var "R_c") (.bin "+" (.var "L_c") (.num "0")))) (.cmp "<=" (.var "L_c") (.bin "+" (.var "R_c") (.num "30")))) (.cmp ">=" (.var "L_u") (.num "3")))),
+      ("FIRE", (.and (.and (.and (.and (.cmp "<=" (.var "L_t") (.var "R_t")) (.cmp "<=" (.var "R_t") (.var "L_t"))) (.cmp "<=" (.var "L_u") (.var "R_u"))) (.cmp "<=" (.var "R_u") (.bin "+" (.var "L_u") (.num "1.42")))) (.cmp ">=" (.var "L_u") (.num "3"))))] }
 
 end RelCertifier.Parse

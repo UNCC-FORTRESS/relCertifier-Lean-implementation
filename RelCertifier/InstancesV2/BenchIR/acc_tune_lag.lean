@@ -14,8 +14,8 @@ namespace RelCertifier.Parse
 def acc_tune_lag_IRv2 : PProblem :=
   {
     name := "acc_tune_lag"
-    lambdaMin := "1.0"
-    lambdaMax := "6.0"
+    lambdaMin := "2.0"
+    lambdaMax := "2.0"
     L := {
       stateVars := ["v", "a"]
       epsilon := "0.1"
@@ -39,6 +39,6 @@ def acc_tune_lag_IRv2 : PProblem :=
           evolve := (.and (.and (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "40.0"))) (.cmp ">=" (.var "a") (.num "-10.0"))) (.cmp "<=" (.var "a") (.num "10.0")))
           next := ["CRUISE"] } ] }
     invariants := [
-      ("CRUISE", (.and (.cmp "<=" (.bin "+" (.bin "*" (.num "2.5") (.var "L_a")) (.bin "*" (.num "4.6875") (.var "L_v"))) (.bin "+" (.bin "*" (.num "1.875") (.var "R_a")) (.bin "*" (.num "4.6875") (.var "R_v")))) (.cmp "<=" (.bin "+" (.bin "*" (.num "1.875") (.var "R_a")) (.bin "*" (.num "4.6875") (.var "R_v"))) (.bin "+" (.bin "*" (.num "2.5") (.var "L_a")) (.bin "*" (.num "4.6875") (.var "L_v"))))))] }
+      ("CRUISE", (.and (.and (.and (.cmp "<=" (.bin "+" (.bin "*" (.num "2.5") (.var "L_a")) (.bin "*" (.num "4.6875") (.var "L_v"))) (.bin "+" (.bin "*" (.num "1.875") (.var "R_a")) (.bin "*" (.num "4.6875") (.var "R_v")))) (.cmp "<=" (.bin "+" (.bin "*" (.num "1.875") (.var "R_a")) (.bin "*" (.num "4.6875") (.var "R_v"))) (.bin "+" (.bin "*" (.num "2.5") (.var "L_a")) (.bin "*" (.num "4.6875") (.var "L_v"))))) (.cmp "<=" (.var "L_v") (.bin "+" (.var "R_v") (.num "3.34")))) (.cmp "<=" (.var "R_v") (.bin "+" (.var "L_v") (.num "3.34")))))] }
 
 end RelCertifier.Parse

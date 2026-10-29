@@ -2,25 +2,25 @@
 Copyright (c) 2026 relCertifier-lean contributors.
 Released under Apache 2.0 license.
 
-# `engine_start_highidle_m003`: Theorem 3's claim of a mutant of `engine_start_highidle` is false (GENERATED — `scripts/gen_refute.py`)
+# `tunnel_jetfan_pairout_m027`: Theorem 3's claim of a mutant of `tunnel_jetfan_pairout` is false (GENERATED — `scripts/gen_refute.py`)
 
-Mutant RRO/SNO `(<= L_n (+ R_n 4.0)) [<=->>=]`. Kind C (no partner): the left switches
-from mode 0 to mode 4 with a zero-duration flow, the right starts in mode 0. Dimension 4: the benchmark's bridge dimension, the last auxiliary coordinate the right clock.
+Mutant RRO/SNO `(<= R_u (+ L_u 1.42)) [<=->>=]`. Kind C (no partner): the left switches
+from mode 0 to mode 1 with a zero-duration flow, the right starts in mode 1. Dimension 4: the benchmark's bridge dimension, the last auxiliary coordinate the right clock.
 -/
 import RelCertifier.Proofs.Encoding.Emitted.RefuteFlow
-import RelCertifier.InstancesV2.Refute.Data.engine_start_highidle_m003
-import RelCertifier.InstancesV2.Cuts.engine_start_highidle
+import RelCertifier.InstancesV2.Refute.Data.tunnel_jetfan_pairout_m027
+import RelCertifier.InstancesV2.Cuts.tunnel_jetfan_pairout
 
-namespace RelCertifier.Refute.EngineStartHighidleM003
+namespace RelCertifier.Refute.TunnelJetfanPairoutM027
 
 open RelCertifier RelCertifier.Emitted RelCertifier.Parse RelCertifier.Oracle DL
 
-abbrev IR := Refute.engine_start_highidle_m003_IRm
-abbrev cX := Oracle.engine_start_highidle_cutsV2X
-abbrev w := Refute.engine_start_highidle_m003_wit
+abbrev IR := Refute.tunnel_jetfan_pairout_m027_IRm
+abbrev cX := Oracle.tunnel_jetfan_pairout_cutsV2X
+abbrev w := Refute.tunnel_jetfan_pairout_m027_wit
 
 /-- The mutant changes only the invariant: the model, hence its cut certificate, is the suite benchmark's. -/
-theorem same_model : IR.L = Parse.engine_start_highidle_IRv2.L ∧ IR.R = Parse.engine_start_highidle_IRv2.R := ⟨rfl, rfl⟩
+theorem same_model : IR.L = Parse.tunnel_jetfan_pairout_IRv2.L ∧ IR.R = Parse.tunnel_jetfan_pairout_IRv2.R := ⟨rfl, rfl⟩
 
 /-- The rows differ by mode: the claim is the mode-keyed one. -/
 theorem keyed_form : rowsSame IR = false := by decide +kernel
@@ -33,11 +33,11 @@ erasure's hygiene). -/
 theorem names_ok : namesOK IR = true := by decide +kernel
 theorem cuts_ok : cutsOK IR 4 cX = true := by decide +kernel
 
-/-- **The claim of `engine_start_highidle_m003` is false** for every cover record (every pruning), every `dt ≥ 0`:
+/-- **The claim of `tunnel_jetfan_pairout_m027` is false** for every cover record (every pruning), every `dt ≥ 0`:
 every query group `relcert-refute-verdicts` sends is `unsat`. -/
 theorem refuted (hv : RefVerdicts IR 4 cX w) (dt : ℝ) (hdt : 0 ≤ dt) (cov : CoverEmitE) :
     ¬ keyedClaim IR 4 cX cov Formula.tt 0 1 2 3 dt :=
   refute_keyed_C_clocked pre_ok rfl hv names_ok cuts_ok (by decide) (by decide) 3 (by decide)
     dt hdt cov
 
-end RelCertifier.Refute.EngineStartHighidleM003
+end RelCertifier.Refute.TunnelJetfanPairoutM027

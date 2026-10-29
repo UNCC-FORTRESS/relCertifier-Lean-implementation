@@ -28,9 +28,12 @@
 #     lighter than the reference model assumed (m_R/m_L = 1.25; T/m and K both x 1.25 because the
 #     loop commands thrust for m_R): w' = (0.25 g + 1.25 x 9.81) - 6.13125 w = 14.715 - 6.13125 w
 #     (terminal 2.4 m/s), as in quad_light_airframe_20.
-# K = 4.905 = g/2 is the gain at which the terminal rates are 2.0 and 2.4 m/s and lambda = 6/5;
-# with PX4's default K = 4.0 /s the same rows certify at lambda = 1 + 0.2 g / (K w_sp) = 1.24525
-# with the letters S M B X unchanged (measured 2026-10-29).
+# K = 4.905 = g/2 is the gain at which the terminal rates are 2.0 and 2.4 m/s and the ratio is the
+# round 6/5. The ratio is not grid-tuned: with PX4's default K = 4.0 /s (terminals 2.0 and 2.4905,
+# the profiles at 1.6/2.0/2.4 x K) the same rows certify pinned at lambda = 1 + 0.2 g / (K w_sp) =
+# 1.24525, and with K = 4.5 at 1.218, with the letters S M B X unchanged (SYNC and NO_CHOICE
+# decline; measured 2026-10-29); a range certifies only when the exact ratio is one of its grid
+# points ([1, 1.24525] certifies, [1, 1.3] declines), since Psi is conserved at the exact ratio only.
 # One cause: the airframe mass. The lighter airframe at the NORMAL set point is the NORMAL profile
 # with every rate scaled by 1.25 (T/m and K both x 1.25): its climb is the reference's NORMAL climb
 # run 6/5 times faster in the steady part (2.4 against 2.0 m/s) with a 1.25-times faster
@@ -58,7 +61,13 @@
 #     w <= 2.4). Under row 4, h_L - h_R <= Psi, so row 3 gives row 2, and h_L - h_R never
 #     decreases, so row 1 holds.
 # From hover (h_L = h_R, w_L = w_R = 0) Psi = 0.0163 m: the deployed leads the scaled NORMAL
-# reference by at most 1.6 cm, well inside 0.8 m. Not implied by the domains.
+# reference by at most 1.6 cm. Tightness (measured 2026-10-29): rows 1, 2 and 3 are not loaded by
+# the dynamics. Row 1 certifies at every constant down to 0.00 (under row 4, h_L - h_R never
+# decreases); row 2 certifies iff its constant is at least row 3's (0.81 certifies, 0.79 declines
+# with row 3 at 0.8); rows 2 and 3 together certify at every common constant down to 0.00, and the
+# smallest that admits the hover start is Psi's 0.0163. Psi is conserved, so the certificate
+# propagates the start's steady-climb gap: 0.8 m is the requirement's radius (the admitted start
+# set), not a gap the dynamics produce. Not implied by the domains.
 # Existential choice (X). ECO re-timed by 6/5 climbs at 1.92 m/s and SPORT at 2.88 m/s against the
 # deployed's 2.4: Psi drifts against either, so when the reference starts in ECO or SPORT the cover
 # commits the pilot's selection to NORMAL (choice hops ECO -> NORMAL, SPORT -> NORMAL), then runs the

@@ -11,10 +11,17 @@
 # The pair isolates the control change: both sides are this car with this lag.
 #   Left (deployed): the aftermarket retune, speed-loop gain k = 0.75 /s.
 #   Right (reference): the stock calibration, gain k = 0.5 /s.
-# Lag choice. tau = 0.32 s (1/tau = 25/8) is the lag at which BOTH closed loops have rational
-# real roots, so both are non-oscillatory and decouple into exponential modes:
+# Lag choice. tau = 0.32 s is the unique powertrain lag at which the retune's dominant time
+# constant is exactly half the stock one (slow roots 1.25 vs 0.625 /s; the ratio-2 condition
+# 2 sqrt(p^2 - 2p) - sqrt(p^2 - 3p) = p in p = 1/tau has one root, p = 25/8), so it is the lag on
+# which the specification "twice as fast, exact" is realisable; it is also below the retune's
+# critical lag 1/3 s (both loops non-oscillatory). The roots are then rational and the loops
+# decouple into exponential modes:
 #   left  s^2 + 3.125 s + 2.34375 = (s + 1.25)(s + 1.875)
 #   right s^2 + 3.125 s + 1.5625  = (s + 0.625)(s + 2.5).
+# At tau = 0.30 s the exact rows DECLINE (slow-root ratio 1.86; the modal tolerance
+# |u_L - u_R| <= 0.35 certifies there at lambda = 7/4), at 0.35 s the retune is underdamped
+# (measured 2026-10-28).
 # Control period: 0.1 s on BOTH sides (epsilon = 0.1; every decision interval is at most 0.1 s).
 # The speed loop is continuous in the ODEs; the period is that of the mode decision (the
 # engagement check). 0.1 s bounds the update cycle of an automotive ACC's long-range radar (the
@@ -25,16 +32,18 @@
 # the dominant (slow) mode must be the stock loop's dominant mode with its time constant halved
 # (1.6 s -> 0.8 s). Let u = v + a / r_f be the dominant-mode speed (r_f the fast root:
 # u_L = v_L + a_L / 1.875, u_R = v_R + a_R / 2.5); u - 30 decays at the slow rate (1.25 /s left,
-# 0.625 /s right). Claim: u_L = u_R (two rows, 4.6875 v_L + 2.5 a_L = 4.6875 v_R + 1.875 a_R):
+# 0.625 /s right). Claim: u_L = u_R (rows 1-2, 4.6875 v_L + 2.5 a_L = 4.6875 v_R + 1.875 a_R):
 # at every instant the retuned car's dominant-mode speed equals the stock car's at twice the
 # elapsed time. Exact: no tolerance constant. Not implied by the domains (it pins a_R given the
 # other three coordinates).
 # The claim depends on the cause: with a retune gain of 0.8 /s instead of 0.75 /s (same claim, same
 # guards) the file DECLINES; the exact claim and its stretch 2 are the specification of this retune
-# (the factor 2 is built into the specification, and it lies on the tool's stretch grid).
-# Consequence (measured 2026-10-27, not part of the claim): adding |v_L - v_R| <= c as a row
-# certifies down to c = 3.34 (3.33 declines; 2.89 on the round-A file, whose left guard was the
-# engagement box): the fast modes keep the speeds within 3.34 m/s over the left envelope.
+# (the factor 2 is built into the specification, and it lies on the tool's stretch grid), so
+# the stretch is pinned: lambda_min = lambda_max = 2.
+# Row 3 (speed): |v_L - v_R| <= 3.34 m/s (two one-sided rows), the tight value (3.33 declines,
+# measured 2026-10-28): the fast modes keep the speeds within 3.34 m/s over the left envelope.
+# It is a consequence of the modal identity (without rows 1-2 the speed bound is 7.14, a then
+# unconstrained across the two envelopes) and holds at the pinned stretch 2.
 #
 # Guards. Left: the retuned loop's ENGAGED ENVELOPE, the forward-invariant hull under the retuned
 # loop of its engagement box (the controller engages, or resumes, between 25 m/s and the set speed
@@ -57,20 +66,21 @@
 # Domains (both sides): v in [0, 40] m/s, a in [-10, 10] m/s^2 (1 g, the tyre-road limit);
 # physical limits, not load-bearing.
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27 on branch benchmark-fixes):
-# CERTIFIED (0.19 s); DECLINED under RELCERT_SYNC=1 and SYNC+NO_CHOICE; CERTIFIED under
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-28 on branch benchmark-fixes):
+# CERTIFIED (0.10 s); DECLINED under RELCERT_SYNC=1 and SYNC+NO_CHOICE; CERTIFIED under
 # RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE, without RELCERT_IMPLIED_CUT,
 # RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_CUT=1, RELCERT_OPREGION=1 and
-# RELCERT_WELLFORMED_STRICT=1. Cover: lambda = 2, budget ceil(2 * 0.1 / 0.1) = 2 right cycles per
-# left window, nothing pruned (matrix: M1 M2; the cuts are kept but not load-bearing). --handoff
+# RELCERT_WELLFORMED_STRICT=1 and RELCERT_NO_REPO=1. Cover: lambda = 2 (pinned), budget
+# ceil(2 * 0.1 / 0.1) = 2 right cycles per left window, nothing pruned (matrix: M1 M2; the cuts
+# are kept but not load-bearing). --handoff
 # vacuous (one left mode). relcert --wellformed: CRUISE ok (invariant), 0 UNKNOWN, 0 BLOCKING. The
 # right model changed only in its period (epsilon 1.0 -> 0.1; its Assumption 1 proof states the
 # new interval). Units m/s, m/s^2, s.
 [problem]
 name = acc_tune_lag
 max_depth = 8
-lambda_min = 1.0
-lambda_max = 6.0
+lambda_min = 2.0
+lambda_max = 2.0
 bound_T = 4.0
 [Lsys]
 state_vars = [v, a]
@@ -89,4 +99,4 @@ guard = smt2:(and (>= (+ a (* 2.5 v)) 60.5) (<= (+ a (* 2.5 v)) 77.0) (>= (+ a (
 evolve = v >= 0.0 and v <= 40.0 and a >= -10.0 and a <= 10.0
 next = [CRUISE]
 [relational_invariant]
-CRUISE = smt2:(and (<= (+ (* 2.5 L_a) (* 4.6875 L_v)) (+ (* 1.875 R_a) (* 4.6875 R_v))) (<= (+ (* 1.875 R_a) (* 4.6875 R_v)) (+ (* 2.5 L_a) (* 4.6875 L_v))))
+CRUISE = smt2:(and (<= (+ (* 2.5 L_a) (* 4.6875 L_v)) (+ (* 1.875 R_a) (* 4.6875 R_v))) (<= (+ (* 1.875 R_a) (* 4.6875 R_v)) (+ (* 2.5 L_a) (* 4.6875 L_v))) (<= L_v (+ R_v 3.34)) (<= R_v (+ L_v 3.34)))

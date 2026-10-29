@@ -7,13 +7,14 @@ Released under Apache 2.0 license.
 Over the instance's guarded right automaton `Gr` (the file's four modes and their declared
 `next` lists), the lowered right guards, and `ε_r = 1` read from the file. The right model is
 the rotor-speed start schedule: every mode is a 1-D contraction `w' = k (c − w)` inside the
-evolve domain `[0, 16]`:
+evolve domain `[0, 12.1]` (the start-up's reachable speeds, round B of the benchmark, 2026-10-29;
+the domain was `[0, 16]` before):
 `SPINUP` (`[2, 5)`, `k = 0.03`, `c = 9`), `RAMP` (`[5, 6.9)`, `0.04`, `7.5`),
 `GEN` (`w ≥ 6.9`, `0.05`, `12.1`), `STOP` (`w < 2`, `0.1`, `0`).
 * Existence (i): the explicit exponential (`exists_contract_run`); every set point lies in
-  `[0, 16]`.
+  `[0, 12.1]` (the rated speed `12.1` is the top of the domain).
 * (ii): a run stays between its start and its set point (`linear_between`), so
-  `RAMP` ends in `[5, 7.5] ⊆ RAMP ∪ GEN` (style (b), exit), `GEN` in `[6.9, 16]` and `STOP` in
+  `RAMP` ends in `[5, 7.5] ⊆ RAMP ∪ GEN` (style (b), exit), `GEN` in `[6.9, 12.1]` and `STOP` in
   `[0, 2)` (style (a), invariant). `SPINUP`'s set point `9` lies in `GEN`, which is not a
   successor of `SPINUP`, so the run is also bounded by its rate: the field is at most
   `0.03 · 9 = 0.27` on the domain (`rate_le`), so a run of duration `t ≤ 1` from `w < 5` ends
@@ -75,10 +76,6 @@ theorem hp50 : Run.parseRat "5.0" = some (5 : ℚ) := by
 theorem hp69 : Run.parseRat "6.9" = some ((69:ℚ)/10) := by
   have h : parseQ "6.9" = some (⟨69, 10⟩ : QF) := by decide
   norm_num [Run.parseRat, h]
-theorem hp160 : Run.parseRat "16.0" = some (16 : ℚ) := by
-  have h : parseQ "16.0" = some (⟨160, 10⟩ : QF) := by decide
-  norm_num [Run.parseRat, h]
-
 /-- Right fields: `w' = k_q (c_q − w)` (`SPINUP` 0.03/9, `RAMP` 0.04/7.5, `GEN` 0.05/12.1,
 `STOP` 0.1/0, the last written `−0.1 w` in the file). -/
 noncomputable def kR (q : ℕ) : ℝ :=
@@ -103,9 +100,9 @@ theorem fRo_eval (q : ℕ) (hq : q < 4) (i : Fin 2) (hi : i ≠ 0) (x : State (V
         ITerm.toHost, Term.eval]
 
 theorem sat_domR (x : State (Var 2)) :
-    Formula.sat domR x ↔ (0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 16) := by
+    Formula.sat domR x ↔ (0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 121/10) := by
   simp only [domR, hostEvolve, mR, turbine_startup_gearratio_IRv2, vs]
-  simp [Run.lowerF, Run.lowerE, hp00, hp160, Run.resolveVar, List.findIdx?_cons,
+  simp [Run.lowerF, Run.lowerE, hp00, hp121, Run.resolveVar, List.findIdx?_cons,
     IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv]
 
 /-! ## The right automaton (the file's modes and declared `next` lists) -/
@@ -189,7 +186,7 @@ theorem turbine_startup_gearratio_wellFormedR :
   obtain ⟨hq4, rfl⟩ := Gr_modeAt_inv hm
   have hdx := (sat_domR x).mp hd
   have hk : 0 ≤ kR q := by unfold kR; split_ifs <;> norm_num
-  have hcr : 0 ≤ cR q ∧ cR q ≤ 16 := by unfold cR; split_ifs <;> norm_num
+  have hcr : 0 ≤ cR q ∧ cR q ≤ 121/10 := by unfold cR; split_ifs <;> norm_num
   refine ⟨?_, ?_⟩
   · refine exists_contract_run x 0 (kR q) (cR q) hk (fR0_eval q hq4)
       (fun i hi s => fRo_eval q hq4 i hi s) ?_ 1 (by norm_num)

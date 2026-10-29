@@ -22,9 +22,12 @@
 #   stack, loop and levels).
 #
 # Property (every left mode): |T_L - T_R| <= 7, Tin_L = Tin_R: the attacked stack stays within 7 K
-# of a temperature trajectory the protocol permits. Requirement: the stack's absolute operating window
-# [45, 85] degC against the protocol's steady temperatures [52, 78] degC (LOW at the coldest return
-# 40 + 12, HIGH at the warmest 56 + 22): 7 K on each side. The physical content of the hold is
+# of a temperature trajectory the protocol permits. The 7 K is the margin between the stack's
+# absolute operating window [45, 85] degC and the protocol's steady band [52, 78] degC (LOW at the
+# coldest return 40 + 12, HIGH at the warmest 56 + 22): a deployed within 7 K of a settled
+# reference is inside the window. It is a band around a permitted trajectory, not a window bound:
+# the protocol's permitted trajectories span the domain [40, 100] (HIGH from any T > 70, LOW below
+# 60), so the window is reached through the settled reference only. The physical content of the
 # smaller than the certificate: under a 20 s hold the deployed's own trajectory stays inside the
 # protocol band of the level it holds (simulated 2026-10-29 from the worst start in each guard and
 # every Tin in [40, 56]: LOW rises at most 4.30 K (Tin 56, 40 -> 44.3) and stays below 60, HIGH
@@ -48,7 +51,8 @@
 # (HIGH after a LOW segment) settles 10 K away; the committed choice removes it only after a hop
 # that costs one level's rise step (5 K). Without the attack (epsilon_L = 10 s) the exact claim
 # certifies. The certified tolerances form a narrow, NON-MONOTONE window:
-# [5.00, 8.00] certifies, 8.01, 8.5, 9, 9.5 and 9.9 DECLINE (above 8 the start hop below fails), and
+# [5.00, 8.00] certifies (4.99 and 8.005 decline), 8.01 to 9.995 DECLINE (8.5, 9, 9.5, 9.9, 9.99
+# tested; above 8 the start hop below fails), and
 # 10 (the full LOW-HIGH step) certifies again with every pairing passing and nothing load-bearing; the
 # file's 7 lies inside the lower window, 1 K below its edge. Not implied by the domains.
 #

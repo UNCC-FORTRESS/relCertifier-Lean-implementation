@@ -56,7 +56,7 @@ def acc_spoof_limp_IRv2 : PProblem :=
           next := ["SPORT", "NORMAL", "DISENGAGE"] },
         {
           name := "DISENGAGE"
-          odes := [("v", (.bin "*" (.num "-0.5") (.var "v")))]
+          odes := [("v", (.bin "*" (.num "-0.1") (.var "v")))]
           guard := (.cmp "<" (.var "v") (.num "20.0"))
           evolve := (.and (.cmp ">=" (.var "v") (.num "0.0")) (.cmp "<=" (.var "v") (.num "40.0")))
           next := ["DISENGAGE"] } ] }

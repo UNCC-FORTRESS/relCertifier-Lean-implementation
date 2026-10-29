@@ -4,7 +4,7 @@
 # class of EN 15500 room controllers) of the reference zone's temperature trace replayed at twice
 # the speed (the design ratio), so it visits, to that tolerance, the temperatures the reference
 # permits, in half the time.
-# scenario: model-refinement
+# scenario: plant-change (a commissioned schedule deployed in a lighter zone, the plant replaced)
 # mechanisms: S M B X (time stretch lambda = 2, the design heat-capacity ratio, RELCERT_SYNC=1 and
 #   lambda = 1 decline, matrix code M1; multi-step cover, each 5 min left window matched by two
 #   right cycles, budget ceil(2 * 5 / 5) = 2, matrix code M2; branching joint step, every set-point
@@ -56,11 +56,17 @@
 #   e' = -a e + (a - lambda b) (s - T_R) with a = 0.04125 and lambda b = 0.04, and a constant band
 #   |e| <= D keyed by the left mode is inductive iff D >= (a - lambda b) max|s - T_R| / a
 #   = 0.00125 x 16 / 0.04125 = 0.4848 on the instrumented range 5 <= T <= 30 (the set point 21
-#   is 16 K from the lower bound). The 0.5 requirement sits 0.015 above the tight value, so the
-#   requirement, not the tool, fixes the constant. The reachable worst case is far smaller than
-#   the inductive bound: random three-level schedules from equal starts (4000 simulated runs on
-#   the comfort band) never separate the zones by more than 0.057 K (one 5 K set-point step peaks
-#   at 5 (e^{-0.04 t} - e^{-0.04125 t}) = 0.0566 at t = 24.6 min); the slack is the invariant's
+#   is 16 K from the lower bound). The 0.5 requirement sits 0.015 above the tight value on this
+#   range, and the tight value is set by the range: it is 0.0303 x (the largest distance from a
+#   matched set point, 16 or 21, to a bound of the range), measured on seven ranges (5..30: 0.49,
+#   10..30: 0.43, 5..32.5: 0.50, 5..33: 0.52, 5..35: 0.58, 0..30: 0.64, 5..40: 0.73; each declines
+#   0.01 lower). The 0.5 row therefore certifies exactly for ranges whose far bound is within
+#   16.5 K of a set point: 5..30 is the span of the room sensor and of zone air between frost and
+#   summer overheating, and an upper bound of 33 degC or a lower bound of 4 degC would decline the
+#   requirement row. The reachable worst case is far smaller than the inductive bound: random
+#   three-level schedules from equal starts (4000 simulated runs on the comfort band) never
+#   separate the zones by more than 0.057 K (one 5 K set-point step peaks at
+#   5 (e^{-0.04 t} - e^{-0.04125 t}) = 0.0566 at t = 24.6 min); the slack is the invariant's
 #   admission of starts already 0.48 apart with T_R at the far end of the range.
 # How the bound depends on the cause (measured 2026-10-28 and 2026-10-29). The tight value is
 #   0.0303 x (the largest distance from a set point to a domain bound), on every domain: on the

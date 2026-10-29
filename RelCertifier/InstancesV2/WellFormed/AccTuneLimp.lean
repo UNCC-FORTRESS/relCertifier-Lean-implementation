@@ -6,7 +6,7 @@ Released under Apache 2.0 license.
 
 Over the instance's guarded right automaton `Gr`, the lowered right guards, `ε_r = 1/10` (the 0.1 s decision period; 1 until 2026-10-27).
 `NORMAL` / `COMFORT` / `SPORT` (`20 ≤ v ≤ 40`, `v' = k (30 − v)`, `k = 0.5, 0.4, 0.6`) and
-`DISENGAGE` (`v < 20`, `v' = −v/2`) are contractions whose guard sets are forward invariant
+`DISENGAGE` (`v < 20`, `v' = −v/10`; `−v/2` until 2026-10-28) are contractions whose guard sets are forward invariant
 (style (a)). Existence: the explicit exponential. Z3-free.
 -/
 import RelCertifier.InstancesV2.BenchIR.acc_tune_limp
@@ -127,16 +127,16 @@ theorem sat_guardR (q : ℕ) (hq : q < 4) (ν : State (Var 3)) :
 theorem hp01 : Run.parseRat "0.1" = some ((1:ℚ)/10 : ℚ) := by
   have h : parseQ "0.1" = some (⟨1, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]
-theorem hpm05 : Run.parseRat "-0.5" = some (-(1:ℚ)/2) := by
-  have h : parseQ "-0.5" = some (⟨-5, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
+theorem hpm01 : Run.parseRat "-0.1" = some (-(1:ℚ)/10) := by
+  have h : parseQ "-0.1" = some (⟨-1, 10⟩ : QF) := by decide
+  simp [Run.parseRat, h]
 
 theorem epsR_eq : epsR acc_tune_limp_IRv2 = 1/10 := by
   simp [epsR, acc_tune_limp_IRv2, hp01]
 
 noncomputable def guardR (q : ℕ) : Formula (Var 3) := hostGuard vs 3 Side.R (mR q)
 
-noncomputable def kR4 (q : ℕ) : ℝ := if q < 3 then kR q else 1/2
+noncomputable def kR4 (q : ℕ) : ℝ := if q < 3 then kR q else 1/10
 noncomputable def cR4 (q : ℕ) : ℝ := if q < 3 then 30 else 0
 
 theorem fR0_all (q : ℕ) (hq : q < 4) (x : State (Var 3)) :
@@ -145,7 +145,7 @@ theorem fR0_all (q : ℕ) (hq : q < 4) (x : State (Var 3)) :
   · rw [fR0_eval q h3]; simp [kR4, cR4, h3]
   · have : q = 3 := by omega
     subst this
-    simp [fR, hostDyn, mR, acc_tune_limp_IRv2, vs, Run.dynOf, Run.lowerE, hpm05,
+    simp [fR, hostDyn, mR, acc_tune_limp_IRv2, vs, Run.dynOf, Run.lowerE, hpm01,
       Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
       AOp.interp, Rv, kR4, cR4]
     ring
@@ -160,11 +160,11 @@ theorem fRo_all (q : ℕ) (hq : q < 4) (i : Fin 3) (hi : i ≠ 0) (x : State (Va
     subst this
     match i, hi with
     | 1, _ =>
-      simp [fR, hostDyn, mR, acc_tune_limp_IRv2, vs, Run.dynOf, Run.lowerE, hpm05,
+      simp [fR, hostDyn, mR, acc_tune_limp_IRv2, vs, Run.dynOf, Run.lowerE, hpm01,
         Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
         AOp.interp, Rv]
     | 2, _ =>
-      simp [fR, hostDyn, mR, acc_tune_limp_IRv2, vs, Run.dynOf, Run.lowerE, hpm05,
+      simp [fR, hostDyn, mR, acc_tune_limp_IRv2, vs, Run.dynOf, Run.lowerE, hpm01,
         Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval,
         AOp.interp, Rv]
 

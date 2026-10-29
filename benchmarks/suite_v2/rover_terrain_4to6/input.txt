@@ -1,5 +1,5 @@
 # rover_terrain_4to6: terrain chain, step 4 -> 6: drive lag and rough-terrain heave. The right
-# moves 4 coordinates (v, s, w, zs), the left 6 (+ motor torque state u, heave amplitude zh).
+# moves 4 coordinates (v, s, w, zs), the left 6 (+ lagged speed command u, heave amplitude zh).
 # Second step of the chain rover_terrain_2to4, rover_terrain_4to6, rover_terrain_6to12.
 # (Renamed 2026-10-26 from rover_terrain_6to8, whose models were rover_ladder_6to8's.)
 # scenario: model-refinement
@@ -13,9 +13,11 @@
 # 0.05 (heave excitation per unit speed).
 #
 # Right (4-DOF; exactly rover_terrain_2to4's left): w' = 3 (c_T - w) (ideal wheel-speed loop),
-# v' = mu_T (w - v) - r_T v - zs, zs' = 2 (Z_T - zs), s' = v; u, zh pinned.
-# Left (6-DOF): the drive motor's torque state lags the command, u' = 4 (c_T - u), and the
-# wheel follows it, w' = 3 (u - w) (two real poles, 3 and 4 1/s: no overshoot);
+# v' = mu_T (w - v) - r_T v - k_z zs, sinkage drag k_z = 1 m/s^2 per wheel radius (the
+# coefficient is written as the bare term zs in the ODE lines; the rows and their tight values are
+# unchanged for k_z = 0.5, 1 or 2, measured 2026-10-29), zs' = 2 (Z_T - zs), s' = v; u, zh pinned.
+# Left (6-DOF): the drive's lagged speed command u (m/s) lags the set point, u' = 4 (c_T - u), and
+# the wheel follows it, w' = 3 (u - w) (two real poles, 3 and 4 1/s: no overshoot);
 # the suspension's heave amplitude zh (wheel radii; the envelope of the bump response) is
 # excited by the terrain's roughness at speed and damped, zh' = rho_T v - zh. Ground dynamics
 # as on the right.
@@ -28,7 +30,7 @@
 #     bump stop on any of the three terrains).
 #   auxiliary rows (each needed: dropping any one declines): w_L <= w_R (the lagged wheel never
 #     runs ahead of the ideal wheel), zs_R <= zs_L (the ideal-drive model, ahead on the route,
-#     never sinks deeper), w_L <= u_L (the wheel never outruns the motor torque state: the drive
+#     never sinks deeper), w_L <= u_L (the wheel never outruns the speed command: the drive
 #     only accelerates the wheel up to its set point).
 #   Not implied by the domains.
 # Tightest (bisection 0.01): sigma 0.21 (declines at 0.20; the GRAVEL launch bound of

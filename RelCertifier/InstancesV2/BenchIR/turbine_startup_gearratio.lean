@@ -24,25 +24,25 @@ def turbine_startup_gearratio_IRv2 : PProblem :=
           name := "SPINUP"
           odes := [("w", (.bin "*" (.num "0.03") (.bin "-" (.num "9") (.var "w"))))]
           guard := (.and (.cmp ">=" (.var "w") (.num "2.1")) (.cmp "<" (.var "w") (.num "5.25")))
-          evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "16.0")))
+          evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "12.705")))
           next := ["SPINUP", "RAMP", "STOP"] },
         {
           name := "RAMP"
-          odes := [("w", (.bin "*" (.num "0.04") (.bin "-" (.num "7.875") (.var "w"))))]
+          odes := [("w", (.bin "*" (.num "0.0380952") (.bin "-" (.num "7.875") (.var "w"))))]
           guard := (.and (.cmp ">=" (.var "w") (.num "5.25")) (.cmp "<" (.var "w") (.num "7.245")))
-          evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "16.0")))
+          evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "12.705")))
           next := ["RAMP", "GEN", "STOP"] },
         {
           name := "GEN"
-          odes := [("w", (.bin "*" (.num "0.05") (.bin "-" (.num "12.705") (.var "w"))))]
+          odes := [("w", (.bin "*" (.num "0.047619") (.bin "-" (.num "12.705") (.var "w"))))]
           guard := (.cmp ">=" (.var "w") (.num "7.245"))
-          evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "16.0")))
+          evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "12.705")))
           next := ["GEN"] },
         {
           name := "STOP"
           odes := [("w", (.bin "*" (.neg (.num "0.1")) (.var "w")))]
           guard := (.cmp "<" (.var "w") (.num "2.1"))
-          evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "16.0")))
+          evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "12.705")))
           next := ["STOP"] } ] }
     R := {
       stateVars := ["w"]
@@ -52,25 +52,25 @@ def turbine_startup_gearratio_IRv2 : PProblem :=
           name := "SPINUP"
           odes := [("w", (.bin "*" (.num "0.03") (.bin "-" (.num "9") (.var "w"))))]
           guard := (.and (.cmp ">=" (.var "w") (.num "2.0")) (.cmp "<" (.var "w") (.num "5.0")))
-          evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "16.0")))
+          evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "12.1")))
           next := ["SPINUP", "RAMP", "STOP"] },
         {
           name := "RAMP"
           odes := [("w", (.bin "*" (.num "0.04") (.bin "-" (.num "7.5") (.var "w"))))]
           guard := (.and (.cmp ">=" (.var "w") (.num "5.0")) (.cmp "<" (.var "w") (.num "6.9")))
-          evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "16.0")))
+          evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "12.1")))
           next := ["RAMP", "GEN", "STOP"] },
         {
           name := "GEN"
           odes := [("w", (.bin "*" (.num "0.05") (.bin "-" (.num "12.1") (.var "w"))))]
           guard := (.cmp ">=" (.var "w") (.num "6.9"))
-          evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "16.0")))
+          evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "12.1")))
           next := ["GEN"] },
         {
           name := "STOP"
           odes := [("w", (.bin "*" (.neg (.num "0.1")) (.var "w")))]
           guard := (.cmp "<" (.var "w") (.num "2.0"))
-          evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "16.0")))
+          evolve := (.and (.cmp ">=" (.var "w") (.num "0.0")) (.cmp "<=" (.var "w") (.num "12.1")))
           next := ["STOP"] } ] }
     invariants := [
       ("SPINUP", (.cmp "<=" (.var "L_w") (.bin "*" (.num "1.05") (.var "R_w")))),

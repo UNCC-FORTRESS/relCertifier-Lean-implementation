@@ -13,7 +13,7 @@ namespace RelCertifier
 /-- `tunnel_jetfan_pairout` (emitted, suite_v2, widened cut channel on). -/
 def tunnel_jetfan_pairout_coverV2 : CoverEmitE :=
   ⟨"tunnel_jetfan_pairout", [], [
-    ⟨"NORMAL", (1 : ℚ) / 1, 1, [⟨"NORMAL", true, false, false⟩, ⟨"FIRE", false, false, false⟩], ["NORMAL"], [⟨"NORMAL", [0, 1, 2, 3, 4, 5], [0], [0], 1, 1⟩, ⟨"FIRE", [0, 1, 2, 5], [0], [0], 1, 1⟩]⟩,
-    ⟨"FIRE", (1 : ℚ) / 1, 1, [⟨"NORMAL", false, false, false⟩, ⟨"FIRE", true, false, false⟩], ["FIRE"], [⟨"NORMAL", [0, 1], [0], [0], 1, 1⟩, ⟨"FIRE", [0, 1, 2], [0], [0], 1, 1⟩]⟩]⟩
+    ⟨"NORMAL", (1 : ℚ) / 1, 1, [⟨"NORMAL", true, false, false⟩, ⟨"FIRE", false, false, false⟩], ["NORMAL"], [⟨"NORMAL", [0, 1, 2, 4, 6, 3, 5], [0, 6], [0, 6], 1, 1⟩, ⟨"FIRE", [0, 1, 2, 5, 6], [0, 6], [0, 6], 1, 1⟩]⟩,
+    ⟨"FIRE", (1 : ℚ) / 1, 1, [⟨"NORMAL", false, false, false⟩, ⟨"FIRE", true, false, false⟩], ["FIRE"], [⟨"NORMAL", [0, 1, 3, 4], [0, 4], [0, 4], 1, 1⟩, ⟨"FIRE", [0, 1, 2, 4, 3], [0, 4], [0, 4], 1, 1⟩]⟩]⟩
 
 end RelCertifier

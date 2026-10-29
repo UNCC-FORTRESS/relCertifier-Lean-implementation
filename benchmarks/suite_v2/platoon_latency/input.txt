@@ -2,7 +2,10 @@
 # late, against the design follower with an ideal (zero-latency) link.
 # scenario: degraded-network
 # mechanisms: D (mode-dependent rows: the AEB row differs from the CACC row, the 7 handoffs unsat
-#   or implied, uniform rows decline; matrix code M5)
+#   or implied, uniform rows decline; matrix code M5). AEB_L and AEB_R are reachable only as starts
+#   in this file (the CACC operating range is forward invariant on both sides, see Domains): D is
+#   the rows differing on a mode no CACC run enters, and with AEB removed on both sides the CACC
+#   rows alone certify under every configuration with no letter (measured 2026-10-29).
 #
 # Shared platoon model (identical in platoon_linkloss, platoon_profiles and this file, and in the
 # reserve's platoon3_linkloss, platoon3_profiles). A lead vehicle cruises at the platoon reference speed
@@ -100,7 +103,8 @@
 # RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_CUT=1, RELCERT_OPREGION=1 (every
 # admitted start in some right guard) and RELCERT_WELLFORMED_STRICT=1 (no S, M, B, P, I, X).
 # Uniform rows decline: the CACC row on every mode without the deployed's TTC floor (so that AEB
-# has a start) DECLINES (with the floor the AEB row would have no start): D.
+# has a start) DECLINES (with the floor the AEB row would have no start): D (the AEB row is exact
+# only because both AEBs are identical from an exact start).
 # Covers: every left mode at lambda 1, budget 1 (single segment); admissible starts
 # CACC_UP_L, CACC_DN_L: [CACC], AEB_L: [AEB]; pruned CACC -> AEB (not load-bearing at budget 1).
 # --handoff 7/7 pass (rows differ). relcert --wellformed: CACC ok (invariant), AEB ok

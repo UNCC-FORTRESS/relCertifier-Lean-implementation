@@ -21,9 +21,13 @@
 #   Left (deployed): the same loop, thrust command and lag on the airframe 20 % lighter
 #     (m_R/m_L = 1.25): a_cmd = 0.25 g + 1.25 K w_sp = 14.715, k/m_L = 1.25 K = 6.13125 /s
 #     (terminal 2.4 m/s); both scale by 1.25 because the loop commands thrust for m_R.
-# K = 4.905 = g/2 is the gain at which the terminal rates are 2.0 and 2.4 m/s and lambda = 6/5;
-# with PX4's default K = 4.0 /s the same rows certify (Psi rebuilt for the new constants) at
-# lambda = 1 + 0.2 g / (K w_sp) = 1.24525 with the letters S M unchanged (measured 2026-10-29).
+# K = 4.905 = g/2 is the gain at which the terminal rates are 2.0 and 2.4 m/s and the ratio is the
+# round 6/5. The ratio is not grid-tuned: with PX4's default K = 4.0 /s (terminals 2.0 and 2.4905)
+# the same rows certify pinned at lambda = 1 + 0.2 g / (K w_sp) = 1.24525, and with K = 4.5
+# (terminals 2.0 and 2.436) at 1.218, Psi rebuilt for the new constants and the letters S M
+# unchanged (measured 2026-10-29). At every K the claim certifies only with the exact ratio on the
+# stretch grid, pinned or as the top of a range ([1, 1.24525] certifies, [1, 1.3] and [1, 1.5]
+# decline at K = 4.0), because Psi is conserved at the exact ratio only; the pin is the stated form.
 # One cause: the airframe mass (the lag is the same physical lag on both sides).
 #
 # Requirement: the altitude conformance of quad_light_airframe_20, |h_L - h_R| <= 0.8 m at times t

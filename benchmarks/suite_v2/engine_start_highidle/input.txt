@@ -4,75 +4,68 @@
 # mechanisms: R D I (right-only repositioning; mode-dependent rows, uniform rows decline; checked
 #   cuts, RELCERT_NO_CUT=1 declines; matrix codes M5 M6 M6+)
 #
-# System. Core speed N2 in % of maximum, time in s. A two-spool turbofan ground start (numbers
-# typical of a CFM56-class engine: light-off near 25 % N2, starter cut-out at 50 %, ground idle
-# about 62 %), each phase a first-order spool response, the start sequencer re-deciding every 1 s:
-#   STARTER   5 <= N2 < 25    air starter motoring, toward 30 % (starter torque limit): 0.1 (30 - N2)
-#   LIGHTOFF 25 <= N2 < 50    fuel on and starter assist, toward 55 %:                0.08 (55 - N2)
-#   SELF     50 <= N2 < 60    starter cut out, engine accelerates to idle:            0.15 (idle - N2)
-#   IDLE     N2 >= 60         idle governor:                                          0.5 (idle - N2)
-#   ABORT    N2 < 5           start aborted (starter and fuel off), spool run-down:   -0.2 N2 (latched)
-# STARTER and LIGHTOFF declare ABORT, with the abort rule of this model "N2 falls below 5 %". Both
-# edges are pruned (both flows rise at 5 %: STARTER aims at 30, LIGHTOFF at 55), so no run enters
-# ABORT and the mode is reachable only as a start. A real hung start is aborted by the FADEC on a
-# light-off time-out, not on N2 falling; a reachable time-out abort needs a sequencer clock and is
-# scheduled for a later round (tested 2026-10-29: it certifies with the same letters R D I).
+# System. Core speed N2 in % of maximum, light-off timer t in s. A two-spool turbofan ground start
+# (numbers typical of a CFM56-class engine: light-off near 25 % N2, starter cut-out at 50 %, ground
+# idle about 62 %), each phase a first-order spool response, the start sequencer re-deciding every
+# 1 s. The sequencer's light-off timer t runs in STARTER (t' = 1) and is frozen in every other
+# phase; the start is aborted when no light-off has occurred within the 30 s time-out:
+#   STARTER   5 <= N2 < 25, t < 30  air starter motoring, toward 30 % (torque limit): 0.1 (30 - N2)
+#   LIGHTOFF 25 <= N2 < 50          fuel on and starter assist, toward 55 %:         0.08 (55 - N2)
+#   SELF     50 <= N2 < 60          starter cut out, engine accelerates to idle:     0.15 (idle - N2)
+#   IDLE     N2 >= 60               idle governor:                                   0.5 (idle - N2)
+#   ABORT    N2 < 25, t >= 30       start aborted (starter and fuel off), frozen:    N2' = 0
+# Only STARTER declares ABORT, and ABORT is reachable: from every STARTER start whose timer is within
+# 1 s of the time-out, the next decision finds t >= 30 below 25 % (installed 2026-10-29; until then
+# the model aborted on "N2 falls below 5 %", which no run of the rising starter phases reached, so
+# ABORT was a start only).
 #
 # Right (reference): ground idle, idle = 62 %. Left (deployed): high idle selected, idle = 66 %
 # (SELF and IDLE aim at 66). One cause: the idle set point (+4 % N2); the start phases below
 # starter cut-out are untouched, as the FADEC schedules them independently of the idle selection.
 #
 # Property (mode-dependent).
-#   STARTER, LIGHTOFF: N2_L <= N2_R. The start phases are certified on the ground-idle schedule
-#     (starter duty, light-off and EGT limits); the requirement is that high idle leaves them
-#     unchanged. Forced by the ABORT start, not by the start physics: a lead of 0.01 % already
-#     declines (a reference that has aborted below 5 % becomes an admissible start against a
-#     deployed still motoring at 5 %). The low phases have identical dynamics on both sides, and
-#     without ABORT (mode removed on both sides, domain N2 >= 5, measured 2026-10-29) the low rows
-#     certify at every c in [0, 4] and the uniform row N2_L <= N2_R + 4 certifies, so D rests on the
-#     ABORT start; removing only the two ABORT edges changes nothing (ABORT stays an admissible
-#     start and the low rows stay forced).
+#   STARTER: N2_L <= N2_R and t_R <= t_L. LIGHTOFF: N2_L <= N2_R. The start phases are certified on
+#     the ground-idle schedule (starter duty, light-off and EGT limits); the requirement is that
+#     high idle leaves them unchanged and that the reference's light-off timer is no later than
+#     the deployed's (the reference times out only after the deployed has). Forced by the reachable
+#     abort (measured 2026-10-29): a lead of 0.01 % declines in the low rows, a timer slack of
+#     0.01 s declines, and the timer row removed declines (a reference timed out at under 25 %
+#     against a deployed still motoring, or in LIGHTOFF, would be behind by more than any c).
 #   SELF, IDLE, ABORT: N2_L <= N2_R + 4. Requirement: above starter cut-out the deployed may exceed
 #     the reference start profile by at most the 4 % idle increment. Tightest 4.00 (3.99 declines).
 # Both relations hold up to the reference's re-timing (it may run ahead alone, see R).
-# Mode dependence is load-bearing (D): uniform N2_L <= N2_R + 4 declines (the ABORT start above, so
-# the letter D rests on that start) and uniform N2_L <= N2_R declines (the idle increment, which is
-# physical: equilibria 66 against 62, tight at 4.00). The handoffs only relax (exact to +4 at
-# LIGHTOFF -> SELF, and into ABORT): --handoff 10/10 unsat. The bound moves with the cause: with
-# idle increment h the rows (exact below cut-out, +h above) certify for h = 0, 1, 4, 8 % (measured);
-# at h = 0 the exact uniform claim certifies and nothing is mode-dependent.
+# Mode dependence is load-bearing (D): uniform N2_L <= N2_R + 4 declines (the reachable abort) and
+# uniform N2_L <= N2_R declines (the idle increment, physical: equilibria 66 against 62, tight at
+# 4.00). The handoffs only relax (exact to +4 at LIGHTOFF -> SELF and at STARTER -> ABORT):
+# --handoff 9/9 unsat.
 #
 # Why right-only repositioning (R). From a deployed SELF window (aiming at 66 %) the reference may
 # start in LIGHTOFF (aiming at 55 %): the joint segment fails, so the reference runs alone into
 # SELF (left frozen); likewise SELF -> IDLE for a deployed IDLE window. RELCERT_SYNC=1 (no right-only
-# steps) DECLINES; every cover is at lambda 1, so no S. Window: R, D for every h > 0; at h = 0
-# RELCERT_SYNC=1 certifies.
-# Pruning is present but not load-bearing: STARTER -> ABORT and LIGHTOFF -> ABORT are pruned (both
-# flows rise at 5 %; ABORT is a start only), and RELCERT_NO_PRUNE=1 CERTIFIES: the one
-# repositioning out of a mode that declares ABORT (LIGHTOFF, in a deployed SELF window) can only
-# meet ABORT in an empty pairing
-# (N2_L >= 50 against N2_R < 5 under the +4 row), and the exact low rows exclude ABORT starts.
+# steps) DECLINES and RELCERT_NO_REPO=1 DECLINES; every cover is at lambda 1, so no S.
+# Nothing is pruned (ABORT is entered by a guard, not excluded by a flow): RELCERT_NO_PRUNE=1 and
+# RELCERT_NO_CHOICE=1 CERTIFY.
 # Cuts (I). The implied contraction atoms (N2 <= 30 in STARTER, N2 <= 55 in LIGHTOFF, N2 <= idle) are
-# load-bearing: DECLINED with RELCERT_NO_CUT=1 (h = 0, 1, 4, 8) and without RELCERT_IMPLIED_CUT.
+# load-bearing: DECLINED with RELCERT_NO_CUT=1, with RELCERT_NO_IMPLIED_CUT=1 and without
+# RELCERT_IMPLIED_CUT.
 #
-# Domains. 0 <= N2 <= 110 % on both sides (rest to beyond the redline), forward invariant in every
-# phase (all aims <= 66 %, every flow >= 0 at 0); widened to 150 % the benchmark still CERTIFIES.
-# The right guards partition [0, 110] (no coverage gap); every left mode has a satisfiable start
-# (N2_R = N2_L).
+# Domains. 5 <= N2 <= 110 % and 0 <= t <= 40 s on both sides, forward invariant in every phase
+# (every aim in [30, 66]; t is frozen outside STARTER and at most 31 after one STARTER interval).
+# The right guards partition {N2 >= 5} (STARTER and ABORT split N2 < 25 at t = 30; no coverage
+# gap); every left mode has a satisfiable start (N2_R = N2_L, t_R = t_L).
 #
-# Stretch pinned (2026-10-27, final audit): lambda_max 6 -> 1. Every cover was already at lambda 1
-# and the requirement is a real-time one, so the unused range [1, 6] is gone; verdicts and letters
-# unchanged (measured 2026-10-27).
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26, re-measured 2026-10-27 at
-# lambda_max 1 and 2026-10-29, header only changed): CERTIFIED (0.8 s); CERTIFIED under
-# RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1,
-# RELCERT_NO_LINEAR_CUT=1, RELCERT_WELLFORMED_STRICT=1; DECLINED under RELCERT_SYNC=1, RELCERT_SYNC=1
-# RELCERT_NO_CHOICE=1, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1 and without RELCERT_IMPLIED_CUT.
-# RELCERT_OPREGION=1: every admitted start in some right guard. Cover: lambda 1, budget 1 in every
-# left mode; admissible STARTER_L [STARTER, LIGHTOFF, SELF, IDLE], LIGHTOFF_L [LIGHTOFF, SELF, IDLE],
-# SELF_L [LIGHTOFF, SELF, IDLE] (right-only), IDLE_L [SELF, IDLE] (right-only), ABORT_L all five.
-# Pruned STARTER->ABORT, LIGHTOFF->ABORT. relcert --wellformed: STARTER ok (exit->LIGHTOFF),
-# LIGHTOFF ok (exit->SELF), SELF ok (exit->IDLE), IDLE ok (invariant), ABORT ok (invariant).
+# Stretch pinned (2026-10-27): lambda_max 1; every cover is at lambda 1 and the requirement is a
+# real-time one.
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-29 on the installed model):
+# CERTIFIED (0.4 to 0.6 s); CERTIFIED under RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1,
+# RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_WELLFORMED_STRICT=1,
+# RELCERT_OPREGION=1 (every admitted start in some right guard); DECLINED under RELCERT_SYNC=1,
+# RELCERT_NO_REPO=1, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1 and without RELCERT_IMPLIED_CUT.
+# Cover: lambda 1, budget 1 in every left mode; admissible STARTER_L [STARTER, LIGHTOFF, SELF, IDLE],
+# LIGHTOFF_L [LIGHTOFF, SELF, IDLE], SELF_L [LIGHTOFF, SELF, IDLE] (right-only), IDLE_L [SELF, IDLE]
+# (right-only), ABORT_L all five. Nothing pruned. relcert --wellformed: STARTER ok
+# (exit->LIGHTOFF,ABORT), LIGHTOFF ok (exit->SELF), SELF ok (exit->IDLE), IDLE ok (invariant),
+# ABORT ok (invariant).
 [problem]
 name = engine_start_highidle
 max_depth = 8
@@ -81,76 +74,76 @@ lambda_max = 1.0
 bound_T = 120.0
 
 [Lsys]
-state_vars = [n]
+state_vars = [n, t]
 epsilon = 1.0
 
 [Lsys.mode.STARTER]
-ode = n' = smt2:(* 0.1 (- 30 n));
-guard = n >= 5.0 and n < 25.0
-evolve = n >= 0.0 and n <= 110.0
+ode = n' = smt2:(* 0.1 (- 30 n)); t' = 1.0;
+guard = n >= 5.0 and n < 25.0 and t < 30.0
+evolve = n >= 5.0 and n <= 110.0 and t >= 0.0 and t <= 40.0
 next = [STARTER, LIGHTOFF, ABORT]
 
 [Lsys.mode.LIGHTOFF]
-ode = n' = smt2:(* 0.08 (- 55 n));
+ode = n' = smt2:(* 0.08 (- 55 n)); t' = 0.0;
 guard = n >= 25.0 and n < 50.0
-evolve = n >= 0.0 and n <= 110.0
-next = [LIGHTOFF, SELF, ABORT]
+evolve = n >= 5.0 and n <= 110.0 and t >= 0.0 and t <= 40.0
+next = [LIGHTOFF, SELF]
 
 [Lsys.mode.SELF]
-ode = n' = smt2:(* 0.15 (- 66 n));
+ode = n' = smt2:(* 0.15 (- 66 n)); t' = 0.0;
 guard = n >= 50.0 and n < 60.0
-evolve = n >= 0.0 and n <= 110.0
+evolve = n >= 5.0 and n <= 110.0 and t >= 0.0 and t <= 40.0
 next = [SELF, IDLE]
 
 [Lsys.mode.IDLE]
-ode = n' = smt2:(* 0.5 (- 66 n));
+ode = n' = smt2:(* 0.5 (- 66 n)); t' = 0.0;
 guard = n >= 60.0
-evolve = n >= 0.0 and n <= 110.0
+evolve = n >= 5.0 and n <= 110.0 and t >= 0.0 and t <= 40.0
 next = [IDLE]
 
 [Lsys.mode.ABORT]
-ode = n' = smt2:(* (- 0.2) n);
-guard = n < 5.0
-evolve = n >= 0.0 and n <= 110.0
+ode = n' = smt2:0.0; t' = 0.0;
+guard = n < 25.0 and t >= 30.0
+evolve = n >= 5.0 and n <= 110.0 and t >= 0.0 and t <= 40.0
 next = [ABORT]
 
 [Rsys]
-state_vars = [n]
+state_vars = [n, t]
 epsilon = 1.0
 
 [Rsys.mode.STARTER]
-ode = n' = smt2:(* 0.1 (- 30 n));
-guard = n >= 5.0 and n < 25.0
-evolve = n >= 0.0 and n <= 110.0
+ode = n' = smt2:(* 0.1 (- 30 n)); t' = 1.0;
+guard = n >= 5.0 and n < 25.0 and t < 30.0
+evolve = n >= 5.0 and n <= 110.0 and t >= 0.0 and t <= 40.0
 next = [STARTER, LIGHTOFF, ABORT]
 
 [Rsys.mode.LIGHTOFF]
-ode = n' = smt2:(* 0.08 (- 55 n));
+ode = n' = smt2:(* 0.08 (- 55 n)); t' = 0.0;
 guard = n >= 25.0 and n < 50.0
-evolve = n >= 0.0 and n <= 110.0
-next = [LIGHTOFF, SELF, ABORT]
+evolve = n >= 5.0 and n <= 110.0 and t >= 0.0 and t <= 40.0
+next = [LIGHTOFF, SELF]
 
 [Rsys.mode.SELF]
-ode = n' = smt2:(* 0.15 (- 62 n));
+ode = n' = smt2:(* 0.15 (- 62 n)); t' = 0.0;
 guard = n >= 50.0 and n < 60.0
-evolve = n >= 0.0 and n <= 110.0
+evolve = n >= 5.0 and n <= 110.0 and t >= 0.0 and t <= 40.0
 next = [SELF, IDLE]
 
 [Rsys.mode.IDLE]
-ode = n' = smt2:(* 0.5 (- 62 n));
+ode = n' = smt2:(* 0.5 (- 62 n)); t' = 0.0;
 guard = n >= 60.0
-evolve = n >= 0.0 and n <= 110.0
+evolve = n >= 5.0 and n <= 110.0 and t >= 0.0 and t <= 40.0
 next = [IDLE]
 
 [Rsys.mode.ABORT]
-ode = n' = smt2:(* (- 0.2) n);
-guard = n < 5.0
-evolve = n >= 0.0 and n <= 110.0
+ode = n' = smt2:0.0; t' = 0.0;
+guard = n < 25.0 and t >= 30.0
+evolve = n >= 5.0 and n <= 110.0 and t >= 0.0 and t <= 40.0
 next = [ABORT]
 
 [relational_invariant]
-STARTER = n[l] <= n[r]
-LIGHTOFF = n[l] <= n[r]
+STARTER = n[l] <= n[r] + 0.0 and t[r] <= t[l]
+LIGHTOFF = n[l] <= n[r] + 0.0
 SELF = n[l] <= n[r] + 4.0
 IDLE = n[l] <= n[r] + 4.0
 ABORT = n[l] <= n[r] + 4.0

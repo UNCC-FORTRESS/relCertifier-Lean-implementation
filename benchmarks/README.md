@@ -37,6 +37,75 @@ needs, read off counter-runs; `scripts/suite_v2_matrix.py`) are in
 physical story, the units, the measured cover and the mechanisms it exercises
 (`# scenario:` and `# mechanisms:` lines).
 
+## Review round 2, 2026-10-29: six model changes (three with Assumption 1 proofs rewritten), twelve header fixes
+
+Round 2 of the overnight review (`docs/BENCHMARK-REVIEW-2026-10-29-r2.md`, new reviewer pairing;
+`docs/OVERNIGHT-2026-10-29.md`). As in round 1, every claim acted on was verified first; the
+refuted reviewer fixes are listed there. Changes (ablation verdicts measured before and after; no
+mechanism letter lost):
+
+* `turbine_startup_gearratio` (round-1 header had announced it): the deployed loop gains are now
+  scaled by the gear error (RAMP 0.0380952, GEN 0.047619, the stock gains / 1.05) and the domains
+  are the start-up's reachable speeds (left `w <= 12.705`, right `w <= 12.1`; with both at 16 the
+  physics-corrected model declines under every switch, so the restriction is load-bearing and the
+  header says so). Factor 1.05 certifies, 1.047 and 1.049 decline; two-sided slack on RAMP+GEN now
+  6.85 (was 10.75). Assumption 1 proof: the right domain constant 16 -> 121/10, nothing else.
+  Letters R P I unchanged (SYNC, NO_PRUNE, NO_REPO, NO_CUT decline).
+* `tunnel_jetfan_pairout` (announced): floor `u >= 2.6` (below the critical velocity, a stated
+  physical choice; it carries the NORMAL CO row through the mode fact `c <= 100`, load-bearing at
+  2.54), cap 900, and FIRE rows with smoke-control content: `u_L <= u_R <= u_L + 1.42` and
+  `u_L >= 3` (NORMAL strengthening 0.41). Tight: 0.41/0.40 and 1.42/1.41 (the values without the
+  unary row, 0.47/1.56, are stated as such). Proof: domain pins 630 -> 900 and 3.2 -> 13/5, the
+  Riccati run's bounds re-closed by the existing tactics. Letters D I unchanged (NO_CUT declines,
+  uniform rows decline). `docs/WELLFORMED.md` row updated.
+* `engine_start_highidle` (announced): a light-off time-out clock `t` on both sides (`t' = 1` in
+  STARTER, frozen elsewhere), STARTER guarded `t < 30`, ABORT guarded `n < 25 and t >= 30`, so
+  ABORT is reachable (nothing pruned any more: pruned edges 32 -> 30 over the suite); rows STARTER
+  `n_L <= n_R` and `t_R <= t_L`, LIGHTOFF exact, +4 above (4.00 certifies, 3.996 declines; the low
+  rows tight at 0.00; uniform +4 declines, D kept). Proof rewritten at `Var 3` (n, t, padding):
+  STARTER exits on the time-out or into LIGHTOFF, ABORT is a constant run. Letters R D I unchanged.
+  The old refutation witness `engine_start_highidle_m003` (a mutant of the previous model) is
+  replaced by `_m008` on the new model.
+* `acc_tune_limp` (RETHINK, overall 2: the LIMP ceiling 30 read as tuned): LIMP guard `20..36`
+  (the fault is not conditioned on speed; the ceiling is not load-bearing: 37.50 certifies, 37.51
+  declines, above the 36 cruise ceiling, by the SPORT -> NORMAL hop) and a physical DISENGAGE
+  coast-down `v' = -0.1 v` (2 m/s^2 at the floor; was -0.5 v, 10 m/s^2). Letters S M B D I X
+  unchanged. Proof: the DISENGAGE gain 1/2 -> 1/10.
+* `acc_spoof_limp`: the same DISENGAGE field (the two files share the reference model; proof
+  adapted with a per-mode gain); header: the LIMP ceiling is not load-bearing (certifies up to 40;
+  without the choice up to 34.50, the ECO/limp crossover), 110 km/h certifies identically. Letters
+  M B I unchanged.
+* `acc_tune_lag`: the measured speed tolerance is now a row, `|v_L - v_R| <= 3.34` (3.33 declines),
+  beside the exact modal rows, at the pinned stretch 2 (tau = 0.32 s is the unique lag at which the
+  retune's slow root is exactly twice the stock's; at 0.30 the exact rows decline). Letters S M
+  unchanged.
+* Header-only fixes (ablations identical before and after): `h2_refuel_ambientbias` (ABORT a start
+  only, the exact stage rows and D rest on it: without ABORT the stage rows certify at +0.01 and
+  uniform +2.9 certifies, letters R I), `platoon_profiles` (AEB_L start-only, D rests on it; the
+  SPORT derivative corrected to `-0.36 (g - 20) - 0.8 r`), `platoon_latency` (AEB start-only on
+  both sides, without it no letter), `fuelcell_chp_dos` (the non-monotone certifying window
+  [5.00, 8.00], 8.005..9.995 decline, 10 and above certify; the band around a settled reference),
+  `quad_light_lag` and `quad_light_profiles` (K = 4.0 at lambda 1.24525 and K = 4.5 at 1.218 both
+  certify pinned; a range certifies only when the exact ratio is a grid point; profiles rows: row 1
+  to 0.00, row 2 pinned to row 3's constant, 0.8 is the requirement's radius),
+  `insulin_basal_cgmloss` (the 5 min / 10 min rate figures: band-edge 17.9 / 35.8, domain maximum
+  27.9 / 55.8, successors still adjacent), `rover_terrain_2to4` (matched and plan-ahead starts need
+  lambda 1; slip-ahead starts need the window, worst PAVED start 2.637 = the tool's 2.64),
+  `lit_lz21_vehicle_position` (the content is translation invariance for any offset; the source's
+  `x <= 10` makes three right modes BLOCKING, so it stays dropped; a documented literature row),
+  `rover_patrol_lag` (the one-sided claim stated as such; the reverse direction certifies only with
+  the plan re-timed by at most 0.6, tight 0.75, letters S only; the two-sided band declines in every
+  form), `zone_lightmass_schedule` (the tight value is 0.0303 x the largest set-point-to-bound
+  distance, measured on seven ranges; 0.5 certifies for far bounds within 16.5 K of a set point;
+  scenario relabelled plant-change), `rover_terrain_4to6` (sinkage drag coefficient named,
+  `u` is a lagged speed command).
+
+Checks after round 2: `lake build` exit 0; `--check-quick-v2` 50 certified, modal 1250/1250,
+handoff 541/541, non-connection 60/60, pruned 30/30, reposition 73/73, strict gate 188/188;
+bridge 5246/5246; progress 197/197; refute 219/219 (73 instances); WellFormedBattery 66 lines;
+`relcert-test` ALL PASS. Letters (re-run 2026-10-29): S 20, M 26, R 7, B 13, P 6, D 12, I 18, X 14,
+every benchmark's letters identical to the round-1 run.
+
 ## Review round 1, 2026-10-29: one refill, four model changes, thirteen header fixes
 
 Round 1 of the overnight review (`docs/BENCHMARK-REVIEW-2026-10-29-r1.md`: five fresh reviewers,
@@ -702,7 +771,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `lit_drl_car_stop` | 2 / 2 | 3 / 3 | controller-refinement | literature (dRL), mode choice |
 | `lit_drl_lane_control` | 3 / 3 | 6 / 6 | controller-refinement | literature (dRL), mode choice |
 | `elevator_start_discbrake` | 3 / 3 | 4 / 4 | actuator-change | new 2026-10-27 (batch I5): mode-keyed (LIFT row), right-only repositioning (the reference's slower brake lift); STOP's rest-position guard conjunct added at installation |
-| `engine_start_highidle` | 1 / 1 | 5 / 5 | controller-change | new 2026-10-27: mode-keyed, widened cuts; lambda pinned to 1 (batch I6) |
+| `engine_start_highidle` | 2 / 2 | 5 / 5 | controller-change | new 2026-10-27: mode-keyed, widened cuts; lambda pinned to 1 (batch I6) |
 | `flaps_slow_approach` | 2 / 2 | 2 / 2 | degraded-actuator | back from the reserve 2026-10-27 (batch I9; new in batch I6): a per-mode stretch 1/2 while the flaps move (one hydraulic motor of two), 1 once set; 20 kt speed tolerance (S) |
 | `lit_freedm_meter` | 2 / 2 | 12 / 12 | information-flow | literature (dHL, FREEDM), mode choice |
 | `fuelcell_chp_dos` | 2 / 2 | 3 / 3 | dos-attack | new 2026-10-27 (batch I5): mode choice, multi-step and branching covers, pruned live edges LOW -> HIGH, HIGH -> LOW |
@@ -740,7 +809,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `ventilator_vc_cuffleak` | 2 / 2 | 2 / 2 | degraded-actuator | new 2026-10-27 (batch I5): mode-keyed (a relative volume row in inspiration, an absolute band in expiration) |
 | `watertank` | 1 / 1 | 3 / 5 | sensor-attack | the paper's running example (the NAHS 2025 salt-tank case, `lit_nahs25_salt_tank`, is a related published scenario with the same attack magnitude and band of 3, not its source) |
 | `watertank_twospeed` | 1 / 1 | 3 / 6 | sensor-attack | redesigned 2026-10-27: six right modes (two-speed low fill, eco/boost mid fill, high, pump off), one uniform claim; per-pairing stretch, pruned `Fast -> PumpOff` |
-| `zone_lightmass_schedule` | 1 / 1 | 2 / 3 | model-refinement | new 2026-10-28 (batch I10): time-scaled conformance of a lightweight zone to the commissioned zone's occupancy schedule, `lambda_min = lambda_max = 2` (the heat-capacity ratio), budget 2, mode choice (an identity hop and a timing commitment), a degenerate branching step |
+| `zone_lightmass_schedule` | 1 / 1 | 2 / 3 | plant-change | new 2026-10-28 (batch I10): time-scaled conformance of a lightweight zone to the commissioned zone's occupancy schedule, `lambda_min = lambda_max = 2` (the heat-capacity ratio), budget 2, mode choice (an identity hop and a timing commitment), a degenerate branching step |
 
 ## File format
 

@@ -348,12 +348,13 @@ def packsV2 : List PackV2 :=
     ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 5, 3⟩,
     ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 5, 4⟩,
     ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 5, 5⟩,
-    -- lit_csf25_salt_tank_hold (rows derived from the emitted cover, 2026-10-29: one held window, keyed rows)
-    ⟨"lit_csf25_salt_tank_hold", 3, 0, [0, 2, 1], 1, 3, 0, 0⟩,
-    ⟨"lit_csf25_salt_tank_hold", 3, 1, [0, 2, 1], 1, 3, 1, 1⟩ ]
+    -- lit_csf25_salt_tank_hold (rows derived from the emitted cover, 2026-10-29 round 3: the stale-reading
+    -- hold, one held window per decision, four keyed rows each)
+    ⟨"lit_csf25_salt_tank_hold", 3, 0, [0, 2, 3, 1], 1, 3, 0, 0⟩,
+    ⟨"lit_csf25_salt_tank_hold", 3, 1, [0, 1, 2, 3], 1, 3, 1, 1⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 1160
+def expectedModalV2 : Nat := 1162
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do

@@ -1,9 +1,10 @@
 # lit_csf25_salt_tank_hold: a brine-mixing tank whose salt sensor is silenced for two minutes, so that
-# one control decision is held for three minutes, stays within 1.31 lb per minute of the genuine tank
-# re-timed to one minute per cycle (the case study of formal robustness under timed attacks).
+# the controller keeps acting on its last (stale) reading for three minutes, stays within 2.1 lb plus
+# 1.25 lb per minute of the genuine tank re-timed to one minute per cycle (the case study of formal
+# robustness under timed attacks).
 # scenario: dos-attack
-# mechanisms: S D I (stretch: the genuine tank answers the held 3-min window over [1, 3] min, the
-#   paper's re-timing by 1/3; RELCERT_SYNC=1 declines. Mode-dependent rows: the held-Inc and held-Dec
+# mechanisms: S D I (stretch: the genuine tank answers the held 3-min window in one 1-min cycle, the
+#   paper's re-timing by 1/3; RELCERT_SYNC=1 declines. Mode-dependent rows: the stale-Inc and stale-Dec
 #   windows have different bands and envelopes, every uniform row set DECLINES. Mode facts: the guard
 #   conjuncts of the held decision; RELCERT_NO_CUT=1 declines)
 #
@@ -16,43 +17,60 @@
 # brine of concentration sc lb/gal enters at r = 3 gal/min and the stirred mixture drains at r:
 # plant xp' = r (sc - xp/xL), clockG' = 1, tSYS' = 1 & xp >= 0 and tSYS <= eps, eps = 1 (min);
 # ctrl tSYS := 0; xs := xp; (?xs < 35; sc := 1) or (?xs >= 35; sc := 1/4). Pre xp = 36, clockG = 0;
-# post 29.5 <= xp <= 42.1; the genuine tank stays in about 34.5 <= xp <= 37.1. Attack: scheduled
-# sensor DoS from S = 5 for D = 2 (M == (?trigger; skip) or (?not trigger; xs := xp), trigger ==
-# S <= clockG <= S + D): the decision taken at S is applied for D + eps = 3 min. Source result:
-# attacked and genuine at timed simulation distance 6 on H = {xp}; the proof merges the held cycles
-# into one 3-min plant run (Prop. 6), scales the genuine plant by 1/3 so one genuine 1-min cycle
-# answers it (Prop. 7), and bounds the increasing case by C: xp - xp1 <= 2.1 + 1.3 (t - t_old),
-# t - t_old <= D + eps (Fig. 11), with the genuine envelope 34.5 < xp1 < 37.1 (Fig. 10, psi_b).
+# post 29.5 <= xp <= 42.1; the genuine tank stays in about 34.5 <= xp <= 37.1 (psi_a). Attack:
+# scheduled sensor DoS from S = 5 for D = 2, M == (?trigger; skip) or (?not trigger; xs := xp),
+# trigger == S <= clockG <= S + D: the samples at 5, 6, 7 skip the update, so the controller keeps the
+# reading xs of the last fresh sample (at 4) and its decision for D + eps = 3 min after S. Source
+# result: attacked and genuine at timed simulation distance 6 on H = {xp}. The proof's worst case is
+# mid_a (Fig. 10): stale xs < 35 (Inc) while the attacked level xp >= 35, answered by a genuine state
+# xp1 < 35 that also decides Inc, 0 <= xp - xp1 <= 2.1 (Def. 8 lets the genuine state be reached at
+# any time); it merges the held cycles into one 3-min plant run (Prop. 6), scales the genuine plant by
+# 1/3 so one genuine 1-min cycle answers it (Prop. 7), and bounds the gap by C: xp - xp1 <= 2.1 +
+# 1.3 (t - t_old), t - t_old <= D + eps (Fig. 11), inside the genuine envelope 34.5 < xp1 < 37.1
+# (psi_b), hence 2.1 + 3 x 1.3 = 6. The decreasing cases mid_c, mid_d: -0.5 <= xp - xp1 <= 0.
 #
-# THIS FILE. The paper's own proof step: one held attacked window against the genuine tank re-timed.
-# Left (forall) = the attacked tank over the attack: one window of up to 3 min (epsilon 3) from the
-# attack start t = 5, in the decision taken there and never revised (HoldInc: guard xp < 35, HoldDec:
-# xp >= 35, each with t = 5; next = itself only). Right (exists) = the genuine tank, 1-min cycles
-# (epsilon 1), guards partition xp, next = [Inc, Dec]; stretch lambda in [1/3, 1], so the genuine
-# answer spans 1 to 3 min (lambda 1/3 is the paper's Prop. 7 scaling). Flows in set-point form: Inc
-# (sc = 1) xp' = 0.03 (100 - xp), Dec (sc = 1/4) xp' = 0.03 (25 - xp), the source's 3 (sc - xp/100);
-# t is the source's clockG on both sides.
+# THIS FILE. The paper's own proof step, with the stale reading: one held attacked window against the
+# genuine tank re-timed. Left (forall) = the attacked tank over the attack: one window of up to 3 min
+# (epsilon 3) from the attack start t = 5, in the decision of the stale reading, never revised.
+# HoldInc: the reading at 4 was below 35, so the tank has had one more Inc minute: its level at 5 is
+# in (36.43, 36.93), the image of the pre-attack envelope (34.5, 35) under one Inc minute
+# ((36.436, 36.921), rounded outward); the fresh reading would now say Dec, the paper's mid_a, always.
+# HoldDec: the reading at 4 was in [35, 37.1), level at 5 in [34.70, 36.75) (image [34.705, 36.742)),
+# below 35 the paper's mid_c. next = itself only. Right (exists) = the genuine tank, 1-min cycles
+# (epsilon 1), guards partition xp, next = [Inc, Dec]; its state answering the attacked state at S is
+# the genuine state at the stale reading's sample (the paper's xp1), so it decides the same way;
+# stretch lambda in [1/3, 1], the cover uses 1/3 (Prop. 7: one genuine cycle spans the 3-min hold).
+# Flows in set-point form: Inc (sc = 1) xp' = 0.03 (100 - xp), Dec (sc = 1/4) xp' = 0.03 (25 - xp),
+# the source's 3 (sc - xp/100); t is the source's clockG on both sides (the left's).
 #
-# CLAIM. HoldInc: xp_R <= xp_L <= xp_R + 1.31 (t_L - 5) and xp_R >= 34.5; HoldDec: xp_L <= xp_R <=
-# xp_L + 0.25 (t_L - 5) and xp_R <= 37.1. At the attack start (t = 5) the rows force equality (the
-# paper's distance 0 before S, Prop. 4); through the held window the gap stays under the slope times
-# the elapsed attack time, at most 3.93 lb at the end of the 3-min hold (Inc) and 0.75 lb (Dec). The
-# envelopes are the paper's psi_b bounds on the genuine tank. Not comparable with the paper's
-# distance 6: that value is 2.1 + 3 x 1.3, the stale-reading offset of its case mid_a (Fig. 10) plus
-# the slope over the hold, and this file does not model the stale case (departure (3)).
+# CLAIM. HoldInc: xp_R <= xp_L <= xp_R + 2.1 + 1.25 (t_L - 5) and 34.5 <= xp_R <= 34.999 + 0.655
+# (t_L - 5). HoldDec: xp_L <= xp_R <= xp_L + 0.5 + 0.23 (t_L - 5) and 35 - 0.1 (t_L - 5) <= xp_R <=
+# 37.1. At the attack start the rows are the paper's mid_a (0 <= xp - xp1 <= 2.1, xp1 < 35) and mid_c/d
+# (-0.5 <= xp - xp1 <= 0, xp1 >= 35); through the hold the band is the paper's C with slope 1.25 for
+# 1.3: at most 2.1 + 3 x 1.25 = 5.85 lb at the end of the hold (Inc; the paper's 6) and 0.5 + 3 x 0.23
+# = 1.19 lb (Dec; the paper's psi_b lower bound -1.1). The envelope rows are psi_b's 34.5 < xp1 < 37.1,
+# stated for a stale reading by the paper's own envelope argument: the genuine witness runs one
+# 1/3-scaled cycle in the decision of its reading, so it moves monotonically, by at most 0.655 lb (Inc
+# at 34.5) or 0.1 lb (Dec at 35) per attacked minute: Inc stays in [34.5, 36.97], Dec in [34.7, 37.1],
+# both inside the paper's envelope. Every left mode has a satisfiable start (e.g. xp_R = 34.86, xp_L =
+# 36.79, the source's run from xp = 36: Dec to 34.86 at t = 4, the stale Inc from there).
 #
-# TIGHTNESS (measured 2026-10-29, bisection 0.01, other rows fixed). Inc slope 1.31 certifies, 1.30
-# DECLINES; Dec slope 0.25 certifies, 0.24 DECLINES. The Inc slope is the same mechanism as the
-# paper's 1.3 of Fig. 11 (an unscaled held Inc flow against a genuine Inc flow re-timed by 1/3), at a
-# different start: the paper bounds the rate gap where xp_L >= 35 (0.03 x 65 - 0.01 x 65.5 = 1.295 <=
-# 1.3, sound), this file's worst case is xp_L = xp_R = 34.5 (0.03 x 65.5 x 2/3 = 1.3100). The tight
-# slope is 0.03 x 65.5 x (1 - 1/H) for a hold of H min (independent audit, 2026-10-29).
+# TIGHTNESS (measured 2026-10-29, bisection 0.01, other rows fixed). Inc slope 1.25 certifies, 1.24
+# DECLINES: the rate gap 0.03 (100 - xp_L) - 0.01 (100 - xp_R) at the band's start corner (xp_R = 34.5,
+# xp_L = 36.6) is 1.247; the paper bounds it with xp_L >= 35 only (1.95 - 0.655 = 1.295 <= 1.3). Offset
+# 2.1 is the paper's; with slope 1.25 the offset certifies down to 2.00 (1.99 DECLINES; one Inc minute
+# from the reading adds at most 1.94). Dec slope 0.23 certifies, 0.22 DECLINES (offset 0.5; down to
+# 0.40, 0.39 DECLINES). Envelope rates 0.655 (0.65 DECLINES) and 0.1 (0.099 DECLINES): the genuine
+# rates at the envelope edge, scaled by 1/3. Source vs tool: end of hold 5.85 (tool) vs 6 (paper) vs
+# 5.47 (exact worst case, (100 - xs)(e^-0.03 - e^-0.12) at xs = 34.5).
 #
-# CAUSE TEST (measured 2026-10-29; the hold length H = D + eps is the attack's effect; epsilon_L = H,
-# lambda_min = 1/H). H = 1 (no attack, the decision is fresh every minute): slopes 0 and 0 certify
-# (equality throughout). H = 2: Inc 0.99 (0.98 declines). H = 3 (this file): 1.31 (1.30 declines). H = 4:
-# Inc 1.48 (1.47 declines; with the Dec slope relaxed to 0.3, 0.27 declines at H = 4). The tight
-# slope grows with the attack duration.
+# CAUSE TEST (measured 2026-10-29; the hold H = D + eps is the attack's effect; epsilon_L = H,
+# lambda_min = 1/H, envelope rates 1.965/H and 0.3/H, offsets 2.1 and 0.5 kept). H = 1 (D = 0: one
+# skipped sample): slopes 0 and 0 certify (the stale offset only shrinks). H = 2: Inc 0.92, Dec 0.17.
+# H = 3 (this file): 1.25 and 0.23. H = 4: 1.42, 0.26 (0.01 grid; 1.41 / 0.25 DECLINE). End of hold
+# 2.1 + H x slope = 2.1 / 3.94 / 5.85 / 7.78: the bound grows with the attack duration. Without the
+# attack (H = 1 with fresh samples: the decision keyed on the level at S, equality rows, lambda 1):
+# CERTIFIED.
 #
 # Where this file departs from the source.
 # (1) Evolve domain 0 <= xp <= 300 on every mode of both sides (the source: xp >= 0): 300 lb is the
@@ -61,25 +79,29 @@
 #   gate rejects).
 # (2) The global clock clockG is a state variable t on both sides; the window clock tSYS is the tool's
 #   period (epsilon).
-# (3) The stale reading xs is eliminated and the held decision is keyed on the level at S (HoldInc at
-#   xp < 35, HoldDec at xp >= 35, at t = 5). NOT exact, and not forced (independent audit, 2026-10-29):
-#   the source's payload skip keeps the reading of the last fresh sample, taken before S, so the held
-#   decision may disagree with xp(5) (the paper's worst case mid_a: xs < 35 while xp >= 35, Fig. 10).
-#   Measured by the audit: with the held decision widened to the stale case (HoldInc at xp < 36.92,
-#   the largest level one Inc minute reaches from below 35; HoldDec at xp >= 34.7) or left free on
-#   [34.5, 37.1], the file CERTIFIES with Inc slope about 2.06 (about 6.2 lb at the end of the hold,
-#   the paper's 6) and Dec about 1.0, but only without the psi_b envelope rows (with them it DECLINES
-#   even at slope 10). This file keeps the fresh-decision step with the envelopes.
-# (4) The attack is one-shot from the attack start, the source's threat model (a single scheduled
+# (3) The stored reading xs is eliminated: the left mode is the decision of the stale reading and its
+#   guard is the set of levels at S that one minute of that decision reaches from the pre-attack envelope
+#   (rounded outward). Exact for the source's payload skip.
+# (4) Closed rows: the genuine witness's reading xs < 35 is stated as xp_R <= 34.999 at S (the suite's
+#   rows are closed; at exactly 35 the genuine controller decides Dec). With 35.0 the closure admits a
+#   genuine Dec start against the stale Inc and the Inc slope rises to 2.0 (measured). Readings in
+#   (34.999, 35) are not covered.
+# (5) The attack is one-shot from the attack start, the source's threat model (a single scheduled
 #   attack at S = 5): both left modes are entered only at the start (t = 5) by design, so the suite's
-#   start-only rule (no mode entered only from starts) does not apply here; the pre-attack phase is
-#   the equality the rows force at t = 5.
-# (5) The post-attack phase is out of scope: once the attacked tank resumes fresh samples, the two
+#   start-only rule (no mode entered only from starts) does not apply here; the pre-attack phase is the
+#   paper's psi_a (equality), which the left guards' envelope carries.
+# (6) The post-attack phase is out of scope: once the attacked tank resumes fresh samples, the two
 #   genuine controllers are desynchronized and can take opposite decisions; a file with recovery and
 #   post-attack modes DECLINES for every constant band below 75 (= 100 - 25, the set-point spread).
 #   The source's tolerance claim on (0, 13.7) is not this file's claim.
-# (6) The band is linear in the attack time (the paper's own C is too) instead of psi_b's constant 6;
-#   the claim holds from every pair satisfying the rows at t = 5, which includes the paper's states.
+# (7) The band and the envelope's moving edges are linear in the attack time (the paper's own C is too)
+#   instead of psi_b's constants 6 and (34.5, 37.1); at the end of the hold they are inside them.
+# Not adopted (measured 2026-10-29): the lock-step pairing (the genuine tank at the same time, equal at
+# S) with the stale decision CERTIFIES with Inc slope 2.02 and Dec 0.99 (lambda in [1/3, 1]; 6.06 lb at the
+# end of the hold), envelope rows stated as moving edges too; it is not the paper's pairing (mid_a answers
+# the attacked state with the genuine state of the stale reading). The fresh-decision file (decision keyed
+# on the level at S, the version before 2026-10-29) is the source's model only when the reading at 4
+# and the level at 5 agree.
 # Assumption 1 holds without a stand-in: the right guards partition xp, so every run ends in the guard
 # of a declared successor; a full 1-min run exists from either guard inside the domain (the explicit
 # exponential, Inc rising toward 100, Dec falling toward 25), proved in
@@ -88,12 +110,16 @@
 # RELATION TO OTHER TANKS. lit_nahs25_salt_tank (same authors, NAHS 2025): another salt tank (r = 10
 # or 0, threshold 25) under a bounded sensor error at every sample, a constant band 3, lambda 1,
 # letter I. Here: inflow concentration 1 or 1/4 at r = 3 (equilibria 100 and 25 straddling 35), a
-# timed DoS, a band growing with the attack time, the paper's re-timing as a stretch.
+# timed DoS acting through a stale reading, a band growing with the attack time, the paper's re-timing
+# as a stretch.
 #
 # Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-29 on branch benchmark-fixes):
-# CERTIFIED (about 0.24 s); CERTIFIED under RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1,
-# RELCERT_NO_REPO=1, RELCERT_NO_PAIR_STRETCH=1; DECLINED under RELCERT_SYNC=1, RELCERT_NO_CUT=1 and
-# RELCERT_NO_IMPLIED_CUT=1. relcert --wellformed: Inc ok (exit), Dec ok (exit), 0 UNKNOWN, 0 BLOCKING.
+# CERTIFIED (about 0.25 s); CERTIFIED under RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1,
+# RELCERT_NO_REPO=1, RELCERT_NO_PAIR_STRETCH=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_OPREGION=1,
+# RELCERT_WELLFORMED_STRICT=1; DECLINED under RELCERT_SYNC=1, RELCERT_NO_CUT=1 and RELCERT_NO_IMPLIED_CUT=1
+# (and without RELCERT_IMPLIED_CUT). Cover: HoldInc against Inc, HoldDec against Dec, lambda 1/3, the
+# other right mode inadmissible at the start. relcert --wellformed: Inc ok (exit), Dec ok (exit),
+# 0 UNKNOWN, 0 BLOCKING. --handoff 2/2.
 [problem]
 name = lit_csf25_salt_tank_hold
 max_depth = 8
@@ -107,13 +133,13 @@ epsilon = 3.0
 
 [Lsys.mode.HoldInc]
 ode = xp' = smt2:(* 0.03 (- 100.0 xp)); t' = smt2:1.0;
-guard = xp < 35.0 and t >= 5.0 and t <= 5.0
+guard = xp > 36.43 and xp < 36.93 and t >= 5.0 and t <= 5.0
 evolve = xp >= 0.0 and xp <= 300.0
 next = [HoldInc]
 
 [Lsys.mode.HoldDec]
 ode = xp' = smt2:(* 0.03 (- 25.0 xp)); t' = smt2:1.0;
-guard = xp >= 35.0 and t >= 5.0 and t <= 5.0
+guard = xp >= 34.7 and xp < 36.75 and t >= 5.0 and t <= 5.0
 evolve = xp >= 0.0 and xp <= 300.0
 next = [HoldDec]
 
@@ -134,5 +160,5 @@ evolve = xp >= 0.0 and xp <= 300.0
 next = [Inc, Dec]
 
 [relational_invariant]
-HoldInc = xp[r] <= xp[l] and xp[l] <= xp[r] + t[l]*1.31 - 6.55 and xp[r] >= 34.5
-HoldDec = xp[l] <= xp[r] and xp[r] <= xp[l] + t[l]*0.25 - 1.25 and xp[r] <= 37.1
+HoldInc = xp[r] <= xp[l] and xp[l] <= xp[r] + t[l]*1.25 - 4.15 and xp[r] >= 34.5 and xp[r] <= t[l]*0.655 + 31.724
+HoldDec = xp[l] <= xp[r] and xp[r] <= xp[l] + t[l]*0.23 - 0.65 and xp[r] <= 37.1 and xp[r] + t[l]*0.1 >= 35.5

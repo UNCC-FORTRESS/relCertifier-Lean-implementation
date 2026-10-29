@@ -37,6 +37,24 @@ needs, read off counter-runs; `scripts/suite_v2_matrix.py`) are in
 physical story, the units, the measured cover and the mechanisms it exercises
 (`# scenario:` and `# mechanisms:` lines).
 
+## Literature round 3, 2026-10-29: the stale-reading tank, the robot in physical coordinates
+
+* `lit_csf25_salt_tank_hold`: the held decision is now the STALE reading of the source's DoS (the payload skip keeps
+  the reading of the last fresh sample, at 4), answered by the genuine state of that reading (the paper's mid_a
+  pairing, Fig. 10) re-timed by 1/3. Rows: the paper's offset 2.1 plus slope 1.25 (1.24 declines; the paper's 1.3),
+  5.85 lb at the end of the hold (the paper's 6, exact worst case 5.47); the envelope psi_b (34.5, 37.1) restated
+  for a stale reading as moving edges of one re-timed genuine cycle (rates 0.655 and 0.1, tight). Letters S D I
+  (unchanged).
+* `lit_girard08_robot`: the robot in the source's physical coordinates (y1, y1', w), Eqs. (6)-(7) as printed (the
+  error coordinates of before were an exact change of variables kept for run time: about 4 s, now about 57 s).
+  Level 0.16 = precision 0.4 still tight (0.159999 declines); cause tests unchanged; letters X (unchanged).
+* Not installed: the NAHS 2025 engine cooling (no row set certifies with a meaningful value, also with
+  repositioning on: the right-only check is whole-domain and the constant-rate flows push one atom of every band
+  the wrong way; `docs/OVERNIGHT-2026-10-29.md`, "Literature round 3"). No removal; suite 50 (41 designed, 9 from
+  the literature). Checks: `--check-quick-v2` 50 certified, modal 1162/1162, handoff 2827/2827, non-connection
+  44/44, pruned 22/22, reposition 74/74, strict gate 181/181; bridge 7437/7437; progress 194/194; refute 206/206
+  (75 instances; new: `lit_csf25_salt_tank_hold` m031, the Dec envelope edge on the attacked level).
+
 ## Literature migration, 2026-10-29: two literature files in, one reserve swap
 
 * `lit_gpt10_boost_converter` (new; Girard, Pola, Tabuada, IEEE TAC 55(1) 2010, Sec. 5.1): the boost DC-DC

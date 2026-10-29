@@ -65,6 +65,8 @@ Axioms of `theorem3_keyed_of_records` and `theorem3_window_of_records`: `propext
 `relcert-bridge-verdicts` issues exactly `bridgeGroups` per benchmark at the bridge dimension
 and reports the group count against the declared total (`expectedBridgeGroupsV2`).
 
+Literature round 3 (2026-10-29): **7437 groups over the 50 suite benchmarks and the 2 choice exhibits, all discharged** (7433 before it; `lit_csf25_salt_tank_hold` 16 -> 20, its stale-reading rows have four atoms per mode; `lit_girard08_robot` 80, unchanged, in the source's physical coordinates); the declared count was set after measuring.
+
 Literature migration (2026-10-29): **7433 groups over the 50 suite benchmarks and the 2 choice exhibits, all discharged** (5183 before it; in: `lit_gpt10_boost_converter` 2450 (48 abstraction modes, each closed by the existential choice), `rampmeter_poll_2to1` 290, `lit_csf25_salt_tank_hold` 16 (mode-keyed); out: `lit_drl_car_stop`, `insulin_basal_cgmloss`, `zone_lightmass_schedule`); the declared count in `VerdictsV2/RunBridge.lean` set after measuring.
 
 Literature fidelity round (2026-10-29): **5183 groups over the 50 suite benchmarks and the 2 choice exhibits, all discharged** (5180 before it; `lit_lz21_vehicle_position` 35 -> 38, its rows now carry the non-secret partner and the output band); the declared count was set after measuring.

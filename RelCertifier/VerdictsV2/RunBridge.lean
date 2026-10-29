@@ -78,8 +78,9 @@ def bridgeDimV2 (b : String) : ℕ :=
     (((generalDimsV2.find? (·.1 == b)).map (·.2)).getD (max (irV2 b).L.stateVars.length 3)) + 1
 
 /-- Declared: the number of query groups over the suite (5183 until the literature migration of
-2026-10-29; 7433 since, of which 2450 are `lit_gpt10_boost_converter`'s 48 abstraction modes). -/
-def expectedBridgeGroupsV2 : Nat := 7433
+2026-10-29; 7433 after it, of which 2450 are `lit_gpt10_boost_converter`'s 48 abstraction modes; 7437
+since literature round 3: `lit_csf25_salt_tank_hold`'s stale-reading rows, four atoms per mode). -/
+def expectedBridgeGroupsV2 : Nat := 7437
 
 /-- The suite's records. -/
 def suiteRecV2 (b : String) : BridgeRec :=

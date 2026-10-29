@@ -6,7 +6,7 @@ Released under Apache 2.0 license.
 
 Stated directly over the generic bridge's automaton `grOf IR 6 pruned` (no standalone
 instance): the lowered right guards, `ε_r = 1`. The right model is the planner's kinematic
-point mass `y₂ = (wx, wy)` (coordinates 4 and 5; the right fields of `ex, ey, zx, zy` lower to
+point mass `y₂ = (wx, wy)` (coordinates 4 and 5; the right fields of `px, py, qx, qy` lower to
 0) of the approximate-simulation example: six locations `M1 … M6`, each a constant heading of
 norm at most `0.2` (`0.1414213` for `0.1 √2`), guards the enlarged half-planes and strips, one
 evolve domain for all of them, the constant atom `0.0 ≤ 1.0` (every state).

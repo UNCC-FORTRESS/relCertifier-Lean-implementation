@@ -79,8 +79,10 @@ import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m029
 import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m032
 import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m036
 import RelCertifier.InstancesV2.Refute.Data.antenna_track_kvretune_m040
+import RelCertifier.InstancesV2.Refute.Data.lit_csf25_salt_tank_hold_m031
 import RelCertifier.InstancesV2.Cuts.antenna_track_kvretune
 import RelCertifier.InstancesV2.Cuts.hydro_rejection_gatecal
+import RelCertifier.InstancesV2.Cuts.lit_csf25_salt_tank_hold
 import RelCertifier.InstancesV2.Cuts.lit_girard08_robot
 import RelCertifier.InstancesV2.Cuts.platoon_latency
 import RelCertifier.InstancesV2.Cuts.platoon_linkloss
@@ -183,9 +185,10 @@ def refuteTable : List RefRec := [
   ⟨"antenna_track_kvretune_m029", 3 + 1, antenna_track_kvretune_m029_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m029_wit⟩,
   ⟨"antenna_track_kvretune_m032", 3 + 1, antenna_track_kvretune_m032_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m032_wit⟩,
   ⟨"antenna_track_kvretune_m036", 3 + 1, antenna_track_kvretune_m036_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m036_wit⟩,
-  ⟨"antenna_track_kvretune_m040", 3 + 1, antenna_track_kvretune_m040_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m040_wit⟩ ]
+  ⟨"antenna_track_kvretune_m040", 3 + 1, antenna_track_kvretune_m040_IRm, antenna_track_kvretune_cutsV2X, antenna_track_kvretune_m040_wit⟩,
+  ⟨"lit_csf25_salt_tank_hold_m031", 3 + 1, lit_csf25_salt_tank_hold_m031_IRm, lit_csf25_salt_tank_hold_cutsV2X, lit_csf25_salt_tank_hold_m031_wit⟩ ]
 
 /-- Declared: the number of query groups over the refutations (one per right mode each). -/
-def expectedRefuteGroups : Nat := 204
+def expectedRefuteGroups : Nat := 206
 
 end RelCertifier.Refute

@@ -4,7 +4,7 @@ Released under Apache 2.0 license.
 
 # `lit_girard08_robot_m016`: Theorem 3's claim of a mutant of `lit_girard08_robot` is false (GENERATED — `scripts/gen_refute.py`)
 
-Mutant RRO/SNO `(<= (+ (* L_ex L_ex) (* L_ey L_ey) (* 100.0 (+ (* L_zx L_zx) (* L_zy L_zy)))) 0.16) [<=->>=]`. Kind B (a component pushed out by the left flow, right-rigid): the left takes the window of mode 0 with a short flow, the right starts in mode 0. Dimension 7: the benchmark's bridge dimension, the last auxiliary coordinate the right clock.
+Mutant RRO/SNO `(<= (+ (* (- L_px L_wx) (- L_px L_wx)) (* (- L_py L_wy) (- L_py L_wy)) (* 100.0 (+ (* (+ (- L_px L_wx) (* 2.0 L_qx)) (+ (- L_px L_wx) (* 2.0 L_qx))) (* (+ (- L_py L_wy) (* 2.0 L_qy)) (+ (- L_py L_wy) (* 2.0 L_qy)))))) 0.16) [<=->>=]`. Kind B (a component pushed out by the left flow, right-rigid): the left takes the window of mode 0 with a short flow, the right starts in mode 0. Dimension 7: the benchmark's bridge dimension, the last auxiliary coordinate the right clock.
 -/
 import RelCertifier.Proofs.Encoding.Emitted.RefuteFlow
 import RelCertifier.InstancesV2.Refute.Data.lit_girard08_robot_m016

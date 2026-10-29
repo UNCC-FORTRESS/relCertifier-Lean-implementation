@@ -30,50 +30,44 @@
 # driven by the tracking controller, whose internal reference w moves at the commanded heading.
 #
 # THIS FILE. Left = robot, right = planner model, one mode per location on both sides, epsilon 1
-# on both sides. The robot is written in the coordinates of the source's simulation function:
-# e = y1 - w (tracking error), z = e + 2 y1' (filtered error) and w, an invertible linear change of
-# variables (y1 = w + e, y1' = (z - e)/2) of Eqs. (6)-(7): ex' = (zx - ex)/2 - vx,
-# zx' = -zx/2 - ex/200, wx' = vx (same in y; -1/200 = 1/2 - 2 (101/400)). Its guards are the
-# Fig. 2 invariants on y1 = w + e; its evolve domain is the whole plane, one for all six
-# locations (written 0.0 <= 1.0, departure (6)): the robot may change location on a guard line
-# and must change within the window of at most 1 s after crossing it. The planner's state is
+# on both sides. The robot is written in the source's own coordinates: position y1 = (px, py),
+# velocity y1' = (qx, qy) and the controller's reference w = (wx, wy), with Eqs. (6)-(7) as
+# printed: px' = qx, qx' = vx/2 - (101/400)(px - wx) - qx, wx' = vx (same in y; 101/400 written
+# 0.2525). Its guards are the Fig. 2 invariants on y1; its evolve domain is the whole plane, one for
+# all six locations (written 0.0 <= 1.0, departure (6)): the robot may change location on a guard
+# line and must change within the window of at most 1 s after crossing it. The planner's state is
 # y2 = (wx, wy); its guards are the Fig. 3 invariants (enlarged by 0.4). Stretch pinned to 1:
 # approximate simulation is time-aligned.
 #
 # CLAIM (every left mode): w_L = y2_R (two inequalities per coordinate) and
-# ex^2 + ey^2 + 100 (zx^2 + zy^2) <= 0.16 on the robot. This is the source's relation
-# {V <= 0.4}: V <= 0.4 holds iff the square root is at most 0.4 and |w - y2| = 0. Together
-# |y1_L - y2_R| = |e| <= 0.4, the source's precision. Not implied by the domains; every left mode
-# has a satisfiable start (e = z = 0, w in the location's invariant), which contains the
-# source's initial set.
+# |y1 - w|^2 + 100 |y1 - w + 2 y1'|^2 <= 0.16 on the robot, the source's simulation function
+# written in its own variables. This is the source's relation {V <= 0.4}: V <= 0.4 holds iff the
+# square root is at most 0.4 and |w - y2| = 0. Together |y1_L - y2_R| = |y1 - w| <= 0.4, the
+# source's precision. Not implied by the domains; every left mode has a satisfiable start
+# (y1 = w, y1' = 0, w in the location's invariant), which contains the source's initial set.
 #
-# TIGHTNESS (bisection on the level, measured 2026-10-29). 0.16 CERTIFIES; 0.1599, 0.15999 and
-# 0.159999 DECLINE. The tool's tight level is the source's beta^2 = 0.16 exactly, precision 0.4:
-# on the boundary the quadratic's Lie derivative is -0.16 - 2 e.v, zero at |e| = 0.4 with e
-# against a heading of norm 0.2 (the axis headings are exactly 0.2), so no smaller level of this
-# quadratic is invariant.
+# TIGHTNESS (bisection on the level, measured 2026-10-29). 0.16 CERTIFIES; 0.1599 and 0.159999
+# DECLINE. The tool's tight level is the source's beta^2 = 0.16 exactly, precision 0.4: writing
+# e = y1 - w and z = e + 2 y1', on the boundary the quadratic's Lie derivative is -0.16 - 2 e.v,
+# zero at |e| = 0.4 with e against a heading of norm 0.2 (the axis headings are exactly 0.2), so
+# no smaller level of this quadratic is invariant.
 #
 # CAUSE TEST (the precision comes from the tracking controller of Eq. 7; measured 2026-10-29,
-# only the robot's z rows and the level changed).
-#   No position feedback (gain 101/400 -> 0: zx' = -zx/2 + ex/2): DECLINED at levels 0.16, 1
-#   and 100 (e + z then drifts at -v, no bounded level is invariant).
-#   No damping (the -y1' term removed: zx' = zx/2 - 1.005 ex): DECLINED at 0.16 and 1.
-#   Gain 0.26 with the source's V kept: DECLINED at 0.16 (the e.z cross terms no longer cancel;
-#   the tight level of this V becomes about 0.1745 by hand computation, not measured: levels
-#   0.1744 and 0.1746 exceed 300 s, also with the planner enlarged to 0.42). Gain 0.3 with the
-#   source's V: DECLINED at 0.16.
-#   Gain 0.26 with V re-weighted for that gain (weight 25 = 1/(2 (2k - 1/2)) in place of
-#   100): CERTIFIED at 0.16, DECLINED at 0.159999. So the weight 100 of the source's V is the
-#   one tied to 101/400, and the precision 0.4 = 2 |v| is set by the controller's structure
-#   (feedforward v/2, damping, position feedback with gain above 1/4), not by the exact gain.
+# only the robot's acceleration law and the level changed).
+#   No position feedback (gain 101/400 -> 0: qx' = vx/2 - qx): DECLINED at levels 0.16, 1 and
+#   100 (y1 - w then drifts, no bounded level is invariant).
+#   No damping (the -y1' term removed: qx' = vx/2 - (101/400)(px - wx)): DECLINED at 0.16 and 1.
+#   Gain 0.26 with the source's V kept: DECLINED at 0.16 (the cross terms of V's Lie derivative
+#   no longer cancel). Gain 0.3 with the source's V: DECLINED at 0.16.
+#   Gain 0.26 with V re-weighted for that gain (weight 25 = 1/(2 (2k - 1/2)) in place of 100):
+#   CERTIFIED at 0.16, DECLINED at 0.159999. So the weight 100 of the source's V is the one tied
+#   to 101/400, and the precision 0.4 = 2 |v| is set by the controller's structure (feedforward
+#   v/2, damping, position feedback with gain above 1/4), not by the exact gain.
 #
 # Where this file departs from the source.
-# (1) Coordinates: the robot in error coordinates (above), the same linear system. In the physical
-#   coordinates (px, py, px', py', wx, wy) the claim does not fit the tool's 40 s time budget:
-#   ERROR (time budget exceeded, 40 s). The joint segment queries of the diagonal headings
-#   dominate (location 1's cover takes 0.2 s, location 2's first queries alone exceed the budget);
-#   with the budget raised to 280 s it CERTIFIES in about 128 s (literature draft, every planner
-#   edge declared, same admissible starts; measured 2026-10-27, not re-run).
+# (1) Coordinates: none. The robot is in the source's physical coordinates (y1, y1', w), as
+#   printed. (Until 2026-10-29 the file used the error coordinates e = y1 - w, z = e + 2 y1', an
+#   exact change of variables, for run time: about 4 s against about 57 s here.)
 # (2) Location pairing. The source's relation pairs equal locations. Rows are keyed by the left
 #   mode and cannot require the planner to be in the paired location, so the cover must also
 #   answer planner starts in a location whose enlarged invariant overlaps the robot's (along the
@@ -101,22 +95,23 @@
 #   the whole plane: its supervisor reads the position at least once per second, and within a
 #   window the reference w runs at most 0.2 m past a guard line. With the source's per-location
 #   evolve domains (evolve = guard, the design file) every verdict, the cover and the tight 0.16
-#   are the same (measured), but no bridge instance can be stated for that file.
+#   are the same (measured in the error coordinates), but no bridge instance can be stated for
+#   that file.
 #
 # Why committed choice is needed (X). At each window start the planner hops into the robot's
 # location (heading), then w_L and y2_R move together; without the choice (RELCERT_NO_CHOICE=1)
 # it must keep the heading it holds: DECLINED.
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27 on branch benchmark-fixes, batch
-# I8; re-measured 2026-10-28 and 2026-10-29, unchanged): CERTIFIED (about 3.8 s); CERTIFIED under
-# RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1,
-# RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_PAIR_STRETCH=1, RELCERT_NO_REPO=1, RELCERT_OPREGION=1,
-# RELCERT_WELLFORMED_STRICT=1 and without RELCERT_IMPLIED_CUT; DECLINED under
-# RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1 and RELCERT_SYNC=1
-# RELCERT_NO_CHOICE=1. Cover: every left mode at lambda 1, budget 1, closed by choice; admissible
-# planner starts 1: {1,2,3,4,6}, 2: {1,2,3}, 3: {1,2,3,4,6}, 4: {1,3,4,5,6}, 5: {4,5,6},
-# 6: {1,3,4,5,6}; nothing pruned. Rows identical (--handoff vacuous, 12/12). relcert
-# --wellformed: all six planner modes ok (exit to the next location), 0 UNKNOWN.
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-29 on branch benchmark-fixes, in the
+# physical coordinates): CERTIFIED (about 57 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1,
+# RELCERT_NO_CUT=1 (about 39 s), RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1,
+# RELCERT_NO_PAIR_STRETCH=1, RELCERT_NO_REPO=1, RELCERT_OPREGION=1, RELCERT_WELLFORMED_STRICT=1 and
+# without RELCERT_IMPLIED_CUT; DECLINED under RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1
+# RELCERT_NO_CHOICE=1 and RELCERT_SYNC=1 RELCERT_NO_CHOICE=1. Cover: every left mode at lambda 1,
+# budget 1, closed by choice;
+# admissible planner starts 1: {1,2,3,4,6}, 2: {1,2,3}, 3: {1,2,3,4,6}, 4: {1,3,4,5,6},
+# 5: {4,5,6}, 6: {1,3,4,5,6}; nothing pruned. Rows identical (--handoff vacuous, 12/12). relcert
+# --wellformed: all six planner modes ok (exit to the next location), 0 UNKNOWN, 0 BLOCKING.
 [problem]
 name = lit_girard08_robot
 max_depth = 8
@@ -125,42 +120,42 @@ lambda_max = 1.0
 bound_T = 40.0
 
 [Lsys]
-state_vars = [ex, ey, zx, zy, wx, wy]
+state_vars = [px, py, qx, qy, wx, wy]
 epsilon = 1.0
 
 [Lsys.mode.M1]
-ode = ex' = smt2:(- (* 0.5 (- zx ex)) 0.2); ey' = smt2:(- (* 0.5 (- zy ey)) 0.0); zx' = smt2:(- (* -0.5 zx) (* 0.005 ex)); zy' = smt2:(- (* -0.5 zy) (* 0.005 ey)); wx' = smt2:0.2; wy' = smt2:0.0;
-guard = smt2:(and (>= (+ wx ex) 0.0) (<= (+ wx ex) 3.0) (>= (+ wy ey) 0.0))
+ode = px' = smt2:qx; py' = smt2:qy; qx' = smt2:(- (- (* 0.5 0.2) (* 0.2525 (- px wx))) qx); qy' = smt2:(- (- (* 0.5 0.0) (* 0.2525 (- py wy))) qy); wx' = smt2:0.2; wy' = smt2:0.0;
+guard = smt2:(and (>= px 0.0) (<= px 3.0) (>= py 0.0))
 evolve = 0.0 <= 1.0
 next = [M1, M2]
 
 [Lsys.mode.M2]
-ode = ex' = smt2:(- (* 0.5 (- zx ex)) 0.1414213); ey' = smt2:(- (* 0.5 (- zy ey)) (- 0.0 0.1414213)); zx' = smt2:(- (* -0.5 zx) (* 0.005 ex)); zy' = smt2:(- (* -0.5 zy) (* 0.005 ey)); wx' = smt2:0.1414213; wy' = smt2:(- 0.0 0.1414213);
-guard = smt2:(and (>= (+ wx ex) 3.0) (>= (+ wy ey) 0.0))
+ode = px' = smt2:qx; py' = smt2:qy; qx' = smt2:(- (- (* 0.5 0.1414213) (* 0.2525 (- px wx))) qx); qy' = smt2:(- (- (* 0.5 (- 0.0 0.1414213)) (* 0.2525 (- py wy))) qy); wx' = smt2:0.1414213; wy' = smt2:(- 0.0 0.1414213);
+guard = smt2:(and (>= px 3.0) (>= py 0.0))
 evolve = 0.0 <= 1.0
 next = [M2, M3]
 
 [Lsys.mode.M3]
-ode = ex' = smt2:(- (* 0.5 (- zx ex)) (- 0.0 0.1414213)); ey' = smt2:(- (* 0.5 (- zy ey)) (- 0.0 0.1414213)); zx' = smt2:(- (* -0.5 zx) (* 0.005 ex)); zy' = smt2:(- (* -0.5 zy) (* 0.005 ey)); wx' = smt2:(- 0.0 0.1414213); wy' = smt2:(- 0.0 0.1414213);
-guard = smt2:(and (>= (+ wx ex) 0.0) (<= (+ wy ey) 0.0))
+ode = px' = smt2:qx; py' = smt2:qy; qx' = smt2:(- (- (* 0.5 (- 0.0 0.1414213)) (* 0.2525 (- px wx))) qx); qy' = smt2:(- (- (* 0.5 (- 0.0 0.1414213)) (* 0.2525 (- py wy))) qy); wx' = smt2:(- 0.0 0.1414213); wy' = smt2:(- 0.0 0.1414213);
+guard = smt2:(and (>= px 0.0) (<= py 0.0))
 evolve = 0.0 <= 1.0
 next = [M3, M4]
 
 [Lsys.mode.M4]
-ode = ex' = smt2:(- (* 0.5 (- zx ex)) (- 0.0 0.2)); ey' = smt2:(- (* 0.5 (- zy ey)) 0.0); zx' = smt2:(- (* -0.5 zx) (* 0.005 ex)); zy' = smt2:(- (* -0.5 zy) (* 0.005 ey)); wx' = smt2:(- 0.0 0.2); wy' = smt2:0.0;
-guard = smt2:(and (>= (+ wx ex) (- 0.0 3.0)) (<= (+ wx ex) 0.0) (<= (+ wy ey) 0.0))
+ode = px' = smt2:qx; py' = smt2:qy; qx' = smt2:(- (- (* 0.5 (- 0.0 0.2)) (* 0.2525 (- px wx))) qx); qy' = smt2:(- (- (* 0.5 0.0) (* 0.2525 (- py wy))) qy); wx' = smt2:(- 0.0 0.2); wy' = smt2:0.0;
+guard = smt2:(and (>= px (- 0.0 3.0)) (<= px 0.0) (<= py 0.0))
 evolve = 0.0 <= 1.0
 next = [M4, M5]
 
 [Lsys.mode.M5]
-ode = ex' = smt2:(- (* 0.5 (- zx ex)) (- 0.0 0.1414213)); ey' = smt2:(- (* 0.5 (- zy ey)) 0.1414213); zx' = smt2:(- (* -0.5 zx) (* 0.005 ex)); zy' = smt2:(- (* -0.5 zy) (* 0.005 ey)); wx' = smt2:(- 0.0 0.1414213); wy' = smt2:0.1414213;
-guard = smt2:(and (<= (+ wx ex) (- 0.0 3.0)) (<= (+ wy ey) 0.0))
+ode = px' = smt2:qx; py' = smt2:qy; qx' = smt2:(- (- (* 0.5 (- 0.0 0.1414213)) (* 0.2525 (- px wx))) qx); qy' = smt2:(- (- (* 0.5 0.1414213) (* 0.2525 (- py wy))) qy); wx' = smt2:(- 0.0 0.1414213); wy' = smt2:0.1414213;
+guard = smt2:(and (<= px (- 0.0 3.0)) (<= py 0.0))
 evolve = 0.0 <= 1.0
 next = [M5, M6]
 
 [Lsys.mode.M6]
-ode = ex' = smt2:(- (* 0.5 (- zx ex)) 0.1414213); ey' = smt2:(- (* 0.5 (- zy ey)) 0.1414213); zx' = smt2:(- (* -0.5 zx) (* 0.005 ex)); zy' = smt2:(- (* -0.5 zy) (* 0.005 ey)); wx' = smt2:0.1414213; wy' = smt2:0.1414213;
-guard = smt2:(and (<= (+ wx ex) 0.0) (>= (+ wy ey) 0.0))
+ode = px' = smt2:qx; py' = smt2:qy; qx' = smt2:(- (- (* 0.5 0.1414213) (* 0.2525 (- px wx))) qx); qy' = smt2:(- (- (* 0.5 0.1414213) (* 0.2525 (- py wy))) qy); wx' = smt2:0.1414213; wy' = smt2:0.1414213;
+guard = smt2:(and (<= px 0.0) (>= py 0.0))
 evolve = 0.0 <= 1.0
 next = [M6, M1]
 
@@ -205,9 +200,9 @@ evolve = 0.0 <= 1.0
 next = [M1, M3, M4, M5, M6]
 
 [relational_invariant]
-M1 = smt2:(and (<= L_wx R_wx) (<= R_wx L_wx) (<= L_wy R_wy) (<= R_wy L_wy) (>= (+ (* L_ex L_ex) (* L_ey L_ey) (* 100.0 (+ (* L_zx L_zx) (* L_zy L_zy)))) 0.16))
-M2 = smt2:(and (<= L_wx R_wx) (<= R_wx L_wx) (<= L_wy R_wy) (<= R_wy L_wy) (>= (+ (* L_ex L_ex) (* L_ey L_ey) (* 100.0 (+ (* L_zx L_zx) (* L_zy L_zy)))) 0.16))
-M3 = smt2:(and (<= L_wx R_wx) (<= R_wx L_wx) (<= L_wy R_wy) (<= R_wy L_wy) (>= (+ (* L_ex L_ex) (* L_ey L_ey) (* 100.0 (+ (* L_zx L_zx) (* L_zy L_zy)))) 0.16))
-M4 = smt2:(and (<= L_wx R_wx) (<= R_wx L_wx) (<= L_wy R_wy) (<= R_wy L_wy) (>= (+ (* L_ex L_ex) (* L_ey L_ey) (* 100.0 (+ (* L_zx L_zx) (* L_zy L_zy)))) 0.16))
-M5 = smt2:(and (<= L_wx R_wx) (<= R_wx L_wx) (<= L_wy R_wy) (<= R_wy L_wy) (>= (+ (* L_ex L_ex) (* L_ey L_ey) (* 100.0 (+ (* L_zx L_zx) (* L_zy L_zy)))) 0.16))
-M6 = smt2:(and (<= L_wx R_wx) (<= R_wx L_wx) (<= L_wy R_wy) (<= R_wy L_wy) (>= (+ (* L_ex L_ex) (* L_ey L_ey) (* 100.0 (+ (* L_zx L_zx) (* L_zy L_zy)))) 0.16))
+M1 = smt2:(and (<= L_wx R_wx) (<= R_wx L_wx) (<= L_wy R_wy) (<= R_wy L_wy) (>= (+ (* (- L_px L_wx) (- L_px L_wx)) (* (- L_py L_wy) (- L_py L_wy)) (* 100.0 (+ (* (+ (- L_px L_wx) (* 2.0 L_qx)) (+ (- L_px L_wx) (* 2.0 L_qx))) (* (+ (- L_py L_wy) (* 2.0 L_qy)) (+ (- L_py L_wy) (* 2.0 L_qy)))))) 0.16))
+M2 = smt2:(and (<= L_wx R_wx) (<= R_wx L_wx) (<= L_wy R_wy) (<= R_wy L_wy) (>= (+ (* (- L_px L_wx) (- L_px L_wx)) (* (- L_py L_wy) (- L_py L_wy)) (* 100.0 (+ (* (+ (- L_px L_wx) (* 2.0 L_qx)) (+ (- L_px L_wx) (* 2.0 L_qx))) (* (+ (- L_py L_wy) (* 2.0 L_qy)) (+ (- L_py L_wy) (* 2.0 L_qy)))))) 0.16))
+M3 = smt2:(and (<= L_wx R_wx) (<= R_wx L_wx) (<= L_wy R_wy) (<= R_wy L_wy) (>= (+ (* (- L_px L_wx) (- L_px L_wx)) (* (- L_py L_wy) (- L_py L_wy)) (* 100.0 (+ (* (+ (- L_px L_wx) (* 2.0 L_qx)) (+ (- L_px L_wx) (* 2.0 L_qx))) (* (+ (- L_py L_wy) (* 2.0 L_qy)) (+ (- L_py L_wy) (* 2.0 L_qy)))))) 0.16))
+M4 = smt2:(and (<= L_wx R_wx) (<= R_wx L_wx) (<= L_wy R_wy) (<= R_wy L_wy) (>= (+ (* (- L_px L_wx) (- L_px L_wx)) (* (- L_py L_wy) (- L_py L_wy)) (* 100.0 (+ (* (+ (- L_px L_wx) (* 2.0 L_qx)) (+ (- L_px L_wx) (* 2.0 L_qx))) (* (+ (- L_py L_wy) (* 2.0 L_qy)) (+ (- L_py L_wy) (* 2.0 L_qy)))))) 0.16))
+M5 = smt2:(and (<= L_wx R_wx) (<= R_wx L_wx) (<= L_wy R_wy) (<= R_wy L_wy) (>= (+ (* (- L_px L_wx) (- L_px L_wx)) (* (- L_py L_wy) (- L_py L_wy)) (* 100.0 (+ (* (+ (- L_px L_wx) (* 2.0 L_qx)) (+ (- L_px L_wx) (* 2.0 L_qx))) (* (+ (- L_py L_wy) (* 2.0 L_qy)) (+ (- L_py L_wy) (* 2.0 L_qy)))))) 0.16))
+M6 = smt2:(and (<= L_wx R_wx) (<= R_wx L_wx) (<= L_wy R_wy) (<= R_wy L_wy) (>= (+ (* (- L_px L_wx) (- L_px L_wx)) (* (- L_py L_wy) (- L_py L_wy)) (* 100.0 (+ (* (+ (- L_px L_wx) (* 2.0 L_qx)) (+ (- L_px L_wx) (* 2.0 L_qx))) (* (+ (- L_py L_wy) (* 2.0 L_qy)) (+ (- L_py L_wy) (* 2.0 L_qy)))))) 0.16))

@@ -25,8 +25,8 @@ def lit_csf25_salt_tank_hold_cutsV2 : EvolStrengthening :=
 
 def lit_csf25_salt_tank_hold_cutsV2X : EvolStrengtheningX :=
   { L := [
-      ("HoldInc", [⟨(.cmp ">=" (.var "t") (.num "5.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "xp") (.num "100.0")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
-      ("HoldDec", [⟨(.cmp ">=" (.var "t") (.num "5.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp ">=" (.var "xp") (.num "25.0")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩])
+      ("HoldInc", [⟨(.cmp ">=" (.var "t") (.num "5.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp ">=" (.var "xp") (.num "36.43")), CutKind.closure, CutEntry.weakening, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "xp") (.num "100.0")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),
+      ("HoldDec", [⟨(.cmp ">=" (.var "t") (.num "5.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "xp") (.num "36.75")), CutKind.closure, CutEntry.weakening, CutRouteX.shape, []⟩, ⟨(.cmp ">=" (.var "xp") (.num "25.0")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩])
     ]
     R := [
       ("Inc", [⟨(.cmp "<=" (.var "xp") (.num "100.0")), CutKind.impliedContract, CutEntry.rational, CutRouteX.shape, []⟩]),

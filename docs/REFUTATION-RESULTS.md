@@ -182,6 +182,12 @@
 > `zone_lightmass_schedule` (48 lines, no witness) dropped; the finder with `--only` on the three incoming files
 > (`lit_gpt10_boost_converter` 5 mutants, `lit_csf25_salt_tank_hold` 24, `rampmeter_poll_2to1` 24): no witness. Records
 > 929 -> 934; witnesses 74, refutation instances and `relcert-refute-verdicts` 204/204 unchanged.
+> Literature round 3 (2026-10-29): the finder with `--only` on the two changed files (`lit_csf25_salt_tank_hold`
+> 32 mutants, the stale-reading rows; `lit_girard08_robot` 20 mutants, physical coordinates, `--timeout 300` since
+> one run takes about 57 s). Witnesses: `lit_girard08_robot` m016 re-found (the level row reversed, now over the
+> physical variables) and one new, `lit_csf25_salt_tank_hold` m031 (the Dec envelope edge `xp + 0.1 t >= 35.5` moved
+> to the attacked level, which falls at up to 0.3 per minute). Witnesses 75; 75 refutation instances,
+> `relcert-refute-verdicts` 206/206, every instance builds.
 > Current instance set: **67 refutations, 199 groups**
 > (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 954 mutants in
 > `docs/refute/witnesses.jsonl`. The operator table below is the 2026-10-21 run; recomputed on 2026-10-28 after batch I11

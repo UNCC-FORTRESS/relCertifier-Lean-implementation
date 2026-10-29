@@ -60,6 +60,15 @@
 #     as the time-scaled NORMAL reference (at equality the deployed accelerates harder for every
 #     w <= 2.4). Under row 4, h_L - h_R <= Psi, so row 3 gives row 2, and h_L - h_R never
 #     decreases, so row 1 holds.
+#   row 5: w_L <= 2.4, the deployed's climb envelope (stated strengthening, installed by the domain
+#     audit of 2026-10-29): the lighter airframe's climb rate never exceeds its terminal 2.4 m/s,
+#     so the autopilot's 3 m/s climb-rate limiter (the domain) never engages. Inductive (w_L' =
+#     6.13125 (2.4 - w_L)) and tight (2.39 declines: a start at the terminal rate stays there).
+#     With row 4 it bounds the reference's climb by 2 m/s, the NORMAL set point, which row 4
+#     needs: above 2 m/s the re-timed reference decelerates more slowly than the deployed in the
+#     coordinate w_L - 1.2 w_R (d/dt = 0.5886 - 0.2943 w_R at equality), so a start with both
+#     rates above their set points breaks row 4 (the 2.4 m/s domain cap carried this bound
+#     before; widened by 5 % the file declined).
 # From hover (h_L = h_R, w_L = w_R = 0) Psi = 0.0163 m: the deployed leads the scaled NORMAL
 # reference by at most 1.6 cm. Tightness (measured 2026-10-29): rows 1, 2 and 3 are not loaded by
 # the dynamics. Row 1 certifies at every constant down to 0.00 (under row 4, h_L - h_R never
@@ -87,26 +96,30 @@
 # that claim needs a tolerance where this one is exact in the steady gap. This file states the
 # time-scaled claim to the plan's own profile (NORMAL), the one the mass ratio fixes.
 #
-# Guards and domains. Left CLIMB guard = evolve: h >= 0, 0 <= w <= 2.4 (the deployed's climb
-# envelope, forward invariant). Right NORMAL, ECO, SPORT guard = evolve: h >= 0, 0 <= w <= 2.4,
-# the envelope of the strongest profile (SPORT), forward invariant in every profile (each
-# terminal rate <= 2.4): the right guards coincide, no coverage gap. Altitude unbounded above
-# (climb segments of any length); the left mode has a satisfiable start (hover). The 3 m/s
-# climb-rate limiter lies above every envelope and never engages: not modeled. Control interval
-# 1 s on both sides.
+# Guards and domains. Left CLIMB guard = evolve: h >= 0, 0 <= w <= 3 m/s; right NORMAL, ECO, SPORT
+# guard = evolve: the same. The ceiling is the autopilot's climb-rate limiter (PX4's
+# MPC_Z_VEL_MAX_UP default 3 m/s: the velocity controller clamps its set point there, so no
+# profile and no airframe climbs faster; the plant's model is the clamped loop and ends at the
+# clamp), forward invariant on both sides (every terminal rate is below 3). The domain audit of
+# 2026-10-29 replaced the earlier ceiling 2.4 m/s (the SPORT set point, the envelope of the
+# strongest profile: a closed-loop asymptote, not a limit) by the limiter; the bound the rows
+# needed from it is now row 5. Not load-bearing now: every bound widened by 20 % of its range
+# CERTIFIES. The right guards coincide, no coverage gap. Altitude unbounded above (climb segments
+# of any length); the left mode has a satisfiable start (hover). Control interval 1 s on both sides.
 #
 # Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27, batch I9; re-measured
-# 2026-10-29): CERTIFIED (about 0.3 s); DECLINED under RELCERT_SYNC=1, RELCERT_NO_CHOICE=1,
-# NO_PRUNE+NO_CHOICE and
+# 2026-10-29 after the domain audit, on the 3 m/s domain with row 5, same pattern): CERTIFIED
+# (about 0.4 s); DECLINED under RELCERT_SYNC=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE and
 # SYNC+NO_CHOICE; CERTIFIED under RELCERT_NO_PRUNE=1, without RELCERT_IMPLIED_CUT,
 # RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_CUT=1, RELCERT_NO_REPO=1,
-# RELCERT_WELLFORMED_STRICT=1 and RELCERT_OPREGION=1 (every admitted start in some right guard).
+# RELCERT_NO_PAIR_STRETCH=1, RELCERT_WELLFORMED_STRICT=1 and RELCERT_OPREGION=1 (every admitted
+# start in some right guard). Letters S M B X before and after the audit.
 # Cover: CLIMB by choice at lambda = 6/5, budget 2, admissible starts NORMAL, ECO, SPORT, hops
 # ECO -> NORMAL and SPORT -> NORMAL, joint steps from NORMAL retaining ECO and SPORT (branch 2),
 # nothing pruned. --handoff 1/1 vacuous (one left mode); the left mode has a satisfiable start
 # (hover, w_L = w_R = 0). relcert --wellformed: NORMAL, ECO, SPORT ok (invariant), 0 UNKNOWN,
-# 0 BLOCKING. The right model is unchanged since round A (Assumption 1 proof unchanged); the rows
-# and the stretch changed (batch I9). Units m, m/s, m/s^2, s.
+# 0 BLOCKING. The right model's Assumption 1 proof is the round-A one adapted to the 3 m/s domain
+# (2026-10-29); the rows and the stretch changed in batch I9. Units m, m/s, m/s^2, s.
 [problem]
 name = quad_light_profiles
 max_depth = 8
@@ -118,26 +131,26 @@ state_vars = [h, w]
 epsilon = 1.0
 [Lsys.mode.CLIMB]
 ode = h' = w; w' = smt2:(- 14.715 (* 6.13125 w));
-guard = h >= 0.0 and w >= 0.0 and w <= 2.4
-evolve = h >= 0.0 and w >= 0.0 and w <= 2.4
+guard = h >= 0.0 and w >= 0.0 and w <= 3.0
+evolve = h >= 0.0 and w >= 0.0 and w <= 3.0
 next = [CLIMB]
 [Rsys]
 state_vars = [h, w]
 epsilon = 1.0
 [Rsys.mode.NORMAL]
 ode = h' = w; w' = smt2:(- 9.81 (* 4.905 w));
-guard = h >= 0.0 and w >= 0.0 and w <= 2.4
-evolve = h >= 0.0 and w >= 0.0 and w <= 2.4
+guard = h >= 0.0 and w >= 0.0 and w <= 3.0
+evolve = h >= 0.0 and w >= 0.0 and w <= 3.0
 next = [NORMAL, ECO, SPORT]
 [Rsys.mode.ECO]
 ode = h' = w; w' = smt2:(- 7.848 (* 4.905 w));
-guard = h >= 0.0 and w >= 0.0 and w <= 2.4
-evolve = h >= 0.0 and w >= 0.0 and w <= 2.4
+guard = h >= 0.0 and w >= 0.0 and w <= 3.0
+evolve = h >= 0.0 and w >= 0.0 and w <= 3.0
 next = [ECO, NORMAL, SPORT]
 [Rsys.mode.SPORT]
 ode = h' = w; w' = smt2:(- 11.772 (* 4.905 w));
-guard = h >= 0.0 and w >= 0.0 and w <= 2.4
-evolve = h >= 0.0 and w >= 0.0 and w <= 2.4
+guard = h >= 0.0 and w >= 0.0 and w <= 3.0
+evolve = h >= 0.0 and w >= 0.0 and w <= 3.0
 next = [SPORT, NORMAL, ECO]
 [relational_invariant]
-CLIMB = smt2:(and (<= (- R_h L_h) 0.8) (<= (- L_h R_h) 0.8) (<= (+ (* 6.13125 (- L_h R_h)) (- L_w (* 1.25 R_w)) 0.1) (* 6.13125 0.8)) (<= (* 1.2 R_w) L_w))
+CLIMB = smt2:(and (<= (- R_h L_h) 0.8) (<= (- L_h R_h) 0.8) (<= (+ (* 6.13125 (- L_h R_h)) (- L_w (* 1.25 R_w)) 0.1) (* 6.13125 0.8)) (<= (* 1.2 R_w) L_w) (<= L_w 2.4))

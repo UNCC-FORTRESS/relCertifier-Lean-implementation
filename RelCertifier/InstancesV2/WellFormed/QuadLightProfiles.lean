@@ -9,14 +9,15 @@ profiles and their declared `next` lists, each profile listing all three), the l
 guards, `ε_r = 1`. The right model is the reference quadrotor's climb, an affine cascade on
 altitude `h` (`Rv 0`) and climb rate `w` (`Rv 1`): `h' = w`, `w' = c_q − 4.905 w` with
 `c_q = 9.81` (`NORMAL`), `7.848` (`ECO`), `11.772` (`SPORT`), terminal climb rates
-`c_q / 4.905 = 2.0, 1.6, 2.4`; in every profile guard = evolve = `h ≥ 0 ∧ 0 ≤ w ≤ 2.4`.
+`c_q / 4.905 = 2.0, 1.6, 2.4`; in every profile guard = evolve = `h ≥ 0 ∧ 0 ≤ w ≤ 3` (the
+autopilot's climb-rate limiter, since the domain audit of 2026-10-29; `2.4` before).
 The bridge dimension is `3` (the cover uses the committed mode choice, so no modal pack fixes
 it and it falls back to `max (#left state vars) 3`): coordinate `Rv 2` is a padding coordinate
 outside `vs`, its right field lowers to `0`, and the run holds it still.
 
 * Existence (i), every profile: the explicit run. `w` is the contraction toward
   `c_q / 4.905` (`forcedSol 4.905 w₀ c_q`, kept in `[min w₀ (c_q/4.905), max w₀ (c_q/4.905)]
-  ⊆ [0, 2.4]` by `forcedSol_between`, every terminal rate lying in `[0, 2.4]`); `h` is the
+  ⊆ [0, 3]` by `forcedSol_between`, every terminal rate lying in `[0, 3]`); `h` is the
   integral of `w` (`intSol`), not decreasing since `w ≥ 0` (`mono_of_deriv_nonneg`). The run
   is assembled by `trajRs_sol` and stays in the evolve box over the interval.
 * (ii), style (a), every profile: the guard is the evolve domain, so every run (of any
@@ -53,8 +54,8 @@ theorem hp00 : Run.parseRat "0.0" = some (0 : ℚ) := by
 theorem hp10 : Run.parseRat "1.0" = some (1 : ℚ) := by
   have h : parseQ "1.0" = some (⟨10, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]
-theorem hp24 : Run.parseRat "2.4" = some ((12 : ℚ) / 5) := by
-  have h : parseQ "2.4" = some (⟨24, 10⟩ : QF) := by decide
+theorem hp30 : Run.parseRat "3.0" = some (3 : ℚ) := by
+  have h : parseQ "3.0" = some (⟨30, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; try norm_num
 theorem hp981 : Run.parseRat "9.81" = some ((981 : ℚ) / 100) := by
   have h : parseQ "9.81" = some (⟨981, 100⟩ : QF) := by decide
@@ -74,8 +75,8 @@ theorem hp4905 : Run.parseRat "4.905" = some ((981 : ℚ) / 200) := by
 /-- The profile's thrust term `c_q` (`NORMAL` 9.81, `ECO` 7.848, `SPORT` 11.772). -/
 noncomputable def cR (q : ℕ) : ℝ := if q = 0 then 981 / 100 else if q = 1 then 981 / 125 else 2943 / 250
 
-/-- Every terminal climb rate `c_q / 4.905` (2.0, 1.6, 2.4) lies in `[0, 2.4]`. -/
-theorem cR_rate (q : ℕ) (hq : q < 3) : 0 ≤ cR q / (981 / 200) ∧ cR q / (981 / 200) ≤ 12 / 5 := by
+/-- Every terminal climb rate `c_q / 4.905` (2.0, 1.6, 2.4) lies in `[0, 3]`. -/
+theorem cR_rate (q : ℕ) (hq : q < 3) : 0 ≤ cR q / (981 / 200) ∧ cR q / (981 / 200) ≤ 3 := by
   interval_cases q <;> norm_num [cR]
 
 /-- Altitude: `h' = w`, every profile. -/
@@ -101,11 +102,11 @@ theorem fR2_eval (q : ℕ) (hq : q < 3) (x : State (Var 3)) : Term.eval (fR q 2)
     AOp.interp, Rv]
 
 /-- The climb box (every profile's guard and the evolve domain). -/
-def boxR (x : State (Var 3)) : Prop := 0 ≤ x (Rv 0) ∧ 0 ≤ x (Rv 1) ∧ x (Rv 1) ≤ 12 / 5
+def boxR (x : State (Var 3)) : Prop := 0 ≤ x (Rv 0) ∧ 0 ≤ x (Rv 1) ∧ x (Rv 1) ≤ 3
 
 theorem sat_domR (x : State (Var 3)) : Formula.sat domR x ↔ boxR x := by
   simp only [domR, hostEvolve, mR, quad_light_profiles_IRv2, vs]
-  simp [Run.lowerF, Run.lowerE, hp00, hp24, Run.resolveVar, List.findIdx?_cons, IForm.toHost,
+  simp [Run.lowerF, Run.lowerE, hp00, hp30, Run.resolveVar, List.findIdx?_cons, IForm.toHost,
     ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv, boxR, and_assoc]
   try norm_num
 
@@ -150,7 +151,7 @@ noncomputable def guardR (q : ℕ) : Formula (Var 3) := hostGuard vs 3 Side.R (m
 theorem sat_guardR (q : ℕ) (hq : q < 3) (x : State (Var 3)) :
     Formula.sat (guardR q) x ↔ boxR x := by
   interval_cases q <;>
-  simp [guardR, hostGuard, mR, quad_light_profiles_IRv2, Run.lowerF, Run.lowerE, hp00, hp24,
+  simp [guardR, hostGuard, mR, quad_light_profiles_IRv2, Run.lowerF, Run.lowerE, hp00, hp30,
     vs, Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
     CompOp.interp, Term.eval, Rv, boxR, and_assoc]
 
@@ -195,9 +196,9 @@ theorem φR_der (q : ℕ) (hq : q < 3) (ρ : State (Var 3)) (i : Fin 3) (t : ℝ
       rw [fR2_eval q hq]
       exact hasDerivAt_const t (ρ (Rv 2))
 
-/-- The climb rate stays in `[0, 2.4]` over one control interval. -/
+/-- The climb rate stays in `[0, 3]` over one control interval. -/
 theorem φw_bnd (q : ℕ) (hq : q < 3) (ρ : State (Var 3)) (hρ : boxR ρ) :
-    ∀ τ ∈ Icc (0:ℝ) 1, 0 ≤ φw q ρ τ ∧ φw q ρ τ ≤ 12 / 5 := by
+    ∀ τ ∈ Icc (0:ℝ) 1, 0 ≤ φw q ρ τ ∧ φw q ρ τ ≤ 3 := by
   obtain ⟨-, hw0, hw1⟩ := hρ
   obtain ⟨hc0, hc1⟩ := cR_rate q hq
   intro τ hτ

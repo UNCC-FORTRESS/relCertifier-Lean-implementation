@@ -9,14 +9,16 @@ two flap phases and their declared `next` lists), the lowered right guards, and 
 read from the file.
 
 The right model is the flap extension on approach: the flap angle `f` (coordinate 0) and the
-airspeed `V` (coordinate 1), inside `10 ≤ f ≤ 15.1`, `150 ≤ V ≤ 185`. `EXT` extends the flaps,
-`f' = 1`; `CONF2` holds them, `f' = 0`; in both the airspeed decays toward 150 with a
-flap-dependent rate, `V' = −(0.02 + 0.001 f)(V − 150)`. Guards: `EXT` `f < 15`, `CONF2`
-`f ≥ 15` (each with the domain). `next`: `EXT → [EXT, CONF2]`, `CONF2 → [CONF2]`.
+airspeed `V` (coordinate 1), inside `10 ≤ f ≤ 15.1`, `130 ≤ V ≤ 200` (the placard range
+`[VLS, VFE]` of the configuration, since the domain audit of 2026-10-29; `[150, 185]` before).
+`EXT` extends the flaps, `f' = 1`; `CONF2` holds them, `f' = 0`; in both the airspeed moves
+toward 150 with a flap-dependent rate, `V' = −(0.02 + 0.001 f)(V − 150)`. Guards: `EXT`
+`f < 15`, `CONF2` `f ≥ 15` (each with the domain). `next`: `EXT → [EXT, CONF2]`,
+`CONF2 → [CONF2]`.
 * Existence (i): the explicit run `f(t) = f₀ + r t` (`r = 1` in `EXT`, `0` in `CONF2`) and
   `V(t) = 150 + (V₀ − 150) e^{−((0.02 + 0.001 f₀) t + 0.0005 r t²)}`; the exponent is
-  nonnegative for `t ≥ 0` (as `f₀ ≥ 10`), so `V` stays in `[150, V₀]`, and `f ≤ f₀ + 0.1`
-  stays below `15.1` since `f₀ < 15` in `EXT`.
+  nonnegative for `t ≥ 0` (as `f₀ ≥ 10`), so `V` stays between `V₀` and `150`, inside
+  `[130, 200]`, and `f ≤ f₀ + 0.1` stays below `15.1` since `f₀ < 15` in `EXT`.
 * (ii): a run ends in the domain; `EXT` ends in `EXT` (below 15) or `CONF2` (from 15); in
   `CONF2` the flap angle is constant (`ODESol.const`), so the run stays in `CONF2`.
 Z3-free; modelled on `FurnaceProgramTimebase.lean`.
@@ -73,8 +75,11 @@ theorem hp_15_1 : Run.parseRat "15.1" = some ((151:ℚ)/10) := by
 theorem hp_150 : Run.parseRat "150" = some (150 : ℚ) := by
   have h : parseQ "150" = some (⟨150, 1⟩ : QF) := by decide
   norm_num [Run.parseRat, h]
-theorem hp_185 : Run.parseRat "185" = some (185 : ℚ) := by
-  have h : parseQ "185" = some (⟨185, 1⟩ : QF) := by decide
+theorem hp_130 : Run.parseRat "130" = some (130 : ℚ) := by
+  have h : parseQ "130" = some (⟨130, 1⟩ : QF) := by decide
+  norm_num [Run.parseRat, h]
+theorem hp_200 : Run.parseRat "200" = some (200 : ℚ) := by
+  have h : parseQ "200" = some (⟨200, 1⟩ : QF) := by decide
   norm_num [Run.parseRat, h]
 
 /-! ## The right fields, domain and guards, evaluated -/
@@ -88,7 +93,7 @@ theorem fR0_eval (q : ℕ) (hq : q < 2) (x : State (Var 2)) :
     Term.eval (fR q 0) x = rR q := by
   interval_cases q <;>
     simp [fR, hostDyn, mR, flaps_slow_approach_IRv2, vs, Run.dynOf, Run.lowerE, hp_0, hp_1,
-      hp_0_0, hp_0_02, hp_0_001, hp_0_1, hp_10, hp_15, hp_15_1, hp_150, hp_185,
+      hp_0_0, hp_0_02, hp_0_001, hp_0_1, hp_10, hp_15, hp_15_1, hp_150, hp_130, hp_200,
       Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp,
       Rv, rR]
 
@@ -96,16 +101,16 @@ theorem fR1_eval (q : ℕ) (hq : q < 2) (x : State (Var 2)) :
     Term.eval (fR q 1) x = -(1/50 + 1/1000 * x (Rv 0)) * (x (Rv 1) - 150) := by
   interval_cases q <;>
     simp [fR, hostDyn, mR, flaps_slow_approach_IRv2, vs, Run.dynOf, Run.lowerE, hp_0, hp_1,
-      hp_0_0, hp_0_02, hp_0_001, hp_0_1, hp_10, hp_15, hp_15_1, hp_150, hp_185,
+      hp_0_0, hp_0_02, hp_0_001, hp_0_1, hp_10, hp_15, hp_15_1, hp_150, hp_130, hp_200,
       Run.resolveVar, List.findIdx?_cons, List.finRange, ITerm.toHost, Term.eval, AOp.interp,
       Rv]
 
 theorem sat_domR (x : State (Var 2)) :
     Formula.sat domR x ↔
-      (10 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 151/10 ∧ 150 ≤ x (Rv 1) ∧ x (Rv 1) ≤ 185) := by
+      (10 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 151/10 ∧ 130 ≤ x (Rv 1) ∧ x (Rv 1) ≤ 200) := by
   simp only [domR, hostEvolve, mR, flaps_slow_approach_IRv2, vs]
   simp [Run.lowerF, Run.lowerE, hp_0, hp_1, hp_0_0, hp_0_02, hp_0_001, hp_0_1, hp_10, hp_15,
-    hp_15_1, hp_150, hp_185, Run.resolveVar, List.findIdx?_cons,
+    hp_15_1, hp_150, hp_130, hp_200, Run.resolveVar, List.findIdx?_cons,
     IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv, and_assoc]
 
 /-! ## The right automaton (the file's modes and declared `next` lists) -/
@@ -140,19 +145,19 @@ theorem Gr_modeAt_inv {q : ℕ} {m : RMode (Var 2)} (hm : Gr.modeAt q = some m) 
 
 theorem sat_guard0 (ν : State (Var 2)) :
     Formula.sat (hostGuard vs 2 Side.R (mR 0)) ν ↔
-      (ν (Rv 0) < 15 ∧ 10 ≤ ν (Rv 0) ∧ ν (Rv 0) ≤ 151/10 ∧ 150 ≤ ν (Rv 1) ∧
-        ν (Rv 1) ≤ 185) := by
+      (ν (Rv 0) < 15 ∧ 10 ≤ ν (Rv 0) ∧ ν (Rv 0) ≤ 151/10 ∧ 130 ≤ ν (Rv 1) ∧
+        ν (Rv 1) ≤ 200) := by
   simp [hostGuard, mR, flaps_slow_approach_IRv2, Run.lowerF, Run.lowerE, hp_0, hp_1, hp_0_0,
-    hp_0_02, hp_0_001, hp_0_1, hp_10, hp_15, hp_15_1, hp_150, hp_185, vs,
+    hp_0_02, hp_0_001, hp_0_1, hp_10, hp_15, hp_15_1, hp_150, hp_130, hp_200, vs,
     Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
     CompOp.interp, Term.eval, Rv, and_assoc]
 
 theorem sat_guard1 (ν : State (Var 2)) :
     Formula.sat (hostGuard vs 2 Side.R (mR 1)) ν ↔
-      (15 ≤ ν (Rv 0) ∧ 10 ≤ ν (Rv 0) ∧ ν (Rv 0) ≤ 151/10 ∧ 150 ≤ ν (Rv 1) ∧
-        ν (Rv 1) ≤ 185) := by
+      (15 ≤ ν (Rv 0) ∧ 10 ≤ ν (Rv 0) ∧ ν (Rv 0) ≤ 151/10 ∧ 130 ≤ ν (Rv 1) ∧
+        ν (Rv 1) ≤ 200) := by
   simp [hostGuard, mR, flaps_slow_approach_IRv2, Run.lowerF, Run.lowerE, hp_0, hp_1, hp_0_0,
-    hp_0_02, hp_0_001, hp_0_1, hp_10, hp_15, hp_15_1, hp_150, hp_185, vs,
+    hp_0_02, hp_0_001, hp_0_1, hp_10, hp_15, hp_15_1, hp_150, hp_130, hp_200, vs,
     Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
     CompOp.interp, Term.eval, Rv, and_assoc]
 
@@ -207,11 +212,14 @@ theorem gSol_nonneg (q : ℕ) (f0 t : ℝ) (hf : 0 ≤ f0) (ht : 0 ≤ t) : 0 �
   have h2 : 0 ≤ 1/2000 * rR q * (t * t) := mul_nonneg (by linarith) (mul_nonneg ht ht)
   linarith
 
-theorem vSol_box (q : ℕ) (f0 V0 t : ℝ) (hf : 0 ≤ f0) (ht : 0 ≤ t) (hV : 150 ≤ V0) :
-    150 ≤ vSol q f0 V0 t ∧ vSol q f0 V0 t ≤ V0 := by
+/-- The airspeed stays between `V₀` and `150`, hence inside the placard range `[130, 200]`. -/
+theorem vSol_box (q : ℕ) (f0 V0 t : ℝ) (hf : 0 ≤ f0) (ht : 0 ≤ t) (hV0 : 130 ≤ V0)
+    (hV1 : V0 ≤ 200) : 130 ≤ vSol q f0 V0 t ∧ vSol q f0 V0 t ≤ 200 := by
   have he0 : 0 < Real.exp (-(gSol q f0 t)) := Real.exp_pos _
   have he1 : Real.exp (-(gSol q f0 t)) ≤ 1 := by
     rw [Real.exp_le_one_iff]; linarith [gSol_nonneg q f0 t hf ht]
+  have h1 := mul_nonneg (sub_nonneg.2 hV0) he0.le
+  have h2 := mul_nonneg (sub_nonneg.2 hV1) he0.le
   unfold vSol
   constructor <;> nlinarith
 
@@ -247,12 +255,12 @@ theorem exists_run (q : ℕ) (hq : q < 2) (x : State (Var 2)) (hd : Formula.sat 
   · match i with
     | 0 => rw [phi_zero]; simp [fSol]
     | 1 => rw [phi_one]; simp [vSol, gSol]
-  · obtain ⟨c0, c1⟩ := vSol_box q (x (Rv 0)) (x (Rv 1)) t (by linarith) ht b0
+  · obtain ⟨c0, c1⟩ := vSol_box q (x (Rv 0)) (x (Rv 1)) t (by linarith) ht b0 b1
     have hft : rR q * t ≤ rR q * (1/10) := mul_le_mul_of_nonneg_left hte hr
     have hft0 : 0 ≤ rR q * t := mul_nonneg hr ht
     rw [sat_domR, trajRs_R, trajRs_R, phi_zero, phi_one]
     unfold fSol
-    exact ⟨by linarith, by linarith, c0, by linarith⟩
+    exact ⟨by linarith, by linarith, c0, c1⟩
 
 theorem memR (q : ℕ) : (Rv 0, Term.binop .mul (Term.const 1) (fR q 0)) ∈ (modeW q).sys :=
   rightBlock_mem' _ _ 0

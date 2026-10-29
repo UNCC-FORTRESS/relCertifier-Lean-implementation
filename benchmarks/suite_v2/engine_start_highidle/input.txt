@@ -49,10 +49,16 @@
 # load-bearing: DECLINED with RELCERT_NO_CUT=1, with RELCERT_NO_IMPLIED_CUT=1 and without
 # RELCERT_IMPLIED_CUT.
 #
-# Domains. 5 <= N2 <= 110 % and 0 <= t <= 40 s on both sides, forward invariant in every phase
-# (every aim in [30, 66]; t is frozen outside STARTER and at most 31 after one STARTER interval).
-# The right guards partition {N2 >= 5} (STARTER and ABORT split N2 < 25 at t = 30; no coverage
-# gap); every left mode has a satisfiable start (N2_R = N2_L, t_R = t_L).
+# Domains. 0 <= N2 <= 110 % and t >= 0 s on both sides: the physical range of the core speed (rest
+# to the 110 % overspeed limit of the N2 red line) and the sequencer's timer, which only counts up.
+# Forward invariant in every phase (every aim in [30, 66], so N2 never leaves [0, 110]; t is frozen
+# outside STARTER and runs at 1 /s inside it). Not load-bearing: the domain audit of 2026-10-29
+# reverted the earlier 5 <= N2 and t <= 40 (the STARTER floor and a reachable time-out bound) to
+# these limits with every verdict and letter unchanged; every bound widened by 20 % of its range
+# CERTIFIES. The right guards partition {N2 >= 5} (STARTER and ABORT split N2 < 25 at t = 30; no
+# coverage gap); states with N2 < 5 are in no right guard (the start sequence is engaged from the
+# starter's minimum motoring speed; RELCERT_OPREGION=1 CERTIFIES, every admitted start lies in some
+# right guard); every left mode has a satisfiable start (N2_R = N2_L, t_R = t_L).
 #
 # Stretch pinned (2026-10-27): lambda_max 1; every cover is at lambda 1 and the requirement is a
 # real-time one.
@@ -80,31 +86,31 @@ epsilon = 1.0
 [Lsys.mode.STARTER]
 ode = n' = smt2:(* 0.1 (- 30 n)); t' = 1.0;
 guard = n >= 5.0 and n < 25.0 and t < 30.0
-evolve = n >= 5.0 and n <= 110.0 and t >= 0.0 and t <= 40.0
+evolve = n >= 0.0 and n <= 110.0 and t >= 0.0
 next = [STARTER, LIGHTOFF, ABORT]
 
 [Lsys.mode.LIGHTOFF]
 ode = n' = smt2:(* 0.08 (- 55 n)); t' = 0.0;
 guard = n >= 25.0 and n < 50.0
-evolve = n >= 5.0 and n <= 110.0 and t >= 0.0 and t <= 40.0
+evolve = n >= 0.0 and n <= 110.0 and t >= 0.0
 next = [LIGHTOFF, SELF]
 
 [Lsys.mode.SELF]
 ode = n' = smt2:(* 0.15 (- 66 n)); t' = 0.0;
 guard = n >= 50.0 and n < 60.0
-evolve = n >= 5.0 and n <= 110.0 and t >= 0.0 and t <= 40.0
+evolve = n >= 0.0 and n <= 110.0 and t >= 0.0
 next = [SELF, IDLE]
 
 [Lsys.mode.IDLE]
 ode = n' = smt2:(* 0.5 (- 66 n)); t' = 0.0;
 guard = n >= 60.0
-evolve = n >= 5.0 and n <= 110.0 and t >= 0.0 and t <= 40.0
+evolve = n >= 0.0 and n <= 110.0 and t >= 0.0
 next = [IDLE]
 
 [Lsys.mode.ABORT]
 ode = n' = smt2:0.0; t' = 0.0;
 guard = n < 25.0 and t >= 30.0
-evolve = n >= 5.0 and n <= 110.0 and t >= 0.0 and t <= 40.0
+evolve = n >= 0.0 and n <= 110.0 and t >= 0.0
 next = [ABORT]
 
 [Rsys]
@@ -114,31 +120,31 @@ epsilon = 1.0
 [Rsys.mode.STARTER]
 ode = n' = smt2:(* 0.1 (- 30 n)); t' = 1.0;
 guard = n >= 5.0 and n < 25.0 and t < 30.0
-evolve = n >= 5.0 and n <= 110.0 and t >= 0.0 and t <= 40.0
+evolve = n >= 0.0 and n <= 110.0 and t >= 0.0
 next = [STARTER, LIGHTOFF, ABORT]
 
 [Rsys.mode.LIGHTOFF]
 ode = n' = smt2:(* 0.08 (- 55 n)); t' = 0.0;
 guard = n >= 25.0 and n < 50.0
-evolve = n >= 5.0 and n <= 110.0 and t >= 0.0 and t <= 40.0
+evolve = n >= 0.0 and n <= 110.0 and t >= 0.0
 next = [LIGHTOFF, SELF]
 
 [Rsys.mode.SELF]
 ode = n' = smt2:(* 0.15 (- 62 n)); t' = 0.0;
 guard = n >= 50.0 and n < 60.0
-evolve = n >= 5.0 and n <= 110.0 and t >= 0.0 and t <= 40.0
+evolve = n >= 0.0 and n <= 110.0 and t >= 0.0
 next = [SELF, IDLE]
 
 [Rsys.mode.IDLE]
 ode = n' = smt2:(* 0.5 (- 62 n)); t' = 0.0;
 guard = n >= 60.0
-evolve = n >= 5.0 and n <= 110.0 and t >= 0.0 and t <= 40.0
+evolve = n >= 0.0 and n <= 110.0 and t >= 0.0
 next = [IDLE]
 
 [Rsys.mode.ABORT]
 ode = n' = smt2:0.0; t' = 0.0;
 guard = n < 25.0 and t >= 30.0
-evolve = n >= 5.0 and n <= 110.0 and t >= 0.0 and t <= 40.0
+evolve = n >= 0.0 and n <= 110.0 and t >= 0.0
 next = [ABORT]
 
 [relational_invariant]

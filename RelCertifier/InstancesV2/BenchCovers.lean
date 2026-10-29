@@ -3,6 +3,7 @@ import RelCertifier.InstancesV2.BenchCovers.acc_spoof_lag
 import RelCertifier.InstancesV2.BenchCovers.acc_spoof_limp
 import RelCertifier.InstancesV2.BenchCovers.acc_tune_lag
 import RelCertifier.InstancesV2.BenchCovers.acc_tune_limp
+import RelCertifier.InstancesV2.BenchCovers.antenna_track_kvretune
 import RelCertifier.InstancesV2.BenchCovers.bottling_fill_strainer
 import RelCertifier.InstancesV2.BenchCovers.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchCovers.elevator_start_discbrake
@@ -43,7 +44,6 @@ import RelCertifier.InstancesV2.BenchCovers.sat_detumble_weak
 import RelCertifier.InstancesV2.BenchCovers.syringe_relay_prearm
 import RelCertifier.InstancesV2.BenchCovers.tank_dos_3to1
 import RelCertifier.InstancesV2.BenchCovers.train_ato_odometry
-import RelCertifier.InstancesV2.BenchCovers.tunnel_jetfan_pairout
 import RelCertifier.InstancesV2.BenchCovers.turbine_startup_gearratio
 import RelCertifier.InstancesV2.BenchCovers.ventilator_vc_cuffleak
 import RelCertifier.InstancesV2.BenchCovers.watertank
@@ -57,6 +57,7 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("acc_spoof_limp", acc_spoof_limp_coverV2),
   ("acc_tune_lag", acc_tune_lag_coverV2),
   ("acc_tune_limp", acc_tune_limp_coverV2),
+  ("antenna_track_kvretune", antenna_track_kvretune_coverV2),
   ("bottling_fill_strainer", bottling_fill_strainer_coverV2),
   ("charger_fast_tapers", charger_fast_tapers_coverV2),
   ("elevator_start_discbrake", elevator_start_discbrake_coverV2),
@@ -97,7 +98,6 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("syringe_relay_prearm", syringe_relay_prearm_coverV2),
   ("tank_dos_3to1", tank_dos_3to1_coverV2),
   ("train_ato_odometry", train_ato_odometry_coverV2),
-  ("tunnel_jetfan_pairout", tunnel_jetfan_pairout_coverV2),
   ("turbine_startup_gearratio", turbine_startup_gearratio_coverV2),
   ("ventilator_vc_cuffleak", ventilator_vc_cuffleak_coverV2),
   ("watertank", watertank_coverV2),

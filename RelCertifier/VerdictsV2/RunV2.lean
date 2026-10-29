@@ -78,11 +78,11 @@ def packsV2 : List PackV2 :=
     ⟨"platoon_linkloss", 3, 0, [0, 1, 2, 3, 4, 5, 6, 7, 8], 1, 1, 0, 0⟩,
     ⟨"platoon_linkloss", 3, 1, [0, 1, 2, 3, 4, 5, 6, 7, 8], 1, 1, 1, 0⟩,
     ⟨"platoon_linkloss", 3, 2, [0, 1, 2, 3], 1, 1, 2, 1⟩,
-    -- platoon_latency (batch I11, back from the reserve; the same right follower, CACC -> AEB
-    -- pruned): the CACC_UP/CACC_DN windows against CACC, AEB against AEB, at λ = 1, budget 1
-    ⟨"platoon_latency", 3, 0, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 1, 1, 0, 0⟩,
-    ⟨"platoon_latency", 3, 1, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 1, 1, 1, 0⟩,
+    -- platoon_latency (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
+    ⟨"platoon_latency", 3, 0, [6, 7, 10, 11, 0, 1, 2, 3, 4, 5, 9, 8], 1, 1, 0, 0⟩,
+    ⟨"platoon_latency", 3, 1, [6, 7, 10, 11, 0, 1, 2, 3, 4, 5, 9, 8], 1, 1, 1, 0⟩,
     ⟨"platoon_latency", 3, 2, [0, 1, 2, 3], 1, 1, 2, 1⟩,
+    -- pruned): the CACC_UP/CACC_DN windows against CACC, AEB against AEB, at λ = 1, budget 1
     -- quad_light_lag
     ⟨"quad_light_lag", 3, 0, [2, 3, 0, 1], 6, 5, 0, 0⟩,
     -- acc_tune_lag (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
@@ -195,15 +195,15 @@ def packsV2 : List PackV2 :=
     ⟨"train_ato_odometry", 2, 0, [0, 1], 7, 8, 2, 1⟩,
     ⟨"train_ato_odometry", 2, 0, [0, 1], 39, 40, 2, 2⟩,
     -- turbine_startup_gearratio (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
-    ⟨"turbine_startup_gearratio", 2, 0, [0], 1, 1, 0, 0⟩,
-    ⟨"turbine_startup_gearratio", 2, 0, [0], 1, 1, 0, 2⟩,
-    ⟨"turbine_startup_gearratio", 2, 0, [0], 1, 1, 1, 1⟩,
-    ⟨"turbine_startup_gearratio", 2, 0, [0], 1, 1, 1, 2⟩,
-    ⟨"turbine_startup_gearratio", 2, 0, [0], 1, 1, 2, 2⟩,
-    ⟨"turbine_startup_gearratio", 2, 0, [0], 1, 1, 3, 0⟩,
-    ⟨"turbine_startup_gearratio", 2, 0, [0], 1, 1, 3, 1⟩,
-    ⟨"turbine_startup_gearratio", 2, 0, [0], 1, 1, 3, 2⟩,
-    ⟨"turbine_startup_gearratio", 2, 0, [0], 1, 1, 3, 3⟩,
+    ⟨"turbine_startup_gearratio", 3, 0, [0], 1, 1, 0, 0⟩,
+    ⟨"turbine_startup_gearratio", 3, 0, [0], 1, 1, 0, 2⟩,
+    ⟨"turbine_startup_gearratio", 3, 1, [0], 1, 1, 1, 1⟩,
+    ⟨"turbine_startup_gearratio", 3, 1, [0], 1, 1, 1, 2⟩,
+    ⟨"turbine_startup_gearratio", 3, 2, [0], 1, 1, 2, 2⟩,
+    ⟨"turbine_startup_gearratio", 3, 3, [0], 1, 1, 3, 0⟩,
+    ⟨"turbine_startup_gearratio", 3, 3, [0], 1, 1, 3, 1⟩,
+    ⟨"turbine_startup_gearratio", 3, 3, [0], 1, 1, 3, 2⟩,
+    ⟨"turbine_startup_gearratio", 3, 3, [0], 1, 1, 3, 3⟩,
     -- elevator_start_discbrake (mode-keyed rows; UP_L's right-only LIFT node is below)
     ⟨"elevator_start_discbrake", 3, 0, [0, 1, 2, 3, 4], 1, 1, 0, 0⟩,
     ⟨"elevator_start_discbrake", 3, 0, [0, 1, 2, 3, 4], 1, 1, 0, 2⟩,
@@ -253,9 +253,6 @@ def packsV2 : List PackV2 :=
     -- bottling_fill_strainer (cover replay: FILL at λ = 17/20, CLOSE at λ = 1)
     ⟨"bottling_fill_strainer", 2, 0, [0, 1, 2, 3, 4], 17, 20, 0, 0⟩,
     ⟨"bottling_fill_strainer", 2, 0, [0, 1, 2, 3, 4], 1, 1, 1, 1⟩,
-    -- tunnel_jetfan_pairout (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
-    ⟨"tunnel_jetfan_pairout", 3, 0, [0, 1, 2, 4, 6, 3, 5], 1, 1, 0, 0⟩,
-    ⟨"tunnel_jetfan_pairout", 3, 1, [0, 1, 2, 4, 3], 1, 1, 1, 1⟩,
     -- charger_fast_tapers (mode-keyed rows; cover replay at λ = 5/4, the raised CC current ratio,
     -- since 2026-10-28; the joint pairings of each window's admissible starts, the right-only
     -- nodes are below)
@@ -283,7 +280,7 @@ def packsV2 : List PackV2 :=
     ⟨"grid_ffr_dos", 3, 0, [2, 3, 4, 0, 1], 1, 1, 0, 0⟩,
     ⟨"grid_ffr_dos", 3, 0, [2, 3, 4, 0, 1], 1, 1, 0, 1⟩,
     ⟨"grid_ffr_dos", 3, 0, [2, 3, 4, 0, 1], 1, 1, 1, 1⟩,
-    -- flaps_slow_approach (batch I9, from the reserve): EXT at λ = 1/2 (the flap drive's speed ratio), CONF2 at 1
+    -- flaps_slow_approach (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
     ⟨"flaps_slow_approach", 2, 0, [0, 1, 2, 3], 1, 2, 0, 0⟩,
     ⟨"flaps_slow_approach", 2, 0, [0, 1, 2, 3], 1, 1, 1, 1⟩,
     -- platoon_profiles (batch I9, from the reserve; mode-keyed rows): SPORT at λ = 6/5 (the bandwidth ratio), AEB at 1
@@ -371,10 +368,14 @@ def packsV2 : List PackV2 :=
     ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 7, 8⟩,
     ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 8, 6⟩,
     ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 8, 7⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 8, 8⟩ ]
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 8, 8⟩,
+    -- antenna_track_kvretune (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
+    ⟨"antenna_track_kvretune", 3, 0, [0, 1, 2, 3, 6, 7, 4, 5], 1, 1, 0, 0⟩,
+    ⟨"antenna_track_kvretune", 3, 1, [0, 1, 2, 3, 6, 7, 4, 5], 1, 1, 1, 1⟩,
+    ⟨"antenna_track_kvretune", 3, 2, [0, 1, 2, 3, 6, 7, 4, 5], 1, 1, 2, 2⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 1248
+def expectedModalV2 : Nat := 1264
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
@@ -462,7 +463,8 @@ def dynPacksV2 : List DynPackV2 :=
     -- h2_refuel_ambientbias: right-only reposition nodes of the emitted cover (2026-10-29)
     ⟨"h2_refuel_ambientbias", 3, 3, [0], true, 3, 2⟩,
     -- turbine_startup_gearratio: right-only reposition nodes of the emitted cover (2026-10-29)
-    ⟨"turbine_startup_gearratio", 2, 0, [0], true, 0, 1⟩,
+    ⟨"turbine_startup_gearratio", 3, 0, [0], true, 0, 1⟩,
+    ⟨"turbine_startup_gearratio", 3, 2, [0], true, 2, 1⟩,
     -- elevator_start_discbrake: right-only reposition nodes
     ⟨"elevator_start_discbrake", 3, 1, [0, 1, 2, 3], true, 1, 0⟩,
     -- syringe_relay_prearm: right-only reposition nodes
@@ -481,7 +483,7 @@ def dynPacksV2 : List DynPackV2 :=
     ⟨"charger_fast_tapers", 3, 1, [0], true, 1, 3⟩ ]
 
 /-- Declared: the number of component queries the reposition packs owe. -/
-def expectedDynV2 : Nat := 73
+def expectedDynV2 : Nat := 74
 
 def runDynPack (s : Z3Session) (r : DynPackV2) : IO Bool := do
   let p := irV2 r.bench
@@ -525,7 +527,7 @@ def runDynV2 (cfg : Z3Config) : IO Bool := do
 
 /-- Declared: one handoff query per declared left transition over the suite_v2 files
 (self-loops included; `CoveragePinsV2.derivedHandoffV2_eq` derives it from the IR table). -/
-def expectedHandoffV2 : Nat := 541
+def expectedHandoffV2 : Nat := 544
 
 /-- Declared handoff failures in suite_v2: none. -/
 def expectedHandoffFailuresV2 : List (String × Nat × Nat) := []
@@ -611,7 +613,7 @@ structure ExpectedSuiteV2 where
   certified : Nat := 50
   declined  : Nat := 0
   errors    : Nat := 0
-  wfModes   : Nat := 188
+  wfModes   : Nat := 189
   wfUnknown : Nat := 0
   wfBlocking : Nat := 0
   deriving Repr

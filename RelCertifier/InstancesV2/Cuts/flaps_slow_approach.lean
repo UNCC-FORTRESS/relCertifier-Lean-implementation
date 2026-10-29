@@ -15,22 +15,22 @@ open RelCertifier.Parse
 
 def flaps_slow_approach_cutsV2 : EvolStrengthening :=
   { L := [
-      ("EXT", [((.cmp ">=" (.var "f") (.num "10")), CutRoute.diStrict), ((.cmp "<=" (.var "V") (.num "185")), CutRoute.diStrict)]),
-      ("CONF2", [((.cmp ">=" (.var "f") (.num "15")), CutRoute.frozen), ((.cmp ">=" (.var "f") (.num "10")), CutRoute.frozen), ((.cmp "<=" (.var "f") (.num "15.1")), CutRoute.frozen), ((.cmp "<=" (.var "V") (.num "185")), CutRoute.diStrict)])
+      ("EXT", [((.cmp ">=" (.var "f") (.num "10")), CutRoute.diStrict), ((.cmp ">=" (.var "V") (.num "130")), CutRoute.diStrict), ((.cmp "<=" (.var "V") (.num "200")), CutRoute.diStrict)]),
+      ("CONF2", [((.cmp ">=" (.var "f") (.num "15")), CutRoute.frozen), ((.cmp ">=" (.var "f") (.num "10")), CutRoute.frozen), ((.cmp "<=" (.var "f") (.num "15.1")), CutRoute.frozen), ((.cmp ">=" (.var "V") (.num "130")), CutRoute.diStrict), ((.cmp "<=" (.var "V") (.num "200")), CutRoute.diStrict)])
     ]
     R := [
-      ("EXT", [((.cmp ">=" (.var "f") (.num "10")), CutRoute.diStrict), ((.cmp "<=" (.var "V") (.num "185")), CutRoute.diStrict)]),
-      ("CONF2", [((.cmp ">=" (.var "f") (.num "15")), CutRoute.frozen), ((.cmp ">=" (.var "f") (.num "10")), CutRoute.frozen), ((.cmp "<=" (.var "f") (.num "15.1")), CutRoute.frozen), ((.cmp "<=" (.var "V") (.num "185")), CutRoute.diStrict)])
+      ("EXT", [((.cmp ">=" (.var "f") (.num "10")), CutRoute.diStrict), ((.cmp ">=" (.var "V") (.num "130")), CutRoute.diStrict), ((.cmp "<=" (.var "V") (.num "200")), CutRoute.diStrict)]),
+      ("CONF2", [((.cmp ">=" (.var "f") (.num "15")), CutRoute.frozen), ((.cmp ">=" (.var "f") (.num "10")), CutRoute.frozen), ((.cmp "<=" (.var "f") (.num "15.1")), CutRoute.frozen), ((.cmp ">=" (.var "V") (.num "130")), CutRoute.diStrict), ((.cmp "<=" (.var "V") (.num "200")), CutRoute.diStrict)])
     ] }
 
 def flaps_slow_approach_cutsV2X : EvolStrengtheningX :=
   { L := [
-      ("EXT", [⟨(.cmp ">=" (.var "f") (.num "10")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "V") (.num "185")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
-      ("CONF2", [⟨(.cmp ">=" (.var "f") (.num "15")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp ">=" (.var "f") (.num "10")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "f") (.num "15.1")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "V") (.num "185")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩])
+      ("EXT", [⟨(.cmp ">=" (.var "f") (.num "10")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp ">=" (.var "V") (.num "130")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "V") (.num "200")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
+      ("CONF2", [⟨(.cmp ">=" (.var "f") (.num "15")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp ">=" (.var "f") (.num "10")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "f") (.num "15.1")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp ">=" (.var "V") (.num "130")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "V") (.num "200")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩])
     ]
     R := [
-      ("EXT", [⟨(.cmp ">=" (.var "f") (.num "10")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "V") (.num "185")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
-      ("CONF2", [⟨(.cmp ">=" (.var "f") (.num "15")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp ">=" (.var "f") (.num "10")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "f") (.num "15.1")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "V") (.num "185")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩])
+      ("EXT", [⟨(.cmp ">=" (.var "f") (.num "10")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp ">=" (.var "V") (.num "130")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "V") (.num "200")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
+      ("CONF2", [⟨(.cmp ">=" (.var "f") (.num "15")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp ">=" (.var "f") (.num "10")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "f") (.num "15.1")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp ">=" (.var "V") (.num "130")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩, ⟨(.cmp "<=" (.var "V") (.num "200")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩])
     ] }
 
 /-- The legacy (guard-conjunct) part is well formed. -/

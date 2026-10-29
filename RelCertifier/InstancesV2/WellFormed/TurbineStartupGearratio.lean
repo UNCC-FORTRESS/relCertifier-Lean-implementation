@@ -5,16 +5,17 @@ Released under Apache 2.0 license.
 # `turbine_startup_gearratio`: Assumption 1 of the right model (`WellFormedR`)
 
 Over the instance's guarded right automaton `Gr` (the file's four modes and their declared
-`next` lists), the lowered right guards, and `ε_r = 1` read from the file. The right model is
+`next` lists), the lowered right guards, and `ε_r = 1` read from the file (at dimension 3:
+coordinate 0 is the speed, coordinates 1 and 2 pad the mode-keyed bridge records). The right model is
 the rotor-speed start schedule: every mode is a 1-D contraction `w' = k (c − w)` inside the
-evolve domain `[0, 12.1]` (the start-up's reachable speeds, round B of the benchmark, 2026-10-29;
-the domain was `[0, 16]` before):
+evolve domain `[0, 13.31]` (rest to the overspeed trip, 110 % of rated, since the domain audit
+of 2026-10-29; the domain was `[0, 12.1]` in round B and `[0, 16]` before):
 `SPINUP` (`[2, 5)`, `k = 0.03`, `c = 9`), `RAMP` (`[5, 6.9)`, `0.04`, `7.5`),
 `GEN` (`w ≥ 6.9`, `0.05`, `12.1`), `STOP` (`w < 2`, `0.1`, `0`).
 * Existence (i): the explicit exponential (`exists_contract_run`); every set point lies in
-  `[0, 12.1]` (the rated speed `12.1` is the top of the domain).
+  `[0, 13.31]` (the rated speed `12.1` is below the trip).
 * (ii): a run stays between its start and its set point (`linear_between`), so
-  `RAMP` ends in `[5, 7.5] ⊆ RAMP ∪ GEN` (style (b), exit), `GEN` in `[6.9, 12.1]` and `STOP` in
+  `RAMP` ends in `[5, 7.5] ⊆ RAMP ∪ GEN` (style (b), exit), `GEN` in `[6.9, 13.31]` and `STOP` in
   `[0, 2)` (style (a), invariant). `SPINUP`'s set point `9` lies in `GEN`, which is not a
   successor of `SPINUP`, so the run is also bounded by its rate: the field is at most
   `0.03 · 9 = 0.27` on the domain (`rate_le`), so a run of duration `t ≤ 1` from `w < 5` ends
@@ -36,8 +37,8 @@ def vs : List String := ["w"]
 def dm : PMode := ⟨"", [], .tt, .tt, []⟩
 def mR (q : ℕ) : PMode := turbine_startup_gearratio_IRv2.R.modes.getD q dm
 
-noncomputable def fR (q : ℕ) : Fin 2 → Term (Var 2) := hostDyn vs 2 Side.R (mR q)
-noncomputable def domR : Formula (Var 2) := hostEvolve vs 2 Side.R (mR 0)
+noncomputable def fR (q : ℕ) : Fin 3 → Term (Var 3) := hostDyn vs 3 Side.R (mR q)
+noncomputable def domR : Formula (Var 3) := hostEvolve vs 3 Side.R (mR 0)
 /-! ## Parse pins -/
 
 theorem hp003 : Run.parseRat "0.03" = some ((3:ℚ)/100) := by
@@ -61,6 +62,9 @@ theorem hp75 : Run.parseRat "7.5" = some ((15:ℚ)/2) := by
 theorem hp121 : Run.parseRat "12.1" = some ((121:ℚ)/10) := by
   have h : parseQ "12.1" = some (⟨121, 10⟩ : QF) := by decide
   norm_num [Run.parseRat, h]
+theorem hp1331 : Run.parseRat "13.31" = some ((1331:ℚ)/100) := by
+  have h : parseQ "13.31" = some (⟨1331, 100⟩ : QF) := by decide
+  norm_num [Run.parseRat, h]
 theorem hp00 : Run.parseRat "0.0" = some (0 : ℚ) := by
   have h : parseQ "0.0" = some (⟨0, 10⟩ : QF) := by decide
   norm_num [Run.parseRat, h]
@@ -83,14 +87,16 @@ noncomputable def kR (q : ℕ) : ℝ :=
 noncomputable def cR (q : ℕ) : ℝ :=
   if q = 0 then 9 else if q = 1 then 15/2 else if q = 2 then 121/10 else 0
 
-theorem fR0_eval (q : ℕ) (hq : q < 4) (x : State (Var 2)) :
+theorem fR0_eval (q : ℕ) (hq : q < 4) (x : State (Var 3)) :
     Term.eval (fR q 0) x = kR q * (cR q - x (Rv 0)) := by
   interval_cases q <;>
     simp [fR, hostDyn, mR, turbine_startup_gearratio_IRv2, vs, Run.dynOf, Run.lowerE, hp003,
       hp004, hp005, hp01, hp9, hp75, hp121, Run.resolveVar, List.findIdx?_cons, List.finRange,
       ITerm.toHost, Term.eval, AOp.interp, Rv, kR, cR]
 
-theorem fRo_eval (q : ℕ) (hq : q < 4) (i : Fin 2) (hi : i ≠ 0) (x : State (Var 2)) :
+/-- The padding coordinates 1 and 2 (not in `vs`; the mode-keyed bridge records need four
+auxiliary coordinates, so the lemma is stated at dimension 3): their right fields lower to 0. -/
+theorem fRo_eval (q : ℕ) (hq : q < 4) (i : Fin 3) (hi : i ≠ 0) (x : State (Var 3)) :
     Term.eval (fR q i) x = 0 := by
   match i, hi with
   | 1, _ =>
@@ -98,34 +104,39 @@ theorem fRo_eval (q : ℕ) (hq : q < 4) (i : Fin 2) (hi : i ≠ 0) (x : State (V
       simp [fR, hostDyn, mR, turbine_startup_gearratio_IRv2, vs, Run.dynOf, Run.lowerE, hp003,
         hp004, hp005, hp01, hp9, hp75, hp121, Run.resolveVar, List.findIdx?_cons, List.finRange,
         ITerm.toHost, Term.eval]
+  | 2, _ =>
+    interval_cases q <;>
+      simp [fR, hostDyn, mR, turbine_startup_gearratio_IRv2, vs, Run.dynOf, Run.lowerE, hp003,
+        hp004, hp005, hp01, hp9, hp75, hp121, Run.resolveVar, List.findIdx?_cons, List.finRange,
+        ITerm.toHost, Term.eval]
 
-theorem sat_domR (x : State (Var 2)) :
-    Formula.sat domR x ↔ (0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 121/10) := by
+theorem sat_domR (x : State (Var 3)) :
+    Formula.sat domR x ↔ (0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 1331/100) := by
   simp only [domR, hostEvolve, mR, turbine_startup_gearratio_IRv2, vs]
-  simp [Run.lowerF, Run.lowerE, hp00, hp121, Run.resolveVar, List.findIdx?_cons,
+  simp [Run.lowerF, Run.lowerE, hp00, hp1331, Run.resolveVar, List.findIdx?_cons,
     IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv]
 
 /-! ## The right automaton (the file's modes and declared `next` lists) -/
 
-noncomputable def modeW (q : ℕ) : RMode (Var 2) :=
+noncomputable def modeW (q : ℕ) : RMode (Var 3) :=
   { sys := rightBlock (fR q) (Term.const 1), dom := domR, weight := 1 }
 
 /-- The declared edge `s → t` carries the ENTERED mode's lowered guard. -/
-noncomputable def edgeW (s t : ℕ) : REdge (Var 2) :=
-  { src := s, tgt := t, guard := hostGuard vs 2 Side.R (mR t), pruned := false }
+noncomputable def edgeW (s t : ℕ) : REdge (Var 3) :=
+  { src := s, tgt := t, guard := hostGuard vs 3 Side.R (mR t), pruned := false }
 
 /-- The declared transitions, as indices (SPINUP 0, RAMP 1, GEN 2, STOP 3). -/
 def edgeList : List (ℕ × ℕ) :=
   [(0, 0), (0, 1), (0, 3), (1, 1), (1, 2), (1, 3), (2, 2), (3, 3)]
 
-noncomputable def Gr : SearchGraph (Var 2) :=
+noncomputable def Gr : SearchGraph (Var 3) :=
   { modes := [modeW 0, modeW 1, modeW 2, modeW 3]
     edges := edgeList.map (fun e => edgeW e.1 e.2) }
 
 theorem Gr_modeAt (q : ℕ) (hq : q < 4) : Gr.modeAt q = some (modeW q) := by
   interval_cases q <;> rfl
 
-theorem Gr_modeAt_inv {q : ℕ} {m : RMode (Var 2)} (hm : Gr.modeAt q = some m) :
+theorem Gr_modeAt_inv {q : ℕ} {m : RMode (Var 3)} (hm : Gr.modeAt q = some m) :
     q < 4 ∧ m = modeW q := by
   match q with
   | 0 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
@@ -139,26 +150,26 @@ theorem edge_mem (s t : ℕ) (h : (s, t) ∈ edgeList) : edgeW s t ∈ Gr.edgesF
 
 /-! ## The right guards, evaluated -/
 
-theorem sat_g0 (ν : State (Var 2)) :
-    Formula.sat (hostGuard vs 2 Side.R (mR 0)) ν ↔ 2 ≤ ν (Rv 0) ∧ ν (Rv 0) < 5 := by
+theorem sat_g0 (ν : State (Var 3)) :
+    Formula.sat (hostGuard vs 3 Side.R (mR 0)) ν ↔ 2 ≤ ν (Rv 0) ∧ ν (Rv 0) < 5 := by
   simp [hostGuard, mR, turbine_startup_gearratio_IRv2, Run.lowerF, Run.lowerE, hp20, hp50, vs,
     Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
     CompOp.interp, Term.eval, Rv]
 
-theorem sat_g1 (ν : State (Var 2)) :
-    Formula.sat (hostGuard vs 2 Side.R (mR 1)) ν ↔ 5 ≤ ν (Rv 0) ∧ ν (Rv 0) < 69/10 := by
+theorem sat_g1 (ν : State (Var 3)) :
+    Formula.sat (hostGuard vs 3 Side.R (mR 1)) ν ↔ 5 ≤ ν (Rv 0) ∧ ν (Rv 0) < 69/10 := by
   simp [hostGuard, mR, turbine_startup_gearratio_IRv2, Run.lowerF, Run.lowerE, hp50, hp69, vs,
     Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
     CompOp.interp, Term.eval, Rv]
 
-theorem sat_g2 (ν : State (Var 2)) :
-    Formula.sat (hostGuard vs 2 Side.R (mR 2)) ν ↔ 69/10 ≤ ν (Rv 0) := by
+theorem sat_g2 (ν : State (Var 3)) :
+    Formula.sat (hostGuard vs 3 Side.R (mR 2)) ν ↔ 69/10 ≤ ν (Rv 0) := by
   simp [hostGuard, mR, turbine_startup_gearratio_IRv2, Run.lowerF, Run.lowerE, hp69, vs,
     Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
     CompOp.interp, Term.eval, Rv]
 
-theorem sat_g3 (ν : State (Var 2)) :
-    Formula.sat (hostGuard vs 2 Side.R (mR 3)) ν ↔ ν (Rv 0) < 2 := by
+theorem sat_g3 (ν : State (Var 3)) :
+    Formula.sat (hostGuard vs 3 Side.R (mR 3)) ν ↔ ν (Rv 0) < 2 := by
   simp [hostGuard, mR, turbine_startup_gearratio_IRv2, Run.lowerF, Run.lowerE, hp20, vs,
     Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
     CompOp.interp, Term.eval, Rv]
@@ -168,7 +179,7 @@ theorem epsR_eq : epsR turbine_startup_gearratio_IRv2 = 1 := by
   simp [epsR, turbine_startup_gearratio_IRv2, hp10]
 
 /-- The lowered right guards. -/
-noncomputable def guardR (q : ℕ) : Formula (Var 2) := hostGuard vs 2 Side.R (mR q)
+noncomputable def guardR (q : ℕ) : Formula (Var 3) := hostGuard vs 3 Side.R (mR q)
 
 theorem memR (q : ℕ) : (Rv 0, Term.binop .mul (Term.const 1) (fR q 0)) ∈ (modeW q).sys :=
   rightBlock_mem' _ _ 0
@@ -186,7 +197,7 @@ theorem turbine_startup_gearratio_wellFormedR :
   obtain ⟨hq4, rfl⟩ := Gr_modeAt_inv hm
   have hdx := (sat_domR x).mp hd
   have hk : 0 ≤ kR q := by unfold kR; split_ifs <;> norm_num
-  have hcr : 0 ≤ cR q ∧ cR q ≤ 121/10 := by unfold cR; split_ifs <;> norm_num
+  have hcr : 0 ≤ cR q ∧ cR q ≤ 1331/100 := by unfold cR; split_ifs <;> norm_num
   refine ⟨?_, ?_⟩
   · refine exists_contract_run x 0 (kR q) (cR q) hk (fR0_eval q hq4)
       (fun i hi s => fRo_eval q hq4 i hi s) ?_ 1 (by norm_num)

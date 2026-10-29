@@ -12,7 +12,8 @@ Over the instance's guarded right automaton `Gr` (the file's five modes and thei
 `next` lists), the lowered right guards, and `ε_r = 1` read from the file. The right model is
 the ground-idle start schedule (idle `62 %`) with the sequencer's light-off timer: the core
 speed `n` (coordinate 0) and the timer `t` (coordinate 1); coordinate 2 is the padding of the
-bridge's keyed records (field 0, frozen). Evolve domain `5 ≤ n ≤ 110`, `0 ≤ t ≤ 40`. Every
+bridge's keyed records (field 0, frozen). Evolve domain `0 ≤ n ≤ 110`, `0 ≤ t` (the physical
+range of the core speed and a timer that only counts up; the domain audit of 2026-10-29). Every
 phase contracts the speed, `n' = k (c − n)`: `STARTER` (`5 ≤ n < 25`, `t < 30`; `k = 0.1`,
 `c = 30`, and the timer runs, `t' = 1`), `LIGHTOFF` (`[25, 50)`, `0.08`, `55`), `SELF`
 (`[50, 60)`, `0.15`, `62`), `IDLE` (`n ≥ 60`, `0.5`, `62`); `ABORT` (`n < 25`, `t ≥ 30`) holds
@@ -82,9 +83,6 @@ theorem hp250 : Run.parseRat "25.0" = some (25 : ℚ) := by
 theorem hp300 : Run.parseRat "30.0" = some (30 : ℚ) := by
   have h : parseQ "30.0" = some (⟨300, 10⟩ : QF) := by decide
   norm_num [Run.parseRat, h]
-theorem hp400 : Run.parseRat "40.0" = some (40 : ℚ) := by
-  have h : parseQ "40.0" = some (⟨400, 10⟩ : QF) := by decide
-  norm_num [Run.parseRat, h]
 theorem hp500 : Run.parseRat "50.0" = some (50 : ℚ) := by
   have h : parseQ "50.0" = some (⟨500, 10⟩ : QF) := by decide
   norm_num [Run.parseRat, h]
@@ -147,9 +145,9 @@ theorem fRo_eval (q : ℕ) (hq1 : 1 ≤ q) (hq5 : q < 5) (i : Fin 3) (hi : i ≠
 
 theorem sat_domR (x : State (Var 3)) :
     Formula.sat domR x ↔
-      (5 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 110 ∧ 0 ≤ x (Rv 1) ∧ x (Rv 1) ≤ 40) := by
+      (0 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 110 ∧ 0 ≤ x (Rv 1)) := by
   simp only [domR, hostEvolve, mR, engine_start_highidle_IRv2, vs]
-  simp [Run.lowerF, Run.lowerE, hp50, hp1100, hp00, hp400, Run.resolveVar, List.findIdx?_cons,
+  simp [Run.lowerF, Run.lowerE, hp1100, hp00, Run.resolveVar, List.findIdx?_cons,
     IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv, and_assoc]
 
 /-! ## The right automaton (the file's modes and declared `next` lists) -/
@@ -273,7 +271,7 @@ theorem phiS_der (x : State (Var 3)) (i : Fin 3) (s : ℝ) :
 `t₀ + 1 < 31`. -/
 theorem exists_runS (x : State (Var 3)) (hd : Formula.sat domR x) (ht : x (Rv 1) < 30) :
     ∃ Φ, ODESol (rightBlock (fR 0) (Term.const 1)) domR x 1 Φ := by
-  obtain ⟨n5, n110, t0, t40⟩ := (sat_domR x).mp hd
+  obtain ⟨n0, n110, t0⟩ := (sat_domR x).mp hd
   refine ⟨_, trajRs_sol x (phiS x) 1 (by norm_num) (fun i => ?_)
     (fun i s _ _ => phiS_der x i s) (fun s hs hs1 => ?_)⟩
   · match i with
@@ -283,21 +281,21 @@ theorem exists_runS (x : State (Var 3)) (hd : Formula.sat domR x) (ht : x (Rv 1)
   · obtain ⟨l, u⟩ := exp_approach_between (1/10) 30 (x (Rv 0)) s (by norm_num) hs
     rw [sat_domR, trajRs_R, trajRs_R]
     simp only [phiS, Fin.isValue, Fin.val_zero, Fin.val_one, if_true, one_ne_zero, if_false]
-    exact ⟨le_trans (le_min n5 (by norm_num)) l, le_trans u (max_le n110 (by norm_num)),
-      by linarith, by linarith⟩
+    exact ⟨le_trans (le_min n0 (by norm_num)) l, le_trans u (max_le n110 (by norm_num)),
+      by linarith⟩
 
 /-- **The contracting phases' runs** with the timer held: the explicit exponential of the
-speed, between `n₀` and the set point, both in `[5, 110]`. -/
+speed, between `n₀` and the set point, both in `[0, 110]`. -/
 theorem exists_runC (q : ℕ) (hq1 : 1 ≤ q) (hq4 : q < 4) (x : State (Var 3))
-    (hd : Formula.sat domR x) (hk : 0 ≤ kR q) (hc : 5 ≤ cR q ∧ cR q ≤ 110) :
+    (hd : Formula.sat domR x) (hk : 0 ≤ kR q) (hc : 0 ≤ cR q ∧ cR q ≤ 110) :
     ∃ Φ, ODESol (rightBlock (fR q) (Term.const 1)) domR x 1 Φ := by
-  obtain ⟨n5, n110, t0, t40⟩ := (sat_domR x).mp hd
+  obtain ⟨n0, n110, t0⟩ := (sat_domR x).mp hd
   refine exists_contract_run x 0 (kR q) (cR q) hk (fR0_eval q hq4)
     (fun i hi s => fRo_eval q hq1 (by omega) i hi s) ?_ 1 (by norm_num)
   intro v h1 h2
   show Formula.sat domR _
   rw [sat_domR, trajJ_j, trajJ_Rv_ne x 0 (fun _ => v) 0 (by decide : (1 : Fin 3) ≠ 0)]
-  exact ⟨le_trans (le_min n5 hc.1) h1, le_trans h2 (max_le n110 hc.2), t0, t40⟩
+  exact ⟨le_trans (le_min n0 hc.1) h1, le_trans h2 (max_le n110 hc.2), t0⟩
 
 /-- **`ABORT`'s run**: every field vanishes, the state is held. -/
 theorem exists_runA (x : State (Var 3)) (hd : Formula.sat domR x) :

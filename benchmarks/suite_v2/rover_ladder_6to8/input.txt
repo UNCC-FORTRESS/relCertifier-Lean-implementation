@@ -103,7 +103,11 @@
 # 0.6] (small-angle validity of the cos and slip expansions); z, omega_z in [-0.15, 0.15] m
 # (suspension travel); phi_r, omega_phi in [-0.5, 0.5]; y, omega_y in [-0.5, 0.5] m. Pinned right
 # coordinates: [0, 0]. Every requirement constant lies strictly inside its coordinate's validity
-# range, so no row is implied by the domains.
+# range, so no row is implied by the domains. Load-bearing (domain scan 2026-10-29, one bound at a
+# time widened by 20 % of its range): only the suspension-travel ceiling z <= 0.15 m, the bump
+# stop of the suspension (the heave row's envelope is held by the travel the hardware allows, not
+# by a reachable-set estimate); every bound widened by 5 % CERTIFIES, every other bound widened
+# by 20 % CERTIFIES.
 # Guards: the zones on s (they partition s >= 0 on both sides, so every right state is in exactly
 # one right guard). The deployed side's guards also carry the zone entry speed v <= c (3.0 / 5.0 /
 # 6.5 m/s), a start condition every reachable state satisfies (set points rise along the route and

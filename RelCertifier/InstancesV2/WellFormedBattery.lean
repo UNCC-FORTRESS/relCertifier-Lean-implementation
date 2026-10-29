@@ -102,7 +102,7 @@ import RelCertifier.InstancesV2.WellFormed.SyringeRelayPrearm
 import RelCertifier.InstancesV2.WellFormed.HydroRejectionGatecal
 import RelCertifier.InstancesV2.WellFormed.VentilatorVcCuffleak
 import RelCertifier.InstancesV2.WellFormed.TankDos3to1
-import RelCertifier.InstancesV2.WellFormed.TunnelJetfanPairout
+import RelCertifier.InstancesV2.WellFormed.AntennaTrackKvretune
 import RelCertifier.InstancesV2.WellFormed.GridFfrDos
 import RelCertifier.InstancesV2.WellFormed.BottlingFillStrainer
 import RelCertifier.InstancesV2.WellFormed.PlatoonLatency
@@ -123,7 +123,7 @@ def wfProved : List String :=
    "zone_lightmass_schedule", "turbine_startup_gearratio", "insulin_basal_cgmloss",
    "h2_refuel_ambientbias", "fuelcell_chp_dos", "elevator_start_discbrake",
    "furnace_program_timebase", "reactor_feed_wireless", "syringe_relay_prearm",
-   "hydro_rejection_gatecal", "ventilator_vc_cuffleak", "tank_dos_3to1", "tunnel_jetfan_pairout", "grid_ffr_dos",
+   "hydro_rejection_gatecal", "ventilator_vc_cuffleak", "tank_dos_3to1", "antenna_track_kvretune", "grid_ffr_dos",
    "bottling_fill_strainer",
    "lit_drl_car_stop", "lit_drl_lane_control",
    "lit_freedm_meter",
@@ -188,19 +188,19 @@ def wfDeclared : ℕ × ℕ × ℕ := (47, 0, 3)
 /-- The suite's benchmark names, in the order of the IR table. -/
 def suiteNames : List String :=
   ["acc_spoof_lag", "acc_spoof_limp", "acc_tune_lag", "acc_tune_limp",
-   "bottling_fill_strainer", "charger_fast_tapers", "elevator_start_discbrake",
-   "engine_start_highidle", "flaps_slow_approach", "fuelcell_chp_dos",
-   "furnace_program_timebase", "gantry_speed_zones", "grid_ffr_dos", "h2_refuel_ambientbias",
-   "hydro_rejection_gatecal", "insulin_basal_cgmloss", "lit_csf21_vehicle_bus", "lit_csf21_vehicle_thermo",
-   "lit_drl_car_stop", "lit_drl_lane_control", "lit_freedm_meter", "lit_girard08_robot",
-   "lit_lz21_vehicle_position", "lit_nahs25_salt_tank",
-   "platoon_latency", "platoon_linkloss", "platoon_profiles", "quad_light_lag",
-   "quad_light_profiles", "reactor_feed_wireless", "rover_ladder_2to3", "rover_ladder_3to6",
-   "rover_ladder_6to8", "rover_ladder_8to12", "rover_patrol_lag", "rover_terrain_2to4",
-   "rover_terrain_4to6", "rover_terrain_6to12", "sat3w_detumble_phases", "sat_detumble_phases",
-   "sat_detumble_weak", "syringe_relay_prearm", "tank_dos_3to1", "train_ato_odometry",
-   "tunnel_jetfan_pairout", "turbine_startup_gearratio", "ventilator_vc_cuffleak", "watertank",
-   "watertank_twospeed", "zone_lightmass_schedule"]
+   "antenna_track_kvretune", "bottling_fill_strainer", "charger_fast_tapers",
+   "elevator_start_discbrake", "engine_start_highidle", "flaps_slow_approach",
+   "fuelcell_chp_dos", "furnace_program_timebase", "gantry_speed_zones", "grid_ffr_dos",
+   "h2_refuel_ambientbias", "hydro_rejection_gatecal", "insulin_basal_cgmloss",
+   "lit_csf21_vehicle_bus", "lit_csf21_vehicle_thermo", "lit_drl_car_stop",
+   "lit_drl_lane_control", "lit_freedm_meter", "lit_girard08_robot",
+   "lit_lz21_vehicle_position", "lit_nahs25_salt_tank", "platoon_latency", "platoon_linkloss",
+   "platoon_profiles", "quad_light_lag", "quad_light_profiles", "reactor_feed_wireless",
+   "rover_ladder_2to3", "rover_ladder_3to6", "rover_ladder_6to8", "rover_ladder_8to12",
+   "rover_patrol_lag", "rover_terrain_2to4", "rover_terrain_4to6", "rover_terrain_6to12",
+   "sat3w_detumble_phases", "sat_detumble_phases", "sat_detumble_weak", "syringe_relay_prearm",
+   "tank_dos_3to1", "train_ato_odometry", "turbine_startup_gearratio",
+   "ventilator_vc_cuffleak", "watertank", "watertank_twospeed", "zone_lightmass_schedule"]
 
 /-- `suiteNames` IS the name column of the kernel-checked IR table of the suite. -/
 theorem suiteNames_eq : Parse.benchIRTableV2.map Prod.fst = suiteNames := rfl
@@ -262,7 +262,7 @@ end WellFormedBattery
 #print axioms V2HydroRejectionGatecal.hydro_rejection_gatecal_wellFormedR
 #print axioms V2VentilatorVcCuffleak.ventilator_vc_cuffleak_wellFormedR
 #print axioms V2TankDos3to1.tank_dos_3to1_wellFormedR
-#print axioms V2TunnelJetfanPairout.tunnel_jetfan_pairout_wellFormedR
+#print axioms V2AntennaTrackKvretune.antenna_track_kvretune_wellFormedR
 #print axioms V2BottlingFillStrainer.bottling_fill_strainer_wellFormedR
 #print axioms V2PlatoonLatency.platoon_latency_wellFormedR
 #print axioms V2ChargerFastTapers.charger_fast_tapers_wellFormedR

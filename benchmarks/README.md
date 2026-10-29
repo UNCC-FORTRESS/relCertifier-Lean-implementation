@@ -37,6 +37,33 @@ needs, read off counter-runs; `scripts/suite_v2_matrix.py`) are in
 physical story, the units, the measured cover and the mechanisms it exercises
 (`# scenario:` and `# mechanisms:` lines).
 
+## Domain audit, 2026-10-29: four domains moved to physical limits, one benchmark skipped and refilled
+
+Rule (owner, `docs/SUITE-REDESIGN.md` section 13): an evolve domain states a physical constraint
+of the plant (a hardware limit, a sensor range, a saturation, a trip), never a closed-loop target,
+set point, asymptote or reachable-set cap chosen so that the claim certifies. A domain scan of the
+50 files (every two-sided evolve bound widened by 5 % and 20 % of its range, then one bound at a
+time; `docs/OVERNIGHT-2026-10-29.md`, "Domain audit 2026-10-29") found nine files whose
+certificate stood on a bound: four on a physical limit (class a: `acc_tune_lag`'s 1 g box, the
+rover ladder's suspension travel and governed top speed) and five on a closed-loop band (class b).
+
+| benchmark | old bound | new bound | action | letters before / after |
+|---|---|---|---|---|
+| `flaps_slow_approach` | `V` in [150, 185] kt (the autothrust target F and the selection speed S) | `V` in [130, 200] kt (VLS CONF 2 to the flap placard VFE CONF 2) | rows `V_R <= V_L + 25`, `V_L <= V_R + 10` (tight: 24.99, 9.99 decline; the 20 kt window holds for selections up to 190 kt) | S / S |
+| `platoon_latency` | `e` in [-0.5, 0.5] m/s^2 (the jerk-reachable error band) | `e` in [-20, 20] m/s^2 (two accelerations within the 1 g tyre-road limit) | the band `abs(e_L) <= 0.5` stated as a row (tight: 0.49 declines; `abs(Delta g)` 4.00 unchanged) | D / D |
+| `quad_light_profiles` | `w <= 2.4` m/s (the SPORT set point) | `w <= 3` m/s (the autopilot's climb-rate limiter) | row `w_L <= 2.4` (tight: 2.39 declines; the limiter never engages) | S M B X / S M B X |
+| `turbine_startup_gearratio` | `w <= 12.705` / `12.1` rpm (the rated targets) | `w <= 13.9755` / `13.31` rpm (the overspeed trips; the deployed's is 5 % late through the stale ratio) | GEN row `w_L <= 1.05 w_R + 0.061` (tight: 0.060 declines), exact in the other phases; uniform rows decline | R P I / R P I D |
+| `engine_start_highidle` | `5 <= N2`, `t <= 40` | `0 <= N2 <= 110`, `t >= 0` | domain only; Assumption 1 proof adapted | R D I / R D I |
+| `tunnel_jetfan_pairout` | `u >= 2.6` m/s (the controller's minimum duty) | `u >= 0` DECLINES, no claim-side fix (`skipped/tunnel_jetfan_pairout/SKIPPED.md`) | skipped | D I / (out) |
+| `antenna_track_kvretune` | (reserve) | `t >= 0`, elevation travel [-2, 92] deg (limit switches), not load-bearing | refilled from the reserve (round-1 reserve score 4), Assumption 1 proof of fb55b6e unchanged | (in) / D |
+| `acc_tune_lag`, `rover_ladder_3to6`, `rover_ladder_6to8`, `rover_ladder_8to12` | physical (1 g box; suspension travel 0.15 m; governed 8 m/s) | unchanged | headers: the bound is physical and load-bearing (which one, at 5 % and 20 %) | unchanged |
+
+Letters (measured, `docs/paper-numbers/letters.md`): S 20 M 26 R 7 B 13 P 6 D 13 I 17 X 15 (D 12 -> 13:
+the tunnel's D out, the antenna's and the turbine's in; I 18 -> 17: the tunnel's I had no replacement
+at reserve score 4; every other benchmark's letters unchanged). The four files on physical limits
+(class a) keep their domains; their W20 widening declines by design and the headers say so.
+Checks (all green; `lake build` exit 0, 9293 jobs, the five executables 18172): `--check-quick-v2` 50 certified, modal 1264/1264, handoff 544/544, non-connection 60/60, pruned 30/30, reposition 74/74, strict gate 189/189 (87 invariant, 102 exit), 0 UNKNOWN, 0 BLOCKING; `relcert-test` ALL PASS (50 literals); bridge 5283/5283 (declared count set after measuring, was 5246: the tunnel's 38 groups out, the antenna's in, the five re-emitted instances); progress 197/197; refute 260/260 (87 instances, was 73: two tunnel out, 13 antenna and three platoon in) and every refutation instance builds; WellFormedBattery 66 standard axiom lines (plus the 11 `CutLiftX` replay lines); AxiomCheck 9; both negatives DECLINED; `lit_hypercert_vehicle_s8` BLOCKING / DECLINED; `scripts/paper_numbers.sh` re-run (covers identical, letters S 20 M 26 R 7 B 13 P 6 D 13 I 17 X 15; per-benchmark letters identical to the previous run for every file but the three listed).
+
 ## Review round 3, 2026-10-29: two constant changes, four header fixes
 
 Round 3 (`docs/BENCHMARK-REVIEW-2026-10-29-r3.md`, hash-based reviewer pairing). Verified and

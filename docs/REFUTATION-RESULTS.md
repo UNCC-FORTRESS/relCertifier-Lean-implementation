@@ -4,6 +4,15 @@
 
 > Literature benchmark names here predate the 2026-10-28 rename (`lit_` prefix); old -> new: `benchmarks/README.md`, "Renamed 2026-10-28: the literature group".
 
+> 2026-10-29 (branch `benchmark-fixes`, domain audit, `docs/OVERNIGHT-2026-10-29.md`): the finder
+> was re-run on the six benchmarks whose files changed. `tunnel_jetfan_pairout` left the suite with
+> its two refutations (`_m024`, `_m027`); `antenna_track_kvretune` came back from the reserve with 13
+> witnesses over 44 mutants; `platoon_latency` (71 mutants, the `|e_L| <= 0.5` row added) has 5
+> witnesses (`_m040`, `_m043` re-emitted on the new model, `_m047`, `_m048`, `_m049` new);
+> `engine_start_highidle_m008` was re-emitted on the physical domain; `flaps_slow_approach` (16
+> mutants), `quad_light_profiles` (21) and `turbine_startup_gearratio` (6, now at bridge dimension 4)
+> have no witness. 87 instances, `relcert-refute-verdicts` 260/260.
+
 > 2026-10-26 (branch `benchmark-fixes`): the tables below are the 2026-10-21 run and predate two
 > suite changes. The `rover_lateral` model changes added refutations (79 instances, 224 groups),
 > and `rover_tier_1to2` (`rover3tier_rung12`) was retired with its two refutations (m000 kind C,

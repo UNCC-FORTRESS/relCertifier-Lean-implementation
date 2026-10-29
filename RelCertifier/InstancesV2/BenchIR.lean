@@ -12,6 +12,7 @@ import RelCertifier.InstancesV2.BenchIR.acc_spoof_lag
 import RelCertifier.InstancesV2.BenchIR.acc_spoof_limp
 import RelCertifier.InstancesV2.BenchIR.acc_tune_lag
 import RelCertifier.InstancesV2.BenchIR.acc_tune_limp
+import RelCertifier.InstancesV2.BenchIR.antenna_track_kvretune
 import RelCertifier.InstancesV2.BenchIR.bottling_fill_strainer
 import RelCertifier.InstancesV2.BenchIR.charger_fast_tapers
 import RelCertifier.InstancesV2.BenchIR.elevator_start_discbrake
@@ -52,7 +53,6 @@ import RelCertifier.InstancesV2.BenchIR.sat_detumble_weak
 import RelCertifier.InstancesV2.BenchIR.syringe_relay_prearm
 import RelCertifier.InstancesV2.BenchIR.tank_dos_3to1
 import RelCertifier.InstancesV2.BenchIR.train_ato_odometry
-import RelCertifier.InstancesV2.BenchIR.tunnel_jetfan_pairout
 import RelCertifier.InstancesV2.BenchIR.turbine_startup_gearratio
 import RelCertifier.InstancesV2.BenchIR.ventilator_vc_cuffleak
 import RelCertifier.InstancesV2.BenchIR.watertank
@@ -66,6 +66,7 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("acc_spoof_limp", acc_spoof_limp_IRv2),
   ("acc_tune_lag", acc_tune_lag_IRv2),
   ("acc_tune_limp", acc_tune_limp_IRv2),
+  ("antenna_track_kvretune", antenna_track_kvretune_IRv2),
   ("bottling_fill_strainer", bottling_fill_strainer_IRv2),
   ("charger_fast_tapers", charger_fast_tapers_IRv2),
   ("elevator_start_discbrake", elevator_start_discbrake_IRv2),
@@ -106,7 +107,6 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("syringe_relay_prearm", syringe_relay_prearm_IRv2),
   ("tank_dos_3to1", tank_dos_3to1_IRv2),
   ("train_ato_odometry", train_ato_odometry_IRv2),
-  ("tunnel_jetfan_pairout", tunnel_jetfan_pairout_IRv2),
   ("turbine_startup_gearratio", turbine_startup_gearratio_IRv2),
   ("ventilator_vc_cuffleak", ventilator_vc_cuffleak_IRv2),
   ("watertank", watertank_IRv2),

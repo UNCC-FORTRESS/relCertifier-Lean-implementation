@@ -55,7 +55,6 @@ Verdicts measured 2026-10-27 with the branch's `relcert` (`RELCERT_IMPLIED_CUT=1
 | `rover_rollover_payload` | suite_v2 (2026-10-27, batch I8) | `NO_CHOICE`, `SYNC`+`NO_CHOICE`, `NO_PRUNE`+`NO_CHOICE`, `NO_CUT` | X I | both letters come from the claim form (they persist at `h_L = h_R`), and the two sides differ in a second structural way besides the payload (the reference's 2 m transition bands with back edges, load-bearing) |
 | `canal_gate_notches` | suite_v2 (2026-10-27, batch I8) | `NO_CHOICE`, `SYNC`+`NO_CHOICE`, `NO_PRUNE`+`NO_CHOICE` | X | one of several X-only own designs (template B, with `bms_chiller_undercharge` and `compressor_station_recycle`); the literature case studies of batch I8 now show X |
 | `bms_chiller_undercharge` | suite_v2 (2026-10-28, batch I10) | `NO_CHOICE`, `SYNC`+`NO_CHOICE`, `NO_PRUNE`+`NO_CHOICE` | X | a single-letter file that certifies under `SYNC`; its non-identity commitment (the reference's half-speed chiller level against the deployed's degraded full-speed one) stays represented by `compressor_station_recycle` and `fuelcell_chp_dos`; its place in the suite went to `zone_lightmass_schedule` (S M B X, a time-scaled claim that declines under `SYNC`) |
-| `antenna_track_kvretune` | suite_v2 (2026-10-28, batch I11) | none | D | the weakest D of the suite: its D comes only from the rule that a uniform row drops a stated requirement (the slew-lag envelope row), a single-letter own design; its place in the suite went back to `platoon_latency` (D, the degraded-network scenario) |
 | `compressor_station_recycle` | suite_v2 (2026-10-28, batch I11) | `NO_CHOICE`, `SYNC`+`NO_CHOICE`, `NO_PRUNE`+`NO_CHOICE` | X | a single-letter own design whose X is an identity hop into the deployed's own level (the hop persists with a healthy valve; the fault only moves its target), no external source; its place in the suite went to `reactor_feed_wireless` (M B P) |
 | `molding_pack_checkring` | suite_v2 (2026-10-28, batch I11) | none | D | a single-letter own design with no external source for the 25 bar envelope or the hold time; its place in the suite went to `h2_refuel_ambientbias` (R D I, SAE J2601) |
 
@@ -74,5 +73,16 @@ Round 1 of the 2026-10-29 review (`docs/BENCHMARK-REVIEW-2026-10-29-r1.md`) scor
 suite's rubric (two independent reviewers, 27 candidates) and took `insulin_basal_cgmloss` (overall 4, M B;
 its Assumption 1 proof of commit 8c92730 builds unchanged) back into the suite in place of the skipped
 `lit_hypercert_vehicle`; the reserve is 26 files.
+
+The domain audit of 2026-10-29 (`docs/OVERNIGHT-2026-10-29.md`, "Domain audit 2026-10-29") took
+`antenna_track_kvretune` (round-1 reserve score P 4, R 4, C 5, overall 4, the best-scored candidate
+whose evolve domains are physical: the elevation travel between the limit switches; it certifies
+with every bound widened by 20 %, and with no evolve bound but `t >= 0`) back into the suite, with
+its Assumption 1 proof of commit fb55b6e unchanged, in place of `tunnel_jetfan_pairout`, skipped
+(`benchmarks/skipped/tunnel_jetfan_pairout/SKIPPED.md`: its velocity floor was a controller duty,
+and at the physical floor the reference is not well formed); the reserve is 25 files. The same
+audit's widening test on the reserve (every two-sided evolve bound widened by 20 % of its range,
+`RELCERT_IMPLIED_CUT=1`): every file CERTIFIES except `lng_cooldown_overspray` and
+`quad_light_airframe_20`, whose claims stand on a domain bound.
 
 Run one: `RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert benchmarks/reserve/<name>/input.txt`.

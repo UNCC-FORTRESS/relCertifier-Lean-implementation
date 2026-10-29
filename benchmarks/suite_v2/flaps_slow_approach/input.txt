@@ -26,22 +26,29 @@
 #   PCU the surfaces operate at half speed). Same aircraft, same autothrust, same selection. The
 #   flap drive speed is the only difference.
 #
-# Property (both modes): f_L = f_R (two inequalities), V_L <= V_R, V_R <= V_L + 20 (kt), against the
-# normal extension re-timed by a stretch in [1/2, 1] (lambda_min 0.5 = one motor of two, lambda_max 1).
-# Reading: at every flap position the FLAPS SLOW aircraft is never faster than the normal one (so it
-# respects every flap placard speed the normal extension respects) and at most 20 kt slower.
-# Requirement for the 20 kt: the speed windows operators accept around an approach speed target: the
-# Airbus AFS lets the speed vary +-20 kt around the managed target (Safety First #24), the stabilized-
-# approach criterion of the Flight Safety Foundation (ALAR Briefing Note 7.1) is a 20 kt window above
-# VREF. The upper row V_L <= V_R is derived, exact (constant 0; -1 declines). (The autothrust keeps
-# VLS of the actual configuration as a floor in both aircraft, Safety First #24; that floor is not
-# modeled, the speeds stay in [F, S] here.)
-# Tightest: 17.50 kt (17.49 declines) = (1 - 1/2) x (S - F): at the stretch 1/2 the flap rows are
-# exact and the speed gap obeys D' = -k(f) D + (1/2) k(f) (V_R - F), so the gap is held at half the
-# reference's distance above its target. Window: the 20 kt requirement holds while S - F <= 40 kt
-# (S = 190 certifies, S = 195 declines at 20); the drag coupling does not move the bound (with
-# k = 0.02 /s for every flap angle the tightest is 17.50 too). Not implied by the domains (they allow
-# a speed gap of 35 kt and any flap gap of 5.1 deg).
+# Property (both modes): f_L = f_R (two inequalities), V_R <= V_L + 25 and V_L <= V_R + 10 (kt),
+# against the normal extension re-timed by a stretch in [1/2, 1] (lambda_min 0.5 = one motor of two,
+# lambda_max 1). Reading: at every flap position the FLAPS SLOW aircraft is at most 25 kt slower than
+# the normal one and at most 10 kt faster. Both constants are tight (bisection to 0.01, measured
+# 2026-10-29: 24.99 and 9.99 decline) and both are what the autothrust's approach to F allows from
+# every start the placards admit: at the stretch 1/2 the flap rows are exact and the speed gap
+# D = V_R - V_L obeys D' = -k(f) D + (1/2) k(f) (V_R - F), so the gap is driven toward half the
+# reference's distance from its target. From a selection at the flap placard VFE CONF 2 = 200 kt the
+# slower aircraft may lag by (200 - F) / 2 = 25 kt; from a selection below the target (both speeds
+# then rise toward F, the slower aircraft for twice as long per degree of flap) it may lead by
+# (F - VLS) / 2 = (150 - 130) / 2 = 10 kt.
+# Requirement: the speed windows operators accept around an approach speed target are 20 kt wide
+# (the Airbus AFS lets the speed vary +-20 kt around the managed target, Safety First #24; the
+# stabilized-approach criterion of the Flight Safety Foundation, ALAR Briefing Note 7.1, is a 20 kt
+# window above VREF). The 20 kt window holds for every selection at most 40 kt above F: with the
+# placard at 190 kt the rows certify at 20.00 (19.99 declines), and the procedure's selection speed
+# S = 185 kt lies in that range; the placard admits selections up to 200 kt, from which the gap may
+# reach 25 kt, so the claim states 25 (the domain audit of 2026-10-29: until then the domain was the
+# band [F, S] = [150, 185] the closed loop never leaves, and the rows V_L <= V_R <= V_L + 20 certified
+# on it with the tight value 17.50 = (1 - 1/2) (S - F); that band was an autothrust target, not a
+# limit, and the rows stood on it: with it widened by 5 % the file declined). The drag coupling does
+# not move the bounds (with k = 0.02 /s for every flap angle the tightest values are 25 and 10 too).
+# Not implied by the domains (they allow a speed gap of 70 kt and any flap gap of 5.1 deg).
 #
 # Why the stretch (S), and why it is not exact. At stretch 1 the deployed flaps fall behind the
 # reference's without bound in the time-free segment certificate (0.5 deg/s against 1 deg/s), so the
@@ -56,18 +63,27 @@
 # once they are set, where the furnace re-times every segment), it comes from a hardware ratio (one
 # hydraulic motor of two, the grid end point lambda_min = 1/2) rather than a programmer setting, and
 # the follower's rate depends on the program through the flap drag.
-# How the bound depends on the cause (measured, tightest speed tolerance against the deployed flap
-# rate): 1 deg/s (no failure): the exact claim (all constants 0) CERTIFIES, also under RELCERT_SYNC=1;
-# 0.75 deg/s: 8.75; 0.6 deg/s: 14.00; 0.5 deg/s (this file): 17.50 = (1 - r) (S - F). Law dependence:
-# an arbitrary deployed flap schedule (every left guard the domain, each mode a successor of the
-# other: the flaps may stop or move at any angle) DECLINES at every tolerance up to 40 kt. Simulated
-# (0.01 s steps, from CONF 1+F at S): at CONF 2 the FLAPS SLOW aircraft is 4.5 kt slower (175.3 against
-# 179.8 kt); the certificate is the inductive envelope (17.5) over every start in the domain.
+# How the bound depends on the cause (measured 2026-10-29 on the placard domain, tightest upper
+# tolerance against the deployed flap rate r, with the lower one at (1 - r) (F - VLS)): 1 deg/s (no
+# failure): the exact claim (all constants 0) CERTIFIES, also under RELCERT_SYNC=1; 0.75 deg/s: 12.50
+# (12.49 declines); 0.6 deg/s: 20.00 (19.99 declines); 0.5 deg/s (this file): 25.00 = (1 - r) (VFE - F).
+# Law dependence: an arbitrary deployed flap schedule (every left guard the domain, each mode a
+# successor of the other: the flaps may stop or move at any angle) DECLINES at every tolerance up to
+# 40 kt (measured on the earlier domain). Simulated (0.01 s steps, from CONF 1+F at S): at CONF 2 the
+# FLAPS SLOW aircraft is 4.5 kt slower (175.3 against 179.8 kt); the certificate is the inductive
+# envelope (25) over every start in the domain.
 #
 # Domains. f in [10, 15.1] deg (CONF 1+F to CONF 2, plus the 0.1 deg one control period of flap travel
-# can carry past the detent before the next decision stops it); V in [F, S] = [150, 185] kt: the
-# autothrust decelerates toward F and never below it, and never accelerates (forward invariant).
-# Right guards partition f (no coverage gap); every left mode has a satisfiable start (equal states).
+# can carry past the detent before the next decision stops it); V in [VLS, VFE] = [130, 200] kt, the
+# speeds at which the aircraft may fly in these configurations: VLS CONF 2 = 1.23 VS1G = 130 kt (the
+# lowest selectable speed, the floor the autothrust and the flight controls keep; VLS of CONF 1+F is
+# higher) and VFE CONF 2 = 200 kt (the flap placard, the structural limit above which CONF 2 must not
+# be selected; A320 family). Both are limits of the aircraft, not of the closed loop: the domain
+# audit of 2026-10-29 replaced the earlier [F, S] = [150, 185], the autothrust's target and the
+# selection speed (a band the closed loop never leaves, and one the rows stood on: widened by 5 % it
+# declined), by the placard range. Not load-bearing now: every bound widened by 20 % of its range
+# CERTIFIES. Forward invariant: V' = -k (V - F) points toward F from both ends. Right guards
+# partition f (no coverage gap); every left mode has a satisfiable start (equal states).
 #
 # Stretch-grid dependence. The flap rows are exact only at lambda = the deployed-to-reference flap-rate
 # ratio, so the certificate needs that ratio to be a point of the tool's stretch grid (21 points over
@@ -86,15 +102,16 @@
 # since batch I9; the chain-depth template stays in the suite with tank_dos_3to1 (M I),
 # fuelcell_chp_dos, grid_ffr_dos and the satellites).
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27, batch I9): CERTIFIED (about
-# 0.6 s); CERTIFIED under RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE,
-# RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, without RELCERT_IMPLIED_CUT,
-# RELCERT_NO_REPO=1, RELCERT_OPREGION=1 and RELCERT_WELLFORMED_STRICT=1; DECLINED under
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-29 at installation of the placard
+# domain and the 25 / 10 rows; identical to the batch-I9 pattern): CERTIFIED (about 0.4 s); CERTIFIED
+# under RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE, RELCERT_NO_CUT=1,
+# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, without RELCERT_IMPLIED_CUT, RELCERT_NO_REPO=1,
+# RELCERT_NO_PAIR_STRETCH=1, RELCERT_OPREGION=1 and RELCERT_WELLFORMED_STRICT=1; DECLINED under
 # RELCERT_SYNC=1 and SYNC+NO_CHOICE. Cover: EXT_L at lambda 1/2, CONF2_L at lambda 1, budget 1,
 # admissible start the same mode, joint segments only. Nothing pruned. Rows identical (--handoff
 # 3/3, vacuous). relcert --wellformed: EXT ok (exit->CONF2), CONF2 ok (invariant), 0 UNKNOWN,
-# 0 BLOCKING. The right model and its Assumption 1 proof (WellFormed/FlapsSlowApproach.lean) are
-# the batch-I6 ones. Letters: S.
+# 0 BLOCKING. The right model's Assumption 1 proof (WellFormed/FlapsSlowApproach.lean) is the
+# batch-I6 one adapted to the placard domain. Letters: S (before and after the domain audit).
 [problem]
 name = flaps_slow_approach
 max_depth = 8
@@ -107,13 +124,13 @@ state_vars = [f, V]
 epsilon = 0.1
 [Lsys.mode.EXT]
 ode = f' = 0.5; V' = smt2:(* (- 0.0 (+ 0.02 (* 0.001 f))) (- V 150));
-guard = f < 15 and f >= 10 and f <= 15.1 and V >= 150 and V <= 185
-evolve = f >= 10 and f <= 15.1 and V >= 150 and V <= 185
+guard = f < 15 and f >= 10 and f <= 15.1 and V >= 130 and V <= 200
+evolve = f >= 10 and f <= 15.1 and V >= 130 and V <= 200
 next = [EXT, CONF2]
 [Lsys.mode.CONF2]
 ode = f' = 0; V' = smt2:(* (- 0.0 (+ 0.02 (* 0.001 f))) (- V 150));
-guard = f >= 15 and f >= 10 and f <= 15.1 and V >= 150 and V <= 185
-evolve = f >= 10 and f <= 15.1 and V >= 150 and V <= 185
+guard = f >= 15 and f >= 10 and f <= 15.1 and V >= 130 and V <= 200
+evolve = f >= 10 and f <= 15.1 and V >= 130 and V <= 200
 next = [CONF2]
 
 [Rsys]
@@ -121,15 +138,15 @@ state_vars = [f, V]
 epsilon = 0.1
 [Rsys.mode.EXT]
 ode = f' = 1; V' = smt2:(* (- 0.0 (+ 0.02 (* 0.001 f))) (- V 150));
-guard = f < 15 and f >= 10 and f <= 15.1 and V >= 150 and V <= 185
-evolve = f >= 10 and f <= 15.1 and V >= 150 and V <= 185
+guard = f < 15 and f >= 10 and f <= 15.1 and V >= 130 and V <= 200
+evolve = f >= 10 and f <= 15.1 and V >= 130 and V <= 200
 next = [EXT, CONF2]
 [Rsys.mode.CONF2]
 ode = f' = 0; V' = smt2:(* (- 0.0 (+ 0.02 (* 0.001 f))) (- V 150));
-guard = f >= 15 and f >= 10 and f <= 15.1 and V >= 150 and V <= 185
-evolve = f >= 10 and f <= 15.1 and V >= 150 and V <= 185
+guard = f >= 15 and f >= 10 and f <= 15.1 and V >= 130 and V <= 200
+evolve = f >= 10 and f <= 15.1 and V >= 130 and V <= 200
 next = [CONF2]
 
 [relational_invariant]
-EXT = f[l] <= f[r] and f[r] <= f[l] and V[l] <= V[r] + 0 and V[r] <= V[l] + 20
-CONF2 = f[l] <= f[r] and f[r] <= f[l] and V[l] <= V[r] + 0 and V[r] <= V[l] + 20
+EXT = f[l] <= f[r] and f[r] <= f[l] and V[l] <= V[r] + 10 and V[r] <= V[l] + 25
+CONF2 = f[l] <= f[r] and f[r] <= f[l] and V[l] <= V[r] + 10 and V[r] <= V[l] + 25

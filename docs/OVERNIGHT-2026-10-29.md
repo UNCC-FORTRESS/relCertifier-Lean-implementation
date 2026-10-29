@@ -359,3 +359,85 @@ left unchanged except the two kind (iii) models (headers only).
 
 Commits (branch `benchmark-fixes`, pushed): 50ab23f the batch (benchmarks, proofs, generated layers,
 counts, check script, paper numbers); this section in the commit after it.
+
+## Fix round 4 (2026-10-29)
+
+The verified items of review round 4 (`docs/BENCHMARK-REVIEW-2026-10-29-r4.md`, "Verified actionable
+items"), acted on at tip 46c3fb3. Every change was made on a scratch copy and run with
+`RELCERT_IMPLIED_CUT=1` before installation; letters were measured on the scratch copies with the
+paper's own pipeline (the five counter-run configurations, `suite_v2_matrix.py`,
+`suite_v2_letters.py`) before and after, every edited file re-run under the thirteen ablation
+switches and the 20 % widening (W20), and every stated tight value bisected (0.01 tighter
+declines). Owner's rules kept: one physical evolve domain per benchmark (`check_one_domain.py`
+PASS), start-only modes carry no letter, a weaker claim certifying is not a finding.
+
+| benchmark | finding (r4, verified) | action | letters before / after | tight numbers |
+|---|---|---|---|---|
+| `engine_start_highidle` | ABORT reached only from starts with the timer near 30 s; D and the exact start rows rested on it | physical trigger: start-air supply pressure `p` (frozen, the same bleed source on both sides, transducer range 0..60 psig); on low supply (`p < 35`) the starter's torque limit is reached at 25.5 % (`STARTER_LOW`), so a start from rest (N2 = 5 %, t = 0) is at 24.48 % at the 30 s time-out and aborts (a hung start); ABORT row tightened to exact; right model changed (new coordinate and mode), Assumption 1 proof adapted | R D I / R D I | start rows lead 0 (0.01 declines), timer slack 0 (0.01 declines), ABORT 0.00 (-0.01 declines), SELF/IDLE 4.00 (3.99 declines); uniform +4 declines (D genuine) |
+| `platoon_latency` | AEB reachable only as a start; D only from AEB pairs; header time 2.0 s | no physical trigger keeps an AEB pairing sound under deployed-keyed rows (a lead-braking mode on both sides DECLINES: the design's braking mode shares the CACC guard; the two AEBs fire at different instants); AEB removed on both sides, the design floor row and the AEB row dropped; header time re-measured | D / none | `abs(Delta g)` 4.00, Q rows 1 / 2, `g_L >= 5` 5.00, TTC 16.00, `abs(e_L)` 0.50 (each 0.01 tighter declines); 0.5 s (was stated 2.0 s; the pre-fix file ran 1.16 s) |
+| `platoon_linkloss` | same start-only AEB pattern (checked: the operating range is forward invariant under CACC and ACC) | AEB removed on both sides | M D / M | `Delta g` in [0, 15], Q forms [0, 3.75], [0, 7.5], `g_L >= 5`, TTC 20.00 |
+| `platoon_profiles` | same start-only AEB; SPORT rows an exact gain-scaling identity (any slack certifies) | AEB removed; SPORT kd 0.9 -> 0.85 (critical damping; lambda 6/5 is now the natural-frequency ratio), so the exact rows DECLINE and a tolerance is bisected | S M D / S M | `abs(Delta g)` 3.34 = W / kp (W = 0.06 x the rated 10 m/s closing rate), modal forms 1.50 and 1.14, TTC 19.44 (19.45 declines); W20 now DECLINES (the tolerance scales with the rated closing rate, stated) |
+| `h2_refuel_ambientbias` | start-only ABORT; header "letters R I" contradicted the D rule | no trigger reachable in the one-state model (all stage flows raise p; a time-out aborts every fill or none; temperature or ramp aborts need a second state); ABORT removed, STAGE1 guard from p = 0; header letter statements fixed | R D I / R D I | top rows 2.90 (2.89 declines); uniform `p_L <= p_R` declines (D) |
+| `charger_fast_tapers` | P rested on FAULT edges no run takes | no trip reachable with SoC as the only state; FAULT removed on both sides, PRECHARGE from x = 0; c tightened; header P attribution removed | S M R B P D I / S M R B D I | c 1.00 (0.99 declines; the physical lead is 0, c = 1 is the FULL-pairing over-approximation, stated) |
+| `grid_ffr_dos` | band certifies with an FFR that never fires | no attack-dependent claim under a sampled hold (segment certificates are time-free, so the hold segment is the dead-FFR flow); a rate-limited-fallback variant depends on the attack but has no letter; SKIPPED (`benchmarks/skipped/grid_ffr_dos/SKIPPED.md`) | M P / (out) | - |
+| `canal_gate_notches` | refill | from the reserve (round-1 reserve score 4, letter X, bank-crest domain, W20 CERTIFIES); Assumption 1 proof restored from history. `molding_pack_checkring` (score 4, D) rejected: its 500 bar domain is the hold set point (DECLINES at the 2000 bar machine limit) | (in) / X | 0.10 (0.09 declines) against the stated 0.15 m operator tolerance |
+| `rover_ladder_2to3` | heading row not load-bearing (certifies at 100) | heading row removed; a relational lag row (`s_R <= s_L + c`, `v_R <= v_L + d`) DECLINES for every c, d tried | none / none | clearance offset 0 (unchanged) |
+| `bottling_fill_strainer` | row 5 implied by rows 1-3 | row removed; the shortfall bound 1.2 mL derived in the header from rows (1)-(3) | S I / S I | offset 1.20 exact (1.19 and 1.21 decline) |
+| `rover_terrain_6to12` | three output-only rows; header `abs(v') <= 5.6` | body-pitch row and its ax, omega_phs auxiliaries removed (the squat chain is output-only); wheel floor 0.15 -> 0.13 (soil-and-slope validity, `mu_MUD w >= Z_max + g gamma`); header 6.4 | I / I | sigma 0.24 (0.23 declines), H 0.13 (0.12 declines) |
+| `reactor_feed_wireless` | 9 K band justified only by limits the left meets alone | band 9 -> 8 K (tight), requirement restated relationally (reaction rate within a factor 2^(8/10) of the validated run's, van 't Hoff) | M B P / M B P | 8.00 (7.99 declines) |
+| `quad_light_lag` | Psi constant 0.16 from removed envelopes; tight 0.45 | Psi band set to 0.45, the widest start relation for which the 0.8 m requirement holds | S M / S M | Psi 0.45 (0.46 declines); row 2 0.80 (0.79 declines); row 1 0.67 (0.66 declines) |
+| `hydro_rejection_gatecal` | speed band 0.09 not tight; margin from a full-gate start is 0.073 | speed row 0.07 (the overspeed margin from the worst on-grid start, simulated peak 1.227 pu) | D / D | speed 0.027 with gate 0.027 (0.026 declines); gate window [0.02, 0.07] at speed 0.07; cause sweep re-measured (0.03, 0.05) |
+| `watertank` | lambda_max 6 unjustified | lambda range [1, 2] | S M B / S M B | lambda_max 2 (1.95, 1.9 decline) |
+| `watertank_twospeed` | lower row 2 vacuous | lower row 1.5 (the deployed's largest lag, 17 - 15.5) | S M B P / S M B P | 1.50 (1.49 declines) |
+| `rover_terrain_2to4` | real-time form certifies at lambda 1 | kept the re-timed form (it alone gives S M); header states why: the plan re-initialized from the rover's ground speed while the wheels slip ahead; wheel floor 0 -> 0.05 (soil validity, shared with 4to6) | S M I / S M I | sigma 0.21 (0.20 declines), lambda_max 2.64 (2.63 declines) |
+| `rover_terrain_4to6` | creep floor 0.15 (policy); composition with 2to4 broken | floor -> 0.05, the soil model's validity bound (`mu_MUD w >= Z_max`); floor 0 makes the right fail Assumption 1 (relcert --wellformed: MUD, GRAVEL, PAVED BLOCKING, the stalled rover leaves v >= 0); composition with 2to4 restored | I / I | sigma 0.21 (0.20 declines), H 0.13 (0.12 declines) |
+| `acc_tune_lag` | l.72 "well inside" false | header: the guard's corners reach abs(a) = 28.75, the box clips it, load-bearing | S M / S M | - |
+| `syringe_relay_prearm` | 100 min | 90 min | R D / R D | - |
+| `sat_detumble_weak` | RK4 example started outside the guard (E = 1.06) | example from w = (0.4, 0.3, 0.2) (E = 0.88), numbers recomputed | S M B X / S M B X | - |
+| `ventilator_vc_cuffleak` | 0.105 at 500 | 0.104 (0.103 declines) | D / D | - |
+| `lit_lz21_vehicle_position` | (rejected item, checked) | none: smaller offsets (0, 0.5) certify, but delta = 1 is the source's secret / non-secret separation, already disclosed | X / X | - |
+
+Drops and refills: `grid_ffr_dos` skipped, `canal_gate_notches` promoted (suite 50). Letters: start
+(46c3fb3) S 20 M 26 R 7 B 13 P 6 D 13 I 17 X 15; end S 20 M 25 R 7 B 13 P 4 D 10 I 17 X 16 (charger
+P, grid M P, the three platoon D out; canal X in; every other benchmark's letters identical,
+`docs/paper-numbers/letters.md` compared with the previous commit's).
+
+Paper numbers (`scripts/paper_numbers.sh` under zsh; covers identical): `numletterM` 26 -> 25,
+`numletterP` 6 -> 4, `numletterD` 13 -> 10, `numletterX` 15 -> 16, `nummechM` 26 -> 25, `nummechP` 6 -> 4,
+`nummechD` 13 -> 10, `numnochoice` 35 -> 34, `numnoprunedecl` 6 -> 4, `numnoprunenochoicedecl` 23 -> 20,
+`numsyncnochoice` 14 -> 13, `numnoprune` 44 -> 46, `numnoprunenochoice` 27 -> 30, `numopregionout`
+9 -> 11, total time 126 -> 123 s.
+
+Assumption 1 (`RelCertifier/InstancesV2/WellFormed/`): ten proofs adapted (`EngineStartHighidle`: the
+supply coordinate and `STARTER_LOW`; `H2RefuelAmbientbias`, `ChargerFastTapers`: the removed mode and
+the widened first guard; `PlatoonLatency`, `PlatoonLinkloss`, `PlatoonProfiles`: the one-mode CACC
+right model; `RoverTerrain2to4`, `4to6`, `6to12`: the wheel floors), `CanalGateNotches` restored
+unchanged from history, `GridFfrDos` removed; all Z3-free, axioms propext, Classical.choice,
+Quot.sound.
+
+Regeneration: `gen_v2_data.py` on the seventeen changed files and the refill; pack rows of
+`VerdictsV2/RunV2.lean` re-derived from the emitted covers (grid's removed); `gen_bridge.py`;
+`refute_finder.py --only` the eighteen + `gen_refute.py` (70 stale instance and data files removed as
+listed; grid's 21 no-witness records dropped with the benchmark).
+
+Checks (all green; one serial `lake build`, exit 0): `--check-quick-v2` 50 certified, modal
+1218/1218, handoff 537/537, non-connection 42/42, pruned 21/21, reposition 74/74, strict gate
+186/186 (82 invariant, 104 exit), 0 UNKNOWN, 0 BLOCKING; `check_one_domain.py` PASS (48 + 2 kind
+(iii)); `relcert-test` ALL PASS (50 literals); bridge 5180/5180 (declared count set after measuring,
+was 5284); progress 194/194; refute 204/204 (74 instances, was 87) and every refutation instance
+builds; WellFormedBattery 66 standard axiom lines (plus the 11 `CutLiftX` replay lines); AxiomCheck 9;
+both negatives DECLINED; `lit_hypercert_vehicle_s8` BLOCKING / DECLINED.
+
+Failed checks and how they were resolved: (1) the first `refute_finder.py` run crashed
+(`JSONDecodeError` in its `lake env lean` dump) while the Lean proofs were being rebuilt in
+parallel; re-run after the proofs built, green; (2) `relcert-bridge-verdicts` reported `discharged
+5180 but owes 5284` (no FAIL line), the measured total set in `VerdictsV2/RunBridge.lean` and the
+runner rebuilt; (3) the operating-region run listed admitted starts outside every right guard for the
+three platoon files (their design floor rows were dropped) and for `engine_start_highidle` ABORT_L;
+those headers claimed none, now corrected (such pairs have no right run and are not cases of the
+claim). Nothing reverted. Deviation from the fix list: `rover_terrain_4to6`'s creep floor could not go
+to 0 (the right model then fails Assumption 1, the stalled rover leaving v >= 0); it went to the soil
+model's validity bound 0.05, which also restores the composition with `rover_terrain_2to4`.
+
+Commits (branch `benchmark-fixes`, pushed): see the git log after 46c3fb3 (the fix commit, then this
+section).

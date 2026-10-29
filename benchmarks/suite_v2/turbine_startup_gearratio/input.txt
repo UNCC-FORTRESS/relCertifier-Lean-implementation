@@ -28,10 +28,22 @@
 # generator speed by 97, so it reads the rotor speed 5 % low (97 / 92.4 = 1.05). One cause: every
 # speed the controller acts on is 1.05 times higher in true rotor speed: thresholds 2.1, 5.25,
 # 7.245 rpm, synchronization target 7.875 rpm, rated target 12.705 rpm. The free-spin speed of
-# SPINUP (9 rpm) and the brake are physics, not set points, and are unchanged.
+# SPINUP (9 rpm) and the brake are physics, not set points, and are unchanged. The loop gains are
+# NOT scaled (a modeling simplification): the deployed reads w / 1.05 but its RAMP and GEN loops
+# keep the stock gains 0.04 and 0.05 in true rotor speed, i.e. each phase is read as a closed loop
+# in the measured coordinate (gain kept, target scaled). A proportional command on the measured
+# error (the reading of train_ato_odometry) gives the gains 0.04 / 1.05 = 0.0380952 and
+# 0.05 / 1.05 = 0.047619. That scaled-gain variant was tested 2026-10-29: on the domain [0, 16] it
+# DECLINES under every switch (the GEN_L x GEN_R segment fails: a GEN start above rated decays more
+# slowly on the left in true-speed coordinates, so w_L exceeds 1.05 w_R), and it CERTIFIES with
+# the same letters R P I only with the domain restricted to the start-up's reachable speeds (left
+# w <= 12.705, right w <= 12.1, both forward invariant; 0.36 s); the switch to the scaled-gain
+# model is scheduled for a later round.
 #
 # Property (every left mode): w_L <= 1.05 w_R (relational, up to the reference's re-timing): the
-# deployed rotor never turns faster than 1.05 times a reference start-up. Requirement: the
+# deployed rotor never turns faster than 1.05 times a reference start-up. The claim is one-sided
+# against an existential reference (the reference may be in a later phase and run ahead alone); a
+# two-sided form does not certify (below). Requirement: the
 # control system's overspeed limit, 110 % of rated (13.31 rpm); a reference start-up begun below
 # rated never exceeds 12.1 rpm, so the claim bounds the deployed by 12.71 rpm < 13.31 rpm. The
 # factor is the cause: exactly 1.05 certifies (1.049 and 1.06 decline; 1.06 because a reference
@@ -45,7 +57,8 @@
 # pitch loop holds it at 7.5 rpm while the deployed free-spins toward 9 rpm, so the joint segment
 # fails at every stretch and the reference first runs alone (left frozen) out of RAMP into GEN
 # (R). RAMP and SPINUP declare STOP; the non-connection certificate (their flows rise at 2 rpm)
-# prunes RAMP -> STOP and SPINUP -> STOP; under RELCERT_NO_PRUNE=1 the repositioning step must
+# prunes RAMP -> STOP and SPINUP -> STOP, so no run enters STOP: STOP_L is a start only (a rotor
+# already parked); under RELCERT_NO_PRUNE=1 the repositioning step must
 # also cover STOP (a parked reference against a spinning deployed) and the existential choice
 # cannot replace it: DECLINED (P). The implied contraction atoms (w <= 9 in SPINUP, w <= 7.875 /
 # 7.5 in RAMP) are load-bearing: DECLINED with RELCERT_NO_CUT=1 and without RELCERT_IMPLIED_CUT
@@ -63,6 +76,12 @@
 #     found ([repo-dyn-pre] empty).
 #   lower row only in RAMP and GEN: tightest d = 10.75 rpm (g = 1.05) and 11.00 (g = 1.00); only in
 #     GEN: 8.76 and 9.10: near-vacuous and the same without the cause.
+#   Same-phase two-sided rows (measured 2026-10-29): the exact w_L = 1.05 w_R in RAMP and GEN
+#     (lambda 1) DECLINES at the SPINUP -> RAMP handoff (7/8 unsat: the free-spin phase is not a
+#     scaled copy of the reference's, so the identity cannot be established at the RAMP entry);
+#     1.05 w_R - d <= w_L <= 1.05 w_R in RAMP and GEN certifies only from d = 11.55 rpm of the
+#     16 rpm range; with the scaled loop gains the same rows DECLINE at d = 16 (the whole range) at
+#     the stretch 1.05 and at 1 / 1.05.
 # Window: R and P hold for every gear error g < 1.2 (the free-spin speed 9 rpm exceeds the
 # deployed's synchronization target 7.5 g); at g = 1.2 the joint segment passes and
 # RELCERT_NO_PRUNE=1, RELCERT_SYNC=1 certify (round 2).
@@ -76,8 +95,8 @@
 # and the requirement is a real-time one, so the unused range [1, 6] is gone; verdicts and letters
 # unchanged (measured 2026-10-27).
 # Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26 with the round-A binary,
-# re-measured 2026-10-27 at lambda_max 1):
-# CERTIFIED (about 0.4 s); CERTIFIED under RELCERT_NO_CHOICE=1, RELCERT_NO_LINEAR_CUT=1,
+# re-measured 2026-10-27 at lambda_max 1 and 2026-10-29, header only changed):
+# CERTIFIED (about 0.6 s); CERTIFIED under RELCERT_NO_CHOICE=1, RELCERT_NO_LINEAR_CUT=1,
 # RELCERT_NO_PAIR_STRETCH=1, RELCERT_WELLFORMED_STRICT=1 and RELCERT_OPREGION=1 (every admitted
 # start in some right guard, all four left modes); DECLINED under RELCERT_SYNC=1 (no right-only
 # steps; every cover is at lambda 1, so no S), RELCERT_NO_PRUNE=1, NO_PRUNE+NO_CHOICE,

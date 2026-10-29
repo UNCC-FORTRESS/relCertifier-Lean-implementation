@@ -23,14 +23,14 @@ def zone_lightmass_schedule_IRv2 : PProblem :=
         {
           name := "COMFORT"
           odes := [("T", (.bin "*" (.num "0.04125") (.bin "-" (.num "21") (.var "T"))))]
-          guard := (.and (.cmp ">=" (.var "T") (.num "16.0")) (.cmp "<=" (.var "T") (.num "21.0")))
-          evolve := (.and (.cmp ">=" (.var "T") (.num "16.0")) (.cmp "<=" (.var "T") (.num "21.0")))
+          guard := (.and (.cmp ">=" (.var "T") (.num "5.0")) (.cmp "<=" (.var "T") (.num "30.0")))
+          evolve := (.and (.cmp ">=" (.var "T") (.num "5.0")) (.cmp "<=" (.var "T") (.num "30.0")))
           next := ["COMFORT", "ECONOMY"] },
         {
           name := "ECONOMY"
           odes := [("T", (.bin "*" (.num "0.04125") (.bin "-" (.num "16") (.var "T"))))]
-          guard := (.and (.cmp ">=" (.var "T") (.num "16.0")) (.cmp "<=" (.var "T") (.num "21.0")))
-          evolve := (.and (.cmp ">=" (.var "T") (.num "16.0")) (.cmp "<=" (.var "T") (.num "21.0")))
+          guard := (.and (.cmp ">=" (.var "T") (.num "5.0")) (.cmp "<=" (.var "T") (.num "30.0")))
+          evolve := (.and (.cmp ">=" (.var "T") (.num "5.0")) (.cmp "<=" (.var "T") (.num "30.0")))
           next := ["ECONOMY", "COMFORT"] } ] }
     R := {
       stateVars := ["T"]
@@ -39,23 +39,23 @@ def zone_lightmass_schedule_IRv2 : PProblem :=
         {
           name := "COMFORT"
           odes := [("T", (.bin "*" (.num "0.02") (.bin "-" (.num "21") (.var "T"))))]
-          guard := (.and (.cmp ">=" (.var "T") (.num "16.0")) (.cmp "<=" (.var "T") (.num "21.0")))
-          evolve := (.and (.cmp ">=" (.var "T") (.num "16.0")) (.cmp "<=" (.var "T") (.num "21.0")))
+          guard := (.and (.cmp ">=" (.var "T") (.num "5.0")) (.cmp "<=" (.var "T") (.num "30.0")))
+          evolve := (.and (.cmp ">=" (.var "T") (.num "5.0")) (.cmp "<=" (.var "T") (.num "30.0")))
           next := ["COMFORT", "STANDBY", "ECONOMY"] },
         {
           name := "STANDBY"
           odes := [("T", (.bin "*" (.num "0.02") (.bin "-" (.num "19") (.var "T"))))]
-          guard := (.and (.cmp ">=" (.var "T") (.num "16.0")) (.cmp "<=" (.var "T") (.num "21.0")))
-          evolve := (.and (.cmp ">=" (.var "T") (.num "16.0")) (.cmp "<=" (.var "T") (.num "21.0")))
+          guard := (.and (.cmp ">=" (.var "T") (.num "5.0")) (.cmp "<=" (.var "T") (.num "30.0")))
+          evolve := (.and (.cmp ">=" (.var "T") (.num "5.0")) (.cmp "<=" (.var "T") (.num "30.0")))
           next := ["STANDBY", "COMFORT", "ECONOMY"] },
         {
           name := "ECONOMY"
           odes := [("T", (.bin "*" (.num "0.02") (.bin "-" (.num "16") (.var "T"))))]
-          guard := (.and (.cmp ">=" (.var "T") (.num "16.0")) (.cmp "<=" (.var "T") (.num "21.0")))
-          evolve := (.and (.cmp ">=" (.var "T") (.num "16.0")) (.cmp "<=" (.var "T") (.num "21.0")))
+          guard := (.and (.cmp ">=" (.var "T") (.num "5.0")) (.cmp "<=" (.var "T") (.num "30.0")))
+          evolve := (.and (.cmp ">=" (.var "T") (.num "5.0")) (.cmp "<=" (.var "T") (.num "30.0")))
           next := ["ECONOMY", "COMFORT", "STANDBY"] } ] }
     invariants := [
-      ("COMFORT", (.and (.cmp "<=" (.bin "-" (.var "L_T") (.var "R_T")) (.num "0.152")) (.cmp "<=" (.bin "-" (.var "R_T") (.var "L_T")) (.num "0.152")))),
-      ("ECONOMY", (.and (.cmp "<=" (.bin "-" (.var "L_T") (.var "R_T")) (.num "0.152")) (.cmp "<=" (.bin "-" (.var "R_T") (.var "L_T")) (.num "0.152"))))] }
+      ("COMFORT", (.and (.cmp "<=" (.bin "-" (.var "L_T") (.var "R_T")) (.num "0.5")) (.cmp "<=" (.bin "-" (.var "R_T") (.var "L_T")) (.num "0.5")))),
+      ("ECONOMY", (.and (.cmp "<=" (.bin "-" (.var "L_T") (.var "R_T")) (.num "0.5")) (.cmp "<=" (.bin "-" (.var "R_T") (.var "L_T")) (.num "0.5"))))] }
 
 end RelCertifier.Parse

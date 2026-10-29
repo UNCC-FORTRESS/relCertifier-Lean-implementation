@@ -12,7 +12,11 @@
 #   SELF     50 <= N2 < 60    starter cut out, engine accelerates to idle:            0.15 (idle - N2)
 #   IDLE     N2 >= 60         idle governor:                                          0.5 (idle - N2)
 #   ABORT    N2 < 5           start aborted (starter and fuel off), spool run-down:   -0.2 N2 (latched)
-# STARTER and LIGHTOFF declare ABORT (a failed or hung start is aborted when N2 falls below 5 %).
+# STARTER and LIGHTOFF declare ABORT, with the abort rule of this model "N2 falls below 5 %". Both
+# edges are pruned (both flows rise at 5 %: STARTER aims at 30, LIGHTOFF at 55), so no run enters
+# ABORT and the mode is reachable only as a start. A real hung start is aborted by the FADEC on a
+# light-off time-out, not on N2 falling; a reachable time-out abort needs a sequencer clock and is
+# scheduled for a later round (tested 2026-10-29: it certifies with the same letters R D I).
 #
 # Right (reference): ground idle, idle = 62 %. Left (deployed): high idle selected, idle = 66 %
 # (SELF and IDLE aim at 66). One cause: the idle set point (+4 % N2); the start phases below
@@ -21,13 +25,19 @@
 # Property (mode-dependent).
 #   STARTER, LIGHTOFF: N2_L <= N2_R. The start phases are certified on the ground-idle schedule
 #     (starter duty, light-off and EGT limits); the requirement is that high idle leaves them
-#     unchanged. Forced: a lead of 0.01 % already declines (a reference that has aborted below 5 %
-#     becomes an admissible start against a deployed still motoring at 5 %).
+#     unchanged. Forced by the ABORT start, not by the start physics: a lead of 0.01 % already
+#     declines (a reference that has aborted below 5 % becomes an admissible start against a
+#     deployed still motoring at 5 %). The low phases have identical dynamics on both sides, and
+#     without ABORT (mode removed on both sides, domain N2 >= 5, measured 2026-10-29) the low rows
+#     certify at every c in [0, 4] and the uniform row N2_L <= N2_R + 4 certifies, so D rests on the
+#     ABORT start; removing only the two ABORT edges changes nothing (ABORT stays an admissible
+#     start and the low rows stay forced).
 #   SELF, IDLE, ABORT: N2_L <= N2_R + 4. Requirement: above starter cut-out the deployed may exceed
 #     the reference start profile by at most the 4 % idle increment. Tightest 4.00 (3.99 declines).
 # Both relations hold up to the reference's re-timing (it may run ahead alone, see R).
-# Mode dependence is load-bearing (D): uniform N2_L <= N2_R + 4 declines (the ABORT start above) and
-# uniform N2_L <= N2_R declines (the idle increment). The handoffs only relax (exact to +4 at
+# Mode dependence is load-bearing (D): uniform N2_L <= N2_R + 4 declines (the ABORT start above, so
+# the letter D rests on that start) and uniform N2_L <= N2_R declines (the idle increment, which is
+# physical: equilibria 66 against 62, tight at 4.00). The handoffs only relax (exact to +4 at
 # LIGHTOFF -> SELF, and into ABORT): --handoff 10/10 unsat. The bound moves with the cause: with
 # idle increment h the rows (exact below cut-out, +h above) certify for h = 0, 1, 4, 8 % (measured);
 # at h = 0 the exact uniform claim certifies and nothing is mode-dependent.
@@ -38,8 +48,9 @@
 # steps) DECLINES; every cover is at lambda 1, so no S. Window: R, D for every h > 0; at h = 0
 # RELCERT_SYNC=1 certifies.
 # Pruning is present but not load-bearing: STARTER -> ABORT and LIGHTOFF -> ABORT are pruned (both
-# flows rise at 5 %), and RELCERT_NO_PRUNE=1 CERTIFIES: the one repositioning out of a mode that
-# declares ABORT (LIGHTOFF, in a deployed SELF window) can only meet ABORT in an empty pairing
+# flows rise at 5 %; ABORT is a start only), and RELCERT_NO_PRUNE=1 CERTIFIES: the one
+# repositioning out of a mode that declares ABORT (LIGHTOFF, in a deployed SELF window) can only
+# meet ABORT in an empty pairing
 # (N2_L >= 50 against N2_R < 5 under the +4 row), and the exact low rows exclude ABORT starts.
 # Cuts (I). The implied contraction atoms (N2 <= 30 in STARTER, N2 <= 55 in LIGHTOFF, N2 <= idle) are
 # load-bearing: DECLINED with RELCERT_NO_CUT=1 (h = 0, 1, 4, 8) and without RELCERT_IMPLIED_CUT.
@@ -53,7 +64,7 @@
 # and the requirement is a real-time one, so the unused range [1, 6] is gone; verdicts and letters
 # unchanged (measured 2026-10-27).
 # Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26, re-measured 2026-10-27 at
-# lambda_max 1): CERTIFIED; CERTIFIED under
+# lambda_max 1 and 2026-10-29, header only changed): CERTIFIED (0.8 s); CERTIFIED under
 # RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1,
 # RELCERT_NO_LINEAR_CUT=1, RELCERT_WELLFORMED_STRICT=1; DECLINED under RELCERT_SYNC=1, RELCERT_SYNC=1
 # RELCERT_NO_CHOICE=1, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1 and without RELCERT_IMPLIED_CUT.

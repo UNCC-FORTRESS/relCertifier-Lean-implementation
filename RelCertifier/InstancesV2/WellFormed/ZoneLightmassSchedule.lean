@@ -10,13 +10,13 @@ read from the file.
 
 The right model is the building-automation schedule in the reference zone: the zone temperature
 `T` (coordinate 0) relaxes toward the level's set point, `T' = 0.02 (c − T)` (`COMFORT` `c = 21`,
-`STANDBY` `c = 19`, `ECONOMY` `c = 16`), every level inside the comfort band `16 ≤ T ≤ 21` (the
-band form of 2026-10-28; the domain was `[5, 30]` before); every level's guard is the same band.
+`STANDBY` `c = 19`, `ECONOMY` `c = 16`), every level inside `5 ≤ T ≤ 30`; every level's guard is
+the same range `[5, 30]`.
 * Existence (i), every level: the explicit exponential `c + (T₀ − c) e^{−k t}`
   (`exists_contract_run`; the padding coordinate 1 has field 0 and stays frozen),
-  between `T₀` and `c`, both in `[16, 21]`.
+  between `T₀` and `c`, both in `[5, 30]`.
 * (ii), every level: every level declares every level, and every guard is the evolve domain
-  `[16, 21]`, so the end state of any run (which lies in the domain) is in `COMFORT`'s guard.
+  `[5, 30]`, so the end state of any run (which lies in the domain) is in `COMFORT`'s guard.
 Z3-free; modelled on `BmsChillerUndercharge.lean`.
 -/
 
@@ -53,11 +53,8 @@ theorem hp16 : Run.parseRat "16" = some (16 : ℚ) := by
 theorem hp50 : Run.parseRat "5.0" = some (5 : ℚ) := by
   have h : parseQ "5.0" = some (⟨50, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
-theorem hp160 : Run.parseRat "16.0" = some (16 : ℚ) := by
-  have h : parseQ "16.0" = some (⟨160, 10⟩ : QF) := by decide
-  simp [Run.parseRat, h]; norm_num
-theorem hp210 : Run.parseRat "21.0" = some (21 : ℚ) := by
-  have h : parseQ "21.0" = some (⟨210, 10⟩ : QF) := by decide
+theorem hp300 : Run.parseRat "30.0" = some (30 : ℚ) := by
+  have h : parseQ "30.0" = some (⟨300, 10⟩ : QF) := by decide
   simp [Run.parseRat, h]; norm_num
 
 /-! ## The right fields, domain and guards, evaluated -/
@@ -86,9 +83,9 @@ theorem fRo_eval (q : ℕ) (hq : q < 3) (i : Fin 2) (hi : i ≠ 0) (x : State (V
         Term.eval]
 
 theorem sat_domR (x : State (Var 2)) :
-    Formula.sat domR x ↔ (16 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 21) := by
+    Formula.sat domR x ↔ (5 ≤ x (Rv 0) ∧ x (Rv 0) ≤ 30) := by
   simp only [domR, hostEvolve, mR, zone_lightmass_schedule_IRv2, vs]
-  simp [Run.lowerF, Run.lowerE, hp160, hp210, Run.resolveVar, List.findIdx?_cons,
+  simp [Run.lowerF, Run.lowerE, hp50, hp300, Run.resolveVar, List.findIdx?_cons,
     IForm.toHost, ITerm.toHost, Formula.sat, CompOp.interp, Term.eval, Rv]
 
 /-! ## The right automaton (the file's modes and declared `next` lists) -/
@@ -120,10 +117,10 @@ theorem Gr_modeAt_inv {q : ℕ} {m : RMode (Var 2)} (hm : Gr.modeAt q = some m) 
   | 2 => exact ⟨by norm_num, by simpa [SearchGraph.modeAt, Gr] using hm.symm⟩
   | q + 3 => exact absurd hm (by simp [SearchGraph.modeAt, Gr])
 
-/-- Every level's guard, evaluated: `[16, 21]` (`COMFORT`'s is used). -/
+/-- Every level's guard, evaluated: `[5, 30]` (`COMFORT`'s is used). -/
 theorem sat_guard0 (ν : State (Var 2)) :
-    Formula.sat (hostGuard vs 2 Side.R (mR 0)) ν ↔ (16 ≤ ν (Rv 0) ∧ ν (Rv 0) ≤ 21) := by
-  simp [hostGuard, mR, zone_lightmass_schedule_IRv2, Run.lowerF, Run.lowerE, hp160, hp210, vs,
+    Formula.sat (hostGuard vs 2 Side.R (mR 0)) ν ↔ (5 ≤ ν (Rv 0) ∧ ν (Rv 0) ≤ 30) := by
+  simp [hostGuard, mR, zone_lightmass_schedule_IRv2, Run.lowerF, Run.lowerE, hp50, hp300, vs,
     Run.resolveVar, List.findIdx?_cons, IForm.toHost, ITerm.toHost, Formula.sat,
     CompOp.interp, Term.eval, Rv]
 
@@ -144,10 +141,10 @@ theorem zone_lightmass_schedule_wellFormedR :
   intro q hq m hm x hg hd _
   obtain ⟨hq3, rfl⟩ := Gr_modeAt_inv hm
   have hdx := (sat_domR x).mp hd
-  have hc : 16 ≤ cR q ∧ cR q ≤ 21 := by unfold cR; split_ifs <;> norm_num
+  have hc : 5 ≤ cR q ∧ cR q ≤ 30 := by unfold cR; split_ifs <;> norm_num
   have hk : 0 ≤ kR q := by unfold kR; norm_num
   refine ⟨?_, ?_⟩
-  · -- existence: the explicit exponential toward the set point, inside `[16, 21]`
+  · -- existence: the explicit exponential toward the set point, inside `[5, 30]`
     refine exists_contract_run x 0 (kR q) (cR q) hk (fR0_eval q hq3) ?_ ?_ 5 (by norm_num)
     · intro i hi s
       exact fRo_eval q hq3 i hi s
@@ -155,11 +152,11 @@ theorem zone_lightmass_schedule_wellFormedR :
       show Formula.sat domR _
       rw [sat_domR, trajJ_j]
       exact ⟨le_trans (le_min hdx.1 hc.1) h1, le_trans h2 (max_le hdx.2 hc.2)⟩
-  · -- the end state lies in the domain `[16, 21]`, which is `COMFORT`'s guard
+  · -- the end state lies in the domain `[5, 30]`, which is `COMFORT`'s guard
     intro t Φ _ H
-    obtain ⟨e16, e21⟩ := (sat_domR _).mp H.end_dom
+    obtain ⟨e5, e30⟩ := (sat_domR _).mp H.end_dom
     exact ⟨edgeW q 0, edge_mem q 0 (by interval_cases q <;> decide),
-      (sat_guard0 _).mpr ⟨e16, e21⟩⟩
+      (sat_guard0 _).mpr ⟨e5, e30⟩⟩
 
 end V2ZoneLightmassSchedule
 end RelCertifier

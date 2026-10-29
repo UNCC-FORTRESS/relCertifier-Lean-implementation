@@ -1,8 +1,9 @@
 # zone_lightmass_schedule: a building-automation occupancy schedule (comfort / standby / economy set
 # points) deployed in a lightweight prefabricated zone of about half the areal heat capacity of the
-# medium-weight zone it was commissioned in; the light zone stays within 0.152 K of the reference
-# zone's temperature trace replayed at twice the speed (the design ratio), so it visits, to that
-# tolerance, the temperatures the reference permits, in half the time.
+# medium-weight zone it was commissioned in; the light zone stays within 0.5 K (the control-accuracy
+# class of EN 15500 room controllers) of the reference zone's temperature trace replayed at twice
+# the speed (the design ratio), so it visits, to that tolerance, the temperatures the reference
+# permits, in half the time.
 # scenario: model-refinement
 # mechanisms: S M B X (time stretch lambda = 2, the design heat-capacity ratio, RELCERT_SYNC=1 and
 #   lambda = 1 decline, matrix code M1; multi-step cover, each 5 min left window matched by two
@@ -41,26 +42,35 @@
 # Control interval: 5 min on both sides (the schedule's time resolution; the zone controller's own
 # loop is continuous in the ODE).
 #
-# Property (the same row in both left modes): |T_L - T_R| <= 0.152 (written as two inequalities),
+# Property (the same row in both left modes): |T_L - T_R| <= 0.5 (written as two inequalities),
 #   the deployed zone against the reference zone's trace re-timed by lambda = 2. At the design
-#   ratio the light zone's temperature stays within 0.152 K of the reference zone's at twice the
-#   elapsed time, so the deployed zone visits, to 0.152 K, the temperatures a schedule run of the
-#   reference permits (the comfort band of the commissioned zone is inherited) and reaches each of
-#   them in half the time (the set-back recovery halves). Not implied by the domains.
-# Tightness (measured 2026-10-28). The row certifies at 0.152 and DECLINES at 0.15 (and 0.10):
+#   ratio the light zone's temperature stays within 0.5 K of the reference zone's at twice the
+#   elapsed time, so the deployed zone visits, to 0.5 K, the temperatures a schedule run of the
+#   reference permits and reaches each of them in half the time (the set-back recovery halves).
+#   Requirement: 0.5 K is the control-accuracy class of room temperature controllers (EN 15500,
+#   control accuracy CA = 0.5 K), so a deployed zone within 0.5 K of the reference trace is within
+#   the accuracy class of the controller itself. Not implied by the domains (they allow a gap of
+#   25 K).
+# Tightness (measured 2026-10-29). The row certifies at 0.5 and at 0.49 and DECLINES at 0.48:
 #   in left time with the right re-timed by lambda the gap e = T_L - T_R obeys
 #   e' = -a e + (a - lambda b) (s - T_R) with a = 0.04125 and lambda b = 0.04, and a constant band
 #   |e| <= D keyed by the left mode is inductive iff D >= (a - lambda b) max|s - T_R| / a
-#   = 0.00125 x 5 / 0.04125 = 0.1515 on the comfort band (set-point distance at most 5 K). The
-#   bound follows the cause: with the left rate 0.045 (ratio 2.25) the 0.16 row DECLINES and the
-#   row certifies at 0.56; with the left rate 0.04 (ratio exactly 2) it certifies at 0.001. The
-#   reachable worst case is smaller than the inductive bound: random three-level schedules from
-#   equal starts in the band (4000 simulated runs) never separate the zones by more than 0.057 K
-#   (one 5 K set-point step peaks at 5 (e^{-0.04 t} - e^{-0.04125 t}) = 0.0566 at t = 24.6 min);
-#   the slack is the invariant's admission of starts already 0.15 apart with T_R at the far end
-#   of the band. On the instrumented range 5 <= T <= 30 (the alternative domain) the same
-#   argument gives 0.00125 x 16 / 0.04125 = 0.4848: the row certifies at 0.485 and declines at
-#   0.48.
+#   = 0.00125 x 16 / 0.04125 = 0.4848 on the instrumented range 5 <= T <= 30 (the set point 21
+#   is 16 K from the lower bound). The 0.5 requirement sits 0.015 above the tight value, so the
+#   requirement, not the tool, fixes the constant. The reachable worst case is far smaller than
+#   the inductive bound: random three-level schedules from equal starts (4000 simulated runs on
+#   the comfort band) never separate the zones by more than 0.057 K (one 5 K set-point step peaks
+#   at 5 (e^{-0.04 t} - e^{-0.04125 t}) = 0.0566 at t = 24.6 min); the slack is the invariant's
+#   admission of starts already 0.48 apart with T_R at the far end of the range.
+# How the bound depends on the cause (measured 2026-10-28 and 2026-10-29). The tight value is
+#   0.0303 x (the largest distance from a set point to a domain bound), on every domain: on the
+#   comfort band 16 <= T <= 21 (the earlier domain of this file, set-point distance at most 5 K)
+#   the argument gives 0.00125 x 5 / 0.04125 = 0.1515, the row certifies at 0.152 and declines at
+#   0.15; on 0 <= T <= 40 it gives 0.727, the row certifies at 0.73 and declines at 0.72. With the
+#   left rate 0.045 (ratio 2.25, on the comfort band) the 0.16 row DECLINES and the row certifies
+#   at 0.56; with the left rate 0.04 (ratio exactly 2) it certifies at 0.001 on either domain: at
+#   the exact ratio the claim is a re-timing identity, and the whole tolerance measures the
+#   mismatch 2.0625 against the design ratio 2.
 # The stretch follows the cause: lambda = 2, the design ratio of the two closed-loop rates, stated
 # (lambda_min = lambda_max = 2); lambda = 1 and RELCERT_SYNC=1 DECLINE (with equal clocks the two
 # zones drift apart by the full set-point step after every schedule change). The band form is
@@ -76,20 +86,24 @@
 # DECLINES. The witness selects the deployed's level, level for level; in a refinement of a
 # schedule-driven plant against a nondeterministic strategy this is forced (it is what "the
 # strategy permits the deployed's schedule" means), and the dynamics check is not vacuous for it
-# (0.15 declines). B: the joint step from each level retains all three permitted selections because
+# (0.48 declines). B: the joint step from each level retains all three permitted selections because
 # an off-level selection is answered by an immediate hop back (zero time): the branch is covered
 # but degenerate, and is reported as such. No I: no hop needs a mode fact (RELCERT_NO_CUT=1
 # certifies). No D (rows identical; --handoff 4/4, vacuous).
 #
-# Guards and domain. Every level's guard is the zone's comfort band 16 <= T <= 21 degC, which is
-# also the physical domain on both sides (every set point lies in it, so every level is forward
-# invariant on it: relcert --wellformed: COMFORT, STANDBY, ECONOMY ok (invariant)). The right
-# guards cover the left guards (no coverage gap); every left mode has a satisfiable start
-# (T_L = T_R in any level).
+# Guards and domain. Every level's guard is the instrumented range 5 <= T <= 30 degC (the span of
+# a room temperature sensor and of the zone air between frost and a summer overheating), which is
+# also the domain on both sides; every set point lies in it, so every level is forward invariant
+# on it (relcert --wellformed: COMFORT, STANDBY, ECONOMY ok (invariant)). The comfort band
+# 16 <= T <= 21 that the earlier form of this file used as the domain was the schedule's own
+# set-point span, not a range of the zone air; the physical range replaces it so that the
+# tolerance is fixed by the requirement and not by a domain tuned to the claim. The right guards
+# cover the left guards (no coverage gap); every left mode has a satisfiable start (T_L = T_R in
+# any level).
 # Pruning: none (every level may follow every level). Right-only repositioning: none
 # (RELCERT_NO_REPO=1 certifies).
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-28, band form): CERTIFIED;
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-29, band form): CERTIFIED (0.2 s);
 # DECLINED under RELCERT_SYNC=1, SYNC+NO_CHOICE, RELCERT_NO_CHOICE=1 and NO_PRUNE+NO_CHOICE;
 # CERTIFIED under RELCERT_NO_PRUNE=1, RELCERT_NO_REPO=1, RELCERT_NO_CUT=1, RELCERT_OPREGION=1 and
 # RELCERT_WELLFORMED_STRICT=1. Covers: COMFORT and ECONOMY at lambda = 2, budget 2, admissible
@@ -97,7 +111,10 @@
 # relcert --wellformed: 3 right modes ok (invariant), 0 UNKNOWN, 0 BLOCKING. Units degC, min.
 # History: batch I10 (2026-10-28) installed this file as an exact re-timing identity T_L = T_R
 # with the left rate rounded to 0.04 and the domain 5 <= T <= 30; the band form with the stated
-# plant replaced it the same day (the identity certified only the rounded plant).
+# plant replaced it the same day (the identity certified only the rounded plant) on the comfort
+# band 16 <= T <= 21 at the tight 0.152; the review of 2026-10-29 moved the domain back to the
+# instrumented range 5 <= T <= 30 with the requirement-tied 0.5 K (the right model is again that
+# of batch I10, line for line).
 [problem]
 name = zone_lightmass_schedule
 max_depth = 8
@@ -109,32 +126,32 @@ state_vars = [T]
 epsilon = 5.0
 [Lsys.mode.COMFORT]
 ode = T' = smt2:(* 0.04125 (- 21 T));
-guard = T >= 16.0 and T <= 21.0
-evolve = T >= 16.0 and T <= 21.0
+guard = T >= 5.0 and T <= 30.0
+evolve = T >= 5.0 and T <= 30.0
 next = [COMFORT, ECONOMY]
 [Lsys.mode.ECONOMY]
 ode = T' = smt2:(* 0.04125 (- 16 T));
-guard = T >= 16.0 and T <= 21.0
-evolve = T >= 16.0 and T <= 21.0
+guard = T >= 5.0 and T <= 30.0
+evolve = T >= 5.0 and T <= 30.0
 next = [ECONOMY, COMFORT]
 [Rsys]
 state_vars = [T]
 epsilon = 5.0
 [Rsys.mode.COMFORT]
 ode = T' = smt2:(* 0.02 (- 21 T));
-guard = T >= 16.0 and T <= 21.0
-evolve = T >= 16.0 and T <= 21.0
+guard = T >= 5.0 and T <= 30.0
+evolve = T >= 5.0 and T <= 30.0
 next = [COMFORT, STANDBY, ECONOMY]
 [Rsys.mode.STANDBY]
 ode = T' = smt2:(* 0.02 (- 19 T));
-guard = T >= 16.0 and T <= 21.0
-evolve = T >= 16.0 and T <= 21.0
+guard = T >= 5.0 and T <= 30.0
+evolve = T >= 5.0 and T <= 30.0
 next = [STANDBY, COMFORT, ECONOMY]
 [Rsys.mode.ECONOMY]
 ode = T' = smt2:(* 0.02 (- 16 T));
-guard = T >= 16.0 and T <= 21.0
-evolve = T >= 16.0 and T <= 21.0
+guard = T >= 5.0 and T <= 30.0
+evolve = T >= 5.0 and T <= 30.0
 next = [ECONOMY, COMFORT, STANDBY]
 [relational_invariant]
-COMFORT = smt2:(and (<= (- L_T R_T) 0.152) (<= (- R_T L_T) 0.152))
-ECONOMY = smt2:(and (<= (- L_T R_T) 0.152) (<= (- R_T L_T) 0.152))
+COMFORT = smt2:(and (<= (- L_T R_T) 0.5) (<= (- R_T L_T) 0.5))
+ECONOMY = smt2:(and (<= (- L_T R_T) 0.5) (<= (- R_T L_T) 0.5))

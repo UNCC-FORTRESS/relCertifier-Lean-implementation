@@ -59,6 +59,10 @@ import RelCertifier.InstancesV2.Refute.SatDetumblePhasesM002
 import RelCertifier.InstancesV2.Refute.SatDetumblePhasesM003
 import RelCertifier.InstancesV2.Refute.SatDetumblePhasesM005
 import RelCertifier.InstancesV2.Refute.SatDetumblePhasesM006
+import RelCertifier.InstancesV2.Refute.SatDetumbleWeakM002
+import RelCertifier.InstancesV2.Refute.SatDetumbleWeakM003
+import RelCertifier.InstancesV2.Refute.SatDetumbleWeakM005
+import RelCertifier.InstancesV2.Refute.SatDetumbleWeakM006
 import RelCertifier.InstancesV2.Refute.PlatoonLinklossM036
 import RelCertifier.InstancesV2.Refute.PlatoonLinklossM039
 import RelCertifier.InstancesV2.Refute.EngineStartHighidleM003

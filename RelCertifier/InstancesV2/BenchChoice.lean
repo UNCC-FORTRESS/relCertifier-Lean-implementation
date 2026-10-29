@@ -16,6 +16,7 @@ import RelCertifier.InstancesV2.BenchChoice.gantry_speed_zones
 import RelCertifier.InstancesV2.BenchChoice.grid_ffr_dos
 import RelCertifier.InstancesV2.BenchChoice.h2_refuel_ambientbias
 import RelCertifier.InstancesV2.BenchChoice.hydro_rejection_gatecal
+import RelCertifier.InstancesV2.BenchChoice.insulin_basal_cgmloss
 import RelCertifier.InstancesV2.BenchChoice.lit_csf21_vehicle_bus
 import RelCertifier.InstancesV2.BenchChoice.lit_csf21_vehicle_thermo
 import RelCertifier.InstancesV2.BenchChoice.lit_drl_car_stop
@@ -69,6 +70,7 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("grid_ffr_dos", grid_ffr_dos_coverV2_choice),
   ("h2_refuel_ambientbias", h2_refuel_ambientbias_coverV2_choice),
   ("hydro_rejection_gatecal", hydro_rejection_gatecal_coverV2_choice),
+  ("insulin_basal_cgmloss", insulin_basal_cgmloss_coverV2_choice),
   ("lit_csf21_vehicle_bus", lit_csf21_vehicle_bus_coverV2_choice),
   ("lit_csf21_vehicle_thermo", lit_csf21_vehicle_thermo_coverV2_choice),
   ("lit_drl_car_stop", lit_drl_car_stop_coverV2_choice),

@@ -31,7 +31,8 @@
 # control periods below). The guards partition [0, 100] on both sides (no coverage gap: the
 # pre-charge phase covers [10, 15)). The CC phase is the exponential x' = k (100 - x) on both
 # sides (8.5 %/min at 15 %, 2.1 %/min at 79 % on the deployed), the time-constant form of the
-# profile, not a constant rate; a constant-rate BULK was not tested.
+# profile, not a constant rate; a constant-rate BULK (5.625 against 4.5 %/min, the same 15 -> 80 %
+# times) was tested 2026-10-29 and changes nothing in the certificate (same tight value, below).
 # Control periods. Right (certified profile): 0.006 min = 0.36 s (epsilon = 0.006): the phase
 # decision follows the vehicle's charge-current request, sent on the CHAdeMO CAN cycle of 100 ms
 # +- 10 % (CHAdeMO protocol), so 0.36 s bounds it with margin. Left (deployed unit): 0.012 min =
@@ -43,28 +44,40 @@
 # batch I7): the time unit is the minute (the earlier design used the hour with epsilon 0.0001 h);
 # the rate constants are per minute, so the phases take the minutes of DC fast charging.
 #
-# Property. Requirement (re-timed SoC lead): run against the certified profile replayed at the CC
-# current ratio 5/4 (the profile's clock runs 1.25 times faster; lambda_min = lambda_max = 1.25,
-# stated, not searched), the deployed state of charge never exceeds the replayed profile's by
-# more than 2 % SoC:
+# Property (re-timed SoC lead): run against the certified profile replayed at the CC current ratio
+# 5/4 (the profile's clock runs 1.25 times faster; lambda_min = lambda_max = 1.25, stated, not
+# searched), the deployed state of charge never exceeds the replayed profile's by more than c = 2 %
+# SoC:
 #   BULK, ABSORB, FULL, FAULT: x_L <= x_R + 2;   PRECHARGE: x_L <= x_R.
+# The constant is the tool's tight value, not a requirement: physically the deployed never leads the
+# replayed profile at all (simulated 2026-10-29 from every common start x0 in {10, 12, 15, 50, 80}:
+# re-timed lead 0.00; at equal clocks it leads by up to 6.96 % SoC in the CC phase), and the
+# certifying window is [2.00, 5.00] (5.005 declines: above 5 a certified cell latched in FAULT at
+# x < 10 becomes an admissible start for a deployed cell entering BULK at 15; c = 5 has the same
+# letters as c = 2).
 # This is an upper bound on what the raised limit can buy, one-sided and re-timed. It is not an
 # equal-time comparison (at equal clocks the deployed leads the profile by up to 7 % SoC in the
-# CC phase, and no linear one-sided row is inductive there), and it is not a time-reparametrization
-# identity (only the CC rate is raised, so the deployed run is not the profile's run at 5/4 speed:
+# CC phase, and no linear one-sided row is inductive there: RELCERT_SYNC=1 declines at every c tried
+# up to 90, for the exponential and for a constant-rate CC phase), and it is not a
+# time-reparametrization identity (only the CC rate is raised, so the deployed run is not the
+# profile's run at 5/4 speed:
 # in PRECHARGE the replayed profile is 25 % faster than the deployed, in the taper the replayed
 # slow taper 0.0625 and fast taper 0.0875 both outrun the deployed 0.05). The pre-charge row is
 # stricter by necessity (D): with a lead allowed there a deployed cell at 10 % could pair with a
 # certified cell latched in FAULT; a two-sided pre-charge row (x_R <= x_L + c, c = 2, 5, 10)
 # DECLINES, because the replayed profile may be in BULK while the deployed cell still precharges.
-# Tightness (measured 2026-10-28, bisected): the rows certify at c = 2 and DECLINE at 1.9999. Two
+# Tightness (measured 2026-10-29, bisected): the rows certify at c = 2.00 and DECLINE at 1.997. Two
 # residual artifacts of the tool's over-approximation set that number, not the charging physics:
-#   (i) c >= 2 is forced by the re-timed FAULT_L x FAULT_R pairing (the latched self-discharge
-#       x' = -0.01 x replayed at 5/4 under the cut x <= 10); with the FAULT row loosened to
-#       x_L <= x_R + 10 the charging rows certify at c = 1 and decline at 0.999;
-#   (ii) that remaining c >= 1 is the FULL pairing's asymptote-against-floor gap: a deployed cell
+#   (i) one unit comes from the re-timed FAULT_L x FAULT_R pairing (the latched self-discharge
+#       x' = -0.01 x replayed at 5/4 under the cut x <= 10); loosening the FAULT row does not remove
+#       it (the pairing fails at any FAULT constant: +10 and +100 tried, c = 1 still declines),
+#       removing the FAULT mode on both sides does: the charging rows then certify at c = 1.00 and
+#       decline at 0.996;
+#   (ii) the remaining unit is the FULL pairing's asymptote-against-floor gap: a deployed cell
 #       still charging (x <= 100, the implied contraction cut) against a replayed cell at the
-#       FULL floor 99, independent of the deployed charger's rates.
+#       FULL floor 99, independent of the deployed charger's rates and of the CC law (a
+#       constant-rate BULK, 5.625 against 4.5 %/min, certifies at the same 2.00); a forced ABSORB
+#       exit (evolve x <= 99) is not expressible (one evolve domain per side), so this unit stays.
 #   The charging pairings themselves hold at any positive c (BULK_L x BULK_R, the CC phase, is a
 #   genuine joint segment at the stated rates). The lambda pin matters: with lambda searched on
 #   [1, 6] the search takes lambda = 1 first and the CC phase certifies only by parking the
@@ -86,8 +99,9 @@
 # (x_L = x_R). The implied contraction atoms x <= 20 (PRECHARGE) and x <= 100 (BULK, tapers) are
 # load-bearing (without RELCERT_IMPLIED_CUT and under RELCERT_NO_IMPLIED_CUT=1: DECLINED).
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-28, re-timed form): CERTIFIED
-# (about 0.7 s); CERTIFIED under RELCERT_NO_CHOICE=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_OPREGION=1
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-28, re-timed form; re-measured
+# 2026-10-29 with the same verdicts, header only changed): CERTIFIED (about 0.8 s); CERTIFIED under
+# RELCERT_NO_CHOICE=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_OPREGION=1
 # (every admitted start in some right guard), RELCERT_WELLFORMED_STRICT=1; DECLINED under
 # RELCERT_SYNC=1, SYNC+NO_CHOICE, RELCERT_NO_PRUNE=1, NO_PRUNE+NO_CHOICE, RELCERT_NO_REPO=1,
 # without RELCERT_IMPLIED_CUT, RELCERT_NO_IMPLIED_CUT=1 and RELCERT_NO_CUT=1.

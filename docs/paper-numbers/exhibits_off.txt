@@ -1,4 +1,4 @@
 z3 = /opt/homebrew/bin/z3  (warm persistent session)
-vehicle_accel_copy: DECLINED (810ms)
-watertank_choice: DECLINED (2248ms)
+vehicle_accel_copy: DECLINED (675ms)
+watertank_choice: DECLINED (2011ms)
 errors=0

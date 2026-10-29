@@ -2,8 +2,8 @@
 
 `suite_v2/<name>/input.txt` is the complete specification of one benchmark: the left
 (ideal) and right (implementation) hybrid automata, the relational invariant (one row per
-left mode) and the time-stretch range. **49 benchmarks.** With the widened cut channel on
-(`RELCERT_IMPLIED_CUT=1`, as every suite_v2 run sets it) the tool CERTIFIES all 49, and
+left mode) and the time-stretch range. **50 benchmarks.** With the widened cut channel on
+(`RELCERT_IMPLIED_CUT=1`, as every suite_v2 run sets it) the tool CERTIFIES all 50, and
 every one carries a kernel-checked Theorem 3 (the paper's Soundness of Synthesis) with the paper's left program over the
 guard-gated right automaton, at the mode-consistent region (`RelCertifier/InstancesV2/Bridge/`;
 check recipe: `docs/CERTIFICATION-CHECK.md`). Without the widened channel 3 of them
@@ -13,7 +13,7 @@ outside the suite in `benchmarks/reserve/` (inputs, headers and verdicts only; `
 **Assumption 1 of each right model** (the paper's Well-Formedness: from every guard state a
 full control interval of flow exists, and every evolution of at most `ε_r` ends in a declared
 successor's guard) is verified per file (`WellFormedR`, `docs/WELLFORMED.md`): it holds for
-all 49 literally (the 3 satellite files carry their conserved momentum band in the right evolve
+all 50 literally (the 3 satellite files carry their conserved momentum band in the right evolve
 domain since 2026-10-15).
 Nine files had a blocking mode until 2026-10-10 and were repaired (`docs/SUITE-REDESIGN.md`
 §21; each header says how and why; `arm_plateau_{crit,profiles,slow}` and
@@ -36,6 +36,73 @@ needs, read off counter-runs; `scripts/suite_v2_matrix.py`) are in
 `docs/SUITE-REDESIGN.md`. Each file written for this suite states in its header the
 physical story, the units, the measured cover and the mechanisms it exercises
 (`# scenario:` and `# mechanisms:` lines).
+
+## Review round 1, 2026-10-29: one refill, four model changes, thirteen header fixes
+
+Round 1 of the overnight review (`docs/BENCHMARK-REVIEW-2026-10-29-r1.md`: five fresh reviewers,
+rubric only; `docs/OVERNIGHT-2026-10-29.md` for the full log). Every reviewer claim acted on was
+first verified by a tool run on a scratch variant (bisection, ablations, simulation); unverified
+claims were dropped. Changes, each confirmed CERTIFIED by default and under the strict gate, with
+the five ablation verdicts measured before and after (no mechanism letter lost):
+
+* `insulin_basal_cgmloss` back from the reserve (overall 4 in the reserve scoring, M B, the
+  medical domain and the chain-depth multi-cycle template): the file is the reserve's design,
+  its Assumption 1 proof of commit 8c92730 builds unchanged; the suite is 50 again after the
+  skip of `lit_hypercert_vehicle`. Bridge instance 445 groups (5245 over the suite and the two
+  exhibits); 24 mutants, no refutation witness.
+* `zone_lightmass_schedule` (POLISH, overall 3): the comfort band 16..21 as evolve domain was the
+  schedule's set-point span, not a range of the zone air. Now the instrumented range 5..30 on
+  both sides and the EN 15500 control-accuracy class as the requirement: rows
+  `|T_L - T_R| <= 0.5` in both left modes (tight: 0.49 certifies, 0.48 declines; the inductive
+  bound on 5..30 is 0.4848; the 0.152 derivation is kept as the cause-dependence paragraph).
+  Right model line for line the batch I10 one, so its Assumption 1 proof is reused (restored
+  from 66f22eb). Letters S M B X unchanged (SYNC and NO_CHOICE decline as before).
+* `sat_detumble_weak` (RETHINK, overall 2: the left field was the right NOMINAL field scaled by
+  0.8, so the witness was the left re-timed): the left DETUMBLE field is now the gyrostat
+  couplings of `sat_detumble_phases` at damping 0.4 with `h' = 2 w3`; the right model is byte for
+  byte unchanged. The energy identity `E_L(t) = E_R(0.8 t)` still certifies (1.97 s) while the
+  states differ (RK4: `w_L(2) = (-0.046, 0.218, 0.064)` against `w_R(1.6) = (0.225, 0.135,
+  0.090)`); cover identical (lambda 4/5, budget 2, hops ECONOMY/SURVIVAL -> NOMINAL), letters
+  S M B X unchanged; four new refutation witnesses on the new left (71 instances, 215 groups).
+* `rover_terrain_2to4` (RETHINK, overall 2: `lambda_max = 3` read as the certificate's need): the
+  window is now the derived traction ratio `(mu_PAVED + r_PAVED)/3 = 2.68` rounded up to the
+  grid value `lambda_max = 2.7` (2.64 certifies, 2.63 declines); the row `w[l] <= v[r]` was
+  tested and certifies at lambda 1 with letter I only, so the file keeps the re-timed form and
+  says so. With the 20-step grid the GRAVEL cover is now 67/50 (was 13/10), PAVED 27/10, MUD 1.
+  Letters S M I unchanged.
+* `h2_refuel_ambientbias` (POLISH): `lambda_max` pinned to 1.0 (every cover was at lambda 1;
+  identical battery, 12/12 handoff); the top rows' 2.9 is stated as the certificate's need
+  (2.899 declines, 2.4 declines; no physically sound variant certifies the 2.4 end-pressure
+  shift); the duplicate verdict block and the unusable aside removed.
+* Header-only fixes (models unchanged, ablations identical before and after):
+  `charger_fast_tapers` (the 2 % constant is the tool's tight value, not a requirement: re-timed
+  lead 0.00 simulated, certifying window [2.00, 5.00], the two residual units named, SYNC declines
+  at every c up to 90), `fuelcell_chp_dos` (the 5.00 is the segment-end successor obligation;
+  simulated drifts +4.30 K / -5.83 K inside the bands; the Tin range [40, 56] as a limitation of
+  the certificate, wider ranges need 10.00), `engine_start_highidle` (both ABORT edges pruned,
+  ABORT a start only, the exact low rows and the letter D rest on it; the time-out clock model is
+  scheduled), `turbine_startup_gearratio` (stock gains not scaled by 1/1.05; the scaled variant
+  certifies only with the start-up's reachable speeds as domain; STOP a start only; one-sided
+  against an existential reference), `tunnel_jetfan_pairout` (the floor `u >= 3.2` is the
+  certificate's forward-invariant set, load-bearing at 2.54 through the mode fact `c <= 100`; the
+  FIRE row carries no smoke-control content beyond it; the floor-2.6 variant with real FIRE rows
+  certifies with D I and is scheduled), `acc_spoof_lag` (row 1 re-timed only; the real-time form
+  certifies at -3.95 with `w = v + a/2` on both sides, letter I), `acc_spoof_limp` (the -0.20
+  intercept needs the committed choice, 1.90 without it), `platoon_linkloss` (0.6 s; the AEB
+  trigger period is not load-bearing), `platoon_profiles` (`platoon_latency` is in the suite;
+  SPORT rows exact with no tolerance content, real-time tolerance 4.00), `quad_light_lag` and
+  `quad_light_profiles` (4.905 /s is a velocity-loop gain, PX4 default 4 /s, not drag; K = 4.0
+  certifies at lambda 1.24525 with the same letters; ECO/SPORT are starts the cover leaves),
+  `rover_terrain_6to12` (ramp wording, the sigma 0.25 binding constraint and the 0.028 edge),
+  `sat_detumble_phases` (stylized time unit, isotropic damping as a requirement of the claim,
+  magnetorquer order of magnitude, FINE as a rate-damping phase).
+
+Checks after round 1: `lake build` exit 0; `--check-quick-v2` 50 certified, modal 1241/1241,
+handoff 542/542, non-connection 64/64, pruned 32/32, reposition 73/73, strict gate 188/188;
+bridge 5245/5245; progress 199/199; refute 215/215 (71 instances); WellFormedBattery 66 lines;
+`relcert-test` ALL PASS. Letter totals (`docs/paper-numbers/letters.md`, re-run 2026-10-29):
+S 20, M 25 -> 26, R 7, B 12 -> 13, P 6, D 12, I 18, X 14 (the insulin file's M B; every other
+benchmark's letters identical to the previous run; 25 benchmarks certify under `RELCERT_SYNC=1`).
 
 ## Skipped 2026-10-28: `lit_hypercert_vehicle`
 
@@ -645,6 +712,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `grid_ffr_dos` | 3 / 3 | 2 / 3 | dos-attack | new 2026-10-27 (batch I7; round-A design from the reserve): multi-step covers (one attacked cycle against three nominal), pruned trip edges `NORMAL -> TRIP`, `FFR -> TRIP` |
 | `h2_refuel_ambientbias` | 1 / 1 | 6 / 6 | sensor-fault | new 2026-10-28 (batch I11, from the reserve): a 70 MPa hydrogen fill whose dispenser's ambient sensor reads 10 K high, so the SAE J2601 end-pressure table returns 72.4 MPa; mode-keyed (exact stage rows, the top rows at the derived 2.9 MPa allowance), right-only repositioning out of a TOPOFF window, load-bearing checked cuts (R D I) |
 | `hydro_rejection_gatecal` | 3 / 3 | 2 / 2 | degraded-sensor | new 2026-10-27 (batch I5): mode-keyed (shared-grid equality before the breaker opens, a speed band after) |
+| `insulin_basal_cgmloss` | 3 / 3 | 9 / 9 | degraded-network | new 2026-10-27 (batch I5), in the reserve from batch I9 to 2026-10-29, back in round 1 of the 2026-10-29 review: multi-step and branching covers (state-dependent successors of the basal table) |
 | `lit_lz21_vehicle_position` | 2 / 2 | 3 / 3 | opacity | literature (Liu, Zamani, L-CSS 2021), mode choice; new 2026-10-27 (batch I8) |
 | `platoon_latency` | 3 / 2 | 3 / 2 | degraded-network | back from the reserve 2026-10-28 (batch I11; in the reserve from batch I9): the V2V feed-forward two control periods late (its Pade lag's error `e` bounded by the ISO 15622 jerk limit), against the design follower with an ideal link; mode-keyed (AEB row), right model shared with `platoon_linkloss` (D) |
 | `platoon_linkloss` | 2 / 2 | 3 / 2 | dos-attack | redesigned 2026-10-27 (was `platoon_delay_linkloss`): mode-keyed (AEB row), CACC -> ACC fallback; batch I9: the deployed link-loss decision every 0.2 s (two-message timeout), multi-step covers |

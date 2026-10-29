@@ -60,9 +60,11 @@ noncomputable def packVerd (r : PackV2) : Prop :=
 /-- The packs. Watertank: the seven admissible jointOK (window, right mode) pairs the replay
 consumes, order `[0, 1]`. -/
 def packsV2 : List PackV2 :=
-  [ ⟨"watertank", 2, 0, [0, 1], 2, 1, 0, 0⟩, ⟨"watertank", 2, 0, [0, 1], 2, 1, 0, 1⟩,
+  [ ⟨"watertank", 2, 0, [0, 1], 2, 1, 0, 0⟩,
+    ⟨"watertank", 2, 0, [0, 1], 2, 1, 0, 1⟩,
     ⟨"watertank", 2, 0, [0, 1], 2, 1, 0, 2⟩,
-    ⟨"watertank", 2, 0, [0, 1], 2, 1, 1, 1⟩, ⟨"watertank", 2, 0, [0, 1], 2, 1, 1, 2⟩,
+    ⟨"watertank", 2, 0, [0, 1], 2, 1, 1, 1⟩,
+    ⟨"watertank", 2, 0, [0, 1], 2, 1, 1, 2⟩,
     ⟨"watertank", 2, 0, [0, 1], 2, 1, 1, 3⟩,
     ⟨"watertank", 2, 0, [0, 1], 1, 1, 2, 3⟩,
     -- acc_spoof_limp
@@ -100,12 +102,12 @@ def packsV2 : List PackV2 :=
     ⟨"rover_patrol_lag", 3, 0, [1, 0], 1, 1, 2, 3⟩,
     ⟨"rover_patrol_lag", 3, 0, [1, 0], 11, 8, 3, 2⟩,
     ⟨"rover_patrol_lag", 3, 0, [1, 0], 11, 8, 3, 3⟩,
-    -- rover_terrain_2to4 (cover replay: MUD at λ = 1, GRAVEL at 13/10, PAVED at 27/10; the plan at 3 /s again since batch I9)
+    -- rover_terrain_2to4 (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
     ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3], 1, 1, 0, 0⟩,
     ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3], 1, 1, 0, 1⟩,
     ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3], 1, 1, 0, 2⟩,
-    ⟨"rover_terrain_2to4", 4, 0, [2, 3, 0, 1], 13, 10, 1, 1⟩,
-    ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3], 13, 10, 1, 2⟩,
+    ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3], 67, 50, 1, 1⟩,
+    ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3], 67, 50, 1, 2⟩,
     ⟨"rover_terrain_2to4", 4, 0, [0, 1, 2, 3], 27, 10, 2, 2⟩,
     -- rover_terrain_4to6 (cover replay)
     ⟨"rover_terrain_4to6", 6, 0, [2, 3, 5, 6, 0, 1, 4, 7], 1, 1, 0, 0⟩,
@@ -204,17 +206,17 @@ def packsV2 : List PackV2 :=
     ⟨"turbine_startup_gearratio", 2, 0, [0], 1, 1, 3, 2⟩,
     ⟨"turbine_startup_gearratio", 2, 0, [0], 1, 1, 3, 3⟩,
     -- elevator_start_discbrake (mode-keyed rows; UP_L's right-only LIFT node is below)
-⟨"elevator_start_discbrake", 3, 0, [0, 1, 2, 3, 4], 1, 1, 0, 0⟩,
+    ⟨"elevator_start_discbrake", 3, 0, [0, 1, 2, 3, 4], 1, 1, 0, 0⟩,
     ⟨"elevator_start_discbrake", 3, 0, [0, 1, 2, 3, 4], 1, 1, 0, 2⟩,
     ⟨"elevator_start_discbrake", 3, 0, [0, 1, 2, 3, 4], 1, 1, 0, 3⟩,
     ⟨"elevator_start_discbrake", 3, 1, [2, 3, 0, 1], 1, 1, 1, 1⟩,
     ⟨"elevator_start_discbrake", 3, 2, [2, 3, 0, 1], 1, 1, 2, 2⟩,
     ⟨"elevator_start_discbrake", 3, 3, [2, 3, 0, 1], 1, 1, 3, 3⟩,
     -- hydro_rejection_gatecal (mode-keyed rows; cover replay at λ = 1)
-⟨"hydro_rejection_gatecal", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 0, 0⟩,
+    ⟨"hydro_rejection_gatecal", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 0, 0⟩,
     ⟨"hydro_rejection_gatecal", 3, 1, [0, 1, 4, 5, 2, 3], 1, 1, 1, 1⟩,
     -- syringe_relay_prearm (mode-keyed rows; the right-only TAKEUP2 and RUN2 nodes are below)
-⟨"syringe_relay_prearm", 4, 0, [0, 1, 2, 3, 4, 5, 6], 1, 1, 0, 0⟩,
+    ⟨"syringe_relay_prearm", 4, 0, [0, 1, 2, 3, 4, 5, 6], 1, 1, 0, 0⟩,
     ⟨"syringe_relay_prearm", 4, 0, [1, 2, 3, 4, 5, 6, 0], 1, 1, 0, 3⟩,
     ⟨"syringe_relay_prearm", 4, 1, [0, 1, 2, 3, 4, 5, 6], 1, 1, 1, 0⟩,
     ⟨"syringe_relay_prearm", 4, 1, [1, 2, 3, 4, 5, 6, 0], 1, 1, 1, 3⟩,
@@ -225,10 +227,10 @@ def packsV2 : List PackV2 :=
     ⟨"syringe_relay_prearm", 4, 4, [0, 1, 2, 3, 4], 1, 1, 4, 2⟩,
     ⟨"syringe_relay_prearm", 4, 5, [0, 1, 2, 3, 4], 1, 1, 5, 3⟩,
     -- ventilator_vc_cuffleak (mode-keyed rows; cover replay at λ = 1)
-⟨"ventilator_vc_cuffleak", 3, 0, [0, 1, 2, 3], 1, 1, 0, 0⟩,
+    ⟨"ventilator_vc_cuffleak", 3, 0, [0, 1, 2, 3], 1, 1, 0, 0⟩,
     ⟨"ventilator_vc_cuffleak", 3, 1, [0, 1, 2, 3], 1, 1, 1, 1⟩,
     -- furnace_program_timebase (cover replay at λ = 4/5)
-⟨"furnace_program_timebase", 2, 0, [0, 1, 4, 5, 2, 3], 4, 5, 0, 0⟩,
+    ⟨"furnace_program_timebase", 2, 0, [0, 1, 4, 5, 2, 3], 4, 5, 0, 0⟩,
     ⟨"furnace_program_timebase", 2, 0, [0, 1, 2, 3, 4, 5], 4, 5, 0, 2⟩,
     ⟨"furnace_program_timebase", 2, 0, [0, 1, 4, 5, 2, 3], 4, 5, 1, 1⟩,
     ⟨"furnace_program_timebase", 2, 0, [0, 1, 3, 4, 5, 2], 4, 5, 2, 2⟩,
@@ -288,11 +290,10 @@ def packsV2 : List PackV2 :=
     -- platoon_profiles (batch I9, from the reserve; mode-keyed rows): SPORT at λ = 6/5 (the bandwidth ratio), AEB at 1
     ⟨"platoon_profiles", 3, 0, [0, 1, 2, 3, 4, 5], 6, 5, 0, 0⟩,
     ⟨"platoon_profiles", 3, 1, [0, 1, 2, 3], 1, 1, 1, 1⟩,
-    -- zone_lightmass_schedule (batch I10): COMFORT and ECONOMY at λ = 2 (the heat-capacity ratio), budget 2
+    -- zone_lightmass_schedule (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
     ⟨"zone_lightmass_schedule", 2, 0, [0, 1], 2, 1, 0, 0⟩,
     ⟨"zone_lightmass_schedule", 2, 0, [0, 1], 2, 1, 1, 2⟩,
-    -- h2_refuel_ambientbias (batch I11, from the reserve; mode-keyed rows; cover replay at λ = 1,
-    -- budget 1; TOPOFF_L's right-only STAGE3 node is below)
+    -- h2_refuel_ambientbias (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
     ⟨"h2_refuel_ambientbias", 3, 0, [0], 1, 1, 0, 0⟩,
     ⟨"h2_refuel_ambientbias", 3, 0, [0], 1, 1, 0, 1⟩,
     ⟨"h2_refuel_ambientbias", 3, 0, [0], 1, 1, 0, 2⟩,
@@ -331,10 +332,50 @@ def packsV2 : List PackV2 :=
     ⟨"reactor_feed_wireless", 2, 0, [2, 3, 0, 1], 1, 1, 2, 3⟩,
     ⟨"reactor_feed_wireless", 2, 0, [2, 3, 0, 1], 1, 1, 3, 1⟩,
     ⟨"reactor_feed_wireless", 2, 0, [2, 3, 0, 1], 1, 1, 3, 2⟩,
-    ⟨"reactor_feed_wireless", 2, 0, [2, 3, 0, 1], 1, 1, 3, 3⟩ ]
+    ⟨"reactor_feed_wireless", 2, 0, [2, 3, 0, 1], 1, 1, 3, 3⟩,
+    -- insulin_basal_cgmloss (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 0, 0⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 0, 1⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 0, 2⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 1, 0⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 1, 1⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 1, 2⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 1, 3⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 2, 0⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 2, 1⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 2, 2⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 2, 3⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 2, 4⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 3, 1⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 3, 2⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 3, 3⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 3, 4⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 3, 5⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 4, 2⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 4, 3⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 4, 4⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 4, 5⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 4, 6⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 5, 3⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 5, 4⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 5, 5⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 5, 6⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 5, 7⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 6, 4⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 6, 5⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 6, 6⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 6, 7⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 6, 8⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 7, 5⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 7, 6⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 7, 7⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 7, 8⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 8, 6⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 8, 7⟩,
+    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 8, 8⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 1007
+def expectedModalV2 : Nat := 1241
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
@@ -408,8 +449,7 @@ noncomputable def dynPackVerd (r : DynPackV2) : Prop :=
 
 /-- The reposition packs. -/
 def dynPacksV2 : List DynPackV2 :=
-  [ -- rover_terrain_2to4
-    -- rover_terrain_4to6
+  [ -- rover_terrain_4to6
     -- rover_terrain_6to12
     -- rover_patrol_lag: MEDIUM_ECO_L and MEDIUM_BRISK_L reposition through right-only SLOW,
     -- MEDIUM_BRISK_L and FAST_L through right-only MEDIUM_ECO
@@ -420,14 +460,14 @@ def dynPacksV2 : List DynPackV2 :=
     -- engine_start_highidle: SELF_L repositions through right-only LIGHTOFF, IDLE_L through SELF
     ⟨"engine_start_highidle", 3, 2, [0], true, 2, 1⟩,
     ⟨"engine_start_highidle", 3, 3, [0], true, 3, 2⟩,
-    -- h2_refuel_ambientbias: TOPOFF_L repositions through right-only STAGE3
+    -- h2_refuel_ambientbias: right-only reposition nodes of the emitted cover (2026-10-29)
     ⟨"h2_refuel_ambientbias", 3, 3, [0], true, 3, 2⟩,
     -- turbine_startup_gearratio: SPINUP_L repositions through right-only RAMP
     ⟨"turbine_startup_gearratio", 2, 0, [0], true, 0, 1⟩,
     -- elevator_start_discbrake: right-only reposition nodes
-⟨"elevator_start_discbrake", 3, 1, [0, 1, 2, 3], true, 1, 0⟩,
+    ⟨"elevator_start_discbrake", 3, 1, [0, 1, 2, 3], true, 1, 0⟩,
     -- syringe_relay_prearm: right-only reposition nodes
-⟨"syringe_relay_prearm", 4, 0, [0, 1, 2, 3, 4, 5, 6], true, 0, 1⟩,
+    ⟨"syringe_relay_prearm", 4, 0, [0, 1, 2, 3, 4, 5, 6], true, 0, 1⟩,
     ⟨"syringe_relay_prearm", 4, 0, [0, 1, 2, 3, 4, 5, 6], true, 0, 2⟩,
     ⟨"syringe_relay_prearm", 4, 1, [0, 1, 2, 3, 4, 5, 6], true, 1, 1⟩,
     ⟨"syringe_relay_prearm", 4, 1, [0, 1, 2, 3, 4, 5, 6], true, 1, 2⟩,
@@ -486,7 +526,7 @@ def runDynV2 (cfg : Z3Config) : IO Bool := do
 
 /-- Declared: one handoff query per declared left transition over the suite_v2 files
 (self-loops included; `CoveragePinsV2.derivedHandoffV2_eq` derives it from the IR table). -/
-def expectedHandoffV2 : Nat := 503
+def expectedHandoffV2 : Nat := 542
 
 /-- Declared handoff failures in suite_v2: none. -/
 def expectedHandoffFailuresV2 : List (String × Nat × Nat) := []
@@ -568,11 +608,11 @@ every one of the 179 right modes `ok` on both clauses (`wfModes`; the kernel pin
 check was informational), none `BLOCKING` (`wfBlocking`; the nonblocking clause is checked
 since 2026-10-26). -/
 structure ExpectedSuiteV2 where
-  paths     : Nat := 49
-  certified : Nat := 49
+  paths     : Nat := 50
+  certified : Nat := 50
   declined  : Nat := 0
   errors    : Nat := 0
-  wfModes   : Nat := 179
+  wfModes   : Nat := 188
   wfUnknown : Nat := 0
   wfBlocking : Nat := 0
   deriving Repr

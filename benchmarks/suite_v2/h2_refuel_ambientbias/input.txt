@@ -31,10 +31,16 @@
 #   STAGE1, STAGE2, STAGE3: p_L <= p_R. Requirement: the ramp stages are identical, so the deployed
 #     may not lead. Forced: a lead of 0.01 MPa declines (a reference already aborted below 0.5 MPa
 #     becomes an admissible start against a deployed at 0.5 MPa).
-#   TOPOFF, COMPLETE, ABORT: p_L <= p_R + 2.9. Requirement: the bias may overfill by at most what
-#     it shifts the end pressure (2.4 MPa) plus the 0.5 MPa top-off margin, i.e. the deployed tank
-#     ends below 73.4 MPa (about 4 % state of charge above full), well inside the 87.5 MPa limit.
-#     Tightest 2.90 (2.89 declines); every larger tolerance up to 20 MPa certifies.
+#   TOPOFF, COMPLETE, ABORT: p_L <= p_R + 2.9. The bias shifts the end pressure by 2.4 MPa (the
+#     deployed completes at 72.4 against 70.0); the further 0.5 MPa is what the certificate needs
+#     even at zero bias (see the caveat below: the top-off's exit at the end pressure cannot be
+#     used, so the tool bounds the deployed top-off by its set point end + 0.5). The deployed tank
+#     therefore ends below 73.4 MPa in the certificate and at 72.4 MPa physically, both well inside
+#     the 87.5 MPa limit. Tightest 2.90 (2.899 declines, bisected 2026-10-29); 2.4 declines; every
+#     larger tolerance up to 20 MPa certifies. No physically sound variant certifies 2.4: a top-off
+#     aimed at the end pressure itself certifies 2.40 (2.399 declines) but never completes
+#     (--wellformed: TOPOFF invariant), and a constant-rate top-off (0.3 MPa/s) has no contraction
+#     cut, so the tool bounds its segment by the domain and the slack grows to about 17.5.
 # Mode dependence is load-bearing (D): uniform p_L <= p_R + 2.9 declines (the ABORT start above) and
 # uniform p_L <= p_R declines. The handoffs only relax (exact to 2.9 at STAGE3 -> TOPOFF and into
 # ABORT): --handoff 12/12 unsat. The bound moves with the cause: with an end-pressure shift s the top
@@ -47,9 +53,9 @@
 # Letter windows. R and D are present for every end-pressure shift s >= 0 (measured s = 0, 1, 2.4, 5)
 # and I for every s measured; the top rows certify for every tolerance in [s + 0.5, 20] MPa, here
 # [2.90, 20]; the stage rows are exact (0) by the requirement and forced (0.01 declines). The stated
-# 2.9 is the derived allowance (end-pressure shift 2.4 plus the 0.5 top-off margin), as the 4 % idle
-# increment is in engine_start_highidle; a larger operational allowance (5 MPa, the deployed tank
-# ending below 75 MPa) also certifies, with the letters measured as stated in the last line.
+# 2.9 is the end-pressure shift 2.4 plus the certificate's 0.5; a larger operational allowance
+# (5 MPa, the deployed tank ending below 75 MPa) also certifies, with the same verdicts and letters
+# (see Verdicts).
 #
 # Why right-only repositioning (R). From a deployed TOPOFF window the reference may start in STAGE3
 # (aiming at 60 MPa) while the deployed tops off toward 72.9: the joint segment fails, so the
@@ -64,22 +70,19 @@
 # benchmark still CERTIFIES. The right guards partition [0, 87.5] (no coverage gap); every left mode
 # has a satisfiable start (p_R = p_L, for COMPLETE_L p_R = 70.5 in TOPOFF or COMPLETE).
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26; re-measured 2026-10-28 on the
-# branch binary with the same verdicts, see the last line): CERTIFIED; CERTIFIED under
-# RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1,
-# RELCERT_NO_LINEAR_CUT=1, RELCERT_WELLFORMED_STRICT=1; DECLINED under RELCERT_SYNC=1, RELCERT_SYNC=1
-# RELCERT_NO_CHOICE=1, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1 and without RELCERT_IMPLIED_CUT.
-# RELCERT_OPREGION=1: every admitted start in some right guard. Cover: lambda 1, budget 1 in every
-# left mode; TOPOFF_L admissible [STAGE3, TOPOFF, COMPLETE] with a right-only step; COMPLETE_L
-# [TOPOFF, COMPLETE]; STAGE1_L every mode but ABORT. Pruned STAGE1->ABORT, STAGE2->ABORT. relcert
-# --wellformed: STAGE1, STAGE2, STAGE3, TOPOFF ok (exit to the next stage), COMPLETE, ABORT ok
-# (invariant).
-# Re-measured 2026-10-28 (reserve scan; the branch binary built from fb55b6e;
-# RELCERT_IMPLIED_CUT=1 unless stated): CERTIFIED (0.8 s); CERTIFIED under RELCERT_NO_PRUNE=1,
-# RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE, RELCERT_NO_LINEAR_CUT=1, RELCERT_OPREGION=1 and
-# RELCERT_WELLFORMED_STRICT=1 (--wellformed: COMPLETE, ABORT ok (invariant), 4 ok (exit), 0 UNKNOWN,
-# 0 BLOCKING); DECLINED under RELCERT_SYNC=1, SYNC+NO_CHOICE, RELCERT_NO_REPO=1, RELCERT_NO_CUT=1
-# and RELCERT_NO_IMPLIED_CUT=1. Uniform rows: p_L <= p_R on every left mode DECLINED; p_L <= p_R +
+# Stretch pinned (2026-10-29): lambda_max 6 -> 1. Every cover was already at lambda 1 (6 of 6 under
+# RELCERT_DEBUG) and the requirement is a real-time one, so the unused range [1, 6] is gone;
+# verdicts, letters and --handoff 12/12 unchanged (measured 2026-10-29).
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26, re-measured 2026-10-28 on the
+# branch binary built from fb55b6e and 2026-10-29 at lambda_max 1): CERTIFIED (1.1 s); CERTIFIED
+# under RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE, RELCERT_NO_LINEAR_CUT=1,
+# RELCERT_OPREGION=1 (every admitted start in some right guard) and RELCERT_WELLFORMED_STRICT=1
+# (--wellformed: STAGE1, STAGE2, STAGE3, TOPOFF ok (exit to the next stage), COMPLETE, ABORT ok
+# (invariant), 0 UNKNOWN, 0 BLOCKING); DECLINED under RELCERT_SYNC=1, SYNC+NO_CHOICE,
+# RELCERT_NO_REPO=1, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1 and without RELCERT_IMPLIED_CUT.
+# Cover: lambda 1, budget 1 in every left mode; TOPOFF_L admissible [STAGE3, TOPOFF, COMPLETE] with
+# a right-only step; COMPLETE_L [TOPOFF, COMPLETE]; STAGE1_L every mode but ABORT. Pruned
+# STAGE1->ABORT, STAGE2->ABORT. Uniform rows: p_L <= p_R on every left mode DECLINED; p_L <= p_R +
 # 2.9 on every left mode DECLINED (and it drops the stage requirement). --handoff 12/12 checked, 12
 # passed (rows differ). Letters measured by scripts/suite_v2_letters.py: R D I (matrix M5 M6 M6+;
 # D_strict). With the top rows at 5.0 MPa instead of 2.9 (the operational allowance above): the same
@@ -89,7 +92,7 @@
 name = h2_refuel_ambientbias
 max_depth = 8
 lambda_min = 1.0
-lambda_max = 6.0
+lambda_max = 1.0
 bound_T = 600.0
 
 [Lsys]

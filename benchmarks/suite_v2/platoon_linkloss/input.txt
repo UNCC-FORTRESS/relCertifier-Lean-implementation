@@ -40,8 +40,11 @@
 # and 0.2 s on the deployed follower: its link supervisor declares the link lost, or back, only
 # after two consecutive message periods without, or with, a message (a two-message timeout, the
 # usual guard against a single dropped CAM), so its mode decision (CACC, ACC or the AEB trigger)
-# is held for up to 0.2 s. The claim compares the two at equal times (lambda 1), so one deployed
-# decision is matched by two design decisions (M).
+# is held for up to 0.2 s (the AEB trigger shares the supervisor's rate; its delay is moot: the
+# CACC/ACC rows keep the deployed's TTC >= 2 s, so the trigger never fires along the rows, and
+# the file certifies unchanged, same cover and same ablation verdicts, with the AEB reachable
+# only as a start, measured 2026-10-29). The claim compares the two at equal times (lambda 1),
+# so one deployed decision is matched by two design decisions (M).
 # The M window: any left decision period strictly above the right's gives M, with budget
 # ceil(left period / right period) (2 at the stated 2:1); the stated periods are not at an edge.
 # Domain per link (both sides, every mode): 0 <= g <= 60 m (radar range gate), |r| <= 10 m/s
@@ -98,8 +101,9 @@
 # are in no right guard; no run reaches them (both guards are forward invariant). Every left
 # mode has a satisfiable start (g_L = g_R = 20, r = 0 for CACC and ACC; g = 3, r = 0 for AEB).
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27, batch I9): CERTIFIED (about
-# 1.5 s); CERTIFIED also under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1,
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27, batch I9; re-measured
+# 2026-10-29): CERTIFIED (about 0.6 s); CERTIFIED also under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1,
+# RELCERT_NO_CHOICE=1,
 # SYNC+NO_CHOICE, RELCERT_NO_REPO=1, without RELCERT_IMPLIED_CUT, RELCERT_NO_IMPLIED_CUT=1,
 # RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_CUT=1, RELCERT_OPREGION=1 and RELCERT_WELLFORMED_STRICT=1
 # (no S, P, I, X); DECLINED under NO_PRUNE+NO_CHOICE only (the pruned CACC -> AEB edge is closed

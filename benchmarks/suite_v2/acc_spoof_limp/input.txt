@@ -48,14 +48,18 @@
 #     concave in v_R, so its chord lies below it; the row takes the linear bound
 #     dv <= 4 + 0.3 v_R (10 at 20 m/s, 16 at 40 m/s, below the chord), i.e. 0.7 v_R <= v_L + 4.
 #     The spoofed car slows gradually, so a step is the worst case.
-#     Tightest (bisection to 0.01, the intercept 4): both modes together certify down to -0.20
-#     (-0.21 declines; LIMP binds); CRUISE alone (LIMP at 4) down to -3.00, LIMP with CRUISE at
-#     -3 down to -0.20 (the handoff needs LIMP's intercept >= CRUISE's). So the measured closing
-#     speed stays below 0.3 v_R - 0.2 m/s: a margin of 4.2 m/s on the requirement.
+#     Tightest (bisection to 0.01, the intercept 4; measured 2026-10-29): with the existential
+#     choice both modes together certify down to -0.20 (-0.21 declines; LIMP binds; the cover
+#     then commits the reference away from SPORT, hop SPORT -> NORMAL in both left modes; CRUISE
+#     alone, LIMP at 4, down to -3.00); against every driver selection (RELCERT_NO_CHOICE=1, no
+#     committed choice) down to 1.90 (1.89 declines; CRUISE alone 0.08, 0.07 declines; LIMP
+#     binds at 1.90). So the closing speed stays below 0.3 v_R + 1.9 m/s against every selection:
+#     a margin of 2.1 m/s on the requirement, 4.2 m/s with the choice.
 # Rows identical in both modes, so the file is not mode-keyed (--handoff 3/3, vacuous). Not
-# implied by the domains. Against every driver selection: the cover needs no committed choice
-# (RELCERT_NO_CHOICE=1 certifies). With a speed-independent closing bound (the 20 m/s value,
-# v_R <= v_L + 10) the limp car at 22 m/s against SPORT traffic at 33 m/s closes at 11 m/s and
+# implied by the domains. Against every driver selection: the cover needs no committed choice at
+# the stated intercept 4 (RELCERT_NO_CHOICE=1 certifies). With a speed-independent closing bound
+# (the 20 m/s value, v_R <= v_L + 10) the limp car at 22 m/s against SPORT traffic at 33 m/s
+# closes at 11 m/s and
 # the cover must commit the reference away from SPORT; the speed-dependent row above is the
 # requirement and needs no such choice.
 #
@@ -73,8 +77,8 @@
 # Stretch pinned (2026-10-27, final audit): lambda_max 6 -> 1. Both covers were at lambda 1 and the
 # traffic-flow requirement is a real-time one (the follower closes in real time), so the unused
 # range [1, 6] is gone; verdicts and letters unchanged.
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, re-measured 2026-10-27 at lambda_max 1): CERTIFIED;
-# CERTIFIED under RELCERT_SYNC=1,
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, re-measured 2026-10-27 at lambda_max 1 and
+# 2026-10-29): CERTIFIED (0.29 s); CERTIFIED under RELCERT_SYNC=1,
 # RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, SYNC+NO_CHOICE, without RELCERT_IMPLIED_CUT,
 # NO_IMPLIED_CUT, NO_LINEAR_CUT, the operating region (every admitted start in some right guard)
 # and RELCERT_WELLFORMED_STRICT=1; DECLINED under NO_PRUNE+NO_CHOICE and RELCERT_NO_CUT=1.

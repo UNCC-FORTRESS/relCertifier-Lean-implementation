@@ -1,6 +1,6 @@
-# sat_detumble_phases: microsatellite detumbling then fine pointing, full gyrostat model against
-# its design model, both with the same phase logic; the flight mode manager decides every 2 s, the
-# design model every 1 s.
+# sat_detumble_phases: microsatellite detumbling then fine rate damping, full gyrostat model
+# against its design model, both with the same phase logic; the flight mode manager decides every
+# 2 s, the design model every 1 s. The time unit is stylized (see THE PLANT).
 # scenario: model-refinement
 # mechanisms: M I X (multi-cycle matching: one 2 s flight decision against two 1 s design-model
 #   cycles, budget 2, matrix code M2; the FINE capture envelope E <= 0.125 is a load-bearing checked
@@ -14,9 +14,24 @@
 # of a reaction wheel on the z-axis. Euler's equations with the wheel (a gyrostat):
 #   J1 w1' = (J2 - J3) w2 w3 - w2 h + tau1,   J2 w2' = (J3 - J1) w3 w1 + w1 h + tau2,
 #   J3 w3' = (J1 - J2) w1 w2 - h',            h' = k J3 w3,
-# with rate-damping magnetorquers tau_i = -k J_i w_i on x, y and the wheel absorbing the
-# z-rate: w1' = -0.5 w2 w3 - 0.5 w2 h - k w1, w2' = 0.75 w3 w1 + 0.25 w1 h - k w2,
-# w3' = -0.4 w1 w2 - k w3, h' = 5 k w3. The gyroscopic and wheel-coupling terms are
+# with isotropic rate damping tau_i = -k J_i w_i on all three axes (the x, y actuators and the
+# z-wheel at the same gain k; the wheel absorbs the z-rate):
+# w1' = -0.5 w2 w3 - 0.5 w2 h - k w1, w2' = 0.75 w3 w1 + 0.25 w1 h - k w2,
+# w3' = -0.4 w1 w2 - k w3, h' = 5 k w3.
+# Isotropic damping is a requirement of the claim, not a convenience: the energy identity
+# E' = -2 k E needs the same k on every axis. Magnetorquer-scale gains on x, y (about 2e-4 /s for
+# 10 A m^2 rods in a 40 uT field; tested at 5e-4 and at 5e-3, ten times optimistic) together with
+# a 0.5 /s wheel on z DECLINE, and the claim is false there: the couplings move rate from the
+# nearly undamped x, y axes into the wheel-damped z axis on the left while the decoupled design
+# model's x, y energy stays put, E_L - E_R = +0.067 at t = 2 s by RK4 (measured 2026-10-29). So
+# the x, y actuators are modeled as rate dampers of the same authority as the wheel.
+# The time unit is stylized: in SI seconds k = 0.5 /s (torque up to 1 N m at the DETUMBLE
+# envelope) is about three orders above magnetorquer authority (4e-4 N m per axis for 10 A m^2
+# rods at 40 uT) and one to two above a microsat wheel (2-30 mN m), and the 2 s time constant is
+# a unit of this file, not a detumble time. The energy identity holds at any gain: with the
+# damping gains divided by 1000 (k = 5e-4 / 3e-4 on all axes, couplings and periods unchanged)
+# the file CERTIFIES with the same ablation pattern (NO_CHOICE and NO_CUT decline), measured
+# 2026-10-29. The gyroscopic and wheel-coupling terms are
 # genuine BILINEAR couplings (products w2 w3, w3 w1, w1 w2, w2 h, w1 h); they do no work,
 # so the body energy E = 2 w1^2 + 4 w2^2 + 5 w3^2 (twice the rotational kinetic energy)
 # obeys E' = -2 k E exactly -- but only through the cancellation of the cubic terms,
@@ -30,21 +45,21 @@
 # software): 2 s (epsilon = 2.0): the flight mode manager evaluates the phase handover on every other
 # sensor cycle, so that a transition needs two consecutive agreeing readings (a two-sample debounce,
 # a design value of this file; the round-2 file used the same 2 s). Every decision interval is at
-# most the period; the damping and pointing laws are continuous in the ODEs, the period is that of
-# the phase decision only. The claim compares the two at equal times (lambda 1), so one flight
+# most the period; the damping laws are continuous in the ODEs, the period is that of the phase
+# decision only. The claim compares the two at equal times (lambda 1), so one flight
 # decision is matched by two design-model cycles (M).
 # The M window: any left decision period strictly above the right's gives M, with budget
 # ceil(left period / right period) (2 at the stated 2:1); the stated periods are not at an edge.
 #
 # PHASE LOGIC (the same on both sides). DETUMBLE (rate damping, k = 0.5 /s) engages with the
 # body energy inside its authority envelope, E <= 1 (e.g. |w1| <= 0.71 rad/s about x alone).
-# FINE (fine pointing through the same actuators with a power-saving gain k = 0.3 /s, 60 % of
-# the detumble gain) engages once the body energy is inside the pointing loop's capture
-# envelope, E <= 0.125: the 0.25 rad/s capture range of the mission (the value the
-# sat_detumble_weak claim uses) about the minor axis x, J1 (0.25)^2 = 0.125, which bounds every
-# rate (|w1| <= 0.25, |w2| <= 0.18, |w3| <= 0.16 rad/s). The mode manager hands over to FINE at a
-# decision point of its choosing once E <= 0.125 (DETUMBLE -> FINE, DETUMBLE) and falls back to
-# DETUMBLE on a capture loss or a ground command (FINE -> FINE, DETUMBLE); both transitions are
+# FINE (a fine rate-damping phase: the same actuators at the power-saving gain k = 0.3 /s, 60 %
+# of the detumble gain; no attitude state is modeled, the capture criterion is the rate envelope)
+# engages once the body energy is inside the capture envelope E <= 0.125: the 0.25 rad/s capture
+# range of the mission's pointing loop about the minor axis x, J1 (0.25)^2 = 0.125, which bounds
+# every rate (|w1| <= 0.25, |w2| <= 0.18, |w3| <= 0.16 rad/s). The mode manager hands over to FINE
+# at a decision point of its choosing once E <= 0.125 (DETUMBLE -> FINE, DETUMBLE) and falls back
+# to DETUMBLE on a capture loss or a ground command (FINE -> FINE, DETUMBLE); both transitions are
 # modeled as enabled whenever the target's entry envelope holds. The design model also declares
 # the FDIR SAFE mode on the energy threshold E > 1 (actuators inhibited, a sink; modeled frozen),
 # as in sat_detumble_nominal (in benchmarks/reserve/ since 2026-10-27); the right guards cover the domain (DETUMBLE and FINE inside E <= 1,

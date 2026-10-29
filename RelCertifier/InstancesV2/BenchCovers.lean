@@ -14,6 +14,7 @@ import RelCertifier.InstancesV2.BenchCovers.gantry_speed_zones
 import RelCertifier.InstancesV2.BenchCovers.grid_ffr_dos
 import RelCertifier.InstancesV2.BenchCovers.h2_refuel_ambientbias
 import RelCertifier.InstancesV2.BenchCovers.hydro_rejection_gatecal
+import RelCertifier.InstancesV2.BenchCovers.insulin_basal_cgmloss
 import RelCertifier.InstancesV2.BenchCovers.lit_csf21_vehicle_bus
 import RelCertifier.InstancesV2.BenchCovers.lit_csf21_vehicle_thermo
 import RelCertifier.InstancesV2.BenchCovers.lit_drl_car_stop
@@ -67,6 +68,7 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("grid_ffr_dos", grid_ffr_dos_coverV2),
   ("h2_refuel_ambientbias", h2_refuel_ambientbias_coverV2),
   ("hydro_rejection_gatecal", hydro_rejection_gatecal_coverV2),
+  ("insulin_basal_cgmloss", insulin_basal_cgmloss_coverV2),
   ("lit_csf21_vehicle_bus", lit_csf21_vehicle_bus_coverV2),
   ("lit_csf21_vehicle_thermo", lit_csf21_vehicle_thermo_coverV2),
   ("lit_drl_car_stop", lit_drl_car_stop_coverV2),

@@ -13,6 +13,7 @@ gantry_speed_zones: S M (lam1=DECLINED, norepo=CERTIFIED, uniform={}, keeps_all=
 grid_ffr_dos: M P (lam1=-, norepo=CERTIFIED, uniform={}, keeps_all={})
 h2_refuel_ambientbias: R D I (lam1=-, norepo=DECLINED, uniform={'STAGE1/STAGE2/STAGE3': 'DECLINED', 'TOPOFF/COMPLETE/ABORT': 'DECLINED'}, keeps_all={'STAGE1/STAGE2/STAGE3': True, 'TOPOFF/COMPLETE/ABORT': False})
 hydro_rejection_gatecal: D (lam1=-, norepo=CERTIFIED, uniform={'ONGRID': 'DECLINED', 'REJECT': 'DECLINED'}, keeps_all={'ONGRID': True, 'REJECT': False})
+insulin_basal_cgmloss: M B (lam1=-, norepo=CERTIFIED, uniform={}, keeps_all={})
 lit_csf21_vehicle_bus: X (lam1=-, norepo=CERTIFIED, uniform={}, keeps_all={})
 lit_csf21_vehicle_thermo: X (lam1=-, norepo=CERTIFIED, uniform={}, keeps_all={})
 lit_drl_car_stop: X (lam1=-, norepo=CERTIFIED, uniform={}, keeps_all={})
@@ -47,4 +48,4 @@ ventilator_vc_cuffleak: D (lam1=-, norepo=CERTIFIED, uniform={'INSP': 'DECLINED'
 watertank: S M B (lam1=DECLINED, norepo=CERTIFIED, uniform={}, keeps_all={})
 watertank_twospeed: S M B P (lam1=DECLINED, norepo=CERTIFIED, uniform={}, keeps_all={})
 zone_lightmass_schedule: S M B X (lam1=DECLINED, norepo=CERTIFIED, uniform={}, keeps_all={})
-TOTALS S=20 M=25 R=7 B=12 P=6 D=12 I=18 X=14 (D_strict=10)
+TOTALS S=20 M=26 R=7 B=13 P=6 D=12 I=18 X=14 (D_strict=10)

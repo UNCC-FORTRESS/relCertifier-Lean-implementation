@@ -59,6 +59,10 @@ import RelCertifier.InstancesV2.Refute.Data.sat_detumble_phases_m002
 import RelCertifier.InstancesV2.Refute.Data.sat_detumble_phases_m003
 import RelCertifier.InstancesV2.Refute.Data.sat_detumble_phases_m005
 import RelCertifier.InstancesV2.Refute.Data.sat_detumble_phases_m006
+import RelCertifier.InstancesV2.Refute.Data.sat_detumble_weak_m002
+import RelCertifier.InstancesV2.Refute.Data.sat_detumble_weak_m003
+import RelCertifier.InstancesV2.Refute.Data.sat_detumble_weak_m005
+import RelCertifier.InstancesV2.Refute.Data.sat_detumble_weak_m006
 import RelCertifier.InstancesV2.Refute.Data.platoon_linkloss_m036
 import RelCertifier.InstancesV2.Refute.Data.platoon_linkloss_m039
 import RelCertifier.InstancesV2.Refute.Data.engine_start_highidle_m003
@@ -88,6 +92,7 @@ import RelCertifier.InstancesV2.Cuts.rover_terrain_4to6
 import RelCertifier.InstancesV2.Cuts.rover_terrain_6to12
 import RelCertifier.InstancesV2.Cuts.sat3w_detumble_phases
 import RelCertifier.InstancesV2.Cuts.sat_detumble_phases
+import RelCertifier.InstancesV2.Cuts.sat_detumble_weak
 import RelCertifier.InstancesV2.Cuts.ventilator_vc_cuffleak
 import RelCertifier.Checker.EvolStrengtheningX
 
@@ -158,6 +163,10 @@ def refuteTable : List RefRec := [
   ⟨"sat_detumble_phases_m003", 4 + 1, sat_detumble_phases_m003_IRm, sat_detumble_phases_cutsV2X, sat_detumble_phases_m003_wit⟩,
   ⟨"sat_detumble_phases_m005", 4 + 1, sat_detumble_phases_m005_IRm, sat_detumble_phases_cutsV2X, sat_detumble_phases_m005_wit⟩,
   ⟨"sat_detumble_phases_m006", 4 + 1, sat_detumble_phases_m006_IRm, sat_detumble_phases_cutsV2X, sat_detumble_phases_m006_wit⟩,
+  ⟨"sat_detumble_weak_m002", 4 + 1, sat_detumble_weak_m002_IRm, sat_detumble_weak_cutsV2X, sat_detumble_weak_m002_wit⟩,
+  ⟨"sat_detumble_weak_m003", 4 + 1, sat_detumble_weak_m003_IRm, sat_detumble_weak_cutsV2X, sat_detumble_weak_m003_wit⟩,
+  ⟨"sat_detumble_weak_m005", 4 + 1, sat_detumble_weak_m005_IRm, sat_detumble_weak_cutsV2X, sat_detumble_weak_m005_wit⟩,
+  ⟨"sat_detumble_weak_m006", 4 + 1, sat_detumble_weak_m006_IRm, sat_detumble_weak_cutsV2X, sat_detumble_weak_m006_wit⟩,
   ⟨"platoon_linkloss_m036", 3 + 1, platoon_linkloss_m036_IRm, platoon_linkloss_cutsV2X, platoon_linkloss_m036_wit⟩,
   ⟨"platoon_linkloss_m039", 3 + 1, platoon_linkloss_m039_IRm, platoon_linkloss_cutsV2X, platoon_linkloss_m039_wit⟩,
   ⟨"engine_start_highidle_m003", 3 + 1, engine_start_highidle_m003_IRm, engine_start_highidle_cutsV2X, engine_start_highidle_m003_wit⟩,
@@ -173,6 +182,6 @@ def refuteTable : List RefRec := [
   ⟨"platoon_latency_m043", 3 + 1, platoon_latency_m043_IRm, platoon_latency_cutsV2X, platoon_latency_m043_wit⟩ ]
 
 /-- Declared: the number of query groups over the refutations (one per right mode each). -/
-def expectedRefuteGroups : Nat := 199
+def expectedRefuteGroups : Nat := 215
 
 end RelCertifier.Refute

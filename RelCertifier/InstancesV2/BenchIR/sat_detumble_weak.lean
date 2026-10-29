@@ -22,9 +22,9 @@ def sat_detumble_weak_IRv2 : PProblem :=
       modes := [
         {
           name := "DETUMBLE"
-          odes := [("w1", (.bin "*" (.num "-0.4") (.var "w1"))),
-            ("w2", (.bin "*" (.num "-0.4") (.var "w2"))),
-            ("w3", (.bin "*" (.num "-0.4") (.var "w3"))),
+          odes := [("w1", (.bin "-" (.bin "-" (.bin "*" (.num "-0.5") (.bin "*" (.var "w2") (.var "w3"))) (.bin "*" (.num "0.5") (.bin "*" (.var "w2") (.var "h")))) (.bin "*" (.num "0.4") (.var "w1")))),
+            ("w2", (.bin "-" (.bin "+" (.bin "*" (.num "0.75") (.bin "*" (.var "w3") (.var "w1"))) (.bin "*" (.num "0.25") (.bin "*" (.var "w1") (.var "h")))) (.bin "*" (.num "0.4") (.var "w2")))),
+            ("w3", (.bin "-" (.bin "*" (.num "-0.4") (.bin "*" (.var "w1") (.var "w2"))) (.bin "*" (.num "0.4") (.var "w3")))),
             ("h", (.bin "*" (.num "2.0") (.var "w3")))]
           guard := (.cmp "<=" (.bin "+" (.bin "+" (.bin "*" (.bin "*" (.var "w1") (.var "w1")) (.num "2")) (.bin "*" (.bin "*" (.var "w2") (.var "w2")) (.num "4"))) (.bin "*" (.bin "*" (.var "w3") (.var "w3")) (.num "5"))) (.num "1.0"))
           evolve := (.and (.and (.and (.and (.and (.and (.and (.cmp ">=" (.var "w1") (.num "-1.0")) (.cmp "<=" (.var "w1") (.num "1.0"))) (.cmp ">=" (.var "w2") (.num "-1.0"))) (.cmp "<=" (.var "w2") (.num "1.0"))) (.cmp ">=" (.var "w3") (.num "-1.0"))) (.cmp "<=" (.var "w3") (.num "1.0"))) (.cmp ">=" (.var "h") (.num "-2.0"))) (.cmp "<=" (.var "h") (.num "2.0")))

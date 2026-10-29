@@ -14,6 +14,7 @@ import RelCertifier.InstancesV2.Cuts.gantry_speed_zones
 import RelCertifier.InstancesV2.Cuts.grid_ffr_dos
 import RelCertifier.InstancesV2.Cuts.h2_refuel_ambientbias
 import RelCertifier.InstancesV2.Cuts.hydro_rejection_gatecal
+import RelCertifier.InstancesV2.Cuts.insulin_basal_cgmloss
 import RelCertifier.InstancesV2.Cuts.lit_csf21_vehicle_bus
 import RelCertifier.InstancesV2.Cuts.lit_csf21_vehicle_thermo
 import RelCertifier.InstancesV2.Cuts.lit_drl_car_stop
@@ -67,6 +68,7 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("grid_ffr_dos", grid_ffr_dos_cutsV2, grid_ffr_dos_cutsV2X),
   ("h2_refuel_ambientbias", h2_refuel_ambientbias_cutsV2, h2_refuel_ambientbias_cutsV2X),
   ("hydro_rejection_gatecal", hydro_rejection_gatecal_cutsV2, hydro_rejection_gatecal_cutsV2X),
+  ("insulin_basal_cgmloss", insulin_basal_cgmloss_cutsV2, insulin_basal_cgmloss_cutsV2X),
   ("lit_csf21_vehicle_bus", lit_csf21_vehicle_bus_cutsV2, lit_csf21_vehicle_bus_cutsV2X),
   ("lit_csf21_vehicle_thermo", lit_csf21_vehicle_thermo_cutsV2, lit_csf21_vehicle_thermo_cutsV2X),
   ("lit_drl_car_stop", lit_drl_car_stop_cutsV2, lit_drl_car_stop_cutsV2X),

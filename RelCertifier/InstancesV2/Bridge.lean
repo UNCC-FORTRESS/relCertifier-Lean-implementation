@@ -14,6 +14,7 @@ import RelCertifier.InstancesV2.Bridge.GantrySpeedZones
 import RelCertifier.InstancesV2.Bridge.GridFfrDos
 import RelCertifier.InstancesV2.Bridge.H2RefuelAmbientbias
 import RelCertifier.InstancesV2.Bridge.HydroRejectionGatecal
+import RelCertifier.InstancesV2.Bridge.InsulinBasalCgmloss
 import RelCertifier.InstancesV2.Bridge.LitCsf21VehicleBus
 import RelCertifier.InstancesV2.Bridge.LitCsf21VehicleThermo
 import RelCertifier.InstancesV2.Bridge.LitDrlCarStop

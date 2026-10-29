@@ -23,6 +23,7 @@ import RelCertifier.InstancesV2.BenchIR.gantry_speed_zones
 import RelCertifier.InstancesV2.BenchIR.grid_ffr_dos
 import RelCertifier.InstancesV2.BenchIR.h2_refuel_ambientbias
 import RelCertifier.InstancesV2.BenchIR.hydro_rejection_gatecal
+import RelCertifier.InstancesV2.BenchIR.insulin_basal_cgmloss
 import RelCertifier.InstancesV2.BenchIR.lit_csf21_vehicle_bus
 import RelCertifier.InstancesV2.BenchIR.lit_csf21_vehicle_thermo
 import RelCertifier.InstancesV2.BenchIR.lit_drl_car_stop
@@ -76,6 +77,7 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("grid_ffr_dos", grid_ffr_dos_IRv2),
   ("h2_refuel_ambientbias", h2_refuel_ambientbias_IRv2),
   ("hydro_rejection_gatecal", hydro_rejection_gatecal_IRv2),
+  ("insulin_basal_cgmloss", insulin_basal_cgmloss_IRv2),
   ("lit_csf21_vehicle_bus", lit_csf21_vehicle_bus_IRv2),
   ("lit_csf21_vehicle_thermo", lit_csf21_vehicle_thermo_IRv2),
   ("lit_drl_car_stop", lit_drl_car_stop_IRv2),

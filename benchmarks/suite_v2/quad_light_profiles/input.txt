@@ -12,18 +12,27 @@
 #   X; that claim still certifies and is quoted below).
 #
 # System. The climb segment of quad_light_airframe_20 (in benchmarks/reserve/; same airframe
-# numbers): altitude h (m), climb rate w (m/s), m w' = T - m g - k w, h' = w, g = 9.81 m/s^2.
+# numbers): altitude h (m), climb rate w (m/s), h' = w, g = 9.81 m/s^2, and w' = T/m - g - K w,
+# where K w is not aerodynamic drag (a small quadrotor's heave damping is 0.1-2 /s, giving
+# 5-100 m/s terminal climbs) but the closed-loop climb-rate response: the autopilot's P velocity
+# loop commands thrust T = m_R (g + K (w_sp - w)) for the reference mass m_R with K = 4.905 /s
+# (PX4's MPC_Z_VEL_P_ACC default is 4 /s) toward the selected climb-rate set point w_sp.
 #   Right (reference model of the autopilot): the pilot may select the climb profile in flight;
-#     the selection sets the thrust ratio and any profile may follow any profile at the next 1 s
-#     control interval (complete graph: NORMAL, ECO, SPORT each list all three). k/m_R = 4.905 /s:
-#       NORMAL T = 2 m_R g:   w' = 9.81 - 4.905 w    (terminal 2.0 m/s)
-#       ECO    90 % thrust:   w' = 7.848 - 4.905 w   (terminal 1.6 m/s)
-#       SPORT  110 % thrust:  w' = 11.772 - 4.905 w  (terminal 2.4 m/s)
-#   Left (deployed): the flight plan's NORMAL profile on the airframe 20 % lighter than the
-#     reference model assumed (T/m and k/m both x 1.25): w' = 14.715 - 6.13125 w (terminal
-#     2.4 m/s), as in quad_light_airframe_20.
-# One cause: the airframe mass. The lighter airframe at NORMAL thrust is the NORMAL profile with
-# every rate scaled by 1.25 (T/m and k/m both x 1.25): its climb is the reference's NORMAL climb
+#     the selection sets the climb-rate set point and any profile may follow any profile at the
+#     next 1 s control interval (complete graph: NORMAL, ECO, SPORT each list all three). On m_R
+#     the loop gives w' = K (w_sp - w):
+#       NORMAL w_sp = 2.0 m/s: w' = 4.905 (2.0 - w) = 9.81 - 4.905 w    (terminal 2.0 m/s)
+#       ECO    w_sp = 1.6 m/s: w' = 4.905 (1.6 - w) = 7.848 - 4.905 w   (terminal 1.6 m/s)
+#       SPORT  w_sp = 2.4 m/s: w' = 4.905 (2.4 - w) = 11.772 - 4.905 w  (terminal 2.4 m/s)
+#   Left (deployed): the same thrust loop at the plan's NORMAL set point on the airframe 20 %
+#     lighter than the reference model assumed (m_R/m_L = 1.25; T/m and K both x 1.25 because the
+#     loop commands thrust for m_R): w' = (0.25 g + 1.25 x 9.81) - 6.13125 w = 14.715 - 6.13125 w
+#     (terminal 2.4 m/s), as in quad_light_airframe_20.
+# K = 4.905 = g/2 is the gain at which the terminal rates are 2.0 and 2.4 m/s and lambda = 6/5;
+# with PX4's default K = 4.0 /s the same rows certify at lambda = 1 + 0.2 g / (K w_sp) = 1.24525
+# with the letters S M B X unchanged (measured 2026-10-29).
+# One cause: the airframe mass. The lighter airframe at the NORMAL set point is the NORMAL profile
+# with every rate scaled by 1.25 (T/m and K both x 1.25): its climb is the reference's NORMAL climb
 # run 6/5 times faster in the steady part (2.4 against 2.0 m/s) with a 1.25-times faster
 # transient (time constant 1/6.13125 s against 1/4.905 s).
 #
@@ -54,7 +63,12 @@
 # deployed's 2.4: Psi drifts against either, so when the reference starts in ECO or SPORT the cover
 # commits the pilot's selection to NORMAL (choice hops ECO -> NORMAL, SPORT -> NORMAL), then runs the
 # joint segment from NORMAL; RELCERT_NO_CHOICE=1 DECLINES. The hop target is the profile the
-# lighter airframe's climb is a re-timing of, not a copy of the deployed's mode.
+# lighter airframe's climb is a re-timing of, not a copy of the deployed's mode. ECO and SPORT (the
+# set points 1.6 and 2.4 m/s beside NORMAL's 2.0) are never run by the witness: they are admissible
+# starts the cover leaves at its first decision (RELCERT_DEBUG=1: hops ECO -> NORMAL, SPORT ->
+# NORMAL at B = 1 and 2); with them removed the file certifies with S M alone (measured
+# 2026-10-29). What they carry is the scenario statement: the plan's NORMAL climb must be matched
+# by some pilot selection, whichever profile the reference starts in.
 # Multi-step cover (M) and branching (B): budget ceil(6/5 x 1 / 1) = 2 right cycles per left
 # window; at the joint step the NORMAL segment's declared successors ECO and SPORT are retained
 # (branch 2) and covered through the committed hop back into NORMAL.
@@ -72,8 +86,9 @@
 # climb-rate limiter lies above every envelope and never engages: not modeled. Control interval
 # 1 s on both sides.
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27, batch I9): CERTIFIED
-# (about 0.5 s); DECLINED under RELCERT_SYNC=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE and
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27, batch I9; re-measured
+# 2026-10-29): CERTIFIED (about 0.3 s); DECLINED under RELCERT_SYNC=1, RELCERT_NO_CHOICE=1,
+# NO_PRUNE+NO_CHOICE and
 # SYNC+NO_CHOICE; CERTIFIED under RELCERT_NO_PRUNE=1, without RELCERT_IMPLIED_CUT,
 # RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_CUT=1, RELCERT_NO_REPO=1,
 # RELCERT_WELLFORMED_STRICT=1 and RELCERT_OPREGION=1 (every admitted start in some right guard).

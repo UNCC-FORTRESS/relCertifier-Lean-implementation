@@ -1,4 +1,4 @@
-# rover_terrain_6to12: terrain chain, step 6 -> 12: the bank's slope, the chassis pitch, the
+# rover_terrain_6to12: terrain chain, step 6 -> 12: the ramp's slope, the chassis pitch, the
 # lagged body acceleration, the suspension's squat pitch and the damped heave. The right moves
 # 6 coordinates (v, s, w, zs, u, zh), the left all 12 (+ vz, gamma, theta_p, ax, phs,
 # omega_phs). Last step of the chain rover_terrain_2to4, rover_terrain_4to6,
@@ -12,14 +12,18 @@
 # System: the terrain rover of rover_terrain_4to6 (SI units; MUD s in [0, 5), GRAVEL [5, 12),
 # PAVED s >= 12, traversed in order; c_T = 0.25 / 0.45 / 0.70 m/s, mu_T = 2.5 / 4 / 8 1/s,
 # r_T = 0.4 / 0.15 / 0.05 1/s, Z_T = 0.10 / 0.03 / 0, roughness rho_T = 0.5 / 0.2 / 0.05). The
-# muddy stretch is a bank of constant grade 0.02 rad; past its top the grade eases to level
-# over a vertical curve of length 2 m.
+# muddy stretch is a gentle ramp of constant grade 0.02 rad (1.1 degrees; a scenario constant:
+# the slip window sigma = 0.25 admits grades up to 0.028, measured 2026-10-29 (0.028 certifies,
+# 0.029 declines), since the slope load needs more slip at the GRAVEL entry, sigma >= (1.47 +
+# 9.81 gamma) / 7; steeper ramps certify with sigma, ax, omega_phs and Theta re-derived the same
+# way, e.g. 0.10 rad with sigma 0.36, ax 2.9, omega_phs 0.15, Theta 0.29, measured 2026-10-29);
+# past its top the grade eases to level over a vertical curve of length 2 m.
 #
 # Right (6-DOF; exactly rover_terrain_4to6's left): u' = 4 (c_T - u), w' = 3 (u - w),
 # v' = mu_T (w - v) - r_T v - zs, zs' = 2 (Z_T - zs), zh' = rho_T v - zh (first-order heave
 # envelope), s' = v; the six new coordinates pinned. The right model has no slope.
 # Left (12-DOF):
-#   gamma: the terrain grade under the front axle: 0.02 rad on the bank (MUD, entered with
+#   gamma: the terrain grade under the front axle: 0.02 rad on the ramp (MUD, entered with
 #     gamma >= 0.02 and theta_p >= 0.02, gamma' = 0), easing with distance past the top,
 #     gamma' = -0.5 v gamma (GRAVEL, PAVED).
 #   theta_p: the chassis pitch (the chord slope between the axles), lagging the grade by one
@@ -28,11 +32,11 @@
 #     the chassis slope, linearized).
 #   vz: heave becomes second order, critically damped, in its cascade chart (vz := zh' + zh):
 #     zh' = vz - zh, vz' = rho_T v - vz.
-#   ax: the body's longitudinal acceleration as the accelerometer reports it (0.2 s lag),
+#   ax: the body's longitudinal acceleration filtered through the drivetrain's build-up (0.2 s),
 #     ax' = 5 (v'_expr - ax), v'_expr the left's own v' field.
 #   phs, omega_phs: the suspension's squat pitch (critically damped, cascade chart), driven by
-#     the acceleration, phs' = omega_phs - phs, omega_phs' = 0.05 ax - omega_phs (0.05 rad
-#     per m/s^2).
+#     that filtered acceleration, phs' = omega_phs - phs, omega_phs' = 0.05 ax - omega_phs
+#     (0.05 rad per m/s^2).
 #   u, w, zs, s as on the right.
 #
 # Property (the same rows in every left mode):
@@ -48,21 +52,25 @@
 #     the acceleration bound allows).
 #   Not implied by the domains.
 # Tightest (bisection 0.01): sigma 0.24 (declines at 0.23; the slope load needs more slip on
-#   the bank than flat ground, 0.21); H 0.13 (declines at 0.12; analytic 0.125); Theta 0.13
-#   (declines at 0.12; the analytic bound, bank grade 0.02 + squat bound 0.1, is 0.12); aux ax 2.00 (declines at 1.99: it
-#   is exactly mu_PAVED * sigma); aux omega_phs 0.10 (declines at 0.09).
+#   the ramp than flat ground, 0.21); H 0.13 (declines at 0.12; analytic 0.125); Theta 0.13
+#   (declines at 0.12; the analytic bound, ramp grade 0.02 + squat bound 0.1, is 0.12); aux ax
+#   2.00 (declines at 1.99: it is exactly mu_PAVED * sigma); aux omega_phs 0.10 (declines at
+#   0.09).
 #
 # Domains (left; all forward invariant): v in [0, 0.8] (at v = 0, v' >= 2.5 * 0.15 - 0.12
-# - 9.81 * 0.02 > 0, so the creep floor keeps the rover climbing the bank), w, u in
+# - 9.81 * 0.02 > 0, so the creep floor keeps the rover climbing the ramp; a domain remark: the
+# certificate does not use it, a 0.028 ramp certifies with v'(0) < 0 there), w, u in
 # [0.15, 0.8], zs in [0, 0.12], zh, vz in [0, 0.5], gamma, theta_p in [0, 0.02] (the grade
-# never exceeds the bank's and never goes negative on this route), ax in [-6.5, 6.5] (contains
+# never exceeds the ramp's and never goes negative on this route), ax in [-6.5, 6.5] (contains
 # the range of the v' field on the boxes, |v'| <= 5.6), phs, omega_phs in [-0.65, 0.65]
 # (|0.05 ax| <= 0.33), s >= 0. Right pinned coordinates keep the same boxes.
 # Guards: zone and entry u <= c_T on both sides (as rover_terrain_4to6's left); left MUD also
-# requires gamma >= 0.02 and theta_p >= 0.02 (the rover starts on the bank). A right state
-# with u above its zone's set point is in no right guard: unreachable from a guarded entry
-# (u' = 4 (c_T - u); set points increase). Starts non-vacuous in every mode (e.g. MUD: v = 0.1,
-# w = u = 0.25, zs = 0.1, gamma = theta_p = 0.02, the rest 0).
+# requires gamma >= 0.02 and theta_p >= 0.02 (the rover starts on the ramp; the MUD guard
+# gamma >= 0.02 with the domain gamma <= 0.02 pins the grade on the ramp, and the frozen cut is
+# the load-bearing MUD fact). A right state with u above its zone's set point is in no right
+# guard: unreachable from a guarded entry (u' = 4 (c_T - u); set points increase). Starts
+# non-vacuous in every mode (e.g. MUD: v = 0.1, w = u = 0.25, zs = 0.1, gamma = theta_p = 0.02,
+# the rest 0).
 #
 # Composition: the right model is rover_terrain_4to6's left (six coordinates pinned), so the v
 # and s rows chain by transitivity: 12-DOF <= 6-DOF <= 4-DOF <= no-slip plan.

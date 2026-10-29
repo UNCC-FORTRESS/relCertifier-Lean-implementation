@@ -15,24 +15,24 @@ open RelCertifier.Parse
 
 def zone_lightmass_schedule_cutsV2 : EvolStrengthening :=
   { L := [
-      ("COMFORT", [((.cmp ">=" (.var "T") (.num "16.0")), CutRoute.shape), ((.cmp "<=" (.var "T") (.num "21.0")), CutRoute.shape)]),
-      ("ECONOMY", [((.cmp ">=" (.var "T") (.num "16.0")), CutRoute.shape), ((.cmp "<=" (.var "T") (.num "21.0")), CutRoute.shape)])
+      ("COMFORT", [((.cmp ">=" (.var "T") (.num "5.0")), CutRoute.shape), ((.cmp "<=" (.var "T") (.num "30.0")), CutRoute.shape)]),
+      ("ECONOMY", [((.cmp ">=" (.var "T") (.num "5.0")), CutRoute.shape), ((.cmp "<=" (.var "T") (.num "30.0")), CutRoute.shape)])
     ]
     R := [
-      ("COMFORT", [((.cmp ">=" (.var "T") (.num "16.0")), CutRoute.shape), ((.cmp "<=" (.var "T") (.num "21.0")), CutRoute.shape)]),
-      ("STANDBY", [((.cmp ">=" (.var "T") (.num "16.0")), CutRoute.shape), ((.cmp "<=" (.var "T") (.num "21.0")), CutRoute.shape)]),
-      ("ECONOMY", [((.cmp ">=" (.var "T") (.num "16.0")), CutRoute.shape), ((.cmp "<=" (.var "T") (.num "21.0")), CutRoute.shape)])
+      ("COMFORT", [((.cmp ">=" (.var "T") (.num "5.0")), CutRoute.shape), ((.cmp "<=" (.var "T") (.num "30.0")), CutRoute.shape)]),
+      ("STANDBY", [((.cmp ">=" (.var "T") (.num "5.0")), CutRoute.shape), ((.cmp "<=" (.var "T") (.num "30.0")), CutRoute.shape)]),
+      ("ECONOMY", [((.cmp ">=" (.var "T") (.num "5.0")), CutRoute.shape), ((.cmp "<=" (.var "T") (.num "30.0")), CutRoute.shape)])
     ] }
 
 def zone_lightmass_schedule_cutsV2X : EvolStrengtheningX :=
   { L := [
-      ("COMFORT", [⟨(.cmp ">=" (.var "T") (.num "16.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "T") (.num "21.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩]),
-      ("ECONOMY", [⟨(.cmp ">=" (.var "T") (.num "16.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "T") (.num "21.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩])
+      ("COMFORT", [⟨(.cmp ">=" (.var "T") (.num "5.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "T") (.num "30.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩]),
+      ("ECONOMY", [⟨(.cmp ">=" (.var "T") (.num "5.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "T") (.num "30.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩])
     ]
     R := [
-      ("COMFORT", [⟨(.cmp ">=" (.var "T") (.num "16.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "T") (.num "21.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩]),
-      ("STANDBY", [⟨(.cmp ">=" (.var "T") (.num "16.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "T") (.num "21.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩]),
-      ("ECONOMY", [⟨(.cmp ">=" (.var "T") (.num "16.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "T") (.num "21.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩])
+      ("COMFORT", [⟨(.cmp ">=" (.var "T") (.num "5.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "T") (.num "30.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩]),
+      ("STANDBY", [⟨(.cmp ">=" (.var "T") (.num "5.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "T") (.num "30.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩]),
+      ("ECONOMY", [⟨(.cmp ">=" (.var "T") (.num "5.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩, ⟨(.cmp "<=" (.var "T") (.num "30.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.shape, []⟩])
     ] }
 
 /-- The legacy (guard-conjunct) part is well formed. -/

@@ -28,12 +28,18 @@
 # Property (requirement and the attack's exact signature). Let u = v + a / r_f be the dominant-mode
 # speed (r_f the fast root: u_L = v_L + 0.6 a_L, u_R = v_R + 0.5 a_R); u_L - 24 decays at 1 /s and
 # u_R - 30 at 2/3 /s. Rows:
-#   v_L <= v_R (row 1, the requirement, constant 0): a spoofed speed sensor must never make the car
-#     faster than the unspoofed reference. The row certifies down to v_L <= v_R - 3.33 (-3.34
-#     declines): the attack slows the car by at least 3.33 m/s along the cover.
+#   v_L <= v_R (row 1, the requirement re-timed, constant 0): the spoofed car at time t is never
+#     faster than the unspoofed reference at time 3/2 t. The row certifies down to
+#     v_L <= v_R - 3.33 (-3.34 declines) along the cover. The real-time overspeed bound (v_L <= v_R
+#     at equal times) is not a row of this file: it certifies at lambda 1 as a separate claim with
+#     the strengthening v_L + a_L/2 <= v_R + a_R/2 (both sides, 1/2 = the reference's fast-root
+#     time; the batch-I4 rows), down to -3.95 (-3.96 declines; letters I, RELCERT_NO_CUT=1
+#     declines; measured 2026-10-29), and adding it to the lambda-3/2 rows DECLINES.
 #   u_L <= u_R - 6 (row 2, exact): at lambda = 3/2 the two dominant modes decay alike, so the
 #     spoofed car's dominant-mode speed equals the reference's at 3/2 the elapsed time minus the
-#     6 m/s set-speed shift (30 - 24), and the row is kept exactly. Tight at -6 (-6.01 declines).
+#     6 m/s set-speed shift (30 - 24), and the row is kept exactly. Row 2 holds with equality
+#     (u_L - 24 and u_R - 30 are the same exponential after re-timing); stated one-sided, tight
+#     at -6 (-6.01 declines).
 #     Row 2 is also the inductive strengthening row 1 needs (row 1 alone has no inductive
 #     certificate: its derivative compares the two accelerations).
 # Reading: the spoof turns the stock loop into the same loop 3/2 times faster aiming 6 m/s lower,
@@ -46,13 +52,15 @@
 # and RELCERT_SYNC=1 DECLINES). Cause dependence: at a 20 % spoof (v_meas = 1.2 v, set point 25,
 # dominant ratio 1.4 at a lag with rational roots) the rows would read u_L <= u_R - 5 at lambda
 # 7/5; the stated spoof fixes both constants.
-# Consequence (measured 2026-10-27, not part of the claim): the batch-I4 real-time rows
-# v_R <= v_L + 8 and u_R <= u_L + 8 (the shortfall envelope, 8 m/s = the 6 m/s set-speed shift
-# plus the lag transient; its requirement: the spoof may slow the car at most 8 m/s below the
-# reference, which at the 30 m/s set speed keeps the spoofed car above 22 m/s (80 km/h), the
-# minimum speed the scenario's motorway lane requires) certify at lambda 1 on this file; adding them to the exact rows at
-# lambda 3/2 DECLINES (they are real-time statements, not re-timed ones), so the file states the
-# exact claim alone.
+# Consequence (measured 2026-10-27, re-checked 2026-10-29, not part of the claim): the batch-I4
+# real-time rows v_R <= v_L + 8 and w_R <= w_L + 8 with w = v + 0.5 a on BOTH sides (the batch-I4
+# strengthening, not the u of this file: with u_L = v_L + 0.6 a_L the pair DECLINES at lambda 1)
+# (the shortfall envelope, 8 m/s = the 6 m/s set-speed shift plus the lag transient; its
+# requirement: the spoof may slow the car at most 8 m/s below the reference, which at the 30 m/s
+# set speed keeps the spoofed car above 22 m/s (80 km/h), the minimum speed the scenario's
+# motorway lane requires) certify at lambda 1 on this file's models; adding them to the exact
+# rows at lambda 3/2 DECLINES (they are real-time statements, not re-timed ones), so the file
+# states the exact claim alone.
 #
 # Guards. Left: the spoofed loop's ENGAGED ENVELOPE, the forward-invariant hull under the spoofed
 # loop of its engagement box (the controller engages, or resumes, between 23 m/s and the set speed
@@ -71,8 +79,9 @@
 # Domains (both sides): v in [0, 40] m/s, a in [-10, 10] m/s^2 (1 g, the tyre-road limit);
 # physical limits, not load-bearing.
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27, batch I9): CERTIFIED
-# (0.13 s); DECLINED under RELCERT_SYNC=1 and SYNC+NO_CHOICE; CERTIFIED under RELCERT_NO_PRUNE=1,
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27, batch I9; re-measured
+# 2026-10-29): CERTIFIED (0.07 s); DECLINED under RELCERT_SYNC=1 and SYNC+NO_CHOICE; CERTIFIED
+# under RELCERT_NO_PRUNE=1,
 # RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE, without RELCERT_IMPLIED_CUT, RELCERT_NO_IMPLIED_CUT=1,
 # RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_CUT=1, RELCERT_NO_REPO=1, RELCERT_OPREGION=1 and
 # RELCERT_WELLFORMED_STRICT=1. Cover: lambda = 3/2, budget 2 right cycles per left window,

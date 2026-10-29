@@ -1,7 +1,9 @@
 # tunnel_jetfan_pairout: the longitudinal ventilation of a 1.6 km road tunnel with one of its five
 # jet-fan pairs out of service, against the same tunnel with all ten fans, through a fire alarm: in
-# normal operation the requirement is on air quality (CO), once the fire mode is engaged it is on
-# the longitudinal air velocity that keeps the smoke away from the users upstream of the fire.
+# normal operation the requirement is on air quality (CO); once the fire mode is engaged the
+# requirement is on the longitudinal air velocity that keeps the smoke away from the users upstream
+# of the fire, which this file meets by its admitted starts (the domain floor) and not by a stated
+# row (see Requirements).
 # scenario: degraded-actuator
 # mechanisms: D I (mode-dependent rows: the CO row of normal operation is dropped in fire mode,
 #   where the deployed's smaller airflow makes it false; every uniform row set that states the CO
@@ -38,10 +40,23 @@
 # velocity that prevents smoke backlayering, about 3 m/s for large fires in a tunnel of this section
 # (NFPA 502, Annex on critical velocity; PIARC fire and smoke control). The velocity floor 3.2 m/s of
 # the domain is forward invariant on both sides (every mode drives u toward a steady velocity of at
-# least 3.236), so both tunnels meet the fire requirement by the domain alone and the FIRE rows carry
-# no velocity tolerance. (The design also stated u_R <= u_L + 4.2 in FIRE, the reference's 7.236 less
-# the 3 m/s; the domains already bound the velocity gap by 7.3 - 3.2 = 4.1, so that conjunct was implied
-# by the domains and was dropped at installation; no verdict changed.) The NORMAL velocity row is a
+# least 3.236), so both tunnels meet the fire requirement by the domain alone and the FIRE row
+# carries no smoke-control content beyond the floor. Stated plainly (review 2026-10-29): the floor
+# is not a physical limit (a tunnel with its fans off has u = 0); it is the forward-invariant set the
+# certificate needs, and what it carries is the NORMAL CO row, not the fire requirement: the NORMAL
+# guard's c <= 100 (the mode fact, I) is kept by the flow only for u >= 0.1583 / (0.000625 x 100)
+# = 2.533 (floor 2.54 certifies this file's rows, 2.53 declines), and below that velocity the
+# reference's NORMAL mode is not well formed (--wellformed UNKNOWN at floor 0). The slack 3.2 against
+# 2.54 is what makes the fire requirement hold on every admitted start. A FIRE velocity band would
+# not add smoke-control content at this floor: u_R <= u_L + 0.9 (the steady gap 0.76 rounded up)
+# DECLINES, the inductive FIRE envelope at floor 3.2 is the root of g (6.4 + g) = 0.018 / 0.00171875,
+# g = 1.35 (1.63 certifies, 0.9 declines), and the domains already bound the gap by 7.3 - 3.2 = 4.1
+# (the design's u_R <= u_L + 4.2 in FIRE was implied by the domains and dropped at installation; no
+# verdict changed). A variant that states the fire requirement as rows certifies with the same
+# letters D I: floor 2.6 (below the critical velocity), CO cap 900, NORMAL strengthening 0.47, and
+# FIRE rows u_L <= u_R, u_R <= u_L + 1.56 (1.55 declines) and u_L >= 3 (inductive in both left
+# modes; CERTIFIED 0.35 s, --wellformed 2 ok, SYNC, NO_CHOICE, NO_PRUNE and NO_REPO certify,
+# NO_CUT declines); that model change is scheduled for a later round. The NORMAL velocity row is a
 # stated strengthening (the CO gap is driven by the velocity gap; without a velocity bound the CO row
 # is not inductive); u_L <= u_R (both modes) and c_R <= c_L are derived, exact (the deployed has less
 # airflow and never less CO). The NORMAL rows are not implied by the domains (they allow a velocity
@@ -80,13 +95,17 @@
 #
 # Domains. t >= 0 s (the procedure clock); u in [3.2, 7.3] m/s: every mode drives u toward a steady
 # velocity inside (3.236 to 7.236) and the flow points inward at both bounds (forward invariant on
-# both sides); c in [0, 630] ppm: at 630 every flow decreases c for u >= 3.2 (forward invariant). The
+# both sides); the floor is the certificate's invariant set, not a physical limit (see Requirements:
+# load-bearing value 2.54, via the c <= 100 fact); c in [0, 630] ppm: at 630 every flow decreases c
+# for u >= 3.2 (forward invariant). The
 # right guards partition the clock except normal-operation states with c > 100 ppm: outside normal
 # operation by PIARC Table 3 and unreachable from normal-operation starts (every normal flow keeps
-# c <= 100); RELCERT_OPREGION=1 CERTIFIES. The left guards are re-checked at every period and kept by
-# the left's flows, so no run is dropped. Every left mode has a satisfiable start (equal states).
+# c <= 100 for u >= 2.533); RELCERT_OPREGION=1 CERTIFIES. The left guards are re-checked at every
+# period and kept by the left's flows, so no run is dropped. Every left mode has a satisfiable start
+# (equal states).
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27 at installation on branch benchmark-fixes): CERTIFIED (0.4 s);
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27 at installation, re-measured
+# 2026-10-29, branch benchmark-fixes): CERTIFIED (0.3 s);
 # CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, NO_PRUNE+NO_CHOICE,
 # SYNC+NO_CHOICE, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, without RELCERT_IMPLIED_CUT,
 # RELCERT_OPREGION=1, RELCERT_NO_PAIR_STRETCH=1 and RELCERT_WELLFORMED_STRICT=1; DECLINED under

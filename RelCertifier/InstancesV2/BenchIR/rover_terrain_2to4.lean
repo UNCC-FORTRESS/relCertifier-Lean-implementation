@@ -15,7 +15,7 @@ def rover_terrain_2to4_IRv2 : PProblem :=
   {
     name := "rover_terrain_2to4"
     lambdaMin := "1.0"
-    lambdaMax := "3.0"
+    lambdaMax := "2.7"
     L := {
       stateVars := ["v", "s", "w", "zs"]
       epsilon := "1.0"

@@ -10,7 +10,8 @@
 #   from the profile (the bandwidth scaling it is), D from the AEB. Batch I9 (2026-10-27): back
 #   from benchmarks/reserve/ as the round-A time-scaled design (the batch-I2 suite file read SPORT
 #   as a shorter time gap at lambda 1, letters D, and went to the reserve in batch I8 as a special
-#   case of platoon_linkloss); it takes the place of platoon_latency (D, the same right model).
+#   case of platoon_linkloss); platoon_latency (D, the same right model) left the suite in batch
+#   I9 and returned in batch I11 (2026-10-28), so both files are in the suite.
 #
 # Shared platoon model (identical in platoon_linkloss, platoon3_linkloss). A lead vehicle cruises
 # at the platoon reference speed v_ref = 25 m/s (90 km/h). Per link (follower behind its
@@ -61,7 +62,14 @@
 #     time derivative of a re-timed signal): every gap profile of the SPORT follower is a sped-up
 #     NORMAL profile, so the design's spacing safety (minimum gap, no AEB trigger from the operating
 #     range) carries over to the SPORT profile with every event 6/5 times sooner. Exact, no
-#     tolerance constant; it is the specification of the profile (a bandwidth scaling).
+#     tolerance constant; it is the specification of the profile (a bandwidth scaling). The rows
+#     are an exact re-timing true by the gain construction (kp x 1.44, kd x 1.2) and carry no
+#     tolerance content: any slack +-C on the four forms also certifies at lambda 6/5 (C = 0.5,
+#     5, 30 tried, measured 2026-10-29) given the design's TTC floor g_R + 2 r_R >= 5, which the
+#     exact rows imply (without it a slack admits a right start inside the AEB trigger and the
+#     file declines already at C = 0.5): the forms contract at 0.6 and 0.3 /s along the re-timed
+#     pair. In real time (lambda pinned to 1, the same forms with slack and the floor) the
+#     tolerance is 4.00 (3.99 declines).
 #     g_L >= 5 and g_L + 2 r_L >= 5: collision freedom of the deployed (gap at least d0 = 5 m) and
 #     its TTC to d0 at least 2 s; the TTC floor keeps the deployed out of the AEB trigger from the
 #     operating range (the handoff SPORT -> AEB is then unsat), the gap floor is the requirement.
@@ -89,8 +97,8 @@
 # unavoidable) or g + 2 r > 60 are in no right guard and no run reaches them (both guards are
 # forward invariant).
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27, batch I9): CERTIFIED (about
-# 6 s with a build running beside it; about 2 s quiet); CERTIFIED under RELCERT_NO_PRUNE=1,
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27, batch I9; re-measured
+# 2026-10-29): CERTIFIED (about 2.5 s); CERTIFIED under RELCERT_NO_PRUNE=1,
 # RELCERT_NO_CHOICE=1, without RELCERT_IMPLIED_CUT, RELCERT_NO_IMPLIED_CUT=1,
 # RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_CUT=1, RELCERT_NO_REPO=1, RELCERT_WELLFORMED_STRICT=1 and
 # RELCERT_OPREGION=1 (every admitted start in some right guard); DECLINED under RELCERT_SYNC=1,

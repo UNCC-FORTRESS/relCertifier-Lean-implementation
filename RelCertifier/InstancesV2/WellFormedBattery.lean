@@ -20,7 +20,7 @@ mode `q`, `ε = epsR` (the file's `epsilon`, read as the tool reads it). A model
 independent of the relational invariant and of every Theorem 3 (none takes it as a
 hypothesis); this battery is a separate audit.
 
-**Results (all 49 benchmarks; declared counts `wfDeclared`, kernel-checked against the
+**Results (all 50 benchmarks; declared counts `wfDeclared`, kernel-checked against the
 suite's IR table by `wf_coverage`).**
 
 * **Proved, 46** (`<bench>_wellFormedR`): every mode (`watertank_twospeed` added 2026-10-11;
@@ -84,6 +84,7 @@ import RelCertifier.InstancesV2.WellFormed.PlatoonProfiles
 import RelCertifier.InstancesV2.WellFormed.EngineStartHighidle
 import RelCertifier.InstancesV2.WellFormed.TrainAtoOdometry
 import RelCertifier.InstancesV2.WellFormed.ZoneLightmassSchedule
+import RelCertifier.InstancesV2.WellFormed.InsulinBasalCgmloss
 import RelCertifier.InstancesV2.WellFormed.TurbineStartupGearratio
 import RelCertifier.InstancesV2.WellFormed.ChargerFastTapers
 import RelCertifier.InstancesV2.WellFormed.QuadLightProfiles
@@ -119,7 +120,7 @@ def wfProved : List String :=
    "rover_ladder_3to6", "rover_ladder_6to8",
    "rover_ladder_8to12", "rover_terrain_2to4", "rover_terrain_6to12",
    "rover_terrain_4to6", "watertank_twospeed", "flaps_slow_approach", "engine_start_highidle", "train_ato_odometry",
-   "zone_lightmass_schedule", "turbine_startup_gearratio",
+   "zone_lightmass_schedule", "turbine_startup_gearratio", "insulin_basal_cgmloss",
    "h2_refuel_ambientbias", "fuelcell_chp_dos", "elevator_start_discbrake",
    "furnace_program_timebase", "reactor_feed_wireless", "syringe_relay_prearm",
    "hydro_rejection_gatecal", "ventilator_vc_cuffleak", "tank_dos_3to1", "tunnel_jetfan_pairout", "grid_ffr_dos",
@@ -182,7 +183,7 @@ swaps of batches I9 to I11 (2026-10-28; batch I11: `platoon_latency`, its round-
 shared CACC/AEB run lemmas, `h2_refuel_ambientbias`, six 1-D contractions as `engine_start_highidle`,
 and `reactor_feed_wireless`, four exponential runs at dimension 2 as `fuelcell_chp_dos`, for
 `antenna_track_kvretune`, `molding_pack_checkring` and `compressor_station_recycle`). -/
-def wfDeclared : ℕ × ℕ × ℕ := (46, 0, 3)
+def wfDeclared : ℕ × ℕ × ℕ := (47, 0, 3)
 
 /-- The suite's benchmark names, in the order of the IR table. -/
 def suiteNames : List String :=
@@ -190,7 +191,7 @@ def suiteNames : List String :=
    "bottling_fill_strainer", "charger_fast_tapers", "elevator_start_discbrake",
    "engine_start_highidle", "flaps_slow_approach", "fuelcell_chp_dos",
    "furnace_program_timebase", "gantry_speed_zones", "grid_ffr_dos", "h2_refuel_ambientbias",
-   "hydro_rejection_gatecal", "lit_csf21_vehicle_bus", "lit_csf21_vehicle_thermo",
+   "hydro_rejection_gatecal", "insulin_basal_cgmloss", "lit_csf21_vehicle_bus", "lit_csf21_vehicle_thermo",
    "lit_drl_car_stop", "lit_drl_lane_control", "lit_freedm_meter", "lit_girard08_robot",
    "lit_lz21_vehicle_position", "lit_nahs25_salt_tank",
    "platoon_latency", "platoon_linkloss", "platoon_profiles", "quad_light_lag",
@@ -250,6 +251,7 @@ end WellFormedBattery
 #print axioms V2EngineStartHighidle.engine_start_highidle_wellFormedR
 #print axioms V2TrainAtoOdometry.train_ato_odometry_wellFormedR
 #print axioms V2ZoneLightmassSchedule.zone_lightmass_schedule_wellFormedR
+#print axioms V2InsulinBasalCgmloss.insulin_basal_cgmloss_wellFormedR
 #print axioms V2TurbineStartupGearratio.turbine_startup_gearratio_wellFormedR
 #print axioms V2H2RefuelAmbientbias.h2_refuel_ambientbias_wellFormedR
 #print axioms V2FuelcellChpDos.fuelcell_chp_dos_wellFormedR

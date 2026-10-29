@@ -14,6 +14,7 @@ import RelCertifier.InstancesV2.BenchProgress.gantry_speed_zones
 import RelCertifier.InstancesV2.BenchProgress.grid_ffr_dos
 import RelCertifier.InstancesV2.BenchProgress.h2_refuel_ambientbias
 import RelCertifier.InstancesV2.BenchProgress.hydro_rejection_gatecal
+import RelCertifier.InstancesV2.BenchProgress.insulin_basal_cgmloss
 import RelCertifier.InstancesV2.BenchProgress.lit_csf21_vehicle_bus
 import RelCertifier.InstancesV2.BenchProgress.lit_csf21_vehicle_thermo
 import RelCertifier.InstancesV2.BenchProgress.lit_girard08_robot
@@ -65,6 +66,7 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("grid_ffr_dos", grid_ffr_dos_coverV2_progress),
    ("h2_refuel_ambientbias", h2_refuel_ambientbias_coverV2_progress),
    ("hydro_rejection_gatecal", hydro_rejection_gatecal_coverV2_progress),
+   ("insulin_basal_cgmloss", insulin_basal_cgmloss_coverV2_progress),
    ("lit_csf21_vehicle_bus", lit_csf21_vehicle_bus_coverV2_progress),
    ("lit_csf21_vehicle_thermo", lit_csf21_vehicle_thermo_coverV2_progress),
    ("lit_girard08_robot", lit_girard08_robot_coverV2_progress),

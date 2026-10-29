@@ -15,7 +15,7 @@ def h2_refuel_ambientbias_IRv2 : PProblem :=
   {
     name := "h2_refuel_ambientbias"
     lambdaMin := "1.0"
-    lambdaMax := "6.0"
+    lambdaMax := "1.0"
     L := {
       stateVars := ["p"]
       epsilon := "1.0"

@@ -104,7 +104,7 @@ certificates (261) and the refutations' groups (188) have their own runners. `re
 edges), SMT printer, Z3's `unsat`, the Lean kernel. Guard-gated switching is no longer
 assumed (both sides) (`README.md`, "Trust base").
 
-**Last verified run.** 2026-10-28, branch `claude/brave-albattani-ylktc0` (batch I11: the three swaps of the reserve scan),
+**Last verified run.** 2026-10-28, branch `benchmark-fixes` (benchmark-review fixes: `lit_hypercert_vehicle` skipped, `zone_lightmass_schedule` band form, `charger_fast_tapers` re-timed form, two literature headers; 49 suite benchmarks), Apple M2 Max, Z3 4.15.1: `lake build` exit 0 (17958 jobs with the five exes); `--check-quick-v2` 49/49, modal 1007, handoff 503, non-connection 64, pruned 32, reposition 73, STRICT 179/179 (87 invariant, 92 exit), PASSED; `relcert-test` `ALL PASS`; `relcert-bridge-verdicts` 4800/4800; `relcert-progress-verdicts` 199/199; `relcert-refute-verdicts` 199/199 and the 67 refutation instances built; `WellFormedBattery` 65 axiom lines, all standard; `AxiomCheck` 9 lines; `benchmarks/negative/*` both DECLINED; `lit_hypercert_vehicle_s8` 5 right modes BLOCKING, DECLINED under the strict switch; `scripts/paper_numbers.sh` re-run (`docs/paper-numbers/`). Previous: 2026-10-28, branch `claude/brave-albattani-ylktc0` (batch I11: the three swaps of the reserve scan),
 Apple M2 Max, Z3 4.15.1: `lake build` exit 0 (18130 jobs with the five exes); `--check-quick-v2` 50/50, modal 1004,
 handoff 528, non-connection 64, pruned 32, reposition 76, STRICT 184/184 (88 invariant, 96 exit), PASSED; `relcert-test`
 `ALL PASS`; `relcert-bridge-verdicts` 4866/4866; `relcert-progress-verdicts` 199/199; `relcert-refute-verdicts` 199/199 and

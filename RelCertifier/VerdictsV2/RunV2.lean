@@ -255,24 +255,29 @@ def packsV2 : List PackV2 :=
     -- tunnel_jetfan_pairout (mode-keyed rows; cover replay at λ = 1)
     ⟨"tunnel_jetfan_pairout", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 0, 0⟩,
     ⟨"tunnel_jetfan_pairout", 3, 1, [0, 1, 2], 1, 1, 1, 1⟩,
-    -- charger_fast_tapers (mode-keyed rows; cover replay at λ = 1; the right-only nodes are below)
-    ⟨"charger_fast_tapers", 3, 0, [0], 1, 1, 0, 1⟩,
-    ⟨"charger_fast_tapers", 3, 0, [0], 1, 1, 0, 2⟩,
-    ⟨"charger_fast_tapers", 3, 0, [0], 1, 1, 0, 3⟩,
-    ⟨"charger_fast_tapers", 3, 0, [0], 1, 1, 0, 4⟩,
-    ⟨"charger_fast_tapers", 3, 1, [0], 1, 1, 1, 4⟩,
-    ⟨"charger_fast_tapers", 3, 2, [0], 1, 1, 2, 1⟩,
-    ⟨"charger_fast_tapers", 3, 2, [0], 1, 1, 2, 3⟩,
-    ⟨"charger_fast_tapers", 3, 2, [0], 1, 1, 2, 4⟩,
-    ⟨"charger_fast_tapers", 3, 3, [0], 1, 1, 3, 2⟩,
-    ⟨"charger_fast_tapers", 3, 3, [0], 1, 1, 3, 3⟩,
-    ⟨"charger_fast_tapers", 3, 3, [0], 1, 1, 3, 4⟩,
-    ⟨"charger_fast_tapers", 3, 4, [0], 1, 1, 4, 0⟩,
-    ⟨"charger_fast_tapers", 3, 4, [0], 1, 1, 4, 1⟩,
-    ⟨"charger_fast_tapers", 3, 4, [0], 1, 1, 4, 2⟩,
-    ⟨"charger_fast_tapers", 3, 4, [0], 1, 1, 4, 3⟩,
-    ⟨"charger_fast_tapers", 3, 4, [0], 1, 1, 4, 4⟩,
-    ⟨"charger_fast_tapers", 3, 4, [0], 1, 1, 4, 5⟩,
+    -- charger_fast_tapers (mode-keyed rows; cover replay at λ = 5/4, the raised CC current ratio,
+    -- since 2026-10-28; the joint pairings of each window's admissible starts, the right-only
+    -- nodes are below)
+    ⟨"charger_fast_tapers", 3, 0, [0], 5, 4, 0, 0⟩,
+    ⟨"charger_fast_tapers", 3, 0, [0], 5, 4, 0, 1⟩,
+    ⟨"charger_fast_tapers", 3, 0, [0], 5, 4, 0, 2⟩,
+    ⟨"charger_fast_tapers", 3, 0, [0], 5, 4, 0, 3⟩,
+    ⟨"charger_fast_tapers", 3, 0, [0], 5, 4, 0, 4⟩,
+    ⟨"charger_fast_tapers", 3, 1, [0], 5, 4, 1, 1⟩,
+    ⟨"charger_fast_tapers", 3, 1, [0], 5, 4, 1, 4⟩,
+    ⟨"charger_fast_tapers", 3, 2, [0], 5, 4, 2, 1⟩,
+    ⟨"charger_fast_tapers", 3, 2, [0], 5, 4, 2, 2⟩,
+    ⟨"charger_fast_tapers", 3, 2, [0], 5, 4, 2, 3⟩,
+    ⟨"charger_fast_tapers", 3, 2, [0], 5, 4, 2, 4⟩,
+    ⟨"charger_fast_tapers", 3, 3, [0], 5, 4, 3, 2⟩,
+    ⟨"charger_fast_tapers", 3, 3, [0], 5, 4, 3, 3⟩,
+    ⟨"charger_fast_tapers", 3, 3, [0], 5, 4, 3, 4⟩,
+    ⟨"charger_fast_tapers", 3, 4, [0], 5, 4, 4, 0⟩,
+    ⟨"charger_fast_tapers", 3, 4, [0], 5, 4, 4, 1⟩,
+    ⟨"charger_fast_tapers", 3, 4, [0], 5, 4, 4, 2⟩,
+    ⟨"charger_fast_tapers", 3, 4, [0], 5, 4, 4, 3⟩,
+    ⟨"charger_fast_tapers", 3, 4, [0], 5, 4, 4, 4⟩,
+    ⟨"charger_fast_tapers", 3, 4, [0], 5, 4, 4, 5⟩,
     -- grid_ffr_dos (cover replay at λ = 1, budget 3; NORMAL -> TRIP and FFR -> TRIP pruned)
     ⟨"grid_ffr_dos", 3, 0, [2, 3, 4, 0, 1], 1, 1, 0, 0⟩,
     ⟨"grid_ffr_dos", 3, 0, [2, 3, 4, 0, 1], 1, 1, 0, 1⟩,
@@ -329,7 +334,7 @@ def packsV2 : List PackV2 :=
     ⟨"reactor_feed_wireless", 2, 0, [2, 3, 0, 1], 1, 1, 3, 3⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 1004
+def expectedModalV2 : Nat := 1007
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
@@ -430,16 +435,14 @@ def dynPacksV2 : List DynPackV2 :=
     ⟨"syringe_relay_prearm", 4, 2, [0, 1, 2, 3, 4, 5, 6], true, 2, 2⟩,
     ⟨"syringe_relay_prearm", 4, 3, [0, 1, 2, 4, 6, 3, 5], true, 3, 2⟩,
     ⟨"syringe_relay_prearm", 4, 4, [0, 1, 2, 3, 4], true, 4, 1⟩,
-    -- charger_fast_tapers: PRECHARGE_L, BULK_L and ABSORB_L reposition through right-only nodes
-    ⟨"charger_fast_tapers", 3, 0, [0], true, 0, 0⟩,
+    -- charger_fast_tapers: BULK_L repositions through the right-only lag pairings PRECHARGE,
+    -- ABSORB_SLOW and ABSORB_FAST (re-timed form, 2026-10-28)
     ⟨"charger_fast_tapers", 3, 1, [0], true, 1, 0⟩,
-    ⟨"charger_fast_tapers", 3, 1, [0], true, 1, 1⟩,
     ⟨"charger_fast_tapers", 3, 1, [0], true, 1, 2⟩,
-    ⟨"charger_fast_tapers", 3, 1, [0], true, 1, 3⟩,
-    ⟨"charger_fast_tapers", 3, 2, [0], true, 2, 2⟩ ]
+    ⟨"charger_fast_tapers", 3, 1, [0], true, 1, 3⟩ ]
 
 /-- Declared: the number of component queries the reposition packs owe. -/
-def expectedDynV2 : Nat := 76
+def expectedDynV2 : Nat := 73
 
 def runDynPack (s : Z3Session) (r : DynPackV2) : IO Bool := do
   let p := irV2 r.bench

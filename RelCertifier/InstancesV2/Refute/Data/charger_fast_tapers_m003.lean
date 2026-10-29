@@ -17,15 +17,15 @@ open RelCertifier.Parse
 def charger_fast_tapers_m003_IRm : PProblem :=
   {
     name := "charger_fast_tapers"
-    lambdaMin := "1.0"
-    lambdaMax := "6.0"
+    lambdaMin := "1.25"
+    lambdaMax := "1.25"
     L := {
       stateVars := ["x"]
       epsilon := "0.012"
       modes := [
         {
           name := "PRECHARGE"
-          odes := [("x", (.bin "*" (.num "0.25") (.bin "-" (.num "20.0") (.var "x"))))]
+          odes := [("x", (.bin "*" (.num "0.2") (.bin "-" (.num "20.0") (.var "x"))))]
           guard := (.and (.cmp ">=" (.var "x") (.num "10.0")) (.cmp "<" (.var "x") (.num "15.0")))
           evolve := (.and (.cmp ">=" (.var "x") (.num "0.0")) (.cmp "<=" (.var "x") (.num "100.0")))
           next := ["BULK", "PRECHARGE", "FAULT"] },
@@ -37,7 +37,7 @@ def charger_fast_tapers_m003_IRm : PProblem :=
           next := ["ABSORB", "BULK", "FAULT"] },
         {
           name := "ABSORB"
-          odes := [("x", (.bin "*" (.num "0.0625") (.bin "-" (.num "100.0") (.var "x"))))]
+          odes := [("x", (.bin "*" (.num "0.05") (.bin "-" (.num "100.0") (.var "x"))))]
           guard := (.and (.cmp ">=" (.var "x") (.num "80.0")) (.cmp "<" (.var "x") (.num "99.0")))
           evolve := (.and (.cmp ">=" (.var "x") (.num "0.0")) (.cmp "<=" (.var "x") (.num "100.0")))
           next := ["FULL", "ABSORB"] },

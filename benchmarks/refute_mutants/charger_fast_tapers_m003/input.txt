@@ -1,15 +1,16 @@
-# charger_fast_tapers: a DC fast charger whose current limit is raised 25 % and whose phase
-# decision runs every other request cycle, against the certified charging profile with two taper
-# options deciding on every cycle.
+# charger_fast_tapers: a DC fast charger whose constant-current limit is raised 25 % and whose phase
+# decision runs every other request cycle, against the certified charging profile replayed at the
+# current ratio 5/4 with two taper options deciding on every cycle: a re-timed one-sided bound on
+# the deployed state of charge.
 # scenario: degraded-controller
-# mechanisms: M R B P D I (multi-cycle matching, one deployed decision against two profile decisions,
-#   matrix code M2; right-only repositioning; branching joint steps, the profile's BULK segment
-#   retaining both tapers, matrix code M3; pruned fault edges; mode-dependent rows; checked cuts,
-#   matrix codes M4 M5 M6 M6+). RELCERT_SYNC=1 and RELCERT_NO_REPO=1 decline because the covers need
-#   right-only repositioning; every cover is at lambda = 1, so no S. R, D and I come from the claim
-#   form (a one-sided bound against an existential reference), P from the raised limit (below), M
-#   and B from the 2:1 decision-period ratio (batch I9, 2026-10-27; the equal-period file of batch
-#   I7 had R P D I).
+# mechanisms: S M R B P D I (time stretch lambda = 5/4, the raised CC current ratio, stated;
+#   RELCERT_SYNC=1 declines, matrix code M1; multi-cycle matching, one deployed decision against
+#   three replayed profile decisions, matrix code M2; right-only repositioning for the lag
+#   pairings; branching joint steps, the profile's BULK segment retaining both tapers, matrix
+#   code M3; pruned fault edges; mode-dependent rows; checked cuts, matrix codes M4 M5 M6 M6+).
+#   S comes from the cause (the raised limit), R, D and I from the claim form (a one-sided bound
+#   against an existential reference), P from the raised limit (below), M and B from the
+#   decision-period ratio under the re-timing. No X: RELCERT_NO_CHOICE=1 certifies.
 #
 # System. State of charge x (%), time in min. The certified charging profile (right):
 #   PRECHARGE   (10 <= x < 15): x' = 0.2 (20 - x)    recovery charge of a deeply discharged cell
@@ -22,70 +23,101 @@
 #   FULL        (x >= 99):      x' = 0               hold
 #   FAULT       (x < 10):       x' = -0.01 x         cell fault, latched (self-discharge only)
 # PRECHARGE and BULK may latch FAULT (declared edges). The deployed unit (left) runs the profile
-# with its current limit raised 25 % and the slow taper (PRECHARGE 0.25, BULK 0.125, ABSORB
-# 0.0625; 15 -> 80 % in about 11.6 min) and the same FAULT latch. One cause: the current limit. The
-# guards partition [0, 100] on both sides (no coverage gap: the pre-charge phase covers [10, 15)).
+# with its constant-current limit raised 25 % (BULK 0.125: 15 -> 80 % in about 11.6 min) and is
+# otherwise the profile with the slow taper: PRECHARGE 0.2 and ABSORB 0.05 are the profile's own
+# values, because a raised current limit scales neither the precharge current (a cell-protection
+# value) nor the constant-voltage taper (set by the cell's acceptance), and the same FAULT latch.
+# Two differences: the CC current limit and the slower phase decision its firmware ships with (the
+# control periods below). The guards partition [0, 100] on both sides (no coverage gap: the
+# pre-charge phase covers [10, 15)). The CC phase is the exponential x' = k (100 - x) on both
+# sides (8.5 %/min at 15 %, 2.1 %/min at 79 % on the deployed), the time-constant form of the
+# profile, not a constant rate; a constant-rate BULK was not tested.
 # Control periods. Right (certified profile): 0.006 min = 0.36 s (epsilon = 0.006): the phase
 # decision follows the vehicle's charge-current request, sent on the CHAdeMO CAN cycle of 100 ms
 # +- 10 % (CHAdeMO protocol), so 0.36 s bounds it with margin. Left (deployed unit): 0.012 min =
 # 0.72 s (epsilon = 0.012): the firmware with the raised limit takes the phase decision on every
 # other request cycle (it averages two consecutive current requests before changing phase, a
 # design value of this file; the round-2 design had the same 2:1 ratio, 2 h against 1 h). Every
-# decision interval is at most the period. The claim compares the two at equal times (lambda 1):
-# one deployed decision is matched by two profile decisions (M). Time scale (2026-10-27, batch I7):
-# the time unit is the minute (the earlier design used the hour with epsilon 0.0001 h); the rate
-# constants are per minute, so the phases take the minutes of DC fast charging.
+# decision interval is at most the period. Under the re-timing one deployed decision spans 2.5
+# replayed profile decisions, budget ceil(5/4 * 0.012 / 0.006) = 3 (M). Time scale (2026-10-27,
+# batch I7): the time unit is the minute (the earlier design used the hour with epsilon 0.0001 h);
+# the rate constants are per minute, so the phases take the minutes of DC fast charging.
 #
-# Property. Requirement (SoC overshoot): the deployed state of charge never exceeds the certified
-# profile's by more than 2 % SoC, the state-of-charge accuracy of the battery management system
-# (a larger lead would put the deployed cell outside the profile's validated SoC trajectory by more
-# than the BMS can resolve):
+# Property. Requirement (re-timed SoC lead): run against the certified profile replayed at the CC
+# current ratio 5/4 (the profile's clock runs 1.25 times faster; lambda_min = lambda_max = 1.25,
+# stated, not searched), the deployed state of charge never exceeds the replayed profile's by
+# more than 2 % SoC:
 #   BULK, ABSORB, FULL, FAULT: x_L <= x_R + 2;   PRECHARGE: x_L <= x_R.
-# The pre-charge row is stricter by necessity (D): with a lead allowed there a deployed cell at
-# 10 % could pair with a certified cell latched in FAULT. Tightest (measured 2026-10-27): the
-# charging rows certify down to 1.00 (0.99 declines); uniform rows x_L <= x_R + c decline
-# (c = 1, 2, 3, 4.9), and so does a uniform x_L <= x_R.
+# This is an upper bound on what the raised limit can buy, one-sided and re-timed. It is not an
+# equal-time comparison (at equal clocks the deployed leads the profile by up to 7 % SoC in the
+# CC phase, and no linear one-sided row is inductive there), and it is not a time-reparametrization
+# identity (only the CC rate is raised, so the deployed run is not the profile's run at 5/4 speed:
+# in PRECHARGE the replayed profile is 25 % faster than the deployed, in the taper the replayed
+# slow taper 0.0625 and fast taper 0.0875 both outrun the deployed 0.05). The pre-charge row is
+# stricter by necessity (D): with a lead allowed there a deployed cell at 10 % could pair with a
+# certified cell latched in FAULT; a two-sided pre-charge row (x_R <= x_L + c, c = 2, 5, 10)
+# DECLINES, because the replayed profile may be in BULK while the deployed cell still precharges.
+# Tightness (measured 2026-10-28, bisected): the rows certify at c = 2 and DECLINE at 1.9999. Two
+# residual artifacts of the tool's over-approximation set that number, not the charging physics:
+#   (i) c >= 2 is forced by the re-timed FAULT_L x FAULT_R pairing (the latched self-discharge
+#       x' = -0.01 x replayed at 5/4 under the cut x <= 10); with the FAULT row loosened to
+#       x_L <= x_R + 10 the charging rows certify at c = 1 and decline at 0.999;
+#   (ii) that remaining c >= 1 is the FULL pairing's asymptote-against-floor gap: a deployed cell
+#       still charging (x <= 100, the implied contraction cut) against a replayed cell at the
+#       FULL floor 99, independent of the deployed charger's rates.
+#   The charging pairings themselves hold at any positive c (BULK_L x BULK_R, the CC phase, is a
+#   genuine joint segment at the stated rates). The lambda pin matters: with lambda searched on
+#   [1, 6] the search takes lambda = 1 first and the CC phase certifies only by parking the
+#   profile at FULL (the earlier form of this file); on [1.2, 1.3] it certifies at 6/5.
 # Why pruning is needed (P). The reference's PRECHARGE and BULK declare FAULT edges; their
 # non-connection certificates (the charging flow rises at the 10 % threshold) prune them. Under
 # RELCERT_NO_PRUNE=1 the deployed PRECHARGE window has no cover (the reference's PRECHARGE
 # segment keeps FAULT in its all-successors obligation and the existential choice does not
 # replace it): DECLINED.
-# The bound also holds for other deployed behaviour (measured 2026-10-27): with the deployed rates
-# at twice or three times the profile's (the current limit doubled or tripled) the 2 % rows
-# CERTIFY, and RELCERT_NO_PRUNE=1 still DECLINES; with no raised limit (the deployed's rates set to
-# the profile's slow taper) they CERTIFY and RELCERT_NO_PRUNE=1 then also CERTIFIES (P is the
-# raised limit's: the faster deployed charge is what makes the FAULT obligation bite), while
-# RELCERT_SYNC=1 and RELCERT_NO_CUT=1 still DECLINE (R and I are the claim form's).
+# Why repositioning is needed (R), and where. Right-only repositioning is used for the lag
+# pairings of the BULK_L window only: the replayed profile still in PRECHARGE while the deployed
+# cell is in BULK (BULK_L x PRECHARGE_R: the profile precharges alone to 15 % and enters BULK), and
+# the replayed profile already tapering while the deployed cell dwells in BULK past 80 %
+# (BULK_L x ABSORB_SLOW_R, BULK_L x ABSORB_FAST_R: the profile tapers alone to FULL). Every
+# other admissible pairing is a joint segment (PRECHARGE_L and ABSORB_L: all joint; BULK_L x
+# BULK_R and BULK_L x FULL_R joint). RELCERT_NO_REPO=1 DECLINES.
 #
 # Domain 0 <= x <= 100 both sides (physical); every left mode has a satisfiable start
 # (x_L = x_R). The implied contraction atoms x <= 20 (PRECHARGE) and x <= 100 (BULK, tapers) are
 # load-bearing (without RELCERT_IMPLIED_CUT and under RELCERT_NO_IMPLIED_CUT=1: DECLINED).
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27, batch I9): CERTIFIED (about
-# 1.3 s); CERTIFIED under RELCERT_NO_CHOICE=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_OPREGION=1 (every
-# admitted start in some right guard), RELCERT_WELLFORMED_STRICT=1; DECLINED under RELCERT_SYNC=1,
-# RELCERT_NO_PRUNE=1, NO_PRUNE+NO_CHOICE, SYNC+NO_CHOICE, RELCERT_NO_REPO=1, without
-# RELCERT_IMPLIED_CUT, RELCERT_NO_IMPLIED_CUT=1 and RELCERT_NO_CUT=1.
-# Covers: lambda = 1 in every left mode, budget 2 (two profile decisions per deployed decision);
-# right-only repositioning on the replayed path (PRECHARGE_L through BULK, BULK_L through the
-# tapers to FULL, ABSORB_L), and joint steps whose profile BULK segment retains both tapers
-# (branch 2 in PRECHARGE_L and ABSORB_L). Pruned: PRECHARGE -> FAULT, BULK -> FAULT. --handoff
-# 10/10 unsat, non-vacuous (uniform rows decline: D). relcert --wellformed (both clauses):
-# PRECHARGE ok (exit->BULK), BULK ok (exit->ABSORB_FAST), ABSORB_SLOW and ABSORB_FAST ok
-# (exit->FULL), FULL and FAULT ok (invariant), 0 UNKNOWN, 0 BLOCKING. The right model is unchanged
-# (batch I7; Assumption 1 proof unchanged); the left changed only in its period (batch I9).
-# Letters: M R B P D I.
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-28, re-timed form): CERTIFIED
+# (about 0.7 s); CERTIFIED under RELCERT_NO_CHOICE=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_OPREGION=1
+# (every admitted start in some right guard), RELCERT_WELLFORMED_STRICT=1; DECLINED under
+# RELCERT_SYNC=1, SYNC+NO_CHOICE, RELCERT_NO_PRUNE=1, NO_PRUNE+NO_CHOICE, RELCERT_NO_REPO=1,
+# without RELCERT_IMPLIED_CUT, RELCERT_NO_IMPLIED_CUT=1 and RELCERT_NO_CUT=1.
+# Covers: lambda = 5/4 in every left mode, budget 3 (three replayed profile decisions per deployed
+# decision); right-only repositioning in BULK_L through PRECHARGE_R (to BULK) and through the two
+# tapers (to FULL); joint steps whose profile BULK segment retains both tapers (branch 2).
+# Pruned: PRECHARGE -> FAULT, BULK -> FAULT. --handoff 10/10 unsat, non-vacuous (uniform rows
+# decline: D). relcert --wellformed (both clauses): PRECHARGE ok (exit->BULK), BULK ok
+# (exit->ABSORB_FAST), ABSORB_SLOW and ABSORB_FAST ok (exit->FULL), FULL and FAULT ok
+# (invariant), 0 UNKNOWN, 0 BLOCKING. The right model is unchanged since batch I7 (Assumption 1
+# proof unchanged); the left changed in its period (batch I9) and in its PRECHARGE and ABSORB
+# rates (2026-10-28, the profile's values).
+# History: until 2026-10-28 the file raised every deployed rate by 25 % (PRECHARGE 0.25, ABSORB
+# 0.0625) and claimed the 2 % bound at equal times (lambda searched on [1, 6], taken at 1): that
+# claim is false physically (the deployed leads by up to 7 % in the CC phase) and its certificate
+# parked the profile at FULL for every CC-phase pairing (the BULK_L window had no joint segment),
+# so its "tightest 1.00" measured the FULL pairing's 100 - 99, not the deployed charger. The
+# re-timed one-sided form replaced it.
+# Letters: S M R B P D I.
 [problem]
 name = charger_fast_tapers
 max_depth = 8
-lambda_min = 1.0
-lambda_max = 6.0
+lambda_min = 1.25
+lambda_max = 1.25
 bound_T = 4.0
 [Lsys]
 state_vars = [x]
 epsilon = 0.012
 [Lsys.mode.PRECHARGE]
-ode = x' = smt2:(* 0.25 (- 20.0 x));
+ode = x' = smt2:(* 0.2 (- 20.0 x));
 guard = x >= 10.0 and x < 15.0
 evolve = x >= 0.0 and x <= 100.0
 next = [BULK, PRECHARGE, FAULT]
@@ -95,7 +127,7 @@ guard = x >= 15.0 and x < 80.0
 evolve = x >= 0.0 and x <= 100.0
 next = [ABSORB, BULK, FAULT]
 [Lsys.mode.ABSORB]
-ode = x' = smt2:(* 0.0625 (- 100.0 x));
+ode = x' = smt2:(* 0.05 (- 100.0 x));
 guard = x >= 80.0 and x < 99.0
 evolve = x >= 0.0 and x <= 100.0
 next = [FULL, ABSORB]

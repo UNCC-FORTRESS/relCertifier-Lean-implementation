@@ -52,6 +52,49 @@ and its 16 witness-less finder records; the self-contained exhibit
 184 -> 179 right modes (87 invariant, 92 exit), bridge groups 4874 -> 4797 (its 77), battery 66 -> 65
 axiom lines.
 
+## Review fixes 2026-10-28: `zone_lightmass_schedule`, `charger_fast_tapers`, two literature headers
+
+Four changes from the benchmark review of 2026-10-28 (`docs/BENCHMARK-REVIEW-2026-10-28.md`), each
+verified on scratch variants before it was installed:
+
+* `zone_lightmass_schedule` (score 2, RETHINK): the exact re-timing identity `T_L = T_R` certified
+  only the rounded plant (left rate 0.04, ratio exactly 2; with the stated plant 0.04125 and
+  lambda 2 it declines, and a lambda grid misses 2). Now the band form: left rate 0.04125 (the
+  stated 165/80), right 0.02, lambda 2 pinned (the design ratio), the comfort band 16..21 as
+  guard and domain, rows `|T_L - T_R| <= 0.152` in both left modes. Tight: 0.152 certifies, 0.15
+  declines (the inductive bound `(a - lambda b) 5 / a = 0.1515`); the reachable worst case from
+  equal starts is 0.057 K; with ratio 2.25 the row needs 0.56 (the bound follows the cause).
+  Letters S M B X kept (SYNC, lambda 1 and NO_CHOICE decline; NO_PRUNE, NO_CUT, NO_REPO certify);
+  the stray ", M6" after the choice sentence is gone (no matrix column for X).
+* `charger_fast_tapers` (score 1, RETHINK): the equal-time claim was false physically (the
+  deployed leads the profile by up to 7 % SoC in the CC phase) and certified only by parking the
+  profile at FULL in every CC-phase pairing, so its "tightest 1.00" measured 100 - 99. Now the
+  physics-corrected model (only the CC rate raised: BULK 0.125; PRECHARGE 0.2 and ABSORB 0.05
+  are the profile's values) against the profile replayed at the current ratio 5/4
+  (`lambda_min = lambda_max = 1.25`), one-sided rows `x_L <= x_R + 2` (PRECHARGE `x_L <= x_R`),
+  FAULT row kept. Tight at c = 2 (1.9999 declines), the two residual artifacts disclosed in the
+  header (c >= 2 from the re-timed FAULT/FAULT pairing, c = 1 with that row loosened to +10; the
+  remaining c >= 1 the FULL pairing's asymptote-against-floor gap). BULK_L x BULK_R is now a
+  genuine joint segment; repositioning serves the BULK_L lag pairings only. Letters: S gained
+  (lambda 5/4), M R B P D I kept; no X before or after (NO_CHOICE certifies; a two-sided
+  PRECHARGE row declines at c = 2, 5, 10, and a lambda window [1.2, 1.3] certifies at 6/5 without
+  choice either). The stretch must be pinned: searched on [1, 6] the tool takes lambda 1 and
+  parks at FULL again. Suite counts after the two redesigns: modal 1004 -> 1007 and reposition
+  76 -> 73 (the charger's joint pairings grew and its reposition nodes shrank), bridge groups
+  `charger_fast_tapers` 222 -> 225, `zone_lightmass_schedule` 26 unchanged, 4800 over the suite
+  and the two exhibits; progress certificates 199 unchanged.
+  Letter totals (`docs/paper-numbers/letters.md`, re-run 2026-10-28): S 19 -> 20 (the charger's
+  stretch), X 15 -> 14 (the skipped file), M 25, R 7, B 12, P 6, D 12, I 18 unchanged; benchmarks
+  certifying under `RELCERT_SYNC=1` 25 -> 24; without pruning 44 -> 43 and without choice 35
+  (the skipped file certified under both); the pruning ablation stays at 6 declines.
+* `lit_freedm_meter`: header X paragraph corrected (the witness never needs its battery: a grid
+  mode with the left's net draw always exists, the source's own argument for Prop. 11; a
+  grid-only right and a battery-unreachable right also certify; choice is needed because the
+  matching grid mode changes per window). Input unchanged.
+* `lit_lz21_vehicle_position`: header item (3) now discloses that the three-level, guard-checked
+  input narrows the universally quantified secret run (and that sub-period switching adds runs),
+  with the copy witness level-independent (a five-level file also certifies). Input unchanged.
+
 ## Literature faithfulness fixes (2026-10-28)
 
 The owner asked that the nine literature benchmarks be as faithful to their sources as the

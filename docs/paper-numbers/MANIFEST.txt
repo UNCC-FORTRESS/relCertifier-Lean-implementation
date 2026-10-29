@@ -1,10 +1,6 @@
-commit 54fe276ceba69af094e7afdb6a6d56a3fc3a34ae DIRTY
+commit 36b8df61f4913586e534e43e95ff053e6b4ba170 DIRTY
 z3 Z3 version 4.15.1 - 64 bit
 os Darwin 25.5.0 arm64
-date 2026-10-28T23:06:47Z
+date 2026-10-29T00:57:55Z
 flags RELCERT_IMPLIED_CUT=1 (all runs); per-run switches in the run names
 covers identical
-
-literature rename run (2026-10-28): scripts/paper_numbers.sh re-run on the rename commit (54fe276: the nine literature benchmarks renamed with the lit_ prefix, benchmarks/README.md "Renamed 2026-10-28: the literature group"; names only) on an Apple M2 Max (12 cores), Z3 4.15.1, the same machine as the 1df2028 run. "DIRTY" above: the script writes build.log before it records the commit; no benchmark, script, binary or Lean file differed from 54fe276 (the only untracked files are the .err and covers outputs of this script). Against the 1df2028 run with the old names mapped to the new: every verdict, letter, matrix cell and count identical; only the order of rows (sorted by name) and the timings differ. Letters S 19, M 25, R 7, B 12, P 6, D 12, I 18, X 15; benchmarks certifying under RELCERT_SYNC=1 25; numbers.tex byte-identical, including the timing macros: control-run total 105 s, 29 files under 1 s, slowest rover_ladder_8to12 33 s. These are laptop timings; a run in a container (or any other machine) gives other timings, and the paper's timings are the laptop's (105 s total, 29 under 1 s, slowest 33 s).
-D rule (owner, 2026-10-27): D counts where the stated requirement differs per mode, so the claim needs mode-dependent rows, even if a weaker uniform row that drops a stated requirement certifies (matrix M5 AND every uniform row set from the file's own rows that keeps every stated requirement DECLINES; "keeps" = implies every mode's row, Z3 over the reals; the conjunction of the rows when no single row implies all). The earlier strict rule (every uniform row set declines) is kept as diagnostic D_strict.
-\numnolinear (certified without decoupling forms, 50) is informational, not a paper number (no benchmark needs a decoupling form); numbers.tex marks it.

@@ -39,13 +39,17 @@
 #     almost everywhere, the source's agreement on gr at every cycle end.
 # PROPERTY. The suite's Definition 1 (the source's nondeducibility) at E_L = E_R (two
 # inequalities), every pair of battery levels an admissible start: the secret B is
-# unconstrained on either side. Witness: the right copies the left's source and inputs when its
-# battery allows, otherwise draws from the grid with d = r
-# (zero net draw). Existential mode choice (the tool's default): the right commits to one mode.
-# Why committed choice is needed (X): the witness mode depends on the second run's own battery
-# level, so the right must choose it; without the choice (RELCERT_NO_CHOICE=1) the right must
-# flow on in whatever admissible mode it holds at the window start, and the meters separate:
-# DECLINED.
+# unconstrained on either side. Witness: the right never needs its battery: whatever the left
+# draws from or returns to the grid (E' in {-1, 0, 1, 2}), a grid mode with the same net draw
+# exists (d = r for 0, d = r + 1 for 1, d = 2 and r = 0 for 2, d = 0 and r = 1 for -1), so a
+# witness that matches the meter from every battery level B_R is available; this is the source's
+# own argument for Prop. 11 (the grid branch is always available). A right model with the six
+# grid modes only, or with the battery modes unreachable, also CERTIFIES (measured 2026-10-28).
+# Existential mode choice (the tool's default): the right commits to one mode.
+# Why committed choice is needed (X): the grid mode that matches the left's draw changes from
+# window to window, so the right must choose it at each window start; without the choice
+# (RELCERT_NO_CHOICE=1) the right must flow on in whatever admissible mode it holds, and the
+# meters separate: DECLINED (also for the grid-only right).
 # The leaky controller batI is benchmarks/negative/lit_freedm_meter_leaky (expected DECLINED).
 # Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26, re-measured 2026-10-28 on
 # branch benchmark-fixes, unchanged): CERTIFIED (about 2.5 s); CERTIFIED under RELCERT_SYNC=1,

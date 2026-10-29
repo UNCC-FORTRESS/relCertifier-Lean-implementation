@@ -1,4 +1,4 @@
-⚠ [1/498] Replayed RelCertifier.Trusted.Parse
+⚠ [1/466] Replayed RelCertifier.Trusted.Parse
 warning: RelCertifier/Trusted/Parse.lean:35:45: `String.dropRight` has been deprecated: Use `String.dropEnd` instead
 
 Note: The updated constant has a different type:
@@ -10,16 +10,16 @@ warning: RelCertifier/Trusted/Parse.lean:90:36: `String.data` has been deprecate
 warning: RelCertifier/Trusted/Parse.lean:91:27: `String.data` has been deprecated: Use `String.toList` instead
 warning: RelCertifier/Trusted/Parse.lean:91:58: `String.data` has been deprecated: Use `String.toList` instead
 warning: RelCertifier/Trusted/Parse.lean:360:26: `String.data` has been deprecated: Use `String.toList` instead
-⚠ [134/498] Replayed RelCertifier.Core.QFrac
+⚠ [134/466] Replayed RelCertifier.Core.QFrac
 warning: RelCertifier/Core/QFrac.lean:77:53: `String.data` has been deprecated: Use `String.toList` instead
-⚠ [8560/8850] Replayed RelCertifier.Trusted.Z3
+⚠ [8560/8579] Replayed RelCertifier.Trusted.Z3
 warning: RelCertifier/Trusted/Z3.lean:87:17: `String.trim` has been deprecated: Use `String.trimAscii` instead
 
 Note: The updated constant has a different type:
   String → String.Slice
 instead of
   String → String
-⚠ [8565/8850] Replayed RelCertifier.Trusted.KeyAudit
+⚠ [8565/8847] Replayed RelCertifier.Trusted.KeyAudit
 warning: RelCertifier/Trusted/KeyAudit.lean:46:17: `String.trim` has been deprecated: Use `String.trimAscii` instead
 
 Note: The updated constant has a different type:
@@ -33,11 +33,11 @@ Note: The updated constant has a different type:
   String → String.Slice
 instead of
   String → String
-⚠ [8620/8850] Replayed DLLean.Semantics
+⚠ [8619/8847] Replayed DLLean.Semantics
 warning: DLLean/Semantics.lean:94:100: This line exceeds the 100 character limit, please shorten it!
 
 Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [8630/8850] Replayed RelCertifier.Core.FlowCert
+⚠ [8629/8847] Replayed RelCertifier.Core.FlowCert
 warning: RelCertifier/Core/FlowCert.lean:214:63: This simp argument is unused:
   Prod.fst
 
@@ -45,7 +45,7 @@ Hint: Omit it from the simp argument list.
   simp only [List.map_append, List.map_map, Function.comp_def,̵ ̵P̵r̵o̵d̵.̵f̵s̵t̵]
 
 Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
-⚠ [8634/8850] Replayed RelCertifier.Trusted.InvStrictFlags
+⚠ [8633/8847] Replayed RelCertifier.Trusted.InvStrictFlags
 warning: RelCertifier/Trusted/InvStrictFlags.lean:79:65: This simp argument is unused:
   ha
 
@@ -60,7 +60,7 @@ Hint: Omit it from the simp argument list.
   simp [ha,̵ ̵h̵b̵]
 
 Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
-⚠ [8652/8850] Replayed RelCertifier.Checker.NonConn
+⚠ [8651/8847] Replayed RelCertifier.Checker.NonConn
 warning: RelCertifier/Checker/NonConn.lean:58:46: This simp argument is unused:
   Function.comp_def
 
@@ -82,7 +82,7 @@ consider restructuring your `variable` declarations so that the variables are no
   omit [Fintype V] [DecidableEq V] in theorem ...
 
 Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
-⚠ [8653/8850] Replayed RelCertifier.Checker.Cover
+⚠ [8652/8847] Replayed RelCertifier.Checker.Cover
 warning: RelCertifier/Checker/Cover.lean:235:0: automatically included section variable(s) unused in theorem `RelCertifier.cover_budget_decreases`:
   [Fintype V]
   [DecidableEq V]
@@ -102,7 +102,7 @@ consider restructuring your `variable` declarations so that the variables are no
   omit [Fintype V] [DecidableEq V] in theorem ...
 
 Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
-⚠ [8659/8850] Replayed DLRel.Bridge
+⚠ [8658/8847] Replayed DLRel.Bridge
 warning: DLRel/Bridge.lean:406:100: This line exceeds the 100 character limit, please shorten it!
 
 Note: This linter can be disabled with `set_option linter.style.longLine false`
@@ -115,7 +115,7 @@ Note: This linter can be disabled with `set_option linter.style.longLine false`
 warning: DLRel/Bridge.lean:425:100: This line exceeds the 100 character limit, please shorten it!
 
 Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [8660/8850] Replayed DLRel.Modality
+⚠ [8659/8847] Replayed DLRel.Modality
 warning: DLRel/Modality.lean:61:37: This simp argument is unused:
   Formula.rename
 
@@ -126,7 +126,7 @@ Hint: Omit it from the simp argument list.
   ̵  ̵ ̵ ̵Formula.sat]
 
 Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
-⚠ [8662/8850] Replayed RelCertifier.Proofs.Encoding.JointBridge
+⚠ [8661/8847] Replayed RelCertifier.Proofs.Encoding.JointBridge
 warning: RelCertifier/Proofs/Encoding/JointBridge.lean:61:0: automatically included section variable(s) unused in theorem `RelCertifier.bigChoiceP_sem_of_mem`:
   [Fintype V]
   [DecidableEq V]
@@ -147,7 +147,7 @@ consider restructuring your `variable` declarations so that the variables are no
   omit [Fintype V] [DecidableEq V] in theorem ...
 
 Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
-⚠ [8664/8850] Replayed RelCertifier.Proofs.Encoding.EncodingBridge
+⚠ [8663/8847] Replayed RelCertifier.Proofs.Encoding.EncodingBridge
 warning: RelCertifier/Proofs/Encoding/EncodingBridge.lean:37:0: automatically included section variable(s) unused in theorem `RelCertifier.faModal_to_faShape`:
   [Fintype V]
   [DecidableEq V]
@@ -155,7 +155,7 @@ consider restructuring your `variable` declarations so that the variables are no
   omit [Fintype V] [DecidableEq V] in theorem ...
 
 Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
-⚠ [8665/8850] Replayed RelCertifier.Proofs.Encoding.Reification
+⚠ [8664/8847] Replayed RelCertifier.Proofs.Encoding.Reification
 warning: RelCertifier/Proofs/Encoding/Reification.lean:45:0: automatically included section variable(s) unused in theorem `RelCertifier.faModal_bigChoiceR`:
   [Fintype V]
   [DecidableEq V]
@@ -177,7 +177,7 @@ Hint: Omit it from the simp argument list.
   simp [bigChoice, P̵r̵o̵g̵r̵a̵m̵.̵s̵e̵m̵,̵ ̵Formula.sat] at hν
 
 Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
-⚠ [8670/8850] Replayed RelCertifier.Checker.Checker
+⚠ [8669/8847] Replayed RelCertifier.Checker.Checker
 warning: RelCertifier/Checker/Checker.lean:71:0: automatically included section variable(s) unused in theorem `RelCertifier.decideCovered_sound`:
   [Fintype V]
   [DecidableEq V]
@@ -185,7 +185,7 @@ consider restructuring your `variable` declarations so that the variables are no
   omit [Fintype V] [DecidableEq V] in theorem ...
 
 Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
-⚠ [8672/8850] Replayed RelCertifier.Proofs.Encoding.BridgeDischarge
+⚠ [8671/8847] Replayed RelCertifier.Proofs.Encoding.BridgeDischarge
 warning: RelCertifier/Proofs/Encoding/BridgeDischarge.lean:80:50: Variable name `g` is not explicitly referenced.
 
 The binding can be removed (if unused) or named `_` (if used implicitly).
@@ -196,7 +196,7 @@ warning: RelCertifier/Proofs/Encoding/BridgeDischarge.lean:80:69: Variable name 
 The binding can be removed (if unused) or named `_` (if used implicitly).
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-⚠ [8675/8850] Replayed RelCertifier.Proofs.Flow.PicardBridge
+⚠ [8674/8847] Replayed RelCertifier.Proofs.Flow.PicardBridge
 warning: RelCertifier/Proofs/Flow/PicardBridge.lean:527:6: `push_neg` has been deprecated. Prefer using `push Not` instead.
 If you'd rather continue using `push_neg` in your project, you can implement it as follows:
 ```
@@ -233,9 +233,9 @@ warning: RelCertifier/Proofs/Flow/PicardBridge.lean:1514:5: Variable name `hlam`
 The binding can be removed (if unused) or named `_` (if used implicitly).
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-⚠ [8677/8850] Replayed RelCertifier.Proofs.Encoding.MultiSeg
+⚠ [8676/8847] Replayed RelCertifier.Proofs.Encoding.MultiSeg
 warning: RelCertifier/Proofs/Encoding/MultiSeg.lean:94:14: `Set.diff_subset` has been deprecated: Use `Set.sdiff_subset` instead
-⚠ [8680/8850] Replayed RelCertifier.Proofs.Encoding.BridgeReposition
+⚠ [8679/8847] Replayed RelCertifier.Proofs.Encoding.BridgeReposition
 warning: RelCertifier/Proofs/Encoding/BridgeReposition.lean:294:48: This simp argument is unused:
   Program.sem
 
@@ -254,13 +254,13 @@ warning: RelCertifier/Proofs/Encoding/BridgeReposition.lean:673:34: Variable nam
 The binding can be removed (if unused) or named `_` (if used implicitly).
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-⚠ [8681/8850] Replayed RelCertifier.Proofs.Flow.MultisegLanding
+⚠ [8680/8847] Replayed RelCertifier.Proofs.Flow.MultisegLanding
 warning: RelCertifier/Proofs/Flow/MultisegLanding.lean:1085:55: Variable name `domL` is not explicitly referenced.
 
 The binding can be removed (if unused) or named `_` (if used implicitly).
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-⚠ [8684/8850] Replayed RelCertifier.Proofs.Soundness.GuardThreaded
+⚠ [8683/8847] Replayed RelCertifier.Proofs.Soundness.GuardThreaded
 warning: RelCertifier/Proofs/Soundness/GuardThreaded.lean:490:18: Variable name `hdt` is not explicitly referenced.
 
 The binding can be removed (if unused) or named `_` (if used implicitly).
@@ -434,7 +434,7 @@ Hint: Omit it from the simp argument list.
   simp only [b̵a̵n̵d̵D̵o̵m̵,̵ ̵Formula.sat, CompOp.interp, Term.eval]
 
 Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
-⚠ [8685/8850] Replayed RelCertifier.Checker.WellFormedChecker
+⚠ [8684/8847] Replayed RelCertifier.Checker.WellFormedChecker
 warning: RelCertifier/Checker/WellFormedChecker.lean:1187:42: Variable name `ht` is not explicitly referenced.
 
 The binding can be removed (if unused) or named `_` (if used implicitly).
@@ -487,13 +487,13 @@ Hint: Omit it from the simp argument list.
   ̲  ̲ ̲ ̲ ̲ ̲B̵o̵o̵l̵.̵n̵o̵t̵_̵e̵q̵_̵t̵r̵u̵e̵'̵,̵ ̵d̵e̵c̵i̵d̵e̵_̵e̵q̵_̵f̵a̵l̵s̵e̵_̵i̵f̵f̵_̵n̵o̵t̵]̵B̲o̲o̲l̲.̲n̲o̲t̲_̲e̲q̲_̲t̲r̲u̲e̲'̲]̲ at henvm
 
 Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
-⚠ [8686/8850] Replayed RelCertifier.Checker.AffineChecker
+⚠ [8685/8847] Replayed RelCertifier.Checker.AffineChecker
 warning: RelCertifier/Checker/AffineChecker.lean:130:5: Variable name `hvLo` is not explicitly referenced.
 
 The binding can be removed (if unused) or named `_` (if used implicitly).
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-⚠ [8687/8850] Replayed RelCertifier.Checker.TerrainChecker
+⚠ [8686/8847] Replayed RelCertifier.Checker.TerrainChecker
 warning: RelCertifier/Checker/TerrainChecker.lean:1198:35: This simp argument is unused:
   zero_sub
 
@@ -552,9 +552,9 @@ Hint: Omit it from the simp argument list.
   ̵ ̵ ̵ ̵ ̵ ̵ ̵ ̵ ̵ ̵ ̵ ̵ ̵ ̵ ̵d̵e̵c̵i̵d̵e̵_̵e̵q̵_̵false_iff_not] at hthis
 
 Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
-⚠ [8691/8850] Replayed RelCertifier.Checker.EvolStrengtheningX
+⚠ [8690/8847] Replayed RelCertifier.Checker.EvolStrengtheningX
 warning: RelCertifier/Checker/EvolStrengtheningX.lean:299:12: `String.mk` has been deprecated: Use `String.ofList` instead
-⚠ [8701/8850] Replayed RelCertifier.Proofs.Flow.StratifiedBarrier
+⚠ [8700/8847] Replayed RelCertifier.Proofs.Flow.StratifiedBarrier
 warning: RelCertifier/Proofs/Flow/StratifiedBarrier.lean:63:5: Variable name `hr` is not explicitly referenced.
 
 The binding can be removed (if unused) or named `_` (if used implicitly).
@@ -565,7 +565,7 @@ warning: RelCertifier/Proofs/Flow/StratifiedBarrier.lean:95:37: Variable name `h
 The binding can be removed (if unused) or named `_` (if used implicitly).
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-⚠ [8704/8850] Replayed RelCertifier.Proofs.Soundness.CutLift
+⚠ [8703/8847] Replayed RelCertifier.Proofs.Soundness.CutLift
 warning: RelCertifier/Proofs/Soundness/CutLift.lean:190:40: Variable name `hr` is not explicitly referenced.
 
 The binding can be removed (if unused) or named `_` (if used implicitly).
@@ -610,7 +610,7 @@ warning: RelCertifier/Proofs/Soundness/CutLift.lean:478:17: Variable name `ν` i
 The binding can be removed (if unused) or named `_` (if used implicitly).
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-⚠ [8706/8850] Replayed RelCertifier.Proofs.Encoding.ClockedTop
+⚠ [8705/8847] Replayed RelCertifier.Proofs.Encoding.ClockedTop
 warning: RelCertifier/Proofs/Encoding/ClockedTop.lean:168:6: `push_neg` has been deprecated. Prefer using `push Not` instead.
 If you'd rather continue using `push_neg` in your project, you can implement it as follows:
 ```
@@ -618,7 +618,7 @@ open Lean.Parser.Tactic in
 macro "push_neg" cfg:optConfig loc:(location)? : tactic =>
   `(tactic| push $cfg:optConfig Not $[$loc]?)
 ```
-⚠ [8707/8850] Replayed RelCertifier.Proofs.Encoding.FvDischarge
+⚠ [8706/8847] Replayed RelCertifier.Proofs.Encoding.FvDischarge
 warning: RelCertifier/Proofs/Encoding/FvDischarge.lean:27:4: this tactic is never executed
 
 Note: This linter can be disabled with `set_option linter.unreachableTactic false`
@@ -658,7 +658,7 @@ Hint: Omit it from the simp argument list.
   simp ̵[̵T̵e̵r̵m̵.̵f̵v̵]̵
 
 Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
-⚠ [8708/8850] Replayed RelCertifier.Proofs.Encoding.LoweringSide
+⚠ [8707/8847] Replayed RelCertifier.Proofs.Encoding.LoweringSide
 warning: RelCertifier/Proofs/Encoding/LoweringSide.lean:145:34: This simp argument is unused:
   Term.fv
 
@@ -669,11 +669,11 @@ Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
 warning: RelCertifier/Proofs/Encoding/LoweringSide.lean:288:51: try 'simp' instead of 'simpa'
 
 Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
-⚠ [8711/8850] Replayed RelCertifier.Proofs.Transfer.Rescale
+⚠ [8710/8847] Replayed RelCertifier.Proofs.Transfer.Rescale
 warning: RelCertifier/Proofs/Transfer/Rescale.lean:132:6: 'push_cast at h' tactic does nothing
 
 Note: This linter can be disabled with `set_option linter.unusedTactic false`
-⚠ [8712/8850] Replayed RelCertifier.Proofs.Transfer.FaithfulBridge
+⚠ [8711/8847] Replayed RelCertifier.Proofs.Transfer.FaithfulBridge
 warning: RelCertifier/Proofs/Transfer/FaithfulBridge.lean:132:30: Variable name `ha` is not explicitly referenced.
 
 The binding can be removed (if unused) or named `_` (if used implicitly).
@@ -706,7 +706,7 @@ Note: This linter can be disabled with `set_option linter.unreachableTactic fals
 warning: RelCertifier/Proofs/Transfer/FaithfulBridge.lean:2119:8: this tactic is never executed
 
 Note: This linter can be disabled with `set_option linter.unreachableTactic false`
-ℹ [8713/8850] Replayed RelCertifier.Proofs.Soundness.CutLiftX
+ℹ [8712/8847] Replayed RelCertifier.Proofs.Soundness.CutLiftX
 info: RelCertifier/Proofs/Soundness/CutLiftX.lean:1449:0: 'RelCertifier.entry_rational' depends on axioms: [propext, Classical.choice, Quot.sound]
 info: RelCertifier/Proofs/Soundness/CutLiftX.lean:1450:0: 'RelCertifier.entry_linear' depends on axioms: [propext, Classical.choice, Quot.sound]
 info: RelCertifier/Proofs/Soundness/CutLiftX.lean:1451:0: 'RelCertifier.evolStrengtheningWFX_entryR' depends on axioms: [propext, Classical.choice, Quot.sound]
@@ -718,14 +718,14 @@ info: RelCertifier/Proofs/Soundness/CutLiftX.lean:1456:0: 'RelCertifier.segPresA
 info: RelCertifier/Proofs/Soundness/CutLiftX.lean:1457:0: 'RelCertifier.entry_z3' depends on axioms: [propext, Classical.choice, Quot.sound, z3_unsat_sound]
 info: RelCertifier/Proofs/Soundness/CutLiftX.lean:1458:0: 'RelCertifier.entryZ3Fact_of_unsat' depends on axioms: [propext, Classical.choice, Quot.sound, z3_unsat_sound]
 info: RelCertifier/Proofs/Soundness/CutLiftX.lean:1459:0: 'RelCertifier.evolStrengtheningWFX_entryL' depends on axioms: [propext, Classical.choice, Quot.sound]
-⚠ [8714/8850] Replayed RelCertifier.Proofs.Encoding.ClockReduce
+⚠ [8713/8847] Replayed RelCertifier.Proofs.Encoding.ClockReduce
 warning: RelCertifier/Proofs/Encoding/ClockReduce.lean:27:0: automatically included section variable(s) unused in theorem `RelCertifier.clockReduce`:
   [Fintype V]
 consider restructuring your `variable` declarations so that the variables are not in scope or explicitly omit them:
   omit [Fintype V] in theorem ...
 
 Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
-⚠ [8715/8850] Replayed RelCertifier.Proofs.Encoding.RepositionDischarge
+⚠ [8714/8847] Replayed RelCertifier.Proofs.Encoding.RepositionDischarge
 warning: RelCertifier/Proofs/Encoding/RepositionDischarge.lean:335:54: Variable name `g` is not explicitly referenced.
 
 The binding can be removed (if unused) or named `_` (if used implicitly).
@@ -746,13 +746,13 @@ warning: RelCertifier/Proofs/Encoding/RepositionDischarge.lean:436:62: Variable 
 The binding can be removed (if unused) or named `_` (if used implicitly).
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-⚠ [8718/8850] Replayed RelCertifier.Proofs.Encoding.UniformMultiflow
+⚠ [8717/8847] Replayed RelCertifier.Proofs.Encoding.UniformMultiflow
 warning: RelCertifier/Proofs/Encoding/UniformMultiflow.lean:218:51: Variable name `g` is not explicitly referenced.
 
 The binding can be removed (if unused) or named `_` (if used implicitly).
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-⚠ [8720/8850] Replayed RelCertifier.Proofs.Encoding.RepoPrefix
+⚠ [8719/8847] Replayed RelCertifier.Proofs.Encoding.RepoPrefix
 warning: RelCertifier/Proofs/Encoding/RepoPrefix.lean:205:33: This simp argument is unused:
   ODESystem.bound
 
@@ -794,7 +794,7 @@ open Lean.Parser.Tactic in
 macro "push_neg" cfg:optConfig loc:(location)? : tactic =>
   `(tactic| push $cfg:optConfig Not $[$loc]?)
 ```
-⚠ [8721/8850] Replayed RelCertifier.Proofs.Encoding.EnvelopeChain
+⚠ [8720/8847] Replayed RelCertifier.Proofs.Encoding.EnvelopeChain
 warning: RelCertifier/Proofs/Encoding/EnvelopeChain.lean:539:2: `push_neg` has been deprecated. Prefer using `push Not` instead.
 If you'd rather continue using `push_neg` in your project, you can implement it as follows:
 ```
@@ -805,7 +805,7 @@ macro "push_neg" cfg:optConfig loc:(location)? : tactic =>
 warning: RelCertifier/Proofs/Encoding/EnvelopeChain.lean:566:26: try 'simp' instead of 'simpa'
 
 Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
-⚠ [8723/8850] Replayed RelCertifier.Proofs.Encoding.CanonicalInv
+⚠ [8722/8847] Replayed RelCertifier.Proofs.Encoding.CanonicalInv
 warning: RelCertifier/Proofs/Encoding/CanonicalInv.lean:68:46: This simp argument is unused:
   Term.rename_refl
 
@@ -813,7 +813,7 @@ Hint: Omit it from the simp argument list.
   simp only [RFormula.renameR, RTerm.renameR, T̵e̵r̵m̵.̵r̵e̵n̵a̵m̵e̵_̵r̵e̵f̵l̵,̵ ̵rsplit_renameR_refl]
 
 Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
-⚠ [8724/8850] Replayed RelCertifier.Proofs.Flow.BoxViability
+⚠ [8723/8847] Replayed RelCertifier.Proofs.Flow.BoxViability
 warning: RelCertifier/Proofs/Flow/BoxViability.lean:74:2: `push_neg` has been deprecated. Prefer using `push Not` instead.
 If you'd rather continue using `push_neg` in your project, you can implement it as follows:
 ```
@@ -828,7 +828,7 @@ open Lean.Parser.Tactic in
 macro "push_neg" cfg:optConfig loc:(location)? : tactic =>
   `(tactic| push $cfg:optConfig Not $[$loc]?)
 ```
-⚠ [8725/8850] Replayed RelCertifier.Proofs.Flow.BoxViabilityBounded
+⚠ [8724/8847] Replayed RelCertifier.Proofs.Flow.BoxViabilityBounded
 warning: RelCertifier/Proofs/Flow/BoxViabilityBounded.lean:161:6: `push_neg` has been deprecated. Prefer using `push Not` instead.
 If you'd rather continue using `push_neg` in your project, you can implement it as follows:
 ```
@@ -836,13 +836,13 @@ open Lean.Parser.Tactic in
 macro "push_neg" cfg:optConfig loc:(location)? : tactic =>
   `(tactic| push $cfg:optConfig Not $[$loc]?)
 ```
-⚠ [8726/8850] Replayed RelCertifier.Proofs.Flow.ViabilityWiring
+⚠ [8725/8847] Replayed RelCertifier.Proofs.Flow.ViabilityWiring
 warning: RelCertifier/Proofs/Flow/ViabilityWiring.lean:105:14: Variable name `hdt0` is not explicitly referenced.
 
 The binding can be removed (if unused) or named `_` (if used implicitly).
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-⚠ [8740/8850] Replayed RelCertifier.Proofs.Encoding.GuardedSwitch
+⚠ [8739/8847] Replayed RelCertifier.Proofs.Encoding.GuardedSwitch
 warning: RelCertifier/Proofs/Encoding/GuardedSwitch.lean:662:18: This simp argument is unused:
   RFormula.sat
 
@@ -850,7 +850,7 @@ Hint: Omit it from the simp argument list.
   simp [canonInv, R̵F̵o̵r̵m̵u̵l̵a̵.̵s̵a̵t̵,̵ ̵rsplit_eval, RTerm.eval, Term.eval, CompOp.interp]
 
 Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
-⚠ [8742/8850] Replayed RelCertifier.Proofs.Encoding.SyncSwitch
+⚠ [8741/8847] Replayed RelCertifier.Proofs.Encoding.SyncSwitch
 warning: RelCertifier/Proofs/Encoding/SyncSwitch.lean:118:18: Variable name `htgL` is not explicitly referenced.
 
 The binding can be removed (if unused) or named `_` (if used implicitly).
@@ -861,11 +861,11 @@ warning: RelCertifier/Proofs/Encoding/SyncSwitch.lean:118:42: Variable name `htg
 The binding can be removed (if unused) or named `_` (if used implicitly).
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-⚠ [8743/8850] Replayed RelCertifier.Proofs.Encoding.ReplayDyn
+⚠ [8742/8847] Replayed RelCertifier.Proofs.Encoding.ReplayDyn
 warning: RelCertifier/Proofs/Encoding/ReplayDyn.lean:78:38: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
 
 Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
 warning: RelCertifier/Proofs/Encoding/ReplayDyn.lean:172:29: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
 
 Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
-Build completed successfully (17680 jobs).
+Build completed successfully (17674 jobs).

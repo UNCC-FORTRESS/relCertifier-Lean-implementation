@@ -45,8 +45,14 @@
 #   velocities in [0, 0.1] is an admissible start, a stronger claim.
 # (2) Witness: the exact copy u_hat = u (equal velocities) instead of the source's feedback policy
 #   (which, taken literally, is not input-admissible: x1 = 5, x1_hat = 6 gives u_hat about 13).
-# (3) Inputs: three levels (the ends and the middle of U) instead of the interval; switching after
-#   less than a period is allowed on the left (continuous time), the partner copies each switch.
+# (3) Inputs: the secret run takes three input levels (the ends and the middle of U) and may
+#   switch between them after less than a period (continuous time), with each level's guard
+#   checked at the window start (Up at v <= 0.05, Um at v >= 0.05, so that one period keeps v in
+#   [0, 0.1]). This narrows the universally quantified secret run: inputs strictly inside U, and
+#   inputs at the source's velocity limits (e.g. u = 0.02 at x2 = 0.08), are not represented,
+#   while sub-period switching adds runs the source does not have. The copying partner does not
+#   depend on the levels (a five-level file also certifies), but only the three-level claim is
+#   certified.
 # (4) Boundary: x_L = 0 pairs with x_R = 1, on the boundary of the closed Xs; the source's R0
 #   (x1_hat in [1, 10]) does the same, and at delta = 1 no partner of x1 = 0 lies in X0 \ Xs.
 #

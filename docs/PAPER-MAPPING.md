@@ -256,11 +256,12 @@ Two more cases, `stepChosen`, `repoChosen` and `hop`, are the existential mode c
 subset of successors with a coverage certificate, an entry hop). It is the tool's default
 (`RELCERT_NO_CHOICE=1` disables it; one sentence in the paper's Section 6.1), vacuous for the 46
 original benchmarks (their covers are byte-identical with the feature on and off) and needed by
-the literature benchmarks (`lit_drl_car_stop`, `lit_drl_lane_control`, `lit_hypercert_vehicle` (skipped 2026-10-28),
+the literature benchmarks (`lit_drl_car_stop` (skipped 2026-10-29), `lit_drl_lane_control`, `lit_hypercert_vehicle` (skipped 2026-10-28),
 `lit_freedm_meter`: the right commits to the left's mode, or to a zero-net grid mode; since batch I8
 also `lit_csf21_vehicle_thermo` and `lit_csf21_vehicle_bus`: the genuine car commits to the attacked car's action;
 `lit_lz21_vehicle_position`: the partner run commits to the secret run's input; `lit_girard08_robot`: the planner
-commits to the robot's heading) and the two exhibits of `benchmarks/choice/`;
+commits to the robot's heading; since 2026-10-29 `lit_gpt10_boost_converter`: the converter commits to the
+abstraction's switch position) and the two exhibits of `benchmarks/choice/`;
 `docs/CHOICE-SOUNDNESS.md`.
 
 ### 6.2 Theorem 3 (soundness of synthesis)

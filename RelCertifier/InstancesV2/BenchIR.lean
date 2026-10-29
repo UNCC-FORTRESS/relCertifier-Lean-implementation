@@ -24,13 +24,13 @@ import RelCertifier.InstancesV2.BenchIR.furnace_program_timebase
 import RelCertifier.InstancesV2.BenchIR.gantry_speed_zones
 import RelCertifier.InstancesV2.BenchIR.h2_refuel_ambientbias
 import RelCertifier.InstancesV2.BenchIR.hydro_rejection_gatecal
-import RelCertifier.InstancesV2.BenchIR.insulin_basal_cgmloss
 import RelCertifier.InstancesV2.BenchIR.lit_csf21_vehicle_bus
 import RelCertifier.InstancesV2.BenchIR.lit_csf21_vehicle_thermo
-import RelCertifier.InstancesV2.BenchIR.lit_drl_car_stop
+import RelCertifier.InstancesV2.BenchIR.lit_csf25_salt_tank_hold
 import RelCertifier.InstancesV2.BenchIR.lit_drl_lane_control
 import RelCertifier.InstancesV2.BenchIR.lit_freedm_meter
 import RelCertifier.InstancesV2.BenchIR.lit_girard08_robot
+import RelCertifier.InstancesV2.BenchIR.lit_gpt10_boost_converter
 import RelCertifier.InstancesV2.BenchIR.lit_lz21_vehicle_position
 import RelCertifier.InstancesV2.BenchIR.lit_nahs25_salt_tank
 import RelCertifier.InstancesV2.BenchIR.platoon_latency
@@ -38,6 +38,7 @@ import RelCertifier.InstancesV2.BenchIR.platoon_linkloss
 import RelCertifier.InstancesV2.BenchIR.platoon_profiles
 import RelCertifier.InstancesV2.BenchIR.quad_light_lag
 import RelCertifier.InstancesV2.BenchIR.quad_light_profiles
+import RelCertifier.InstancesV2.BenchIR.rampmeter_poll_2to1
 import RelCertifier.InstancesV2.BenchIR.reactor_feed_wireless
 import RelCertifier.InstancesV2.BenchIR.rover_ladder_2to3
 import RelCertifier.InstancesV2.BenchIR.rover_ladder_3to6
@@ -57,7 +58,6 @@ import RelCertifier.InstancesV2.BenchIR.turbine_startup_gearratio
 import RelCertifier.InstancesV2.BenchIR.ventilator_vc_cuffleak
 import RelCertifier.InstancesV2.BenchIR.watertank
 import RelCertifier.InstancesV2.BenchIR.watertank_twospeed
-import RelCertifier.InstancesV2.BenchIR.zone_lightmass_schedule
 
 namespace RelCertifier.Parse
 
@@ -78,13 +78,13 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("gantry_speed_zones", gantry_speed_zones_IRv2),
   ("h2_refuel_ambientbias", h2_refuel_ambientbias_IRv2),
   ("hydro_rejection_gatecal", hydro_rejection_gatecal_IRv2),
-  ("insulin_basal_cgmloss", insulin_basal_cgmloss_IRv2),
   ("lit_csf21_vehicle_bus", lit_csf21_vehicle_bus_IRv2),
   ("lit_csf21_vehicle_thermo", lit_csf21_vehicle_thermo_IRv2),
-  ("lit_drl_car_stop", lit_drl_car_stop_IRv2),
+  ("lit_csf25_salt_tank_hold", lit_csf25_salt_tank_hold_IRv2),
   ("lit_drl_lane_control", lit_drl_lane_control_IRv2),
   ("lit_freedm_meter", lit_freedm_meter_IRv2),
   ("lit_girard08_robot", lit_girard08_robot_IRv2),
+  ("lit_gpt10_boost_converter", lit_gpt10_boost_converter_IRv2),
   ("lit_lz21_vehicle_position", lit_lz21_vehicle_position_IRv2),
   ("lit_nahs25_salt_tank", lit_nahs25_salt_tank_IRv2),
   ("platoon_latency", platoon_latency_IRv2),
@@ -92,6 +92,7 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("platoon_profiles", platoon_profiles_IRv2),
   ("quad_light_lag", quad_light_lag_IRv2),
   ("quad_light_profiles", quad_light_profiles_IRv2),
+  ("rampmeter_poll_2to1", rampmeter_poll_2to1_IRv2),
   ("reactor_feed_wireless", reactor_feed_wireless_IRv2),
   ("rover_ladder_2to3", rover_ladder_2to3_IRv2),
   ("rover_ladder_3to6", rover_ladder_3to6_IRv2),
@@ -110,7 +111,6 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("turbine_startup_gearratio", turbine_startup_gearratio_IRv2),
   ("ventilator_vc_cuffleak", ventilator_vc_cuffleak_IRv2),
   ("watertank", watertank_IRv2),
-  ("watertank_twospeed", watertank_twospeed_IRv2),
-  ("zone_lightmass_schedule", zone_lightmass_schedule_IRv2) ]
+  ("watertank_twospeed", watertank_twospeed_IRv2) ]
 
 end RelCertifier.Parse

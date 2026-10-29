@@ -96,6 +96,7 @@ FAMILIES = [
     ("hydro_", "Hydro unit load rejection"),
     ("ventilator_", "Volume-controlled ventilation"),
     ("insulin_", "Insulin basal control"),
+    ("rampmeter_", "Freeway ramp metering (polled detectors)"),
     ("tunnel_", "Road-tunnel ventilation through a fire alarm"),
     ("grid_", "Island grid fast frequency response (DoS on the FFR link)"),
     ("bottling_", "Bottle filler (clogged product strainer)"),

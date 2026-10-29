@@ -15,13 +15,13 @@ import RelCertifier.InstancesV2.Cuts.furnace_program_timebase
 import RelCertifier.InstancesV2.Cuts.gantry_speed_zones
 import RelCertifier.InstancesV2.Cuts.h2_refuel_ambientbias
 import RelCertifier.InstancesV2.Cuts.hydro_rejection_gatecal
-import RelCertifier.InstancesV2.Cuts.insulin_basal_cgmloss
 import RelCertifier.InstancesV2.Cuts.lit_csf21_vehicle_bus
 import RelCertifier.InstancesV2.Cuts.lit_csf21_vehicle_thermo
-import RelCertifier.InstancesV2.Cuts.lit_drl_car_stop
+import RelCertifier.InstancesV2.Cuts.lit_csf25_salt_tank_hold
 import RelCertifier.InstancesV2.Cuts.lit_drl_lane_control
 import RelCertifier.InstancesV2.Cuts.lit_freedm_meter
 import RelCertifier.InstancesV2.Cuts.lit_girard08_robot
+import RelCertifier.InstancesV2.Cuts.lit_gpt10_boost_converter
 import RelCertifier.InstancesV2.Cuts.lit_lz21_vehicle_position
 import RelCertifier.InstancesV2.Cuts.lit_nahs25_salt_tank
 import RelCertifier.InstancesV2.Cuts.platoon_latency
@@ -29,6 +29,7 @@ import RelCertifier.InstancesV2.Cuts.platoon_linkloss
 import RelCertifier.InstancesV2.Cuts.platoon_profiles
 import RelCertifier.InstancesV2.Cuts.quad_light_lag
 import RelCertifier.InstancesV2.Cuts.quad_light_profiles
+import RelCertifier.InstancesV2.Cuts.rampmeter_poll_2to1
 import RelCertifier.InstancesV2.Cuts.reactor_feed_wireless
 import RelCertifier.InstancesV2.Cuts.rover_ladder_2to3
 import RelCertifier.InstancesV2.Cuts.rover_ladder_3to6
@@ -48,7 +49,6 @@ import RelCertifier.InstancesV2.Cuts.turbine_startup_gearratio
 import RelCertifier.InstancesV2.Cuts.ventilator_vc_cuffleak
 import RelCertifier.InstancesV2.Cuts.watertank
 import RelCertifier.InstancesV2.Cuts.watertank_twospeed
-import RelCertifier.InstancesV2.Cuts.zone_lightmass_schedule
 
 namespace RelCertifier.Oracle
 
@@ -69,13 +69,13 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("gantry_speed_zones", gantry_speed_zones_cutsV2, gantry_speed_zones_cutsV2X),
   ("h2_refuel_ambientbias", h2_refuel_ambientbias_cutsV2, h2_refuel_ambientbias_cutsV2X),
   ("hydro_rejection_gatecal", hydro_rejection_gatecal_cutsV2, hydro_rejection_gatecal_cutsV2X),
-  ("insulin_basal_cgmloss", insulin_basal_cgmloss_cutsV2, insulin_basal_cgmloss_cutsV2X),
   ("lit_csf21_vehicle_bus", lit_csf21_vehicle_bus_cutsV2, lit_csf21_vehicle_bus_cutsV2X),
   ("lit_csf21_vehicle_thermo", lit_csf21_vehicle_thermo_cutsV2, lit_csf21_vehicle_thermo_cutsV2X),
-  ("lit_drl_car_stop", lit_drl_car_stop_cutsV2, lit_drl_car_stop_cutsV2X),
+  ("lit_csf25_salt_tank_hold", lit_csf25_salt_tank_hold_cutsV2, lit_csf25_salt_tank_hold_cutsV2X),
   ("lit_drl_lane_control", lit_drl_lane_control_cutsV2, lit_drl_lane_control_cutsV2X),
   ("lit_freedm_meter", lit_freedm_meter_cutsV2, lit_freedm_meter_cutsV2X),
   ("lit_girard08_robot", lit_girard08_robot_cutsV2, lit_girard08_robot_cutsV2X),
+  ("lit_gpt10_boost_converter", lit_gpt10_boost_converter_cutsV2, lit_gpt10_boost_converter_cutsV2X),
   ("lit_lz21_vehicle_position", lit_lz21_vehicle_position_cutsV2, lit_lz21_vehicle_position_cutsV2X),
   ("lit_nahs25_salt_tank", lit_nahs25_salt_tank_cutsV2, lit_nahs25_salt_tank_cutsV2X),
   ("platoon_latency", platoon_latency_cutsV2, platoon_latency_cutsV2X),
@@ -83,6 +83,7 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("platoon_profiles", platoon_profiles_cutsV2, platoon_profiles_cutsV2X),
   ("quad_light_lag", quad_light_lag_cutsV2, quad_light_lag_cutsV2X),
   ("quad_light_profiles", quad_light_profiles_cutsV2, quad_light_profiles_cutsV2X),
+  ("rampmeter_poll_2to1", rampmeter_poll_2to1_cutsV2, rampmeter_poll_2to1_cutsV2X),
   ("reactor_feed_wireless", reactor_feed_wireless_cutsV2, reactor_feed_wireless_cutsV2X),
   ("rover_ladder_2to3", rover_ladder_2to3_cutsV2, rover_ladder_2to3_cutsV2X),
   ("rover_ladder_3to6", rover_ladder_3to6_cutsV2, rover_ladder_3to6_cutsV2X),
@@ -101,7 +102,6 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("turbine_startup_gearratio", turbine_startup_gearratio_cutsV2, turbine_startup_gearratio_cutsV2X),
   ("ventilator_vc_cuffleak", ventilator_vc_cuffleak_cutsV2, ventilator_vc_cuffleak_cutsV2X),
   ("watertank", watertank_cutsV2, watertank_cutsV2X),
-  ("watertank_twospeed", watertank_twospeed_cutsV2, watertank_twospeed_cutsV2X),
-  ("zone_lightmass_schedule", zone_lightmass_schedule_cutsV2, zone_lightmass_schedule_cutsV2X) ]
+  ("watertank_twospeed", watertank_twospeed_cutsV2, watertank_twospeed_cutsV2X) ]
 
 end RelCertifier.Oracle

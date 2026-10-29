@@ -15,10 +15,11 @@ import RelCertifier.InstancesV2.BenchProgress.furnace_program_timebase
 import RelCertifier.InstancesV2.BenchProgress.gantry_speed_zones
 import RelCertifier.InstancesV2.BenchProgress.h2_refuel_ambientbias
 import RelCertifier.InstancesV2.BenchProgress.hydro_rejection_gatecal
-import RelCertifier.InstancesV2.BenchProgress.insulin_basal_cgmloss
 import RelCertifier.InstancesV2.BenchProgress.lit_csf21_vehicle_bus
 import RelCertifier.InstancesV2.BenchProgress.lit_csf21_vehicle_thermo
+import RelCertifier.InstancesV2.BenchProgress.lit_csf25_salt_tank_hold
 import RelCertifier.InstancesV2.BenchProgress.lit_girard08_robot
+import RelCertifier.InstancesV2.BenchProgress.lit_gpt10_boost_converter
 import RelCertifier.InstancesV2.BenchProgress.lit_lz21_vehicle_position
 import RelCertifier.InstancesV2.BenchProgress.lit_nahs25_salt_tank
 import RelCertifier.InstancesV2.BenchProgress.platoon_latency
@@ -26,6 +27,7 @@ import RelCertifier.InstancesV2.BenchProgress.platoon_linkloss
 import RelCertifier.InstancesV2.BenchProgress.platoon_profiles
 import RelCertifier.InstancesV2.BenchProgress.quad_light_lag
 import RelCertifier.InstancesV2.BenchProgress.quad_light_profiles
+import RelCertifier.InstancesV2.BenchProgress.rampmeter_poll_2to1
 import RelCertifier.InstancesV2.BenchProgress.reactor_feed_wireless
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_2to3
 import RelCertifier.InstancesV2.BenchProgress.rover_ladder_3to6
@@ -45,7 +47,6 @@ import RelCertifier.InstancesV2.BenchProgress.turbine_startup_gearratio
 import RelCertifier.InstancesV2.BenchProgress.ventilator_vc_cuffleak
 import RelCertifier.InstancesV2.BenchProgress.watertank
 import RelCertifier.InstancesV2.BenchProgress.watertank_twospeed
-import RelCertifier.InstancesV2.BenchProgress.zone_lightmass_schedule
 
 namespace RelCertifier.Progress
 
@@ -67,10 +68,11 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("gantry_speed_zones", gantry_speed_zones_coverV2_progress),
    ("h2_refuel_ambientbias", h2_refuel_ambientbias_coverV2_progress),
    ("hydro_rejection_gatecal", hydro_rejection_gatecal_coverV2_progress),
-   ("insulin_basal_cgmloss", insulin_basal_cgmloss_coverV2_progress),
    ("lit_csf21_vehicle_bus", lit_csf21_vehicle_bus_coverV2_progress),
    ("lit_csf21_vehicle_thermo", lit_csf21_vehicle_thermo_coverV2_progress),
+   ("lit_csf25_salt_tank_hold", lit_csf25_salt_tank_hold_coverV2_progress),
    ("lit_girard08_robot", lit_girard08_robot_coverV2_progress),
+   ("lit_gpt10_boost_converter", lit_gpt10_boost_converter_coverV2_progress),
    ("lit_lz21_vehicle_position", lit_lz21_vehicle_position_coverV2_progress),
    ("lit_nahs25_salt_tank", lit_nahs25_salt_tank_coverV2_progress),
    ("platoon_latency", platoon_latency_coverV2_progress),
@@ -78,6 +80,7 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("platoon_profiles", platoon_profiles_coverV2_progress),
    ("quad_light_lag", quad_light_lag_coverV2_progress),
    ("quad_light_profiles", quad_light_profiles_coverV2_progress),
+   ("rampmeter_poll_2to1", rampmeter_poll_2to1_coverV2_progress),
    ("reactor_feed_wireless", reactor_feed_wireless_coverV2_progress),
    ("rover_ladder_2to3", rover_ladder_2to3_coverV2_progress),
    ("rover_ladder_3to6", rover_ladder_3to6_coverV2_progress),
@@ -96,7 +99,6 @@ def progressTableV2 : List (String × ProgressEmitE) :=
    ("turbine_startup_gearratio", turbine_startup_gearratio_coverV2_progress),
    ("ventilator_vc_cuffleak", ventilator_vc_cuffleak_coverV2_progress),
    ("watertank", watertank_coverV2_progress),
-   ("watertank_twospeed", watertank_twospeed_coverV2_progress),
-   ("zone_lightmass_schedule", zone_lightmass_schedule_coverV2_progress)]
+   ("watertank_twospeed", watertank_twospeed_coverV2_progress)]
 
 end RelCertifier.Progress

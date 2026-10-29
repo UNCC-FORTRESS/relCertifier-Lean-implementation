@@ -17,13 +17,13 @@ import RelCertifier.InstancesV2.BenchChoice.furnace_program_timebase
 import RelCertifier.InstancesV2.BenchChoice.gantry_speed_zones
 import RelCertifier.InstancesV2.BenchChoice.h2_refuel_ambientbias
 import RelCertifier.InstancesV2.BenchChoice.hydro_rejection_gatecal
-import RelCertifier.InstancesV2.BenchChoice.insulin_basal_cgmloss
 import RelCertifier.InstancesV2.BenchChoice.lit_csf21_vehicle_bus
 import RelCertifier.InstancesV2.BenchChoice.lit_csf21_vehicle_thermo
-import RelCertifier.InstancesV2.BenchChoice.lit_drl_car_stop
+import RelCertifier.InstancesV2.BenchChoice.lit_csf25_salt_tank_hold
 import RelCertifier.InstancesV2.BenchChoice.lit_drl_lane_control
 import RelCertifier.InstancesV2.BenchChoice.lit_freedm_meter
 import RelCertifier.InstancesV2.BenchChoice.lit_girard08_robot
+import RelCertifier.InstancesV2.BenchChoice.lit_gpt10_boost_converter
 import RelCertifier.InstancesV2.BenchChoice.lit_lz21_vehicle_position
 import RelCertifier.InstancesV2.BenchChoice.lit_nahs25_salt_tank
 import RelCertifier.InstancesV2.BenchChoice.platoon_latency
@@ -31,6 +31,7 @@ import RelCertifier.InstancesV2.BenchChoice.platoon_linkloss
 import RelCertifier.InstancesV2.BenchChoice.platoon_profiles
 import RelCertifier.InstancesV2.BenchChoice.quad_light_lag
 import RelCertifier.InstancesV2.BenchChoice.quad_light_profiles
+import RelCertifier.InstancesV2.BenchChoice.rampmeter_poll_2to1
 import RelCertifier.InstancesV2.BenchChoice.reactor_feed_wireless
 import RelCertifier.InstancesV2.BenchChoice.rover_ladder_2to3
 import RelCertifier.InstancesV2.BenchChoice.rover_ladder_3to6
@@ -50,7 +51,6 @@ import RelCertifier.InstancesV2.BenchChoice.turbine_startup_gearratio
 import RelCertifier.InstancesV2.BenchChoice.ventilator_vc_cuffleak
 import RelCertifier.InstancesV2.BenchChoice.watertank
 import RelCertifier.InstancesV2.BenchChoice.watertank_twospeed
-import RelCertifier.InstancesV2.BenchChoice.zone_lightmass_schedule
 
 namespace RelCertifier.Choice
 
@@ -71,13 +71,13 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("gantry_speed_zones", gantry_speed_zones_coverV2_choice),
   ("h2_refuel_ambientbias", h2_refuel_ambientbias_coverV2_choice),
   ("hydro_rejection_gatecal", hydro_rejection_gatecal_coverV2_choice),
-  ("insulin_basal_cgmloss", insulin_basal_cgmloss_coverV2_choice),
   ("lit_csf21_vehicle_bus", lit_csf21_vehicle_bus_coverV2_choice),
   ("lit_csf21_vehicle_thermo", lit_csf21_vehicle_thermo_coverV2_choice),
-  ("lit_drl_car_stop", lit_drl_car_stop_coverV2_choice),
+  ("lit_csf25_salt_tank_hold", lit_csf25_salt_tank_hold_coverV2_choice),
   ("lit_drl_lane_control", lit_drl_lane_control_coverV2_choice),
   ("lit_freedm_meter", lit_freedm_meter_coverV2_choice),
   ("lit_girard08_robot", lit_girard08_robot_coverV2_choice),
+  ("lit_gpt10_boost_converter", lit_gpt10_boost_converter_coverV2_choice),
   ("lit_lz21_vehicle_position", lit_lz21_vehicle_position_coverV2_choice),
   ("lit_nahs25_salt_tank", lit_nahs25_salt_tank_coverV2_choice),
   ("platoon_latency", platoon_latency_coverV2_choice),
@@ -85,6 +85,7 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("platoon_profiles", platoon_profiles_coverV2_choice),
   ("quad_light_lag", quad_light_lag_coverV2_choice),
   ("quad_light_profiles", quad_light_profiles_coverV2_choice),
+  ("rampmeter_poll_2to1", rampmeter_poll_2to1_coverV2_choice),
   ("reactor_feed_wireless", reactor_feed_wireless_coverV2_choice),
   ("rover_ladder_2to3", rover_ladder_2to3_coverV2_choice),
   ("rover_ladder_3to6", rover_ladder_3to6_coverV2_choice),
@@ -103,7 +104,6 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("turbine_startup_gearratio", turbine_startup_gearratio_coverV2_choice),
   ("ventilator_vc_cuffleak", ventilator_vc_cuffleak_coverV2_choice),
   ("watertank", watertank_coverV2_choice),
-  ("watertank_twospeed", watertank_twospeed_coverV2_choice),
-  ("zone_lightmass_schedule", zone_lightmass_schedule_coverV2_choice) ]
+  ("watertank_twospeed", watertank_twospeed_coverV2_choice) ]
 
 end RelCertifier.Choice

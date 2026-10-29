@@ -15,13 +15,13 @@ import RelCertifier.InstancesV2.BenchCovers.furnace_program_timebase
 import RelCertifier.InstancesV2.BenchCovers.gantry_speed_zones
 import RelCertifier.InstancesV2.BenchCovers.h2_refuel_ambientbias
 import RelCertifier.InstancesV2.BenchCovers.hydro_rejection_gatecal
-import RelCertifier.InstancesV2.BenchCovers.insulin_basal_cgmloss
 import RelCertifier.InstancesV2.BenchCovers.lit_csf21_vehicle_bus
 import RelCertifier.InstancesV2.BenchCovers.lit_csf21_vehicle_thermo
-import RelCertifier.InstancesV2.BenchCovers.lit_drl_car_stop
+import RelCertifier.InstancesV2.BenchCovers.lit_csf25_salt_tank_hold
 import RelCertifier.InstancesV2.BenchCovers.lit_drl_lane_control
 import RelCertifier.InstancesV2.BenchCovers.lit_freedm_meter
 import RelCertifier.InstancesV2.BenchCovers.lit_girard08_robot
+import RelCertifier.InstancesV2.BenchCovers.lit_gpt10_boost_converter
 import RelCertifier.InstancesV2.BenchCovers.lit_lz21_vehicle_position
 import RelCertifier.InstancesV2.BenchCovers.lit_nahs25_salt_tank
 import RelCertifier.InstancesV2.BenchCovers.platoon_latency
@@ -29,6 +29,7 @@ import RelCertifier.InstancesV2.BenchCovers.platoon_linkloss
 import RelCertifier.InstancesV2.BenchCovers.platoon_profiles
 import RelCertifier.InstancesV2.BenchCovers.quad_light_lag
 import RelCertifier.InstancesV2.BenchCovers.quad_light_profiles
+import RelCertifier.InstancesV2.BenchCovers.rampmeter_poll_2to1
 import RelCertifier.InstancesV2.BenchCovers.reactor_feed_wireless
 import RelCertifier.InstancesV2.BenchCovers.rover_ladder_2to3
 import RelCertifier.InstancesV2.BenchCovers.rover_ladder_3to6
@@ -48,7 +49,6 @@ import RelCertifier.InstancesV2.BenchCovers.turbine_startup_gearratio
 import RelCertifier.InstancesV2.BenchCovers.ventilator_vc_cuffleak
 import RelCertifier.InstancesV2.BenchCovers.watertank
 import RelCertifier.InstancesV2.BenchCovers.watertank_twospeed
-import RelCertifier.InstancesV2.BenchCovers.zone_lightmass_schedule
 
 namespace RelCertifier
 
@@ -69,13 +69,13 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("gantry_speed_zones", gantry_speed_zones_coverV2),
   ("h2_refuel_ambientbias", h2_refuel_ambientbias_coverV2),
   ("hydro_rejection_gatecal", hydro_rejection_gatecal_coverV2),
-  ("insulin_basal_cgmloss", insulin_basal_cgmloss_coverV2),
   ("lit_csf21_vehicle_bus", lit_csf21_vehicle_bus_coverV2),
   ("lit_csf21_vehicle_thermo", lit_csf21_vehicle_thermo_coverV2),
-  ("lit_drl_car_stop", lit_drl_car_stop_coverV2),
+  ("lit_csf25_salt_tank_hold", lit_csf25_salt_tank_hold_coverV2),
   ("lit_drl_lane_control", lit_drl_lane_control_coverV2),
   ("lit_freedm_meter", lit_freedm_meter_coverV2),
   ("lit_girard08_robot", lit_girard08_robot_coverV2),
+  ("lit_gpt10_boost_converter", lit_gpt10_boost_converter_coverV2),
   ("lit_lz21_vehicle_position", lit_lz21_vehicle_position_coverV2),
   ("lit_nahs25_salt_tank", lit_nahs25_salt_tank_coverV2),
   ("platoon_latency", platoon_latency_coverV2),
@@ -83,6 +83,7 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("platoon_profiles", platoon_profiles_coverV2),
   ("quad_light_lag", quad_light_lag_coverV2),
   ("quad_light_profiles", quad_light_profiles_coverV2),
+  ("rampmeter_poll_2to1", rampmeter_poll_2to1_coverV2),
   ("reactor_feed_wireless", reactor_feed_wireless_coverV2),
   ("rover_ladder_2to3", rover_ladder_2to3_coverV2),
   ("rover_ladder_3to6", rover_ladder_3to6_coverV2),
@@ -101,7 +102,6 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("turbine_startup_gearratio", turbine_startup_gearratio_coverV2),
   ("ventilator_vc_cuffleak", ventilator_vc_cuffleak_coverV2),
   ("watertank", watertank_coverV2),
-  ("watertank_twospeed", watertank_twospeed_coverV2),
-  ("zone_lightmass_schedule", zone_lightmass_schedule_coverV2) ]
+  ("watertank_twospeed", watertank_twospeed_coverV2) ]
 
 end RelCertifier

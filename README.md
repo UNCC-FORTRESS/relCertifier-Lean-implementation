@@ -6,7 +6,7 @@ artifact that accompanies the paper.
 Given two hybrid automata, an ideal system `L` and an implementation `R`, written in a
 small textual format, the tool `relcert` certifies that `R` refines `L` up to a relational
 invariant (bounds such as `x_L ≤ x_R + 3`). For **all 50** benchmarks of the paper's suite
-(41 designed for it and eight case studies reproduced from published work (`lit_drl_car_stop`, `lit_drl_lane_control`: the sampled form of the refinement examples of differential refinement logic; `lit_freedm_meter`: the FREEDM transformer's battery-level nondeducibility through the grid meter; `lit_csf21_vehicle_thermo`, `lit_csf21_vehicle_bus`: the car whose cabin-temperature sensor is attacked, alone and over the drive's internal bus, from the relational analysis of sensor attacks, CSF 2021; `lit_lz21_vehicle_position`: the vehicle of approximate-opacity verification by barrier certificates, Liu and Zamani; `lit_girard08_robot`: the planar robot of approximate simulation relations, Girard, Julius and Pappas; `lit_nahs25_salt_tank`: the brine tank under a bounded sensor attack of the robustness measure of NAHS 2025), all but `lit_nahs25_salt_tank` needing the existential mode choice)
+(41 designed for it and nine case studies reproduced from published work (`lit_drl_lane_control`: the sampled form of the refinement examples of differential refinement logic; `lit_freedm_meter`: the FREEDM transformer's battery-level nondeducibility through the grid meter; `lit_csf21_vehicle_thermo`, `lit_csf21_vehicle_bus`: the car whose cabin-temperature sensor is attacked, alone and over the drive's internal bus, from the relational analysis of sensor attacks, CSF 2021; `lit_lz21_vehicle_position`: the vehicle of approximate-opacity verification by barrier certificates, Liu and Zamani; `lit_girard08_robot`: the planar robot of approximate simulation relations, Girard, Julius and Pappas; `lit_nahs25_salt_tank`: the brine tank under a bounded sensor attack of the robustness measure of NAHS 2025; `lit_gpt10_boost_converter`: the boost DC-DC converter and its lattice abstraction, approximately bisimilar symbolic models, Girard, Pola and Tabuada (since 2026-10-29, in place of `lit_drl_car_stop`); `lit_csf25_salt_tank_hold`: the brine tank under a timed DoS of formal robustness under timed attacks, CSF 2025 (since 2026-10-29)), all but `lit_nahs25_salt_tank` and `lit_csf25_salt_tank_hold` needing the existential mode choice)
 the repository contains a **kernel-checked Theorem 3** (the paper's Theorem 3, Soundness of Synthesis: the relational ∀∃ statement)
 with the paper's own automata on both sides, **guard-gated**: every left window is entered
 only inside its mode's guard (the left automaton, jump then flow) and every right mode change
@@ -67,7 +67,7 @@ a car under a cabin-temperature sensor attack, vehicle position opacity, a plana
 planner's model, a brine tank under a sensor attack, quadrotor climb, vehicle platoons, satellite
 detumbling, rover patrol, a turbofan ground start, train speed control, a pick-and-place gantry, a building zone's
 heating schedule in a lightweight construction, a wind turbine start-up, a fuel-cell CHP unit, an exothermic reactor's feed interlock, an elevator trip, a heat-treatment furnace program, a syringe-pump relay, a hydro unit's load rejection, volume-controlled ventilation, road-tunnel ventilation through a fire alarm, an island grid's fast frequency response under a denial-of-service attack, a bottle filler, a hydrogen refuelling under a sensor bias, a DC fast charger, an airliner's flap extension, the rover refinement ladder up to 12 degrees of freedom and the rover terrain chain; `benchmarks/README.md`). With the widened cut channel on
-(`RELCERT_IMPLIED_CUT=1`) the tool CERTIFIES all 50; without it, 4 of them DECLINE; fifteen DECLINE without the existential mode choice (`RELCERT_NO_CHOICE=1`): seven of the eight literature benchmarks (all but `lit_nahs25_salt_tank`), `acc_tune_limp`, `quad_light_profiles`, `zone_lightmass_schedule`, `sat_detumble_phases`, `sat3w_detumble_phases`, `sat_detumble_weak` and `fuelcell_chp_dos`; the other 35 covers are byte-identical with it on or off. Near-duplicates and weak benchmarks are kept outside the suite in `benchmarks/reserve/` (inputs and verdicts only, `benchmarks/reserve/README.md`). One of them, `watertank_twospeed`, needs a different stretch per pairing (`RELCERT_NO_PAIR_STRETCH=1` DECLINES it; §22 of `docs/SUITE-REDESIGN.md`).
+(`RELCERT_IMPLIED_CUT=1`) the tool CERTIFIES all 50; without it, 4 of them DECLINE; fifteen DECLINE without the existential mode choice (`RELCERT_NO_CHOICE=1`, `docs/paper-numbers/nochoice.txt`, 2026-10-29): seven of the nine literature benchmarks (all but `lit_nahs25_salt_tank` and `lit_csf25_salt_tank_hold`), `acc_spoof_limp`, `acc_tune_limp`, `canal_gate_notches`, `quad_light_profiles`, `sat_detumble_phases`, `sat3w_detumble_phases`, `sat_detumble_weak` and `fuelcell_chp_dos`; the other 35 certify with it off. Near-duplicates and weak benchmarks are kept outside the suite in `benchmarks/reserve/` (inputs and verdicts only, `benchmarks/reserve/README.md`). One of them, `watertank_twospeed`, needs a different stretch per pairing (`RELCERT_NO_PAIR_STRETCH=1` DECLINES it; §22 of `docs/SUITE-REDESIGN.md`).
 
 The parts of the artifact:
 
@@ -112,9 +112,9 @@ not carried. The mode-independent benchmarks are proved over the choice of their
 carried to the left automaton by one generic bridge (`theorem3_leftAut_of_choice`,
 `Proofs/Encoding/LeftAutUniform.lean`).
 The theorem's one Z3 hypothesis, `Verdicts`, IS the list of groups the runner
-`relcert-bridge-verdicts` issues (5183 over the 50 suite benchmarks and the 2 exhibits, against
+`relcert-bridge-verdicts` issues (7433 over the 50 suite benchmarks and the 2 exhibits, against
 the declared count), each coming back `unsat`; `relcert --check-quick-v2` re-sends the tool's
-own queries as a self-check (modal 1218, handoff 537, non-connection 42, pruned edges 21,
+own queries as a self-check (modal 1160, handoff 2827, non-connection 44, pruned edges 22,
 reposition 74). The axiom audit of every theorem is a subset of
 `{propext, Classical.choice, Quot.sound, z3_unsat_sound}`; none of the 50 is Z3-free (every
 flow fact of every response is a group of the emitted cover). No
@@ -209,7 +209,7 @@ lake build relcert relcert-test relcert-bridge-verdicts relcert-refute-verdicts 
 lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 | grep -A3 "depends on axioms"
 lake build RelCertifier.InstancesV2.AxiomCheck 2>&1 | grep -A3 "depends on axioms"
 
-# 2b. the Z3 hypotheses of the 52 bridge instances (5183 groups) and the progress
+# 2b. the Z3 hypotheses of the 52 bridge instances (7433 groups) and the progress
 #     certificates of every reposition node (194 queries), against declared counts
 ./.lake/build/bin/relcert-bridge-verdicts
 ./.lake/build/bin/relcert-progress-verdicts
@@ -249,11 +249,11 @@ lake build $(ls RelCertifier/InstancesV2/Refute/*.lean | sed 's|/|.|g; s|\.lean$
 
 Expected: `Build completed successfully`; 66 axiom lines (WellFormedBattery), each exactly
 the three standard axioms (`lake` also replays the 11 lines of `CutLiftX.lean`'s own audit);
-9 axiom lines (AxiomCheck), each a subset of the four axioms above; `relcert-bridge-verdicts`: `5183/5183` at the bridge dimensions;
+9 axiom lines (AxiomCheck), each a subset of the four axioms above; `relcert-bridge-verdicts`: `7433/7433` at the bridge dimensions;
 `relcert-progress-verdicts`: `194/194`; `[suite_v2] 50 certified, 0 declined, 0 error(s)`,
-coverage `modal 1218/1218`, `handoff 537/537`, `non-connection 42/42`, `pruned edges 21/21`,
-`reposition (dyn) 74/74`, the strict Assumption 1 gate `[wellformed] STRICT: 186/186 right modes ok,
-both clauses (82 invariant, 104 exit), 0 UNKNOWN, 0 BLOCKING — matches the declared suite`,
+coverage `modal 1160/1160`, `handoff 2827/2827`, `non-connection 44/44`, `pruned edges 22/22`,
+`reposition (dyn) 74/74`, the strict Assumption 1 gate `[wellformed] STRICT: 181/181 right modes ok,
+both clauses (80 invariant, 101 exit), 0 UNKNOWN, 0 BLOCKING — matches the declared suite`,
 `wellformed (strict): PASS`, `SUITE_V2 QUICK CHECKS PASSED`;
 `ONE DOMAIN: PASS (50 benchmarks: 48 with one evolve domain, 2 kind (iii) with a stated conversion)`;
 `benchmarks/negative/lit_freedm_meter_leaky`, `lit_csf21_vehicle_thermo_leaky` and `lit_csf21_vehicle_bus_thermoprio`: all three `DECLINED`; `lit_hypercert_vehicle_s8` (self-contained; its suite benchmark is in `benchmarks/skipped/` since 2026-10-28): all five right

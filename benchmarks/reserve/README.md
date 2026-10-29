@@ -18,7 +18,9 @@ batch I5 (2026-10-27: `datacenter_crah_poll`, `reactor_feed_wireless`, `rover_la
 property suffices; the claim need not depend on the cause): `charger_fast_tapers` returned to the
 suite at the minute time scale and `quad_light_airframe_20` came here, as the suite file, with its
 Lean integration in git history (last at commit a6585c2); `grid_ffr_dos` went to the suite and
-`rampmeter_poll_2to1` came here, as the suite file (Lean integration last at commit 856c79a).
+`rampmeter_poll_2to1` came here, as the suite file (Lean integration last at commit 856c79a; back
+in the suite on 2026-10-29 in place of `insulin_basal_cgmloss`, with the requirement 8 veh/mi/ln from
+the HCM level-of-service bands, its proof restored).
 Batch I8 (2026-10-27) replaced own designs with case studies from published work (owner request:
 credibility; the literature group of four was too thin): `hvac_fan_staging` and `platoon_profiles`,
 the two tier-2 members of the final audit, came here as the suite files (Lean integration last at
@@ -50,7 +52,6 @@ Verdicts measured 2026-10-27 with the branch's `relcert` (`RELCERT_IMPLIED_CUT=1
 | `rover_lateral_tirewear` | round-A fill design (never in the suite) | `NO_CHOICE`, `SYNC`+`NO_CHOICE`, `NO_PRUNE`+`NO_CHOICE`, `NO_CUT` | X I | twin of `rover_rollover_payload` (in the reserve too since batch I8; the same right model, band guards and claim-form X I; the wear is one more gain in the same roll-slip loop), and it sits at three decline edges at once |
 | `lng_cooldown_overspray` | round-A fill design (never in the suite) | `NO_CHOICE`, `SYNC`+`NO_CHOICE`, `NO_PRUNE`+`NO_CHOICE` | X | the `hvac_fan_staging` pattern (an identity hop through a permissive band reference, X from the claim form); its parameter sits at a decline edge (rho 1.05 against about 1.054) |
 | `quad_light_airframe_20` | suite_v2 (2026-10-27, batch I7) | `SYNC`, `SYNC`+`NO_CHOICE` | S M | the lag-free special case of `quad_light_lag` (the same airframe pair, cause, 0.8 m requirement and lambda 6/5); its tier-2 place in the suite went to `charger_fast_tapers` |
-| `rampmeter_poll_2to1` | suite_v2 (2026-10-27, batch I7) | none | M B | the chain-depth template of `tank_dos_3to1` and `insulin_basal_cgmloss` repeated (shared with insulin: a constant exogenous input, a first-order upstream state, a regulated state read through a level table, a 2:1 update ratio, a symmetric band), and its 10 veh/mi/ln requirement is only 1.0 below the 11 at which any deployed schedule certifies; its tier-2 place in the suite went to `grid_ffr_dos` |
 | `hvac_fan_staging` | suite_v2 (2026-10-27, batch I8) | `NO_CHOICE`, `SYNC`+`NO_CHOICE`, `NO_PRUNE`+`NO_CHOICE` | X | tier 2 in the final audit: its X is the identity hop of template B (a deterministic left against a permissive reference), the pattern that sent `lng_cooldown_overspray` here; the literature case studies of batch I8 show X with a non-identity commitment |
 | `rover_rollover_payload` | suite_v2 (2026-10-27, batch I8) | `NO_CHOICE`, `SYNC`+`NO_CHOICE`, `NO_PRUNE`+`NO_CHOICE`, `NO_CUT` | X I | both letters come from the claim form (they persist at `h_L = h_R`), and the two sides differ in a second structural way besides the payload (the reference's 2 m transition bands with back edges, load-bearing) |
 | `bms_chiller_undercharge` | suite_v2 (2026-10-28, batch I10) | `NO_CHOICE`, `SYNC`+`NO_CHOICE`, `NO_PRUNE`+`NO_CHOICE` | X | a single-letter file that certifies under `SYNC`; its non-identity commitment (the reference's half-speed chiller level against the deployed's degraded full-speed one) stays represented by `compressor_station_recycle` and `fuelcell_chp_dos`; its place in the suite went to `zone_lightmass_schedule` (S M B X, a time-scaled claim that declines under `SYNC`) |
@@ -90,6 +91,6 @@ the bank crest; W20 CERTIFIES) back into the suite, with its Assumption 1 proof 
 place of `grid_ffr_dos`, skipped (`benchmarks/skipped/grid_ffr_dos/SKIPPED.md`: its band did not
 depend on the attack). `molding_pack_checkring` (overall 4, D) was not taken: its pressure domain
 `x, y <= 500` bar is the hold set point, and at the machine's pressure limit (2000 bar) it DECLINES.
-The reserve is 24 files.
+The reserve is 23 files (rampmeter_poll_2to1 back in the suite on 2026-10-29).
 
 Run one: `RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert benchmarks/reserve/<name>/input.txt`.

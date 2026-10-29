@@ -27,7 +27,7 @@ an invariant guard) and `quad_light_{airframe_20,profiles}` (the sink `LIMIT`: i
 the climb controller, whose operating range reached the limiter threshold; both were redesigned
 on 2026-10-27 with the altitude coordinate and no limiter mode).
 `relcert --wellformed <input.txt>…` runs the tool's sufficient check per right mode (every one
-of the 180 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN` or `BLOCKING`.
+of the 181 is `ok`); `--check-quick-v2` runs it strict and fails on any `UNKNOWN` or `BLOCKING`.
 
 The suite's design, the per-family rationale, the domain audit (every evolve bound is a
 physical limit of the plant; `scripts/domain_widening.py` re-runs the tool with every bound
@@ -36,6 +36,28 @@ needs, read off counter-runs; `scripts/suite_v2_matrix.py`) are in
 `docs/SUITE-REDESIGN.md`. Each file written for this suite states in its header the
 physical story, the units, the measured cover and the mechanisms it exercises
 (`# scenario:` and `# mechanisms:` lines).
+
+## Literature migration, 2026-10-29: two literature files in, one reserve swap
+
+* `lit_gpt10_boost_converter` (new; Girard, Pola, Tabuada, IEEE TAC 55(1) 2010, Sec. 5.1): the boost DC-DC
+  converter matched within the source's precision 2.6 by every run of its lattice abstraction (left: the
+  converter pushed by a drift whose window displacement covers the eta-ball, 48 modes; right: the converter,
+  committed to the abstraction's switch position by choice). Tight 2.58 (2.57 declines; computed 2.5783), linear in
+  eta; M load-bearing (the Euclidean norm declines). Letters X. Replaces `lit_drl_car_stop` (to `skipped/`).
+* `lit_csf25_salt_tank_hold` (new, owner-approved; Xiang et al., IEEE CSF 2025, Sec. VII): one held 3-min decision
+  under a timed sensor DoS against the genuine tank re-timed by 1/3 (the paper's Props. 6 and 7); Inc slope 1.31
+  (1.30 declines), growing with the hold (0 / 0.99 / 1.31 / 1.48 for 1 to 4 min). Letters S D I. Replaces
+  `zone_lightmass_schedule` (to `skipped/`; r5 overall 2, the row certifies only by the domain).
+* `rampmeter_poll_2to1` back from the reserve with the HCM level-of-service requirement 8 veh/mi/ln (tightest
+  7.00), in place of `insulin_basal_cgmloss` (to `skipped/`; same template and letters M B).
+* Not installed (measured reasons in `docs/OVERNIGHT-2026-10-29.md`): the n-room building of Girard, Goessler,
+  Mouelhi (2016; n = 3 exceeds the time budget with the quantizer stand-in, the copy form has no tight value) and the
+  engine cooling of NAHS 2025 (its distance compares reachable sets; the run-wise relation is false in lock step).
+* Header-only fixes to six literature files from an independent audit (`docs/OVERNIGHT-2026-10-29.md`, Phase B).
+
+Letters S 20 M 25 R 7 B 13 P 4 D 10 I 17 X 16 -> S 20 M 24 R 7 B 12 P 4 D 11 I 18 X 15. Suite 50 (41 designed, 9
+from the literature). Checks: `--check-quick-v2` 50 certified, modal 1160/1160, handoff 2827/2827, non-connection
+44/44, pruned 22/22, reposition 74/74, strict gate 181/181; bridge 7433/7433; progress 194/194; refute 204/204.
 
 ## Fix round 4, 2026-10-29: start-only fallbacks, rows without content, one swap
 
@@ -863,7 +885,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `charger_fast_tapers` | 1 / 1 | 4 / 5 | degraded-controller | reinstalled 2026-10-27 (batch I7; in the reserve from batch I4): the minute time scale (`epsilon` 0.006 min = 0.36 s on the right); mode-keyed (the stricter PRECHARGE row), right-only repositioning, pruned FAULT edges, widened cuts; batch I9: the deployed phase decision every other request cycle (0.012 min), multi-step and branching covers; fix round 4 (2026-10-29): FAULT removed (dead edges), P gone |
 | `lit_csf21_vehicle_bus` | 3 / 3 | 6 / 12 | sensor-attack | literature (CSF 2021, internal bus), mode choice; new 2026-10-27 (batch I8) |
 | `lit_csf21_vehicle_thermo` | 3 / 3 | 6 / 6 | sensor-attack | literature (CSF 2021), mode choice; new 2026-10-27 (batch I8); leaky counterpart in `benchmarks/negative/` |
-| `lit_drl_car_stop` | 2 / 2 | 3 / 3 | controller-refinement | literature (dRL), mode choice |
+| `lit_gpt10_boost_converter` | 2 / 2 | 48 / 2 | abstraction | literature (Girard, Pola, Tabuada, TAC 2010), mode choice; new 2026-10-29 (literature migration), in place of `lit_drl_car_stop` |
 | `lit_drl_lane_control` | 3 / 3 | 6 / 6 | controller-refinement | literature (dRL), mode choice |
 | `elevator_start_discbrake` | 3 / 3 | 4 / 4 | actuator-change | new 2026-10-27 (batch I5): mode-keyed (LIFT row), right-only repositioning (the reference's slower brake lift); STOP's rest-position guard conjunct added at installation |
 | `engine_start_highidle` | 3 / 3 | 6 / 6 | controller-change | new 2026-10-27: mode-keyed, widened cuts; lambda pinned to 1 (batch I6); fix round 4 (2026-10-29): start-air supply p and STARTER_LOW, a reachable hung-start abort |
@@ -875,7 +897,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `lit_girard08_robot` | 6 / 2 | 6 / 6 | abstraction | literature (Girard, Julius, Pappas, DEDS 2008), mode choice; new 2026-10-27 (batch I8); location changes sampled on both sides (the bridge's one evolve domain per side) |
 | `h2_refuel_ambientbias` | 1 / 1 | 5 / 5 | sensor-fault | new 2026-10-28 (batch I11, from the reserve): a 70 MPa hydrogen fill whose dispenser's ambient sensor reads 10 K high, so the SAE J2601 end-pressure table returns 72.4 MPa; mode-keyed (exact stage rows, the top rows at the derived 2.9 MPa allowance), right-only repositioning out of a TOPOFF window, load-bearing checked cuts (R D I); fix round 4 (2026-10-29): start-only ABORT removed |
 | `hydro_rejection_gatecal` | 3 / 3 | 2 / 2 | degraded-sensor | new 2026-10-27 (batch I5): mode-keyed (shared-grid equality before the breaker opens, a speed band after) |
-| `insulin_basal_cgmloss` | 3 / 3 | 9 / 9 | degraded-network | new 2026-10-27 (batch I5), in the reserve from batch I9 to 2026-10-29, back in round 1 of the 2026-10-29 review: multi-step and branching covers (state-dependent successors of the basal table) |
+| `rampmeter_poll_2to1` | 3 / 3 | 6 / 6 | degraded-network | new 2026-10-27 (batch I6), in the reserve from batch I7 to 2026-10-29, back in place of `insulin_basal_cgmloss` with the HCM requirement 8 veh/mi/ln: multi-step and branching covers |
 | `lit_lz21_vehicle_position` | 2 / 2 | 3 / 3 | opacity | literature (Liu, Zamani, L-CSS 2021), mode choice; new 2026-10-27 (batch I8) |
 | `platoon_latency` | 3 / 3 | 2 / 1 | degraded-network | back from the reserve 2026-10-28 (batch I11; in the reserve from batch I9): the V2V feed-forward two control periods late (its Pade lag's error `e` bounded by the ISO 15622 jerk limit), against the design follower with an ideal link; mode-keyed (AEB row), right model shared with `platoon_linkloss` (D); fix round 4 (2026-10-29): start-only AEB removed on both sides, D gone |
 | `platoon_linkloss` | 2 / 2 | 2 / 1 | dos-attack | redesigned 2026-10-27 (was `platoon_delay_linkloss`): mode-keyed (AEB row), CACC -> ACC fallback; batch I9: the deployed link-loss decision every 0.2 s (two-message timeout), multi-step covers; fix round 4 (2026-10-29): start-only AEB removed, D gone |
@@ -903,7 +925,7 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `ventilator_vc_cuffleak` | 2 / 2 | 2 / 2 | degraded-actuator | new 2026-10-27 (batch I5): mode-keyed (a relative volume row in inspiration, an absolute band in expiration) |
 | `watertank` | 1 / 1 | 3 / 5 | sensor-attack | the paper's running example (the NAHS 2025 salt-tank case, `lit_nahs25_salt_tank`, is a related published scenario with the same attack magnitude and band of 3, not its source) |
 | `watertank_twospeed` | 1 / 1 | 3 / 6 | sensor-attack | redesigned 2026-10-27: six right modes (two-speed low fill, eco/boost mid fill, high, pump off), one uniform claim; per-pairing stretch, pruned `Fast -> PumpOff` |
-| `zone_lightmass_schedule` | 1 / 1 | 2 / 3 | plant-change | new 2026-10-28 (batch I10): time-scaled conformance of a lightweight zone to the commissioned zone's occupancy schedule, `lambda_min = lambda_max = 2` (the heat-capacity ratio), budget 2, mode choice (an identity hop and a timing commitment), a degenerate branching step |
+| `lit_csf25_salt_tank_hold` | 2 / 2 | 2 / 2 | dos-attack | literature (CSF 2025, timed attacks), stretch 1/3, mode-keyed, load-bearing mode facts; new 2026-10-29 (literature migration), in place of `zone_lightmass_schedule` |
 
 ## File format
 

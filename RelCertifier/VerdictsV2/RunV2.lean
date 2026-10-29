@@ -275,9 +275,6 @@ def packsV2 : List PackV2 :=
     ⟨"flaps_slow_approach", 2, 0, [0, 1, 2, 3], 1, 1, 1, 1⟩,
     -- platoon_profiles (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
     ⟨"platoon_profiles", 3, 0, [2, 3, 4, 5, 6, 7, 0, 1], 6, 5, 0, 0⟩,
-    -- zone_lightmass_schedule (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
-    ⟨"zone_lightmass_schedule", 2, 0, [0, 1], 2, 1, 0, 0⟩,
-    ⟨"zone_lightmass_schedule", 2, 0, [0, 1], 2, 1, 1, 2⟩,
     -- h2_refuel_ambientbias (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
     ⟨"h2_refuel_ambientbias", 3, 0, [0], 1, 1, 0, 0⟩,
     ⟨"h2_refuel_ambientbias", 3, 0, [0], 1, 1, 0, 1⟩,
@@ -312,46 +309,6 @@ def packsV2 : List PackV2 :=
     ⟨"reactor_feed_wireless", 2, 0, [2, 3, 0, 1], 1, 1, 3, 1⟩,
     ⟨"reactor_feed_wireless", 2, 0, [2, 3, 0, 1], 1, 1, 3, 2⟩,
     ⟨"reactor_feed_wireless", 2, 0, [2, 3, 0, 1], 1, 1, 3, 3⟩,
-    -- insulin_basal_cgmloss (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 0, 0⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 0, 1⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 0, 2⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 1, 0⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 1, 1⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 1, 2⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 1, 3⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 2, 0⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 2, 1⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 2, 2⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 2, 3⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 2, 4⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 3, 1⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 3, 2⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 3, 3⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 3, 4⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 3, 5⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 4, 2⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 4, 3⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 4, 4⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 4, 5⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 4, 6⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 5, 3⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 5, 4⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 5, 5⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 5, 6⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 5, 7⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 6, 4⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 6, 5⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 6, 6⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 6, 7⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 6, 8⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 7, 5⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 7, 6⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 7, 7⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 7, 8⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 8, 6⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 8, 7⟩,
-    ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 8, 8⟩,
     -- antenna_track_kvretune (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
     ⟨"antenna_track_kvretune", 3, 0, [0, 1, 2, 3, 6, 7, 4, 5], 1, 1, 0, 0⟩,
     ⟨"antenna_track_kvretune", 3, 1, [0, 1, 2, 3, 6, 7, 4, 5], 1, 1, 1, 1⟩,
@@ -360,10 +317,43 @@ def packsV2 : List PackV2 :=
     ⟨"canal_gate_notches", 3, 0, [0, 1], 1, 1, 0, 0⟩,
     ⟨"canal_gate_notches", 3, 0, [0, 1], 1, 1, 1, 1⟩,
     ⟨"canal_gate_notches", 3, 0, [0, 1], 1, 1, 1, 2⟩,
-    ⟨"canal_gate_notches", 3, 0, [0, 1], 1, 1, 2, 3⟩ ]
+    ⟨"canal_gate_notches", 3, 0, [0, 1], 1, 1, 2, 3⟩,
+    -- rampmeter_poll_2to1 (rows derived from the emitted cover, 2026-10-29: the joint pairings reached in each window)
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 0, 0⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 0, 1⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 0, 2⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 0, 3⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 1, 0⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 1, 1⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 1, 2⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 1, 3⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 1, 4⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 2, 0⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 2, 1⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 2, 2⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 2, 3⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 2, 4⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 2, 5⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 3, 1⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 3, 2⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 3, 3⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 3, 4⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 3, 5⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 4, 1⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 4, 2⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 4, 3⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 4, 4⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 4, 5⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 5, 2⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 5, 3⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 5, 4⟩,
+    ⟨"rampmeter_poll_2to1", 3, 0, [0, 1, 2, 3, 4, 5], 1, 1, 5, 5⟩,
+    -- lit_csf25_salt_tank_hold (rows derived from the emitted cover, 2026-10-29: one held window, keyed rows)
+    ⟨"lit_csf25_salt_tank_hold", 3, 0, [0, 2, 1], 1, 3, 0, 0⟩,
+    ⟨"lit_csf25_salt_tank_hold", 3, 1, [0, 2, 1], 1, 3, 1, 1⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 1218
+def expectedModalV2 : Nat := 1160
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do
@@ -512,8 +502,11 @@ def runDynV2 (cfg : Z3Config) : IO Bool := do
 /-! ## The handoff phase over suite_v2 -/
 
 /-- Declared: one handoff query per declared left transition over the suite_v2 files
-(self-loops included; `CoveragePinsV2.derivedHandoffV2_eq` derives it from the IR table). -/
-def expectedHandoffV2 : Nat := 537
+(self-loops included; `CoveragePinsV2.derivedHandoffV2_eq` derives it from the IR table; 537 until
+the literature migration of 2026-10-29, 2827 since: the 48 abstraction modes of
+`lit_gpt10_boost_converter`, every one a successor of every other, alone declare 2256
+transitions, all vacuous as its rows are identical). -/
+def expectedHandoffV2 : Nat := 2827
 
 /-- Declared handoff failures in suite_v2: none. -/
 def expectedHandoffFailuresV2 : List (String × Nat × Nat) := []
@@ -548,8 +541,8 @@ def prunedEdgesV2 : List (String × String × String) :=
   coverTableV2.flatMap (fun c => c.2.pruned.map (fun e => (c.1, e.1, e.2)))
 
 /-- Declared: pruned edges in the suite_v2 covers, and two queries per edge. -/
-def expectedPrunedEdgesV2 : Nat := 21
-def expectedNonConnV2 : Nat := 42
+def expectedPrunedEdgesV2 : Nat := 22
+def expectedNonConnV2 : Nat := 44
 
 def nonConnQueriesOfV2 (p : PProblem) (cX : EvolStrengtheningX) (src tgt : String) :
     Option ((n : ℕ) × (Fin n → String) × IForm n × IForm n) := do
@@ -599,7 +592,7 @@ structure ExpectedSuiteV2 where
   certified : Nat := 50
   declined  : Nat := 0
   errors    : Nat := 0
-  wfModes   : Nat := 186
+  wfModes   : Nat := 181
   wfUnknown : Nat := 0
   wfBlocking : Nat := 0
   deriving Repr

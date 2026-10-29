@@ -178,6 +178,10 @@
 > them, as before; their 86 records rewritten (new hashes and scratch paths). Witness lines 954, instances 67,
 > groups 199 unchanged; `gen_refute.py` leaves every instance as it was; `refute_experiment.py` at the default budget
 > reproduces `results.json` exactly (366 certified, 67 kernel-refuted, 521 open, none both).
+> Literature migration (2026-10-29): the records of `lit_drl_car_stop`, `insulin_basal_cgmloss` and
+> `zone_lightmass_schedule` (48 lines, no witness) dropped; the finder with `--only` on the three incoming files
+> (`lit_gpt10_boost_converter` 5 mutants, `lit_csf25_salt_tank_hold` 24, `rampmeter_poll_2to1` 24): no witness. Records
+> 929 -> 934; witnesses 74, refutation instances and `relcert-refute-verdicts` 204/204 unchanged.
 > Current instance set: **67 refutations, 199 groups**
 > (`InstancesV2/Refute/Table.lean`, `relcert-refute-verdicts`), witnesses over 954 mutants in
 > `docs/refute/witnesses.jsonl`. The operator table below is the 2026-10-21 run; recomputed on 2026-10-28 after batch I11

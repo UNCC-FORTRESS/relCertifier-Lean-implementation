@@ -112,7 +112,7 @@ not carried. The mode-independent benchmarks are proved over the choice of their
 carried to the left automaton by one generic bridge (`theorem3_leftAut_of_choice`,
 `Proofs/Encoding/LeftAutUniform.lean`).
 The theorem's one Z3 hypothesis, `Verdicts`, IS the list of groups the runner
-`relcert-bridge-verdicts` issues (5180 over the 50 suite benchmarks and the 2 exhibits, against
+`relcert-bridge-verdicts` issues (5183 over the 50 suite benchmarks and the 2 exhibits, against
 the declared count), each coming back `unsat`; `relcert --check-quick-v2` re-sends the tool's
 own queries as a self-check (modal 1218, handoff 537, non-connection 42, pruned edges 21,
 reposition 74). The axiom audit of every theorem is a subset of
@@ -209,7 +209,7 @@ lake build relcert relcert-test relcert-bridge-verdicts relcert-refute-verdicts 
 lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 | grep -A3 "depends on axioms"
 lake build RelCertifier.InstancesV2.AxiomCheck 2>&1 | grep -A3 "depends on axioms"
 
-# 2b. the Z3 hypotheses of the 52 bridge instances (5180 groups) and the progress
+# 2b. the Z3 hypotheses of the 52 bridge instances (5183 groups) and the progress
 #     certificates of every reposition node (194 queries), against declared counts
 ./.lake/build/bin/relcert-bridge-verdicts
 ./.lake/build/bin/relcert-progress-verdicts
@@ -223,7 +223,8 @@ RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert --check-quick-v2 benchmarks/suit
 #     their headers)
 python3 scripts/check_one_domain.py
 
-# 3b. the expected DECLINEs (the leaky FREEDM controller, the leaky CSF 2021 car)
+# 3b. the expected DECLINEs (the leaky FREEDM controller, the leaky CSF 2021 car, the CSF 2021
+#     bus with the arbitration reversed)
 RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert benchmarks/negative/*/input.txt
 
 # 3c. the expected Assumption 1 failure (a right model that blocks at the bound s = 8; the
@@ -248,14 +249,14 @@ lake build $(ls RelCertifier/InstancesV2/Refute/*.lean | sed 's|/|.|g; s|\.lean$
 
 Expected: `Build completed successfully`; 66 axiom lines (WellFormedBattery), each exactly
 the three standard axioms (`lake` also replays the 11 lines of `CutLiftX.lean`'s own audit);
-9 axiom lines (AxiomCheck), each a subset of the four axioms above; `relcert-bridge-verdicts`: `5180/5180` at the bridge dimensions;
+9 axiom lines (AxiomCheck), each a subset of the four axioms above; `relcert-bridge-verdicts`: `5183/5183` at the bridge dimensions;
 `relcert-progress-verdicts`: `194/194`; `[suite_v2] 50 certified, 0 declined, 0 error(s)`,
 coverage `modal 1218/1218`, `handoff 537/537`, `non-connection 42/42`, `pruned edges 21/21`,
 `reposition (dyn) 74/74`, the strict Assumption 1 gate `[wellformed] STRICT: 186/186 right modes ok,
 both clauses (82 invariant, 104 exit), 0 UNKNOWN, 0 BLOCKING — matches the declared suite`,
 `wellformed (strict): PASS`, `SUITE_V2 QUICK CHECKS PASSED`;
 `ONE DOMAIN: PASS (50 benchmarks: 48 with one evolve domain, 2 kind (iii) with a stated conversion)`;
-`benchmarks/negative/lit_freedm_meter_leaky` and `lit_csf21_vehicle_thermo_leaky`: both `DECLINED`; `lit_hypercert_vehicle_s8` (self-contained; its suite benchmark is in `benchmarks/skipped/` since 2026-10-28): all five right
+`benchmarks/negative/lit_freedm_meter_leaky`, `lit_csf21_vehicle_thermo_leaky` and `lit_csf21_vehicle_bus_thermoprio`: all three `DECLINED`; `lit_hypercert_vehicle_s8` (self-contained; its suite benchmark is in `benchmarks/skipped/` since 2026-10-28): all five right
 modes `BLOCKING (leaves s <= 8.0)`, and `DECLINED` under the strict switch;
 `relcert-test`: a bare `ALL PASS`; `refute: 204/204 hypotheses discharged` (the bridge and
 refute counts are unchanged by the right-clock coordinate of 2026-10-21: no query reads it).
@@ -373,8 +374,9 @@ BridgeVerdictsMain.lean, ProgressVerdictsMain.lean, RefuteVerdictsMain.lean
                            relcert-refute-verdicts
 benchmarks/suite_v2/       the 49 inputs; benchmarks/skipped/ a literature example whose source claim is false as formalized (no Lean); benchmarks/reserve/ the reserve inputs (no Lean); benchmarks/choice/ the 2 choice exhibits;
                            benchmarks/strict_demo/ the strict exhibit; benchmarks/refute_mutants/
-                           the 77 mutants; benchmarks/negative/ two expected DECLINEs (the
-                           leaky FREEDM controller, the leaky CSF 2021 car)
+                           the 77 mutants; benchmarks/negative/ three expected DECLINEs (the
+                           leaky FREEDM controller, the leaky CSF 2021 car, the
+                           CSF 2021 bus with reversed arbitration)
 scripts/                   gen_v2_data.py, gen_bridge.py, gen_refute.py, gen_strict_demo.py,
                            paper_numbers.sh (the frozen paper numbers), suite_v2_matrix.py,
                            suite_v2_letters.py (Table 1 letters per benchmark),

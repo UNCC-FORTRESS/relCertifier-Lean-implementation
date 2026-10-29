@@ -15,10 +15,10 @@ open RelCertifier.Parse
 
 def lit_freedm_meter_cutsV2 : EvolStrengthening :=
   { L := [
-      ("BatD0R0", [((.cmp ">=" (.var "B") (.num "0.0")), CutRoute.frozen), ((.cmp "<=" (.var "B") (.num "10.0")), CutRoute.frozen)]),
+      ("BatD0R0", [((.cmp ">=" (.var "B") (.num "0.0")), CutRoute.frozen)]),
       ("BatD0R1", [((.cmp ">=" (.var "B") (.num "0.0")), CutRoute.diStrict)]),
       ("BatD1R0", [((.cmp "<=" (.var "B") (.num "10.0")), CutRoute.diStrict)]),
-      ("BatD1R1", [((.cmp ">=" (.var "B") (.num "0.0")), CutRoute.frozen), ((.cmp "<=" (.var "B") (.num "10.0")), CutRoute.frozen)]),
+      ("BatD1R1", [((.cmp ">=" (.var "B") (.num "0.0")), CutRoute.frozen)]),
       ("BatD2R0", [((.cmp "<=" (.var "B") (.num "10.0")), CutRoute.diStrict)]),
       ("BatD2R1", [((.cmp "<=" (.var "B") (.num "10.0")), CutRoute.diStrict)]),
       ("GridD0R0", [((.cmp ">=" (.var "B") (.num "0.0")), CutRoute.frozen), ((.cmp "<=" (.var "B") (.num "10.0")), CutRoute.frozen)]),
@@ -29,10 +29,10 @@ def lit_freedm_meter_cutsV2 : EvolStrengthening :=
       ("GridD2R1", [((.cmp ">=" (.var "B") (.num "0.0")), CutRoute.frozen), ((.cmp "<=" (.var "B") (.num "10.0")), CutRoute.frozen)])
     ]
     R := [
-      ("BatD0R0", [((.cmp ">=" (.var "B") (.num "0.0")), CutRoute.frozen), ((.cmp "<=" (.var "B") (.num "10.0")), CutRoute.frozen)]),
+      ("BatD0R0", [((.cmp ">=" (.var "B") (.num "0.0")), CutRoute.frozen)]),
       ("BatD0R1", [((.cmp ">=" (.var "B") (.num "0.0")), CutRoute.diStrict)]),
       ("BatD1R0", [((.cmp "<=" (.var "B") (.num "10.0")), CutRoute.diStrict)]),
-      ("BatD1R1", [((.cmp ">=" (.var "B") (.num "0.0")), CutRoute.frozen), ((.cmp "<=" (.var "B") (.num "10.0")), CutRoute.frozen)]),
+      ("BatD1R1", [((.cmp ">=" (.var "B") (.num "0.0")), CutRoute.frozen)]),
       ("BatD2R0", [((.cmp "<=" (.var "B") (.num "10.0")), CutRoute.diStrict)]),
       ("BatD2R1", [((.cmp "<=" (.var "B") (.num "10.0")), CutRoute.diStrict)]),
       ("GridD0R0", [((.cmp ">=" (.var "B") (.num "0.0")), CutRoute.frozen), ((.cmp "<=" (.var "B") (.num "10.0")), CutRoute.frozen)]),
@@ -45,10 +45,10 @@ def lit_freedm_meter_cutsV2 : EvolStrengthening :=
 
 def lit_freedm_meter_cutsV2X : EvolStrengtheningX :=
   { L := [
-      ("BatD0R0", [⟨(.cmp ">=" (.var "B") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "B") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩]),
+      ("BatD0R0", [⟨(.cmp ">=" (.var "B") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "B") (.num "10.0")), CutKind.closure, CutEntry.weakening, CutRouteX.frozen, []⟩]),
       ("BatD0R1", [⟨(.cmp ">=" (.var "B") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
       ("BatD1R0", [⟨(.cmp "<=" (.var "B") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
-      ("BatD1R1", [⟨(.cmp ">=" (.var "B") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "B") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩]),
+      ("BatD1R1", [⟨(.cmp ">=" (.var "B") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "B") (.num "10.0")), CutKind.closure, CutEntry.weakening, CutRouteX.frozen, []⟩]),
       ("BatD2R0", [⟨(.cmp "<=" (.var "B") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
       ("BatD2R1", [⟨(.cmp "<=" (.var "B") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
       ("GridD0R0", [⟨(.cmp ">=" (.var "B") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "B") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩]),
@@ -59,10 +59,10 @@ def lit_freedm_meter_cutsV2X : EvolStrengtheningX :=
       ("GridD2R1", [⟨(.cmp ">=" (.var "B") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "B") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩])
     ]
     R := [
-      ("BatD0R0", [⟨(.cmp ">=" (.var "B") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "B") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩]),
+      ("BatD0R0", [⟨(.cmp ">=" (.var "B") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "B") (.num "10.0")), CutKind.closure, CutEntry.weakening, CutRouteX.frozen, []⟩]),
       ("BatD0R1", [⟨(.cmp ">=" (.var "B") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
       ("BatD1R0", [⟨(.cmp "<=" (.var "B") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
-      ("BatD1R1", [⟨(.cmp ">=" (.var "B") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "B") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩]),
+      ("BatD1R1", [⟨(.cmp ">=" (.var "B") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "B") (.num "10.0")), CutKind.closure, CutEntry.weakening, CutRouteX.frozen, []⟩]),
       ("BatD2R0", [⟨(.cmp "<=" (.var "B") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
       ("BatD2R1", [⟨(.cmp "<=" (.var "B") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.diStrict, []⟩]),
       ("GridD0R0", [⟨(.cmp ">=" (.var "B") (.num "0.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩, ⟨(.cmp "<=" (.var "B") (.num "10.0")), CutKind.guardConj, CutEntry.membership, CutRouteX.frozen, []⟩]),

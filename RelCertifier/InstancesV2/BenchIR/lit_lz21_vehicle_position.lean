@@ -67,8 +67,8 @@ def lit_lz21_vehicle_position_IRv2 : PProblem :=
           evolve := (.and (.and (.cmp ">=" (.var "x") (.num "0.0")) (.cmp ">=" (.var "v") (.num "0.0"))) (.cmp "<=" (.var "v") (.num "0.1")))
           next := ["Um", "U0", "Up"] } ] }
     invariants := [
-      ("Um", (.and (.and (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "R_v") (.var "L_v"))) (.cmp "<=" (.bin "+" (.var "L_x") (.num "1.0")) (.var "R_x"))) (.cmp "<=" (.var "R_x") (.bin "+" (.var "L_x") (.num "1.0"))))),
-      ("U0", (.and (.and (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "R_v") (.var "L_v"))) (.cmp "<=" (.bin "+" (.var "L_x") (.num "1.0")) (.var "R_x"))) (.cmp "<=" (.var "R_x") (.bin "+" (.var "L_x") (.num "1.0"))))),
-      ("Up", (.and (.and (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "R_v") (.var "L_v"))) (.cmp "<=" (.bin "+" (.var "L_x") (.num "1.0")) (.var "R_x"))) (.cmp "<=" (.var "R_x") (.bin "+" (.var "L_x") (.num "1.0")))))] }
+      ("Um", (.and (.and (.and (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "R_v") (.var "L_v"))) (.cmp ">=" (.var "R_x") (.num "1.0"))) (.cmp "<=" (.var "L_x") (.bin "+" (.var "R_x") (.num "1.0")))) (.cmp "<=" (.var "R_x") (.bin "+" (.var "L_x") (.num "1.0"))))),
+      ("U0", (.and (.and (.and (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "R_v") (.var "L_v"))) (.cmp ">=" (.var "R_x") (.num "1.0"))) (.cmp "<=" (.var "L_x") (.bin "+" (.var "R_x") (.num "1.0")))) (.cmp "<=" (.var "R_x") (.bin "+" (.var "L_x") (.num "1.0"))))),
+      ("Up", (.and (.and (.and (.and (.cmp "<=" (.var "L_v") (.var "R_v")) (.cmp "<=" (.var "R_v") (.var "L_v"))) (.cmp ">=" (.var "R_x") (.num "1.0"))) (.cmp "<=" (.var "L_x") (.bin "+" (.var "R_x") (.num "1.0")))) (.cmp "<=" (.var "R_x") (.bin "+" (.var "L_x") (.num "1.0")))))] }
 
 end RelCertifier.Parse

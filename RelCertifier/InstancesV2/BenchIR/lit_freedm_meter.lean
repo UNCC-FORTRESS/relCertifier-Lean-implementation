@@ -24,7 +24,7 @@ def lit_freedm_meter_IRv2 : PProblem :=
           name := "BatD0R0"
           odes := [("B", (.num "0.0")),
             ("E", (.num "0.0"))]
-          guard := (.and (.cmp ">=" (.var "B") (.num "0.0")) (.cmp "<=" (.var "B") (.num "10.0")))
+          guard := (.and (.cmp ">=" (.var "B") (.num "0.0")) (.cmp "<" (.var "B") (.num "10.0")))
           evolve := (.and (.cmp ">=" (.var "B") (.num "0.0")) (.cmp "<=" (.var "B") (.num "10.0")))
           next := ["BatD0R0", "BatD0R1", "BatD1R0", "BatD1R1", "BatD2R0", "BatD2R1", "GridD0R0", "GridD0R1", "GridD1R0", "GridD1R1", "GridD2R0", "GridD2R1"] },
         {
@@ -45,7 +45,7 @@ def lit_freedm_meter_IRv2 : PProblem :=
           name := "BatD1R1"
           odes := [("B", (.num "0.0")),
             ("E", (.num "0.0"))]
-          guard := (.and (.cmp ">=" (.var "B") (.num "0.0")) (.cmp "<=" (.var "B") (.num "10.0")))
+          guard := (.and (.cmp ">=" (.var "B") (.num "0.0")) (.cmp "<" (.var "B") (.num "10.0")))
           evolve := (.and (.cmp ">=" (.var "B") (.num "0.0")) (.cmp "<=" (.var "B") (.num "10.0")))
           next := ["BatD0R0", "BatD0R1", "BatD1R0", "BatD1R1", "BatD2R0", "BatD2R1", "GridD0R0", "GridD0R1", "GridD1R0", "GridD1R1", "GridD2R0", "GridD2R1"] },
         {
@@ -112,7 +112,7 @@ def lit_freedm_meter_IRv2 : PProblem :=
           name := "BatD0R0"
           odes := [("B", (.num "0.0")),
             ("E", (.num "0.0"))]
-          guard := (.and (.cmp ">=" (.var "B") (.num "0.0")) (.cmp "<=" (.var "B") (.num "10.0")))
+          guard := (.and (.cmp ">=" (.var "B") (.num "0.0")) (.cmp "<" (.var "B") (.num "10.0")))
           evolve := (.and (.cmp ">=" (.var "B") (.num "0.0")) (.cmp "<=" (.var "B") (.num "10.0")))
           next := ["BatD0R0", "BatD0R1", "BatD1R0", "BatD1R1", "BatD2R0", "BatD2R1", "GridD0R0", "GridD0R1", "GridD1R0", "GridD1R1", "GridD2R0", "GridD2R1"] },
         {
@@ -133,7 +133,7 @@ def lit_freedm_meter_IRv2 : PProblem :=
           name := "BatD1R1"
           odes := [("B", (.num "0.0")),
             ("E", (.num "0.0"))]
-          guard := (.and (.cmp ">=" (.var "B") (.num "0.0")) (.cmp "<=" (.var "B") (.num "10.0")))
+          guard := (.and (.cmp ">=" (.var "B") (.num "0.0")) (.cmp "<" (.var "B") (.num "10.0")))
           evolve := (.and (.cmp ">=" (.var "B") (.num "0.0")) (.cmp "<=" (.var "B") (.num "10.0")))
           next := ["BatD0R0", "BatD0R1", "BatD1R0", "BatD1R1", "BatD2R0", "BatD2R1", "GridD0R0", "GridD0R1", "GridD1R0", "GridD1R1", "GridD2R0", "GridD2R1"] },
         {

@@ -7,40 +7,64 @@
 #
 # SOURCE. Xiang, Lanotte, Tini, Chong, Merro, "Measuring robustness in cyber-physical systems
 # under sensor attacks", Nonlinear Analysis: Hybrid Systems 56 (2025) (arXiv 2403.05829), Sec. 7,
-# Fig. 7 (model) and Figs. 8-13 (proof of the forward distance); the same tank is the forall-exists
-# case study of Xiang and Chong, "Extending dynamic logics with first-class relational reasoning"
-# (NFM 2025, Sec. 5). A tank of xL = 100 gal holds xp lb of salt; brine of 1/4 lb/gal enters at
-# r gal/min and the stirred mixture drains at r: xp' = r/4 - r xp/xL, t' = 1 & t <= eps, eps = 1
-# (min). Controller xs := xp; (?xs >= 25; r := 10) or (?xs < 25; r := 0). Pre xp = 50; safety
-# xp >= 20. Bounded sensor attack: xs := *; ?(xp - 3 <= xs <= xp + 3). Claim: attacked(P) and P are
-# at forward distance 3 on H = {xp} (Figs. 8-9), with the proof invariant
-# (25 < xp < 28 and 25 < xp1 < 28) or (xp = xp1 and xp >= 28).
+# Fig. 7 (model), Figs. 8-13 (proof of the forward distance) and Def. 8 (forward simulation
+# distance); the same tank is the forall-exists case study of Xiang and Chong, "Extending dynamic
+# logics with first-class relational reasoning" (NFM 2025, Sec. 5). A tank of xL = 100 gal holds
+# xp lb of salt; brine of 1/4 lb/gal enters at r gal/min and the stirred mixture drains at r:
+# xp' = r/4 - r xp/xL, t' = 1 & t <= eps, eps = 1 (min). Controller xs := xp; (?xs >= 25;
+# r := 10) or (?xs < 25; r := 0). Pre xp = 50; safety xp >= 20. Bounded sensor attack:
+# xs := *; ?(xp - 3 <= xs <= xp + 3). Source result: attacked(P) and P are at forward distance
+# d = 3 on H = {xp} w.r.t. xp = 50 (Def. 8: for every state the attacked tank reaches there is a
+# state the genuine tank reaches with |xp - xp1| <= 3), proved with the run-wise invariant
+# (25 < xp < 28 and 25 < xp1 < 28) or (xp = xp1 and xp >= 28) (Fig. 8).
 #
-# THIS FILE. Left = attacked controller, right = genuine controller, same plant. The attacked
-# reading is projected onto the physical level, exactly: On (r = 10) is possible when some reading
-# in [xp - 3, xp + 3] is >= 25, i.e. xp >= 22; Off (r = 0) when some reading is < 25, i.e.
-# xp < 28. Genuine: On iff xp >= 25, Off iff xp < 25. Flows On xp' = 0.1 (25 - xp) (the source's
-# 10/4 - 10 xp/100, written in set-point form), Off xp' = 0. Stretch pinned to 1 (both tanks run
-# the 1-min control period in lock step, as the source's proof does).
+# THIS FILE. Left = attacked controller (forall), right = genuine controller (exists), same
+# plant, the direction of Def. 8. The attacked reading is projected onto the physical level,
+# exactly: On (r = 10) is possible when some reading in [xp - 3, xp + 3] is >= 25, i.e. xp >= 22;
+# Off (r = 0) when some reading is < 25, i.e. xp < 28. Genuine: On iff xp >= 25, Off iff
+# xp < 25. Flows On xp' = 0.1 (25 - xp) (the source's 10/4 - 10 xp/100, written in set-point
+# form), Off xp' = 0. Stretch pinned to 1 (both tanks run the 1-min control period in lock step,
+# as the source's proof does).
 #
-# CLAIM (both left modes): |xp_L - xp_R| <= 3 (two rows), xp_L >= 25 and xp_R >= 25. The band is the
-# source's distance; the lower bounds are those of the source's invariant (from the pre xp = 50
-# both tanks stay above the On equilibrium 25). Requirement: a reading error of at most 3 lb moves
-# the salt by at most 3 lb. Tight: xp_L <= xp_R + c certifies down to c = 3.00 (2.99 declines),
-# the paper's distance (the attacked tank can hold its salt (Off) just below 28 while the genuine
-# one settles toward 25). The other row is slack: xp_R <= xp_L certifies (c' = 0; -0.01 declines):
-# the genuine tank never holds more salt than the attacked one. Not implied by the domain
-# (none); every left mode has a satisfiable start (xp_L = xp_R = 26).
+# CLAIM (both left modes): |xp_L - xp_R| <= 3 (two rows), xp_L >= 25 and xp_R >= 25. The band is
+# the source's distance d = 3 on H = {xp}; the lower bounds are the closure of those of the
+# source's invariant (both tanks stay above the On equilibrium 25; they also give the source's
+# safety xp >= 20). Requirement: a reading error of at most 3 lb moves the salt by at most 3 lb.
+# The pre xp_L = xp_R = 50 satisfies the rows, so the certified claim implies the source's forward
+# distance. Not implied by the domain (none); every left mode has a satisfiable start
+# (xp_L = xp_R = 26). The source's second result (backward distance 0, Figs. 14-19) is not this
+# file's claim.
+#
+# TIGHTNESS (measured 2026-10-29, other rows fixed). xp_L <= xp_R + c certifies down to c = 3.00
+# (2.99 declines): the tool gets the source's distance exactly, and 3 is the exact supremum from
+# xp = 50 (the attacked tank may turn Off just below 28 while the genuine one settles toward 25).
+# The other row is slack: xp_R <= xp_L certifies (c' = 0; -0.01 declines): the genuine tank never
+# holds more salt than the attacked one. Without the lower bounds the band 3 (and 6) declines: the
+# band alone is not inductive, as in the source, whose invariant carries them too.
+#
+# CAUSE TEST (measured 2026-10-29). The tight c tracks the attack bound b (left guards
+# xp >= 25 - b, xp < 25 + b): b = 0.01 gives c = 0.01; b = 1 gives c = 1.00 (0.99 declines);
+# b = 2 gives 2.00 (1.99 declines); b = 4 gives 4.00 (3.99 declines, and the claim c = 3 DECLINES).
+# b = 0 (attack removed, left = right): the band 0 certifies (without the lower-bound rows, which
+# leave the attacked Off, guard xp < 25, without a start). Moving the threshold 25 to 26 on both
+# sides (b = 3) moves the tight c to 4.00 (3.99 declines) and makes the other row need 1.00
+# (0.99 declines; the genuine Off now holds in [25, 26)).
 #
 # Where this file departs from the source.
-# (1) No evolve domain, as the source's plant (written as the constant atom 0.0 <= 1.0). The
-#   first install added xp >= 0 (salt is nonnegative; forward invariant under both flows); it was
-#   dropped 2026-10-28 to match the source, with every verdict unchanged.
+# (1) No evolve domain, as the source's plant (written as the constant atom 0.0 <= 1.0, the same
+#   text on every mode of both sides). The first install added xp >= 0; it was dropped 2026-10-28
+#   to match the source, with every verdict unchanged.
 # (2) The band and the two lower bounds replace the source's disjunctive invariant (they imply the
-#   same distance 3); the claim holds from every related pair, which implies the source's forward
-#   distance from xp = 50.
+#   same distance 3); the lower bounds are non-strict (the source writes 25 < xp), a closure the
+#   tool needs for its rows and a weaker claim; the claim holds from every related pair, which
+#   implies the source's forward distance from xp = 50.
 # (3) The source's proof figures write r := 5 in off where Fig. 7 writes r := 0; this file follows
 #   Fig. 7.
+# (4) Def. 8 relates reachable sets (any genuine state, any time); this file relates the two runs
+#   in lock step (stretch 1), as the source's own proof (Figs. 9-13, the same period on both
+#   sides) does. Lock step is the stronger statement.
+# Assumption 1 holds without a stand-in: both genuine modes admit a full 1-min run from their
+# guard (On contracts to 25, Off holds), proved in InstancesV2/WellFormed/LitNahs25SaltTank.lean.
 #
 # RELATION TO THE RUNNING EXAMPLE (watertank). Not the same benchmark: different plant (salt
 # mixing with an on/off brine valve, 2 modes, one equilibrium at 25, vs a water level under
@@ -50,17 +74,18 @@
 # stretch 2; here lambda = 1 and I). Shared: one tank, a sensor attack of magnitude 3 and a
 # deviation band equal to it, the forward-distance scenario of this source.
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-28 on branch benchmark-fixes
-# without the evolve domain; the same pattern as batch I8's file with xp >= 0): CERTIFIED (about
-# 0.15 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1,
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-29 on branch benchmark-fixes):
+# CERTIFIED (about 0.15 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1,
+# RELCERT_NO_CHOICE=1 and RELCERT_NO_REPO=1 (and, measured 2026-10-28, under
 # RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1, RELCERT_SYNC=1 RELCERT_NO_CHOICE=1,
-# RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_PAIR_STRETCH=1, RELCERT_NO_REPO=1, RELCERT_OPREGION=1 and
-# RELCERT_WELLFORMED_STRICT=1; DECLINED under RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1 and without
+# RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_PAIR_STRETCH=1, RELCERT_OPREGION=1 and
+# RELCERT_WELLFORMED_STRICT=1); DECLINED under RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1 and without
 # RELCERT_IMPLIED_CUT (the attacked Off with the genuine On fails without the mode facts). Cover:
 # both left modes at lambda 1, budget 1, the genuine On the only admissible start (the rows exclude
-# its Off), no choice needed; nothing pruned. Rows identical (--handoff
-# vacuous, 4/4). relcert --wellformed: On ok (invariant), Off ok (invariant), 0 UNKNOWN (with the
+# its Off), no choice needed; nothing pruned. Rows identical (--handoff vacuous, 4/4).
+# relcert --wellformed: On ok (invariant), Off ok (invariant), 0 UNKNOWN, 0 BLOCKING (with the
 # flow written 2.5 - 0.1 xp, On is UNKNOWN: the set-point form is what the check recognizes).
+# check_one_domain: passes.
 [problem]
 name = lit_nahs25_salt_tank
 max_depth = 8

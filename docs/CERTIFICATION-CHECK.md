@@ -4,7 +4,7 @@ This is the reproduction recipe: starting from the benchmark files, what to run,
 you should see, to confirm that every suite_v2 benchmark carries a machine-checked
 Theorem 3 (the paper's Soundness of Synthesis) whose hypotheses all hold. Read `README.md` first for what the theorems say.
 
-> **Last run:** 2026-10-29, branch `benchmark-fixes` (fix round 4, `docs/OVERNIGHT-2026-10-29.md` "Fix round 4 (2026-10-29)": start-only fallback modes removed or given a reachable physical trigger (`engine_start_highidle` hung start on low starter supply; the three platoon AEBs and the `h2_refuel_ambientbias` ABORT removed; `charger_fast_tapers` FAULT removed), rows without content removed or tightened, the terrain chain on the soil model's validity floors, `grid_ffr_dos` skipped and `canal_gate_notches` back from the reserve; ten Assumption 1 proofs adapted, one restored). All green: `lake build` exit 0; `--check-quick-v2` 50 certified, modal 1218/1218, handoff 537/537, non-connection 42/42, pruned 21/21, reposition 74/74, strict gate 186/186 (82 invariant, 104 exit); `relcert-test` ALL PASS; bridge 5180/5180; progress 194/194; refute 204/204 (74 instances, all build); WellFormedBattery 66 standard lines plus the 11 CutLiftX lines; AxiomCheck 9; both negatives DECLINED; `lit_hypercert_vehicle_s8` BLOCKING / DECLINED; `check_one_domain.py` PASS.
+> **Last run:** 2026-10-29, branch `benchmark-fixes` (literature fidelity round, `docs/OVERNIGHT-2026-10-29.md` "Literature fidelity round (2026-10-29)": the eight literature benchmarks re-audited against their sources; `lit_lz21_vehicle_position` rows now state the source's Definition 2 (non-secret partner, outputs within delta), `lit_freedm_meter` zero-net battery modes at the source's `B < Bmax`, six headers rewritten; negative exhibit `lit_csf21_vehicle_bus_thermoprio` added). All green: `lake build` exit 0; `--check-quick-v2` 50 certified, modal 1218/1218, handoff 537/537, non-connection 42/42, pruned 21/21, reposition 74/74, strict gate 186/186 (82 invariant, 104 exit); one domain PASS; `relcert-test` ALL PASS; bridge 5183/5183; progress 194/194; refute 204/204 (74 instances, all build); WellFormedBattery 66 standard axiom lines (plus the 11 `CutLiftX` replay lines); AxiomCheck 9; the three negatives DECLINED; `lit_hypercert_vehicle_s8` BLOCKING / DECLINED.
 
 ---
 
@@ -55,11 +55,11 @@ theorems consume is in the repository.
 | 2 | the axiom audit of the Assumption 1 battery and of the generic theorems | `lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 \| grep -A3 "depends on axioms"`; the same for `RelCertifier.InstancesV2.AxiomCheck` |
 | 3 | the 50 files certify in the strict well-formedness mode (declared 50 / 0 / 0), the tool's own queries hold (modal, handoff, non-connection, pruned edges, reposition, against declared counts), and the tool's Assumption 1 check (both clauses, nonblocking and complete, since 2026-10-26) finds every right mode `ok` (declared 186 modes, 0 `UNKNOWN`, 0 `BLOCKING`) | `RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert --check-quick-v2 benchmarks/suite_v2/*/input.txt` |
 | 3a | one physical evolve domain per benchmark: every suite_v2 file has the same `evolve` text on every mode of both sides (owner's rule of 2026-10-29: physical constraints only, never set points, asymptotes or reachable-set bands), except the files whitelisted in the script for kind (iii) (one trip setting in two reading scales, `train_ato_odometry`, `turbine_startup_gearratio`), each with a header line `# Domain conversion (kind iii):` stating the conversion; expected `ONE DOMAIN: PASS (50 benchmarks: 48 with one evolve domain, 2 kind (iii) with a stated conversion)` | `python3 scripts/check_one_domain.py` |
-| 3' | the expected DECLINEs (the leaky FREEDM controller, the leaky CSF 2021 car: both `DECLINED`) | `RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert benchmarks/negative/*/input.txt` |
+| 3' | the expected DECLINEs (the leaky FREEDM controller, the leaky CSF 2021 car, the CSF 2021 bus with reversed arbitration: all three `DECLINED`) | `RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert benchmarks/negative/*/input.txt` |
 | 3'' | the expected Assumption 1 failure (`lit_hypercert_vehicle_s8`, a self-contained right model that blocks at `s = 8`; its suite benchmark is in `benchmarks/skipped/` since 2026-10-28): all five right modes `BLOCKING`, DECLINED under the strict switch | `./.lake/build/bin/relcert --wellformed benchmarks/negative_wellformed/*/input.txt`; `RELCERT_IMPLIED_CUT=1 RELCERT_WELLFORMED_STRICT=1 ./.lake/build/bin/relcert benchmarks/negative_wellformed/*/input.txt` |
 | 4 | each file parses to the literal the theorems quote; parser, printer, Z3-layer and determinism tests | `BENCH_PATHS=<manifest> ./.lake/build/bin/relcert-test` |
 | 5 | Assumption 1 of every right model (`WellFormedR`): proved for all 50, none refuted; axiom audit; the tool's check, strict in check 3 | `lake build RelCertifier.InstancesV2.WellFormedBattery 2>&1 \| grep -A3 "depends on axioms"`; `./.lake/build/bin/relcert --wellformed benchmarks/suite_v2/*/input.txt` |
-| 6 | every Z3 hypothesis of the generic bridge instances (`InstancesV2/Bridge/`, 52 `*_bridge` theorems: stays, non-connection pairs, flow and reposition packs, admissibility, handoffs, progress, coverage) holds, against the declared total 5180 over the 50 suite benchmarks and the 2 choice exhibits; every query is sent at the instance's dimension `bridgeDimV2 b` (`VerdictsV2/RunBridge.lean:74`: the Assumption 1 lemma's dimension plus one, the right clock of the clocked right automaton `rightAutomatonBodyC`), which is the dimension the instance's `Verdicts` hypothesis names | `./.lake/build/bin/relcert-bridge-verdicts` |
+| 6 | every Z3 hypothesis of the generic bridge instances (`InstancesV2/Bridge/`, 52 `*_bridge` theorems: stays, non-connection pairs, flow and reposition packs, admissibility, handoffs, progress, coverage) holds, against the declared total 5183 over the 50 suite benchmarks and the 2 choice exhibits; every query is sent at the instance's dimension `bridgeDimV2 b` (`VerdictsV2/RunBridge.lean:74`: the Assumption 1 lemma's dimension plus one, the right clock of the clocked right automaton `rightAutomatonBodyC`), which is the dimension the instance's `Verdicts` hypothesis names | `./.lake/build/bin/relcert-bridge-verdicts` |
 | 7 | the progress certificates (the paper's reposition certificates, Definition 7) of every reposition node (194 queries) hold, against the declared count | `./.lake/build/bin/relcert-progress-verdicts` |
 | 8 | the 74 kernel refutations (`InstancesV2/Refute/`, `docs/REFUTATION-RESULTS.md`): every Z3 group of `RefVerdicts` holds against the declared total 204, each instance at its benchmark's bridge dimension (`RefRec.dim + 1`, `InstancesV2/Refute/Table.lean`), and each instance concludes `¬ keyedClaim … 0 1 2 3 dt` / `¬ windowClaim … 0 1 2 dt`, the negation of the clocked bridge claim at that dimension (`refute_keyed_C/A/B_clocked`, `refute_window_B_clocked`) | `./.lake/build/bin/relcert-refute-verdicts`; `lake build RelCertifier.InstancesV2.Refute` |
 
@@ -166,8 +166,8 @@ The coverage phases re-send the tool's own queries (`VerdictsV2/{ModalX,ModalDyn
 `VerdictsV2/RunV2.lean`; the theorems' own Z3 leaves are the bridge groups of check 6. A phase
 that discharged fewer (or more) queries than declared fails the run; anything the runner
 cannot rebuild is a `SKIP`/`FAIL`, never a pass. The expected DECLINE: `RELCERT_IMPLIED_CUT=1
-./.lake/build/bin/relcert benchmarks/negative/*/input.txt` prints `lit_csf21_vehicle_thermo_leaky:
-DECLINED` and `lit_freedm_meter_leaky: DECLINED`, `errors=0`.
+./.lake/build/bin/relcert benchmarks/negative/*/input.txt` prints `lit_csf21_vehicle_bus_thermoprio:
+DECLINED`, `lit_csf21_vehicle_thermo_leaky: DECLINED` and `lit_freedm_meter_leaky: DECLINED`, `errors=0`.
 
 ## Check 4: the files match the IR the theorems quote
 
@@ -318,7 +318,7 @@ lake build && lake build relcert relcert-test relcert-bridge-verdicts relcert-re
 ```
 
 A green build, an axiom listing with nothing beyond the four axioms, `SUITE_V2 QUICK CHECKS
-PASSED`, `ONE DOMAIN: PASS`, `ALL PASS`, `5180/5180`, `194/194` and `204/204` = every suite_v2 benchmark is
+PASSED`, `ONE DOMAIN: PASS`, `ALL PASS`, `5183/5183`, `194/194` and `204/204` = every suite_v2 benchmark is
 certified end to end, modulo the trust base.
 
 ## Earlier recipes

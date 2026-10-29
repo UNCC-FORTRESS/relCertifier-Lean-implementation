@@ -16,7 +16,7 @@
 | `gantry_speed_zones` | Gantry speed zones (multi-cycle matching) | 2/2 | 3/1 | linear | S M | 1.1 | DECLINED | DECLINED | CERTIFIED | - | S_lam1 |
 | `h2_refuel_ambientbias` | Hydrogen refuelling (sensor bias) | 1/1 | 5/5 | linear | R D I | 0.5 | DECLINED | - | DECLINED | STAGE1/STAGE2/STAGE3:DECLINED, TOPOFF/COMPLETE:CERTIFIED (drops a stated row) | R_cover D_rows |
 | `hydro_rejection_gatecal` | Hydro unit load rejection | 3/3 | 2/2 | linear | D | 0.3 | CERTIFIED | - | CERTIFIED | ONGRID:DECLINED, REJECT:DECLINED (drops a stated row) | D_rows D_strict |
-| `insulin_basal_cgmloss` | Insulin basal control | 3/3 | 9/9 | linear | M B | 6.3 | CERTIFIED | - | CERTIFIED | - | - |
+| `insulin_basal_cgmloss` | Insulin basal control | 3/3 | 9/9 | linear | M B | 6.4 | CERTIFIED | - | CERTIFIED | - | - |
 | `lit_csf21_vehicle_bus` | Literature | 3/3 | 6/12 | linear | X | 3.2 | CERTIFIED | - | CERTIFIED | - | - |
 | `lit_csf21_vehicle_thermo` | Literature | 3/3 | 6/6 | linear | X | 1.6 | CERTIFIED | - | CERTIFIED | - | - |
 | `lit_drl_car_stop` | Literature | 2/2 | 3/3 | linear | X | 0.4 | CERTIFIED | - | CERTIFIED | - | - |
@@ -33,8 +33,8 @@
 | `reactor_feed_wireless` | Exothermic reactor feed interlock | 2/2 | 4/4 | linear | M B P | 0.7 | CERTIFIED | - | CERTIFIED | - | - |
 | `rover_ladder_2to3` | Rover ladder | 3/3 | 3/3 | linear | -- | 0.2 | CERTIFIED | - | CERTIFIED | - | - |
 | `rover_ladder_3to6` | Rover ladder | 6/6 | 3/3 | linear | -- | 0.7 | CERTIFIED | - | CERTIFIED | - | - |
-| `rover_ladder_6to8` | Rover ladder | 8/8 | 3/3 | quadratic | S M I | 15.1 | DECLINED | DECLINED | CERTIFIED | - | S_lam1 |
-| `rover_ladder_8to12` | Rover ladder | 12/12 | 3/3 | quadratic | S M I | 31.1 | DECLINED | DECLINED | CERTIFIED | - | S_lam1 |
+| `rover_ladder_6to8` | Rover ladder | 8/8 | 3/3 | quadratic | S M I | 15.2 | DECLINED | DECLINED | CERTIFIED | - | S_lam1 |
+| `rover_ladder_8to12` | Rover ladder | 12/12 | 3/3 | quadratic | S M I | 31.2 | DECLINED | DECLINED | CERTIFIED | - | S_lam1 |
 | `rover_patrol_lag` | Rover patrol (zones) | 3/3 | 4/4 | linear | S M R B | 1.2 | DECLINED | DECLINED | DECLINED | - | S_lam1 R_cover |
 | `rover_terrain_2to4` | Terrain chain | 4/4 | 3/3 | linear | S M I | 2.4 | DECLINED | DECLINED | CERTIFIED | - | S_lam1 |
 | `rover_terrain_4to6` | Terrain chain | 6/6 | 3/3 | linear | I | 1.0 | CERTIFIED | - | CERTIFIED | - | - |
@@ -47,7 +47,7 @@
 | `train_ato_odometry` | Train speed control (ATO) | 1/1 | 3/3 | linear | S M B | 2.1 | DECLINED | DECLINED | CERTIFIED | - | S_lam1 |
 | `turbine_startup_gearratio` | Wind turbine start-up | 1/1 | 4/4 | linear | R P D I | 0.3 | DECLINED | - | DECLINED | SPINUP/RAMP/STOP:DECLINED, GEN:DECLINED (drops a stated row) | R_cover D_rows D_strict |
 | `ventilator_vc_cuffleak` | Volume-controlled ventilation | 2/2 | 2/2 | linear | D | 0.2 | CERTIFIED | - | CERTIFIED | INSP:DECLINED (drops a stated row), EXP:DECLINED (drops a stated row), conj:DECLINED | D_rows D_strict |
-| `watertank` | Watertank | 1/1 | 3/5 | linear | S M B | 1.9 | DECLINED | DECLINED | CERTIFIED | - | S_lam1 |
+| `watertank` | Watertank | 1/1 | 3/5 | linear | S M B | 2.1 | DECLINED | DECLINED | CERTIFIED | - | S_lam1 |
 | `watertank_twospeed` | Watertank | 1/1 | 3/6 | linear | S M B P | 1.8 | DECLINED | DECLINED | CERTIFIED | - | S_lam1 |
 | `zone_lightmass_schedule` | Building zone heating (lightweight construction) | 1/1 | 2/3 | linear | S M B X | 0.1 | DECLINED | DECLINED | CERTIFIED | - | S_lam1 |
 

@@ -1,63 +1,85 @@
 # lit_freedm_meter: initial-state nondeducibility of a battery level through the grid meter
 # (sampled, single-transformer form of the FREEDM case study of hybrid-dynamic information flow).
 # scenario: information-flow
-# mechanisms: X (committed successor subsets: the second run commits to the mode that copies
-#   the first run's meter, chosen per window)
+# mechanisms: X (committed successor subsets: the second run commits, per window, to the grid
+#   mode whose draw equals the first run's)
 #
 # SOURCE. Bohrer and Platzer, "A hybrid, dynamic logic for hybrid-dynamic information flow"
-# (LICS 2018), the FREEDM model of Figure 2 (Section 3), nondeducibility (its Definition 5),
-# the leak of batI (Section 8, Proposition 10) and the security of batS (Section 9,
-# Proposition 11): a FREEDM microgrid transformer serves a demand d from a
-# renewable source r, its battery B, or the macrogrid; the battery level is private, the grid
-# draw gr and time are public. Nondeducibility: for every run from a state and every other
-# private battery level, a run from the other level with the same public values exists. The
-# deterministic controller batI (battery while B < Bmax, grid otherwise) leaks B = Bmax; the
-# controller batS, whose source choice is free, is proved secure because the grid branch is
-# always available and the second run compensates with its own demand and renewable inputs.
+# (LICS 2018): the FREEDM model alpha_F of Figure 2 (Section 3), nondeducibility (Definition 5,
+# L = {gr, t}), the leak of batI (Section 8, Proposition 10) and the security of batS (Section 9,
+# Proposition 11). A FREEDM transformer serves a demand d from a renewable source r, its
+# battery B (0 <= B <= Bmax, Section 3) or the macrogrid. Public: the grid draw gr and the time
+# t. Secret: everything else (B, the inputs d and r, the transformer power p). batS: gr := 0,
+# then either the battery branch, guarded by "(B < Bmax) or (n > 0 and B > 0)" for the net
+# demand n = d - r - p, with b := -n (B' = b), or the free grid branch gr := gr + n. Prop. 11:
+# for every run of alpha_S from i1 and every i2 that agrees with i1 on gr and t (and on
+# maxm > 0, Bmax > 0, thresh > 0), a run of alpha_S from i2 ends with the same gr and t. The
+# source's proof: the grid branch is always available and the second run picks its own d and r
+# so that its net demand equals the first run's. The deterministic batI (battery whenever it
+# can serve the cycle, grid otherwise) leaks the battery level (Prop. 10).
+# Model here: B' = r - d, E' = 0 on the battery modes BatDxRy; B' = 0, E' = d - r on the grid
+# modes GridDxRy; Bmax = 10, period 1. The guards are the source's batS guards in sampled form:
+# a battery mode is enabled exactly when the source's test holds and one period of it keeps B
+# in [0, Bmax] (charging BatD0R1 from B <= 9, discharging from B >= n, the zero-net BatD0R0 and
+# BatD1R1 from B < 10, as the source's test excludes n = 0 at B = Bmax); every grid mode is
+# enabled always (the evolve domain), as the source's grid branch is unguarded.
 #
-# THE FORM HERE (the deviations from the source, each a modelling choice stated once).
-# (1) The public quantity is the utility METER, the cumulative grid energy E (E' = d - r on the
-#     grid, E' = 0 on the battery), instead of the instantaneous draw gr, which the source
-#     resets by assignment at every cycle; the draw is the meter's derivative, so equal meters at
-#     all times are equal draws. (2) One transformer, no power migration: with migration the
-#     second run's compensation depends on the migrated power, which finite inputs cannot track.
-# (3) Demand d in {0, 1, 2} and renewable r in {0, 1} per cycle, a mode choice on both sides
-#     (reals in the source). Both sides run batS, whose battery branch is guarded by the source's
-#     test "(B < Bmax) or (n > 0 and B > 0)" (the battery can still charge or still discharge) and
-#     whose grid branch is free: here a battery mode is enabled when one period of it keeps the
-#     level in [0, Bmax] (Bmax = 10), the sampled form of that test (it also admits a zero-net
-#     battery cycle at a full battery, which the source's test does not), and a grid mode
-#     always. The evolve domain adds the capacity B <= Bmax to the source's B >= 0; the meter E
-#     has no domain (it may decrease when a surplus is sold). The literal charge test B < Bmax
-#     in place of "one period keeps the level in [0, Bmax]" also CERTIFIES (relcert --wellformed
-#     then reports one right mode, BatD0R1, UNKNOWN, not blocking; measured 2026-10-28).
-# (4) The source is not time-triggered: its plant carries no t <= eps, the ODE may run for any
-#     duration and the controller runs at every cycle end. Both sides here are sampled at period
-#     1 (the left may switch earlier). This is harmless: every mode's flow is autonomous with
-#     constant inputs, so a source cycle of any duration is the same run as re-choosing the same
-#     mode at every period, and equal meters at every instant from equal starts are equal draws
-#     almost everywhere, the source's agreement on gr at every cycle end.
-# PROPERTY. The suite's Definition 1 (the source's nondeducibility) at E_L = E_R (two
-# inequalities), every pair of battery levels an admissible start: the secret B is
-# unconstrained on either side. Witness: the right never needs its battery: whatever the left
-# draws from or returns to the grid (E' in {-1, 0, 1, 2}), a grid mode with the same net draw
-# exists (d = r for 0, d = r + 1 for 1, d = 2 and r = 0 for 2, d = 0 and r = 1 for -1), so a
-# witness that matches the meter from every battery level B_R is available; this is the source's
-# own argument for Prop. 11 (the grid branch is always available). A right model with the six
-# grid modes only, or with the battery modes unreachable, also CERTIFIES (measured 2026-10-28).
-# Existential mode choice (the tool's default): the right commits to one mode.
+# DEPARTURES (each forced; the reason after the colon).
+# (1) The public quantity is the utility METER E, the cumulative grid energy (E' = d - r on the
+#     grid, 0 on the battery), not the instantaneous draw gr: gr is set by discrete assignment
+#     at every cycle, and the format has no assignments, only flows, so the draw (a per-mode
+#     constant) is observed through its integral. Equal meters on a window of positive length
+#     from equal values at its start are equal draws on that window (a zero-length source cycle
+#     has no sampled counterpart, see (4)).
+# (2) One transformer, no power migration (p = 0, so thresh and maxm play no role): with
+#     migration p moves continuously and the second run must cancel a real-valued difference in
+#     p with its own inputs (the source's proof sets r1 = -n1 - p1), which the finitely many input
+#     levels of (3) cannot do.
+# (3) Demand d in {0, 1, 2} and renewable r in {0, 1}, held for a period, a mode choice on both
+#     sides (nonnegative reals in the source): inputs held constant between samples are modes,
+#     and a mode set is finite.
+# (4) Sampled at period 1 on both sides (the left may switch earlier); the source is NOT
+#     time-triggered (its plant has no t <= eps, an ODE may run any duration, the controller
+#     runs at every cycle end): the framework's switching is time-triggered. Harmless here:
+#     every flow is autonomous with constant inputs, so a source cycle of any duration is the
+#     same run as re-choosing the same mode at every period.
+# (5) The guard of the charging mode is B <= 9, not the source's B < Bmax, and a discharging
+#     mode needs B >= n, not B > 0: Assumption 1 (a full period from the guard inside the
+#     domain). With the literal charge test B < 10 the file also CERTIFIES (relcert
+#     --wellformed: BatD0R1 UNKNOWN, not blocking; measured 2026-10-29).
+# (6) Evolve domain 0 <= B <= 10 (the source's domain is B >= 0; the capacity 0 <= B <= Bmax is
+#     the range stated in its Section 3): the guards keep B in [0, 10], so no run changes; with
+#     the source's domain B >= 0 alone the file also CERTIFIES (--wellformed 12/12 ok; measured
+#     2026-10-29). E has no domain (it decreases when a surplus is sold).
+# PROPERTY. The suite's Definition 1 at E_L = E_R (two inequalities), every pair of battery
+# levels an admissible start: the source's nondeducibility with L = {gr, t} (time is lock-step,
+# gr is carried by E as in (1)), the secret B unconstrained on either side, the inputs d, r
+# hidden and chosen freely by each run. Existential mode choice (the tool's default): the right
+# commits to one mode per window. Both sides run batS, as in Prop. 11.
+# Witness: not a copy. When the left uses its battery the right cannot copy it (its own level
+# may be empty or full); whatever net draw the left takes from the grid (E' in {-1, 0, 1, 2}),
+# a grid mode with the same draw exists (d = r for 0, d = r + 1 for 1, d = 2 and r = 0 for 2,
+# d = 0 and r = 1 for -1), from every battery level B_R. This is the source's own argument for
+# Prop. 11, so the right's battery modes are never needed: a right with the six grid modes only
+# also CERTIFIES (1.7 s), and DECLINES under RELCERT_NO_CHOICE=1.
 # Why committed choice is needed (X): the grid mode that matches the left's draw changes from
 # window to window, so the right must choose it at each window start; without the choice
-# (RELCERT_NO_CHOICE=1) the right must flow on in whatever admissible mode it holds, and the
-# meters separate: DECLINED (also for the grid-only right).
-# The leaky controller batI is benchmarks/negative/lit_freedm_meter_leaky (expected DECLINED).
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26, re-measured 2026-10-28 on
-# branch benchmark-fixes, unchanged): CERTIFIED (about 2.5 s); CERTIFIED under RELCERT_SYNC=1,
-# RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1,
-# RELCERT_NO_PAIR_STRETCH=1, RELCERT_NO_REPO=1, RELCERT_OPREGION=1, RELCERT_WELLFORMED_STRICT=1
-# and without RELCERT_IMPLIED_CUT; DECLINED under RELCERT_NO_CHOICE=1, RELCERT_SYNC=1 RELCERT_NO_CHOICE=1
-# and RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1. Rows identical (--handoff vacuous, 144/144).
-# relcert --wellformed: all 12 right modes ok (8 invariant, 4 exit).
+# (RELCERT_NO_CHOICE=1) the right flows on in whatever admissible mode it holds and the meters
+# separate: DECLINED.
+# TIGHTNESS. The source states no quantitative bound; the claim is exact equality of the public
+# observation, so there is no tolerance to tighten.
+# CAUSE TEST (the source's mechanism: the grid branch is always available). Gate the one grid
+# mode GridD2R0 (draw 2) on the secret as batI does (enabled only when the battery cannot serve
+# demand 2, B < 2), on both sides, nothing else changed: DECLINED (2.4 s); the leak is real (a
+# left run at B_L < 2 draws 2, no right run from B_R >= 2 can). Gating it on the right only:
+# DECLINED; on the left only: CERTIFIED. The full batI on both sides is
+# benchmarks/negative/lit_freedm_meter_leaky (expected DECLINED, measured DECLINED 1.7 s); its
+# battery guards are identical to this file's, so the two files differ exactly in the grid
+# guards (batS against batI).
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-29 on branch benchmark-fixes):
+# CERTIFIED (about 2.6 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1,
+# RELCERT_NO_REPO=1; DECLINED under RELCERT_NO_CHOICE=1. Letters: X. Rows identical (--handoff
+# vacuous, 144/144). relcert --wellformed: all 12 right modes ok (8 invariant, 4 exit).
 [problem]
 name = lit_freedm_meter
 max_depth = 8
@@ -69,7 +91,7 @@ state_vars = [B, E]
 epsilon = 1.0
 [Lsys.mode.BatD0R0]
 ode = B' = smt2:0.0; E' = smt2:0.0;
-guard = B >= 0.0 and B <= 10.0
+guard = B >= 0.0 and B < 10.0
 evolve = B >= 0.0 and B <= 10.0
 next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
 [Lsys.mode.BatD0R1]
@@ -84,7 +106,7 @@ evolve = B >= 0.0 and B <= 10.0
 next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
 [Lsys.mode.BatD1R1]
 ode = B' = smt2:0.0; E' = smt2:0.0;
-guard = B >= 0.0 and B <= 10.0
+guard = B >= 0.0 and B < 10.0
 evolve = B >= 0.0 and B <= 10.0
 next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
 [Lsys.mode.BatD2R0]
@@ -132,7 +154,7 @@ state_vars = [B, E]
 epsilon = 1.0
 [Rsys.mode.BatD0R0]
 ode = B' = smt2:0.0; E' = smt2:0.0;
-guard = B >= 0.0 and B <= 10.0
+guard = B >= 0.0 and B < 10.0
 evolve = B >= 0.0 and B <= 10.0
 next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
 [Rsys.mode.BatD0R1]
@@ -147,7 +169,7 @@ evolve = B >= 0.0 and B <= 10.0
 next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
 [Rsys.mode.BatD1R1]
 ode = B' = smt2:0.0; E' = smt2:0.0;
-guard = B >= 0.0 and B <= 10.0
+guard = B >= 0.0 and B < 10.0
 evolve = B >= 0.0 and B <= 10.0
 next = [BatD0R0, BatD0R1, BatD1R0, BatD1R1, BatD2R0, BatD2R1, GridD0R0, GridD0R1, GridD1R0, GridD1R1, GridD2R0, GridD2R1]
 [Rsys.mode.BatD2R0]

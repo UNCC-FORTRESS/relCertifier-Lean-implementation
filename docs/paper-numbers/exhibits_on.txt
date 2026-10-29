@@ -1,4 +1,4 @@
 z3 = /opt/homebrew/bin/z3  (warm persistent session)
-vehicle_accel_copy: CERTIFIED (1864ms)
-watertank_choice: CERTIFIED (2064ms)
+vehicle_accel_copy: CERTIFIED (1858ms)
+watertank_choice: CERTIFIED (2054ms)
 errors=0

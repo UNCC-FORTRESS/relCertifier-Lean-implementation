@@ -1,89 +1,125 @@
 # lit_lz21_vehicle_position: approximate initial-state opacity of a vehicle whose POSITION an intruder
 # observes with precision 1 m (the vehicle example of verifying approximate opacity via barrier
-# certificates).
+# certificates): every run from a secret start has a partner run from a NON-SECRET start whose
+# observed positions stay within 1 m forever.
 # scenario: opacity
-# mechanisms: X (committed successor subsets: the partner run copies the secret run's
-#   acceleration at the start of every window)
+# mechanisms: X (committed successor subsets: the partner run takes the secret run's acceleration
+#   at the start of every window)
 #
 # SOURCE. Liu and Zamani, "Verification of approximate opacity via barrier certificates", IEEE
-# Control Systems Letters 5(4) (2021), Section V-A, Eq. (17): an autonomous vehicle on a single-lane
-# road (x1 position, x2 velocity), x1(t+1) = x1 + dt x2 + dt^2/2 u, x2(t+1) = x2 + dt u, output
-# y = x1, dt = 1; state set X = [0, 10] x [0, 0.1], initial set X0 = [0, 10] x {0}, secret set
-# Xs = [0, 1] x [0, 0.1] (e.g. a cash-transit van leaving a bank), inputs U = [-0.05, 0.05],
-# intruder precision delta = 1 (the smallest delta for which they find a certificate); R0 pairs a
-# secret start x1 in [0, 1] with x1_hat in [1, 10], |x1 - x1_hat| <= delta; certificate a degree-2
+# Control Systems Letters 5(4) (2021), arXiv 2109.10993. Definition 2 (delta-approximate
+# initial-state opacity: for every x0 in X0 and Xs and every finite run there are x0_hat in
+# X0 \ Xs and a run with max_i |h(x_i) - h(x_hat_i)| <= delta), assumption (2), sets (6)-(7),
+# Theorem 5; Section V-A, Eq. (17): an autonomous vehicle on a single-lane road (x1 position, x2
+# velocity), x1(t+1) = x1 + dt x2 + dt^2/2 u, x2(t+1) = x2 + dt u, output y = x1, dt = 1; state set
+# X = [0, 10] x [0, 0.1], initial set X0 = [0, 10] x {0}, secret set Xs = [0, 1] x [0, 0.1] (e.g. a
+# cash-transit van leaving a bank), inputs U = [-0.05, 0.05], delta = 1 (the smallest delta for
+# which they find a certificate); R0 pairs a secret start x1 in [0, 1] with x1_hat in [1, 10],
+# both at rest, (x1 - x1_hat)^2 <= delta^2; Ru = {(x1 - x1_hat)^2 >= delta^2 + 0.01}; a degree-2
 # augmented control barrier certificate with the partner policy
-# u_hat = 0.8 x1 - 0.8 x2 + 1.5 x1_hat - 1.5 x2_hat + u. Property (delta-approximate initial-state
-# opacity): for every run from a secret initial state there is a run from a non-secret initial
-# state whose outputs stay within delta forever. The same vehicle with the velocity observed is
-# the example of HyperCertificates (Sec. 9.2; its claim is false as formalized, so that benchmark
-# is skipped, benchmarks/skipped/lit_hypercert_vehicle) and of Anand et al. (TAC 2024, Sec. 5.1).
+# u_hat = 0.8 x1 - 0.8 x2 + 1.5 x1_hat - 1.5 x2_hat + u. The same vehicle with the velocity
+# observed is the example of HyperCertificates (Sec. 9.2; its claim is false as formalized, so that
+# benchmark is skipped, benchmarks/skipped/lit_hypercert_vehicle) and of Anand et al. (TAC 2024,
+# Sec. 5.1).
 #
 # THIS FILE. Both sides the vehicle, state (x, v) in m and m/s, in continuous time: x' = v, v' = u
 # held for the 1 s period (epsilon 1 on both sides; the source's step is the exact 1 s sampling of
 # this flow). One mode per input u in {-0.05, 0, 0.05} (Um, U0, Up). Guards keep the velocity in the
 # source's [0, 0.1] over one period (Um needs v >= 0.05, Up needs v <= 0.05; U0 is enabled
 # everywhere, so the guards cover the domain). The left run is the secret run, the right run its
-# non-secret partner. Stretch pinned to 1 (opacity compares the outputs instant by instant).
+# partner. Stretch pinned to 1 (opacity compares the outputs instant by instant).
 #
-# CLAIM (every left mode): v_L = v_R and x_R = x_L + 1 (two inequalities each). The partner starts
-# delta = 1 m ahead (x_L in [0, 1] paired with x_R in [1, 2], inside the source's R0), copies the
-# input, and stays exactly delta away forever. The content of the rows is translation invariance of
-# the double integrator under equal inputs: the same rows certify for every offset (0, 0.5, 2, 5, 9,
-# 50 and -1 measured 2026-10-29), so delta = 1 is what makes the partner start non-secret, not a
-# property of the dynamics; the mechanism content is the committed input copy (X). Not implied by
-# the domains; every left mode has a satisfiable start (x_L = 0.5, x_R = 1.5, v_L = v_R = 0.05).
+# CLAIM (every left mode): x_R >= 1, |x_L - x_R| <= 1, v_L = v_R. This is Definition 2 at the
+# source's delta = 1, row by row: x_R >= 1 carries the partner's non-secret start (X0 \ Xs =
+# (1, 10] x {0}; Xs is closed, so non-secret is x_R > 1). The row states the closure, and the
+# strict reading follows from it: a partner run that starts at x_R > 1 keeps x_R > 1 forever,
+# because x is nondecreasing on the domain (v >= 0); Definition 2 asks it only at the start.
+# (The tool also certifies the strict row x_R > 1 as stated, 0.4 s, README "strict atoms"; the
+# suite's bridge states closed rows, so the file keeps the closure.) |x_L - x_R| <= 1 is the
+# source's output condition |y - y_hat| <= delta (its Ru avoided),
+# held at every instant, not only at samples. v_L = v_R is the witness's part (the source's B also
+# bounds the velocity gap). Coverage (the source's R0 and assumption (2), a static check outside
+# the tool, z3 2026-10-29): every secret start x_L in (0, 1] at rest has a partner start in the
+# rows (x_R in (1, x_L + 1], at rest); the secret start x_L = 0 has none (see (4)). The rows contain
+# every R0 pair with x_R > 1 (all non-secret partners within 1 m, not only one offset).
 #
 # Where this file departs from the source.
 # (1) Position range: the domain is x >= 0 with no upper bound (forward invariant: v >= 0); the
 #   source's 10 enters only through the start range. The bound is dropped for the WITNESS, not
-#   because the source's claim fails: an evolve bound x <= 10 would make the copying partner, 1 m
-#   ahead, block at 10 (Assumption 1), while under the literal reading (every run confined to
+#   because the source's claim fails: an evolve bound x <= 10 would make a partner ahead of the
+#   secret run block at 10 (Assumption 1), while under the literal reading (every run confined to
 #   [0, 10]) the source's property stays plausibly true, since a partner may lag and still end
 #   within 1 m and inside [0, 10]. Contrast lit_hypercert_vehicle, where the literal claim is false.
-#   Measured 2026-10-29: with the evolve bound x <= 10 restored on the right, the file still
+#   Measured 2026-10-29 with these rows: with x <= 10 in the (one) evolve domain the file still
 #   certifies but relcert --wellformed reports Um, U0, Up BLOCKING (leaves x <= 10) and
-#   RELCERT_WELLFORMED_STRICT=1 declines; a guard bound instead gives UNKNOWN. A partner that leads
-#   and then holds at 10 is out of reach of this encoding for two reasons: its invariant is a
-#   disjunction over phases (not lowerable), and with inputs held at the three levels a partner
-#   whose velocity is not a multiple of 0.05 can never come to rest (Um needs v >= 0.05), so the
-#   right blocks at 10 whatever its policy; the source's continuous U = [-0.05, 0.05] does not have
-#   this obstacle. The file is therefore a literature row, not a mechanism exhibit.
+#   RELCERT_WELLFORMED_STRICT=1 declines. A partner that leads and then holds at 10 is out of reach
+#   of this encoding: its invariant is a disjunction over phases (not lowerable), and with inputs
+#   held at the three levels a partner whose velocity is not a multiple of 0.05 can never come to
+#   rest (Um needs v >= 0.05), so the right blocks at 10 whatever its policy.
 # (1') Initial velocity: the source's X0 = [0, 10] x {0} starts at rest; here every pair of equal
 #   velocities in [0, 0.1] is an admissible start, a stronger claim.
-# (2) Witness: the exact copy u_hat = u (equal velocities) instead of the source's feedback policy
-#   (which, taken literally, is not input-admissible: x1 = 5, x1_hat = 6 gives u_hat about 13).
+# (2) Witness: the partner keeps its start offset and takes the secret run's input, instead of the
+#   source's feedback policy, which is not input-admissible (measured 2026-10-29 by
+#   numerical sampling): as printed it gives u_hat in [1.47, 3.82] on R0 (never in U; x1 = 5, x1_hat = 6 gives
+#   about 13); read as the error feedback u_hat = u + 0.8 (x1 - x1_hat) + 1.5 (x2 - x2_hat) it is in U
+#   on 0.6 % of R0; and NO input-admissible u_hat makes the printed B non-increasing (condition (5))
+#   on about 29 % of X x X x U (e.g. x = (5, 0.05), x_hat = (5.5, 0.1), u = -0.05: B grows by at
+#   least 0.05 for every u_hat in U). The source's existential claim (Definition 2) does not depend
+#   on its witness; the input-copying partner is an admissible witness of it. The feedback cannot be
+#   stated in this format (the partner's level is chosen per window by the cover, rows are keyed by
+#   the left mode), and rows that let the velocities differ, as a feedback witness needs
+#   (|v_L - v_R| <= 0.05, <= 0.01, or v_R <= v_L, with the other rows kept), DECLINE. The saturated
+#   printed policy is not a witness: the secret run resting at 0.5 with the partner at 1.2 drives the
+#   gap to 1.1 at t = 5; the saturated error feedback is (0 of 3000 simulated runs exceed 1 m) but is
+#   not stated here.
 # (3) Inputs: the secret run takes three input levels (the ends and the middle of U) and may
 #   switch between them after less than a period (continuous time), with each level's guard
 #   checked at the window start (Up at v <= 0.05, Um at v >= 0.05, so that one period keeps v in
 #   [0, 0.1]). This narrows the universally quantified secret run: inputs strictly inside U, and
 #   inputs at the source's velocity limits (e.g. u = 0.02 at x2 = 0.08), are not represented,
-#   while sub-period switching adds runs the source does not have. The copying partner does not
-#   depend on the levels (a five-level file also certifies), but only the three-level claim is
-#   certified.
-# (4) Boundary: x_L = 0 pairs with x_R = 1, on the boundary of the closed Xs; the source's R0
-#   (x1_hat in [1, 10]) does the same, and at delta = 1 no partner of x1 = 0 lies in X0 \ Xs.
+#   while sub-period switching adds runs the source does not have. The certificate does not depend
+#   on the levels: the same rows certify with 5, 7, 9 and 11 levels (11 levels on the 0.01 grid of
+#   U: CERTIFIED 5.7 s, also under RELCERT_WELLFORMED_STRICT=1, --wellformed 11/11 ok; 5, 7, 9
+#   levels: CERTIFIED but 2, 4, 6 modes UNKNOWN nonblocking, so strict declines), but only the
+#   three-level claim is certified by this file. A continuum of inputs would need a held input
+#   variable set at samples, which the format (no resets) cannot express.
+# (4) Boundary: the secret start x_L = 0 (at rest) has no partner in the rows, because at delta = 1
+#   no non-secret start lies within 1 m of it ({x in X0 : |x1| <= 1} = [0, 1] x {0} is inside Xs).
+#   This is the source's own boundary: its assumption (2) fails at x0 = (0, 0), so Definition 2 at
+#   delta = 1 fails there (the source's R0 hides it by allowing x1_hat = 1, a secret start). Every
+#   delta > 1 covers x_L = 0 (z3: coverage holds at delta = 1.000001), and the source's certificate
+#   itself only excludes (x1 - x1_hat)^2 >= 1.01 (Ru with its 0.01 margin), i.e. |y - y_hat| < 1.005.
+#
+# TIGHTNESS (2026-10-29). The tool's verdict is the invariance part (the source's Proposition 4) and
+# does not depend on delta: the rows with delta = 0, 0.99 and 1 all CERTIFY. delta enters through
+# coverage (the source's assumption (2)), checked by z3 queries: with x_R > 1 the
+# uncovered secret starts are exactly [0, 1 - delta] for delta <= 1 ({0} at delta = 1, [0, 0.01] at
+# 0.99, [0, 0.5] at 0.5) and none for delta > 1. Tight delta = 1 on the secret starts (0, 1],
+# matching the source's "delta = 1 is the smallest".
+#
+# CAUSE TEST (2026-10-29). Partner non-secret removed (no x_R >= 1): the rows with delta = 0
+# (x_R = x_L) CERTIFY and cover every secret start, so the tight delta falls from 1 to 0: the
+# delta = 1 is caused by the non-secret requirement. Velocity matching removed (rows x_R >= 1,
+# |x_L - x_R| <= 1 only): DECLINED. Committed input copy removed (RELCERT_NO_CHOICE=1): DECLINED.
 #
 # NOTE (not a separate file). The infinite-step opacity of the same vehicle (Kalat, Liu, Zamani,
 # "Verification of approximate infinite-step opacity using barrier certificates", ECC 2022,
-# Sec. V: X = X0 = [0, 10], Xs = [5.5, 6], U = [-0.05, 0.05], delta = 1) CERTIFIES with these
-# modes and the offset 0.75 instead of 1 (whenever the secret run is in [5.5, 6], the partner is in
-# [6.25, 6.75], outside Xs, and 0.75 <= delta away; measured 2026-10-27, same verdicts pattern):
-# a one-constant change of this file.
+# Sec. V: X = X0 = [0, 10], Xs = [5.5, 6], U = [-0.05, 0.05], delta = 1, no policy printed)
+# CERTIFIES with these modes and the offset 0.75 instead of 1 (whenever the secret run is in
+# [5.5, 6], the partner is in [6.25, 6.75], outside Xs, and 0.75 <= delta away; measured
+# 2026-10-27, same verdicts pattern): a one-constant change of the offset rows.
 #
 # Why committed choice is needed (X). At the start of each window the partner hops into the
 # secret run's input and the two velocities move together; without the choice
 # (RELCERT_NO_CHOICE=1) it must keep its input: DECLINED.
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-27 on branch benchmark-fixes, batch
-# I8; re-measured 2026-10-28, unchanged): CERTIFIED (about 0.4 s); CERTIFIED under RELCERT_SYNC=1,
-# RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1,
-# RELCERT_NO_PAIR_STRETCH=1, RELCERT_NO_REPO=1, RELCERT_OPREGION=1,
-# RELCERT_WELLFORMED_STRICT=1 and without RELCERT_IMPLIED_CUT; DECLINED under
-# RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1 and RELCERT_SYNC=1
-# RELCERT_NO_CHOICE=1. Cover: every left mode at lambda 1, budget 1, closed by choice; nothing
-# pruned. Rows identical (--handoff vacuous, 9/9). relcert --wellformed: Um ok (exit), U0 ok
-# (invariant), Up ok (exit), 0 UNKNOWN.
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-29 on branch benchmark-fixes,
+# tip 131cb10): CERTIFIED (about 0.4 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1,
+# RELCERT_NO_CUT=1, RELCERT_NO_REPO=1, RELCERT_WELLFORMED_STRICT=1 and without
+# RELCERT_IMPLIED_CUT; DECLINED under RELCERT_NO_CHOICE=1. Cover: every left mode at lambda 1,
+# budget 1, closed by choice (hop into the left's level); nothing pruned. Rows identical (handoff
+# vacuous). relcert --wellformed: Um ok (exit), U0 ok (invariant), Up ok (exit), 0 UNKNOWN, 0
+# BLOCKING.
 [problem]
 name = lit_lz21_vehicle_position
 max_depth = 8
@@ -136,6 +172,6 @@ evolve = x >= 0.0 and v >= 0.0 and v <= 0.1
 next = [Um, U0, Up]
 
 [relational_invariant]
-Um = v[l] <= v[r] and v[r] <= v[l] and x[l] + 1.0 <= x[r] and x[r] <= x[l] + 1.0
-U0 = v[l] <= v[r] and v[r] <= v[l] and x[l] + 1.0 <= x[r] and x[r] <= x[l] + 1.0
-Up = v[l] <= v[r] and v[r] <= v[l] and x[l] + 1.0 <= x[r] and x[r] <= x[l] + 1.0
+Um = v[l] <= v[r] and v[r] <= v[l] and x[r] >= 1.0 and x[l] <= x[r] + 1.0 and x[r] <= x[l] + 1.0
+U0 = v[l] <= v[r] and v[r] <= v[l] and x[r] >= 1.0 and x[l] <= x[r] + 1.0 and x[r] <= x[l] + 1.0
+Up = v[l] <= v[r] and v[r] <= v[l] and x[r] >= 1.0 and x[l] <= x[r] + 1.0 and x[r] <= x[l] + 1.0

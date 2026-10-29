@@ -65,6 +65,8 @@ Axioms of `theorem3_keyed_of_records` and `theorem3_window_of_records`: `propext
 `relcert-bridge-verdicts` issues exactly `bridgeGroups` per benchmark at the bridge dimension
 and reports the group count against the declared total (`expectedBridgeGroupsV2`).
 
+Literature fidelity round (2026-10-29): **5183 groups over the 50 suite benchmarks and the 2 choice exhibits, all discharged** (5180 before it; `lit_lz21_vehicle_position` 35 -> 38, its rows now carry the non-secret partner and the output band); the declared count was set after measuring.
+
 Fix round 4 (2026-10-29, `docs/OVERNIGHT-2026-10-29.md`): **5180 groups over the 50 suite benchmarks and the 2 choice exhibits, all discharged** (5284 before it; `grid_ffr_dos` out, `canal_gate_notches` in, and the re-emitted instances of the seventeen changed benchmarks, among them the three platoon files on a one-mode right model and the start-only fallback modes removed); the declared count was set after measuring.
 
 Run on the regenerated records: **4874 groups over the 50 suite benchmarks and the 2 choice

@@ -1,0 +1,229 @@
+# lit_csf21_vehicle_bus_thermoprio: the internal-bus car of lit_csf21_vehicle_bus with the bus
+# arbitration reversed (thermostat messages first), expected DECLINED (the temperature reading now
+# reaches the velocity through the bus). NOT part of the certified suite: a negative exhibit.
+# scenario: sensor-attack
+#
+# Same plant, constants, actions, settings, domain and claim as benchmarks/suite_v2/
+# lit_csf21_vehicle_bus (source: Xiang, Fulton, Chong, CSF 2021, Sec. VI-C, Figs. 11-12). One
+# change, ours and on BOTH sides: the source sends a thermostat message only in a cycle whose
+# acceleration does not change (busV = a, acceleration priority); here a cycle whose thermostat
+# reading asks for the other setting sends the thermostat message, and the drive keeps its current
+# action for that cycle even where the action's choice guard fails (Acc held past psi within
+# 0 <= v <= 39, Brk held from v >= 1, Coast held at v <= 1). Modes xtA (acceleration message, the
+# action's choice guard) and xtT (thermostat message, entered from the same action with the other
+# setting, the action's hold guard) on both sides; the genuine car adds its thermostat guard
+# (temp >= 20 for Cool, temp <= 20 for Heat) to both, so an inconsistent setting forces the
+# thermostat message; the attacked reading is free, so the attacked car may send one in any cycle.
+# Four genuine modes BrkCoolE, BrkHeatE (v >= 39) and CoastCoolE, CoastHeatE (v < 1): the genuine
+# drive overrides the thermostat at the speed limits, so the right model never blocks (Assumption 1).
+#
+# The leak, by hand (and exhaustively over the 3^4 x 2^4 genuine message and setting sequences by
+# tmp/lit-r6/lit_csf21_vehicle_bus/handrun_check.py). From d = 3, v = 0 the attacked car runs
+# AccHeatA (psi holds), AccCoolT (Acc held at v = 1 where psi fails: 5 > 7 is false), BrkCoolA
+# (v = 2), CoastCoolA (v = 1). A genuine car can hold Acc in cycle 1 only through a forced or tied
+# thermostat message, so its temperature is within 1 of 20 after it; cycles 2 and 3 change the
+# action, so both need acceleration messages, which need the setting to stay consistent for two
+# cycles while the temperature moves 1 per cycle away from 20: impossible. No genuine start
+# temperature or mode matches, so the source's H-equivalence fails, not only the per-state form.
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1, measured 2026-10-29 on branch benchmark-fixes, tip 131cb10):
+# DECLINED (1.5 s). relcert --wellformed: 16 right modes, 2 ok (invariant), 14 ok (exit),
+# 0 UNKNOWN, 0 BLOCKING. Without the four override modes 8 Acc and Brk right modes are UNKNOWN (by hand:
+# a forced Acc hold at v > 39 or Brk hold at v < 1 leaves the domain).
+[problem]
+name = lit_csf21_vehicle_bus_thermoprio
+max_depth = 8
+lambda_min = 1.0
+lambda_max = 1.0
+bound_T = 40.0
+
+[Lsys]
+state_vars = [d, v, temp]
+epsilon = 1.0
+
+[Lsys.mode.AccCoolA]
+ode = d' = smt2:(- 0.0 v); v' = smt2:1.0; temp' = smt2:(- 0.0 1.0);
+guard = smt2:(and (>= v 0.0) (<= v 39.0) (> (* 2.0 d) (+ (* v v) (* 4.0 v) 2.0)))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccCoolA, CoastCoolA, BrkCoolA, AccHeatT]
+
+[Lsys.mode.AccCoolT]
+ode = d' = smt2:(- 0.0 v); v' = smt2:1.0; temp' = smt2:(- 0.0 1.0);
+guard = smt2:(and (>= v 0.0) (<= v 39.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccCoolA, CoastCoolA, BrkCoolA, AccHeatT]
+
+[Lsys.mode.AccHeatA]
+ode = d' = smt2:(- 0.0 v); v' = smt2:1.0; temp' = smt2:1.0;
+guard = smt2:(and (>= v 0.0) (<= v 39.0) (> (* 2.0 d) (+ (* v v) (* 4.0 v) 2.0)))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccHeatA, CoastHeatA, BrkHeatA, AccCoolT]
+
+[Lsys.mode.AccHeatT]
+ode = d' = smt2:(- 0.0 v); v' = smt2:1.0; temp' = smt2:1.0;
+guard = smt2:(and (>= v 0.0) (<= v 39.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccHeatA, CoastHeatA, BrkHeatA, AccCoolT]
+
+[Lsys.mode.CoastCoolA]
+ode = d' = smt2:(- 0.0 v); v' = smt2:0.0; temp' = smt2:(- 0.0 1.0);
+guard = smt2:(and (>= v 0.0) (<= v 1.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccCoolA, CoastCoolA, BrkCoolA, CoastHeatT]
+
+[Lsys.mode.CoastCoolT]
+ode = d' = smt2:(- 0.0 v); v' = smt2:0.0; temp' = smt2:(- 0.0 1.0);
+guard = smt2:(and (>= v 0.0) (<= v 1.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccCoolA, CoastCoolA, BrkCoolA, CoastHeatT]
+
+[Lsys.mode.CoastHeatA]
+ode = d' = smt2:(- 0.0 v); v' = smt2:0.0; temp' = smt2:1.0;
+guard = smt2:(and (>= v 0.0) (<= v 1.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccHeatA, CoastHeatA, BrkHeatA, CoastCoolT]
+
+[Lsys.mode.CoastHeatT]
+ode = d' = smt2:(- 0.0 v); v' = smt2:0.0; temp' = smt2:1.0;
+guard = smt2:(and (>= v 0.0) (<= v 1.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccHeatA, CoastHeatA, BrkHeatA, CoastCoolT]
+
+[Lsys.mode.BrkCoolA]
+ode = d' = smt2:(- 0.0 v); v' = smt2:(- 0.0 1.0); temp' = smt2:(- 0.0 1.0);
+guard = smt2:(and (>= v 1.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccCoolA, CoastCoolA, BrkCoolA, BrkHeatT]
+
+[Lsys.mode.BrkCoolT]
+ode = d' = smt2:(- 0.0 v); v' = smt2:(- 0.0 1.0); temp' = smt2:(- 0.0 1.0);
+guard = smt2:(and (>= v 1.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccCoolA, CoastCoolA, BrkCoolA, BrkHeatT]
+
+[Lsys.mode.BrkHeatA]
+ode = d' = smt2:(- 0.0 v); v' = smt2:(- 0.0 1.0); temp' = smt2:1.0;
+guard = smt2:(and (>= v 1.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccHeatA, CoastHeatA, BrkHeatA, BrkCoolT]
+
+[Lsys.mode.BrkHeatT]
+ode = d' = smt2:(- 0.0 v); v' = smt2:(- 0.0 1.0); temp' = smt2:1.0;
+guard = smt2:(and (>= v 1.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccHeatA, CoastHeatA, BrkHeatA, BrkCoolT]
+
+[Rsys]
+state_vars = [d, v, temp]
+epsilon = 1.0
+
+[Rsys.mode.AccCoolA]
+ode = d' = smt2:(- 0.0 v); v' = smt2:1.0; temp' = smt2:(- 0.0 1.0);
+guard = smt2:(and (>= v 0.0) (<= v 39.0) (> (* 2.0 d) (+ (* v v) (* 4.0 v) 2.0)) (>= temp 20.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccCoolA, CoastCoolA, BrkCoolA, AccHeatT, BrkCoolE, CoastCoolE]
+
+[Rsys.mode.AccCoolT]
+ode = d' = smt2:(- 0.0 v); v' = smt2:1.0; temp' = smt2:(- 0.0 1.0);
+guard = smt2:(and (>= v 0.0) (<= v 39.0) (>= temp 20.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccCoolA, CoastCoolA, BrkCoolA, AccHeatT, BrkCoolE, CoastCoolE]
+
+[Rsys.mode.AccHeatA]
+ode = d' = smt2:(- 0.0 v); v' = smt2:1.0; temp' = smt2:1.0;
+guard = smt2:(and (>= v 0.0) (<= v 39.0) (> (* 2.0 d) (+ (* v v) (* 4.0 v) 2.0)) (<= temp 20.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccHeatA, CoastHeatA, BrkHeatA, AccCoolT, BrkHeatE, CoastHeatE]
+
+[Rsys.mode.AccHeatT]
+ode = d' = smt2:(- 0.0 v); v' = smt2:1.0; temp' = smt2:1.0;
+guard = smt2:(and (>= v 0.0) (<= v 39.0) (<= temp 20.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccHeatA, CoastHeatA, BrkHeatA, AccCoolT, BrkHeatE, CoastHeatE]
+
+[Rsys.mode.CoastCoolA]
+ode = d' = smt2:(- 0.0 v); v' = smt2:0.0; temp' = smt2:(- 0.0 1.0);
+guard = smt2:(and (>= v 0.0) (<= v 1.0) (>= temp 20.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccCoolA, CoastCoolA, BrkCoolA, CoastHeatT, BrkCoolE, CoastCoolE]
+
+[Rsys.mode.CoastCoolT]
+ode = d' = smt2:(- 0.0 v); v' = smt2:0.0; temp' = smt2:(- 0.0 1.0);
+guard = smt2:(and (>= v 0.0) (<= v 1.0) (>= temp 20.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccCoolA, CoastCoolA, BrkCoolA, CoastHeatT, BrkCoolE, CoastCoolE]
+
+[Rsys.mode.CoastHeatA]
+ode = d' = smt2:(- 0.0 v); v' = smt2:0.0; temp' = smt2:1.0;
+guard = smt2:(and (>= v 0.0) (<= v 1.0) (<= temp 20.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccHeatA, CoastHeatA, BrkHeatA, CoastCoolT, BrkHeatE, CoastHeatE]
+
+[Rsys.mode.CoastHeatT]
+ode = d' = smt2:(- 0.0 v); v' = smt2:0.0; temp' = smt2:1.0;
+guard = smt2:(and (>= v 0.0) (<= v 1.0) (<= temp 20.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccHeatA, CoastHeatA, BrkHeatA, CoastCoolT, BrkHeatE, CoastHeatE]
+
+[Rsys.mode.BrkCoolA]
+ode = d' = smt2:(- 0.0 v); v' = smt2:(- 0.0 1.0); temp' = smt2:(- 0.0 1.0);
+guard = smt2:(and (>= v 1.0) (>= temp 20.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccCoolA, CoastCoolA, BrkCoolA, BrkHeatT, BrkCoolE, CoastCoolE]
+
+[Rsys.mode.BrkCoolT]
+ode = d' = smt2:(- 0.0 v); v' = smt2:(- 0.0 1.0); temp' = smt2:(- 0.0 1.0);
+guard = smt2:(and (>= v 1.0) (>= temp 20.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccCoolA, CoastCoolA, BrkCoolA, BrkHeatT, BrkCoolE, CoastCoolE]
+
+[Rsys.mode.BrkHeatA]
+ode = d' = smt2:(- 0.0 v); v' = smt2:(- 0.0 1.0); temp' = smt2:1.0;
+guard = smt2:(and (>= v 1.0) (<= temp 20.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccHeatA, CoastHeatA, BrkHeatA, BrkCoolT, BrkHeatE, CoastHeatE]
+
+[Rsys.mode.BrkHeatT]
+ode = d' = smt2:(- 0.0 v); v' = smt2:(- 0.0 1.0); temp' = smt2:1.0;
+guard = smt2:(and (>= v 1.0) (<= temp 20.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccHeatA, CoastHeatA, BrkHeatA, BrkCoolT, BrkHeatE, CoastHeatE]
+
+[Rsys.mode.BrkCoolE]
+ode = d' = smt2:(- 0.0 v); v' = smt2:(- 0.0 1.0); temp' = smt2:(- 0.0 1.0);
+guard = smt2:(and (>= v 1.0) (>= v 39.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccCoolA, CoastCoolA, BrkCoolA, BrkHeatT, BrkCoolE, CoastCoolE]
+
+[Rsys.mode.BrkHeatE]
+ode = d' = smt2:(- 0.0 v); v' = smt2:(- 0.0 1.0); temp' = smt2:1.0;
+guard = smt2:(and (>= v 1.0) (>= v 39.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccHeatA, CoastHeatA, BrkHeatA, BrkCoolT, BrkHeatE, CoastHeatE]
+
+[Rsys.mode.CoastCoolE]
+ode = d' = smt2:(- 0.0 v); v' = smt2:0.0; temp' = smt2:(- 0.0 1.0);
+guard = smt2:(and (>= v 0.0) (<= v 1.0) (>= v 0.0) (< v 1.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccCoolA, CoastCoolA, BrkCoolA, CoastHeatT, BrkCoolE, CoastCoolE]
+
+[Rsys.mode.CoastHeatE]
+ode = d' = smt2:(- 0.0 v); v' = smt2:0.0; temp' = smt2:1.0;
+guard = smt2:(and (>= v 0.0) (<= v 1.0) (>= v 0.0) (< v 1.0))
+evolve = v >= 0.0 and v <= 40.0
+next = [AccHeatA, CoastHeatA, BrkHeatA, CoastCoolT, BrkHeatE, CoastHeatE]
+
+[relational_invariant]
+AccCoolA = d[l] <= d[r] and d[r] <= d[l] and v[l] <= v[r] and v[r] <= v[l]
+AccCoolT = d[l] <= d[r] and d[r] <= d[l] and v[l] <= v[r] and v[r] <= v[l]
+AccHeatA = d[l] <= d[r] and d[r] <= d[l] and v[l] <= v[r] and v[r] <= v[l]
+AccHeatT = d[l] <= d[r] and d[r] <= d[l] and v[l] <= v[r] and v[r] <= v[l]
+CoastCoolA = d[l] <= d[r] and d[r] <= d[l] and v[l] <= v[r] and v[r] <= v[l]
+CoastCoolT = d[l] <= d[r] and d[r] <= d[l] and v[l] <= v[r] and v[r] <= v[l]
+CoastHeatA = d[l] <= d[r] and d[r] <= d[l] and v[l] <= v[r] and v[r] <= v[l]
+CoastHeatT = d[l] <= d[r] and d[r] <= d[l] and v[l] <= v[r] and v[r] <= v[l]
+BrkCoolA = d[l] <= d[r] and d[r] <= d[l] and v[l] <= v[r] and v[r] <= v[l]
+BrkCoolT = d[l] <= d[r] and d[r] <= d[l] and v[l] <= v[r] and v[r] <= v[l]
+BrkHeatA = d[l] <= d[r] and d[r] <= d[l] and v[l] <= v[r] and v[r] <= v[l]
+BrkHeatT = d[l] <= d[r] and d[r] <= d[l] and v[l] <= v[r] and v[r] <= v[l]
+

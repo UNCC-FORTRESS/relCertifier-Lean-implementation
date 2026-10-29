@@ -1,5 +1,6 @@
 # lit_drl_lane_control: time-triggered local lane control refines the permissive controller
-# (sampled form of the case study of differential refinement logic).
+# (sampled form of the case study of differential refinement logic; only its Open Goal 1,
+# guard inclusion, is represented).
 # scenario: controller-refinement
 # mechanisms: X (committed successor subsets: the reference hops into the deployed's
 #   follower/leader action pair at the start of every window)
@@ -29,20 +30,39 @@
 # (Safe_eps) refines the permissive one (Safe), since Safe_eps implies Safe. (2) The leader's
 # acceleration, an arbitrary value in [-B, A] in the source, is here one of {A, -B} per
 # cycle (a mode choice on both sides); the witness copies the left's leader. A three-valued
-# leader {A, 0, -B} on both sides (nine modes per side, well-formed 9/9) DECLINES at the left
-# mode AccelLCoast after AccelLAccel and AccelLBrake close by choice; the cause is not
-# identified (measured 2026-10-28, open). (3) The follower's actions are the extremes:
+# leader {A, 0, -B} on both sides (nine modes per side) DECLINED on 2026-10-28 at the left
+# mode AccelLCoast; the cause, found 2026-10-29, was the variant file itself: the six *LBrake
+# modes (both sides) kept the six-mode next list, so no right mode could hop into AccelLCoast.
+# With complete next lists the nine-mode variant CERTIFIES (about 7 s), relcert --wellformed
+# 9/9 ok, 0 UNKNOWN, 0 BLOCKING (not adopted: it changes the right model and its Assumption 1
+# proof, and not the claim's content). (3) The follower's actions are the extremes:
 # accelerate at A under Safe_eps (the source allows any value in [-B, A] there), brake at -B
 # from a speed >= 1 (the source's braking run stops at v_f = 0, which Assumption 1 forbids on
 # the right), and coast (a = 0) only at v_f <= 1, a stand-in for braking to rest that keeps the
 # right model complete (not the stopped-car branch of FM 2011, which dRL removes); guards are
-# closed where the source's are strict. Until 2026-10-28 Coast was enabled at any speed;
-# restricting it to v_f <= 1 changes no verdict. (4) Speeds in [0, 10]: v >= 0 is the source's
+# closed where the source's are strict. The Coast stand-in has no gap guard, so the modelled
+# follower can collide, on both sides: from (d, v_f, v_l) = (3.5, 1, 0), inside the safe set,
+# the follower Coasts while the leader alternates Accel and Brake, and d = -0.5 after 8 cycles
+# (exact arithmetic, 2026-10-29). Guarding the LEFT Coast by Safe_eps (FM 2011's normal mode
+# at a_f = 0) still CERTIFIES (about 3 s) but makes the left block at low follower speed near
+# the leader, where the source brakes to rest; not adopted, recorded here. Until 2026-10-28
+# Coast was enabled at any speed; restricting it to v_f <= 1 changes no verdict. (4) Speeds
+# in [0, 10]: v >= 0 is the source's
 # domain, the top speed 10 is ours (without it the file still CERTIFIES, two right modes
 # UNKNOWN in relcert --wellformed, none blocking; measured 2026-10-28). (5) As in
 # lit_drl_car_stop, what is certified is dRL's Open Goal 1 (Safe_eps implies Safe) between two
-# sampled controllers; Goals 2 and 3 are not represented. All deviations are stated once here
-# and in the suite table.
+# sampled controllers; Goals 2 and 3 (the event domain is kept for eps time; the source's
+# Goal 3 takes 79 interactive steps) are not represented, and cannot be with this tool: its
+# joint-segment certificates are differential invariants with no clock, and Goal 3 is a
+# bounded-time fact. Measured 2026-10-29 (scratch variants): the event domain
+# E = (d >= 0 and d >= v_f^2/2 - v_l^2/2, FM 2011's safe-distance relation, closed) as a claim
+# conjunct on every row DECLINES at the first left Accel window; with the left reduced to the
+# follower's Brake modes (Goal 2, which the source closes automatically) the same claim
+# CERTIFIES. A finer right period (eps_R = eps/2) DECLINES. Consequence: the right model is not
+# the source's event-triggered model and is not safe: from (d, v_f, v_l) = (4, 3, 1), on the
+# boundary of E, one right AccelLBrake period ends at (1, 4, 0), outside E (1 < 4^2/2), the
+# source's safe-distance invariant; the certified refinement does not transfer the source's
+# safety. All deviations are stated once here and in the suite table.
 #
 # PARAMETERS. A = 1, B = 1, eps = 1; speeds in [0, 10]; braking only from a speed >= 1 (a
 # full period of braking stays in v >= 0); a Coast action (a = 0) of the follower at v_f <= 1
@@ -52,14 +72,21 @@
 #                                    i.e. d >= v_f^2/2 - v_l^2/2 + 2 v_f + 1;
 #   Safe     (right, follower Accel): d >= v_f^2/2 - v_l^2/2 (ours, see SOURCE).
 # Claim (every left mode): d_L = d_R, v_f_L = v_f_R, v_l_L = v_l_R (two inequalities each).
+# Cause test (measured 2026-10-29). The source's refinement depends on the Safe_eps margin
+# 2 v_f + 1 (Goal 3). Here it does not: the left follower-Accel guards replaced by Safe (margin
+# 0) still CERTIFY, and the right ones replaced by Safe_eps (Rsys = Lsys) still CERTIFY. Only a
+# NEGATIVE margin (left guard d >= v_f^2/2 - v_l^2/2 - 0.01) DECLINES.
+# Tightness. The source states no quantitative bound. The tool's tight value of the left
+# margin is 0 (guard inclusion), not the source's 2 v_f + 1.
 # Why committed choice is needed (X). The existential mode choice is the tool's default: the
 # right hops into the left's mode (follower and leader action) at the start of each window,
 # legal because Safe_eps implies Safe under the identity relation, then runs the certified
 # joint segment. Without it (RELCERT_NO_CHOICE=1) the right must flow on in whatever admissible
 # action pair it holds and the gap or the speeds separate: DECLINED.
 # Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-28 on branch benchmark-fixes
-# with the follower's Coast at v_f <= 1; the same pattern as with the unrestricted Coast):
-# CERTIFIED (about 3 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1,
+# with the follower's Coast at v_f <= 1; the same pattern as with the unrestricted Coast;
+# re-measured 2026-10-29 for SYNC, NO_REPO, NO_PRUNE, NO_CHOICE, NO_CUT): CERTIFIED (about
+# 3.5 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1,
 # RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_PAIR_STRETCH=1, RELCERT_NO_REPO=1,
 # RELCERT_OPREGION=1, RELCERT_WELLFORMED_STRICT=1 and without RELCERT_IMPLIED_CUT; DECLINED
 # under RELCERT_NO_CHOICE=1, RELCERT_SYNC=1 RELCERT_NO_CHOICE=1 and RELCERT_NO_PRUNE=1

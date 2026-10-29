@@ -9,56 +9,87 @@
 # systems", CSF 2021 (arXiv 2106.01850), Sec. VI-C ("Case Study: An Autonomous Vehicle with an
 # Internal Bus"), Fig. 11 (model, canonical form) and Fig. 12 (interleaved composition, proved in
 # KeYmaera X). The car and thermostat of Fig. 6 (see lit_csf21_vehicle_thermo) reach their actuators
-# over one bus carrying one message per control cycle: ctrlv puts the next acceleration on it
+# over one bus carrying exactly one message per control cycle, and "acceleration messages have
+# higher priority over thermostat messages" (Sec. VI-C(a)): ctrlv puts the next acceleration on it
 # (accel = ?psi; busV := A, brake = busV := -B); ctrlbus then either, when busV = a (the
 # acceleration does not change), runs the thermostat (temps := temp; busV := -1 if temps > T, 1 if
 # temps < T, unchanged if temps = T) and sends with header busH := 1, or sends with busH := 0
 # (always possible); ctrlr applies a := busV (busH = 0) or thermo := busV (busH = 1). Plant and
-# psi as in Fig. 6. Attack temps := *. Property: P and ATTACKED(P, {temps}) are {vp}-equivalent,
-# proved with the equivalence formula vp = vp1 and dp = dp1 and a = a1.
+# psi as in Fig. 6. Attack temps := *. Property (Sec. VI-C(b)): P and ATTACKED(P, {temps}) are
+# {vp}-equivalent (Def. 5, lock-step), proved with the equivalence formula vp = vp1 and dp = dp1
+# and a = a1 (Fig. 12, line 3): the attacker cannot reach the velocity through the shared bus.
 #
 # THIS FILE. Constants, actions and thermostat values as lit_csf21_vehicle_thermo (A = B = 1 m/s^2,
 # eps = 1 s, T = 20; Acc / Coast / Brk x Cool / Heat; psi = 2d > v^2 + 4v + 2). Stretch pinned to 1
 # (lock-step). Left = attacked car, six modes (action x thermostat): one message per cycle, so
 # from (x, t) the next mode is (x', t) for any action x' (acceleration message) or (x, t') for any
-# setting t' (thermostat message, free under the attack): no cycle changes both. Right = genuine
-# car, twelve modes (action x thermostat x the message that delivered it): xtA (acceleration
-# message; guard = the action's guard; entered from every mode with setting t) and xtT (thermostat
-# message; guard = the action's guard plus temp >= 20 for Cool, temp <= 20 for Heat; entered from
-# every mode with action x). The format's guards belong to the target mode, so the message-type
-# split is how the source's per-edge rule (the genuine thermostat gates only thermostat messages)
-# is written; the twelve modes follow the genuine bus model's cycles.
+# setting t' (thermostat message, free under the attack; it needs x chosen again, the source's
+# busV = a): no cycle changes both. Right = genuine car, twelve modes (action x thermostat x the
+# message that delivered it): xtA (acceleration message; guard = the action's guard; entered from
+# every mode with setting t) and xtT (thermostat message; guard = the action's guard plus temp >=
+# 20 for Cool, temp <= 20 for Heat; entered from every mode with action x). The format's guards
+# belong to the target mode, so the message-type split is how the source's per-edge rule (the
+# genuine thermostat gates only thermostat messages) is written.
 #
 # CLAIM (every left mode): d_L = d_R and v_L = v_R (two inequalities each); a_L = a_R follows
-# (equal velocities over a window). Requirement: the attacker who owns the cabin-temperature
-# reading cannot change how the car moves, even though its messages share the drive's bus. Not
-# implied by the domains; every left mode has a satisfiable start; the cabin temperatures are free
-# on both sides (the per-state form, which implies the source's).
+# (equal velocities over a window), so this is the source's equivalence formula, here at every
+# instant. Not implied by the domains; every left mode has a satisfiable start; the cabin
+# temperatures are free on both sides (the per-state form, which implies the source's).
+#
+# What the bus carries, and why the genuine car never needs a thermostat message. The bus
+# arbitration reads only the acceleration request (busV = a), never the temperature reading, and
+# the acceleration message is always available, so every cycle the attacked car's acceleration
+# reaches its drive, and a thermostat message is sent only in a cycle whose acceleration does not
+# change. The genuine car therefore matches every attacked cycle with an acceleration message for
+# the same action (a thermostat cycle of the attacked car is matched by re-sending its unchanged
+# action); its thermostat-message modes are never on the cover. This is the source's claim, not a
+# shortcut: the source proves exactly that the bus gives the attacker no channel to vp, dp, a.
+# Consequently the bus constraints are not load-bearing for this verdict (measured 2026-10-29):
+# without the six xtT right modes, without their temperature guards, or with both messages
+# allowed in one cycle (every mode a successor of every mode), the file still CERTIFIES. The
+# certificate has the same shape as lit_csf21_vehicle_thermo's; this file adds the bus model and
+# the arbitration cause test below.
+#
+# Cause test (measured 2026-10-29). The source's claim rests on the arbitration not reading the
+# low-integrity reading (acceleration priority). Reverse it (thermostat priority, ours): a cycle
+# whose thermostat reading asks for the other setting sends the thermostat message, and the drive
+# keeps its current action for that cycle even where its choice guard fails (Acc held past psi,
+# within 0 <= v <= 39; Brk held from v >= 1; the genuine drive overrides only at the speed limits,
+# Brk at v >= 39 and Coast at v < 1, so the right model stays complete). The file is then
+# DECLINED (1.5 s; relcert --wellformed of that right model: 16/16 ok, 0 UNKNOWN, 0 BLOCKING),
+# and the leak is real in the source's sense: from d = 3, v = 0 the attacked car runs Acc, Acc
+# (held past psi through a spoofed thermostat message), Brk, Coast, and no genuine run of the
+# reversed model matches it from any start temperature or mode (all 3^4 x 2^4 genuine
+# message/setting sequences checked: a genuine hold needs a real thermostat crossing, after
+# which the true temperature forces another hold within two cycles). Variant file:
+# benchmarks/negative/lit_csf21_vehicle_bus_thermoprio/input.txt (negative exhibit, DECLINED).
+#
+# Tightness. The claim is the source's equality (tolerance 0 on d, v); no slack to measure.
 #
 # Where this file departs from the source. (1)-(3) of lit_csf21_vehicle_thermo: Coast added at
-# v <= 1 only (the stand-in for braking to rest; at any speed until 2026-10-28, same verdicts)
-# and Brk from v >= 1 (Assumption 1); top speed 40 m/s with Acc from v <= 39 (lets relcert
-# --wellformed bound the psi atom); thermo in {-1, 1}; the converse direction of the source's
-# symmetric Def. 5 is immediate (the attacked program contains the genuine one). (4) "?temps =
-# T" leaves busV = a, so the source then
-# writes the acceleration value into thermo (1 after Acc, -1 after Brk at A = B = 1, and it would
-# write 0 after our Coast); here both settings are enabled at temp = 20 exactly (closed guards).
+# v <= 1 only (the stand-in for braking to rest) and Brk from v >= 1 (Assumption 1: every right
+# mode runs a full period); top speed 40 m/s with Acc from v <= 39 (lets relcert --wellformed
+# bound the psi atom); thermo in {-1, 1}; the converse direction of the source's symmetric Def. 5
+# is immediate (the attacked program contains the genuine one). (4) "?temps = T" leaves busV = a,
+# so the source then writes the acceleration value into thermo (1 after Acc, -1 after Brk at
+# A = B = 1, and it would write 0 after our Coast); here both settings are enabled at temp = 20
+# exactly (closed guards).
 #
 # Why committed choice is needed (X). At each window start the genuine car commits to the
 # acceleration-message mode of the attacked car's action with its current thermostat setting (no
 # temperature condition on that message); without the choice (RELCERT_NO_CHOICE=1) it flows on in
-# the mode it holds: DECLINED. The genuine car never needs a thermostat message.
+# the mode it holds: DECLINED.
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-28 on branch benchmark-fixes
-# with Coast at v <= 1; the same pattern as batch I8's unrestricted Coast): CERTIFIED (about
-# 4 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1,
-# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_PAIR_STRETCH=1, RELCERT_NO_REPO=1,
-# RELCERT_OPREGION=1, RELCERT_WELLFORMED_STRICT=1 and without RELCERT_IMPLIED_CUT; DECLINED under
-# RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1 and RELCERT_SYNC=1
-# RELCERT_NO_CHOICE=1. Cover: every left mode at lambda 1, budget 1, all twelve right modes
-# admissible starts, closed by choice; nothing pruned. Rows identical (--handoff vacuous, 24/24).
-# relcert --wellformed: 12 right modes, 2 ok (invariant: CoastCoolA, CoastHeatA), 10 ok (exit;
-# the Acc and Brk modes into a Coast*A or Brk*A mode by the end speed), 0 UNKNOWN, 0 BLOCKING.
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-29 on branch benchmark-fixes,
+# tip 131cb10): CERTIFIED (about 4.3 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1,
+# RELCERT_NO_CUT=1, RELCERT_NO_REPO=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1,
+# RELCERT_NO_PAIR_STRETCH=1, RELCERT_OPREGION=1, RELCERT_WELLFORMED_STRICT=1 and without
+# RELCERT_IMPLIED_CUT; DECLINED under RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1
+# and RELCERT_SYNC=1 RELCERT_NO_CHOICE=1. Cover: every left mode at lambda 1, budget 1, all twelve
+# right modes admissible starts, closed by choice into xtA modes only; nothing pruned. Rows
+# identical (--handoff vacuous, 24/24). relcert --wellformed: 12 right modes, 2 ok (invariant:
+# CoastCoolA, CoastHeatA), 10 ok (exit; the Acc and Brk modes into a Coast*A or Brk*A mode by the
+# end speed), 0 UNKNOWN, 0 BLOCKING. scripts/check_one_domain.py: PASS.
 [problem]
 name = lit_csf21_vehicle_bus
 max_depth = 8

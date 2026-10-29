@@ -986,9 +986,14 @@ air-conditioning load on the drive on both sides (accelerating while cooling giv
 instead of 1); the thermostat command now changes the velocity, so the attacker who sets the
 temperature reading sets the acceleration profile. Its header exhibits the leak by hand (five
 windows of AccHeat then three of AccCool need a genuine start temperature that does not exist),
-which the source's lock-step equivalence also rules out. The check
+which the source's lock-step equivalence also rules out. `lit_csf21_vehicle_bus_thermoprio`
+(2026-10-29): `lit_csf21_vehicle_bus` with the bus arbitration reversed on both sides (a cycle whose
+thermostat reading asks for the other setting sends the thermostat message, and the drive holds its
+action for that cycle; the source gives acceleration messages priority); the temperature reading
+now reaches the velocity through the bus. Its header exhibits the leak by hand (an attacked run that
+no genuine message/setting sequence matches, checked exhaustively over four cycles). The check
 `RELCERT_IMPLIED_CUT=1 ./.lake/build/bin/relcert benchmarks/negative/*/input.txt` must print
-`DECLINED` for both files.
+`DECLINED` for all three files.
 
 ## Assumption 1 negative exhibit (`benchmarks/negative_wellformed/`)
 

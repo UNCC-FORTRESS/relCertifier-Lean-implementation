@@ -61,18 +61,29 @@
 # temp >= 20, Heat at temp <= 20); its d and v then move with the attacked car's. Without the
 # choice (RELCERT_NO_CHOICE=1) it must flow on in the action it holds: DECLINED.
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-28 on branch benchmark-fixes
-# with Coast at v <= 1; the same pattern as batch I8's unrestricted Coast): CERTIFIED (about
-# 1.9 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1,
-# RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_PAIR_STRETCH=1, RELCERT_NO_REPO=1,
-# RELCERT_OPREGION=1, RELCERT_WELLFORMED_STRICT=1 and without RELCERT_IMPLIED_CUT; DECLINED under
-# RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1 and RELCERT_SYNC=1
-# RELCERT_NO_CHOICE=1. Cover: every left mode at lambda 1, budget 1, all six right modes
-# admissible starts, closed by a hop into the left's action (both thermostat settings pass);
-# nothing pruned. Rows identical (--handoff vacuous, 36/36). relcert --wellformed: all six right
+# Tightness. The claim is the source's equality (tolerance 0 on d and v); there is no slack to
+# measure, and no positive tolerance is needed or claimed.
+#
+# Cause test (measured 2026-10-29). The source's claim holds because the thermostat command never
+# reaches the drive: the d and v flows do not read temp or the setting. Remove that separation and
+# the verdict changes: benchmarks/negative/lit_csf21_vehicle_thermo_leaky (the same file with an
+# air-conditioning load on both sides, AccCool: v' = 0.8 instead of 1) is DECLINED (0.9 s), and its
+# header gives an attacked run that no genuine run matches from any start temperature, so the
+# source's H-equivalence fails there too, not only this file's per-state form. The witness copies
+# d and v (it enters the attacked car's action), but that copy is the source's claim itself
+# (H-equivalence asks for equal high-integrity values); the genuine thermostat setting is not
+# copied (it is the one the true temperature allows).
+#
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-29 on branch benchmark-fixes,
+# tip 131cb10): CERTIFIED (about 2.4 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1,
+# RELCERT_NO_CUT=1, RELCERT_NO_REPO=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1,
+# RELCERT_NO_PAIR_STRETCH=1, RELCERT_OPREGION=1, RELCERT_WELLFORMED_STRICT=1 and without
+# RELCERT_IMPLIED_CUT; DECLINED under RELCERT_NO_CHOICE=1, RELCERT_NO_PRUNE=1 RELCERT_NO_CHOICE=1
+# and RELCERT_SYNC=1 RELCERT_NO_CHOICE=1. Cover: every left mode at lambda 1, budget 1, all six
+# right modes admissible starts, closed by a hop into the left's action (both thermostat settings
+# pass); nothing pruned. Rows identical (--handoff vacuous, 36/36). relcert --wellformed: all six right
 # modes ok (exit; Acc and Brk into a Coast or Brk mode by the end speed, each Coast mode into the
-# other setting's Coast), 0 UNKNOWN, 0 BLOCKING.
-# The leaky counterpart is benchmarks/negative/lit_csf21_vehicle_thermo_leaky (expected DECLINED).
+# other setting's Coast), 0 UNKNOWN, 0 BLOCKING. scripts/check_one_domain.py: PASS.
 [problem]
 name = lit_csf21_vehicle_thermo
 max_depth = 8

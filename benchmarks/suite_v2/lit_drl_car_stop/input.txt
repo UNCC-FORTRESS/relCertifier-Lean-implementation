@@ -1,5 +1,6 @@
 # lit_drl_car_stop: a time-triggered car controller refines a permissive one (sampled form of the
-# refinement example of differential refinement logic).
+# refinement example of differential refinement logic; only its Open Goal 1, guard inclusion,
+# is represented).
 # scenario: controller-refinement
 # mechanisms: X (committed successor subsets: the reference hops into the deployed's action at
 #   the start of every window)
@@ -28,17 +29,32 @@
 # Safe of the state one period of acceleration later. Guards are closed (<=) where the
 # source's are strict (<).
 #
-# THE SAMPLED FORM (the deviation from the source). The right system here is sampled at the
-# same period as the left, with the event guard Safe tested at each switch; the source's
-# event-triggered right has runs of any length inside the event domain, which this suite's
-# models (fixed control interval on both sides, Assumption 1) cannot express. What is
-# certified is dRL's refinement between two SAMPLED controllers, the deterministic
-# conservative one (guard Safe_eps) refining the permissive one (guard Safe); it reduces to
-# dRL's Open Goal 1 (Safe_eps implies Safe) over identical plants, and Goals 2 and 3 (the
-# event domain is kept for eps time) are not represented. The domain v >= 0 (LICS's D(x) for
-# the car) is load-bearing for Goal 1: the Prebet-literal file (no domain, Brake
-# unconditional, no Coast) DECLINES, and rightly so, since x + v^2/2 + 2 v + 1 <= 50 does not
-# imply x + v^2/2 <= 50 at v < -1/2 (measured 2026-10-28).
+# THE SAMPLED FORM (the deviation from the source, and what it costs). The right system here is
+# sampled at the same period as the left, with the event guard Safe tested at each switch; the
+# source's event-triggered right has runs of any length confined to the event domain E(x),
+# which this suite's models cannot express (fixed control interval on both sides, Assumption 1,
+# and ONE physical evolve domain on every mode of both sides, so E cannot be the right's
+# domain). What is certified is the refinement between two SAMPLED controllers over identical
+# plants, the conservative one (guard Safe_eps) refining the permissive one (guard Safe): dRL's
+# Open Goal 1 (Safe_eps implies Safe) and nothing more. Goals 2 and 3 (the event domain is kept
+# for eps time under u := c and under any u with Safe_eps), which carry the time-triggered
+# content of the source's theorem, are NOT represented, and cannot be with this tool: its
+# joint-segment certificates are differential invariants with no clock (routes A, B, C), and
+# Goal 3 is a bounded-time fact (x + v^2/2 grows at rate 2 v under Accel; it stays <= m only
+# for eps time from Safe_eps). Measured 2026-10-29 (scratch variants): (i) the
+# event domain as a claim conjunct (identity and x_R + v_R^2/2 <= 50 on every row, left Coast
+# guarded by Safe_eps(x, 0)) DECLINES at the left Accel window (every joint segment fails); the
+# same claim with the left reduced to Brake (Goal 2, a differential invariant: x + v^2/2 is
+# constant under braking) CERTIFIES. (ii) A finer right period (eps_R = eps/2, eps/4; right
+# Brake from v >= eps_R) DECLINES: the right's mid-window re-entry guard (Safe, and even the
+# speed bounds) is again a bounded-time fact. Consequence: the right model is not the source's
+# event-triggered model and is not safe. From (x, v) = (48, 2), on the boundary of E, one right
+# Accel period ends at x = 50.5 > m (crossing the stop line inside the window), so the
+# source's other half, [carE] x <= m, fails for this right, and the certified refinement does
+# not transfer the source's safety. The domain v >= 0 (LICS's D(x) for the car) is load-bearing
+# for Goal 1: the Prebet-literal file (no domain, Brake unconditional, no Coast) DECLINES, and
+# rightly so, since x + v^2/2 + 2 v + 1 <= 50 does not imply x + v^2/2 <= 50 at v < -1/2
+# (measured 2026-10-28).
 #
 # PARAMETERS. A = 1 (acceleration), B = 1 (braking), eps = 1 (control period), m = 50 (stop
 # line); all four are symbolic in the source. Domain v in [0, 10]: v >= 0 is the source's
@@ -49,11 +65,23 @@
 # which Assumption 1 forbids on the right); a Coast action (a = 0), enabled only at v <= 1,
 # stands in for braking to rest, on BOTH sides (the source has brake or accelerate only). It
 # keeps the right model complete (Assumption 1) and does not affect the refinement, both sides
-# having it. Until 2026-10-28 Coast was enabled at any speed; restricting it to v <= 1 is
-# closer to the source (no coasting at speed) and changes no verdict.
+# having it, but it is not safe: from (49.5, 1), inside E, one Coast period ends at x = 50.5 > m
+# on both sides. Guarding the LEFT Coast by Safe_eps(x, 0) (x + v^2/2 + v <= 50, the source's
+# normal mode at u = 0) keeps the left inside E and still CERTIFIES (about 1 s), but the left
+# then blocks at low speed near the line (e.g. after braking from v = 1.5 on the boundary of
+# E), where the source brakes to rest; not adopted, recorded here. Until 2026-10-28 Coast was
+# enabled at any speed; restricting it to v <= 1 is closer to the source (no coasting at
+# speed) and changes no verdict.
 #   Safe_eps (left Accel): x + v^2/2 + 2 v + 1 <= 50;
 #   Safe     (right Accel): x + v^2/2 <= 50.
 # Claim (every left mode): x_L = x_R and v_L = v_R, written as two inequalities each.
+# Cause test (measured 2026-10-29). The source's refinement depends on the Safe_eps margin
+# (A/B + 1)(A eps^2/2 + eps v) = 2 v + 1: without it Goal 3 fails. Here it does not: the left
+# Accel guard replaced by Safe (margin 0) still CERTIFIES, and the right Accel guard replaced
+# by Safe_eps (Rsys = Lsys) still CERTIFIES. Only a NEGATIVE margin (left Accel guard
+# x + v^2/2 - 0.01 <= 50, wider than the right's) DECLINES.
+# Tightness. The source states no quantitative bound. The tool's tight value of the left Accel
+# margin is 0 (guard inclusion), not the source's 2 v + 1 (Goal 3, exact for A = B = eps = 1).
 # Why committed choice is needed (X). The existential mode choice is the tool's default: the
 # right hops into the left's mode at the start of each window (a zero-duration hop, legal
 # because the left's guard and the identity relation put the right in the permissive guard),
@@ -62,8 +90,9 @@
 # speeds separate: DECLINED. Domains: v in [0, 10], forward invariant under the guards; the
 # right guards cover the domain (Coast at v <= 1, Brake at v >= 1).
 # Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-28 on branch benchmark-fixes
-# with Coast at v <= 1; the same pattern as with the unrestricted Coast): CERTIFIED (about
-# 0.5 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1,
+# with Coast at v <= 1; the same pattern as with the unrestricted Coast; re-measured 2026-10-29
+# for the five ablations SYNC, NO_REPO, NO_PRUNE, NO_CHOICE, NO_CUT): CERTIFIED (about
+# 0.8 s); CERTIFIED under RELCERT_SYNC=1, RELCERT_NO_PRUNE=1, RELCERT_NO_CUT=1,
 # RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_PAIR_STRETCH=1, RELCERT_NO_REPO=1,
 # RELCERT_OPREGION=1, RELCERT_WELLFORMED_STRICT=1 and without RELCERT_IMPLIED_CUT; DECLINED
 # under RELCERT_NO_CHOICE=1, RELCERT_SYNC=1 RELCERT_NO_CHOICE=1 and RELCERT_NO_PRUNE=1

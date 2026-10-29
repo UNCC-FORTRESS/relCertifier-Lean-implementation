@@ -667,3 +667,100 @@ except the girard08 departure (1) claim (below).
 | `lit_freedm_meter` | OK | OK | OK | l. 46-47 misstated the source's batS test; the claim (E equal at every instant) is a trace statement, stronger than Def. 5's final states; the battery guards are forced on the right only (the literal source tests on the left CERTIFY); domain B <= 10 not forced (disclosed) | header fixed; literal left guards OPEN (option) |
 | `lit_lz21_vehicle_position` | WEAK | OK | WEAK | l. 63: the printed policy ranges exactly over [1.45, 3.85] on R0 (header [1.47, 3.82]); the left can be confined to the source's x <= 10 by guards (CERTIFIED); 11 input levels certify; the tool verdict is independent of delta (delta acts through coverage, outside the tool) | constant fixed; the two closer models OPEN (options) |
 | `lit_csf25_salt_tank_hold` | WEAK | WEAK | OK | SUBSTANTIVE (paper.tex ~4060-4075, Fig. 10 mid_a): the held decision is keyed on the fresh level at S, while the source's DoS keeps the stale pre-attack reading, whose worst case the paper proves; a stale/free-decision variant CERTIFIES with Inc slope about 2.06 (6.2 lb at the end of the hold, the paper's 6) only without the psi_b envelope rows; "rounded down" gloss wrong (the paper's 1.295 <= 1.3 is sound at xp_L >= 35; 1.31 is at 34.5); Cors. 1-2 are in Sec. V-B; 3.93 vs 6 not comparable | header fixed (departure (3) now a disclosure); the stale-reading model OPEN (substantive) |
+
+## Literature round 3 (2026-10-29)
+
+Three owner-approved literature tasks, researched on scratch copies (`tmp/lit-r8/`, a frozen relcert binary,
+`RELCERT_IMPLIED_CUT=1`), then installed serially, one build, all checks. Framework rules kept (Assumption 1 as is,
+sampled switching, one physical evolve domain, suite exactly 50).
+
+| task | outcome | tight value vs source | cause test | letters |
+|---|---|---|---|---|
+| `lit_csf25_salt_tank_hold`: stale reading | INSTALLED (replaces the fresh-decision version in place) | Inc: offset 2.1 (the paper's mid_a) + slope 1.25 (1.24 declines) vs the paper's 2.1 + 1.3; end of hold 5.85 lb vs the paper's 6 (exact worst case 5.47); Dec: 0.5 + 0.23 (0.22 declines) vs psi_b's -1.1; envelope psi_b (34.5, 37.1) kept as moving edges, rates 0.655 / 0.1 tight, inside (34.5, 37.1) at the end of the hold | hold H = 1 / 2 / 3 / 4 min: Inc slope 0 / 0.92 / 1.25 / 1.42, Dec 0 / 0.17 / 0.23 / 0.26; no attack (fresh samples, H = 1): equality certifies | S D I -> S D I |
+| `lit_girard08_robot`: physical coordinates | INSTALLED | level 0.16 = precision 0.4 (0.159999 declines), the source's beta, unchanged | unchanged (gain 0 or damping removed: DECLINED at 0.16, 1, 100; gain 0.26 with the source V: DECLINED; re-weighted V: CERTIFIED at 0.16) | X -> X |
+| NAHS 2025 engine cooling | NOT INSTALLED | none: no row set certifies with a meaningful value | attack bound 0: equality certifies; band 0.3 already DECLINES for two genuine copies 0.3 apart | - |
+
+**Task 1, `lit_csf25_salt_tank_hold`.** Model: the left mode is the decision of the stale reading (the source's
+payload skip keeps the reading of the last fresh sample, at 4); its guard is the set of levels at S = 5 that one
+minute of that decision reaches from the pre-attack envelope psi_a (HoldInc (36.43, 36.93): a stale Inc always meets
+a level >= 35, the paper's mid_a; HoldDec [34.70, 36.75)). The right state answering it is the genuine state of that
+reading (the paper's xp1, Def. 8: genuine at any time), re-timed by 1/3 (Prop. 7; the cover uses lambda = 1/3 within
+[1/3, 1]). Why the old envelope rows failed for a stale reading: with a genuine Dec start against a stale Inc
+(lock step, or the closure of xp1 < 35) the constant row xp_R >= 34.5 has no time-free certificate under the
+genuine's Dec flow (debug: `FAIL comp#2 @ HoldInc->Dec`). The paper's own envelope argument (the genuine runs one
+1/3-scaled cycle in the decision of its reading, so it moves monotonically by at most its edge rate per attacked
+minute) gives the rows 34.5 <= xp_R <= 34.999 + 0.655 (t - 5) (Inc) and 35 - 0.1 (t - 5) <= xp_R <= 37.1 (Dec), true
+for a stale reading and certified; both stay inside (34.5, 37.1) through the hold. One forced closure departure:
+the genuine's strict reading xs < 35 is stated as xp_R <= 34.999 at S (with 35.0 the closed rows admit a genuine
+Dec start and the Inc slope rises to 2.0). Not adopted: the lock-step stale pairing (equal at S) CERTIFIES with Inc
+2.02 / Dec 0.99 (6.06 lb at the end, also with moving-edge envelopes), but it is not the paper's pairing. Verdicts:
+CERTIFIED 0.3 s; DECLINED under SYNC, NO_CUT, NO_IMPLIED_CUT; CERTIFIED under NO_CHOICE, NO_PRUNE, NO_REPO,
+NO_PAIR_STRETCH, NO_LINEAR_CUT, OPREGION, strict; handoff 2/2; wellformed 0 UNKNOWN 0 BLOCKING. More faithful: the
+paper's attack payload, pairing, offset, re-timing and envelope are now all in the file. Right model unchanged, so
+`WellFormed/LitCsf25SaltTankHold.lean` is unchanged. Paper vs tool: offset 2.1 / 2.1 (tight 2.00 at slope 1.25),
+slope 1.3 / 1.25 (the tool's region has xp_L >= 36.43, the lowest stale-Inc level; the paper uses xp >= 35), end of
+hold 6 / 5.85, envelope (34.5, 37.1) / [34.5, 36.97] (Inc) and [34.7, 37.1] (Dec).
+
+**Task 2, `lit_girard08_robot`.** The audit's physical-coordinate file (robot state p, p', and the controller's w,
+Eqs. (6)-(7) as printed; the claim row is the source's simulation function in its own variables plus w_L = w_R).
+Departure (1) (error coordinates) is gone; departures (2)-(6) unchanged. CERTIFIED in about 57 s (was 3.9 s),
+DECLINED only under NO_CHOICE (and its combinations); wellformed 6/6 ok; handoff 12/12 vacuous. The planner side is
+byte-identical, so the Assumption 1 proof changes in one docstring line only.
+
+**Task 3, NAHS 2025 engine cooling.** (i) Repositioning is on (default; `RELCERT_NO_REPO` unset). A right-only
+segment is admitted by `checkDynRepo` (`Trusted/OracleAPI.lean`), route A over the whole domain with the left frozen:
+`evolveL and evolveR and cuts [and guardL] and gdot > 0` must be unsat for every row atom. With constant-rate flows
+(Heat +1, Cool -0.5) gdot is a nonzero constant, so the atom the right's lone motion pushes the wrong way fails
+everywhere; the reposition lists come back empty (`repo-dyn-pre Cool_L: []`). Debug of the user's scenario: the
+two-sided band fails at Cool_L against the genuine Heat (joint gdot(temp_R - temp_L) = lambda + 0.5 > 0); a right-only
+Heat would spend the slack the band has, but route A does not see slack. (ii) Bisection of the band with
+repositioning on: upper row, lower row and two-sided band DECLINE for every c up to 100 (also with lambda in [0.5, 2]
+and [0.1, 10]); mode-keyed one-sided rows pass every pairing but fail the handoff (0 -> 1 and 1 -> 0). NO_REPO gives
+the same verdicts, so R would not be genuine anyway. (iii) Cause test: the blocker is not the attack: with bound 0
+equality certifies, but band 0.3 between two genuine copies already DECLINES. Domain-bounded variants certify only at
+the domain width (2.10 on [99.2, 101.3]), failing (c). Closing it would need a tool extension (a right-only segment
+whose domain includes the right mode's guard, so the genuine run stops at the crossing). Not installed, no removal.
+
+Removals: none (no new literature file; tasks 1 and 2 replaced files in place). Suite 50 (41 designed, 9 literature).
+Letters unchanged per benchmark: S 20 M 24 R 7 B 12 P 4 D 11 I 18 X 15 (`docs/paper-numbers/letters.md`).
+
+Lean and generated files: `gen_v2_data.py` and `gen_bridge.py` on the two files (robot: IR only; csf25: IR, cover,
+cuts); csf25 pack rows re-derived from the emitted cover (four atoms per mode, orders [0, 2, 3, 1] and [0, 1, 2, 3],
+lambda 1/3); `refute_finder.py --only` (csf25 32 mutants; robot 20 mutants with `--timeout 300`): robot m016
+re-found over the physical variables, one new witness csf25 m031 (the Dec envelope edge moved to the attacked level);
+`gen_refute.py`: 75 instances. `WellFormed/LitGirard08Robot.lean`: docstring only.
+
+Checks (one serial `lake build`, library and the five executables, no sorry): `--check-quick-v2` 50 certified, modal
+1162/1162, handoff 2827/2827, non-connection 44/44, pruned 22/22, reposition 74/74, strict gate 181/181 (80
+invariant, 101 exit), 0 UNKNOWN, 0 BLOCKING; `relcert-test` ALL PASS; bridge 7437/7437; progress 194/194; refute
+206/206 (75 instances, every one builds); WellFormedBattery 77 axiom lines (66 standard + 11 `CutLiftX`), no sorryAx;
+AxiomCheck 9; the three negatives DECLINED; `lit_hypercert_vehicle_s8` BLOCKING / DECLINED under strict; ONE DOMAIN
+PASS (48 + 2 kind (iii)). Failed checks and resolution: the first `--check-quick-v2` and bridge runs reported
+`discharged 1162 but owes 1160` and `discharged 7437 but owes 7433` (csf25's rows grew from three to four atoms per
+mode; no FAIL line, every query unsat); the declared counts were set after measuring in `VerdictsV2/RunV2.lean` and
+`RunBridge.lean`, the executables rebuilt, both re-run green. Nothing reverted.
+
+Paper numbers (`scripts/paper_numbers.sh docs/paper-numbers` under zsh, 61 min): covers identical; letters
+identical; `numbers.tex` changes only in times: `\totaltimes` 181 -> 250 s, `\numunderonesec` 26 -> 27,
+`\slowesttime` 50 -> 65 s (slowest `lit_gpt10_boost_converter` 65.1 s, this run; then `lit_girard08_robot` 57.9 s,
+was 3.9 s).
+
+With and without `lit_gpt10_boost_converter` (for the paper to choose):
+
+| quantity | with (50) | without (49) |
+|---|---|---|
+| total time (s) | 250 | 185 |
+| under 1 s | 27 | 27 |
+| slowest (s) | 65 (boost) | 58 (`lit_girard08_robot`) |
+| certified / SYNC-certified / NO_CHOICE-certified | 50 / 25 / 35 | 49 / 24 / 35 |
+| NO_PRUNE / NO_REPO / NO_CUT / guard-only / no-linear certified | 46 / 43 / 32 / 43 / 50 | 45 / 42 / 31 / 42 / 49 |
+| literature files; letter X | 9; 15 | 8; 14 (other letters unchanged) |
+| handoff transitions (suite) | 2827 (boost 2304, all vacuous) | 523 |
+| bridge groups (suite; + 136 for the 2 exhibits) | 7301 (boost 2450) | 4851 |
+| modal pack components | 1162 | 1162 (the boost closes by choice, no packs) |
+| per-benchmark median: handoff / bridge groups | 5 / 61 | 5 / 54 |
+
+Largest other per-benchmark counts: handoff 144, bridge 810.
+
+Commits (branch `benchmark-fixes`, pushed): de241c5 (the two installs, generated layers, counts, docs), then the
+paper numbers and this section.

@@ -1,5 +1,5 @@
 acc_spoof_lag: S M (lam1=DECLINED, norepo=CERTIFIED, uniform={}, keeps_all={})
-acc_spoof_limp: M B I (lam1=-, norepo=CERTIFIED, uniform={}, keeps_all={})
+acc_spoof_limp: M B I X (lam1=-, norepo=CERTIFIED, uniform={}, keeps_all={})
 acc_tune_lag: S M (lam1=DECLINED, norepo=CERTIFIED, uniform={}, keeps_all={})
 acc_tune_limp: S M B D I X (lam1=DECLINED, norepo=CERTIFIED, uniform={'CRUISE': 'DECLINED', 'LIMP': 'CERTIFIED'}, keeps_all={'CRUISE': True, 'LIMP': False})
 bottling_fill_strainer: S I (lam1=DECLINED, norepo=CERTIFIED, uniform={}, keeps_all={})
@@ -48,4 +48,4 @@ ventilator_vc_cuffleak: D (lam1=-, norepo=CERTIFIED, uniform={'INSP': 'DECLINED'
 watertank: S M B (lam1=DECLINED, norepo=CERTIFIED, uniform={}, keeps_all={})
 watertank_twospeed: S M B P (lam1=DECLINED, norepo=CERTIFIED, uniform={}, keeps_all={})
 zone_lightmass_schedule: S M B X (lam1=DECLINED, norepo=CERTIFIED, uniform={}, keeps_all={})
-TOTALS S=20 M=26 R=7 B=13 P=6 D=12 I=18 X=14 (D_strict=10)
+TOTALS S=20 M=26 R=7 B=13 P=6 D=12 I=18 X=15 (D_strict=10)

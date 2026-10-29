@@ -37,6 +37,32 @@ needs, read off counter-runs; `scripts/suite_v2_matrix.py`) are in
 physical story, the units, the measured cover and the mechanisms it exercises
 (`# scenario:` and `# mechanisms:` lines).
 
+## Review round 3, 2026-10-29: two constant changes, four header fixes
+
+Round 3 (`docs/BENCHMARK-REVIEW-2026-10-29-r3.md`, hash-based reviewer pairing). Verified and
+applied: `acc_spoof_limp` LIMP guard `20..36` (the fault is not conditioned on speed, the same
+ceiling as `acc_tune_limp`; certifies up to 40; without the choice only up to 34.50, so the file
+now carries X: LIMP by the ECO -> NORMAL hop; row 1 tight -2.40 / -2.41 at the new ceiling, row 2
+-0.20 / -0.21 unchanged); `acc_tune_limp` `lambda_max` pinned to 1.5 (the cover's 3/2; identical
+battery and covers); headers of `gantry_speed_zones` (verdict block re-measured, tolerance 0.00
+at lambda_max 3, 0.01 at 4), `tunnel_jetfan_pairout` (the floor 2.6 m/s is the normal-ventilation
+minimum duty, below every admitted steady state and the critical velocity), `sat3w_detumble_phases`
+(the stylized wheel gain, about 100x a microsatellite wheel; the gains / 1000 variant certifies
+with the same ablations), `fuelcell_chp_dos` (one garbled sentence). The four files still at 2
+(`charger_fast_tapers`, `lit_lz21_vehicle_position`, `rover_terrain_2to4`,
+`turbine_startup_gearratio`) are structural objections the suite keeps and documents: the
+charger's constant is the tool's and its letters R P B D cannot be replaced from the reserve, the
+LZ21 source bound blocks the right model, the terrain rung keeps the stretched form as the chain's
+exhibit with the real-time form stated, the turbine claim is one-sided against an existential
+reference with the domain restriction disclosed as load-bearing.
+
+Checks after round 3: `lake build` exit 0; `--check-quick-v2` 50 certified, modal 1248/1248,
+handoff 541/541, non-connection 60/60, pruned 30/30, reposition 73/73, strict gate 188/188;
+bridge 5246/5246; progress 197/197; refute 219/219 (73 instances); WellFormedBattery 66 lines;
+`relcert-test` ALL PASS. Letters (re-run 2026-10-29): S 20, M 26, R 7, B 13, P 6, D 12, I 18, X 15
+(`acc_spoof_limp` M B I -> M B I X; every other benchmark identical); 25 benchmarks certify
+under `RELCERT_SYNC=1`, 15 decline without the existential choice.
+
 ## Review round 2, 2026-10-29: six model changes (three with Assumption 1 proofs rewritten), twelve header fixes
 
 Round 2 of the overnight review (`docs/BENCHMARK-REVIEW-2026-10-29-r2.md`, new reviewer pairing;

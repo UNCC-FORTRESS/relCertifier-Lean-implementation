@@ -54,6 +54,13 @@
 # The sides differ in the gyroscopic and wheel couplings (the model refinement) and in the phase
 # decision period (2 s flight, 1 s design). Gains, guards, phase logic and successor sets are the
 # same on both sides (the design model adds only its SAFE sink).
+# The time unit is stylized, as in sat_detumble_phases: in SI seconds the rate-damping gain
+# k = 0.5 /s commands wheel torques up to about 1 N m at the DETUMBLE envelope (k J_i w_i, e.g.
+# 0.5 x 5 x 0.45 on z), about 100 times a microsatellite reaction wheel's authority (2-30 mN m),
+# and the 2 s time constant is a unit of this file, not a detumble time. The energy identity does
+# not depend on the gain: with both damping gains divided by 1000 (k = 5e-4 / 3e-4 on both sides,
+# wheel loading h_i' scaled with them, couplings, guards and periods unchanged) the file
+# CERTIFIES with the same ablation pattern (NO_CHOICE and NO_CUT decline), measured 2026-10-29.
 #
 # CLAIM (both phases): E_L <= E_R and E_R <= E_L -- the full rigid body's energy EQUALS the design
 # model's at every instant, through the phase handovers (tolerance 0 in both directions; no

@@ -65,12 +65,14 @@
 # (every flow points toward the interior target). The right guard is the whole domain (no
 # coverage gap).
 #
-# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, measured 2026-10-26 with the round-A binary):
-# CERTIFIED (about 1.5 s); CERTIFIED under RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1, both together,
-# RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1, RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_PAIR_STRETCH=1,
-# RELCERT_WELLFORMED_STRICT=1, without RELCERT_IMPLIED_CUT and under RELCERT_OPREGION=1 (every
-# admitted start in some right guard, all three left modes); DECLINED under RELCERT_SYNC=1 and
-# SYNC+NO_CHOICE. Covers: FREE lambda 3 budget 3, APPROACH lambda 2 budget 2, PLACE lambda 1
+# Verdicts (RELCERT_IMPLIED_CUT=1 unless stated, re-measured 2026-10-29 on this file with the
+# current binary): CERTIFIED (1.2 s); CERTIFIED under RELCERT_NO_PRUNE=1, RELCERT_NO_CHOICE=1,
+# both together, RELCERT_NO_REPO=1, RELCERT_NO_CUT=1, RELCERT_NO_IMPLIED_CUT=1,
+# RELCERT_NO_LINEAR_CUT=1, RELCERT_NO_PAIR_STRETCH=1, RELCERT_WELLFORMED_STRICT=1, without
+# RELCERT_IMPLIED_CUT and under RELCERT_OPREGION=1 (every admitted start in some right guard, all
+# three left modes); DECLINED under RELCERT_SYNC=1 and SYNC+NO_CHOICE. Tightest tolerance
+# re-measured the same day: 0.00 certifies at lambda_max 3; at lambda_max 4, 0.01 certifies and
+# 0.00 declines. Covers: FREE lambda 3 budget 3, APPROACH lambda 2 budget 2, PLACE lambda 1
 # budget 1, admissible start MOVE. Rows identical (--handoff vacuous, 5/5). relcert --wellformed:
 # MOVE ok (invariant), 0 UNKNOWN.
 [problem]

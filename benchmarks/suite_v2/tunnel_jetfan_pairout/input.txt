@@ -51,8 +51,12 @@
 # the floor carries is normal operation, not the fire requirement: the NORMAL guard's c <= 100 (the
 # mode fact, I) is kept by the flow only for u >= 0.1583 / (0.000625 x 100) = 2.533 (floor 2.54
 # certifies the rows, 2.53 declines), and below that velocity the reference's NORMAL mode is not
-# well formed (--wellformed UNKNOWN at floor 0); the floor is not a physical limit (a tunnel with its
-# fans off has u = 0). The NORMAL velocity row is a stated strengthening (the CO gap is driven by
+# well formed (--wellformed UNKNOWN at floor 0). The floor 2.6 m/s is the normal-ventilation
+# minimum duty, chosen physically: while the tunnel is open to traffic the controller never stops
+# all fans, and 2.6 lies below every admitted steady state (eight fans at low speed hold 3.236 m/s)
+# and below the critical velocity 3 m/s; a tunnel with its fans off (u = 0) is outside the admitted
+# operation. Its load-bearing value for the NORMAL CO row is 2.54, as stated above, via the
+# c <= 100 fact. The NORMAL velocity row is a stated strengthening (the CO gap is driven by
 # the velocity gap; without a velocity bound the CO row is not inductive); u_L <= u_R (both modes)
 # and c_R <= c_L are derived, exact (the deployed has less airflow and never less CO). The rows are
 # not implied by the domains (they allow a velocity gap of 4.7 and a CO gap of 900).
@@ -97,8 +101,9 @@
 #
 # Domains. t >= 0 s (the procedure clock); u in [2.6, 7.3] m/s: every mode drives u toward a steady
 # velocity inside (3.236 to 7.236) and the flow points inward at both bounds (forward invariant on
-# both sides); the floor 2.6 is a stated physical choice, below the critical velocity, so that the
-# fire requirement is carried by the rows and not by the admitted starts; what the floor carries is
+# both sides); the floor 2.6 is the normal-ventilation minimum duty (see Requirements), below the
+# critical velocity, so that the fire requirement is carried by the rows and not by the admitted
+# starts; what the floor carries is
 # the NORMAL CO row (load-bearing value 2.54, via the c <= 100 fact, see Requirements); c in
 # [0, 900] ppm: at 900 every flow decreases c for u >= 2.6 (1.2583 < 0.000625 x 2.6 x 900 = 1.4625,
 # forward invariant). The right guards partition the clock except normal-operation states with

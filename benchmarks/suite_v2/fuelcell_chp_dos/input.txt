@@ -27,7 +27,7 @@
 # coldest return 40 + 12, HIGH at the warmest 56 + 22): a deployed within 7 K of a settled
 # reference is inside the window. It is a band around a permitted trajectory, not a window bound:
 # the protocol's permitted trajectories span the domain [40, 100] (HIGH from any T > 70, LOW below
-# 60), so the window is reached through the settled reference only. The physical content of the
+# 60), so the window is reached through the settled reference only. The physical content is
 # smaller than the certificate: under a 20 s hold the deployed's own trajectory stays inside the
 # protocol band of the level it holds (simulated 2026-10-29 from the worst start in each guard and
 # every Tin in [40, 56]: LOW rises at most 4.30 K (Tin 56, 40 -> 44.3) and stays below 60, HIGH

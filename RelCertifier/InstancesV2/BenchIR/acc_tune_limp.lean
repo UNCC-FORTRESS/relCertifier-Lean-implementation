@@ -15,7 +15,7 @@ def acc_tune_limp_IRv2 : PProblem :=
   {
     name := "acc_tune_limp"
     lambdaMin := "1.0"
-    lambdaMax := "6.0"
+    lambdaMax := "1.5"
     L := {
       stateVars := ["v"]
       epsilon := "0.1"

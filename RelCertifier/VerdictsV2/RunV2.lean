@@ -72,7 +72,6 @@ def packsV2 : List PackV2 :=
     ⟨"acc_spoof_limp", 3, 0, [0, 1], 1, 1, 0, 1⟩,
     ⟨"acc_spoof_limp", 3, 0, [0, 1], 1, 1, 0, 2⟩,
     ⟨"acc_spoof_limp", 3, 0, [0, 1], 1, 1, 1, 0⟩,
-    ⟨"acc_spoof_limp", 3, 0, [0, 1], 1, 1, 1, 1⟩,
     ⟨"acc_spoof_limp", 3, 0, [0, 1], 1, 1, 1, 2⟩,
     -- platoon_linkloss (CACC -> AEB pruned): the CACC/ACC windows against CACC, AEB against AEB,
     -- at λ = 1 (budget 2 since batch I9: the 0.2 s link-loss decision)
@@ -375,7 +374,7 @@ def packsV2 : List PackV2 :=
     ⟨"insulin_basal_cgmloss", 3, 0, [0, 1, 4, 5, 2, 3], 1, 1, 8, 8⟩ ]
 
 /-- Declared: the number of component queries the packs owe (one per component). -/
-def expectedModalV2 : Nat := 1250
+def expectedModalV2 : Nat := 1248
 
 /-- Run one pack. -/
 def runPack (s : Z3Session) (r : PackV2) : IO Bool := do

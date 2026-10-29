@@ -67,7 +67,7 @@ a car under a cabin-temperature sensor attack, vehicle position opacity, a plana
 planner's model, a brine tank under a sensor attack, quadrotor climb, vehicle platoons, satellite
 detumbling, rover patrol, a turbofan ground start, train speed control, a pick-and-place gantry, a building zone's
 heating schedule in a lightweight construction, a wind turbine start-up, a fuel-cell CHP unit, an exothermic reactor's feed interlock, an elevator trip, a heat-treatment furnace program, a syringe-pump relay, a hydro unit's load rejection, volume-controlled ventilation, road-tunnel ventilation through a fire alarm, an island grid's fast frequency response under a denial-of-service attack, a bottle filler, a hydrogen refuelling under a sensor bias, a DC fast charger, an airliner's flap extension, the rover refinement ladder up to 12 degrees of freedom and the rover terrain chain; `benchmarks/README.md`). With the widened cut channel on
-(`RELCERT_IMPLIED_CUT=1`) the tool CERTIFIES all 50; without it, 4 of them DECLINE; fourteen DECLINE without the existential mode choice (`RELCERT_NO_CHOICE=1`): seven of the eight literature benchmarks (all but `lit_nahs25_salt_tank`), `acc_tune_limp`, `quad_light_profiles`, `zone_lightmass_schedule`, `sat_detumble_phases`, `sat3w_detumble_phases`, `sat_detumble_weak` and `fuelcell_chp_dos`; the other 35 covers are byte-identical with it on or off. Near-duplicates and weak benchmarks are kept outside the suite in `benchmarks/reserve/` (inputs and verdicts only, `benchmarks/reserve/README.md`). One of them, `watertank_twospeed`, needs a different stretch per pairing (`RELCERT_NO_PAIR_STRETCH=1` DECLINES it; §22 of `docs/SUITE-REDESIGN.md`).
+(`RELCERT_IMPLIED_CUT=1`) the tool CERTIFIES all 50; without it, 4 of them DECLINE; fifteen DECLINE without the existential mode choice (`RELCERT_NO_CHOICE=1`): seven of the eight literature benchmarks (all but `lit_nahs25_salt_tank`), `acc_tune_limp`, `quad_light_profiles`, `zone_lightmass_schedule`, `sat_detumble_phases`, `sat3w_detumble_phases`, `sat_detumble_weak` and `fuelcell_chp_dos`; the other 35 covers are byte-identical with it on or off. Near-duplicates and weak benchmarks are kept outside the suite in `benchmarks/reserve/` (inputs and verdicts only, `benchmarks/reserve/README.md`). One of them, `watertank_twospeed`, needs a different stretch per pairing (`RELCERT_NO_PAIR_STRETCH=1` DECLINES it; §22 of `docs/SUITE-REDESIGN.md`).
 
 The parts of the artifact:
 
@@ -114,7 +114,7 @@ carried to the left automaton by one generic bridge (`theorem3_leftAut_of_choice
 The theorem's one Z3 hypothesis, `Verdicts`, IS the list of groups the runner
 `relcert-bridge-verdicts` issues (5246 over the 50 suite benchmarks and the 2 exhibits, against
 the declared count), each coming back `unsat`; `relcert --check-quick-v2` re-sends the tool's
-own queries as a self-check (modal 1250, handoff 541, non-connection 60, pruned edges 30,
+own queries as a self-check (modal 1248, handoff 541, non-connection 60, pruned edges 30,
 reposition 73). The axiom audit of every theorem is a subset of
 `{propext, Classical.choice, Quot.sound, z3_unsat_sound}`; none of the 50 is Z3-free (every
 flow fact of every response is a group of the emitted cover). No
@@ -245,7 +245,7 @@ Expected: `Build completed successfully`; 66 axiom lines (WellFormedBattery), ea
 the three standard axioms (`lake` also replays the 11 lines of `CutLiftX.lean`'s own audit);
 9 axiom lines (AxiomCheck), each a subset of the four axioms above; `relcert-bridge-verdicts`: `5246/5246` at the bridge dimensions;
 `relcert-progress-verdicts`: `197/197`; `[suite_v2] 50 certified, 0 declined, 0 error(s)`,
-coverage `modal 1250/1250`, `handoff 541/541`, `non-connection 60/60`, `pruned edges 30/30`,
+coverage `modal 1248/1250`, `handoff 541/541`, `non-connection 60/60`, `pruned edges 30/30`,
 `reposition (dyn) 73/73`, the strict Assumption 1 gate `[wellformed] STRICT: 188/188 right modes ok,
 both clauses (87 invariant, 101 exit), 0 UNKNOWN, 0 BLOCKING — matches the declared suite`,
 `wellformed (strict): PASS`, `SUITE_V2 QUICK CHECKS PASSED`;

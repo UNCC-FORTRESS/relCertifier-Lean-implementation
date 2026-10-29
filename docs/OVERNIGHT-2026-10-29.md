@@ -441,3 +441,129 @@ model's validity bound 0.05, which also restores the composition with `rover_ter
 
 Commits (branch `benchmark-fixes`, pushed): see the git log after 46c3fb3 (the fix commit, then this
 section).
+
+## Literature fidelity round (2026-10-29)
+
+Goal (owner): the eight literature benchmarks must be faithful migrations of their sources. Standard
+per file: (a) model as printed, departures only where the framework forces them, each with its
+reason; (b) the claim carries the source's content (its theorem/property, its quantitative bound if
+any, with the tight value); (c) non-trivial: the witness is not a plain copy unless the source's claim
+is a copy-refinement, and removing the source's cause changes the verdict or the tight value (run);
+(d) letters reported, never added for their own sake. Framework constraints kept as decided:
+Assumption 1, sampled switching on both sides, one physical evolve domain. One research agent per
+benchmark (or pair), read-only on scratch copies (`tmp/lit-r6/`), each reading the source PDF
+section, then installed serially. No benchmark dropped.
+
+| benchmark | source | fidelity (a/b/c) before -> after | changes | departures (forced) | letters before / after | tight numbers | cause test |
+|---|---|---|---|---|---|---|---|
+| `lit_lz21_vehicle_position` | Liu, Zamani, L-CSS 2021 (arXiv 2109.10993), Def. 2, assumption (2), Sec. V-A Eq. (17) | OK/FAIL/WEAK -> OK/OK/OK | rows: the exact offset `x_R = x_L + 1` replaced by Definition 2 at delta = 1: `x_R >= 1` (closure of the non-secret start `x_R > 1`; strictness follows since x is nondecreasing on `v >= 0`), `|x_L - x_R| <= 1`, `v_L = v_R`; header rewritten (source policy measured, coverage, boundary) | (1) no upper position bound (with `x <= 10` all three right modes BLOCKING); (2) input-copying partner: the source's printed policy is never in U on R0 and no admissible input makes its B non-increasing on about 29 % of X x X x U (published certificate invalid under its own input bound), the feedback cannot be stated (velocity-gap rows DECLINE); (3) three input levels (11 levels on the 0.01 grid also CERTIFY, strict, 5.7 s; not adopted); (4) secret start x_L = 0 uncovered at delta = 1 (the source's own boundary) | X / X | tool verdict independent of delta (0, 0.99, 1 all CERTIFY); coverage (z3): uncovered secret starts exactly [0, 1 - delta]; tight delta = 1 on (0, 1], the source's value | non-secret row removed: delta = 0 certifies and covers, tight delta 1 -> 0; velocity matching removed: DECLINED; NO_CHOICE: DECLINED |
+| `lit_drl_car_stop` | Loos, Platzer, LICS 2016, Sec. 6 (Goals 1-3, time* <= event*) | WEAK/FAIL/FAIL -> unchanged, now disclosed | header only: Goals 1-3 mapped; why Goal 3 (Safe_eps keeps E for eps time, a bounded-time fact) is not expressible (joint-segment certificates are clock-free differential invariants, no resets); measured unsafety of the sampled Coast stand-in and of the permissive right | Coast stand-in (Assumption 1); sampled event side | X / X | 0 (guard inclusion); the source's Goal 3 margin 2v + 1 is invisible to the tool | Safe_eps margin removed: still CERTIFIED; Rsys = Lsys: CERTIFIED; only a negative margin (-0.01) DECLINES. Finer right period (eps/2, eps/4): DECLINED; event domain E as a claim conjunct: DECLINED (CERTIFIED with a Brake-only left = Goal 2 alone) |
+| `lit_drl_lane_control` | Loos, Platzer, LICS 2016, Sec. 6 (lane control, after FM 2011) | WEAK/FAIL/FAIL -> unchanged, now disclosed | header only, as car_stop; the r5 collision claim confirmed (Coast stand-in: gap -0.5 after 8 cycles from (3.5, 1, 0)); the audit's 9-mode leader decline traced to a broken variant (incomplete `next` lists): with complete lists it CERTIFIES (6.7 s, wellformed 9/9) | as car_stop | X / X | 0 (guard inclusion) | as car_stop (margin removed: CERTIFIED; E conjunct: DECLINED; eps/2: DECLINED) |
+| `lit_csf21_vehicle_thermo` | Xiang, Fulton, Chong, CSF 2021, Sec. VI-C, Def. 5 | OK/OK/WEAK -> OK/OK/OK | header only: measured cause test, why the d, v copy is the source's Def. 5 content (the thermostat setting is not copied), tightness | Coast at v <= 1, Brk from v >= 1 (Assumption 1); top speed; closed guards at temp = 20 | X / X | equality (tolerance 0) | the drive reads the thermostat (AC load on AccCool, `negative/lit_csf21_vehicle_thermo_leaky`): DECLINED; its hand run fails the source's H-equivalence for every genuine start |
+| `lit_csf21_vehicle_bus` | same, Sec. VI-C(a)-(b), Figs. 11-12 | OK/OK/FAIL -> OK/OK/WEAK | header rewritten: quotes the source's arbitration (acceleration messages have priority: `ctrlbus = (?busV = a; ctrlt; busH := 1) U busH := 0`), so the bus is harmless by design and the genuine car never needs a thermostat message; the certificate is thermo's (disclosed); new negative exhibit `benchmarks/negative/lit_csf21_vehicle_bus_thermoprio` (arbitration reversed, DECLINED) | as thermo | X / X | equality | xtT right modes removed / one-message rule removed / genuine thermostat guard removed: all CERTIFIED (bus not load-bearing, as in the source); arbitration reversed with override modes: DECLINED, wellformed 16/16, leak confirmed by an exhaustive hand check (0 of 3^4 x 2^4 genuine sequences match) |
+| `lit_freedm_meter` | Bohrer, Platzer, LICS 2018, Sec. 3 Fig. 2, Def. 5, Prop. 11 | WEAK/OK/OK -> OK/OK/OK | model: the zero-net battery modes BatD0R0, BatD1R1 no longer enabled at B = Bmax (`B < 10`, the source's batS test `B < Bmax or (n > 0 and B > 0)`; the old `B <= 10` was a convenience); header: departures (1)-(6) each with its reason, L = {gr, t}, Prop. 11's argument | meter E for gr (no assignments); one transformer; finite inputs; period-1 sampling (the source is not time-triggered); charge/discharge guards B <= 9, B >= n (Assumption 1); domain B <= 10 (the source's range) | X / X | equality (the source states no bound) | one grid mode gated on the secret like batI (GridD2R0 only at B < 2) on both sides: DECLINED; right only: DECLINED; full batI (`negative/lit_freedm_meter_leaky`): DECLINED |
+| `lit_girard08_robot` | Girard, Julius, Pappas, DEDS 18 (2008), Sec. 5, Eqs. (6)-(8), Figs. 2-3, Theorem 2, Sec. 4.2.3 | OK/OK/WEAK -> OK/OK/OK | header only: Theorem 2 and beta = 0.4 cited, the Fig. 2 5 -> 6 guard reading, Fig. 3's 0.8-wide strips, unverifiable thesis pointer dropped, TIGHTNESS and CAUSE TEST | error coordinates (exact change of variables); planner more permissive than Fig. 3 (rows keyed by the left mode; the Fig. 3 edges DECLINE); sampled location changes (one evolve domain per side) | X / X | level 0.16 = precision 0.4 exactly (0.159999 declines) | gain 0 or damping removed: DECLINED at 0.16, 1, 100; gain 0.26 with the source V: DECLINED; gain 0.26 with V re-weighted 25: CERTIFIED at 0.16 (precision 2 v comes from the controller structure) |
+| `lit_nahs25_salt_tank` | Xiang, Lanotte, Tini, Chong, Merro, NAHS 56 (2025), Sec. 7, Fig. 7, Def. 8 | OK/OK/WEAK -> OK/OK/OK | header only: Def. 8 direction (attacked forall, genuine exists), lock step disclosed, non-strict closure, TIGHTNESS and CAUSE TEST | attack projected exactly (On at xp >= 22, Off at xp < 28); closure of 25 < xp; lock step (stronger than Def. 8's reachable sets, the source's own proof) | I / I | upper row exactly 3.00 (2.99 declines) = the source's d = 3 | attack bound b = 4, 2, 1, 0.01: tight value = b each time; threshold 25 -> 26: tight 4.00 |
+
+Fidelity scale per axis: OK / WEAK / FAIL. Six of eight files reach OK on (a), (b) and (c);
+`lit_csf21_vehicle_bus` stays WEAK on (c) (the source's bus is harmless by design, see below); the two
+dRL files stay WEAK/FAIL/FAIL, now disclosed. Letters unchanged for all eight (`docs/paper-numbers/letters.md`
+compared with the previous commit's: only run times moved; `\totaltimes` 123 -> 124, `\numunderonesec`
+28 -> 29). Mechanism letters were not a goal: no structure was added.
+
+Assumption 1 (`RelCertifier/InstancesV2/WellFormed/`): no proof changed. `LitFreedmMeter.lean` builds
+unchanged against the new guards (its `sat_guardR_bounds` closes `B < 10 -> B + 0 <= 10` by `linarith`);
+`LitLz21VehiclePosition.lean` is untouched (right model unchanged); the six other right models are
+byte-identical.
+
+Not adopted (measured, recorded in the headers): the strict row `x_R > 1` in `lit_lz21_vehicle_position`
+(CERTIFIED as stated, 0.4 s, but the suite's bridge generator states closed rows; the closure loses
+nothing since x is nondecreasing); 11 input levels for lz21 (CERTIFIED, strict, 5.7 s; it narrows
+departure (3) at the cost of an 11-mode Assumption 1 proof); the 9-mode three-valued leader for
+`lit_drl_lane_control` (CERTIFIED 6.7 s once the variant's `next` lists are complete; it changes the
+right model, so its Assumption 1 proof would be redone); a Safe_eps guard on the left Coast of the dRL
+files (CERTIFIED, but the left then sticks at low speed).
+
+### Recommendations for the files not made faithful
+
+* `lit_drl_car_stop`, `lit_drl_lane_control`: KEEP WITH DISCLOSURE for now, as "dRL Goal 1 (Safe_eps
+  implies Safe) between sampled controllers", not "time-triggered refines event-triggered". The source's
+  theorem rests on Goal 3 (Safe_eps keeps the event domain for eps time), a bounded-time fact; the tool's
+  joint-segment certificates are clock-free differential invariants and the format has no resets, so no
+  faithful reading certifies (finer right period, E as a claim conjunct, nondeterministic envelope: all
+  DECLINED or reduce to the same guard inclusion). Every published dRL-line refinement example (LICS 2016
+  Sec. 6, Prebet-Platzer 2024 Example 1, Prebet-Platzer 2026 Sec. 4.3, Mitsch-Quesel-Platzer FM 2014
+  Sec. 6) uses the same car-stop template with a copy witness, so a replacement must come from another
+  line. If one row has to go, replace `lit_drl_car_stop` (it repeats the lane file's structure with a less
+  specified source) with candidate 1 or 2 below.
+* `lit_csf21_vehicle_bus`: KEEP WITH DISCLOSURE (the header now says its certificate is the thermo
+  file's and why: the source's acceleration-message priority makes the bus harmless; the reversed
+  arbitration is the new negative exhibit). Do not count it as an independent mechanism exhibit. If every
+  literature row must carry distinct load-bearing content, replace it with: (i) NAHS 2025 (arXiv
+  2403.05829) Secs. 3-5, the engine cooling system of Figs. 3-5, Examples 3 and 5 (bounded sensor attack,
+  forward simulation distance 0.3 on the temperature: a tight value to test); (ii) CSF 2021 Sec. VI-A, the
+  ABS of Fig. 9 with three wheel-speed sensors and majority voting (cause test: remove the voting;
+  nonlinear slip, harder); (iii) CSF 2021 Sec. III-C(a), Fig. 5, the car with three voting velocity
+  sensors (simple, same family as thermo).
+
+### Candidate new literature benchmarks (to replace weak designed ones later)
+
+1. Boost DC-DC converter: Girard, Pola, Tabuada, "Approximately bisimilar symbolic models for
+   incrementally stable switched systems", IEEE TAC 55(1) 2010 (arXiv 0807.5022), Sec. 5.1, Fig. 2. Two
+   affine modes (xc = 70, xl = 3, rc = 0.005, rl = 0.05, r0 = 1, vs = 1), switching at sample instants
+   tau_s = 0.5 (the framework's own semantics). Claim: incremental stability under the printed common
+   Lyapunov function (x - y)^T M (x - y), M = [[1.0224, 0.0084], [0.0084, 1.0031]] in [il, 5 vc],
+   kappa = 0.014 (reproduced numerically, tight on mode 2): two copies from different states contract,
+   witness not a copy. Departures: the symbolic (grid-snapped) model cannot be the right side (a discrete
+   reset); the certified relation is the incremental-stability relation under the paper's bisimulation.
+   Cause test: Euclidean distance in physical coordinates is not a Lyapunov function. Feasibility HIGH.
+2. n-room building: Girard, Goessler, Mouelhi, "Safety controller synthesis for incrementally stable
+   switched systems using multiscale symbolic models", IEEE TAC 61(6) 2016, Sec. V-B, Table II. Linear,
+   n + 1 heater modes (alpha = 1/20, beta = 1/200, gamma = 1/100, te = 10, th = 50), precision 0.4,
+   period 5; box rows |T_L,i - T_R,i| <= c invariant under a shared mode, domain [10, 50]^n (physical);
+   scales n = 3..5. Same departures as 1. Feasibility HIGH.
+3. Engine cooling under a bounded sensor attack: Xiang, Lanotte, Tini, Chong, Merro, NAHS 2025 (arXiv
+   2403.05829), Secs. 3-5, Figs. 3-5, Examples 3 and 5: forward simulation distance 0.3 on temperature
+   between attacked and genuine system (the same robustness content as the salt tank, a different plant
+   and a stated bound). Departures as `lit_nahs25_salt_tank` (lock step, closure). Feasibility HIGH (not
+   yet scoped by a tool run).
+4. Approximate bisimulation of a 3-D polynomial system by a 2-D linear one: Girard, Pappas, "Approximate bisimulations for nonlinear dynamical systems",
+   CDC-ECC 2005, Sec. V, precision 0.590. Strongly non-trivial witness (lower-dimensional linear model). Warning:
+   random sampling finds a positive Lie derivative of the printed V inside V <= 0.348 (e.g. 0.56); confirm
+   with Z3 first: if the certificate is wrong, the example is a known-false exhibit, not a benchmark.
+   Feasibility MEDIUM-LOW.
+5. CSF 2021 Sec. VI-A ABS with three wheel-speed sensors and majority voting (Xiang, Fulton, Chong):
+   non-interference of a single compromised sensor with braking; cause test: remove the voting.
+   Nonlinear slip dynamics. Feasibility MEDIUM-LOW.
+
+Rejected (reason): Anand et al. 2105.05493 room temperature (a discrete-time map; one mode; the
+right side is the same deterministic system); dwell-time switched systems (GPT10 Sec. 5.2, GGM16 Sec. V-C:
+a minimum dwell time cannot be stated with windows of at most eps); Lanotte et al. CSF 2017 engine
+(discrete time, counters, resets); Kalat ECC 2022 (the lz21 vehicle, already noted in its header);
+Skorokhod and conformance work (distances measured by testing, no proved bound); ACAS X refactoring
+(relates formulas, not systems).
+
+### Regeneration, checks, commits
+
+Regeneration: `gen_v2_data.py` on the eight (leaves changed only for `lit_freedm_meter`: IR, cuts;
+`lit_lz21_vehicle_position`: IR, cover); the pack rows of `VerdictsV2/RunV2.lean` unchanged (the literature
+files close by choice and have no packs; declared counts recomputed, unchanged); `gen_bridge.py` (instances
+unchanged); `refute_finder.py --only` the eight (929 records, was 926: lz21 19 mutants, was 16; witnesses
+74, unchanged; the one literature witness, `lit_girard08_robot` m016, re-found) + `gen_refute.py` (its
+mutant file re-written with the new header).
+
+Checks (all green; one serial `lake build`, exit 0): `--check-quick-v2` 50 certified, modal 1218/1218,
+handoff 537/537, non-connection 42/42, pruned 21/21, reposition 74/74, strict gate 186/186 (82 invariant,
+104 exit), 0 UNKNOWN, 0 BLOCKING; `check_one_domain.py` PASS (48 + 2 kind (iii)); `relcert --wellformed`
+186 modes ok; `relcert-test` ALL PASS (50 literals); bridge 5183/5183 (declared count set after measuring,
+was 5180: lz21 35 -> 38); progress 194/194; refute 204/204 (74 instances) and every refutation instance
+builds; WellFormedBattery 66 standard axiom lines (plus the 11 `CutLiftX` replay lines); AxiomCheck 9;
+the three negatives DECLINED (`lit_csf21_vehicle_bus_thermoprio` new); `lit_hypercert_vehicle_s8`
+BLOCKING / DECLINED; `scripts/paper_numbers.sh` under zsh (covers identical; letters identical per
+benchmark).
+
+Failed checks and how they were resolved: (1) `relcert-bridge-verdicts` reported `discharged 5183 but
+owes 5180` (no FAIL line; the three extra groups are lz21's longer row), the measured total set in
+`VerdictsV2/RunBridge.lean`, the runner rebuilt and re-run: 5183/5183. Nothing reverted.
+
+Commits (branch `benchmark-fixes`, pushed): the literature fidelity commit, then this section.

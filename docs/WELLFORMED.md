@@ -165,7 +165,7 @@ on 2026-10-22). Battery: `InstancesV2/WellFormedBattery.lean`. Tool column:
 | 45 | `watertank` | proved | Low (b) → MidEco; MidEco, MidBoost, High, PumpOff (a) | Low ok (exit→MidBoost, same guard); the others ok (invariant) |
 | 47 | `lit_drl_car_stop` | proved (direct; Coast at `v ≤ 1` since 2026-10-28) | every mode (b) → Coast (`v ≤ 1`) or Brake (`v ≥ 1`) by the end speed; explicit run `x + v t + c t²/2` | Accel ok (exit→Coast,Brake); Coast ok (invariant); Brake ok (exit→Coast) |
 | 48 | `lit_drl_lane_control` | proved (direct; follower Coast at `v_f ≤ 1` since 2026-10-28) | every mode (b) → a Coast pair (`v_f ≤ 1`) or a Brake pair (`v_f ≥ 1`), the leader's member by its speed (`v_l ≤ 9` LAccel, `v_l ≥ 1` LBrake); explicit run | all six ok (exit) |
-| 49 | `lit_hypercert_vehicle` | proved (`V2LitHypercertVehicle.lit_hypercert_vehicle_wellFormedR`, since 2026-10-27 with the position coordinate `s ≥ 0`: the explicit run `s₀ + v₀ t + c t²/2`, `v₀ + c t` stays in the domain; before, `ChoiceLitHypercertVehicle.wellFormedR` of the velocity-only model) | every mode (b) → A0 (A0's guard is the domain's velocity range) | A0 ok (invariant); the others ok (exit) |
+| 49 | `lit_hypercert_vehicle` (left the suite 2026-10-28, `benchmarks/skipped/`; the proof went with it) | was proved (`V2LitHypercertVehicle.lit_hypercert_vehicle_wellFormedR`, since 2026-10-27 with the position coordinate `s ≥ 0`: the explicit run `s₀ + v₀ t + c t²/2`, `v₀ + c t` stays in the domain; before, `ChoiceLitHypercertVehicle.wellFormedR` of the velocity-only model) | every mode (b) → A0 (A0's guard is the domain's velocity range) | A0 ok (invariant); the others ok (exit) |
 | 50 | `lit_freedm_meter` | proved (direct) | every mode (b) → GridD0R0 (guard = domain); explicit linear run | battery modes ok (exit); grid modes ok (invariant) |
 | 51 | `platoon_linkloss` | proved (2026-10-27; `PlatoonCaccAeb`, shared with row 52) | CACC (a) (the projected stop gap `w = g + 2r` obeys `w' = −(w − 20)/4`, so `5 ≤ w ≤ 60` is kept; existence: the explicit two-exponential run stays in the box `0 ≤ g ≤ 60`, `|r| ≤ 10`); AEB (a), latched (`w` conserved; explicit run) | both ok (invariant) |
 | 52 | `platoon_latency` | proved (back in the suite 2026-10-28, batch I11; the right model of row 51, `PlatoonCaccAeb`, the left's latency coordinate `e` frozen on the right; in the reserve from batch I9 to I11) | as 51 | both ok (invariant) |
@@ -294,7 +294,7 @@ round-2 designs of the 2026-10-26 redesign pass (outside the tree): 122 right mo
 (invariant), 53 ok (exit), 0 UNKNOWN, 0 BLOCKING, labels unchanged.
 
 **The blocking exhibit** `benchmarks/negative_wellformed/lit_hypercert_vehicle_s8` (the round-2
-variant with `s ≤ 8` in every evolve domain): the default run CERTIFIES it, clause (ii) alone
+variant with `s ≤ 8` in every evolve domain; self-contained, it stays after its suite benchmark was skipped on 2026-10-28): the default run CERTIFIES it, clause (ii) alone
 finds all five right modes `ok`, the two-clause check finds all five `BLOCKING (leaves s <= 8.0)`
 (at `s = 8`, `v > 0` the flow leaves at once), and `RELCERT_WELLFORMED_STRICT=1` DECLINES it.
 

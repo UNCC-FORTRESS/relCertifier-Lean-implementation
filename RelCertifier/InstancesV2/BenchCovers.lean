@@ -20,7 +20,6 @@ import RelCertifier.InstancesV2.BenchCovers.lit_drl_car_stop
 import RelCertifier.InstancesV2.BenchCovers.lit_drl_lane_control
 import RelCertifier.InstancesV2.BenchCovers.lit_freedm_meter
 import RelCertifier.InstancesV2.BenchCovers.lit_girard08_robot
-import RelCertifier.InstancesV2.BenchCovers.lit_hypercert_vehicle
 import RelCertifier.InstancesV2.BenchCovers.lit_lz21_vehicle_position
 import RelCertifier.InstancesV2.BenchCovers.lit_nahs25_salt_tank
 import RelCertifier.InstancesV2.BenchCovers.platoon_latency
@@ -74,7 +73,6 @@ def coverTableV2 : List (String × CoverEmitE) := [
   ("lit_drl_lane_control", lit_drl_lane_control_coverV2),
   ("lit_freedm_meter", lit_freedm_meter_coverV2),
   ("lit_girard08_robot", lit_girard08_robot_coverV2),
-  ("lit_hypercert_vehicle", lit_hypercert_vehicle_coverV2),
   ("lit_lz21_vehicle_position", lit_lz21_vehicle_position_coverV2),
   ("lit_nahs25_salt_tank", lit_nahs25_salt_tank_coverV2),
   ("platoon_latency", platoon_latency_coverV2),

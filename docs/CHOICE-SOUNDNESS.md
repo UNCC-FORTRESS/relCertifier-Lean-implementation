@@ -173,6 +173,6 @@ now removed; since then it has no reposition node and its own `InstancesV2/WellF
 
 Since 2026-10-15 the choice is the tool's default (`RELCERT_NO_CHOICE=1` disables it): the 46
 original suite covers are byte-identical with it on or off, and four suite benchmarks need it,
-`lit_hypercert_vehicle` (moved from the exhibits), the two dRL refinement benchmarks
+`lit_hypercert_vehicle` (moved from the exhibits; skipped 2026-10-28, `benchmarks/skipped/`), the two dRL refinement benchmarks
 `lit_drl_car_stop`, `lit_drl_lane_control`, whose witness hops into the left's mode at every window, and
 `lit_freedm_meter`, whose witness hops into the left's mode or a zero-net grid mode.

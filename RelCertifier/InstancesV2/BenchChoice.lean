@@ -22,7 +22,6 @@ import RelCertifier.InstancesV2.BenchChoice.lit_drl_car_stop
 import RelCertifier.InstancesV2.BenchChoice.lit_drl_lane_control
 import RelCertifier.InstancesV2.BenchChoice.lit_freedm_meter
 import RelCertifier.InstancesV2.BenchChoice.lit_girard08_robot
-import RelCertifier.InstancesV2.BenchChoice.lit_hypercert_vehicle
 import RelCertifier.InstancesV2.BenchChoice.lit_lz21_vehicle_position
 import RelCertifier.InstancesV2.BenchChoice.lit_nahs25_salt_tank
 import RelCertifier.InstancesV2.BenchChoice.platoon_latency
@@ -76,7 +75,6 @@ def choiceTableV2 : List (String × ChoiceEmitE) := [
   ("lit_drl_lane_control", lit_drl_lane_control_coverV2_choice),
   ("lit_freedm_meter", lit_freedm_meter_coverV2_choice),
   ("lit_girard08_robot", lit_girard08_robot_coverV2_choice),
-  ("lit_hypercert_vehicle", lit_hypercert_vehicle_coverV2_choice),
   ("lit_lz21_vehicle_position", lit_lz21_vehicle_position_coverV2_choice),
   ("lit_nahs25_salt_tank", lit_nahs25_salt_tank_coverV2_choice),
   ("platoon_latency", platoon_latency_coverV2_choice),

@@ -20,13 +20,14 @@ mode `q`, `ε = epsR` (the file's `epsilon`, read as the tool reads it). A model
 independent of the relational invariant and of every Theorem 3 (none takes it as a
 hypothesis); this battery is a separate audit.
 
-**Results (all 50 benchmarks; declared counts `wfDeclared`, kernel-checked against the
+**Results (all 49 benchmarks; declared counts `wfDeclared`, kernel-checked against the
 suite's IR table by `wf_coverage`).**
 
-* **Proved, 47** (`<bench>_wellFormedR`): every mode (`watertank_twospeed` added 2026-10-11;
-  the literature benchmarks `lit_drl_car_stop`, `lit_drl_lane_control`, `lit_hypercert_vehicle` and
-  `lit_freedm_meter` added 2026-10-15, three of them proved directly over the bridge's automaton,
-  `_wellFormedR_direct`; the literature case studies of batch I8, 2026-10-27, `lit_csf21_vehicle_thermo`,
+* **Proved, 46** (`<bench>_wellFormedR`): every mode (`watertank_twospeed` added 2026-10-11;
+  the literature benchmarks `lit_drl_car_stop`, `lit_drl_lane_control` and
+  `lit_freedm_meter` added 2026-10-15, proved directly over the bridge's automaton,
+  `_wellFormedR_direct`; `lit_hypercert_vehicle`, added with them, left the suite on 2026-10-28,
+  `benchmarks/skipped/`; the literature case studies of batch I8, 2026-10-27, `lit_csf21_vehicle_thermo`,
   `lit_csf21_vehicle_bus`, `lit_lz21_vehicle_position`, `lit_girard08_robot` and `lit_nahs25_salt_tank`, also direct). Z3-free (no verdict leaf). None of the nine models repaired on
   2026-10-10 (`docs/SUITE-REDESIGN.md` §21; until then refuted here with exhibited blocking
   states, declared counts `(30, 9, 6)`) is in the suite in its repaired form any more:
@@ -58,7 +59,6 @@ import RelCertifier.InstancesV2.BenchIR
 import RelCertifier.InstancesV2.WellFormed.LitDrlCarStop
 import RelCertifier.InstancesV2.WellFormed.LitDrlLaneControl
 import RelCertifier.InstancesV2.WellFormed.LitFreedmMeter
-import RelCertifier.InstancesV2.WellFormed.LitHypercertVehicle
 import RelCertifier.InstancesV2.WellFormed.LitLz21VehiclePosition
 import RelCertifier.InstancesV2.WellFormed.LitGirard08Robot
 import RelCertifier.InstancesV2.WellFormed.LitNahs25SaltTank
@@ -125,7 +125,7 @@ def wfProved : List String :=
    "hydro_rejection_gatecal", "ventilator_vc_cuffleak", "tank_dos_3to1", "tunnel_jetfan_pairout", "grid_ffr_dos",
    "bottling_fill_strainer",
    "lit_drl_car_stop", "lit_drl_lane_control",
-   "lit_hypercert_vehicle", "lit_freedm_meter",
+   "lit_freedm_meter",
    "lit_lz21_vehicle_position",
    "lit_girard08_robot",
    "lit_nahs25_salt_tank",
@@ -182,7 +182,7 @@ swaps of batches I9 to I11 (2026-10-28; batch I11: `platoon_latency`, its round-
 shared CACC/AEB run lemmas, `h2_refuel_ambientbias`, six 1-D contractions as `engine_start_highidle`,
 and `reactor_feed_wireless`, four exponential runs at dimension 2 as `fuelcell_chp_dos`, for
 `antenna_track_kvretune`, `molding_pack_checkring` and `compressor_station_recycle`). -/
-def wfDeclared : ℕ × ℕ × ℕ := (47, 0, 3)
+def wfDeclared : ℕ × ℕ × ℕ := (46, 0, 3)
 
 /-- The suite's benchmark names, in the order of the IR table. -/
 def suiteNames : List String :=
@@ -192,7 +192,7 @@ def suiteNames : List String :=
    "furnace_program_timebase", "gantry_speed_zones", "grid_ffr_dos", "h2_refuel_ambientbias",
    "hydro_rejection_gatecal", "lit_csf21_vehicle_bus", "lit_csf21_vehicle_thermo",
    "lit_drl_car_stop", "lit_drl_lane_control", "lit_freedm_meter", "lit_girard08_robot",
-   "lit_hypercert_vehicle", "lit_lz21_vehicle_position", "lit_nahs25_salt_tank",
+   "lit_lz21_vehicle_position", "lit_nahs25_salt_tank",
    "platoon_latency", "platoon_linkloss", "platoon_profiles", "quad_light_lag",
    "quad_light_profiles", "reactor_feed_wireless", "rover_ladder_2to3", "rover_ladder_3to6",
    "rover_ladder_6to8", "rover_ladder_8to12", "rover_patrol_lag", "rover_terrain_2to4",
@@ -214,12 +214,11 @@ theorem wf_coverage :
 
 end WellFormedBattery
 
-/-! ## Proved (47 outside the detumble family, with the next section): Assumption 1 at every mode -/
+/-! ## Proved (46 outside the detumble family, with the next section): Assumption 1 at every mode -/
 
 #print axioms V2LitDrlCarStop.lit_drl_car_stop_wellFormedR_direct
 #print axioms V2LitDrlLaneControl.lit_drl_lane_control_wellFormedR_direct
 #print axioms V2LitFreedmMeter.lit_freedm_meter_wellFormedR_direct
-#print axioms V2LitHypercertVehicle.lit_hypercert_vehicle_wellFormedR
 #print axioms V2LitLz21VehiclePosition.lit_lz21_vehicle_position_wellFormedR_direct
 #print axioms V2LitGirard08Robot.lit_girard08_robot_wellFormedR_direct
 #print axioms V2LitNahs25SaltTank.lit_nahs25_salt_tank_wellFormedR_direct

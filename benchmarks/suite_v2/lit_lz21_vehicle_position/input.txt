@@ -1,6 +1,6 @@
 # lit_lz21_vehicle_position: approximate initial-state opacity of a vehicle whose POSITION an intruder
 # observes with precision 1 m (the vehicle example of verifying approximate opacity via barrier
-# certificates; the origin of the vehicle that lit_hypercert_vehicle takes from HyperCertificates).
+# certificates).
 # scenario: opacity
 # mechanisms: X (committed successor subsets: the partner run copies the secret run's
 #   acceleration at the start of every window)
@@ -15,8 +15,9 @@
 # augmented control barrier certificate with the partner policy
 # u_hat = 0.8 x1 - 0.8 x2 + 1.5 x1_hat - 1.5 x2_hat + u. Property (delta-approximate initial-state
 # opacity): for every run from a secret initial state there is a run from a non-secret initial
-# state whose outputs stay within delta forever. The same vehicle with the velocity observed is the
-# source of lit_hypercert_vehicle (HyperCertificates, Sec. 9.2) and of Anand et al. (TAC 2024, Sec. 5.1).
+# state whose outputs stay within delta forever. The same vehicle with the velocity observed is
+# the example of HyperCertificates (Sec. 9.2; its claim is false as formalized, so that benchmark
+# is skipped, benchmarks/skipped/lit_hypercert_vehicle) and of Anand et al. (TAC 2024, Sec. 5.1).
 #
 # THIS FILE. Both sides the vehicle, state (x, v) in m and m/s, in continuous time: x' = v, v' = u
 # held for the 1 s period (epsilon 1 on both sides; the source's step is the exact 1 s sampling of

@@ -60,10 +60,11 @@ def choiceV2 (b : String) : ChoiceEmitE :=
 
 /-- The dimensions of the benchmarks whose Assumption 1 lemma comes from a hand-written general
 exhibit (`InstancesV2/Choice/General/`): the dimension at which the exhibit proves Assumption 1.
-None since 2026-10-27: `lit_hypercert_vehicle` (with the position coordinate) has its own
+None since 2026-10-27: `lit_hypercert_vehicle` (with the position coordinate) had its own
 `InstancesV2/WellFormed/LitHypercertVehicle.lean` at the padded fallback dimension 3 (bridge
 dimension 4; it was 2, bridge 3, while its Assumption 1 came from the general exhibit at
-`Var 2`, git history 61d7389). -/
+`Var 2`, git history 61d7389); that benchmark left the suite on 2026-10-28
+(`benchmarks/skipped/`). -/
 def generalDimsV2 : List (String × ℕ) := []
 
 /-- The bridge dimension of a benchmark: the dimension of its Assumption 1 lemma (the pack
@@ -77,7 +78,7 @@ def bridgeDimV2 (b : String) : ℕ :=
     (((generalDimsV2.find? (·.1 == b)).map (·.2)).getD (max (irV2 b).L.stateVars.length 3)) + 1
 
 /-- Declared: the number of query groups over the suite. -/
-def expectedBridgeGroupsV2 : Nat := 4874
+def expectedBridgeGroupsV2 : Nat := 4797
 
 /-- The suite's records. -/
 def suiteRecV2 (b : String) : BridgeRec :=

@@ -20,7 +20,6 @@ import RelCertifier.InstancesV2.Cuts.lit_drl_car_stop
 import RelCertifier.InstancesV2.Cuts.lit_drl_lane_control
 import RelCertifier.InstancesV2.Cuts.lit_freedm_meter
 import RelCertifier.InstancesV2.Cuts.lit_girard08_robot
-import RelCertifier.InstancesV2.Cuts.lit_hypercert_vehicle
 import RelCertifier.InstancesV2.Cuts.lit_lz21_vehicle_position
 import RelCertifier.InstancesV2.Cuts.lit_nahs25_salt_tank
 import RelCertifier.InstancesV2.Cuts.platoon_latency
@@ -74,7 +73,6 @@ def cutTableV2 : List (String × EvolStrengthening × EvolStrengtheningX) := [
   ("lit_drl_lane_control", lit_drl_lane_control_cutsV2, lit_drl_lane_control_cutsV2X),
   ("lit_freedm_meter", lit_freedm_meter_cutsV2, lit_freedm_meter_cutsV2X),
   ("lit_girard08_robot", lit_girard08_robot_cutsV2, lit_girard08_robot_cutsV2X),
-  ("lit_hypercert_vehicle", lit_hypercert_vehicle_cutsV2, lit_hypercert_vehicle_cutsV2X),
   ("lit_lz21_vehicle_position", lit_lz21_vehicle_position_cutsV2, lit_lz21_vehicle_position_cutsV2X),
   ("lit_nahs25_salt_tank", lit_nahs25_salt_tank_cutsV2, lit_nahs25_salt_tank_cutsV2X),
   ("platoon_latency", platoon_latency_cutsV2, platoon_latency_cutsV2X),

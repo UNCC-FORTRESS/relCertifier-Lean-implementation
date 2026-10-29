@@ -108,8 +108,9 @@ gate, 3657/3657 over 46 + 3).
   `progressVerd_one_down`; a two-stage certificate must be upward in both stages, `certOK`); the
   velocity-only `lit_hypercert_vehicle` used it (a reposition node `A0` crossing its threshold
   downward), and since its redesign with the position coordinate (2026-10-27) no suite cover
-  has a reposition node there and no record uses the downward form. Its generated instance
-  transports Assumption 1 from its own `InstancesV2/WellFormed/LitHypercertVehicle.lean`
+  has a reposition node there and no record uses the downward form. (`lit_hypercert_vehicle` left the
+  suite on 2026-10-28, `benchmarks/skipped/`; its instance and proof went with it.) Its generated instance
+  transported Assumption 1 from its own `InstancesV2/WellFormed/LitHypercertVehicle.lean`
   (`V2LitHypercertVehicle.lit_hypercert_vehicle_wellFormedR`, dimension 3, bridge dimension 4; until
   2026-10-27 from the hand-written general instance `ChoiceLitHypercertVehicle.wellFormedR` at
   dimension 2, whose Theorem-3 part was retired on 2026-10-21, git 61d7389).

@@ -1,5 +1,7 @@
 # Status (2026-10-22, branch `cleanup-2026-10`)
 
+**2026-10-28, branch `benchmark-fixes`.** `lit_hypercert_vehicle` left the suite (`benchmarks/skipped/`, `SKIPPED.md`: the source's claim is false as formalized, and the file certified a different system); the suite is 49 (41 designed, 8 from the literature). Statements below that say 50, nine or four literature benchmarks predate this; the self-contained exhibit `negative_wellformed/lit_hypercert_vehicle_s8` stays.
+
 **The artifact.** `benchmarks/suite_v2` (50 benchmarks: 46 designed for the paper and four from the literature, 2026-10-15), the tool `relcert`, the generic
 soundness development (`RelCertifier/Core`, `Checker`, `Proofs`, `Trusted`), the generic-bridge
 instances (`RelCertifier/InstancesV2/Bridge/`, Theorem 3 of every benchmark from its emitted

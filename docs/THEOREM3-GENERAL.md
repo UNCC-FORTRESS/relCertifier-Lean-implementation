@@ -103,7 +103,7 @@ the generated bridge instances (§5, `docs/WELLFORMED.md` §6).
 
 | benchmark | windows | cover | discharged here |
 |---|---|---|---|
-| `lit_hypercert_vehicle` | 5, `dt ≤ 1` | hop into the left's mode, then base | hop certificate by arithmetic; Assumption 1 (`odeSol_constRight`); 5 packs |
+| `lit_hypercert_vehicle` (skipped 2026-10-28) | 5, `dt ≤ 1` | hop into the left's mode, then base | hop certificate by arithmetic; Assumption 1 (`odeSol_constRight`); 5 packs |
 | `vehicle_accel_copy` | 3, `dt ≤ 1` | the same | hop certificate (`guardR_of_guardL`); 3 packs |
 | `watertank_choice` | 3, `dt ≤ 1` | `Low` at the per-pairing stretches (δ = 2/7, B = 4), all-successors with `Low → PumpOff` pruned; `Mid` from `MidEco` by a hop into `MidBoost`; decided by `decideCoveredX` in the kernel | Definition 6 for the pruned edge by arithmetic; hop certificate; Assumption 1 with the economy set point; 7 packs |
 | `watertank` (suite) | 3, `dt ≤ 1` | the tool's emitted cover: `Low` and `Mid` at stretch 2 (δ = 1/2, B = 2), all-successors with `Low → PumpOff` pruned; no choice; decided in the kernel | Definition 6 by arithmetic; Assumption 1 transported from the suite's lemma; the suite's 7 packs plus `Low/High` at 2 (see below) |
@@ -141,7 +141,7 @@ right evolve domain).
 
 The tool emits its choice covers (`RELCERT_CHOICE_OUT`, `Trusted/ChoiceEmit.lean`) and the
 bridge replays them (`Emitted/Choice.lean`): `vehicle_accel_copy` and `watertank_choice` are
-generated bridge instances, and so is `lit_hypercert_vehicle`. `repoProgress_one_down`, the mirror of
+generated bridge instances, and so was `lit_hypercert_vehicle` (skipped 2026-10-28, `benchmarks/skipped/`). `repoProgress_one_down`, the mirror of
 `repoProgress_one` for a single downward stage, was used by the velocity-only `lit_hypercert_vehicle`
 (its reposition node's stage crossed its threshold downward); since that benchmark's redesign with
 the position coordinate (2026-10-27) no suite record uses the downward form, and its Assumption 1

@@ -2,8 +2,8 @@
 
 `suite_v2/<name>/input.txt` is the complete specification of one benchmark: the left
 (ideal) and right (implementation) hybrid automata, the relational invariant (one row per
-left mode) and the time-stretch range. **50 benchmarks.** With the widened cut channel on
-(`RELCERT_IMPLIED_CUT=1`, as every suite_v2 run sets it) the tool CERTIFIES all 50, and
+left mode) and the time-stretch range. **49 benchmarks.** With the widened cut channel on
+(`RELCERT_IMPLIED_CUT=1`, as every suite_v2 run sets it) the tool CERTIFIES all 49, and
 every one carries a kernel-checked Theorem 3 (the paper's Soundness of Synthesis) with the paper's left program over the
 guard-gated right automaton, at the mode-consistent region (`RelCertifier/InstancesV2/Bridge/`;
 check recipe: `docs/CERTIFICATION-CHECK.md`). Without the widened channel 3 of them
@@ -13,7 +13,7 @@ outside the suite in `benchmarks/reserve/` (inputs, headers and verdicts only; `
 **Assumption 1 of each right model** (the paper's Well-Formedness: from every guard state a
 full control interval of flow exists, and every evolution of at most `ε_r` ends in a declared
 successor's guard) is verified per file (`WellFormedR`, `docs/WELLFORMED.md`): it holds for
-all 50 literally (the 3 satellite files carry their conserved momentum band in the right evolve
+all 49 literally (the 3 satellite files carry their conserved momentum band in the right evolve
 domain since 2026-10-15).
 Nine files had a blocking mode until 2026-10-10 and were repaired (`docs/SUITE-REDESIGN.md`
 §21; each header says how and why; `arm_plateau_{crit,profiles,slow}` and
@@ -36,6 +36,21 @@ needs, read off counter-runs; `scripts/suite_v2_matrix.py`) are in
 `docs/SUITE-REDESIGN.md`. Each file written for this suite states in its header the
 physical story, the units, the measured cover and the mechanisms it exercises
 (`# scenario:` and `# mechanisms:` lines).
+
+## Skipped 2026-10-28: `lit_hypercert_vehicle`
+
+`lit_hypercert_vehicle` left the suite (50 -> 49; literature 9 -> 8) for `benchmarks/skipped/`
+(input unchanged, `SKIPPED.md` with the reason, no Lean integration): the source's claim is false as
+formalized (under the source's own run semantics on X = [0, 8] x [0, 0.6] the secret run that cruises
+5 steps and brakes 15 rests at s = 7.5, and every velocity-close partner starts inside the secret set),
+and what the file certified was a claim about a different system (the position bound dropped), not a
+weakening of the source's. Rule: a literature example whose source claim is false as formalized is
+skipped, not repaired. Its copy-witness content lives on in `lit_lz21_vehicle_position`. Removed with
+it: its generated leaves and bridge instance, its Assumption 1 proof (`WellFormed/LitHypercertVehicle`)
+and its 16 witness-less finder records; the self-contained exhibit
+`negative_wellformed/lit_hypercert_vehicle_s8` stays. Counts: handoff 528 -> 503, strict gate
+184 -> 179 right modes (87 invariant, 92 exit), bridge groups 4874 -> 4797 (its 77), battery 66 -> 65
+axiom lines.
 
 ## Literature faithfulness fixes (2026-10-28)
 
@@ -611,7 +626,6 @@ existential mode choice: the right commits to the left's mode; DECLINES with
 | `train_ato_odometry` | 1 / 1 | 3 / 3 | degraded-sensor | new 2026-10-27: stretches per pairing from 31/40 to 6/5 (`lambda_min = 0.75`) |
 | `tunnel_jetfan_pairout` | 3 / 3 | 2 / 2 | degraded-actuator | new 2026-10-27 (batch I6): mode-keyed (the CO row dropped in fire mode), load-bearing mode fact |
 | `turbine_startup_gearratio` | 1 / 1 | 4 / 4 | degraded-controller | new 2026-10-27: widened cuts; right-only repositioning, pruned parking edges (the letters R P I come from the one-sided claim form, header); lambda pinned to 1 (batch I6) |
-| `lit_hypercert_vehicle` | 2 / 2 | 5 / 5 | opacity | literature (HyperCertificates), mode choice; position coordinate and start-offset row (2026-10-27) |
 | `ventilator_vc_cuffleak` | 2 / 2 | 2 / 2 | degraded-actuator | new 2026-10-27 (batch I5): mode-keyed (a relative volume row in inspiration, an absolute band in expiration) |
 | `watertank` | 1 / 1 | 3 / 5 | sensor-attack | the paper's running example (the NAHS 2025 salt-tank case, `lit_nahs25_salt_tank`, is a related published scenario with the same attack magnitude and band of 3, not its source) |
 | `watertank_twospeed` | 1 / 1 | 3 / 6 | sensor-attack | redesigned 2026-10-27: six right modes (two-speed low fill, eco/boost mid fill, high, pump off), one uniform claim; per-pairing stretch, pruned `Fast -> PumpOff` |
@@ -704,7 +718,8 @@ which the source's lock-step equivalence also rules out. The check
 
 ## Assumption 1 negative exhibit (`benchmarks/negative_wellformed/`)
 
-`lit_hypercert_vehicle_s8`: `lit_hypercert_vehicle` with the position bound `s ≤ 8` in every evolve
+`lit_hypercert_vehicle_s8`: `lit_hypercert_vehicle` (in `benchmarks/skipped/` since 2026-10-28; the
+exhibit is self-contained) with the position bound `s ≤ 8` in every evolve
 domain (a round-2 design variant). The certifier CERTIFIES it (the relational invariant does
 not see the bound), but its right model can block: every right guard admits `s = 8` with
 `v > 0`, where the flow leaves the domain at once, so no evolution spans the control interval

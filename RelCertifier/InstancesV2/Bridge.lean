@@ -20,7 +20,6 @@ import RelCertifier.InstancesV2.Bridge.LitDrlCarStop
 import RelCertifier.InstancesV2.Bridge.LitDrlLaneControl
 import RelCertifier.InstancesV2.Bridge.LitFreedmMeter
 import RelCertifier.InstancesV2.Bridge.LitGirard08Robot
-import RelCertifier.InstancesV2.Bridge.LitHypercertVehicle
 import RelCertifier.InstancesV2.Bridge.LitLz21VehiclePosition
 import RelCertifier.InstancesV2.Bridge.LitNahs25SaltTank
 import RelCertifier.InstancesV2.Bridge.PlatoonLatency

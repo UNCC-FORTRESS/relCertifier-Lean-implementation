@@ -29,7 +29,6 @@ import RelCertifier.InstancesV2.BenchIR.lit_drl_car_stop
 import RelCertifier.InstancesV2.BenchIR.lit_drl_lane_control
 import RelCertifier.InstancesV2.BenchIR.lit_freedm_meter
 import RelCertifier.InstancesV2.BenchIR.lit_girard08_robot
-import RelCertifier.InstancesV2.BenchIR.lit_hypercert_vehicle
 import RelCertifier.InstancesV2.BenchIR.lit_lz21_vehicle_position
 import RelCertifier.InstancesV2.BenchIR.lit_nahs25_salt_tank
 import RelCertifier.InstancesV2.BenchIR.platoon_latency
@@ -83,7 +82,6 @@ def benchIRTableV2 : List (String × PProblem) := [
   ("lit_drl_lane_control", lit_drl_lane_control_IRv2),
   ("lit_freedm_meter", lit_freedm_meter_IRv2),
   ("lit_girard08_robot", lit_girard08_robot_IRv2),
-  ("lit_hypercert_vehicle", lit_hypercert_vehicle_IRv2),
   ("lit_lz21_vehicle_position", lit_lz21_vehicle_position_IRv2),
   ("lit_nahs25_salt_tank", lit_nahs25_salt_tank_IRv2),
   ("platoon_latency", platoon_latency_IRv2),
